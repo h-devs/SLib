@@ -664,11 +664,12 @@ namespace slib
 
 	sl_bool ScreenCapture::isEnabled()
 	{
+#ifdef __MAC_10_15
 		if (@available(macOS 10.15, *)) {
 			return CGPreflightScreenCaptureAccess();
-		} else {
-			return sl_true;
 		}
+#endif
+		return sl_true;
 	}
 
 	void ScreenCapture::openSystemPreferences()

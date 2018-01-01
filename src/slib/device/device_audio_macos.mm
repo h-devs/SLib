@@ -41,7 +41,11 @@ namespace slib
 			AudioObjectPropertyAddress address;
 			address.mSelector = selector;
 			address.mScope = kAudioObjectPropertyScopeGlobal;
+#ifdef __MAC_13_0
 			address.mElement = kAudioObjectPropertyElementMain;
+#else
+			address.mElement = kAudioObjectPropertyElementMaster;
+#endif
 			if (!(AudioObjectHasProperty(kAudioObjectSystemObject, &address))) {
 				return kAudioObjectUnknown;
 			}
@@ -70,9 +74,14 @@ namespace slib
 				return 0;
 			}
 			AudioObjectPropertyAddress address;
-			address.mSelector = kAudioHardwareServiceDeviceProperty_VirtualMainVolume;
 			address.mScope = scope;
+#ifdef __MAC_13_0
+			address.mSelector = kAudioHardwareServiceDeviceProperty_VirtualMainVolume;
 			address.mElement = kAudioObjectPropertyElementMain;
+#else
+			address.mSelector = kAudioHardwareServiceDeviceProperty_VirtualMasterVolume;
+			address.mElement = kAudioObjectPropertyElementMaster;
+#endif
 			if (!(AudioObjectHasProperty(deviceID, &address))) {
 				return 0;
 			}
@@ -91,9 +100,14 @@ namespace slib
 				return;
 			}
 			AudioObjectPropertyAddress address;
-			address.mSelector = kAudioHardwareServiceDeviceProperty_VirtualMainVolume;
 			address.mScope = scope;
+#ifdef __MAC_13_0
+			address.mSelector = kAudioHardwareServiceDeviceProperty_VirtualMainVolume;
 			address.mElement = kAudioObjectPropertyElementMain;
+#else
+			address.mSelector = kAudioHardwareServiceDeviceProperty_VirtualMasterVolume;
+			address.mElement = kAudioObjectPropertyElementMaster;
+#endif
 			if (!(AudioObjectHasProperty(deviceID, &address))) {
 				return;
 			}
@@ -110,7 +124,11 @@ namespace slib
 			AudioObjectPropertyAddress address;
 			address.mSelector = kAudioDevicePropertyMute;
 			address.mScope = scope;
+#ifdef __MAC_13_0
 			address.mElement = kAudioObjectPropertyElementMain;
+#else
+			address.mElement = kAudioObjectPropertyElementMaster;
+#endif
 			if (!(AudioObjectHasProperty(deviceID, &address))) {
 				return sl_false;
 			}
@@ -131,7 +149,11 @@ namespace slib
 			AudioObjectPropertyAddress address;
 			address.mSelector = kAudioDevicePropertyMute;
 			address.mScope = scope;
+#ifdef __MAC_13_0
 			address.mElement = kAudioObjectPropertyElementMain;
+#else
+			address.mElement = kAudioObjectPropertyElementMaster;
+#endif
 			if (!(AudioObjectHasProperty(deviceID, &address))) {
 				return;
 			}
@@ -194,7 +216,11 @@ namespace slib
 		AudioObjectPropertyAddress address;
 		address.mSelector = kAudioHardwarePropertyDevices;
 		address.mScope = kAudioObjectPropertyScopeGlobal;
+#ifdef __MAC_13_0
 		address.mElement = kAudioObjectPropertyElementMain;
+#else
+		address.mElement = kAudioObjectPropertyElementMaster;
+#endif
 		UInt32 nDataSize = 0;
 		AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &address, 0, nil, &nDataSize);
 		sl_uint32 nDevices = nDataSize / sizeof(AudioDeviceID);

@@ -54,7 +54,16 @@ namespace slib
 				System::setCurrentDirectory(param.currentDirectory);
 			}
 			if (param.flags & ProcessFlags::ResetEnvironment) {
+#if defined(SLIB_PLATFORM_IS_APPLE)
+				HashMap<String, String> env = System::getEnvironmentVariables();
+				auto node = env.getFirstNode();
+				while (node) {
+					unsetenv(node->key.getData());
+					node = node->next;
+				}
+#else
 				clearenv();
+#endif
 			}
 			if (param.environment.isNotNull()) {
 				HashMapNode<String, String>* node = param.environment.getFirstNode();
@@ -295,7 +304,6 @@ namespace slib
 		return Ref<Process>::cast(ProcessImpl::create(param));
 	}
 
-#if !defined(SLIB_PLATFORM_IS_MACOS)
 	Ref<Process> Process::run(const ProcessParam& param)
 	{
 		pid_t pid = fork();
@@ -303,16 +311,18 @@ namespace slib
 			// Child process
 			// Daemonize
 			setsid();
-			close(0);
-			close(1);
-			close(2);
-			int handle = ::open("/dev/null", O_RDWR);
-			if (handle >= 0) {
-				if (handle) {
-					dup2(handle, 0);
+			if (!(param.flags & ProcessFlags::InheritConsole)) {
+				close(0);
+				close(1);
+				close(2);
+				int handle = ::open("/dev/null", O_RDWR);
+				if (handle >= 0) {
+					if (handle) {
+						dup2(handle, 0);
+					}
+					dup2(handle, 1);
+					dup2(handle, 2);
 				}
-				dup2(handle, 1);
-				dup2(handle, 2);
 			}
 			signal(SIGHUP, SIG_IGN);
 			Exec(param);
@@ -327,6 +337,7 @@ namespace slib
 		return sl_null;
 	}
 
+#if !defined(SLIB_PLATFORM_IS_MACOS)
 	void Process::runAsAdmin(const ProcessParam& input)
 	{
 #if !defined(SLIB_PLATFORM_IS_MOBILE)

@@ -82,15 +82,17 @@ namespace slib
 
 		static void SetBundleLoginItemEnabled(sl_bool flagEnabled)
 		{
+#ifdef __MAC_13_0
 			if (@available(macos 13.0, *)) {
 				if (flagEnabled) {
 					[[SMAppService mainAppService] registerAndReturnError:nil];
 				} else {
 					[[SMAppService mainAppService] unregisterAndReturnError:nil];
 				}
-			} else {
-				SetBundleLoginItemEnabled(System::getMainBundlePath(), flagEnabled);
+				return;
 			}
+#endif
+			SetBundleLoginItemEnabled(System::getMainBundlePath(), flagEnabled);
 		}
 	}
 

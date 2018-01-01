@@ -27,7 +27,7 @@
 #include "slib/system/system.h"
 
 #include "slib/io/file.h"
-#include "slib/core/list.h"
+#include "slib/core/hash_map.h"
 #include "slib/core/safe_static.h"
 #include "slib/platform.h"
 
@@ -41,8 +41,8 @@ namespace slib
 
 	namespace
 	{
-
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_systemVersion);
+
 		static sl_uint32 g_systemVersionMajor = 0;
 		static sl_uint32 g_systemVersionMinor = 0;
 		static sl_uint32 g_systemVersionPatch = 0;
@@ -96,7 +96,6 @@ namespace slib
 				g_flagInitSystemVersion = sl_false;
 			}
 		}
-
 	}
 
 	String System::getApplicationPath()
@@ -296,6 +295,25 @@ namespace slib
 	double System::getUptimeF()
 	{
 		return (double)(clock_gettime_nsec_np(CLOCK_UPTIME_RAW_APPROX)) / 1000000000.0;
+	}
+
+	HashMap<String, String> System::getEnvironmentVariables()
+	{
+		NSDictionary* dict = [[NSProcessInfo processInfo] environment];
+		if (dict != nil) {
+			HashMap<String, String> ret;
+			ret.initialize();
+			CHashMap<String, String>* cmap = ret.ref.get();
+			if (cmap) {
+				[dict enumerateKeysAndObjectsUsingBlock:^(id _key, id _value, BOOL *stop) {
+					String key = Apple::getStringFromNSString((NSString*)_key);
+					String value = Apple::getStringFromNSString((NSString*)_value);
+					cmap->add_NoLock(key, value);
+				}];
+			}
+			return ret;
+		}
+		return sl_null;
 	}
 
 }

@@ -26,7 +26,6 @@
 
 #include "slib/system/process.h"
 
-#include "slib/core/app.h"
 #include "slib/core/string_buffer.h"
 #include "slib/platform.h"
 
@@ -35,8 +34,9 @@
 
 namespace slib
 {
-	namespace {
 
+	namespace
+	{
 		static id g_activityDisableAppNap;
 
 		static String FixArgument(const StringParam& arg)
@@ -57,60 +57,19 @@ namespace slib
 		static String BuildCommand(const ProcessParam& param)
 		{
 			StringBuffer commandLine;
-			commandLine.add(FixArgument(pathExecutable.toString()));
-			if (nArguments > 0) {
+			commandLine.add(FixArgument(param.executable.toString()));
+			ListElements<StringParam> arguments(param.arguments);
+			if (arguments.count > 0) {
 				commandLine.addStatic(" ");
 			}
-			for (sl_size i = 0; i < nArguments; i++) {
+			for (sl_size i = 0; i < arguments.count; i++) {
 				if (i > 0) {
 					commandLine.addStatic(" ");
 				}
-				commandLine.add(FixArgument(arguments[i]));
+				commandLine.add(FixArgument(arguments[i].toString()));
 			}
 			return commandLine.merge();
 		}
-
-		class TaskProcessImpl : public Process
-		{
-		public:
-			NSTask* m_task;
-
-		public:
-			void terminate() override
-			{
-				[m_task terminate];
-				m_status = ProcessStatus::Terminated;
-			}
-
-			void kill() override
-			{
-				terminate();
-			}
-
-			void wait() override
-			{
-				[m_task waitUntilExit];
-				int status = [m_task terminationStatus];
-				if (!status) {
-					m_status = ProcessStatus::Exited;
-				} else {
-					m_status = ProcessStatus::Unknown;
-				}
-
-			}
-
-			sl_bool isAlive() override
-			{
-				return [m_task isRunning];
-			}
-
-			IStream* getStream() override
-			{
-				return sl_null;
-			}
-
-		};
-
 	}
 
 	List<sl_uint32> Process::getAllProcessIds()
@@ -162,33 +121,6 @@ namespace slib
 	sl_bool Process::is32BitProcess(sl_uint32 processId)
 	{
 		return sl_false;
-	}
-
-	Ref<Process> Process::run(const ProcessParam& param)
-	{
-		@try {
-			param.prepareArgumentList();
-			NSMutableArray* arguments = [NSMutableArray array];
-			{
-				ListElements<StringParam> list(param.arguments);
-				for (sl_size i = 0; i < list.count; i++) {
-					[arguments addObject:(Apple::getNSStringFromString(list[i]))];
-				}
-			}
-			NSTask* task = [NSTask launchedTaskWithLaunchPath:(Apple::getNSStringFromString(param.executable)) arguments:arguments];
-			if (task != nil) {
-				Ref<TaskProcessImpl> ret = new TaskProcessImpl;
-				if (ret.isNotNull()) {
-					ret->m_task = task;
-					return ret;
-				}
-			}
-		} @catch (NSException* e) {
-#ifdef SLIB_DEBUG
-			NSLog(@"Error at run process: %@\n%@", Apple::getNSStringFromString(pathExecutable), e.debugDescription);
-#endif
-		}
-		return sl_null;
 	}
 
 	void Process::runAsAdmin(const ProcessParam& param)

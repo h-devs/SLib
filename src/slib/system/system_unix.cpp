@@ -47,12 +47,12 @@
 #include <sys/utsname.h>
 #include <sys/wait.h>
 
-#ifdef assert
-#undef assert
-#endif
-
 #if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 #	include "slib/dl/linux/rt.h"
+#endif
+
+#ifdef assert
+#undef assert
 #endif
 
 #define PRIV_PATH_MAX 1024
@@ -463,6 +463,7 @@ namespace slib
 		return ret;
 	}
 
+#if !defined(SLIB_PLATFORM_IS_APPLE)
 	HashMap<String, String> System::getEnvironmentVariables()
 	{
 		HashMap<String, String> ret;
@@ -493,6 +494,7 @@ namespace slib
 		}
 		return ret;
 	}
+#endif
 
 	String System::getEnvironmentVariable(const StringParam& _name)
 	{

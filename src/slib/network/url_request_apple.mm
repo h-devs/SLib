@@ -190,7 +190,6 @@ namespace slib
 					NSDictionary* dict = http.allHeaderFields;
 					if (dict != nil && [dict count] > 0) {
 						HttpHeaderMap map;
-
 						map.initialize();
 						auto cmap = map.ref.get();
 						if (cmap) {

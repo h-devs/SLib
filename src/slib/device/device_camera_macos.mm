@@ -28,7 +28,11 @@
 
 #include "slib/core/scoped_buffer.h"
 
+#ifdef __MAC_13_0
 #import <CoreMediaIO/CoreMediaIO.h>
+#else
+#import <CoreMediaIO/CMIOHardware.h>
+#endif
 
 namespace slib
 {
@@ -38,7 +42,11 @@ namespace slib
 		CMIOObjectPropertyAddress address;
 		address.mSelector = kCMIOHardwarePropertyDevices;
 		address.mScope = kCMIOObjectPropertyScopeGlobal;
+#ifdef __MAC_13_0
 		address.mElement = kCMIOObjectPropertyElementMain;
+#else
+		address.mElement = kCMIOObjectPropertyElementMaster;
+#endif
 		UInt32 nDataSize = 0;
 		CMIOObjectGetPropertyDataSize(kCMIOObjectSystemObject, &address, 0, nil, &nDataSize);
 		if (!nDataSize) {

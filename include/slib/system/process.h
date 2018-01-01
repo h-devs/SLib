@@ -47,8 +47,9 @@ namespace slib
 	SLIB_DEFINE_FLAGS(ProcessFlags, {
 		HideWindow = 1,
 		InheritHandles = 2,
-		NoWait = 4, // Used in `runAsAdmin()`
-		ResetEnvironment = 8 // Not supported in `runAsAdmin()`
+		InheritConsole = 4, // Used in `run()`
+		NoWait = 8, // Used in `runAsAdmin()`
+		ResetEnvironment = 0x10 // Not supported in `runAsAdmin()`
 	})
 
 	class SLIB_EXPORT ProcessParam
