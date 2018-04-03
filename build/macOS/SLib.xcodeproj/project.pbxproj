@@ -44,6 +44,7 @@
 		18A341E827357720001F7E4F /* sha3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341E727357720001F7E4F /* sha3.cpp */; };
 		18A341EA2735775E001F7E4F /* smb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341E92735775E001F7E4F /* smb.cpp */; };
 		18A341F0273577DC001F7E4F /* data_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341EF273577DC001F7E4F /* data_store.cpp */; };
+		18F1E61320742FE200A47EE8 /* css.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18F1E61220742FE200A47EE8 /* css.cpp */; };
 		18FF0E0D28444F5900FC8F75 /* freetype_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E0C28444F5900FC8F75 /* freetype_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		18FF0E0F28444FAB00FC8F75 /* sfnt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E0E28444FAB00FC8F75 /* sfnt.cpp */; };
 		18FF0E1128444FDD00FC8F75 /* pdf_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E1028444FDC00FC8F75 /* pdf_view.cpp */; };
@@ -484,6 +485,7 @@
 		18A341E727357720001F7E4F /* sha3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sha3.cpp; sourceTree = "<group>"; };
 		18A341E92735775E001F7E4F /* smb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = smb.cpp; sourceTree = "<group>"; };
 		18A341EF273577DC001F7E4F /* data_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = data_store.cpp; sourceTree = "<group>"; };
+		18F1E61220742FE200A47EE8 /* css.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = css.cpp; sourceTree = "<group>"; };
 		18FF0E0C28444F5900FC8F75 /* freetype_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = freetype_unity.c; path = ../../external/src/freetype/freetype_unity.c; sourceTree = "<group>"; };
 		18FF0E0E28444FAB00FC8F75 /* sfnt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sfnt.cpp; sourceTree = "<group>"; };
 		18FF0E1028444FDC00FC8F75 /* pdf_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pdf_view.cpp; sourceTree = "<group>"; };
@@ -1313,6 +1315,7 @@
 				26C1B63620D513D200E36539 /* canvas_ext.cpp */,
 				26FBDE4E1DA2B3EC00FF1B55 /* canvas_quartz.mm */,
 				266DD4811C1193C400D47AB0 /* color.cpp */,
+				18F1E61220742FE200A47EE8 /* css.cpp */,
 				266DD4821C1193C400D47AB0 /* drawable.cpp */,
 				26C1B63A20D5162100E36539 /* drawable_ext.cpp */,
 				26FBDE541DA2B3F700FF1B55 /* drawable_quartz.mm */,
@@ -1815,6 +1818,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1887E144202CCD1100A81967 /* zstd.cpp in Sources */,
+				18F1E61320742FE200A47EE8 /* css.cpp in Sources */,
 				26D9D98F1E964675005F7BD3 /* video_capture.cpp in Sources */,
 				26D9D9551E964659005F7BD3 /* database_statement.cpp in Sources */,
 				26D9D9AE1E964683005F7BD3 /* render_drawable.cpp in Sources */,

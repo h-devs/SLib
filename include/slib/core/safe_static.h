@@ -81,16 +81,14 @@
 		return &ret; \
 	}
 
-#define SLIB_STATIC_ZERO_INIT_NO_DESTRUCTOR(TYPE, NAME) \
-	SLIB_ALIGN(8) static char _static_safemem_##NAME[sizeof(TYPE)] = {0}; \
-	static TYPE& NAME = *(reinterpret_cast<TYPE*>(_static_safemem_##NAME));
-
 #define SLIB_GLOBAL_ZERO_INITIALIZED(TYPE, NAME) \
-	SLIB_STATIC_ZERO_INIT_NO_DESTRUCTOR(TYPE, NAME) \
+	SLIB_ALIGN(8) static char g_static_safemem_##NAME[sizeof(TYPE)] = {0}; \
+	static TYPE& NAME = *(reinterpret_cast<TYPE*>(g_static_safemem_##NAME)); \
 	PRIV_SLIB_SAFE_GLOBAL_DESTRUCTOR(TYPE, NAME)
 
 #define SLIB_LOCAL_STATIC_ZERO_INITIALIZED(TYPE, NAME) \
-	SLIB_STATIC_ZERO_INIT_NO_DESTRUCTOR(TYPE, NAME) \
+	SLIB_ALIGN(8) static char _static_safemem_##NAME[sizeof(TYPE)] = {0}; \
+	TYPE& NAME = *(reinterpret_cast<TYPE*>(_static_safemem_##NAME)); \
 	PRIV_SLIB_ZERO_LOCAL_STATIC_DESTRUCTOR(NAME)
 
 
