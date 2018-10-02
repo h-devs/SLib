@@ -303,6 +303,10 @@ namespace slib
 
 		static sl_bool writeDeclarationsString(StringBuffer& _out, const CascadingStyleDeclarations& decls, sl_uint32 tabLevel);
 
+		static sl_reg parseStringValue(String* _out, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = 0x1000000);
+		static sl_reg parseStringValue(String* _out, const sl_char16* str, sl_size posBegin = 0, sl_size posEnd = 0x1000000);
+		static sl_reg parseStringValue(String* _out, const sl_char32* str, sl_size posBegin = 0, sl_size posEnd = 0x1000000);
+
 	protected:
 		CascadingStyleStatements m_statements;
 		sl_uint32 m_lastRuleOrder;
