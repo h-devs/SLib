@@ -217,9 +217,9 @@ namespace slib
 
 		String getFirstDescendantElementText(const StringView& uri, const StringView& localName) const;
 
-		Ref<XmlElement> findChildElementByAttribute(const StringView& name, const StringView& value) const;
+		Ref<XmlElement> findElement(const StringView& attributeName, const StringView& attributeValue) const;
 
-		Ref<XmlElement> findChildElementById(const StringView& _id) const;
+		Ref<XmlElement> getElementById(const StringView& _id) const;
 
 	protected:
 		CList< Ref<XmlNode> > m_children;

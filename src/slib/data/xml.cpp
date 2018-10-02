@@ -568,7 +568,7 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<XmlElement> XmlNodeGroup::findChildElementByAttribute(const StringView& attrName, const StringView& attrValue) const
+	Ref<XmlElement> XmlNodeGroup::findElement(const StringView& attrName, const StringView& attrValue) const
 	{
 		ListElements< Ref<XmlNode> > nodes(m_children);
 		for (sl_size i = 0; i < nodes.count; i++) {
@@ -578,7 +578,7 @@ namespace slib
 				if (value == attrValue) {
 					return e;
 				}
-				Ref<XmlElement> found = e->findChildElementByAttribute(attrName, attrValue);
+				Ref<XmlElement> found = e->findElement(attrName, attrValue);
 				if (found.isNotNull()) {
 					return found;
 				}
@@ -587,9 +587,9 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<XmlElement> XmlNodeGroup::findChildElementById(const StringView& id) const
+	Ref<XmlElement> XmlNodeGroup::getElementById(const StringView& id) const
 	{
-		return findChildElementByAttribute(StringView::literal("id"), id);
+		return findElement(StringView::literal("id"), id);
 	}
 
 
