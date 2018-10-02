@@ -108,7 +108,7 @@ namespace slib
 
 		static sl_bool SkipPattern(sl_char8*& s, sl_char8* end, const StringView& pattern)
 		{
-			if (StringView(s, end - s) == pattern) {
+			if (StringView(s, end - s).startsWith(pattern)) {
 				s += pattern.getLength();
 				return sl_true;
 			} else {
@@ -156,11 +156,6 @@ namespace slib
 			return sl_true;
 		}
 
-		SLIB_INLINE static void ParseValue(String&& str, String& _out)
-		{
-			_out = Move(str);
-		}
-
 		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Scalar& _out)
 		{
 			if (!(ParseScalar(s, end, _out))) {
@@ -173,6 +168,16 @@ namespace slib
 				s++;
 				_out *= (Scalar)0.01;
 			}
+			return sl_true;
+		}
+
+		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, String& _out)
+		{
+			sl_reg result = CascadingStyleSheet::parseStringValue(&_out, s, 0, end - s);
+			if (result == SLIB_PARSE_ERROR) {
+				return sl_false;
+			}
+			s += result;
 			return sl_true;
 		}
 
@@ -274,6 +279,29 @@ namespace slib
 			return sl_true;
 		}
 
+		template <class T>
+		static sl_reg ParseFunctionCall(sl_char8*& s, sl_char8* end, T* _out, sl_size count)
+		{
+			SkipWhitespaces(s, end);
+			if (s >= end) {
+				return -1;
+			}
+			if (*s != '(') {
+				return -1;
+			}
+			s++;
+			sl_size n = ParseValues(s, end, _out, count);
+			SkipWhitespaces(s, end);
+			if (s >= end) {
+				return -1;
+			}
+			if (*s != ')') {
+				return -1;
+			}
+			s++;
+			return n;
+		}
+
 		struct ViewBox
 		{
 			Scalar x = 0;
@@ -326,7 +354,8 @@ namespace slib
 
 		enum class PaintType
 		{
-			Solid = 0
+			Color = 0,
+			Url = 1
 		};
 
 		class Paint : public Referable
@@ -336,28 +365,41 @@ namespace slib
 			
 		};
 
-		class SolidPaint : public Paint
+		class ColorPaint : public Paint
 		{
 		public:
 			Color color;
 
 		public:
-			SolidPaint()
+			ColorPaint()
 			{
-				type = PaintType::Solid;
+				type = PaintType::Color;
 			}
 
-			SolidPaint(const Color& _color)
+			ColorPaint(const Color& _color)
 			{
-				type = PaintType::Solid;
+				type = PaintType::Color;
 				color = _color;
 			}
 
 		public:
-			static const Ref<SolidPaint>& black()
+			static const Ref<ColorPaint>& black()
 			{
-				SLIB_SAFE_LOCAL_STATIC(Ref<SolidPaint>, ret, new SolidPaint(Color::Black))
+				SLIB_SAFE_LOCAL_STATIC(Ref<ColorPaint>, ret, new ColorPaint(Color::Black))
 				return ret;
+			}
+
+		};
+
+		class UrlPaint : public Paint
+		{
+		public:
+			String url;
+
+		public:
+			UrlPaint()
+			{
+				type = PaintType::Url;
 			}
 
 		};
@@ -370,11 +412,21 @@ namespace slib
 					_out.setNull();
 					return sl_true;
 				}
-				SolidPaint* ret = new SolidPaint;
+				ColorPaint* ret = new ColorPaint;
 				if (ret) {
 					ret->color = color;
 					_out = ret;
 					return sl_true;
+				}
+			} else if (SkipPattern(s, end, StringView::literal("url"))) {
+				String url;
+				if (ParseFunctionCall(s, end, &url, 1) == 1) {
+					UrlPaint* ret = new UrlPaint;
+					if (ret) {
+						ret->url = url.trim();
+						_out = ret;
+						return sl_true;
+					}
 				}
 			}
 			return sl_false;
@@ -709,28 +761,6 @@ namespace slib
 			return sl_true;
 		}
 
-		static sl_reg ParseFunctionCall(sl_char8*& s, sl_char8* end, Scalar* _out, sl_size count)
-		{
-			SkipWhitespaces(s, end);
-			if (s >= end) {
-				return -1;
-			}
-			if (*s != '(') {
-				return -1;
-			}
-			s++;
-			sl_size n = ParseValues(s, end, _out, count);
-			SkipWhitespaces(s, end);
-			if (s >= end) {
-				return -1;
-			}
-			if (*s != ')') {
-				return -1;
-			}
-			s++;
-			return n;
-		}
-
 		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Matrix3& _out)
 		{
 			_out = Matrix3::identity();
@@ -741,18 +771,26 @@ namespace slib
 					if (ParseFunctionCall(s, end, v, 6) != 6) {
 						return sl_false;
 					}
-					Matrix3 t(v[0], v[2], v[4], v[1], v[3], v[5], 0, 0, (Scalar)1);
+					Matrix3 t(v[0], v[1], 0, v[2], v[3], 0, v[4], v[5], (Scalar)1);
 					_out.multiply(t);
 				} else if (SkipPattern(s, end, StringView::literal("translate"))) {
-					if (ParseFunctionCall(s, end, v, 2) != 2) {
+					sl_reg n = ParseFunctionCall(s, end, v, 3);
+					if (n == 2) {
+						Transform2::translate(_out, v[0], v[1]);
+					} else if (n == 1) {
+						Transform2::translate(_out, v[0], 0);
+					} else {
 						return sl_false;
 					}
-					Transform2::translate(_out, v[0], v[1]);
 				} else if (SkipPattern(s, end, StringView::literal("scale"))) {
-					if (ParseFunctionCall(s, end, v, 2) != 2) {
+					sl_reg n = ParseFunctionCall(s, end, v, 3);
+					if (n == 2) {
+						Transform2::scale(_out, v[0], v[1]);
+					} else if (n == 1) {
+						Transform2::scale(_out, v[0], v[0]);
+					} else {
 						return sl_false;
 					}
-					Transform2::scale(_out, v[0], v[1]);
 				} else if (SkipPattern(s, end, StringView::literal("rotate"))) {
 					sl_reg n = ParseFunctionCall(s, end, v, 3);
 					if (n == 1) {
@@ -762,10 +800,21 @@ namespace slib
 					} else {
 						return sl_false;
 					}
+				} else if (SkipPattern(s, end, StringView::literal("skewX"))) {
+					if (ParseFunctionCall(s, end, v, 1) != 1) {
+						return sl_false;
+					}
+					Transform2::skewX(_out, Math::getRadianFromDegrees(v[0]));
+				} else if (SkipPattern(s, end, StringView::literal("skewY"))) {
+					if (ParseFunctionCall(s, end, v, 1) != 1) {
+						return sl_false;
+					}
+					Transform2::skewY(_out, Math::getRadianFromDegrees(v[0]));
 				} else {
 					break;
 				}
 			}
+			return sl_true;
 		}
 
 		template <class T>
@@ -801,15 +850,34 @@ namespace slib
 			return ParseValue(str, _out, flagDefined);
 		}
 
+#define GET_ATTRIBUTE(TYPE, NAME, ATTR) \
+		SLIB_STATIC_STRING(name_##NAME, ATTR) \
+		TYPE NAME = getAttribute(name_##NAME).trim();
+
 #define PARSE_ATTRIBUTE(NAME, ATTR) \
 		SLIB_STATIC_STRING(name_##NAME, ATTR) \
 		ParseValue(getAttribute(name_##NAME), NAME);
+
+#define GET_XML_ATTRIBUTE(XML, TYPE, NAME, ATTR) \
+		SLIB_STATIC_STRING(name_##NAME, ATTR) \
+		TYPE NAME = getAttribute(name_##NAME).trim();
+
+#define PARSE_XML_ATTRIBUTE(XML, NAME, ATTR) \
+		SLIB_STATIC_STRING(name_##NAME, ATTR) \
+		ParseValue(XML->getAttribute(name_##NAME), NAME);
 
 		struct RenderParam
 		{
 			Scalar containerWidth;
 			Scalar containerHeight;
 		};
+
+		static void ApplyOpacity(Color& c, Scalar opacity)
+		{
+			if (opacity <= (Scalar)0.999) {
+				c.a = (sl_uint8)(Math::clamp0_255((sl_int32)((Scalar)(c.a) * opacity)));
+			}
+		}
 
 		class Group;
 		class Document;
@@ -836,17 +904,29 @@ namespace slib
 			Define<Scalar> fillOpacity;
 			Define<FillMode> fillRule;
 
+			Define<Matrix3> transform;
+			Define<Scalar> opacity;
+
 			Define< Ref<Pen> > pen;
-			Ref<Brush> brush;
+			Define< Ref<Brush> > brush;
+			Define<Scalar> finalOpacity;
 
 		public:
-			virtual void load() = 0;
+			virtual void load()
+			{
+				PARSE_ATTRIBUTE(transform, "transform")
+				PARSE_ATTRIBUTE(opacity, "opacity")
+			}
 
 			virtual void render(Canvas* canvas, RenderParam& param) = 0;
 
+			virtual Rectangle getBounds(RenderParam& param) = 0;
+
 			String getAttribute(const String& name);
 
-#define DEFINE_ELEMENT_ATTRIBUTE(TYPE, NAME, GETTER, ATTR, DEFAULT) \
+			Ref<XmlElement> getXmlByUrl(const StringView& url);
+
+#define DEFINE_INHERITED_ATTRIBUTE(TYPE, NAME, GETTER, ATTR, DEFAULT) \
 			TYPE& GETTER() \
 			{ \
 				if (NAME.flagDefined) { \
@@ -869,24 +949,46 @@ namespace slib
 				return *NAME; \
 			}
 
-			DEFINE_ELEMENT_ATTRIBUTE(Ref<Paint>, stroke, getStroke, "stroke", sl_null)
-			DEFINE_ELEMENT_ATTRIBUTE(Length, strokeWidth, getStrokeWidth, "stroke-width", (Scalar)1)
-			DEFINE_ELEMENT_ATTRIBUTE(List<Length>, strokeDashArray, getStrokeDashArray, "stroke-dasharray", sl_null)
-			DEFINE_ELEMENT_ATTRIBUTE(Length, strokeDashOffset, getStrokeDashOffset, "stroke-dashoffset", 0)
-			DEFINE_ELEMENT_ATTRIBUTE(LineCap, strokeLineCap, getStrokeLineCap, "stroke-linecap", LineCap::Flat)
-			DEFINE_ELEMENT_ATTRIBUTE(LineJoin, strokeLineJoin, getStrokeLineJoin, "stroke-linejoin", LineJoin::Miter)
-			DEFINE_ELEMENT_ATTRIBUTE(Scalar, strokeMiterLimit, getStrokeMiterLimit, "stroke-miterlimit", (Scalar)4)
-			DEFINE_ELEMENT_ATTRIBUTE(Scalar, strokeOpacity, getStrokeOpacity, "stroke-opacity", (Scalar)1)
+			DEFINE_INHERITED_ATTRIBUTE(Ref<Paint>, stroke, getStroke, "stroke", sl_null)
+			DEFINE_INHERITED_ATTRIBUTE(Length, strokeWidth, getStrokeWidth, "stroke-width", (Scalar)1)
+			DEFINE_INHERITED_ATTRIBUTE(List<Length>, strokeDashArray, getStrokeDashArray, "stroke-dasharray", sl_null)
+			DEFINE_INHERITED_ATTRIBUTE(Length, strokeDashOffset, getStrokeDashOffset, "stroke-dashoffset", 0)
+			DEFINE_INHERITED_ATTRIBUTE(LineCap, strokeLineCap, getStrokeLineCap, "stroke-linecap", LineCap::Flat)
+			DEFINE_INHERITED_ATTRIBUTE(LineJoin, strokeLineJoin, getStrokeLineJoin, "stroke-linejoin", LineJoin::Miter)
+			DEFINE_INHERITED_ATTRIBUTE(Scalar, strokeMiterLimit, getStrokeMiterLimit, "stroke-miterlimit", (Scalar)4)
+			DEFINE_INHERITED_ATTRIBUTE(Scalar, strokeOpacity, getStrokeOpacity, "stroke-opacity", (Scalar)1)
 
-			DEFINE_ELEMENT_ATTRIBUTE(Ref<Paint>, fill, getFill, "fill", SolidPaint::black())
-			DEFINE_ELEMENT_ATTRIBUTE(Scalar, fillOpacity, getFillOpacity, "fill-opacity", (Scalar)1)
-			DEFINE_ELEMENT_ATTRIBUTE(FillMode, fillRule, getFillRule, "fill-rule", FillMode::Winding)
+			DEFINE_INHERITED_ATTRIBUTE(Ref<Paint>, fill, getFill, "fill", ColorPaint::black())
+			DEFINE_INHERITED_ATTRIBUTE(Scalar, fillOpacity, getFillOpacity, "fill-opacity", (Scalar)1)
+			DEFINE_INHERITED_ATTRIBUTE(FillMode, fillRule, getFillRule, "fill-rule", FillMode::Winding)
+
+			Scalar getFinalOpacity()
+			{
+				if (finalOpacity.flagDefined) {
+					return *finalOpacity;
+				}
+				if (opacity.flagDefined) {
+					if (parent) {
+						*finalOpacity = parent->getFinalOpacity() * (*opacity);
+					} else {
+						*finalOpacity = *opacity;
+					}
+				} else {
+					if (parent) {
+						*finalOpacity = parent->getFinalOpacity();
+					} else {
+						*finalOpacity = (Scalar)1;
+					}
+				}
+				finalOpacity.flagDefined = sl_true;
+				return *finalOpacity;
+			}
 
 			void loadPen()
 			{
 				getStroke();
-				getStrokeWidth();
 				getStrokeOpacity();
+				getStrokeWidth();
 				getStrokeDashArray();
 				getStrokeLineCap();
 				getStrokeLineJoin();
@@ -913,13 +1015,10 @@ namespace slib
 				if (flagCreate) {
 					const Ref<Paint>& paint = getStroke();
 					if (paint.isNotNull()) {
-						if (paint->type == PaintType::Solid) {
+						if (paint->type == PaintType::Color) {
 							PenDesc desc;
-							desc.color = ((SolidPaint*)(paint.get()))->color;
-							Scalar opacity = getStrokeOpacity();
-							if (opacity <= (Scalar)0.999) {
-								desc.color.a = (sl_uint8)(Math::clamp0_255((sl_int32)((Scalar)(desc.color.a) * opacity)));
-							}
+							desc.color = ((ColorPaint*)(paint.get()))->color;
+							ApplyOpacity(desc.color, getFinalOpacity() * getStrokeOpacity());
 							desc.width = width;
 							desc.style = getStrokeDashArray().isNotNull() ? PenStyle::Dash : PenStyle::Solid;
 							desc.cap = getStrokeLineCap();
@@ -934,17 +1033,98 @@ namespace slib
 
 			void loadBrush()
 			{
+				getFill();
+				getFillOpacity();
+			}
+
+			Ref<Brush>& getBrush(RenderParam& param)
+			{
 				const Ref<Paint>& paint = getFill();
 				if (paint.isNotNull()) {
-					if (paint->type == PaintType::Solid) {
-						Color color = ((SolidPaint*)(paint.get()))->color;
-						Scalar opacity = getFillOpacity();
-						if (opacity <= (Scalar)0.999) {
-							color.a = (sl_uint8)(Math::clamp0_255((sl_int32)((Scalar)(color.a) * opacity)));
+					if (paint->type == PaintType::Color) {
+						if (brush.flagDefined) {
+							return *brush;
 						}
-						brush = Brush::createSolidBrush(color);
+						*brush = createBrush(*((ColorPaint*)(paint.get())));
+					} else if (paint->type == PaintType::Url) {
+						*brush = createBrush(*((UrlPaint*)(paint.get())), param);
 					}
 				}
+				brush.flagDefined = sl_true;
+				return *brush;
+			}
+
+			Ref<Brush> createBrush(ColorPaint& paint)
+			{
+				Color color = paint.color;
+				ApplyOpacity(color, getFinalOpacity() * getFillOpacity());
+				return Brush::createSolidBrush(color);
+			}
+
+			Ref<Brush> createBrush(UrlPaint& paint, RenderParam& param)
+			{
+				Ref<XmlElement> e = getXmlByUrl(paint.url);
+				if (e.isNotNull()) {
+					String type = e->getName();
+					if (type == StringView::literal("linearGradient")) {
+						return createLinearGradientBrush(e.get(), param);
+					}
+				}
+				return sl_null;
+			}
+
+			Ref<Brush> createLinearGradientBrush(XmlElement* e, RenderParam& param)
+			{
+				Define<Length> x1, x2, y1, y2;
+				PARSE_XML_ATTRIBUTE(e, x1, "x1")
+				PARSE_XML_ATTRIBUTE(e, x2, "x2")
+				PARSE_XML_ATTRIBUTE(e, y1, "y1")
+				PARSE_XML_ATTRIBUTE(e, y2, "y2")
+				if (!(x2.flagDefined)) {
+					x2.flagPercentage = sl_true;
+					x2.value = (Scalar)100;
+				}
+				Point pt1, pt2;
+				GET_XML_ATTRIBUTE(e, String, gradientUnits, "gradientUnits")
+				if (gradientUnits == StringView::literal("userSpaceOnUse")) {
+					pt1.x = x1.getValue(param.containerWidth);
+					pt1.y = y1.getValue(param.containerHeight);
+					pt2.x = x2.getValue(param.containerWidth);
+					pt2.y = y2.getValue(param.containerHeight);
+				} else {
+					Rectangle bounds = getBounds(param);
+					pt1.x = x1.getValue((Scalar)1) * bounds.getWidth() + bounds.left;
+					pt1.y = y1.getValue((Scalar)1) * bounds.getHeight() + bounds.top;
+					pt2.x = x2.getValue((Scalar)1) * bounds.getWidth() + bounds.left;
+					pt2.y = y2.getValue((Scalar)1) * bounds.getHeight() + bounds.top;
+				}
+				Define<Matrix3> gradientTransform;
+				PARSE_XML_ATTRIBUTE(e, gradientTransform, "gradientTransform")
+				if (gradientTransform.flagDefined) {
+					pt1 = gradientTransform.transformPosition(pt1);
+					pt2 = gradientTransform.transformPosition(pt2);
+				}
+				CList<Color> colors;
+				CList<sl_real> locations;
+				Scalar opacity = getFinalOpacity() * getFillOpacity();
+				ListElements< Ref<XmlElement> > stops(e->getChildElements());
+				for (sl_size i = 0; i < stops.count; i++) {
+					Ref<XmlElement>& stop = stops[i];
+					Define<Scalar> offset;
+					Define<Color> stopColor;
+					PARSE_XML_ATTRIBUTE(stop, offset, "offset")
+					PARSE_XML_ATTRIBUTE(stop, stopColor, "stop-color")
+					if (offset.flagDefined && stopColor.flagDefined) {
+						ApplyOpacity(*stopColor, opacity);
+						locations.add_NoLock(*offset);
+						colors.add_NoLock(*stopColor);
+					}
+				}
+				sl_uint32 nColors = (sl_uint32)(colors.getCount());
+				if (nColors == locations.getCount()) {
+					return Brush::createLinearGradientBrush(pt1, pt2, (sl_uint32)(colors.getCount()), colors.getData(), locations.getData());
+				}
+				return sl_null;
 			}
 
 		};
@@ -966,6 +1146,7 @@ namespace slib
 		public:
 			void load() override
 			{
+				Element::load();
 				sl_size n = xml->getChildCount();
 				for (sl_size i = 0; i < n; i++) {
 					Ref<XmlElement> child = xml->getChildElement(i);
@@ -1003,8 +1184,31 @@ namespace slib
 				ListElements< Ref<Element> > items(children);
 				for (sl_size i = 0; i < items.count; i++) {
 					Ref<Element>& item = items[i];
-					item->render(canvas, param);
+					if (item->transform.flagDefined) {
+						CanvasStateScope scope(canvas);
+						canvas->concatMatrix(*(item->transform));
+						item->render(canvas, param);
+					} else {
+						item->render(canvas, param);
+					}
 				}
+			}
+
+			Rectangle getBounds(RenderParam& param) override
+			{
+				ListElements< Ref<Element> > items(children);
+				if (!(items.count)) {
+					return Rectangle::zero();
+				}
+				Rectangle ret;
+				for (sl_size i = 0; i < items.count; i++) {
+					if (i) {
+						ret.mergeRectangle(items[i]->getBounds(param));
+					} else {
+						ret = items[i]->getBounds(param);
+					}
+				}
+				return ret;
 			}
 
 		};
@@ -1022,6 +1226,7 @@ namespace slib
 		public:
 			void load() override
 			{
+				Element::load();
 				PARSE_ATTRIBUTE(x, "x")
 				PARSE_ATTRIBUTE(y, "y")
 				PARSE_ATTRIBUTE(width, "width")
@@ -1050,10 +1255,19 @@ namespace slib
 					} else {
 						radiusX = radiusY = ry.getValue(param.containerHeight);
 					}
-					canvas->drawRoundRect(left, top, w, h, radiusX, radiusY, getPen(param), brush);
+					canvas->drawRoundRect(left, top, w, h, radiusX, radiusY, getPen(param), getBrush(param));
 				} else {
-					canvas->drawRectangle(left, top, w, h, getPen(param), brush);
+					canvas->drawRectangle(left, top, w, h, getPen(param), getBrush(param));
 				}
+			}
+
+			Rectangle getBounds(RenderParam& param) override
+			{
+				Scalar left = x.getValue(param.containerWidth);
+				Scalar top = y.getValue(param.containerHeight);
+				Scalar w = width.getValue(param.containerWidth);
+				Scalar h = height.getValue(param.containerHeight);
+				return Rectangle(left, top, left + w, top + h);
 			}
 
 		};
@@ -1069,6 +1283,7 @@ namespace slib
 		public:
 			void load() override
 			{
+				Element::load();
 				PARSE_ATTRIBUTE(cx, "cx")
 				PARSE_ATTRIBUTE(cy, "cy")
 				PARSE_ATTRIBUTE(rx, "rx")
@@ -1090,7 +1305,16 @@ namespace slib
 				Scalar centerY = cy.getValue(param.containerHeight);
 				Scalar radiusX = rx.getValue(param.containerWidth);
 				Scalar radiusY = ry.getValue(param.containerWidth);
-				canvas->drawEllipse(centerX - radiusX, centerY - radiusY, radiusX + radiusX, radiusY + radiusY, getPen(param), brush);
+				canvas->drawEllipse(centerX - radiusX, centerY - radiusY, radiusX + radiusX, radiusY + radiusY, getPen(param), getBrush(param));
+			}
+
+			Rectangle getBounds(RenderParam& param) override
+			{
+				Scalar centerX = cx.getValue(param.containerWidth);
+				Scalar centerY = cy.getValue(param.containerHeight);
+				Scalar radiusX = rx.getValue(param.containerWidth);
+				Scalar radiusY = ry.getValue(param.containerWidth);
+				return Rectangle(centerX - radiusX, centerY - radiusY, centerX + radiusX, centerY + radiusY);
 			}
 
 		};
@@ -1105,6 +1329,7 @@ namespace slib
 		public:
 			void load() override
 			{
+				Element::load();
 				PARSE_ATTRIBUTE(cx, "cx")
 				PARSE_ATTRIBUTE(cy, "cy")
 				PARSE_ATTRIBUTE(r, "r")
@@ -1118,7 +1343,15 @@ namespace slib
 				Scalar centerY = cy.getValue(param.containerHeight);
 				Scalar radius = r.getValue(param.containerWidth);
 				Scalar diameter = radius + radius;
-				canvas->drawEllipse(centerX - radius, centerY - radius, diameter, diameter, getPen(param), brush);
+				canvas->drawEllipse(centerX - radius, centerY - radius, diameter, diameter, getPen(param), getBrush(param));
+			}
+
+			Rectangle getBounds(RenderParam& param) override
+			{
+				Scalar centerX = cx.getValue(param.containerWidth);
+				Scalar centerY = cy.getValue(param.containerHeight);
+				Scalar radius = r.getValue(param.containerWidth);
+				return Rectangle(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
 			}
 
 		};
@@ -1134,6 +1367,7 @@ namespace slib
 		public:
 			void load() override
 			{
+				Element::load();
 				PARSE_ATTRIBUTE(x1, "x1")
 				PARSE_ATTRIBUTE(y1, "y1")
 				PARSE_ATTRIBUTE(x2, "x2")
@@ -1146,6 +1380,15 @@ namespace slib
 				canvas->drawLine(x1.getValue(param.containerWidth), y1.getValue(param.containerHeight), x2.getValue(param.containerWidth), y2.getValue(param.containerHeight), getPen(param));
 			}
 
+			Rectangle getBounds(RenderParam& param) override
+			{
+				Scalar _x1 = x1.getValue(param.containerWidth);
+				Scalar _y1 = y1.getValue(param.containerHeight);
+				Scalar _x2 = x2.getValue(param.containerWidth);
+				Scalar _y2 = y2.getValue(param.containerHeight);
+				return Rectangle(Math::min(_x1, _x2), Math::min(_y1, _y2), Math::max(_x1, _x2), Math::max(_y1, _y2));
+			}
+
 		};
 
 		class Polyline : public Element
@@ -1156,6 +1399,7 @@ namespace slib
 		public:
 			void load() override
 			{
+				Element::load();
 				List<Scalar> pts;
 				PARSE_ATTRIBUTE(pts, "points")
 				ListElements<Scalar> items(pts);
@@ -1170,6 +1414,7 @@ namespace slib
 
 			void render(Canvas* canvas, RenderParam& param) override
 			{
+				Ref<Brush>& brush = getBrush(param);
 				if (brush.isNotNull()) {
 					canvas->fillPolygon(points, brush);
 				}
@@ -1179,6 +1424,13 @@ namespace slib
 						canvas->drawLines(points, pen);
 					}
 				}
+			}
+
+			Rectangle getBounds(RenderParam& param) override
+			{
+				Rectangle ret;
+				ret.setFromPoints(points);
+				return ret;
 			}
 
 		};
@@ -1191,6 +1443,7 @@ namespace slib
 		public:
 			void load() override
 			{
+				Element::load();
 				List<Scalar> pts;
 				PARSE_ATTRIBUTE(pts, "points")
 				ListElements<Scalar> items(pts);
@@ -1206,8 +1459,15 @@ namespace slib
 			void render(Canvas* canvas, RenderParam& param) override
 			{
 				if (points.isNotNull()) {
-					canvas->drawPolygon(points, getPen(param), brush);
+					canvas->drawPolygon(points, getPen(param), getBrush(param));
 				}
+			}
+
+			Rectangle getBounds(RenderParam& param) override
+			{
+				Rectangle ret;
+				ret.setFromPoints(points);
+				return ret;
 			}
 
 		};
@@ -1220,6 +1480,7 @@ namespace slib
 		public:
 			void load() override
 			{
+				Element::load();
 				PARSE_ATTRIBUTE(shape, "d")
 				loadPen();
 				loadBrush();
@@ -1229,7 +1490,16 @@ namespace slib
 			{
 				if (shape.isNotNull()) {
 					shape->setFillMode(getFillRule());
-					canvas->drawPath(shape, getPen(param), brush);
+					canvas->drawPath(shape, getPen(param), getBrush(param));
+				}
+			}
+
+			Rectangle getBounds(RenderParam& param) override
+			{
+				if (shape.isNotNull()) {
+					return shape->getBounds();
+				} else {
+					return Rectangle::zero();
 				}
 			}
 
@@ -1248,13 +1518,13 @@ namespace slib
 		public:
 			void load() override
 			{
+				Group::load();
 				PARSE_ATTRIBUTE(viewBox, "viewBox")
 				PARSE_ATTRIBUTE(width, "width")
 				PARSE_ATTRIBUTE(height, "height")
 				PARSE_ATTRIBUTE(x, "x")
 				PARSE_ATTRIBUTE(y, "y")
 				PARSE_ATTRIBUTE(preserveAspectRatio, "preserveAspectRatio")
-				Group::load();
 			}
 
 			void render(Canvas* canvas, RenderParam& _param) override
@@ -1322,6 +1592,27 @@ namespace slib
 					param.containerWidth = rectDraw.getWidth();
 					param.containerHeight = rectDraw.getHeight();
 					Group::render(canvas, param);
+				}
+			}
+
+			Rectangle getBounds(RenderParam& param) override
+			{
+				if (viewBox.flagDefined) {
+					if (Math::isAlmostZero(viewBox.width) || Math::isAlmostZero(viewBox.height)) {
+						return Rectangle::zero();
+					}
+					Size size = getSize(param.containerWidth, param.containerHeight);
+					Rectangle ret;
+					ret.left = x.getValue(param.containerWidth);
+					ret.top = y.getValue(param.containerHeight);
+					ret.setSize(size);
+					return ret;
+				} else {
+					Scalar _x = x.getValue(param.containerWidth);
+					Scalar _y = y.getValue(param.containerHeight);
+					Scalar w = width.getValue(param.containerWidth);
+					Scalar h = height.getValue(param.containerHeight);
+					return Rectangle(_x, _y, _x + w, _y + h);
 				}
 			}
 
@@ -1398,6 +1689,7 @@ namespace slib
 		public:
 			CascadingStyleSheet styleSheet;
 			sl_uint32 currentLinkDeepLevel = 0;
+			CHashMap< String, Ref<XmlElement> > xmlElementsById;
 
 		public:
 			sl_bool load(const void* mem, sl_size size)
@@ -1408,6 +1700,11 @@ namespace slib
 					String name = xml->getName();
 					if (name == StringView::literal("style")) {
 						loadStyle(xml->getText());
+					}
+					SLIB_STATIC_STRING(_id, "id")
+					String id = xml->getAttribute(_id);
+					if (id.isNotEmpty()) {
+						xmlElementsById.put_NoLock(id, xml);
 					}
 				};
 				Ref<XmlDocument> xmlDocument = Xml::parse(MemoryView(mem, size), param);
@@ -1455,38 +1752,36 @@ namespace slib
 			return xml->getAttribute(name);
 		}
 
+		Ref<XmlElement> Element::getXmlByUrl(const StringView& url)
+		{
+			if (url.isEmpty()) {
+				return sl_null;
+			}
+			if (!(url.startsWith('#'))) {
+				return sl_null;
+			}
+			StringView id = url.substring(1).trim();
+			if (id.isEmpty()) {
+				return sl_null;
+			}
+			return document->xmlElementsById.getValue_NoLock(id);
+		}
+
 		void Use::load()
 		{
 			if (document->currentLinkDeepLevel > MAX_LINK_DEEP_LEVEL) {
 				return;
 			}
 
-			String href;
-			PARSE_ATTRIBUTE(href, "href")
-			href = href.trim();
+			GET_ATTRIBUTE(String, href, "href")
 			if (href.isEmpty()) {
-				PARSE_ATTRIBUTE(href, "xlink:href")
-				href = href.trim();
+				GET_ATTRIBUTE(, href, "xlink:href")
 			}
-			if (href.isEmpty()) {
-				return;
-			}
-			if (!(href.startsWith('#'))) {
-				return;
-			}
-			StringView id = StringView(href).substring(1).trim();
-			if (id.isEmpty()) {
-				return;
-			}
-			Ref<XmlDocument> doc = xml->getDocument();
-			if (doc.isNull()) {
-				return;
-			}
-			Ref<XmlElement> child = doc->findChildElementById(id);
+			Ref<XmlElement> child = getXmlByUrl(href);
 			if (child.isNull()) {
 				return;
 			}
-			XmlElement* _child = child.get();
+			String childType = child->getName();
 
 			PARSE_ATTRIBUTE(x, "x")
 			PARSE_ATTRIBUTE(y, "y")
@@ -1495,7 +1790,7 @@ namespace slib
 			Element* element = loadChild(Move(child));
 			document->currentLinkDeepLevel--;
 
-			if (element && _child->getName() == StringView::literal("svg")) {
+			if (element && childType == StringView::literal("svg")) {
 				Define<Length> width;
 				PARSE_ATTRIBUTE(width, "width")
 				if (width.flagDefined) {
