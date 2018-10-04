@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -545,7 +545,7 @@ namespace slib
 							current++;
 							break;
 						case '|':
-							match.type = CascadingStyleMatchType::Contains_WordHyphen;
+							match.type = CascadingStyleMatchType::LocalePrefix;
 							current++;
 							break;
 						case '^':
@@ -1244,6 +1244,9 @@ namespace slib
 
 	sl_bool CascadingStyleSelector::matchElement(const Ref<XmlElement>& element)
 	{
+		if (pseudoClasses.isNotNull() || pseudoElement.isNotNull()) {
+			return sl_false;
+		}
 		if (flagNamespace) {
 			if (namespaceName.isNotNull()) {
 				if (element->getNamespace() != namespaceName) {
@@ -1266,8 +1269,176 @@ namespace slib
 		}
 		if (classNames.isNotNull()) {
 			SLIB_STATIC_STRING(_class, "class")
+			String classValue = element->getAttribute(_class);
+			ListElements<String> items(classNames);
+			for (sl_size i = 0; i < items.count; i++) {
+				if (Stringx::indexOfWholeWord(classValue, items[i]) < 0) {
+					return sl_false;
+				}
+			}
 		}
-		return sl_false;
+		if (attributes.isNotNull()) {
+			ListElements<CascadingStyleAttributeMatch> items(attributes);
+			for (sl_size i = 0; i < items.count; i++) {
+				CascadingStyleAttributeMatch& attr = items[i];
+				String value = element->getAttribute(attr.name);
+				switch (attr.type) {
+					case CascadingStyleMatchType::Exist:
+						if (value.isNull()) {
+							return sl_false;
+						}
+						break;
+					case CascadingStyleMatchType::Equal:
+						if (attr.flagIgnoreCase) {
+							if (!(value.equals_IgnoreCase(attr.value))) {
+								return sl_false;
+							}
+						} else {
+							if (!(value.equals(attr.value))) {
+								return sl_false;
+							}
+						}
+						break;
+					case CascadingStyleMatchType::Contains_Word:
+						if (attr.flagIgnoreCase) {
+							if (Stringx::indexOfWholeWord_IgnoreCase(value, attr.value) < 0) {
+								return sl_false;
+							}
+						} else {
+							if (Stringx::indexOfWholeWord(value, attr.value) < 0) {
+								return sl_false;
+							}
+						}
+						break;
+					case CascadingStyleMatchType::LocalePrefix:
+						if (attr.flagIgnoreCase) {
+							if (!(value.startsWith_IgnoreCase(attr.value))) {
+								return sl_false;
+							}
+						} else {
+							if (!(value.startsWith(attr.value))) {
+								return sl_false;
+							}
+						}
+						{
+							sl_size n = attr.value.getLength();
+							if (value.getLength() > n) {
+								if (value.getAt(n) != '-') {
+									return sl_false;
+								}
+							}
+						}
+						break;
+					case CascadingStyleMatchType::Start:
+						if (attr.flagIgnoreCase) {
+							if (!(value.startsWith_IgnoreCase(attr.value))) {
+								return sl_false;
+							}
+						} else {
+							if (!(value.startsWith(attr.value))) {
+								return sl_false;
+							}
+						}
+						break;
+					case CascadingStyleMatchType::End:
+						if (attr.flagIgnoreCase) {
+							if (!(value.endsWith_IgnoreCase(attr.value))) {
+								return sl_false;
+							}
+						} else {
+							if (!(value.endsWith(attr.value))) {
+								return sl_false;
+							}
+						}
+						break;
+					case CascadingStyleMatchType::Contain:
+						if (attr.flagIgnoreCase) {
+							if (!(value.contains_IgnoreCase(attr.value))) {
+								return sl_false;
+							}
+						} else {
+							if (!(value.contains(attr.value))) {
+								return sl_false;
+							}
+						}
+						break;
+					default:
+						return sl_false;
+				}
+			}
+		}
+		if (before.isNotNull()) {
+			switch (combinator) {
+				case CascadingStyleCombinator::Descendant:
+					{
+						Ref<XmlNodeGroup> e = element->getParent();
+						while (e.isNotNull()) {
+							if (!(e->isElementNode())) {
+								break;
+							}
+							if (before->matchElement(Ref<XmlElement>::from(e))) {
+								return sl_true;
+							}
+							e = e->getParent();
+						}
+						return sl_false;
+					}
+				case CascadingStyleCombinator::Child:
+					{
+						Ref<XmlNodeGroup> parent = element->getParent();
+						if (parent.isNotNull()) {
+							if (parent->isElementNode()) {
+								return before->matchElement(Ref<XmlElement>::from(parent));
+							}
+						}
+						return sl_false;
+					}
+				case CascadingStyleCombinator::Sibling:
+					{
+						Ref<XmlNodeGroup> parent = element->getParent();
+						if (parent.isNotNull()) {
+							sl_size n = parent->getChildCount();
+							for (sl_size i = 0; i < n; i++) {
+								Ref<XmlElement> item = parent->getChildElement(i);
+								if (item.isNotNull()) {
+									if (item == element) {
+										break;
+									}
+									if (before->matchElement(item)) {
+										return sl_true;
+									}
+								}
+							}
+						}
+						return sl_false;
+					}
+				case CascadingStyleCombinator::Adjacent:
+					{
+						Ref<XmlNodeGroup> parent = element->getParent();
+						if (parent.isNotNull()) {
+							sl_size n = parent->getChildCount();
+							Ref<XmlElement> itemBefore;
+							for (sl_size i = 0; i < n; i++) {
+								Ref<XmlElement> item = parent->getChildElement(i);
+								if (item.isNotNull()) {
+									if (item == element) {
+										if (itemBefore.isNotNull()) {
+											return before->matchElement(itemBefore);
+										} else {
+											return sl_false;
+										}
+									}
+									itemBefore = Move(item);
+								}
+							}
+						}
+						return sl_false;
+					}
+				default:
+					return sl_false;
+			}
+		}
+		return sl_true;
 	}
 
 	sl_bool CascadingStyleSelector::toString(StringBuffer& output)
@@ -1365,7 +1536,7 @@ namespace slib
 							return sl_false;
 						}
 						break;
-					case CascadingStyleMatchType::Contains_WordHyphen:
+					case CascadingStyleMatchType::LocalePrefix:
 						if (!(output.addStatic("|="))) {
 							return sl_false;
 						}
@@ -1634,15 +1805,42 @@ namespace slib
 		auto node = from.getFirstNode();
 		while (node) {
 			String& key = node->key;
-			Ref<CascadingStyleValue> orig = to.getValue_NoLock(key);
-			if (orig.isNotNull()) {
-				if (orig->isImportant()) {
-					continue;
+			if (!(node->value->isImportant())) {
+				Ref<CascadingStyleValue> orig = to.getValue_NoLock(key);
+				if (orig.isNotNull()) {
+					if (orig->isImportant()) {
+						continue;
+					}
 				}
 			}
 			to.put_NoLock(key, node->value);
 			node = node->getNext();
 		}
+	}
+
+	String CascadingStyleSheet::getDeclarationValue(const CascadingStyleDeclarations& decls, const String& key)
+	{
+		Ref<CascadingStyleValue> value = decls.getValue_NoLock(key);
+		if (value.isNotNull()) {
+			CascadingStyleValueType type = value->getType();
+			if (type == CascadingStyleValueType::Normal) {
+				return ((CascadingStyleNormalValue*)(value.get()))->getValue();
+			} else if (type == CascadingStyleValueType::Variable) {
+				String name = ((CascadingStyleVariableValue*)(value.get()))->getName();
+				for (sl_uint32 i = 0; i < 64; i++) {
+					value = decls.getValue_NoLock(name);
+					CascadingStyleValueType type = value->getType();
+					if (type == CascadingStyleValueType::Normal) {
+						return ((CascadingStyleNormalValue*)(value.get()))->getValue();
+					} else if (type == CascadingStyleValueType::Variable) {
+						name = ((CascadingStyleVariableValue*)(value.get()))->getName();
+					} else {
+						return sl_null;
+					}
+				}
+			}
+		}
+		return sl_null;
 	}
 
 	sl_bool CascadingStyleSheet::writeDeclarationsString(StringBuffer& output, const CascadingStyleDeclarations& decls, sl_uint32 tabLevel)

@@ -48,7 +48,7 @@ namespace slib
 		Exist = 0, // [attr]: elements with an attribute name of `attr`
 		Equal = 1, // [attr="value"]: elements with an attribute name of `attr` whose value is exactly `value`
 		Contains_Word = 2, // [attr~="value"]: elements with an attribute name of `attr` whose value is a whitespace-separated list of words, one of which is exactly `value`
-		Contains_WordHyphen = 3, // [attr|="value"]: elements with an attribute name of `attr` whose value can be exactly `value` or can begin with `value` immediately followed by a hyphen(-). It is often used for language subcode matches
+		LocalePrefix = 3, // [attr|="value"]: elements with an attribute name of `attr` whose value can be exactly `value` or can begin with `value` immediately followed by a hyphen(-). It is often used for language subcode matches
 		Start = 4, // [attr^="value"]: elements with an attribute name of `attr` whose value is prefixed (preceded) by `value`
 		End = 5, // [attr$="value"]: elements with an attribute name of `attr` whose value is suffixed (followed) by `value`
 		Contain = 6, // [attr*="value"]: elements with an attribute name of `attr` whose value contains at least one occurrence of `value` within the string
@@ -276,6 +276,8 @@ namespace slib
 		static CascadingStyleDeclarations parseDeclarations(const StringParam& input);
 
 		static void mergeDeclarations(CascadingStyleDeclarations& to, const CascadingStyleDeclarations& from);
+
+		static String getDeclarationValue(const CascadingStyleDeclarations& decls, const String& key);
 
 		static sl_bool writeDeclarationsString(StringBuffer& _out, const CascadingStyleDeclarations& decls, sl_uint32 tabLevel);
 
