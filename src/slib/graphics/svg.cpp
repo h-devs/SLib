@@ -20,39 +20,51 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_GRAPHICS_HEADER
-#define CHECKHEADER_SLIB_GRAPHICS_HEADER
+#include "slib/graphics/svg.h"
 
-#include "graphics/constants.h"
+#include "slib/core/memory.h"
+#include "slib/core/file.h"
+#include "slib/core/asset.h"
 
-#include "graphics/color.h"
-#include "graphics/yuv.h"
-#include "graphics/cmyk.h"
-#include "graphics/bitmap_format.h"
-#include "graphics/bitmap_data.h"
+namespace slib
+{
 
-#include "graphics/pen.h"
-#include "graphics/brush.h"
-#include "graphics/font.h"
-#include "graphics/path.h"
+	SLIB_DEFINE_OBJECT(Svg, Drawable)
 
-#include "graphics/drawable.h"
-#include "graphics/bitmap.h"
-#include "graphics/image.h"
-#include "graphics/svg.h"
+	Svg::Svg()
+	{
+	}
 
-#include "graphics/canvas.h"
+	Svg::~Svg()
+	{
+	}
 
-#include "graphics/freetype.h"
+	Ref<Svg> Svg::loadFromMemory(const void* mem, sl_size size)
+	{
+		return sl_null;
+	}
 
-#include "graphics/font_atlas.h"
-#include "graphics/text.h"
-#include "graphics/emoji.h"
-#include "graphics/util.h"
+	Ref<Svg> Svg::loadFromMemory(const MemoryView& mem)
+	{
+		return loadFromMemory(mem.data, mem.size);
+	}
 
-#include "graphics/zxing.h"
+	Ref<Svg> Svg::loadFromFile(const StringParam& filePath)
+	{
+		Memory mem = File::readAllBytes(filePath);
+		if (mem.isNotNull()) {
+			return loadFromMemory(mem);
+		}
+		return sl_null;
+	}
 
-#include "graphics/json.h"
-#include "graphics/serialize.h"
+	Ref<Svg> Svg::loadFromAsset(const StringParam& path)
+	{
+		Memory mem = Assets::readAllBytes(path);
+		if (mem.isNotNull()) {
+			return loadFromMemory(mem);
+		}
+		return sl_null;
+	}
 
-#endif
+}

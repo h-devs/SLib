@@ -20,39 +20,35 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_GRAPHICS_HEADER
-#define CHECKHEADER_SLIB_GRAPHICS_HEADER
+#ifndef CHECKHEADER_SLIB_GRAPHICS_SVG
+#define CHECKHEADER_SLIB_GRAPHICS_SVG
 
-#include "graphics/constants.h"
+#include "color.h"
+#include "drawable.h"
 
-#include "graphics/color.h"
-#include "graphics/yuv.h"
-#include "graphics/cmyk.h"
-#include "graphics/bitmap_format.h"
-#include "graphics/bitmap_data.h"
+namespace slib
+{
 
-#include "graphics/pen.h"
-#include "graphics/brush.h"
-#include "graphics/font.h"
-#include "graphics/path.h"
+	class SLIB_EXPORT Svg : public Drawable
+	{
+		SLIB_DECLARE_OBJECT
 
-#include "graphics/drawable.h"
-#include "graphics/bitmap.h"
-#include "graphics/image.h"
-#include "graphics/svg.h"
+	protected:
+		Svg();
 
-#include "graphics/canvas.h"
+		~Svg();
 
-#include "graphics/freetype.h"
+	public:
+		static Ref<Svg> loadFromMemory(const void* mem, sl_size size);
 
-#include "graphics/font_atlas.h"
-#include "graphics/text.h"
-#include "graphics/emoji.h"
-#include "graphics/util.h"
+		static Ref<Svg> loadFromMemory(const MemoryView& mem);
 
-#include "graphics/zxing.h"
+		static Ref<Svg> loadFromFile(const StringParam& filePath);
 
-#include "graphics/json.h"
-#include "graphics/serialize.h"
+		static Ref<Svg> loadFromAsset(const StringParam& path);
+
+	};
+
+}
 
 #endif
