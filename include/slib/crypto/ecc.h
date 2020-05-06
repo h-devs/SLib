@@ -165,7 +165,7 @@ namespace slib
 
 	};
 	
-	// Elliptic Curve Diffie–Hellman
+	// Elliptic Curve Diffie-Hellman
 	class SLIB_EXPORT ECDH
 	{
 	public:

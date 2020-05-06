@@ -29,9 +29,9 @@ namespace slib
 {
 
 	/****************************************************
-	 
-		Fowler–Noll–Vo hash function / FNV-1a hash
-	 
+
+	 Fowler-Noll-Vo hash function / FNA-1a hash
+
 	 https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
 	 http://www.isthe.com/chongo/tech/comp/fnv/index.html
 	 

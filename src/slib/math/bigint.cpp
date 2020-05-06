@@ -2709,7 +2709,7 @@ namespace slib
 	}
 
 	/*
-	 				Miller–Rabin primality test
+	 				Miller-Rabin primality test
 	 
 	 	https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
 	 	https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf
@@ -2777,7 +2777,7 @@ namespace slib
 					if (!(priv::bigint::pow_montgomery(context.contextPowMontgomery, x, a, d, n))) {
 						RETURN_ERROR;
 					}
-					if (!(x.equals((sl_uint32)1)) && !(x.equals(n1))) { // x = 1 or x = n − 1 => probably prime
+					if (!(x.equals((sl_uint32)1)) && !(x.equals(n1))) { // x = 1 or x = n - 1 => probably prime
 						sl_bool flagPrime = sl_false;
 						sl_size k = r;
 						while (--k) {
@@ -2788,7 +2788,7 @@ namespace slib
 								RETURN_ERROR;
 							}
 							if (x.equals((sl_uint32)1)) {
-								// multiple of gcd((a^d mod n) − 1, n)
+								// multiple of gcd((a^d mod n) - 1, n)
 								return sl_false;
 							}
 							if (x.equals(n1)) {
