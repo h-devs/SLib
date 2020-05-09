@@ -83,14 +83,14 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141_xp</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141_xp</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -203,7 +203,7 @@
       <MinimalRebuild>true</MinimalRebuild>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <AdditionalOptions>/wd4996 /wd4244 /wd4267 /wd4312 /wd4018 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/wd4996 /wd4244 /wd4267 /wd4312 /wd4018 /wd4819 %(AdditionalOptions)</AdditionalOptions>
       <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
@@ -233,7 +233,7 @@
       <MinimalRebuild>true</MinimalRebuild>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <AdditionalOptions>/wd4996 /wd4244 /wd4267 /wd4312 /wd4018 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/wd4996 /wd4244 /wd4267 /wd4312 /wd4018 /wd4819 %(AdditionalOptions)</AdditionalOptions>
       <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
