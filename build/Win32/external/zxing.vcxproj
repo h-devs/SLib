@@ -390,6 +390,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalOptions>/wd4996 /wd4267 /wd4244 /wd4101 %(AdditionalOptions)</AdditionalOptions>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -415,6 +416,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalOptions>/wd4996 /wd4267 /wd4244 /wd4101 %(AdditionalOptions)</AdditionalOptions>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -440,6 +442,7 @@
       <MinimalRebuild>true</MinimalRebuild>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/wd4996 /wd4267 /wd4244 /wd4101 %(AdditionalOptions)</AdditionalOptions>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -467,6 +470,7 @@
       <MinimalRebuild>true</MinimalRebuild>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/wd4996 /wd4267 /wd4244 /wd4101 %(AdditionalOptions)</AdditionalOptions>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

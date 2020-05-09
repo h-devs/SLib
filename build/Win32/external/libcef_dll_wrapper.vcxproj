@@ -257,6 +257,7 @@
       <AdditionalOptions>/wd4996 /wd4267 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -285,6 +286,7 @@
       <AdditionalOptions>/wd4996 /wd4267 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -311,6 +313,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/wd4996 /wd4267 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -339,6 +342,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/wd4996 /wd4267 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

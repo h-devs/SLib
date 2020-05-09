@@ -104,6 +104,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -129,6 +130,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -155,6 +157,7 @@
       <MinimalRebuild>true</MinimalRebuild>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -183,6 +186,7 @@
       <MinimalRebuild>true</MinimalRebuild>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

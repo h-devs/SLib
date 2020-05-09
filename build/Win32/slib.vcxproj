@@ -554,6 +554,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -580,6 +581,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -606,6 +608,7 @@
       <MinimalRebuild>false</MinimalRebuild>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -634,6 +637,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

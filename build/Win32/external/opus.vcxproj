@@ -250,6 +250,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <AdditionalOptions>/DHAVE_CONFIG_H %(AdditionalOptions)</AdditionalOptions>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -276,6 +277,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <AdditionalOptions>/DHAVE_CONFIG_H %(AdditionalOptions)</AdditionalOptions>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -303,6 +305,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/DHAVE_CONFIG_H %(AdditionalOptions)</AdditionalOptions>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -332,6 +335,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/DHAVE_CONFIG_H %(AdditionalOptions)</AdditionalOptions>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

@@ -110,6 +110,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -134,6 +135,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -158,6 +160,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <MinimalRebuild>false</MinimalRebuild>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -184,6 +187,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <MinimalRebuild>false</MinimalRebuild>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

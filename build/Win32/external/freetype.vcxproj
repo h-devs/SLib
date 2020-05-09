@@ -149,6 +149,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <AdditionalOptions>/wd4996 /wd4244 /wd4267 /wd4312 /wd4018 /wd4819 %(AdditionalOptions)</AdditionalOptions>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -175,6 +176,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <AdditionalOptions>/wd4996 /wd4244 /wd4267 /wd4312 /wd4018 /wd4819 %(AdditionalOptions)</AdditionalOptions>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -202,6 +204,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/wd4996 /wd4244 /wd4267 /wd4312 /wd4018 %(AdditionalOptions)</AdditionalOptions>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -231,6 +234,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/wd4996 /wd4244 /wd4267 /wd4312 /wd4018 %(AdditionalOptions)</AdditionalOptions>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

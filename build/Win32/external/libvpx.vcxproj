@@ -425,25 +425,25 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(ProjectDir)..\..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)..\build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <TargetName>libvpx</TargetName>
+    <TargetName>vpx</TargetName>
     <IncludePath>$(ProjectDir)..\..\..\external\src\libvpx;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(ProjectDir)..\..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)..\build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <TargetName>libvpx</TargetName>
+    <TargetName>vpx</TargetName>
     <IncludePath>$(ProjectDir)..\..\..\external\src\libvpx;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(ProjectDir)..\..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)..\build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <TargetName>libvpx</TargetName>
+    <TargetName>vpx</TargetName>
     <IncludePath>$(ProjectDir)..\..\..\external\src\libvpx;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>$(ProjectDir)..\build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(ProjectDir)..\..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
-    <TargetName>libvpx</TargetName>
+    <TargetName>vpx</TargetName>
     <IncludePath>$(ProjectDir)..\..\..\external\src\libvpx;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -463,6 +463,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <AdditionalOptions>/wd4996 /wd4703 %(AdditionalOptions)</AdditionalOptions>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -505,6 +506,7 @@ IF "$(Platform)"=="x64" (
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <AdditionalOptions>/wd4996 /wd4703 %(AdditionalOptions)</AdditionalOptions>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -548,6 +550,7 @@ IF "$(Platform)"=="x64" (
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/wd4996 /wd4703 %(AdditionalOptions)</AdditionalOptions>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -593,6 +596,7 @@ IF "$(Platform)"=="x64" (
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/wd4996 /wd4703 %(AdditionalOptions)</AdditionalOptions>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
