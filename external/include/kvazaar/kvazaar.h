@@ -28,6 +28,9 @@
 
 #include <stdint.h>
 
+#ifndef KVZ_IMPORT_DLL
+#define KVZ_STATIC_LIB
+#endif
 
 #ifdef __cplusplus
 extern "C" {
