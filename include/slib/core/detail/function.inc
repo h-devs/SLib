@@ -1166,7 +1166,7 @@ namespace slib
 			if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
 				List< Function<RET_TYPE(ARGS...)> >& list = ((FunctionList<RET_TYPE(ARGS...)>*)object)->list;
 				sl_size count = list.getCount();
-				if (count >= 0) {
+				if (count > 0) {
 					Function<RET_TYPE(ARGS...)>* data = list.getData();
 					if (count == 1) {
 						if (*data == function) {
