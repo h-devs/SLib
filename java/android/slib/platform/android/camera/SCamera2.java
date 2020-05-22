@@ -42,7 +42,6 @@ import android.media.ImageReader;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
-import androidx.annotation.NonNull;
 import android.util.Size;
 import android.view.Surface;
 
@@ -154,7 +153,7 @@ public class SCamera2 extends SCamera {
 		try {
 			manager.openCamera(mId, new CameraDevice.StateCallback() {
 				@Override
-				public void onOpened(@NonNull CameraDevice device) {
+				public void onOpened( CameraDevice device) {
 					synchronized (mSync) {
 						if (!mFlagReleased) {
 							mDevice = device;
@@ -166,7 +165,7 @@ public class SCamera2 extends SCamera {
 				}
 
 				@Override
-				public void onClosed(@NonNull CameraDevice device) {
+				public void onClosed( CameraDevice device) {
 					synchronized (mSync) {
 						for (SCamera obj : mCameras) {
 							if (obj instanceof SCamera2) {
@@ -185,12 +184,12 @@ public class SCamera2 extends SCamera {
 				}
 
 				@Override
-				public void onDisconnected(@NonNull CameraDevice device) {
+				public void onDisconnected(CameraDevice device) {
 					release();
 				}
 
 				@Override
-				public void onError(@NonNull CameraDevice camera, int error) {
+				public void onError(CameraDevice camera, int error) {
 					log("Error: " + error);
 				}
 			}, mBackgroundHandler);
@@ -258,7 +257,7 @@ public class SCamera2 extends SCamera {
 		surfaces.add(mImageReaderPhoto.getSurface());
 		mDevice.createCaptureSession(surfaces, new CameraCaptureSession.StateCallback() {
 			@Override
-			public void onConfigured(@NonNull CameraCaptureSession session) {
+			public void onConfigured(CameraCaptureSession session) {
 				synchronized (mSync) {
 					if (!mFlagReleased && mFlagRunningRequest) {
 						mSession = session;
@@ -273,7 +272,7 @@ public class SCamera2 extends SCamera {
 			}
 
 			@Override
-			public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+			public void onConfigureFailed(CameraCaptureSession session) {
 				log("Failed to create session");
 			}
 		}, mBackgroundHandler);
@@ -315,7 +314,7 @@ public class SCamera2 extends SCamera {
 		mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
 		mSession.capture(mPreviewRequestBuilder.build(), new CameraCaptureSession.CaptureCallback() {
 			@Override
-			public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
+			public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
 				mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_CANCEL);
 				runCapture();
 				mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_IDLE);
@@ -355,7 +354,7 @@ public class SCamera2 extends SCamera {
 		mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
 		mSession.capture(mPreviewRequestBuilder.build(), new CameraCaptureSession.CaptureCallback() {
 			@Override
-			public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
+			public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
 				mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_CANCEL);
 				runPreview();
 				mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_IDLE);
@@ -402,7 +401,7 @@ public class SCamera2 extends SCamera {
 		mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
 		mSession.capture(mPreviewRequestBuilder.build(), new CameraCaptureSession.CaptureCallback() {
 			@Override
-			public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
+			public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
 				mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_CANCEL);
 				runPreview();
 				mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_IDLE);
@@ -518,12 +517,12 @@ public class SCamera2 extends SCamera {
 						try {
 							manager.registerTorchCallback(new CameraManager.TorchCallback() {
 								@Override
-								public void onTorchModeUnavailable(@NonNull String cameraId) {
+								public void onTorchModeUnavailable(String cameraId) {
 									mTorchDevices.remove(cameraId);
 								}
 
 								@Override
-								public void onTorchModeChanged(@NonNull String cameraId, boolean enabled) {
+								public void onTorchModeChanged(String cameraId, boolean enabled) {
 									if (enabled) {
 										mTorchDevices.add(cameraId);
 									} else {

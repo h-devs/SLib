@@ -1,0 +1,314 @@
+package slib.platform.android.app;
+
+import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
+import android.provider.Settings;
+import android.telecom.TelecomManager;
+
+import java.util.Vector;
+
+import slib.platform.android.Logger;
+import slib.platform.android.SlibActivity;
+import slib.platform.android.helper.Permissions;
+import slib.platform.android.ui.UiThread;
+
+public class Application {
+
+
+	private static String[] getPermissions(int permissions) {
+
+		Vector<String> list = new Vector<String>();
+
+		if ((permissions & 1) != 0) {
+			list.add(Manifest.permission.CAMERA);
+		}
+
+		if ((permissions & (1<<1)) != 0) {
+			list.add(Manifest.permission.RECORD_AUDIO);
+		}
+
+		if ((permissions & (1<<2)) != 0) {
+			list.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+		}
+		if ((permissions & (1<<3)) != 0) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+				list.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+			}
+		}
+
+		if ((permissions & (1<<4)) != 0) {
+			list.add(Manifest.permission.READ_PHONE_STATE);
+		}
+		if ((permissions & (1<<5)) != 0) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+				list.add(Manifest.permission.READ_PHONE_NUMBERS);
+			}
+		}
+		if ((permissions & (1<<6)) != 0) {
+			list.add(Manifest.permission.CALL_PHONE);
+		}
+		if ((permissions & (1<<7)) != 0) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+				list.add(Manifest.permission.ANSWER_PHONE_CALLS);
+			}
+		}
+		if ((permissions & (1<<8)) != 0) {
+			list.add(Manifest.permission.ADD_VOICEMAIL);
+		}
+		if ((permissions & (1<<9)) != 0) {
+			list.add(Manifest.permission.USE_SIP);
+		}
+
+		if ((permissions & (1<<10)) != 0) {
+			list.add(Manifest.permission.SEND_SMS);
+		}
+		if ((permissions & (1<<11)) != 0) {
+			list.add(Manifest.permission.RECEIVE_SMS);
+		}
+		if ((permissions & (1<<12)) != 0) {
+			list.add(Manifest.permission.READ_SMS);
+		}
+		if ((permissions & (1<<13)) != 0) {
+			list.add(Manifest.permission.RECEIVE_WAP_PUSH);
+		}
+		if ((permissions & (1<<14)) != 0) {
+			list.add(Manifest.permission.RECEIVE_MMS);
+		}
+
+		if ((permissions & (1<<15)) != 0) {
+			list.add(Manifest.permission.READ_CONTACTS);
+		}
+		if ((permissions & (1<<16)) != 0) {
+			list.add(Manifest.permission.WRITE_CONTACTS);
+		}
+		if ((permissions & (1<<17)) != 0) {
+			list.add(Manifest.permission.GET_ACCOUNTS);
+		}
+
+		if ((permissions & (1<<18)) != 0) {
+			list.add(Manifest.permission.ACCESS_FINE_LOCATION);
+		}
+		if ((permissions & (1<<19)) != 0) {
+			list.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+		}
+
+		if ((permissions & (1<<20)) != 0) {
+			list.add(Manifest.permission.READ_CALENDAR);
+		}
+		if ((permissions & (1<<21)) != 0) {
+			list.add(Manifest.permission.WRITE_CALENDAR);
+		}
+
+		if ((permissions & (1<<22)) != 0) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+				list.add(Manifest.permission.READ_CALL_LOG);
+			}
+		}
+		if ((permissions & (1<<23)) != 0) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+				list.add(Manifest.permission.WRITE_CALL_LOG);
+			}
+		}
+		if ((permissions & (1<<24)) != 0) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+				list.add(Manifest.permission.PROCESS_OUTGOING_CALLS);
+			}
+		}
+
+		if ((permissions & (1<<25)) != 0) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+				list.add(Manifest.permission.BODY_SENSORS);
+			}
+		}
+
+		return list.toArray(new String[] {});
+	}
+
+	public static boolean checkPermissions(final Activity activity, final int permissions) {
+		try {
+			String[] list = getPermissions(permissions);
+			if (list.length > 0) {
+				return Permissions.checkPermissions(activity, list);
+			} else {
+				return true;
+			}
+		} catch (Exception e) {
+			Logger.exception(e);
+		}
+		return false;
+	}
+
+	public static void grantPermissions(final Activity activity, final int permissions) {
+		if (!(UiThread.isUiThread())) {
+			activity.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					grantPermissions(activity, permissions);
+				}
+			});
+			return;
+		}
+		try {
+			String[] list = getPermissions(permissions);
+			if (list.length > 0) {
+				if (Permissions.grantPermissions(activity, list, SlibActivity.REQUEST_PERMISSIONS)) {
+					return;
+				}
+			}
+		} catch (Exception e) {
+			Logger.exception(e);
+		}
+		nativeOnCallbackGrantPermissions();
+	}
+
+	private static native void nativeOnCallbackGrantPermissions();
+
+	public static void onRequestPermissionsResult(Activity activity) {
+		nativeOnCallbackGrantPermissions();
+	}
+
+	private static String getRole(int role) {
+		return null;
+	}
+
+	public static boolean isRoleHeld(final Activity activity, final int role) {
+		return false;
+	}
+
+	public static void requestRole(final Activity activity, final int role) {
+	}
+
+	private static native void nativeOnCallbackRequestRole();
+
+	public static void onRequestRoleResult(Activity activity) {
+		nativeOnCallbackRequestRole();
+	}
+
+	public static void openDefaultAppsSetting(final Activity activity) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+			if (!(UiThread.isUiThread())) {
+				activity.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						openDefaultAppsSetting(activity);
+					}
+				});
+				return;
+			}
+			activity.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						activity.startActivity(new Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS));
+					} catch (Exception e) {
+						Logger.exception(e);
+					}
+				}
+			});
+		}
+	}
+
+	public static boolean isSupportedDefaultCallingApp() {
+		return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+	}
+
+	public static boolean isDefaultCallingApp(Activity activity) {
+		try {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+				TelecomManager manger = (TelecomManager) (activity.getSystemService(Context.TELECOM_SERVICE));
+				if (manger != null) {
+					String current = manger.getDefaultDialerPackage();
+					if (current != null && current.equals(activity.getPackageName())) {
+						return true;
+					}
+				}
+			}
+		} catch (Exception e) {
+			Logger.exception(e);
+		}
+		return false;
+	}
+
+	private static native void nativeOnCallbackSetDefaultCallingApp();
+
+	public static void onSetDefaultCallingAppResult(Activity activity) {
+		nativeOnCallbackSetDefaultCallingApp();
+	}
+
+	private static boolean mFlagInitedSetDefaultCallingAppListener = false;
+
+	public static void setDefaultCallingApp(final Activity activity) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			if (!(UiThread.isUiThread())) {
+				activity.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						setDefaultCallingApp(activity);
+					}
+				});
+				return;
+			}
+			if (!mFlagInitedSetDefaultCallingAppListener) {
+				mFlagInitedSetDefaultCallingAppListener = true;
+				SlibActivity.addActivityResultListener(SlibActivity.REQUEST_ACTIVITY_SET_DEFAULT_CALLING_APP, new SlibActivity.ActivityResultListener() {
+					@Override
+					public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+						try {
+							onSetDefaultCallingAppResult(activity);
+						} catch (Exception e) {
+							Logger.exception(e);
+						}
+					}
+				});
+			}
+			try {
+				final Intent intent = new Intent(TelecomManager.ACTION_CHANGE_DEFAULT_DIALER);
+				intent.putExtra(TelecomManager.EXTRA_CHANGE_DEFAULT_DIALER_PACKAGE_NAME, activity.getPackageName());
+				activity.startActivityForResult(intent, SlibActivity.REQUEST_ACTIVITY_SET_DEFAULT_CALLING_APP);
+			} catch (Exception e) {
+				Logger.exception(e);
+			}
+		}
+
+	}
+
+	public static boolean isSystemOverlayEnabled(Activity activity) {
+		try {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+				return Settings.canDrawOverlays(activity);
+			} else {
+				return Permissions.checkPermission(activity, Manifest.permission.SYSTEM_ALERT_WINDOW);
+			}
+		} catch (Exception e) {
+			Logger.exception(e);
+		}
+		return false;
+	}
+
+	public static void openSystemOverlaySetting(final Activity activity) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			if (!(UiThread.isUiThread())) {
+				activity.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						openSystemOverlaySetting(activity);
+					}
+				});
+				return;
+			}
+			try {
+				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+				intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				intent.setData(Uri.parse("package:" + activity.getPackageName()));
+				activity.startActivity(intent);
+			} catch (Exception e) {
+				Logger.exception(e);
+			}
+		}
+	}
+
+}

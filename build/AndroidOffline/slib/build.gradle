@@ -11,7 +11,7 @@ android {
         externalNativeBuild {
             cmake {
                 targets 'slib'
-                arguments '-DANDROID_ARM_MODE=arm', '-DANDROID_ARM_NEON=TRUE'
+                arguments '-DANDROID_ARM_MODE=arm', '-DANDROID_ARM_NEON=TRUE', '-DANDROID_STL=c++_static'
             }
         }
         ndk {
@@ -31,7 +31,7 @@ android {
 
     sourceSets {
         main.java.srcDirs += '../../../java/android'
-        main.java.srcDirs += '../../../java/android_online'
+        main.java.srcDirs += '../../../java/android_offline'
     }
 
     externalNativeBuild {
@@ -41,12 +41,22 @@ android {
     }
 }
 
+repositories {
+    flatDir{
+        dirs "../../../external/bin/Android"
+    }
+}
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     
     implementation project(':external_ShortcutBadger')
 
-    compileOnly "androidx.appcompat:appcompat:$ANDROIDX_VERSION"
+    compileOnly ":support-annotations-$SUPPORT_VERSION@jar"
+    compileOnly ":support-compat-$SUPPORT_VERSION@aar"
+    compileOnly ":support-core-ui-$SUPPORT_VERSION@aar"
+    compileOnly ":support-core-utils-$SUPPORT_VERSION@aar"
+
 }
 
 rootProject.ext.setLibraryOutput(this, "slib", "slib")

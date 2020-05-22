@@ -57,6 +57,6 @@ target_include_directories (
 if (ANDROID)
  target_compile_options (
   ${TARGET_NAME}
-  PRIVATE -Wno-tautological-constant-compare
+  PRIVATE -Wno-all
  )
 endif ()
