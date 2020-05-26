@@ -37,7 +37,8 @@ void FFmpegPlayerApp::onStart()
 	videoView->setWidthFilling();
 	videoView->setHeightFilling();
 	videoView->setControlsVisible(sl_true);
-	videoView->setMediaPlayer(FFmpeg::openUrl("https://us-videos.dji.net/video_trans/89b9e946c5f94876ac9cfa9b4cafab0f/720.mp4", MediaPlayerFlags::Video | MediaPlayerFlags::Repeat | MediaPlayerFlags::NotSelfAlive));
-	
+	Application::grantPermissions(AppPermissions::ReadExternalStorage, [videoView]() {
+		videoView->setMediaPlayer(FFmpeg::openUrl("https://us-videos.dji.net/video_trans/89b9e946c5f94876ac9cfa9b4cafab0f/720.mp4", MediaPlayerFlags::Video | MediaPlayerFlags::Repeat | MediaPlayerFlags::NotSelfAlive));
+	});
 	addViewToContent(videoView);
 }
