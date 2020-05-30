@@ -33,7 +33,6 @@
 #include "core/base.h"
 #include "core/endian.h"
 #include "core/mio.h"
-#include "core/asm.h"
 
 #include "core/cpp.h"
 #include "core/atomic.h"
