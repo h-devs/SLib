@@ -1856,7 +1856,7 @@ namespace slib
 
 		friend class ViewInstance;
 		friend class Window;
-		friend class LinearView;
+		friend class LinearLayout;
 		friend class ListView;
 		friend class CollectionView;
 		friend class GridView;
