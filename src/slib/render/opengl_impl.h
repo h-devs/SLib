@@ -228,6 +228,11 @@ namespace slib
 	{
 		if (flagEnableBlending) {
 			GL_ENTRY(glEnable)(GL_BLEND);
+#ifdef SLIB_PLATFORM_IS_WIN32
+			if (!GL_ENTRY(glBlendEquation)) {
+				return;
+			}
+#endif
 			GLenum op = priv::gl::GetBlendingOp(param.operation);
 			GLenum opAlpha = priv::gl::GetBlendingOp(param.operationAlpha);
 			if (op != opAlpha) {
@@ -262,6 +267,11 @@ namespace slib
 		{
 			static sl_uint32 CreateShader(GLenum type, const String& source)
 			{
+#ifdef SLIB_PLATFORM_IS_WIN32
+				if (!GL_ENTRY(glCreateShader)) {
+					return 0;
+				}
+#endif
 				GLuint shader = GL_ENTRY(glCreateShader)(type);
 				if (shader) {
 					if (source.isNotEmpty()) {
