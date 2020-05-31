@@ -11,7 +11,7 @@ namespace sapp
 			this->setClientHeight(300);
 			this->setCenterScreen(sl_true);
 
-			_linear1 = new slib::LinearView;
+			_linear1 = new slib::LinearLayout;
 			_linear1->setWidthWrapping(slib::UIUpdateMode::Init);
 			_linear1->setHeightWrapping(slib::UIUpdateMode::Init);
 			_linear1->setCenterHorizontal(slib::UIUpdateMode::Init);

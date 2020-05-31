@@ -352,7 +352,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/ui/image_view_url.cpp"
  "${SLIB_PATH}/src/slib/ui/label_view.cpp"
  "${SLIB_PATH}/src/slib/ui/line_view.cpp"
- "${SLIB_PATH}/src/slib/ui/linear_view.cpp"
+ "${SLIB_PATH}/src/slib/ui/linear_layout.cpp"
  "${SLIB_PATH}/src/slib/ui/list_report_view.cpp"
  "${SLIB_PATH}/src/slib/ui/list_view.cpp"
  "${SLIB_PATH}/src/slib/ui/mobile_app.cpp"

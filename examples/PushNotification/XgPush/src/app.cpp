@@ -165,7 +165,7 @@ void ExampleXgPushApp::initUI()
 	
 	getMainWindow()->setBackgroundColor(Color::White);
 	
-	Ref<LinearView> linear = new LinearView;
+	Ref<LinearLayout> linear = new LinearLayout;
 	linear->setWidthFilling();
 	linear->setMargin(UI::getSafeAreaInsets());
 	linear->setHeightWrapping();

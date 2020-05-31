@@ -45,7 +45,7 @@ SLib enables software developers to build multi-platform(Android/iOS/MacOS/Tizen
 
 * ui
 
-    Window, View, ViewGroup, LinearView, ScrollView, Animation, Button, EditView, TabView, WebView, ...
+    Window, View, ViewGroup, LinearLayout, ScrollView, Animation, Button, EditView, TabView, WebView, ...
 
 * web
 

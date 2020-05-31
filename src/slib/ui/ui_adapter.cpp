@@ -22,7 +22,7 @@
 
 #include "slib/ui/adapter.h"
 
-#include "slib/ui/linear_view.h"
+#include "slib/ui/linear_layout.h"
 
 namespace slib
 {
@@ -201,10 +201,10 @@ namespace slib
 				if (start + n > nTotal) {
 					n = (sl_uint32)(nTotal - start);
 				}
-				Ref<LinearView> group = (LinearView*)original;
+				Ref<LinearLayout> group = (LinearLayout*)original;
 				sl_bool flagNewGroup = sl_false;
 				if (group.isNull()) {
-					group = new LinearView;
+					group = new LinearLayout;
 					if (group.isNull()) {
 						return sl_null;
 					}

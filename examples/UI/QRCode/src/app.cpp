@@ -14,12 +14,12 @@ void QRCodeExampleApp::onStart()
 	getMainWindow()->setCenterScreen(sl_true);
 #endif
 	
-	Ref<HorizontalLinearView> linear1 = new HorizontalLinearView;
+	Ref<HorizontalLinearLayout> linear1 = new HorizontalLinearLayout;
 	linear1->setWidthFilling();
 	linear1->setHeightFilling();
 	linear1->setBackgroundColor(Color::Gray);
 	
-	Ref<LinearView> linear2 = new LinearView;
+	Ref<LinearLayout> linear2 = new LinearLayout;
 	linear2->setWidthFilling();
 	linear2->setHeightFilling();
 	linear1->addChild(linear2);
@@ -49,7 +49,7 @@ void QRCodeExampleApp::onStart()
 	m_editEncoding->setBackgroundColor(Color::White);
 	linear2->addChild(m_editEncoding);
 	
-	Ref<LinearView> linear3 = new LinearView;
+	Ref<LinearLayout> linear3 = new LinearLayout;
 	linear3->setWidthFilling();
 	linear3->setHeightFilling();
 	linear1->addChild(linear3);

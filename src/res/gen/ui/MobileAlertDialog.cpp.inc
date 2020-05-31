@@ -15,7 +15,7 @@ namespace slib
 			this->setClipping(sl_true, slib::UIUpdateMode::Init);
 			this->setCreatingInstance(sl_false);
 
-			_linear1 = new slib::LinearView;
+			_linear1 = new slib::LinearLayout;
 			_linear1->setWidthFilling(1.0f, slib::UIUpdateMode::Init);
 			_linear1->setHeightWrapping(slib::UIUpdateMode::Init);
 			_linear1->setAlignParentLeft(slib::UIUpdateMode::Init);
@@ -62,7 +62,7 @@ namespace slib
 			_view1->setBackground(slib::Drawable::createColorDrawable(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
 			_linear1->addChild(_view1, slib::UIUpdateMode::Init);
 
-			_linear2 = new slib::LinearView;
+			_linear2 = new slib::LinearLayout;
 			_linear2->setOrientation(slib::LayoutOrientation::Horizontal, slib::UIUpdateMode::Init);
 			_linear2->setWidthFilling(1.0f, slib::UIUpdateMode::Init);
 			_linear2->setHeightWrapping(slib::UIUpdateMode::Init);

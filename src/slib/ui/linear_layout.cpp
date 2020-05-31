@@ -20,16 +20,16 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/ui/linear_view.h"
+#include "slib/ui/linear_layout.h"
 
 #include "slib/core/scoped.h"
 
 namespace slib
 {
 
-	SLIB_DEFINE_OBJECT(LinearView, ViewGroup)
+	SLIB_DEFINE_OBJECT(LinearLayout, ViewGroup)
 	
-	LinearView::LinearView()
+	LinearLayout::LinearLayout()
 	{		
 		setCustomLayout(sl_true);
 		setSavingCanvasState(sl_false);
@@ -37,16 +37,16 @@ namespace slib
 		m_orientation = LayoutOrientation::Vertical;
 	}
 	
-	LinearView::~LinearView()
+	LinearLayout::~LinearLayout()
 	{
 	}
 
-	LayoutOrientation LinearView::getOrientation()
+	LayoutOrientation LinearLayout::getOrientation()
 	{
 		return m_orientation;
 	}
 	
-	void LinearView::setOrientation(LayoutOrientation orientation, UIUpdateMode mode)
+	void LinearLayout::setOrientation(LayoutOrientation orientation, UIUpdateMode mode)
 	{
 		if (m_orientation == orientation) {
 			return;
@@ -55,27 +55,27 @@ namespace slib
 		invalidateLayout(mode);
 	}
 	
-	sl_bool LinearView::isHorizontal()
+	sl_bool LinearLayout::isHorizontal()
 	{
 		return m_orientation == LayoutOrientation::Horizontal;
 	}
 	
-	void LinearView::setHorizontal(UIUpdateMode mode)
+	void LinearLayout::setHorizontal(UIUpdateMode mode)
 	{
 		setOrientation(LayoutOrientation::Horizontal, mode);
 	}
 	
-	sl_bool LinearView::isVertical()
+	sl_bool LinearLayout::isVertical()
 	{
 		return m_orientation == LayoutOrientation::Vertical;
 	}
 	
-	void LinearView::setVertical(UIUpdateMode mode)
+	void LinearLayout::setVertical(UIUpdateMode mode)
 	{
 		setOrientation(LayoutOrientation::Vertical, mode);
 	}
 	
-	void LinearView::onAddChild(View* child)
+	void LinearLayout::onAddChild(View* child)
 	{
 		if (m_orientation == LayoutOrientation::Vertical) {
 			child->setTopFree(UIUpdateMode::Init);
@@ -86,7 +86,7 @@ namespace slib
 		}
 	}
 	
-	void LinearView::onUpdateLayout()
+	void LinearLayout::onUpdateLayout()
 	{
 		ListElements< Ref<View> > children(getChildren());
 		
@@ -272,21 +272,21 @@ namespace slib
 
 	}
 	
-	VerticalLinearView::VerticalLinearView()
+	VerticalLinearLayout::VerticalLinearLayout()
 	{
 		setOrientation(LayoutOrientation::Vertical, UIUpdateMode::Init);
 	}
 	
-	VerticalLinearView::~VerticalLinearView()
+	VerticalLinearLayout::~VerticalLinearLayout()
 	{
 	}
 
-	HorizontalLinearView::HorizontalLinearView()
+	HorizontalLinearLayout::HorizontalLinearLayout()
 	{
 		setOrientation(LayoutOrientation::Horizontal, UIUpdateMode::Init);
 	}
 
-	HorizontalLinearView::~HorizontalLinearView()
+	HorizontalLinearLayout::~HorizontalLinearLayout()
 	{
 	}
 

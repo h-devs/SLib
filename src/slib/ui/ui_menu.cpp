@@ -301,7 +301,7 @@ namespace slib
 #include "slib/ui/core.h"
 #include "slib/ui/mobile_app.h"
 #include "slib/ui/button.h"
-#include "slib/ui/linear_view.h"
+#include "slib/ui/linear_layout.h"
 
 #include "../resources.h"
 

@@ -331,7 +331,7 @@ namespace slib
 	class ImageView;
 	class SelectView;
 	class ScrollView;
-	class LinearView;
+	class LinearLayout;
 	class ListView;
 	class ListReportView;
 	class RenderView;

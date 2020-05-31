@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_UI_LINEAR_VIEW
-#define CHECKHEADER_SLIB_UI_LINEAR_VIEW
+#ifndef CHECKHEADER_SLIB_UI_LINEAR_LAYOUT
+#define CHECKHEADER_SLIB_UI_LINEAR_LAYOUT
 
 #include "definition.h"
 
@@ -30,14 +30,14 @@
 namespace slib
 {
 
-	class SLIB_EXPORT LinearView : public ViewGroup
+	class SLIB_EXPORT LinearLayout : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
 		
 	public:
-		LinearView();
+		LinearLayout();
 		
-		~LinearView();
+		~LinearLayout();
 
 	public:
 		LayoutOrientation getOrientation();
@@ -62,21 +62,21 @@ namespace slib
 		
 	};
 	
-	class SLIB_EXPORT VerticalLinearView : public LinearView
+	class SLIB_EXPORT VerticalLinearLayout : public LinearLayout
 	{
 	public:
-		VerticalLinearView();
+		VerticalLinearLayout();
 
-		~VerticalLinearView();
+		~VerticalLinearLayout();
 
 	};
 	
-	class SLIB_EXPORT HorizontalLinearView : public LinearView
+	class SLIB_EXPORT HorizontalLinearLayout : public LinearLayout
 	{
 	public:
-		HorizontalLinearView();
+		HorizontalLinearLayout();
 
-		~HorizontalLinearView();
+		~HorizontalLinearLayout();
 
 	};
 

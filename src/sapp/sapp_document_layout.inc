@@ -3154,7 +3154,7 @@ namespace slib
 	END_PROCESS_LAYOUT_CONTROL
 
 
-	BEGIN_PROCESS_LAYOUT_CONTROL(Linear, LinearView)
+	BEGIN_PROCESS_LAYOUT_CONTROL(Linear, LinearLayout)
 	{
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(orientation, setOrientation)
 		if (!(attr->orientation.flagDefined)) {
