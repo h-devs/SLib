@@ -46,6 +46,7 @@ namespace slib
 	{
 		Ref<Camera> camera = m_camera;
 		if (camera.isNotNull()) {
+			camera->setOnCaptureVideoFrame(sl_null);
 			Dispatch::dispatch([camera]() {});
 		}
 	}
