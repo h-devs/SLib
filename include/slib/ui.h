@@ -23,6 +23,8 @@
 #ifndef CHECKHEADER_SLIB_UI_HEADER
 #define CHECKHEADER_SLIB_UI_HEADER
 
+#include "core.h"
+
 #include "ui/core.h"
 #include "ui/cursor.h"
 #include "ui/event.h"
