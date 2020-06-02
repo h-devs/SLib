@@ -47,7 +47,11 @@ namespace slib
 		Ref<Camera> camera = m_camera;
 		if (camera.isNotNull()) {
 			camera->setOnCaptureVideoFrame(sl_null);
+#ifdef SLIB_PLATFORM_IS_WIN32
+			stop();
+#else
 			Dispatch::dispatch([camera]() {});
+#endif
 		}
 	}
 
