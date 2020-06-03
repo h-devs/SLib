@@ -915,7 +915,7 @@ namespace slib
 		}
 		if (bitmap->isImage()) {
 			Ref<Image> image = Ref<Image>::from(bitmap);
-			return createTexture2D(w, h, image->getColors(), image->getStride());
+			return createTexture2D(w, h, image->getColorsAt(x, y), image->getStride());
 		} else {
 			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
 			BitmapData temp;
@@ -1145,7 +1145,119 @@ namespace slib
 			GL_ENTRY(glDeleteTextures)(1, &t);
 		}
 	}
-	
+
+#ifdef PRIV_OPENGL_IMPL
+	void GL_BASE::drawPixels(const BitmapData& bitmapData)
+	{		
+		sl_uint32 width = bitmapData.width;
+		sl_uint32 height = bitmapData.height;
+		if (bitmapData.format == BitmapFormat::RGBA && (bitmapData.pitch == 0 || bitmapData.pitch == (sl_int32)(width << 2))) {
+			GL_ENTRY(glDrawPixels)(width, height, GL_RGBA, GL_UNSIGNED_BYTE, bitmapData.data);
+		} else {
+			sl_uint32 size = width * height;
+			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, size << 2);
+			BitmapData temp;
+			temp.width = width;
+			temp.height = height;
+			temp.format = BitmapFormat::RGBA;
+			temp.data = glImage;
+			temp.pitch = width << 2;
+			temp.copyPixelsFrom(bitmapData);
+			GL_ENTRY(glDrawPixels)(width, height, GL_RGBA, GL_UNSIGNED_BYTE, glImage);
+		}
+	}
+
+	void GL_BASE::drawPixels(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride)
+	{
+		if (width > 0 && height > 0 && pixels) {
+			BitmapData bitmapData(width, height, pixels, stride);
+			drawPixels(bitmapData);
+		}
+	}
+
+	void GL_BASE::drawPixels(const Ref<Bitmap>& bitmap, sl_uint32 sx, sl_uint32 sy, sl_uint32 w, sl_uint32 h)
+	{
+		if (bitmap.isNull()) {
+			return;
+		}
+		if (w == 0 || h == 0) {
+			return;
+		}
+		sl_uint32 bw = bitmap->getWidth();
+		sl_uint32 bh = bitmap->getHeight();
+		if (bw == 0 || bh == 0) {
+			return;
+		}
+		if (sx >= bw) {
+			return;
+		}
+		if (sy >= bh) {
+			return;
+		}
+		if (sx + w > bw) {
+			return;
+		}
+		if (sy + h > bh) {
+			return;
+		}
+		if (bitmap->isImage()) {
+			Ref<Image> image = Ref<Image>::from(bitmap);
+			drawPixels(w, h, image->getColorsAt(sx, sy), image->getStride());
+		} else {
+			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
+			BitmapData temp;
+			temp.width = w;
+			temp.height = h;
+			temp.format = BitmapFormat::RGBA;
+			temp.data = glImage;
+			temp.pitch = w << 2;
+			if (bitmap->readPixels(sx, sy, temp)) {
+				drawPixels(temp);
+			}
+		}
+	}
+
+	void GL_BASE::drawPixels(const Ref<Bitmap>& bitmap)
+	{
+		if (bitmap.isNull()) {
+			return;
+		}
+		sl_uint32 w = bitmap->getWidth();
+		sl_uint32 h = bitmap->getHeight();
+		if (w == 0) {
+			return;
+		}
+		if (h == 0) {
+			return;
+		}
+		if (bitmap->isImage()) {
+			Ref<Image> image = Ref<Image>::from(bitmap);
+			drawPixels(w, h, image->getColors(), image->getStride());
+		} else {
+			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
+			BitmapData temp;
+			temp.width = w;
+			temp.height = h;
+			temp.format = BitmapFormat::RGBA;
+			temp.data = glImage;
+			temp.pitch = w << 2;
+			if (bitmap->readPixels(0, 0, temp)) {
+				drawPixels(temp);
+			}
+		}
+	}
+
+	void GL_BASE::setRasterPosition(float x, float y)
+	{
+		GL_ENTRY(glRasterPos2f)(x, y);
+	}
+
+	void GL_BASE::setPixelZoom(float xf, float yf)
+	{
+		GL_ENTRY(glPixelZoom)(xf, yf);
+	}
+#endif
+
 /*****************************************
  			OpenGL Engine
 ******************************************/

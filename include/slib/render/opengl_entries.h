@@ -244,6 +244,20 @@ namespace slib
 		
 		static void setUniformTextureSamplerArray(sl_int32 uniformLocation, const sl_reg* values, sl_uint32 count);
 		
+#ifdef PRIV_SLIB_RENDER_ENTRIES_CLASS_GL
+		static void drawPixels(const BitmapData& bitmapData);
+
+		static void drawPixels(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride = 0);
+
+		static void drawPixels(const Ref<Bitmap>& bitmap, sl_uint32 sx, sl_uint32 sy, sl_uint32 width, sl_uint32 height);
+
+		static void drawPixels(const Ref<Bitmap>& bitmap);
+
+		static void setRasterPosition(float x, float y);
+
+		static void setPixelZoom(float xf, float yf);
+#endif
+
 	public:
 		static sl_bool isAvailable();
 
