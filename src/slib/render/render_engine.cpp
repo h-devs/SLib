@@ -148,6 +148,11 @@ namespace slib
 		RenderEngineType type = getEngineType();
 		return type == RenderEngineType::D3D9 || type == RenderEngineType::D3D11;
 	}
+
+	sl_bool RenderEngine::isShaderAvailable()
+	{
+		return sl_true;
+	}
 	
 	sl_bool RenderEngine::beginScene()
 	{

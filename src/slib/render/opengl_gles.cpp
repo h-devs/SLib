@@ -93,6 +93,11 @@ namespace slib
 	{
 		return g_flagLoadedEntryPoints;
 	}
+
+	sl_bool GLES::isShaderAvailable()
+	{
+		return g_flagLoadedEntryPoints;
+	}
 }
 
 #	else
@@ -108,6 +113,11 @@ namespace slib
 	}
 	
 	sl_bool GLES::isAvailable()
+	{
+		return sl_true;
+	}
+
+	sl_bool GLES::isShaderAvailable()
 	{
 		return sl_true;
 	}
@@ -133,6 +143,11 @@ namespace slib
 	}
 	
 	sl_bool GLES::isAvailable()
+	{
+		return sl_false;
+	}
+
+	sl_bool GLES::isShaderAvailable()
 	{
 		return sl_false;
 	}

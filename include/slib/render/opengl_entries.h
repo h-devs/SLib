@@ -246,6 +246,8 @@ namespace slib
 		
 	public:
 		static sl_bool isAvailable();
+
+		static sl_bool isShaderAvailable();
 		
 		static void loadEntries(const StringParam& pathDll, sl_bool flagReload = sl_true);
 		

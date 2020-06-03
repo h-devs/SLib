@@ -138,6 +138,11 @@ namespace slib
 	{
 		return g_flagLoadedEntryPoints;
 	}
+
+	sl_bool GL::isShaderAvailable()
+	{
+		return g_flagLoadedEntryPoints && g_entries.flagSupportsVersion_2_0;
+	}
 }
 
 #	else
@@ -153,6 +158,11 @@ namespace slib
 	}
 	
 	sl_bool GL::isAvailable()
+	{
+		return sl_true;
+	}
+
+	sl_bool GL::isShaderAvailable()
 	{
 		return sl_true;
 	}
@@ -178,6 +188,11 @@ namespace slib
 	}
 	
 	sl_bool GL::isAvailable()
+	{
+		return sl_false;
+	}
+
+	sl_bool GL::isShaderAvailable()
 	{
 		return sl_false;
 	}

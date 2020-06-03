@@ -231,6 +231,8 @@ namespace slib
 		sl_bool isOpenGL_ES();
 		
 		sl_bool isD3D();
+
+		virtual sl_bool isShaderAvailable();
 		
 		sl_bool beginScene();
 		

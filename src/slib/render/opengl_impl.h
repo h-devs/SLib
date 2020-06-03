@@ -43,6 +43,10 @@
 ELEMENTARY_GLVIEW_GLOBAL_DEFINE()
 #endif
 
+#ifdef SLIB_PLATFORM_IS_WIN32
+#define NEED_CHECK_ENTRY
+#endif
+
 namespace slib
 {
 
@@ -228,8 +232,11 @@ namespace slib
 	{
 		if (flagEnableBlending) {
 			GL_ENTRY(glEnable)(GL_BLEND);
-#ifdef SLIB_PLATFORM_IS_WIN32
+#ifdef NEED_CHECK_ENTRY
 			if (!GL_ENTRY(glBlendEquation)) {
+				GLenum fSrc = priv::gl::GetBlendingFactor(param.blendSrc);
+				GLenum fDst = priv::gl::GetBlendingFactor(param.blendDst);
+				GL_ENTRY(glBlendFunc)(fSrc, fDst);
 				return;
 			}
 #endif
@@ -267,7 +274,7 @@ namespace slib
 		{
 			static sl_uint32 CreateShader(GLenum type, const String& source)
 			{
-#ifdef SLIB_PLATFORM_IS_WIN32
+#ifdef NEED_CHECK_ENTRY
 				if (!GL_ENTRY(glCreateShader)) {
 					return 0;
 				}
@@ -1031,6 +1038,11 @@ namespace slib
 	
 	void GL_BASE::setActiveSampler(sl_uint32 textureNo)
 	{
+#ifdef NEED_CHECK_ENTRY
+		if (!GL_ENTRY(glActiveTexture)) {
+			return;
+		}
+#endif
 		GL_ENTRY(glActiveTexture)(GL_TEXTURE0 + textureNo);
 	}
 	
@@ -1234,6 +1246,11 @@ namespace slib
 #else
 			return RenderEngineType::OpenGL;
 #endif
+		}
+
+		sl_bool isShaderAvailable() override
+		{
+			return GL_BASE::isShaderAvailable();
 		}
 		
 		class GLRenderProgramInstance : public RenderProgramInstance
