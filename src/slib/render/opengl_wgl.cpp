@@ -134,6 +134,7 @@ namespace slib
 						wglDeleteContext(m_context);
 						::ReleaseDC(m_hWindow, m_hDC);
 						m_context = sl_null;
+						m_hDC = sl_null;
 					}
 				}
 
@@ -151,6 +152,7 @@ namespace slib
 					TimeCounter timer;
 					Ref<Thread> thread = Thread::getCurrent();
 					while (thread.isNull() || thread->isNotStopping()) {
+						Ref<RendererImpl> thiz = this;
 						runStep(engine.get());
 						if (thread.isNull() || thread->isNotStopping()) {
 							sl_uint64 t = timer.getElapsedMilliseconds();
@@ -185,7 +187,9 @@ namespace slib
 						if (rect.right != 0 && rect.bottom != 0) {
 							engine->setViewport(0, 0, rect.right, rect.bottom);
 							dispatchFrame(engine);
-							::SwapBuffers(m_hDC);
+							if (m_hDC) {
+								::SwapBuffers(m_hDC);
+							}
 						}
 					}
 				}
