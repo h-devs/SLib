@@ -54,6 +54,10 @@ namespace slib
 		sl_bool isDispatchingEventsToRenderingThread();
 		
 		void setDispatchingEventsToRenderingThread(sl_bool flag);
+
+		sl_bool isRenderEnabled();
+
+		void finishRendering();
 		
 		void requestRender();
 		
@@ -155,6 +159,10 @@ namespace slib
 		
 		virtual void requestRender(RenderView* view) = 0;
 		
+		virtual sl_bool isRenderEnabled(RenderView* view);
+
+		virtual void finishRendering(RenderView* view);
+
 	};
 
 }

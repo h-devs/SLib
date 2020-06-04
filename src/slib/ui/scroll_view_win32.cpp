@@ -209,6 +209,11 @@ namespace slib
 					return Win32_ViewInstance::processWindowMessage(msg, wParam, lParam);
 				}
 
+				sl_bool isDrawingEnabled(View* view) override
+				{
+					return sl_true;
+				}
+
 			};
 
 			SLIB_DEFINE_OBJECT(ScrollViewInstance, Win32_ViewInstance)

@@ -54,10 +54,7 @@ namespace slib
 
 				~RenderViewInstance()
 				{
-					Ref<Renderer> renderer = m_renderer;
-					if (renderer.isNotNull()) {
-						renderer->release();
-					}
+					release();
 				}
 
 			public:
@@ -77,6 +74,21 @@ namespace slib
 					}
 				}
 
+				sl_bool isRenderEnabled(RenderView* view) override
+				{
+					return m_renderer.isNotNull();
+				}
+
+				void finishRendering(RenderView* view) override
+				{
+					release();
+				}
+
+				sl_bool isDrawingEnabled(View* view) override
+				{
+					return m_renderer.isNull();
+				}
+
 				void setRenderer(const Ref<Renderer>& renderer, RedrawMode redrawMode)
 				{
 					m_renderer = renderer;
@@ -88,14 +100,14 @@ namespace slib
 				LRESULT processWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
 				{
 					if (msg == WM_PAINT) {
-						PAINTSTRUCT ps;
-						BeginPaint(m_handle, &ps);
-						EndPaint(m_handle, &ps);
 						Ref<Renderer> renderer = m_renderer;
 						if (renderer.isNotNull()) {
+							PAINTSTRUCT ps;
+							BeginPaint(m_handle, &ps);
+							EndPaint(m_handle, &ps);
 							renderer->requestRender();
+							return 0;
 						}
-						return 0;
 					} else if (msg == WM_ERASEBKGND) {
 						return TRUE;
 					}
@@ -113,6 +125,17 @@ namespace slib
 						m_pLastEngine = engine;
 					}
 				}
+
+				void release()
+				{
+					ObjectLocker lock(this);
+					Ref<Renderer> renderer = m_renderer;
+					if (renderer.isNotNull()) {
+						renderer->release();
+						m_renderer.setNull();
+					}
+				}
+
 			};
 
 			SLIB_DEFINE_OBJECT(RenderViewInstance, Win32_ViewInstance)

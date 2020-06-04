@@ -1917,7 +1917,7 @@ namespace slib
 		virtual void addChildInstance(View* view, const Ref<ViewInstance>& instance) = 0;
 		
 		virtual void removeChildInstance(View* view, const Ref<ViewInstance>& instance) = 0;
-		
+
 		virtual void bringToFront(View* view) = 0;
 		
 		// extended functions for view instances
@@ -1930,6 +1930,8 @@ namespace slib
 		virtual void setShadowColor(View* view, const Color& color);
 		
 		// extended functions for native widgets
+		virtual sl_bool isDrawingEnabled(View* view);
+
 		virtual void setBorder(View* view, sl_bool flag);
 		
 		virtual void setBackgroundColor(View* view, const Color& color);

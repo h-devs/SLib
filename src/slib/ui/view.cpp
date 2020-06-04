@@ -1252,14 +1252,10 @@ namespace slib
 		}
 		
 		Ref<ViewInstance> instance = m_instance;
-		if (instance.isNotNull() && instance->isNativeWidget()) {
-#if defined(SLIB_UI_IS_WIN32)
-			if (!(IsInstanceOf<ScrollView>(this))) {
+		if (instance.isNotNull()) {
+			if (!(instance->isDrawingEnabled(this))) {
 				return;
 			}
-#else
-			return;
-#endif
 		}
 		if (m_frame.getWidth() > 0 && m_frame.getHeight() > 0) {
 
@@ -1302,14 +1298,10 @@ namespace slib
 		}
 
 		Ref<ViewInstance> instance = m_instance;
-		if (instance.isNotNull() && instance->isNativeWidget()) {
-#if defined(SLIB_UI_IS_WIN32)
-			if (!(IsInstanceOf<ScrollView>(this))) {
+		if (instance.isNotNull()) {
+			if (!(instance->isDrawingEnabled(this))) {
 				return;
 			}
-#else
-			return;
-#endif
 		}
 		
 		if (instance.isNotNull() || m_flagClipping) {
@@ -9962,6 +9954,11 @@ namespace slib
 	
 	void ViewInstance::setShadowColor(View* view, const Color& color)
 	{
+	}
+
+	sl_bool ViewInstance::isDrawingEnabled(View* view)
+	{
+		return !m_flagNativeWidget;
 	}
 	
 	void ViewInstance::setBorder(View* view, sl_bool flag)
