@@ -377,6 +377,8 @@ namespace slib
 
 		UIDispatcher::removeAllCallbacks();
 
+		Thread::finishAllThreads();
+
 	}
 
 	void UIPlatform::quitApp()

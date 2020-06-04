@@ -32,6 +32,16 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(Thread, Object)
 
+	namespace priv
+	{
+		namespace thread
+		{
+			AtomicHashMap< Thread*, WeakRef<Thread> > g_mapThreads;
+		}
+	}
+
+	using namespace priv::thread;
+
 	Thread::Thread() : m_eventWake(Event::create(sl_true)), m_eventExit(Event::create(sl_false))
 	{
 		m_flagRunning = sl_false;
@@ -43,6 +53,7 @@ namespace slib
 
 	Thread::~Thread()
 	{
+		g_mapThreads.remove(this);
 	}
 
 	Ref<Thread> Thread::create(const Function<void()>& callback)
@@ -52,9 +63,11 @@ namespace slib
 		}
 		Ref<Thread> ret = new Thread();
 		if (ret.isNotNull()) {
+			g_mapThreads.put(ret.get(), ret);
 			ret->m_callback = callback;
+			return ret;
 		}
-		return ret;
+		return sl_null;
 	}
 
 	Ref<Thread> Thread::start(const Function<void()>& callback, sl_uint32 stackSize)
@@ -66,6 +79,30 @@ namespace slib
 			}
 		}
 		return sl_null;
+	}
+
+	List< Ref<Thread> > Thread::getAllThreads()
+	{
+		List< Ref<Thread> > ret;
+		for (auto& item : g_mapThreads) {
+			Ref<Thread> thread = item.value;
+			if (thread.isNotNull()) {
+				ret.add_NoLock(thread);
+			}
+		}
+		return ret;
+	}
+
+	void Thread::finishAllThreads()
+	{
+		ListElements< Ref<Thread> > threads(getAllThreads());
+		sl_size i;
+		for (i = 0; i < threads.count; i++) {
+			threads[i]->finish();
+		}
+		for (i = 0; i < threads.count; i++) {
+			threads[i]->finishAndWait(1000);
+		}
 	}
 
 	sl_bool Thread::start(sl_uint32 stackSize)

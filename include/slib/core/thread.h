@@ -60,6 +60,10 @@ namespace slib
 
 		static Ref<Thread> start(const Function<void()>& callback, sl_uint32 stackSize = SLIB_THREAD_DEFAULT_STACK_SIZE);
 
+		static List< Ref<Thread> > getAllThreads();
+
+		static void finishAllThreads();
+
 	public:
 		sl_bool start(sl_uint32 stackSize = SLIB_THREAD_DEFAULT_STACK_SIZE);
 
