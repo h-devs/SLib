@@ -35,6 +35,8 @@
 namespace slib
 {
 
+	class RenderCanvas;
+
 	class SLIB_EXPORT VideoView : public RenderView
 	{
 		SLIB_DECLARE_OBJECT
@@ -100,9 +102,15 @@ namespace slib
 		sl_bool convertCoordinateToTexture(Point& pt);
 		
 	protected:
+		void dispatchFrame(RenderEngine* engine) override;
+
 		void onDraw(Canvas* canvas) override;
 		
 	protected:
+		void _renderFrame(RenderCanvas* canvas);
+
+		void _drawFrame(Canvas* canvas);
+
 		Ref<VertexBuffer> _applyFrameRotationAndFlip(FlipMode frameFlip, RotationMode frameRotation, FlipMode userFlip, RotationMode userRotation);
 		
 		void _updateControls(UIUpdateMode mode);
@@ -119,7 +127,8 @@ namespace slib
 
 		AtomicRef<Texture> m_textureFrame;
 		sl_bool m_flagYUV;
-		
+		sl_bool m_flagAllowYUV;
+
 		Ref<RenderProgram2D_PositionTexture> m_programRGB;
 		Ref<RenderProgram2D_PositionTextureYUV> m_programYUV;
 		Ref<RenderProgram2D_PositionTextureOES> m_programOES;
