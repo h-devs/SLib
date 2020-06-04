@@ -26,13 +26,14 @@
 #include "slib/render/opengl.h"
 #include "slib/graphics/image.h"
 #include "slib/graphics/util.h"
+#include "slib/core/timer.h"
 
 namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(VideoView, RenderView)
 
-		VideoView::VideoView()
+	VideoView::VideoView()
 	{
 		setSavingCanvasState(sl_false);
 
@@ -69,6 +70,12 @@ namespace slib
 
 	VideoView::~VideoView()
 	{
+		Ref<MediaPlayer> player = m_mediaPlayer;
+		if (player.isNotNull()) {
+			if (player->isAutoRelease()) {
+				player->release();
+			}
+		}
 	}
 
 	void VideoView::init()
@@ -91,6 +98,7 @@ namespace slib
 		} else {
 			setRedrawMode(RedrawMode::WhenDirty);
 		}
+		_setupPlayVideoTimer();
 	}
 
 	void VideoView::openUrl(const String& url, const MediaPlayerFlags& _flags)
@@ -308,9 +316,12 @@ namespace slib
 	void VideoView::dispatchFrame(RenderEngine* engine)
 	{
 		if (engine->isShaderAvailable()) {
+			m_flagAllowYUV = sl_true;
 			RenderView::dispatchFrame(engine);
 		} else {
+			m_flagAllowYUV = sl_false;
 			finishRendering();
+			_setupPlayVideoTimer();
 		}
 	}
 	
@@ -336,52 +347,6 @@ namespace slib
 			return;
 		}
 		Rectangle rectBounds = rectBoundsi;
-		if (!(engine->isShaderAvailable())) {
-			if (engine->getEngineType() == RenderEngineType::OpenGL) {
-				m_flagAllowYUV = sl_false;
-				if (m_flagYUV) {
-					return;
-				}
-				Ref<Texture> texture = m_textureFrame;
-				if (texture.isNull()) {
-					return;
-				}
-				sl_uint32 tw = texture->getWidth();
-				sl_uint32 th = texture->getHeight();
-				if (!tw || !th) {
-					return;
-				}
-				Ref<Bitmap> bitmap = texture->getSource();
-				if (bitmap.isNull()) {
-					return;
-				}
-				sl_real sw = (sl_real)(tw);
-				sl_real sh = (sl_real)(th);
-				Rectangle rectDraw;
-				if (!(GraphicsUtil::calculateAlignRectangle(rectDraw, rectBounds, sw, sh, m_scaleMode, m_gravity))) {
-					return;
-				}
-				float dw = rectDraw.getWidth();
-				float dh = rectDraw.getHeight();
-				float xf = 1; //(dw - 2) / sw;
-				float yf = -1;// (dh - 2) / sh;
-				float dx = -1;
-				float dy = 1;
-				if (m_flip == FlipMode::Horizontal || m_flip == FlipMode::Both) {
-					dx = -dx;
-					xf = -xf;
-				}
-				if (m_flip == FlipMode::Vertical || m_flip == FlipMode::Both) {
-					dy = -dy;
-					yf = -yf;
-				}
-				GL::setRasterPosition(dx, dy);
-				GL::setPixelZoom(xf, yf);
-				GL::drawPixels(bitmap);
-			}
-			return;
-		}
-		m_flagAllowYUV = sl_true;
 		Ref<MediaPlayer> mediaPlayer = m_mediaPlayer;
 		if (mediaPlayer.isNotNull()) {
 			m_renderVideoParam.glEngine = CastRef<GLRenderEngine>(engine);
@@ -574,7 +539,26 @@ namespace slib
 			}
 		}
 	}
-	
+
+	void VideoView::_setupPlayVideoTimer()
+	{
+		if (m_mediaPlayer.isNotNull() && !(isRenderEnabled())) {
+			if (m_timerPlayVideo.isNull()) {
+				m_timerPlayVideo = Timer::start(SLIB_FUNCTION_WEAKREF(VideoView, _onTimerPlayVideo, this), 30);
+			}
+		} else {
+			m_timerPlayVideo.setNull();
+		}
+	}
+
+	void VideoView::_onTimerPlayVideo(Timer* timer)
+	{
+		Ref<MediaPlayer> mediaPlayer = m_mediaPlayer;
+		if (mediaPlayer.isNotNull()) {
+			mediaPlayer->renderVideo(m_renderVideoParam);
+		}
+	}
+
 	void VideoView::_onSeek(Slider* slider, float value)
 	{
 		Ref<MediaPlayer> player = m_mediaPlayer;

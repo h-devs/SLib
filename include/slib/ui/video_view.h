@@ -114,6 +114,10 @@ namespace slib
 		Ref<VertexBuffer> _applyFrameRotationAndFlip(FlipMode frameFlip, RotationMode frameRotation, FlipMode userFlip, RotationMode userRotation);
 		
 		void _updateControls(UIUpdateMode mode);
+
+		void _setupPlayVideoTimer();
+
+		void _onTimerPlayVideo(Timer* timer);
 		
 		void _onSeek(Slider* slider, float value);
 				
@@ -141,6 +145,7 @@ namespace slib
 		Sizei m_sizeLastFrame;
 
 		MediaPlayerRenderVideoParam m_renderVideoParam;
+		Ref<Timer> m_timerPlayVideo;
 		
 		ScaleMode m_scaleMode;
 		Alignment m_gravity;

@@ -51,10 +51,20 @@ namespace slib
 		
 		flagAutoStart = sl_true;
 		flagAutoRepeat = sl_false;
+		flagAutoRelease = sl_true;
 		
 		flagSelfAlive = sl_false;
 	}
 	
+	void MediaPlayerParam::applyFlags(const MediaPlayerFlags& flags)
+	{
+		flagAutoStart = (flags & MediaPlayerFlags::NotStart) == 0;
+		flagAutoRepeat = (flags & MediaPlayerFlags::Repeat) != 0;
+		flagVideo = (flags & MediaPlayerFlags::Video) != 0;
+		flagAutoRelease = (flags & MediaPlayerFlags::NotAutoRelease) == 0;
+		flagSelfAlive = (flags & MediaPlayerFlags::NotSelfAlive) == 0;
+	}
+
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MediaPlayerRenderVideoParam)
 	
@@ -75,6 +85,7 @@ namespace slib
 	{
 		m_flagSelfAlive = sl_false;
 		m_flagAutoRepeat = sl_false;
+		m_flagAutoRelease = sl_true;
 	}
 
 	MediaPlayer::~MediaPlayer()
@@ -100,10 +111,7 @@ namespace slib
 	{
 		MediaPlayerParam param;
 		param.url = url;
-		param.flagAutoStart = (flags & MediaPlayerFlags::NotStart) == 0;
-		param.flagAutoRepeat = (flags & MediaPlayerFlags::Repeat) != 0;
-		param.flagVideo = (flags & MediaPlayerFlags::Video) != 0;
-		param.flagSelfAlive = (flags & MediaPlayerFlags::NotSelfAlive) == 0;
+		param.applyFlags(flags);
 		return create(param);
 	}
 
@@ -111,10 +119,7 @@ namespace slib
 	{
 		MediaPlayerParam param;
 		param.filePath = filePath;
-		param.flagAutoStart = (flags & MediaPlayerFlags::NotStart) == 0;
-		param.flagAutoRepeat = (flags & MediaPlayerFlags::Repeat) != 0;
-		param.flagVideo = (flags & MediaPlayerFlags::Video) != 0;
-		param.flagSelfAlive = (flags & MediaPlayerFlags::NotSelfAlive) == 0;
+		param.applyFlags(flags);
 		return create(param);
 	}
 
@@ -122,10 +127,7 @@ namespace slib
 	{
 		MediaPlayerParam param;
 		param.assetFileName = fileName;
-		param.flagAutoStart = (flags & MediaPlayerFlags::NotStart) == 0;
-		param.flagAutoRepeat = (flags & MediaPlayerFlags::Repeat) != 0;
-		param.flagVideo = (flags & MediaPlayerFlags::Video) != 0;
-		param.flagSelfAlive = (flags & MediaPlayerFlags::NotSelfAlive) == 0;
+		param.applyFlags(flags);
 		return create(param);
 	}
 
@@ -137,6 +139,16 @@ namespace slib
 	void MediaPlayer::setAutoRepeat(sl_bool flagRepeat)
 	{
 		m_flagAutoRepeat = flagRepeat;
+	}
+
+	sl_bool MediaPlayer::isAutoRelease()
+	{
+		return m_flagAutoRelease;
+	}
+
+	void MediaPlayer::setAutoRelease(sl_bool flagRelease)
+	{
+		m_flagAutoRelease = flagRelease;
 	}
 
 	void MediaPlayer::_onReadyToPlay()
@@ -152,6 +164,7 @@ namespace slib
 	void MediaPlayer::_init(const MediaPlayerParam& param)
 	{
 		m_flagAutoRepeat = param.flagAutoRepeat;
+		m_flagAutoRelease = param.flagAutoRelease;
 		m_flagSelfAlive = param.flagSelfAlive;
 		setOnReadyToPlay(param.onReadyToPlay);
 		setOnComplete(param.onComplete);

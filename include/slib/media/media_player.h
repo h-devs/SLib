@@ -37,7 +37,24 @@
 namespace slib
 {
 	class MediaPlayer;
-	
+
+	class MediaPlayerFlags
+	{
+	public:
+		int value;
+		SLIB_MEMBERS_OF_FLAGS(MediaPlayerFlags, value)
+
+	public:
+		enum {
+			Default = 0,
+			NotStart = 1,
+			Repeat = 2,
+			Video = 16,
+			NotSelfAlive = 32,
+			NotAutoRelease = 64
+		};
+	};
+
 	class SLIB_EXPORT MediaPlayerParam
 	{
 	public:
@@ -49,6 +66,7 @@ namespace slib
 		
 		sl_bool flagAutoStart;
 		sl_bool flagAutoRepeat;
+		sl_bool flagAutoRelease;
 		
 		sl_bool flagSelfAlive;
 		
@@ -60,22 +78,9 @@ namespace slib
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MediaPlayerParam)
 		
-	};
-	
-	class MediaPlayerFlags
-	{
 	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(MediaPlayerFlags, value)
-		
-	public:
-		enum {
-			Default = 0,
-			NotStart = 1,
-			Repeat = 2,
-			Video = 16,
-			NotSelfAlive = 32
-		};
+		void applyFlags(const MediaPlayerFlags& flags);
+
 	};
 	
 	// save this structure after rendering and reuse for next frame
@@ -154,7 +159,11 @@ namespace slib
 		sl_bool isAutoRepeat();
 		
 		virtual void setAutoRepeat(sl_bool flagRepeat);
-				
+
+		sl_bool isAutoRelease();
+
+		virtual void setAutoRelease(sl_bool flagAutoRelease);
+
 	public:
 		SLIB_PROPERTY_FUNCTION(void(MediaPlayer*), OnReadyToPlay)
 		
@@ -177,6 +186,7 @@ namespace slib
 	protected:
 		sl_bool m_flagSelfAlive;
 		sl_bool m_flagAutoRepeat;
+		sl_bool m_flagAutoRelease;
 
 	};
 
