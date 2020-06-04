@@ -1795,17 +1795,25 @@ namespace slib
 		Ref<Drawable> drawableCached = m_drawableCached;
 		if (drawableCached.isNotNull()) {
 			if (canvas->isSupportedDrawable(drawableCached)) {
-				return drawableCached;
+				if (m_flagInvalidatedCache) {
+					if (canvas->updateDrawableCacheForImage(drawableCached.get(), this)) {
+						return drawableCached;
+					}
+					m_flagInvalidatedCache = sl_false;
+				} else {
+					return drawableCached;
+				}
 			}
 			m_drawableCached.setNull();
 		}
 		drawableCached = canvas->createDrawableCacheForImage(this);
 		if (drawableCached.isNotNull()) {
+			m_flagInvalidatedCache = sl_false;
 			m_drawableCached = drawableCached;
 		}
 		return drawableCached;
 	}
-	
+
 	void Image::onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param)
 	{
 		if (m_customDrawable.isNotNull()) {

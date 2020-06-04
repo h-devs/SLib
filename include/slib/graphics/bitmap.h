@@ -116,6 +116,7 @@ namespace slib
 		sl_bool resetPixels(const Color& color);
 
 	protected:
+		sl_bool m_flagInvalidatedCache;
 		AtomicRef<Drawable> m_drawableCached;
 		AtomicRef<BitmapCache> m_renderingTextureCached;
 

@@ -322,6 +322,8 @@ namespace slib
 		virtual sl_bool isSupportedDrawable(const Ref<Drawable>& drawable) = 0;
 		
 		virtual Ref<Drawable> createDrawableCacheForImage(const Ref<Image>& image) = 0;
+
+		virtual sl_bool updateDrawableCacheForImage(Drawable* drawable, Image* image) = 0;
 		
 	protected:
 		// ignores `text`, `font`, `flagMultiLine`, `alignment`, `x`, `y`, `width` and `height`
@@ -399,6 +401,8 @@ namespace slib
 		sl_bool isSupportedDrawable(const Ref<Drawable>& drawable) override;
 		
 		Ref<Drawable> createDrawableCacheForImage(const Ref<Image>& image) override;
+
+		sl_bool updateDrawableCacheForImage(Drawable* drawable, Image* image) override;
 		
 	protected:
 		void onDraw(const Rectangle& rectDst, const Ref<Drawable>& src, const Rectangle& rectSrc, const DrawParam& param) override;

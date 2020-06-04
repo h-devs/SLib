@@ -23,6 +23,7 @@
 #include "slib/graphics/canvas.h"
 
 #include "slib/graphics/util.h"
+#include "slib/graphics/image.h"
 
 namespace slib
 {
@@ -322,6 +323,16 @@ namespace slib
 	Ref<Drawable> CanvasExt::createDrawableCacheForImage(const Ref<Image>& image)
 	{
 		return PlatformDrawable::create(image);
+	}
+
+	sl_bool CanvasExt::updateDrawableCacheForImage(Drawable* drawable, Image* image)
+	{
+		if (drawable->isBitmap()) {
+			Bitmap* bitmap = (Bitmap*)drawable;
+			bitmap->writePixels(0, 0, image->getWidth(), image->getHeight(), image->getColors(), image->getStride());
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 }
