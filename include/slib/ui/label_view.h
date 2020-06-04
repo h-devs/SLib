@@ -32,7 +32,102 @@
 namespace slib
 {
 
-	class SLIB_EXPORT LabelView : public View
+	template <class VIEW_CLASS>
+	class LabelAppearanceViewBase
+	{
+	public:
+		LabelAppearanceViewBase()
+		{
+			m_textColor = Color::Black;
+			m_textAlignment = Alignment::Left;
+			m_ellipsizeMode = EllipsizeMode::None;
+			m_flagEnabledHyperlinksInPlainText = sl_false;
+			m_linkColor = Color::Zero;
+		}
+
+	public:
+		Color getTextColor()
+		{
+			return m_textColor;
+		}
+
+		void setTextColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw)
+		{
+			m_textColor = color;
+			((VIEW_CLASS*)this)->invalidateLabelAppearance(updateMode);
+		}
+
+		Alignment getGravity()
+		{
+			return m_textAlignment;
+		}
+
+		void setGravity(const Alignment& align, UIUpdateMode updateMode = UIUpdateMode::Redraw)
+		{
+			m_textAlignment = align;
+			((VIEW_CLASS*)this)->invalidateLabelAppearance(updateMode);
+		}
+
+		EllipsizeMode getEllipsize()
+		{
+			return m_ellipsizeMode;
+		}
+
+		void setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout)
+		{
+			m_ellipsizeMode = ellipsizeMode;
+			((VIEW_CLASS*)this)->invalidateLabelAppearance(updateMode);
+		}
+
+		sl_bool isDetectingHyperlinksInPlainText()
+		{
+			return m_flagEnabledHyperlinksInPlainText;
+		}
+
+		void setDetectingHyperlinksInPlainText(sl_bool flag, UIUpdateMode updateMode = UIUpdateMode::Redraw)
+		{
+			m_flagEnabledHyperlinksInPlainText = flag;
+			((VIEW_CLASS*)this)->invalidateLabelAppearance(updateMode);
+		}
+
+		Color getLinkColor()
+		{
+			if (m_linkColor.isNotZero()) {
+				return m_linkColor;
+			}
+			return TextParagraph::getDefaultLinkColor();
+		}
+
+		void setLinkColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw)
+		{
+			m_linkColor = color;
+			((VIEW_CLASS*)this)->invalidateLabelAppearance(updateMode);
+		}
+
+	protected:
+		void _applyLabelAppearance(SimpleTextBoxParam& param)
+		{
+			param.ellipsizeMode = m_ellipsizeMode;
+			param.align = m_textAlignment;
+			param.flagEnabledHyperlinksInPlainText = m_flagEnabledHyperlinksInPlainText;
+		}
+
+		void _applyLabelAppearance(SimpleTextBoxDrawParam& param)
+		{
+			param.color = m_textColor;
+			param.linkColor = getLinkColor();
+		}
+
+	protected:
+		Color m_textColor;
+		Alignment m_textAlignment;
+		EllipsizeMode m_ellipsizeMode;
+		sl_bool m_flagEnabledHyperlinksInPlainText;
+		Color m_linkColor;
+
+	};
+
+	class SLIB_EXPORT LabelView : public View, public LabelAppearanceViewBase<LabelView>
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -50,36 +145,18 @@ namespace slib
 		
 		virtual void setHyperText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
-		Color getTextColor();
-		
-		virtual void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		Alignment getGravity();
-		
-		virtual void setGravity(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
 		MultiLineMode getMultiLine();
-		
+
 		virtual void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
-		
-		EllipsizeMode getEllipsize();
-		
-		virtual void setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_uint32 getLinesCount();
-		
+
 		virtual void setLinesCount(sl_uint32 nLines, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
-		
-		sl_bool isDetectingHyperlinksInPlainText();
-		
-		void setDetectingHyperlinksInPlainText(sl_bool flag, UIUpdateMode updateMode = UIUpdateMode::Redraw);
-		
-		Color getLinkColor();
-		
-		void setLinkColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
+		virtual void invalidateLabelAppearance(UIUpdateMode mode);
+
 		UISize measureSize();
-		
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(LabelView, ClickLink, const String& href, UIEvent* ev)
 		
@@ -98,14 +175,9 @@ namespace slib
 	protected:
 		AtomicString m_text;
 		sl_bool m_flagHyperText;
-		Color m_textColor;
-		Alignment m_textAlignment;
 		MultiLineMode m_multiLineMode;
-		EllipsizeMode m_ellipsizeMode;
 		sl_uint32 m_linesCount;
-		sl_bool m_flagEnabledHyperlinksInPlainText;
-		Color m_linkColor;
-		
+
 		SimpleTextBox m_textBox;
 		
 	};

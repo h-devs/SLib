@@ -36,14 +36,9 @@ namespace slib
 		setUsingFont(sl_true);
 		
 		m_flagHyperText = sl_false;
-		m_textAlignment = Alignment::Left;
-		m_textColor = Color::Black;
 		m_multiLineMode = MultiLineMode::Single;
-		m_ellipsizeMode = EllipsizeMode::None;
 		m_linesCount = 0;
-		m_flagEnabledHyperlinksInPlainText = sl_false;
-		m_linkColor = Color::Zero;
-		
+
 		setPadding(1, 1, 1, 1, UIUpdateMode::Init);
 	}
 	
@@ -75,28 +70,6 @@ namespace slib
 		invalidateLayoutOfWrappingControl(mode);
 	}
 	
-	Color LabelView::getTextColor()
-	{
-		return m_textColor;
-	}
-	
-	void LabelView::setTextColor(const Color& color, UIUpdateMode mode)
-	{
-		m_textColor = color;
-		invalidate(mode);
-	}
-	
-	Alignment LabelView::getGravity()
-	{
-		return m_textAlignment;
-	}
-	
-	void LabelView::setGravity(const Alignment& align, UIUpdateMode mode)
-	{
-		m_textAlignment = align;
-		invalidate(mode);
-	}
-	
 	MultiLineMode LabelView::getMultiLine()
 	{
 		return m_multiLineMode;
@@ -106,17 +79,6 @@ namespace slib
 	{
 		m_multiLineMode = multiLineMode;
 		invalidateLayoutOfWrappingControl(updateMode);
-	}
-	
-	EllipsizeMode LabelView::getEllipsize()
-	{
-		return m_ellipsizeMode;
-	}
-	
-	void LabelView::setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode)
-	{
-		m_ellipsizeMode = ellipsizeMode;
-		invalidate(updateMode);
 	}
 	
 	sl_uint32 LabelView::getLinesCount()
@@ -129,32 +91,12 @@ namespace slib
 		m_linesCount = nLines;
 		invalidateLayoutOfWrappingControl(updateMode);
 	}
-
-	sl_bool LabelView::isDetectingHyperlinksInPlainText()
-	{
-		return m_flagEnabledHyperlinksInPlainText;
-	}
-
-	void LabelView::setDetectingHyperlinksInPlainText(sl_bool flag, UIUpdateMode mode)
-	{
-		m_flagEnabledHyperlinksInPlainText = flag;
-		invalidate(mode);
-	}
-
-	Color LabelView::getLinkColor()
-	{
-		if (m_linkColor.isNotZero()) {
-			return m_linkColor;
-		}
-		return TextParagraph::getDefaultLinkColor();
-	}
-
-	void LabelView::setLinkColor(const Color& color, UIUpdateMode mode)
-	{
-		m_linkColor = color;
-		invalidate(mode);
-	}
 	
+	void LabelView::invalidateLabelAppearance(UIUpdateMode updateMode)
+	{
+		invalidate(updateMode);
+	}
+
 	UISize LabelView::measureSize()
 	{
 		_updateTextBox(getWidth());
@@ -198,10 +140,8 @@ namespace slib
 		param.flagHyperText = m_flagHyperText;
 		param.width = (sl_real)widthText;
 		param.multiLineMode = m_multiLineMode;
-		param.ellipsizeMode = m_ellipsizeMode;
 		param.linesCount = m_linesCount;
-		param.align = m_textAlignment;
-		param.flagEnabledHyperlinksInPlainText = m_flagEnabledHyperlinksInPlainText;
+		_applyLabelAppearance(param);
 		m_textBox.update(param);
 	}
 	
@@ -214,7 +154,6 @@ namespace slib
 		_updateTextBox(getWidth());
 		SimpleTextBoxDrawParam param;
 		param.frame = bounds;
-		param.color = m_textColor;
 		sl_real shadowOpacity = getShadowOpacity();
 		if (shadowOpacity > 0 && !(isLayer()) && getCurrentBackground().isNull()) {
 			param.shadowOpacity = shadowOpacity;
@@ -226,6 +165,7 @@ namespace slib
 		if (param.lineThickness < 1) {
 			param.lineThickness = 1;
 		}
+		_applyLabelAppearance(param);
 		m_textBox.draw(canvas, param);
 	}
 	
