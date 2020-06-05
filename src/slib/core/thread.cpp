@@ -101,7 +101,7 @@ namespace slib
 			threads[i]->finish();
 		}
 		for (i = 0; i < threads.count; i++) {
-			threads[i]->finishAndWait(1000);
+			threads[i]->finishAndWait(100);
 		}
 	}
 
