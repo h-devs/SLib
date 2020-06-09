@@ -101,7 +101,7 @@ namespace slib
 				{
 					defaultThumb = ColorDrawable::create(Color(0, 0, 0, 150));
 					defaultPressedThumb = ColorDrawable::create(Color(0, 0, 0, 200));
-					defaultHoverThumb = ColorDrawable::create(Color(0, 50, 255, 110));
+					defaultHoverThumb = ColorDrawable::create(Color(0, 0, 0, 180));
 					
 					defaultHoverTrack = ColorDrawable::create(Color(255, 255, 255, 50));
 					defaultPressedTrack = ColorDrawable::create(Color(255, 255, 255, 100));
@@ -522,15 +522,26 @@ namespace slib
 				UIRect region;
 				if (getThumbRegion(region)) {
 					if (region.containsPoint(ev->getPoint())) {
-						_setHoverThumb(sl_true);
+						if (action == UIAction::MouseEnter) {
+							_setHoverThumb(sl_true, UIUpdateMode::None);
+							invalidate();
+						} else {
+							_setHoverThumb(sl_true, UIUpdateMode::Redraw);
+						}
 						return;
 					}
 				}
-				_setHoverThumb(sl_false);
+				if (action == UIAction::MouseEnter) {
+					_setHoverThumb(sl_false, UIUpdateMode::None);
+					invalidate();
+				} else {
+					_setHoverThumb(sl_false, UIUpdateMode::Redraw);
+				}
 				return;
 			}
 			case UIAction::MouseLeave:
-				_setHoverThumb(sl_false);
+				_setHoverThumb(sl_false, UIUpdateMode::None);
+				invalidate();
 				return;
 				
 			case UIAction::LeftButtonDown:
@@ -568,6 +579,8 @@ namespace slib
 				if (isPressedState()) {
 					if (m_posDown != pos) {
 						changeValue(m_valueDown + (sl_scroll_pos)(pos - m_posDown) * ratioValuePos);
+					} else {
+						invalidate();
 					}
 				}
 				break;
@@ -634,11 +647,11 @@ namespace slib
 		invalidate();
 	}
 	
-	void ScrollBar::_setHoverThumb(sl_bool flag)
+	void ScrollBar::_setHoverThumb(sl_bool flag, UIUpdateMode mode)
 	{
 		if (m_flagHoverThumb != flag) {
 			m_flagHoverThumb = flag;
-			invalidate();
+			invalidate(mode);
 		}
 	}
 }

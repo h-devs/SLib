@@ -143,7 +143,7 @@ namespace slib
 	protected:
 		void changeValue(sl_scroll_pos value);
 		
-		void _setHoverThumb(sl_bool flag);
+		void _setHoverThumb(sl_bool flag, UIUpdateMode mode);
 		
 	protected:
 		LayoutOrientation m_orientation;
