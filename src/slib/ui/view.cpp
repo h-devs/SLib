@@ -9722,9 +9722,14 @@ namespace slib
 					sl_bool flagChange = sl_false;
 					sl_scroll_pos sx = scrollAttrs->x;
 					sl_scroll_pos sy = scrollAttrs->y;
-					
+					sl_real deltaX = ev->getDeltaX();
+					sl_real deltaY = ev->getDeltaY();
+
+					if (ev->isShiftKey()) {
+						Swap(deltaX, deltaY);
+					}
+
 					if (flagHorz) {
-						sl_real deltaX = ev->getDeltaX();
 						if (deltaX > SLIB_EPSILON) {
 							sx -= lineX;
 							flagChange = sl_true;
@@ -9734,7 +9739,6 @@ namespace slib
 						}
 					}
 					if (flagVert) {
-						sl_real deltaY = ev->getDeltaY();
 						if (deltaY > SLIB_EPSILON) {
 							sy -= lineY;
 							flagChange = sl_true;
