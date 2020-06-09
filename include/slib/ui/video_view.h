@@ -105,6 +105,8 @@ namespace slib
 		void dispatchFrame(RenderEngine* engine) override;
 
 		void onDraw(Canvas* canvas) override;
+
+		void onAttach() override;
 		
 	protected:
 		void _renderFrame(RenderCanvas* canvas);

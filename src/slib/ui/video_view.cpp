@@ -76,6 +76,9 @@ namespace slib
 				player->release();
 			}
 		}
+		if (m_timerPlayVideo.isNotNull()) {
+			m_timerPlayVideo->stopAndWait();
+		}
 	}
 
 	void VideoView::init()
@@ -320,7 +323,7 @@ namespace slib
 			RenderView::dispatchFrame(engine);
 		} else {
 			m_flagAllowYUV = sl_false;
-			finishRendering();
+			disableRendering();
 			_setupPlayVideoTimer();
 		}
 	}
@@ -334,6 +337,11 @@ namespace slib
 		} else {
 			_drawFrame(_canvas);
 		}
+	}
+
+	void VideoView::onAttach()
+	{
+		_setupPlayVideoTimer();
 	}
 
 	void VideoView::_renderFrame(RenderCanvas* canvas)
@@ -542,6 +550,10 @@ namespace slib
 
 	void VideoView::_setupPlayVideoTimer()
 	{
+		ObjectLocker lock(this);
+		if (!(isInstance())) {
+			return;
+		}
 		if (m_mediaPlayer.isNotNull() && !(isRenderEnabled())) {
 			if (m_timerPlayVideo.isNull()) {
 				m_timerPlayVideo = Timer::start(SLIB_FUNCTION_WEAKREF(VideoView, _onTimerPlayVideo, this), 30);

@@ -79,7 +79,7 @@ namespace slib
 					return m_renderer.isNotNull();
 				}
 
-				void finishRendering(RenderView* view) override
+				void disableRendering(RenderView* view) override
 				{
 					release();
 				}

@@ -150,11 +150,11 @@ namespace slib
 		return sl_false;
 	}
 
-	void RenderView::finishRendering()
+	void RenderView::disableRendering()
 	{
 		Ptr<IRenderViewInstance> instance = getRenderViewInstance();
 		if (instance.isNotNull()) {
-			instance->finishRendering(this);
+			instance->disableRendering(this);
 		}
 	}
 
@@ -523,7 +523,7 @@ namespace slib
 		return sl_true;
 	}
 
-	void IRenderViewInstance::finishRendering(RenderView* view)
+	void IRenderViewInstance::disableRendering(RenderView* view)
 	{
 	}
 

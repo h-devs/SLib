@@ -57,7 +57,7 @@ namespace slib
 
 		sl_bool isRenderEnabled();
 
-		void finishRendering();
+		void disableRendering();
 		
 		void requestRender();
 		
@@ -161,7 +161,7 @@ namespace slib
 		
 		virtual sl_bool isRenderEnabled(RenderView* view);
 
-		virtual void finishRendering(RenderView* view);
+		virtual void disableRendering(RenderView* view);
 
 	};
 
