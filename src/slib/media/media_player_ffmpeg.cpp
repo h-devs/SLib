@@ -563,6 +563,7 @@ namespace slib
 							ret = avcodec_send_packet(m_codecAudio, m_packetToSend);
 							if (ret < 0) {
 								if (ret == AVERROR_EOF) {
+									av_packet_unref(m_packetToSend);
 									m_packetToSend = sl_null;
 									Thread::sleep(10);
 									return sl_true;
@@ -570,14 +571,19 @@ namespace slib
 									return sl_false;
 								}
 							} else {
+								av_packet_unref(m_packetToSend);
 								m_packetToSend = sl_null;
 							}
+						} else {
+							av_packet_unref(m_packetToSend);
+							m_packetToSend = sl_null;
 						}
 					} else if (m_packetToSend->stream_index == m_streamVideo) {
 						if (m_codecVideo) {
 							ret = avcodec_send_packet(m_codecVideo, m_packetToSend);
 							if (ret < 0) {
 								if (ret == AVERROR_EOF) {
+									av_packet_unref(m_packetToSend);
 									m_packetToSend = sl_null;
 									Thread::sleep(10);
 									return sl_true;
@@ -585,12 +591,15 @@ namespace slib
 									return sl_false;
 								}
 							} else {
+								av_packet_unref(m_packetToSend);
 								m_packetToSend = sl_null;
 							}
 						} else {
+							av_packet_unref(m_packetToSend);
 							m_packetToSend = sl_null;
 						}
 					} else {
+						av_packet_unref(m_packetToSend);
 						m_packetToSend = sl_null;
 					}
 					return sl_true;
@@ -710,10 +719,7 @@ namespace slib
 	{
 		MediaPlayerParam param;
 		param.url = url;
-		param.flagAutoStart = (flags & MediaPlayerFlags::NotStart) == 0;
-		param.flagAutoRepeat = (flags & MediaPlayerFlags::Repeat) != 0;
-		param.flagVideo = (flags & MediaPlayerFlags::Video) != 0;
-		param.flagSelfAlive = (flags & MediaPlayerFlags::NotSelfAlive) == 0;
+		param.applyFlags(flags);
 		return createMediaPlayer(param);
 	}
 	
@@ -721,10 +727,7 @@ namespace slib
 	{
 		MediaPlayerParam param;
 		param.filePath = filePath;
-		param.flagAutoStart = (flags & MediaPlayerFlags::NotStart) == 0;
-		param.flagAutoRepeat = (flags & MediaPlayerFlags::Repeat) != 0;
-		param.flagVideo = (flags & MediaPlayerFlags::Video) != 0;
-		param.flagSelfAlive = (flags & MediaPlayerFlags::NotSelfAlive) == 0;
+		param.applyFlags(flags);
 		return createMediaPlayer(param);
 	}
 	
@@ -732,10 +735,7 @@ namespace slib
 	{
 		MediaPlayerParam param;
 		param.assetFileName = fileName;
-		param.flagAutoStart = (flags & MediaPlayerFlags::NotStart) == 0;
-		param.flagAutoRepeat = (flags & MediaPlayerFlags::Repeat) != 0;
-		param.flagVideo = (flags & MediaPlayerFlags::Video) != 0;
-		param.flagSelfAlive = (flags & MediaPlayerFlags::NotSelfAlive) == 0;
+		param.applyFlags(flags);
 		return createMediaPlayer(param);
 	}
 
