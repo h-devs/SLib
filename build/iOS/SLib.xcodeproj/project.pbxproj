@@ -951,7 +951,7 @@
 		26D9D8BF1E962976005F7BD3 /* image_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 260107B11DAD3E5400C40723 /* image_view.cpp */; };
 		26D9D8C01E962976005F7BD3 /* label_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD43F1C1190E800D47AB0 /* label_view.cpp */; };
 		26D9D8C21E962976005F7BD3 /* linear_layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26CB94C81D0126ED00D8A472 /* linear_layout.cpp */; };
-		26D9D8C31E962976005F7BD3 /* list_report_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 269394CB1D7609EB002B9B03 /* list_report_view.cpp */; };
+		26D9D8C31E962976005F7BD3 /* list_control.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 269394CB1D7609EB002B9B03 /* list_control.cpp */; };
 		26D9D8C41E962976005F7BD3 /* list_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266F926B1D51CD450040166C /* list_view.cpp */; };
 		26D9D8C51E962976005F7BD3 /* mobile_app.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2648D5491D096AC400819E09 /* mobile_app.cpp */; };
 		26D9D8C61E962976005F7BD3 /* mobile_game.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2648D54A1D096AC400819E09 /* mobile_game.cpp */; };
@@ -2245,7 +2245,7 @@
 		268916331C182AC8009FD75E /* camera_dshow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = camera_dshow.cpp; path = media/camera_dshow.cpp; sourceTree = "<group>"; };
 		268A13031E7B16340048F2CE /* blowfish.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = blowfish.cpp; sourceTree = "<group>"; };
 		2692222F1DC12F600055095F /* image_stb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = image_stb.cpp; sourceTree = "<group>"; };
-		269394CB1D7609EB002B9B03 /* list_report_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = list_report_view.cpp; sourceTree = "<group>"; };
+		269394CB1D7609EB002B9B03 /* list_control.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = list_control.cpp; sourceTree = "<group>"; };
 		269462091CAD1C47001B2130 /* xml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xml.cpp; sourceTree = "<group>"; };
 		26987CF023B3993E00872C1D /* alipay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = alipay.cpp; sourceTree = "<group>"; };
 		26987CF223B3994300872C1D /* alipay_sdk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = alipay_sdk.cpp; sourceTree = "<group>"; };
@@ -4303,7 +4303,7 @@
 				266DD43F1C1190E800D47AB0 /* label_view.cpp */,
 				26F53FA122E2E6D60031D485 /* line_view.cpp */,
 				26CB94C81D0126ED00D8A472 /* linear_layout.cpp */,
-				269394CB1D7609EB002B9B03 /* list_report_view.cpp */,
+				269394CB1D7609EB002B9B03 /* list_control.cpp */,
 				266F926B1D51CD450040166C /* list_view.cpp */,
 				2648D5491D096AC400819E09 /* mobile_app.cpp */,
 				2648D54A1D096AC400819E09 /* mobile_game.cpp */,
@@ -5427,7 +5427,7 @@
 				26E1B8B9222ABBDC007C222E /* zutil.c in Sources */,
 				26D9D8171E9628E0005F7BD3 /* async_kqueue.cpp in Sources */,
 				26D9D8CD1E962976005F7BD3 /* radio_button.cpp in Sources */,
-				26D9D8C31E962976005F7BD3 /* list_report_view.cpp in Sources */,
+				26D9D8C31E962976005F7BD3 /* list_control.cpp in Sources */,
 				26D9D8761E96294F005F7BD3 /* image_png.cpp in Sources */,
 				26539FA52374BA040064340D /* ui_notification.cpp in Sources */,
 				26D9D8181E9628E0005F7BD3 /* int128.cpp in Sources */,

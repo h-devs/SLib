@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/ui/list_report_view.h"
+#include "slib/ui/list_control.h"
 
 #include "slib/ui/core.h"
 
@@ -31,9 +31,9 @@
 namespace slib
 {
 	
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListReportViewColumn)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListControlColumn)
 
-	ListReportViewColumn::ListReportViewColumn()
+	ListControlColumn::ListControlColumn()
 	{
 		width = 40;
 		align = Alignment::MiddleCenter;
@@ -41,16 +41,16 @@ namespace slib
 	}
 	
 	
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListReportViewCell)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListControlCell)
 	
-	ListReportViewCell::ListReportViewCell()
+	ListControlCell::ListControlCell()
 	{
 	}
 	
 	
-	SLIB_DEFINE_OBJECT(ListReportView, View)
+	SLIB_DEFINE_OBJECT(ListControl, View)
 	
-	ListReportView::ListReportView()
+	ListControl::ListControl()
 	{
 #ifdef HAS_NATIVE_WIDGET_IMPL
 		setCreatingNativeWidget(sl_true);
@@ -62,20 +62,20 @@ namespace slib
 		m_selectedRow = -1;
 	}
 	
-	ListReportView::~ListReportView()
+	ListControl::~ListControl()
 	{
 	}
 
-	sl_uint32 ListReportView::getColumnsCount()
+	sl_uint32 ListControl::getColumnsCount()
 	{
 		return (sl_uint32)(m_columns.getCount());
 	}
 	
-	void ListReportView::setColumnsCount(sl_uint32 nCount, UIUpdateMode mode)
+	void ListControl::setColumnsCount(sl_uint32 nCount, UIUpdateMode mode)
 	{
-		Ptr<IListReportViewInstance> instance = getListReportViewInstance();
+		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ListReportView::setColumnsCount, nCount, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(&ListControl::setColumnsCount, nCount, mode)
 		}
 		ObjectLocker lock(this);
 		m_columns.setCount(nCount);
@@ -86,16 +86,16 @@ namespace slib
 		}
 	}
 	
-	sl_uint32 ListReportView::getRowsCount()
+	sl_uint32 ListControl::getRowsCount()
 	{
 		return m_nRows;
 	}
 	
-	void ListReportView::setRowsCount(sl_uint32 nCount, UIUpdateMode mode)
+	void ListControl::setRowsCount(sl_uint32 nCount, UIUpdateMode mode)
 	{
-		Ptr<IListReportViewInstance> instance = getListReportViewInstance();
+		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ListReportView::setRowsCount, nCount, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(&ListControl::setRowsCount, nCount, mode)
 		}
 		ObjectLocker lock(this);
 		if (nCount < m_cells.getCount()) {
@@ -109,24 +109,24 @@ namespace slib
 		}
 	}
 	
-	String ListReportView::getItemText(sl_uint32 iRow, sl_uint32 iCol)
+	String ListControl::getItemText(sl_uint32 iRow, sl_uint32 iCol)
 	{
-		List<ListReportViewCell> row = m_cells.getValueAt(iRow);
+		List<ListControlCell> row = m_cells.getValueAt(iRow);
 		if (row.isNotNull()) {
 			MutexLocker lock(row.getLocker());
 			if (iCol < row.getCount()) {
-				ListReportViewCell* cell = row.getPointerAt(iCol);
+				ListControlCell* cell = row.getPointerAt(iCol);
 				return cell->text;
 			}
 		}
 		return sl_null;
 	}
 	
-	void ListReportView::setItemText(sl_uint32 iRow, sl_uint32 iCol, const String& text, UIUpdateMode mode)
+	void ListControl::setItemText(sl_uint32 iRow, sl_uint32 iCol, const String& text, UIUpdateMode mode)
 	{
-		Ptr<IListReportViewInstance> instance = getListReportViewInstance();
+		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ListReportView::setItemText, iRow, iCol, text, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(&ListControl::setItemText, iRow, iCol, text, mode)
 		}
 		ObjectLocker lock(this);
 		if (iRow < m_nRows) {
@@ -135,7 +135,7 @@ namespace slib
 					return;
 				}
 			}
-			List<ListReportViewCell> row = m_cells.getValueAt(iRow);
+			List<ListControlCell> row = m_cells.getValueAt(iRow);
 			if (row.isNull()) {
 				row.setCount(iCol + 1);
 				m_cells.setAt(iRow, row);
@@ -147,7 +147,7 @@ namespace slib
 						return;
 					}
 				}
-				ListReportViewCell* cell = row.getPointerAt(iCol);
+				ListControlCell* cell = row.getPointerAt(iCol);
 				cell->text = text;
 			}
 			if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
@@ -160,25 +160,25 @@ namespace slib
 		}
 	}
 	
-	String ListReportView::getHeaderText(sl_uint32 iCol)
+	String ListControl::getHeaderText(sl_uint32 iCol)
 	{
 		MutexLocker lock(m_columns.getLocker());
 		if (iCol < m_columns.getCount()) {
-			ListReportViewColumn* col = m_columns.getPointerAt(iCol);
+			ListControlColumn* col = m_columns.getPointerAt(iCol);
 			return col->title;
 		}
 		return sl_null;
 	}
 	
-	void ListReportView::setHeaderText(sl_uint32 iCol, const String& text, UIUpdateMode mode)
+	void ListControl::setHeaderText(sl_uint32 iCol, const String& text, UIUpdateMode mode)
 	{
-		Ptr<IListReportViewInstance> instance = getListReportViewInstance();
+		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ListReportView::setHeaderText, iCol, text, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(&ListControl::setHeaderText, iCol, text, mode)
 		}
 		MutexLocker lock(m_columns.getLocker());
 		if (iCol < m_columns.getCount()) {
-			ListReportViewColumn* col = m_columns.getPointerAt(iCol);
+			ListControlColumn* col = m_columns.getPointerAt(iCol);
 			col->title = text;
 			if (instance.isNotNull()) {
 				instance->setHeaderText(this, iCol, text);
@@ -188,25 +188,25 @@ namespace slib
 		}
 	}
 	
-	sl_ui_len ListReportView::getColumnWidth(sl_uint32 iCol)
+	sl_ui_len ListControl::getColumnWidth(sl_uint32 iCol)
 	{
 		MutexLocker lock(m_columns.getLocker());
 		if (iCol < m_columns.getCount()) {
-			ListReportViewColumn* col = m_columns.getPointerAt(iCol);
+			ListControlColumn* col = m_columns.getPointerAt(iCol);
 			return col->width;
 		}
 		return 0;
 	}
 	
-	void ListReportView::setColumnWidth(sl_uint32 iCol, sl_ui_len width, UIUpdateMode mode)
+	void ListControl::setColumnWidth(sl_uint32 iCol, sl_ui_len width, UIUpdateMode mode)
 	{
-		Ptr<IListReportViewInstance> instance = getListReportViewInstance();
+		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ListReportView::setColumnWidth, iCol, width, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(&ListControl::setColumnWidth, iCol, width, mode)
 		}
 		MutexLocker lock(m_columns.getLocker());
 		if (iCol < m_columns.getCount()) {
-			ListReportViewColumn* col = m_columns.getPointerAt(iCol);
+			ListControlColumn* col = m_columns.getPointerAt(iCol);
 			col->width = width;
 			if (instance.isNotNull()) {
 				instance->setColumnWidth(this, iCol, width);
@@ -216,25 +216,25 @@ namespace slib
 		}
 	}
 	
-	Alignment ListReportView::getHeaderAlignment(sl_uint32 iCol)
+	Alignment ListControl::getHeaderAlignment(sl_uint32 iCol)
 	{
 		MutexLocker lock(m_columns.getLocker());
 		if (iCol < m_columns.getCount()) {
-			ListReportViewColumn* col = m_columns.getPointerAt(iCol);
+			ListControlColumn* col = m_columns.getPointerAt(iCol);
 			return col->headerAlign;
 		}
 		return Alignment::Center;
 	}
 	
-	void ListReportView::setHeaderAlignment(sl_uint32 iCol, const Alignment& align, UIUpdateMode mode)
+	void ListControl::setHeaderAlignment(sl_uint32 iCol, const Alignment& align, UIUpdateMode mode)
 	{
-		Ptr<IListReportViewInstance> instance = getListReportViewInstance();
+		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ListReportView::setHeaderAlignment, iCol, align, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(&ListControl::setHeaderAlignment, iCol, align, mode)
 		}
 		MutexLocker lock(m_columns.getLocker());
 		if (iCol < m_columns.getCount()) {
-			ListReportViewColumn* col = m_columns.getPointerAt(iCol);
+			ListControlColumn* col = m_columns.getPointerAt(iCol);
 			col->headerAlign = align;
 			if (instance.isNotNull()) {
 				instance->setHeaderAlignment(this, iCol, align);
@@ -244,25 +244,25 @@ namespace slib
 		}
 	}
 	
-	Alignment ListReportView::getColumnAlignment(sl_uint32 iCol)
+	Alignment ListControl::getColumnAlignment(sl_uint32 iCol)
 	{
 		MutexLocker lock(m_columns.getLocker());
 		if (iCol < m_columns.getCount()) {
-			ListReportViewColumn* col = m_columns.getPointerAt(iCol);
+			ListControlColumn* col = m_columns.getPointerAt(iCol);
 			return col->align;
 		}
 		return Alignment::Center;
 	}
 	
-	void ListReportView::setColumnAlignment(sl_uint32 iCol, const Alignment& align, UIUpdateMode mode)
+	void ListControl::setColumnAlignment(sl_uint32 iCol, const Alignment& align, UIUpdateMode mode)
 	{
-		Ptr<IListReportViewInstance> instance = getListReportViewInstance();
+		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ListReportView::setColumnAlignment, iCol, align, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(&ListControl::setColumnAlignment, iCol, align, mode)
 		}
 		MutexLocker lock(m_columns.getLocker());
 		if (iCol < m_columns.getCount()) {
-			ListReportViewColumn* col = m_columns.getPointerAt(iCol);
+			ListControlColumn* col = m_columns.getPointerAt(iCol);
 			col->align = align;
 			if (instance.isNotNull()) {
 				instance->setColumnAlignment(this, iCol, align);
@@ -272,31 +272,31 @@ namespace slib
 		}
 	}
 	
-	sl_int32 ListReportView::getSelectedRow()
+	sl_int32 ListControl::getSelectedRow()
 	{
-		Ptr<IListReportViewInstance> instance = getListReportViewInstance();
+		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
 			instance->getSelectedRow(this, m_selectedRow);
 		}
 		return m_selectedRow;
 	}
 	
-	void ListReportView::addRow(UIUpdateMode mode)
+	void ListControl::addRow(UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		setRowsCount(m_nRows+1, mode);
 	}
 	
-	void ListReportView::insertRow(sl_uint32 iRow, UIUpdateMode mode)
+	void ListControl::insertRow(sl_uint32 iRow, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		if (iRow < m_cells.getCount()) {
-			m_cells.insert(iRow, List<ListReportViewCell>::null());
+			m_cells.insert(iRow, List<ListControlCell>::null());
 		}
 		setRowsCount(m_nRows+1, mode);
 	}
 	
-	void ListReportView::removeRow(sl_uint32 iRow, UIUpdateMode mode)
+	void ListControl::removeRow(sl_uint32 iRow, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		if (iRow < m_nRows) {
@@ -307,22 +307,22 @@ namespace slib
 		}
 	}
 	
-	void ListReportView::removeAllRows(UIUpdateMode mode)
+	void ListControl::removeAllRows(UIUpdateMode mode)
 	{
 		setRowsCount(0, mode);
 	}
 	
-	SLIB_DEFINE_EVENT_HANDLER(ListReportView, SelectRow, sl_uint32 row)
+	SLIB_DEFINE_EVENT_HANDLER(ListControl, SelectRow, sl_uint32 row)
 
-	void ListReportView::dispatchSelectRow(sl_uint32 row)
+	void ListControl::dispatchSelectRow(sl_uint32 row)
 	{
 		m_selectedRow = row;
 		SLIB_INVOKE_EVENT_HANDLER(SelectRow, row)
 	}
 	
-	SLIB_DEFINE_EVENT_HANDLER(ListReportView, ClickRow, sl_uint32 row, const UIPoint& pt)
+	SLIB_DEFINE_EVENT_HANDLER(ListControl, ClickRow, sl_uint32 row, const UIPoint& pt)
 
-	void ListReportView::dispatchClickRow(sl_uint32 row, const UIPoint& pt)
+	void ListControl::dispatchClickRow(sl_uint32 row, const UIPoint& pt)
 	{
 		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::Unknown, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), Time::zero());
 		if (ev.isNotNull()) {
@@ -331,16 +331,16 @@ namespace slib
 		SLIB_INVOKE_EVENT_HANDLER(ClickRow, row, pt)
 	}
 	
-	SLIB_DEFINE_EVENT_HANDLER(ListReportView, RightButtonClickRow, sl_uint32 row, const UIPoint& pt)
+	SLIB_DEFINE_EVENT_HANDLER(ListControl, RightButtonClickRow, sl_uint32 row, const UIPoint& pt)
 
-	void ListReportView::dispatchRightButtonClickRow(sl_uint32 row, const UIPoint& pt)
+	void ListControl::dispatchRightButtonClickRow(sl_uint32 row, const UIPoint& pt)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(RightButtonClickRow, row, pt)
 	}
 	
-	SLIB_DEFINE_EVENT_HANDLER(ListReportView, DoubleClickRow, sl_uint32 row, const UIPoint& pt)
+	SLIB_DEFINE_EVENT_HANDLER(ListControl, DoubleClickRow, sl_uint32 row, const UIPoint& pt)
 
-	void ListReportView::dispatchDoubleClickRow(sl_uint32 row, const UIPoint& pt)
+	void ListControl::dispatchDoubleClickRow(sl_uint32 row, const UIPoint& pt)
 	{
 		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::LeftButtonDoubleClick, (sl_real)(pt.x), (sl_real)(pt.y), Time::zero());
 		if (ev.isNotNull()) {
@@ -351,12 +351,12 @@ namespace slib
 	
 	
 #if !defined(HAS_NATIVE_WIDGET_IMPL)
-	Ref<ViewInstance> ListReportView::createNativeWidget(ViewInstance* parent)
+	Ref<ViewInstance> ListControl::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;
 	}
 	
-	Ptr<IListReportViewInstance> ListReportView::getListReportViewInstance()
+	Ptr<IListControlInstance> ListControl::getListControlInstance()
 	{
 		return sl_null;
 	}

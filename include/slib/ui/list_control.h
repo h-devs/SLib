@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_UI_LIST_REPORT_VIEW
-#define CHECKHEADER_SLIB_UI_LIST_REPORT_VIEW
+#ifndef CHECKHEADER_SLIB_UI_LIST_CONTROL
+#define CHECKHEADER_SLIB_UI_LIST_CONTROL
 
 #include "definition.h"
 
@@ -30,7 +30,7 @@
 namespace slib
 {
 	
-	class ListReportViewColumn
+	class ListControlColumn
 	{
 	public:
 		AtomicString title;
@@ -39,34 +39,34 @@ namespace slib
 		Alignment headerAlign;
 		
 	public:
-		ListReportViewColumn();
+		ListControlColumn();
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ListReportViewColumn)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ListControlColumn)
 		
 	};
 	
-	class ListReportViewCell
+	class ListControlCell
 	{
 	public:
 		AtomicString text;
 
 	public:
-		ListReportViewCell();
+		ListControlCell();
 		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ListReportViewCell)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ListControlCell)
 
 	};
 	
-	class IListReportViewInstance;
+	class IListControlInstance;
 	
-	class SLIB_EXPORT ListReportView : public View
+	class SLIB_EXPORT ListControl : public View
 	{
 		SLIB_DECLARE_OBJECT
 		
 	public:
-		ListReportView();
+		ListControl();
 		
-		~ListReportView();
+		~ListControl();
 
 	public:
 		sl_uint32 getColumnsCount();
@@ -108,40 +108,40 @@ namespace slib
 		virtual void removeAllRows(UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(ListReportView, SelectRow, sl_uint32 row)
-		SLIB_DECLARE_EVENT_HANDLER(ListReportView, ClickRow, sl_uint32 row, const UIPoint& pt)
-		SLIB_DECLARE_EVENT_HANDLER(ListReportView, RightButtonClickRow, sl_uint32 row, const UIPoint& pt)
-		SLIB_DECLARE_EVENT_HANDLER(ListReportView, DoubleClickRow, sl_uint32 row, const UIPoint& pt)
+		SLIB_DECLARE_EVENT_HANDLER(ListControl, SelectRow, sl_uint32 row)
+		SLIB_DECLARE_EVENT_HANDLER(ListControl, ClickRow, sl_uint32 row, const UIPoint& pt)
+		SLIB_DECLARE_EVENT_HANDLER(ListControl, RightButtonClickRow, sl_uint32 row, const UIPoint& pt)
+		SLIB_DECLARE_EVENT_HANDLER(ListControl, DoubleClickRow, sl_uint32 row, const UIPoint& pt)
 		
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 		
-		virtual Ptr<IListReportViewInstance> getListReportViewInstance();
+		virtual Ptr<IListControlInstance> getListControlInstance();
 
 	protected:
-		CList<ListReportViewColumn> m_columns;
+		CList<ListControlColumn> m_columns;
 		sl_uint32 m_nRows;
-		CList< List<ListReportViewCell> > m_cells;
+		CList< List<ListControlCell> > m_cells;
 		sl_int32 m_selectedRow;
 		
 	};
 	
-	class IListReportViewInstance
+	class IListControlInstance
 	{
 	public:
-		virtual void refreshColumnsCount(ListReportView* view) = 0;
+		virtual void refreshColumnsCount(ListControl* view) = 0;
 		
-		virtual void refreshRowsCount(ListReportView* view) = 0;
+		virtual void refreshRowsCount(ListControl* view) = 0;
 		
-		virtual void setHeaderText(ListReportView* view, sl_uint32 col, const String& text) = 0;
+		virtual void setHeaderText(ListControl* view, sl_uint32 col, const String& text) = 0;
 		
-		virtual void setColumnWidth(ListReportView* view, sl_uint32 col, sl_ui_len width) = 0;
+		virtual void setColumnWidth(ListControl* view, sl_uint32 col, sl_ui_len width) = 0;
 		
-		virtual void setHeaderAlignment(ListReportView* view, sl_uint32 col, const Alignment& align) = 0;
+		virtual void setHeaderAlignment(ListControl* view, sl_uint32 col, const Alignment& align) = 0;
 		
-		virtual void setColumnAlignment(ListReportView* view, sl_uint32 col, const Alignment& align) = 0;
+		virtual void setColumnAlignment(ListControl* view, sl_uint32 col, const Alignment& align) = 0;
 		
-		virtual sl_bool getSelectedRow(ListReportView* view, sl_int32& row) = 0;
+		virtual sl_bool getSelectedRow(ListControl* view, sl_int32& row) = 0;
 
 	};
 	

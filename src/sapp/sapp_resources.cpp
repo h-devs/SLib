@@ -416,9 +416,9 @@ namespace slib
 				prefix = "grid";
 				pN = &nAutoIncreaseNameGrid;
 				break;
-			case SAppLayoutItemType::ListReport:
-				prefix = "listReport";
-				pN = &nAutoIncreaseNameListReport;
+			case SAppLayoutItemType::ListControl:
+				prefix = "listControl";
+				pN = &nAutoIncreaseNameListControl;
 				break;
 			case SAppLayoutItemType::Render:
 				prefix = "render";
@@ -545,8 +545,8 @@ namespace slib
 			type = SAppLayoutItemType::Collection;
 		} else if (strType == "grid") {
 			type = SAppLayoutItemType::Grid;
-		} else if (strType == "listreport" || strType == "list-report") {
-			type = SAppLayoutItemType::ListReport;
+		} else if (strType == "listcontrol" || strType == "list-control") {
+			type = SAppLayoutItemType::ListControl;
 		} else if (strType == "render") {
 			type = SAppLayoutItemType::Render;
 		} else if (strType == "tab") {

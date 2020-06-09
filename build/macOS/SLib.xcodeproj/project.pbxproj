@@ -1286,8 +1286,8 @@
 		26D9D9C01E96468D005F7BD3 /* image_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD51E1C11940A00D47AB0 /* image_view.cpp */; };
 		26D9D9C11E96468D005F7BD3 /* label_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD50C1C11940A00D47AB0 /* label_view.cpp */; };
 		26D9D9C31E96468D005F7BD3 /* linear_layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26C7E37D1D00097000C0A769 /* linear_layout.cpp */; };
-		26D9D9C41E96468D005F7BD3 /* list_report_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD5111C11940A00D47AB0 /* list_report_view.cpp */; };
-		26D9D9C51E96468D005F7BD3 /* list_report_view_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 266DD5121C11940A00D47AB0 /* list_report_view_macos.mm */; };
+		26D9D9C41E96468D005F7BD3 /* list_control.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD5111C11940A00D47AB0 /* list_control.cpp */; };
+		26D9D9C51E96468D005F7BD3 /* list_control_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 266DD5121C11940A00D47AB0 /* list_control_macos.mm */; };
 		26D9D9C61E96468D005F7BD3 /* list_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2699DC8F1D43682D0085EE67 /* list_view.cpp */; };
 		26D9D9C71E96468D005F7BD3 /* mobile_app.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2648D5431D096A7000819E09 /* mobile_app.cpp */; };
 		26D9D9C81E96468D005F7BD3 /* mobile_game.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2648D5411D0965C400819E09 /* mobile_game.cpp */; };
@@ -2599,8 +2599,8 @@
 		266DD5001C11940A00D47AB0 /* edit_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = edit_view.cpp; sourceTree = "<group>"; };
 		266DD5031C11940A00D47AB0 /* edit_view_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = edit_view_macos.mm; sourceTree = "<group>"; };
 		266DD50C1C11940A00D47AB0 /* label_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = label_view.cpp; sourceTree = "<group>"; };
-		266DD5111C11940A00D47AB0 /* list_report_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = list_report_view.cpp; sourceTree = "<group>"; };
-		266DD5121C11940A00D47AB0 /* list_report_view_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = list_report_view_macos.mm; sourceTree = "<group>"; };
+		266DD5111C11940A00D47AB0 /* list_control.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = list_control.cpp; sourceTree = "<group>"; };
+		266DD5121C11940A00D47AB0 /* list_control_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = list_control_macos.mm; sourceTree = "<group>"; };
 		266DD5141C11940A00D47AB0 /* radio_button.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = radio_button.cpp; sourceTree = "<group>"; };
 		266DD5151C11940A00D47AB0 /* radio_button_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = radio_button_macos.mm; sourceTree = "<group>"; };
 		266DD5171C11940A00D47AB0 /* render_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = render_view.cpp; sourceTree = "<group>"; };
@@ -4889,8 +4889,8 @@
 				266DD50C1C11940A00D47AB0 /* label_view.cpp */,
 				26F53F9F22E299FF0031D485 /* line_view.cpp */,
 				26C7E37D1D00097000C0A769 /* linear_layout.cpp */,
-				266DD5111C11940A00D47AB0 /* list_report_view.cpp */,
-				266DD5121C11940A00D47AB0 /* list_report_view_macos.mm */,
+				266DD5111C11940A00D47AB0 /* list_control.cpp */,
+				266DD5121C11940A00D47AB0 /* list_control_macos.mm */,
 				2699DC8F1D43682D0085EE67 /* list_view.cpp */,
 				2648D5431D096A7000819E09 /* mobile_app.cpp */,
 				2648D5411D0965C400819E09 /* mobile_game.cpp */,
@@ -6977,7 +6977,7 @@
 				26D9D9E81E96468D005F7BD3 /* ui_resource.cpp in Sources */,
 				26D9D8FA1E9645CE005F7BD3 /* compress_zlib.cpp in Sources */,
 				26E1B875222ABA51007C222E /* pngset.c in Sources */,
-				26D9D9C51E96468D005F7BD3 /* list_report_view_macos.mm in Sources */,
+				26D9D9C51E96468D005F7BD3 /* list_control_macos.mm in Sources */,
 				26E1B887222ABAB2007C222E /* jcmarker.c in Sources */,
 				26D9D9851E964675005F7BD3 /* audio_recorder_macos.mm in Sources */,
 				26D9D8FB1E9645CE005F7BD3 /* atomic.cpp in Sources */,
@@ -7254,7 +7254,7 @@
 				26D9D9631E964669005F7BD3 /* bitmap_format.cpp in Sources */,
 				26D9D9AA1E964683005F7BD3 /* opengl_gl.cpp in Sources */,
 				26D9D9711E96466A005F7BD3 /* graphics_platform_apple.mm in Sources */,
-				26D9D9C41E96468D005F7BD3 /* list_report_view.cpp in Sources */,
+				26D9D9C41E96468D005F7BD3 /* list_control.cpp in Sources */,
 				26D9D9A41E96467B005F7BD3 /* socket_event_unix.cpp in Sources */,
 				26D9D9921E96467B005F7BD3 /* arp.cpp in Sources */,
 				26D9D97A1E96466A005F7BD3 /* yuv.cpp in Sources */,

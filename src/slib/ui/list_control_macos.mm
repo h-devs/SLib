@@ -24,7 +24,7 @@
 
 #if defined(SLIB_UI_IS_MACOS)
 
-#include "slib/ui/list_report_view.h"
+#include "slib/ui/list_control.h"
 
 #include "view_macos.h"
 
@@ -33,23 +33,23 @@ namespace slib
 {
 	namespace priv
 	{
-		namespace list_report_view
+		namespace list_control
 		{
-			class ListReportViewInstance;
+			class ListControlInstance;
 		}
 	}
 }
 
-@interface SLIBListReportViewHandle_TableView : NSTableView
+@interface SLIBListControlHandle_TableView : NSTableView
 {	
-	@public slib::WeakRef<slib::priv::list_report_view::ListReportViewInstance> m_viewInstance;
+	@public slib::WeakRef<slib::priv::list_control::ListControlInstance> m_viewInstance;
 }
 @end
 
-@interface SLIBListReportViewHandle : NSScrollView<NSTableViewDataSource, NSTableViewDelegate>
+@interface SLIBListControlHandle : NSScrollView<NSTableViewDataSource, NSTableViewDelegate>
 {
-	@public SLIBListReportViewHandle_TableView* table;
-	@public slib::WeakRef<slib::priv::list_report_view::ListReportViewInstance> m_viewInstance;
+	@public SLIBListControlHandle_TableView* table;
+	@public slib::WeakRef<slib::priv::list_control::ListControlInstance> m_viewInstance;
 	@public slib::CList<NSTableColumn*> m_columns;
 	@public NSFont* m_font;
 }
@@ -60,7 +60,7 @@ namespace slib
 
 	namespace priv
 	{
-		namespace list_report_view
+		namespace list_control
 		{
 			
 			static NSTextAlignment TranslateAlignment(Alignment _align)
@@ -74,10 +74,10 @@ namespace slib
 				return NSLeftTextAlignment;
 			}
 			
-			class ListReportViewHelper : public ListReportView
+			class ListControlHelper : public ListControl
 			{
 			public:
-				void applyColumnsCount(SLIBListReportViewHandle* tv)
+				void applyColumnsCount(SLIBListControlHandle* tv)
 				{
 					ObjectLocker lock(this);
 					CList<NSTableColumn*>& _columns = tv->m_columns;
@@ -103,10 +103,10 @@ namespace slib
 					}
 				}
 				
-				void copyColumns(SLIBListReportViewHandle* tv)
+				void copyColumns(SLIBListControlHandle* tv)
 				{
 					ObjectLocker lock(this);
-					ListLocker<ListReportViewColumn> columns(m_columns);
+					ListLocker<ListControlColumn> columns(m_columns);
 					applyColumnsCount(tv);
 					for (sl_uint32 i = 0; i < columns.count; i++) {
 						NSTableColumn* tc = tv->m_columns.getValueAt(i, nil);
@@ -122,7 +122,7 @@ namespace slib
 					}
 				}
 				
-				void applyFont(SLIBListReportViewHandle* tv, const Ref<Font>& font)
+				void applyFont(SLIBListControlHandle* tv, const Ref<Font>& font)
 				{
 					if (font.isNull()) {
 						return;
@@ -132,7 +132,7 @@ namespace slib
 						return;
 					}
 					tv->m_font = hFont;
-					ListLocker<ListReportViewColumn> columns(m_columns);
+					ListLocker<ListControlColumn> columns(m_columns);
 					for (sl_uint32 i = 0; i < columns.count; i++) {
 						NSTableColumn* tc = tv->m_columns.getValueAt(i, nil);
 						if (tc != nil) {
@@ -145,41 +145,41 @@ namespace slib
 				
 			};
 
-			class ListReportViewInstance : public macOS_ViewInstance, public IListReportViewInstance
+			class ListControlInstance : public macOS_ViewInstance, public IListControlInstance
 			{
 				SLIB_DECLARE_OBJECT
 				
 			public:
-				SLIBListReportViewHandle* getHandle()
+				SLIBListControlHandle* getHandle()
 				{
-					return (SLIBListReportViewHandle*)m_handle;
+					return (SLIBListControlHandle*)m_handle;
 				}
 				
-				Ref<ListReportViewHelper> getHelper()
+				Ref<ListControlHelper> getHelper()
 				{
-					return CastRef<ListReportViewHelper>(getView());
+					return CastRef<ListControlHelper>(getView());
 				}
 				
-				void refreshColumnsCount(ListReportView* view) override
+				void refreshColumnsCount(ListControl* view) override
 				{
-					SLIBListReportViewHandle* handle = getHandle();
+					SLIBListControlHandle* handle = getHandle();
 					if (handle != nil) {
-						static_cast<ListReportViewHelper*>(view)->applyColumnsCount(handle);
+						static_cast<ListControlHelper*>(view)->applyColumnsCount(handle);
 						[handle->table reloadData];
 					}
 				}
 				
-				void refreshRowsCount(ListReportView* view) override
+				void refreshRowsCount(ListControl* view) override
 				{
-					SLIBListReportViewHandle* handle = getHandle();
+					SLIBListControlHandle* handle = getHandle();
 					if (handle != nil) {
 						[handle->table reloadData];
 					}
 				}
 				
-				void setHeaderText(ListReportView* view, sl_uint32 iCol, const String& text) override
+				void setHeaderText(ListControl* view, sl_uint32 iCol, const String& text) override
 				{
-					SLIBListReportViewHandle* handle = getHandle();
+					SLIBListControlHandle* handle = getHandle();
 					if (handle != nil) {
 						NSTableColumn* tc = handle->m_columns.getValueAt(iCol, nil);
 						if (tc != nil) {
@@ -188,9 +188,9 @@ namespace slib
 					}
 				}
 				
-				void setColumnWidth(ListReportView* view, sl_uint32 iCol, sl_ui_len width) override
+				void setColumnWidth(ListControl* view, sl_uint32 iCol, sl_ui_len width) override
 				{
-					SLIBListReportViewHandle* handle = getHandle();
+					SLIBListControlHandle* handle = getHandle();
 					if (handle != nil) {
 						NSTableColumn* tc = handle->m_columns.getValueAt(iCol, nil);
 						if (tc != nil) {
@@ -199,9 +199,9 @@ namespace slib
 					}
 				}
 				
-				void setHeaderAlignment(ListReportView* view, sl_uint32 iCol, const Alignment& align) override
+				void setHeaderAlignment(ListControl* view, sl_uint32 iCol, const Alignment& align) override
 				{
-					SLIBListReportViewHandle* handle = getHandle();
+					SLIBListControlHandle* handle = getHandle();
 					if (handle != nil) {
 						NSTableColumn* tc = handle->m_columns.getValueAt(iCol, nil);
 						if (tc != nil) {
@@ -210,9 +210,9 @@ namespace slib
 					}
 				}
 				
-				void setColumnAlignment(ListReportView* view, sl_uint32 iCol, const Alignment& align) override
+				void setColumnAlignment(ListControl* view, sl_uint32 iCol, const Alignment& align) override
 				{
-					SLIBListReportViewHandle* handle = getHandle();
+					SLIBListControlHandle* handle = getHandle();
 					if (handle != nil) {
 						NSTableColumn* tc = handle->m_columns.getValueAt(iCol, nil);
 						if (tc != nil) {
@@ -221,9 +221,9 @@ namespace slib
 					}
 				}
 				
-				sl_bool getSelectedRow(ListReportView* view, sl_int32& _out) override
+				sl_bool getSelectedRow(ListControl* view, sl_int32& _out) override
 				{
-					SLIBListReportViewHandle* handle = getHandle();
+					SLIBListControlHandle* handle = getHandle();
 					if (handle != nil) {
 						_out = (sl_int32)([handle->table selectedRow]);
 						return sl_true;
@@ -233,16 +233,16 @@ namespace slib
 				
 				void setFont(View* view, const Ref<Font>& font) override
 				{
-					SLIBListReportViewHandle* handle = getHandle();
+					SLIBListControlHandle* handle = getHandle();
 					if (handle != nil) {
-						static_cast<ListReportViewHelper*>(view)->applyFont(handle, font);
+						static_cast<ListControlHelper*>(view)->applyFont(handle, font);
 						[handle->table reloadData];
 					}
 				}
 				
-				void onMouseDown(SLIBListReportViewHandle_TableView* tv, NSEvent* ev)
+				void onMouseDown(SLIBListControlHandle_TableView* tv, NSEvent* ev)
 				{
-					Ref<ListReportViewHelper> helper = getHelper();
+					Ref<ListControlHelper> helper = getHelper();
 					if (helper.isNotNull()) {
 						NSInteger indexRowBefore = [tv selectedRow];
 						NSPoint ptWindow = [ev locationInWindow];
@@ -265,9 +265,9 @@ namespace slib
 					}
 				}
 				
-				void onRightMouseDown(SLIBListReportViewHandle_TableView* tv, NSEvent* ev)
+				void onRightMouseDown(SLIBListControlHandle_TableView* tv, NSEvent* ev)
 				{
-					Ref<ListReportViewHelper> helper = getHelper();
+					Ref<ListControlHelper> helper = getHelper();
 					if (helper.isNotNull()) {
 						NSPoint ptWindow = [ev locationInWindow];
 						NSPoint ptView = [tv convertPoint:ptWindow fromView:nil];
@@ -282,20 +282,20 @@ namespace slib
 				
 			};
 			
-			SLIB_DEFINE_OBJECT(ListReportViewInstance, macOS_ViewInstance)
+			SLIB_DEFINE_OBJECT(ListControlInstance, macOS_ViewInstance)
 			
 		}
 	}
 
-	using namespace priv::list_report_view;
+	using namespace priv::list_control;
 
-	Ref<ViewInstance> ListReportView::createNativeWidget(ViewInstance* parent)
+	Ref<ViewInstance> ListControl::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<ListReportViewInstance> ret = macOS_ViewInstance::create<ListReportViewInstance, SLIBListReportViewHandle>(this, parent);
+		Ref<ListControlInstance> ret = macOS_ViewInstance::create<ListControlInstance, SLIBListControlHandle>(this, parent);
 		if (ret.isNotNull()) {
-			SLIBListReportViewHandle* handle = ret->getHandle();
-			static_cast<ListReportViewHelper*>(this)->copyColumns(handle);
-			static_cast<ListReportViewHelper*>(this)->applyFont(handle, getFont());
+			SLIBListControlHandle* handle = ret->getHandle();
+			static_cast<ListControlHelper*>(this)->copyColumns(handle);
+			static_cast<ListControlHelper*>(this)->applyFont(handle, getFont());
 			[handle setHasVerticalScroller:TRUE];
 			[handle setHasHorizontalScroller:TRUE];
 			[handle setBorderType:NSBezelBorder];
@@ -306,24 +306,24 @@ namespace slib
 		return sl_null;
 	}
 	
-	Ptr<IListReportViewInstance> ListReportView::getListReportViewInstance()
+	Ptr<IListControlInstance> ListControl::getListControlInstance()
 	{
-		return CastRef<ListReportViewInstance>(getViewInstance());
+		return CastRef<ListControlInstance>(getViewInstance());
 	}
 
 }
 
 using namespace slib;
-using namespace slib::priv::list_report_view;
+using namespace slib::priv::list_control;
 
-@implementation SLIBListReportViewHandle
+@implementation SLIBListControlHandle
 
 -(id)initWithFrame:(NSRect)frame
 {
 	self = [super initWithFrame:frame];
 	if (self != nil) {
 		self->m_columns.setCount(0);
-		self->table = [[SLIBListReportViewHandle_TableView alloc] init];
+		self->table = [[SLIBListControlHandle_TableView alloc] init];
 		[self->table setDelegate:self];
 		[self->table setDataSource:self];
 		[self->table setRowSizeStyle:NSTableViewRowSizeStyleCustom];
@@ -333,9 +333,9 @@ using namespace slib::priv::list_report_view;
 	return self;
 }
 
-- (Ref<ListReportViewHelper>)getHelper
+- (Ref<ListControlHelper>)getHelper
 {
-	Ref<ListReportViewInstance> instance = self->m_viewInstance;
+	Ref<ListControlInstance> instance = self->m_viewInstance;
 	if (instance.isNotNull()) {
 		return instance->getHelper();
 	}
@@ -343,7 +343,7 @@ using namespace slib::priv::list_report_view;
 }
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView{
-	Ref<ListReportViewHelper> helper = [self getHelper];
+	Ref<ListControlHelper> helper = [self getHelper];
 	if (helper.isNotNull()) {
 		return helper->getRowsCount();
 	}
@@ -351,7 +351,7 @@ using namespace slib::priv::list_report_view;
 }
 
 - (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row{
-	Ref<ListReportViewHelper> helper = [self getHelper];
+	Ref<ListControlHelper> helper = [self getHelper];
 	if (helper.isNotNull()) {
 		NSString* _id = tableColumn.identifier;
 		if (_id != nil) {
@@ -365,7 +365,7 @@ using namespace slib::priv::list_report_view;
 
 - (void)tableViewSelectionDidChange:(NSNotification *)aNotification
 {
-	Ref<ListReportViewHelper> helper = [self getHelper];
+	Ref<ListControlHelper> helper = [self getHelper];
 	if (helper.isNotNull()) {
 		sl_int32 n = (sl_int32)([table selectedRow]);
 		if (n >= 0) {
@@ -376,7 +376,7 @@ using namespace slib::priv::list_report_view;
 
 @end
 
-@implementation SLIBListReportViewHandle_TableView
+@implementation SLIBListControlHandle_TableView
 
 MACOS_VIEW_DEFINE_ON_FOCUS
 MACOS_VIEW_DEFINE_ON_KEY
@@ -384,7 +384,7 @@ MACOS_VIEW_DEFINE_ON_KEY
 - (void)mouseDown:(NSEvent *)theEvent
 {
 	[super mouseDown:theEvent];
-	Ref<ListReportViewInstance> instance = m_viewInstance;
+	Ref<ListControlInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		instance->onMouseDown(self, theEvent);
 	}
@@ -393,7 +393,7 @@ MACOS_VIEW_DEFINE_ON_KEY
 - (void)rightMouseDown:(NSEvent *)theEvent
 {
 	[super rightMouseDown:theEvent];
-	Ref<ListReportViewInstance> instance = m_viewInstance;
+	Ref<ListControlInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		instance->onRightMouseDown(self, theEvent);
 	}

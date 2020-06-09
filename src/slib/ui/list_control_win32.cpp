@@ -24,7 +24,7 @@
 
 #if defined(SLIB_UI_IS_WIN32)
 
-#include "slib/ui/list_report_view.h"
+#include "slib/ui/list_control.h"
 
 #include "view_win32.h"
 
@@ -35,7 +35,7 @@ namespace slib
 
 	namespace priv
 	{
-		namespace list_report_view
+		namespace list_control
 		{
 
 			static int TranslateAlignment(Alignment _align)
@@ -49,7 +49,7 @@ namespace slib
 				return LVCFMT_LEFT;
 			}
 
-			class ListReportViewHelper : public ListReportView
+			class ListControlHelper : public ListControl
 			{
 			public:
 				static sl_uint32 getColumnsCountFromListView(HWND hWnd)
@@ -90,9 +90,9 @@ namespace slib
 					LVCOLUMNW lvc;
 					Base::zeroMemory(&lvc, sizeof(lvc));
 					lvc.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_FMT;
-					ListLocker<ListReportViewColumn> columns(m_columns);
+					ListLocker<ListControlColumn> columns(m_columns);
 					for (sl_size i = 0; i < columns.count; i++) {
-						ListReportViewColumn& column = columns[i];
+						ListControlColumn& column = columns[i];
 						String16 title = String16::from(column.title);
 						lvc.pszText = (LPWSTR)(title.getData());
 						int width = (int)(column.width);
@@ -113,29 +113,29 @@ namespace slib
 
 			};
 
-			class ListReportViewInstance : public Win32_ViewInstance, public IListReportViewInstance
+			class ListControlInstance : public Win32_ViewInstance, public IListControlInstance
 			{
 				SLIB_DECLARE_OBJECT
 
 			public:
-				void refreshColumnsCount(ListReportView* view) override
+				void refreshColumnsCount(ListControl* view) override
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						(static_cast<ListReportViewHelper*>(view))->applyColumnsCount(handle);
+						(static_cast<ListControlHelper*>(view))->applyColumnsCount(handle);
 					}
 				}
 
-				void refreshRowsCount(ListReportView* view) override
+				void refreshRowsCount(ListControl* view) override
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						(static_cast<ListReportViewHelper*>(view))->applyRowsCount(handle);
+						(static_cast<ListControlHelper*>(view))->applyRowsCount(handle);
 						InvalidateRect(handle, NULL, TRUE);
 					}
 				}
 
-				void setHeaderText(ListReportView* view, sl_uint32 iCol, const String& _text) override
+				void setHeaderText(ListControl* view, sl_uint32 iCol, const String& _text) override
 				{
 					HWND handle = m_handle;
 					if (handle) {
@@ -148,7 +148,7 @@ namespace slib
 					}
 				}
 
-				void setColumnWidth(ListReportView* view, sl_uint32 iCol, sl_ui_len width) override
+				void setColumnWidth(ListControl* view, sl_uint32 iCol, sl_ui_len width) override
 				{
 					HWND handle = m_handle;
 					if (handle) {
@@ -159,11 +159,11 @@ namespace slib
 					}
 				}
 
-				void setHeaderAlignment(ListReportView* view, sl_uint32 iCol, const Alignment& align) override
+				void setHeaderAlignment(ListControl* view, sl_uint32 iCol, const Alignment& align) override
 				{
 				}
 
-				void setColumnAlignment(ListReportView* view, sl_uint32 iCol, const Alignment& align) override
+				void setColumnAlignment(ListControl* view, sl_uint32 iCol, const Alignment& align) override
 				{
 					HWND handle = m_handle;
 					if (handle) {
@@ -175,7 +175,7 @@ namespace slib
 					}
 				}
 
-				sl_bool getSelectedRow(ListReportView* view, sl_int32& _out) override
+				sl_bool getSelectedRow(ListControl* view, sl_int32& _out) override
 				{
 					HWND handle = m_handle;
 					if (handle) {
@@ -187,7 +187,7 @@ namespace slib
 
 				sl_bool processNotify(NMHDR* nmhdr, LRESULT& result) override
 				{
-					Ref<ListReportViewHelper> helper = CastRef<ListReportViewHelper>(getView());
+					Ref<ListControlHelper> helper = CastRef<ListControlHelper>(getView());
 					if (helper.isNotNull()) {
 						NMITEMACTIVATE* nm = (NMITEMACTIVATE*)nmhdr;
 						UINT code = nmhdr->code;
@@ -237,20 +237,20 @@ namespace slib
 				}
 			};
 
-			SLIB_DEFINE_OBJECT(ListReportViewInstance, Win32_ViewInstance)
+			SLIB_DEFINE_OBJECT(ListControlInstance, Win32_ViewInstance)
 
 		}
 	}
 
-	using namespace priv::list_report_view;
+	using namespace priv::list_control;
 
-	Ref<ViewInstance> ListReportView::createNativeWidget(ViewInstance* parent)
+	Ref<ViewInstance> ListControl::createNativeWidget(ViewInstance* parent)
 	{
 		DWORD style = LVS_REPORT | LVS_SINGLESEL | LVS_OWNERDATA | WS_TABSTOP | WS_BORDER;
-		Ref<ListReportViewInstance> ret = Win32_ViewInstance::create<ListReportViewInstance>(this, parent, L"SysListView32", sl_null, style, 0);
+		Ref<ListControlInstance> ret = Win32_ViewInstance::create<ListControlInstance>(this, parent, L"SysListView32", sl_null, style, 0);
 		if (ret.isNotNull()) {
 			HWND handle = ret->getHandle();
-			ListReportViewHelper* helper = static_cast<ListReportViewHelper*>(this);
+			ListControlHelper* helper = static_cast<ListControlHelper*>(this);
 			UINT exStyle = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_ONECLICKACTIVATE | LVS_EX_DOUBLEBUFFER;
 			::SendMessageW(handle, LVM_SETEXTENDEDLISTVIEWSTYLE, exStyle, exStyle);
 			helper->copyColumns(handle);
@@ -260,9 +260,9 @@ namespace slib
 		return sl_null;
 	}
 
-	Ptr<IListReportViewInstance> ListReportView::getListReportViewInstance()
+	Ptr<IListControlInstance> ListControl::getListControlInstance()
 	{
-		return CastRef<ListReportViewInstance>(getViewInstance());
+		return CastRef<ListControlInstance>(getViewInstance());
 	}
 
 }

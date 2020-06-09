@@ -635,10 +635,10 @@
     <ClCompile Include="..\..\src\slib\ui\linear_layout.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\list_report_view.cpp">
+    <ClCompile Include="..\..\src\slib\ui\list_control.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\list_report_view_win32.cpp">
+    <ClCompile Include="..\..\src\slib\ui\list_control_win32.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\list_view.cpp">

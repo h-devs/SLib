@@ -917,7 +917,7 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(List)
 			PROCESS_CONTROL_SWITCH(Collection)
 			PROCESS_CONTROL_SWITCH(Grid)
-			PROCESS_CONTROL_SWITCH(ListReport)
+			PROCESS_CONTROL_SWITCH(ListControl)
 			PROCESS_CONTROL_SWITCH(Render)
 			PROCESS_CONTROL_SWITCH(Tab)
 			PROCESS_CONTROL_SWITCH(Tree)
@@ -3581,7 +3581,7 @@ namespace slib
 	END_PROCESS_LAYOUT_CONTROL
 
 
-	BEGIN_PROCESS_LAYOUT_CONTROL(ListReport, ListReportView)
+	BEGIN_PROCESS_LAYOUT_CONTROL(ListControl, ListControl)
 	{
 		
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
@@ -3591,7 +3591,7 @@ namespace slib
 			for (sl_size i = 0; i < columnXmls.count; i++) {
 				Ref<XmlElement>& columnXml = columnXmls[i];
 				if (columnXml.isNotNull()) {
-					SAppLayoutListReportColumn column;
+					SAppLayoutListControlColumn column;
 					LAYOUT_CONTROL_PARSE_XML_ATTR(columnXml, column., title)
 					LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(columnXml, column., width)
 					if (!(column.width.checkScalarSize())) {
@@ -3608,11 +3608,11 @@ namespace slib
 				}
 			}
 		} else if (op == OP_GENERATE_CPP) {
-			ListLocker<SAppLayoutListReportColumn> columns(attr->columns);
+			ListLocker<SAppLayoutListControlColumn> columns(attr->columns);
 			if (columns.count > 0) {
 				params->sbDefineInit->add(String::format("%s%s->setColumnsCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, columns.count));
 				for (sl_size i = 0; i < columns.count; i++) {
-					SAppLayoutListReportColumn& column = columns[i];
+					SAppLayoutListControlColumn& column = columns[i];
 					String strColumnTitle;
 					if (!(_getStringAccessString(resource->name, column.title, element, strColumnTitle))) {
 						return sl_false;
@@ -3636,14 +3636,14 @@ namespace slib
 				}
 			}
 		} else if (op == OP_SIMULATE) {
-			ListLocker<SAppLayoutListReportColumn> columns(attr->columns);
+			ListLocker<SAppLayoutListControlColumn> columns(attr->columns);
 			if (columns.count > 0) {
 				sl_uint32 n = (sl_uint32)(columns.count);
 				if (!flagOnLayout) {
 					view->setColumnsCount(n, UIUpdateMode::Init);
 				}
 				for (sl_uint32 i = 0; i < n; i++) {
-					SAppLayoutListReportColumn& column = columns[i];
+					SAppLayoutListControlColumn& column = columns[i];
 					if (!flagOnLayout) {
 						String columnTitle;
 						if (!(_getStringValue(resource->name, column.title, element, columnTitle))) {

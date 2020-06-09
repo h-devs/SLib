@@ -557,7 +557,7 @@ namespace slib
 		
 	};
 
-	struct SAppLayoutListReportColumn
+	struct SAppLayoutListControlColumn
 	{
 		SAppStringValue title;
 		SAppDimensionValue width;
@@ -565,10 +565,10 @@ namespace slib
 		SAppAlignmentValue headerAlign;
 	};
 
-	class SAppLayoutListReportAttributes : public Referable
+	class SAppLayoutListControlAttributes : public Referable
 	{
 	public:
-		CList<SAppLayoutListReportColumn> columns;
+		CList<SAppLayoutListControlColumn> columns;
 		
 	};
 
@@ -905,7 +905,7 @@ namespace slib
 		Linear = 0x0231,
 		List = 0x0232,
 		Collection = 0x0233,
-		ListReport = 0x0234,
+		ListControl = 0x0234,
 		Render = 0x0235,
 		Tab = 0x0236,
 		Tree = 0x0237,
@@ -959,7 +959,7 @@ namespace slib
 		Ref<SAppLayoutListAttributes> attrsList;
 		Ref<SAppLayoutCollectionAttributes> attrsCollection;
 		Ref<SAppLayoutGridAttributes> attrsGrid;
-		Ref<SAppLayoutListReportAttributes> attrsListReport;
+		Ref<SAppLayoutListControlAttributes> attrsListControl;
 		Ref<SAppLayoutRenderAttributes> attrsRender;
 		Ref<SAppLayoutTabAttributes> attrsTab;
 		Ref<SAppLayoutTreeAttributes> attrsTree;
@@ -1026,7 +1026,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameList = 0;
 		sl_uint32 nAutoIncreaseNameCollection = 0;
 		sl_uint32 nAutoIncreaseNameGrid = 0;
-		sl_uint32 nAutoIncreaseNameListReport = 0;
+		sl_uint32 nAutoIncreaseNameListControl = 0;
 		sl_uint32 nAutoIncreaseNameRender = 0;
 		sl_uint32 nAutoIncreaseNameTab = 0;
 		sl_uint32 nAutoIncreaseNameTree = 0;

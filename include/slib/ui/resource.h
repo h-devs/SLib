@@ -333,7 +333,7 @@ namespace slib
 	class ScrollView;
 	class LinearLayout;
 	class ListView;
-	class ListReportView;
+	class ListControl;
 	class RenderView;
 	class TabView;
 	class TreeView;

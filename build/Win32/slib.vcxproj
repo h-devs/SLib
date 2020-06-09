@@ -409,8 +409,8 @@
     <ClCompile Include="..\..\src\slib\ui\label_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\linear_layout.cpp" />
     <ClCompile Include="..\..\src\slib\ui\line_view.cpp" />
-    <ClCompile Include="..\..\src\slib\ui\list_report_view.cpp" />
-    <ClCompile Include="..\..\src\slib\ui\list_report_view_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\ui\list_control.cpp" />
+    <ClCompile Include="..\..\src\slib\ui\list_control_win32.cpp" />
     <ClCompile Include="..\..\src\slib\ui\list_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\mobile_app.cpp" />
     <ClCompile Include="..\..\src\slib\ui\mobile_game.cpp" />
