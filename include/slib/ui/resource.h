@@ -353,7 +353,7 @@ namespace slib
 	class Drawer;
 	class RefreshView;
 	class CollectionView;
-	class GridView;
+	class TableLayout;
 	class ChatView;
 
 }

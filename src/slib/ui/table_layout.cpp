@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/ui/grid_view.h"
+#include "slib/ui/table_layout.h"
 
 #include "slib/core/math.h"
 #include "slib/core/scoped.h"
@@ -30,7 +30,7 @@ namespace slib
 
 	namespace priv
 	{
-		namespace grid_view
+		namespace table_layout
 		{
 
 			class Cell
@@ -155,32 +155,32 @@ namespace slib
 		}
 	}
 
-	using namespace priv::grid_view;
+	using namespace priv::table_layout;
 
-	SLIB_DEFINE_OBJECT(GridView, ViewGroup)
+	SLIB_DEFINE_OBJECT(TableLayout, ViewGroup)
 
-	GridView::GridView()
+	TableLayout::TableLayout()
 	{
 		setCustomLayout(sl_true);
 		setSavingCanvasState(sl_false);
 	}
 
-	GridView::~GridView()
+	TableLayout::~TableLayout()
 	{
 	}
 
-	void GridView::init()
+	void TableLayout::init()
 	{
 		ViewGroup::init();
 	}
 
-	sl_uint32 GridView::getColumnsCount()
+	sl_uint32 TableLayout::getColumnsCount()
 	{
 		ObjectLocker lock(this);
 		return (sl_uint32)(m_columns.getCount());
 	}
 
-	void GridView::setColumnsCount(sl_uint32 nColumns, UIUpdateMode mode)
+	void TableLayout::setColumnsCount(sl_uint32 nColumns, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		sl_uint32 nColumnsOld = (sl_uint32)(m_columns.getCount());
@@ -214,7 +214,7 @@ namespace slib
 		}
 	}
 
-	SizeMode GridView::getColumnWidthMode(sl_uint32 iCol)
+	SizeMode TableLayout::getColumnWidthMode(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -224,7 +224,7 @@ namespace slib
 		return SizeMode::Filling;
 	}
 
-	sl_ui_len GridView::getColumnWidth(sl_uint32 iCol)
+	sl_ui_len TableLayout::getColumnWidth(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -238,7 +238,7 @@ namespace slib
 		return 0;
 	}
 
-	void GridView::setColumnWidth(sl_uint32 iCol, sl_ui_len width, UIUpdateMode mode)
+	void TableLayout::setColumnWidth(sl_uint32 iCol, sl_ui_len width, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -252,7 +252,7 @@ namespace slib
 		}
 	}
 
-	sl_bool GridView::isColumnWidthFixed(sl_uint32 iCol)
+	sl_bool TableLayout::isColumnWidthFixed(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -262,7 +262,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_real GridView::getColumnWidthWeight(sl_uint32 iCol)
+	sl_real TableLayout::getColumnWidthWeight(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -272,7 +272,7 @@ namespace slib
 		return sl_false;
 	}
 	
-	sl_bool GridView::isColumnWidthFilling(sl_uint32 iCol)
+	sl_bool TableLayout::isColumnWidthFilling(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -282,7 +282,7 @@ namespace slib
 		return sl_false;
 	}
 	
-	void GridView::setColumnWidthFilling(sl_uint32 iCol, sl_real weight, UIUpdateMode mode)
+	void TableLayout::setColumnWidthFilling(sl_uint32 iCol, sl_real weight, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -296,7 +296,7 @@ namespace slib
 		}
 	}
 	
-	sl_bool GridView::isColumnWidthWrapping(sl_uint32 iCol)
+	sl_bool TableLayout::isColumnWidthWrapping(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -306,7 +306,7 @@ namespace slib
 		return sl_false;
 	}
 	
-	void GridView::setColumnWidthWrapping(sl_uint32 iCol, UIUpdateMode mode)
+	void TableLayout::setColumnWidthWrapping(sl_uint32 iCol, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -316,7 +316,7 @@ namespace slib
 		}
 	}
 	
-	sl_bool GridView::isColumnWidthWeight(sl_uint32 iCol)
+	sl_bool TableLayout::isColumnWidthWeight(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -326,7 +326,7 @@ namespace slib
 		return sl_false;
 	}
 	
-	void GridView::setColumnWidthWeight(sl_uint32 iCol, sl_real weight, UIUpdateMode mode)
+	void TableLayout::setColumnWidthWeight(sl_uint32 iCol, sl_real weight, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -340,7 +340,7 @@ namespace slib
 		}
 	}
 	
-	sl_ui_len GridView::getColumnMinimumWidth(sl_uint32 iCol)
+	sl_ui_len TableLayout::getColumnMinimumWidth(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -350,7 +350,7 @@ namespace slib
 		return 0;
 	}
 	
-	void GridView::setColumnMinimumWidth(sl_uint32 iCol, sl_ui_len width, UIUpdateMode mode)
+	void TableLayout::setColumnMinimumWidth(sl_uint32 iCol, sl_ui_len width, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -363,7 +363,7 @@ namespace slib
 		}
 	}
 	
-	sl_bool GridView::isColumnMaximumWidthDefined(sl_uint32 iCol)
+	sl_bool TableLayout::isColumnMaximumWidthDefined(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -373,7 +373,7 @@ namespace slib
 		return 0;
 	}
 
-	sl_ui_len GridView::getColumnMaximumWidth(sl_uint32 iCol)
+	sl_ui_len TableLayout::getColumnMaximumWidth(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -383,7 +383,7 @@ namespace slib
 		return 0;
 	}
 	
-	void GridView::setColumnMaximumWidth(sl_uint32 iCol, sl_ui_len width, UIUpdateMode mode)
+	void TableLayout::setColumnMaximumWidth(sl_uint32 iCol, sl_ui_len width, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
@@ -397,13 +397,13 @@ namespace slib
 		}
 	}
 	
-	sl_uint32 GridView::getRowsCount()
+	sl_uint32 TableLayout::getRowsCount()
 	{
 		ObjectLocker lock(this);
 		return (sl_uint32)(m_rows.getCount());
 	}
 	
-	void GridView::setRowsCount(sl_uint32 nRows, UIUpdateMode mode)
+	void TableLayout::setRowsCount(sl_uint32 nRows, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		sl_uint32 nRowsOld = (sl_uint32)(m_rows.getCount());
@@ -434,7 +434,7 @@ namespace slib
 		}
 	}
 
-	SizeMode GridView::getRowHeightMode(sl_uint32 iRow)
+	SizeMode TableLayout::getRowHeightMode(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -444,7 +444,7 @@ namespace slib
 		return SizeMode::Filling;
 	}
 
-	sl_ui_len GridView::getRowHeight(sl_uint32 iRow)
+	sl_ui_len TableLayout::getRowHeight(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -458,7 +458,7 @@ namespace slib
 		return 0;
 	}
 
-	void GridView::setRowHeight(sl_uint32 iRow, sl_ui_len height, UIUpdateMode mode)
+	void TableLayout::setRowHeight(sl_uint32 iRow, sl_ui_len height, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -472,7 +472,7 @@ namespace slib
 		}
 	}
 
-	sl_bool GridView::isRowHeightFixed(sl_uint32 iRow)
+	sl_bool TableLayout::isRowHeightFixed(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -482,7 +482,7 @@ namespace slib
 		return sl_false;
 	}
 	
-	sl_real GridView::getRowHeightWeight(sl_uint32 iRow)
+	sl_real TableLayout::getRowHeightWeight(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -492,7 +492,7 @@ namespace slib
 		return 0;
 	}
 	
-	sl_bool GridView::isRowHeightFilling(sl_uint32 iRow)
+	sl_bool TableLayout::isRowHeightFilling(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -502,7 +502,7 @@ namespace slib
 		return sl_false;
 	}
 	
-	void GridView::setRowHeightFilling(sl_uint32 iRow, sl_real weight, UIUpdateMode mode)
+	void TableLayout::setRowHeightFilling(sl_uint32 iRow, sl_real weight, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -516,7 +516,7 @@ namespace slib
 		}
 	}
 
-	sl_bool GridView::isRowHeightWrapping(sl_uint32 iRow)
+	sl_bool TableLayout::isRowHeightWrapping(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -526,7 +526,7 @@ namespace slib
 		return sl_false;
 	}
 	
-	void GridView::setRowHeightWrapping(sl_uint32 iRow, UIUpdateMode mode)
+	void TableLayout::setRowHeightWrapping(sl_uint32 iRow, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -536,7 +536,7 @@ namespace slib
 		}
 	}
 	
-	sl_bool GridView::isRowHeightWeight(sl_uint32 iRow)
+	sl_bool TableLayout::isRowHeightWeight(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -546,7 +546,7 @@ namespace slib
 		return sl_false;
 	}
 	
-	void GridView::setRowHeightWeight(sl_uint32 iRow, sl_real weight, UIUpdateMode mode)
+	void TableLayout::setRowHeightWeight(sl_uint32 iRow, sl_real weight, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -560,7 +560,7 @@ namespace slib
 		}
 	}
 	
-	sl_ui_len GridView::getRowMinimumHeight(sl_uint32 iRow)
+	sl_ui_len TableLayout::getRowMinimumHeight(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -570,7 +570,7 @@ namespace slib
 		return 0;
 	}
 	
-	void GridView::setRowMinimumHeight(sl_uint32 iRow, sl_ui_len height, UIUpdateMode mode)
+	void TableLayout::setRowMinimumHeight(sl_uint32 iRow, sl_ui_len height, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -583,7 +583,7 @@ namespace slib
 		}
 	}
 
-	sl_bool GridView::isRowMaximumHeightDefined(sl_uint32 iRow)
+	sl_bool TableLayout::isRowMaximumHeightDefined(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -593,7 +593,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_ui_len GridView::getRowMaximumHeight(sl_uint32 iRow)
+	sl_ui_len TableLayout::getRowMaximumHeight(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -603,7 +603,7 @@ namespace slib
 		return 0;
 	}
 	
-	void GridView::setRowMaximumHeight(sl_uint32 iRow, sl_ui_len height, UIUpdateMode mode)
+	void TableLayout::setRowMaximumHeight(sl_uint32 iRow, sl_ui_len height, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
@@ -617,7 +617,7 @@ namespace slib
 		}
 	}
 
-	Cell* GridView::_getCell(sl_uint32 iRow, sl_uint32 iCol)
+	Cell* TableLayout::_getCell(sl_uint32 iRow, sl_uint32 iCol)
 	{
 		Row* row = m_rows.getPointerAt(iRow);
 		if (row) {
@@ -626,7 +626,7 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<View> GridView::getCell(sl_uint32 iRow, sl_uint32 iCol)
+	Ref<View> TableLayout::getCell(sl_uint32 iRow, sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
 		Cell* cell = _getCell(iRow, iCol);
@@ -636,7 +636,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_uint32 GridView::getRowspan(sl_uint32 iRow, sl_uint32 iCol)
+	sl_uint32 TableLayout::getRowspan(sl_uint32 iRow, sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
 		Cell* cell = _getCell(iRow, iCol);
@@ -646,7 +646,7 @@ namespace slib
 		return 1;
 	}
 
-	sl_uint32 GridView::getColspan(sl_uint32 iRow, sl_uint32 iCol)
+	sl_uint32 TableLayout::getColspan(sl_uint32 iRow, sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
 		Cell* cell = _getCell(iRow, iCol);
@@ -656,12 +656,12 @@ namespace slib
 		return 1;
 	}
 
-	void GridView::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, UIUpdateMode mode)
+	void TableLayout::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, UIUpdateMode mode)
 	{
 		setCell(iRow, iCol, view, 1, 1, mode);
 	}
 
-	void GridView::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode)
+	void TableLayout::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode)
 	{
 		if (rowspan < 1) {
 			rowspan = 1;
@@ -699,7 +699,7 @@ namespace slib
 		}
 	}
 	
-	void GridView::onUpdateLayout()
+	void TableLayout::onUpdateLayout()
 	{
 		ObjectLocker lock(this);
 

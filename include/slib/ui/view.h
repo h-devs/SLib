@@ -1859,7 +1859,7 @@ namespace slib
 		friend class LinearLayout;
 		friend class ListView;
 		friend class CollectionView;
-		friend class GridView;
+		friend class TableLayout;
 
 	};
 

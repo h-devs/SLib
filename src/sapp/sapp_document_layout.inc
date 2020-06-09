@@ -916,7 +916,7 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(Linear)
 			PROCESS_CONTROL_SWITCH(List)
 			PROCESS_CONTROL_SWITCH(Collection)
-			PROCESS_CONTROL_SWITCH(Grid)
+			PROCESS_CONTROL_SWITCH(Table)
 			PROCESS_CONTROL_SWITCH(ListControl)
 			PROCESS_CONTROL_SWITCH(Render)
 			PROCESS_CONTROL_SWITCH(Tab)
@@ -3282,7 +3282,7 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-	BEGIN_PROCESS_LAYOUT_CONTROL(Grid, GridView)
+	BEGIN_PROCESS_LAYOUT_CONTROL(Table, TableLayout)
 	{
 		
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
@@ -3293,7 +3293,7 @@ namespace slib
 				for (sl_size i = 0; i < columnXmls.count; i++) {
 					Ref<XmlElement>& columnXml = columnXmls[i];
 					if (columnXml.isNotNull()) {
-						SAppLayoutGridColumn column;
+						SAppLayoutTableColumn column;
 						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(columnXml, column., width)
 						if (!(column.width.checkSize())) {
 							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(columnXml, width)
@@ -3323,7 +3323,7 @@ namespace slib
 				for (sl_uint32 i = 0; i < nRows; i++) {
 					Ref<XmlElement>& rowXml = rowXmls[i];
 					if (rowXml.isNotNull()) {
-						SAppLayoutGridRow row;
+						SAppLayoutTableRow row;
 						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(rowXml, row., height)
 						if (!(row.height.checkSize())) {
 							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(rowXml, height)
@@ -3349,7 +3349,7 @@ namespace slib
 								if (subItemView.isNull()) {
 									return sl_false;
 								}
-								SAppLayoutGridCell cell;
+								SAppLayoutTableCell cell;
 								cell.view = subItemView;
 								LAYOUT_CONTROL_PARSE_XML_ATTR(xmlView, cell., rowspan)
 								LAYOUT_CONTROL_PARSE_XML_ATTR(xmlView, cell., colspan)
@@ -3383,15 +3383,15 @@ namespace slib
 				}
 			}
 		} else if (op == OP_GENERATE_CPP) {
-			ListElements<SAppLayoutGridColumn> cols(attr->columns);
-			ListElements<SAppLayoutGridRow> rows(attr->rows);
+			ListElements<SAppLayoutTableColumn> cols(attr->columns);
+			ListElements<SAppLayoutTableRow> rows(attr->rows);
 			sl_uint32 iRow, iCol;
 			sl_uint32 nCols = (sl_uint32)(cols.count);
 			sl_uint32 nRows = (sl_uint32)(rows.count);
 			params->sbDefineInit->add(String::format("%s%s->setColumnsCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, nCols));
 			params->sbDefineInit->add(String::format("%s%s->setRowsCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, nRows));
 			for (iCol = 0; iCol < nCols; iCol++) {
-				SAppLayoutGridColumn& col = cols[iCol];
+				SAppLayoutTableColumn& col = cols[iCol];
 				if (col.width.flagDefined) {
 					if (col.width.unit == SAppDimensionValue::WRAP) {
 						params->sbDefineInit->add(String::format("%s%s->setColumnWidthWrapping(%d, slib::UIUpdateMode::Init);%n", strTab, name, iCol));
@@ -3423,7 +3423,7 @@ namespace slib
 				}
 			}
 			for (iRow = 0; iRow < nRows; iRow++) {
-				SAppLayoutGridRow& row = rows[iRow];
+				SAppLayoutTableRow& row = rows[iRow];
 				if (row.height.flagDefined) {
 					if (row.height.unit == SAppDimensionValue::WRAP) {
 						params->sbDefineInit->add(String::format("%s%s->setRowHeightWrapping(%d, slib::UIUpdateMode::Init);%n", strTab, name, iRow));
@@ -3455,8 +3455,8 @@ namespace slib
 				}
 			}
 		} else if (op == OP_SIMULATE) {
-			ListElements<SAppLayoutGridColumn> cols(attr->columns);
-			ListElements<SAppLayoutGridRow> rows(attr->rows);
+			ListElements<SAppLayoutTableColumn> cols(attr->columns);
+			ListElements<SAppLayoutTableRow> rows(attr->rows);
 			sl_uint32 iRow, iCol;
 			sl_uint32 nCols = (sl_uint32)(cols.count);
 			sl_uint32 nRows = (sl_uint32)(rows.count);
@@ -3465,7 +3465,7 @@ namespace slib
 				view->setRowsCount(nRows, UIUpdateMode::Init);
 			}
 			for (iCol = 0; iCol < nCols; iCol++) {
-				SAppLayoutGridColumn& col = cols[iCol];
+				SAppLayoutTableColumn& col = cols[iCol];
 				if (col.width.flagDefined) {
 					if (col.width.unit == SAppDimensionValue::WRAP) {
 						if (!flagOnLayout) {
@@ -3497,7 +3497,7 @@ namespace slib
 				}
 			}
 			for (iRow = 0; iRow < nRows; iRow++) {
-				SAppLayoutGridRow& row = rows[iRow];
+				SAppLayoutTableRow& row = rows[iRow];
 				if (row.height.flagDefined) {
 					if (row.height.unit == SAppDimensionValue::WRAP) {
 						if (!flagOnLayout) {
@@ -3529,11 +3529,11 @@ namespace slib
 				}
 			}
 			for (iRow = 0; iRow < nRows; iRow++) {
-				SAppLayoutGridRow& row = rows[iRow];
-				ListElements<SAppLayoutGridCell> cells(row.cells);
+				SAppLayoutTableRow& row = rows[iRow];
+				ListElements<SAppLayoutTableCell> cells(row.cells);
 				sl_uint32 nCells = Math::min((sl_uint32)(cells.count), nCols);
 				for (iCol = 0; iCol < nCells; iCol++) {
-					SAppLayoutGridCell& cell = cells[iCol];
+					SAppLayoutTableCell& cell = cells[iCol];
 					if (cell.view.isNotNull()) {
 						Ref<View> contentView = _simulateLayoutCreateOrLayoutView(params->simulator, cell.view.get(), resourceItem, view, flagOnLayout);
 						if (contentView.isNotNull()) {
@@ -3551,17 +3551,17 @@ namespace slib
 		LAYOUT_CONTROL_ADD_STATEMENT
 		
 		if (op == OP_GENERATE_CPP) {
-			ListElements<SAppLayoutGridColumn> cols(attr->columns);
-			ListElements<SAppLayoutGridRow> rows(attr->rows);
+			ListElements<SAppLayoutTableColumn> cols(attr->columns);
+			ListElements<SAppLayoutTableRow> rows(attr->rows);
 			sl_uint32 iRow, iCol;
 			sl_uint32 nCols = (sl_uint32)(cols.count);
 			sl_uint32 nRows = (sl_uint32)(rows.count);
 			for (iRow = 0; iRow < nRows; iRow++) {
-				SAppLayoutGridRow& row = rows[iRow];
-				ListElements<SAppLayoutGridCell> cells(row.cells);
+				SAppLayoutTableRow& row = rows[iRow];
+				ListElements<SAppLayoutTableCell> cells(row.cells);
 				sl_uint32 nCells = Math::min((sl_uint32)(cells.count), nCols);
 				for (iCol = 0; iCol < nCells; iCol++) {
-					SAppLayoutGridCell& cell = cells[iCol];
+					SAppLayoutTableCell& cell = cells[iCol];
 					if (cell.view.isNotNull()) {
 						String addChildStatement;
 						if (cell.colspan.value <= 1 && cell.rowspan.value <= 1) {

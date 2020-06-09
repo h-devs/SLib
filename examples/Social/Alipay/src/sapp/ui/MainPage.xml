@@ -12,7 +12,7 @@
 			marginBottom='1safeB'
 			>
 			
-			<grid
+			<table
 				width='*'
 				>
 				<column width='wrap' />
@@ -31,7 +31,7 @@
 						margin='5dp'
 						/>
 				</row>
-			</grid>
+			</table>
 
 			<button
 				name='btnPay'

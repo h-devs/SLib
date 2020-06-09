@@ -59,7 +59,7 @@
 #include "ui/list_control.h"
 
 #include "ui/linear_layout.h"
-#include "ui/grid_view.h"
+#include "ui/table_layout.h"
 #include "ui/list_view.h"
 #include "ui/collection_view.h"
 

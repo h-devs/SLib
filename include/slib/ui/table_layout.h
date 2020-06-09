@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_UI_GRID_VIEW
-#define CHECKHEADER_SLIB_UI_GRID_VIEW
+#ifndef CHECKHEADER_SLIB_UI_TABLE_LAYOUT
+#define CHECKHEADER_SLIB_UI_TABLE_LAYOUT
 
 #include "definition.h"
 
@@ -33,7 +33,7 @@ namespace slib
 	
 	namespace priv
 	{
-		namespace grid_view
+		namespace table_layout
 		{
 			class Cell;
 			class Column;
@@ -41,14 +41,14 @@ namespace slib
 		}
 	}
 	
-	class SLIB_EXPORT GridView : public ViewGroup
+	class SLIB_EXPORT TableLayout : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
 		
 	public:
-		GridView();
+		TableLayout();
 		
-		~GridView();
+		~TableLayout();
 		
 	public:
 		sl_uint32 getColumnsCount();
@@ -139,11 +139,11 @@ namespace slib
 		void onUpdateLayout() override;
 		
 	private:
-		priv::grid_view::Cell* _getCell(sl_uint32 row, sl_uint32 col);
+		priv::table_layout::Cell* _getCell(sl_uint32 row, sl_uint32 col);
 		
 	protected:
-		List<priv::grid_view::Column> m_columns;
-		List<priv::grid_view::Row> m_rows;
+		List<priv::table_layout::Column> m_columns;
+		List<priv::table_layout::Row> m_rows;
 		
 	};
 

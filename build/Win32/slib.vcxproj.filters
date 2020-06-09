@@ -1292,7 +1292,7 @@
     <ClCompile Include="..\..\src\slib\core\charset_windows.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\grid_view.cpp">
+    <ClCompile Include="..\..\src\slib\ui\table_layout.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\social\oauth_server.cpp">

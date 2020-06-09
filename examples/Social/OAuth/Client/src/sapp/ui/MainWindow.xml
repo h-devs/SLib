@@ -10,7 +10,7 @@
 		fontSize='20dp'
 		>
 
-		<grid
+		<table
 			width='*'
 			height='wrap'
 			margin='20dp'>
@@ -268,7 +268,7 @@
 					
 				</hlinear>
 			</row>
-		</grid>
+		</table>
 
  	</layout>
 

@@ -523,7 +523,7 @@ namespace slib
 		
 	};
 
-	class SAppLayoutGridColumn
+	class SAppLayoutTableColumn
 	{
 	public:
 		SAppDimensionValue width;
@@ -531,7 +531,7 @@ namespace slib
 		SAppDimensionValue maxWidth;
 	};
 
-	class SAppLayoutGridCell
+	class SAppLayoutTableCell
 	{
 	public:
 		Ref<SAppLayoutResourceItem> view;
@@ -539,21 +539,21 @@ namespace slib
 		SAppUint32Value rowspan;
 	};
 
-	class SAppLayoutGridRow
+	class SAppLayoutTableRow
 	{
 	public:
 		SAppDimensionValue height;
 		SAppDimensionValue minHeight;
 		SAppDimensionValue maxHeight;
 		
-		List<SAppLayoutGridCell> cells;
+		List<SAppLayoutTableCell> cells;
 	};
 
-	class SAppLayoutGridAttributes : public Referable
+	class SAppLayoutTableAttributes : public Referable
 	{
 	public:
-		CList<SAppLayoutGridColumn> columns;
-		CList<SAppLayoutGridRow> rows;
+		CList<SAppLayoutTableColumn> columns;
+		CList<SAppLayoutTableRow> rows;
 		
 	};
 
@@ -911,7 +911,7 @@ namespace slib
 		Tree = 0x0237,
 		Web = 0x0238,
 		Split = 0x0239,
-		Grid = 0x023A,
+		Table = 0x023A,
 
 		Progress = 0x0240,
 		Slider = 0x0241,
@@ -958,7 +958,7 @@ namespace slib
 		Ref<SAppLayoutLinearAttributes> attrsLinear;
 		Ref<SAppLayoutListAttributes> attrsList;
 		Ref<SAppLayoutCollectionAttributes> attrsCollection;
-		Ref<SAppLayoutGridAttributes> attrsGrid;
+		Ref<SAppLayoutTableAttributes> attrsTable;
 		Ref<SAppLayoutListControlAttributes> attrsListControl;
 		Ref<SAppLayoutRenderAttributes> attrsRender;
 		Ref<SAppLayoutTabAttributes> attrsTab;
@@ -1025,7 +1025,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameLinear = 0;
 		sl_uint32 nAutoIncreaseNameList = 0;
 		sl_uint32 nAutoIncreaseNameCollection = 0;
-		sl_uint32 nAutoIncreaseNameGrid = 0;
+		sl_uint32 nAutoIncreaseNameTable = 0;
 		sl_uint32 nAutoIncreaseNameListControl = 0;
 		sl_uint32 nAutoIncreaseNameRender = 0;
 		sl_uint32 nAutoIncreaseNameTab = 0;

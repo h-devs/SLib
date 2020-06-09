@@ -848,7 +848,7 @@
 		263D47872386B13D00DAC43F /* chat_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 263D47862386B13D00DAC43F /* chat_view.cpp */; };
 		263D478B2386E1BD00DAC43F /* chat_client.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 263D478A2386E1BD00DAC43F /* chat_client.cpp */; };
 		263D478F23872AD200DAC43F /* chat_sqlite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 263D478E23872AD100DAC43F /* chat_sqlite.cpp */; };
-		2644BD062361898E001B9842 /* grid_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2644BD052361898E001B9842 /* grid_view.cpp */; };
+		2644BD062361898E001B9842 /* table_layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2644BD052361898E001B9842 /* table_layout.cpp */; };
 		2644BD0C2364BE43001B9842 /* oauth_server.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2644BD0B2364BE42001B9842 /* oauth_server.cpp */; };
 		264AF11721AED0C0004E58CB /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 264AF10921AECFA4004E58CB /* main.cpp */; };
 		264AF11821AED0C0004E58CB /* util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 264AF10A21AECFA4004E58CB /* util.cpp */; };
@@ -2452,7 +2452,7 @@
 		263D478A2386E1BD00DAC43F /* chat_client.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chat_client.cpp; sourceTree = "<group>"; };
 		263D478E23872AD100DAC43F /* chat_sqlite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chat_sqlite.cpp; sourceTree = "<group>"; };
 		2640BC381CAA65EF004AA780 /* xml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xml.cpp; sourceTree = "<group>"; };
-		2644BD052361898E001B9842 /* grid_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = grid_view.cpp; sourceTree = "<group>"; };
+		2644BD052361898E001B9842 /* table_layout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = table_layout.cpp; sourceTree = "<group>"; };
 		2644BD0B2364BE42001B9842 /* oauth_server.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oauth_server.cpp; path = social/oauth_server.cpp; sourceTree = "<group>"; };
 		26483B2B1C99D8F3009075BF /* yuv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yuv.cpp; sourceTree = "<group>"; };
 		2648D5411D0965C400819E09 /* mobile_game.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mobile_game.cpp; sourceTree = "<group>"; };
@@ -4883,7 +4883,7 @@
 				E17DADF01E0C9A1E006161F6 /* gesture.cpp */,
 				26A304BC230B1D2B00852FC9 /* global_event_monitor.cpp */,
 				26A304BA230B1D2400852FC9 /* global_event_monitor_macos.mm */,
-				2644BD052361898E001B9842 /* grid_view.cpp */,
+				2644BD052361898E001B9842 /* table_layout.cpp */,
 				266DD51E1C11940A00D47AB0 /* image_view.cpp */,
 				26C795A2221562E70053C5A1 /* image_view_url.cpp */,
 				266DD50C1C11940A00D47AB0 /* label_view.cpp */,
@@ -7123,7 +7123,7 @@
 				26BB17D421F4C7F40089C7EC /* view_page_navigation.cpp in Sources */,
 				26539FB32374BC0E0064340D /* push_notification.cpp in Sources */,
 				26D9D9141E9645CE005F7BD3 /* thread.cpp in Sources */,
-				2644BD062361898E001B9842 /* grid_view.cpp in Sources */,
+				2644BD062361898E001B9842 /* table_layout.cpp in Sources */,
 				265A93722304B36500B155A2 /* process_macos.mm in Sources */,
 				265A9350230428D500B155A2 /* process_unix.cpp in Sources */,
 				26F5EA6622D6835C00CD1595 /* toast.cpp in Sources */,

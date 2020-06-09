@@ -412,9 +412,9 @@ namespace slib
 				prefix = "collection";
 				pN = &nAutoIncreaseNameCollection;
 				break;
-			case SAppLayoutItemType::Grid:
-				prefix = "grid";
-				pN = &nAutoIncreaseNameGrid;
+			case SAppLayoutItemType::Table:
+				prefix = "table";
+				pN = &nAutoIncreaseNameTable;
 				break;
 			case SAppLayoutItemType::ListControl:
 				prefix = "listControl";
@@ -543,8 +543,8 @@ namespace slib
 			type = SAppLayoutItemType::List;
 		} else if (strType == "collection") {
 			type = SAppLayoutItemType::Collection;
-		} else if (strType == "grid") {
-			type = SAppLayoutItemType::Grid;
+		} else if (strType == "table") {
+			type = SAppLayoutItemType::Table;
 		} else if (strType == "listcontrol" || strType == "list-control") {
 			type = SAppLayoutItemType::ListControl;
 		} else if (strType == "render") {
