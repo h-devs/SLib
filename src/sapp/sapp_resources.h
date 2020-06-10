@@ -861,7 +861,13 @@ namespace slib
 	class SAppLayoutListBoxAttributes : public Referable
 	{
 	public:
-		
+		SAppUint64Value itemsCount;
+		SAppDimensionValue itemHeight;
+		SAppBooleanValue multipleSelection;
+		SAppDrawableValue itemBackground;
+		SAppDrawableValue selectedItemBackground;
+		SAppDrawableValue hoverItemBackground;
+
 	};
 	
 	class SAppLayoutStyle : public Referable

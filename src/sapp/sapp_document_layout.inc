@@ -4702,10 +4702,17 @@ namespace slib
 	BEGIN_PROCESS_LAYOUT_CONTROL(ListBox, ListBox)
 	{
 		
-		LAYOUT_CONTROL_PROCESS_SUPER(ViewGroup)
-		
+		LAYOUT_CONTROL_PROCESS_SUPER(View)
+
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(itemsCount, setItemsCount)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(itemHeight, setItemHeight, checkScalarSize)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(multipleSelection, setMultipleSelection)
+		LAYOUT_CONTROL_DRAWABLE_ATTR(itemBackground, setItemBackground)
+		LAYOUT_CONTROL_DRAWABLE_ATTR(selectedItemBackground, setSelectedItemBackground)
+		LAYOUT_CONTROL_DRAWABLE_ATTR(hoverItemBackground, setHoverItemBackground)
+
 		LAYOUT_CONTROL_ADD_STATEMENT
-		
+
 	}
 	END_PROCESS_LAYOUT_CONTROL
 

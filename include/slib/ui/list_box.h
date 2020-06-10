@@ -51,15 +51,57 @@ namespace slib
 
 		virtual void setItemHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		sl_bool isMultipleSelection();
+
+		void setMultipleSelection(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isSelectedIndex(sl_int64 index);
+
 		sl_int64 getSelectedIndex();
 
-		virtual void selectItem(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setSelectedIndex(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void unselectItem(UIUpdateMode mode = UIUpdateMode::Redraw);
+		List<sl_uint64> getSelectedIndices();
+
+		void setSelectedIndices(const ListParam<sl_uint64>& indices, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void selectItem(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void unselectItem(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void toggleItemSelection(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void selectItems(const ListParam<sl_uint64>& indices, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void unselectItems(const ListParam<sl_uint64>& indices, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setSelectedRange(sl_int64 from, sl_int64 to, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void selectRange(sl_int64 from, sl_int64 to, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void unselectAll(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_int64 getHoverIndex();
 
 		sl_int64 getItemIndexAt(const UIPoint& pt);
+
+		Ref<Drawable> getItemBackground();
+
+		void setItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+	
+		void setItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Ref<Drawable> getSelectedItemBackground();
+
+		void setSelectedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setSelectedItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Ref<Drawable> getHoverItemBackground();
+
+		void setHoverItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setHoverItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ListBox, DrawItem, sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
@@ -80,8 +122,16 @@ namespace slib
 	protected:
 		sl_int64 m_countItems;
 		sl_ui_len m_heightItem;
-		sl_int64 m_indexSelected;
 		sl_int64 m_indexHover;
+		
+		sl_bool m_flagMultipleSelection;
+		sl_int64 m_indexSelected;
+		sl_int64 m_indexLastClicked;
+		CHashMap<sl_uint64, sl_bool> m_mapSelection;
+
+		AtomicRef<Drawable> m_backgroundItem;
+		AtomicRef<Drawable> m_backgroundSelectedItem;
+		AtomicRef<Drawable> m_backgroundHoverItem;
 
 	};
 
