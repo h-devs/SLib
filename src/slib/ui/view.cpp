@@ -72,6 +72,7 @@ namespace slib
 		m_flagHover(sl_false),
 		m_flagLockScroll(sl_false),
 		m_flagCaptureEvents(sl_false),
+		m_flagClicking(sl_false),
 	
 		m_attachMode(UIAttachMode::AttachAlways),
 		m_visibility(Visibility::Visible),
@@ -327,6 +328,7 @@ namespace slib
 		flagContentScrollingByKeyboard(sl_true),
 		flagSmoothContentScrolling(sl_true),
 		flagAutoHideScrollBar(sl_true),
+		flagScrollCanvas(sl_true),
 
 		flagValidHorz(sl_false),
 		flagValidVert(sl_false),
@@ -6561,6 +6563,24 @@ namespace slib
 		}
 	}
 
+	sl_bool View::isCanvasScrolling()
+	{
+		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->flagScrollCanvas;
+		}
+		return sl_true;
+	}
+
+	void View::setCanvasScrolling(sl_bool flag)
+	{
+		_initializeScrollAttributes();
+		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
+		if (attrs.isNotNull()) {
+			attrs->flagScrollCanvas = flag;
+		}
+	}
+
 	ScrollPoint View::getScrollPosition()
 	{
 		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
@@ -7759,10 +7779,10 @@ namespace slib
 
 		Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;
 	
-		if (m_flagSavingCanvasState || scrollAttrs.isNotNull() || getContentShape() != BoundShape::None) {
+		if (m_flagSavingCanvasState || (scrollAttrs.isNotNull() && scrollAttrs->flagScrollCanvas) || getContentShape() != BoundShape::None) {
 			CanvasStateScope scope(canvas);
 			onDrawBackground(canvas);
-			if (scrollAttrs.isNotNull()) {
+			if (scrollAttrs.isNotNull() && scrollAttrs->flagScrollCanvas) {
 				sl_real scrollX = (sl_real)(scrollAttrs->x);
 				sl_real scrollY = (sl_real)(scrollAttrs->y);
 				if(!(Math::isAlmostZero(scrollX)) || !(Math::isAlmostZero(scrollY))) {
@@ -8463,13 +8483,13 @@ namespace slib
 		if (ev->isPreventedDefault()) {
 			return;
 		}
-		
+
+		_processEventForStateAndClick(ev);
+
 		if (isContentScrollingByMouse()) {
 			_processContentScrollingEvents(ev);
 		}
-		
-		_processEventForStateAndClick(ev);
-		
+
 		if (m_flagCaptureEvents) {
 			ev->addFlag(UIEventFlags::Captured);
 			ev->stopPropagation();
@@ -9493,18 +9513,24 @@ namespace slib
 			case UIAction::LeftButtonDown:
 			case UIAction::TouchBegin:
 				setPressedState(sl_true);
+				m_flagClicking = sl_true;
 				break;
 			case UIAction::LeftButtonUp:
 			case UIAction::TouchEnd:
-				if (isPressedState()) {
+				if (m_flagClicking && m_flagPressed) {
 					setPressedState(sl_false);
+					m_flagClicking = sl_false;
 					if (getBounds().containsPoint(ev->getPoint())) {
 						dispatchClickEvent(ev);
 					}
+				} else {
+					setPressedState(sl_false);
+					m_flagClicking = sl_false;
 				}
 				break;
 			case UIAction::TouchCancel:
 				setPressedState(sl_false);
+				m_flagClicking = sl_false;
 				break;
 			case UIAction::MouseEnter:
 				setHoverState(sl_true);
@@ -9695,9 +9721,10 @@ namespace slib
 #else
 						sl_real T = 2;
 #endif
-						Ref<ChildAttributes>& childAttrs = m_childAttrs;
-						if (childAttrs.isNotNull()) {
-							if (offset.getLength2p() > T * T) {
+						if (offset.getLength2p() > T * T) {
+							m_flagClicking = sl_false;
+							Ref<ChildAttributes>& childAttrs = m_childAttrs;
+							if (childAttrs.isNotNull()) {
 								Ref<View> view = childAttrs->childMouseDown;
 								if (view.isNotNull()) {
 									ev->setAction(UIAction::TouchCancel);

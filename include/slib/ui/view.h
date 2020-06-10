@@ -1076,6 +1076,10 @@ namespace slib
 
 		void setAutoHideScrollBar(sl_bool flag);
 
+		sl_bool isCanvasScrolling();
+
+		void setCanvasScrolling(sl_bool flag);
+
 		virtual Pointlf getScrollPosition();
 		
 		sl_scroll_pos getScrollX();
@@ -1511,6 +1515,7 @@ namespace slib
 		sl_bool m_flagHover : 1;
 		sl_bool m_flagLockScroll: 1;
 		sl_bool m_flagCaptureEvents: 1;
+		sl_bool m_flagClicking : 1;
 		
 		AtomicString m_id;
 		UIAttachMode m_attachMode;
@@ -1730,6 +1735,7 @@ namespace slib
 			sl_bool flagContentScrollingByKeyboard : 1;
 			sl_bool flagSmoothContentScrolling : 1;
 			sl_bool flagAutoHideScrollBar : 1;
+			sl_bool flagScrollCanvas : 1;
 			
 			sl_bool flagValidHorz : 1;
 			sl_bool flagValidVert : 1;
