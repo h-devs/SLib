@@ -40,6 +40,12 @@ namespace slib
 	 {}
 
 	template <class T>
+	SLIB_INLINE Ptr<T>::~Ptr()
+	{
+		_ptr = sl_null;
+	}
+
+	template <class T>
 	SLIB_INLINE Ptr<T>::Ptr(Ptr<T>&& other) noexcept
 	{
 		_move_init(&other);
@@ -877,6 +883,12 @@ namespace slib
 	Atomic< Ptr<T> >::Atomic() noexcept
 	 : _ptr(sl_null)
 	 {}
+	
+	template <class T>
+	Atomic< Ptr<T> >::~Atomic()
+	{
+		_ptr = sl_null;
+	}
 	
 	template <class T>
 	Atomic< Ptr<T> >::Atomic(AtomicPtr<T>&& other) noexcept

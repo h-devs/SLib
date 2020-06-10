@@ -93,6 +93,8 @@ namespace slib
 
 		template <class O>
 		Ptr(T* pointer, const AtomicWeakRef<O>& weak) noexcept;
+		
+		~Ptr();
 
 	public:
 		static Ptr<T> fromPointer(T* pointer) noexcept;
@@ -375,6 +377,8 @@ namespace slib
 
 		template <class O>
 		Atomic(T* pointer, const AtomicWeakRef<O>& weak) noexcept;
+		
+		~Atomic();
 
 	public:
 		static const AtomicPtr<T>& null() noexcept;

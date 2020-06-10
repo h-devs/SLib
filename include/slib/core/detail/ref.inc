@@ -235,6 +235,7 @@ namespace slib
 		SLIB_TRY_CONVERT_TYPE(T*, Referable*)
 		if (_ptr) {
 			_ptr->decreaseReference();
+			_ptr = sl_null;
 		}
 	}
 	
@@ -722,6 +723,7 @@ namespace slib
 		T* ptr = _ptr;
 		if (ptr) {
 			ptr->decreaseReference();
+			_ptr = sl_null;
 		}
 	}
 	
