@@ -68,7 +68,7 @@ namespace slib
 		virtual void setTitles(const List<String>& values, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		
-		virtual void selectIndex(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void selectItem(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		virtual void selectValue(const String& value, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
@@ -98,7 +98,7 @@ namespace slib
 		virtual Ptr<IPickerViewInstance> getPickerViewInstance();
 		
 	private:
-		void _selectIndexInner(sl_int32 index);
+		void _selectItemInner(sl_int32 index);
 		
 		sl_uint32 _getCircularIndex(sl_int32 index);
 		

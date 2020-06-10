@@ -171,11 +171,11 @@ namespace slib
 		if (instance.isNotNull()) {
 			instance->refreshItemsCount(this);
 			if (m_indexSelected >= n) {
-				selectIndex(0, UIUpdateMode::None);
+				selectItem(0, UIUpdateMode::None);
 			}
 		} else {
 			if (m_indexSelected >= n) {
-				selectIndex(0, UIUpdateMode::None);
+				selectItem(0, UIUpdateMode::None);
 			}
 			invalidate(mode);
 		}
@@ -241,13 +241,13 @@ namespace slib
 			instance->refreshItemsContent(this);
 			sl_uint32 n = (sl_uint32)(m_titles.getCount());
 			if (m_indexSelected >= n) {
-				selectIndex(0, UIUpdateMode::None);
+				selectItem(0, UIUpdateMode::None);
 			}
 		} else {
 			m_titles = list;
 			sl_uint32 n = (sl_uint32)(m_titles.getCount());
 			if (m_indexSelected >= n) {
-				selectIndex(0, UIUpdateMode::None);
+				selectItem(0, UIUpdateMode::None);
 			}
 			invalidate(mode);
 		}
@@ -267,21 +267,21 @@ namespace slib
 		if (instance.isNotNull()) {
 			instance->refreshItemsCount(this);
 			if (m_indexSelected >= n) {
-				selectIndex(0, UIUpdateMode::None);
+				selectItem(0, UIUpdateMode::None);
 			}
 		} else {
 			if (m_indexSelected >= n) {
-				selectIndex(0, UIUpdateMode::None);
+				selectItem(0, UIUpdateMode::None);
 			}
 			invalidate(mode);
 		}
 	}
 	
-	void SelectView::selectIndex(sl_uint32 index, UIUpdateMode mode)
+	void SelectView::selectItem(sl_uint32 index, UIUpdateMode mode)
 	{
 		Ptr<ISelectViewInstance> instance = getSelectViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&SelectView::selectIndex, index, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(&SelectView::selectItem, index, mode)
 		}
 		if (index < m_titles.getCount()) {
 			m_indexSelected = index;
@@ -301,7 +301,7 @@ namespace slib
 	{
 		sl_int32 m = (sl_int32)(m_values.indexOf(value));
 		if (m > 0) {
-			selectIndex(m, mode);
+			selectItem(m, mode);
 		}
 	}
 	
@@ -446,7 +446,7 @@ namespace slib
 					sl_uint32 index = m_indexSelected;
 					if (index > 0) {
 						index --;
-						selectIndex(index);
+						selectItem(index);
 						dispatchSelectItem(index);
 						invalidate();
 					}
@@ -456,7 +456,7 @@ namespace slib
 					sl_uint32 index = m_indexSelected;
 					if (index + 1 < getItemsCount()) {
 						index ++;
-						selectIndex(index);
+						selectItem(index);
 						dispatchSelectItem(index);
 						invalidate();
 					}

@@ -70,7 +70,7 @@ namespace slib
 		void addItem(const String& value, const String& title, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		
-		virtual void selectIndex(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void selectItem(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		virtual void selectValue(const String& value, UIUpdateMode mode = UIUpdateMode::Redraw);
 		

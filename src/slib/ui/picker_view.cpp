@@ -78,11 +78,11 @@ namespace slib
 		if (instance.isNotNull()) {
 			instance->refreshItemsCount(this);
 			if (m_indexSelected >= n) {
-				selectIndex(0, UIUpdateMode::None);
+				selectItem(0, UIUpdateMode::None);
 			}
 		} else {
 			if (m_indexSelected >= n) {
-				selectIndex(0, UIUpdateMode::None);
+				selectItem(0, UIUpdateMode::None);
 			}
 			invalidate(mode);
 		}
@@ -150,22 +150,22 @@ namespace slib
 			instance->refreshItemsContent(this);
 			sl_uint32 n = (sl_uint32)(m_titles.getCount());
 			if (m_indexSelected >= n) {
-				selectIndex(0, UIUpdateMode::None);
+				selectItem(0, UIUpdateMode::None);
 			}
 		} else {
 			sl_uint32 n = (sl_uint32)(m_titles.getCount());
 			if (m_indexSelected >= n) {
-				selectIndex(0, UIUpdateMode::None);
+				selectItem(0, UIUpdateMode::None);
 			}
 			invalidate(mode);
 		}
 	}
 	
-	void PickerView::selectIndex(sl_uint32 index, UIUpdateMode mode)
+	void PickerView::selectItem(sl_uint32 index, UIUpdateMode mode)
 	{
 		Ptr<IPickerViewInstance> instance = getPickerViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&PickerView::selectIndex, index, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(&PickerView::selectItem, index, mode)
 		}
 		if (index < m_titles.getCount()) {
 			m_indexSelected = index;
@@ -185,7 +185,7 @@ namespace slib
 	{
 		sl_int32 m = (sl_int32)(m_values.indexOf(value));
 		if (m > 0) {
-			selectIndex(m, mode);
+			selectItem(m, mode);
 		}
 	}
 	
@@ -335,7 +335,7 @@ namespace slib
 		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index)
 	}
 	
-	void PickerView::_selectIndexInner(sl_int32 index)
+	void PickerView::_selectItemInner(sl_int32 index)
 	{
 		if (m_flagCircular) {
 			index = _getCircularIndex(index);
@@ -392,7 +392,7 @@ namespace slib
 			if (m > lineHeight / 2) {
 				n += 1;
 			}
-			_selectIndexInner(index - n);
+			_selectItemInner(index - n);
 		} else {
 			k = -k;
 			sl_int32 n = k / lineHeight;
@@ -400,7 +400,7 @@ namespace slib
 			if (m > lineHeight / 2) {
 				n += 1;
 			}
-			_selectIndexInner(index + n);
+			_selectItemInner(index + n);
 		}
 		m_yOffset = (sl_ui_pos)(m_yOffset + offset - (index - m_indexSelected) * lineHeight);
 		if (m_yOffset > lineHeight) {
