@@ -1072,6 +1072,10 @@ namespace slib
 		
 		void setVerticalScrollBarVisible(sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		sl_bool isAutoHideScrollBar();
+
+		void setAutoHideScrollBar(sl_bool flag);
+
 		virtual Pointlf getScrollPosition();
 		
 		sl_scroll_pos getScrollX();
@@ -1467,6 +1471,8 @@ namespace slib
 		void _stopContentScrollingFlow();
 		
 		void _processContentScrollingFlow(Timer* timer);
+
+		void _processAutoHideScrollBar(UIEvent* ev);
 		
 		void _setInstancePaging();
 		
@@ -1723,6 +1729,7 @@ namespace slib
 			sl_bool flagContentScrollingByMouseWheel : 1;
 			sl_bool flagContentScrollingByKeyboard : 1;
 			sl_bool flagSmoothContentScrolling : 1;
+			sl_bool flagAutoHideScrollBar : 1;
 			
 			sl_bool flagValidHorz : 1;
 			sl_bool flagValidVert : 1;
@@ -1750,6 +1757,7 @@ namespace slib
 			sl_bool flagSmoothTarget;
 			sl_scroll_pos xSmoothTarget;
 			sl_scroll_pos ySmoothTarget;
+			Time timeLastInside;
 			
 		public:
 			ScrollAttributes();

@@ -2323,7 +2323,8 @@ namespace slib
 		LAYOUT_CONTROL_GENERIC_ATTR(scrollingByTouch, setContentScrollingByTouch)
 		LAYOUT_CONTROL_GENERIC_ATTR(scrollingByMouseWheel, setContentScrollingByMouseWheel)
 		LAYOUT_CONTROL_GENERIC_ATTR(scrollingByKeyboard, setContentScrollingByKeyboard)
-		
+		LAYOUT_CONTROL_GENERIC_ATTR(autoHideScrollBar, setAutoHideScrollBar)
+
 		LAYOUT_CONTROL_GENERIC_ATTR(hitTest, setHitTestable)
 		LAYOUT_CONTROL_GENERIC_ATTR(touchMultipleChildren, setTouchMultipleChildren)
 		if (flagView) {

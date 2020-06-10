@@ -314,7 +314,8 @@ namespace slib
 		SAppBooleanValue scrollingByTouch;
 		SAppBooleanValue scrollingByMouseWheel;
 		SAppBooleanValue scrollingByKeyboard;
-		
+		SAppBooleanValue autoHideScrollBar;
+
 		SAppBooleanValue hitTest;
 		SAppBooleanValue touchMultipleChildren;
 		SAppBooleanValue tabStop;

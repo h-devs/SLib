@@ -326,6 +326,7 @@ namespace slib
 		flagContentScrollingByMouseWheel(sl_true),
 		flagContentScrollingByKeyboard(sl_true),
 		flagSmoothContentScrolling(sl_true),
+		flagAutoHideScrollBar(sl_true),
 
 		flagValidHorz(sl_false),
 		flagValidVert(sl_false),
@@ -339,7 +340,8 @@ namespace slib
 		contentHeight(0),
 		barWidth(UI::getDefaultScrollBarWidth()),
 		pageWidth(0),
-		pageHeight(0)
+		pageHeight(0),
+		timeLastInside(0)
 	{}
 
 	View::ScrollAttributes::~ScrollAttributes()
@@ -6540,7 +6542,25 @@ namespace slib
 		}
 		setScrollBarsVisible(flagHorz, flagVisible, mode);
 	}
-	
+
+	sl_bool View::isAutoHideScrollBar()
+	{
+		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->flagAutoHideScrollBar;
+		}
+		return sl_true;
+	}
+
+	void View::setAutoHideScrollBar(sl_bool flag)
+	{
+		_initializeScrollAttributes();
+		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
+		if (attrs.isNotNull()) {
+			attrs->flagAutoHideScrollBar = flag;
+		}
+	}
+
 	ScrollPoint View::getScrollPosition()
 	{
 		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
@@ -8278,11 +8298,20 @@ namespace slib
 				}
 			}
 			
-			if (m_scrollAttrs.isNotNull() && !isNativeWidget()) {
-				Ref<View> scrollBars[2];
-				_getScrollBars(scrollBars);
-				if (scrollBars[0].isNotNull() || scrollBars[1].isNotNull()) {
-					drawChildren(canvas, scrollBars, 2);
+			Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;
+			if (scrollAttrs.isNotNull() && !isNativeWidget()) {
+				sl_bool flagShowScrollBar = sl_true;
+				if (scrollAttrs->flagAutoHideScrollBar) {
+					if ((Time::now() - scrollAttrs->timeLastInside).getSecondsCount() >= 1) {
+						flagShowScrollBar = sl_false;
+					}
+				}
+				if (flagShowScrollBar) {
+					Ref<View> scrollBars[2];
+					_getScrollBars(scrollBars);
+					if (scrollBars[0].isNotNull() || scrollBars[1].isNotNull()) {
+						drawChildren(canvas, scrollBars, 2);
+					}
 				}
 			}
 			
@@ -8366,9 +8395,11 @@ namespace slib
 		if (!m_flagEnabled) {
 			return;
 		}
-		
+
+		_processAutoHideScrollBar(ev);
+
 		UIAction action = ev->getAction();
-		
+
 		// pass event to children
 		if (!m_flagCaptureEvents && !(ev->getFlags() & UIEventFlags::NotDispatchToChildren)) {
 			Ref<View> scrollBars[2];
@@ -8409,7 +8440,7 @@ namespace slib
 		if (gesture.isNotNull()) {
 			gesture->processEvent(ev);
 		}
-		
+
 		if (ev->isStoppedPropagation()) {
 			if (m_flagCaptureEvents) {
 				ev->addFlag(UIEventFlags::Captured);
@@ -8596,7 +8627,9 @@ namespace slib
 		if (!m_flagEnabled) {
 			return;
 		}
-		
+
+		_processAutoHideScrollBar(ev);
+
 		UIAction action = ev->getAction();
 		
 		// pass event to children
@@ -8933,6 +8966,8 @@ namespace slib
 		if (! m_flagEnabled) {
 			return;
 		}
+
+		_processAutoHideScrollBar(ev);
 		
 		// pass event to children
 		{
@@ -9020,6 +9055,8 @@ namespace slib
 		if (! m_flagEnabled) {
 			return;
 		}
+
+		_processAutoHideScrollBar(ev);
 		
 		if (!(ev->getFlags() & UIEventFlags::NotDispatchToChildren)) {
 			Ref<ChildAttributes>& childAttrs = m_childAttrs;
@@ -9885,6 +9922,37 @@ namespace slib
 		
 		invalidate();
 		
+	}
+
+	void View::_processAutoHideScrollBar(UIEvent* ev)
+	{
+		Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;
+		if (scrollAttrs.isNotNull() && !(isNativeWidget())) {
+			if (scrollAttrs->flagAutoHideScrollBar && (scrollAttrs->flagValidHorz || scrollAttrs->flagValidVert)) {
+				UIAction action = ev->getAction();
+				sl_bool flagInvalidateScrollBar = sl_false;
+				if ((Time::now() - scrollAttrs->timeLastInside).getSecondsCount() >= 1) {
+					flagInvalidateScrollBar = sl_true;
+				}
+				scrollAttrs->timeLastInside = Time::now();
+				if (action == UIAction::MouseLeave || action == UIAction::TouchEnd || action == UIAction::TouchCancel) {
+					auto thiz = ToRef(this);
+					dispatchToDrawingThread([this, thiz]() {
+						Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;
+						if (scrollAttrs.isNotNull() && (scrollAttrs->flagValidHorz || scrollAttrs->flagValidVert)) {
+							if (scrollAttrs->flagAutoHideScrollBar) {
+								if ((Time::now() - scrollAttrs->timeLastInside).getSecondsCount() >= 1) {
+									invalidate();
+								}
+							}
+						}
+					}, 1500);
+				}
+				if (flagInvalidateScrollBar) {
+					invalidate();
+				}
+			}
+		}
 	}
 	
 	void View::_setInstancePaging()
