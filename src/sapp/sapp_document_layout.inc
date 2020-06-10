@@ -3053,7 +3053,7 @@ namespace slib
 					}
 				}
 				if (flagSelected) {
-					params->sbDefineInit->add(String::format("%s%s->selectIndex(%d, slib::UIUpdateMode::Init);%n", strTab, name, indexSelected));
+					params->sbDefineInit->add(String::format("%s%s->selectItem(%d, slib::UIUpdateMode::Init);%n", strTab, name, indexSelected));
 				}
 			}
 		} else if (op == OP_SIMULATE) {
@@ -3087,7 +3087,7 @@ namespace slib
 					}
 					if (flagSelected) {
 						if (!flagOnLayout) {
-							view->selectIndex(indexSelected, UIUpdateMode::Init);
+							view->selectItem(indexSelected, UIUpdateMode::Init);
 						}
 					}
 				}
@@ -4380,7 +4380,7 @@ namespace slib
 					}
 				}
 				if (flagSelected) {
-					params->sbDefineInit->add(String::format("%s%s->selectIndex(%d, slib::UIUpdateMode::Init);%n", strTab, name, indexSelected));
+					params->sbDefineInit->add(String::format("%s%s->selectItem(%d, slib::UIUpdateMode::Init);%n", strTab, name, indexSelected));
 				}
 			}
 		} else if (op == OP_SIMULATE) {
@@ -4414,7 +4414,7 @@ namespace slib
 					}
 					if (flagSelected) {
 						if (!flagOnLayout) {
-							view->selectIndex(indexSelected, UIUpdateMode::Init);
+							view->selectItem(indexSelected, UIUpdateMode::Init);
 						}
 					}
 				}
