@@ -21,7 +21,9 @@
  */
 
 #include "slib/core/thread.h"
+
 #include "slib/core/system.h"
+#include "slib/core/safe_static.h"
 
 #if defined(SLIB_PLATFORM_IS_ANDROID)
 #	include "slib/core/platform_android.h"
@@ -36,7 +38,8 @@ namespace slib
 	{
 		namespace thread
 		{
-			AtomicHashMap< Thread*, WeakRef<Thread> > g_mapThreads;
+			typedef AtomicHashMap< Thread*, WeakRef<Thread> > ThreadMap;
+			SLIB_STATIC_ZERO_INITIALIZED(ThreadMap, g_mapThreads)
 		}
 	}
 
@@ -53,11 +56,16 @@ namespace slib
 
 	Thread::~Thread()
 	{
-		g_mapThreads.remove(this);
+		if (!SLIB_SAFE_STATIC_CHECK_FREED(g_mapThreads)) {
+			g_mapThreads.remove(this);
+		}
 	}
 
 	Ref<Thread> Thread::create(const Function<void()>& callback)
 	{
+		if (SLIB_SAFE_STATIC_CHECK_FREED(g_mapThreads)) {
+			return sl_null;
+		}
 		if (callback.isNull()) {
 			return sl_null;
 		}
@@ -83,14 +91,22 @@ namespace slib
 
 	List< Ref<Thread> > Thread::getAllThreads()
 	{
-		List< Ref<Thread> > ret;
-		for (auto& item : g_mapThreads) {
+		if (SLIB_SAFE_STATIC_CHECK_FREED(g_mapThreads)) {
+			return sl_null;
+		}
+		HashMap< Thread*, WeakRef<Thread> > map = g_mapThreads;
+		if (map.isNull()) {
+			return sl_null;
+		}
+		List< Ref<Thread> > list;
+		MutexLocker lock(map.getLocker());
+		for (auto& item : map) {
 			Ref<Thread> thread = item.value;
 			if (thread.isNotNull()) {
-				ret.add_NoLock(thread);
+				list.add_NoLock(thread);
 			}
 		}
-		return ret;
+		return list;
 	}
 
 	void Thread::finishAllThreads()

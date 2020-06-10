@@ -156,6 +156,4 @@ namespace slib
 	
 }
 
-#define SLIB_SAFE_SLEEP(ms) { slib::Thread::sleep(ms); if (slib::Thread::isStoppingCurrent()) return; }
-
 #endif
