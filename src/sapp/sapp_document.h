@@ -252,6 +252,7 @@ namespace slib
 		sl_bool _processLayoutResourceControl_Drawer(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Chat(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Refresh(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_ListBox(LayoutControlProcessParams* params);
 
 	private:
 		sl_bool m_flagOpened;

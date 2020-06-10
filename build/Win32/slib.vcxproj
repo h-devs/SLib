@@ -408,6 +408,7 @@
     <ClCompile Include="..\..\src\slib\ui\label_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\linear_layout.cpp" />
     <ClCompile Include="..\..\src\slib\ui\line_view.cpp" />
+    <ClCompile Include="..\..\src\slib\ui\list_box.cpp" />
     <ClCompile Include="..\..\src\slib\ui\list_control.cpp" />
     <ClCompile Include="..\..\src\slib\ui\list_control_win32.cpp" />
     <ClCompile Include="..\..\src\slib\ui\list_view.cpp" />

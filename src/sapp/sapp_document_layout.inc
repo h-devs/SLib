@@ -936,6 +936,7 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(Drawer)
 			PROCESS_CONTROL_SWITCH(Chat)
 			PROCESS_CONTROL_SWITCH(Refresh)
+			PROCESS_CONTROL_SWITCH(ListBox)
 			default:
 				return sl_false;
 		}
@@ -4694,6 +4695,16 @@ namespace slib
 				}
 			}
 		}
+		
+	}
+	END_PROCESS_LAYOUT_CONTROL
+
+	BEGIN_PROCESS_LAYOUT_CONTROL(ListBox, ListBox)
+	{
+		
+		LAYOUT_CONTROL_PROCESS_SUPER(ViewGroup)
+		
+		LAYOUT_CONTROL_ADD_STATEMENT
 		
 	}
 	END_PROCESS_LAYOUT_CONTROL

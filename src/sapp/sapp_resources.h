@@ -858,6 +858,12 @@ namespace slib
 		
 	};
 	
+	class SAppLayoutListBoxAttributes : public Referable
+	{
+	public:
+		
+	};
+	
 	class SAppLayoutStyle : public Referable
 	{
 	public:
@@ -913,6 +919,7 @@ namespace slib
 		Web = 0x0238,
 		Split = 0x0239,
 		Table = 0x023A,
+		ListBox = 0x023B,
 
 		Progress = 0x0240,
 		Slider = 0x0241,
@@ -978,6 +985,7 @@ namespace slib
 		Ref<SAppLayoutDrawerAttributes> attrsDrawer;
 		Ref<SAppLayoutChatAttributes> attrsChat;
 		Ref<SAppLayoutRefreshAttributes> attrsRefresh;
+		Ref<SAppLayoutListBoxAttributes> attrsListBox;
 
 		CList< Ref<SAppLayoutStyle> > styles;
 		CList< Ref<SAppLayoutResourceItem> > children;
@@ -1046,6 +1054,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameDrawer = 0;
 		sl_uint32 nAutoIncreaseNameChat = 0;
 		sl_uint32 nAutoIncreaseNameRefresh = 0;
+		sl_uint32 nAutoIncreaseNameListBox = 0;
 
 	public:
 		SAppLayoutResource();

@@ -490,7 +490,11 @@ namespace slib
 				break;
 			case SAppLayoutItemType::Refresh:
 				prefix = "refresh";
-				pN = &nAutoIncreaseNameChat;
+				pN = &nAutoIncreaseNameRefresh;
+				break;
+			case SAppLayoutItemType::ListBox:
+				prefix = "listBox";
+				pN = &nAutoIncreaseNameListBox;
 				break;
 			default:
 				return String::null();
@@ -583,6 +587,8 @@ namespace slib
 			type = SAppLayoutItemType::Chat;
 		} else if (strType == "refresh") {
 			type = SAppLayoutItemType::Refresh;
+		} else if (strType == "listbox" || strType == "list-box") {
+			type = SAppLayoutItemType::ListBox;
 		}
 		return type;
 	}

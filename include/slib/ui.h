@@ -56,6 +56,7 @@
 #include "ui/text_view.h"
 
 #include "ui/tree_view.h"
+#include "ui/list_box.h"
 #include "ui/list_control.h"
 
 #include "ui/linear_layout.h"

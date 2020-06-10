@@ -1388,5 +1388,8 @@
     <ClCompile Include="..\..\src\slib\service\captcha.cpp">
       <Filter>src\service</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\list_box.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
