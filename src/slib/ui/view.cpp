@@ -9823,30 +9823,113 @@ namespace slib
 					sl_bool flagChange = sl_false;
 					sl_scroll_pos sx = scrollAttrs->x;
 					sl_scroll_pos sy = scrollAttrs->y;
+					
 					Keycode key = ev->getKeycode();
-					if (flagHorz) {
-						if (key == Keycode::Left) {
-							sx -= lineX;
-							flagChange = sl_true;
-						} else if (key == Keycode::Right) {
-							sx += lineX;
-							flagChange = sl_true;
+					switch (key) {
+					case Keycode::Left:
+						if (ev->isShiftKey()) {
+							if (flagVert) {
+								sy -= lineY;
+								flagChange = sl_true;
+							}
+						} else {
+							if (flagHorz) {
+								sx -= lineX;
+								flagChange = sl_true;
+							}
 						}
-					}
-					if (flagVert) {
-						if (key == Keycode::Up) {
-							sy -= lineY;
-							flagChange = sl_true;
-						} else if (key == Keycode::Down) {
-							sy += lineY;
-							flagChange = sl_true;
-						} else if (key == Keycode::PageUp) {
-							sy -= (sl_scroll_pos)(getHeight());
-							flagChange = sl_true;
-						} else if (key == Keycode::PageDown) {
-							sy += (sl_scroll_pos)(getHeight());
-							flagChange = sl_true;
+						break;
+					case Keycode::Right:
+						if (ev->isShiftKey()) {
+							if (flagVert) {
+								sy += lineY;
+								flagChange = sl_true;
+							}
+						} else {
+							if (flagHorz) {
+								sx += lineX;
+								flagChange = sl_true;
+							}
 						}
+						break;
+					case Keycode::Up:
+						if (ev->isShiftKey()) {
+							if (flagHorz) {
+								sx -= lineX;
+								flagChange = sl_true;
+							}
+						} else {
+							if (flagVert) {
+								sy -= lineY;
+								flagChange = sl_true;
+							}
+						}
+						break;
+					case Keycode::Down:
+						if (ev->isShiftKey()) {
+							if (flagHorz) {
+								sx += lineX;
+								flagChange = sl_true;
+							}
+						} else {
+							if (flagVert) {
+								sy += lineY;
+								flagChange = sl_true;
+							}
+						}
+						break;
+					case Keycode::PageUp:
+						if (ev->isShiftKey()) {
+							if (flagHorz) {
+								sx -= (sl_scroll_pos)(getWidth());
+								flagChange = sl_true;
+							}
+						} else {
+							if (flagVert) {
+								sy -= (sl_scroll_pos)(getHeight());
+								flagChange = sl_true;
+							}
+						}
+						break;
+					case Keycode::PageDown:
+						if (ev->isShiftKey()) {
+							if (flagHorz) {
+								sx += (sl_scroll_pos)(getWidth());
+								flagChange = sl_true;
+							}
+						} else {
+							if (flagVert) {
+								sy += (sl_scroll_pos)(getHeight());
+								flagChange = sl_true;
+							}
+						}
+						break;
+					case Keycode::Home:
+						if (ev->isShiftKey()) {
+							if (flagHorz) {
+								sx = 0;
+								flagChange = sl_true;
+							}
+						} else {
+							if (flagVert) {
+								sy = 0;
+								flagChange = sl_true;
+							}
+						}
+						break;
+					case Keycode::End:
+						if (ev->isShiftKey()) {
+							if (flagHorz) {
+								sx = getScrollRange().x;
+								flagChange = sl_true;
+							}
+						} else {
+							if (flagVert) {
+								sy = getScrollRange().y;
+								flagChange = sl_true;
+							}
+						}
+						break;
 					}
 					if (flagChange) {
 						scrollTo(sx, sy);
