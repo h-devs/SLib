@@ -5446,7 +5446,7 @@ namespace slib
 		return UI::getDefaultFont();
 	}
 
-	void View::_setFontInvalidateChildren()
+	void View::_setFontInvalidateChildren(const Ref<Font>& font)
 	{
 		ListElements< Ref<View> > children(getChildren());
 		for (sl_size i = 0; i < children.count; i++) {
@@ -5454,25 +5454,23 @@ namespace slib
 			Ref<DrawAttributes>& childAttrs = child->m_drawAttrs;
 			if (childAttrs.isNull() || childAttrs->font.isNull()) {
 				if (child->isUsingFont()) {
-					child->_setInstanceFont();
+					child->_setInstanceFont(font);
 				} else {
-					child->_setFontInvalidateChildren();
+					child->_setFontInvalidateChildren(font);
 				}
 			}
 		}
 	}
 	
-	void View::_setInstanceFont()
+	void View::_setInstanceFont(const Ref<Font>& font)
 	{
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::_setInstanceFont)
-			Ref<Font> font = getFont();
-			if (font.isNotNull()) {
-				instance->setFont(this, font);
-			}
+			SLIB_VIEW_RUN_ON_UI_THREAD(&View::_setInstanceFont, font)
+			instance->setFont(this, font);
 		}
-		_setFontInvalidateChildren();
+		onUpdateFont(font);
+		_setFontInvalidateChildren(font);
 		invalidateLayoutOfWrappingControl();
 	}
 
@@ -5481,19 +5479,33 @@ namespace slib
 		_initializeDrawAttributes();
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
+			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+				attrs->font = font;
+				return;
+			}
 			Ref<ViewInstance> instance = getNativeWidget();
 			if (instance.isNotNull()) {
 				SLIB_VIEW_RUN_ON_UI_THREAD(&View::setFont, font, mode)
-				attrs->font = font;
-				Ref<Font> _font = getFont();
-				if (_font.isNotNull()) {
-					instance->setFont(this, _font);
-				}
-			} else {
-				attrs->font = font;
 			}
+			attrs->font = font;
+			Ref<Font> fontFinal = font;
+			if (fontFinal.isNull()) {
+				Ref<View> parent = m_parent;
+				if (parent.isNotNull()) {
+					fontFinal = parent->getFont();
+				} else {
+					fontFinal = UI::getDefaultFont();
+				}
+				if (fontFinal.isNull()) {
+					return;
+				}
+			}
+			if (instance.isNotNull()) {
+				instance->setFont(this, fontFinal);
+			}
+			onUpdateFont(fontFinal);
 			if (SLIB_UI_UPDATE_MODE_IS_UPDATE_LAYOUT(mode)) {
-				_setFontInvalidateChildren();
+				_setFontInvalidateChildren(fontFinal);
 				if (isUsingFont()) {
 					invalidateLayoutOfWrappingControl();
 				}
@@ -8181,6 +8193,10 @@ namespace slib
 			}
 #endif
 		}
+	}
+
+	void View::onUpdateFont(const Ref<Font>& font)
+	{
 	}
 	
 	void View::onChangePadding()

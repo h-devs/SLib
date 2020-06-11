@@ -1309,6 +1309,8 @@ namespace slib
 		virtual void onDetachChild(View* child);
 		
 		virtual void onUpdateLayout();
+
+		virtual void onUpdateFont(const Ref<Font>& font);
 		
 		virtual void onChangePadding();
 		
@@ -1446,9 +1448,9 @@ namespace slib
 		
 		void _refreshBorderPen(UIUpdateMode mode);
 		
-		void _setFontInvalidateChildren();
+		void _setFontInvalidateChildren(const Ref<Font>& font);
 		
-		void _setInstanceFont();
+		void _setInstanceFont(const Ref<Font>& font);
 		
 		void _setInstancePadding();
 		
