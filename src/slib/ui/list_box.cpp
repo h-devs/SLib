@@ -62,6 +62,9 @@ namespace slib
 		if (count < 0) {
 			count = 0;
 		}
+		if (m_countItems == count) {
+			return;
+		}
 		m_countItems = count;
 		setContentHeight((sl_scroll_pos)(count * m_heightItem), mode);
 	}
@@ -74,6 +77,9 @@ namespace slib
 	void ListBox::setItemHeight(sl_ui_len height, UIUpdateMode mode)
 	{
 		if (height < 1) {
+			return;
+		}
+		if (m_heightItem == height) {
 			return;
 		}
 		m_heightItem = height;
