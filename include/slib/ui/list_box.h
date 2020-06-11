@@ -103,6 +103,12 @@ namespace slib
 
 		void setHoverItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		Ref<Drawable> getFocusedItemBackground();
+
+		void setFocusedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setFocusedItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ListBox, DrawItem, sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
 
@@ -112,12 +118,16 @@ namespace slib
 
 		SLIB_DECLARE_EVENT_HANDLER(ListBox, DoubleClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
 
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, ChangedSelection, UIEvent* ev)
+
 	protected:
 		void onDraw(Canvas* canvas) override;
 
 		void onClickEvent(UIEvent* ev) override;
 
 		void onMouseEvent(UIEvent* ev) override;
+
+		void onKeyEvent(UIEvent* ev) override;
 
 	protected:
 		sl_int64 m_countItems;
@@ -126,12 +136,14 @@ namespace slib
 		
 		sl_bool m_flagMultipleSelection;
 		sl_int64 m_indexSelected;
-		sl_int64 m_indexLastClicked;
+		sl_int64 m_indexFocused;
+		sl_int64 m_indexLastSelected;
 		CHashMap<sl_uint64, sl_bool> m_mapSelection;
 
 		AtomicRef<Drawable> m_backgroundItem;
 		AtomicRef<Drawable> m_backgroundSelectedItem;
 		AtomicRef<Drawable> m_backgroundHoverItem;
+		AtomicRef<Drawable> m_backgroundFocusedItem;
 
 	};
 

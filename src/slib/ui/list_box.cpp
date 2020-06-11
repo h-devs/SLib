@@ -35,7 +35,8 @@ namespace slib
 
 		m_flagMultipleSelection = sl_false;
 		m_indexSelected = -1;
-		m_indexLastClicked = -1;
+		m_indexFocused = -1;
+		m_indexLastSelected = -1;
 	}
 
 	ListBox::~ListBox()
@@ -47,6 +48,7 @@ namespace slib
 		View::init();
 		setCanvasScrolling(sl_false);
 		setVerticalScrolling(sl_true, UIUpdateMode::Init);
+		setFocusable(sl_true);
 	}
 
 	sl_uint64 ListBox::getItemsCount()
@@ -478,6 +480,22 @@ namespace slib
 		setHoverItemBackground(Drawable::createColorDrawable(color), mode);
 	}
 
+	Ref<Drawable> ListBox::getFocusedItemBackground()
+	{
+		return m_backgroundFocusedItem;
+	}
+
+	void ListBox::setFocusedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	{
+		m_backgroundFocusedItem = drawable;
+		invalidate(mode);
+	}
+
+	void ListBox::setFocusedItemBackgroundColor(const Color& color, UIUpdateMode mode)
+	{
+		setFocusedItemBackground(Drawable::createColorDrawable(color), mode);
+	}
+
 	SLIB_DEFINE_EVENT_HANDLER(ListBox, DrawItem, sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
 
 	void ListBox::dispatchDrawItem(sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
@@ -487,6 +505,8 @@ namespace slib
 			background = m_backgroundSelectedItem;
 		} else if (itemIndex == getHoverIndex()) {
 			background = m_backgroundHoverItem;
+		} else if (isFocused() && itemIndex == m_indexFocused) {
+			background = m_backgroundFocusedItem;
 		} else {
 			background = m_backgroundItem;
 		}
@@ -501,30 +521,29 @@ namespace slib
 	void ListBox::dispatchClickItem(sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(ClickItem, itemIndex, pos, ev)
-		if (ev->isStoppedPropagation()) {
-			return;
-		}
 		if (ev->isPreventedDefault()) {
 			return;
 		}
-		
-		if (ev->isShiftKey()) {			
-			if (m_indexLastClicked >= 0) {
+		m_indexFocused = itemIndex;
+		if (ev->isShiftKey()) {
+			if (m_indexLastSelected >= 0) {
 				if (ev->isControlKey()) {
-					selectRange(m_indexLastClicked, itemIndex);
+					selectRange(m_indexLastSelected, itemIndex);
 				} else {
-					setSelectedRange(m_indexLastClicked, itemIndex);
+					setSelectedRange(m_indexLastSelected, itemIndex);
 				}
 			} else {
 				setSelectedIndex(itemIndex);
 			}
+			dispatchChangedSelection(ev);
 		} else {
 			if (ev->isControlKey()) {
 				toggleItemSelection(itemIndex);
 			} else {
 				setSelectedIndex(itemIndex);
 			}
-			m_indexLastClicked = itemIndex;
+			dispatchChangedSelection(ev);
+			m_indexLastSelected = itemIndex;
 		}
 	}
 
@@ -540,6 +559,13 @@ namespace slib
 	void ListBox::dispatchDoubleClickItem(sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(DoubleClickItem, itemIndex, pos, ev)
+	}
+
+	SLIB_DEFINE_EVENT_HANDLER(ListBox, ChangedSelection, UIEvent* ev)
+
+	void ListBox::dispatchChangedSelection(UIEvent* ev)
+	{
+		SLIB_INVOKE_EVENT_HANDLER(ChangedSelection, ev)
 	}
 
 	void ListBox::onDraw(Canvas* canvas)
@@ -571,12 +597,14 @@ namespace slib
 
 	void ListBox::onClickEvent(UIEvent* ev)
 	{
-		sl_int64 index = getItemIndexAt(ev->getPoint());
-		if (index >= 0) {
-			UIPoint pt = ev->getPoint();
-			sl_int64 pos = (sl_int64)(getScrollY()) + pt.y;
-			pt.y = (sl_ui_pos)(pos - index * m_heightItem);
-			dispatchClickItem(index, pt, ev);
+		if (ev->isMouseEvent()) {
+			sl_int64 index = getItemIndexAt(ev->getPoint());
+			if (index >= 0) {
+				UIPoint pt = ev->getPoint();
+				sl_int64 pos = (sl_int64)(getScrollY()) + pt.y;
+				pt.y = (sl_ui_pos)(pos - index * m_heightItem);
+				dispatchClickItem(index, pt, ev);
+			}
 		}
 	}
 
@@ -603,6 +631,95 @@ namespace slib
 			if (m_indexHover != -1) {
 				m_indexHover = -1;
 				invalidate();
+			}
+		}
+	}
+
+	void ListBox::onKeyEvent(UIEvent* ev)
+	{
+		sl_int64 nTotal = m_countItems;
+		if (nTotal <= 0) {
+			return;
+		}
+
+		if (ev->getAction() == UIAction::KeyDown) {
+
+			Keycode key = ev->getKeycode();
+
+			if (key == Keycode::Space || key == Keycode::Enter) {
+
+				sl_int64 index = m_indexFocused;
+				if (index >= 0) {
+					UIPoint pt(0, 0);
+					dispatchClickItem(index, pt, ev);
+				}
+
+			} else if (key == Keycode::Up || key == Keycode::Down || key == Keycode::Home || key == Keycode::End) {
+
+				sl_int64 index = m_indexFocused;
+
+				if (key == Keycode::Up) {
+					if (index > 0) {
+						index--;
+					} else if (index < 0) {
+						index = nTotal - 1;
+					} else {
+						return;
+					}
+				} else if (key == Keycode::Down) {
+					if (index >= 0) {
+						if (index < nTotal - 1) {
+							index++;
+						} else {
+							return;
+						}
+					} else {
+						index = 0;
+					}
+				} else if (key == Keycode::Home) {
+					index = 0;
+				} else {
+					index = nTotal - 1;
+				}
+				
+				m_indexFocused = index;
+
+				// check focused item is visible
+				{
+					sl_int64 sy = (sl_int64)(getScrollY());
+					sl_ui_len height = m_heightItem;
+					sl_int64 y1 = index * height;
+					sl_int64 y2 = y1 + height;
+					if (y1 < sy || y2 > sy + getHeight()) {
+						if (key == Keycode::Up || key == Keycode::Home) {
+							scrollTo(0, (sl_scroll_pos)y1, UIUpdateMode::None);
+						} else {
+							scrollTo(0, (sl_scroll_pos)(y2 - getHeight()), UIUpdateMode::None);
+						}
+					}
+				}
+
+				if (ev->isShiftKey()) {
+					UIPoint pt(0, 0);
+					dispatchClickItem(index, pt, ev);
+				} else {
+					if (ev->isControlKey()) {
+						invalidate();
+					} else {
+						UIPoint pt(0, 0);
+						dispatchClickItem(index, pt, ev);
+					}
+				}
+
+				ev->preventDefault();
+
+			} else if (key == Keycode::Escape) {
+
+				if (getSelectedIndex() < 0) {
+					m_indexFocused = -1;
+				}
+				invalidate();
+
 			}
 		}
 	}
