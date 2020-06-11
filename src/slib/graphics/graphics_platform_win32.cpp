@@ -34,6 +34,16 @@
 namespace slib
 {
 
+	namespace priv
+	{
+		namespace graphics_platform_win32
+		{
+			ULONG_PTR g_tokenGdiplus = 0;
+		}
+	}
+
+	using namespace priv::graphics_platform_win32;
+
 	void GraphicsPlatform::startGdiplus()
 	{
 		static sl_bool flagStarted = sl_false;
@@ -45,9 +55,13 @@ namespace slib
 			return;
 		}
 		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-		ULONG_PTR gdiplusToken;
-		GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+		GdiplusStartup(&g_tokenGdiplus, &gdiplusStartupInput, NULL);
 		flagStarted = sl_true;
+	}
+
+	void GraphicsPlatform::shutdownGdiplus()
+	{
+		Gdiplus::GdiplusShutdown(g_tokenGdiplus);
 	}
 
 	COLORREF GraphicsPlatform::getColorRef(const Color& color)

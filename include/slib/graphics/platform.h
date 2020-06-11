@@ -68,6 +68,7 @@ namespace slib
 #if defined(SLIB_GRAPHICS_IS_GDI)
 
 		static void startGdiplus();
+		static void shutdownGdiplus();
 
 		static Gdiplus::Brush* getBrushHandle(Brush* brush);
 		static Gdiplus::Pen* getPenHandle(Pen* pen);
