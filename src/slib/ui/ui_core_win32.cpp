@@ -379,8 +379,6 @@ namespace slib
 
 		Thread::finishAllThreads();
 
-		OleUninitialize();
-
 	}
 
 	void UIPlatform::quitApp()
