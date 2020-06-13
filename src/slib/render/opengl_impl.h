@@ -1148,7 +1148,8 @@ namespace slib
 
 #ifdef PRIV_OPENGL_IMPL
 	void GL_BASE::drawPixels(const BitmapData& bitmapData)
-	{		
+	{
+#ifndef SLIB_PLATFORM_IS_MACOS
 		sl_uint32 width = bitmapData.width;
 		sl_uint32 height = bitmapData.height;
 		if (bitmapData.format == BitmapFormat::RGBA && (bitmapData.pitch == 0 || bitmapData.pitch == (sl_int32)(width << 2))) {
@@ -1165,18 +1166,22 @@ namespace slib
 			temp.copyPixelsFrom(bitmapData);
 			GL_ENTRY(glDrawPixels)(width, height, GL_RGBA, GL_UNSIGNED_BYTE, glImage);
 		}
+#endif
 	}
 
 	void GL_BASE::drawPixels(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride)
 	{
+#ifndef SLIB_PLATFORM_IS_MACOS
 		if (width > 0 && height > 0 && pixels) {
 			BitmapData bitmapData(width, height, pixels, stride);
 			drawPixels(bitmapData);
 		}
+#endif
 	}
 
 	void GL_BASE::drawPixels(const Ref<Bitmap>& bitmap, sl_uint32 sx, sl_uint32 sy, sl_uint32 w, sl_uint32 h)
 	{
+#ifndef SLIB_PLATFORM_IS_MACOS
 		if (bitmap.isNull()) {
 			return;
 		}
@@ -1215,10 +1220,12 @@ namespace slib
 				drawPixels(temp);
 			}
 		}
+#endif
 	}
 
 	void GL_BASE::drawPixels(const Ref<Bitmap>& bitmap)
 	{
+#ifndef SLIB_PLATFORM_IS_MACOS
 		if (bitmap.isNull()) {
 			return;
 		}
@@ -1245,16 +1252,21 @@ namespace slib
 				drawPixels(temp);
 			}
 		}
-	}
+#endif
+    }
 
 	void GL_BASE::setRasterPosition(float x, float y)
 	{
+#ifndef SLIB_PLATFORM_IS_MACOS
 		GL_ENTRY(glRasterPos2f)(x, y);
+#endif
 	}
 
 	void GL_BASE::setPixelZoom(float xf, float yf)
 	{
+#ifndef SLIB_PLATFORM_IS_MACOS
 		GL_ENTRY(glPixelZoom)(xf, yf);
+#endif
 	}
 #endif
 

@@ -9946,6 +9946,8 @@ namespace slib
 							}
 						}
 						break;
+					default:
+						break;
 					}
 					if (flagChange) {
 						scrollTo(sx, sy);

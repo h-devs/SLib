@@ -309,7 +309,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(SLIB_PATH)/lib/macOS/$(CONFIGURATION)";
 				OTHER_LDFLAGS = "-lslib";
-				PRODUCT_BUNDLE_IDENTIFIER = "your-bundle-id.SLIB-TEMPLATE-APP-NAME";
+				PRODUCT_BUNDLE_IDENTIFIER = io.slib.examples.imageview;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USE_HEADERMAP = YES;
 			};
@@ -329,7 +329,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(SLIB_PATH)/lib/macOS/$(CONFIGURATION)";
 				OTHER_LDFLAGS = "-lslib";
-				PRODUCT_BUNDLE_IDENTIFIER = "your-bundle-id.SLIB-TEMPLATE-APP-NAME";
+				PRODUCT_BUNDLE_IDENTIFIER = io.slib.examples.imageview;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USE_HEADERMAP = YES;
 			};
