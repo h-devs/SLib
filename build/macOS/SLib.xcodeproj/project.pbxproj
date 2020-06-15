@@ -848,6 +848,7 @@
 		263D47872386B13D00DAC43F /* chat_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 263D47862386B13D00DAC43F /* chat_view.cpp */; };
 		263D478B2386E1BD00DAC43F /* chat_client.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 263D478A2386E1BD00DAC43F /* chat_client.cpp */; };
 		263D478F23872AD200DAC43F /* chat_sqlite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 263D478E23872AD100DAC43F /* chat_sqlite.cpp */; };
+		26446D66249377BE00430AC5 /* list_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26446D65249377BE00430AC5 /* list_box.cpp */; };
 		2644BD062361898E001B9842 /* table_layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2644BD052361898E001B9842 /* table_layout.cpp */; };
 		2644BD0C2364BE43001B9842 /* oauth_server.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2644BD0B2364BE42001B9842 /* oauth_server.cpp */; };
 		264AF11721AED0C0004E58CB /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 264AF10921AECFA4004E58CB /* main.cpp */; };
@@ -887,7 +888,7 @@
 		26635CA322670708005E4BA6 /* ui_photo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26635CA222670708005E4BA6 /* ui_photo.cpp */; };
 		266E66E121D7F68F00D92386 /* locale_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 266E66E021D7F68F00D92386 /* locale_apple.mm */; };
 		2671F99321E07F8200B39842 /* drawer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2671F99221E07F8100B39842 /* drawer.cpp */; };
-		267464A32317189000DE8715 /* chromium_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 267464A22317189000DE8715 /* chromium_macos.mm */; settings = {COMPILER_FLAGS = "-I${SLIB_PATH}/external/src/libcef"; }; };
+		267464A32317189000DE8715 /* chromium_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 267464A22317189000DE8715 /* chromium_macos.mm */; settings = {COMPILER_FLAGS = "-I$(PROJECT_DIR)/../../external/src/libcef"; }; };
 		267464B623171FE900DE8715 /* shutdown_checker.cc in Sources */ = {isa = PBXBuildFile; fileRef = 267464B123171FCB00DE8715 /* shutdown_checker.cc */; };
 		267464B723171FE900DE8715 /* transfer_util.cc in Sources */ = {isa = PBXBuildFile; fileRef = 267464B223171FCB00DE8715 /* transfer_util.cc */; };
 		267464C323171FFA00DE8715 /* cef_bind_helpers.cc in Sources */ = {isa = PBXBuildFile; fileRef = 267464B823171FF800DE8715 /* cef_bind_helpers.cc */; };
@@ -1436,8 +1437,6 @@
 			compilerSpec = com.apple.compilers.proxy.script;
 			filePatterns = "*.asm";
 			fileType = pattern.proxy;
-			inputFiles = (
-			);
 			isEditable = 1;
 			outputFiles = (
 				"$(DERIVED_FILE_DIR)/${INPUT_FILE_NAME}.o",
@@ -2452,6 +2451,7 @@
 		263D478A2386E1BD00DAC43F /* chat_client.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chat_client.cpp; sourceTree = "<group>"; };
 		263D478E23872AD100DAC43F /* chat_sqlite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chat_sqlite.cpp; sourceTree = "<group>"; };
 		2640BC381CAA65EF004AA780 /* xml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xml.cpp; sourceTree = "<group>"; };
+		26446D65249377BE00430AC5 /* list_box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = list_box.cpp; sourceTree = "<group>"; };
 		2644BD052361898E001B9842 /* table_layout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = table_layout.cpp; sourceTree = "<group>"; };
 		2644BD0B2364BE42001B9842 /* oauth_server.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oauth_server.cpp; path = social/oauth_server.cpp; sourceTree = "<group>"; };
 		26483B2B1C99D8F3009075BF /* yuv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yuv.cpp; sourceTree = "<group>"; };
@@ -2624,7 +2624,6 @@
 		266F12B21C97A13F00DE26FF /* block_cipher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = block_cipher.cpp; sourceTree = "<group>"; };
 		2671F99221E07F8100B39842 /* drawer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = drawer.cpp; sourceTree = "<group>"; };
 		267464A22317189000DE8715 /* chromium_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = chromium_macos.mm; sourceTree = "<group>"; };
-		267464A4231718D500DE8715 /* chromium.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = chromium.cpp; sourceTree = "<group>"; };
 		267464AF23171F2500DE8715 /* libcef_dll_wrapper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libcef_dll_wrapper.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		267464B123171FCB00DE8715 /* shutdown_checker.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = shutdown_checker.cc; path = ../../external/src/libcef/libcef_dll/shutdown_checker.cc; sourceTree = "<group>"; };
 		267464B223171FCB00DE8715 /* transfer_util.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = transfer_util.cc; path = ../../external/src/libcef/libcef_dll/transfer_util.cc; sourceTree = "<group>"; };
@@ -4866,7 +4865,6 @@
 				263D47862386B13D00DAC43F /* chat_view.cpp */,
 				266DD4F21C11940A00D47AB0 /* check_box.cpp */,
 				266DD4F31C11940A00D47AB0 /* check_box_macos.mm */,
-				267464A4231718D500DE8715 /* chromium.cpp */,
 				267464A22317189000DE8715 /* chromium_macos.mm */,
 				26C7959E22154CB80053C5A1 /* clipboard.cpp */,
 				26C795A022154CBE0053C5A1 /* clipboard_macos.mm */,
@@ -4889,6 +4887,7 @@
 				266DD50C1C11940A00D47AB0 /* label_view.cpp */,
 				26F53F9F22E299FF0031D485 /* line_view.cpp */,
 				26C7E37D1D00097000C0A769 /* linear_layout.cpp */,
+				26446D65249377BE00430AC5 /* list_box.cpp */,
 				266DD5111C11940A00D47AB0 /* list_control.cpp */,
 				266DD5121C11940A00D47AB0 /* list_control_macos.mm */,
 				2699DC8F1D43682D0085EE67 /* list_view.cpp */,
@@ -6006,6 +6005,8 @@
 			projectRoot = "";
 			targets = (
 				26D9D8F61E9645CE005F7BD3 /* slib */,
+				260D8CCA20CBDC7C0013B34E /* libyasm */,
+				2605036220CEC39100032B2C /* yasm */,
 				26D15C351E93A952003BD61A /* freetype */,
 				26D15C3F1E93A966003BD61A /* sqlite3 */,
 				26D15C491E93A97C003BD61A /* opus */,
@@ -6013,8 +6014,6 @@
 				2628EB0321C41FFF00D8CD00 /* zxing */,
 				267464A723171F2500DE8715 /* cef_dll_wrapper */,
 				2639191921CD2389008B335B /* hiredis */,
-				260D8CCA20CBDC7C0013B34E /* libyasm */,
-				2605036220CEC39100032B2C /* yasm */,
 				264AF12021B0590C004E58CB /* libsapp */,
 				263918D821CBA047008B335B /* sapp */,
 				264AF10F21AED095004E58CB /* AddCopyrightNotice */,
@@ -7215,6 +7214,7 @@
 				26E1B8A2222ABAB2007C222E /* jfdctint.c in Sources */,
 				26D9D9C31E96468D005F7BD3 /* linear_layout.cpp in Sources */,
 				26E1B895222ABAB2007C222E /* jddctmgr.c in Sources */,
+				26446D66249377BE00430AC5 /* list_box.cpp in Sources */,
 				26D9D97E1E964675005F7BD3 /* audio_player.cpp in Sources */,
 				26D9D9B41E96468D005F7BD3 /* button.cpp in Sources */,
 				2614723623944E6D00F7CD0C /* wechat.cpp in Sources */,

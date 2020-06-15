@@ -194,11 +194,21 @@ namespace slib
 						}
 						if (message.targetContentIdentifier.isNotEmpty()) {
 #ifdef SLIB_UI_IS_IOS
+#	ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
+#		if __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000
 							if (@available(iOS 13.0, *)) {
 								content.targetContentIdentifier = Apple::getNSStringFromString(message.targetContentIdentifier);
 							}
+#		endif
+#	endif
 #else
-							content.targetContentIdentifier = Apple::getNSStringFromString(message.targetContentIdentifier);
+#	ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
+#		if __MAC_OS_X_VERSION_MAX_ALLOWED >= 101500
+							if (@available(macOS 10.15, *)) {
+								content.targetContentIdentifier = Apple::getNSStringFromString(message.targetContentIdentifier);
+							}
+#		endif
+#	endif
 #endif
 						}
 						if (message.badge.isNotNull()) {

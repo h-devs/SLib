@@ -52,9 +52,13 @@ namespace slib
 					
 					addMapping(CNLabelHome, @"Home");
 					addMapping(CNLabelWork, @"Work");
+#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
+#	if __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000
 					if (@available(iOS 13.0, *)) {
 						addMapping(CNLabelSchool, @"School");
 					}
+#	endif
+#endif
 					addMapping(CNLabelOther, @"Other");
 
 					addMapping(CNLabelPhoneNumberMain, @"Main");
