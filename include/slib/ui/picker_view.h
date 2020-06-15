@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#include "view.h"
+#include "label_list.h"
 #include "motion_tracker.h"
 
 namespace slib
@@ -33,7 +33,7 @@ namespace slib
 	
 	class IPickerViewInstance;
 
-	class SLIB_EXPORT PickerView : public View
+	class SLIB_EXPORT PickerView : public View, public SingleSelectionViewBase<PickerView, sl_uint32>
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -43,48 +43,11 @@ namespace slib
 		~PickerView();
 
 	public:
-		sl_uint32 getItemsCount();
-		
-		virtual void setItemsCount(sl_uint32 n, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		void removeAllItems(UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		
-		String getItemValue(sl_uint32 index);
-		
-		virtual void setItemValue(sl_uint32 index, const String& value);
-		
-		List<String> getValues();
-		
-		virtual void setValues(const List<String>& values);
-		
-		
-		String getItemTitle(sl_uint32 index);
-		
-		virtual void setItemTitle(sl_uint32 index, const String& title, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		List<String> getTitles();
-		
-		virtual void setTitles(const List<String>& values, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		
-		virtual void selectItem(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		virtual void selectValue(const String& value, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		sl_uint32 getSelectedIndex();
-		
-		String getSelectedValue();
-		
-		String getSelectedTitle();
-		
-		
 		Color getTextColor();
 		
 		virtual void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		
-	public:		
+	public:
 		SLIB_DECLARE_EVENT_HANDLER(PickerView, SelectItem, sl_uint32 index)
 
 	protected:
@@ -96,7 +59,10 @@ namespace slib
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 		
 		virtual Ptr<IPickerViewInstance> getPickerViewInstance();
-		
+	
+	public:
+		SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(PickerView, sl_uint32)
+	
 	private:
 		void _selectItemInner(sl_int32 index);
 		
@@ -113,9 +79,8 @@ namespace slib
 		void _animationCallback(Timer* timer);
 		
 	protected:
-		AtomicList<String> m_values;
-		AtomicList<String> m_titles;
 		sl_uint32 m_indexSelected;
+
 		Color m_textColor;
 		
 		sl_uint32 m_linesHalfCount;
@@ -133,13 +98,9 @@ namespace slib
 	class SLIB_EXPORT IPickerViewInstance
 	{
 	public:
+		SLIB_DECLARE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(PickerView, sl_uint32)
+
 		virtual void select(PickerView* view, sl_uint32 index) = 0;
-		
-		virtual void refreshItemsCount(PickerView* view) = 0;
-		
-		virtual void refreshItemsContent(PickerView* view) = 0;
-		
-		virtual void setItemTitle(PickerView* view, sl_uint32 index, const String& title) = 0;
 		
 	};
 

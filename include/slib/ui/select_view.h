@@ -25,14 +25,14 @@
 
 #include "definition.h"
 
-#include "view.h"
+#include "label_list.h"
 
 namespace slib
 {
 	
 	class ISelectViewInstance;
 
-	class SLIB_EXPORT SelectView : public View
+	class SLIB_EXPORT SelectView : public View, public SingleSelectionViewBase<SelectView, sl_uint32>
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -42,45 +42,6 @@ namespace slib
 		~SelectView();
 
 	public:
-		sl_uint32 getItemsCount();
-		
-		virtual void setItemsCount(sl_uint32 n, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		void removeAllItems(UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		
-		String getItemValue(sl_uint32 index);
-		
-		virtual void setItemValue(sl_uint32 index, const String& value);
-		
-		List<String> getValues();
-		
-		virtual void setValues(const List<String>& values);
-		
-		
-		String getItemTitle(sl_uint32 index);
-		
-		virtual void setItemTitle(sl_uint32 index, const String& title, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		List<String> getTitles();
-		
-		virtual void setTitles(const List<String>& values, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		
-		void addItem(const String& value, const String& title, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		
-		virtual void selectItem(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		virtual void selectValue(const String& value, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		sl_uint32 getSelectedIndex();
-		
-		String getSelectedValue();
-		
-		String getSelectedTitle();
-		
-		
 		const UISize& getIconSize();
 		
 		virtual void setIconSize(const UISize& size, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
@@ -129,17 +90,16 @@ namespace slib
 		UIRect getLeftIconRegion();
 		
 		UIRect getRightIconRegion();
-		
+
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 		
 		virtual Ptr<ISelectViewInstance> getSelectViewInstance();
-		
+	
+	public:
+		SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(SelectView, sl_uint32)
+	
 	protected:
-		AtomicList<String> m_values;
-		AtomicList<String> m_titles;
-		sl_uint32 m_indexSelected;
-		
 		UISize m_iconSize;
 		AtomicRef<Drawable> m_leftIcon;
 		AtomicRef<Drawable> m_rightIcon;
@@ -153,20 +113,14 @@ namespace slib
 	class SLIB_EXPORT ISelectViewInstance
 	{
 	public:
-		virtual void select(SelectView* view, sl_uint32 index) = 0;
-		
-		virtual void refreshItemsCount(SelectView* view) = 0;
-		
-		virtual void refreshItemsContent(SelectView* view) = 0;
-		
-		virtual void setItemTitle(SelectView* view, sl_uint32 index, const String& title) = 0;
-		
+		SLIB_DECLARE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(SelectView, sl_uint32)
+
 		virtual void setGravity(SelectView* view, const Alignment& gravity);
 		
 		virtual void setTextColor(SelectView* view, const Color& color);
 		
 		virtual sl_bool measureSize(SelectView* view, UISize& _out);
-		
+
 	};
 
 }

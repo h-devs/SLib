@@ -937,6 +937,7 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(Chat)
 			PROCESS_CONTROL_SWITCH(Refresh)
 			PROCESS_CONTROL_SWITCH(ListBox)
+			PROCESS_CONTROL_SWITCH(LabelList)
 			default:
 				return sl_false;
 		}
@@ -2755,6 +2756,7 @@ namespace slib
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(ellipsize, setEllipsize)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(lines, setLinesCount)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(linksInText, setDetectingHyperlinksInPlainText);
+		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(linkColor, setLinkColor)
 
 		if (op == OP_PARSE) {
 			if (!(attr->text.flagDefined) && !(attr->hyperText.flagDefined)) {
@@ -3031,23 +3033,17 @@ namespace slib
 			if (selectItems.count > 0) {
 				sl_size indexSelected = 0;
 				sl_bool flagSelected = sl_false;
-				params->sbDefineInit->add(String::format("%s%s->setItemsCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, selectItems.count));
 				for (sl_size i = 0; i < selectItems.count; i++) {
 					SAppLayoutSelectItem& selectItem = selectItems[i];
 					String strSelectedItemTitle;
 					if (!(_getStringAccessString(resource->name, selectItem.title, selectItem.element, strSelectedItemTitle))) {
 						return sl_false;
 					}
-					if (selectItem.title.flagDefined) {
-						params->sbDefineInit->add(String::format("%s%s->setItemTitle(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, i, strSelectedItemTitle));
-					}
 					String strSelectedItemValue;
 					if (!(_getStringAccessString(resource->name, selectItem.value, selectItem.element, strSelectedItemValue))) {
 						return sl_false;
 					}
-					if (selectItem.value.flagDefined) {
-						params->sbDefineInit->add(String::format("%s%s->setItemValue(%d, %s);%n", strTab, name, i, strSelectedItemValue));
-					}
+					params->sbDefineInit->add(String::format("%s%s->addItem(%s, %s, slib::UIUpdateMode::Init);%n", strTab, name, strSelectedItemValue, strSelectedItemTitle));
 					if (selectItem.selected.flagDefined && selectItem.selected.value) {
 						flagSelected = sl_true;
 						indexSelected = i;
@@ -3064,23 +3060,17 @@ namespace slib
 					sl_uint32 indexSelected = 0;
 					sl_bool flagSelected = sl_false;
 					sl_uint32 n = (sl_uint32)(selectItems.count);
-					view->setItemsCount(n, UIUpdateMode::Init);
 					for (sl_uint32 i = 0; i < n; i++) {
 						SAppLayoutSelectItem& selectItem = selectItems[i];
 						String selectedItemTitle;
 						if (!(_getStringValue(resource->name, selectItem.title, selectItem.element, selectedItemTitle))) {
 							return sl_false;
 						}
-						if (selectItem.title.flagDefined) {
-							view->setItemTitle(i, selectedItemTitle, UIUpdateMode::Init);
-						}
 						String selectedItemValue;
 						if (!(_getStringValue(resource->name, selectItem.value, selectItem.element, selectedItemValue))) {
 							return sl_false;
 						}
-						if (selectItem.value.flagDefined) {
-							view->setItemValue(i, selectedItemValue);
-						}
+						view->addItem(selectedItemValue, selectedItemTitle, UIUpdateMode::Init);
 						if (selectItem.selected.flagDefined && selectItem.selected.value) {
 							flagSelected = sl_true;
 							indexSelected = i;
@@ -4358,23 +4348,17 @@ namespace slib
 			if (selectItems.count > 0) {
 				sl_size indexSelected = 0;
 				sl_bool flagSelected = sl_false;
-				params->sbDefineInit->add(String::format("%s%s->setItemsCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, selectItems.count));
 				for (sl_size i = 0; i < selectItems.count; i++) {
 					SAppLayoutSelectItem& selectItem = selectItems[i];
-					if (selectItem.title.flagDefined) {
-						String strSelectItemTitle;
-						if (!(_getStringAccessString(resource->name, selectItem.title, selectItem.element, strSelectItemTitle))) {
-							return sl_false;
-						}
-						params->sbDefineInit->add(String::format("%s%s->setItemTitle(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, i, strSelectItemTitle));
+					String strSelectItemTitle;
+					if (!(_getStringAccessString(resource->name, selectItem.title, selectItem.element, strSelectItemTitle))) {
+						return sl_false;
 					}
-					if (selectItem.value.flagDefined) {
-						String strSelectItemValue;
-						if (!(_getStringAccessString(resource->name, selectItem.value, selectItem.element, strSelectItemValue))) {
-							return sl_false;
-						}
-						params->sbDefineInit->add(String::format("%s%s->setItemValue(%d, %s);%n", strTab, name, i, strSelectItemValue));
+					String strSelectItemValue;
+					if (!(_getStringAccessString(resource->name, selectItem.value, selectItem.element, strSelectItemValue))) {
+						return sl_false;
 					}
+					params->sbDefineInit->add(String::format("%s%s->addItem(%s, %s, slib::UIUpdateMode::Init);%n", strTab, name, strSelectItemValue, strSelectItemTitle));
 					if (selectItem.selected.flagDefined && selectItem.selected.value) {
 						flagSelected = sl_true;
 						indexSelected = i;
@@ -4391,23 +4375,18 @@ namespace slib
 					sl_uint32 indexSelected = 0;
 					sl_bool flagSelected = sl_false;
 					sl_uint32 n = (sl_uint32)(selectItems.count);
-					view->setItemsCount(n, UIUpdateMode::Init);
 					for (sl_uint32 i = 0; i < n; i++) {
 						SAppLayoutSelectItem& selectItem = selectItems[i];
-						if (selectItem.title.flagDefined) {
-							String selectItemTitle;
-							if (!(_getStringValue(resource->name, selectItem.title, selectItem.element, selectItemTitle))) {
-								return sl_false;
-							}
-							view->setItemTitle(i, selectItemTitle, UIUpdateMode::Init);
+						String selectItemTitle;
+						if (!(_getStringValue(resource->name, selectItem.title, selectItem.element, selectItemTitle))) {
+							return sl_false;
 						}
-						if (selectItem.value.flagDefined) {
-							String selectItemValue;
-							if (!(_getStringValue(resource->name, selectItem.value, selectItem.element, selectItemValue))) {
-								return sl_false;
-							}
-							view->setItemValue(i, selectItemValue);
+						view->setItemTitle(i, selectItemTitle, UIUpdateMode::Init);
+						String selectItemValue;
+						if (!(_getStringValue(resource->name, selectItem.value, selectItem.element, selectItemValue))) {
+							return sl_false;
 						}
+						view->addItem(selectItemValue, selectItemTitle, UIUpdateMode::Init);
 						if (selectItem.selected.flagDefined && selectItem.selected.value) {
 							flagSelected = sl_true;
 							indexSelected = i;
@@ -4710,6 +4689,94 @@ namespace slib
 		LAYOUT_CONTROL_DRAWABLE_ATTR(itemBackground, setItemBackground)
 		LAYOUT_CONTROL_DRAWABLE_ATTR(selectedItemBackground, setSelectedItemBackground)
 		LAYOUT_CONTROL_DRAWABLE_ATTR(hoverItemBackground, setHoverItemBackground)
+		LAYOUT_CONTROL_DRAWABLE_ATTR(focusedItemBackground, setHoverItemBackground)
+
+		LAYOUT_CONTROL_ADD_STATEMENT
+
+	}
+	END_PROCESS_LAYOUT_CONTROL
+
+	BEGIN_PROCESS_LAYOUT_CONTROL(LabelList, LabelList)
+	{
+		
+		LAYOUT_CONTROL_PROCESS_SUPER(ListBox)
+
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(lineHeightWeight, setLineHeightWeight)
+		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(textColor, setTextColor)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(gravity, setGravity)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(ellipsize, setEllipsize)
+
+		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(selectedTextColor, setSelectedTextColor)
+		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(hoverTextColor, setHoverTextColor)
+		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(focusedTextColor, setFocusedTextColor)
+
+		if (op == OP_PARSE) {
+			ListElements< Ref<XmlElement> > itemXmls(_getLayoutItemChildElements(resourceItem, resource->name, "item"));
+			for (sl_size i = 0; i < itemXmls.count; i++) {
+				Ref<XmlElement>& itemXml = itemXmls[i];
+				if (itemXml.isNotNull()) {
+					SAppLayoutSelectItem subItem;
+					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., title)
+					if (!(subItem.title.flagDefined)) {
+						String text = itemXml->getText();
+						if (text.isNotEmpty()) {
+							if (!(subItem.title.parse(text))) {
+								LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(itemXml, title);
+								return sl_false;
+							}
+						}
+					}
+					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., value)
+					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., selected)
+					subItem.element = itemXml;
+					if (!(attr->items.add(subItem))) {
+						_logError(itemXml, g_str_error_out_of_memory);
+						return sl_false;
+					}
+				}
+			}
+		} else if (op == OP_GENERATE_CPP) {
+			ListLocker<SAppLayoutSelectItem> selectItems(attr->items);
+			if (selectItems.count > 0) {
+				for (sl_size i = 0; i < selectItems.count; i++) {
+					SAppLayoutSelectItem& selectItem = selectItems[i];
+					String strSelectedItemTitle;
+					if (!(_getStringAccessString(resource->name, selectItem.title, selectItem.element, strSelectedItemTitle))) {
+						return sl_false;
+					}
+					String strSelectedItemValue;
+					if (!(_getStringAccessString(resource->name, selectItem.value, selectItem.element, strSelectedItemValue))) {
+						return sl_false;
+					}
+					params->sbDefineInit->add(String::format("%s%s->addItem(%s, %s, slib::UIUpdateMode::Init);%n", strTab, name, strSelectedItemValue, strSelectedItemTitle));
+					if (selectItem.selected.flagDefined && selectItem.selected.value) {
+						params->sbDefineInit->add(String::format("%s%s->selectItem(%d, slib::UIUpdateMode::Init);%n", strTab, name, i));
+					}
+				}
+			}
+		} else if (op == OP_SIMULATE) {
+			if (!flagOnLayout) {
+				ListLocker<SAppLayoutSelectItem> selectItems(attr->items);
+				if (selectItems.count > 0) {
+					sl_uint32 n = (sl_uint32)(selectItems.count);
+					for (sl_uint32 i = 0; i < n; i++) {
+						SAppLayoutSelectItem& selectItem = selectItems[i];
+						String selectedItemTitle;
+						if (!(_getStringValue(resource->name, selectItem.title, selectItem.element, selectedItemTitle))) {
+							return sl_false;
+						}
+						String selectedItemValue;
+						if (!(_getStringValue(resource->name, selectItem.value, selectItem.element, selectedItemValue))) {
+							return sl_false;
+						}
+						view->addItem(selectedItemValue, selectedItemTitle, UIUpdateMode::Init);
+						if (selectItem.selected.flagDefined && selectItem.selected.value) {
+							view->selectItem(i, UIUpdateMode::Init);
+						}
+					}
+				}
+			}
+		}
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 

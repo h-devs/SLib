@@ -36,87 +36,33 @@ namespace slib
 	class LabelAppearanceViewBase
 	{
 	public:
-		LabelAppearanceViewBase()
-		{
-			m_textColor = Color::Black;
-			m_textAlignment = Alignment::Left;
-			m_ellipsizeMode = EllipsizeMode::None;
-			m_flagEnabledHyperlinksInPlainText = sl_false;
-			m_linkColor = Color::Zero;
-		}
+		LabelAppearanceViewBase();
 
 	public:
-		Color getTextColor()
-		{
-			return m_textColor;
-		}
+		Color getTextColor();
 
-		void setTextColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw)
-		{
-			m_textColor = color;
-			((VIEW_CLASS*)this)->invalidateLabelAppearance(updateMode);
-		}
+		void setTextColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
-		Alignment getGravity()
-		{
-			return m_textAlignment;
-		}
+		Alignment getGravity();
 
-		void setGravity(const Alignment& align, UIUpdateMode updateMode = UIUpdateMode::Redraw)
-		{
-			m_textAlignment = align;
-			((VIEW_CLASS*)this)->invalidateLabelAppearance(updateMode);
-		}
+		void setGravity(const Alignment& align, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
-		EllipsizeMode getEllipsize()
-		{
-			return m_ellipsizeMode;
-		}
+		EllipsizeMode getEllipsize();
 
-		void setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout)
-		{
-			m_ellipsizeMode = ellipsizeMode;
-			((VIEW_CLASS*)this)->invalidateLabelAppearance(updateMode);
-		}
+		void setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
 
-		sl_bool isDetectingHyperlinksInPlainText()
-		{
-			return m_flagEnabledHyperlinksInPlainText;
-		}
+		sl_bool isDetectingHyperlinksInPlainText();
 
-		void setDetectingHyperlinksInPlainText(sl_bool flag, UIUpdateMode updateMode = UIUpdateMode::Redraw)
-		{
-			m_flagEnabledHyperlinksInPlainText = flag;
-			((VIEW_CLASS*)this)->invalidateLabelAppearance(updateMode);
-		}
+		void setDetectingHyperlinksInPlainText(sl_bool flag, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
-		Color getLinkColor()
-		{
-			if (m_linkColor.isNotZero()) {
-				return m_linkColor;
-			}
-			return TextParagraph::getDefaultLinkColor();
-		}
+		Color getLinkColor();
 
-		void setLinkColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw)
-		{
-			m_linkColor = color;
-			((VIEW_CLASS*)this)->invalidateLabelAppearance(updateMode);
-		}
+		void setLinkColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 	protected:
-		void _applyLabelAppearance(SimpleTextBoxParam& param)
-		{
-			param.ellipsizeMode = m_ellipsizeMode;
-			param.align = m_textAlignment;
-			param.flagEnabledHyperlinksInPlainText = m_flagEnabledHyperlinksInPlainText;
-		}
+		void _applyLabelAppearance(SimpleTextBoxParam& param);
 
-		void _applyLabelAppearance(SimpleTextBoxDrawParam& param)
-		{
-			param.color = m_textColor;
-			param.linkColor = getLinkColor();
-		}
+		void _applyLabelAppearance(SimpleTextBoxDrawParam& param);
 
 	protected:
 		Color m_textColor;

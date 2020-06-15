@@ -25,8 +25,13 @@
 #include "slib/graphics/util.h"
 #include "slib/ui/core.h"
 
+#include "label_view_base_impl.h"
+
 namespace slib
 {
+
+	template class LabelAppearanceViewBase<LabelView>;
+
 	SLIB_DEFINE_OBJECT(LabelView, View)
 	
 	LabelView::LabelView()

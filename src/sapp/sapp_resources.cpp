@@ -496,6 +496,10 @@ namespace slib
 				prefix = "listBox";
 				pN = &nAutoIncreaseNameListBox;
 				break;
+			case SAppLayoutItemType::LabelList:
+				prefix = "labelList";
+				pN = &nAutoIncreaseNameLabelList;
+				break;
 			default:
 				return String::null();
 		}
@@ -589,6 +593,8 @@ namespace slib
 			type = SAppLayoutItemType::Refresh;
 		} else if (strType == "listbox" || strType == "list-box") {
 			type = SAppLayoutItemType::ListBox;
+		} else if (strType == "labellist" || strType == "label-list") {
+			type = SAppLayoutItemType::LabelList;
 		}
 		return type;
 	}

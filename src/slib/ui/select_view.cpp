@@ -25,6 +25,8 @@
 #include "slib/ui/core.h"
 #include "slib/core/safe_static.h"
 
+#include "label_list_base_impl.h"
+
 #if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_IOS) || defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_ANDROID)
 #	define HAS_NATIVE_WIDGET_IMPL
 #endif
@@ -120,6 +122,7 @@ namespace slib
 	using namespace priv::select_view;
 
 	SLIB_DEFINE_OBJECT(SelectView, View)
+	SLIB_DEFINE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(SelectView, sl_uint32, ISelectViewInstance, getSelectViewInstance)
 	
 	SelectView::SelectView()
 	{
@@ -155,171 +158,6 @@ namespace slib
 	{
 	}
 
-	sl_uint32 SelectView::getItemsCount()
-	{
-		return (sl_uint32)(m_titles.getCount());
-	}
-	
-	void SelectView::setItemsCount(sl_uint32 n, UIUpdateMode mode)
-	{
-		Ptr<ISelectViewInstance> instance = getSelectViewInstance();
-		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&SelectView::setItemsCount, n, mode)
-		}
-		m_values.setCount(n);
-		m_titles.setCount(n);
-		if (instance.isNotNull()) {
-			instance->refreshItemsCount(this);
-			if (m_indexSelected >= n) {
-				selectItem(0, UIUpdateMode::None);
-			}
-		} else {
-			if (m_indexSelected >= n) {
-				selectItem(0, UIUpdateMode::None);
-			}
-			invalidate(mode);
-		}
-	}
-	
-	void SelectView::removeAllItems(UIUpdateMode mode)
-	{
-		setItemsCount(0, mode);
-	}
-	
-	String SelectView::getItemValue(sl_uint32 index)
-	{
-		return m_values.getValueAt(index);
-	}
-	
-	void SelectView::setItemValue(sl_uint32 index, const String& value)
-	{
-		m_values.setAt(index, value);
-	}
-	
-	List<String> SelectView::getValues()
-	{
-		return m_values;
-	}
-	
-	void SelectView::setValues(const List<String>& list)
-	{
-		m_values = list;
-	}
-	
-	String SelectView::getItemTitle(sl_uint32 index)
-	{
-		return m_titles.getValueAt(index);
-	}
-	
-	void SelectView::setItemTitle(sl_uint32 index, const String& title, UIUpdateMode mode)
-	{
-		Ptr<ISelectViewInstance> instance = getSelectViewInstance();
-		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&SelectView::setItemTitle, index, title, mode)
-		}
-		if (index < m_titles.getCount()) {
-			m_titles.setAt(index, title);
-			if (instance.isNotNull()) {
-				instance->setItemTitle(this, index, title);
-			} else {
-				invalidate(mode);
-			}
-		}
-	}
-	
-	List<String> SelectView::getTitles()
-	{
-		return m_titles;
-	}
-	
-	void SelectView::setTitles(const List<String>& list, UIUpdateMode mode)
-	{
-		Ptr<ISelectViewInstance> instance = getSelectViewInstance();
-		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&SelectView::setTitles, list, mode)
-			m_titles = list;
-			instance->refreshItemsContent(this);
-			sl_uint32 n = (sl_uint32)(m_titles.getCount());
-			if (m_indexSelected >= n) {
-				selectItem(0, UIUpdateMode::None);
-			}
-		} else {
-			m_titles = list;
-			sl_uint32 n = (sl_uint32)(m_titles.getCount());
-			if (m_indexSelected >= n) {
-				selectItem(0, UIUpdateMode::None);
-			}
-			invalidate(mode);
-		}
-	}
-	
-	void SelectView::addItem(const String& value, const String& title, UIUpdateMode mode)
-	{
-		Ptr<ISelectViewInstance> instance = getSelectViewInstance();
-		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&SelectView::addItem, value, title, mode)
-		}
-		sl_size n = m_values.getCount();
-		m_values.setCount(n + 1);
-		m_titles.setCount(n + 1);
-		m_values.setAt(n, value);
-		m_titles.setAt(n, title);
-		if (instance.isNotNull()) {
-			instance->refreshItemsCount(this);
-			if (m_indexSelected >= n) {
-				selectItem(0, UIUpdateMode::None);
-			}
-		} else {
-			if (m_indexSelected >= n) {
-				selectItem(0, UIUpdateMode::None);
-			}
-			invalidate(mode);
-		}
-	}
-	
-	void SelectView::selectItem(sl_uint32 index, UIUpdateMode mode)
-	{
-		Ptr<ISelectViewInstance> instance = getSelectViewInstance();
-		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&SelectView::selectItem, index, mode)
-		}
-		if (index < m_titles.getCount()) {
-			m_indexSelected = index;
-			if (instance.isNotNull()) {
-				instance->select(this, index);
-			} else {
-				invalidate(mode);
-			}
-		} else {
-			if (index == 0) {
-				m_indexSelected = 0;
-			}
-		}
-	}
-	
-	void SelectView::selectValue(const String& value, UIUpdateMode mode)
-	{
-		sl_int32 m = (sl_int32)(m_values.indexOf(value));
-		if (m > 0) {
-			selectItem(m, mode);
-		}
-	}
-	
-	sl_uint32 SelectView::getSelectedIndex()
-	{
-		return m_indexSelected;
-	}
-	
-	String SelectView::getSelectedValue()
-	{
-		return m_values.getValueAt(m_indexSelected);
-	}
-	
-	String SelectView::getSelectedTitle()
-	{
-		return m_titles.getValueAt(m_indexSelected);
-	}
-	
 	const UISize& SelectView::getIconSize()
 	{
 		return m_iconSize;

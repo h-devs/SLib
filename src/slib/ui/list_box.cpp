@@ -506,15 +506,13 @@ namespace slib
 
 	void ListBox::dispatchDrawItem(sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
 	{
-		Ref<Drawable> background;
-		if (isSelectedIndex(itemIndex)) {
+		Ref<Drawable> background = m_backgroundItem;
+		if (m_backgroundSelectedItem.isNotNull() && isSelectedIndex(itemIndex)) {
 			background = m_backgroundSelectedItem;
-		} else if (itemIndex == getHoverIndex()) {
+		} else if (m_backgroundHoverItem.isNotNull() && itemIndex == getHoverIndex()) {
 			background = m_backgroundHoverItem;
-		} else if (isFocused() && itemIndex == m_indexFocused) {
+		} else if (m_backgroundFocusedItem.isNotNull() && isFocused() && itemIndex == m_indexFocused) {
 			background = m_backgroundFocusedItem;
-		} else {
-			background = m_backgroundItem;
 		}
 		if (background.isNotNull()) {
 			canvas->draw(rcItem, background);

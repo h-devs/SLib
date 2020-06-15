@@ -356,6 +356,7 @@ namespace slib
 	class TableLayout;
 	class ChatView;
 	class ListBox;
+	class LabelList;
 
 }
 

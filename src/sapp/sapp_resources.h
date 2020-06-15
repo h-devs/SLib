@@ -408,6 +408,7 @@ namespace slib
 		SAppEllipsizeModeValue ellipsize;
 		SAppUint32Value lines;
 		SAppBooleanValue linksInText;
+		SAppColorValue linkColor;
 
 	};
 
@@ -867,7 +868,23 @@ namespace slib
 		SAppDrawableValue itemBackground;
 		SAppDrawableValue selectedItemBackground;
 		SAppDrawableValue hoverItemBackground;
+		SAppDrawableValue focusedItemBackground;
 
+	};
+	
+	class SAppLayoutLabelListAttributes : public Referable
+	{
+	public:
+		SAppFloatValue lineHeightWeight;
+		SAppColorValue textColor;
+		SAppAlignmentValue gravity;
+		SAppEllipsizeModeValue ellipsize;
+
+		SAppColorValue selectedTextColor;
+		SAppColorValue hoverTextColor;
+		SAppColorValue focusedTextColor;
+
+		CList<SAppLayoutSelectItem> items;
 	};
 	
 	class SAppLayoutStyle : public Referable
@@ -926,21 +943,22 @@ namespace slib
 		Split = 0x0239,
 		Table = 0x023A,
 		ListBox = 0x023B,
+		LabelList = 0x023C,
 
-		Progress = 0x0240,
-		Slider = 0x0241,
-		Switch = 0x0242,
-		Picker = 0x0244,
-		Pager = 0x0245,
-		Navigation = 0x0246,
-		Video = 0x0247,
-		Camera = 0x0248,
-		QRCodeScanner = 0x0249,
-		Drawer = 0x024a,
-		Chat = 0x024b,
-		Refresh = 0x024c,
-		DatePicker = 0x024d,
-		Line = 0x024e
+		Progress = 0x0260,
+		Slider = 0x0261,
+		Switch = 0x0262,
+		Picker = 0x0264,
+		Pager = 0x0265,
+		Navigation = 0x0266,
+		Video = 0x0267,
+		Camera = 0x0268,
+		QRCodeScanner = 0x0269,
+		Drawer = 0x026a,
+		Chat = 0x026b,
+		Refresh = 0x026c,
+		DatePicker = 0x026d,
+		Line = 0x026e
 	};
 
 	class SAppLayoutResourceItem : public Referable
@@ -992,6 +1010,7 @@ namespace slib
 		Ref<SAppLayoutChatAttributes> attrsChat;
 		Ref<SAppLayoutRefreshAttributes> attrsRefresh;
 		Ref<SAppLayoutListBoxAttributes> attrsListBox;
+		Ref<SAppLayoutLabelListAttributes> attrsLabelList;
 
 		CList< Ref<SAppLayoutStyle> > styles;
 		CList< Ref<SAppLayoutResourceItem> > children;
@@ -1061,6 +1080,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameChat = 0;
 		sl_uint32 nAutoIncreaseNameRefresh = 0;
 		sl_uint32 nAutoIncreaseNameListBox = 0;
+		sl_uint32 nAutoIncreaseNameLabelList = 0;
 
 	public:
 		SAppLayoutResource();
