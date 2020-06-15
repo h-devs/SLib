@@ -37,7 +37,7 @@ namespace slib
 	{
 		m_flagUseFontHeight = sl_true;
 		m_heightFont = 0;
-		m_lineHeightWeight = 1.2f;
+		m_lineHeightWeight = 1.6f;
 	}
 
 	LabelList::~LabelList()

@@ -888,6 +888,7 @@
 		26635CA322670708005E4BA6 /* ui_photo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26635CA222670708005E4BA6 /* ui_photo.cpp */; };
 		266E66E121D7F68F00D92386 /* locale_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 266E66E021D7F68F00D92386 /* locale_apple.mm */; };
 		2671F99321E07F8200B39842 /* drawer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2671F99221E07F8100B39842 /* drawer.cpp */; };
+		267206282497433C006E6347 /* label_list.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 267206272497433B006E6347 /* label_list.cpp */; };
 		267464A32317189000DE8715 /* chromium_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 267464A22317189000DE8715 /* chromium_macos.mm */; settings = {COMPILER_FLAGS = "-I$(PROJECT_DIR)/../../external/src/libcef"; }; };
 		267464B623171FE900DE8715 /* shutdown_checker.cc in Sources */ = {isa = PBXBuildFile; fileRef = 267464B123171FCB00DE8715 /* shutdown_checker.cc */; };
 		267464B723171FE900DE8715 /* transfer_util.cc in Sources */ = {isa = PBXBuildFile; fileRef = 267464B223171FCB00DE8715 /* transfer_util.cc */; };
@@ -2623,6 +2624,7 @@
 		266E66E021D7F68F00D92386 /* locale_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = locale_apple.mm; sourceTree = "<group>"; };
 		266F12B21C97A13F00DE26FF /* block_cipher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = block_cipher.cpp; sourceTree = "<group>"; };
 		2671F99221E07F8100B39842 /* drawer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = drawer.cpp; sourceTree = "<group>"; };
+		267206272497433B006E6347 /* label_list.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = label_list.cpp; sourceTree = "<group>"; };
 		267464A22317189000DE8715 /* chromium_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = chromium_macos.mm; sourceTree = "<group>"; };
 		267464AF23171F2500DE8715 /* libcef_dll_wrapper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libcef_dll_wrapper.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		267464B123171FCB00DE8715 /* shutdown_checker.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = shutdown_checker.cc; path = ../../external/src/libcef/libcef_dll/shutdown_checker.cc; sourceTree = "<group>"; };
@@ -4884,6 +4886,7 @@
 				2644BD052361898E001B9842 /* table_layout.cpp */,
 				266DD51E1C11940A00D47AB0 /* image_view.cpp */,
 				26C795A2221562E70053C5A1 /* image_view_url.cpp */,
+				267206272497433B006E6347 /* label_list.cpp */,
 				266DD50C1C11940A00D47AB0 /* label_view.cpp */,
 				26F53F9F22E299FF0031D485 /* line_view.cpp */,
 				26C7E37D1D00097000C0A769 /* linear_layout.cpp */,
@@ -7371,6 +7374,7 @@
 				26D9D94A1E9645CE005F7BD3 /* system.cpp in Sources */,
 				262D599F2324E9A500F85780 /* emoji.cpp in Sources */,
 				26D9D9CB1E96468D005F7BD3 /* progress_bar.cpp in Sources */,
+				267206282497433C006E6347 /* label_list.cpp in Sources */,
 				26E1B870222ABA51007C222E /* pngpread.c in Sources */,
 				26805B6923533D6B00D8817C /* string_buffer.cpp in Sources */,
 				26E1B87F222ABAB2007C222E /* jcapistd.c in Sources */,

@@ -531,7 +531,7 @@ namespace slib
 		m_indexFocused = itemIndex;
 		if (ev->isShiftKey()) {
 			if (m_indexLastSelected >= 0) {
-				if (ev->isControlKey()) {
+				if (ev->isControlKey() || ev->isCommandKey()) {
 					selectRange(m_indexLastSelected, itemIndex);
 				} else {
 					setSelectedRange(m_indexLastSelected, itemIndex);
@@ -541,7 +541,7 @@ namespace slib
 			}
 			dispatchChangedSelection(ev);
 		} else {
-			if (ev->isControlKey()) {
+			if (ev->isControlKey() || ev->isCommandKey()) {
 				toggleItemSelection(itemIndex);
 			} else {
 				setSelectedIndex(itemIndex);
@@ -630,6 +630,11 @@ namespace slib
 					m_indexHover = index;
 					invalidate();
 				}
+			} else {
+				if (m_indexHover != -1) {
+					m_indexHover = -1;
+					invalidate();
+				}
 			}
 		} else if (action == UIAction::MouseLeave) {
 			if (m_indexHover != -1) {
@@ -707,7 +712,7 @@ namespace slib
 					UIPoint pt(0, 0);
 					dispatchClickItem(index, pt, ev);
 				} else {
-					if (ev->isControlKey()) {
+					if (ev->isControlKey() || ev->isCommandKey()) {
 						invalidate();
 					} else {
 						UIPoint pt(0, 0);

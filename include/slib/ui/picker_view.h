@@ -100,8 +100,6 @@ namespace slib
 	public:
 		SLIB_DECLARE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(PickerView, sl_uint32)
 
-		virtual void select(PickerView* view, sl_uint32 index) = 0;
-		
 	};
 
 }

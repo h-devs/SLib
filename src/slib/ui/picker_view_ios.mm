@@ -62,15 +62,9 @@ namespace slib
 			class PickerViewHelper : public PickerView
 			{
 			public:
-				sl_uint32 getItemsCount()
-				{
-					return (sl_uint32)(m_titles.getCount());
-				}
-				
 				NSString* getItemTitle(sl_uint32 row)
 				{
-					String s = m_titles.getValueAt(row);
-					return Apple::getNSStringFromString(s);
+					return Apple::getNSStringFromString(PickerView::getItemTitle(row));
 				}
 				
 			};
@@ -95,7 +89,7 @@ namespace slib
 					[handle selectRow:index inComponent:0 animated:NO];
 				}
 				
-				void select(PickerView* view, sl_uint32 index) override
+				void selectItem(PickerView* view, sl_uint32 index) override
 				{
 					SLIBPickerViewHandle* handle = getHandle();
 					if (handle != nil) {
@@ -103,25 +97,12 @@ namespace slib
 					}
 				}
 				
-				void refreshItemsCount(PickerView* view) override
-				{
-					refreshItemsContent(view);
-				}
-				
-				void refreshItemsContent(PickerView* view) override
+				void refreshItems(PickerView* view) override
 				{
 					SLIBPickerViewHandle* handle = getHandle();
 					if (handle != nil) {
 						[handle reloadAllComponents];
 						_select(handle, view->getSelectedIndex());
-					}
-				}
-				
-				void setItemTitle(PickerView* view, sl_uint32 index, const String& title) override
-				{
-					SLIBPickerViewHandle* handle = getHandle();
-					if (handle != nil) {
-						[handle reloadAllComponents];
 					}
 				}
 				

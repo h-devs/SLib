@@ -25,6 +25,7 @@
 #if defined(SLIB_UI_IS_IOS)
 
 #include "slib/ui/select_view.h"
+
 #include "slib/ui/core.h"
 
 #include "view_ios.h"
@@ -82,15 +83,9 @@ namespace slib
 			class SelectViewHelper : public SelectView
 			{
 			public:
-				sl_uint32 getItemsCount()
-				{
-					return (sl_uint32)(m_titles.getCount());
-				}
-				
 				NSString* getItemTitle(sl_uint32 row)
 				{
-					String s = m_titles.getValueAt(row);
-					return Apple::getNSStringFromString(s);
+					return Apple::getNSStringFromString(SelectView::getItemTitle(row));
 				}
 				
 				void selectItem(SLIBSelectViewHandle* handle, sl_uint32 row)
@@ -116,7 +111,7 @@ namespace slib
 					return CastRef<SelectViewHelper>(getView());
 				}
 				
-				void select(SelectView* view, sl_uint32 index) override
+				void selectItem(SelectView* view, sl_uint32 index) override
 				{
 					SLIBSelectViewHandle* handle = getHandle();
 					if (handle != nil) {
@@ -124,22 +119,12 @@ namespace slib
 					}
 				}
 				
-				void refreshItemsCount(SelectView* view) override
-				{
-					refreshItemsContent(view);
-				}
-				
-				void refreshItemsContent(SelectView* view) override
+				void refreshItems(SelectView* view) override
 				{
 					SLIBSelectViewHandle* handle = getHandle();
 					if (handle != nil) {
 						[handle->m_picker reloadAllComponents];
 					}
-				}
-				
-				void setItemTitle(SelectView* view, sl_uint32 index, const String& title) override
-				{
-					refreshItemsContent(view);
 				}
 				
 				void setGravity(SelectView* view, const Alignment& gravity) override

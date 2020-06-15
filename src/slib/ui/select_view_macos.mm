@@ -56,42 +56,20 @@ namespace slib
 			class SelectViewHelper : public SelectView
 			{
 			public:
-				void applyItemsCount(NSPopUpButton* v)
-				{
-					ObjectLocker lock(this);
-					sl_uint32 nOrig = (sl_uint32)([v numberOfItems]);
-					sl_uint32 nNew = (sl_uint32)(m_titles.getCount());
-					if (nOrig == nNew) {
-						return;
-					}
-					if (nOrig > nNew) {
-						if (nNew  > 0) {
-							for (sl_uint32 i = nOrig; i > nNew; i--) {
-								[v removeItemAtIndex:(i - 1)];
-							}
-						} else {
-							[v removeAllItems];
-						}
-					} else {
-						for (sl_uint32 i = nOrig; i < nNew; i++) {
-							[v addItemWithTitle:@"____dummy____"];
-							NSMenuItem* item = [v lastItem];
-							if (item != nil) {
-								[item setTitle:Apple::getNSStringFromString(m_titles.getValueAt(i), @"")];
-							}
-						}
-					}
-				}
-				
-				void copyItems(NSPopUpButton* v)
+				void refreshItems(NSPopUpButton* v)
 				{
 					[v removeAllItems];
-					applyItemsCount(v);
-					if (m_indexSelected >= m_titles.getCount()) {
-						m_indexSelected = 0;
+					sl_uint32 n = (sl_uint32)(getItemsCount());
+					for (sl_uint32 i = 0; i < n; i++) {
+						[v addItemWithTitle:@"____dummy____"];
+						NSMenuItem* item = [v lastItem];
+						if (item != nil) {
+							[item setTitle:Apple::getNSStringFromString(getItemTitle(i), @"")];
+						}
 					}
-					if ([v numberOfItems] > 0) {
-						[v selectItemAtIndex:m_indexSelected];
+					sl_uint32 indexSelected = m_indexSelected;
+					if (indexSelected < n) {
+						[v selectItemAtIndex:indexSelected];
 					}
 				}
 				
@@ -107,7 +85,7 @@ namespace slib
 					return (NSPopUpButton*)m_handle;
 				}
 				
-				void select(SelectView* view, sl_uint32 index) override
+				void selectItem(SelectView* view, sl_uint32 index) override
 				{
 					NSPopUpButton* handle = getHandle();
 					if (handle != nil) {
@@ -115,19 +93,31 @@ namespace slib
 					}
 				}
 				
-				void refreshItemsCount(SelectView* view) override
+				void refreshItems(SelectView* view) override
 				{
 					NSPopUpButton* handle = getHandle();
 					if (handle != nil) {
-						static_cast<SelectViewHelper*>(view)->applyItemsCount(handle);
+						static_cast<SelectViewHelper*>(view)->refreshItems(handle);
 					}
 				}
 				
-				void refreshItemsContent(SelectView* view) override
+				void insertItem(SelectView* view, sl_uint32 index, const String& title) override
 				{
 					NSPopUpButton* handle = getHandle();
 					if (handle != nil) {
-						static_cast<SelectViewHelper*>(view)->copyItems(handle);
+						[handle insertItemWithTitle:@"____dummy____" atIndex:index];
+						NSMenuItem* item = [handle itemAtIndex:index];
+						if (item != nil) {
+							[item setTitle:Apple::getNSStringFromString(title, @"")];
+						}
+					}
+				}
+				
+				void removeItem(SelectView* view, sl_uint32 index) override
+				{
+					NSPopUpButton* handle = getHandle();
+					if (handle != nil) {
+						[handle removeItemAtIndex:index];
 					}
 				}
 				
@@ -169,7 +159,7 @@ namespace slib
 		if (ret.isNotNull()) {
 			NSPopUpButton* handle = ret->getHandle();
 			[handle setPullsDown:NO];
-			static_cast<SelectViewHelper*>(this)->copyItems(handle);
+			static_cast<SelectViewHelper*>(this)->refreshItems(handle);
 			return ret;
 		}
 		return sl_null;
