@@ -476,10 +476,6 @@ namespace slib
 				prefix = "camera";
 				pN = &nAutoIncreaseNameCamera;
 				break;
-			case SAppLayoutItemType::QRCodeScanner:
-				prefix = "qrCodeScanner";
-				pN = &nAutoIncreaseNameQRCodeScanner;
-				break;
 			case SAppLayoutItemType::Drawer:
 				prefix = "drawer";
 				pN = &nAutoIncreaseNameDrawer;
@@ -583,8 +579,6 @@ namespace slib
 			type = SAppLayoutItemType::Video;
 		} else if (strType == "camera") {
 			type = SAppLayoutItemType::Camera;
-		} else if (strType == "qrcodescanner" || strType == "qr-code-scanner") {
-			type = SAppLayoutItemType::QRCodeScanner;
 		} else if (strType == "drawer") {
 			type = SAppLayoutItemType::Drawer;
 		} else if (strType == "chat") {

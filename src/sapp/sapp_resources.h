@@ -953,7 +953,6 @@ namespace slib
 		Navigation = 0x0266,
 		Video = 0x0267,
 		Camera = 0x0268,
-		QRCodeScanner = 0x0269,
 		Drawer = 0x026a,
 		Chat = 0x026b,
 		Refresh = 0x026c,
@@ -1075,7 +1074,6 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameNavigation = 0;
 		sl_uint32 nAutoIncreaseNameVideo = 0;
 		sl_uint32 nAutoIncreaseNameCamera = 0;
-		sl_uint32 nAutoIncreaseNameQRCodeScanner = 0;
 		sl_uint32 nAutoIncreaseNameDrawer = 0;
 		sl_uint32 nAutoIncreaseNameChat = 0;
 		sl_uint32 nAutoIncreaseNameRefresh = 0;

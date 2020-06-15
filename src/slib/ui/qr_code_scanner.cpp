@@ -78,12 +78,16 @@ namespace slib
 	QRCodeScanner::QRCodeScanner()
 	{
 		m_flagUpdateCameraFrame = sl_false;
-		setScaleMode(ScaleMode::Cover);
 		m_programScanBar = new Program_ScanBar;
 	}
 	
 	QRCodeScanner::~QRCodeScanner()
 	{
+	}
+	
+	void QRCodeScanner::init()
+	{
+		setScaleMode(ScaleMode::Cover, UIUpdateMode::Init);
 	}
 
 	void QRCodeScanner::start(const CameraParam& param)

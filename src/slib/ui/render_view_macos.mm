@@ -158,6 +158,9 @@ namespace slib
 							dispatch_async(dispatch_get_main_queue(), ^{
 								[handle queryViewStatus];
 							});
+							if (frameNumber % 500 == 20) {
+								handle->m_flagUpdate = sl_true;
+							}
 						}
 						
 						do {

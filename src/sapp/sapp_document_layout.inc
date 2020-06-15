@@ -932,7 +932,6 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(Navigation)
 			PROCESS_CONTROL_SWITCH(Video)
 			PROCESS_CONTROL_SWITCH(Camera)
-			PROCESS_CONTROL_SWITCH(QRCodeScanner)
 			PROCESS_CONTROL_SWITCH(Drawer)
 			PROCESS_CONTROL_SWITCH(Chat)
 			PROCESS_CONTROL_SWITCH(Refresh)
@@ -4573,16 +4572,6 @@ namespace slib
 		LAYOUT_CONTROL_GENERIC_ATTR(touchFocus, setTouchFocusEnabled)
 
 		LAYOUT_CONTROL_ADD_STATEMENT
-	}
-	END_PROCESS_LAYOUT_CONTROL
-	
-#define SAppLayoutQRCodeScannerAttributes SAppLayoutCameraAttributes
-#define attrsQRCodeScanner attrsCamera
-	BEGIN_PROCESS_LAYOUT_CONTROL(QRCodeScanner, QRCodeScanner)
-	{
-		if (!(_processLayoutResourceControl_Camera(params))) {
-			return sl_false;
-		}
 	}
 	END_PROCESS_LAYOUT_CONTROL
 	
