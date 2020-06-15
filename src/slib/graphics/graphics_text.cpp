@@ -2067,7 +2067,7 @@ namespace slib
 			sl_real height = m_paragraph->getTotalHeight();
 			sl_real y;
 			if (m_alignVertical == Alignment::Middle) {
-				y = (param.frame.left + param.frame.bottom - height) / 2;
+				y = (param.frame.top + param.frame.bottom - height) / 2;
 			} else if (m_alignVertical == Alignment::Bottom) {
 				y = param.frame.bottom - height;
 			} else {
