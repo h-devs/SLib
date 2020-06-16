@@ -26,3 +26,6 @@
 [submodule "external/bin/Alipay"]
 	path = external/bin/Alipay
 	url = https://github.com/SLIBIO/SLibExternalBin_Alipay.git
+[submodule "external/lib"]
+	path = external/lib
+	url = http://git.huimang.com/SLIB/SLibExternalLib.git
