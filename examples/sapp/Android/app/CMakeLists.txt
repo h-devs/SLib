@@ -24,4 +24,4 @@ add_library(native-lib SHARED
  ${SOURCE_FILES}
 )
 
-target_link_libraries(native-lib slib log GLESv2 zxing)
+target_link_libraries(native-lib slib log GLESv2)

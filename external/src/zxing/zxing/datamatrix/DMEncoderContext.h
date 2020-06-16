@@ -21,6 +21,7 @@
 #include "ByteArray.h"
 #include "datamatrix/DMSymbolShape.h"
 #include "datamatrix/DMSymbolInfo.h"
+#include "ZXStrConvWorkaround.h"
 
 namespace ZXing {
 namespace DataMatrix {
@@ -121,7 +122,7 @@ public:
 		if (_symbolInfo == nullptr || len > _symbolInfo->dataCapacity()) {
 			_symbolInfo = SymbolInfo::Lookup(len, _shape, _minWidth, _minHeight, _maxWidth, _maxHeight);
 			if (_symbolInfo == nullptr) {
-				throw std::invalid_argument("Can't find a symbol arrangement that matches the message. Data codewords: " + std::to_string(len));
+				throw std::invalid_argument("Can't find a symbol arrangement that matches the message. Data codewords: " + std_to_string(len));
 			}
 		}
 		return _symbolInfo;

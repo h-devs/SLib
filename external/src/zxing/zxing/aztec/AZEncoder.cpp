@@ -69,7 +69,7 @@ static const GenericGF& GetGFFromWordSize(int wordSize)
 	case 12:
 		return GenericGF::AztecData12();
 	default:
-		throw std::invalid_argument("Unsupported word size " + std::to_string(wordSize));
+		throw std::invalid_argument("Unsupported word size " + std_to_string(wordSize));
 	}
 }
 
@@ -218,7 +218,7 @@ Encoder::Encode(const std::string& data, int minECCPercent, int userSpecifiedLay
 		compact = userSpecifiedLayers < 0;
 		layers = std::abs(userSpecifiedLayers);
 		if (layers > (compact ? MAX_NB_BITS_COMPACT : MAX_NB_BITS)) {
-			throw std::invalid_argument("Illegal value for layers: " + std::to_string(userSpecifiedLayers));
+			throw std::invalid_argument("Illegal value for layers: " + std_to_string(userSpecifiedLayers));
 		}
 		totalBitsInLayer = TotalBitsInLayer(layers, compact);
 		wordSize = WORD_SIZE[layers];

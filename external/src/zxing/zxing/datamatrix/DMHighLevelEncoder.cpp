@@ -859,7 +859,7 @@ namespace Base256Encoder {
 				buffer.insert(1, 1, (char)(dataCount % 250));
 			}
 			else {
-				throw std::invalid_argument("Message length not in valid ranges: " + std::to_string(dataCount));
+				throw std::invalid_argument("Message length not in valid ranges: " + std_to_string(dataCount));
 			}
 		}
 		for (char c : buffer) {

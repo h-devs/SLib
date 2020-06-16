@@ -148,7 +148,7 @@ static const CountryId COUNTRIES[] = {
 std::string
 EANManufacturerOrgSupport::LookupCountryIdentifier(const std::string& productCode)
 {
-	int prefix = std::stoi(productCode.substr(0, 3));
+	int prefix = std_stoi(productCode.substr(0, 3));
 	auto it = std::lower_bound(std::begin(COUNTRIES), std::end(COUNTRIES), CountryId{ prefix, 0, nullptr });
 	if (it != std::end(COUNTRIES))
 	{

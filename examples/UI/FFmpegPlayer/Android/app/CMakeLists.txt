@@ -9,6 +9,7 @@ file (GLOB SOURCE_FILES
 )
 
 #link_directories("${CMAKE_CURRENT_LIST_DIR}/src/main/jniLibs/${ANDROID_ABI}")
+link_directories("${SLIB_PATH}/external/lib/Android/${ANDROID_ABI}")
 link_directories("${SLIB_PATH}/external/bin/FFmpeg/Android/${ANDROID_ABI}")
 
 add_library(native-lib SHARED

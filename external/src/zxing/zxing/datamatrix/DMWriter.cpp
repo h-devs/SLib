@@ -112,7 +112,7 @@ Writer::encode(const std::wstring& contents, int width, int height) const
 	auto encoded = HighLevelEncoder::Encode(contents, _shapeHint, _minWidth, _minHeight, _maxWidth, _maxHeight);
 	const SymbolInfo* symbolInfo = SymbolInfo::Lookup(static_cast<int>(encoded.size()), _shapeHint, _minWidth, _minHeight, _maxWidth, _maxHeight);
 	if (symbolInfo == nullptr) {
-		throw std::invalid_argument("Can't find a symbol arrangement that matches the message. Data codewords: " + std::to_string(encoded.size()));
+		throw std::invalid_argument("Can't find a symbol arrangement that matches the message. Data codewords: " + std_to_string(encoded.size()));
 	}
 
 	//2. step: ECC generation

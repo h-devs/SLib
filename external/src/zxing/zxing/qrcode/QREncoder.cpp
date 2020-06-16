@@ -144,7 +144,7 @@ void AppendLengthInfo(int numLetters, const Version& version, CodecMode::Mode mo
 {
 	int numBits = CodecMode::CharacterCountBits(mode, version);
 	if (numLetters >= (1 << numBits)) {
-		return throw std::invalid_argument(std::to_string(numLetters) + " is bigger than " + std::to_string((1 << numBits) - 1));
+		return throw std::invalid_argument(std_to_string(numLetters) + " is bigger than " + std_to_string((1 << numBits) - 1));
 	}
 	bits.appendBits(numLetters, numBits);
 }
@@ -255,7 +255,7 @@ void AppendBytes(const std::wstring& content, CodecMode::Mode mode, CharacterSet
 			AppendKanjiBytes(content, bits);
 			break;
 		default:
-			throw std::invalid_argument("Invalid mode: " + std::to_string(mode));
+			throw std::invalid_argument("Invalid mode: " + std_to_string(mode));
 	}
 }
 
@@ -295,7 +295,7 @@ void TerminateBits(int numDataBytes, BitArray& bits)
 {
 	int capacity = numDataBytes * 8;
 	if (bits.size() > capacity) {
-		throw std::invalid_argument("data bits cannot fit in the QR Code" + std::to_string(bits.size()) + " > " + std::to_string(capacity));
+		throw std::invalid_argument("data bits cannot fit in the QR Code" + std_to_string(bits.size()) + " > " + std_to_string(capacity));
 	}
 	for (int i = 0; i < 4 && bits.size() < capacity; ++i) {
 		bits.appendBit(false);
@@ -453,7 +453,7 @@ BitArray InterleaveWithECBytes(const BitArray& bits, int numTotalBytes, int numD
 		}
 	}
 	if (numTotalBytes != output.sizeInBytes()) {  // Should be same.
-		throw std::invalid_argument("Interleaving error: " + std::to_string(numTotalBytes) + " and " + std::to_string(output.sizeInBytes()) + " differ.");
+		throw std::invalid_argument("Interleaving error: " + std_to_string(numTotalBytes) + " and " + std_to_string(output.sizeInBytes()) + " differ.");
 	}
 	return output;
 }

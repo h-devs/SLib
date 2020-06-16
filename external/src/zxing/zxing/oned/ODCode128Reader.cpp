@@ -324,7 +324,7 @@ Code128Reader::decodeRow(int rowNumber, const BitArray& row, std::unique_ptr<Dec
 				if (code < 10) {
 					result.push_back('0');
 				}
-				result.append(std::to_string(code));
+				result.append(std_to_string(code));
 			}
 			else {
 				if (code != CODE_STOP) {

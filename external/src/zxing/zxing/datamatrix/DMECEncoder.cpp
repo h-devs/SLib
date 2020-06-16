@@ -114,7 +114,7 @@ static void CreateECCBlock(ByteArray& data, int codeOffset, int codeLength, int 
 	auto iter = std::lower_bound(FACTORS.begin(), FACTORS.end(), eccLength,
 							   [](const ByteArray& vec, size_t size) { return vec.size() < size; });
 	if (iter == FACTORS.end())
-		throw std::invalid_argument("Illegal number of error correction codewords specified: " + std::to_string(eccLength));
+		throw std::invalid_argument("Illegal number of error correction codewords specified: " + std_to_string(eccLength));
 
 	auto& poly = *iter;
 	ByteArray ecc(eccLength);
