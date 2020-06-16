@@ -50,8 +50,6 @@ public:
 	void onClickControlScreen(View* view);
 	
 	void onClickLoginPage(View* view);
-	
-	void onClickQRCodeScanner(View* view);
-	
+		
 	void onClickToggleTorch(View* view);
 };

@@ -72,7 +72,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(SLIB_PATH)/external/bin/libcef/Win32/$(Platform);$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(SLIB_PATH)/external/lib/Win32/$(Configuration)-$(Platform);$(SLIB_PATH)/external/bin/libcef/Win32/$(Platform);$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
     <IntDir>build\intermediate\$(Platform)-$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
@@ -80,7 +80,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(SLIB_PATH)/external/bin/libcef/Win32/$(Platform);$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(SLIB_PATH)/external/lib/Win32/$(Configuration)-$(Platform);$(SLIB_PATH)/external/bin/libcef/Win32/$(Platform);$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
     <IntDir>build\intermediate\$(Platform)-$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
@@ -88,7 +88,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(SLIB_PATH)/external/bin/libcef/Win32/$(Platform);$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(SLIB_PATH)/external/lib/Win32/$(Configuration)-$(Platform);$(SLIB_PATH)/external/bin/libcef/Win32/$(Platform);$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
     <IntDir>build\intermediate\$(Platform)-$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
@@ -96,7 +96,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(SLIB_PATH)/external/bin/libcef/Win32/$(Platform);$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(SLIB_PATH)/external/lib/Win32/$(Configuration)-$(Platform);$(SLIB_PATH)/external/bin/libcef/Win32/$(Platform);$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
     <IntDir>build\intermediate\$(Platform)-$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>

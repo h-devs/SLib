@@ -351,6 +351,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(SLIB_PATH)/lib/macOS/$(CONFIGURATION)",
+					"$(SLIB_PATH)/external/lib/macOS",
 					"$(SLIB_PATH)/external/bin/FFmpeg/macOS",
 				);
 				OTHER_LDFLAGS = (
@@ -385,6 +386,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(SLIB_PATH)/lib/macOS/$(CONFIGURATION)",
+					"$(SLIB_PATH)/external/lib/macOS",
 					"$(SLIB_PATH)/external/bin/FFmpeg/macOS",
 				);
 				OTHER_LDFLAGS = (

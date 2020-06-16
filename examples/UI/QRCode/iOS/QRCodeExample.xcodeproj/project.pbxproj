@@ -342,7 +342,10 @@
 				HEADER_SEARCH_PATHS = "$(SLIB_PATH)/include";
 				INFOPLIST_FILE = project/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = "$(SLIB_PATH)/lib/iOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SLIB_PATH)/lib/iOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					"$(SLIB_PATH)/external/lib/iOS",
+				);
 				OTHER_LDFLAGS = (
 					"-lslib",
 					"-lzxing",
@@ -363,7 +366,10 @@
 				HEADER_SEARCH_PATHS = "$(SLIB_PATH)/include";
 				INFOPLIST_FILE = project/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = "$(SLIB_PATH)/lib/iOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SLIB_PATH)/lib/iOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					"$(SLIB_PATH)/external/lib/iOS",
+				);
 				OTHER_LDFLAGS = (
 					"-lslib",
 					"-lzxing",
