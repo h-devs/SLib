@@ -378,6 +378,7 @@
     <ProjectGuid>{26A062EC-24EA-4EE6-9DBE-2937B1030DD2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>slib</RootNamespace>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -423,26 +424,26 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(ProjectDir)..\..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
+    <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>vpx</TargetName>
     <IncludePath>$(ProjectDir)..\..\..\external\src\libvpx;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(ProjectDir)..\..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
+    <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>vpx</TargetName>
     <IncludePath>$(ProjectDir)..\..\..\external\src\libvpx;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(ProjectDir)..\..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
+    <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>vpx</TargetName>
     <IncludePath>$(ProjectDir)..\..\..\external\src\libvpx;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>$(ProjectDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(ProjectDir)..\..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
+    <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <TargetName>vpx</TargetName>
     <IncludePath>$(ProjectDir)..\..\..\external\src\libvpx;$(IncludePath)</IncludePath>
   </PropertyGroup>
