@@ -1149,7 +1149,7 @@ namespace slib
 #ifdef PRIV_OPENGL_IMPL
 	void GL_BASE::drawPixels(const BitmapData& bitmapData)
 	{
-#ifndef SLIB_PLATFORM_IS_MACOS
+#ifdef SLIB_PLATFORM_IS_WIN32
 		sl_uint32 width = bitmapData.width;
 		sl_uint32 height = bitmapData.height;
 		if (bitmapData.format == BitmapFormat::RGBA && (bitmapData.pitch == 0 || bitmapData.pitch == (sl_int32)(width << 2))) {
@@ -1171,7 +1171,7 @@ namespace slib
 
 	void GL_BASE::drawPixels(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride)
 	{
-#ifndef SLIB_PLATFORM_IS_MACOS
+#ifdef SLIB_PLATFORM_IS_WIN32
 		if (width > 0 && height > 0 && pixels) {
 			BitmapData bitmapData(width, height, pixels, stride);
 			drawPixels(bitmapData);
@@ -1181,7 +1181,7 @@ namespace slib
 
 	void GL_BASE::drawPixels(const Ref<Bitmap>& bitmap, sl_uint32 sx, sl_uint32 sy, sl_uint32 w, sl_uint32 h)
 	{
-#ifndef SLIB_PLATFORM_IS_MACOS
+#ifdef SLIB_PLATFORM_IS_WIN32
 		if (bitmap.isNull()) {
 			return;
 		}
@@ -1225,7 +1225,7 @@ namespace slib
 
 	void GL_BASE::drawPixels(const Ref<Bitmap>& bitmap)
 	{
-#ifndef SLIB_PLATFORM_IS_MACOS
+#ifdef SLIB_PLATFORM_IS_WIN32
 		if (bitmap.isNull()) {
 			return;
 		}
@@ -1257,14 +1257,14 @@ namespace slib
 
 	void GL_BASE::setRasterPosition(float x, float y)
 	{
-#ifndef SLIB_PLATFORM_IS_MACOS
+#ifdef SLIB_PLATFORM_IS_WIN32
 		GL_ENTRY(glRasterPos2f)(x, y);
 #endif
 	}
 
 	void GL_BASE::setPixelZoom(float xf, float yf)
 	{
-#ifndef SLIB_PLATFORM_IS_MACOS
+#ifdef SLIB_PLATFORM_IS_WIN32
 		GL_ENTRY(glPixelZoom)(xf, yf);
 #endif
 	}
