@@ -119,7 +119,7 @@ add_executable (
 set_target_properties (
  ${TARGET_NAME}
  PROPERTIES
- RUNTIME_OUTPUT_DIRECTORY "${SLIB_BIN_PATH}"
+ RUNTIME_OUTPUT_DIRECTORY "${EXTERNAL_LIB_PATH}"
 )
 target_include_directories (
  ${TARGET_NAME}
