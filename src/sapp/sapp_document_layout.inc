@@ -3981,6 +3981,10 @@ namespace slib
 							if (subItemView.isNull()) {
 								return sl_false;
 							}
+							subItemView->attrsView->width.flagDefined = sl_false;
+							subItemView->attrsView->height.flagDefined = sl_false;
+							subItemView->attrsView->leftMode = PositionMode::Free;
+							subItemView->attrsView->topMode = PositionMode::Free;
 							subItem.view = subItemView;
 						}
 					}
