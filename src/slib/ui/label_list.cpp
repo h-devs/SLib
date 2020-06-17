@@ -47,7 +47,7 @@ namespace slib
 	void LabelList::init()
 	{
 		ListBox::init();
-		setItemBackgroundColor(Color::White, UIUpdateMode::Init);
+		setBackgroundColor(Color::White, UIUpdateMode::Init);
 		setSelectedItemBackgroundColor(Color(35, 12, 146), UIUpdateMode::Init);
 		setSelectedTextColor(Color::White, UIUpdateMode::Init);
 		setHoverItemBackgroundColor(Color(102, 150, 215), UIUpdateMode::Init);
