@@ -559,7 +559,7 @@ namespace slib
 			type = SAppLayoutItemType::Tree;
 		} else if (strType == "web") {
 			type = SAppLayoutItemType::Web;
-		} else if (strType == "split") {
+		} else if (strType == "split" || strType == "hsplit" || strType == "vsplit") {
 			type = SAppLayoutItemType::Split;
 		} else if (strType == "progress") {
 			type = SAppLayoutItemType::Progress;

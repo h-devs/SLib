@@ -344,7 +344,7 @@
 		26D9D9D31E96468D005F7BD3 /* select_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4FB1C11940A00D47AB0 /* select_view.cpp */; };
 		26D9D9D41E96468D005F7BD3 /* select_view_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4FE1C11940A00D47AB0 /* select_view_macos.mm */; };
 		26D9D9D51E96468D005F7BD3 /* slider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1CC6F921D8FC21000C491E5 /* slider.cpp */; };
-		26D9D9D61E96468D005F7BD3 /* split_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26AE7CCB1D8450F80095AACA /* split_view.cpp */; };
+		26D9D9D61E96468D005F7BD3 /* split_layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26AE7CCB1D8450F80095AACA /* split_layout.cpp */; };
 		26D9D9D71E96468D005F7BD3 /* tab_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD5281C11940A00D47AB0 /* tab_view.cpp */; };
 		26D9D9D81E96468D005F7BD3 /* tab_view_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 266DD5291C11940A00D47AB0 /* tab_view_macos.mm */; };
 		26D9D9D91E96468D005F7BD3 /* text_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26B1C9A01DC7ABB60092C84F /* text_view.cpp */; };
@@ -878,7 +878,7 @@
 		26AE7C031C99ABD70026C2D9 /* bezier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bezier.cpp; sourceTree = "<group>"; };
 		26AE7C051C99AF9D0026C2D9 /* transform2d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = transform2d.cpp; sourceTree = "<group>"; };
 		26AE7C071C99B3280026C2D9 /* transform3d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = transform3d.cpp; sourceTree = "<group>"; };
-		26AE7CCB1D8450F80095AACA /* split_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = split_view.cpp; sourceTree = "<group>"; };
+		26AE7CCB1D8450F80095AACA /* split_layout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = split_layout.cpp; sourceTree = "<group>"; };
 		26AFC5FC22B05B580034C634 /* crc32c.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = crc32c.cpp; sourceTree = "<group>"; };
 		26AFC5FE22B1773F0034C634 /* asm_x64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asm_x64.cpp; sourceTree = "<group>"; };
 		26AFF77A1C34CE2B00AF9470 /* atomic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = atomic.cpp; sourceTree = "<group>"; };
@@ -1503,7 +1503,7 @@
 				266DD4FB1C11940A00D47AB0 /* select_view.cpp */,
 				266DD4FE1C11940A00D47AB0 /* select_view_macos.mm */,
 				E1CC6F921D8FC21000C491E5 /* slider.cpp */,
-				26AE7CCB1D8450F80095AACA /* split_view.cpp */,
+				26AE7CCB1D8450F80095AACA /* split_layout.cpp */,
 				26BB17EA2200E20B0089C7EC /* switch_view.cpp */,
 				26539FB7237821C10064340D /* system_tray_icon.cpp */,
 				26539FBA237821CA0064340D /* system_tray_icon_macos.mm */,
@@ -2438,7 +2438,7 @@
 				26D9D9EC1E96468D005F7BD3 /* view_page.cpp in Sources */,
 				26D9D9ED1E96468D005F7BD3 /* web_view.cpp in Sources */,
 				26D9D93C1E9645CE005F7BD3 /* triangle3.cpp in Sources */,
-				26D9D9D61E96468D005F7BD3 /* split_view.cpp in Sources */,
+				26D9D9D61E96468D005F7BD3 /* split_layout.cpp in Sources */,
 				26D9D93D1E9645CE005F7BD3 /* gcm.cpp in Sources */,
 				26D9D9DC1E96468D005F7BD3 /* ui_animation.cpp in Sources */,
 				26D9D93E1E9645CE005F7BD3 /* memory.cpp in Sources */,

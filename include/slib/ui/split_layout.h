@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_UI_SPLIT_VIEW
-#define CHECKHEADER_SLIB_UI_SPLIT_VIEW
+#ifndef CHECKHEADER_SLIB_UI_SPLIT_LAYOUT
+#define CHECKHEADER_SLIB_UI_SPLIT_LAYOUT
 
 #include "definition.h"
 
@@ -30,14 +30,14 @@
 namespace slib
 {
 
-	class SLIB_EXPORT SplitView : public ViewGroup
+	class SLIB_EXPORT SplitLayout : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
 		
 	public:
-		SplitView();
+		SplitLayout();
 		
-		~SplitView();
+		~SplitLayout();
 
 	protected:
 		void init() override;
@@ -176,21 +176,21 @@ namespace slib
 		
 	};
 	
-	class SLIB_EXPORT VerticalSplitView : public SplitView
+	class SLIB_EXPORT VerticalSplitLayout : public SplitLayout
 	{
 	public:
-		VerticalSplitView();
+		VerticalSplitLayout();
 
-		~VerticalSplitView();
+		~VerticalSplitLayout();
 
 	};
 	
-	class SLIB_EXPORT HorizontalSplitView : public SplitView
+	class SLIB_EXPORT HorizontalSplitLayout : public SplitLayout
 	{
 	public:
-		HorizontalSplitView();
+		HorizontalSplitLayout();
 
-		~HorizontalSplitView();
+		~HorizontalSplitLayout();
 
 	};
 

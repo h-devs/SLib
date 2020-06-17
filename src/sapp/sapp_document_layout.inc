@@ -3917,11 +3917,23 @@ namespace slib
 	END_PROCESS_LAYOUT_CONTROL
 
 
-	BEGIN_PROCESS_LAYOUT_CONTROL(Split, SplitView)
+	BEGIN_PROCESS_LAYOUT_CONTROL(Split, SplitLayout)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 		
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(orientation, setOrientation)
+		if (!(attr->orientation.flagDefined)) {
+			if (op == OP_PARSE) {
+				if (element->getName() == "hsplit") {
+					attr->orientation.flagDefined = sl_true;
+					attr->orientation.value = LayoutOrientation::Horizontal;
+				} else if (element->getName() == "vsplit") {
+					attr->orientation.flagDefined = sl_true;
+					attr->orientation.value = LayoutOrientation::Vertical;
+				}
+			}
+		}
+
 		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(dividerWidth, setDividerWidth, checkScalarSize)
 		LAYOUT_CONTROL_DRAWABLE_ATTR(dividerBackground, setDividerBackground)
 		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(dividerColor, setDividerColor)

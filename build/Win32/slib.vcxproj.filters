@@ -689,7 +689,7 @@
     <ClCompile Include="..\..\src\slib\ui\slider.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\split_view.cpp">
+    <ClCompile Include="..\..\src\slib\ui\split_layout.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\tab_view.cpp">

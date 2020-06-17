@@ -339,7 +339,7 @@ namespace slib
 	class TreeView;
 	class WebView;
 	class ChromiumView;
-	class SplitView;
+	class SplitLayout;
 	class ProgressBar;
 	class Slider;
 	class SwitchView;

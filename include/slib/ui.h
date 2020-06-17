@@ -67,7 +67,7 @@
 
 #include "ui/scroll_bar.h"
 #include "ui/scroll_view.h"
-#include "ui/split_view.h"
+#include "ui/split_layout.h"
 #include "ui/tab_view.h"
 #include "ui/view_pager.h"
 #include "ui/drawer.h"
