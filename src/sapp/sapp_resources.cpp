@@ -496,6 +496,10 @@ namespace slib
 				prefix = "labelList";
 				pN = &nAutoIncreaseNameLabelList;
 				break;
+			case SAppLayoutItemType::TileLayout:
+				prefix = "tileLayout";
+				pN = &nAutoIncreaseNameTileLayout;
+				break;
 			default:
 				return String::null();
 		}
@@ -589,6 +593,8 @@ namespace slib
 			type = SAppLayoutItemType::ListBox;
 		} else if (strType == "labellist" || strType == "label-list") {
 			type = SAppLayoutItemType::LabelList;
+		} else if (strType == "tile") {
+			type = SAppLayoutItemType::TileLayout;
 		}
 		return type;
 	}

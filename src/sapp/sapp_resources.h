@@ -316,6 +316,7 @@ namespace slib
 		SAppBooleanValue scrollingByKeyboard;
 		SAppBooleanValue autoHideScrollBar;
 
+		SAppBooleanValue focusable;
 		SAppBooleanValue hitTest;
 		SAppBooleanValue touchMultipleChildren;
 		SAppBooleanValue tabStop;
@@ -887,6 +888,17 @@ namespace slib
 		CList<SAppLayoutSelectItem> items;
 	};
 	
+	class SAppLayoutTileLayoutAttributes : public Referable
+	{
+	public:
+		SAppUint32Value columns;
+		SAppUint32Value rows;
+		SAppDimensionValue columnWidth;
+		SAppDimensionValue rowHeight;
+		SAppFloatValue cellRatio;
+
+	};
+	
 	class SAppLayoutStyle : public Referable
 	{
 	public:
@@ -944,6 +956,7 @@ namespace slib
 		Table = 0x023A,
 		ListBox = 0x023B,
 		LabelList = 0x023C,
+		TileLayout = 0x023D,
 
 		Progress = 0x0260,
 		Slider = 0x0261,
@@ -1010,6 +1023,7 @@ namespace slib
 		Ref<SAppLayoutRefreshAttributes> attrsRefresh;
 		Ref<SAppLayoutListBoxAttributes> attrsListBox;
 		Ref<SAppLayoutLabelListAttributes> attrsLabelList;
+		Ref<SAppLayoutTileLayoutAttributes> attrsTileLayout;
 
 		CList< Ref<SAppLayoutStyle> > styles;
 		CList< Ref<SAppLayoutResourceItem> > children;
@@ -1079,6 +1093,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameRefresh = 0;
 		sl_uint32 nAutoIncreaseNameListBox = 0;
 		sl_uint32 nAutoIncreaseNameLabelList = 0;
+		sl_uint32 nAutoIncreaseNameTileLayout = 0;
 
 	public:
 		SAppLayoutResource();

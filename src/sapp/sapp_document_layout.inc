@@ -937,6 +937,7 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(Refresh)
 			PROCESS_CONTROL_SWITCH(ListBox)
 			PROCESS_CONTROL_SWITCH(LabelList)
+			PROCESS_CONTROL_SWITCH(TileLayout)
 			default:
 				return sl_false;
 		}
@@ -2326,6 +2327,7 @@ namespace slib
 		LAYOUT_CONTROL_GENERIC_ATTR(scrollingByKeyboard, setContentScrollingByKeyboard)
 		LAYOUT_CONTROL_GENERIC_ATTR(autoHideScrollBar, setAutoHideScrollBar)
 
+		LAYOUT_CONTROL_GENERIC_ATTR(focusable, setFocusable)
 		LAYOUT_CONTROL_GENERIC_ATTR(hitTest, setHitTestable)
 		LAYOUT_CONTROL_GENERIC_ATTR(touchMultipleChildren, setTouchMultipleChildren)
 		if (flagView) {
@@ -4785,6 +4787,21 @@ namespace slib
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
+	}
+	END_PROCESS_LAYOUT_CONTROL
+
+	BEGIN_PROCESS_LAYOUT_CONTROL(TileLayout, TileLayout)
+	{
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(columns, setColumnsCount)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(rows, setRowsCount)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(columnWidth, setColumnWidth, checkScalarSize)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(rowHeight, setRowHeight, checkScalarSize)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(cellRatio, setCellRatio)
+
+		LAYOUT_CONTROL_PROCESS_SUPER(View)
+		
+		LAYOUT_CONTROL_ADD_STATEMENT
+		
 	}
 	END_PROCESS_LAYOUT_CONTROL
 

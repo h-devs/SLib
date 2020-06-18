@@ -440,6 +440,7 @@
     <ClCompile Include="..\..\src\slib\ui\tab_view_win32.cpp" />
     <ClCompile Include="..\..\src\slib\ui\table_layout.cpp" />
     <ClCompile Include="..\..\src\slib\ui\text_view.cpp" />
+    <ClCompile Include="..\..\src\slib\ui\tile_layout.cpp" />
     <ClCompile Include="..\..\src\slib\ui\toast.cpp" />
     <ClCompile Include="..\..\src\slib\ui\transition.cpp" />
     <ClCompile Include="..\..\src\slib\ui\tree_view.cpp" />
