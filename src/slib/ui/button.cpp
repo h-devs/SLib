@@ -707,11 +707,15 @@ namespace slib
 	void Button::onDraw(Canvas* canvas)
 	{
 		ButtonCategoryProperties& params = m_categories[m_category].properties[(int)m_state];
+		ButtonCategoryProperties& paramsNormal = m_categories[m_category].properties[(int)(ButtonState::Normal)];
 		Color textColor = params.textColor;
 		{
 			const ColorMatrix* cm = getCurrentColorFilter(textColor.isZero() && m_flagUseDefaultColorFilter);
 			if (textColor.isZero()) {
-				textColor = m_textColorDefault;
+				textColor = paramsNormal.textColor;
+				if (textColor.isZero()) {
+					textColor = m_textColorDefault;
+				}
 			}
 			if (cm) {
 				textColor = cm->transformColor(textColor);
@@ -721,7 +725,10 @@ namespace slib
 		{
 			const ColorMatrix* cm = getCurrentColorFilter(icon.isNull() && m_flagUseDefaultColorFilter);
 			if (icon.isNull()) {
-				icon = m_iconDefault;
+				icon = paramsNormal.icon;
+				if (icon.isNull()) {
+					icon = m_iconDefault;
+				}
 			}
 			if (icon.isNotNull() && cm) {
 				icon = icon->filter(*cm);

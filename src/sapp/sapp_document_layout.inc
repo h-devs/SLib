@@ -2560,7 +2560,12 @@ namespace slib
 		ButtonState states[] = {ButtonState::Normal, ButtonState::Hover, ButtonState::Pressed, ButtonState::Disabled};
 		for (sl_uint32 i = 0; i < SLIB_SAPP_LAYOUT_BUTTON_CATEGORY_MAX; i++) {
 			SAppLayoutButtonCategory& category = attr->categories[i];
-			String suffixAll = String::format("%d", i);
+			String suffixAll;
+			if (i > 0) {
+				suffixAll = String::format("All%d", i);
+			} else {
+				suffixAll = "All";
+			}
 			for (sl_uint32 k = 0; k < (sl_uint32)(ButtonState::Count); k++) {
 				if (op == OP_PARSE) {
 					String suffix;
@@ -2572,9 +2577,26 @@ namespace slib
 #define BUTTON_STATE_GET_VALUE(NAME, ...) \
 					String value_##NAME##_name = #NAME + suffix; \
 					String value_##NAME = resourceItem->getXmlAttribute(value_##NAME##_name); \
+					if (k == 0) { \
+						if (value_##NAME.isEmpty()) { \
+							String suffixNone = String::format("%d", i); \
+							value_##NAME##_name = #NAME + suffixNone; \
+							value_##NAME = resourceItem->getXmlAttribute(value_##NAME##_name); \
+						} \
+					} \
 					if (value_##NAME.isEmpty()) { \
 						value_##NAME##_name = #NAME + suffixAll; \
 						value_##NAME = resourceItem->getXmlAttribute(value_##NAME##_name); \
+					} \
+					if (value_##NAME.isEmpty()) { \
+						if (k) { \
+							String suffixNone = String::format("%d", i); \
+							value_##NAME##_name = #NAME + suffixNone; \
+							value_##NAME = resourceItem->getXmlAttribute(value_##NAME##_name); \
+							if (value_##NAME.isNotEmpty()) { \
+								value_##NAME = "@null"; \
+							} \
+						} \
 					} \
 					if (!(category.NAME[k].parse(value_##NAME, ##__VA_ARGS__))) { \
 						_logError(element, g_str_error_resource_layout_attribute_invalid.arg(value_##NAME##_name, value_##NAME)); \
