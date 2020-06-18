@@ -96,6 +96,7 @@ namespace slib
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 		setFocusable(sl_true);
 #endif
+		setPadding(1, UIUpdateMode::Init);
 	}
 	
 	Slider::~Slider()
@@ -416,10 +417,7 @@ namespace slib
 		} else {
 			padding = getPaddingLeft();
 		}
-		if (padding != 0) {
-			return padding;
-		}
-		return getMinimumPadding();
+		return padding + getMinimumPadding();
 	}
 	
 	sl_ui_pos Slider::getEndPadding()
@@ -430,10 +428,7 @@ namespace slib
 		} else {
 			padding = getPaddingRight();
 		}
-		if (padding != 0) {
-			return padding;
-		}
-		return getMinimumPadding();
+		return padding + getMinimumPadding();
 	}
 	
 	sl_ui_pos Slider::getMinimumPadding()
