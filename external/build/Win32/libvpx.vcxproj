@@ -463,7 +463,6 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <AdditionalOptions>/wd4996 /wd4703 %(AdditionalOptions)</AdditionalOptions>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
@@ -506,7 +505,6 @@ IF "$(Platform)"=="x64" (
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <AdditionalOptions>/wd4996 /wd4703 %(AdditionalOptions)</AdditionalOptions>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
@@ -550,7 +548,6 @@ IF "$(Platform)"=="x64" (
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/wd4996 /wd4703 %(AdditionalOptions)</AdditionalOptions>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
@@ -596,7 +593,6 @@ IF "$(Platform)"=="x64" (
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/wd4996 /wd4703 %(AdditionalOptions)</AdditionalOptions>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <OmitDefaultLibName>true</OmitDefaultLibName>
     </ClCompile>
     <Link>
