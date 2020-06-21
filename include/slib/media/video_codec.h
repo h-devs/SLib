@@ -66,7 +66,7 @@ namespace slib
 		~VideoDecoder();
 		
 	public:
-		virtual sl_bool decode(const void* input, const sl_uint32& inputSize, VideoFrame& output) = 0;
+		virtual sl_bool decode(const void* input, sl_uint32 inputSize, VideoFrame& output) = 0;
 		
 	protected:
 		sl_uint32 m_nWidth;

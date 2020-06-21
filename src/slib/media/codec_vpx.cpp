@@ -339,7 +339,7 @@ namespace slib
 					}
 				}
 
-				sl_bool decode(const void* input, const sl_uint32& inputSize , VideoFrame& output)
+				sl_bool decode(const void* input, sl_uint32 inputSize , VideoFrame& output)
 				{
 					MemoryReader reader(input, inputSize);
 					sl_int64 pts = reader.readInt64();
