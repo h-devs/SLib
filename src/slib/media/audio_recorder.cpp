@@ -52,12 +52,99 @@ namespace slib
 
 	AudioRecorder::AudioRecorder()
 	{
+		m_flagOpened = sl_true;
+		m_flagRunning = sl_false;
+		m_volume = 256;
+		m_flagMute = sl_false;
 	}
 
 	AudioRecorder::~AudioRecorder()
 	{
 	}
-	
+
+	void AudioRecorder::release()
+	{
+		ObjectLocker lock(this);
+		if (!m_flagOpened) {
+			return;
+		}
+		stop();
+		m_flagOpened = sl_false;
+		_release();
+	}
+
+	sl_bool AudioRecorder::isOpened()
+	{
+		return m_flagOpened;
+	}
+
+	sl_bool AudioRecorder::start()
+	{
+		ObjectLocker lock(this);
+		if (!m_flagOpened) {
+			return sl_false;
+		}
+		if (m_flagRunning) {
+			return sl_true;
+		}
+		if (_start()) {
+			m_flagRunning = sl_true;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	void AudioRecorder::stop()
+	{
+		ObjectLocker lock(this);
+		if (!m_flagOpened) {
+			return;
+		}
+		if (!m_flagRunning) {
+			return;
+		}
+		m_flagRunning = sl_false;
+		_stop();
+	}
+
+	sl_bool AudioRecorder::isRunning()
+	{
+		return m_flagRunning;
+	}
+
+	float AudioRecorder::getVolume()
+	{
+		if (m_volume >= 256) {
+			return 1;
+		}
+		if (!m_volume) {
+			return 0;
+		}
+		return (float)(m_volume) / 256.0f;
+	}
+
+	void AudioRecorder::setVolume(float volume)
+	{
+		sl_int32 v = (sl_int32)(volume * 256);
+		if (v >= 256) {
+			v = 256;
+		}
+		if (v <= 0) {
+			v = 0;
+		}
+		m_volume = v;
+	}
+
+	sl_bool AudioRecorder::isMute()
+	{
+		return m_flagMute;
+	}
+
+	void AudioRecorder::setMute(sl_bool flag)
+	{
+		m_flagMute = flag;
+	}
+
 	const AudioRecorderParam& AudioRecorder::getParam()
 	{
 		return m_param;
@@ -118,6 +205,15 @@ namespace slib
 
 	void AudioRecorder::_processFrame(sl_int16* s, sl_uint32 count)
 	{
+		if (m_flagMute) {
+			return;
+		}
+		sl_int32 volume = m_volume;
+		if (volume < 256) {
+			for (sl_uint32 i = 0; i < count; i++) {
+				s[i] = (sl_int16)((((sl_int32)(s[i])) * volume) >> 8);
+			}
+		}
 		if (m_param.onRecordAudio.isNotNull()) {
 			AudioData audio;
 			AudioFormat format;

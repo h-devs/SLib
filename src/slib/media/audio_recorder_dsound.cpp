@@ -51,15 +51,11 @@ namespace slib
 				sl_uint32 m_nSamplesFrame;
 				HANDLE m_events[3];
 				Ref<Thread> m_thread;
-				sl_bool m_flagRunning;
-				sl_bool m_flagOpened;
 
 			public:
 				AudioRecorderImpl()
 				{
-					m_flagOpened = sl_true;
-					m_flagRunning = sl_false;
-					m_events[2] = ::CreateEventW(NULL, FALSE, FALSE, NULL);
+					m_events[2] = CreateEventW(NULL, FALSE, FALSE, NULL);
 				}
 
 				~AudioRecorderImpl()
@@ -79,7 +75,7 @@ namespace slib
 						return sl_null;
 					}
 					
-					::CoInitializeEx(NULL, COINIT_MULTITHREADED);
+					CoInitializeEx(NULL, COINIT_MULTITHREADED);
 					
 					String deviceID = param.deviceId;
 					GUID guid;
@@ -150,8 +146,8 @@ namespace slib
 						desc.lpDSCFXDesc = NULL;
 					}
 					
-					HANDLE hEvent0 = ::CreateEventW(NULL, FALSE, FALSE, NULL);
-					HANDLE hEvent1 = ::CreateEventW(NULL, FALSE, FALSE, NULL);
+					HANDLE hEvent0 = CreateEventW(NULL, FALSE, FALSE, NULL);
+					HANDLE hEvent1 = CreateEventW(NULL, FALSE, FALSE, NULL);
 					
 					IDirectSoundCaptureBuffer* dsbuf;
 					IDirectSoundCaptureBuffer8* buffer = sl_null;
@@ -212,14 +208,8 @@ namespace slib
 					return sl_null;
 				}
 				
-				void release()
+				void _release() override
 				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					stop();
-					m_flagOpened = sl_false;
 					m_buffer->Release();
 					m_buffer = sl_null;
 					m_device->Release();
@@ -229,45 +219,18 @@ namespace slib
 					}
 				}
 				
-				sl_bool isOpened()
+				sl_bool _start() override
 				{
-					return m_flagOpened;
-				}
-				
-				void start()
-				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					if (m_flagRunning) {
-						return;
-					}
 					m_thread = Thread::start(SLIB_FUNCTION_MEMBER(AudioRecorderImpl, run, this));
-					if (m_thread.isNotNull()) {
-						m_flagRunning = sl_true;
-					}
+					return m_thread.isNotNull();
 				}
 				
-				void stop()
+				void _stop() override
 				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					if (!m_flagRunning) {
-						return;
-					}
-					m_flagRunning = sl_false;
 					m_thread->finish();
-					::SetEvent(m_events[2]);
+					SetEvent(m_events[2]);
 					m_thread->finishAndWait();
 					m_thread.setNull();
-				}
-				
-				sl_bool isRunning()
-				{
-					return m_flagRunning;
 				}
 				
 				struct DeviceProperty {
@@ -276,6 +239,7 @@ namespace slib
 					String name;
 					String description;
 				};
+
 				static List<DeviceProperty> queryDeviceInfos()
 				{
 					List<DeviceProperty> list;
@@ -324,10 +288,10 @@ namespace slib
 				
 				void run()
 				{
-					::CoInitializeEx(NULL, COINIT_MULTITHREADED);
+					CoInitializeEx(NULL, COINIT_MULTITHREADED);
 					Ref<Thread> thread = Thread::getCurrent();
 					while (thread.isNull() || thread->isNotStopping()) {
-						DWORD dwWait = ::WaitForMultipleObjects(3, m_events, FALSE, INFINITE);
+						DWORD dwWait = WaitForMultipleObjects(3, m_events, FALSE, INFINITE);
 						if (dwWait >= WAIT_OBJECT_0 && dwWait < WAIT_OBJECT_0 + 2) {
 							onFrame(dwWait - WAIT_OBJECT_0);
 						}

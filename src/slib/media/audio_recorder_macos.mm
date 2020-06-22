@@ -41,9 +41,6 @@ namespace slib
 			class AudioRecorderImpl : public AudioRecorder
 			{
 			public:
-				sl_bool m_flagOpened;
-				sl_bool m_flagRunning;
-				
 				AudioDeviceID m_deviceID;
 				AudioConverterRef m_converter;
 				AudioDeviceIOProcID m_callback;
@@ -54,9 +51,6 @@ namespace slib
 			public:
 				AudioRecorderImpl()
 				{
-					m_flagOpened = sl_true;
-					m_flagRunning = sl_false;
-					
 					m_callback = sl_null;
 				}
 
@@ -173,72 +167,28 @@ namespace slib
 					return ret;
 				}
 				
-				void release()
+				void _release() override
 				{
-					ObjectLocker lock(this);
-					
-					if (!m_flagOpened) {
-						return;
-					}
-					
-					stop();
-					
-					m_flagOpened = sl_false;
-					
 					if (m_callback) {
 						AudioDeviceDestroyIOProcID(m_deviceID, m_callback);
-					}
-					
+					}					
 					AudioConverterDispose(m_converter);
-
 				}
 				
-				sl_bool isOpened()
+				sl_bool _start() override
 				{
-					return m_flagOpened;
-				}
-				
-				void start()
-				{
-					ObjectLocker lock(this);
-					
-					if (!m_flagOpened) {
-						return;
-					}
-					
-					if (m_flagRunning) {
-						return;
-					}
-					
 					if (AudioDeviceStart(m_deviceID, m_callback) != kAudioHardwareNoError) {
 						logError("Failed to start device");
+						return sl_false;
 					}
-					
-					m_flagRunning = sl_true;
+					return sl_true;
 				}
 
-				void stop()
+				void _stop() override
 				{
-					ObjectLocker lock(this);
-					
-					if (!m_flagOpened) {
-						return;
-					}
-					
-					if (!m_flagRunning) {
-						return;
-					}
-					
-					m_flagRunning = sl_false;
-					
 					if (AudioDeviceStop(m_deviceID, m_callback) != kAudioHardwareNoError) {
 						logError("Failed to stop play device");
 					}
-				}
-				
-				sl_bool isRunning()
-				{
-					return m_flagRunning;
 				}
 				
 				struct ConverterContext

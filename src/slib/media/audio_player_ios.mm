@@ -46,8 +46,6 @@ namespace slib
 			{
 			public:
 				sl_bool m_flagInitialized;
-				sl_bool m_flagOpened;
-				sl_bool m_flagRunning;
 				
 				AudioComponentInstance m_audioUnitOutput;
 				AudioConverterRef m_converter;
@@ -59,8 +57,6 @@ namespace slib
 				AudioPlayerBufferImpl()
 				{
 					m_flagInitialized = sl_false;
-					m_flagOpened = sl_true;
-					m_flagRunning = sl_false;
 				}
 
 				~AudioPlayerBufferImpl()
@@ -198,14 +194,8 @@ namespace slib
 					return ret;
 				}
 				
-				void release() override
+				void _release() override
 				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					stop();
-					m_flagOpened = sl_false;
 					if (m_flagInitialized) {
 						AudioUnitUninitialize(m_audioUnitOutput);
 					}
@@ -213,46 +203,22 @@ namespace slib
 					AudioConverterDispose(m_converter);
 				}
 				
-				sl_bool isOpened() override
+				sl_bool _start() override
 				{
-					return m_flagOpened;
-				}
-				
-				void start() override
-				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					if (m_flagRunning) {
-						return;
-					}
 					if (AudioOutputUnitStart(m_audioUnitOutput) != noErr) {
 						logError("Failed to start audio unit");
+						return sl_false;
 					}
-					m_flagRunning = sl_true;
+					return sl_true;
 				}
 				
-				void stop() override
+				void _stop() override
 				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					if (!m_flagRunning) {
-						return;
-					}
-					m_flagRunning = sl_false;
 					if (AudioOutputUnitStop(m_audioUnitOutput) != noErr) {
 						logError("Failed to stop audio unit");
 					}
 				}
-				
-				sl_bool isRunning() override
-				{
-					return m_flagRunning;
-				}
-				
+
 				AtomicArray<sl_int16> m_dataConvert;
 				void onConvert(sl_uint32 nFrames, AudioBufferList* data)
 				{

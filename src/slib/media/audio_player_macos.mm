@@ -41,9 +41,6 @@ namespace slib
 			class AudioPlayerBufferImpl : public AudioPlayerBuffer
 			{
 			public:
-				sl_bool m_flagOpened;
-				sl_bool m_flagRunning;
-				
 				AudioDeviceID m_deviceID;
 				AudioConverterRef m_converter;
 				AudioDeviceIOProcID m_callback;
@@ -54,8 +51,6 @@ namespace slib
 			public:
 				AudioPlayerBufferImpl()
 				{
-					m_flagOpened = sl_true;
-					m_flagRunning = sl_false;
 					m_callback = sl_null;
 				}
 
@@ -163,58 +158,28 @@ namespace slib
 					return ret;
 				}
 				
-				void release() override
+				void _release() override
 				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					stop();
-					m_flagOpened = sl_false;
 					if (m_callback) {
 						AudioDeviceDestroyIOProcID(m_deviceID, m_callback);
 					}
 					AudioConverterDispose(m_converter);
 				}
 				
-				sl_bool isOpened() override
+				sl_bool _start() override
 				{
-					return m_flagOpened;
-				}
-				
-				void start() override
-				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					if (m_flagRunning) {
-						return;
-					}
-					m_flagRunning = sl_true;
 					if (AudioDeviceStart(m_deviceID, m_callback) != kAudioHardwareNoError) {
 						logError("Failed to start device");
+						return sl_false;
 					}
+					return sl_true;
 				}
 				
-				void stop() override
+				void _stop() override
 				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					if (!m_flagRunning) {
-						return;
-					}
-					m_flagRunning = sl_false;
 					if (AudioDeviceStop(m_deviceID, m_callback) != kAudioHardwareNoError) {
 						logError("Failed to stop play device");
 					}
-				}
-				
-				sl_bool isRunning() override
-				{
-					return m_flagRunning;
 				}
 				
 				AtomicArray<sl_int16> m_dataConvert;

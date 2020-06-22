@@ -27,25 +27,25 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerInfo)
 
 	AudioPlayerInfo::AudioPlayerInfo()
 	{
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerBufferParam)
 
 	AudioPlayerBufferParam::AudioPlayerBufferParam()
 	{
 		streamType = AudioStreamType::Default;
-		
+
 		samplesPerSecond = 16000;
 		channelsCount = 1;
 		frameLengthInMilliseconds = 50;
 		maxBufferLengthInMilliseconds = 0;
-		
+
 		flagAutoStart = sl_false;
 	}
 
@@ -54,6 +54,11 @@ namespace slib
 
 	AudioPlayerBuffer::AudioPlayerBuffer()
 	{
+		m_flagOpened = sl_true;
+		m_flagRunning = sl_false;
+		m_volume = 256;
+		m_flagMute = sl_false;
+
 		m_lenBufferMax = 0;
 		m_lastSample = 0;
 	}
@@ -61,13 +66,90 @@ namespace slib
 	AudioPlayerBuffer::~AudioPlayerBuffer()
 	{
 	}
-	
-	void AudioPlayerBuffer::_init(const AudioPlayerBufferParam& param)
+
+	void AudioPlayerBuffer::release()
 	{
-		m_param = param;
-		m_lenBufferMax = param.samplesPerSecond * param.maxBufferLengthInMilliseconds / 1000 * param.channelsCount;
+		ObjectLocker lock(this);
+		if (!m_flagOpened) {
+			return;
+		}
+		stop();
+		m_flagOpened = sl_false;
+		_release();
 	}
-	
+
+	sl_bool AudioPlayerBuffer::isOpened()
+	{
+		return m_flagOpened;
+	}
+
+	sl_bool AudioPlayerBuffer::start()
+	{
+		ObjectLocker lock(this);
+		if (!m_flagOpened) {
+			return sl_false;
+		}
+		if (m_flagRunning) {
+			return sl_true;
+		}
+		if (_start()) {
+			m_flagRunning = sl_true;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	void AudioPlayerBuffer::stop()
+	{
+		ObjectLocker lock(this);
+		if (!m_flagOpened) {
+			return;
+		}
+		if (!m_flagRunning) {
+			return;
+		}
+		m_flagRunning = sl_false;
+		_stop();
+	}
+
+	sl_bool AudioPlayerBuffer::isRunning()
+	{
+		return m_flagRunning;
+	}
+
+	float AudioPlayerBuffer::getVolume()
+	{
+		if (m_volume >= 256) {
+			return 1;
+		}
+		if (!m_volume) {
+			return 0;
+		}
+		return (float)(m_volume) / 256.0f;
+	}
+
+	void AudioPlayerBuffer::setVolume(float volume)
+	{
+		sl_int32 v = (sl_int32)(volume * 256);
+		if (v >= 256) {
+			v = 256;
+		}
+		if (v <= 0) {
+			v = 0;
+		}
+		m_volume = v;
+	}
+
+	sl_bool AudioPlayerBuffer::isMute()
+	{
+		return m_flagMute;
+	}
+
+	void AudioPlayerBuffer::setMute(sl_bool flag)
+	{
+		m_flagMute = flag;
+	}
+
 	const AudioPlayerBufferParam& AudioPlayerBuffer::getParam()
 	{
 		return m_param;
@@ -127,6 +209,12 @@ namespace slib
 		return m_buffer.getSize() >> 1;
 	}
 
+	void AudioPlayerBuffer::_init(const AudioPlayerBufferParam& param)
+	{
+		m_param = param;
+		m_lenBufferMax = param.samplesPerSecond * param.maxBufferLengthInMilliseconds / 1000 * param.channelsCount;
+	}
+
 	Array<sl_int16> AudioPlayerBuffer::_getProcessData(sl_uint32 count)
 	{
 		Array<sl_int16> data = m_processData;
@@ -151,6 +239,19 @@ namespace slib
 			}
 		}
 		m_lastSample = s[count - 1];
+		
+		if (m_flagMute) {
+			for (sl_uint32 i = 0; i < count; i++) {
+				s[i] = 0;
+			}
+		} else {
+			sl_int32 volume = m_volume;
+			if (volume < 256) {
+				for (sl_uint32 i = 0; i < count; i++) {
+					s[i] = (sl_int16)((((sl_int32)(s[i])) * volume) >> 8);
+				}
+			}
+		}
 	}
 
 	

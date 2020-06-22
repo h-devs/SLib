@@ -93,25 +93,39 @@ namespace slib
 		static Ref<AudioPlayerBuffer> create(const AudioPlayerBufferParam& param);
 		
 	public:
-		virtual void release() = 0;
+		void release();
 		
-		virtual sl_bool isOpened() = 0;
+		sl_bool isOpened();
 		
-		virtual void start() = 0;
+		sl_bool start();
 		
-		virtual void stop() = 0;
+		void stop();
 		
-		virtual sl_bool isRunning() = 0;
-		
-	public:
+		sl_bool isRunning();
+
+		float getVolume();
+
+		void setVolume(float volume);
+
+		sl_bool isMute();
+
+		void setMute(sl_bool flag);
+
 		const AudioPlayerBufferParam& getParam();
-		
+
 		void write(const AudioData& audioPlay);
-		
+
 		void flush();
-		
+
 		sl_size getSamplesCountInQueue();
-		
+
+	protected:
+		virtual void _release() = 0;
+
+		virtual sl_bool _start() = 0;
+
+		virtual void _stop() = 0;
+
 	protected:
 		void _init(const AudioPlayerBufferParam& param);
 		
@@ -121,6 +135,11 @@ namespace slib
 		
 	protected:
 		AudioPlayerBufferParam m_param;
+
+		sl_bool m_flagRunning;
+		sl_bool m_flagOpened;
+		sl_uint32 m_volume;
+		sl_bool m_flagMute;
 		
 		MemoryQueue m_buffer;
 		sl_size m_lenBufferMax;

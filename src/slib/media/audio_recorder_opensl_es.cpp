@@ -50,9 +50,6 @@ namespace slib
 				SLRecordItf m_recordInterface;
 				SLAndroidSimpleBufferQueueItf m_bufferQueue;
 
-				sl_bool m_flagOpened;
-				sl_bool m_flagRunning;
-
 				sl_int16* m_bufFrame;
 				sl_uint32 m_indexBuffer;
 				sl_uint32 m_nSamplesFrame;
@@ -60,8 +57,6 @@ namespace slib
 			public:
 				AudioRecorderImpl()
 				{
-					m_flagOpened = sl_true;
-					m_flagRunning = sl_false;
 					m_indexBuffer = 0;
 				}
 
@@ -189,14 +184,8 @@ namespace slib
 					return ret;
 				}
 
-				void release()
+				void _release() override
 				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					stop();
-					m_flagOpened = sl_false;
 					(*m_recorderObject)->Destroy(m_recorderObject);
 					if (m_bufFrame) {
 						delete[] m_bufFrame;
@@ -204,51 +193,26 @@ namespace slib
 					(*m_engineObject)->Destroy(m_engineObject);
 				}
 
-				void start()
+				sl_bool _start() override
 				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					if (m_flagRunning) {
-						return;
-					}
 					if (onFrame()) {
 						if ((*m_recordInterface)->SetRecordState(m_recordInterface, SL_RECORDSTATE_RECORDING) != SL_RESULT_SUCCESS) {
 							logError("Failed to record buffer");
-							return;
+							return sl_false;
 						}
+						logError("start audio recorder.");
+						return sl_true;
 					}
-					
-					logError("start audio recorder.");
-					m_flagRunning = sl_true;
+					return sl_false;
 				}
 
-				void stop()
+				void _stop() override
 				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					if (!m_flagRunning) {
-						return;
-					}
-					m_flagRunning = sl_false;
 					if ((*m_bufferQueue)->Clear(m_bufferQueue) != SL_RESULT_SUCCESS) {
 						logError("Failed to clear buffer queue");
 						return;
 					}
 					(*m_recordInterface)->SetRecordState(m_recordInterface, SL_RECORDSTATE_STOPPED);
-				}
-
-				sl_bool isRunning()
-				{
-					return m_flagRunning;
-				}
-
-				sl_bool isOpened()
-				{
-					return m_flagOpened;
 				}
 
 				sl_bool onFrame()

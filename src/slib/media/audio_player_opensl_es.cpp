@@ -119,9 +119,6 @@ namespace slib
 				SLPlayItf m_playerInterface;
 				SLAndroidSimpleBufferQueueItf m_bufferQueue;
 
-				sl_bool m_flagOpened;
-				sl_bool m_flagRunning;
-				
 				sl_int16* m_bufFrame;
 				sl_uint32 m_indexBuffer;
 				sl_uint32 m_nSamplesFrame;
@@ -129,8 +126,6 @@ namespace slib
 			public:
 				AudioPlayerBufferImpl()
 				{
-					m_flagOpened = sl_true;
-					m_flagRunning = sl_false;
 					m_indexBuffer = 0;
 				}
 				
@@ -235,68 +230,33 @@ namespace slib
 					return ret;
 				}
 
-				void release()
+				void _release() override
 				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					stop();
-					m_flagOpened = sl_false;
 					(*m_playerObject)->Destroy(m_playerObject);
 					if (m_bufFrame) {
 						delete[] m_bufFrame;
 					}
 				}
 
-				sl_bool isOpened()
+				sl_bool _start() override
 				{
-					return m_flagOpened;
-				}
-
-				void start()
-				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					if (m_flagRunning) {
-						return;
-					}
 					if (enqueue()) {
 						if ((*m_playerInterface)->SetPlayState(m_playerInterface, SL_PLAYSTATE_PLAYING) != SL_RESULT_SUCCESS) {
 							logError("Failed to play buffer");
-							return;
+							return sl_false;
 						}
+						return sl_true;
 					}
-					m_flagRunning = sl_true;
+					return sl_false;
 				}
 
-				void pause()
+				void _stop() override
 				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					if (!m_flagRunning) {
-						return;
-					}
-					m_flagRunning = sl_false;
 					if ((*m_bufferQueue)->Clear(m_bufferQueue) != SL_RESULT_SUCCESS) {
 						logError("Failed to clear buffer queue");
 						return;
 					}
 					(*m_playerInterface)->SetPlayState(m_playerInterface, SL_PLAYSTATE_STOPPED);
-				}
-
-				void stop()
-				{
-					pause();
-				}
-
-				sl_bool isRunning()
-				{
-					return m_flagRunning;
 				}
 
 				sl_bool enqueue()

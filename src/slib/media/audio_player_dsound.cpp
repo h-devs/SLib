@@ -173,8 +173,6 @@ namespace slib
 				sl_uint32 m_nNotifySize;
 
 				Ref<Thread> m_thread;
-				sl_bool m_flagRunning;
-				sl_bool m_flagOpened;
 
 			public:
 				AudioPlayerBufferImpl()
@@ -258,7 +256,7 @@ namespace slib
 										ret->m_hNotificationEvents[1] = hNotificationEvents[1];
 										ret->m_nSamplesFrame = samplesPerFrame;
 										ret->m_nBufferSize = sizeBuffer;
-												
+										
 										ret->_init(param);
 												
 										if (param.flagAutoStart) {
@@ -285,14 +283,8 @@ namespace slib
 					return sl_null;
 				}
 
-				void release() override
-				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					stop();
-					m_flagOpened = sl_false;
+				void _release() override
+				{					
 					m_dsBuffer->Release();
 					m_dsBuffer = NULL;
 
@@ -306,45 +298,18 @@ namespace slib
 					}
 				}
 
-				sl_bool isOpened() override
+				sl_bool _start() override
 				{
-					return m_flagOpened;
-				}
-
-				void start() override
-				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					if (m_flagRunning) {
-						return;
-					}
 					m_thread = Thread::start(SLIB_FUNCTION_MEMBER(AudioPlayerBufferImpl, run, this));
-					if (m_thread.isNotNull()) {
-						m_flagRunning = sl_true;
-					}
+					return m_thread.isNotNull();
 				}
 
-				void stop() override
-				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					if (!m_flagRunning) {
-						return;
-					}
-					m_flagRunning = sl_false;
+				void _stop() override
+				{					
 					m_thread->finish();
 					SetEvent(m_hNotificationEvents[1]);
 					m_thread->finishAndWait();
 					m_thread.setNull();
-				}
-
-				sl_bool isRunning() override
-				{
-					return m_flagRunning;
 				}
 
 				void run()

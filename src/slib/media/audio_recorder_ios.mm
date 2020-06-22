@@ -44,17 +44,7 @@ namespace slib
 			
 			class AudioRecorderImpl: public AudioRecorder
 			{
-			private:
-				AudioRecorderImpl()
-				{
-					m_flagOpened = sl_true;
-					m_flagRunning = sl_false;
-					m_flagInitializedUnit = sl_false;
-				}
-				
 			public:
-				sl_bool m_flagRunning;
-				sl_bool m_flagOpened;
 				sl_bool m_flagInitializedUnit;
 				
 				AudioComponentInstance m_audioUnitInput;
@@ -63,11 +53,18 @@ namespace slib
 				AudioStreamBasicDescription m_formatSrc;
 				AudioStreamBasicDescription m_formatDst;
 				
+			public:
+				AudioRecorderImpl()
+				{
+					m_flagInitializedUnit = sl_false;
+				}
+				
 				~AudioRecorderImpl()
 				{
 					release();
 				}
 				
+			public:
 				static void logError(String text)
 				{
 					LogError("AudioRecorder", text);
@@ -194,14 +191,8 @@ namespace slib
 					return ret;
 				}
 				
-				void release()
+				void _release() override
 				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					stop();
-					m_flagOpened = sl_false;
 					if (m_flagInitializedUnit) {
 						AudioUnitUninitialize(m_audioUnitInput);
 					}
@@ -209,44 +200,20 @@ namespace slib
 					AudioConverterDispose(m_converter);
 				}
 				
-				sl_bool isOpened()
+				sl_bool _start() override
 				{
-					return m_flagOpened;
-				}
-				
-				void start()
-				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					if (m_flagRunning) {
-						return;
-					}
 					if (AudioOutputUnitStart(m_audioUnitInput) != noErr) {
 						logError("Failed to start audio unit");
+						return sl_false;
 					}
-					m_flagRunning = sl_true;
+					return sl_true;
 				}
 				
-				void stop()
+				void _stop() override
 				{
-					ObjectLocker lock(this);
-					if (!m_flagOpened) {
-						return;
-					}
-					if (!m_flagRunning) {
-						return;
-					}
-					m_flagRunning = sl_false;
 					if (AudioOutputUnitStop(m_audioUnitInput) != noErr) {
 						logError("Failed to stop audio unit");
 					}
-				}
-				
-				virtual sl_bool isRunning()
-				{
-					return m_flagRunning;
 				}
 				
 				struct ConverterContext
