@@ -123,8 +123,10 @@ namespace slib
 					
 					::OpusEncoder* encoder = (::OpusEncoder*)(Base::createMemory(sizeEncoder));
 					if (encoder) {
+#ifdef OPUS_RESET_INTERVAL
 						::OpusEncoder* encoderBackup = (::OpusEncoder*)(Base::createMemory(sizeEncoder));
 						if (encoderBackup) {
+#endif
 							int app = OPUS_APPLICATION_VOIP;
 							if (param.type == OpusEncoderType::Music) {
 								app = OPUS_APPLICATION_AUDIO;
@@ -157,8 +159,10 @@ namespace slib
 									return ret;
 								}
 							}
+#ifdef OPUS_RESET_INTERVAL
 							Base::freeMemory(encoderBackup);
 						}
+#endif
 						Base::freeMemory(encoder);
 					}
 					return sl_null;
