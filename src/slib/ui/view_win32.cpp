@@ -34,6 +34,10 @@
 
 #include <commctrl.h>
 
+#ifdef max
+#undef max
+#endif
+
 namespace slib
 {
 
@@ -602,11 +606,18 @@ namespace slib
 
 		sl_uint32 widthBitmap = (sl_uint32)(size.x);
 		sl_uint32 heightBitmap = (sl_uint32)(size.y);
-		if (bitmap.isNull() || canvasBitmap.isNull() || bitmap->getWidth() < widthBitmap || bitmap->getHeight() < heightBitmap) {
-			bitmap = Bitmap::create(widthBitmap, heightBitmap);
-			if (bitmap.isNull()) {
+		sl_uint32 widthOldBitmap = 0;
+		sl_uint32 heightOldBitmap = 0;
+		if (bitmap.isNotNull()) {
+			widthOldBitmap = bitmap->getWidth();
+			heightOldBitmap = bitmap->getHeight();
+		}
+		if (bitmap.isNull() || canvasBitmap.isNull() || widthOldBitmap < widthBitmap || heightOldBitmap < heightBitmap) {
+			Ref<Bitmap> bitmapNew = Bitmap::create(Math::max(widthOldBitmap, widthBitmap), Math::max(heightOldBitmap, heightBitmap));
+			if (bitmapNew.isNull()) {
 				return;
 			}
+			bitmap = bitmapNew;
 			canvasBitmap = bitmap->getCanvas();
 			if (canvasBitmap.isNull()) {
 				return;
