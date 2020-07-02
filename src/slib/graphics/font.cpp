@@ -234,4 +234,47 @@ namespace slib
 		return m_platformObject;
 	}
 
+	sl_bool Font::addFontResource(const void* data, sl_size size)
+	{
+		return _addFontResource(data, size, sl_null);
+	}
+
+	sl_bool Font::addFontResource(const Memory& mem)
+	{
+		return _addFontResource(mem.getData(), mem.getSize(), sl_null);
+	}
+
+	Ref<Referable> Font::addFontResourceRef(const void* data, sl_size size)
+	{
+		Ref<Referable> ref;
+		if (_addFontResource(data, size, &ref)) {
+			return ref;
+		}
+		return sl_null;
+	}
+
+	Ref<Referable> Font::addFontResourceRef(const Memory& data)
+	{
+		Ref<Referable> ref;
+		if (_addFontResource(data.getData(), data.getSize(), &ref)) {
+			return ref;
+		}
+		return sl_null;
+	}
+
+
+#if !defined(SLIB_GRAPHICS_IS_GDI)
+	List<String> Font::getAllFamilyNames()
+	{
+		return sl_null;
+	}
+#endif
+
+#if !defined(SLIB_GRAPHICS_IS_GDI)
+	sl_bool Font::_addFontResource(const void* data, sl_size size, Ref<Referable>* pRef)
+	{
+		return sl_false;
+	}
+#endif
+
 }

@@ -81,6 +81,16 @@ namespace slib
 
 		static void setDefaultFontSize(sl_real size);
 
+		static List<String> getAllFamilyNames();
+
+		static sl_bool addFontResource(const void* data, sl_size size);
+
+		static sl_bool addFontResource(const Memory& mem);
+
+		static Ref<Referable> addFontResourceRef(const void* data, sl_size size);
+
+		static Ref<Referable> addFontResourceRef(const Memory& data);
+
 	public:
 		void getDesc(FontDesc& desc);
 
@@ -118,6 +128,8 @@ namespace slib
 		sl_bool _getFontMetrics_PO(FontMetrics& _out);
 
 		Size _measureText_PO(const StringParam& text);
+
+		static sl_bool _addFontResource(const void* data, sl_size size, Ref<Referable>* pRef);
 
 	protected:
 		FontDesc m_desc;
