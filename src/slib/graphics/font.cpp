@@ -23,6 +23,7 @@
 #include "slib/graphics/font.h"
 
 #include "slib/graphics/font_atlas.h"
+#include "slib/core/locale.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -32,7 +33,33 @@ namespace slib
 	{
 		namespace font
 		{
+			
+			SLIB_STATIC_ZERO_INITIALIZED(SpinLock, g_lockDefaultFont)
+			SLIB_STATIC_ZERO_INITIALIZED(Ref<Font>, g_defaultFont)
+			
+			SLIB_STATIC_ZERO_INITIALIZED(AtomicString, g_defaultFamily)
 			sl_real g_defaultSize = 12;
+
+			static String GetSystemDefaultFontFamily()
+			{
+#ifdef SLIB_PLATFORM_IS_WIN32
+				SLIB_STATIC_STRING(tohoma, "Tahoma")
+				SLIB_STATIC_STRING(cambria, "Cambria")
+				auto fonts = Font::getAllFamilyNames();
+				if (fonts.contains(tohoma)) {
+					return tohoma;
+				}
+				if (fonts.contains(cambria)) {
+					return cambria;
+				}
+				SLIB_STATIC_STRING(s, "System")
+				return s;
+#else
+				SLIB_STATIC_STRING(s, "Arial")
+				return s;
+#endif
+			}
+
 		}
 	}
 
@@ -42,7 +69,7 @@ namespace slib
 	
 	FontDesc::FontDesc()
 	{
-		size = Font::getDefaultFontSize();
+		size = g_defaultSize;
 		flagBold = sl_false;
 		flagItalic = sl_false;
 		flagUnderline = sl_false;
@@ -61,34 +88,20 @@ namespace slib
 	{
 	}
 
-	sl_real Font::getDefaultFontSize()
-	{
-		return g_defaultSize;
-	}
-
-	void Font::setDefaultFontSize(sl_real size)
-	{
-		g_defaultSize = size;
-	}
-
-	Ref<Font> Font::getDefault()
-	{
-		SLIB_SAFE_STATIC(AtomicRef<Font>, defaultFont, create(FontDesc()))
-		if (SLIB_SAFE_STATIC_CHECK_FREED(defaultFont)) {
-			return sl_null;
-		}
-		return defaultFont;
-	}
-
 	Ref<Font> Font::create(const FontDesc &desc)
 	{
 		Ref<Font> ret = new Font;
 		if (ret.isNotNull()) {
-			ret->m_desc.familyName = desc.familyName;
+			if (desc.familyName.isNotEmpty()) {
+				ret->m_desc.familyName = desc.familyName;
+			} else {
+				ret->m_desc.familyName = getDefaultFontFamily();
+			}
 			ret->m_desc.size = SLIB_FONT_SIZE_PRECISION_APPLY(desc.size);
 			ret->m_desc.flagBold = desc.flagBold;
 			ret->m_desc.flagItalic = desc.flagItalic;
 			ret->m_desc.flagUnderline = desc.flagUnderline;
+			ret->m_desc.flagStrikeout = desc.flagStrikeout;
 			return ret;
 		}
 		return sl_null;
@@ -98,7 +111,11 @@ namespace slib
 	{
 		Ref<Font> ret = new Font;
 		if (ret.isNotNull()) {
-			ret->m_desc.familyName = familyName;
+			if (familyName.isNotEmpty()) {
+				ret->m_desc.familyName = familyName;
+			} else {
+				ret->m_desc.familyName = getDefaultFontFamily();
+			}
 			ret->m_desc.size = SLIB_FONT_SIZE_PRECISION_APPLY(size);
 			ret->m_desc.flagBold = flagBold;
 			ret->m_desc.flagItalic = flagItalic;
@@ -107,6 +124,155 @@ namespace slib
 			return ret;
 		}
 		return sl_null;
+	}
+
+	Ref<Font> Font::getDefault()
+	{
+		if (SLIB_SAFE_STATIC_CHECK_FREED(g_defaultFont)) {
+			return sl_null;
+		}
+		if (g_defaultFont.isNotNull()) {
+			SpinLocker lock(&g_lockDefaultFont);
+			return g_defaultFont;
+		} else {
+			Ref<Font> font = create(FontDesc());
+			if (font.isNotNull()) {
+				SpinLocker lock(&g_lockDefaultFont);
+				g_defaultFont = font;
+				return font;
+			}
+		}
+		return sl_null;
+	}
+
+	void Font::setDefault(const Ref<Font>& font)
+	{
+		if (SLIB_SAFE_STATIC_CHECK_FREED(g_defaultFont)) {
+			return;
+		}
+		if (font.isNotNull()) {
+			g_defaultFamily = font->getFamilyName();
+			g_defaultSize = font->getSize();
+			SpinLocker lock(&g_lockDefaultFont);
+			g_defaultFont = font;
+		} else {
+			Ref<Font> fontNew = create(FontDesc());
+			if (fontNew.isNotNull()) {
+				SpinLocker lock(&g_lockDefaultFont);
+				g_defaultFont = fontNew;
+			}
+		}
+	}
+
+	sl_real Font::getDefaultFontSize()
+	{
+		return g_defaultSize;
+	}
+
+	void Font::setDefaultFontSize(sl_real size)
+	{
+		if (size < 0) {
+			size = 0;
+		}
+		size = SLIB_FONT_SIZE_PRECISION_APPLY(size);
+		if (g_defaultSize == size) {
+			return;
+		}
+		g_defaultSize = size;
+
+		if (SLIB_SAFE_STATIC_CHECK_FREED(g_defaultFont)) {
+			return;
+		}
+		SpinLocker lock(&g_lockDefaultFont);
+		if (g_defaultFont.isNotNull()) {
+			FontDesc desc;
+			g_defaultFont->getDesc(desc);
+			desc.size = size;
+			Ref<Font> fontNew = create(desc);
+			if (fontNew.isNotNull()) {
+				g_defaultFont = fontNew;
+			}
+		}
+	}
+
+	String Font::getDefaultFontFamily()
+	{
+		if (SLIB_SAFE_STATIC_CHECK_FREED(g_defaultFamily)) {
+			return sl_null;
+		}
+		if (g_defaultFamily.isNotNull()) {
+			return g_defaultFamily;
+		} else {
+			String name = GetSystemDefaultFontFamily();
+			if (name.isNotEmpty()) {
+				g_defaultFamily = name;
+				return name;
+			}
+		}
+		return sl_null;
+	}
+
+	void Font::setDefaultFontFamily(const String& _fontFamily)
+	{
+		if (SLIB_SAFE_STATIC_CHECK_FREED(g_defaultFamily)) {
+			return;
+		}
+		String fontFamily = _fontFamily;
+		if (fontFamily.isEmpty()) {
+			fontFamily = GetSystemDefaultFontFamily();
+			if (fontFamily.isEmpty()) {
+				return;
+			}
+		}
+		if (g_defaultFamily == fontFamily) {
+			return;
+		}
+		g_defaultFamily = fontFamily;
+
+		if (SLIB_SAFE_STATIC_CHECK_FREED(g_defaultFont)) {
+			return;
+		}
+		SpinLocker lock(&g_lockDefaultFont);
+		if (g_defaultFont.isNotNull()) {
+			FontDesc desc;
+			g_defaultFont->getDesc(desc);
+			desc.familyName = fontFamily;
+			Ref<Font> fontNew = create(desc);
+			if (fontNew.isNotNull()) {
+				g_defaultFont = fontNew;
+			}
+		}
+	}
+
+	String Font::getDefaultFontFamilyForLocale(const Locale& locale)
+	{
+		Language lang = locale.getLanguage();
+		if (lang == Language::Korean) {
+			if (locale.getCountry() == Country::NorthKorea) {
+				SLIB_STATIC_STRING(s1, "KP CheonRiMa")
+				SLIB_STATIC_STRING(s2, "PRK P Gothic")
+				SLIB_STATIC_STRING(s3, "\xec\xb2\x9c\xeb\xa6\xac\xeb\xa7\x88")
+				auto fonts = Font::getAllFamilyNames();
+				if (fonts.contains_NoLock(s1)) {
+					return s1;
+				}
+				if (fonts.contains_NoLock(s2)) {
+					return s2;
+				}
+				if (fonts.contains_NoLock(s3)) {
+					return s3;
+				}
+			} else {
+				SLIB_STATIC_STRING(s, "Dotum")
+				return s;
+			}
+		}
+		return GetSystemDefaultFontFamily();
+	}
+
+	void Font::setDefaultFontFamilyForLocale(const Locale& locale)
+	{
+		setDefaultFontFamily(getDefaultFontFamilyForLocale(locale));
 	}
 
 	void Font::getDesc(FontDesc& desc)

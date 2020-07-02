@@ -41,10 +41,15 @@ namespace slib
 	class Menu;
 	class UIApp;
 	class Font;
+	class Locale;
 
 	class SLIB_EXPORT UI
 	{
 	public:
+		static Ref<Font> getDefaultFont();
+
+		static void setDefaultFont(const Ref<Font>& font);
+		
 		static sl_real getDefaultFontSize();
 		
 		static void setDefaultFontSize(sl_real fontSize);
@@ -52,10 +57,9 @@ namespace slib
 		static String getDefaultFontFamily();
 		
 		static void setDefaultFontFamily(const String& fontFamily);
-		
-		static Ref<Font> getDefaultFont();
 
-		static void setDefaultFont(const Ref<Font>& font);
+		static void setDefaultFontFamilyForLocale(const Locale& locale);
+		
 
 		static sl_ui_len getDefaultScrollBarWidth();
 		

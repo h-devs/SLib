@@ -43,21 +43,22 @@ namespace slib
 			public:
 				sl_real fontSize;
 				AtomicString fontFamily;
-				AtomicRef<Font> font;
+				
+				SpinLock lockFont;
+				Ref<Font> font;
+
 				sl_ui_len scrollBarWidth;
 				
 			public:
 				DefaultContext()
 				{
 #if defined(SLIB_PLATFORM_IS_DESKTOP)
-					scrollBarWidth = 12;
 					fontSize = 12;
+					scrollBarWidth = 12;
 #else
-					scrollBarWidth = SLIB_MIN(UI::getScreenWidth(), UI::getScreenHeight()) / 60;
 					fontSize = (sl_real)(SLIB_MIN(UI::getScreenWidth(), UI::getScreenHeight()) / 40);
+					scrollBarWidth = SLIB_MIN(UI::getScreenWidth(), UI::getScreenHeight()) / 60;
 #endif
-					fontFamily = "Arial";
-					font = Font::create(fontFamily, fontSize);
 				}
 			};
 			
@@ -145,58 +146,7 @@ namespace slib
 	Screen::~Screen()
 	{
 	}
-	
-	sl_real UI::getDefaultFontSize()
-	{
-		DefaultContext* def = getDefaultContext();
-		if (!def) {
-			return 0;
-		}
-		return def->fontSize;
-	}
 
-	void UI::setDefaultFontSize(sl_real fontSize)
-	{
-		DefaultContext* def = getDefaultContext();
-		if (!def) {
-			return;
-		}
-		def->fontSize = fontSize;
-		Ref<Font> font = def->font;
-		if (font.isNull() || font->getSize() != fontSize) {
-			FontDesc desc;
-			font->getDesc(desc);
-			desc.size = fontSize;
-			font = Font::create(desc);
-			def->font = font;
-		}
-	}
-
-	String UI::getDefaultFontFamily()
-	{
-		DefaultContext* def = getDefaultContext();
-		if (!def) {
-			return sl_null;
-		}
-		return def->fontFamily;
-	}
-
-	void UI::setDefaultFontFamily(const String& fontFamily)
-	{
-		DefaultContext* def = getDefaultContext();
-		if (!def) {
-			return;
-		}
-		def->fontFamily = fontFamily;
-		Ref<Font> font = def->font;
-		if (font.isNull() || font->getFamilyName() != fontFamily) {
-			FontDesc desc;
-			font->getDesc(desc);
-			desc.familyName = fontFamily;
-			font = Font::create(desc);
-			def->font = font;
-		}
-	}
 
 	Ref<Font> UI::getDefaultFont()
 	{
@@ -204,7 +154,21 @@ namespace slib
 		if (!def) {
 			return sl_null;
 		}
-		return def->font;
+		if (def->font.isNotNull()) {
+			SpinLocker lock(&def->lockFont);
+			return def->font;
+		} else {
+			FontDesc desc;
+			desc.familyName = def->fontFamily;
+			desc.size = def->fontSize;
+			Ref<Font> font = Font::create(desc);
+			if (font.isNotNull()) {
+				SpinLocker lock(&def->lockFont);
+				def->font = font;
+				return font;
+			}
+		}
+		return sl_null;
 	}
 
 	void UI::setDefaultFont(const Ref<Font>& font)
@@ -216,9 +180,98 @@ namespace slib
 		if (font.isNotNull()) {
 			def->fontFamily = font->getFamilyName();
 			def->fontSize = font->getSize();
+			SpinLocker lock(&(def->lockFont));
 			def->font = font;
+		} else {
+			FontDesc desc;
+			desc.familyName = def->fontFamily;
+			desc.size = def->fontSize;
+			Ref<Font> font = Font::create(desc);
+			if (font.isNotNull()) {
+				SpinLocker lock(&def->lockFont);
+				def->font = font;
+			}
 		}
 	}
+
+	sl_real UI::getDefaultFontSize()
+	{
+		DefaultContext* def = getDefaultContext();
+		if (def) {
+			return def->fontSize;
+		}
+		return 0;
+	}
+
+	void UI::setDefaultFontSize(sl_real fontSize)
+	{
+		DefaultContext* def = getDefaultContext();
+		if (!def) {
+			return;
+		}
+
+		if (fontSize < 0) {
+			fontSize = 0;
+		}
+		fontSize = SLIB_FONT_SIZE_PRECISION_APPLY(fontSize);
+		if (def->fontSize == fontSize) {
+			return;
+		}
+		def->fontSize = fontSize;
+
+		SpinLocker lock(&(def->lockFont));
+		if (def->font.isNotNull()) {
+			FontDesc desc;
+			def->font->getDesc(desc);
+			desc.size = fontSize;
+			Ref<Font> fontNew = Font::create(desc);
+			if (fontNew.isNotNull()) {
+				def->font = fontNew;
+			}
+		}
+	}
+
+	String UI::getDefaultFontFamily()
+	{
+		DefaultContext* def = getDefaultContext();
+		if (def) {
+			String name = def->fontFamily;
+			if (name.isNotEmpty()) {
+				return name;
+			}
+		}
+		return Font::getDefaultFontFamily();
+	}
+
+	void UI::setDefaultFontFamily(const String& fontFamily)
+	{
+		DefaultContext* def = getDefaultContext();
+		if (!def) {
+			return;
+		}
+
+		if (def->fontFamily == fontFamily) {
+			return;
+		}
+		def->fontFamily = fontFamily;
+
+		SpinLocker lock(&(def->lockFont));
+		if (def->font.isNotNull()) {
+			FontDesc desc;
+			def->font->getDesc(desc);
+			desc.familyName = fontFamily;
+			Ref<Font> fontNew = Font::create(desc);
+			if (fontNew.isNotNull()) {
+				def->font = fontNew;
+			}
+		}
+	}
+
+	void UI::setDefaultFontFamilyForLocale(const Locale& locale)
+	{
+		UI::setDefaultFontFamily(Font::getDefaultFontFamilyForLocale(locale));
+	}
+
 
 	sl_ui_len UI::getDefaultScrollBarWidth()
 	{
