@@ -61,6 +61,9 @@
     <Filter Include="src\service">
       <UniqueIdentifier>{f8d3e2b1-d55d-440d-b9b8-01fe4590e459}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\storage">
+      <UniqueIdentifier>{f83a293e-1e90-4a25-8b4c-104dbf1be2b5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\slib\core\async_config.h">
@@ -1396,6 +1399,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\label_list.cpp">
       <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\disk.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\disk_win32.cpp">
+      <Filter>src\storage</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

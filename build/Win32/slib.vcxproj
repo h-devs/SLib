@@ -376,6 +376,8 @@
     <ClCompile Include="..\..\src\slib\social\twitter.cpp" />
     <ClCompile Include="..\..\src\slib\social\wechat.cpp" />
     <ClCompile Include="..\..\src\slib\social\wechat_sdk.cpp" />
+    <ClCompile Include="..\..\src\slib\storage\disk.cpp" />
+    <ClCompile Include="..\..\src\slib\storage\disk_win32.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button_win32.cpp" />
     <ClCompile Include="..\..\src\slib\ui\camera_view.cpp" />
