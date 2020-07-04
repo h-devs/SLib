@@ -28,6 +28,62 @@
 namespace slib
 {
 
+	namespace priv
+	{
+		namespace disk
+		{
+
+// #define FIX_SERIAL_NUMBER
+
+			static String ProcessSerialNumber(char* sn, sl_size n)
+			{
+#ifdef FIX_SERIAL_NUMBER
+				sl_size i;
+				sl_bool flagHex = sl_true;
+				for (i = 0; i < n; i++) {
+					char c = sn[i];
+					if (c) {
+						if (!SLIB_CHAR_IS_HEX(c)) {
+							flagHex = sl_false;
+						}
+					} else {
+						n = i;
+						break;
+					}
+				}
+				if (n) {
+					if (flagHex && n % 2 == 0) {
+						n >>= 1;
+						sl_size k = 0;
+						for (i = 0; i < n; i++) {
+							sn[i] = (char)((SLIB_CHAR_HEX_TO_INT(sn[k]) << 4) | SLIB_CHAR_HEX_TO_INT(sn[k + 1]));
+							k += 2;
+						}
+						String ret = String::fromUtf8(sn, n).trim();
+						if (ret.isNotEmpty()) {
+							n = ret.getLength() >> 1;
+							char* p = ret.getData();
+							for (i = 0; i < n; i++) {
+								Swap(p[0], p[1]);
+								p += 2;
+							}
+						}
+						return ret;
+					} else {
+						return String::fromUtf8(sn, n);
+					}
+				}
+				return sl_null;
+#else
+				return String::fromUtf8(sn, Base::getStringLength(sn, n));
+#endif
+			}
+
+		}
+	}
+
+	using namespace priv::disk;
+
 	String Disk::getSerialNumber(sl_uint32 diskNo)
 	{
 		SLIB_STATIC_STRING16(pathTemplate, "\\\\.\\PhysicalDrive")
@@ -72,40 +128,7 @@ namespace slib
 				if (descriptor->SerialNumberOffset) {
 					char* sn = (char*)(output + descriptor->SerialNumberOffset);
 					sl_size n = nOutput - (sl_size)(descriptor->SerialNumberOffset);
-					sl_size i;
-					sl_bool flagHex = sl_true;
-					for (i = 0; i < n; i++) {
-						char c = sn[i];
-						if (c) {
-							if (!SLIB_CHAR_IS_HEX(c)) {
-								flagHex = sl_false;
-							}
-						} else {
-							n = i;
-							break;
-						}
-					}
-					if (n) {
-						if (flagHex && n % 2 == 0) {
-							n >>= 1;
-							sl_size k = 0;
-							for (i = 0; i < n; i++) {
-								sn[i] = (char)((SLIB_CHAR_HEX_TO_INT(sn[k]) << 4) | SLIB_CHAR_HEX_TO_INT(sn[k + 1]));
-								k += 2;
-							}
-							ret = String::fromUtf8(sn, n).trim();
-							if (ret.isNotEmpty()) {
-								n = ret.getLength() >> 1;
-								char* p = ret.getData();
-								for (i = 0; i < n; i++) {
-									Swap(p[0], p[1]);
-									p += 2;
-								}
-							}
-						} else {
-							ret = String::fromUtf8(sn, n);
-						}
-					}
+					ret = ProcessSerialNumber(sn, n);
 				}
 			}
 		}
