@@ -510,7 +510,7 @@ namespace slib
 
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* parent)
 	{
-		int style = WS_TABSTOP | ES_AUTOHSCROLL;
+		int style = WS_TABSTOP;
 		Alignment align = m_gravity & Alignment::HorizontalMask;
 		if (align == Alignment::Center) {
 			style |= ES_CENTER;
@@ -519,6 +519,9 @@ namespace slib
 		}
 		if (m_multiLine != MultiLineMode::Single) {
 			style |= ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN;
+		}
+		if (m_multiLine != MultiLineMode::WordWrap && m_multiLine != MultiLineMode::BreakWord) {
+			style |= ES_AUTOHSCROLL;
 		}
 		if (m_flagReadOnly) {
 			style |= ES_READONLY;
