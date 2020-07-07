@@ -45,7 +45,8 @@ namespace slib
 				if (ret.isEmpty()) {
 					return ret;
 				}
-				sl_char8* output = ret.getData();
+				sl_char8* _output = ret.getData();
+				sl_char8* output = _output;
 				sl_uint32 n = 0;
 				for (sl_size iBlock = 0; iBlock < countBlock; iBlock++) {
 					sl_uint8 n0 = input[0];
@@ -68,9 +69,13 @@ namespace slib
 					}
 				} else {
 					if (last == 1) {
-						ret.setLength((countBlock << 2) - 2);
+						sl_size nLen = (countBlock << 2) - 2;
+						_output[nLen] = 0;
+						ret.setLength(nLen);
 					} else if (last > 1) {
-						ret.setLength((countBlock << 2) - 1);
+						sl_size nLen = (countBlock << 2) - 1;
+						_output[nLen] = 0;
+						ret.setLength(nLen);
 					}
 				}
 				return ret;
