@@ -357,7 +357,9 @@ namespace slib
 		sl_bool start();
 		
 		void release();
-		
+
+		sl_bool isReleased();
+
 		sl_bool isRunning();
 		
 		Ref<AsyncIoLoop> getAsyncIoLoop();

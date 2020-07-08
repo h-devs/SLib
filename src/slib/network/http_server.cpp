@@ -306,6 +306,9 @@ namespace slib
 		if (server.isNull()) {
 			return;
 		}
+		if (server->isReleased()) {
+			return;
+		}
 		
 		ObjectLocker lock(this);
 		
@@ -422,7 +425,11 @@ namespace slib
 				}
 			}
 		}
-		
+
+		if (server->isReleased()) {
+			return;
+		}
+
 		if (!(context->m_flagBeganProcessing)) {
 			
 			if (context->m_requestHeader.isNotNull()) {
@@ -471,6 +478,10 @@ namespace slib
 				}
 			}
 			
+		}
+
+		if (server->isReleased()) {
+			return;
 		}
 		_read();
 	}
@@ -1230,6 +1241,20 @@ namespace slib
 		m_flagReleased = sl_true;
 		m_flagRunning = sl_false;
 		
+		Ref<ThreadPool> threadPool = m_threadPool;
+		if (threadPool.isNotNull()) {
+			threadPool->release();
+			m_threadPool.setNull();
+		}
+
+		Ref<AsyncIoLoop> ioLoop = m_ioLoop;
+		if (ioLoop.isNotNull()) {
+			ioLoop->release();
+			m_ioLoop.setNull();
+		}
+
+		m_connections.removeAll();
+
 		{
 			ListLocker< Ref<HttpServerConnectionProvider> > cp(m_connectionProviders);
 			for (sl_size i = 0; i < cp.count; i++) {
@@ -1237,18 +1262,12 @@ namespace slib
 			}
 		}
 		m_connectionProviders.removeAll();
-		
-		Ref<AsyncIoLoop> ioLoop = m_ioLoop;
-		if (ioLoop.isNotNull()) {
-			ioLoop->release();
-			m_ioLoop.setNull();
-		}
-		Ref<ThreadPool> threadPool = m_threadPool;
-		if (threadPool.isNotNull()) {
-			threadPool->release();
-			m_threadPool.setNull();
-		}
-		m_connections.removeAll();
+
+	}
+
+	sl_bool HttpServer::isReleased()
+	{
+		return m_flagReleased;
 	}
 
 	sl_bool HttpServer::isRunning()
