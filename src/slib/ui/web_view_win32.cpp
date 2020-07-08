@@ -931,7 +931,7 @@ namespace slib
 
 			WebViewInstance::~WebViewInstance()
 			{
-				UI::dispatchToUiThread(Function<void()>::bind(&WebViewInstanceReleaser, m_handle, m_browser, m_control, m_oleClient));
+				UI::runOnUiThread(Function<void()>::bind(&WebViewInstanceReleaser, m_handle, m_browser, m_control, m_oleClient));
 			}
 
 			sl_bool WebViewInstance::prepare(WebView* view)
