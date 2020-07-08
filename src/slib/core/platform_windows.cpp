@@ -400,7 +400,7 @@ namespace slib
 
 			int DebugAllocHook(int allocType, void* userData, size_t size, int blockType, long requestNumber, const unsigned char* filename, int lineNumber)
 			{
-				return g_debugAllocHook(userData, (sl_size)size);
+				return g_debugAllocHook(userData, (sl_size)size, (sl_uint32)requestNumber);
 			}
 		}
 	}
