@@ -221,6 +221,10 @@ namespace slib
 		CP_65001 = 65001, // Unicode (UTF-8)
 		UTF8 = CP_65001
 	};
+
+	class Memory;
+	class String;
+	class String16;
 	
 	class Charsets
 	{
@@ -266,10 +270,18 @@ namespace slib
 		
 		static sl_size decode8(Charset charset, const void* input, sl_size sizeInput, sl_char8* utf8, sl_reg lenUtf8Buffer);
 		
-		static sl_size encode16(const sl_char16* utf8, sl_size lenUtf16, Charset charset, void* output, sl_reg sizeOutputBuffer);
+		static sl_size encode16(const sl_char16* utf16, sl_size lenUtf16, Charset charset, void* output, sl_reg sizeOutputBuffer);
 		
 		static sl_size decode16(Charset charset, const void* input, sl_size sizeInput, sl_char16* utf16, sl_reg lenUtf16Buffer);
 		
+		static Memory encode8(const sl_char8* utf8, sl_size lenUtf8, Charset outputCharset);
+
+		static String decode8(Charset charset, const void* input, sl_size sizeInput);
+
+		static Memory encode16(const sl_char16* utf16, sl_size lenUtf16, Charset outputCharset);
+
+		static String16 decode16(Charset charset, const void* input, sl_size sizeInput);
+
 	};
 
 }

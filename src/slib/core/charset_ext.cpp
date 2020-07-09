@@ -193,7 +193,6 @@ namespace slib
 	
 	using namespace priv::charset;
 	
-	
 	sl_size Charsets::encode8(const sl_char8* utf8, sl_size lenUtf8, Charset charset, void* output, sl_reg sizeOutputBuffer)
 	{
 		switch (charset) {
@@ -289,8 +288,39 @@ namespace slib
 				return Decode16(ToWindowsCodepage(charset), input, sizeInput, utf16, lenUtf16Buffer);
 		}
 	}
-	
-	String String::decode(Charset charset, const void* text, sl_size size)
+
+	Memory Charsets::encode8(const sl_char8* src, sl_size len, Charset charset)
+	{
+		if (src && len) {
+			switch (charset) {
+				case Charset::Unknown:
+				case Charset::UTF8:
+				case Charset::UTF16BE:
+				case Charset::UTF16LE:
+				case Charset::UTF32BE:
+				case Charset::UTF32LE:
+					{
+						sl_size size = encode8(src, len, charset, sl_null, -1);
+						if (size) {
+							Memory mem = Memory::create(size);
+							if (mem.isNotNull()) {
+								encode8(src, len, charset, mem.getData(), size);
+								return mem;
+							}
+						}
+						break;
+					}
+				default:
+					{
+						sl_uint32 codepage = ToWindowsCodepage(charset);
+						return EncodeString8(src, len, codepage);
+					}
+			}
+		}
+		return sl_null;
+	}
+
+	String Charsets::decode8(Charset charset, const void* text, sl_size size)
 	{
 		if (size) {
 			switch (charset) {
@@ -320,13 +350,39 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
-	String String::decode(Charset charset, const Memory& mem)
+
+	Memory Charsets::encode16(const sl_char16* src, sl_size len, Charset charset)
 	{
-		return decode(charset, mem.getData(), mem.getSize());
+		if (src && len) {
+			switch (charset) {
+				case Charset::Unknown:
+				case Charset::UTF8:
+				case Charset::UTF16BE:
+				case Charset::UTF16LE:
+				case Charset::UTF32BE:
+				case Charset::UTF32LE:
+					{
+						sl_size size = Charsets::encode16(src, len, charset, sl_null, -1);
+						if (size) {
+							Memory mem = Memory::create(size);
+							if (mem.isNotNull()) {
+								Charsets::encode16(src, len, charset, mem.getData(), size);
+								return mem;
+							}
+						}
+						break;
+					}
+				default:
+					{
+						sl_uint32 codepage = ToWindowsCodepage(charset);
+						return EncodeString16(src, len, codepage);
+					}
+			}
+		}
+		return sl_null;
 	}
-	
-	String16 String16::decode(Charset charset, const void* text, sl_size size)
+
+	String16 Charsets::decode16(Charset charset, const void* text, sl_size size)
 	{
 		if (size) {
 			switch (charset) {
@@ -357,43 +413,32 @@ namespace slib
 		}
 		return sl_null;
 	}
+
+	String String::decode(Charset charset, const void* text, sl_size size)
+	{
+		return Charsets::decode8(charset, text, size);
+	}
+	
+	String String::decode(Charset charset, const Memory& mem)
+	{
+		return Charsets::decode8(charset, mem.getData(), mem.getSize());
+	}
+	
+	String16 String16::decode(Charset charset, const void* text, sl_size size)
+	{
+		return Charsets::decode16(charset, text, size);
+	}
 	
 	String16 String16::decode(Charset charset, const Memory& mem)
 	{
-		return decode(charset, mem.getData(), mem.getSize());
+		return Charsets::decode16(charset, mem.getData(), mem.getSize());
 	}
-	
+
 	Memory String::encode(Charset charset) const
 	{
 		sl_char8* src = getData();
 		sl_size len = getLength();
-		if (src && len) {
-			switch (charset) {
-				case Charset::Unknown:
-				case Charset::UTF8:
-				case Charset::UTF16BE:
-				case Charset::UTF16LE:
-				case Charset::UTF32BE:
-				case Charset::UTF32LE:
-					{
-						sl_size size = Charsets::encode8(src, len, charset, sl_null, -1);
-						if (size) {
-							Memory mem = Memory::create(size);
-							if (mem.isNotNull()) {
-								Charsets::encode8(src, len, charset, mem.getData(), size);
-								return mem;
-							}
-						}
-						break;
-					}
-				default:
-					{
-						sl_uint32 codepage = ToWindowsCodepage(charset);
-						return EncodeString8(src, len, codepage);
-					}
-			}
-		}
-		return sl_null;
+		return Charsets::encode8(src, len, charset);
 	}
 	
 	Memory Atomic<String>::encode(Charset charset) const
@@ -401,38 +446,12 @@ namespace slib
 		String s(*this);
 		return s.encode(charset);
 	}
-	
+
 	Memory String16::encode(Charset charset) const
 	{
 		sl_char16* src = getData();
 		sl_size len = getLength();
-		if (src && len) {
-			switch (charset) {
-				case Charset::Unknown:
-				case Charset::UTF8:
-				case Charset::UTF16BE:
-				case Charset::UTF16LE:
-				case Charset::UTF32BE:
-				case Charset::UTF32LE:
-					{
-						sl_size size = Charsets::encode16(src, len, charset, sl_null, -1);
-						if (size) {
-							Memory mem = Memory::create(size);
-							if (mem.isNotNull()) {
-								Charsets::encode16(src, len, charset, mem.getData(), size);
-								return mem;
-							}
-						}
-						break;
-					}
-				default:
-					{
-						sl_uint32 codepage = ToWindowsCodepage(charset);
-						return EncodeString16(src, len, codepage);
-					}
-			}
-		}
-		return sl_null;
+		return Charsets::encode16(src, len, charset);
 	}
 	
 	Memory Atomic<String16>::encode(Charset charset) const
