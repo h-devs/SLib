@@ -36,8 +36,12 @@ namespace slib
 	void Console::print(const StringParam& _s)
 	{
 		StringCstr16 s(_s);
+		if (s.isEmpty()) {
+			return;
+		}
 #if defined(SLIB_PLATFORM_IS_WIN32)
-		wprintf(L"%s", (LPCWSTR)(s.getData()));
+		Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
+		printf("%s", (char*)(mem.getData()));
 #endif
 #if defined(SLIB_DEBUG)
 		OutputDebugStringW((LPCWSTR)(s.getData()));
@@ -50,7 +54,7 @@ namespace slib
 		char line[512];
 		char* l = gets_s(line);
 		line[511] = 0;
-		return l;
+		return Charsets::decode8(Charset::ANSI, line, Base::getStringLength(line));
 	}
 
 	sl_char16 Console::readChar(sl_bool flagPrintEcho)
