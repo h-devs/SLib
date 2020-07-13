@@ -74,7 +74,7 @@
     <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
-    <IntDir><IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -82,7 +82,7 @@
     <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
-    <IntDir><IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -90,7 +90,7 @@
     <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
-    <IntDir><IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -98,7 +98,7 @@
     <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
-    <IntDir><IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
