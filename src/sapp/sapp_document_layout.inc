@@ -2382,6 +2382,7 @@ namespace slib
 			LAYOUT_CONTROL_NOPARAM_ATTR(ok, setOkOnClick)
 			LAYOUT_CONTROL_NOPARAM_ATTR(cancel, setCancelOnClick)
 			LAYOUT_CONTROL_GENERIC_ATTR(keepKeyboard, setKeepKeyboard)
+			LAYOUT_CONTROL_GENERIC_ATTR(playSoundOnClick, setPlaySoundOnClick)
 		}
 		
 		LAYOUT_CONTROL_ADD_STATEMENT

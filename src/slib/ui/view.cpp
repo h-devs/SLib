@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@
 #include "slib/ui/animation.h"
 #include "slib/ui/resource.h"
 #include "slib/ui/scroll_view.h"
+#include "slib/ui/sound.h"
 
 #include "slib/core/scoped.h"
 #include "slib/core/timer.h"
@@ -63,6 +64,7 @@ namespace slib
 		m_flagKeepKeyboard(sl_false),
 		m_flagDraggable(sl_false),
 		m_flagDroppable(sl_false),
+		m_flagPlaySoundOnClick(sl_false),
 	
 		m_flagCurrentCreatingInstance(sl_false),
 		m_flagInvalidLayout(sl_true),
@@ -7540,6 +7542,18 @@ namespace slib
 		context.operationMask = operationMask;
 	}
 
+
+	sl_bool View::isPlaySoundOnClick()
+	{
+		return m_flagPlaySoundOnClick;
+	}
+
+	void View::setPlaySoundOnClick(sl_bool flag)
+	{
+		m_flagPlaySoundOnClick = flag;
+	}
+
+
 	Function<sl_bool(const UIPoint& pt)> View::getCapturingChildInstanceEvents()
 	{
 		Ref<ChildAttributes>& attrs = m_childAttrs;
@@ -9177,6 +9191,9 @@ namespace slib
 	{
 		if (! m_flagEnabled) {
 			return;
+		}
+		if (m_flagPlaySoundOnClick) {
+			UISound::play(UISoundAlias::Click);
 		}
 		SLIB_INVOKE_EVENT_HANDLER(ClickEvent, ev)
 		getOnClick()(this);

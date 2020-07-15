@@ -334,6 +334,7 @@ namespace slib
 		SAppBooleanValue ok;
 		SAppBooleanValue cancel;
 		SAppBooleanValue keepKeyboard;
+		SAppBooleanValue playSoundOnClick;
 
 	public:
 		SAppLayoutViewAttributes();

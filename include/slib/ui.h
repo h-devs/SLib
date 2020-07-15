@@ -89,6 +89,7 @@
 #include "ui/mobile_game.h"
 
 #include "ui/clipboard.h"
+#include "ui/sound.h"
 #include "ui/system_tray_icon.h"
 #include "ui/photo.h"
 #include "ui/screen_capture.h"

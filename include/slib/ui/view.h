@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -1231,6 +1231,11 @@ namespace slib
 		
 		void beginDragging(const DragItem& item, DragOperations operationMask = DragOperations::All);
 		
+
+		sl_bool isPlaySoundOnClick();
+
+		void setPlaySoundOnClick(sl_bool flag = sl_true);
+
 		
 		Function<sl_bool(const UIPoint& pt)> getCapturingChildInstanceEvents();
 		
@@ -1508,6 +1513,7 @@ namespace slib
 		sl_bool m_flagKeepKeyboard : 1;
 		sl_bool m_flagDraggable : 1;
 		sl_bool m_flagDroppable : 1;
+		sl_bool m_flagPlaySoundOnClick : 1;
 		
 		sl_bool m_flagCurrentCreatingInstance : 1;
 		sl_bool m_flagInvalidLayout : 1;

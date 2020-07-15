@@ -1406,5 +1406,11 @@
     <ClCompile Include="..\..\src\slib\storage\disk_win32.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\ui_sound.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\ui_sound_win32.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
