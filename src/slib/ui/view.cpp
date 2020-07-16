@@ -65,6 +65,7 @@ namespace slib
 		m_flagDraggable(sl_false),
 		m_flagDroppable(sl_false),
 		m_flagPlaySoundOnClick(sl_false),
+		m_flagClientEdge(sl_true),
 	
 		m_flagCurrentCreatingInstance(sl_false),
 		m_flagInvalidLayout(sl_true),
@@ -7551,6 +7552,17 @@ namespace slib
 	void View::setPlaySoundOnClick(sl_bool flag)
 	{
 		m_flagPlaySoundOnClick = flag;
+	}
+
+
+	sl_bool View::isClientEdge()
+	{
+		return m_flagClientEdge;
+	}
+
+	void View::setClientEdge(sl_bool flag)
+	{
+		m_flagClientEdge = flag;
 	}
 
 

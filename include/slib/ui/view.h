@@ -1236,6 +1236,11 @@ namespace slib
 
 		void setPlaySoundOnClick(sl_bool flag = sl_true);
 
+
+		sl_bool isClientEdge();
+
+		void setClientEdge(sl_bool flag);
+
 		
 		Function<sl_bool(const UIPoint& pt)> getCapturingChildInstanceEvents();
 		
@@ -1514,6 +1519,7 @@ namespace slib
 		sl_bool m_flagDraggable : 1;
 		sl_bool m_flagDroppable : 1;
 		sl_bool m_flagPlaySoundOnClick : 1;
+		sl_bool m_flagClientEdge : 1;
 		
 		sl_bool m_flagCurrentCreatingInstance : 1;
 		sl_bool m_flagInvalidLayout : 1;

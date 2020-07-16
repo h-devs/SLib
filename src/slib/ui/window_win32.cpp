@@ -128,7 +128,7 @@ namespace slib
 					HWND hWnd;
 					{
 						DWORD style = WS_CLIPCHILDREN;
-						DWORD styleEx = WS_EX_CONTROLPARENT;
+						DWORD styleEx = WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY;
 						if (param.flagBorderless || param.flagFullScreen) {
 							style |= WS_POPUP;
 						} else {

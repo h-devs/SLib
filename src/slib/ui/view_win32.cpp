@@ -231,7 +231,11 @@ namespace slib
 			}
 			if (view->isCreatingNativeWidget()) {
 				if (view->isBorder()) {
-					style |= WS_BORDER;
+					if (view->isClientEdge()) {
+						styleEx |= WS_EX_CLIENTEDGE;
+					} else {
+						style |= WS_BORDER;
+					}
 				}
 				if (view->isHorizontalScrollBarVisible()) {
 					style |= WS_HSCROLL;
@@ -530,7 +534,13 @@ namespace slib
 
 	void Win32_ViewInstance::setBorder(View* view, sl_bool flag)
 	{
-		Windows::setWindowStyle(m_handle, WS_BORDER, flag);
+		if (view->isClientEdge()) {
+			Windows::setWindowExStyle(m_handle, WS_EX_CLIENTEDGE, flag);
+			Windows::setWindowStyle(m_handle, WS_BORDER, sl_false);
+		} else {
+			Windows::setWindowExStyle(m_handle, WS_EX_CLIENTEDGE, sl_false);
+			Windows::setWindowStyle(m_handle, WS_BORDER, flag);
+		}
 	}
 
 	void Win32_ViewInstance::setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical)
