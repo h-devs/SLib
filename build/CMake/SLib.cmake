@@ -333,6 +333,8 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/social/wechat.cpp"
  "${SLIB_PATH}/src/slib/social/wechat_sdk.cpp"
 
+ "${SLIB_PATH}/src/slib/storage/disk.cpp"
+
  "${SLIB_PATH}/src/slib/ui/button.cpp"
  "${SLIB_PATH}/src/slib/ui/camera_view.cpp"
  "${SLIB_PATH}/src/slib/ui/clipboard.cpp"
@@ -392,6 +394,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/ui/ui_photo.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_platform.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_resource.cpp"
+ "${SLIB_PATH}/src/slib/ui/ui_sound.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_text.cpp"
  "${SLIB_PATH}/src/slib/ui/video_view.cpp"
  "${SLIB_PATH}/src/slib/ui/view.cpp"
