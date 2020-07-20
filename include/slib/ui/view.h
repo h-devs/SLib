@@ -147,7 +147,7 @@ namespace slib
 		
 		Ref<View> getTopmostViewAt(const UIPoint& point);
 		
-		Ref<View> getChildById(const String& _id);
+		Ref<View> findViewById(const String& _id);
 		
 		Ref<View> getRootView();
 		
@@ -1207,11 +1207,18 @@ namespace slib
 		Ref<View> getPreviousTabStop();
 		
 		void setPreviousTabStop(const Ref<View>& view);
-		
+
+		char getMnemonicKey();
+
+		void setMnemonicKey(char ch);
+
+		Ref<View> findViewByMnemonicKey(char ch);
+
+
 		sl_bool isKeepKeyboard();
 		
 		void setKeepKeyboard(sl_bool flag);
-		
+
 		
 		sl_bool isDraggable();
 		
@@ -1391,6 +1398,8 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Cancel, UIEvent* ev)
 		void dispatchCancel();
 
+		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Mnemonic, UIEvent* ev)
+
 	private:
 		void _removeParent(View* parent = sl_null);
 
@@ -1478,6 +1487,10 @@ namespace slib
 				
 		sl_bool _scrollTo(sl_scroll_pos x, sl_scroll_pos y, sl_bool flagPreprocess, sl_bool flagFinish, sl_bool flagAnimate);
 
+
+		Ref<View> _findViewByMnemonicKey(char ch);
+
+
 		void _processEventForStateAndClick(UIEvent* ev);
 		
 		void _processContentScrollingEvents(UIEvent* ev);
@@ -1520,7 +1533,7 @@ namespace slib
 		sl_bool m_flagDroppable : 1;
 		sl_bool m_flagPlaySoundOnClick : 1;
 		sl_bool m_flagClientEdge : 1;
-		
+
 		sl_bool m_flagCurrentCreatingInstance : 1;
 		sl_bool m_flagInvalidLayout : 1;
 		sl_bool m_flagNeedApplyLayout : 1;
@@ -1831,7 +1844,8 @@ namespace slib
 			AtomicRef<GestureDetector> gestureDetector;
 			AtomicPtr<DragItem> dragItem;
 			DragOperations dragOperationMask;
-			
+			char mnemonicKey;
+
 		public:
 			OtherAttributes();
 			
@@ -1870,7 +1884,8 @@ namespace slib
 			AtomicFunction<void(View*, GestureEvent*)> onSwipe;
 			AtomicFunction<void(View*, UIEvent*)> onOK;
 			AtomicFunction<void(View*, UIEvent*)> onCancel;
-			
+			AtomicFunction<void(View*, UIEvent*)> onMnemonic;
+
 		public:
 			EventAttributes();
 			

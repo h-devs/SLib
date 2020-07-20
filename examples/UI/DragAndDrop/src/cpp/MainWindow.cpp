@@ -30,7 +30,7 @@ void MainWindow::onCreate()
 					break;
 				case UIAction::DropLeave:
 					{
-						Ref<View> button = linearDrop->getChildById(String::format("btn%d", ev->getDragId()));
+						Ref<View> button = linearDrop->findViewById(String::format("btn%d", ev->getDragId()));
 						if (button.isNotNull()) {
 							linearDrop->removeChild(button);
 						}
@@ -38,7 +38,7 @@ void MainWindow::onCreate()
 					break;
 				case UIAction::Drop:
 					{
-						Ref<Button> button = Ref<Button>::from(linearDrop->getChildById(String::format("btn%d", ev->getDragId())));
+						Ref<Button> button = Ref<Button>::from(linearDrop->findViewById(String::format("btn%d", ev->getDragId())));
 						if (button.isNotNull()) {
 							static int n = 0;
 							n++;

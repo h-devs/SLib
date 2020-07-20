@@ -389,7 +389,7 @@ namespace slib
 		attrs = new ChildAttributes;
 	}
 	
-	View::OtherAttributes::OtherAttributes(): dragOperationMask(DragOperations::All)
+	View::OtherAttributes::OtherAttributes(): dragOperationMask(DragOperations::All), mnemonicKey(0)
 	{
 	}
 	
@@ -987,7 +987,7 @@ namespace slib
 		return getTopmostViewAt(point.x, point.y);
 	}
 
-	Ref<View> View::getChildById(const String& _id)
+	Ref<View> View::findViewById(const String& _id)
 	{
 		if (m_id == _id) {
 			return this;
@@ -996,7 +996,7 @@ namespace slib
 		for (sl_size i = 0; i < children.count; i++) {
 			const Ref<View>& child = children[i];
 			if (child.isNotNull()) {
-				Ref<View> _child = child->getChildById(_id);
+				Ref<View> _child = child->findViewById(_id);
 				if (_child.isNotNull()) {
 					return _child;
 				}
@@ -7448,7 +7448,57 @@ namespace slib
 			}
 		}
 	}
-	
+
+	char View::getMnemonicKey()
+	{
+		Ref<OtherAttributes>& attrs = m_otherAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->mnemonicKey;
+		}
+		return 0;
+	}
+
+	void View::setMnemonicKey(char key)
+	{
+		if (!SLIB_CHAR_IS_ALNUM(key)) {
+			key = 0;
+		}
+		_initializeOtherAttributes();
+		Ref<OtherAttributes>& attrs = m_otherAttrs;
+		if (attrs.isNotNull()) {
+			attrs->mnemonicKey = key;
+		}
+	}
+
+	Ref<View> View::findViewByMnemonicKey(char key)
+	{
+		if (!key) {
+			return sl_null;
+		}
+		return _findViewByMnemonicKey(SLIB_CHAR_LOWER_TO_UPPER(key));
+	}
+
+	Ref<View> View::_findViewByMnemonicKey(char key)
+	{
+		char keyThis = getMnemonicKey();
+		if (keyThis) {
+			if (SLIB_CHAR_LOWER_TO_UPPER(keyThis) == key) {
+				return this;
+			}
+		}
+		ListElements< Ref<View> > children(getChildren());
+		for (sl_size i = 0; i < children.count; i++) {
+			const Ref<View>& child = children[i];
+			if (child.isNotNull()) {
+				Ref<View> _child = child->_findViewByMnemonicKey(key);
+				if (_child.isNotNull()) {
+					return _child;
+				}
+			}
+		}
+		return sl_null;
+	}
+
 	sl_bool View::isKeepKeyboard()
 	{
 		return m_flagKeepKeyboard;
@@ -9148,43 +9198,64 @@ namespace slib
 			_processContentScrollingEvents(ev);
 		}
 		
-		if (isTabStopEnabled() && getFocusedChild().isNull()) {
-			if (ev->getAction() == UIAction::KeyUp) {
-				if (ev->getKeycode() == Keycode::Tab) {
-					if (ev->isShiftKey()) {
-						Ref<View> v = getPreviousTabStop();
-						if (v.isNotNull() && v != this) {
-							v->setFocus();
-							ev->stopPropagation();
-							ev->preventDefault();
-						}
-					} else {
-						Ref<View> v = getNextTabStop();
-						if (v.isNotNull() && v != this) {
-							v->setFocus();
-							ev->stopPropagation();
-							ev->preventDefault();
-						}
+		if (ev->getAction() == UIAction::KeyDown) {
+			if (ev->isAltKey()) {
+				if (getParent().isNull()) {
+					Keycode keycode = ev->getKeycode();
+					char mneonicKey = 0;
+					if (keycode >= Keycode::A && keycode <= Keycode::Z) {
+						mneonicKey = 'A' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::A));
+					} else if (keycode >= Keycode::Num0 && keycode <= Keycode::Num9) {
+						mneonicKey = '0' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::Num0));
+					} else if (keycode >= Keycode::Numpad0 && keycode <= Keycode::Numpad9) {
+						mneonicKey = '0' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::Numpad0));
+					}
+					Ref<View> view = findViewByMnemonicKey(mneonicKey);
+					if (view.isNotNull()) {
+						view->dispatchMnemonic(ev);
 					}
 				}
-			}
-		}
-		
-		if (m_flagOkCancelEnabled) {
-			if (ev->getAction() == UIAction::KeyDown) {
+			} else {
 				Keycode keycode = ev->getKeycode();
-				if (keycode == Keycode::Enter) {
-					dispatchOK();
-					ev->stopPropagation();
-					ev->preventDefault();
-				} else if (keycode == Keycode::Escape) {
-					dispatchCancel();
-					ev->stopPropagation();
-					ev->preventDefault();
+				switch (keycode) {
+				case Keycode::Tab:
+					if (isTabStopEnabled() && getFocusedChild().isNull()) {
+						if (ev->isShiftKey()) {
+							Ref<View> v = getPreviousTabStop();
+							if (v.isNotNull() && v != this) {
+								v->setFocus();
+								ev->stopPropagation();
+								ev->preventDefault();
+							}
+						} else {
+							Ref<View> v = getNextTabStop();
+							if (v.isNotNull() && v != this) {
+								v->setFocus();
+								ev->stopPropagation();
+								ev->preventDefault();
+							}
+						}
+					}
+					break;
+				case Keycode::Enter:
+					if (m_flagOkCancelEnabled) {
+						dispatchOK();
+						ev->stopPropagation();
+						ev->preventDefault();
+					}
+					break;
+				case Keycode::Escape:
+					if (m_flagOkCancelEnabled) {
+						dispatchCancel();
+						ev->stopPropagation();
+						ev->preventDefault();
+					}
+					break;
+				default:
+					break;
 				}
 			}
-		}
-		
+		}		
 	}
 	
 	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(Click)
@@ -9547,7 +9618,30 @@ namespace slib
 			dispatchCancel(ev.get());
 		}
 	}
-	
+
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(Mnemonic, UIEvent* ev)
+
+	void View::onMnemonic(UIEvent* ev)
+	{
+		if (isFocusable()) {
+			setFocus();
+			ev->stopPropagation();
+			ev->preventDefault();
+		} else {
+			Ref<View> v = getNextTabStop();
+			if (v.isNotNull() && v != this) {
+				v->setFocus();
+				ev->stopPropagation();
+				ev->preventDefault();
+			}
+		}
+	}
+
+	void View::dispatchMnemonic(UIEvent* ev)
+	{
+		SLIB_INVOKE_EVENT_HANDLER(Mnemonic, ev)
+	}
+
 	void View::_processEventForStateAndClick(UIEvent* ev)
 	{
 		if (isNativeWidget()) {
