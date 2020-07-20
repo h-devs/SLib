@@ -113,6 +113,7 @@ namespace slib
 	{
 	public:
 		Color color;
+		const ColorMatrix* colorMatrix;
 		
 		sl_real shadowOpacity;
 		sl_real shadowRadius;
@@ -337,7 +338,7 @@ namespace slib
 		~TextParagraph() noexcept;
 
 	public:
-		void addText(const StringParam& text, const Ref<TextStyle>& style, sl_bool flagEnabledHyperlinksInPlainText = sl_false) noexcept;
+		void addText(const StringParam& text, const Ref<TextStyle>& style, sl_bool flagEnabledHyperlinksInPlainText = sl_false, sl_bool flagMnemonic = sl_false) noexcept;
 		
 		void addHyperTextNodeGroup(const Ref<XmlNodeGroup>& group, const Ref<TextStyle>& style) noexcept;
 		
@@ -347,16 +348,18 @@ namespace slib
 
 		void layout(const TextParagraphLayoutParam& param) noexcept;
 
-		void draw(Canvas* canvas, sl_real x, sl_real y, const TextParagraphDrawParam& param) noexcept;
+		void draw(Canvas* canvas, sl_real left, sl_real right, sl_real y, const TextParagraphDrawParam& param) noexcept;
 		
-		Ref<TextItem> getTextItemAtPosition(sl_real x, sl_real y) noexcept;
+		Ref<TextItem> getTextItemAtPosition(sl_real x, sl_real y, sl_real left, sl_real right) noexcept;
 
-		sl_real getMaximumWidth() noexcept;
+		sl_real getContentWidth() noexcept;
 
-		sl_real getTotalHeight() noexcept;
+		sl_real getContentHeight() noexcept;
 		
+		Alignment getAlignment() noexcept;
+
 		sl_real getPositionLength() noexcept;
-		
+
 	public:
 		static const Color& getDefaultLinkColor();
 
@@ -369,9 +372,10 @@ namespace slib
 	protected:
 		CList< Ref<TextItem> > m_items;
 		CList< Ref<TextItem> > m_layoutItems;
-		sl_real m_maxWidth;
-		sl_real m_totalHeight;
+		sl_real m_contentWidth;
+		sl_real m_contentHeight;
 		sl_real m_positionLength;
+		Alignment m_align;
 
 	};
 	
@@ -381,6 +385,7 @@ namespace slib
 		Ref<Font> font;
 		String text;
 		sl_bool flagHyperText;
+		sl_bool flagMnemonic;
 		sl_real width;
 		MultiLineMode multiLineMode;
 		EllipsizeMode ellipsizeMode;
@@ -421,7 +426,7 @@ namespace slib
 
 		void draw(Canvas* canvas, const SimpleTextBoxDrawParam& param) const noexcept;
 
-		Ref<TextItem> getTextItemAtPosition(sl_real x, sl_real y) const noexcept;
+		Ref<TextItem> getTextItemAtPosition(sl_real x, sl_real y, const Rectangle& frame) const noexcept;
 		
 		sl_real getContentWidth() const noexcept;
 

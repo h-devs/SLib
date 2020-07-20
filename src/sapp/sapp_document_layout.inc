@@ -2381,6 +2381,7 @@ namespace slib
 			LAYOUT_CONTROL_GENERIC_ATTR(okCancelEnabled, setOkCancelEnabled)
 			LAYOUT_CONTROL_NOPARAM_ATTR(ok, setOkOnClick)
 			LAYOUT_CONTROL_NOPARAM_ATTR(cancel, setCancelOnClick)
+			LAYOUT_CONTROL_GENERIC_ATTR(mnemonicKey, setMnemonicKey)
 			LAYOUT_CONTROL_GENERIC_ATTR(keepKeyboard, setKeepKeyboard)
 			LAYOUT_CONTROL_GENERIC_ATTR(playSoundOnClick, setPlaySoundOnClick)
 			LAYOUT_CONTROL_GENERIC_ATTR(clientEdge, setClientEdge)
@@ -2469,14 +2470,11 @@ namespace slib
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Button, Button)
 	{
-		LAYOUT_CONTROL_PROCESS_SUPER(View)
+		LAYOUT_CONTROL_PROCESS_SUPER(Label)
 		
-		LAYOUT_CONTROL_STRING_ATTR_NOREDRAW(text, setText)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(multiLine, setMultiLine)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(defaultButton, setDefaultButton)
-		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(textColor, setTextColor)
+		LAYOUT_CONTROL_GENERIC_ATTR(usingFocusedState, setUsingFocusedState)
 		LAYOUT_CONTROL_DRAWABLE_ATTR(icon, setIcon)
-		
 		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(iconWidth, setIconWidth, checkScalarSize)
 		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(iconHeight, setIconHeight, checkScalarSize)
 		if (op == OP_PARSE) {
@@ -2495,11 +2493,10 @@ namespace slib
 				}
 			}
 		}
-		
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(gravity, setGravity)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(iconAlign, setIconAlignment)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(textAlign, setTextAlignment)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(textBeforeIcon, setTextBeforeIcon)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(extendTextFrame, setExtendTextFrame)		
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(orientation, setLayoutOrientation)
 		
 		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(iconMarginLeft, setIconMarginLeft, checkPosition)
@@ -2558,16 +2555,9 @@ namespace slib
 		
 		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(colorOverlay, setColorOverlay)
 
-		String strStates[] = {"Normal", "Hover", "Pressed", "Disabled"};
-		ButtonState states[] = {ButtonState::Normal, ButtonState::Hover, ButtonState::Pressed, ButtonState::Disabled};
+		String strStates[] = {"Default", "Normal", "Hover", "Focused", "FocusedHover", "Pressed", "Disabled"};
 		for (sl_uint32 i = 0; i < SLIB_SAPP_LAYOUT_BUTTON_CATEGORY_MAX; i++) {
 			SAppLayoutButtonCategory& category = attr->categories[i];
-			String suffixAll;
-			if (i > 0) {
-				suffixAll = String::format("All%d", i);
-			} else {
-				suffixAll = "All";
-			}
 			for (sl_uint32 k = 0; k < (sl_uint32)(ButtonState::Count); k++) {
 				if (op == OP_PARSE) {
 					String suffix;
@@ -2585,10 +2575,6 @@ namespace slib
 							value_##NAME##_name = #NAME + suffixNone; \
 							value_##NAME = resourceItem->getXmlAttribute(value_##NAME##_name); \
 						} \
-					} \
-					if (value_##NAME.isEmpty()) { \
-						value_##NAME##_name = #NAME + suffixAll; \
-						value_##NAME = resourceItem->getXmlAttribute(value_##NAME##_name); \
 					} \
 					if (value_##NAME.isEmpty()) { \
 						if (k) { \
@@ -2694,7 +2680,7 @@ namespace slib
 							return sl_false;
 						}
 						if (!flagOnLayout) {
-							view->setTextColor(_textColor, states[k], i, UIUpdateMode::Init);
+							view->setTextColor(_textColor, (ButtonState)k, i, UIUpdateMode::Init);
 						}
 					}
 					if (category.background[k].flagDefined) {
@@ -2703,7 +2689,7 @@ namespace slib
 							return sl_false;
 						}
 						if (flagOnLayout) {
-							view->setBackground(_background, states[k], i, UIUpdateMode::Redraw);
+							view->setBackground(_background, (ButtonState)k, i, UIUpdateMode::Redraw);
 						}
 					}
 					if (category.icon[k].flagDefined) {
@@ -2712,13 +2698,13 @@ namespace slib
 							return sl_false;
 						}
 						if (flagOnLayout) {
-							view->setIcon(_icon, states[k], i, UIUpdateMode::Redraw);
+							view->setIcon(_icon, (ButtonState)k, i, UIUpdateMode::Redraw);
 						}
 					}
 					if (category.borderWidth[k].flagDefined || category.borderColor[k].flagDefined || category.borderStyle[k].flagDefined) {
 						if (category.borderWidth[k].flagDefined && Math::isAlmostZero(category.borderWidth[k].amount)) {
 							if (!flagOnLayout) {
-								view->setBorder(Ref<Pen>::null(), states[k], i, UIUpdateMode::Init);
+								view->setBorder(Ref<Pen>::null(), (ButtonState)k, i, UIUpdateMode::Init);
 							}
 						} else {
 							if (flagOnLayout) {
@@ -2742,7 +2728,7 @@ namespace slib
 								} else {
 									_borderStyle = PenStyle::Solid;
 								}
-								view->setBorder(Pen::create(_borderStyle, _borderWidth, _borderColor), states[k], i, UIUpdateMode::None);
+								view->setBorder(Pen::create(_borderStyle, _borderWidth, _borderColor), (ButtonState)k, i, UIUpdateMode::None);
 							}
 						}
 					}
@@ -2752,7 +2738,7 @@ namespace slib
 							return sl_false;
 						}
 						if (!flagOnLayout) {
-							view->setColorOverlay(_colorOverlay, states[k], i, UIUpdateMode::Init);
+							view->setColorOverlay(_colorOverlay, (ButtonState)k, i, UIUpdateMode::Init);
 						}
 					}
 				}
@@ -2782,6 +2768,7 @@ namespace slib
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(lines, setLinesCount)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(linksInText, setDetectingHyperlinksInPlainText);
 		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(linkColor, setLinkColor)
+		LAYOUT_CONTROL_GENERIC_ATTR(mnemonic, setMnemonic)
 
 		if (op == OP_PARSE) {
 			if (!(attr->text.flagDefined) && !(attr->hyperText.flagDefined)) {

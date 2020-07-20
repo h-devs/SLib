@@ -343,7 +343,7 @@ namespace slib
 				
 				void setCheckedIcon(const Ref<Drawable>& icon) override
 				{
-					m_button->setIcon(icon, ButtonState::Normal, 1);
+					m_button->setIcon(icon, ButtonState::Default, 1);
 				}
 				
 			};
@@ -376,14 +376,14 @@ namespace slib
 					button->setWidthWrapping(UIUpdateMode::Init);
 					button->setHeightWrapping(UIUpdateMode::Init);
 					button->setFontSize(UIResource::dpToPixel(20), UIUpdateMode::Init);
-					button->setTextColor(Color::Black, ButtonState::Normal, 0, UIUpdateMode::Init);
+					button->setTextColor(Color::Black, ButtonState::Default, 0, UIUpdateMode::Init);
 					button->setText(param.text, UIUpdateMode::Init);
 					button->setPadding(UIResource::dpToPixel(4), UIUpdateMode::Init);
 					if (param.icon.isNotNull()) {
 						button->setIcon(param.icon, UIUpdateMode::Init);
 					}
 					if (param.checkedIcon.isNotNull()) {
-						button->setIcon(param.icon, ButtonState::Normal, 1, UIUpdateMode::Init);
+						button->setIcon(param.icon, ButtonState::Default, 1, UIUpdateMode::Init);
 					}
 					if (param.flagChecked) {
 						button->setCurrentCategory(1, UIUpdateMode::Init);

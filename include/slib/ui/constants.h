@@ -259,13 +259,15 @@ namespace slib
 	
 	enum class ButtonState
 	{
-		Normal = 0,
-		Hover = 1,
-		Pressed = 2,
-		Disabled = 3,
-		
-		Count = 4,
-		All = 4
+		Default = 0,
+		Normal = 1,
+		Hover = 2,
+		Focused = 3,
+		FocusedHover = 4,
+		Pressed = 5,
+		Disabled = 6,
+
+		Count = 7
 	};
 	
 	enum class UIUpdateMode

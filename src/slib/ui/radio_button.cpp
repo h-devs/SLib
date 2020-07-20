@@ -93,13 +93,19 @@ namespace slib
 					Color colorCheckDown = colorCheckHover;
 					categories[0].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, Color::zero());
 					categories[0].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, Color::zero());
-					categories[0].properties[(int)ButtonState::Hover].icon = new Icon(penHover, colorBackHover, Color::zero());
+					categories[0].properties[(int)ButtonState::Focused].icon =
+						categories[0].properties[(int)ButtonState::FocusedHover].icon =
+						categories[0].properties[(int)ButtonState::Hover].icon =
+							new Icon(penHover, colorBackHover, Color::zero());
 					categories[0].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, Color::zero());
 					
 					categories[1] = categories[0];
 					categories[1].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, colorCheckNormal);
 					categories[1].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, colorCheckDisabled);
-					categories[1].properties[(int)ButtonState::Hover].icon = new Icon(penHover, colorBackHover, colorCheckHover);
+					categories[1].properties[(int)ButtonState::Focused].icon =
+						categories[1].properties[(int)ButtonState::FocusedHover].icon =
+						categories[1].properties[(int)ButtonState::Hover].icon =
+							new Icon(penHover, colorBackHover, colorCheckHover);
 					categories[1].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, colorCheckDown);
 				}
 				

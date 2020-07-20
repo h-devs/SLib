@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -66,7 +66,7 @@ namespace slib
 
 	protected:
 		Color m_textColor;
-		Alignment m_textAlignment;
+		Alignment m_gravity;
 		EllipsizeMode m_ellipsizeMode;
 		sl_bool m_flagEnabledHyperlinksInPlainText;
 		Color m_linkColor;
@@ -99,7 +99,12 @@ namespace slib
 
 		virtual void setLinesCount(sl_uint32 nLines, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
 
-		virtual void invalidateLabelAppearance(UIUpdateMode mode);
+		sl_bool isMnemonic();
+
+		void setMnemonic(sl_bool flag);
+
+
+		void invalidateLabelAppearance(UIUpdateMode mode);
 
 		UISize measureSize();
 
@@ -107,8 +112,10 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(LabelView, ClickLink, const String& href, UIEvent* ev)
 		
 	protected:
-		void _updateTextBox(sl_ui_len width);
+		void _updateTextBox(sl_bool flagWrapping, sl_ui_len width, sl_ui_len widthPadding, Alignment gravity);
 		
+		void _updateTextBox(sl_ui_len width);
+
 	protected:
 		void onDraw(Canvas* canvas) override;
 		
@@ -123,6 +130,7 @@ namespace slib
 		sl_bool m_flagHyperText;
 		MultiLineMode m_multiLineMode;
 		sl_uint32 m_linesCount;
+		sl_bool m_flagMnemonic;
 
 		SimpleTextBox m_textBox;
 		

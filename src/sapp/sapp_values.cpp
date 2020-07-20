@@ -817,6 +817,39 @@ namespace slib
 		return sl_false;
 	}
 
+
+	/************************************************
+					Char
+	************************************************/
+
+	SAppChar8Value::SAppChar8Value()
+	: flagDefined(sl_false), value(0)
+	{
+	}
+
+	String SAppChar8Value::getAccessString()
+	{
+		if (!flagDefined) {
+			return "0";
+		}
+		return String::format("'%c'", value);
+	}
+
+	sl_bool SAppChar8Value::parse(const String& _str)
+	{
+		String str = _str.trim();
+		if (str.isEmpty()) {
+			flagDefined = sl_false;
+			return sl_true;
+		}
+		if (str.getLength() == 1) {
+			value = str.getAt(0);
+			flagDefined = sl_true;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
 	/************************************************
 					Vector2
 	************************************************/

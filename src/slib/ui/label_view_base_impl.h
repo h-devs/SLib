@@ -30,7 +30,7 @@ namespace slib
 	LabelAppearanceViewBase<VIEW_CLASS>::LabelAppearanceViewBase()
 	{
 		m_textColor = Color::Black;
-		m_textAlignment = Alignment::Left;
+		m_gravity = Alignment::Left;
 		m_ellipsizeMode = EllipsizeMode::None;
 		m_flagEnabledHyperlinksInPlainText = sl_false;
 		m_linkColor = Color::Zero;
@@ -52,13 +52,13 @@ namespace slib
 	template <class VIEW_CLASS>
 	Alignment LabelAppearanceViewBase<VIEW_CLASS>::getGravity()
 	{
-		return m_textAlignment;
+		return m_gravity;
 	}
 
 	template <class VIEW_CLASS>
 	void LabelAppearanceViewBase<VIEW_CLASS>::setGravity(const Alignment& align, UIUpdateMode updateMode)
 	{
-		m_textAlignment = align;
+		m_gravity = align;
 		((VIEW_CLASS*)this)->invalidateLabelAppearance(updateMode);
 	}
 
@@ -108,7 +108,7 @@ namespace slib
 	void LabelAppearanceViewBase<VIEW_CLASS>::_applyLabelAppearance(SimpleTextBoxParam& param)
 	{
 		param.ellipsizeMode = m_ellipsizeMode;
-		param.align = m_textAlignment;
+		param.align = m_gravity;
 		param.flagEnabledHyperlinksInPlainText = m_flagEnabledHyperlinksInPlainText;
 	}
 

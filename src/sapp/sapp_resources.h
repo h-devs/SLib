@@ -333,6 +333,7 @@ namespace slib
 		SAppBooleanValue okCancelEnabled;
 		SAppBooleanValue ok;
 		SAppBooleanValue cancel;
+		SAppChar8Value mnemonicKey;
 		SAppBooleanValue keepKeyboard;
 		SAppBooleanValue playSoundOnClick;
 		SAppBooleanValue clientEdge;
@@ -370,17 +371,15 @@ namespace slib
 	class SAppLayoutButtonAttributes : public Referable
 	{
 	public:
-		SAppStringValue text;
-		SAppBooleanValue multiLine;
 		SAppBooleanValue defaultButton;
-		SAppColorValue textColor;
+		SAppBooleanValue usingFocusedState;
 		SAppDrawableValue icon;
 		SAppDimensionValue iconWidth;
 		SAppDimensionValue iconHeight;
-		SAppAlignmentValue gravity;
 		SAppAlignmentValue iconAlign;
 		SAppAlignmentValue textAlign;
 		SAppBooleanValue textBeforeIcon;
+		SAppBooleanValue extendTextFrame;
 		SAppLayoutOrientationValue orientation;
 		SAppDimensionValue iconMarginLeft;
 		SAppDimensionValue iconMarginTop;
@@ -412,6 +411,7 @@ namespace slib
 		SAppUint32Value lines;
 		SAppBooleanValue linksInText;
 		SAppColorValue linkColor;
+		SAppBooleanValue mnemonic;
 
 	};
 

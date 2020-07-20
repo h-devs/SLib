@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -33,70 +33,98 @@ namespace slib
 	template class LabelAppearanceViewBase<LabelView>;
 
 	SLIB_DEFINE_OBJECT(LabelView, View)
-	
+
 	LabelView::LabelView()
 	{
 		setSavingCanvasState(sl_false);
-		
+
 		setUsingFont(sl_true);
-		
+
 		m_flagHyperText = sl_false;
+		m_flagMnemonic = sl_true;
 		m_multiLineMode = MultiLineMode::Single;
 		m_linesCount = 0;
 
 		setPadding(1, 1, 1, 1, UIUpdateMode::Init);
 	}
-	
+
 	LabelView::~LabelView()
 	{
 	}
-	
+
 	String LabelView::getText()
 	{
 		return m_text;
 	}
-	
+
 	sl_bool LabelView::isHyperText()
 	{
 		return m_flagHyperText;
 	}
-	
+
 	void LabelView::setText(const String& text, UIUpdateMode mode)
 	{
 		m_text = text;
+		if (m_flagMnemonic) {
+			sl_reg index = 0;
+			do {
+				index = text.indexOf('&', index);
+				if (index < 0) {
+					break;
+				}
+				index++;
+				char ch = text.getAt(index);
+				if (SLIB_CHAR_IS_ALNUM(ch)) {
+					setMnemonicKey(ch);
+					break;
+				} else {
+					index++;
+				}
+			} while (1);
+		}
 		m_flagHyperText = sl_false;
 		invalidateLayoutOfWrappingControl(mode);
 	}
-	
+
 	void LabelView::setHyperText(const String& text, UIUpdateMode mode)
 	{
 		m_text = text;
 		m_flagHyperText = sl_true;
 		invalidateLayoutOfWrappingControl(mode);
 	}
-	
+
 	MultiLineMode LabelView::getMultiLine()
 	{
 		return m_multiLineMode;
 	}
-	
+
 	void LabelView::setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode)
 	{
 		m_multiLineMode = multiLineMode;
 		invalidateLayoutOfWrappingControl(updateMode);
 	}
-	
+
 	sl_uint32 LabelView::getLinesCount()
 	{
 		return m_linesCount;
 	}
-	
+
 	void LabelView::setLinesCount(sl_uint32 nLines, UIUpdateMode updateMode)
 	{
 		m_linesCount = nLines;
 		invalidateLayoutOfWrappingControl(updateMode);
 	}
-	
+
+	sl_bool LabelView::isMnemonic()
+	{
+		return m_flagMnemonic;
+	}
+
+	void LabelView::setMnemonic(sl_bool flag)
+	{
+		m_flagMnemonic = flag;
+	}
+
 	void LabelView::invalidateLabelAppearance(UIUpdateMode updateMode)
 	{
 		invalidate(updateMode);
@@ -111,9 +139,9 @@ namespace slib
 		height += getPaddingTop() + getPaddingBottom();
 		return UISize(width, height);
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(LabelView, ClickLink, const String& href, UIEvent* ev)
-	
+
 	void LabelView::dispatchClickLink(const String& href, UIEvent *ev)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(ClickLink, href, ev)
@@ -122,34 +150,41 @@ namespace slib
 		}
 		UI::openUrl(href);
 	}
-	
-	void LabelView::_updateTextBox(sl_ui_len width)
+
+	void LabelView::_updateTextBox(sl_bool flagWrapping, sl_ui_len width, sl_ui_len widthPadding, Alignment gravity)
 	{
 		sl_ui_len widthText;
-		sl_ui_pos paddingWidth = getPaddingLeft() + getPaddingRight();
-		if (isWidthWrapping()) {
-			if (isMaximumWidthDefined()) {
-				widthText = getMaximumWidth() - paddingWidth;
-			} else {
-				widthText = 0;
-			}
+		if (flagWrapping) {
+			widthText = 0;
 		} else {
-			widthText = width - paddingWidth;
+			widthText = width - widthPadding;
 			if (widthText < 1) {
-				return;
+				widthText = 1;
 			}
 		}
 		SimpleTextBoxParam param;
+		_applyLabelAppearance(param);
 		param.font = getFont();
 		param.text = m_text;
 		param.flagHyperText = m_flagHyperText;
+		param.flagMnemonic = m_flagMnemonic;
 		param.width = (sl_real)widthText;
 		param.multiLineMode = m_multiLineMode;
 		param.linesCount = m_linesCount;
-		_applyLabelAppearance(param);
+		param.align = gravity;
 		m_textBox.update(param);
 	}
-	
+
+	void LabelView::_updateTextBox(sl_ui_len width)
+	{
+		sl_bool flagWrapping = isWidthWrapping();
+		if (flagWrapping && isMaximumWidthDefined()) {
+			flagWrapping = sl_false;
+			width = getMaximumWidth();
+		}
+		_updateTextBox(flagWrapping, width, getPaddingLeft() + getPaddingRight(), m_gravity);
+	}
+
 	void LabelView::onDraw(Canvas* canvas)
 	{
 		UIRect bounds = getBoundsInnerPadding();
@@ -176,7 +211,8 @@ namespace slib
 	
 	void LabelView::onClickEvent(UIEvent* ev)
 	{
-		Ref<TextItem> item = m_textBox.getTextItemAtPosition(ev->getX(), ev->getY());
+		UIRect bounds = getBoundsInnerPadding();
+		Ref<TextItem> item = m_textBox.getTextItemAtPosition(ev->getX(), ev->getY(), bounds);
 		if (item.isNotNull()) {
 			Ref<TextStyle> style = item->getStyle();
 			if (style.isNotNull()) {
@@ -189,7 +225,8 @@ namespace slib
 	
 	void LabelView::onSetCursor(UIEvent* ev)
 	{
-		Ref<TextItem> item = m_textBox.getTextItemAtPosition(ev->getX(), ev->getY());
+		UIRect bounds = getBoundsInnerPadding();
+		Ref<TextItem> item = m_textBox.getTextItemAtPosition(ev->getX(), ev->getY(), bounds);
 		if (item.isNotNull()) {
 			Ref<TextStyle> style = item->getStyle();
 			if (style.isNotNull()) {

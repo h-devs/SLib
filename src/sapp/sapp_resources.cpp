@@ -113,9 +113,6 @@ namespace slib
 
 	sl_bool SAppLayoutButtonAttributes::isNotRequiredNative()
 	{
-		if (textColor.flagDefined) {
-			return sl_true;
-		}
 		if (icon.flagDefined) {
 			return sl_true;
 		}
@@ -123,9 +120,6 @@ namespace slib
 			return sl_true;
 		}
 		if (iconHeight.flagDefined) {
-			return sl_true;
-		}
-		if (gravity.flagDefined) {
 			return sl_true;
 		}
 		if (iconAlign.flagDefined) {
