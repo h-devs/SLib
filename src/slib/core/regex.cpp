@@ -25,9 +25,32 @@
 #include "slib/core/safe_static.h"
 
 #include <regex>
+#include <bitset>
 
 namespace slib
 {
+
+	namespace priv
+	{
+		namespace regex
+		{
+			
+			int ToInt(int n)
+			{
+				return n;
+			}
+
+			template<std::size_t N>
+			int ToInt(const std::bitset<N>& n)
+			{
+				return (int)(n.to_ulong());
+			}
+
+		}
+	}
+
+	using namespace priv::regex;
+
 	SLIB_DEFINE_OBJECT(CRegEx, Object)
 	
 	CRegEx::CRegEx() noexcept
@@ -110,37 +133,37 @@ namespace slib
 		int v = _flags.value;
 		if (v) {
 			if (v & RegExMatchFlags::NotBol) {
-				flags |= std::regex_constants::match_not_bol;
+				flags |= ToInt(std::regex_constants::match_not_bol);
 			}
 			if (v & RegExMatchFlags::NotEol) {
-				flags |= std::regex_constants::match_not_eol;
+				flags |= ToInt(std::regex_constants::match_not_eol);
 			}
 			if (v & RegExMatchFlags::NotBow) {
-				flags |= std::regex_constants::match_not_bow;
+				flags |= ToInt(std::regex_constants::match_not_bow);
 			}
 			if (v & RegExMatchFlags::NotEow) {
-				flags |= std::regex_constants::match_not_eow;
+				flags |= ToInt(std::regex_constants::match_not_eow);
 			}
 			if (v & RegExMatchFlags::Any) {
-				flags |= std::regex_constants::match_any;
+				flags |= ToInt(std::regex_constants::match_any);
 			}
 			if (v & RegExMatchFlags::NotNull) {
-				flags |= std::regex_constants::match_not_null;
+				flags |= ToInt(std::regex_constants::match_not_null);
 			}
 			if (v & RegExMatchFlags::Continuous) {
-				flags |= std::regex_constants::match_continuous;
+				flags |= ToInt(std::regex_constants::match_continuous);
 			}
 			if (v & RegExMatchFlags::PrevAvail) {
-				flags |= std::regex_constants::match_prev_avail;
+				flags |= ToInt(std::regex_constants::match_prev_avail);
 			}
 			if (v & RegExMatchFlags::FormatSed) {
-				flags |= std::regex_constants::format_sed;
+				flags |= ToInt(std::regex_constants::format_sed);
 			}
 			if (v & RegExMatchFlags::FormatNoCopy) {
-				flags |= std::regex_constants::format_no_copy;
+				flags |= ToInt(std::regex_constants::format_no_copy);
 			}
 			if (v & RegExMatchFlags::FormatFirstOnly) {
-				flags |= std::regex_constants::format_first_only;
+				flags |= ToInt(std::regex_constants::format_first_only);
 			}
 		}
 		std::regex* obj = (std::regex*)m_obj;

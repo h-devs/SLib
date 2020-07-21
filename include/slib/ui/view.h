@@ -263,6 +263,10 @@ namespace slib
 		
 		void setDrawing(sl_bool flagDrawing, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
+		sl_bool isRendering();
+		
+		void setRendering(sl_bool flagRendering);
+		
 		sl_bool isSavingCanvasState();
 		
 		void setSavingCanvasState(sl_bool flag);
@@ -1272,6 +1276,8 @@ namespace slib
 		
 		void drawChildren(Canvas* canvas, const Ref<View>* children, sl_size count);
 		
+		virtual void renderChildren(Canvas* canvas, const Ref<View>* children, sl_size count);
+		
 		void drawContent(Canvas* canvas);
 		
 		Ref<Bitmap> drawLayer();
@@ -1525,6 +1531,7 @@ namespace slib
 		sl_bool m_flagFocusable : 1;
 		sl_bool m_flagClipping : 1;
 		sl_bool m_flagDrawing : 1;
+		sl_bool m_flagRendering : 1;
 		sl_bool m_flagSavingCanvasState : 1;
 		sl_bool m_flagOkCancelEnabled : 1;
 		sl_bool m_flagTabStopEnabled : 1;
@@ -1899,6 +1906,7 @@ namespace slib
 
 		friend class ViewInstance;
 		friend class Window;
+		friend class RenderView;
 		friend class LinearLayout;
 		friend class ListView;
 		friend class CollectionView;

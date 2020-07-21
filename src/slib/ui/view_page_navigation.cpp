@@ -23,7 +23,6 @@
 #include "slib/ui/view_page_navigation.h"
 
 #include "slib/ui/view_page.h"
-#include "slib/ui/render_view.h"
 
 #include "slib/core/scoped.h"
 
@@ -473,7 +472,7 @@ namespace slib
 		sl_bool flagRender = sl_false;
 		Ref<View> t = view;
 		while (1) {
-			if (IsInstanceOf<RenderView>(t)) {
+			if (t->isRendering()) {
 				flagRender = sl_true;
 				break;
 			}

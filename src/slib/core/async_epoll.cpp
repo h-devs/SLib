@@ -31,7 +31,7 @@
 #include <sys/epoll.h>
 #include <sys/errno.h>
 
-#if defined(SLIB_PLATFORM_IS_ANDROID)
+#if !defined(EPOLLRDHUP)
 #define EPOLL_LOW
 #endif
 

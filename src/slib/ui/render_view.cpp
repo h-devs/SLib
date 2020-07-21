@@ -23,6 +23,7 @@
 #include "slib/ui/render_view.h"
 
 #include "slib/render/canvas.h"
+#include "slib/math/transform2d.h"
 #include "slib/core/thread.h"
 #include "slib/core/dispatch.h"
 
@@ -92,6 +93,7 @@ namespace slib
 	{
 		setCreatingNativeWidget(sl_true);
 		setCreatingChildInstances(sl_false);
+		setRendering(sl_true);
 
 		setPreferredEngineType(RenderEngineType::OpenGL_ES);
 
@@ -200,6 +202,84 @@ namespace slib
 		if (canvas.isNotNull()) {
 			dispatchDraw(canvas.get());
 		}
+	}
+
+	void RenderView::renderChildren(Canvas* canvas, const Ref<View>* children, sl_size count)
+	{
+		if (!count) {
+			return;
+		}
+		if (canvas->getType() != CanvasType::Render) {
+			return;
+		}
+
+		sl_real alphaParent = canvas->getAlpha();
+		UIRect rcInvalidatedParent = canvas->getInvalidatedRect();
+		
+		RenderCanvas* render = static_cast<RenderCanvas*>(canvas);
+		RenderCanvasState* currentState = render->getCurrentState();
+		RenderCanvasState savedState(*currentState);
+		
+		sl_bool flagTransformed = sl_false;
+		
+		for (sl_size i = 0; i < count; i++) {
+			
+			View* child = children[i].get();
+		
+			if (child && child->isVisible()) {
+				
+				sl_ui_pos offx = child->m_frame.left;
+				sl_ui_pos offy = child->m_frame.top;
+				Matrix3 mat;
+				sl_bool flagTranslation = sl_true;
+				if (child->getFinalTransform(&mat)) {
+					if (Transform2::isTranslation(mat)) {
+						offx += (sl_ui_pos)(mat.m20);
+						offy += (sl_ui_pos)(mat.m21);
+					} else {
+						flagTranslation = sl_false;
+					}
+				}
+				if (flagTranslation) {
+					UIRect rcInvalidated(rcInvalidatedParent.left - offx, rcInvalidatedParent.top - offy, rcInvalidatedParent.right - offx, rcInvalidatedParent.bottom - offy);
+					if (rcInvalidated.intersectRectangle(child->getBoundsIncludingShadow(), &rcInvalidated) || child->isForcedDraw()) {
+						if (flagTransformed) {
+							*currentState = savedState;
+							flagTransformed = sl_false;
+						}
+						render->translateFromSavedState(&savedState, (sl_real)(offx), (sl_real)(offy));
+						render->setAlpha(alphaParent * child->getAlpha());
+						canvas->setInvalidatedRect(rcInvalidated);
+						child->dispatchDraw(render);
+					}
+				} else {
+					UIRect rcInvalidated = child->convertCoordinateFromParent(rcInvalidatedParent);
+					rcInvalidated.left -= 1;
+					rcInvalidated.top -= 1;
+					rcInvalidated.right += 1;
+					rcInvalidated.bottom += 1;
+					if (rcInvalidated.intersectRectangle(child->getBoundsIncludingShadow(), &rcInvalidated) || child->isForcedDraw()) {
+						sl_real ax = (sl_real)(child->getWidth()) / 2;
+						sl_real ay = (sl_real)(child->getHeight()) / 2;
+						mat.m20 = -ax * mat.m00 - ay * mat.m10 + mat.m20 + ax + (sl_real)(offx);
+						mat.m21 = -ax * mat.m01 - ay * mat.m11 + mat.m21 + ay + (sl_real)(offy);
+						if (i != 0) {
+							*currentState = savedState;
+						}
+						render->concatMatrix(mat);
+						render->setAlpha(alphaParent * child->getAlpha());
+						canvas->setInvalidatedRect(rcInvalidated);
+						child->dispatchDraw(render);
+						flagTransformed = sl_true;
+					}
+				}
+			}
+		}
+		
+		*currentState = savedState;
+
+		canvas->setAlpha(alphaParent);
+		canvas->setInvalidatedRect(rcInvalidatedParent);
 	}
 
 	Size RenderView::measureText(const String& text, const Ref<Font>& _font, sl_bool flagMultiLine)

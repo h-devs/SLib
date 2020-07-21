@@ -39,6 +39,9 @@
 #		include <linux/if.h>
 #		include <linux/if_packet.h>
 #		include <sys/ioctl.h>
+#		ifndef SO_REUSEPORT
+#			define SO_REUSEPORT 15
+#		endif
 #	else
 #		include <netinet/tcp.h>
 #	endif

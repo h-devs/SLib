@@ -23,7 +23,6 @@ target_link_libraries (
   pango-1.0
   pangocairo-1.0
   X11
-  GL
 )
 
 file(COPY ../images DESTINATION .)
