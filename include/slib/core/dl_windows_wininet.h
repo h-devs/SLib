@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +20,25 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_MAIN_HEADER
-#define CHECKHEADER_SLIB_MAIN_HEADER
+#ifndef CHECKHEADER_SLIB_CORE_DL_WINDOWS_WININET
+#define CHECKHEADER_SLIB_CORE_DL_WINDOWS_WININET
 
-#include "core.h"
-#include "crypto.h"
-#include "math.h"
-#include "network.h"
-#include "graphics.h"
+#include "definition.h"
 
-#include "render.h"
-#include "ui.h"
-#include "media.h"
-#include "device.h"
-#include "storage.h"
-#include "db.h"
-#include "service.h"
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
 
-#include "doc.h"
-#include "geo.h"
-#include "social.h"
+#include "dl.h"
 
-#include "resource.h"
+#include <windows.h>
+
+namespace slib
+{
+
+	SLIB_IMPORT_LIBRARY_BEGIN(wininet, "wininet.dll")
+	SLIB_IMPORT_LIBRARY_END
+
+}
+
+#endif
 
 #endif

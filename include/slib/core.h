@@ -85,6 +85,7 @@
 #include "core/system.h"
 #include "core/console.h"
 #include "core/event.h"
+#include "core/dynamic_library.h"
 #include "core/process.h"
 #include "core/thread.h"
 #include "core/thread_pool.h"

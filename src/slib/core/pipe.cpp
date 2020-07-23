@@ -21,18 +21,11 @@
  */
 
 #include "slib/core/pipe.h"
-#include "slib/core/file.h"
 
-#if defined(SLIB_PLATFORM_IS_UNIX)
-#include <poll.h>
-#endif
+#include "slib/core/file.h"
 
 namespace slib
 {
-
-/********************************************
-				Pipe
-********************************************/
 
 	SLIB_DEFINE_OBJECT(Pipe, Object)
 
@@ -152,27 +145,6 @@ namespace slib
 				break;
 			}
 		}
-	}
-
-	sl_bool PipeEvent::_native_wait(sl_int32 timeout)
-	{
-#if defined(SLIB_PLATFORM_IS_UNIX)
-		pollfd fd;
-		Base::zeroMemory(&fd, sizeof(pollfd));
-		fd.fd = (int)(getReadPipeHandle());
-		fd.events = POLLIN | POLLPRI | POLLERR | POLLHUP;
-		int t = timeout >= 0 ? (int)timeout : -1;
-		int ret = ::poll(&fd, 1, t);
-		if (ret > 0) {
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-#else
-		static char t[200];
-		m_pipe->read(t, 200);
-		return sl_true;
-#endif
 	}
 
 	sl_pipe PipeEvent::getReadPipeHandle()

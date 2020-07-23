@@ -29,8 +29,9 @@
 #include "slib/ui/core.h"
 #include "slib/ui/window.h"
 #include "slib/ui/select_view.h"
-#include "slib/core/safe_static.h"
 #include "slib/math/transform2d.h"
+#include "slib/core/dl_windows_user32.h"
+#include "slib/core/safe_static.h"
 
 #include <commctrl.h>
 
@@ -547,7 +548,7 @@ namespace slib
 	{
 		HWND handle = m_handle;
 		if (handle) {
-			WINAPI_ShowScrollBar func = Windows::getAPI_ShowScrollBar();
+			auto func = user32::getApi_ShowScrollBar();
 			if (func) {
 				func(handle, SB_HORZ, flagHorizontal);
 				func(handle, SB_VERT, flagVertical);

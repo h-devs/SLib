@@ -133,6 +133,12 @@
     <ClCompile Include="..\..\src\slib\core\console_windows.cpp" />
     <ClCompile Include="..\..\src\slib\core\content_type.cpp" />
     <ClCompile Include="..\..\src\slib\core\dispatch.cpp" />
+    <ClCompile Include="..\..\src\slib\core\dl_windows_bcrypt.cpp" />
+    <ClCompile Include="..\..\src\slib\core\dl_windows_kernel32.cpp" />
+    <ClCompile Include="..\..\src\slib\core\dl_windows_user32.cpp" />
+    <ClCompile Include="..\..\src\slib\core\dl_windows_wininet.cpp" />
+    <ClCompile Include="..\..\src\slib\core\dynamic_library.cpp" />
+    <ClCompile Include="..\..\src\slib\core\dynamic_library_windows.cpp" />
     <ClCompile Include="..\..\src\slib\core\event.cpp" />
     <ClCompile Include="..\..\src\slib\core\event_windows.cpp" />
     <ClCompile Include="..\..\src\slib\core\file.cpp" />
@@ -233,6 +239,7 @@
     <ClCompile Include="..\..\src\slib\graphics\canvas_ext.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\canvas_gdi.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\color.cpp" />
+    <ClCompile Include="..\..\src\slib\graphics\dl_windows_gdiplus.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\drawable.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\drawable_ext.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\drawable_gdi.cpp" />
@@ -296,6 +303,7 @@
     <ClCompile Include="..\..\src\slib\media\camera_win32.cpp" />
     <ClCompile Include="..\..\src\slib\media\codec_opus.cpp" />
     <ClCompile Include="..\..\src\slib\media\codec_vpx.cpp" />
+    <ClCompile Include="..\..\src\slib\media\dl_windows_winmm.cpp" />
     <ClCompile Include="..\..\src\slib\media\media_player.cpp" />
     <ClCompile Include="..\..\src\slib\media\media_player_ffmpeg.cpp" />
     <ClCompile Include="..\..\src\slib\media\media_player_win32.cpp" />

@@ -27,6 +27,7 @@
 #define _FILE_OFFSET_BITS 64
 #include <unistd.h>
 #include <errno.h>
+#include <poll.h>
 
 #include "slib/core/pipe.h"
 
@@ -89,6 +90,22 @@ namespace slib
 			}
 		}
 		return -1;
+	}
+
+
+	sl_bool PipeEvent::_native_wait(sl_int32 timeout)
+	{
+		pollfd fd;
+		Base::zeroMemory(&fd, sizeof(pollfd));
+		fd.fd = (int)(getReadPipeHandle());
+		fd.events = POLLIN | POLLPRI | POLLERR | POLLHUP;
+		int t = timeout >= 0 ? (int)timeout : -1;
+		int ret = poll(&fd, 1, t);
+		if (ret > 0) {
+			return sl_true;
+		} else {
+			return sl_false;
+		}
 	}
 
 }

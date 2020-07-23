@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +20,33 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_MAIN_HEADER
-#define CHECKHEADER_SLIB_MAIN_HEADER
+#include "slib/core/definition.h"
 
-#include "core.h"
-#include "crypto.h"
-#include "math.h"
-#include "network.h"
-#include "graphics.h"
+#if defined(SLIB_PLATFORM_IS_UNIX)
 
-#include "render.h"
-#include "ui.h"
-#include "media.h"
-#include "device.h"
-#include "storage.h"
-#include "db.h"
-#include "service.h"
+#include "slib/core/dynamic_library.h"
 
-#include "doc.h"
-#include "geo.h"
-#include "social.h"
+#include <dlfcn.h>
 
-#include "resource.h"
+namespace slib
+{
+
+	void* DynamicLibrary::loadLibrary(const StringParam& _name)
+	{
+		StringCstr8 name(_name);
+		return (void*)(dlopen(name.getData(), RTLD_LAZY));
+	}
+
+	void DynamicLibrary::freeLibrary(void* library)
+	{
+		dlclose(library);
+	}
+
+	void* DynamicLibrary::getFunctionAddress(void* library, const char* name)
+	{
+		return dlsym(library, name);
+	}
+
+}
 
 #endif

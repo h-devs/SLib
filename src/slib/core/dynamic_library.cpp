@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +20,56 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_MAIN_HEADER
-#define CHECKHEADER_SLIB_MAIN_HEADER
+#include "slib/core/dynamic_library.h"
 
-#include "core.h"
-#include "crypto.h"
-#include "math.h"
-#include "network.h"
-#include "graphics.h"
+namespace slib
+{
 
-#include "render.h"
-#include "ui.h"
-#include "media.h"
-#include "device.h"
-#include "storage.h"
-#include "db.h"
-#include "service.h"
+	DynamicLibrary::DynamicLibrary() : m_library(sl_null)
+	{
+	}
 
-#include "doc.h"
-#include "geo.h"
-#include "social.h"
+	DynamicLibrary::DynamicLibrary(const StringParam& param) : m_library(sl_null)
+	{
+		load(param);
+	}
 
-#include "resource.h"
+	DynamicLibrary::~DynamicLibrary()
+	{
+		free();
+	}
 
-#endif
+	sl_bool DynamicLibrary::isLoaded()
+	{
+		return m_library != sl_null;
+	}
+
+	sl_bool DynamicLibrary::load(const StringParam& path)
+	{
+		free();
+		void* library = loadLibrary(path);
+		m_library = library;
+		return library != sl_null;
+	}
+
+	void DynamicLibrary::free()
+	{
+		void* library = m_library;
+		if (library) {
+			freeLibrary(library);
+			m_library = sl_null;
+		}
+	}
+
+	void* DynamicLibrary::getFunctionAddress(const StringParam& _name)
+	{
+		void* library = m_library;
+		if (library) {
+			StringCstr name(_name);
+			return getFunctionAddress(library, name.getData());
+		} else {
+			return sl_null;
+		}		
+	}
+
+}

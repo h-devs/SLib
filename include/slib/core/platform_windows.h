@@ -28,16 +28,6 @@
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
 #include <windows.h>
-#define GDIPVER 0x0110
-#define GdipCreateEffect SLIB_GdipCreateEffect
-#define GdipDeleteEffect SLIB_GdipDeleteEffect
-#define GdipSetEffectParameters SLIB_GdipSetEffectParameters
-#define GdipDrawImageFX SLIB_GdipDrawImageFX
-#include <gdiplus.h>
-#undef GdipCreateEffect
-#undef GdipDeleteEffect
-#undef GdipSetEffectParameters
-#undef GdipDrawImageFX
 
 #include "string.h"
 #include "time.h"
@@ -86,73 +76,6 @@ namespace slib
 	};
 
 	typedef sl_bool(*WINDOWS_DEBUG_ALLOC_HOOK)(void* ptr, sl_size size, sl_uint32 requestNumber);
-	
-	typedef BOOL (WINAPI *WINAPI_GetQueuedCompletionStatusEx)
-	(
-		HANDLE CompletionPort,
-		LPOVERLAPPED_ENTRY lpCompletionPortEntries,
-		ULONG ulCount,
-		PULONG ulNumEntriesRemoved,
-		DWORD dwMilliseconds,
-		BOOL fAlertable
-	);
-	
-	typedef int (WINAPI *WINAPI_GetUserDefaultLocaleName)(
-		LPWSTR lpLocaleName,
-		int cchLocaleName
-	);
-
-	typedef ULONGLONG (WINAPI *WINAPI_GetTickCount64)();
-
-	typedef BOOL (WINAPI *WINAPI_ShowScrollBar)(
-		HWND hWnd,
-		int  wBar,
-		BOOL bShow
-	);
-
-	typedef LONG (WINAPI* WINAPI_BCryptOpenAlgorithmProvider)(
-		PVOID *phAlgorithm,
-		LPCWSTR pszAlgId,
-		LPCWSTR pszImplementation,
-		ULONG dwFlags
-	);
-
-	typedef LONG (WINAPI* WINAPI_BCryptCloseAlgorithmProvider)(
-		PVOID hAlgorithm,
-		ULONG dwFlags
-	);
-
-	typedef LONG (WINAPI* WINAPI_BCryptGenRandom)(
-		PVOID hAlgorithm,
-		PUCHAR pbBuffer,
-		ULONG cbBuffer,
-		ULONG dwFlags
-	);
-	
-	typedef Gdiplus::Status (__stdcall* WINAPI_GdipCreateEffect)(
-		const GUID guid,
-		Gdiplus::CGpEffect **effect
-	);
-
-	typedef Gdiplus::Status (__stdcall* WINAPI_GdipDeleteEffect)(
-		Gdiplus::CGpEffect *effect
-	);
-
-	typedef Gdiplus::Status (__stdcall* WINAPI_GdipSetEffectParameters)(
-		Gdiplus::CGpEffect *effect,
-		const VOID *params,
-		const UINT size
-	);
-
-	typedef Gdiplus::GpStatus (WINGDIPAPI* WINAPI_GdipDrawImageFX)(
-		Gdiplus::GpGraphics *graphics,
-		Gdiplus::GpImage *image,
-		Gdiplus::GpRectF *source,
-		Gdiplus::GpMatrix *xForm,
-		Gdiplus::CGpEffect *effect,
-		Gdiplus::GpImageAttributes *imageAttributes,
-		Gdiplus::GpUnit srcUnit
-	);
 	
 	class Variant;
 
@@ -205,41 +128,6 @@ namespace slib
 		static void setDebugFlags();
 
 		static void setDebugAllocHook(WINDOWS_DEBUG_ALLOC_HOOK hook);
-
-	
-		static HMODULE loadLibrary(const StringParam& path);
-
-		static HMODULE loadLibrary_kernel32();
-
-		static WINAPI_GetQueuedCompletionStatusEx getAPI_GetQueuedCompletionStatusEx();
-
-		static WINAPI_GetUserDefaultLocaleName getAPI_GetUserDefaultLocaleName();
-
-		static WINAPI_GetTickCount64 getAPI_GetTickCount64();
-
-		static HMODULE loadLibrary_user32();
-
-		static WINAPI_ShowScrollBar getAPI_ShowScrollBar();
-
-		static HMODULE loadLibrary_wininet();
-
-		static HMODULE loadLibrary_bcrypt();
-
-		static WINAPI_BCryptOpenAlgorithmProvider getAPI_BCryptOpenAlgorithmProvider();
-
-		static WINAPI_BCryptCloseAlgorithmProvider getAPI_BCryptCloseAlgorithmProvider();
-
-		static WINAPI_BCryptGenRandom getAPI_BCryptGenRandom();
-
-		static HMODULE loadLibrary_gdiplus();
-
-		static WINAPI_GdipCreateEffect getAPI_GdipCreateEffect();
-
-		static WINAPI_GdipDeleteEffect getAPI_GdipDeleteEffect();
-
-		static WINAPI_GdipSetEffectParameters getAPI_GdipSetEffectParameters();
-
-		static WINAPI_GdipDrawImageFX getAPI_GdipDrawImageFX();
 
 	
 		static Ref<Event> createEvent(HANDLE hEvent, sl_bool flagCloseOnRelease = sl_true);

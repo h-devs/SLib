@@ -515,7 +515,7 @@ namespace slib
 		}
 
 		do {
-			if (param.isBlur() && Windows::getAPI_GdipCreateEffect()) {
+			if (param.isBlur() && gdiplus::getApi_GdipCreateEffect()) {
 				Gdiplus::Blur blur;
 				Gdiplus::BlurParams bp;
 				bp.expandEdge = FALSE;

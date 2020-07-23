@@ -70,11 +70,10 @@ namespace slib
 			public:
 				static Ref<AsyncTcpSocketInstanceImpl> create(const Ref<Socket>& socket)
 				{
-					Ref<AsyncTcpSocketInstanceImpl> ret;
 					if (socket.isNotNull()) {
 						sl_file handle = (sl_file)(socket->getHandle());
 						if (handle != SLIB_FILE_INVALID_HANDLE) {
-							ret = new AsyncTcpSocketInstanceImpl();
+							Ref<AsyncTcpSocketInstanceImpl> ret = new AsyncTcpSocketInstanceImpl();
 							if (ret.isNotNull()) {
 								ret->m_socket = socket;
 								ret->setHandle(handle);
@@ -83,7 +82,7 @@ namespace slib
 							}
 						}
 					}
-					return ret;
+					return sl_null;
 				}
 
 				void initializeConnectEx()
@@ -132,14 +131,14 @@ namespace slib
 									m_bufRead.len = req->size;
 									m_flagsRead = 0;
 									DWORD dwRead = 0;
-									int ret = ::WSARecv((SOCKET)handle, &m_bufRead, 1, &dwRead, &m_flagsRead, &m_overlappedRead, NULL);
+									int ret = WSARecv((SOCKET)handle, &m_bufRead, 1, &dwRead, &m_flagsRead, &m_overlappedRead, NULL);
 									if (ret == 0) {
 										m_requestReading = req;
 										EventDesc desc;
 										desc.pOverlapped = &m_overlappedRead;
 										onEvent(&desc);
 									} else {
-										DWORD dwErr = ::WSAGetLastError();
+										DWORD dwErr = WSAGetLastError();
 										if (dwErr == WSA_IO_PENDING) {
 											m_requestReading = req;
 										} else {
@@ -161,14 +160,14 @@ namespace slib
 									m_bufWrite.buf = (CHAR*)(req->data);
 									m_bufWrite.len = req->size;
 									DWORD dwWrite = 0;
-									int ret = ::WSASend((SOCKET)handle, &m_bufWrite, 1, &dwWrite, 0, &m_overlappedWrite, NULL);
+									int ret = WSASend((SOCKET)handle, &m_bufWrite, 1, &dwWrite, 0, &m_overlappedWrite, NULL);
 									if (ret == 0) {
 										m_requestWriting = req;
 										EventDesc desc;
 										desc.pOverlapped = &m_overlappedWrite;
 										onEvent(&desc);
 									} else {
-										int dwErr = ::WSAGetLastError();
+										int dwErr = WSAGetLastError();
 										if (dwErr == WSA_IO_PENDING) {
 											m_requestWriting = req;
 										} else {
@@ -192,7 +191,7 @@ namespace slib
 								if (ret) {
 									_onConnect(sl_true);
 								} else {
-									int err = ::WSAGetLastError();
+									int err = WSAGetLastError();
 									if (err == WSAEINVAL) {
 										// ConnectEx requires the socket to be 'initially bound'
 										sockaddr_storage saBind;
@@ -204,12 +203,12 @@ namespace slib
 											aBind.ip = IPv4Address::zero();
 										}
 										sl_uint32 nSaBind = aBind.getSystemSocketAddress(&saBind);
-										::bind(handle, (SOCKADDR*)&saBind, nSaBind);
+										bind(handle, (SOCKADDR*)&saBind, nSaBind);
 										BOOL ret = m_funcConnectEx((SOCKET)handle, (sockaddr*)&addr, lenAddr, NULL, 0, NULL, &m_overlappedConnect);
 										if (ret) {
 											_onConnect(sl_true);
 										} else {
-											int err = ::WSAGetLastError();
+											int err = WSAGetLastError();
 											if (err != ERROR_IO_PENDING) {
 												_onConnect(sl_true);
 											}
@@ -233,8 +232,8 @@ namespace slib
 					DWORD dwSize = 0;
 					DWORD dwFlags = 0;
 					sl_bool flagError = sl_false;
-					if (!::WSAGetOverlappedResult((SOCKET)handle, pOverlapped, &dwSize, FALSE, &dwFlags)) {
-						int err = ::WSAGetLastError();
+					if (!WSAGetOverlappedResult((SOCKET)handle, pOverlapped, &dwSize, FALSE, &dwFlags)) {
+						int err = WSAGetLastError();
 						if (err == WSA_IO_INCOMPLETE) {
 							return;
 						}
@@ -384,7 +383,7 @@ namespace slib
 							if (ret) {
 								processAccept(sl_false);
 							} else {
-								int err = ::WSAGetLastError();
+								int err = WSAGetLastError();
 								if (err = ERROR_IO_PENDING) {
 									m_flagAccepting = sl_true;
 								} else {
@@ -411,11 +410,11 @@ namespace slib
 					DWORD dwSize = 0;
 					DWORD dwFlags = 0;
 					sl_bool flagError = sl_false;
-					if (::WSAGetOverlappedResult((SOCKET)handle, pOverlapped, &dwSize, FALSE, &dwFlags)) {
+					if (WSAGetOverlappedResult((SOCKET)handle, pOverlapped, &dwSize, FALSE, &dwFlags)) {
 						m_flagAccepting = sl_false;
 						processAccept(sl_false);
 					} else {
-						int err = ::WSAGetLastError();
+						int err = WSAGetLastError();
 						if (err == WSA_IO_INCOMPLETE) {
 							return;
 						}
@@ -444,7 +443,7 @@ namespace slib
 						m_funcGetAcceptExSockaddrs(m_bufferAccept, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, (sockaddr**)&paddr_local, &lenaddr_local, (sockaddr**)&paddr_remote, &lenaddr_remote);
 						if (paddr_remote) {
 							SOCKET socketListen = (SOCKET)(getHandle());
-							::setsockopt((SOCKET)(socketAccept->getHandle()), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&socketListen, sizeof(void*));
+							setsockopt((SOCKET)(socketAccept->getHandle()), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&socketListen, sizeof(void*));
 							SocketAddress addressRemote;
 							addressRemote.setSystemSocketAddress(paddr_remote);
 							SocketAddress addressLocal;
@@ -481,12 +480,11 @@ namespace slib
 			public:
 				static Ref<AsyncUdpSocketInstancenceImpl> create(const Ref<Socket>& socket, const Memory& buffer)
 				{
-					Ref<AsyncUdpSocketInstancenceImpl> ret;
 					if (socket.isNotNull()) {
 						if (socket->setNonBlockingMode(sl_true)) {
 							sl_file handle = (sl_file)(socket->getHandle());
 							if (handle != SLIB_FILE_INVALID_HANDLE) {
-								ret = new AsyncUdpSocketInstancenceImpl();
+								Ref<AsyncUdpSocketInstancenceImpl> ret = new AsyncUdpSocketInstancenceImpl();
 								if (ret.isNotNull()) {
 									ret->m_socket = socket;
 									ret->setHandle(handle);
@@ -496,7 +494,7 @@ namespace slib
 							}
 						}
 					}
-					return ret;
+					return sl_null;
 				}
 
 				void close()
@@ -521,7 +519,7 @@ namespace slib
 					if (pOverlapped == &m_overlappedReceive) {
 						DWORD dwSize = 0;
 						DWORD dwFlags = 0;
-						if (::WSAGetOverlappedResult((SOCKET)handle, pOverlapped, &dwSize, FALSE, &dwFlags)) {
+						if (WSAGetOverlappedResult((SOCKET)handle, pOverlapped, &dwSize, FALSE, &dwFlags)) {
 							m_flagReceiving = sl_false;
 							if (dwSize > 0) {
 								SocketAddress addr;
@@ -532,7 +530,7 @@ namespace slib
 								}
 							}
 						} else {
-							int err = ::WSAGetLastError();
+							int err = WSAGetLastError();
 							if (err == WSA_IO_INCOMPLETE) {
 								return;
 							}
@@ -574,7 +572,7 @@ namespace slib
 					if (ret == 0) {
 						m_flagReceiving = sl_true;
 					} else {
-						DWORD dwErr = ::WSAGetLastError();
+						DWORD dwErr = WSAGetLastError();
 						if (dwErr == WSA_IO_PENDING) {
 							m_flagReceiving = sl_true;
 						} else {

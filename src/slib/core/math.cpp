@@ -37,7 +37,7 @@
 #endif
 
 #if defined(_WIN32)
-#include <slib/core/platform_windows.h>
+#include <slib/core/dl_windows_bcrypt.h>
 #include <wincrypt.h>
 #endif
 
@@ -410,42 +410,39 @@ namespace slib
 		}
 #elif defined(_WIN32)
 		{
-			HMODULE hBcrypt = Windows::loadLibrary_bcrypt();
-			if (hBcrypt) {
-				WINAPI_BCryptOpenAlgorithmProvider funcBCryptOpenAlgorithmProvider = Windows::getAPI_BCryptOpenAlgorithmProvider();
-				WINAPI_BCryptCloseAlgorithmProvider funcBCryptCloseAlgorithmProvider = Windows::getAPI_BCryptCloseAlgorithmProvider();
-				WINAPI_BCryptGenRandom funcBCryptGenRandom = Windows::getAPI_BCryptGenRandom();
-				PVOID hAlgorithm;
-				if (funcBCryptOpenAlgorithmProvider(&hAlgorithm, L"RNG", L"Microsoft Primitive Provider", 0) == 0) {
-					sl_bool flagSuccess = sl_true;
+			auto funcBCryptOpenAlgorithmProvider = bcrypt::getApi_BCryptOpenAlgorithmProvider();
+			auto funcBCryptCloseAlgorithmProvider = bcrypt::getApi_BCryptCloseAlgorithmProvider();
+			auto funcBCryptGenRandom = bcrypt::getApi_BCryptGenRandom();
+			PVOID hAlgorithm;
+			if (funcBCryptOpenAlgorithmProvider(&hAlgorithm, L"RNG", L"Microsoft Primitive Provider", 0) == 0) {
+				sl_bool flagSuccess = sl_true;
 #if defined(SLIB_ARCH_IS_64BIT)
-					if (size >> 32) {
-						sl_size segment = 0x40000000;
-						while (size) {
-							sl_size n = size;
-							if (n > segment) {
-								n = segment;
-							}
-							if (funcBCryptGenRandom(hAlgorithm, (PUCHAR)_mem, (ULONG)n, 0) != 0) {
-								flagSuccess = sl_false;
-								break;
-							}
-							size -= n;
+				if (size >> 32) {
+					sl_size segment = 0x40000000;
+					while (size) {
+						sl_size n = size;
+						if (n > segment) {
+							n = segment;
 						}
-					} else {
-						if (funcBCryptGenRandom(hAlgorithm, (PUCHAR)_mem, (ULONG)size, 0) != 0) {
+						if (funcBCryptGenRandom(hAlgorithm, (PUCHAR)_mem, (ULONG)n, 0) != 0) {
 							flagSuccess = sl_false;
+							break;
 						}
+						size -= n;
 					}
-#else
-					if (funcBCryptGenRandom(hAlgorithm, (PUCHAR)_mem, size, 0) != 0) {
+				} else {
+					if (funcBCryptGenRandom(hAlgorithm, (PUCHAR)_mem, (ULONG)size, 0) != 0) {
 						flagSuccess = sl_false;
 					}
+				}
+#else
+				if (funcBCryptGenRandom(hAlgorithm, (PUCHAR)_mem, size, 0) != 0) {
+					flagSuccess = sl_false;
+				}
 #endif
-					funcBCryptCloseAlgorithmProvider(hAlgorithm, 0);
-					if (flagSuccess) {
-						return;
-					}
+				funcBCryptCloseAlgorithmProvider(hAlgorithm, 0);
+				if (flagSuccess) {
+					return;
 				}
 			}
 			sl_bool flagSuccess = sl_true;

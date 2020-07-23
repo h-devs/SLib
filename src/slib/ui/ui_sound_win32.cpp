@@ -24,46 +24,25 @@
 
 #if defined(SLIB_UI_IS_WIN32)
 
-#include "slib/core/platform_windows.h"
+#include "slib/media/dl_windows_winmm.h"
 
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_sound
-		{
-
-			HMODULE g_hModuleWinmm = NULL;
-
-			typedef BOOL (WINAPI* TYPE_PlaySound)(LPCWSTR pszSound, HMODULE hmod, DWORD fdwSound);
-			TYPE_PlaySound g_funcPlaySound;
-
-			void Prepare()
-			{
-				if (g_hModuleWinmm) {
-					return;
-				}
-				g_hModuleWinmm = LoadLibraryW(L"winmm.dll");
-				if (g_hModuleWinmm) {
-					g_funcPlaySound = (TYPE_PlaySound)(GetProcAddress(g_hModuleWinmm, "PlaySoundW"));
-				}
-			}
-
-		}
-	}
-
-	using namespace priv::ui_sound;
-
 	void UISound::play(UISoundAlias sound)
 	{
-		Prepare();
-		g_funcPlaySound((LPCWSTR)SND_ALIAS_SYSTEMDEFAULT, NULL, SND_ALIAS_ID | SND_ASYNC);
+		auto func = winmm::getApi_PlaySoundW();
+		if (func) {
+			func((LPCWSTR)SND_ALIAS_SYSTEMDEFAULT, NULL, SND_ALIAS_ID | SND_ASYNC);
+		}
 	}
 
 	void UISound::stop()
 	{
-		g_funcPlaySound(NULL, NULL, 0);
+		auto func = winmm::getApi_PlaySoundW();
+		if (func) {
+			func(NULL, NULL, 0);
+		}
 	}
 
 }

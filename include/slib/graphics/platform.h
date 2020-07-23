@@ -35,6 +35,7 @@
 
 #if defined(SLIB_GRAPHICS_IS_GDI) || defined(SLIB_PLATFORM_IS_WIN32)
 #	include "../core/platform_windows.h"
+#	include "dl_windows_gdiplus.h"
 #endif
 #if defined(SLIB_GRAPHICS_IS_QUARTZ) || defined(SLIB_PLATFORM_IS_APPLE)
 #	include "../core/platform_apple.h"

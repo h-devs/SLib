@@ -975,13 +975,13 @@ namespace slib
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
-#include "slib/core/platform_windows.h"
+#include "slib/core/dl_windows_kernel32.h"
 
 namespace slib
 {
 	Locale Locale::_getCurrent()
 	{
-		WINAPI_GetUserDefaultLocaleName api = Windows::getAPI_GetUserDefaultLocaleName();
+		auto api = kernel32::getApi_GetUserDefaultLocaleName();
 		if (api) {
 			WCHAR s[LOCALE_NAME_MAX_LENGTH];
 			s[0] = 0;
