@@ -81,6 +81,8 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/console_unix.cpp"
  "${SLIB_PATH}/src/slib/core/content_type.cpp"
  "${SLIB_PATH}/src/slib/core/dispatch.cpp"
+ "${SLIB_PATH}/src/slib/core/dynamic_library.cpp"
+ "${SLIB_PATH}/src/slib/core/dynamic_library_unix.cpp"
  "${SLIB_PATH}/src/slib/core/event.cpp"
  "${SLIB_PATH}/src/slib/core/event_unix.cpp"
  "${SLIB_PATH}/src/slib/core/file.cpp"
