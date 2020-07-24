@@ -292,7 +292,9 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/db/database_statement.cpp"
  "${SLIB_PATH}/src/slib/db/redis.cpp"
  "${SLIB_PATH}/src/slib/db/sqlite.cpp"
- 
+
+ "${SLIB_PATH}/src/slib/doc/rar.cpp"
+
  "${SLIB_PATH}/src/slib/geo/earth.cpp"
  "${SLIB_PATH}/src/slib/geo/geo_line.cpp"
  "${SLIB_PATH}/src/slib/geo/geo_location.cpp"

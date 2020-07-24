@@ -40,6 +40,13 @@
 			library = DynamicLibrary::loadLibrary(PATH); \
 			flagLoaded = sl_true; \
 			return library; \
+		} \
+		void* getApi(const char* name) { \
+			void* library = getLibrary(); \
+			if (library) { \
+				return DynamicLibrary::getFunctionAddress(library, name); \
+			} \
+			return sl_null; \
 		}
 
 #define SLIB_IMPORT_LIBRARY_FUNCTION(NAME, RET_TYPE, MODIFIER, ...) \
@@ -62,7 +69,8 @@
 
 #define SLIB_IMPORT_LIBRARY_BEGIN(NAME, PATH) \
 	namespace NAME { \
-		void* getLibrary();
+		void* getLibrary(); \
+		void* getApi(const char* name);
 
 #define SLIB_IMPORT_LIBRARY_FUNCTION(NAME, RET_TYPE, MODIFIER, ...) \
 		typedef RET_TYPE (MODIFIER *DL_FUNC_TYPE_##NAME)(__VA_ARGS__); \

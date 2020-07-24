@@ -64,6 +64,9 @@
     <Filter Include="src\storage">
       <UniqueIdentifier>{f83a293e-1e90-4a25-8b4c-104dbf1be2b5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\doc">
+      <UniqueIdentifier>{7958e742-6b8f-4898-9cee-27aeb54c9a8c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\slib\core\async_config.h">
@@ -1435,6 +1438,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\media\dl_windows_winmm.cpp">
       <Filter>src\media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\doc\rar.cpp">
+      <Filter>src\doc</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
