@@ -263,7 +263,7 @@ namespace slib
 						return sl_true;
 					}
 					HWND hWnd;
-					for (int i = 0; i < 100; i++) {
+					for (;;) {
 						hWnd = g_hWnd;
 						if (hWnd) {
 							break;
@@ -271,10 +271,19 @@ namespace slib
 						if (thread.isNull()) {
 							thread = Thread::start(&RunMonitor);
 							if (thread.isNull()) {
+								flagInstalledKeyboard = sl_false;
+								flagInstalledMouse = sl_false;
 								return sl_false;
 							}
 						} else {
-							Sleep(10);
+							if (thread->isRunning()) {
+								Sleep(10);
+							} else {
+								flagInstalledKeyboard = sl_false;
+								flagInstalledMouse = sl_false;
+								thread.setNull();
+								return sl_false;
+							}
 						}
 					}
 					if (mask & GlobalEventMonitorHelper::MASK_KEYBOARD) {
