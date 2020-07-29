@@ -349,12 +349,8 @@ namespace slib
 			return;
 		}
 		if (delayMillis == 0) {
-			Win32_UI_Shared* shared = Win32_UI_Shared::get();
-			if (!shared) {
-				return;
-			}
 			if (UIDispatcher::addCallback(callback)) {
-				PostMessageW(shared->hWndMessage, SLIB_UI_MESSAGE_DISPATCH, 0, 0);
+				PostGlobalMessage(SLIB_UI_MESSAGE_DISPATCH, 0, 0);
 			}
 		} else {
 			sl_reg callbackId;
