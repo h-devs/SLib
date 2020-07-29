@@ -75,11 +75,6 @@ namespace slib
 			LRESULT CALLBACK WindowInstanceProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 		}
 
-		namespace global_event_monitor
-		{
-			void ProcessRawInput(WPARAM wParam, LPARAM lParam);
-		}
-
 		namespace ui_core
 		{
 
@@ -137,17 +132,14 @@ namespace slib
 				case WM_MENUCOMMAND:
 					priv::menu::ProcessMenuCommand(wParam, lParam);
 					return 0;
-				case WM_INPUT:
-					priv::global_event_monitor::ProcessRawInput(wParam, lParam);
-					return 0;
 				case WM_COPYDATA:
-				{
-					COPYDATASTRUCT* data = (COPYDATASTRUCT*)lParam;
-					UIApp::dispatchReopenToApp(String::fromUtf16((sl_char16*)(data->lpData), data->cbData / 2), sl_true);
+					{
+						COPYDATASTRUCT* data = (COPYDATASTRUCT*)lParam;
+						UIApp::dispatchReopenToApp(String::fromUtf16((sl_char16*)(data->lpData), data->cbData / 2), sl_true);
+					}
+					return 0;
 				}
-				return 0;
-				}
-				return DefWindowProc(hWnd, uMsg, wParam, lParam);
+				return DefWindowProcW(hWnd, uMsg, wParam, lParam);
 			}
 
 			static void PostGlobalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
