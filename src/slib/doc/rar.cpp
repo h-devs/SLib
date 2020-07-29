@@ -768,7 +768,7 @@ namespace slib
 
 	sl_uint32 RarFile::getFileVersion(const StringParam& path)
 	{
-		Ref<File> file = File::open(path, FileMode::Read);
+		Ref<File> file = File::open(path, FileMode::Read, FilePermissions::ShareRead);
 		if (file.isNotNull()) {
 			RarFile rar;
 			if (rar.readSignature(file.get())) {
@@ -784,7 +784,7 @@ namespace slib
 
 	List<String> RarFile::getFileNamesInFile(const StringParam& path)
 	{
-		Ref<File> file = File::open(path, FileMode::Read);
+		Ref<File> file = File::open(path, FileMode::Read, FilePermissions::ShareRead);
 		if (file.isNotNull()) {
 			RarFile rar;
 			if (rar.readFromSignatureToMainHeader(file.get())) {
@@ -796,7 +796,7 @@ namespace slib
 
 	sl_bool RarFile::isEncryptedFile(const StringParam& path, sl_int32 maxCheckFileCount)
 	{
-		Ref<File> file = File::open(path, FileMode::Read);
+		Ref<File> file = File::open(path, FileMode::Read, FilePermissions::ShareRead);
 		if (file.isNotNull()) {
 			File* pFile = file.get();
 			RarFile rar;
