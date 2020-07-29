@@ -141,11 +141,11 @@ namespace slib
 					priv::global_event_monitor::ProcessRawInput(wParam, lParam);
 					return 0;
 				case WM_COPYDATA:
-					{
-						COPYDATASTRUCT* data = (COPYDATASTRUCT*)lParam;
-						UIApp::dispatchReopenToApp(String::fromUtf16((sl_char16*)(data->lpData), data->cbData / 2), sl_true);
-					}
-					return 0;
+				{
+					COPYDATASTRUCT* data = (COPYDATASTRUCT*)lParam;
+					UIApp::dispatchReopenToApp(String::fromUtf16((sl_char16*)(data->lpData), data->cbData / 2), sl_true);
+				}
+				return 0;
 				}
 				return DefWindowProc(hWnd, uMsg, wParam, lParam);
 			}
@@ -169,8 +169,8 @@ namespace slib
 			}
 
 			sl_uint32 g_nBadgeNumber = 0;
-			
-			void ApplyBadgeNumber()
+
+			static void ApplyBadgeNumber()
 			{
 				SLIB_SAFE_STATIC(Ref<Font>, font1, Font::create("Courier", 24, sl_true));
 				if (SLIB_SAFE_STATIC_CHECK_FREED(font1)) {
@@ -277,6 +277,32 @@ namespace slib
 				m_screenPrimary = new ScreenImpl();
 			}
 
+			sl_bool g_flagInitializedSharedUIContext = sl_false;
+
+			static Win32_UI_Shared* GetSharedUIContextInternal()
+			{
+				SLIB_SAFE_STATIC(Win32_UI_Shared, ret);
+				if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
+					return sl_null;
+				}
+				return &ret;
+			}
+
+			static Win32_UI_Shared* GetSharedUIContext()
+			{
+				if (g_flagInitializedSharedUIContext) {
+					return GetSharedUIContextInternal();
+				} else {
+					return sl_null;
+				}
+			}
+
+			static void InitializeSharedUIContext()
+			{
+				GetSharedUIContextInternal();
+				g_flagInitializedSharedUIContext = sl_true;
+			}
+
 		}
 
 	}
@@ -357,17 +383,17 @@ namespace slib
 
 	void UIPlatform::runApp()
 	{
-		GraphicsPlatform::startGdiplus();
-
-		Win32_UI_Shared::get();
-
 		g_threadMain = GetCurrentThreadId();
+
+		GraphicsPlatform::startGdiplus();
 
 		OleInitialize(NULL);
 
 		INITCOMMONCONTROLSEX icex;
 		icex.dwICC = ICC_LISTVIEW_CLASSES | ICC_TAB_CLASSES | ICC_DATE_CLASSES;
 		InitCommonControlsEx(&icex);
+
+		Win32_UI_Shared::initialize();
 
 		UIApp::dispatchStartToApp();
 
@@ -407,12 +433,13 @@ namespace slib
 
 	Win32_UI_Shared::Win32_UI_Shared()
 	{
+
 		hInstance = GetModuleHandleW(NULL);
-		
+
 		// register view class
 		{
 			WNDCLASSEXW wc;
-			ZeroMemory(&wc, sizeof(wc));
+			Base::zeroMemory(&wc, sizeof(wc));
 			wc.cbSize = sizeof(wc);
 			wc.style = CS_DBLCLKS | CS_PARENTDC;
 			wc.lpfnWndProc = priv::view::ViewInstanceProc;
@@ -431,7 +458,7 @@ namespace slib
 		// register window class
 		{
 			WNDCLASSEXW wc;
-			ZeroMemory(&wc, sizeof(wc));
+			Base::zeroMemory(&wc, sizeof(wc));
 			wc.cbSize = sizeof(wc);
 			wc.style = CS_DBLCLKS;
 			wc.lpfnWndProc = priv::window::WindowInstanceProc;
@@ -450,7 +477,7 @@ namespace slib
 		// Mesage Window
 		{
 			WNDCLASSW wc;
-			ZeroMemory(&wc, sizeof(wc));
+			Base::zeroMemory(&wc, sizeof(wc));
 			wc.hInstance = hInstance;
 			wc.lpfnWndProc = MessageWindowProc;
 			wc.lpszClassName = L"SLIBMESSAGEHANDLER";
@@ -474,11 +501,12 @@ namespace slib
 
 	Win32_UI_Shared* Win32_UI_Shared::get()
 	{
-		SLIB_SAFE_STATIC(Win32_UI_Shared, ret);
-		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
-			return sl_null;
-		}
-		return &ret;
+		return GetSharedUIContext();
+	}
+
+	void Win32_UI_Shared::initialize()
+	{
+		InitializeSharedUIContext();
 	}
 
 }

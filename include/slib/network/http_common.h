@@ -131,7 +131,10 @@ namespace slib
 #ifdef DELETE
 #undef DELETE
 #endif
-	
+#ifdef TRACE
+#undef TRACE
+#endif
+
 	enum class HttpMethod
 	{
 		Unknown = 0,

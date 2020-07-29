@@ -46,10 +46,13 @@ namespace slib
 
 	public:
 		Win32_UI_Shared();
+
 		~Win32_UI_Shared();
 
 	public:
 		static Win32_UI_Shared* get();
+
+		static void initialize();
 
 	};
 
