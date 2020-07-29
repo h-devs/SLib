@@ -55,10 +55,10 @@ namespace slib
 			return;
 		}
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-		::DeleteCriticalSection((PCRITICAL_SECTION)object);
+		DeleteCriticalSection((PCRITICAL_SECTION)object);
 		Base::freeMemory(object);
 #elif defined(SLIB_PLATFORM_IS_UNIX)
-		::pthread_mutex_destroy((pthread_mutex_t*)(object));
+		pthread_mutex_destroy((pthread_mutex_t*)(object));
 		Base::freeMemory(object);
 #endif
 		m_object = (void*)((sl_size)1);
@@ -76,17 +76,17 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 			object = Base::createMemory(sizeof(CRITICAL_SECTION));
 #	if defined(SLIB_PLATFORM_IS_WIN32)
-			::InitializeCriticalSection((PCRITICAL_SECTION)object);
+			InitializeCriticalSection((PCRITICAL_SECTION)object);
 #	else
-			::InitializeCriticalSectionEx((PCRITICAL_SECTION)object, NULL, NULL);
+			InitializeCriticalSectionEx((PCRITICAL_SECTION)object, NULL, NULL);
 #	endif
 #elif defined(SLIB_PLATFORM_IS_UNIX)
 			object = Base::createMemory(sizeof(pthread_mutex_t));
 			pthread_mutexattr_t attr;
-			::pthread_mutexattr_init(&attr);
-			::pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-			::pthread_mutex_init((pthread_mutex_t*)(object), &attr);
-			::pthread_mutexattr_destroy(&attr);
+			pthread_mutexattr_init(&attr);
+			pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+			pthread_mutex_init((pthread_mutex_t*)(object), &attr);
+			pthread_mutexattr_destroy(&attr);
 #endif
 			m_object = object;
 		}
@@ -113,9 +113,9 @@ namespace slib
 			return;
 		}
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-		::EnterCriticalSection((PCRITICAL_SECTION)object);
+		EnterCriticalSection((PCRITICAL_SECTION)object);
 #elif defined(SLIB_PLATFORM_IS_UNIX)
-		::pthread_mutex_lock((pthread_mutex_t*)(object));
+		pthread_mutex_lock((pthread_mutex_t*)(object));
 #endif
 	}
 
@@ -126,9 +126,9 @@ namespace slib
 			return sl_false;
 		}
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-		return ::TryEnterCriticalSection((PCRITICAL_SECTION)object) != 0;
+		return TryEnterCriticalSection((PCRITICAL_SECTION)object) != 0;
 #elif defined(SLIB_PLATFORM_IS_UNIX)
-		return ::pthread_mutex_trylock((pthread_mutex_t*)(object)) == 0;
+		return pthread_mutex_trylock((pthread_mutex_t*)(object)) == 0;
 #endif
 	}
 
@@ -139,9 +139,9 @@ namespace slib
 			return;
 		}
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-		::LeaveCriticalSection((PCRITICAL_SECTION)object);
+		LeaveCriticalSection((PCRITICAL_SECTION)object);
 #elif defined(SLIB_PLATFORM_IS_UNIX)
-		::pthread_mutex_unlock((pthread_mutex_t*)(object));
+		pthread_mutex_unlock((pthread_mutex_t*)(object));
 #endif
 	}
 	
