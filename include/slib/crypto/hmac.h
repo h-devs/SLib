@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,9 @@
 
 #include "definition.h"
 
+
+#include "sha2.h"
+
 /*
 	HMAC: Keyed-Hashing for Message Authentication (RFC-2104)
 */
@@ -36,48 +39,31 @@ namespace slib
 	class SLIB_EXPORT HMAC
 	{
 	public:
-		static void execute(const void* _key, sl_size lenKey, const void* message, sl_size lenMessage, void* output)
-		{
-			sl_size i;
-			const sl_uint8* key = (const sl_uint8*)_key;
-			sl_uint8 keyLocal[HASH::BlockSize];
-			if (lenKey > HASH::BlockSize) {
-				HASH::hash(key, lenKey, keyLocal);
-				for (i = HASH::HashSize; i < HASH::BlockSize; i++) {
-					keyLocal[i] = 0;
-				}
-				key = keyLocal;
-			} else if (lenKey < HASH::BlockSize) {
-				for (i = 0; i < lenKey; i++) {
-					keyLocal[i] = key[i];
-				}
-				for (; i < HASH::BlockSize; i++) {
-					keyLocal[i] = 0;
-				}
-				key = keyLocal;
-			}
-			// hash(o_key_pad | hash(i_key_pad | message)), i_key_pad = key xor [0x36 * BlockSize], o_key_pad = key xor [0x5c * BlockSize]
-			HASH hash;
-			hash.start();
-			sl_uint8 key_pad[HASH::BlockSize];
-			for (i = 0; i < HASH::BlockSize; i++) {
-				key_pad[i] = key[i] ^ 0x36;
-			}
-			hash.update(key_pad, HASH::BlockSize);
-			hash.update(message, lenMessage);
-			hash.finish(output);
-			
-			hash.start();
-			for (i = 0; i < HASH::BlockSize; i++) {
-				key_pad[i] = key[i] ^ 0x5c;
-			}
-			hash.update(key_pad, HASH::BlockSize);
-			hash.update(output, HASH::HashSize);
-			hash.finish(output);
-		}
-		
+		enum {
+			HashSize = HASH::HashSize
+		};
+
+	public:
+		void start(const void* key, sl_size lenKey);
+
+		void update(const void* input, sl_size n);
+
+		// output: length of HASH size
+		void finish(void* output);
+
+		// output: length of HASH size
+		static void execute(const void* key, sl_size lenKey, const void* message, sl_size lenMessage, void* output);
+
+	private:
+		HASH m_hash;
+		sl_uint8 m_keyPad[HASH::BlockSize];
+
 	};
+	
+	typedef HMAC<SHA256> HMAC_SHA256;
 
 }
+
+#include "detail/hmac.inc"
 
 #endif

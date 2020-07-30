@@ -49,6 +49,9 @@
 #include "crypto/rsa.h"
 #include "crypto/ecc.h"
 
+// Key Derivation Function
+#include "crypto/pbkdf.h"
+
 // Transport Protocol
 #include "crypto/tls.h"
 
