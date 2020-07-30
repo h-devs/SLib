@@ -23,3 +23,58 @@
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
 #include "slib/ui/dl_linux_gtk.h"
+
+namespace slib
+{
+	namespace gtk
+	{
+
+		gboolean wrap_gtk_show_uri(
+				GdkScreen   *screen,
+				const gchar *uri,
+				guint32      timestamp,
+				GError     **error
+		)
+		{
+			auto func = getApi_gtk_show_uri();
+			if (func) {
+				return func(screen, uri, timestamp, error);
+			}
+			return sl_false;
+		}
+
+		void wrap_gtk_window_set_opacity(GtkWindow *window, gdouble opacity)
+		{
+			auto func = getApi_gtk_window_set_opacity();
+			if (func) {
+				return func(window, opacity);
+			}
+		}
+
+		void wrap_gtk_window_set_deletable(GtkWindow *window, gboolean setting)
+		{
+			auto func = getApi_gtk_window_set_deletable();
+			if (func) {
+				return func(window, setting);
+			}
+		}
+
+		GdkWindow * wrap_gtk_widget_get_window(GtkWidget *widget)
+		{
+			auto func = getApi_gtk_widget_get_window();
+			if (func) {
+				return func(widget);
+			}
+			return sl_null;
+		}
+
+		void wrap_gtk_file_chooser_set_create_folders(GtkFileChooser *chooser, gboolean create_folders)
+		{
+			auto func = getApi_gtk_file_chooser_set_create_folders();
+			if (func) {
+				return func(chooser, create_folders);
+			}
+		}
+
+	}
+}

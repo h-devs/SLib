@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#if defined(SLIB_PLATFORM_IS_LINUX)
+#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 
 #include "dl.h"
 

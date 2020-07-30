@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#if defined(SLIB_PLATFORM_IS_LINUX)
+#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 
 #include "../core/dl.h"
 #include "gtk/gtk.h"
@@ -39,11 +39,11 @@ namespace slib
 			void
 		)
 		#define gdk_screen_get_default	slib::gdk::getApi_gdk_screen_get_default()
-		SLIB_IMPORT_LIBRARY_FUNCTION(
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
 			gdk_screen_get_resolution, gdouble, ,
 			GdkScreen *screen
 		)
-		#define gdk_screen_get_resolution	slib::gdk::getApi_gdk_screen_get_resolution()
+		#define gdk_screen_get_resolution	slib::gdk::wrap_gdk_screen_get_resolution
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gdk_screen_get_width, gint, ,
 			GdkScreen   *screen
@@ -59,11 +59,11 @@ namespace slib
 			void
 		)
 		#define gdk_keymap_get_default	slib::gdk::getApi_gdk_keymap_get_default()
-		SLIB_IMPORT_LIBRARY_FUNCTION(
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
 			gdk_keymap_get_caps_lock_state, gboolean, ,
 			GdkKeymap           *keymap
 		)
-		#define gdk_keymap_get_caps_lock_state	slib::gdk::getApi_gdk_keymap_get_caps_lock_state()
+		#define gdk_keymap_get_caps_lock_state	slib::gdk::wrap_gdk_keymap_get_caps_lock_state
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gdk_display_get_default, GdkDisplay *, ,
 			void

@@ -23,18 +23,39 @@
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
 #include "slib/graphics/dl_linux_cairo.h"
-/*
-extern "C"
-{
 
-	cairo_public cairo_t * SLIB_cairo_create(cairo_surface_t *target)
+namespace slib
+{
+	namespace cairo
 	{
-		auto func = slib::cairo::getApi_cairo_create();
-		if (func) {
-			return func(target);
+
+		cairo_public cairo_surface_t * wrap_cairo_surface_create_for_rectangle(
+				cairo_surface_t * target,
+				double x,
+				double y,
+				double width,
+				double height)
+		{
+			auto func = getApi_cairo_surface_create_for_rectangle();
+			if (func) {
+				return func(target, x, y, width, height);
+			}
+			return sl_null;
 		}
-		return sl_null;
+
 	}
 
+	namespace pangocairo
+	{
+
+		PangoContext * wrap_pango_cairo_create_context(cairo_t * cr)
+		{
+			auto func = getApi_pango_cairo_create_context();
+			if (func) {
+				return func(cr);
+			}
+			return sl_null;
+		}
+
+	}
 }
-*/
