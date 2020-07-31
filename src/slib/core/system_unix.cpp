@@ -29,6 +29,8 @@
 #include "slib/core/file.h"
 #include "slib/core/variant.h"
 
+#include "slib/core/dl_linux_rt.h"
+
 #include <string.h>
 #include <time.h>
 #include <assert.h>

@@ -466,6 +466,7 @@ else ()
   "${SLIB_PATH}/src/slib/db/postgresql.cpp"
 
   "${SLIB_PATH}/src/slib/core/dl_linux_glib.cpp"
+  "${SLIB_PATH}/src/slib/core/dl_linux_rt.cpp"
 
   "${SLIB_PATH}/src/slib/graphics/dl_linux_cairo.cpp"
   "${SLIB_PATH}/src/slib/graphics/bitmap_cairo.cpp"
