@@ -43,6 +43,7 @@
 #endif
 #if defined(SLIB_UI_IS_GTK)
 #	include "gtk/gtk.h"
+#	include "../core/dl_linux_glib.h"
 #	include "dl_linux_gtk.h"
 #	include "dl_linux_gdk.h"
 #endif

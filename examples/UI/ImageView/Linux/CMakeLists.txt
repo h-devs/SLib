@@ -16,8 +16,6 @@ target_link_libraries (
   slib
   pthread
   dl
-  gobject-2.0
-  glib-2.0
 )
 
 file(COPY ../images DESTINATION .)

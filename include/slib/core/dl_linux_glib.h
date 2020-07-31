@@ -1,0 +1,111 @@
+/*
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *
+ *   Permission is hereby granted, free of charge, to any person obtaining a copy
+ *   of this software and associated documentation files (the "Software"), to deal
+ *   in the Software without restriction, including without limitation the rights
+ *   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *   copies of the Software, and to permit persons to whom the Software is
+ *   furnished to do so, subject to the following conditions:
+ *
+ *   The above copyright notice and this permission notice shall be included in
+ *   all copies or substantial portions of the Software.
+ *
+ *   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *   THE SOFTWARE.
+ */
+
+#ifndef CHECKHEADER_SLIB_CORE_DL_LINUX_GLIB
+#define CHECKHEADER_SLIB_CORE_DL_LINUX_GLIB
+
+#include "definition.h"
+
+#if defined(SLIB_PLATFORM_IS_LINUX)
+
+#include "../core/dl.h"
+#include "glib/glib.h"
+#include "glib/glib-object.h"
+
+namespace slib
+{
+
+	SLIB_IMPORT_LIBRARY_BEGIN(glib, "libglib-2.0.so.0")
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_free,
+			void, ,
+			gpointer mem
+		)
+		#define g_free	slib::glib::getApi_g_free()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_slist_free,
+			void, ,
+			GSList * list
+		)
+		#define g_slist_free	slib::glib::getApi_g_slist_free()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_idle_add,
+			guint, ,
+			GSourceFunc function,
+			gpointer data
+		)
+		#define g_idle_add	slib::glib::getApi_g_idle_add()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_timeout_add,
+			guint, ,
+			guint interval,
+			GSourceFunc function,
+			gpointer data
+		)
+		#define g_timeout_add	slib::glib::getApi_g_timeout_add()
+	SLIB_IMPORT_LIBRARY_END
+
+	SLIB_IMPORT_LIBRARY_BEGIN(gobject, "libgobject-2.0.so.0")
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_object_ref_sink,
+			gpointer, ,
+			gpointer object
+		)
+		#define g_object_ref_sink	slib::gobject::getApi_g_object_ref_sink()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_object_unref,
+			void, ,
+			gpointer object
+		)
+		#define g_object_unref	slib::gobject::getApi_g_object_unref()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_signal_connect_data,
+			gulong, ,
+			gpointer instance,
+			const gchar * detailed_signal,
+			GCallback c_handler,
+			gpointer data,
+			GClosureNotify destroy_data,
+			GConnectFlags connect_flags
+		)
+		#define g_signal_connect_data	slib::gobject::getApi_g_signal_connect_data()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_type_check_instance_is_a,
+			gboolean, ,
+			GTypeInstance *instance,
+			GType iface_type
+		)
+		#define g_type_check_instance_is_a	slib::gobject::getApi_g_type_check_instance_is_a()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_type_check_instance_cast,
+			GTypeInstance*, ,
+			GTypeInstance *instance,
+			GType iface_type
+		)
+		#define g_type_check_instance_cast	slib::gobject::getApi_g_type_check_instance_cast()
+	SLIB_IMPORT_LIBRARY_END
+
+}
+
+#endif
+
+#endif

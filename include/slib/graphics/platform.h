@@ -59,6 +59,7 @@
 #		include "pango/pangocairo.h"
 #	endif
 #	if	defined(SLIB_PLATFORM_IS_LINUX)
+#		include "../core/dl_linux_glib.h"
 #		include "dl_linux_cairo.h"
 #	endif
 #endif
