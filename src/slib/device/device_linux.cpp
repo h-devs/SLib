@@ -29,6 +29,8 @@
 #include "slib/core/variant.h"
 
 #include "gtk/gtk.h"
+#include "slib/ui/dl_linux_gtk.h"
+#include "slib/ui/dl_linux_gdk.h"
 
 #include <sys/utsname.h>
 

@@ -475,6 +475,8 @@ else ()
 
   "${SLIB_PATH}/src/slib/device/device_linux.cpp"
 
+  "${SLIB_PATH}/src/slib/ui/dl_linux_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/dl_linux_gdk.cpp"
   "${SLIB_PATH}/src/slib/ui/clipboard_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/common_dialogs_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/render_view_gtk.cpp"

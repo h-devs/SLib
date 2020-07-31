@@ -43,6 +43,8 @@
 #endif
 #if defined(SLIB_UI_IS_GTK)
 #	include "gtk/gtk.h"
+#	include "dl_linux_gtk.h"
+#	include "dl_linux_gdk.h"
 #endif
 #if defined(SLIB_UI_IS_EFL)
 enum class EFL_ViewType

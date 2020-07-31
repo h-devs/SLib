@@ -16,11 +16,8 @@ target_link_libraries (
   slib
   pthread
   dl
-  gtk-x11-2.0
-  gdk-x11-2.0
   gobject-2.0
   glib-2.0
-  X11
 )
 
 file(COPY ../images DESTINATION .)
