@@ -47,14 +47,14 @@ namespace slib
 			gtk_main_quit, void, , void
 		)
 		#define gtk_main_quit	slib::gtk::getApi_gtk_main_quit()
-		SLIB_IMPORT_LIBRARY_FUNCTION(
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
 			gtk_show_uri, gboolean, ,
 			GdkScreen   *screen,
 			const gchar *uri,
 			guint32      timestamp,
 			GError     **error
 		)
-		#define gtk_show_uri	slib::gtk::getApi_gtk_show_uri()
+		#define gtk_show_uri	slib::gtk::wrap_gtk_show_uri
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_object_get_type, GType, , void
 		)
@@ -244,12 +244,12 @@ namespace slib
 			GdkScreen	    *screen
 		)
 		#define gtk_window_set_screen	slib::gtk::getApi_gtk_window_set_screen()
-		SLIB_IMPORT_LIBRARY_FUNCTION(
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
 			gtk_window_set_opacity, void, ,
 			GtkWindow           *window, 
 			gdouble              opacity
 		)
-		#define gtk_window_set_opacity	slib::gtk::getApi_gtk_window_set_opacity()
+		#define gtk_window_set_opacity	slib::gtk::wrap_gtk_window_set_opacity
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_window_set_geometry_hints, void, ,
 			GtkWindow           *window,
@@ -263,12 +263,12 @@ namespace slib
 			GtkWindow *window, gboolean setting
 		)
 		#define gtk_window_set_keep_above	slib::gtk::getApi_gtk_window_set_keep_above()
-		SLIB_IMPORT_LIBRARY_FUNCTION(
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
 			gtk_window_set_deletable, void, ,
 			GtkWindow *window,
 			gboolean   setting
 		)
-		#define gtk_window_set_deletable	slib::gtk::getApi_gtk_window_set_deletable()
+		#define gtk_window_set_deletable	slib::gtk::wrap_gtk_window_set_deletable
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_window_is_active, gboolean, ,
 			GtkWindow           *window
@@ -330,15 +330,15 @@ namespace slib
 		)
 		#define gtk_widget_set_events	slib::gtk::getApi_gtk_widget_set_events()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-			gtk_widget_get_parent, GtkWidget           *, ,
+			gtk_widget_get_parent, GtkWidget *, ,
 			GtkWidget    *widget
 		)
 		#define gtk_widget_get_parent	slib::gtk::getApi_gtk_widget_get_parent()
-		SLIB_IMPORT_LIBRARY_FUNCTION(
-			gtk_widget_get_window, GdkWindow           *, ,
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
+			gtk_widget_get_window, GdkWindow *, ,
 			GtkWidget    *widget
 		)
-		#define gtk_widget_get_window	slib::gtk::getApi_gtk_widget_get_window()
+		#define gtk_widget_get_window	slib::gtk::wrap_gtk_widget_get_window
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_widget_show, void, ,
 			GtkWidget	       *widget
@@ -411,12 +411,12 @@ namespace slib
 			gboolean              show_hidden
 		)
 		#define gtk_file_chooser_set_show_hidden	slib::gtk::getApi_gtk_file_chooser_set_show_hidden()
-		SLIB_IMPORT_LIBRARY_FUNCTION(
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
 			gtk_file_chooser_set_create_folders, void, ,
 			GtkFileChooser       *chooser,
 			gboolean               create_folders
 		)
-		#define gtk_file_chooser_set_create_folders	slib::gtk::getApi_gtk_file_chooser_set_create_folders()
+		#define gtk_file_chooser_set_create_folders	slib::gtk::wrap_gtk_file_chooser_set_create_folders
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_file_chooser_get_uri, gchar *, ,
 			GtkFileChooser *chooser

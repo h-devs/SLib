@@ -23,3 +23,29 @@
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
 #include "slib/ui/dl_linux_gdk.h"
+
+namespace slib
+{
+    namespace gdk
+    {
+        
+        gdouble wrap_gdk_screen_get_resolution(GdkScreen *screen)
+        {
+            auto func = getApi_gdk_screen_get_resolution();
+            if (func) {
+                return func(screen);
+            }
+            return 0;
+        }
+
+        gboolean wrap_gdk_keymap_get_caps_lock_state(GdkKeymap *keymap)
+        {
+            auto func = getApi_gdk_keymap_get_caps_lock_state();
+            if (func) {
+                return func(keymap);
+            }
+            return sl_false;
+        }
+        
+    }
+}

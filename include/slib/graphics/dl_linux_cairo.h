@@ -59,7 +59,7 @@ namespace slib
 			cairo_t * cr
 		)
 		#define cairo_restore	slib::cairo::getApi_cairo_restore()
-		SLIB_IMPORT_LIBRARY_FUNCTION(
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
 			cairo_surface_create_for_rectangle,
 			cairo_surface_t *, cairo_public,
 			cairo_surface_t * target,
@@ -68,7 +68,7 @@ namespace slib
 			double width,
 			double height
 		)
-		#define cairo_surface_create_for_rectangle	slib::cairo::getApi_cairo_surface_create_for_rectangle()
+		#define cairo_surface_create_for_rectangle	slib::cairo::wrap_cairo_surface_create_for_rectangle
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			cairo_surface_mark_dirty,
 			void, cairo_public,
@@ -361,12 +361,12 @@ namespace slib
 	SLIB_IMPORT_LIBRARY_END
 
 	SLIB_IMPORT_LIBRARY_BEGIN(pangocairo, "libpangocairo-1.0.so.0")
-		SLIB_IMPORT_LIBRARY_FUNCTION(
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
 			pango_cairo_create_context,
 			PangoContext *, ,
 			cairo_t * cr
 		)
-		#define pango_cairo_create_context	slib::pangocairo::getApi_pango_cairo_create_context()
+		#define pango_cairo_create_context	slib::pangocairo::wrap_pango_cairo_create_context
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			pango_cairo_create_layout,
 			PangoLayout *, ,
