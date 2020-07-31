@@ -36,10 +36,11 @@ namespace slib
 
 	SLIB_IMPORT_LIBRARY_BEGIN(rt, "librt.so.1")
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-			clock_gettime, int, ,
+			clock_gettime,
+			int, ,
 			clockid_t __clock_id, struct timespec *__tp
 		)
-		#define clock_gettime	slib::rt::getApi_clock_gettime()
+		#define clock_gettime slib::rt::getApi_clock_gettime()
 	SLIB_IMPORT_LIBRARY_END
 
 }

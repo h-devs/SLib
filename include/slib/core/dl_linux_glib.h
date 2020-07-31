@@ -27,7 +27,8 @@
 
 #if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 
-#include "../core/dl.h"
+#include "dl.h"
+
 #include "glib/glib.h"
 #include "glib/glib-object.h"
 
@@ -40,20 +41,20 @@ namespace slib
 			void, ,
 			gpointer mem
 		)
-		#define g_free	slib::glib::getApi_g_free()
+		#define g_free slib::glib::getApi_g_free()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_slist_free,
 			void, ,
 			GSList * list
 		)
-		#define g_slist_free	slib::glib::getApi_g_slist_free()
+		#define g_slist_free slib::glib::getApi_g_slist_free()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_idle_add,
 			guint, ,
 			GSourceFunc function,
 			gpointer data
 		)
-		#define g_idle_add	slib::glib::getApi_g_idle_add()
+		#define g_idle_add slib::glib::getApi_g_idle_add()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_timeout_add,
 			guint, ,
@@ -61,7 +62,7 @@ namespace slib
 			GSourceFunc function,
 			gpointer data
 		)
-		#define g_timeout_add	slib::glib::getApi_g_timeout_add()
+		#define g_timeout_add slib::glib::getApi_g_timeout_add()
 	SLIB_IMPORT_LIBRARY_END
 
 	SLIB_IMPORT_LIBRARY_BEGIN(gobject, "libgobject-2.0.so.0")
@@ -70,13 +71,13 @@ namespace slib
 			gpointer, ,
 			gpointer object
 		)
-		#define g_object_ref_sink	slib::gobject::getApi_g_object_ref_sink()
+		#define g_object_ref_sink slib::gobject::getApi_g_object_ref_sink()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_object_unref,
 			void, ,
 			gpointer object
 		)
-		#define g_object_unref	slib::gobject::getApi_g_object_unref()
+		#define g_object_unref slib::gobject::getApi_g_object_unref()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_signal_connect_data,
 			gulong, ,
@@ -87,21 +88,21 @@ namespace slib
 			GClosureNotify destroy_data,
 			GConnectFlags connect_flags
 		)
-		#define g_signal_connect_data	slib::gobject::getApi_g_signal_connect_data()
+		#define g_signal_connect_data slib::gobject::getApi_g_signal_connect_data()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_type_check_instance_is_a,
 			gboolean, ,
 			GTypeInstance *instance,
 			GType iface_type
 		)
-		#define g_type_check_instance_is_a	slib::gobject::getApi_g_type_check_instance_is_a()
+		#define g_type_check_instance_is_a slib::gobject::getApi_g_type_check_instance_is_a()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_type_check_instance_cast,
 			GTypeInstance*, ,
 			GTypeInstance *instance,
 			GType iface_type
 		)
-		#define g_type_check_instance_cast	slib::gobject::getApi_g_type_check_instance_cast()
+		#define g_type_check_instance_cast slib::gobject::getApi_g_type_check_instance_cast()
 	SLIB_IMPORT_LIBRARY_END
 
 }

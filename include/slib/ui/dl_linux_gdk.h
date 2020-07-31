@@ -28,6 +28,7 @@
 #if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 
 #include "../core/dl.h"
+
 #include "gtk/gtk.h"
 
 namespace slib
@@ -35,66 +36,77 @@ namespace slib
 
 	SLIB_IMPORT_LIBRARY_BEGIN(gdk, "libgdk-x11-2.0.so.0")
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-			gdk_screen_get_default, GdkScreen *, ,
+			gdk_screen_get_default,
+			GdkScreen *, ,
 			void
 		)
-		#define gdk_screen_get_default	slib::gdk::getApi_gdk_screen_get_default()
+		#define gdk_screen_get_default slib::gdk::getApi_gdk_screen_get_default()
 		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
-			gdk_screen_get_resolution, gdouble, ,
+			gdk_screen_get_resolution,
+			gdouble, ,
 			GdkScreen *screen
 		)
-		#define gdk_screen_get_resolution	slib::gdk::wrap_gdk_screen_get_resolution
+		#define gdk_screen_get_resolution slib::gdk::wrap_gdk_screen_get_resolution
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-			gdk_screen_get_width, gint, ,
-			GdkScreen   *screen
+			gdk_screen_get_width,
+			gint, ,
+			GdkScreen *screen
 		)
-		#define gdk_screen_get_width	slib::gdk::getApi_gdk_screen_get_width()
+		#define gdk_screen_get_width slib::gdk::getApi_gdk_screen_get_width()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-			gdk_screen_get_height, gint, ,
-			GdkScreen   *screen
+			gdk_screen_get_height,
+			gint, ,
+			GdkScreen *screen
 		)
-		#define gdk_screen_get_height	slib::gdk::getApi_gdk_screen_get_height()
+		#define gdk_screen_get_height slib::gdk::getApi_gdk_screen_get_height()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-			gdk_keymap_get_default, GdkKeymap*, ,
+			gdk_keymap_get_default,
+			GdkKeymap *, ,
 			void
 		)
-		#define gdk_keymap_get_default	slib::gdk::getApi_gdk_keymap_get_default()
+		#define gdk_keymap_get_default slib::gdk::getApi_gdk_keymap_get_default()
 		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
-			gdk_keymap_get_caps_lock_state, gboolean, ,
-			GdkKeymap           *keymap
+			gdk_keymap_get_caps_lock_state,
+			gboolean, ,
+			GdkKeymap *keymap
 		)
-		#define gdk_keymap_get_caps_lock_state	slib::gdk::wrap_gdk_keymap_get_caps_lock_state
+		#define gdk_keymap_get_caps_lock_state slib::gdk::wrap_gdk_keymap_get_caps_lock_state
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-			gdk_display_get_default, GdkDisplay *, ,
+			gdk_display_get_default,
+			GdkDisplay *, ,
 			void
 		)
-		#define gdk_display_get_default	slib::gdk::getApi_gdk_display_get_default()
+		#define gdk_display_get_default slib::gdk::getApi_gdk_display_get_default()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-			gdk_display_get_pointer, void, ,
-			GdkDisplay             *display,
-			GdkScreen             **screen,
-			gint                   *x,
-			gint                   *y,
-			GdkModifierType        *mask
+			gdk_display_get_pointer,
+			void, ,
+			GdkDisplay *display,
+			GdkScreen **screen,
+			gint *x,
+			gint *y,
+			GdkModifierType *mask
 		)
-		#define gdk_display_get_pointer	slib::gdk::getApi_gdk_display_get_pointer()
+		#define gdk_display_get_pointer slib::gdk::getApi_gdk_display_get_pointer()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-			gdk_window_get_origin, gint, ,
-			GdkWindow	  *window,
-			gint		  *x,
-			gint		  *y
+			gdk_window_get_origin,
+			gint, ,
+			GdkWindow *window,
+			gint *x,
+			gint *y
 		)
-		#define gdk_window_get_origin	slib::gdk::getApi_gdk_window_get_origin()
+		#define gdk_window_get_origin slib::gdk::getApi_gdk_window_get_origin()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-			gdk_window_raise, void, ,
-			GdkWindow     *window
+			gdk_window_raise,
+			void, ,
+			GdkWindow *window
 		)
-		#define gdk_window_raise	slib::gdk::getApi_gdk_window_raise()
+		#define gdk_window_raise slib::gdk::getApi_gdk_window_raise()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-			gdk_cairo_create, cairo_t *, ,
-			GdkDrawable        *drawable
+			gdk_cairo_create,
+			cairo_t *, ,
+			GdkDrawable *drawable
 		)
-		#define gdk_cairo_create	slib::gdk::getApi_gdk_cairo_create()
+		#define gdk_cairo_create slib::gdk::getApi_gdk_cairo_create()
 	SLIB_IMPORT_LIBRARY_END
 
 }
