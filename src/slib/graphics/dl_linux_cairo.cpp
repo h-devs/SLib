@@ -20,33 +20,21 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#if defined(SLIB_PLATFORM_IS_UNIX)
-
-#include "slib/core/dynamic_library.h"
-
-#include <dlfcn.h>
-
-namespace slib
+#include "slib/graphics/dl_linux_cairo.h"
+/*
+extern "C"
 {
 
-	void* DynamicLibrary::loadLibrary(const StringParam& _name)
+	cairo_public cairo_t * SLIB_cairo_create(cairo_surface_t *target)
 	{
-		StringCstr name(_name);
-		return (void*)(dlopen(name.getData(), RTLD_LAZY));
-	}
-
-	void DynamicLibrary::freeLibrary(void* library)
-	{
-		dlclose(library);
-	}
-
-	void* DynamicLibrary::getFunctionAddress(void* library, const char* name)
-	{
-		return dlsym(library, name);
+		auto func = slib::cairo::getApi_cairo_create();
+		if (func) {
+			return func(target);
+		}
+		return sl_null;
 	}
 
 }
-
-#endif
+*/

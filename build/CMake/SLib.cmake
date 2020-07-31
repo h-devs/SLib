@@ -465,6 +465,7 @@ else ()
   "${SLIB_PATH}/src/slib/db/mysql.cpp"
   "${SLIB_PATH}/src/slib/db/postgresql.cpp"
 
+  "${SLIB_PATH}/src/slib/graphics/dl_linux_cairo.cpp"
   "${SLIB_PATH}/src/slib/graphics/bitmap_cairo.cpp"
   "${SLIB_PATH}/src/slib/graphics/canvas_cairo.cpp"
   "${SLIB_PATH}/src/slib/graphics/drawable_cairo.cpp"

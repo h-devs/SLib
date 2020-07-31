@@ -58,6 +58,9 @@
 #		include "cairo/cairo.h"
 #		include "pango/pangocairo.h"
 #	endif
+#	if	defined(SLIB_PLATFORM_IS_LINUX)
+#		include "dl_linux_cairo.h"
+#	endif
 #endif
 
 namespace slib
