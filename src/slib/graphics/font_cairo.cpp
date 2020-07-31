@@ -131,8 +131,8 @@ namespace slib
 			if (handle) {
 				PangoFontMetrics* metrics = pango_context_get_metrics(context->pango, handle, NULL);
 				if (metrics) {
-					_out.ascent = (sl_real)(pango_font_metrics_get_ascent(metrics));
-					_out.descent = (sl_real)(pango_font_metrics_get_descent(metrics));
+					_out.ascent = (sl_real)(pango_font_metrics_get_ascent(metrics)) / PANGO_SCALE;
+					_out.descent = (sl_real)(pango_font_metrics_get_descent(metrics)) / PANGO_SCALE;
 					_out.leading = 0;
 					pango_font_metrics_unref(metrics);
 					return sl_true;
