@@ -35,7 +35,7 @@ namespace slib
             if (func) {
                 return func(screen);
             }
-            return 0;
+            return 96.0;
         }
 
         gboolean wrap_gdk_keymap_get_caps_lock_state(GdkKeymap *keymap)
