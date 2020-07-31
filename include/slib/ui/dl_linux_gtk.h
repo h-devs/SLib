@@ -471,7 +471,7 @@ namespace slib
 		#define gtk_file_chooser_get_type slib::gtk::getApi_gtk_file_chooser_get_type()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_file_chooser_set_select_multiple,
-			oid, ,
+			void, ,
 			GtkFileChooser *chooser,
 			gboolean select_multiple
 		)
