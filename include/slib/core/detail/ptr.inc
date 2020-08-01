@@ -861,6 +861,12 @@ namespace slib
 	}
 	
 	template <class T>
+	SLIB_INLINE Ptr<T>::operator sl_bool() const noexcept
+	{
+		return ptr != sl_null;
+	}
+
+	template <class T>
 	SLIB_INLINE void Ptr<T>::_move_init(void* _other) noexcept
 	{
 		Ptr<T>& other = *(reinterpret_cast<Ptr<T>*>(_other));

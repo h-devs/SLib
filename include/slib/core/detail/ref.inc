@@ -547,13 +547,13 @@ namespace slib
 	}
 	
 	template <class T>
-	SLIB_INLINE T& Ref<T>::operator*() const& noexcept
+	SLIB_INLINE T& Ref<T>::operator*() const noexcept
 	{
-		return *(ptr);
+		return *ptr;
 	}
 	
 	template <class T>
-	SLIB_INLINE T* Ref<T>::operator->() const& noexcept
+	SLIB_INLINE T* Ref<T>::operator->() const noexcept
 	{
 		return ptr;
 	}

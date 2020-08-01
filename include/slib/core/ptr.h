@@ -310,7 +310,8 @@ namespace slib
 		T& operator*() const noexcept;
 
 		T* operator->() const noexcept;
-	
+
+		explicit operator sl_bool() const noexcept;
 
 	public:
 		void _move_init(void* _other) noexcept;

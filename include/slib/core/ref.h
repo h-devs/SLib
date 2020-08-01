@@ -234,10 +234,10 @@ namespace slib
 		sl_bool operator!=(const AtomicRef<OTHER>& other) const noexcept;
 	
 	public:
-		T& operator*() const& noexcept;
-	
-		T* operator->() const& noexcept;
-		
+		T& operator*() const noexcept;
+
+		T* operator->() const noexcept;
+
 		explicit operator sl_bool() const noexcept;
 	
 	public:
