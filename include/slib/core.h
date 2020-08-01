@@ -40,6 +40,7 @@
 #include "core/ref.h"
 #include "core/object.h"
 #include "core/ptr.h"
+#include "core/ptrx.h"
 #include "core/function.h"
 #include "core/promise.h"
 #include "core/new_helper.h"
