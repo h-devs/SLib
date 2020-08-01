@@ -26,6 +26,7 @@
 #include "slib/core/string_buffer.h"
 #include "slib/core/thread.h"
 #include "slib/core/scoped.h"
+#include "slib/math/bigint.h"
 
 namespace slib
 {
@@ -1303,15 +1304,6 @@ namespace slib
 	}
 
 
-	IStream::IStream()
-	{
-	}
-
-	IStream::~IStream()
-	{
-	}
-
-
 	ISeekable::ISeekable()
 	{
 	}
@@ -1353,35 +1345,13 @@ namespace slib
 	{
 	}
 
-	
-	SLIB_DEFINE_OBJECT(Reader, Object)
-	
-	Reader::Reader()
-	{
-	}
-	
-	Reader::~Reader()
-	{
-	}
-	
-	
-	SLIB_DEFINE_OBJECT(Writer, Object)
-	
-	Writer::Writer()
-	{
-	}
-	
-	Writer::~Writer()
-	{
-	}
-	
-	
+
 	SLIB_DEFINE_OBJECT(Stream, Object)
-	
+
 	Stream::Stream()
 	{
 	}
-	
+
 	Stream::~Stream()
 	{
 	}
@@ -1763,7 +1733,7 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_OBJECT(MemoryReader, Reader)
+	SLIB_DEFINE_OBJECT(MemoryReader, Object)
 	
 	MemoryReader::MemoryReader(const Memory& mem)
 	{
@@ -1814,14 +1784,6 @@ namespace slib
 		return (char*)m_buf;
 	}
 
-	void MemoryReader::close()
-	{
-		m_buf = sl_null;
-		m_size = 0;
-		m_offset = 0;
-		m_mem.setNull();
-	}
-
 	sl_reg MemoryReader::read(void* buf, sl_size size)
 	{
 		if (size == 0) {
@@ -1868,7 +1830,7 @@ namespace slib
 	}
 
 	
-	SLIB_DEFINE_OBJECT(MemoryWriter, Writer)
+	SLIB_DEFINE_OBJECT(MemoryWriter, Object)
 
 	MemoryWriter::MemoryWriter()
 	{
@@ -1916,14 +1878,6 @@ namespace slib
 		m_offset = 0;
 	}
 	
-	void MemoryWriter::close()
-	{
-		m_buf = sl_null;
-		m_size = 0;
-		m_offset = 0;
-		m_mem.setNull();
-	}
-
 	sl_reg MemoryWriter::write(const void* buf, sl_size size)
 	{
 		if (size == 0) {

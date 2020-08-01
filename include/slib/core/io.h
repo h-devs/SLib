@@ -30,8 +30,6 @@
 #include "endian.h"
 #include "time.h"
 
-#include "../math/bigint.h"
-
 namespace slib
 {
 	
@@ -41,6 +39,8 @@ namespace slib
 		Begin = 2,
 		End = 3
 	};
+
+	class BigInt;
 	
 	class SLIB_EXPORT IReader
 	{
@@ -233,15 +233,6 @@ namespace slib
 
 	};
 	
-	class SLIB_EXPORT IStream : public IReader, public IWriter
-	{
-	public:
-		IStream();
-
-		~IStream();
-
-	};
-	
 	class SLIB_EXPORT ISeekable
 	{
 	public:
@@ -286,30 +277,8 @@ namespace slib
 	public:
 		virtual void close() = 0;
 	};
-	
-	class SLIB_EXPORT Reader : public Object, public IReader, public IClosable
-	{
-		SLIB_DECLARE_OBJECT
-		
-	public:
-		Reader();
-		
-		~Reader();
-		
-	};
 
-	class SLIB_EXPORT Writer : public Object, public IWriter, public IClosable
-	{
-		SLIB_DECLARE_OBJECT
-		
-	public:
-		Writer();
-		
-		~Writer();
-		
-	};
-
-	class SLIB_EXPORT Stream : public Object, public IStream, public IClosable
+	class SLIB_EXPORT Stream : public Object, public IReader, public IWriter, public IClosable
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -403,7 +372,7 @@ namespace slib
 	
 	};
 	
-	class SLIB_EXPORT MemoryReader : public Reader, public ISeekable
+	class SLIB_EXPORT MemoryReader : public Object, public IReader, public ISeekable
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -424,8 +393,6 @@ namespace slib
 		sl_size getLength();
 
 		char* getBuffer();
-
-		void close() override;
 		
 		sl_reg read(void* buf, sl_size size) override;
 
@@ -443,7 +410,7 @@ namespace slib
 	
 	};
 	
-	class SLIB_EXPORT MemoryWriter : public Writer, public ISeekable
+	class SLIB_EXPORT MemoryWriter : public Object, public IWriter, public ISeekable
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -464,8 +431,6 @@ namespace slib
 
 		void initialize(void* buf, sl_size size);
 		
-		void close() override;
-
 		sl_reg write(const void* buf, sl_size size) override;
 
 		sl_reg write(const Memory& mem);

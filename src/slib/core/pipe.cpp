@@ -27,7 +27,7 @@
 namespace slib
 {
 
-	SLIB_DEFINE_OBJECT(Pipe, Object)
+	SLIB_DEFINE_OBJECT(Pipe, Stream)
 
 	Pipe::Pipe()
 	{
