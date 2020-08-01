@@ -760,7 +760,7 @@ namespace slib
 	JsonList Json::getJsonList() const
 	{
 		Ref<Referable> obj(getObject());
-		if (CList<Json>* p = CastInstance< CList<Json> >(obj._ptr)) {
+		if (CList<Json>* p = CastInstance< CList<Json> >(obj.ptr)) {
 			return p;
 		}
 		return sl_null;
@@ -779,7 +779,7 @@ namespace slib
 	JsonMap Json::getJsonMap() const
 	{
 		Ref<Referable> obj(getObject());
-		if (CHashMap<String, Json>* p = CastInstance< CHashMap<String, Json> >(obj._ptr)) {
+		if (CHashMap<String, Json>* p = CastInstance< CHashMap<String, Json> >(obj.ptr)) {
 			return p;
 		}
 		return sl_null;
@@ -798,7 +798,7 @@ namespace slib
 	JsonMapList Json::getJsonMapList() const
 	{
 		Ref<Referable> obj(getObject());
-		if (CList< HashMap<String, Json> >* p = CastInstance< CList< HashMap<String, Json> > >(obj._ptr)) {
+		if (CList< HashMap<String, Json> >* p = CastInstance< CList< HashMap<String, Json> > >(obj.ptr)) {
 			return p;
 		}
 		return sl_null;
@@ -851,18 +851,18 @@ namespace slib
 		}
 		Ref<Referable> obj(getObject());
 		{
-			if (CHashMap<String, Json>* p = CastInstance< CHashMap<String, Json> >(obj._ptr)) {
+			if (CHashMap<String, Json>* p = CastInstance< CHashMap<String, Json> >(obj.ptr)) {
 				Ref<Referable> objOther(other.getObject());
-				if (CHashMap<String, Json>* pOther = CastInstance< CHashMap<String, Json> >(objOther._ptr)) {
+				if (CHashMap<String, Json>* pOther = CastInstance< CHashMap<String, Json> >(objOther.ptr)) {
 					p->putAll_NoLock(*pOther);
 				}
 				return;
 			}
 		}
 		{
-			if (CList<Json>* p = CastInstance< CList<Json> >(obj._ptr)) {
+			if (CList<Json>* p = CastInstance< CList<Json> >(obj.ptr)) {
 				Ref<Referable> objOther(other.getObject());
-				if (CList<Json>* pOther = CastInstance< CList<Json> >(objOther._ptr)) {
+				if (CList<Json>* pOther = CastInstance< CList<Json> >(objOther.ptr)) {
 					p->addAll_NoLock(pOther);
 				}
 				return;

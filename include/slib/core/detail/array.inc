@@ -270,7 +270,7 @@ namespace slib
 					return this;
 				}
 				if (m_flagStatic) {
-					return createStatic(m_data + start, count, m_refer._ptr);
+					return createStatic(m_data + start, count, m_refer.ptr);
 				} else {
 					return createStatic(m_data + start, count, this);
 				}
@@ -535,7 +535,7 @@ namespace slib
 	template <class T>
 	SLIB_INLINE T* Array<T>::getData() const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->getData();
 		}
@@ -545,7 +545,7 @@ namespace slib
 	template <class T>
 	SLIB_INLINE sl_size Array<T>::getCount() const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->getCount();
 		}
@@ -555,7 +555,7 @@ namespace slib
 	template <class T>
 	T* Array<T>::getPointerAt(sl_size index) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->getPointerAt(index);
 		}
@@ -565,7 +565,7 @@ namespace slib
 	template <class T>
 	sl_bool Array<T>::getAt(sl_size index, T* _out) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->getAt(index, _out);
 		}
@@ -575,7 +575,7 @@ namespace slib
 	template <class T>
 	T Array<T>::getValueAt(sl_size index) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->getValueAt(index);
 		} else {
@@ -586,7 +586,7 @@ namespace slib
 	template <class T>
 	T Array<T>::getValueAt(sl_size index, const T& def) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->getValueAt(index, def);
 		}
@@ -596,7 +596,7 @@ namespace slib
 	template <class T>
 	sl_bool Array<T>::setAt(sl_size index, const T& value) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->setAt(index, value);
 		}
@@ -612,7 +612,7 @@ namespace slib
 	template <class T>
 	Array<T> Array<T>::sub(sl_size start, sl_size count) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->sub(start, count);
 		}
@@ -624,7 +624,7 @@ namespace slib
 	template <class VALUE, class ARG>
 	sl_reg Array<T>::indexOf(const VALUE& value, const ARG& arg) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->indexOf(value, arg);
 		}
@@ -635,7 +635,7 @@ namespace slib
 	template <class VALUE, class EQUALS>
 	sl_reg Array<T>::indexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->indexOf(value, equals, startIndex);
 		}
@@ -646,7 +646,7 @@ namespace slib
 	template <class VALUE, class ARG>
 	sl_reg Array<T>::lastIndexOf(const VALUE& value, const ARG& arg) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->lastIndexOf(value, arg);
 		}
@@ -657,7 +657,7 @@ namespace slib
 	template <class VALUE, class EQUALS>
 	sl_reg Array<T>::lastIndexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->lastIndexOf(value, equals, startIndex);
 		}
@@ -675,7 +675,7 @@ namespace slib
 	template <class VALUE>
 	sl_size Array<T>::read(sl_size startSource, sl_size len, VALUE* dataDst) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->read(startSource, len, dataDst);
 		}
@@ -686,7 +686,7 @@ namespace slib
 	template <class VALUE>
 	sl_size Array<T>::write(sl_size startTarget, sl_size len, const VALUE* dataSrc) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->write(startTarget, len, dataSrc);
 		}
@@ -697,9 +697,9 @@ namespace slib
 	template <class VALUE>
 	sl_size Array<T>::copy(sl_size startTarget, const Array<VALUE>& source, sl_size startSource, sl_size len) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
-			return obj->copy(startTarget, source.ref._ptr, startSource, len);
+			return obj->copy(startTarget, source.ref.ptr, startSource, len);
 		}
 		return 0;
 	}
@@ -728,7 +728,7 @@ namespace slib
 	template <class T>
 	Array<T> Array<T>::duplicate() const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->duplicate();
 		}
@@ -738,7 +738,7 @@ namespace slib
 	template <class T>
 	sl_bool Array<T>::getData(ArrayData<T>& data) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			data.data = obj->getData();
 			data.count = obj->getCount();
@@ -760,7 +760,7 @@ namespace slib
 	template <class COMPARE>
 	void Array<T>::sort(const COMPARE& compare) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			obj->sort(compare);
 		}
@@ -770,7 +770,7 @@ namespace slib
 	template <class COMPARE>
 	void Array<T>::sortDesc(const COMPARE& compare) const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			obj->sortDesc(compare);
 		}
@@ -779,7 +779,7 @@ namespace slib
 	template <class T>
 	void Array<T>::reverse() const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			obj->reverse();
 		}
@@ -788,7 +788,7 @@ namespace slib
 	template <class T>
 	T* Array<T>::begin() const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->getData();
 		}
@@ -798,7 +798,7 @@ namespace slib
 	template <class T>
 	T* Array<T>::end() const noexcept
 	{
-		CArray<T>* obj = ref._ptr;
+		CArray<T>* obj = ref.ptr;
 		if (obj) {
 			return obj->getData() + obj->getCount();
 		}
@@ -980,7 +980,7 @@ namespace slib
 	{
 		Ref< CArray<T> > obj(ref);
 		if (obj.isNotNull()) {
-			return obj->copy(startTarget, source.ref._ptr, startSource, len);
+			return obj->copy(startTarget, source.ref.ptr, startSource, len);
 		}
 		return 0;
 	}

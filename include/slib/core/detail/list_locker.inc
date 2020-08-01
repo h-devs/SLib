@@ -25,7 +25,7 @@ namespace slib
 	
 	template <class T>
 	SLIB_INLINE ListLocker<T>::ListLocker(List<T>&& _list) noexcept
-	 : ObjectLocker(_list.ref._ptr), list(Move(_list))
+	 : ObjectLocker(_list.ref.ptr), list(Move(_list))
 	{
 		data = list.getData();
 		count = list.getCount();
@@ -33,7 +33,7 @@ namespace slib
 
 	template <class T>
 	SLIB_INLINE ListLocker<T>::ListLocker(const List<T>& _list) noexcept
-	 : ObjectLocker(_list.ref._ptr), list(_list)
+	 : ObjectLocker(_list.ref.ptr), list(_list)
 	{
 		data = list.getData();
 		count = list.getCount();

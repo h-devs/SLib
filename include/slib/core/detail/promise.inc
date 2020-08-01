@@ -123,7 +123,7 @@ namespace slib
 	template <class T>
 	PromiseState Promise<T>::getState() const
 	{
-		CPromise<T>* object = ref._ptr;
+		CPromise<T>* object = ref.ptr;
 		if (object) {
 			object->getState();
 		} else {
@@ -135,7 +135,7 @@ namespace slib
 	template <class... ARGS>
 	SLIB_INLINE void Promise<T>::resolve(ARGS&&... args) const
 	{
-		CPromise<T>* object = ref._ptr;
+		CPromise<T>* object = ref.ptr;
 		if (object) {
 			object->resolve(Forward<ARGS>(args)...);
 		}
@@ -145,7 +145,7 @@ namespace slib
 	template <class CALLBACK_TYPE>
 	SLIB_INLINE void Promise<T>::then(CALLBACK_TYPE&& callback) const
 	{
-		CPromise<T>* object = ref._ptr;
+		CPromise<T>* object = ref.ptr;
 		if (object) {
 			object->then(Forward<CALLBACK_TYPE>(callback));
 		} else {

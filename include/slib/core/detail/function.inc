@@ -439,7 +439,7 @@ namespace slib
 			public:
 				RET_TYPE invoke(ARGS... args) override
 				{
-					return FunctionInvoker<RET_TYPE>::invokeMember(object._ptr, func, Forward<ARGS>(args)...);
+					return FunctionInvoker<RET_TYPE>::invokeMember(object.ptr, func, Forward<ARGS>(args)...);
 				}
 			};
 			
@@ -460,7 +460,7 @@ namespace slib
 			public:
 				RET_TYPE invoke(ARGS... args) override
 				{
-					return BindInvoker<RET_TYPE>::invokeMember(object._ptr, func, binds, Forward<ARGS>(args)...);
+					return BindInvoker<RET_TYPE>::invokeMember(object.ptr, func, binds, Forward<ARGS>(args)...);
 				}
 			};
 			
@@ -482,7 +482,7 @@ namespace slib
 				{
 					Ref<CLASS> o(object);
 					if (o.isNotNull()) {
-						return FunctionInvoker<RET_TYPE>::invokeMember(o._ptr, func, Forward<ARGS>(args)...);
+						return FunctionInvoker<RET_TYPE>::invokeMember(o.ptr, func, Forward<ARGS>(args)...);
 					} else {
 						return NullValue<RET_TYPE>::get();
 					}
@@ -508,7 +508,7 @@ namespace slib
 				{
 					Ref<CLASS> o(object);
 					if (o.isNotNull()) {
-						return BindInvoker<RET_TYPE>::invokeMember(o._ptr, func, binds, Forward<ARGS>(args)...);
+						return BindInvoker<RET_TYPE>::invokeMember(o.ptr, func, binds, Forward<ARGS>(args)...);
 					} else {
 						return NullValue<RET_TYPE>::get();
 					}
@@ -533,7 +533,7 @@ namespace slib
 				{
 					Ptr<CLASS> o(object.lock());
 					if (o.isNotNull()) {
-						return FunctionInvoker<RET_TYPE>::invokeMember(o._ptr, func, Forward<ARGS>(args)...);
+						return FunctionInvoker<RET_TYPE>::invokeMember(o.ptr, func, Forward<ARGS>(args)...);
 					} else {
 						return NullValue<RET_TYPE>::get();
 					}
@@ -559,7 +559,7 @@ namespace slib
 				{
 					Ptr<CLASS> o(object.lock());
 					if (o.isNotNull()) {
-						return BindInvoker<RET_TYPE>::invokeMember(o._ptr, func, binds, Forward<ARGS>(args)...);
+						return BindInvoker<RET_TYPE>::invokeMember(o.ptr, func, binds, Forward<ARGS>(args)...);
 					} else {
 						return NullValue<RET_TYPE>::get();
 					}
@@ -657,7 +657,7 @@ namespace slib
 	template <class RET_TYPE, class... ARGS>
 	SLIB_INLINE RET_TYPE Function<RET_TYPE(ARGS...)>::operator()(ARGS... args) const
 	{
-		Callable<RET_TYPE(ARGS...)>* object = ref._ptr;
+		Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
 		if (object) {
 			return object->invoke(args...);
 		} else {
@@ -1016,7 +1016,7 @@ namespace slib
 		if (function.isNull()) {
 			return function;
 		}
-		Callable<RET_TYPE(ARGS...)>* object = ref._ptr;
+		Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
 		if (object) {
 			if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
 				((FunctionList<RET_TYPE(ARGS...)>*)object)->list.add_NoLock(function);
@@ -1035,7 +1035,7 @@ namespace slib
 		if (function.isNull()) {
 			return function;
 		}
-		Callable<RET_TYPE(ARGS...)>* object = ref._ptr;
+		Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
 		if (object) {
 			if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
 				((FunctionList<RET_TYPE(ARGS...)>*)object)->list.addIfNotExist_NoLock(function);
@@ -1060,7 +1060,7 @@ namespace slib
 			ref.setNull();
 			return;
 		}
-		Callable<RET_TYPE(ARGS...)>* object = ref._ptr;
+		Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
 		if (object) {
 			if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
 				List< Function<RET_TYPE(ARGS...)> >& list = ((FunctionList<RET_TYPE(ARGS...)>*)object)->list;
@@ -1105,7 +1105,7 @@ namespace slib
 		if (function.isNull()) {
 			return sl_false;
 		}
-		Callable<RET_TYPE(ARGS...)>* object = ref._ptr;
+		Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
 		if (object) {
 			if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
 				return ((FunctionList<RET_TYPE(ARGS...)>*)object)->list.contains_NoLock(function);
@@ -1129,7 +1129,7 @@ namespace slib
 		if (function.isNull()) {
 			return *this;
 		}
-		Callable<RET_TYPE(ARGS...)>* object = ref._ptr;
+		Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
 		if (object) {
 			if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
 				List< Function<RET_TYPE(ARGS...)> > list(((FunctionList<RET_TYPE(ARGS...)>*)object)->list.duplicate_NoLock());
@@ -1161,7 +1161,7 @@ namespace slib
 		if (ref == function.ref) {
 			return sl_null;
 		}
-		Callable<RET_TYPE(ARGS...)>* object = ref._ptr;
+		Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
 		if (object) {
 			if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
 				List< Function<RET_TYPE(ARGS...)> >& list = ((FunctionList<RET_TYPE(ARGS...)>*)object)->list;

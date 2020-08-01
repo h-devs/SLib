@@ -96,7 +96,7 @@ namespace slib
 					return (CMemory*)this;
 				}
 				if (m_flagStatic) {
-					return createStatic(m_data + start, count, m_refer._ptr);
+					return createStatic(m_data + start, count, m_refer.ptr);
 				} else {
 					return createStatic(m_data + start, count, this);
 				}
@@ -133,7 +133,7 @@ namespace slib
 
 	void* Memory::getData() const
 	{
-		CMemory* obj = ref._ptr;
+		CMemory* obj = ref.ptr;
 		if (obj) {
 			return obj->getData();
 		}
@@ -142,7 +142,7 @@ namespace slib
 
 	sl_size Memory::getSize() const
 	{
-		CMemory* obj = ref._ptr;
+		CMemory* obj = ref.ptr;
 		if (obj) {
 			return obj->getCount();
 		}
@@ -151,7 +151,7 @@ namespace slib
 
 	Memory Memory::sub(sl_size start, sl_size size) const
 	{
-		CMemory* obj = ref._ptr;
+		CMemory* obj = ref.ptr;
 		if (obj) {
 			return obj->sub(start, size);
 		}
@@ -160,7 +160,7 @@ namespace slib
 
 	sl_size Memory::read(sl_size startSource, sl_size len, void* bufDst) const
 	{
-		CMemory* obj = ref._ptr;
+		CMemory* obj = ref.ptr;
 		if (obj) {
 			return obj->read(startSource, len, (sl_uint8*)bufDst);
 		}
@@ -169,7 +169,7 @@ namespace slib
 
 	sl_size Memory::write(sl_size startTarget, sl_size len, const void* bufSrc) const
 	{
-		CMemory* obj = ref._ptr;
+		CMemory* obj = ref.ptr;
 		if (obj) {
 			return obj->write(startTarget, len, (const sl_uint8*)bufSrc);
 		}
@@ -178,9 +178,9 @@ namespace slib
 
 	sl_size Memory::copy(sl_size startTarget, const Memory& source, sl_size startSource, sl_size len) const
 	{
-		CMemory* obj = ref._ptr;
+		CMemory* obj = ref.ptr;
 		if (obj) {
-			return obj->copy(startTarget, source.ref._ptr, startSource, len);
+			return obj->copy(startTarget, source.ref.ptr, startSource, len);
 		}
 		return 0;
 	}
@@ -192,7 +192,7 @@ namespace slib
 
 	Memory Memory::duplicate() const
 	{
-		CMemory* obj = ref._ptr;
+		CMemory* obj = ref.ptr;
 		if (obj) {
 			return obj->duplicate();
 		}
@@ -201,7 +201,7 @@ namespace slib
 
 	sl_bool Memory::getData(MemoryData& data) const
 	{
-		CMemory* obj = ref._ptr;
+		CMemory* obj = ref.ptr;
 		if (obj) {
 			data.data = obj->getData();
 			data.size = obj->getCount();
@@ -313,7 +313,7 @@ namespace slib
 	{
 		Ref<CMemory> obj(ref);
 		if (obj.isNotNull()) {
-			return obj->copy(startTarget, source.ref._ptr, startSource, len);
+			return obj->copy(startTarget, source.ref.ptr, startSource, len);
 		}
 		return 0;
 	}
@@ -322,7 +322,7 @@ namespace slib
 	{
 		Ref<CMemory> obj(ref);
 		if (obj.isNotNull()) {
-			return obj->copy(0, source.ref._ptr, startSource, len);
+			return obj->copy(0, source.ref.ptr, startSource, len);
 		}
 		return 0;
 	}
@@ -440,12 +440,12 @@ namespace slib
 
 	Memory MemoryData::getMemory() const
 	{
-		if (CMemory* mem = CastInstance<CMemory>(refer._ptr)) {
+		if (CMemory* mem = CastInstance<CMemory>(refer.ptr)) {
 			if (mem->getData() == data && mem->getCount() == size) {
 				return mem;
 			}
 		}
-		return Memory::createStatic(data, size, refer._ptr);
+		return Memory::createStatic(data, size, refer.ptr);
 	}
 
 	Memory MemoryData::sub(sl_size start, sl_size sizeSub) const
@@ -459,7 +459,7 @@ namespace slib
 		if (start == 0 && sizeSub == size) {
 			return getMemory();
 		}
-		return Memory::createStatic((sl_uint8*)data + start, sizeSub, refer._ptr);
+		return Memory::createStatic((sl_uint8*)data + start, sizeSub, refer.ptr);
 	}
 
 /*******************************************

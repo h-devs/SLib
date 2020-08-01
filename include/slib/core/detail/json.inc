@@ -147,7 +147,7 @@ namespace slib
 		if (json.isNotNull()) {
 			Ref<T> o = new T;
 			if (o.isNotNull()) {
-				FromJson(json, *(o._ptr));
+				FromJson(json, *(o.ptr));
 				_out = Move(o);
 				return;
 			}

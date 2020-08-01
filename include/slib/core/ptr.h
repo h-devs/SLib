@@ -40,7 +40,7 @@ namespace slib
 	class SLIB_EXPORT Ptr
 	{
 	public:
-		T* _ptr;
+		T* ptr;
 		Ref<Referable> ref;
 	
 	public:
@@ -324,7 +324,7 @@ namespace slib
 	class SLIB_EXPORT Atomic< Ptr<T> >
 	{
 	public:
-		T* _ptr;
+		T* ptr;
 		Ref<Referable> _ref;
 	
 	public:

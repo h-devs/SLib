@@ -100,7 +100,7 @@ namespace slib
 	
 	sl_bool TimeZone::isUTC() const noexcept
 	{
-		return ref._ptr == UTC().ref._ptr;
+		return ref.ptr == UTC().ref.ptr;
 	}
 	
 	sl_int64 TimeZone::getOffset() const
@@ -128,7 +128,7 @@ namespace slib
 	
 	sl_bool Atomic<TimeZone>::isUTC() const noexcept
 	{
-		return ref._ptr == TimeZone::UTC().ref._ptr;
+		return ref.ptr == TimeZone::UTC().ref.ptr;
 	}
 	
 	sl_int64 Atomic<TimeZone>::getOffset() const

@@ -109,9 +109,9 @@ namespace slib
 	class SLIB_EXPORT Ref
 	{
 	public:
-		constexpr Ref() noexcept : _ptr(sl_null) {}
+		constexpr Ref() noexcept : ptr(sl_null) {}
 
-		constexpr Ref(sl_null_t) noexcept : _ptr(sl_null) {}
+		constexpr Ref(sl_null_t) noexcept : ptr(sl_null) {}
 
 		Ref(T* _other) noexcept;
 
@@ -248,7 +248,7 @@ namespace slib
 		void _move_assign(void* other) noexcept;
 
 	public:
-		T* _ptr;
+		T* ptr;
 
 	};
 	
@@ -256,9 +256,9 @@ namespace slib
 	class Atomic< Ref<T> >
 	{
 	public:
-		constexpr Atomic() noexcept : _ptr(sl_null) {}
+		constexpr Atomic() noexcept : ptr(sl_null) {}
 
-		constexpr Atomic(sl_null_t) noexcept : _ptr(sl_null) {}
+		constexpr Atomic(sl_null_t) noexcept : ptr(sl_null) {}
 
 		Atomic(T* other) noexcept;
 
@@ -391,7 +391,7 @@ namespace slib
 		void _move_assign(void* other) noexcept;
 
 	public:
-		T* _ptr;
+		T* ptr;
 	private:
 		SpinLock m_lock;
 	
