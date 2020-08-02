@@ -542,12 +542,12 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool RarFile::readMainHeader(IReader* reader, ISeekable* seeker)
+	sl_bool RarFile::readMainHeader(const Pointer<IReader, ISeekable>& reader)
 	{
 		flagEncryptedHeaders = sl_false;
 		if (flagRAR5) {
 			RarBlockHeader5 header;
-			while (readBlockHeaderAndSkipData(header, reader, seeker)) {
+			while (readBlockHeaderAndSkipData(header, reader)) {
 				if (header.type == RarBlockType5::Main) {
 					return mainBlock5.readHeader(header);
 				} else if (header.type == RarBlockType5::Encryption) {
@@ -573,16 +573,17 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool RarFile::readFromSignatureToMainHeader(IReader* reader, ISeekable* seeker)
+	sl_bool RarFile::readFromSignatureToMainHeader(const Pointer<IReader, ISeekable>& reader)
 	{
 		if (readSignature(reader)) {
-			return readMainHeader(reader, seeker);
+			return readMainHeader(reader);
 		}
 		return sl_false;
 	}
 
-	List<String> RarFile::readFileNames(IReader* reader, ISeekable* seeker)
+	List<String> RarFile::readFileNames(const Pointer<IReader, ISeekable>& reader)
 	{
+		ISeekable* seeker = reader;
 		if (flagEncryptedHeaders) {
 			return sl_null;
 		}
@@ -590,7 +591,7 @@ namespace slib
 		if (flagRAR5) {
 			RarBlockHeader5 header;
 			RarFileBlock5 fileBlock;
-			while (readBlockHeaderAndSkipData(header, reader, seeker)) {
+			while (readBlockHeaderAndSkipData(header, reader)) {
 				if (header.type == RarBlockType5::File) {
 					if (fileBlock.readHeader(header)) {
 						if (!(fileBlock.isDirectory())) {
@@ -624,7 +625,7 @@ namespace slib
 		return list;
 	}
 
-	sl_bool RarFile::isEncrypted(IReader* reader, ISeekable* seeker, sl_int32 maxCheckFileCount)
+	sl_bool RarFile::isEncrypted(const Pointer<IReader, ISeekable>& reader, sl_int32 maxCheckFileCount)
 	{
 		if (flagEncryptedHeaders) {
 			return sl_true;
@@ -638,7 +639,7 @@ namespace slib
 			RarBlockHeader5 header;
 			RarFileBlock5 fileBlock;
 			RarExtraArea5 extra;
-			while (readBlockHeaderAndSkipData(header, reader, seeker)) {
+			while (readBlockHeaderAndSkipData(header, reader)) {
 				if (header.type == RarBlockType5::File) {
 					if (header.flags & RarBlockFlags5::ExtraArea) {
 						MemoryReader reader(header.rawHeader);
@@ -675,7 +676,7 @@ namespace slib
 						}
 					}
 				}
-				if (!(skipData(header, seeker))) {
+				if (!(skipData(header, reader))) {
 					break;
 				}
 			}
@@ -758,12 +759,12 @@ namespace slib
 		return seeker->seek(header.dataSize, SeekPosition::Current);
 	}
 
-	sl_bool RarFile::readBlockHeaderAndSkipData(RarBlockHeader5& header, IReader* reader, ISeekable* seeker)
+	sl_bool RarFile::readBlockHeaderAndSkipData(RarBlockHeader5& header, const Pointer<IReader, ISeekable>& reader)
 	{
 		if (!(readBlockHeader(header, reader))) {
 			return sl_false;
 		}
-		return skipData(header, seeker);
+		return skipData(header, reader);
 	}
 
 	sl_uint32 RarFile::getFileVersion(const StringParam& path)

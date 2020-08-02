@@ -27,6 +27,7 @@
 
 #include "../core/string.h"
 #include "../core/io.h"
+#include "../core/pointer.h"
 
 namespace slib
 {
@@ -430,39 +431,16 @@ namespace slib
 		sl_bool readSignature(IReader* reader);
 
 		// call after `readSignature()`
-		sl_bool readMainHeader(IReader* reader, ISeekable* seeker);
+		sl_bool readMainHeader(const Pointer<IReader, ISeekable>& reader);
 
-		template <class T>
-		sl_bool readMainHeader(T* reader)
-		{
-			return readMainHeader(reader, reader);
-		}
-
-		sl_bool readFromSignatureToMainHeader(IReader* reader, ISeekable* seeker);
-
-		template <class T>
-		sl_bool readFromSignatureToMainHeader(T* reader)
-		{
-			return readFromSignatureToMainHeader(reader, reader);
-		}
+		sl_bool readFromSignatureToMainHeader(const Pointer<IReader, ISeekable>& reader);
 
 		// call after `readMainHeader()`
-		List<String> readFileNames(IReader* reader, ISeekable* seeker);
-
-		template <class T>
-		List<String> readFileNames(T* reader)
-		{
-			return readFileNames(reader, reader);
-		}
+		List<String> readFileNames(const Pointer<IReader, ISeekable>& reader);
 
 		// call after `readMainHeader()`
-		sl_bool isEncrypted(IReader* reader, ISeekable* seeker, sl_int32 maxCheckFileCount);
+		sl_bool isEncrypted(const Pointer<IReader, ISeekable>& reader, sl_int32 maxCheckFileCount);
 
-		template <class T>
-		sl_bool isEncrypted(T* reader, sl_int32 maxCheckFileCount)
-		{
-			return isEncrypted(reader, reader, maxCheckFileCount);
-		}
 
 		sl_bool readBlockHeader(RarBlockHeader4& header, IReader* reader);
 
@@ -472,7 +450,7 @@ namespace slib
 
 		sl_bool skipData(const RarBlockHeader5& header, ISeekable* seeker);
 
-		sl_bool readBlockHeaderAndSkipData(RarBlockHeader5& header, IReader* reader, ISeekable* seeker);
+		sl_bool readBlockHeaderAndSkipData(RarBlockHeader5& header, const Pointer<IReader, ISeekable>& reader);
 
 	public:
 		/*
