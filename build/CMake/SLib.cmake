@@ -622,3 +622,7 @@ set_target_properties (
  PROPERTIES
  ARCHIVE_OUTPUT_DIRECTORY "${SLIB_LIB_PATH}"
 )
+
+if (CMAKE_SYSTEM_NAME STREQUAL Linux)
+ include("${CMAKE_CURRENT_LIST_DIR}/sapp.cmake")
+endif ()
