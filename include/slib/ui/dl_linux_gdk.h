@@ -107,6 +107,24 @@ namespace slib
 			GdkDrawable *drawable
 		)
 		#define gdk_cairo_create slib::gdk::getApi_gdk_cairo_create()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_x11_drawable_get_xdisplay,
+			Display *, ,
+			GdkDrawable *drawable
+		)
+		#define gdk_x11_drawable_get_xdisplay slib::gdk::getApi_gdk_x11_drawable_get_xdisplay()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_x11_drawable_get_xid,
+			XID, ,
+			GdkDrawable *drawable
+		)
+		#define gdk_x11_drawable_get_xid slib::gdk::getApi_gdk_x11_drawable_get_xid()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_x11_window_get_drawable_impl,
+			GdkDrawable *, ,
+			GdkWindow *window
+		)
+		#define gdk_x11_window_get_drawable_impl slib::gdk::getApi_gdk_x11_window_get_drawable_impl()
 	SLIB_IMPORT_LIBRARY_END
 
 }
