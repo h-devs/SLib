@@ -30,6 +30,7 @@
 #include "../core/dl.h"
 
 #include "gtk/gtk.h"
+#include "gtk/gdk/x11/gdkx.h"
 
 namespace slib
 {
