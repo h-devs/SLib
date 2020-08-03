@@ -26,6 +26,8 @@
 #include "definition.h"
 
 #include "ptr.h"
+#include "refx.h"
+#include "pointer.h"
 
 namespace slib
 {
@@ -40,7 +42,7 @@ namespace slib
         SLIB_INLINE constexpr Ptrx() noexcept {}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(T&& v) noexcept: Ptr(Forward<T>(v)) {}
+		SLIB_INLINE constexpr Ptrx(T&& v) noexcept: Ptr<T>(Forward<T>(v)) {}
 
 		SLIB_INLINE constexpr Ptrx(Ptrx const& other) noexcept = default;
 
@@ -76,40 +78,40 @@ namespace slib
         SLIB_INLINE constexpr Ptrx() noexcept: ptr2(sl_null) {}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(T&& v1, T2* v2) noexcept: Ptr(Forward<T>(v1)), ptr2(v2) {}
+		SLIB_INLINE constexpr Ptrx(T&& v1, T2* v2) noexcept: Ptr<T1>(Forward<T>(v1)), ptr2(v2) {}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const Ref<T>& v) noexcept: Ptr(v), ptr2(v.ptr) {}
+		SLIB_INLINE constexpr Ptrx(const Ref<T>& v) noexcept: Ptr<T1>(v), ptr2(v.ptr) {}
 
 		template <class T>
 		SLIB_INLINE constexpr Ptrx(const AtomicRef<T>& v) noexcept: Ptrx(Ref<T>(v)) {}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const WeakRef<T>& v) noexcept: Ptr(v)
+		SLIB_INLINE constexpr Ptrx(const WeakRef<T>& v) noexcept: Ptr<T1>(v)
 		{
 			ptr2 = (T*)ptr;
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const AtomicWeakRef<T>& v) noexcept: Ptr(v)
+		SLIB_INLINE constexpr Ptrx(const AtomicWeakRef<T>& v) noexcept: Ptr<T1>(v)
 		{
 			ptr2 = (T*)ptr;
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const Ptr<T>& v) noexcept: Ptr(v)
+		SLIB_INLINE constexpr Ptrx(const Ptr<T>& v) noexcept: Ptr<T1>(v)
 		{
 			ptr2 = (T*)ptr;
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(Ptr<T>&& v) noexcept: Ptr(Move(v))
+		SLIB_INLINE constexpr Ptrx(Ptr<T>&& v) noexcept: Ptr<T1>(Move(v))
 		{
 			ptr2 = (T*)ptr;
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const AtomicPtr<T>& v) noexcept: Ptr(v)
+		SLIB_INLINE constexpr Ptrx(const AtomicPtr<T>& v) noexcept: Ptr<T1>(v)
 		{
 			ptr2 = (T*)ptr;
 		}
@@ -121,11 +123,20 @@ namespace slib
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(T* v) noexcept: Ptr(v), ptr2(v) {}
+		SLIB_INLINE constexpr Ptrx(T* v) noexcept: Ptr<T1>(v), ptr2(v) {}
 
 		SLIB_INLINE constexpr Ptrx(Ptrx const& other) noexcept = default;
 
 		SLIB_INLINE constexpr Ptrx(Ptrx&& other) noexcept = default;
+
+		template <class T, class... TYPES>
+		SLIB_INLINE constexpr Ptrx(const Ptrx<T, TYPES...>& v) noexcept: Ptr<T1>(*((const Ptr<T>*)&v)), ptr2(v) {}
+
+		template <class T, class... TYPES>
+		SLIB_INLINE constexpr Ptrx(const Refx<T, TYPES...>& v) noexcept: Ptr<T1>(*((const Ref<T>*)&v)), ptr2(v) {}
+
+		template <class... TYPES>
+		SLIB_INLINE constexpr Ptrx(const Pointer<TYPES...>& v) noexcept: Ptr<T1>((T1*)v), ptr2(v) {}
 
 	public:
 		SLIB_INLINE Ptrx& operator=(Ptrx const& other) noexcept = default;
@@ -167,16 +178,16 @@ namespace slib
         SLIB_INLINE constexpr Ptrx() noexcept: ptr2(sl_null), ptr3(sl_null)	{}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(T&& v1, T2* v2, T3* v3) noexcept: Ptr(Forward<T>(v1)), ptr2(v2), ptr3(v3) {}
+		SLIB_INLINE constexpr Ptrx(T&& v1, T2* v2, T3* v3) noexcept: Ptr<T1>(Forward<T>(v1)), ptr2(v2), ptr3(v3) {}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const Ref<T>& v) noexcept: Ptr(v), ptr2(v.ptr), ptr3(v.ptr) {}
+		SLIB_INLINE constexpr Ptrx(const Ref<T>& v) noexcept: Ptr<T1>(v), ptr2(v.ptr), ptr3(v.ptr) {}
 
 		template <class T>
 		SLIB_INLINE constexpr Ptrx(const AtomicRef<T>& v) noexcept: Ptrx(Ref<T>(v)) {}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const WeakRef<T>& v) noexcept: Ptr(v)
+		SLIB_INLINE constexpr Ptrx(const WeakRef<T>& v) noexcept: Ptr<T1>(v)
 		{
 			T* _p = (T*)ptr;
 			ptr2 = _p;
@@ -184,7 +195,7 @@ namespace slib
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const AtomicWeakRef<T>& v) noexcept: Ptr(v)
+		SLIB_INLINE constexpr Ptrx(const AtomicWeakRef<T>& v) noexcept: Ptr<T1>(v)
 		{
 			T* _p = (T*)ptr;
 			ptr2 = _p;
@@ -192,7 +203,7 @@ namespace slib
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const Ptr<T>& v) noexcept: Ptr(v)
+		SLIB_INLINE constexpr Ptrx(const Ptr<T>& v) noexcept: Ptr<T1>(v)
 		{
 			T* _p = (T*)ptr;
 			ptr2 = _p;
@@ -200,7 +211,7 @@ namespace slib
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(Ptr<T>&& v) noexcept: Ptr(Move(v))
+		SLIB_INLINE constexpr Ptrx(Ptr<T>&& v) noexcept: Ptr<T1>(Move(v))
 		{
 			T* _p = (T*)ptr;
 			ptr2 = _p;
@@ -208,7 +219,7 @@ namespace slib
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const AtomicPtr<T>& v) noexcept: Ptr(v)
+		SLIB_INLINE constexpr Ptrx(const AtomicPtr<T>& v) noexcept: Ptr<T1>(v)
 		{
 			T* _p = (T*)ptr;
 			ptr2 = _p;
@@ -216,7 +227,7 @@ namespace slib
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(AtomicPtr<T>&& v) noexcept: Ptr(Move(v))
+		SLIB_INLINE constexpr Ptrx(AtomicPtr<T>&& v) noexcept: Ptr<T1>(Move(v))
 		{
 			T* _p = (T*)ptr;
 			ptr2 = _p;
@@ -224,11 +235,20 @@ namespace slib
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(T* v) noexcept: Ptr(v), ptr2(v), ptr3(v) {}
+		SLIB_INLINE constexpr Ptrx(T* v) noexcept: Ptr<T1>(v), ptr2(v), ptr3(v) {}
 
 		SLIB_INLINE constexpr Ptrx(Ptrx const& other) noexcept = default;
 
 		SLIB_INLINE constexpr Ptrx(Ptrx&& other) noexcept = default;
+
+		template <class T, class... TYPES>
+		SLIB_INLINE constexpr Ptrx(const Ptrx<T, TYPES...>& v) noexcept: Ptr<T1>(*((const Ptr<T>*)&v)), ptr2(v), ptr3(v) {}
+
+		template <class T, class... TYPES>
+		SLIB_INLINE constexpr Ptrx(const Refx<T, TYPES...>& v) noexcept: Ptr<T1>(*((const Ref<T>*)&v)), ptr2(v), ptr3(v) {}
+
+		template <class... TYPES>
+		SLIB_INLINE constexpr Ptrx(const Pointer<TYPES...>& v) noexcept: Ptr<T1>((T1*)v), ptr2(v), ptr3(v) {}
 
 	public:
 		SLIB_INLINE Ptrx& operator=(Ptrx const& other) noexcept = default;
@@ -276,16 +296,16 @@ namespace slib
         SLIB_INLINE constexpr Ptrx() noexcept: ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(T&& v1, T2* v2, T3* v3, T4* v4) noexcept: Ptr(Forward<T>(v1)), ptr2(v2), ptr3(v3), ptr4(v4) {}
+		SLIB_INLINE constexpr Ptrx(T&& v1, T2* v2, T3* v3, T4* v4) noexcept: Ptr<T1>(Forward<T>(v1)), ptr2(v2), ptr3(v3), ptr4(v4) {}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const Ref<T>& v) noexcept: Ptr(v), ptr2(v.ptr), ptr3(v.ptr), ptr4(v.ptr) {}
+		SLIB_INLINE constexpr Ptrx(const Ref<T>& v) noexcept: Ptr<T1>(v), ptr2(v.ptr), ptr3(v.ptr), ptr4(v.ptr) {}
 
 		template <class T>
 		SLIB_INLINE constexpr Ptrx(const AtomicRef<T>& v) noexcept: Ptrx(Ref<T>(v)) {}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const WeakRef<T>& v) noexcept: Ptr(v)
+		SLIB_INLINE constexpr Ptrx(const WeakRef<T>& v) noexcept: Ptr<T1>(v)
 		{
 			T* _p = (T*)ptr;
 			ptr2 = _p;
@@ -294,7 +314,7 @@ namespace slib
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const AtomicWeakRef<T>& v) noexcept: Ptr(v)
+		SLIB_INLINE constexpr Ptrx(const AtomicWeakRef<T>& v) noexcept: Ptr<T1>(v)
 		{
 			T* _p = (T*)ptr;
 			ptr2 = _p;
@@ -303,7 +323,7 @@ namespace slib
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const Ptr<T>& v) noexcept: Ptr(v)
+		SLIB_INLINE constexpr Ptrx(const Ptr<T>& v) noexcept: Ptr<T1>(v)
 		{
 			T* _p = (T*)ptr;
 			ptr2 = _p;
@@ -312,7 +332,7 @@ namespace slib
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(Ptr<T>&& v) noexcept: Ptr(Move(v))
+		SLIB_INLINE constexpr Ptrx(Ptr<T>&& v) noexcept: Ptr<T1>(Move(v))
 		{
 			T* _p = (T*)ptr;
 			ptr2 = _p;
@@ -321,7 +341,7 @@ namespace slib
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(const AtomicPtr<T>& v) noexcept: Ptr(v)
+		SLIB_INLINE constexpr Ptrx(const AtomicPtr<T>& v) noexcept: Ptr<T1>(v)
 		{
 			T* _p = (T*)ptr;
 			ptr2 = _p;
@@ -330,7 +350,7 @@ namespace slib
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(AtomicPtr<T>&& v) noexcept: Ptr(Move(v))
+		SLIB_INLINE constexpr Ptrx(AtomicPtr<T>&& v) noexcept: Ptr<T1>(Move(v))
 		{
 			T* _p = (T*)ptr;
 			ptr2 = _p;
@@ -339,11 +359,20 @@ namespace slib
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr Ptrx(T* v) noexcept: Ptr(v), ptr2(v), ptr3(v), ptr4(v) {}
+		SLIB_INLINE constexpr Ptrx(T* v) noexcept: Ptr<T1>(v), ptr2(v), ptr3(v), ptr4(v) {}
 
 		SLIB_INLINE constexpr Ptrx(Ptrx const& other) noexcept = default;
 
 		SLIB_INLINE constexpr Ptrx(Ptrx&& other) noexcept = default;
+
+		template <class T, class... TYPES>
+		SLIB_INLINE constexpr Ptrx(const Ptrx<T, TYPES...>& v) noexcept: Ptr<T1>(*((const Ptr<T>*)&v)), ptr2(v), ptr3(v), ptr4(v) {}
+
+		template <class T, class... TYPES>
+		SLIB_INLINE constexpr Ptrx(const Refx<T, TYPES...>& v) noexcept: Ptr<T1>(*((const Ref<T>*)&v)), ptr2(v), ptr3(v), ptr4(v) {}
+
+		template <class... TYPES>
+		SLIB_INLINE constexpr Ptrx(const Pointer<TYPES...>& v) noexcept: Ptr<T1>((T1*)v), ptr2(v), ptr3(v), ptr4(v) {}
 
 	public:
 		SLIB_INLINE Ptrx& operator=(Ptrx const& other) noexcept = default;

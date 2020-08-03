@@ -40,11 +40,12 @@ namespace slib
 	public:
         SLIB_INLINE constexpr Pointer() noexcept: ptr(sl_null) {}
 
-		SLIB_INLINE constexpr Pointer(T* v) noexcept: ptr(v) {}
-
 		SLIB_INLINE constexpr Pointer(Pointer const& other) noexcept = default;
 
 		SLIB_INLINE constexpr Pointer(Pointer&& other) noexcept = default;
+
+		template <class T>
+		SLIB_INLINE constexpr Pointer(const T& v) noexcept: ptr(v) {}
 
 	public:
 		SLIB_INLINE Pointer& operator=(T* v) noexcept
@@ -91,12 +92,12 @@ namespace slib
 
 		SLIB_INLINE constexpr Pointer(T1* v1, T2* v2) noexcept: ptr(v1), ptr2(v2) {}
 
-		template <class T>
-		SLIB_INLINE constexpr Pointer(T* v) noexcept: ptr(v), ptr2(v) {}
-
 		SLIB_INLINE constexpr Pointer(Pointer const& other) noexcept = default;
 
 		SLIB_INLINE constexpr Pointer(Pointer&& other) noexcept = default;
+
+		template <class T>
+		SLIB_INLINE constexpr Pointer(const T& v) noexcept: ptr(v), ptr2(v) {}
 
 	public:
 		SLIB_INLINE Pointer& operator=(Pointer const& other) noexcept = default;
@@ -129,12 +130,12 @@ namespace slib
 
 		SLIB_INLINE constexpr Pointer(T1* v1, T2* v2, T3* v3) noexcept: ptr(v1), ptr2(v2), ptr3(v3) {}
 
-		template <class T>
-		SLIB_INLINE constexpr Pointer(T* v) noexcept: ptr(v), ptr2(v), ptr3(v) {}
-
 		SLIB_INLINE constexpr Pointer(Pointer const& other) noexcept = default;
 
 		SLIB_INLINE constexpr Pointer(Pointer&& other) noexcept = default;
+
+		template <class T>
+		SLIB_INLINE constexpr Pointer(const T& v) noexcept: ptr(v), ptr2(v), ptr3(v) {}
 
 	public:
 		SLIB_INLINE Pointer& operator=(Pointer const& other) noexcept = default;
@@ -173,12 +174,12 @@ namespace slib
 
 		SLIB_INLINE constexpr Pointer(T1* v1, T2* v2, T3* v3, T4* v4) noexcept: ptr(v1), ptr2(v2), ptr3(v3), ptr4(v4) {}
 
-		template <class T>
-		SLIB_INLINE constexpr Pointer(T* v) noexcept: ptr(v), ptr2(v), ptr3(v), ptr4(v) {}
-
 		SLIB_INLINE constexpr Pointer(Pointer const& other) noexcept = default;
 
 		SLIB_INLINE constexpr Pointer(Pointer&& other) noexcept = default;
+
+		template <class T>
+		SLIB_INLINE constexpr Pointer(const T& v) noexcept: ptr(v), ptr2(v), ptr3(v), ptr4(v) {}
 
 	public:
 		SLIB_INLINE Pointer& operator=(Pointer const& other) noexcept = default;
