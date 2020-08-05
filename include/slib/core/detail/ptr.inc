@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -48,6 +48,7 @@ namespace slib
 	template <class T>
 	SLIB_INLINE Ptr<T>::Ptr(Ptr<T>&& other) noexcept
 	{
+		ptr = other.ptr;
 		_move_init(&other);
 	}
 
@@ -61,6 +62,7 @@ namespace slib
 	SLIB_INLINE Ptr<T>::Ptr(Ptr<O>&& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(O*, T*)
+		ptr = other.ptr;
 		_move_init(&other);
 	}
 
@@ -70,26 +72,6 @@ namespace slib
 	 : ptr(other.ptr), ref(other.ref)
 	{
 		SLIB_TRY_CONVERT_TYPE(O*, T*)
-	}
-	
-	template <class T>
-	SLIB_INLINE Ptr<T>::Ptr(AtomicPtr<T>&& other) noexcept
-	{
-		_move_init(&other);
-	}
-	
-	template <class T>
-	Ptr<T>::Ptr(const AtomicPtr<T>& other) noexcept
-	{
-		ptr = other._retain(ref);
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T>::Ptr(AtomicPtr<O>&& other) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		_move_init(&other);
 	}
 	
 	template <class T>
@@ -114,38 +96,17 @@ namespace slib
 	template <class O>
 	SLIB_INLINE Ptr<T>::Ptr(const Ref<O>& reference) noexcept
 	 : ptr(reference.ptr), ref(reference)
-	 {}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T>::Ptr(T* pointer, const Ref<O>& reference) noexcept
-	 : ref(reference)
 	{
-		if (ref.isNull()) {
-			ptr = sl_null;
-		} else {
-			ptr = pointer;
-		}
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
 	}
-
+	
 	template <class T>
 	template <class O>
 	Ptr<T>::Ptr(const AtomicRef<O>& reference) noexcept
 	 : ref(reference)
 	{
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
 		ptr = ref.ptr;
-	}
-	
-	template <class T>
-	template <class O>
-	Ptr<T>::Ptr(T* pointer, const AtomicRef<O>& reference) noexcept
-	 : ref(reference)
-	{
-		if (ref.isNull()) {
-			ptr = sl_null;
-		} else {
-			ptr = pointer;
-		}
 	}
 	
 	template <class T>
@@ -159,18 +120,6 @@ namespace slib
 			ref = weak._weak;
 		} else {
 			ptr = sl_null;
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	Ptr<T>::Ptr(T* pointer, const WeakRef<O>& weak) noexcept
-	 : ref(weak._weak)
-	{
-		if (ref.isNull()) {
-			ptr = sl_null;
-		} else {
-			ptr = pointer;
 		}
 	}
 	
@@ -190,9 +139,8 @@ namespace slib
 	}
 	
 	template <class T>
-	template <class O>
-	Ptr<T>::Ptr(T* pointer, const AtomicWeakRef<O>& weak) noexcept
-	 : ref(weak._weak)
+	template <class REF>
+	Ptr<T>::Ptr(T* pointer, REF&& r) noexcept: ref(_getRef(Forward<REF>(r)))
 	{
 		if (ref.isNull()) {
 			ptr = sl_null;
@@ -200,159 +148,6 @@ namespace slib
 			ptr = pointer;
 		}
 	}
-	
-	template <class T>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromPointer(T* pointer) noexcept
-	{
-		return Ptr<T>(pointer);
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromRef(O* reference) noexcept
-	{
-		return Ptr<T>(Ref<O>(reference));
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromRef(T* pointer, O* reference) noexcept
-	{
-		return Ptr<T>(pointer, Ref<O>(reference));
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromRef(const Ref<O>& reference) noexcept
-	{
-		return Ptr<T>(reference);
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromRef(T* pointer, const Ref<O>& reference) noexcept
-	{
-		return Ptr<T>(pointer, reference);
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromRef(const AtomicRef<O>& reference) noexcept
-	{
-		return Ptr<T>(reference);
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromRef(T* pointer, const AtomicRef<O>& reference) noexcept
-	{
-		return Ptr<T>(pointer, reference);
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromRef(const WeakRef<O>& reference) noexcept
-	{
-		return Ptr<T>(Ref<O>(reference));
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromRef(T* pointer, const WeakRef<O>& reference) noexcept
-	{
-		return Ptr<T>(pointer, Ref<O>(reference));
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromRef(const AtomicWeakRef<O>& reference) noexcept
-	{
-		return Ptr<T>(Ref<O>(reference));
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromRef(T* pointer, const AtomicWeakRef<O>& reference) noexcept
-	{
-		return Ptr<T>(pointer, Ref<O>(reference));
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromWeak(O* reference) noexcept
-	{
-		return Ptr<T>(reference, Ref<Referable>(reference ? reference->_getWeakObject() : sl_null));
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromWeak(T* pointer, O* o) noexcept
-	{
-		return Ptr<T>(o ? pointer : sl_null, Ref<Referable>(o ? o->_getWeakObject() : sl_null));
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromWeak(const Ref<O>& reference) noexcept
-	{
-		O* o = reference.ptr;
-		return Ptr<T>(o, Ref<Referable>(o ? o->_getWeakObject() : sl_null));
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromWeak(T* pointer, const Ref<O>& reference) noexcept
-	{
-		O* o = reference.ptr;
-		return Ptr<T>(o ? pointer : sl_null, Ref<Referable>(o ? o->_getWeakObject() : sl_null));
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromWeak(const AtomicRef<O>& _reference) noexcept
-	{
-		Ref<O> reference(_reference);
-		O* o = reference.ptr;
-		return Ptr<T>(o, Ref<Referable>(o ? o->_getWeakObject() : sl_null));
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromWeak(T* pointer, const AtomicRef<O>& _reference) noexcept
-	{
-		Ref<O> reference(_reference);
-		O* o = reference.ptr;
-		return Ptr<T>(o ? pointer : sl_null, Ref<Referable>(o ? o->_getWeakObject() : sl_null));
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromWeak(const WeakRef<O>& reference) noexcept
-	{
-		return Ptr<T>(reference);
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromWeak(T* pointer, const WeakRef<O>& reference) noexcept
-	{
-		return Ptr<T>(pointer, reference);
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromWeak(const AtomicWeakRef<O>& reference) noexcept
-	{
-		return Ptr<T>(reference);
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T> Ptr<T>::fromWeak(T* pointer, const AtomicWeakRef<O>& reference) noexcept
-	{
-		return Ptr<T>(pointer, reference);
-	}
-	
 	
 	template <class T>
 	SLIB_INLINE const Ptr<T>& Ptr<T>::null() noexcept
@@ -380,22 +175,22 @@ namespace slib
 	}
 	
 	template <class T>
-	template <class O>
-	SLIB_INLINE const Ptr<T>& Ptr<T>::from(const Ptr<O>& other) noexcept
+	template <class... TYPES>
+	SLIB_INLINE const Ptr<T>& Ptr<T>::from(const Ptr<TYPES...>& other) noexcept
 	{
 		return *(reinterpret_cast<Ptr<T> const*>(&other));
 	}
 	
 	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T>& Ptr<T>::from(Ptr<O>& other) noexcept
+	template <class... TYPES>
+	SLIB_INLINE Ptr<T>& Ptr<T>::from(Ptr<TYPES...>& other) noexcept
 	{
 		return *(reinterpret_cast<Ptr<T>*>(&other));
 	}
 	
 	template <class T>
-	template <class O>
-	SLIB_INLINE Ptr<T>&& Ptr<T>::from(Ptr<O>&& other) noexcept
+	template <class... TYPES>
+	SLIB_INLINE Ptr<T>&& Ptr<T>::from(Ptr<TYPES...>&& other) noexcept
 	{
 		return static_cast<Ptr<T>&&>(*(reinterpret_cast<Ptr<T>*>(&other)));
 	}
@@ -446,172 +241,68 @@ namespace slib
 	}
 
 	template <class T>
-	void Ptr<T>::setPointer(T* pointer) noexcept
+	void Ptr<T>::set(T* pointer) noexcept
 	{
 		ptr = pointer;
 		ref.setNull();
 	}
 	
 	template <class T>
-	template <class O>
-	void Ptr<T>::setRef(O* reference) noexcept
+	void Ptr<T>::set(sl_null_t) noexcept
 	{
-		ptr = reference;
-		ref = reference;
+		ptr = sl_null;
+		ref.setNull();
 	}
 	
 	template <class T>
 	template <class O>
-	void Ptr<T>::setRef(const Ref<O>& reference) noexcept
+	void Ptr<T>::set(Ptr<O>&& other) noexcept
 	{
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
+		ptr = other.ptr;
+		_move_assign(&other);
+	}
+
+	template <class T>
+	template <class O>
+	void Ptr<T>::set(const Ptr<O>& other) noexcept
+	{
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
+		ptr = other.ptr;
+		ref = other.ref;
+	}
+	
+	template <class T>
+	template <class O>
+	void Ptr<T>::set(const AtomicPtr<O>& other) noexcept
+	{
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
+		ptr = other._retain(ref);
+	}
+
+	template <class T>
+	template <class O>
+	void Ptr<T>::set(const Ref<O>& reference) noexcept
+	{
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
 		ptr = reference.ptr;
 		ref = reference;
 	}
 	
 	template <class T>
 	template <class O>
-	void Ptr<T>::setRef(T* pointer, const Ref<O>& reference) noexcept
+	void Ptr<T>::set(const AtomicRef<O>& reference) noexcept
 	{
-		if (reference.isNotNull()) {
-			ptr = pointer;
-		} else {
-			ptr = sl_null;
-		}
-		ref = reference;
-	}
-	
-	template <class T>
-	template <class O>
-	void Ptr<T>::setRef(const AtomicRef<O>& reference) noexcept
-	{
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
 		ref = reference;
 		ptr = ref.ptr;
 	}
 	
 	template <class T>
 	template <class O>
-	void Ptr<T>::setRef(T* pointer, const AtomicRef<O>& reference) noexcept
+	void Ptr<T>::set(const WeakRef<O>& weak) noexcept
 	{
-		ref = reference;
-		if (ref.isNotNull()) {
-			ptr = pointer;
-		} else {
-			ptr = sl_null;
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Ptr<T>::setRef(const WeakRef<O>& reference) noexcept
-	{
-		ref = reference;
-		ptr = ref.ptr;
-	}
-	
-	template <class T>
-	template <class O>
-	void Ptr<T>::setRef(T* pointer, const WeakRef<O>& reference) noexcept
-	{
-		ref = reference;
-		if (ref.isNotNull()) {
-			ptr = pointer;
-		} else {
-			ptr = sl_null;
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Ptr<T>::setRef(const AtomicWeakRef<O>& reference) noexcept
-	{
-		ref = reference;
-		ptr = ref.ptr;
-	}
-	
-	template <class T>
-	template <class O>
-	void Ptr<T>::setRef(T* pointer, const AtomicWeakRef<O>& reference) noexcept
-	{
-		ref = reference;
-		if (ref.isNotNull()) {
-			ptr = pointer;
-		} else {
-			ptr = sl_null;
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Ptr<T>::setWeak(O* reference) noexcept
-	{
-		ptr = reference;
-		if (reference) {
-			ref = reference->_getWeakObject();
-		} else {
-			ref.setNull();
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Ptr<T>::setWeak(const Ref<O>& reference) noexcept
-	{
-		O* o = reference.ptr;
-		ptr = o;
-		if (o) {
-			ref = o->_getWeakObject();
-		} else {
-			ref.setNull();
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Ptr<T>::setWeak(T* pointer, const Ref<O>& reference) noexcept
-	{
-		O* o = reference.ptr;
-		if (o) {
-			ref = o->_getWeakObject();
-			ptr = pointer;
-		} else {
-			ref.setNull();
-			ptr = sl_null;
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Ptr<T>::setWeak(const AtomicRef<O>& _reference) noexcept
-	{
-		Ref<O> reference(_reference);
-		O* o = reference.ptr;
-		ptr = o;
-		if (o) {
-			ref = o->_getWeakObject();
-		} else {
-			ref.setNull();
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Ptr<T>::setWeak(T* pointer, const AtomicRef<O>& _reference) noexcept
-	{
-		Ref<O> reference(_reference);
-		O* o = reference.ptr;
-		if (o) {
-			ref = o->_getWeakObject();
-			ptr = pointer;
-		} else {
-			ref.setNull();
-			ptr = sl_null;
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Ptr<T>::setWeak(const WeakRef<O>& weak) noexcept
-	{
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
 		Ref<O> o(weak);
 		if (o.isNotNull()) {
 			ptr = o.ptr;
@@ -624,21 +315,9 @@ namespace slib
 	
 	template <class T>
 	template <class O>
-	void Ptr<T>::setWeak(T* pointer, const WeakRef<O>& weak) noexcept
+	void Ptr<T>::set(const AtomicWeakRef<O>& _weak) noexcept
 	{
-		if (weak.isNotNull()) {
-			ptr = pointer;
-			ref = weak._weak;
-		} else {
-			ptr = sl_null;
-			ref.setNull();
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Ptr<T>::setWeak(const AtomicWeakRef<O>& _weak) noexcept
-	{
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
 		WeakRef<O> weak(_weak);
 		Ref<O> o(weak);
 		if (o.isNotNull()) {
@@ -651,22 +330,21 @@ namespace slib
 	}
 	
 	template <class T>
-	template <class O>
-	void Ptr<T>::setWeak(T* pointer, const AtomicWeakRef<O>& _weak) noexcept
+	template <class REF>
+	void Ptr<T>::set(T* pointer, REF&& r) noexcept
 	{
-		WeakRef<O> weak(_weak);
-		if (weak.isNotNull()) {
+		ref = _getRef(Forward<REF>(r));
+		if (ref.isNotNull()) {
 			ptr = pointer;
-			ref = weak._weak;
 		} else {
 			ptr = sl_null;
-			ref.setNull();
 		}
 	}
 	
 	template <class T>
 	Ptr<T>& Ptr<T>::operator=(Ptr<T>&& other) noexcept
 	{
+		ptr = other.ptr;
 		_move_assign(&other);
 		return *this;
 	}
@@ -680,137 +358,40 @@ namespace slib
 	}
 	
 	template <class T>
-	template <class O>
-	Ptr<T>& Ptr<T>::operator=(Ptr<O>&& other) noexcept
+	template <class OTHER>
+	Ptr<T>& Ptr<T>::operator=(OTHER&& other) noexcept
 	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		_move_assign(&other);
+		set(Forward<OTHER>(other));
 		return *this;
 	}
 
 	template <class T>
-	template <class O>
-	Ptr<T>& Ptr<T>::operator=(const Ptr<O>& other) noexcept
+	SLIB_INLINE sl_bool Ptr<T>::operator==(sl_null_t) const noexcept
 	{
-		ptr = other.ptr;
-		ref = other.ref;
-		return *this;
-	}
-	
-	template <class T>
-	Ptr<T>& Ptr<T>::operator=(AtomicPtr<T>&& other) noexcept
-	{
-		_move_assign(&other);
-		return *this;
-	}
-	
-	template <class T>
-	Ptr<T>& Ptr<T>::operator=(const AtomicPtr<T>& other) noexcept
-	{
-		ptr = other._retain(ref);
-		return *this;
-	}
-	
-	template <class T>
-	template <class O>
-	Ptr<T>& Ptr<T>::operator=(AtomicPtr<O>&& other) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		_move_assign(&other);
-		return *this;
-	}
-	
-	template <class T>
-	template <class O>
-	Ptr<T>& Ptr<T>::operator=(const AtomicPtr<O>& other) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		ptr = other._retain(ref);
-		return *this;
-	}
-	
-	template <class T>
-	Ptr<T>& Ptr<T>::operator=(sl_null_t) noexcept
-	{
-		ptr = sl_null;
-		ref.setNull();
-		return *this;
-	}
-	
-	template <class T>
-	Ptr<T>& Ptr<T>::operator=(T* pointer) noexcept
-	{
-		ptr = pointer;
-		ref.setNull();
-		return *this;
-	}
-	
-	template <class T>
-	template <class O>
-	Ptr<T>& Ptr<T>::operator=(const Ref<O>& reference) noexcept
-	{
-		ptr = reference.ptr;
-		ref = reference;
-		return *this;
-	}
-	
-	template <class T>
-	template <class O>
-	Ptr<T>& Ptr<T>::operator=(const AtomicRef<O>& reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		ref = reference;
-		ptr = ref.ptr;
-		return *this;
-	}
-	
-	template <class T>
-	template <class O>
-	Ptr<T>& Ptr<T>::operator=(const WeakRef<O>& weak) noexcept
-	{
-		Ref<O> o(weak);
-		if (o.isNotNull()) {
-			ptr = o.ptr;
-			ref = weak._weak;
-		} else {
-			ptr = sl_null;
-			ref.setNull();
-		}
-		return *this;
-	}
-	
-	template <class T>
-	template <class O>
-	Ptr<T>& Ptr<T>::operator=(const AtomicWeakRef<O>& _weak) noexcept
-	{
-		WeakRef<O> weak(_weak);
-		Ref<O> o(weak);
-		if (o.isNotNull()) {
-			ptr = o.ptr;
-			ref = weak._weak;
-		} else {
-			ptr = sl_null;
-			ref.setNull();
-		}
-		return *this;
+		return ptr == sl_null;
 	}
 
 	template <class T>
-	SLIB_INLINE sl_bool Ptr<T>::operator==(const Ptr<T>& other) const noexcept
+	SLIB_INLINE sl_bool Ptr<T>::operator==(T* other) const noexcept
 	{
-		return ptr == other.ptr;
+		return ptr == other;
 	}
-	
+
+	template <class T>
+	SLIB_INLINE sl_bool operator==(sl_null_t, const Ptr<T>& o) noexcept
+	{
+		return o.ptr == sl_null;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator==(T* other, const Ptr<T>& o) noexcept
+	{
+		return o.ptr == other;
+	}
+
 	template <class T>
 	template <class O>
 	SLIB_INLINE sl_bool Ptr<T>::operator==(const Ptr<O>& other) const noexcept
-	{
-		return ptr == other.ptr;
-	}
-	
-	
-	template <class T>
-	SLIB_INLINE sl_bool Ptr<T>::operator==(const AtomicPtr<T>& other) const noexcept
 	{
 		return ptr == other.ptr;
 	}
@@ -819,15 +400,33 @@ namespace slib
 	template <class O>
 	SLIB_INLINE sl_bool Ptr<T>::operator==(const AtomicPtr<O>& other) const noexcept
 	{
-		return ptr == other.ptr;
+		return ptr == other._ptr;
 	}
 	
 	template <class T>
-	SLIB_INLINE sl_bool Ptr<T>::operator!=(const Ptr<T>& other) const noexcept
+	SLIB_INLINE sl_bool Ptr<T>::operator!=(sl_null_t) const noexcept
 	{
-		return ptr != other.ptr;
+		return ptr != sl_null;
 	}
-	
+
+	template <class T>
+	SLIB_INLINE sl_bool Ptr<T>::operator!=(T* other) const noexcept
+	{
+		return ptr != other;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator!=(sl_null_t, const Ptr<T>& o) noexcept
+	{
+		return o.ptr != sl_null;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator!=(T* other, const Ptr<T>& o) noexcept
+	{
+		return o.ptr != other;
+	}
+
 	template <class T>
 	template <class O>
 	SLIB_INLINE sl_bool Ptr<T>::operator!=(const Ptr<O>& other) const noexcept
@@ -836,16 +435,10 @@ namespace slib
 	}
 	
 	template <class T>
-	SLIB_INLINE sl_bool Ptr<T>::operator!=(const AtomicPtr<T>& other) const noexcept
-	{
-		return ptr != other.ptr;
-	}
-	
-	template <class T>
 	template <class O>
 	SLIB_INLINE sl_bool Ptr<T>::operator!=(const AtomicPtr<O>& other) const noexcept
 	{
-		return ptr != other.ptr;
+		return ptr != other._ptr;
 	}
 	
 	template <class T>
@@ -861,6 +454,12 @@ namespace slib
 	}
 	
 	template <class T>
+	SLIB_INLINE Ptr<T>::operator T*() const noexcept
+	{
+		return ptr;
+	}
+
+	template <class T>
 	SLIB_INLINE Ptr<T>::operator sl_bool() const noexcept
 	{
 		return ptr != sl_null;
@@ -870,7 +469,6 @@ namespace slib
 	SLIB_INLINE void Ptr<T>::_move_init(void* _other) noexcept
 	{
 		Ptr<T>& other = *(reinterpret_cast<Ptr<T>*>(_other));
-		ptr = other.ptr;
 		ref._move_init(&(other.ref));
 	}
 	
@@ -879,41 +477,68 @@ namespace slib
 	{
 		if ((void*)this != _other) {
 			Ptr<T>& other = *(reinterpret_cast<Ptr<T>*>(_other));
-			ptr = other.ptr;
 			ref._move_assign(&(other.ref));
 		}
 	}
 	
+	template <class T>
+	template <class... TYPES>
+	SLIB_INLINE const Ref<Referable>& Ptr<T>::_getRef(const Ref<TYPES...>& ref) noexcept
+	{
+		return Ref<Referable>::from(ref);
+	}
+
+	template <class T>
+	template <class... TYPES>
+	SLIB_INLINE Ref<Referable>&& Ptr<T>::_getRef(Ref<TYPES...>&& ref) noexcept
+	{
+		return Move(Ref<Referable>::from(ref));
+	}
+
+	template <class T>
+	template <class O>
+	SLIB_INLINE const AtomicRef<Referable>& Ptr<T>::_getRef(const AtomicRef<O>& ref) noexcept
+	{
+		return AtomicRef<Referable>::from(ref);
+	}
+
+	template <class T>
+	template <class O>
+	SLIB_INLINE const Ref<Referable>& Ptr<T>::_getRef(const WeakRef<O>& weak) noexcept
+	{
+		return Ref<Referable>::from(weak._weak);
+	}
+
+	template <class T>
+	template <class O>
+	SLIB_INLINE Ref<Referable>&& Ptr<T>::_getRef(WeakRef<O>&& weak) noexcept
+	{
+		return Move(Ref<Referable>::from(weak._weak));
+	}
+
+	template <class T>
+	template <class O>
+	SLIB_INLINE const AtomicRef<Referable>& Ptr<T>::_getRef(const AtomicWeakRef<O>& weak) noexcept
+	{
+		return AtomicRef<Referable>::from(weak._weak);
+	}
+
 	
 	template <class T>
 	Atomic< Ptr<T> >::Atomic() noexcept
-	 : ptr(sl_null)
+	 : _ptr(sl_null)
 	 {}
 	
 	template <class T>
 	Atomic< Ptr<T> >::~Atomic()
 	{
-		ptr = sl_null;
-	}
-	
-	template <class T>
-	Atomic< Ptr<T> >::Atomic(AtomicPtr<T>&& other) noexcept
-	{
-		_move_init(&other);
+		_ptr = sl_null;
 	}
 	
 	template <class T>
 	Atomic< Ptr<T> >::Atomic(const AtomicPtr<T>& other) noexcept
 	{
-		ptr = other._retain(_ref);
-	}
-	
-	template <class T>
-	template <class O>
-	Atomic< Ptr<T> >::Atomic(AtomicPtr<O>&& other) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		_move_init(&other);
+		_ptr = other._retain(_ref);
 	}
 	
 	template <class T>
@@ -921,62 +546,42 @@ namespace slib
 	Atomic< Ptr<T> >::Atomic(const AtomicPtr<O>& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		ptr = other._retain(_ref);
+		_ptr = other._retain(_ref);
 	}
-	
-	template <class T>
-	Atomic< Ptr<T> >::Atomic(Ptr<T>&& other) noexcept
-	{
-		_move_init(&other);
-	}
-	
-	template <class T>
-	Atomic< Ptr<T> >::Atomic(const Ptr<T>& other) noexcept
-	 : ptr(other.ptr), _ref(other.ref)
-	 {}
 	
 	template <class T>
 	template <class O>
 	Atomic< Ptr<T> >::Atomic(Ptr<O>&& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(O*, T*)
+		_ptr = other.ptr;
 		_move_init(&other);
 	}
 
 	template <class T>
 	template <class O>
 	Atomic< Ptr<T> >::Atomic(const Ptr<O>& other) noexcept
-	 : ptr(other.ptr), _ref(other.ref)
+	 : _ptr(other.ptr), _ref(other.ref)
 	{
 		SLIB_TRY_CONVERT_TYPE(O*, T*)
 	}
 	
 	template <class T>
 	Atomic< Ptr<T> >::Atomic(sl_null_t) noexcept
-	 : ptr(sl_null)
+	 : _ptr(sl_null)
 	 {}
 	
 	template <class T>
 	Atomic< Ptr<T> >::Atomic(T* pointer) noexcept
-	 : ptr(pointer)
+	 : _ptr(pointer)
 	 {}
 	
 	template <class T>
 	template <class O>
 	Atomic< Ptr<T> >::Atomic(const Ref<O>& reference) noexcept
-	 : ptr(reference.ptr), _ref(reference)
-	 {}
-	
-	template <class T>
-	template <class O>
-	Atomic< Ptr<T> >::Atomic(T* pointer, const Ref<O>& reference) noexcept
-	 : _ref(reference)
+	 : _ptr(reference.ptr), _ref(reference)
 	{
-		if (_ref.isNull()) {
-			ptr = sl_null;
-		} else {
-			ptr = pointer;
-		}
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
 	}
 	
 	template <class T>
@@ -984,19 +589,8 @@ namespace slib
 	Atomic< Ptr<T> >::Atomic(const AtomicRef<O>& reference) noexcept
 	 : _ref(reference)
 	{
-		ptr = _ref.ptr;
-	}
-	
-	template <class T>
-	template <class O>
-	Atomic< Ptr<T> >::Atomic(T* pointer, const AtomicRef<O>& reference) noexcept
-	 : _ref(reference)
-	{
-		if (_ref.isNull()) {
-			ptr = sl_null;
-		} else {
-			ptr = pointer;
-		}
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
+		_ptr = _ref.ptr;
 	}
 	
 	template <class T>
@@ -1006,22 +600,10 @@ namespace slib
 		SLIB_TRY_CONVERT_TYPE(O*, T*)
 		Ref<O> o(weak);
 		if (o.isNotNull()) {
-			ptr = o.ptr;
+			_ptr = o.ptr;
 			_ref = weak._weak;
 		} else {
-			ptr = sl_null;
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	Atomic< Ptr<T> >::Atomic(T* pointer, const WeakRef<O>& weak) noexcept
-	 : _ref(weak._weak)
-	{
-		if (_ref.isNull()) {
-			ptr = sl_null;
-		} else {
-			ptr = pointer;
+			_ptr = sl_null;
 		}
 	}
 	
@@ -1033,22 +615,22 @@ namespace slib
 		WeakRef<O> weak(_weak);
 		Ref<O> o(weak);
 		if (o.isNotNull()) {
-			ptr = o.ptr;
+			_ptr = o.ptr;
 			_ref = weak._weak;
 		} else {
-			ptr = sl_null;
+			_ptr = sl_null;
 		}
 	}
 	
 	template <class T>
-	template <class O>
-	Atomic< Ptr<T> >::Atomic(T* pointer, const AtomicWeakRef<O>& weak) noexcept
-	 : _ref(weak._weak)
+	template <class REF>
+	Atomic< Ptr<T> >::Atomic(T* pointer, REF&& r) noexcept
+	 : _ref(Ptr<T>::_getRef(Forward<REF>(r)))
 	{
 		if (_ref.isNull()) {
-			ptr = sl_null;
+			_ptr = sl_null;
 		} else {
-			ptr = pointer;
+			_ptr = pointer;
 		}
 	}
 	
@@ -1061,13 +643,13 @@ namespace slib
 	template <class T>
 	sl_bool Atomic< Ptr<T> >::isNull() const noexcept
 	{
-		return ptr == sl_null;
+		return _ptr == sl_null;
 	}
 	
 	template <class T>
 	sl_bool Atomic< Ptr<T> >::isNotNull() const noexcept
 	{
-		return ptr != sl_null;
+		return _ptr != sl_null;
 	}
 	
 	template <class T>
@@ -1077,24 +659,17 @@ namespace slib
 	}
 	
 	template <class T>
-	template <class O>
-	SLIB_INLINE const AtomicPtr<T>& Atomic< Ptr<T> >::from(const AtomicPtr<O>& other) noexcept
+	template <class OTHER>
+	SLIB_INLINE const AtomicPtr<T>& Atomic< Ptr<T> >::from(const AtomicPtr<OTHER>& other) noexcept
 	{
-		return *(reinterpret_cast<AtomicPtr<T> const*>(&other));
+		return *(reinterpret_cast<AtomicPtr<OTHER> const*>(&other));
 	}
 	
 	template <class T>
-	template <class O>
-	SLIB_INLINE AtomicPtr<T>& Atomic< Ptr<T> >::from(AtomicPtr<O>& other) noexcept
+	template <class OTHER>
+	SLIB_INLINE AtomicPtr<T>& Atomic< Ptr<T> >::from(AtomicPtr<OTHER>& other) noexcept
 	{
-		return *(reinterpret_cast<AtomicPtr<T>*>(&other));
-	}
-	
-	template <class T>
-	template <class O>
-	SLIB_INLINE AtomicPtr<T>&& Atomic< Ptr<T> >::from(AtomicPtr<O>&& other) noexcept
-	{
-		return static_cast<AtomicPtr<T>&&>(*(reinterpret_cast<AtomicPtr<T>*>(&other)));
+		return *(reinterpret_cast<AtomicPtr<OTHER>*>(&other));
 	}
 	
 	template <class T>
@@ -1105,214 +680,95 @@ namespace slib
 	}
 	
 	template <class T>
-	void Atomic< Ptr<T> >::setPointer(T* pointer) noexcept
+	void Atomic< Ptr<T> >::set(T* pointer) noexcept
 	{
 		_replace(pointer, Ref<Referable>::null());
 	}
 	
 	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setRef(O* reference) noexcept
+	void Atomic< Ptr<T> >::set(sl_null_t) noexcept
 	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		_replace(reference, reference);
+		_replace(sl_null, Ref<Referable>::null());
 	}
 	
 	template <class T>
 	template <class O>
-	void Atomic< Ptr<T> >::setRef(const Ref<O>& reference) noexcept
+	void Atomic< Ptr<T> >::set(const AtomicPtr<O>& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		_replace(reference.ptr, Ref<Referable>::from(reference));
+		Ref<Referable> reference;
+		T* pointer = other._retain(reference);
+		_replace(pointer, reference);
 	}
 	
 	template <class T>
 	template <class O>
-	void Atomic< Ptr<T> >::setRef(T* pointer, const Ref<O>& reference) noexcept
+	void Atomic< Ptr<T> >::set(Ptr<O>&& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		_replace(reference.ptr, Ref<Referable>::from(reference));
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setRef(const AtomicRef<O>& _reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		Ref<O> reference(_reference);
-		_replace(reference.ptr, Ref<Referable>::from(reference));
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setRef(T* pointer, const AtomicRef<O>& _reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		Ref<O> reference(_reference);
-		_replace(reference.isNotNull() ? pointer : sl_null, Ref<Referable>::from(reference));
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setRef(const WeakRef<O>& _reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		Ref<O> reference(_reference);
-		_replace(reference.ptr, Ref<Referable>::from(reference));
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setRef(T* pointer, const WeakRef<O>& _reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		Ref<O> reference(_reference);
-		_replace(reference.isNotNull() ? pointer : sl_null, Ref<Referable>::from(reference));
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setRef(const AtomicWeakRef<O>& _reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		Ref<O> reference(_reference);
-		_replace(reference.ptr, Ref<Referable>::from(reference));
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setRef(T* pointer, const AtomicWeakRef<O>& _reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		Ref<O> reference(_reference);
-		_replace(reference.isNotNull() ? pointer : sl_null, Ref<Referable>::from(reference));
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setWeak(O* o) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		if (o) {
-			_replace(o, o->_getWeakObject());
-		} else {
-			_replace(sl_null, Ref<Referable>::null());
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setWeak(const Ref<O>& reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		O* o = reference.ptr;
-		if (o) {
-			_replace(o, o->_getWeakObject());
-		} else {
-			_replace(sl_null, Ref<Referable>::null());
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setWeak(T* pointer, const Ref<O>& reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		O* o = reference.ptr;
-		if (o) {
-			_replace(pointer, o->_getWeakObject());
-		} else {
-			_replace(sl_null, Ref<Referable>::null());
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setWeak(const AtomicRef<O>& _reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		Ref<O> reference(_reference);
-		O* o = reference.ptr;
-		if (o) {
-			_replace(o, o->_getWeakObject());
-		} else {
-			_replace(sl_null, Ref<Referable>::null());
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setWeak(T* pointer, const AtomicRef<O>& _reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		Ref<O> reference(_reference);
-		O* o = reference.ptr;
-		if (o) {
-			_replace(pointer, o->_getWeakObject());
-		} else {
-			_replace(sl_null, Ref<Referable>::null());
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setWeak(const WeakRef<O>& reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		Ref<O> o(reference);
-		if (o.isNotNull()) {
-			_replace(o.ptr, Ref<Referable>::from(reference._weak));
-		} else {
-			_replace(sl_null, Ref<Referable>::null());
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setWeak(T* pointer, const WeakRef<O>& reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		if (reference.isNotNull()) {
-			_replace(pointer, Ref<Referable>::from(reference._weak));
-		} else {
-			_replace(sl_null, Ref<Referable>::null());
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setWeak(const AtomicWeakRef<O>& _reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		WeakRef<O> reference(_reference);
-		Ref<O> o(reference);
-		if (o.isNotNull()) {
-			_replace(o.ptr, Ref<Referable>::from(reference._weak));
-		} else {
-			_replace(sl_null, Ref<Referable>::null());
-		}
-	}
-	
-	template <class T>
-	template <class O>
-	void Atomic< Ptr<T> >::setWeak(T* pointer, const AtomicWeakRef<O>& _reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		WeakRef<O> reference(_reference);
-		if (reference.isNotNull()) {
-			_replace(pointer, Ref<Referable>::from(reference._weak));
-		} else {
-			_replace(sl_null, Ref<Referable>::null());
-		}
-	}
-
-	template <class T>
-	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(AtomicPtr<T>&& other) noexcept
-	{
+		_ptr = other.ptr;
 		_move_assign(&other);
-		return *this;
+	}
+	
+	template <class T>
+	template <class O>
+	void Atomic< Ptr<T> >::set(const Ptr<O>& other) noexcept
+	{
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
+		_replace(other.ptr, other.ref);
+	}
+	
+	template <class T>
+	template <class O>
+	void Atomic< Ptr<T> >::set(const Ref<O>& reference) noexcept
+	{
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
+		_replace(reference.ptr, Ref<Referable>::from(reference));
+	}
+	
+	template <class T>
+	template <class O>
+	void Atomic< Ptr<T> >::set(const AtomicRef<O>& _reference) noexcept
+	{
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
+		Ref<O> reference(_reference);
+		_replace(reference.ptr, Ref<Referable>::from(reference));
 	}
 
+	template <class T>
+	template <class O>
+	void Atomic< Ptr<T> >::set(const WeakRef<O>& weak) noexcept
+	{
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
+		Ref<O> o(weak);
+		if (o.isNotNull()) {
+			_replace(o.ptr, Ref<Referable>::from(weak._weak));
+		} else {
+			_replace(sl_null, Ref<Referable>::null());
+		}
+	}
+	
+	template <class T>
+	template <class O>
+	void Atomic< Ptr<T> >::set(const AtomicWeakRef<O>& _weak) noexcept
+	{
+		SLIB_TRY_CONVERT_TYPE(O*, T*)
+		WeakRef<O> weak(_weak);
+		Ref<O> o(weak);
+		if (o.isNotNull()) {
+			_replace(o.ptr, Ref<Referable>::from(weak._weak));
+		} else {
+			_replace(sl_null, Ref<Referable>::null());
+		}
+	}
+	
+	template <class T>
+	template <class REF>
+	void Atomic< Ptr<T> >::set(T* pointer, REF&& r) noexcept
+	{
+		_replace(pointer, Ptr<T>::_getRef(Forward<REF>(r)));
+	}
+	
 	template <class T>
 	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(const AtomicPtr<T>& other) noexcept
 	{
@@ -1323,169 +779,87 @@ namespace slib
 	}
 	
 	template <class T>
-	template <class O>
-	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(AtomicPtr<O>&& other) noexcept
+	template <class OTHER>
+	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(OTHER&& other) noexcept
 	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		_move_assign(&other);
+		set(Forward<OTHER>(other));
 		return *this;
 	}
-	
+
 	template <class T>
-	template <class O>
-	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(const AtomicPtr<O>& other) noexcept
+	SLIB_INLINE sl_bool Atomic< Ptr<T> >::operator==(sl_null_t) const noexcept
 	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		Ref<Referable> reference;
-		T* pointer = other._retain(reference);
-		_replace(pointer, reference);
-		return *this;
+		return _ptr == sl_null;
 	}
-	
+
 	template <class T>
-	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(Ptr<T>&& other) noexcept
+	SLIB_INLINE sl_bool Atomic< Ptr<T> >::operator==(T* other) const noexcept
 	{
-		_move_assign(&other);
-		return *this;
+		return _ptr == other;
 	}
-	
+
 	template <class T>
-	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(const Ptr<T>& other) noexcept
+	SLIB_INLINE sl_bool operator==(sl_null_t, const Atomic< Ptr<T> >& p) noexcept
 	{
-		_replace(other.ptr, other.ref);
-		return *this;
+		return p._ptr == sl_null;
 	}
-	
+
 	template <class T>
-	template <class O>
-	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(Ptr<O>&& other) noexcept
+	SLIB_INLINE sl_bool operator==(T* other, const Atomic< Ptr<T> >& p) noexcept
 	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		_move_assign(&other);
-		return *this;
+		return p._ptr == other;
 	}
-	
-	template <class T>
-	template <class O>
-	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(const Ptr<O>& other) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		_replace(other.ptr, other.ref);
-		return *this;
-	}
-	
-	template <class T>
-	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(sl_null_t) noexcept
-	{
-		_replace(sl_null, Ref<Referable>::null());
-		return *this;
-	}
-	
-	template <class T>
-	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(T* pointer) noexcept
-	{
-		_replace(pointer, Ref<Referable>::null());
-		return *this;
-	}
-	
-	template <class T>
-	template <class O>
-	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(const Ref<O>& reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		_replace(reference.ptr, Ref<Referable>::from(reference));
-		return *this;
-	}
-	
-	template <class T>
-	template <class O>
-	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(const AtomicRef<O>& _reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		Ref<O> reference(_reference);
-		_replace(reference.ptr, Ref<Referable>::from(reference));
-		return *this;
-	}
-	
-	template <class T>
-	template <class O>
-	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(const WeakRef<O>& reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		Ref<O> o(reference);
-		if (o.isNotNull()) {
-			_replace(o.ptr, Ref<Referable>::from(reference._weak));
-		} else {
-			_replace(sl_null, Ref<Referable>::null());
-		}
-		return *this;
-	}
-	
-	template <class T>
-	template <class O>
-	AtomicPtr<T>& Atomic< Ptr<T> >::operator=(const AtomicWeakRef<O>& _reference) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(O*, T*)
-		WeakRef<O> reference(_reference);
-		Ref<O> o(reference);
-		if (o.isNotNull()) {
-			_replace(o.ptr, Ref<Referable>::from(reference._weak));
-		} else {
-			_replace(sl_null, Ref<Referable>::null());
-		}
-		return *this;
-	}
-	
-	template <class T>
-	SLIB_INLINE sl_bool Atomic< Ptr<T> >::operator==(const AtomicPtr<T>& other) const noexcept
-	{
-		return ptr == other.ptr;
-	}
-	
+
 	template <class T>
 	template <class O>
 	SLIB_INLINE sl_bool Atomic< Ptr<T> >::operator==(const AtomicPtr<O>& other) const noexcept
 	{
-		return ptr == other.ptr;
-	}
-	
-	template <class T>
-	SLIB_INLINE sl_bool Atomic< Ptr<T> >::operator==(const Ptr<T>& other) const noexcept
-	{
-		return ptr == other.ptr;
+		return _ptr == other._ptr;
 	}
 	
 	template <class T>
 	template <class O>
 	SLIB_INLINE sl_bool Atomic< Ptr<T> >::operator==(const Ptr<O>& other) const noexcept
 	{
-		return ptr == other.ptr;
+		return _ptr == other.ptr;
 	}
 	
 	template <class T>
-	SLIB_INLINE sl_bool Atomic< Ptr<T> >::operator!=(const AtomicPtr<T>& other) const noexcept
+	SLIB_INLINE sl_bool Atomic< Ptr<T> >::operator!=(sl_null_t) const noexcept
 	{
-		return ptr != other.ptr;
+		return _ptr != sl_null;
 	}
-	
+
+	template <class T>
+	SLIB_INLINE sl_bool Atomic< Ptr<T> >::operator!=(T* other) const noexcept
+	{
+		return _ptr != other;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator!=(sl_null_t, const Atomic< Ptr<T> >& p) noexcept
+	{
+		return p._ptr != sl_null;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator!=(T* other, const Atomic< Ptr<T> >& p) noexcept
+	{
+		return p._ptr != other;
+	}
+
 	template <class T>
 	template <class O>
 	SLIB_INLINE sl_bool Atomic< Ptr<T> >::operator!=(const AtomicPtr<O>& other) const noexcept
 	{
-		return ptr != other.ptr;
-	}
-	
-	template <class T>
-	SLIB_INLINE sl_bool Atomic< Ptr<T> >::operator!=(const Ptr<T>& other) const noexcept
-	{
-		return ptr != other.ptr;
+		return _ptr != other._ptr;
 	}
 	
 	template <class T>
 	template <class O>
 	SLIB_INLINE sl_bool Atomic< Ptr<T> >::operator!=(const Ptr<O>& other) const noexcept
 	{
-		return ptr != other.ptr;
+		return _ptr != other.ptr;
 	}
 	
 	template <class T>
@@ -1496,7 +870,7 @@ namespace slib
 		} else {			
 			m_lock.lock();
 			reference = _ref;
-			T* ret = ptr;
+			T* ret = _ptr;
 			m_lock.unlock();
 			return ret;
 		}
@@ -1506,7 +880,7 @@ namespace slib
 	SLIB_INLINE void Atomic< Ptr<T> >::_replace(T* pointer, const Ref<Referable>& reference) noexcept
 	{
 		m_lock.lock();
-		ptr = pointer;
+		_ptr = pointer;
 		Referable* refOld = _ref.ptr;
 		new (&_ref) Ref<Referable>(reference);
 		m_lock.unlock();
@@ -1519,7 +893,6 @@ namespace slib
 	SLIB_INLINE void Atomic< Ptr<T> >::_move_init(void* _other) noexcept
 	{
 		AtomicPtr<T>& other = *(reinterpret_cast<AtomicPtr<T>*>(_other));
-		ptr = other.ptr;
 		_ref._move_init(&(other._ref));
 	}
 
@@ -1529,7 +902,6 @@ namespace slib
 		if ((void*)this != _other) {
 			AtomicPtr<T>& other = *(reinterpret_cast<AtomicPtr<T>*>(_other));
 			m_lock.lock();
-			ptr = other.ptr;
 			Referable* refOld = _ref.ptr;
 			_ref._move_init(&(other._ref));
 			m_lock.unlock();
@@ -1585,6 +957,19 @@ namespace slib
 	{
 		return m_ptr.ptr;
 	}
+
+	template <class T>
+	SLIB_INLINE PtrLocker<T>::operator T*() const noexcept
+	{
+		return m_ptr.ptr;
+	}
+
+	template <class T>
+	SLIB_INLINE PtrLocker<T>::operator sl_bool() const noexcept
+	{
+		return m_ptr.ptr;
+	}
+
 
 	namespace priv
 	{
@@ -1648,7 +1033,7 @@ namespace slib
 	SLIB_INLINE Ptr<T> SharedPtr(T* _ptr)
 	{
 		if (_ptr) {
-			return Ptr<T>::fromRef(_ptr, new priv::ptr::SharedPtrContainer<T>(_ptr));
+			return Ptr<T>(_ptr, ToRef(new priv::ptr::SharedPtrContainer<T>(_ptr)));
 		} else {
 			return sl_null;
 		}
@@ -1658,7 +1043,7 @@ namespace slib
 	SLIB_INLINE Ptr<T> SharedPtr(T* _ptr, const DELETER& deleter)
 	{
 		if (_ptr) {
-			return Ptr<T>::fromRef(_ptr, new priv::ptr::SharedPtrContainerWithDeleter<T, DELETER>(_ptr, deleter));
+			return Ptr<T>(_ptr, ToRef(new priv::ptr::SharedPtrContainerWithDeleter<T, DELETER>(_ptr, deleter)));
 		} else {
 			return sl_null;
 		}
@@ -1669,7 +1054,7 @@ namespace slib
 	{
 		priv::ptr::SharedPtrObjectContainer<T>* ptr = new priv::ptr::SharedPtrObjectContainer<T>(Forward<ARGS>(args)...);
 		if (ptr) {
-			return Ptr<T>::fromRef(&(ptr->object), ptr);
+			return Ptr<T>(&(ptr->object), ToRef(ptr));
 		} else {
 			return sl_null;
 		}

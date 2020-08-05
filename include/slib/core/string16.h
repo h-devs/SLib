@@ -95,7 +95,6 @@ namespace slib
 		 * Constructors
 		 */
 		String16(String16&& src) noexcept;
-		String16(AtomicString16&& _src) noexcept;
 		String16(const String16& src) noexcept;
 		String16(const AtomicString16& src) noexcept;
 		String16(const StringView16& src) noexcept;
@@ -410,7 +409,6 @@ namespace slib
 		 * String assignment
 		 */
 		String16& operator=(String16&& other) noexcept;
-		String16& operator=(AtomicString16&& other) noexcept;
 		String16& operator=(const String16& other) noexcept;
 		String16& operator=(const AtomicString16& other) noexcept;
 		String16& operator=(const StringView16& other) noexcept;
@@ -422,7 +420,6 @@ namespace slib
 #endif
 		
 		String16& operator+=(String16&& other) noexcept;
-		String16& operator+=(AtomicString16&& other) noexcept;
 		String16& operator+=(const String16& other) noexcept;
 		String16& operator+=(const AtomicString16& other) noexcept;
 		String16& operator+=(sl_null_t) noexcept;
@@ -1128,7 +1125,6 @@ namespace slib
 		 * Constructors
 		 */
 		Atomic(String16&& src) noexcept;
-		Atomic(AtomicString16&& src) noexcept;
 		Atomic(const String16& src) noexcept;
 		Atomic(const AtomicString16& src) noexcept;
 		Atomic(const StringView16& src) noexcept;
@@ -1232,7 +1228,6 @@ namespace slib
 		 * String assignment
 		 */
 		AtomicString16& operator=(String16&& other) noexcept;
-		AtomicString16& operator=(AtomicString16&& other) noexcept;
 		AtomicString16& operator=(const String16& other) noexcept;
 		AtomicString16& operator=(const AtomicString16& other) noexcept;
 		AtomicString16& operator=(const StringView16& other) noexcept;
@@ -1244,7 +1239,6 @@ namespace slib
 #endif
 		
 		AtomicString16& operator+=(String16&& other) noexcept;
-		AtomicString16& operator+=(AtomicString16&& other) noexcept;
 		AtomicString16& operator+=(const String16& other) noexcept;
 		AtomicString16& operator+=(const AtomicString16& other) noexcept;
 		AtomicString16& operator+=(sl_null_t) noexcept;

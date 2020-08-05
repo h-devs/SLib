@@ -83,11 +83,7 @@ namespace slib
 		
 		StringParam(const AtomicString& value) noexcept;
 		
-		StringParam(AtomicString&& value) noexcept;
-		
 		StringParam(const AtomicString16& value) noexcept;
-		
-		StringParam(AtomicString16&& value) noexcept;
 		
 		StringParam(const StringView& value) noexcept;
 		
@@ -147,11 +143,7 @@ namespace slib
 
 		StringParam& operator=(const AtomicString& value) noexcept;
 		
-		StringParam& operator=(AtomicString&& value) noexcept;
-		
 		StringParam& operator=(const AtomicString16& value) noexcept;
-		
-		StringParam& operator=(AtomicString16&& value) noexcept;
 		
 		StringParam& operator=(const StringView& value) noexcept;
 		

@@ -167,15 +167,7 @@ namespace slib
 	{
 	}
 
-	StringParam::StringParam(AtomicString&& s) noexcept: StringParam(String(Move(s)))
-	{
-	}
-
 	StringParam::StringParam(const AtomicString16& s) noexcept: StringParam(String16(s))
-	{
-	}
-
-	StringParam::StringParam(AtomicString16&& s) noexcept: StringParam(String16(Move(s)))
 	{
 	}
 
@@ -379,19 +371,9 @@ namespace slib
 		return *this = String(s);
 	}
 	
-	StringParam& StringParam::operator=(AtomicString&& s) noexcept
-	{
-		return *this = String(Move(s));
-	}
-	
 	StringParam& StringParam::operator=(const AtomicString16& s) noexcept
 	{
 		return *this = String16(s);
-	}
-	
-	StringParam& StringParam::operator=(AtomicString16&& s) noexcept
-	{
-		return *this = String16(Move(s));
 	}
 	
 	StringParam& StringParam::operator=(const StringView& str) noexcept

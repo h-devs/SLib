@@ -58,12 +58,6 @@ namespace slib
 		m_container = src.m_container;
 		src.m_container = sl_null;
 	}
-	
-	SLIB_INLINE String::String(AtomicString&& src) noexcept
-	{
-		m_container = src.m_container;
-		src.m_container = sl_null;
-	}
 
 	template <sl_size N>
 	SLIB_INLINE String String::fromStatic(const sl_char8 (&str)[N]) noexcept
@@ -147,12 +141,6 @@ namespace slib
 	}
 
 
-	SLIB_INLINE AtomicString::Atomic(AtomicString&& src) noexcept
-	{
-		m_container = src.m_container;
-		src.m_container = sl_null;
-	}
-
 	SLIB_INLINE AtomicString::Atomic(String&& src) noexcept
 	{
 		m_container = src.m_container;
@@ -186,12 +174,6 @@ namespace slib
 		src.m_container = sl_null;
 	}
 
-	SLIB_INLINE String16::String16(AtomicString16&& src) noexcept
-	{
-		m_container = src.m_container;
-		src.m_container = sl_null;
-	}
-	
 	template <sl_size N>
 	SLIB_INLINE String16 String16::fromStatic(const sl_char16 (&str)[N]) noexcept
 	{
@@ -274,12 +256,6 @@ namespace slib
 	}
 
 
-	SLIB_INLINE AtomicString16::Atomic(AtomicString16&& src) noexcept
-	{
-		m_container = src.m_container;
-		src.m_container = sl_null;
-	}
-	
 	SLIB_INLINE AtomicString16::Atomic(String16&& src) noexcept
 	{
 		m_container = src.m_container;

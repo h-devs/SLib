@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -301,14 +301,6 @@ namespace slib
 		priv::variant::copy(_type, other._value, _value);
 	}
 
-	Variant::Variant(AtomicVariant&& _other) noexcept
-	{
-		Variant& other = REF_VAR(Variant, _other);
-		_type = other._type;
-		_value = other._value;
-		other._type = VariantType::Null;
-	}
-
 	Variant::Variant(const AtomicVariant& other) noexcept
 	{
 		other._retain(_type, _value);
@@ -462,6 +454,17 @@ namespace slib
 		}
 	}
 
+	Variant::Variant(sl_char8* sz8) noexcept
+	{
+		if (sz8) {
+			_type = VariantType::Sz8;
+			REF_VAR(sl_char8*, _value) = sz8;
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
 	Variant::Variant(const sl_char16* sz16) noexcept
 	{
 		if (sz16) {
@@ -472,7 +475,18 @@ namespace slib
 			_value = 1;
 		}
 	}
-	
+
+	Variant::Variant(sl_char16* sz16) noexcept
+	{
+		if (sz16) {
+			_type = VariantType::Sz16;
+			REF_VAR(sl_char16*, _value) = sz16;
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
 	Variant::Variant(const StringParam& str) noexcept: Variant(str.toVariant())
 	{
 	}
@@ -489,17 +503,6 @@ namespace slib
 	{
 		_type = VariantType::Time;
 		REF_VAR(Time, _value) = value;
-	}
-
-	Variant::Variant(const void* ptr) noexcept
-	{
-		if (ptr) {
-			_type = VariantType::Pointer;
-			REF_VAR(const void*, _value) = ptr;
-		} else {
-			_type = VariantType::Null;
-			_value = 1;
-		}
 	}
 
 	Variant::Variant(const Memory& mem) noexcept
@@ -597,111 +600,6 @@ namespace slib
 		return List< HashMap<String, Variant> >::create();
 	}
 	
-	Variant Variant::fromInt32(sl_int32 value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromUint32(sl_uint32 value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromInt64(sl_int64 value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromUint64(sl_uint64 value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromFloat(float value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromDouble(double value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromBoolean(sl_bool value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromString(const String& value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromString16(const String16& value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromSz8(const sl_char8* value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromSz16(const sl_char16* value) noexcept
-	{
-		return value;
-	}
-	
-	Variant Variant::fromStringParam(const StringParam& value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromTime(const Time& value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromPointer(const void* value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromMemory(const Memory& mem) noexcept
-	{
-		return mem;
-	}
-
-	Variant Variant::fromVariantList(const VariantList& value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromVariantMap(const VariantMap& value) noexcept
-	{
-		return value;
-	}
-	
-	Variant Variant::fromVariantHashMap(const VariantHashMap& value) noexcept
-	{
-		return value;
-	}
-	
-	Variant Variant::fromVariantMapList(const VariantMapList& value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromVariantHashMapList(const VariantHashMapList& value) noexcept
-	{
-		return value;
-	}
-	
-	Variant Variant::fromVariantPromise(const Promise<Variant>& value) noexcept
-	{
-		return value;
-	}
-
 	Variant& Variant::operator=(Variant&& other) noexcept
 	{
 		if (this != &other) {
@@ -719,17 +617,6 @@ namespace slib
 			priv::variant::free(_type, _value);
 			_type = other._type;
 			priv::variant::copy(_type, other._value, _value);
-		}
-		return *this;
-	}
-
-	Variant& Variant::operator=(AtomicVariant&& other) noexcept
-	{
-		if ((void*)this != (void*)(&other)) {
-			priv::variant::free(_type, _value);
-			_type = other._type;
-			_value = other._value;
-			other._type = VariantType::Null;
 		}
 		return *this;
 	}
@@ -2726,12 +2613,22 @@ namespace slib
 	{
 		setString(_in);
 	}
-	
+
+	void Variant::set(sl_char8* _in) noexcept
+	{
+		setString(_in);
+	}
+
 	void Variant::set(const sl_char16* _in) noexcept
 	{
 		setString(_in);
 	}
-	
+
+	void Variant::set(sl_char16* _in) noexcept
+	{
+		setString(_in);
+	}
+
 	void Variant::get(std::string& _out) const noexcept
 	{
 		_out = getString().toStd();
@@ -2937,13 +2834,6 @@ namespace slib
 		_assignAtomicRef(&_in);
 	}
 
-	Atomic<Variant>::Atomic(AtomicVariant&& other) noexcept
-	{
-		_type = other._type;
-		_value = other._value;
-		other._type = VariantType::Null;
-	}
-
 	Atomic<Variant>::Atomic(const AtomicVariant& other) noexcept
 	{
 		other._retain(_type, _value);
@@ -3102,6 +2992,17 @@ namespace slib
 		}
 	}
 
+	Atomic<Variant>::Atomic(sl_char8* value) noexcept
+	{
+		if (value) {
+			_type = VariantType::Sz8;
+			REF_VAR(sl_char8*, _value) = value;
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
 	Atomic<Variant>::Atomic(const sl_char16* value) noexcept
 	{
 		if (value) {
@@ -3112,7 +3013,18 @@ namespace slib
 			_value = 1;
 		}
 	}
-	
+
+	Atomic<Variant>::Atomic(sl_char16* value) noexcept
+	{
+		if (value) {
+			_type = VariantType::Sz16;
+			REF_VAR(sl_char16*, _value) = value;
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
 	Atomic<Variant>::Atomic(const std::string& value) noexcept: Atomic(String::create(value))
 	{
 	}
@@ -3129,17 +3041,6 @@ namespace slib
 	{
 		_type = VariantType::Time;
 		REF_VAR(Time, _value) = value;
-	}
-
-	Atomic<Variant>::Atomic(const void* ptr) noexcept
-	{
-		if (ptr) {
-			_type = VariantType::Pointer;
-			REF_VAR(const void*, _value) = ptr;
-		} else {
-			_type = VariantType::Null;
-			_value = 1;
-		}
 	}
 
 	Atomic<Variant>::Atomic(const Memory& mem) noexcept
@@ -3212,15 +3113,6 @@ namespace slib
 		_constructorAtomicRef(&promise);
 	}
 	
-	AtomicVariant& Atomic<Variant>::operator=(AtomicVariant&& other) noexcept
-	{
-		if (this != &other) {
-			_replace(other._type, other._value);
-			other._type = VariantType::Null;
-		}
-		return *this;
-	}
-
 	AtomicVariant& Atomic<Variant>::operator=(const AtomicVariant& other) noexcept
 	{
 		if (this != &other) {
@@ -4132,12 +4024,22 @@ namespace slib
 	{
 		setString(_in);
 	}
-	
+
+	void Atomic<Variant>::set(sl_char8* _in) noexcept
+	{
+		setString(_in);
+	}
+
 	void Atomic<Variant>::set(const sl_char16* _in) noexcept
 	{
 		setString(_in);
 	}
-	
+
+	void Atomic<Variant>::set(sl_char16* _in) noexcept
+	{
+		setString(_in);
+	}
+
 	void Atomic<Variant>::get(std::string& _out) const noexcept
 	{
 		_out = getString().toStd();

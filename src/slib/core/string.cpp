@@ -1795,43 +1795,6 @@ namespace slib
 		return *this;
 	}
 
-	AtomicString& Atomic<String>::operator=(AtomicString&& other) noexcept
-	{
-		if (this != &other) {
-			_replaceContainer(other.m_container);
-			other.m_container = sl_null;
-		}
-		return *this;
-	}
-
-	AtomicString16& Atomic<String16>::operator=(AtomicString16&& other) noexcept
-	{
-		if (this != &other) {
-			_replaceContainer(other.m_container);
-			other.m_container = sl_null;
-		}
-		return *this;
-	}
-
-
-	String& String::operator=(AtomicString&& other) noexcept
-	{
-		if ((void*)this != (void*)(&other)) {
-			_replaceContainer(other.m_container);
-			other.m_container = sl_null;
-		}
-		return *this;
-	}
-
-	String16& String16::operator=(AtomicString16&& other) noexcept
-	{
-		if ((void*)this != (void*)(&other)) {
-			_replaceContainer(other.m_container);
-			other.m_container = sl_null;
-		}
-		return *this;
-	}
-
 	AtomicString& Atomic<String>::operator=(String&& other) noexcept
 	{
 		if ((void*)this != (void*)(&other)) {
@@ -2079,19 +2042,15 @@ namespace slib
 	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB(String, String&, String, const String&)
 	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB(String, String&, AtomicString, String)
 	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB_MOVE(String, String&, String, String)
-	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB_MOVE(String, String&, AtomicString, String)
 	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB(String16, String16&, String16, const String16&)
 	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB(String16, String16&, AtomicString16, String16)
 	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB_MOVE(String16, String16&, String16, String16)
-	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB_MOVE(String16, String16&, AtomicString16, String16)
 	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB(AtomicString, String, String, const String&)
 	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB(AtomicString, String, AtomicString, String)
 	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB_MOVE(AtomicString, String, String, String)
-	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB_MOVE(AtomicString, String, AtomicString, String)
 	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB(AtomicString16, String16, String16, const String16&)
 	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB(AtomicString16, String16, AtomicString16, String16)
 	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB_MOVE(AtomicString16, String16, String16, String16)
-	DEFINE_STRING_PLUS_ASSIGN_OPERATOR_SUB_MOVE(AtomicString16, String16, AtomicString16, String16)
 
 
 	String String::merge(const sl_char8* a1, sl_reg len1, const sl_char8* a2, sl_reg len2) noexcept

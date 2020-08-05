@@ -615,10 +615,10 @@ namespace slib
 						return sl_null;
 					}
 					if (str == strTrue) {
-						return Json::fromBoolean(sl_true);
+						return Json(sl_true);
 					}
 					if (str == strFalse) {
-						return Json::fromBoolean(sl_false);
+						return Json(sl_false);
 					}
 					sl_int64 vi64;
 					if (str.parseInt64(10, &vi64)) {

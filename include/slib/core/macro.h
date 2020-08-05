@@ -128,19 +128,19 @@
 
 #define SLIB_MEMBERS_OF_PRIMITIVE_WRAPPER(CLASS, TYPE, VALUE) \
 public: \
-	SLIB_INLINE constexpr CLASS(TYPE _value) : VALUE(_value) {} \
-	SLIB_INLINE constexpr CLASS(const CLASS& other) : VALUE(other.VALUE) {} \
-	SLIB_INLINE constexpr operator TYPE() const { return VALUE; } \
+	constexpr CLASS(TYPE _value) : VALUE(_value) {} \
+	constexpr CLASS(const CLASS& other) : VALUE(other.VALUE) {} \
+	constexpr operator TYPE() const { return VALUE; } \
 	SLIB_INLINE CLASS& operator=(const CLASS& other) { VALUE = other.VALUE; return *this; } \
 	SLIB_INLINE CLASS& operator=(TYPE _value) { VALUE = _value; return *this; } \
-	SLIB_INLINE constexpr sl_bool operator==(const CLASS& other) const { return VALUE == other.VALUE; } \
-	SLIB_INLINE constexpr sl_bool operator==(TYPE _value) const { return VALUE == _value; } \
-	SLIB_INLINE constexpr sl_bool operator!=(const CLASS& other) const { return VALUE != other.VALUE; } \
-	SLIB_INLINE constexpr sl_bool operator!=(TYPE _value) const { return VALUE != _value; }
+	constexpr sl_bool operator==(const CLASS& other) const { return VALUE == other.VALUE; } \
+	constexpr sl_bool operator==(TYPE _value) const { return VALUE == _value; } \
+	constexpr sl_bool operator!=(const CLASS& other) const { return VALUE != other.VALUE; } \
+	constexpr sl_bool operator!=(TYPE _value) const { return VALUE != _value; }
 
 #define SLIB_MEMBERS_OF_FLAGS(CLASS, VALUE) \
 	SLIB_MEMBERS_OF_PRIMITIVE_WRAPPER(CLASS, int, VALUE) \
-	SLIB_INLINE constexpr CLASS() : VALUE(0) {} \
+	constexpr CLASS() : VALUE(0) {} \
 	SLIB_INLINE CLASS& operator|=(int _value) { VALUE |= _value; return *this; } \
 	SLIB_INLINE CLASS& operator&=(int _value) { VALUE &= _value; return *this; } \
 	SLIB_INLINE static const CLASS& none() { return *((CLASS*)(void*)(&(slib::priv::flags::g_flagsNone))); }
@@ -239,9 +239,9 @@ public: \
 #define SLIB_REF_WRAPPER(WRAPPER, ...) \
 	SLIB_REF_WRAPPER_NO_OP(WRAPPER, __VA_ARGS__) \
 	sl_bool operator==(const WRAPPER& other) const noexcept { return ref.ptr == other.ref.ptr; } \
-	sl_bool operator==(const Atomic<WRAPPER>& other) const noexcept { return ref.ptr == (reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))->ptr; } \
+	sl_bool operator==(const Atomic<WRAPPER>& other) const noexcept { return ref.ptr == (reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))->_ptr; } \
 	sl_bool operator!=(const WRAPPER& other) const noexcept { return ref.ptr != other.ref.ptr; } \
-	sl_bool operator!=(const Atomic<WRAPPER>& other) const noexcept { return ref.ptr != (reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))->ptr; } \
+	sl_bool operator!=(const Atomic<WRAPPER>& other) const noexcept { return ref.ptr != (reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))->_ptr; } \
 	SLIB_INLINE explicit operator sl_bool() const noexcept { return ref.ptr != sl_null; }
 
 #define SLIB_ATOMIC_REF_WRAPPER_NO_OP(...) \
@@ -273,11 +273,11 @@ public: \
 
 #define SLIB_ATOMIC_REF_WRAPPER(...) \
 	SLIB_ATOMIC_REF_WRAPPER_NO_OP(__VA_ARGS__) \
-	sl_bool operator==(typename RemoveAtomic<Atomic>::Type const& other) const noexcept { return ref.ptr == (reinterpret_cast<const Ref<__VA_ARGS__>*>(&other))->ptr; } \
-	sl_bool operator==(const Atomic& other) const noexcept { return ref.ptr == other.ref.ptr; } \
-	sl_bool operator!=(typename RemoveAtomic<Atomic>::Type const& other) const noexcept { return ref.ptr != (reinterpret_cast<const Ref<__VA_ARGS__>*>(&other))->ptr; } \
-	sl_bool operator!=(const Atomic& other) const noexcept { return ref.ptr != other.ref.ptr; } \
-	SLIB_INLINE explicit operator sl_bool() const noexcept { return ref.ptr != sl_null; }
+	sl_bool operator==(typename RemoveAtomic<Atomic>::Type const& other) const noexcept { return ref._ptr == (reinterpret_cast<const Ref<__VA_ARGS__>*>(&other))->ptr; } \
+	sl_bool operator==(const Atomic& other) const noexcept { return ref._ptr == other.ref._ptr; } \
+	sl_bool operator!=(typename RemoveAtomic<Atomic>::Type const& other) const noexcept { return ref._ptr != (reinterpret_cast<const Ref<__VA_ARGS__>*>(&other))->ptr; } \
+	sl_bool operator!=(const Atomic& other) const noexcept { return ref._ptr != other.ref._ptr; } \
+	SLIB_INLINE explicit operator sl_bool() const noexcept { return ref._ptr != sl_null; }
 
 
 #define SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CLASS) \
@@ -304,8 +304,10 @@ public: \
 
 #define SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(CLASS) \
 	public: \
-		SLIB_INLINE constexpr CLASS(CLASS const& other) noexcept = default; \
-		SLIB_INLINE CLASS& operator=(CLASS const& other) noexcept = default; \
+		CLASS(CLASS const& other) noexcept = default; \
+		CLASS(CLASS&& other) noexcept = default; \
+		CLASS& operator=(CLASS const& other) noexcept = default; \
+		CLASS& operator=(CLASS&& other) noexcept = default;
 
 #define SLIB_DELETE_CLASS_DEFAULT_MEMBERS(CLASS) \
 	public: \
