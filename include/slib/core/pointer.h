@@ -30,11 +30,11 @@
 #define PRIV_SLIB_DEFINE_POINTER_COMMON_FUNCTIONS \
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Pointer) \
 	public: \
-		template <class TYPE> \
-		SLIB_INLINE Pointer(const TYPE& v) noexcept { _init(v); } \
+		template <class OTHER> \
+		SLIB_INLINE Pointer(const OTHER& v) noexcept { _init(v); } \
 		SLIB_INLINE Pointer& operator=(sl_null_t) noexcept { _init(sl_null); return *this; } \
-		template <class TYPE> \
-		SLIB_INLINE Pointer& operator=(const TYPE& v) noexcept { _init(v); return *this; }
+		template <class OTHER> \
+		SLIB_INLINE Pointer& operator=(const OTHER& v) noexcept { _init(v); return *this; }
 
 namespace slib
 {
@@ -42,6 +42,14 @@ namespace slib
     template <class... TYPES>
 	class Pointer;
 	
+	template <class T>
+	class PointerxT
+	{
+	};
+
+	template <class T1, class T2, class... TYPES>
+	using Pointerx = Pointer< PointerxT<T1>, T2, TYPES... >;
+
 	template <class T>
 	class Pointer<T>
 	{
@@ -77,17 +85,71 @@ namespace slib
 		}
 
 	private:
-		template <class TYPE>
-		SLIB_INLINE void _init(const TYPE& p)
+		template <class OTHER>
+		SLIB_INLINE void _init(const OTHER& p)
 		{
 			ptr = p;
 		}
 
 	};
 
-	template <class T1, class T2>
-	class Pointer<T1, T2>
+	template <class T, bool>
+	class PointerxCastHelper;
+
+	template <class T>
+	class PointerxCastHelper<T, true>
 	{
+	public:
+		template <class FROM>
+		SLIB_INLINE static T* cast(const FROM& from)
+		{
+			return from;
+		}
+	};
+
+	template <class T>
+	class PointerxCastHelper<T, false>
+	{
+	public:
+		template <class FROM>
+		SLIB_INLINE static T* cast(const FROM& from)
+		{
+			return sl_null;
+		}
+	};
+
+	template <class T>
+	class PointerxHelper
+	{
+	public:
+		typedef T FirstType;
+
+		template <class TO, class FROM>
+		SLIB_INLINE static void init(TO*& to, const FROM& from)
+		{
+			to = from;
+		}
+	};
+
+	template <class T>
+	class PointerxHelper< PointerxT<T> >
+	{
+	public:
+		typedef T FirstType;
+
+		template <class TO, class FROM>
+		SLIB_INLINE static void init(TO*& to, const FROM& from)
+		{
+			to = PointerxCastHelper<TO, IsConvertible<FROM, TO*>::value>::cast(from);
+		}
+	};
+	
+	template <class T, class T2>
+	class Pointer<T, T2>
+	{
+	public:
+		typedef PointerxHelper<T> Helper;
+		typedef typename Helper::FirstType T1;
 		PRIV_SLIB_DEFINE_POINTER_COMMON_FUNCTIONS
 
 	public:
@@ -113,18 +175,21 @@ namespace slib
 		}
 
 	private:
-		template <class TYPE>
-		SLIB_INLINE void _init(const TYPE& p)
+		template <class OTHER>
+		SLIB_INLINE void _init(const OTHER& p)
 		{
-			ptr = p;
-			ptr2 = p;
+			Helper::init(ptr, p);
+			Helper::init(ptr2, p);
 		}
 
 	};
 
-	template <class T1, class T2, class T3>
-	class Pointer<T1, T2, T3>
+	template <class T, class T2, class T3>
+	class Pointer<T, T2, T3>
 	{
+	public:
+		typedef PointerxHelper<T> Helper;
+		typedef typename Helper::FirstType T1;
 		PRIV_SLIB_DEFINE_POINTER_COMMON_FUNCTIONS
 
 	public:
@@ -156,19 +221,22 @@ namespace slib
 		}
 
 	private:
-		template <class TYPE>
-		SLIB_INLINE void _init(const TYPE& p)
+		template <class OTHER>
+		SLIB_INLINE void _init(const OTHER& p)
 		{
-			ptr = p;
-			ptr2 = p;
-			ptr3 = p;
+			Helper::init(ptr, p);
+			Helper::init(ptr2, p);
+			Helper::init(ptr3, p);
 		}
-
+		
 	};
 
-	template <class T1, class T2, class T3, class T4>
-	class Pointer<T1, T2, T3, T4>
+	template <class T, class T2, class T3, class T4>
+	class Pointer<T, T2, T3, T4>
 	{
+	public:
+		typedef PointerxHelper<T> Helper;
+		typedef typename Helper::FirstType T1;
 		PRIV_SLIB_DEFINE_POINTER_COMMON_FUNCTIONS
 
 	public:
@@ -182,7 +250,7 @@ namespace slib
 
         constexpr Pointer(sl_null_t) noexcept: ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
-		SLIB_INLINE constexpr Pointer(T1* v1, T2* v2, T3* v3, T4* v4) noexcept: ptr(v1), ptr2(v2), ptr3(v3), ptr4(v4) {}
+		SLIB_INLINE Pointer(T1* v1, T2* v2, T3* v3, T4* v4) noexcept: ptr(v1), ptr2(v2), ptr3(v3), ptr4(v4) {}
 
 	public:
 		SLIB_INLINE operator T1*() const noexcept
@@ -206,13 +274,13 @@ namespace slib
 		}
 
 	private:
-		template <class TYPE>
-		SLIB_INLINE void _init(const TYPE& p)
+		template <class OTHER>
+		SLIB_INLINE void _init(const OTHER& p)
 		{
-			ptr = p;
-			ptr2 = p;
-			ptr3 = p;
-			ptr4 = p;
+			Helper::init(ptr, p);
+			Helper::init(ptr2, p);
+			Helper::init(ptr3, p);
+			Helper::init(ptr4, p);
 		}
 
 	};

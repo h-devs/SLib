@@ -203,35 +203,49 @@ namespace slib
 	}
 	
 	template <class T>
+	sl_bool Ptr<T>::lockRef(Ref<Referable>& ref) const noexcept
+	{
+		Referable* obj = ref.ptr;
+		if (obj && obj->_isWeakRef()) {
+			CWeakRef* weak = static_cast<CWeakRef*>(obj);
+			Ref<Referable> r(weak->lock());
+			if (r.isNotNull()) {
+				ref = Move(r);
+				return sl_true;
+			} else {
+				return sl_false;
+			}
+		} else {
+			return sl_true;
+		}
+	}
+
+	template <class T>
 	Ptr<T> Ptr<T>::lock() const noexcept
 	{
-		if (ptr) {
-			Referable* obj = ref.ptr;
-			if (obj && obj->_isWeakRef()) {
-				CWeakRef* weak = static_cast<CWeakRef*>(obj);
-				Ref<Referable> r(weak->lock());
-				if (r.isNotNull()) {
-					return Ptr<T>(ptr, r);
-				}
+		Referable* obj = ref.ptr;
+		if (obj && obj->_isWeakRef()) {
+			CWeakRef* weak = static_cast<CWeakRef*>(obj);
+			Ref<Referable> r(weak->lock());
+			if (r.isNotNull()) {
+				return Ptr<T>(ptr, r);
 			} else {
-				return *this;
+				return sl_null;
 			}
+		} else {
+			return *this;
 		}
-		return sl_null;
 	}
 
 	template <class T>
 	Ptr<T> Ptr<T>::toWeak() const noexcept
 	{
-		if (ptr) {
-			Referable* obj = ref.ptr;
-			if (obj && !(obj->_isWeakRef())) {
-				return Ptr<T>(ptr, WeakRef<Referable>(obj));
-			} else {
-				return *this;
-			}
+		Referable* obj = ref.ptr;
+		if (obj && !(obj->_isWeakRef())) {
+			return Ptr<T>(ptr, WeakRef<Referable>(obj));
+		} else {
+			return *this;
 		}
-		return sl_null;
 	}
 
 	template <class T>

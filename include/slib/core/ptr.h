@@ -112,6 +112,8 @@ namespace slib
 	
 		sl_bool isWeak() const noexcept;
 
+		sl_bool lockRef(Ref<Referable>& ref) const noexcept;
+		
 		Ptr<T> lock() const noexcept;
 		
 		Ptr<T> toWeak() const noexcept;

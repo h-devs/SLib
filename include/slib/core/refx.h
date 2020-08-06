@@ -32,57 +32,57 @@
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Ref) \
 	public: \
 		using Ref<T1>::ptr; \
-		template <class... TYPES> \
-		SLIB_INLINE Ref(const Ref<TYPES...>& v) noexcept : Ref<T1>(v) { _init(v); } \
-		template <class... TYPES> \
-		SLIB_INLINE Ref(Ref<TYPES...>&& v) noexcept { ptr = v; _init(v); v.ptr = sl_null; } \
-		template <class T> \
-		SLIB_INLINE Ref(const AtomicRef<T>& v) noexcept : Ref(Ref<T>(v)) {} \
-		template <class T> \
-		SLIB_INLINE Ref(const WeakRef<T>& v) noexcept : Ref<T1>(v) { _init((T*)ptr); } \
-		template <class T> \
-		SLIB_INLINE Ref(const AtomicWeakRef<T>& v) noexcept : Ref<T1>(v) { _init((T*)ptr); } \
-		template <class T> \
-		SLIB_INLINE Ref(T* v) noexcept : Ref<T1>(v) { _init(v); } \
-		template <class _T1, class _T2, class... TYPES> \
-		SLIB_INLINE Ref(const Ref<_T1, _T2, TYPES...>& v) noexcept : Ref<T1>(v.ptr) { _init(v); } \
-		template <class... TYPES> \
-		SLIB_INLINE Ref(const Pointer<TYPES...>& v) noexcept : Ref<T1>(static_cast<T1*>(v)) { _init(v); } \
-		static Ref null() noexcept { return sl_null; } \
-		void setNull() noexcept { Ref<T1>::setNull(); _init(sl_null); } \
-		template <class... TYPES> \
-		static const Ref& from(const Ref<TYPES...>& other) noexcept { return *(reinterpret_cast<Ref const*>(&other)); } \
-		template <class... TYPES> \
-		static Ref& from(Ref<TYPES...>& other) noexcept { return *(reinterpret_cast<Ref*>(&other)); } \
-		template <class... TYPES> \
-		static Ref&& from(Ref<TYPES...>&& other) noexcept { return static_cast<Ref&&>(*(reinterpret_cast<Ref*>(&other))); } \
+		template <class... OTHERS> \
+		SLIB_INLINE Ref(const Ref<OTHERS...>& v) noexcept : Ref<T1>(v) { _init(v); } \
+		template <class... OTHERS> \
+		SLIB_INLINE Ref(Ref<OTHERS...>&& v) noexcept { ptr = v; _init(v); v.ptr = sl_null; } \
+		template <class OTHER> \
+		SLIB_INLINE Ref(const AtomicRef<OTHER>& v) noexcept : Ref(Ref<OTHER>(v)) {} \
+		template <class OTHER> \
+		SLIB_INLINE Ref(const WeakRef<OTHER>& v) noexcept : Ref(Ref<OTHER>(v)) {} \
+		template <class OTHER> \
+		SLIB_INLINE Ref(const AtomicWeakRef<OTHER>& v) noexcept : Ref(Ref<OTHER>(v)) {} \
+		template <class OTHER> \
+		SLIB_INLINE Ref(OTHER* v) noexcept : Ref<T1>(v) { _init(v); } \
+		template <class... OTHERS> \
+		SLIB_INLINE Ref(const Pointer<OTHERS...>& v) noexcept : Ref<T1>(v) { _init(v); } \
+		SLIB_INLINE static Ref null() noexcept { return sl_null; } \
+		SLIB_INLINE void setNull() noexcept { Ref<T1>::setNull(); _init(sl_null); } \
+		template <class... OTHERS> \
+		SLIB_INLINE static const Ref& from(const Ref<OTHERS...>& other) noexcept { return *(reinterpret_cast<Ref const*>(&other)); } \
+		template <class... OTHERS> \
+		SLIB_INLINE static Ref& from(Ref<OTHERS...>& other) noexcept { return *(reinterpret_cast<Ref*>(&other)); } \
+		template <class... OTHERS> \
+		SLIB_INLINE static Ref&& from(Ref<OTHERS...>&& other) noexcept { return static_cast<Ref&&>(*(reinterpret_cast<Ref*>(&other))); } \
 		SLIB_INLINE Ref& operator=(sl_null_t) noexcept { Ref<T1>::setNull(); _init(sl_null); return *this; } \
-		template <class T> \
-		SLIB_INLINE Ref& operator=(const Ref<T>& v) noexcept { *((Ref<T1>*)this) = v; _init(v.ptr); return *this; } \
-		template <class T> \
-		SLIB_INLINE Ref& operator=(Ref<T>&& v) noexcept { *((Ref<T1>*)this) = Move(v); _init((T*)ptr); return *this; } \
-		template <class T> \
-		SLIB_INLINE Ref& operator=(const AtomicRef<T>& v) noexcept { *((Ref<T1>*)this) = v; _init((T*)ptr); return *this; } \
-		template <class T> \
-		SLIB_INLINE Ref& operator=(AtomicRef<T>&& v) noexcept { *((Ref<T1>*)this) = Move(v); _init((T*)ptr); return *this; } \
-		template <class T> \
-		SLIB_INLINE Ref& operator=(const WeakRef<T>& v) noexcept { *((Ref<T1>*)this) = v; _init((T*)ptr); return *this; } \
-		template <class T> \
-		SLIB_INLINE Ref& operator=(const AtomicWeakRef<T>& v) noexcept { *((Ref<T1>*)this) = v; _init((T*)ptr); return *this; } \
-		template <class T> \
-		SLIB_INLINE Ref& operator=(T* v) noexcept { *((Ref<T1>*)this) = v; _init(v); return *this; } \
-		template <class _T1, class _T2, class... TYPES> \
-		SLIB_INLINE Ref& operator=(const Ref<_T1, _T2, TYPES...>& v) noexcept { *((Ref<T1>*)this) = v.ptr; _init(v); return *this; } \
-		template <class... TYPES> \
-		SLIB_INLINE Ref& operator=(const Pointer<TYPES...>& v) noexcept { *((Ref<T1>*)this) = static_cast<T1*>(v); _init(v); return *this; }
+		template <class... OTHERS> \
+		SLIB_INLINE Ref& operator=(const Ref<OTHERS...>& v) noexcept { *((Ref<T1>*)this) = v; _init(v); return *this; } \
+		template <class... OTHERS> \
+		SLIB_INLINE Ref& operator=(Ref<OTHERS...>&& v) noexcept { _init(v); *((Ref<T1>*)this) = Move(v); return *this; } \
+		template <class OTHER> \
+		SLIB_INLINE Ref& operator=(const AtomicRef<OTHER>& v) noexcept { return *this = Ref<OTHER>(v); } \
+		template <class OTHER> \
+		SLIB_INLINE Ref& operator=(const WeakRef<OTHER>& v) noexcept { return *this = Ref<OTHER>(v); } \
+		template <class OTHER> \
+		SLIB_INLINE Ref& operator=(const AtomicWeakRef<OTHER>& v) noexcept { return *this = Ref<OTHER>(v); } \
+		template <class OTHER> \
+		SLIB_INLINE Ref& operator=(OTHER* v) noexcept { *((Ref<T1>*)this) = v; _init(v); return *this; } \
+		template <class... OTHERS> \
+		SLIB_INLINE Ref& operator=(const Pointer<OTHERS...>& v) noexcept { *((Ref<T1>*)this) = v; _init(v); return *this; }
 
 
 namespace slib
 {
 
-	template <class T1, class T2>
-	class SLIB_EXPORT Ref<T1, T2> : public Ref<T1>
+	template <class T1, class T2, class... TYPES>
+	using Refx = Ref< PointerxT<T1>, T2, TYPES... >;
+
+	template <class T, class T2>
+	class SLIB_EXPORT Ref<T, T2> : public Ref<typename PointerxHelper<T>::FirstType>
 	{
+	public:
+		typedef PointerxHelper<T> Helper;
+		typedef typename Helper::FirstType T1;
 		PRIV_SLIB_DEFINE_REFX_COMMON_FUNCTIONS
 
 	public:
@@ -93,8 +93,8 @@ namespace slib
 
 		constexpr Ref(sl_null_t) noexcept : ptr2(sl_null) {}
 
-		template <class T>
-		SLIB_INLINE Ref(T&& v1, T2* v2) noexcept : Ref<T1>(Forward<T>(v1)), ptr2(v2) {}
+		template <class OTHER>
+		SLIB_INLINE Ref(OTHER&& v1, T2* v2) noexcept : Ref<T1>(Forward<OTHER>(v1)), ptr2(v2) {}
 
 	public:
 		SLIB_INLINE operator T1*() const noexcept
@@ -108,17 +108,20 @@ namespace slib
 		}
 
 	private:
-		template <class T>
-		SLIB_INLINE void _init(const T& p)
+		template <class OTHER>
+		SLIB_INLINE void _init(const OTHER& p)
 		{
-			ptr2 = p;
+			Helper::init(ptr2, p);
 		}
 
 	};
 
-	template <class T1, class T2, class T3>
-	class SLIB_EXPORT Ref<T1, T2, T3> : public Ref<T1>
+	template <class T, class T2, class T3>
+	class SLIB_EXPORT Ref<T, T2, T3> : public Ref<typename PointerxHelper<T>::FirstType>
 	{
+	public:
+		typedef PointerxHelper<T> Helper;
+		typedef typename Helper::FirstType T1;
 		PRIV_SLIB_DEFINE_REFX_COMMON_FUNCTIONS
 
 	public:
@@ -130,8 +133,8 @@ namespace slib
 
 		constexpr Ref(sl_null_t) noexcept : ptr2(sl_null), ptr3(sl_null) {}
 
-		template <class T>
-		SLIB_INLINE Ref(T&& v1, T2* v2, T3* v3) noexcept : Ref<T1>(Forward<T>(v1)), ptr2(v2), ptr3(v3) {}
+		template <class OTHER>
+		SLIB_INLINE Ref(OTHER&& v1, T2* v2, T3* v3) noexcept : Ref<T1>(Forward<OTHER>(v1)), ptr2(v2), ptr3(v3) {}
 
 	public:
 		SLIB_INLINE operator T1*() const noexcept
@@ -150,18 +153,21 @@ namespace slib
 		}
 
 	private:
-		template <class T>
-		SLIB_INLINE void _init(const T& p)
+		template <class OTHER>
+		SLIB_INLINE void _init(const OTHER& p)
 		{
-			ptr2 = p;
-			ptr3 = p;
+			Helper::init(ptr2, p);
+			Helper::init(ptr3, p);
 		}
 
 	};
 
-	template <class T1, class T2, class T3, class T4>
-	class SLIB_EXPORT Ref<T1, T2, T3, T4> : public Ref<T1>
+	template <class T, class T2, class T3, class T4>
+	class SLIB_EXPORT Ref<T, T2, T3, T4> : public Ref<typename PointerxHelper<T>::FirstType>
 	{
+	public:
+		typedef PointerxHelper<T> Helper;
+		typedef typename Helper::FirstType T1;
 		PRIV_SLIB_DEFINE_REFX_COMMON_FUNCTIONS
 
 	public:
@@ -174,8 +180,8 @@ namespace slib
 
 		constexpr Ref(sl_null_t) noexcept : ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
-		template <class T>
-		SLIB_INLINE Ref(T&& v1, T2* v2, T3* v3, T4* v4) noexcept : Ref<T1>(Forward<T>(v1)), ptr2(v2), ptr3(v3), ptr4(v4) {}
+		template <class OTHER>
+		SLIB_INLINE Ref(OTHER&& v1, T2* v2, T3* v3, T4* v4) noexcept : Ref<T1>(Forward<OTHER>(v1)), ptr2(v2), ptr3(v3), ptr4(v4) {}
 
 	public:
 		SLIB_INLINE operator T1*() const noexcept
@@ -199,12 +205,12 @@ namespace slib
 		}
 
 	private:
-		template <class T>
-		SLIB_INLINE void _init(const T& p)
+		template <class OTHER>
+		SLIB_INLINE void _init(const OTHER& p)
 		{
-			ptr2 = p;
-			ptr3 = p;
-			ptr4 = p;
+			Helper::init(ptr2, p);
+			Helper::init(ptr3, p);
+			Helper::init(ptr4, p);
 		}
 
 	};
