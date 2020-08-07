@@ -97,6 +97,7 @@
 #include "core/asset.h"
 
 #include "core/io.h"
+#include "core/buffered_io.h"
 #include "core/file.h"
 #include "core/pipe.h"
 #include "core/async.h"
