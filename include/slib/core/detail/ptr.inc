@@ -140,13 +140,8 @@ namespace slib
 	
 	template <class T>
 	template <class REF>
-	Ptr<T>::Ptr(T* pointer, REF&& r) noexcept: ref(_getRef(Forward<REF>(r)))
+	SLIB_INLINE Ptr<T>::Ptr(T* pointer, REF&& r) noexcept: ptr(pointer), ref(_getRef(Forward<REF>(r)))
 	{
-		if (ref.isNull()) {
-			ptr = sl_null;
-		} else {
-			ptr = pointer;
-		}
 	}
 	
 	template <class T>
@@ -203,21 +198,24 @@ namespace slib
 	}
 	
 	template <class T>
-	sl_bool Ptr<T>::lockRef(Ref<Referable>& ref) const noexcept
+	sl_bool Ptr<T>::lockRef(Ref<Referable>& outRef) const noexcept
 	{
 		Referable* obj = ref.ptr;
-		if (obj && obj->_isWeakRef()) {
-			CWeakRef* weak = static_cast<CWeakRef*>(obj);
-			Ref<Referable> r(weak->lock());
-			if (r.isNotNull()) {
-				ref = Move(r);
-				return sl_true;
+		if (obj) {
+			if (obj->_isWeakRef()) {
+				CWeakRef* weak = static_cast<CWeakRef*>(obj);
+				Ref<Referable> r(weak->lock());
+				if (r.isNotNull()) {
+					outRef = Move(r);
+					return sl_true;
+				} else {
+					return sl_false;
+				}
 			} else {
-				return sl_false;
+				outRef = obj;
 			}
-		} else {
-			return sl_true;
 		}
+		return sl_true;
 	}
 
 	template <class T>
@@ -638,14 +636,8 @@ namespace slib
 	
 	template <class T>
 	template <class REF>
-	Atomic< Ptr<T> >::Atomic(T* pointer, REF&& r) noexcept
-	 : _ref(Ptr<T>::_getRef(Forward<REF>(r)))
+	SLIB_INLINE Atomic< Ptr<T> >::Atomic(T* pointer, REF&& r) noexcept: _ptr(pointer), _ref(Ptr<T>::_getRef(Forward<REF>(r)))
 	{
-		if (_ref.isNull()) {
-			_ptr = sl_null;
-		} else {
-			_ptr = pointer;
-		}
 	}
 	
 	template <class T>

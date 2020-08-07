@@ -226,7 +226,7 @@ namespace slib
 		}
 
 		template <class REF>
-		void set(T* v1, REF&& r) noexcept
+		SLIB_INLINE void set(T* v1, REF&& r) noexcept
 		{
 			Ptr<T>::set(v1, Forward<REF>(r));
 		}
@@ -295,14 +295,14 @@ namespace slib
 		}
 
 	public:
-		void set(T1* v1, T2* v2) noexcept
+		SLIB_INLINE void set(T1* v1, T2* v2) noexcept
 		{
 			Ptr<T>::set(v1);
 			ptr2 = v2;
 		}
 
 		template <class REF>
-		void set(T1* v1, T2* v2, REF&& r) noexcept
+		SLIB_INLINE void set(T1* v1, T2* v2, REF&& r) noexcept
 		{
 			Ptr<T>::set(v1, Forward<REF>(r));
 			ptr2 = v2;
