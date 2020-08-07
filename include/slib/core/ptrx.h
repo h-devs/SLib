@@ -143,6 +143,9 @@ namespace slib
 		template <class... OTHERS>
 		SLIB_INLINE Ptr(const Pointer<OTHERS...>& v) noexcept : Ptr<T>(_cast(v)) {}
 
+		template <class REF>
+		SLIB_INLINE Ptr(T* v1, REF&& r) noexcept : Ptr<T>(v1, Forward<REF>(r)) {}
+
 	public:
 		SLIB_INLINE static const Ptr& null() noexcept
 		{
