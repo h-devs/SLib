@@ -512,10 +512,10 @@ namespace CLASS \
 #define SLIB_JNI_STATIC_DOUBLE_FIELD(VAR) static slib::priv::java::JStaticDoubleField VAR(&_gcls, (#VAR));
 #define SLIB_JNI_STATIC_STRING_FIELD(VAR) static slib::priv::java::JStaticStringField VAR(&_gcls, (#VAR));
 
-#define SLIB_JNI_NATIVE(VAR, NAME, SIG, fn) static slib::priv::java::JNativeMethod VAR(&_gcls, NAME, SIG, (const void*)(fn));
+#define SLIB_JNI_NATIVE(VAR, NAME, SIG, fn) static slib::priv::java::JNativeMethod native_##VAR(&_gcls, NAME, SIG, (const void*)(fn));
 #define SLIB_JNI_NATIVE_IMPL(VAR, NAME, SIG, RET, ...) \
 	static RET JNICALL JNativeMethodImpl_##VAR(JNIEnv* env, jobject _this, ##__VA_ARGS__); \
-	static slib::priv::java::JNativeMethod VAR(&_gcls, NAME, SIG, (const void*)(JNativeMethodImpl_##VAR)); \
+	static slib::priv::java::JNativeMethod native_##VAR(&_gcls, NAME, SIG, (const void*)(JNativeMethodImpl_##VAR)); \
 	RET JNICALL JNativeMethodImpl_##VAR(JNIEnv* env, jobject _this, ##__VA_ARGS__)
 
 #include "detail/java.inc"
