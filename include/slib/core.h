@@ -98,6 +98,7 @@
 
 #include "core/io.h"
 #include "core/buffered_io.h"
+#include "core/skippable_reader.h"
 #include "core/file.h"
 #include "core/pipe.h"
 #include "core/async.h"

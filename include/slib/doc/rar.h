@@ -26,8 +26,7 @@
 #include "definition.h"
 
 #include "../core/string.h"
-#include "../core/io.h"
-#include "../core/pointer.h"
+#include "../core/skippable_reader.h"
 
 namespace slib
 {
@@ -428,29 +427,31 @@ namespace slib
 		~RarFile();
 		
 	public:
-		sl_bool readSignature(IReader* reader);
+		void setReader(const Ptrx<IReader, ISeekable>& reader);
+
+		sl_bool readSignature();
 
 		// call after `readSignature()`
-		sl_bool readMainHeader(const Pointer<IReader, ISeekable>& reader);
+		sl_bool readMainHeader();
 
-		sl_bool readFromSignatureToMainHeader(const Pointer<IReader, ISeekable>& reader);
-
-		// call after `readMainHeader()`
-		List<String> readFileNames(const Pointer<IReader, ISeekable>& reader);
+		sl_bool readFromSignatureToMainHeader();
 
 		// call after `readMainHeader()`
-		sl_bool isEncrypted(const Pointer<IReader, ISeekable>& reader, sl_int32 maxCheckFileCount);
+		List<String> readFileNames();
+
+		// call after `readMainHeader()`
+		sl_bool isEncrypted(sl_int32 maxCheckFileCount);
 
 
-		sl_bool readBlockHeader(RarBlockHeader4& header, IReader* reader);
+		sl_bool readBlockHeader(RarBlockHeader4& header);
 
-		sl_bool readBlockHeader(RarBlockHeader5& header, IReader* reader);
+		sl_bool readBlockHeader(RarBlockHeader5& header);
 
-		sl_bool skipData(const RarBlockHeader4& header, ISeekable* seeker);
+		sl_bool skipData(const RarBlockHeader4& header);
 
-		sl_bool skipData(const RarBlockHeader5& header, ISeekable* seeker);
+		sl_bool skipData(const RarBlockHeader5& header);
 
-		sl_bool readBlockHeaderAndSkipData(RarBlockHeader5& header, const Pointer<IReader, ISeekable>& reader);
+		sl_bool readBlockHeaderAndSkipData(RarBlockHeader5& header);
 
 	public:
 		/*
@@ -467,6 +468,8 @@ namespace slib
 		static sl_bool isEncryptedFile(const StringParam& path, sl_int32 maxCheckFileCount = 1);
 	
 	private:
+		SkippableReader m_reader;
+
 		Memory m_bufferHeader;
 
 	};
