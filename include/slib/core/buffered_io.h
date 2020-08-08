@@ -57,11 +57,69 @@ namespace slib
 		Ref<Referable> m_ref;
 		IReader* m_reader;
 		IClosable* m_closable;
-		sl_size m_pos;
-		sl_size m_count;
+
+		sl_size m_posInBuf;
+		sl_size m_sizeRead;
+
 		Memory m_buf;
-		sl_uint8* m_bufData;
-		sl_size m_bufSize;
+		sl_uint8* m_dataBuf;
+		sl_size m_sizeBuf;
+
+	};
+
+	class SLIB_EXPORT BufferedSeekableReader : public Object, public IReader, public ISeekable, public IClosable
+	{
+		SLIB_DECLARE_OBJECT
+
+	private:
+		BufferedSeekableReader();
+
+		~BufferedSeekableReader();
+
+	public:
+		static Ref<BufferedSeekableReader> create(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_IO_DEFAULT_SIZE);
+
+	public:
+		sl_reg read(void* buf, sl_size size) override;
+
+		sl_uint64 getPosition() override;
+
+		sl_uint64 getSize() override;
+
+		sl_bool seek(sl_int64 offset, SeekPosition pos) override;
+
+		void close() override;
+
+	private:
+		void _init(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_uint64 size, const Memory& buf);
+
+		sl_reg _readInBuf(void* buf, sl_size size);
+
+		sl_bool _seekInternal(sl_uint64 pos);
+
+		sl_reg _readInternal(sl_uint64 pos, void* buf, sl_size size);
+
+		sl_reg _fillBuf(sl_uint64 pos, sl_size size);
+
+		sl_reg _fillBuf(sl_uint64 pos);
+
+		sl_reg _readFillingBuf(sl_uint64 pos, void* buf, sl_size size);
+
+	private:
+		Ref<Referable> m_ref;
+		IReader* m_reader;
+		ISeekable* m_seekable;
+		IClosable* m_closable;
+
+		sl_uint64 m_posInternal;
+		sl_uint64 m_posCurrent;
+		sl_uint64 m_sizeTotal;
+
+		Memory m_buf;
+		sl_uint8* m_dataBuf;
+		sl_size m_sizeBuf;
+		sl_size m_sizeRead;
+		sl_uint64 m_posBuf;
 
 	};
 
