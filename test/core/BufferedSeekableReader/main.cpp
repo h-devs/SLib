@@ -11,7 +11,7 @@ sl_uint32 getRandom()
 
 int main(int argc, const char * argv[])
 {
-	String filePath = "E:\\Temp\\test1.avi";
+	String filePath = "D:\\Work\\SLIBIO\\SLib\\README.md";
 	Memory memContent = File::readAllBytes(filePath);
 	SLIB_ASSERT(memContent.isNotNull());
 

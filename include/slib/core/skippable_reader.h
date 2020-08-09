@@ -41,7 +41,7 @@ namespace slib
 		~SkippableReader();
 
 	public:
-		void setReader(const Ptrx<IReader, ISeekable>& reader);
+		sl_bool setReader(const Ptrx<IReader, ISeekable>& reader);
 
 		IReader* getReader()
 		{
