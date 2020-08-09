@@ -2347,11 +2347,12 @@ namespace slib
 	{
 	}
 
-	void SkippableReader::setReader(const Ptrx<IReader, ISeekable>& reader)
+	sl_bool SkippableReader::setReader(const Ptrx<IReader, ISeekable>& reader)
 	{
 		m_ref = reader.ref;
 		m_reader = reader;
 		m_seekable = reader;
+		return m_reader != sl_null;
 	}
 
 	sl_reg SkippableReader::read(void* buf, sl_size size)
