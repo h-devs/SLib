@@ -519,9 +519,9 @@ namespace slib
 	{
 	}
 
-	void RarFile::setReader(const Ptrx<IReader, ISeekable>& reader)
+	sl_bool RarFile::setReader(const Ptrx<IReader, ISeekable>& reader)
 	{
-		m_reader.setReader(reader);
+		return m_reader.setReader(reader);
 	}
 
 	sl_bool RarFile::readSignature()
@@ -771,12 +771,10 @@ namespace slib
 		return skipData(header);
 	}
 
-	sl_uint32 RarFile::getFileVersion(const StringParam& path)
+	sl_uint32 RarFile::getVersion(const Ptrx<IReader, ISeekable>& reader)
 	{
-		Ref<File> file = File::open(path, FileMode::Read, FilePermissions::ShareRead);
-		if (file.isNotNull()) {
-			RarFile rar;
-			rar.setReader(file);
+		RarFile rar;
+		if (rar.setReader(reader)) {
 			if (rar.readSignature()) {
 				if (rar.flagRAR5) {
 					return 5;
@@ -788,12 +786,19 @@ namespace slib
 		return 0;
 	}
 
-	List<String> RarFile::getFileNamesInFile(const StringParam& path)
+	sl_uint32 RarFile::getFileVersion(const StringParam& path)
 	{
-		Ref<File> file = File::open(path, FileMode::Read, FilePermissions::ShareRead);
+		Ref<File> file = File::openForRead(path);
 		if (file.isNotNull()) {
-			RarFile rar;
-			rar.setReader(file);
+			return getVersion(file);
+		}
+		return 0;
+	}
+
+	List<String> RarFile::getFileNames(const Ptrx<IReader, ISeekable>& reader)
+	{
+		RarFile rar;
+		if (rar.setReader(reader)) {
 			if (rar.readFromSignatureToMainHeader()) {
 				return rar.readFileNames();
 			}
@@ -801,12 +806,19 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool RarFile::isEncryptedFile(const StringParam& path, sl_int32 maxCheckFileCount)
+	List<String> RarFile::getFileNamesInFile(const StringParam& path)
 	{
-		Ref<File> file = File::open(path, FileMode::Read, FilePermissions::ShareRead);
+		Ref<File> file = File::openForRead(path);
 		if (file.isNotNull()) {
-			RarFile rar;
-			rar.setReader(file);
+			return getFileNames(file);
+		}
+		return sl_null;
+	}
+
+	sl_bool RarFile::isEncrypted(const Ptrx<IReader, ISeekable>& reader, sl_int32 maxCheckFileCount)
+	{
+		RarFile rar;
+		if (rar.setReader(reader)) {
 			if (rar.readSignature()) {
 				if (rar.readMainHeader()) {
 					return rar.isEncrypted(maxCheckFileCount);
@@ -814,6 +826,15 @@ namespace slib
 					return rar.flagEncryptedHeaders;
 				}
 			}
+		}
+		return sl_false;
+	}
+
+	sl_bool RarFile::isEncryptedFile(const StringParam& path, sl_int32 maxCheckFileCount)
+	{
+		Ref<File> file = File::openForRead(path);
+		if (file.isNotNull()) {
+			return isEncrypted(file, maxCheckFileCount);
 		}
 		return sl_false;
 	}

@@ -427,7 +427,7 @@ namespace slib
 		~RarFile();
 		
 	public:
-		void setReader(const Ptrx<IReader, ISeekable>& reader);
+		sl_bool setReader(const Ptrx<IReader, ISeekable>& reader);
 
 		sl_bool readSignature();
 
@@ -460,11 +460,14 @@ namespace slib
 				4 - RAR 4.x
 				5 - RAR 5.0
 		*/
+		static sl_uint32 getVersion(const Ptrx<IReader, ISeekable>& reader);
 		static sl_uint32 getFileVersion(const StringParam& path);
 
+		static List<String> getFileNames(const Ptrx<IReader, ISeekable>& reader);
 		static List<String> getFileNamesInFile(const StringParam& path);
 
 		// maxCheckFileCount: negative value means no-limit
+		static sl_bool isEncrypted(const Ptrx<IReader, ISeekable>& reader, sl_int32 maxCheckFileCount = 1);
 		static sl_bool isEncryptedFile(const StringParam& path, sl_int32 maxCheckFileCount = 1);
 	
 	private:
