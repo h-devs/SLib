@@ -89,7 +89,7 @@ namespace slib
 						if (popReadRequest(req)) {
 							if (req.isNotNull()) {
 								if (req->data && req->size) {
-									Base::resetMemory(&m_overlappedRead, 0, sizeof(m_overlappedRead));
+									Base::zeroMemory(&m_overlappedRead, sizeof(m_overlappedRead));
 									m_overlappedRead.Offset = (DWORD)m_offset;
 									m_overlappedRead.OffsetHigh = (DWORD)(m_offset >> 32);
 									if (::ReadFile((HANDLE)handle, req->data, req->size, NULL, &m_overlappedRead)) {
@@ -113,7 +113,7 @@ namespace slib
 						if (popWriteRequest(req)) {
 							if (req.isNotNull()) {
 								if (req->data && req->size) {
-									Base::resetMemory(&m_overlappedWrite, 0, sizeof(m_overlappedWrite));
+									Base::zeroMemory(&m_overlappedWrite, sizeof(m_overlappedWrite));
 									m_overlappedWrite.Offset = (DWORD)m_offset;
 									m_overlappedWrite.OffsetHigh = (DWORD)(m_offset >> 32);
 									if (::WriteFile((HANDLE)handle, req->data, req->size, NULL, &m_overlappedWrite)) {

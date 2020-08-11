@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 #include "slib/core/string.h"
 
 #include "slib/core/string_buffer.h"
+#include "slib/core/memory_traits.h"
 #include "slib/core/parse.h"
 #include "slib/core/math.h"
 #include "slib/core/time.h"
@@ -39,37 +40,6 @@ namespace slib
 	{
 		namespace string
 		{
-		
-			SLIB_INLINE static const void* FindMemory(const sl_char8* mem, sl_char8 pattern, sl_size count) noexcept
-			{
-				return Base::findMemory(mem, pattern, count);
-			}
-			
-			SLIB_INLINE static const void* FindMemory(const sl_char16* mem, sl_char16 pattern, sl_size count) noexcept
-			{
-				return Base::findMemory2((sl_uint16*)mem, pattern, count);
-			}
-		
-			SLIB_INLINE static const void* FindMemoryReverse(const sl_char8* mem, sl_char8 pattern, sl_size count) noexcept
-			{
-				return Base::findMemoryReverse(mem, pattern, count);
-			}
-		
-			SLIB_INLINE static const void* FindMemoryReverse(const sl_char16* mem, sl_char16 pattern, sl_size count) noexcept
-			{
-				return Base::findMemoryReverse2((sl_uint16*)mem, pattern, count);
-			}
-			
-			SLIB_INLINE static sl_compare_result CompareMemory(const sl_char8* mem1, const sl_char8* mem2, sl_size count) noexcept
-			{
-				return Base::compareMemory((sl_uint8*)mem1, (sl_uint8*)mem2, count);
-			}
-			
-			SLIB_INLINE static sl_compare_result CompareMemory(const sl_char16* mem1, const sl_char16* mem2, sl_size count) noexcept
-			{
-				return Base::compareMemory2((sl_uint16*)mem1, (sl_uint16*)mem2, count);
-			}
-			
 		
 			template <class CT>
 			SLIB_INLINE static sl_size CalcHash(const CT* buf, sl_size len) noexcept
@@ -453,7 +423,7 @@ namespace slib
 					if (len1 == 0) {
 						return sl_true;
 					}
-					return Base::equalsMemory(str1, str2, len1);
+					return MemoryTraits<sl_char8>::equals(str1, str2, len1);
 				} else {
 					return sl_false;
 				}
@@ -465,7 +435,7 @@ namespace slib
 					if (len1 == 0) {
 						return sl_true;
 					}
-					return Base::equalsMemory2((sl_uint16*)str1, (sl_uint16*)str2, len1);
+					return MemoryTraits<sl_char16>::equals(str1, str2, len1);
 				} else {
 					return sl_false;
 				}
@@ -683,7 +653,7 @@ namespace slib
 				}
 			}
 		}
-		return Base::equalsMemory(s1, s2, len);
+		return MemoryTraits<sl_char8>::equals(s1, s2, len);
 	}
 
 	sl_bool String::equals(const AtomicString& other) const noexcept
@@ -714,7 +684,7 @@ namespace slib
 				}
 			}
 		}
-		return Base::equalsMemory2((sl_uint16*)s1, (sl_uint16*)s2, len);
+		return MemoryTraits<sl_char16>::equals(s1, s2, len);
 	}
 
 	sl_bool String16::equals(const AtomicString16& other) const noexcept
@@ -1187,7 +1157,7 @@ namespace slib
 			template <class CT>
 			SLIB_INLINE static sl_reg IndexOfChar(const CT* str, sl_size len, CT ch, sl_reg _start) noexcept
 			{
-				if (len == 0) {
+				if (!len) {
 					return -1;
 				}
 				sl_size start;
@@ -1199,11 +1169,11 @@ namespace slib
 						return -1;
 					}
 				}
-				CT* pt = (CT*)(FindMemory(str + start, ch, len - start));
-				if (pt == sl_null) {
-					return -1;
-				} else {
+				CT* pt = MemoryTraits<CT>::find(str + start, len - start, ch);
+				if (pt) {
 					return (sl_reg)(pt - str);
+				} else {
+					return -1;
 				}
 			}
 		}
@@ -1249,14 +1219,11 @@ namespace slib
 			template <class CT>
 			SLIB_INLINE static sl_reg IndexOf(const CT* buf, sl_size count, const CT* bufPat, sl_size countPat, sl_reg _start) noexcept
 			{
-				if (countPat == 0) {
-					return 0;
-				}
-				if (countPat == 1) {
-					return IndexOfChar(buf, count, bufPat[0], _start);
-				}
 				if (count < countPat) {
 					return -1;
+				}
+				if (!countPat) {
+					return 0;
 				}
 				sl_size start;
 				if (_start < 0) {
@@ -1267,16 +1234,9 @@ namespace slib
 						return -1;
 					}
 				}
-				while (start <= count - countPat) {
-					const CT* pt = (const CT*)(FindMemory(buf + start, bufPat[0], count - start - countPat + 1));
-					if (pt == sl_null) {
-						return -1;
-					}
-					if (CompareMemory(pt + 1, bufPat + 1, countPat - 1) == 0) {
-						return (sl_reg)(pt - buf);
-					} else {
-						start = (sl_size)(pt - buf + 1);
-					}
+				CT* pt = MemoryTraits<CT>::find(buf + start, count - start, bufPat, countPat);
+				if (pt) {
+					return pt - buf;
 				}
 				return -1;
 			}
@@ -1325,21 +1285,15 @@ namespace slib
 		namespace string
 		{
 			template <class CT>
-			SLIB_INLINE static sl_reg LastIndexOfChar(const CT* str, sl_size len, CT ch, sl_reg _start) noexcept
+			SLIB_INLINE static sl_reg LastIndexOfChar(const CT* str, sl_size len, CT ch, sl_reg start) noexcept
 			{
-				if (len == 0) {
+				if (!len) {
 					return -1;
 				}
-				sl_size start;
-				if (_start < 0) {
-					start = len - 1;
-				} else {
-					start = _start;
-					if (start >= len) {
-						start = len - 1;
-					}
+				if (start >= 0 && (sl_size)start < len - 1) {
+					len = start + 1;
 				}
-				CT* pt = (CT*)(FindMemoryReverse(str, ch, start + 1));
+				CT* pt = MemoryTraits<CT>::findBackward(str, len, ch);
 				if (pt == sl_null) {
 					return -1;
 				} else {
@@ -1387,37 +1341,20 @@ namespace slib
 		namespace string
 		{
 			template <class CT>
-			SLIB_INLINE static sl_reg LastIndexOf(const CT* buf, sl_size count, const CT* bufPat, sl_size countPat, sl_reg _start) noexcept
+			SLIB_INLINE static sl_reg LastIndexOf(const CT* buf, sl_size count, const CT* bufPat, sl_size countPat, sl_reg start) noexcept
 			{
-				if (countPat == 0) {
-					return 0;
-				}
-				if (countPat == 1) {
-					return LastIndexOfChar(buf, count, bufPat[0], _start);
-				}
 				if (count < countPat) {
 					return -1;
 				}
-				sl_size s;
-				if (_start < 0) {
-					s = count - countPat + 1;
-				} else {
-					s = _start;
-					sl_size n = count - countPat + 1;
-					if (s > n) {
-						s = n;
-					}
+				if (!countPat) {
+					return count;
 				}
-				while (s > 0) {
-					const CT* pt = (const CT*)(FindMemoryReverse(buf, bufPat[0], s));
-					if (pt == sl_null) {
-						return -1;
-					}
-					if (CompareMemory(pt + 1, bufPat + 1, countPat - 1) == 0) {
-						return (sl_reg)(pt - buf);
-					} else {
-						s = (sl_size)(pt - buf);
-					}
+				if (start >= 0 && (sl_size)start < count - countPat) {
+					count = start + countPat;
+				}
+				CT* pt = MemoryTraits<CT>::findBackward(buf, count, bufPat, countPat);
+				if (pt) {
+					return pt - buf;
 				}
 				return -1;
 			}
@@ -1521,7 +1458,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory(getData(), str.getData(), count2);
+			return MemoryTraits<sl_char8>::equals(getData(), str.getData(), count2);
 		}
 	}
 
@@ -1536,7 +1473,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory2((sl_uint16*)(getData()), (sl_uint16*)(str.getData()), count2);
+			return MemoryTraits<sl_char16>::equals(getData(), str.getData(), count2);
 		}
 	}
 
@@ -1563,7 +1500,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory(getData(), str.getData(), count2);
+			return MemoryTraits<sl_char8>::equals(getData(), str.getData(), count2);
 		}
 	}
 
@@ -1578,7 +1515,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory2((sl_uint16*)(getData()), (sl_uint16*)(str.getData()), count2);
+			return MemoryTraits<sl_char16>::equals(getData(), str.getData(), count2);
 		}
 	}
 
@@ -1647,7 +1584,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory(getData() + count1 - count2, str.getData(), count2);
+			return MemoryTraits<sl_char8>::equals(getData() + count1 - count2, str.getData(), count2);
 		}
 	}
 
@@ -1662,7 +1599,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory2((sl_uint16*)(getData() + count1 - count2), (sl_uint16*)(str.getData()), count2);
+			return MemoryTraits<sl_char16>::equals(getData() + count1 - count2, str.getData(), count2);
 		}
 	}
 
@@ -1689,7 +1626,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory(getData() + count1 - count2, str.getData(), count2);
+			return MemoryTraits<sl_char8>::equals(getData() + count1 - count2, str.getData(), count2);
 		}
 	}
 
@@ -1704,7 +1641,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory2((sl_uint16*)(getData() + count1 - count2), (sl_uint16*)(str.getData()), count2);
+			return MemoryTraits<sl_char16>::equals(getData() + count1 - count2, str.getData(), count2);
 		}
 	}
 
@@ -2080,10 +2017,10 @@ namespace slib
 				if (ret.isNotNull()) {
 					CT* out = ret.getData();
 					while (queue.pop_NoLock(&subset)) {
-						Base::copyMemory(out, buf + subset.start, subset.len*sizeof(CT));
+						MemoryTraits<CT>::copy(out, buf + subset.start, subset.len);
 						out += subset.len;
 						if (queue.isNotEmpty()) {
-							Base::copyMemory(out, bufReplace, countReplace*sizeof(CT));
+							MemoryTraits<CT>::copy(out, bufReplace, countReplace);
 							out += countReplace;
 						}
 					}

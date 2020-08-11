@@ -501,7 +501,7 @@ namespace slib
 				return sl_false;
 			}
 			sockaddr_storage addr;
-			Base::resetMemory(&addr, 0, sizeof(addr));
+			Base::zeroMemory(&addr, sizeof(addr));
 			int len = sizeof(addr);
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 			sl_socket client = (sl_socket)(::accept((SOCKET)(m_socket), (sockaddr*)&addr, &len));
@@ -670,7 +670,7 @@ namespace slib
 				return -1;
 			}
 			sockaddr_storage addr;
-			Base::resetMemory(&addr, 0, sizeof(addr));
+			Base::zeroMemory(&addr, sizeof(addr));
 			int lenAddr = sizeof(addr);
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 			sl_int32 ret = ::recvfrom((SOCKET)(m_socket), (char*)buf, size, 0, (sockaddr*)&addr, &lenAddr);
@@ -753,7 +753,7 @@ namespace slib
 				return -1;
 			}
 			sockaddr_ll addr;
-			Base::resetMemory(&addr, 0, sizeof(addr));
+			Base::zeroMemory(&addr, sizeof(addr));
 			int lenAddr = sizeof(addr);
 			sl_int32 ret = (sl_int32)(::recvfrom((SOCKET)(m_socket), (char*)buf, size, 0, (sockaddr*)&addr, (socklen_t*)&lenAddr));
 			if (ret >= 0) {

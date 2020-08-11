@@ -132,7 +132,7 @@ namespace slib
 	void AsyncIoLoop::_native_wake()
 	{
 		AsyncIoLoopHandle* handle = (AsyncIoLoopHandle*)m_handle;
-		Base::resetMemory(&(handle->overlappedWake), 0, sizeof(OVERLAPPED));
+		Base::zeroMemory(&(handle->overlappedWake), sizeof(OVERLAPPED));
 		PostQueuedCompletionStatus(handle->hCompletionPort, 0, 0, &(handle->overlappedWake));
 	}
 

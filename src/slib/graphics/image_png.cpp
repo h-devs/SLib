@@ -36,7 +36,7 @@ namespace slib
 			return sl_null;
 		}
 		png_image image;
-		Base::resetMemory(&image, 0, sizeof(image));
+		Base::zeroMemory(&image, sizeof(image));
 		image.version = PNG_IMAGE_VERSION;
 
 		Ref<Image> ret;

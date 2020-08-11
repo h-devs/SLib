@@ -80,7 +80,7 @@ namespace slib
 					
 					UInt32 sizeValue;
 					AudioStreamBasicDescription formatDst;
-					Base::resetMemory(&formatDst, 0, sizeof(formatDst));
+					Base::zeroMemory(&formatDst, sizeof(formatDst));
 					sizeValue = sizeof(formatDst);
 					if (AudioObjectGetPropertyData(deviceID, &prop, 0, NULL, &sizeValue, &formatDst) != kAudioHardwareNoError) {
 						logError("Failed to get source input format");

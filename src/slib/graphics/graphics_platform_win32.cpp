@@ -138,7 +138,7 @@ namespace slib
 			sl_uint32 maskWidth = BitmapData::calculatePitchAlign4(width, 1);
 			sl_uint32 size = maskWidth * height;
 			SLIB_SCOPED_BUFFER(sl_uint8, 4096, bits, size);
-			Base::resetMemory(bits, 0xFF, size);
+			Base::resetMemory(bits, size, 0xFF);
 			HBITMAP mask = CreateBitmap(width, height, 1, 1, bits);
 			if (mask) {
 				ICONINFO info;

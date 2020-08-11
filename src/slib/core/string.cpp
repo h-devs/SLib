@@ -287,7 +287,7 @@ namespace slib
 			{
 				StringContainer* container = priv::string::alloc(nRepeatCount);
 				if (container) {
-					Base::resetMemory(container->sz, ch, nRepeatCount);
+					Base::resetMemory(container->sz, nRepeatCount, ch);
 				}
 				return container;
 			}
@@ -296,7 +296,7 @@ namespace slib
 			{
 				StringContainer16* container = priv::string::alloc16(nRepeatCount);
 				if (container) {
-					Base::resetMemory2((sl_uint16*)(container->sz), ch, nRepeatCount);
+					Base::resetMemory2(container->sz, nRepeatCount, ch);
 				}
 				return container;
 			}
