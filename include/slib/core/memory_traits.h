@@ -62,7 +62,7 @@ namespace slib
 		static void reset(T* _dst, sl_size count, const T& value) noexcept
 		{
 			sl_uint8* dst = (sl_uint8*)_dst;
-			sl_uint8* src = reinterpret_cast<sl_uint8*>&value;
+			sl_uint8* src = reinterpret_cast<sl_uint8*>(&value);
 			if (ElementSize < 16) {
 				sl_size i = 0;
 				while (i < count) {
@@ -163,7 +163,7 @@ namespace slib
 
 		SLIB_INLINE static void reset(T* dst, sl_size count, const T& value) noexcept
 		{
-			Base::resetMemory(dst, count, *(reinterpret_cast<sl_uint8*>&value));
+			Base::resetMemory(dst, count, *(reinterpret_cast<sl_uint8*>(&value)));
 		}
 
 		SLIB_INLINE static sl_bool equals(const T* m1, const T* m2, sl_size count) noexcept
@@ -229,7 +229,7 @@ namespace slib
 
 		SLIB_INLINE static void reset(T* dst, sl_size count, const T& value) noexcept
 		{
-			Base::resetMemory2(dst, count, *(reinterpret_cast<sl_uint16*>&value));
+			Base::resetMemory2(dst, count, *(reinterpret_cast<sl_uint16*>(&value)));
 		}
 
 		SLIB_INLINE static sl_bool equals(const T* m1, const T* m2, sl_size count) noexcept
@@ -295,7 +295,7 @@ namespace slib
 
 		SLIB_INLINE static void reset(T* dst, sl_size count, const T& value) noexcept
 		{
-			Base::resetMemory4(dst, count, *(reinterpret_cast<sl_uint32*>&value));
+			Base::resetMemory4(dst, count, *(reinterpret_cast<sl_uint32*>(&value)));
 		}
 
 		SLIB_INLINE static sl_bool equals(const T* m1, const T* m2, sl_size count) noexcept
@@ -361,7 +361,7 @@ namespace slib
 
 		SLIB_INLINE static void reset(T* dst, sl_size count, const T& value) noexcept
 		{
-			Base::resetMemory8(dst, count, *(reinterpret_cast<sl_uint64*>&value));
+			Base::resetMemory8(dst, count, *(reinterpret_cast<sl_uint64*>(&value)));
 		}
 
 		SLIB_INLINE static sl_bool equals(const T* m1, const T* m2, sl_size count) noexcept
