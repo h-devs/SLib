@@ -3385,6 +3385,54 @@ namespace slib
 		return priv::string::ParseInt(radix, getData(), 0, n, _out) == (sl_reg)n;
 	}
 
+	sl_bool String::parseInt32(sl_int32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool String16::parseInt32(sl_int32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool Atomic<String>::parseInt32(sl_int32* _out) const noexcept
+	{
+		String s(*this);
+		return s.parseInt32(_out);
+	}
+
+	sl_bool Atomic<String16>::parseInt32(sl_int32* _out) const noexcept
+	{
+		String16 s(*this);
+		return s.parseInt32(_out);
+	}
+
+	sl_bool StringView::parseInt32(sl_int32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool StringView16::parseInt32(sl_int32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
 	sl_int32 String::parseInt32(sl_int32 radix, sl_int32 def) const noexcept
 	{
 		sl_int32 _out = 0;
@@ -3494,6 +3542,54 @@ namespace slib
 			return sl_false;
 		}
 		return priv::string::ParseUint(radix, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool String::parseUint32(sl_uint32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool String16::parseUint32(sl_uint32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool Atomic<String>::parseUint32(sl_uint32* _out) const noexcept
+	{
+		String s(*this);
+		return s.parseUint32(_out);
+	}
+
+	sl_bool Atomic<String16>::parseUint32(sl_uint32* _out) const noexcept
+	{
+		String16 s(*this);
+		return s.parseUint32(_out);
+	}
+
+	sl_bool StringView::parseUint32(sl_uint32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool StringView16::parseUint32(sl_uint32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
 	}
 
 	sl_uint32 String::parseUint32(sl_int32 radix, sl_uint32 def) const noexcept
@@ -3607,6 +3703,54 @@ namespace slib
 		return priv::string::ParseInt(radix, getData(), 0, n, _out) == (sl_reg)n;
 	}
 
+	sl_bool String::parseInt64(sl_int64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool String16::parseInt64(sl_int64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool Atomic<String>::parseInt64(sl_int64* _out) const noexcept
+	{
+		String s(*this);
+		return s.parseInt64(_out);
+	}
+
+	sl_bool Atomic<String16>::parseInt64(sl_int64* _out) const noexcept
+	{
+		String16 s(*this);
+		return s.parseInt64(_out);
+	}
+
+	sl_bool StringView::parseInt64(sl_int64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool StringView16::parseInt64(sl_int64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
 	sl_int64 String::parseInt64(sl_int32 radix, sl_int64 def) const noexcept
 	{
 		sl_int64 _out = 0;
@@ -3718,6 +3862,54 @@ namespace slib
 		return priv::string::ParseUint(radix, getData(), 0, n, _out) == (sl_reg)n;
 	}
 
+	sl_bool String::parseUint64(sl_uint64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool String16::parseUint64(sl_uint64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool Atomic<String>::parseUint64(sl_uint64* _out) const noexcept
+	{
+		String s(*this);
+		return s.parseUint64(_out);
+	}
+
+	sl_bool Atomic<String16>::parseUint64(sl_uint64* _out) const noexcept
+	{
+		String16 s(*this);
+		return s.parseUint64(_out);
+	}
+
+	sl_bool StringView::parseUint64(sl_uint64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool StringView16::parseUint64(sl_uint64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
 	sl_uint64 String::parseUint64(sl_int32 radix, sl_uint64 def) const noexcept
 	{
 		sl_uint64 _out = 0;
@@ -3819,6 +4011,53 @@ namespace slib
 #endif
 	}
 
+	sl_bool String::parseInt(sl_reg* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseInt64(_out);
+#else
+		return parseInt32(_out);
+#endif
+	}
+
+	sl_bool String16::parseInt(sl_reg* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseInt64(_out);
+#else
+		return parseInt32(_out);
+#endif
+	}
+
+	sl_bool Atomic<String>::parseInt(sl_reg* _out) const noexcept
+	{
+		String s(*this);
+		return s.parseInt(_out);
+	}
+
+	sl_bool Atomic<String16>::parseInt(sl_reg* _out) const noexcept
+	{
+		String16 s(*this);
+		return s.parseInt(_out);
+	}
+
+	sl_bool StringView::parseInt(sl_reg* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseInt64(_out);
+#else
+		return parseInt32(_out);
+#endif
+	}
+
+	sl_bool StringView16::parseInt(sl_reg* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseInt64(_out);
+#else
+		return parseInt32(_out);
+#endif
+	}
 
 	sl_reg String::parseInt(sl_int32 radix, sl_reg def) const noexcept
 	{
@@ -3918,6 +4157,53 @@ namespace slib
 		return parseUint64(radix, _out);
 #else
 		return parseUint32(radix, _out);
+#endif
+	}
+	sl_bool String::parseSize(sl_size* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseUint64(_out);
+#else
+		return parseUint32(_out);
+#endif
+	}
+
+	sl_bool String16::parseSize(sl_size* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseUint64(_out);
+#else
+		return parseUint32(_out);
+#endif
+	}
+
+	sl_bool Atomic<String>::parseSize(sl_size* _out) const noexcept
+	{
+		String s(*this);
+		return s.parseSize(_out);
+	}
+
+	sl_bool Atomic<String16>::parseSize(sl_size* _out) const noexcept
+	{
+		String16 s(*this);
+		return s.parseSize(_out);
+	}
+
+	sl_bool StringView::parseSize(sl_size* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseUint64(_out);
+#else
+		return parseUint32(_out);
+#endif
+	}
+
+	sl_bool StringView16::parseSize(sl_size* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseUint64(_out);
+#else
+		return parseUint32(_out);
 #endif
 	}
 
