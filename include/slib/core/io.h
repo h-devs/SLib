@@ -308,9 +308,9 @@ namespace slib
 
 				static String16 readAllText16(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize);
 
-				static sl_int64 find(IReader* reader, ISeekable* seekable, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_int64 endPosition);
+				static sl_int64 find(IReader* reader, ISeekable* seekable, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind);
 
-				static sl_int64 findBackward(IReader* reader, ISeekable* seekable, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_int64 endPosition);
+				static sl_int64 findBackward(IReader* reader, ISeekable* seekable, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind);
 
 			};
 		}
@@ -350,14 +350,14 @@ namespace slib
 			return priv::io::SeekableReaderHelperStatic::readAllText16((READER*)this, (READER*)this, outCharset, maxSize);
 		}
 
-		sl_int64 find(const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_int64 endPosition = -1)
+		sl_int64 find(const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_uint64 sizeFind = SLIB_UINT64_MAX)
 		{
-			return priv::io::SeekableReaderHelperStatic::find((READER*)this, (READER*)this, pattern, nPattern, startPosition, endPosition);
+			return priv::io::SeekableReaderHelperStatic::find((READER*)this, (READER*)this, pattern, nPattern, startPosition, sizeFind);
 		}
 
-		sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_int64 endPosition = -1)
+		sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_uint64 sizeFind = SLIB_UINT64_MAX)
 		{
-			return priv::io::SeekableReaderHelperStatic::findBackward((READER*)this, (READER*)this, pattern, nPattern, startPosition, endPosition);
+			return priv::io::SeekableReaderHelperStatic::findBackward((READER*)this, (READER*)this, pattern, nPattern, startPosition, sizeFind);
 		}
 
 	};

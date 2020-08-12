@@ -67,7 +67,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT BufferedSeekableReader : public Object, public IReader, public ISeekable, public IClosable
+	class SLIB_EXPORT BufferedSeekableReader : public Object, public IReader, public ISeekable, public IClosable, public SeekableReaderHelper<BufferedSeekableReader>
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -80,6 +80,8 @@ namespace slib
 		static Ref<BufferedSeekableReader> create(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_IO_DEFAULT_SIZE);
 
 	public:
+		sl_reg read(void*& buf);
+
 		sl_reg read(void* buf, sl_size size) override;
 
 		sl_uint64 getPosition() override;

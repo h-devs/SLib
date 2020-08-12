@@ -1523,36 +1523,30 @@ namespace slib
 				return sl_null;
 			}
 
-			static sl_bool FixFindPosition(sl_uint64 size, sl_int64& startPosition, sl_int64& endPosition)
-			{
-				if (!endPosition) {
-					return sl_false;
-				}
-				if (startPosition < 0) {
-					startPosition = 0;
-				}
-				if ((sl_uint64)startPosition >= size) {
-					return sl_false;
-				}
-				if (endPosition < 0) {
-					endPosition = size;
-				} else if ((sl_uint64)endPosition > size) {
-					endPosition = size;
-				}
-				if (startPosition >= endPosition) {
-					return sl_false;
-				}
-				return sl_true;
-			}
-
-			sl_int64 SeekableReaderHelperStatic::find(IReader* reader, ISeekable* seekable, const void* _pattern, sl_size nPattern, sl_int64 startPosition, sl_int64 endPosition)
+			sl_int64 SeekableReaderHelperStatic::find(IReader* reader, ISeekable* seekable, const void* _pattern, sl_size nPattern, sl_int64 _startPosition, sl_uint64 sizeFind)
 			{
 				sl_uint64 size = seekable->getSize();
-				if (!(FixFindPosition(size, startPosition, endPosition))) {
+				if (!size) {
 					return -1;
+				}
+				if (!sizeFind) {
+					return -1;
+				}
+				sl_uint64 startPosition;
+				if (_startPosition < 0) {
+					startPosition = 0;
+				} else {
+					startPosition = _startPosition;
+					if (startPosition >= size) {
+						return -1;
+					}
 				}
 				if (!nPattern) {
 					return startPosition;
+				}
+				sl_uint64 sizeRemain = size - startPosition;
+				if (sizeFind > sizeRemain) {
+					sizeFind = sizeRemain;
 				}
 				if (!(seekable->seek(startPosition, SeekPosition::Begin))) {
 					return -1;
@@ -1560,6 +1554,7 @@ namespace slib
 				sl_uint8* pattern = (sl_uint8*)_pattern;
 				sl_uint8 buf[1024];
 				sl_reg posMatching = 0;
+				sl_uint64 endPosition = startPosition + sizeFind;
 				while (startPosition < endPosition) {
 					sl_uint64 n = endPosition - startPosition;
 					if (n > sizeof(buf)) {
@@ -1610,25 +1605,41 @@ namespace slib
 				return -1;
 			}
 
-			sl_int64 SeekableReaderHelperStatic::findBackward(IReader* reader, ISeekable* seekable, const void* _pattern, sl_size nPattern, sl_int64 startPosition, sl_int64 endPosition)
+			sl_int64 SeekableReaderHelperStatic::findBackward(IReader* reader, ISeekable* seekable, const void* _pattern, sl_size nPattern, sl_int64 _startPosition, sl_uint64 sizeFind)
 			{
 				sl_uint64 size = seekable->getSize();
-				if (!(FixFindPosition(size, startPosition, endPosition))) {
+				if (!size) {
 					return -1;
 				}
+				if (!sizeFind) {
+					return -1;
+				}
+				sl_uint64 startPosition;
+				if (_startPosition < 0) {
+					startPosition = size;
+				} else {
+					startPosition = _startPosition;
+					if (startPosition >= size) {
+						startPosition = size;
+					}
+				}
 				if (!nPattern) {
-					return endPosition;
+					return startPosition;
+				}
+				if (sizeFind > startPosition) {
+					sizeFind = startPosition;
 				}
 				sl_uint8* pattern = (sl_uint8*)_pattern;
 				sl_uint8 buf[1024];
 				sl_reg posMatching = 0;
-				while (startPosition < endPosition) {
-					sl_uint64 _n = endPosition - startPosition;
+				sl_uint64 endPosition = startPosition - sizeFind;
+				while (endPosition < startPosition) {
+					sl_uint64 _n = startPosition - endPosition;
 					if (_n > sizeof(buf)) {
 						_n = sizeof(buf);
 					}
 					sl_size n = (sl_size)_n;
-					if (!(seekable->seek(endPosition - _n, SeekPosition::Begin))) {
+					if (!(seekable->seek(startPosition - _n, SeekPosition::Begin))) {
 						return -1;
 					}
 					sl_reg nRead = reader->readFully(buf, n);
@@ -1661,7 +1672,7 @@ namespace slib
 							}
 						}
 						if (k == nPattern) {
-							return endPosition - i - nPattern;
+							return startPosition - i - nPattern;
 						}
 						if (i + k == nRead) {
 							posMatching = k;
@@ -1671,7 +1682,7 @@ namespace slib
 					if (i == nRead) {
 						posMatching = 0;
 					}
-					endPosition -= nRead;
+					startPosition -= nRead;
 				}
 				return -1;
 			}
@@ -2455,6 +2466,29 @@ namespace slib
 		return nRead;
 	}
 
+	sl_reg BufferedSeekableReader::read(void*& buf)
+	{
+		if (m_posCurrent >= m_sizeTotal) {
+			return -1;
+		}
+		if (m_posCurrent >= m_posBuf) {
+			sl_uint64 _offset = m_posCurrent - m_posBuf;
+			if (_offset < m_sizeRead) {
+				sl_size offset = (sl_size)_offset;
+				sl_size sizeRemain = m_sizeRead - offset;
+				m_posCurrent += sizeRemain;
+				buf = m_dataBuf + offset;
+				return sizeRemain;
+			}
+		}
+		sl_reg nRead = _fillBuf(m_posCurrent);
+		if (nRead > 0) {
+			buf = m_dataBuf;
+			m_posCurrent += nRead;
+		}
+		return nRead;
+	}
+
 	sl_reg BufferedSeekableReader::read(void* _buf, sl_size size)
 	{
 		sl_uint8* buf = (sl_uint8*)_buf;
@@ -2636,14 +2670,14 @@ namespace slib
 		return 0;
 	}
 
-	sl_int64 IOUtil::find(const Pointer<IReader, ISeekable>& reader, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_int64 endPosition)
+	sl_int64 IOUtil::find(const Pointer<IReader, ISeekable>& reader, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind)
 	{
-		return priv::io::SeekableReaderHelperStatic::find(reader, reader, pattern, nPattern, startPosition, endPosition);
+		return priv::io::SeekableReaderHelperStatic::find(reader, reader, pattern, nPattern, startPosition, sizeFind);
 	}
 
-	sl_int64 IOUtil::findBackward(const Pointer<IReader, ISeekable>& reader, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_int64 endPosition)
+	sl_int64 IOUtil::findBackward(const Pointer<IReader, ISeekable>& reader, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind)
 	{
-		return priv::io::SeekableReaderHelperStatic::findBackward(reader, reader, pattern, nPattern, startPosition, endPosition);
+		return priv::io::SeekableReaderHelperStatic::findBackward(reader, reader, pattern, nPattern, startPosition, sizeFind);
 	}
 
 
