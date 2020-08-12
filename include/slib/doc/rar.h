@@ -26,7 +26,7 @@
 #include "definition.h"
 
 #include "../core/string.h"
-#include "../core/skippable_reader.h"
+#include "../core/io_util.h"
 
 namespace slib
 {

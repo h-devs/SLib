@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -59,6 +59,7 @@
 #include "core/memory.h"
 #include "core/time.h"
 #include "core/variant.h"
+#include "core/memory_traits.h"
 
 #include "core/cast.h"
 #include "core/nullable.h"
@@ -97,8 +98,8 @@
 #include "core/asset.h"
 
 #include "core/io.h"
+#include "core/io_util.h"
 #include "core/buffered_io.h"
-#include "core/skippable_reader.h"
 #include "core/file.h"
 #include "core/pipe.h"
 #include "core/async.h"

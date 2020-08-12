@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_SKIPPABLE_READER
-#define CHECKHEADER_SLIB_CORE_SKIPPABLE_READER
+#ifndef CHECKHEADER_SLIB_CORE_IO_UTIL
+#define CHECKHEADER_SLIB_CORE_IO_UTIL
 
 #include "definition.h"
 
@@ -30,6 +30,17 @@
 
 namespace slib
 {
+
+	class SLIB_EXPORT IOUtil
+	{
+	public:
+		static sl_uint64 skip(const Pointerx<IReader, ISeekable>& reader, sl_uint64 size);
+
+		static sl_int64 find(const Pointer<IReader, ISeekable>& reader, const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_int64 endPosition = -1);
+
+		static sl_int64 findBackward(const Pointer<IReader, ISeekable>& reader, const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_int64 endPosition = -1);
+
+	};
 	
 	class SLIB_EXPORT SkippableReader : public IReader
 	{
