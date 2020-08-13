@@ -69,7 +69,7 @@ namespace slib
 						
 						if (mem.isNotNull()) {
 							
-							Base::resetMemory(mem.getData(), 0, mem.getSize());
+							Base::zeroMemory(mem.getData(), mem.getSize());
 							
 							CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 							

@@ -1442,5 +1442,11 @@
     <ClCompile Include="..\..\src\slib\doc\rar.cpp">
       <Filter>src\doc</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\doc\pdf.cpp">
+      <Filter>src\doc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\dl_windows_iphlpapi.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

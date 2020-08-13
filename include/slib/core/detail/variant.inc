@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -106,6 +106,18 @@ namespace slib
 
 
 	template <class T>
+	Variant::Variant(T* ptr) noexcept
+	{
+		if (ptr) {
+			_type = VariantType::Pointer;
+			*((T**)(void*)&_value) = ptr;
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
+	template <class T>
 	SLIB_INLINE Variant::Variant(const Nullable<T>& value) noexcept
 	{
 		if (value.isNotNull()) {
@@ -148,24 +160,6 @@ namespace slib
 	SLIB_INLINE const Variant& Variant::null() noexcept
 	{
 		return *(reinterpret_cast<Variant const*>(&(priv::variant::g_null)));
-	}
-	
-	template <class T>
-	SLIB_INLINE Variant Variant::fromNullable(const Nullable<T>& value) noexcept
-	{
-		return value;
-	}
-	
-	template <class T>
-	SLIB_INLINE Variant Variant::fromRef(const Ref<T>& ref) noexcept
-	{
-		return ref;
-	}
-	
-	template <class T>
-	SLIB_INLINE Variant Variant::fromWeakRef(const WeakRef<T>& weak) noexcept
-	{
-		return weak;
 	}
 	
 	template <class T>
@@ -290,6 +284,18 @@ namespace slib
 	}
 
 	
+	template <class T>
+	Atomic<Variant>::Atomic(T* ptr) noexcept
+	{
+		if (ptr) {
+			_type = VariantType::Pointer;
+			*((T**)(void*)&_value) = ptr;
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
 	template <class T>
 	SLIB_INLINE Atomic<Variant>::Atomic(const Nullable<T>& value) noexcept
 	{

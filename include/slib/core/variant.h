@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -102,8 +102,6 @@ namespace slib
 
 		Variant(const Variant& other) noexcept;
 
-		Variant(AtomicVariant&& _other) noexcept;
-
 		Variant(const AtomicVariant& other) noexcept;
 	
 		~Variant() noexcept;
@@ -154,14 +152,17 @@ namespace slib
 #endif
 		
 		Variant(const sl_char8* sz8) noexcept;
+		Variant(sl_char8* sz8) noexcept;
 
 		Variant(const sl_char16* sz16) noexcept;
+		Variant(sl_char16* sz16) noexcept;
 
 		Variant(const StringParam& str) noexcept;
 
 		Variant(const Time& value) noexcept;
 
-		Variant(const void* ptr) noexcept;
+		template <class T>
+		Variant(T* ptr) noexcept;
 
 		template <class T>
 		Variant(const Nullable<T>& value) noexcept;
@@ -222,64 +223,10 @@ namespace slib
 
 		static Variant createHashMapList() noexcept;
 
-	
-		static Variant fromInt32(sl_int32 value) noexcept;
-
-		static Variant fromUint32(sl_uint32 value) noexcept;
-
-		static Variant fromInt64(sl_int64 value) noexcept;
-
-		static Variant fromUint64(sl_uint64 value) noexcept;
-
-		static Variant fromFloat(float value) noexcept;
-
-		static Variant fromDouble(double value) noexcept;
-
-		static Variant fromBoolean(sl_bool value) noexcept;
-
-		static Variant fromString(const String& value) noexcept;
-
-		static Variant fromString16(const String16& value) noexcept;
-
-		static Variant fromSz8(const sl_char8* value) noexcept;
-
-		static Variant fromSz16(const sl_char16* value) noexcept;
-
-		static Variant fromStringParam(const StringParam& value) noexcept;
-
-		static Variant fromTime(const Time& value) noexcept;
-
-		static Variant fromPointer(const void* value) noexcept;
-
-		template <class T>
-		static Variant fromNullable(const Nullable<T>& value) noexcept;
-
-		template <class T>
-		static Variant fromRef(const Ref<T>& ref) noexcept;
-
-		template <class T>
-		static Variant fromWeakRef(const WeakRef<T>& weak) noexcept;
-		
-		static Variant fromMemory(const Memory& mem) noexcept;
-		
-		static Variant fromVariantList(const List<Variant>& value) noexcept;
-
-		static Variant fromVariantMap(const Map<String, Variant>& value) noexcept;
-		
-		static Variant fromVariantHashMap(const HashMap<String, Variant>& value) noexcept;
-
-		static Variant fromVariantMapList(const List< Map<String, Variant> >& value) noexcept;
-		
-		static Variant fromVariantHashMapList(const List< HashMap<String, Variant> >& value) noexcept;
-		
-		static Variant fromVariantPromise(const Promise<Variant>& value) noexcept;
-		
 	public:
 		Variant& operator=(Variant&& other) noexcept;
 
 		Variant& operator=(const Variant& other) noexcept;
-
-		Variant& operator=(AtomicVariant&& other) noexcept;
 
 		Variant& operator=(const AtomicVariant& other) noexcept;
 
@@ -619,8 +566,10 @@ namespace slib
 		void set(const AtomicString16& _in) noexcept;
 
 		void set(const sl_char8* sz8) noexcept;
+		void set(sl_char8* sz8) noexcept;
 		void set(const sl_char16* sz16) noexcept;
-		
+		void set(sl_char16* sz16) noexcept;
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		void get(std::string& _out) const noexcept;
 		void set(const std::string& _in) noexcept;
@@ -744,8 +693,6 @@ namespace slib
 
 		SLIB_INLINE constexpr Atomic(sl_null_t) : _value(1), _type(VariantType::Null) {}
 		
-		Atomic(AtomicVariant&& other) noexcept;
-
 		Atomic(const AtomicVariant& other) noexcept;
 
 		Atomic(Variant&& other) noexcept;
@@ -790,9 +737,11 @@ namespace slib
 		Atomic(const AtomicString16& value) noexcept;
 
 		Atomic(const sl_char8* sz8) noexcept;
+		Atomic(sl_char8* sz8) noexcept;
 
 		Atomic(const sl_char16* sz16) noexcept;
-		
+		Atomic(sl_char16* sz16) noexcept;
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Atomic(const std::string& value) noexcept;
 		
@@ -803,7 +752,8 @@ namespace slib
 		
 		Atomic(const Time& value) noexcept;
 
-		Atomic(const void* ptr) noexcept;
+		template <class T>
+		Atomic(T* ptr) noexcept;
 	
 		template <class T>
 		Atomic(const Nullable<T>& value) noexcept;
@@ -854,8 +804,6 @@ namespace slib
 		static const AtomicVariant& null() noexcept;
 
 	public:
-		AtomicVariant& operator=(AtomicVariant&& other) noexcept;
-
 		AtomicVariant& operator=(const AtomicVariant& other) noexcept;
 
 		AtomicVariant& operator=(Variant&& other) noexcept;
@@ -1177,8 +1125,10 @@ namespace slib
 		void set(const AtomicString16& _in) noexcept;
 		
 		void set(const sl_char8* sz8) noexcept;
+		void set(sl_char8* sz8) noexcept;
 		void set(const sl_char16* sz16) noexcept;
-		
+		void set(sl_char16* sz16) noexcept;
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		void get(std::string& _out) const noexcept;
 		void set(const std::string& _in) noexcept;

@@ -67,7 +67,7 @@ namespace slib
 	template <class T>
 	SLIB_INLINE ListParam<T>::ListParam(const List<T>& list) noexcept
 	{
-		_value = list.ref._ptr;
+		_value = list.ref.ptr;
 		if (_value) {
 			_count = (sl_reg)(ListType::List_NoRef);
 		} else {
@@ -181,7 +181,7 @@ namespace slib
 	SLIB_INLINE ListParam<T>& ListParam<T>::operator=(const List<T>& list) noexcept
 	{
 		_free();
-		_value = list.ref._ptr;
+		_value = list.ref.ptr;
 		if (_value) {
 			_count = (sl_reg)(ListType::List_NoRef);
 		} else {

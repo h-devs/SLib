@@ -95,7 +95,7 @@ namespace slib
 		if (ret.isEmpty()) {
 			return sl_null;
 		} else {
-			return Variant::fromString(ret);
+			return ret;
 		}
 	}
 

@@ -30,8 +30,6 @@
 #include "endian.h"
 #include "time.h"
 
-#include "../math/bigint.h"
-
 namespace slib
 {
 	
@@ -41,6 +39,8 @@ namespace slib
 		Begin = 2,
 		End = 3
 	};
+
+	class BigInt;
 	
 	class SLIB_EXPORT IReader
 	{
@@ -233,15 +233,6 @@ namespace slib
 
 	};
 	
-	class SLIB_EXPORT IStream : public IReader, public IWriter
-	{
-	public:
-		IStream();
-
-		~IStream();
-
-	};
-	
 	class SLIB_EXPORT ISeekable
 	{
 	public:
@@ -264,7 +255,7 @@ namespace slib
 		sl_bool seekToEnd();
 	
 	};
-	
+
 	class SLIB_EXPORT IResizable
 	{
 	public:
@@ -286,30 +277,8 @@ namespace slib
 	public:
 		virtual void close() = 0;
 	};
-	
-	class SLIB_EXPORT Reader : public Object, public IReader, public IClosable
-	{
-		SLIB_DECLARE_OBJECT
-		
-	public:
-		Reader();
-		
-		~Reader();
-		
-	};
 
-	class SLIB_EXPORT Writer : public Object, public IWriter, public IClosable
-	{
-		SLIB_DECLARE_OBJECT
-		
-	public:
-		Writer();
-		
-		~Writer();
-		
-	};
-
-	class SLIB_EXPORT Stream : public Object, public IStream, public IClosable
+	class SLIB_EXPORT Stream : public Object, public IReader, public IWriter, public IClosable
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -320,7 +289,80 @@ namespace slib
 		
 	};
 
-	class SLIB_EXPORT IO : public Stream, public ISeekable, public IResizable
+	namespace priv
+	{
+		namespace io
+		{
+			class SeekableReaderHelperStatic
+			{
+			public:
+				static String readLine(IReader* reader, ISeekable* seekable);
+
+				static Memory readAllBytes(IReader* reader, ISeekable* seekable, sl_size maxSize);
+
+				static String readAllTextUTF8(IReader* reader, ISeekable* seekable, sl_size maxSize);
+
+				static String16 readAllTextUTF16(IReader* reader, ISeekable* seekable, EndianType endian, sl_size maxSize);
+
+				static String readAllText(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize);
+
+				static String16 readAllText16(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize);
+
+				static sl_int64 find(IReader* reader, ISeekable* seekable, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind);
+
+				static sl_int64 findBackward(IReader* reader, ISeekable* seekable, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind);
+
+			};
+		}
+	}
+
+	template <class READER>
+	class SLIB_EXPORT SeekableReaderHelper
+	{
+	public:
+		String readLine()
+		{
+			return priv::io::SeekableReaderHelperStatic::readLine((READER*)this, (READER*)this);
+		}
+
+		Memory readAllBytes(sl_size maxSize = SLIB_SIZE_MAX)
+		{
+			return priv::io::SeekableReaderHelperStatic::readAllBytes((READER*)this, (READER*)this, maxSize);
+		}
+
+		String readAllTextUTF8(sl_size maxSize = SLIB_SIZE_MAX)
+		{
+			return priv::io::SeekableReaderHelperStatic::readAllTextUTF8((READER*)this, (READER*)this, maxSize);
+		}
+
+		String16 readAllTextUTF16(EndianType endian = Endian::Little, sl_size maxSize = SLIB_SIZE_MAX)
+		{
+			return priv::io::SeekableReaderHelperStatic::readAllTextUTF16((READER*)this, (READER*)this, endian, maxSize);
+		}
+
+		String readAllText(Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX)
+		{
+			return priv::io::SeekableReaderHelperStatic::readAllText((READER*)this, (READER*)this, outCharset, maxSize);
+		}
+
+		String16 readAllText16(Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX)
+		{
+			return priv::io::SeekableReaderHelperStatic::readAllText16((READER*)this, (READER*)this, outCharset, maxSize);
+		}
+
+		sl_int64 find(const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_uint64 sizeFind = SLIB_UINT64_MAX)
+		{
+			return priv::io::SeekableReaderHelperStatic::find((READER*)this, (READER*)this, pattern, nPattern, startPosition, sizeFind);
+		}
+
+		sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_uint64 sizeFind = SLIB_UINT64_MAX)
+		{
+			return priv::io::SeekableReaderHelperStatic::findBackward((READER*)this, (READER*)this, pattern, nPattern, startPosition, sizeFind);
+		}
+
+	};
+
+	class SLIB_EXPORT IO : public Stream, public ISeekable, public IResizable, public SeekableReaderHelper<IO>
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -329,19 +371,6 @@ namespace slib
 
 		~IO();
 
-	public:
-		String readLine();
-	
-		Memory readAllBytes(sl_size maxSize = SLIB_SIZE_MAX);
-		
-		String readAllTextUTF8(sl_size maxSize = SLIB_SIZE_MAX);
-		
-		String16 readAllTextUTF16(EndianType endian = Endian::Little, sl_size maxSize = SLIB_SIZE_MAX);
-		
-		String readAllText(Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX);
-		
-		String16 readAllText16(Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX);
-		
 	};
 	
 	class SLIB_EXPORT MemoryIO : public IO
@@ -385,7 +414,11 @@ namespace slib
 		sl_bool setSize(sl_uint64 size) override;
 	
 		sl_bool isResizable();
-		
+
+		sl_int64 find(const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_int64 endPosition = -1);
+
+		sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_int64 endPosition = -1);
+
 	protected:
 		void _initialize(const void* data, sl_size size, sl_bool flagResizable);
 
@@ -403,7 +436,7 @@ namespace slib
 	
 	};
 	
-	class SLIB_EXPORT MemoryReader : public Reader, public ISeekable
+	class SLIB_EXPORT MemoryReader : public Object, public IReader, public ISeekable, public SeekableReaderHelper<MemoryReader>
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -424,8 +457,6 @@ namespace slib
 		sl_size getLength();
 
 		char* getBuffer();
-
-		void close() override;
 		
 		sl_reg read(void* buf, sl_size size) override;
 
@@ -434,7 +465,11 @@ namespace slib
 		sl_uint64 getSize() override;
 
 		sl_bool seek(sl_int64 offset, SeekPosition pos) override;
-		
+
+		sl_int64 find(const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_int64 endPosition = -1);
+
+		sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_int64 endPosition = -1);
+
 	protected:
 		const void* m_buf;
 		sl_size m_size;
@@ -443,7 +478,7 @@ namespace slib
 	
 	};
 	
-	class SLIB_EXPORT MemoryWriter : public Writer, public ISeekable
+	class SLIB_EXPORT MemoryWriter : public Object, public IWriter, public ISeekable
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -464,8 +499,6 @@ namespace slib
 
 		void initialize(void* buf, sl_size size);
 		
-		void close() override;
-
 		sl_reg write(const void* buf, sl_size size) override;
 
 		sl_reg write(const Memory& mem);

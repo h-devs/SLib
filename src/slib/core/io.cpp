@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,10 @@
 #include "slib/core/string_buffer.h"
 #include "slib/core/thread.h"
 #include "slib/core/scoped.h"
+#include "slib/math/bigint.h"
+
+#include "slib/core/io_util.h"
+#include "slib/core/buffered_io.h"
 
 namespace slib
 {
@@ -1303,15 +1307,6 @@ namespace slib
 	}
 
 
-	IStream::IStream()
-	{
-	}
-
-	IStream::~IStream()
-	{
-	}
-
-
 	ISeekable::ISeekable()
 	{
 	}
@@ -1353,39 +1348,348 @@ namespace slib
 	{
 	}
 
-	
-	SLIB_DEFINE_OBJECT(Reader, Object)
-	
-	Reader::Reader()
-	{
-	}
-	
-	Reader::~Reader()
-	{
-	}
-	
-	
-	SLIB_DEFINE_OBJECT(Writer, Object)
-	
-	Writer::Writer()
-	{
-	}
-	
-	Writer::~Writer()
-	{
-	}
-	
-	
+
 	SLIB_DEFINE_OBJECT(Stream, Object)
-	
+
 	Stream::Stream()
 	{
 	}
-	
+
 	Stream::~Stream()
 	{
 	}
 	
+	namespace priv
+	{
+		namespace io
+		{
+
+			String SeekableReaderHelperStatic::readLine(IReader* reader, ISeekable* seekable)
+			{
+				StringBuffer sb;
+#define IO_READLINE_BUF_SIZE 512
+				char buf[IO_READLINE_BUF_SIZE];
+				while (1) {
+					sl_reg n = reader->read(buf, IO_READLINE_BUF_SIZE);
+					if (n > 0) {
+						for (sl_reg i = 0; i < n; i++) {
+							char ch = buf[i];
+							if (ch == '\r' || ch == '\n') {
+								sb.add(String(buf, i));
+								if (ch == '\r') {
+									if (i == IO_READLINE_BUF_SIZE - 1) {
+										if (reader->readUint8('\n') != '\n') {
+											seekable->seek(-1, SeekPosition::Current);
+										}
+									} else {
+										if (i + 1 < n && buf[i + 1] == '\n') {
+											if (i + 2 != n) {
+												seekable->seek(i + 2 - n, SeekPosition::Current);
+											}
+										} else {
+											if (i + 1 != n) {
+												seekable->seek(i + 1 - n, SeekPosition::Current);
+											}
+										}
+									}
+								} else {
+									if (i + 1 != n) {
+										seekable->seek(i + 1 - n, SeekPosition::Current);
+									}
+								}
+								return sb.merge();
+							}
+						}
+						if (!(sb.add(String(buf, n)))) {
+							return String::null();
+						}
+					} else {
+						break;
+					}
+				}
+				if (sb.getLength() == 0) {
+					return String::null();
+				} else {
+					return sb.merge();
+				}
+			}
+	
+			Memory SeekableReaderHelperStatic::readAllBytes(IReader* reader, ISeekable* seekable, sl_size maxSize)
+			{
+#if defined(SLIB_ARCH_IS_64BIT)
+				sl_uint64 size = seekable->getSize();
+#else
+				sl_uint64 _size = seekable->getSize();
+				if (_size > 0x7fffffff) {
+					_size = 0x7fffffff;
+				}
+				sl_size size = (sl_size)_size;
+#endif
+				if (size > maxSize) {
+					size = maxSize;
+				}
+				if (size == 0) {
+					return sl_null;
+				}
+				Memory ret = Memory::create(size);
+				if (ret.isNotNull()) {
+					char* buf = (char*)(ret.getData());
+					if (seekable->seekToBegin()) {
+						if (reader->read(buf, size) == (sl_reg)size) {
+							return ret;
+						}
+					}
+				}
+				return sl_null;
+			}
+	
+			String SeekableReaderHelperStatic::readAllTextUTF8(IReader* reader, ISeekable* seekable, sl_size maxSize)
+			{
+#if defined(SLIB_ARCH_IS_64BIT)
+				sl_uint64 size = seekable->getSize();
+#else
+				sl_uint64 _size = seekable->getSize();
+				if (_size > 0x7fffffff) {
+					return sl_null;
+				}
+				sl_size size = (sl_size)_size;
+#endif
+				if (size > maxSize) {
+					size = maxSize;
+				}
+				if (seekable->seekToBegin()) {
+					return reader->readTextUTF8(size);
+				}
+				return sl_null;
+			}
+	
+			String16 SeekableReaderHelperStatic::readAllTextUTF16(IReader* reader, ISeekable* seekable, EndianType endian, sl_size maxSize)
+			{
+#if defined(SLIB_ARCH_IS_64BIT)
+				sl_uint64 size = seekable->getSize();
+#else
+				sl_uint64 _size = seekable->getSize();
+				if (_size > 0x7fffffff) {
+					return sl_null;
+				}
+				sl_size size = (sl_size)_size;
+#endif
+				if (size > maxSize) {
+					size = maxSize;
+				}
+				if (seekable->seekToBegin()) {
+					return reader->readTextUTF16(size, endian);
+				}
+				return sl_null;
+			}
+	
+			String SeekableReaderHelperStatic::readAllText(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize)
+			{
+#if defined(SLIB_ARCH_IS_64BIT)
+				sl_uint64 size = seekable->getSize();
+#else
+				sl_uint64 _size = seekable->getSize();
+				if (_size > 0x7fffffff) {
+					return sl_null;
+				}
+				sl_size size = (sl_size)_size;
+#endif
+				if (size > maxSize) {
+					size = maxSize;
+				}
+				if (seekable->seekToBegin()) {
+					return reader->readText(size, outCharset);
+				}
+				return sl_null;
+			}
+	
+			String16 SeekableReaderHelperStatic::readAllText16(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize)
+			{
+#if defined(SLIB_ARCH_IS_64BIT)
+				sl_uint64 size = seekable->getSize();
+#else
+				sl_uint64 _size = seekable->getSize();
+				if (_size > 0x7fffffff) {
+					return sl_null;
+				}
+				sl_size size = (sl_size)_size;
+#endif
+				if (size > maxSize) {
+					size = maxSize;
+				}
+				if (seekable->seekToBegin()) {
+					return reader->readText16(size, outCharset);
+				}
+				return sl_null;
+			}
+
+			sl_int64 SeekableReaderHelperStatic::find(IReader* reader, ISeekable* seekable, const void* _pattern, sl_size nPattern, sl_int64 _startPosition, sl_uint64 sizeFind)
+			{
+				sl_uint64 size = seekable->getSize();
+				if (!size) {
+					return -1;
+				}
+				if (!sizeFind) {
+					return -1;
+				}
+				sl_uint64 startPosition;
+				if (_startPosition < 0) {
+					startPosition = 0;
+				} else {
+					startPosition = _startPosition;
+					if (startPosition >= size) {
+						return -1;
+					}
+				}
+				if (!nPattern) {
+					return startPosition;
+				}
+				sl_uint64 sizeRemain = size - startPosition;
+				if (sizeFind > sizeRemain) {
+					sizeFind = sizeRemain;
+				}
+				if (!(seekable->seek(startPosition, SeekPosition::Begin))) {
+					return -1;
+				}
+				sl_uint8* pattern = (sl_uint8*)_pattern;
+				sl_uint8 buf[1024];
+				sl_reg posMatching = 0;
+				sl_uint64 endPosition = startPosition + sizeFind;
+				while (startPosition < endPosition) {
+					sl_uint64 n = endPosition - startPosition;
+					if (n > sizeof(buf)) {
+						n = sizeof(buf);
+					}
+					sl_reg nRead = reader->readFully(buf, (sl_size)n);
+					if (nRead <= 0) {
+						return -1;
+					}
+					sl_size bMatching = posMatching != 0;
+					sl_reg i = -posMatching;
+					for (; i < nRead; i++) {
+						sl_size k;
+						if (bMatching) {
+							k = posMatching;
+							bMatching = sl_false;
+						} else {
+							k = 0;
+						}
+						for (; k < nPattern; k++) {
+							sl_reg j = i + k;
+							if (j >= nRead) {
+								break;
+							}
+							if (j >= 0) {
+								if (buf[j] != pattern[k]) {
+									break;
+								}
+							} else {
+								if (pattern[posMatching + j] != pattern[k]) {
+									break;
+								}
+							}
+						}
+						if (k == nPattern) {
+							return startPosition + i;
+						}
+						if (i + k == nRead) {
+							posMatching = k;
+							break;
+						}
+					}
+					if (i == nRead) {
+						posMatching = 0;
+					}
+					startPosition += nRead;
+				}
+				return -1;
+			}
+
+			sl_int64 SeekableReaderHelperStatic::findBackward(IReader* reader, ISeekable* seekable, const void* _pattern, sl_size nPattern, sl_int64 _startPosition, sl_uint64 sizeFind)
+			{
+				sl_uint64 size = seekable->getSize();
+				if (!size) {
+					return -1;
+				}
+				if (!sizeFind) {
+					return -1;
+				}
+				sl_uint64 startPosition;
+				if (_startPosition < 0) {
+					startPosition = size;
+				} else {
+					startPosition = _startPosition;
+					if (startPosition >= size) {
+						startPosition = size;
+					}
+				}
+				if (!nPattern) {
+					return startPosition;
+				}
+				if (sizeFind > startPosition) {
+					sizeFind = startPosition;
+				}
+				sl_uint8* pattern = (sl_uint8*)_pattern;
+				sl_uint8 buf[1024];
+				sl_reg posMatching = 0;
+				sl_uint64 endPosition = startPosition - sizeFind;
+				while (endPosition < startPosition) {
+					sl_uint64 _n = startPosition - endPosition;
+					if (_n > sizeof(buf)) {
+						_n = sizeof(buf);
+					}
+					sl_size n = (sl_size)_n;
+					if (!(seekable->seek(startPosition - _n, SeekPosition::Begin))) {
+						return -1;
+					}
+					sl_reg nRead = reader->readFully(buf, n);
+					if (nRead != n) {
+						return -1;
+					}
+					sl_size bMatching = posMatching != 0;
+					sl_reg i = -posMatching;
+					for (; i < nRead; i++) {
+						sl_size k;
+						if (bMatching) {
+							k = posMatching;
+							bMatching = sl_false;
+						} else {
+							k = 0;
+						}
+						for (; k < nPattern; k++) {
+							sl_reg j = i + k;
+							if (j >= nRead) {
+								break;
+							}
+							if (j >= 0) {
+								if (buf[nRead - 1 - j] != pattern[nPattern - 1 - k]) {
+									break;
+								}
+							} else {
+								if (pattern[nPattern - 1 - (posMatching + j)] != pattern[nPattern - 1 - k]) {
+									break;
+								}
+							}
+						}
+						if (k == nPattern) {
+							return startPosition - i - nPattern;
+						}
+						if (i + k == nRead) {
+							posMatching = k;
+							break;
+						}
+					}
+					if (i == nRead) {
+						posMatching = 0;
+					}
+					startPosition -= nRead;
+				}
+				return -1;
+			}
+
+		}
+	}
+
 
 	SLIB_DEFINE_OBJECT(IO, Stream)
 
@@ -1396,166 +1700,7 @@ namespace slib
 	IO::~IO()
 	{
 	}
-	
-	String IO::readLine()
-	{
-		StringBuffer sb;
-#define IO_READLINE_BUF_SIZE 512
-		char buf[IO_READLINE_BUF_SIZE];
-		while (1) {
-			sl_reg n = read(buf, IO_READLINE_BUF_SIZE);
-			if (n > 0) {
-				for (sl_reg i = 0; i < n; i++) {
-					char ch = buf[i];
-					if (ch == '\r' || ch == '\n') {
-						sb.add(String(buf, i));
-						if (ch == '\r') {
-							if (i == IO_READLINE_BUF_SIZE - 1) {
-								if (readUint8('\n') != '\n') {
-									seek(-1, SeekPosition::Current);
-								}
-							} else {
-								if (i + 1 < n && buf[i + 1] == '\n') {
-									if (i + 2 != n) {
-										seek(i + 2 - n, SeekPosition::Current);
-									}
-								} else {
-									if (i + 1 != n) {
-										seek(i + 1 - n, SeekPosition::Current);
-									}
-								}
-							}
-						} else {
-							if (i + 1 != n) {
-								seek(i + 1 - n, SeekPosition::Current);
-							}
-						}
-						return sb.merge();
-					}
-				}
-				if (!(sb.add(String(buf, n)))) {
-					return String::null();
-				}
-			} else {
-				break;
-			}
-		}
-		if (sb.getLength() == 0) {
-			return String::null();
-		} else {
-			return sb.merge();
-		}
-	}
-	
-	Memory IO::readAllBytes(sl_size maxSize)
-	{
-#if defined(SLIB_ARCH_IS_64BIT)
-		sl_uint64 size = getSize();
-#else
-		sl_uint64 _size = getSize();
-		if (_size > 0x7fffffff) {
-			_size = 0x7fffffff;
-		}
-		sl_size size = (sl_size)_size;
-#endif
-		if (size > maxSize) {
-			size = maxSize;
-		}
-		if (size == 0) {
-			return sl_null;
-		}
-		Memory ret = Memory::create(size);
-		if (ret.isNotNull()) {
-			char* buf = (char*)(ret.getData());
-			if (seekToBegin()) {
-				if (read(buf, size) == (sl_reg)size) {
-					return ret;
-				}
-			}
-		}
-		return sl_null;
-	}
-	
-	String IO::readAllTextUTF8(sl_size maxSize)
-	{
-#if defined(SLIB_ARCH_IS_64BIT)
-		sl_uint64 size = getSize();
-#else
-		sl_uint64 _size = getSize();
-		if (_size > 0x7fffffff) {
-			return sl_null;
-		}
-		sl_size size = (sl_size)_size;
-#endif
-		if (size > maxSize) {
-			size = maxSize;
-		}
-		if (seekToBegin()) {
-			return readTextUTF8(size);
-		}
-		return sl_null;
-	}
-	
-	String16 IO::readAllTextUTF16(EndianType endian, sl_size maxSize)
-	{
-#if defined(SLIB_ARCH_IS_64BIT)
-		sl_uint64 size = getSize();
-#else
-		sl_uint64 _size = getSize();
-		if (_size > 0x7fffffff) {
-			return sl_null;
-		}
-		sl_size size = (sl_size)_size;
-#endif
-		if (size > maxSize) {
-			size = maxSize;
-		}
-		if (seekToBegin()) {
-			return readTextUTF16(size, endian);
-		}
-		return sl_null;
-	}
-	
-	String IO::readAllText(Charset* outCharset, sl_size maxSize)
-	{
-#if defined(SLIB_ARCH_IS_64BIT)
-		sl_uint64 size = getSize();
-#else
-		sl_uint64 _size = getSize();
-		if (_size > 0x7fffffff) {
-			return sl_null;
-		}
-		sl_size size = (sl_size)_size;
-#endif
-		if (size > maxSize) {
-			size = maxSize;
-		}
-		if (seekToBegin()) {
-			return readText(size, outCharset);
-		}
-		return sl_null;
-	}
-	
-	String16 IO::readAllText16(Charset* outCharset, sl_size maxSize)
-	{
-#if defined(SLIB_ARCH_IS_64BIT)
-		sl_uint64 size = getSize();
-#else
-		sl_uint64 _size = getSize();
-		if (_size > 0x7fffffff) {
-			return sl_null;
-		}
-		sl_size size = (sl_size)_size;
-#endif
-		if (size > maxSize) {
-			size = maxSize;
-		}
-		if (seekToBegin()) {
-			return readText16(size, outCharset);
-		}
-		return sl_null;
-	}
-	
+
 
 	SLIB_DEFINE_OBJECT(MemoryIO, IO)
 	
@@ -1762,8 +1907,65 @@ namespace slib
 		return m_flagResizable;
 	}
 
+	namespace priv
+	{
+		namespace io
+		{
+			static sl_bool FixFindMemoryPosition(sl_size& outStartPos, sl_size& outEndPos, sl_size size, sl_int64 startPos, sl_int64 endPos)
+			{
+				if (startPos < 0) {
+					outStartPos = 0;
+				} else if ((sl_uint64)startPos >= size) {
+					return sl_false;
+				} else {
+					outStartPos = (sl_size)startPos;
+				}
+				if (!endPos) {
+					return sl_false;
+				} else if (endPos< 0) {
+					outEndPos = size;
+				} else if ((sl_size)endPos > size) {
+					outEndPos = size;
+				} else {
+					outEndPos = (sl_size)endPos;
+				}
+				if (startPos >= endPos) {
+					return sl_false;
+				}
+				return sl_true;
+			}
+		}
+	}
 
-	SLIB_DEFINE_OBJECT(MemoryReader, Reader)
+	sl_int64 MemoryIO::find(const void* pattern, sl_size nPattern, sl_int64 _startPosition, sl_int64 _endPosition)
+	{
+		sl_size startPosition, endPosition;
+		if (!(priv::io::FixFindMemoryPosition(startPosition, endPosition, m_size, _startPosition, _endPosition))) {
+			return -1;
+		}
+		sl_uint8* buf = (sl_uint8*)m_buf;
+		sl_uint8* p = Base::findMemory(buf + startPosition, endPosition - startPosition, pattern, nPattern);
+		if (p) {
+			return p - buf;
+		}
+		return -1;
+	}
+
+	sl_int64 MemoryIO::findBackward(const void* pattern, sl_size nPattern, sl_int64 _startPosition, sl_int64 _endPosition)
+	{
+		sl_size startPosition, endPosition;
+		if (!(priv::io::FixFindMemoryPosition(startPosition, endPosition, m_size, _startPosition, _endPosition))) {
+			return -1;
+		}
+		sl_uint8* buf = (sl_uint8*)m_buf;
+		sl_uint8* p = Base::findMemoryBackward(buf + startPosition, endPosition - startPosition, pattern, nPattern);
+		if (p) {
+			return p - buf;
+		}
+		return -1;
+	}
+
+	SLIB_DEFINE_OBJECT(MemoryReader, Object)
 	
 	MemoryReader::MemoryReader(const Memory& mem)
 	{
@@ -1814,14 +2016,6 @@ namespace slib
 		return (char*)m_buf;
 	}
 
-	void MemoryReader::close()
-	{
-		m_buf = sl_null;
-		m_size = 0;
-		m_offset = 0;
-		m_mem.setNull();
-	}
-
 	sl_reg MemoryReader::read(void* buf, sl_size size)
 	{
 		if (size == 0) {
@@ -1867,8 +2061,36 @@ namespace slib
 		return getOffset();
 	}
 
+	sl_int64 MemoryReader::find(const void* pattern, sl_size nPattern, sl_int64 _startPosition, sl_int64 _endPosition)
+	{
+		sl_size startPosition, endPosition;
+		if (!(priv::io::FixFindMemoryPosition(startPosition, endPosition, m_size, _startPosition, _endPosition))) {
+			return -1;
+		}
+		sl_uint8* buf = (sl_uint8*)m_buf;
+		sl_uint8* p = Base::findMemory(buf + startPosition, endPosition - startPosition, pattern, nPattern);
+		if (p) {
+			return p - buf;
+		}
+		return -1;
+	}
+
+	sl_int64 MemoryReader::findBackward(const void* pattern, sl_size nPattern, sl_int64 _startPosition, sl_int64 _endPosition)
+	{
+		sl_size startPosition, endPosition;
+		if (!(priv::io::FixFindMemoryPosition(startPosition, endPosition, m_size, _startPosition, _endPosition))) {
+			return -1;
+		}
+		sl_uint8* buf = (sl_uint8*)m_buf;
+		sl_uint8* p = Base::findMemoryBackward(buf + startPosition, endPosition - startPosition, pattern, nPattern);
+		if (p) {
+			return p - buf;
+		}
+		return -1;
+	}
+
 	
-	SLIB_DEFINE_OBJECT(MemoryWriter, Writer)
+	SLIB_DEFINE_OBJECT(MemoryWriter, Object)
 
 	MemoryWriter::MemoryWriter()
 	{
@@ -1916,14 +2138,6 @@ namespace slib
 		m_offset = 0;
 	}
 	
-	void MemoryWriter::close()
-	{
-		m_buf = sl_null;
-		m_size = 0;
-		m_offset = 0;
-		m_mem.setNull();
-	}
-
 	sl_reg MemoryWriter::write(const void* buf, sl_size size)
 	{
 		if (size == 0) {
@@ -2029,6 +2243,477 @@ namespace slib
 	sl_uint64 MemoryWriter::getPosition()
 	{
 		return getOffset();
+	}
+
+
+	SLIB_DEFINE_OBJECT(BufferedReader, Object)
+
+		BufferedReader::BufferedReader() : m_reader(sl_null), m_closable(sl_null), m_posInBuf(0), m_sizeRead(0), m_dataBuf(sl_null), m_sizeBuf(0)
+	{
+	}
+
+	BufferedReader::~BufferedReader()
+	{
+	}
+
+	Ref<BufferedReader> BufferedReader::create(const Ptrx<IReader, IClosable>& _obj, sl_size bufferSize)
+	{
+		if (!bufferSize) {
+			return sl_null;
+		}
+		Ptrx<IReader, IClosable> obj = _obj.lock();
+		if (!(obj.ptr)) {
+			return sl_null;
+		}
+		Memory buf = Memory::create(bufferSize);
+		if (buf.isNull()) {
+			return sl_null;
+		}
+
+		Ref<BufferedReader> ret = new BufferedReader;
+		if (ret.isNotNull()) {
+			ret->_init(obj, buf);
+			return ret;
+		}
+		return sl_null;
+	}
+
+	sl_reg BufferedReader::read(void* buf, sl_size size)
+	{
+		if (!size) {
+			return -1;
+		}
+		IReader* reader = m_reader;
+		if (!reader) {
+			return -1;
+		}
+		sl_size nAvailable = m_sizeRead - m_posInBuf;
+		if (!nAvailable) {
+			if (size >= m_sizeBuf) {
+				return reader->read(buf, size);
+			}
+			m_posInBuf = 0;
+			sl_reg nRead = reader->read(m_dataBuf, m_sizeBuf);
+			if (nRead <= 0) {
+				m_sizeRead = 0;
+				return nRead;
+			}
+			m_sizeRead = nRead;
+			nAvailable = nRead;
+		}
+		if (size > nAvailable) {
+			size = nAvailable;
+		}
+		Base::copyMemory(buf, m_dataBuf + m_posInBuf, size);
+		m_posInBuf += size;
+		return size;
+	}
+
+	void BufferedReader::close()
+	{
+		if (m_closable) {
+			m_closable->close();
+		}
+		m_reader = sl_null;
+		m_closable = sl_null;
+		m_ref.setNull();
+	}
+
+	void BufferedReader::_init(const Ptrx<IReader, IClosable>& reader, const Memory& buf)
+	{
+		m_ref = reader.ref;
+		m_reader = reader;
+		m_closable = reader;
+
+		m_buf = buf;
+		m_dataBuf = (sl_uint8*)(buf.getData());
+		m_sizeBuf = buf.getSize();
+	}
+
+
+	SLIB_DEFINE_OBJECT(BufferedSeekableReader, Object)
+
+		BufferedSeekableReader::BufferedSeekableReader() : m_reader(sl_null), m_seekable(sl_null), m_closable(sl_null), m_posCurrent(0), m_sizeTotal(0), m_posInternal(0), m_dataBuf(sl_null), m_sizeBuf(0), m_sizeRead(0), m_posBuf(0)
+	{
+	}
+
+	BufferedSeekableReader::~BufferedSeekableReader()
+	{
+	}
+
+	Ref<BufferedSeekableReader> BufferedSeekableReader::create(const Ptrx<IReader, ISeekable, IClosable>& _obj, sl_size bufferSize)
+	{
+		if (!bufferSize) {
+			return sl_null;
+		}
+		Ptrx<IReader, ISeekable, IClosable> obj = _obj.lock();
+		if (!(obj.ptr)) {
+			return sl_null;
+		}
+		ISeekable* seeker = obj;
+		if (!seeker) {
+			return sl_null;
+		}
+		sl_uint64 size = seeker->getSize();
+		if (!size) {
+			return sl_null;
+		}
+		Memory buf = Memory::create(bufferSize);
+		if (buf.isNull()) {
+			return sl_null;
+		}
+
+		Ref<BufferedSeekableReader> ret = new BufferedSeekableReader;
+		if (ret.isNotNull()) {
+			ret->_init(obj, size, buf);
+			return ret;
+		}
+		return sl_null;
+	}
+
+	void BufferedSeekableReader::_init(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_uint64 size, const Memory& buf)
+	{
+		m_ref = reader.ref;
+		m_reader = reader;
+		m_seekable = reader;
+		m_closable = reader;
+
+		m_sizeTotal = size;
+
+		m_buf = buf;
+		m_dataBuf = (sl_uint8*)(buf.getData());
+		m_sizeBuf = buf.getSize();
+	}
+
+	sl_reg BufferedSeekableReader::_readInBuf(void* buf, sl_size size)
+	{
+		if (m_posCurrent >= m_posBuf) {
+			sl_uint64 _offset = m_posCurrent - m_posBuf;
+			if (_offset < m_sizeRead) {
+				sl_size offset = (sl_size)_offset;
+				sl_size nAvailable = m_sizeRead - offset;
+				if (size > nAvailable) {
+					size = nAvailable;
+				}
+				Base::copyMemory(buf, m_dataBuf + offset, size);
+				m_posCurrent += size;
+				return size;
+			}
+		}
+		return -1;
+	}
+
+	sl_bool BufferedSeekableReader::_seekInternal(sl_uint64 pos)
+	{
+		if (pos == m_posInternal) {
+			return sl_true;
+		}
+		ISeekable* seeker = m_seekable;
+		if (seeker) {
+			if (seeker->seek(pos, SeekPosition::Begin)) {
+				m_posInternal = pos;
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_reg BufferedSeekableReader::_readInternal(sl_uint64 pos, void* buf, sl_size size)
+	{
+		if (_seekInternal(pos)) {
+			sl_uint64 n = m_sizeTotal - pos;
+			if (size > n) {
+				size = (sl_size)n;
+			}
+			if (!size) {
+				return -1;
+			}
+			IReader* reader = m_reader;
+			if (reader) {
+				sl_reg nRead = reader->read(buf, size);
+				if (nRead > 0) {
+					m_posInternal += nRead;
+				}
+				return nRead;
+			}
+		}
+		return -1;
+	}
+
+	sl_reg BufferedSeekableReader::_fillBuf(sl_uint64 pos, sl_size size)
+	{
+		m_posBuf = pos;
+		sl_reg nRead = _readInternal(pos, m_dataBuf, size);
+		if (nRead > 0) {
+			m_sizeRead = nRead;
+		} else {
+			m_sizeRead = 0;
+		}
+		return nRead;
+	}
+
+	sl_reg BufferedSeekableReader::_fillBuf(sl_uint64 pos)
+	{
+		return _fillBuf(pos, m_sizeBuf);
+	}
+
+	sl_reg BufferedSeekableReader::_readFillingBuf(sl_uint64 pos, void* buf, sl_size size)
+	{
+		sl_reg nRead = _fillBuf(pos);
+		if (nRead > 0) {
+			return _readInBuf(buf, size);
+		}
+		return nRead;
+	}
+
+	sl_reg BufferedSeekableReader::read(void*& buf)
+	{
+		if (m_posCurrent >= m_sizeTotal) {
+			return -1;
+		}
+		if (m_posCurrent >= m_posBuf) {
+			sl_uint64 _offset = m_posCurrent - m_posBuf;
+			if (_offset < m_sizeRead) {
+				sl_size offset = (sl_size)_offset;
+				sl_size sizeRemain = m_sizeRead - offset;
+				m_posCurrent += sizeRemain;
+				buf = m_dataBuf + offset;
+				return sizeRemain;
+			}
+		}
+		sl_reg nRead = _fillBuf(m_posCurrent);
+		if (nRead > 0) {
+			buf = m_dataBuf;
+			m_posCurrent += nRead;
+		}
+		return nRead;
+	}
+
+	sl_reg BufferedSeekableReader::read(void* _buf, sl_size size)
+	{
+		sl_uint8* buf = (sl_uint8*)_buf;
+		if (!size) {
+			return -1;
+		}
+		if (m_posCurrent >= m_sizeTotal) {
+			return -1;
+		}
+		if (!m_sizeRead) {
+			return _readFillingBuf(m_posCurrent, buf, size);
+		}
+		sl_reg nRead = _readInBuf(buf, size);
+		if (nRead > 0) {
+			return nRead;
+		}
+		if (m_posCurrent >= m_posBuf) {
+			return _readFillingBuf(m_posCurrent, buf, size);
+		}
+		sl_uint64 _offset = m_posBuf - m_posCurrent;
+		if (_offset >= m_sizeBuf) {
+			return _readFillingBuf(m_posCurrent, buf, size);
+		}
+		sl_size offset = (sl_size)_offset;
+		sl_size sizeTailData;
+		if (offset < size) {
+			sizeTailData = size - offset;
+			if (sizeTailData > m_sizeRead) {
+				sizeTailData = m_sizeRead;
+			}
+			Base::copyMemory(buf + offset, m_dataBuf, sizeTailData);
+			size = offset;
+		} else {
+			sizeTailData = 0;
+		}
+		if (m_posBuf >= m_sizeBuf) {
+			nRead = _fillBuf(m_posBuf - m_sizeBuf);
+			if (nRead <= 0) {
+				return nRead;
+			}
+		} else {
+			sl_size pos = (sl_size)m_posBuf;
+			sl_size n = pos + m_sizeRead;
+			if (n > m_sizeBuf) {
+				n = m_sizeBuf;
+			}
+			n -= pos;
+			Base::moveMemory(m_dataBuf + pos, m_dataBuf, n);
+			nRead = _fillBuf(0, pos);
+			if (nRead == pos) {
+				m_sizeRead += n;
+			}
+		}
+		nRead = _readInBuf(buf, size);
+		if (nRead == size) {
+			m_posCurrent += sizeTailData;
+			return size + sizeTailData;
+		}
+		return nRead;
+	}
+
+	sl_uint64 BufferedSeekableReader::getPosition()
+	{
+		return m_posCurrent;
+	}
+
+	sl_uint64 BufferedSeekableReader::getSize()
+	{
+		return m_sizeTotal;
+	}
+
+	sl_bool BufferedSeekableReader::seek(sl_int64 offset, SeekPosition pos)
+	{
+		sl_uint64 posNew;
+		switch (pos) {
+		case SeekPosition::Begin:
+			if (offset < 0) {
+				return sl_false;
+			}
+			if ((sl_uint64)offset > m_sizeTotal) {
+				return sl_false;
+			}
+			m_posCurrent = offset;
+			break;
+		case SeekPosition::End:
+			if (offset > 0) {
+				return sl_false;
+			}
+			if ((sl_uint64)(-offset) > m_sizeTotal) {
+				return sl_false;
+			}
+			posNew = m_sizeTotal + offset;
+			break;
+		case SeekPosition::Current:
+		{
+			sl_uint64 posCurrent = m_posCurrent;
+			if (offset > 0) {
+				if ((sl_uint64)offset > m_sizeTotal - posCurrent) {
+					return sl_false;
+				}
+			} else if (offset < 0) {
+				if ((sl_uint64)(-offset) > posCurrent) {
+					return sl_false;
+				}
+			} else {
+				return sl_true;
+			}
+			m_posCurrent = posCurrent + offset;
+			break;
+		}
+		}
+		return sl_true;
+	}
+
+	void BufferedSeekableReader::close()
+	{
+		if (m_closable) {
+			m_closable->close();
+		}
+		m_reader = sl_null;
+		m_seekable = sl_null;
+		m_closable = sl_null;
+		m_ref.setNull();
+	}
+
+
+	sl_uint64 IOUtil::skip(const Pointerx<IReader, ISeekable>& _reader, sl_uint64 size)
+	{
+		if (!size) {
+			return 0;
+		}
+		ISeekable* seekable = _reader;
+		if (seekable) {
+			if (seekable->seek(size, SeekPosition::Current)) {
+				return size;
+			}
+			sl_uint64 pos = seekable->getPosition();
+			sl_uint64 total = seekable->getSize();
+			if (pos >= total) {
+				return 0;
+			}
+			sl_uint64 remain = total - pos;
+			if (size > remain) {
+				size = remain;
+			}
+			if (seekable->seek(size, SeekPosition::Current)) {
+				return size;
+			}
+			return 0;
+		} else {
+			IReader* reader = _reader;
+			if (reader) {
+				char buf[1024];
+				sl_uint64 nRead = 0;
+				while (nRead < size) {
+					sl_uint64 nRemain = size - nRead;
+					sl_uint32 n = sizeof(buf);
+					if (n > nRemain) {
+						n = (sl_uint32)nRemain;
+					}
+					sl_reg m = reader->read(buf, n);
+					if (m < 0) {
+						return nRead;
+					}
+					nRead += m;
+					if (Thread::isStoppingCurrent()) {
+						return nRead;
+					}
+					if (m == 0) {
+						Thread::sleep(1);
+						if (Thread::isStoppingCurrent()) {
+							return nRead;
+						}
+					}
+				}
+				return nRead;
+			}
+		}
+		return 0;
+	}
+
+	sl_int64 IOUtil::find(const Pointer<IReader, ISeekable>& reader, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind)
+	{
+		return priv::io::SeekableReaderHelperStatic::find(reader, reader, pattern, nPattern, startPosition, sizeFind);
+	}
+
+	sl_int64 IOUtil::findBackward(const Pointer<IReader, ISeekable>& reader, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind)
+	{
+		return priv::io::SeekableReaderHelperStatic::findBackward(reader, reader, pattern, nPattern, startPosition, sizeFind);
+	}
+
+
+	SkippableReader::SkippableReader(): m_reader(sl_null), m_seekable(sl_null)
+	{
+	}
+
+	SkippableReader::SkippableReader(const Ptrx<IReader, ISeekable>& reader): m_ref(reader.ref), m_reader(reader), m_seekable(reader)
+	{
+	}
+
+	SkippableReader::~SkippableReader()
+	{
+	}
+
+	sl_bool SkippableReader::setReader(const Ptrx<IReader, ISeekable>& reader)
+	{
+		m_ref = reader.ref;
+		m_reader = reader;
+		m_seekable = reader;
+		return m_reader != sl_null;
+	}
+
+	sl_reg SkippableReader::read(void* buf, sl_size size)
+	{
+		return m_reader->read(buf, size);
+	}
+
+	sl_int32 SkippableReader::read32(void* buf, sl_uint32 size)
+	{
+		return m_reader->read32(buf, size);
+	}
+
+	sl_uint64 SkippableReader::skip(sl_uint64 size)
+	{
+		return IOUtil::skip(Pointerx<IReader, ISeekable>(m_reader, m_seekable), size);
 	}
 
 }

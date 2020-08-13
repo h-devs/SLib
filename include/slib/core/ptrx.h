@@ -1,0 +1,567 @@
+/*
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *
+ *   Permission is hereby granted, free of charge, to any person obtaining a copy
+ *   of this software and associated documentation files (the "Software"), to deal
+ *   in the Software without restriction, including without limitation the rights
+ *   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *   copies of the Software, and to permit persons to whom the Software is
+ *   furnished to do so, subject to the following conditions:
+ *
+ *   The above copyright notice and this permission notice shall be included in
+ *   all copies or substantial portions of the Software.
+ *
+ *   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *   THE SOFTWARE.
+ */
+
+#ifndef CHECKHEADER_SLIB_CORE_PTRX
+#define CHECKHEADER_SLIB_CORE_PTRX
+
+#include "definition.h"
+
+#include "ptr.h"
+#include "refx.h"
+
+#define PRIV_SLIB_DEFINE_PTRX_COMMON_FUNCTIONS \
+		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Ptr) \
+	public: \
+		using Ptr<T>::ptr; \
+		using Ptr<T>::ref; \
+		using Ptr<T>::lockRef; \
+		template <class... OTHERS> \
+		SLIB_INLINE Ptr(const Ptr<OTHERS...>& v) noexcept : Ptr<T>(v) { _init(v); } \
+		template <class... OTHER> \
+		SLIB_INLINE Ptr(Ptr<OTHER...>&& v) noexcept : Ptr<T>(Move(v)) { _init(v); } \
+		template <class OTHER> \
+		SLIB_INLINE Ptr(const AtomicPtr<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {} \
+		template <class... OTHERS> \
+		SLIB_INLINE Ptr(const Ref<OTHERS...>& v) noexcept : Ptr<T>(v) { _init(v); } \
+		template <class OTHER> \
+		SLIB_INLINE Ptr(const AtomicRef<OTHER>& v) noexcept : Ptr(Ref<OTHER>(v)) {} \
+		template <class OTHER> \
+		SLIB_INLINE Ptr(const WeakRef<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {} \
+		template <class OTHER> \
+		SLIB_INLINE Ptr(const AtomicWeakRef<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {} \
+		template <class OTHER> \
+		SLIB_INLINE Ptr(OTHER* v) noexcept : Ptr<T>(v) { _init(v); } \
+		template <class... OTHERS> \
+		SLIB_INLINE Ptr(const Pointer<OTHERS...>& v) noexcept : Ptr<T>(v) { _init(v); } \
+		SLIB_INLINE static const Ptr null() noexcept { return sl_null; } \
+		SLIB_INLINE void setNull() noexcept { Ptr<T>::setNull(); _init(sl_null); } \
+		template <class... OTHERS> \
+		SLIB_INLINE static const Ptr& from(const Ptr<OTHERS...>& other) noexcept { return *(reinterpret_cast<Ptr const*>(&other)); } \
+		template <class... OTHERS> \
+		SLIB_INLINE static Ptr& from(Ptr<OTHERS...>& other) noexcept { return *(reinterpret_cast<Ptr*>(&other)); } \
+		template <class... OTHERS> \
+		SLIB_INLINE static Ptr&& from(Ptr<OTHERS...>&& other) noexcept { return static_cast<Ptr&&>(*(reinterpret_cast<Ptr*>(&other))); } \
+		SLIB_INLINE void set(sl_null_t) noexcept { setNull(); } \
+		template <class OTHER> \
+		SLIB_INLINE void set(OTHER* v) noexcept { Ptr<T>::set(v); _init(v); } \
+		template <class... OTHERS> \
+		SLIB_INLINE void set(const Ptr<OTHERS...>& v) noexcept { Ptr<T>::set(v); _init(v); } \
+		template <class... OTHERS> \
+		SLIB_INLINE void set(Ptr<OTHERS...>&& v) noexcept { Ptr<T>::set(Move(v)); _init(v); } \
+		template <class OTHER> \
+		SLIB_INLINE void set(const AtomicPtr<OTHER>& v) noexcept { set(Ptr<OTHER>(v)); } \
+		template <class... OTHERS> \
+		SLIB_INLINE void set(const Ref<OTHERS...>& v) noexcept { Ptr<T>::set(v); _init(v); } \
+		template <class OTHER> \
+		SLIB_INLINE void set(const AtomicRef<OTHER>& v) noexcept { set(Ref<OTHER>(v)); } \
+		template <class OTHER> \
+		SLIB_INLINE void set(const WeakRef<OTHER>& v) noexcept { set(Ptr<OTHER>(v)); } \
+		template <class OTHER> \
+		SLIB_INLINE void set(const AtomicWeakRef<OTHER>& v) noexcept { set(Ptr<OTHER>(v)); } \
+		template <class... OTHERS> \
+		SLIB_INLINE void set(const Pointer<OTHERS...>& v) noexcept { Ptr<T>::set(v); _init(v); } \
+		template <class OTHER> \
+		SLIB_INLINE Ptr& operator=(OTHER&& other) noexcept { set(Forward<OTHER>(other)); return *this; }
+
+#define PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(...) \
+	private: \
+		Ptr<__VA_ARGS__> m_ptr; \
+	public: \
+		template <class... OTHERS> \
+		SLIB_INLINE PtrLocker(const Ptr<OTHERS...>& ptr) noexcept: m_ptr(ptr.lock()) {} \
+	public: \
+		SLIB_INLINE void unlock() noexcept { m_ptr.setNull(); } \
+		SLIB_INLINE sl_bool isNull() noexcept { return m_ptr.isNull(); } \
+		SLIB_INLINE sl_bool isNotNull() noexcept { return m_ptr.isNotNull(); }
+
+namespace slib
+{
+
+	template <class T, class... TYPES>
+	using Ptrx = Ptr< PointerxT<T>, TYPES... >;
+
+	template <class T, class... TYPES>
+	using PtrxLocker = PtrLocker< PointerxT<T>, TYPES... >;
+
+	template <class T>
+	class SLIB_EXPORT Ptr< PointerxT<T> > : public Ptr<T>
+	{
+		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Ptr)
+
+	public:
+		using Ptr<T>::ptr;
+		using Ptr<T>::ref;
+		using Ptr<T>::lockRef;
+
+		constexpr Ptr() noexcept {}
+
+		constexpr Ptr(sl_null_t) noexcept {}
+
+		template <class... OTHERS>
+		SLIB_INLINE Ptr(const Ptr<OTHERS...>& v) noexcept : Ptr<T>(_cast(v), v.ref) {}
+
+		template <class... OTHERS>
+		SLIB_INLINE Ptr(Ptr<OTHERS...>&& v) noexcept : Ptr<T>(_cast(v), Move(v.ref)) {}
+
+		template <class OTHER>
+		SLIB_INLINE Ptr(const AtomicPtr<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {}
+
+		template <class... OTHERS>
+		SLIB_INLINE Ptr(const Ref<OTHERS...>& v) noexcept : Ptr<T>(_cast(v), v) {}
+
+		template <class OTHER>
+		SLIB_INLINE Ptr(const AtomicRef<OTHER>& v) noexcept : Ptr(Ref<OTHER>(v)) {}
+
+		template <class OTHER>
+		SLIB_INLINE Ptr(const WeakRef<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {}
+
+		template <class OTHER>
+		SLIB_INLINE Ptr(const AtomicWeakRef<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {}
+
+		template <class OTHER>
+		SLIB_INLINE Ptr(OTHER* v) noexcept : Ptr<T>(_cast(v)) {}
+
+		template <class... OTHERS>
+		SLIB_INLINE Ptr(const Pointer<OTHERS...>& v) noexcept : Ptr<T>(_cast(v)) {}
+
+		template <class REF>
+		SLIB_INLINE Ptr(T* v1, REF&& r) noexcept : Ptr<T>(v1, Forward<REF>(r)) {}
+
+	public:
+		SLIB_INLINE static const Ptr& null() noexcept
+		{
+			return *(reinterpret_cast<Ptr const*>(&(priv::ptr::g_null)));
+		}
+		
+		template <class... OTHERS>
+		SLIB_INLINE static const Ptr& from(const Ptr<OTHERS...>& other) noexcept
+		{
+			return *(reinterpret_cast<Ptr const*>(&other));
+		}
+
+		template <class... OTHERS>
+		SLIB_INLINE static Ptr& from(Ptr<OTHERS...>& other) noexcept
+		{
+			return *(reinterpret_cast<Ptr*>(&other));
+		}
+
+		template <class... OTHERS>
+		SLIB_INLINE static Ptr&& from(Ptr<OTHERS...>&& other) noexcept
+		{
+			return static_cast<Ptr&&>(*(reinterpret_cast<Ptr*>(&other)));
+		}
+		
+	public:
+		template <class OTHER>
+		SLIB_INLINE void set(OTHER* v) noexcept
+		{
+			Ptr<T>::set(_cast(v));
+		}
+
+		template <class... OTHERS>
+		SLIB_INLINE void set(const Ptr<OTHERS...>& v) noexcept
+		{
+			Ptr<T>::set(_cast(v), v.ref);
+		}
+
+		template <class... OTHERS>
+		SLIB_INLINE void set(Ptr<OTHERS...>&& v) noexcept
+		{
+			Ptr<T>::set(_cast(v), Move(v.ref));
+		}
+
+		template <class OTHER>
+		SLIB_INLINE void set(const AtomicPtr<OTHER>& v) noexcept
+		{
+			set(Ptr<OTHER>(v));
+		}
+
+		template <class... OTHERS>
+		SLIB_INLINE void set(const Ref<OTHERS...>& v) noexcept
+		{
+			Ptr<T>::set(_cast(v), v);
+		}
+
+		template <class OTHER>
+		SLIB_INLINE void set(const AtomicRef<OTHER>& v) noexcept
+		{
+			set(Ref<OTHER>(v));
+		}
+
+		template <class OTHER>
+		SLIB_INLINE void set(const WeakRef<OTHER>& v) noexcept
+		{
+			set(Ptr<OTHER>(v));
+		}
+
+		template <class OTHER>
+		SLIB_INLINE void set(const AtomicWeakRef<OTHER>& v) noexcept
+		{
+			set(Ptr<OTHER>(v));
+		}
+
+		template <class... OTHERS>
+		SLIB_INLINE void set(const Pointer<OTHERS...>& v) noexcept
+		{
+			Ptr<T>::set(_cast(v));
+		}
+
+		template <class REF>
+		SLIB_INLINE void set(T* v1, REF&& r) noexcept
+		{
+			Ptr<T>::set(v1, Forward<REF>(r));
+		}
+
+	public:
+		template <class OTHER>
+		SLIB_INLINE Ptr& operator=(OTHER&& other) noexcept
+		{
+			set(Forward<OTHER>(other));
+			return *this;
+		}
+
+		SLIB_INLINE operator T*() const noexcept
+		{
+			return ptr;
+		}
+
+		SLIB_INLINE Ptr lock() const noexcept
+		{
+			Ref<Referable> r;
+			if (lockRef(r)) {
+				return Ptr(ptr, Move(r));
+			}
+			return sl_null;
+		}
+
+	private:
+		template <class OTHER>
+		SLIB_INLINE T* _cast(const OTHER& other)
+		{
+			return PointerxCastHelper<T, IsConvertible<const OTHER&, T*>::value>::cast(other);
+		}
+
+	};
+
+	template <class T, class T2>
+	class SLIB_EXPORT Ptr<T, T2> : public Ptr<T>
+	{
+	public:
+		typedef PointerxHelper<T> Helper;
+		typedef typename Helper::FirstType T1;
+		PRIV_SLIB_DEFINE_PTRX_COMMON_FUNCTIONS
+
+	public:
+		T2 * ptr2;
+
+	public:
+		constexpr Ptr() noexcept : ptr2(sl_null) {}
+
+		constexpr Ptr(sl_null_t) noexcept : ptr2(sl_null) {}
+
+		SLIB_INLINE Ptr(T1* v1, T2* v2) noexcept : Ptr<T>(v1), ptr2(v2) {}
+
+		template <class REF>
+		SLIB_INLINE Ptr(T1* v1, T2* v2, REF&& r) noexcept : Ptr<T>(v1, Forward<REF>(r)), ptr2(v2) {}
+
+	public:
+		SLIB_INLINE operator T1*() const noexcept
+		{
+			return ptr;
+		}
+
+		SLIB_INLINE operator T2*() const noexcept
+		{
+			return ptr2;
+		}
+
+	public:
+		SLIB_INLINE void set(T1* v1, T2* v2) noexcept
+		{
+			Ptr<T>::set(v1);
+			ptr2 = v2;
+		}
+
+		template <class REF>
+		SLIB_INLINE void set(T1* v1, T2* v2, REF&& r) noexcept
+		{
+			Ptr<T>::set(v1, Forward<REF>(r));
+			ptr2 = v2;
+		}
+
+		SLIB_INLINE Ptr lock() const noexcept
+		{
+			Ref<Referable> r;
+			if (lockRef(r)) {
+				return Ptr(ptr, ptr2, Move(r));
+			}
+			return sl_null;
+		}
+
+	private:
+		template <class OTHER>
+		SLIB_INLINE void _init(const OTHER& p)
+		{
+			Helper::init(ptr2, p);
+		}
+
+	};
+
+	template <class T, class T2, class T3>
+	class SLIB_EXPORT Ptr<T, T2, T3> : public Ptr<T>
+	{
+	public:
+		typedef PointerxHelper<T> Helper;
+		typedef typename Helper::FirstType T1;
+		PRIV_SLIB_DEFINE_PTRX_COMMON_FUNCTIONS
+
+	public:
+		T2* ptr2;
+		T3* ptr3;
+
+	public:
+		constexpr Ptr() noexcept : ptr2(sl_null), ptr3(sl_null) {}
+
+		constexpr Ptr(sl_null_t) noexcept : ptr2(sl_null), ptr3(sl_null) {}
+
+		SLIB_INLINE Ptr(T1* v1, T2* v2, T3* v3) noexcept : Ptr<T>(v1), ptr2(v2), ptr3(v3) {}
+
+		template <class REF>
+		SLIB_INLINE Ptr(T1* v1, T2* v2, T3* v3, REF&& r) noexcept : Ptr<T>(v1, Forward<REF>(r)), ptr2(v2), ptr3(v3) {}
+
+	public:
+		SLIB_INLINE operator T1*() const noexcept
+		{
+			return ptr;
+		}
+
+		SLIB_INLINE operator T2*() const noexcept
+		{
+			return ptr2;
+		}
+
+		SLIB_INLINE operator T3*() const noexcept
+		{
+			return ptr3;
+		}
+
+	public:
+		SLIB_INLINE void set(T1* v1, T2* v2, T3* v3) noexcept
+		{
+			Ptr<T>::set(v1);
+			ptr2 = v2;
+			ptr3 = v3;
+		}
+
+		template <class REF>
+		SLIB_INLINE void set(T1* v1, T2* v2, T3* v3, REF&& r) noexcept
+		{
+			Ptr<T>::set(v1, Forward<REF>(r));
+			ptr2 = v2;
+			ptr3 = v3;
+		}
+
+		SLIB_INLINE Ptr lock() const noexcept
+		{
+			Ref<Referable> r;
+			if (lockRef(r)) {
+				return Ptr(ptr, ptr2, ptr3, Move(r));
+			}
+			return sl_null;
+		}
+
+	private:
+		template <class OTHER>
+		SLIB_INLINE void _init(const OTHER& p)
+		{
+			Helper::init(ptr2, p);
+			Helper::init(ptr3, p);
+		}
+
+	};
+
+	template <class T, class T2, class T3, class T4>
+	class SLIB_EXPORT Ptr<T, T2, T3, T4> : public Ptr<T>
+	{
+	public:
+		typedef PointerxHelper<T> Helper;
+		typedef typename Helper::FirstType T1;
+		PRIV_SLIB_DEFINE_PTRX_COMMON_FUNCTIONS
+
+	public:
+		T2* ptr2;
+		T3* ptr3;
+		T4* ptr4;
+
+	public:
+		constexpr Ptr() noexcept : ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+
+		constexpr Ptr(sl_null_t) noexcept : ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+
+		SLIB_INLINE Ptr(T1* v1, T2* v2, T3* v3, T4* v4) noexcept : Ptr<T>(v1), ptr2(v2), ptr3(v3), ptr4(v4) {}
+
+		template <class REF>
+		SLIB_INLINE Ptr(T1* v1, T2* v2, T3* v3, T4* v4, REF&& r) noexcept : Ptr<T>(v1, Forward<REF>(r)), ptr2(v2), ptr3(v3), ptr4(v4) {}
+
+	public:
+		SLIB_INLINE operator T1*() const noexcept
+		{
+			return ptr;
+		}
+
+		SLIB_INLINE operator T2*() const noexcept
+		{
+			return ptr2;
+		}
+
+		SLIB_INLINE operator T3*() const noexcept
+		{
+			return ptr3;
+		}
+
+		SLIB_INLINE operator T4*() const noexcept
+		{
+			return ptr4;
+		}
+
+	public:
+		SLIB_INLINE void set(T1* v1, T2* v2, T3* v3, T4* v4) noexcept
+		{
+			Ptr<T>::set(v1);
+			ptr2 = v2;
+			ptr3 = v3;
+			ptr4 = v4;
+		}
+
+		template <class REF>
+		SLIB_INLINE void set(T1* v1, T2* v2, T3* v3, T4* v4, REF&& r) noexcept
+		{
+			Ptr<T>::set(v1, Forward<REF>(r));
+			ptr2 = v2;
+			ptr3 = v3;
+			ptr4 = v4;
+		}
+
+		SLIB_INLINE Ptr lock() const noexcept
+		{
+			Ref<Referable> r;
+			if (lockRef(r)) {
+				return Ptr(ptr, ptr2, ptr3, ptr4, Move(r));
+			}
+			return sl_null;
+		}
+
+	private:
+		template <class OTHER>
+		SLIB_INLINE void _init(const OTHER& p)
+		{
+			Helper::init(ptr2, p);
+			Helper::init(ptr3, p);
+			Helper::init(ptr4, p);
+		}
+
+	};
+
+
+	template <class T, class T2>
+	class SLIB_EXPORT PtrLocker<T, T2>
+	{
+	public:
+		typedef PointerxHelper<T> Helper;
+		typedef typename Helper::FirstType T1;
+		PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(T, T2)
+		
+	public:
+		SLIB_INLINE operator T1*() const noexcept
+		{
+			return m_ptr.ptr;
+		}
+
+		SLIB_INLINE operator T2*() const noexcept
+		{
+			return m_ptr.ptr2;
+		}
+
+	};
+	
+	template <class T, class T2, class T3>
+	class SLIB_EXPORT PtrLocker<T, T2, T3>
+	{
+	public:
+		typedef PointerxHelper<T> Helper;
+		typedef typename Helper::FirstType T1;
+		PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(T, T2, T3)
+
+	public:
+		SLIB_INLINE operator T1*() const noexcept
+		{
+			return m_ptr.ptr;
+		}
+
+		SLIB_INLINE operator T2*() const noexcept
+		{
+			return m_ptr.ptr2;
+		}
+
+		SLIB_INLINE operator T3*() const noexcept
+		{
+			return m_ptr.ptr3;
+		}
+
+	};
+	
+	template <class T, class T2, class T3, class T4>
+	class SLIB_EXPORT PtrLocker<T, T2, T3, T4>
+	{
+	public:
+		typedef PointerxHelper<T> Helper;
+		typedef typename Helper::FirstType T1;
+		PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(T, T2, T3, T4)
+
+	public:
+		SLIB_INLINE operator T1*() const noexcept
+		{
+			return m_ptr.ptr;
+		}
+
+		SLIB_INLINE operator T2*() const noexcept
+		{
+			return m_ptr.ptr2;
+		}
+
+		SLIB_INLINE operator T3*() const noexcept
+		{
+			return m_ptr.ptr3;
+		}
+		
+		SLIB_INLINE operator T4*() const noexcept
+		{
+			return m_ptr.ptr4;
+		}
+		
+	};
+	
+}
+
+#include "detail/ptrx.inc"
+
+#endif

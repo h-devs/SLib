@@ -116,7 +116,7 @@ namespace slib
 	{
 		if (ip.isIPv4()) {
 			sockaddr_in& out = *((sockaddr_in*)addr);
-			Base::resetMemory(&out, 0, sizeof(sockaddr_in));
+			Base::zeroMemory(&out, sizeof(sockaddr_in));
 			out.sin_family = AF_INET;
 			ip.getIPv4().getBytes(&(out.sin_addr));
 			out.sin_port = htons(port);
@@ -124,7 +124,7 @@ namespace slib
 		} else if (ip.isIPv6()) {
 			IPv6Address ipv6 = ip.getIPv6();
 			sockaddr_in6& out = *((sockaddr_in6*)addr);
-			Base::resetMemory(&out, 0, sizeof(sockaddr_in6));
+			Base::zeroMemory(&out, sizeof(sockaddr_in6));
 			out.sin6_family = AF_INET6;
 			ip.getIPv6().getBytes(&(out.sin6_addr));
 			out.sin6_port = htons(port);

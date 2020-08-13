@@ -407,7 +407,7 @@ namespace slib
 	class String16;
 	template <> struct ArrayTraits<String16> : public ArrayTraits_ZeroInit {};
 	
-	template <class T> class Ref;
+	template <class... TYPES> class Ref;
 	template <class T> struct ArrayTraits< Ref<T> > : public ArrayTraits_ZeroInit {};
 	
 	template <class T> class WeakRef;

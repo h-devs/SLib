@@ -186,7 +186,7 @@ namespace slib
 							sockaddr_storage addr;
 							sl_uint32 lenAddr = m_addressRequestConnect.getSystemSocketAddress(&addr);
 							if (lenAddr) {
-								Base::resetMemory(&m_overlappedConnect, 0, sizeof(m_overlappedConnect));
+								Base::zeroMemory(&m_overlappedConnect, sizeof(m_overlappedConnect));
 								BOOL ret = m_funcConnectEx((SOCKET)handle, (sockaddr*)&addr, lenAddr, NULL, 0, NULL, &m_overlappedConnect);
 								if (ret) {
 									_onConnect(sl_true);

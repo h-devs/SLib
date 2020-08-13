@@ -23,6 +23,7 @@
 #include "slib/core/base.h"
 
 #include "slib/core/system.h"
+#include "slib/core/memory_traits.h"
 
 #if !defined(SLIB_PLATFORM_IS_APPLE)
 #	include <malloc.h>
@@ -85,14 +86,14 @@ namespace slib
 		return ptr;
 	}
 
-	void Base::copyMemory(void* dst, const void* src, sl_size count) noexcept
+	void Base::copyMemory(void* dst, const void* src, sl_size size) noexcept
 	{
-		memcpy(dst, src, count);
+		memcpy(dst, src, size);
 	}
-	
-	void Base::moveMemory(void* dst, const void* src, sl_size count) noexcept
+
+	void Base::moveMemory(void* dst, const void* src, sl_size size) noexcept
 	{
-		memmove(dst, src, count);
+		memmove(dst, src, size);
 	}
 
 	void Base::zeroMemory(void* dst, sl_size size) noexcept
@@ -100,39 +101,24 @@ namespace slib
 		memset(dst, 0, size);
 	}
 
-	void Base::resetMemory(void* dst, sl_uint8 value, sl_size count) noexcept
+	void Base::resetMemory(void* dst, sl_size size, sl_uint8 value) noexcept
 	{
-		memset(dst, value, count);
+		memset(dst, value, size);
 	}
 
-	void Base::resetMemory2(sl_uint16* dst, sl_uint16 value, sl_size count) noexcept
+	void Base::resetMemory2(void* dst, sl_size count, sl_uint16 value) noexcept
 	{
 		std::char_traits<sl_base_char16>::assign((sl_base_char16*)dst, count, (sl_base_char16)value);
 	}
 
-	void Base::resetMemory2(sl_int16* dst, sl_int16 value, sl_size count) noexcept
-	{
-		std::char_traits<sl_base_char16>::assign((sl_base_char16*)dst, count, (sl_base_char16)value);
-	}
-
-	void Base::resetMemory4(sl_uint32* dst, sl_uint32 value, sl_size count) noexcept
+	void Base::resetMemory4(void* dst, sl_size count, sl_uint32 value) noexcept
 	{
 		std::char_traits<sl_base_char32>::assign((sl_base_char32*)dst, count, (sl_base_char32)value);
 	}
 
-	void Base::resetMemory4(sl_int32* dst, sl_int32 value, sl_size count) noexcept
+	void Base::resetMemory8(void* dst, sl_size count, sl_uint64 value) noexcept
 	{
-		std::char_traits<sl_base_char32>::assign((sl_base_char32*)dst, count, (sl_base_char32)value);
-	}
-
-	void Base::resetMemory8(sl_uint64* dst, sl_uint64 value, sl_size count) noexcept
-	{
-		std::char_traits<sl_uint64>::assign(dst, count, value);
-	}
-
-	void Base::resetMemory8(sl_int64* dst, sl_int64 value, sl_size count) noexcept
-	{
-		std::char_traits<sl_int64>::assign(dst, count, value);
+		std::char_traits<sl_uint64>::assign((sl_uint64*)dst, count, value);
 	}
 
 	sl_bool Base::equalsMemory(const void* m1, const void* m2, sl_size count) noexcept
@@ -140,375 +126,380 @@ namespace slib
 		return memcmp(m1, m2, count) == 0;
 	}
 
-	sl_bool Base::equalsMemory2(const sl_uint16* m1, const sl_uint16* m2, sl_size count) noexcept
-	{
-		return memcmp(m1, m2, count << 1) == 0;
-	}
-
-	sl_bool Base::equalsMemory2(const sl_int16* m1, const sl_int16* m2, sl_size count) noexcept
-	{
-		return memcmp(m1, m2, count << 1) == 0;
-	}
-
-	sl_bool Base::equalsMemory4(const sl_uint32* m1, const sl_uint32* m2, sl_size count) noexcept
-	{
-		return memcmp(m1, m2, count << 2) == 0;
-	}
-
-	sl_bool Base::equalsMemory4(const sl_int32* m1, const sl_int32* m2, sl_size count) noexcept
-	{
-		return memcmp(m1, m2, count << 2) == 0;
-	}
-
-	sl_bool Base::equalsMemory8(const sl_uint64* m1, const sl_uint64* m2, sl_size count) noexcept
-	{
-		return memcmp(m1, m2, count << 3) == 0;
-	}
-
-	sl_bool Base::equalsMemory8(const sl_int64* m1, const sl_int64* m2, sl_size count) noexcept
-	{
-		return memcmp(m1, m2, count << 3) == 0;
-	}
-
-	sl_compare_result Base::compareMemory(const sl_uint8* m1, const sl_uint8* m2, sl_size count) noexcept
+	sl_compare_result Base::compareMemory(const void* m1, const void* m2, sl_size count) noexcept
 	{
 		return (sl_compare_result)(memcmp(m1, m2, count));
 	}
 
-	sl_compare_result Base::compareMemory(const sl_int8* m1, const sl_int8* m2, sl_size count) noexcept
-	{
-		return (sl_compare_result)(std::char_traits<sl_int8>::compare(m1, m2, count));
-	}
-
-	sl_compare_result Base::compareMemory2(const sl_uint16* m1, const sl_uint16* m2, sl_size count) noexcept
+	sl_compare_result Base::compareMemory2(const void* m1, const void* m2, sl_size count) noexcept
 	{
 		return (sl_compare_result)(std::char_traits<sl_base_char16>::compare((sl_base_char16*)m1, (sl_base_char16*)m2, count));
 	}
 
-	sl_compare_result Base::compareMemory2(const sl_int16* m1, const sl_int16* m2, sl_size count) noexcept
-	{
-		return (sl_compare_result)(std::char_traits<sl_int16>::compare(m1, m2, count));
-	}
-
-	sl_compare_result Base::compareMemory4(const sl_uint32* m1, const sl_uint32* m2, sl_size count) noexcept
+	sl_compare_result Base::compareMemory4(const void* m1, const void* m2, sl_size count) noexcept
 	{
 		return (sl_compare_result)(std::char_traits<sl_base_char32>::compare((sl_base_char32*)m1, (sl_base_char32*)m2, count));
 	}
 
-	sl_compare_result Base::compareMemory4(const sl_int32* m1, const sl_int32* m2, sl_size count) noexcept
+	sl_compare_result Base::compareMemory8(const void* m1, const void* m2, sl_size count) noexcept
 	{
-		return (sl_compare_result)(std::char_traits<sl_int32>::compare(m1, m2, count));
+		return (sl_compare_result)(std::char_traits<sl_uint64>::compare((sl_uint64*)m1, (sl_uint64*)m2, count));
 	}
 
-	sl_compare_result Base::compareMemory8(const sl_uint64* m1, const sl_uint64* m2, sl_size count) noexcept
+	sl_compare_result Base::compareMemorySigned(const void* m1, const void* m2, sl_size count) noexcept
 	{
-		return (sl_compare_result)(std::char_traits<sl_uint64>::compare(m1, m2, count));
+		return (sl_compare_result)(std::char_traits<sl_int8>::compare((sl_int8*)m1, (sl_int8*)m2, count));
 	}
 
-	sl_compare_result Base::compareMemory8(const sl_int64* m1, const sl_int64* m2, sl_size count) noexcept
+	sl_compare_result Base::compareMemorySigned2(const void* m1, const void* m2, sl_size count) noexcept
 	{
-		return (sl_compare_result)(std::char_traits<sl_int64>::compare(m1, m2, count));
+		return (sl_compare_result)(std::char_traits<sl_int16>::compare((sl_int16*)m1, (sl_int16*)m2, count));
 	}
 
-	sl_bool Base::equalsMemoryZero(const void* _m, sl_size count) noexcept
+	sl_compare_result Base::compareMemorySigned4(const void* m1, const void* m2, sl_size count) noexcept
+	{
+		return (sl_compare_result)(std::char_traits<sl_int32>::compare((sl_int32*)m1, (sl_int32*)m2, count));
+	}
+
+	sl_compare_result Base::compareMemorySigned8(const void* m1, const void* m2, sl_size count) noexcept
+	{
+		return (sl_compare_result)(std::char_traits<sl_int64>::compare((sl_int64*)m1, (sl_int64*)m2, count));
+	}
+
+	sl_bool Base::equalsMemoryZero(const void* m, sl_size size) noexcept
+	{
+		sl_size t = (sl_size)m;
+		sl_uint8* b;
+#ifdef SLIB_ARCH_IS_64BIT
+		if (!(t & 7)) {
+			sl_uint64* q = (sl_uint64*)m;
+			sl_uint64* qe = q + (size >> 3);
+			while (q < qe) {
+				if (*q) {
+					return sl_false;
+				}
+				q++;
+			}
+			b = (sl_uint8*)qe;
+		} else
+#endif
+		if (!(t & 3)) {
+			sl_uint32* d = (sl_uint32*)m;
+			sl_uint32* de = d + (size >> 2);
+			while (d < de) {
+				if (*d) {
+					return sl_false;
+				}
+				d++;
+			}
+			b = (sl_uint8*)de;
+		} else if (!(t & 1)) {
+			sl_uint16* w = (sl_uint16*)m;
+			sl_uint16* we = w + (size >> 1);
+			while (w < we) {
+				if (*w) {
+					return sl_false;
+				}
+				w++;
+			}
+			b = (sl_uint8*)we;
+		} else {
+			b = (sl_uint8*)m;
+		}
+		sl_uint8* be = ((sl_uint8*)m) + size;
+		while (b < be) {
+			if (*b) {
+				return sl_false;
+			}
+			b++;
+		}
+		return sl_true;
+	}
+
+	sl_compare_result Base::compareMemoryZero(const void* m, sl_size count) noexcept
+	{
+		return equalsMemoryZero(m, count) ? 0 : 1;
+	}
+
+	sl_compare_result Base::compareMemoryZeroSigned(const void* _m, sl_size count) noexcept
+	{
+		sl_int8* m = (sl_int8*)_m;
+		sl_int8* end = m + count;
+		for (; m < end; m++) {
+			sl_int8 v = *m;
+			if (v) {
+				if (v < 0) {
+					return -1;
+				} else {
+					return 1;
+				}
+			}
+		}
+		return 0;
+	}
+
+	sl_compare_result Base::compareMemoryZeroSigned2(const void* _m, sl_size count) noexcept
+	{
+		sl_int32* m = (sl_int32*)_m;
+		sl_int32* end = m + count;
+		for (; m < end; m++) {
+			sl_int16 v = *m;
+			if (v) {
+				if (v < 0) {
+					return -1;
+				} else {
+					return 1;
+				}
+			}
+		}
+		return 0;
+	}
+
+	sl_compare_result Base::compareMemoryZeroSigned4(const void* _m, sl_size count) noexcept
+	{
+		sl_int32* m = (sl_int32*)_m;
+		sl_int32* end = m + count;
+		for (; m < end; m++) {
+			sl_int32 v = *m;
+			if (v) {
+				if (v < 0) {
+					return -1;
+				} else {
+					return 1;
+				}
+			}
+		}
+		return 0;
+	}
+
+	sl_compare_result Base::compareMemoryZeroSigned8(const void* _m, sl_size count) noexcept
+	{
+		sl_int64* m = (sl_int64*)_m;
+		sl_int64* end = m + count;
+		for (; m < end; m++) {
+			sl_int64 v = *m;
+			if (v) {
+				if (v < 0) {
+					return -1;
+				} else {
+					return 1;
+				}
+			}
+		}
+		return 0;
+	}
+
+	sl_uint8* Base::findMemory(const void* m, sl_size size, sl_uint8 pattern) noexcept
+	{		
+		return (sl_uint8*)(memchr(m, pattern, size));
+	}
+
+	sl_uint16* Base::findMemory2(const void* m, sl_size count, sl_uint16 pattern) noexcept
+	{
+		return (sl_uint16*)(std::char_traits<sl_base_char16>::find((sl_base_char16*)m, count, (sl_base_char16)pattern));
+	}
+
+	sl_uint32* Base::findMemory4(const void* m, sl_size count, sl_uint32 pattern) noexcept
+	{
+		return (sl_uint32*)(std::char_traits<sl_base_char32>::find((sl_base_char32*)m, count, (sl_base_char32)pattern));
+	}
+
+	sl_uint64* Base::findMemory8(const void* m, sl_size count, sl_uint64 pattern) noexcept
+	{
+		return (sl_uint64*)(std::char_traits<sl_uint64>::find((sl_uint64*)m, count, pattern));
+	}
+
+	sl_uint8* Base::findMemory(const void* m, sl_size size, const void* pattern, sl_size nPattern) noexcept
+	{
+		return MemoryTraitsFind<sl_uint8>::find((sl_uint8*)m, size, (sl_uint8*)pattern, nPattern);
+	}
+
+	sl_uint16* Base::findMemory2(const void* m, sl_size size, const void* pattern, sl_size nPattern) noexcept
+	{
+		return MemoryTraitsFind<sl_uint16>::find((sl_uint16*)m, size, (sl_uint16*)pattern, nPattern);
+	}
+
+	sl_uint32* Base::findMemory4(const void* m, sl_size size, const void* pattern, sl_size nPattern) noexcept
+	{
+		return MemoryTraitsFind<sl_uint32>::find((sl_uint32*)m, size, (sl_uint32*)pattern, nPattern);
+	}
+
+	sl_uint64* Base::findMemory8(const void* m, sl_size size, const void* pattern, sl_size nPattern) noexcept
+	{
+		return MemoryTraitsFind<sl_uint64>::find((sl_uint64*)m, size, (sl_uint64*)pattern, nPattern);
+	}
+
+	sl_uint8* Base::findMemoryBackward(const void* _m, sl_size size, sl_uint8 pattern) noexcept
 	{
 		sl_uint8* m = (sl_uint8*)_m;
-		for (sl_size i = 0; i < count; i++) {
-			if (m[i]) {
-				return sl_false;
-			}
-		}
-		return sl_true;
-	}
-
-	sl_bool Base::equalsMemoryZero2(const sl_uint16* m, sl_size count) noexcept
-	{
-		for (sl_size i = 0; i < count; i++) {
-			if (m[i]) {
-				return sl_false;
-			}
-		}
-		return sl_true;
-	}
-
-	sl_bool Base::equalsMemoryZero2(const sl_int16* m, sl_size count) noexcept
-	{
-		for (sl_size i = 0; i < count; i++) {
-			if (m[i]) {
-				return sl_false;
-			}
-		}
-		return sl_true;
-	}
-
-	sl_bool Base::equalsMemoryZero4(const sl_uint32* m, sl_size count) noexcept
-	{
-		for (sl_size i = 0; i < count; i++) {
-			if (m[i]) {
-				return sl_false;
-			}
-		}
-		return sl_true;
-	}
-
-	sl_bool Base::equalsMemoryZero4(const sl_int32* m, sl_size count) noexcept
-	{
-		for (sl_size i = 0; i < count; i++) {
-			if (m[i]) {
-				return sl_false;
-			}
-		}
-		return sl_true;
-	}
-
-	sl_bool Base::equalsMemoryZero8(const sl_uint64* m, sl_size count) noexcept
-	{
-		for (sl_size i = 0; i < count; i++) {
-			if (m[i]) {
-				return sl_false;
-			}
-		}
-		return sl_true;
-	}
-
-	sl_bool Base::equalsMemoryZero8(const sl_int64* m, sl_size count) noexcept
-	{
-		for (sl_size i = 0; i < count; i++) {
-			if (m[i]) {
-				return sl_false;
-			}
-		}
-		return sl_true;
-	}
-
-	sl_compare_result Base::compareMemoryZero(const sl_uint8* m, sl_size count) noexcept
-	{
-		for (sl_size i = 0; i < count; i++) {
-			if (m[i]) {
-				return 1;
-			}
-		}
-		return 0;
-	}
-
-	sl_compare_result Base::compareMemoryZero(const sl_int8* m, sl_size count) noexcept
-	{
-		for (sl_size i = 0; i < count; i++) {
-			sl_int8 v = m[i];
-			if (v) {
-				if (v < 0) {
-					return -1;
-				} else {
-					return 1;
-				}
-			}
-		}
-		return 0;
-	}
-
-	sl_compare_result Base::compareMemoryZero2(const sl_uint16* m, sl_size count) noexcept
-	{
-		for (sl_size i = 0; i < count; i++) {
-			if (m[i]) {
-				return 1;
-			}
-		}
-		return 0;
-	}
-
-	sl_compare_result Base::compareMemoryZero2(const sl_int16* m, sl_size count) noexcept
-	{
-		for (sl_size i = 0; i < count; i++) {
-			sl_int16 v = m[i];
-			if (v) {
-				if (v < 0) {
-					return -1;
-				} else {
-					return 1;
-				}
-			}
-		}
-		return 0;
-	}
-
-	sl_compare_result Base::compareMemoryZero4(const sl_uint32* m, sl_size count) noexcept
-	{
-		for (sl_size i = 0; i < count; i++) {
-			if (m[i]) {
-				return 1;
-			}
-		}
-		return 0;
-	}
-
-	sl_compare_result Base::compareMemoryZero4(const sl_int32* m, sl_size count) noexcept
-	{
-		for (sl_size i = 0; i < count; i++) {
-			sl_int32 v = m[i];
-			if (v) {
-				if (v < 0) {
-					return -1;
-				} else {
-					return 1;
-				}
-			}
-		}
-		return 0;
-	}
-
-	sl_compare_result Base::compareMemoryZero8(const sl_uint64* m, sl_size count) noexcept
-	{
-		for (sl_size i = 0; i < count; i++) {
-			if (m[i]) {
-				return 1;
-			}
-		}
-		return 0;
-	}
-
-	sl_compare_result Base::compareMemoryZero8(const sl_int64* m, sl_size count) noexcept
-	{
-		for (sl_size i = 0; i < count; i++) {
-			sl_int64 v = m[i];
-			if (v) {
-				if (v < 0) {
-					return -1;
-				} else {
-					return 1;
-				}
-			}
-		}
-		return 0;
-	}
-
-	const sl_uint8* Base::findMemory(const void* mem, sl_uint8 pattern, sl_size count) noexcept
-	{		
-		return (const sl_uint8*)(memchr(mem, pattern, count));
-	}
-
-	const sl_int8* Base::findMemory(const sl_int8* mem, sl_int8 pattern, sl_size count) noexcept
-	{
-		return (const sl_int8*)(memchr(mem, pattern, count));
-	}
-
-	const sl_uint16* Base::findMemory2(const sl_uint16* m, sl_uint16 pattern, sl_size count) noexcept
-	{
-		return (const sl_uint16*)(std::char_traits<sl_base_char16>::find((sl_base_char16*)m, count, (sl_base_char16)pattern));
-	}
-
-	const sl_int16* Base::findMemory2(const sl_int16* m, sl_int16 pattern, sl_size count) noexcept
-	{
-		return (const sl_int16*)(std::char_traits<sl_base_char16>::find((sl_base_char16*)m, count, (sl_base_char16)pattern));
-	}
-
-	const sl_uint32* Base::findMemory4(const sl_uint32* m, sl_uint32 pattern, sl_size count) noexcept
-	{
-		return (const sl_uint32*)(std::char_traits<sl_base_char32>::find((sl_base_char32*)m, count, (sl_base_char32)pattern));
-	}
-
-	const sl_int32* Base::findMemory4(const sl_int32* m, sl_int32 pattern, sl_size count) noexcept
-	{
-		return (const sl_int32*)(std::char_traits<sl_base_char32>::find((sl_base_char32*)m, count, (sl_base_char32)pattern));
-	}
-
-	const sl_uint64* Base::findMemory8(const sl_uint64* m, sl_uint64 pattern, sl_size count) noexcept
-	{
-		return std::char_traits<sl_uint64>::find(m, count, pattern);
-	}
-
-	const sl_int64* Base::findMemory8(const sl_int64* m, sl_int64 pattern, sl_size count) noexcept
-	{
-		return std::char_traits<sl_int64>::find(m, count, pattern);
-	}
-
-	const sl_uint8* Base::findMemoryReverse(const void* mem, sl_uint8 pattern, sl_size count) noexcept
-	{
-		sl_uint8* m = (sl_uint8*)mem;
-		for (sl_reg i = count - 1; i >= 0; i--) {
-			if (m[i] == pattern) {
-				return m + i;
+		sl_uint8* end = m + size;
+		while (end > m) {
+			end--;
+			if (*end == pattern) {
+				return end;
 			}
 		}
 		return sl_null;
 	}
 
-	const sl_uint16* Base::findMemoryReverse2(const sl_uint16* m, sl_uint16 pattern, sl_size count) noexcept
+	sl_uint16* Base::findMemoryBackward2(const void* _m, sl_size count, sl_uint16 pattern) noexcept
 	{
-		for (sl_reg i = count - 1; i >= 0; i--) {
-			if (m[i] == pattern) {
-				return m + i;
+		sl_uint16* m = (sl_uint16*)_m;
+		sl_uint16* end = m + count;
+		while (end > m) {
+			end--;
+			if (*end == pattern) {
+				return end;
 			}
 		}
 		return sl_null;
 	}
 
-	const sl_int16* Base::findMemoryReverse2(const sl_int16* m, sl_int16 pattern, sl_size count) noexcept
+	sl_uint32* Base::findMemoryBackward4(const void* _m, sl_size count, sl_uint32 pattern) noexcept
 	{
-		for (sl_reg i = count - 1; i >= 0; i--) {
-			if (m[i] == pattern) {
-				return m + i;
+		sl_uint32* m = (sl_uint32*)_m;
+		sl_uint32* end = m + count;
+		while (end > m) {
+			end--;
+			if (*end == pattern) {
+				return end;
 			}
 		}
 		return sl_null;
 	}
 
-	const sl_uint32* Base::findMemoryReverse4(const sl_uint32* m, sl_uint32 pattern, sl_size count) noexcept
+	sl_uint64* Base::findMemoryBackward8(const void* _m, sl_size count, sl_uint64 pattern) noexcept
 	{
-		for (sl_reg i = count - 1; i >= 0; i--) {
-			if (m[i] == pattern) {
-				return m + i;
+		sl_uint64* m = (sl_uint64*)_m;
+		sl_uint64* end = m + count;
+		while (end > m) {
+			end--;
+			if (*end == pattern) {
+				return end;
 			}
 		}
 		return sl_null;
 	}
 
-	const sl_int32* Base::findMemoryReverse4(const sl_int32* m, sl_int32 pattern, sl_size count) noexcept
+	sl_uint8* Base::findMemoryBackward(const void* m, sl_size size, const void* pattern, sl_size nPattern) noexcept
 	{
-		for (sl_reg i = count - 1; i >= 0; i--) {
-			if (m[i] == pattern) {
-				return m + i;
-			}
-		}
-		return sl_null;
+		return MemoryTraitsFind<sl_uint8>::findBackward((sl_uint8*)m, size, (sl_uint8*)pattern, nPattern);
 	}
 
-	const sl_uint64* Base::findMemoryReverse8(const sl_uint64* mem, sl_uint64 pattern, sl_size count) noexcept
+	sl_uint16* Base::findMemoryBackward2(const void* m, sl_size size, const void* pattern, sl_size nPattern) noexcept
 	{
-		sl_uint64* m = (sl_uint64*)mem;
-		for (sl_reg i = count - 1; i >= 0; i--) {
-			if (m[i] == pattern) {
-				return m + i;
-			}
-		}
-		return sl_null;
+		return MemoryTraitsFind<sl_uint16>::findBackward((sl_uint16*)m, size, (sl_uint16*)pattern, nPattern);
 	}
 
-	const sl_int64* Base::findMemoryReverse8(const sl_int64* mem, sl_int64 pattern, sl_size count) noexcept
+	sl_uint32* Base::findMemoryBackward4(const void* m, sl_size size, const void* pattern, sl_size nPattern) noexcept
 	{
-		sl_int64* m = (sl_int64*)mem;
-		for (sl_reg i = count - 1; i >= 0; i--) {
-			if (m[i] == pattern) {
-				return m + i;
-			}
-		}
-		return sl_null;
+		return MemoryTraitsFind<sl_uint32>::findBackward((sl_uint32*)m, size, (sl_uint32*)pattern, nPattern);
 	}
 
-	const sl_uint8* Base::findMemoryUntilZero(const void* mem, sl_uint8 pattern, sl_size count) noexcept
+	sl_uint64* Base::findMemoryBackward8(const void* m, sl_size size, const void* pattern, sl_size nPattern) noexcept
 	{
-		sl_uint8* m = (sl_uint8*)mem;
-		for (sl_size i = 0; i < count; i++) {
-			if (m[i] == 0) {
-				break;
-			}
-			if (m[i] == pattern) {
-				return m + i;
-			}
-		}
-		return sl_null;
+		return MemoryTraitsFind<sl_uint64>::findBackward((sl_uint64*)m, size, (sl_uint64*)pattern, nPattern);
 	}
 
 #define STRING_LENGTH_LIMIT 0x1000000
+
+	sl_size Base::copyString(sl_char8* dst, const sl_char8* src, sl_reg count) noexcept
+	{
+		if (count < 0) {
+			count = STRING_LENGTH_LIMIT;
+		}
+		for (sl_reg i = 0; i < count; i++) {
+			dst[i] = src[i];
+			if (dst[i] == 0) {
+				return i + 1;
+			}
+		}
+		return count;
+	}
+
+	sl_size Base::copyString2(sl_char16* dst, const sl_char16* src, sl_reg count) noexcept
+	{
+		if (count < 0) {
+			count = STRING_LENGTH_LIMIT;
+		}
+		for (sl_reg i = 0; i < count; i++) {
+			dst[i] = src[i];
+			if (dst[i] == 0) {
+				return i + 1;
+			}
+		}
+		return count;
+	}
+
+	sl_size Base::copyString4(sl_char32* dst, const sl_char32* src, sl_reg count) noexcept
+	{
+		if (count < 0) {
+			count = STRING_LENGTH_LIMIT;
+		}
+		for (sl_reg i = 0; i < count; i++) {
+			dst[i] = src[i];
+			if (dst[i] == 0) {
+				return i + 1;
+			}
+		}
+		return count;
+	}
+
+	sl_size Base::getStringLength(const sl_char8* sz, sl_reg count) noexcept
+	{
+		if (!sz) {
+			return 0;
+		}
+		if (!count) {
+			return 0;
+		}
+		if (count < 0) {
+			count = STRING_LENGTH_LIMIT;
+		}
+		return strnlen(sz, count);
+	}
+
+	sl_size Base::getStringLength2(const sl_char16* sz, sl_reg count) noexcept
+	{
+		if (!sz) {
+			return 0;
+		}
+		if (!count) {
+			return 0;
+		}
+		if (count < 0) {
+			count = STRING_LENGTH_LIMIT;
+		}
+#if SLIB_WCHAR_SIZE == 2
+		return wcsnlen((wchar_t*)sz, count);
+#else
+		for (sl_reg i = 0; i < count; i++) {
+			if (sz[i] == 0) {
+				return i;
+			}
+		}
+		return count;
+#endif
+	}
+
+	sl_size Base::getStringLength4(const sl_char32* sz, sl_reg count) noexcept
+	{
+		if (!sz) {
+			return 0;
+		}
+		if (!count) {
+			return 0;
+		}
+		if (count < 0) {
+			count = STRING_LENGTH_LIMIT;
+		}
+		for (sl_reg i = 0; i < count; i++) {
+			if (sz[i] == 0) {
+				return i;
+			}
+		}
+		return count;
+	}
 
 	sl_bool Base::equalsString(const sl_char8 *s1, const sl_char8 *s2, sl_reg count) noexcept
 	{
@@ -608,104 +599,6 @@ namespace slib
 		}
 		return 0;
 #endif
-	}
-
-	sl_size Base::copyString(sl_char8* dst, const sl_char8* src, sl_reg count) noexcept
-	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
-		for (sl_reg i = 0; i < count; i++) {
-			dst[i] = src[i];
-			if (dst[i] == 0) {
-				return i + 1;
-			}
-		}
-		return count;
-	}
-
-	sl_size Base::copyString2(sl_char16* dst, const sl_char16* src, sl_reg count) noexcept
-	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
-		for (sl_reg i = 0; i < count; i++) {
-			dst[i] = src[i];
-			if (dst[i] == 0) {
-				return i + 1;
-			}
-		}
-		return count;
-	}
-
-	sl_size Base::copyString4(sl_char32* dst, const sl_char32* src, sl_reg count) noexcept
-	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
-		for (sl_reg i = 0; i < count; i++) {
-			dst[i] = src[i];
-			if (dst[i] == 0) {
-				return i + 1;
-			}
-		}
-		return count;
-	}
-
-	sl_size Base::getStringLength(const sl_char8* sz, sl_reg count) noexcept
-	{
-		if (!sz) {
-			return 0;
-		}
-		if (!count) {
-			return 0;
-		}
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
-		return strnlen(sz, count);
-	}
-
-	sl_size Base::getStringLength2(const sl_char16* sz, sl_reg count) noexcept
-	{
-		if (!sz) {
-			return 0;
-		}
-		if (!count) {
-			return 0;
-		}
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
-#if SLIB_WCHAR_SIZE == 2
-		return wcsnlen((wchar_t*)sz, count);
-#else
-		for (sl_reg i = 0; i < count; i++) {
-			if (sz[i] == 0) {
-				return i;
-			}
-		}
-		return count;
-#endif
-	}
-
-	sl_size Base::getStringLength4(const sl_char32* sz, sl_reg count) noexcept
-	{
-		if (!sz) {
-			return 0;
-		}
-		if (!count) {
-			return 0;
-		}
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
-		for (sl_reg i = 0; i < count; i++) {
-			if (sz[i] == 0) {
-				return i;
-			}
-		}
-		return count;
 	}
 
 	sl_int32 Base::interlockedIncrement32(sl_int32* pValue) noexcept

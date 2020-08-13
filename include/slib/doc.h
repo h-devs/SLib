@@ -23,6 +23,7 @@
 #ifndef CHECKHEADER_SLIB_DOC_HEADER
 #define CHECKHEADER_SLIB_DOC_HEADER
 
+#include "doc/pdf.h"
 #include "doc/rar.h"
 
 #endif

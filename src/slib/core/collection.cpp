@@ -115,7 +115,7 @@ namespace slib
 			
 			struct ConstStruct
 			{
-				void* _ptr;
+				void* ptr;
 				void* ref;
 				sl_int32 lock;
 			};

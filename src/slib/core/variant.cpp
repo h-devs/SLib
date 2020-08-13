@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -301,14 +301,6 @@ namespace slib
 		priv::variant::copy(_type, other._value, _value);
 	}
 
-	Variant::Variant(AtomicVariant&& _other) noexcept
-	{
-		Variant& other = REF_VAR(Variant, _other);
-		_type = other._type;
-		_value = other._value;
-		other._type = VariantType::Null;
-	}
-
 	Variant::Variant(const AtomicVariant& other) noexcept
 	{
 		other._retain(_type, _value);
@@ -462,6 +454,17 @@ namespace slib
 		}
 	}
 
+	Variant::Variant(sl_char8* sz8) noexcept
+	{
+		if (sz8) {
+			_type = VariantType::Sz8;
+			REF_VAR(sl_char8*, _value) = sz8;
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
 	Variant::Variant(const sl_char16* sz16) noexcept
 	{
 		if (sz16) {
@@ -472,7 +475,18 @@ namespace slib
 			_value = 1;
 		}
 	}
-	
+
+	Variant::Variant(sl_char16* sz16) noexcept
+	{
+		if (sz16) {
+			_type = VariantType::Sz16;
+			REF_VAR(sl_char16*, _value) = sz16;
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
 	Variant::Variant(const StringParam& str) noexcept: Variant(str.toVariant())
 	{
 	}
@@ -489,17 +503,6 @@ namespace slib
 	{
 		_type = VariantType::Time;
 		REF_VAR(Time, _value) = value;
-	}
-
-	Variant::Variant(const void* ptr) noexcept
-	{
-		if (ptr) {
-			_type = VariantType::Pointer;
-			REF_VAR(const void*, _value) = ptr;
-		} else {
-			_type = VariantType::Null;
-			_value = 1;
-		}
 	}
 
 	Variant::Variant(const Memory& mem) noexcept
@@ -597,111 +600,6 @@ namespace slib
 		return List< HashMap<String, Variant> >::create();
 	}
 	
-	Variant Variant::fromInt32(sl_int32 value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromUint32(sl_uint32 value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromInt64(sl_int64 value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromUint64(sl_uint64 value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromFloat(float value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromDouble(double value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromBoolean(sl_bool value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromString(const String& value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromString16(const String16& value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromSz8(const sl_char8* value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromSz16(const sl_char16* value) noexcept
-	{
-		return value;
-	}
-	
-	Variant Variant::fromStringParam(const StringParam& value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromTime(const Time& value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromPointer(const void* value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromMemory(const Memory& mem) noexcept
-	{
-		return mem;
-	}
-
-	Variant Variant::fromVariantList(const VariantList& value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromVariantMap(const VariantMap& value) noexcept
-	{
-		return value;
-	}
-	
-	Variant Variant::fromVariantHashMap(const VariantHashMap& value) noexcept
-	{
-		return value;
-	}
-	
-	Variant Variant::fromVariantMapList(const VariantMapList& value) noexcept
-	{
-		return value;
-	}
-
-	Variant Variant::fromVariantHashMapList(const VariantHashMapList& value) noexcept
-	{
-		return value;
-	}
-	
-	Variant Variant::fromVariantPromise(const Promise<Variant>& value) noexcept
-	{
-		return value;
-	}
-
 	Variant& Variant::operator=(Variant&& other) noexcept
 	{
 		if (this != &other) {
@@ -719,17 +617,6 @@ namespace slib
 			priv::variant::free(_type, _value);
 			_type = other._type;
 			priv::variant::copy(_type, other._value, _value);
-		}
-		return *this;
-	}
-
-	Variant& Variant::operator=(AtomicVariant&& other) noexcept
-	{
-		if ((void*)this != (void*)(&other)) {
-			priv::variant::free(_type, _value);
-			_type = other._type;
-			_value = other._value;
-			other._type = VariantType::Null;
 		}
 		return *this;
 	}
@@ -1320,7 +1207,7 @@ namespace slib
 				{
 					Ref<Referable> obj(getObject());
 					if (obj.isNotNull()) {
-						if (CMemory* p = CastInstance<CMemory>(obj._ptr)) {
+						if (CMemory* p = CastInstance<CMemory>(obj.ptr)) {
 							return String::fromUtf8(p->getData(), p->getCount());
 						}
 					}
@@ -1378,7 +1265,7 @@ namespace slib
 				{
 					Ref<Referable> obj(getObject());
 					if (obj.isNotNull()) {
-						if (CMemory* p = CastInstance<CMemory>(obj._ptr)) {
+						if (CMemory* p = CastInstance<CMemory>(obj.ptr)) {
 							return String16::fromUtf8(p->getData(), p->getCount());
 						}
 					}
@@ -1629,7 +1516,7 @@ namespace slib
 		return (void*)def;
 	}
 
-	void Variant::setPointer(const void *ptr) noexcept
+	void Variant::setPointer(const void* ptr) noexcept
 	{
 		if (ptr) {
 			priv::variant::free(_type, _value);
@@ -1693,7 +1580,7 @@ namespace slib
 	Memory Variant::getMemory() const noexcept
 	{
 		Ref<Referable> obj(getObject());
-		if (CMemory* p = CastInstance<CMemory>(obj._ptr)) {
+		if (CMemory* p = CastInstance<CMemory>(obj.ptr)) {
 			return p;
 		}
 		return sl_null;
@@ -1712,16 +1599,16 @@ namespace slib
 	VariantList Variant::getVariantList() const noexcept
 	{
 		Ref<Referable> obj(getObject());
-		if (CList<Variant>* p = CastInstance< CList<Variant> >(obj._ptr)) {
+		if (CList<Variant>* p = CastInstance< CList<Variant> >(obj.ptr)) {
 			return p;
-		} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj._ptr)) {
+		} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj.ptr)) {
 			VariantList ret;
 			ListLocker<VariantMap> list(*p2);
 			for (sl_size i = 0; list.count; i++) {
 				ret.add_NoLock(list[i]);
 			}
 			return ret;
-		} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj._ptr)) {
+		} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) {
 			VariantList ret;
 			ListLocker<VariantHashMap> list(*p3);
 			for (sl_size i = 0; list.count; i++) {
@@ -1754,9 +1641,9 @@ namespace slib
 	VariantMap Variant::getVariantMap() const noexcept
 	{
 		Ref<Referable> obj(getObject());
-		if (CMap<String, Variant>* p = CastInstance< CMap<String, Variant> >(obj._ptr)) {
+		if (CMap<String, Variant>* p = CastInstance< CMap<String, Variant> >(obj.ptr)) {
 			return p;
-		} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj._ptr)) {
+		} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj.ptr)) {
 			ObjectLocker lock(p2);
 			VariantMap ret;
 			for (auto& item: *p2) {
@@ -1780,9 +1667,9 @@ namespace slib
 	VariantHashMap Variant::getVariantHashMap() const noexcept
 	{
 		Ref<Referable> obj(getObject());
-		if (CHashMap<String, Variant>* p = CastInstance< CHashMap<String, Variant> >(obj._ptr)) {
+		if (CHashMap<String, Variant>* p = CastInstance< CHashMap<String, Variant> >(obj.ptr)) {
 			return p;
-		} else if (CMap<String, Variant>* p2 = CastInstance< CMap<String, Variant> >(obj._ptr)) {
+		} else if (CMap<String, Variant>* p2 = CastInstance< CMap<String, Variant> >(obj.ptr)) {
 			ObjectLocker lock(p2);
 			VariantHashMap ret;
 			for (auto& item: *p2) {
@@ -1815,7 +1702,7 @@ namespace slib
 	VariantMapList Variant::getVariantMapList() const noexcept
 	{
 		Ref<Referable> obj(getObject());
-		if (CList< Map<String, Variant> >* p = CastInstance< CList< Map<String, Variant> > >(obj._ptr)) {
+		if (CList< Map<String, Variant> >* p = CastInstance< CList< Map<String, Variant> > >(obj.ptr)) {
 			return p;
 		}
 		return sl_null;
@@ -1834,7 +1721,7 @@ namespace slib
 	VariantHashMapList Variant::getVariantHashMapList() const noexcept
 	{
 		Ref<Referable> obj(getObject());
-		if (CList< HashMap<String, Variant> >* p = CastInstance< CList< HashMap<String, Variant> > >(obj._ptr)) {
+		if (CList< HashMap<String, Variant> >* p = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) {
 			return p;
 		}
 		return sl_null;
@@ -1848,11 +1735,11 @@ namespace slib
 	sl_size Variant::getElementsCount() const noexcept
 	{
 		Ref<Referable> obj(getObject());
-		if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj._ptr)) {
+		if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj.ptr)) {
 			return p1->getCount();
-		} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj._ptr)) {
+		} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj.ptr)) {
 			return p2->getCount();
-		} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj._ptr)) {
+		} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) {
 			return p3->getCount();
 		}
 		return 0;
@@ -1861,11 +1748,11 @@ namespace slib
 	Variant Variant::getElement_NoLock(sl_size index) const noexcept
 	{
 		Ref<Referable> obj(getObject());
-		if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj._ptr)) {
+		if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj.ptr)) {
 			return p1->getValueAt_NoLock(index);
-		} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj._ptr)) {
+		} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj.ptr)) {
 			return p2->getValueAt_NoLock(index);
-		} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj._ptr)) {
+		} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) {
 			return p2->getValueAt_NoLock(index);
 		}
 		return sl_null;
@@ -1874,11 +1761,11 @@ namespace slib
 	Variant Variant::getElement(sl_size index) const noexcept
 	{
 		Ref<Referable> obj(getObject());
-		if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj._ptr)) {
+		if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj.ptr)) {
 			return p1->getValueAt(index);
-		} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj._ptr)) {
+		} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj.ptr)) {
 			return p2->getValueAt(index);
-		} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj._ptr)) {
+		} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) {
 			return p2->getValueAt(index);
 		}
 		return sl_null;
@@ -1887,11 +1774,11 @@ namespace slib
 	sl_bool Variant::setElement_NoLock(sl_size index, const Variant& value) noexcept
 	{
 		Ref<Referable> obj(getObject());
-		if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj._ptr)) {
+		if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj.ptr)) {
 			return p1->setAt_NoLock(index, value);
-		} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj._ptr)) {
+		} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj.ptr)) {
 			return p2->setAt_NoLock(index, value.getVariantMap());
-		} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj._ptr)) {
+		} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) {
 			return p3->setAt_NoLock(index, value.getVariantHashMap());
 		}
 		return sl_false;
@@ -1900,11 +1787,11 @@ namespace slib
 	sl_bool Variant::setElement(sl_size index, const Variant& value) noexcept
 	{
 		Ref<Referable> obj(getObject());
-		if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj._ptr)) {
+		if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj.ptr)) {
 			return p1->setAt(index, value);
-		} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj._ptr)) {
+		} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj.ptr)) {
 			return p2->setAt(index, value.getVariantMap());
-		} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj._ptr)) {
+		} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) {
 			return p3->setAt(index, value.getVariantHashMap());
 		}
 		return sl_false;
@@ -1914,11 +1801,11 @@ namespace slib
 	{
 		Ref<Referable> obj(getObject());
 		if (obj.isNotNull()) {
-			if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj._ptr)) {
+			if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj.ptr)) {
 				return p1->add_NoLock(value);
-			} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj._ptr)) {
+			} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj.ptr)) {
 				return p2->add_NoLock(value.getVariantMap());
-			} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj._ptr)) {
+			} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) {
 				return p3->add_NoLock(value.getVariantHashMap());
 			}
 		} else {
@@ -1935,11 +1822,11 @@ namespace slib
 	{ \
 		Ref<Referable> obj(getObject());\
 		if (obj.isNotNull()) { \
-			if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj._ptr)) { \
+			if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj.ptr)) { \
 				return p1->add(value); \
-			} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj._ptr)) { \
+			} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj.ptr)) { \
 				return p2->add(value.getVariantMap()); \
-			} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj._ptr)) { \
+			} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) { \
 				return p3->add(value.getVariantHashMap()); \
 			} \
 			return sl_false; \
@@ -1950,11 +1837,11 @@ namespace slib
 		Ref<Referable> obj(getObject()); \
 		if (obj.isNotNull()) { \
 			lock.unlock(); \
-			if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj._ptr)) { \
+			if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj.ptr)) { \
 				return p1->add(value); \
-			} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj._ptr)) { \
+			} else if (CList< Map<String, Variant> >* p2 = CastInstance< CList< Map<String, Variant> > >(obj.ptr)) { \
 				return p2->add(value.getVariantMap()); \
-			} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj._ptr)) { \
+			} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) { \
 				return p3->add(value.getVariantHashMap()); \
 			} \
 			return sl_false; \
@@ -1976,9 +1863,9 @@ namespace slib
 	Variant Variant::getItem_NoLock(const String& key) const noexcept
 	{
 		Ref<Referable> obj(getObject());
-		if (CMap<String, Variant>* p1 = CastInstance< CMap<String, Variant> >(obj._ptr)) {
+		if (CMap<String, Variant>* p1 = CastInstance< CMap<String, Variant> >(obj.ptr)) {
 			return p1->getValue_NoLock(key);
-		} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj._ptr)) {
+		} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj.ptr)) {
 			return p2->getValue_NoLock(key);
 		}
 		return sl_null;
@@ -1987,9 +1874,9 @@ namespace slib
 	Variant Variant::getItem(const String& key) const noexcept
 	{
 		Ref<Referable> obj(getObject());
-		if (CMap<String, Variant>* p1 = CastInstance< CMap<String, Variant> >(obj._ptr)) {
+		if (CMap<String, Variant>* p1 = CastInstance< CMap<String, Variant> >(obj.ptr)) {
 			return p1->getValue(key);
-		} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj._ptr)) {
+		} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj.ptr)) {
 			return p2->getValue(key);
 		}
 		return sl_null;
@@ -2002,9 +1889,9 @@ namespace slib
 		}
 		Ref<Referable> obj(getObject());
 		if (obj.isNotNull()) {
-			if (CMap<String, Variant>* p1 = CastInstance< CMap<String, Variant> >(obj._ptr)) {
+			if (CMap<String, Variant>* p1 = CastInstance< CMap<String, Variant> >(obj.ptr)) {
 				return p1->put_NoLock(key, value);
-			} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj._ptr)) {
+			} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj.ptr)) {
 				return p2->put_NoLock(key, value);
 			}
 		} else {
@@ -2026,9 +1913,9 @@ namespace slib
 	{ \
 		Ref<Referable> obj(getObject()); \
 		if (obj.isNotNull()) { \
-			if (CMap<String, Variant>* p1 = CastInstance< CMap<String, Variant> >(obj._ptr)) { \
+			if (CMap<String, Variant>* p1 = CastInstance< CMap<String, Variant> >(obj.ptr)) { \
 				return p1->put(key, value); \
-			} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj._ptr)) { \
+			} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj.ptr)) { \
 				return p2->put(key, value); \
 			} \
 			return sl_false; \
@@ -2039,9 +1926,9 @@ namespace slib
 		Ref<Referable> obj(getObject()); \
 		if (obj.isNotNull()) { \
 			lock.unlock(); \
-			if (CMap<String, Variant>* p1 = CastInstance< CMap<String, Variant> >(obj._ptr)) { \
+			if (CMap<String, Variant>* p1 = CastInstance< CMap<String, Variant> >(obj.ptr)) { \
 				return p1->put(key, value); \
-			} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj._ptr)) { \
+			} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj.ptr)) { \
 				return p2->put(key, value); \
 			} \
 			return sl_false; \
@@ -2064,9 +1951,9 @@ namespace slib
 	{
 		Ref<Referable> obj(getObject());
 		if (obj.isNotNull()) {
-			if (CMap<String, Variant>* p1 = CastInstance< CMap<String, Variant> >(obj._ptr)) {
+			if (CMap<String, Variant>* p1 = CastInstance< CMap<String, Variant> >(obj.ptr)) {
 				return p1->remove_NoLock(key);
-			} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj._ptr)) {
+			} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj.ptr)) {
 				return p2->remove_NoLock(key);
 			}
 		}
@@ -2077,9 +1964,9 @@ namespace slib
 	{
 		Ref<Referable> obj(getObject());
 		if (obj.isNotNull()) {
-			if (CMap<String, Variant>* p1 = CastInstance< CMap<String, Variant> >(obj._ptr)) {
+			if (CMap<String, Variant>* p1 = CastInstance< CMap<String, Variant> >(obj.ptr)) {
 				return p1->remove(key);
-			} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj._ptr)) {
+			} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj.ptr)) {
 				return p2->remove(key);
 			}
 		}
@@ -2094,7 +1981,7 @@ namespace slib
 	Promise<Variant> Variant::getVariantPromise() const noexcept
 	{
 		Ref<Referable> obj(getObject());
-		if (CPromise<Variant>* p = CastInstance< CPromise<Variant> >(obj._ptr)) {
+		if (CPromise<Variant>* p = CastInstance< CPromise<Variant> >(obj.ptr)) {
 			return p;
 		}
 		return sl_null;
@@ -2120,27 +2007,27 @@ namespace slib
 				if (v.isObject()) {
 					Ref<Referable> obj(v.getObject());
 					if (obj.isNotNull()) {
-						if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj._ptr)) {
+						if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj.ptr)) {
 							if (!priv::variant::getVariantListJsonString(ret, p1)) {
 								return sl_false;
 							}
 							return sl_true;
-						} else if (CMap<String, Variant>* p2 = CastInstance< CMap<String, Variant> >(obj._ptr)) {
+						} else if (CMap<String, Variant>* p2 = CastInstance< CMap<String, Variant> >(obj.ptr)) {
 							if (!priv::variant::getVariantMapJsonString(ret, p2)) {
 								return sl_false;
 							}
 							return sl_true;
-						} else if (CHashMap<String, Variant>* p3 = CastInstance< CHashMap<String, Variant> >(obj._ptr)) {
+						} else if (CHashMap<String, Variant>* p3 = CastInstance< CHashMap<String, Variant> >(obj.ptr)) {
 							if (!priv::variant::getVariantHashMapJsonString(ret, p3)) {
 								return sl_false;
 							}
 							return sl_true;
-						} else if (CList< Map<String, Variant> >* p4 = CastInstance< CList< Map<String, Variant> > >(obj._ptr)) {
+						} else if (CList< Map<String, Variant> >* p4 = CastInstance< CList< Map<String, Variant> > >(obj.ptr)) {
 							if (!priv::variant::getVariantMapListJsonString(ret, p4)) {
 								return sl_false;
 							}
 							return sl_true;
-						} else if (CList< HashMap<String, Variant> >* p5 = CastInstance< CList< HashMap<String, Variant> > >(obj._ptr)) {
+						} else if (CList< HashMap<String, Variant> >* p5 = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) {
 							if (!priv::variant::getVariantHashMapListJsonString(ret, p5)) {
 								return sl_false;
 							}
@@ -2326,31 +2213,31 @@ namespace slib
 				{
 					Ref<Referable> obj(getObject());
 					if (obj.isNotNull()) {
-						if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj._ptr)) {
+						if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj.ptr)) {
 							StringBuffer ret;
 							if (!priv::variant::getVariantListJsonString(ret, p1)) {
 								return "<json-error>";
 							}
 							return ret.merge();
-						} else if (CMap<String, Variant>* p2 = CastInstance< CMap<String, Variant> >(obj._ptr)) {
+						} else if (CMap<String, Variant>* p2 = CastInstance< CMap<String, Variant> >(obj.ptr)) {
 							StringBuffer ret;
 							if (!priv::variant::getVariantMapJsonString(ret, p2)) {
 								return "<json-error>";
 							}
 							return ret.merge();
-						} else if (CHashMap<String, Variant>* p3 = CastInstance< CHashMap<String, Variant> >(obj._ptr)) {
+						} else if (CHashMap<String, Variant>* p3 = CastInstance< CHashMap<String, Variant> >(obj.ptr)) {
 							StringBuffer ret;
 							if (!priv::variant::getVariantHashMapJsonString(ret, p3)) {
 								return "<json-error>";
 							}
 							return ret.merge();
-						} else if (CList< Map<String, Variant> >* p4 = CastInstance< CList< Map<String, Variant> > >(obj._ptr)) {
+						} else if (CList< Map<String, Variant> >* p4 = CastInstance< CList< Map<String, Variant> > >(obj.ptr)) {
 							StringBuffer ret;
 							if (!priv::variant::getVariantMapListJsonString(ret, p4)) {
 								return "<json-error>";
 							}
 							return ret.merge();
-						} else if (CList< HashMap<String, Variant> >* p5 = CastInstance< CList< HashMap<String, Variant> > >(obj._ptr)) {
+						} else if (CList< HashMap<String, Variant> >* p5 = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) {
 							StringBuffer ret;
 							if (!priv::variant::getVariantHashMapListJsonString(ret, p5)) {
 								return "<json-error>";
@@ -2394,31 +2281,31 @@ namespace slib
 				{
 					Ref<Referable> obj(getObject());
 					if (obj.isNotNull()) {
-						if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj._ptr)) {
+						if (CList<Variant>* p1 = CastInstance< CList<Variant> >(obj.ptr)) {
 							StringBuffer ret;
 							if (!priv::variant::getVariantListJsonString(ret, p1)) {
 								return strNull;
 							}
 							return ret.merge();
-						} else if (CMap<String, Variant>* p2 = CastInstance< CMap<String, Variant> >(obj._ptr)) {
+						} else if (CMap<String, Variant>* p2 = CastInstance< CMap<String, Variant> >(obj.ptr)) {
 							StringBuffer ret;
 							if (!priv::variant::getVariantMapJsonString(ret, p2)) {
 								return strNull;
 							}
 							return ret.merge();
-						} else if (CHashMap<String, Variant>* p3 = CastInstance< CHashMap<String, Variant> >(obj._ptr)) {
+						} else if (CHashMap<String, Variant>* p3 = CastInstance< CHashMap<String, Variant> >(obj.ptr)) {
 							StringBuffer ret;
 							if (!priv::variant::getVariantHashMapJsonString(ret, p3)) {
 								return strNull;
 							}
 							return ret.merge();
-						} else if (CList< Map<String, Variant> >* p4 = CastInstance< CList< Map<String, Variant> > >(obj._ptr)) {
+						} else if (CList< Map<String, Variant> >* p4 = CastInstance< CList< Map<String, Variant> > >(obj.ptr)) {
 							StringBuffer ret;
 							if (!priv::variant::getVariantMapListJsonString(ret, p4)) {
 								return strNull;
 							}
 							return ret.merge();
-						} else if (CList< HashMap<String, Variant> >* p5 = CastInstance< CList< HashMap<String, Variant> > >(obj._ptr)) {
+						} else if (CList< HashMap<String, Variant> >* p5 = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) {
 							StringBuffer ret;
 							if (!priv::variant::getVariantHashMapListJsonString(ret, p5)) {
 								return strNull;
@@ -2726,12 +2613,22 @@ namespace slib
 	{
 		setString(_in);
 	}
-	
+
+	void Variant::set(sl_char8* _in) noexcept
+	{
+		setString(_in);
+	}
+
 	void Variant::set(const sl_char16* _in) noexcept
 	{
 		setString(_in);
 	}
-	
+
+	void Variant::set(sl_char16* _in) noexcept
+	{
+		setString(_in);
+	}
+
 	void Variant::get(std::string& _out) const noexcept
 	{
 		_out = getString().toStd();
@@ -2937,13 +2834,6 @@ namespace slib
 		_assignAtomicRef(&_in);
 	}
 
-	Atomic<Variant>::Atomic(AtomicVariant&& other) noexcept
-	{
-		_type = other._type;
-		_value = other._value;
-		other._type = VariantType::Null;
-	}
-
 	Atomic<Variant>::Atomic(const AtomicVariant& other) noexcept
 	{
 		other._retain(_type, _value);
@@ -3102,6 +2992,17 @@ namespace slib
 		}
 	}
 
+	Atomic<Variant>::Atomic(sl_char8* value) noexcept
+	{
+		if (value) {
+			_type = VariantType::Sz8;
+			REF_VAR(sl_char8*, _value) = value;
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
 	Atomic<Variant>::Atomic(const sl_char16* value) noexcept
 	{
 		if (value) {
@@ -3112,7 +3013,18 @@ namespace slib
 			_value = 1;
 		}
 	}
-	
+
+	Atomic<Variant>::Atomic(sl_char16* value) noexcept
+	{
+		if (value) {
+			_type = VariantType::Sz16;
+			REF_VAR(sl_char16*, _value) = value;
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
 	Atomic<Variant>::Atomic(const std::string& value) noexcept: Atomic(String::create(value))
 	{
 	}
@@ -3129,17 +3041,6 @@ namespace slib
 	{
 		_type = VariantType::Time;
 		REF_VAR(Time, _value) = value;
-	}
-
-	Atomic<Variant>::Atomic(const void* ptr) noexcept
-	{
-		if (ptr) {
-			_type = VariantType::Pointer;
-			REF_VAR(const void*, _value) = ptr;
-		} else {
-			_type = VariantType::Null;
-			_value = 1;
-		}
 	}
 
 	Atomic<Variant>::Atomic(const Memory& mem) noexcept
@@ -3212,15 +3113,6 @@ namespace slib
 		_constructorAtomicRef(&promise);
 	}
 	
-	AtomicVariant& Atomic<Variant>::operator=(AtomicVariant&& other) noexcept
-	{
-		if (this != &other) {
-			_replace(other._type, other._value);
-			other._type = VariantType::Null;
-		}
-		return *this;
-	}
-
 	AtomicVariant& Atomic<Variant>::operator=(const AtomicVariant& other) noexcept
 	{
 		if (this != &other) {
@@ -3625,7 +3517,7 @@ namespace slib
 		return var.getPointer(def);
 	}
 
-	void Atomic<Variant>::setPointer(const void *ptr) noexcept
+	void Atomic<Variant>::setPointer(const void* ptr) noexcept
 	{
 		if (ptr) {
 			sl_int64 v;
@@ -4132,12 +4024,22 @@ namespace slib
 	{
 		setString(_in);
 	}
-	
+
+	void Atomic<Variant>::set(sl_char8* _in) noexcept
+	{
+		setString(_in);
+	}
+
 	void Atomic<Variant>::set(const sl_char16* _in) noexcept
 	{
 		setString(_in);
 	}
-	
+
+	void Atomic<Variant>::set(sl_char16* _in) noexcept
+	{
+		setString(_in);
+	}
+
 	void Atomic<Variant>::get(std::string& _out) const noexcept
 	{
 		_out = getString().toStd();

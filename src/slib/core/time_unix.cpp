@@ -64,7 +64,7 @@ namespace slib
 	sl_int64 Time::_set(sl_int32 year, sl_int32 month, sl_int32 day, sl_int32 hour, sl_int32 minute, sl_int32 second, sl_bool flagUTC) noexcept
 	{
 		tm v;
-		Base::resetMemory(&v, 0, sizeof(tm));
+		Base::zeroMemory(&v, sizeof(tm));
 		v.tm_year = year - 1900;
 		v.tm_mon = month - 1;
 		v.tm_mday = day;

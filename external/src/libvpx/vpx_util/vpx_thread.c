@@ -179,3 +179,43 @@ const VPxWorkerInterface *vpx_get_worker_interface(void) {
 }
 
 //------------------------------------------------------------------------------
+
+#if defined(_WIN32) && !HAVE_PTHREAD_H
+
+static HMODULE vpx_getKernel32()
+{
+  static HMODULE hDll = NULL;
+  static BOOL bLoaded = FALSE;
+  if (!bLoaded) {
+    bLoaded = TRUE;
+    hDll = LoadLibraryW(L"kernel32.dll");
+  }
+  return hDll;
+}
+
+#define IMPORT_KERNEL32_FUNC(name) \
+  TYPE_##name vpx_getFunc_##name() \
+  { \
+    static TYPE_##name func = NULL; \
+    static BOOL bLoaded = FALSE; \
+    HMODULE hDll; \
+    if (!bLoaded) { \
+      bLoaded = TRUE; \
+      hDll = vpx_getKernel32(); \
+      if (hDll) { \
+        func = (TYPE_##name)GetProcAddress(hDll, #name); \
+      } \
+    } \
+    return func; \
+  }
+
+BOOL vpx_isConditionVariableEnabled()
+{
+  return vpx_getFunc_InitializeConditionVariable() != NULL;
+}
+
+IMPORT_KERNEL32_FUNC(InitializeConditionVariable)
+IMPORT_KERNEL32_FUNC(WakeConditionVariable)
+IMPORT_KERNEL32_FUNC(SleepConditionVariableCS)
+
+#endif

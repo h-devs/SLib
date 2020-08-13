@@ -26,7 +26,7 @@
 #include "definition.h"
 
 #include "../core/string.h"
-#include "../core/io.h"
+#include "../core/io_util.h"
 
 namespace slib
 {
@@ -427,52 +427,31 @@ namespace slib
 		~RarFile();
 		
 	public:
-		sl_bool readSignature(IReader* reader);
+		sl_bool setReader(const Ptrx<IReader, ISeekable>& reader);
+
+		sl_bool readSignature();
 
 		// call after `readSignature()`
-		sl_bool readMainHeader(IReader* reader, ISeekable* seeker);
+		sl_bool readMainHeader();
 
-		template <class T>
-		sl_bool readMainHeader(T* reader)
-		{
-			return readMainHeader(reader, reader);
-		}
-
-		sl_bool readFromSignatureToMainHeader(IReader* reader, ISeekable* seeker);
-
-		template <class T>
-		sl_bool readFromSignatureToMainHeader(T* reader)
-		{
-			return readFromSignatureToMainHeader(reader, reader);
-		}
+		sl_bool readFromSignatureToMainHeader();
 
 		// call after `readMainHeader()`
-		List<String> readFileNames(IReader* reader, ISeekable* seeker);
-
-		template <class T>
-		List<String> readFileNames(T* reader)
-		{
-			return readFileNames(reader, reader);
-		}
+		List<String> readFileNames();
 
 		// call after `readMainHeader()`
-		sl_bool isEncrypted(IReader* reader, ISeekable* seeker, sl_int32 maxCheckFileCount);
+		sl_bool isEncrypted(sl_int32 maxCheckFileCount);
 
-		template <class T>
-		sl_bool isEncrypted(T* reader, sl_int32 maxCheckFileCount)
-		{
-			return isEncrypted(reader, reader, maxCheckFileCount);
-		}
 
-		sl_bool readBlockHeader(RarBlockHeader4& header, IReader* reader);
+		sl_bool readBlockHeader(RarBlockHeader4& header);
 
-		sl_bool readBlockHeader(RarBlockHeader5& header, IReader* reader);
+		sl_bool readBlockHeader(RarBlockHeader5& header);
 
-		sl_bool skipData(const RarBlockHeader4& header, ISeekable* seeker);
+		sl_bool skipData(const RarBlockHeader4& header);
 
-		sl_bool skipData(const RarBlockHeader5& header, ISeekable* seeker);
+		sl_bool skipData(const RarBlockHeader5& header);
 
-		sl_bool readBlockHeaderAndSkipData(RarBlockHeader5& header, IReader* reader, ISeekable* seeker);
+		sl_bool readBlockHeaderAndSkipData(RarBlockHeader5& header);
 
 	public:
 		/*
@@ -481,14 +460,19 @@ namespace slib
 				4 - RAR 4.x
 				5 - RAR 5.0
 		*/
+		static sl_uint32 getVersion(const Ptrx<IReader, ISeekable>& reader);
 		static sl_uint32 getFileVersion(const StringParam& path);
 
+		static List<String> getFileNames(const Ptrx<IReader, ISeekable>& reader);
 		static List<String> getFileNamesInFile(const StringParam& path);
 
 		// maxCheckFileCount: negative value means no-limit
+		static sl_bool isEncrypted(const Ptrx<IReader, ISeekable>& reader, sl_int32 maxCheckFileCount = 1);
 		static sl_bool isEncryptedFile(const StringParam& path, sl_int32 maxCheckFileCount = 1);
 	
 	private:
+		SkippableReader m_reader;
+
 		Memory m_bufferHeader;
 
 	};

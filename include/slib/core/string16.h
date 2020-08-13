@@ -95,7 +95,6 @@ namespace slib
 		 * Constructors
 		 */
 		String16(String16&& src) noexcept;
-		String16(AtomicString16&& _src) noexcept;
 		String16(const String16& src) noexcept;
 		String16(const AtomicString16& src) noexcept;
 		String16(const StringView16& src) noexcept;
@@ -410,7 +409,6 @@ namespace slib
 		 * String assignment
 		 */
 		String16& operator=(String16&& other) noexcept;
-		String16& operator=(AtomicString16&& other) noexcept;
 		String16& operator=(const String16& other) noexcept;
 		String16& operator=(const AtomicString16& other) noexcept;
 		String16& operator=(const StringView16& other) noexcept;
@@ -422,7 +420,6 @@ namespace slib
 #endif
 		
 		String16& operator+=(String16&& other) noexcept;
-		String16& operator+=(AtomicString16&& other) noexcept;
 		String16& operator+=(const String16& other) noexcept;
 		String16& operator+=(const AtomicString16& other) noexcept;
 		String16& operator+=(sl_null_t) noexcept;
@@ -684,7 +681,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseInt32(sl_int32 radix, sl_int32* value) const noexcept;
-		
+		sl_bool parseInt32(sl_int32* value) const noexcept;
+
 		/**
 		 * Convert this string to a 32 bit integer of the specified radix.
 		 *
@@ -717,7 +715,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseUint32(sl_int32 radix, sl_uint32* value) const noexcept;
-		
+		sl_bool parseUint32(sl_uint32* value) const noexcept;
+
 		/**
 		 * Convert this string to a 32 bit unsigned integer of the specified radix.
 		 *
@@ -750,7 +749,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseInt64(sl_int32 radix, sl_int64* value) const noexcept;
-		
+		sl_bool parseInt64(sl_int64* value) const noexcept;
+
 		/**
 		 * Convert this string to a 64 bit integer of the specified radix.
 		 *
@@ -783,7 +783,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseUint64(sl_int32 radix, sl_uint64* value) const noexcept;
-		
+		sl_bool parseUint64(sl_uint64* value) const noexcept;
+
 		/**
 		 * Convert this string to a 64 bit unsigned integer of the specified radix.
 		 *
@@ -803,7 +804,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseInt(sl_int32 radix, sl_reg* value) const noexcept;
-		
+		sl_bool parseInt(sl_reg* value) const noexcept;
+
 		/**
 		 * Convert this string to an integer of the specified radix.
 		 *
@@ -823,7 +825,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseSize(sl_int32 radix, sl_size* value) const noexcept;
-		
+		sl_bool parseSize(sl_size* value) const noexcept;
+
 		/**
 		 * Convert this string to an unsigned integer of the specified radix.
 		 *
@@ -1128,7 +1131,6 @@ namespace slib
 		 * Constructors
 		 */
 		Atomic(String16&& src) noexcept;
-		Atomic(AtomicString16&& src) noexcept;
 		Atomic(const String16& src) noexcept;
 		Atomic(const AtomicString16& src) noexcept;
 		Atomic(const StringView16& src) noexcept;
@@ -1232,7 +1234,6 @@ namespace slib
 		 * String assignment
 		 */
 		AtomicString16& operator=(String16&& other) noexcept;
-		AtomicString16& operator=(AtomicString16&& other) noexcept;
 		AtomicString16& operator=(const String16& other) noexcept;
 		AtomicString16& operator=(const AtomicString16& other) noexcept;
 		AtomicString16& operator=(const StringView16& other) noexcept;
@@ -1244,7 +1245,6 @@ namespace slib
 #endif
 		
 		AtomicString16& operator+=(String16&& other) noexcept;
-		AtomicString16& operator+=(AtomicString16&& other) noexcept;
 		AtomicString16& operator+=(const String16& other) noexcept;
 		AtomicString16& operator+=(const AtomicString16& other) noexcept;
 		AtomicString16& operator+=(sl_null_t) noexcept;
@@ -1443,7 +1443,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseInt32(sl_int32 radix, sl_int32* value) const noexcept;
-		
+		sl_bool parseInt32(sl_int32* value) const noexcept;
+
 		/**
 		 * Convert this string to a 32 bit integer of the specified radix.
 		 *
@@ -1463,7 +1464,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseUint32(sl_int32 radix, sl_uint32* value) const noexcept;
-		
+		sl_bool parseUint32(sl_uint32* value) const noexcept;
+
 		/**
 		 * Convert this string to a 32 bit unsigned integer of the specified radix.
 		 *
@@ -1483,7 +1485,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseInt64(sl_int32 radix, sl_int64* value) const noexcept;
-		
+		sl_bool parseInt64(sl_int64* value) const noexcept;
+
 		/**
 		 * Convert this string to a 64 bit integer of the specified radix.
 		 *
@@ -1503,7 +1506,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseUint64(sl_int32 radix, sl_uint64* value) const noexcept;
-		
+		sl_bool parseUint64(sl_uint64* value) const noexcept;
+
 		/**
 		 * Convert this string to a 64 bit unsigned integer of the specified radix.
 		 *
@@ -1523,7 +1527,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseInt(sl_int32 radix, sl_reg* value) const noexcept;
-		
+		sl_bool parseInt(sl_reg* value) const noexcept;
+
 		/**
 		 * Convert this string to an unsigned integer of the specified radix.
 		 *
@@ -1543,7 +1548,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseSize(sl_int32 radix, sl_size* value) const noexcept;
-		
+		sl_bool parseSize(sl_size* value) const noexcept;
+
 		/**
 		 * Convert this string to an unsigned integer of the specified radix.
 		 *

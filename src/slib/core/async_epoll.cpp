@@ -31,7 +31,7 @@
 #include <sys/epoll.h>
 #include <sys/errno.h>
 
-#if !defined(EPOLLRDHUP)
+#if !defined(EPOLLRDHUP) || defined(SLIB_PLATFORM_IS_ANDROID)
 #define EPOLL_LOW
 #endif
 
@@ -60,9 +60,9 @@ namespace slib
 		}
 		int fdEpoll;
 #if defined(EPOLL_LOW)
-		fdEpoll = ::epoll_create(1024);
+		fdEpoll = epoll_create(1024);
 #else
-		fdEpoll = ::epoll_create1(0);
+		fdEpoll = epoll_create1(0);
 #endif
 		if (fdEpoll >= 0) {
 			AsyncIoLoopHandle* handle = new AsyncIoLoopHandle;
@@ -100,7 +100,7 @@ namespace slib
 
 			_stepBegin();
 
-			int nEvents = ::epoll_wait(handle->fdEpoll, waitEvents, ASYNC_MAX_WAIT_EVENT, 5000);
+			int nEvents = epoll_wait(handle->fdEpoll, waitEvents, ASYNC_MAX_WAIT_EVENT, 5000);
 			if (m_queueInstancesClosed.isNotEmpty()) {
 				m_queueInstancesClosed.removeAll();
 			}
@@ -180,7 +180,7 @@ namespace slib
 				return sl_true;
 		}
 		
-		int ret = ::epoll_ctl(handle->fdEpoll, EPOLL_CTL_ADD, hObject, &ev);
+		int ret = epoll_ctl(handle->fdEpoll, EPOLL_CTL_ADD, hObject, &ev);
 		if (ret == 0) {
 			return sl_true;
 		} else {
@@ -193,7 +193,7 @@ namespace slib
 		AsyncIoLoopHandle* handle = (AsyncIoLoopHandle*)m_handle;
 		int hObject = (int)(instance->getHandle());
 		epoll_event ev;
-		int ret = ::epoll_ctl(handle->fdEpoll, EPOLL_CTL_DEL, hObject, &ev);
+		int ret = epoll_ctl(handle->fdEpoll, EPOLL_CTL_DEL, hObject, &ev);
 		SLIB_UNUSED(ret);
 	}
 

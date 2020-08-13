@@ -34,16 +34,15 @@ extern "C" {
 typedef HANDLE pthread_t;
 typedef CRITICAL_SECTION pthread_mutex_t;
 
-#if _WIN32_WINNT >= 0x0600  // Windows Vista / Server 2008 or greater
-#define USE_WINDOWS_CONDITION_VARIABLE
-typedef CONDITION_VARIABLE pthread_cond_t;
-#else
+typedef struct {
+  PVOID Ptr;                                       
+} VPX_CONDITION_VARIABLE;
 typedef struct {
   HANDLE waiting_sem_;
   HANDLE received_sem_;
   HANDLE signal_event_;
+  VPX_CONDITION_VARIABLE condition;
 } pthread_cond_t;
-#endif  // _WIN32_WINNT >= 0x600
 
 #ifndef WINAPI_FAMILY_PARTITION
 #define WINAPI_PARTITION_DESKTOP 1
@@ -101,11 +100,7 @@ static INLINE int pthread_join(pthread_t thread, void **value_ptr) {
 static INLINE int pthread_mutex_init(pthread_mutex_t *const mutex,
                                      void *mutexattr) {
   (void)mutexattr;
-#if _WIN32_WINNT >= 0x0600  // Windows Vista / Server 2008 or greater
-  InitializeCriticalSectionEx(mutex, 0 /*dwSpinCount*/, 0 /*Flags*/);
-#else
   InitializeCriticalSection(mutex);
-#endif
   return 0;
 }
 
@@ -128,70 +123,82 @@ static INLINE int pthread_mutex_destroy(pthread_mutex_t *const mutex) {
   return 0;
 }
 
+BOOL vpx_isConditionVariableEnabled();
+
+typedef VOID (WINAPI *TYPE_InitializeConditionVariable)(VPX_CONDITION_VARIABLE* ConditionVariable);
+TYPE_InitializeConditionVariable vpx_getFunc_InitializeConditionVariable();
+
+typedef VOID (WINAPI *TYPE_WakeConditionVariable)(VPX_CONDITION_VARIABLE* ConditionVariable);
+TYPE_WakeConditionVariable vpx_getFunc_WakeConditionVariable();
+
+typedef BOOL (WINAPI *TYPE_SleepConditionVariableCS)(
+    VPX_CONDITION_VARIABLE* ConditionVariable,
+    PCRITICAL_SECTION CriticalSection,
+    DWORD dwMilliseconds
+);
+TYPE_SleepConditionVariableCS vpx_getFunc_SleepConditionVariableCS();
+
 // Condition
 static INLINE int pthread_cond_destroy(pthread_cond_t *const condition) {
   int ok = 1;
-#ifdef USE_WINDOWS_CONDITION_VARIABLE
-  (void)condition;
-#else
-  ok &= (CloseHandle(condition->waiting_sem_) != 0);
-  ok &= (CloseHandle(condition->received_sem_) != 0);
-  ok &= (CloseHandle(condition->signal_event_) != 0);
-#endif
+  if (!(vpx_isConditionVariableEnabled())) {
+    ok &= (CloseHandle(condition->waiting_sem_) != 0);
+    ok &= (CloseHandle(condition->received_sem_) != 0);
+    ok &= (CloseHandle(condition->signal_event_) != 0);
+  }
   return !ok;
 }
 
 static INLINE int pthread_cond_init(pthread_cond_t *const condition,
                                     void *cond_attr) {
-  (void)cond_attr;
-#ifdef USE_WINDOWS_CONDITION_VARIABLE
-  InitializeConditionVariable(condition);
-#else
-  condition->waiting_sem_ = CreateSemaphore(NULL, 0, MAX_DECODE_THREADS, NULL);
-  condition->received_sem_ = CreateSemaphore(NULL, 0, MAX_DECODE_THREADS, NULL);
-  condition->signal_event_ = CreateEvent(NULL, FALSE, FALSE, NULL);
-  if (condition->waiting_sem_ == NULL || condition->received_sem_ == NULL ||
-      condition->signal_event_ == NULL) {
-    pthread_cond_destroy(condition);
-    return 1;
+  if (vpx_isConditionVariableEnabled()) {
+    vpx_getFunc_InitializeConditionVariable()(&(condition->condition));
+  } else {
+    condition->waiting_sem_ = CreateSemaphore(NULL, 0, MAX_DECODE_THREADS, NULL);
+    condition->received_sem_ = CreateSemaphore(NULL, 0, MAX_DECODE_THREADS, NULL);
+    condition->signal_event_ = CreateEvent(NULL, FALSE, FALSE, NULL);
+    if (condition->waiting_sem_ == NULL || condition->received_sem_ == NULL ||
+        condition->signal_event_ == NULL) {
+      pthread_cond_destroy(condition);
+      return 1;
+    }
   }
-#endif
   return 0;
 }
 
 static INLINE int pthread_cond_signal(pthread_cond_t *const condition) {
   int ok = 1;
-#ifdef USE_WINDOWS_CONDITION_VARIABLE
-  WakeConditionVariable(condition);
-#else
-  if (WaitForSingleObject(condition->waiting_sem_, 0) == WAIT_OBJECT_0) {
-    // a thread is waiting in pthread_cond_wait: allow it to be notified
-    ok = SetEvent(condition->signal_event_);
-    // wait until the event is consumed so the signaler cannot consume
-    // the event via its own pthread_cond_wait.
-    ok &= (WaitForSingleObject(condition->received_sem_, INFINITE) !=
-           WAIT_OBJECT_0);
+  if (vpx_isConditionVariableEnabled()) {
+   vpx_getFunc_WakeConditionVariable()(&(condition->condition));
+  } else {
+    if (WaitForSingleObject(condition->waiting_sem_, 0) == WAIT_OBJECT_0) {
+      // a thread is waiting in pthread_cond_wait: allow it to be notified
+      ok = SetEvent(condition->signal_event_);
+      // wait until the event is consumed so the signaler cannot consume
+      // the event via its own pthread_cond_wait.
+      ok &= (WaitForSingleObject(condition->received_sem_, INFINITE) !=
+            WAIT_OBJECT_0);
+    }
   }
-#endif
   return !ok;
 }
 
 static INLINE int pthread_cond_wait(pthread_cond_t *const condition,
                                     pthread_mutex_t *const mutex) {
   int ok;
-#ifdef USE_WINDOWS_CONDITION_VARIABLE
-  ok = SleepConditionVariableCS(condition, mutex, INFINITE);
-#else
-  // note that there is a consumer available so the signal isn't dropped in
-  // pthread_cond_signal
-  if (!ReleaseSemaphore(condition->waiting_sem_, 1, NULL)) return 1;
-  // now unlock the mutex so pthread_cond_signal may be issued
-  pthread_mutex_unlock(mutex);
-  ok = (WaitForSingleObject(condition->signal_event_, INFINITE) ==
-        WAIT_OBJECT_0);
-  ok &= ReleaseSemaphore(condition->received_sem_, 1, NULL);
-  pthread_mutex_lock(mutex);
-#endif
+  if (vpx_isConditionVariableEnabled()) {
+   ok = vpx_getFunc_SleepConditionVariableCS()(&(condition->condition), mutex, INFINITE);
+  } else {
+    // note that there is a consumer available so the signal isn't dropped in
+    // pthread_cond_signal
+    if (!ReleaseSemaphore(condition->waiting_sem_, 1, NULL)) return 1;
+    // now unlock the mutex so pthread_cond_signal may be issued
+    pthread_mutex_unlock(mutex);
+    ok = (WaitForSingleObject(condition->signal_event_, INFINITE) ==
+          WAIT_OBJECT_0);
+    ok &= ReleaseSemaphore(condition->received_sem_, 1, NULL);
+    pthread_mutex_lock(mutex);
+  }
   return !ok;
 }
 #elif defined(__OS2__)
