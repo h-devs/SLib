@@ -47,7 +47,7 @@ namespace slib
 
 	Ref<AsyncIoLoop> AsyncIoLoop::getDefault()
 	{
-		SLIB_SAFE_STATIC(Ref<AsyncIoLoop>, ret, create())
+		SLIB_SAFE_LOCAL_STATIC(Ref<AsyncIoLoop>, ret, create())
 		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
 			return sl_null;
 		}

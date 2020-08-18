@@ -42,7 +42,7 @@ namespace slib
 		namespace app
 		{
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicWeakRef<Application>, g_app)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicWeakRef<Application>, g_app)
 
 			typedef HashMap<String, String> EnvironmentList;
 			

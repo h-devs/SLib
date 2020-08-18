@@ -204,7 +204,7 @@ namespace slib
 			public:
 				static Ref<Session> getSession()
 				{
-					SLIB_SAFE_STATIC(AtomicRef<Session>, session, new Session(callbackStatus))
+					SLIB_SAFE_LOCAL_STATIC(AtomicRef<Session>, session, new Session(callbackStatus))
 					if (SLIB_SAFE_STATIC_CHECK_FREED(session)) {
 						return sl_null;
 					}

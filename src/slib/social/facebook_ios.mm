@@ -65,7 +65,7 @@ namespace slib
 				
 				static FacebookSDKContext* get()
 				{
-					SLIB_SAFE_STATIC(Ref<FacebookSDKContext>, s, new FacebookSDKContext)
+					SLIB_SAFE_LOCAL_STATIC(Ref<FacebookSDKContext>, s, new FacebookSDKContext)
 					if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
 						return sl_null;
 					}

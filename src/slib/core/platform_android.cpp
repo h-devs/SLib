@@ -46,7 +46,7 @@ namespace slib
 				SLIB_JNI_STATIC_METHOD(sendFile, "sendFile", "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V")
 			SLIB_JNI_END_CLASS
 
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicJniGlobal<jobject>, g_activityCurrent);
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicJniGlobal<jobject>, g_activityCurrent);
 
 		}
 	}

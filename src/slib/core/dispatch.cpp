@@ -95,7 +95,7 @@ namespace slib
 
 	Ref<DispatchLoop> DispatchLoop::getDefault()
 	{
-		SLIB_SAFE_STATIC(Ref<DispatchLoop>, ret, create())
+		SLIB_SAFE_LOCAL_STATIC(Ref<DispatchLoop>, ret, create())
 		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
 			return sl_null;
 		}

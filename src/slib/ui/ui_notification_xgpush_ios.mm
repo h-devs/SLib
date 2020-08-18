@@ -62,10 +62,10 @@ namespace slib
 	
 	Ref<XgPush> XgPush::getInstance()
 	{
-		SLIB_SAFE_STATIC(Mutex, lock)
+		SLIB_SAFE_LOCAL_STATIC(Mutex, lock)
 		MutexLocker locker(&lock);
 		
-		SLIB_STATIC_ZERO_INITIALIZED(Ref<XgPush>, instance);
+		SLIB_LOCAL_STATIC_ZERO_INITIALIZED(Ref<XgPush>, instance);
 		if (instance.isNotNull()) {
 			return instance;
 		}

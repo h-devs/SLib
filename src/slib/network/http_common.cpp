@@ -184,7 +184,7 @@ namespace slib
 
 	HttpMethod HttpMethodHelper::fromString(const String& method)
 	{
-		SLIB_SAFE_STATIC(HttpMethodMapping, t)
+		SLIB_SAFE_LOCAL_STATIC(HttpMethodMapping, t)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(t)) {
 			return HttpMethod::Unknown;
 		}

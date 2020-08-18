@@ -906,7 +906,7 @@ namespace slib
 			Locale g_localeCurrent = Locale::Unknown;
 			Locale g_localeLastCurrent = Locale::Unknown;
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicFunction<void()>, g_callback_onChangeCurrent)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callback_onChangeCurrent)
 			
 		}
 	}

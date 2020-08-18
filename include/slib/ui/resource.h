@@ -136,7 +136,7 @@ namespace slib
 	
 #define SLIB_DEFINE_MENU_BEGIN(NAME, ...) \
 	const NAME* NAME::get() { \
-		SLIB_SAFE_STATIC(NAME, ret); \
+		SLIB_SAFE_LOCAL_STATIC(NAME, ret); \
 		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) { \
 			return sl_null; \
 		} \

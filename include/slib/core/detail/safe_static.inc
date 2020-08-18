@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
  *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *   THE SOFTWARE.
  */
+ 
+#if defined(SLIB_PLATFORM_IS_WIN32)
 
 namespace slib
 {
@@ -27,27 +29,68 @@ namespace slib
 	{
 		namespace safe_static
 		{
-
+			
 			template <class T>
-			class SafeStaticDestructor
+			class FreeGlobal
 			{
 			public:
 				T* object;
-				volatile sl_bool flagFreed;
+				sl_bool* pFreedStatus;
 
 			public:
-				SLIB_INLINE  SafeStaticDestructor(T* p): object(p), flagFreed(sl_false)
+				FreeGlobal(T* _object, sl_bool* _pFreedStatus): object(_object), pFreedStatus(_pFreedStatus)
 				{
 				}
 
-				~ SafeStaticDestructor()
+				~FreeGlobal()
 				{
-					flagFreed = sl_true;
+					*pFreedStatus = sl_true;
 					object->~T();
 				}
 			};
 
+			class IFreeable
+			{
+			public:
+				IFreeable();
+				virtual ~IFreeable();
+			};
+
+			template <class T>
+			class FreeLocal : public IFreeable
+			{
+			public:
+				T* object;
+				sl_bool* pFreedStatus;
+
+			public:
+				FreeLocal(T* _object, sl_bool* _pFreedStatus): object(_object), pFreedStatus(_pFreedStatus)
+				{
+				}
+
+				~FreeLocal()
+				{
+					if (pFreedStatus) {
+						*pFreedStatus = sl_true;
+					}
+					object->~T();
+				}
+			};
+
+			void FreeObjectOnExitImpl(IFreeable* obj);
+			
+			template <typename T>
+			SLIB_INLINE void FreeObjectOnExit(T* obj, sl_bool* outFreedStatus)
+			{
+				priv::safe_static::IFreeable* d = new priv::safe_static::FreeLocal<T>(obj, outFreedStatus);
+				if (d) {
+					priv::safe_static::FreeObjectOnExitImpl(d);
+				}
+			}
+
 		}
 	}
-
+	
 }
+
+#endif

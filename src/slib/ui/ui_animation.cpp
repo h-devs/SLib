@@ -77,7 +77,7 @@ namespace slib
 	
 	Ref<UIAnimationLoop> UIAnimationLoop::getInstance()
 	{
-		SLIB_SAFE_STATIC(Ref<UIAnimationLoop>, ret, new UIAnimationLoop)
+		SLIB_SAFE_LOCAL_STATIC(Ref<UIAnimationLoop>, ret, new UIAnimationLoop)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
 			return sl_null;
 		}

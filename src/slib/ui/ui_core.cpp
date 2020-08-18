@@ -120,7 +120,7 @@ namespace slib
 				QuitLoop();
 			}
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicList<ScreenOrientation>, g_listAvailableScreenOrientations)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicList<ScreenOrientation>, g_listAvailableScreenOrientations)
 
 			UIKeyboardAdjustMode g_keyboardAdjustMode = UIKeyboardAdjustMode::Pan;
 			
@@ -129,7 +129,7 @@ namespace slib
 #endif
 			
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<View>, g_currentDraggingView)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<View>, g_currentDraggingView)
 			DragOperations g_currentDraggingOperationMask;
 		
 		}

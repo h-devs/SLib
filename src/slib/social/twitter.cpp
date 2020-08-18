@@ -33,7 +33,7 @@ namespace slib
 		namespace twitter
 		{
 
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<Twitter>, g_instance)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Twitter>, g_instance)
 
 			class ShareLocalParams : public TwitterShareParam
 			{

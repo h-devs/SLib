@@ -223,7 +223,7 @@ namespace slib
 	Ref<LoggerSet> Logger::global()
 	{
 		Ref<Logger> console(getConsoleLogger());
-		SLIB_SAFE_STATIC(Ref<LoggerSet>, log, new LoggerSet(console, console))
+		SLIB_SAFE_LOCAL_STATIC(Ref<LoggerSet>, log, new LoggerSet(console, console))
 		if (SLIB_SAFE_STATIC_CHECK_FREED(log)) {
 			return sl_null;
 		}
@@ -232,7 +232,7 @@ namespace slib
 
 	Ref<Logger> Logger::getConsoleLogger()
 	{
-		SLIB_SAFE_STATIC(Ref<Logger>, logger, new ConsoleLogger)
+		SLIB_SAFE_LOCAL_STATIC(Ref<Logger>, logger, new ConsoleLogger)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(logger)) {
 			return sl_null;
 		}

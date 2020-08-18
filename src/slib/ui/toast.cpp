@@ -141,7 +141,7 @@ namespace slib
 			// milliseconds
 			sl_uint32 g_defaultDuration = 2000;
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<Font>, g_defaultFont)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Font>, g_defaultFont)
 			
 		}
 	}

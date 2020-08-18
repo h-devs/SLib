@@ -1282,7 +1282,7 @@ namespace slib
 
 	void MySQL::initThread()
 	{
-		SLIB_SAFE_STATIC(LibraryInitializer, lib)
+		SLIB_SAFE_LOCAL_STATIC(LibraryInitializer, lib)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(lib)) {
 			return;
 		}

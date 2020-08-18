@@ -73,7 +73,7 @@ namespace slib
 
 	Ref<XgPush> XgPush::getInstance()
 	{
-		SLIB_SAFE_STATIC(Ref<XgPush>, instance, new XgPush)
+		SLIB_SAFE_LOCAL_STATIC(Ref<XgPush>, instance, new XgPush)
 		return instance;
 	}
 

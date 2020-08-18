@@ -173,7 +173,7 @@ namespace slib
 		namespace platform
 		{
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicString, g_systemVersion);
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_systemVersion);
 			sl_uint32 g_systemVersionMajor = 0;
 			sl_uint32 g_systemVersionMinor = 0;
 			sl_bool g_flagInitSystemVersion = sl_true;

@@ -111,7 +111,7 @@ namespace slib
 				
 				static ButtonCategory* getCategories()
 				{
-					SLIB_SAFE_STATIC(Categories, ret)
+					SLIB_SAFE_LOCAL_STATIC(Categories, ret)
 					if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
 						return sl_null;
 					}

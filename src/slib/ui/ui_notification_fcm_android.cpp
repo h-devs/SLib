@@ -107,7 +107,7 @@ namespace slib
 
 	Ref<FCM> FCM::getInstance()
 	{
-		SLIB_SAFE_STATIC(Ref<FCM>, instance, new FCM)
+		SLIB_SAFE_LOCAL_STATIC(Ref<FCM>, instance, new FCM)
 		return instance;
 	}
 

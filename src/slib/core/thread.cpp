@@ -39,7 +39,7 @@ namespace slib
 		namespace thread
 		{
 			typedef AtomicHashMap< Thread*, WeakRef<Thread> > ThreadMap;
-			SLIB_STATIC_ZERO_INITIALIZED(ThreadMap, g_mapThreads)
+			SLIB_GLOBAL_ZERO_INITIALIZED(ThreadMap, g_mapThreads)
 		}
 	}
 

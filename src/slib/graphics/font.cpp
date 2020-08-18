@@ -34,10 +34,10 @@ namespace slib
 		namespace font
 		{
 			
-			SLIB_STATIC_ZERO_INITIALIZED(SpinLock, g_lockDefaultFont)
-			SLIB_STATIC_ZERO_INITIALIZED(Ref<Font>, g_defaultFont)
+			SLIB_GLOBAL_ZERO_INITIALIZED(SpinLock, g_lockDefaultFont)
+			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Font>, g_defaultFont)
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicString, g_defaultFamily)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_defaultFamily)
 			sl_real g_defaultSize = 12;
 
 			static String GetSystemDefaultFontFamily()

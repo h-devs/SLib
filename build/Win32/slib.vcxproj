@@ -170,6 +170,7 @@
     <ClCompile Include="..\..\src\slib\core\regex.cpp" />
     <ClCompile Include="..\..\src\slib\core\resource.cpp" />
     <ClCompile Include="..\..\src\slib\core\rw_lock.cpp" />
+    <ClCompile Include="..\..\src\slib\core\safe_static.cpp" />
     <ClCompile Include="..\..\src\slib\core\service.cpp" />
     <ClCompile Include="..\..\src\slib\core\setting.cpp" />
     <ClCompile Include="..\..\src\slib\core\spin_lock.cpp" />

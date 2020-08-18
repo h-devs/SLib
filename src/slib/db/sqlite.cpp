@@ -523,7 +523,7 @@ namespace slib
 						m_vfsFileCustomOffset = ((m_vfs.szOsFile - 1) | 15) + 1;
 						m_vfs.szOsFile = m_vfsFileCustomOffset + sizeof(EncryptionCustomFile);
 						m_vfsOriginal = vfsDefault;
-						SLIB_SAFE_STATIC(Mutex, mutex)
+						SLIB_SAFE_LOCAL_STATIC(Mutex, mutex)
 						MutexLocker lock(&mutex);
 						sqlite3_vfs_register(&m_vfs, 0);
 						iResult = sqlite3_open_v2(param.path.getData(), &db, flags, m_vfs.zName);

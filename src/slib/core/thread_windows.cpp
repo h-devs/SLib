@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -36,9 +36,6 @@ namespace slib
 		namespace thread
 		{
 
-			SLIB_THREAD Thread* g_currentThread = sl_null;
-			SLIB_THREAD sl_uint64 g_uniqueId = 0;
-
 			static DWORD CALLBACK ThreadProc(LPVOID lpParam)
 			{
 				Thread* pThread = (Thread*)lpParam;
@@ -47,6 +44,80 @@ namespace slib
 				return 0;
 			}
 
+			static DWORD g_tlsCurrentThread = TLS_OUT_OF_INDEXES;
+			static DWORD g_tlsUniqueId = TLS_OUT_OF_INDEXES;
+
+			static void InitializeTLS()
+			{
+				static sl_bool flagInit = sl_false;
+				if (flagInit) {
+					return;
+				}
+				flagInit = sl_true;
+				g_tlsCurrentThread = TlsAlloc();
+				g_tlsUniqueId = TlsAlloc();
+			}
+
+			static void FreeTLSValue(DWORD& index)
+			{
+				if (index == TLS_OUT_OF_INDEXES) {
+					return;
+				}
+				LPVOID pData = TlsGetValue(index);
+				if (pData) {
+					LocalFree((HLOCAL)pData);
+				}
+				TlsFree(index);
+				index = TLS_OUT_OF_INDEXES;
+			}
+
+			static void FreeTLS()
+			{
+				FreeTLSValue(g_tlsCurrentThread);
+				FreeTLSValue(g_tlsUniqueId);
+			}
+
+			static sl_uint64 GetTLSUint64(DWORD& index)
+			{
+				InitializeTLS();
+				if (index == TLS_OUT_OF_INDEXES) {
+					return 0;
+				}
+				LPVOID pData = TlsGetValue(index);
+				if (pData) {
+					return *((sl_uint64*)pData);
+				}
+				return 0;
+			}
+
+			static void SetTLSUint64(DWORD& index, sl_uint64 value)
+			{
+				InitializeTLS();
+				if (index == TLS_OUT_OF_INDEXES) {
+					return;
+				}				
+				HLOCAL hLocal = LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, 8);
+				if (hLocal) {
+					*((sl_uint64*)hLocal) = value;
+					TlsSetValue(index, (LPVOID)hLocal);
+				}
+			}
+
+			class TLSInit
+			{
+			public:
+				TLSInit()
+				{
+					InitializeTLS();
+				}
+
+				~TLSInit()
+				{
+					FreeTLS();
+				}
+
+			} g_tlsInit;
+
 		}
 	}
 
@@ -54,22 +125,22 @@ namespace slib
 
 	Thread* Thread::_nativeGetCurrentThread()
 	{
-		return g_currentThread;
+		return (Thread*)((void*)(sl_size)(GetTLSUint64(g_tlsCurrentThread)));
 	}
 
 	void Thread::_nativeSetCurrentThread(Thread* thread)
 	{
-		g_currentThread = thread;
+		SetTLSUint64(g_tlsCurrentThread, (sl_size)((void*)thread));
 	}
 
 	sl_uint64 Thread::_nativeGetCurrentThreadUniqueId()
 	{
-		return g_uniqueId;
+		return GetTLSUint64(g_tlsUniqueId);
 	}
 
 	void Thread::_nativeSetCurrentThreadUniqueId(sl_uint64 n)
 	{
-		g_uniqueId = n;
+		SetTLSUint64(g_tlsUniqueId, n);
 	}
 
 	void Thread::_nativeStart(sl_uint32 stackSize)

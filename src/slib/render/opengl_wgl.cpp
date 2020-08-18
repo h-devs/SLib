@@ -29,7 +29,7 @@
 #include "slib/core/thread.h"
 #include "slib/core/platform_windows.h"
 
-#pragma comment (lib, "opengl32.lib")
+#pragma comment(lib, "opengl32.lib")
 
 namespace slib
 {
@@ -71,7 +71,7 @@ namespace slib
 						return sl_null;
 					}
 
-					HDC hDC = ::GetDC(hWnd);
+					HDC hDC = GetDC(hWnd);
 					if (hDC) {
 
 						RendererParam param = _param;
@@ -89,10 +89,10 @@ namespace slib
 						pfd.cStencilBits = param.nStencilBits;
 						pfd.iLayerType = PFD_MAIN_PLANE;
 
-						int iPixelFormat = ::ChoosePixelFormat(hDC, &pfd);
+						int iPixelFormat = ChoosePixelFormat(hDC, &pfd);
 						if (iPixelFormat) {
 
-							if (::SetPixelFormat(hDC, iPixelFormat, &pfd)) {
+							if (SetPixelFormat(hDC, iPixelFormat, &pfd)) {
 								
 								HGLRC context = wglCreateContext(hDC);
 								if (context) {
@@ -115,7 +115,7 @@ namespace slib
 								}
 							}
 						}
-						::ReleaseDC(hWnd, hDC);
+						ReleaseDC(hWnd, hDC);
 					}
 					return sl_null;
 				}
@@ -132,7 +132,7 @@ namespace slib
 
 					if (m_context) {
 						wglDeleteContext(m_context);
-						::ReleaseDC(m_hWindow, m_hDC);
+						ReleaseDC(m_hWindow, m_hDC);
 						m_context = sl_null;
 						m_hDC = sl_null;
 					}
@@ -183,12 +183,12 @@ namespace slib
 					m_flagRequestRender = sl_false;
 					if (flagUpdate) {
 						RECT rect;
-						::GetClientRect(m_hWindow, &rect);
+						GetClientRect(m_hWindow, &rect);
 						if (rect.right != 0 && rect.bottom != 0) {
 							engine->setViewport(0, 0, rect.right, rect.bottom);
 							dispatchFrame(engine);
 							if (m_hDC) {
-								::SwapBuffers(m_hDC);
+								SwapBuffers(m_hDC);
 							}
 						}
 					}

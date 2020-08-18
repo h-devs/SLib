@@ -164,11 +164,11 @@ namespace slib
 
 			static void ApplyBadgeNumber()
 			{
-				SLIB_SAFE_STATIC(Ref<Font>, font1, Font::create("Courier", 24, sl_true));
+				SLIB_SAFE_LOCAL_STATIC(Ref<Font>, font1, Font::create("Courier", 24, sl_true));
 				if (SLIB_SAFE_STATIC_CHECK_FREED(font1)) {
 					return;
 				}
-				SLIB_SAFE_STATIC(Ref<Font>, font2, Font::create("Courier", 20, sl_true));
+				SLIB_SAFE_LOCAL_STATIC(Ref<Font>, font2, Font::create("Courier", 20, sl_true));
 				if (SLIB_SAFE_STATIC_CHECK_FREED(font2)) {
 					return;
 				}
@@ -273,7 +273,7 @@ namespace slib
 
 			static Win32_UI_Shared* GetSharedUIContextInternal()
 			{
-				SLIB_SAFE_STATIC(Win32_UI_Shared, ret);
+				SLIB_SAFE_LOCAL_STATIC(Win32_UI_Shared, ret);
 				if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
 					return sl_null;
 				}

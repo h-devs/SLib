@@ -405,7 +405,7 @@ namespace slib
 
 	Ref<Drawable> EmptyDrawable::get()
 	{
-		SLIB_SAFE_STATIC(Ref<Drawable>, ret, new EmptyDrawable)
+		SLIB_SAFE_LOCAL_STATIC(Ref<Drawable>, ret, new EmptyDrawable)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
 			return new EmptyDrawable;
 		}

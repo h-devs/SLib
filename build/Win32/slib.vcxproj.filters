@@ -1448,5 +1448,8 @@
     <ClCompile Include="..\..\src\slib\network\dl_windows_iphlpapi.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\safe_static.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

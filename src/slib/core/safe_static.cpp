@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,36 +20,51 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_SINGLETON
-#define CHECKHEADER_SLIB_CORE_SINGLETON
+#include "slib/core/safe_static.h"
 
-#include "ref.h"
-#include "safe_static.h"
+#include "slib/core/queue.h"
 
-#define SLIB_DECLARE_SINGLETON(TYPE) \
-public: \
-	static slib::Ref<TYPE> getInstance();
+namespace slib
+{
 
-#define SLIB_DEFINE_SINGLETON(TYPE, ...) \
-	slib::Ref<TYPE> TYPE::getInstance() \
-	{ \
-		SLIB_TRY_CONVERT_TYPE(TYPE*, Referable*) \
-		SLIB_SAFE_LOCAL_STATIC(slib::Ref<TYPE>, instance, new TYPE(__VA_ARGS__)); \
-		if (SLIB_SAFE_STATIC_CHECK_FREED(instance)) { \
-			return sl_null; \
-		} \
-		return instance; \
+	namespace priv
+	{
+		namespace safe_static
+		{
+
+			static Queue<IFreeable*> g_listFreeables;
+
+			IFreeable::IFreeable()
+			{
+			}
+
+			IFreeable::~IFreeable()
+			{
+			}
+
+			class FreeHelper
+			{
+			public:
+				FreeHelper()
+				{
+				}
+
+				~FreeHelper()
+				{
+					IFreeable* obj;
+					while (g_listFreeables.pop_NoLock(&obj)) {
+						delete obj;
+					}
+				}
+
+			} g_helper;
+
+			void FreeObjectOnExitImpl(IFreeable* obj)
+			{
+				g_listFreeables.push(obj);
+			}
+
+		}
 	}
 
-#define SLIB_INIT_SINGLETON(TYPE, ...) \
-	slib::Ref<TYPE> TYPE::getInstance() \
-	{ \
-		SLIB_TRY_CONVERT_TYPE(TYPE*, Referable*) \
-		SLIB_SAFE_LOCAL_STATIC(slib::Ref<TYPE>, instance, Init<TYPE>(__VA_ARGS__)); \
-		if (SLIB_SAFE_STATIC_CHECK_FREED(instance)) { \
-			return sl_null; \
-		} \
-		return instance; \
-	}
-
-#endif
+}

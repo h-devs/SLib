@@ -33,7 +33,7 @@ namespace slib
 		namespace wechat
 		{
 					
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<WeChat>, g_instance)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<WeChat>, g_instance)
 		
 			static String GenerateSign(const Map<String, String>& map, const String& apiKey)
 			{

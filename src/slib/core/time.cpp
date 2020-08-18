@@ -76,7 +76,7 @@ namespace slib
 	{
 		namespace time
 		{
-			SLIB_STATIC_ZERO_INITIALIZED(TimeZone, g_local)
+			SLIB_GLOBAL_ZERO_INITIALIZED(TimeZone, g_local)
 		}
 	}
 	
@@ -84,7 +84,7 @@ namespace slib
 
 	const TimeZone& TimeZone::UTC() noexcept
 	{
-		SLIB_SAFE_STATIC(TimeZone, utc, TimeZone::create(0));
+		SLIB_SAFE_LOCAL_STATIC(TimeZone, utc, TimeZone::create(0));
 		return utc;
 	}
 	

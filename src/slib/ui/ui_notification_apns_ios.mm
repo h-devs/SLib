@@ -38,10 +38,10 @@ namespace slib
 	
 	Ref<APNs> APNs::getInstance()
 	{
-		SLIB_SAFE_STATIC(Mutex, lock)
+		SLIB_SAFE_LOCAL_STATIC(Mutex, lock)
 		MutexLocker locker(&lock);
 		
-		SLIB_STATIC_ZERO_INITIALIZED(Ref<APNs>, instance);
+		SLIB_LOCAL_STATIC_ZERO_INITIALIZED(Ref<APNs>, instance);
 		if (instance.isNotNull()) {
 			return instance;
 		}

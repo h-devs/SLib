@@ -148,7 +148,7 @@ namespace slib
 			sl_uint32 g_default_timeout = 60000;
 			sl_bool g_default_allowInsecureConnection = sl_false;
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<Dispatcher>, g_default_dispatcher)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Dispatcher>, g_default_dispatcher)
 			
 		}
 	}

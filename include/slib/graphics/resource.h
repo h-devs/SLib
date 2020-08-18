@@ -146,7 +146,7 @@ namespace slib
 			return slib::priv::graphics_resource::GetDrawable(entries, WIDTH, HEIGHT); \
 		} \
 		slib::Ref<slib::Drawable> get() { \
-			SLIB_SAFE_STATIC(slib::Ref<slib::Drawable>, value, slib::priv::graphics_resource::GetDrawable(entries, WIDTH, HEIGHT)); \
+			SLIB_SAFE_LOCAL_STATIC(slib::Ref<slib::Drawable>, value, slib::priv::graphics_resource::GetDrawable(entries, WIDTH, HEIGHT)); \
 			if (SLIB_SAFE_STATIC_CHECK_FREED(value)) { \
 				return sl_null; \
 			} \
@@ -164,7 +164,7 @@ namespace slib
 
 #define SLIB_DEFINE_NINEPIECES_RESOURCE(NAME, LEFT_WIDTH, RIGHT_WIDTH, TOP_HEIGHT, BOTTOM_HEIGHT, TOP_LEFT, TOP, TOP_RIGHT, LEFT, CENTER, RIGHT, BOTTOM_LEFT, BOTTOM, BOTTOM_RIGHT) \
 	namespace NAME { \
-		SLIB_STATIC_ZERO_INITIALIZED(slib::AtomicRef<slib::Drawable>, value) \
+		SLIB_GLOBAL_ZERO_INITIALIZED(slib::AtomicRef<slib::Drawable>, value) \
 		slib::Ref<slib::Drawable> get() { \
 			if (SLIB_SAFE_STATIC_CHECK_FREED(value)) { \
 				return sl_null; \
@@ -184,7 +184,7 @@ namespace slib
 
 #define SLIB_DEFINE_NINEPATCH_RESOURCE(NAME, DST_LEFT_WIDTH, DST_RIGHT_WIDTH, DST_TOP_HEIGHT, DST_BOTTOM_HEIGHT, SRC, SRC_LEFT_WIDTH, SRC_RIGHT_WIDTH, SRC_TOP_HEIGHT, SRC_BOTTOM_HEIGHT) \
 	namespace NAME { \
-		SLIB_STATIC_ZERO_INITIALIZED(slib::AtomicRef<slib::Drawable>, value) \
+		SLIB_GLOBAL_ZERO_INITIALIZED(slib::AtomicRef<slib::Drawable>, value) \
 		slib::Ref<slib::Drawable> get() { \
 			if (SLIB_SAFE_STATIC_CHECK_FREED(value)) { \
 				return sl_null; \

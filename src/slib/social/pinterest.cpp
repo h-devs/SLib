@@ -32,7 +32,7 @@ namespace slib
 	{
 		namespace pinterest
 		{
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<Pinterest>, g_instance)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Pinterest>, g_instance)
 		}
 	}
 	

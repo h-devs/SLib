@@ -319,7 +319,7 @@ namespace slib
 
 			Monitor* GetMonitor()
 			{
-				SLIB_SAFE_STATIC(Monitor, ret);
+				SLIB_SAFE_LOCAL_STATIC(Monitor, ret);
 				if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
 					return sl_null;
 				}

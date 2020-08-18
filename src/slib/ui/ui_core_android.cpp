@@ -227,7 +227,7 @@ namespace slib
 
 	Ref<Screen> UI::getPrimaryScreen()
 	{
-		SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<Screen>, ret)
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Screen>, ret)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
 			return sl_null;
 		}

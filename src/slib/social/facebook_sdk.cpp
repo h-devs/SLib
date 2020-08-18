@@ -63,7 +63,7 @@ namespace slib
 	{
 		namespace facebook
 		{
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<Facebook>, g_instanceSDK)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Facebook>, g_instanceSDK)
 		}
 	}
 

@@ -31,7 +31,7 @@ namespace slib
 	{
 		namespace facebook
 		{
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<Facebook>, g_instance)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Facebook>, g_instance)
 		}
 	}
 	

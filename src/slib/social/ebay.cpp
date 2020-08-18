@@ -32,7 +32,7 @@ namespace slib
 		namespace ebay
 		{
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<Ebay>, g_instance)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Ebay>, g_instance)
 
 			static String GetSimpleXMLValue(const String& xml, const String& tagName)
 			{

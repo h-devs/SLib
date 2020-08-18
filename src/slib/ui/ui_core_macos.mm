@@ -47,7 +47,7 @@ namespace slib
 		namespace ui_core
 		{
 		
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicFunction<void(NSNotification*)>, g_callbackDidFinishLaunching);
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSNotification*)>, g_callbackDidFinishLaunching);
 
 			class ScreenImpl : public Screen
 			{

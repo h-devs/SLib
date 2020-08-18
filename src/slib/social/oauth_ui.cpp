@@ -161,7 +161,7 @@ namespace slib
 	
 	Ptr<OAuthWebRedirectDialog> OAuthWebRedirectDialog::getDefault()
 	{
-		SLIB_STATIC_ZERO_INITIALIZED(AtomicPtr<OAuthWebRedirectDialog>, dlg);
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicPtr<OAuthWebRedirectDialog>, dlg);
 		if (SLIB_SAFE_STATIC_CHECK_FREED(dlg)) {
 			return sl_null;
 		}

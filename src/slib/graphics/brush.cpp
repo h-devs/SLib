@@ -64,7 +64,7 @@ namespace slib
 
 	Ref<Brush> Brush::getDefault()
 	{
-		SLIB_SAFE_STATIC(Ref<Brush>, defaultBrush, createSolidBrush(Color::White))
+		SLIB_SAFE_LOCAL_STATIC(Ref<Brush>, defaultBrush, createSolidBrush(Color::White))
 		if (SLIB_SAFE_STATIC_CHECK_FREED(defaultBrush)) {
 			return sl_null;
 		}

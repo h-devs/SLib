@@ -2107,8 +2107,8 @@ namespace slib
 	
 	const EllipticCurve& EllipticCurve::secp256k1()
 	{
-		SLIB_SAFE_STATIC(EllipticCurve_secp256k1, ret)
-		SLIB_STATIC_ZERO_INITIALIZED(EllipticCurve, zero)
+		SLIB_SAFE_LOCAL_STATIC(EllipticCurve_secp256k1, ret)
+		SLIB_LOCAL_STATIC_ZERO_INITIALIZED(EllipticCurve, zero)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
 			return zero;
 		}

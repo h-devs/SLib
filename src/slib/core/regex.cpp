@@ -212,7 +212,7 @@ namespace slib
 	
 	sl_bool RegEx::matchEmail(const String& str) noexcept
 	{
-		SLIB_SAFE_STATIC(RegEx, regex, "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$");
+		SLIB_SAFE_LOCAL_STATIC(RegEx, regex, "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$");
 		if (SLIB_SAFE_STATIC_CHECK_FREED(regex)) {
 			return sl_false;
 		}

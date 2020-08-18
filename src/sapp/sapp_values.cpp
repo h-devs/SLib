@@ -432,7 +432,7 @@ namespace slib
 			}
 			
 			typedef HashMap<String, int> UnitMap;
-			SLIB_SAFE_STATIC(UnitMap, units);
+			SLIB_SAFE_LOCAL_STATIC(UnitMap, units);
 			if (units.isNull()) {
 				units.put("*", FILL);
 				units.put("p", WEIGHT);
