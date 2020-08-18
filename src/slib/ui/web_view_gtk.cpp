@@ -20,6 +20,34 @@
  *   THE SOFTWARE.
  */
 
-#define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
+#include "slib/core/definition.h"
 
-#include "slib/render/dl_linux_gl.h"
+#if defined(SLIB_UI_IS_GTK)
+
+#include "slib/ui/web_view.h"
+
+namespace slib
+{
+
+	Ref<ViewInstance> WebView::createNativeWidget(ViewInstance* parent)
+	{
+		return sl_null;
+	}
+
+	Ptr<IWebViewInstance> WebView::getWebViewInstance()
+	{
+		return sl_null;
+	}
+
+
+	void DefaultWebViewProvider::clearCache()
+	{
+	}
+
+	void DefaultWebViewProvider::clearCookie()
+	{
+	}
+
+}
+
+#endif

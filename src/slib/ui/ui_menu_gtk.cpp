@@ -20,6 +20,20 @@
  *   THE SOFTWARE.
  */
 
-#define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
+#include "slib/core/definition.h"
 
-#include "slib/render/dl_linux_gl.h"
+#if defined(SLIB_UI_IS_GTK)
+
+#include "slib/ui/menu.h"
+
+namespace slib
+{
+
+	Ref<Menu> Menu::create(sl_bool flagPopup)
+	{
+		return sl_null;
+	}
+
+}
+
+#endif

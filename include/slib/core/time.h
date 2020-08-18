@@ -30,10 +30,6 @@
 #include "parse.h"
 #include "locale.h"
 
-#if defined(SLIB_PLATFORM_IS_UNIX)
-#	include "dl_linux_rt.h"
-#endif
-
 /*******************************************************
  Time contains an integral value holding the number of
  microseconds since 00:00, Jan 1 1970 UTC, corresponding

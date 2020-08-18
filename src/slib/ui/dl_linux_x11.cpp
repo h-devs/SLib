@@ -22,4 +22,5 @@
 
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "slib/render/dl_linux_gl.h"
+#include "slib/ui/dl_linux_x11.h"
+

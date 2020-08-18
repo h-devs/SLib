@@ -85,4 +85,13 @@ namespace slib
 		}		
 	}
 
+	void* DynamicLibrary::loadLibrary(const StringParam& path1, const StringParam& path2)
+	{
+		void* lib = loadLibrary(path1);
+		if (lib) {
+			return lib;
+		}
+		return loadLibrary(path2);
+	}
+
 }

@@ -65,9 +65,6 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WIN32) || (defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP))
 
 #include "slib/core/dynamic_library.h"
-#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
-#include "slib/render/dl_linux_gl.h"
-#endif
 
 namespace slib
 {
@@ -89,9 +86,9 @@ namespace slib
 #else
 			static void* GetFunctionAddress(const char* name)
 			{
-				auto func = glx::glXGetProcAddress();
+				auto func = glx::getApi_glXGetProcAddress();
 				if (func) {
-					return func(name);
+					return func((GLubyte*)name);
 				}
 				return sl_null;
 			}

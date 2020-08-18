@@ -20,6 +20,35 @@
  *   THE SOFTWARE.
  */
 
-#define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
+#include "slib/core/definition.h"
 
-#include "slib/render/dl_linux_gl.h"
+#if defined(SLIB_UI_IS_GTK)
+
+#include "slib/ui/edit_view.h"
+
+namespace slib
+{
+
+	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* parent)
+	{
+		return sl_null;
+	}
+
+	Ptr<IEditViewInstance> EditView::getEditViewInstance()
+	{
+		return sl_null;
+	}
+
+	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* parent)
+	{
+		return sl_null;
+	}
+	
+	Ptr<IEditViewInstance> TextArea::getEditViewInstance()
+	{
+		return sl_null;
+	}
+
+}
+
+#endif

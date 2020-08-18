@@ -30,8 +30,6 @@
 
 #include "view_gtk.h"
 
-#include "gdk/x11/gdkx.h"
-
 namespace slib
 {
 
@@ -139,7 +137,7 @@ namespace slib
 					if (gwindow) {
 						void* xdisplay = GDK_WINDOW_XDISPLAY(gwindow);
 						XID xwindow = GDK_WINDOW_XWINDOW(gwindow);
-						if (xdisplay && xwindow != None) {
+						if (xdisplay && xwindow != X_None) {
 							RendererParam rp;
 							rp.onFrame = SLIB_FUNCTION_WEAKREF(RenderViewInstance, onFrame, ret);
 							Ref<Renderer> renderer = GLX::createRenderer(xdisplay, xwindow, rp);

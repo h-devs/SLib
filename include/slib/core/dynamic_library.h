@@ -55,6 +55,8 @@ namespace slib
 	public:
 		static void* loadLibrary(const StringParam& path);
 
+		static void* loadLibrary(const StringParam& path1, const StringParam& path2);
+
 		static void freeLibrary(void* library);
 
 		static void* getFunctionAddress(void* library, const char* name);

@@ -20,6 +20,25 @@
  *   THE SOFTWARE.
  */
 
-#define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
+#include "slib/core/definition.h"
 
-#include "slib/render/dl_linux_gl.h"
+#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+
+#include "slib/media/camera.h"
+
+namespace slib
+{
+
+	Ref<Camera> Camera::create(const CameraParam& param)
+	{
+		return sl_null;
+	}
+
+	List<CameraInfo> Camera::getCamerasList()
+	{
+		return sl_null;
+	}
+
+}
+
+#endif

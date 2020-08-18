@@ -1775,7 +1775,7 @@ namespace slib
 		{
 			if (m_nSamplers == 0) {
 				GLint n = 0;
-				glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &n);
+				GL_ENTRY(glGetIntegerv)(GL_MAX_TEXTURE_IMAGE_UNITS, &n);
 				if (n > MAX_SAMPLER_COUNT) {
 					n = MAX_SAMPLER_COUNT;
 				}

@@ -20,6 +20,25 @@
  *   THE SOFTWARE.
  */
 
-#define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
+#include "slib/core/definition.h"
 
-#include "slib/render/dl_linux_gl.h"
+#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+
+#include "slib/media/audio_recorder.h"
+
+namespace slib
+{
+
+	Ref<AudioRecorder> AudioRecorder::create(const AudioRecorderParam& param)
+	{
+		return sl_null;
+	}
+
+	List<AudioRecorderInfo> AudioRecorder::getRecordersList()
+	{
+		return sl_null;
+	}
+
+}
+
+#endif

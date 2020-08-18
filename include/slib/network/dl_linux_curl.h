@@ -27,7 +27,7 @@
 
 #if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 
-#include "dl.h"
+#include "../core/dl.h"
 
 #include "curl/curl.h"
 
@@ -38,10 +38,13 @@ namespace slib
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			curl_easy_init,
-			CURL*
+			CURL*,
 		)
 		#define curl_easy_init slib::curl::getApi_curl_easy_init()
 
+		#ifdef curl_easy_setopt
+		#undef curl_easy_setopt
+		#endif
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			curl_easy_setopt,
 			CURLcode, ,
@@ -63,6 +66,9 @@ namespace slib
 		)
 		#define curl_easy_cleanup slib::curl::getApi_curl_easy_cleanup()
 		
+		#ifdef curl_easy_getinfo
+		#undef curl_easy_getinfo
+		#endif
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			curl_easy_getinfo,
 			CURLcode, ,

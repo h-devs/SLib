@@ -27,7 +27,6 @@
 #include "slib/core/time.h"
 
 #include <time.h>
-
 #include <sys/time.h>
 
 #define TIME_SECOND SLIB_INT64(1000000)

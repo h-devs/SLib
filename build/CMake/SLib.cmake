@@ -470,6 +470,7 @@ else ()
   "${SLIB_PATH}/src/slib/render/dl_linux_gl.cpp"
   "${SLIB_PATH}/src/slib/ui/dl_linux_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/dl_linux_gdk.cpp"
+  "${SLIB_PATH}/src/slib/ui/dl_linux_x11.cpp"
 
   "${SLIB_PATH}/src/slib/db/mysql.cpp"
   "${SLIB_PATH}/src/slib/db/postgresql.cpp"
@@ -481,14 +482,22 @@ else ()
 
   "${SLIB_PATH}/src/slib/render/opengl_glx.cpp"
 
+  "${SLIB_PATH}/src/slib/media/audio_player_linux.cpp"
+  "${SLIB_PATH}/src/slib/media/audio_recorder_linux.cpp"
+  "${SLIB_PATH}/src/slib/media/camera_linux.cpp"
+  "${SLIB_PATH}/src/slib/media/media_player_linux.cpp"
+
   "${SLIB_PATH}/src/slib/device/device_linux.cpp"
 
   "${SLIB_PATH}/src/slib/ui/clipboard_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/common_dialogs_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/edit_view_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/render_view_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_core_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_event_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/ui_menu_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/view_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/web_view_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/window_gtk.cpp"
  )
 endif()

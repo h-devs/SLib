@@ -20,6 +20,25 @@
  *   THE SOFTWARE.
  */
 
-#define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
+#include "slib/core/definition.h"
 
-#include "slib/render/dl_linux_gl.h"
+#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+
+#include "slib/media/audio_player.h"
+
+namespace slib
+{
+
+	Ref<AudioPlayer> AudioPlayer::create(const AudioPlayerParam& param)
+	{
+		return sl_null;
+	}
+
+	List<AudioPlayerInfo> AudioPlayer::getPlayersList()
+	{
+		return sl_null;
+	}
+
+}
+
+#endif

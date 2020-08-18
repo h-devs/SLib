@@ -30,6 +30,7 @@
 #include "dl.h"
 
 #include <time.h>
+#include <sys/time.h>
 
 namespace slib
 {

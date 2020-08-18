@@ -20,6 +20,31 @@
  *   THE SOFTWARE.
  */
 
-#define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
+#ifndef CHECKHEADER_SLIB_UI_DL_LINUX_X11
+#define CHECKHEADER_SLIB_UI_DL_LINUX_X11
 
-#include "slib/render/dl_linux_gl.h"
+#include "definition.h"
+
+#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+
+#include "../core/dl.h"
+
+#include "X11/Xlib.h"
+
+namespace slib
+{
+
+	SLIB_IMPORT_LIBRARY_BEGIN(x11, "libX11.so.6")
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XGetWindowAttributes,
+			Status, ,
+			Display*, Window, XWindowAttributes*
+		)
+		#define XGetWindowAttributes slib::x11::getApi_XGetWindowAttributes()
+	SLIB_IMPORT_LIBRARY_END
+
+}
+
+#endif
+
+#endif

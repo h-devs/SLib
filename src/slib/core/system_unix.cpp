@@ -42,6 +42,10 @@
 
 #include <sys/time.h>
 
+#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+#	include "slib/core/dl_linux_rt.h"
+#endif
+
 #define PRIV_PATH_MAX 1024
 
 namespace slib

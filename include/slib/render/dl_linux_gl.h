@@ -20,14 +20,14 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_NETWORK_DL_LINUX_GL
-#define CHECKHEADER_SLIB_NETWORK_DL_LINUX_GL
+#ifndef CHECKHEADER_SLIB_RENDER_DL_LINUX_GL
+#define CHECKHEADER_SLIB_RENDER_DL_LINUX_GL
 
 #include "definition.h"
 
 #if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 
-#include "dl.h"
+#include "../core/dl.h"
 
 #include "gl/GLX/glx.h"
 
@@ -37,10 +37,45 @@ namespace slib
 	SLIB_IMPORT_LIBRARY_BEGIN(glx, "libGL.so.1")
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-			glXGetProcAddress, ,
-			void*
+			glXGetProcAddress,
+			void*, ,
 			const GLubyte *procname
 		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			glXChooseVisual,
+			XVisualInfo*, ,
+			Display *dpy, int screen, int *attribList
+		) 
+		#define glXChooseVisual slib::glx::getApi_glXChooseVisual()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			glXCreateContext,
+			GLXContext, ,
+			Display *dpy, XVisualInfo *vis, GLXContext shareList, Bool direct
+		) 
+		#define glXCreateContext slib::glx::getApi_glXCreateContext()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			glXDestroyContext,
+			void, ,
+			Display *dpy, GLXContext ctx
+		) 
+		#define glXDestroyContext slib::glx::getApi_glXDestroyContext()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			glXMakeCurrent,
+			Bool, ,
+			Display *dpy, GLXDrawable drawable, GLXContext ctx
+		) 
+		#define glXMakeCurrent slib::glx::getApi_glXMakeCurrent()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			glXSwapBuffers,
+			void, ,
+			Display *dpy, GLXDrawable drawable
+		) 
+		#define glXSwapBuffers slib::glx::getApi_glXSwapBuffers()
 
 	SLIB_IMPORT_LIBRARY_END
 

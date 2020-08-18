@@ -138,11 +138,7 @@ namespace slib
 
 		m_state = ButtonState::Normal;
 		m_category = 0;
-#if defined(SLIB_PLATFORM_IS_MOBILE)
 		m_flagUseFocusedState = sl_false;
-#else
-		m_flagUseFocusedState = sl_true;
-#endif
 
 		m_iconSize.x = 0;
 		m_iconSize.y = 0;

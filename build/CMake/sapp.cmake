@@ -41,13 +41,12 @@ target_link_libraries (
  slib
  pthread
  dl
- curl
 )
 
 set_target_properties (
  tool-sapp
  PROPERTIES
  LINK_FLAGS "-static-libgcc -Wl,--wrap=memcpy"
- ARCHIVE_OUTPUT_DIRECTORY "${SLIB_PATH}/bin/${CMAKE_SYSTEM_NAME}"
- ARCHIVE_OUTPUT_NAME "sapp"
+ RUNTIME_OUTPUT_DIRECTORY "${SLIB_PATH}/bin/${CMAKE_SYSTEM_NAME}"
+ RUNTIME_OUTPUT_NAME "sapp"
 )

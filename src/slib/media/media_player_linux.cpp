@@ -20,6 +20,18 @@
  *   THE SOFTWARE.
  */
 
-#define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
+#include "slib/core/definition.h"
 
-#include "slib/render/dl_linux_gl.h"
+#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+
+#include "slib/media/media_player.h"
+
+namespace slib
+{
+	Ref<MediaPlayer> MediaPlayer::_createNative(const MediaPlayerParam& param)
+	{
+		return sl_null;
+	}
+}
+
+#endif
