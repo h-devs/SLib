@@ -52,7 +52,7 @@ namespace slib
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TextItemDrawParam)
 	
 	TextItemDrawParam::TextItemDrawParam() noexcept:
-		color(Color::Black),
+		color(Color::Black), colorMatrix(sl_null),
 		shadowOpacity(0), shadowRadius(3), shadowColor(Color::Black), shadowOffset(0, 0),
 		lineThickness(1)
 	{
