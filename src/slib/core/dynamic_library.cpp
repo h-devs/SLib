@@ -29,9 +29,14 @@ namespace slib
 	{
 	}
 
-	DynamicLibrary::DynamicLibrary(const StringParam& param) : m_library(sl_null)
+	DynamicLibrary::DynamicLibrary(const StringParam& path) : m_library(sl_null)
 	{
-		load(param);
+		load(path);
+	}
+
+	DynamicLibrary::DynamicLibrary(const StringParam& path1, const StringParam& path2) : m_library(sl_null)
+	{
+		load(path1, path2);
 	}
 
 	DynamicLibrary::~DynamicLibrary()
@@ -50,6 +55,14 @@ namespace slib
 		void* library = loadLibrary(path);
 		m_library = library;
 		return library != sl_null;
+	}
+
+	sl_bool DynamicLibrary::load(const StringParam& path1, const StringParam& path2)
+	{
+		if (load(path1)) {
+			return sl_true;
+		}
+		return load(path2);
 	}
 
 	void DynamicLibrary::free()

@@ -463,13 +463,17 @@ if(ANDROID)
  )
 else ()
  set (SLIB_EXTRA_PLATFORM_FILES
+  "${SLIB_PATH}/src/slib/core/dl_linux_glib.cpp"
+  "${SLIB_PATH}/src/slib/core/dl_linux_rt.cpp"
+  "${SLIB_PATH}/src/slib/network/dl_linux_curl.cpp"
+  "${SLIB_PATH}/src/slib/graphics/dl_linux_cairo.cpp"
+  "${SLIB_PATH}/src/slib/render/dl_linux_gl.cpp"
+  "${SLIB_PATH}/src/slib/ui/dl_linux_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/dl_linux_gdk.cpp"
+
   "${SLIB_PATH}/src/slib/db/mysql.cpp"
   "${SLIB_PATH}/src/slib/db/postgresql.cpp"
 
-  "${SLIB_PATH}/src/slib/core/dl_linux_glib.cpp"
-  "${SLIB_PATH}/src/slib/core/dl_linux_rt.cpp"
-
-  "${SLIB_PATH}/src/slib/graphics/dl_linux_cairo.cpp"
   "${SLIB_PATH}/src/slib/graphics/bitmap_cairo.cpp"
   "${SLIB_PATH}/src/slib/graphics/canvas_cairo.cpp"
   "${SLIB_PATH}/src/slib/graphics/drawable_cairo.cpp"
@@ -479,8 +483,6 @@ else ()
 
   "${SLIB_PATH}/src/slib/device/device_linux.cpp"
 
-  "${SLIB_PATH}/src/slib/ui/dl_linux_gtk.cpp"
-  "${SLIB_PATH}/src/slib/ui/dl_linux_gdk.cpp"
   "${SLIB_PATH}/src/slib/ui/clipboard_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/common_dialogs_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/render_view_gtk.cpp"

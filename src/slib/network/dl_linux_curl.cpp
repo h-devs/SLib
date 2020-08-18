@@ -20,50 +20,6 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_DYNAMIC_LIBRARY
-#define CHECKHEADER_SLIB_CORE_DYNAMIC_LIBRARY
+#define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "definition.h"
-
-#include "string.h"
-
-namespace slib
-{
-	
-	class SLIB_EXPORT DynamicLibrary
-	{
-	public:
-		DynamicLibrary();
-
-		DynamicLibrary(const StringParam& path);
-
-		DynamicLibrary(const StringParam& path1, const StringParam& path2);
-
-		~DynamicLibrary();
-
-	public:
-		sl_bool isLoaded();
-
-		sl_bool load(const StringParam& path);
-
-		sl_bool load(const StringParam& path1, const StringParam& path2);
-
-		void free();
-
-		void* getFunctionAddress(const StringParam& name);
-
-	public:
-		static void* loadLibrary(const StringParam& path);
-
-		static void freeLibrary(void* library);
-
-		static void* getFunctionAddress(void* library, const char* name);
-		
-	private:
-		void* m_library;
-
-	};
-
-}
-
-#endif
+#include "slib/network/dl_linux_curl.h"

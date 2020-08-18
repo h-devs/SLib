@@ -20,50 +20,32 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_DYNAMIC_LIBRARY
-#define CHECKHEADER_SLIB_CORE_DYNAMIC_LIBRARY
+#ifndef CHECKHEADER_SLIB_NETWORK_DL_LINUX_GL
+#define CHECKHEADER_SLIB_NETWORK_DL_LINUX_GL
 
 #include "definition.h"
 
-#include "string.h"
+#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+
+#include "dl.h"
+
+#include "gl/GLX/glx.h"
 
 namespace slib
 {
-	
-	class SLIB_EXPORT DynamicLibrary
-	{
-	public:
-		DynamicLibrary();
 
-		DynamicLibrary(const StringParam& path);
+	SLIB_IMPORT_LIBRARY_BEGIN(glx, "libGL.so.1")
 
-		DynamicLibrary(const StringParam& path1, const StringParam& path2);
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			glXGetProcAddress, ,
+			void*
+			const GLubyte *procname
+		)
 
-		~DynamicLibrary();
-
-	public:
-		sl_bool isLoaded();
-
-		sl_bool load(const StringParam& path);
-
-		sl_bool load(const StringParam& path1, const StringParam& path2);
-
-		void free();
-
-		void* getFunctionAddress(const StringParam& name);
-
-	public:
-		static void* loadLibrary(const StringParam& path);
-
-		static void freeLibrary(void* library);
-
-		static void* getFunctionAddress(void* library, const char* name);
-		
-	private:
-		void* m_library;
-
-	};
+	SLIB_IMPORT_LIBRARY_END
 
 }
+
+#endif
 
 #endif

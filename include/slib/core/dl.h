@@ -29,7 +29,7 @@
 
 #include "dynamic_library.h"
 
-#define SLIB_IMPORT_LIBRARY_BEGIN(NAME, PATH) \
+#define SLIB_IMPORT_LIBRARY_BEGIN(NAME, ...) \
 	namespace NAME { \
 		void* getLibrary() { \
 			static void* library = sl_null; \
@@ -37,7 +37,7 @@
 			if (flagLoaded) { \
 				return library; \
 			} \
-			library = DynamicLibrary::loadLibrary(PATH); \
+			library = DynamicLibrary::loadLibrary(__VA_ARGS__); \
 			flagLoaded = sl_true; \
 			return library; \
 		} \
@@ -70,7 +70,7 @@
 
 #else
 
-#define SLIB_IMPORT_LIBRARY_BEGIN(NAME, PATH) \
+#define SLIB_IMPORT_LIBRARY_BEGIN(NAME, ...) \
 	namespace NAME { \
 		void* getLibrary(); \
 		void* getApi(const char* name);
