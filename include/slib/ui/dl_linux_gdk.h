@@ -32,12 +32,61 @@
 #include "gtk/gtk.h"
 #include "gtk/gdk/x11/gdkx.h"
 
-#include <X11/Xlib.h>
+#include "X11/Xlib.h"
 
 namespace slib
 {
 
 	SLIB_IMPORT_LIBRARY_BEGIN(gdk, "libgdk-x11-2.0.so.0")
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_threads_init,
+			void,
+		)
+		#define gdk_threads_init slib::gdk::getApi_gdk_threads_init()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_threads_enter,
+			void,
+		)
+		#define gdk_threads_enter slib::gdk::getApi_gdk_threads_enter()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_threads_leave,
+			void,
+		)
+		#define gdk_threads_leave slib::gdk::getApi_gdk_threads_leave()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_threads_add_idle_full,
+			guint, ,
+			gint priority,
+			GSourceFunc function,
+			gpointer data,
+			GDestroyNotify notify
+		)
+		#define gdk_threads_add_idle_full slib::gdk::getApi_gdk_threads_add_idle_full()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_threads_add_idle,
+			guint, ,
+			GSourceFunc function,
+			gpointer data
+		)
+		#define gdk_threads_add_idle slib::gdk::getApi_gdk_threads_add_idle()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_threads_add_timeout_full,
+			guint, ,
+			gint priority,
+			guint interval,
+			GSourceFunc function,
+			gpointer data,
+			GDestroyNotify notify
+		)
+		#define gdk_threads_add_timeout_full slib::gdk::getApi_gdk_threads_add_timeout_full()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_threads_add_timeout,
+			guint, ,
+			guint interval,
+			GSourceFunc function,
+			gpointer data
+		)
+		#define gdk_threads_add_timeout slib::gdk::getApi_gdk_threads_add_timeout()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gdk_screen_get_default,
 			GdkScreen *, ,

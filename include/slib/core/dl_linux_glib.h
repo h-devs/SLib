@@ -63,6 +63,16 @@ namespace slib
 			gpointer data
 		)
 		#define g_timeout_add slib::glib::getApi_g_timeout_add()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_timeout_add_full,
+			guint, ,
+			gint priority,
+			guint interval,
+			GSourceFunc function,
+			gpointer data,
+			GDestroyNotify notify
+		)
+		#define g_timeout_add_full slib::glib::getApi_g_timeout_add_full()
 	SLIB_IMPORT_LIBRARY_END
 
 	SLIB_IMPORT_LIBRARY_BEGIN(gobject, "libgobject-2.0.so.0")
@@ -103,6 +113,15 @@ namespace slib
 			GType iface_type
 		)
 		#define g_type_check_instance_cast slib::gobject::getApi_g_type_check_instance_cast()
+	SLIB_IMPORT_LIBRARY_END
+
+	SLIB_IMPORT_LIBRARY_BEGIN(gthread, "libgthread-2.0.so.0")
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_thread_init,
+			void, ,
+			gpointer vtable
+		)
+		#define g_thread_init slib::gthread::getApi_g_thread_init()
 	SLIB_IMPORT_LIBRARY_END
 
 }

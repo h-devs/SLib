@@ -106,8 +106,13 @@ namespace slib
 			{
 				Callable<void()>* callable = reinterpret_cast<Callable<void()>*>(user_data);
 				callable->invoke();
-				callable->decreaseReference();
 				return sl_false;
+			}
+
+			static void DelayedDispatchDestroy(gpointer user_data)
+			{
+				Callable<void()>* callable = reinterpret_cast<Callable<void()>*>(user_data);
+				callable->decreaseReference();
 			}
 
 		}
@@ -117,6 +122,8 @@ namespace slib
 	
 	sl_bool UIPlatform::initializeGtk()
 	{
+		g_thread_init(NULL);
+		gdk_threads_init();
 		return gtk_init_check(NULL, NULL);
 	}
 	
@@ -163,7 +170,7 @@ namespace slib
 
 	sl_bool UI::isUiThread()
 	{
-		return g_threadMain == ::pthread_self();
+		return g_threadMain == pthread_self();
 	}
 	
 	void UI::dispatchToUiThread(const Function<void()>& callback, sl_uint32 delayMillis)
@@ -174,11 +181,12 @@ namespace slib
 		if (delayMillis == 0) {
 			if (UIDispatcher::addCallback(callback)) {
 				g_idle_add(DispatchCallback, sl_null);
+
 			}
 		} else {
 			Callable<void()>* callable = callback.ref.get();
 			callable->increaseReference();
-			g_timeout_add(delayMillis, DelayedDispatchCallback, callable);
+			g_timeout_add_full(G_PRIORITY_DEFAULT, delayMillis, DelayedDispatchCallback, callable, DelayedDispatchDestroy);
 		}
 	}
 
@@ -194,7 +202,7 @@ namespace slib
 
 	void UIPlatform::runApp()
 	{
-		g_threadMain = ::pthread_self();
+		g_threadMain = pthread_self();
 
 		UIPlatform::initializeGtk();
 		
