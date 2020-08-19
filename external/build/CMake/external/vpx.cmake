@@ -191,48 +191,70 @@ if (SLIB_X86)
   APPEND C_SRC_LIST
   
   "${ROOT_DIR}/vp8/common/x86/filter_x86.c"
-  "${ROOT_DIR}/vp8/common/x86/idct_blk_mmx.c"
-  "${ROOT_DIR}/vp8/common/x86/idct_blk_sse2.c"
   "${ROOT_DIR}/vp8/common/x86/loopfilter_x86.c"
   "${ROOT_DIR}/vp8/common/x86/vp8_asm_stubs.c"
 
+  "${ROOT_DIR}/vpx_dsp/x86/vpx_asm_stubs.c"
+ )
+ set (
+  SSE_SRC_LIST
+
+  "${ROOT_DIR}/vp8/common/x86/idct_blk_mmx.c"
+ )
+ set (
+  SSE2_SRC_LIST
+
+  "${ROOT_DIR}/vp8/common/x86/idct_blk_sse2.c"
   "${ROOT_DIR}/vp8/encoder/x86/denoising_sse2.c"
-  "${ROOT_DIR}/vp8/encoder/x86/quantize_sse4.c"
   "${ROOT_DIR}/vp8/encoder/x86/vp8_enc_stubs_sse2.c"
   "${ROOT_DIR}/vp8/encoder/x86/vp8_quantize_sse2.c"
-  "${ROOT_DIR}/vp8/encoder/x86/vp8_quantize_ssse3.c"
-
   "${ROOT_DIR}/vp9/common/x86/vp9_idct_intrin_sse2.c"
-
-  "${ROOT_DIR}/vp9/encoder/x86/temporal_filter_sse4.c"
   "${ROOT_DIR}/vp9/encoder/x86/vp9_dct_intrin_sse2.c"
-  "${ROOT_DIR}/vp9/encoder/x86/vp9_dct_ssse3.c"
-  "${ROOT_DIR}/vp9/encoder/x86/vp9_diamond_search_sad_avx.c"
-  "${ROOT_DIR}/vp9/encoder/x86/vp9_error_avx2.c"
-  "${ROOT_DIR}/vp9/encoder/x86/vp9_frame_scale_ssse3.c"
   "${ROOT_DIR}/vp9/encoder/x86/vp9_quantize_sse2.c"
-
-  "${ROOT_DIR}/vpx_dsp/x86/avg_intrin_avx2.c"
   "${ROOT_DIR}/vpx_dsp/x86/avg_intrin_sse2.c"
   "${ROOT_DIR}/vpx_dsp/x86/avg_pred_sse2.c"
-  "${ROOT_DIR}/vpx_dsp/x86/fwd_txfm_avx2.c"
   "${ROOT_DIR}/vpx_dsp/x86/fwd_txfm_sse2.c"
   "${ROOT_DIR}/vpx_dsp/x86/inv_txfm_sse2.c"
-  "${ROOT_DIR}/vpx_dsp/x86/inv_txfm_ssse3.c"
-  "${ROOT_DIR}/vpx_dsp/x86/loopfilter_avx2.c"
   "${ROOT_DIR}/vpx_dsp/x86/loopfilter_sse2.c"
-  "${ROOT_DIR}/vpx_dsp/x86/quantize_avx.c"
   "${ROOT_DIR}/vpx_dsp/x86/quantize_sse2.c"
-  "${ROOT_DIR}/vpx_dsp/x86/quantize_ssse3.c"
-  "${ROOT_DIR}/vpx_dsp/x86/sad_avx2.c"
-  "${ROOT_DIR}/vpx_dsp/x86/sad4d_avx2.c"
   "${ROOT_DIR}/vpx_dsp/x86/sum_squares_sse2.c"
-  "${ROOT_DIR}/vpx_dsp/x86/variance_avx2.c"
   "${ROOT_DIR}/vpx_dsp/x86/variance_sse2.c"
-  "${ROOT_DIR}/vpx_dsp/x86/vpx_asm_stubs.c"
-  "${ROOT_DIR}/vpx_dsp/x86/vpx_subpixel_8t_intrin_avx2.c"
+ )
+ set (
+  SSSE3_SRC_LIST
+
+  "${ROOT_DIR}/vp8/encoder/x86/vp8_quantize_ssse3.c"
+  "${ROOT_DIR}/vp9/encoder/x86/vp9_dct_ssse3.c"
+  "${ROOT_DIR}/vp9/encoder/x86/vp9_frame_scale_ssse3.c"
+  "${ROOT_DIR}/vpx_dsp/x86/inv_txfm_ssse3.c"
+  "${ROOT_DIR}/vpx_dsp/x86/quantize_ssse3.c"
   "${ROOT_DIR}/vpx_dsp/x86/vpx_subpixel_8t_intrin_ssse3.c"
  )
+ set (
+  SSE41_SRC_LIST
+
+   "${ROOT_DIR}/vp8/encoder/x86/quantize_sse4.c"
+  "${ROOT_DIR}/vp9/encoder/x86/temporal_filter_sse4.c"
+ )
+ set (
+  AVX_SRC_LIST
+
+  "${ROOT_DIR}/vp9/encoder/x86/vp9_diamond_search_sad_avx.c"
+  "${ROOT_DIR}/vpx_dsp/x86/quantize_avx.c"
+ )
+ set (
+  AVX2_SRC_LIST
+
+  "${ROOT_DIR}/vp9/encoder/x86/vp9_error_avx2.c"
+  "${ROOT_DIR}/vpx_dsp/x86/avg_intrin_avx2.c"
+  "${ROOT_DIR}/vpx_dsp/x86/fwd_txfm_avx2.c"
+  "${ROOT_DIR}/vpx_dsp/x86/loopfilter_avx2.c"
+  "${ROOT_DIR}/vpx_dsp/x86/sad_avx2.c"
+  "${ROOT_DIR}/vpx_dsp/x86/sad4d_avx2.c"
+  "${ROOT_DIR}/vpx_dsp/x86/variance_avx2.c"
+  "${ROOT_DIR}/vpx_dsp/x86/vpx_subpixel_8t_intrin_avx2.c"
+ )
+ set (C_SRC_LIST ${SSE_SRC_LIST} ${SSE2_SRC_LIST} ${SSSE3_SRC_LIST} ${SSE41_SRC_LIST} ${AVX_SRC_LIST} ${AVX2_SRC_LIST} ${C_SRC_LIST})
  set (
   ASM_SRC_LIST
 
@@ -399,10 +421,35 @@ if (SLIB_ARM)
   PRIVATE "${ROOT_DIR}"
  )
 endif ()
+
 if (SLIB_X86)
  set_source_files_properties (
   ${C_SRC_LIST} PROPERTIES
-  COMPILE_FLAGS " -mavx2 -I\"${ROOT_DIR}\""
+  COMPILE_FLAGS " -I\"${ROOT_DIR}\""
+ )
+ set_source_files_properties (
+  ${SSE_SRC_LIST} PROPERTIES
+  COMPILE_FLAGS " -I\"${ROOT_DIR}\" -msse"
+ )
+ set_source_files_properties (
+  ${SSE2_SRC_LIST} PROPERTIES
+  COMPILE_FLAGS " -I\"${ROOT_DIR}\" -msse2"
+ )
+ set_source_files_properties (
+  ${SSSE3_SRC_LIST} PROPERTIES
+  COMPILE_FLAGS " -I\"${ROOT_DIR}\" -mssse3"
+ )
+ set_source_files_properties (
+  ${SSE41_SRC_LIST} PROPERTIES
+  COMPILE_FLAGS " -I\"${ROOT_DIR}\" -msse4.1"
+ )
+ set_source_files_properties (
+  ${AVX_SRC_LIST} PROPERTIES
+  COMPILE_FLAGS " -I\"${ROOT_DIR}\" -mavx"
+ )
+ set_source_files_properties (
+  ${AVX2_SRC_LIST} PROPERTIES
+  COMPILE_FLAGS " -I\"${ROOT_DIR}\" -mavx2"
  )
  if (SLIB_X86_64)
   set(YASM_INC_MACHINE x86_64)

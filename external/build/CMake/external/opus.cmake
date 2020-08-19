@@ -140,24 +140,37 @@ set (
 if (SLIB_X86)
  list (
   APPEND SRC_LIST
+  "${ROOT_DIR}/silk/x86/x86_silk_map.c"
+  "${ROOT_DIR}/celt/x86/x86_celt_map.c"
+  "${ROOT_DIR}/celt/x86/x86cpu.c"
+ )
+ set (
+  SSE_SRC_LIST
+
+  "${ROOT_DIR}/celt/x86/pitch_sse.c"
+ )
+ set (
+  SSE2_SRC_LIST
+ 
+  "${ROOT_DIR}/celt/x86/pitch_sse2.c"
+  "${ROOT_DIR}/celt/x86/vq_sse2.c"
+ )
+ set (
+  SSE41_SRC_LIST
 
   "${ROOT_DIR}/silk/x86/NSQ_del_dec_sse.c"
   "${ROOT_DIR}/silk/x86/NSQ_sse.c"
   "${ROOT_DIR}/silk/x86/VAD_sse.c"
   "${ROOT_DIR}/silk/x86/VQ_WMat_EC_sse.c"
-  "${ROOT_DIR}/silk/x86/x86_silk_map.c"
 
   "${ROOT_DIR}/silk/fixed/x86/burg_modified_FIX_sse.c"
   "${ROOT_DIR}/silk/fixed/x86/vector_ops_FIX_sse.c"
 
   "${ROOT_DIR}/celt/x86/celt_lpc_sse.c"
-  "${ROOT_DIR}/celt/x86/pitch_sse.c"
-  "${ROOT_DIR}/celt/x86/pitch_sse2.c"
   "${ROOT_DIR}/celt/x86/pitch_sse4_1.c"
-  "${ROOT_DIR}/celt/x86/vq_sse2.c"
-  "${ROOT_DIR}/celt/x86/x86_celt_map.c"
-  "${ROOT_DIR}/celt/x86/x86cpu.c"
+
  )
+ set (SRC_LIST ${SSE_SRC_LIST} ${SSE2_SRC_LIST} ${SSE41_SRC_LIST} ${SRC_LIST} )
 endif ()
 
 if (SLIB_ARM)
@@ -195,16 +208,27 @@ target_include_directories (
  PRIVATE "${ROOT_DIR}/silk"
  PRIVATE "${ROOT_DIR}/silk/fixed"
 )
+
+if (SLIB_X86)
+ set_source_files_properties (
+  ${SSE_SRC_LIST} PROPERTIES
+  COMPILE_FLAGS " -msse"
+ )
+ set_source_files_properties (
+  ${SSE2_SRC_LIST} PROPERTIES
+  COMPILE_FLAGS " -msse2"
+ )
+ set_source_files_properties (
+  ${SSE41_SRC_LIST} PROPERTIES
+  COMPILE_FLAGS " -msse4.1"
+ )
+endif()
+
 target_compile_definitions (
  ${TARGET_NAME}
  PRIVATE HAVE_CONFIG_H
 )
-if (SLIB_X86)
- target_compile_options (
-  ${TARGET_NAME}
-  PRIVATE -mavx2
- )
-endif()
+
 if (ANDROID AND SLIB_ARM64)
  target_compile_options (
   ${TARGET_NAME}
