@@ -340,14 +340,21 @@ namespace slib
 		if (callback.isNull()) {
 			return;
 		}
-		if (delayMillis == 0) {
+		if (delayMillis) {
+			Dispatch::setTimeout([callback]() {
+				Win32_UI_Shared* shared = Win32_UI_Shared::get();
+				if (shared) {
+					sl_reg callbackId;
+					if (UIDispatcher::addDelayedCallback(callback, callbackId)) {
+						PostGlobalMessage(SLIB_UI_MESSAGE_DISPATCH_DELAYED, 0, (LPARAM)callbackId);
+					}
+				} else {
+					UIDispatcher::addCallback(callback);
+				}
+			}, delayMillis);
+		} else {
 			if (UIDispatcher::addCallback(callback)) {
 				PostGlobalMessage(SLIB_UI_MESSAGE_DISPATCH, 0, 0);
-			}
-		} else {
-			sl_reg callbackId;
-			if (UIDispatcher::addDelayedCallback(callback, callbackId)) {
-				Dispatch::setTimeout(Function<void()>::bind(&PostGlobalMessage, SLIB_UI_MESSAGE_DISPATCH_DELAYED, 0, (LPARAM)callbackId), delayMillis);
 			}
 		}
 	}
@@ -382,6 +389,8 @@ namespace slib
 		InitCommonControlsEx(&icex);
 
 		Win32_UI_Shared::initialize();
+
+		UIDispatcher::processCallbacks();
 
 		UIApp::dispatchStartToApp();
 
