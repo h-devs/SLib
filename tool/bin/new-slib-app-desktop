@@ -33,3 +33,7 @@ mv "$CURRENT_PATH/Win32/SLIB_TEMPLATE_APP_NAME.vcxproj" "$CURRENT_PATH/Win32/$AP
 sed -i '' "s/SLIB_TEMPLATE_APP_NAME/$APP_NAME/g" "$CURRENT_PATH/Win32/$APP_NAME.vcxproj"
 mv "$CURRENT_PATH/Win32/SLIB_TEMPLATE_APP_NAME.vcxproj.filters" "$CURRENT_PATH/Win32/$APP_NAME.vcxproj.filters"
 sed -i '' "s/SLIB_TEMPLATE_APP_NAME/$APP_NAME/g" "$CURRENT_PATH/Win32/main.cpp"
+
+cp -R "$SLIB_PATH/tool/template/desktop-sapp/Linux" "$CURRENT_PATH"
+sed -i '' "s/SLIB_TEMPLATE_APP_NAME/$APP_NAME/g" "$CURRENT_PATH/Linux/CMakeLists.txt"
+sed -i '' "s/SLIB_TEMPLATE_APP_NAME/$APP_NAME/g" "$CURRENT_PATH/Linux/main.cpp"

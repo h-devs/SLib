@@ -42,3 +42,8 @@ ReplaceTextInFile.exe "%CURRENT_PATH%\Win32\SLIB_TEMPLATE_APP_NAME.vcxproj" "%CU
 rename "%CURRENT_PATH%\Win32\SLIB_TEMPLATE_APP_NAME.vcxproj" "%APP_NAME%.vcxproj"
 rename "%CURRENT_PATH%\Win32\SLIB_TEMPLATE_APP_NAME.vcxproj.filters" %APP_NAME%.vcxproj.filters"
 ReplaceTextInFile.exe "%CURRENT_PATH%\Win32\main.cpp" "%CURRENT_PATH%\Win32\main.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+
+mkdir "%CURRENT_PATH%\Linux"
+xcopy /h /e "%SLIB_PATH%\tool\template\desktop-sapp\Linux" "%CURRENT_PATH%\Linux\"
+ReplaceTextInFile.exe "%CURRENT_PATH%\Linux\CMakeLists.txt" "%CURRENT_PATH%\Linux\CMakeLists.txt" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%CURRENT_PATH%\Linux\main.cpp" "%CURRENT_PATH%\Linux\main.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%

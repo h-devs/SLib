@@ -5,11 +5,14 @@ project(SLIB_TEMPLATE_APP_NAME)
 include ($ENV{SLIB_PATH}/tool/slib-app.cmake)
 
 add_executable(SLIB_TEMPLATE_APP_NAME
+  ../src/cpp/app.cpp
+  ../src/cpp/MainWindow.cpp
+
+  ../src/gen/*.cpp
   main.cpp
-  app.cpp
 )
 
-set_target_properties(SLIB_TEMPLATE_APP_NAME PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++ -Wl,--wrap=memcpy")
+set_target_properties(SLIB_TEMPLATE_APP_NAME PROPERTIES LINK_FLAGS "-static-libgcc -Wl,--wrap=memcpy")
 
 target_link_libraries (
   SLIB_TEMPLATE_APP_NAME
