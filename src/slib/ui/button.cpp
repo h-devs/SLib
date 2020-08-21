@@ -27,6 +27,12 @@
 #include "slib/core/safe_static.h"
 #include "slib/core/new_helper.h"
 
+#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32)
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
+#endif
+
 namespace slib
 {
 
@@ -131,6 +137,8 @@ namespace slib
 
 	Button::Button(sl_uint32 nCategories, ButtonCategory* categories)
 	{
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 		setFocusable(sl_true);
 #endif
@@ -1257,7 +1265,7 @@ namespace slib
 		}
 	}
 
-#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> Button::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;

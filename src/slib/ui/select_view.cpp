@@ -28,7 +28,9 @@
 #include "label_list_base_impl.h"
 
 #if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_IOS) || defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_ANDROID)
-#	define HAS_NATIVE_WIDGET_IMPL
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
 #endif
 
 namespace slib
@@ -126,9 +128,9 @@ namespace slib
 	
 	SelectView::SelectView()
 	{
-#ifdef HAS_NATIVE_WIDGET_IMPL
-		setCreatingNativeWidget(sl_true);
-#endif
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+
 		setUsingFont(sl_true);
 		setBorder(sl_true, UIUpdateMode::Init);
 		setBackgroundColor(Color::White, UIUpdateMode::Init);
@@ -420,7 +422,7 @@ namespace slib
 		return ret;
 	}
 	
-#if !defined(HAS_NATIVE_WIDGET_IMPL)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;

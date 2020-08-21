@@ -26,6 +26,12 @@
 
 #include "slib/ui/core.h"
 
+#if defined(SLIB_UI)
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
+#endif
+
 namespace slib
 {
 	
@@ -33,7 +39,9 @@ namespace slib
 	
 	WebView::WebView()
 	{
-		setCreatingNativeWidget(sl_true);
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		
 		setFocusable(sl_true);
 		
 		m_flagOfflineContent = sl_false;
@@ -215,7 +223,7 @@ namespace slib
 		}
 	}
 	
-#if !defined(SLIB_UI)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> WebView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;

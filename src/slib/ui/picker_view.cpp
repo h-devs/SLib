@@ -33,7 +33,9 @@
 #define ANIMATE_FRAME_MS 15
 
 #if defined(SLIB_UI_IS_IOS)
-#	define HAS_NATIVE_WIDGET_IMPL
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
 #endif
 
 namespace slib
@@ -43,10 +45,10 @@ namespace slib
 	SLIB_DEFINE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(PickerView, sl_uint32, IPickerViewInstance, getPickerViewInstance)
 	
 	PickerView::PickerView()
-	{		
-#ifdef HAS_NATIVE_WIDGET_IMPL
-		setCreatingNativeWidget(sl_true);
-#endif
+	{
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+
 		setUsingFont(sl_true);
 		setClipping(sl_true, UIUpdateMode::Init);
 		
@@ -327,7 +329,7 @@ namespace slib
 		
 	}
 	
-#if !defined(HAS_NATIVE_WIDGET_IMPL)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> PickerView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;

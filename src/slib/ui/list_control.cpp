@@ -25,7 +25,9 @@
 #include "slib/ui/core.h"
 
 #if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32)
-#	define HAS_NATIVE_WIDGET_IMPL
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
 #endif
 
 namespace slib
@@ -52,9 +54,9 @@ namespace slib
 	
 	ListControl::ListControl()
 	{
-#ifdef HAS_NATIVE_WIDGET_IMPL
-		setCreatingNativeWidget(sl_true);
-#endif
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+
 		setUsingFont(sl_true);
 		
 		m_columns.setCount(1);
@@ -350,7 +352,7 @@ namespace slib
 	}
 	
 	
-#if !defined(HAS_NATIVE_WIDGET_IMPL)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> ListControl::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;

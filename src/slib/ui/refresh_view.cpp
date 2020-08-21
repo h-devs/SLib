@@ -25,7 +25,9 @@
 #include "slib/core/safe_static.h"
 
 #if defined(SLIB_UI_IS_ANDROID)
-#	define HAS_NATIVE_WIDGET_IMPL
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
 #endif
 
 namespace slib
@@ -35,9 +37,9 @@ namespace slib
 	
 	RefreshView::RefreshView()
 	{
-#ifdef HAS_NATIVE_WIDGET_IMPL
-		setCreatingNativeWidget(sl_true);
-#endif
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+
 		m_flagRefreshing = sl_false;
 	}
 	
@@ -63,7 +65,7 @@ namespace slib
 		SLIB_INVOKE_EVENT_HANDLER(Refresh)
 	}
 	
-#if !defined(HAS_NATIVE_WIDGET_IMPL)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> RefreshView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;

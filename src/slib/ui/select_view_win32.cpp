@@ -69,7 +69,7 @@ namespace slib
 					}
 				}
 
-				void removeItem(SelectView* view, sl_uint32 index)
+				void removeItem(SelectView* view, sl_uint32 index) override
 				{
 					HWND handle = m_handle;
 					if (handle) {

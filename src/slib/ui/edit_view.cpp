@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,12 @@
 
 #include "slib/core/platform_android.h"
 
+#if defined(SLIB_UI)
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
+#endif
+
 namespace slib
 {
 
@@ -36,7 +42,9 @@ namespace slib
 
 	EditView::EditView()
 	{		
-		setCreatingNativeWidget(sl_true);
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+
 		setUsingFont(sl_true);
 		setFocusable(sl_true);
 		
@@ -571,7 +579,7 @@ namespace slib
 	{
 	}
 
-#if !defined(SLIB_UI)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;
@@ -584,6 +592,11 @@ namespace slib
 	
 
 	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* parent)
+	{
+		return sl_null;
+	}
+	
+	Ptr<IEditViewInstance> TextArea::getEditViewInstance()
 	{
 		return sl_null;
 	}

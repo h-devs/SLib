@@ -79,7 +79,12 @@ namespace slib
 		
 		// set before attaching
 		void setCreatingChildInstances(sl_bool flag);
-		
+
+		sl_bool isSupportedNativeWidget();
+
+		// set at constructor
+		void setSupportedNativeWidget(sl_bool flag);
+
 		sl_bool isCreatingNativeWidget();
 		
 		// set before attaching
@@ -1521,6 +1526,7 @@ namespace slib
 		
 		sl_bool m_flagCreatingInstance : 1;
 		sl_bool m_flagCreatingChildInstances : 1;
+		sl_bool m_flagSupportedNativeWidget : 1;
 		sl_bool m_flagCreatingNativeWidget : 1;
 		sl_bool m_flagCreatingNativeLayer : 1;
 		sl_bool m_flagCreatingLargeContent: 1;

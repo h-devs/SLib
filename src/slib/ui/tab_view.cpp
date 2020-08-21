@@ -28,7 +28,9 @@
 #define MAX_TABS_COUNT 100
 
 #if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32)
-#	define HAS_NATIVE_WIDGET_IMPL
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
 #endif
 
 namespace slib
@@ -44,10 +46,10 @@ namespace slib
 	SLIB_DEFINE_OBJECT(TabView, ViewGroup)
 
 	TabView::TabView()
-	{		
-#ifdef HAS_NATIVE_WIDGET_IMPL
-		setCreatingNativeWidget(sl_true);
-#endif
+	{
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+
 		setUsingChildLayouts(sl_false);
 		setUsingFont(sl_true);
 		setSavingCanvasState(sl_false);
@@ -836,7 +838,7 @@ namespace slib
 	}
 	
 	
-#if !defined(HAS_NATIVE_WIDGET_IMPL)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> TabView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;

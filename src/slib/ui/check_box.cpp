@@ -26,6 +26,12 @@
 #include "slib/ui/resource.h"
 #include "slib/core/safe_static.h"
 
+#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32)
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
+#endif
+
 namespace slib
 {
 
@@ -134,7 +140,9 @@ namespace slib
 	}
 
 	CheckBox::CheckBox(sl_uint32 nCategories, ButtonCategory* categories) : Button(nCategories, categories)
-	{		
+	{
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		
 		m_flagChecked = sl_false;
 		
 		setGravity(Alignment::MiddleLeft, UIUpdateMode::Init);
@@ -199,7 +207,7 @@ namespace slib
 		Button::dispatchClickEvent(ev);
 	}
 	
-#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> CheckBox::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;

@@ -25,6 +25,12 @@
 #include "slib/ui/resource.h"
 #include "slib/core/safe_static.h"
 
+#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32)
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
+#endif
+
 namespace slib
 {
 
@@ -125,12 +131,13 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(RadioButton, CheckBox)
 
-	RadioButton::RadioButton() : CheckBox(2, priv::radio_button::Categories::getCategories())
+	RadioButton::RadioButton() : RadioButton(2, priv::radio_button::Categories::getCategories())
 	{
 	}
 
 	RadioButton::RadioButton(sl_uint32 nCategories, ButtonCategory* categories) : CheckBox(nCategories, categories)
 	{
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 	}
 
 	RadioButton::~RadioButton()
@@ -293,7 +300,7 @@ namespace slib
 	}
 	
 
-#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> RadioButton::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;

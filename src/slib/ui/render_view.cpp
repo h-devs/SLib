@@ -27,6 +27,12 @@
 #include "slib/core/thread.h"
 #include "slib/core/dispatch.h"
 
+#if defined(SLIB_UI)
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
+#endif
+
 namespace slib
 {
 
@@ -91,7 +97,9 @@ namespace slib
 
 	RenderView::RenderView()
 	{
-		setCreatingNativeWidget(sl_true);
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		
 		setCreatingChildInstances(sl_false);
 		setRendering(sl_true);
 
@@ -586,7 +594,7 @@ namespace slib
 		ViewGroup::dispatchSwipe(ev.get());
 	}
 
-#if !defined(SLIB_UI)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;

@@ -46,6 +46,7 @@ namespace slib
 	View::View():
 		m_flagCreatingInstance(sl_false),
 		m_flagCreatingChildInstances(sl_false),
+		m_flagSupportedNativeWidget(sl_false),
 		m_flagCreatingNativeWidget(sl_false),
 		m_flagCreatingNativeLayer(sl_false),
 		m_flagCreatingLargeContent(sl_false),
@@ -480,13 +481,26 @@ namespace slib
 		m_flagCreatingChildInstances = flag;
 	}
 
+	sl_bool View::isSupportedNativeWidget()
+	{
+		return m_flagSupportedNativeWidget;
+	}
+
+	void View::setSupportedNativeWidget(sl_bool flag)
+	{
+		m_flagSupportedNativeWidget = flag;
+	}
+
 	sl_bool View::isCreatingNativeWidget()
 	{
-		return m_flagCreatingInstance && m_flagCreatingNativeWidget;
+		return m_flagCreatingNativeWidget && m_flagCreatingInstance && m_flagSupportedNativeWidget;
 	}
 
 	void View::setCreatingNativeWidget(sl_bool flag)
 	{
+		if (!m_flagSupportedNativeWidget) {
+			flag = sl_false;
+		}
 		m_flagCreatingNativeWidget = flag;
 		if (flag) {
 			m_flagCreatingInstance = sl_true;
