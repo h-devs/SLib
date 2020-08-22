@@ -2037,6 +2037,43 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT ViewCell : public Object
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		ViewCell(View* view);
+
+		~ViewCell();
+
+	public:
+		View* getView();
+
+		void setView(View* view);
+
+		Ref<Font> getFont();
+
+		UIRect getFrame();
+
+		void setFrame(const UIRect& frame);
+
+		void invalidate();
+
+		void invalidate(const UIRect& frame);
+
+		Ref<Dispatcher> getCellDispatcher();
+
+		Ref<Timer> createTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms);
+
+		Ref<Timer> startTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms);
+
+	protected:
+		View* m_view;
+		UIRect m_frame;
+		sl_bool m_flagUseCustomFrame;
+
+	};
+
 	class ViewGroup : public View
 	{
 		SLIB_DECLARE_OBJECT

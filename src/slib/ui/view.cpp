@@ -10524,6 +10524,73 @@ namespace slib
 		}
 	}
 
+	SLIB_DEFINE_OBJECT(ViewCell, Object)
+
+	ViewCell::ViewCell(View* view): m_view(view)
+	{
+		m_flagUseCustomFrame = sl_false;
+	}
+
+	ViewCell::~ViewCell()
+	{
+	}
+
+	View* ViewCell::getView()
+	{
+		return m_view;
+	}
+
+	void ViewCell::setView(View* view)
+	{
+		m_view = view;
+	}
+
+	Ref<Font> ViewCell::getFont()
+	{
+		return m_view->getFont();
+	}
+
+	UIRect ViewCell::getFrame()
+	{
+		if (m_flagUseCustomFrame) {
+			return m_frame;
+		} else {
+			return m_view->getBoundsInnerPadding();
+		}
+	}
+
+	void ViewCell::setFrame(const UIRect& frame)
+	{
+		m_frame = frame;
+		m_flagUseCustomFrame = sl_true;
+	}
+
+	void ViewCell::invalidate()
+	{
+		m_view->invalidate();
+	}
+
+	void ViewCell::invalidate(const UIRect& frame)
+	{
+		m_view->invalidate(frame);
+	}
+
+	Ref<Dispatcher> ViewCell::getCellDispatcher()
+	{
+		return m_view->getDispatcher();
+	}
+
+	Ref<Timer> ViewCell::createTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms)
+	{
+		return m_view->createTimer(task, interval_ms);
+	}
+
+	Ref<Timer> ViewCell::startTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms)
+	{
+		return m_view->startTimer(task, interval_ms);
+	}
+
+
 	SLIB_DEFINE_OBJECT(ViewGroup, View)
 
 	ViewGroup::ViewGroup()
