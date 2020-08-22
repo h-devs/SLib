@@ -768,7 +768,9 @@ namespace slib
 	{
 	public:
 		SAppColorValue textColor;
-		
+		SAppUint32Value linesCount;
+		SAppBooleanValue circular;
+
 		CList<SAppLayoutSelectItem> items;
 		
 	public:

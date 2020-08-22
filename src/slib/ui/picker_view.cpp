@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -41,9 +41,51 @@
 namespace slib
 {
 
+	PickerViewCellParent::PickerViewCellParent()
+	{
+		m_textColor = Color::Black;
+
+		m_linesCount = 5;
+		m_flagCircular = sl_false;
+	}
+
+	PickerViewCellParent::~PickerViewCellParent()
+	{
+	}
+
+	Color PickerViewCellParent::getTextColor()
+	{
+		return m_textColor;
+	}
+
+	void PickerViewCellParent::setTextColor(const Color& color, UIUpdateMode mode)
+	{
+		m_textColor = color;
+	}
+
+	sl_uint32 PickerViewCellParent::getLinesCount()
+	{
+		return m_linesCount;
+	}
+
+	void PickerViewCellParent::setLinesCount(sl_uint32 count)
+	{
+		m_linesCount = count;
+	}
+
+	sl_bool PickerViewCellParent::isCircular()
+	{
+		return m_flagCircular;
+	}
+
+	void PickerViewCellParent::setCircular(sl_bool flag)
+	{
+		m_flagCircular = flag;
+	}
+
 	SLIB_DEFINE_OBJECT(PickerView, View)
 	SLIB_DEFINE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(PickerView, sl_uint32, IPickerViewInstance, getPickerViewInstance)
-	
+
 	PickerView::PickerView()
 	{
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
@@ -51,49 +93,109 @@ namespace slib
 
 		setUsingFont(sl_true);
 		setClipping(sl_true, UIUpdateMode::Init);
-		
-		m_indexSelected = 0;
-		
-		m_textColor = Color::Black;
-		
-		m_linesHalfCount = 2;
-		m_flagCircular = sl_false;
-		m_yOffset = 0;
-
-		m_speedFlow = 0;
 	}
-	
+
 	PickerView::~PickerView()
 	{
 	}
-	
-	Color PickerView::getTextColor()
-	{
-		return m_textColor;
-	}
-	
+
 	void PickerView::setTextColor(const Color& color, UIUpdateMode mode)
 	{
 		m_textColor = color;
+		PickerViewCellParent::setTextColor(color);
 		invalidate(mode);
 	}
-	
+
 	void PickerView::onDraw(Canvas* canvas)
+	{
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->draw(canvas);
+		}
+	}
+
+	void PickerView::onMouseEvent(UIEvent* ev)
+	{
+		if (m_cell.isNotNull()) {
+			m_cell->processMouseEvent(ev);
+		}
+	}
+
+	SLIB_DEFINE_EVENT_HANDLER(PickerView, SelectItem, sl_uint32 index)
+
+	void PickerView::dispatchSelectItem(sl_uint32 index)
+	{
+		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index)
+	}
+
+	List<String> PickerView::getTitles_Cell()
+	{
+		return m_titles;
+	}
+
+	sl_uint32 PickerView::getSelectedIndex_Cell()
+	{
+		return getSelectedIndex();
+	}
+
+	void PickerView::onSelectItem_Cell(sl_uint32 index)
+	{
+		m_indexSelected = index;
+		dispatchSelectItem(index);
+	}
+
+	void PickerView::_initCell()
+	{
+		if (m_cell.isNull()) {
+			m_cell = new PickerViewCell(this, this);
+		}
+	}
+
+#if !HAS_NATIVE_WIDGET_IMPL
+	Ref<ViewInstance> PickerView::createNativeWidget(ViewInstance* parent)
+	{
+		return sl_null;
+	}
+
+	Ptr<IPickerViewInstance> PickerView::getPickerViewInstance()
+	{
+		return sl_null;
+	}
+#endif
+
+
+	SLIB_DEFINE_OBJECT(PickerViewCell, ViewCell)
+
+	PickerViewCell::PickerViewCell(View* view, PickerViewCellParent* _parent): ViewCell(view), parent(_parent)
+	{
+		m_yOffset = 0;
+		m_speedFlow = 0;
+	}
+
+	PickerViewCell::~PickerViewCell()
+	{
+	}
+
+	void PickerViewCell::draw(Canvas* canvas)
 	{
 		Ref<Font> font = getFont();
 		if (font.isNull()) {
 			return;
 		}
-		sl_int32 nLinesHalf = m_linesHalfCount;
+		sl_int32 nLinesHalf = parent->getLinesCount() >> 1;
 		sl_real lineHeight = (sl_real)(_getLineHeight());
 		sl_real height = (nLinesHalf * 2 + 1) * lineHeight;
-		
-		Rectangle rect = getBoundsInnerPadding();
+
+		Rectangle rect = getFrame();
 		sl_real yStart = rect.top + (rect.getHeight() - height) / 2;
-		
-		ListLocker<String> titles(m_titles);
+
+		sl_bool flagCircular = parent->isCircular();
+		sl_int32 indexSelected = parent->getSelectedIndex_Cell();
+		Color textColor = parent->getTextColor();
+
+		ListLocker<String> titles(parent->getTitles_Cell());
 		sl_int32 i;
-		
+
 		{
 			CanvasStateScope scope(canvas);
 			canvas->clipToRectangle(rect.left, yStart, rect.right - rect.left, nLinesHalf * lineHeight);
@@ -101,21 +203,21 @@ namespace slib
 			for (i = -nLinesHalf - 1; i <= 0; i++) {
 				rect.bottom = rect.top + lineHeight;
 				sl_int32 index;
-				if (m_flagCircular) {
-					index = _getCircularIndex(m_indexSelected + i);
+				if (flagCircular) {
+					index = _getCircularIndex( + i);
 				} else {
-					index = m_indexSelected + i;
+					index = indexSelected + i;
 				}
 				if (index >= 0 && index < (sl_int32)(titles.count)) {
 					sl_int32 alpha = 50 + 100 * (nLinesHalf + 1 - Math::abs(i)) / (nLinesHalf + 1);
-					Color c = m_textColor;
+					Color c = textColor;
 					c.a = (sl_uint8)((sl_int32)(c.a) * alpha / 256);
 					canvas->drawText(titles[index], rect, font, c, Alignment::Center);
 				}
 				rect.top = rect.bottom;
 			}
 		}
-		
+
 		{
 			CanvasStateScope scope(canvas);
 			canvas->clipToRectangle(rect.left, yStart + nLinesHalf * lineHeight + lineHeight, rect.right - rect.left, lineHeight * nLinesHalf);
@@ -123,33 +225,33 @@ namespace slib
 			for (i = 0; i <= nLinesHalf + 1; i++) {
 				rect.bottom = rect.top + lineHeight;
 				sl_int32 index;
-				if (m_flagCircular) {
-					index = _getCircularIndex(m_indexSelected + i);
+				if (flagCircular) {
+					index = _getCircularIndex(indexSelected + i);
 				} else {
-					index = m_indexSelected + i;
+					index = indexSelected + i;
 				}
 				if (index >= 0 && index < (sl_int32)(titles.count)) {
 					sl_int32 alpha = 50 + 100 * (nLinesHalf + 1 - Math::abs(i)) / (nLinesHalf + 1);
-					Color c = m_textColor;
+					Color c = textColor;
 					c.a = (sl_uint8)((sl_int32)(c.a) * alpha / 256);
 					canvas->drawText(titles[index], rect, font, c, Alignment::Center);
 				}
 				rect.top = rect.bottom;
 			}
 		}
-		
+
 		{
 			CanvasStateScope scope(canvas);
 			canvas->clipToRectangle(rect.left, yStart + nLinesHalf * lineHeight, rect.right - rect.left, lineHeight);
 			rect.top = yStart + nLinesHalf * lineHeight - lineHeight + m_yOffset;
-			Color c = m_textColor;
+			Color c = textColor;
 			for (i = -1; i <= 1; i++) {
 				rect.bottom = rect.top + lineHeight;
 				sl_int32 index;
-				if (m_flagCircular) {
-					index = _getCircularIndex(m_indexSelected + i);
+				if (flagCircular) {
+					index = _getCircularIndex(indexSelected + i);
 				} else {
-					index = m_indexSelected + i;
+					index = indexSelected + i;
 				}
 				if (index >= 0 && index < (sl_int32)(titles.count)) {
 					canvas->drawText(titles[index], rect, font, c, Alignment::Center);
@@ -157,13 +259,12 @@ namespace slib
 				rect.top = rect.bottom;
 			}
 		}
-		
 	}
-	
-	void PickerView::onMouseEvent(UIEvent* ev)
+
+	void PickerViewCell::processMouseEvent(UIEvent* ev)
 	{
 		UIAction action = ev->getAction();
-				
+
 		if (action == UIAction::LeftButtonDown || action == UIAction::TouchBegin) {
 			_stopFlow();
 			m_motionTracker.clearMovements();
@@ -187,20 +288,13 @@ namespace slib
 			invalidate();
 		}
 	}
-	
-	SLIB_DEFINE_EVENT_HANDLER(PickerView, SelectItem, sl_uint32 index)
 
-	void PickerView::dispatchSelectItem(sl_uint32 index)
+	void PickerViewCell::_selectItemInner(sl_int32 index)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index)
-	}
-	
-	void PickerView::_selectItemInner(sl_int32 index)
-	{
-		if (m_flagCircular) {
+		if (parent->isCircular()) {
 			index = _getCircularIndex(index);
 		} else {
-			sl_int32 n = (sl_uint32)(m_values.getCount());
+			sl_int32 n = (sl_uint32)(parent->getTitles_Cell().getCount());
 			if (n <= 0) {
 				return;
 			}
@@ -210,15 +304,14 @@ namespace slib
 				index = 0;
 			}
 		}
-		if (m_indexSelected != (sl_uint32)index) {
-			m_indexSelected = index;
-			dispatchSelectItem(index);
+		if (parent->getSelectedIndex_Cell() != (sl_uint32)index) {
+			parent->onSelectItem_Cell(index);
 		}
 	}
-	
-	sl_uint32 PickerView::_getCircularIndex(sl_int32 index)
+
+	sl_uint32 PickerViewCell::_getCircularIndex(sl_int32 index)
 	{
-		sl_int32 n = (sl_uint32)(m_values.getCount());
+		sl_int32 n = (sl_uint32)(parent->getTitles_Cell().getCount());
 		if (n <= 0) {
 			return 0;
 		}
@@ -228,8 +321,8 @@ namespace slib
 		}
 		return index;
 	}
-	
-	sl_ui_len PickerView::_getLineHeight()
+
+	sl_ui_len PickerViewCell::_getLineHeight()
 	{
 		Ref<Font> font = getFont();
 		if (font.isNotNull()) {
@@ -237,15 +330,16 @@ namespace slib
 		}
 		return 10;
 	}
-	
-	void PickerView::_flow(sl_ui_pos offset)
+
+	void PickerViewCell::_flow(sl_ui_pos offset)
 	{
 		sl_int32 k = (sl_int32)(m_yOffset + offset);
 		sl_int32 lineHeight = (sl_int32)(_getLineHeight());
 		if (lineHeight == 0) {
 			return;
 		}
-		sl_int32 index = m_indexSelected;
+		sl_int32 indexSelected = parent->getSelectedIndex_Cell();
+		sl_int32 index = indexSelected;
 		if (k >= 0) {
 			sl_int32 n = k / lineHeight;
 			sl_int32 m = k - n * lineHeight;
@@ -262,7 +356,8 @@ namespace slib
 			}
 			_selectItemInner(index + n);
 		}
-		m_yOffset = (sl_ui_pos)(m_yOffset + offset - (index - m_indexSelected) * lineHeight);
+		indexSelected = parent->getSelectedIndex_Cell();
+		m_yOffset = (sl_ui_pos)(m_yOffset + offset - (index - indexSelected) * lineHeight);
 		if (m_yOffset > lineHeight) {
 			m_yOffset = lineHeight;
 			m_speedFlow = 0;
@@ -272,25 +367,25 @@ namespace slib
 			m_speedFlow = 0;
 		}
 	}
-	
-	void PickerView::_startFlow(sl_real speed)
+
+	void PickerViewCell::_startFlow(sl_real speed)
 	{
 		m_speedFlow = speed;
 		m_timeFlowFrameBefore = Time::now();
-		m_timerFlow = startTimer(SLIB_FUNCTION_WEAKREF(PickerView, _animationCallback, this), ANIMATE_FRAME_MS);
+		m_timerFlow = startTimer(SLIB_FUNCTION_WEAKREF(PickerViewCell, _animationCallback, this), ANIMATE_FRAME_MS);
 	}
-	
-	void PickerView::_stopFlow()
+
+	void PickerViewCell::_stopFlow()
 	{
 		m_timerFlow.setNull();
 	}
-	
-	void PickerView::_animationCallback(Timer* timer)
+
+	void PickerViewCell::_animationCallback(Timer* timer)
 	{
 		Time time = Time::now();
 		sl_real ellapsed = (sl_real)((time - m_timeFlowFrameBefore).getSecondsCountf());
 		m_timeFlowFrameBefore = time;
-		
+
 		float T = UIResource::getScreenMinimum() /
 #ifdef SLIB_PLATFORM_IS_MOBILE
 			2.0f;
@@ -322,23 +417,11 @@ namespace slib
 		} else {
 			_flow((sl_ui_pos)(m_speedFlow * ellapsed));
 		}
-		
+
 		invalidate();
-		
+
 		m_speedFlow *= 0.97f;
-		
+
 	}
-	
-#if !HAS_NATIVE_WIDGET_IMPL
-	Ref<ViewInstance> PickerView::createNativeWidget(ViewInstance* parent)
-	{
-		return sl_null;
-	}
-	
-	Ptr<IPickerViewInstance> PickerView::getPickerViewInstance()
-	{
-		return sl_null;
-	}
-#endif
 
 }

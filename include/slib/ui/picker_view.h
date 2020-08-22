@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,50 @@ namespace slib
 	
 	class IPickerViewInstance;
 
-	class SLIB_EXPORT PickerView : public View, public SingleSelectionViewBase<PickerView, sl_uint32>
+	class PickerViewCell;
+
+	class SLIB_EXPORT PickerViewCellParent
+	{
+	public:
+		PickerViewCellParent();
+
+		~PickerViewCellParent();
+
+	public:
+		Color getTextColor();
+
+		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_uint32 getLinesCount();
+
+		/*
+			call this function before drawing control
+			count: odd number
+		*/
+		void setLinesCount(sl_uint32 count);
+
+		sl_bool isCircular();
+
+		// call this function before drawing control
+		void setCircular(sl_bool flag);
+
+	public:
+		virtual List<String> getTitles_Cell() = 0;
+
+		virtual sl_uint32 getSelectedIndex_Cell() = 0;
+
+	public:
+		virtual void onSelectItem_Cell(sl_uint32 index) = 0;
+
+	protected:
+		Color m_textColor;
+
+		sl_uint32 m_linesCount;
+		sl_bool m_flagCircular;
+
+	};
+
+	class SLIB_EXPORT PickerView : public View, public SingleSelectionViewBase<PickerView, sl_uint32>, public PickerViewCellParent
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -43,10 +86,8 @@ namespace slib
 		~PickerView();
 
 	public:
-		Color getTextColor();
-		
-		virtual void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(PickerView, SelectItem, sl_uint32 index)
 
@@ -63,42 +104,67 @@ namespace slib
 	public:
 		SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(PickerView, sl_uint32)
 	
-	private:
-		void _selectItemInner(sl_int32 index);
-		
-		sl_uint32 _getCircularIndex(sl_int32 index);
-		
-		sl_ui_len _getLineHeight();
-		
-		void _flow(sl_ui_pos offset);
-		
-		void _startFlow(sl_real speed);
-		
-		void _stopFlow();
-		
-		void _animationCallback(Timer* timer);
-		
 	protected:
-		sl_uint32 m_indexSelected;
+		List<String> getTitles_Cell() override;
 
-		Color m_textColor;
-		
-		sl_uint32 m_linesHalfCount;
-		sl_bool m_flagCircular;
-		
-		sl_ui_pos m_yOffset;
-		
-		MotionTracker m_motionTracker;
-		Ref<Timer> m_timerFlow;
-		sl_real m_speedFlow;
-		Time m_timeFlowFrameBefore;
-		
+		sl_uint32 getSelectedIndex_Cell() override;
+
+		void onSelectItem_Cell(sl_uint32 index) override;
+
+	private:
+		void _initCell();
+
+	protected:
+		Ref<PickerViewCell> m_cell;
+
 	};
 	
 	class SLIB_EXPORT IPickerViewInstance
 	{
 	public:
 		SLIB_DECLARE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(PickerView, sl_uint32)
+
+	};
+
+	class SLIB_EXPORT PickerViewCell : public ViewCell
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		PickerViewCellParent* parent;
+
+	public:
+		PickerViewCell(View* view, PickerViewCellParent* parent);
+
+		~PickerViewCell();
+
+	public:
+		void draw(Canvas* canvas);
+
+		void processMouseEvent(UIEvent* ev);
+
+	private:
+		void _selectItemInner(sl_int32 index);
+
+		sl_uint32 _getCircularIndex(sl_int32 index);
+
+		sl_ui_len _getLineHeight();
+
+		void _flow(sl_ui_pos offset);
+
+		void _startFlow(sl_real speed);
+
+		void _stopFlow();
+
+		void _animationCallback(Timer* timer);
+
+	protected:
+		sl_ui_pos m_yOffset;
+
+		MotionTracker m_motionTracker;
+		Ref<Timer> m_timerFlow;
+		sl_real m_speedFlow;
+		Time m_timeFlowFrameBefore;
 
 	};
 

@@ -4352,7 +4352,9 @@ namespace slib
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 		
 		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(textColor, setTextColor)
-		
+		LAYOUT_CONTROL_GENERIC_ATTR(circular, setCircular)
+		LAYOUT_CONTROL_GENERIC_ATTR(linesCount, setLinesCount)
+
 		LAYOUT_CONTROL_SET_NATIVE_WIDGET
 		
 		if (op == OP_PARSE) {
@@ -4362,6 +4364,15 @@ namespace slib
 				if (itemXml.isNotNull()) {
 					SAppLayoutSelectItem subItem;
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., title)
+					if (!(subItem.title.flagDefined)) {
+						String text = itemXml->getText();
+						if (text.isNotEmpty()) {
+							if (!(subItem.title.parse(text))) {
+								LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(itemXml, title);
+								return sl_false;
+							}
+						}
+					}
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., value)
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., selected)
 					subItem.element = itemXml;
