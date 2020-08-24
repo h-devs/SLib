@@ -189,18 +189,6 @@ namespace slib
 
 	sl_bool SAppLayoutSelectAttributes::isNotRequiredNative()
 	{
-		if (leftIcon.flagDefined) {
-			return sl_true;
-		}
-		if (rightIcon.flagDefined) {
-			return sl_true;
-		}
-		if (iconWidth.flagDefined) {
-			return sl_true;
-		}
-		if (iconHeight.flagDefined) {
-			return sl_true;
-		}
 		return sl_false;
 	}
 
@@ -390,6 +378,10 @@ namespace slib
 				prefix = "select";
 				pN = &nAutoIncreaseNameSelect;
 				break;
+			case SAppLayoutItemType::SelectSwitch:
+				prefix = "selectSwitch";
+				pN = &nAutoIncreaseNameSelectSwitch;
+				break;
 			case SAppLayoutItemType::Scroll:
 				prefix = "scroll";
 				pN = &nAutoIncreaseNameScroll;
@@ -537,6 +529,8 @@ namespace slib
 			type = SAppLayoutItemType::Image;
 		} else if (strType == "select") {
 			type = SAppLayoutItemType::Select;
+		} else if (strType == "selectswitch" || strType == "select-switch") {
+			type = SAppLayoutItemType::SelectSwitch;
 		} else if (strType == "scroll" || strType == "hscroll" || strType == "vscroll") {
 			type = SAppLayoutItemType::Scroll;
 		} else if (strType == "linear" || strType == "hlinear" || strType == "vlinear") {

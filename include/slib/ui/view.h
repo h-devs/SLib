@@ -46,6 +46,7 @@ namespace slib
 	class Dispatcher;
 	class Bitmap;
 	
+	class ViewCell;
 	class ViewPage;
 	class ScrollBar;
 	class MotionTracker;
@@ -1411,6 +1412,9 @@ namespace slib
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Mnemonic, UIEvent* ev)
 
+	protected:
+		void updateLayoutByViewCell(ViewCell* cell);
+
 	private:
 		void _removeParent(View* parent = sl_null);
 
@@ -2012,23 +2016,23 @@ namespace slib
 		
 		void onClick();
 		
-		void onKeyEvent(UIEvent* event);
+		void onKeyEvent(UIEvent* ev);
 		
-		void onMouseEvent(UIEvent* event);
+		void onMouseEvent(UIEvent* ev);
 		
-		void onTouchEvent(UIEvent* event);
+		void onTouchEvent(UIEvent* ev);
 		
-		void onMouseWheelEvent(UIEvent* event);
+		void onMouseWheelEvent(UIEvent* ev);
 		
-		void onSetCursor(UIEvent* event);
+		void onSetCursor(UIEvent* ev);
 		
-		void onDragEvent(UIEvent* event);
+		void onDragEvent(UIEvent* ev);
 
-		void onDropEvent(UIEvent* event);
+		void onDropEvent(UIEvent* ev);
 		
 		void onSetFocus();
 		
-		void onSwipe(GestureType ev);
+		void onSwipe(GestureType type);
 		
 	protected:
 		AtomicWeakRef<View> m_view;
@@ -2042,35 +2046,57 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 
 	public:
-		ViewCell(View* view);
+		ViewCell();
 
 		~ViewCell();
 
 	public:
-		View* getView();
+		Ref<View> getView();
 
-		void setView(View* view);
-
-		Ref<Font> getFont();
+		void setView(const Ref<View>& view);
 
 		UIRect getFrame();
 
 		void setFrame(const UIRect& frame);
 
+		Ref<Font> getFont();
+
+		void setFont(const Ref<Font>& font);
+
 		void invalidate();
 
 		void invalidate(const UIRect& frame);
 
-		Ref<Dispatcher> getCellDispatcher();
+		Ref<Dispatcher> getDispatcher();
 
 		Ref<Timer> createTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms);
 
 		Ref<Timer> startTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms);
 
+	public:
+		virtual void onDraw(Canvas* canvas);
+
+		virtual void onKeyEvent(UIEvent* ev);
+
+		virtual void onClickEvent(UIEvent* ev);
+
+		virtual void onMouseEvent(UIEvent* ev);
+
+		virtual void onTouchEvent(UIEvent* ev);
+
+		virtual void onMouseWheelEvent(UIEvent* ev);
+
+		virtual void onSetCursor(UIEvent* ev);
+
+		virtual void onMeasure(UISize& size, sl_bool flagHorz, sl_bool flagVert);
+
 	protected:
-		View* m_view;
-		UIRect m_frame;
+		WeakRef<View> m_view;
+
 		sl_bool m_flagUseCustomFrame;
+		UIRect m_frame;
+
+		Ref<Font> m_font;
 
 	};
 

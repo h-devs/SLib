@@ -330,6 +330,7 @@ namespace slib
 	class TextArea;
 	class ImageView;
 	class SelectView;
+	class SelectSwitch;
 	class ScrollView;
 	class LinearLayout;
 	class ListView;

@@ -141,6 +141,7 @@ namespace slib
 		sl_uint64 n = m_countItems;
 		if (n > 0) {
 			n--;
+			m_countItems = n;
 			invalidate(mode);
 		}
 	}

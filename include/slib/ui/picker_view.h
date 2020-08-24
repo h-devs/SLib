@@ -35,12 +35,14 @@ namespace slib
 
 	class PickerViewCell;
 
-	class SLIB_EXPORT PickerViewCellParent
+	class SLIB_EXPORT PickerView : public View, public SingleSelectionViewBase<PickerView, sl_uint32>
 	{
+		SLIB_DECLARE_OBJECT
+		
 	public:
-		PickerViewCellParent();
-
-		~PickerViewCellParent();
+		PickerView();
+		
+		~PickerView();
 
 	public:
 		Color getTextColor();
@@ -61,34 +63,6 @@ namespace slib
 		void setCircular(sl_bool flag);
 
 	public:
-		virtual List<String> getTitles_Cell() = 0;
-
-		virtual sl_uint32 getSelectedIndex_Cell() = 0;
-
-	public:
-		virtual void onSelectItem_Cell(sl_uint32 index) = 0;
-
-	protected:
-		Color m_textColor;
-
-		sl_uint32 m_linesCount;
-		sl_bool m_flagCircular;
-
-	};
-
-	class SLIB_EXPORT PickerView : public View, public SingleSelectionViewBase<PickerView, sl_uint32>, public PickerViewCellParent
-	{
-		SLIB_DECLARE_OBJECT
-		
-	public:
-		PickerView();
-		
-		~PickerView();
-
-	public:
-		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-	public:
 		SLIB_DECLARE_EVENT_HANDLER(PickerView, SelectItem, sl_uint32 index)
 
 	protected:
@@ -104,18 +78,17 @@ namespace slib
 	public:
 		SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(PickerView, sl_uint32)
 	
-	protected:
-		List<String> getTitles_Cell() override;
-
-		sl_uint32 getSelectedIndex_Cell() override;
-
-		void onSelectItem_Cell(sl_uint32 index) override;
-
 	private:
 		void _initCell();
 
 	protected:
 		Ref<PickerViewCell> m_cell;
+
+	protected:
+		Color m_textColor;
+
+		sl_uint32 m_linesCount;
+		sl_bool m_flagCircular;
 
 	};
 	
@@ -126,22 +99,27 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PickerViewCell : public ViewCell
+	class SLIB_EXPORT PickerViewCell : public SingleSelectionViewCellBase<sl_uint32>
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		PickerViewCellParent* parent;
+		Color textColor;
+
+		sl_uint32 linesCount;
+		sl_bool flagCircular;
+
+		Function<void(sl_uint32 index)> onSelectItem;
 
 	public:
-		PickerViewCell(View* view, PickerViewCellParent* parent);
+		PickerViewCell();
 
 		~PickerViewCell();
 
 	public:
-		void draw(Canvas* canvas);
+		void onDraw(Canvas* canvas) override;
 
-		void processMouseEvent(UIEvent* ev);
+		void onMouseEvent(UIEvent* ev) override;
 
 	private:
 		void _selectItemInner(sl_int32 index);

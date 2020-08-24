@@ -81,6 +81,22 @@ namespace slib
 
 	};
 
+	template <class INDEX_TYPE>
+	class LabelListViewCellBase : public ViewCell
+	{
+	public:
+		LabelListViewCellBase();
+
+	public:
+		template <class VIEW>
+		void initLabelList(VIEW* view);
+
+	public:
+		INDEX_TYPE itemsCount;
+		Function<String(INDEX_TYPE index)> titleGetter;
+
+	};
+
 #define SLIB_DECLARE_LABEL_LIST_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE) \
 protected: \
 	virtual void notifyRefreshItems(UIUpdateMode mode); \
@@ -115,6 +131,17 @@ public: \
 	protected:
 		INDEX_TYPE m_countItems;
 		INDEX_TYPE m_indexSelected;
+
+	};
+
+	template <class INDEX_TYPE>
+	class SingleSelectionViewCellBase : public LabelListViewCellBase<INDEX_TYPE>
+	{
+	public:
+		SingleSelectionViewCellBase();
+
+	public:
+		INDEX_TYPE selectedIndex;
 
 	};
 

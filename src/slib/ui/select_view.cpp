@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -36,93 +36,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace select_view
-		{
-
-			enum
-			{
-				ICON_NONE = 0,
-				ICON_LEFT = 1,
-				ICON_RIGHT = 2,
-				ICON_DOWN = 3
-			};
-			
-			class DefaultIcon : public Drawable
-			{
-			public:
-				Ref<Brush> m_brush;
-				Point m_pts[3];
-				
-			public:
-				DefaultIcon(int type)
-				{
-					m_brush = Brush::createSolidBrush(Color::Black);
-					if (type == ICON_LEFT) {
-						m_pts[0] = Point(0.67f, 0.24f);
-						m_pts[1] = Point(0.33f, 0.51f);
-						m_pts[2] = Point(0.67f, 0.78f);
-					} else if (type == ICON_RIGHT) {
-						m_pts[0] = Point(0.33f, 0.24f);
-						m_pts[1] = Point(0.67f, 0.51f);
-						m_pts[2] = Point(0.33f, 0.78f);
-					} else if (type == ICON_DOWN) {
-						m_pts[0] = Point(0.3f, 0.35f);
-						m_pts[1] = Point(0.5f, 0.65f);
-						m_pts[2] = Point(0.7f, 0.35f);
-					}
-				}
-				
-			public:
-				sl_real getDrawableWidth() override
-				{
-					return 1;
-				}
-				
-				sl_real getDrawableHeight() override
-				{
-					return 1;
-				}
-				
-				void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override
-				{
-					if (m_brush.isNotNull()) {
-						Point pts[3];
-						for (int i = 0; i < 3; i++) {
-							pts[i].x = rectDst.left + rectDst.getWidth() * m_pts[i].x;
-							pts[i].y = rectDst.top + rectDst.getHeight() * m_pts[i].y;
-						}
-						canvas->fillPolygon(pts, 3, m_brush);
-					}
-				}
-				
-			};
-			
-			class DefaultResources
-			{
-			public:
-				Ref<Drawable> leftIcon;
-				Ref<Drawable> rightIcon;
-				Ref<Drawable> downIcon;
-				
-			public:
-				DefaultResources()
-				{
-					leftIcon = new DefaultIcon(ICON_LEFT);
-					rightIcon = new DefaultIcon(ICON_RIGHT);
-					downIcon = new DefaultIcon(ICON_DOWN);
-				}
-				
-			};
-			
-			SLIB_SAFE_STATIC_GETTER(DefaultResources, GetDefaultResources)
-
-		}
-	}
-
-	using namespace priv::select_view;
-
 	SLIB_DEFINE_OBJECT(SelectView, View)
 	SLIB_DEFINE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(SelectView, sl_uint32, ISelectViewInstance, getSelectViewInstance)
 	
@@ -138,91 +51,15 @@ namespace slib
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 		setFocusable(sl_true);
 #endif
-		
-		m_indexSelected = 0;
-		
-		m_iconSize.x = 0;
-		m_iconSize.y = 0;
-		
+
 		m_gravity = Alignment::MiddleLeft;
 		m_textColor = Color::Black;
-		
-		DefaultResources* def = GetDefaultResources();
-		if (def) {
-			m_leftIcon = def->leftIcon;
-			m_rightIcon = def->rightIcon;
-		}
-		
-		m_clickedIconNo = ICON_NONE;
 	}
 	
 	SelectView::~SelectView()
 	{
 	}
 
-	const UISize& SelectView::getIconSize()
-	{
-		return m_iconSize;
-	}
-	
-	void SelectView::setIconSize(const UISize& size, UIUpdateMode mode)
-	{
-		m_iconSize = size;
-		invalidateLayoutOfWrappingControl(mode);
-	}
-	
-	void SelectView::setIconSize(sl_ui_len width, sl_ui_len height, UIUpdateMode mode)
-	{
-		setIconSize(UISize(width, height), mode);
-	}
-	
-	void SelectView::setIconSize(sl_ui_len size, UIUpdateMode mode)
-	{
-		setIconSize(UISize(size, size),mode);
-	}
-	
-	sl_ui_len SelectView::getIconWidth()
-	{
-		return m_iconSize.x;
-	}
-	
-	void SelectView::setIconWidth(sl_ui_len width, UIUpdateMode mode)
-	{
-		setIconSize(UISize(width, m_iconSize.y), mode);
-	}
-	
-	sl_ui_len SelectView::getIconHeight()
-	{
-		return m_iconSize.y;
-	}
-	
-	void SelectView::setIconHeight(sl_ui_len height, UIUpdateMode mode)
-	{
-		setIconSize(UISize(m_iconSize.x, height), mode);
-	}
-	
-	Ref<Drawable> SelectView::getLeftIcon()
-	{
-		return m_leftIcon;
-	}
-	
-	void SelectView::setLeftIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
-	{
-		m_leftIcon = icon;
-		invalidate(mode);
-	}
-	
-	Ref<Drawable> SelectView::getRightIcon()
-	{
-		return m_rightIcon;
-	}
-	
-	void SelectView::setRightIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
-	{
-		m_rightIcon = icon;
-		invalidate(mode);
-	}
-	
 	Alignment SelectView::getGravity()
 	{
 		return m_gravity;
@@ -233,10 +70,14 @@ namespace slib
 		Ptr<ISelectViewInstance> instance = getSelectViewInstance();
 		if (instance.isNotNull()) {
 			SLIB_VIEW_RUN_ON_UI_THREAD(&SelectView::setGravity, gravity, mode)
-			m_gravity = gravity;
+		}
+		m_gravity = gravity;
+		if (m_cell.isNotNull()) {
+			m_cell->gravity = gravity;
+		}
+		if (instance.isNotNull()) {
 			instance->setGravity(this, gravity);
 		} else {
-			m_gravity = gravity;
 			invalidate(mode);
 		}
 	}
@@ -251,58 +92,44 @@ namespace slib
 		Ptr<ISelectViewInstance> instance = getSelectViewInstance();
 		if (instance.isNotNull()) {
 			SLIB_VIEW_RUN_ON_UI_THREAD(&SelectView::setTextColor, color, mode)
-			m_textColor = color;
+		}
+		m_textColor = color;
+		if (m_cell.isNotNull()) {
+			m_cell->textColor = color;
+		}
+		if (instance.isNotNull()) {
 			instance->setTextColor(this, color);
 		} else {
-			m_textColor = color;
 			invalidate(mode);
 		}
 	}
-	
+
+	void SelectView::_initCell()
+	{
+		if (m_cell.isNull()) {
+			m_cell = new SelectSwitchCell;
+			if (m_cell.isNotNull()) {
+				m_cell->setView(this);
+				m_cell->initLabelList(this);
+				m_cell->gravity = m_gravity;
+				m_cell->textColor = m_textColor;
+				m_cell->onSelectItem = SLIB_FUNCTION_WEAKREF(SelectView, dispatchSelectItem, this);
+			}
+		}
+	}
+
 	void SelectView::onDraw(Canvas* canvas)
 	{
-		canvas->drawText(getSelectedTitle(), getBounds(), getFont(), m_textColor, Alignment::MiddleCenter);
-		canvas->draw(getLeftIconRegion(), m_leftIcon);
-		canvas->draw(getRightIconRegion(), m_rightIcon);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->onDraw(canvas);
+		}
 	}
 	
 	void SelectView::onMouseEvent(UIEvent* ev)
 	{
-		UIAction action = ev->getAction();
-		UIPoint pt = ev->getPoint();
-		if (action == UIAction::LeftButtonDown || action == UIAction::TouchBegin) {
-			if (getLeftIconRegion().containsPoint(pt)) {
-				m_clickedIconNo = ICON_LEFT;
-				ev->stopPropagation();
-			} else if (getRightIconRegion().containsPoint(pt)) {
-				m_clickedIconNo = ICON_RIGHT;
-				ev->stopPropagation();
-			}
-		} else if (action == UIAction::MouseLeave || action == UIAction::TouchCancel) {
-			m_clickedIconNo = ICON_NONE;
-		} else if (action == UIAction::LeftButtonUp || action == UIAction::TouchEnd) {
-			if (m_clickedIconNo == ICON_LEFT) {
-				if (getLeftIconRegion().containsPoint(pt)) {
-					sl_uint32 index = m_indexSelected;
-					if (index > 0) {
-						index --;
-						selectItem(index);
-						dispatchSelectItem(index);
-						invalidate();
-					}
-				}
-			} else if (m_clickedIconNo == ICON_RIGHT) {
-				if (getRightIconRegion().containsPoint(pt)) {
-					sl_uint32 index = m_indexSelected;
-					if (index + 1 < getItemsCount()) {
-						index ++;
-						selectItem(index);
-						dispatchSelectItem(index);
-						invalidate();
-					}
-				}
-			}
-			m_clickedIconNo = ICON_NONE;
+		if (m_cell.isNotNull()) {
+			m_cell->onMouseEvent(ev);
 		}
 	}
 	
@@ -329,36 +156,8 @@ namespace slib
 			}
 		}
 
-		Ref<Font> font = getFont();
-		if (flagHorizontal) {
-			sl_ui_pos width = m_iconSize.x * 2 + getPaddingLeft() + getPaddingRight();
-			if (font.isNotNull()) {
-				sl_ui_pos t = (sl_ui_pos)(font->getFontHeight());
-				if (t > 0) {
-					width += t * 4;
-				}
-			}
-			if (width < 0) {
-				width = 0;
-			}
-			setLayoutWidth(width);
-		}
-		if (flagVertical) {
-			sl_ui_pos height = 0;
-			if (font.isNotNull()) {
-				height = (sl_ui_pos)(font->getFontHeight() * 1.5f);
-				if (height < 0) {
-					height = 0;
-				}
-			}
-			if (height < m_iconSize.y) {
-				height = m_iconSize.y;
-			}
-			height += getPaddingTop() + getPaddingBottom();
-			if (height < 0) {
-				height = 0;
-			}
-			setLayoutHeight(height);
+		if (m_cell.isNotNull()) {
+			updateLayoutByViewCell(m_cell.get());
 		}
 	}
 	
@@ -374,52 +173,6 @@ namespace slib
 		lock.unlock();
 		
 		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index)
-	}
-	
-	UIRect SelectView::getLeftIconRegion()
-	{
-		sl_ui_pos heightView = getHeight();
-		sl_ui_pos h = heightView - getPaddingTop() - getPaddingBottom();
-		if (h < 0) {
-			h = 0;
-		}
-		UIRect ret;
-		ret.left = getPaddingLeft();
-		if (m_iconSize.x > 0) {
-			ret.right = ret.left + m_iconSize.x;
-		} else {
-			ret.right = ret.left + h;
-		}
-		if (m_iconSize.y > 0) {
-			h = m_iconSize.y;
-		}
-		ret.top = (heightView - h) / 2;
-		ret.bottom = ret.top + h;
-		ret.fixSizeError();
-		return ret;
-	}
-	
-	UIRect SelectView::getRightIconRegion()
-	{
-		UISize sizeView = getSize();
-		sl_ui_pos h = sizeView.y - getPaddingTop() - getPaddingBottom();
-		if (h < 0) {
-			h = 0;
-		}
-		UIRect ret;
-		ret.right = sizeView.x - getPaddingRight();
-		if (m_iconSize.x > 0) {
-			ret.left = ret.right - m_iconSize.x;
-		} else {
-			ret.left = ret.right - h;
-		}
-		if (m_iconSize.y > 0) {
-			h = m_iconSize.y;
-		}
-		ret.top = (sizeView.y - h) / 2;
-		ret.bottom = ret.top + h;
-		ret.fixSizeError();
-		return ret;
 	}
 	
 #if !HAS_NATIVE_WIDGET_IMPL
@@ -447,4 +200,384 @@ namespace slib
 		return sl_false;
 	}
 	
+
+	SLIB_DEFINE_OBJECT(SelectSwitch, View)
+	SLIB_DEFINE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(SelectSwitch, sl_uint32)
+
+	SelectSwitch::SelectSwitch()
+	{
+	}
+
+	SelectSwitch::~SelectSwitch()
+	{
+	}
+
+	void SelectSwitch::init()
+	{
+		View::init();
+
+		setUsingFont(sl_true);
+		setBorder(sl_true, UIUpdateMode::Init);
+		setBackgroundColor(Color::White, UIUpdateMode::Init);
+		setSavingCanvasState(sl_false);
+#if !defined(SLIB_PLATFORM_IS_MOBILE)
+		setFocusable(sl_true);
+#endif
+
+		m_cell = new SelectSwitchCell;
+		m_cell->setView(this);
+		m_cell->initLabelList(this);
+		m_cell->onSelectItem = SLIB_FUNCTION_WEAKREF(SelectSwitch, dispatchSelectItem, this);
+	}
+
+	const UISize& SelectSwitch::getIconSize()
+	{
+		return m_cell->iconSize;
+	}
+
+	void SelectSwitch::setIconSize(const UISize& size, UIUpdateMode mode)
+	{
+		m_cell->iconSize = size;
+		invalidateLayoutOfWrappingControl(mode);
+	}
+
+	void SelectSwitch::setIconSize(sl_ui_len width, sl_ui_len height, UIUpdateMode mode)
+	{
+		setIconSize(UISize(width, height), mode);
+	}
+
+	void SelectSwitch::setIconSize(sl_ui_len size, UIUpdateMode mode)
+	{
+		setIconSize(UISize(size, size), mode);
+	}
+
+	sl_ui_len SelectSwitch::getIconWidth()
+	{
+		return m_cell->iconSize.x;
+	}
+
+	void SelectSwitch::setIconWidth(sl_ui_len width, UIUpdateMode mode)
+	{
+		setIconSize(UISize(width, m_cell->iconSize.y), mode);
+	}
+
+	sl_ui_len SelectSwitch::getIconHeight()
+	{
+		return m_cell->iconSize.y;
+	}
+
+	void SelectSwitch::setIconHeight(sl_ui_len height, UIUpdateMode mode)
+	{
+		setIconSize(UISize(m_cell->iconSize.x, height), mode);
+	}
+
+	Ref<Drawable> SelectSwitch::getLeftIcon()
+	{
+		return m_cell->leftIcon;
+	}
+
+	void SelectSwitch::setLeftIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
+	{
+		m_cell->leftIcon = icon;
+		invalidate(mode);
+	}
+
+	Ref<Drawable> SelectSwitch::getRightIcon()
+	{
+		return m_cell->rightIcon;
+	}
+
+	void SelectSwitch::setRightIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
+	{
+		m_cell->rightIcon = icon;
+		invalidate(mode);
+	}
+
+	Alignment SelectSwitch::getGravity()
+	{
+		return m_cell->gravity;
+	}
+
+	void SelectSwitch::setGravity(const Alignment& gravity, UIUpdateMode mode)
+	{
+		m_cell->gravity = gravity;
+		invalidate(mode);
+	}
+
+	Color SelectSwitch::getTextColor()
+	{
+		return m_cell->textColor;
+	}
+
+	void SelectSwitch::setTextColor(const Color& color, UIUpdateMode mode)
+	{
+		m_cell->textColor = color;
+		invalidate(mode);
+	}
+
+	void SelectSwitch::onDraw(Canvas* canvas)
+	{
+		m_cell->onDraw(canvas);
+	}
+
+	void SelectSwitch::onMouseEvent(UIEvent* ev)
+	{
+		m_cell->onMouseEvent(ev);
+	}
+
+	void SelectSwitch::onUpdateLayout()
+	{
+		updateLayoutByViewCell(m_cell.get());
+	}
+
+	SLIB_DEFINE_EVENT_HANDLER(SelectSwitch, SelectItem, sl_uint32 index)
+
+	void SelectSwitch::dispatchSelectItem(sl_uint32 index)
+	{
+		ObjectLocker lock(this);
+		if (m_indexSelected == index) {
+			return;
+		}
+		m_indexSelected = index;
+		lock.unlock();
+
+		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index)
+	}
+
+	namespace priv
+	{
+		namespace select_switch
+		{
+
+			enum
+			{
+				ICON_NONE = 0,
+				ICON_LEFT = 1,
+				ICON_RIGHT = 2,
+				ICON_DOWN = 3
+			};
+
+			class DefaultIcon : public Drawable
+			{
+			public:
+				Ref<Brush> m_brush;
+				Point m_pts[3];
+
+			public:
+				DefaultIcon(int type)
+				{
+					m_brush = Brush::createSolidBrush(Color::Black);
+					if (type == ICON_LEFT) {
+						m_pts[0] = Point(0.67f, 0.24f);
+						m_pts[1] = Point(0.33f, 0.51f);
+						m_pts[2] = Point(0.67f, 0.78f);
+					} else if (type == ICON_RIGHT) {
+						m_pts[0] = Point(0.33f, 0.24f);
+						m_pts[1] = Point(0.67f, 0.51f);
+						m_pts[2] = Point(0.33f, 0.78f);
+					} else if (type == ICON_DOWN) {
+						m_pts[0] = Point(0.3f, 0.35f);
+						m_pts[1] = Point(0.5f, 0.65f);
+						m_pts[2] = Point(0.7f, 0.35f);
+					}
+				}
+
+			public:
+				sl_real getDrawableWidth() override
+				{
+					return 1;
+				}
+
+				sl_real getDrawableHeight() override
+				{
+					return 1;
+				}
+
+				void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override
+				{
+					if (m_brush.isNotNull()) {
+						Point pts[3];
+						for (int i = 0; i < 3; i++) {
+							pts[i].x = rectDst.left + rectDst.getWidth() * m_pts[i].x;
+							pts[i].y = rectDst.top + rectDst.getHeight() * m_pts[i].y;
+						}
+						canvas->fillPolygon(pts, 3, m_brush);
+					}
+				}
+
+			};
+
+			class DefaultResources
+			{
+			public:
+				Ref<Drawable> leftIcon;
+				Ref<Drawable> rightIcon;
+				Ref<Drawable> downIcon;
+
+			public:
+				DefaultResources()
+				{
+					leftIcon = new DefaultIcon(ICON_LEFT);
+					rightIcon = new DefaultIcon(ICON_RIGHT);
+					downIcon = new DefaultIcon(ICON_DOWN);
+				}
+
+			};
+
+			SLIB_SAFE_STATIC_GETTER(DefaultResources, GetDefaultResources)
+
+		}
+	}
+
+	using namespace priv::select_switch;
+
+	SLIB_DEFINE_OBJECT(SelectSwitchCell, SingleSelectionViewCellBase<sl_uint32>)
+
+	SelectSwitchCell::SelectSwitchCell()
+	{
+		gravity = Alignment::MiddleLeft;
+		textColor = Color::Black;
+
+		iconSize.x = 0;
+		iconSize.y = 0;
+
+		DefaultResources* def = GetDefaultResources();
+		if (def) {
+			leftIcon = def->leftIcon;
+			rightIcon = def->rightIcon;
+		}
+
+		m_clickedIconNo = ICON_NONE;
+	}
+
+	SelectSwitchCell::~SelectSwitchCell()
+	{
+	}
+
+	void SelectSwitchCell::onDraw(Canvas* canvas)
+	{
+		canvas->drawText(titleGetter(selectedIndex), getFrame(), getFont(), textColor, Alignment::MiddleCenter);
+		canvas->draw(getLeftIconRegion(), leftIcon);
+		canvas->draw(getRightIconRegion(), rightIcon);
+	}
+
+	void SelectSwitchCell::onMouseEvent(UIEvent* ev)
+	{
+		UIAction action = ev->getAction();
+		UIPoint pt = ev->getPoint();
+		if (action == UIAction::LeftButtonDown || action == UIAction::TouchBegin) {
+			if (getLeftIconRegion().containsPoint(pt)) {
+				m_clickedIconNo = ICON_LEFT;
+				ev->stopPropagation();
+			} else if (getRightIconRegion().containsPoint(pt)) {
+				m_clickedIconNo = ICON_RIGHT;
+				ev->stopPropagation();
+			}
+		} else if (action == UIAction::MouseLeave || action == UIAction::TouchCancel) {
+			m_clickedIconNo = ICON_NONE;
+		} else if (action == UIAction::LeftButtonUp || action == UIAction::TouchEnd) {
+			if (m_clickedIconNo == ICON_LEFT) {
+				if (getLeftIconRegion().containsPoint(pt)) {
+					sl_uint32 index = selectedIndex;
+					if (index > 0) {
+						index--;
+						selectedIndex = index;
+						onSelectItem(index);
+						invalidate();
+					}
+				}
+			} else if (m_clickedIconNo == ICON_RIGHT) {
+				if (getRightIconRegion().containsPoint(pt)) {
+					sl_uint32 index = selectedIndex;
+					if (index + 1 < itemsCount) {
+						index++;
+						selectedIndex = index;
+						onSelectItem(index);
+						invalidate();
+					}
+				}
+			}
+			m_clickedIconNo = ICON_NONE;
+		}
+	}
+
+	void SelectSwitchCell::onMeasure(UISize& size, sl_bool flagHorizontal, sl_bool flagVertical)
+	{
+		Ref<Font> font = getFont();
+		if (flagHorizontal) {
+			sl_ui_pos width = iconSize.x * 2;
+			if (font.isNotNull()) {
+				sl_ui_pos t = (sl_ui_pos)(font->getFontHeight());
+				if (t > 0) {
+					width += t * 4;
+				}
+			}
+			if (width < 0) {
+				width = 0;
+			}
+			size.x = width;
+		}
+		if (flagVertical) {
+			sl_ui_pos height = 0;
+			if (font.isNotNull()) {
+				height = (sl_ui_pos)(font->getFontHeight() * 1.5f);
+				if (height < 0) {
+					height = 0;
+				}
+			}
+			if (height < iconSize.y) {
+				height = iconSize.y;
+			}
+			size.y = height;
+		}
+	}
+
+	UIRect SelectSwitchCell::getLeftIconRegion()
+	{
+		UIRect frame = getFrame();
+		sl_ui_pos heightView = frame.getHeight();
+		if (heightView < 0) {
+			heightView = 0;
+		}
+		sl_ui_pos heightIcon;
+		if (iconSize.y > 0) {
+			heightIcon = iconSize.y;
+		} else {
+			heightIcon = heightView;
+		}
+		if (iconSize.x > 0) {
+			frame.right = frame.left + iconSize.x;
+		} else {
+			frame.right = frame.left + heightIcon;
+		}
+		frame.top += (heightView - heightIcon) / 2;
+		frame.bottom = frame.top + heightIcon;
+		frame.fixSizeError();
+		return frame;
+	}
+	
+	UIRect SelectSwitchCell::getRightIconRegion()
+	{
+		UIRect frame = getFrame();
+		sl_ui_pos heightView = frame.getHeight();
+		if (heightView < 0) {
+			heightView = 0;
+		}
+		sl_ui_pos heightIcon;
+		if (iconSize.y > 0) {
+			heightIcon = iconSize.y;
+		} else {
+			heightIcon = heightView;
+		}
+		if (iconSize.x > 0) {
+			frame.left = frame.right - iconSize.x;
+		} else {
+			frame.left = frame.right - heightIcon;
+		}
+		frame.top += (heightView - heightIcon) / 2;
+		frame.bottom = frame.top + heightIcon;
+		frame.fixSizeError();
+		return frame;
+	}
+
 }

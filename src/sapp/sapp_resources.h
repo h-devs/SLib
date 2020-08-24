@@ -486,10 +486,6 @@ namespace slib
 	class SAppLayoutSelectAttributes : public Referable
 	{
 	public:
-		SAppDimensionValue iconWidth;
-		SAppDimensionValue iconHeight;
-		SAppDrawableValue leftIcon;
-		SAppDrawableValue rightIcon;
 		SAppColorValue textColor;
 		SAppAlignmentValue gravity;
 		
@@ -498,6 +494,21 @@ namespace slib
 	public:
 		sl_bool isNotRequiredNative();
 		
+	};
+
+	class SAppLayoutSelectSwitchAttributes : public Referable
+	{
+	public:
+		SAppColorValue textColor;
+		SAppAlignmentValue gravity;
+		
+		CList<SAppLayoutSelectItem> items;
+
+		SAppDimensionValue iconWidth;
+		SAppDimensionValue iconHeight;
+		SAppDrawableValue leftIcon;
+		SAppDrawableValue rightIcon;
+
 	};
 
 	class SAppLayoutScrollAttributes : public Referable
@@ -974,7 +985,8 @@ namespace slib
 		Chat = 0x026b,
 		Refresh = 0x026c,
 		DatePicker = 0x026d,
-		Line = 0x026e
+		Line = 0x026e,
+		SelectSwitch = 0x026f
 	};
 
 	class SAppLayoutResourceItem : public Referable
@@ -1002,6 +1014,7 @@ namespace slib
 		Ref<SAppLayoutEditAttributes> attrsEdit;
 		Ref<SAppLayoutImageAttributes> attrsImage;
 		Ref<SAppLayoutSelectAttributes> attrsSelect;
+		Ref<SAppLayoutSelectSwitchAttributes> attrsSelectSwitch;
 		Ref<SAppLayoutScrollAttributes> attrsScroll;
 		Ref<SAppLayoutLinearAttributes> attrsLinear;
 		Ref<SAppLayoutListAttributes> attrsList;
@@ -1072,6 +1085,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameTextArea = 0;
 		sl_uint32 nAutoIncreaseNameImage = 0;
 		sl_uint32 nAutoIncreaseNameSelect = 0;
+		sl_uint32 nAutoIncreaseNameSelectSwitch = 0;
 		sl_uint32 nAutoIncreaseNameScroll = 0;
 		sl_uint32 nAutoIncreaseNameLinear = 0;
 		sl_uint32 nAutoIncreaseNameList = 0;

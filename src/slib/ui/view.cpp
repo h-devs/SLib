@@ -2951,6 +2951,44 @@ namespace slib
 			return 0;
 		}
 	}
+
+	void View::updateLayoutByViewCell(ViewCell* cell)
+	{
+		sl_bool flagHorizontal = isWidthWrapping();
+		sl_bool flagVertical = isHeightWrapping();
+
+		if (!flagVertical && !flagHorizontal) {
+			return;
+		}
+
+		sl_ui_pos paddingHorz = getPaddingLeft() + getPaddingRight();
+		sl_ui_pos paddingVert = getPaddingTop() + getPaddingBottom();
+		UISize size;
+		if (flagHorizontal) {
+			size.x = 0;
+		} else {
+			size.x = getLayoutWidth() - paddingHorz;
+			if (size.x < 0) {
+				size.x = 0;
+			}
+		}
+		if (flagVertical) {
+			size.y = 0;
+		} else {
+			size.y = getLayoutHeight() - paddingVert;
+			if (size.y < 0) {
+				size.y = 0;
+			}
+		}
+		cell->onMeasure(size, flagHorizontal, flagVertical);
+
+		if (flagHorizontal) {
+			setLayoutWidth(size.x + paddingHorz);
+		}
+		if (flagVertical) {
+			setLayoutWidth(size.y + paddingVert);
+		}
+	}
 	
 	UISize View::measureLayoutWrappingSize(sl_bool flagHorizontal, sl_bool flagVertical)
 	{
@@ -10526,7 +10564,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(ViewCell, Object)
 
-	ViewCell::ViewCell(View* view): m_view(view)
+	ViewCell::ViewCell()
 	{
 		m_flagUseCustomFrame = sl_false;
 	}
@@ -10535,19 +10573,14 @@ namespace slib
 	{
 	}
 
-	View* ViewCell::getView()
+	Ref<View> ViewCell::getView()
 	{
 		return m_view;
 	}
 
-	void ViewCell::setView(View* view)
+	void ViewCell::setView(const Ref<View>& view)
 	{
 		m_view = view;
-	}
-
-	Ref<Font> ViewCell::getFont()
-	{
-		return m_view->getFont();
 	}
 
 	UIRect ViewCell::getFrame()
@@ -10555,39 +10588,111 @@ namespace slib
 		if (m_flagUseCustomFrame) {
 			return m_frame;
 		} else {
-			return m_view->getBoundsInnerPadding();
+			Ref<View> view = m_view;
+			if (view.isNotNull()) {
+				return view->getBoundsInnerPadding();
+			}
+			return UIRect::zero();
 		}
 	}
 
 	void ViewCell::setFrame(const UIRect& frame)
 	{
-		m_frame = frame;
 		m_flagUseCustomFrame = sl_true;
+		m_frame = frame;
+	}
+
+	Ref<Font> ViewCell::getFont()
+	{
+		if (m_font.isNotNull()) {
+			return m_font;
+		} else {
+			Ref<View> view = m_view;
+			if (view.isNotNull()) {
+				return view->getFont();
+			}
+		}
+		return UI::getDefaultFont();
+	}
+
+	void ViewCell::setFont(const Ref<Font>& font)
+	{
+		m_font = font;
 	}
 
 	void ViewCell::invalidate()
 	{
-		m_view->invalidate();
+		Ref<View> view = m_view;
+		if (view.isNotNull()) {
+			view->invalidate();
+		}
 	}
 
 	void ViewCell::invalidate(const UIRect& frame)
 	{
-		m_view->invalidate(frame);
+		Ref<View> view = m_view;
+		if (view.isNotNull()) {
+			view->invalidate(frame);
+		}
 	}
 
-	Ref<Dispatcher> ViewCell::getCellDispatcher()
+	Ref<Dispatcher> ViewCell::getDispatcher()
 	{
-		return m_view->getDispatcher();
+		Ref<View> view = m_view;
+		if (view.isNotNull()) {
+			return view->getDispatcher();
+		}
+		return UI::getDispatcher();
 	}
 
 	Ref<Timer> ViewCell::createTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms)
 	{
-		return m_view->createTimer(task, interval_ms);
+		Ref<View> view = m_view;
+		if (view.isNotNull()) {
+			return view->createTimer(task, interval_ms);
+		}
+		return Timer::createWithDispatcher(UI::getDispatcher(), task, interval_ms);
 	}
 
 	Ref<Timer> ViewCell::startTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms)
 	{
-		return m_view->startTimer(task, interval_ms);
+		Ref<View> view = m_view;
+		if (view.isNotNull()) {
+			return view->startTimer(task, interval_ms);
+		}
+		return Timer::startWithDispatcher(UI::getDispatcher(), task, interval_ms);
+	}
+
+	void ViewCell::onDraw(Canvas* canvas)
+	{
+	}
+
+	void ViewCell::onKeyEvent(UIEvent* ev)
+	{
+	}
+
+	void ViewCell::onClickEvent(UIEvent* ev)
+	{
+	}
+
+	void ViewCell::onMouseEvent(UIEvent* ev)
+	{
+	}
+
+	void ViewCell::onTouchEvent(UIEvent* ev)
+	{
+	}
+
+	void ViewCell::onMouseWheelEvent(UIEvent* ev)
+	{
+	}
+
+	void ViewCell::onSetCursor(UIEvent* ev)
+	{
+	}
+	
+	void ViewCell::onMeasure(UISize& size, sl_bool flagHorz, sl_bool flagVert)
+	{
 	}
 
 

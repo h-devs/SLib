@@ -912,6 +912,7 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(TextArea)
 			PROCESS_CONTROL_SWITCH(Image)
 			PROCESS_CONTROL_SWITCH(Select)
+			PROCESS_CONTROL_SWITCH(SelectSwitch)
 			PROCESS_CONTROL_SWITCH(Scroll)
 			PROCESS_CONTROL_SWITCH(Linear)
 			PROCESS_CONTROL_SWITCH(List)
@@ -2988,6 +2989,106 @@ namespace slib
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 		
+		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(textColor, setTextColor)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(gravity, setGravity)
+
+		LAYOUT_CONTROL_SET_NATIVE_WIDGET
+		
+		if (op == OP_PARSE) {
+			ListElements< Ref<XmlElement> > itemXmls(_getLayoutItemChildElements(resourceItem, resource->name, "item"));
+			for (sl_size i = 0; i < itemXmls.count; i++) {
+				Ref<XmlElement>& itemXml = itemXmls[i];
+				if (itemXml.isNotNull()) {
+					SAppLayoutSelectItem subItem;
+					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., title)
+					if (!(subItem.title.flagDefined)) {
+						String text = itemXml->getText();
+						if (text.isNotEmpty()) {
+							if (!(subItem.title.parse(text))) {
+								LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(itemXml, title);
+								return sl_false;
+							}
+						}
+					}
+					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., value)
+					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., selected)
+					subItem.element = itemXml;
+					if (!(attr->items.add(subItem))) {
+						_logError(itemXml, g_str_error_out_of_memory);
+						return sl_false;
+					}
+				}
+			}
+		} else if (op == OP_GENERATE_CPP) {
+			ListLocker<SAppLayoutSelectItem> selectItems(attr->items);
+			if (selectItems.count > 0) {
+				sl_size indexSelected = 0;
+				sl_bool flagSelected = sl_false;
+				for (sl_size i = 0; i < selectItems.count; i++) {
+					SAppLayoutSelectItem& selectItem = selectItems[i];
+					String strSelectedItemTitle;
+					if (!(_getStringAccessString(resource->name, selectItem.title, selectItem.element, strSelectedItemTitle))) {
+						return sl_false;
+					}
+					String strSelectedItemValue;
+					if (!(_getStringAccessString(resource->name, selectItem.value, selectItem.element, strSelectedItemValue))) {
+						return sl_false;
+					}
+					params->sbDefineInit->add(String::format("%s%s->addItem(%s, %s, slib::UIUpdateMode::Init);%n", strTab, name, strSelectedItemValue, strSelectedItemTitle));
+					if (selectItem.selected.flagDefined && selectItem.selected.value) {
+						flagSelected = sl_true;
+						indexSelected = i;
+					}
+				}
+				if (flagSelected) {
+					params->sbDefineInit->add(String::format("%s%s->selectItem(%d, slib::UIUpdateMode::Init);%n", strTab, name, indexSelected));
+				}
+			}
+		} else if (op == OP_SIMULATE) {
+			if (!flagOnLayout) {
+				ListLocker<SAppLayoutSelectItem> selectItems(attr->items);
+				if (selectItems.count > 0) {
+					sl_uint32 indexSelected = 0;
+					sl_bool flagSelected = sl_false;
+					sl_uint32 n = (sl_uint32)(selectItems.count);
+					for (sl_uint32 i = 0; i < n; i++) {
+						SAppLayoutSelectItem& selectItem = selectItems[i];
+						String selectedItemTitle;
+						if (!(_getStringValue(resource->name, selectItem.title, selectItem.element, selectedItemTitle))) {
+							return sl_false;
+						}
+						String selectedItemValue;
+						if (!(_getStringValue(resource->name, selectItem.value, selectItem.element, selectedItemValue))) {
+							return sl_false;
+						}
+						view->addItem(selectedItemValue, selectedItemTitle, UIUpdateMode::Init);
+						if (selectItem.selected.flagDefined && selectItem.selected.value) {
+							flagSelected = sl_true;
+							indexSelected = i;
+						}
+					}
+					if (flagSelected) {
+						if (!flagOnLayout) {
+							view->selectItem(indexSelected, UIUpdateMode::Init);
+						}
+					}
+				}
+			}
+		}
+		
+		LAYOUT_CONTROL_ADD_STATEMENT
+		
+	}
+	END_PROCESS_LAYOUT_CONTROL
+
+
+	BEGIN_PROCESS_LAYOUT_CONTROL(SelectSwitch, SelectSwitch)
+	{
+		LAYOUT_CONTROL_PROCESS_SUPER(View)
+		
+		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(textColor, setTextColor)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(gravity, setGravity)
+
 		LAYOUT_CONTROL_DRAWABLE_ATTR(leftIcon, setLeftIcon)
 		LAYOUT_CONTROL_DRAWABLE_ATTR(rightIcon, setRightIcon)
 		
@@ -3009,11 +3110,6 @@ namespace slib
 				}
 			}
 		}
-		
-		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(textColor, setTextColor)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(gravity, setGravity)
-
-		LAYOUT_CONTROL_SET_NATIVE_WIDGET
 		
 		if (op == OP_PARSE) {
 			ListElements< Ref<XmlElement> > itemXmls(_getLayoutItemChildElements(resourceItem, resource->name, "item"));

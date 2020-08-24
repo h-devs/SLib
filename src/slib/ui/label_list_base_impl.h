@@ -253,6 +253,28 @@ namespace slib
 	}
 
 
+	template <class INDEX_TYPE>
+	LabelListViewCellBase<INDEX_TYPE>::LabelListViewCellBase()
+	{
+		itemsCount = 0;
+	}
+
+	template <class INDEX_TYPE>
+	template <class VIEW>
+	void LabelListViewCellBase<INDEX_TYPE>::initLabelList(VIEW* view)
+	{
+		itemsCount = (INDEX_TYPE)(view->getItemsCount());
+		WeakRef<VIEW> weak = view;
+		titleGetter = [weak](INDEX_TYPE index) {
+			Ref<VIEW> view = weak;
+			if (view.isNotNull()) {
+				return view->getItemTitle(index);
+			}
+			return String::null();
+		};
+	}
+
+
 	template <class VIEW_CLASS, class INDEX_TYPE>
 	SingleSelectionViewBase<VIEW_CLASS, INDEX_TYPE>::SingleSelectionViewBase()
 	{
@@ -304,13 +326,55 @@ namespace slib
 		((VIEW_CLASS*)this)->notifySelectItem(index, mode);
 	}
 
+	template <class INDEX_TYPE>
+	SingleSelectionViewCellBase<INDEX_TYPE>::SingleSelectionViewCellBase()
+	{
+		selectedIndex = 0;
+	}
+
 }
 
-#define SLIB_DEFINE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE, INSTANCE_CLASS, INSTANCE_GETTER) \
+#define SLIB_DEFINE_LABEL_LIST_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE) \
 	template class LabelListViewBase<VIEW_CLASS, INDEX_TYPE>; \
-	template class SingleSelectionViewBase<VIEW_CLASS, INDEX_TYPE>; \
 	void VIEW_CLASS::notifyRefreshItems(UIUpdateMode mode) \
 	{ \
+		if (m_cell.isNotNull()) { \
+			m_cell->itemsCount = m_countItems; \
+		} \
+		invalidate(mode); \
+	} \
+	void VIEW_CLASS::notifyInsertItem(INDEX_TYPE index, const String& title, UIUpdateMode mode) \
+	{ \
+		m_countItems++; \
+		if (m_cell.isNotNull()) { \
+			m_cell->itemsCount = m_countItems; \
+		} \
+		invalidate(mode); \
+	} \
+	void VIEW_CLASS::notifyRemoveItem(INDEX_TYPE index, UIUpdateMode mode) \
+	{ \
+		INDEX_TYPE n = m_countItems; \
+		if (n <= 0) { \
+			return; \
+		} \
+		m_countItems = n - 1; \
+		if (m_cell.isNotNull()) { \
+			m_cell->itemsCount = m_countItems; \
+		} \
+		invalidate(mode); \
+	} \
+	void VIEW_CLASS::notifySetItemTitle(INDEX_TYPE index, const String& title, UIUpdateMode mode) \
+	{ \
+		invalidate(mode); \
+	}
+
+#define SLIB_DEFINE_LABEL_LIST_INSTANCE_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE, INSTANCE_CLASS, INSTANCE_GETTER) \
+	template class LabelListViewBase<VIEW_CLASS, INDEX_TYPE>; \
+	void VIEW_CLASS::notifyRefreshItems(UIUpdateMode mode) \
+	{ \
+		if (m_cell.isNotNull()) { \
+			m_cell->itemsCount = m_countItems; \
+		} \
 		Ptr<INSTANCE_CLASS> instance = INSTANCE_GETTER(); \
 		if (instance.isNotNull()) { \
 			instance->refreshItems((VIEW_CLASS*)this); \
@@ -321,6 +385,9 @@ namespace slib
 	void VIEW_CLASS::notifyInsertItem(INDEX_TYPE index, const String& title, UIUpdateMode mode) \
 	{ \
 		m_countItems++; \
+		if (m_cell.isNotNull()) { \
+			m_cell->itemsCount = m_countItems; \
+		} \
 		Ptr<INSTANCE_CLASS> instance = INSTANCE_GETTER(); \
 		if (instance.isNotNull()) { \
 			instance->insertItem((VIEW_CLASS*)this, index, title); \
@@ -335,6 +402,9 @@ namespace slib
 			return; \
 		} \
 		m_countItems = n - 1; \
+		if (m_cell.isNotNull()) { \
+			m_cell->itemsCount = m_countItems; \
+		} \
 		Ptr<INSTANCE_CLASS> instance = INSTANCE_GETTER(); \
 		if (instance.isNotNull()) { \
 			instance->removeItem((VIEW_CLASS*)this, index); \
@@ -347,15 +417,6 @@ namespace slib
 		Ptr<INSTANCE_CLASS> instance = INSTANCE_GETTER(); \
 		if (instance.isNotNull()) { \
 			instance->setItemTitle((VIEW_CLASS*)this, index, title); \
-		} else { \
-			invalidate(mode); \
-		} \
-	} \
-	void VIEW_CLASS::notifySelectItem(INDEX_TYPE index, UIUpdateMode mode) \
-	{ \
-		Ptr<INSTANCE_CLASS> instance = INSTANCE_GETTER(); \
-		if (instance.isNotNull()) { \
-			instance->selectItem((VIEW_CLASS*)this, index); \
 		} else { \
 			invalidate(mode); \
 		} \
@@ -373,5 +434,31 @@ namespace slib
 		refreshItems(view); \
 	}
 
+#define SLIB_DEFINE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE) \
+	SLIB_DEFINE_LABEL_LIST_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE) \
+	template class SingleSelectionViewBase<VIEW_CLASS, INDEX_TYPE>; \
+	void VIEW_CLASS::notifySelectItem(INDEX_TYPE index, UIUpdateMode mode) \
+	{ \
+		if (m_cell.isNotNull()) { \
+			m_cell->selectedIndex = m_indexSelected; \
+		} \
+		invalidate(mode); \
+	}
+
+#define SLIB_DEFINE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE, INSTANCE_CLASS, INSTANCE_GETTER) \
+	SLIB_DEFINE_LABEL_LIST_INSTANCE_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE, INSTANCE_CLASS, INSTANCE_GETTER) \
+	template class SingleSelectionViewBase<VIEW_CLASS, INDEX_TYPE>; \
+	void VIEW_CLASS::notifySelectItem(INDEX_TYPE index, UIUpdateMode mode) \
+	{ \
+		if (m_cell.isNotNull()) { \
+			m_cell->selectedIndex = m_indexSelected; \
+		} \
+		Ptr<INSTANCE_CLASS> instance = INSTANCE_GETTER(); \
+		if (instance.isNotNull()) { \
+			instance->selectItem((VIEW_CLASS*)this, index); \
+		} else { \
+			invalidate(mode); \
+		} \
+	}
 
 #endif
