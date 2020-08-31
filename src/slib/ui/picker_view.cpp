@@ -128,14 +128,15 @@ namespace slib
 	void PickerView::_initCell()
 	{
 		if (m_cell.isNull()) {
-			m_cell = new PickerViewCell;
-			if (m_cell.isNotNull()) {
-				m_cell->setView(this);
-				m_cell->initLabelList(this);
-				m_cell->textColor = m_textColor;
-				m_cell->linesCount = m_linesCount;
-				m_cell->flagCircular = m_flagCircular;
-				m_cell->onSelectItem = SLIB_FUNCTION_WEAKREF(PickerView, dispatchSelectItem, this);
+			Ref<PickerViewCell> cell = new PickerViewCell;
+			if (cell.isNotNull()) {
+				cell->setView(this);
+				cell->initLabelList(this);
+				cell->textColor = m_textColor;
+				cell->linesCount = m_linesCount;
+				cell->flagCircular = m_flagCircular;
+				cell->onSelectItem = SLIB_FUNCTION_WEAKREF(PickerView, dispatchSelectItem, this);
+				m_cell = cell;
 			}
 		}
 	}

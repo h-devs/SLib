@@ -632,8 +632,8 @@ namespace slib
 		Ref<ViewInstance> instance = _createInstance(parent);
 		if (instance.isNotNull()) {
 			m_instance = instance;
-			instance->setView(this);
 			_doAttach();
+			instance->setView(this);
 		}
 		return instance;
 	}
@@ -2954,17 +2954,17 @@ namespace slib
 
 	void View::updateLayoutByViewCell(ViewCell* cell)
 	{
-		sl_bool flagHorizontal = isWidthWrapping();
-		sl_bool flagVertical = isHeightWrapping();
+		sl_bool flagHorizontalWrapping = isWidthWrapping();
+		sl_bool flagVerticalWrapping = isHeightWrapping();
 
-		if (!flagVertical && !flagHorizontal) {
+		if (!flagVerticalWrapping && !flagHorizontalWrapping) {
 			return;
 		}
 
 		sl_ui_pos paddingHorz = getPaddingLeft() + getPaddingRight();
 		sl_ui_pos paddingVert = getPaddingTop() + getPaddingBottom();
 		UISize size;
-		if (flagHorizontal) {
+		if (flagHorizontalWrapping) {
 			size.x = 0;
 		} else {
 			size.x = getLayoutWidth() - paddingHorz;
@@ -2972,7 +2972,7 @@ namespace slib
 				size.x = 0;
 			}
 		}
-		if (flagVertical) {
+		if (flagVerticalWrapping) {
 			size.y = 0;
 		} else {
 			size.y = getLayoutHeight() - paddingVert;
@@ -2980,13 +2980,26 @@ namespace slib
 				size.y = 0;
 			}
 		}
-		cell->onMeasure(size, flagHorizontal, flagVertical);
+		cell->onMeasure(size, flagHorizontalWrapping, flagVerticalWrapping);
 
-		if (flagHorizontal) {
-			setLayoutWidth(size.x + paddingHorz);
+		size.x += paddingHorz;
+		size.y += paddingVert;
+
+		if (getChildrenCount()) {
+			UISize sizeLayout = measureLayoutWrappingSize(flagHorizontalWrapping, flagVerticalWrapping);
+			if (sizeLayout.x > size.x) {
+				size.x = sizeLayout.x;
+			}
+			if (sizeLayout.y > size.y) {
+				size.y = sizeLayout.y;
+			}
 		}
-		if (flagVertical) {
-			setLayoutWidth(size.y + paddingVert);
+
+		if (flagHorizontalWrapping) {
+			setLayoutWidth(size.x);
+		}
+		if (flagVerticalWrapping) {
+			setLayoutHeight(size.y);
 		}
 	}
 	
@@ -7531,6 +7544,27 @@ namespace slib
 		}
 	}
 
+	void View::setMnemonicKeyFromText(const StringParam& _text)
+	{
+		StringData text(_text);
+		const sl_char8* data = text.getData();
+		sl_reg index = 0;
+		for (;;) {
+			index = text.indexOf('&', index);
+			if (index < 0) {
+				return;
+			}
+			index++;
+			char ch = data[index];
+			if (SLIB_CHAR_IS_ALNUM(ch)) {
+				setMnemonicKey(ch);
+				return;
+			} else {
+				index++;
+			}
+		}
+	}
+
 	Ref<View> View::findViewByMnemonicKey(char key)
 	{
 		if (!key) {
@@ -10566,7 +10600,16 @@ namespace slib
 
 	ViewCell::ViewCell()
 	{
-		m_flagUseCustomFrame = sl_false;
+		m_flagDefinedFrame = sl_false;
+		m_flagDefinedEnabled = sl_false;
+		m_flagDefinedFocused = sl_false;
+		m_flagDefinedPressed = sl_false;
+		m_flagDefinedHover = sl_false;
+		
+		m_flagEnabled = sl_true;
+		m_flagFocused = sl_false;
+		m_flagPressed = sl_false;
+		m_flagHover = sl_false;
 	}
 
 	ViewCell::~ViewCell()
@@ -10585,7 +10628,7 @@ namespace slib
 
 	UIRect ViewCell::getFrame()
 	{
-		if (m_flagUseCustomFrame) {
+		if (m_flagDefinedFrame) {
 			return m_frame;
 		} else {
 			Ref<View> view = m_view;
@@ -10598,8 +10641,148 @@ namespace slib
 
 	void ViewCell::setFrame(const UIRect& frame)
 	{
-		m_flagUseCustomFrame = sl_true;
+		m_flagDefinedFrame = sl_true;
 		m_frame = frame;
+	}
+
+	sl_ui_len ViewCell::getWidth()
+	{
+		if (m_flagDefinedFrame) {
+			return m_frame.getWidth();
+		} else {
+			Ref<View> view = m_view;
+			if (view.isNotNull()) {
+				sl_ui_len width = view->getWidth() - view->getPaddingLeft() - view->getPaddingRight();
+				if (width > 0) {
+					return width;
+				}
+			}
+			return 0;
+		}
+	}
+
+	sl_ui_len ViewCell::getHeight()
+	{
+		if (m_flagDefinedFrame) {
+			return m_frame.getHeight();
+		} else {
+			Ref<View> view = m_view;
+			if (view.isNotNull()) {
+				sl_ui_len height = view->getHeight() - view->getPaddingTop() - view->getPaddingBottom();
+				if (height > 0) {
+					return height;
+				}
+			}
+			return 0;
+		}
+	}
+
+	sl_bool ViewCell::isEnabled()
+	{
+		if (m_flagDefinedEnabled) {
+			return m_flagEnabled;
+		} else {
+			Ref<View> view = m_view;
+			if (view.isNotNull()) {				
+				return view->isEnabled();
+			}
+			return sl_true;
+		}
+	}
+
+	void ViewCell::setEnabled(sl_bool flag, UIUpdateMode mode)
+	{
+		if (m_flagDefinedEnabled) {
+			if (m_flagEnabled != flag) {
+				m_flagEnabled = flag;
+				invalidate(mode);
+			}
+		} else {
+			m_flagDefinedEnabled = sl_true;
+			m_flagEnabled = flag;
+			invalidate(mode);
+		}
+	}
+
+	sl_bool ViewCell::isFocused()
+	{
+		if (m_flagDefinedFocused) {
+			return m_flagFocused;
+		} else {
+			Ref<View> view = m_view;
+			if (view.isNotNull()) {
+				return view->isFocused();
+			}
+			return sl_false;
+		}
+	}
+
+	void ViewCell::setFocused(sl_bool flag, UIUpdateMode mode)
+	{
+		if (m_flagDefinedFocused) {
+			if (m_flagFocused != flag) {
+				m_flagFocused = flag;
+				invalidate(mode);
+			}
+		} else {
+			m_flagDefinedFocused = sl_true;
+			m_flagFocused = flag;
+			invalidate(mode);
+		}
+	}
+
+	sl_bool ViewCell::isPressedState()
+	{
+		if (m_flagDefinedEnabled) {
+			return m_flagPressed;
+		} else {
+			Ref<View> view = m_view;
+			if (view.isNotNull()) {
+				return view->isPressedState();
+			}
+			return sl_false;
+		}
+	}
+
+	void ViewCell::setPressedState(sl_bool flag, UIUpdateMode mode)
+	{
+		if (m_flagDefinedPressed) {
+			if (m_flagPressed != flag) {
+				m_flagPressed = flag;
+				invalidate(mode);
+			}
+		} else {
+			m_flagDefinedPressed = sl_true;
+			m_flagPressed = flag;
+			invalidate(mode);
+		}
+	}
+
+	sl_bool ViewCell::isHoverState()
+	{
+		if (m_flagDefinedEnabled) {
+			return m_flagHover;
+		} else {
+			Ref<View> view = m_view;
+			if (view.isNotNull()) {
+				return view->isHoverState();
+			}
+			return sl_false;
+		}
+	}
+
+	void ViewCell::setHoverState(sl_bool flag, UIUpdateMode mode)
+	{
+		if (m_flagDefinedHover) {
+			if (m_flagHover != flag) {
+				m_flagHover = flag;
+				invalidate(mode);
+			}
+		} else {
+			m_flagDefinedHover = sl_true;
+			m_flagHover = flag;
+			invalidate(mode);
+		}
 	}
 
 	Ref<Font> ViewCell::getFont()
@@ -10620,19 +10803,33 @@ namespace slib
 		m_font = font;
 	}
 
-	void ViewCell::invalidate()
+	void ViewCell::invalidate(UIUpdateMode mode)
 	{
+		if (!SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
+			return;
+		}
 		Ref<View> view = m_view;
 		if (view.isNotNull()) {
 			view->invalidate();
 		}
 	}
 
-	void ViewCell::invalidate(const UIRect& frame)
+	void ViewCell::invalidate(const UIRect& frame, UIUpdateMode mode)
 	{
+		if (!SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
+			return;
+		}
 		Ref<View> view = m_view;
 		if (view.isNotNull()) {
 			view->invalidate(frame);
+		}
+	}
+
+	void ViewCell::setCursor(const Ref<Cursor>& cursor)
+	{
+		Ref<View> view = m_view;
+		if (view.isNotNull()) {
+			view->setCursor(cursor);
 		}
 	}
 
@@ -10663,6 +10860,24 @@ namespace slib
 		return Timer::startWithDispatcher(UI::getDispatcher(), task, interval_ms);
 	}
 
+	void ViewCell::invalidatePressedState(UIEvent* ev)
+	{
+		UIAction action = ev->getAction();
+		switch (action) {
+			case UIAction::LeftButtonDown:
+			case UIAction::TouchBegin:
+				setPressedState(sl_true);
+				break;
+			case UIAction::LeftButtonUp:
+			case UIAction::TouchEnd:
+			case UIAction::TouchCancel:
+				setPressedState(sl_false);
+				break;
+			default:
+				break;
+		}
+	}
+
 	void ViewCell::onDraw(Canvas* canvas)
 	{
 	}
@@ -10677,10 +10892,12 @@ namespace slib
 
 	void ViewCell::onMouseEvent(UIEvent* ev)
 	{
+		invalidatePressedState(ev);
 	}
 
 	void ViewCell::onTouchEvent(UIEvent* ev)
 	{
+		invalidatePressedState(ev);
 	}
 
 	void ViewCell::onMouseWheelEvent(UIEvent* ev)
@@ -10691,7 +10908,7 @@ namespace slib
 	{
 	}
 	
-	void ViewCell::onMeasure(UISize& size, sl_bool flagHorz, sl_bool flagVert)
+	void ViewCell::onMeasure(UISize& size, sl_bool flagHorizontalWrapping, sl_bool flagVerticalWrapping)
 	{
 	}
 

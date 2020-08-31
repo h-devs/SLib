@@ -107,13 +107,14 @@ namespace slib
 	void SelectView::_initCell()
 	{
 		if (m_cell.isNull()) {
-			m_cell = new SelectSwitchCell;
-			if (m_cell.isNotNull()) {
-				m_cell->setView(this);
-				m_cell->initLabelList(this);
-				m_cell->gravity = m_gravity;
-				m_cell->textColor = m_textColor;
-				m_cell->onSelectItem = SLIB_FUNCTION_WEAKREF(SelectView, dispatchSelectItem, this);
+			Ref<SelectSwitchCell> cell = new SelectSwitchCell;
+			if (cell.isNotNull()) {
+				cell->setView(this);
+				cell->initLabelList(this);
+				cell->gravity = m_gravity;
+				cell->textColor = m_textColor;
+				cell->onSelectItem = SLIB_FUNCTION_WEAKREF(SelectView, dispatchSelectItem, this);
+				m_cell = cell;
 			}
 		}
 	}
@@ -501,10 +502,10 @@ namespace slib
 		}
 	}
 
-	void SelectSwitchCell::onMeasure(UISize& size, sl_bool flagHorizontal, sl_bool flagVertical)
+	void SelectSwitchCell::onMeasure(UISize& size, sl_bool flagHorizontalWrapping, sl_bool flagVerticalWrapping)
 	{
 		Ref<Font> font = getFont();
-		if (flagHorizontal) {
+		if (flagHorizontalWrapping) {
 			sl_ui_pos width = iconSize.x * 2;
 			if (font.isNotNull()) {
 				sl_ui_pos t = (sl_ui_pos)(font->getFontHeight());
@@ -517,7 +518,7 @@ namespace slib
 			}
 			size.x = width;
 		}
-		if (flagVertical) {
+		if (flagVerticalWrapping) {
 			sl_ui_pos height = 0;
 			if (font.isNotNull()) {
 				height = (sl_ui_pos)(font->getFontHeight() * 1.5f);

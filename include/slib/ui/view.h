@@ -1222,6 +1222,8 @@ namespace slib
 
 		void setMnemonicKey(char ch);
 
+		void setMnemonicKeyFromText(const StringParam& text);
+
 		Ref<View> findViewByMnemonicKey(char ch);
 
 
@@ -2055,23 +2057,54 @@ namespace slib
 
 		void setView(const Ref<View>& view);
 
+
 		UIRect getFrame();
 
 		void setFrame(const UIRect& frame);
+
+		sl_ui_len getWidth();
+
+		sl_ui_len getHeight();
+
+
+		sl_bool isEnabled();
+
+		void setEnabled(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isFocused();
+
+		void setFocused(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isPressedState();
+
+		void setPressedState(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isHoverState();
+
+		void setHoverState(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 
 		Ref<Font> getFont();
 
 		void setFont(const Ref<Font>& font);
 
-		void invalidate();
 
-		void invalidate(const UIRect& frame);
+		void invalidate(UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void invalidate(const UIRect& frame, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+
+		void setCursor(const Ref<Cursor>& cursor);
+
 
 		Ref<Dispatcher> getDispatcher();
 
 		Ref<Timer> createTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms);
 
 		Ref<Timer> startTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms);
+		
+	protected:
+		void invalidatePressedState(UIEvent* ev);
 
 	public:
 		virtual void onDraw(Canvas* canvas);
@@ -2088,12 +2121,22 @@ namespace slib
 
 		virtual void onSetCursor(UIEvent* ev);
 
-		virtual void onMeasure(UISize& size, sl_bool flagHorz, sl_bool flagVert);
+		virtual void onMeasure(UISize& size, sl_bool flagHorizontalWrapping, sl_bool flagVerticalWrapping);
 
 	protected:
 		WeakRef<View> m_view;
 
-		sl_bool m_flagUseCustomFrame;
+		sl_bool m_flagDefinedFrame : 1;
+		sl_bool m_flagDefinedEnabled : 1;
+		sl_bool m_flagDefinedFocused : 1;
+		sl_bool m_flagDefinedPressed : 1;
+		sl_bool m_flagDefinedHover : 1;
+
+		sl_bool m_flagEnabled : 1;
+		sl_bool m_flagFocused : 1;
+		sl_bool m_flagPressed : 1;
+		sl_bool m_flagHover : 1;
+
 		UIRect m_frame;
 
 		Ref<Font> m_font;

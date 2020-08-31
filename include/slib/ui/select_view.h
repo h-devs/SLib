@@ -184,7 +184,7 @@ namespace slib
 
 		void onMouseEvent(UIEvent* ev) override;
 
-		void onMeasure(UISize& size, sl_bool flagHorz, sl_bool flagVert) override;
+		void onMeasure(UISize& size, sl_bool flagHorizontalWrapping, sl_bool flagVerticalWrapping) override;
 
 	protected:
 		UIRect getLeftIconRegion();
