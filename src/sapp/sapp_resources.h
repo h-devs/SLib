@@ -371,6 +371,15 @@ namespace slib
 	class SAppLayoutButtonAttributes : public Referable
 	{
 	public:
+		SAppStringValue text;
+		SAppStringValue hyperText;
+		SAppColorValue textColor;
+		SAppAlignmentValue gravity;
+		SAppMultiLineModeValue multiLine;
+		SAppEllipsizeModeValue ellipsize;
+		SAppUint32Value lines;
+		SAppBooleanValue mnemonic;
+
 		SAppBooleanValue defaultButton;
 		SAppBooleanValue usingFocusedState;
 		SAppDrawableValue icon;

@@ -30,59 +30,65 @@
 namespace slib
 {
 
-	class SLIB_EXPORT ButtonCategoryProperties
-	{
-	public:
-		Color textColor;
-		AtomicRef<Drawable> background;
-		AtomicRef<Pen> border;
-		AtomicRef<Drawable> icon;
-		sl_bool flagFilter;
-		ColorMatrix filter;
-		
-	public:
-		ButtonCategoryProperties();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ButtonCategoryProperties)
-		
-	};
-
-	class SLIB_EXPORT ButtonCategory
-	{
-	public:
-		ButtonCategoryProperties properties[(int)(ButtonState::Count)];
-		
-	public:
-		ButtonCategory();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ButtonCategory)
-		
-	};
-	
 	class IButtonInstance;
+
+	class ButtonCategory;
+	class ButtonCell;
 	
-	class SLIB_EXPORT Button : public LabelView
+	class SLIB_EXPORT Button : public View
 	{
 		SLIB_DECLARE_OBJECT
 		
 	public:
-		// 2 categories
 		Button();
-		
-		Button(sl_uint32 nCategories, ButtonCategory* categories = sl_null);
-		
+
 		~Button();
 		
 	public:
-		void setText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout) override;
+		String getText();
+
+		sl_bool isHyperText();
+
+		void setText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void setHyperText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		MultiLineMode getMultiLine();
+
+		void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
+
+		sl_uint32 getLinesCount();
+
+		void setLinesCount(sl_uint32 nLines, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
+
+		sl_bool isMnemonic();
+
+		// call before `setText()`
+		void setMnemonic(sl_bool flag);
+
+
+		Color getTextColor();
+
+		void setTextColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		Alignment getGravity();
+
+		void setGravity(const Alignment& align, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		EllipsizeMode getEllipsize();
+
+		void setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
+
 
 		sl_bool isDefaultButton();
 		
 		void setDefaultButton(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		
+
+		void setCategories(const Array<ButtonCategory>& categories);
+
 		sl_uint32 getCategoriesCount();
-		
+
 		sl_uint32 getCurrentCategory();
 		
 		void setCurrentCategory(sl_uint32 n, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -96,7 +102,7 @@ namespace slib
 
 		const UISize& getIconSize();
 		
-		virtual void setIconSize(const UISize& size, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setIconSize(const UISize& size, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		void setIconSize(sl_ui_len width, sl_ui_len height, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
@@ -113,26 +119,26 @@ namespace slib
 		
 		Alignment getIconAlignment();
 		
-		virtual void setIconAlignment(const Alignment& align, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setIconAlignment(const Alignment& align, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		Alignment getTextAlignment();
 		
-		virtual void setTextAlignment(const Alignment& align, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setTextAlignment(const Alignment& align, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		sl_bool isTextBeforeIcon();
 		
-		virtual void setTextBeforeIcon(sl_bool flag, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setTextBeforeIcon(sl_bool flag, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		sl_bool isExtendTextFrame();
 
-		virtual void setExtendTextFrame(sl_bool flag, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setExtendTextFrame(sl_bool flag, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		LayoutOrientation getLayoutOrientation();
 		
-		virtual void setLayoutOrientation(LayoutOrientation orientation, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setLayoutOrientation(LayoutOrientation orientation, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		
-		virtual void setIconMargin(sl_ui_pos left, sl_ui_pos top, sl_ui_pos right, sl_ui_pos bottom, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setIconMargin(sl_ui_pos left, sl_ui_pos top, sl_ui_pos right, sl_ui_pos bottom, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		void setIconMargin(sl_ui_pos margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
@@ -153,7 +159,7 @@ namespace slib
 		void setIconMarginBottom(sl_ui_pos margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		
-		virtual void setTextMargin(sl_ui_pos left, sl_ui_pos top, sl_ui_pos right, sl_ui_pos bottom, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setTextMargin(sl_ui_pos left, sl_ui_pos top, sl_ui_pos right, sl_ui_pos bottom, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		void setTextMargin(sl_ui_pos margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
@@ -174,47 +180,43 @@ namespace slib
 		void setTextMarginBottom(sl_ui_pos margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 
-		using LabelView::getTextColor;
-		
-		using LabelView::setTextColor;
-
 		Color getTextColor(ButtonState state, sl_uint32 category = 0);
 		
-		virtual void setTextColor(const Color& color, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTextColor(const Color& color, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		
 		Ref<Drawable> getIcon(ButtonState state, sl_uint32 category = 0);
 		
-		virtual void setIcon(const Ref<Drawable>& icon, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setIcon(const Ref<Drawable>& icon, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		Ref<Drawable> getIcon();
 		
-		virtual void setIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		
-		using LabelView::getBackground;
+		using View::getBackground;
 
-		using LabelView::setBackground;
+		using View::setBackground;
 
 		Ref<Drawable> getBackground(ButtonState state, sl_uint32 category = 0);
 		
-		virtual void setBackground(const Ref<Drawable>& background, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBackground(const Ref<Drawable>& background, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void setBackground(const Color& backgroundColor, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 
-		using LabelView::getBorder;
+		using View::getBorder;
 
-		using LabelView::setBorder;
+		using View::setBorder;
 
 		Ref<Pen> getBorder(ButtonState state, sl_uint32 category = 0);
 		
-		virtual void setBorder(const Ref<Pen>& pen, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBorder(const Ref<Pen>& pen, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		
 		ColorMatrix* getColorFilter(ButtonState state, sl_uint32 category = 0);
 		
-		virtual void setColorFilter(ColorMatrix* filter, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColorFilter(ColorMatrix* filter, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		ColorMatrix* getColorFilter();
 		
@@ -228,12 +230,19 @@ namespace slib
 		sl_bool isUsingDefaultColorFilter();
 		
 		void setUsingDefaultColorFilter(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+
+		Ref<Drawable> getCurrentBackground();
+
+		Ref<Pen> getCurrentBorder();
 		
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 		
 		virtual Ptr<IButtonInstance> getButtonInstance();
-		
+
+		virtual Ref<ButtonCell> createButtonCell();
+
 	public:
 		void setEnabled(sl_bool flagEnabled, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 		
@@ -241,6 +250,8 @@ namespace slib
 		
 		void setHoverState(sl_bool flagState, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 		
+		void dispatchDraw(Canvas* canvas) override;
+
 	protected:
 		void onDraw(Canvas* canvas) override;
 		
@@ -259,49 +270,18 @@ namespace slib
 		void onChangeFocus(sl_bool flagFocused) override;
 
 	protected:
-		UISize measureContentSize(sl_ui_len widthFrame, sl_ui_len heightFrame);
-		
-		UISize measureLayoutContentSize(sl_ui_len widthFrame, sl_ui_len heightFrame);
-		
-		void layoutIconAndText(sl_ui_len widthFrame, sl_ui_len heightFrame, UISize& sizeContent, UIRect* pOutFrameIcon, UIRect* pOutFrameText);
-		
-		const ColorMatrix* getCurrentColorFilter(sl_bool flagUseDefaultFilter);
-		
-		Ref<Drawable> getCurrentButtonBackground();
-		
-	private:
-		void _invalidateButtonState(UIUpdateMode mode);
+		void prepareButtonCellLayout(ButtonCell* cell);
 
-		void _invalidateButtonCategory(UIUpdateMode mode);
-		
 	private:
+		void _initCell();
+
+	protected:
+		AtomicString m_text;
 		sl_bool m_flagDefaultButton;
-
-		ButtonState m_state;
-		sl_uint32 m_category;
-		sl_bool m_flagUseFocusedState;
-
-		UISize m_iconSize;
-		Alignment m_iconAlignment;
-		Alignment m_textAlignment;
-		sl_bool m_flagTextBeforeIcon;
-		sl_bool m_flagExtendTextFrame;
-		LayoutOrientation m_layoutOrientation;
-		sl_ui_pos m_iconMarginLeft;
-		sl_ui_pos m_iconMarginTop;
-		sl_ui_pos m_iconMarginRight;
-		sl_ui_pos m_iconMarginBottom;
-		sl_ui_pos m_textMarginLeft;
-		sl_ui_pos m_textMarginTop;
-		sl_ui_pos m_textMarginRight;
-		sl_ui_pos m_textMarginBottom;
+		Array<ButtonCategory> m_categories;
 		
-		AtomicRef<Drawable> m_iconDefault;
-		sl_bool m_flagUseDefaultColorFilter;
+		Ref<ButtonCell> m_cell;
 
-		ButtonCategory* m_categories;
-		sl_uint32 m_nCategories;
-		
 	};
 
 	class SLIB_EXPORT IButtonInstance
@@ -313,6 +293,97 @@ namespace slib
 		
 		virtual sl_bool measureSize(Button* view, UISize& _out) = 0;
 		
+	};
+
+	class SLIB_EXPORT ButtonCategoryProperties
+	{
+	public:
+		Color textColor;
+		AtomicRef<Drawable> background;
+		AtomicRef<Pen> border;
+		AtomicRef<Drawable> icon;
+		sl_bool flagFilter;
+		ColorMatrix filter;
+
+	public:
+		ButtonCategoryProperties();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ButtonCategoryProperties)
+
+	};
+
+	class SLIB_EXPORT ButtonCategory
+	{
+	public:
+		ButtonCategoryProperties properties[(int)(ButtonState::Count)];
+
+	public:
+		ButtonCategory();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ButtonCategory)
+
+	};
+
+	class SLIB_EXPORT ButtonCell : public LabelViewCell
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		Array<ButtonCategory> categories;
+
+		ButtonState state;
+		sl_uint32 category;
+		sl_bool flagUseFocusedState;
+
+		UISize iconSize;
+		Alignment iconAlignment;
+		Alignment textAlignment;
+		sl_bool flagTextBeforeIcon;
+		sl_bool flagExtendTextFrame;
+		LayoutOrientation layoutOrientation;
+		sl_ui_pos iconMarginLeft;
+		sl_ui_pos iconMarginTop;
+		sl_ui_pos iconMarginRight;
+		sl_ui_pos iconMarginBottom;
+		sl_ui_pos textMarginLeft;
+		sl_ui_pos textMarginTop;
+		sl_ui_pos textMarginRight;
+		sl_ui_pos textMarginBottom;
+
+		AtomicRef<Drawable> iconDefault;
+		sl_bool flagUseDefaultColorFilter;
+
+		Function<void(UIEvent* ev)> onClick;
+
+	public:
+		ButtonCell();
+
+		ButtonCell(const Array<ButtonCategory>& categories);
+
+		~ButtonCell();
+
+	public:
+		void invalidateButtonState();
+
+		Ref<Drawable> getCurrentBackground();
+
+		Ref<Pen> getCurrentBorder();
+
+		const ColorMatrix* getCurrentColorFilter(sl_bool flagUseDefaultFilter);
+
+		UISize measureContentSize(sl_ui_len widthFrame, sl_ui_len heightFrame);
+
+		void layoutIconAndText(sl_ui_len widthFrame, sl_ui_len heightFrame, UISize& sizeContent, UIRect* pOutFrameIcon, UIRect* pOutFrameText);
+
+	public:
+		void onDraw(Canvas* canvas) override;
+
+		void onDrawContent(Canvas* canvas);
+
+		void onKeyEvent(UIEvent* ev) override;
+
+		void onMeasure(UISize& size, sl_bool flagHorizontalWrapping, sl_bool flagVerticalWrapping) override;
+
 	};
 
 }

@@ -32,13 +32,43 @@
 namespace slib
 {
 
-	template <class VIEW_CLASS>
-	class LabelAppearanceViewBase
-	{
-	public:
-		LabelAppearanceViewBase();
+	class LabelViewCell;
 
+	class SLIB_EXPORT LabelView : public View
+	{
+		SLIB_DECLARE_OBJECT
+		
 	public:
+		LabelView();
+		
+		~LabelView();
+
+	protected:
+		void init() override;
+		
+	public:
+		String getText();
+		
+		sl_bool isHyperText();
+		
+		void setText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		
+		void setHyperText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		MultiLineMode getMultiLine();
+
+		void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
+
+		sl_uint32 getLinesCount();
+
+		void setLinesCount(sl_uint32 nLines, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
+
+		sl_bool isMnemonic();
+
+		// call before `setText()`
+		void setMnemonic(sl_bool flag);
+
+
 		Color getTextColor();
 
 		void setTextColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
@@ -59,63 +89,12 @@ namespace slib
 
 		void setLinkColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
-	protected:
-		void _applyLabelAppearance(SimpleTextBoxParam& param);
-
-		void _applyLabelAppearance(SimpleTextBoxDrawParam& param);
-
-	protected:
-		Color m_textColor;
-		Alignment m_gravity;
-		EllipsizeMode m_ellipsizeMode;
-		sl_bool m_flagEnabledHyperlinksInPlainText;
-		Color m_linkColor;
-
-	};
-
-	class SLIB_EXPORT LabelView : public View, public LabelAppearanceViewBase<LabelView>
-	{
-		SLIB_DECLARE_OBJECT
-		
-	public:
-		LabelView();
-		
-		~LabelView();
-		
-	public:
-		String getText();
-		
-		sl_bool isHyperText();
-		
-		virtual void setText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
-		virtual void setHyperText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-
-		MultiLineMode getMultiLine();
-
-		virtual void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
-
-		sl_uint32 getLinesCount();
-
-		virtual void setLinesCount(sl_uint32 nLines, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
-
-		sl_bool isMnemonic();
-
-		void setMnemonic(sl_bool flag);
-
-
-		void invalidateLabelAppearance(UIUpdateMode mode);
 
 		UISize measureSize();
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(LabelView, ClickLink, const String& href, UIEvent* ev)
 		
-	protected:
-		void _updateTextBox(sl_bool flagWrapping, sl_ui_len width, sl_ui_len widthPadding, Alignment gravity);
-		
-		void _updateTextBox(sl_ui_len width);
-
 	protected:
 		void onDraw(Canvas* canvas) override;
 		
@@ -126,14 +105,65 @@ namespace slib
 		void onUpdateLayout() override;
 		
 	protected:
-		AtomicString m_text;
-		sl_bool m_flagHyperText;
-		MultiLineMode m_multiLineMode;
-		sl_uint32 m_linesCount;
-		sl_bool m_flagMnemonic;
+		void prepareLabelViewCellLayout(LabelViewCell* cell);
 
-		SimpleTextBox m_textBox;
+	protected:
+		Ref<LabelViewCell> m_cell;
 		
+	};
+
+	class LabelViewCell : public ViewCell
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		AtomicString text;
+		sl_bool flagHyperText;
+		MultiLineMode multiLineMode;
+		sl_uint32 linesCount;
+		sl_bool flagMnemonic;
+
+		Color textColor;
+		Alignment gravity;
+		EllipsizeMode ellipsizeMode;
+		sl_bool flagEnabledHyperlinksInPlainText;
+		Color linkColor;
+
+		sl_real shadowOpacity;
+		sl_real shadowRadius;
+		Color shadowColor;
+		Point shadowOffset;
+
+		sl_bool flagWrapping;
+		sl_ui_len maxWidth;
+
+		Function<void(const String& href, UIEvent* ev)> onClickLink;
+
+	public:
+		LabelViewCell();
+
+		~LabelViewCell();
+
+	public:
+		UISize measureSize();
+
+	public:
+		void onDraw(Canvas* canvas) override;
+
+		void onClickEvent(UIEvent* ev) override;
+
+		void onSetCursor(UIEvent* ev) override;
+
+		void onMeasure(UISize& size, sl_bool flagHorizontalWrapping, sl_bool flagVerticalWrapping) override;
+
+	protected:
+		void _updateTextBox(sl_ui_len width);
+
+		void _updateTextBox(sl_bool flagWrapping, sl_ui_len width, sl_ui_len padding, const Alignment& align);
+
+	protected:
+		SimpleTextBox m_textBox;
+
 	};
 
 }

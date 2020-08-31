@@ -46,7 +46,7 @@ namespace slib
 				Ref<Pen> m_penBorder;
 				Ref<Brush> m_brush;
 				Ref<Pen> m_penCheck;
-				
+
 			public:
 				Icon(const Ref<Pen>& penBorder, const Color& backColor, const Ref<Pen>& penCheck)
 				{
@@ -56,7 +56,7 @@ namespace slib
 					}
 					m_penCheck = penCheck;
 				}
-				
+
 			public:
 				void onDrawAll(Canvas* canvas, const Rectangle& rect, const DrawParam& param) override
 				{
@@ -64,7 +64,7 @@ namespace slib
 					canvas->setAntiAlias(sl_false);
 					canvas->drawRectangle(rect, m_penBorder, m_brush);
 					canvas->setAntiAlias(flagAntiAlias);
-					
+
 					if (m_penCheck.isNotNull()) {
 						Point pts[3];
 						pts[0] = Point(0.2f, 0.6f);
@@ -77,14 +77,15 @@ namespace slib
 						canvas->drawLines(pts, 3, m_penCheck);
 					}
 				}
-				
+
 			};
 
 			class Categories
 			{
 			public:
 				ButtonCategory categories[2];
-				
+				Array<ButtonCategory> arrCategories;
+
 			public:
 				Categories()
 				{
@@ -97,36 +98,38 @@ namespace slib
 					Ref<Pen> penHover = Pen::createSolidPen(w, Color(0, 80, 200));
 					Ref<Pen> penDown = penHover;
 					Ref<Pen> penDisabled = Pen::createSolidPen(w, Color(90, 90, 90));
-					Ref<Pen> penCheckNormal = Pen::createSolidPen(w*2, Color::Black);
-					Ref<Pen> penCheckHover = Pen::createSolidPen(w*2, Color(0, 80, 200));
+					Ref<Pen> penCheckNormal = Pen::createSolidPen(w * 2, Color::Black);
+					Ref<Pen> penCheckHover = Pen::createSolidPen(w * 2, Color(0, 80, 200));
 					Ref<Pen> penCheckDown = penCheckHover;
-					Ref<Pen> penCheckDisabled = Pen::createSolidPen(w*2, Color(90, 90, 90));
+					Ref<Pen> penCheckDisabled = Pen::createSolidPen(w * 2, Color(90, 90, 90));
 					categories[0].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, Ref<Pen>::null());
 					categories[0].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, Ref<Pen>::null());
 					categories[0].properties[(int)ButtonState::Focused].icon =
 						categories[0].properties[(int)ButtonState::FocusedHover].icon =
 						categories[0].properties[(int)ButtonState::Hover].icon =
-							new Icon(penHover, colorBackHover, Ref<Pen>::null());
+						new Icon(penHover, colorBackHover, Ref<Pen>::null());
 					categories[0].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, Ref<Pen>::null());
-					
+
 					categories[1] = categories[0];
 					categories[1].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, penCheckNormal);
 					categories[1].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, penCheckDisabled);
 					categories[1].properties[(int)ButtonState::Focused].icon =
 						categories[1].properties[(int)ButtonState::FocusedHover].icon =
 						categories[1].properties[(int)ButtonState::Hover].icon =
-							new Icon(penHover, colorBackHover, penCheckHover);
+						new Icon(penHover, colorBackHover, penCheckHover);
 					categories[1].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, penCheckDown);
+
+					arrCategories = Array<ButtonCategory>::createStatic(categories, 2);
 				}
-				
+
 			public:
-				static ButtonCategory* getCategories()
+				static Array<ButtonCategory> getInitialCategories()
 				{
-					SLIB_SAFE_LOCAL_STATIC(Categories, ret)
-					if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
+					SLIB_SAFE_LOCAL_STATIC(Categories, s)
+					if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
 						return sl_null;
 					}
-					return ret.categories;
+					return s.arrCategories;
 				}
 			};
 
@@ -135,26 +138,11 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(CheckBox, Button)
 
-	CheckBox::CheckBox() : CheckBox(2, priv::check_box::Categories::getCategories())
-	{
-	}
-
-	CheckBox::CheckBox(sl_uint32 nCategories, ButtonCategory* categories) : Button(nCategories, categories)
+	CheckBox::CheckBox()
 	{
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
-		
+
 		m_flagChecked = sl_false;
-		
-		setGravity(Alignment::MiddleLeft, UIUpdateMode::Init);
-		setIconAlignment(Alignment::MiddleLeft, UIUpdateMode::Init);
-		setTextAlignment(Alignment::MiddleLeft, UIUpdateMode::Init);
-		
-		setBorder(sl_false, UIUpdateMode::Init);
-		setBackground(Ref<Drawable>::null(), UIUpdateMode::Init);
-		
-		setTextColor(Color::Black, UIUpdateMode::Init);
-		setTextMargin(2 * UIResource::toUiPos(UIResource::dpToPixel(1)), 1, 1, 2, UIUpdateMode::Init);
-		setIconMargin(1, 2, 1, 1, UIUpdateMode::Init);
 	}
 
 	CheckBox::~CheckBox()
@@ -175,7 +163,7 @@ namespace slib
 		Ptr<ICheckBoxInstance> instance = getCheckBoxInstance();
 		if (instance.isNotNull()) {
 			SLIB_VIEW_RUN_ON_UI_THREAD(&CheckBox::setChecked, flag, mode)
-			m_flagChecked = flag;
+				m_flagChecked = flag;
 			setCurrentCategory(flag ? 1 : 0, UIUpdateMode::None);
 			instance->setChecked(this, flag);
 		} else {
@@ -183,14 +171,23 @@ namespace slib
 			setCurrentCategory(flag ? 1 : 0, mode);
 		}
 	}
-	
+
+	Ref<ButtonCell> CheckBox::createButtonCell()
+	{
+		if (m_categories.isNotNull()) {
+			return new CheckBoxCell(m_categories);
+		} else {
+			return new CheckBoxCell();
+		}
+	}
+
 	SLIB_DEFINE_EVENT_HANDLER(CheckBox, Change, sl_bool newValue)
-	
+
 	void CheckBox::dispatchChange(sl_bool newValue)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Change, newValue)
 	}
-	
+
 	void CheckBox::dispatchClickEvent(UIEvent* ev)
 	{
 		if (isNativeWidget()) {
@@ -206,18 +203,43 @@ namespace slib
 		}
 		Button::dispatchClickEvent(ev);
 	}
-	
+
 #if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> CheckBox::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;
 	}
-	
+
 	Ptr<ICheckBoxInstance> CheckBox::getCheckBoxInstance()
 	{
 		return sl_null;
 	}
 #endif
+
+
+	SLIB_DEFINE_OBJECT(CheckBoxCell, ButtonCell)
+
+	CheckBoxCell::CheckBoxCell(): CheckBoxCell(priv::check_box::Categories::getInitialCategories().duplicate())
+	{
+	}
+
+	CheckBoxCell::CheckBoxCell(const Array<ButtonCategory>& categories): ButtonCell(categories)
+	{
+		gravity = Alignment::MiddleLeft;
+		textColor = Color::Black;
+		textMarginLeft = 2 * UIResource::toUiPos(UIResource::dpToPixel(1));
+		textMarginTop = 1;
+		textMarginRight = 1;
+		textMarginBottom = 2;
+		iconMarginLeft = 1;
+		iconMarginTop = 2;
+		iconMarginRight = 1;
+		iconMarginBottom = 1;
+	}
+
+	CheckBoxCell::~CheckBoxCell()
+	{
+	}
 
 }
 

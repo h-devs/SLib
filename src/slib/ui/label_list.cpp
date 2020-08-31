@@ -22,22 +22,25 @@
 
 #include "slib/ui/label_list.h"
 
-#include "label_view_base_impl.h"
 #include "label_list_base_impl.h"
 
 namespace slib
 {
 
-	template class LabelAppearanceViewBase<LabelList>;
 	template class LabelListViewBase<LabelList, sl_int64>;
 
 	SLIB_DEFINE_OBJECT(LabelList, ListBox)
 
-	LabelList::LabelList()
+		LabelList::LabelList()
 	{
 		m_flagUseFontHeight = sl_true;
 		m_heightFont = 0;
 		m_lineHeightWeight = 1.6f;
+
+		m_gravity = Alignment::Left;
+		m_ellipsizeMode = EllipsizeMode::None;
+
+		m_textColor = Color::Black;
 	}
 
 	LabelList::~LabelList()
@@ -85,6 +88,39 @@ namespace slib
 			m_heightFont = _getFontHeight();
 			ListBox::setItemHeight(m_heightFont, mode);
 		}
+	}
+
+	Alignment LabelList::getGravity()
+	{
+		return m_gravity;
+	}
+
+	void LabelList::setGravity(const Alignment& align, UIUpdateMode updateMode)
+	{
+		m_gravity = align;
+		invalidate(updateMode);
+	}
+
+	EllipsizeMode LabelList::getEllipsize()
+	{
+		return m_ellipsizeMode;
+	}
+
+	void LabelList::setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode)
+	{
+		m_ellipsizeMode = ellipsizeMode;
+		invalidate(updateMode);
+	}
+
+	Color LabelList::getTextColor()
+	{
+		return m_textColor;
+	}
+
+	void LabelList::setTextColor(const Color& color, UIUpdateMode mode)
+	{
+		m_textColor = color;
+		invalidate(mode);
 	}
 
 	Color LabelList::getSelectedTextColor()
@@ -165,19 +201,21 @@ namespace slib
 		drawParam.frame.right -= getPaddingRight();
 		drawParam.frame.top += getPaddingTop();
 		drawParam.frame.bottom -= getPaddingBottom();
-		SimpleTextBox box;
-		param.font = getFont();
-		param.width = drawParam.frame.getWidth();
-		_applyLabelAppearance(param);
-		box.update(param);
-		_applyLabelAppearance(drawParam);
 		if (m_textColorSelected.isNotZero() && isSelectedIndex(itemIndex)) {
 			drawParam.color = m_textColorSelected;
 		} else if (m_textColorHover.isNotZero() && itemIndex == getHoverIndex()) {
 			drawParam.color = m_textColorHover;
 		} else if (m_textColorFocused.isNotZero() && isFocused() && itemIndex == m_indexFocused) {
 			drawParam.color = m_textColorFocused;
+		} else {
+			drawParam.color = m_textColor;
 		}
+		SimpleTextBox box;
+		param.font = getFont();
+		param.width = drawParam.frame.getWidth();
+		param.ellipsizeMode = m_ellipsizeMode;
+		param.align = m_gravity;
+		box.update(param);
 		box.draw(canvas, drawParam);
 	}
 

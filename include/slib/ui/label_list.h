@@ -154,7 +154,7 @@ public: \
 	SLIB_DECLARE_LABEL_LIST_INSTANCE_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE) \
 	virtual void selectItem(VIEW_CLASS* view, INDEX_TYPE index) = 0;
 
-	class SLIB_EXPORT LabelList : public ListBox, public LabelAppearanceViewBase<LabelList>, public LabelListViewBase<LabelList, sl_int64>
+	class SLIB_EXPORT LabelList : public ListBox, public LabelListViewBase<LabelList, sl_int64>
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -172,6 +172,20 @@ public: \
 		float getLineHeightWeight();
 
 		void setLineHeightWeight(float weight, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+
+		Alignment getGravity();
+
+		void setGravity(const Alignment& align, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		EllipsizeMode getEllipsize();
+
+		void setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
+
+
+		Color getTextColor();
+
+		void setTextColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 		Color getSelectedTextColor();
 
@@ -206,6 +220,10 @@ public: \
 		sl_ui_len m_heightFont;
 		float m_lineHeightWeight;
 		
+		Alignment m_gravity;
+		EllipsizeMode m_ellipsizeMode;
+		
+		Color m_textColor;
 		Color m_textColorSelected;
 		Color m_textColorHover;
 		Color m_textColorFocused;

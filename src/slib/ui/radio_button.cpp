@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -81,7 +81,9 @@ namespace slib
 			{
 			public:
 				ButtonCategory categories[2];
-				
+				Array<ButtonCategory> arrCategories;
+
+			public:
 				Categories()
 				{
 					sl_real w = (sl_real)(UIResource::toUiPos(UIResource::dpToPixel(1)));
@@ -113,15 +115,17 @@ namespace slib
 						categories[1].properties[(int)ButtonState::Hover].icon =
 							new Icon(penHover, colorBackHover, colorCheckHover);
 					categories[1].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, colorCheckDown);
+
+					arrCategories = Array<ButtonCategory>::createStatic(categories, 2);
 				}
 				
-				static ButtonCategory* getCategories()
+				static Array<ButtonCategory> getInitialCategories()
 				{
-					SLIB_SAFE_LOCAL_STATIC(Categories, ret)
-					if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
+					SLIB_SAFE_LOCAL_STATIC(Categories, s)
+					if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
 						return sl_null;
 					}
-					return ret.categories;
+					return s.arrCategories;
 				}
 
 			};
@@ -131,11 +135,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(RadioButton, CheckBox)
 
-	RadioButton::RadioButton() : RadioButton(2, priv::radio_button::Categories::getCategories())
-	{
-	}
-
-	RadioButton::RadioButton(sl_uint32 nCategories, ButtonCategory* categories) : CheckBox(nCategories, categories)
+	RadioButton::RadioButton()
 	{
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 	}
@@ -168,7 +168,16 @@ namespace slib
 		}
 		CheckBox::setChecked(flag, mode);
 	}
-	
+
+	Ref<ButtonCell> RadioButton::createButtonCell()
+	{
+		if (m_categories.isNotNull()) {
+			return new RadioButtonCell(m_categories);
+		} else {
+			return new RadioButtonCell();
+		}
+	}
+
 	void RadioButton::dispatchClickEvent(UIEvent* ev)
 	{
 		Ref<RadioGroup> group = m_group;
@@ -179,6 +188,21 @@ namespace slib
 			CheckBox::setChecked(sl_true);
 		}
 		Button::dispatchClickEvent(ev);
+	}
+
+
+	SLIB_DEFINE_OBJECT(RadioButtonCell, ViewCell)
+
+	RadioButtonCell::RadioButtonCell() : RadioButtonCell(priv::radio_button::Categories::getInitialCategories().duplicate())
+	{
+	}
+
+	RadioButtonCell::RadioButtonCell(const Array<ButtonCategory>& categories) : CheckBoxCell(categories)
+	{
+	}
+
+	RadioButtonCell::~RadioButtonCell()
+	{
 	}
 
 	
