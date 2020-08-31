@@ -321,8 +321,10 @@ namespace slib
 	Ref<T>& Ref<T>::operator=(const AtomicRef<OTHER>& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
-		T* o = other._retainObject();
-		_replaceObject(o);
+		if (ptr != other._ptr) {
+			T* o = other._retainObject();
+			_replaceObject(o);
+		}
 		return *this;
 	}
 	
@@ -333,10 +335,12 @@ namespace slib
 		SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 		Ref<OTHER> other(_other.lock());
 		T* o = other.ptr;
-		if (o) {
-			o->increaseReference();
+		if (ptr != o) {
+			if (o) {
+				o->increaseReference();
+			}
+			_replaceObject(o);
 		}
-		_replaceObject(o);
 		return *this;
 	}
 	
@@ -347,10 +351,12 @@ namespace slib
 		SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 		Ref<OTHER> other(_other.lock());
 		T* o = other.ptr;
-		if (o) {
-			o->increaseReference();
+		if (ptr != o) {
+			if (o) {
+				o->increaseReference();
+			}
+			_replaceObject(o);
 		}
-		_replaceObject(o);
 		return *this;
 	}
 	
@@ -676,10 +682,12 @@ namespace slib
 		SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 		Ref<OTHER> other(_other.lock());
 		T* o = other.ptr;
-		if (o) {
-			o->increaseReference();
+		if (_ptr != o) {
+			if (o) {
+				o->increaseReference();
+			}
+			_replaceObject(o);
 		}
-		_replaceObject(o);
 		return *this;
 	}
 	
@@ -690,10 +698,12 @@ namespace slib
 		SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 		Ref<OTHER> other(_other.lock());
 		T* o = other.ptr;
-		if (o) {
-			o->increaseReference();
+		if (_ptr != o) {
+			if (o) {
+				o->increaseReference();
+			}
+			_replaceObject(o);
 		}
-		_replaceObject(o);
 		return *this;
 	}
 	
