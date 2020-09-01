@@ -230,14 +230,14 @@ namespace slib
 			if (view->isVisible()) {
 				style |= WS_VISIBLE;
 			}
-			if (view->isCreatingNativeWidget()) {
-				if (view->isBorder()) {
-					if (view->isClientEdge()) {
-						styleEx |= WS_EX_CLIENTEDGE;
-					} else {
-						style |= WS_BORDER;
-					}
+			if (view->isBorder()) {
+				if (view->isClientEdge()) {
+					styleEx |= WS_EX_CLIENTEDGE;
+				} else {
+					style |= WS_BORDER;
 				}
+			}
+			if (view->isCreatingNativeWidget()) {
 				if (view->isHorizontalScrollBarVisible()) {
 					style |= WS_HSCROLL;
 				}

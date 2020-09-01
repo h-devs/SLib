@@ -5248,7 +5248,7 @@ namespace slib
 
 	void View::setBorder(sl_bool flagBorder, UIUpdateMode mode)
 	{
-		Ref<ViewInstance> instance = getNativeWidget();
+		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
 			void (View::*func)(sl_bool, UIUpdateMode) = &View::setBorder;
 			SLIB_VIEW_RUN_ON_UI_THREAD(func, flagBorder, mode)
@@ -7791,33 +7791,21 @@ namespace slib
 
 	void View::drawBorder(Canvas* canvas, const Ref<Pen>& pen)
 	{
-		UIRect rc(0, 0, m_frame.getWidth(), m_frame.getHeight());
 		if (pen.isNotNull()) {
-			if (isInstance()) {
-#ifndef SLIB_PLATFORM_IS_WIN32
-				rc.right -= 1;
-#endif
-#ifdef SLIB_PLATFORM_IS_APPLE
-				rc.top += 1;
-#else
-				rc.bottom -= 1;
-#endif
-				rc.fixSizeError();
-			}
 			switch (getBoundShape()) {
 				case BoundShape::Rectangle:
 					{
 						sl_bool flagAntiAlias = canvas->isAntiAlias();
 						canvas->setAntiAlias(sl_false);
-						canvas->drawRectangle(rc, pen);
+						canvas->drawRectangle(getBounds(), pen);
 						canvas->setAntiAlias(flagAntiAlias);
 						break;
 					}
 				case BoundShape::RoundRect:
-					canvas->drawRoundRect(rc, getBoundRadius(), pen);
+					canvas->drawRoundRect(getBounds(), getBoundRadius(), pen);
 					break;
 				case BoundShape::Ellipse:
-					canvas->drawEllipse(rc, pen);
+					canvas->drawEllipse(getBounds(), pen);
 					break;
 				case BoundShape::Path:
 					canvas->drawPath(getBoundPath(), pen);
@@ -8428,7 +8416,9 @@ namespace slib
 
 				draw(canvas);
 				
-				onDrawBorder(canvas);
+				if (m_instance.isNull()) {
+					onDrawBorder(canvas);
+				}
 				
 				getOnPostDraw()(this, canvas);
 
