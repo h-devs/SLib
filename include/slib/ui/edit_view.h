@@ -31,7 +31,7 @@ namespace slib
 {
 	
 	class IEditViewInstance;
-	
+
 	class SLIB_EXPORT EditView : public View
 	{
 		SLIB_DECLARE_OBJECT
@@ -40,6 +40,9 @@ namespace slib
 		EditView();
 
 		~EditView();
+
+	protected:
+		void init() override;
 		
 	public:
 		String getText();
@@ -120,15 +123,6 @@ namespace slib
 	public:
 		void dispatchKeyEvent(UIEvent* ev) override;
 		
-	private:
-		void _onChangeEditViewNative(EditView* ev, String* text);
-		
-		void _onReturnKeyEditViewNative(EditView* ev);
-		
-		void _onDoneEditViewNativeButton(View* view);
-
-		void _onCloseWindowEditViewNative(Window* window, UIEvent* ev);
-
 	protected:
 		AtomicString m_text;
 		Alignment m_gravity;
@@ -145,9 +139,8 @@ namespace slib
 		UIAutoCapitalizationType m_autoCapitalizationType;
 		sl_bool m_flagAutoDismissKeyboard;
 		
-		Ref<Window> m_windowEdit;
-		Ref<EditView> m_editViewNative;
-		
+		Ref<Referable> m_dialog;
+
 	};
 	
 	class PasswordView : public EditView
@@ -207,7 +200,7 @@ namespace slib
 		virtual sl_ui_len measureHeight(EditView* view) = 0;
 		
 	};
-	
+
 }
 
 #endif

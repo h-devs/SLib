@@ -38,16 +38,221 @@
 namespace slib
 {
 
+	namespace priv
+	{
+		namespace edit_view
+		{
+
+			class EditViewHelper : public EditView
+			{
+			public:
+				void closeDialog()
+				{
+					m_dialog.setNull();
+				}
+
+			};
+
+			class EditDialog : public Referable
+			{
+			private:
+				WeakRef<EditViewHelper> m_view;
+				Ref<Window> m_window;
+				Ref<EditView> m_edit;
+
+			public:
+				static Ref<EditDialog> open(const Ref<EditView>& view)
+				{
+					if (view.isNotNull()) {
+						Ref<EditDialog> ret = new EditDialog;
+						if (ret.isNotNull()) {
+							if (ret->_initialize(view)) {
+								return ret;
+							}
+						}
+					}
+					return sl_null;
+				}
+				
+				sl_bool _initialize(const Ref<EditView>& view)
+				{
+					Ref<Window> window = new Window;
+					if (window.isNull()) {
+						return sl_false;
+					}
+					window->setBackgroundColor(Color::White);
+					Ref<EditView> edit;
+					if (IsInstanceOf<PasswordView>(view)) {
+						edit = new PasswordView;
+					} else {
+#if defined(SLIB_UI_IS_IOS)
+						edit = new TextArea;
+#else
+						edit = new EditView;
+#endif
+					}
+					if (edit.isNull()) {
+						return sl_false;
+					}
+					edit->setText(view->getText(), UIUpdateMode::Init);
+					edit->setWidthFilling(1, UIUpdateMode::Init);
+					edit->setHeightFilling(1, UIUpdateMode::Init);
+#if defined(SLIB_PLATFORM_IS_DESKTOP)
+					edit->setFont(view->getFont(), UIUpdateMode::Init);
+#else
+					edit->setMargin(UIResource::getScreenMinimum() / 20, UIUpdateMode::Init);
+					edit->setFont(Font::create(view->getFontFamily(), (sl_real)(UIResource::getScreenMinimum() / 20)), UIUpdateMode::Init);
+#endif
+					edit->setBorder(sl_false, UIUpdateMode::Init);
+					edit->setGravity(Alignment::TopLeft, UIUpdateMode::Init);
+					edit->setMultiLine(view->getMultiLine(), UIUpdateMode::Init);
+					edit->setOnChange(SLIB_FUNCTION_WEAKREF(EditDialog, _onChange, this));
+					edit->setOnReturnKey(SLIB_FUNCTION_WEAKREF(EditDialog, _onReturnKey, this));
+					UIReturnKeyType returnKeyType = view->getReturnKeyType();
+					MultiLineMode multiLineMode = view->getMultiLine();
+					if (returnKeyType == UIReturnKeyType::Default && multiLineMode == MultiLineMode::Single) {
+						edit->setReturnKeyType(UIReturnKeyType::Done);
+					} else {
+						edit->setReturnKeyType(returnKeyType);
+					}
+					edit->setKeyboardType(view->getKeyboardType());
+					edit->setAutoCapitalizationType(view->getAutoCaptializationType());
+					window->addView(edit, UIUpdateMode::Init);
+					window->setOnClose(SLIB_FUNCTION_WEAKREF(EditDialog, _onClose, this));
+					edit->setFocus(sl_true, UIUpdateMode::Init);
+
+#if defined(SLIB_UI_IS_IOS)
+					sl_bool flagDoneButton = multiLineMode != MultiLineMode::Single;
+#else
+					sl_bool flagDoneButton = sl_true;
+#endif
+#if defined(SLIB_UI_IS_ANDROID)
+					UI::dispatchToUiThread([] {
+						Android::showKeyboard();
+					}, 500);
+#endif
+					if (flagDoneButton) {
+						Ref<Button> btnDone = new Button;
+						if (btnDone.isNull()) {
+							return sl_false;
+						}
+						btnDone->setText("Done", UIUpdateMode::Init);
+						btnDone->setAlignParentRight(UIUpdateMode::Init);
+						btnDone->setOnClick(SLIB_FUNCTION_WEAKREF(EditDialog, _onDone, this));
+#if defined(SLIB_PLATFORM_IS_DESKTOP)
+						edit->setLeftOf(btnDone, UIUpdateMode::Init);
+						btnDone->setWidthWrapping(UIUpdateMode::Init);
+						btnDone->setHeightWrapping(UIUpdateMode::Init);
+						btnDone->setPaddingLeft(10, UIUpdateMode::Init);
+						btnDone->setPaddingRight(10, UIUpdateMode::Init);
+						btnDone->setCreatingNativeWidget(sl_true);
+#else
+						sl_ui_pos sw = UIResource::getScreenMinimum();
+						edit->setMarginRight(sw / 5 - sw / 20, UIUpdateMode::Init);
+						btnDone->setWidth(sw / 5, UIUpdateMode::Init);
+						btnDone->setMargin(sw / 20, UIUpdateMode::Init);
+						btnDone->setMarginRight(sw / 40, UIUpdateMode::Init);
+						btnDone->setHeight(sw / 10, UIUpdateMode::Init);
+						btnDone->setFont(Font::create(view->getFontFamily(), (sl_real)(sw / 20)), UIUpdateMode::Init);
+#endif
+						window->addView(btnDone, UIUpdateMode::Init);
+					}
+
+					m_window = window;
+					m_edit = edit;
+					m_view = Ref<EditViewHelper>::from(view);
+
+#if defined(SLIB_PLATFORM_IS_DESKTOP)
+					window->setParent(view->getWindow());
+					window->setCenterScreen(sl_true);
+					window->setWidth(UI::getScreenWidth() / 2);
+					window->setHeight(UI::getScreenHeight() / 2);
+					window->showModal();
+#else
+					window->create();
+#endif
+					return sl_true;
+				}
+
+				void _onChange(EditView* ev, String* text)
+				{
+					Ref<EditViewHelper> view = m_view;
+					if (view.isNull()) {
+						return;
+					}
+					view->dispatchChange(text);
+					if (m_edit->getMultiLine() == MultiLineMode::Single) {
+						sl_reg index = ParseUtil::indexOfLine(*text);
+						if (index >= 0) {
+							*text = text->mid(0, index);
+						}
+					}
+				}
+
+				void _onReturnKey(EditView* ev)
+				{
+					Ref<EditViewHelper> view = m_view;
+					if (view.isNull()) {
+						return;
+					}
+					if (m_edit->getMultiLine() == MultiLineMode::Single) {
+						_onDone(sl_null);
+					}
+					view->dispatchReturnKey();
+				}
+
+				void _onDone(View* v)
+				{
+					Ref<EditViewHelper> view = m_view;
+					if (view.isNull()) {
+						return;
+					}
+					m_window->close();
+					view->invalidate();
+					view->closeDialog();
+#if defined(SLIB_PLATFORM_IS_ANDROID)
+					Android::dismissKeyboard();
+#endif
+				}
+
+				void _onClose(Window* window, UIEvent* ev)
+				{
+					Ref<EditViewHelper> view = m_view;
+					if (view.isNull()) {
+						return;
+					}
+					view->invalidate();
+					_onDone(sl_null);
+					view->dispatchReturnKey();
+				}
+
+			};
+
+		}
+	}
+
+	using namespace priv::edit_view;
+
 	SLIB_DEFINE_OBJECT(EditView, View)
 
 	EditView::EditView()
 	{		
+	}
+
+	EditView::~EditView()
+	{
+	}
+
+	void EditView::init()
+	{
+		View::init();
+
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 
 		setUsingFont(sl_true);
 		setFocusable(sl_true);
-		
+
 		m_gravity = Alignment::MiddleCenter;
 		m_textColor = Color::Black;
 		m_hintGravity = Alignment::MiddleCenter;
@@ -59,13 +264,9 @@ namespace slib
 		m_keyboardType = UIKeyboardType::Default;
 		m_autoCapitalizationType = UIAutoCapitalizationType::None;
 		m_flagAutoDismissKeyboard = sl_true;
-		
+
 		setBorder(sl_true, UIUpdateMode::Init);
 		setPadding((sl_ui_pos)(UI::dpToPixel(2)), UIUpdateMode::Init);
-	}
-
-	EditView::~EditView()
-	{
 	}
 
 	String EditView::getText()
@@ -403,116 +604,16 @@ namespace slib
 	
 	void EditView::onClickEvent(UIEvent* ev)
 	{
-#if defined(SLIB_PLATFORM_IS_MOBILE)
-		if (!m_flagReadOnly) {
-			Ref<Window> window = new Window;
-			if (window.isNull()) {
-				return;
-			}
-			window->setBackgroundColor(Color::White);
-			Ref<EditView> edit;
-			if (IsInstanceOf<PasswordView>(this)) {
-				edit = new PasswordView;
-			} else {
-#if defined(SLIB_UI_IS_IOS)
-				edit = new TextArea;
-#else
-				edit = new EditView;
-#endif
-			}
-			if (edit.isNull()) {
-				return;
-			}
-			edit->setText(m_text, UIUpdateMode::Init);
-			edit->setWidthFilling(1, UIUpdateMode::Init);
-			edit->setHeightFilling(1, UIUpdateMode::Init);
-			edit->setMargin(UIResource::getScreenMinimum()/20);
-			edit->setBorder(sl_false, UIUpdateMode::Init);
-			edit->setGravity(Alignment::TopLeft, UIUpdateMode::Init);
-			edit->setMultiLine(getMultiLine(), UIUpdateMode::Init);
-			edit->setOnChange(SLIB_FUNCTION_WEAKREF(EditView, _onChangeEditViewNative, this));
-			edit->setOnReturnKey(SLIB_FUNCTION_WEAKREF(EditView, _onReturnKeyEditViewNative, this));
-			if (m_returnKeyType == UIReturnKeyType::Default && m_multiLine == MultiLineMode::Single) {
-				edit->setReturnKeyType(UIReturnKeyType::Done);
-			} else {
-				edit->setReturnKeyType(m_returnKeyType);
-			}
-			edit->setKeyboardType(m_keyboardType);
-			edit->setAutoCapitalizationType(m_autoCapitalizationType);
-			edit->setFont(Font::create(getFontFamily(), UIResource::getScreenMinimum()/20));
-			window->addView(edit);
-			window->create();
-			window->setOnClose(SLIB_FUNCTION_WEAKREF(EditView, _onCloseWindowEditViewNative, this));
-			edit->setFocus();
-
-			sl_bool flagDoneButton = m_multiLine != MultiLineMode::Single;
-#if defined(SLIB_UI_IS_ANDROID)
-			UI::dispatchToUiThread([] {
-				Android::showKeyboard();
-			}, 500);
-			flagDoneButton = sl_true;
-#endif
-			if (flagDoneButton) {
-				sl_ui_pos sw = UIResource::getScreenMinimum();
-				edit->setMarginRight(sw / 5 - sw / 20);
-				Ref<Button> btnDone = new Button;
-				if (btnDone.isNull()) {
-					return;
-				}
-				btnDone->setText("Done");
-				btnDone->setWidth(sw / 5);
-				btnDone->setMargin(sw / 20);
-				btnDone->setMarginRight(sw / 40);
-				btnDone->setHeight(sw / 10);
-				btnDone->setFont(Font::create(getFontFamily(), sw/20));
-				btnDone->setAlignParentRight();
-				btnDone->setOnClick(SLIB_FUNCTION_WEAKREF(EditView, _onDoneEditViewNativeButton, this));
-				window->addView(btnDone);
-				
-				m_windowEdit = window;
-				m_editViewNative = edit;
-			}
+		if (m_flagReadOnly) {
+			return;
 		}
-#endif
-	}
-	
-	void EditView::_onChangeEditViewNative(EditView* ev, String* text)
-	{
-		dispatchChange(text);
-		if (m_multiLine == MultiLineMode::Single) {
-			sl_reg index = ParseUtil::indexOfLine(*text);
-			if (index >= 0) {
-				*text = text->mid(0, index);
-			}
+		Ptr<IEditViewInstance> instance = getEditViewInstance();
+		if (instance.isNotNull()) {
+			return;
 		}
-	}
-	
-	void EditView::_onReturnKeyEditViewNative(EditView* ev)
-	{
-		if (m_multiLine == MultiLineMode::Single) {
-			_onDoneEditViewNativeButton(sl_null);
+		if (m_dialog.isNull()) {
+			m_dialog = EditDialog::open(this);
 		}
-		dispatchReturnKey();
-	}
-	
-	void EditView::_onDoneEditViewNativeButton(View* view)
-	{
-		m_windowEdit->close();
-		m_windowEdit.setNull();
-		m_editViewNative.setNull();
-		invalidate();
-#if defined(SLIB_PLATFORM_IS_ANDROID)
-		Android::dismissKeyboard();
-#endif
-	}
-
-	void EditView::_onCloseWindowEditViewNative(Window* window, UIEvent* ev)
-	{
-		m_windowEdit.setNull();
-		m_editViewNative.setNull();
-		invalidate();
-		_onDoneEditViewNativeButton(sl_null);
-		dispatchReturnKey();
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(EditView, Change, String* value)
