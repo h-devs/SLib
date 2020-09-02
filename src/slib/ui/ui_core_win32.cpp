@@ -33,6 +33,8 @@
 #include "slib/ui/window.h"
 #include "slib/core/queue.h"
 #include "slib/core/dispatch.h"
+#include "slib/core/dispatch_loop.h"
+#include "slib/core/async.h"
 #include "slib/core/safe_static.h"
 
 #include <commctrl.h>
@@ -400,6 +402,8 @@ namespace slib
 
 		UIDispatcher::removeAllCallbacks();
 
+		DispatchLoop::releaseDefault();
+		AsyncIoLoop::releaseDefault();
 		Thread::finishAllThreads();
 
 	}

@@ -27,9 +27,37 @@
 namespace slib
 {
 
-/*************************************
-			AsyncIoLoop
-*************************************/
+	namespace priv
+	{
+		namespace async
+		{
+
+			static Ref<AsyncIoLoop> CreateDefaultAsyncIoLoop(sl_bool flagRelease = sl_false)
+			{
+				if (flagRelease) {
+					return sl_null;
+				}
+				return AsyncIoLoop::create();
+			}
+
+			static Ref<AsyncIoLoop> GetDefaultAsyncIoLoop(sl_bool flagRelease = sl_false)
+			{
+				SLIB_SAFE_LOCAL_STATIC(Ref<AsyncIoLoop>, ret, CreateDefaultAsyncIoLoop(flagRelease))
+				if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
+					return sl_null;
+				}
+				if (ret.isNotNull()) {
+					if (flagRelease) {
+						ret->release();
+					} else {
+						return ret;
+					}
+				}
+				return sl_null;
+			}
+
+		}
+	}
 
 	SLIB_DEFINE_OBJECT(AsyncIoLoop, Dispatcher)
 
@@ -47,19 +75,12 @@ namespace slib
 
 	Ref<AsyncIoLoop> AsyncIoLoop::getDefault()
 	{
-		SLIB_SAFE_LOCAL_STATIC(Ref<AsyncIoLoop>, ret, create())
-		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
-			return sl_null;
-		}
-		return ret;
+		return priv::async::GetDefaultAsyncIoLoop();
 	}
 
 	void AsyncIoLoop::releaseDefault()
 	{
-		Ref<AsyncIoLoop> loop = getDefault();
-		if (loop.isNotNull()) {
-			loop->release();
-		}
+		priv::async::GetDefaultAsyncIoLoop(sl_true);
 	}
 
 	Ref<AsyncIoLoop> AsyncIoLoop::create(sl_bool flagAutoStart)
@@ -224,9 +245,6 @@ namespace slib
 		}
 	}
 
-/*************************************
-		AsyncIoInstance
-**************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncIoInstance, Object)
 
@@ -321,9 +339,6 @@ namespace slib
 		onOrder();
 	}
 
-/*************************************
-		AsyncIoObject
-**************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncIoObject, Object)
 
@@ -384,9 +399,6 @@ namespace slib
 		m_ioInstance = instance;
 	}
 
-/*************************************
-		AsyncStreamInstance
-**************************************/
 
 	SLIB_DEFINE_ROOT_OBJECT(AsyncStreamRequest)
 
@@ -531,9 +543,6 @@ namespace slib
 		return m_requestsWrite.getCount();
 	}
 
-/*************************************
-		AsyncStream
-**************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncStream, Object)
 
@@ -600,9 +609,6 @@ namespace slib
 		return write(mem.getData(), (sl_uint32)(size), callback, mem.ref.get());
 	}
 
-/*************************************
-		AsyncStreamBase
-**************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncStreamBase, AsyncStream)
 
@@ -728,9 +734,6 @@ namespace slib
 		return 0;
 	}
 
-/*************************************
-		AsyncStreamSimulator
-**************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncStreamSimulator, AsyncStream)
 
@@ -826,10 +829,6 @@ namespace slib
 	}
 
 
-/*************************************
-		AsyncReader
-**************************************/
-
 	SLIB_DEFINE_OBJECT(AsyncReader, AsyncStreamSimulator)
 	
 	AsyncReader::AsyncReader()
@@ -905,10 +904,6 @@ namespace slib
 	}
 
 
-/*************************************
-		AsyncWriter
-**************************************/
-
 	SLIB_DEFINE_OBJECT(AsyncWriter, AsyncStreamSimulator)
 	
 	AsyncWriter::AsyncWriter()
@@ -983,10 +978,6 @@ namespace slib
 		}
 	}
 
-
-/*************************************
-		AsyncFile
-**************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncFile, AsyncStreamSimulator)
 
@@ -1135,10 +1126,6 @@ namespace slib
 	}
 
 
-/*************************************
-		AsyncCopy
-**************************************/
-	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AsyncCopyParam)
 
 	AsyncCopyParam::AsyncCopyParam()
@@ -1454,10 +1441,6 @@ namespace slib
 	}
 
 
-/**********************************************
-		AsyncOutputBufferElement
-**********************************************/
-	
 	AsyncOutputBufferElement::AsyncOutputBufferElement()
 	{
 		m_sizeBody = 0;
@@ -1521,10 +1504,6 @@ namespace slib
 		return m_sizeBody;
 	}
 
-
-/**********************************************
-		AsyncOutputBuffer
-**********************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncOutputBuffer, Object)
 	
@@ -1641,10 +1620,7 @@ namespace slib
 		return m_lengthOutput;
 	}
 
-/**********************************************
-				AsyncOutput
-**********************************************/
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AsyncOutputParam)
 	
 	AsyncOutputParam::AsyncOutputParam()
@@ -1805,10 +1781,6 @@ namespace slib
 		m_onEnd(this, sl_false);
 	}
 
-
-/**********************************************
-		AsyncStreamFilter
-**********************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncStreamFilter, AsyncStream)
 
