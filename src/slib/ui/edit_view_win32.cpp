@@ -41,14 +41,14 @@ namespace slib
 			class EditViewHelper : public EditView
 			{
 			public:
-				void onChange(HWND handle)
+				void onChange(Win32_ViewInstance* instance, HWND handle)
 				{
 					String textOld = m_text;
 					String text = Windows::getWindowText(handle);
 					String textNew = text;
 					dispatchChange(&textNew);
 					if (text != textNew) {
-						Windows::setWindowText(handle, textNew);
+						instance->setText(textNew);
 					}
 					if (textOld.isEmpty() || textNew.isEmpty()) {
 						InvalidateRect(handle, NULL, TRUE);
@@ -234,7 +234,7 @@ namespace slib
 						{
 							Ref<EditViewHelper> helper = CastRef<EditViewHelper>(getView());
 							if (helper.isNotNull()) {
-								helper->onChange(m_handle);
+								helper->onChange(this, m_handle);
 								result = 0;
 								return sl_true;
 							}
@@ -476,7 +476,7 @@ namespace slib
 						{
 							Ref<EditViewHelper> helper = CastRef<EditViewHelper>(getView());
 							if (helper.isNotNull()) {
-								helper->onChange(m_handle);
+								helper->onChange(this, m_handle);
 								result = 0;
 								return sl_true;
 							}

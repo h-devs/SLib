@@ -271,6 +271,11 @@ namespace slib
 
 	String EditView::getText()
 	{
+		return m_text;
+	}
+
+	String EditView::getInstanceText()
+	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
 			if (UI::isUiThread()) {
@@ -543,15 +548,15 @@ namespace slib
 
 	void EditView::onUpdateLayout()
 	{
-		sl_bool flagHorizontal = isWidthWrapping();
-		sl_bool flagVertical = isHeightWrapping();
+		sl_bool flagHorizontalWrapping = isWidthWrapping();
+		sl_bool flagVerticalWrapping = isHeightWrapping();
 		
-		if (!flagHorizontal && !flagVertical) {
+		if (!flagHorizontalWrapping && !flagVerticalWrapping) {
 			return;
 		}
 
 		Ref<Font> font = getFont();
-		if (flagHorizontal) {
+		if (flagHorizontalWrapping) {
 			sl_ui_pos width = getPaddingLeft() + getPaddingRight();
 			if (font.isNotNull()) {
 				sl_ui_pos t = (sl_ui_pos)(font->getFontHeight());
@@ -564,7 +569,7 @@ namespace slib
 			}
 			setLayoutWidth(width);
 		}
-		if (flagVertical) {
+		if (flagVerticalWrapping) {
 			sl_ui_pos height = 0;
 			do {
 				Ptr<IEditViewInstance> instance = getEditViewInstance();

@@ -47,43 +47,45 @@ namespace slib
 	public:
 		String getText();
 		
-		virtual void setText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		String getInstanceText();
+
+		void setText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		Alignment getGravity();
 		
-		virtual void setGravity(const Alignment& gravity, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setGravity(const Alignment& gravity, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Color getTextColor();
 		
-		virtual void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		String getHintText();
 		
-		virtual void setHintText(const String& str, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHintText(const String& str, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Alignment getHintGravity();
 		
-		virtual void setHintGravity(const Alignment& gravity, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHintGravity(const Alignment& gravity, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Color getHintTextColor();
 		
-		virtual void setHintTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHintTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Ref<Font> getHintFont();
 		
-		virtual void setHintFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHintFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_bool isReadOnly();
 		
-		virtual void setReadOnly(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setReadOnly(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_bool isPassword();
 		
-		virtual void setPassword(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setPassword(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		MultiLineMode getMultiLine();
 		
-		virtual void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
+		void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
 		
 		UIReturnKeyType getReturnKeyType();
 		
