@@ -107,27 +107,29 @@ namespace slib
 	template <class VIEW_CLASS, class INDEX_TYPE>
 	void LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::insertItem(INDEX_TYPE _index, const String& value, const String& title, UIUpdateMode mode)
 	{
-		if (((VIEW_CLASS*)this)->isNativeWidget()) {
-			if (!(UI::isUiThread())) {
-				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::insertItem, _index, value, title, mode));
+		if (_index >= 0) {
+			if (((VIEW_CLASS*)this)->isNativeWidget()) {
+				if (!(UI::isUiThread())) {
+					UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::insertItem, _index, value, title, mode));
+					return;
+				}
+			}
+			sl_size index = (sl_size)_index;
+			ObjectLocker lock(((VIEW_CLASS*)this));
+			sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemsCount());
+			if (index > nCount) {
 				return;
 			}
+			if (m_titles.getCount() != nCount) {
+				m_titles.setCount(nCount);
+			}
+			if (m_values.getCount() != nCount) {
+				m_values.setCount(nCount);
+			}
+			m_titles.insert(index, title);
+			m_values.insert(index, value);
+			((VIEW_CLASS*)this)->notifyInsertItem((INDEX_TYPE)index, title, mode);
 		}
-		sl_size index = (sl_size)_index;
-		ObjectLocker lock(((VIEW_CLASS*)this));
-		sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemsCount());
-		if (index > nCount) {
-			return;
-		}
-		if (m_titles.getCount() != nCount) {
-			m_titles.setCount(nCount);
-		}
-		if (m_values.getCount() != nCount) {
-			m_values.setCount(nCount);
-		}
-		m_titles.insert(index, title);
-		m_values.insert(index, value);
-		((VIEW_CLASS*)this)->notifyInsertItem((INDEX_TYPE)index, title, mode);
 	}
 
 	template <class VIEW_CLASS, class INDEX_TYPE>
@@ -139,21 +141,23 @@ namespace slib
 	template <class VIEW_CLASS, class INDEX_TYPE>
 	void LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::removeItem(INDEX_TYPE _index, UIUpdateMode mode)
 	{
-		if (((VIEW_CLASS*)this)->isNativeWidget()) {
-			if (!(UI::isUiThread())) {
-				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::removeItem, _index, mode));
+		if (_index >= 0) {
+			if (((VIEW_CLASS*)this)->isNativeWidget()) {
+				if (!(UI::isUiThread())) {
+					UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::removeItem, _index, mode));
+					return;
+				}
+			}
+			sl_size index = (sl_size)_index;
+			ObjectLocker lock(((VIEW_CLASS*)this));
+			sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemsCount());
+			if (index >= nCount) {
 				return;
 			}
+			m_titles.removeAt(index);
+			m_values.removeAt(index);
+			((VIEW_CLASS*)this)->notifyRemoveItem((INDEX_TYPE)index, mode);
 		}
-		sl_size index = (sl_size)_index;
-		ObjectLocker lock(((VIEW_CLASS*)this));
-		sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemsCount());
-		if (index >= nCount) {
-			return;
-		}
-		m_titles.removeAt(index);
-		m_values.removeAt(index);
-		((VIEW_CLASS*)this)->notifyRemoveItem((INDEX_TYPE)index, mode);
 	}
 
 	template <class VIEW_CLASS, class INDEX_TYPE>
@@ -173,32 +177,39 @@ namespace slib
 	template <class VIEW_CLASS, class INDEX_TYPE>
 	String LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::getItemValue(INDEX_TYPE index)
 	{
-		return m_values.getValueAt((sl_size)index);
+		if (index >= 0) {
+			return m_values.getValueAt((sl_size)index);
+		}
+		return sl_null;
 	}
 
 	template <class VIEW_CLASS, class INDEX_TYPE>
 	void LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::setItemValue(INDEX_TYPE _index, const String& value)
 	{
-		ObjectLocker lock(((VIEW_CLASS*)this));
-		sl_size index = (sl_size)_index;
-		sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemsCount());
-		if (index >= nCount) {
-			return;
+		if (_index >= 0) {
+			ObjectLocker lock(((VIEW_CLASS*)this));
+			sl_size index = (sl_size)_index;
+			sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemsCount());
+			if (index >= nCount) {
+				return;
+			}
+			if (index >= m_values.getCount()) {
+				m_values.setCount(index + 1);
+			}
+			m_values.setAt(index, value);
 		}
-		if (index >= m_values.getCount()) {
-			m_values.setCount(index + 1);
-		}
-		m_values.setAt(index, value);
 	}
 
 	template <class VIEW_CLASS, class INDEX_TYPE>
 	String LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::getItemTitle(INDEX_TYPE index)
 	{
-		if (m_functionTitle.isNotNull()) {
-			return m_functionTitle(index);
-		}
-		if (m_titles.isNotNull()) {
-			return m_titles.getValueAt((sl_size)index);
+		if (index >= 0) {
+			if (m_functionTitle.isNotNull()) {
+				return m_functionTitle(index);
+			}
+			if (m_titles.isNotNull()) {
+				return m_titles.getValueAt((sl_size)index);
+			}
 		}
 		return sl_null;
 	}
@@ -206,36 +217,40 @@ namespace slib
 	template <class VIEW_CLASS, class INDEX_TYPE>
 	void LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::setItemTitle(INDEX_TYPE _index, const String& title, UIUpdateMode mode)
 	{
-		if (((VIEW_CLASS*)this)->isNativeWidget()) {
-			if (!(UI::isUiThread())) {
-				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::setItemTitle, _index, title, mode));
+		if (_index >= 0) {
+			if (((VIEW_CLASS*)this)->isNativeWidget()) {
+				if (!(UI::isUiThread())) {
+					UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::setItemTitle, _index, title, mode));
+					return;
+				}
+			}
+			ObjectLocker lock(((VIEW_CLASS*)this));
+			sl_size index = (sl_size)_index;
+			sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemsCount());
+			if (index >= nCount) {
 				return;
 			}
+			if (index >= m_titles.getCount()) {
+				m_titles.setCount(index + 1);
+			}
+			m_titles.setAt(index, title);
+			((VIEW_CLASS*)this)->notifySetItemTitle((INDEX_TYPE)index, title, mode);
 		}
-		ObjectLocker lock(((VIEW_CLASS*)this));
-		sl_size index = (sl_size)_index;
-		sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemsCount());
-		if (index >= nCount) {
-			return;
-		}
-		if (index >= m_titles.getCount()) {
-			m_titles.setCount(index + 1);
-		}
-		m_titles.setAt(index, title);
-		((VIEW_CLASS*)this)->notifySetItemTitle((INDEX_TYPE)index, title, mode);
 	}
 
 	template <class VIEW_CLASS, class INDEX_TYPE>
 	void LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::selectValue(const String& value, UIUpdateMode mode)
 	{
 		sl_reg index = m_values.indexOf(value);
-		((VIEW_CLASS*)this)->selectItem((INDEX_TYPE)index, mode);
+		if (index >= 0) {
+			((VIEW_CLASS*)this)->selectItem((INDEX_TYPE)index, mode);
+		}
 	}
 
 	template <class VIEW_CLASS, class INDEX_TYPE>
 	String LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::getSelectedValue()
 	{
-		sl_reg index = (sl_reg)(((VIEW_CLASS*)this)->getSelectedIndex());
+		INDEX_TYPE index = ((VIEW_CLASS*)this)->getSelectedIndex();
 		if (index >= 0) {
 			return m_values.getValueAt(index);
 		}
@@ -245,7 +260,7 @@ namespace slib
 	template <class VIEW_CLASS, class INDEX_TYPE>
 	String LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::getSelectedTitle()
 	{
-		sl_reg index = (sl_reg)(((VIEW_CLASS*)this)->getSelectedIndex());
+		INDEX_TYPE index = ((VIEW_CLASS*)this)->getSelectedIndex();
 		if (index >= 0) {
 			return m_titles.getValueAt(index);
 		}
@@ -313,17 +328,19 @@ namespace slib
 	template <class VIEW_CLASS, class INDEX_TYPE>
 	void SingleSelectionViewBase<VIEW_CLASS, INDEX_TYPE>::selectItem(INDEX_TYPE index, UIUpdateMode mode)
 	{
-		if (((VIEW_CLASS*)this)->isNativeWidget()) {
-			if (!(UI::isUiThread())) {
-				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::selectItem, index, mode));
+		if (index >= 0) {
+			if (((VIEW_CLASS*)this)->isNativeWidget()) {
+				if (!(UI::isUiThread())) {
+					UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::selectItem, index, mode));
+					return;
+				}
+			}
+			if (index >= m_countItems) {
 				return;
 			}
+			m_indexSelected = index;
+			((VIEW_CLASS*)this)->notifySelectItem(index, mode);
 		}
-		if (index < 0 || index >= m_countItems) {
-			return;
-		}
-		m_indexSelected = index;
-		((VIEW_CLASS*)this)->notifySelectItem(index, mode);
 	}
 
 	template <class INDEX_TYPE>

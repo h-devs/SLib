@@ -102,8 +102,9 @@ namespace slib
 						if (helper.isNotNull()) {
 							sl_uint32 index = (sl_uint32)(SendMessageW(m_handle, CB_GETCURSEL, 0, 0));
 							helper->dispatchSelectItem(index);							
+							result = 0;
+							return sl_true;
 						}
-						return sl_true;
 					}
 					return sl_false;
 				}

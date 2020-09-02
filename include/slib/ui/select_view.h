@@ -46,11 +46,11 @@ namespace slib
 	public:
 		Alignment getGravity();
 		
-		virtual void setGravity(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setGravity(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Color getTextColor();
 		
-		virtual void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(SelectView, SelectItem, sl_uint32 index)		
