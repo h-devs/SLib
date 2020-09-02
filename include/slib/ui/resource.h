@@ -331,6 +331,7 @@ namespace slib
 	class ImageView;
 	class SelectView;
 	class SelectSwitch;
+	class ComboBox;
 	class ScrollView;
 	class LinearLayout;
 	class ListView;

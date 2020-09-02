@@ -48,6 +48,7 @@
 #include "ui/check_box.h"
 #include "ui/radio_button.h"
 #include "ui/select_view.h"
+#include "ui/combo_box.h"
 #include "ui/progress_bar.h"
 #include "ui/slider.h"
 #include "ui/switch_view.h"

@@ -254,6 +254,11 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool SAppLayoutComboBoxAttributes::isNotRequiredNative()
+	{
+		return sl_false;
+	}
+
 	sl_bool SAppLayoutPickerAttributes::isNotRequiredNative()
 	{
 		if (textColor.flagDefined) {
@@ -381,6 +386,10 @@ namespace slib
 			case SAppLayoutItemType::SelectSwitch:
 				prefix = "selectSwitch";
 				pN = &nAutoIncreaseNameSelectSwitch;
+				break;
+			case SAppLayoutItemType::ComboBox:
+				prefix = "comboBox";
+				pN = &nAutoIncreaseNameComboBox;
 				break;
 			case SAppLayoutItemType::Scroll:
 				prefix = "scroll";
@@ -531,6 +540,8 @@ namespace slib
 			type = SAppLayoutItemType::Select;
 		} else if (strType == "selectswitch" || strType == "select-switch") {
 			type = SAppLayoutItemType::SelectSwitch;
+		} else if (strType == "combobox" || strType == "combo-box") {
+			type = SAppLayoutItemType::ComboBox;
 		} else if (strType == "scroll" || strType == "hscroll" || strType == "vscroll") {
 			type = SAppLayoutItemType::Scroll;
 		} else if (strType == "linear" || strType == "hlinear" || strType == "vlinear") {

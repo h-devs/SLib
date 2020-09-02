@@ -229,6 +229,7 @@ namespace slib
 		sl_bool _processLayoutResourceControl_Image(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Select(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_SelectSwitch(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_ComboBox(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Scroll(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Linear(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_List(LayoutControlProcessParams* params);

@@ -520,6 +520,17 @@ namespace slib
 
 	};
 
+	class SAppLayoutComboBoxAttributes : public Referable
+	{
+	public:
+		SAppStringValue text;
+		CList<SAppLayoutSelectItem> items;
+		
+	public:
+		sl_bool isNotRequiredNative();
+		
+	};
+
 	class SAppLayoutScrollAttributes : public Referable
 	{
 	public:
@@ -995,7 +1006,8 @@ namespace slib
 		Refresh = 0x026c,
 		DatePicker = 0x026d,
 		Line = 0x026e,
-		SelectSwitch = 0x026f
+		SelectSwitch = 0x026f,
+		ComboBox = 0x0270
 	};
 
 	class SAppLayoutResourceItem : public Referable
@@ -1024,6 +1036,7 @@ namespace slib
 		Ref<SAppLayoutImageAttributes> attrsImage;
 		Ref<SAppLayoutSelectAttributes> attrsSelect;
 		Ref<SAppLayoutSelectSwitchAttributes> attrsSelectSwitch;
+		Ref<SAppLayoutComboBoxAttributes> attrsComboBox;
 		Ref<SAppLayoutScrollAttributes> attrsScroll;
 		Ref<SAppLayoutLinearAttributes> attrsLinear;
 		Ref<SAppLayoutListAttributes> attrsList;
@@ -1095,6 +1108,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameImage = 0;
 		sl_uint32 nAutoIncreaseNameSelect = 0;
 		sl_uint32 nAutoIncreaseNameSelectSwitch = 0;
+		sl_uint32 nAutoIncreaseNameComboBox = 0;
 		sl_uint32 nAutoIncreaseNameScroll = 0;
 		sl_uint32 nAutoIncreaseNameLinear = 0;
 		sl_uint32 nAutoIncreaseNameList = 0;
