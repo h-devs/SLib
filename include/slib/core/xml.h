@@ -524,6 +524,8 @@ namespace slib
 
 		// in
 		sl_bool flagLogError;
+		// in
+		String sourceFilePath;
 
 		// out
 		sl_bool flagError;
