@@ -611,7 +611,7 @@ namespace slib
 		return sl_true;
 	}
 
-	void SAppDocument::_simulateLayoutInWindow(SAppLayoutResource* layout, const SAppSimulateLayoutParam& param)
+	sl_bool SAppDocument::_simulateLayoutInWindow(SAppLayoutResource* layout, const SAppSimulateLayoutParam& param)
 	{
 		Ref<SAppLayoutSimulationWindow> window = new SAppLayoutSimulationWindow;
 		if (window.isNotNull()) {
@@ -621,8 +621,9 @@ namespace slib
 				window->setClientSize(param.pageSize);
 				window->setOnClose(param.onClosePage);
 			}
-			window->open(this, layout);
+			return window->open(this, layout);
 		}
+		return sl_false;
 	}
 
 	void SAppDocument::_registerLayoutSimulationWindow(const Ref<SAppLayoutSimulationWindow>& window)

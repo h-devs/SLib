@@ -1203,7 +1203,7 @@ namespace slib
 		void init() override;
 		
 	public:
-		void open(SAppDocument* doc, SAppLayoutResource* layout);
+		sl_bool open(SAppDocument* doc, SAppLayoutResource* layout);
 		
 	protected:
 		void dispatchResize(sl_ui_len width, sl_ui_len height) override;

@@ -660,7 +660,7 @@ namespace slib
 		m_refer = this;
 	}
 
-	void SAppLayoutSimulationWindow::open(SAppDocument* doc, SAppLayoutResource* layout)
+	sl_bool SAppLayoutSimulationWindow::open(SAppDocument* doc, SAppLayoutResource* layout)
 	{
 		m_document = doc;
 		m_layoutResource = layout;
@@ -695,7 +695,9 @@ namespace slib
 			doc->_simulateLayoutCreateOrLayoutView(this, layout, sl_null, sl_null, sl_true);
 			create();
 			doc->_registerLayoutSimulationWindow(this);
+			return sl_true;
 		}
+		return sl_false;
 	}
 
 	void SAppLayoutSimulationWindow::dispatchResize(sl_ui_len width, sl_ui_len height)
