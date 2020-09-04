@@ -80,8 +80,6 @@ namespace slib
 		static String16 parseBackslashEscapes16(const StringParam& input, sl_size* lengthParsed = sl_null, sl_bool* flagError = sl_null) noexcept;
 
 		
-		static sl_size countLineNumber(const StringParam& input, sl_size pos, sl_size* column = sl_null) noexcept;
-		
 		static sl_size countLineNumber(const StringParam& input, sl_size* column = sl_null) noexcept;
 
 		static sl_reg indexOfLine(const StringParam& input, sl_reg start = 0) noexcept;

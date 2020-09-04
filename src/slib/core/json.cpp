@@ -670,7 +670,7 @@ namespace slib
 				param.flagError = sl_true;
 				param.errorPosition = parser.pos;
 				param.errorMessage = parser.errorMessage;
-				param.errorLine = ParseUtil::countLineNumber(StringParam(buf, len), parser.pos, &(param.errorColumn));
+				param.errorLine = ParseUtil::countLineNumber(StringParam(buf, parser.pos), &(param.errorColumn));
 				
 				if (param.flagLogError) {
 					LogError("Json", param.getErrorText());

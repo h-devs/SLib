@@ -510,29 +510,20 @@ namespace slib
 		}
 	}
 	
-	sl_size ParseUtil::countLineNumber(const StringParam& _str, sl_size pos, sl_size* columnLast) noexcept
+	sl_size ParseUtil::countLineNumber(const StringParam& _str, sl_size* columnLast) noexcept
 	{
-		if (_str.isNotNull()) {
+		if (_str.isNotEmpty()) {
 			if (_str.is8()) {
 				StringData str(_str);
 				sl_size n = str.getUnsafeLength();
-				if (pos < n) {
-					return priv::parse::countLineNumber(str.getData() + pos, n - pos, columnLast);
-				}
+				return priv::parse::countLineNumber(str.getData(), n, columnLast);
 			} else {
 				StringData16 str(_str);
 				sl_size n = str.getUnsafeLength();
-				if (pos < n) {
-					return priv::parse::countLineNumber(str.getData() + pos, n - pos, columnLast);
-				}
+				return priv::parse::countLineNumber(str.getData(), n, columnLast);
 			}
 		}
 		return 0;
-	}
-
-	sl_size ParseUtil::countLineNumber(const StringParam& str, sl_size* columnLast) noexcept
-	{
-		return countLineNumber(str, 0, columnLast);
 	}
 
 	namespace priv
