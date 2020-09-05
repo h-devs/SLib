@@ -165,10 +165,10 @@ namespace slib
 				return;
 			}
 			if (flagHorizontalWrapping) {
-				setLayoutWidth((sl_ui_len)(font->getFontHeight()) * 4);
+				setLayoutWidth((sl_ui_len)(font->getFontHeight() * 4));
 			}
 			if (flagVerticalWrapping) {
-				setLayoutHeight((sl_ui_len)(font->getFontHeight()) * 1.5f);
+				setLayoutHeight((sl_ui_len)(font->getFontHeight() * 1.5f));
 			}
 		}
 	}
