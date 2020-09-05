@@ -29,6 +29,12 @@
 #include "slib/ui/menu.h"
 #include "slib/ui/platform.h"
 
+#include "slib/core/dispatch.h"
+#include "slib/core/dispatch_loop.h"
+#include "slib/core/async.h"
+
+#include "ui_core_common.h"
+
 namespace slib
 {
 	SLIB_DEFINE_OBJECT(UIApp, Application)
@@ -157,6 +163,10 @@ namespace slib
 		if (app.isNotNull()) {
 			app->dispatchExit();
 		}
+		priv::ui_core::UIDispatcher::removeAllCallbacks();
+		DispatchLoop::releaseDefault();
+		AsyncIoLoop::releaseDefault();
+		Thread::finishAllThreads();
 	}
 	
 	SLIB_DEFINE_EVENT_HANDLER(UIApp, OpenUrl, const String& url, sl_bool& outFlagOpened)
