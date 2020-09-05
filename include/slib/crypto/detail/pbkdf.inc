@@ -66,7 +66,6 @@ namespace slib
 
 		KEYED_HASH h;
 		sl_uint32 i = 1;
-		sl_uint32 p = 0;
 		sl_uint32 j, k;
 
 		for (;;) {
