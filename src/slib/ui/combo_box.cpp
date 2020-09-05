@@ -204,7 +204,7 @@ namespace slib
 		return sl_null;
 	}
 
-	Ptr<IComboBoxInstance> ComboBox::getSelectViewInstance()
+	Ptr<IComboBoxInstance> ComboBox::getComboBoxInstance()
 	{
 		return sl_null;
 	}

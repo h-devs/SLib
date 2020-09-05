@@ -31,7 +31,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(LabelList, ListBox)
 
-		LabelList::LabelList()
+    LabelList::LabelList()
 	{
 		m_flagUseFontHeight = sl_true;
 		m_heightFont = 0;

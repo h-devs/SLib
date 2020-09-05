@@ -19,8 +19,6 @@
  *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *   THE SOFTWARE.
  */
- 
-#if defined(SLIB_PLATFORM_IS_WIN32)
 
 namespace slib
 {
@@ -92,5 +90,3 @@ namespace slib
 	}
 	
 }
-
-#endif

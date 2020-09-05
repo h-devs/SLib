@@ -132,7 +132,7 @@ namespace slib
 				}
 				
 				static void logError(String error, NSError* err) {
-					Log(TAG, "%s: [%s]", error, [err localizedDescription]);
+                    Log(TAG, "%s: [%s]", error, Apple::getStringFromNSString([err localizedDescription]));
 				}
 				
 				static Ref<CameraImpl> _create(const CameraParam& param)

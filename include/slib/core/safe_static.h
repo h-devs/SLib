@@ -39,13 +39,12 @@
  the dll using `LoadLibrary()`.
  ****************************************************************/
 
-#if defined(SLIB_PLATFORM_IS_WIN32)
-#	define PRIV_SLIB_SAFE_GLOBAL_DESTRUCTOR(TYPE, NAME) \
+#define PRIV_SLIB_SAFE_GLOBAL_DESTRUCTOR(TYPE, NAME) \
 		static sl_bool _static_freeflag_##NAME = sl_false; \
 		static slib::priv::safe_static::FreeGlobal<TYPE> _safe_static_free_##NAME(&NAME, &_static_freeflag_##NAME);
-#	define PRIV_SLIB_SAFE_LOCAL_STATIC_DESTRUCTOR(NAME) \
+#define PRIV_SLIB_SAFE_LOCAL_STATIC_DESTRUCTOR(NAME) \
 		slib::priv::safe_static::FreeObjectOnExit(&NAME, &_static_freeflag_##NAME);
-#	define PRIV_SLIB_ZERO_LOCAL_STATIC_DESTRUCTOR(NAME) \
+#define PRIV_SLIB_ZERO_LOCAL_STATIC_DESTRUCTOR(NAME) \
 		static sl_int32 _static_safeflag_##NAME = 0; \
 		static sl_bool _static_freeflag_##NAME = sl_false; \
 		SLIB_STATIC_SPINLOCK(_static_safelock_##NAME); \
@@ -57,13 +56,7 @@
 			} \
 			_static_safelock_##NAME.unlock(); \
 		}
-#	define SLIB_SAFE_STATIC_CHECK_FREED(NAME) _static_freeflag_##NAME
-#else
-#	define PRIV_SLIB_SAFE_GLOBAL_DESTRUCTOR(TYPE, NAME)
-#	define PRIV_SLIB_SAFE_LOCAL_STATIC_DESTRUCTOR(NAME)
-#	define PRIV_SLIB_ZERO_LOCAL_STATIC_DESTRUCTOR(NAME)
-#	define SLIB_SAFE_STATIC_CHECK_FREED(NAME) 0
-#endif
+#define SLIB_SAFE_STATIC_CHECK_FREED(NAME) _static_freeflag_##NAME
 
 #define SLIB_SAFE_LOCAL_STATIC(TYPE, NAME, ...) \
 	SLIB_ALIGN(8) static sl_uint8 _static_safemem_##NAME[sizeof(TYPE)]; \

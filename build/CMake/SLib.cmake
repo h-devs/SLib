@@ -111,6 +111,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/regex.cpp"
  "${SLIB_PATH}/src/slib/core/resource.cpp"
  "${SLIB_PATH}/src/slib/core/rw_lock.cpp"
+ "${SLIB_PATH}/src/slib/core/safe_static.cpp"
  "${SLIB_PATH}/src/slib/core/service.cpp"
  "${SLIB_PATH}/src/slib/core/setting.cpp"
  "${SLIB_PATH}/src/slib/core/spin_lock.cpp"
@@ -504,7 +505,7 @@ else ()
 endif()
 
 if (SLIB_X86_64)
- SET_PROPERTY( SOURCE ${SLIB_PATH}/src/slib/crypto/crc32c.cpp PROPERTY COMPILE_FLAGS -mavx2 )
+ SET_PROPERTY( SOURCE ${SLIB_PATH}/src/slib/crypto/crc32c.cpp PROPERTY COMPILE_FLAGS -msse4.2 )
 endif()
 
 set (ZLIB_ROOT_DIR "${SLIB_PATH}/external/src/zlib")
