@@ -233,7 +233,7 @@ if (SLIB_X86)
  set (
   SSE41_SRC_LIST
 
-   "${ROOT_DIR}/vp8/encoder/x86/quantize_sse4.c"
+  "${ROOT_DIR}/vp8/encoder/x86/quantize_sse4.c"
   "${ROOT_DIR}/vp9/encoder/x86/temporal_filter_sse4.c"
  )
  set (
