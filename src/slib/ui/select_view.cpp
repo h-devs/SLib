@@ -136,10 +136,10 @@ namespace slib
 	
 	void SelectView::onUpdateLayout()
 	{
-		sl_bool flagHorizontal = isWidthWrapping();
-		sl_bool flagVertical = isHeightWrapping();
+		sl_bool flagHorizontalWrapping = isWidthWrapping();
+		sl_bool flagVerticalWrapping = isHeightWrapping();
 		
-		if (!flagVertical && !flagHorizontal) {
+		if (!flagVerticalWrapping && !flagHorizontalWrapping) {
 			return;
 		}
 		
@@ -147,10 +147,10 @@ namespace slib
 		if (instance.isNotNull()) {
 			UISize size;
 			if (instance->measureSize(this, size)) {
-				if (flagHorizontal) {
+				if (flagHorizontalWrapping) {
 					setLayoutWidth(size.x);
 				}
-				if (flagVertical) {
+				if (flagVerticalWrapping) {
 					setLayoutHeight(size.y);
 				}
 				return;
@@ -159,6 +159,17 @@ namespace slib
 
 		if (m_cell.isNotNull()) {
 			updateLayoutByViewCell(m_cell.get());
+		} else {
+			Ref<Font> font = getFont();
+			if (font.isNull()) {
+				return;
+			}
+			if (flagHorizontalWrapping) {
+				setLayoutWidth((sl_ui_len)(font->getFontHeight()) * 4);
+			}
+			if (flagVerticalWrapping) {
+				setLayoutHeight((sl_ui_len)(font->getFontHeight()) * 1.5f);
+			}
 		}
 	}
 	

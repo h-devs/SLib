@@ -58,6 +58,12 @@
 		265A937023048D8600B155A2 /* process_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A936F23048D8600B155A2 /* process_unix.cpp */; };
 		26635C9F226706F3005E4BA6 /* ui_photo_ios.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26635C9E226706F3005E4BA6 /* ui_photo_ios.mm */; };
 		26635CA1226706FD005E4BA6 /* ui_photo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26635CA0226706FD005E4BA6 /* ui_photo.cpp */; };
+		266CF0F025032CC700E694E3 /* combo_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266CF0EF25032CC700E694E3 /* combo_box.cpp */; };
+		266CF0F425032CF800E694E3 /* disk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266CF0F225032CF700E694E3 /* disk.cpp */; };
+		266CF0F725032D1300E694E3 /* tile_layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266CF0F625032D1300E694E3 /* tile_layout.cpp */; };
+		266CF0F925032D3200E694E3 /* ui_sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266CF0F825032D3200E694E3 /* ui_sound.cpp */; };
+		266CF0FB25032D5200E694E3 /* safe_static.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266CF0FA25032D5200E694E3 /* safe_static.cpp */; };
+		266CF0FE25032F8C00E694E3 /* ui_core_common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266CF0FC25032F8B00E694E3 /* ui_core_common.cpp */; };
 		266E66EC21D9566300D92386 /* locale_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 266E66EB21D9566300D92386 /* locale_apple.mm */; };
 		2671F99121E07F7400B39842 /* drawer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2671F99021E07F7300B39842 /* drawer.cpp */; };
 		267466702318556800DE8715 /* chromium.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2674666F2318556700DE8715 /* chromium.cpp */; };
@@ -624,6 +630,13 @@
 		265EBF2D1C23051F00AD81D9 /* sqlite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sqlite.cpp; sourceTree = "<group>"; };
 		26635C9E226706F3005E4BA6 /* ui_photo_ios.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ui_photo_ios.mm; sourceTree = "<group>"; };
 		26635CA0226706FD005E4BA6 /* ui_photo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ui_photo.cpp; sourceTree = "<group>"; };
+		266CF0EF25032CC700E694E3 /* combo_box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = combo_box.cpp; sourceTree = "<group>"; };
+		266CF0F225032CF700E694E3 /* disk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = disk.cpp; sourceTree = "<group>"; };
+		266CF0F625032D1300E694E3 /* tile_layout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tile_layout.cpp; sourceTree = "<group>"; };
+		266CF0F825032D3200E694E3 /* ui_sound.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ui_sound.cpp; sourceTree = "<group>"; };
+		266CF0FA25032D5200E694E3 /* safe_static.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = safe_static.cpp; sourceTree = "<group>"; };
+		266CF0FC25032F8B00E694E3 /* ui_core_common.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ui_core_common.cpp; sourceTree = "<group>"; };
+		266CF0FD25032F8C00E694E3 /* ui_core_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_core_common.h; sourceTree = "<group>"; };
 		266DD3591C1170BD00D47AB0 /* audio_codec.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = audio_codec.cpp; path = media/audio_codec.cpp; sourceTree = "<group>"; };
 		266DD35A1C1170BD00D47AB0 /* audio_format.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = audio_format.cpp; path = media/audio_format.cpp; sourceTree = "<group>"; };
 		266DD35B1C1170BD00D47AB0 /* audio_player.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = audio_player.cpp; path = media/audio_player.cpp; sourceTree = "<group>"; };
@@ -1097,6 +1110,14 @@
 			path = service;
 			sourceTree = "<group>";
 		};
+		266CF0F125032CF700E694E3 /* storage */ = {
+			isa = PBXGroup;
+			children = (
+				266CF0F225032CF700E694E3 /* disk.cpp */,
+			);
+			path = storage;
+			sourceTree = "<group>";
+		};
 		266DD3581C11705C00D47AB0 /* media */ = {
 			isa = PBXGroup;
 			children = (
@@ -1249,6 +1270,7 @@
 				A25F2F131B039EF600854DAF /* render */,
 				26539F892374B8F50064340D /* service */,
 				26ACB3B7220978310093FF3F /* social */,
+				266CF0F125032CF700E694E3 /* storage */,
 				A25F2F231B039EF600854DAF /* ui */,
 			);
 			path = slib;
@@ -1306,6 +1328,7 @@
 				2628EAD021C184D400D8CD00 /* regex.cpp */,
 				A25F2EDF1B039EF600854DAF /* resource.cpp */,
 				2607301020DD22C8004EB272 /* rw_lock.cpp */,
+				266CF0FA25032D5200E694E3 /* safe_static.cpp */,
 				A25F2EE01B039EF600854DAF /* service.cpp */,
 				A25F2EE11B039EF600854DAF /* setting.cpp */,
 				26FBC2701DF9FB0200D76774 /* spin_lock.cpp */,
@@ -1471,6 +1494,7 @@
 				26C7959B221538D90053C5A1 /* clipboard.cpp */,
 				26C7959A221538D90053C5A1 /* clipboard_ios.mm */,
 				26E44AEA2322F39C00A88D93 /* collection_view.cpp */,
+				266CF0EF25032CC700E694E3 /* combo_box.cpp */,
 				2649C23A1CBBD7BF003E7561 /* common_dialogs.cpp */,
 				2649C23C1CBBD7D4003E7561 /* common_dialogs_ios.mm */,
 				266DD41A1C118E4A00D47AB0 /* cursor.cpp */,
@@ -1512,6 +1536,7 @@
 				26BB17E82200E1FE0089C7EC /* switch_view.cpp */,
 				266DD44F1C1191D400D47AB0 /* tab_view.cpp */,
 				26B1C99E1DC76BF50092C84F /* text_view.cpp */,
+				266CF0F625032D1300E694E3 /* tile_layout.cpp */,
 				26F5EA6322D6810900CD1595 /* toast.cpp */,
 				261B4C841DB10149000A385A /* transition.cpp */,
 				26CB94CA1D0126F900D8A472 /* tree_view.cpp */,
@@ -1521,6 +1546,8 @@
 				268847811E2FEE2700AFA023 /* ui_animation_apple.mm */,
 				2648D5471D096AB000819E09 /* ui_app.cpp */,
 				A2774E291B1CBBFD00538A7B /* ui_core.cpp */,
+				266CF0FC25032F8B00E694E3 /* ui_core_common.cpp */,
+				266CF0FD25032F8C00E694E3 /* ui_core_common.h */,
 				A25F2F261B039EF600854DAF /* ui_core_ios.mm */,
 				26ACB3F3220984FF0093FF3F /* ui_core_badge_ios.mm */,
 				A25F2F291B039EF600854DAF /* ui_event.cpp */,
@@ -1537,6 +1564,7 @@
 				26635C9E226706F3005E4BA6 /* ui_photo_ios.mm */,
 				2648D54D1D098AE800819E09 /* ui_platform.cpp */,
 				266F92691D51CD290040166C /* ui_resource.cpp */,
+				266CF0F825032D3200E694E3 /* ui_sound.cpp */,
 				26CF4DEF1ED69AD000954B7A /* ui_text.cpp */,
 				26CF4DEE1ED69AC900954B7A /* ui_text_ios.h */,
 				26CF4DF11ED69AD600954B7A /* ui_text_ios.mm */,
@@ -1670,6 +1698,7 @@
 				26CF4DF01ED69AD000954B7A /* ui_text.cpp in Sources */,
 				26F5C778237AEF35009F3EEF /* contact.cpp in Sources */,
 				26E1B8F1222ABCDD007C222E /* jfdctfst.c in Sources */,
+				266CF0FB25032D5200E694E3 /* safe_static.cpp in Sources */,
 				26635C9F226706F3005E4BA6 /* ui_photo_ios.mm in Sources */,
 				26D9D8D11E962976005F7BD3 /* scroll_view.cpp in Sources */,
 				26E1B8B6222ABBDC007C222E /* inftrees.c in Sources */,
@@ -1812,6 +1841,7 @@
 				26D9D8C31E962976005F7BD3 /* list_control.cpp in Sources */,
 				26D9D8761E96294F005F7BD3 /* image_png.cpp in Sources */,
 				26539FA52374BA040064340D /* ui_notification.cpp in Sources */,
+				266CF0F925032D3200E694E3 /* ui_sound.cpp in Sources */,
 				26D9D8181E9628E0005F7BD3 /* int128.cpp in Sources */,
 				26D9D8191E9628E0005F7BD3 /* sphere.cpp in Sources */,
 				26D9D8B21E962969005F7BD3 /* render_resource.cpp in Sources */,
@@ -1832,6 +1862,7 @@
 				26E1B8BA222ABBE7007C222E /* png.c in Sources */,
 				26D9D81F1E9628E0005F7BD3 /* triangle3.cpp in Sources */,
 				26E1B8E1222ABCDD007C222E /* jdatadst.c in Sources */,
+				266CF0F025032CC700E694E3 /* combo_box.cpp in Sources */,
 				26D9D8E11E962976005F7BD3 /* ui_core_ios.mm in Sources */,
 				26D9D8E51E962976005F7BD3 /* ui_platform.cpp in Sources */,
 				26D9D8D91E962976005F7BD3 /* transition.cpp in Sources */,
@@ -1895,6 +1926,7 @@
 				26D9D8EE1E962976005F7BD3 /* window_ios.mm in Sources */,
 				26C795C92215FC7C0053C5A1 /* drawables.cpp in Sources */,
 				261E7F432353AA6100ACE4E8 /* string_param.cpp in Sources */,
+				266CF0F725032D1300E694E3 /* tile_layout.cpp in Sources */,
 				26ACB3F6220985EE0093FF3F /* device_audio_ios.mm in Sources */,
 				26D9D8871E96295A005F7BD3 /* camera.cpp in Sources */,
 				26E1B8C2222ABBE7007C222E /* pngrutil.c in Sources */,
@@ -1918,6 +1950,7 @@
 				26E1B8D8222ABCDD007C222E /* jcmaster.c in Sources */,
 				26D9D8CB1E962976005F7BD3 /* picker_view_ios.mm in Sources */,
 				263D476823830ED500DAC43F /* wechat.cpp in Sources */,
+				266CF0FE25032F8C00E694E3 /* ui_core_common.cpp in Sources */,
 				2628EAD121C184D400D8CD00 /* regex.cpp in Sources */,
 				26D9D8A41E962962005F7BD3 /* socket_event.cpp in Sources */,
 				26D9D8691E96294F005F7BD3 /* drawable.cpp in Sources */,
@@ -2052,6 +2085,7 @@
 				26635CA1226706FD005E4BA6 /* ui_photo.cpp in Sources */,
 				262D59A523250E7300F85780 /* emoji_png.cpp in Sources */,
 				26E1B8AD222ABBDC007C222E /* crc32.c in Sources */,
+				266CF0F425032CF800E694E3 /* disk.cpp in Sources */,
 				26AFC60522B198340034C634 /* asm_x64.cpp in Sources */,
 				26D9D8E71E962976005F7BD3 /* video_view.cpp in Sources */,
 				26D9D8D31E962976005F7BD3 /* select_view.cpp in Sources */,
