@@ -321,49 +321,62 @@ namespace slib
 					return sl_null;
 				}
 
-				sl_bool decode(const void* input, sl_uint32 inputSize , VideoFrame* output, const Function<void(VideoFrame&)>& callback)
+				sl_bool decode(const void* input, sl_uint32 inputSize , VideoFrame* output, const Function<void(VideoFrame&)>& callback) override
 				{
 					MemoryReader reader(input, inputSize);
-					sl_int64 pts = reader.readInt64();
-					SLIB_UNUSED(pts);
-					sl_int64 size = reader.readInt64();
 
-					if (!vpx_codec_decode(m_codec, (sl_uint8*)input + 16, (unsigned int)size, sl_null, 0)) {
+					VideoFrame src;
+					sl_bool flagFoundFrame = sl_false;
+
+					for (;;) {
+
+						sl_int64 pts, size;
+						if (!(reader.readInt64(&pts))) {
+							break;
+						}
+						if (!(reader.readInt64(&size))) {
+							break;
+						}
+						sl_size offset = reader.getOffset();
+						if (offset + size > inputSize) {
+							break;
+						}
 						
-						VideoFrame src;
+						vpx_codec_err_t res = vpx_codec_decode(m_codec, (sl_uint8*)input + offset, (unsigned int)size, sl_null, 0);
 
-						vpx_codec_iter_t iter = sl_null;						
-						sl_bool flagFoundFrame = sl_false;
-
-						for (;;) {
-
-							vpx_image_t* image = vpx_codec_get_frame(m_codec, &iter);
-							if (!image) {
+						if (res == VPX_CODEC_OK) {
+							sl_bool bError = sl_false;
+							vpx_codec_iter_t iter = sl_null;
+							for (;;) {
+								vpx_image_t* image = vpx_codec_get_frame(m_codec, &iter);
+								if (!image) {
+									bError = sl_true;
+									break;
+								}
+								flagFoundFrame = sl_true;
+								src.image.width = image->d_w;
+								src.image.height = image->d_h;
+								src.image.format = BitmapFormat::YUV_I420;
+								src.image.data = image->planes[0];
+								src.image.pitch = image->stride[0];
+								src.image.data1 = image->planes[1];
+								src.image.pitch1 = image->stride[1];
+								src.image.data2 = image->planes[2];
+								src.image.pitch2 = image->stride[2];
+								callback(src);
+							}
+							if (bError) {
 								break;
 							}
-							
-							flagFoundFrame = sl_true;
-							src.image.width = image->d_w;
-							src.image.height = image->d_h;
-							src.image.format = BitmapFormat::YUV_I420;
-							src.image.data = image->planes[0];
-							src.image.pitch = image->stride[0];
-							src.image.data1 = image->planes[1];
-							src.image.pitch1 = image->stride[1];
-							src.image.data2 = image->planes[2];
-							src.image.pitch2 = image->stride[2];
-							
-							callback(src);
-
+						} else {
+							break;
 						}
-
-						if (flagFoundFrame) {
-							if (output) {
-								output->image.copyPixelsFrom(src.image);
-							}
-							return sl_true;
+					}
+					if (flagFoundFrame) {
+						if (output) {
+							output->image.copyPixelsFrom(src.image);
 						}
-
+						return sl_true;
 					}
 					return sl_false;
 				}
