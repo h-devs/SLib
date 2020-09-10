@@ -561,7 +561,7 @@ namespace slib
 #ifdef SLIB_COMPILER_IS_VC
 		return !(_strnicmp(s1, s2, count));
 #else
-		return !(strnicmp(s1, s2, count));
+		return !(strncasecmp(s1, s2, count));
 #endif
 	}
 
@@ -574,7 +574,7 @@ namespace slib
 #ifdef SLIB_COMPILER_IS_VC
 		return !(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
 #else
-		return !(wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+		return !(wcsncasecmp((wchar_t*)s1, (wchar_t*)s2, count));
 #endif
 #else
 		for (sl_reg i = 0; i < count; i++) {
@@ -602,7 +602,7 @@ namespace slib
 #ifdef SLIB_COMPILER_IS_VC
 		return !(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
 #else
-		return !(wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+		return !(wcsncasecmp((wchar_t*)s1, (wchar_t*)s2, count));
 #endif
 #else
 		for (sl_reg i = 0; i < count; i++) {
@@ -679,9 +679,9 @@ namespace slib
 			count = STRING_LENGTH_LIMIT;
 		}
 #ifdef SLIB_COMPILER_IS_VC
-		return _strnicmp(s1, s2, count);
+		return (sl_compare_result)(_strnicmp(s1, s2, count));
 #else
-		return strnicmp(s1, s2, count);
+		return (sl_compare_result)(strncasecmp(s1, s2, count));
 #endif
 	}
 
@@ -694,7 +694,7 @@ namespace slib
 #ifdef SLIB_COMPILER_IS_VC
 		return (sl_compare_result)(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
 #else
-		return (sl_compare_result)(wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+		return (sl_compare_result)(wcsncasecmp((wchar_t*)s1, (wchar_t*)s2, count));
 #endif
 #else
 		for (sl_reg i = 0; i < count; i++) {
@@ -724,7 +724,7 @@ namespace slib
 #ifdef SLIB_COMPILER_IS_VC
 		return (sl_compare_result)(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
 #else
-		return (sl_compare_result)(wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+		return (sl_compare_result)(wcsncasecmp((wchar_t*)s1, (wchar_t*)s2, count));
 #endif
 #else
 		for (sl_reg i = 0; i < count; i++) {
