@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -69,7 +69,7 @@ namespace slib
 
 	void* Base::reallocMemory(void* ptr, sl_size sizeNew) noexcept
 	{
-		if (sizeNew == 0) {
+		if (!sizeNew) {
 			free(ptr);
 			return malloc(1);
 		} else {
@@ -123,7 +123,7 @@ namespace slib
 
 	sl_bool Base::equalsMemory(const void* m1, const void* m2, sl_size count) noexcept
 	{
-		return memcmp(m1, m2, count) == 0;
+		return !(memcmp(m1, m2, count));
 	}
 
 	sl_compare_result Base::compareMemory(const void* m1, const void* m2, sl_size count) noexcept
@@ -410,7 +410,7 @@ namespace slib
 		}
 		for (sl_reg i = 0; i < count; i++) {
 			dst[i] = src[i];
-			if (dst[i] == 0) {
+			if (!(dst[i])) {
 				return i + 1;
 			}
 		}
@@ -424,7 +424,7 @@ namespace slib
 		}
 		for (sl_reg i = 0; i < count; i++) {
 			dst[i] = src[i];
-			if (dst[i] == 0) {
+			if (!(dst[i])) {
 				return i + 1;
 			}
 		}
@@ -438,7 +438,7 @@ namespace slib
 		}
 		for (sl_reg i = 0; i < count; i++) {
 			dst[i] = src[i];
-			if (dst[i] == 0) {
+			if (!(dst[i])) {
 				return i + 1;
 			}
 		}
@@ -474,7 +474,7 @@ namespace slib
 		return wcsnlen((wchar_t*)sz, count);
 #else
 		for (sl_reg i = 0; i < count; i++) {
-			if (sz[i] == 0) {
+			if (!(sz[i])) {
 				return i;
 			}
 		}
@@ -493,12 +493,16 @@ namespace slib
 		if (count < 0) {
 			count = STRING_LENGTH_LIMIT;
 		}
+#if SLIB_WCHAR_SIZE == 4
+		return wcsnlen((wchar_t*)sz, count);
+#else
 		for (sl_reg i = 0; i < count; i++) {
-			if (sz[i] == 0) {
+			if (!(sz[i])) {
 				return i;
 			}
 		}
 		return count;
+#endif
 	}
 
 	sl_bool Base::equalsString(const sl_char8 *s1, const sl_char8 *s2, sl_reg count) noexcept
@@ -506,7 +510,7 @@ namespace slib
 		if (count < 0) {
 			count = STRING_LENGTH_LIMIT;
 		}
-		return strncmp(s1, s2, count) == 0;
+		return !(strncmp(s1, s2, count));
 	}
 
 	sl_bool Base::equalsString2(const sl_char16 *s1, const sl_char16 *s2, sl_reg count) noexcept
@@ -515,13 +519,13 @@ namespace slib
 			count = STRING_LENGTH_LIMIT;
 		}
 #if SLIB_WCHAR_SIZE == 2
-		return wcsncmp((wchar_t*)s1, (wchar_t*)s2, count) == 0;
+		return !(wcsncmp((wchar_t*)s1, (wchar_t*)s2, count));
 #else
 		for (sl_reg i = 0; i < count; i++) {
 			if (s1[i] != s2[i]) {
 				return sl_false;
 			}
-			if (s1[i] == 0) {
+			if (!(s1[i])) {
 				break;
 			}
 		}
@@ -535,13 +539,81 @@ namespace slib
 			count = STRING_LENGTH_LIMIT;
 		}
 #if SLIB_WCHAR_SIZE == 4
-		return wcsncmp((wchar_t*)s1, (wchar_t*)s2, count) == 0;
+		return !(wcsncmp((wchar_t*)s1, (wchar_t*)s2, count));
 #else
 		for (sl_reg i = 0; i < count; i++) {
 			if (s1[i] != s2[i]) {
 				return sl_false;
 			}
-			if (s1[i] == 0) {
+			if (!(s1[i])) {
+				break;
+			}
+		}
+		return sl_true;
+#endif
+	}
+
+	sl_bool Base::equalsStringIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_reg count) noexcept
+	{
+		if (count < 0) {
+			count = STRING_LENGTH_LIMIT;
+		}
+#ifdef SLIB_COMPILER_IS_VC
+		return !(_strnicmp(s1, s2, count));
+#else
+		return !(strnicmp(s1, s2, count));
+#endif
+	}
+
+	sl_bool Base::equalsStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2, sl_reg count) noexcept
+	{
+		if (count < 0) {
+			count = STRING_LENGTH_LIMIT;
+		}
+#if SLIB_WCHAR_SIZE == 2
+#ifdef SLIB_COMPILER_IS_VC
+		return !(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+#else
+		return !(wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+#endif
+#else
+		for (sl_reg i = 0; i < count; i++) {
+			sl_char16 c1 = s1[i];
+			sl_char16 c2 = s2[i];
+			c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+			c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+			if (c1 != c2) {
+				return sl_false;
+			}
+			if (!c1) {
+				break;
+			}
+		}
+		return sl_true;
+#endif
+	}
+
+	sl_bool Base::equalsStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2, sl_reg count) noexcept
+	{
+		if (count < 0) {
+			count = STRING_LENGTH_LIMIT;
+		}
+#if SLIB_WCHAR_SIZE == 4
+#ifdef SLIB_COMPILER_IS_VC
+		return !(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+#else
+		return !(wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+#endif
+#else
+		for (sl_reg i = 0; i < count; i++) {
+			sl_char32 c1 = s1[i];
+			sl_char32 c2 = s2[i];
+			c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+			c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+			if (c1 != c2) {
+				return sl_false;
+			}
+			if (!c1) {
 				break;
 			}
 		}
@@ -571,7 +643,7 @@ namespace slib
 			} else if (s1[i] > s2[i]) {
 				return 1;
 			}
-			if (s1[i] == 0) {
+			if (!(s1[i])) {
 				break;
 			}
 		}
@@ -593,7 +665,79 @@ namespace slib
 			} else if (s1[i] > s2[i]) {
 				return 1;
 			}
-			if (s1[i] == 0) {
+			if (!(s1[i])) {
+				break;
+			}
+		}
+		return 0;
+#endif
+	}
+
+	sl_compare_result Base::compareStringIgnoreCase(const sl_char8 *s1, const sl_char8 *s2, sl_reg count) noexcept
+	{
+		if (count < 0) {
+			count = STRING_LENGTH_LIMIT;
+		}
+#ifdef SLIB_COMPILER_IS_VC
+		return _strnicmp(s1, s2, count);
+#else
+		return strnicmp(s1, s2, count);
+#endif
+	}
+
+	sl_compare_result Base::compareStringIgnoreCase2(const sl_char16 *s1, const sl_char16 *s2, sl_reg count) noexcept
+	{
+		if (count < 0) {
+			count = STRING_LENGTH_LIMIT;
+		}
+#if SLIB_WCHAR_SIZE == 2
+#ifdef SLIB_COMPILER_IS_VC
+		return (sl_compare_result)(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+#else
+		return (sl_compare_result)(wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+#endif
+#else
+		for (sl_reg i = 0; i < count; i++) {
+			sl_char16 c1 = s1[i];
+			sl_char16 c2 = s2[i];
+			c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+			c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+			if (c1 < c2) {
+				return -1;
+			} else if (c1 > c2) {
+				return 1;
+			}
+			if (!c1) {
+				break;
+			}
+		}
+		return 0;
+#endif
+	}
+
+	sl_compare_result Base::compareStringIgnoreCase4(const sl_char32 *s1, const sl_char32 *s2, sl_reg count) noexcept
+	{
+		if (count < 0) {
+			count = STRING_LENGTH_LIMIT;
+		}
+#if SLIB_WCHAR_SIZE == 4
+#ifdef SLIB_COMPILER_IS_VC
+		return (sl_compare_result)(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+#else
+		return (sl_compare_result)(wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+#endif
+#else
+		for (sl_reg i = 0; i < count; i++) {
+			sl_char32 c1 = s1[i];
+			sl_char32 c2 = s2[i];
+			c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+			c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+			if (c1 < c2) {
+				return -1;
+			} else if (c1 > c2) {
+				return 1;
+			}
+			if (!c1) {
 				break;
 			}
 		}
