@@ -223,6 +223,9 @@
     <ClCompile Include="..\..\src\slib\device\device.cpp" />
     <ClCompile Include="..\..\src\slib\device\device_win32.cpp" />
     <ClCompile Include="..\..\src\slib\device\sensor.cpp" />
+    <ClCompile Include="..\..\src\slib\dev\hook.cpp" />
+    <ClCompile Include="..\..\src\slib\dev\pe.cpp" />
+    <ClCompile Include="..\..\src\slib\dev\protect.cpp" />
     <ClCompile Include="..\..\src\slib\doc\pdf.cpp" />
     <ClCompile Include="..\..\src\slib\doc\rar.cpp" />
     <ClCompile Include="..\..\src\slib\geo\earth.cpp" />

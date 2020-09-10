@@ -67,6 +67,9 @@
     <Filter Include="src\doc">
       <UniqueIdentifier>{7958e742-6b8f-4898-9cee-27aeb54c9a8c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\dev">
+      <UniqueIdentifier>{d9e0e024-e389-4c28-a77b-711d7e4e6df3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\slib\core\async_config.h">
@@ -1456,6 +1459,15 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\combo_box_win32.cpp">
       <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\dev\pe.cpp">
+      <Filter>src\dev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\dev\protect.cpp">
+      <Filter>src\dev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\dev\hook.cpp">
+      <Filter>src\dev</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
