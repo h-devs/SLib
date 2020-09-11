@@ -175,6 +175,9 @@ namespace slib
 					map(Keycode::ScrollLock, VK_SCROLL);
 					map(Keycode::NumLock, VK_NUMLOCK);
 					map(Keycode::ContextMenu, VK_APPS);
+
+					map(Keycode::Chinese, VK_HANJA);
+					map(Keycode::Korean, VK_HANGUL);
 				}
 				
 			public:

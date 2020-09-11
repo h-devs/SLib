@@ -1143,6 +1143,8 @@ sl_bool UIEvent::is##NAME##Key() const \
 					PRIV_MAP_KEY(NumLock)
 					PRIV_MAP_KEY(ContextMenu)
 
+					PRIV_MAP_KEY(Chinese)
+					PRIV_MAP_KEY(Korean)
 				}
 				
 				String get(Keycode code, sl_bool flagShort)

@@ -235,7 +235,11 @@ namespace slib
 		CapsLock = 0xF0,
 		ScrollLock = 0xF1,
 		NumLock = 0xF2,
-		ContextMenu = 0xF3
+		ContextMenu = 0xF3,
+
+		Chinese = 0xF8,
+		Korean = 0xF9
+
 	};
 	
 	class Modifiers
