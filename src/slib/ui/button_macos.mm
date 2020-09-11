@@ -126,8 +126,7 @@ using namespace slib::priv::button;
 
 @implementation SLIBButtonHandle
 
-MACOS_VIEW_DEFINE_ON_FOCUS
-MACOS_VIEW_DEFINE_ON_KEY
+MACOS_VIEW_DEFINE_ON_CHILD_VIEW
 
 -(id)initWithFrame:(NSRect)frame
 {

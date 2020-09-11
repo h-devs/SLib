@@ -378,8 +378,7 @@ using namespace slib::priv::list_control;
 
 @implementation SLIBListControlHandle_TableView
 
-MACOS_VIEW_DEFINE_ON_FOCUS
-MACOS_VIEW_DEFINE_ON_KEY
+MACOS_VIEW_DEFINE_ON_CHILD_VIEW
 
 - (void)mouseDown:(NSEvent *)theEvent
 {

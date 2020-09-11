@@ -133,7 +133,7 @@ using namespace slib::priv::date_picker;
 
 @implementation SLIBDatePickerHandle
 
-MACOS_VIEW_DEFINE_ON_FOCUS
+MACOS_VIEW_DEFINE_ON_CHILD_VIEW
 
 -(id)initWithFrame:(NSRect)frame
 {

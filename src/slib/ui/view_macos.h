@@ -81,6 +81,10 @@
 		[super keyUp:theEvent]; \
 	}
 
+#define MACOS_VIEW_DEFINE_ON_CHILD_VIEW \
+	MACOS_VIEW_DEFINE_ON_KEY \
+	MACOS_VIEW_DEFINE_ON_FOCUS
+
 #endif
 
 #endif
