@@ -76,11 +76,10 @@ namespace slib
 	{
 		namespace time
 		{
-			SLIB_GLOBAL_ZERO_INITIALIZED(TimeZone, g_local)
+			static const char g_local[sizeof(TimeZone)] = { 0 };
 		}
 	}
-	
-	const TimeZone& TimeZone::Local = priv::time::g_local;
+	const TimeZone& TimeZone::Local = *((const TimeZone*)priv::time::g_local);
 
 	const TimeZone& TimeZone::UTC() noexcept
 	{
