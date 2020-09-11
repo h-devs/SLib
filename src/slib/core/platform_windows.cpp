@@ -589,7 +589,7 @@ namespace slib
 				LSTATUS lRet = RegEnumValueW(hKey, dwIndex, (LPWSTR)name, &dwLenName, NULL, &dwType, (LPBYTE)data, &nData);
 				if (lRet == ERROR_SUCCESS) {
 					if (dwType == REG_SZ) {
-						if ((const StringView&)path == data) {
+						if (path.equals(data)) {
 							if (flagRegister) {
 								// already registered
 								return;
