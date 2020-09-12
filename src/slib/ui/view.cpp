@@ -2180,16 +2180,6 @@ namespace slib
 		}
 	}
 	
-	sl_bool View::isCapturingEvents()
-	{
-		return m_flagCaptureEvents;
-	}
-
-	void View::setCapturingEvents(sl_bool flag)
-	{
-		m_flagCaptureEvents = flag;
-	}
-
 	Ref<Cursor> View::getCursor()
 	{
 		Ref<OtherAttributes>& attrs = m_otherAttrs;
@@ -7711,6 +7701,16 @@ namespace slib
 	}
 
 
+	sl_bool View::isCapturingEvents()
+	{
+		return m_flagCaptureEvents;
+	}
+	
+	void View::setCapturingEvents(sl_bool flag)
+	{
+		m_flagCaptureEvents = flag;
+	}
+	
 	Function<sl_bool(const UIPoint& pt)> View::getCapturingChildInstanceEvents()
 	{
 		Ref<ChildAttributes>& attrs = m_childAttrs;
@@ -7729,6 +7729,34 @@ namespace slib
 		}
 	}
 	
+	sl_bool View::isCapturingChildInstanceEvents(sl_ui_pos x, sl_ui_pos y)
+	{
+		if (!m_flagEnabled) {
+			return sl_false;
+		}
+		if (m_flagCaptureEvents) {
+			return sl_true;
+		}
+		Ref<ChildAttributes>& attrs = m_childAttrs;
+		if (attrs.isNotNull() && attrs->hitTestCapturingChildInstanceEvents.isNotNull()) {
+			Function<sl_bool(const UIPoint&)> hitTestCapture(attrs->hitTestCapturingChildInstanceEvents);
+			if (hitTestCapture(UIPoint(x, y))) {
+				return sl_true;
+			}
+		}
+		ListElements< Ref<View> > children(getChildren());
+		for (sl_size i = children.count - 1, ii = 0; ii < children.count; i--, ii++) {
+			Ref<View>& child = children[i];
+			if (!(child->isInstance()) && child->isVisible() && child->isHitTestable()) {
+				UIPoint pt = child->convertCoordinateFromParent(UIPointf((sl_ui_posf)x, (sl_ui_posf)y));
+				if (child->hitTest(pt.x, pt.y)) {
+					return child->isCapturingChildInstanceEvents(pt.x, pt.y);
+				}
+			}
+		}
+		return sl_false;
+	}
+
 	Ref<UIEvent> View::getCurrentEvent()
 	{
 		return m_currentEvent;

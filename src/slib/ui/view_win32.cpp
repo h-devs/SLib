@@ -127,12 +127,12 @@ namespace slib
 			sl_bool CaptureChildInstanceEvents(View* view, UINT uMsg)
 			{
 				Ref<View> parent = view->getParent();
-				while (parent.isNotNull()) {
+				if (parent.isNotNull()) {
+					if (CaptureChildInstanceEvents(parent.get(), uMsg)) {
+						return sl_true;
+					}
 					Function<sl_bool(const UIPoint&)> hitTestCapture(parent->getCapturingChildInstanceEvents());
 					if (parent->isCapturingEvents() || hitTestCapture.isNotNull()) {
-						if (CaptureChildInstanceEvents(parent.get(), uMsg)) {
-							return sl_true;
-						}
 						Ref<ViewInstance> _instance = parent->getViewInstance();
 						if (_instance.isNotNull()) {
 							Win32_ViewInstance* instance = (Win32_ViewInstance*)(_instance.get());
@@ -151,7 +151,6 @@ namespace slib
 							}
 						}
 					}
-					parent = parent->getParent();
 				}
 				return sl_false;
 			}

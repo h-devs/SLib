@@ -1043,12 +1043,21 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	[[self nextResponder] scrollWheel:theEvent];
 }
 
+- (void)removeCursor: (NSView*)view
+{
+	[view discardCursorRects];
+	for (NSView* child in view.subviews) {
+		[self removeCursor: child];
+	}
+}
+
 - (void)cursorUpdate:(NSEvent *)theEvent
 {
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventUpdateCursor(theEvent);
 		if (flags & UIEventFlags::PreventDefault) {
+			[self removeCursor: self];
 			return;
 		}
 	}
@@ -1065,14 +1074,8 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 			if (!(view->isEnabled())) {
 				return nil;
 			}
-			if (view->isCapturingEvents()) {
+			if (view->isCapturingChildInstanceEvents((sl_ui_pos)(pt.x), (sl_ui_pos)(pt.y))) {
 				return self;
-			}
-			Function<sl_bool(const UIPoint&)> hitTestCapture(view->getCapturingChildInstanceEvents());
-			if (hitTestCapture.isNotNull()) {
-				if (hitTestCapture(UIPoint((sl_ui_pos)(pt.x), (sl_ui_pos)(pt.y)))) {
-					return self;
-				}
 			}
 		}
 	}

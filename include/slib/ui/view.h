@@ -322,10 +322,6 @@ namespace slib
 		
 		virtual void setLockScroll(sl_bool flagLock);
 		
-		sl_bool isCapturingEvents();
-		
-		void setCapturingEvents(sl_bool flag);
-		
 
 		Ref<Cursor> getCursor();
 		
@@ -1261,10 +1257,16 @@ namespace slib
 		void setClientEdge(sl_bool flag);
 
 		
+		sl_bool isCapturingEvents();
+		
+		void setCapturingEvents(sl_bool flag);
+
 		Function<sl_bool(const UIPoint& pt)> getCapturingChildInstanceEvents();
 		
 		void setCapturingChildInstanceEvents(const Function<sl_bool(const UIPoint& pt)>& hitTestCapture);
 		
+		sl_bool isCapturingChildInstanceEvents(sl_ui_pos x, sl_ui_pos y);
+
 		
 		Ref<UIEvent> getCurrentEvent();
 		

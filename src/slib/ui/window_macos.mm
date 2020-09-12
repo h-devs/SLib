@@ -1045,58 +1045,66 @@ using namespace slib::priv::window;
 - (void)sendEvent:(NSEvent *)event
 {
 	NSEventType type = event.type;
-	if (type == NSEventTypeKeyDown) {
-		id view = [self firstResponder];
-		if ([view isKindOfClass:[NSTextView class]]) {
-			// Find NSTextField
-			NSView* t = view;
-			t = t.superview;
-			if (!([t isKindOfClass:[NSTextField class]])) {
-				t = t.superview;
-			}
-			if ([t isKindOfClass:[NSTextField class]]) {
-				int c = event.keyCode;
-				// Tab, Return, Escape
-				if (c == 0x30 || c == 0x24 || c == 0x35) {
-					// NSTextField can't get keyDown event, so we manually invoke this event
-					[t keyDown:event];
-					return;
+	switch (type) {
+		case NSEventTypeKeyDown:
+		case NSEventTypeKeyUp:
+			{
+				id view = [self firstResponder];
+				if (type == NSEventTypeKeyDown) {
+					if ([view isKindOfClass:[NSTextView class]]) {
+						// Find NSTextField
+						NSView* t = view;
+						t = t.superview;
+						if (!([t isKindOfClass:[NSTextField class]])) {
+							t = t.superview;
+						}
+						if ([t isKindOfClass:[NSTextField class]]) {
+							int c = event.keyCode;
+							// Tab, Return, Escape
+							if (c == 0x30 || c == 0x24 || c == 0x35) {
+								// NSTextField can't get keyDown event, so we manually invoke this event
+								[t keyDown:event];
+								return;
+							}
+						}
+					}
+				}
+				if (view == self) {
+					view = self.contentView;
+					if (view != nil) {
+						[self makeFirstResponder:view];
+					}
 				}
 			}
-		}
-	} else if (type == NSEventTypeMouseMoved) {
-		NSPoint pt = [event locationInWindow];
-		NSView* hit = nil;
-		NSView* content = [self contentView];
-		if (content != nil) {
-			hit = [content hitTest:pt];
-		}
-		if (m_handleLastHitMouse != hit) {
-			if (m_handleLastHitMouse != nil) {
-				if ([m_handleLastHitMouse isKindOfClass:[SLIBViewHandle class]]) {
-					[(SLIBViewHandle*)m_handleLastHitMouse onMouseExited:event];
+			break;
+		case NSEventTypeMouseMoved:
+			{
+				NSPoint pt = [event locationInWindow];
+				NSView* hit = nil;
+				NSView* content = [self contentView];
+				if (content != nil) {
+					hit = [content hitTest:pt];
+				}
+				if (m_handleLastHitMouse != hit) {
+					if (m_handleLastHitMouse != nil) {
+						if ([m_handleLastHitMouse isKindOfClass:[SLIBViewHandle class]]) {
+							[(SLIBViewHandle*)m_handleLastHitMouse onMouseExited:event];
+						}
+					}
+					if (hit != nil) {
+						if ([hit isKindOfClass:[SLIBViewHandle class]]) {
+							[(SLIBViewHandle*)hit onMouseEntered:event];
+						}
+					}
+					m_handleLastHitMouse = hit;
+				}
+				if (hit != nil) {
+					[hit mouseMoved:event];
 				}
 			}
-			if (hit != nil) {
-				if ([hit isKindOfClass:[SLIBViewHandle class]]) {
-					[(SLIBViewHandle*)hit onMouseEntered:event];
-				}
-			}
-			m_handleLastHitMouse = hit;
-		}
-		if (hit != nil) {
-			[hit mouseMoved:event];
-		}
-		return;
-	}
-	if (type == NSEventTypeKeyDown || type == NSEventTypeKeyUp) {
-		id responder = [self firstResponder];
-		if (responder == self) {
-			responder = self.contentView;
-			if (responder != nil) {
-				[self makeFirstResponder:responder];
-			}
-		}
+			return;
+		default:
+			break;
 	}
 	[super sendEvent:event];
 }
