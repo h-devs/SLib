@@ -131,23 +131,20 @@ namespace slib
 					if (CaptureChildInstanceEvents(parent.get(), uMsg)) {
 						return sl_true;
 					}
-					Function<sl_bool(const UIPoint&)> hitTestCapture(parent->getCapturingChildInstanceEvents());
-					if (parent->isCapturingEvents() || hitTestCapture.isNotNull()) {
-						Ref<ViewInstance> _instance = parent->getViewInstance();
-						if (_instance.isNotNull()) {
-							Win32_ViewInstance* instance = (Win32_ViewInstance*)(_instance.get());
-							HWND hWnd = instance->getHandle();
-							if (hWnd) {
-								DWORD lParam = GetMessagePos();
-								POINT pt;
-								pt.x = (short)(lParam & 0xffff);
-								pt.y = (short)((lParam >> 16) & 0xffff);
-								ScreenToClient(hWnd, &pt);
-								if (parent->isCapturingEvents() || hitTestCapture(UIPoint((sl_ui_pos)(pt.x), (sl_ui_pos)(pt.y)))) {
-									LPARAM lParam = POINTTOPOINTS(pt);
-									instance->processWindowMessage(uMsg, 0, lParam);
-									return sl_true;
-								}
+					Ref<ViewInstance> _instance = parent->getViewInstance();
+					if (_instance.isNotNull()) {
+						Win32_ViewInstance* instance = (Win32_ViewInstance*)(_instance.get());
+						HWND hWnd = instance->getHandle();
+						if (hWnd) {
+							DWORD lParam = GetMessagePos();
+							POINT pt;
+							pt.x = (short)(lParam & 0xffff);
+							pt.y = (short)((lParam >> 16) & 0xffff);
+							ScreenToClient(hWnd, &pt);
+							if (parent->isCapturingChildInstanceEvents((sl_ui_pos)(pt.x), (sl_ui_pos)(pt.y))) {
+								LPARAM lParam = POINTTOPOINTS(pt);
+								instance->processWindowMessage(uMsg, 0, lParam);
+								return sl_true;
 							}
 						}
 					}
@@ -159,28 +156,28 @@ namespace slib
 			{
 				UINT uMsg = msg.message;
 				switch (uMsg) {
-				case WM_LBUTTONDOWN:
-				case WM_LBUTTONDBLCLK:
-				case WM_RBUTTONDOWN:
-				case WM_RBUTTONDBLCLK:
-				case WM_MBUTTONDOWN:
-				case WM_MBUTTONDBLCLK:
-				case WM_MOUSEMOVE:
-					break;
-				case WM_NCLBUTTONDOWN:
-					uMsg = WM_LBUTTONDOWN;
-					break;
-				case WM_NCRBUTTONDOWN:
-					uMsg = WM_RBUTTONDOWN;
-					break;
-				case WM_NCMBUTTONDOWN:
-					uMsg = WM_MBUTTONDOWN;
-					break;
-				case WM_NCMOUSEMOVE:
-					uMsg = WM_MOUSEMOVE;
-					break;
-				default:
-					return sl_false;
+					case WM_LBUTTONDOWN:
+					case WM_LBUTTONDBLCLK:
+					case WM_RBUTTONDOWN:
+					case WM_RBUTTONDBLCLK:
+					case WM_MBUTTONDOWN:
+					case WM_MBUTTONDBLCLK:
+					case WM_MOUSEMOVE:
+						break;
+					case WM_NCLBUTTONDOWN:
+						uMsg = WM_LBUTTONDOWN;
+						break;
+					case WM_NCRBUTTONDOWN:
+						uMsg = WM_RBUTTONDOWN;
+						break;
+					case WM_NCMBUTTONDOWN:
+						uMsg = WM_MBUTTONDOWN;
+						break;
+					case WM_NCMOUSEMOVE:
+						uMsg = WM_MOUSEMOVE;
+						break;
+					default:
+						return sl_false;
 				}
 				return CaptureChildInstanceEvents(view, uMsg);
 			}
