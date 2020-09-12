@@ -245,9 +245,6 @@ namespace slib
 		
 		~WindowLayout();
 
-	protected:
-		void init() override;
-
 	public:
 		UISize getContentSize();
 		

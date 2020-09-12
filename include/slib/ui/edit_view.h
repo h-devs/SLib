@@ -40,9 +40,6 @@ namespace slib
 		EditView();
 
 		~EditView();
-
-	protected:
-		void init() override;
 		
 	public:
 		String getText();

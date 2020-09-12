@@ -37,8 +37,9 @@ namespace slib
 		m_dividerWidth = 1;
 		m_dividerColor = Color::Gray;
 		
-		m_items.setCount(2);
-		m_items.getPointerAt(0)->weight = 1;
+		m_items.setCount_NoLock(2);
+		m_items.getPointerAt(0)->weight = 0.5f;
+		m_items.getPointerAt(1)->weight = 0.5f;
 		
 #if defined(SLIB_PLATFORM_IS_DESKTOP)
 		m_cursorMargin = 4;
@@ -89,6 +90,11 @@ namespace slib
 			return;
 		}
 		m_orientation = orientation;
+		if (orientation == LayoutOrientation::Horizontal) {
+			m_cursor = Cursor::getResizeLeftRight();
+		} else {
+			m_cursor = Cursor::getResizeUpDown();
+		}
 		if (!SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
 			ObjectLocker lock(this);
 			_refreshItemFrames(mode);
@@ -127,6 +133,10 @@ namespace slib
 		}
 		ObjectLocker lock(this);
 		m_items.setCount_NoLock(count);
+		sl_size n = m_items.getCount();
+		for (sl_size i = 0; i < n; i++) {
+			setItemWeight(i, (sl_real)(1.0 / (double)n), UIUpdateMode::Init);
+		}
 		_refreshItemFrames(mode);
 	}
 	
@@ -560,7 +570,7 @@ namespace slib
 			}
 		}
 		
-		View::dispatchMouseEvent(ev);
+		ViewGroup::dispatchMouseEvent(ev);
 		
 	}
 	
@@ -577,7 +587,7 @@ namespace slib
 			}
 		}
 		
-		View::dispatchSetCursor(ev);
+		ViewGroup::dispatchSetCursor(ev);
 		
 	}
 	

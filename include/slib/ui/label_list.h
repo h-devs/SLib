@@ -163,9 +163,6 @@ public: \
 		
 		~LabelList();
 		
-	protected:
-		void init() override;
-
 	public:
 		void setItemHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 

@@ -134,8 +134,6 @@ namespace slib
 		void setCell(sl_uint32 row, sl_uint32 col, const Ref<View>& view, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 	protected:
-		void init() override;
-		
 		void onUpdateLayout() override;
 		
 	private:

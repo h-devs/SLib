@@ -178,6 +178,8 @@ namespace slib
 		m_flagStateDoModal = sl_false;
 		m_flagDispatchedDestroy = sl_false;
 		
+		m_viewContent = new priv::window::ContentView;
+
 		m_result = sl_null;
 
 #if defined(SLIB_UI_IS_ANDROID)
@@ -196,7 +198,6 @@ namespace slib
 	{
 		Object::init();
 		
-		m_viewContent = new priv::window::ContentView;
 		m_viewContent->setWindow(this);
 	}
 

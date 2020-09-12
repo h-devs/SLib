@@ -402,19 +402,14 @@ namespace slib
 	{
 		m_contentWidth = 0;
 		m_contentHeight = 0;
-	}
-	
-	WindowLayout::~WindowLayout()
-	{
-	}
-
-	void WindowLayout::init()
-	{
-		Window::init();
 
 		Ref<View> view = Window::getContentView();
 		m_contentViewRef = view;
 		m_contentView = view.get();
+	}
+	
+	WindowLayout::~WindowLayout()
+	{
 	}
 
 	UISize WindowLayout::getContentSize()

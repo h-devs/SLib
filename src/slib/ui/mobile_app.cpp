@@ -33,17 +33,6 @@ namespace slib
 
 	MobileApp::MobileApp()
 	{
-	}
-
-	MobileApp::~MobileApp()
-	{
-		Locale::removeOnChangeCurrentLocale(m_callbackOnChangeLocale);
-	}
-
-	void MobileApp::init()
-	{
-		UIApp::init();
-		
 		Ref<MobileMainWindow> window = new MobileMainWindow;
 		setMainWindow(window);
 		
@@ -56,7 +45,17 @@ namespace slib
 		m_navigationController->setBackgroundColor(Color::White);
 		m_navigationController->setVisibility(Visibility::Hidden, UIUpdateMode::Init);
 		m_contentView->addChild(m_navigationController, UIUpdateMode::Init);
+	}
 
+	MobileApp::~MobileApp()
+	{
+		Locale::removeOnChangeCurrentLocale(m_callbackOnChangeLocale);
+	}
+
+	void MobileApp::init()
+	{
+		UIApp::init();
+		
 		m_callbackOnChangeLocale = SLIB_FUNCTION_MEMBER(MobileApp, dispatchChangeCurrentLocale, this);
 		Locale::addOnChangeCurrentLocale(m_callbackOnChangeLocale);
 	}

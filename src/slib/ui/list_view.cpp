@@ -125,6 +125,8 @@ namespace slib
 		m_heightsGoUpItems = m_heightsGoDownItems + MAX_ITEMS_PER_PAGE;
 		
 		_initStatus();
+
+		m_contentView = new priv::list_view::ContentView;
 	}
 
 	ListView::~ListView()
@@ -142,7 +144,6 @@ namespace slib
 	{
 		VerticalScrollView::init();
 
-		m_contentView = new priv::list_view::ContentView;
 		m_contentView->setListView(this);
 		setContentView(m_contentView, UIUpdateMode::Init);
 	}

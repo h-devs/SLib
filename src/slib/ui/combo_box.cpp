@@ -38,26 +38,20 @@ namespace slib
 
 	ComboBox::ComboBox()
 	{		
-	}
-
-	ComboBox::~ComboBox()
-	{
-	}
-
-	void ComboBox::init()
-	{
-		View::init();
-
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
-
+		
 		setUsingFont(sl_true);
 		setBorder(sl_true, UIUpdateMode::Init);
 		setBackgroundColor(Color::White, UIUpdateMode::Init);
 		setSavingCanvasState(sl_false);
 		setFocusable(sl_true);
-
+		
 		m_indexSelected = -1;
+	}
+
+	ComboBox::~ComboBox()
+	{
 	}
 
 	String ComboBox::getText()

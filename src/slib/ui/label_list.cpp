@@ -33,6 +33,14 @@ namespace slib
 
     LabelList::LabelList()
 	{
+		setBackgroundColor(Color::White, UIUpdateMode::Init);
+		setSelectedItemBackgroundColor(Color(35, 12, 146), UIUpdateMode::Init);
+		setSelectedTextColor(Color::White, UIUpdateMode::Init);
+		setHoverItemBackgroundColor(Color(102, 150, 215), UIUpdateMode::Init);
+		setHoverTextColor(Color::White, UIUpdateMode::Init);
+		setFocusedItemBackgroundColor(Color(193, 231, 234), UIUpdateMode::Init);
+		setPadding(2, 2, 2, 2, UIUpdateMode::Init);
+
 		m_flagUseFontHeight = sl_true;
 		m_heightFont = 0;
 		m_lineHeightWeight = 1.6f;
@@ -45,18 +53,6 @@ namespace slib
 
 	LabelList::~LabelList()
 	{
-	}
-
-	void LabelList::init()
-	{
-		ListBox::init();
-		setBackgroundColor(Color::White, UIUpdateMode::Init);
-		setSelectedItemBackgroundColor(Color(35, 12, 146), UIUpdateMode::Init);
-		setSelectedTextColor(Color::White, UIUpdateMode::Init);
-		setHoverItemBackgroundColor(Color(102, 150, 215), UIUpdateMode::Init);
-		setHoverTextColor(Color::White, UIUpdateMode::Init);
-		setFocusedItemBackgroundColor(Color(193, 231, 234), UIUpdateMode::Init);
-		setPadding(2, 2, 2, 2, UIUpdateMode::Init);
 	}
 
 	void LabelList::setItemHeight(sl_ui_len height, UIUpdateMode mode)

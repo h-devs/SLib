@@ -39,9 +39,6 @@ namespace slib
 		
 		~ListBox();
 
-	protected:
-		void init() override;
-
 	public:
 		sl_uint64 getItemsCount();
 

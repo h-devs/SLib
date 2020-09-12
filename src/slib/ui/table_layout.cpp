@@ -169,11 +169,6 @@ namespace slib
 	{
 	}
 
-	void TableLayout::init()
-	{
-		ViewGroup::init();
-	}
-
 	sl_uint32 TableLayout::getColumnsCount()
 	{
 		ObjectLocker lock(this);

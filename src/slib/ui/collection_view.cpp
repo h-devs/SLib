@@ -158,6 +158,8 @@ namespace slib
 
 		m_idLayoutRequest = 0;
 		m_idLayoutComplete = -1;
+		
+		m_contentView = new ContentView;
 	}
 
 	CollectionView::~CollectionView()
@@ -168,7 +170,6 @@ namespace slib
 	{
 		VerticalScrollView::init();
 
-		m_contentView = new ContentView;
 		m_contentView->setCollectionView(this);
 		setContentView(m_contentView, UIUpdateMode::Init);
 	}

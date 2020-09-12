@@ -41,9 +41,6 @@ namespace slib
 		
 		~QRCodeScanner();
 		
-	protected:
-		void init() override;
-
 	public:
 		using CameraView::start;
 		

@@ -40,9 +40,6 @@ namespace slib
 		
 		~ViewPager();
 		
-	protected:
-		void init() override;
-
 	public:
 		void setAdapter(const Ref<ViewAdapter>& adapter, UIUpdateMode mode = UIUpdateMode::Redraw);
 		

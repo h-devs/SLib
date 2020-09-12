@@ -29,27 +29,19 @@ namespace slib
 	
 	MobileGame::MobileGame()
 	{
-	}
-
-	MobileGame::~MobileGame()
-	{
-	}
-
-	void MobileGame::init()
-	{
-		MobileApp::init();
-		
 		m_gameView = new MobileGameView;
-		
-		m_contentView->removeAllChildren(UIUpdateMode::Init);
-		m_contentView->addChild(m_gameView, UIUpdateMode::Init);
-		m_contentView = m_gameView;
-		
 		m_gameView->setWidthFilling(1, UIUpdateMode::Init);
 		m_gameView->setHeightFilling(1, UIUpdateMode::Init);
 		m_gameView->setOpaque(sl_true, UIUpdateMode::Init);
 		m_gameView->addChild(m_navigationController, UIUpdateMode::Init);
 		
+		m_contentView->removeAllChildren(UIUpdateMode::Init);
+		m_contentView->addChild(m_gameView, UIUpdateMode::Init);
+		m_contentView = m_gameView;
+	}
+
+	MobileGame::~MobileGame()
+	{
 	}
 
 	Ref<MobileGame> MobileGame::getApp()

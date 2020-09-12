@@ -43,9 +43,6 @@ namespace slib
 		
 		~ComboBox();
 
-	protected:
-		void init() override;
-
 	public:
 		String getText();
 

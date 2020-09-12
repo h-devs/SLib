@@ -29,6 +29,10 @@ namespace slib
 
 	ListBox::ListBox()
 	{
+		setCanvasScrolling(sl_false);
+		setVerticalScrolling(sl_true, UIUpdateMode::Init);
+		setFocusable(sl_true);
+
 		m_countItems = 0;
 		m_heightItem = 100;
 		m_indexHover = -1;
@@ -41,14 +45,6 @@ namespace slib
 
 	ListBox::~ListBox()
 	{
-	}
-
-	void ListBox::init()
-	{
-		View::init();
-		setCanvasScrolling(sl_false);
-		setVerticalScrolling(sl_true, UIUpdateMode::Init);
-		setFocusable(sl_true);
 	}
 
 	sl_uint64 ListBox::getItemsCount()

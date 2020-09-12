@@ -218,6 +218,15 @@ namespace slib
 
 	SelectSwitch::SelectSwitch()
 	{
+		setUsingFont(sl_true);
+		setBorder(sl_true, UIUpdateMode::Init);
+		setBackgroundColor(Color::White, UIUpdateMode::Init);
+		setSavingCanvasState(sl_false);
+#if !defined(SLIB_PLATFORM_IS_MOBILE)
+		setFocusable(sl_true);
+#endif
+		
+		m_cell = new SelectSwitchCell;
 	}
 
 	SelectSwitch::~SelectSwitch()
@@ -228,15 +237,6 @@ namespace slib
 	{
 		View::init();
 
-		setUsingFont(sl_true);
-		setBorder(sl_true, UIUpdateMode::Init);
-		setBackgroundColor(Color::White, UIUpdateMode::Init);
-		setSavingCanvasState(sl_false);
-#if !defined(SLIB_PLATFORM_IS_MOBILE)
-		setFocusable(sl_true);
-#endif
-
-		m_cell = new SelectSwitchCell;
 		m_cell->setView(this);
 		m_cell->initLabelList(this);
 		m_cell->onSelectItem = SLIB_FUNCTION_WEAKREF(SelectSwitch, dispatchSelectItem, this);

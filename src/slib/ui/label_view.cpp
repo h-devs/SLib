@@ -32,6 +32,12 @@ namespace slib
 
 	LabelView::LabelView()
 	{		
+		setSavingCanvasState(sl_false);
+		setUsingFont(sl_true);
+		
+		setPadding(1, 1, 1, 1, UIUpdateMode::Init);
+		
+		m_cell = new LabelViewCell;
 	}
 
 	LabelView::~LabelView()
@@ -40,12 +46,8 @@ namespace slib
 
 	void LabelView::init()
 	{
-		setSavingCanvasState(sl_false);
-		setUsingFont(sl_true);
-
-		setPadding(1, 1, 1, 1, UIUpdateMode::Init);
-
-		m_cell = new LabelViewCell;
+		View::init();
+		
 		m_cell->setView(this);
 		m_cell->onClickLink = SLIB_FUNCTION_WEAKREF(LabelView, dispatchClickLink, this);
 	}

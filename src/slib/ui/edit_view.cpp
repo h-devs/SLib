@@ -237,21 +237,14 @@ namespace slib
 
 	EditView::EditView()
 	{		
-	}
-
-	EditView::~EditView()
-	{
-	}
-
-	void EditView::init()
-	{
-		View::init();
-
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
-
+		
 		setUsingFont(sl_true);
 		setFocusable(sl_true);
+		
+		setBorder(sl_true, UIUpdateMode::Init);
+		setPadding((sl_ui_pos)(UI::dpToPixel(2)), UIUpdateMode::Init);
 
 		m_gravity = Alignment::MiddleCenter;
 		m_textColor = Color::Black;
@@ -264,9 +257,10 @@ namespace slib
 		m_keyboardType = UIKeyboardType::Default;
 		m_autoCapitalizationType = UIAutoCapitalizationType::None;
 		m_flagAutoDismissKeyboard = sl_true;
+	}
 
-		setBorder(sl_true, UIUpdateMode::Init);
-		setPadding((sl_ui_pos)(UI::dpToPixel(2)), UIUpdateMode::Init);
+	EditView::~EditView()
+	{
 	}
 
 	String EditView::getText()
@@ -652,7 +646,8 @@ namespace slib
 	{
 		if (m_multiLine == MultiLineMode::Single || ev->getKeycode() == Keycode::Escape) {
 			if (ev->getAction() == UIAction::KeyDown) {
-				if (ev->getKeycode() == Keycode::Enter) {
+				Keycode keycode = ev->getKeycode();
+				if (keycode == Keycode::Enter || keycode == Keycode::NumpadEnter) {
 					dispatchReturnKey();
 				}
 			}
