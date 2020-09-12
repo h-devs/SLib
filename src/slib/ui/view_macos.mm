@@ -567,12 +567,23 @@ namespace slib
 						case UIAction::RightButtonDoubleClick:
 						case UIAction::MiddleButtonDoubleClick:
 							{
-								for (NSView* subview in [handle subviews]) {
-									if (!(subview.isHidden)) {
-										NSRect frame = subview.frame;
-										if (NSPointInRect(pt, frame)) {
-											ev->addFlag(UIEventFlags::NotDispatchToChildren);
-											break;
+								sl_bool flagCapture = sl_false;
+								Ref<View> view = getView();
+								if (view.isNotNull()) {
+									if (view->isEnabled()) {
+										if (view->isCapturingChildInstanceEvents((sl_ui_pos)(pt.x), (sl_ui_pos)(pt.y))) {
+											flagCapture = sl_true;
+										}
+									}
+								}
+								if (!flagCapture) {
+									for (NSView* subview in [handle subviews]) {
+										if (!(subview.isHidden)) {
+											NSRect frame = subview.frame;
+											if (NSPointInRect(pt, frame)) {
+												ev->addFlag(UIEventFlags::NotDispatchToChildren);
+												break;
+											}
 										}
 									}
 								}
