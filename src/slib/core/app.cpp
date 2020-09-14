@@ -123,7 +123,11 @@ namespace slib
 	{
 		List<String> list;
 		for (int i = 0; i < argc; i++) {
+#ifdef SLIB_PLATFORM_IS_WIN32
+			list.add(String::decode(Charset::ANSI, argv[i], Base::getStringLength(argv[i])));
+#else
 			list.add(argv[i]);
+#endif
 		}
 		m_arguments = list;
 		m_commandLine = buildCommandLine(list.getData(), list.getCount());
