@@ -114,8 +114,6 @@ namespace slib
 
 		List<String> getArguments();
 	
-		String getCommand(sl_uint32 index = 0);
-
 		void run(const String& commandLine);
 
 		void run(int argc, const char * argv[]);

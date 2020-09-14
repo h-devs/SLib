@@ -112,11 +112,6 @@ namespace slib
 		return m_arguments;
 	}
 
-	String Application::getCommand(sl_uint32 index)
-	{
-		return m_arguments.getValueAt(index);
-	}
-
 	void Application::run(const String& commandLine)
 	{
 		m_commandLine = commandLine;

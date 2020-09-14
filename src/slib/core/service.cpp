@@ -156,20 +156,18 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_MOBILE)
 		Log(TAG, "Can not run on mobile platforms");
 #else
-		String command = getCommand();
-		if (command == "start") {
+		List<String> arguments = getArguments();
+		if (arguments.contains("start")) {
 			startService();
-		} else if (command == "stop") {
+		} else if (arguments.contains("stop")) {
 			stopService();
-		} else if (command == "restart") {
+		} else if (arguments.contains("restart")) {
 			stopService();
 			startService();
-		} else if (command == "status") {
+		} else if (arguments.contains("status")) {
 			statusService();
-		} else if (command.isEmpty()) {
-			runService();
 		} else {
-			LogError(TAG, "INVALID COMMAND - %s", command);
+			runService();
 		}
 #endif
 	}
