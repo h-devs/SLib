@@ -89,6 +89,12 @@ namespace slib
 		return N;
 	}
 
+	template <class T, class V>
+	SLIB_INLINE T& ForcedCast(const V& v)
+	{
+		return *((T*)((void*)&v));
+	}
+
 	template <class T> struct PropertyTypeHelper { typedef T const& ArgType; typedef T const& RetType; };
 	
 	template <class T> T&& DeclaredValue() noexcept;
