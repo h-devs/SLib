@@ -26,42 +26,23 @@
 
 #include "slib/dev/pe.h"
 #include "slib/dev/protect.h"
+#include "slib/dev/module.h"
 
 #include "slib/core/base.h"
-
-#define PSAPI_VERSION 1
-#include <windows.h>
-#include <psapi.h>
-
-#pragma comment(lib, "psapi.lib")
+#include "slib/core/macro.h"
 
 namespace slib
 {
 	
-	const void* Hook::getBaseAddress()
-	{
-		return getBaseAddress(NULL);
-	}
-
-	const void* Hook::getBaseAddress(const char* moduleName)
-	{
-		MODULEINFO mi;
-		ZeroMemory(&mi, sizeof(mi));
-		if (GetModuleInformation(GetCurrentProcess(), GetModuleHandleA(moduleName), &mi, sizeof(mi))) {
-			return mi.lpBaseOfDll;
-		}
-		return sl_null;
-	}
-
-	sl_bool Hook::replaceImportEntry(const void* moduleBaseAddress, const char* dllName, const char* procName, const void* newFunctionAddress)
+	void* Hook::replaceImportEntry(const void* moduleBaseAddress, const char* dllName, const char* procName, const void* newFunctionAddress)
 	{
 		sl_uint8* base = (sl_uint8*)moduleBaseAddress;
 		PE pe;
 		if (pe.loadHeaders(base)) {
 			PE_ImportDescriptor* import = pe.findImportTable(base, dllName);
 			if (import) {
-				const void** pNameThunk = (const void**)(base + import->originalFirstThunk);
-				const void** pThunk = (const void**)(base + import->firstThunk);
+				void** pNameThunk = (void**)(base + import->originalFirstThunk);
+				void** pThunk = (void**)(base + import->firstThunk);
 				for (;;) {
 					sl_uint32 offsetName = *((sl_uint32*)pNameThunk);
 					if (offsetName) {
@@ -69,10 +50,11 @@ namespace slib
 						char* name = (char*)(base + offsetName + 2);
 						if (Base::equalsString(name, procName)) {
 							if (MemoryProtection::setReadWrite(pThunk, sizeof(void*))) {
-								*pThunk = newFunctionAddress;
-								return sl_true;
+								void* old = *pThunk;
+								*pThunk = (void*)newFunctionAddress;
+								return old;
 							} else {
-								return sl_false;
+								return sl_null;
 							}
 						}
 					} else {
@@ -83,82 +65,131 @@ namespace slib
 				}
 			}
 		}
-		return sl_false;
-	}
-	
-	sl_bool Hook::replaceImportEntry(const char* dllName, const char* procName, const void* newFunctionAddress)
-	{
-		const void* base = getBaseAddress();
-		if (base) {
-			return replaceImportEntry(base, dllName, procName, newFunctionAddress);
-		}
-		return sl_false;
-	}
-
-	const void* Hook::replaceVtableEntry(void* object, sl_uint32 index, const void* newFunctionAddress)
-	{
-		const void*& fn = (*((const void***)object))[index];
-		const void* fnOld = fn;
-		if (MemoryProtection::setReadWrite(&fn, sizeof(fn))) {
-			fn = newFunctionAddress;
-			return fnOld;
-		}
 		return sl_null;
 	}
 	
-	void Hook::replaceVtable(void* object, sl_uint32 nTotalEntries, VtableEntry* replacingEntries, sl_uint32 nReplacingEntries)
+	void* Hook::replaceImportEntry(const char* dllName, const char* procName, const void* newFunctionAddress)
 	{
-		const void*** pVtableSrc = (const void***)object;
-		const void** vtable = (const void**)(Base::createMemory(sizeof(void*) * nTotalEntries));
-		if (vtable) {
-			Base::copyMemory(vtable, *pVtableSrc, nTotalEntries * sizeof(void*));
-			for (sl_uint32 i = 0; i < nReplacingEntries; i++) {
-				VtableEntry& entry = replacingEntries[i];
-				const void*& fn = vtable[entry.index];
-				if (entry.pOldFunctionAddress) {
-					*((const void**)(entry.pOldFunctionAddress)) = fn;
-				}
-				fn = entry.newFunctionAddress;
+		const void* base = Module::getBaseAddress();
+		if (base) {
+			return replaceImportEntry(base, dllName, procName, newFunctionAddress);
+		}
+		return sl_null;
+	}
+
+#ifdef SLIB_ARCH_IS_64BIT
+	namespace priv
+	{
+		namespace hook
+		{
+			void GenerateJmpFar(void* _dst, const void* address)
+			{
+				sl_uint8* dst = (sl_uint8*)_dst;
+				dst[0] = 0xC7; // mov dword ptr [esp-8], &address
+				dst[1] = 0x44;
+				dst[2] = 0x24;
+				dst[3] = 0xF8;
+				Base::copyMemory(dst + 4, &address, 4);
+				dst[8] = 0xC7; // mov dword ptr [esp-4], &address+4
+				dst[9] = 0x44;
+				dst[10] = 0x24;
+				dst[11] = 0xFC;
+				Base::copyMemory(dst + 12, ((char*)&address) + 4, 4);
+				dst[16] = 0x48; // sub rsp, 8
+				dst[17] = 0x83;
+				dst[18] = 0xEC;
+				dst[19] = 0x08;
+				dst[20] = 0xC3; // ret
 			}
-			*pVtableSrc = vtable;
 		}
 	}
-	
-	const void* Hook::hookFunction(void* targetFunctionAddress, const void* newFunctionAddress, sl_uint32 nCodeBytesToBackup)
+#endif
+
+	void* Hook::hookFunction(const void* targetFunctionAddress, const void* newFunctionAddress, sl_uint32 nCodeBytesToBackup)
 	{
-		sl_uint8* fn = (sl_uint8*)targetFunctionAddress;
-		if (slib::MemoryProtection::setExecuteReadWrite(fn, 5)) {
-			sl_uint8* fnOld = (sl_uint8*)(Base::createMemory(nCodeBytesToBackup + 5));
-			if (fnOld) {
-				if (slib::MemoryProtection::setExecuteReadWrite(fnOld, nCodeBytesToBackup + 5)) {
-					Base::copyMemory(fnOld, fn, nCodeBytesToBackup);
-					fnOld[nCodeBytesToBackup] = 0xE9;
-					sl_int32 offset = fn - (fnOld + 5); // equals to: (fn + nCodeBytesToBackup) - (fnOld + nCodeBytesToBackup + 5);
-					Base::copyMemory(fnOld + nCodeBytesToBackup + 1, &offset, 4);
-					fn[0] = 0xE9;
-					offset = (sl_uint8*)(newFunctionAddress) - (fn + 5);
-					memcpy(fn + 1, &offset, 4);
-					return fnOld;
+		sl_uint8* fnTarget = (sl_uint8*)targetFunctionAddress;
+#ifdef SLIB_ARCH_IS_64BIT
+		sl_uint32 sizeFnRestore = nCodeBytesToBackup + 21;
+#else
+		sl_uint32 sizeFnRestore = nCodeBytesToBackup + 6;
+#endif
+		sl_uint8* fnRestore = (sl_uint8*)(Base::createMemory(sizeFnRestore));
+		if (fnRestore) {
+			if (MemoryProtection::setExecuteReadWrite(fnRestore, sizeFnRestore)) {
+				Base::copyMemory(fnRestore, fnTarget, nCodeBytesToBackup);
+				sl_uint8* fnReturn = fnTarget + nCodeBytesToBackup;
+#ifdef SLIB_ARCH_IS_64BIT
+				priv::hook::GenerateJmpFar(fnRestore + nCodeBytesToBackup, fnReturn);
+#else
+				fnRestore[nCodeBytesToBackup] = 0x68; // push fnReturn
+				Base::copyMemory(fnRestore + nCodeBytesToBackup + 1, &fnReturn, 4);
+				fnRestore[sizeFnRestore - 1] = 0xC3; // ret
+#endif
+
+				sl_reg offset = (sl_reg)((sl_uint8*)(newFunctionAddress) - (fnTarget + 5));
+#ifdef SLIB_ARCH_IS_64BIT
+				if (offset != (sl_int32)offset) {
+					if (MemoryProtection::setExecuteReadWrite(fnTarget, 21)) {
+						priv::hook::GenerateJmpFar(fnTarget, newFunctionAddress);
+						return fnRestore;
+					}
+				} else
+#endif
+				if (MemoryProtection::setExecuteReadWrite(fnTarget, 5)) {
+					fnTarget[0] = 0xE9; // jmp near offset
+					Base::copyMemory(fnTarget + 1, &offset, 4);
+					return fnRestore;
 				}
-				Base::freeMemory(fnOld);
+				Base::freeMemory(fnRestore);
 			}		
 		}
 		return sl_null;
 	}
 
-	const void* Hook::hookFunction(sl_uint32 targetFunctionRVA, const void* newFunctionAddress, sl_uint32 nCodeBytesToBackup)
+	void* Hook::hookFunction(sl_uint32 targetFunctionRVA, const void* newFunctionAddress, sl_uint32 nCodeBytesToBackup)
 	{
-		const void* base = slib::Hook::getBaseAddress();
+		const void* base = Module::getBaseAddress();
 		if (base) {
 			return hookFunction((sl_uint8*)base + targetFunctionRVA, newFunctionAddress, nCodeBytesToBackup);
 		}
 		return sl_null;
 	}
-	
-	sl_bool Hook::replaceCode(void* targetAddress, const void* pNewCode, sl_uint32 nCodeBytes)
+
+	void* Hook::hookJmpNear(const void* targetAddress, const void* newAddress)
 	{
-		if (slib::MemoryProtection::setExecuteReadWrite(targetAddress, nCodeBytes)) {
-			Base::copyMemory(targetAddress, pNewCode, nCodeBytes);
+		sl_uint8* target = (sl_uint8*)targetAddress;
+		sl_reg offsetNew = (sl_reg)((sl_uint8*)newAddress - (target + 5));
+#ifdef SLIB_ARCH_IS_64BIT
+		if (offsetNew != (sl_int32)offsetNew) {
+			return sl_null;
+		}
+#endif
+		if (MemoryProtection::setExecuteReadWrite(target, 5)) {
+			if (target[0] == 0xE9) { // jmp near
+				sl_int32 offsetOld = SLIB_MAKE_DWORD(target[4], target[3], target[2], target[1]);
+				target[1] = SLIB_GET_BYTE0(offsetNew);
+				target[2] = SLIB_GET_BYTE1(offsetNew);
+				target[3] = SLIB_GET_BYTE2(offsetNew);
+				target[4] = SLIB_GET_BYTE3(offsetNew);
+				return target + 5 + offsetOld;
+			}
+		}
+		return sl_null;
+	}
+
+	void* Hook::hookJmpNear(sl_uint32 targetRVA, const void* newAddress)
+	{
+		const void* base = Module::getBaseAddress();
+		if (base) {
+			return hookJmpNear((sl_uint8*)base + targetRVA, newAddress);
+		}
+		return sl_null;
+	}
+
+	sl_bool Hook::replaceCode(const void* targetAddress, const void* pNewCode, sl_uint32 nCodeBytes)
+	{
+		if (MemoryProtection::setExecuteReadWrite(targetAddress, nCodeBytes)) {
+			Base::copyMemory((void*)targetAddress, pNewCode, nCodeBytes);
 			return sl_true;
 		}
 		return sl_false;
@@ -166,7 +197,7 @@ namespace slib
 
 	sl_bool Hook::replaceCode(sl_uint32 targetRVA, const void* pNewCode, sl_uint32 nCodeBytes)
 	{
-		const void* base = slib::Hook::getBaseAddress();
+		const void* base = Module::getBaseAddress();
 		if (base) {
 			return replaceCode((sl_uint8*)base + targetRVA, pNewCode, nCodeBytes);
 		}
