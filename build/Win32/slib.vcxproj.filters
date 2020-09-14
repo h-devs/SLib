@@ -1469,5 +1469,14 @@
     <ClCompile Include="..\..\src\slib\dev\hook.cpp">
       <Filter>src\dev</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\service\dokany.cpp">
+      <Filter>src\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\dev\module.cpp">
+      <Filter>src\dev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\dev\vtable.cpp">
+      <Filter>src\dev</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

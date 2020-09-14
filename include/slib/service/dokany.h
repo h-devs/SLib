@@ -20,16 +20,21 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DEV_HEADER
-#define CHECKHEADER_SLIB_DEV_HEADER
+#ifndef CHECKHEADER_SLIB_SERVICE_DOKANY
+#define CHECKHEADER_SLIB_SERVICE_DOKANY
 
-#include "dev/module.h"
-#include "dev/protect.h"
+#include "definition.h"
 
-#include "dev/coff.h"
-#include "dev/pe.h"
-#include "dev/vtable.h"
-
-#include "dev/hook.h"
+namespace slib
+{
+	
+	class SLIB_EXPORT Dokany
+	{
+	public:
+		static sl_bool installDriver();
+		
+	};
+	
+}
 
 #endif

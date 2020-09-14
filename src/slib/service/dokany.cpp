@@ -20,16 +20,14 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DEV_HEADER
-#define CHECKHEADER_SLIB_DEV_HEADER
+#include "slib/service/dokany.h"
 
-#include "dev/module.h"
-#include "dev/protect.h"
+namespace slib
+{
+	
+	sl_bool Dokany::installDriver()
+	{
+		return sl_false;
+	}
 
-#include "dev/coff.h"
-#include "dev/pe.h"
-#include "dev/vtable.h"
-
-#include "dev/hook.h"
-
-#endif
+}

@@ -223,7 +223,9 @@
     <ClCompile Include="..\..\src\slib\device\device.cpp" />
     <ClCompile Include="..\..\src\slib\device\device_win32.cpp" />
     <ClCompile Include="..\..\src\slib\device\sensor.cpp" />
+    <ClCompile Include="..\..\src\slib\dev\vtable.cpp" />
     <ClCompile Include="..\..\src\slib\dev\hook.cpp" />
+    <ClCompile Include="..\..\src\slib\dev\module.cpp" />
     <ClCompile Include="..\..\src\slib\dev\pe.cpp" />
     <ClCompile Include="..\..\src\slib\dev\protect.cpp" />
     <ClCompile Include="..\..\src\slib\doc\pdf.cpp" />
@@ -362,6 +364,7 @@
     <ClCompile Include="..\..\src\slib\service\chat.cpp" />
     <ClCompile Include="..\..\src\slib\service\chat_client.cpp" />
     <ClCompile Include="..\..\src\slib\service\chat_sqlite.cpp" />
+    <ClCompile Include="..\..\src\slib\service\dokany.cpp" />
     <ClCompile Include="..\..\src\slib\service\fcm_service.cpp" />
     <ClCompile Include="..\..\src\slib\service\ginger.cpp" />
     <ClCompile Include="..\..\src\slib\service\push_notification.cpp" />
