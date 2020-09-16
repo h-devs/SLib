@@ -252,7 +252,7 @@ namespace slib
 	{
 		INDEX_TYPE index = ((VIEW_CLASS*)this)->getSelectedIndex();
 		if (index >= 0) {
-			return m_values.getValueAt(index);
+			return m_values.getValueAt((sl_size)index);
 		}
 		return sl_null;
 	}
@@ -262,7 +262,7 @@ namespace slib
 	{
 		INDEX_TYPE index = ((VIEW_CLASS*)this)->getSelectedIndex();
 		if (index >= 0) {
-			return m_titles.getValueAt(index);
+			return m_titles.getValueAt((sl_size)index);
 		}
 		return sl_null;
 	}
