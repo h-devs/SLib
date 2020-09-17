@@ -299,16 +299,4 @@ namespace slib
 
 }
 
-#else
-
-namespace slib
-{
-
-	Ref<AudioPlayer> OpenSL_ES::createPlayer(const AudioPlayerParam& param)
-	{
-		return sl_null;
-	}
-
-}
-
 #endif

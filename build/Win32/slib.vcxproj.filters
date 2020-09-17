@@ -446,9 +446,6 @@
     <ClCompile Include="..\..\src\slib\media\audio_player_dsound.cpp">
       <Filter>src\media</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_player_opensl_es.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\media\audio_player_win32.cpp">
       <Filter>src\media</Filter>
     </ClCompile>
@@ -456,9 +453,6 @@
       <Filter>src\media</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\media\audio_recorder_dsound.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_recorder_opensl_es.cpp">
       <Filter>src\media</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\media\audio_recorder_win32.cpp">
@@ -1477,6 +1471,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\dev\vtable.cpp">
       <Filter>src\dev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\service\dokany_control.cpp">
+      <Filter>src\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\windows_service.cpp">
+      <Filter>src\core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

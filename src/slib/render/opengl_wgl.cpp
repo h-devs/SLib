@@ -22,7 +22,7 @@
 
 #include "slib/render/opengl_wgl.h"
 
-#if defined(SLIB_RENDER_SUPPORT_OPENGL_WGL) && defined(SLIB_PLATFORM_IS_WIN32)
+#if defined(SLIB_RENDER_SUPPORT_OPENGL_WGL)
 
 #include "slib/render/engine.h"
 #include "slib/render/opengl.h"

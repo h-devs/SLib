@@ -25,6 +25,8 @@
 
 #include "definition.h"
 
+#ifdef SLIB_PLATFORM_IS_WIN32
+
 #include "camera.h"
 
 namespace slib
@@ -38,5 +40,7 @@ namespace slib
 		
 	};	
 }
+
+#endif
 
 #endif

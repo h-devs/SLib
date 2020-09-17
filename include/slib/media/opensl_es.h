@@ -32,6 +32,8 @@
 #define SLIB_AUDIO_SUPPORT_OPENSL_ES
 #endif
 
+#ifdef SLIB_AUDIO_SUPPORT_OPENSL_ES
+
 namespace slib
 {
 	class SLIB_EXPORT OpenSL_ES
@@ -43,5 +45,7 @@ namespace slib
 		
 	};
 }
+
+#endif
 
 #endif

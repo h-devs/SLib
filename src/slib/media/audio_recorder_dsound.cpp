@@ -326,21 +326,4 @@ namespace slib
 
 }
 
-#else
-
-namespace slib
-{
-
-	Ref<AudioRecorder> DirectSound::createRecorder(const AudioRecorderParam& param)
-	{
-		return sl_null;
-	}
-
-	List<AudioRecorderInfo> DirectSound::getRecordersList()
-	{
-		return sl_null;
-	}
-
-}
-
 #endif

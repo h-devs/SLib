@@ -245,16 +245,4 @@ namespace slib
 
 }
 
-#else
-
-namespace slib
-{
-
-	Ref<AudioRecorder> OpenSL_ES::createRecorder(const AudioRecorderParam& param)
-	{
-		return sl_null;
-	}
-
-}
-
 #endif

@@ -378,21 +378,4 @@ namespace slib
 
 }
 
-#else
-
-namespace slib
-{
-
-	Ref<AudioPlayer> DirectSound::createPlayer(const AudioPlayerParam& param)
-	{
-		return sl_null;
-	}
-
-	List<AudioPlayerInfo> DirectSound::getPlayersList()
-	{
-		return sl_null;
-	}
-
-}
-
 #endif

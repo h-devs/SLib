@@ -189,6 +189,7 @@
     <ClCompile Include="..\..\src\slib\core\time_windows.cpp" />
     <ClCompile Include="..\..\src\slib\core\variant.cpp" />
     <ClCompile Include="..\..\src\slib\core\win32_com.cpp" />
+    <ClCompile Include="..\..\src\slib\core\windows_service.cpp" />
     <ClCompile Include="..\..\src\slib\core\xml.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\aes.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\base64.cpp" />
@@ -299,11 +300,9 @@
     <ClCompile Include="..\..\src\slib\media\audio_format.cpp" />
     <ClCompile Include="..\..\src\slib\media\audio_player.cpp" />
     <ClCompile Include="..\..\src\slib\media\audio_player_dsound.cpp" />
-    <ClCompile Include="..\..\src\slib\media\audio_player_opensl_es.cpp" />
     <ClCompile Include="..\..\src\slib\media\audio_player_win32.cpp" />
     <ClCompile Include="..\..\src\slib\media\audio_recorder.cpp" />
     <ClCompile Include="..\..\src\slib\media\audio_recorder_dsound.cpp" />
-    <ClCompile Include="..\..\src\slib\media\audio_recorder_opensl_es.cpp" />
     <ClCompile Include="..\..\src\slib\media\audio_recorder_win32.cpp" />
     <ClCompile Include="..\..\src\slib\media\audio_util.cpp" />
     <ClCompile Include="..\..\src\slib\media\camera.cpp" />
@@ -365,6 +364,7 @@
     <ClCompile Include="..\..\src\slib\service\chat_client.cpp" />
     <ClCompile Include="..\..\src\slib\service\chat_sqlite.cpp" />
     <ClCompile Include="..\..\src\slib\service\dokany.cpp" />
+    <ClCompile Include="..\..\src\slib\service\dokany_control.cpp" />
     <ClCompile Include="..\..\src\slib\service\fcm_service.cpp" />
     <ClCompile Include="..\..\src\slib\service\ginger.cpp" />
     <ClCompile Include="..\..\src\slib\service\push_notification.cpp" />

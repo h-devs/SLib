@@ -25,6 +25,8 @@
 
 #include "definition.h"
 
+#ifdef SLIB_RENDER_SUPPORT_OPENGL_GLX
+
 #include "engine.h"
 
 namespace slib
@@ -38,5 +40,7 @@ namespace slib
 	};
 
 }
+
+#endif
 
 #endif

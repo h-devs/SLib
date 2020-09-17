@@ -455,21 +455,4 @@ namespace slib
 
 }
 
-#else
-
-namespace slib
-{
-
-	Ref<Camera> DirectShow::createCamera(const CameraParam& param)
-	{
-		return sl_null;
-	}
-
-	List<CameraInfo> DirectShow::getCamerasList()
-	{
-		return sl_null;
-	}
-
-}
-
 #endif

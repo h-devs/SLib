@@ -25,6 +25,8 @@
 
 #include "definition.h"
 
+#if defined(SLIB_PLATFORM_IS_WIN32)
+
 #include "audio_player.h"
 #include "audio_recorder.h"
 
@@ -44,5 +46,7 @@ namespace slib
 		
 	};	
 }
+
+#endif
 
 #endif
