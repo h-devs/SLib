@@ -741,16 +741,16 @@ namespace slib
 	{
 		BOOL flagResult = FALSE;
 		HANDLE hToken;
-		if (::OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE, &hToken)) {
+		if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE, &hToken)) {
 			WindowsVersion version = priv::platform::GetWindowsVersion();
 			sl_bool flagError = sl_false;
 			HANDLE hTokenToCheck = NULL;
 			if (SLIB_WINDOWS_MAJOR_VERSION(version) >= 6) { // Windows Vista or later
 				TOKEN_ELEVATION_TYPE elevType;
 				DWORD cbSize = 0;
-				if (::GetTokenInformation(hToken, TokenElevationType, &elevType, sizeof(elevType), &cbSize)) {
+				if (GetTokenInformation(hToken, TokenElevationType, &elevType, sizeof(elevType), &cbSize)) {
 					if (elevType == TokenElevationTypeLimited) {
-						if (!::GetTokenInformation(hToken, TokenLinkedToken, &hTokenToCheck, sizeof(hTokenToCheck), &cbSize)) {
+						if (!GetTokenInformation(hToken, TokenLinkedToken, &hTokenToCheck, sizeof(hTokenToCheck), &cbSize)) {
 							flagError = sl_true;
 						}
 					}
@@ -765,7 +765,7 @@ namespace slib
 				if (hTokenToCheck) {
 					BYTE adminSID[SECURITY_MAX_SID_SIZE];
 					DWORD cbSize = sizeof(adminSID);
-					if (::CreateWellKnownSid(WinBuiltinAdministratorsSid, NULL, &adminSID, &cbSize)) {
+					if (CreateWellKnownSid(WinBuiltinAdministratorsSid, NULL, &adminSID, &cbSize)) {
 						CheckTokenMembership(hTokenToCheck, &adminSID, &flagResult);
 					}
 					CloseHandle(hTokenToCheck);
@@ -781,7 +781,7 @@ namespace slib
 		BOOL flagResult = FALSE;
 		SID_IDENTIFIER_AUTHORITY siAuthority = SECURITY_NT_AUTHORITY;
 		PSID pSidAdmin = NULL;
-		if (::AllocateAndInitializeSid(&siAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &pSidAdmin)) {
+		if (AllocateAndInitializeSid(&siAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &pSidAdmin)) {
 			CheckTokenMembership(NULL, pSidAdmin, &flagResult);
 			FreeSid(pSidAdmin);
 		}
