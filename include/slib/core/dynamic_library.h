@@ -68,4 +68,21 @@ namespace slib
 
 }
 
+#define SLIB_IMPORT_FUNCTION_FROM_LIBRARY(LIB, NAME, RET_TYPE, MODIFIER, ...) \
+		typedef RET_TYPE (MODIFIER *DL_FUNC_TYPE_##NAME)(__VA_ARGS__); \
+		DL_FUNC_TYPE_##NAME getApi_##NAME() {  \
+			void* _dl_library = LIB; \
+			if (!_dl_library) { \
+				return sl_null; \
+			} \
+			static DL_FUNC_TYPE_##NAME func = sl_null; \
+			static sl_bool flagLoaded = sl_false; \
+			if (flagLoaded) { \
+				return func; \
+			} \
+			func = (DL_FUNC_TYPE_##NAME)(DynamicLibrary::getFunctionAddress(_dl_library, #NAME)); \
+			flagLoaded = sl_true; \
+			return func; \
+		}
+
 #endif

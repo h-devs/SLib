@@ -50,20 +50,7 @@
 		}
 
 #define SLIB_IMPORT_LIBRARY_FUNCTION(NAME, RET_TYPE, MODIFIER, ...) \
-		typedef RET_TYPE (MODIFIER *DL_FUNC_TYPE_##NAME)(__VA_ARGS__); \
-		DL_FUNC_TYPE_##NAME getApi_##NAME() {  \
-			static DL_FUNC_TYPE_##NAME func = sl_null; \
-			static sl_bool flagLoaded = sl_false; \
-			if (flagLoaded) { \
-				return func; \
-			} \
-			void* library = getLibrary(); \
-			if (library) { \
-				func = (DL_FUNC_TYPE_##NAME)(DynamicLibrary::getFunctionAddress(library, #NAME)); \
-			} \
-			flagLoaded = sl_true; \
-			return func; \
-		}
+		SLIB_IMPORT_FUNCTION_FROM_LIBRARY(getLibrary(), NAME, RET_TYPE, MODIFIER, ##__VA_ARGS__)
 
 #define SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(NAME, RET_TYPE, MODIFIER, ...) \
 		SLIB_IMPORT_LIBRARY_FUNCTION(NAME, RET_TYPE, MODIFIER, ##__VA_ARGS__)
