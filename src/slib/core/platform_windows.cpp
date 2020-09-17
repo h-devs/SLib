@@ -864,6 +864,27 @@ namespace slib
 		return n / 10 - SLIB_INT64(11644473600000000);  // Convert 1601 Based (FILETIME mode) to 1970 Based (time_t mode)
 	}
 
+	String Windows::getWindowsDirectory()
+	{
+		WCHAR path[MAX_PATH];
+		UINT nLen = GetWindowsDirectoryW(path, MAX_PATH);
+		return String::from(path, nLen);
+	}
+
+	String Windows::getSystemDirectory()
+	{
+		WCHAR path[MAX_PATH];
+		UINT nLen = GetSystemDirectoryW(path, MAX_PATH);
+		return String::from(path, nLen);
+	}
+
+	String Windows::getSystemWow64Directory()
+	{
+		WCHAR path[MAX_PATH];
+		UINT nLen = GetSystemWow64DirectoryW(path, MAX_PATH);
+		return String::from(path, nLen);
+	}
+
 }
 
 #endif

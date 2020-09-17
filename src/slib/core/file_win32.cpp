@@ -26,6 +26,8 @@
 
 #include "slib/core/file.h"
 
+#include "slib/core/dl_windows_kernel32.h"
+
 #include <windows.h>
 
 namespace slib
@@ -572,6 +574,23 @@ namespace slib
 			return String::create(buf);
 		}
 		return sl_null;
+	}
+
+
+	DisableWow64FsRedirectionScope::DisableWow64FsRedirectionScope()
+	{
+		auto func = kernel32::getApi_Wow64DisableWow64FsRedirection();
+		if (func) {
+			func(&m_pOldValue);
+		}
+	}
+
+	DisableWow64FsRedirectionScope::~DisableWow64FsRedirectionScope()
+	{
+		auto func = kernel32::getApi_Wow64RevertWow64FsRedirection();
+		if (func) {
+			func(m_pOldValue);
+		}
 	}
 
 }

@@ -55,8 +55,23 @@ namespace slib
 			GetTickCount64,
 			ULONGLONG, WINAPI
 		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			Wow64EnableWow64FsRedirection,
+			BOOLEAN, WINAPI,
+			BOOLEAN Wow64FsEnableRedirection
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			Wow64DisableWow64FsRedirection,
+			BOOL, WINAPI,
+			PVOID *OldValue
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			Wow64RevertWow64FsRedirection,
+			BOOL, WINAPI,
+			PVOID OldValue
+		)
 	SLIB_IMPORT_LIBRARY_END
-
+		
 }
 
 #endif

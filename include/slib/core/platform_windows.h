@@ -175,6 +175,13 @@ namespace slib
 
 		static Time getTime(const SYSTEMTIME* st, sl_bool flagUTC);
 
+
+		static String getWindowsDirectory();
+
+		static String getSystemDirectory();
+
+		static String getSystemWow64Directory();
+
 	};
 	
 }
