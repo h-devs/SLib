@@ -39,7 +39,7 @@ namespace slib
 	String Windows::getStringFromGUID(const GUID& guid)
 	{
 		WCHAR sz[40] = { 0 };
-		if (::StringFromGUID2(guid, sz, 40) < 40) {
+		if (StringFromGUID2(guid, sz, 40) < 40) {
 			return String::create((sl_char16*)sz);
 		}
 		return sl_null;
@@ -74,13 +74,13 @@ namespace slib
 
 	sl_bool Windows::isWindowVisible(HWND hWnd)
 	{
-		if (!::IsWindow(hWnd)) {
+		if (!(IsWindow(hWnd))) {
 			return sl_false;
 		}
-		if (!::IsWindowVisible(hWnd)) {
+		if (!(IsWindowVisible(hWnd))) {
 			return sl_false;
 		}
-		if (::IsIconic(hWnd)) {
+		if (IsIconic(hWnd)) {
 			return sl_false;
 		}
 		hWnd = Windows::getParentWindow(hWnd);
@@ -824,7 +824,7 @@ namespace slib
 		}
 		sei.hwnd = param.hWndParent;
 		sei.nShow = param.nShow;
-		if (::ShellExecuteExW(&sei)) {
+		if (ShellExecuteExW(&sei)) {
 			return sl_true;
 		}
 		return sl_false;
