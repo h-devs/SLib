@@ -1475,7 +1475,13 @@
     <ClCompile Include="..\..\src\slib\service\dokany_control.cpp">
       <Filter>src\service</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\windows_service.cpp">
+    <ClCompile Include="..\..\src\slib\core\service_manager.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\service_manager_win32.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\service_win32.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
   </ItemGroup>

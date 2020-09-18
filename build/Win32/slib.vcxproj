@@ -172,6 +172,8 @@
     <ClCompile Include="..\..\src\slib\core\rw_lock.cpp" />
     <ClCompile Include="..\..\src\slib\core\safe_static.cpp" />
     <ClCompile Include="..\..\src\slib\core\service.cpp" />
+    <ClCompile Include="..\..\src\slib\core\service_manager_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\core\service_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\setting.cpp" />
     <ClCompile Include="..\..\src\slib\core\spin_lock.cpp" />
     <ClCompile Include="..\..\src\slib\core\string.cpp" />
@@ -189,7 +191,7 @@
     <ClCompile Include="..\..\src\slib\core\time_windows.cpp" />
     <ClCompile Include="..\..\src\slib\core\variant.cpp" />
     <ClCompile Include="..\..\src\slib\core\win32_com.cpp" />
-    <ClCompile Include="..\..\src\slib\core\windows_service.cpp" />
+    <ClCompile Include="..\..\src\slib\core\service_manager.cpp" />
     <ClCompile Include="..\..\src\slib\core\xml.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\aes.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\base64.cpp" />

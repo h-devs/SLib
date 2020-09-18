@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,8 @@ namespace slib
 
 	Service::Service()
 	{
+		m_flagPlatformService = sl_false;
+
 		setCrashRecoverySupport(sl_true);
 	}
 
@@ -153,6 +155,10 @@ namespace slib
 	
 	void Service::doRun()
 	{
+		if (_tryPlatformService()) {
+			m_flagPlatformService = sl_true;
+			return;
+		}
 #if defined(SLIB_PLATFORM_IS_MOBILE)
 		Log(TAG, "Can not run on mobile platforms");
 #else
@@ -174,6 +180,11 @@ namespace slib
 	
 	void Service::onRunApp()
 	{
+		if (m_flagPlatformService) {
+			_runPlatformService();
+			return;
+		}
+
 		String appName = getServiceName();
 
 		if (!(dispatchStartService())) {
@@ -200,5 +211,16 @@ namespace slib
 	{
 		return getServiceName();
 	}
+
+#if !defined(SLIB_PLATFORM_IS_WIN32)
+	sl_bool Service::_tryPlatformService()
+	{
+		return sl_false;
+	}
+
+	void Service::_runPlatformService()
+	{
+	}
+#endif
 
 }

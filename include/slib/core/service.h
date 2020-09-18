@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -73,6 +73,14 @@ namespace slib
 	
 		static Ref<Service> getApp();
 	
+	private:
+		sl_bool _tryPlatformService();
+
+		void _runPlatformService();
+
+	private:
+		sl_bool m_flagPlatformService;
+
 	};
 
 }
