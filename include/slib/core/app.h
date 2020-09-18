@@ -165,8 +165,28 @@ namespace slib
 
 		static List<String> breakCommandLine(const String& commandLine);
 
+		static List<String> breakCommandLine_Win32(const String& commandLine);
+
+		static List<String> breakCommandLine_Unix(const String& commandLine);
+
+		static String makeSafeArgument(const String& arg);
+
+		static String makeSafeArgument_Win32(const String& arg);
+
+		static String makeSafeArgument_Unix(const String& arg);
+
 		static String buildCommandLine(const String* argv, sl_size argc);
-		
+
+		static String buildCommandLine_Win32(const String* argv, sl_size argc);
+
+		static String buildCommandLine_Unix(const String* argv, sl_size argc);
+
+		static String buildCommandLine(const String& pathExecutable, const String* argv, sl_size argc);
+
+		static String buildCommandLine_Win32(const String& pathExecutable, const String* argv, sl_size argc);
+
+		static String buildCommandLine_Unix(const String& pathExecutable, const String* argv, sl_size argc);
+
 	public:
 		static sl_bool checkPermissions(const AppPermissions& permissions);
 
