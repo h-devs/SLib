@@ -20,58 +20,28 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_SERVICE_DOKANY
-#define CHECKHEADER_SLIB_SERVICE_DOKANY
-
-#include "definition.h"
+#include "slib/service/dokany.h"
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 
-#include "../core/service_manager.h"
+#include "dokany/dokan.h"
 
 namespace slib
 {
 	
-	class SLIB_EXPORT Dokany
+	sl_bool DokanyControl::install()
 	{
-	public:
-		static sl_bool initialize(const StringParam& pathDll);
+		return sl_false;
+	}
 
-		static sl_bool initialize();
-
-		static ServiceState getDriverState();
-
-		static sl_bool startDriver();
-
-		static sl_bool stopDriver();
-
-		static sl_bool registerDriver(const StringParam& pathSys);
-
-		static sl_bool registerDriver();
-
-		static sl_bool registerAndStartDriver(const StringParam& pathSys);
-
-		static sl_bool registerAndStartDriver();
-
-		static sl_bool unregisterDriver();
-
-		static sl_bool unmount(const StringParam& mountPoint);
-		
-	};
-
-	class SLIB_EXPORT DokanyControl
+	void DokanyControl::uninstall()
 	{
-	public:
-		static sl_bool install();
+	}
 
-		static void uninstall();
+	void DokanyControl::unmount(const StringParam& mountPoint)
+	{
+	}
 
-		static void unmount(const StringParam& mountPoint);
-
-	};
-	
 }
-
-#endif
 
 #endif
