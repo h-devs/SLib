@@ -195,7 +195,7 @@ namespace slib
 						if (!(view->isEnabled())) {
 							return 1;
 						}
-						if (view->isCapturingChildInstanceEvents((sl_ui_pos)x, (sl_ui_pos)y))) {
+						if (view->isCapturingChildInstanceEvents((sl_ui_pos)x, (sl_ui_pos)y)) {
 							return 1;
 						}
 					}

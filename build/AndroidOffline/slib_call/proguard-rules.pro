@@ -1,1 +1,0 @@
--keep class slib.platform.android.**

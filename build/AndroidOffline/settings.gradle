@@ -1,6 +1,8 @@
 rootProject.name = 'SLib'
 
 include ':all', ':slib', ':slib_call'
+project(':slib').projectDir = new File(settingsDir, '../Android/slib')
+project(':slib_call').projectDir = new File(settingsDir, '../Android/slib_call')
 
 include ':external_ShortcutBadger'
 project(':external_ShortcutBadger').projectDir = new File(settingsDir, '../../external/java/ShortcutBadger')

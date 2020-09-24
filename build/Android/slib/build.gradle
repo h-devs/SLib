@@ -31,7 +31,6 @@ android {
 
     sourceSets {
         main.java.srcDirs += '../../../java/android'
-        main.java.srcDirs += '../../../java/android_online'
     }
 
     externalNativeBuild {
