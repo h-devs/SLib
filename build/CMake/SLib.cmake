@@ -113,6 +113,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/rw_lock.cpp"
  "${SLIB_PATH}/src/slib/core/safe_static.cpp"
  "${SLIB_PATH}/src/slib/core/service.cpp"
+ "${SLIB_PATH}/src/slib/core/service_manager.cpp"
  "${SLIB_PATH}/src/slib/core/setting.cpp"
  "${SLIB_PATH}/src/slib/core/spin_lock.cpp"
  "${SLIB_PATH}/src/slib/core/string.cpp"

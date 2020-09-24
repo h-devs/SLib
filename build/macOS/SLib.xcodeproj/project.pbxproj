@@ -15,6 +15,7 @@
 		260B73FE220DCB1D00858EEA /* oauth_ui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 260B73FD220DCB1D00858EEA /* oauth_ui.cpp */; };
 		2614723623944E6D00F7CD0C /* wechat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2614723523944E6D00F7CD0C /* wechat.cpp */; };
 		2614723823944E7300F7CD0C /* wechat_sdk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2614723723944E7300F7CD0C /* wechat_sdk.cpp */; };
+		261782C8251C9E1200C2AAC0 /* service_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 261782C7251C9E1200C2AAC0 /* service_manager.cpp */; };
 		2628EACC21C1059800D8CD00 /* web_view_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2628EACB21C1059700D8CD00 /* web_view_apple.mm */; };
 		2628EACE21C157A800D8CD00 /* regex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2628EACD21C157A800D8CD00 /* regex.cpp */; };
 		2628EAE621C410E500D8CD00 /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2628EAE521C410E500D8CD00 /* base64.cpp */; };
@@ -624,6 +625,7 @@
 		260CB16A230F103500597B56 /* button_macos.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = button_macos.h; sourceTree = "<group>"; };
 		2614723523944E6D00F7CD0C /* wechat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wechat.cpp; path = social/wechat.cpp; sourceTree = "<group>"; };
 		2614723723944E7300F7CD0C /* wechat_sdk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wechat_sdk.cpp; path = social/wechat_sdk.cpp; sourceTree = "<group>"; };
+		261782C7251C9E1200C2AAC0 /* service_manager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = service_manager.cpp; sourceTree = "<group>"; };
 		2620412A1C88A95E00AF48F2 /* object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = object.cpp; sourceTree = "<group>"; };
 		2620412C1C88AE3B00AF48F2 /* list.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = list.cpp; sourceTree = "<group>"; };
 		2626C12E1E15AA55004E150C /* collection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = collection.cpp; sourceTree = "<group>"; };
@@ -1741,6 +1743,7 @@
 				2607300D20DCE367004EB272 /* rw_lock.cpp */,
 				2647C96C25023F22005560C7 /* safe_static.cpp */,
 				A25F2FB51B03A33700854DAF /* service.cpp */,
+				261782C7251C9E1200C2AAC0 /* service_manager.cpp */,
 				A25F2FB61B03A33700854DAF /* setting.cpp */,
 				A25F2FB71B03A33700854DAF /* spin_lock.cpp */,
 				A25F2FB81B03A33700854DAF /* string.cpp */,
@@ -2388,6 +2391,7 @@
 				26D9D9921E96467B005F7BD3 /* arp.cpp in Sources */,
 				26D9D97A1E96466A005F7BD3 /* yuv.cpp in Sources */,
 				26539FAD2374BA2B0064340D /* ui_notification_xgpush.cpp in Sources */,
+				261782C8251C9E1200C2AAC0 /* service_manager.cpp in Sources */,
 				26D9D9601E964662005F7BD3 /* latlon.cpp in Sources */,
 				26E1B873222ABA51007C222E /* pngrtran.c in Sources */,
 				26F5C77A237AEF44009F3EEF /* contact.cpp in Sources */,
