@@ -132,10 +132,11 @@ namespace slib
 					g_servicePlatform = (ServiceHelper*)this;
 				}
 				
-				SERVICE_TABLE_ENTRYW table;
-				table.lpServiceName = L"";
-				table.lpServiceProc = &ServiceMain;
-				if (StartServiceCtrlDispatcherW(&table)) {
+				SERVICE_TABLE_ENTRYW table[] = {
+					{ L"", &ServiceMain },
+					{ NULL, NULL }
+				};
+				if (StartServiceCtrlDispatcherW(table)) {
 					return sl_true;
 				} else {
 					DWORD dwError = GetLastError();
