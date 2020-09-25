@@ -127,24 +127,14 @@ namespace slib
 				}
 				
 			public:
-				static void logError(String error) {
-					Log(TAG, error);
-				}
-				
-				static void logError(String error, NSError* err) {
-                    Log(TAG, "%s: [%s]", error, Apple::getStringFromNSString([err localizedDescription]));
-				}
-				
 				static Ref<CameraImpl> _create(const CameraParam& param)
 				{
-					Ref<CameraImpl> ret;
-					
 					SLIBCameraCallback* callback = [[SLIBCameraCallback alloc] init];
 					
 					AVCaptureDevice* device = _selectDevice(param.deviceId);
 					if (device == nil) {
 						logError("Camera is not found: " + param.deviceId);
-						return ret;
+						return sl_null;
 					}
 #if defined(SLIB_PLATFORM_IS_IOS)
 					if ([device lockForConfiguration:nil]) {
@@ -157,13 +147,13 @@ namespace slib
 					AVCaptureDeviceInput* input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
 					if (input == nil) {
 						logError("Failed to create AVCaptureDeviceInput", error);
-						return ret;
+						return sl_null;
 					}
 					
 					AVCaptureSession *session = [[AVCaptureSession alloc] init];
 					if (!([session canAddInput:input])) {
 						logError("Can not add input to session");
-						return ret;
+						return sl_null;
 					}
 					[session addInput:input];
 					
@@ -201,7 +191,7 @@ namespace slib
 						[session setSessionPreset:preset];
 					}
 					
-					ret = new CameraImpl();
+					Ref<CameraImpl> ret = new CameraImpl();
 					if (ret.isNotNull()) {
 						callback->m_camera = ret;
 						ret->m_callback = callback;
@@ -219,8 +209,9 @@ namespace slib
 						if (param.flagAutoStart) {
 							ret->start();
 						}
+						return ret;
 					}
-					return ret;
+					return sl_null;
 				}
 				
 				struct CameraPresetInfo
@@ -264,7 +255,7 @@ namespace slib
 							}
 						}
 					}
-					return 	AVCaptureSessionPresetPhoto;
+					return AVCaptureSessionPresetPhoto;
 				}
 				
 				static AVCaptureDevice* _selectDevice(String deviceId)
@@ -298,7 +289,7 @@ namespace slib
 						}
 					}
 #endif
-					return NULL;
+					return nil;
 				}
 				
 				void release() override
@@ -605,6 +596,14 @@ namespace slib
 					}
 				}
 #endif
+				
+				static void logError(const String& error) {
+					Log(TAG, error);
+				}
+				
+				static void logError(const String& error, NSError* err) {
+					Log(TAG, "%s: [%s]", error, Apple::getStringFromNSString([err localizedDescription]));
+				}
 				
 			};
 		}
