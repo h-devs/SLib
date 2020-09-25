@@ -24,6 +24,10 @@
 
 #include "slib/core/service_manager.h"
 
+#ifdef SLIB_PLATFORM_IS_WIN32
+#define SUPPORT_SERVICE_MANAGER
+#endif
+
 namespace slib
 {
 
@@ -64,7 +68,7 @@ namespace slib
 		return start(name, sl_null, 0, timeoutMilliseconds);
 	}
 
-	sl_bool ServiceManager::createAndStart(const ServiceCreateParam& param)
+	sl_bool ServiceManager::createAndStart(const ServiceCreateParam& param, sl_int32 timeout)
 	{
 		ServiceState state = getState(param.name);
 		if (state == ServiceState::Running) {
@@ -74,9 +78,62 @@ namespace slib
 			return start(param.name);
 		}
 		if (create(param)) {
-			return start(param.name);
+			return start(param.name, timeout);
 		}
 		return sl_false;
 	}
 
+	sl_bool ServiceManager::stopAndRemove(const StringParam& serviceName, sl_int32 timeout)
+	{
+		ServiceState state = getState(serviceName);
+		if (state == ServiceState::None) {
+			return sl_true;
+		}
+		if (state != ServiceState::Stopped) {
+			if (!(stop(serviceName, timeout))) {
+				remove(serviceName);
+				return sl_false;
+			}
+		}
+		return remove(serviceName);
+	}
+
+#ifndef SUPPORT_SERVICE_MANAGER
+	sl_bool ServiceManager::isExisting(const StringParam& name)
+	{
+		return sl_false;
+	}
+
+	sl_bool ServiceManager::create(const ServiceCreateParam& param)
+	{
+		return sl_false;
+	}
+
+	sl_bool ServiceManager::remove(const StringParam& name)
+	{
+		return sl_false;
+	}
+
+	ServiceState ServiceManager::getState(const StringParam& name)
+	{
+		return ServiceState::None;
+	}
+
+	sl_bool ServiceManager::start(const StringParam& name, const String16* argv, sl_uint32 argc, sl_int32 timeoutMilliseconds)
+	{
+		return sl_false;
+	}
+
+	sl_bool ServiceManager::stop(const StringParam& name, sl_int32 timeoutMilliseconds)
+	{
+		return sl_false;
+	}
+
+	sl_bool ServiceManager::pause(const StringParam& name, sl_int32 timeoutMilliseconds)
+	{
+		return sl_false;
+	}
+#endif
+
 }
+
