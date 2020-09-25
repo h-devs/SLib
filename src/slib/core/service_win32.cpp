@@ -152,6 +152,7 @@ namespace slib
 			void ServiceHelper::_doRun()
 			{
 				setCrashRecoverySupport(sl_false);
+				m_flagPlatformService = sl_true;
 				Application::doRun();
 			}
 
@@ -193,7 +194,7 @@ namespace slib
 
 	void Service::_runPlatformService()
 	{
-		((ServiceHelper*)this)->run();
+		((ServiceHelper*)this)->_run();
 	}
 
 }

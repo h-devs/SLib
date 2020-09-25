@@ -22,6 +22,7 @@
 
 #include "slib/core/service.h"
 
+#include "slib/core/service_manager.h"
 #include "slib/core/system.h"
 #include "slib/core/process.h"
 #include "slib/core/log.h"
@@ -72,17 +73,17 @@ namespace slib
 #define START_ID "_STARTED"
 #define STOP_ID "_STOPPING"
 
-	void Service::startService()
+	sl_bool Service::startService()
 	{
 		String appName = getServiceName();
 		if (appName.isEmpty()) {
 			LogError(TAG, "SERVICE NAME IS EMPTY");
-			return;
+			return sl_false;
 		}
 		
 		if (GlobalUniqueInstance::exists(appName + STOP_ID)) {
 			LogError(TAG, "OTHER PROCESS IS STOPPING %s", appName);
-			return;
+			return sl_false;
 		}
 	
 		if (!(isUniqueInstanceRunning())) {
@@ -95,7 +96,7 @@ namespace slib
 			for (int i = 0; i < WAIT_SECONDS*10; i++) {
 				if (GlobalUniqueInstance::exists(appName + START_ID)) {
 					Log(TAG, "%s IS STARTED", appName);
-					return;
+					return sl_true;
 				}
 				System::sleep(100);
 			}
@@ -103,9 +104,10 @@ namespace slib
 		} else {
 			LogError(TAG, "%s IS ALREADY RUNNING", appName);
 		}
+		return sl_false;
 	}
 
-	void Service::stopService()
+	sl_bool Service::stopService()
 	{
 		String appName = getServiceName();
 
@@ -118,7 +120,7 @@ namespace slib
 				for (int i = 0; i < WAIT_SECONDS * 10; i++) {
 					if (!(isUniqueInstanceRunning())) {
 						Log(TAG, "%s IS STOPPED", appName);
-						return;
+						return sl_true;
 					}
 					System::sleep(100);
 				}
@@ -127,6 +129,7 @@ namespace slib
 				LogError(TAG, "OTHER PROCESS IS STOPPING %s", appName);
 			}
 		}
+		return sl_false;
 	}
 
 	void Service::statusService()
@@ -139,9 +142,9 @@ namespace slib
 		}
 	}
 
-	void Service::runService()
+	sl_int32 Service::runService()
 	{
-		Application::doRun();
+		return Application::doRun();
 	}
 
 	sl_bool Service::onStartService()
@@ -153,43 +156,182 @@ namespace slib
 	{
 	}
 	
-	void Service::doRun()
+	sl_int32 Service::doRun()
 	{
 		if (_tryPlatformService()) {
-			m_flagPlatformService = sl_true;
-			return;
+			return 0;
 		}
 #if defined(SLIB_PLATFORM_IS_MOBILE)
 		Log(TAG, "Can not run on mobile platforms");
 #else
 		List<String> arguments = getArguments();
-		if (arguments.contains("start")) {
-			startService();
-		} else if (arguments.contains("stop")) {
-			stopService();
-		} else if (arguments.contains("restart")) {
-			stopService();
-			startService();
-		} else if (arguments.contains("status")) {
-			statusService();
+		if (arguments.contains("service")) {
+			String name = getServiceName();
+			if (name.isEmpty()) {
+				LogError(TAG, "SERVICE NAME IS EMPTY");
+				return -1;
+			}
+			ServiceState state = ServiceManager::getState(name);
+			if (arguments.contains("status")) {
+				switch (state) {
+				case ServiceState::None:
+					Log(TAG, "Not Installed");
+					break;
+				case ServiceState::Running:
+					Log(TAG, "Running");
+					break;
+				case ServiceState::Paused:
+					Log(TAG, "Paused");
+					break;
+				case ServiceState::Stopped:
+					Log(TAG, "Stopped");
+					break;
+				case ServiceState::StartPending:
+					Log(TAG, "StartPending");
+					break;
+				case ServiceState::PausePending:
+					Log(TAG, "PausePending");
+					break;
+				case ServiceState::StopPending:
+					Log(TAG, "StopPending");
+					break;
+				case ServiceState::ContinuePending:
+					Log(TAG, "ContinuePending");
+					break;
+				default:
+					Log(TAG, "Unknown");
+					break;
+				}
+				return 0;
+			}
+			if (!(Process::isAdmin())) {
+				if (arguments.contains("admin")) {
+					Process::runAsAdmin(getApplicationPath(), getArguments());
+					return 0;
+				} else {
+					Log(TAG, "RUN AS ADMIN!");
+					return -1;
+				}
+			}
+			if (arguments.contains("install") || arguments.contains("reinstall")) {
+				if (state != ServiceState::None) {
+					if (arguments.contains("reinstall")) {
+						Log(TAG, "UNINSTALLING SERVICE: %s", name);
+						if (ServiceManager::stopAndRemove(name)) {
+							Log(TAG, "UNINSTALLED SERVICE: %s", name);
+						} else {
+							Log(TAG, "FAILED TO UNINSTALL SERVICE: %s", name);
+							return -1;
+						}
+					} else {
+						Log(TAG, "SERVICE IS ALREADY INSTALLED: %s", name);
+						return 0;
+					}
+				}
+				Log(TAG, "INSTALLING SERVICE: %s", name);
+				ServiceCreateParam param;
+				param.name = name;
+				param.path = getApplicationPath();
+				if (ServiceManager::create(param)) {
+					Log(TAG, "INSTALLED SERVICE: %s", name);
+					return 0;
+				} else {
+					Log(TAG, "FAILED TO INSTALL SERVICE: %s", name);
+					return -1;
+				}
+			}
+			if (state == ServiceState::None) {
+				Log(TAG, "SERVICE IS NOT INSTALLED: %s", name);
+				return -1;
+			}
+			if (arguments.contains("uninstall")) {
+				Log(TAG, "UNINSTALLING SERVICE: %s", name);
+				if (ServiceManager::stopAndRemove(name)) {
+					Log(TAG, "UNINSTALLED SERVICE: %s", name);
+					return 0;
+				} else {
+					Log(TAG, "FAILED TO UNINSTALL SERVICE: %s", name);
+					return -1;
+				}
+			} else if (arguments.contains("start")) {
+				if (state == ServiceState::Running) {
+					Log(TAG, "ALREADY RUNNING SERVICE: %s", name);
+					return 0;
+				}
+				Log(TAG, "STARTING SERVICE: %s", name);
+				if (ServiceManager::start(name)) {
+					Log(TAG, "STARTED SERVICE: %s", name);
+					return 0;
+				} else {
+					Log(TAG, "FAILED TO START SERVICE: %s", name);
+					return -1;
+				}
+			} else if (arguments.contains("stop")) {
+				if (state == ServiceState::Stopped) {
+					Log(TAG, "ALREADY STOPPED SERVICE: %s", name);
+					return 0;
+				}
+				Log(TAG, "STOPPING SERVICE: %s", name);
+				if (ServiceManager::stop(name)) {
+					Log(TAG, "STOPPED SERVICE: %s", name);
+					return 0;
+				} else {
+					Log(TAG, "FAILED TO STOP SERVICE: %s", name);
+					return -1;
+				}
+			} else if (arguments.contains("restart")) {
+				if (state != ServiceState::Stopped) {
+					Log(TAG, "STOPPING SERVICE: %s", name);
+					if (ServiceManager::stop(name)) {
+						Log(TAG, "STOPPED SERVICE: %s", name);
+					} else {
+						Log(TAG, "FAILED TO STOP SERVICE: %s", name);
+						return -1;
+					}
+				}
+				Log(TAG, "STARTING SERVICE: %s", name);
+				if (ServiceManager::start(name)) {
+					Log(TAG, "STARTED SERVICE: %s", name);
+					return 0;
+				}
+			}
 		} else {
-			runService();
+			if (arguments.contains("start")) {
+				if (startService()) {
+					return 0;
+				}
+			} else if (arguments.contains("stop")) {
+				if (stopService()) {
+					return 0;
+				}
+			} else if (arguments.contains("restart")) {
+				stopService();
+				if (startService()) {
+					return 0;
+				}
+			} else if (arguments.contains("status")) {
+				statusService();
+				return 0;
+			} else {
+				return runService();
+			}
 		}
 #endif
+		return -1;
 	}
 	
-	void Service::onRunApp()
+	sl_int32 Service::onRunApp()
 	{
 		if (m_flagPlatformService) {
 			_runPlatformService();
-			return;
+			return 0;
 		}
 
 		String appName = getServiceName();
 
 		if (!(dispatchStartService())) {
 			dispatchStopService();
-			return;
+			return -1;
 		}
 
 		Ref<GlobalUniqueInstance> startInstance = GlobalUniqueInstance::create(appName + START_ID);
@@ -204,6 +346,8 @@ namespace slib
 		}
 
 		dispatchStopService();
+
+		return 0;
 
 	}
 	
