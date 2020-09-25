@@ -114,11 +114,14 @@ namespace slib
 
 		List<String> getArguments();
 	
-		void run(const String& commandLine);
+		// returns exit code
+		sl_int32 run(const String& commandLine);
 
-		void run(int argc, const char * argv[]);
+		// returns exit code
+		sl_int32 run(int argc, const char * argv[]);
 	
-		void run();
+		// returns exit code
+		sl_int32 run();
 	
 		void dispatchQuitApp();
 
@@ -133,13 +136,16 @@ namespace slib
 		void setCrashRecoverySupport(sl_bool flagSupport);
 	
 	protected:
-		virtual void doRun();
+		// returns exit code
+		virtual sl_int32 doRun();
 	
-		virtual void onRunApp() = 0;
+		// returns exit code
+		virtual sl_int32 onRunApp() = 0;
 
 		virtual void onQuitApp();
 		
-		virtual void onExistingInstance();
+		// returns exit code
+		virtual sl_int32 onExistingInstance();
 	
 	public:
 		static Ref<Application> getApp();
@@ -228,38 +234,42 @@ namespace slib
 #define SLIB_DECLARE_APPLICATION(CLASS) \
 	SLIB_DECLARE_OBJECT \
 public: \
-	static void main(const slib::String& commandLine); \
-	static void main(int argc, const char * argv[]); \
-	static void main(int argc, char** argv); \
-	static void main(); \
+	static int main(const slib::String& commandLine); \
+	static int main(int argc, const char * argv[]); \
+	static int main(int argc, char** argv); \
+	static int main(); \
 	static slib::Ref<CLASS> getApp();
 
 
 #define SLIB_DEFINE_APPLICATION(CLASS, BASE) \
 	SLIB_DEFINE_OBJECT(CLASS, BASE) \
-	void CLASS::main(const slib::String& commandLine) { \
+	int CLASS::main(const slib::String& commandLine) { \
 		slib::Ref<CLASS> app = new CLASS; \
 		if (app.isNotNull()) { \
-			app->run(commandLine); \
+			return (int)(app->run(commandLine)); \
 		} \
+		return -1; \
 	} \
-	void CLASS::main(int argc, const char * argv[]) { \
+	int CLASS::main(int argc, const char * argv[]) { \
 		slib::Ref<CLASS> app = new CLASS; \
 		if (app.isNotNull()) { \
-			app->run(argc, argv); \
+			return (int)(app->run(argc, argv)); \
 		} \
+		return -1; \
 	} \
-	void CLASS::main(int argc, char** argv) { \
+	int CLASS::main(int argc, char** argv) { \
 		slib::Ref<CLASS> app = new CLASS; \
 		if (app.isNotNull()) { \
-			app->run(argc, (const char**)argv); \
+			return (int)(app->run(argc, (const char**)argv)); \
 		} \
+		return -1; \
 	} \
-	void CLASS::main() { \
+	int CLASS::main() { \
 		slib::Ref<CLASS> app = new CLASS; \
 		if (app.isNotNull()) { \
-			app->run(); \
+			return (int)(app->run()); \
 		} \
+		return -1; \
 	} \
 	slib::Ref<CLASS> CLASS::getApp() { \
 		return slib::CastRef<CLASS>(slib::Application::getApp()); \

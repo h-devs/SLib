@@ -122,14 +122,16 @@ namespace slib
 	}
 #endif
 	
-	void UIApp::onRunApp()
+	sl_int32 UIApp::onRunApp()
 	{
 		UI::runApp();
+		return 0;
 	}
 
 #if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32)
-	void UIApp::onExistingInstance()
-	{		
+	sl_int32 UIApp::onExistingInstance()
+	{
+		return -1;
 	}
 #endif
 

@@ -405,11 +405,11 @@ namespace slib
 		PostQuitMessage(0);
 	}
 
-	void UIApp::onExistingInstance()
+	sl_int32 UIApp::onExistingInstance()
 	{
 		String16 appId = String16::from(getUniqueInstanceId());
 		if (appId.isEmpty()) {
-			return;
+			return -1;
 		}
 		HWND hWnd = FindWindowW(L"SLIBMESSAGEHANDLER", (LPCWSTR)(appId.getData()));
 		if (hWnd) {
@@ -420,6 +420,9 @@ namespace slib
 			data.lpData = sz;
 			data.cbData = (DWORD)(Base::getStringLength2((sl_char16*)sz) * 2);
 			SendMessageW(hWnd, WM_COPYDATA, 0, (LPARAM)&data);
+			return 0;
+		} else {
+			return -1;
 		}
 	}
 

@@ -387,11 +387,11 @@ namespace slib
 		g_callbackDidFinishLaunching.add(callback);
 	}
 
-	void UIApp::onExistingInstance()
+	sl_int32 UIApp::onExistingInstance()
 	{
 		String uid = getUniqueInstanceId();
 		if (uid.isEmpty()) {
-			return;
+			return -1;
 		}
 		NSArray* arr = [NSRunningApplication runningApplicationsWithBundleIdentifier:[[NSBundle mainBundle] bundleIdentifier]];
 		if (arr.count > 0) {
@@ -401,8 +401,10 @@ namespace slib
 			} else {
 				[[NSWorkspace sharedWorkspace] launchApplication:app.bundleURL.path];
 			}
+			return 0;
 		} else {
 			NSLog(@"Running application is not found! bundleId=%@", [[NSBundle mainBundle] bundleIdentifier]);
+			return -1;
 		}
 	}
 

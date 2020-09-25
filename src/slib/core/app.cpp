@@ -112,14 +112,14 @@ namespace slib
 		return m_arguments;
 	}
 
-	void Application::run(const String& commandLine)
+	sl_int32 Application::run(const String& commandLine)
 	{
 		m_commandLine = commandLine;
 		m_arguments = breakCommandLine(commandLine);
-		doRun();
+		return doRun();
 	}
 
-	void Application::run(int argc, const char* argv[])
+	sl_int32 Application::run(int argc, const char* argv[])
 	{
 		List<String> list;
 		for (int i = 0; i < argc; i++) {
@@ -131,20 +131,20 @@ namespace slib
 		}
 		m_arguments = list;
 		m_commandLine = buildCommandLine(list.getData(), list.getCount());
-		doRun();
+		return doRun();
 	}
 
-	void Application::run()
+	sl_int32 Application::run()
 	{
 #ifdef SLIB_PLATFORM_IS_WIN32
 		String commandLine = String::create(GetCommandLineW());
 		m_commandLine = commandLine;
 		m_arguments = breakCommandLine(commandLine);
 #endif
-		doRun();
+		return doRun();
 	}
 
-	void Application::doRun()
+	sl_int32 Application::doRun()
 	{
 		Application::setApp(this);
 		
@@ -155,8 +155,7 @@ namespace slib
 		if (instanceId.isNotEmpty()) {
 			m_uniqueInstance = GlobalUniqueInstance::create(instanceId);
 			if (m_uniqueInstance.isNull()) {
-				onExistingInstance();
-				return;
+				return onExistingInstance();
 			}
 		}
 		
@@ -166,9 +165,11 @@ namespace slib
 		
 #endif
 		
-		onRunApp();
+		sl_int32 iRet = onRunApp();
 		
 		dispatchQuitApp();
+
+		return iRet;
 		
 	}
 
@@ -184,9 +185,10 @@ namespace slib
 	{
 	}
 
-	void Application::onExistingInstance()
+	sl_int32 Application::onExistingInstance()
 	{
 		LogError("APP", "%s is ALREADY RUNNING", getUniqueInstanceId());
+		return -1;
 	}
 
 	sl_bool Application::isUniqueInstanceRunning()
