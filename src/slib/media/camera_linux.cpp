@@ -26,8 +26,15 @@
 
 #include "slib/media/camera.h"
 
+#include "slib/core/thread.h"
+#include "slib/core/log.h"
+
 #include <unistd.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/mman.h>
 
 #include "v4l/videodev2.h"
 
@@ -35,6 +42,12 @@
 #define DEFAULT_BUFFER_COUNT 4
 
 #define TAG "Camera_v4l2"
+#ifdef SLIB_DEBUG
+#define LOG_DEBUG(...) Log(TAG, ##__VA_ARGS__)
+#else
+#define LOG_DEBUG(...)
+#endif
+#define LOG_ERROR(...) LogError(TAG, ##__VA_ARGS__)
 
 namespace slib
 {
@@ -44,19 +57,15 @@ namespace slib
 		namespace camera
 		{
 			
-			static void LogError(const String& error)
-			{
-				Log(TAG, error);
-			}
-
 			struct FORMAT_MAPPING
 			{
 				__u32 v4l_fmt;
 				BitmapFormat fmt;
-			} g_formatMappings = {
+			} g_formatMappings[] = {
 				{ V4L2_PIX_FMT_BGR24, BitmapFormat::BGR },
 				{ V4L2_PIX_FMT_RGB24, BitmapFormat::RGB },
-				{ V4L2_PIX_FMT_YUV32, BitmapFormat::YUVA }
+				{ V4L2_PIX_FMT_YUV32, BitmapFormat::YUVA },
+				{ V4L2_PIX_FMT_YUYV, BitmapFormat::YUYV }
 			};
 
 			static sl_bool SetFormat(int handle, __u32 fmt, __u32 width, __u32 height, v4l2_format& format)
@@ -106,9 +115,9 @@ namespace slib
 					int iRet = ioctl(handle, VIDIOC_REQBUFS, &req);
 					if (iRet == -1) {
 						if (errno == EINVAL) {
-							LogError("Not support memory mapping");
+							LOG_ERROR("Not support memory mapping");
 						} else {
-							LogError("Failed to allocate request buffers");
+							LOG_ERROR("Failed to allocate request buffers");
 						}
 						return sl_null;
 					} else {
@@ -117,7 +126,7 @@ namespace slib
 					n--;
 				}
 				if (!n) {
-					LogError("Insufficient buffer memory");
+					LOG_ERROR("Insufficient buffer memory");
 					return sl_null;
 				}
 
@@ -134,7 +143,7 @@ namespace slib
 					buf.index = (__u32)i;
 					int iRet = ioctl(handle, VIDIOC_QUERYBUF, &buf);
 					if (iRet == -1) {
-						LogError("Failed to query buffer");
+						LOG_ERROR("Failed to query buffer");
 						return sl_null;
 					}
 					CaptureBuffer cbuf;
@@ -144,7 +153,7 @@ namespace slib
 					}
 					cbuf.start = mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, handle, buf.m.offset);
 					if (cbuf.start == MAP_FAILED) {
-						LogError("Failed mmap");
+						LOG_ERROR("Failed mmap");
 						return sl_null;
 					}
 					ret.add_NoLock(cbuf);
@@ -156,12 +165,14 @@ namespace slib
 				}
 
 				for (i = 0; i < n; i++) {
+					v4l2_buffer buf;
+					Base::zeroMemory(&buf, sizeof(buf));
 					buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 					buf.memory = V4L2_MEMORY_MMAP;
 					buf.index = (__u32)i;
 					int iRet = ioctl(handle, VIDIOC_QBUF, &buf);
 					if (iRet == -1) {
-						LogError("Failed to queue buffer");
+						LOG_ERROR("Failed to queue buffer");
 						return sl_null;
 					}
 				}
@@ -211,7 +222,7 @@ namespace slib
 								CameraInfo info;
 								info.id = id;
 								info.name = path;
-								info.description = String::fromUtf8(cap.card, Base::getStringLength(cap.card, sizeof(cap.card)));
+								info.description = String::fromUtf8(cap.card, Base::getStringLength((sl_char8*)(cap.card), sizeof(cap.card)));
 								ret.add_NoLock(info);
 							}
 							::close(handle);
@@ -244,17 +255,32 @@ namespace slib
 									if (iRet != -1) {
 										__u32 width = format.fmt.pix.width;
 										__u32 height = format.fmt.pix.height;
-										BitmapFormat bitmapFormat = GetBitmapFormat(format.fmt.pix.pixelformat);
+										__u32 pixelFormatOriginal = format.fmt.pix.pixelformat;
+										BitmapFormat bitmapFormat = GetBitmapFormat(pixelFormatOriginal);
 										if (bitmapFormat == BitmapFormat::None) {
-											sl_size n = CountOfArray(g_formatMappings);
-											for (sl_size i = 0; i < n; i++) {
-												if (SetFormat(handle, g_formatMappings[i].v4l_fmt, width, height, format) {
-													bitmapFormat = g_formatMappings[i].fmt;
+											LOG_DEBUG("Not supported video format: %c%c%c%c, Trying other video formats supported by driver.", SLIB_GET_BYTE0(pixelFormatOriginal), SLIB_GET_BYTE1(pixelFormatOriginal), SLIB_GET_BYTE2(pixelFormatOriginal), SLIB_GET_BYTE3(pixelFormatOriginal));
+											for (sl_uint32 i = 0; ; i++) {
+												v4l2_fmtdesc fd;
+												Base::zeroMemory(&fd, sizeof(fd));
+												fd.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+												fd.index = (__u32)i;
+												iRet = ioctl(handle, VIDIOC_ENUM_FMT, &fd);
+												if (iRet == -1) {
 													break;
+												}
+												LOG_DEBUG("Checking video format: %c%c%c%c", SLIB_GET_BYTE0(fd.pixelformat), SLIB_GET_BYTE1(fd.pixelformat), SLIB_GET_BYTE2(fd.pixelformat), SLIB_GET_BYTE3(fd.pixelformat));
+												bitmapFormat = GetBitmapFormat(fd.pixelformat);
+												if (bitmapFormat != BitmapFormat::None) {
+													if (SetFormat(handle, fd.pixelformat, width, height, format)) {
+														break;
+													} else {
+														LOG_DEBUG("Cannot support video format: %c%c%c%c", SLIB_GET_BYTE0(fd.pixelformat), SLIB_GET_BYTE1(fd.pixelformat), SLIB_GET_BYTE2(fd.pixelformat), SLIB_GET_BYTE3(fd.pixelformat));
+													}
 												}
 											}
 										}
 										if (bitmapFormat != BitmapFormat::None) {
+											LOG_DEBUG("Selected video format: %c%c%c%c", SLIB_GET_BYTE0(format.fmt.pix.pixelformat), SLIB_GET_BYTE1(format.fmt.pix.pixelformat), SLIB_GET_BYTE2(format.fmt.pix.pixelformat), SLIB_GET_BYTE3(format.fmt.pix.pixelformat));
 											Memory bufFrame;
 											List<CaptureBuffer> buffers = AllocateBuffers(handle, bufFrame);
 											if (buffers.isNotEmpty()) {
@@ -278,23 +304,23 @@ namespace slib
 														return ret;
 													}
 												} else {
-													LogError("Failed to start streaming");
+													LOG_ERROR("Failed to start streaming");
 												}
 											}
 										} else {
-											LogError("Cannot support video format");
+											LOG_ERROR("Cannot support video format: %c%c%c%c", SLIB_GET_BYTE0(pixelFormatOriginal), SLIB_GET_BYTE1(pixelFormatOriginal), SLIB_GET_BYTE2(pixelFormatOriginal), SLIB_GET_BYTE3(pixelFormatOriginal));
 										}
 									} else {
-										LogError("Failed to get format");
+										LOG_ERROR("Failed to get format");
 									}
 								} else {
-									LogError("Failed to get video device index");
+									LOG_ERROR("Failed to get video device index");
 								}
 							} else {
 								if (iRet != -1) {
-									LogError("Device does not support video capture capability");
+									LOG_ERROR("Device does not support video capture capability");
 								} else {
-									LogError("Failed to get device capability");
+									LOG_ERROR("Failed to get device capability");
 								}
 							}
 						}
@@ -315,7 +341,7 @@ namespace slib
 				
 				sl_bool isOpened() override
 				{
-					return m_handle != =1;
+					return m_handle != 1;
 				}
 				
 				void start() override
@@ -358,24 +384,24 @@ namespace slib
 								if (!(buf.flags & (V4L2_BUF_FLAG_QUEUED | V4L2_BUF_FLAG_DONE))) {
 									iRet = ioctl(handle, VIDIOC_QBUF, &buf);
 									if (iRet == -1) {
-										LogError("Failed to queue buffer #1");
+										LOG_ERROR("Failed to queue buffer #1");
 										return sl_false;
 									}
 								}
 								return sl_true;
 						}
-						LogError("Failed to dequeue buffer");
+						LOG_ERROR("Failed to dequeue buffer");
 						return sl_false;
 					}
 
 					if (buf.index >= m_nBuffers) {
-						LogError("Invalid buffer index");
+						LOG_ERROR("Invalid buffer index");
 						return sl_false;
 					}
 
 					void* pData = m_bufFrame.getData();
 					Base::copyMemory(pData, m_pBuffers[buf.index].start, m_pBuffers[buf.index].length);
-					
+
 					VideoCaptureFrame frame;
 					frame.image.width = (sl_uint32)(m_format.fmt.pix.width);
 					frame.image.height = (sl_uint32)(m_format.fmt.pix.height);
@@ -385,7 +411,7 @@ namespace slib
 
 					iRet = ioctl(handle, VIDIOC_QBUF, &buf);
 					if (iRet == -1) {
-						LogError("Failed to queue buffer #2");
+						LOG_ERROR("Failed to queue buffer #2");
 						return sl_false;
 					}
 					return sl_true;
@@ -397,7 +423,7 @@ namespace slib
 					if (thread.isNull()) {
 						return;
 					}
-					if (thread->isNotStopping()) {
+					while (thread->isNotStopping()) {
 						if (!(_runStep())) {
 							return;
 						}
