@@ -183,6 +183,12 @@ namespace slib
 			GdkWindow *window
 		)
 		#define gdk_window_get_display slib::gdk::getApi_gdk_window_get_display()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_x11_display_get_xdisplay,
+			Display *, ,
+			GdkDisplay  *display
+		)
+		#define gdk_x11_display_get_xdisplay slib::gdk::getApi_gdk_x11_display_get_xdisplay()
 	SLIB_IMPORT_LIBRARY_END
 
 }

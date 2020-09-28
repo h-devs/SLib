@@ -139,11 +139,12 @@ namespace slib
 						auto func_drawable_get_xdisplay = gdk::getApi_gdk_x11_drawable_get_xdisplay();
 						auto func_window_get_drawable_impl = gdk::getApi_gdk_x11_window_get_drawable_impl();
 						if (func_drawable_get_xdisplay && func_window_get_drawable_impl) {
-							xdisplay = func_drawable_get_xdisplay(func_window_get_drawable_impl(gwindow)))
+							xdisplay = func_drawable_get_xdisplay(func_window_get_drawable_impl(gwindow));
 						} else {
 							auto func_window_get_display = gdk::getApi_gdk_window_get_display();
-							if (func_window_get_display) {
-								xdisplay = GDK_DISPLAY_XDISPLAY(func_window_get_display(gwindow));
+							auto func_display_get_xdisplay = gdk::getApi_gdk_x11_display_get_xdisplay();
+							if (func_window_get_display &&func_display_get_xdisplay) {
+								xdisplay = func_display_get_xdisplay(func_window_get_display(gwindow));
 							}
 						}
 						if (xdisplay) {
