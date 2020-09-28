@@ -177,6 +177,12 @@ namespace slib
 			GdkWindow *window
 		)
 		#define gdk_x11_window_get_drawable_impl slib::gdk::getApi_gdk_x11_window_get_drawable_impl()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_window_get_display,
+			GdkDisplay *, ,
+			GdkWindow *window
+		)
+		#define gdk_window_get_display slib::gdk::getApi_gdk_window_get_display()
 	SLIB_IMPORT_LIBRARY_END
 
 }
