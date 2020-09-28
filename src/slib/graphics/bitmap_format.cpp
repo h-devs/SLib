@@ -83,10 +83,6 @@ namespace slib
 				return BitmapFormat::ABGR;
 			case BitmapFormat::RGBA_PLANAR_PA:
 				return BitmapFormat::RGBA_PLANAR;
-			case BitmapFormat::YUVA_PA:
-				return BitmapFormat::YUVA;
-			case BitmapFormat::YUVA_PLANAR_PA:
-				return BitmapFormat::YUVA_PLANAR;
 			default:
 				break;
 		}
@@ -106,10 +102,6 @@ namespace slib
 				return BitmapFormat::ABGR_PA;
 			case BitmapFormat::RGBA_PLANAR:
 				return BitmapFormat::RGBA_PLANAR_PA;
-			case BitmapFormat::YUVA:
-				return BitmapFormat::YUVA_PA;
-			case BitmapFormat::YUVA_PLANAR:
-				return BitmapFormat::YUVA_PLANAR_PA;
 			default:
 				break;
 		}
@@ -123,14 +115,12 @@ namespace slib
 				return BitmapFormat::RGBA;
 			case BitmapFormat::YUVA_PLANAR:
 				return BitmapFormat::RGBA_PLANAR;
-			case BitmapFormat::YUVA_PA:
-				return BitmapFormat::RGBA_PA;
-			case BitmapFormat::YUVA_PLANAR_PA:
-				return BitmapFormat::RGBA_PLANAR_PA;
 			case BitmapFormat::YUV444:
 				return BitmapFormat::RGB;
 			case BitmapFormat::YUV444_PLANAR:
 				return BitmapFormat::RGB_PLANAR;
+			case BitmapFormat::YUYV:
+				return BitmapFormat::PRIV_YUYV_COMPATIBLE_RGB;
 			default:
 				break;
 		}
