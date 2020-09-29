@@ -119,8 +119,6 @@ namespace slib
 				return BitmapFormat::RGB;
 			case BitmapFormat::YUV444_PLANAR:
 				return BitmapFormat::RGB_PLANAR;
-			case BitmapFormat::YUYV:
-				return BitmapFormat::PRIV_YUYV_COMPATIBLE_RGB;
 			default:
 				break;
 		}

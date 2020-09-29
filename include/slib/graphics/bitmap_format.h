@@ -91,10 +91,6 @@ namespace slib
 		// 24 bit formats
 		YUV444 =			SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 1, 24, 24, 0x88),
 
-		// 16 bit formats
-		YUYV = SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 1, 16, 16, 0x8A),
-		PRIV_YUYV_COMPATIBLE_RGB = SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::RGB, 0, 0, 1, 16, 16, 0x8B),
-
 		// planar formats
 		YUVA_PLANAR =		SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 1, 0, 4, 8, 32, 0x82),
 		YUV444_PLANAR =	SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 3, 8, 24, 0x89),
@@ -103,7 +99,11 @@ namespace slib
 		YUV_I420 =			SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 3, 0, 12, 0xB0), // 8 bit Y plane followed by 8 bit 2x2 subsampled U and V planes
 		YUV_YV12 =			SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 3, 0, 12, 0xB1), // 8 bit Y plane followed by 8 bit 2x2 subsampled V and U planes
 		YUV_NV21 =			SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 2, 0, 12, 0xB2), // 8-bit Y plane followed by an interleaved V/U plane with 2x2 subsampling (Android camera standard)
-		YUV_NV12 =			SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 2, 0, 12, 0xB3) // 8-bit Y plane followed by an interleaved U/V plane with 2x2 subsampling
+		YUV_NV12 =			SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 2, 0, 12, 0xB3), // 8-bit Y plane followed by an interleaved U/V plane with 2x2 subsampling
+
+		// YUV422 formats
+		YUYV = SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 1, 16, 16, 0xC0)  // Y8 U8 Y8 V8
+
 	};
 	
 	

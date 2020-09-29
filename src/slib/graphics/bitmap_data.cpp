@@ -392,8 +392,6 @@ namespace slib
 			case BitmapFormat::RGB565LE:
 			case BitmapFormat::BGR565BE:
 			case BitmapFormat::BGR565LE:
-			case BitmapFormat::YUYV:
-			case BitmapFormat::PRIV_YUYV_COMPATIBLE_RGB:
 				if (buffers) {
 					for (int i = 0; i < 3; i++) {
 						buffers[i].width = bd.width;
@@ -582,10 +580,6 @@ namespace slib
 	{
 		namespace bitmap_data
 		{
-			
-#define COLOR_PROC_DEFINE_PARAMS_PLANES1 sl_uint8*& p0, sl_int32 stride0, sl_uint8*& p1, sl_int32 stride1, sl_uint8*& p2, sl_int32 stride2, sl_uint8*& p3, sl_int32 stride3
-#define COLOR_READ_PROC_DEFINE_PARAMS1 COLOR_PROC_DEFINE_PARAMS_PLANES, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a
-#define COLOR_WRITE_PROC_DEFINE_PARAMS1 COLOR_PROC_DEFINE_PARAMS_PLANES, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a
 
 			class RGBA_PROC
 			{
@@ -1013,46 +1007,6 @@ namespace slib
 				}
 			};
 
-			class YUYV_PROC
-			{
-			public:
-				static constexpr sl_int32 BytesPerSample = 2;
-				
-				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
-				{
-					YUV::convertYUVToRGB((p[0] & 0xF0) | (p[1] >> 4), (p[0] & 15) << 4, (p[1] & 15) << 4, r, g, b);
-					a = 255;
-				}
-				
-				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
-				{
-					sl_uint8 y, u, v;
-					YUV::convertRGBToYUV(r, g, b, y, u, v);
-					p[0] = (y & 0xF0) | (u >> 4);
-					p[1] = ((y & 15) << 4) | (v >> 4);
-				}
-			};
-
-			class PRIV_YUYV_COMPATIBLE_RGB_PROC
-			{
-			public:
-				static constexpr sl_int32 BytesPerSample = 2;
-				
-				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
-				{
-					r = (p[0] & 0xF0) | (p[1] >> 4);
-					g = (p[0] & 15) << 4;
-					b = (p[1] & 15) << 4;
-					a = 255;
-				}
-				
-				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
-				{
-					p[0] = (r & 0xF0) | (g >> 4);
-					p[1] = ((r & 15) << 4) | (g >> 4);
-				}
-			};
-
 			class RGBA_PLANAR_PROC
 			{
 			public:
@@ -1170,13 +1124,11 @@ namespace slib
 	CASE(RGB565LE) \
 	CASE(BGR565BE) \
 	CASE(BGR565LE) \
-	CASE(GRAY8) \
-	CASE(PRIV_YUYV_COMPATIBLE_RGB)
+	CASE(GRAY8)
 
 #define CASES_FOR_NORMAL_YUV(CASE) \
 	CASE(YUVA) \
-	CASE(YUV444) \
-	CASE(YUYV)
+	CASE(YUV444)
 	
 #define CASES_FOR_NORMAL(CASE) \
 	CASES_FOR_NORMAL_RGB(CASE) \
@@ -1551,9 +1503,6 @@ namespace slib
 					case BitmapFormat::YUV444:
 						CopyPixels_YUV420ToYUVNormal_Step1<RGB_PROC>(width, height, src, dst, dst_pitch, dst_sample_stride);
 						break;
-					case BitmapFormat::YUYV:
-						CopyPixels_YUV420ToYUVNormal_Step1<YUYV_PROC>(width, height, src, dst, dst_pitch, dst_sample_stride);
-						break;
 					default:
 						break;
 				}
@@ -1841,11 +1790,8 @@ namespace slib
 					case BitmapFormat::YUVA:
 						CopyPixels_YUVNormalToYUV420_Step1<RGBA_PROC>(width, height, src, src_sample_stride, src_sample_stride, dst);
 						break;
-				case BitmapFormat::YUV444:
+					case BitmapFormat::YUV444:
 						CopyPixels_YUVNormalToYUV420_Step1<RGB_PROC>(width, height, src, src_sample_stride, src_sample_stride, dst);
-						break;
-				case BitmapFormat::YUYV:
-						CopyPixels_YUVNormalToYUV420_Step1<YUYV_PROC>(width, height, src, src_sample_stride, src_sample_stride, dst);
 						break;
 					default:
 						break;
