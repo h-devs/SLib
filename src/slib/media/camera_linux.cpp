@@ -429,9 +429,9 @@ namespace slib
 						if (!(_runStep())) {
 							return;
 						}
-						sl_uint32 dt = (sl_uint32)(t.getEllipsedMillseconds());
-						if (dt < 10) {
-							Thread::sleep(10 - dt);
+						sl_uint32 dt = (sl_uint32)(t.getElapsedMilliseconds());
+						if (dt < 30) {
+							Thread::sleep(30 - dt);
 						}
 						t.reset();
 					}
