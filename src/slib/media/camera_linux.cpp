@@ -27,6 +27,7 @@
 #include "slib/media/camera.h"
 
 #include "slib/core/thread.h"
+#include "slib/core/time.h"
 #include "slib/core/log.h"
 
 #include <unistd.h>
@@ -423,11 +424,16 @@ namespace slib
 					if (thread.isNull()) {
 						return;
 					}
+					TimeCounter t;
 					while (thread->isNotStopping()) {
 						if (!(_runStep())) {
 							return;
 						}
-						Thread::sleep(10);
+						sl_uint32 dt = (sl_uint32)(t.getEllipsedMillseconds());
+						if (dt < 10) {
+							Thread::sleep(10 - dt);
+						}
+						t.reset();
 					}
 				}
 				
