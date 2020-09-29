@@ -134,6 +134,8 @@ namespace slib
 
 		static sl_bool isYUV_420(BitmapFormat format);
 
+		static sl_bool isYUV_422(BitmapFormat format);
+
 	};
 
 }

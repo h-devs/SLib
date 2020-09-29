@@ -70,6 +70,11 @@ namespace slib
 		return (((sl_uint32)format) & 0xF0) == 0xB0;
 	}
 
+	sl_bool BitmapFormats::isYUV_422(BitmapFormat format)
+	{
+		return (((sl_uint32)format) & 0xF0) == 0xC0;
+	}
+
 	BitmapFormat BitmapFormats::getNonPrecomputedAlphaFormat(BitmapFormat format)
 	{
 		switch (format) {
