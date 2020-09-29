@@ -2774,9 +2774,9 @@ namespace slib
 					sl_uint8* row_src = (sl_uint8*)(src_comp.data);
 					sl_uint8* row_dst = (sl_uint8*)(dst_comp.data);
 					for (sl_uint32 i = 0; i < h; i++) {
-						sl_uint8* d = row_src;
-						sl_uint8* s0 = row_dst;
-						sl_uint8* s1 = row_dst + dst_comp.pitch;
+						sl_uint8* s0 = row_src;
+						sl_uint8* s1 = row_src+ dst_comp.pitch;
+						sl_uint8* d = row_dst;
 						for (sl_uint32 j = 0; j < w; j++) {
 							*d = (sl_uint8)(((sl_uint32)(*s0) + (sl_uint32)(*s1)) >> 1);
 							s0 += src_comp.sampleStride;
