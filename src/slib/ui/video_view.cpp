@@ -335,6 +335,7 @@ namespace slib
 		if (canvas) {
 			_renderFrame(canvas);
 		} else {
+			m_flagAllowYUV = sl_false;
 			_drawFrame(_canvas);
 		}
 	}
