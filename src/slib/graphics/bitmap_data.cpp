@@ -2236,22 +2236,13 @@ namespace slib
 					dst_row += dst_pitch; \
 				}
 
-				if (components[0].sampleStride == 1) {
-					if (components[1].sampleStride == 1 && components[2].sampleStride == 1) {
-						if (dst_sample_stride == TargetProc::BytesPerSample) {
-							__SUB(TargetProc::BytesPerSample, 1, 1, 1)
-						} else {
-							__SUB(dst_sample_stride, 1, 1, 1)
-						}
-						return;
-					} else if (components[1].sampleStride == 2 && components[2].sampleStride == 2) {
-						if (dst_sample_stride == TargetProc::BytesPerSample) {
-							__SUB(TargetProc::BytesPerSample, 1, 2, 2)
-						} else {
-							__SUB(dst_sample_stride, 1, 2, 2)
-						}
-						return;
+				if (components[0].sampleStride == 2 && components[1].sampleStride == 4 && components[2].sampleStride == 4) {
+					if (dst_sample_stride == TargetProc::BytesPerSample) {
+						__SUB(TargetProc::BytesPerSample, 2, 4, 4)
+					} else {
+						__SUB(dst_sample_stride, 2, 4, 4)
 					}
+					return;
 				}
 				{
 					__SUB(dst_sample_stride, components[0].sampleStride, components[1].sampleStride, components[2].sampleStride)
@@ -2312,22 +2303,13 @@ namespace slib
 					dst_row3 += dst_pitches[3]; \
 				}
 
-				if (components[0].sampleStride == 1) {
-					if (components[1].sampleStride == 1 && components[2].sampleStride == 1) {
-						if (IsPackedPlanar(dst_planes, dst_sample_strides)) {
-							__SUB(1, 1, 1, 1, 1, 1, 1)
-						} else {
-							__SUB(dst_sample_strides[0], dst_sample_strides[1], dst_sample_strides[2], dst_sample_strides[3], 1, 1, 1)
-						}
-						return;
-					} else if (components[1].sampleStride == 2 && components[2].sampleStride == 2) {
-						if (IsPackedPlanar(dst_planes, dst_sample_strides)) {
-							__SUB(1, 1, 1, 1, 1, 2, 2)
-						} else {
-							__SUB(dst_sample_strides[0], dst_sample_strides[1], dst_sample_strides[2], dst_sample_strides[3], 1, 2, 2)
-						}
-						return;
+				if (components[0].sampleStride == 2 && components[1].sampleStride == 4 && components[2].sampleStride == 4) {
+					if (IsPackedPlanar(dst_planes, dst_sample_strides)) {
+						__SUB(1, 1, 1, 1, 2, 4, 4)
+					} else {
+						__SUB(dst_sample_strides[0], dst_sample_strides[1], dst_sample_strides[2], dst_sample_strides[3], 2, 4, 4)
 					}
+					return;
 				}
 				{
 					__SUB(dst_sample_strides[0], dst_sample_strides[1], dst_sample_strides[2], dst_sample_strides[3], components[0].sampleStride, components[1].sampleStride, components[2].sampleStride)
@@ -2491,22 +2473,13 @@ namespace slib
 					src_row += src_pitch; \
 				}
 
-				if (components[0].sampleStride == 1) {
-					if (components[1].sampleStride == 1 && components[2].sampleStride == 1) {
-						if (src_sample_stride == SourceProc::BytesPerSample) {
-							__SUB(SourceProc::BytesPerSample, 1, 1, 1)
-						} else {
-							__SUB(src_sample_stride, 1, 1, 1)
-						}
-						return;
-					} else if (components[1].sampleStride == 2 && components[2].sampleStride == 2) {
-						if (src_sample_stride == SourceProc::BytesPerSample) {
-							__SUB(SourceProc::BytesPerSample, 1, 2, 2)
-						} else {
-							__SUB(src_sample_stride, 1, 2, 2)
-						}
-						return;
+				if (components[0].sampleStride == 2 && components[1].sampleStride == 4 && components[2].sampleStride == 4) {
+					if (src_sample_stride == SourceProc::BytesPerSample) {
+						__SUB(SourceProc::BytesPerSample, 2, 4, 4)
+					} else {
+						__SUB(src_sample_stride, 2, 4, 4)
 					}
+					return;
 				}
 				{
 					__SUB(src_sample_stride, components[0].sampleStride, components[1].sampleStride, components[2].sampleStride)
@@ -2572,22 +2545,13 @@ namespace slib
 					src_row3 += src_pitches[3]; \
 				}
 
-				if (components[0].sampleStride == 1) {
-					if (components[1].sampleStride == 1 && components[2].sampleStride == 1) {
-						if (IsPackedPlanar(src_planes, src_sample_strides)) {
-							__SUB(1, 1, 1, 1, 1, 1, 1)
-						} else {
-							__SUB(src_sample_strides[0], src_sample_strides[1], src_sample_strides[2], src_sample_strides[3], 1, 1, 1)
-						}
-						return;
-					} else if (components[1].sampleStride == 2 && components[2].sampleStride == 2) {
-						if (IsPackedPlanar(src_planes, src_sample_strides)) {
-							__SUB(1, 1, 1, 1, 1, 2, 2)
-						} else {
-							__SUB(src_sample_strides[0], src_sample_strides[1], src_sample_strides[2], src_sample_strides[3], 1, 2, 2)
-						}
-						return;
+				if (components[0].sampleStride == 2 && components[1].sampleStride == 4 && components[2].sampleStride == 4) {
+					if (IsPackedPlanar(src_planes, src_sample_strides)) {
+						__SUB(1, 1, 1, 1, 2, 4, 4)
+					} else {
+						__SUB(src_sample_strides[0], src_sample_strides[1], src_sample_strides[2], src_sample_strides[3], 2, 4, 4)
 					}
+					return;
 				}
 				{
 					__SUB(src_sample_strides[0], src_sample_strides[1], src_sample_strides[2], src_sample_strides[3], components[0].sampleStride, components[1].sampleStride, components[2].sampleStride)
