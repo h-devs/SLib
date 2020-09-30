@@ -1201,4 +1201,58 @@ sl_bool UIEvent::is##NAME##Key() const \
 		return g_currentDragContext;
 	}
 
+#if !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_MACOS)
+	sl_bool UI::checkKeyPressed(Keycode key)
+	{
+		return sl_false;
+	}
+
+	sl_bool UI::checkScrollLockOn()
+	{
+		return sl_false;
+	}
+
+	sl_bool UI::checkNumLockOn()
+	{
+		return sl_false;
+	}
+
+	sl_bool UI::checkLeftButtonPressed()
+	{
+		return sl_false;
+	}
+
+	sl_bool UI::checkRightButtonPressed()
+	{
+		return sl_false;
+	}
+
+	sl_bool UI::checkMiddleButtonPressed()
+	{
+		return sl_false;
+	}
+#endif
+
+#if !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_GTK)
+	sl_bool UI::checkCapsLockOn()
+	{
+		return sl_false;
+	}
+
+	UIPoint UI::getCursorPos()
+	{
+		return UIPoint(0, 0);
+	}
+#endif
+
+#if !defined(SLIB_UI_IS_WIN32)
+	void UI::sendKeyEvent(UIAction action, Keycode key)
+	{
+	}
+
+	void UI::sendMouseEvent(UIAction action, sl_ui_pos x, sl_ui_pos y, sl_bool flagAbsolutePos)
+	{
+	}
+#endif
+
 }

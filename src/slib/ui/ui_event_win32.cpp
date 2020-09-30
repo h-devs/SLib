@@ -265,7 +265,7 @@ namespace slib
 	UIPoint UI::getCursorPos()
 	{
 		POINT pt;
-		::GetCursorPos(&pt);
+		GetCursorPos(&pt);
 		return UIPoint((sl_ui_pos)(pt.x), (sl_ui_pos)(pt.y));
 	}
 
@@ -282,6 +282,79 @@ namespace slib
 	sl_bool UI::checkMiddleButtonPressed()
 	{
 		return (GetAsyncKeyState(VK_MBUTTON) & 0x8000) != 0;
+	}
+
+	void UI::sendKeyEvent(UIAction action, Keycode key)
+	{
+		INPUT input;
+		Base::zeroMemory(&input, sizeof(input));
+		input.type = INPUT_KEYBOARD;
+		input.ki.wVk = UIEvent::getSystemKeycode(key);
+		if (!(input.ki.wVk)) {
+			return;
+		}
+		switch (action) {
+		case UIAction::KeyDown:
+			break;
+		case UIAction::KeyUp:
+			input.ki.dwFlags = KEYEVENTF_KEYUP;
+			break;
+		default:
+			return;
+		}
+		SendInput(1, &input, sizeof(input));
+	}
+
+	void UI::sendMouseEvent(UIAction action, sl_ui_pos x, sl_ui_pos y, sl_bool flagAbsolutePos)
+	{
+		INPUT input;
+		Base::zeroMemory(&input, sizeof(input));
+		input.type = INPUT_MOUSE;
+		input.mi.dx = (LONG)x;
+		input.mi.dy = (LONG)y;
+		switch (action) {
+		case UIAction::LeftButtonDown:
+			input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+			break;
+		case UIAction::LeftButtonUp:
+			input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+			break;
+		case UIAction::RightButtonDown:
+			input.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
+			break;
+		case UIAction::RightButtonUp:
+			input.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
+			break;
+		case UIAction::MiddleButtonDown:
+			input.mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
+			break;
+		case UIAction::MiddleButtonUp:
+			input.mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
+			break;
+		case UIAction::MouseMove:
+			input.mi.dwFlags = MOUSEEVENTF_MOVE;
+			break;
+		case UIAction::MouseWheel:
+			input.mi.dx = 0;
+			input.mi.dy = 0;
+			flagAbsolutePos = sl_false;
+			if (y) {
+				input.mi.dwFlags = MOUSEEVENTF_WHEEL;
+				input.mi.mouseData = y;
+			} else if (x) {
+				input.mi.dwFlags = 0x01000; // MOUSEEVENTF_HWHEEL;
+				input.mi.mouseData = x;
+			} else {
+				return;
+			}
+			break;
+		default:
+			return;
+		}
+		if (flagAbsolutePos) {
+			input.mi.dwFlags |= MOUSEEVENTF_ABSOLUTE;
+		}
+		SendInput(1, &input, sizeof(input));
 	}
 
 	void UIPlatform::applyEventModifiers(UIEvent* ev)

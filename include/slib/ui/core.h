@@ -168,7 +168,6 @@ namespace slib
 		
 
 		// HID related functions (Platform Specific)
-#if defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_MACOS)
 		static sl_bool checkKeyPressed(Keycode key);
 
 		static sl_bool checkScrollLockOn();
@@ -180,14 +179,15 @@ namespace slib
 		static sl_bool checkRightButtonPressed();
 
 		static sl_bool checkMiddleButtonPressed();				
-#endif
 		
-#if defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_GTK)
 		static sl_bool checkCapsLockOn();
 		
 		static UIPoint getCursorPos();
-#endif
-		
+
+		static void sendKeyEvent(UIAction action, Keycode key);
+
+		static void sendMouseEvent(UIAction action, sl_ui_pos x, sl_ui_pos y, sl_bool flagAbsolutePos = sl_true);
+
 		// UI Thread
 		static sl_bool isUiThread();
 		
