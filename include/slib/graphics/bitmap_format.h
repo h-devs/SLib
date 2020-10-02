@@ -102,7 +102,8 @@ namespace slib
 		YUV_NV12 =			SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 2, 0, 12, 0xB3), // 8-bit Y plane followed by an interleaved U/V plane with 2x2 subsampling
 
 		// YUV422 formats
-		YUYV = SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 1, 16, 16, 0xC0)  // Y8 U8 Y8 V8
+		YUYV = SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 1, 16, 16, 0xC0),  // Y8 U8 Y8 V8
+		UYVY = SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 1, 16, 16, 0xC1)  // U8 Y8 V8 Y8
 
 	};
 	

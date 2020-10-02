@@ -593,6 +593,29 @@ namespace slib
 				buffers[2].pitch = bd.pitch;
 				buffers[2].ref = bd.ref;
 				return 3;
+			case BitmapFormat::UYVY:
+				if (bd.width & 1) {
+					return 0;
+				}
+				buffers[0].width = bd.width;
+				buffers[0].height = bd.height;
+				buffers[0].sampleStride = bd.sampleStride;
+				buffers[0].data = ((sl_uint8*)(bd.data)) + 1;
+				buffers[0].pitch = bd.pitch;
+				buffers[0].ref = bd.ref;
+				buffers[1].width = bd.width >> 1;
+				buffers[1].height = bd.height;
+				buffers[1].sampleStride = bd.sampleStride << 1;
+				buffers[1].data = bd.data;
+				buffers[1].pitch = bd.pitch;
+				buffers[1].ref = bd.ref;
+				buffers[2].width = bd.width >> 1;
+				buffers[2].height = bd.height;
+				buffers[2].sampleStride = bd.sampleStride << 1;
+				buffers[2].data = ((sl_uint8*)(bd.data)) + 2;
+				buffers[2].pitch = bd.pitch;
+				buffers[2].ref = bd.ref;
+				return 3;
 			default:
 				break;
 		}
