@@ -629,6 +629,7 @@ namespace slib
 					if (object->m_flagInitialized) {
 						return object->onFrame(outputData);
 					}
+					return 0;
 				}
 			};
 
