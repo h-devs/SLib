@@ -69,8 +69,8 @@ namespace slib
 				{ V4L2_PIX_FMT_YUV32, BitmapFormat::YUVA },
 				{ V4L2_PIX_FMT_YUYV, BitmapFormat::YUYV },
 				{ V4L2_PIX_FMT_UYVY, BitmapFormat::UYVY },
-				{ V4L2_PIX_FMT_NV12, BitmapFormat::NV12 },
-				{ V4L2_PIX_FMT_NV21, BitmapFormat::NV21 }
+				{ V4L2_PIX_FMT_NV12, BitmapFormat::YUV_NV12 },
+				{ V4L2_PIX_FMT_NV21, BitmapFormat::YUV_NV21 }
 			};
 
 			static sl_bool SetFormat(int handle, __u32 fmt, __u32 width, __u32 height, v4l2_format& format)
@@ -471,7 +471,7 @@ namespace slib
 						if (BitmapFormats::getPlanesCount(m_bitmapFormat) == 1) {
 							frame.image.pitch = size / frame.image.height;
 						}
-						if (frame.image.getTotalSize() > size) {
+						if (frame.image.getTotalSize() <= size) {
 							onCaptureVideoFrame(frame);
 						}
 					}
