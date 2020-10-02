@@ -35,6 +35,8 @@
 #import <CoreMedia/CoreMedia.h>
 
 #define TAG "Camera"
+#define LOG_ERROR(...) LogError(TAG, ##__VA_ARGS__)
+#define LOG_NSERROR(...) LogNSError(__VA_ARGS__)
 
 namespace slib
 {
@@ -73,6 +75,11 @@ namespace slib
 	
 		namespace camera
 		{
+			
+			static void LogNSError(const String& error, NSError* err)
+			{
+				LOG_ERROR("%s: [%s]", error, Apple::getStringFromNSString([err localizedDescription]));
+			}
 			
 			class GlobalContext
 			{
@@ -133,7 +140,7 @@ namespace slib
 					
 					AVCaptureDevice* device = _selectDevice(param.deviceId);
 					if (device == nil) {
-						logError("Camera is not found: " + param.deviceId);
+						LOG_ERROR("Camera is not found: %s", param.deviceId);
 						return sl_null;
 					}
 #if defined(SLIB_PLATFORM_IS_IOS)
@@ -146,13 +153,13 @@ namespace slib
 					NSError* error;
 					AVCaptureDeviceInput* input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
 					if (input == nil) {
-						logError("Failed to create AVCaptureDeviceInput", error);
+						LOG_NSERROR("Failed to create AVCaptureDeviceInput", error);
 						return sl_null;
 					}
 					
 					AVCaptureSession *session = [[AVCaptureSession alloc] init];
 					if (!([session canAddInput:input])) {
-						logError("Can not add input to session");
+						LOG_ERROR("Can not add input to session");
 						return sl_null;
 					}
 					[session addInput:input];
@@ -192,8 +199,11 @@ namespace slib
 					}
 					
 					Ref<CameraImpl> ret = new CameraImpl();
+					
 					if (ret.isNotNull()) {
+						
 						callback->m_camera = ret;
+						
 						ret->m_callback = callback;
 						ret->m_device = device;
 						ret->m_session = session;
@@ -209,8 +219,10 @@ namespace slib
 						if (param.flagAutoStart) {
 							ret->start();
 						}
+						
 						return ret;
 					}
+					
 					return sl_null;
 				}
 				
@@ -597,14 +609,6 @@ namespace slib
 				}
 #endif
 				
-				static void logError(const String& error) {
-					Log(TAG, error);
-				}
-				
-				static void logError(const String& error, NSError* err) {
-					Log(TAG, "%s: [%s]", error, Apple::getStringFromNSString([err localizedDescription]));
-				}
-				
 			};
 		}
 		
@@ -722,7 +726,7 @@ previewPhotoSampleBuffer:(CMSampleBufferRef)previewPhotoSampleBuffer
 				error:(NSError *)error
 {
 	if (error != nil) {
-		NSLog(@"%@", error.localizedDescription);
+		LOG_NSERROR("Failed to capture", error);
 	}
 	Ref<CameraImpl> camera(m_camera);
 	if (camera.isNotNull()) {
@@ -743,7 +747,7 @@ didFinishProcessingPhoto:(AVCapturePhoto *)photo
 		return;
 	}
 	if (error != nil) {
-		NSLog(@"%@", error.localizedDescription);
+		LOG_NSERROR("Failed to capture", error);
 	}
 	Ref<CameraImpl> camera(m_camera);
 	if (camera.isNotNull()) {

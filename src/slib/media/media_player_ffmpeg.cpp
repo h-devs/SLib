@@ -32,6 +32,7 @@ extern "C" {
 }
 
 #define TAG "FFmpeg"
+#define LOG_ERROR(...) LogError(TAG, ##__VA_ARGS__)
 
 #define VIDEO_BACK_FRAMES_COUNT 10
 
@@ -256,16 +257,16 @@ namespace slib
 					}
 
 					if (0 < avformat_open_input(&m_format, m_url.getData(), NULL, NULL)) {
-						_logError(String::format("Failed to open url: %s", m_url));
+						LOG_ERROR("Failed to open url: %s", m_url);
 						return;
 					}
 					if (!m_format) {
-						_logError(String::format("Failed to open url: %s", m_url));
+						LOG_ERROR("Failed to open url: %s", m_url);
 						return;
 					}
 					
 					if (avformat_find_stream_info(m_format, NULL) < 0) {
-						_logError(String::format("Failed to open find stream info: %s", m_url));
+						LOG_ERROR("Failed to open find stream info: %s", m_url);
 						return;
 					}
 					AVCodec* codecAudio = NULL;
@@ -278,7 +279,7 @@ namespace slib
 						if (m_codecAudio) {
 							avcodec_parameters_to_context(m_codecAudio, m_format->streams[m_streamAudio]->codecpar);
 							if (avcodec_open2(m_codecAudio, codecAudio, NULL) < 0) {
-								_logError(String::format("Cannot open audio codec: %s", codecAudio->name));
+								LOG_ERROR("Cannot open audio codec: %s", codecAudio->name);
 								avcodec_free_context(&m_codecAudio);
 							} else {
 								m_frameAudio = av_frame_alloc();
@@ -294,7 +295,7 @@ namespace slib
 						if (m_codecVideo) {
 							avcodec_parameters_to_context(m_codecVideo, m_format->streams[m_streamVideo]->codecpar);
 							if (avcodec_open2(m_codecVideo, codecVideo, NULL) < 0) {
-								_logError(String::format("Cannot open video codec: %s", codecVideo->name));
+								LOG_ERROR("Cannot open video codec: %s", codecVideo->name);
 								avcodec_free_context(&m_codecVideo);
 							}
 						}
@@ -603,11 +604,6 @@ namespace slib
 						m_packetToSend = sl_null;
 					}
 					return sl_true;
-				}
-				
-				static void _logError(const String& str)
-				{
-					LogError(TAG, str);
 				}
 				
 				static void _getVideoFrame(AVFrame* af, VideoFrame& vf)

@@ -264,16 +264,13 @@
 		26D9D97B1E964675005F7BD3 /* audio_codec.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4A51C11940A00D47AB0 /* audio_codec.cpp */; };
 		26D9D97C1E964675005F7BD3 /* audio_data.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26D028641C48847E0083F1F3 /* audio_data.cpp */; };
 		26D9D97D1E964675005F7BD3 /* audio_format.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4A61C11940A00D47AB0 /* audio_format.cpp */; };
-		26D9D97E1E964675005F7BD3 /* audio_player.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4A71C11940A00D47AB0 /* audio_player.cpp */; };
-		26D9D9811E964675005F7BD3 /* audio_player_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4AC1C11940A00D47AB0 /* audio_player_macos.mm */; };
-		26D9D9821E964675005F7BD3 /* audio_recorder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4AE1C11940A00D47AB0 /* audio_recorder.cpp */; };
-		26D9D9851E964675005F7BD3 /* audio_recorder_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4B31C11940A00D47AB0 /* audio_recorder_macos.mm */; };
+		26D9D97E1E964675005F7BD3 /* audio_device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4A71C11940A00D47AB0 /* audio_device.cpp */; };
+		26D9D9811E964675005F7BD3 /* audio_device_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4AC1C11940A00D47AB0 /* audio_device_macos.mm */; };
 		26D9D9861E964675005F7BD3 /* audio_util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26694BF61C9AB4330047E67C /* audio_util.cpp */; };
 		26D9D9871E964675005F7BD3 /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4B51C11940A00D47AB0 /* camera.cpp */; };
 		26D9D9881E964675005F7BD3 /* camera_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26D8AC891E393CE50092EB81 /* camera_apple.mm */; };
 		26D9D98A1E964675005F7BD3 /* codec_opus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4B71C11940A00D47AB0 /* codec_opus.cpp */; };
 		26D9D98B1E964675005F7BD3 /* codec_vpx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4B81C11940A00D47AB0 /* codec_vpx.cpp */; };
-		26D9D98C1E964675005F7BD3 /* media_platform_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4BA1C11940A00D47AB0 /* media_platform_macos.mm */; };
 		26D9D98D1E964675005F7BD3 /* media_player.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26D8AC8D1E393F010092EB81 /* media_player.cpp */; };
 		26D9D98E1E964675005F7BD3 /* media_player_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26D8AC8C1E393F010092EB81 /* media_player_apple.mm */; };
 		26D9D98F1E964675005F7BD3 /* video_capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4BB1C11940A00D47AB0 /* video_capture.cpp */; };
@@ -760,15 +757,11 @@
 		266DD4A01C1193DB00D47AB0 /* int128.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = int128.cpp; sourceTree = "<group>"; };
 		266DD4A51C11940A00D47AB0 /* audio_codec.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_codec.cpp; sourceTree = "<group>"; };
 		266DD4A61C11940A00D47AB0 /* audio_format.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_format.cpp; sourceTree = "<group>"; };
-		266DD4A71C11940A00D47AB0 /* audio_player.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_player.cpp; sourceTree = "<group>"; };
-		266DD4AC1C11940A00D47AB0 /* audio_player_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = audio_player_macos.mm; sourceTree = "<group>"; };
-		266DD4AE1C11940A00D47AB0 /* audio_recorder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_recorder.cpp; sourceTree = "<group>"; };
-		266DD4B31C11940A00D47AB0 /* audio_recorder_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = audio_recorder_macos.mm; sourceTree = "<group>"; };
+		266DD4A71C11940A00D47AB0 /* audio_device.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_device.cpp; sourceTree = "<group>"; };
+		266DD4AC1C11940A00D47AB0 /* audio_device_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = audio_device_macos.mm; sourceTree = "<group>"; };
 		266DD4B51C11940A00D47AB0 /* camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = camera.cpp; sourceTree = "<group>"; };
 		266DD4B71C11940A00D47AB0 /* codec_opus.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = codec_opus.cpp; sourceTree = "<group>"; };
 		266DD4B81C11940A00D47AB0 /* codec_vpx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = codec_vpx.cpp; sourceTree = "<group>"; };
-		266DD4B91C11940A00D47AB0 /* media_platform_macos.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = media_platform_macos.h; sourceTree = "<group>"; };
-		266DD4BA1C11940A00D47AB0 /* media_platform_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = media_platform_macos.mm; sourceTree = "<group>"; };
 		266DD4BB1C11940A00D47AB0 /* video_capture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = video_capture.cpp; sourceTree = "<group>"; };
 		266DD4BC1C11940A00D47AB0 /* video_codec.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = video_codec.cpp; sourceTree = "<group>"; };
 		266DD4BE1C11940A00D47AB0 /* dns.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dns.cpp; sourceTree = "<group>"; };
@@ -1372,18 +1365,14 @@
 			children = (
 				266DD4A51C11940A00D47AB0 /* audio_codec.cpp */,
 				26D028641C48847E0083F1F3 /* audio_data.cpp */,
+				266DD4A71C11940A00D47AB0 /* audio_device.cpp */,
+				266DD4AC1C11940A00D47AB0 /* audio_device_macos.mm */,
 				266DD4A61C11940A00D47AB0 /* audio_format.cpp */,
-				266DD4A71C11940A00D47AB0 /* audio_player.cpp */,
-				266DD4AC1C11940A00D47AB0 /* audio_player_macos.mm */,
-				266DD4AE1C11940A00D47AB0 /* audio_recorder.cpp */,
-				266DD4B31C11940A00D47AB0 /* audio_recorder_macos.mm */,
 				26694BF61C9AB4330047E67C /* audio_util.cpp */,
 				266DD4B51C11940A00D47AB0 /* camera.cpp */,
 				26D8AC891E393CE50092EB81 /* camera_apple.mm */,
 				266DD4B71C11940A00D47AB0 /* codec_opus.cpp */,
 				266DD4B81C11940A00D47AB0 /* codec_vpx.cpp */,
-				266DD4B91C11940A00D47AB0 /* media_platform_macos.h */,
-				266DD4BA1C11940A00D47AB0 /* media_platform_macos.mm */,
 				26D8AC8D1E393F010092EB81 /* media_player.cpp */,
 				26D8AC8C1E393F010092EB81 /* media_player_apple.mm */,
 				26DA4B38223980B500706393 /* media_player_ffmpeg.cpp */,
@@ -2111,7 +2100,6 @@
 				26E1B875222ABA51007C222E /* pngset.c in Sources */,
 				26D9D9C51E96468D005F7BD3 /* list_control_macos.mm in Sources */,
 				26E1B887222ABAB2007C222E /* jcmarker.c in Sources */,
-				26D9D9851E964675005F7BD3 /* audio_recorder_macos.mm in Sources */,
 				26D9D8FB1E9645CE005F7BD3 /* atomic.cpp in Sources */,
 				263D478B2386E1BD00DAC43F /* chat_client.cpp in Sources */,
 				26D9D9AF1E964683005F7BD3 /* render_engine.cpp in Sources */,
@@ -2199,7 +2187,6 @@
 				26D9D9A21E96467B005F7BD3 /* socket_address.cpp in Sources */,
 				26D9D9C11E96468D005F7BD3 /* label_view.cpp in Sources */,
 				26A3DA8E228A08D40031CBDA /* chacha.cpp in Sources */,
-				26D9D98C1E964675005F7BD3 /* media_platform_macos.mm in Sources */,
 				26E1B884222ABAB2007C222E /* jchuff.c in Sources */,
 				26E1B883222ABAB2007C222E /* jcdctmgr.c in Sources */,
 				26E1B865222A8250007C222E /* infback.c in Sources */,
@@ -2321,7 +2308,6 @@
 				2628EAE621C410E500D8CD00 /* base64.cpp in Sources */,
 				26D9D9211E9645CE005F7BD3 /* view_frustum.cpp in Sources */,
 				26D9D9AC1E964683005F7BD3 /* render_base.cpp in Sources */,
-				26D9D9821E964675005F7BD3 /* audio_recorder.cpp in Sources */,
 				26D9D9EA1E96468D005F7BD3 /* view.cpp in Sources */,
 				26D9D9221E9645CE005F7BD3 /* variant.cpp in Sources */,
 				26987D1323B3F7E300872C1D /* alipay_sdk.cpp in Sources */,
@@ -2346,7 +2332,7 @@
 				26D9D9C31E96468D005F7BD3 /* linear_layout.cpp in Sources */,
 				26E1B895222ABAB2007C222E /* jddctmgr.c in Sources */,
 				26446D66249377BE00430AC5 /* list_box.cpp in Sources */,
-				26D9D97E1E964675005F7BD3 /* audio_player.cpp in Sources */,
+				26D9D97E1E964675005F7BD3 /* audio_device.cpp in Sources */,
 				26D9D9B41E96468D005F7BD3 /* button.cpp in Sources */,
 				2614723623944E6D00F7CD0C /* wechat.cpp in Sources */,
 				2628EACE21C157A800D8CD00 /* regex.cpp in Sources */,
@@ -2487,7 +2473,7 @@
 				26D9D98E1E964675005F7BD3 /* media_player_apple.mm in Sources */,
 				26D9D9931E96467B005F7BD3 /* dns.cpp in Sources */,
 				26C795BC2215F9C70053C5A1 /* drawables.cpp in Sources */,
-				26D9D9811E964675005F7BD3 /* audio_player_macos.mm in Sources */,
+				26D9D9811E964675005F7BD3 /* audio_device_macos.mm in Sources */,
 				26D9D9431E9645CE005F7BD3 /* file_unix.cpp in Sources */,
 				26D9D9441E9645CE005F7BD3 /* line3.cpp in Sources */,
 				26D9D9451E9645CE005F7BD3 /* object.cpp in Sources */,
