@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -66,7 +67,10 @@ namespace slib
 				{ V4L2_PIX_FMT_BGR24, BitmapFormat::BGR },
 				{ V4L2_PIX_FMT_RGB24, BitmapFormat::RGB },
 				{ V4L2_PIX_FMT_YUV32, BitmapFormat::YUVA },
-				{ V4L2_PIX_FMT_YUYV, BitmapFormat::YUYV }
+				{ V4L2_PIX_FMT_YUYV, BitmapFormat::YUYV },
+				{ V4L2_PIX_FMT_UYVY, BitmapFormat::UYVY },
+				{ V4L2_PIX_FMT_NV12, BitmapFormat::NV12 },
+				{ V4L2_PIX_FMT_NV21, BitmapFormat::NV21 }
 			};
 
 			static sl_bool SetFormat(int handle, __u32 fmt, __u32 width, __u32 height, v4l2_format& format)
@@ -102,6 +106,19 @@ namespace slib
 				void* start;
 				sl_uint32 length;
 			};
+
+			static void ReleaseBuffers(int handle, CaptureBuffer* buffers, sl_uint32 nBuffers)
+			{
+				for (sl_uint32 i = 0; i < nBuffers; i++) {
+					munmap(buffers[i].start, buffers[i].length);
+				}
+				v4l2_requestbuffers req;
+				Base::zeroMemory(&req, sizeof(req));
+				req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+				req.memory = V4L2_MEMORY_MMAP;
+				req.count = 0;
+				ioctl(handle, VIDIOC_REQBUFS, &req);
+			}
 
 			static List<CaptureBuffer> AllocateBuffers(int handle, Memory& bufFrame)
 			{
@@ -145,6 +162,7 @@ namespace slib
 					int iRet = ioctl(handle, VIDIOC_QUERYBUF, &buf);
 					if (iRet == -1) {
 						LOG_ERROR("Failed to query buffer");
+						ReleaseBuffers(handle, ret.getData(), (sl_uint32)(ret.getCount()));
 						return sl_null;
 					}
 					CaptureBuffer cbuf;
@@ -155,6 +173,7 @@ namespace slib
 					cbuf.start = mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, handle, buf.m.offset);
 					if (cbuf.start == MAP_FAILED) {
 						LOG_ERROR("Failed mmap");
+						ReleaseBuffers(handle, ret.getData(), (sl_uint32)(ret.getCount()));
 						return sl_null;
 					}
 					ret.add_NoLock(cbuf);
@@ -162,6 +181,8 @@ namespace slib
 
 				bufFrame = Memory::create(sizeMax);
 				if (bufFrame.isNull()) {
+					LOG_ERROR("Failed to allocate memory");
+					ReleaseBuffers(handle, ret.getData(), (sl_uint32)(ret.getCount()));
 					return sl_null;
 				}
 
@@ -174,10 +195,33 @@ namespace slib
 					int iRet = ioctl(handle, VIDIOC_QBUF, &buf);
 					if (iRet == -1) {
 						LOG_ERROR("Failed to queue buffer");
+						ReleaseBuffers(handle, ret.getData(), (sl_uint32)(ret.getCount()));
 						return sl_null;
 					}
 				}
 				return ret;
+			}
+
+			static void FlushBuffers(int handle)
+			{
+				v4l2_buffer buf;
+				for (sl_uint32 i = 0; i < DEFAULT_BUFFER_COUNT; i++) {
+					Base::zeroMemory(&buf, sizeof(buf));
+					buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+					buf.memory = V4L2_MEMORY_MMAP;
+					int iRet = ioctl(handle, VIDIOC_DQBUF, &buf);
+					if (iRet == -1) {
+						return;
+					}
+					iRet = ioctl(handle, VIDIOC_QBUF, &buf);
+				}
+			}
+
+			static void ReleaseCapture(int handle, CaptureBuffer* buffers, sl_uint32 nBuffers)
+			{
+				__u32 type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+				ioctl(handle, VIDIOC_STREAMOFF, &type);
+				ReleaseBuffers(handle, buffers, nBuffers);
 			}
 
 			class CameraImpl : public Camera
@@ -234,8 +278,18 @@ namespace slib
 
 				static Ref<CameraImpl> _create(const CameraParam& param)
 				{
-					String path = "/dev/video" + param.deviceId;
-					int handle = ::open(path.getData(), O_RDWR | O_NONBLOCK, 0);
+					int handle;
+					if (param.deviceId.isNotNull()) {
+						String path = "/dev/video" + param.deviceId;
+						handle = ::open(path.getData(), O_RDWR | O_NONBLOCK, 0);
+					} else {
+						struct stat st;
+						if (0 == stat("/dev/video", &st)) {
+							handle = ::open("/dev/video", O_RDWR | O_NONBLOCK, 0);
+						} else {
+							handle = ::open("/dev/video0", O_RDWR | O_NONBLOCK, 0);
+						}
+					}
 					if (handle != -1) {
 						v4l2_capability cap;
 						Base::zeroMemory(&cap, sizeof(cap));
@@ -285,11 +339,11 @@ namespace slib
 											Memory bufFrame;
 											List<CaptureBuffer> buffers = AllocateBuffers(handle, bufFrame);
 											if (buffers.isNotEmpty()) {
-												__u32 type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-												iRet = ioctl(handle, VIDIOC_STREAMON, &type);
-												if (iRet != -1) {
-													Ref<CameraImpl> ret = new CameraImpl;
-													if (ret.isNotNull()) {
+												Ref<CameraImpl> ret = new CameraImpl;
+												if (ret.isNotNull()) {
+													__u32 type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+													iRet = ioctl(handle, VIDIOC_STREAMON, &type);
+													if (iRet != -1) {
 														ret->m_handle = handle;
 														ret->m_cap = cap;
 														ret->m_format = format;
@@ -303,9 +357,9 @@ namespace slib
 															ret->start();
 														}
 														return ret;
+													} else {
+														LOG_ERROR("Failed to start streaming");
 													}
-												} else {
-													LOG_ERROR("Failed to start streaming");
 												}
 											}
 										} else {
@@ -332,9 +386,13 @@ namespace slib
 
 				void release() override
 				{
+					if (m_handle == -1) {
+						return;
+					}
 					ObjectLocker lock(this);
 					stop();
 					if (m_handle != -1) {
+						ReleaseCapture(m_handle, m_pBuffers, m_nBuffers);
 						::close(m_handle);
 						m_handle = -1;
 					}
@@ -401,14 +459,22 @@ namespace slib
 					}
 
 					void* pData = m_bufFrame.getData();
-					Base::copyMemory(pData, m_pBuffers[buf.index].start, m_pBuffers[buf.index].length);
+					sl_uint32 size = m_pBuffers[buf.index].length;
+					Base::copyMemory(pData, m_pBuffers[buf.index].start, size);
 
 					VideoCaptureFrame frame;
 					frame.image.width = (sl_uint32)(m_format.fmt.pix.width);
 					frame.image.height = (sl_uint32)(m_format.fmt.pix.height);
-					frame.image.format = m_bitmapFormat;
-					frame.image.data = pData;
-					onCaptureVideoFrame(frame);
+					if (frame.image.width && frame.image.height) {
+						frame.image.format = m_bitmapFormat;
+						frame.image.data = pData;
+						if (BitmapFormats::getPlanesCount(m_bitmapFormat) == 1) {
+							frame.image.pitch = size / frame.image.height;
+						}
+						if (frame.image.getTotalSize() > size) {
+							onCaptureVideoFrame(frame);
+						}
+					}
 
 					iRet = ioctl(handle, VIDIOC_QBUF, &buf);
 					if (iRet == -1) {
@@ -424,6 +490,7 @@ namespace slib
 					if (thread.isNull()) {
 						return;
 					}
+					FlushBuffers(m_handle);
 					TimeCounter t;
 					while (thread->isNotStopping()) {
 						if (!(_runStep())) {
