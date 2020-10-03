@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -66,6 +66,7 @@ namespace slib
 				{
 					if (m_flagInitialized) {
 						release();
+						m_flagInitialized = sl_false;
 					}
 				}
 				
@@ -155,11 +156,11 @@ namespace slib
 												
 												ret->_init(param);
 												
+												ret->m_flagInitialized = sl_true;
+												
 												if (param.flagAutoStart) {
 													ret->start();
 												}
-												
-												ret->m_flagInitialized = sl_true;
 												
 												return ret;
 												
@@ -300,7 +301,10 @@ namespace slib
 											AudioBufferList *ioData)
 				{
 					AudioRecorderImpl* object = (AudioRecorderImpl*)(inRefCon);
-					
+					if (!(object->m_flagInitialized)) {
+						return 0;
+					}
+
 					AudioStreamBasicDescription& format = object->m_formatSrc;
 					UInt32 nChannels = format.mChannelsPerFrame;
 					UInt32 nSize = format.mBytesPerFrame * inNumberFrames;
@@ -364,6 +368,7 @@ namespace slib
 				{
 					if (m_flagInitialized) {
 						release();
+						m_flagInitialized = sl_false;
 					}
 				}
 				
@@ -453,12 +458,12 @@ namespace slib
 												
 												ret->_init(param);
 												
+												ret->m_flagInitialized = sl_true;
+
 												if (param.flagAutoStart) {
 													ret->start();
 												}
 												
-												ret->m_flagInitialized = sl_true;
-
 												return ret;
 												
 											} else {
@@ -560,7 +565,7 @@ namespace slib
 											   AudioBufferList             *ioData)
 				{
 					AudioPlayerBufferImpl* object = (AudioPlayerBufferImpl*)(inRefCon);
-					if (object) {
+					if (object && object->m_flagInitialized) {
 						return object->onFrame(inNumberFrames, ioData);
 					} else {
 						return 500;

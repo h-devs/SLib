@@ -440,34 +440,10 @@
     <ClCompile Include="..\..\src\slib\media\audio_format.cpp">
       <Filter>src\media</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_player.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_player_dsound.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_player_win32.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_recorder.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_recorder_dsound.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_recorder_win32.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\media\audio_util.cpp">
       <Filter>src\media</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\media\camera.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\camera_dshow.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\camera_win32.cpp">
       <Filter>src\media</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\media\codec_opus.cpp">
@@ -1483,6 +1459,15 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\service_win32.cpp">
       <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\media\audio_device.cpp">
+      <Filter>src\media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\media\audio_device_win32.cpp">
+      <Filter>src\media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\media\camera_win32.cpp">
+      <Filter>src\media</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

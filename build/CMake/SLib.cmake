@@ -266,9 +266,8 @@ set (SLIB_EXTRA_FILES
  
  "${SLIB_PATH}/src/slib/media/audio_codec.cpp"
  "${SLIB_PATH}/src/slib/media/audio_data.cpp"
+ "${SLIB_PATH}/src/slib/media/audio_device.cpp"
  "${SLIB_PATH}/src/slib/media/audio_format.cpp"
- "${SLIB_PATH}/src/slib/media/audio_player.cpp"
- "${SLIB_PATH}/src/slib/media/audio_recorder.cpp"
  "${SLIB_PATH}/src/slib/media/audio_util.cpp"
  "${SLIB_PATH}/src/slib/media/camera.cpp"
  "${SLIB_PATH}/src/slib/media/codec_opus.cpp"
@@ -426,10 +425,7 @@ if(ANDROID)
   "${SLIB_PATH}/src/slib/graphics/graphics_path_android.cpp"
   "${SLIB_PATH}/src/slib/graphics/pen_android.cpp"
 
-  "${SLIB_PATH}/src/slib/media/audio_player_opensl_es.cpp"
-  "${SLIB_PATH}/src/slib/media/audio_recorder_opensl_es.cpp"
-  "${SLIB_PATH}/src/slib/media/audio_player_android.cpp"
-  "${SLIB_PATH}/src/slib/media/audio_recorder_android.cpp"
+  "${SLIB_PATH}/src/slib/media/audio_device_android.cpp"
   "${SLIB_PATH}/src/slib/media/camera_android.cpp"
   "${SLIB_PATH}/src/slib/media/media_player_android.cpp"
 
@@ -482,8 +478,7 @@ else ()
 
   "${SLIB_PATH}/src/slib/render/opengl_glx.cpp"
 
-  "${SLIB_PATH}/src/slib/media/audio_player_linux.cpp"
-  "${SLIB_PATH}/src/slib/media/audio_recorder_linux.cpp"
+  "${SLIB_PATH}/src/slib/media/audio_device_linux.cpp"
   "${SLIB_PATH}/src/slib/media/camera_linux.cpp"
   "${SLIB_PATH}/src/slib/media/media_player_linux.cpp"
 

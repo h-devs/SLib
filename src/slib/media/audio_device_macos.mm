@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -217,6 +217,7 @@ namespace slib
 				{
 					if (m_flagInitialized) {
 						release();
+						m_flagInitialized = sl_false;
 					}
 				}
 				
@@ -303,11 +304,11 @@ namespace slib
 									
 									ret->_init(param);
 									
+									ret->m_flagInitialized = sl_true;
+									
 									if (param.flagAutoStart) {
 										ret->start();
 									}
-									
-									ret->m_flagInitialized = sl_true;
 									
 									return ret;
 									
@@ -424,7 +425,9 @@ namespace slib
 											 void*                   inClientData)
 				{
 					AudioRecorderImpl* object = (AudioRecorderImpl*)(inClientData);
-					object->onFrame(inInputData);
+					if (object->m_flagInitialized) {
+						object->onFrame(inInputData);
+					}
 					return 0;
 				}
 				
@@ -453,6 +456,7 @@ namespace slib
 				{
 					if (m_flagInitialized) {
 						release();
+						m_flagInitialized = sl_false;
 					}
 				}
 
@@ -530,11 +534,11 @@ namespace slib
 
 									ret->_init(param);
 									
+									ret->m_flagInitialized = sl_true;
+									
 									if (param.flagAutoStart) {
 										ret->start();
 									}
-									
-									ret->m_flagInitialized = sl_true;
 									
 									return ret;
 									
@@ -622,8 +626,9 @@ namespace slib
 													void *clientData)
 				{
 					AudioPlayerBufferImpl* object = (AudioPlayerBufferImpl*)(clientData);
-					
-					return object->onFrame(outputData);
+					if (object->m_flagInitialized) {
+						return object->onFrame(outputData);
+					}
 				}
 			};
 

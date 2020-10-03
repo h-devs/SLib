@@ -43,7 +43,7 @@
 #define MAX_CAMERAS 8
 #define DEFAULT_BUFFER_COUNT 4
 
-#define TAG "Camera_v4l2"
+#define TAG "Camera"
 #ifdef SLIB_DEBUG
 #define LOG_DEBUG(...) Log(TAG, ##__VA_ARGS__)
 #else

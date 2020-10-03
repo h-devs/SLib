@@ -36,9 +36,6 @@
 #include "media/audio_codec.h"
 #include "media/video_codec.h"
 
-#include "media/opensl_es.h"
-#include "media/dsound.h"
-#include "media/dshow.h"
 #include "media/ffmpeg.h"
 
 #include "media/codec_opus.h"
