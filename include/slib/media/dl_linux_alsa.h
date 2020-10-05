@@ -27,7 +27,7 @@
 
 #if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 
-#include "dl.h"
+#include "../core/dl.h"
 
 #include "alsa/asoundlib.h"
 
@@ -90,7 +90,7 @@ namespace slib
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_hw_params_sizeof,
-			size_t
+			size_t, ,
 		)
 		#define snd_pcm_hw_params_sizeof slib::alsa::getApi_snd_pcm_hw_params_sizeof()
 
@@ -166,7 +166,7 @@ namespace slib
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_sw_params_sizeof,
-			size_t
+			size_t, ,
 		)
 		#define snd_pcm_sw_params_sizeof slib::alsa::getApi_snd_pcm_sw_params_sizeof()
 
@@ -214,25 +214,29 @@ namespace slib
 		
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_prepare,
-			int
+			int, ,
+			snd_pcm_t *pcm
 		)
 		#define snd_pcm_prepare slib::alsa::getApi_snd_pcm_prepare()
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_start,
-			int
+			int, ,
+			snd_pcm_t *pcm
 		)
 		#define snd_pcm_start slib::alsa::getApi_snd_pcm_start()
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_drop,
-			int
+			int, ,
+			snd_pcm_t *pcm
 		)
 		#define snd_pcm_drop slib::alsa::getApi_snd_pcm_drop()
 		
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_drain,
-			int
+			int, ,
+			snd_pcm_t *pcm
 		)
 		#define snd_pcm_drain slib::alsa::getApi_snd_pcm_drain()
 

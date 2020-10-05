@@ -83,9 +83,9 @@ namespace slib
 
 			static List<AudioDeviceInfo> GetAllDevices(sl_bool flagInput)
 			{
-				auto func_snd_device_name_hint = alsa::getApi_snd_device_name_hint();
-				auto func_snd_device_name_get_hint = alsa::getApi_snd_device_name_get_hint();
-				auto func_snd_device_name_free_hint = alsa::getApi_snd_device_name_free_hint();
+				auto func_snd_device_name_hint = slib::alsa::getApi_snd_device_name_hint();
+				auto func_snd_device_name_get_hint = slib::alsa::getApi_snd_device_name_get_hint();
+				auto func_snd_device_name_free_hint = slib::alsa::getApi_snd_device_name_free_hint();
 				if (func_snd_device_name_hint && func_snd_device_name_get_hint && func_snd_device_name_free_hint) {
 					// version 1.0.14 or later
 					ListElements<AudioDeviceInfo> cards = GetAllSoundCards();
@@ -120,7 +120,7 @@ namespace slib
 								}
 								for (sl_size i = 0; i < cards.count; i++) {
 									if (cards[i].name == s) {
-										ret.id = String::format("hw:%d,0", i);
+										info.id = String::format("hw:%d,0", i);
 										ret.add_NoLock(info);
 										break;
 									}
@@ -155,7 +155,7 @@ namespace slib
 				return sl_false;
 			}
 
-			static sl_bool SetHardwareParameters(snd_pcm_hw_params_t* hwparams, sl_uint32 nChannels, sl_uint32 sampleRate, sl_uint32 frameTime)
+			static sl_bool SetHardwareParameters(snd_pcm_t* handle, snd_pcm_hw_params_t* hwparams, sl_uint32 nChannels, sl_uint32 sampleRate, sl_uint32 frameTime)
 			{
 				int err = snd_pcm_hw_params_any(handle, hwparams);
 				if (err < 0) {
@@ -265,7 +265,7 @@ namespace slib
 						snd_pcm_hw_params_t* hwparams;
 						snd_pcm_hw_params_alloca(&hwparams);
 
-						if (SetHardwareParameters(hwparams, param.channelsCount, param.samplesPerSecond, param.frameLengthInMilliseconds)) {
+						if (SetHardwareParameters(handle, hwparams, param.channelsCount, param.samplesPerSecond, param.frameLengthInMilliseconds)) {
 							if (snd_pcm_hw_params(handle, hwparams) >= 0) {
 								
 								snd_pcm_sw_params_t* swparams;
@@ -311,7 +311,7 @@ namespace slib
 				
 				sl_bool _start() override
 				{
-					if (snd_pcm_prepare(handle) >= 0) {
+					if (snd_pcm_prepare(m_handle) >= 0) {
 						if (snd_pcm_start(m_handle) >= 0) {
 							m_thread = Thread::start(SLIB_FUNCTION_WEAKREF(AudioRecorderImpl, run, this));
 							if (m_thread.isNotNull()) {
@@ -330,7 +330,7 @@ namespace slib
 				{
 					if (m_thread.isNotNull()) {
 						m_thread->finishAndWait();
-						m_thread.stop();
+						m_thread.setNull();
 					}
 					if (snd_pcm_drain(m_handle) < 0) {
 						LOG_ERROR("Failed to stop");
@@ -344,7 +344,7 @@ namespace slib
 						return;
 					}
 
-					int handle = m_handle;
+					snd_pcm_t* handle = m_handle;
 					sl_uint32 nBytesPerFrame = (sl_uint32)(snd_pcm_frames_to_bytes(handle, 1));
 					
 					SLIB_SCOPED_BUFFER(sl_int16, 4096, buf, nBytesPerFrame)
@@ -409,7 +409,7 @@ namespace slib
 						snd_pcm_hw_params_t* hwparams;
 						snd_pcm_hw_params_alloca(&hwparams);
 
-						if (SetHardwareParameters(hwparams, param.channelsCount, param.samplesPerSecond, param.frameLengthInMilliseconds)) {
+						if (SetHardwareParameters(handle, hwparams, param.channelsCount, param.samplesPerSecond, param.frameLengthInMilliseconds)) {
 							if (snd_pcm_hw_params(handle, hwparams) >= 0) {
 								
 								snd_pcm_sw_params_t* swparams;
@@ -455,9 +455,9 @@ namespace slib
 				
 				sl_bool _start() override
 				{
-					if (snd_pcm_prepare(handle) >= 0) {
+					if (snd_pcm_prepare(m_handle) >= 0) {
 						if (snd_pcm_start(m_handle) >= 0) {
-							m_thread = Thread::start(SLIB_FUNCTION_WEAKREF(AudioRecorderImpl, run, this));
+							m_thread = Thread::start(SLIB_FUNCTION_WEAKREF(AudioPlayerImpl, run, this));
 							if (m_thread.isNotNull()) {
 								return sl_true;
 							}
@@ -474,7 +474,7 @@ namespace slib
 				{
 					if (m_thread.isNotNull()) {
 						m_thread->finishAndWait();
-						m_thread.stop();
+						m_thread.setNull();
 					}
 					if (snd_pcm_drain(m_handle) < 0) {
 						LOG_ERROR("Failed to stop");
@@ -488,7 +488,7 @@ namespace slib
 						return;
 					}
 
-					int handle = m_handle;
+					snd_pcm_t* handle = m_handle;
 					sl_uint32 nBytesPerFrame = (sl_uint32)(snd_pcm_frames_to_bytes(handle, 1));
 					
 					SLIB_SCOPED_BUFFER(sl_int16, 4096, buf, nBytesPerFrame)
@@ -526,7 +526,6 @@ namespace slib
 			public:
 				AudioPlayerDeviceImpl()
 				{
-					m_deviceID = 0;
 				}
 
 				~AudioPlayerDeviceImpl()
@@ -604,7 +603,7 @@ namespace slib
 	List<AudioPlayerInfo> AudioPlayerDevice::getPlayersList()
 	{
 		ListElements<AudioDeviceInfo> list(GetAllDevices(sl_false));
-		List<AudioRecorderInfo> ret;
+		List<AudioPlayerInfo> ret;
 		for (sl_size i = 0; i < list.count; i++) {
 			AudioPlayerInfo info;
 			info.id = list[i].id;
