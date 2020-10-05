@@ -314,25 +314,25 @@ namespace slib
 			};
 
 
-			class AudioPlayerImpl : public AudioPlayer
+			class AudioPlayerDeviceImpl : public AudioPlayerDevice
 			{
 			public:
 				LPDIRECTSOUND m_ds;
 				GUID m_deviceID;
 
 			public:
-				AudioPlayerImpl()
+				AudioPlayerDeviceImpl()
 				{
 					m_ds = NULL;
 				}
 
-				~AudioPlayerImpl()
+				~AudioPlayerDeviceImpl()
 				{
 					release();
 				}
 
 			public:
-				static Ref<AudioPlayerImpl> create(const AudioPlayerParam& param)
+				static Ref<AudioPlayerDeviceImpl> create(const AudioPlayerDeviceParam& param)
 				{
 					CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
@@ -360,7 +360,7 @@ namespace slib
 					if (SUCCEEDED(hr)) {
 						hr = ds->SetCooperativeLevel(GetDesktopWindow(), DSSCL_NORMAL);
 						if (SUCCEEDED(hr)) {
-							Ref<AudioPlayerImpl> ret = new AudioPlayerImpl();
+							Ref<AudioPlayerDeviceImpl> ret = new AudioPlayerDeviceImpl();
 							if (ret.isNotNull()) {
 								ret->m_deviceID = gid;
 								ret->m_ds = ds;
@@ -389,7 +389,7 @@ namespace slib
 					}
 				}
 
-				Ref<AudioPlayerBuffer> createBuffer(const AudioPlayerBufferParam& param) override;
+				Ref<AudioPlayer> createPlayer(const AudioPlayerParam& param) override;
 
 				struct DeviceProperty {
 					GUID guid;
@@ -423,10 +423,10 @@ namespace slib
 				}
 			};
 
-			class AudioPlayerBufferImpl : public AudioPlayerBuffer
+			class AudioPlayerImpl : public AudioPlayer
 			{
 			public:
-				Ref<AudioPlayerImpl> m_player;
+				Ref<AudioPlayerDeviceImpl> m_device;
 				LPDIRECTSOUNDBUFFER m_dsBuffer;
 				LPDIRECTSOUNDNOTIFY m_dsNotify;
 				HANDLE              m_hNotificationEvents[2];
@@ -439,7 +439,7 @@ namespace slib
 				Ref<Thread> m_thread;
 
 			public:
-				AudioPlayerBufferImpl()
+				AudioPlayerImpl()
 				{
 					m_nOffsetNextWrite = m_nNotifySize = 0;
 					m_dsBuffer = NULL;
@@ -449,13 +449,13 @@ namespace slib
 					m_thread.setNull();
 				}
 
-				~AudioPlayerBufferImpl()
+				~AudioPlayerImpl()
 				{
 					release();
 				}
 
 			public:
-				static Ref<AudioPlayerBufferImpl> create(const Ref<AudioPlayerImpl>& player, const AudioPlayerBufferParam& param)
+				static Ref<AudioPlayerImpl> create(const Ref<AudioPlayerDeviceImpl>& device, const AudioPlayerParam& param)
 				{
 					if (param.channelsCount != 1 && param.channelsCount != 2) {
 						return sl_null;
@@ -486,7 +486,7 @@ namespace slib
 					hNotificationEvents[0] = CreateEventW(NULL, FALSE, FALSE, NULL);
 					hNotificationEvents[1] = CreateEventW(NULL, FALSE, FALSE, NULL);
 
-					HRESULT hr = player->m_ds->CreateSoundBuffer(&desc, &dsBuffer, NULL);
+					HRESULT hr = device->m_ds->CreateSoundBuffer(&desc, &dsBuffer, NULL);
 
 					if (SUCCEEDED(hr)) {
 
@@ -513,10 +513,10 @@ namespace slib
 
 								if (SUCCEEDED(hr)) {
 
-									Ref<AudioPlayerBufferImpl> ret = new AudioPlayerBufferImpl();
+									Ref<AudioPlayerImpl> ret = new AudioPlayerImpl();
 
 									if (ret.isNotNull()) {
-										ret->m_player = player;
+										ret->m_device = device;
 										ret->m_dsBuffer = dsBuffer;
 										ret->m_dsNotify = dsNotify;
 										ret->m_nNotifySize = notifySize;
@@ -561,7 +561,7 @@ namespace slib
 					m_dsNotify->Release();
 					m_dsNotify = NULL;
 
-					m_player.setNull();
+					m_device.setNull();
 
 					for (int i = 0; i < 2; i++) {
 						CloseHandle(m_hNotificationEvents[i]);
@@ -570,7 +570,7 @@ namespace slib
 
 				sl_bool _start() override
 				{
-					m_thread = Thread::start(SLIB_FUNCTION_MEMBER(AudioPlayerBufferImpl, run, this));
+					m_thread = Thread::start(SLIB_FUNCTION_MEMBER(AudioPlayerImpl, run, this));
 					return m_thread.isNotNull();
 				}
 
@@ -616,9 +616,9 @@ namespace slib
 
 			};
 
-			Ref<AudioPlayerBuffer> AudioPlayerImpl::createBuffer(const AudioPlayerBufferParam& param)
+			Ref<AudioPlayer> AudioPlayerDeviceImpl::createPlayer(const AudioPlayerParam& param)
 			{
-				return AudioPlayerBufferImpl::create(this, param);
+				return AudioPlayerImpl::create(this, param);
 			}
 
 		}
@@ -646,17 +646,17 @@ namespace slib
 		return ret;
 	}
 
-	Ref<AudioPlayer> AudioPlayer::create(const AudioPlayerParam& param)
+	Ref<AudioPlayerDevice> AudioPlayerDevice::create(const AudioPlayerDeviceParam& param)
 	{
-		return AudioPlayerImpl::create(param);
+		return AudioPlayerDeviceImpl::create(param);
 	}
 
-	List<AudioPlayerInfo> AudioPlayer::getPlayersList()
+	List<AudioPlayerInfo> AudioPlayerDevice::getPlayersList()
 	{
 		List<AudioPlayerInfo> ret;
-		ListElements<AudioPlayerImpl::DeviceProperty> props(AudioPlayerImpl::queryDeviceInfos());
+		ListElements<AudioPlayerDeviceImpl::DeviceProperty> props(AudioPlayerDeviceImpl::queryDeviceInfos());
 		for (sl_size i = 0; i < props.count; i++) {
-			AudioPlayerImpl::DeviceProperty& prop = props[i];
+			AudioPlayerDeviceImpl::DeviceProperty& prop = props[i];
 			AudioPlayerInfo info;
 			info.id = prop.szGuid;
 			info.name = prop.name;

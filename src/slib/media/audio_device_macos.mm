@@ -434,7 +434,7 @@ namespace slib
 			};
 
 			
-			class AudioPlayerBufferImpl : public AudioPlayerBuffer
+			class AudioPlayerImpl : public AudioPlayer
 			{
 			public:
 				sl_bool m_flagInitialized;
@@ -447,12 +447,12 @@ namespace slib
 				AudioStreamBasicDescription m_formatDst;
 				
 			public:
-				AudioPlayerBufferImpl()
+				AudioPlayerImpl()
 				{
 					m_flagInitialized = sl_false;
 				}
 
-				~AudioPlayerBufferImpl()
+				~AudioPlayerImpl()
 				{
 					if (m_flagInitialized) {
 						release();
@@ -461,7 +461,7 @@ namespace slib
 				}
 
 			public:
-				static Ref<AudioPlayerBufferImpl> create(const AudioPlayerBufferParam& param, const AudioDeviceID deviceID)
+				static Ref<AudioPlayerImpl> create(const AudioDeviceID deviceID, const AudioPlayerParam& param)
 				{
 					if (param.channelsCount != 1 && param.channelsCount != 2) {
 						return sl_null;
@@ -518,7 +518,7 @@ namespace slib
 						
 						if (AudioObjectSetPropertyData(deviceID, &prop, 0, NULL, sizeValue, &sizeFrame) == kAudioHardwareNoError) {
 							
-							Ref<AudioPlayerBufferImpl> ret = new AudioPlayerBufferImpl();
+							Ref<AudioPlayerImpl> ret = new AudioPlayerImpl();
 							
 							if (ret.isNotNull()) {
 								
@@ -607,7 +607,7 @@ namespace slib
 											AudioStreamPacketDescription**  outDataPacketDescription,
 											void*                           inUserData)
 				{
-					AudioPlayerBufferImpl* object = (AudioPlayerBufferImpl*)inUserData;
+					AudioPlayerImpl* object = (AudioPlayerImpl*)inUserData;
 					object->onConvert(*ioNumberDataPackets, ioData);
 					return noErr;
 				}
@@ -625,7 +625,7 @@ namespace slib
 													const AudioTimeStamp* outputTime,
 													void *clientData)
 				{
-					AudioPlayerBufferImpl* object = (AudioPlayerBufferImpl*)(clientData);
+					AudioPlayerImpl* object = (AudioPlayerImpl*)(clientData);
 					if (object->m_flagInitialized) {
 						return object->onFrame(outputData);
 					}
@@ -633,23 +633,23 @@ namespace slib
 				}
 			};
 
-			class AudioPlayerImpl : public AudioPlayer
+			class AudioPlayerDeviceImpl : public AudioPlayerDevice
 			{
 			public:
 				AudioDeviceID m_deviceID;
 				
 			public:
-				AudioPlayerImpl()
+				AudioPlayerDeviceImpl()
 				{
 					m_deviceID = 0;
 				}
 
-				~AudioPlayerImpl()
+				~AudioPlayerDeviceImpl()
 				{
 				}
 				
 			public:
-				static Ref<AudioPlayerImpl> create(const AudioPlayerParam& param)
+				static Ref<AudioPlayerDeviceImpl> create(const AudioPlayerDeviceParam& param)
 				{
 					AudioDeviceInfo deviceInfo;
 					if (!(SelectDevice(deviceInfo, sl_false, param.deviceId))) {
@@ -657,7 +657,7 @@ namespace slib
 						return sl_null;
 					}
 
-					Ref<AudioPlayerImpl> ret = new AudioPlayerImpl();
+					Ref<AudioPlayerDeviceImpl> ret = new AudioPlayerDeviceImpl();
 					if (ret.isNotNull()) {
 						ret->m_deviceID = deviceInfo.id;
 						return ret;
@@ -665,12 +665,9 @@ namespace slib
 					return sl_null;
 				}
 				
-				Ref<AudioPlayerBuffer> createBuffer(const AudioPlayerBufferParam& param) override
+				Ref<AudioPlayer> createPlayer(const AudioPlayerParam& param) override
 				{
-					if (m_deviceID != 0) {
-						return AudioPlayerBufferImpl::create(param, m_deviceID);
-					}
-					return sl_null;
+					return AudioPlayerImpl::create(m_deviceID, param);
 				}
 				
 			};
@@ -699,12 +696,12 @@ namespace slib
 		return ret;
 	}
 
-	Ref<AudioPlayer> AudioPlayer::create(const AudioPlayerParam& param)
+	Ref<AudioPlayerDevice> AudioPlayerDevice::create(const AudioPlayerDeviceParam& param)
 	{
-		return AudioPlayerImpl::create(param);
+		return AudioPlayerDeviceImpl::create(param);
 	}
 
-	List<AudioPlayerInfo> AudioPlayer::getPlayersList()
+	List<AudioPlayerInfo> AudioPlayerDevice::getPlayersList()
 	{
 		ListElements<AudioDeviceInfo> list(GetAllDevices(sl_false));
 		List<AudioPlayerInfo> ret;

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@
 
 namespace slib
 {
+
 	class SLIB_EXPORT AudioPlayerInfo
 	{
 	public:
@@ -51,9 +52,21 @@ namespace slib
 		
 	};
 	
-	class AudioPlayerBuffer;
-	
-	class SLIB_EXPORT AudioPlayerBufferParam
+	class SLIB_EXPORT AudioPlayerDeviceParam
+	{
+	public:
+		String deviceId;
+
+	public:
+		AudioPlayerDeviceParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioPlayerDeviceParam)
+
+	};
+
+	class AudioPlayer;
+
+	class SLIB_EXPORT AudioPlayerParam : public AudioPlayerDeviceParam
 	{
 	public:
 		AudioStreamType streamType;
@@ -66,32 +79,30 @@ namespace slib
 		sl_bool flagAutoStart;
 		
 		// called before playing a frame
-		Function<void(AudioPlayerBuffer*, sl_uint32 samplesCount)> onPlayAudio;
+		Function<void(AudioPlayer*, sl_uint32 samplesCount)> onPlayAudio;
 		Ref<Event> event;
 		
 	public:
-		AudioPlayerBufferParam();
+		AudioPlayerParam();
 		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioPlayerBufferParam)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioPlayerParam)
 		
 	};
 	
-	class AudioPlayerParam;
-
-	class SLIB_EXPORT AudioPlayerBuffer : public Object
+	class SLIB_EXPORT AudioPlayer : public Object
 	{
 		SLIB_DECLARE_OBJECT
 		
 	protected:
-		AudioPlayerBuffer();
+		AudioPlayer();
 		
-		~AudioPlayerBuffer();
+		~AudioPlayer();
 		
-	public:
-		static Ref<AudioPlayerBuffer> create(const AudioPlayerParam& playerParam, const AudioPlayerBufferParam& bufferParam);
-		
-		static Ref<AudioPlayerBuffer> create(const AudioPlayerBufferParam& param);
-		
+	public:		
+		static Ref<AudioPlayer> create(const AudioPlayerParam& param);
+
+		static List<AudioPlayerInfo> getPlayersList();
+
 	public:
 		void release();
 		
@@ -111,7 +122,7 @@ namespace slib
 
 		void setMute(sl_bool flag);
 
-		const AudioPlayerBufferParam& getParam();
+		const AudioPlayerParam& getParam();
 
 		void write(const AudioData& audioPlay);
 
@@ -127,14 +138,14 @@ namespace slib
 		virtual void _stop() = 0;
 
 	protected:
-		void _init(const AudioPlayerBufferParam& param);
+		void _init(const AudioPlayerParam& param);
 		
 		Array<sl_int16> _getProcessData(sl_uint32 count);
 		
 		void _processFrame(sl_int16* s, sl_uint32 count);
 		
 	protected:
-		AudioPlayerBufferParam m_param;
+		AudioPlayerParam m_param;
 
 		sl_bool m_flagRunning;
 		sl_bool m_flagOpened;
@@ -148,36 +159,24 @@ namespace slib
 		AtomicArray<sl_int16> m_processData;
 	};
 	
-	class SLIB_EXPORT AudioPlayerParam
-	{
-	public:
-		String deviceId;
-		
-	public:
-		AudioPlayerParam();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioPlayerParam)
-		
-	};
-	
-	class SLIB_EXPORT AudioPlayer : public Object
+	class SLIB_EXPORT AudioPlayerDevice : public Object
 	{
 		SLIB_DECLARE_OBJECT
 		
 	public:
-		AudioPlayer();
+		AudioPlayerDevice();
 		
-		~AudioPlayer();
+		~AudioPlayerDevice();
 		
 	public:
-		static Ref<AudioPlayer> create(const AudioPlayerParam& param);
+		static Ref<AudioPlayerDevice> create(const AudioPlayerDeviceParam& param);
 		
-		static Ref<AudioPlayer> create();
+		static Ref<AudioPlayerDevice> create();
 
 		static List<AudioPlayerInfo> getPlayersList();
 		
 	public:
-		virtual Ref<AudioPlayerBuffer> createBuffer(const AudioPlayerBufferParam& param) = 0;
+		virtual Ref<AudioPlayer> createPlayer(const AudioPlayerParam& param) = 0;
 		
 	};	
 }

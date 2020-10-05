@@ -347,7 +347,7 @@ namespace slib
 			};
 			
 			
-			class AudioPlayerBufferImpl : public AudioPlayerBuffer
+			class AudioPlayerImpl : public AudioPlayer
 			{
 			public:
 				sl_bool m_flagInitialized;
@@ -359,12 +359,12 @@ namespace slib
 				AudioStreamBasicDescription m_formatDst;
 				
 			public:
-				AudioPlayerBufferImpl()
+				AudioPlayerImpl()
 				{
 					m_flagInitialized = sl_false;
 				}
 				
-				~AudioPlayerBufferImpl()
+				~AudioPlayerImpl()
 				{
 					if (m_flagInitialized) {
 						release();
@@ -373,7 +373,7 @@ namespace slib
 				}
 				
 			public:
-				static Ref<AudioPlayerBufferImpl> create(const AudioPlayerBufferParam& param)
+				static Ref<AudioPlayerImpl> create(const AudioPlayerParam& param)
 				{
 					if (param.channelsCount != 1 && param.channelsCount != 2) {
 						return sl_null;
@@ -431,7 +431,7 @@ namespace slib
 								AudioConverterRef converter;
 								if (AudioConverterNew(&formatSrc, &formatDst, &converter) == noErr) {
 									
-									Ref<AudioPlayerBufferImpl> ret = new AudioPlayerBufferImpl();
+									Ref<AudioPlayerImpl> ret = new AudioPlayerImpl();
 									
 									if (ret.isNotNull()) {
 										
@@ -545,7 +545,7 @@ namespace slib
 											  AudioStreamPacketDescription**  outDataPacketDescription,
 											  void*                           inUserData)
 				{
-					AudioPlayerBufferImpl* object = (AudioPlayerBufferImpl*)inUserData;
+					AudioPlayerImpl* object = (AudioPlayerImpl*)inUserData;
 					object->onConvert(*ioNumberDataPackets, ioData);
 					return noErr;
 				}
@@ -564,7 +564,7 @@ namespace slib
 											   UInt32                      inNumberFrames,
 											   AudioBufferList             *ioData)
 				{
-					AudioPlayerBufferImpl* object = (AudioPlayerBufferImpl*)(inRefCon);
+					AudioPlayerImpl* object = (AudioPlayerImpl*)(inRefCon);
 					if (object && object->m_flagInitialized) {
 						return object->onFrame(inNumberFrames, ioData);
 					} else {
@@ -574,32 +574,31 @@ namespace slib
 				
 			};
 			
-			class AudioPlayerImpl : public AudioPlayer
+			class AudioPlayerDeviceImpl : public AudioPlayerDevice
 			{
 			public:
-				AudioPlayerImpl()
+				AudioPlayerDeviceImpl()
 				{
 				}
 				
-				~AudioPlayerImpl()
+				~AudioPlayerDeviceImpl()
 				{
 				}
 				
 			public:
 				static void logError(String text)
 				{
-					LogError("AudioPlayer", text);
+					LogError("AudioPlayerDevice", text);
 				}
 				
-				static Ref<AudioPlayerImpl> create(const AudioPlayerParam& param)
+				static Ref<AudioPlayerDeviceImpl> create(const AudioPlayerDeviceParam& param)
 				{
-					Ref<AudioPlayerImpl> ret = new AudioPlayerImpl();
-					return ret;
+					return new AudioPlayerDeviceImpl();
 				}
 				
-				Ref<AudioPlayerBuffer> createBuffer(const AudioPlayerBufferParam& param)
+				Ref<AudioPlayer> createPlayer(const AudioPlayerParam& param)
 				{
-					return AudioPlayerBufferImpl::create(param);
+					return AudioPlayerImpl::create(param);
 				}
 			};
 			
@@ -621,12 +620,12 @@ namespace slib
 		return List<AudioRecorderInfo>::createFromElement(ret);
 	}
 
-	Ref<AudioPlayer> AudioPlayer::create(const AudioPlayerParam& param)
+	Ref<AudioPlayerDevice> AudioPlayerDevice::create(const AudioPlayerDeviceParam& param)
 	{
-		return AudioPlayerImpl::create(param);
+		return AudioPlayerDeviceImpl::create(param);
 	}
 	
-	List<AudioPlayerInfo> AudioPlayer::getPlayersList()
+	List<AudioPlayerInfo> AudioPlayerDevice::getPlayersList()
 	{
 		AudioPlayerInfo ret;
 		SLIB_STATIC_STRING(s, "Internal Speaker");

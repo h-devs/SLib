@@ -243,9 +243,9 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerBufferParam)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerParam)
 
-	AudioPlayerBufferParam::AudioPlayerBufferParam()
+	AudioPlayerParam::AudioPlayerParam()
 	{
 		streamType = AudioStreamType::Default;
 
@@ -258,9 +258,9 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_OBJECT(AudioPlayerBuffer, Object)
+	SLIB_DEFINE_OBJECT(AudioPlayer, Object)
 
-	AudioPlayerBuffer::AudioPlayerBuffer()
+	AudioPlayer::AudioPlayer()
 	{
 		m_flagOpened = sl_true;
 		m_flagRunning = sl_false;
@@ -271,11 +271,11 @@ namespace slib
 		m_lastSample = 0;
 	}
 
-	AudioPlayerBuffer::~AudioPlayerBuffer()
+	AudioPlayer::~AudioPlayer()
 	{
 	}
 
-	void AudioPlayerBuffer::release()
+	void AudioPlayer::release()
 	{
 		ObjectLocker lock(this);
 		if (!m_flagOpened) {
@@ -286,12 +286,12 @@ namespace slib
 		_release();
 	}
 
-	sl_bool AudioPlayerBuffer::isOpened()
+	sl_bool AudioPlayer::isOpened()
 	{
 		return m_flagOpened;
 	}
 
-	sl_bool AudioPlayerBuffer::start()
+	sl_bool AudioPlayer::start()
 	{
 		ObjectLocker lock(this);
 		if (!m_flagOpened) {
@@ -307,7 +307,7 @@ namespace slib
 		return sl_false;
 	}
 
-	void AudioPlayerBuffer::stop()
+	void AudioPlayer::stop()
 	{
 		ObjectLocker lock(this);
 		if (!m_flagOpened) {
@@ -320,12 +320,12 @@ namespace slib
 		_stop();
 	}
 
-	sl_bool AudioPlayerBuffer::isRunning()
+	sl_bool AudioPlayer::isRunning()
 	{
 		return m_flagRunning;
 	}
 
-	float AudioPlayerBuffer::getVolume()
+	float AudioPlayer::getVolume()
 	{
 		if (m_volume >= 256) {
 			return 1;
@@ -336,7 +336,7 @@ namespace slib
 		return (float)(m_volume) / 256.0f;
 	}
 
-	void AudioPlayerBuffer::setVolume(float volume)
+	void AudioPlayer::setVolume(float volume)
 	{
 		sl_int32 v = (sl_int32)(volume * 256);
 		if (v >= 256) {
@@ -348,22 +348,22 @@ namespace slib
 		m_volume = v;
 	}
 
-	sl_bool AudioPlayerBuffer::isMute()
+	sl_bool AudioPlayer::isMute()
 	{
 		return m_flagMute;
 	}
 
-	void AudioPlayerBuffer::setMute(sl_bool flag)
+	void AudioPlayer::setMute(sl_bool flag)
 	{
 		m_flagMute = flag;
 	}
 
-	const AudioPlayerBufferParam& AudioPlayerBuffer::getParam()
+	const AudioPlayerParam& AudioPlayer::getParam()
 	{
 		return m_param;
 	}
 
-	void AudioPlayerBuffer::write(const AudioData& audioIn)
+	void AudioPlayer::write(const AudioData& audioIn)
 	{
 		AudioFormat format;
 		sl_uint32 nChannels = m_param.channelsCount;
@@ -407,23 +407,23 @@ namespace slib
 		}
 	}
 	
-	void AudioPlayerBuffer::flush()
+	void AudioPlayer::flush()
 	{
 		m_buffer.clear();
 	}
 	
-	sl_size AudioPlayerBuffer::getSamplesCountInQueue()
+	sl_size AudioPlayer::getSamplesCountInQueue()
 	{
 		return m_buffer.getSize() >> 1;
 	}
 
-	void AudioPlayerBuffer::_init(const AudioPlayerBufferParam& param)
+	void AudioPlayer::_init(const AudioPlayerParam& param)
 	{
 		m_param = param;
 		m_lenBufferMax = param.samplesPerSecond * param.maxBufferLengthInMilliseconds / 1000 * param.channelsCount;
 	}
 
-	Array<sl_int16> AudioPlayerBuffer::_getProcessData(sl_uint32 count)
+	Array<sl_int16> AudioPlayer::_getProcessData(sl_uint32 count)
 	{
 		Array<sl_int16> data = m_processData;
 		if (data.getCount() >= count) {
@@ -435,7 +435,7 @@ namespace slib
 		}
 	}
 
-	void AudioPlayerBuffer::_processFrame(sl_int16* s, sl_uint32 count)
+	void AudioPlayer::_processFrame(sl_int16* s, sl_uint32 count)
 	{
 		if (m_param.event.isNotNull()) {
 			m_param.event->set();
@@ -463,41 +463,40 @@ namespace slib
 	}
 
 	
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerParam)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerDeviceParam)
 
-	AudioPlayerParam::AudioPlayerParam()
+	AudioPlayerDeviceParam::AudioPlayerDeviceParam()
 	{
 	}
 
 
-	SLIB_DEFINE_OBJECT(AudioPlayer, Object)
+	SLIB_DEFINE_OBJECT(AudioPlayerDevice, Object)
 
-	AudioPlayer::AudioPlayer()
+	AudioPlayerDevice::AudioPlayerDevice()
 	{
 	}
 
-	AudioPlayer::~AudioPlayer()
+	AudioPlayerDevice::~AudioPlayerDevice()
 	{
 	}
 
-	Ref<AudioPlayer> AudioPlayer::create()
+	Ref<AudioPlayerDevice> AudioPlayerDevice::create()
 	{
-		AudioPlayerParam param;
+		AudioPlayerDeviceParam param;
 		return create(param);
 	}
 
-	Ref<AudioPlayerBuffer> AudioPlayerBuffer::create(const AudioPlayerParam& playerParam, const AudioPlayerBufferParam& bufferParam)
+	Ref<AudioPlayer> AudioPlayer::create(const AudioPlayerParam& param)
 	{
-		Ref<AudioPlayer> player = AudioPlayer::create(playerParam);
+		Ref<AudioPlayerDevice> player = AudioPlayerDevice::create(param);
 		if (player.isNotNull()) {
-			return player->createBuffer(bufferParam);
+			return player->createPlayer(param);
 		}
 		return sl_null;
 	}
 
-	Ref<AudioPlayerBuffer> AudioPlayerBuffer::create(const AudioPlayerBufferParam& param)
+	List<AudioPlayerInfo> AudioPlayer::getPlayersList()
 	{
-		return create(AudioPlayerParam(), param);
+		return AudioPlayerDevice::getPlayersList();
 	}
-
 }

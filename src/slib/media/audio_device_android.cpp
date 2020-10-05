@@ -256,7 +256,7 @@ namespace slib
 			};
 
 
-			class AudioPlayerImpl : public AudioPlayer
+			class AudioPlayerDeviceImpl : public AudioPlayerDevice
 			{
 			public:
 				SLObjectItf m_engineObject;
@@ -264,18 +264,18 @@ namespace slib
 				SLObjectItf m_mixerObject;
 
 			public:
-				AudioPlayerImpl()
+				AudioPlayerDeviceImpl()
 				{
 				}
 
-				~AudioPlayerImpl()
+				~AudioPlayerDeviceImpl()
 				{
 					(*m_mixerObject)->Destroy(m_mixerObject);
 					(*m_engineObject)->Destroy(m_engineObject);
 				}
 
 			public:
-				static Ref<AudioPlayerImpl> create(const AudioPlayerParam& param)
+				static Ref<AudioPlayerDeviceImpl> create(const AudioPlayerDeviceParam& param)
 				{
 					SLObjectItf engineObject;
 					SLEngineItf engineInterface;
@@ -289,7 +289,7 @@ namespace slib
 							if ((*engineObject)->GetInterface(engineObject, SL_IID_ENGINE,  &engineInterface) == SL_RESULT_SUCCESS) {
 								if ((*engineInterface)->CreateOutputMix(engineInterface, &mixerObject, 0, sl_null, sl_null) == SL_RESULT_SUCCESS) {
 									if ((*mixerObject)->Realize(mixerObject, SL_BOOLEAN_FALSE) == SL_RESULT_SUCCESS) {
-										Ref<AudioPlayerImpl> ret = new AudioPlayerImpl();
+										Ref<AudioPlayerDeviceImpl> ret = new AudioPlayerDeviceImpl();
 										if (ret.isNotNull()) {
 											ret->m_engineObject = engineObject;
 											ret->m_engineInterface = engineInterface;
@@ -316,16 +316,16 @@ namespace slib
 					return sl_null;
 				}
 
-				Ref<AudioPlayerBuffer> createBuffer(const AudioPlayerBufferParam& param) override;
+				Ref<AudioPlayer> createPlayer(const AudioPlayerParam& param) override;
 
 			};
 
-			class AudioPlayerBufferImpl : public AudioPlayerBuffer
+			class AudioPlayerImpl : public AudioPlayer
 			{
 			public:
 				sl_bool m_flagInitialized;
 			
-				Ref<AudioPlayerImpl> m_engine;
+				Ref<AudioPlayerDeviceImpl> m_engine;
 				SLObjectItf m_playerObject;
 				SLPlayItf m_playerInterface;
 				SLAndroidSimpleBufferQueueItf m_bufferQueue;
@@ -336,13 +336,13 @@ namespace slib
 				sl_uint32 m_nSamplesFrame;
 
 			public:
-				AudioPlayerBufferImpl()
+				AudioPlayerImpl()
 				{
 					m_flagInitialized = sl_false;
 					m_indexBuffer = 0;
 				}
 				
-				~AudioPlayerBufferImpl()
+				~AudioPlayerImpl()
 				{
 					if (m_flagInitialized) {
 						release();
@@ -351,9 +351,9 @@ namespace slib
 				}
 
 			public:
-				static Ref<AudioPlayerBufferImpl> create(Ref<AudioPlayerImpl> engine, const AudioPlayerBufferParam& param)
+				static Ref<AudioPlayerImpl> create(Ref<AudioPlayerDeviceImpl> engine, const AudioPlayerParam& param)
 				{
-					Ref<AudioPlayerBufferImpl> ret;
+					Ref<AudioPlayerImpl> ret;
 					
 					if (param.channelsCount != 1 && param.channelsCount != 2) {
 						return sl_null;
@@ -413,11 +413,11 @@ namespace slib
 
 									if (memFrame.isNotNull()) {
 
-										Ref<AudioPlayerBufferImpl> ret = new AudioPlayerBufferImpl();
+										Ref<AudioPlayerImpl> ret = new AudioPlayerImpl();
 										
 										if (ret.isNotNull()) {
 											
-											if ((*bufferQueue)->RegisterCallback(bufferQueue, AudioPlayerBufferImpl::callback, ret.get()) == SL_RESULT_SUCCESS) {
+											if ((*bufferQueue)->RegisterCallback(bufferQueue, AudioPlayerImpl::callback, ret.get()) == SL_RESULT_SUCCESS) {
 
 												ret->m_engine = engine;
 												ret->m_playerObject = playerObject;
@@ -505,16 +505,16 @@ namespace slib
 
 				static void	callback(SLAndroidSimpleBufferQueueItf bufferQueue, void* p_context)
 				{
-					AudioPlayerBufferImpl* object = (AudioPlayerBufferImpl*)p_context;
+					AudioPlayerImpl* object = (AudioPlayerImpl*)p_context;
 					if (object->m_flagInitialized) {
 						object->onFrame();
 					}
 				}
 			};
 
-			Ref<AudioPlayerBuffer> AudioPlayerImpl::createBuffer(const AudioPlayerBufferParam& param)
+			Ref<AudioPlayer> AudioPlayerDeviceImpl::createPlayer(const AudioPlayerParam& param)
 			{
-				return AudioPlayerBufferImpl::create(this, param);
+				return AudioPlayerImpl::create(this, param);
 			}
 
 		}
@@ -535,12 +535,12 @@ namespace slib
 		return List<AudioRecorderInfo>::createFromElement(ret);
 	}
 
-	Ref<AudioPlayer> AudioPlayer::create(const AudioPlayerParam& param)
+	Ref<AudioPlayerDevice> AudioPlayerDevice::create(const AudioPlayerDeviceParam& param)
 	{
-		return AudioPlayerImpl::create(param);
+		return AudioPlayerDeviceImpl::create(param);
 	}
 
-	List<AudioPlayerInfo> AudioPlayer::getPlayersList()
+	List<AudioPlayerInfo> AudioPlayerDevice::getPlayersList()
 	{
 		AudioPlayerInfo ret;
 		SLIB_STATIC_STRING(s, "Internal Speaker");
