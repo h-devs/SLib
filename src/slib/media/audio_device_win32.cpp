@@ -175,30 +175,23 @@ namespace slib
 
 								if (SUCCEEDED(hr)) {
 
-									hr = buffer->Start(DSCBSTART_LOOPING);
-
-									if (SUCCEEDED(hr)) {
-
-										Ref<AudioRecorderImpl> ret = new AudioRecorderImpl();
-										if (ret.isNotNull()) {
-											ret->m_device = device;
-											ret->m_buffer = buffer;
-											ret->m_events[0] = hEvent0;
-											ret->m_events[1] = hEvent1;
-											ret->m_nSamplesFrame = samplesPerFrame;
+									Ref<AudioRecorderImpl> ret = new AudioRecorderImpl();
+									if (ret.isNotNull()) {
+										ret->m_device = device;
+										ret->m_buffer = buffer;
+										ret->m_events[0] = hEvent0;
+										ret->m_events[1] = hEvent1;
+										ret->m_nSamplesFrame = samplesPerFrame;
 											
-											ret->_init(param);
+										ret->_init(param);
 											
-											if (param.flagAutoStart) {
-												ret->start();
-											}
-
-											return ret;
+										if (param.flagAutoStart) {
+											ret->start();
 										}
 
-									} else {
-										LOG_ERROR("Failed to start dsound looping");
+										return ret;
 									}
+
 								} else {
 									LOG_ERROR("Failed to set dsound notify postions");
 								}
@@ -234,8 +227,17 @@ namespace slib
 				
 				sl_bool _start() override
 				{
-					m_thread = Thread::start(SLIB_FUNCTION_MEMBER(AudioRecorderImpl, run, this));
-					return m_thread.isNotNull();
+					HRESULT hr = m_buffer->Start(DSCBSTART_LOOPING);
+					if (SUCCEEDED(hr)) {
+						m_thread = Thread::start(SLIB_FUNCTION_MEMBER(AudioRecorderImpl, run, this));
+						if (m_thread.isNotNull()) {
+							return sl_true;
+						}
+						m_buffer->Stop();
+					} else {
+						LOG_ERROR("Failed to start");
+					}
+					return sl_false;
 				}
 				
 				void _stop() override
@@ -244,6 +246,8 @@ namespace slib
 					SetEvent(m_events[2]);
 					m_thread->finishAndWait();
 					m_thread.setNull();
+
+					m_buffer->Stop();
 				}
 				
 				struct DeviceProperty {
@@ -509,34 +513,27 @@ namespace slib
 
 							if (SUCCEEDED(hr)) {
 
-								hr = dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
+								Ref<AudioPlayerImpl> ret = new AudioPlayerImpl();
 
-								if (SUCCEEDED(hr)) {
+								if (ret.isNotNull()) {
+									ret->m_device = device;
+									ret->m_dsBuffer = dsBuffer;
+									ret->m_dsNotify = dsNotify;
+									ret->m_nNotifySize = notifySize;
+									ret->m_hNotificationEvents[0] = hNotificationEvents[0];
+									ret->m_hNotificationEvents[1] = hNotificationEvents[1];
+									ret->m_nSamplesFrame = samplesPerFrame;
+									ret->m_nBufferSize = sizeBuffer;
 
-									Ref<AudioPlayerImpl> ret = new AudioPlayerImpl();
+									ret->_init(param);
 
-									if (ret.isNotNull()) {
-										ret->m_device = device;
-										ret->m_dsBuffer = dsBuffer;
-										ret->m_dsNotify = dsNotify;
-										ret->m_nNotifySize = notifySize;
-										ret->m_hNotificationEvents[0] = hNotificationEvents[0];
-										ret->m_hNotificationEvents[1] = hNotificationEvents[1];
-										ret->m_nSamplesFrame = samplesPerFrame;
-										ret->m_nBufferSize = sizeBuffer;
-
-										ret->_init(param);
-
-										if (param.flagAutoStart) {
-											ret->start();
-										}
-
-										return ret;
+									if (param.flagAutoStart) {
+										ret->start();
 									}
 
-								} else {
-									LOG_ERROR("Failed to start direct sound looping");
+									return ret;
 								}
+
 							} else {
 								LOG_ERROR("Failed to set dsound notify positions");
 							}
@@ -570,8 +567,16 @@ namespace slib
 
 				sl_bool _start() override
 				{
-					m_thread = Thread::start(SLIB_FUNCTION_MEMBER(AudioPlayerImpl, run, this));
-					return m_thread.isNotNull();
+					HRESULT hr = m_dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
+					if (SUCCEEDED(hr)) {
+						m_thread = Thread::start(SLIB_FUNCTION_MEMBER(AudioPlayerImpl, run, this));
+						if (m_thread.isNotNull()) {
+							return sl_true;
+						}
+					} else {
+						LOG_ERROR("Failed to play");
+					}
+					return sl_false;
 				}
 
 				void _stop() override
@@ -580,6 +585,8 @@ namespace slib
 					SetEvent(m_hNotificationEvents[1]);
 					m_thread->finishAndWait();
 					m_thread.setNull();
+
+					m_dsBuffer->Stop();
 				}
 
 				void run()
