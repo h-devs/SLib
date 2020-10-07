@@ -34,8 +34,9 @@ namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(ComboBox, View)
-	SLIB_DEFINE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(ComboBox, sl_int32, IComboBoxInstance, getComboBoxInstance)
-
+	SLIB_DEFINE_LABEL_LIST_INSTANCE_NOTIFY_FUNCTIONS(ComboBox, sl_int32, IComboBoxInstance, getComboBoxInstance)
+	template class SingleSelectionViewBase<ComboBox, sl_int32>;
+	
 	ComboBox::ComboBox()
 	{		
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
@@ -86,6 +87,21 @@ namespace slib
 		if (instance.isNotNull()) {
 			instance->setText(this, text);
 		} else {
+			invalidate(mode);
+		}
+	}
+
+	void ComboBox::notifySelectItem(sl_int32 index, UIUpdateMode mode)
+	{
+		if (m_cell.isNotNull()) {
+			m_cell->selectedIndex = m_indexSelected;
+		}
+		Ptr<IComboBoxInstance> instance = getComboBoxInstance();
+		if (instance.isNotNull()) {
+			instance->selectItem((ComboBox*)this, index);
+			getInstanceText();
+		}
+		else {
 			invalidate(mode);
 		}
 	}

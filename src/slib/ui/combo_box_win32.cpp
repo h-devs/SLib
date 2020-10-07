@@ -50,6 +50,8 @@ namespace slib
 						Windows::setWindowText(handle, textNew);
 					}
 				}
+				
+				using ComboBox::m_text;
 
 			};
 
@@ -85,6 +87,10 @@ namespace slib
 						if (indexSelected >= 0 && (sl_uint32)indexSelected < n) {
 							if (SendMessageW(handle, CB_GETCURSEL, 0, 0) != (LRESULT)indexSelected) {
 								SendMessageW(handle, CB_SETCURSEL, (WPARAM)indexSelected, 0);
+								((ComboBoxHelper*)view)->m_text = view->getItemTitle(indexSelected);
+								UI::dispatchToUiThread([handle]() {
+									SendMessageW(handle, CB_SETEDITSEL, 0, SLIB_MAKE_DWORD2(-1, -1));
+								});
 							}
 						}
 					}
