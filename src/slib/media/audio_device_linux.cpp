@@ -54,45 +54,14 @@ namespace slib
 				String description;
 			};
 			
-			static List<AudioDeviceInfo> GetAllSoundCards()
-			{
-				List<AudioDeviceInfo> ret;
-				int index = 0;
-				for (;;) {
-					char* name = sl_null;
-					char* description = sl_null;
-					if (snd_card_get_name(index, &name) != 0) {
-						break;
-					}
-					if (name) {
-						snd_card_get_longname(index, &description);
-						AudioDeviceInfo info;
-						info.id = name;
-						info.name = name;
-						if (description) {
-							info.description = description;
-						} else {
-							info.description = name;
-						}
-						ret.add_NoLock(info);
-					}
-					index++;
-				}
-				return ret;
-			}
-
 			static List<AudioDeviceInfo> GetAllDevices(sl_bool flagInput)
 			{
+				List<AudioDeviceInfo> ret;
 				auto func_snd_device_name_hint = slib::alsa::getApi_snd_device_name_hint();
 				auto func_snd_device_name_get_hint = slib::alsa::getApi_snd_device_name_get_hint();
 				auto func_snd_device_name_free_hint = slib::alsa::getApi_snd_device_name_free_hint();
 				if (func_snd_device_name_hint && func_snd_device_name_get_hint && func_snd_device_name_free_hint) {
 					// version 1.0.14 or later
-					ListElements<AudioDeviceInfo> cards = GetAllSoundCards();
-					if (!(cards.count)) {
-						return sl_null;
-					}
-					List<AudioDeviceInfo> ret;
 					void** hints;
 					if (func_snd_device_name_hint(-1, "pcm", &hints) < 0) {
 						return sl_null;
@@ -111,20 +80,10 @@ namespace slib
 							char* io = func_snd_device_name_get_hint(*p, "IOID");
 							if (description && (!io || Base::equalsString(io, filter))) {
 								AudioDeviceInfo info;
-								String s = name;
-								info.name = s;
+								info.name = name;
 								info.description = description;
-								sl_reg index = s.indexOf('=');
-								if (index >= 0) {
-									s = s.substring(index + 1);
-								}
-								for (sl_size i = 0; i < cards.count; i++) {
-									if (cards[i].name == s) {
-										info.id = String::format("hw:%d,0", i);
-										ret.add_NoLock(info);
-										break;
-									}
-								}
+								info.id = info.name;
+								ret.add_NoLock(info);
 							}
 							free(description);
 							free(io);
@@ -133,10 +92,30 @@ namespace slib
 						p++;
 					}
 					func_snd_device_name_free_hint(hints);
-					return ret;
 				} else {
-					return GetAllSoundCards();					
+					int index = 0;
+					for (;;) {
+						char* name = sl_null;
+						char* description = sl_null;
+						if (snd_card_get_name(index, &name) != 0) {
+							break;
+						}
+						if (name) {
+							snd_card_get_longname(index, &description);
+							AudioDeviceInfo info;
+							info.id = String::format("hw:%d,0", index);
+							info.name = name;
+							if (description) {
+								info.description = description;
+							} else {
+								info.description = name;
+							}
+							ret.add_NoLock(info);
+						}
+						index++;
+					}
 				}
+				return ret;
 			}
 
 			static sl_bool GetDefaultDevice(AudioDeviceInfo& outInfo, sl_bool flagInput)
@@ -191,14 +170,15 @@ namespace slib
 					return sl_false;
 				}
 
-				err = snd_pcm_hw_params_set_rate(handle, hwparams, (unsigned int)sampleRate, 0);
+				int dir = 0;
+				unsigned int _sampleRate = (unsigned int)sampleRate;
+				err = snd_pcm_hw_params_set_rate_near(handle, hwparams, &_sampleRate, &dir);
 				if (err < 0) {
 					LOG_ERROR("Failed on snd_pcm_hw_params_set_rate");
 					return sl_false;
 				}
 				
 				unsigned int buffer_time = (unsigned int)(frameTime * DEFAULT_PERIODS_COUNT);
-				int dir = 0;
 				err = snd_pcm_hw_params_set_buffer_time_near(handle, hwparams, &buffer_time, &dir);
 				if (err < 0) {
 					LOG_ERROR("Failed on snd_pcm_hw_params_set_buffer_time_near");

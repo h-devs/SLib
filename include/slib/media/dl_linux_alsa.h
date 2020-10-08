@@ -137,6 +137,13 @@ namespace slib
 		#define snd_pcm_hw_params_set_rate slib::alsa::getApi_snd_pcm_hw_params_set_rate()
 		
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			snd_pcm_hw_params_set_rate_near,
+			int, ,
+			snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int *val, int *dir
+		)
+		#define snd_pcm_hw_params_set_rate_near slib::alsa::getApi_snd_pcm_hw_params_set_rate_near()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_hw_params_set_buffer_time_near,
 			int, ,
 			snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int *val, int *dir
