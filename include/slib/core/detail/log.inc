@@ -24,17 +24,31 @@ namespace slib
 {
 
 	template <class... ARGS>
-	void Log(const StringParam& tag, const StringParam& format, ARGS&&... args)
+	SLIB_INLINE void Log(const StringParam& tag, const StringParam& format, ARGS&&... args)
 	{
 		String content = String::format(format, Forward<ARGS>(args)...);
 		Logger::logGlobal(tag, content);
 	}
 	
 	template <class... ARGS>
-	void LogError(const StringParam& tag, const StringParam& format, ARGS&&... args)
+	SLIB_INLINE void LogError(const StringParam& tag, const StringParam& format, ARGS&&... args)
 	{
 		String content = String::format(format, Forward<ARGS>(args)...);
 		Logger::logGlobalError(tag, content);
 	}
+
+#ifdef SLIB_DEBUG
+	template <class... ARGS>
+	SLIB_INLINE void LogDebug(const StringParam& tag, const StringParam& format, ARGS&&... args)
+	{
+		String content = String::format(format, Forward<ARGS>(args)...);
+		Logger::logGlobalDebug(tag, content);
+	}
+#else
+	template <class... ARGS>
+	SLIB_INLINE void LogDebug(const ARGS&... args)
+	{
+	}
+#endif
 	
 }

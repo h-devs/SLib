@@ -25,12 +25,6 @@
 namespace slib
 {
 
-	void Console::println(const StringParam& s)
-	{
-		SLIB_STATIC_STRING(n, "\n")
-		print(s + n);
-	}
-
 #if defined(SLIB_PLATFORM_IS_MOBILE)
 	String Console::readLine()
 	{

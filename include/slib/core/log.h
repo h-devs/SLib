@@ -49,6 +49,8 @@ namespace slib
 
 		virtual void logError(const StringParam& tag, const StringParam& content);
 	
+		virtual void logDebug(const StringParam& tag, const StringParam& content);
+	
 	public:
 		static Ref<LoggerSet> global();
 
@@ -59,6 +61,8 @@ namespace slib
 		static void logGlobal(const StringParam& tag, const StringParam& content);
 
 		static void logGlobalError(const StringParam& tag, const StringParam& content);
+	
+		static void logGlobalDebug(const StringParam& tag, const StringParam& content);
 	
 	};
 	
@@ -124,8 +128,23 @@ namespace slib
 	
 	template <class... ARGS>
 	void LogError(const StringParam& tag, const StringParam& format, ARGS&&... args);
-
 	
+#ifdef SLIB_DEBUG
+	template <class... ARGS>
+	void LogDebug(const StringParam& tag, const StringParam& format, ARGS&&... args);
+#else
+	template <class... ARGS>
+	void LogDebug(const ARGS&... args);
+#endif
+
+#define SLIB_LOG(TAG, FORMAT, ...) slib::Log(TAG, FORMAT, ##__VA_ARGS__)
+#define SLIB_LOG_ERROR(TAG, FORMAT, ...) slib::LogError(TAG, FORMAT, ##__VA_ARGS__)
+#ifdef SLIB_DEBUG
+#define SLIB_LOG_DEBUG(TAG, FORMAT, ...) slib::LogDebug(TAG, FORMAT, ##__VA_ARGS__)
+#else
+#define SLIB_LOG_DEBUG(TAG, FORMAT, ...)
+#endif
+
 }
 
 #include "detail/log.inc"

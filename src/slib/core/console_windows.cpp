@@ -26,7 +26,6 @@
 
 #include "slib/core/console.h"
 
-#include <windows.h>
 #include <stdio.h>
 #include <conio.h>
 
@@ -35,16 +34,25 @@ namespace slib
 
 	void Console::print(const StringParam& _s)
 	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
 		StringCstr16 s(_s);
 		if (s.isEmpty()) {
 			return;
 		}
-#if defined(SLIB_PLATFORM_IS_WIN32)
 		Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
 		printf("%s", (char*)(mem.getData()));
 #endif
-#if defined(SLIB_DEBUG)
-		OutputDebugStringW((LPCWSTR)(s.getData()));
+	}
+
+	void Console::println(const StringParam& _s)
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		StringCstr16 s(_s);
+		if (s.isEmpty()) {
+			return;
+		}
+		Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
+		printf("%s\n", (char*)(mem.getData()));
 #endif
 	}
 
