@@ -26,12 +26,15 @@
 
 #include "dokany/dokan.h"
 
+#include "slib/core/service_manager.h"
+
 namespace slib
 {
 	
 	sl_bool DokanyControl::install()
 	{
-		return sl_false;
+		ServiceCreateParam param;
+		return ServiceManager::createAndStart(param);
 	}
 
 	void DokanyControl::uninstall()

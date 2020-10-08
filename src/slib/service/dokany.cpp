@@ -193,8 +193,13 @@ namespace slib
 		return ServiceManager::remove(DOKAN_DRIVER_SERVICE);
 	}
 
-	sl_bool Dokany::unmount(const StringParam& mountPoint)
+	sl_bool Dokany::unmount(const StringParam& _mountPoint)
 	{
+		auto func = getApi_DokanRemoveMountPoint();
+		if (func) {
+			StringCstr16 mountPoint(_mountPoint);
+			return func((LPCWSTR)(mountPoint.getData()));
+		}
 		return sl_false;
 	}
 
