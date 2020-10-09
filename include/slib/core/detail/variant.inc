@@ -51,56 +51,56 @@ namespace slib
 	template <class... ARGS>
 	String String::format(const StringParam& strFormat, ARGS&&... args) noexcept
 	{
-		Variant params[] = {Forward<ARGS>(args)...};
+		VariantEx params[] = {Forward<ARGS>(args)...};
 		return formatBy(strFormat, params, sizeof...(args));
 	}
 	
 	template <class... ARGS>
 	String16 String16::format(const StringParam& strFormat, ARGS&&... args) noexcept
 	{
-		Variant params[] = {Forward<ARGS>(args)...};
+		VariantEx params[] = {Forward<ARGS>(args)...};
 		return formatBy(strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
 	String String::format(const Locale& locale, const StringParam& strFormat, ARGS&&... args) noexcept
 	{
-		Variant params[] = {Forward<ARGS>(args)...};
+		VariantEx params[] = {Forward<ARGS>(args)...};
 		return formatBy(locale, strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
 	String16 String16::format(const Locale& locale, const StringParam& strFormat, ARGS&&... args) noexcept
 	{
-		Variant params[] = {Forward<ARGS>(args)...};
+		VariantEx params[] = {Forward<ARGS>(args)...};
 		return formatBy(locale, strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
 	String String::arg(ARGS&&... args) const noexcept
 	{
-		Variant params[] = {Forward<ARGS>(args)...};
+		VariantEx params[] = {Forward<ARGS>(args)...};
 		return argBy(params, sizeof...(args));
 	}
 	
 	template <class... ARGS>
 	String16 String16::arg(ARGS&&... args) const noexcept
 	{
-		Variant params[] = {Forward<ARGS>(args)...};
+		VariantEx params[] = {Forward<ARGS>(args)...};
 		return argBy(params, sizeof...(args));
 	}
 	
 	template <class... ARGS>
 	String Atomic<String>::arg(ARGS&&... args) const noexcept
 	{
-		Variant params[] = {Forward<ARGS>(args)...};
+		VariantEx params[] = {Forward<ARGS>(args)...};
 		return argBy(params, sizeof...(args));
 	}
 	
 	template <class... ARGS>
 	String16 Atomic<String16>::arg(ARGS&&... args) const noexcept
 	{
-		Variant params[] = {Forward<ARGS>(args)...};
+		VariantEx params[] = {Forward<ARGS>(args)...};
 		return argBy(params, sizeof...(args));
 	}
 
@@ -641,4 +641,38 @@ namespace slib
 		return type == priv::variant::g_variantPromise_ClassID || type == priv::promise::g_classID;
 	}
 	
+	
+	namespace priv
+	{
+		namespace variant
+		{
+			
+			template <class T, sl_bool isClass=__is_class(T), sl_bool isEnum=__is_enum(T)>
+			class VariantExHelper
+			{
+			public:
+				SLIB_INLINE static const T& convert(const T& t)
+				{
+					return t;
+				}
+			};
+
+			template <class T>
+			class VariantExHelper<T, sl_false, sl_true>
+			{
+			public:
+				SLIB_INLINE static sl_uint64 convert(T t)
+				{
+					return (sl_uint64)t;
+				}
+			};
+
+		}
+	}
+
+	template <class T>
+	VariantEx::VariantEx(const T& t): Variant(priv::variant::VariantExHelper<T>::convert(t))
+	{
+	}
+
 }

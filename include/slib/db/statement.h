@@ -65,7 +65,7 @@ namespace slib
 		template <class... ARGS>
 		SLIB_INLINE sl_int64 execute(ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			return executeBy(params, sizeof...(args));
 		}
 
@@ -86,7 +86,7 @@ namespace slib
 		template <class... ARGS>
 		SLIB_INLINE Ref<DatabaseCursor> query(ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			return queryBy(params, sizeof...(args));
 		}
 	
@@ -107,7 +107,7 @@ namespace slib
 		template <class... ARGS>
 		SLIB_INLINE List< HashMap<String, Variant> > getRecords(ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getRecordsBy(params, sizeof...(args));
 		}
 
@@ -128,7 +128,7 @@ namespace slib
 		template <class... ARGS>
 		SLIB_INLINE HashMap<String, Variant> getRecord(ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getRecordBy(params, sizeof...(args));
 		}
 
@@ -149,7 +149,7 @@ namespace slib
 		template <class... ARGS>
 		SLIB_INLINE Variant getValue(ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getValueBy(params, sizeof...(args));
 		}
 

@@ -60,7 +60,7 @@ namespace slib
 		template <class... ARGS>
 		SLIB_INLINE sl_int64 execute(const StringParam& sql, ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			return executeBy(sql, params, sizeof...(args));
 		}
 		
@@ -78,7 +78,7 @@ namespace slib
 		template <class... ARGS>
 		SLIB_INLINE Ref<DatabaseCursor> query(const StringParam& sql, ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			return queryBy(sql, params, sizeof...(args));
 		}
 		
@@ -96,7 +96,7 @@ namespace slib
 		template <class... ARGS>
 		SLIB_INLINE List< HashMap<String, Variant> > getRecords(const StringParam& sql, ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getRecordsBy(sql, params, sizeof...(args));
 		}
 		
@@ -114,7 +114,7 @@ namespace slib
 		template <class... ARGS>
 		SLIB_INLINE HashMap<String, Variant> getRecord(const StringParam& sql, ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getRecordBy(sql, params, sizeof...(args));
 		}
 		
@@ -132,7 +132,7 @@ namespace slib
 		template <class... ARGS>
 		SLIB_INLINE Variant getValue(const StringParam& sql, ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getValueBy(sql, params, sizeof...(args));
 		}
 
@@ -203,7 +203,7 @@ namespace slib
 				names.add_NoLock(pair.key);
 				values.add_NoLock(pair.value);
 			}
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			sl_size nParams = (sl_size)(sizeof...(args));
 			for (sl_size i = 0; i < nParams; i++) {
 				values.add_NoLock(params[i]);
@@ -220,7 +220,7 @@ namespace slib
 		template <class... ARGS>
 		sl_int64 deleteRecords(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			Ref<DatabaseStatement> stmt = prepareDelete(table, where);
 			if (stmt.isNotNull()) {
 				return stmt->executeBy(params, sizeof...(args));
@@ -233,7 +233,7 @@ namespace slib
 		template <class... ARGS>
 		List< HashMap<String, Variant> > findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
 			if (stmt.isNotNull()) {
 				return stmt->getRecordsBy(params, sizeof...(args));
@@ -254,7 +254,7 @@ namespace slib
 		template <class... ARGS>
 		HashMap<String, Variant> findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
 			if (stmt.isNotNull()) {
 				return stmt->getRecordBy(params, sizeof...(args));
@@ -275,7 +275,7 @@ namespace slib
 		template <class... ARGS>
 		Variant findValue(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
+			VariantEx params[] = {Forward<ARGS>(args)...};
 			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
 			if (stmt.isNotNull()) {
 				return stmt->getValueBy(params, sizeof...(args));

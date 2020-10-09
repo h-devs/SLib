@@ -1280,6 +1280,19 @@ namespace slib
 	
 	typedef Promise<Variant> VariantPromise;
 
+
+	class VariantEx : public Variant
+	{
+	public:
+		SLIB_INLINE constexpr VariantEx() noexcept {}
+
+		SLIB_INLINE ~VariantEx() noexcept {}
+
+		template <class T>
+		VariantEx(const T& t);
+
+	};
+
 }
 
 #include "detail/variant.inc"
