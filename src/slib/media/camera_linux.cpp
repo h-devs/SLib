@@ -44,12 +44,8 @@
 #define DEFAULT_BUFFER_COUNT 4
 
 #define TAG "Camera"
-#ifdef SLIB_DEBUG
-#define LOG_DEBUG(...) Log(TAG, ##__VA_ARGS__)
-#else
-#define LOG_DEBUG(...)
-#endif
-#define LOG_ERROR(...) LogError(TAG, ##__VA_ARGS__)
+#define LOG_DEBUG(...) SLIB_LOG_DEBUG(TAG, ##__VA_ARGS__)
+#define LOG_ERROR(...) SLIB_LOG_ERROR(TAG, ##__VA_ARGS__)
 
 namespace slib
 {
@@ -279,7 +275,7 @@ namespace slib
 				static Ref<CameraImpl> _create(const CameraParam& param)
 				{
 					int handle;
-					if (param.deviceId.isNotNull()) {
+					if (param.deviceId.isNotNull() && param.deviceId != "FRONT" && param.deviceId != "BACK") {
 						String path = "/dev/video" + param.deviceId;
 						handle = ::open(path.getData(), O_RDWR | O_NONBLOCK, 0);
 					} else {
