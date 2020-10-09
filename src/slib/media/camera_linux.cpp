@@ -436,7 +436,8 @@ namespace slib
 
 					int iRet = ioctl(handle, VIDIOC_DQBUF, &buf);
 					if (iRet == -1) {
-						switch (errno) {
+                        int err = errno;
+                        switch (err) {
 							case EAGAIN:
 								return sl_true;
 							case EIO:
