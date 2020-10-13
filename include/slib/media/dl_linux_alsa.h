@@ -151,11 +151,25 @@ namespace slib
 		#define snd_pcm_hw_params_set_buffer_time_near slib::alsa::getApi_snd_pcm_hw_params_set_buffer_time_near()
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			snd_pcm_hw_params_set_buffer_size_near,
+			int, ,
+			snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_uframes_t *val
+		)
+		#define snd_pcm_hw_params_set_buffer_size_near slib::alsa::getApi_snd_pcm_hw_params_set_buffer_size_near()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_hw_params_set_period_time_near,
 			int, ,
 			snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int *val, int *dir
 		)
 		#define snd_pcm_hw_params_set_period_time_near slib::alsa::getApi_snd_pcm_hw_params_set_period_time_near()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			snd_pcm_hw_params_set_period_size_near,
+			int, ,
+			snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_uframes_t *val, int *dir
+		)
+		#define snd_pcm_hw_params_set_period_size_near slib::alsa::getApi_snd_pcm_hw_params_set_period_size_near()
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_hw_params_set_periods_near,
@@ -255,6 +269,20 @@ namespace slib
 		#define snd_pcm_pause slib::alsa::getApi_snd_pcm_pause()
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			snd_pcm_hw_params_can_pause,
+			int, ,
+			const snd_pcm_hw_params_t* params
+		)
+		#define snd_pcm_hw_params_can_pause slib::alsa::getApi_snd_pcm_hw_params_can_pause()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			snd_pcm_resume,
+			int, ,
+			snd_pcm_t *pcm
+		)
+		#define snd_pcm_resume slib::alsa::getApi_snd_pcm_resume()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_readi,
 			snd_pcm_sframes_t, ,
 			snd_pcm_t *pcm, void *buffer, snd_pcm_uframes_t size
@@ -269,11 +297,25 @@ namespace slib
 		#define snd_pcm_writei slib::alsa::getApi_snd_pcm_writei()
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			snd_pcm_avail,
+			snd_pcm_sframes_t, ,
+			snd_pcm_t *pcm
+		)
+		#define snd_pcm_avail slib::alsa::getApi_snd_pcm_avail()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_avail_update,
 			snd_pcm_sframes_t, ,
 			snd_pcm_t *pcm
 		)
 		#define snd_pcm_avail_update slib::alsa::getApi_snd_pcm_avail_update()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			snd_pcm_recover,
+			int, ,
+			snd_pcm_t *pcm, int err, int silent
+		)
+		#define snd_pcm_recover slib::alsa::getApi_snd_pcm_recover()
 
 	SLIB_IMPORT_LIBRARY_END
 

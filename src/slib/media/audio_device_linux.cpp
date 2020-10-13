@@ -37,7 +37,7 @@
 #define TAG "Audio"
 #define LOG_ERROR(...) LogError(TAG, ##__VA_ARGS__)
 
-#define DEFAULT_PERIODS_COUNT 4
+#define DEFAULT_PERIODS_COUNT 2
 
 namespace slib
 {
@@ -46,6 +46,8 @@ namespace slib
 	{
 		namespace alsa
 		{
+
+			SLIB_STATIC_STRING(g_strDefaultDeviceId, "default")
 
 			struct AudioDeviceInfo
 			{
@@ -118,23 +120,7 @@ namespace slib
 				return ret;
 			}
 
-			static sl_bool GetDefaultDevice(AudioDeviceInfo& outInfo, sl_bool flagInput)
-			{
-				ListElements<AudioDeviceInfo> list = GetAllDevices(flagInput);
-				for (sl_size i = 0; i < list.count; i++) {
-					if (list[i].name == "default") {
-						outInfo = list[i];
-						return sl_true;
-					}
-				}
-				if (list.count > 0) {
-					outInfo = list[0];
-					return sl_true;
-				}
-				return sl_false;
-			}
-
-			static sl_bool SetHardwareParameters(snd_pcm_t* handle, snd_pcm_hw_params_t* hwparams, sl_uint32 nChannels, sl_uint32 sampleRate, sl_uint32 frameTime)
+			static sl_bool SetHardwareParameters(snd_pcm_t* handle, snd_pcm_hw_params_t* hwparams, sl_uint32 nChannels, sl_uint32 sampleRate, sl_uint32 nFramesPerPeriod)
 			{
 				int err = snd_pcm_hw_params_any(handle, hwparams);
 				if (err < 0) {
@@ -154,11 +140,7 @@ namespace slib
 					return sl_false;
 				}
 
-				if (Endian::isLE()) {
-					err = snd_pcm_hw_params_set_format(handle, hwparams, SND_PCM_FORMAT_S16_LE);
-				} else {
-					err = snd_pcm_hw_params_set_format(handle, hwparams, SND_PCM_FORMAT_S16_BE);
-				}
+				err = snd_pcm_hw_params_set_format(handle, hwparams, SND_PCM_FORMAT_S16);
 				if (err < 0) {
 					LOG_ERROR("Failed on snd_pcm_hw_params_set_format");
 					return sl_false;
@@ -177,19 +159,19 @@ namespace slib
 					LOG_ERROR("Failed on snd_pcm_hw_params_set_rate");
 					return sl_false;
 				}
-				
-				unsigned int buffer_time = (unsigned int)(frameTime * DEFAULT_PERIODS_COUNT);
-				err = snd_pcm_hw_params_set_buffer_time_near(handle, hwparams, &buffer_time, &dir);
+
+				snd_pcm_uframes_t period_size = (unsigned int)(nFramesPerPeriod);
+				dir = 0;
+				err = snd_pcm_hw_params_set_period_size_near(handle, hwparams, &period_size, &dir);
 				if (err < 0) {
-					LOG_ERROR("Failed on snd_pcm_hw_params_set_buffer_time_near");
+					LOG_ERROR("Failed on snd_pcm_hw_params_set_period_time_near");
 					return sl_false;
 				}
 
-				unsigned int period_time = (unsigned int)(frameTime);
-				dir = 0;
-				err = snd_pcm_hw_params_set_period_time_near(handle, hwparams, &period_time, &dir);
+				snd_pcm_uframes_t buffer_size = (unsigned int)(nFramesPerPeriod * DEFAULT_PERIODS_COUNT);
+				err = snd_pcm_hw_params_set_buffer_size_near(handle, hwparams, &buffer_size);
 				if (err < 0) {
-					LOG_ERROR("Failed on snd_pcm_hw_params_set_period_time_near");
+					LOG_ERROR("Failed on snd_pcm_hw_params_set_buffer_time_near");
 					return sl_false;
 				}
 
@@ -200,14 +182,58 @@ namespace slib
 					LOG_ERROR("Failed on snd_pcm_hw_params_set_periods_near");
 					return sl_false;
 				}
-				
+
 				return sl_true;
 			}
-			
+
+			static sl_bool SetHardwareParameters(snd_pcm_t* handle, sl_uint32 nChannels, sl_uint32 sampleRate, sl_uint32 nFramesPerPeriod)
+			{
+				snd_pcm_hw_params_t* hwparams;
+				snd_pcm_hw_params_alloca(&hwparams);
+				sl_bool bRet = sl_false;
+				if (SetHardwareParameters(handle, hwparams, nChannels, sampleRate, nFramesPerPeriod)) {
+					if (snd_pcm_hw_params(handle, hwparams) >= 0) {
+						bRet = sl_true;
+					} else {
+						LOG_ERROR("Failed on snd_pcm_hw_params");
+					}
+				}
+				return bRet;
+			}
+
+			static sl_bool SetSoftwareParameters(snd_pcm_t* handle, sl_uint32 nFramesPerPeriod)
+			{
+				snd_pcm_sw_params_t* swparams;
+				snd_pcm_sw_params_alloca(&swparams);
+				snd_pcm_sw_params_current(handle, swparams);
+				snd_pcm_sw_params_set_start_threshold(handle, swparams, nFramesPerPeriod);
+				snd_pcm_sw_params_set_stop_threshold(handle, swparams, DEFAULT_PERIODS_COUNT * nFramesPerPeriod);
+				snd_pcm_sw_params_set_avail_min(handle, swparams, nFramesPerPeriod);
+				if (snd_pcm_sw_params(handle, swparams) >= 0) {
+					return sl_true;
+				} else {
+					LOG_ERROR("Failed on snd_pcm_sw_params");
+				}
+				return sl_false;
+			}
+
+			static sl_bool SetParameters(snd_pcm_t* handle, sl_uint32 nChannels, sl_uint32 sampleRate, sl_uint32 nFramesPerPeriod)
+			{
+				if (SetHardwareParameters(handle, nChannels, sampleRate, nFramesPerPeriod)) {
+					if (SetSoftwareParameters(handle, nFramesPerPeriod)) {
+						return sl_true;
+					}
+				}
+				return sl_false;
+			}
+
 			class AudioRecorderImpl: public AudioRecorder
 			{
 			public:
 				snd_pcm_t* m_handle;
+
+				sl_uint32 m_nFramesPerPeriod;
+				sl_bool m_flagRunning;
 
 				Ref<Thread> m_thread;
 				
@@ -215,6 +241,7 @@ namespace slib
 				AudioRecorderImpl()
 				{
 					m_handle = sl_null;
+					m_flagRunning = sl_false;
 				}
 				
 				~AudioRecorderImpl()
@@ -231,53 +258,25 @@ namespace slib
 
 					String deviceId = param.deviceId;
 					if (deviceId.isEmpty()) {
-						AudioDeviceInfo info;
-						if (GetDefaultDevice(info, sl_true)) {
-							deviceId = info.id;
-						} else {
-							return sl_null;
-						}
+						deviceId = g_strDefaultDeviceId;
 					}
 
 					snd_pcm_t* handle;
 					if (snd_pcm_open(&handle, deviceId.getData(), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK) >= 0) {
-
-						snd_pcm_hw_params_t* hwparams;
-						snd_pcm_hw_params_alloca(&hwparams);
-
-						if (SetHardwareParameters(handle, hwparams, param.channelsCount, param.samplesPerSecond, param.frameLengthInMilliseconds)) {
-							if (snd_pcm_hw_params(handle, hwparams) >= 0) {
-								
-								snd_pcm_sw_params_t* swparams;
-								snd_pcm_sw_params_alloca(&swparams);
-								snd_pcm_sw_params_current(handle, swparams);
-								snd_pcm_sw_params_set_start_threshold(handle, swparams, 1);
-								snd_pcm_sw_params_set_stop_threshold(handle, swparams, DEFAULT_PERIODS_COUNT);
-								snd_pcm_sw_params_set_avail_min(handle, swparams, 1);
-								snd_pcm_sw_params(handle, swparams);
-
-								Ref<AudioRecorderImpl> ret = new AudioRecorderImpl;
-
-								if (ret.isNotNull()) {
-
-									ret->m_handle = handle;
-									
-									ret->_init(param);
-
-									if (param.flagAutoStart) {
-										ret->start();
-									}
-
-									return ret;
+						sl_uint32 nFramesPerPeriod = param.samplesPerSecond * param.frameLengthInMilliseconds / 1000;
+						if (SetParameters(handle, param.channelsCount, param.samplesPerSecond, nFramesPerPeriod)) {
+							Ref<AudioRecorderImpl> ret = new AudioRecorderImpl;
+							if (ret.isNotNull()) {
+								ret->m_handle = handle;
+								ret->m_nFramesPerPeriod = nFramesPerPeriod;
+								ret->_init(param);
+								if (param.flagAutoStart) {
+									ret->start();
 								}
-
-							} else {
-								LOG_ERROR("Failed on snd_pcm_hw_params");
+								return ret;
 							}
 						}
-
 						snd_pcm_close(handle);
-
 					} else {
 						LOG_ERROR("Failed to open capture device: %s", deviceId);
 					}
@@ -291,17 +290,25 @@ namespace slib
 				
 				sl_bool _start() override
 				{
-					if (snd_pcm_prepare(m_handle) >= 0) {
-						if (snd_pcm_start(m_handle) >= 0) {
-							m_thread = Thread::start(SLIB_FUNCTION_WEAKREF(AudioRecorderImpl, run, this));
-							if (m_thread.isNotNull()) {
-								return sl_true;
-							}
-						} else {
-							LOG_ERROR("Failed to start");
+					if (m_flagRunning) {
+						if (snd_pcm_pause(m_handle, 0) < 0) {
+							LOG_ERROR("Failed to resume recorder");
+							return sl_false;
 						}
 					} else {
-						LOG_ERROR("Failed to prepare");
+						m_flagRunning = sl_true;
+						if (snd_pcm_prepare(m_handle) < 0) {
+							LOG_ERROR("Failed to prepare recorder");
+							return sl_false;
+						}
+						if (snd_pcm_start(m_handle) < 0) {
+							LOG_ERROR("Failed to prepare recorder");
+							return sl_false;
+						}
+					}
+					m_thread = Thread::start(SLIB_FUNCTION_WEAKREF(AudioRecorderImpl, run, this));
+					if (m_thread.isNotNull()) {
+						return sl_true;
 					}
 					return sl_false;
 				}
@@ -312,8 +319,8 @@ namespace slib
 						m_thread->finishAndWait();
 						m_thread.setNull();
 					}
-					if (snd_pcm_drain(m_handle) < 0) {
-						LOG_ERROR("Failed to stop");
+					if (snd_pcm_pause(m_handle, 1) < 0) {
+						LOG_ERROR("Failed to stop recorder");
 					}
 				}
 
@@ -325,18 +332,33 @@ namespace slib
 					}
 
 					snd_pcm_t* handle = m_handle;
+					sl_uint32 nFramesPerPeriod = m_nFramesPerPeriod;
 					sl_uint32 nBytesPerFrame = (sl_uint32)(snd_pcm_frames_to_bytes(handle, 1));
-					
-					SLIB_SCOPED_BUFFER(sl_int16, 4096, buf, nBytesPerFrame)
+					sl_uint32 nSamplesPerFrame = nBytesPerFrame >> 1;
+					sl_uint32 nSamplesPerPeriod = nFramesPerPeriod * nSamplesPerFrame;
+
+					SLIB_SCOPED_BUFFER(sl_int16, 4096, buf, nSamplesPerPeriod)
 					
 					TimeCounter t;
 					sl_uint32 st = m_param.frameLengthInMilliseconds / 2;
 					
 					while (thread->isNotStopping()) {
-						int nFrames = (int)(snd_pcm_readi(handle, buf, 1));
-						if (nFrames == 1) {
-							_processFrame(buf, nBytesPerFrame);
-						} else {
+						sl_bool flagRead = sl_false;
+						int nAvail = (int)(snd_pcm_avail_update(handle));
+						if (nAvail == -EPIPE) {
+							snd_pcm_recover(handle, nAvail, 0);
+							nAvail = (int)(snd_pcm_avail_update(handle));
+						}
+						if (nAvail > 0) {
+							if (nAvail >= (int)nFramesPerPeriod) {
+								int nFrames = (int)(snd_pcm_readi(handle, buf, nFramesPerPeriod));
+								if (nFrames > 0) {
+									_processFrame(buf, nFrames * nSamplesPerFrame);
+									flagRead = sl_true;
+								}
+							}
+						}
+						if (!flagRead) {
 							sl_uint32 dt = (sl_uint32)(t.getElapsedMilliseconds());
 							if (dt < st) {
 								Thread::sleep(st - dt);
@@ -353,12 +375,16 @@ namespace slib
 			public:
 				snd_pcm_t* m_handle;
 
+				sl_uint32 m_nFramesPerPeriod;
+				sl_bool m_flagRunning;
+
 				Ref<Thread> m_thread;
 				
 			public:
 				AudioPlayerImpl()
 				{
 					m_handle = sl_null;
+					m_flagRunning = sl_false;
 				}
 				
 				~AudioPlayerImpl()
@@ -375,53 +401,25 @@ namespace slib
 
 					String deviceId = _deviceId;
 					if (deviceId.isEmpty()) {
-						AudioDeviceInfo info;
-						if (GetDefaultDevice(info, sl_false)) {
-							deviceId = info.id;
-						} else {
-							return sl_null;
-						}
+						deviceId = g_strDefaultDeviceId;
 					}
 
 					snd_pcm_t* handle;
 					if (snd_pcm_open(&handle, deviceId.getData(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) >= 0) {
-
-						snd_pcm_hw_params_t* hwparams;
-						snd_pcm_hw_params_alloca(&hwparams);
-
-						if (SetHardwareParameters(handle, hwparams, param.channelsCount, param.samplesPerSecond, param.frameLengthInMilliseconds)) {
-							if (snd_pcm_hw_params(handle, hwparams) >= 0) {
-								
-								snd_pcm_sw_params_t* swparams;
-								snd_pcm_sw_params_alloca(&swparams);
-								snd_pcm_sw_params_current(handle, swparams);
-								snd_pcm_sw_params_set_start_threshold(handle, swparams, 1);
-								snd_pcm_sw_params_set_stop_threshold(handle, swparams, DEFAULT_PERIODS_COUNT);
-								snd_pcm_sw_params_set_avail_min(handle, swparams, 1);
-								snd_pcm_sw_params(handle, swparams);
-
-								Ref<AudioPlayerImpl> ret = new AudioPlayerImpl;
-
-								if (ret.isNotNull()) {
-
-									ret->m_handle = handle;
-									
-									ret->_init(param);
-
-									if (param.flagAutoStart) {
-										ret->start();
-									}
-
-									return ret;
+						sl_uint32 nFramesPerPeriod = param.samplesPerSecond * param.frameLengthInMilliseconds / 1000;
+						if (SetParameters(handle, param.channelsCount, param.samplesPerSecond, nFramesPerPeriod)) {
+							Ref<AudioPlayerImpl> ret = new AudioPlayerImpl;
+							if (ret.isNotNull()) {
+								ret->m_handle = handle;
+								ret->m_nFramesPerPeriod = nFramesPerPeriod;
+								ret->_init(param);
+								if (param.flagAutoStart) {
+									ret->start();
 								}
-								
-							} else {
-								LOG_ERROR("Failed on snd_pcm_hw_params");
+								return ret;
 							}
 						}
-
 						snd_pcm_close(handle);
-
 					} else {
 						LOG_ERROR("Failed to open play device: %s", deviceId);
 					}
@@ -435,17 +433,25 @@ namespace slib
 				
 				sl_bool _start() override
 				{
-					if (snd_pcm_prepare(m_handle) >= 0) {
-						if (snd_pcm_start(m_handle) >= 0) {
-							m_thread = Thread::start(SLIB_FUNCTION_WEAKREF(AudioPlayerImpl, run, this));
-							if (m_thread.isNotNull()) {
-								return sl_true;
-							}
-						} else {
-							LOG_ERROR("Failed to start");
+					if (m_flagRunning) {
+						if (snd_pcm_pause(m_handle, 0) < 0) {
+							LOG_ERROR("Failed to resume player");
+							return sl_false;
 						}
 					} else {
-						LOG_ERROR("Failed to prepare");
+						m_flagRunning = sl_true;
+						if (snd_pcm_prepare(m_handle) < 0) {
+							LOG_ERROR("Failed to prepare player");
+							return sl_false;
+						}
+						if (snd_pcm_start(m_handle) < 0) {
+							LOG_ERROR("Failed to prepare player");
+							return sl_false;
+						}
+					}
+					m_thread = Thread::start(SLIB_FUNCTION_WEAKREF(AudioPlayerImpl, run, this));
+					if (m_thread.isNotNull()) {
+						return sl_true;
 					}
 					return sl_false;
 				}
@@ -456,8 +462,8 @@ namespace slib
 						m_thread->finishAndWait();
 						m_thread.setNull();
 					}
-					if (snd_pcm_drain(m_handle) < 0) {
-						LOG_ERROR("Failed to stop");
+					if (snd_pcm_pause(m_handle, 1) < 0) {
+						LOG_ERROR("Failed to stop player");
 					}
 				}
 
@@ -469,20 +475,27 @@ namespace slib
 					}
 
 					snd_pcm_t* handle = m_handle;
+					sl_uint32 nFramesPerPeriod = m_nFramesPerPeriod;
 					sl_uint32 nBytesPerFrame = (sl_uint32)(snd_pcm_frames_to_bytes(handle, 1));
+					sl_uint32 nSamplesPerFrame = nBytesPerFrame >> 1;
+					sl_uint32 nSamplesPerPeriod = nFramesPerPeriod * nSamplesPerFrame;
 					
-					SLIB_SCOPED_BUFFER(sl_int16, 4096, buf, nBytesPerFrame)
+					SLIB_SCOPED_BUFFER(sl_int16, 4096, buf, nSamplesPerPeriod)
 					
 					TimeCounter t;
 					sl_uint32 st = m_param.frameLengthInMilliseconds / 2;
 					
 					while (thread->isNotStopping()) {
-						sl_bool flagWritten = sl_false;
+						sl_bool flagWritten = sl_false;						
 						int nAvail = (int)(snd_pcm_avail_update(handle));
+						if (nAvail == -EPIPE) {
+							snd_pcm_recover(handle, nAvail, 0);
+							nAvail = (int)(snd_pcm_avail_update(handle));
+						}
 						if (nAvail > 0) {
-							_processFrame(buf, nBytesPerFrame);
-							int nFrames = (int)(snd_pcm_writei(handle, buf, 1));
-							if (nFrames == 1) {
+							_processFrame(buf, nAvail * nSamplesPerFrame);
+							int nWriten = (int)(snd_pcm_writei(handle, buf, nAvail));
+							if (nWriten > 0) {
 								flagWritten = sl_true;
 							}
 						}
@@ -516,14 +529,7 @@ namespace slib
 				static Ref<AudioPlayerDeviceImpl> create(const AudioPlayerDeviceParam& param)
 				{
 					String deviceId = param.deviceId;
-					if (deviceId.isEmpty()) {
-						AudioDeviceInfo info;
-						if (GetDefaultDevice(info, sl_false)) {
-							deviceId = info.id;
-						} else {
-							return sl_null;
-						}
-					} else {
+					if (deviceId.isNotEmpty()) {
 						sl_bool flagFound = sl_false;
 						ListElements<AudioDeviceInfo> list(GetAllDevices(sl_false));
 						for (sl_size i = 0; i < list.count; i++) {
