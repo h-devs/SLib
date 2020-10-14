@@ -30,6 +30,7 @@
 #include "../core/dl.h"
 
 #include "gl/GLX/glx.h"
+#include "X11/slib_fix.h"
 
 namespace slib
 {
