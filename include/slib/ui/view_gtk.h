@@ -76,6 +76,8 @@ namespace slib
 		
 		void setChildrenContainer(GtkWidget* widget);
 
+                void setPaintWidget(GtkWidget* widget);
+
 		sl_bool isValid(View* view) override;
 
 		void setFocus(View* view, sl_bool flag) override;
@@ -140,6 +142,7 @@ namespace slib
 	protected:
 		GtkWidget* m_handle;
 		GtkWidget* m_handleChildrenContainer;
+                GtkWidget* m_handlePaint;
 		UIAction m_actionDrag;
 
 		UIRect m_frame;
