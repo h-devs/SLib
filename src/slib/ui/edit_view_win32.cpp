@@ -46,7 +46,7 @@ namespace slib
 					String textOld = m_text;
 					String text = Windows::getWindowText(handle);
 					String textNew = text;
-					dispatchChange(&textNew);
+					dispatchChange(textNew);
 					if (text != textNew) {
 						instance->setText(textNew);
 					}

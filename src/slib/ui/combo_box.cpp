@@ -176,18 +176,18 @@ namespace slib
 		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index)
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ComboBox, Change, String* pValue)
+	SLIB_DEFINE_EVENT_HANDLER(ComboBox, Change, String& value)
 
-	void ComboBox::dispatchChange(String* value)
+	void ComboBox::dispatchChange(String& value)
 	{
-		if (*value == m_text) {
+		if (value == m_text) {
 			return;
 		}
 		SLIB_INVOKE_EVENT_HANDLER(Change, value)
-		if (*value == m_text) {
+		if (value == m_text) {
 			return;
 		}
-		m_text = *value;
+		m_text = value;
 		dispatchSelectItem(-1);
 	}
 

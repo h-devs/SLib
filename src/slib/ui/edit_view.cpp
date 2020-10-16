@@ -174,7 +174,7 @@ namespace slib
 					return sl_true;
 				}
 
-				void _onChange(EditView* ev, String* text)
+				void _onChange(EditView* ev, String& text)
 				{
 					Ref<EditViewHelper> view = m_view;
 					if (view.isNull()) {
@@ -182,9 +182,9 @@ namespace slib
 					}
 					view->dispatchChange(text);
 					if (m_edit->getMultiLine() == MultiLineMode::Single) {
-						sl_reg index = ParseUtil::indexOfLine(*text);
+						sl_reg index = ParseUtil::indexOfLine(text);
 						if (index >= 0) {
-							*text = text->mid(0, index);
+							text = text.mid(0, index);
 						}
 					}
 				}
@@ -615,18 +615,18 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(EditView, Change, String* value)
+	SLIB_DEFINE_EVENT_HANDLER(EditView, Change, String& value)
 
-	void EditView::dispatchChange(String* value)
+	void EditView::dispatchChange(String& value)
 	{
-		if (*value == m_text) {
+		if (value == m_text) {
 			return;
 		}
 		SLIB_INVOKE_EVENT_HANDLER(Change, value)
-		if (*value == m_text) {
+		if (value == m_text) {
 			return;
 		}
-		m_text = *value;
+		m_text = value;
 		if (isNativeWidget()) {
 			invalidateLayoutOfWrappingControl();
 		}

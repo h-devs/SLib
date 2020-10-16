@@ -103,7 +103,7 @@ namespace slib
 		void setFocusNextOnReturnKey();
 		
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(EditView, Change, String* pValue)
+		SLIB_DECLARE_EVENT_HANDLER(EditView, Change, String& value)
 		
 		SLIB_DECLARE_EVENT_HANDLER(EditView, ReturnKey)
 		

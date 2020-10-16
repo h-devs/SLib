@@ -457,7 +457,7 @@ namespace slib
 						}
 					}
 					String textNew = text;
-					helper->dispatchChange(&textNew);
+					helper->dispatchChange(textNew);
 					if (text != textNew) {
 						if (textNew.isEmpty()) {
 							elm_entry_entry_set(obj, "");
