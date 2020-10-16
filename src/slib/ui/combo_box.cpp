@@ -27,7 +27,7 @@
 #if defined(SLIB_UI_IS_WIN32)
 #	define HAS_NATIVE_WIDGET_IMPL 1
 #else
-#	define HAS_NATIVE_WIDGET_IMPL 0
+#	define HAS_NATIVE_WIDGET_IMPL 1
 #endif
 
 namespace slib

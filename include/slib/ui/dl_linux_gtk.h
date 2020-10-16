@@ -550,10 +550,261 @@ namespace slib
 			const gchar *pattern
 		)
 		#define gtk_file_filter_add_pattern slib::gtk::getApi_gtk_file_filter_add_pattern()
-	SLIB_IMPORT_LIBRARY_END
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_entry_new,
+			GtkWidget*, ,
+		)
+		#define gtk_entry_new slib::gtk::getApi_gtk_entry_new()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_entry_get_text,
+			gchar* , ,
+			GtkEntry *entry
+		)
+		#define gtk_entry_get_text slib::gtk::getApi_gtk_entry_get_text()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_entry_set_text,
+			void , ,
+			GtkEntry    *entry,
+			const gchar *text
+		)
+		#define gtk_entry_set_text slib::gtk::getApi_gtk_entry_set_text()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_entry_set_alignment,
+			void , ,
+			GtkEntry    *entry,
+			gfloat xalign
+		)
+		#define gtk_entry_set_alignment slib::gtk::getApi_gtk_entry_set_alignment()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_entry_set_invisible_char,
+			void , ,
+			GtkEntry    *entry,
+			gunichar  ch
+		)
+		#define gtk_entry_set_invisible_char slib::gtk::getApi_gtk_entry_set_invisible_char()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_entry_set_visibility,
+			void , ,
+			GtkEntry    *entry,
+			gboolean visible
+		)
+		#define gtk_entry_set_visibility slib::gtk::getApi_gtk_entry_set_visibility()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_widget_modify_text,
+                        void , ,
+                        GtkWidget *widget,
+                        GtkStateType state,
+                        const GdkColor *color
+                )
+                #define gtk_widget_modify_text slib::gtk::getApi_gtk_widget_modify_text()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_text_buffer_get_start_iter,
+                        void , ,
+                        GtkTextBuffer *buffer,
+                        GtkTextIter *iter
+                )
+                #define gtk_text_buffer_get_start_iter slib::gtk::getApi_gtk_text_buffer_get_start_iter()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_text_buffer_get_end_iter,
+                        void , ,
+                        GtkTextBuffer *buffer,
+                        GtkTextIter *iter
+                )
+                #define gtk_text_buffer_get_end_iter slib::gtk::getApi_gtk_text_buffer_get_end_iter()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_text_view_set_left_margin,
+                        void , ,
+                        GtkTextView *text_view,
+                        gint left_margin
+                )
+                #define gtk_text_view_set_left_margin slib::gtk::getApi_gtk_text_view_set_left_margin()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_text_view_set_right_margin,
+                        void , ,
+                        GtkTextView *text_view,
+                        gint right_margin
+                )
+                #define gtk_text_view_set_right_margin slib::gtk::getApi_gtk_text_view_set_right_margin()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_text_view_set_editable,
+                        void , ,
+                        GtkTextView *text_view,
+                        gboolean setting
+                )
+                #define gtk_text_view_set_editable slib::gtk::getApi_gtk_text_view_set_editable()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_text_view_set_justification,
+                        void , ,
+                        GtkTextView *text_view,
+                        GtkJustification justification
+                )
+                #define gtk_text_view_set_justification slib::gtk::getApi_gtk_text_view_set_justification()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_text_buffer_set_text,
+                        void , ,
+                        GtkTextBuffer *buffer,
+                        const gchar *text,
+                        gint len
+                )
+                #define gtk_text_buffer_set_text slib::gtk::getApi_gtk_text_buffer_set_text()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_text_buffer_get_text,
+                        gchar * , ,
+                        GtkTextBuffer *buffer,
+                        const GtkTextIter *start,
+                        const GtkTextIter *end,
+                        gboolean include_hidden_chars
+                )
+                #define gtk_text_buffer_get_text slib::gtk::getApi_gtk_text_buffer_get_text()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_text_view_new,
+                        GtkWidget * , ,
+                )
+                #define gtk_text_view_new slib::gtk::getApi_gtk_text_view_new()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_text_view_get_buffer,
+                        GtkTextBuffer * , ,
+                        GtkTextView *text_view
+                )
+                #define gtk_text_view_get_buffer slib::gtk::getApi_gtk_text_view_get_buffer()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_text_view_set_border_window_size,
+                        void , ,
+                        GtkTextView *text_view,
+                        GtkTextWindowType type,
+                        gint size
+                )
+                #define gtk_text_view_set_border_window_size slib::gtk::getApi_gtk_text_view_set_border_window_size()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_scrolled_window_new,
+                        GtkWidget * , ,
+                        GtkAdjustment *hadjustment,
+                        GtkAdjustment *vadjustment
+                )
+                #define gtk_scrolled_window_new slib::gtk::getApi_gtk_scrolled_window_new()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_scrolled_window_set_policy,
+                        void , ,
+                        GtkScrolledWindow *scrolled_window,
+                        GtkPolicyType hscrollbar_policy,
+                        GtkPolicyType vscrollbar_policy
+                )
+                #define gtk_scrolled_window_set_policy slib::gtk::getApi_gtk_scrolled_window_set_policy()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_scrolled_window_set_shadow_type,
+                        void , ,
+                        GtkScrolledWindow *scrolled_window,
+                        GtkShadowType type
+                )
+                #define gtk_scrolled_window_set_shadow_type slib::gtk::getApi_gtk_scrolled_window_set_shadow_type()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_container_get_children,
+                        GList *, ,
+                        GtkContainer *container
+                )
+                #define gtk_container_get_children slib::gtk::getApi_gtk_container_get_children()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_widget_show_all,
+                        void, ,
+                        GtkWidget *widget
+                )
+                #define gtk_widget_show_all slib::gtk::getApi_gtk_widget_show_all()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_event_box_new,
+                        GtkWidget *, ,
+                )
+                #define gtk_event_box_new slib::gtk::getApi_gtk_event_box_new()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_set_title,
+                        void , ,
+                        GtkComboBox *combo_box,
+                        const gchar *title
+                )
+                #define gtk_combo_box_set_title slib::gtk::getApi_gtk_combo_box_set_title()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_list_store_new,
+                        GtkListStore * , ,
+                        gint n_columns,
+                        ...
+                )
+                #define gtk_list_store_new slib::gtk::getApi_gtk_list_store_new()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_list_store_append,
+                        void , ,
+                        GtkListStore *list_store,
+                        GtkTreeIter *iter
+                )
+                #define gtk_list_store_append slib::gtk::getApi_gtk_list_store_append()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_list_store_set,
+                        void , ,
+                        GtkListStore *list_store,
+                        GtkTreeIter *iter,
+                        ...
+                )
+                #define gtk_list_store_set slib::gtk::getApi_gtk_list_store_set()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_set_model,
+                        void , ,
+                        GtkComboBox *combo_box,
+                        GtkTreeModel *model
+                )
+                #define gtk_combo_box_set_model slib::gtk::getApi_gtk_combo_box_set_model()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_get_active,
+                        gint , ,
+                        GtkComboBox *combo_box
+                )
+                #define gtk_combo_box_get_active slib::gtk::getApi_gtk_combo_box_get_active()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_set_active,
+                        void , ,
+                        GtkComboBox *combo_box,
+                        gint index_
+                )
+                #define gtk_combo_box_set_active slib::gtk::getApi_gtk_combo_box_set_active()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_get_model,
+                        GtkTreeModel * , ,
+                        GtkComboBox *combo_box
+                )
+                #define gtk_combo_box_get_model slib::gtk::getApi_gtk_combo_box_get_model()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_get_title,
+                        const gchar *, ,
+                        GtkComboBox *combo_box
+                )
+                #define gtk_combo_box_get_title slib::gtk::getApi_gtk_combo_box_get_title()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_entry_new_text,
+                        GtkWidget *, ,
+                )
+                #define gtk_combo_box_entry_new_text slib::gtk::getApi_gtk_combo_box_entry_new_text()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_append_text,
+                        void , ,
+                        GtkComboBox     *combo_box,
+                        const gchar     *text
+                )
+                #define gtk_combo_box_append_text slib::gtk::getApi_gtk_combo_box_append_text()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_entry_get_buffer,
+                        GtkEntryBuffer * , ,
+                        GtkEntry *
+                )
+                #define gtk_entry_get_buffer slib::gtk::getApi_gtk_entry_get_buffer()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_entry_buffer_get_text,
+                        const gchar * , ,
+                        GtkEntryBuffer *buffer
+                )
+                #define gtk_entry_buffer_get_text slib::gtk::getApi_gtk_entry_buffer_get_text()
+        SLIB_IMPORT_LIBRARY_END
 
 }
 
 #endif
 
 #endif
+
+

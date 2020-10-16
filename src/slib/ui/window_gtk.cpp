@@ -98,14 +98,23 @@ namespace slib
 					m_origin.x = 0;
 					m_origin.y = 0;
 					
-					GtkWidget* contentWidget = gtk_fixed_new();
-					if (contentWidget) {
-						gtk_container_add((GtkContainer*)window, contentWidget);
-						gtk_widget_show(contentWidget);
+					GtkWidget* contentWidget = sl_null;
+					GtkWidget* paintWidget = sl_null;
+					GtkWidget* contentContainer = gtk_event_box_new();
+					if (contentContainer) {
+						gtk_container_add((GtkContainer*)window, contentContainer);
+						contentWidget = gtk_fixed_new();
+						if (contentWidget) {
+							gtk_container_add((GtkContainer*)contentContainer, contentWidget);
+							gtk_widget_show(contentWidget);
+						}
+						gtk_widget_show(contentContainer);
 					}
+
 					Ref<GTK_ViewInstance> content = GTK_ViewInstance::create<GTK_ViewInstance>((GtkWidget*)window);
 					if (content.isNotNull()) {
 						content->setChildrenContainer(contentWidget);
+						content->setPaintWidget(contentWidget);
 						content->setWindowContent(sl_true);
 						content->installEvents();
 						m_viewContent = content;

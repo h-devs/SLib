@@ -29,6 +29,8 @@
 #include "slib/ui/core.h"
 #include "slib/math/transform2d.h"
 
+#include "slib/core/log.h"
+
 namespace slib
 {
 
@@ -38,6 +40,7 @@ namespace slib
 	{
 		m_handle = sl_null;
 		m_handleChildrenContainer = sl_null;
+		m_handlePaint = sl_null;
 		m_actionDrag = UIAction::MouseMove;
 	}
 	
@@ -98,6 +101,7 @@ namespace slib
 			g_object_unref(handle);
 			m_handle = sl_null;
 			m_handleChildrenContainer = sl_null;
+			m_handlePaint = sl_null;
 		}
 	}
 
@@ -109,6 +113,11 @@ namespace slib
 	void GTK_ViewInstance::setChildrenContainer(GtkWidget* widget)
 	{
 		m_handleChildrenContainer = widget;
+	}
+
+	void GTK_ViewInstance::setPaintWidget(GtkWidget* widget)
+	{
+		m_handlePaint = widget;
 	}
 
 	sl_bool GTK_ViewInstance::isValid(View* view)
@@ -311,16 +320,21 @@ namespace slib
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
-			g_signal_connect(handle, "expose_event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "motion-notify-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "button-press-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "button-release-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "enter-notify-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "leave-notify-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "key-press-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "key-release-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "scroll-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "focus-in-event", G_CALLBACK(eventCallback), sl_null);
+			if (m_handlePaint) {
+				g_signal_connect(m_handlePaint, "expose_event", G_CALLBACK(eventCallback), handle);
+			} else {
+				//g_signal_connect(handle, "expose_event", G_CALLBACK(eventCallback), handle);
+			}
+			g_signal_connect(handle, "motion-notify-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "button-press-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "button-release-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "enter-notify-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "leave-notify-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "key-press-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "key-release-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "scroll-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "focus-in-event", G_CALLBACK(eventCallback), handle);
+			
 			gtk_widget_set_events(handle,
 								  GDK_EXPOSURE_MASK |
 								  GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK |
@@ -329,12 +343,13 @@ namespace slib
 								  GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK |
 								  GDK_SCROLL_MASK |
 								  GDK_FOCUS_CHANGE_MASK);
+
 		}
 	}
 	
-	gboolean GTK_ViewInstance::eventCallback(GtkWidget* widget, GdkEvent* event, gpointer user_data)
+	gboolean GTK_ViewInstance::eventCallback(GtkWidget*, GdkEvent* event, gpointer user_data)
 	{
-		Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::from(UIPlatform::getViewInstance(widget));
+		Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::from(UIPlatform::getViewInstance((GtkWidget*)user_data));
 		if (instance.isNotNull()) {
 			switch (event->type) {
 				case GDK_EXPOSE:
@@ -364,12 +379,12 @@ namespace slib
 					break;
 			}
 		}
-		return sl_true;
+		return sl_false;
 	}
 	
 	gboolean GTK_ViewInstance::onExposeEvent(GdkEventExpose* event)
 	{
-		GtkWidget* handle = m_handle;
+		GtkWidget* handle = m_handlePaint ? m_handlePaint : m_handle;
 		if (handle) {
 			GdkWindow* window = handle->window;
 			if (window) {
