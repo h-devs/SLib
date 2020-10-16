@@ -41,6 +41,34 @@
 namespace slib
 {
 
+	namespace priv
+	{
+		namespace log
+		{
+			
+			static String GetLineString(const StringParam& tag, const StringParam& content)
+			{
+				return String::format("%s [%s] %s\n", Time::now(), tag, content);
+			}
+			
+			static String GetLineStringCRLF(const StringParam& tag, const StringParam& content)
+			{
+				return String::format("%s [%s] %s\r\n", Time::now(), tag, content);
+			}
+			
+#ifdef SLIB_PLATFORM_IS_WIN32
+			static String16 GetLineString16(const StringParam& tag, const StringParam& content)
+			{
+				return String16::format(SLIB_UNICODE("%s [%s] %s\n"), Time::now(), tag, content);
+			}
+#endif
+			
+		}
+	}
+	
+	using namespace priv::log;
+
+	
 	SLIB_DEFINE_OBJECT(Logger, Object)
 
 	Logger::Logger()
@@ -63,29 +91,6 @@ namespace slib
 #endif
 	}
 
-	namespace priv
-	{
-		namespace log
-		{
-
-			static String getLineString(const StringParam& tag, const StringParam& content)
-			{
-				return String::format("%s [%s] %s\n", Time::now(), tag, content);
-			}
-
-			static String getLineStringCRLF(const StringParam& tag, const StringParam& content)
-			{
-				return String::format("%s [%s] %s\r\n", Time::now(), tag, content);
-			}
-
-			static String16 getLineString16(const StringParam& tag, const StringParam& content)
-			{
-				return String16::format(SLIB_UNICODE("%s [%s] %s\n"), Time::now(), tag, content);
-			}
-
-		}
-	}
-
 	FileLogger::FileLogger()
 	{
 	}
@@ -106,7 +111,7 @@ namespace slib
 			return;
 		}
 		ObjectLocker lock(this);
-		File::appendAllTextUTF8(fileName, priv::log::getLineStringCRLF(tag, content));
+		File::appendAllTextUTF8(fileName, GetLineStringCRLF(tag, content));
 	}
 	
 	String FileLogger::getFileName()
@@ -137,7 +142,7 @@ namespace slib
 				dlog_print(DLOG_INFO, tag.getData(), " ");
 			}
 #elif defined(SLIB_PLATFORM_IS_WIN32)
-			String16 s = priv::log::getLineString16(_tag, _content);
+			String16 s = GetLineString16(_tag, _content);
 			OutputDebugStringW((LPCWSTR)(s.getData()));
 			HWND hWnd = GetConsoleWindow();
 			if (hWnd) {
@@ -145,7 +150,7 @@ namespace slib
 				printf("%s", (char*)(mem.getData()));
 			}
 #else
-			String s = priv::log::getLineString(_tag, _content);
+			String s = GetLineString(_tag, _content);
 			printf("%s", s.getData());
 #endif
 		}
@@ -167,7 +172,7 @@ namespace slib
 				dlog_print(DLOG_ERROR, tag.getData(), " ");
 			}
 #elif defined(SLIB_PLATFORM_IS_WIN32)
-			String16 s = priv::log::getLineString16(_tag, _content);
+			String16 s = GetLineString16(_tag, _content);
 			OutputDebugStringW((LPCWSTR)(s.getData()));
 			HWND hWnd = GetConsoleWindow();
 			if (hWnd) {
@@ -175,7 +180,7 @@ namespace slib
 				fprintf(stderr, "%s", (char*)(mem.getData()));
 			}
 #else
-			String s = priv::log::getLineString(_tag, _content);
+			String s = GetLineString(_tag, _content);
 			fprintf(stderr, "%s", s.getData());
 #endif
 		}
