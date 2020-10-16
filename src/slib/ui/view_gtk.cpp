@@ -101,6 +101,7 @@ namespace slib
 			g_object_unref(handle);
 			m_handle = sl_null;
 			m_handleChildrenContainer = sl_null;
+			m_handlePaint = sl_null;
 		}
 	}
 
@@ -320,19 +321,19 @@ namespace slib
 		GtkWidget* handle = m_handle;
 		if (handle) {
 			if (m_handlePaint) {
-				g_signal_connect(m_handlePaint, "expose_event", G_CALLBACK(eventCallback), m_handle);
+				g_signal_connect(m_handlePaint, "expose_event", G_CALLBACK(eventCallback), handle);
 			} else {
-				g_signal_connect(handle, "expose_event", G_CALLBACK(eventCallback), m_handle);
+				//g_signal_connect(handle, "expose_event", G_CALLBACK(eventCallback), handle);
 			}
-			g_signal_connect(handle, "motion-notify-event", G_CALLBACK(eventCallback), m_handle);
-			g_signal_connect(handle, "button-press-event", G_CALLBACK(eventCallback), m_handle);
-			g_signal_connect(handle, "button-release-event", G_CALLBACK(eventCallback), m_handle);
-			g_signal_connect(handle, "enter-notify-event", G_CALLBACK(eventCallback), m_handle);
-			g_signal_connect(handle, "leave-notify-event", G_CALLBACK(eventCallback), m_handle);
-			g_signal_connect(handle, "key-press-event", G_CALLBACK(eventCallback), m_handle);
-			g_signal_connect(handle, "key-release-event", G_CALLBACK(eventCallback), m_handle);
-			g_signal_connect(handle, "scroll-event", G_CALLBACK(eventCallback), m_handle);
-			g_signal_connect(handle, "focus-in-event", G_CALLBACK(eventCallback), m_handle);
+			g_signal_connect(handle, "motion-notify-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "button-press-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "button-release-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "enter-notify-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "leave-notify-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "key-press-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "key-release-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "scroll-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handle, "focus-in-event", G_CALLBACK(eventCallback), handle);
 			
 			gtk_widget_set_events(handle,
 								  GDK_EXPOSURE_MASK |
@@ -342,7 +343,7 @@ namespace slib
 								  GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK |
 								  GDK_SCROLL_MASK |
 								  GDK_FOCUS_CHANGE_MASK);
-			
+
 		}
 	}
 	
@@ -353,7 +354,7 @@ namespace slib
 			switch (event->type) {
 				case GDK_EXPOSE:
 					instance->onExposeEvent((GdkEventExpose*)event);
-					return sl_true;
+					break;
 				case GDK_MOTION_NOTIFY:
 					instance->onMotionNotifyEvent((GdkEventMotion*)event);
 					break;

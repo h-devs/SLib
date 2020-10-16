@@ -159,8 +159,7 @@ namespace slib
 					GtkEntry* handle = (GtkEntry*)m_handle;
 					String text = view->getText();
 					gtk_entry_set_text(handle, text.getData());
-					if(view->isPassword())
-					{
+					if(view->isPassword()) {
 						setPassword(view, true);
 					}
                     setTextColor(view, view->getTextColor());
@@ -221,33 +220,32 @@ namespace slib
 						G_GNUC_END_IGNORE_DEPRECATIONS
 					}
 				}
-
-				
-			};
-
-			SLIB_DEFINE_OBJECT(EditViewInstance, GTK_ViewInstance)
-
-			class EditViewHelper : public EditView
-			{
-			public:
-				void onChange(GTK_ViewInstance* instance, GtkWidget* handle)
+				void installEventHandlers()
 				{
-					GtkEntry* _handle = (GtkEntry*)(handle);
-					String textOld = m_text;
-					String text = gtk_entry_get_text(_handle);
-					String textNew = text;
-					dispatchChange(&textNew);
-					EditViewInstance *editviewInstance = (EditViewInstance*)instance;
-					if (text != textNew) {
-						Ref<EditView> view = editviewInstance->getView();
-						editviewInstance->setText(view, textNew);
-					}
-					if (textOld.isEmpty() || textNew.isEmpty()) {
-						editviewInstance->invalidate((View*)this);
+					GtkWidget* handle = m_handle;
+					GtkEntryBuffer *buffer = gtk_entry_get_buffer((GtkEntry*)handle);
+					g_signal_connect((GtkEditable*)handle, "changed", G_CALLBACK(onChange), handle);
+					g_signal_connect(handle, "key-press-event", G_CALLBACK(eventCallback), handle);
+				}
+				static void onChange(GtkEditable *editable, gpointer user_data)
+				{
+					Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::from(UIPlatform::getViewInstance((GtkWidget*)user_data));
+					Ref<EditViewInstance> editViewInstance = CastRef<EditViewInstance>(instance);
+					if (instance.isNotNull()) {
+						GtkEntryBuffer *buffer = gtk_entry_get_buffer((GtkEntry*)editable);
+						String text = gtk_entry_buffer_get_text(buffer);
+						String textNew = text;
+						Ref<EditView> view = CastRef<EditView>(instance->getView());
+						view->dispatchChange(&textNew);
+						if (text != textNew) {
+							editViewInstance->setText(view, textNew);
+						}
 					}
 				}
 
 			};
+
+			SLIB_DEFINE_OBJECT(EditViewInstance, GTK_ViewInstance)
 
 			class TextAreaInstance: public GTK_ViewInstance, public IEditViewInstance
 			{
@@ -277,7 +275,6 @@ namespace slib
 				{
 					GtkContainer* container = (GtkContainer*)m_handle;
 					GList *children = gtk_container_get_children (container);
-					children = gtk_container_get_children ((GtkContainer*)children->data);
 					GtkTextView* handle = (GtkTextView*)children->data;
 					if (handle) {
 						GtkTextBuffer *buffer = gtk_text_view_get_buffer (handle);
@@ -294,7 +291,6 @@ namespace slib
 				{
 					GtkContainer* container = (GtkContainer*)m_handle;
 					GList *children = gtk_container_get_children (container);
-					children = gtk_container_get_children ((GtkContainer*)children->data);
 					GtkTextView* handle = (GtkTextView*)children->data;
 					if (handle) {
 						GtkTextBuffer *buffer = gtk_text_view_get_buffer (handle);
@@ -306,7 +302,6 @@ namespace slib
 				{
 					GtkContainer* container = (GtkContainer*)m_handle;
 					GList *children = gtk_container_get_children (container);
-					children = gtk_container_get_children ((GtkContainer*)children->data);
 					GtkTextView* handle = (GtkTextView*)children->data;
 					if (handle) {
 						GtkJustification alignment = GTK_JUSTIFY_LEFT;
@@ -324,7 +319,6 @@ namespace slib
 				{
 					GtkContainer* container = (GtkContainer*)m_handle;
 					GList *children = gtk_container_get_children (container);
-					children = gtk_container_get_children ((GtkContainer*)children->data);
 					GtkWidget* handle = (GtkWidget*)children->data;
 					if (handle) {
 						GdkColor gdkColor;
@@ -375,7 +369,6 @@ namespace slib
 				{
 					GtkContainer* container = (GtkContainer*)m_handle;
 					GList *children = gtk_container_get_children (container);
-					children = gtk_container_get_children ((GtkContainer*)children->data);
 					GtkTextView* handle = (GtkTextView*)children->data;
 					if (handle) {
 						gtk_text_view_set_editable(handle, !flag);
@@ -421,7 +414,6 @@ namespace slib
 				{
 					GtkContainer* container = (GtkContainer*)m_handle;
 					GList *children = gtk_container_get_children (container);
-					children = gtk_container_get_children ((GtkContainer*)children->data);
 					GtkTextView* handle = (GtkTextView*)children->data;
 					if (handle) {
 						gtk_text_view_set_left_margin(handle, inset.left);
@@ -432,7 +424,6 @@ namespace slib
 				{
 					GtkContainer* container = (GtkContainer*)m_handle;
 					GList *children = gtk_container_get_children (container);
-					children = gtk_container_get_children ((GtkContainer*)children->data);
 					GtkWidget* handle = (GtkWidget*)children->data;
 					if(handle)
 					{
@@ -443,6 +434,34 @@ namespace slib
 					setTextColor(view, view->getTextColor());
 					setGravity(view, view->getGravity());
 					setReadOnly(view, view->isReadOnly());
+				}
+				void installEventHandlers()
+				{
+					GtkContainer* container = (GtkContainer*)m_handle;
+					GList *children = gtk_container_get_children (container);
+					GtkTextView* handle = (GtkTextView*)children->data;
+					if (handle) {
+						GtkTextBuffer *buffer = gtk_text_view_get_buffer (handle);
+						g_signal_connect(buffer, "changed", G_CALLBACK(onChange), m_handle);
+						g_signal_connect(handle, "key-press-event", G_CALLBACK(eventCallback), m_handle);
+					}
+				}
+				static void onChange(GtkTextBuffer *buffer, gpointer user_data)
+				{
+					Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::from(UIPlatform::getViewInstance((GtkWidget*)user_data));
+					if (instance.isNotNull()) {
+						GtkTextIter start, end;
+						gtk_text_buffer_get_start_iter (buffer, &start);
+						gtk_text_buffer_get_end_iter (buffer, &end);
+						String text = gtk_text_buffer_get_text(buffer, &start, &end, true) ;
+						String textNew = text;
+						Ref<TextArea> view = CastRef<TextArea>(instance->getView());
+						view->dispatchChange(&textNew);
+						if (text != textNew) {
+							Ref<TextAreaInstance> textAreaInstance = CastRef<TextAreaInstance>(instance);
+							textAreaInstance->setText(view, textNew);
+						}
+					}
 				}
 
 			};
@@ -463,6 +482,7 @@ namespace slib
 			Ref<EditViewInstance> ret = GTK_ViewInstance::create<EditViewInstance>(this, parent, handle);
 			if (ret.isNotNull()) {
 				ret->apply(this);
+				ret->installEventHandlers();
 				return ret;
 			} else {
 				g_object_ref_sink(handle);
@@ -481,16 +501,13 @@ namespace slib
 	{
 		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
 		GtkWidget* textView = gtk_text_view_new();
-		GtkWidget *scrollWindow = gtk_scrolled_window_new (NULL, NULL);
-		gtk_scrolled_window_set_policy ((GtkScrolledWindow*)scrollWindow,
+		GtkWidget *handle = gtk_scrolled_window_new (NULL, NULL);
+		gtk_scrolled_window_set_policy ((GtkScrolledWindow*)handle,
 											  GTK_POLICY_AUTOMATIC,
 											  GTK_POLICY_AUTOMATIC);
-		gtk_scrolled_window_set_shadow_type ((GtkScrolledWindow*)scrollWindow, GTK_SHADOW_ETCHED_IN);
-		gtk_container_add ((GtkContainer*)scrollWindow, textView);
-		GtkWidget *handle = gtk_event_box_new(); // this is for rendering the border in it, not in parent window.
-		// As GtkScrolledWindow has not window in itself, that's why it renders it's border on the parent window.
-		// We have to stop this.
-		gtk_container_add ((GtkContainer*)handle, scrollWindow);
+		gtk_scrolled_window_set_shadow_type ((GtkScrolledWindow*)handle, GTK_SHADOW_ETCHED_IN);
+		gtk_container_add ((GtkContainer*)handle, textView);
+
 		gtk_widget_show_all (handle);
 		if (handle) {
 			//GTK_WIDGET_UNSET_FLAGS(handle, GTK_NO_WINDOW);
@@ -498,6 +515,7 @@ namespace slib
 			Ref<TextAreaInstance> ret = GTK_ViewInstance::create<TextAreaInstance>(this, parent, handle);
 			if (ret.isNotNull()) {
 				ret->apply(this);
+				ret->installEventHandlers();
 				return ret;
 			} else {
 				g_object_ref_sink(handle);

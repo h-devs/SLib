@@ -714,6 +714,91 @@ namespace slib
                         GtkWidget *, ,
                 )
                 #define gtk_event_box_new slib::gtk::getApi_gtk_event_box_new()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_set_title,
+                        void , ,
+                        GtkComboBox *combo_box,
+                        const gchar *title
+                )
+                #define gtk_combo_box_set_title slib::gtk::getApi_gtk_combo_box_set_title()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_list_store_new,
+                        GtkListStore * , ,
+                        gint n_columns,
+                        ...
+                )
+                #define gtk_list_store_new slib::gtk::getApi_gtk_list_store_new()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_list_store_append,
+                        void , ,
+                        GtkListStore *list_store,
+                        GtkTreeIter *iter
+                )
+                #define gtk_list_store_append slib::gtk::getApi_gtk_list_store_append()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_list_store_set,
+                        void , ,
+                        GtkListStore *list_store,
+                        GtkTreeIter *iter,
+                        ...
+                )
+                #define gtk_list_store_set slib::gtk::getApi_gtk_list_store_set()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_set_model,
+                        void , ,
+                        GtkComboBox *combo_box,
+                        GtkTreeModel *model
+                )
+                #define gtk_combo_box_set_model slib::gtk::getApi_gtk_combo_box_set_model()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_get_active,
+                        gint , ,
+                        GtkComboBox *combo_box
+                )
+                #define gtk_combo_box_get_active slib::gtk::getApi_gtk_combo_box_get_active()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_set_active,
+                        void , ,
+                        GtkComboBox *combo_box,
+                        gint index_
+                )
+                #define gtk_combo_box_set_active slib::gtk::getApi_gtk_combo_box_set_active()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_get_model,
+                        GtkTreeModel * , ,
+                        GtkComboBox *combo_box
+                )
+                #define gtk_combo_box_get_model slib::gtk::getApi_gtk_combo_box_get_model()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_get_title,
+                        const gchar *, ,
+                        GtkComboBox *combo_box
+                )
+                #define gtk_combo_box_get_title slib::gtk::getApi_gtk_combo_box_get_title()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_entry_new_text,
+                        GtkWidget *, ,
+                )
+                #define gtk_combo_box_entry_new_text slib::gtk::getApi_gtk_combo_box_entry_new_text()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_append_text,
+                        void , ,
+                        GtkComboBox     *combo_box,
+                        const gchar     *text
+                )
+                #define gtk_combo_box_append_text slib::gtk::getApi_gtk_combo_box_append_text()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_entry_get_buffer,
+                        GtkEntryBuffer * , ,
+                        GtkEntry *
+                )
+                #define gtk_entry_get_buffer slib::gtk::getApi_gtk_entry_get_buffer()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_entry_buffer_get_text,
+                        const gchar * , ,
+                        GtkEntryBuffer *buffer
+                )
+                #define gtk_entry_buffer_get_text slib::gtk::getApi_gtk_entry_buffer_get_text()
         SLIB_IMPORT_LIBRARY_END
 
 }
@@ -721,4 +806,5 @@ namespace slib
 #endif
 
 #endif
+
 
