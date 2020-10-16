@@ -22,7 +22,7 @@ extern "C" {
 
 #define GDK_NATIVE_WINDOW_POINTER
 
-#define GDK_WINDOWING_WIN32
+//#define GDK_WINDOWING_WIN32
 
 #define GDK_HAVE_WCHAR_H 1
 #define GDK_HAVE_WCTYPE_H 1

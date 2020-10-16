@@ -1,1 +1,0 @@
-PANGOXFT_CFLAGS=-I${SLIB_PATH}/external/include PANGOXFT_LIBS=/usr/lib64/libpangoxft-1.0.so.0 ./configure --libdir=/usr/lib64 --disable-gtktest --with-x11 --with-x --disable-actindicator
