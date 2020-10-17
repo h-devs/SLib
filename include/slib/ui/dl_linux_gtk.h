@@ -590,6 +590,7 @@ namespace slib
 		)
 		#define gtk_entry_set_visibility slib::gtk::getApi_gtk_entry_set_visibility()
 <<<<<<< HEAD
+<<<<<<< HEAD
                 SLIB_IMPORT_LIBRARY_FUNCTION(
                         gtk_widget_modify_text,
                         void , ,
@@ -870,6 +871,8 @@ namespace slib
                 #define gtk_entry_set_overwrite_mode slib::gtk::getApi_gtk_entry_set_overwrite_mode()
         SLIB_IMPORT_LIBRARY_END
 =======
+=======
+>>>>>>> master
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 				gtk_widget_modify_text,
 				void , ,
@@ -1130,6 +1133,9 @@ namespace slib
 		#define gtk_text_view_buffer_to_window_coords slib::gtk::getApi_gtk_text_view_buffer_to_window_coords()
 
 	SLIB_IMPORT_LIBRARY_END
+<<<<<<< HEAD
+>>>>>>> master
+=======
 >>>>>>> master
 
 }
