@@ -799,6 +799,74 @@ namespace slib
                         GtkEntryBuffer *buffer
                 )
                 #define gtk_entry_buffer_get_text slib::gtk::getApi_gtk_entry_buffer_get_text()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_tree_model_get_iter,
+                        gboolean , ,
+                        GtkTreeModel *tree_model,
+                        GtkTreeIter  *iter,
+                        GtkTreePath  *path
+                )
+                #define gtk_tree_model_get_iter slib::gtk::getApi_gtk_tree_model_get_iter()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_tree_path_free,
+                        void , ,
+                        GtkTreePath  *path
+                )
+                #define gtk_tree_path_free slib::gtk::getApi_gtk_tree_path_free()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_remove_text,
+                        void , ,
+                        GtkComboBox     *combo_box,
+                        gint             position
+                )
+                #define gtk_combo_box_remove_text slib::gtk::getApi_gtk_combo_box_remove_text()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_tree_path_new_from_string,
+                        GtkTreePath * , ,
+                        const gchar  *path
+                )
+                #define gtk_tree_path_new_from_string slib::gtk::getApi_gtk_tree_path_new_from_string()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_insert_text,
+                        void , ,
+                        GtkComboBox  *combo_box,
+                        gint position,
+                        const gchar  *text
+                )
+                #define gtk_combo_box_insert_text slib::gtk::getApi_gtk_combo_box_insert_text()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_combo_box_new_text,
+                        GtkWidget* , ,
+                )
+                #define gtk_combo_box_new_text slib::gtk::getApi_gtk_combo_box_new_text()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_tree_path_new_from_indices,
+                        GtkTreePath* , ,
+                        gint first_index,
+                        ...
+                )
+                #define gtk_tree_path_new_from_indices slib::gtk::getApi_gtk_tree_path_new_from_indices()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_bin_get_child,
+                        GtkWidget* , ,
+                        GtkBin *bin
+                )
+                #define gtk_bin_get_child slib::gtk::getApi_gtk_bin_get_child()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_entry_buffer_set_text,
+                        void , ,
+                        GtkEntryBuffer  *buffer,
+                        const gchar     *chars,
+                        gint             n_chars
+                )
+                #define gtk_entry_buffer_set_text slib::gtk::getApi_gtk_entry_buffer_set_text()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_entry_set_overwrite_mode,
+                        void , ,
+                        GtkEntry      *entry,
+                        gboolean       overwrite
+                )
+                #define gtk_entry_set_overwrite_mode slib::gtk::getApi_gtk_entry_set_overwrite_mode()
         SLIB_IMPORT_LIBRARY_END
 
 }
@@ -806,5 +874,4 @@ namespace slib
 #endif
 
 #endif
-
 

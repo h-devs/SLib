@@ -35,29 +35,6 @@ namespace slib
 		namespace combo_box
 		{
 
-			class ComboBoxHelper : public ComboBox
-			{
-			public:
-				/*
-				void onChange(HWND handle)
-				{
-					String text = Windows::getWindowText(handle);
-					String textNew = text;
-					dispatchChange(&textNew);
-					if (text != textNew) {
-						Windows::setWindowText(handle, textNew);
-					}
-				}
-				*/
-				using ComboBox::m_text;
-
-			};
-			enum {
-			  COLUMN_STRING,
-			  COLUMN_INT,
-			  COLUMN_BOOLEAN,
-			  N_COLUMNS
-			};
 			class ComboBoxInstance : public GTK_ViewInstance, public IComboBoxInstance
 			{
 				SLIB_DECLARE_OBJECT
@@ -67,7 +44,13 @@ namespace slib
 				{
 					refreshItems(view, sl_false);
 				}
-
+				static String getTextFromHanlde(GtkComboBox* handle)
+				{
+					GtkEntry* entry = (GtkEntry*)gtk_bin_get_child ((GtkBin*)handle);
+					gchar *text = gtk_entry_get_text(entry);
+					String tmp = text;
+					return tmp;
+				}
 				void refreshItems(ComboBox* view, sl_bool flagInit)
 				{
 					GtkWidget* handle = m_handle;
@@ -82,36 +65,19 @@ namespace slib
 							gtk_combo_box_set_title (combo_box, text.getData());
 						}
 						sl_uint32 n = view->getItemsCount();
-						//GtkTreeModel *list_store;
-						//GtkTreeIter iter;
-						//list_store = (GtkTreeModel *)gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_INT);
 						for (sl_uint32 i = 0; i < n; i++) {
-							String16 s = String16::from(view->getItemTitle(i));
-							//gtk_list_store_append ((GtkListStore*)list_store, &iter);
-							/*gtk_list_store_set ((GtkListStore*)list_store, &iter,
-													  COLUMN_STRING, s.getData(),
-													  COLUMN_INT, i,
-													  COLUMN_BOOLEAN,  FALSE,
-													  -1);*/
+							String s = view->getItemTitle(i);
 							gtk_combo_box_append_text((GtkComboBox*)combo_box, (const char*)s.getData());
 						}
-						//gtk_combo_box_set_model(combo_box, list_store);
 						sl_int32 indexSelected = view->getSelectedIndex();
 						if (indexSelected >= 0 && (sl_uint32)indexSelected < n) {
-
 							if (gtk_combo_box_get_active(combo_box) != indexSelected) {
 								gtk_combo_box_set_active(combo_box, indexSelected);
-								((ComboBoxHelper*)view)->m_text = view->getItemTitle(indexSelected);
-								/*
-								UI::dispatchToUiThread([handle]() {
-									SendMessageW(handle, CB_SETEDITSEL, 0, SLIB_MAKE_DWORD2(-1, -1));
-								});*/
 							}
 						}
 						if(indexSelected == -1)
 						{
 							gtk_combo_box_set_active(combo_box, 0);
-							((ComboBoxHelper*)view)->m_text = view->getItemTitle(0);
 						}
 					}
 				}
@@ -121,17 +87,7 @@ namespace slib
 					GtkWidget* handle = m_handle;
 					GtkComboBox* combo_box = (GtkComboBox*)handle;
 					if (handle) {
-						String16 s = String16::from(title);
-						GtkTreeModel *list_store = gtk_combo_box_get_model(combo_box);
-						GtkTreeIter iter;
-						/*
-						gtk_list_store_insert((GtkListStore*)list_store, &iter, index);
-						gtk_list_store_set ((GtkListStore*)list_store, &iter,
-												  COLUMN_STRING, s.getData(),
-												  COLUMN_INT, index,
-												  COLUMN_BOOLEAN,  FALSE,
-												  -1);*/
-						//gtk_combo_box_insert_text(combo_box, index, s.getData());
+						gtk_combo_box_insert_text(combo_box, index, title.getData());
 					}
 				}
 
@@ -140,39 +96,38 @@ namespace slib
 					GtkWidget* handle = m_handle;
 					GtkComboBox* combo_box = (GtkComboBox*)handle;
 					if (handle) {
-						GtkTreeModel *list_store = gtk_combo_box_get_model(combo_box);
-
-						//gtk_combo_box_remove_text(combo_box, index);
+						gtk_combo_box_remove_text(combo_box, index);
 					}
 				}
 
 				void setItemTitle(ComboBox* view, sl_int32 index, const String& title) override
 				{
-					/*
-					HWND handle = m_handle;
+					GtkComboBox* handle = (GtkComboBox*)m_handle;
 					if (handle) {
-						String16 s = String16::from(title);
-						SendMessageW(handle, CB_DELETESTRING, (WPARAM)index, 0);
-						SendMessageW(handle, CB_INSERTSTRING, (WPARAM)index, (LPARAM)(s.getData()));
-					}*/
+						GtkTreeModel *model = gtk_combo_box_get_model(handle);
+						GtkTreePath *path = gtk_tree_path_new_from_indices(index);
+						if(path){
+							GtkTreeIter iter;
+							gtk_tree_model_get_iter (model, &iter, path);
+							gtk_tree_path_free (path);
+							gtk_list_store_set ((GtkListStore*)model, &iter, 0, title.getData(), -1);
+						}
+					}
 				}
 
 				void selectItem(ComboBox* view, sl_int32 index) override
 				{
-					/*
-					HWND handle = m_handle;
+					GtkComboBox* handle = (GtkComboBox*)m_handle;
 					if (handle) {
-						SendMessageW(handle, CB_SETCURSEL, (WPARAM)index, 0);
-					}*/
+						gtk_combo_box_set_active(handle, index);
+					}
 				}
 
 				sl_bool getText(ComboBox* view, String& _out) override
 				{
-					GtkWidget* handle = m_handle;
-					GtkComboBox* combo_box = (GtkComboBox*)handle;
+					GtkComboBox* handle = (GtkComboBox*)m_handle;
 					if (handle) {
-						//_out = gtk_combo_box_get_title(combo_box);
-						_out = view->getText();
+						_out = getTextFromHanlde(handle);
 						return sl_true;
 					}
 					return sl_false;
@@ -180,7 +135,11 @@ namespace slib
 
 				void setText(ComboBox* view, const String& text) override
 				{
-					view->setText(text);
+					GtkComboBox* handle = (GtkComboBox*)m_handle;
+					GtkEntry* entry = (GtkEntry*)gtk_bin_get_child ((GtkBin*)handle);
+					if(entry){
+						gtk_entry_set_text(entry, text.getData());
+					}
 				}
 
 				sl_ui_len measureHeight(ComboBox* view) override
@@ -200,55 +159,32 @@ namespace slib
 					}*/
 					return 0;
 				}
-/*
-				sl_bool processCommand(SHORT code, LRESULT& result) override
+
+				void installEventHandlers()
 				{
-					if (code == CBN_SELCHANGE) {
-						Ref<ComboBoxHelper> helper = CastRef<ComboBoxHelper>(getView());
-						if (helper.isNotNull()) {
-							sl_uint32 index = (sl_uint32)(SendMessageW(m_handle, CB_GETCURSEL, 0, 0));
-							helper->dispatchSelectItem(index);							
-							result = 0;
-							return sl_true;
-						}
-					} else if (code == CBN_EDITCHANGE) {
-						Ref<ComboBoxHelper> helper = CastRef<ComboBoxHelper>(getView());
-						if (helper.isNotNull()) {
-							helper->onChange(m_handle);
-							result = 0;
-							return sl_true;
+					GtkComboBox* handle = (GtkComboBox*)m_handle;
+					g_signal_connect(handle, "changed", G_CALLBACK(onSelectedItem), handle);
+				}
+				static void onSelectedItem (GtkComboBox *widget, gpointer handle)
+				{
+					Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::from(UIPlatform::getViewInstance((GtkWidget*)widget));
+					Ref<ComboBoxInstance> comboBoxInstance = CastRef<ComboBoxInstance>(instance);
+					if (comboBoxInstance.isNotNull()) {
+						Ref<ComboBox> view = CastRef<ComboBox>(comboBoxInstance->getView());
+						int index = gtk_combo_box_get_active(widget);
+						view->dispatchSelectItem(index);
+
+						String text = getTextFromHanlde(widget);
+						String textNew = text;
+						view->dispatchChange(&textNew);
+						if (text != textNew) {
+							comboBoxInstance->setText(view, textNew);
 						}
 					}
-					return sl_false;
 				}
-*/
 			};
 
 			SLIB_DEFINE_OBJECT(ComboBoxInstance, GTK_ViewInstance)
-/*
-			LRESULT CALLBACK EditChildSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
-			{
-				if (uMsg == WM_KEYDOWN) {
-					Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::from(UIPlatform::getViewInstance(GetParent(hWnd)));
-					if (instance.isNotNull()) {
-						return instance->processSubclassMessage(uMsg, wParam, lParam);
-					}
-				}
-				return DefSubclassProc(hWnd, uMsg, wParam, lParam);
-			}
-
-			BOOL CALLBACK SubclassEditChild(HWND hWnd, LPARAM lParam)
-			{
-				WCHAR sz[16];
-				int n = GetClassNameW(hWnd, sz, 16);
-				if (n) {
-					if (String16::from(sz, (sl_size)n).equalsIgnoreCase(SLIB_UNICODE("EDIT"))) {
-						SetWindowSubclass(hWnd, EditChildSubclassProc, 0, 0);
-					}
-				}
-				return TRUE;
-			}
-*/
 		}
 	}
 
@@ -256,12 +192,11 @@ namespace slib
 
 	Ref<ViewInstance> ComboBox::createNativeWidget(ViewInstance* parent)
 	{
-		//UINT style = CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_TABSTOP;
 		GtkWidget* combobox = gtk_combo_box_entry_new_text();
 		Ref<ComboBoxInstance> ret = GTK_ViewInstance::create<ComboBoxInstance>(this, parent, combobox);
 		if (ret.isNotNull()) {
-			//EnumChildWindows(ret->getHandle(), SubclassEditChild, 0);
 			ret->refreshItems(this, sl_true);
+			ret->installEventHandlers();
 			return ret;
 		}
 		return sl_null;
