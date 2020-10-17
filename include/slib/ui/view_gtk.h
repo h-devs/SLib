@@ -76,7 +76,7 @@ namespace slib
 		
 		void setChildrenContainer(GtkWidget* widget);
 
-                void setPaintWidget(GtkWidget* widget);
+		void setPaintWidget(GtkWidget* widget);
 
 		sl_bool isValid(View* view) override;
 
@@ -111,6 +111,8 @@ namespace slib
 		void removeChildInstance(View* view, const Ref<ViewInstance>& instance) override;
 
 		void bringToFront(View* view) override;
+
+		void setFont(View* view, const Ref<Font>& font) override;
 		
 	public:
 		void installEvents();
@@ -142,7 +144,7 @@ namespace slib
 	protected:
 		GtkWidget* m_handle;
 		GtkWidget* m_handleChildrenContainer;
-                GtkWidget* m_handlePaint;
+		GtkWidget* m_handlePaint;
 		UIAction m_actionDrag;
 
 		UIRect m_frame;

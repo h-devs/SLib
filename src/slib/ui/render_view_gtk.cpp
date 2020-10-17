@@ -161,10 +161,10 @@ namespace slib
 						}
 					}
 				}
-			} else {
-				g_object_ref_sink(handle);
-				g_object_unref(handle);
+				return sl_null;
 			}
+			g_object_ref_sink(handle);
+			g_object_unref(handle);
 		}
 		return sl_null;
 	}

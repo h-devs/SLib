@@ -127,7 +127,7 @@ namespace slib
 	{
 		StaticContext* context = GetStaticContext();
 		if (context) {
-			PangoFontDescription* handle = GraphicsPlatform::getCairoFont(this);
+			PangoFontDescription* handle = GraphicsPlatform::getPangoFont(this);
 			if (handle) {
 				PangoFontMetrics* metrics = pango_context_get_metrics(context->pango, handle, NULL);
 				if (metrics) {
@@ -149,7 +149,7 @@ namespace slib
 		if (len) {
 			StaticContext* context = GetStaticContext();
 			if (context) {
-				PangoFontDescription* handle = GraphicsPlatform::getCairoFont(this);
+				PangoFontDescription* handle = GraphicsPlatform::getPangoFont(this);
 				if (handle) {
 					PangoLayout* layout = pango_layout_new(context->pango);
 					if (layout) {
@@ -166,7 +166,7 @@ namespace slib
 		return Size::zero();
 	}
 
-	PangoFontDescription* GraphicsPlatform::getCairoFont(Font* font)
+	PangoFontDescription* GraphicsPlatform::getPangoFont(Font* font)
 	{
 		if (font) {
 			return ((FontHelper*)font)->getPlatformHandle();

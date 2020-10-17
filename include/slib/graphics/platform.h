@@ -130,7 +130,7 @@ namespace slib
 
 #elif defined(SLIB_GRAPHICS_IS_CAIRO)
 
-		static PangoFontDescription* getCairoFont(Font* font);
+		static PangoFontDescription* getPangoFont(Font* font);
 
 		static Ref<Canvas> createCanvas(CanvasType type, cairo_t* graphics, sl_uint32 width, sl_uint32 height);
 		static cairo_t* getCanvasHandle(Canvas* canvas);

@@ -220,6 +220,7 @@ namespace slib
 
 	void UIPlatform::getGdkColor(const Color& color, GdkColor* _out)
 	{
+		_out->pixel = 0;
 		_out->red = (guint16)(color.r) * 257;
 		_out->green = (guint16)(color.g) * 257;
 		_out->blue = (guint16)(color.b) * 257;
@@ -245,7 +246,7 @@ namespace slib
 			*out_y = y;
 		}
 	}
-	
+
 }
 
 #endif
