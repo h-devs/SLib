@@ -1439,17 +1439,11 @@
     <ClCompile Include="..\..\src\slib\dev\hook.cpp">
       <Filter>src\dev</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\service\dokany.cpp">
-      <Filter>src\service</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\dev\module.cpp">
       <Filter>src\dev</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\dev\vtable.cpp">
       <Filter>src\dev</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\service\dokany_control.cpp">
-      <Filter>src\service</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\service_manager.cpp">
       <Filter>src\core</Filter>
@@ -1468,6 +1462,21 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\media\camera_win32.cpp">
       <Filter>src\media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\filesystembase.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\mirrorfs.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\restfs.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\dokany_control.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\dokany.cpp">
+      <Filter>src\storage</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

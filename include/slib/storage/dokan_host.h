@@ -1,0 +1,296 @@
+/**
+ * @file slib/filesystem/host/dokan_host.h
+ * Dokan FileSystem Host Layer.
+ *
+ * @copyright 2020 Steve Han
+ */
+
+#pragma once
+
+#include "../../../external/include/dokany/dokan.h"
+#include "filesystemhost.h"
+
+#if DOKAN_VERSION >= 600
+# define		SLIB_DOKAN_VERSION			(DOKAN_VERSION / 10)
+# define		SLIB_DOKAN_MAJOR_VERSION	(DOKAN_VERSION / 1000)
+# define		SLIB_DOKAN_RET				int
+# define		SLIB_DOKAN_RET_VOID			int
+#else
+# define		SLIB_DOKAN_VERSION			DOKAN_VERSION
+# define		SLIB_DOKAN_MAJOR_VERSION	(DOKAN_VERSION / 100)
+# define		SLIB_DOKAN_RET				NTSTATUS
+# define		SLIB_DOKAN_RET_VOID			void
+# define		SLIB_DOKAN_IS_DOKANY
+#endif
+
+namespace slib
+{
+
+	class DokanHost : public FileSystemHost
+	{
+	public:
+		DokanHost(Ref<FileSystemBase> base, sl_uint32 options = 0);
+		virtual ~DokanHost();
+
+		void SetVersion(sl_uint16 Version);
+		void SetThreadCount(sl_uint16 ThreadCount);
+		void SetMountPoint(String MountPoint);
+#ifdef SLIB_DOKAN_IS_DOKANY
+		void SetUNCName(String UNCName);
+		void SetTimeout(sl_uint32 Timeout);
+#endif
+		void SetDebugMode(sl_bool UseStdErr);
+
+		int Run() override;
+		int Stop() override;
+		int IsRunning() override;
+
+	public:
+		static BOOL HasSeSecurityPrivilege;
+		static BOOL AddSeSecurityNamePrivilege();
+
+	private:
+#ifdef SLIB_DOKAN_IS_DOKANY
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			ZwCreateFile(
+				LPCWSTR					FileName,
+				PDOKAN_IO_SECURITY_CONTEXT SecurityContext,
+				ACCESS_MASK				DesiredAccess,
+				ULONG					FileAttributes,
+				ULONG					ShareAccess,
+				ULONG					CreateDisposition,
+				ULONG					CreateOptions,
+				PDOKAN_FILE_INFO		DokanFileInfo);
+#endif // SLIB_DOKAN_IS_DOKANY
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK	// !SLIB_DOKAN_IS_DOKANY
+			CreateFile(
+				LPCWSTR					FileName,
+				DWORD					AccessMode,
+				DWORD					ShareMode,
+				DWORD					CreationDisposition,
+				DWORD					FlagsAndAttributes,
+				PDOKAN_FILE_INFO		DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK	// !SLIB_DOKAN_IS_DOKANY
+			CreateDirectory(
+				LPCWSTR					FileName,
+				PDOKAN_FILE_INFO		DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK	// !SLIB_DOKAN_IS_DOKANY
+			OpenDirectory(
+				LPCWSTR					FileName,
+				PDOKAN_FILE_INFO		DokanFileInfo);
+
+		static SLIB_DOKAN_RET_VOID DOKAN_CALLBACK
+			Cleanup(
+				LPCWSTR					FileName,
+				PDOKAN_FILE_INFO		DokanFileInfo);
+
+		static SLIB_DOKAN_RET_VOID DOKAN_CALLBACK
+			CloseFile(
+				LPCWSTR					FileName,
+				PDOKAN_FILE_INFO		DokanFileInfo);
+	
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			ReadFile(
+				LPCWSTR				FileName,
+				LPVOID				Buffer,
+				DWORD				BufferLength,
+				LPDWORD				ReadLength,
+				LONGLONG			Offset,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			WriteFile(
+				LPCWSTR				FileName,
+				LPCVOID				Buffer,
+				DWORD				NumberOfBytesToWrite,
+				LPDWORD				NumberOfBytesWritten,
+				LONGLONG			Offset,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			FlushFileBuffers(
+				LPCWSTR		FileName,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			GetFileInformation(
+				LPCWSTR							FileName,
+				LPBY_HANDLE_FILE_INFORMATION	HandleFileInformation,
+				PDOKAN_FILE_INFO				DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			FindFiles(
+				LPCWSTR				PathName,
+				PFillFindData		FillFindData, // function pointer
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			FindFilesWithPattern(
+				LPCWSTR				PathName,
+				LPCWSTR				SearchPattern,
+				PFillFindData		FillFindData, // function pointer
+				PDOKAN_FILE_INFO	DokanFileInfo);
+#ifdef SLIB_DOKAN_IS_DOKANY
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			FindStreams(
+				LPCWSTR				FileName,
+				PFillFindStreamData	FillFindStreamData,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+#endif // SLIB_DOKAN_IS_DOKANY
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			DeleteFile(
+				LPCWSTR				FileName,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			DeleteDirectory(
+				LPCWSTR				FileName,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			MoveFile(
+				LPCWSTR				FileName, // existing file name
+				LPCWSTR				NewFileName,
+				BOOL				ReplaceIfExisting,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			SetEndOfFile(
+				LPCWSTR				FileName,
+				LONGLONG			ByteOffset,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			SetAllocationSize(
+				LPCWSTR				FileName,
+				LONGLONG			AllocSize,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			SetFileAttributes(
+				LPCWSTR				FileName,
+				DWORD				FileAttributes,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			SetFileTime(
+				LPCWSTR				FileName,
+				CONST FILETIME*		CreationTime,
+				CONST FILETIME*		LastAccessTime,
+				CONST FILETIME*		LastWriteTime,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			GetFileSecurity(
+				LPCWSTR					FileName,
+				PSECURITY_INFORMATION	SecurityInformation,
+				PSECURITY_DESCRIPTOR	SecurityDescriptor,
+				ULONG				BufferLength,
+				PULONG				LengthNeeded,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			SetFileSecurity(
+				LPCWSTR					FileName,
+				PSECURITY_INFORMATION	SecurityInformation,
+				PSECURITY_DESCRIPTOR	SecurityDescriptor,
+				ULONG				SecurityDescriptorLength,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			LockFile(
+				LPCWSTR				FileName,
+				LONGLONG			ByteOffset,
+				LONGLONG			Length,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			UnlockFile(
+				LPCWSTR				FileName,
+				LONGLONG			ByteOffset,
+				LONGLONG			Length,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			GetDiskFreeSpace(
+				PULONGLONG			FreeBytesAvailable,
+				PULONGLONG			TotalNumberOfBytes,
+				PULONGLONG			TotalNumberOfFreeBytes,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			GetVolumeInformation(
+				LPWSTR		VolumeNameBuffer,
+				DWORD		VolumeNameSize,
+				LPDWORD		VolumeSerialNumber,
+				LPDWORD		MaximumComponentLength,
+				LPDWORD		FileSystemFlags,
+				LPWSTR		FileSystemNameBuffer,
+				DWORD		FileSystemNameSize,
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK	// SLIB_DOKAN_IS_DOKANY
+			Mounted(
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
+			Unmounted(
+				PDOKAN_FILE_INFO	DokanFileInfo);
+
+	public:
+		static PDOKAN_OPERATIONS Interface()
+		{
+			static DOKAN_OPERATIONS _Interface = {
+#ifdef SLIB_DOKAN_IS_DOKANY
+				ZwCreateFile,
+#else
+				CreateFile,
+				OpenDirectory,
+				CreateDirectory,
+#endif
+				Cleanup,
+				CloseFile,
+				ReadFile,
+				WriteFile,
+				FlushFileBuffers,
+				GetFileInformation,
+				FindFiles,
+				NULL, //FindFilesWithPattern,
+				SetFileAttributes,
+				SetFileTime,
+				DeleteFile,
+				DeleteDirectory,
+				MoveFile,
+				SetEndOfFile,
+				SetAllocationSize,
+				LockFile,
+				UnlockFile,
+				GetDiskFreeSpace,
+				GetVolumeInformation,
+#ifdef SLIB_DOKAN_IS_DOKANY
+				Mounted,
+#endif
+				Unmounted,
+				GetFileSecurity,
+				SetFileSecurity,
+#ifdef SLIB_DOKAN_IS_DOKANY
+				FindStreams,
+#endif
+			};
+
+			return &_Interface;
+		}
+
+	private:
+		DOKAN_OPTIONS _DokanOptions;
+		WCHAR _MountPoint[MAX_PATH];
+#ifdef SLIB_DOKAN_IS_DOKANY
+		WCHAR _UNCName[MAX_PATH];
+#endif
+		BOOL _Started;
+	};
+
+}

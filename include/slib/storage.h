@@ -25,4 +25,17 @@
 
 #include "storage/disk.h"
 
+#include "storage/filesystembase.h"
+#include "storage/atomicfilesystem.h"
+
+#include "storage/dummyfs.h"
+#include "storage/mirrorfs.h"
+#include "storage/restfs.h"
+
+#include "storage/filesystemwrapper.h"
+#include "storage/file_system_logger.h"
+
+#include "storage/filesystemhost.h"
+#include "storage/dokan_host.h"
+
 #endif

@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/service/dokany.h"
+#include "slib/storage/dokany.h"
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 
@@ -28,11 +28,32 @@
 
 #include "slib/core/service_manager.h"
 
+#include "dokany/dokany_core_files.h"
+
 namespace slib
 {
+
+	namespace priv
+	{
+		namespace dokany
+		{
+
+			static String GetDriverFilePath()
+			{
+
+			}
+
+		}
+	}
+
+	using namespace priv::dokany;
 	
 	sl_bool DokanyControl::install()
 	{
+		if (Dokany::getDriverState() != ServiceState::None) {
+			return sl_true;
+		}
+		
 		ServiceCreateParam param;
 		return ServiceManager::createAndStart(param);
 	}
