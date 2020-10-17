@@ -460,7 +460,7 @@ namespace slib
 
 					if (len) {
 
-						PangoFontDescription* font = GraphicsPlatform::getCairoFont(_font.get());
+						PangoFontDescription* font = GraphicsPlatform::getPangoFont(_font.get());
 
 						if (font) {
 

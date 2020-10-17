@@ -366,7 +366,7 @@ namespace slib
 					if (view.isNotNull()) {
 						String text = Apple::getStringFromNSString([control text]);
 						String textNew = text;
-						view->dispatchChange(&textNew);
+						view->dispatchChange(textNew);
 						if (text != textNew) {
 							NSString* str = Apple::getNSStringFromString(textNew, @"");
 							[control setText:str];
@@ -626,7 +626,7 @@ namespace slib
 					if (view.isNotNull()) {
 						String text = Apple::getStringFromNSString([control text]);
 						String textNew = text;
-						view->dispatchChange(&textNew);
+						view->dispatchChange(textNew);
 						if (text != textNew) {
 							NSString* str = Apple::getNSStringFromString(textNew, @"");
 							[control setText:str];

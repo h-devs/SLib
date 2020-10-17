@@ -29,8 +29,6 @@
 #include "slib/ui/core.h"
 #include "slib/math/transform2d.h"
 
-#include "slib/core/log.h"
-
 namespace slib
 {
 
@@ -67,7 +65,11 @@ namespace slib
 		if (!(view->isEnabled())) {
 			gtk_widget_set_sensitive(handle, sl_false);
 		}
-		
+
+		if (view->isUsingFont()) {
+			setFont(view, view->getFont());
+		}
+
 		if (GTK_IS_FIXED(handle) || GTK_IS_DRAWING_AREA(handle)) {
 			if (view->isDrawing()) {
 				gtk_widget_set_app_paintable(handle, sl_true);
@@ -315,7 +317,18 @@ namespace slib
 			}
 		}
 	}
-	
+
+	void GTK_ViewInstance::setFont(View* view, const Ref<Font>& font)
+	{
+		GtkWidget* handle = m_handle;
+		if (handle) {
+			PangoFontDescription* desc = GraphicsPlatform::getPangoFont(font);
+			if (desc) {
+				gtk_widget_modify_font(handle, desc);
+			}
+		}
+	}
+
 	void GTK_ViewInstance::installEvents()
 	{
 		GtkWidget* handle = m_handle;
@@ -323,7 +336,7 @@ namespace slib
 			if (m_handlePaint) {
 				g_signal_connect(m_handlePaint, "expose_event", G_CALLBACK(eventCallback), handle);
 			} else {
-				//g_signal_connect(handle, "expose_event", G_CALLBACK(eventCallback), handle);
+				g_signal_connect(handle, "expose_event", G_CALLBACK(eventCallback), handle);
 			}
 			g_signal_connect(handle, "motion-notify-event", G_CALLBACK(eventCallback), handle);
 			g_signal_connect(handle, "button-press-event", G_CALLBACK(eventCallback), handle);

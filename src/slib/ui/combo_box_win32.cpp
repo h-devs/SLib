@@ -45,7 +45,7 @@ namespace slib
 				{
 					String text = Windows::getWindowText(handle);
 					String textNew = text;
-					dispatchChange(&textNew);
+					dispatchChange(textNew);
 					if (text != textNew) {
 						Windows::setWindowText(handle, textNew);
 					}

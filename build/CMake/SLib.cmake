@@ -475,7 +475,7 @@ else ()
   "${SLIB_PATH}/src/slib/graphics/bitmap_cairo.cpp"
   "${SLIB_PATH}/src/slib/graphics/canvas_cairo.cpp"
   "${SLIB_PATH}/src/slib/graphics/drawable_cairo.cpp"
-  "${SLIB_PATH}/src/slib/graphics/font_cairo.cpp"
+  "${SLIB_PATH}/src/slib/graphics/font_pango.cpp"
 
   "${SLIB_PATH}/src/slib/render/opengl_glx.cpp"
 

@@ -33,6 +33,7 @@
 #include "gtk/gdk/x11/gdkx.h"
 
 #include "X11/Xlib.h"
+#include "X11/slib_fix.h"
 
 namespace slib
 {

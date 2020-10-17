@@ -251,7 +251,7 @@ namespace slib
 						if (helper.isNotNull()) {
 							String text = JEditView::getText.callString(sl_null, handle);
 							String textNew = text;
-							helper->dispatchChange(&textNew);
+							helper->dispatchChange(textNew);
 							if (text != textNew) {
 								JniLocal<jstring> jstr = Jni::getJniString(textNew);
 								JEditView::setText.callBoolean(sl_null, handle, jstr.get());

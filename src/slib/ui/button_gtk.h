@@ -30,7 +30,7 @@
 #include "slib/ui/button.h"
 #include "slib/ui/check_box.h"
 
-#include "view_win32.h"
+#include "view_gtk.h"
 
 namespace slib
 {
@@ -39,8 +39,8 @@ namespace slib
 	{
 		namespace button
 		{
-			
-                        class ButtonInstance : public GTK_ViewInstance, public IButtonInstance
+
+			class ButtonInstance : public GTK_ViewInstance, public IButtonInstance
 			{
 				SLIB_DECLARE_OBJECT
 				

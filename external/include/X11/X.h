@@ -112,7 +112,7 @@ typedef unsigned char KeyCode;
  *****************************************************************/
 
 #ifndef None
-#define X_None                 0L	/* universal null resource or null atom */
+#define None                 0L	/* universal null resource or null atom */
 #endif
 
 #define ParentRelative       1L	/* background pixmap in CreateWindow
@@ -438,7 +438,7 @@ are reserved in the protocol for errors and replies. */
 
 #define NotUseful               0
 #define WhenMapped              1
-#define X_Always                  2
+#define Always                  2
 
 /* Used in GetWindowAttributes reply */
 

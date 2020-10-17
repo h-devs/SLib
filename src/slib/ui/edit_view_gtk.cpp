@@ -26,12 +26,13 @@
 
 #include "slib/ui/edit_view.h"
 
-#include "view_gtk.h"
 #include "slib/core/log.h"
+
+#include "view_gtk.h"
 
 namespace slib
 {
-    namespace priv
+	namespace priv
 	{
 		namespace edit_view
 		{
@@ -39,15 +40,9 @@ namespace slib
 			{
 				SLIB_DECLARE_OBJECT
 
-			protected:
-				Color m_colorText;
-				Color m_colorBackground;
-
 			public:
 				EditViewInstance()
 				{
-					m_colorText = Color::zero();
-					m_colorBackground = Color::zero();
 				}
 
 				~EditViewInstance()
@@ -55,11 +50,6 @@ namespace slib
 				}
 
 			public:
-				Ref<EditView> getView()
-				{
-					return CastRef<EditView>(GTK_ViewInstance::getView());
-				}
-
 				sl_bool getText(EditView* view, String& _out) override
 				{
 					GtkEntry* handle = (GtkEntry*)m_handle;
@@ -93,31 +83,18 @@ namespace slib
 					}
 				}
 
-				void setTextColor(const Color& color)
-				{
-					m_colorText = color;
-				}
-
 				void setTextColor(EditView* view, const Color& color) override
 				{
-					m_colorText = color;
-                    GtkWidget* handle = m_handle;
+					GtkWidget* handle = m_handle;
 					if (handle) {
-                        GdkColor gdkColor;
-                        gdkColor.red = (color.r << 8) + 0xff;
-                        gdkColor.green = (color.g << 8) + 0xff;
-                        gdkColor.blue = (color.b << 8) + 0xff;
-                        gtk_widget_modify_text (handle, GTK_STATE_NORMAL, &gdkColor);
+						GdkColor gdkColor;
+						UIPlatform::getGdkColor(color, &gdkColor);
+						gtk_widget_modify_text(handle, GTK_STATE_NORMAL, &gdkColor);
 					}
 				}
 
 				void setHintText(EditView* view, const String& text) override
-                {
-					GtkWidget* handle = m_handle;
-					if (handle) {
-						String16 s = String16::from(text);
-
-					}
+				{
 				}
 
 				void setHintGravity(EditView* view, const Alignment& gravity) override
@@ -144,106 +121,71 @@ namespace slib
 				{
 					GtkEntry* handle = (GtkEntry*)m_handle;
 					if (handle) {
-						gtk_entry_set_invisible_char(handle, '*');
 						gtk_entry_set_visibility(handle, !flag);
 					}
 				}
 
 				void setMultiLine(EditView* view, MultiLineMode mode) override
 				{
+				}
 
+				void setBackgroundColor(View* view, const Color& color) override
+				{
+					GtkWidget* handle = m_handle;
+					if (handle) {
+						GdkColor gdkColor;
+						UIPlatform::getGdkColor(color, &gdkColor);
+						gtk_widget_modify_bg(handle, GTK_STATE_NORMAL, &gdkColor);
+					}
+				}
+
+				sl_ui_len measureHeight(EditView* view) override
+				{
+					Ref<Font> font = view->getFont();
+					if (font.isNotNull()) {
+						return (sl_ui_len)(font->getFontHeight() * 1.5f) + 2;
+					}
+					return 0;
 				}
 
 				void apply(EditView* view)
 				{
 					GtkEntry* handle = (GtkEntry*)m_handle;
-					String text = view->getText();
-					gtk_entry_set_text(handle, text.getData());
-					if(view->isPassword()) {
-						setPassword(view, true);
-					}
-                    setTextColor(view, view->getTextColor());
-					setGravity(view, view->getGravity());
-					setReadOnly(view, view->isReadOnly());
-				}
-
-				sl_ui_len measureHeight(EditView* view) override
-				{
-					GtkEntry* handle = (GtkEntry*)m_handle;
 					if (handle) {
-/*
-						int nLines = 1;
-						if (view->getMultiLine() != MultiLineMode::Single) {
-							nLines = (int)(SendMessageW(handle, EM_GETLINECOUNT, 0, 0));
-							if (nLines < 1) {
-								nLines = 1;
-							}
+						String text = view->getText();
+						gtk_entry_set_text(handle, text.getData());
+						if(view->isPassword()) {
+							setPassword(view, true);
 						}
-						Ref<Font> font = m_font;
-						if (font.isNotNull()) {
-							sl_ui_len height = nLines * (sl_ui_len)(font->getFontHeight());
-							height += 4;
-							if (view->isBorder()) {
-								height += 2;
-							}
-							return height;
-						}
-*/
+						setTextColor(view, view->getTextColor());
+						setGravity(view, view->getGravity());
+						setReadOnly(view, view->isReadOnly());
 					}
-					return 0;
 				}
 
-				void setBackgroundColor(const Color& color)
-				{
-					if (m_colorBackground == color) {
-						return;
-					}
-					m_colorBackground = color;
-				}
-
-				void setBackgroundColor(View* view, const Color& color) override
-				{
-					// This code should be updated later.
-					GtkWidget* handle = m_handle;
-					if (handle) {
-						GdkColor gdkColor;
-						gdkColor.red = color.r;
-						gdkColor.green = color.g;
-						gdkColor.blue = color.b;
-						setBackgroundColor(color);
-						G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-							GtkWidget* parent = gtk_widget_get_parent(handle);
-							if(parent){
-								gtk_widget_modify_bg(parent, GTK_STATE_NORMAL, &gdkColor);
-							}	
-							
-						G_GNUC_END_IGNORE_DEPRECATIONS
-					}
-				}
-				void installEventHandlers()
+				void installControlEvents()
 				{
 					GtkWidget* handle = m_handle;
-					GtkEntryBuffer *buffer = gtk_entry_get_buffer((GtkEntry*)handle);
 					g_signal_connect((GtkEditable*)handle, "changed", G_CALLBACK(onChange), handle);
 					g_signal_connect(handle, "key-press-event", G_CALLBACK(eventCallback), handle);
 				}
-				static void onChange(GtkEditable *editable, gpointer user_data)
+
+				static void onChange(GtkEditable*, gpointer user_data)
 				{
-					Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::from(UIPlatform::getViewInstance((GtkWidget*)user_data));
-					Ref<EditViewInstance> editViewInstance = CastRef<EditViewInstance>(instance);
-					if (instance.isNotNull()) {
-						GtkEntryBuffer *buffer = gtk_entry_get_buffer((GtkEntry*)editable);
-						String text = gtk_entry_buffer_get_text(buffer);
+					GtkEntry* handle = (GtkEntry*)user_data;
+					Ref<EditView> view = CastRef<EditView>(UIPlatform::getView((GtkWidget*)handle));
+					if (view.isNotNull()) {
+						String text = gtk_entry_get_text(handle);
 						String textNew = text;
-						Ref<EditView> view = CastRef<EditView>(instance->getView());
-						view->dispatchChange(&textNew);
+						view->dispatchChange(textNew);
 						if (text != textNew) {
-							editViewInstance->setText(view, textNew);
+							gtk_entry_set_text(handle, textNew.getData());
 						}
 					}
 				}
 
 			};
+
 
 			SLIB_DEFINE_OBJECT(EditViewInstance, GTK_ViewInstance)
 
@@ -252,36 +194,43 @@ namespace slib
 				SLIB_DECLARE_OBJECT
 
 			public:
-				String16 m_hintText;
-				Alignment m_hintGravity;
-				Color m_hintTextColor;
-				Ref<Font> m_hintFont;
-				sl_uint32 m_heightRequested;
+				GtkTextView* m_handleTextView;
 
 			public:
 				TextAreaInstance()
 				{
-					m_hintTextColor = Color(120, 120, 120);
-					m_heightRequested = 0;
+					m_handleTextView = sl_null;
 				}
 
 			public:
-				Ref<TextArea> getView()
+				static String _getText(GtkTextBuffer* buffer)
 				{
-					return CastRef<TextArea>(GTK_ViewInstance::getView());
+					GtkTextIter start, end;
+					gtk_text_buffer_get_start_iter(buffer, &start);
+					gtk_text_buffer_get_end_iter(buffer, &end);
+					gchar* sz = gtk_text_buffer_get_text(buffer, &start, &end, 1);
+					if (sz) {
+						String ret = sz;
+						g_free(sz);
+						return ret;
+					}
+					return sl_null;
+				}
+
+				static String _getText(GtkTextView* handle)
+				{
+					GtkTextBuffer* buffer = gtk_text_view_get_buffer(handle);
+					if (buffer) {
+						return _getText(buffer);
+					}
+					return sl_null;
 				}
 
 				sl_bool getText(EditView* view, String& _out) override
 				{
-					GtkContainer* container = (GtkContainer*)m_handle;
-					GList *children = gtk_container_get_children (container);
-					GtkTextView* handle = (GtkTextView*)children->data;
+					GtkTextView* handle = m_handleTextView;
 					if (handle) {
-						GtkTextBuffer *buffer = gtk_text_view_get_buffer (handle);
-						GtkTextIter start, end;
-						gtk_text_buffer_get_start_iter (buffer, &start);
-						gtk_text_buffer_get_end_iter (buffer, &end);
-						gtk_text_buffer_get_text (buffer, &start, &end, true);
+						_out = _getText(handle);
 						return sl_true;
 					}
 					return sl_false;
@@ -289,20 +238,16 @@ namespace slib
 
 				void setText(EditView* view, const String& text) override
 				{
-					GtkContainer* container = (GtkContainer*)m_handle;
-					GList *children = gtk_container_get_children (container);
-					GtkTextView* handle = (GtkTextView*)children->data;
+					GtkTextView* handle = m_handleTextView;
 					if (handle) {
-						GtkTextBuffer *buffer = gtk_text_view_get_buffer (handle);
-						gtk_text_buffer_set_text (buffer, text.getData(), -1);
+						GtkTextBuffer* buffer = gtk_text_view_get_buffer(handle);
+						gtk_text_buffer_set_text(buffer, text.getData(), text.getLength());
 					}
 				}
 
 				void setGravity(EditView* view, const Alignment& gravity) override
 				{
-					GtkContainer* container = (GtkContainer*)m_handle;
-					GList *children = gtk_container_get_children (container);
-					GtkTextView* handle = (GtkTextView*)children->data;
+					GtkTextView* handle = m_handleTextView;
 					if (handle) {
 						GtkJustification alignment = GTK_JUSTIFY_LEFT;
 						Alignment align = gravity & Alignment::HorizontalMask;
@@ -317,59 +262,33 @@ namespace slib
 
 				void setTextColor(EditView* view, const Color& color) override
 				{
-					GtkContainer* container = (GtkContainer*)m_handle;
-					GList *children = gtk_container_get_children (container);
-					GtkWidget* handle = (GtkWidget*)children->data;
+					GtkTextView* handle = m_handleTextView;
 					if (handle) {
 						GdkColor gdkColor;
-						gdkColor.red = (color.r << 8) + 0xff;
-						gdkColor.green = (color.g << 8) + 0xff;
-						gdkColor.blue = (color.b << 8) + 0xff;
-						gtk_widget_modify_text (handle, GTK_STATE_NORMAL, &gdkColor);
+						UIPlatform::getGdkColor(color, &gdkColor);
+						gtk_widget_modify_text((GtkWidget*)handle, GTK_STATE_NORMAL, &gdkColor);
 					}
 				}
 
 				void setHintText(EditView* view, const String& text) override
 				{
-					m_hintText = String16::from(text);
-					GtkWidget* handle = m_handle;
-					if (handle) {
-
-					}
 				}
 
 				void setHintGravity(EditView* view, const Alignment& gravity) override
 				{
-					m_hintGravity = gravity;
-					GtkWidget* handle = m_handle;
-					if (handle) {
-
-					}
 				}
 
 				void setHintTextColor(EditView* view, const Color& color) override
 				{
-					m_hintTextColor = color;
-					GtkWidget* handle = m_handle;
-					if (handle) {
-
-					}
 				}
 
 				void setHintFont(EditView* view, const Ref<Font>& font) override
 				{
-					m_hintFont = font;
-					GtkWidget* handle = m_handle;
-					if (handle) {
-
-					}
 				}
 
 				void setReadOnly(EditView* view, sl_bool flag) override
 				{
-					GtkContainer* container = (GtkContainer*)m_handle;
-					GList *children = gtk_container_get_children (container);
-					GtkTextView* handle = (GtkTextView*)children->data;
+					GtkTextView* handle = m_handleTextView;
 					if (handle) {
 						gtk_text_view_set_editable(handle, !flag);
 					}
@@ -383,83 +302,85 @@ namespace slib
 				{
 				}
 
-				sl_ui_len measureHeight(EditView* view) override
-				{
-					GtkWidget* handle = m_handle;
-					if (handle) {
-						sl_ui_len height = m_heightRequested;
-						if (height > 0) {
-							if (view->isBorder()) {
-								height += 8;
-							}
-							return height;
-						}
-					}
-					return 0;
-				}
-/*
-				void setBackgroundColor(View* view, const Color& color) override
-				{
-					GtkWidget* handle = m_handle;
-					if (handle) {
-						if (color.a == 0) {
-							SendMessageW(handle, EM_SETBKGNDCOLOR, 0, (LPARAM)(0xFFFFFF));
-						} else {
-							SendMessageW(handle, EM_SETBKGNDCOLOR, 0, (LPARAM)(GraphicsPlatform::getColorRef(color)));
-						}
-					}
-				}
-*/
 				void setPadding(View* view, const UIEdgeInsets& inset) override
 				{
-					GtkContainer* container = (GtkContainer*)m_handle;
-					GList *children = gtk_container_get_children (container);
-					GtkTextView* handle = (GtkTextView*)children->data;
+					GtkTextView* handle = m_handleTextView;
 					if (handle) {
 						gtk_text_view_set_left_margin(handle, inset.left);
 						gtk_text_view_set_right_margin (handle, inset.right);
 					}
 				}
+
+				void setFocus(View *view, sl_bool flag) override
+				{
+					GtkWidget* handle = (GtkWidget*)m_handleTextView;
+					if (handle) {
+						if (flag) {
+							gtk_widget_grab_focus(handle);
+						}
+					}
+				}
+
+				void setFont(View *view, const Ref<Font>& font) override
+				{
+					GtkWidget* handle = (GtkWidget*)m_handleTextView;
+					if (handle) {
+						PangoFontDescription* desc = GraphicsPlatform::getPangoFont(font);
+						if (desc) {
+							gtk_widget_modify_font(handle, desc);
+						}
+					}
+				}
+
+				sl_ui_len measureHeight(EditView* view) override
+				{
+					GtkTextView* handle = m_handleTextView;
+					if (handle) {
+						GtkTextBuffer* buffer = gtk_text_view_get_buffer(handle);
+						if (buffer) {
+							GtkTextIter end;
+							gtk_text_buffer_get_end_iter(buffer, &end);
+							gint y;
+							gint height;
+							gtk_text_view_get_line_yrange(handle, &end, &y, &height);
+							return (sl_ui_len)(y + height + 4);
+						}
+					}
+					return 0;
+				}
+
 				void apply(EditView* view)
 				{
-					GtkContainer* container = (GtkContainer*)m_handle;
-					GList *children = gtk_container_get_children (container);
-					GtkWidget* handle = (GtkWidget*)children->data;
-					if(handle)
-					{
-						gtk_widget_show_all(handle);
-					}
-					String text = view->getText();
-					setText(view, text);
+					setText(view, view->getText());
 					setTextColor(view, view->getTextColor());
 					setGravity(view, view->getGravity());
 					setReadOnly(view, view->isReadOnly());
+					setFont(view, view->getFont());
 				}
-				void installEventHandlers()
+
+				void installControlEvents()
 				{
-					GtkContainer* container = (GtkContainer*)m_handle;
-					GList *children = gtk_container_get_children (container);
-					GtkTextView* handle = (GtkTextView*)children->data;
-					if (handle) {
-						GtkTextBuffer *buffer = gtk_text_view_get_buffer (handle);
-						g_signal_connect(buffer, "changed", G_CALLBACK(onChange), m_handle);
-						g_signal_connect(handle, "key-press-event", G_CALLBACK(eventCallback), m_handle);
+					GtkWidget* handle = m_handle;
+					GtkTextView* handleText = m_handleTextView;
+					if (handle && handleText) {
+						GtkTextBuffer* buffer = gtk_text_view_get_buffer(handleText);
+						if (buffer) {
+							g_signal_connect(buffer, "changed", G_CALLBACK(onChange), handle);
+						}
+						g_signal_connect(handleText, "key-press-event", G_CALLBACK(eventCallback), handle);
 					}
 				}
-				static void onChange(GtkTextBuffer *buffer, gpointer user_data)
+
+				static void onChange(GtkTextBuffer* buffer, gpointer user_data)
 				{
-					Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::from(UIPlatform::getViewInstance((GtkWidget*)user_data));
-					if (instance.isNotNull()) {
-						GtkTextIter start, end;
-						gtk_text_buffer_get_start_iter (buffer, &start);
-						gtk_text_buffer_get_end_iter (buffer, &end);
-						String text = gtk_text_buffer_get_text(buffer, &start, &end, true) ;
+					GtkWidget* handle = (GtkWidget*)user_data;
+					Ref<TextArea> view = CastRef<TextArea>(UIPlatform::getView(handle));
+					if (view.isNotNull()) {
+						String text = _getText(buffer);
 						String textNew = text;
-						Ref<TextArea> view = CastRef<TextArea>(instance->getView());
-						view->dispatchChange(&textNew);
+						view->dispatchChange(textNew);
 						if (text != textNew) {
-							Ref<TextAreaInstance> textAreaInstance = CastRef<TextAreaInstance>(instance);
-							textAreaInstance->setText(view, textNew);
+							gtk_text_buffer_set_text(buffer, textNew.getData(), textNew.getLength());
 						}
 					}
 				}
@@ -482,12 +403,11 @@ namespace slib
 			Ref<EditViewInstance> ret = GTK_ViewInstance::create<EditViewInstance>(this, parent, handle);
 			if (ret.isNotNull()) {
 				ret->apply(this);
-				ret->installEventHandlers();
+				ret->installControlEvents();
 				return ret;
-			} else {
-				g_object_ref_sink(handle);
-				g_object_unref(handle);
 			}
+			g_object_ref_sink(handle);
+			g_object_unref(handle);
 		}
 		return sl_null;
 	}
@@ -500,27 +420,27 @@ namespace slib
 	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* _parent)
 	{
 		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
-		GtkWidget* textView = gtk_text_view_new();
-		GtkWidget *handle = gtk_scrolled_window_new (NULL, NULL);
-		gtk_scrolled_window_set_policy ((GtkScrolledWindow*)handle,
-											  GTK_POLICY_AUTOMATIC,
-											  GTK_POLICY_AUTOMATIC);
-		gtk_scrolled_window_set_shadow_type ((GtkScrolledWindow*)handle, GTK_SHADOW_ETCHED_IN);
-		gtk_container_add ((GtkContainer*)handle, textView);
-
-		gtk_widget_show_all (handle);
+		GtkScrolledWindow* handle = (GtkScrolledWindow*)(gtk_scrolled_window_new(sl_null, sl_null));
 		if (handle) {
-			//GTK_WIDGET_UNSET_FLAGS(handle, GTK_NO_WINDOW);
-			GTK_WIDGET_SET_FLAGS(handle, GTK_CAN_FOCUS);
-			Ref<TextAreaInstance> ret = GTK_ViewInstance::create<TextAreaInstance>(this, parent, handle);
-			if (ret.isNotNull()) {
-				ret->apply(this);
-				ret->installEventHandlers();
-				return ret;
-			} else {
-				g_object_ref_sink(handle);
-				g_object_unref(handle);
+			gtk_scrolled_window_set_policy(handle, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+			gtk_scrolled_window_set_shadow_type(handle, GTK_SHADOW_ETCHED_IN);
+			GtkTextView* handleText = (GtkTextView*)(gtk_text_view_new());
+			if (handleText) {
+				Ref<TextAreaInstance> ret = GTK_ViewInstance::create<TextAreaInstance>(this, parent, (GtkWidget*)handle);
+				if (ret.isNotNull()) {
+					GTK_WIDGET_SET_FLAGS(handleText, GTK_CAN_FOCUS);
+					gtk_container_add((GtkContainer*)handle, (GtkWidget*)handleText);
+					ret->m_handleTextView = handleText;
+					ret->apply(this);
+					ret->installControlEvents();
+					gtk_widget_show((GtkWidget*)handleText);
+					return ret;
+				}
+				g_object_ref_sink(handleText);
+				g_object_unref(handleText);
 			}
+			g_object_ref_sink(handle);
+			g_object_unref(handle);
 		}
 		return sl_null;
 	}

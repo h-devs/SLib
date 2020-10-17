@@ -99,7 +99,6 @@ namespace slib
 					m_origin.y = 0;
 					
 					GtkWidget* contentWidget = sl_null;
-					GtkWidget* paintWidget = sl_null;
 					GtkWidget* contentContainer = gtk_event_box_new();
 					if (contentContainer) {
 						gtk_container_add((GtkContainer*)window, contentContainer);
