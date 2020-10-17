@@ -867,6 +867,22 @@ namespace slib
                         gboolean       overwrite
                 )
                 #define gtk_entry_set_overwrite_mode slib::gtk::getApi_gtk_entry_set_overwrite_mode()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_widget_modify_font,
+                        void , ,
+                        GtkWidget            *widget,
+                        PangoFontDescription *font_desc
+                )
+                #define gtk_widget_modify_font slib::gtk::getApi_gtk_widget_modify_font()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_text_view_get_line_yrange,
+                        void , ,
+                        GtkTextView       *text_view,
+                        const GtkTextIter *iter,
+                        gint              *y,
+                        gint              *height
+                )
+                #define gtk_text_view_get_line_yrange slib::gtk::getApi_gtk_text_view_get_line_yrange()
         SLIB_IMPORT_LIBRARY_END
 
 }
@@ -874,4 +890,3 @@ namespace slib
 #endif
 
 #endif
-

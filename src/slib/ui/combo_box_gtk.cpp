@@ -176,7 +176,7 @@ namespace slib
 
 						String text = getTextFromHanlde(widget);
 						String textNew = text;
-						view->dispatchChange(&textNew);
+						view->dispatchChange(textNew);
 						if (text != textNew) {
 							comboBoxInstance->setText(view, textNew);
 						}
