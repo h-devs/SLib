@@ -325,10 +325,7 @@ namespace slib
 				{
 					GtkWidget* handle = (GtkWidget*)m_handleTextView;
 					if (handle) {
-						PangoFontDescription* desc = GraphicsPlatform::getPangoFont(font);
-						if (desc) {
-							gtk_widget_modify_font(handle, desc);
-						}
+						UIPlatform::setWidgetFont(handle, font);
 					}
 				}
 

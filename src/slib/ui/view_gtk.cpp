@@ -698,6 +698,35 @@ namespace slib
 		return sl_null;
 	}
 
+	void UIPlatform::getScreenLocationOfWidget(GtkWidget* widget, sl_ui_len* out_x, sl_ui_len* out_y)
+	{
+		sl_ui_len x = 0;
+		sl_ui_len y = 0;
+		GdkWindow* window = widget->window;
+		if (window) {
+			gint ox = 0;
+			gint oy = 0;
+			gdk_window_get_origin(window, &ox, &oy);
+			GtkAllocation allocation = widget->allocation;
+			x = ox + allocation.x;
+			y = oy + allocation.y;
+		}
+		if (out_x) {
+			*out_x = x;
+		}
+		if (out_y) {
+			*out_y = y;
+		}
+	}
+
+	void UIPlatform::setWidgetFont(GtkWidget* handle, const Ref<Font>& font)
+	{
+		PangoFontDescription* desc = GraphicsPlatform::getPangoFont(font);
+		if (desc) {
+			gtk_widget_modify_font(handle, desc);
+		}
+	}
+
 }
 
 #endif
