@@ -27,7 +27,7 @@
 #include "slib/core/safe_static.h"
 #include "slib/core/new_helper.h"
 
-#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32)
+#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_GTK)
 #	define HAS_NATIVE_WIDGET_IMPL 1
 #else
 #	define HAS_NATIVE_WIDGET_IMPL 0

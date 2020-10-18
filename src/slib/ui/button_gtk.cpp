@@ -22,13 +22,12 @@
 
 #include "slib/core/definition.h"
 
-#if defined(SLIB_UI_IS_WIN32)
+#if defined(SLIB_UI_IS_GTK)
 
 #include "slib/ui/button.h"
 
-#include "button_win32.h"
+#include "button_gtk.h"
 
-#include <commctrl.h>
 
 namespace slib
 {
@@ -38,7 +37,7 @@ namespace slib
 		namespace button
 		{
 
-			SLIB_DEFINE_OBJECT(ButtonInstance, Win32_ViewInstance)
+			SLIB_DEFINE_OBJECT(ButtonInstance, GTK_ViewInstance)
 
 			ButtonInstance::ButtonInstance()
 			{
@@ -48,49 +47,62 @@ namespace slib
 			{
 			}
 
-			sl_bool ButtonInstance::processCommand(SHORT code, LRESULT& result)
-			{
-				if (code == BN_CLICKED) {
-					onClick();
-					return sl_true;
-				}
-				return sl_false;
-			}
-
-			void ButtonInstance::setPadding(View* view, const UIEdgeInsets& padding)
-			{
-				HWND handle = m_handle;
-				if (handle) {
-					RECT rc;
-					rc.left = (LONG)(padding.left);
-					rc.top = (LONG)(padding.top);
-					rc.right = (LONG)(padding.top);
-					rc.bottom = (LONG)(padding.bottom);
-					SendMessageW(handle, BCM_SETTEXTMARGIN, 0, (LPARAM)&rc);
-				}
-			}
-
 			void ButtonInstance::setText(Button* view, const String& text)
 			{
-				Win32_ViewInstance::setText(text);
+				GtkButton* handle = (GtkButton*)m_handle;
+				if (handle) {
+					if (view->isMnemonic()) {
+						String _text = text.replaceAll("&", "_");
+						gtk_button_set_label(handle, _text.getData());
+					} else {
+						gtk_button_set_label(handle, text.getData());
+					}
+				}
 			}
 
 			void ButtonInstance::setDefaultButton(Button* view, sl_bool flag)
 			{
-				Windows::setWindowStyle(m_handle, BS_DEFPUSHBUTTON, flag);
+				GtkWidget* handle = m_handle;
+				if (handle) {
+					gtk_widget_set_can_default(handle, flag);
+				}
 			}
 
 			sl_bool ButtonInstance::measureSize(Button* view, UISize& _out)
 			{
-				HWND handle = m_handle;
-				if (handle) {
-					SIZE size = { 0, 0 };
-					SendMessageW(handle, BCM_GETIDEALSIZE, 0, (LPARAM)&size);
-					_out.x = (sl_ui_len)(size.cx);
-					_out.y = (sl_ui_len)(size.cy);
-					return sl_true;
+				GtkWidget* handle = m_handle;
+				if(handle){
+					Ref<Font> font = view->getFont();
+					if (font.isNotNull()) {
+						_out = font->measureText(" " + view->getText() + " ");
+						_out.y = (sl_ui_len)(_out.y * 1.5f);
+						return true;
+					}
 				}
 				return sl_false;
+			}
+
+			void ButtonInstance::apply(Button* view)
+			{
+				setText(view, view->getText());
+				setDefaultButton(view, view->isDefaultButton());
+			}
+
+			void ButtonInstance::installControlEvents()
+			{
+				GtkButton* handle = (GtkButton*)m_handle;
+				if (handle) {
+					g_signal_connect(handle, "clicked", G_CALLBACK(onClicked), handle);
+				}
+			}
+
+			void ButtonInstance::onClicked(GtkButton*, gpointer userinfo)
+			{
+				GtkButton* handle = (GtkButton*)userinfo;
+				Ref<Button> view = CastRef<Button>(UIPlatform::getView((GtkWidget*)handle));
+				if (view.isNotNull()) {
+					view->dispatchClick();
+				}
 			}
 
 		}
@@ -100,13 +112,16 @@ namespace slib
 
 	Ref<ViewInstance> Button::createNativeWidget(ViewInstance* parent)
 	{
-		DWORD style = WS_TABSTOP;
-		if (m_flagDefaultButton) {
-			style |= BS_DEFPUSHBUTTON;
+		GtkWidget *handle;
+		if (isMnemonic()) {
+			handle = gtk_button_new_with_mnemonic("");
+		} else {
+			handle = gtk_button_new();
 		}
-		Ref<ButtonInstance> ret = Win32_ViewInstance::create<ButtonInstance>(this, parent, L"BUTTON", getText(), style, 0);
+		Ref<ButtonInstance> ret = GTK_ViewInstance::create<ButtonInstance>(this, parent, handle);
 		if (ret.isNotNull()) {
-			ret->setPadding(this, getPadding());
+			ret->apply(this);
+			ret->installControlEvents();
 			return ret;
 		}
 		return sl_null;
