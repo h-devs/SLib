@@ -484,7 +484,7 @@ else ()
   "${SLIB_PATH}/src/slib/media/media_player_linux.cpp"
 
   "${SLIB_PATH}/src/slib/device/device_linux.cpp"
-
+  "${SLIB_PATH}/src/slib/ui/button_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/clipboard_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/common_dialogs_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/combo_box_gtk.cpp"
