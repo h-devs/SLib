@@ -151,9 +151,17 @@ namespace slib
 
 	sl_bool CheckBox::isChecked()
 	{
+		return m_flagChecked;
+	}
+
+	sl_bool CheckBox::isCheckedInstance()
+	{
 		Ptr<ICheckBoxInstance> instance = getCheckBoxInstance();
 		if (instance.isNotNull()) {
-			instance->getChecked(this, m_flagChecked);
+			sl_bool flag;
+			if (instance->getChecked(this, flag)) {
+				m_flagChecked = flag;
+			}
 		}
 		return m_flagChecked;
 	}

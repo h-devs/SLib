@@ -44,6 +44,8 @@ namespace slib
 	public:
 		sl_bool isChecked();
 		
+		sl_bool isCheckedInstance();
+
 		virtual void setChecked(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 	public:
