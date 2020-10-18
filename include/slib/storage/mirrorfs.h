@@ -1,5 +1,5 @@
 /**
-* @file slib/filesystem/base/mirrorfs.h
+* @file slib/storage/mirrorfs.h
 * Mirror FileSystem Definition.
 *
 * @copyright 2020 Steve Han

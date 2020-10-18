@@ -1,5 +1,5 @@
 /**
- * @file slib/filesystem/atomicfilesystem.h
+ * @file slib/storage/atomicfilesystem.h
  * Atomic FileSystem Interface.
  *
  * @copyright 2020 Steve Han

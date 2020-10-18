@@ -288,15 +288,15 @@ namespace slib
 		_DokanOptions.ThreadCount = ThreadCount;
 	}
 
-	void DokanHost::SetMountPoint(String MountPoint)
+	void DokanHost::SetMountPoint(const StringParam& MountPoint)
 	{
-		StringToWChar(MountPoint, _MountPoint);
+		StringToWChar(MountPoint.toString(), _MountPoint);
 	}
 
 #ifdef SLIB_DOKAN_IS_DOKANY
-	void DokanHost::SetUNCName(String UNCName)
+	void DokanHost::SetUNCName(const StringParam& UNCName)
 	{
-		StringToWChar(UNCName, _UNCName);
+		StringToWChar(UNCName.toString(), _UNCName);
 	}
 
 	void DokanHost::SetTimeout(sl_uint32 Timeout)
@@ -354,14 +354,19 @@ namespace slib
 		} catch (...) {}
 
 		try {
-			FileContext context("\\", sl_true);
-			_BaseFs->fsFindStreams(context);
+			Ref<FileContext> context = new FileContext("\\", sl_true);
+			_BaseFs->fsFindStreams(*context.ptr);
 			_DokanOptions.Options |= DOKAN_OPTION_ALT_STREAM;
 		} catch (FileSystemError error) {
 			if (error != FileSystemError::NotImplemented)
 				_DokanOptions.Options |= DOKAN_OPTION_ALT_STREAM;
-		}
+		} catch (...) {}
 #endif // SLIB_DOKAN_IS_DOKANY
+
+		auto func = getApi_DokanMain();
+		if (!func) {
+			return EXIT_FAILURE;
+		}
 
 		_Started = TRUE;
 		int status = getApi_DokanMain()(&_DokanOptions, DokanHost::Interface());
@@ -591,64 +596,64 @@ namespace slib
 		int ret = 0;
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileCreationParams params;
-		params.accessMode = AccessMode;
-		params.shareMode = ShareMode;
-		params.flagsAndAttributes = FlagsAndAttributes;
-		params.securityDescriptor = securityDescriptor;
+			params.accessMode = AccessMode;
+			params.shareMode = ShareMode;
+			params.flagsAndAttributes = FlagsAndAttributes;
+			params.securityDescriptor = securityDescriptor;
 
-		switch (CreationDisposition) {
-		case CREATE_NEW:		// create only
-			base->fsCreate(context, params);
-			break;
-		case CREATE_ALWAYS:		// create or overwrite existing			// modeWrite
-			params.createAlways = sl_true;
-			params.openTruncate = sl_true;
-			try {
+			switch (CreationDisposition) {
+			case CREATE_NEW:		// create only
 				base->fsCreate(context, params);
-				if (params.createAlways == sl_false &&
-					context.status == FileSystemError::FileExist) 	// fsCreate() supports createAlways, and file exists
-					ret = ERROR_ALREADY_EXISTS;
-				if (params.openTruncate)	// fsCreate() *may* not supports openTruncate, so truncate manually
-					base->fsSetFileInfo(context, FileInfo(), FileInfoFlags::SizeInfo);
-			} catch (FileSystemError error) {
-				if (error == FileSystemError::FileExist) {	// fsCreate() not supports createAlways, and file exists
-					params.createAlways = sl_false;
-					params.openTruncate = sl_true;
-					base->fsOpen(context, params);
-					if (params.openTruncate)	// fsOpen() *may* not support openTruncate, so truncate manually
-						base->fsSetFileInfo(context, FileInfo(), FileInfoFlags::SizeInfo);
-					ret = ERROR_ALREADY_EXISTS;
-				} else throw error;
-			}
-			break;
-		case OPEN_ALWAYS:		// open or create
-			params.createAlways = sl_true;
-			try {
-				base->fsOpen(context, params);
-				if (params.createAlways) 	// fsOpen() not supports createAlways, and file exists
-					ret = ERROR_ALREADY_EXISTS;
-				else if (context.status == FileSystemError::FileExist) 	// fsOpen() supports createAlways, and file exists
-					ret = ERROR_ALREADY_EXISTS;
-			} catch (FileSystemError error) {
-				if (error == FileSystemError::NotFound) {	// fsOpen() not supports createAlways, and file NOT exists, so create manually
-					params.createAlways = sl_false;
+				break;
+			case CREATE_ALWAYS:		// create or overwrite existing			// modeWrite
+				params.createAlways = sl_true;
+				params.openTruncate = sl_true;
+				try {
 					base->fsCreate(context, params);
-				} else throw error;
+					if (params.createAlways == sl_false &&
+						context.status == FileSystemError::FileExist) 	// fsCreate() supports createAlways, and file exists
+						ret = ERROR_ALREADY_EXISTS;
+					if (params.openTruncate)	// fsCreate() *may* not supports openTruncate, so truncate manually
+						base->fsSetFileInfo(context, FileInfo(), FileInfoFlags::SizeInfo);
+				} catch (FileSystemError error) {
+					if (error == FileSystemError::FileExist) {	// fsCreate() not supports createAlways, and file exists
+						params.createAlways = sl_false;
+						params.openTruncate = sl_true;
+						base->fsOpen(context, params);
+						if (params.openTruncate)	// fsOpen() *may* not support openTruncate, so truncate manually
+							base->fsSetFileInfo(context, FileInfo(), FileInfoFlags::SizeInfo);
+						ret = ERROR_ALREADY_EXISTS;
+					} else throw error;
+				}
+				break;
+			case OPEN_ALWAYS:		// open or create
+				params.createAlways = sl_true;
+				try {
+					base->fsOpen(context, params);
+					if (params.createAlways) 	// fsOpen() not supports createAlways, and file exists
+						ret = ERROR_ALREADY_EXISTS;
+					else if (context.status == FileSystemError::FileExist) 	// fsOpen() supports createAlways, and file exists
+						ret = ERROR_ALREADY_EXISTS;
+				} catch (FileSystemError error) {
+					if (error == FileSystemError::NotFound) {	// fsOpen() not supports createAlways, and file NOT exists, so create manually
+						params.createAlways = sl_false;
+						base->fsCreate(context, params);
+					} else throw error;
+				}
+				break;
+			case OPEN_EXISTING:		// open only							// modeRead
+				base->fsOpen(context, params);
+				break;
+			case TRUNCATE_EXISTING:	// open only, and truncate
+				params.openTruncate = sl_true;
+				base->fsOpen(context, params);
+				if (params.openTruncate)	// fsOpen() *may* not support openTruncate, so truncate manually
+					base->fsSetFileInfo(context, FileInfo(), FileInfoFlags::SizeInfo);
+				break;
 			}
-			break;
-		case OPEN_EXISTING:		// open only							// modeRead
-			base->fsOpen(context, params);
-			break;
-		case TRUNCATE_EXISTING:	// open only, and truncate
-			params.openTruncate = sl_true;
-			base->fsOpen(context, params);
-			if (params.openTruncate)	// fsOpen() *may* not support openTruncate, so truncate manually
-				base->fsSetFileInfo(context, FileInfo(), FileInfoFlags::SizeInfo);
-			break;
-		}
 		)
 
-			DokanFileInfo->IsDirectory = context.isDirectory;
+		DokanFileInfo->IsDirectory = context.isDirectory;
 		DokanFileInfo->Context = (ULONG64)&context;
 		context.increaseReference();
 		base->increaseHandleCount(context.path);
@@ -710,9 +715,9 @@ namespace slib
 		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
 		FILESYSTEM_EXCEPTION_GUARD_VOID(
 			base->fsClose(context);
-		base->decreaseHandleCount(context.path);
-		context.decreaseReference();
-		DokanFileInfo->Context = 0;
+			base->decreaseHandleCount(context.path);
+			context.decreaseReference();
+			DokanFileInfo->Context = 0;
 		) // DO NOT ADD CODE AFTER FILESYSTEM_EXCEPTION_GUARD_VOID
 	}
 
@@ -729,10 +734,10 @@ namespace slib
 		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
 		FILESYSTEM_EXCEPTION_GUARD(
 			MemoryData buf;
-		*ReadLength = (DWORD)base->fsRead(context,
-			Memory::createStatic(Buffer, BufferLength), Offset);
+			*ReadLength = (DWORD)base->fsRead(context,
+				Memory::createStatic(Buffer, BufferLength), Offset);
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -759,11 +764,11 @@ namespace slib
 				}
 			}
 
-		*NumberOfBytesWritten = (DWORD)base->fsWrite(context,
-			Memory::createStatic(Buffer, NumberOfBytesToWrite), Offset,
-			DokanFileInfo->WriteToEndOfFile);
+			*NumberOfBytesWritten = (DWORD)base->fsWrite(context,
+				Memory::createStatic(Buffer, NumberOfBytesToWrite), Offset,
+				DokanFileInfo->WriteToEndOfFile);
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -776,7 +781,7 @@ namespace slib
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsFlush(context);
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -789,14 +794,14 @@ namespace slib
 		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo = base->fsGetFileInfo(context);
-		HandleFileInformation->dwFileAttributes = fileInfo.fileAttributes;
-		HandleFileInformation->nFileSizeHigh = (UINT32)(fileInfo.size >> 32);
-		HandleFileInformation->nFileSizeLow = (UINT32)(fileInfo.size & 0xFFFFFFFF);
-		TimeToFileTime(fileInfo.createdAt, HandleFileInformation->ftCreationTime);
-		TimeToFileTime(fileInfo.lastAccessedAt, HandleFileInformation->ftLastAccessTime);
-		TimeToFileTime(fileInfo.modifiedAt, HandleFileInformation->ftLastWriteTime);
+			HandleFileInformation->dwFileAttributes = fileInfo.fileAttributes;
+			HandleFileInformation->nFileSizeHigh = (UINT32)(fileInfo.size >> 32);
+			HandleFileInformation->nFileSizeLow = (UINT32)(fileInfo.size & 0xFFFFFFFF);
+			TimeToFileTime(fileInfo.createdAt, HandleFileInformation->ftCreationTime);
+			TimeToFileTime(fileInfo.lastAccessedAt, HandleFileInformation->ftLastAccessTime);
+			TimeToFileTime(fileInfo.modifiedAt, HandleFileInformation->ftLastWriteTime);
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -819,22 +824,22 @@ namespace slib
 		FileContext &context = *(GetFileContext(DokanFileInfo, PathName).ptr);
 		FILESYSTEM_EXCEPTION_GUARD(
 			WIN32_FIND_DATA findData;
-		auto files = base->fsFindFiles(context, WCharToString(SearchPattern));
+			auto files = base->fsFindFiles(context, WCharToString(SearchPattern));
 
-		for (auto& file : files) {
-			FileInfo fileInfo = file.value;
-			memset(&findData, 0, sizeof(findData));
-			findData.dwFileAttributes = fileInfo.fileAttributes;
-			findData.nFileSizeHigh = (UINT32)(fileInfo.size >> 32);
-			findData.nFileSizeLow = (UINT32)(fileInfo.size & 0xFFFFFFFF);
-			TimeToFileTime(fileInfo.createdAt, findData.ftCreationTime);
-			TimeToFileTime(fileInfo.lastAccessedAt, findData.ftLastAccessTime);
-			TimeToFileTime(fileInfo.modifiedAt, findData.ftLastWriteTime);
-			StringToWChar(file.key, findData.cFileName);
-			FillFindData(&findData, DokanFileInfo);
-		}
+			for (auto& file : files) {
+				FileInfo fileInfo = file.value;
+				memset(&findData, 0, sizeof(findData));
+				findData.dwFileAttributes = fileInfo.fileAttributes;
+				findData.nFileSizeHigh = (UINT32)(fileInfo.size >> 32);
+				findData.nFileSizeLow = (UINT32)(fileInfo.size & 0xFFFFFFFF);
+				TimeToFileTime(fileInfo.createdAt, findData.ftCreationTime);
+				TimeToFileTime(fileInfo.lastAccessedAt, findData.ftLastAccessTime);
+				TimeToFileTime(fileInfo.modifiedAt, findData.ftLastWriteTime);
+				StringToWChar(file.key, findData.cFileName);
+				FillFindData(&findData, DokanFileInfo);
+			}
 		)
-			return 0;
+		return 0;
 	}
 #ifdef SLIB_DOKAN_IS_DOKANY
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -847,17 +852,17 @@ namespace slib
 		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
 		FILESYSTEM_EXCEPTION_GUARD(
 			WIN32_FIND_STREAM_DATA findData;
-		auto streams = base->fsFindStreams(context);
+			auto streams = base->fsFindStreams(context);
 
-		for (auto& stream : streams) {
-			StreamInfo streamInfo = stream.value;
-			memset(&findData, 0, sizeof(findData));
-			findData.StreamSize.QuadPart = streamInfo.size;
-			StringToWChar(stream.key, findData.cStreamName);
-			FillFindStreamData(&findData, DokanFileInfo);
-		}
+			for (auto& stream : streams) {
+				StreamInfo streamInfo = stream.value;
+				memset(&findData, 0, sizeof(findData));
+				findData.StreamSize.QuadPart = streamInfo.size;
+				StringToWChar(stream.key, findData.cStreamName);
+				FillFindStreamData(&findData, DokanFileInfo);
+			}
 		)
-			return 0;
+		return 0;
 	}
 #endif // SLIB_DOKAN_IS_DOKANY
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -870,7 +875,7 @@ namespace slib
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsDelete(context, TRUE);
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -895,9 +900,9 @@ namespace slib
 		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsRename(context, WCharToString(NewFileName), ReplaceIfExisting);
-		context.path = WCharToString(NewFileName);
+			context.path = WCharToString(NewFileName);
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -910,10 +915,10 @@ namespace slib
 		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo;
-		fileInfo.size = ByteOffset;
-		base->fsSetFileInfo(context, fileInfo, FileInfoFlags::SizeInfo);
+			fileInfo.size = ByteOffset;
+			base->fsSetFileInfo(context, fileInfo, FileInfoFlags::SizeInfo);
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -926,10 +931,10 @@ namespace slib
 		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo;
-		fileInfo.allocationSize = AllocSize;
-		base->fsSetFileInfo(context, fileInfo, FileInfoFlags::AllocSizeInfo);
+			fileInfo.allocationSize = AllocSize;
+			base->fsSetFileInfo(context, fileInfo, FileInfoFlags::AllocSizeInfo);
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -942,10 +947,10 @@ namespace slib
 		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo;
-		fileInfo.fileAttributes = FileAttributes;
-		base->fsSetFileInfo(context, fileInfo, FileInfoFlags::AttrInfo);
+			fileInfo.fileAttributes = FileAttributes;
+			base->fsSetFileInfo(context, fileInfo, FileInfoFlags::AttrInfo);
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -960,15 +965,15 @@ namespace slib
 		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo;
-		if (CreationTime)
-			FileTimeToTime(*CreationTime, fileInfo.createdAt);
-		if (LastAccessTime)
-			FileTimeToTime(*LastAccessTime, fileInfo.lastAccessedAt);
-		if (LastWriteTime)
-			FileTimeToTime(*LastWriteTime, fileInfo.modifiedAt);
-		base->fsSetFileInfo(context, fileInfo, FileInfoFlags::TimeInfo);
+			if (CreationTime)
+				FileTimeToTime(*CreationTime, fileInfo.createdAt);
+			if (LastAccessTime)
+				FileTimeToTime(*LastAccessTime, fileInfo.lastAccessedAt);
+			if (LastWriteTime)
+				FileTimeToTime(*LastWriteTime, fileInfo.modifiedAt);
+			base->fsSetFileInfo(context, fileInfo, FileInfoFlags::TimeInfo);
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -1025,7 +1030,7 @@ namespace slib
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsSetSecurity(context, *SecurityInformation, Memory::create(SecurityDescriptor, SecurityDescriptorLength));
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -1040,7 +1045,7 @@ namespace slib
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsLock(context, ByteOffset, Length);
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -1055,7 +1060,7 @@ namespace slib
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsUnlock(context, ByteOffset, Length);
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -1068,11 +1073,11 @@ namespace slib
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
 		FILESYSTEM_EXCEPTION_GUARD(
 			VolumeInfo volumeInfo = base->fsGetVolumeInfo(VolumeInfoFlags::SizeInfo);
-		*FreeBytesAvailable = ((PLARGE_INTEGER)&volumeInfo.freeSize)->QuadPart;
-		*TotalNumberOfBytes = ((PLARGE_INTEGER)&volumeInfo.totalSize)->QuadPart;
-		*TotalNumberOfFreeBytes = ((PLARGE_INTEGER)&volumeInfo.freeSize)->QuadPart;
+			*FreeBytesAvailable = ((PLARGE_INTEGER)&volumeInfo.freeSize)->QuadPart;
+			*TotalNumberOfBytes = ((PLARGE_INTEGER)&volumeInfo.totalSize)->QuadPart;
+			*TotalNumberOfFreeBytes = ((PLARGE_INTEGER)&volumeInfo.freeSize)->QuadPart;
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK
@@ -1089,19 +1094,19 @@ namespace slib
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
 		FILESYSTEM_EXCEPTION_GUARD(
 			VolumeInfo volumeInfo = base->fsGetVolumeInfo();
-		WCHAR Buffer[MAX_PATH] = L"";
+			WCHAR Buffer[MAX_PATH] = L"";
 
-		*VolumeSerialNumber = volumeInfo.serialNumber;
-		*MaximumComponentLength = volumeInfo.maxComponentLength;
-		*FileSystemFlags = volumeInfo.fileSystemFlags;
+			*VolumeSerialNumber = volumeInfo.serialNumber;
+			*MaximumComponentLength = volumeInfo.maxComponentLength;
+			*FileSystemFlags = volumeInfo.fileSystemFlags;
 
-		StringToWChar(volumeInfo.volumeName, Buffer);
-		wcscpy_s(VolumeNameBuffer, VolumeNameSize / sizeof(WCHAR), Buffer);
+			StringToWChar(volumeInfo.volumeName, Buffer);
+			wcscpy_s(VolumeNameBuffer, VolumeNameSize / sizeof(WCHAR), Buffer);
 
-		StringToWChar(volumeInfo.fileSystemName, Buffer);
-		wcscpy_s(FileSystemNameBuffer, FileSystemNameSize / sizeof(WCHAR), Buffer);
+			StringToWChar(volumeInfo.fileSystemName, Buffer);
+			wcscpy_s(FileSystemNameBuffer, FileSystemNameSize / sizeof(WCHAR), Buffer);
 		)
-			return 0;
+		return 0;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK	// SLIB_DOKAN_IS_DOKANY

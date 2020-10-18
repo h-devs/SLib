@@ -1,5 +1,5 @@
 /**
- * @file slib/filesystem/filesystemwrapper.h
+ * @file slib/storage/filesystemwrapper.h
  * FileSystem Wrapper Layer Interface.
  *
  * @copyright 2020 Steve Han

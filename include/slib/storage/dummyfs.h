@@ -1,5 +1,5 @@
 /**
-* @file slib/filesystem/base/dummyfs.h
+* @file slib/storage/dummyfs.h
 * Dummy FileSystem Definition.
 *
 * @copyright 2020 Steve Han

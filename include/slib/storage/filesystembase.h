@@ -1,5 +1,5 @@
 /**
- * @file slib/filesystem/filesystembase.h
+ * @file slib/storage/filesystembase.h
  * FileSystem Base Layer Interface.
  *
  * @copyright 2020 Steve Han

@@ -1,5 +1,5 @@
 /**
- * @file slib/filesystem/host/dokan_host.h
+ * @file slib/storage/dokan_host.h
  * Dokan FileSystem Host Layer.
  *
  * @copyright 2020 Steve Han
@@ -34,9 +34,9 @@ namespace slib
 
 		void SetVersion(sl_uint16 Version);
 		void SetThreadCount(sl_uint16 ThreadCount);
-		void SetMountPoint(String MountPoint);
+		void SetMountPoint(const StringParam& MountPoint);
 #ifdef SLIB_DOKAN_IS_DOKANY
-		void SetUNCName(String UNCName);
+		void SetUNCName(const StringParam& UNCName);
 		void SetTimeout(sl_uint32 Timeout);
 #endif
 		void SetDebugMode(sl_bool UseStdErr);

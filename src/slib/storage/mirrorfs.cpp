@@ -29,7 +29,6 @@ namespace slib
 	{
 		WCHAR FullPath[MAX_PATH];
 		WCHAR Root[MAX_PATH];
-		ULONG Length;
 		HANDLE Handle;
 		WCHAR VolumeName[MAX_PATH];
 		FILETIME CreationTime;
@@ -45,15 +44,6 @@ namespace slib
 		if (INVALID_HANDLE_VALUE == Handle) {
 			throw FileSystemError::InitFailure;
 		}
-
-		Length = GetFinalPathNameByHandle(Handle, FullPath, MAX_PATH - 1, 0);
-		if (0 == Length)
-		{
-			CloseHandle(Handle);
-			throw FileSystemError::InitFailure;
-		}
-		if (L'\\' == FullPath[Length - 1])
-			FullPath[--Length] = L'\0';
 
 		if (!GetFileTime(Handle, &CreationTime, 0, 0))
 		{
@@ -544,12 +534,18 @@ namespace slib
 		if (PatternString.isNull() || PatternString.isEmpty())
 			PatternString = "*";
 
-		Length = GetFinalPathNameByHandle(Handle, FullPath, MAX_PATH - 1, 0);
-		if (0 == Length)
-			throw getError();
+		if (Handle) {
+			Length = GetFinalPathNameByHandle(Handle, FullPath, MAX_PATH - 1, 0);
+			if (0 == Length)
+				throw getError();
+		}
+		else {
+			ConcatPath(Context.path, FullPath);
+			Length = (ULONG)wcslen(FullPath);
+		}
 
 		StringToWChar(PatternString, Pattern);
-		PatternLength = (ULONG)PatternString.getLength();
+		PatternLength = (ULONG)wcslen(Pattern);
 
 		if (Length + 1 + PatternLength >= MAX_PATH)
 			throw getError(ERROR_INVALID_NAME);
@@ -599,9 +595,15 @@ namespace slib
 		WIN32_FIND_STREAM_DATA FindData;
 		HashMap<String, StreamInfo> Streams;
 
-		Length = GetFinalPathNameByHandle(Handle, FullPath, MAX_PATH - 1, 0);
-		if (0 == Length)
-			throw getError();
+		if (Handle) {
+			Length = GetFinalPathNameByHandle(Handle, FullPath, MAX_PATH - 1, 0);
+			if (0 == Length)
+				throw getError();
+		}
+		else {
+			ConcatPath(Context.path, FullPath);
+			Length = (ULONG)wcslen(FullPath);
+		}
 
 		FindHandle = FindFirstStreamW(FullPath, FindStreamInfoStandard, &FindData, 0);
 		if (INVALID_HANDLE_VALUE == FindHandle)

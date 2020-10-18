@@ -1,5 +1,5 @@
 /**
-* @file slib/filesystem/base/restfs.h
+* @file slib/storage/restfs.h
 * RestFs FileSystem Definition.
 *
 * @copyright 2020 Steve Han

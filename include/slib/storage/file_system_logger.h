@@ -1,5 +1,5 @@
 /**
-* @file slib/filesystem/wrapper/fs_logger.h
+* @file slib/storage/file_system_logger.h
 * FileSystem Logger Wrapper Definition.
 *
 * @copyright 2020 Steve Han

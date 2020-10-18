@@ -1,5 +1,4 @@
 #include "slib/storage/filesystembase.h"
-#include <windows.h>
 
 #define TAG						"FileSystemBase"
 #define errorLog(...)			LogError(TAG, ##__VA_ARGS__)
