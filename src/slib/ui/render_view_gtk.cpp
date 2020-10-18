@@ -89,14 +89,12 @@ namespace slib
 					}
 				}
 
-				gboolean onExposeEvent(GdkEventExpose* event) override
+				void onExposeEvent(GdkEventExpose* event) override
 				{
 					Ref<Renderer> renderer = m_renderer;
 					if (renderer.isNotNull()) {
 						renderer->requestRender();
-						return sl_true;
 					}
-					return sl_false;
 				}
 
 				void onFrame(RenderEngine* engine)

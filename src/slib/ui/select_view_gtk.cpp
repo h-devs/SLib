@@ -100,13 +100,10 @@ namespace slib
 				static void onChanged(GtkComboBox*, gpointer userinfo)
 				{
 					GtkComboBox* handle = (GtkComboBox*)userinfo;
-					Ref<SelectViewInstance> instance = CastRef<SelectViewInstance>(UIPlatform::getViewInstance((GtkWidget*)handle));
-					if (instance.isNotNull()) {
-						Ref<SelectView> view = CastRef<SelectView>(instance->getView());
-						if (view.isNotNull()) {
-							int index = gtk_combo_box_get_active(handle);
-							view->dispatchSelectItem(index);
-						}
+					Ref<SelectView> view = CastRef<SelectView>(UIPlatform::getView((GtkWidget*)handle));
+					if (view.isNotNull()) {
+						int index = gtk_combo_box_get_active(handle);
+						view->dispatchSelectItem(index);
 					}
 				}
 

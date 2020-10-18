@@ -889,6 +889,40 @@ namespace slib
 			GtkListStore *list_store
 		)
 		#define gtk_list_store_clear slib::gtk::getApi_gtk_list_store_clear()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_widget_get_toplevel,
+			GtkWidget*, ,
+			GtkWidget *widget
+		)
+		#define gtk_widget_get_toplevel slib::gtk::getApi_gtk_widget_get_toplevel()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_container_set_focus_child,
+			void, ,
+			GtkContainer *container, GtkWidget *child
+		)
+		#define gtk_container_set_focus_child slib::gtk::getApi_gtk_container_set_focus_child()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_container_get_focus_child,
+			GtkWidget*, ,
+			GtkContainer *container
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_window_get_focus,
+			GtkWidget*, ,
+			GtkWindow *
+		)
+		#define gtk_window_get_focus slib::gtk::getApi_gtk_window_get_focus()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_window_set_focus,
+			void, ,
+			GtkWindow *window, GtkWidget *focus
+		)
+		#define gtk_window_set_focus slib::gtk::getApi_gtk_window_set_focus()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_window_get_type,
+			GType, ,
+		)
+		#define gtk_window_get_type slib::gtk::getApi_gtk_window_get_type()
 
 	SLIB_IMPORT_LIBRARY_END
 

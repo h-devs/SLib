@@ -7417,6 +7417,9 @@ namespace slib
 
 	Ref<View> View::getFirstFocusableDescendant()
 	{
+		if (!(isVisible())) {
+			return sl_null;
+		}
 		if (isFocusable()) {
 			return this;
 		}
@@ -7435,6 +7438,9 @@ namespace slib
 
 	Ref<View> View::getLastFocusableDescendant()
 	{
+		if (!(isVisible())) {
+			return sl_null;
+		}
 		if (isFocusable()) {
 			return this;
 		}

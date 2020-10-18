@@ -30,6 +30,8 @@
 
 #include "view_gtk.h"
 
+#include "gdk/gdkkeysyms.h"
+
 namespace slib
 {
 	namespace priv
@@ -148,6 +150,14 @@ namespace slib
 					return 0;
 				}
 
+				gboolean onKeyEvent(GdkEventKey* event) override
+				{
+					if (event->keyval == GDK_KEY_Up || event->keyval == GDK_KEY_Down) {
+						return 1;
+					}
+					return GTK_ViewInstance::onKeyEvent(event);
+				}
+
 				void apply(EditView* view)
 				{
 					GtkEntry* handle = (GtkEntry*)m_handle;
@@ -167,7 +177,6 @@ namespace slib
 				{
 					GtkWidget* handle = m_handle;
 					g_signal_connect((GtkEditable*)handle, "changed", G_CALLBACK(onChange), handle);
-					g_signal_connect(handle, "key-press-event", G_CALLBACK(eventCallback), handle);
 				}
 
 				static void onChange(GtkEditable*, gpointer user_data)
@@ -364,7 +373,6 @@ namespace slib
 						if (buffer) {
 							g_signal_connect(buffer, "changed", G_CALLBACK(onChange), handle);
 						}
-						g_signal_connect(handleText, "key-press-event", G_CALLBACK(eventCallback), handle);
 					}
 				}
 
