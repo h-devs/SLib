@@ -102,24 +102,24 @@ namespace slib
 	sl_size FileSystemBase::increaseHandleCount(String fileName)
 	{
 		ObjectLocker locker(this);
-		_Handles.put(fileName, _Handles[fileName] + 1);
-		return _Handles[fileName];
+		m_openHandles.put(fileName, m_openHandles[fileName] + 1);
+		return m_openHandles[fileName];
 	}
 
 	sl_size FileSystemBase::decreaseHandleCount(String fileName)
 	{
 		ObjectLocker locker(this);
-		sl_size count = _Handles[fileName];
+		sl_size count = m_openHandles[fileName];
 		if (count > 1)
-			_Handles.put(fileName, count - 1);
+			m_openHandles.put(fileName, count - 1);
 		else
-			_Handles.remove(fileName);
-		return _Handles[fileName];
+			m_openHandles.remove(fileName);
+		return m_openHandles[fileName];
 	}
 
 	sl_size FileSystemBase::getOpenHandlesCount()
 	{
-		return _Handles.getCount();
+		return m_openHandles.getCount();
 	}
 
 }

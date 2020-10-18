@@ -16,7 +16,7 @@ namespace slib
 	class FileSystemHost : public Object
 	{
 	public:
-		FileSystemHost(Ref<FileSystemBase> base) : _BaseFs(base)
+		FileSystemHost(Ref<FileSystemBase> base) : m_base(base)
 		{
 			if (base.isNull()) {
 				Logger::logGlobalError("FileSystemHost", "BaseFs cannot be empty.");
@@ -29,18 +29,18 @@ namespace slib
 		}
 
 	public:
-		virtual int Run() = 0;
-		virtual int Stop() = 0;
-		virtual int IsRunning() = 0;
+		virtual int fsRun() = 0;
+		virtual int fsStop() = 0;
+		virtual int isRunning() = 0;
 
 	public:
 		sl_size getOpenHandlesCount()
 		{
-			return _BaseFs->getOpenHandlesCount();
+			return m_base->getOpenHandlesCount();
 		}
 
 	protected:
-		Ref<FileSystemBase> _BaseFs;
+		Ref<FileSystemBase> m_base;
 	};
 
 }

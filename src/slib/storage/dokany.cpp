@@ -249,116 +249,116 @@ namespace slib
 
 namespace slib
 {
-	BOOL DokanHost::HasSeSecurityPrivilege = FALSE;
+	BOOL DokanHost::g_hasSeSecurityPrivilege = FALSE;
 
 	DokanHost::DokanHost(Ref<FileSystemBase> base, sl_uint32 options) :
 		FileSystemHost(base),
 #ifdef SLIB_DOKAN_IS_DOKANY
-		_UNCName(L""),
+		m_uncName(L""),
 #endif
-		_MountPoint(L""),
-		_Started(FALSE)
+		m_mountPoint(L""),
+		m_flagStarted(FALSE)
 	{
-		ZeroMemory(&_DokanOptions, sizeof(DOKAN_OPTIONS));
-		_DokanOptions.Version = DOKAN_VERSION;
-		_DokanOptions.ThreadCount = 0; // use default
+		ZeroMemory(&m_dokanOptions, sizeof(DOKAN_OPTIONS));
+		m_dokanOptions.Version = DOKAN_VERSION;
+		m_dokanOptions.ThreadCount = 0; // use default
 #ifdef SLIB_DOKAN_IS_DOKANY
-		_DokanOptions.UNCName = _UNCName;
+		m_dokanOptions.UNCName = m_uncName;
 #else
-		_DokanOptions.Options |= DOKAN_OPTION_KEEP_ALIVE;	// 0.6.0, use auto unmount
+		m_dokanOptions.Options |= DOKAN_OPTION_KEEP_ALIVE;	// 0.6.0, use auto unmount
 #endif
-		_DokanOptions.Options |= options;
-		_DokanOptions.GlobalContext = (ULONG64)(PVOID)_BaseFs;
-		_DokanOptions.MountPoint = _MountPoint;
+		m_dokanOptions.Options |= options;
+		m_dokanOptions.GlobalContext = (ULONG64)(PVOID)m_base;
+		m_dokanOptions.MountPoint = m_mountPoint;
 	}
 
 	DokanHost::~DokanHost()
 	{
-		if (_Started)
-			Stop();
+		if (m_flagStarted)
+			fsStop();
 	}
 
-	void DokanHost::SetVersion(sl_uint16 Version)
+	void DokanHost::setVersion(sl_uint16 version)
 	{
-		_DokanOptions.Version = Version;
+		m_dokanOptions.Version = version;
 	}
 
-	void DokanHost::SetThreadCount(sl_uint16 ThreadCount)
+	void DokanHost::setThreadCount(sl_uint16 threadCount)
 	{
-		_DokanOptions.ThreadCount = ThreadCount;
+		m_dokanOptions.ThreadCount = threadCount;
 	}
 
-	void DokanHost::SetMountPoint(const StringParam& MountPoint)
+	void DokanHost::setMountPoint(const StringParam& mountPoint)
 	{
-		StringToWChar(MountPoint.toString(), _MountPoint);
+		StringToWChar(mountPoint.toString(), m_mountPoint);
 	}
 
 #ifdef SLIB_DOKAN_IS_DOKANY
-	void DokanHost::SetUNCName(const StringParam& UNCName)
+	void DokanHost::setUNCName(const StringParam& uncName)
 	{
-		StringToWChar(UNCName.toString(), _UNCName);
+		StringToWChar(uncName.toString(), m_uncName);
 	}
 
-	void DokanHost::SetTimeout(sl_uint32 Timeout)
+	void DokanHost::setTimeout(sl_uint32 timeout)
 	{
-		_DokanOptions.Timeout = Timeout;
+		m_dokanOptions.Timeout = timeout;
 	}
 #endif
 
-	void DokanHost::SetDebugMode(sl_bool UseStdErr)
+	void DokanHost::setDebugMode(sl_bool flagUseStdErr)
 	{
-		_DokanOptions.Options |= DOKAN_OPTION_DEBUG;
-		if (UseStdErr)
-			_DokanOptions.Options |= DOKAN_OPTION_STDERR;
+		m_dokanOptions.Options |= DOKAN_OPTION_DEBUG;
+		if (flagUseStdErr)
+			m_dokanOptions.Options |= DOKAN_OPTION_STDERR;
 		else
-			_DokanOptions.Options &= ~DOKAN_OPTION_STDERR;
+			m_dokanOptions.Options &= ~DOKAN_OPTION_STDERR;
 	}
 
-	int DokanHost::Run() {
+	int DokanHost::fsRun() {
 #ifdef SLIB_DOKAN_IS_DOKANY
-		if (wcscmp(_UNCName, L"") != 0 &&
-			!(_DokanOptions.Options & DOKAN_OPTION_NETWORK)) {
+		if (wcscmp(m_uncName, L"") != 0 &&
+			!(m_dokanOptions.Options & DOKAN_OPTION_NETWORK)) {
 			fwprintf(
 				stderr,
 				L"  Warning: UNC provider name should be set on network drive only.\n");
 		}
 
-		if (_DokanOptions.Options & DOKAN_OPTION_NETWORK &&
-			_DokanOptions.Options & DOKAN_OPTION_MOUNT_MANAGER) {
+		if (m_dokanOptions.Options & DOKAN_OPTION_NETWORK &&
+			m_dokanOptions.Options & DOKAN_OPTION_MOUNT_MANAGER) {
 			fwprintf(stderr, L"Mount manager cannot be used on network drive.\n");
 			return EXIT_FAILURE;
 		}
 
-		if (!(_DokanOptions.Options & DOKAN_OPTION_MOUNT_MANAGER) &&
-			wcscmp(_MountPoint, L"") == 0) {
+		if (!(m_dokanOptions.Options & DOKAN_OPTION_MOUNT_MANAGER) &&
+			wcscmp(m_mountPoint, L"") == 0) {
 			fwprintf(stderr, L"Mount Point required.\n");
 			return EXIT_FAILURE;
 		}
 
-		if ((_DokanOptions.Options & DOKAN_OPTION_MOUNT_MANAGER) &&
-			(_DokanOptions.Options & DOKAN_OPTION_CURRENT_SESSION)) {
+		if ((m_dokanOptions.Options & DOKAN_OPTION_MOUNT_MANAGER) &&
+			(m_dokanOptions.Options & DOKAN_OPTION_CURRENT_SESSION)) {
 			fwprintf(stderr,
 				L"Mount Manager always mount the drive for all user sessions.\n");
 			return EXIT_FAILURE;
 		}
 
 		try {
-			VolumeInfo volumeInfo = _BaseFs->fsGetVolumeInfo();
+			VolumeInfo volumeInfo = m_base->fsGetVolumeInfo();
 			if (volumeInfo.sectorSize) {
-				_DokanOptions.SectorSize = volumeInfo.sectorSize;
+				m_dokanOptions.SectorSize = volumeInfo.sectorSize;
 				if (volumeInfo.sectorsPerAllocationUnit)
-					_DokanOptions.AllocationUnitSize = volumeInfo.sectorSize * volumeInfo.sectorsPerAllocationUnit;
+					m_dokanOptions.AllocationUnitSize = volumeInfo.sectorSize * volumeInfo.sectorsPerAllocationUnit;
 			}
 			if (volumeInfo.fileSystemFlags & FILE_READ_ONLY_VOLUME)
-				_DokanOptions.Options |= DOKAN_OPTION_WRITE_PROTECT;
+				m_dokanOptions.Options |= DOKAN_OPTION_WRITE_PROTECT;
 		} catch (...) {}
 
 		try {
-			_BaseFs->fsFindStreams(new FileContext("\\", sl_true));
-			_DokanOptions.Options |= DOKAN_OPTION_ALT_STREAM;
+			m_base->fsFindStreams(new FileContext("\\", sl_true));
+			m_dokanOptions.Options |= DOKAN_OPTION_ALT_STREAM;
 		} catch (FileSystemError error) {
 			if (error != FileSystemError::NotImplemented)
-				_DokanOptions.Options |= DOKAN_OPTION_ALT_STREAM;
+				m_dokanOptions.Options |= DOKAN_OPTION_ALT_STREAM;
 		} catch (...) {}
 #endif // SLIB_DOKAN_IS_DOKANY
 
@@ -369,9 +369,9 @@ namespace slib
 			return EXIT_FAILURE;
 		}
 
-		_Started = TRUE;
-		int status = getApi_DokanMain()(&_DokanOptions, DokanHost::Interface());
-		_Started = FALSE;
+		m_flagStarted = TRUE;
+		int status = getApi_DokanMain()(&m_dokanOptions, DokanHost::Interface());
+		m_flagStarted = FALSE;
 
 		switch (status) {
 		case DOKAN_SUCCESS:
@@ -408,18 +408,18 @@ namespace slib
 		return status;
 	}
 
-	int DokanHost::Stop() {
-		if (_Started)
-			return ! Dokany::unmount(_MountPoint);
+	int DokanHost::fsStop() {
+		if (m_flagStarted)
+			return ! Dokany::unmount(m_mountPoint);
 		return -1;
 	}
 
-	int DokanHost::IsRunning() {
-		return _Started;
+	int DokanHost::isRunning() {
+		return m_flagStarted;
 	}
 
-	BOOL DokanHost::AddSeSecurityNamePrivilege() {
-		DokanHost::HasSeSecurityPrivilege = FALSE;
+	BOOL DokanHost::addSeSecurityNamePrivilege() {
+		DokanHost::g_hasSeSecurityPrivilege = FALSE;
 
 		HANDLE token = 0;
 		DWORD err;
@@ -468,7 +468,7 @@ namespace slib
 		if (token)
 			CloseHandle(token);
 
-		DokanHost::HasSeSecurityPrivilege = TRUE;
+		DokanHost::g_hasSeSecurityPrivilege = TRUE;
 		return TRUE;
 	}
 
@@ -989,7 +989,7 @@ namespace slib
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 
-		if (!DokanHost::HasSeSecurityPrivilege) {
+		if (!DokanHost::g_hasSeSecurityPrivilege) {
 			*SecurityInformation &= ~0x00000008L/*SACL_SECURITY_INFORMATION*/;
 			*SecurityInformation &= ~0x00010000L/*BACKUP_SECURITY_INFORMATION*/;
 			// TODO ReOpen with READ_CONTROL|ACCESS_SYSTEM_SECURITY access

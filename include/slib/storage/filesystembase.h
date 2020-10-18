@@ -209,7 +209,7 @@ namespace slib
 		/* ctor/dtor */
 		FileSystemBase()
 		{
-			_VolumeInfo.creationTime = Time::now();
+			m_volumeInfo.creationTime = Time::now();
 		}
 
 		virtual ~FileSystemBase()
@@ -222,7 +222,7 @@ namespace slib
 		virtual const VolumeInfo&
 			fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)&
 		{
-			return _VolumeInfo;
+			return m_volumeInfo;
 		}
 		
 		virtual void
@@ -346,8 +346,8 @@ namespace slib
 		sl_size getOpenHandlesCount();
 
 	protected:
-		VolumeInfo _VolumeInfo;
-		HashMap<String, sl_size> _Handles;
+		VolumeInfo m_volumeInfo;
+		HashMap<String, sl_size> m_openHandles;
 	};
 
 }

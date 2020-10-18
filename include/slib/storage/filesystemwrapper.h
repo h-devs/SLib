@@ -16,9 +16,9 @@ namespace slib
 	{
 	public:
 		/* ctor/dtor */
-		FileSystemWrapper(Ref<FileSystemBase> base) : _BaseFs(base)
+		FileSystemWrapper(Ref<FileSystemBase> base) : m_base(base)
 		{
-			_VolumeInfo = _BaseFs->fsGetVolumeInfo();
+			m_volumeInfo = m_base->fsGetVolumeInfo();
 		}
 			
 		~FileSystemWrapper()
@@ -31,109 +31,109 @@ namespace slib
 		virtual const VolumeInfo&
 			fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)& override
 		{
-			return _BaseFs->fsGetVolumeInfo(flags);
+			return m_base->fsGetVolumeInfo(flags);
 		}
 
 		virtual void
 			fsSetVolumeName(String volumeName) override
 		{
-			return _BaseFs->fsSetVolumeName(volumeName);
+			return m_base->fsSetVolumeName(volumeName);
 		}
 
 		virtual void
 			fsCreate(FileContext* context, FileCreationParams& params = FileCreationParams()) override
 		{
-			return _BaseFs->fsCreate(getBaseContext(context), params);
+			return m_base->fsCreate(getBaseContext(context), params);
 		}
 
 		virtual void
 			fsOpen(FileContext* context, FileCreationParams& params = FileCreationParams()) override
 		{
-			return _BaseFs->fsOpen(getBaseContext(context), params);
+			return m_base->fsOpen(getBaseContext(context), params);
 		}
 
 		virtual sl_size
 			fsRead(FileContext* context, const Memory& buffer, sl_uint64 offset) override
 		{
-			return _BaseFs->fsRead(getBaseContext(context), buffer, offset);
+			return m_base->fsRead(getBaseContext(context), buffer, offset);
 		}
 
 		virtual sl_size
 			fsWrite(FileContext* context, const Memory& buffer, sl_uint64 offset, sl_bool writeToEof) override
 		{
-			return _BaseFs->fsWrite(getBaseContext(context), buffer, offset, writeToEof);
+			return m_base->fsWrite(getBaseContext(context), buffer, offset, writeToEof);
 		}
 
 		virtual void
 			fsFlush(FileContext* context) override
 		{
-			return _BaseFs->fsFlush(getBaseContext(context));
+			return m_base->fsFlush(getBaseContext(context));
 		}
 
 		virtual void
 			fsClose(FileContext* context) override
 		{
-			return _BaseFs->fsClose(getBaseContext(context));
+			return m_base->fsClose(getBaseContext(context));
 		}
 
 		virtual void
 			fsDelete(FileContext* context, sl_bool checkOnly) override
 		{
-			return _BaseFs->fsDelete(getBaseContext(context), checkOnly);
+			return m_base->fsDelete(getBaseContext(context), checkOnly);
 		}
 
 		virtual void
 			fsRename(FileContext* context, String newFileName, sl_bool replaceIfExists) override
 		{
-			return _BaseFs->fsRename(getBaseContext(context), getBaseFileName(newFileName), replaceIfExists);
+			return m_base->fsRename(getBaseContext(context), getBaseFileName(newFileName), replaceIfExists);
 		}
 
 		virtual void
 			fsLock(FileContext* context, sl_uint64 offset, sl_uint64 length) override
 		{
-			return _BaseFs->fsLock(getBaseContext(context), offset, length);
+			return m_base->fsLock(getBaseContext(context), offset, length);
 		}
 
 		virtual void
 			fsUnlock(FileContext* context, sl_uint64 offset, sl_uint64 length) override
 		{
-			return _BaseFs->fsUnlock(getBaseContext(context), offset, length);
+			return m_base->fsUnlock(getBaseContext(context), offset, length);
 		}
 
 		virtual FileInfo
 			fsGetFileInfo(FileContext* context) override
 		{
-			return _BaseFs->fsGetFileInfo(getBaseContext(context));
+			return m_base->fsGetFileInfo(getBaseContext(context));
 		}
 
 		virtual void
 			fsSetFileInfo(FileContext* context, FileInfo fileInfo, FileInfoFlags flags) override
 		{
-			return _BaseFs->fsSetFileInfo(getBaseContext(context), fileInfo, flags);
+			return m_base->fsSetFileInfo(getBaseContext(context), fileInfo, flags);
 		}
 
 		virtual Memory
 			fsGetSecurity(FileContext* context, sl_uint32 securityInformation) override
 		{
-			return _BaseFs->fsGetSecurity(getBaseContext(context), securityInformation);
+			return m_base->fsGetSecurity(getBaseContext(context), securityInformation);
 		}
 
 		virtual void
 			fsSetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor) override
 		{
-			return _BaseFs->fsSetSecurity(getBaseContext(context), securityInformation, securityDescriptor);
+			return m_base->fsSetSecurity(getBaseContext(context), securityInformation, securityDescriptor);
 		}
 
 		virtual HashMap<String, FileInfo>
 			fsFindFiles(FileContext* context, String pattern) override
 		{
-			return _BaseFs->fsFindFiles(getBaseContext(context), pattern);
+			return m_base->fsFindFiles(getBaseContext(context), pattern);
 		}
 
 		virtual HashMap<String, StreamInfo>
 			fsFindStreams(FileContext* context) override
 		{
-			return _BaseFs->fsFindStreams(getBaseContext(context));
+			return m_base->fsFindStreams(getBaseContext(context));
 		}
 
 	protected:
@@ -160,7 +160,7 @@ namespace slib
 		}
 
 	protected:
-		Ref<FileSystemBase> _BaseFs;
+		Ref<FileSystemBase> m_base;
 	};
 
 }

@@ -16,7 +16,7 @@ namespace slib
 	class AtomicFileSystem : public FileSystemBase
 	{
 	public:
-		AtomicFileSystem() : FileSystemBase(), _handleCounter(0) {}
+		AtomicFileSystem() : FileSystemBase(), m_handleCounter(0) {}
 
 	public:
 		/* AtomicFileSystem Interfaces */
@@ -24,7 +24,7 @@ namespace slib
 		virtual const VolumeInfo&
 			afsGetVolumeInfo()&
 		{
-			return _VolumeInfo;
+			return m_volumeInfo;
 		}
 
 		virtual FileInfo
@@ -95,8 +95,8 @@ namespace slib
 
 			ObjectLocker locker(this);
 			sl_uint64 handle = 0;
-			if (!_closedHandles.popFront(&handle) || !handle)
-				handle = ++_handleCounter;
+			if (!m_closedHandles.popFront(&handle) || !handle)
+				handle = ++m_handleCounter;
 			context->handle = handle;
 		}
 
@@ -111,8 +111,8 @@ namespace slib
 
 			ObjectLocker locker(this);
 			sl_uint64 handle = 0;
-			if (!_closedHandles.popFront(&handle) || !handle)
-				handle = ++_handleCounter;
+			if (!m_closedHandles.popFront(&handle) || !handle)
+				handle = ++m_handleCounter;
 			context->handle = handle;
 		}
 
@@ -135,10 +135,10 @@ namespace slib
 		{
 			if (context->handle) {
 				ObjectLocker locker(this);
-				_closedHandles.add(context->handle);
+				m_closedHandles.add(context->handle);
 				//if (_FileNames.getCount() == 0) {
-				//	_handleCounter = 0;
-				//	_closedHandles.removeAll();
+				//	m_handleCounter = 0;
+				//	m_closedHandles.removeAll();
 				//}
 			}
 			context->handle = 0;
@@ -178,8 +178,8 @@ namespace slib
 		}
 
 	private:
-		sl_uint64 _handleCounter;
-		List<sl_uint64> _closedHandles;
+		sl_uint64 m_handleCounter;
+		List<sl_uint64> m_closedHandles;
 	};
 
 }

@@ -3,11 +3,11 @@
 namespace slib
 {
 
-	RestFs::RestFs(String Url) : _BaseUrl(Url) {
-		_VolumeInfo.volumeName = "RestFs";
-		_VolumeInfo.fileSystemName = "RestFs";
-		_VolumeInfo.totalSize = 1024 * 1024 * 1024;
-		_VolumeInfo.freeSize = 512 * 1024 * 1024;
+	RestFs::RestFs(String Url) : m_baseUrl(Url) {
+		m_volumeInfo.volumeName = "RestFs";
+		m_volumeInfo.fileSystemName = "RestFs";
+		m_volumeInfo.totalSize = 1024 * 1024 * 1024;
+		m_volumeInfo.freeSize = 512 * 1024 * 1024;
 
 		if (!ping())
 			throw FileSystemError::InitFailure;
@@ -15,7 +15,7 @@ namespace slib
 
 	sl_bool RestFs::ping()
 	{
-		String url = String::format("%s?cmd=ping", _BaseUrl);
+		String url = String::format("%s?cmd=ping", m_baseUrl);
 		auto req = UrlRequest::sendSynchronous(Url::encodeUri(url));
 		if (req->getResponseStatus() != HttpStatus::OK)
 			return sl_false;
@@ -42,7 +42,7 @@ namespace slib
 
 	FileInfo RestFs::afsGetFileInfo(String uri)
 	{
-		String url = String::format("%s%s?cmd=info", _BaseUrl, uri.replaceAll("\\", "/"));
+		String url = String::format("%s%s?cmd=info", m_baseUrl, uri.replaceAll("\\", "/"));
 		auto req = UrlRequest::sendSynchronous(Url::encodeUri(url));
 		if (req->getResponseStatus() != HttpStatus::OK)
 			throw getErrorFromResponse(req);
@@ -59,7 +59,7 @@ namespace slib
 
 	HashMap<String, FileInfo> RestFs::afsFindFiles(String uri) 
 	{
-		String url = String::format("%s%s?cmd=list", _BaseUrl, uri.replaceAll("\\", "/"));
+		String url = String::format("%s%s?cmd=list", m_baseUrl, uri.replaceAll("\\", "/"));
 		auto req = UrlRequest::sendSynchronous(Url::encodeUri(url));
 		if (req->getResponseStatus() != HttpStatus::OK)
 			throw getErrorFromResponse(req);
@@ -81,7 +81,7 @@ namespace slib
 	sl_size RestFs::afsRead(String uri, const Memory& buffer, sl_uint64 offset)
 	{
 		String url = String::format("%s%s?cmd=read&offset=%d&len=%d",
-			_BaseUrl, uri.replaceAll("\\", "/"), offset, buffer.getSize());
+			m_baseUrl, uri.replaceAll("\\", "/"), offset, buffer.getSize());
 		auto req = UrlRequest::sendSynchronous(Url::encodeUri(url));
 		if (req->getResponseStatus() != HttpStatus::OK)
 			throw getErrorFromResponse(req);
@@ -92,7 +92,7 @@ namespace slib
 	sl_size RestFs::afsWrite(String uri, const Memory& buffer, sl_uint64 offset)
 	{
 		String url = String::format("%s%s?cmd=write&offset=%d&len=%d",
-			_BaseUrl, uri.replaceAll("\\", "/"), offset, buffer.getSize());
+			m_baseUrl, uri.replaceAll("\\", "/"), offset, buffer.getSize());
 		auto req = UrlRequest::sendSynchronous(HttpMethod::PUT, Url::encodeUri(url), buffer);
 		if (req->getResponseStatus() != HttpStatus::OK)
 			throw getErrorFromResponse(req);
@@ -106,7 +106,7 @@ namespace slib
 	FileInfo RestFs::afsCreateNew(String uri, sl_bool isDirectory)
 	{
 		String url = String::format("%s%s?cmd=create&isdir=%s",
-			_BaseUrl, uri.replaceAll("\\", "/"), isDirectory ? "1" : "");
+			m_baseUrl, uri.replaceAll("\\", "/"), isDirectory ? "1" : "");
 		auto req = UrlRequest::sendSynchronous(HttpMethod::POST, Url::encodeUri(url));
 		if (req->getResponseStatus() != HttpStatus::OK)
 			throw getErrorFromResponse(req);
@@ -124,7 +124,7 @@ namespace slib
 	void RestFs::afsSetFileSize(String uri, sl_uint64 size) 
 	{
 		String url = String::format("%s%s?cmd=set&size=%d", 
-			_BaseUrl, uri.replaceAll("\\", "/"), size);
+			m_baseUrl, uri.replaceAll("\\", "/"), size);
 		auto req = UrlRequest::sendSynchronous(HttpMethod::POST, Url::encodeUri(url));
 		if (req->getResponseStatus() != HttpStatus::OK)
 			throw getErrorFromResponse(req);
@@ -137,8 +137,8 @@ namespace slib
 	void RestFs::afsRename(String uri, String newUri, sl_bool replaceIfExists)
 	{
 		String url = String::format("%s%s?cmd=rename&to=%s%s&replace=%s",
-			_BaseUrl, uri.replaceAll("\\", "/"), 
-			Url(_BaseUrl).path, newUri.replaceAll("\\", "/"),
+			m_baseUrl, uri.replaceAll("\\", "/"), 
+			Url(m_baseUrl).path, newUri.replaceAll("\\", "/"),
 			replaceIfExists ? "1" : "");
 		auto req = UrlRequest::sendSynchronous(HttpMethod::POST, Url::encodeUri(url));
 		if (req->getResponseStatus() != HttpStatus::OK)
@@ -152,7 +152,7 @@ namespace slib
 	void RestFs::afsDelete(String uri, sl_bool checkOnly) 
 	{
 		String url = String::format("%s%s?checkonly=%s",
-			_BaseUrl, uri.replaceAll("\\", "/"), checkOnly ? "1" : "");
+			m_baseUrl, uri.replaceAll("\\", "/"), checkOnly ? "1" : "");
 		auto req = UrlRequest::sendSynchronous(HttpMethod::DELETE, Url::encodeUri(url));
 		if (req->getResponseStatus() != HttpStatus::OK)
 			throw getErrorFromResponse(req);

@@ -42,7 +42,7 @@ namespace slib
 		FileSystemError getErrorFromResponse(Ref<UrlRequest> req);
 
 	private:
-		String _BaseUrl;
+		String m_baseUrl;
 	};
 
 }

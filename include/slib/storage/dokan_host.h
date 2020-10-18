@@ -32,22 +32,23 @@ namespace slib
 		DokanHost(Ref<FileSystemBase> base, sl_uint32 options = 0);
 		virtual ~DokanHost();
 
-		void SetVersion(sl_uint16 Version);
-		void SetThreadCount(sl_uint16 ThreadCount);
-		void SetMountPoint(const StringParam& MountPoint);
+		void setVersion(sl_uint16 version);
+		void setThreadCount(sl_uint16 threadCount);
+		void setMountPoint(const StringParam& mountPoint);
 #ifdef SLIB_DOKAN_IS_DOKANY
-		void SetUNCName(const StringParam& UNCName);
-		void SetTimeout(sl_uint32 Timeout);
+		void setUNCName(const StringParam& uncName);
+		void setTimeout(sl_uint32 timeout);
 #endif
-		void SetDebugMode(sl_bool UseStdErr);
-
-		int Run() override;
-		int Stop() override;
-		int IsRunning() override;
+		void setDebugMode(sl_bool flagUseStdErr);
 
 	public:
-		static BOOL HasSeSecurityPrivilege;
-		static BOOL AddSeSecurityNamePrivilege();
+		int fsRun() override;
+		int fsStop() override;
+		int isRunning() override;
+
+	public:
+		static BOOL g_hasSeSecurityPrivilege;
+		static BOOL addSeSecurityNamePrivilege();
 
 	private:
 #ifdef SLIB_DOKAN_IS_DOKANY
@@ -243,7 +244,7 @@ namespace slib
 	public:
 		static PDOKAN_OPERATIONS Interface()
 		{
-			static DOKAN_OPERATIONS _Interface = {
+			static DOKAN_OPERATIONS dokanInterface = {
 #ifdef SLIB_DOKAN_IS_DOKANY
 				ZwCreateFile,
 #else
@@ -281,16 +282,16 @@ namespace slib
 #endif
 			};
 
-			return &_Interface;
+			return &dokanInterface;
 		}
 
 	private:
-		DOKAN_OPTIONS _DokanOptions;
-		WCHAR _MountPoint[MAX_PATH];
+		DOKAN_OPTIONS m_dokanOptions;
+		WCHAR m_mountPoint[MAX_PATH];
 #ifdef SLIB_DOKAN_IS_DOKANY
-		WCHAR _UNCName[MAX_PATH];
+		WCHAR m_uncName[MAX_PATH];
 #endif
-		BOOL _Started;
+		BOOL m_flagStarted;
 	};
 
 }

@@ -16,11 +16,10 @@ namespace slib
 	{
 	public:
 		DummyFs() {
-			_VolumeInfo.volumeName = "Dummy";
-			_VolumeInfo.fileSystemName = "DummyFs";
-			_VolumeInfo.totalSize = 1024 * 1024 * 1024;
-			_VolumeInfo.freeSize = 512 * 1024 * 1024;
-			_handleCounter = 0;
+			m_volumeInfo.volumeName = "Dummy";
+			m_volumeInfo.fileSystemName = "DummyFs";
+			m_volumeInfo.totalSize = 1024 * 1024 * 1024;
+			m_volumeInfo.freeSize = 512 * 1024 * 1024;
 		}
 
 	protected:
@@ -44,7 +43,7 @@ namespace slib
 		FileInfo fsGetFileInfo(FileContext* context) override 
 		{
 			FileInfo info;
-			info.createdAt = info.modifiedAt = info.lastAccessedAt = _VolumeInfo.creationTime;
+			info.createdAt = info.modifiedAt = info.lastAccessedAt = m_volumeInfo.creationTime;
 			if (context->path.endsWith("\\") || context->path.endsWith("\\dummy"))
 				info.attr.isDirectory = true;
 			else if (context->path.endsWith("\\dummy.txt"))
@@ -58,7 +57,7 @@ namespace slib
 		{
 			HashMap<String, FileInfo> files;
 			FileInfo info;
-			info.createdAt = info.modifiedAt = info.lastAccessedAt = _VolumeInfo.creationTime;
+			info.createdAt = info.modifiedAt = info.lastAccessedAt = m_volumeInfo.creationTime;
 
 			// directories
 			info.attr.isDirectory = true;
@@ -73,9 +72,6 @@ namespace slib
 
 			return files;
 		}
-
-	private:
-		sl_uint64 _handleCounter;
 	};
 
 }
