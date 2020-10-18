@@ -889,7 +889,46 @@ namespace slib
 			GtkListStore *list_store
 		)
 		#define gtk_list_store_clear slib::gtk::getApi_gtk_list_store_clear()
-
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_button_set_label,
+                        void, ,
+                        GtkButton      *button,
+                        const gchar    *label
+                )
+                #define gtk_button_set_label slib::gtk::getApi_gtk_button_set_label()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_button_new,
+                        GtkWidget*, ,
+                )
+                #define gtk_button_new slib::gtk::getApi_gtk_button_new()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_widget_get_size_request,
+                        void, ,
+                        GtkWidget *widget,
+                        gint      *width,
+                        gint      *height
+                )
+                #define gtk_widget_get_size_request slib::gtk::getApi_gtk_widget_get_size_request()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_button_new_with_mnemonic,
+                        GtkWidget* , ,
+                        const gchar    *label
+                )
+                #define gtk_button_new_with_mnemonic slib::gtk::getApi_gtk_button_new_with_mnemonic()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_button_set_use_underline,
+                        GtkWidget* , ,
+                        GtkButton      *button,
+                        gboolean        use_underline
+                )
+                #define gtk_button_set_use_underline slib::gtk::getApi_gtk_button_set_use_underline()
+                SLIB_IMPORT_LIBRARY_FUNCTION(
+                        gtk_widget_set_can_default,
+                        void , ,
+                        GtkWidget    *widget,
+                        gboolean     can_default
+                )
+                #define gtk_widget_set_can_default slib::gtk::getApi_gtk_widget_set_can_default()
 	SLIB_IMPORT_LIBRARY_END
 
 }
@@ -897,3 +936,4 @@ namespace slib
 #endif
 
 #endif
+
