@@ -69,14 +69,8 @@ namespace slib
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						if (flagInit) {
-							String text = view->getText();
-							if (text.isNotEmpty()) {
-								Win32_ViewInstance::setText(text);
-							}
-						} else {
+						if (!flagInit) {
 							SendMessageW(handle, CB_RESETCONTENT, 0, 0);
-							Windows::setWindowText(handle, m_text);
 						}
 						sl_uint32 n = view->getItemsCount();
 						for (sl_uint32 i = 0; i < n; i++) {
@@ -184,6 +178,15 @@ namespace slib
 					return sl_false;
 				}
 
+				void apply(ComboBox* view)
+				{
+					String text = view->getText();
+					if (text.isNotEmpty()) {
+						Win32_ViewInstance::setText(text);
+					}
+					refreshItems(view, sl_true);
+				}
+
 			};
 
 			SLIB_DEFINE_OBJECT(ComboBoxInstance, Win32_ViewInstance)
@@ -222,7 +225,7 @@ namespace slib
 		Ref<ComboBoxInstance> ret = Win32_ViewInstance::create<ComboBoxInstance>(this, parent, L"COMBOBOX", sl_null, style, 0);
 		if (ret.isNotNull()) {
 			EnumChildWindows(ret->getHandle(), SubclassEditChild, 0);
-			ret->refreshItems(this, sl_true);
+			ret->apply(this);
 			return ret;
 		}
 		return sl_null;
