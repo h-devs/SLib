@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_STORAGE_HEADER
 
 #include "storage/disk.h"
+#include "storage/dokany.h"
 
 #include "storage/filesystembase.h"
 #include "storage/atomicfilesystem.h"
