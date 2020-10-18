@@ -81,8 +81,8 @@ namespace slib
 			FsLogAll = 0xFFFFFFFF,
 		};
 
-#define contextDesc		String::fromUint64(context.handle) + \
-					(_flags & FsLogFileName ? ":" + context.path : \
+#define contextDesc		String::fromUint64(context->handle) + \
+					(_flags & FsLogFileName ? ":" + context->path : \
 					(_flags & FsLogContextAddress ? ":0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true) : ""))
 
 	public:
@@ -163,12 +163,12 @@ namespace slib
 				printLog(desc);
 		}
 
-		void fsCreate(FileContext &context, FileCreationParams &params = FileCreationParams()) override
+		void fsCreate(FileContext* context, FileCreationParams& params = FileCreationParams()) override
 		{
-			if (!(_flags & FsLogCreate) || !_regex.match(context.path))
+			if (!(_flags & FsLogCreate) || !_regex.match(context->path))
 				return _BaseFs->fsCreate(context, params);
 
-			String desc = String::format("Create(%s,%s,%s%s,0x%X,0x%X,0x%X)", context.path,
+			String desc = String::format("Create(%s,%s,%s%s,0x%X,0x%X,0x%X)", context->path,
 				params.attr.isDirectory ? "DIR" : "FILE",
 				(params.createAlways ? "ALWAYS" : "NEW"), (params.openTruncate ? "|TRUNCATE" : ""),
 				params.accessMode, params.shareMode, params.flagsAndAttributes);
@@ -186,17 +186,17 @@ namespace slib
 				printLog("%s\n"
 					"  Handle: %d\n"
 					"  Status: %d\n"
-					"  DispositionFlags: %s%s", desc, context.handle, context.status,
+					"  DispositionFlags: %s%s", desc, context->handle, context->status,
 					(params.createAlways ? "ALWAYS" : "NEW"), (params.openTruncate ? "|TRUNCATE" : ""));
 			}
 		}
 
-		void fsOpen(FileContext &context, FileCreationParams &params = FileCreationParams()) override
+		void fsOpen(FileContext* context, FileCreationParams& params = FileCreationParams()) override
 		{
-			if (!(_flags & FsLogOpen) || !_regex.match(context.path))
+			if (!(_flags & FsLogOpen) || !_regex.match(context->path))
 				return _BaseFs->fsOpen(context, params);
 
-			String desc = String::format("Open(%s,%s,%s%s,0x%X,0x%X,0x%X)", context.path,
+			String desc = String::format("Open(%s,%s,%s%s,0x%X,0x%X,0x%X)", context->path,
 				params.attr.isDirectory ? "DIR" : "FILE",
 				(params.createAlways ? "ALWAYS" : "EXISTING"), (params.openTruncate ? "|TRUNCATE" : ""),
 				params.accessMode, params.shareMode, params.flagsAndAttributes);
@@ -214,14 +214,14 @@ namespace slib
 				printLog("%s\n"
 					"  Handle: %d\n"
 					"  Status: %d\n"
-					"  DispositionFlags: %s%s", desc, context.handle, context.status,
+					"  DispositionFlags: %s%s", desc, context->handle, context->status,
 					(params.createAlways ? "ALWAYS" : "EXISTING"), (params.openTruncate ? "|TRUNCATE" : ""));
 			}
 		}
 
-		sl_size fsRead(FileContext &context, const Memory &buffer, sl_uint64 offset) override 
+		sl_size fsRead(FileContext* context, const Memory& buffer, sl_uint64 offset) override 
 		{
-			if (!(_flags & FsLogRead) || !_regex.match(context.path))
+			if (!(_flags & FsLogRead) || !_regex.match(context->path))
 				return _BaseFs->fsRead(context, buffer, offset);
 
 			String desc = String::format("Read(%s,0x%X,0x%X)", contextDesc, offset, buffer.getSize());
@@ -241,9 +241,9 @@ namespace slib
 			return ret;
 		}
 
-		sl_size fsWrite(FileContext &context, const Memory &buffer, sl_uint64 offset, sl_bool writeToEof) override
+		sl_size fsWrite(FileContext* context, const Memory& buffer, sl_uint64 offset, sl_bool writeToEof) override
 		{
-			if (!(_flags & FsLogWrite) || !_regex.match(context.path))
+			if (!(_flags & FsLogWrite) || !_regex.match(context->path))
 				return _BaseFs->fsWrite(context, buffer, offset, writeToEof);
 
 			String desc = String::format("Write(%s,0x%X,0x%X,%d)", contextDesc, offset, buffer.getSize(), writeToEof);
@@ -263,9 +263,9 @@ namespace slib
 			return ret;
 		}
 
-		void fsFlush(FileContext &context) override
+		void fsFlush(FileContext* context) override
 		{
-			if (!(_flags & FsLogFlush) || !_regex.match(context.path))
+			if (!(_flags & FsLogFlush) || !_regex.match(context->path))
 				return _BaseFs->fsFlush(context);
 
 			String desc = String::format("Flush(%s)", contextDesc);
@@ -283,9 +283,9 @@ namespace slib
 				printLog(desc);
 		}
 
-		void fsClose(FileContext &context) override
+		void fsClose(FileContext* context) override
 		{
-			if (!(_flags & FsLogClose) || !_regex.match(context.path)) {
+			if (!(_flags & FsLogClose) || !_regex.match(context->path)) {
 				_BaseFs->fsClose(context);
 				//if (_flags & FsLogHandleCountOnClose)
 				//	printLog("Current open handles count: %d", _FileNames.getCount());
@@ -309,14 +309,14 @@ namespace slib
 				printLog(desc);
 		}
 
-		void fsDelete(FileContext &context, sl_bool checkOnly) override
+		void fsDelete(FileContext* context, sl_bool checkOnly) override
 		{
 			if (checkOnly) {
-				if (!(_flags & FsLogCanDelete) || !_regex.match(context.path))
+				if (!(_flags & FsLogCanDelete) || !_regex.match(context->path))
 					return _BaseFs->fsDelete(context, checkOnly);
 			}
 			else {
-				if (!(_flags & FsLogDelete) || !_regex.match(context.path))
+				if (!(_flags & FsLogDelete) || !_regex.match(context->path))
 					return _BaseFs->fsDelete(context, checkOnly);
 			}
 
@@ -335,9 +335,9 @@ namespace slib
 				printLog(desc);
 		}
 
-		void fsRename(FileContext &context, String newFileName, sl_bool replaceIfExists) override
+		void fsRename(FileContext* context, String newFileName, sl_bool replaceIfExists) override
 		{
-			if (!(_flags & FsLogRename) || !_regex.match(context.path))
+			if (!(_flags & FsLogRename) || !_regex.match(context->path))
 				return _BaseFs->fsRename(context, newFileName, replaceIfExists);
 
 			String desc = String::format("Rename(%s,%s,%d)", contextDesc, newFileName, replaceIfExists);
@@ -355,9 +355,9 @@ namespace slib
 				printLog(desc);
 		}
 
-		void fsLock(FileContext &context, sl_uint64 offset, sl_uint64 length) override
+		void fsLock(FileContext* context, sl_uint64 offset, sl_uint64 length) override
 		{
-			if (!(_flags & FsLogLock) || !_regex.match(context.path))
+			if (!(_flags & FsLogLock) || !_regex.match(context->path))
 				return _BaseFs->fsLock(context, offset, length);
 
 			String desc = String::format("Lock(%s,0x%X,0x%X)", contextDesc, offset, length);
@@ -375,9 +375,9 @@ namespace slib
 				printLog(desc);
 		}
 
-		void fsUnlock(FileContext &context, sl_uint64 offset, sl_uint64 length) override
+		void fsUnlock(FileContext* context, sl_uint64 offset, sl_uint64 length) override
 		{
-			if (!(_flags & FsLogUnlock) || !_regex.match(context.path))
+			if (!(_flags & FsLogUnlock) || !_regex.match(context->path))
 				return _BaseFs->fsUnlock(context, offset, length);
 
 			String desc = String::format("Unlock(%s,0x%X,0x%X)", contextDesc, offset, length);
@@ -395,9 +395,9 @@ namespace slib
 				printLog(desc);
 		}
 
-		FileInfo fsGetFileInfo(FileContext &context) override
+		FileInfo fsGetFileInfo(FileContext* context) override
 		{
-			if (!(_flags & FsLogGetInfo) || !_regex.match(context.path))
+			if (!(_flags & FsLogGetInfo) || !_regex.match(context->path))
 				return _BaseFs->fsGetFileInfo(context);
 
 			String desc = String::format("GetFileInfo(%s)", contextDesc);
@@ -419,9 +419,9 @@ namespace slib
 			return ret;
 		}
 
-		void fsSetFileInfo(FileContext &context, FileInfo fileInfo, FileInfoFlags flags) override
+		void fsSetFileInfo(FileContext* context, FileInfo fileInfo, FileInfoFlags flags) override
 		{
-			if (!(_flags & FsLogSetInfo) || !_regex.match(context.path))
+			if (!(_flags & FsLogSetInfo) || !_regex.match(context->path))
 				return _BaseFs->fsSetFileInfo(context, fileInfo, flags);
 
 			String desc = String::format("SetFileInfo(%s,0x%X)", contextDesc, flags);
@@ -449,9 +449,9 @@ namespace slib
 				printLog(desc);
 		}
 
-		Memory fsGetSecurity(FileContext &context, sl_uint32 securityInformation) override
+		Memory fsGetSecurity(FileContext* context, sl_uint32 securityInformation) override
 		{
-			if (!(_flags & FsLogGetSec) || !_regex.match(context.path))
+			if (!(_flags & FsLogGetSec) || !_regex.match(context->path))
 				return _BaseFs->fsGetSecurity(context, securityInformation);
 
 			String desc = String::format("GetSecurity(%s,0x%X)", contextDesc, securityInformation);
@@ -471,9 +471,9 @@ namespace slib
 			return ret;
 		}
 
-		void fsSetSecurity(FileContext &context, sl_uint32 securityInformation, const Memory &securityDescriptor) override
+		void fsSetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor) override
 		{
-			if (!(_flags & FsLogSetSec) || !_regex.match(context.path))
+			if (!(_flags & FsLogSetSec) || !_regex.match(context->path))
 				return _BaseFs->fsSetSecurity(context, securityInformation, securityDescriptor);
 
 			String desc = String::format("SetSecurity(%s,0x%X,%d)", contextDesc, securityInformation, securityDescriptor.getSize());
@@ -491,9 +491,9 @@ namespace slib
 				printLog(desc);
 		}
 
-		HashMap<String, FileInfo> fsFindFiles(FileContext &context, String pattern) override
+		HashMap<String, FileInfo> fsFindFiles(FileContext* context, String pattern) override
 		{
-			if (!(_flags & FsLogList) || !_regex.match(context.path))
+			if (!(_flags & FsLogList) || !_regex.match(context->path))
 				return _BaseFs->fsFindFiles(context, pattern);
 
 			String desc = String::format("FindFiles(%s,%s)", contextDesc, pattern);
@@ -520,9 +520,9 @@ namespace slib
 			return ret;
 		}
 
-		HashMap<String, StreamInfo> fsFindStreams(FileContext &context) override
+		HashMap<String, StreamInfo> fsFindStreams(FileContext* context) override
 		{
-			if (!(_flags & FsLogListStream) || !_regex.match(context.path))
+			if (!(_flags & FsLogListStream) || !_regex.match(context->path))
 				return _BaseFs->fsFindStreams(context);
 
 			String desc = String::format("FindStreams(%s)", contextDesc);

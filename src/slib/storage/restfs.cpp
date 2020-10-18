@@ -78,7 +78,7 @@ namespace slib
 		return files;
 	}
 
-	sl_size RestFs::afsRead(String uri, const Memory &buffer, sl_uint64 offset)
+	sl_size RestFs::afsRead(String uri, const Memory& buffer, sl_uint64 offset)
 	{
 		String url = String::format("%s%s?cmd=read&offset=%d&len=%d",
 			_BaseUrl, uri.replaceAll("\\", "/"), offset, buffer.getSize());
@@ -89,7 +89,7 @@ namespace slib
 		return buffer.copy(req->getResponseContent());
 	}
 
-	sl_size RestFs::afsWrite(String uri, const Memory &buffer, sl_uint64 offset)
+	sl_size RestFs::afsWrite(String uri, const Memory& buffer, sl_uint64 offset)
 	{
 		String url = String::format("%s%s?cmd=write&offset=%d&len=%d",
 			_BaseUrl, uri.replaceAll("\\", "/"), offset, buffer.getSize());

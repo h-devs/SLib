@@ -11,9 +11,8 @@ namespace slib
 
 	sl_bool FileSystemBase::exists(String fileName) noexcept
 	{
-		FileContext context(fileName);
 		try {
-			fsGetFileInfo(context);
+			fsGetFileInfo(new FileContext(fileName));
 			return sl_true;
 		}
 		catch (...) {
@@ -28,8 +27,8 @@ namespace slib
 		if (!fileName.startsWith("\\")) fileName = "\\" + fileName;
 		try {
 			context = new FileContext(fileName);
-			fsOpen(*context.ptr);	// FIXME sharing violation error (32)
-			FileInfo info = fsGetFileInfo(*context.ptr);
+			fsOpen(context);	// FIXME sharing violation error (32)
+			FileInfo info = fsGetFileInfo(context);
 			if (offset < 0) offset = info.size + offset;
 			if (offset < 0) offset = 0;
 			if (length == 0) {
@@ -37,15 +36,15 @@ namespace slib
 			}
 			//if (info.attr.isDirectory) throw;
 			Memory buffer = Memory::create(length);
-			sl_size ret = fsRead(*context.ptr, buffer, offset);
-			fsClose(*context.ptr);
+			sl_size ret = fsRead(context, buffer, offset);
+			fsClose(context);
 			return buffer.sub(0, ret);
 		}
 		catch (FileSystemError error) {
 			debugLog("readFile(%s,%d,%d)\n  Error: %d", fileName, offset, length, error);
 			if (context.isNotNull()) {
 				try {
-					fsClose(*context.ptr);
+					fsClose(context);
 				}
 				catch (...) {}
 			}
@@ -53,23 +52,23 @@ namespace slib
 		}
 	}
 
-	sl_bool FileSystemBase::writeFile(String fileName, Memory &buffer, FileCreationParams &params) noexcept
+	sl_bool FileSystemBase::writeFile(String fileName, const Memory& buffer, FileCreationParams& params) noexcept
 	{
 		Ref<FileContext> context;
 		fileName = fileName.replaceAll("/", "\\");
 		if (!fileName.startsWith("\\")) fileName = "\\" + fileName;
 		try {
 			context = new FileContext(fileName);
-			fsCreate(*context.ptr, params);
-			fsWrite(*context.ptr, buffer, 0, sl_false);
-			fsClose(*context.ptr);
+			fsCreate(context, params);
+			fsWrite(context, buffer, 0, sl_false);
+			fsClose(context);
 			return sl_true;
 		}
 		catch (FileSystemError error) {
 			debugLog("writeFile(%s,%d)\n  Error: %d", fileName, buffer.getSize(), error);
 			if (context.isNotNull()) {
 				try {
-					fsClose(*context.ptr);
+					fsClose(context);
 				}
 				catch (...) {}
 			}
@@ -84,15 +83,15 @@ namespace slib
 		if (!fileName.startsWith("\\")) fileName = "\\" + fileName;
 		try {
 			context = new FileContext(fileName);
-			fsOpen(*context.ptr);
-			fsDelete(*context.ptr, sl_false);
-			fsClose(*context.ptr);
+			fsOpen(context);
+			fsDelete(context, sl_false);
+			fsClose(context);
 			return sl_true;
 		}
 		catch (FileSystemError) {
 			if (context.isNotNull()) {
 				try {
-					fsClose(*context.ptr);
+					fsClose(context);
 				}
 				catch (...) {}
 			}

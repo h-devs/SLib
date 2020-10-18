@@ -232,97 +232,97 @@ namespace slib
 		}
 
 		virtual void
-			fsCreate(FileContext &context, FileCreationParams &params = FileCreationParams())
+			fsCreate(FileContext* context, FileCreationParams& params = FileCreationParams())
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual void
-			fsOpen(FileContext &context, FileCreationParams &params = FileCreationParams())
+			fsOpen(FileContext* context, FileCreationParams& params = FileCreationParams())
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual sl_size
-			fsRead(FileContext &context, const Memory &buffer, sl_uint64 offset)
+			fsRead(FileContext* context, const Memory& buffer, sl_uint64 offset)
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual sl_size
-			fsWrite(FileContext &context, const Memory &buffer, sl_uint64 offset, sl_bool writeToEof)
+			fsWrite(FileContext* context, const Memory& buffer, sl_uint64 offset, sl_bool writeToEof)
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual void 
-			fsFlush(FileContext &context)
+			fsFlush(FileContext* context)
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual void
-			fsClose(FileContext &context)
+			fsClose(FileContext* context)
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual void
-			fsDelete(FileContext &context, sl_bool checkOnly)
+			fsDelete(FileContext* context, sl_bool checkOnly)
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual void
-			fsRename(FileContext &context, String newFileName, sl_bool replaceIfExists)
+			fsRename(FileContext* context, String newFileName, sl_bool replaceIfExists)
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual void 
-			fsLock(FileContext &context, sl_uint64 offset, sl_uint64 length)
+			fsLock(FileContext* context, sl_uint64 offset, sl_uint64 length)
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual void
-			fsUnlock(FileContext &context, sl_uint64 offset, sl_uint64 length)
+			fsUnlock(FileContext* context, sl_uint64 offset, sl_uint64 length)
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual FileInfo
-			fsGetFileInfo(FileContext &context)
+			fsGetFileInfo(FileContext* context)
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual void
-			fsSetFileInfo(FileContext &context, FileInfo fileInfo, FileInfoFlags flags)
+			fsSetFileInfo(FileContext* context, FileInfo fileInfo, FileInfoFlags flags)
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual Memory
-			fsGetSecurity(FileContext &context, sl_uint32 securityInformation)
+			fsGetSecurity(FileContext* context, sl_uint32 securityInformation)
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual void
-			fsSetSecurity(FileContext &context, sl_uint32 securityInformation, const Memory &securityDescriptor)
+			fsSetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor)
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual HashMap<String, FileInfo>
-			fsFindFiles(FileContext &context, String pattern)
+			fsFindFiles(FileContext* context, String pattern)
 		{
 			throw FileSystemError::NotImplemented;
 		}
 
 		virtual HashMap<String, StreamInfo>
-			fsFindStreams(FileContext &context)
+			fsFindStreams(FileContext* context)
 		{
 			throw FileSystemError::NotImplemented;
 		}
@@ -330,14 +330,19 @@ namespace slib
 	public:
 		/* Helpers */
 		virtual sl_bool exists(String fileName) noexcept;
+
 		virtual Memory readFile(String fileName, sl_int64 offset = 0, sl_uint32 length = 0) noexcept;
-		virtual sl_bool writeFile(String fileName, Memory &buffer, FileCreationParams &params = FileCreationParams()) noexcept;
+
+		virtual sl_bool writeFile(String fileName, const Memory& buffer, FileCreationParams& params = FileCreationParams()) noexcept;
+
 		virtual sl_bool deleteFile(String fileName) noexcept;
 
 	public:
 		/* Handle counter functions for Host */
 		sl_size increaseHandleCount(String fileName);
+
 		sl_size decreaseHandleCount(String fileName);
+
 		sl_size getOpenHandlesCount();
 
 	protected:

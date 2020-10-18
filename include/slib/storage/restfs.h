@@ -26,9 +26,9 @@ namespace slib
 
 		HashMap<String, FileInfo> afsFindFiles(String uri) override;
 
-		sl_size afsRead(String uri, const Memory &buffer, sl_uint64 offset) override;
+		sl_size afsRead(String uri, const Memory& buffer, sl_uint64 offset) override;
 
-		sl_size afsWrite(String uri, const Memory &buffer, sl_uint64 offset) override;
+		sl_size afsWrite(String uri, const Memory& buffer, sl_uint64 offset) override;
 
 		FileInfo afsCreateNew(String uri, sl_bool isDirectory) override;
 

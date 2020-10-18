@@ -20,7 +20,7 @@
 #define TimeToFileTimeLI(t, li)			TimeToFileTime(t, *((FILETIME*)&(li)))
 
 #define ConcatPath(FN, FP)              StringToWChar(String::format("%s%s", _Path, FN), FP)
-#define HandleFromContext(FD)           ((HANDLE)(FD.handle))
+#define HandleFromContext(FD)           ((HANDLE)(FD->handle))
 
 namespace slib
 {
@@ -103,7 +103,7 @@ namespace slib
 		throw FileSystemError::NotImplemented;
 	}
 	
-	void MirrorFs::fsCreate(FileContext &Context, FileCreationParams &Parameters)
+	void MirrorFs::fsCreate(FileContext* Context, FileCreationParams& Parameters)
 	{
 		WCHAR FullPath[MAX_PATH];
 		DWORD CreationDisposition = CREATE_NEW;
@@ -111,7 +111,7 @@ namespace slib
 		SECURITY_ATTRIBUTES SecurityAttributes;
 		HANDLE Handle;
 
-		ConcatPath(Context.path, FullPath);
+		ConcatPath(Context->path, FullPath);
 
 		if (0 == Parameters.accessMode)
 			Parameters.accessMode = GENERIC_READ | GENERIC_WRITE;
@@ -158,12 +158,12 @@ namespace slib
 		if (INVALID_HANDLE_VALUE == Handle)
 			throw getError();
 
-		Context.status = getError();
-		Context.handle = (sl_uint64)Handle;
-		Context.isDirectory = Parameters.attr.isDirectory;
+		Context->status = getError();
+		Context->handle = (sl_uint64)Handle;
+		Context->isDirectory = Parameters.attr.isDirectory;
 	}
 
-	void MirrorFs::fsOpen(FileContext &Context, FileCreationParams &Parameters)
+	void MirrorFs::fsOpen(FileContext* Context, FileCreationParams& Parameters)
 	{
 		WCHAR FullPath[MAX_PATH];
 		DWORD CreationDisposition = OPEN_EXISTING;
@@ -171,7 +171,7 @@ namespace slib
 		SECURITY_ATTRIBUTES SecurityAttributes;
 		HANDLE Handle;
 
-		ConcatPath(Context.path, FullPath);
+		ConcatPath(Context->path, FullPath);
 
 		if (0 == Parameters.accessMode)
 			Parameters.accessMode = GENERIC_READ | GENERIC_WRITE;
@@ -209,19 +209,19 @@ namespace slib
 		if (INVALID_HANDLE_VALUE == Handle)
 			throw getError();
 
-		Context.status = getError();
-		Context.handle = (sl_uint64)Handle;
-		Context.isDirectory = Parameters.attr.isDirectory;
+		Context->status = getError();
+		Context->handle = (sl_uint64)Handle;
+		Context->isDirectory = Parameters.attr.isDirectory;
 	}
 
-	void MirrorFs::fsClose(FileContext &Context)
+	void MirrorFs::fsClose(FileContext* Context)
 	{
-		if (HandleFromContext(Context) && !CloseHandle(HandleFromContext(Context)))
+		if (Context->handle && !CloseHandle(HandleFromContext(Context)))
 			throw getError();
-		Context.handle = 0;
+		Context->handle = 0;
 	}
 
-	sl_size MirrorFs::fsRead(FileContext &Context, const Memory &Buffer, sl_uint64 Offset)
+	sl_size MirrorFs::fsRead(FileContext* Context, const Memory& Buffer, sl_uint64 Offset)
 	{
 		DWORD BytesTransferred = 0;
 
@@ -236,7 +236,7 @@ namespace slib
 		return BytesTransferred;
 	}
 
-	sl_size MirrorFs::fsWrite(FileContext &Context, const Memory &Buffer, sl_uint64 Offset, sl_bool writeToEof)
+	sl_size MirrorFs::fsWrite(FileContext* Context, const Memory& Buffer, sl_uint64 Offset, sl_bool writeToEof)
 	{
 		DWORD BytesTransferred = 0;
 
@@ -258,7 +258,7 @@ namespace slib
 		return BytesTransferred;
 	}
 
-	void MirrorFs::fsFlush(FileContext &Context)
+	void MirrorFs::fsFlush(FileContext* Context)
 	{
 		/* we do not flush the whole volume, so just return SUCCESS */
 		if (0 == HandleFromContext(Context)) {
@@ -269,13 +269,13 @@ namespace slib
 			throw getError();
 	}
 
-	void MirrorFs::fsDelete(FileContext &Context, sl_bool checkOnly)
+	void MirrorFs::fsDelete(FileContext* Context, sl_bool checkOnly)
 	{
 		WCHAR FullPath[MAX_PATH];
 		ZeroMemory(FullPath, sizeof(FullPath));
 
 		if (!GetFinalPathNameByHandle(HandleFromContext(Context), FullPath, MAX_PATH - 1, 0))
-			ConcatPath(Context.path, FullPath);
+			ConcatPath(Context->path, FullPath);
 
 		DWORD fileAttr = GetFileAttributes(FullPath);
 		if (INVALID_FILE_ATTRIBUTES == fileAttr)
@@ -335,18 +335,18 @@ namespace slib
 		}
 	}
 
-	void MirrorFs::fsRename(FileContext &Context, String NewFileName, sl_bool ReplaceIfExists)
+	void MirrorFs::fsRename(FileContext* Context, String NewFileName, sl_bool ReplaceIfExists)
 	{
 		WCHAR FullPath[MAX_PATH], NewFullPath[MAX_PATH];
 
-		ConcatPath(Context.path, FullPath);
+		ConcatPath(Context->path, FullPath);
 		ConcatPath(NewFileName, NewFullPath);
 
 		if (!MoveFileEx(FullPath, NewFullPath, ReplaceIfExists ? MOVEFILE_REPLACE_EXISTING : 0))
 			throw getError();
 	}
 
-	void MirrorFs::fsLock(FileContext &Context, sl_uint64 Offset, sl_uint64 Length)
+	void MirrorFs::fsLock(FileContext* Context, sl_uint64 Offset, sl_uint64 Length)
 	{
 		LARGE_INTEGER offset;
 		LARGE_INTEGER length;
@@ -360,7 +360,7 @@ namespace slib
 		}
 	}
 
-	void MirrorFs::fsUnlock(FileContext &Context, sl_uint64 Offset, sl_uint64 Length)
+	void MirrorFs::fsUnlock(FileContext* Context, sl_uint64 Offset, sl_uint64 Length)
 	{
 		LARGE_INTEGER offset;
 		LARGE_INTEGER length;
@@ -374,15 +374,15 @@ namespace slib
 		}
 	}
 
-	FileInfo MirrorFs::fsGetFileInfo(FileContext &Context)
+	FileInfo MirrorFs::fsGetFileInfo(FileContext* Context)
 	{
 		FileInfo FileInfo;
 
 		if (0 == HandleFromContext(Context)) {
 			WCHAR FullPath[MAX_PATH];
-			ConcatPath(Context.path, FullPath);
+			ConcatPath(Context->path, FullPath);
 
-			if (Context.path.getLength() == 1) {
+			if (Context->path.getLength() == 1) {
 				FileInfo.fileAttributes = GetFileAttributes(FullPath);
 			}
 			else {
@@ -410,7 +410,7 @@ namespace slib
 			if (!GetFileInformationByHandle(HandleFromContext(Context), &ByHandleFileInfo))
 				throw getError();
 
-			if (Context.path.getLength() == 1) {
+			if (Context->path.getLength() == 1) {
 				WCHAR Root[MAX_PATH];
 				StringToWChar(_Root, Root);
 				FileInfo.fileAttributes = GetFileAttributes(Root);
@@ -433,7 +433,7 @@ namespace slib
 		return FileInfo;
 	}
 
-	void MirrorFs::fsSetFileInfo(FileContext &Context, FileInfo Info, FileInfoFlags Flags)
+	void MirrorFs::fsSetFileInfo(FileContext* Context, FileInfo Info, FileInfoFlags Flags)
 	{
 		if (Flags & FileInfoFlags::AttrAndTimeInfo) {
 			FILE_BASIC_INFO BasicInfo = { 0 };
@@ -489,7 +489,7 @@ namespace slib
 		}
 	}
 
-	Memory MirrorFs::fsGetSecurity(FileContext &Context, sl_uint32 SecurityInformation)
+	Memory MirrorFs::fsGetSecurity(FileContext* Context, sl_uint32 SecurityInformation)
 	{
 		Memory SecurityDescriptor;
 		DWORD LengthNeeded;
@@ -513,7 +513,7 @@ namespace slib
 		return SecurityDescriptor;
 	}
 
-	void MirrorFs::fsSetSecurity(FileContext &Context, sl_uint32 SecurityInformation, const Memory &SecurityDescriptor)
+	void MirrorFs::fsSetSecurity(FileContext* Context, sl_uint32 SecurityInformation, const Memory& SecurityDescriptor)
 	{
 		if (!SetUserObjectSecurity(HandleFromContext(Context),
 			(PSECURITY_INFORMATION)&SecurityInformation,
@@ -521,7 +521,7 @@ namespace slib
 			throw getError();
 	}
 
-	HashMap<String, FileInfo> MirrorFs::fsFindFiles(FileContext &Context, String PatternString)
+	HashMap<String, FileInfo> MirrorFs::fsFindFiles(FileContext* Context, String PatternString)
 	{
 		HANDLE Handle = HandleFromContext(Context);
 		WCHAR FullPath[MAX_PATH];
@@ -540,7 +540,7 @@ namespace slib
 				throw getError();
 		}
 		else {
-			ConcatPath(Context.path, FullPath);
+			ConcatPath(Context->path, FullPath);
 			Length = (ULONG)wcslen(FullPath);
 		}
 
@@ -559,7 +559,7 @@ namespace slib
 		if (INVALID_HANDLE_VALUE == FindHandle)
 			throw getError();
 
-		BOOLEAN rootFolder = Context.path.getLength() == 1;
+		BOOLEAN rootFolder = Context->path.getLength() == 1;
 		do {
 			String FileName = WCharToString(FindData.cFileName);
 			FileInfo FileInfo;
@@ -586,7 +586,7 @@ namespace slib
 		return Files;
 	}
 
-	HashMap<String, StreamInfo> MirrorFs::fsFindStreams(FileContext &Context)
+	HashMap<String, StreamInfo> MirrorFs::fsFindStreams(FileContext* Context)
 	{
 		HANDLE Handle = HandleFromContext(Context);
 		WCHAR FullPath[MAX_PATH];
@@ -601,7 +601,7 @@ namespace slib
 				throw getError();
 		}
 		else {
-			ConcatPath(Context.path, FullPath);
+			ConcatPath(Context->path, FullPath);
 			Length = (ULONG)wcslen(FullPath);
 		}
 

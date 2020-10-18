@@ -354,8 +354,7 @@ namespace slib
 		} catch (...) {}
 
 		try {
-			Ref<FileContext> context = new FileContext("\\", sl_true);
-			_BaseFs->fsFindStreams(*context.ptr);
+			_BaseFs->fsFindStreams(new FileContext("\\", sl_true));
 			_DokanOptions.Options |= DOKAN_OPTION_ALT_STREAM;
 		} catch (FileSystemError error) {
 			if (error != FileSystemError::NotImplemented)
@@ -365,6 +364,8 @@ namespace slib
 
 		auto func = getApi_DokanMain();
 		if (!func) {
+			fwprintf(stderr,
+				L"Cannot get DokanMain function address.\n");
 			return EXIT_FAILURE;
 		}
 
@@ -504,7 +505,7 @@ namespace slib
 		// be opened.
 		DWORD fileAttr = 0;
 		try {
-			fileAttr = base->fsGetFileInfo(*GetFileContext(DokanFileInfo, FileName).ptr).fileAttributes;
+			fileAttr = base->fsGetFileInfo(GetFileContext(DokanFileInfo, FileName)).fileAttributes;
 		} catch (...) {}
 		if (!fileAttr) fileAttr = INVALID_FILE_ATTRIBUTES;
 		if (fileAttr != INVALID_FILE_ATTRIBUTES
@@ -592,7 +593,7 @@ namespace slib
 		}
 #endif
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		int ret = 0;
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileCreationParams params;
@@ -611,7 +612,7 @@ namespace slib
 				try {
 					base->fsCreate(context, params);
 					if (params.createAlways == sl_false &&
-						context.status == FileSystemError::FileExist) 	// fsCreate() supports createAlways, and file exists
+						context->status == FileSystemError::FileExist) 	// fsCreate() supports createAlways, and file exists
 						ret = ERROR_ALREADY_EXISTS;
 					if (params.openTruncate)	// fsCreate() *may* not supports openTruncate, so truncate manually
 						base->fsSetFileInfo(context, FileInfo(), FileInfoFlags::SizeInfo);
@@ -632,7 +633,7 @@ namespace slib
 					base->fsOpen(context, params);
 					if (params.createAlways) 	// fsOpen() not supports createAlways, and file exists
 						ret = ERROR_ALREADY_EXISTS;
-					else if (context.status == FileSystemError::FileExist) 	// fsOpen() supports createAlways, and file exists
+					else if (context->status == FileSystemError::FileExist) 	// fsOpen() supports createAlways, and file exists
 						ret = ERROR_ALREADY_EXISTS;
 				} catch (FileSystemError error) {
 					if (error == FileSystemError::NotFound) {	// fsOpen() not supports createAlways, and file NOT exists, so create manually
@@ -653,10 +654,10 @@ namespace slib
 			}
 		)
 
-		DokanFileInfo->IsDirectory = context.isDirectory;
-		DokanFileInfo->Context = (ULONG64)&context;
-		context.increaseReference();
-		base->increaseHandleCount(context.path);
+		DokanFileInfo->IsDirectory = context->isDirectory;
+		DokanFileInfo->Context = (ULONG64)(context.ptr);
+		context->increaseReference();
+		base->increaseHandleCount(context->path);
 #ifndef SLIB_DOKAN_IS_DOKANY
 		ret = -ret;		// if ret has value, must return positive value
 #endif
@@ -695,7 +696,7 @@ namespace slib
 			PDOKAN_FILE_INFO		DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD_VOID(
 			if (DokanFileInfo->DeleteOnClose) {
 				base->fsClose(context);
@@ -712,11 +713,11 @@ namespace slib
 			PDOKAN_FILE_INFO		DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD_VOID(
 			base->fsClose(context);
-			base->decreaseHandleCount(context.path);
-			context.decreaseReference();
+			base->decreaseHandleCount(context->path);
+			context->decreaseReference();
 			DokanFileInfo->Context = 0;
 		) // DO NOT ADD CODE AFTER FILESYSTEM_EXCEPTION_GUARD_VOID
 	}
@@ -731,7 +732,7 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			MemoryData buf;
 			*ReadLength = (DWORD)base->fsRead(context,
@@ -750,7 +751,7 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			// Paging IO cannot write after allocate file size.
 			if (DokanFileInfo->PagingIo) {
@@ -777,7 +778,7 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsFlush(context);
 		)
@@ -791,7 +792,7 @@ namespace slib
 			PDOKAN_FILE_INFO				DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo = base->fsGetFileInfo(context);
 			HandleFileInformation->dwFileAttributes = fileInfo.fileAttributes;
@@ -821,7 +822,7 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, PathName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, PathName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			WIN32_FIND_DATA findData;
 			auto files = base->fsFindFiles(context, WCharToString(SearchPattern));
@@ -849,7 +850,7 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			WIN32_FIND_STREAM_DATA findData;
 			auto streams = base->fsFindStreams(context);
@@ -871,7 +872,7 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsDelete(context, TRUE);
 		)
@@ -897,10 +898,10 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsRename(context, WCharToString(NewFileName), ReplaceIfExisting);
-			context.path = WCharToString(NewFileName);
+			context->path = WCharToString(NewFileName);
 		)
 		return 0;
 	}
@@ -912,7 +913,7 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo;
 			fileInfo.size = ByteOffset;
@@ -928,7 +929,7 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo;
 			fileInfo.allocationSize = AllocSize;
@@ -944,7 +945,7 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo;
 			fileInfo.fileAttributes = FileAttributes;
@@ -962,7 +963,7 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo;
 			if (CreationTime)
@@ -986,7 +987,7 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 
 		if (!DokanHost::HasSeSecurityPrivilege) {
 			*SecurityInformation &= ~0x00000008L/*SACL_SECURITY_INFORMATION*/;
@@ -1026,7 +1027,7 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsSetSecurity(context, *SecurityInformation, Memory::create(SecurityDescriptor, SecurityDescriptorLength));
 		)
@@ -1041,7 +1042,7 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsLock(context, ByteOffset, Length);
 		)
@@ -1056,7 +1057,7 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
-		FileContext &context = *(GetFileContext(DokanFileInfo, FileName).ptr);
+		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsUnlock(context, ByteOffset, Length);
 		)
