@@ -84,6 +84,15 @@ namespace slib
 				{
 					return (NSPopUpButton*)m_handle;
 				}
+
+				void initialize(View* _view) override
+				{
+					SelectViewHelper* view = (SelectViewHelper*)_view;
+					NSPopUpButton* handle = getHandle();
+
+					[handle setPullsDown:NO];
+					view->refreshItems(handle);
+				}
 				
 				void selectItem(SelectView* view, sl_uint32 index) override
 				{
@@ -155,14 +164,7 @@ namespace slib
 
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<SelectViewInstance> ret = macOS_ViewInstance::create<SelectViewInstance, SLIBSelectViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			NSPopUpButton* handle = ret->getHandle();
-			[handle setPullsDown:NO];
-			static_cast<SelectViewHelper*>(this)->refreshItems(handle);
-			return ret;
-		}
-		return sl_null;
+		return macOS_ViewInstance::create<SelectViewInstance, SLIBSelectViewHandle>(this, parent);
 	}
 	
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()

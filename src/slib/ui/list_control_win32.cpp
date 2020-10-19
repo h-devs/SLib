@@ -118,6 +118,17 @@ namespace slib
 				SLIB_DECLARE_OBJECT
 
 			public:
+				void initialize(View* _view) override
+				{
+					ListControlHelper* view = (ListControlHelper*)_view;
+					HWND handle = getHandle();
+
+					UINT exStyle = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_ONECLICKACTIVATE | LVS_EX_DOUBLEBUFFER;
+					SendMessageW(handle, LVM_SETEXTENDEDLISTVIEWSTYLE, exStyle, exStyle);
+					view->copyColumns(handle);
+					view->applyRowsCount(handle);
+				}
+
 				void refreshColumnsCount(ListControl* view) override
 				{
 					HWND handle = m_handle;
@@ -247,17 +258,7 @@ namespace slib
 	Ref<ViewInstance> ListControl::createNativeWidget(ViewInstance* parent)
 	{
 		DWORD style = LVS_REPORT | LVS_SINGLESEL | LVS_OWNERDATA | WS_TABSTOP | WS_BORDER;
-		Ref<ListControlInstance> ret = Win32_ViewInstance::create<ListControlInstance>(this, parent, L"SysListView32", sl_null, style, 0);
-		if (ret.isNotNull()) {
-			HWND handle = ret->getHandle();
-			ListControlHelper* helper = static_cast<ListControlHelper*>(this);
-			UINT exStyle = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_ONECLICKACTIVATE | LVS_EX_DOUBLEBUFFER;
-			::SendMessageW(handle, LVM_SETEXTENDEDLISTVIEWSTYLE, exStyle, exStyle);
-			helper->copyColumns(handle);
-			helper->applyRowsCount(handle);
-			return ret;
-		}
-		return sl_null;
+		return Win32_ViewInstance::create<ListControlInstance>(this, parent, L"SysListView32", sl_null, style, 0);
 	}
 
 	Ptr<IListControlInstance> ListControl::getListControlInstance()

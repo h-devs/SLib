@@ -50,6 +50,8 @@ namespace slib
 				~ButtonInstance();
 				
 			public:
+				void initialize(View* view) override;
+
 				void setText(Button* view, const String& text) override;
 				
 				void setDefaultButton(Button* view, sl_bool flag) override;

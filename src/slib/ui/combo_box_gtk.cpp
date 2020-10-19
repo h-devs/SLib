@@ -55,6 +55,20 @@ namespace slib
 					return sl_null;
 				}
 
+				void initialize(View* _view) override
+				{
+					ComboBox* view = (ComboBox*)_view;
+					GtkComboBox* handle = (GtkComboBox*)m_handle;
+
+					refreshItems(view, sl_true);
+					String text = view->getText();
+					if (text.isNotEmpty()) {
+						setText(view, text);
+					}
+
+					g_signal_connect(handle, "changed", G_CALLBACK(onChanged), handle);
+				}
+				
 				void refreshItems(ComboBox* view, sl_bool flagInit)
 				{
 					GtkComboBox* handle = (GtkComboBox*)m_handle;
@@ -141,20 +155,6 @@ namespace slib
 					return 0;
 				}
 
-				void apply(ComboBox* view)
-				{
-					refreshItems(view, sl_true);
-					setText(view, view->getText());
-				}
-
-				void installControlEvents()
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						g_signal_connect(handle, "changed", G_CALLBACK(onChanged), handle);
-					}
-				}
-
 				static void onChanged(GtkComboBox*, gpointer userinfo)
 				{
 					GtkComboBox* handle = (GtkComboBox*)userinfo;
@@ -186,14 +186,8 @@ namespace slib
 
 	Ref<ViewInstance> ComboBox::createNativeWidget(ViewInstance* parent)
 	{
-		GtkWidget* combobox = gtk_combo_box_entry_new_text();
-		Ref<ComboBoxInstance> ret = GTK_ViewInstance::create<ComboBoxInstance>(this, parent, combobox);
-		if (ret.isNotNull()) {
-			ret->apply(this);
-			ret->installControlEvents();
-			return ret;
-		}
-		return sl_null;
+		GtkWidget* handle = gtk_combo_box_entry_new_text();
+		return GTK_ViewInstance::create<ComboBoxInstance>(this, parent, handle);
 	}
 
 	Ptr<IComboBoxInstance> ComboBox::getComboBoxInstance()

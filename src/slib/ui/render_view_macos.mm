@@ -66,6 +66,14 @@ namespace slib
 				{
 					return (SLIBGLViewHandle*)m_handle;
 				}
+
+				void initialize(View* _view) override
+				{
+					RenderView* view = (RenderView*)_view;
+					SLIBGLViewHandle* handle = getHandle();
+
+					handle->m_flagRenderingContinuously = view->getRedrawMode() == RedrawMode::Continuously;
+				}
 				
 				void setRedrawMode(RenderView* view, RedrawMode mode) override
 				{
@@ -94,12 +102,7 @@ namespace slib
 
 	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<RenderViewInstance> ret = macOS_ViewInstance::create<RenderViewInstance, SLIBGLViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			ret->setRedrawMode(this, getRedrawMode());
-			return ret;
-		}
-		return sl_null;
+		return macOS_ViewInstance::create<RenderViewInstance, SLIBGLViewHandle>(this, parent);
 	}
 	
 	Ptr<IRenderViewInstance> RenderView::getRenderViewInstance()

@@ -99,6 +99,15 @@ namespace slib
 				{
 					return (SLIBGLViewHandle*)m_handle;
 				}
+
+				void initialize(View* _view) override
+				{
+					RenderView* view = (RenderView*)_view;
+					SLIBGLViewHandle* handle = getHandle();
+					
+					[handle initialize];
+					handle->m_flagRenderingContinuously = view->getRedrawMode() == RedrawMode::Continuously;
+				}
 				
 				void setRedrawMode(RenderView* view, RedrawMode mode) override
 				{
@@ -127,14 +136,7 @@ namespace slib
 
 	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<RenderViewInstance> ret = iOS_ViewInstance::create<RenderViewInstance, SLIBGLViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			SLIBGLViewHandle* handle = ret->getHandle();
-			[handle initialize];
-			handle->m_flagRenderingContinuously = m_redrawMode == RedrawMode::Continuously;
-			return ret;
-		}
-		return sl_null;
+		return iOS_ViewInstance::create<RenderViewInstance, SLIBGLViewHandle>(this, parent);
 	}
 	
 	Ptr<IRenderViewInstance> RenderView::getRenderViewInstance()

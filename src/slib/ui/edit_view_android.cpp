@@ -84,6 +84,12 @@ namespace slib
 					return CastRef<EditViewHelper>(getView());
 				}
 
+				void initialize(View* _view) override
+				{
+					EditViewHelper* view = (EditViewHelper*)_view;
+					view->apply(m_handle.get(), this);
+				}
+
 				sl_bool getText(EditView* view, String& _out) override
 				{
 					jobject handle = m_handle.get();
@@ -316,16 +322,8 @@ namespace slib
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* _parent)
 	{
 		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
-		if (parent) {
-			JniLocal<jobject> handle = JEditView::create.callObject(sl_null, parent->getContext(), 0);
-			Ref<EditViewInstance> ret = Android_ViewInstance::create<EditViewInstance>(this, parent, handle.get());
-			if (ret.isNotNull()) {
-				jobject jhandle = ret->getHandle();
-				(static_cast<EditViewHelper*>(this))->apply(jhandle, ret.get());
-				return ret;
-			}
-		}
-		return sl_null;
+		JniLocal<jobject> handle = JEditView::create.callObject(sl_null, parent->getContext(), 0);
+		return Android_ViewInstance::create<EditViewInstance>(this, parent, handle.get());
 	}
 
 	Ptr<IEditViewInstance> EditView::getEditViewInstance()
@@ -336,16 +334,8 @@ namespace slib
 	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* _parent)
 	{
 		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
-		if (parent) {
-			JniLocal<jobject> handle = JEditView::create.callObject(sl_null, parent->getContext(), 2);
-			Ref<EditViewInstance> ret = Android_ViewInstance::create<EditViewInstance>(this, parent, handle.get());
-			if (ret.isNotNull()) {
-				jobject jhandle = ret->getHandle();
-				((EditViewHelper*)(this))->apply(jhandle, ret.get());
-				return ret;
-			}
-		}
-		return sl_null;
+		JniLocal<jobject> handle = JEditView::create.callObject(sl_null, parent->getContext(), 2);
+		return Android_ViewInstance::create<EditViewInstance>(this, parent, handle.get());
 	}
 
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()

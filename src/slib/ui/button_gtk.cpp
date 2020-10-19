@@ -47,6 +47,17 @@ namespace slib
 			{
 			}
 
+			void ButtonInstance::initialize(View* _view)
+			{
+				Button* view = (Button*)(_view);
+				GtkButton* handle = (GtkButton*)m_handle;
+
+				setText(view, view->getText());
+				setDefaultButton(view, view->isDefaultButton());
+
+				g_signal_connect(handle, "clicked", G_CALLBACK(onClicked), handle);
+			}
+
 			void ButtonInstance::setText(Button* view, const String& text)
 			{
 				GtkButton* handle = (GtkButton*)m_handle;
@@ -82,20 +93,6 @@ namespace slib
 				return sl_false;
 			}
 
-			void ButtonInstance::apply(Button* view)
-			{
-				setText(view, view->getText());
-				setDefaultButton(view, view->isDefaultButton());
-			}
-
-			void ButtonInstance::installControlEvents()
-			{
-				GtkButton* handle = (GtkButton*)m_handle;
-				if (handle) {
-					g_signal_connect(handle, "clicked", G_CALLBACK(onClicked), handle);
-				}
-			}
-
 			void ButtonInstance::onClicked(GtkButton*, gpointer userinfo)
 			{
 				GtkButton* handle = (GtkButton*)userinfo;
@@ -118,13 +115,7 @@ namespace slib
 		} else {
 			handle = gtk_button_new();
 		}
-		Ref<ButtonInstance> ret = GTK_ViewInstance::create<ButtonInstance>(this, parent, handle);
-		if (ret.isNotNull()) {
-			ret->apply(this);
-			ret->installControlEvents();
-			return ret;
-		}
-		return sl_null;
+		return GTK_ViewInstance::create<ButtonInstance>(this, parent, handle);
 	}
 
 	Ptr<IButtonInstance> Button::getButtonInstance()

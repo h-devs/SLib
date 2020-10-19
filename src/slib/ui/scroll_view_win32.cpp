@@ -65,6 +65,14 @@ namespace slib
 				Color m_backgroundColor;
 
 			public:
+				void initialize(View* _view) override
+				{
+					ScrollView* view = (ScrollView*)_view;
+
+					m_backgroundColor = view->getBackgroundColor();
+					setContentView(view, view->getContentView());
+				}
+
 				void refreshContentPosition(ScrollView* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagFromEvent)
 				{
 					HWND handle = m_handle;
@@ -231,13 +239,7 @@ namespace slib
 		}
 		DWORD style = WS_CLIPCHILDREN;
 		DWORD styleEx = WS_EX_CONTROLPARENT;
-		Ref<ScrollViewInstance> ret = Win32_ViewInstance::create<ScrollViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, style, styleEx);
-		if (ret.isNotNull()) {
-			ret->m_backgroundColor = getBackgroundColor();
-			ret->setContentView(this, getContentView());
-			return ret;
-		}
-		return sl_null;
+		return Win32_ViewInstance::create<ScrollViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, style, styleEx);
 	}
 
 	Ptr<IScrollViewInstance> ScrollView::getScrollViewInstance()

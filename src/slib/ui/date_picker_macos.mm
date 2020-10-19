@@ -62,6 +62,15 @@ namespace slib
 				{
 					return (NSDatePicker*)m_handle;
 				}
+
+				void initialize(View* _view) override
+				{
+					DatePicker* view = (DatePicker*)_view;
+
+					NSDatePicker* handle = getHandle();
+					handle.dateValue = Apple::getNSDateFromTime(view->getDate());
+					handle.datePickerElements = NSDatePickerElementFlagYearMonthDay;
+				}
 				
 				sl_bool getDate(DatePicker* view, Time& _out) override
 				{
@@ -111,14 +120,7 @@ namespace slib
 
 	Ref<ViewInstance> DatePicker::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<DatePickerInstance> ret = macOS_ViewInstance::create<DatePickerInstance, SLIBDatePickerHandle>(this, parent);
-		if (ret.isNotNull()) {
-			NSDatePicker* handle = ret->getHandle();
-			handle.dateValue = Apple::getNSDateFromTime(m_date);
-			handle.datePickerElements = NSDatePickerElementFlagYearMonthDay;
-			return ret;
-		}
-		return sl_null;
+		return macOS_ViewInstance::create<DatePickerInstance, SLIBDatePickerHandle>(this, parent);
 	}
 	
 	Ptr<IDatePickerInstance> DatePicker::getDatePickerInstance()

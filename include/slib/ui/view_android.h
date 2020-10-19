@@ -50,7 +50,7 @@ namespace slib
 			if (jhandle) {
 				Ref<T> ret = new T();
 				if (ret.isNotNull()) {
-					if (ret->initialize(jhandle)) {
+					if (ret->initWithHandle(jhandle)) {
 						return ret;
 					}
 				}
@@ -70,7 +70,7 @@ namespace slib
 			return sl_null;
 		}
 
-		sl_bool initialize(jobject jhandle);
+		sl_bool initWithHandle(jobject jhandle);
 
 		sl_bool applyProperties(View* view, ViewInstance* parent);
 

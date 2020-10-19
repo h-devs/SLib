@@ -77,6 +77,20 @@ namespace slib
 				SLIB_DECLARE_OBJECT
 
 			public:
+				void initialize(View* _view) override
+				{
+					ScrollViewHelper* view = (ScrollViewHelper*)_view;
+					jobject jhandle = getHandle();
+
+					JScrollView::setBackgroundColor.call(sl_null, jhandle, view->getBackgroundColor().getARGB());
+					if (view->isPaging()) {
+						JScrollView::setPaging.call(sl_null, jhandle, 1, view->getPageWidth(), view->getPageHeight());
+					}
+					JScrollView::setScrollBarsVisible.call(sl_null, jhandle, view->isHorizontalScrollBarVisible(), view->isVerticalScrollBarVisible());
+					view->applyContent(jhandle, this);
+					JScrollView::scrollTo.call(sl_null, jhandle, (int)(view->getScrollX()), (int)(view->getScrollY()), 0);
+				}
+
 				void refreshContentSize(ScrollView* view) override
 				{
 				}
@@ -177,22 +191,8 @@ namespace slib
 	Ref<ViewInstance> ScrollView::createNativeWidget(ViewInstance* _parent)
 	{
 		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
-		if (parent) {
-			JniLocal<jobject> handle = JScrollView::create.callObject(sl_null, parent->getContext(), isVerticalScrolling());
-			Ref<ScrollViewInstance> ret = Android_ViewInstance::create<ScrollViewInstance>(this, parent, handle.get());
-			if (ret.isNotNull()) {
-				jobject jhandle = ret->getHandle();
-				JScrollView::setBackgroundColor.call(sl_null, jhandle, getBackgroundColor().getARGB());
-				if (isPaging()) {
-					JScrollView::setPaging.call(sl_null, jhandle, 1, getPageWidth(), getPageHeight());
-				}
-				JScrollView::setScrollBarsVisible.call(sl_null, jhandle, isHorizontalScrollBarVisible(), isVerticalScrollBarVisible());
-				(static_cast<ScrollViewHelper*>(this))->applyContent(jhandle, ret.get());
-				JScrollView::scrollTo.call(sl_null, jhandle, (int)(getScrollX()), (int)(getScrollY()), 0);
-				return ret;
-			}
-		}
-		return sl_null;
+		JniLocal<jobject> handle = JScrollView::create.callObject(sl_null, parent->getContext(), isVerticalScrolling());
+		return Android_ViewInstance::create<ScrollViewInstance>(this, parent, handle.get());
 	}
 
 	Ptr<IScrollViewInstance> ScrollView::getScrollViewInstance()

@@ -53,7 +53,7 @@ namespace slib
 		
 	public:
 		template <class T>
-		static Ref<T> create(GtkWidget* handle)
+		static Ref<T> create(GtkWidget* handle, sl_bool flagFreeOnFailure = sl_true)
 		{
 			if (handle) {
 				Ref<T> ret = new T();
@@ -61,14 +61,18 @@ namespace slib
 					ret->_init(handle);
 					return ret;
 				}
+				if (flagFreeOnFailure) {
+					g_object_ref_sink(handle);
+					g_object_unref(handle);
+				}
 			}
 			return sl_null;
 		}
 
 		template <class T>
-		static Ref<T> create(View* view, ViewInstance* parent, GtkWidget* handle)
+		static Ref<T> create(View* view, ViewInstance* parent, GtkWidget* handle, sl_bool flagFreeOnFailure = sl_true)
 		{
-			Ref<T> ret = create<T>(handle);
+			Ref<T> ret = create<T>(handle, flagFreeOnFailure);
 			if (ret.isNotNull()) {
 				ret->applyProperties(view, parent);
 				return ret;

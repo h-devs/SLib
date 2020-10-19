@@ -273,7 +273,7 @@ namespace slib
 		}
 	}
 
-	sl_bool Android_ViewInstance::initialize(jobject jhandle)
+	sl_bool Android_ViewInstance::initWithHandle(jobject jhandle)
 	{
 		if (jhandle) {
 			JniLocal<jobject> jcontext = JView::getContext.callObject(sl_null, jhandle);

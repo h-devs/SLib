@@ -159,6 +159,20 @@ namespace slib
 				{
 					return CastRef<ListControlHelper>(getView());
 				}
+
+				void initialize(View* _view) override
+				{
+					SLIBListControlHandle* handle = getHandle();
+					ListControlHelper* view = _view;
+
+					[handle setHasVerticalScroller:TRUE];
+					[handle setHasHorizontalScroller:TRUE];
+					[handle setBorderType:NSBezelBorder];
+					handle->table->m_viewInstance = this;
+					view->copyColumns(handle);
+					view->applyFont(handle, view->getFont());
+					[handle->table reloadData];
+				}
 				
 				void refreshColumnsCount(ListControl* view) override
 				{
@@ -291,19 +305,7 @@ namespace slib
 
 	Ref<ViewInstance> ListControl::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<ListControlInstance> ret = macOS_ViewInstance::create<ListControlInstance, SLIBListControlHandle>(this, parent);
-		if (ret.isNotNull()) {
-			SLIBListControlHandle* handle = ret->getHandle();
-			static_cast<ListControlHelper*>(this)->copyColumns(handle);
-			static_cast<ListControlHelper*>(this)->applyFont(handle, getFont());
-			[handle setHasVerticalScroller:TRUE];
-			[handle setHasHorizontalScroller:TRUE];
-			[handle setBorderType:NSBezelBorder];
-			handle->table->m_viewInstance = ret;
-			[handle->table reloadData];
-			return ret;
-		}
-		return sl_null;
+		return macOS_ViewInstance::create<ListControlInstance, SLIBListControlHandle>(this, parent);
 	}
 	
 	Ptr<IListControlInstance> ListControl::getListControlInstance()

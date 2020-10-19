@@ -122,47 +122,40 @@ namespace slib
 	{
 		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);		
 		GtkWidget* handle = gtk_drawing_area_new();
-		
 		if (handle) {
 			GTK_WIDGET_UNSET_FLAGS(handle, GTK_NO_WINDOW);
 			GTK_WIDGET_SET_FLAGS(handle, GTK_CAN_FOCUS);
 			Ref<RenderViewInstance> ret = GTK_ViewInstance::create<RenderViewInstance>(this, parent, handle);
 			if (ret.isNotNull()) {
-				GtkWidget* handle = ret->getHandle();
-				if (handle) {
-					gtk_widget_realize(handle);
-					GdkWindow* gwindow = handle->window;
-					if (gwindow) {
-						void* xdisplay = sl_null; // GDK_WINDOW_XDISPLAY(gwindow);
-						auto func_drawable_get_xdisplay = gdk::getApi_gdk_x11_drawable_get_xdisplay();
-						auto func_window_get_drawable_impl = gdk::getApi_gdk_x11_window_get_drawable_impl();
-						if (func_drawable_get_xdisplay && func_window_get_drawable_impl) {
-							xdisplay = func_drawable_get_xdisplay(func_window_get_drawable_impl(gwindow));
-						} else {
-							auto func_window_get_display = gdk::getApi_gdk_window_get_display();
-							auto func_display_get_xdisplay = gdk::getApi_gdk_x11_display_get_xdisplay();
-							if (func_window_get_display &&func_display_get_xdisplay) {
-								xdisplay = func_display_get_xdisplay(func_window_get_display(gwindow));
-							}
+				gtk_widget_realize(handle);
+				GdkWindow* gwindow = handle->window;
+				if (gwindow) {
+					void* xdisplay = sl_null; // GDK_WINDOW_XDISPLAY(gwindow);
+					auto func_drawable_get_xdisplay = gdk::getApi_gdk_x11_drawable_get_xdisplay();
+					auto func_window_get_drawable_impl = gdk::getApi_gdk_x11_window_get_drawable_impl();
+					if (func_drawable_get_xdisplay && func_window_get_drawable_impl) {
+						xdisplay = func_drawable_get_xdisplay(func_window_get_drawable_impl(gwindow));
+					} else {
+						auto func_window_get_display = gdk::getApi_gdk_window_get_display();
+						auto func_display_get_xdisplay = gdk::getApi_gdk_x11_display_get_xdisplay();
+						if (func_window_get_display &&func_display_get_xdisplay) {
+							xdisplay = func_display_get_xdisplay(func_window_get_display(gwindow));
 						}
-						if (xdisplay) {
-							XID xwindow = GDK_WINDOW_XWINDOW(gwindow);
-							if (xwindow != X_None) {
-								RendererParam rp;
-								rp.onFrame = SLIB_FUNCTION_WEAKREF(RenderViewInstance, onFrame, ret);
-								Ref<Renderer> renderer = GLX::createRenderer(xdisplay, xwindow, rp);
-								if (renderer.isNotNull()) {
-									ret->setRenderer(renderer, m_redrawMode);
-									return ret;
-								}
+					}
+					if (xdisplay) {
+						XID xwindow = GDK_WINDOW_XWINDOW(gwindow);
+						if (xwindow != X_None) {
+							RendererParam rp;
+							rp.onFrame = SLIB_FUNCTION_WEAKREF(RenderViewInstance, onFrame, ret);
+							Ref<Renderer> renderer = GLX::createRenderer(xdisplay, xwindow, rp);
+							if (renderer.isNotNull()) {
+								ret->setRenderer(renderer, m_redrawMode);
+								return ret;
 							}
 						}
 					}
 				}
-				return sl_null;
 			}
-			g_object_ref_sink(handle);
-			g_object_unref(handle);
 		}
 		return sl_null;
 	}

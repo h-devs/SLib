@@ -41,6 +41,12 @@ namespace slib
 				SLIB_DECLARE_OBJECT
 
 			public:
+				void initialize(View* _view) override
+				{
+					SelectView* view = (SelectView*)_view;
+					refreshItems(view);
+				}
+
 				void refreshItems(SelectView* view) override
 				{
 					HWND handle = m_handle;
@@ -121,12 +127,7 @@ namespace slib
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{
 		UINT style = CBS_DROPDOWNLIST | WS_TABSTOP;
-		Ref<SelectViewInstance> ret = Win32_ViewInstance::create<SelectViewInstance>(this, parent, L"COMBOBOX", sl_null, style, 0);		
-		if (ret.isNotNull()) {
-			ret->refreshItems(this);
-			return ret;
-		}
-		return sl_null;
+		return Win32_ViewInstance::create<SelectViewInstance>(this, parent, L"COMBOBOX", sl_null, style, 0);
 	}
 
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()

@@ -99,6 +99,15 @@ namespace slib
 					return CastRef<EditView>(Win32_ViewInstance::getView());
 				}
 
+				void initialize(View* _view) override
+				{
+					EditView* view = (EditView*)_view;
+
+					setTextColor(view, view->getTextColor());
+					setBackgroundColor(view, view->getBackgroundColor());
+					setHintText(view, view->getHintText());
+				}
+
 				sl_bool getText(EditView* view, String& _out) override
 				{
 					HWND handle = m_handle;
@@ -289,6 +298,21 @@ namespace slib
 				Ref<TextArea> getView()
 				{
 					return CastRef<TextArea>(Win32_ViewInstance::getView());
+				}
+
+				void initialize(View* _view) override
+				{
+					TextArea* view = (TextArea*)_view;
+					HWND handle = getHandle();
+
+					m_hintText = String16::from(view->getHintText());
+					m_hintGravity = view->getHintGravity();
+					m_hintTextColor = view->getHintTextColor();
+					m_hintFont = view->getHintFont();
+					SendMessageW(handle, EM_SETEVENTMASK, 0, ENM_REQUESTRESIZE | ENM_CHANGE);
+					setTextColor(view, view->getTextColor());
+					setBackgroundColor(view, view->getBackgroundColor());
+					setPadding(view, view->getPadding());
 				}
 
 				sl_bool getText(EditView* view, String& _out) override
@@ -529,15 +553,7 @@ namespace slib
 		if (m_flagPassword) {
 			style |= ES_PASSWORD;
 		}
-		Ref<EditViewInstance> ret = Win32_ViewInstance::create<EditViewInstance>(this, parent, L"Edit", getText(), style, 0);
-		if (ret.isNotNull()) {
-			HWND handle = ret->getHandle();
-			ret->setTextColor(m_textColor);
-			ret->setBackgroundColor(getBackgroundColor());
-			ret->setHintText(this, m_hintText);
-			return ret;
-		}
-		return sl_null;
+		return Win32_ViewInstance::create<EditViewInstance>(this, parent, L"Edit", getText(), style, 0);
 	}
 
 	Ptr<IEditViewInstance> EditView::getEditViewInstance()
@@ -568,20 +584,7 @@ namespace slib
 		if (m_flagReadOnly) {
 			style |= ES_READONLY;
 		}
-		Ref<TextAreaInstance> ret = Win32_ViewInstance::create<TextAreaInstance>(this, parent, className, getText(), style, 0);
-		if (ret.isNotNull()) {
-			HWND handle = ret->getHandle();
-			ret->m_hintText = String16::from(m_hintText);
-			ret->m_hintGravity = m_hintGravity;
-			ret->m_hintTextColor = m_hintTextColor;
-			ret->m_hintFont = getHintFont();
-			SendMessageW(handle, EM_SETEVENTMASK, 0, ENM_REQUESTRESIZE | ENM_CHANGE);
-			ret->setTextColor(this, m_textColor);
-			ret->setBackgroundColor(this, getBackgroundColor());
-			ret->setPadding(this, getPadding());
-			return ret;
-		}
-		return sl_null;
+		return Win32_ViewInstance::create<TextAreaInstance>(this, parent, className, getText(), style, 0);
 	}
 	
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()

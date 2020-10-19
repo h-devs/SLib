@@ -43,6 +43,16 @@ namespace slib
 				SLIB_DECLARE_OBJECT
 				
 			public:
+				void initialize(View* _view) override
+				{
+					SelectView* view = (SelectView*)_view;
+					GtkComboBox* handle = (GtkComboBox*)m_handle;
+
+					refreshItems(view, sl_true);
+
+					g_signal_connect(handle, "changed", G_CALLBACK(onChanged), handle);
+				}
+
 				void refreshItems(SelectView* view, sl_bool flagInit)
 				{
 					GtkComboBox* handle = (GtkComboBox*)m_handle;
@@ -62,7 +72,6 @@ namespace slib
 					if (handle) {
 						InsertItem(handle, index, title);
 					}
-
 				}
 				
 				void removeItem(SelectView* view, sl_uint32 index) override
@@ -89,14 +98,6 @@ namespace slib
 					}
 				}
 
-				void installControlEvents()
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						g_signal_connect(handle, "changed", G_CALLBACK(onChanged), handle);
-					}
-				}
-
 				static void onChanged(GtkComboBox*, gpointer userinfo)
 				{
 					GtkComboBox* handle = (GtkComboBox*)userinfo;
@@ -118,14 +119,8 @@ namespace slib
 
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{
-		GtkWidget* combobox = gtk_combo_box_new_text();
-		Ref<SelectViewInstance> ret = GTK_ViewInstance::create<SelectViewInstance>(this, parent, combobox);
-		if (ret.isNotNull()) {
-			ret->refreshItems(this, sl_true);
-			ret->installControlEvents();
-			return ret;
-		}
-		return sl_null;
+		GtkWidget* handle = gtk_combo_box_new_text();
+		return GTK_ViewInstance::create<SelectViewInstance>(this, parent, handle);
 	}
 	
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()
