@@ -198,9 +198,9 @@ namespace slib
 
 	void CheckBox::dispatchClickEvent(UIEvent* ev)
 	{
-		if (isNativeWidget()) {
+		if (!(ev->isInternal()) && isNativeWidget()) {
 			sl_bool valueOld = m_flagChecked;
-			sl_bool valueNew = isChecked();
+			sl_bool valueNew = isCheckedInstance();
 			if (valueOld != valueNew) {
 				dispatchChange(valueNew);
 			}
