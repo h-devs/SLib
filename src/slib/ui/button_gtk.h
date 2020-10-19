@@ -58,10 +58,6 @@ namespace slib
 				
 				sl_bool measureSize(Button* view, UISize& _out) override;
 
-				void installControlEvents();
-
-				void apply(Button*);
-				
 				static void onClicked(GtkButton*, gpointer userinfo);
 
 			};
@@ -76,13 +72,13 @@ namespace slib
 				~CheckBoxInstance();
 
 			public:
+				void initialize(View* view) override;
+
 				sl_bool getChecked(CheckBox* view, sl_bool& flag) override;
 
 				void setChecked(CheckBox* view, sl_bool flag) override;
 
 				sl_bool measureSize(Button* view, UISize& _out) override;
-
-				void installControlEvents();
 
 				static void onChanged(GtkToggleButton *, gpointer userinfo);
 

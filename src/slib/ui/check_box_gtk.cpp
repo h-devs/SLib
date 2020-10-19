@@ -46,6 +46,17 @@ namespace slib
 			{
 			}
 
+			void CheckBoxInstance::initialize(View* _view)
+			{
+				CheckBox* view = (CheckBox*)_view;
+				GtkToggleButton* handle = (GtkToggleButton*)m_handle;
+
+				ButtonInstance::initialize(view);
+				gtk_toggle_button_set_active(handle, view->isChecked());
+
+				g_signal_connect(handle, "toggled", G_CALLBACK(onChanged), handle);
+			}
+
 			sl_bool CheckBoxInstance::getChecked(CheckBox* view, sl_bool& _out)
 			{
 				GtkWidget* handle = m_handle;
@@ -76,14 +87,7 @@ namespace slib
 				}
 				return sl_false;
 			}
-			void CheckBoxInstance::installControlEvents()
-			{
-				ButtonInstance::installControlEvents();
-				GtkButton* handle = (GtkButton*)m_handle;
-				if (handle) {
-					g_signal_connect(handle, "toggled", G_CALLBACK(onChanged), handle);
-				}
-			}
+			
 			void CheckBoxInstance::onChanged(GtkToggleButton *, gpointer userinfo)
 			{
 				GtkCheckButton* handle = (GtkCheckButton*)userinfo;
@@ -102,14 +106,7 @@ namespace slib
 	Ref<ViewInstance> CheckBox::createNativeWidget(ViewInstance* parent)
 	{
 		GtkWidget* handle = gtk_check_button_new_with_mnemonic("");
-		Ref<CheckBoxInstance> ret = GTK_ViewInstance::create<CheckBoxInstance>(this, parent, handle);
-		if (ret.isNotNull()) {
-			ret->setChecked(this, m_flagChecked);
-			ret->apply(this);
-			ret->installControlEvents();
-			return ret;
-		}
-		return sl_null;
+		return GTK_ViewInstance::create<CheckBoxInstance>(this, parent, handle);
 	}
 
 	Ptr<ICheckBoxInstance> CheckBox::getCheckBoxInstance()

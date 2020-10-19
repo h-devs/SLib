@@ -963,25 +963,25 @@ namespace slib
 				gboolean can_default
 		)
 		#define gtk_widget_set_can_default slib::gtk::getApi_gtk_widget_set_can_default()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	            gtk_check_button_new_with_mnemonic,
-	            GtkWidget* , ,
-	            const gchar *label
-	    )
-        #define gtk_check_button_new_with_mnemonic slib::gtk::getApi_gtk_check_button_new_with_mnemonic()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	            gtk_toggle_button_set_active,
-	            void , ,
-	            GtkToggleButton *toggle_button,
-	            gboolean  is_active
-	    )
-        #define gtk_toggle_button_set_active slib::gtk::getApi_gtk_toggle_button_set_active()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	            gtk_toggle_button_get_active,
-	            gboolean , ,
-	            GtkToggleButton *toggle_button
-	    )
-        #define gtk_toggle_button_get_active slib::gtk::getApi_gtk_toggle_button_get_active()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+				gtk_check_button_new_with_mnemonic,
+				GtkWidget*, ,
+				const gchar *label
+		)
+		#define gtk_check_button_new_with_mnemonic slib::gtk::getApi_gtk_check_button_new_with_mnemonic()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+				gtk_toggle_button_set_active,
+				void, ,
+				GtkToggleButton *toggle_button,
+				gboolean is_active
+		)
+		#define gtk_toggle_button_set_active slib::gtk::getApi_gtk_toggle_button_set_active()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+				gtk_toggle_button_get_active,
+				gboolean, ,
+			GtkToggleButton *toggle_button
+		)
+		#define gtk_toggle_button_get_active slib::gtk::getApi_gtk_toggle_button_get_active()
 
 	SLIB_IMPORT_LIBRARY_END
 
