@@ -82,6 +82,10 @@ namespace slib
 
 				sl_bool measureSize(Button* view, UISize& _out) override;
 
+				void installControlEvents();
+
+				static void onChanged(GtkToggleButton *, gpointer userinfo);
+
 			};
 			
 		}
