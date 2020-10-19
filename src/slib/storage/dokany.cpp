@@ -364,8 +364,7 @@ namespace slib
 
 		auto func = getApi_DokanMain();
 		if (!func) {
-			fwprintf(stderr,
-				L"Cannot get DokanMain function address.\n");
+			fwprintf(stderr, L"Cannot get DokanMain function address.\n");
 			return EXIT_FAILURE;
 		}
 
@@ -408,17 +407,20 @@ namespace slib
 		return status;
 	}
 
-	int DokanHost::fsStop() {
+	int DokanHost::fsStop() 
+	{
 		if (m_flagStarted)
 			return ! Dokany::unmount(m_mountPoint);
 		return -1;
 	}
 
-	int DokanHost::isRunning() {
+	int DokanHost::isRunning() 
+	{
 		return m_flagStarted;
 	}
 
-	BOOL DokanHost::addSeSecurityNamePrivilege() {
+	BOOL DokanHost::addSeSecurityNamePrivilege() 
+	{
 		DokanHost::g_hasSeSecurityPrivilege = FALSE;
 
 		HANDLE token = 0;

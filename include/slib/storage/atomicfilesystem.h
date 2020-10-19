@@ -21,10 +21,10 @@ namespace slib
 	public:
 		/* AtomicFileSystem Interfaces */
 
-		virtual const VolumeInfo&
-			afsGetVolumeInfo()&
+		virtual void
+			afsGetVolumeSize(sl_uint64 *pTotalSize, sl_uint64 *pFreeSize)
 		{
-			return m_volumeInfo;
+			throw FileSystemError::NotImplemented;
 		}
 
 		virtual FileInfo
@@ -81,7 +81,9 @@ namespace slib
 		virtual const VolumeInfo&
 			fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)& override
 		{
-			return afsGetVolumeInfo();
+			if (flags == VolumeInfoFlags::SizeInfo)
+				afsGetVolumeSize(&m_volumeInfo.totalSize, &m_volumeInfo.freeSize);
+			return m_volumeInfo;
 		}
 
 		virtual void
@@ -136,10 +138,10 @@ namespace slib
 			if (context->handle) {
 				ObjectLocker locker(this);
 				m_closedHandles.add(context->handle);
-				//if (_FileNames.getCount() == 0) {
-				//	m_handleCounter = 0;
-				//	m_closedHandles.removeAll();
-				//}
+				if (m_openHandles[context->path] == 0) {
+					m_handleCounter = 0;
+					m_closedHandles.removeAll();
+				}
 			}
 			context->handle = 0;
 		}
