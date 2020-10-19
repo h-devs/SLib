@@ -451,8 +451,17 @@ sl_bool UIEvent::is##NAME##Key() const \
 	{
 	}
 
+	UIEvent::UIEvent(UIAction action, const UIEventFlags& flags, const Time& time) : m_flags(flags), m_action(action), m_time(time)
+	{
+	}
+
 	UIEvent::~UIEvent()
 	{
+	}
+
+	Ref<UIEvent> UIEvent::createUnknown(const UIEventFlags& flags, const Time& time)
+	{
+		return new UIEvent(UIAction::Unknown, flags, time);
 	}
 
 	Ref<UIEvent> UIEvent::createUnknown(const Time& time)
@@ -945,7 +954,21 @@ sl_bool UIEvent::is##NAME##Key() const \
 			SLIB_RESET_FLAG(m_flags, UIEventFlags::PassToNext);
 		}
 	}
-	
+
+	sl_bool UIEvent::isInternal()
+	{
+		return SLIB_CHECK_FLAG(m_flags, UIEventFlags::Internal);
+	}
+
+	void UIEvent::setInternal(sl_bool flag)
+	{
+		if (flag) {
+			SLIB_SET_FLAG(m_flags, UIEventFlags::Internal);
+		} else {
+			SLIB_RESET_FLAG(m_flags, UIEventFlags::Internal);
+		}
+	}
+
 	Ref<UIEvent> UIEvent::duplicate() const
 	{
 		Ref<UIEvent> ret = new UIEvent(m_action, m_time);
