@@ -18,10 +18,14 @@ namespace slib
 		if (!(m_flags & FsLogVolumeInfo))
 			return;
 
+		printLog("LogFlags: 0x%08X", m_flags);
+
 		printLog("VolumeInfo:");
 		printLog("  volumeName: %s", m_volumeInfo.volumeName);
 		printLog("  fileSystemName: %s", m_volumeInfo.fileSystemName);
-		printLog("  creationTime: %d", m_volumeInfo.creationTime);
+		printLog("  creationTime: %s", m_flags & FsLogDateAsString
+			? m_volumeInfo.creationTime.toString() 
+			: String::fromInt64(m_volumeInfo.creationTime.toInt()));
 		printLog("  serialNumber: %d", m_volumeInfo.serialNumber);
 		printLog("  sectorSize: %d", m_volumeInfo.sectorSize);
 		printLog("  sectorsPerAllocationUnit: %d", m_volumeInfo.sectorsPerAllocationUnit);
@@ -215,8 +219,8 @@ namespace slib
 	{
 		if (!(m_flags & FsLogClose) || !m_regex.match(context->path)) {
 			m_base->fsClose(context);
-			//if (m_flags & FsLogHandleCountOnClose)
-			//	printLog("Current open handles count: %d", _FileNames.getCount());
+			if (m_flags & FsLogHandleCountOnClose)
+				printLog("Current open handles count: %d", m_openHandles[context->path]);
 			return;
 		}
 
@@ -225,8 +229,8 @@ namespace slib
 			printLog(desc);
 		try {
 			m_base->fsClose(context);
-			//if (m_flags & FsLogHandleCountOnClose)
-			//	printLog("Current open handles count: %d", _FileNames.getCount());
+			if (m_flags & FsLogHandleCountOnClose)
+				printLog("Current open handles count: %d", m_openHandles[context->path]);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
@@ -341,9 +345,13 @@ namespace slib
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog("%s\n  Ret: (0x%X,%s,%d,%d,%d,%d,%d)", desc,
+			printLog("%s\n  Ret: (0x%X,%s,%d,%d%s)", desc,
 				ret.fileAttributes, ret.attr.isDirectory ? "DIR" : "FILE",
-				ret.size, ret.allocationSize, ret.createdAt.toInt(), ret.modifiedAt.toInt(), ret.lastAccessedAt.toInt());
+				ret.size, ret.allocationSize,
+				(m_flags & FsLogAttrNoDate ? "" : "," 
+					+ (m_flags & FsLogDateAsString 
+						? String::format("%s,%s,%s", ret.createdAt.toString(), ret.modifiedAt.toString(), ret.lastAccessedAt.toString())
+						: String::format("%d,%d,%d", ret.createdAt.toInt(), ret.modifiedAt.toInt(), ret.lastAccessedAt.toInt()))));
 		return ret;
 	}
 
@@ -354,14 +362,21 @@ namespace slib
 
 		String desc = String::format("SetFileInfo(%s,0x%X)", contextDesc, flags);
 		if (m_flags & FsLogSetInfoDetail) {
-			if (m_flags & FsLogSetAttrInfo && flags & FileInfoFlags::AttrInfo)
+			if (m_flags & FsLogSetAttrInfo && flags & FileInfoFlags::AttrInfo) {
 				printLog("  Attr: 0x%X, %s", fileInfo.fileAttributes, fileInfo.attr.isDirectory ? "DIR" : "FILE");
-			if (m_flags & FsLogSetTimeInfo && flags & FileInfoFlags::TimeInfo)
-				printLog("  Time: %d,%d,%d", fileInfo.createdAt.toInt(), fileInfo.modifiedAt.toInt(), fileInfo.lastAccessedAt.toInt());
-			if (m_flags & FsLogSetFileSizeInfo && flags & FileInfoFlags::SizeInfo)
+			}
+			if (m_flags & FsLogSetTimeInfo && flags & FileInfoFlags::TimeInfo) {
+				if (m_flags & FsLogDateAsString)
+					printLog("  Time: %s,%s,%s", fileInfo.createdAt.toString(), fileInfo.modifiedAt.toString(), fileInfo.lastAccessedAt.toString());
+				else
+					printLog("  Time: %d,%d,%d", fileInfo.createdAt.toInt(), fileInfo.modifiedAt.toInt(), fileInfo.lastAccessedAt.toInt());
+			}
+			if (m_flags & FsLogSetFileSizeInfo && flags & FileInfoFlags::SizeInfo) {
 				printLog("  FileSize: %d", fileInfo.size);
-			if (m_flags & FsLogSetAllocSizeInfo && flags & FileInfoFlags::AllocSizeInfo)
+			}
+			if (m_flags & FsLogSetAllocSizeInfo && flags & FileInfoFlags::AllocSizeInfo) {
 				printLog("  AllocSize: %d", fileInfo.allocationSize);
+			}
 		}
 		if (!(m_flags & FsLogRetAndErrors))
 			printLog(desc);
@@ -440,9 +455,13 @@ namespace slib
 			printLog(desc);
 			for (auto& file : ret) {
 				FileInfo info = file.value;
-				printLog("  %s: (0x%X,%s,%d,%d,%d,%d,%d)", file.key,
+				printLog("  %s: (0x%X,%s,%d,%d%s)", file.key,
 					info.fileAttributes, info.attr.isDirectory ? "DIR" : "FILE",
-					info.size, info.allocationSize, info.createdAt.toInt(), info.modifiedAt.toInt(), info.lastAccessedAt.toInt());
+					info.size, info.allocationSize,
+					(m_flags & FsLogAttrNoDate ? "" : ","
+						+ (m_flags & FsLogDateAsString
+							? String::format("%s,%s,%s", info.createdAt.toString(), info.modifiedAt.toString(), info.lastAccessedAt.toString())
+							: String::format("%d,%d,%d", info.createdAt.toInt(), info.modifiedAt.toInt(), info.lastAccessedAt.toInt()))));
 			}
 		}
 		return ret;

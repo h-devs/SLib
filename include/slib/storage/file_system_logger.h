@@ -15,7 +15,7 @@ namespace slib
 	class FsLogger : public FileSystemWrapper
 	{
 	public:
-		enum FsLogFlags {
+		enum FsLogFlags : sl_uint32 {
 			FsLogCreate = 0x01,
 			FsLogOpen = 0x02,
 			FsLogFlush = 0x04,
@@ -55,8 +55,8 @@ namespace slib
 
 			FsLogListStream = 0x100000,
 			FsLogHandleCountOnClose = 0x200000,
-			//FsLogAttrNoDate = 0x400000,
-			//FsLogDateConversion = 0x800000,
+			FsLogAttrNoDate = 0x400000,
+			FsLogDateAsString = 0x800000,
 
 			FsLogVolumeInfo = 0x01000000,
 			FsLogGetVolumeBasicInfo = 0x02000000,
@@ -73,6 +73,7 @@ namespace slib
 			FsLogDefault = FsLogFileName | FsLogRet | FsLogErrors,
 			FsLogDefaultErrors = FsLogFileName | FsLogErrors,
 
+			FsLogAllOp = FsLogFileOp | FsLogVolumeOp | FsLogSetInfoDetail | FsLogListStream,
 			FsLogAll = 0xFFFFFFFF,
 		};
 
