@@ -46,16 +46,25 @@ namespace slib
 			{
 			}
 			
+			static NSString* getButtonText(Button* view, const String& s)
+			{
+				if (view->isMnemonic()) {
+					return Apple::getNSStringFromString(s.replaceAll("&", sl_null));
+				} else {
+					return Apple::getNSStringFromString(s);
+				}
+			}
+			
 			void ButtonInstance::initialize(View* _view)
 			{
 				NSButton* handle = getHandle();
-				Button* button = (Button*)_view;
+				Button* view = (Button*)_view;
 
-				handle.title = Apple::getNSStringFromString(view->getText());
+				handle.bezelStyle = NSRoundedBezelStyle;
+				handle.title = getButtonText(view, view->getText());
 				if (view->isDefaultButton()) {
 					[handle setKeyEquivalent:@"\r"];
 				}
-				handle.bezelStyle = NSRoundedBezelStyle;
 			}
 			
 			NSButton* ButtonInstance::getHandle()
@@ -67,7 +76,7 @@ namespace slib
 			{
 				NSButton* handle = getHandle();
 				if (handle != nil) {
-					handle.title = Apple::getNSStringFromString(text);
+					handle.title = getButtonText(view, text);
 				}
 			}
 			

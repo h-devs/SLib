@@ -86,11 +86,11 @@ namespace slib
 
 				void initialize(View* _view) override
 				{					
-					PickerView* view = (PickerView*)_view;
+					PickerViewHelper* view = (PickerViewHelper*)_view;
 					SLIBPickerViewHandle* handle = getHandle();
 
-					setHandleFont(handle, getFont());
-					_select(handle, m_indexSelected);
+					setHandleFont(handle, view->getFont());
+					_select(handle, view->getSelectedIndex());
 				}
 				
 				static void _select(SLIBPickerViewHandle* handle, sl_uint32 index)

@@ -216,7 +216,7 @@ namespace slib
 								return;
 							}
 						}
-						apply(view);
+						initialize(view);
 					}
 				}
 				

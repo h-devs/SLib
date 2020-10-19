@@ -130,15 +130,15 @@ namespace slib
 		m_handle = nil;
 	}
 
-	void macOS_ViewInstance::initialize(NSView* handle)
+	void macOS_ViewInstance::initWithHandle(NSView* handle)
 	{
 		m_handle = handle;
 		UIPlatform::registerViewInstance(handle, this);
 	}
 
-	void macOS_ViewInstance::initialize(NSView* handle, NSView* parent, View* view)
+	void macOS_ViewInstance::initWithHandle(NSView* handle, NSView* parent, View* view)
 	{
-		initialize(handle);
+		initWithHandle(handle);
 
 		if (view->isCreatingNativeLayer()) {
 			[handle setWantsLayer:YES];

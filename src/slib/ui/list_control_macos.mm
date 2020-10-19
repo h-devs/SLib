@@ -163,7 +163,7 @@ namespace slib
 				void initialize(View* _view) override
 				{
 					SLIBListControlHandle* handle = getHandle();
-					ListControlHelper* view = _view;
+					ListControlHelper* view = (ListControlHelper*)_view;
 
 					[handle setHasVerticalScroller:TRUE];
 					[handle setHasHorizontalScroller:TRUE];

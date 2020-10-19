@@ -50,15 +50,15 @@ namespace slib
 		m_handle = nil;
 	}
 	
-	void iOS_ViewInstance::initialize(UIView* handle)
+	void iOS_ViewInstance::initWithHandle(UIView* handle)
 	{
 		m_handle = handle;
 		UIPlatform::registerViewInstance(handle, this);
 	}
 	
-	void iOS_ViewInstance::initialize(UIView* handle, UIView* parent, View* view)
+	void iOS_ViewInstance::initWithHandle(UIView* handle, UIView* parent, View* view)
 	{
-		initialize(handle);
+		initWithHandle(handle);
 		
 		m_flagDrawing = view->isDrawing();
 
