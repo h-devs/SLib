@@ -1090,6 +1090,8 @@ namespace slib
 		ev->setInternal(sl_true);
 		dispatchClickEvent(ev);
 		ev->setInternal(flag);
+		ev->stopPropagation();
+		ev->preventDefault();
 	}
 
 	void Button::onChangeFocus(sl_bool flagFocused)
