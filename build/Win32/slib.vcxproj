@@ -394,6 +394,7 @@
     <ClCompile Include="..\..\src\slib\storage\dokany.cpp" />
     <ClCompile Include="..\..\src\slib\storage\dokany_control.cpp" />
     <ClCompile Include="..\..\src\slib\storage\filesystembase.cpp" />
+    <ClCompile Include="..\..\src\slib\storage\file_system_logger.cpp" />
     <ClCompile Include="..\..\src\slib\storage\mirrorfs.cpp" />
     <ClCompile Include="..\..\src\slib\storage\restfs.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button.cpp" />

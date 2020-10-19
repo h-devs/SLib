@@ -1478,5 +1478,8 @@
     <ClCompile Include="..\..\src\slib\storage\dokany.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\file_system_logger.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
