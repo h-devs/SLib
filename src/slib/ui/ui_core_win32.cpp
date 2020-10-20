@@ -25,6 +25,7 @@
 #if defined(SLIB_UI_IS_WIN32)
 
 #include "ui_core_win32.h"
+
 #include "ui_core_common.h"
 #include "view_win32.h"
 
@@ -79,8 +80,20 @@ namespace slib
 
 			WNDPROC g_wndProc_SystemTrayIcon = NULL;
 
+			sl_bool g_bSetThreadMain = sl_false;
 			DWORD g_threadMain = 0;
 			sl_bool g_bFlagQuit = sl_false;
+
+			class MainThreadSeter
+			{
+			public:
+				MainThreadSeter()
+				{
+					g_threadMain = GetCurrentThreadId();
+					g_bSetThreadMain = sl_true;
+				}
+
+			} g_seterMainThread;
 
 			class MainContext
 			{
@@ -331,7 +344,11 @@ namespace slib
 
 	sl_bool UI::isUiThread()
 	{
-		return (g_threadMain == GetCurrentThreadId());
+		if (g_bSetThreadMain) {
+			return g_threadMain == GetCurrentThreadId();
+		} else {
+			return sl_true;
+		}
 	}
 
 	void UI::dispatchToUiThread(const Function<void()>& callback, sl_uint32 delayMillis)
@@ -377,8 +394,6 @@ namespace slib
 
 	void UIPlatform::runApp()
 	{
-		g_threadMain = GetCurrentThreadId();
-
 		GraphicsPlatform::startGdiplus();
 
 		OleInitialize(NULL);
