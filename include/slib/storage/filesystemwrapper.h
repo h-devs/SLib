@@ -16,9 +16,15 @@ namespace slib
 	{
 	public:
 		/* ctor/dtor */
-		FileSystemWrapper(Ref<FileSystemBase> base) : m_base(base)
+		FileSystemWrapper(Ref<FileSystemBase> base,
+			const StringParam& fileSystemName = sl_null,
+			const StringParam& volumeName = sl_null) : m_base(base)
 		{
 			m_volumeInfo = m_base->fsGetVolumeInfo();
+			if (fileSystemName.isNotEmpty())
+				m_volumeInfo.fileSystemName = fileSystemName.toString();
+			if (volumeName.isNotNull())	// volume name can be empty string
+				m_volumeInfo.volumeName = volumeName.toString();
 		}
 			
 		~FileSystemWrapper()
@@ -31,6 +37,8 @@ namespace slib
 		virtual const VolumeInfo&
 			fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)& override
 		{
+			if (flags == VolumeInfoFlags::BasicInfo)
+				return m_volumeInfo;
 			return m_base->fsGetVolumeInfo(flags);
 		}
 
