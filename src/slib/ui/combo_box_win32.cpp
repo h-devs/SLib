@@ -55,28 +55,52 @@ namespace slib
 
 			};
 
+			LRESULT CALLBACK EditChildSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+			{
+				if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN) {
+					Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(GetParent(hWnd)));
+					if (instance.isNotNull()) {
+						return instance->processSubclassMessage(uMsg, wParam, lParam);
+					}
+				}
+				return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+			}
+
+			BOOL CALLBACK SubclassEditChild(HWND hWnd, LPARAM lParam)
+			{
+				WCHAR sz[16];
+				int n = GetClassNameW(hWnd, sz, 16);
+				if (n) {
+					if (String16::from(sz, (sl_size)n).equalsIgnoreCase(SLIB_UNICODE("EDIT"))) {
+						SetWindowSubclass(hWnd, EditChildSubclassProc, 0, 0);
+					}
+				}
+				return TRUE;
+			}
+
 			class ComboBoxInstance : public Win32_ViewInstance, public IComboBoxInstance
 			{
 				SLIB_DECLARE_OBJECT
 
 			public:
-				void refreshItems(ComboBox* view) override
+				void initialize(View* _view) override
 				{
-					refreshItems(view, sl_false);
+					ComboBox* view = (ComboBox*)_view;
+					
+					EnumChildWindows(getHandle(), SubclassEditChild, 0);
+					String text = view->getText();
+					if (text.isNotEmpty()) {
+						Win32_ViewInstance::setText(text);
+					}
+					refreshItems(view, sl_true);
 				}
 
 				void refreshItems(ComboBox* view, sl_bool flagInit)
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						if (flagInit) {
-							String text = view->getText();
-							if (text.isNotEmpty()) {
-								Win32_ViewInstance::setText(text);
-							}
-						} else {
+						if (!flagInit) {
 							SendMessageW(handle, CB_RESETCONTENT, 0, 0);
-							Windows::setWindowText(handle, m_text);
 						}
 						sl_uint32 n = view->getItemsCount();
 						for (sl_uint32 i = 0; i < n; i++) {
@@ -94,6 +118,11 @@ namespace slib
 							}
 						}
 					}
+				}
+
+				void refreshItems(ComboBox* view) override
+				{
+					refreshItems(view, sl_false);
 				}
 
 				void insertItem(ComboBox* view, sl_int32 index, const String& title) override
@@ -188,29 +217,6 @@ namespace slib
 
 			SLIB_DEFINE_OBJECT(ComboBoxInstance, Win32_ViewInstance)
 
-			LRESULT CALLBACK EditChildSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
-			{
-				if (uMsg == WM_KEYDOWN) {
-					Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(GetParent(hWnd)));
-					if (instance.isNotNull()) {
-						return instance->processSubclassMessage(uMsg, wParam, lParam);
-					}
-				}
-				return DefSubclassProc(hWnd, uMsg, wParam, lParam);
-			}
-
-			BOOL CALLBACK SubclassEditChild(HWND hWnd, LPARAM lParam)
-			{
-				WCHAR sz[16];
-				int n = GetClassNameW(hWnd, sz, 16);
-				if (n) {
-					if (String16::from(sz, (sl_size)n).equalsIgnoreCase(SLIB_UNICODE("EDIT"))) {
-						SetWindowSubclass(hWnd, EditChildSubclassProc, 0, 0);
-					}
-				}
-				return TRUE;
-			}
-
 		}
 	}
 
@@ -219,13 +225,7 @@ namespace slib
 	Ref<ViewInstance> ComboBox::createNativeWidget(ViewInstance* parent)
 	{
 		UINT style = CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_TABSTOP;
-		Ref<ComboBoxInstance> ret = Win32_ViewInstance::create<ComboBoxInstance>(this, parent, L"COMBOBOX", sl_null, style, 0);
-		if (ret.isNotNull()) {
-			EnumChildWindows(ret->getHandle(), SubclassEditChild, 0);
-			ret->refreshItems(this, sl_true);
-			return ret;
-		}
-		return sl_null;
+		return Win32_ViewInstance::create<ComboBoxInstance>(this, parent, L"COMBOBOX", sl_null, style, 0);
 	}
 
 	Ptr<IComboBoxInstance> ComboBox::getComboBoxInstance()

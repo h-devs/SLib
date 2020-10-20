@@ -88,6 +88,7 @@ namespace slib
 			PreventDefault = 0x0001,
 			StopPropagation = 0x0002,
 			PassToNext = 0x0004,
+			Internal = 0x0008,
 			DispatchToParent = 0x1000,
 			NotDispatchToChildren = 0x2000,
 			KeepKeyboard = 0x4000,

@@ -1951,6 +1951,8 @@ namespace slib
 		void setWindowContent(sl_bool flag);
 
 	public:
+		virtual void initialize(View* view);
+
 		virtual sl_bool isValid(View* view) = 0;
 		
 		virtual void setFocus(View* view, sl_bool flagFocus) = 0;

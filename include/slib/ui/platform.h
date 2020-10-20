@@ -212,6 +212,7 @@ namespace slib
 		static sl_bool initializeGtk();
 		static void getGdkColor(const Color& color, GdkColor* outGdkColor);
 		static void getScreenLocationOfWidget(GtkWidget* widget, sl_ui_len* out_x = sl_null, sl_ui_len* out_y = sl_null);
+		static void setWidgetFont(GtkWidget* widget, const Ref<Font>& font);
 
 		static void applyEventModifiers(UIEvent* event, guint state);
 

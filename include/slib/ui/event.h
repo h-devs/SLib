@@ -221,14 +221,18 @@ namespace slib
 		UIEvent();
 		
 		UIEvent(UIAction action, const Time& time);
-		
+
+		UIEvent(UIAction action, const UIEventFlags& flags, const Time& time);
+
 		~UIEvent();
 		
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(UIEvent)
 		
 	public:
-		static Ref<UIEvent> createUnknown(const Time& time);
+		static Ref<UIEvent> createUnknown(const UIEventFlags& flags, const Time& time);
 		
+		static Ref<UIEvent> createUnknown(const Time& time);
+
 		static Ref<UIEvent> createKeyEvent(UIAction action, Keycode keycode, sl_uint32 systemKeycode, const Time& time);
 		
 		static Ref<UIEvent> createMouseEvent(UIAction action, sl_ui_posf x, sl_ui_posf y, const Time& time);
@@ -416,6 +420,10 @@ namespace slib
 		sl_bool isPassedToNext();
 		
 		void setPassedToNext(sl_bool flag);
+
+		sl_bool isInternal();
+
+		void setInternal(sl_bool flag);
 		
 		virtual Ref<UIEvent> duplicate() const;
 		

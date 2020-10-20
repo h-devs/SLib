@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -22,11 +22,13 @@
 
 #include "slib/core/definition.h"
 
-#if defined(SLIB_UI_IS_WIN32)
+#if defined(SLIB_UI_IS_GTK)
 
 #include "slib/ui/select_view.h"
 
-#include "view_win32.h"
+#include "combo_box_gtk.h"
+
+using namespace slib::priv::combo_box;
 
 namespace slib
 {
@@ -36,89 +38,80 @@ namespace slib
 		namespace select_view
 		{
 
-			class SelectViewInstance : public Win32_ViewInstance, public ISelectViewInstance
+			class SelectViewInstance : public GTK_ViewInstance, public ISelectViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-
+				
 			public:
 				void initialize(View* _view) override
 				{
 					SelectView* view = (SelectView*)_view;
-					refreshItems(view);
+					GtkComboBox* handle = (GtkComboBox*)m_handle;
+
+					refreshItems(view, sl_true);
+
+					g_signal_connect(handle, "changed", G_CALLBACK(onChanged), handle);
 				}
 
+				void refreshItems(SelectView* view, sl_bool flagInit)
+				{
+					GtkComboBox* handle = (GtkComboBox*)m_handle;
+					if (handle) {
+						RefreshItems(handle, view, flagInit);
+					}
+				}
+				
 				void refreshItems(SelectView* view) override
 				{
-					HWND handle = m_handle;
-					if (handle) {
-						SendMessageW(handle, CB_RESETCONTENT, 0, 0);
-						sl_uint32 n = view->getItemsCount();
-						for (sl_uint32 i = 0; i < n; i++) {
-							String16 s = String16::from(view->getItemTitle(i));
-							SendMessageW(handle, CB_ADDSTRING, 0, (LPARAM)(s.getData()));
-						}
-						sl_uint32 indexSelected = view->getSelectedIndex();
-						if (indexSelected < n) {
-							if (SendMessageW(handle, CB_GETCURSEL, 0, 0) != (LRESULT)indexSelected) {
-								SendMessageW(handle, CB_SETCURSEL, (WPARAM)indexSelected, 0);
-							}
-						}
-					}
+					refreshItems(view, sl_false);
 				}
 
 				void insertItem(SelectView* view, sl_uint32 index, const String& title) override
 				{
-					HWND handle = m_handle;
+					GtkComboBox* handle = (GtkComboBox*)m_handle;
 					if (handle) {
-						String16 s = String16::from(title);
-						SendMessageW(handle, CB_INSERTSTRING, (WPARAM)index, (LPARAM)(s.getData()));
+						InsertItem(handle, index, title);
 					}
 				}
-
+				
 				void removeItem(SelectView* view, sl_uint32 index) override
 				{
-					HWND handle = m_handle;
+					GtkComboBox* handle = (GtkComboBox*)m_handle;
 					if (handle) {
-						SendMessageW(handle, CB_DELETESTRING, (WPARAM)index, 0);
+						RemoveItem(handle, index);
 					}
 				}
-
+				
 				void setItemTitle(SelectView* view, sl_uint32 index, const String& title) override
 				{
-					HWND handle = m_handle;
+					GtkComboBox* handle = (GtkComboBox*)m_handle;
 					if (handle) {
-						String16 s = String16::from(title);
-						SendMessageW(handle, CB_DELETESTRING, (WPARAM)index, 0);
-						SendMessageW(handle, CB_INSERTSTRING, (WPARAM)index, (LPARAM)(s.getData()));
+						SetItemTitle(handle, index, title);
 					}
 				}
 
 				void selectItem(SelectView* view, sl_uint32 index) override
 				{
-					HWND handle = m_handle;
+					GtkComboBox* handle = (GtkComboBox*)m_handle;
 					if (handle) {
-						SendMessageW(handle, CB_SETCURSEL, (WPARAM)index, 0);
+						SelectItem(handle, index);
 					}
 				}
 
-				sl_bool processCommand(SHORT code, LRESULT& result) override
+				static void onChanged(GtkComboBox*, gpointer userinfo)
 				{
-					if (code == CBN_SELCHANGE) {
-						Ref<SelectView> helper = CastRef<SelectView>(getView());
-						if (helper.isNotNull()) {
-							sl_uint32 index = (sl_uint32)(SendMessageW(m_handle, CB_GETCURSEL, 0, 0));
-							helper->dispatchSelectItem(index);							
-							result = 0;
-							return sl_true;
-						}
+					GtkComboBox* handle = (GtkComboBox*)userinfo;
+					Ref<SelectView> view = CastRef<SelectView>(UIPlatform::getView((GtkWidget*)handle));
+					if (view.isNotNull()) {
+						int index = gtk_combo_box_get_active(handle);
+						view->dispatchSelectItem(index);
 					}
-					return sl_false;
 				}
 
 			};
 
-			SLIB_DEFINE_OBJECT(SelectViewInstance, Win32_ViewInstance)
-
+			SLIB_DEFINE_OBJECT(SelectViewInstance, GTK_ViewInstance)
+			
 		}
 	}
 
@@ -126,10 +119,10 @@ namespace slib
 
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{
-		UINT style = CBS_DROPDOWNLIST | WS_TABSTOP;
-		return Win32_ViewInstance::create<SelectViewInstance>(this, parent, L"COMBOBOX", sl_null, style, 0);
+		GtkWidget* handle = gtk_combo_box_new_text();
+		return GTK_ViewInstance::create<SelectViewInstance>(this, parent, handle);
 	}
-
+	
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()
 	{
 		return CastRef<SelectViewInstance>(getViewInstance());

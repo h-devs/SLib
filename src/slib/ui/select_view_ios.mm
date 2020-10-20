@@ -133,6 +133,21 @@ namespace slib
 				{
 					return CastRef<SelectViewHelper>(getView());
 				}
+
+				void initialize(View* _view) override
+				{
+					SelectViewHelper* view = (SelectViewHelper*)_view;
+					SLIBSelectViewHandle* handle = getHandle();
+
+					handle->m_view = view;
+					view->selectItem(handle, view->getSelectedIndex());
+					[handle setTextAlignment:(TranslateAlignment(view->getGravity()))];
+					[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(view->getTextColor()))];
+					SetBorder(handle, view->isBorder());
+					Color backColor = view->getBackgroundColor();
+					[handle setBackgroundColor:(backColor.isZero() ? nil : GraphicsPlatform::getUIColorFromColor(backColor))];
+					setHandleFont(handle, view->getFont());
+				}
 				
 				void selectItem(SelectView* view, sl_uint32 index) override
 				{
@@ -201,20 +216,7 @@ namespace slib
 	
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<SelectViewInstance> ret = iOS_ViewInstance::create<SelectViewInstance, SLIBSelectViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			SLIBSelectViewHandle* handle = ret->getHandle();
-			handle->m_view = static_cast<SelectViewHelper*>(this);
-			static_cast<SelectViewHelper*>(this)->selectItem(handle, m_indexSelected);
-			[handle setTextAlignment:(TranslateAlignment(m_gravity))];
-			[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(m_textColor))];
-			SetBorder(handle, isBorder());
-			Color backColor = getBackgroundColor();
-			[handle setBackgroundColor:(backColor.isZero() ? nil : GraphicsPlatform::getUIColorFromColor(backColor))];
-			iOS_ViewInstance::setHandleFont(handle, getFont());
-			return ret;
-		}
-		return sl_null;
+		return iOS_ViewInstance::create<SelectViewInstance, SLIBSelectViewHandle>(this, parent);
 	}
 	
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()

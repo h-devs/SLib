@@ -82,6 +82,19 @@ namespace slib
 				SLIB_DECLARE_OBJECT
 
 			public:
+				void initialize(View* _view) override
+				{
+					SelectView* view = (SelectView*)_view;
+					jobject jhandle = getHandle();
+
+					JSelectView::setAlignment.callBoolean(sl_null, jhandle, view->getGravity().value);
+					JSelectView::setTextColor.callBoolean(sl_null, jhandle, view->getTextColor().getARGB());
+					JSelectView::setBorder.callBoolean(sl_null, jhandle, view->isBorder());
+					JSelectView::setBackgroundColor.callBoolean(sl_null, jhandle, view->getBackgroundColor().getARGB());
+					setFont(view, view->getFont());
+					refreshItems(view);
+				}
+				
 				void selectItem(SelectView* view, sl_uint32 index) override
 				{
 					jobject handle = m_handle.get();
@@ -161,21 +174,8 @@ namespace slib
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* _parent)
 	{
 		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
-		if (parent) {
-			JniLocal<jobject> handle = JSelectView::create.callObject(sl_null, parent->getContext());
-			Ref<SelectViewInstance> ret = Android_ViewInstance::create<SelectViewInstance>(this, parent, handle.get());
-			if (ret.isNotNull()) {
-				jobject jhandle = ret->getHandle();
-				JSelectView::setAlignment.callBoolean(sl_null, jhandle, m_gravity.value);
-				JSelectView::setTextColor.callBoolean(sl_null, jhandle, m_textColor.getARGB());
-				JSelectView::setBorder.callBoolean(sl_null, jhandle, isBorder());
-				JSelectView::setBackgroundColor.callBoolean(sl_null, jhandle, getBackgroundColor().getARGB());
-				ret->setFont(this, getFont());
-				ret->refreshItems(this);
-				return ret;
-			}
-		}
-		return sl_null;
+		JniLocal<jobject> handle = JSelectView::create.callObject(sl_null, parent->getContext());
+		return Android_ViewInstance::create<SelectViewInstance>(this, parent, handle.get());
 	}
 
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()

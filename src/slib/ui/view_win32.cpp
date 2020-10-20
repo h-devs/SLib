@@ -276,16 +276,16 @@ namespace slib
 		return NULL;
 	}
 
-	void Win32_ViewInstance::initialize(HWND hWnd, sl_bool flagDestroyOnRelease)
+	void Win32_ViewInstance::initWithHandle(HWND hWnd, sl_bool flagDestroyOnRelease)
 	{
 		m_handle = hWnd;
 		m_flagDestroyOnRelease = flagDestroyOnRelease;
 		UIPlatform::registerViewInstance(hWnd, this);
 	}
 
-	void Win32_ViewInstance::initialize(HWND hWnd, View* view, const String16& text, const UIRect& frame, const Matrix3& transform)
+	void Win32_ViewInstance::initWithHandle(HWND hWnd, View* view, const String16& text, const UIRect& frame, const Matrix3& transform)
 	{
-		initialize(hWnd, sl_true);
+		initWithHandle(hWnd, sl_true);
 		m_text = text;
 		m_frame = frame;
 		m_translation = Transform2::getTranslationFromMatrix(transform);

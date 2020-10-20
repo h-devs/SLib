@@ -288,6 +288,23 @@ namespace slib
 				{
 					return CastRef<ChromiumViewHelper>(getView());
 				}
+
+				void initialize(View* _view) override
+				{
+					ChromiumViewHelper* view = (ChromiumViewHelper*)_view;
+					CefWindowInfo windowInfo;
+#if defined(SLIB_UI_IS_WIN32)
+					RECT rc;
+					rc.left = 0;
+					rc.top = 0;
+					rc.right = (LONG)(view->getWidth());
+					rc.bottom = (LONG)(view->getHeight());
+					windowInfo.SetAsChild(getHandle(), rc);
+#elif defined(SLIB_UI_IS_MACOS)
+					windowInfo.SetAsChild((__bridge void*)(getHandle()), 0, 0, (int)(view->getWidth()), (int)(view->getHeight()));
+#endif
+					view->apply(this, windowInfo);
+				}
 				
 				void refreshSize(WebView* view) override
 				{
@@ -892,34 +909,17 @@ namespace slib
 		if (!context) {
 			return sl_null;
 		}
-#ifdef SLIB_PLATFORM_IS_WIN32
+#if defined(SLIB_PLATFORM_IS_WIN32)
 		Win32_UI_Shared* shared = Win32_UI_Shared::get();
 		if (!shared) {
 			return sl_null;
 		}
-		Ref<ChromiumViewInstance> ret = Win32_ViewInstance::create<ChromiumViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
-		if (ret.isNotNull()) {
-			CefWindowInfo windowInfo;
-			RECT rc;
-			rc.left = 0;
-			rc.top = 0;
-			rc.right = (LONG)(getWidth());
-			rc.bottom = (LONG)(getHeight());
-			windowInfo.SetAsChild(ret->getHandle(), rc);
-			(static_cast<ChromiumViewHelper*>(this))->apply(ret.get(), windowInfo);
-			return ret;
-		}
-#endif
-#ifdef SLIB_PLATFORM_IS_MACOS
-		Ref<ChromiumViewInstance> ret = macOS_ViewInstance::create<ChromiumViewInstance, SLIBViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			CefWindowInfo windowInfo;
-			windowInfo.SetAsChild((__bridge void*)(ret->getHandle()), 0, 0, (int)(getWidth()), (int)(getHeight()));
-			(static_cast<ChromiumViewHelper*>(this))->apply(ret.get(), windowInfo);
-			return ret;
-		}
-#endif
+		return Win32_ViewInstance::create<ChromiumViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
+#elif defined(SLIB_PLATFORM_IS_MACOS)
+		return macOS_ViewInstance::create<ChromiumViewInstance, SLIBViewHandle>(this, parent);
+#else
 		return sl_null;
+#endif
 	}
 	
 	Ptr<IWebViewInstance> ChromiumView::getWebViewInstance()

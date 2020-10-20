@@ -298,6 +298,13 @@ namespace slib
 				SLIB_DECLARE_OBJECT
 
 			public:
+				void initialize(View* view) override
+				{
+					Evas_Object* handle = m_handle;
+					evas_object_smart_callback_add(handle, "changed,user", onChange, sl_null);
+					evas_object_smart_callback_add(handle, "activated", onEnter, sl_null);
+				}
+
 				sl_bool getText(EditView* view, String& _out) override
 				{
 					Evas_Object* handle = m_handle;
@@ -439,63 +446,56 @@ namespace slib
 				{
 				}
 				
+				static void onChange(void* data, Evas_Object* obj, void* event_info)
+				{
+					Ref<EditViewHelper> helper = CastRef<EditViewHelper>(UIPlatform::getView(obj));
+					if (helper.isNotNull()) {
+						String text;
+						const char* s = elm_entry_entry_get(obj);
+						if (s) {
+							char* t = elm_entry_markup_to_utf8(s);
+							if (t) {
+								text = t;
+								free(t);
+							}
+						}
+						String textNew = text;
+						helper->dispatchChange(textNew);
+						if (text != textNew) {
+							if (textNew.isEmpty()) {
+								elm_entry_entry_set(obj, "");
+							} else {
+								char* t = elm_entry_utf8_to_markup(textNew.getData());
+								if (t) {
+									elm_entry_entry_set(obj, t);
+									free(t);
+								}
+							}
+						}
+					}
+				}
+
+				static void onEnter(void* data, Evas_Object* obj, void* event_info)
+				{
+					Ref<EditViewHelper> helper = CastRef<EditViewHelper>(UIPlatform::getView(obj));
+					if (helper.isNotNull()) {
+						helper->dispatchReturnKey();
+					}
+				}
+
 			};
 
 			SLIB_DEFINE_OBJECT(EditViewInstance, EFL_ViewInstance)
 			
-			static void OnChange(void* data, Evas_Object* obj, void* event_info)
-			{
-				Ref<EditViewHelper> helper = CastRef<EditViewHelper>(UIPlatform::getView(obj));
-				if (helper.isNotNull()) {
-					String text;
-					const char* s = elm_entry_entry_get(obj);
-					if (s) {
-						char* t = elm_entry_markup_to_utf8(s);
-						if (t) {
-							text = t;
-							free(t);
-						}
-					}
-					String textNew = text;
-					helper->dispatchChange(textNew);
-					if (text != textNew) {
-						if (textNew.isEmpty()) {
-							elm_entry_entry_set(obj, "");
-						} else {
-							char* t = elm_entry_utf8_to_markup(textNew.getData());
-							if (t) {
-								elm_entry_entry_set(obj, t);
-								free(t);
-							}
-						}
-					}
-				}
-			}
-
-			static void OnEnter(void* data, Evas_Object* obj, void* event_info)
-			{
-				Ref<EditViewHelper> helper = CastRef<EditViewHelper>(UIPlatform::getView(obj));
-				if (helper.isNotNull()) {
-					helper->dispatchReturnKey();
-				}
-			}
-
 			Ref<ViewInstance> EditViewHelper::createInstance(ViewInstance* _parent, int type)
 			{
 				EFL_ViewInstance* parent = static_cast<EFL_ViewInstance*>(_parent);
-				if (parent) {
-					Evas_Object* handleParent = parent->getHandle();
-					if (handleParent) {
-						Evas_Object* handle = elm_entry_add(handleParent);
-						if (handle) {
-							applyProperties(handle, type);
-							Ref<EditViewInstance> ret = EFL_ViewInstance::create<EditViewInstance>(this, parent, EFL_ViewType::Generic, handle, sl_true);
-							if (ret.isNotNull()) {
-								evas_object_smart_callback_add(handle, "changed,user", OnChange, sl_null);
-								evas_object_smart_callback_add(handle, "activated", OnEnter, sl_null);
-								return ret;
-							}
-						}
+				Evas_Object* handleParent = parent->getHandle();
+				if (handleParent) {
+					Evas_Object* handle = elm_entry_add(handleParent);
+					if (handle) {
+						applyProperties(handle, type);
+						return EFL_ViewInstance::create<EditViewInstance>(this, parent, EFL_ViewType::Generic, handle, sl_true);
 					}
 				}
 				return sl_null;

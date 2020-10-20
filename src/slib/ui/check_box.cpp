@@ -26,7 +26,7 @@
 #include "slib/ui/resource.h"
 #include "slib/core/safe_static.h"
 
-#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32)
+#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_GTK)
 #	define HAS_NATIVE_WIDGET_IMPL 1
 #else
 #	define HAS_NATIVE_WIDGET_IMPL 0
@@ -151,9 +151,17 @@ namespace slib
 
 	sl_bool CheckBox::isChecked()
 	{
+		return m_flagChecked;
+	}
+
+	sl_bool CheckBox::isCheckedInstance()
+	{
 		Ptr<ICheckBoxInstance> instance = getCheckBoxInstance();
 		if (instance.isNotNull()) {
-			instance->getChecked(this, m_flagChecked);
+			sl_bool flag;
+			if (instance->getChecked(this, flag)) {
+				m_flagChecked = flag;
+			}
 		}
 		return m_flagChecked;
 	}
@@ -190,9 +198,9 @@ namespace slib
 
 	void CheckBox::dispatchClickEvent(UIEvent* ev)
 	{
-		if (isNativeWidget()) {
+		if (!(ev->isInternal()) && isNativeWidget()) {
 			sl_bool valueOld = m_flagChecked;
-			sl_bool valueNew = isChecked();
+			sl_bool valueNew = isCheckedInstance();
 			if (valueOld != valueNew) {
 				dispatchChange(valueNew);
 			}

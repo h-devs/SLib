@@ -50,6 +50,26 @@ namespace slib
 				}
 
 			public:
+				void initialize(View* _view) override
+				{
+					EditView* view = (EditView*)_view;
+					GtkEntry* handle = (GtkEntry*)m_handle;
+
+					GTK_WIDGET_SET_FLAGS(handle, GTK_CAN_FOCUS);
+					String text = view->getText();
+					if (text.isNotEmpty()) {
+						gtk_entry_set_text(handle, text.getData());
+					}
+					if(view->isPassword()) {
+						gtk_entry_set_visibility(handle, 0);
+					}
+					setTextColor(view, view->getTextColor());
+					setGravity(view, view->getGravity());
+					setReadOnly(view, view->isReadOnly());
+
+					g_signal_connect((GtkEditable*)handle, "changed", G_CALLBACK(onChange), handle);
+				}
+
 				sl_bool getText(EditView* view, String& _out) override
 				{
 					GtkEntry* handle = (GtkEntry*)m_handle;
@@ -148,28 +168,6 @@ namespace slib
 					return 0;
 				}
 
-				void apply(EditView* view)
-				{
-					GtkEntry* handle = (GtkEntry*)m_handle;
-					if (handle) {
-						String text = view->getText();
-						gtk_entry_set_text(handle, text.getData());
-						if(view->isPassword()) {
-							setPassword(view, true);
-						}
-						setTextColor(view, view->getTextColor());
-						setGravity(view, view->getGravity());
-						setReadOnly(view, view->isReadOnly());
-					}
-				}
-
-				void installControlEvents()
-				{
-					GtkWidget* handle = m_handle;
-					g_signal_connect((GtkEditable*)handle, "changed", G_CALLBACK(onChange), handle);
-					g_signal_connect(handle, "key-press-event", G_CALLBACK(eventCallback), handle);
-				}
-
 				static void onChange(GtkEditable*, gpointer user_data)
 				{
 					GtkEntry* handle = (GtkEntry*)user_data;
@@ -203,6 +201,35 @@ namespace slib
 				}
 
 			public:
+				void initialize(View* _view) override
+				{
+					GtkScrolledWindow* handle = (GtkScrolledWindow*)m_handle;
+					TextArea* view = (TextArea*)_view;
+
+					gtk_scrolled_window_set_policy(handle, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+					gtk_scrolled_window_set_shadow_type(handle, GTK_SHADOW_ETCHED_IN);
+
+					GtkTextView* handleText = (GtkTextView*)(gtk_text_view_new());
+					if (handleText) {
+						m_handleTextView = handleText;
+
+						GTK_WIDGET_SET_FLAGS(handleText, GTK_CAN_FOCUS);
+						gtk_container_add((GtkContainer*)handle, (GtkWidget*)handleText);
+						gtk_widget_show((GtkWidget*)handleText);
+
+						setText(view, view->getText());
+						setTextColor(view, view->getTextColor());
+						setGravity(view, view->getGravity());
+						setReadOnly(view, view->isReadOnly());
+						setFont(view, view->getFont());				
+		
+						GtkTextBuffer* buffer = gtk_text_view_get_buffer(handleText);
+						if (buffer) {
+							g_signal_connect(buffer, "changed", G_CALLBACK(onChange), handle);
+						}
+					}
+				}
+
 				static String _getText(GtkTextBuffer* buffer)
 				{
 					GtkTextIter start, end;
@@ -325,10 +352,7 @@ namespace slib
 				{
 					GtkWidget* handle = (GtkWidget*)m_handleTextView;
 					if (handle) {
-						PangoFontDescription* desc = GraphicsPlatform::getPangoFont(font);
-						if (desc) {
-							gtk_widget_modify_font(handle, desc);
-						}
+						UIPlatform::setWidgetFont(handle, font);
 					}
 				}
 
@@ -349,26 +373,9 @@ namespace slib
 					return 0;
 				}
 
-				void apply(EditView* view)
+				gboolean onKeyEvent(GdkEventKey* gevent) override
 				{
-					setText(view, view->getText());
-					setTextColor(view, view->getTextColor());
-					setGravity(view, view->getGravity());
-					setReadOnly(view, view->isReadOnly());
-					setFont(view, view->getFont());
-				}
-
-				void installControlEvents()
-				{
-					GtkWidget* handle = m_handle;
-					GtkTextView* handleText = m_handleTextView;
-					if (handle && handleText) {
-						GtkTextBuffer* buffer = gtk_text_view_get_buffer(handleText);
-						if (buffer) {
-							g_signal_connect(buffer, "changed", G_CALLBACK(onChange), handle);
-						}
-						g_signal_connect(handleText, "key-press-event", G_CALLBACK(eventCallback), handle);
-					}
+					return 0;
 				}
 
 				static void onChange(GtkTextBuffer* buffer, gpointer user_data)
@@ -398,18 +405,7 @@ namespace slib
 	{
 		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);		
 		GtkWidget* handle = gtk_entry_new();
-		if (handle) {
-			GTK_WIDGET_SET_FLAGS(handle, GTK_CAN_FOCUS);
-			Ref<EditViewInstance> ret = GTK_ViewInstance::create<EditViewInstance>(this, parent, handle);
-			if (ret.isNotNull()) {
-				ret->apply(this);
-				ret->installControlEvents();
-				return ret;
-			}
-			g_object_ref_sink(handle);
-			g_object_unref(handle);
-		}
-		return sl_null;
+		return GTK_ViewInstance::create<EditViewInstance>(this, parent, handle);
 	}
 
 	Ptr<IEditViewInstance> EditView::getEditViewInstance()
@@ -421,28 +417,7 @@ namespace slib
 	{
 		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
 		GtkScrolledWindow* handle = (GtkScrolledWindow*)(gtk_scrolled_window_new(sl_null, sl_null));
-		if (handle) {
-			gtk_scrolled_window_set_policy(handle, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-			gtk_scrolled_window_set_shadow_type(handle, GTK_SHADOW_ETCHED_IN);
-			GtkTextView* handleText = (GtkTextView*)(gtk_text_view_new());
-			if (handleText) {
-				Ref<TextAreaInstance> ret = GTK_ViewInstance::create<TextAreaInstance>(this, parent, (GtkWidget*)handle);
-				if (ret.isNotNull()) {
-					GTK_WIDGET_SET_FLAGS(handleText, GTK_CAN_FOCUS);
-					gtk_container_add((GtkContainer*)handle, (GtkWidget*)handleText);
-					ret->m_handleTextView = handleText;
-					ret->apply(this);
-					ret->installControlEvents();
-					gtk_widget_show((GtkWidget*)handleText);
-					return ret;
-				}
-				g_object_ref_sink(handleText);
-				g_object_unref(handleText);
-			}
-			g_object_ref_sink(handle);
-			g_object_unref(handle);
-		}
-		return sl_null;
+		return GTK_ViewInstance::create<TextAreaInstance>(this, parent, (GtkWidget*)handle);
 	}
 	
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()

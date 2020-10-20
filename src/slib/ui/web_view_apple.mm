@@ -111,6 +111,14 @@ namespace slib
 				{
 					return CastRef<WebViewHelper>(getView());
 				}
+
+				void initialize(View* _view) override
+				{
+					WebViewHelper* view = (WebViewHelper*)_view;
+					WKWebView* handle = getHandle();
+
+					view->apply(handle);
+				}
 				
 				void refreshSize(WebView* view) override
 				{
@@ -247,13 +255,7 @@ namespace slib
 
 	Ref<ViewInstance> WebView::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<WebViewInstance> ret = BaseInstance::create<WebViewInstance, SLIBWebViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			WKWebView* handle = ret->getHandle();
-			static_cast<WebViewHelper*>(this)->apply(handle);
-			return ret;
-		}
-		return sl_null;
+		return BaseInstance::create<WebViewInstance, SLIBWebViewHandle>(this, parent);
 	}
 	
 	Ptr<IWebViewInstance> WebView::getWebViewInstance()

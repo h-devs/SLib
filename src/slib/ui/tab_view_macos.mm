@@ -160,6 +160,15 @@ namespace slib
 				{
 					return CastRef<TabViewHelper>(getView());
 				}
+
+				void initialize(View* _view) override
+				{
+					TabViewHelper* view = (TabViewHelper*)_view;					
+					NSTabView* handle = getHandle();
+
+					setHandleFont(handle, view->getFont());
+					view->copyTabs(handle);
+				}
 				
 				void refreshTabsCount(TabView* view) override
 				{
@@ -240,14 +249,7 @@ namespace slib
 
 	Ref<ViewInstance> TabView::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<TabViewInstance> ret = macOS_ViewInstance::create<TabViewInstance, SLIBTabViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			NSTabView* handle = ret->getHandle();
-			macOS_ViewInstance::setHandleFont(handle, getFont());
-			static_cast<TabViewHelper*>(this)->copyTabs(handle);
-			return ret;
-		}
-		return sl_null;
+		return macOS_ViewInstance::create<TabViewInstance, SLIBTabViewHandle>(this, parent);
 	}
 	
 	Ptr<ITabViewInstance> TabView::getTabViewInstance()

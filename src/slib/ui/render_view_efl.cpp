@@ -81,6 +81,25 @@ namespace slib
 					return CastRef<RenderViewHelper>(getView());
 				}
 
+				void initialize(View* _view) override
+				{
+					RenderView* view = (RenderView*)_view;
+					Evas_Object* handle = getHandle();
+
+					elm_glview_mode_set(handle, (Elm_GLView_Mode)(ELM_GLVIEW_ALPHA | ELM_GLVIEW_DEPTH));
+					elm_glview_resize_policy_set(handle, ELM_GLVIEW_RESIZE_POLICY_RECREATE);
+					elm_glview_render_policy_set(handle, ELM_GLVIEW_RENDER_POLICY_ON_DEMAND);
+					elm_glview_init_func_set(handle, glInit);
+					elm_glview_resize_func_set(handle, glResize);
+					elm_glview_render_func_set(handle, glRender);
+					elm_glview_del_func_set(handle, glDelete);
+
+					m_flagContinuously = (view->getRedrawMode() == RedrawMode::Continuously);
+					m_timer = ecore_animator_add(timer, handle);
+
+					installTouchEvents();					
+				}
+
 				void setRedrawMode(RenderView* view, RedrawMode mode) override
 				{
 					m_flagContinuously = (mode == RedrawMode::Continuously);
@@ -177,35 +196,10 @@ namespace slib
 	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
 	{
 		Evas_Object* handleParent = UIPlatform::getViewHandle(parent);
-
-		if (handleParent) {
-
-			Evas_Object* handle = elm_glview_version_add(handleParent, EVAS_GL_GLES_2_X);
-
-			if (handle) {
-
-				ELEMENTARY_GLVIEW_GLOBAL_USE(handle);
-
-				Ref<RenderViewInstance> ret = EFL_ViewInstance::create<RenderViewInstance>(this, parent, EFL_ViewType::OpenGL, handle, sl_true);
-
-				if (ret.isNotNull()) {
-
-					elm_glview_mode_set(handle, (Elm_GLView_Mode)(ELM_GLVIEW_ALPHA | ELM_GLVIEW_DEPTH));
-					elm_glview_resize_policy_set(handle, ELM_GLVIEW_RESIZE_POLICY_RECREATE);
-					elm_glview_render_policy_set(handle, ELM_GLVIEW_RENDER_POLICY_ON_DEMAND);
-					elm_glview_init_func_set(handle, RenderViewInstance::glInit);
-					elm_glview_resize_func_set(handle, RenderViewInstance::glResize);
-					elm_glview_render_func_set(handle, RenderViewInstance::glRender);
-					elm_glview_del_func_set(handle, RenderViewInstance::glDelete);
-
-					ret->m_flagContinuously = (m_redrawMode == RedrawMode::Continuously);
-					ret->m_timer = ecore_animator_add(RenderViewInstance::timer, handle);
-
-					ret->installTouchEvents();
-
-					return ret;
-				}
-			}
+		Evas_Object* handle = elm_glview_version_add(handleParent, EVAS_GL_GLES_2_X);
+		if (handle) {
+			ELEMENTARY_GLVIEW_GLOBAL_USE(handle);
+			return EFL_ViewInstance::create<RenderViewInstance>(this, parent, EFL_ViewType::OpenGL, handle, sl_true);
 		}
 		return sl_null;
 	}

@@ -128,6 +128,28 @@ namespace slib
 					return CastRef<ScrollViewHelper>(getView());
 				}
 				
+				void initialize(View* _view) override
+				{
+					ScrollViewHelper* view = (ScrollViewHelper*)_view;
+					SLIBScrollViewHandle* handle = getHandle();
+
+					handle.backgroundColor = GraphicsPlatform::getUIColorFromColor(view->getBackgroundColor());
+					if (view->isPaging()) {
+						[handle setPaging:sl_true :view->getPageWidth() :view->getPageHeight()];
+					}
+					handle.showsHorizontalScrollIndicator = view->isHorizontalScrollBarVisible() ? YES : NO;
+					handle.showsVerticalScrollIndicator = view->isVerticalScrollBarVisible() ? YES : NO;
+					
+					CGFloat f = UIPlatform::getGlobalScaleFactor();
+					[handle setContentOffsetFromAPI:CGPointMake((CGFloat)(view->getScrollX()) / f, (CGFloat)(view->getScrollY()) / f) animated:NO];
+					
+					view->applyContent(handle);
+					
+					SLIBScrollViewHandle_GestureRecognizer* gesture = [[SLIBScrollViewHandle_GestureRecognizer alloc] init];
+					gesture->m_viewInstance = this;
+					[handle addGestureRecognizer:gesture];
+				}
+				
 				void refreshContentSize(ScrollView* view) override
 				{
 					SLIBScrollViewHandle* handle = getHandle();
@@ -223,30 +245,6 @@ namespace slib
 					}
 				}
 				
-				void apply(ScrollView* view)
-				{
-					SLIBScrollViewHandle* handle = getHandle();
-					if (handle == nil) {
-						return;
-					}
-					
-					handle.backgroundColor = GraphicsPlatform::getUIColorFromColor(view->getBackgroundColor());
-					if (view->isPaging()) {
-						[handle setPaging:sl_true :view->getPageWidth() :view->getPageHeight()];
-					}
-					handle.showsHorizontalScrollIndicator = view->isHorizontalScrollBarVisible() ? YES : NO;
-					handle.showsVerticalScrollIndicator = view->isVerticalScrollBarVisible() ? YES : NO;
-					
-					CGFloat f = UIPlatform::getGlobalScaleFactor();
-					[handle setContentOffsetFromAPI:CGPointMake((CGFloat)(view->getScrollX()) / f, (CGFloat)(view->getScrollY()) / f) animated:NO];
-					
-					static_cast<ScrollViewHelper*>(view)->applyContent(handle);
-					
-					SLIBScrollViewHandle_GestureRecognizer* gesture = [[SLIBScrollViewHandle_GestureRecognizer alloc] init];
-					gesture->m_viewInstance = this;
-					[handle addGestureRecognizer:gesture];
-				}
-				
 				void onScroll(UIScrollView* sv)
 				{
 					CGPoint pt= sv.contentOffset;
@@ -268,12 +266,7 @@ namespace slib
 	
 	Ref<ViewInstance> ScrollView::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<ScrollViewInstance> ret = iOS_ViewInstance::create<ScrollViewInstance, SLIBScrollViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			ret->apply(this);
-			return ret;
-		}
-		return sl_null;
+		return iOS_ViewInstance::create<ScrollViewInstance, SLIBScrollViewHandle>(this, parent);
 	}
 	
 	Ptr<IScrollViewInstance> ScrollView::getScrollViewInstance()
@@ -389,7 +382,8 @@ using namespace slib::priv::scroll_view;
 	}
 }
 
--(BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+-(BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
+{
 	return YES;
 }
 

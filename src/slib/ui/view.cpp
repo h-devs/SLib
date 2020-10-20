@@ -634,6 +634,7 @@ namespace slib
 			m_instance = instance;
 			_doAttach();
 			instance->setView(this);
+			instance->initialize(this);
 		}
 		return instance;
 	}
@@ -7417,6 +7418,9 @@ namespace slib
 
 	Ref<View> View::getFirstFocusableDescendant()
 	{
+		if (!(isVisible())) {
+			return sl_null;
+		}
 		if (isFocusable()) {
 			return this;
 		}
@@ -7435,6 +7439,9 @@ namespace slib
 
 	Ref<View> View::getLastFocusableDescendant()
 	{
+		if (!(isVisible())) {
+			return sl_null;
+		}
 		if (isFocusable()) {
 			return this;
 		}
@@ -10314,6 +10321,10 @@ namespace slib
 	void ViewInstance::setWindowContent(sl_bool flag)
 	{
 		m_flagWindowContent = flag;
+	}
+
+	void ViewInstance::initialize(View* view)
+	{
 	}
 	
 	void ViewInstance::setShadowOpacity(View* view, float alpha)

@@ -71,11 +71,8 @@ namespace slib
 	Ref<ViewInstance> RefreshView::createNativeWidget(ViewInstance* _parent)
 	{
 		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
-		if (parent) {
-			JniLocal<jobject> handle = JRefreshView::create.callObject(sl_null, parent->getContext());
-			return Android_ViewInstance::create<Android_ViewInstance>(this, parent, handle.get());
-		}
-		return sl_null;
+		JniLocal<jobject> handle = JRefreshView::create.callObject(sl_null, parent->getContext());
+		return Android_ViewInstance::create<Android_ViewInstance>(this, parent, handle.get());
 	}
 
 	void RefreshView::_setRefreshing_NW(sl_bool flag)

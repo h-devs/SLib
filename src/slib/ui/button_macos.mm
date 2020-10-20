@@ -46,16 +46,37 @@ namespace slib
 			{
 			}
 			
+			static NSString* getButtonText(Button* view, const String& s)
+			{
+				if (view->isMnemonic()) {
+					return Apple::getNSStringFromString(s.replaceAll("&", sl_null));
+				} else {
+					return Apple::getNSStringFromString(s);
+				}
+			}
+			
+			void ButtonInstance::initialize(View* _view)
+			{
+				NSButton* handle = getHandle();
+				Button* view = (Button*)_view;
+
+				handle.bezelStyle = NSRoundedBezelStyle;
+				handle.title = getButtonText(view, view->getText());
+				if (view->isDefaultButton()) {
+					[handle setKeyEquivalent:@"\r"];
+				}
+			}
+			
 			NSButton* ButtonInstance::getHandle()
 			{
 				return (NSButton*)m_handle;
 			}
-			
+
 			void ButtonInstance::setText(Button* view, const String& text)
 			{
 				NSButton* handle = getHandle();
 				if (handle != nil) {
-					handle.title = Apple::getNSStringFromString(text);
+					handle.title = getButtonText(view, text);
 				}
 			}
 			
@@ -101,17 +122,7 @@ namespace slib
 
 	Ref<ViewInstance> Button::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<ButtonInstance> ret = macOS_ViewInstance::create<ButtonInstance, SLIBButtonHandle>(this, parent);
-		if (ret.isNotNull()) {
-			NSButton* handle = ret->getHandle();
-			handle.title = Apple::getNSStringFromString(m_text);
-			if (m_flagDefaultButton) {
-				[handle setKeyEquivalent:@"\r"];
-			}
-			handle.bezelStyle = NSRoundedBezelStyle;
-			return ret;
-		}
-		return sl_null;
+		return macOS_ViewInstance::create<ButtonInstance, SLIBButtonHandle>(this, parent);
 	}
 	
 	Ptr<IButtonInstance> Button::getButtonInstance()

@@ -485,11 +485,14 @@ else ()
 
   "${SLIB_PATH}/src/slib/device/device_linux.cpp"
 
+  "${SLIB_PATH}/src/slib/ui/button_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/clipboard_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/common_dialogs_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/combo_box_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/check_box_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/edit_view_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/render_view_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/select_view_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_core_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_event_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_menu_gtk.cpp"

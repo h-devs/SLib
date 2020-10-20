@@ -52,7 +52,7 @@ namespace slib
 			if (hWnd) {
 				Ref<T> ret = new T;
 				if (ret.isNotNull()) {
-					ret->initialize(hWnd, flagDestroyOnRelease);
+					ret->initWithHandle(hWnd, flagDestroyOnRelease);
 					return ret;
 				} else {
 					if (flagDestroyOnRelease) {
@@ -76,7 +76,7 @@ namespace slib
 			if (handle) {
 				Ref<T> ret = new T;
 				if (ret.isNotNull()) {
-					ret->initialize(handle, view, text, frame, transform);
+					ret->initWithHandle(handle, view, text, frame, transform);
 					return ret;
 				}
 				DestroyWindow(handle);
@@ -89,9 +89,9 @@ namespace slib
 			const UIRect& rect, const Matrix3& transform,
 			int style, int styleEx, int styleRemove);
 
-		void initialize(HWND hWnd, sl_bool flagDestroyOnRelease);
+		void initWithHandle(HWND hWnd, sl_bool flagDestroyOnRelease);
 
-		void initialize(HWND hWnd, View* view, const String16& text, const UIRect& rect, const Matrix3& transform);
+		void initWithHandle(HWND hWnd, View* view, const String16& text, const UIRect& rect, const Matrix3& transform);
 
 		HWND getHandle();
 

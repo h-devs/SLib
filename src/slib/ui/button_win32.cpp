@@ -48,13 +48,10 @@ namespace slib
 			{
 			}
 
-			sl_bool ButtonInstance::processCommand(SHORT code, LRESULT& result)
+			void ButtonInstance::initialize(View* _view)
 			{
-				if (code == BN_CLICKED) {
-					onClick();
-					return sl_true;
-				}
-				return sl_false;
+				Button* view = (Button*)_view;				
+				setPadding(view, view->getPadding());
 			}
 
 			void ButtonInstance::setPadding(View* view, const UIEdgeInsets& padding)
@@ -93,6 +90,15 @@ namespace slib
 				return sl_false;
 			}
 
+			sl_bool ButtonInstance::processCommand(SHORT code, LRESULT& result)
+			{
+				if (code == BN_CLICKED) {
+					onClick();
+					return sl_true;
+				}
+				return sl_false;
+			}
+
 		}
 	}
 
@@ -104,12 +110,7 @@ namespace slib
 		if (m_flagDefaultButton) {
 			style |= BS_DEFPUSHBUTTON;
 		}
-		Ref<ButtonInstance> ret = Win32_ViewInstance::create<ButtonInstance>(this, parent, L"BUTTON", getText(), style, 0);
-		if (ret.isNotNull()) {
-			ret->setPadding(this, getPadding());
-			return ret;
-		}
-		return sl_null;
+		return Win32_ViewInstance::create<ButtonInstance>(this, parent, L"BUTTON", getText(), style, 0);
 	}
 
 	Ptr<IButtonInstance> Button::getButtonInstance()

@@ -31,6 +31,14 @@
 
 #include "platform.h"
 
+#define SLIB_GTK_EVENT_MASK_DEFAULT \
+	(GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK | \
+	GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | \
+	GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK | \
+	GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | \
+	GDK_SCROLL_MASK | \
+	GDK_FOCUS_CHANGE_MASK)
+
 namespace slib
 {
 
@@ -45,7 +53,7 @@ namespace slib
 		
 	public:
 		template <class T>
-		static Ref<T> create(GtkWidget* handle)
+		static Ref<T> create(GtkWidget* handle, sl_bool flagFreeOnFailure = sl_true)
 		{
 			if (handle) {
 				Ref<T> ret = new T();
@@ -53,14 +61,18 @@ namespace slib
 					ret->_init(handle);
 					return ret;
 				}
+				if (flagFreeOnFailure) {
+					g_object_ref_sink(handle);
+					g_object_unref(handle);
+				}
 			}
 			return sl_null;
 		}
 
 		template <class T>
-		static Ref<T> create(View* view, ViewInstance* parent, GtkWidget* handle)
+		static Ref<T> create(View* view, ViewInstance* parent, GtkWidget* handle, sl_bool flagFreeOnFailure = sl_true)
 		{
-			Ref<T> ret = create<T>(handle);
+			Ref<T> ret = create<T>(handle, flagFreeOnFailure);
 			if (ret.isNotNull()) {
 				ret->applyProperties(view, parent);
 				return ret;
@@ -74,10 +86,6 @@ namespace slib
 
 		GtkWidget* getHandle();
 		
-		void setChildrenContainer(GtkWidget* widget);
-
-		void setPaintWidget(GtkWidget* widget);
-
 		sl_bool isValid(View* view) override;
 
 		void setFocus(View* view, sl_bool flag) override;
@@ -115,12 +123,14 @@ namespace slib
 		void setFont(View* view, const Ref<Font>& font) override;
 		
 	public:
-		void installEvents();
+		void installEventsWithDrawing();
 		
+		void installEvents(gint events = SLIB_GTK_EVENT_MASK_DEFAULT);
+
 		static gboolean eventCallback(GtkWidget* widget, GdkEvent* event, gpointer user_data);
 		
 	public:
-		virtual gboolean onExposeEvent(GdkEventExpose* event);
+		virtual void onExposeEvent(GdkEventExpose* event);
 		
 		virtual gboolean onMotionNotifyEvent(GdkEventMotion* event);
 		
@@ -143,8 +153,6 @@ namespace slib
 
 	protected:
 		GtkWidget* m_handle;
-		GtkWidget* m_handleChildrenContainer;
-		GtkWidget* m_handlePaint;
 		UIAction m_actionDrag;
 
 		UIRect m_frame;

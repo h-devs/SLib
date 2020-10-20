@@ -50,7 +50,7 @@ namespace slib
 			if (handle != nil) {
 				Ref<T> ret = new T;
 				if (ret.isNotNull()) {
-					ret->initialize(handle);
+					ret->initWithHandle(handle);
 					return ret;
 				}
 			}
@@ -63,7 +63,7 @@ namespace slib
 			if (handle != nil) {
 				Ref<T> ret = new T;
 				if (ret.isNotNull()) {
-					ret->initialize(handle, parent, view);
+					ret->initWithHandle(handle, parent, view);
 					return ret;
 				}
 			}
@@ -95,9 +95,9 @@ namespace slib
 		}
 		
 	public:
-		void initialize(NSView* handle);
+		void initWithHandle(NSView* handle);
 		
-		void initialize(NSView* handle, NSView* parent, View* view);
+		void initWithHandle(NSView* handle, NSView* parent, View* view);
 		
 		NSView* getHandle();
 		

@@ -104,18 +104,17 @@ namespace slib
 						gtk_container_add((GtkContainer*)window, contentContainer);
 						contentWidget = gtk_fixed_new();
 						if (contentWidget) {
+							GTK_WIDGET_SET_FLAGS(contentWidget, GTK_CAN_FOCUS);
 							gtk_container_add((GtkContainer*)contentContainer, contentWidget);
 							gtk_widget_show(contentWidget);
 						}
 						gtk_widget_show(contentContainer);
 					}
 
-					Ref<GTK_ViewInstance> content = GTK_ViewInstance::create<GTK_ViewInstance>((GtkWidget*)window);
+					Ref<GTK_ViewInstance> content = GTK_ViewInstance::create<GTK_ViewInstance>(contentWidget);
 					if (content.isNotNull()) {
-						content->setChildrenContainer(contentWidget);
-						content->setPaintWidget(contentWidget);
 						content->setWindowContent(sl_true);
-						content->installEvents();
+						content->installEventsWithDrawing();
 						m_viewContent = content;
 					}
 					
@@ -124,7 +123,7 @@ namespace slib
 					g_signal_connect(window, "window-state-event", G_CALLBACK(_ui_win_on_window_state_cb), NULL);
 					g_signal_connect(window, "configure-event", G_CALLBACK(_ui_win_on_configure_event_cb), NULL);
 					g_signal_connect(window, "notify::is-active", G_CALLBACK(_ui_win_on_notify_is_active_cb), NULL);
-								
+
 					gint x, y, width, height;
 					gtk_window_get_position(window, &x, &y);
 					gtk_window_get_size(window, &width, &height);

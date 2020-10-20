@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_SRC_UI_VIEW_GTK
-#define CHECKHEADER_SLIB_SRC_UI_VIEW_GTK
+#ifndef CHECKHEADER_SLIB_SRC_UI_BUTTON_GTK
+#define CHECKHEADER_SLIB_SRC_UI_BUTTON_GTK
 
 #include "slib/core/definition.h"
 
@@ -39,7 +39,7 @@ namespace slib
 	{
 		namespace button
 		{
-
+			
 			class ButtonInstance : public GTK_ViewInstance, public IButtonInstance
 			{
 				SLIB_DECLARE_OBJECT
@@ -50,15 +50,15 @@ namespace slib
 				~ButtonInstance();
 				
 			public:
-				sl_bool processCommand(SHORT code, LRESULT& result) override;
-
-				void setPadding(View* view, const UIEdgeInsets& padding) override;
+				void initialize(View* view) override;
 
 				void setText(Button* view, const String& text) override;
 				
 				void setDefaultButton(Button* view, sl_bool flag) override;
 				
 				sl_bool measureSize(Button* view, UISize& _out) override;
+
+				static void onClicked(GtkButton*, gpointer userinfo);
 
 			};
 
@@ -72,11 +72,15 @@ namespace slib
 				~CheckBoxInstance();
 
 			public:
+				void initialize(View* view) override;
+
 				sl_bool getChecked(CheckBox* view, sl_bool& flag) override;
 
 				void setChecked(CheckBox* view, sl_bool flag) override;
 
 				sl_bool measureSize(Button* view, UISize& _out) override;
+
+				static void onChanged(GtkToggleButton *, gpointer userinfo);
 
 			};
 			

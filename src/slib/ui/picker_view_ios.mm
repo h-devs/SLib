@@ -83,6 +83,15 @@ namespace slib
 				{
 					return CastRef<PickerViewHelper>(getView());
 				}
+
+				void initialize(View* _view) override
+				{					
+					PickerViewHelper* view = (PickerViewHelper*)_view;
+					SLIBPickerViewHandle* handle = getHandle();
+
+					setHandleFont(handle, view->getFont());
+					_select(handle, view->getSelectedIndex());
+				}
 				
 				static void _select(SLIBPickerViewHandle* handle, sl_uint32 index)
 				{
@@ -134,14 +143,7 @@ namespace slib
 	
 	Ref<ViewInstance> PickerView::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<PickerViewInstance> ret = iOS_ViewInstance::create<PickerViewInstance, SLIBPickerViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			SLIBPickerViewHandle* handle = ret->getHandle();
-			iOS_ViewInstance::setHandleFont(handle, getFont());
-			PickerViewInstance::_select(handle, m_indexSelected);
-			return ret;
-		}
-		return sl_null;
+		return iOS_ViewInstance::create<PickerViewInstance, SLIBPickerViewHandle>(this, parent);
 	}
 	
 	Ptr<IPickerViewInstance> PickerView::getPickerViewInstance()

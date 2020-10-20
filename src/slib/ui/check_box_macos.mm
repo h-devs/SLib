@@ -38,7 +38,6 @@ namespace slib
 		Ref<ButtonInstance> ret = macOS_ViewInstance::create<ButtonInstance, SLIBButtonHandle>(this, parent);
 		if (ret.isNotNull()) {
 			NSButton* handle = ret->getHandle();
-			handle.title = Apple::getNSStringFromString(getText());
 			[handle setButtonType:NSSwitchButton];
 			[handle setState: (m_flagChecked ? NSOnState : NSOffState)];
 			return ret;

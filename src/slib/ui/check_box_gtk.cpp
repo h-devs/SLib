@@ -22,11 +22,11 @@
 
 #include "slib/core/definition.h"
 
-#if defined(SLIB_UI_IS_WIN32)
+#if defined(SLIB_UI_IS_GTK)
 
 #include "slib/ui/check_box.h"
 
-#include "button_win32.h"
+#include "button_gtk.h"
 
 namespace slib
 {
@@ -49,17 +49,19 @@ namespace slib
 			void CheckBoxInstance::initialize(View* _view)
 			{
 				CheckBox* view = (CheckBox*)_view;
-				
+				GtkToggleButton* handle = (GtkToggleButton*)m_handle;
+
 				ButtonInstance::initialize(view);
-				setChecked(view, view->isChecked());
+				gtk_toggle_button_set_active(handle, view->isChecked());
+
+				g_signal_connect(handle, "toggled", G_CALLBACK(onChanged), handle);
 			}
 
 			sl_bool CheckBoxInstance::getChecked(CheckBox* view, sl_bool& _out)
 			{
-				HWND handle = m_handle;
+				GtkWidget* handle = m_handle;
 				if (handle) {
-					LRESULT lr = SendMessageW(handle, BM_GETCHECK, 0, 0);
-					_out = (lr == BST_CHECKED);
+					_out = gtk_toggle_button_get_active((GtkToggleButton *)handle);
 					return sl_true;
 				}
 				return sl_false;
@@ -67,32 +69,33 @@ namespace slib
 
 			void CheckBoxInstance::setChecked(CheckBox* view, sl_bool flag)
 			{
-				HWND handle = m_handle;
+				GtkWidget* handle = m_handle;
 				if (handle) {
-					if (flag) {
-						SendMessageW(handle, BM_SETCHECK, BST_CHECKED, 0);
-					} else {
-						SendMessageW(handle, BM_SETCHECK, BST_UNCHECKED, 0);
-					}
+					gtk_toggle_button_set_active((GtkToggleButton *)handle, flag);
 				}
 			}
 
 			sl_bool CheckBoxInstance::measureSize(Button* view, UISize& _out)
 			{
-				if (m_font.isNotNull()) {
-					sl_ui_len cx = (sl_ui_len)(GetSystemMetrics(SM_CXMENUCHECK));
-					sl_ui_len cy = (sl_ui_len)(GetSystemMetrics(SM_CYMENUCHECK));
-					String16 text = m_text;
-					if (text.isNotEmpty()) {
-						text = SLIB_UNICODE("  ") + text;
+				GtkWidget* handle = m_handle;
+				if(handle){
+					Ref<Font> font = view->getFont();
+					if (font.isNotNull()) {
+						_out = font->measureText(" " + view->getText());
+						return true;
 					}
-					UISize size = m_font->measureText(text);
-					size.x += cx;
-					size.y = SLIB_MAX(size.y, cy);
-					_out = size;
-					return sl_true;
 				}
 				return sl_false;
+			}
+			
+			void CheckBoxInstance::onChanged(GtkToggleButton *, gpointer userinfo)
+			{
+				GtkCheckButton* handle = (GtkCheckButton*)userinfo;
+				Ref<CheckBox> view = CastRef<CheckBox>(UIPlatform::getView((GtkWidget*)handle));
+				if (view.isNotNull()) {
+					bool isChecked = gtk_toggle_button_get_active((GtkToggleButton*)handle);
+					view->dispatchChange(isChecked);
+				}
 			}
 
 		}
@@ -102,8 +105,8 @@ namespace slib
 
 	Ref<ViewInstance> CheckBox::createNativeWidget(ViewInstance* parent)
 	{
-		UINT style = BS_AUTOCHECKBOX | WS_TABSTOP;
-		return Win32_ViewInstance::create<CheckBoxInstance>(this, parent, L"BUTTON", getText(), style, 0);
+		GtkWidget* handle = gtk_check_button_new_with_mnemonic("");
+		return GTK_ViewInstance::create<CheckBoxInstance>(this, parent, handle);
 	}
 
 	Ptr<ICheckBoxInstance> CheckBox::getCheckBoxInstance()
