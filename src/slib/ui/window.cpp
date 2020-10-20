@@ -1278,7 +1278,9 @@ namespace slib
 
 	void Window::_create(sl_bool flagKeepReference)
 	{
-		SLIB_VIEW_RUN_ON_UI_THREAD(&Window::_create, flagKeepReference)
+		if (!(UI::isRunningApp() && UI::isUiThread())) {
+			UI::dispatchToUiThread(Function<void()>::bindWeakRef(this, &Window::_create, flagKeepReference));
+		}
 
 		if (m_instance.isNotNull()) {
 			return;

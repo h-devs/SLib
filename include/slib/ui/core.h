@@ -209,6 +209,8 @@ namespace slib
 		static void runApp();
 		
 		static void quitApp();
+
+		static sl_bool isRunningApp();
 		
 		
 		static void openUrl(const String& url);

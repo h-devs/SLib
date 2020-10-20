@@ -99,8 +99,9 @@ namespace slib
 				}
 			};
 			
+			static sl_bool g_flagRunningApp = sl_false;
 			static sl_int32 g_nLevelRunLoop = 0;
-			static sl_bool g_flagQuitApp = 0;
+			static sl_bool g_flagQuitApp = sl_false;
 			
 			static void QuitLoop()
 			{
@@ -696,7 +697,9 @@ namespace slib
 
 	void UI::runApp()
 	{
+		g_flagRunningApp = sl_true;
 		UIPlatform::runApp();
+		g_flagRunningApp = sl_false;
 	}
 
 	void UI::quitApp()
@@ -706,6 +709,11 @@ namespace slib
 		} else {
 			UI::dispatchToUiThread(&QuitApp);
 		}
+	}
+	
+	sl_bool UI::isRunningApp()
+	{
+		return g_flagRunningApp;
 	}
 	
 	void UI::openUrl(const String& url)
