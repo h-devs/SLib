@@ -924,64 +924,76 @@ namespace slib
 		)
 		#define gtk_window_get_type slib::gtk::getApi_gtk_window_get_type()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-				gtk_button_set_label,
-				void, ,
-				GtkButton *button,
-				const gchar *label
+			gtk_button_set_label,
+			void, ,
+			GtkButton *button,
+			const gchar *label
 		)
 		#define gtk_button_set_label slib::gtk::getApi_gtk_button_set_label()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-				gtk_button_new,
-				GtkWidget*, ,
+			gtk_button_new,
+			GtkWidget*, ,
 		)
 		#define gtk_button_new slib::gtk::getApi_gtk_button_new()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-				gtk_widget_get_size_request,
-				void, ,
-				GtkWidget *widget,
-				gint *width,
-				gint *height
+			gtk_widget_get_size_request,
+			void, ,
+			GtkWidget *widget,
+			gint *width,
+			gint *height
 		)
 		#define gtk_widget_get_size_request slib::gtk::getApi_gtk_widget_get_size_request()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-				gtk_button_new_with_mnemonic,
-				GtkWidget*, ,
-				const gchar *label
+			gtk_button_new_with_mnemonic,
+			GtkWidget*, ,
+			const gchar *label
 		)
 		#define gtk_button_new_with_mnemonic slib::gtk::getApi_gtk_button_new_with_mnemonic()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-				gtk_button_set_use_underline,
-				GtkWidget*, ,
-				GtkButton *button,
-				gboolean use_underline
+			gtk_button_set_use_underline,
+			GtkWidget*, ,
+			GtkButton *button,
+			gboolean use_underline
 		)
 		#define gtk_button_set_use_underline slib::gtk::getApi_gtk_button_set_use_underline()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-				gtk_widget_set_can_default,
-				void, ,
-				GtkWidget *widget,
-				gboolean can_default
+			gtk_widget_set_can_default,
+			void, ,
+			GtkWidget *widget,
+			gboolean can_default
 		)
 		#define gtk_widget_set_can_default slib::gtk::getApi_gtk_widget_set_can_default()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-				gtk_check_button_new_with_mnemonic,
-				GtkWidget*, ,
-				const gchar *label
+			gtk_check_button_new_with_mnemonic,
+			GtkWidget*, ,
+			const gchar *label
 		)
 		#define gtk_check_button_new_with_mnemonic slib::gtk::getApi_gtk_check_button_new_with_mnemonic()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-				gtk_toggle_button_set_active,
-				void, ,
-				GtkToggleButton *toggle_button,
-				gboolean is_active
+			gtk_toggle_button_set_active,
+			void, ,
+			GtkToggleButton *toggle_button,
+			gboolean is_active
 		)
 		#define gtk_toggle_button_set_active slib::gtk::getApi_gtk_toggle_button_set_active()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-				gtk_toggle_button_get_active,
-				gboolean, ,
+			gtk_toggle_button_get_active,
+			gboolean, ,
 			GtkToggleButton *toggle_button
 		)
 		#define gtk_toggle_button_get_active slib::gtk::getApi_gtk_toggle_button_get_active()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_widget_has_focus,
+			gboolean, ,
+			GtkWidget *widget
+		)
+		#define gtk_widget_has_focus slib::gtk::getApi_gtk_widget_has_focus()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_widget_is_focus,
+			gboolean, ,
+			GtkWidget *widget
+		)
+		#define gtk_widget_is_focus slib::gtk::getApi_gtk_widget_is_focus()
 
 	SLIB_IMPORT_LIBRARY_END
 
