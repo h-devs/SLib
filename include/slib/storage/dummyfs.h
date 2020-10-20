@@ -37,7 +37,7 @@ namespace slib
 
 		sl_size fsRead(FileContext* context, const Memory& buffer, sl_uint64 offset) override 
 		{
-			return buffer.copy(String("dummy").toMemory(), offset, buffer.getSize());
+			return buffer.copy(String("dummy").toMemory(), (sl_size)offset, buffer.getSize());
 		}
 
 		FileInfo fsGetFileInfo(FileContext* context) override 

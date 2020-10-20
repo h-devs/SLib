@@ -22,8 +22,37 @@
 #define ConcatPath(FN, FP)              StringToWChar(String::format("%s%s", m_path, FN), FP)
 #define HandleFromContext(FD)           ((HANDLE)(FD->handle))
 
+#define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
+#include "slib/core/dl.h"
+
 namespace slib
 {
+
+	/* Windows XP Compatible */
+	SLIB_IMPORT_LIBRARY_BEGIN(api, "kernel32.dll")
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			SetFileInformationByHandle,
+			BOOL, WINAPI,
+			HANDLE hFile,
+			FILE_INFO_BY_HANDLE_CLASS FileInformationClass,
+			LPVOID lpFileInformation,
+			DWORD dwBufferSize
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			FindFirstStreamW,
+			HANDLE, WINAPI,
+			LPCWSTR lpFileName,
+			STREAM_INFO_LEVELS InfoLevel,
+			LPVOID lpFindStreamData,
+			DWORD dwFlags
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			FindNextStreamW,
+			BOOL, APIENTRY,
+			HANDLE hFindStream,
+			LPVOID lpFindStreamData
+		)
+	SLIB_IMPORT_LIBRARY_END
 
 	MirrorFs::MirrorFs(String path) : m_path(path)
 	{
@@ -271,11 +300,11 @@ namespace slib
 
 	void MirrorFs::fsDelete(FileContext* context, sl_bool checkOnly)
 	{
+		HANDLE handle = HandleFromContext(context);
 		WCHAR fullPath[MAX_PATH];
 		ZeroMemory(fullPath, sizeof(fullPath));
 
-		if (!GetFinalPathNameByHandle(HandleFromContext(context), fullPath, MAX_PATH - 1, 0))
-			ConcatPath(context->path, fullPath);
+		ConcatPath(context->path, fullPath);
 
 		DWORD fileAttr = GetFileAttributes(fullPath);
 		if (INVALID_FILE_ATTRIBUTES == fileAttr)
@@ -311,16 +340,20 @@ namespace slib
 				// TODO check if directory can be deletable
 			}
 			else {
-				FILE_DISPOSITION_INFO dispositionInfo;
-				dispositionInfo.DeleteFile = TRUE;
+				auto funcSetFileInformationByHandle = api::getApi_SetFileInformationByHandle();
+				if (funcSetFileInformationByHandle) {
+					FILE_DISPOSITION_INFO dispositionInfo;
+					dispositionInfo.DeleteFile = TRUE;
 
-				if (!SetFileInformationByHandle(HandleFromContext(context),
-					FileDispositionInfo, &dispositionInfo, sizeof dispositionInfo))
-					throw getError();
+					if (!funcSetFileInformationByHandle(handle,
+						FileDispositionInfo, &dispositionInfo, sizeof dispositionInfo))
+						throw getError();
 
-				dispositionInfo.DeleteFile = FALSE;
-				SetFileInformationByHandle(HandleFromContext(context),
-					FileDispositionInfo, &dispositionInfo, sizeof dispositionInfo);
+					dispositionInfo.DeleteFile = FALSE;
+					funcSetFileInformationByHandle(handle,
+						FileDispositionInfo, &dispositionInfo, sizeof dispositionInfo);
+				}
+				// TODO else
 			}
 		}
 		else {
@@ -376,9 +409,10 @@ namespace slib
 
 	FileInfo MirrorFs::fsGetFileInfo(FileContext* context)
 	{
+		HANDLE handle = HandleFromContext(context);
 		FileInfo fileInfo;
 
-		if (0 == HandleFromContext(context)) {
+		if (!handle || handle == INVALID_HANDLE_VALUE) {
 			WCHAR fullPath[MAX_PATH];
 			ConcatPath(context->path, fullPath);
 
@@ -407,7 +441,7 @@ namespace slib
 		else {
 			BY_HANDLE_FILE_INFORMATION byHandleFileInfo;
 
-			if (!GetFileInformationByHandle(HandleFromContext(context), &byHandleFileInfo))
+			if (!GetFileInformationByHandle(handle, &byHandleFileInfo))
 				throw getError();
 
 			if (context->path.getLength() == 1) {
@@ -435,57 +469,109 @@ namespace slib
 
 	void MirrorFs::fsSetFileInfo(FileContext* context, FileInfo fileInfo, FileInfoFlags flags)
 	{
+		HANDLE handle = HandleFromContext(context);
+		auto funcSetFileInformationByHandle = api::getApi_SetFileInformationByHandle();
+
 		if (flags & FileInfoFlags::AttrAndTimeInfo) {
-			FILE_BASIC_INFO basicInfo = { 0 };
-			FileInfo orgFileInfo = fsGetFileInfo(context);
+			if (funcSetFileInformationByHandle) {
+				FILE_BASIC_INFO basicInfo = { 0 };
+				FileInfo orgFileInfo = fsGetFileInfo(context);
 
-			TimeToFileTimeLI(orgFileInfo.createdAt, basicInfo.CreationTime);
-			TimeToFileTimeLI(orgFileInfo.lastAccessedAt, basicInfo.LastAccessTime);
-			TimeToFileTimeLI(orgFileInfo.modifiedAt, basicInfo.LastWriteTime);
-			TimeToFileTimeLI(orgFileInfo.modifiedAt, basicInfo.ChangeTime);
-			basicInfo.FileAttributes = 0;	// This means not to change original attribute
+				TimeToFileTimeLI(orgFileInfo.createdAt, basicInfo.CreationTime);
+				TimeToFileTimeLI(orgFileInfo.lastAccessedAt, basicInfo.LastAccessTime);
+				TimeToFileTimeLI(orgFileInfo.modifiedAt, basicInfo.LastWriteTime);
+				TimeToFileTimeLI(orgFileInfo.modifiedAt, basicInfo.ChangeTime);
+				basicInfo.FileAttributes = 0;	// This means not to change original attribute
 
-			if (flags & FileInfoFlags::AttrInfo) {
-				if (INVALID_FILE_ATTRIBUTES == fileInfo.fileAttributes)
-					fileInfo.fileAttributes = 0;
-				//else if (0 == fileInfo.fileAttributes)
-				//	fileInfo.fileAttributes = FILE_ATTRIBUTE_NORMAL;
+				if (flags & FileInfoFlags::AttrInfo) {
+					if (INVALID_FILE_ATTRIBUTES == fileInfo.fileAttributes)
+						fileInfo.fileAttributes = 0;
+					//else if (0 == fileInfo.fileAttributes)
+					//	fileInfo.fileAttributes = FILE_ATTRIBUTE_NORMAL;
 
-				basicInfo.FileAttributes = fileInfo.fileAttributes;
+					basicInfo.FileAttributes = fileInfo.fileAttributes;
+				}
+
+				if (flags & FileInfoFlags::TimeInfo) {
+					if (!fileInfo.createdAt.isZero())
+						TimeToFileTimeLI(fileInfo.createdAt, basicInfo.CreationTime);
+					if (!fileInfo.lastAccessedAt.isZero())
+						TimeToFileTimeLI(fileInfo.lastAccessedAt, basicInfo.LastAccessTime);
+					if (!fileInfo.modifiedAt.isZero()) {
+						TimeToFileTimeLI(fileInfo.modifiedAt, basicInfo.LastWriteTime);
+						TimeToFileTimeLI(fileInfo.modifiedAt, basicInfo.ChangeTime);
+					}
+				}
+
+				if (!funcSetFileInformationByHandle(handle,
+					FileBasicInfo, &basicInfo, sizeof basicInfo))
+					throw getError();
 			}
+			else {
+				if (flags & FileInfoFlags::AttrInfo) {
+					WCHAR fullPath[MAX_PATH];
+					ConcatPath(context->path, fullPath);
+					if (!SetFileAttributes(fullPath, fileInfo.fileAttributes))
+						throw getError();
+				}
 
-			if (flags & FileInfoFlags::TimeInfo) {
-				if (!fileInfo.createdAt.isZero())
-					TimeToFileTimeLI(fileInfo.createdAt, basicInfo.CreationTime);
-				if (!fileInfo.lastAccessedAt.isZero())
-					TimeToFileTimeLI(fileInfo.lastAccessedAt, basicInfo.LastAccessTime);
-				if (!fileInfo.modifiedAt.isZero()) {
-					TimeToFileTimeLI(fileInfo.modifiedAt, basicInfo.LastWriteTime);
-					TimeToFileTimeLI(fileInfo.modifiedAt, basicInfo.ChangeTime);
+				if (flags & FileInfoFlags::TimeInfo) {
+					FILETIME ctime, atime, mtime;
+					TimeToFileTime(fileInfo.createdAt, ctime);
+					TimeToFileTime(fileInfo.lastAccessedAt, atime);
+					TimeToFileTime(fileInfo.modifiedAt, mtime);
+					if (!SetFileTime(handle,
+						fileInfo.createdAt.isZero() ? NULL : &ctime,
+						fileInfo.lastAccessedAt.isZero() ? NULL : &atime,
+						fileInfo.modifiedAt.isZero() ? NULL : &mtime))
+						throw getError();
 				}
 			}
-
-			if (!SetFileInformationByHandle(HandleFromContext(context),
-				FileBasicInfo, &basicInfo, sizeof basicInfo))
-				throw getError();
 		}
 
 		if (flags & FileInfoFlags::SizeInfo) {
-			FILE_END_OF_FILE_INFO endOfFileInfo;
-			endOfFileInfo.EndOfFile.QuadPart = fileInfo.size;
+			if (funcSetFileInformationByHandle) {
+				FILE_END_OF_FILE_INFO endOfFileInfo;
+				endOfFileInfo.EndOfFile.QuadPart = fileInfo.size;
 
-			if (!SetFileInformationByHandle(HandleFromContext(context),
-				FileEndOfFileInfo, &endOfFileInfo, sizeof endOfFileInfo))
-				throw getError();
+				if (!funcSetFileInformationByHandle(handle,
+					FileEndOfFileInfo, &endOfFileInfo, sizeof endOfFileInfo))
+					throw getError();
+			}
+			else {
+				LARGE_INTEGER offset;
+				offset.QuadPart = fileInfo.size;
+
+				if (!SetFilePointerEx(handle, offset, NULL, FILE_BEGIN))
+					throw getError();
+				if (!SetEndOfFile(handle))
+					throw getError();
+			}
 		}
 
 		if (flags & FileInfoFlags::AllocSizeInfo) {
-			FILE_ALLOCATION_INFO allocationInfo;
-			allocationInfo.AllocationSize.QuadPart = fileInfo.allocationSize;
+			if (funcSetFileInformationByHandle) {
+				FILE_ALLOCATION_INFO allocationInfo;
+				allocationInfo.AllocationSize.QuadPart = fileInfo.allocationSize;
 
-			if (!SetFileInformationByHandle(HandleFromContext(context),
-				FileAllocationInfo, &allocationInfo, sizeof allocationInfo))
-				throw getError();
+				if (!funcSetFileInformationByHandle(handle,
+					FileAllocationInfo, &allocationInfo, sizeof allocationInfo))
+					throw getError();
+			}
+			else {
+				LARGE_INTEGER fileSize;
+				LARGE_INTEGER offset;
+				if (!GetFileSizeEx(handle, &fileSize))
+					throw getError();
+
+				if (fileInfo.allocationSize < (sl_uint64)fileSize.QuadPart) {
+					offset.QuadPart = fileInfo.allocationSize;
+					if (!SetFilePointerEx(handle, offset, NULL, FILE_BEGIN))
+						throw getError();
+					if (!SetEndOfFile(handle))
+						throw getError();
+				}
+			}
 		}
 	}
 
@@ -523,7 +609,6 @@ namespace slib
 
 	HashMap<String, FileInfo> MirrorFs::fsFindFiles(FileContext* context, String patternString)
 	{
-		HANDLE handle = HandleFromContext(context);
 		WCHAR fullPath[MAX_PATH];
 		WCHAR pattern[MAX_PATH];
 		ULONG length, patternLength;
@@ -534,15 +619,8 @@ namespace slib
 		if (patternString.isNull() || patternString.isEmpty())
 			patternString = "*";
 
-		if (handle) {
-			length = GetFinalPathNameByHandle(handle, fullPath, MAX_PATH - 1, 0);
-			if (0 == length)
-				throw getError();
-		}
-		else {
-			ConcatPath(context->path, fullPath);
-			length = (ULONG)wcslen(fullPath);
-		}
+		ConcatPath(context->path, fullPath);
+		length = (ULONG)wcslen(fullPath);
 
 		StringToWChar(patternString, pattern);
 		patternLength = (ULONG)wcslen(pattern);
@@ -588,24 +666,21 @@ namespace slib
 
 	HashMap<String, StreamInfo> MirrorFs::fsFindStreams(FileContext* context)
 	{
-		HANDLE handle = HandleFromContext(context);
+		auto funcFindFirstStream = api::getApi_FindFirstStreamW();
+		auto funcFindNextStream = api::getApi_FindNextStreamW();
+		if (!funcFindFirstStream || !funcFindNextStream)
+			throw FileSystemError::NotImplemented;
+
 		WCHAR fullPath[MAX_PATH];
 		ULONG length;
 		HANDLE findHandle;
 		WIN32_FIND_STREAM_DATA findData;
 		HashMap<String, StreamInfo> streams;
 
-		if (handle) {
-			length = GetFinalPathNameByHandle(handle, fullPath, MAX_PATH - 1, 0);
-			if (0 == length)
-				throw getError();
-		}
-		else {
-			ConcatPath(context->path, fullPath);
-			length = (ULONG)wcslen(fullPath);
-		}
+		ConcatPath(context->path, fullPath);
+		length = (ULONG)wcslen(fullPath);
 
-		findHandle = FindFirstStreamW(fullPath, FindStreamInfoStandard, &findData, 0);
+		findHandle = funcFindFirstStream(fullPath, FindStreamInfoStandard, &findData, 0);
 		if (INVALID_HANDLE_VALUE == findHandle)
 			throw getError();
 
@@ -614,7 +689,7 @@ namespace slib
 			StreamInfo streamInfo;
 			streamInfo.size = findData.StreamSize.QuadPart;
 			streams.add(streamName, streamInfo);
-		} while (FindNextStreamW(findHandle, &findData) != 0);
+		} while (funcFindNextStream(findHandle, &findData) != 0);
 
 		FindClose(findHandle);
 
