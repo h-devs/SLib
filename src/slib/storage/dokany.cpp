@@ -24,11 +24,8 @@
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 
+#define _EXPORTING
 #include "dokany/dokan.h"
-#ifdef DOKANAPI
-#undef DOKANAPI
-#endif
-#define DOKANAPI __stdcall
 
 #include "slib/core/service_manager.h"
 #include "slib/core/dynamic_library.h"
