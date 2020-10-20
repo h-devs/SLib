@@ -30,8 +30,6 @@
 
 #include "view_gtk.h"
 
-#include "gdk/gdkkeysyms.h"
-
 namespace slib
 {
 	namespace priv
@@ -168,14 +166,6 @@ namespace slib
 						return (sl_ui_len)(font->getFontHeight() * 1.5f) + 2;
 					}
 					return 0;
-				}
-
-				gboolean onKeyEvent(GdkEventKey* event) override
-				{
-					if (event->keyval == GDK_KEY_Up || event->keyval == GDK_KEY_Down) {
-						return 1;
-					}
-					return GTK_ViewInstance::onKeyEvent(event);
 				}
 
 				static void onChange(GtkEditable*, gpointer user_data)
@@ -380,6 +370,11 @@ namespace slib
 							return (sl_ui_len)(y + height + 4);
 						}
 					}
+					return 0;
+				}
+
+				gboolean onKeyEvent(GdkEventKey* gevent) override
+				{
 					return 0;
 				}
 

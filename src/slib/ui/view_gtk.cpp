@@ -338,7 +338,7 @@ namespace slib
 		if (handle) {
 			GtkWidget* handleConnect = handle;
 			if (isWindowContent()) {
-				handleConnect = gtk_widget_get_toplevel(handle);
+				handleConnect = gtk_widget_get_parent(handle);
 			}
 			g_signal_connect(handleConnect, "motion-notify-event", G_CALLBACK(eventCallback), handle);
 			g_signal_connect(handleConnect, "button-press-event", G_CALLBACK(eventCallback), handle);
@@ -416,7 +416,7 @@ namespace slib
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
 				onMouseEvent(event.get());
-				if (event->isStoppedPropagation()) {
+				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
 					return sl_true;
 				}
 			}
@@ -477,7 +477,7 @@ namespace slib
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
 				onMouseEvent(event.get());
-				if (event->isStoppedPropagation()) {
+				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
 					return sl_true;
 				}
 			}
@@ -510,7 +510,7 @@ namespace slib
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
 				onMouseEvent(event.get());
-				if (event->isStoppedPropagation()) {
+				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
 					return sl_true;
 				}
 			}
@@ -535,9 +535,12 @@ namespace slib
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
 				ViewInstance::onKeyEvent(event.get());
-				if (event->isStoppedPropagation()) {
+				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
 					return sl_true;
 				}
+			}
+			if (key == Keycode::Up || key == Keycode::Down) {
+				return sl_true;
 			}
 		}
 		return sl_false;
@@ -581,7 +584,7 @@ namespace slib
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
 				onMouseWheelEvent(event.get());
-				if (event->isStoppedPropagation()) {
+				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
 					return sl_true;
 				}
 			}

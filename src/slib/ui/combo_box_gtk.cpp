@@ -67,6 +67,11 @@ namespace slib
 					}
 
 					g_signal_connect(handle, "changed", G_CALLBACK(onChanged), handle);
+
+					GtkEntry* entry = getEntry(handle);
+					if (entry) {
+						g_signal_connect(entry, "focus-in-event", G_CALLBACK(eventCallback), handle);
+					}
 				}
 				
 				void refreshItems(ComboBox* view, sl_bool flagInit)
