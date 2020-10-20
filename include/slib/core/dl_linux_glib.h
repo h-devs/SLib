@@ -113,6 +113,13 @@ namespace slib
 			GType iface_type
 		)
 		#define g_type_check_instance_cast slib::gobject::getApi_g_type_check_instance_cast()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        g_type_class_peek_parent,
+	        gpointer, ,
+	        gpointer g_class
+	    )
+        #define g_type_class_peek_parent slib::gobject::getApi_g_type_class_peek_parent()
+
 	SLIB_IMPORT_LIBRARY_END
 
 	SLIB_IMPORT_LIBRARY_BEGIN(gthread, "libgthread-2.0.so.0")

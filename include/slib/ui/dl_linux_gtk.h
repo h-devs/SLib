@@ -982,6 +982,23 @@ namespace slib
 			GtkToggleButton *toggle_button
 		)
 		#define gtk_toggle_button_get_active slib::gtk::getApi_gtk_toggle_button_get_active()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	            gtk_radio_button_new_with_mnemonic,
+	            GtkWidget*, ,
+	            GSList         *group,
+	            const gchar    *label
+	    )
+        #define gtk_radio_button_new_with_mnemonic slib::gtk::getApi_gtk_radio_button_new_with_mnemonic()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	            gtk_toggle_button_new,
+	            GtkWidget*, ,
+	    )
+        #define gtk_toggle_button_new slib::gtk::getApi_gtk_toggle_button_new()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	            gtk_radio_button_get_type,
+	            GType, ,
+	    )
+        #define gtk_radio_button_get_type slib::gtk::getApi_gtk_radio_button_get_type()
 
 	SLIB_IMPORT_LIBRARY_END
 
@@ -990,4 +1007,3 @@ namespace slib
 #endif
 
 #endif
-
