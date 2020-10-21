@@ -185,6 +185,7 @@ namespace slib
 		InvalidData = 13U,		/*ERROR_INVALID_DATA*/
 		FileExist = 80U,		/*ERROR_FILE_EXISTS*/
 		InvalidPassword = 86U,	/*ERROR_INVALID_PASSWORD*/
+		BufferOverflow = 122U,	/*ERROR_INSUFFICIENT_BUFFER*/
 		AlreadyExist = 183U,	/*ERROR_ALREADY_EXISTS*/
 		InitFailure = 575U,		/*ERROR_APP_INIT_FAILURE*/
 		NotImplemented = 0xFFFFFFFFU,
@@ -303,8 +304,8 @@ namespace slib
 			throw FileSystemError::NotImplemented;
 		}
 
-		virtual Memory
-			fsGetSecurity(FileContext* context, sl_uint32 securityInformation)
+		virtual sl_size
+			fsGetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor)
 		{
 			throw FileSystemError::NotImplemented;
 		}

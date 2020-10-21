@@ -392,17 +392,17 @@ namespace slib
 			printLog(desc);
 	}
 
-	Memory FsLogger::fsGetSecurity(FileContext* context, sl_uint32 securityInformation)
+	sl_size FsLogger::fsGetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor)
 	{
 		if (!(m_flags & FsLogGetSec) || !m_regex.match(context->path))
-			return m_base->fsGetSecurity(context, securityInformation);
+			return m_base->fsGetSecurity(context, securityInformation, securityDescriptor);
 
-		String desc = String::format("GetSecurity(%s,0x%X)", contextDesc, securityInformation);
+		String desc = String::format("GetSecurity(%s,0x%X,%d)", contextDesc, securityInformation, securityDescriptor.getSize());
 		if (!(m_flags & FsLogRetAndErrors))
 			printLog(desc);
-		Memory ret;
+		sl_size ret;
 		try {
-			ret = m_base->fsGetSecurity(context, securityInformation);
+			ret = m_base->fsGetSecurity(context, securityInformation, securityDescriptor);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
@@ -410,7 +410,7 @@ namespace slib
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog("%s\n  Ret: %d", desc, ret.getSize());
+			printLog("%s\n  Ret: %d\n  Status: %d", desc, ret, context->status);
 		return ret;
 	}
 

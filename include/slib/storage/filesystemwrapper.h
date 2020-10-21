@@ -120,10 +120,10 @@ namespace slib
 			return m_base->fsSetFileInfo(getBaseContext(context), fileInfo, flags);
 		}
 
-		virtual Memory
-			fsGetSecurity(FileContext* context, sl_uint32 securityInformation) override
+		virtual sl_size
+			fsGetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor) override
 		{
-			return m_base->fsGetSecurity(getBaseContext(context), securityInformation);
+			return m_base->fsGetSecurity(getBaseContext(context), securityInformation, securityDescriptor);
 		}
 
 		virtual void

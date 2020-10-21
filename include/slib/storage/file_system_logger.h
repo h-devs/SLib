@@ -111,7 +111,7 @@ namespace slib
 
 		void fsSetFileInfo(FileContext* context, FileInfo fileInfo, FileInfoFlags flags) override;
 
-		Memory fsGetSecurity(FileContext* context, sl_uint32 securityInformation) override;
+		sl_size fsGetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor) override;
 
 		void fsSetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor) override;
 

@@ -34,7 +34,7 @@ namespace slib
 		void fsUnlock(FileContext* context, sl_uint64 byteOffset, sl_uint64 length) override;
 		FileInfo fsGetFileInfo(FileContext* context) override;
 		void fsSetFileInfo(FileContext* context, FileInfo fileInfo, FileInfoFlags flags) override;
-		Memory fsGetSecurity(FileContext* context, sl_uint32 securityInformation) override;
+		sl_size fsGetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor) override;
 		void fsSetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor) override;
 		HashMap<String, FileInfo> fsFindFiles(FileContext* context, String pattern) override;
 		HashMap<String, StreamInfo> fsFindStreams(FileContext* context) override;

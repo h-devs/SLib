@@ -253,48 +253,98 @@ namespace slib
 	sl_size MirrorFs::fsRead(FileContext* context, const Memory& buffer, sl_uint64 offset)
 	{
 		DWORD bytesTransferred = 0;
+		HANDLE handle = HandleFromContext(context);
+		WCHAR fullPath[MAX_PATH];
+		ConcatPath(context->path, fullPath);
+
+		BOOL opened = FALSE;
+		if (!handle || handle == INVALID_HANDLE_VALUE) {
+			handle = CreateFile(fullPath, GENERIC_READ, FILE_SHARE_READ, NULL,
+				OPEN_EXISTING, 0, NULL);
+			if (handle == INVALID_HANDLE_VALUE) {
+				throw getError();
+			}
+			else {
+				opened = TRUE;
+			}
+		}
 
 		LARGE_INTEGER li;
 		li.QuadPart = offset;
-		if (!SetFilePointerEx(HandleFromContext(context), li, NULL, FILE_BEGIN))
+		if (!SetFilePointerEx(handle, li, NULL, FILE_BEGIN)) {
+			if (opened)
+				CloseHandle(handle);
 			throw getError();
+		}
 
-		if (!ReadFile(HandleFromContext(context), buffer.getData(), (DWORD)buffer.getSize(), &bytesTransferred, NULL))
+		if (!ReadFile(handle, buffer.getData(), (DWORD)buffer.getSize(), &bytesTransferred, NULL)) {
+			if (opened)
+				CloseHandle(handle);
 			throw getError();
+		}
 
+		if (opened)
+			CloseHandle(handle);
 		return bytesTransferred;
 	}
 
 	sl_size MirrorFs::fsWrite(FileContext* context, const Memory& buffer, sl_uint64 offset, sl_bool writeToEof)
 	{
 		DWORD bytesTransferred = 0;
+		HANDLE handle = HandleFromContext(context);
+		WCHAR fullPath[MAX_PATH];
+		ConcatPath(context->path, fullPath);
+
+		BOOL opened = FALSE;
+		if (!handle || handle == INVALID_HANDLE_VALUE) {
+			handle = CreateFile(fullPath, GENERIC_WRITE, FILE_SHARE_WRITE, NULL,
+				OPEN_EXISTING, 0, NULL);
+			if (handle == INVALID_HANDLE_VALUE) {
+				throw getError();
+			}
+			else {
+				opened = TRUE;
+			}
+		}
 
 		LARGE_INTEGER li;
 		if (writeToEof) {
 			li.QuadPart = 0;
-			if (!SetFilePointerEx(HandleFromContext(context), li, NULL, FILE_END))
+			if (!SetFilePointerEx(handle, li, NULL, FILE_END)) {
+				if (opened)
+					CloseHandle(handle);
 				throw getError();
+			}
 		}
 		else {
 			li.QuadPart = offset;
-			if (!SetFilePointerEx(HandleFromContext(context), li, NULL, FILE_BEGIN))
+			if (!SetFilePointerEx(handle, li, NULL, FILE_BEGIN)) {
+				if (opened)
+					CloseHandle(handle);
 				throw getError();
+			}
 		}
 
-		if (!WriteFile(HandleFromContext(context), buffer.getData(), (DWORD)buffer.getSize(), &bytesTransferred, NULL))
+		if (!WriteFile(handle, buffer.getData(), (DWORD)buffer.getSize(), &bytesTransferred, NULL)) {
+			if (opened)
+				CloseHandle(handle);
 			throw getError();
+		}
 
+		if (opened)
+			CloseHandle(handle);
 		return bytesTransferred;
 	}
 
 	void MirrorFs::fsFlush(FileContext* context)
 	{
-		/* we do not flush the whole volume, so just return SUCCESS */
-		if (0 == HandleFromContext(context)) {
+		HANDLE handle = HandleFromContext(context);
+
+		if (!handle || handle == INVALID_HANDLE_VALUE) {
 			return;
 		}
 
-		if (!FlushFileBuffers(HandleFromContext(context)))
+		if (!FlushFileBuffers(handle))
 			throw getError();
 	}
 
@@ -381,12 +431,17 @@ namespace slib
 
 	void MirrorFs::fsLock(FileContext* context, sl_uint64 offset, sl_uint64 length)
 	{
+		HANDLE handle = HandleFromContext(context);
+		if (!handle || handle == INVALID_HANDLE_VALUE) {
+			throw FileSystemError::InvalidContext;
+		}
+
 		LARGE_INTEGER liOffset;
 		LARGE_INTEGER liLength;
 		liOffset.QuadPart = offset;
 		liLength.QuadPart = length;
 
-		if (!LockFile(HandleFromContext(context), 
+		if (!LockFile(handle, 
 			liOffset.HighPart, liOffset.LowPart,
 			liLength.HighPart, liLength.LowPart)) {
 			throw getError();
@@ -395,12 +450,17 @@ namespace slib
 
 	void MirrorFs::fsUnlock(FileContext* context, sl_uint64 offset, sl_uint64 length)
 	{
+		HANDLE handle = HandleFromContext(context);
+		if (!handle || handle == INVALID_HANDLE_VALUE) {
+			throw FileSystemError::InvalidContext;
+		}
+
 		LARGE_INTEGER liOffset;
 		LARGE_INTEGER liLength;
 		liOffset.QuadPart = offset;
 		liLength.QuadPart = length;
 
-		if (!UnlockFile(HandleFromContext(context),
+		if (!UnlockFile(handle,
 			liOffset.HighPart, liOffset.LowPart,
 			liLength.HighPart, liLength.LowPart)) {
 			throw getError();
@@ -410,12 +470,25 @@ namespace slib
 	FileInfo MirrorFs::fsGetFileInfo(FileContext* context)
 	{
 		HANDLE handle = HandleFromContext(context);
-		FileInfo fileInfo;
+		WCHAR fullPath[MAX_PATH];
+		ConcatPath(context->path, fullPath);
 
+		BOOL opened = FALSE;
 		if (!handle || handle == INVALID_HANDLE_VALUE) {
-			WCHAR fullPath[MAX_PATH];
-			ConcatPath(context->path, fullPath);
+			handle = CreateFile(fullPath, GENERIC_READ, FILE_SHARE_READ, NULL,
+				OPEN_EXISTING, 0, NULL);
+			if (handle == INVALID_HANDLE_VALUE) {
+				throw getError();
+			}
+			else {
+				opened = TRUE;
+			}
+		}
 
+		FileInfo fileInfo;
+		BY_HANDLE_FILE_INFORMATION byHandleFileInfo;
+
+		if (!GetFileInformationByHandle(handle, &byHandleFileInfo)) {
 			if (context->path.getLength() == 1) {
 				fileInfo.fileAttributes = GetFileAttributes(fullPath);
 			}
@@ -423,8 +496,11 @@ namespace slib
 				WIN32_FIND_DATAW find;
 				ZeroMemory(&find, sizeof(WIN32_FIND_DATAW));
 				HANDLE findHandle = FindFirstFile(fullPath, &find);
-				if (findHandle == INVALID_HANDLE_VALUE)
+				if (findHandle == INVALID_HANDLE_VALUE) {
+					if (opened)
+						CloseHandle(handle);
 					throw getError();
+				}
 
 				fileInfo.fileAttributes = find.dwFileAttributes;
 				fileInfo.size =
@@ -439,22 +515,7 @@ namespace slib
 			}
 		}
 		else {
-			BY_HANDLE_FILE_INFORMATION byHandleFileInfo;
-
-			if (!GetFileInformationByHandle(handle, &byHandleFileInfo))
-				throw getError();
-
-			if (context->path.getLength() == 1) {
-				WCHAR Root[MAX_PATH];
-				StringToWChar(m_root, Root);
-				fileInfo.fileAttributes = GetFileAttributes(Root);
-			}
-			else {
-				fileInfo.fileAttributes = byHandleFileInfo.dwFileAttributes;
-			}
-			if (INVALID_FILE_ATTRIBUTES == fileInfo.fileAttributes)
-				throw getError();
-
+			fileInfo.fileAttributes = byHandleFileInfo.dwFileAttributes;
 			fileInfo.size =
 				((UINT64)byHandleFileInfo.nFileSizeHigh << 32) | (UINT64)byHandleFileInfo.nFileSizeLow;
 			fileInfo.allocationSize = (fileInfo.size + ALLOCATION_UNIT - 1)
@@ -464,6 +525,8 @@ namespace slib
 			FileTimeToTime(byHandleFileInfo.ftLastWriteTime, fileInfo.modifiedAt);
 		}
 
+		if (opened)
+			CloseHandle(handle);
 		return fileInfo;
 	}
 
@@ -575,28 +638,45 @@ namespace slib
 		}
 	}
 
-	Memory MirrorFs::fsGetSecurity(FileContext* context, sl_uint32 securityInformation)
+	sl_size MirrorFs::fsGetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor)
 	{
-		Memory securityDescriptor;
 		DWORD lengthNeeded;
-		if (!GetUserObjectSecurity(HandleFromContext(context),
+		WCHAR fullPath[MAX_PATH];
+		ConcatPath(context->path, fullPath);
+
+		BOOL requestingSaclInfo = (
+			(securityInformation & 0x00000008L/*SACL_SECURITY_INFORMATION*/) ||
+			(securityInformation & 0x00010000L/*BACKUP_SECURITY_INFORMATION*/));
+
+		HANDLE handle = CreateFile(
+			fullPath,
+			READ_CONTROL | (requestingSaclInfo ? ACCESS_SYSTEM_SECURITY : 0),
+			FILE_SHARE_WRITE | FILE_SHARE_READ | FILE_SHARE_DELETE,
+			NULL, // security attribute
+			OPEN_EXISTING,
+			FILE_FLAG_BACKUP_SEMANTICS, // |FILE_FLAG_NO_BUFFERING,
+			NULL);
+
+		if (!handle || handle == INVALID_HANDLE_VALUE)
+			throw getError();
+
+		if (!GetUserObjectSecurity(handle,
 			(PSECURITY_INFORMATION)&securityInformation,
 			(PSECURITY_DESCRIPTOR)securityDescriptor.getData(),
 			(DWORD)securityDescriptor.getSize(),
 			&lengthNeeded)) {
 			if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
-				securityDescriptor = Memory::create(lengthNeeded);
-				if (!GetUserObjectSecurity(HandleFromContext(context),
-					(PSECURITY_INFORMATION)&securityInformation,
-					(PSECURITY_DESCRIPTOR)securityDescriptor.getData(),
-					(DWORD)securityDescriptor.getSize(),
-					&lengthNeeded))
-					throw getError();
+				CloseHandle(handle);
+				return lengthNeeded;
 			}
-			else
+			else {
+				CloseHandle(handle);
 				throw getError();
+			}
 		}
-		return securityDescriptor;
+
+		CloseHandle(handle);
+		return GetSecurityDescriptorLength((PSECURITY_DESCRIPTOR)securityDescriptor.getData());
 	}
 
 	void MirrorFs::fsSetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor)

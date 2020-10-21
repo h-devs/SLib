@@ -991,21 +991,18 @@ namespace slib
 		if (!DokanHost::g_hasSeSecurityPrivilege) {
 			*SecurityInformation &= ~0x00000008L/*SACL_SECURITY_INFORMATION*/;
 			*SecurityInformation &= ~0x00010000L/*BACKUP_SECURITY_INFORMATION*/;
-			// TODO ReOpen with READ_CONTROL|ACCESS_SYSTEM_SECURITY access
 		}
-		// else TODO ReOpen with READ_CONTROL access
 
 		try {
-			Memory fileSecurity = base->fsGetSecurity(context, *SecurityInformation);
-			*LengthNeeded = (ULONG)fileSecurity.getSize();
+			*LengthNeeded = (ULONG)base->fsGetSecurity(context, *SecurityInformation,
+				Memory::createStatic(SecurityDescriptor, BufferLength));
 			if (BufferLength < *LengthNeeded) {
 #ifdef SLIB_DOKAN_IS_DOKANY
 				return STATUS_BUFFER_OVERFLOW;
 #else
 				return DOKAN_RETERROR(ERROR_INSUFFICIENT_BUFFER);
 #endif
-			} else
-				memcpy(SecurityDescriptor, fileSecurity.getData(), *LengthNeeded);
+			}
 		} catch (FileSystemError error) {
 #ifdef SLIB_DOKAN_IS_DOKANY
 			if (error == FileSystemError::NotImplemented) {
