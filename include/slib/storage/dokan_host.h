@@ -10,18 +10,7 @@
 #include "../../../external/include/dokany/dokan.h"
 #include "filesystemhost.h"
 
-#if DOKAN_VERSION >= 600
-# define		SLIB_DOKAN_VERSION			(DOKAN_VERSION / 10)
-# define		SLIB_DOKAN_MAJOR_VERSION	(DOKAN_VERSION / 1000)
-# define		SLIB_DOKAN_RET				int
-# define		SLIB_DOKAN_RET_VOID			int
-#else
-# define		SLIB_DOKAN_VERSION			DOKAN_VERSION
-# define		SLIB_DOKAN_MAJOR_VERSION	(DOKAN_VERSION / 100)
-# define		SLIB_DOKAN_RET				NTSTATUS
-# define		SLIB_DOKAN_RET_VOID			void
-# define		SLIB_DOKAN_IS_DOKANY
-#endif
+#define	SLIB_DOKAN_RET	int
 
 namespace slib
 {
@@ -35,10 +24,8 @@ namespace slib
 		void setVersion(sl_uint16 version);
 		void setThreadCount(sl_uint16 threadCount);
 		void setMountPoint(const StringParam& mountPoint);
-#ifdef SLIB_DOKAN_IS_DOKANY
 		void setUNCName(const StringParam& uncName);
 		void setTimeout(sl_uint32 timeout);
-#endif
 		void setDebugMode(sl_bool flagUseStdErr);
 
 	public:
@@ -51,8 +38,7 @@ namespace slib
 		static BOOL addSeSecurityNamePrivilege();
 
 	private:
-#ifdef SLIB_DOKAN_IS_DOKANY
-		static SLIB_DOKAN_RET DOKAN_CALLBACK
+		static SLIB_DOKAN_RET DOKAN_CALLBACK	// SLIB_DOKAN_IS_DOKANY
 			ZwCreateFile(
 				LPCWSTR					FileName,
 				PDOKAN_IO_SECURITY_CONTEXT SecurityContext,
@@ -62,7 +48,6 @@ namespace slib
 				ULONG					CreateDisposition,
 				ULONG					CreateOptions,
 				PDOKAN_FILE_INFO		DokanFileInfo);
-#endif // SLIB_DOKAN_IS_DOKANY
 
 		static SLIB_DOKAN_RET DOKAN_CALLBACK	// !SLIB_DOKAN_IS_DOKANY
 			CreateFile(
@@ -83,12 +68,12 @@ namespace slib
 				LPCWSTR					FileName,
 				PDOKAN_FILE_INFO		DokanFileInfo);
 
-		static SLIB_DOKAN_RET_VOID DOKAN_CALLBACK
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
 			Cleanup(
 				LPCWSTR					FileName,
 				PDOKAN_FILE_INFO		DokanFileInfo);
 
-		static SLIB_DOKAN_RET_VOID DOKAN_CALLBACK
+		static SLIB_DOKAN_RET DOKAN_CALLBACK
 			CloseFile(
 				LPCWSTR					FileName,
 				PDOKAN_FILE_INFO		DokanFileInfo);
@@ -134,13 +119,13 @@ namespace slib
 				LPCWSTR				SearchPattern,
 				PFillFindData		FillFindData, // function pointer
 				PDOKAN_FILE_INFO	DokanFileInfo);
-#ifdef SLIB_DOKAN_IS_DOKANY
-		static SLIB_DOKAN_RET DOKAN_CALLBACK
+
+		static SLIB_DOKAN_RET DOKAN_CALLBACK	// SLIB_DOKAN_IS_DOKANY
 			FindStreams(
 				LPCWSTR				FileName,
 				PFillFindStreamData	FillFindStreamData,
 				PDOKAN_FILE_INFO	DokanFileInfo);
-#endif // SLIB_DOKAN_IS_DOKANY
+
 		static SLIB_DOKAN_RET DOKAN_CALLBACK
 			DeleteFile(
 				LPCWSTR				FileName,
@@ -242,55 +227,12 @@ namespace slib
 				PDOKAN_FILE_INFO	DokanFileInfo);
 
 	public:
-		static PDOKAN_OPERATIONS Interface()
-		{
-			static DOKAN_OPERATIONS dokanInterface = {
-#ifdef SLIB_DOKAN_IS_DOKANY
-				ZwCreateFile,
-#else
-				CreateFile,
-				OpenDirectory,
-				CreateDirectory,
-#endif
-				Cleanup,
-				CloseFile,
-				ReadFile,
-				WriteFile,
-				FlushFileBuffers,
-				GetFileInformation,
-				FindFiles,
-				NULL, //FindFilesWithPattern,
-				SetFileAttributes,
-				SetFileTime,
-				DeleteFile,
-				DeleteDirectory,
-				MoveFile,
-				SetEndOfFile,
-				SetAllocationSize,
-				LockFile,
-				UnlockFile,
-				GetDiskFreeSpace,
-				GetVolumeInformation,
-#ifdef SLIB_DOKAN_IS_DOKANY
-				Mounted,
-#endif
-				Unmounted,
-				GetFileSecurity,
-				SetFileSecurity,
-#ifdef SLIB_DOKAN_IS_DOKANY
-				FindStreams,
-#endif
-			};
-
-			return &dokanInterface;
-		}
+		static void* Interface();
 
 	private:
 		DOKAN_OPTIONS m_dokanOptions;
 		WCHAR m_mountPoint[MAX_PATH];
-#ifdef SLIB_DOKAN_IS_DOKANY
 		WCHAR m_uncName[MAX_PATH];
-#endif
 		BOOL m_flagStarted;
 	};
 

@@ -53,17 +53,18 @@ namespace slib
 		if (Dokany::getDriverState() != ServiceState::None) {
 			return sl_true;
 		}
-		
-		ServiceCreateParam param;
-		return ServiceManager::createAndStart(param);
+
+		return Dokany::registerAndStartDriver();
 	}
 
 	void DokanyControl::uninstall()
 	{
+		Dokany::unregisterDriver();
 	}
 
 	void DokanyControl::unmount(const StringParam& mountPoint)
 	{
+		Dokany::unmount(mountPoint);
 	}
 
 }
