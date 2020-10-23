@@ -29,6 +29,7 @@
 #include "slib/core/scoped.h"
 #include "slib/core/variant.h"
 #include "slib/core/endian.h"
+#include "slib/core/dl_windows_kernel32.h"
 
 #include <crtdbg.h>
 #include <shlwapi.h>
@@ -709,6 +710,26 @@ namespace slib
 	WindowsVersion Windows::getVersion()
 	{
 		return priv::platform::GetWindowsVersion();
+	}
+
+	sl_bool Windows::is64BitSystem()
+	{
+#ifdef SLIB_PLATFORM_IS_WIN64
+		return sl_true;
+#else
+		sl_bool flag64Bit = sl_false;
+		sl_bool flagInit = sl_true;
+		if (flagInit) {
+			auto func = kernel32::getApi_IsWow64Process();
+			if (func) {
+				BOOL flag = FALSE;
+				func(GetCurrentProcess(), &flag);
+				flag64Bit = flag;
+			}
+			flagInit = sl_false;
+		}
+		return flagInit;
+#endif
 	}
 
 	WindowsDllVersion Windows::getDllVersion(const StringParam& _pathDll)
