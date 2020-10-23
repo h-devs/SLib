@@ -392,7 +392,7 @@ namespace slib
 	void OAuth1::logUrlRequestError(UrlRequest* request)
 	{
 		if (m_flagLogErrors) {
-			LogError(TAG, "Error: %s, Status: %s, Response: %s", request->getLastErrorMessage(), HttpStatusHelper::toString(request->getResponseStatus()), request->getResponseContentAsString());
+			LogError(TAG, "Error: %s, Status: %s, Response: %s", request->getErrorMessage(), HttpStatusHelper::toString(request->getResponseStatus()), request->getResponseContentAsString());
 		}
 	}
 	
@@ -934,7 +934,7 @@ namespace slib
 	void OAuth2::logUrlRequestError(UrlRequest* request)
 	{
 		if (m_flagLogErrors) {
-			LogError(TAG, "Error: %s, Status: %s, Response: %s", request->getLastErrorMessage(), HttpStatusHelper::toString(request->getResponseStatus()), request->getResponseContentAsString());
+			LogError(TAG, "Error: %s, Status: %s, Response: %s", request->getErrorMessage(), HttpStatusHelper::toString(request->getResponseStatus()), request->getResponseContentAsString());
 		}
 	}
 	

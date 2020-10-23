@@ -221,7 +221,7 @@ namespace slib
 						onComplete();
 					} else {
 						String strError = String::create(curl_easy_strerror(err));
-						m_lastErrorMessage = strError;
+						m_errorMessage = strError;
 						onError();
 					}
 					

@@ -26,6 +26,7 @@
 #include "slib/core/log.h"
 #include "slib/core/event.h"
 #include "slib/core/file.h"
+#include "slib/core/system.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 #	include <winsock2.h>
@@ -176,7 +177,6 @@ namespace slib
 	{
 		m_socket = SLIB_SOCKET_INVALID_HANDLE;
 		m_type = SocketType::None;
-		m_lastError = SocketError::None;
 	}
 
 	Socket::~Socket()
@@ -322,7 +322,6 @@ namespace slib
 			m_socket = SLIB_SOCKET_INVALID_HANDLE;
 		}
 		m_type = SocketType::None;
-		m_lastError = SocketError::None;
 	}
 
 	sl_bool Socket::isOpened() const
@@ -395,14 +394,14 @@ namespace slib
 		return isIPv6(m_type);
 	}
 
-	SocketError Socket::getLastError() const
+	SocketError Socket::getLastError()
 	{
-		return m_lastError;
+		return (SocketError)(System::getLastError());
 	}
 
-	String Socket::getLastErrorMessage() const
+	String Socket::getLastErrorMessage()
 	{
-		return getErrorMessage(m_lastError);
+		return getErrorMessage(getLastError());
 	}
 
 	sl_bool Socket::shutdown(SocketShutdownMode mode)
@@ -1081,7 +1080,7 @@ namespace slib
 
 	SocketError Socket::_setError(SocketError code)
 	{
-		m_lastError = code;
+		System::setLastError((sl_uint32)code);
 		return code;
 	}
 

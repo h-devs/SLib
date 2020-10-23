@@ -256,7 +256,7 @@ namespace slib
 							} else {
 								strError = String::format("Moving downloaded file failed: %s=>%s", Apple::getStringFromNSString(pathTempFile.absoluteString), m_downloadFilePath);
 							}
-							m_lastErrorMessage = strError;
+							m_errorMessage = strError;
 							onError();
 						}
 					}
@@ -266,7 +266,7 @@ namespace slib
 				{
 					if (error != nil) {
 						String strError = Apple::getStringFromNSString(error.localizedDescription);
-						m_lastErrorMessage = strError;
+						m_errorMessage = strError;
 						onError();
 					} else {
 						onComplete();

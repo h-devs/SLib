@@ -63,7 +63,7 @@ namespace slib
 				{
 					Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
 					if (helper.isNotNull()) {
-						helper->m_lastErrorMessage = Jni::getString(jerror);
+						helper->m_errorMessage = Jni::getString(jerror);
 						String url = Jni::getString(jurl);
 						helper->dispatchFinishLoad(url, sl_true);
 					}

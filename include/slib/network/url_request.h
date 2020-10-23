@@ -259,7 +259,7 @@ namespace slib
 		
 		sl_bool isError();
 		
-		String getLastErrorMessage();
+		String getErrorMessage();
 
 		sl_bool isClosed();
 		
@@ -327,7 +327,7 @@ namespace slib
 		
 		sl_bool m_flagClosed;
 		sl_bool m_flagError;
-		AtomicString m_lastErrorMessage;
+		AtomicString m_errorMessage;
 		
 		Ref<Event> m_eventSync;
 		

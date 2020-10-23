@@ -257,7 +257,7 @@ namespace slib
 					return sl_false;
 				}
 				
-				String getLastErrorMessage()
+				String getErrorMessage()
 				{
 					if (m_flagInit) {
 						char* err = pcap_geterr(m_handle);

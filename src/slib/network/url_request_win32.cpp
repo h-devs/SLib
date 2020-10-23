@@ -574,7 +574,7 @@ namespace slib
 						return;
 					}
 					m_step = STEP_ERROR;
-					m_lastErrorMessage = errorMessage;
+					m_errorMessage = errorMessage;
 					onError();
 					clean();
 				}

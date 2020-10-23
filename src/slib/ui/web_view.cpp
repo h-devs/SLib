@@ -151,7 +151,7 @@ namespace slib
 	
 	String WebView::getErrorMessage()
 	{
-		return m_lastErrorMessage;
+		return m_errorMessage;
 	}
 	
 	String WebView::getCustomUserAgent()
