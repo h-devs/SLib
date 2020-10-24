@@ -444,6 +444,4 @@ namespace slib
 
 }
 
-#include "detail/math.inc"
-
 #endif
