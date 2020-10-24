@@ -9,6 +9,8 @@
 
 #include "filesystemwrapper.h"
 
+#include "../core/regex.h"
+
 namespace slib
 {
 

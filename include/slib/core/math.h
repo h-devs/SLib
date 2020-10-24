@@ -439,11 +439,9 @@ namespace slib
 		static void mul32(sl_uint32 a, sl_uint32 b, sl_uint32& o_high, sl_uint32& o_low) noexcept;
 
 		static void mul64(sl_uint64 a, sl_uint64 b, sl_uint64& o_high, sl_uint64& o_low) noexcept;
-				
+		
 	};
 
 }
-
-#include "detail/math.inc"
 
 #endif

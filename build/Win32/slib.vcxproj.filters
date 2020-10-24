@@ -1463,9 +1463,6 @@
     <ClCompile Include="..\..\src\slib\media\camera_win32.cpp">
       <Filter>src\media</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\storage\filesystembase.cpp">
-      <Filter>src\storage</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\storage\mirrorfs.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
@@ -1479,6 +1476,9 @@
       <Filter>src\storage</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\storage\dokany_install.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\file_system.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
   </ItemGroup>
