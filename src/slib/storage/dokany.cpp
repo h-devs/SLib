@@ -30,8 +30,7 @@
 #include "slib/core/service_manager.h"
 #include "slib/core/dynamic_library.h"
 #include "slib/core/platform_windows.h"
-
-#define DOKAN_DRIVER_SERVICE L"Dokan1"
+#include "slib/core/safe_static.h"
 
 namespace slib
 {
@@ -42,6 +41,7 @@ namespace slib
 		{
 
 			void* g_libDll;
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString16, g_strDriverName)
 
 			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanMain, int, DOKANAPI,
 				PDOKAN_OPTIONS DokanOptions,
@@ -95,27 +95,44 @@ namespace slib
 
 	using namespace priv::dokany;
 
-	sl_bool Dokany::initialize(const StringParam& pathDll)
+	sl_bool Dokany::initialize(const StringParam& driverName, const StringParam& pathDll)
 	{
-		if (g_libDll) {
+		void* lib = DynamicLibrary::loadLibrary(pathDll);
+		if (lib) {
+			g_libDll = lib;
+			g_strDriverName = driverName.toString16();
 			return sl_true;
 		}
-		g_libDll = DynamicLibrary::loadLibrary(pathDll);
-		return g_libDll != sl_null;
+		return sl_false;
 	}
 
 	sl_bool Dokany::initialize()
 	{
-		return initialize("dokan1.dll");
+		if (g_libDll) {
+			return sl_true;
+		}
+		if (initialize(L"Dokan1", "dokan1.dll")) {
+			return sl_true;
+		}
+		if (initialize(L"Dokan", "dokan.dll")) {
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 	ServiceState Dokany::getDriverState()
 	{
-		return ServiceManager::getState(DOKAN_DRIVER_SERVICE);
+		if (!(initialize())) {
+			return ServiceState::None;
+		}
+		return ServiceManager::getState(g_strDriverName);
 	}
 
 	sl_bool Dokany::startDriver()
 	{
+		if (!(initialize())) {
+			return sl_false;
+		}
 		ServiceState state = getDriverState();
 		if (state == ServiceState::None) {
 			return sl_false;
@@ -123,11 +140,14 @@ namespace slib
 		if (state == ServiceState::Running) {
 			return sl_true;
 		}
-		return ServiceManager::start(DOKAN_DRIVER_SERVICE);
+		return ServiceManager::start(g_strDriverName);
 	}
 
 	sl_bool Dokany::stopDriver()
 	{
+		if (!(initialize())) {
+			return sl_false;
+		}
 		ServiceState state = getDriverState();
 		if (state == ServiceState::None) {
 			return sl_false;
@@ -135,63 +155,14 @@ namespace slib
 		if (state == ServiceState::Stopped) {
 			return sl_true;
 		}
-		return ServiceManager::stop(DOKAN_DRIVER_SERVICE);
-	}
-
-	sl_bool Dokany::registerDriver(const StringParam& pathSys)
-	{
-		ServiceCreateParam param;
-		param.type = ServiceType::FileSystem;
-		param.name = DOKAN_DRIVER_SERVICE;
-		if (pathSys.isNotEmpty()) {
-			param.path = pathSys;
-		} else {
-			param.path = Windows::getSystemDirectory() + "\\drivers\\dokan1.sys";
-		}
-		return ServiceManager::create(param);
-	}
-
-	sl_bool Dokany::registerDriver()
-	{
-		return registerDriver(sl_null);
-	}
-
-	sl_bool Dokany::registerAndStartDriver(const StringParam& pathSys)
-	{
-		ServiceState state = getDriverState();
-		if (state == ServiceState::Running) {
-			return sl_true;
-		}
-		if (state != ServiceState::None) {
-			return startDriver();
-		}
-		if (registerDriver(pathSys)) {
-			return startDriver();
-		}
-		return sl_false;
-	}
-
-	sl_bool Dokany::registerAndStartDriver()
-	{
-		return registerAndStartDriver(sl_null);
-	}
-
-	sl_bool Dokany::unregisterDriver()
-	{
-		ServiceState state = getDriverState();
-		if (state == ServiceState::None) {
-			return sl_true;
-		}
-		if (state != ServiceState::Stopped) {
-			if (!(stopDriver())) {
-				return sl_false;
-			}
-		}
-		return ServiceManager::remove(DOKAN_DRIVER_SERVICE);
+		return ServiceManager::stop(g_strDriverName);
 	}
 
 	sl_bool Dokany::unmount(const StringParam& _mountPoint)
 	{
+		if (!(initialize())) {
+			return sl_false;
+		}
 		auto func = getApi_DokanRemoveMountPoint();
 		if (func) {
 			StringCstr16 mountPoint(_mountPoint);

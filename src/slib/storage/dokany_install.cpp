@@ -1,0 +1,248 @@
+/*
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *
+ *   Permission is hereby granted, free of charge, to any person obtaining a copy
+ *   of this software and associated documentation files (the "Software"), to deal
+ *   in the Software without restriction, including without limitation the rights
+ *   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *   copies of the Software, and to permit persons to whom the Software is
+ *   furnished to do so, subject to the following conditions:
+ *
+ *   The above copyright notice and this permission notice shall be included in
+ *   all copies or substantial portions of the Software.
+ *
+ *   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *   THE SOFTWARE.
+ */
+
+#include "slib/storage/dokany.h"
+
+#ifdef SLIB_PLATFORM_IS_WIN32
+
+#include "slib/core/service_manager.h"
+#include "slib/core/file.h"
+#include "slib/core/process.h"
+#include "slib/core/dynamic_library.h"
+#include "slib/core/platform_windows.h"
+
+#include "slib/crypto/zlib.h"
+
+#include "dokany/dokany_core_files.h"
+
+#pragma comment(lib, "dokany.lib")
+
+namespace slib
+{
+
+	namespace priv
+	{
+		namespace dokany
+		{
+
+			static sl_bool IsDokanySupported()
+			{
+				static sl_bool flagFirst = sl_true;
+				static sl_bool flagDokany = sl_false;
+				if (flagFirst) {
+					flagDokany = Windows::getVersion() >= WindowsVersion::Windows7_SP1;
+					flagFirst = sl_false;
+				}
+				return flagDokany;
+			}
+
+			static String GetDriverName(sl_bool flagDokany)
+			{
+				if (flagDokany) {
+					return "Dokan1";
+				} else {
+					return "Dokan";
+				}
+			}
+
+			static String GetDriverPath(sl_bool flagDokany)
+			{
+				if (flagDokany) {
+					return Windows::getSystemDirectory() + "\\drivers\\dokan1.sys";
+				} else {
+					return Windows::getSystemDirectory() + "\\drivers\\dokan.sys";
+				}
+			}
+
+			static String GetLibraryPath(sl_bool flagDokany)
+			{
+				if (flagDokany) {
+					return Windows::getSystemDirectory() + "\\dokan1.dll";
+				} else {
+					return Windows::getSystemDirectory() + "\\dokan.dll";
+				}
+			}
+
+			static sl_bool CheckDriver(sl_bool flagDokany)
+			{
+				String driverName = GetDriverName(flagDokany);
+				return ServiceManager::isRunning(driverName);
+			}
+
+			static sl_bool StartDriver(sl_bool flagDokany)
+			{
+				String driverName = GetDriverName(flagDokany);
+				ServiceState state = ServiceManager::getState(driverName);
+				if (state == ServiceState::Running) {
+					return sl_true;
+				}
+				if (state == ServiceState::None) {
+					return sl_false;
+				}
+				return ServiceManager::start(driverName);
+			}
+
+			static sl_bool RegisterDriver(sl_bool flagDokany)
+			{
+				String driverName = GetDriverName(flagDokany);
+				ServiceState state = ServiceManager::getState(driverName);
+				if (state != ServiceState::None) {
+					return sl_true;
+				}
+				Memory data;
+#ifdef SLIB_PLATFORM_IS_WIN64
+				if (flagDokany) {
+					data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data, ::dokany::files::dokan1_sys_compressed_size);
+				} else {
+					data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data, ::dokany::files::dokan_sys_compressed_size);
+				}
+#else
+				DisableWow64FsRedirectionScope scopeDisableWow64;
+				if (Windows::is64BitSystem()) {
+					if (flagDokany) {
+						data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data64, ::dokany::files::dokan1_sys_compressed_size64);
+					} else {
+						data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data64, ::dokany::files::dokan_sys_compressed_size64);
+					}
+				} else {
+					if (flagDokany) {
+						data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data, ::dokany::files::dokan1_sys_compressed_size);
+					} else {
+						data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data, ::dokany::files::dokan_sys_compressed_size);
+					}
+				}
+#endif
+				if (data.isNull()) {
+					return sl_false;
+				}
+				String path = GetDriverPath(flagDokany);
+				if (File::writeAllBytes(path, data) != data.getSize()) {
+					return sl_false;
+				}
+				ServiceCreateParam param;
+				param.type = ServiceType::FileSystem;
+				param.startType = ServiceStartType::Auto;
+				param.name = driverName;
+				param.path = path;
+				if (!(ServiceManager::create(param))) {
+					return sl_false;
+				}
+				return sl_true;
+			}
+
+			static sl_bool InstallDriver(sl_bool& flagDokany)
+			{
+				if (CheckDriver(sl_true)) {
+					flagDokany = sl_true;
+					return sl_true;
+				}
+				if (CheckDriver(sl_false)) {
+					flagDokany = sl_false;
+					return sl_true;
+				}
+				if (!(Process::isAdmin())) {
+					return sl_false;
+				}
+				if (StartDriver(sl_true)) {
+					flagDokany = sl_true;
+					return sl_true;
+				}
+				if (StartDriver(sl_false)) {
+					flagDokany = sl_false;
+					return sl_true;
+				}
+				flagDokany = IsDokanySupported();
+				if (!(RegisterDriver(flagDokany))) {
+					return sl_false;
+				}
+				return StartDriver(flagDokany);
+			}
+
+			static sl_bool CheckLibrary(sl_bool flagDokany)
+			{
+				String pathLib = GetLibraryPath(flagDokany);
+				if (!(File::exists(pathLib))) {
+					return sl_false;
+				}
+				void* funcGetVersion = sl_null;
+				void* lib = DynamicLibrary::loadLibrary(pathLib);
+				if (lib) {
+					funcGetVersion = DynamicLibrary::getFunctionAddress(lib, "DokanVersion");
+					DynamicLibrary::freeLibrary(lib);
+				}
+				if (!funcGetVersion) {
+					return sl_false;
+				}
+				return sl_true;
+			}
+
+			static sl_bool InstallLibrary(sl_bool flagDokany)
+			{
+				if (CheckLibrary(flagDokany)) {
+					return sl_true;
+				}
+				if (!(Process::isAdmin())) {
+					return sl_false;
+				}
+				Memory data;
+#ifdef SLIB_PLATFORM_IS_WIN64
+				if (flagDokany) {
+					data = Zlib::decompress(::dokany::files::dokan1_dll_compressed_data, ::dokany::files::dokan1_dll_compressed_size);
+				} else {
+					data = Zlib::decompress(::dokany::files::dokan_dll_compressed_data, ::dokany::files::dokan_dll_compressed_size);
+				}
+#else
+				if (flagDokany) {
+					data = Zlib::decompress(::dokany::files::dokan1_dll_compressed_data, ::dokany::files::dokan1_dll_compressed_size);
+				} else {
+					data = Zlib::decompress(::dokany::files::dokan_dll_compressed_data, ::dokany::files::dokan_dll_compressed_size);
+				}
+#endif
+				if (data.isNull()) {
+					return sl_false;
+				}
+				String path = GetLibraryPath(flagDokany);
+				if (File::writeAllBytes(path, data) != data.getSize()) {
+					return sl_false;
+				}
+				return CheckLibrary(flagDokany);
+			}
+
+		}
+	}
+
+	using namespace priv::dokany;
+	
+	sl_bool Dokany::install()
+	{
+		sl_bool flagDokany = sl_true;
+		if (InstallDriver(flagDokany)) {
+			if (InstallLibrary(flagDokany)) {
+				return initialize(GetDriverName(flagDokany), GetLibraryPath(flagDokany));
+			}
+		}
+		return sl_false;
+	}
+
+}
+
+#endif

@@ -1472,13 +1472,13 @@
     <ClCompile Include="..\..\src\slib\storage\restfs.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\storage\dokany_control.cpp">
-      <Filter>src\storage</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\storage\dokany.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\storage\file_system_logger.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\dokany_install.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
   </ItemGroup>
