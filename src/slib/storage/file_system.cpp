@@ -31,6 +31,16 @@
 namespace slib
 {
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileSystemInformation)
+
+	FileSystemInformation::FileSystemInformation()
+	{
+		serialNumber = 0;
+		sectorSize = 512;
+		sectorsPerAllocationUnit = 1;
+		maxPathLength = 8192;
+	}
+
 	SLIB_DEFINE_OBJECT(FileSystemProvider, Object)
 
 	FileSystemProvider::FileSystemProvider()
@@ -150,6 +160,11 @@ namespace slib
 	sl_size FileSystemProvider::getOpenHandlesCount()
 	{
 		return m_openHandles.getCount();
+	}
+
+	sl_bool FileSystemProvider::getSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize)
+	{
+		return sl_false;
 	}
 
 }

@@ -312,7 +312,7 @@ namespace slib
 					if (volumeInfo.sectorsPerAllocationUnit)
 						m_dokanOptions.AllocationUnitSize = volumeInfo.sectorSize * volumeInfo.sectorsPerAllocationUnit;
 				}
-				if (volumeInfo.fileSystemFlags & FILE_READ_ONLY_VOLUME)
+				if (volumeInfo.flags & FILE_READ_ONLY_VOLUME)
 					m_dokanOptions.Options |= DOKAN_OPTION_WRITE_PROTECT;
 			}
 			catch (...) {}
@@ -1021,10 +1021,14 @@ namespace slib
 	{
 		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		FILESYSTEM_EXCEPTION_GUARD(
-			FileSystemInformation volumeInfo = base->fsGetVolumeInfo(VolumeInfoFlags::SizeInfo);
-			*FreeBytesAvailable = ((PLARGE_INTEGER)&volumeInfo.freeSize)->QuadPart;
-			*TotalNumberOfBytes = ((PLARGE_INTEGER)&volumeInfo.totalSize)->QuadPart;
-			*TotalNumberOfFreeBytes = ((PLARGE_INTEGER)&volumeInfo.freeSize)->QuadPart;
+			sl_uint64 sizeTotal, sizeFree;
+			if (base->getSize(&sizeTotal, &sizeFree)) {
+				*FreeBytesAvailable = sizeFree;
+				*TotalNumberOfBytes = sizeTotal;
+				*TotalNumberOfFreeBytes = sizeFree;
+			} else {
+				return 0;
+			}
 		)
 		return 0;
 	}
@@ -1046,8 +1050,8 @@ namespace slib
 			WCHAR Buffer[MAX_PATH] = L"";
 
 			*VolumeSerialNumber = volumeInfo.serialNumber;
-			*MaximumComponentLength = volumeInfo.maxComponentLength;
-			*FileSystemFlags = volumeInfo.fileSystemFlags;
+			*MaximumComponentLength = volumeInfo.maxPathLength;
+			*FileSystemFlags = volumeInfo.flags;
 
 			StringToWChar(volumeInfo.volumeName, Buffer);
 			wcscpy_s(VolumeNameBuffer, VolumeNameSize / sizeof(WCHAR), Buffer);

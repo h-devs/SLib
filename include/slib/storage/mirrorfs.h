@@ -39,6 +39,8 @@ namespace slib
 		HashMap<String, FileInfo> fsFindFiles(FileContext* context, String pattern) override;
 		HashMap<String, StreamInfo> fsFindStreams(FileContext* context) override;
 
+		sl_bool getSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize) override;
+
 	private:
 		FileSystemError getError(sl_uint32 error = 0);
 

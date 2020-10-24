@@ -18,8 +18,6 @@ namespace slib
 		DummyFs() {
 			m_volumeInfo.volumeName = "Dummy";
 			m_volumeInfo.fileSystemName = "DummyFs";
-			m_volumeInfo.totalSize = 1024 * 1024 * 1024;
-			m_volumeInfo.freeSize = 512 * 1024 * 1024;
 		}
 
 	protected:

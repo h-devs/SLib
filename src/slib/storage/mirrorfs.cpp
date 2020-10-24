@@ -86,16 +86,12 @@ namespace slib
 		m_volumeInfo.serialNumber = 0;
 		m_volumeInfo.sectorSize = 4096;
 		m_volumeInfo.sectorsPerAllocationUnit = 1;
-		m_volumeInfo.maxComponentLength = 256;
-		m_volumeInfo.fileSystemFlags = FILE_CASE_SENSITIVE_SEARCH |
-			FILE_CASE_PRESERVED_NAMES |
-			FILE_SUPPORTS_REMOTE_STORAGE |
-			FILE_UNICODE_ON_DISK |
-			FILE_PERSISTENT_ACLS;
+		m_volumeInfo.maxPathLength = 256;
+		m_volumeInfo.flags = FileSystemFlags::IsCaseSensitiveSearch;
 
 		if (!GetVolumeInformation(root,
 			volumeName, MAX_PATH,
-			(LPDWORD)&m_volumeInfo.serialNumber, (LPDWORD)&m_volumeInfo.maxComponentLength,
+			(LPDWORD)&m_volumeInfo.serialNumber, (LPDWORD)&m_volumeInfo.maxPathLength,
 			0, 0, 0)) {
 			//throw FileSystemError::InitFailure;
 		}
@@ -110,20 +106,26 @@ namespace slib
 	{
 	}
 
+
+	sl_bool MirrorFs::getSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize)
+	{
+		WCHAR path[MAX_PATH];
+		ULARGE_INTEGER totalSize, freeSize;
+		StringToWChar(m_path, path);
+		if (GetDiskFreeSpaceExW(path, 0, &totalSize, &freeSize)) {
+			if (pOutTotalSize) {
+				*pOutTotalSize = totalSize.QuadPart;
+			}
+			if (pOutFreeSize) {
+				*pOutFreeSize = freeSize.QuadPart;
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
 	const FileSystemInformation& MirrorFs::fsGetVolumeInfo(VolumeInfoFlags flags)&
 	{
-		if (flags == VolumeInfoFlags::SizeInfo) {
-			WCHAR path[MAX_PATH];
-			ULARGE_INTEGER totalSize, freeSize;
-
-			StringToWChar(m_path, path);
-
-			if (!GetDiskFreeSpaceEx(path, 0, &totalSize, &freeSize))
-				throw getError();
-
-			m_volumeInfo.totalSize = totalSize.QuadPart;
-			m_volumeInfo.freeSize = freeSize.QuadPart;
-		}
 		return m_volumeInfo;
 	}
 

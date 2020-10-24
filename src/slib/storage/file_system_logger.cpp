@@ -2,10 +2,8 @@
 
 #include "slib/core/log.h"
 
-#define TAG						"FsLogger"
-#define printLog(...)			Log(TAG, ##__VA_ARGS__)
-#define errorLog(...)			LogError(TAG, ##__VA_ARGS__)
-#define debugLog(...)			LogDebug(TAG, ##__VA_ARGS__)
+#define TAG "FileSystemLogger"
+#define LOG(...) SLIB_LOG(TAG, ##__VA_ARGS__)
 
 #define contextDesc		String::fromUint64(context->handle) + \
 					(m_flags & FsLogFileName ? ":" + context->path : \
@@ -20,19 +18,19 @@ namespace slib
 		if (!(m_flags & FsLogVolumeInfo))
 			return;
 
-		printLog("LogFlags: 0x%08X", m_flags);
+		LOG("LogFlags: 0x%08X", m_flags);
 
-		printLog("FileSystemInformation:");
-		printLog("  volumeName: %s", m_volumeInfo.volumeName);
-		printLog("  fileSystemName: %s", m_volumeInfo.fileSystemName);
-		printLog("  creationTime: %s", m_flags & FsLogDateAsString
+		LOG("FileSystemInformation:");
+		LOG("  volumeName: %s", m_volumeInfo.volumeName);
+		LOG("  fileSystemName: %s", m_volumeInfo.fileSystemName);
+		LOG("  creationTime: %s", m_flags & FsLogDateAsString
 			? m_volumeInfo.creationTime.toString() 
 			: String::fromInt64(m_volumeInfo.creationTime.toInt()));
-		printLog("  serialNumber: %d", m_volumeInfo.serialNumber);
-		printLog("  sectorSize: %d", m_volumeInfo.sectorSize);
-		printLog("  sectorsPerAllocationUnit: %d", m_volumeInfo.sectorsPerAllocationUnit);
-		printLog("  maxComponentLength: %d", m_volumeInfo.maxComponentLength);
-		printLog("  fileSystemFlags: 0x%X", m_volumeInfo.fileSystemFlags);
+		LOG("  serialNumber: %d", m_volumeInfo.serialNumber);
+		LOG("  sectorSize: %d", m_volumeInfo.sectorSize);
+		LOG("  sectorsPerAllocationUnit: %d", m_volumeInfo.sectorsPerAllocationUnit);
+		LOG("  maxPathLength: %d", m_volumeInfo.maxPathLength);
+		LOG("  flags: 0x%X", m_volumeInfo.flags.value);
 	}
 
 	FsLogger::~FsLogger()
@@ -57,22 +55,18 @@ namespace slib
 			desc = ":SizeInfo";
 		desc = String::format("GetVolumeInfo(%s)", flags, desc);
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 
 		try {
 			const FileSystemInformation &ret = m_base->fsGetVolumeInfo(flags);
 			if (m_flags & FsLogRet) {
-				printLog(desc);
-				if (flags & VolumeInfoFlags::SizeInfo) {
-					printLog("  totalSize: %d", ret.totalSize);
-					printLog("  freeSize: %d", ret.freeSize);
-				}
+				LOG(desc);
 			}
 			return ret;
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 	}
@@ -84,17 +78,17 @@ namespace slib
 
 		String desc = String::format("SetVolumeName(%s)", volumeName);
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		try {
 			m_base->fsSetVolumeName(volumeName);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog(desc);
+			LOG(desc);
 	}
 
 	void FsLogger::fsCreate(FileContext* context, FileCreationParams& params)
@@ -107,17 +101,17 @@ namespace slib
 			(params.createAlways ? "ALWAYS" : "NEW"), (params.openTruncate ? "|TRUNCATE" : ""),
 			params.accessMode, params.shareMode, params.flagsAndAttributes);
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		try {
 			m_base->fsCreate(context, params);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet) {
-			printLog("%s\n"
+			LOG("%s\n"
 				"  Handle: %d\n"
 				"  Status: %d\n"
 				"  DispositionFlags: %s%s", desc, context->handle, context->status,
@@ -135,17 +129,17 @@ namespace slib
 			(params.createAlways ? "ALWAYS" : "EXISTING"), (params.openTruncate ? "|TRUNCATE" : ""),
 			params.accessMode, params.shareMode, params.flagsAndAttributes);
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		try {
 			m_base->fsOpen(context, params);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet) {
-			printLog("%s\n"
+			LOG("%s\n"
 				"  Handle: %d\n"
 				"  Status: %d\n"
 				"  DispositionFlags: %s%s", desc, context->handle, context->status,
@@ -160,18 +154,18 @@ namespace slib
 
 		String desc = String::format("Read(%s,0x%X,0x%X)", contextDesc, offset, buffer.getSize());
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		sl_size ret;
 		try {
 			ret = m_base->fsRead(context, buffer, offset);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog("%s\n  Ret: %d", desc, ret);
+			LOG("%s\n  Ret: %d", desc, ret);
 		return ret;
 	}
 
@@ -182,18 +176,18 @@ namespace slib
 
 		String desc = String::format("Write(%s,0x%X,0x%X,%d)", contextDesc, offset, buffer.getSize(), writeToEof);
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		sl_size ret;
 		try {
 			ret = m_base->fsWrite(context, buffer, offset, writeToEof);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog("%s\n  Ret: %d", desc, ret);
+			LOG("%s\n  Ret: %d", desc, ret);
 		return ret;
 	}
 
@@ -204,17 +198,17 @@ namespace slib
 
 		String desc = String::format("Flush(%s)", contextDesc);
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		try {
 			m_base->fsFlush(context);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog(desc);
+			LOG(desc);
 	}
 
 	void FsLogger::fsClose(FileContext* context)
@@ -222,25 +216,25 @@ namespace slib
 		if (!(m_flags & FsLogClose) || !m_regex.match(context->path)) {
 			m_base->fsClose(context);
 			if (m_flags & FsLogHandleCountOnClose)
-				printLog("Current open handles count: %d", m_openHandles[context->path]);
+				LOG("Current open handles count: %d", m_openHandles[context->path]);
 			return;
 		}
 
 		String desc = String::format("Close(%s)", contextDesc);
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		try {
 			m_base->fsClose(context);
 			if (m_flags & FsLogHandleCountOnClose)
-				printLog("Current open handles count: %d", m_openHandles[context->path]);
+				LOG("Current open handles count: %d", m_openHandles[context->path]);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog(desc);
+			LOG(desc);
 	}
 
 	void FsLogger::fsDelete(FileContext* context, sl_bool checkOnly)
@@ -256,17 +250,17 @@ namespace slib
 
 		String desc = String::format("%sDelete(%s)", checkOnly ? "Can" : "", contextDesc);
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		try {
 			m_base->fsDelete(context, checkOnly);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog(desc);
+			LOG(desc);
 	}
 
 	void FsLogger::fsRename(FileContext* context, String newFileName, sl_bool replaceIfExists)
@@ -276,17 +270,17 @@ namespace slib
 
 		String desc = String::format("Rename(%s,%s,%d)", contextDesc, newFileName, replaceIfExists);
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		try {
 			m_base->fsRename(context, newFileName, replaceIfExists);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog(desc);
+			LOG(desc);
 	}
 
 	void FsLogger::fsLock(FileContext* context, sl_uint64 offset, sl_uint64 length)
@@ -296,17 +290,17 @@ namespace slib
 
 		String desc = String::format("Lock(%s,0x%X,0x%X)", contextDesc, offset, length);
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		try {
 			m_base->fsLock(context, offset, length);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog(desc);
+			LOG(desc);
 	}
 
 	void FsLogger::fsUnlock(FileContext* context, sl_uint64 offset, sl_uint64 length)
@@ -316,17 +310,17 @@ namespace slib
 
 		String desc = String::format("Unlock(%s,0x%X,0x%X)", contextDesc, offset, length);
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		try {
 			m_base->fsUnlock(context, offset, length);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog(desc);
+			LOG(desc);
 	}
 
 	FileInfo FsLogger::fsGetFileInfo(FileContext* context)
@@ -336,18 +330,18 @@ namespace slib
 
 		String desc = String::format("GetFileInfo(%s)", contextDesc);
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		FileInfo ret;
 		try {
 			ret = m_base->fsGetFileInfo(context);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog("%s\n  Ret: (0x%X,%s,%d,%d%s)", desc,
+			LOG("%s\n  Ret: (0x%X,%s,%d,%d%s)", desc,
 				ret.fileAttributes, ret.attr.isDirectory ? "DIR" : "FILE",
 				ret.size, ret.allocationSize,
 				(m_flags & FsLogAttrNoDate ? "" : "," 
@@ -365,33 +359,33 @@ namespace slib
 		String desc = String::format("SetFileInfo(%s,0x%X)", contextDesc, flags);
 		if (m_flags & FsLogSetInfoDetail) {
 			if (m_flags & FsLogSetAttrInfo && flags & FileInfoFlags::AttrInfo) {
-				printLog("  Attr: 0x%X, %s", fileInfo.fileAttributes, fileInfo.attr.isDirectory ? "DIR" : "FILE");
+				LOG("  Attr: 0x%X, %s", fileInfo.fileAttributes, fileInfo.attr.isDirectory ? "DIR" : "FILE");
 			}
 			if (m_flags & FsLogSetTimeInfo && flags & FileInfoFlags::TimeInfo) {
 				if (m_flags & FsLogDateAsString)
-					printLog("  Time: %s,%s,%s", fileInfo.createdAt.toString(), fileInfo.modifiedAt.toString(), fileInfo.lastAccessedAt.toString());
+					LOG("  Time: %s,%s,%s", fileInfo.createdAt.toString(), fileInfo.modifiedAt.toString(), fileInfo.lastAccessedAt.toString());
 				else
-					printLog("  Time: %d,%d,%d", fileInfo.createdAt.toInt(), fileInfo.modifiedAt.toInt(), fileInfo.lastAccessedAt.toInt());
+					LOG("  Time: %d,%d,%d", fileInfo.createdAt.toInt(), fileInfo.modifiedAt.toInt(), fileInfo.lastAccessedAt.toInt());
 			}
 			if (m_flags & FsLogSetFileSizeInfo && flags & FileInfoFlags::SizeInfo) {
-				printLog("  FileSize: %d", fileInfo.size);
+				LOG("  FileSize: %d", fileInfo.size);
 			}
 			if (m_flags & FsLogSetAllocSizeInfo && flags & FileInfoFlags::AllocSizeInfo) {
-				printLog("  AllocSize: %d", fileInfo.allocationSize);
+				LOG("  AllocSize: %d", fileInfo.allocationSize);
 			}
 		}
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		try {
 			m_base->fsSetFileInfo(context, fileInfo, flags);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog(desc);
+			LOG(desc);
 	}
 
 	sl_size FsLogger::fsGetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor)
@@ -401,18 +395,18 @@ namespace slib
 
 		String desc = String::format("GetSecurity(%s,0x%X,%d)", contextDesc, securityInformation, securityDescriptor.getSize());
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		sl_size ret;
 		try {
 			ret = m_base->fsGetSecurity(context, securityInformation, securityDescriptor);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog("%s\n  Ret: %d\n  Status: %d", desc, ret, context->status);
+			LOG("%s\n  Ret: %d\n  Status: %d", desc, ret, context->status);
 		return ret;
 	}
 
@@ -423,17 +417,17 @@ namespace slib
 
 		String desc = String::format("SetSecurity(%s,0x%X,%d)", contextDesc, securityInformation, securityDescriptor.getSize());
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		try {
 			m_base->fsSetSecurity(context, securityInformation, securityDescriptor);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet)
-			printLog(desc);
+			LOG(desc);
 	}
 
 	HashMap<String, FileInfo> FsLogger::fsFindFiles(FileContext* context, String pattern)
@@ -443,21 +437,21 @@ namespace slib
 
 		String desc = String::format("FindFiles(%s,%s)", contextDesc, pattern);
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		HashMap<String, FileInfo> ret;
 		try {
 			ret = m_base->fsFindFiles(context, pattern);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet) {
-			printLog(desc);
+			LOG(desc);
 			for (auto& file : ret) {
 				FileInfo info = file.value;
-				printLog("  %s: (0x%X,%s,%d,%d%s)", file.key,
+				LOG("  %s: (0x%X,%s,%d,%d%s)", file.key,
 					info.fileAttributes, info.attr.isDirectory ? "DIR" : "FILE",
 					info.size, info.allocationSize,
 					(m_flags & FsLogAttrNoDate ? "" : ","
@@ -476,21 +470,21 @@ namespace slib
 
 		String desc = String::format("FindStreams(%s)", contextDesc);
 		if (!(m_flags & FsLogRetAndErrors))
-			printLog(desc);
+			LOG(desc);
 		HashMap<String, StreamInfo> ret;
 		try {
 			ret = m_base->fsFindStreams(context);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				printLog("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d", desc, error);
 			throw error;
 		}
 		if (m_flags & FsLogRet) {
-			printLog(desc);
+			LOG(desc);
 			for (auto& stream : ret) {
 				auto streamInfo = stream.value;
-				printLog("  %s: %d", stream.key, streamInfo.size);
+				LOG("  %s: %d", stream.key, streamInfo.size);
 			}
 		}
 		return ret;

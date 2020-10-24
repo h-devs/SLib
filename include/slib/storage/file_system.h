@@ -33,65 +33,37 @@
 namespace slib
 {
 
-	class FileSystemInformation
+	class FileSystemFlags
 	{
 	public:
+		int value;
+		SLIB_MEMBERS_OF_FLAGS(FileSystemFlags, value)
+
+		enum {
+			IsCaseSensitiveSearch = 0x1,
+			SupportsFileCompression = 0x2,
+			SupportsEncryption = 0x4,
+			IsReadOnlyVolume = 0x8
+		};
+	};
+
+	class SLIB_EXPORT FileSystemInformation
+	{
+	public:
+		FileSystemFlags flags;
 		String volumeName;
 		String fileSystemName;
 		Time creationTime;
 		sl_uint32 serialNumber;
 		sl_uint16 sectorSize;
 		sl_uint16 sectorsPerAllocationUnit;
-		sl_uint32 maxComponentLength;
-		union {
-			sl_uint32 fileSystemFlags;
-			struct FileSystemFlags {
-				sl_bool isCaseSensitiveSearch : 1;            // 0x00000001
-				sl_bool isCasePreservedNames : 1;             // 0x00000002  
-				sl_bool supportsUnicodeOnDisk : 1;            // 0x00000004  
-				sl_bool preservePersistentACLs : 1;           // 0x00000008  
-				sl_bool supportsFileCompression : 1;          // 0x00000010  
-				sl_bool supportsVolumeQuotas : 1;             // 0x00000020  
-				sl_bool supportsSparseFiles : 1;              // 0x00000040  
-				sl_bool supportsReparsePoints : 1;            // 0x00000080  
-				sl_bool supportsRemoteStorage : 1;            // 0x00000100  
-				sl_bool returnsCleanupResultInfo : 1;         // 0x00000200  
-				sl_bool supportsPosixUnlinkRename : 1;        // 0x00000400  
-				sl_bool reserved0 : 1;                        // 0x00000800
-				sl_bool reserved1 : 1;                        // 0x00001000
-				sl_bool reserved2 : 1;                        // 0x00002000
-				sl_bool reserved3 : 1;                        // 0x00004000
-				sl_bool isVolumeCompressed : 1;               // 0x00008000  
-				sl_bool supportsObjectIds : 1;                // 0x00010000  
-				sl_bool supportsEncryption : 1;               // 0x00020000  
-				sl_bool supportsNamedStreams : 1;             // 0x00040000  
-				sl_bool isReadOnlyVolume : 1;                 // 0x00080000  
-				sl_bool supportsSequentialWriteOnce : 1;      // 0x00100000  
-				sl_bool supportsTransactions : 1;             // 0x00200000  
-				sl_bool supportsHardLinks : 1;                // 0x00400000  
-				sl_bool supportsExtendedAttributes : 1;       // 0x00800000  
-				sl_bool supportsOpenByFileId : 1;             // 0x01000000  
-				sl_bool supportsUsnJournal : 1;               // 0x02000000  
-				sl_bool supportsIntegrityStreams : 1;         // 0x04000000  
-				sl_bool supportsBlockRefCounting : 1;         // 0x08000000  
-				sl_bool supportsSparseVDL : 1;                // 0x10000000  
-				sl_bool isDAXVolume : 1;                      // 0x20000000  
-				sl_bool supportsGhosting : 1;                 // 0x40000000  
-			} flags;
-		};
-
-		sl_uint64 totalSize;	// must be re-calculated in fsGetVolumeInfo(SizeInfo)
-		sl_uint64 freeSize;		// must be re-calculated in fsGetVolumeInfo(SizeInfo)
+		sl_uint32 maxPathLength;
 
 	public:
-		FileSystemInformation() {
-			this->creationTime = 0;
-			this->serialNumber = 0;
-			this->sectorSize = 4096;
-			this->sectorsPerAllocationUnit = 1;
-			this->maxComponentLength = 256;
-		}
-		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileSystemInformation)
+		FileSystemInformation();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileSystemInformation)
+
 	};
 
 	struct FileAttrs {
@@ -346,6 +318,8 @@ namespace slib
 		{
 			throw FileSystemError::NotImplemented;
 		}
+
+		virtual sl_bool getSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize);
 
 	public:
 		/* Helpers */
