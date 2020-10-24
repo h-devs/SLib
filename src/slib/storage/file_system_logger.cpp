@@ -1,5 +1,7 @@
 #include "slib/storage/file_system_logger.h"
 
+#include "slib/core/log.h"
+
 #define TAG						"FsLogger"
 #define printLog(...)			Log(TAG, ##__VA_ARGS__)
 #define errorLog(...)			LogError(TAG, ##__VA_ARGS__)

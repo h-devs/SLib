@@ -8,7 +8,7 @@
 #pragma once
 
 #include <slib/core.h>
-#include "filesystembase.h"
+#include "file_system.h"
 
 namespace slib
 {

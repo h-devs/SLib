@@ -393,7 +393,7 @@
     <ClCompile Include="..\..\src\slib\storage\disk_win32.cpp" />
     <ClCompile Include="..\..\src\slib\storage\dokany.cpp" />
     <ClCompile Include="..\..\src\slib\storage\dokany_install.cpp" />
-    <ClCompile Include="..\..\src\slib\storage\filesystembase.cpp" />
+    <ClCompile Include="..\..\src\slib\storage\file_system.cpp" />
     <ClCompile Include="..\..\src\slib\storage\file_system_logger.cpp" />
     <ClCompile Include="..\..\src\slib\storage\mirrorfs.cpp" />
     <ClCompile Include="..\..\src\slib\storage\restfs.cpp" />
