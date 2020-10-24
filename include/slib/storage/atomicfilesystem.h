@@ -13,10 +13,10 @@
 namespace slib
 {
 
-	class AtomicFileSystem : public FileSystemBase
+	class AtomicFileSystem : public FileSystemProvider
 	{
 	public:
-		AtomicFileSystem() : FileSystemBase(), m_handleCounter(0) {}
+		AtomicFileSystem() : FileSystemProvider(), m_handleCounter(0) {}
 
 	public:
 		/* AtomicFileSystem Interfaces */
@@ -78,7 +78,7 @@ namespace slib
 	protected:
 		/* FileSystem Interfaces implementation for AtomicFileSystem */
 
-		virtual const VolumeInfo&
+		virtual const FileSystemInformation&
 			fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)& override
 		{
 			if (flags == VolumeInfoFlags::SizeInfo)

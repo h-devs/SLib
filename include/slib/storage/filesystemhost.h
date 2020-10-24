@@ -16,7 +16,7 @@ namespace slib
 	class FileSystemHost : public Object
 	{
 	public:
-		FileSystemHost(Ref<FileSystemBase> base) : m_base(base)
+		FileSystemHost(Ref<FileSystemProvider> base) : m_base(base)
 		{
 			if (base.isNull()) {
 				Logger::logGlobalError("FileSystemHost", "BaseFs cannot be empty.");
@@ -40,7 +40,7 @@ namespace slib
 		}
 
 	protected:
-		Ref<FileSystemBase> m_base;
+		Ref<FileSystemProvider> m_base;
 	};
 
 }

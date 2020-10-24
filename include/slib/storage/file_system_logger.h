@@ -80,12 +80,12 @@ namespace slib
 		};
 
 	public:
-		FsLogger(Ref<FileSystemBase> base, sl_uint32 logFlags = FsLogAll, String regexFilter = ".*");
+		FsLogger(Ref<FileSystemProvider> base, sl_uint32 logFlags = FsLogAll, String regexFilter = ".*");
 
 		~FsLogger();
 
 	protected:
-		const VolumeInfo& fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)& override;
+		const FileSystemInformation& fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)& override;
 
 		void fsSetVolumeName(String volumeName) override;
 

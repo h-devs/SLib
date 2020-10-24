@@ -19,7 +19,7 @@ namespace slib
 	class DokanHost : public FileSystemHost
 	{
 	public:
-		DokanHost(Ref<FileSystemBase> base, sl_uint32 options = 0);
+		DokanHost(Ref<FileSystemProvider> base, sl_uint32 options = 0);
 		virtual ~DokanHost();
 
 		void setVersion(sl_uint16 version);

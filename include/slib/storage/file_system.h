@@ -33,7 +33,7 @@
 namespace slib
 {
 
-	class VolumeInfo
+	class FileSystemInformation
 	{
 	public:
 		String volumeName;
@@ -84,14 +84,14 @@ namespace slib
 		sl_uint64 freeSize;		// must be re-calculated in fsGetVolumeInfo(SizeInfo)
 
 	public:
-		VolumeInfo() {
+		FileSystemInformation() {
 			this->creationTime = 0;
 			this->serialNumber = 0;
 			this->sectorSize = 4096;
 			this->sectorsPerAllocationUnit = 1;
 			this->maxComponentLength = 256;
 		}
-		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(VolumeInfo)
+		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileSystemInformation)
 	};
 
 	struct FileAttrs {
@@ -225,23 +225,21 @@ namespace slib
 			: path(path), isDirectory(isDir), handle(0), status(FileSystemError::Success) {}
 	};
 
-	class FileSystemBase : public Object
+	class FileSystemProvider : public Object
 	{
-	public:
-		/* ctor/dtor */
-		FileSystemBase()
-		{
-			m_volumeInfo.creationTime = Time::now();
-		}
+		SLIB_DECLARE_OBJECT
 
-		virtual ~FileSystemBase()
+	public:
+		FileSystemProvider();
+
+		virtual ~FileSystemProvider()
 		{
 		}
 
 	public:
 		/* FileSystem Interfaces */
 
-		virtual const VolumeInfo&
+		virtual const FileSystemInformation&
 			fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)&
 		{
 			return m_volumeInfo;
@@ -368,7 +366,7 @@ namespace slib
 		sl_size getOpenHandlesCount();
 
 	protected:
-		VolumeInfo m_volumeInfo;
+		FileSystemInformation m_volumeInfo;
 		HashMap<String, sl_size> m_openHandles;
 	};
 

@@ -12,14 +12,14 @@
 namespace slib
 {
 
-	class MirrorFs : public FileSystemBase
+	class MirrorFs : public FileSystemProvider
 	{
 	public:
 		MirrorFs(String path);
 		~MirrorFs();
 
 	protected:
-		const VolumeInfo& fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)& override;
+		const FileSystemInformation& fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)& override;
 		void fsSetVolumeName(String volumeName) override;
 
 		void fsCreate(FileContext* context, FileCreationParams& params = FileCreationParams()) override;

@@ -217,7 +217,7 @@ namespace slib
 {
 	BOOL DokanHost::g_hasSeSecurityPrivilege = FALSE;
 
-	DokanHost::DokanHost(Ref<FileSystemBase> base, sl_uint32 options) :
+	DokanHost::DokanHost(Ref<FileSystemProvider> base, sl_uint32 options) :
 		FileSystemHost(base),
 		m_uncName(L""),
 		m_mountPoint(L""),
@@ -306,7 +306,7 @@ namespace slib
 			}
 
 			try {
-				VolumeInfo volumeInfo = m_base->fsGetVolumeInfo();
+				FileSystemInformation volumeInfo = m_base->fsGetVolumeInfo();
 				if (volumeInfo.sectorSize) {
 					m_dokanOptions.SectorSize = volumeInfo.sectorSize;
 					if (volumeInfo.sectorsPerAllocationUnit)
@@ -457,7 +457,7 @@ namespace slib
 			ULONG					CreateOptions,
 			PDOKAN_FILE_INFO		DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		DWORD creationDisposition;
 		DWORD fileAttributesAndFlags;
 		ACCESS_MASK genericDesiredAccess;
@@ -555,7 +555,7 @@ namespace slib
 			DokanFileInfo->Context = 0;
 		}
 
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		int ret = 0;
 		FILESYSTEM_EXCEPTION_GUARD(
@@ -656,7 +656,7 @@ namespace slib
 			LPCWSTR					FileName,
 			PDOKAN_FILE_INFO		DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			if (DokanFileInfo->DeleteOnClose) {
@@ -674,7 +674,7 @@ namespace slib
 			LPCWSTR					FileName,
 			PDOKAN_FILE_INFO		DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsClose(context);
@@ -694,7 +694,7 @@ namespace slib
 			LONGLONG			Offset,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			MemoryData buf;
@@ -713,7 +713,7 @@ namespace slib
 			LONGLONG			Offset,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			// Paging IO cannot write after allocate file size.
@@ -740,7 +740,7 @@ namespace slib
 			LPCWSTR		FileName,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsFlush(context);
@@ -754,7 +754,7 @@ namespace slib
 			LPBY_HANDLE_FILE_INFORMATION	HandleFileInformation,
 			PDOKAN_FILE_INFO				DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo = base->fsGetFileInfo(context);
@@ -784,7 +784,7 @@ namespace slib
 			PFillFindData		FillFindData,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, PathName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			WIN32_FIND_DATA findData;
@@ -812,7 +812,7 @@ namespace slib
 			PFillFindStreamData	FillFindStreamData,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			WIN32_FIND_STREAM_DATA findData;
@@ -834,7 +834,7 @@ namespace slib
 			LPCWSTR				FileName,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsDelete(context, TRUE);
@@ -860,7 +860,7 @@ namespace slib
 			BOOL				ReplaceIfExisting,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsRename(context, WCharToString(NewFileName), ReplaceIfExisting);
@@ -875,7 +875,7 @@ namespace slib
 			LONGLONG			ByteOffset,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo;
@@ -891,7 +891,7 @@ namespace slib
 			LONGLONG			AllocSize,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo;
@@ -907,7 +907,7 @@ namespace slib
 			DWORD				FileAttributes,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo;
@@ -925,7 +925,7 @@ namespace slib
 			CONST FILETIME*		LastWriteTime,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			FileInfo fileInfo;
@@ -949,7 +949,7 @@ namespace slib
 			PULONG				LengthNeeded,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 
 		if (!DokanHost::g_hasSeSecurityPrivilege) {
@@ -974,7 +974,7 @@ namespace slib
 			ULONG				SecurityDescriptorLength,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsSetSecurity(context, *SecurityInformation, Memory::create(SecurityDescriptor, SecurityDescriptorLength));
@@ -989,7 +989,7 @@ namespace slib
 			LONGLONG			Length,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsLock(context, ByteOffset, Length);
@@ -1004,7 +1004,7 @@ namespace slib
 			LONGLONG			Length,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		Ref<FileContext> context = GetFileContext(DokanFileInfo, FileName);
 		FILESYSTEM_EXCEPTION_GUARD(
 			base->fsUnlock(context, ByteOffset, Length);
@@ -1019,9 +1019,9 @@ namespace slib
 			PULONGLONG			TotalNumberOfFreeBytes,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		FILESYSTEM_EXCEPTION_GUARD(
-			VolumeInfo volumeInfo = base->fsGetVolumeInfo(VolumeInfoFlags::SizeInfo);
+			FileSystemInformation volumeInfo = base->fsGetVolumeInfo(VolumeInfoFlags::SizeInfo);
 			*FreeBytesAvailable = ((PLARGE_INTEGER)&volumeInfo.freeSize)->QuadPart;
 			*TotalNumberOfBytes = ((PLARGE_INTEGER)&volumeInfo.totalSize)->QuadPart;
 			*TotalNumberOfFreeBytes = ((PLARGE_INTEGER)&volumeInfo.freeSize)->QuadPart;
@@ -1040,9 +1040,9 @@ namespace slib
 			DWORD		FileSystemNameSize,
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
-		FileSystemBase *base = (FileSystemBase *)DokanFileInfo->DokanOptions->GlobalContext;
+		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		FILESYSTEM_EXCEPTION_GUARD(
-			VolumeInfo volumeInfo = base->fsGetVolumeInfo();
+			FileSystemInformation volumeInfo = base->fsGetVolumeInfo();
 			WCHAR Buffer[MAX_PATH] = L"";
 
 			*VolumeSerialNumber = volumeInfo.serialNumber;

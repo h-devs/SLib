@@ -12,11 +12,11 @@
 namespace slib
 {
 
-	class FileSystemWrapper : public FileSystemBase
+	class FileSystemWrapper : public FileSystemProvider
 	{
 	public:
 		/* ctor/dtor */
-		FileSystemWrapper(Ref<FileSystemBase> base,
+		FileSystemWrapper(Ref<FileSystemProvider> base,
 			const StringParam& fileSystemName = sl_null,
 			const StringParam& volumeName = sl_null) : m_base(base)
 		{
@@ -34,7 +34,7 @@ namespace slib
 	protected:
 		/* FileSystem Interfaces */
 
-		virtual const VolumeInfo&
+		virtual const FileSystemInformation&
 			fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)& override
 		{
 			if (flags == VolumeInfoFlags::BasicInfo)
@@ -168,7 +168,7 @@ namespace slib
 		}
 
 	protected:
-		Ref<FileSystemBase> m_base;
+		Ref<FileSystemProvider> m_base;
 	};
 
 }

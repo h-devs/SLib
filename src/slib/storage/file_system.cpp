@@ -24,16 +24,22 @@
 
 #include "slib/core/log.h"
 
-#define TAG						"FileSystemBase"
+#define TAG						"FileSystemProvider"
 #define errorLog(...)			LogError(TAG, ##__VA_ARGS__)
 #define debugLog(...)			LogDebug(TAG, ##__VA_ARGS__)
 
 namespace slib
 {
 
-	/* Helpers */
+	SLIB_DEFINE_OBJECT(FileSystemProvider, Object)
 
-	sl_bool FileSystemBase::exists(String fileName) noexcept
+	FileSystemProvider::FileSystemProvider()
+	{
+		m_volumeInfo.creationTime = Time::now();
+	}
+
+
+	sl_bool FileSystemProvider::exists(String fileName) noexcept
 	{
 		try {
 			fsGetFileInfo(new FileContext(fileName));
@@ -44,7 +50,7 @@ namespace slib
 		}
 	}
 
-	Memory FileSystemBase::readFile(String fileName, sl_int64 offset, sl_uint32 length) noexcept
+	Memory FileSystemProvider::readFile(String fileName, sl_int64 offset, sl_uint32 length) noexcept
 	{
 		Ref<FileContext> context;
 		fileName = fileName.replaceAll("/", "\\");
@@ -76,7 +82,7 @@ namespace slib
 		}
 	}
 
-	sl_bool FileSystemBase::writeFile(String fileName, const Memory& buffer, FileCreationParams& params) noexcept
+	sl_bool FileSystemProvider::writeFile(String fileName, const Memory& buffer, FileCreationParams& params) noexcept
 	{
 		Ref<FileContext> context;
 		fileName = fileName.replaceAll("/", "\\");
@@ -100,7 +106,7 @@ namespace slib
 		}
 	}
 
-	sl_bool FileSystemBase::deleteFile(String fileName) noexcept
+	sl_bool FileSystemProvider::deleteFile(String fileName) noexcept
 	{
 		Ref<FileContext> context;
 		fileName = fileName.replaceAll("/", "\\");
@@ -123,14 +129,14 @@ namespace slib
 		}
 	}
 
-	sl_size FileSystemBase::increaseHandleCount(String fileName)
+	sl_size FileSystemProvider::increaseHandleCount(String fileName)
 	{
 		ObjectLocker locker(this);
 		m_openHandles.put(fileName, m_openHandles[fileName] + 1);
 		return m_openHandles[fileName];
 	}
 
-	sl_size FileSystemBase::decreaseHandleCount(String fileName)
+	sl_size FileSystemProvider::decreaseHandleCount(String fileName)
 	{
 		ObjectLocker locker(this);
 		sl_size count = m_openHandles[fileName];
@@ -141,7 +147,7 @@ namespace slib
 		return m_openHandles[fileName];
 	}
 
-	sl_size FileSystemBase::getOpenHandlesCount()
+	sl_size FileSystemProvider::getOpenHandlesCount()
 	{
 		return m_openHandles.getCount();
 	}

@@ -12,7 +12,7 @@
 namespace slib
 {
 
-	class DummyFs : public FileSystemBase
+	class DummyFs : public FileSystemProvider
 	{
 	public:
 		DummyFs() {

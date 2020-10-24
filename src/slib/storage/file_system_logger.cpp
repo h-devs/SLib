@@ -14,7 +14,7 @@
 namespace slib
 {
 
-	FsLogger::FsLogger(Ref<FileSystemBase> base, sl_uint32 logFlags, String regexFilter)
+	FsLogger::FsLogger(Ref<FileSystemProvider> base, sl_uint32 logFlags, String regexFilter)
 		: FileSystemWrapper(base), m_flags(logFlags), m_regex(regexFilter)
 	{
 		if (!(m_flags & FsLogVolumeInfo))
@@ -22,7 +22,7 @@ namespace slib
 
 		printLog("LogFlags: 0x%08X", m_flags);
 
-		printLog("VolumeInfo:");
+		printLog("FileSystemInformation:");
 		printLog("  volumeName: %s", m_volumeInfo.volumeName);
 		printLog("  fileSystemName: %s", m_volumeInfo.fileSystemName);
 		printLog("  creationTime: %s", m_flags & FsLogDateAsString
@@ -39,7 +39,7 @@ namespace slib
 	{
 	}
 
-	const VolumeInfo& FsLogger::fsGetVolumeInfo(VolumeInfoFlags flags)& 
+	const FileSystemInformation& FsLogger::fsGetVolumeInfo(VolumeInfoFlags flags)& 
 	{
 		if (!(m_flags & FsLogGetVolumeInfo))
 			return m_base->fsGetVolumeInfo(flags);
@@ -60,7 +60,7 @@ namespace slib
 			printLog(desc);
 
 		try {
-			const VolumeInfo &ret = m_base->fsGetVolumeInfo(flags);
+			const FileSystemInformation &ret = m_base->fsGetVolumeInfo(flags);
 			if (m_flags & FsLogRet) {
 				printLog(desc);
 				if (flags & VolumeInfoFlags::SizeInfo) {

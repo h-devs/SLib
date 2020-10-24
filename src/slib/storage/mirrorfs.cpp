@@ -110,7 +110,7 @@ namespace slib
 	{
 	}
 
-	const VolumeInfo& MirrorFs::fsGetVolumeInfo(VolumeInfoFlags flags)&
+	const FileSystemInformation& MirrorFs::fsGetVolumeInfo(VolumeInfoFlags flags)&
 	{
 		if (flags == VolumeInfoFlags::SizeInfo) {
 			WCHAR path[MAX_PATH];
