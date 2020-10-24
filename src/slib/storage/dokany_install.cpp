@@ -88,6 +88,19 @@ namespace slib
 				return ServiceManager::isRunning(driverName);
 			}
 
+			static sl_bool StartMounter()
+			{
+				String serviceName = "DokanMounter";
+				ServiceState state = ServiceManager::getState(serviceName);
+				if (state == ServiceState::Running) {
+					return sl_true;
+				}
+				if (state == ServiceState::None) {
+					return sl_false;
+				}
+				return ServiceManager::start(serviceName);
+			}
+
 			static sl_bool StartDriver(sl_bool flagDokany)
 			{
 				String driverName = GetDriverName(flagDokany);
@@ -98,7 +111,50 @@ namespace slib
 				if (state == ServiceState::None) {
 					return sl_false;
 				}
-				return ServiceManager::start(driverName);
+				if (!(ServiceManager::start(driverName))) {
+					return sl_false;
+				}
+				if (!flagDokany) {
+					return StartMounter();
+				}
+				return sl_true;
+			}
+
+			static sl_bool RegisterMounter()
+			{
+				String serviceName = "DokanMounter";
+				ServiceState state = ServiceManager::getState(serviceName);
+				if (state != ServiceState::None) {
+					return sl_true;
+				}
+				Memory data;
+#ifdef SLIB_PLATFORM_IS_WIN64
+				data = Zlib::decompress(::dokany::files::dokan_mounter_compressed_data, ::dokany::files::dokan_mounter_compressed_size);
+#else
+				DisableWow64FsRedirectionScope scopeDisableWow64;
+				if (Windows::is64BitSystem()) {
+					data = Zlib::decompress(::dokany::files::dokan_mounter_compressed_data64, ::dokany::files::dokan_mounter_compressed_size64);
+				}
+				else {
+					data = Zlib::decompress(::dokany::files::dokan_mounter_compressed_data, ::dokany::files::dokan_mounter_compressed_size);
+				}
+#endif
+				if (data.isNull()) {
+					return sl_false;
+				}
+				String path = Windows::getSystemDirectory() + "\\mounter.exe";
+				if (File::writeAllBytes(path, data) != data.getSize()) {
+					return sl_false;
+				}
+				ServiceCreateParam param;
+				//param.type = ServiceType::FileSystem;
+				param.startType = ServiceStartType::Auto;
+				param.name = serviceName;
+				param.path = path;
+				if (!(ServiceManager::create(param))) {
+					return sl_false;
+				}
+				return sl_true;
 			}
 
 			static sl_bool RegisterDriver(sl_bool flagDokany)
@@ -112,7 +168,8 @@ namespace slib
 #ifdef SLIB_PLATFORM_IS_WIN64
 				if (flagDokany) {
 					data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data, ::dokany::files::dokan1_sys_compressed_size);
-				} else {
+				}
+				else {
 					data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data, ::dokany::files::dokan_sys_compressed_size);
 				}
 #else
@@ -120,13 +177,16 @@ namespace slib
 				if (Windows::is64BitSystem()) {
 					if (flagDokany) {
 						data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data64, ::dokany::files::dokan1_sys_compressed_size64);
-					} else {
+					}
+					else {
 						data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data64, ::dokany::files::dokan_sys_compressed_size64);
 					}
-				} else {
+				}
+				else {
 					if (flagDokany) {
 						data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data, ::dokany::files::dokan1_sys_compressed_size);
-					} else {
+					}
+					else {
 						data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data, ::dokany::files::dokan_sys_compressed_size);
 					}
 				}
@@ -145,6 +205,9 @@ namespace slib
 				param.path = path;
 				if (!(ServiceManager::create(param))) {
 					return sl_false;
+				}
+				if (!flagDokany) {
+					return RegisterMounter();
 				}
 				return sl_true;
 			}

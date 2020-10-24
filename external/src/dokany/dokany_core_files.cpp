@@ -5,6 +5,24 @@ namespace dokany
 	namespace files
 	{
 
+		static unsigned char dokan_arr_mounter[] = {
+#ifdef _WIN64
+#include "dokan_mounter_x64_exe.txt"
+#else
+#include "dokan_mounter_x86_exe.txt"
+#endif
+		};
+		unsigned char* dokan_mounter_compressed_data = dokan_arr_mounter;
+		unsigned long dokan_mounter_compressed_size = sizeof(dokan_arr_mounter);
+
+#ifndef _WIN64
+		static unsigned char dokan_arr_mounter64[] = {
+#include "dokan_mounter_x64_exe.txt"
+		};
+		unsigned char* dokan_mounter_compressed_data64 = dokan_arr_mounter64;
+		unsigned long dokan_mounter_compressed_size64 = sizeof(dokan_arr_mounter64);
+#endif
+
 		static unsigned char dokan_arr_dll[] = {
 #ifdef _WIN64
 #include "dokan_x64_dll.txt"
