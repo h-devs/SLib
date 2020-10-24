@@ -260,9 +260,9 @@ namespace slib
 		return m_flagError;
 	}
 
-	String UrlRequest::getLastErrorMessage()
+	String UrlRequest::getErrorMessage()
 	{
-		return m_lastErrorMessage;
+		return m_errorMessage;
 	}
 	
 	sl_bool UrlRequest::isClosed()

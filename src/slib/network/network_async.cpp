@@ -128,7 +128,7 @@ namespace slib
 			if (param.bindAddress.ip.isNotNone() || param.bindAddress.port != 0) {
 				if (!(socket->bind(param.bindAddress))) {
 					if (param.flagLogError) {
-						LogError(TAG, "AsyncTcpSocket bind error: %s, %s", param.bindAddress.toString(), socket->getLastErrorMessage());
+						LogError(TAG, "AsyncTcpSocket bind error: %s, %s", param.bindAddress.toString(), Socket::getLastErrorMessage());
 					}
 					return sl_null;
 				}
@@ -152,7 +152,7 @@ namespace slib
 					if (param.connectAddress.isValid()) {
 						if (!(ret->connect(param.connectAddress))) {
 							if (param.flagLogError) {
-								LogError(TAG, "AsyncTcpSocket connect error: %s, %s", param.connectAddress.toString(), socket->getLastErrorMessage());
+								LogError(TAG, "AsyncTcpSocket connect error: %s, %s", param.connectAddress.toString(), Socket::getLastErrorMessage());
 							}
 							return sl_null;
 						}
@@ -381,7 +381,7 @@ namespace slib
 
 			if (!(socket->bind(param.bindAddress))) {
 				if (param.flagLogError) {
-					LogError(TAG, "AsyncTcpServer bind error: %s, %s", param.bindAddress.toString(), socket->getLastErrorMessage());
+					LogError(TAG, "AsyncTcpServer bind error: %s, %s", param.bindAddress.toString(), Socket::getLastErrorMessage());
 				}
 				return sl_null;
 			}
@@ -414,7 +414,7 @@ namespace slib
 			}
 		} else {
 			if (param.flagLogError) {
-				LogError(TAG, "AsyncTcpServer listen error: %s, %s", param.bindAddress.toString(), socket->getLastErrorMessage());
+				LogError(TAG, "AsyncTcpServer listen error: %s, %s", param.bindAddress.toString(), Socket::getLastErrorMessage());
 			}
 		}
 		return sl_null;
@@ -583,7 +583,7 @@ namespace slib
 			if (param.bindAddress.ip.isNotNone() || param.bindAddress.port != 0) {
 				if (!(socket->bind(param.bindAddress))) {
 					if (param.flagLogError) {
-						LogError(TAG, "AsyncTcpSocket bind error: %s, %s", param.bindAddress.toString(), socket->getLastErrorMessage());
+						LogError(TAG, "AsyncTcpSocket bind error: %s, %s", param.bindAddress.toString(), Socket::getLastErrorMessage());
 					}
 					return sl_null;
 				}

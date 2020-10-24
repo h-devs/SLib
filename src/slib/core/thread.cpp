@@ -297,12 +297,12 @@ namespace slib
 
 	sl_bool Thread::isCurrentThread()
 	{
-		return Thread::_nativeGetCurrentThread() == this;
+		return _nativeGetCurrentThread() == this;
 	}
 
-	Ref<Thread> Thread::getCurrent()
+	Thread* Thread::getCurrent()
 	{
-		return Thread::_nativeGetCurrentThread();
+		return _nativeGetCurrentThread();
 	}
 
 	sl_bool Thread::isStoppingCurrent()

@@ -177,6 +177,11 @@ namespace slib
 	{
 		return errno;
 	}
+
+	void System::setLastError(sl_uint32 errorCode)
+	{
+		errno = (int)errorCode;
+	}
 	
 	String System::formatErrorCode(sl_uint32 errorCode)
 	{

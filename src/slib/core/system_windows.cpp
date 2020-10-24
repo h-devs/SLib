@@ -197,6 +197,11 @@ namespace slib
 		return (sl_uint32)(GetLastError());
 	}
 
+	void System::setLastError(sl_uint32 errorCode)
+	{
+		SetLastError((DWORD)errorCode);
+	}
+
 	String System::formatErrorCode(sl_uint32 errorCode)
 	{
 		String ret;

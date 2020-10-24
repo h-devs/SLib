@@ -26,11 +26,11 @@
 
 #define _EXPORTING
 #include "dokany/dokan.h"
-#include "dokany/dokan_legacy.h"
 
 #include "slib/core/service_manager.h"
 #include "slib/core/dynamic_library.h"
 #include "slib/core/platform_windows.h"
+#include "slib/core/safe_static.h"
 
 namespace slib
 {
@@ -40,9 +40,10 @@ namespace slib
 		namespace dokany
 		{
 
+			sl_bool g_flagDokany = sl_false;
+
 			void* g_libDll;
-			String g_serviceName;
-			sl_bool g_flagLegacy;
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString16, g_strDriverName)
 
 			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanMain, int, DOKANAPI,
 				PDOKAN_OPTIONS DokanOptions,
@@ -96,47 +97,53 @@ namespace slib
 
 	using namespace priv::dokany;
 
-	sl_bool Dokany::initialize(const StringParam& pathDll)
+	sl_bool Dokany::initialize(sl_bool flagDokany, const StringParam& driverName, const StringParam& pathDll)
 	{
-		if (g_libDll) {
+		void* lib = DynamicLibrary::loadLibrary(pathDll);
+		if (lib) {
+			g_flagDokany = flagDokany;
+			g_libDll = lib;
+			g_strDriverName = driverName.toString16();
 			return sl_true;
 		}
-		g_libDll = DynamicLibrary::loadLibrary(pathDll);
-		return g_libDll != sl_null;
+		return sl_false;
 	}
 
 	sl_bool Dokany::initialize()
 	{
-		if (ServiceManager::getState("dokan1") == ServiceState::Running) {
-			g_flagLegacy = sl_false;
-			g_serviceName = "dokan1";
-			return initialize("dokan1.dll");
+		if (g_libDll) {
+			return sl_true;
 		}
-		else if (ServiceManager::getState("Dokan") == ServiceState::Running) {
-			g_flagLegacy = sl_true;
-			g_serviceName = "Dokan";
-			return initialize("dokan.dll");
+		if (initialize(sl_true, L"Dokan1", "dokan1.dll")) {
+			return sl_true;
 		}
+		if (initialize(sl_false, L"Dokan", "dokan.dll")) {
+			return sl_true;
+		}
+		return sl_false;
+	}
 
-		if (Windows::getVersion() >= WindowsVersion::Windows7_SP1) {
-			g_flagLegacy = sl_false;
-			g_serviceName = "dokan1";
-			return initialize("dokan1.dll");
+	sl_bool Dokany::isDokany()
+	{
+		if (initialize()) {
+			return g_flagDokany;
 		}
-		else {
-			g_flagLegacy = sl_true;
-			g_serviceName = "Dokan";
-			return initialize("dokan.dll");
-		}
+		return sl_false;
 	}
 
 	ServiceState Dokany::getDriverState()
 	{
-		return ServiceManager::getState(g_serviceName);
+		if (!(initialize())) {
+			return ServiceState::None;
+		}
+		return ServiceManager::getState(g_strDriverName);
 	}
 
 	sl_bool Dokany::startDriver()
 	{
+		if (!(initialize())) {
+			return sl_false;
+		}
 		ServiceState state = getDriverState();
 		if (state == ServiceState::None) {
 			return sl_false;
@@ -144,11 +151,14 @@ namespace slib
 		if (state == ServiceState::Running) {
 			return sl_true;
 		}
-		return ServiceManager::start(g_serviceName);
+		return ServiceManager::start(g_strDriverName);
 	}
 
 	sl_bool Dokany::stopDriver()
 	{
+		if (!(initialize())) {
+			return sl_false;
+		}
 		ServiceState state = getDriverState();
 		if (state == ServiceState::None) {
 			return sl_false;
@@ -156,64 +166,14 @@ namespace slib
 		if (state == ServiceState::Stopped) {
 			return sl_true;
 		}
-		return ServiceManager::stop(g_serviceName);
-	}
-
-	sl_bool Dokany::registerDriver(const StringParam& pathSys)
-	{
-		ServiceCreateParam param;
-		param.type = ServiceType::FileSystem;
-		param.name = g_serviceName;
-		if (pathSys.isNotEmpty()) {
-			param.path = pathSys;
-		} else {
-			param.path = Windows::getSystemDirectory() + "\\drivers\\" 
-				+ (g_flagLegacy ? DOKAN_LEGACY_DRIVER_NAME : DOKAN_DRIVER_NAME);
-		}
-		return ServiceManager::create(param);
-	}
-
-	sl_bool Dokany::registerDriver()
-	{
-		return registerDriver(sl_null);
-	}
-
-	sl_bool Dokany::registerAndStartDriver(const StringParam& pathSys)
-	{
-		ServiceState state = getDriverState();
-		if (state == ServiceState::Running) {
-			return sl_true;
-		}
-		if (state != ServiceState::None) {
-			return startDriver();
-		}
-		if (registerDriver(pathSys)) {
-			return startDriver();
-		}
-		return sl_false;
-	}
-
-	sl_bool Dokany::registerAndStartDriver()
-	{
-		return registerAndStartDriver(sl_null);
-	}
-
-	sl_bool Dokany::unregisterDriver()
-	{
-		ServiceState state = getDriverState();
-		if (state == ServiceState::None) {
-			return sl_true;
-		}
-		if (state != ServiceState::Stopped) {
-			if (!(stopDriver())) {
-				return sl_false;
-			}
-		}
-		return ServiceManager::remove(g_serviceName);
+		return ServiceManager::stop(g_strDriverName);
 	}
 
 	sl_bool Dokany::unmount(const StringParam& _mountPoint)
 	{
+		if (!(initialize())) {
+			return sl_false;
+		}
 		auto func = getApi_DokanRemoveMountPoint();
 		if (func) {
 			StringCstr16 mountPoint(_mountPoint);
@@ -226,12 +186,12 @@ namespace slib
 
 #include "slib/storage/dokan_host.h"
 
-# define DOKAN_RETERROR(error)	(g_flagLegacy ? -(int)error : getApi_DokanNtStatusFromWin32()((DWORD)error))
+# define DOKAN_RETERROR(error)	(g_flagDokany ? getApi_DokanNtStatusFromWin32()((DWORD)error) : -(int)error)
 # define FILESYSTEM_EXCEPTION_GUARD(...)\
     try { __VA_ARGS__ } \
 	catch (FileSystemError error) { \
 		if (error == FileSystemError::NotImplemented) \
-			return (g_flagLegacy ? 0 : STATUS_NOT_IMPLEMENTED); \
+			return (g_flagDokany ? STATUS_NOT_IMPLEMENTED : 0); \
 		return DOKAN_RETERROR(error); \
 	} \
 	catch (...) { \
@@ -264,13 +224,12 @@ namespace slib
 		m_flagStarted(FALSE)
 	{
 		ZeroMemory(&m_dokanOptions, sizeof(DOKAN_OPTIONS));
-		m_dokanOptions.Version = DOKAN_VERSION;
+		m_dokanOptions.Version = (USHORT)(getApi_DokanVersion()());
 		m_dokanOptions.ThreadCount = 0; // use default
 		m_dokanOptions.UNCName = m_uncName;
 		m_dokanOptions.Options |= options;
-		if (g_flagLegacy) {
-			m_dokanOptions.Version = DOKAN_LEGACY_VERSION;		// 0.6.0
-			m_dokanOptions.Options |= DOKAN_OPTION_KEEP_ALIVE;	// use auto unmount
+		if (!g_flagDokany) {
+			m_dokanOptions.Options |= 8/*DOKAN_OPTION_KEEP_ALIVE*/;	// use auto unmount
 		}
 		m_dokanOptions.GlobalContext = (ULONG64)(PVOID)m_base;
 		m_dokanOptions.MountPoint = m_mountPoint;
@@ -299,13 +258,13 @@ namespace slib
 
 	void DokanHost::setUNCName(const StringParam& uncName)
 	{
-		if (g_flagLegacy) return;
+		if (!g_flagDokany) return;
 		StringToWChar(uncName.toString(), m_uncName);
 	}
 
 	void DokanHost::setTimeout(sl_uint32 timeout)
 	{
-		if (g_flagLegacy) return;
+		if (!g_flagDokany) return;
 		m_dokanOptions.Timeout = timeout;
 	}
 
@@ -319,7 +278,7 @@ namespace slib
 	}
 
 	int DokanHost::fsRun() {
-		if (!g_flagLegacy) {
+		if (g_flagDokany) {
 			if (wcscmp(m_uncName, L"") != 0 &&
 				!(m_dokanOptions.Options & DOKAN_OPTION_NETWORK)) {
 				fwprintf(
@@ -590,7 +549,7 @@ namespace slib
 			PDOKAN_FILE_INFO		DokanFileInfo)
 	{
 		PSECURITY_DESCRIPTOR securityDescriptor = 0;
-		if (!g_flagLegacy && DokanFileInfo->Context) {
+		if (g_flagDokany && DokanFileInfo->Context) {
 			PDOKAN_IO_SECURITY_CONTEXT SecurityContext = (PDOKAN_IO_SECURITY_CONTEXT)DokanFileInfo->Context;
 			securityDescriptor = SecurityContext->AccessState.SecurityDescriptor;
 			DokanFileInfo->Context = 0;
@@ -663,7 +622,7 @@ namespace slib
 		context->increaseReference();
 		base->increaseHandleCount(context->path);
 
-		return (g_flagLegacy ? ret : DOKAN_RETERROR(ret));
+		return (!g_flagDokany ? ret : DOKAN_RETERROR(ret));
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK	// !SLIB_DOKAN_IS_DOKANY
@@ -1002,7 +961,7 @@ namespace slib
 			*LengthNeeded = (ULONG)base->fsGetSecurity(context, *SecurityInformation,
 				Memory::createStatic(SecurityDescriptor, BufferLength));
 			if (BufferLength < *LengthNeeded)
-				return (g_flagLegacy ? DOKAN_RETERROR(ERROR_INSUFFICIENT_BUFFER) : STATUS_BUFFER_OVERFLOW);
+				return (!g_flagDokany ? DOKAN_RETERROR(ERROR_INSUFFICIENT_BUFFER) : STATUS_BUFFER_OVERFLOW);
 		)
 		return 0;
 	}
@@ -1115,7 +1074,7 @@ namespace slib
 
 	void* DokanHost::Interface()
 	{
-		if (g_flagLegacy) {
+		if (!g_flagDokany) {
 			static void* dokanLegacyInterface[] = {
 				CreateFile,
 				OpenDirectory,

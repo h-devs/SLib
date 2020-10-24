@@ -289,7 +289,7 @@ namespace slib
 						if (socket->accept(socketAccept, addr)) {
 							_onAccept(socketAccept, addr);
 						} else {
-							SocketError err = socket->getLastError();
+							SocketError err = Socket::getLastError();
 							if (err != SocketError::WouldBlock) {
 								_onError();
 							}

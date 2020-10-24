@@ -88,7 +88,7 @@ namespace slib
 		AtomicString m_urlOrigin;
 		AtomicString m_offlineContentHTML;
 		sl_bool m_flagOfflineContent;
-		AtomicString m_lastErrorMessage;
+		AtomicString m_errorMessage;
 		
 		AtomicString m_customUserAgent;
 		AtomicFunction<void(WebView*, String)> m_callbackQueryUserAgentCompletion;

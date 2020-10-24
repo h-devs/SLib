@@ -7,6 +7,7 @@
 
 #pragma once
 
+#define _EXPORTING
 #include "../../../external/include/dokany/dokan.h"
 #include "filesystemhost.h"
 

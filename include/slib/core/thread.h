@@ -109,7 +109,7 @@ namespace slib
 
 		sl_bool isCurrentThread();
 
-		static Ref<Thread> getCurrent();
+		static Thread* getCurrent();
 
 		static sl_bool isStoppingCurrent();
 

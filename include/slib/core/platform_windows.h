@@ -142,6 +142,8 @@ namespace slib
 
 		static WindowsVersion getVersion();
 
+		static sl_bool is64BitSystem();
+
 		static WindowsDllVersion getDllVersion(const StringParam& pathDll);
 
 

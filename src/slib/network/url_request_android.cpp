@@ -102,7 +102,7 @@ namespace slib
 									Jni::setStringArrayElement(jheaders, i, m[i]);
 								}
 							} else {
-								m_lastErrorMessage = "Memory Failure";
+								m_errorMessage = "Memory Failure";
 								onError();
 								return;
 							}
@@ -116,7 +116,7 @@ namespace slib
 						if (jbody.isNotNull()) {
 							Jni::setByteArrayRegion(jbody, 0, n, (jbyte*)(mem.getData()));
 						} else {
-							m_lastErrorMessage = "Memory Failure";
+							m_errorMessage = "Memory Failure";
 							onError();
 							return;
 						}
@@ -176,7 +176,7 @@ namespace slib
 							onReceiveContent(mem.getData(), n, mem);
 						} else {
 							clear();
-							m_lastErrorMessage = "Memory Failure";
+							m_errorMessage = "Memory Failure";
 							onError();
 						}
 					} else {
@@ -198,7 +198,7 @@ namespace slib
 
 				void dispatchError(jstring errorMessage)
 				{
-					m_lastErrorMessage = Jni::getString(errorMessage);
+					m_errorMessage = Jni::getString(errorMessage);
 					onError();
 				}
 

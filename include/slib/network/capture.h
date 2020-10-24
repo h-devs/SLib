@@ -134,7 +134,7 @@ namespace slib
 		// send a L2-packet
 		virtual sl_bool sendPacket(const void* buf, sl_uint32 size) = 0;
 		
-		virtual String getLastErrorMessage();
+		virtual String getErrorMessage();
 		
 		// Pcap Utiltities
 		static List<NetCaptureDeviceInfo> getAllPcapDevices();

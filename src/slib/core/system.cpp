@@ -52,6 +52,15 @@ namespace slib
 	}
 #endif
 
+	String System::getLastErrorMessage()
+	{
+		sl_uint32 err = getLastError();
+		if (err) {
+			return formatErrorCode(err);
+		}
+		return sl_null;
+	}
+
 #if defined(SLIB_PLATFORM_IS_MOBILE)
 	void System::setCrashHandler(SIGNAL_HANDLER handler)
 	{

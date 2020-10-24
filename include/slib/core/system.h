@@ -71,7 +71,11 @@ namespace slib
 	
 		
 		static sl_uint32 getLastError();
-		
+
+		static void setLastError(sl_uint32 errorCode);
+
+		static String getLastErrorMessage();
+
 		static String formatErrorCode(sl_uint32 errorCode);
 		
 		static void abort(const StringParam& msg, const StringParam& file, sl_uint32 line);

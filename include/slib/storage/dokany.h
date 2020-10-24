@@ -35,9 +35,11 @@ namespace slib
 	class SLIB_EXPORT Dokany
 	{
 	public:
-		static sl_bool initialize(const StringParam& pathDll);
+		static sl_bool initialize(sl_bool flagDokany, const StringParam& driverName, const StringParam& dllPath);
 
 		static sl_bool initialize();
+
+		static sl_bool isDokany();
 
 		static ServiceState getDriverState();
 
@@ -45,31 +47,12 @@ namespace slib
 
 		static sl_bool stopDriver();
 
-		static sl_bool registerDriver(const StringParam& pathSys);
-
-		static sl_bool registerDriver();
-
-		static sl_bool registerAndStartDriver(const StringParam& pathSys);
-
-		static sl_bool registerAndStartDriver();
-
-		static sl_bool unregisterDriver();
-
 		static sl_bool unmount(const StringParam& mountPoint);
 		
-	};
-
-	class SLIB_EXPORT DokanyControl
-	{
-	public:
 		static sl_bool install();
 
-		static void uninstall();
-
-		static void unmount(const StringParam& mountPoint);
-
 	};
-	
+
 }
 
 #endif

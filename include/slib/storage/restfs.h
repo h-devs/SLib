@@ -16,7 +16,7 @@ namespace slib
 	class RestFs : public AtomicFileSystem
 	{
 	public:
-		RestFs(String Url);
+		RestFs(String url);
 
 	public:
 		sl_bool ping();

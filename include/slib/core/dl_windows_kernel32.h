@@ -70,6 +70,12 @@ namespace slib
 			BOOL, WINAPI,
 			PVOID OldValue
 		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			IsWow64Process,
+			BOOL, WINAPI,
+			HANDLE hProcess,
+			PBOOL Wow64Process
+		)
 	SLIB_IMPORT_LIBRARY_END
 		
 }

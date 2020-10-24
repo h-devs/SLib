@@ -37,6 +37,5 @@
 #include "storage/file_system_logger.h"
 
 #include "storage/filesystemhost.h"
-#include "storage/dokan_host.h"
 
 #endif
