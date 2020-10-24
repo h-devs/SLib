@@ -237,7 +237,7 @@ namespace slib
 		sl_bool flagDokany = sl_true;
 		if (InstallDriver(flagDokany)) {
 			if (InstallLibrary(flagDokany)) {
-				return initialize(GetDriverName(flagDokany), GetLibraryPath(flagDokany));
+				return initialize(flagDokany, GetDriverName(flagDokany), GetLibraryPath(flagDokany));
 			}
 		}
 		return sl_false;

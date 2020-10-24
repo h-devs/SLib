@@ -35,9 +35,11 @@ namespace slib
 	class SLIB_EXPORT Dokany
 	{
 	public:
-		static sl_bool initialize(const StringParam& driverName, const StringParam& dllPath);
+		static sl_bool initialize(sl_bool flagDokany, const StringParam& driverName, const StringParam& dllPath);
 
 		static sl_bool initialize();
+
+		static sl_bool isDokany();
 
 		static ServiceState getDriverState();
 

@@ -40,6 +40,8 @@ namespace slib
 		namespace dokany
 		{
 
+			sl_bool g_flagDokany = sl_false;
+
 			void* g_libDll;
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString16, g_strDriverName)
 
@@ -95,10 +97,11 @@ namespace slib
 
 	using namespace priv::dokany;
 
-	sl_bool Dokany::initialize(const StringParam& driverName, const StringParam& pathDll)
+	sl_bool Dokany::initialize(sl_bool flagDokany, const StringParam& driverName, const StringParam& pathDll)
 	{
 		void* lib = DynamicLibrary::loadLibrary(pathDll);
 		if (lib) {
+			g_flagDokany = flagDokany;
 			g_libDll = lib;
 			g_strDriverName = driverName.toString16();
 			return sl_true;
@@ -111,11 +114,19 @@ namespace slib
 		if (g_libDll) {
 			return sl_true;
 		}
-		if (initialize(L"Dokan1", "dokan1.dll")) {
+		if (initialize(sl_true, L"Dokan1", "dokan1.dll")) {
 			return sl_true;
 		}
-		if (initialize(L"Dokan", "dokan.dll")) {
+		if (initialize(sl_false, L"Dokan", "dokan.dll")) {
 			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool Dokany::isDokany()
+	{
+		if (initialize()) {
+			return g_flagDokany;
 		}
 		return sl_false;
 	}
