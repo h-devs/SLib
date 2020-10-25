@@ -18,6 +18,8 @@ namespace slib
 		MirrorFs(String path);
 
 	protected:
+		sl_bool fsGetVolumeSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize) override;
+
 		void fsCreate(FileContext* context, FileCreationParams& params = FileCreationParams()) override;
 		void fsOpen(FileContext* context, FileCreationParams& params = FileCreationParams()) override;
 		sl_size fsRead(FileContext* context, const Memory& buffer, sl_uint64 offset) override;
@@ -34,8 +36,6 @@ namespace slib
 		void fsSetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor) override;
 		HashMap<String, FileInfo> fsFindFiles(FileContext* context, String pattern) override;
 		HashMap<String, StreamInfo> fsFindStreams(FileContext* context) override;
-
-		sl_bool getSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize) override;
 
 	private:
 		FileSystemError getError(sl_uint32 error = 0);

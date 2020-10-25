@@ -162,9 +162,4 @@ namespace slib
 		return m_openHandles.getCount();
 	}
 
-	sl_bool FileSystemProvider::getSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize)
-	{
-		return sl_false;
-	}
-
 }

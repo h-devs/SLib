@@ -37,30 +37,42 @@ namespace slib
 	{
 	}
 
-	const FileSystemInformation& FsLogger::fsGetVolumeInfo(VolumeInfoFlags flags)& 
+	const FileSystemInformation& FsLogger::fsGetVolumeInfo()& 
 	{
 		if (!(m_flags & FsLogGetVolumeInfo))
-			return m_base->fsGetVolumeInfo(flags);
-		if (flags & VolumeInfoFlags::BasicInfo &&
-			!(m_flags & FsLogGetVolumeBasicInfo))
-			return m_base->fsGetVolumeInfo(flags);
-		if (flags & VolumeInfoFlags::SizeInfo &&
-			!(m_flags & FsLogGetVolumeSizeInfo))
-			return m_base->fsGetVolumeInfo(flags);
+			return m_base->fsGetVolumeInfo();
 
-		String desc = "";
-		if (flags & VolumeInfoFlags::BasicInfo)
-			desc = ":BasicInfo";
-		if (flags & VolumeInfoFlags::SizeInfo)
-			desc = ":SizeInfo";
-		desc = String::format("GetVolumeInfo(%s)", flags, desc);
+		String desc = "GetVolumeInfo()";
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			const FileSystemInformation &ret = m_base->fsGetVolumeInfo(flags);
+			const FileSystemInformation &ret = m_base->fsGetVolumeInfo();
 			if (m_flags & FsLogRet) {
 				LOG(desc);
+			}
+			return ret;
+		}
+		catch (FileSystemError error) {
+			if (m_flags & FsLogErrors)
+				LOG("%s\n  Error: %d", desc, error);
+			throw error;
+		}
+	}
+
+	sl_bool FsLogger::fsGetVolumeSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize)
+	{
+		if (!(m_flags & FsLogGetVolumeSize))
+			return m_base->fsGetVolumeSize(pOutTotalSize, pOutFreeSize);
+
+		String desc = "GetVolumeSize()";
+		if (!(m_flags & FsLogRetAndErrors))
+			LOG(desc);
+
+		try {
+			sl_bool ret = m_base->fsGetVolumeSize(pOutTotalSize, pOutFreeSize);
+			if (m_flags & FsLogRet) {
+				LOG("%s\n  Ret: %d", desc, ret);
 			}
 			return ret;
 		}

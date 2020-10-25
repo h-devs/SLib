@@ -35,11 +35,15 @@ namespace slib
 		/* FileSystem Interfaces */
 
 		virtual const FileSystemInformation&
-			fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)& override
+			fsGetVolumeInfo()& override
 		{
-			if (flags == VolumeInfoFlags::BasicInfo)
-				return m_volumeInfo;
-			return m_base->fsGetVolumeInfo(flags);
+			return m_base->fsGetVolumeInfo();
+		}
+
+		virtual sl_bool
+			fsGetVolumeSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize) override
+		{
+			return m_base->fsGetVolumeSize(pOutTotalSize, pOutFreeSize);
 		}
 
 		virtual void

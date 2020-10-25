@@ -16,7 +16,7 @@ namespace slib
 		m_volumeInfo.flags = FileSystemFlags::IsCaseSensitiveSearch;
 	}
 
-	sl_bool MirrorFs::getSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize)
+	sl_bool MirrorFs::fsGetVolumeSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize)
 	{
 		StringCstr16 root(m_root);
 		ULARGE_INTEGER totalSize, freeSize;

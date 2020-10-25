@@ -61,10 +61,9 @@ namespace slib
 			FsLogDateAsString = 0x800000,
 
 			FsLogVolumeInfo = 0x01000000,
-			FsLogGetVolumeBasicInfo = 0x02000000,
-			FsLogGetVolumeSizeInfo = 0x04000000,
+			FsLogGetVolumeInfo = 0x02000000,
+			FsLogGetVolumeSize = 0x04000000,
 			FsLogSetVolumeName = 0x08000000,
-			FsLogGetVolumeInfo = FsLogGetVolumeBasicInfo | FsLogGetVolumeSizeInfo,
 			FsLogVolumeOp = 0x0F000000,
 
 			FsLogFileName = 0x10000000,			// when this flag is set, ignores FsLogContextAddress
@@ -85,7 +84,9 @@ namespace slib
 		~FsLogger();
 
 	protected:
-		const FileSystemInformation& fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)& override;
+		const FileSystemInformation& fsGetVolumeInfo()& override;
+
+		sl_bool fsGetVolumeSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize) override;
 
 		void fsSetVolumeName(String volumeName) override;
 

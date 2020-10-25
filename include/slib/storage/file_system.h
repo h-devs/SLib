@@ -116,17 +116,6 @@ namespace slib
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(StreamInfo)
 	};
 
-	class VolumeInfoFlags {
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(VolumeInfoFlags, value)
-
-		enum {
-			BasicInfo,
-			SizeInfo,
-		};
-	};
-
 	class FileInfoFlags {
 	public:
 		int value;
@@ -213,11 +202,17 @@ namespace slib
 		/* FileSystem Interfaces */
 
 		virtual const FileSystemInformation&
-			fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)&
+			fsGetVolumeInfo()&
 		{
 			return m_volumeInfo;
 		}
-		
+
+		virtual sl_bool
+			fsGetVolumeSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize)
+		{
+			throw FileSystemError::NotImplemented;
+		}
+
 		virtual void
 			fsSetVolumeName(String volumeName)
 		{
@@ -319,8 +314,6 @@ namespace slib
 		{
 			throw FileSystemError::NotImplemented;
 		}
-
-		virtual sl_bool getSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize);
 
 	public:
 		/* Helpers */

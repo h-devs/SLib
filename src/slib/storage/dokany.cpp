@@ -1022,7 +1022,7 @@ namespace slib
 		FileSystemProvider *base = (FileSystemProvider *)DokanFileInfo->DokanOptions->GlobalContext;
 		FILESYSTEM_EXCEPTION_GUARD(
 			sl_uint64 sizeTotal, sizeFree;
-			if (base->getSize(&sizeTotal, &sizeFree)) {
+			if (base->fsGetVolumeSize(&sizeTotal, &sizeFree)) {
 				*FreeBytesAvailable = sizeFree;
 				*TotalNumberOfBytes = sizeTotal;
 				*TotalNumberOfFreeBytes = sizeFree;
