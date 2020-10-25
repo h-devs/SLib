@@ -171,6 +171,39 @@ namespace slib
 		return (getAttributes(filePath) & FileAttributes::Hidden) != 0;
 	}
 
+	sl_bool File::setHidden(const StringParam& filePath, sl_bool flag)
+	{
+		FileAttributes attrs = getAttributes(filePath);
+		if (!(attrs & FileAttributes::NotExist)) {
+			if (flag) {
+				SLIB_SET_FLAG(attrs.value, FileAttributes::Hidden);
+			} else {
+				SLIB_RESET_FLAG(attrs.value, FileAttributes::Hidden);
+			}
+			return setAttributes(filePath, attrs);
+		}
+		return sl_false;
+	}
+
+	sl_bool File::isReadOnly(const StringParam& filePath)
+	{
+		return (getAttributes(filePath) & FileAttributes::ReadOnly) != 0;
+	}
+
+	sl_bool File::setReadOnly(const StringParam& filePath, sl_bool flag)
+	{
+		FileAttributes attrs = getAttributes(filePath);
+		if (!(attrs & FileAttributes::NotExist)) {
+			if (flag) {
+				SLIB_SET_FLAG(attrs.value, FileAttributes::ReadOnly);
+			} else {
+				SLIB_RESET_FLAG(attrs.value, FileAttributes::ReadOnly);
+			}
+			return setAttributes(filePath, attrs);
+		}
+		return sl_false;
+	}
+
 	String File::getParentDirectoryPath(const String& pathName)
 	{
 		if (pathName.isEmpty()) {

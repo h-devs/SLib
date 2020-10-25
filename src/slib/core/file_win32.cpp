@@ -459,33 +459,20 @@ namespace slib
 		if (attr == -1) {
 			return FileAttributes::NotExist;
 		} else {
-			int ret = 0;
-			if (attr & FILE_ATTRIBUTE_DIRECTORY) {
-				ret |= FileAttributes::Directory;
-			}
-			if (attr & FILE_ATTRIBUTE_HIDDEN) {
-				ret |= FileAttributes::Hidden;
-			}
-			return ret;
+			return (int)attr;
 		}
 	}
 
-	sl_bool File::setHidden(const StringParam& _filePath, sl_bool flagHidden)
+	sl_bool File::setAttributes(const StringParam& _filePath, const FileAttributes& attrs)
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		DWORD attr = GetFileAttributesW((LPCWSTR)(filePath.getData()));
-		if (attr == -1) {
+		if (attrs & FileAttributes::NotExist) {
 			return sl_false;
 		}
-		if (flagHidden) {
-			attr |= FILE_ATTRIBUTE_HIDDEN;
-		} else {
-			attr &= (~FILE_ATTRIBUTE_HIDDEN);
-		}
-		return SetFileAttributesW((LPCWSTR)(filePath.getData()), attr) != 0;
+		return SetFileAttributesW((LPCWSTR)(filePath.getData()), (DWORD)(attrs.value & 0xffff)) != 0;
 	}
 
 	List<String> File::getFiles(const StringParam& _filePath)

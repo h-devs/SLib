@@ -56,6 +56,7 @@ namespace slib
 		};
 	};
 
+	// Equals to WinNT File Attributes
 	class FileAttributes
 	{
 	public:
@@ -64,9 +65,23 @@ namespace slib
 
 		enum {
 			Default = 0,
-			Directory = 1,
-			Hidden = 2,
-			NotExist = 0x8000
+			ReadOnly = 0x1,
+			Hidden = 0x2,
+			System = 0x4,
+			Directory = 0x10,
+			Archive = 0x20,
+			Device = 0x40,
+			Normal = 0x80,
+			Temporary = 0x100,
+			SparseFile = 0x200,
+			ReparsePoint = 0x400,
+			Compressed = 0x800,
+			Offline = 0x1000,
+			NotContentIndexed = 0x2000,
+			Encrypted = 0x4000,
+			Virtual = 0x10000,
+
+			NotExist = 0x80000000
 		};
 	};
 	
@@ -213,6 +228,8 @@ namespace slib
 
 		static FileAttributes getAttributes(const StringParam& filePath);
 
+		static sl_bool setAttributes(const StringParam& filePath, const FileAttributes& attrs);
+
 		static sl_bool exists(const StringParam& filePath);
 	
 		static sl_bool isFile(const StringParam& filePath);
@@ -222,7 +239,11 @@ namespace slib
 		static sl_bool isHidden(const StringParam& filePath);
 	
 		static sl_bool setHidden(const StringParam& filePath, sl_bool flagHidden = sl_true);
-	
+
+		static sl_bool isReadOnly(const StringParam& filePath);
+
+		static sl_bool setReadOnly(const StringParam& filePath, sl_bool flagReadOnly = sl_true);
+
 
 		static sl_bool createDirectory(const StringParam& dirPath, sl_bool flagErrorOnCreateExistingDirectory = sl_false);
 

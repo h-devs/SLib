@@ -501,7 +501,7 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setHidden(const StringParam& filePath, sl_bool flagHidden)
+	sl_bool File::setAttributes(const StringParam& _filePath, const FileAttributes& attrs)
 	{
 		// not supported
 		return sl_false;
