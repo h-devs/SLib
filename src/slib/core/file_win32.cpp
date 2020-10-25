@@ -472,7 +472,7 @@ namespace slib
 		if (attrs & FileAttributes::NotExist) {
 			return sl_false;
 		}
-		return SetFileAttributesW((LPCWSTR)(filePath.getData()), (DWORD)(attrs.value & 0xffff)) != 0;
+		return SetFileAttributesW((LPCWSTR)(filePath.getData()), (DWORD)(attrs.value & 0x7ffff)) != 0;
 	}
 
 	List<String> File::getFiles(const StringParam& _filePath)
