@@ -1,4 +1,6 @@
 #include <windows.h>
+#include "slib/core/file.h"
+#include "slib/core/variant.h"
 #include "slib/storage/mirrorfs.h"
 
 #define ALLOCATION_UNIT                 4096
@@ -56,56 +58,10 @@ namespace slib
 
 	MirrorFs::MirrorFs(String path) : m_path(path)
 	{
-		WCHAR fullPath[MAX_PATH];
-		WCHAR root[MAX_PATH];
-		HANDLE handle;
-		WCHAR volumeName[MAX_PATH];
-		FILETIME creationTime;
-
-		StringToWChar(path, fullPath);
-
-		if (!GetVolumePathName(fullPath, root, MAX_PATH))
-			throw FileSystemError::InitFailure;
-			
-		handle = CreateFileW(
-			fullPath, FILE_READ_ATTRIBUTES, 0, 0,
-			OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0);
-		if (INVALID_HANDLE_VALUE == handle) {
-			throw FileSystemError::InitFailure;
-		}
-
-		if (!GetFileTime(handle, &creationTime, 0, 0))
-		{
-			CloseHandle(handle);
-			throw FileSystemError::InitFailure;
-		}
-
-		CloseHandle(handle);
-
-		FileTimeToTime(creationTime, m_volumeInfo.creationTime);
-		m_volumeInfo.serialNumber = 0;
-		m_volumeInfo.sectorSize = 4096;
-		m_volumeInfo.sectorsPerAllocationUnit = 1;
-		m_volumeInfo.maxPathLength = 256;
-		m_volumeInfo.flags = FileSystemFlags::IsCaseSensitiveSearch;
-
-		if (!GetVolumeInformation(root,
-			volumeName, MAX_PATH,
-			(LPDWORD)&m_volumeInfo.serialNumber, (LPDWORD)&m_volumeInfo.maxPathLength,
-			0, 0, 0)) {
-			//throw FileSystemError::InitFailure;
-		}
-
-		m_volumeInfo.volumeName = WCharToString(volumeName);
 		m_volumeInfo.fileSystemName = "MirrorFs";
-
-		m_root = WCharToString(root);
+		m_volumeInfo.creationTime = File::getCreatedTime(path);
+		m_volumeInfo.flags = FileSystemFlags::IsCaseSensitiveSearch;
 	}
-
-	MirrorFs::~MirrorFs()
-	{
-	}
-
 
 	sl_bool MirrorFs::getSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize)
 	{
@@ -124,16 +80,6 @@ namespace slib
 		return sl_false;
 	}
 
-	const FileSystemInformation& MirrorFs::fsGetVolumeInfo(VolumeInfoFlags flags)&
-	{
-		return m_volumeInfo;
-	}
-
-	void MirrorFs::fsSetVolumeName(String volumeName)
-	{
-		throw FileSystemError::NotImplemented;
-	}
-	
 	void MirrorFs::fsCreate(FileContext* context, FileCreationParams& params)
 	{
 		WCHAR fullPath[MAX_PATH];

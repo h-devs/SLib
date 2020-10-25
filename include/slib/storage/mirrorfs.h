@@ -16,12 +16,8 @@ namespace slib
 	{
 	public:
 		MirrorFs(String path);
-		~MirrorFs();
 
 	protected:
-		const FileSystemInformation& fsGetVolumeInfo(VolumeInfoFlags flags = VolumeInfoFlags::BasicInfo)& override;
-		void fsSetVolumeName(String volumeName) override;
-
 		void fsCreate(FileContext* context, FileCreationParams& params = FileCreationParams()) override;
 		void fsOpen(FileContext* context, FileCreationParams& params = FileCreationParams()) override;
 		sl_size fsRead(FileContext* context, const Memory& buffer, sl_uint64 offset) override;
@@ -46,7 +42,6 @@ namespace slib
 
 	private:
 		String m_path;
-		String m_root;
 	};
 
 }
