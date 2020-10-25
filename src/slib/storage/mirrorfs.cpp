@@ -37,7 +37,7 @@ namespace slib
 	{
 		if (context->isDirectory || params.attr.isDirectory) {
 			if (!File::createDirectory(m_root + context->path, params.createAlways == sl_false)) {
-				throw FileSystemError::AccessDenied;
+				throw getError();
 			}
 			params.createAlways = sl_false;
 			context->isDirectory = sl_true;
@@ -53,7 +53,7 @@ namespace slib
 		}
 
 		file->increaseReference();
-		context->handle = (sl_uint64)file.ptr;
+		context->handle = (sl_uint64)(file.ptr);
 	}
 
 	void MirrorFs::fsOpen(FileContext* context, FileCreationParams& params)
@@ -62,7 +62,7 @@ namespace slib
 			if (!File::exists(m_root + context->path)) {
 				if (params.createAlways) {
 					if (!File::createDirectory(m_root + context->path)) {
-						throw FileSystemError::AccessDenied;
+						throw getError();
 					}
 				}
 				else {
@@ -86,7 +86,7 @@ namespace slib
 		params.openTruncate = sl_false;
 
 		file->increaseReference();
-		context->handle = (sl_uint64)file.ptr;
+		context->handle = (sl_uint64)(file.ptr);
 	}
 
 	void MirrorFs::fsClose(FileContext* context)
@@ -225,7 +225,11 @@ namespace slib
 		String filePath = m_root + context->path;
 		FileInfo fileInfo;
 
-		fileInfo.fileAttributes = File::getAttributes(filePath);
+		FileAttributes attr = File::getAttributes(filePath);
+		if (attr == FileAttributes::NotExist)
+			throw FileSystemError::NotFound;
+
+		fileInfo.fileAttributes = (sl_uint32)attr;
 		fileInfo.size = fileInfo.allocationSize = File::getSize(filePath);
 		fileInfo.createdAt = File::getCreatedTime(filePath);
 		fileInfo.modifiedAt = File::getModifiedTime(filePath);
