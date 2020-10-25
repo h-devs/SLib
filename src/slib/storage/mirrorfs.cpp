@@ -1,62 +1,15 @@
 #include <windows.h>
 #include "slib/core/file.h"
+#include "slib/core/system.h"
 #include "slib/core/variant.h"
 #include "slib/storage/mirrorfs.h"
 
-#define ALLOCATION_UNIT                 4096
-
-#define StringToWChar(STR, OUT)			OUT[STR.getUtf16((sl_char16 *)(OUT), sizeof(OUT))] = L'\0'
-#define WCharToString(WCSTR)			String::fromUtf16((const sl_char16 *)(WCSTR))
-#define FileTimeToTime(ft, t)			{ \
-	SYSTEMTIME st = { 0 }; \
-	FileTimeToSystemTime(&(ft), &st); \
-	t.setUTC(st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds); \
-}
-#define TimeToFileTime(t, ft)			{ \
-	TimeComponents time; \
-	t.getUTC(time); \
-	SYSTEMTIME st = { (WORD)time.year, (WORD)time.month, (WORD)time.dayOfWeek, (WORD)time.day, \
-		(WORD)time.hour, (WORD)time.minute, (WORD)time.second, (WORD)time.milliseconds }; \
-	SystemTimeToFileTime(&st, &(ft)); \
-}
-#define TimeToFileTimeLI(t, li)			TimeToFileTime(t, *((FILETIME*)&(li)))
-
-#define ConcatPath(FN, FP)              StringToWChar(String::format("%s%s", m_path, FN), FP)
-#define HandleFromContext(FD)           ((HANDLE)(FD->handle))
-
-#define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
-#include "slib/core/dl.h"
+#define FileFromContext(FD)             ((File*)(FD->handle))
 
 namespace slib
 {
 
-	/* Windows XP Compatible */
-	SLIB_IMPORT_LIBRARY_BEGIN(api, "kernel32.dll")
-		SLIB_IMPORT_LIBRARY_FUNCTION(
-			SetFileInformationByHandle,
-			BOOL, WINAPI,
-			HANDLE hFile,
-			FILE_INFO_BY_HANDLE_CLASS FileInformationClass,
-			LPVOID lpFileInformation,
-			DWORD dwBufferSize
-		)
-		SLIB_IMPORT_LIBRARY_FUNCTION(
-			FindFirstStreamW,
-			HANDLE, WINAPI,
-			LPCWSTR lpFileName,
-			STREAM_INFO_LEVELS InfoLevel,
-			LPVOID lpFindStreamData,
-			DWORD dwFlags
-		)
-		SLIB_IMPORT_LIBRARY_FUNCTION(
-			FindNextStreamW,
-			BOOL, APIENTRY,
-			HANDLE hFindStream,
-			LPVOID lpFindStreamData
-		)
-	SLIB_IMPORT_LIBRARY_END
-
-	MirrorFs::MirrorFs(String path) : m_path(path)
+	MirrorFs::MirrorFs(String path) : m_root(path)
 	{
 		m_volumeInfo.fileSystemName = "MirrorFs";
 		m_volumeInfo.creationTime = File::getCreatedTime(path);
@@ -65,10 +18,10 @@ namespace slib
 
 	sl_bool MirrorFs::getSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize)
 	{
-		WCHAR path[MAX_PATH];
+		StringCstr16 root(m_root);
 		ULARGE_INTEGER totalSize, freeSize;
-		StringToWChar(m_path, path);
-		if (GetDiskFreeSpaceExW(path, 0, &totalSize, &freeSize)) {
+
+		if (GetDiskFreeSpaceExW((LPCWSTR)(root.getData()), 0, &totalSize, &freeSize)) {
 			if (pOutTotalSize) {
 				*pOutTotalSize = totalSize.QuadPart;
 			}
@@ -82,522 +35,264 @@ namespace slib
 
 	void MirrorFs::fsCreate(FileContext* context, FileCreationParams& params)
 	{
-		WCHAR fullPath[MAX_PATH];
-		DWORD creationDisposition = CREATE_NEW;
-		LPSECURITY_ATTRIBUTES pSecurityAttributes = NULL;
-		SECURITY_ATTRIBUTES securityAttributes;
-		HANDLE handle;
-
-		ConcatPath(context->path, fullPath);
-
-		if (0 == params.accessMode)
-			params.accessMode = GENERIC_READ | GENERIC_WRITE;
-		if (0 == params.shareMode)
-			params.shareMode = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
-		if (params.createAlways) {
-			creationDisposition = CREATE_ALWAYS;
-			params.createAlways = FALSE;
-			params.openTruncate = FALSE;
+		if (context->isDirectory || params.attr.isDirectory) {
+			if (!File::createDirectory(m_root + context->path, params.createAlways == sl_false)) {
+				throw FileSystemError::AccessDenied;
+			}
+			params.createAlways = sl_false;
+			context->isDirectory = sl_true;
+			return;
 		}
 
-		params.flagsAndAttributes |= FILE_FLAG_BACKUP_SEMANTICS;
+		Ref<File> file = File::open(m_root + context->path,
+			FileMode::Write, // | (params.createAlways ? 0 : FileMode::NotCreate) | (params.openTruncate ? 0 : FileMode::NotTruncate),
+			FilePermissions::ShareAll);
 
-		if (params.attr.isDirectory)
-		{
-			/*
-			* It is not widely known but CreateFileW can be used to create directories!
-			* It requires the specification of both FILE_FLAG_BACKUP_SEMANTICS and
-			* FILE_FLAG_POSIX_SEMANTICS. It also requires that FileAttributes has
-			* FILE_ATTRIBUTE_DIRECTORY set.
-			*/
-			params.flagsAndAttributes |= FILE_FLAG_POSIX_SEMANTICS;
-			params.flagsAndAttributes |= FILE_ATTRIBUTE_DIRECTORY;
-		}
-		else {
-			params.flagsAndAttributes &= ~FILE_ATTRIBUTE_DIRECTORY;
-		}
-
-		if (0 == (params.flagsAndAttributes & 0x0007FFFF))
-			params.flagsAndAttributes |= FILE_ATTRIBUTE_NORMAL;
-
-		if (params.securityDescriptor)
-		{
-			securityAttributes.nLength = sizeof securityAttributes;
-			securityAttributes.lpSecurityDescriptor = params.securityDescriptor;
-			securityAttributes.bInheritHandle = FALSE;
-			pSecurityAttributes = &securityAttributes;
-		}
-
-		handle = CreateFile(fullPath,
-			params.accessMode, params.shareMode, pSecurityAttributes,
-			creationDisposition, params.flagsAndAttributes, 0);
-
-		if (INVALID_HANDLE_VALUE == handle)
+		if (file.isNull()) {
 			throw getError();
+		}
 
-		context->status = getError();
-		context->handle = (sl_uint64)handle;
-		context->isDirectory = params.attr.isDirectory;
+		file->increaseReference();
+		context->handle = (sl_uint64)file.ptr;
 	}
 
 	void MirrorFs::fsOpen(FileContext* context, FileCreationParams& params)
 	{
-		WCHAR fullPath[MAX_PATH];
-		DWORD creationDisposition = OPEN_EXISTING;
-		LPSECURITY_ATTRIBUTES pSecurityAttributes = NULL;
-		SECURITY_ATTRIBUTES securityAttributes;
-		HANDLE handle;
-
-		ConcatPath(context->path, fullPath);
-
-		if (0 == params.accessMode)
-			params.accessMode = GENERIC_READ | GENERIC_WRITE;
-		if (0 == params.shareMode)
-			params.shareMode = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
-		if (params.createAlways) {
-			creationDisposition = OPEN_ALWAYS;
-			if (params.openTruncate)
-				creationDisposition = CREATE_ALWAYS;	// truncate
-			params.createAlways = FALSE;
-			params.openTruncate = FALSE;
-		}
-		else if (params.openTruncate) {
-			creationDisposition = TRUNCATE_EXISTING;
-			params.openTruncate = FALSE;
+		if (context->isDirectory || params.attr.isDirectory) {
+			if (!File::exists(m_root + context->path)) {
+				if (params.createAlways) {
+					if (!File::createDirectory(m_root + context->path)) {
+						throw FileSystemError::AccessDenied;
+					}
+				}
+				else {
+					throw FileSystemError::NotFound;
+				}
+			}
+			params.createAlways = sl_false;
+			context->isDirectory = sl_true;
+			return;
 		}
 
-		params.flagsAndAttributes |= FILE_FLAG_BACKUP_SEMANTICS;
+		Ref<File> file = File::open(m_root + context->path,
+			FileMode::ReadWrite | (params.createAlways ? 0 : FileMode::NotCreate) | (params.openTruncate ? 0 : FileMode::NotTruncate),
+			FilePermissions::ShareAll);
 
-		if (0 == (params.flagsAndAttributes & 0x0007FFFF))
-			params.flagsAndAttributes |= FILE_ATTRIBUTE_NORMAL;
-
-		if (params.securityDescriptor)
-		{
-			securityAttributes.nLength = sizeof securityAttributes;
-			securityAttributes.lpSecurityDescriptor = params.securityDescriptor;
-			securityAttributes.bInheritHandle = FALSE;
-			pSecurityAttributes = &securityAttributes;
-		}
-
-		handle = CreateFile(fullPath,
-			params.accessMode, params.shareMode, pSecurityAttributes,
-			creationDisposition, params.flagsAndAttributes, 0);
-
-		if (INVALID_HANDLE_VALUE == handle)
+		if (file.isNull()) {
 			throw getError();
+		}
 
-		context->status = getError();
-		context->handle = (sl_uint64)handle;
-		context->isDirectory = params.attr.isDirectory;
+		params.createAlways = sl_false;
+		params.openTruncate = sl_false;
+
+		file->increaseReference();
+		context->handle = (sl_uint64)file.ptr;
 	}
 
 	void MirrorFs::fsClose(FileContext* context)
 	{
-		if (context->handle && !CloseHandle(HandleFromContext(context)))
-			throw getError();
+		Ref<File> file = FileFromContext(context);
+		if (file.isNotNull()) {
+			file->close();
+			file->decreaseReference();
+		}
+
 		context->handle = 0;
 	}
 
 	sl_size MirrorFs::fsRead(FileContext* context, const Memory& buffer, sl_uint64 offset)
 	{
-		DWORD bytesTransferred = 0;
-		HANDLE handle = HandleFromContext(context);
-		WCHAR fullPath[MAX_PATH];
-		ConcatPath(context->path, fullPath);
-
-		BOOL opened = FALSE;
-		if (!handle || handle == INVALID_HANDLE_VALUE) {
-			handle = CreateFile(fullPath, GENERIC_READ, FILE_SHARE_READ, NULL,
-				OPEN_EXISTING, 0, NULL);
-			if (handle == INVALID_HANDLE_VALUE) {
-				throw getError();
-			}
-			else {
-				opened = TRUE;
-			}
+		if (context->isDirectory) {
+			throw FileSystemError::AccessDenied;
 		}
 
-		LARGE_INTEGER li;
-		li.QuadPart = offset;
-		if (!SetFilePointerEx(handle, li, NULL, FILE_BEGIN)) {
-			if (opened)
-				CloseHandle(handle);
+		Ref<File> file = FileFromContext(context);
+		if (file.isNull()) {
+			file = File::open(m_root + context->path, FileMode::Read, FilePermissions::ShareRead);
+		}
+		if (file.isNull()) {
 			throw getError();
 		}
 
-		if (!ReadFile(handle, buffer.getData(), (DWORD)buffer.getSize(), &bytesTransferred, NULL)) {
-			if (opened)
-				CloseHandle(handle);
+		if (!file->seek(offset, SeekPosition::Begin))
+			throw getError();
+
+		//auto ret = file->read(buffer.getData(), buffer.getSize());	// IReader::read() only supports 1GB ?
+		auto ret = file->read32(buffer.getData(), (sl_uint32)buffer.getSize());	// File::read32() returns -1 if zero byte read ?
+		if (ret < 0) {
 			throw getError();
 		}
 
-		if (opened)
-			CloseHandle(handle);
-		return bytesTransferred;
+		return ret;
 	}
 
 	sl_size MirrorFs::fsWrite(FileContext* context, const Memory& buffer, sl_uint64 offset, sl_bool writeToEof)
 	{
-		DWORD bytesTransferred = 0;
-		HANDLE handle = HandleFromContext(context);
-		WCHAR fullPath[MAX_PATH];
-		ConcatPath(context->path, fullPath);
-
-		BOOL opened = FALSE;
-		if (!handle || handle == INVALID_HANDLE_VALUE) {
-			handle = CreateFile(fullPath, GENERIC_WRITE, FILE_SHARE_WRITE, NULL,
-				OPEN_EXISTING, 0, NULL);
-			if (handle == INVALID_HANDLE_VALUE) {
-				throw getError();
-			}
-			else {
-				opened = TRUE;
-			}
+		if (context->isDirectory) {
+			throw FileSystemError::AccessDenied;
 		}
 
-		LARGE_INTEGER li;
-		if (writeToEof) {
-			li.QuadPart = 0;
-			if (!SetFilePointerEx(handle, li, NULL, FILE_END)) {
-				if (opened)
-					CloseHandle(handle);
-				throw getError();
-			}
-		}
-		else {
-			li.QuadPart = offset;
-			if (!SetFilePointerEx(handle, li, NULL, FILE_BEGIN)) {
-				if (opened)
-					CloseHandle(handle);
-				throw getError();
-			}
-		}
+		Ref<File> file = FileFromContext(context);
 
-		if (!WriteFile(handle, buffer.getData(), (DWORD)buffer.getSize(), &bytesTransferred, NULL)) {
-			if (opened)
-				CloseHandle(handle);
+		if (file.isNull()) {
+			file = File::open(m_root + context->path, FileMode::Write, FilePermissions::ShareWrite);
+		}
+		if (file.isNull()) {
 			throw getError();
 		}
 
-		if (opened)
-			CloseHandle(handle);
-		return bytesTransferred;
+		if (writeToEof) {
+			if (!file->seekToEnd())
+				throw getError();
+		}
+		else {
+			if (!file->seek(offset, SeekPosition::Begin))
+				throw getError();
+		}
+
+		//auto ret = file->write(buffer.getData(), buffer.getSize());	// IReader::write() only supports 1GB ?
+		auto ret = file->write32(buffer.getData(), (sl_uint32)buffer.getSize());	// File::write32() returns -1 if zero byte written ?
+		if (ret < 0) {
+			throw getError();
+		}
+
+		return ret;
 	}
 
 	void MirrorFs::fsFlush(FileContext* context)
 	{
-		HANDLE handle = HandleFromContext(context);
-
-		if (!handle || handle == INVALID_HANDLE_VALUE) {
-			return;
+		Ref<File> file = FileFromContext(context);
+		if (file.isNotNull()) {
+#ifdef SLIB_PLATFORM_IS_WIN32
+			HANDLE handle = (HANDLE)(file->getHandle());
+			if (!handle || handle == INVALID_HANDLE_VALUE) {
+				return;
+			}
+			if (!FlushFileBuffers(handle))
+				throw getError();
+#endif
 		}
-
-		if (!FlushFileBuffers(handle))
-			throw getError();
 	}
 
 	void MirrorFs::fsDelete(FileContext* context, sl_bool checkOnly)
 	{
-		HANDLE handle = HandleFromContext(context);
-		WCHAR fullPath[MAX_PATH];
-		ZeroMemory(fullPath, sizeof(fullPath));
-
-		ConcatPath(context->path, fullPath);
-
-		DWORD fileAttr = GetFileAttributes(fullPath);
-		if (INVALID_FILE_ATTRIBUTES == fileAttr)
-			throw getError();
-
 		if (checkOnly) {
-			if (fileAttr && fileAttr & FILE_ATTRIBUTE_DIRECTORY) {
-				HANDLE hFind;
-				WIN32_FIND_DATAW findData;
-
-				ULONG fileLen = (ULONG)wcslen(fullPath);
-				if (fullPath[fileLen - 1] != L'\\') {
-					fullPath[fileLen++] = L'\\';
+			if (!File::exists(m_root + context->path))
+				throw FileSystemError::NotFound;
+			if (context->isDirectory) {
+				if (!File::getFiles(m_root + context->path).isEmpty()) {
+					throw FileSystemError::DirNotEmpty;
 				}
-				fullPath[fileLen] = L'*';
-
-				hFind = FindFirstFile(fullPath, &findData);
-				while (hFind != INVALID_HANDLE_VALUE) {
-					if (wcscmp(findData.cFileName, L"..") != 0 &&
-						wcscmp(findData.cFileName, L".") != 0) {
-						FindClose(hFind);
-						throw getError(ERROR_DIR_NOT_EMPTY);
-					}
-					if (!FindNextFile(hFind, &findData)) {
-						break;
-					}
-				}
-				FindClose(hFind);
-
-				if (GetLastError() != ERROR_NO_MORE_FILES)
-					throw getError();
-
-				// TODO check if directory can be deletable
 			}
-			else {
-				auto funcSetFileInformationByHandle = api::getApi_SetFileInformationByHandle();
-				if (funcSetFileInformationByHandle) {
-					FILE_DISPOSITION_INFO dispositionInfo;
-					dispositionInfo.DeleteFile = TRUE;
-
-					if (!funcSetFileInformationByHandle(handle,
-						FileDispositionInfo, &dispositionInfo, sizeof dispositionInfo))
-						throw getError();
-
-					dispositionInfo.DeleteFile = FALSE;
-					funcSetFileInformationByHandle(handle,
-						FileDispositionInfo, &dispositionInfo, sizeof dispositionInfo);
-				}
-				// TODO else
-			}
+			return;
 		}
-		else {
-			if (fileAttr && fileAttr & FILE_ATTRIBUTE_DIRECTORY) {
-				if (!RemoveDirectory(fullPath))
-					throw getError();
-			}
-			else {
-				if (!DeleteFile(fullPath))
-					throw getError();
-			}
+
+		if (!File::deleteFile(m_root + context->path, sl_true)) {
+			throw getError();
 		}
 	}
 
 	void MirrorFs::fsRename(FileContext* context, String newFileName, sl_bool replaceIfExists)
 	{
-		WCHAR fullPath[MAX_PATH], NewfullPath[MAX_PATH];
-
-		ConcatPath(context->path, fullPath);
-		ConcatPath(newFileName, NewfullPath);
-
-		if (!MoveFileEx(fullPath, NewfullPath, replaceIfExists ? MOVEFILE_REPLACE_EXISTING : 0))
+		// TODO replaceIfExists
+		if (!File::rename(m_root + context->path, m_root + newFileName)) {
 			throw getError();
+		}
 	}
 
 	void MirrorFs::fsLock(FileContext* context, sl_uint64 offset, sl_uint64 length)
 	{
-		HANDLE handle = HandleFromContext(context);
-		if (!handle || handle == INVALID_HANDLE_VALUE) {
-			throw FileSystemError::InvalidContext;
-		}
-
-		LARGE_INTEGER liOffset;
-		LARGE_INTEGER liLength;
-		liOffset.QuadPart = offset;
-		liLength.QuadPart = length;
-
-		if (!LockFile(handle, 
-			liOffset.HighPart, liOffset.LowPart,
-			liLength.HighPart, liLength.LowPart)) {
-			throw getError();
+		// TODO offset, length
+		Ref<File> file = FileFromContext(context);
+		if (file.isNotNull()) {
+			if (!file->lock())
+				throw getError();
 		}
 	}
 
 	void MirrorFs::fsUnlock(FileContext* context, sl_uint64 offset, sl_uint64 length)
 	{
-		HANDLE handle = HandleFromContext(context);
-		if (!handle || handle == INVALID_HANDLE_VALUE) {
-			throw FileSystemError::InvalidContext;
-		}
-
-		LARGE_INTEGER liOffset;
-		LARGE_INTEGER liLength;
-		liOffset.QuadPart = offset;
-		liLength.QuadPart = length;
-
-		if (!UnlockFile(handle,
-			liOffset.HighPart, liOffset.LowPart,
-			liLength.HighPart, liLength.LowPart)) {
-			throw getError();
+		// TODO offset, length
+		Ref<File> file = FileFromContext(context);
+		if (file.isNotNull()) {
+			if (!file->unlock())
+				throw getError();
 		}
 	}
 
 	FileInfo MirrorFs::fsGetFileInfo(FileContext* context)
 	{
-		HANDLE handle = HandleFromContext(context);
-		WCHAR fullPath[MAX_PATH];
-		ConcatPath(context->path, fullPath);
-
-		BOOL opened = FALSE;
-		if (!handle || handle == INVALID_HANDLE_VALUE) {
-			handle = CreateFile(fullPath, GENERIC_READ, FILE_SHARE_READ, NULL,
-				OPEN_EXISTING, 0, NULL);
-			if (handle == INVALID_HANDLE_VALUE) {
-				throw getError();
-			}
-			else {
-				opened = TRUE;
-			}
-		}
-
+		String filePath = m_root + context->path;
 		FileInfo fileInfo;
-		BY_HANDLE_FILE_INFORMATION byHandleFileInfo;
 
-		if (!GetFileInformationByHandle(handle, &byHandleFileInfo)) {
-			if (context->path.getLength() == 1) {
-				fileInfo.fileAttributes = GetFileAttributes(fullPath);
-			}
-			else {
-				WIN32_FIND_DATAW find;
-				ZeroMemory(&find, sizeof(WIN32_FIND_DATAW));
-				HANDLE findHandle = FindFirstFile(fullPath, &find);
-				if (findHandle == INVALID_HANDLE_VALUE) {
-					if (opened)
-						CloseHandle(handle);
-					throw getError();
-				}
+		fileInfo.fileAttributes = File::getAttributes(filePath);
+		fileInfo.size = fileInfo.allocationSize = File::getSize(filePath);
+		fileInfo.createdAt = File::getCreatedTime(filePath);
+		fileInfo.modifiedAt = File::getModifiedTime(filePath);
+		fileInfo.lastAccessedAt = File::getAccessedTime(filePath);
 
-				fileInfo.fileAttributes = find.dwFileAttributes;
-				fileInfo.size =
-					((UINT64)find.nFileSizeHigh << 32) | (UINT64)find.nFileSizeLow;
-				fileInfo.allocationSize = (fileInfo.size + ALLOCATION_UNIT - 1)
-					/ ALLOCATION_UNIT * ALLOCATION_UNIT;
-				FileTimeToTime(find.ftCreationTime, fileInfo.createdAt);
-				FileTimeToTime(find.ftLastAccessTime, fileInfo.lastAccessedAt);
-				FileTimeToTime(find.ftLastWriteTime, fileInfo.modifiedAt);
-
-				FindClose(findHandle);
-			}
-		}
-		else {
-			fileInfo.fileAttributes = byHandleFileInfo.dwFileAttributes;
-			fileInfo.size =
-				((UINT64)byHandleFileInfo.nFileSizeHigh << 32) | (UINT64)byHandleFileInfo.nFileSizeLow;
-			fileInfo.allocationSize = (fileInfo.size + ALLOCATION_UNIT - 1)
-				/ ALLOCATION_UNIT * ALLOCATION_UNIT;
-			FileTimeToTime(byHandleFileInfo.ftCreationTime, fileInfo.createdAt);
-			FileTimeToTime(byHandleFileInfo.ftLastAccessTime, fileInfo.lastAccessedAt);
-			FileTimeToTime(byHandleFileInfo.ftLastWriteTime, fileInfo.modifiedAt);
-		}
-
-		if (opened)
-			CloseHandle(handle);
 		return fileInfo;
 	}
 
 	void MirrorFs::fsSetFileInfo(FileContext* context, FileInfo fileInfo, FileInfoFlags flags)
 	{
-		HANDLE handle = HandleFromContext(context);
-		auto funcSetFileInformationByHandle = api::getApi_SetFileInformationByHandle();
+		String filePath = m_root + context->path;
 
-		if (flags & FileInfoFlags::AttrAndTimeInfo) {
-			if (funcSetFileInformationByHandle) {
-				FILE_BASIC_INFO basicInfo = { 0 };
-				FileInfo orgFileInfo = fsGetFileInfo(context);
+		if (flags & FileInfoFlags::AttrInfo) {
+			if (!File::setAttributes(filePath, fileInfo.fileAttributes))
+				throw getError();
+		}
 
-				TimeToFileTimeLI(orgFileInfo.createdAt, basicInfo.CreationTime);
-				TimeToFileTimeLI(orgFileInfo.lastAccessedAt, basicInfo.LastAccessTime);
-				TimeToFileTimeLI(orgFileInfo.modifiedAt, basicInfo.LastWriteTime);
-				TimeToFileTimeLI(orgFileInfo.modifiedAt, basicInfo.ChangeTime);
-				basicInfo.FileAttributes = 0;	// This means not to change original attribute
-
-				if (flags & FileInfoFlags::AttrInfo) {
-					if (INVALID_FILE_ATTRIBUTES == fileInfo.fileAttributes)
-						fileInfo.fileAttributes = 0;
-					//else if (0 == fileInfo.fileAttributes)
-					//	fileInfo.fileAttributes = FILE_ATTRIBUTE_NORMAL;
-
-					basicInfo.FileAttributes = fileInfo.fileAttributes;
-				}
-
-				if (flags & FileInfoFlags::TimeInfo) {
-					if (!fileInfo.createdAt.isZero())
-						TimeToFileTimeLI(fileInfo.createdAt, basicInfo.CreationTime);
-					if (!fileInfo.lastAccessedAt.isZero())
-						TimeToFileTimeLI(fileInfo.lastAccessedAt, basicInfo.LastAccessTime);
-					if (!fileInfo.modifiedAt.isZero()) {
-						TimeToFileTimeLI(fileInfo.modifiedAt, basicInfo.LastWriteTime);
-						TimeToFileTimeLI(fileInfo.modifiedAt, basicInfo.ChangeTime);
-					}
-				}
-
-				if (!funcSetFileInformationByHandle(handle,
-					FileBasicInfo, &basicInfo, sizeof basicInfo))
+		if (flags & FileInfoFlags::TimeInfo) {
+			if (fileInfo.createdAt.isNotZero()) {
+				if (!File::setCreatedTime(filePath, fileInfo.createdAt))
 					throw getError();
 			}
-			else {
-				if (flags & FileInfoFlags::AttrInfo) {
-					WCHAR fullPath[MAX_PATH];
-					ConcatPath(context->path, fullPath);
-					if (!SetFileAttributes(fullPath, fileInfo.fileAttributes))
-						throw getError();
-				}
-
-				if (flags & FileInfoFlags::TimeInfo) {
-					FILETIME ctime, atime, mtime;
-					TimeToFileTime(fileInfo.createdAt, ctime);
-					TimeToFileTime(fileInfo.lastAccessedAt, atime);
-					TimeToFileTime(fileInfo.modifiedAt, mtime);
-					if (!SetFileTime(handle,
-						fileInfo.createdAt.isZero() ? NULL : &ctime,
-						fileInfo.lastAccessedAt.isZero() ? NULL : &atime,
-						fileInfo.modifiedAt.isZero() ? NULL : &mtime))
-						throw getError();
-				}
+			if (fileInfo.modifiedAt.isNotZero()) {
+				if (!File::setModifiedTime(filePath, fileInfo.modifiedAt))
+					throw getError();
+			}
+			if (fileInfo.lastAccessedAt.isNotZero()) {
+				if (!File::setAccessedTime(filePath, fileInfo.lastAccessedAt))
+					throw getError();
 			}
 		}
 
 		if (flags & FileInfoFlags::SizeInfo) {
-			if (funcSetFileInformationByHandle) {
-				FILE_END_OF_FILE_INFO endOfFileInfo;
-				endOfFileInfo.EndOfFile.QuadPart = fileInfo.size;
-
-				if (!funcSetFileInformationByHandle(handle,
-					FileEndOfFileInfo, &endOfFileInfo, sizeof endOfFileInfo))
+			Ref<File> file = FileFromContext(context);
+			if (file.isNotNull()) {
+				if (!file->setSize(fileInfo.size))
 					throw getError();
 			}
 			else {
-				LARGE_INTEGER offset;
-				offset.QuadPart = fileInfo.size;
-
-				if (!SetFilePointerEx(handle, offset, NULL, FILE_BEGIN))
-					throw getError();
-				if (!SetEndOfFile(handle))
-					throw getError();
+				throw FileSystemError::InvalidContext;
 			}
 		}
 
 		if (flags & FileInfoFlags::AllocSizeInfo) {
-			if (funcSetFileInformationByHandle) {
-				FILE_ALLOCATION_INFO allocationInfo;
-				allocationInfo.AllocationSize.QuadPart = fileInfo.allocationSize;
-
-				if (!funcSetFileInformationByHandle(handle,
-					FileAllocationInfo, &allocationInfo, sizeof allocationInfo))
-					throw getError();
+			Ref<File> file = FileFromContext(context);
+			if (file.isNotNull()) {
+				//if (!file->setAllocationSize(fileInfo.allocationSize))
+				//	throw getError();
 			}
 			else {
-				LARGE_INTEGER fileSize;
-				LARGE_INTEGER offset;
-				if (!GetFileSizeEx(handle, &fileSize))
-					throw getError();
-
-				if (fileInfo.allocationSize < (sl_uint64)fileSize.QuadPart) {
-					offset.QuadPart = fileInfo.allocationSize;
-					if (!SetFilePointerEx(handle, offset, NULL, FILE_BEGIN))
-						throw getError();
-					if (!SetEndOfFile(handle))
-						throw getError();
-				}
+				throw FileSystemError::InvalidContext;
 			}
 		}
 	}
 
 	sl_size MirrorFs::fsGetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor)
 	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		StringCstr16 fullPath(m_root + context->path);
 		DWORD lengthNeeded;
-		WCHAR fullPath[MAX_PATH];
-		ConcatPath(context->path, fullPath);
 
 		BOOL requestingSaclInfo = (
 			(securityInformation & 0x00000008L/*SACL_SECURITY_INFORMATION*/) ||
 			(securityInformation & 0x00010000L/*BACKUP_SECURITY_INFORMATION*/));
 
 		HANDLE handle = CreateFile(
-			fullPath,
+			(LPCWSTR)(fullPath.getData()),
 			READ_CONTROL | (requestingSaclInfo ? ACCESS_SYSTEM_SECURITY : 0),
 			FILE_SHARE_WRITE | FILE_SHARE_READ | FILE_SHARE_DELETE,
 			NULL, // security attribute
@@ -625,75 +320,55 @@ namespace slib
 
 		CloseHandle(handle);
 		return GetSecurityDescriptorLength((PSECURITY_DESCRIPTOR)securityDescriptor.getData());
+#else
+		throw FileSystemError::NotImplemented;
+#endif
 	}
 
 	void MirrorFs::fsSetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor)
 	{
-		if (!SetUserObjectSecurity(HandleFromContext(context),
+#ifdef SLIB_PLATFORM_IS_WIN32
+		Ref<File> file = FileFromContext(context);
+		if (file.isNull()) {
+			throw FileSystemError::InvalidContext;
+		}
+
+		if (!SetUserObjectSecurity((HANDLE)(file->getHandle()),
 			(PSECURITY_INFORMATION)&securityInformation,
 			(PSECURITY_DESCRIPTOR)securityDescriptor.getData()))
 			throw getError();
+#else
+		throw FileSystemError::NotImplemented;
+#endif
 	}
 
 	HashMap<String, FileInfo> MirrorFs::fsFindFiles(FileContext* context, String patternString)
 	{
-		WCHAR fullPath[MAX_PATH];
-		WCHAR pattern[MAX_PATH];
-		ULONG length, patternLength;
-		HANDLE findHandle;
-		WIN32_FIND_DATA findData;
+		String filePath = m_root + context->path;	// CHECK if filePath can be file
 		HashMap<String, FileInfo> files;
 
 		if (patternString.isNull() || patternString.isEmpty())
 			patternString = "*";
 
-		ConcatPath(context->path, fullPath);
-		length = (ULONG)wcslen(fullPath);
+		List<String> names = File::getFiles(filePath);	// TODO patternString, return FileInfos, return . and ..
 
-		StringToWChar(patternString, pattern);
-		patternLength = (ULONG)wcslen(pattern);
+		if (context->path.getLength() > 1) {
+			// add . and ..
+			files.add(".", fsGetFileInfo(new FileContext(context->path)));
+			files.add("..", fsGetFileInfo(new FileContext(File::getParentDirectoryPath(context->path).replaceAll("/", "\\"))));
+		}
 
-		if (length + 1 + patternLength >= MAX_PATH)
-			throw getError(ERROR_INVALID_NAME);
-
-		if (L'\\' != fullPath[length - 1])
-			fullPath[length++] = L'\\';
-		memcpy(fullPath + length, pattern, patternLength * sizeof(WCHAR));
-		fullPath[length + patternLength] = L'\0';
-
-		findHandle = FindFirstFile(fullPath, &findData);
-		if (INVALID_HANDLE_VALUE == findHandle)
-			throw getError();
-
-		BOOLEAN rootFolder = context->path.getLength() == 1;
-		do {
-			String fileName = WCharToString(findData.cFileName);
-			FileInfo fileInfo;
-			if (rootFolder && (fileName == "." || fileName == ".."))
-				continue;
-
-			fileInfo.fileAttributes = findData.dwFileAttributes;
-			fileInfo.size =
-				((UINT64)findData.nFileSizeHigh << 32) | (UINT64)findData.nFileSizeLow;
-			fileInfo.allocationSize = (fileInfo.size + ALLOCATION_UNIT - 1)
-				/ ALLOCATION_UNIT * ALLOCATION_UNIT;
-			FileTimeToTime(findData.ftCreationTime, fileInfo.createdAt);
-			FileTimeToTime(findData.ftLastAccessTime, fileInfo.lastAccessedAt);
-			FileTimeToTime(findData.ftLastWriteTime, fileInfo.modifiedAt);
-
-			files.add(fileName, fileInfo);
-		} while (FindNextFile(findHandle, &findData) != 0);
-			
-		FindClose(findHandle);
-
-		if (GetLastError() != ERROR_NO_MORE_FILES)
-			throw getError();
+		for (auto& name : names) {
+			FileInfo info = fsGetFileInfo(new FileContext(context->path + "\\" + name));
+			files.add(name, info);
+		}
 
 		return files;
 	}
 
 	HashMap<String, StreamInfo> MirrorFs::fsFindStreams(FileContext* context)
 	{
+#if 0
 		auto funcFindFirstStream = api::getApi_FindFirstStreamW();
 		auto funcFindNextStream = api::getApi_FindNextStreamW();
 		if (!funcFindFirstStream || !funcFindNextStream)
@@ -725,11 +400,14 @@ namespace slib
 			throw getError();
 
 		return streams;
+#else
+		throw FileSystemError::NotImplemented;
+#endif
 	}
 
 	FileSystemError MirrorFs::getError(sl_uint32 error)
 	{
-		return (FileSystemError)(error == 0 ? GetLastError() : error);
+		return (FileSystemError)(error == 0 ? System::getLastError() : error);
 	}
 
 }

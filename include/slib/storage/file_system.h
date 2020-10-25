@@ -179,6 +179,7 @@ namespace slib
 		FileExist = 80U,		/*ERROR_FILE_EXISTS*/
 		InvalidPassword = 86U,	/*ERROR_INVALID_PASSWORD*/
 		BufferOverflow = 122U,	/*ERROR_INSUFFICIENT_BUFFER*/
+		DirNotEmpty = 145U,		/*ERROR_DIR_NOT_EMPTY*/
 		AlreadyExist = 183U,	/*ERROR_ALREADY_EXISTS*/
 		InitFailure = 575U,		/*ERROR_APP_INIT_FAILURE*/
 		NotImplemented = 0xFFFFFFFFU,

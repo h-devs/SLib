@@ -41,7 +41,7 @@ namespace slib
 		FileSystemError getError(sl_uint32 error = 0);
 
 	private:
-		String m_path;
+		String m_root;
 	};
 
 }
