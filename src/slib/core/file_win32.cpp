@@ -365,7 +365,8 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return Time::zero();
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, 0, NULL, OPEN_EXISTING,
+			FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			Time ret = priv::file::getModifiedTime(handle);
 			CloseHandle(handle);
@@ -390,7 +391,8 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return Time::zero();
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, 0, NULL, OPEN_EXISTING,
+			FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			Time ret = priv::file::getAccessedTime(handle);
 			CloseHandle(handle);
@@ -415,7 +417,8 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return Time::zero();
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, 0, NULL, OPEN_EXISTING,
+			FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			Time ret = priv::file::getCreatedTime(handle);
 			CloseHandle(handle);
