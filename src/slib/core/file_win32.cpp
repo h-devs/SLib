@@ -269,15 +269,30 @@ namespace slib
 		namespace file
 		{
 
+			static SLIB_INLINE Time filetimeToTime(const FILETIME& ft)
+			{
+				Time time;
+				SYSTEMTIME st = { 0 };
+				FileTimeToSystemTime(&(ft), &st);
+				time.setUTC(st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+				return time;
+			}
+
+			static SLIB_INLINE void timeToFiletime(Time time, FILETIME& ft)
+			{
+				TimeComponents tc;
+				time.getUTC(tc);
+				SYSTEMTIME st = { (WORD)tc.year, (WORD)tc.month, (WORD)tc.dayOfWeek, (WORD)tc.day,
+					(WORD)tc.hour, (WORD)tc.minute, (WORD)tc.second, (WORD)tc.milliseconds };
+				SystemTimeToFileTime(&st, &ft);
+			}
+
 			static Time getModifiedTime(HANDLE handle)
 			{
 				FILETIME ft;
 				BOOL bRet = GetFileTime(handle, NULL, NULL, &ft);
 				if (bRet) {
-					FILETIME lft;
-					FileTimeToLocalFileTime(&ft, &lft);
-					Time time(*((sl_int64*)&lft) / 10);
-					return time;
+					return filetimeToTime(ft);
 				} else {
 					return Time::zero();
 				}
@@ -288,10 +303,7 @@ namespace slib
 				FILETIME ft;
 				BOOL bRet = GetFileTime(handle, NULL, &ft, NULL);
 				if (bRet) {
-					FILETIME lft;
-					FileTimeToLocalFileTime(&ft, &lft);
-					Time time(*((sl_int64*)&lft) / 10);
-					return time;
+					return filetimeToTime(ft);
 				} else {
 					return Time::zero();
 				}
@@ -302,13 +314,37 @@ namespace slib
 				FILETIME ft;
 				BOOL bRet = GetFileTime(handle, &ft, NULL, NULL);
 				if (bRet) {
-					FILETIME lft;
-					FileTimeToLocalFileTime(&ft, &lft);
-					Time time(*((sl_int64*)&lft) / 10);
-					return time;
+					return filetimeToTime(ft);
 				} else {
 					return Time::zero();
 				}
+			}
+
+			static sl_bool setModifiedTime(HANDLE handle, Time time)
+			{
+				FILETIME ft;
+				timeToFiletime(time, ft);
+				BOOL bRet = SetFileTime(handle, NULL, NULL, &ft);
+				CloseHandle(handle);
+				return bRet != 0;
+			}
+
+			static sl_bool setAccessedTime(HANDLE handle, Time time)
+			{
+				FILETIME ft;
+				timeToFiletime(time, ft);
+				BOOL bRet = SetFileTime(handle, NULL, &ft, NULL);
+				CloseHandle(handle);
+				return bRet != 0;
+			}
+
+			static sl_bool setCreatedTime(HANDLE handle, Time time)
+			{
+				FILETIME ft;
+				timeToFiletime(time, ft);
+				BOOL bRet = SetFileTime(handle, &ft, NULL, NULL);
+				CloseHandle(handle);
+				return bRet != 0;
 			}
 
 		}
@@ -397,13 +433,9 @@ namespace slib
 		}
 		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
-			FILETIME lft;
-			FILETIME ft;
-			*((sl_int64*)&lft) = time.toInt() * 10;
-			LocalFileTimeToFileTime(&lft, &ft);
-			BOOL bRet = SetFileTime(handle, NULL, NULL, &ft);
+			sl_bool ret = priv::file::setModifiedTime(handle, time);
 			CloseHandle(handle);
-			return bRet != 0;
+			return ret;
 		} else {
 			return sl_false;
 		}
@@ -417,13 +449,9 @@ namespace slib
 		}
 		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
-			FILETIME lft;
-			FILETIME ft;
-			*((sl_int64*)&lft) = time.toInt() * 10;
-			LocalFileTimeToFileTime(&lft, &ft);
-			BOOL bRet = SetFileTime(handle, NULL, &ft, NULL);
+			sl_bool ret = priv::file::setAccessedTime(handle, time);
 			CloseHandle(handle);
-			return bRet != 0;
+			return ret;
 		} else {
 			return sl_false;
 		}
@@ -437,13 +465,9 @@ namespace slib
 		}
 		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
-			FILETIME lft;
-			FILETIME ft;
-			*((sl_int64*)&lft) = time.toInt() * 10;
-			LocalFileTimeToFileTime(&lft, &ft);
-			BOOL bRet = SetFileTime(handle, &ft, NULL, NULL);
+			sl_bool ret = priv::file::setCreatedTime(handle, time);
 			CloseHandle(handle);
-			return bRet != 0;
+			return ret;
 		} else {
 			return sl_false;
 		}
