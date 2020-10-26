@@ -1,5 +1,7 @@
 #include "slib/storage/file_system_logger.h"
 
+#include "slib/core/system.h"
+
 #include "slib/core/log.h"
 
 #define TAG "FileSystemLogger"
@@ -55,7 +57,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -78,7 +80,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -99,7 +101,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -128,7 +130,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -157,7 +159,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -179,7 +181,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -201,7 +203,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -222,7 +224,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -249,7 +251,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -276,7 +278,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -297,7 +299,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -318,7 +320,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -339,7 +341,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -367,7 +369,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -380,19 +382,19 @@ namespace slib
 		String desc = String::format("SetFileInfo(%s,0x%X)", contextDesc, flags);
 		if (m_flags & FsLogSetInfoDetail) {
 			if (m_flags & FsLogSetAttrInfo && flags & FileInfoFlags::AttrInfo) {
-				LOG("  Attr: 0x%X, %s", fileInfo.fileAttributes, fileInfo.attr.isDirectory ? "DIR" : "FILE");
+				desc = desc + String::format("  Attr: 0x%X, %s", fileInfo.fileAttributes, fileInfo.attr.isDirectory ? "DIR" : "FILE");
 			}
 			if (m_flags & FsLogSetTimeInfo && flags & FileInfoFlags::TimeInfo) {
 				if (m_flags & FsLogDateAsString)
-					LOG("  Time: %s,%s,%s", fileInfo.createdAt.toString(), fileInfo.modifiedAt.toString(), fileInfo.lastAccessedAt.toString());
+					desc = desc + String::format("  Time: %s,%s,%s", fileInfo.createdAt.toString(), fileInfo.modifiedAt.toString(), fileInfo.lastAccessedAt.toString());
 				else
-					LOG("  Time: %d,%d,%d", fileInfo.createdAt.toInt(), fileInfo.modifiedAt.toInt(), fileInfo.lastAccessedAt.toInt());
+					desc = desc + String::format("  Time: %d,%d,%d", (sl_uint64)fileInfo.createdAt.toInt(), (sl_uint64)fileInfo.modifiedAt.toInt(), (sl_uint64)fileInfo.lastAccessedAt.toInt());
 			}
 			if (m_flags & FsLogSetFileSizeInfo && flags & FileInfoFlags::SizeInfo) {
-				LOG("  FileSize: %d", fileInfo.size);
+				desc = desc + String::format("  FileSize: %d", fileInfo.size);
 			}
 			if (m_flags & FsLogSetAllocSizeInfo && flags & FileInfoFlags::AllocSizeInfo) {
-				LOG("  AllocSize: %d", fileInfo.allocationSize);
+				desc = desc + String::format("  AllocSize: %d", fileInfo.allocationSize);
 			}
 		}
 		if (!(m_flags & FsLogRetAndErrors))
@@ -405,7 +407,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -427,7 +429,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -448,7 +450,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -481,7 +483,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
@@ -508,7 +510,7 @@ namespace slib
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d", desc, error);
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
 			throw error;
 		}
 	}
