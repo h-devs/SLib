@@ -19,6 +19,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\slib\core.h" />
+    <ClInclude Include="..\..\include\slib\crypto.h" />
+    <ClInclude Include="..\..\include\slib\db.h" />
+    <ClInclude Include="..\..\include\slib\dev.h" />
+    <ClInclude Include="..\..\include\slib\device.h" />
+    <ClInclude Include="..\..\include\slib\doc.h" />
+    <ClInclude Include="..\..\include\slib\geo.h" />
+    <ClInclude Include="..\..\include\slib\graphics.h" />
+    <ClInclude Include="..\..\include\slib\math.h" />
+    <ClInclude Include="..\..\include\slib\media.h" />
+    <ClInclude Include="..\..\include\slib\network.h" />
+    <ClInclude Include="..\..\include\slib\render.h" />
+    <ClInclude Include="..\..\include\slib\resource.h" />
+    <ClInclude Include="..\..\include\slib\service.h" />
+    <ClInclude Include="..\..\include\slib\slib.h" />
+    <ClInclude Include="..\..\include\slib\social.h" />
+    <ClInclude Include="..\..\include\slib\storage.h" />
+    <ClInclude Include="..\..\include\slib\ui.h" />
     <ClInclude Include="..\..\src\slib\core\async_config.h" />
     <ClInclude Include="..\..\src\slib\network\network_async.h" />
     <ClInclude Include="..\..\src\slib\render\opengl_egl_entries.h" />

@@ -313,7 +313,16 @@ namespace slib
 		Time& setUnixTimef(double time) noexcept;
 		
 		static Time fromUnixTimef(double time) noexcept;
-		
+
+		// Convert 1970 Based (time_t mode) to 1601 Based (FILETIME mode)
+		sl_int64 toWindowsFileTime() const noexcept;
+
+		// Convert 1601 Based (FILETIME mode) to 1970 Based (time_t mode)
+		Time& setWindowsFileTime(sl_int64 time) noexcept;
+
+		// Convert 1601 Based (FILETIME mode) to 1970 Based (time_t mode)
+		static Time fromWindowsFileTime(sl_int64 time) noexcept;
+
 		Time& add(sl_int64 time) noexcept;
 
 		Time& add(const Time& other) noexcept;

@@ -20,151 +20,85 @@
 *   THE SOFTWARE.
 */
 
-#include "slib/storage/file_system.h"
-
-#include "slib/core/log.h"
-
-#define TAG						"FileSystemProvider"
-#define errorLog(...)			LogError(TAG, ##__VA_ARGS__)
-#define debugLog(...)			LogDebug(TAG, ##__VA_ARGS__)
+#include "file_system.h"
 
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileSystemInformation)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileSystemInfo)
 
-	FileSystemInformation::FileSystemInformation()
+	FileSystemInfo::FileSystemInfo() :
+		serialNumber(0),
+		sectorSize(512),
+		sectorsPerAllocationUnit(1),
+		maxPathLength(8192)
 	{
-		serialNumber = 0;
-		sectorSize = 512;
-		sectorsPerAllocationUnit = 1;
-		maxPathLength = 8192;
 	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileInfo)
+
+	FileInfo::FileInfo() :
+		size(0),
+		allocSize(0)
+	{
+	}
+
+
+	SLIB_DEFINE_OBJECT(FileContext, Object)
+
+	FileContext::FileContext()
+	{
+	}
+
+	FileContext::~FileContext()
+	{
+	}
+
 
 	SLIB_DEFINE_OBJECT(FileSystemProvider, Object)
 
 	FileSystemProvider::FileSystemProvider()
 	{
-		m_volumeInfo.creationTime = Time::now();
 	}
 
-
-	sl_bool FileSystemProvider::exists(String fileName) noexcept
+	FileSystemProvider::~FileSystemProvider()
 	{
-		try {
-			fsGetFileInfo(new FileContext(fileName));
-			return sl_true;
-		}
-		catch (...) {
-			return sl_false;
-		}
 	}
 
-	Memory FileSystemProvider::readFile(String fileName, sl_int64 offset, sl_uint32 length) noexcept
+	sl_size FileSystemProvider::writeFile(FileContext* context, sl_int64 offset, const void* data, sl_size size)
 	{
-		Ref<FileContext> context;
-		fileName = fileName.replaceAll("/", "\\");
-		if (!fileName.startsWith("\\")) fileName = "\\" + fileName;
-		try {
-			context = new FileContext(fileName);
-			fsOpen(context);	// FIXME sharing violation error (32)
-			FileInfo info = fsGetFileInfo(context);
-			if (offset < 0) offset = info.size + offset;
-			if (offset < 0) offset = 0;
-			if (length == 0) {
-				length = (info.size - (sl_uint64)offset) & 0xFFFFFFFF;
-			}
-			//if (info.attr.isDirectory) throw;
-			Memory buffer = Memory::create(length);
-			sl_size ret = fsRead(context, buffer, offset);
-			fsClose(context);
-			return buffer.sub(0, ret);
-		}
-		catch (FileSystemError error) {
-			debugLog("readFile(%s,%d,%d)\n  Error: %d", fileName, offset, length, error);
-			if (context.isNotNull()) {
-				try {
-					fsClose(context);
-				}
-				catch (...) {}
-			}
-			return sl_null;
-		}
+		SLIB_THROW(FileSystemError::NotImplemented, 0)
 	}
 
-	sl_bool FileSystemProvider::writeFile(String fileName, const Memory& buffer, FileCreationParams& params) noexcept
+	sl_bool FileSystemProvider::flushFile(FileContext* context)
 	{
-		Ref<FileContext> context;
-		fileName = fileName.replaceAll("/", "\\");
-		if (!fileName.startsWith("\\")) fileName = "\\" + fileName;
-		try {
-			context = new FileContext(fileName);
-			fsCreate(context, params);
-			fsWrite(context, buffer, 0, sl_false);
-			fsClose(context);
-			return sl_true;
-		}
-		catch (FileSystemError error) {
-			debugLog("writeFile(%s,%d)\n  Error: %d", fileName, buffer.getSize(), error);
-			if (context.isNotNull()) {
-				try {
-					fsClose(context);
-				}
-				catch (...) {}
-			}
-			return sl_false;
-		}
+		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_bool FileSystemProvider::deleteFile(String fileName) noexcept
+	sl_bool FileSystemProvider::deleteFile(const String& path)
 	{
-		Ref<FileContext> context;
-		fileName = fileName.replaceAll("/", "\\");
-		if (!fileName.startsWith("\\")) fileName = "\\" + fileName;
-		try {
-			context = new FileContext(fileName);
-			fsOpen(context);
-			fsDelete(context, sl_false);
-			fsClose(context);
-			return sl_true;
-		}
-		catch (FileSystemError) {
-			if (context.isNotNull()) {
-				try {
-					fsClose(context);
-				}
-				catch (...) {}
-			}
-			return sl_false;
-		}
+		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_size FileSystemProvider::increaseHandleCount(String fileName)
+	sl_bool FileSystemProvider::moveFile(const String& pathOld, const String& pathNew, sl_bool flagReplaceIfExists)
 	{
-		ObjectLocker locker(this);
-		m_openHandles.put(fileName, m_openHandles[fileName] + 1);
-		return m_openHandles[fileName];
+		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_size FileSystemProvider::decreaseHandleCount(String fileName)
+	sl_bool FileSystemProvider::lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
 	{
-		ObjectLocker locker(this);
-		sl_size count = m_openHandles[fileName];
-		if (count > 1)
-			m_openHandles.put(fileName, count - 1);
-		else
-			m_openHandles.remove(fileName);
-		return m_openHandles[fileName];
+		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_size FileSystemProvider::getOpenHandlesCount()
+	sl_bool FileSystemProvider::unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
 	{
-		return m_openHandles.getCount();
+		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_bool FileSystemProvider::getSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize)
+	sl_bool FileSystemProvider::setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask)
 	{
-		return sl_false;
+		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
 }

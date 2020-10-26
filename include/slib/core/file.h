@@ -44,15 +44,22 @@ namespace slib
 			Read = 1,
 			Write = 2,
 
-			NotCreate = 0x00001000,
-			NotTruncate = 0x00002000,
-			SeekToEnd = 0x10000000,
-			HintRandomAccess = 0x20000000,
+			NotCreate = 0x100,
+			NotTruncate = 0x200,
+			SeekToEnd = 0x1000,
+			HintRandomAccess = 0x2000,
 
 			ReadWrite = Read | Write,
 			Append = Write | NotTruncate | SeekToEnd,
 			RandomAccess = Read | Write | NotTruncate | HintRandomAccess,
-			RandomRead = Read | HintRandomAccess
+			RandomRead = Read | HintRandomAccess,
+
+			ShareRead = 0x10000,
+			ShareWrite = 0x20000,
+			ShareReadWrite = ShareRead | ShareWrite,
+			ShareDelete = 0x40000,
+			ShareAll = ShareRead | ShareWrite | ShareDelete
+
 		};
 	};
 
@@ -81,46 +88,36 @@ namespace slib
 			Encrypted = 0x4000,
 			Virtual = 0x10000,
 
+			ReadByOthers = 0x00100000,
+			WriteByOthers = 0x00200000,
+			ExecuteByOthers = 0x00400000,
+			ReadByGroup = 0x00800000,
+			WriteByGroup = 0x01000000,
+			ExecuteByGroup = 0x02000000,
+			ReadByUser = 0x04000000,
+			WriteByUser = 0x08000000,
+			ExecuteByUser = 0x10000000,
+			ReadByAnyone = ReadByUser | ReadByGroup | ReadByOthers,
+			WriteByAnyone = WriteByUser | WriteByGroup | WriteByOthers,
+			ExecuteByAnyone = ExecuteByUser | ExecuteByGroup | ExecuteByOthers,
+			AllAccess = ReadByAnyone | WriteByAnyone | ExecuteByAnyone,
+			NoAccess = 0x20000000,
+
 			NotExist = 0x80000000
 		};
 	};
 	
-	class FilePermissions
+	class SLIB_EXPORT FileOpenParam
 	{
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(FilePermissions, value)
-		
-		enum {
-			ReadByOthers = 0x0001,
-			WriteByOthers = 0x0002,
-			ExecuteByOthers = 0x0004,
-			Others = ReadByOthers | WriteByOthers | ExecuteByOthers,
+	public:
+		FileMode mode;
+		FileAttributes attributes;
 
-			ReadByGroup = 0x0008,
-			WriteByGroup = 0x0010,
-			ExecuteByGroup = 0x0020,
-			Group = ReadByGroup | WriteByGroup | ExecuteByGroup,
+	public:
+		FileOpenParam();
 
-			ReadByUser = 0x0040,
-			WriteByUser = 0x0080,
-			ExecuteByUser = 0x0100,
-			User = ReadByUser | WriteByUser | ExecuteByUser,
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileOpenParam)
 
-			Read = ReadByUser | ReadByGroup | ReadByOthers,
-			Write = WriteByUser | WriteByGroup | WriteByOthers,
-			Execute = ExecuteByUser | ExecuteByGroup | ExecuteByOthers,
-
-			None = 0,
-			All = Read | Write | Execute,
-	
-			ShareRead = 0x1000,
-			ShareWrite = 0x2000,
-			ShareReadWrite = ShareRead | ShareWrite,
-			ShareDelete = 0x4000,
-			ShareAll = ShareRead | ShareWrite | ShareDelete
-
-		};
-	
 	};
 	
 	class SLIB_EXPORT File : public IO
@@ -136,7 +133,9 @@ namespace slib
 		~File();
 	
 	public:
-		static Ref<File> open(const StringParam& filePath, const FileMode& mode, const FilePermissions& permissions);
+		static Ref<File> open(const StringParam& filePath, const FileOpenParam& param);
+
+		static Ref<File> open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs);
 
 		static Ref<File> open(const StringParam& filePath, const FileMode& mode);
 	
@@ -331,9 +330,15 @@ namespace slib
 		static String getRealPath(const StringParam& filePath);
 
 	private:
-		static sl_file _open(const StringParam& filePath, const FileMode& mode, const FilePermissions& permissions);
+		static sl_file _open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs);
 
 		static sl_bool _close(sl_file file);
+
+		static FileAttributes _fixAttributes(const FileAttributes& attrs);
+
+		static FileAttributes _getAttributes(const StringParam& filePath);
+
+		static sl_bool _setAttributes(const StringParam& filePath, const FileAttributes& attrs);
 
 		static sl_bool _createDirectory(const StringParam& dirPath);
 

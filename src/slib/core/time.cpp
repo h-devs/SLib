@@ -313,6 +313,22 @@ namespace slib
 		return (sl_int64)(time * TIME_SECOND);
 	}
 
+	sl_int64 Time::toWindowsFileTime() const noexcept
+	{
+		return (m_time + SLIB_INT64(11644473600000000)) * 10;
+	}
+
+	Time& Time::setWindowsFileTime(sl_int64 time) noexcept
+	{
+		m_time = time / 10 - SLIB_INT64(11644473600000000);
+		return *this;
+	}
+
+	Time Time::fromWindowsFileTime(sl_int64 time) noexcept
+	{
+		return time / 10 - SLIB_INT64(11644473600000000);
+	}
+
 	Time& Time::add(sl_int64 time) noexcept
 	{
 		m_time += time;

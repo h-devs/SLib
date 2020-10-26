@@ -124,17 +124,12 @@ namespace slib
 		return sl_false;
 	}
 
-	const FileSystemInformation& MirrorFs::fsGetVolumeInfo(VolumeInfoFlags flags)&
+	sl_bool MirrorFs::getInformation(FileSystemInfo& info)
 	{
-		return m_volumeInfo;
+		info = m_volumeInfo;
 	}
 
-	void MirrorFs::fsSetVolumeName(String volumeName)
-	{
-		throw FileSystemError::NotImplemented;
-	}
-	
-	void MirrorFs::fsCreate(FileContext* context, FileCreationParams& params)
+	void MirrorFs::openFile(FileContext* context, FileCreationParams& params)
 	{
 		WCHAR fullPath[MAX_PATH];
 		DWORD creationDisposition = CREATE_NEW;
@@ -154,47 +149,33 @@ namespace slib
 			params.openTruncate = FALSE;
 		}
 
-		params.flagsAndAttributes |= FILE_FLAG_BACKUP_SEMANTICS;
-
-		if (params.attr.isDirectory)
-		{
-			/*
-			* It is not widely known but CreateFileW can be used to create directories!
-			* It requires the specification of both FILE_FLAG_BACKUP_SEMANTICS and
-			* FILE_FLAG_POSIX_SEMANTICS. It also requires that FileAttributes has
-			* FILE_ATTRIBUTE_DIRECTORY set.
-			*/
-			params.flagsAndAttributes |= FILE_FLAG_POSIX_SEMANTICS;
-			params.flagsAndAttributes |= FILE_ATTRIBUTE_DIRECTORY;
+		DWORD flags = (params.attributes & 0x7ffff) | FILE_FLAG_BACKUP_SEMANTICS;
+		if (params.attributes & FileAttributes::Directory) {
+			flags |= FILE_FLAG_POSIX_SEMANTICS;
 		}
-		else {
-			params.flagsAndAttributes &= ~FILE_ATTRIBUTE_DIRECTORY;
+		if (!(flags & 0x7ffff)) {
+			flags |= FILE_ATTRIBUTE_NORMAL;
 		}
-
-		if (0 == (params.flagsAndAttributes & 0x0007FFFF))
-			params.flagsAndAttributes |= FILE_ATTRIBUTE_NORMAL;
-
-		if (params.securityDescriptor)
-		{
+		if (params.securityDescriptor) {
 			securityAttributes.nLength = sizeof securityAttributes;
 			securityAttributes.lpSecurityDescriptor = params.securityDescriptor;
 			securityAttributes.bInheritHandle = FALSE;
 			pSecurityAttributes = &securityAttributes;
 		}
 
-		handle = CreateFile(fullPath,
+		handle = CreateFileW(fullPath,
 			params.accessMode, params.shareMode, pSecurityAttributes,
-			creationDisposition, params.flagsAndAttributes, 0);
+			creationDisposition, flags, 0);
 
 		if (INVALID_HANDLE_VALUE == handle)
 			throw getError();
 
 		context->status = getError();
 		context->handle = (sl_uint64)handle;
-		context->isDirectory = params.attr.isDirectory;
+		context->isDirectory = params.attributes & FileAttributes::Directory;
 	}
 
-	void MirrorFs::fsOpen(FileContext* context, FileCreationParams& params)
+	void MirrorFs::openFile(FileContext* context, FileCreationParams& params)
 	{
 		WCHAR fullPath[MAX_PATH];
 		DWORD creationDisposition = OPEN_EXISTING;
@@ -220,10 +201,10 @@ namespace slib
 			params.openTruncate = FALSE;
 		}
 
-		params.flagsAndAttributes |= FILE_FLAG_BACKUP_SEMANTICS;
-
-		if (0 == (params.flagsAndAttributes & 0x0007FFFF))
-			params.flagsAndAttributes |= FILE_ATTRIBUTE_NORMAL;
+		DWORD flags = (params.attributes & 0x7ffff) | FILE_FLAG_BACKUP_SEMANTICS;
+		if (!(flags & 0x7ffff)) {
+			flags |= FILE_ATTRIBUTE_NORMAL;
+		}
 
 		if (params.securityDescriptor)
 		{
@@ -235,24 +216,24 @@ namespace slib
 
 		handle = CreateFile(fullPath,
 			params.accessMode, params.shareMode, pSecurityAttributes,
-			creationDisposition, params.flagsAndAttributes, 0);
+			creationDisposition, flags, 0);
 
 		if (INVALID_HANDLE_VALUE == handle)
 			throw getError();
 
 		context->status = getError();
 		context->handle = (sl_uint64)handle;
-		context->isDirectory = params.attr.isDirectory;
+		context->isDirectory = params.attributes & FileAttributes::Directory;
 	}
 
-	void MirrorFs::fsClose(FileContext* context)
+	void MirrorFs::closeFile(FileContext* context)
 	{
 		if (context->handle && !CloseHandle(HandleFromContext(context)))
 			throw getError();
 		context->handle = 0;
 	}
 
-	sl_size MirrorFs::fsRead(FileContext* context, const Memory& buffer, sl_uint64 offset)
+	sl_size MirrorFs::readFile(FileContext* context, const Memory& buffer, sl_uint64 offset)
 	{
 		DWORD bytesTransferred = 0;
 		HANDLE handle = HandleFromContext(context);
@@ -290,7 +271,7 @@ namespace slib
 		return bytesTransferred;
 	}
 
-	sl_size MirrorFs::fsWrite(FileContext* context, const Memory& buffer, sl_uint64 offset, sl_bool writeToEof)
+	sl_size MirrorFs::writeFile(FileContext* context, const Memory& buffer, sl_uint64 offset, sl_bool writeToEof)
 	{
 		DWORD bytesTransferred = 0;
 		HANDLE handle = HandleFromContext(context);
@@ -338,7 +319,7 @@ namespace slib
 		return bytesTransferred;
 	}
 
-	void MirrorFs::fsFlush(FileContext* context)
+	void MirrorFs::flush(FileContext* context)
 	{
 		HANDLE handle = HandleFromContext(context);
 
@@ -350,7 +331,7 @@ namespace slib
 			throw getError();
 	}
 
-	void MirrorFs::fsDelete(FileContext* context, sl_bool checkOnly)
+	void MirrorFs::deleteFile(FileContext* context, sl_bool checkOnly)
 	{
 		HANDLE handle = HandleFromContext(context);
 		WCHAR fullPath[MAX_PATH];
@@ -420,7 +401,7 @@ namespace slib
 		}
 	}
 
-	void MirrorFs::fsRename(FileContext* context, String newFileName, sl_bool replaceIfExists)
+	void MirrorFs::moveFile(FileContext* context, String newFileName, sl_bool replaceIfExists)
 	{
 		WCHAR fullPath[MAX_PATH], NewfullPath[MAX_PATH];
 
@@ -431,7 +412,7 @@ namespace slib
 			throw getError();
 	}
 
-	void MirrorFs::fsLock(FileContext* context, sl_uint64 offset, sl_uint64 length)
+	void MirrorFs::lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
 	{
 		HANDLE handle = HandleFromContext(context);
 		if (!handle || handle == INVALID_HANDLE_VALUE) {
@@ -450,7 +431,7 @@ namespace slib
 		}
 	}
 
-	void MirrorFs::fsUnlock(FileContext* context, sl_uint64 offset, sl_uint64 length)
+	void MirrorFs::unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
 	{
 		HANDLE handle = HandleFromContext(context);
 		if (!handle || handle == INVALID_HANDLE_VALUE) {
@@ -469,7 +450,7 @@ namespace slib
 		}
 	}
 
-	FileInfo MirrorFs::fsGetFileInfo(FileContext* context)
+	FileInfo MirrorFs::getFileInfo(FileContext* context)
 	{
 		HANDLE handle = HandleFromContext(context);
 		WCHAR fullPath[MAX_PATH];
@@ -492,22 +473,22 @@ namespace slib
 
 		if (!GetFileInformationByHandle(handle, &byHandleFileInfo)) {
 			if (context->path.getLength() == 1) {
-				fileInfo.fileAttributes = GetFileAttributes(fullPath);
+				fileInfo.attributes = GetFileAttributesW(fullPath);
 			}
 			else {
 				WIN32_FIND_DATAW find;
 				ZeroMemory(&find, sizeof(WIN32_FIND_DATAW));
-				HANDLE findHandle = FindFirstFile(fullPath, &find);
+				HANDLE findHandle = FindFirstFileW(fullPath, &find);
 				if (findHandle == INVALID_HANDLE_VALUE) {
 					if (opened)
 						CloseHandle(handle);
 					throw getError();
 				}
 
-				fileInfo.fileAttributes = find.dwFileAttributes;
+				fileInfo.attributes = find.dwFileAttributes;
 				fileInfo.size =
 					((UINT64)find.nFileSizeHigh << 32) | (UINT64)find.nFileSizeLow;
-				fileInfo.allocationSize = (fileInfo.size + ALLOCATION_UNIT - 1)
+				fileInfo.allocSize = (fileInfo.size + ALLOCATION_UNIT - 1)
 					/ ALLOCATION_UNIT * ALLOCATION_UNIT;
 				FileTimeToTime(find.ftCreationTime, fileInfo.createdAt);
 				FileTimeToTime(find.ftLastAccessTime, fileInfo.lastAccessedAt);
@@ -517,10 +498,10 @@ namespace slib
 			}
 		}
 		else {
-			fileInfo.fileAttributes = byHandleFileInfo.dwFileAttributes;
+			fileInfo.attributes = byHandleFileInfo.dwFileAttributes;
 			fileInfo.size =
 				((UINT64)byHandleFileInfo.nFileSizeHigh << 32) | (UINT64)byHandleFileInfo.nFileSizeLow;
-			fileInfo.allocationSize = (fileInfo.size + ALLOCATION_UNIT - 1)
+			fileInfo.allocSize = (fileInfo.size + ALLOCATION_UNIT - 1)
 				/ ALLOCATION_UNIT * ALLOCATION_UNIT;
 			FileTimeToTime(byHandleFileInfo.ftCreationTime, fileInfo.createdAt);
 			FileTimeToTime(byHandleFileInfo.ftLastAccessTime, fileInfo.lastAccessedAt);
@@ -532,15 +513,15 @@ namespace slib
 		return fileInfo;
 	}
 
-	void MirrorFs::fsSetFileInfo(FileContext* context, FileInfo fileInfo, FileInfoFlags flags)
+	void MirrorFs::setFileInfo(FileContext* context, FileInfo fileInfo)
 	{
 		HANDLE handle = HandleFromContext(context);
 		auto funcSetFileInformationByHandle = api::getApi_SetFileInformationByHandle();
 
-		if (flags & FileInfoFlags::AttrAndTimeInfo) {
+		if (fileInfo.mask & (FileInfo::MASK_ATTRIBUTES | FileInfo::MASK_TIME)) {
 			if (funcSetFileInformationByHandle) {
 				FILE_BASIC_INFO basicInfo = { 0 };
-				FileInfo orgFileInfo = fsGetFileInfo(context);
+				FileInfo orgFileInfo = getFileInfo(context);
 
 				TimeToFileTimeLI(orgFileInfo.createdAt, basicInfo.CreationTime);
 				TimeToFileTimeLI(orgFileInfo.lastAccessedAt, basicInfo.LastAccessTime);
@@ -548,16 +529,11 @@ namespace slib
 				TimeToFileTimeLI(orgFileInfo.modifiedAt, basicInfo.ChangeTime);
 				basicInfo.FileAttributes = 0;	// This means not to change original attribute
 
-				if (flags & FileInfoFlags::AttrInfo) {
-					if (INVALID_FILE_ATTRIBUTES == fileInfo.fileAttributes)
-						fileInfo.fileAttributes = 0;
-					//else if (0 == fileInfo.fileAttributes)
-					//	fileInfo.fileAttributes = FILE_ATTRIBUTE_NORMAL;
-
-					basicInfo.FileAttributes = fileInfo.fileAttributes;
+				if (fileInfo.mask & FileInfo::MASK_ATTRIBUTES) {
+					basicInfo.FileAttributes = fileInfo.attributes;
 				}
 
-				if (flags & FileInfoFlags::TimeInfo) {
+				if (fileInfo.mask & FileInfo::MASK_TIME) {
 					if (!fileInfo.createdAt.isZero())
 						TimeToFileTimeLI(fileInfo.createdAt, basicInfo.CreationTime);
 					if (!fileInfo.lastAccessedAt.isZero())
@@ -573,14 +549,14 @@ namespace slib
 					throw getError();
 			}
 			else {
-				if (flags & FileInfoFlags::AttrInfo) {
+				if (fileInfo.mask & FileInfo::MASK_ATTRIBUTES) {
 					WCHAR fullPath[MAX_PATH];
 					ConcatPath(context->path, fullPath);
-					if (!SetFileAttributes(fullPath, fileInfo.fileAttributes))
+					if (!SetFileAttributesW(fullPath, fileInfo.attributes))
 						throw getError();
 				}
 
-				if (flags & FileInfoFlags::TimeInfo) {
+				if (fileInfo.mask & FileInfo::MASK_TIME) {
 					FILETIME ctime, atime, mtime;
 					TimeToFileTime(fileInfo.createdAt, ctime);
 					TimeToFileTime(fileInfo.lastAccessedAt, atime);
@@ -594,7 +570,7 @@ namespace slib
 			}
 		}
 
-		if (flags & FileInfoFlags::SizeInfo) {
+		if (fileInfo.mask & FileInfo::MASK_SIZE) {
 			if (funcSetFileInformationByHandle) {
 				FILE_END_OF_FILE_INFO endOfFileInfo;
 				endOfFileInfo.EndOfFile.QuadPart = fileInfo.size;
@@ -614,10 +590,10 @@ namespace slib
 			}
 		}
 
-		if (flags & FileInfoFlags::AllocSizeInfo) {
+		if (fileInfo.mask & FileInfo::MASK_SIZE) {
 			if (funcSetFileInformationByHandle) {
 				FILE_ALLOCATION_INFO allocationInfo;
-				allocationInfo.AllocationSize.QuadPart = fileInfo.allocationSize;
+				allocationInfo.AllocationSize.QuadPart = fileInfo.allocSize;
 
 				if (!funcSetFileInformationByHandle(handle,
 					FileAllocationInfo, &allocationInfo, sizeof allocationInfo))
@@ -629,8 +605,8 @@ namespace slib
 				if (!GetFileSizeEx(handle, &fileSize))
 					throw getError();
 
-				if (fileInfo.allocationSize < (sl_uint64)fileSize.QuadPart) {
-					offset.QuadPart = fileInfo.allocationSize;
+				if (fileInfo.allocSize < (sl_uint64)fileSize.QuadPart) {
+					offset.QuadPart = fileInfo.allocSize;
 					if (!SetFilePointerEx(handle, offset, NULL, FILE_BEGIN))
 						throw getError();
 					if (!SetEndOfFile(handle))
@@ -689,7 +665,7 @@ namespace slib
 			throw getError();
 	}
 
-	HashMap<String, FileInfo> MirrorFs::fsFindFiles(FileContext* context, String patternString)
+	HashMap<String, FileInfo> MirrorFs::getFiles(FileContext* context, String patternString)
 	{
 		WCHAR fullPath[MAX_PATH];
 		WCHAR pattern[MAX_PATH];
@@ -726,10 +702,10 @@ namespace slib
 			if (rootFolder && (fileName == "." || fileName == ".."))
 				continue;
 
-			fileInfo.fileAttributes = findData.dwFileAttributes;
+			fileInfo.attributes = findData.dwFileAttributes;
 			fileInfo.size =
 				((UINT64)findData.nFileSizeHigh << 32) | (UINT64)findData.nFileSizeLow;
-			fileInfo.allocationSize = (fileInfo.size + ALLOCATION_UNIT - 1)
+			fileInfo.allocSize = (fileInfo.size + ALLOCATION_UNIT - 1)
 				/ ALLOCATION_UNIT * ALLOCATION_UNIT;
 			FileTimeToTime(findData.ftCreationTime, fileInfo.createdAt);
 			FileTimeToTime(findData.ftLastAccessTime, fileInfo.lastAccessedAt);
