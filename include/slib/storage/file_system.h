@@ -40,10 +40,13 @@ namespace slib
 		SLIB_MEMBERS_OF_FLAGS(FileSystemFlags, value)
 
 		enum {
-			IsCaseSensitiveSearch = 0x1,
-			SupportsFileCompression = 0x2,
-			SupportsEncryption = 0x4,
-			IsReadOnlyVolume = 0x8
+			IsCaseSensitive = 0x1,
+			SupportsUnicode = 0x00000004,
+			SupportsSecurity = 0x00000008,
+			SupportsFileCompression = 0x00000010,
+			SupportsEncryption = 0x00020000,
+			SupportsStreams = 0x00040000,
+			IsReadOnlyVolume = 0x00080000,
 		};
 	};
 
