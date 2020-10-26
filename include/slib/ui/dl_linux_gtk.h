@@ -1011,7 +1011,56 @@ namespace slib
 			GtkWidget *widget
 		)
 		#define gtk_widget_is_focus slib::gtk::getApi_gtk_widget_is_focus()
-
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_scrolled_window_add_with_viewport,
+	        void, ,
+	        GtkScrolledWindow *scrolled_window,
+	        GtkWidget		*child
+	    )
+        #define gtk_scrolled_window_add_with_viewport slib::gtk::getApi_gtk_scrolled_window_add_with_viewport()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_scrolled_window_get_hadjustment,
+	        GtkAdjustment* , ,
+	        GtkScrolledWindow *scrolled_window
+	    )
+        #define gtk_scrolled_window_get_hadjustment slib::gtk::getApi_gtk_scrolled_window_get_hadjustment()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_scrolled_window_get_vadjustment,
+	        GtkAdjustment* , ,
+	        GtkScrolledWindow *scrolled_window
+	    )
+        #define gtk_scrolled_window_get_vadjustment slib::gtk::getApi_gtk_scrolled_window_get_vadjustment()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_adjustment_get_value,
+	        gdouble, ,
+	        GtkAdjustment   *adjustment
+	    )
+        #define gtk_adjustment_get_value slib::gtk::getApi_gtk_adjustment_get_value()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_adjustment_set_value,
+	        void, ,
+	        GtkAdjustment	 *adjustment,
+	        gdouble	  value
+	    )
+        #define gtk_adjustment_set_value slib::gtk::getApi_gtk_adjustment_set_value()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_adjustment_get_upper,
+	        gdouble, ,
+	        GtkAdjustment   *adjustment
+	    )
+        #define gtk_adjustment_get_upper slib::gtk::getApi_gtk_adjustment_get_upper()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_scrolled_window_get_type,
+	        GType, ,
+	    )
+        #define gtk_scrolled_window_get_type slib::gtk::getApi_gtk_scrolled_window_get_type()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_widget_set_name,
+	        void, ,
+	        GtkWidget    *widget,
+	        const gchar  *name
+	    )
+        #define gtk_widget_set_name slib::gtk::getApi_gtk_widget_set_name()
 	SLIB_IMPORT_LIBRARY_END
 
 }

@@ -632,9 +632,9 @@ namespace slib
 		Ref<ViewInstance> instance = _createInstance(parent);
 		if (instance.isNotNull()) {
 			m_instance = instance;
+			instance->initialize(this);
 			_doAttach();
 			instance->setView(this);
-			instance->initialize(this);
 		}
 		return instance;
 	}

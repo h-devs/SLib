@@ -494,6 +494,7 @@ else ()
   "${SLIB_PATH}/src/slib/ui/radio_button_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/render_view_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/select_view_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/scroll_view_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_core_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_event_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_menu_gtk.cpp"

@@ -50,10 +50,8 @@ namespace slib
 			{
 				CheckBox* view = (CheckBox*)_view;
 				GtkToggleButton* handle = (GtkToggleButton*)m_handle;
-
 				ButtonInstance::initialize(view);
-				gtk_toggle_button_set_active(handle, view->isChecked());
-
+				setChecked(view, view->isChecked());
 				g_signal_connect(handle, "toggled", G_CALLBACK(onChanged), handle);
 			}
 
