@@ -9,7 +9,6 @@
 
 #define _EXPORTING
 #include "../../../external/include/dokany/dokan.h"
-#include "filesystemhost.h"
 
 #define	SLIB_DOKAN_RET	int
 

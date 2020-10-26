@@ -185,6 +185,38 @@ namespace slib
 
 	};
 
+	class FileSystemHost : public Object
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		FileSystemHost(const String& mountPoint, const Ref<FileSystemProvider>& provider);
+
+		~FileSystemHost();
+
+	public:
+		virtual sl_bool isRunning() = 0;
+		
+		virtual void stop() = 0;
+
+		virtual sl_uint64 getOpenHandlesCount() = 0;
+
+	public:
+		String getMountPoint();
+
+		Ref<FileSystemProvider> getProvider();
+
+	public:
+		static Ref<FileSystemHost> mount(const String& mountPoint, const Ref<FileSystemProvider>& provider);
+
+		static void unmount(const String& mountPoint);
+
+	protected:
+		String m_mountPoint;
+		Ref<FileSystemProvider> m_provider;
+
+	};
+
 }
 
 #endif

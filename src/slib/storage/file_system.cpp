@@ -101,4 +101,35 @@ namespace slib
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
+
+	SLIB_DEFINE_OBJECT(FileSystemHost, Object)
+
+	FileSystemHost::FileSystemHost(const String& mountPoint, const Ref<FileSystemProvider>& provider): m_mountPoint(mountPoint), m_provider(provider)
+	{
+	}
+
+	FileSystemHost::~FileSystemHost()
+	{
+	}
+
+	String FileSystemHost::getMountPoint()
+	{
+		return m_mountPoint;
+	}
+
+	Ref<FileSystemProvider> FileSystemHost::getProvider()
+	{
+		return m_provider;
+	}
+
+	Ref<FileSystemHost> FileSystemHost::mount(const String& mountPoint, const Ref<FileSystemProvider>& provider)
+	{
+		return sl_null;
+	}
+
+	void FileSystemHost::unmount(const String& mountPoint)
+	{
+
+	}
+
 }

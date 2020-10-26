@@ -26,6 +26,7 @@
 #include "storage/disk.h"
 
 #include "storage/file_system.h"
+
 #include "storage/dokany.h"
 
 #include "storage/dummyfs.h"
@@ -33,7 +34,5 @@
 
 #include "storage/filesystemwrapper.h"
 #include "storage/file_system_logger.h"
-
-#include "storage/filesystemhost.h"
 
 #endif
