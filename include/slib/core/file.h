@@ -219,12 +219,18 @@ namespace slib
 
 		static Time getCreatedTime(const StringParam& filePath);
 
+		sl_bool setModifiedTime(Time time);
+
+		sl_bool setAccessedTime(Time time);
+
+		sl_bool setCreatedTime(Time time);
+
 		static sl_bool setModifiedTime(const StringParam& filePath, Time time);
 
 		static sl_bool setAccessedTime(const StringParam& filePath, Time time);
 
 		static sl_bool setCreatedTime(const StringParam& filePath, Time time);
-	
+
 
 		static FileAttributes getAttributes(const StringParam& filePath);
 

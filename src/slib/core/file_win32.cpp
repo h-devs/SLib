@@ -327,7 +327,6 @@ namespace slib
 				FILETIME ft;
 				timeToFiletime(time, ft);
 				BOOL bRet = SetFileTime(handle, NULL, NULL, &ft);
-				CloseHandle(handle);
 				return bRet != 0;
 			}
 
@@ -336,7 +335,6 @@ namespace slib
 				FILETIME ft;
 				timeToFiletime(time, ft);
 				BOOL bRet = SetFileTime(handle, NULL, &ft, NULL);
-				CloseHandle(handle);
 				return bRet != 0;
 			}
 
@@ -345,7 +343,6 @@ namespace slib
 				FILETIME ft;
 				timeToFiletime(time, ft);
 				BOOL bRet = SetFileTime(handle, &ft, NULL, NULL);
-				CloseHandle(handle);
 				return bRet != 0;
 			}
 
@@ -430,6 +427,16 @@ namespace slib
 		}
 	}
 
+	sl_bool File::setModifiedTime(Time time)
+	{
+		if (isOpened()) {
+			return priv::file::setModifiedTime((HANDLE)m_file, time);
+		}
+		else {
+			return sl_false;
+		}
+	}
+
 	sl_bool File::setModifiedTime(const StringParam& _filePath, Time time)
 	{
 		StringCstr16 filePath(_filePath);
@@ -446,6 +453,16 @@ namespace slib
 		}
 	}
 
+	sl_bool File::setAccessedTime(Time time)
+	{
+		if (isOpened()) {
+			return priv::file::setAccessedTime((HANDLE)m_file, time);
+		}
+		else {
+			return sl_false;
+		}
+	}
+
 	sl_bool File::setAccessedTime(const StringParam& _filePath, Time time)
 	{
 		StringCstr16 filePath(_filePath);
@@ -458,6 +475,16 @@ namespace slib
 			CloseHandle(handle);
 			return ret;
 		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool File::setCreatedTime(Time time)
+	{
+		if (isOpened()) {
+			return priv::file::setCreatedTime((HANDLE)m_file, time);
+		}
+		else {
 			return sl_false;
 		}
 	}

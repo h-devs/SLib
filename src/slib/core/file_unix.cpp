@@ -460,6 +460,24 @@ namespace slib
 		}
 	}
 
+	sl_bool File::setModifiedTime(Time time)
+	{
+		// not supported
+		return sl_false;
+	}
+
+	sl_bool File::setAccessedTime(Time time)
+	{
+		// not supported
+		return sl_false;
+	}
+
+	sl_bool File::setCreatedTime(Time time)
+	{
+		// not supported
+		return sl_false;
+	}
+
 	sl_bool File::setModifiedTime(const StringParam& _filePath, Time time)
 	{
 		StringCstr filePath(_filePath);
