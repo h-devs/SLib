@@ -220,7 +220,9 @@ namespace slib
 		}
 		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), 0, 0, NULL, OPEN_EXISTING, 0, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
-			return getSize((sl_file)handle);
+			sl_uint64 ret = getSize((sl_file)handle);
+			CloseHandle(handle);
+			return ret;
 		} else {
 			return 0;
 		}
