@@ -206,14 +206,19 @@ namespace slib
 
 		Ref<FileSystemProvider> getProvider();
 
+	protected:
+		String m_mountPoint;
+		Ref<FileSystemProvider> m_provider;
+
+	};
+
+
+	class FileSystem
+	{
 	public:
 		static Ref<FileSystemHost> mount(const String& mountPoint, const Ref<FileSystemProvider>& provider);
 
 		static void unmount(const String& mountPoint);
-
-	protected:
-		String m_mountPoint;
-		Ref<FileSystemProvider> m_provider;
 
 	};
 

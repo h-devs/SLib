@@ -122,12 +122,13 @@ namespace slib
 		return m_provider;
 	}
 
-	Ref<FileSystemHost> FileSystemHost::mount(const String& mountPoint, const Ref<FileSystemProvider>& provider)
+
+	Ref<FileSystemHost> FileSystem::mount(const String& mountPoint, const Ref<FileSystemProvider>& provider)
 	{
 		return sl_null;
 	}
 
-	void FileSystemHost::unmount(const String& mountPoint)
+	void FileSystem::unmount(const String& mountPoint)
 	{
 
 	}
