@@ -25,6 +25,22 @@
 namespace slib
 {
 
+	Ref<FileSystemHost> FileSystem::mount(const String& mountPoint, const Ref<FileSystemProvider>& provider)
+	{
+		return sl_null;
+	}
+
+	Ref<FileSystemHost> getHost(const String& mountPoint)
+	{
+		return sl_null;
+	}
+
+	void FileSystem::unmount(const String& mountPoint)
+	{
+
+	}
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileSystemInfo)
 
 	FileSystemInfo::FileSystemInfo() :
@@ -96,7 +112,7 @@ namespace slib
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_bool FileSystemProvider::setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemProvider::setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask)
 	{
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
@@ -123,14 +139,121 @@ namespace slib
 	}
 
 
-	Ref<FileSystemHost> FileSystem::mount(const String& mountPoint, const Ref<FileSystemProvider>& provider)
+	FileSystemWrapper::FileSystemWrapper(const Ref<FileSystemProvider>& base) : m_base(base)
 	{
+	}
+
+	FileSystemWrapper::~FileSystemWrapper()
+	{
+	}
+
+	sl_bool FileSystemWrapper::getInformation(FileSystemInfo& info, const FileSystemInfoMask& mask)
+	{
+		return m_base->getInformation(info, mask);
+	}
+
+	Ref<FileContext> FileSystemWrapper::openFile(const String& path, const FileOpenParam& param)
+	{
+		Ref<FileContext> context = m_base->openFile(path, param);
+		if (context.isNotNull()) {
+			return createContext(context.get());
+		}
 		return sl_null;
 	}
 
-	void FileSystem::unmount(const String& mountPoint)
+	sl_size	FileSystemWrapper::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size)
 	{
+		Ref<FileContext> baseContext = getBaseContext(context);
+		if (baseContext.isNotNull()) {
+			return m_base->readFile(baseContext.get(), offset, buf, size);
+		} else {
+			SLIB_THROW(FileSystemError::InvalidContext, 0)
+		}
+	}
 
+	sl_size FileSystemWrapper::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size)
+	{
+		Ref<FileContext> baseContext = getBaseContext(context);
+		if (baseContext.isNotNull()) {
+			return m_base->writeFile(baseContext.get(), offset, buf, size);
+		} else {
+			SLIB_THROW(FileSystemError::InvalidContext, 0)
+		}
+	}
+
+	sl_bool FileSystemWrapper::flushFile(FileContext* context)
+	{
+		Ref<FileContext> baseContext = getBaseContext(context);
+		if (baseContext.isNotNull()) {
+			return m_base->flushFile(baseContext.get());
+		} else {
+			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
+		}
+	}
+
+	sl_bool	FileSystemWrapper::closeFile(FileContext* context)
+	{
+		Ref<FileContext> baseContext = getBaseContext(context);
+		if (baseContext.isNotNull()) {
+			return m_base->closeFile(baseContext.get());
+		} else {
+			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
+		}
+	}
+
+	sl_bool FileSystemWrapper::deleteFile(const String& filePath)
+	{
+		return m_base->deleteFile(filePath);
+	}
+
+	sl_bool FileSystemWrapper::moveFile(const String& oldFilePath, const String& newFilePath, sl_bool flagReplaceIfExists)
+	{
+		return m_base->moveFile(oldFilePath, newFilePath, flagReplaceIfExists);
+	}
+
+	sl_bool FileSystemWrapper::lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
+	{
+		Ref<FileContext> baseContext = getBaseContext(context);
+		if (baseContext.isNotNull()) {
+			return m_base->lockFile(baseContext.get(), offset, length);
+		} else {
+			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
+		}
+	}
+
+	sl_bool FileSystemWrapper::unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
+	{
+		Ref<FileContext> baseContext = getBaseContext(context);
+		if (baseContext.isNotNull()) {
+			return m_base->unlockFile(baseContext.get(), offset, length);
+		} else {
+			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
+		}
+	}
+
+	sl_bool FileSystemWrapper::getFileInfo(const String& filePath, FileInfo& info, const FileInfoMask& mask)
+	{
+		return m_base->getFileInfo(filePath, info, mask);
+	}
+
+	sl_bool FileSystemWrapper::setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask)
+	{
+		return m_base->setFileInfo(filePath, info, mask);
+	}
+
+	HashMap<String, FileInfo> FileSystemWrapper::getFiles(const String& pathDir)
+	{
+		return m_base->getFiles(pathDir);
+	}
+
+	Ref<FileContext> FileSystemWrapper::createContext(FileContext* baseContext)
+	{
+		return baseContext;
+	}
+
+	Ref<FileContext> FileSystemWrapper::getBaseContext(FileContext* context)
+	{
+		return context;
 	}
 
 }

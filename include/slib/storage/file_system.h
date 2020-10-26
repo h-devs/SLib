@@ -36,6 +36,20 @@
 namespace slib
 {
 
+	class FileSystemProvider;
+	class FileSystemHost;
+
+	class SLIB_EXPORT FileSystem
+	{
+	public:
+		static Ref<FileSystemHost> mount(const String& mountPoint, const Ref<FileSystemProvider>& provider);
+
+		static Ref<FileSystemHost> getHost(const String& mountPoint);
+
+		static void unmount(const String& mountPoint);
+
+	};
+
 	class FileSystemFlags
 	{
 	public:
@@ -103,7 +117,6 @@ namespace slib
 	class SLIB_EXPORT FileInfo
 	{
 	public:
-		String path;
 		FileAttributes attributes;
 		sl_uint64 size;
 		sl_uint64 allocSize;
@@ -177,9 +190,9 @@ namespace slib
 
 		virtual sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length);
 
-		virtual sl_bool	getFileInfo(FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) = 0;
+		virtual sl_bool	getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask) = 0;
 
-		virtual sl_bool setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask);
+		virtual sl_bool setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask);
 
 		virtual HashMap<String, FileInfo> getFiles(const String& pathDir) = 0;
 
@@ -212,16 +225,52 @@ namespace slib
 
 	};
 
-
-	class FileSystem
+	class FileSystemWrapper : public FileSystemProvider
 	{
 	public:
-		static Ref<FileSystemHost> mount(const String& mountPoint, const Ref<FileSystemProvider>& provider);
+		FileSystemWrapper(const Ref<FileSystemProvider>& base);
 
-		static void unmount(const String& mountPoint);
+		~FileSystemWrapper();
+
+	public:
+		sl_bool getInformation(FileSystemInfo& info, const FileSystemInfoMask& mask) override;
+
+		Ref<FileContext> openFile(const String& path, const FileOpenParam& param) override;
+
+		sl_size	readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size) override;
+
+		sl_size writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size) override;
+
+		sl_bool flushFile(FileContext* context) override;
+
+		sl_bool	closeFile(FileContext* context) override;
+
+		sl_bool deleteFile(const String& filePath) override;
+
+		sl_bool moveFile(const String& oldFilePath, const String& newFilePath, sl_bool flagReplaceIfExists) override;
+
+		sl_bool lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
+
+		sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
+
+		sl_bool	getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask) override;
+
+		sl_bool setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask) override;
+
+		HashMap<String, FileInfo> getFiles(const String& pathDir) override;
+
+	protected:
+		// If you want to use different FileContext in wrapper, you will need to override this function.
+		virtual Ref<FileContext> createContext(FileContext* baseContext);
+
+		// If you want to use different FileContext in wrapper, you will need to override this function.
+		virtual Ref<FileContext> getBaseContext(FileContext* context);
+
+	protected:
+		Ref<FileSystemProvider> m_base;
 
 	};
-
+	
 }
 
 #endif
