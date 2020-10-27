@@ -195,11 +195,9 @@ namespace slib
 
 		virtual sl_bool setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask);
 
-		virtual sl_bool getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask) = 0;
+		virtual sl_bool getFileInfo(const String& path, FileInfo& outInfo, const FileInfoMask& mask) = 0;
 
-		virtual sl_bool setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask);
-
-		virtual sl_bool setFileSize(FileContext* context, sl_uint64 size);
+		virtual sl_bool setFileInfo(const String& path, const FileInfo& info, const FileInfoMask& mask);
 
 		virtual HashMap<String, FileInfo> getFiles(const String& pathDir) = 0;
 
@@ -265,9 +263,9 @@ namespace slib
 
 		sl_bool	closeFile(FileContext* context) override;
 
-		sl_bool deleteFile(const String& filePath) override;
+		sl_bool deleteFile(const String& path) override;
 
-		sl_bool moveFile(const String& oldFilePath, const String& newFilePath, sl_bool flagReplaceIfExists) override;
+		sl_bool moveFile(const String& pathOld, const String& pathNew, sl_bool flagReplaceIfExists) override;
 
 		sl_bool lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
 
@@ -277,11 +275,9 @@ namespace slib
 
 		sl_bool setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask) override;
 
-		sl_bool getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask) override;
+		sl_bool getFileInfo(const String& path, FileInfo& outInfo, const FileInfoMask& mask) override;
 
-		sl_bool setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask) override;
-
-		sl_bool setFileSize(FileContext* context, sl_uint64 size) override;
+		sl_bool setFileInfo(const String& path, const FileInfo& info, const FileInfoMask& mask) override;
 
 		HashMap<String, FileInfo> getFiles(const String& pathDir) override;
 

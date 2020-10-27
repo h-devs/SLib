@@ -131,12 +131,7 @@ namespace slib
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_bool FileSystemProvider::setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask)
-	{
-		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
-	}
-
-	sl_bool FileSystemProvider::setFileSize(FileContext* context, sl_uint64 size)
+	sl_bool FileSystemProvider::setFileInfo(const String& path, const FileInfo& info, const FileInfoMask& mask)
 	{
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
@@ -268,14 +263,14 @@ namespace slib
 		}
 	}
 
-	sl_bool FileSystemWrapper::deleteFile(const String& filePath)
+	sl_bool FileSystemWrapper::deleteFile(const String& path)
 	{
-		return m_base->deleteFile(filePath);
+		return m_base->deleteFile(path);
 	}
 
-	sl_bool FileSystemWrapper::moveFile(const String& oldFilePath, const String& newFilePath, sl_bool flagReplaceIfExists)
+	sl_bool FileSystemWrapper::moveFile(const String& pathOld, const String& pathNew, sl_bool flagReplaceIfExists)
 	{
-		return m_base->moveFile(oldFilePath, newFilePath, flagReplaceIfExists);
+		return m_base->moveFile(pathOld, pathNew, flagReplaceIfExists);
 	}
 
 	sl_bool FileSystemWrapper::lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
@@ -318,25 +313,14 @@ namespace slib
 		}
 	}
 
-	sl_bool FileSystemWrapper::getFileInfo(const String& filePath, FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemWrapper::getFileInfo(const String& path, FileInfo& info, const FileInfoMask& mask)
 	{
-		return m_base->getFileInfo(filePath, info, mask);
+		return m_base->getFileInfo(path, info, mask);
 	}
 
-	sl_bool FileSystemWrapper::setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemWrapper::setFileInfo(const String& path, const FileInfo& info, const FileInfoMask& mask)
 	{
-		return m_base->setFileInfo(filePath, info, mask);
-	}
-
-	sl_bool FileSystemWrapper::setFileSize(FileContext* context, sl_uint64 size)
-	{
-		Ref<FileContext> baseContext = getBaseContext(context);
-		if (baseContext.isNotNull()) {
-			return m_base->setFileSize(baseContext.get(), size);
-		}
-		else {
-			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
-		}
+		return m_base->setFileInfo(path, info, mask);
 	}
 
 	HashMap<String, FileInfo> FileSystemWrapper::getFiles(const String& pathDir)
