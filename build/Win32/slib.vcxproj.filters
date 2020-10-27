@@ -70,6 +70,9 @@
     <Filter Include="src\dev">
       <UniqueIdentifier>{d9e0e024-e389-4c28-a77b-711d7e4e6df3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="inc">
+      <UniqueIdentifier>{ee59f2d4-03fa-45eb-9fd2-80029c13eb53}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\slib\core\async_config.h">
@@ -101,6 +104,60 @@
     </ClInclude>
     <ClInclude Include="..\..\src\slib\ui\view_win32.h">
       <Filter>src\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\core.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\crypto.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\db.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\dev.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\device.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\doc.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\geo.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\graphics.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\math.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\media.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\network.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\render.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\resource.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\service.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\slib.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\social.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\storage.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\ui.h">
+      <Filter>inc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -20,17 +20,15 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_STORAGE_HEADER
-#define CHECKHEADER_SLIB_STORAGE_HEADER
+#ifndef CHECKHEADER_SLIB_CORE_THROW
+#define CHECKHEADER_SLIB_CORE_THROW
 
-#include "storage/disk.h"
+#include "definition.h"
 
-#include "storage/file_system.h"
-#include "storage/file_system_logger.h"
-
-#include "storage/dokany.h"
-
-#include "storage/dummyfs.h"
-#include "storage/mirrorfs.h"
+#ifdef SLIB_USE_THROW
+#define SLIB_THROW(THROW, RETURN) throw THROW;
+#else
+#define SLIB_THROW(THROW, ...) return __VA_ARGS__;
+#endif
 
 #endif

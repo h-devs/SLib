@@ -28,10 +28,27 @@
 #include "../core/object.h"
 #include "../core/string.h"
 #include "../core/time.h"
+#include "../core/file.h"
 #include "../core/hash_map.h"
+
+#define SLIB_FILE_SYSTEM_CAN_THROW
 
 namespace slib
 {
+
+	class FileSystemProvider;
+	class FileSystemHost;
+
+	class SLIB_EXPORT FileSystem
+	{
+	public:
+		static Ref<FileSystemHost> mount(const String& mountPoint, const Ref<FileSystemProvider>& provider);
+
+		static Ref<FileSystemHost> getHost(const String& mountPoint);
+
+		static void unmount(const String& mountPoint);
+
+	};
 
 	class FileSystemFlags
 	{
@@ -41,16 +58,26 @@ namespace slib
 
 		enum {
 			IsCaseSensitive = 0x1,
-			SupportsUnicode = 0x00000004,
-			SupportsSecurity = 0x00000008,
 			SupportsFileCompression = 0x00000010,
 			SupportsEncryption = 0x00020000,
-			SupportsStreams = 0x00040000,
 			IsReadOnlyVolume = 0x00080000,
 		};
 	};
 
-	class SLIB_EXPORT FileSystemInformation
+	class FileSystemInfoMask
+	{
+	public:
+		int value;
+		SLIB_MEMBERS_OF_FLAGS(FileSystemInfoMask, value)
+
+		enum {
+			Basic = 0x1,
+			Size = 0x2,
+			All = 0xffff
+		};
+	};
+
+	class SLIB_EXPORT FileSystemInfo
 	{
 	public:
 		FileSystemFlags flags;
@@ -62,132 +89,75 @@ namespace slib
 		sl_uint16 sectorsPerAllocationUnit;
 		sl_uint32 maxPathLength;
 
+		sl_uint64 totalSize;
+		sl_uint64 freeSize;
+
 	public:
-		FileSystemInformation();
+		FileSystemInfo();
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileSystemInformation)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileSystemInfo)
 
 	};
 
-	struct FileAttrs {
-		sl_bool isReadOnly : 1;             // 0x00000001  
-		sl_bool isHidden : 1;               // 0x00000002  
-		sl_bool isSysten : 1;               // 0x00000004  
-		sl_bool reserved0 : 1;              // 0x00000008  
-		sl_bool isDirectory : 1;            // 0x00000010  
-		sl_bool isArchive : 1;              // 0x00000020  
-		sl_bool isDevice : 1;               // 0x00000040  
-		sl_bool isNormal : 1;               // 0x00000080  
-		sl_bool isTemporary : 1;            // 0x00000100  
-		sl_bool isSparseFile : 1;           // 0x00000200  
-		sl_bool isReparsePoint : 1;         // 0x00000400  
-		sl_bool isCompressed : 1;           // 0x00000800  
-		//sl_bool isOffline : 1;              // 0x00001000  
-		//sl_bool isNotContentIndexed : 1;    // 0x00002000  
-		//sl_bool isEncrypted : 1;            // 0x00004000  
-		//sl_bool isIntegrityStream : 1;      // 0x00008000  
-		//sl_bool isVirtual : 1;              // 0x00010000  
-		//sl_bool isNoScrubData : 1;          // 0x00020000  
-		//sl_bool isEA : 1;                   // 0x00040000  
-	};
-
-	class FileInfo
+	class FileInfoMask
 	{
 	public:
-		union {
-			sl_uint32 fileAttributes;
-			FileAttrs attr;
+		int value;
+		SLIB_MEMBERS_OF_FLAGS(FileInfoMask, value)
+
+		enum {
+			Attributes = 0x1,
+			Size = 0x2,
+			AllocSize = 0x4,
+			Time = 0x8,
+			All = 0xffff
 		};
+	};
+
+	class SLIB_EXPORT FileInfo
+	{
+	public:
+		FileAttributes attributes;
 		sl_uint64 size;
-		sl_uint64 allocationSize;
+		sl_uint64 allocSize;
 		Time createdAt;
 		Time modifiedAt;
 		Time lastAccessedAt;
 
 	public:
-		FileInfo() { Base::zeroMemory(this, sizeof(*this)); }
-		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileInfo)
+		FileInfo();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileInfo)
+
 	};
 
-	class StreamInfo
+	// Equals to WinNT error codes
+	enum class FileSystemError
 	{
-	public:
-		sl_uint64 size;
-
-	public:
-		StreamInfo() { Base::zeroMemory(this, sizeof(*this)); }
-		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(StreamInfo)
+		Success = 0, // ERROR_SUCCESS
+		GeneralError = 1, // ERROR_INVALID_FUNCTION
+		NotFound = 2, // ERROR_FILE_NOT_FOUND
+		AccessDenied = 5, // ERROR_ACCESS_DENIED
+		InvalidContext = 6, // ERROR_INVALID_HANDLE
+		InvalidData = 13, // ERROR_INVALID_DATA
+		FileExist = 80, // ERROR_FILE_EXISTS
+		InvalidPassword = 86, // ERROR_INVALID_PASSWORD
+		BufferOverflow = 122, // ERROR_INSUFFICIENT_BUFFER
+		DirNotEmpty = 145, // ERROR_DIR_NOT_EMPTY
+		AlreadyExist = 183,	// ERROR_ALREADY_EXISTS
+		InitFailure = 575, // ERROR_APP_INIT_FAILURE
+		NotImplemented = -1,
 	};
 
-	class FileInfoFlags {
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(FileInfoFlags, value)
-
-		enum {
-			AttrInfo = 0x1,
-			TimeInfo = 0x2,
-			AttrAndTimeInfo = AttrInfo | TimeInfo,
-			SizeInfo = 0x4,
-			AllocSizeInfo = 0x8,
-		};
-	};
-
-	class FileCreationParams
+	class FileContext : public Object
 	{
-	public:
-		sl_uint32 accessMode;
-		union {
-			sl_uint32 shareMode;
-			struct {
-				sl_bool r : 1;	// SHARE_READ
-				sl_bool w : 1;	// SHARE_WRITE
-				sl_bool d : 1;	// SHARE_DELETE
-			} share;
-		};
-		union {
-			sl_uint32 flagsAndAttributes;
-			FileAttrs attr;
-		};
-		/* fsCreate/fsOpen must erase this flag, and set context.status to FileExist if file already exists */
-		sl_bool createAlways : 1;	// fsCreate: CREATE_ALWAYS, fsOpen: openTruncate ? CREATE_ALWAYS : OPEN_ALWAYS
-		/* fsOpen must erase this flag if file truncated */
-		sl_bool openTruncate : 1;	// fsOpen: createAlways ? CREATE_ALWAYS : TRUNCATE_EXISTING
-		sl_ptr securityDescriptor;
+		SLIB_DECLARE_OBJECT
 
 	public:
-		FileCreationParams() { Base::zeroMemory(this, sizeof(*this)); }
-		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileCreationParams)
-	};
+		FileContext();
 
-	enum class FileSystemError : sl_uint32
-	{
-		Success = 0U,			/*ERROR_SUCCESS*/
-		GeneralError = 1U,		/*ERROR_INVALID_FUNCTION*/
-		NotFound = 2U,			/*ERROR_FILE_NOT_FOUND*/
-		AccessDenied = 5U,		/*ERROR_ACCESS_DENIED*/
-		InvalidContext = 6U,	/*ERROR_INVALID_HANDLE*/
-		InvalidData = 13U,		/*ERROR_INVALID_DATA*/
-		FileExist = 80U,		/*ERROR_FILE_EXISTS*/
-		InvalidPassword = 86U,	/*ERROR_INVALID_PASSWORD*/
-		BufferOverflow = 122U,	/*ERROR_INSUFFICIENT_BUFFER*/
-		DirNotEmpty = 145U,		/*ERROR_DIR_NOT_EMPTY*/
-		AlreadyExist = 183U,	/*ERROR_ALREADY_EXISTS*/
-		InitFailure = 575U,		/*ERROR_APP_INIT_FAILURE*/
-		NotImplemented = 0xFFFFFFFFU,
-	};
+		~FileContext();
 
-	class FileContext : public Referable
-	{
-	public:
-		String path;
-		sl_bool isDirectory : 1;
-		sl_uint64 handle;
-		FileSystemError status;
-
-	public:
-		FileContext(String path, sl_bool isDir = sl_false)
-			: path(path), isDirectory(isDir), handle(0), status(FileSystemError::Success) {}
 	};
 
 	class FileSystemProvider : public Object
@@ -197,150 +167,111 @@ namespace slib
 	public:
 		FileSystemProvider();
 
-		virtual ~FileSystemProvider()
-		{
-		}
+		~FileSystemProvider();
 
 	public:
-		/* FileSystem Interfaces */
+		virtual sl_bool getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask) = 0;
+		
+		virtual Ref<FileContext> openFile(const String& path, const FileOpenParam& param) = 0;
 
-		virtual const FileSystemInformation&
-			fsGetVolumeInfo()&
-		{
-			return m_volumeInfo;
-		}
+		virtual sl_size readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size) = 0;
 
-		virtual sl_bool
-			fsGetVolumeSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize)
-		{
-			throw FileSystemError::NotImplemented;
-		}
+		// offset: negative value means end of file
+		virtual sl_size writeFile(FileContext* context, sl_int64 offset, const void* data, sl_size size);
 
-		virtual void
-			fsSetVolumeName(String volumeName)
-		{
-			throw FileSystemError::NotImplemented;
-		}
+		virtual sl_bool flushFile(FileContext* context);
 
-		virtual void
-			fsCreate(FileContext* context, FileCreationParams& params = FileCreationParams())
-		{
-			throw FileSystemError::NotImplemented;
-		}
+		virtual sl_bool closeFile(FileContext* context) = 0;
 
-		virtual void
-			fsOpen(FileContext* context, FileCreationParams& params = FileCreationParams())
-		{
-			throw FileSystemError::NotImplemented;
-		}
+		virtual sl_bool deleteFile(const String& path);
 
-		virtual sl_size
-			fsRead(FileContext* context, const Memory& buffer, sl_uint64 offset)
-		{
-			throw FileSystemError::NotImplemented;
-		}
+		virtual sl_bool moveFile(const String& pathOld, const String& pathNew, sl_bool flagReplaceIfExists);
 
-		virtual sl_size
-			fsWrite(FileContext* context, const Memory& buffer, sl_uint64 offset, sl_bool writeToEof)
-		{
-			throw FileSystemError::NotImplemented;
-		}
+		virtual sl_bool lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length);
 
-		virtual void 
-			fsFlush(FileContext* context)
-		{
-			throw FileSystemError::NotImplemented;
-		}
+		virtual sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length);
 
-		virtual void
-			fsClose(FileContext* context)
-		{
-			throw FileSystemError::NotImplemented;
-		}
+		virtual sl_bool	getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask) = 0;
 
-		virtual void
-			fsDelete(FileContext* context, sl_bool checkOnly)
-		{
-			throw FileSystemError::NotImplemented;
-		}
+		virtual sl_bool setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask);
 
-		virtual void
-			fsRename(FileContext* context, String newFileName, sl_bool replaceIfExists)
-		{
-			throw FileSystemError::NotImplemented;
-		}
+		virtual HashMap<String, FileInfo> getFiles(const String& pathDir) = 0;
 
-		virtual void 
-			fsLock(FileContext* context, sl_uint64 offset, sl_uint64 length)
-		{
-			throw FileSystemError::NotImplemented;
-		}
-
-		virtual void
-			fsUnlock(FileContext* context, sl_uint64 offset, sl_uint64 length)
-		{
-			throw FileSystemError::NotImplemented;
-		}
-
-		virtual FileInfo
-			fsGetFileInfo(FileContext* context)
-		{
-			throw FileSystemError::NotImplemented;
-		}
-
-		virtual void
-			fsSetFileInfo(FileContext* context, FileInfo fileInfo, FileInfoFlags flags)
-		{
-			throw FileSystemError::NotImplemented;
-		}
-
-		virtual sl_size
-			fsGetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor)
-		{
-			throw FileSystemError::NotImplemented;
-		}
-
-		virtual void
-			fsSetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor)
-		{
-			throw FileSystemError::NotImplemented;
-		}
-
-		virtual HashMap<String, FileInfo>
-			fsFindFiles(FileContext* context, String pattern)
-		{
-			throw FileSystemError::NotImplemented;
-		}
-
-		virtual HashMap<String, StreamInfo>
-			fsFindStreams(FileContext* context)
-		{
-			throw FileSystemError::NotImplemented;
-		}
-
-	public:
-		/* Helpers */
-		virtual sl_bool exists(String fileName) noexcept;
-
-		virtual Memory readFile(String fileName, sl_int64 offset = 0, sl_uint32 length = 0) noexcept;
-
-		virtual sl_bool writeFile(String fileName, const Memory& buffer, FileCreationParams& params = FileCreationParams()) noexcept;
-
-		virtual sl_bool deleteFile(String fileName) noexcept;
-
-	public:
-		/* Handle counter functions for Host */
-		sl_size increaseHandleCount(String fileName);
-
-		sl_size decreaseHandleCount(String fileName);
-
-		sl_size getOpenHandlesCount();
-
-	protected:
-		FileSystemInformation m_volumeInfo;
-		HashMap<String, sl_size> m_openHandles;
 	};
 
+	class FileSystemHost : public Object
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		FileSystemHost(const String& mountPoint, const Ref<FileSystemProvider>& provider);
+
+		~FileSystemHost();
+
+	public:
+		virtual sl_bool isRunning() = 0;
+		
+		virtual void stop() = 0;
+
+		virtual sl_uint64 getOpenHandlesCount() = 0;
+
+	public:
+		String getMountPoint();
+
+		Ref<FileSystemProvider> getProvider();
+
+	protected:
+		String m_mountPoint;
+		Ref<FileSystemProvider> m_provider;
+
+	};
+
+	class FileSystemWrapper : public FileSystemProvider
+	{
+	public:
+		FileSystemWrapper(const Ref<FileSystemProvider>& base);
+
+		~FileSystemWrapper();
+
+	public:
+		sl_bool getInformation(FileSystemInfo& info, const FileSystemInfoMask& mask) override;
+
+		Ref<FileContext> openFile(const String& path, const FileOpenParam& param) override;
+
+		sl_size	readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size) override;
+
+		sl_size writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size) override;
+
+		sl_bool flushFile(FileContext* context) override;
+
+		sl_bool	closeFile(FileContext* context) override;
+
+		sl_bool deleteFile(const String& filePath) override;
+
+		sl_bool moveFile(const String& oldFilePath, const String& newFilePath, sl_bool flagReplaceIfExists) override;
+
+		sl_bool lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
+
+		sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
+
+		sl_bool	getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask) override;
+
+		sl_bool setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask) override;
+
+		HashMap<String, FileInfo> getFiles(const String& pathDir) override;
+
+	protected:
+		// If you want to use different FileContext in wrapper, you will need to override this function.
+		virtual Ref<FileContext> createContext(FileContext* baseContext);
+
+		// If you want to use different FileContext in wrapper, you will need to override this function.
+		virtual Ref<FileContext> getBaseContext(FileContext* context);
+
+	protected:
+		Ref<FileSystemProvider> m_base;
+
+	};
+	
 }
 
 #endif

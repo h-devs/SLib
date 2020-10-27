@@ -28,6 +28,13 @@
 namespace slib
 {
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileOpenParam)
+
+	FileOpenParam::FileOpenParam()
+	{
+	}
+
+
 	SLIB_DEFINE_OBJECT(File, IO)
 
 	File::File(sl_file file): m_file(file)
@@ -39,9 +46,19 @@ namespace slib
 		close();
 	}
 
-	Ref<File> File::open(const StringParam& filePath, const FileMode& mode, const FilePermissions& permissions)
+	Ref<File> File::open(const StringParam& filePath, const FileOpenParam& param)
 	{
-		sl_file file = _open(filePath, mode, permissions);
+		return open(filePath, param.mode, param.attributes);
+	}
+
+
+	Ref<File> File::open(const StringParam& filePath, const FileMode& mode, const FileAttributes& _attrs)
+	{
+		if (_attrs & FileAttributes::NotExist) {
+			return sl_null;
+		}
+		FileAttributes attrs = _fixAttributes(_attrs);
+		sl_file file = _open(filePath, mode, attrs);
 		if (file != SLIB_FILE_INVALID_HANDLE) {
 			Ref<File> ret = new File(file);
 			if (mode & FileMode::SeekToEnd) {
@@ -54,12 +71,12 @@ namespace slib
 
 	Ref<File> File::open(const StringParam& filePath, const FileMode& mode)
 	{
-		return open(filePath, mode, FilePermissions::All);
+		return open(filePath, mode, 0);
 	}
 
 	Ref<File> File::openForRead(const StringParam& filePath, sl_bool flagShareRead)
 	{
-		return open(filePath, FileMode::Read, flagShareRead ? (FilePermissions::All | FilePermissions::ShareRead) : FilePermissions::All);
+		return open(filePath, flagShareRead ? (FileMode::Read | FileMode::ShareRead) : FileMode::Read);
 	}
 
 	Ref<File> File::openForWrite(const StringParam& filePath)
@@ -84,22 +101,21 @@ namespace slib
 
 	Ref<File> File::openForRandomRead(const StringParam& filePath, sl_bool flagShareRead)
 	{
-		return open(filePath, FileMode::RandomRead, flagShareRead ? (FilePermissions::All | FilePermissions::ShareRead) : FilePermissions::All);
+		return open(filePath, flagShareRead ? (FileMode::RandomRead | FileMode::ShareRead) : FileMode::RandomRead);
 	}
 
 	Ref<File> File::openDevice(const StringParam& path, sl_bool flagRead, sl_bool flagWrite)
 	{
 		FileMode mode = FileMode::NotCreate | FileMode::NotTruncate | FileMode::HintRandomAccess;
-		FilePermissions perms = FilePermissions::None;
 		if (flagRead) {
 			mode |= FileMode::Read;
-			perms |= FilePermissions::ShareRead;
+			mode |= FileMode::ShareRead;
 		}
 		if (flagWrite) {
 			mode |= FileMode::Write;
-			perms |= FilePermissions::ShareWrite;
+			mode |= FileMode::ShareWrite;
 		}
-		return open(path, mode, perms);
+		return open(path, mode);
 	}
 
 	void File::close()
@@ -149,7 +165,55 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
+	FileAttributes File::getAttributes(const StringParam& filePath)
+	{
+		if (filePath.isEmpty()) {
+			return FileAttributes::NotExist;
+		}
+		FileAttributes attrs = _getAttributes(filePath);
+		if (!(attrs & FileAttributes::AllAccess)) {
+			attrs |= FileAttributes::NoAccess;
+		} else {
+			if (!(attrs & FileAttributes::WriteByAnyone)) {
+				attrs |= FileAttributes::ReadOnly;
+			}
+		}
+		return attrs;
+	}
+
+	FileAttributes File::_fixAttributes(const FileAttributes& _attrs)
+	{
+		FileAttributes attrs = _attrs;
+		if (attrs & FileAttributes::NoAccess) {
+			attrs &= ~(FileAttributes::AllAccess);
+		} else {
+			if (!(attrs & FileAttributes::AllAccess)) {
+				attrs |= FileAttributes::AllAccess;
+			}
+		}
+		if (attrs & FileAttributes::ReadOnly) {
+			attrs &= ~(FileAttributes::WriteByAnyone);
+		} else {
+			if (!(attrs & FileAttributes::ReadByAnyone)) {
+				attrs |= FileAttributes::ReadByAnyone;
+			}
+		}
+		if (!(attrs & 0x7ffff)) {
+			// For Win32
+			attrs |= FileAttributes::Normal;
+		}
+		return attrs;
+	}
+
+	sl_bool File::setAttributes(const StringParam& filePath, const FileAttributes& attrs)
+	{
+		if (attrs & FileAttributes::NotExist) {
+			return sl_false;
+		}
+		return _setAttributes(filePath, _fixAttributes(attrs));
+	}
+
 	sl_bool File::exists(const StringParam& filePath)
 	{
 		return (getAttributes(filePath) & FileAttributes::NotExist) == 0;

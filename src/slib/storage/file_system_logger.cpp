@@ -1,4 +1,4 @@
-#include "slib/storage/file_system_logger.h"
+/*#include "slib/storage/file_system_logger.h"
 
 #include "slib/core/system.h"
 
@@ -22,7 +22,7 @@ namespace slib
 
 		LOG("LogFlags: 0x%08X", m_flags);
 
-		LOG("FileSystemInformation:");
+		LOG("FileSystemInfo:");
 		LOG("  volumeName: %s", m_volumeInfo.volumeName);
 		LOG("  fileSystemName: %s", m_volumeInfo.fileSystemName);
 		LOG("  creationTime: %s", m_flags & FsLogDateAsString
@@ -39,17 +39,28 @@ namespace slib
 	{
 	}
 
-	const FileSystemInformation& FsLogger::fsGetVolumeInfo()& 
+	sl_bool FsLogger::getInformation(FileSystemInfo& info, const FileSystemInfoMask& mask)
 	{
 		if (!(m_flags & FsLogGetVolumeInfo))
-			return m_base->fsGetVolumeInfo();
+			return m_base->getInformation(flags);
+		if (flags & VolumeInfoFlags::BasicInfo &&
+			!(m_flags & FsLogGetVolumeBasicInfo))
+			return m_base->getInformation(flags);
+		if (flags & VolumeInfoFlags::SizeInfo &&
+			!(m_flags & FsLogGetVolumeSizeInfo))
+			return m_base->getInformation(flags);
 
-		String desc = "GetVolumeInfo()";
+		String desc = "";
+		if (flags & VolumeInfoFlags::BasicInfo)
+			desc = ":BasicInfo";
+		if (flags & VolumeInfoFlags::SizeInfo)
+			desc = ":SizeInfo";
+		desc = String::format("GetVolumeInfo(%s)", flags, desc);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			const FileSystemInformation &ret = m_base->fsGetVolumeInfo();
+			const FileSystemInfo &ret = m_base->getInformation(flags);
 			if (m_flags & FsLogRet) {
 				LOG(desc);
 			}
@@ -62,100 +73,20 @@ namespace slib
 		}
 	}
 
-	sl_bool FsLogger::fsGetVolumeSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize)
-	{
-		if (!(m_flags & FsLogGetVolumeSize))
-			return m_base->fsGetVolumeSize(pOutTotalSize, pOutFreeSize);
-
-		String desc = "GetVolumeSize()";
-		if (!(m_flags & FsLogRetAndErrors))
-			LOG(desc);
-
-		try {
-			sl_bool ret = m_base->fsGetVolumeSize(pOutTotalSize, pOutFreeSize);
-			if (m_flags & FsLogRet) {
-				LOG("%s\n  Ret: %d", desc, ret);
-			}
-			return ret;
-		}
-		catch (FileSystemError error) {
-			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
-			throw error;
-		}
-	}
-
-	void FsLogger::fsSetVolumeName(String volumeName)
-	{
-		if (!(m_flags & FsLogSetVolumeName))
-			return m_base->fsSetVolumeName(volumeName);
-
-		String desc = String::format("SetVolumeName(%s)", volumeName);
-		if (!(m_flags & FsLogRetAndErrors))
-			LOG(desc);
-
-		try {
-			m_base->fsSetVolumeName(volumeName);
-			if (m_flags & FsLogRet)
-				LOG(desc);
-		}
-		catch (FileSystemError error) {
-			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
-			throw error;
-		}
-	}
-
-	void FsLogger::fsCreate(FileContext* context, FileCreationParams& params)
-	{
-		if (!(m_flags & FsLogCreate) || !m_regex.match(context->path))
-			return m_base->fsCreate(context, params);
-
-		String desc = String::format("Create(%s,%s,%s%s,0x%X,0x%X,0x%X)", context->path,
-			params.attr.isDirectory ? "DIR" : "FILE",
-			(params.createAlways ? "ALWAYS" : "NEW"), (params.openTruncate ? "|TRUNCATE" : ""),
-			params.accessMode, params.shareMode, params.flagsAndAttributes);
-		if (!(m_flags & FsLogRetAndErrors))
-			LOG(desc);
-
-		try {
-			m_base->fsCreate(context, params);
-			if (m_flags & FsLogRet) {
-				LOG("%s\n"
-					"  Handle: %d\n"
-					"  Status: %d\n"
-					"  DispositionFlags: %s%s", desc, context->handle, context->status,
-					(params.createAlways ? "ALWAYS" : "NEW"), (params.openTruncate ? "|TRUNCATE" : ""));
-			}
-		}
-		catch (FileSystemError error) {
-			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
-			throw error;
-		}
-	}
-
-	void FsLogger::fsOpen(FileContext* context, FileCreationParams& params)
+	Ref<FileContext> FsLogger::openFile(const String& path, const FileOpenParam& param)
 	{
 		if (!(m_flags & FsLogOpen) || !m_regex.match(context->path))
-			return m_base->fsOpen(context, params);
+			return m_base->openFile(context, params);
 
 		String desc = String::format("Open(%s,%s,%s%s,0x%X,0x%X,0x%X)", context->path,
-			params.attr.isDirectory ? "DIR" : "FILE",
+			params.attributes.isDirectory ? "DIR" : "FILE",
 			(params.createAlways ? "ALWAYS" : "EXISTING"), (params.openTruncate ? "|TRUNCATE" : ""),
 			params.accessMode, params.shareMode, params.flagsAndAttributes);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			m_base->fsOpen(context, params);
-			if (m_flags & FsLogRet) {
-				LOG("%s\n"
-					"  Handle: %d\n"
-					"  Status: %d\n"
-					"  DispositionFlags: %s%s", desc, context->handle, context->status,
-					(params.createAlways ? "ALWAYS" : "EXISTING"), (params.openTruncate ? "|TRUNCATE" : ""));
-			}
+			m_base->openFile(context, params);
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
@@ -164,17 +95,17 @@ namespace slib
 		}
 	}
 
-	sl_size FsLogger::fsRead(FileContext* context, const Memory& buffer, sl_uint64 offset) 
+	sl_size FsLogger::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size)
 	{
 		if (!(m_flags & FsLogRead) || !m_regex.match(context->path))
-			return m_base->fsRead(context, buffer, offset);
+			return m_base->readFile(context, buffer, offset);
 
 		String desc = String::format("Read(%s,0x%X,0x%X)", contextDesc, offset, buffer.getSize());
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			sl_size ret = m_base->fsRead(context, buffer, offset);
+			sl_size ret = m_base->readFile(context, buffer, offset);
 			if (m_flags & FsLogRet)
 				LOG("%s\n  Ret: %d", desc, ret);
 			return ret;
@@ -186,17 +117,17 @@ namespace slib
 		}
 	}
 
-	sl_size FsLogger::fsWrite(FileContext* context, const Memory& buffer, sl_uint64 offset, sl_bool writeToEof)
+	sl_size FsLogger::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size)
 	{
 		if (!(m_flags & FsLogWrite) || !m_regex.match(context->path))
-			return m_base->fsWrite(context, buffer, offset, writeToEof);
+			return m_base->writeFile(context, buffer, offset, writeToEof);
 
 		String desc = String::format("Write(%s,0x%X,0x%X,%d)", contextDesc, offset, buffer.getSize(), writeToEof);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			sl_size ret = m_base->fsWrite(context, buffer, offset, writeToEof);
+			sl_size ret = m_base->writeFile(context, buffer, offset, writeToEof);
 			if (m_flags & FsLogRet)
 				LOG("%s\n  Ret: %d", desc, ret);
 			return ret;
@@ -208,17 +139,17 @@ namespace slib
 		}
 	}
 
-	void FsLogger::fsFlush(FileContext* context)
+	sl_bool FsLogger::flush(FileContext* context)
 	{
 		if (!(m_flags & FsLogFlush) || !m_regex.match(context->path))
-			return m_base->fsFlush(context);
+			return m_base->flush(context);
 
 		String desc = String::format("Flush(%s)", contextDesc);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			m_base->fsFlush(context);
+			m_base->flush(context);
 			if (m_flags & FsLogRet)
 				LOG(desc);
 		}
@@ -229,10 +160,10 @@ namespace slib
 		}
 	}
 
-	void FsLogger::fsClose(FileContext* context)
+	sl_bool FsLogger::closeFile(FileContext* context)
 	{
 		if (!(m_flags & FsLogClose) || !m_regex.match(context->path)) {
-			m_base->fsClose(context);
+			m_base->closeFile(context);
 			if (m_flags & FsLogHandleCountOnClose)
 				LOG("Current open handles count: %d", m_openHandles[context->path]);
 			return;
@@ -243,7 +174,7 @@ namespace slib
 			LOG(desc);
 
 		try {
-			m_base->fsClose(context);
+			m_base->close(context);
 			if (m_flags & FsLogRet)
 				LOG(desc);
 			if (m_flags & FsLogHandleCountOnClose)
@@ -256,15 +187,15 @@ namespace slib
 		}
 	}
 
-	void FsLogger::fsDelete(FileContext* context, sl_bool checkOnly)
+	sl_bool FsLogger::deleteFile(const String& filePath)
 	{
 		if (checkOnly) {
 			if (!(m_flags & FsLogCanDelete) || !m_regex.match(context->path))
-				return m_base->fsDelete(context, checkOnly);
+				return m_base->deleteFile(context, checkOnly);
 		}
 		else {
 			if (!(m_flags & FsLogDelete) || !m_regex.match(context->path))
-				return m_base->fsDelete(context, checkOnly);
+				return m_base->deleteFile(context, checkOnly);
 		}
 
 		String desc = String::format("%sDelete(%s)", checkOnly ? "Can" : "", contextDesc);
@@ -272,7 +203,7 @@ namespace slib
 			LOG(desc);
 
 		try {
-			m_base->fsDelete(context, checkOnly);
+			m_base->delete(context, checkOnly);
 			if (m_flags & FsLogRet)
 				LOG(desc);
 		}
@@ -283,10 +214,10 @@ namespace slib
 		}
 	}
 
-	void FsLogger::fsRename(FileContext* context, String newFileName, sl_bool replaceIfExists)
+	sl_bool FsLogger::moveFile(const String& oldFilePath, const String& newFilePath, sl_bool flagReplaceIfExists)
 	{
 		if (!(m_flags & FsLogRename) || !m_regex.match(context->path))
-			return m_base->fsRename(context, newFileName, replaceIfExists);
+			return m_base->moveFile(context, newFileName, replaceIfExists);
 
 		String desc = String::format("Rename(%s,%s,%d)", contextDesc, newFileName, replaceIfExists);
 		if (!(m_flags & FsLogRetAndErrors))
@@ -304,10 +235,10 @@ namespace slib
 		}
 	}
 
-	void FsLogger::fsLock(FileContext* context, sl_uint64 offset, sl_uint64 length)
+	sl_bool FsLogger::lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
 	{
 		if (!(m_flags & FsLogLock) || !m_regex.match(context->path))
-			return m_base->fsLock(context, offset, length);
+			return m_base->lockFile(context, offset, length);
 
 		String desc = String::format("Lock(%s,0x%X,0x%X)", contextDesc, offset, length);
 		if (!(m_flags & FsLogRetAndErrors))
@@ -325,10 +256,10 @@ namespace slib
 		}
 	}
 
-	void FsLogger::fsUnlock(FileContext* context, sl_uint64 offset, sl_uint64 length)
+	sl_bool FsLogger::unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
 	{
 		if (!(m_flags & FsLogUnlock) || !m_regex.match(context->path))
-			return m_base->fsUnlock(context, offset, length);
+			return m_base->unlockFile(context, offset, length);
 
 		String desc = String::format("Unlock(%s,0x%X,0x%X)", contextDesc, offset, length);
 		if (!(m_flags & FsLogRetAndErrors))
@@ -346,17 +277,17 @@ namespace slib
 		}
 	}
 
-	FileInfo FsLogger::fsGetFileInfo(FileContext* context)
+	sl_bool FsLogger::getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask)
 	{
 		if (!(m_flags & FsLogGetInfo) || !m_regex.match(context->path))
-			return m_base->fsGetFileInfo(context);
+			return m_base->getFileInfo(context);
 
 		String desc = String::format("GetFileInfo(%s)", contextDesc);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			FileInfo ret = m_base->fsGetFileInfo(context);
+			FileInfo ret = m_base->getFileInfo(context);
 			if (m_flags & FsLogRet)
 				LOG("%s\n  Ret: (0x%X,%s,%d,%d%s)", desc,
 					ret.fileAttributes, ret.attr.isDirectory ? "DIR" : "FILE",
@@ -374,10 +305,10 @@ namespace slib
 		}
 	}
 
-	void FsLogger::fsSetFileInfo(FileContext* context, FileInfo fileInfo, FileInfoFlags flags)
+	sl_bool FsLogger::setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask)
 	{
 		if (!(m_flags & FsLogSetInfo) || !m_regex.match(context->path))
-			return m_base->fsSetFileInfo(context, fileInfo, flags);
+			return m_base->setFileInfo(context, fileInfo, flags);
 
 		String desc = String::format("SetFileInfo(%s,0x%X)", contextDesc, flags);
 		if (m_flags & FsLogSetInfoDetail) {
@@ -401,7 +332,7 @@ namespace slib
 			LOG(desc);
 
 		try {
-			m_base->fsSetFileInfo(context, fileInfo, flags);
+			m_base->setFileInfo(context, fileInfo, flags);
 			if (m_flags & FsLogRet)
 				LOG(desc);
 		}
@@ -412,53 +343,10 @@ namespace slib
 		}
 	}
 
-	sl_size FsLogger::fsGetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor)
-	{
-		if (!(m_flags & FsLogGetSec) || !m_regex.match(context->path))
-			return m_base->fsGetSecurity(context, securityInformation, securityDescriptor);
-
-		String desc = String::format("GetSecurity(%s,0x%X,%d)", contextDesc, securityInformation, securityDescriptor.getSize());
-		if (!(m_flags & FsLogRetAndErrors))
-			LOG(desc);
-
-		try {
-			sl_size ret = m_base->fsGetSecurity(context, securityInformation, securityDescriptor);
-			if (m_flags & FsLogRet)
-				LOG("%s\n  Ret: %d\n  Status: %d", desc, ret, context->status);
-			return ret;
-		}
-		catch (FileSystemError error) {
-			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
-			throw error;
-		}
-	}
-
-	void FsLogger::fsSetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor)
-	{
-		if (!(m_flags & FsLogSetSec) || !m_regex.match(context->path))
-			return m_base->fsSetSecurity(context, securityInformation, securityDescriptor);
-
-		String desc = String::format("SetSecurity(%s,0x%X,%d)", contextDesc, securityInformation, securityDescriptor.getSize());
-		if (!(m_flags & FsLogRetAndErrors))
-			LOG(desc);
-
-		try {
-			m_base->fsSetSecurity(context, securityInformation, securityDescriptor);
-			if (m_flags & FsLogRet)
-				LOG(desc);
-		}
-		catch (FileSystemError error) {
-			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
-			throw error;
-		}
-	}
-
-	HashMap<String, FileInfo> FsLogger::fsFindFiles(FileContext* context, String pattern)
+	HashMap<String, FileInfo> FsLogger::getFiles(FileContext* context, String pattern)
 	{
 		if (!(m_flags & FsLogList) || !m_regex.match(context->path))
-			return m_base->fsFindFiles(context, pattern);
+			return m_base->getFiles(context, pattern);
 
 		String desc = String::format("FindFiles(%s,%s)", contextDesc, pattern);
 		if (!(m_flags & FsLogRetAndErrors))
@@ -488,31 +376,5 @@ namespace slib
 		}
 	}
 
-	HashMap<String, StreamInfo> FsLogger::fsFindStreams(FileContext* context)
-	{
-		if (!(m_flags & FsLogListStream) || !m_regex.match(context->path))
-			return m_base->fsFindStreams(context);
-
-		String desc = String::format("FindStreams(%s)", contextDesc);
-		if (!(m_flags & FsLogRetAndErrors))
-			LOG(desc);
-
-		try {
-			HashMap<String, StreamInfo> ret = m_base->fsFindStreams(context);
-			if (m_flags & FsLogRet) {
-				LOG(desc);
-				for (auto& stream : ret) {
-					auto streamInfo = stream.value;
-					LOG("  %s: %d", stream.key, streamInfo.size);
-				}
-			}
-			return ret;
-		}
-		catch (FileSystemError error) {
-			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
-			throw error;
-		}
-	}
-
 }
+*/

@@ -47,7 +47,7 @@
 namespace slib
 {
 
-	sl_file File::_open(const StringParam& _filePath, const FileMode& mode, const FilePermissions& permissions)
+	sl_file File::_open(const StringParam& _filePath, const FileMode& mode, const FileAttributes& attrs)
 	{
 		StringCstr filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -73,31 +73,31 @@ namespace slib
 		
 		int perm = 0;
 		if (flags & O_CREAT) {
-			if (permissions & FilePermissions::ReadByOthers) {
+			if (attrs & FileAttributes::ReadByOthers) {
 				perm |= S_IROTH;
 			}
-			if (permissions & FilePermissions::WriteByOthers) {
+			if (attrs & FileAttributes::WriteByOthers) {
 				perm |= S_IWOTH;
 			}
-			if (permissions & FilePermissions::ExecuteByOthers) {
+			if (attrs & FileAttributes::ExecuteByOthers) {
 				perm |= S_IXOTH;
 			}
-			if (permissions & FilePermissions::ReadByGroup) {
+			if (attrs & FileAttributes::ReadByGroup) {
 				perm |= S_IRGRP;
 			}
-			if (permissions & FilePermissions::WriteByGroup) {
+			if (attrs & FileAttributes::WriteByGroup) {
 				perm |= S_IWGRP;
 			}
-			if (permissions & FilePermissions::ExecuteByGroup) {
+			if (attrs & FileAttributes::ExecuteByGroup) {
 				perm |= S_IXGRP;
 			}
-			if (permissions & FilePermissions::ReadByUser) {
+			if (attrs & FileAttributes::ReadByUser) {
 				perm |= S_IRUSR;
 			}
-			if (permissions & FilePermissions::WriteByUser) {
+			if (attrs & FileAttributes::WriteByUser) {
 				perm |= S_IWUSR;
 			}
-			if (permissions & FilePermissions::ExecuteByUser) {
+			if (attrs & FileAttributes::ExecuteByUser) {
 				perm |= S_IXUSR;
 			}
 		}
@@ -498,7 +498,7 @@ namespace slib
 		return sl_false;
 	}
 
-	FileAttributes File::getAttributes(const StringParam& _filePath)
+	FileAttributes File::_getAttributes(const StringParam& _filePath)
 	{
 		StringCstr filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -519,7 +519,7 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setAttributes(const StringParam& _filePath, const FileAttributes& attrs)
+	sl_bool File::_setAttributes(const StringParam& _filePath, const FileAttributes& attrs)
 	{
 		// not supported
 		return sl_false;
