@@ -199,6 +199,8 @@ namespace slib
 
 		virtual sl_bool setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask);
 
+		virtual sl_bool setFileSize(FileContext* context, sl_uint64 size);
+
 		virtual HashMap<String, FileInfo> getFiles(const String& pathDir) = 0;
 
 	};
@@ -278,6 +280,8 @@ namespace slib
 		sl_bool getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask) override;
 
 		sl_bool setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask) override;
+
+		sl_bool setFileSize(FileContext* context, sl_uint64 size) override;
 
 		HashMap<String, FileInfo> getFiles(const String& pathDir) override;
 

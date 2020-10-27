@@ -136,6 +136,11 @@ namespace slib
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
+	sl_bool FileSystemProvider::setFileSize(FileContext* context, sl_uint64 size)
+	{
+		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+	}
+
 
 	SLIB_DEFINE_OBJECT(FileSystemHost, Object)
 
@@ -321,6 +326,17 @@ namespace slib
 	sl_bool FileSystemWrapper::setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask)
 	{
 		return m_base->setFileInfo(filePath, info, mask);
+	}
+
+	sl_bool FileSystemWrapper::setFileSize(FileContext* context, sl_uint64 size)
+	{
+		Ref<FileContext> baseContext = getBaseContext(context);
+		if (baseContext.isNotNull()) {
+			return m_base->setFileSize(baseContext.get(), size);
+		}
+		else {
+			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
+		}
 	}
 
 	HashMap<String, FileInfo> FileSystemWrapper::getFiles(const String& pathDir)
