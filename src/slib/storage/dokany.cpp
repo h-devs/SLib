@@ -108,6 +108,112 @@ namespace slib
 				}
 
 			public:
+				sl_bool _run() override
+				{
+					String16 mountPoint = String16::from(m_mountPoint);
+
+					DOKAN_OPTIONS options;
+					Base::zeroMemory(&options, sizeof(options));
+					options.Version = (USHORT)(getApi_DokanVersion()());
+					options.ThreadCount = 0; // default
+					options.UNCName = sl_null;
+					options.Options = 0;
+					if (!g_flagDokany) {
+						options.Options |= 8; // DOKAN_OPTION_KEEP_ALIVE (auto unmount)
+					}
+					options.GlobalContext = (ULONG64)(void*)this;
+					options.MountPoint = (LPCWSTR)(mountPoint.getData());
+					
+					if (g_flagDokany) {
+						if (wcscmp(m_uncName, L"") != 0 &&
+							!(m_dokanOptions.Options & DOKAN_OPTION_NETWORK)) {
+							fwprintf(
+								stderr,
+								L"  Warning: UNC provider name should be set on network drive only.\n");
+						}
+
+						if (m_dokanOptions.Options & DOKAN_OPTION_NETWORK &&
+							m_dokanOptions.Options & DOKAN_OPTION_MOUNT_MANAGER) {
+							fwprintf(stderr, L"Mount manager cannot be used on network drive.\n");
+							return EXIT_FAILURE;
+						}
+
+						if (!(m_dokanOptions.Options & DOKAN_OPTION_MOUNT_MANAGER) &&
+							wcscmp(m_mountPoint, L"") == 0) {
+							fwprintf(stderr, L"Mount Point required.\n");
+							return EXIT_FAILURE;
+						}
+
+						if ((m_dokanOptions.Options & DOKAN_OPTION_MOUNT_MANAGER) &&
+							(m_dokanOptions.Options & DOKAN_OPTION_CURRENT_SESSION)) {
+							fwprintf(stderr,
+								L"Mount Manager always mount the drive for all user sessions.\n");
+							return EXIT_FAILURE;
+						}
+
+						try {
+							FileSystemInfo volumeInfo = m_base->getInformation();
+							if (volumeInfo.sectorSize) {
+								m_dokanOptions.SectorSize = volumeInfo.sectorSize;
+								if (volumeInfo.sectorsPerAllocationUnit)
+									m_dokanOptions.AllocationUnitSize = volumeInfo.sectorSize * volumeInfo.sectorsPerAllocationUnit;
+							}
+							if (volumeInfo.flags & FILE_READ_ONLY_VOLUME)
+								m_dokanOptions.Options |= DOKAN_OPTION_WRITE_PROTECT;
+						} catch (...) {}
+
+						try {
+							m_base->fsFindStreams(new FileContext("\\", sl_true));
+							m_dokanOptions.Options |= DOKAN_OPTION_ALT_STREAM;
+						} catch (FileSystemError error) {
+							if (error != FileSystemError::NotImplemented)
+								m_dokanOptions.Options |= DOKAN_OPTION_ALT_STREAM;
+						} catch (...) {}
+					}
+
+					auto func = getApi_DokanMain();
+					if (!func) {
+						fwprintf(stderr, L"Cannot get DokanMain function address.\n");
+						return EXIT_FAILURE;
+					}
+
+					m_flagStarted = TRUE;
+					int status = getApi_DokanMain()(&m_dokanOptions, (PDOKAN_OPERATIONS)DokanHost::Interface());
+					m_flagStarted = FALSE;
+
+					switch (status) {
+					case DOKAN_SUCCESS:
+						fprintf(stderr, "Success\n");
+						break;
+					case DOKAN_ERROR:
+						fprintf(stderr, "Error\n");
+						break;
+					case DOKAN_DRIVE_LETTER_ERROR:
+						fprintf(stderr, "Bad Drive letter\n");
+						break;
+					case DOKAN_DRIVER_INSTALL_ERROR:
+						fprintf(stderr, "Can't install driver\n");
+						break;
+					case DOKAN_START_ERROR:
+						fprintf(stderr, "Driver something wrong\n");
+						break;
+					case DOKAN_MOUNT_ERROR:
+						fprintf(stderr, "Can't assign a drive letter\n");
+						break;
+					case DOKAN_MOUNT_POINT_ERROR:
+						fprintf(stderr, "Mount point error\n");
+						break;
+					case DOKAN_VERSION_ERROR:
+						fprintf(stderr, "Version error\n");
+						break;
+					default:
+						fprintf(stderr, "Unknown error: %d\n", status);
+						break;
+					}
+
+					return status;
+				}
+
 				void _stop() override
 				{
 					
@@ -193,113 +299,9 @@ namespace slib
 		return ServiceManager::stop(g_strDriverName);
 	}
 
-	Ref<FileSystemHost> Dokany::mount(const StringParam& mountPoint, const Ref<FileSystemProvider>& provider)
+	Ref<FileSystemHost> Dokany::createHost()
 	{
 
-		DOKAN_OPTIONS m_dokanOptions;
-		WCHAR m_mountPoint[MAX_PATH];
-		WCHAR m_uncName[MAX_PATH];
-		BOOL m_flagStarted;
-
-		ZeroMemory(&m_dokanOptions, sizeof(DOKAN_OPTIONS));
-		m_dokanOptions.Version = (USHORT)(getApi_DokanVersion()());
-		m_dokanOptions.ThreadCount = 0; // use default
-		m_dokanOptions.UNCName = m_uncName;
-		m_dokanOptions.Options |= options;
-		if (!g_flagDokany) {
-			m_dokanOptions.Options |= 8/*DOKAN_OPTION_KEEP_ALIVE*/;	// use auto unmount
-		}
-		m_dokanOptions.GlobalContext = (ULONG64)(PVOID)m_base;
-		m_dokanOptions.MountPoint = m_mountPoint;
-
-		if (g_flagDokany) {
-			if (wcscmp(m_uncName, L"") != 0 &&
-				!(m_dokanOptions.Options & DOKAN_OPTION_NETWORK)) {
-				fwprintf(
-					stderr,
-					L"  Warning: UNC provider name should be set on network drive only.\n");
-			}
-
-			if (m_dokanOptions.Options & DOKAN_OPTION_NETWORK &&
-				m_dokanOptions.Options & DOKAN_OPTION_MOUNT_MANAGER) {
-				fwprintf(stderr, L"Mount manager cannot be used on network drive.\n");
-				return EXIT_FAILURE;
-			}
-
-			if (!(m_dokanOptions.Options & DOKAN_OPTION_MOUNT_MANAGER) &&
-				wcscmp(m_mountPoint, L"") == 0) {
-				fwprintf(stderr, L"Mount Point required.\n");
-				return EXIT_FAILURE;
-			}
-
-			if ((m_dokanOptions.Options & DOKAN_OPTION_MOUNT_MANAGER) &&
-				(m_dokanOptions.Options & DOKAN_OPTION_CURRENT_SESSION)) {
-				fwprintf(stderr,
-					L"Mount Manager always mount the drive for all user sessions.\n");
-				return EXIT_FAILURE;
-			}
-
-			try {
-				FileSystemInfo volumeInfo = m_base->getInformation();
-				if (volumeInfo.sectorSize) {
-					m_dokanOptions.SectorSize = volumeInfo.sectorSize;
-					if (volumeInfo.sectorsPerAllocationUnit)
-						m_dokanOptions.AllocationUnitSize = volumeInfo.sectorSize * volumeInfo.sectorsPerAllocationUnit;
-				}
-				if (volumeInfo.flags & FILE_READ_ONLY_VOLUME)
-					m_dokanOptions.Options |= DOKAN_OPTION_WRITE_PROTECT;
-			} catch (...) {}
-
-			try {
-				m_base->fsFindStreams(new FileContext("\\", sl_true));
-				m_dokanOptions.Options |= DOKAN_OPTION_ALT_STREAM;
-			} catch (FileSystemError error) {
-				if (error != FileSystemError::NotImplemented)
-					m_dokanOptions.Options |= DOKAN_OPTION_ALT_STREAM;
-			} catch (...) {}
-		}
-
-		auto func = getApi_DokanMain();
-		if (!func) {
-			fwprintf(stderr, L"Cannot get DokanMain function address.\n");
-			return EXIT_FAILURE;
-		}
-
-		m_flagStarted = TRUE;
-		int status = getApi_DokanMain()(&m_dokanOptions, (PDOKAN_OPERATIONS)DokanHost::Interface());
-		m_flagStarted = FALSE;
-
-		switch (status) {
-		case DOKAN_SUCCESS:
-			fprintf(stderr, "Success\n");
-			break;
-		case DOKAN_ERROR:
-			fprintf(stderr, "Error\n");
-			break;
-		case DOKAN_DRIVE_LETTER_ERROR:
-			fprintf(stderr, "Bad Drive letter\n");
-			break;
-		case DOKAN_DRIVER_INSTALL_ERROR:
-			fprintf(stderr, "Can't install driver\n");
-			break;
-		case DOKAN_START_ERROR:
-			fprintf(stderr, "Driver something wrong\n");
-			break;
-		case DOKAN_MOUNT_ERROR:
-			fprintf(stderr, "Can't assign a drive letter\n");
-			break;
-		case DOKAN_MOUNT_POINT_ERROR:
-			fprintf(stderr, "Mount point error\n");
-			break;
-		case DOKAN_VERSION_ERROR:
-			fprintf(stderr, "Version error\n");
-			break;
-		default:
-			fprintf(stderr, "Unknown error: %d\n", status);
-			break;
-		}
-
-		return status;
 	}
 
 	sl_bool Dokany::unmount(const StringParam& _mountPoint)
@@ -317,19 +319,6 @@ namespace slib
 
 }
 
-
-
-# define DOKAN_RETERROR(error)	(g_flagDokany ? getApi_DokanNtStatusFromWin32()((DWORD)error) : -(int)error)
-# define FILESYSTEM_EXCEPTION_GUARD(...)\
-    try { __VA_ARGS__ } \
-	catch (FileSystemError error) { \
-		if (error == FileSystemError::NotImplemented) \
-			return (g_flagDokany ? STATUS_NOT_IMPLEMENTED : 0); \
-		return DOKAN_RETERROR(error); \
-	} \
-	catch (...) { \
-		return DOKAN_RETERROR(FileSystemError::GeneralError); \
-	}
 
 
 namespace slib
