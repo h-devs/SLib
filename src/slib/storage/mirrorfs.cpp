@@ -1,9 +1,16 @@
-#include <windows.h>
+#include "slib/storage/mirrorfs.h"
 #include "slib/core/file.h"
 #include "slib/core/system.h"
-#include "slib/core/throw.h"
 #include "slib/core/variant.h"
-#include "slib/storage/mirrorfs.h"
+
+#ifdef SLIB_PLATFORM_IS_WIN32
+#include <windows.h>
+#endif
+
+#ifdef SLIB_FILE_SYSTEM_CAN_THROW
+#define SLIB_USE_THROW
+#endif
+#include "slib/core/throw.h"
 
 #define FileFromContext(context)	(((MirrorFileContext*)(context))->file)
 
@@ -23,11 +30,6 @@ namespace slib
 		MirrorFileContext(Ref<File> file) : file(file)
 		{
 		}
-
-		MirrorFileContext(HANDLE handle)
-		{
-			file = new File((sl_file)handle);
-		}
 	};
 
 	MirrorFs::MirrorFs(String path) : m_root(path)
@@ -43,6 +45,7 @@ namespace slib
 		}
 
 		if (mask & FileSystemInfoMask::Size) {
+#ifdef SLIB_PLATFORM_IS_WIN32
 			StringCstr16 root(m_root);
 			ULARGE_INTEGER totalSize, freeSize;
 
@@ -52,6 +55,9 @@ namespace slib
 
 			outInfo.totalSize = totalSize.QuadPart;
 			outInfo.freeSize = freeSize.QuadPart;
+#else
+			SLIB_THROW(FileSystemError::NotImplemented, sl_false); // TODO
+#endif
 		}
 
 		return sl_true;
@@ -71,9 +77,7 @@ namespace slib
 				SLIB_THROW(FileSystemError::NotFound, sl_null);
 			}
 
-			Ref<MirrorFileContext> context = new MirrorFileContext();
-			context->increaseReference();
-			return context;
+			return new MirrorFileContext();
 		}
 
 		Ref<File> file = File::open(m_root + path, param);
@@ -81,9 +85,7 @@ namespace slib
 			SLIB_THROW(getError(), sl_null);
 		}
 
-		Ref<MirrorFileContext> context = new MirrorFileContext(file);
-		context->increaseReference();
-		return context;
+		return new MirrorFileContext(file);
 	}
 
 	sl_bool MirrorFs::closeFile(FileContext* context)
@@ -94,7 +96,6 @@ namespace slib
 			if (file->isOpened()) {
 				SLIB_THROW(getError(), sl_false);
 			}
-			context->decreaseReference();
 		}
 
 		return sl_true;
@@ -278,7 +279,7 @@ namespace slib
 		}
 
 		if (mask & FileInfoMask::Attributes) {
-			SLIB_THROW(FIleSystemError::NotImplemented, sl_false);
+			SLIB_THROW(FileSystemError::NotImplemented, sl_false);
 		}
 
 		if (mask & FileInfoMask::Time) {
@@ -342,11 +343,11 @@ namespace slib
 		}
 
 		if (mask & FileInfoMask::Size) {
-			SLIB_THROW(FIleSystemError::NotImplemented, sl_false);
+			SLIB_THROW(FileSystemError::NotImplemented, sl_false);
 		}
 
 		if (mask & FileInfoMask::AllocSize) {
-			SLIB_THROW(FIleSystemError::NotImplemented, sl_false);
+			SLIB_THROW(FileSystemError::NotImplemented, sl_false);
 		}
 
 		return sl_true;

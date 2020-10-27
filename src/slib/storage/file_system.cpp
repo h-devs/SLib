@@ -209,9 +209,9 @@ namespace slib
 	{
 	}
 
-	sl_bool FileSystemWrapper::getInformation(FileSystemInfo& info, const FileSystemInfoMask& mask)
+	sl_bool FileSystemWrapper::getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask)
 	{
-		return m_base->getInformation(info, mask);
+		return m_base->getInformation(outInfo, mask);
 	}
 
 	Ref<FileContext> FileSystemWrapper::openFile(const String& path, const FileOpenParam& param)
