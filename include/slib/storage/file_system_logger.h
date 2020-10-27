@@ -61,10 +61,9 @@ namespace slib
 			FsLogDateAsString = 0x800000,
 
 			FsLogVolumeInfo = 0x01000000,
-			FsLogGetVolumeBasicInfo = 0x02000000,
-			FsLogGetVolumeSizeInfo = 0x04000000,
+			FsLogGetVolumeInfo = 0x02000000,
+			FsLogGetVolumeSize = 0x04000000,
 			FsLogSetVolumeName = 0x08000000,
-			FsLogGetVolumeInfo = FsLogGetVolumeBasicInfo | FsLogGetVolumeSizeInfo,
 			FsLogVolumeOp = 0x0F000000,
 
 			FsLogFileName = 0x10000000,			// when this flag is set, ignores FsLogContextAddress
@@ -85,39 +84,31 @@ namespace slib
 		~FsLogger();
 
 	public:
-		sl_bool getInformation(FileSystemInfo& info) override;
+		sl_bool getInformation(FileSystemInfo& info, const FileSystemInfoMask& mask) override;
 
-		void openFile(FileContext* context, FileCreationParams& params = FileCreationParams()) override;
+		Ref<FileContext> openFile(const String& path, const FileOpenParam& param) override;
 
-		void openFile(FileContext* context, FileCreationParams& params = FileCreationParams()) override;
+		sl_size	readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size) override;
 
-		sl_size readFile(FileContext* context, const Memory& buffer, sl_uint64 offset) override;
+		sl_size writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size) override;
 
-		sl_size writeFile(FileContext* context, const Memory& buffer, sl_uint64 offset, sl_bool writeToEof) override;
+		sl_bool flushFile(FileContext* context) override;
 
-		void flush(FileContext* context) override;
+		sl_bool	closeFile(FileContext* context) override;
 
-		void closeFile(FileContext* context) override;
+		sl_bool deleteFile(const String& filePath) override;
 
-		void deleteFile(FileContext* context, sl_bool checkOnly) override;
+		sl_bool moveFile(const String& oldFilePath, const String& newFilePath, sl_bool flagReplaceIfExists) override;
 
-		void moveFile(FileContext* context, String newFileName, sl_bool replaceIfExists) override;
+		sl_bool lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
 
-		void lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
+		sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
 
-		void unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
+		sl_bool	getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask) override;
 
-		FileInfo getFileInfo(FileContext* context) override;
+		sl_bool setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask) override;
 
-		void setFileInfo(FileContext* context, FileInfo fileInfo) override;
-
-		sl_size fsGetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor) override;
-
-		void fsSetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor) override;
-
-		HashMap<String, FileInfo> getFiles(FileContext* context, String pattern) override;
-
-		HashMap<String, StreamInfo> fsFindStreams(FileContext* context) override;
+		HashMap<String, FileInfo> getFiles(const String& pathDir) override;
 
 	private:
 		sl_uint32 m_flags;

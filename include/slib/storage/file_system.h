@@ -57,10 +57,10 @@ namespace slib
 		SLIB_MEMBERS_OF_FLAGS(FileSystemFlags, value)
 
 		enum {
-			IsCaseSensitiveSearch = 0x1,
-			SupportsFileCompression = 0x2,
-			SupportsEncryption = 0x4,
-			IsReadOnlyVolume = 0x8
+			IsCaseSensitive = 0x1,
+			SupportsFileCompression = 0x00000010,
+			SupportsEncryption = 0x00020000,
+			IsReadOnlyVolume = 0x00080000,
 		};
 	};
 
@@ -143,6 +143,7 @@ namespace slib
 		FileExist = 80, // ERROR_FILE_EXISTS
 		InvalidPassword = 86, // ERROR_INVALID_PASSWORD
 		BufferOverflow = 122, // ERROR_INSUFFICIENT_BUFFER
+		DirNotEmpty = 145, // ERROR_DIR_NOT_EMPTY
 		AlreadyExist = 183,	// ERROR_ALREADY_EXISTS
 		InitFailure = 575, // ERROR_APP_INIT_FAILURE
 		NotImplemented = -1,

@@ -86,7 +86,6 @@ namespace slib
 				FILETIME ft;
 				TimeToFileTime(time, ft);
 				BOOL bRet = SetFileTime(handle, NULL, NULL, &ft);
-				CloseHandle(handle);
 				return bRet != 0;
 			}
 
@@ -95,7 +94,6 @@ namespace slib
 				FILETIME ft;
 				TimeToFileTime(time, ft);
 				BOOL bRet = SetFileTime(handle, NULL, &ft, NULL);
-				CloseHandle(handle);
 				return bRet != 0;
 			}
 
@@ -104,7 +102,6 @@ namespace slib
 				FILETIME ft;
 				TimeToFileTime(time, ft);
 				BOOL bRet = SetFileTime(handle, &ft, NULL, NULL);
-				CloseHandle(handle);
 				return bRet != 0;
 			}
 
@@ -304,7 +301,9 @@ namespace slib
 		}
 		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), 0, 0, NULL, OPEN_EXISTING, 0, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
-			return getSize((sl_file)handle);
+			sl_uint64 ret = getSize((sl_file)handle);
+			CloseHandle(handle);
+			return ret;
 		} else {
 			return 0;
 		}
@@ -363,7 +362,8 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return Time::zero();
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, 0, NULL, OPEN_EXISTING,
+			FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			Time ret = GetModifiedTime(handle);
 			CloseHandle(handle);
@@ -388,7 +388,8 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return Time::zero();
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, 0, NULL, OPEN_EXISTING,
+			FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			Time ret = GetAccessedTime(handle);
 			CloseHandle(handle);
@@ -413,13 +414,24 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return Time::zero();
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, 0, NULL, OPEN_EXISTING,
+			FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			Time ret = GetCreatedTime(handle);
 			CloseHandle(handle);
 			return ret;
 		} else {
 			return Time::zero();
+		}
+	}
+
+	sl_bool File::setModifiedTime(Time time)
+	{
+		if (isOpened()) {
+			return SetModifiedTime((HANDLE)m_file, time);
+		}
+		else {
+			return sl_false;
 		}
 	}
 
@@ -439,6 +451,16 @@ namespace slib
 		}
 	}
 
+	sl_bool File::setAccessedTime(Time time)
+	{
+		if (isOpened()) {
+			return SetAccessedTime((HANDLE)m_file, time);
+		}
+		else {
+			return sl_false;
+		}
+	}
+
 	sl_bool File::setAccessedTime(const StringParam& _filePath, Time time)
 	{
 		StringCstr16 filePath(_filePath);
@@ -451,6 +473,16 @@ namespace slib
 			CloseHandle(handle);
 			return ret;
 		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool File::setCreatedTime(Time time)
+	{
+		if (isOpened()) {
+			return SetCreatedTime((HANDLE)m_file, time);
+		}
+		else {
 			return sl_false;
 		}
 	}

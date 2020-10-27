@@ -16,35 +16,27 @@ namespace slib
 	{
 	public:
 		MirrorFs(String path);
-		~MirrorFs();
 
 	public:
-		sl_bool getInformation(FileSystemInfo& info) override;
+		sl_bool getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask) override;
 
-		void openFile(FileContext* context, FileCreationParams& params = FileCreationParams()) override;
-		void openFile(FileContext* context, FileCreationParams& params = FileCreationParams()) override;
-		sl_size readFile(FileContext* context, const Memory& buffer, sl_uint64 offset) override;
-		sl_size writeFile(FileContext* context, const Memory& buffer, sl_uint64 offset, sl_bool writeToEof) override;
-		void flush(FileContext* context) override;
-		void closeFile(FileContext* context) override;
-		void deleteFile(FileContext* context, sl_bool checkOnly) override;
-		void moveFile(FileContext* context, String newFileName, sl_bool replaceIfExists) override;
-		void lockFile(FileContext* context, sl_uint64 byteOffset, sl_uint64 length) override;
-		void unlockFile(FileContext* context, sl_uint64 byteOffset, sl_uint64 length) override;
-		FileInfo getFileInfo(FileContext* context) override;
-		void setFileInfo(FileContext* context, FileInfo fileInfo) override;
-		sl_size fsGetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor) override;
-		void fsSetSecurity(FileContext* context, sl_uint32 securityInformation, const Memory& securityDescriptor) override;
-		HashMap<String, FileInfo> getFiles(FileContext* context, String pattern) override;
-		HashMap<String, StreamInfo> fsFindStreams(FileContext* context) override;
-
-		sl_bool getSize(sl_uint64* pOutTotalSize, sl_uint64* pOutFreeSize) override;
+		Ref<FileContext> openFile(const String& path, const FileOpenParam& param) override;
+		sl_size readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size) override;
+		sl_size writeFile(FileContext* context, sl_int64 offset, const void* data, sl_size size) override;
+		sl_bool flushFile(FileContext* context) override;
+		sl_bool closeFile(FileContext* context) override;
+		sl_bool deleteFile(const String& path) override;
+		sl_bool moveFile(const String& pathOld, const String& pathNew, sl_bool flagReplaceIfExists) override;
+		sl_bool lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
+		sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
+		sl_bool getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask) override;
+		sl_bool setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask) override;
+		HashMap<String, FileInfo> getFiles(const String& pathDir) override;
 
 	private:
 		FileSystemError getError(sl_uint32 error = 0);
 
 	private:
-		String m_path;
 		String m_root;
 	};
 
