@@ -20,17 +20,19 @@
 *   THE SOFTWARE.
 */
 
-#include "slib/storage/dokany.h"
+#include "slib/core/definition.h"
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 
-#define _EXPORTING
-#include "dokany/dokan.h"
+#include "slib/storage/dokany.h"
 
 #include "slib/core/service_manager.h"
 #include "slib/core/dynamic_library.h"
 #include "slib/core/platform_windows.h"
 #include "slib/core/safe_static.h"
+
+#define _EXPORTING
+#include "dokany/dokan.h"
 
 namespace slib
 {
@@ -91,6 +93,28 @@ namespace slib
 
 			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanNtStatusFromWin32, NTSTATUS, DOKANAPI,
 				DWORD Error)
+
+
+			class DokanHost : public FileSystemHost
+			{
+			public:
+				DokanHost(const String& mountPoint, const Ref<FileSystemProvider>& provider) : FileSystemHost(mountPoint, provider)
+				{
+				}
+
+				~DokanHost()
+				{
+					stop();
+				}
+
+			public:
+				void _stop() override
+				{
+					
+				}
+				
+			};
+
 
 		}
 	}
@@ -169,286 +193,14 @@ namespace slib
 		return ServiceManager::stop(g_strDriverName);
 	}
 
-	sl_bool Dokany::unmount(const StringParam& _mountPoint)
-	{
-		if (!(initialize())) {
-			return sl_false;
-		}
-		auto func = getApi_DokanRemoveMountPoint();
-		if (func) {
-			StringCstr16 mountPoint(_mountPoint);
-			return func((LPCWSTR)(mountPoint.getData()));
-		}
-		return sl_false;
-	}
-
-
-
-	namespace slib
+	Ref<FileSystemHost> Dokany::mount(const StringParam& mountPoint, const Ref<FileSystemProvider>& provider)
 	{
 
-		class DokanHost : public FileSystemHost
-		{
-		public:
-			DokanHost(Ref<FileSystemProvider> base, sl_uint32 options = 0);
-			virtual ~DokanHost();
+		DOKAN_OPTIONS m_dokanOptions;
+		WCHAR m_mountPoint[MAX_PATH];
+		WCHAR m_uncName[MAX_PATH];
+		BOOL m_flagStarted;
 
-			void setVersion(sl_uint16 version);
-			void setThreadCount(sl_uint16 threadCount);
-			void setMountPoint(const StringParam& mountPoint);
-			void setUNCName(const StringParam& uncName);
-			void setTimeout(sl_uint32 timeout);
-			void setDebugMode(sl_bool flagUseStdErr);
-
-		public:
-			int fsRun() override;
-			int fsStop() override;
-			int isRunning() override;
-
-		public:
-			static BOOL g_hasSeSecurityPrivilege;
-			static BOOL addSeSecurityNamePrivilege();
-
-		private:
-			static SLIB_DOKAN_RET DOKAN_CALLBACK	// SLIB_DOKAN_IS_DOKANY
-				ZwCreateFile(
-					LPCWSTR					FileName,
-					PDOKAN_IO_SECURITY_CONTEXT SecurityContext,
-					ACCESS_MASK				DesiredAccess,
-					ULONG					FileAttributes,
-					ULONG					ShareAccess,
-					ULONG					CreateDisposition,
-					ULONG					CreateOptions,
-					PDOKAN_FILE_INFO		DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK	// !SLIB_DOKAN_IS_DOKANY
-				CreateFile(
-					LPCWSTR					FileName,
-					DWORD					AccessMode,
-					DWORD					ShareMode,
-					DWORD					CreationDisposition,
-					DWORD					FlagsAndAttributes,
-					PDOKAN_FILE_INFO		DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK	// !SLIB_DOKAN_IS_DOKANY
-				CreateDirectory(
-					LPCWSTR					FileName,
-					PDOKAN_FILE_INFO		DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK	// !SLIB_DOKAN_IS_DOKANY
-				OpenDirectory(
-					LPCWSTR					FileName,
-					PDOKAN_FILE_INFO		DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				Cleanup(
-					LPCWSTR					FileName,
-					PDOKAN_FILE_INFO		DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				CloseFile(
-					LPCWSTR					FileName,
-					PDOKAN_FILE_INFO		DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				ReadFile(
-					LPCWSTR				FileName,
-					LPVOID				Buffer,
-					DWORD				BufferLength,
-					LPDWORD				ReadLength,
-					LONGLONG			Offset,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				WriteFile(
-					LPCWSTR				FileName,
-					LPCVOID				Buffer,
-					DWORD				NumberOfBytesToWrite,
-					LPDWORD				NumberOfBytesWritten,
-					LONGLONG			Offset,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				FlushFileBuffers(
-					LPCWSTR		FileName,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				GetFileInformation(
-					LPCWSTR							FileName,
-					LPBY_HANDLE_FILE_INFORMATION	HandleFileInformation,
-					PDOKAN_FILE_INFO				DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				FindFiles(
-					LPCWSTR				PathName,
-					PFillFindData		FillFindData, // function pointer
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				FindFilesWithPattern(
-					LPCWSTR				PathName,
-					LPCWSTR				SearchPattern,
-					PFillFindData		FillFindData, // function pointer
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK	// SLIB_DOKAN_IS_DOKANY
-				FindStreams(
-					LPCWSTR				FileName,
-					PFillFindStreamData	FillFindStreamData,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				DeleteFile(
-					LPCWSTR				FileName,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				DeleteDirectory(
-					LPCWSTR				FileName,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				MoveFile(
-					LPCWSTR				FileName, // existing file name
-					LPCWSTR				NewFileName,
-					BOOL				ReplaceIfExisting,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				SetEndOfFile(
-					LPCWSTR				FileName,
-					LONGLONG			ByteOffset,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				SetAllocationSize(
-					LPCWSTR				FileName,
-					LONGLONG			AllocSize,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				SetFileAttributes(
-					LPCWSTR				FileName,
-					DWORD				FileAttributes,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				SetFileTime(
-					LPCWSTR				FileName,
-					CONST FILETIME*		CreationTime,
-					CONST FILETIME*		LastAccessTime,
-					CONST FILETIME*		LastWriteTime,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				GetFileSecurity(
-					LPCWSTR					FileName,
-					PSECURITY_INFORMATION	SecurityInformation,
-					PSECURITY_DESCRIPTOR	SecurityDescriptor,
-					ULONG				BufferLength,
-					PULONG				LengthNeeded,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				SetFileSecurity(
-					LPCWSTR					FileName,
-					PSECURITY_INFORMATION	SecurityInformation,
-					PSECURITY_DESCRIPTOR	SecurityDescriptor,
-					ULONG				SecurityDescriptorLength,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				LockFile(
-					LPCWSTR				FileName,
-					LONGLONG			ByteOffset,
-					LONGLONG			Length,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				UnlockFile(
-					LPCWSTR				FileName,
-					LONGLONG			ByteOffset,
-					LONGLONG			Length,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				GetDiskFreeSpace(
-					PULONGLONG			FreeBytesAvailable,
-					PULONGLONG			TotalNumberOfBytes,
-					PULONGLONG			TotalNumberOfFreeBytes,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				GetVolumeInformation(
-					LPWSTR		VolumeNameBuffer,
-					DWORD		VolumeNameSize,
-					LPDWORD		VolumeSerialNumber,
-					LPDWORD		MaximumComponentLength,
-					LPDWORD		FileSystemFlags,
-					LPWSTR		FileSystemNameBuffer,
-					DWORD		FileSystemNameSize,
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK	// SLIB_DOKAN_IS_DOKANY
-				Mounted(
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-			static SLIB_DOKAN_RET DOKAN_CALLBACK
-				Unmounted(
-					PDOKAN_FILE_INFO	DokanFileInfo);
-
-		public:
-			static void* Interface();
-
-		private:
-			DOKAN_OPTIONS m_dokanOptions;
-			WCHAR m_mountPoint[MAX_PATH];
-			WCHAR m_uncName[MAX_PATH];
-			BOOL m_flagStarted;
-		};
-
-}
-
-
-
-# define DOKAN_RETERROR(error)	(g_flagDokany ? getApi_DokanNtStatusFromWin32()((DWORD)error) : -(int)error)
-# define FILESYSTEM_EXCEPTION_GUARD(...)\
-    try { __VA_ARGS__ } \
-	catch (FileSystemError error) { \
-		if (error == FileSystemError::NotImplemented) \
-			return (g_flagDokany ? STATUS_NOT_IMPLEMENTED : 0); \
-		return DOKAN_RETERROR(error); \
-	} \
-	catch (...) { \
-		return DOKAN_RETERROR(FileSystemError::GeneralError); \
-	}
-
-#define StringToWChar(STR, OUT)			OUT[STR.getUtf16((sl_char16 *)(OUT), sizeof(OUT))] = L'\0'
-#define WCharToString(WCSTR)			String::fromUtf16((const sl_char16 *)(WCSTR))
-#define FileTimeToTime(ft, t)			{ \
-	SYSTEMTIME st = { 0 }; \
-	FileTimeToSystemTime(&(ft), &st); \
-	t.setUTC(st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds); \
-}
-#define TimeToFileTime(t, ft)			{ \
-	TimeComponents time; \
-	t.getUTC(time); \
-	SYSTEMTIME st = { (WORD)time.year, (WORD)time.month, (WORD)time.dayOfWeek, (WORD)time.day, \
-		(WORD)time.hour, (WORD)time.minute, (WORD)time.second, (WORD)time.milliseconds }; \
-	SystemTimeToFileTime(&st, &(ft)); \
-}
-
-namespace slib
-{
-	BOOL DokanHost::g_hasSeSecurityPrivilege = FALSE;
-
-	DokanHost::DokanHost(Ref<FileSystemProvider> base, sl_uint32 options) :
-		FileSystemHost(base),
-		m_uncName(L""),
-		m_mountPoint(L""),
-		m_flagStarted(FALSE)
-	{
 		ZeroMemory(&m_dokanOptions, sizeof(DOKAN_OPTIONS));
 		m_dokanOptions.Version = (USHORT)(getApi_DokanVersion()());
 		m_dokanOptions.ThreadCount = 0; // use default
@@ -459,51 +211,7 @@ namespace slib
 		}
 		m_dokanOptions.GlobalContext = (ULONG64)(PVOID)m_base;
 		m_dokanOptions.MountPoint = m_mountPoint;
-	}
 
-	DokanHost::~DokanHost()
-	{
-		if (m_flagStarted)
-			fsStop();
-	}
-
-	void DokanHost::setVersion(sl_uint16 version)
-	{
-		m_dokanOptions.Version = version;
-	}
-
-	void DokanHost::setThreadCount(sl_uint16 threadCount)
-	{
-		m_dokanOptions.ThreadCount = threadCount;
-	}
-
-	void DokanHost::setMountPoint(const StringParam& mountPoint)
-	{
-		StringToWChar(mountPoint.toString(), m_mountPoint);
-	}
-
-	void DokanHost::setUNCName(const StringParam& uncName)
-	{
-		if (!g_flagDokany) return;
-		StringToWChar(uncName.toString(), m_uncName);
-	}
-
-	void DokanHost::setTimeout(sl_uint32 timeout)
-	{
-		if (!g_flagDokany) return;
-		m_dokanOptions.Timeout = timeout;
-	}
-
-	void DokanHost::setDebugMode(sl_bool flagUseStdErr)
-	{
-		m_dokanOptions.Options |= DOKAN_OPTION_DEBUG;
-		if (flagUseStdErr)
-			m_dokanOptions.Options |= DOKAN_OPTION_STDERR;
-		else
-			m_dokanOptions.Options &= ~DOKAN_OPTION_STDERR;
-	}
-
-	int DokanHost::fsRun() {
 		if (g_flagDokany) {
 			if (wcscmp(m_uncName, L"") != 0 &&
 				!(m_dokanOptions.Options & DOKAN_OPTION_NETWORK)) {
@@ -540,18 +248,15 @@ namespace slib
 				}
 				if (volumeInfo.flags & FILE_READ_ONLY_VOLUME)
 					m_dokanOptions.Options |= DOKAN_OPTION_WRITE_PROTECT;
-			}
-			catch (...) {}
+			} catch (...) {}
 
 			try {
 				m_base->fsFindStreams(new FileContext("\\", sl_true));
 				m_dokanOptions.Options |= DOKAN_OPTION_ALT_STREAM;
-			}
-			catch (FileSystemError error) {
+			} catch (FileSystemError error) {
 				if (error != FileSystemError::NotImplemented)
 					m_dokanOptions.Options |= DOKAN_OPTION_ALT_STREAM;
-			}
-			catch (...) {}
+			} catch (...) {}
 		}
 
 		auto func = getApi_DokanMain();
@@ -597,79 +302,88 @@ namespace slib
 		return status;
 	}
 
-	int DokanHost::fsStop() 
+	sl_bool Dokany::unmount(const StringParam& _mountPoint)
+	{
+		if (!(initialize())) {
+			return sl_false;
+		}
+		auto func = getApi_DokanRemoveMountPoint();
+		if (func) {
+			StringCstr16 mountPoint(_mountPoint);
+			return func((LPCWSTR)(mountPoint.getData()));
+		}
+		return sl_false;
+	}
+
+}
+
+
+
+# define DOKAN_RETERROR(error)	(g_flagDokany ? getApi_DokanNtStatusFromWin32()((DWORD)error) : -(int)error)
+# define FILESYSTEM_EXCEPTION_GUARD(...)\
+    try { __VA_ARGS__ } \
+	catch (FileSystemError error) { \
+		if (error == FileSystemError::NotImplemented) \
+			return (g_flagDokany ? STATUS_NOT_IMPLEMENTED : 0); \
+		return DOKAN_RETERROR(error); \
+	} \
+	catch (...) { \
+		return DOKAN_RETERROR(FileSystemError::GeneralError); \
+	}
+
+
+namespace slib
+{
+
+	DokanHost::DokanHost(Ref<FileSystemProvider> base, sl_uint32 options) :
+		FileSystemHost(base),
+		m_uncName(L""),
+		m_mountPoint(L""),
+		m_flagStarted(FALSE)
+	{
+		
+	}
+
+	DokanHost::~DokanHost()
 	{
 		if (m_flagStarted)
-			return ! Dokany::unmount(m_mountPoint);
-		return -1;
+			fsStop();
 	}
 
-	int DokanHost::isRunning() 
+	void DokanHost::setVersion(sl_uint16 version)
 	{
-		return m_flagStarted;
+		m_dokanOptions.Version = version;
 	}
 
-	BOOL DokanHost::addSeSecurityNamePrivilege() 
+	void DokanHost::setThreadCount(sl_uint16 threadCount)
 	{
-		DokanHost::g_hasSeSecurityPrivilege = FALSE;
-
-		HANDLE token = 0;
-		DWORD err;
-		LUID luid;
-		if (!LookupPrivilegeValue(0, SE_SECURITY_NAME, &luid)) {
-			err = GetLastError();
-			if (err != ERROR_SUCCESS) {
-				return FALSE;
-			}
-		}
-
-		LUID_AND_ATTRIBUTES attr;
-		attr.Attributes = SE_PRIVILEGE_ENABLED;
-		attr.Luid = luid;
-
-		TOKEN_PRIVILEGES priv;
-		priv.PrivilegeCount = 1;
-		priv.Privileges[0] = attr;
-
-		if (!OpenProcessToken(GetCurrentProcess(),
-			TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token)) {
-			err = GetLastError();
-			if (err != ERROR_SUCCESS) {
-				return FALSE;
-			}
-		}
-
-		TOKEN_PRIVILEGES oldPriv;
-		DWORD retSize;
-		AdjustTokenPrivileges(token, FALSE, &priv, sizeof(TOKEN_PRIVILEGES), &oldPriv,
-			&retSize);
-		err = GetLastError();
-		if (err != ERROR_SUCCESS) {
-			CloseHandle(token);
-			return FALSE;
-		}
-
-		BOOL privAlreadyPresent = FALSE;
-		for (unsigned int i = 0; i < oldPriv.PrivilegeCount; i++) {
-			if (oldPriv.Privileges[i].Luid.HighPart == luid.HighPart &&
-				oldPriv.Privileges[i].Luid.LowPart == luid.LowPart) {
-				privAlreadyPresent = TRUE;
-				break;
-			}
-		}
-		if (token)
-			CloseHandle(token);
-
-		DokanHost::g_hasSeSecurityPrivilege = TRUE;
-		return TRUE;
+		m_dokanOptions.ThreadCount = threadCount;
 	}
 
-	inline Ref<FileContext> GetFileContext(PDOKAN_FILE_INFO DokanFileInfo, LPCWSTR FileName)
+	void DokanHost::setMountPoint(const StringParam& mountPoint)
 	{
-		if (DokanFileInfo->Context == 0)
-			return new FileContext(WCharToString(FileName), DokanFileInfo->IsDirectory);
+		StringToWChar(mountPoint.toString(), m_mountPoint);
+	}
+
+	void DokanHost::setUNCName(const StringParam& uncName)
+	{
+		if (!g_flagDokany) return;
+		StringToWChar(uncName.toString(), m_uncName);
+	}
+
+	void DokanHost::setTimeout(sl_uint32 timeout)
+	{
+		if (!g_flagDokany) return;
+		m_dokanOptions.Timeout = timeout;
+	}
+
+	void DokanHost::setDebugMode(sl_bool flagUseStdErr)
+	{
+		m_dokanOptions.Options |= DOKAN_OPTION_DEBUG;
+		if (flagUseStdErr)
+			m_dokanOptions.Options |= DOKAN_OPTION_STDERR;
 		else
-			return (FileContext*)(DokanFileInfo->Context);
+			m_dokanOptions.Options &= ~DOKAN_OPTION_STDERR;
 	}
 
 	SLIB_DOKAN_RET DOKAN_CALLBACK	// SLIB_DOKAN_IS_DOKANY
@@ -1300,72 +1014,6 @@ namespace slib
 			PDOKAN_FILE_INFO	DokanFileInfo)
 	{
 		return 0;
-	}
-
-	void* DokanHost::Interface()
-	{
-		if (!g_flagDokany) {
-			static void* dokanLegacyInterface[] = {
-				CreateFile,
-				OpenDirectory,
-				CreateDirectory,
-				Cleanup,
-				CloseFile,
-				ReadFile,
-				WriteFile,
-				FlushFileBuffers,
-				GetFileInformation,
-				FindFiles,
-				NULL, //FindFilesWithPattern,
-				SetFileAttributes,
-				SetFileTime,
-				DeleteFile,
-				DeleteDirectory,
-				MoveFile,
-				SetEndOfFile,
-				SetAllocationSize,
-				LockFile,
-				UnlockFile,
-				GetDiskFreeSpace,
-				GetVolumeInformation,
-				Unmounted,
-				GetFileSecurity,
-				SetFileSecurity,
-			};
-
-			return &dokanLegacyInterface;
-		}
-		else {
-			static void* dokanInterface[] = {
-				ZwCreateFile,
-				Cleanup,
-				CloseFile,
-				ReadFile,
-				WriteFile,
-				FlushFileBuffers,
-				GetFileInformation,
-				FindFiles,
-				NULL, //FindFilesWithPattern,
-				SetFileAttributes,
-				SetFileTime,
-				DeleteFile,
-				DeleteDirectory,
-				MoveFile,
-				SetEndOfFile,
-				SetAllocationSize,
-				LockFile,
-				UnlockFile,
-				GetDiskFreeSpace,
-				GetVolumeInformation,
-				Mounted,
-				Unmounted,
-				GetFileSecurity,
-				SetFileSecurity,
-				FindStreams,
-			};
-
-			return &dokanInterface;
-		}
 	}
 
 }
