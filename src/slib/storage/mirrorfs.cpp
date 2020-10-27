@@ -41,7 +41,7 @@ namespace slib
 		if (mask & FileSystemInfoMask::Basic) {
 			outInfo.fileSystemName = "MirrorFs";
 			outInfo.creationTime = File::getCreatedTime(m_root);
-			outInfo.flags = FileSystemFlags::IsCaseSensitive;
+			outInfo.flags = FileSystemFlags::CaseSensitive;
 		}
 
 		if (mask & FileSystemInfoMask::Size) {

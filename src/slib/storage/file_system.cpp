@@ -106,12 +106,12 @@ namespace slib
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_bool FileSystemProvider::deleteFile(const String& path)
+	sl_bool FileSystemProvider::deleteFile(const StringParam& path)
 	{
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_bool FileSystemProvider::moveFile(const String& pathOld, const String& pathNew, sl_bool flagReplaceIfExists)
+	sl_bool FileSystemProvider::moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists)
 	{
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
@@ -131,11 +131,21 @@ namespace slib
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_bool FileSystemProvider::setFileInfo(const String& path, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemProvider::setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask)
 	{
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileSystemHostParam)
+
+	FileSystemHostParam::FileSystemHostParam()
+	{
+		threadCount = 0;
+		timeout = 0;
+		flagDebugMode = sl_false;
+		flagUseStderr = sl_false;
+	}
 
 	SLIB_DEFINE_OBJECT(FileSystemHost, Object)
 
@@ -151,17 +161,37 @@ namespace slib
 
 	String FileSystemHost::getMountPoint()
 	{
-		return m_mountPoint;
+		return m_param.mountPoint;
 	}
 
-	Ref<FileSystemProvider> FileSystemHost::getProvider()
+	FileSystemProvider* FileSystemHost::getProvider()
 	{
-		return m_provider;
+		return m_param.provider.get();
 	}
 
 	sl_bool FileSystemHost::isRunning()
 	{
 		return m_flagRunning;
+	}
+
+	sl_bool FileSystemHost::run(const FileSystemHostParam& param)
+	{
+		if (param.mountPoint.isEmpty() || param.provider.isNull()) {
+			return sl_false;
+		}
+		if (m_flagRunning) {
+			return sl_false;
+		}
+		ObjectLocker lock(this);
+		if (m_flagRunning) {
+			return sl_false;
+		}
+		m_param = param;
+		m_flagRunning = sl_true;
+		lock.unlock();
+		sl_bool bRet = _run();
+		m_flagRunning = sl_false;
+		return bRet;
 	}
 
 	void FileSystemHost::stop()
@@ -181,9 +211,9 @@ namespace slib
 		return m_nOpendHandles;
 	}
 
-	Ref<FileContext> FileSystemHost::openFile(const String& path, const FileOpenParam& param)
+	Ref<FileContext> FileSystemHost::openFile(const StringParam& path, const FileOpenParam& param)
 	{
-		Ref<FileContext> context = m_provider->openFile(path, param);
+		Ref<FileContext> context = m_param.provider->openFile(path, param);
 		if (context.isNotNull()) {
 			Base::interlockedIncrement(&m_nOpendHandles);
 			return context;
@@ -193,7 +223,7 @@ namespace slib
 
 	sl_bool FileSystemHost::closeFile(FileContext* context)
 	{
-		if (m_provider->closeFile(context)) {
+		if (m_param.provider->closeFile(context)) {
 			Base::interlockedDecrement(&m_nOpendHandles);
 			return sl_true;
 		}
@@ -214,7 +244,7 @@ namespace slib
 		return m_base->getInformation(outInfo, mask);
 	}
 
-	Ref<FileContext> FileSystemWrapper::openFile(const String& path, const FileOpenParam& param)
+	Ref<FileContext> FileSystemWrapper::openFile(const StringParam& path, const FileOpenParam& param)
 	{
 		Ref<FileContext> context = m_base->openFile(path, param);
 		if (context.isNotNull()) {
@@ -263,12 +293,12 @@ namespace slib
 		}
 	}
 
-	sl_bool FileSystemWrapper::deleteFile(const String& path)
+	sl_bool FileSystemWrapper::deleteFile(const StringParam& path)
 	{
 		return m_base->deleteFile(path);
 	}
 
-	sl_bool FileSystemWrapper::moveFile(const String& pathOld, const String& pathNew, sl_bool flagReplaceIfExists)
+	sl_bool FileSystemWrapper::moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists)
 	{
 		return m_base->moveFile(pathOld, pathNew, flagReplaceIfExists);
 	}
@@ -313,17 +343,17 @@ namespace slib
 		}
 	}
 
-	sl_bool FileSystemWrapper::getFileInfo(const String& path, FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemWrapper::getFileInfo(const StringParam& path, FileInfo& info, const FileInfoMask& mask)
 	{
 		return m_base->getFileInfo(path, info, mask);
 	}
 
-	sl_bool FileSystemWrapper::setFileInfo(const String& path, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemWrapper::setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask)
 	{
 		return m_base->setFileInfo(path, info, mask);
 	}
 
-	HashMap<String, FileInfo> FileSystemWrapper::getFiles(const String& pathDir)
+	HashMap<String, FileInfo> FileSystemWrapper::getFiles(const StringParam& pathDir)
 	{
 		return m_base->getFiles(pathDir);
 	}
