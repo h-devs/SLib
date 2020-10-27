@@ -169,6 +169,30 @@ namespace slib
 		return m_flagRunning;
 	}
 
+	sl_bool FileSystemHost::run(const StringParam& mountPoint, const Ref<FileSystemProvider>& provider)
+	{
+		if (mountPoint.isEmpty() || provider.isNull()) {
+			return sl_false;
+		}
+		if (m_flagRunning) {
+			return sl_false;
+		}
+		ObjectLocker lock(this);
+		if (m_flagRunning) {
+			return sl_false;
+		}
+		m_mountPoint = mountPoint.toString();
+		m_provider = provider;
+		m_flagRunning = sl_true;
+		lock.unlock();
+		if (_run()) {
+			return sl_true;
+		} else {
+			m_flagRunning = sl_false;
+			return sl_false;
+		}
+	}
+
 	void FileSystemHost::stop()
 	{
 		if (!(m_flagRunning)) {
