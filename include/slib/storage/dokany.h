@@ -27,6 +27,8 @@
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 
+#include "file_system.h"
+
 #include "../core/service_manager.h"
 
 namespace slib
@@ -47,8 +49,12 @@ namespace slib
 
 		static sl_bool stopDriver();
 
+
+		static Ref<FileSystemHost> createHost();
+
 		static sl_bool unmount(const StringParam& mountPoint);
 		
+
 		static sl_bool install();
 
 	};

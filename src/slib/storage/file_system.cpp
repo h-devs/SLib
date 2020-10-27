@@ -22,22 +22,36 @@
 
 #include "file_system.h"
 
+#ifdef SLIB_PLATFORM_IS_WIN32
+#include "slib/storage/dokany.h"
+#endif
+
 namespace slib
 {
 
-	Ref<FileSystemHost> FileSystem::mount(const String& mountPoint, const Ref<FileSystemProvider>& provider)
+	Ref<FileSystemHost> FileSystem::createHost()
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		return Dokany::createHost();
+#elif defined(SLIB_PLATFORM_IS_UNIX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+#else
+		return sl_null;
+#endif
+	}
+
+	Ref<FileSystemHost> FileSystem::getHost(const String& mountPoint)
 	{
 		return sl_null;
 	}
 
-	Ref<FileSystemHost> getHost(const String& mountPoint)
+	sl_bool FileSystem::unmount(const String& mountPoint)
 	{
-		return sl_null;
-	}
-
-	void FileSystem::unmount(const String& mountPoint)
-	{
-
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		return Dokany::unmount(mountPoint);
+#elif defined(SLIB_PLATFORM_IS_UNIX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+#else
+		return sl_false;
+#endif
 	}
 
 
@@ -112,6 +126,11 @@ namespace slib
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
+	sl_bool FileSystemProvider::setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	{
+		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+	}
+
 	sl_bool FileSystemProvider::setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask)
 	{
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
@@ -120,8 +139,10 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(FileSystemHost, Object)
 
-	FileSystemHost::FileSystemHost(const String& mountPoint, const Ref<FileSystemProvider>& provider): m_mountPoint(mountPoint), m_provider(provider)
+	FileSystemHost::FileSystemHost()
 	{
+		m_flagRunning = sl_false;
+		m_nOpendHandles = 0;
 	}
 
 	FileSystemHost::~FileSystemHost()
@@ -136,6 +157,47 @@ namespace slib
 	Ref<FileSystemProvider> FileSystemHost::getProvider()
 	{
 		return m_provider;
+	}
+
+	sl_bool FileSystemHost::isRunning()
+	{
+		return m_flagRunning;
+	}
+
+	void FileSystemHost::stop()
+	{
+		if (!(m_flagRunning)) {
+			return;
+		}
+		ObjectLocker lock(this);
+		if (!(m_flagRunning)) {
+			return;
+		}
+		_stop();
+	}
+
+	sl_size FileSystemHost::getOpenedHandlesCount()
+	{
+		return m_nOpendHandles;
+	}
+
+	Ref<FileContext> FileSystemHost::openFile(const String& path, const FileOpenParam& param)
+	{
+		Ref<FileContext> context = m_provider->openFile(path, param);
+		if (context.isNotNull()) {
+			Base::interlockedIncrement(&m_nOpendHandles);
+			return context;
+		}
+		return sl_null;
+	}
+
+	sl_bool FileSystemHost::closeFile(FileContext* context)
+	{
+		if (m_provider->closeFile(context)) {
+			Base::interlockedDecrement(&m_nOpendHandles);
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 
@@ -226,6 +288,26 @@ namespace slib
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {
 			return m_base->unlockFile(baseContext.get(), offset, length);
+		} else {
+			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
+		}
+	}
+
+	sl_bool FileSystemWrapper::getFileInfo(FileContext* context, FileInfo& info, const FileInfoMask& mask)
+	{
+		Ref<FileContext> baseContext = getBaseContext(context);
+		if (baseContext.isNotNull()) {
+			return m_base->getFileInfo(baseContext.get(), info, mask);
+		} else {
+			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
+		}
+	}
+
+	sl_bool FileSystemWrapper::setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	{
+		Ref<FileContext> baseContext = getBaseContext(context);
+		if (baseContext.isNotNull()) {
+			return m_base->setFileInfo(baseContext.get(), info, mask);
 		} else {
 			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
 		}

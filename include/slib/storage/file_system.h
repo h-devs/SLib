@@ -42,11 +42,11 @@ namespace slib
 	class SLIB_EXPORT FileSystem
 	{
 	public:
-		static Ref<FileSystemHost> mount(const String& mountPoint, const Ref<FileSystemProvider>& provider);
+		static Ref<FileSystemHost> createHost();
 
 		static Ref<FileSystemHost> getHost(const String& mountPoint);
 
-		static void unmount(const String& mountPoint);
+		static sl_bool unmount(const String& mountPoint);
 
 	};
 
@@ -190,7 +190,11 @@ namespace slib
 
 		virtual sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length);
 
-		virtual sl_bool	getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask) = 0;
+		virtual sl_bool getFileInfo(FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) = 0;
+
+		virtual sl_bool setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask);
+
+		virtual sl_bool getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask) = 0;
 
 		virtual sl_bool setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask);
 
@@ -203,25 +207,38 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 
 	public:
-		FileSystemHost(const String& mountPoint, const Ref<FileSystemProvider>& provider);
+		FileSystemHost();
 
 		~FileSystemHost();
-
-	public:
-		virtual sl_bool isRunning() = 0;
-		
-		virtual void stop() = 0;
-
-		virtual sl_uint64 getOpenHandlesCount() = 0;
 
 	public:
 		String getMountPoint();
 
 		Ref<FileSystemProvider> getProvider();
 
+		sl_bool isRunning();
+
+		sl_bool run(const StringParam& mountPoint, const Ref<FileSystemProvider>& provider);
+		
+		void stop();
+
+		sl_size getOpenedHandlesCount();
+
+		Ref<FileContext> openFile(const String& path, const FileOpenParam& param);
+
+		sl_bool closeFile(FileContext* context);
+
+	protected:
+		virtual sl_bool _run() = 0;
+
+		virtual void _stop() = 0;
+
 	protected:
 		String m_mountPoint;
 		Ref<FileSystemProvider> m_provider;
+
+		sl_bool m_flagRunning;
+		sl_reg m_nOpendHandles;
 
 	};
 
@@ -253,7 +270,11 @@ namespace slib
 
 		sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
 
-		sl_bool	getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask) override;
+		sl_bool getFileInfo(FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) override;
+
+		sl_bool setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask) override;
+
+		sl_bool getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask) override;
 
 		sl_bool setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask) override;
 

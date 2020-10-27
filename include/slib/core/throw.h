@@ -27,8 +27,12 @@
 
 #ifdef SLIB_USE_THROW
 #define SLIB_THROW(THROW, RETURN) throw THROW;
+#define SLIB_TRY try
+#define SLIB_CATCH(...) catch(__VA_ARGS__)
 #else
 #define SLIB_THROW(THROW, ...) return __VA_ARGS__;
+#define SLIB_TRY
+#define SLIB_CATCH(...) if (0)
 #endif
 
 #endif
