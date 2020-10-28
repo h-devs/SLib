@@ -63,7 +63,7 @@ namespace slib
 		return sl_true;
 	}
 
-	Ref<FileContext> MirrorFs::openFile(const String& path, const FileOpenParam& param)
+	Ref<FileContext> MirrorFs::openFile(const StringParam& path, const FileOpenParam& param)
 	{
 		String filePath = m_root + path;
 		if (param.attributes & FileAttributes::Directory) {
@@ -169,7 +169,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MirrorFs::deleteFile(const String& path)
+	sl_bool MirrorFs::deleteFile(const StringParam& path)
 	{
 		if (!File::deleteFile(m_root + path, sl_true)) {
 			SLIB_THROW(getError(), sl_false);
@@ -177,7 +177,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MirrorFs::moveFile(const String& oldPath, const String& newPath, sl_bool flagReplaceIfExists)
+	sl_bool MirrorFs::moveFile(const StringParam& oldPath, const StringParam& newPath, sl_bool flagReplaceIfExists)
 	{
 		// TODO replaceIfExists
 		if (!File::rename(m_root + oldPath, m_root + newPath)) {
@@ -245,7 +245,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MirrorFs::getFileInfo(const String& path, FileInfo& outInfo, const FileInfoMask& mask)
+	sl_bool MirrorFs::getFileInfo(const StringParam& path, FileInfo& outInfo, const FileInfoMask& mask)
 	{
 		String filePath = m_root + path;
 
@@ -314,7 +314,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MirrorFs::setFileInfo(const String& path, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool MirrorFs::setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask)
 	{
 		String filePath = m_root + path;
 
@@ -353,14 +353,14 @@ namespace slib
 		return sl_true;
 	}
 
-	HashMap<String, FileInfo> MirrorFs::getFiles(const String& pathDir)
+	HashMap<String, FileInfo> MirrorFs::getFiles(const StringParam& pathDir)
 	{
 		String filePath = m_root + pathDir;
 		HashMap<String, FileInfo> files;
 
 		List<String> names = File::getFiles(m_root + pathDir);	// TODO return FileInfos, return . and ..
 
-		if (pathDir.getLength() > 1) {
+		if (pathDir.toString().getLength() > 1) {
 			// FIXME HARDCODE add . and ..
 			FileInfo info;
 			if (!getFileInfo(pathDir, info, FileInfoMask::All)) {

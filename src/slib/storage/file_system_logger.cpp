@@ -7,9 +7,10 @@
 #define TAG "FileSystemLogger"
 #define LOG(...) SLIB_LOG(TAG, ##__VA_ARGS__)
 
-#define contextDesc		String::fromUint64(context->handle) + \
-						(m_flags & FsLogFileName ? ":" + context->path : \
-						(m_flags & FsLogContextAddress ? ":0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true) : ""))
+//#define contextDesc		String::fromUint64(context->handle) + \
+//						(m_flags & FsLogFileName ? ":" + context->path : \
+//						(m_flags & FsLogContextAddress ? ":0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true) : ""))
+#define contextDesc		"0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true)
 
 namespace slib
 {
@@ -17,52 +18,51 @@ namespace slib
 	FsLogger::FsLogger(Ref<FileSystemProvider> base, sl_uint32 logFlags, String regexFilter)
 		: FileSystemWrapper(base), m_flags(logFlags), m_regex(regexFilter)
 	{
-		if (!(m_flags & FsLogVolumeInfo))
-			return;
-
 		LOG("LogFlags: 0x%08X", m_flags);
-
-		LOG("FileSystemInfo:");
-		LOG("  volumeName: %s", m_volumeInfo.volumeName);
-		LOG("  fileSystemName: %s", m_volumeInfo.fileSystemName);
-		LOG("  creationTime: %s", m_flags & FsLogDateAsString
-			? m_volumeInfo.creationTime.toString() 
-			: String::fromInt64(m_volumeInfo.creationTime.toInt()));
-		LOG("  serialNumber: %d", m_volumeInfo.serialNumber);
-		LOG("  sectorSize: %d", m_volumeInfo.sectorSize);
-		LOG("  sectorsPerAllocationUnit: %d", m_volumeInfo.sectorsPerAllocationUnit);
-		LOG("  maxPathLength: %d", m_volumeInfo.maxPathLength);
-		LOG("  flags: 0x%X", m_volumeInfo.flags.value);
-	}
-
-	FsLogger::~FsLogger()
-	{
 	}
 
 	sl_bool FsLogger::getInformation(FileSystemInfo& info, const FileSystemInfoMask& mask)
 	{
 		if (!(m_flags & FsLogGetVolumeInfo))
-			return m_base->getInformation(flags);
-		if (flags & VolumeInfoFlags::BasicInfo &&
-			!(m_flags & FsLogGetVolumeBasicInfo))
-			return m_base->getInformation(flags);
-		if (flags & VolumeInfoFlags::SizeInfo &&
-			!(m_flags & FsLogGetVolumeSizeInfo))
-			return m_base->getInformation(flags);
+			return m_base->getInformation(info, mask);
+
+		if (mask & FileSystemInfoMask::Basic &&
+			!(m_flags & FsLogGetVolumeInfo))
+			return m_base->getInformation(info, mask);
+
+		if (mask & FileSystemInfoMask::Size &&
+			!(m_flags & FsLogGetVolumeSize))
+			return m_base->getInformation(info, mask);
 
 		String desc = "";
-		if (flags & VolumeInfoFlags::BasicInfo)
+		if (mask & FileSystemInfoMask::Basic)
 			desc = ":BasicInfo";
-		if (flags & VolumeInfoFlags::SizeInfo)
+		if (mask & FileSystemInfoMask::Size)
 			desc = ":SizeInfo";
-		desc = String::format("GetVolumeInfo(%s)", flags, desc);
+		desc = String::format("GetVolumeInfo(%s)", mask, desc);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			const FileSystemInfo &ret = m_base->getInformation(flags);
+			sl_bool ret = m_base->getInformation(info, mask);
 			if (m_flags & FsLogRet) {
-				LOG(desc);
+				LOG("%s\n  Ret: %d", desc, ret);
+				if (mask & FileSystemInfoMask::Basic) {
+					LOG("  volumeName: %s", info.volumeName);
+					LOG("  fileSystemName: %s", info.fileSystemName);
+					LOG("  creationTime: %s", m_flags & FsLogDateAsString
+						? info.creationTime.toString()
+						: String::fromInt64(info.creationTime.toInt()));
+					LOG("  serialNumber: %d", info.serialNumber);
+					LOG("  sectorSize: %d", info.sectorSize);
+					LOG("  sectorsPerAllocationUnit: %d", info.sectorsPerAllocationUnit);
+					LOG("  maxPathLength: %d", info.maxPathLength);
+					LOG("  flags: 0x%X", info.flags.value);
+				}
+				if (mask & FileSystemInfoMask::Size) {
+					LOG("  totalSize: %d", info.totalSize);
+					LOG("  freeSize: %d", info.freeSize);
+				}
 			}
 			return ret;
 		}
@@ -73,20 +73,24 @@ namespace slib
 		}
 	}
 
-	Ref<FileContext> FsLogger::openFile(const String& path, const FileOpenParam& param)
+	Ref<FileContext> FsLogger::openFile(const StringParam& path, const FileOpenParam& param)
 	{
-		if (!(m_flags & FsLogOpen) || !m_regex.match(context->path))
-			return m_base->openFile(context, params);
+		if (!(m_flags & FsLogOpen) || !m_regex.match(path.toString()))
+			return m_base->openFile(path, param);
 
-		String desc = String::format("Open(%s,%s,%s%s,0x%X,0x%X,0x%X)", context->path,
-			params.attributes.isDirectory ? "DIR" : "FILE",
-			(params.createAlways ? "ALWAYS" : "EXISTING"), (params.openTruncate ? "|TRUNCATE" : ""),
-			params.accessMode, params.shareMode, params.flagsAndAttributes);
+		String desc = String::format("Open(%s,%s,%s%s,0x%X,0x%X)", path,
+			param.attributes & FileAttributes::Directory ? "DIR" : "FILE",
+			(param.mode & FileMode::NotCreate ? "NOT_CREATE" : "CREATE"),
+			(param.mode & FileMode::NotTruncate ? "" : "|TRUNCATE"),
+			param.mode.value, param.attributes.value);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			m_base->openFile(context, params);
+			auto ret = m_base->openFile(path, param);
+			if (m_flags & FsLogRet)
+				LOG("%s\n  Ret: %d", desc, ret);
+			return ret;
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
@@ -97,15 +101,15 @@ namespace slib
 
 	sl_size FsLogger::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size)
 	{
-		if (!(m_flags & FsLogRead) || !m_regex.match(context->path))
-			return m_base->readFile(context, buffer, offset);
+		if (!(m_flags & FsLogRead)/* || !m_regex.match(context->path)*/)
+			return m_base->readFile(context, offset, buf, size);
 
-		String desc = String::format("Read(%s,0x%X,0x%X)", contextDesc, offset, buffer.getSize());
+		String desc = String::format("Read(%s,0x%X,0x%X)", contextDesc, offset, size);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			sl_size ret = m_base->readFile(context, buffer, offset);
+			sl_size ret = m_base->readFile(context, offset, buf, size);
 			if (m_flags & FsLogRet)
 				LOG("%s\n  Ret: %d", desc, ret);
 			return ret;
@@ -119,15 +123,15 @@ namespace slib
 
 	sl_size FsLogger::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size)
 	{
-		if (!(m_flags & FsLogWrite) || !m_regex.match(context->path))
-			return m_base->writeFile(context, buffer, offset, writeToEof);
+		if (!(m_flags & FsLogWrite)/* || !m_regex.match(context->path)*/)
+			return m_base->writeFile(context, offset, buf, size);
 
-		String desc = String::format("Write(%s,0x%X,0x%X,%d)", contextDesc, offset, buffer.getSize(), writeToEof);
+		String desc = String::format("Write(%s,0x%X,0x%X)", contextDesc, offset, size);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			sl_size ret = m_base->writeFile(context, buffer, offset, writeToEof);
+			sl_size ret = m_base->writeFile(context, offset, buf, size);
 			if (m_flags & FsLogRet)
 				LOG("%s\n  Ret: %d", desc, ret);
 			return ret;
@@ -139,19 +143,20 @@ namespace slib
 		}
 	}
 
-	sl_bool FsLogger::flush(FileContext* context)
+	sl_bool FsLogger::flushFile(FileContext* context)
 	{
-		if (!(m_flags & FsLogFlush) || !m_regex.match(context->path))
-			return m_base->flush(context);
+		if (!(m_flags & FsLogFlush)/* || !m_regex.match(context->path)*/)
+			return m_base->flushFile(context);
 
 		String desc = String::format("Flush(%s)", contextDesc);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			m_base->flush(context);
+			sl_bool ret = m_base->flushFile(context);
 			if (m_flags & FsLogRet)
-				LOG(desc);
+				LOG("%s\n  Ret: %d", desc, ret);
+			return ret;
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
@@ -162,10 +167,10 @@ namespace slib
 
 	sl_bool FsLogger::closeFile(FileContext* context)
 	{
-		if (!(m_flags & FsLogClose) || !m_regex.match(context->path)) {
+		if (!(m_flags & FsLogClose)/* || !m_regex.match(context->path)*/) {
 			m_base->closeFile(context);
-			if (m_flags & FsLogHandleCountOnClose)
-				LOG("Current open handles count: %d", m_openHandles[context->path]);
+			//if (m_flags & FsLogHandleCountOnClose)
+			//	LOG("Current open handles count: %d", m_openHandles[context->path]);
 			return;
 		}
 
@@ -174,11 +179,12 @@ namespace slib
 			LOG(desc);
 
 		try {
-			m_base->close(context);
+			sl_bool ret = m_base->closeFile(context);
 			if (m_flags & FsLogRet)
-				LOG(desc);
-			if (m_flags & FsLogHandleCountOnClose)
-				LOG("Current open handles count: %d", m_openHandles[context->path]);
+				LOG("%s\n  Ret: %d", desc, ret);
+			//if (m_flags & FsLogHandleCountOnClose)
+			//	LOG("Current open handles count: %d", m_openHandles[context->path]);
+			return ret;
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
@@ -187,25 +193,20 @@ namespace slib
 		}
 	}
 
-	sl_bool FsLogger::deleteFile(const String& filePath)
+	sl_bool FsLogger::deleteFile(const StringParam& path)
 	{
-		if (checkOnly) {
-			if (!(m_flags & FsLogCanDelete) || !m_regex.match(context->path))
-				return m_base->deleteFile(context, checkOnly);
-		}
-		else {
-			if (!(m_flags & FsLogDelete) || !m_regex.match(context->path))
-				return m_base->deleteFile(context, checkOnly);
-		}
-
-		String desc = String::format("%sDelete(%s)", checkOnly ? "Can" : "", contextDesc);
+		if (!(m_flags & FsLogDelete) || !m_regex.match(path.toString()))
+			return m_base->deleteFile(path);
+	
+		String desc = String::format("Delete(%s)", path);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			m_base->delete(context, checkOnly);
+			sl_bool ret = m_base->deleteFile(path);
 			if (m_flags & FsLogRet)
-				LOG(desc);
+				LOG("%s\n  Ret: %d", desc, ret);
+			return ret;
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
@@ -214,19 +215,20 @@ namespace slib
 		}
 	}
 
-	sl_bool FsLogger::moveFile(const String& oldFilePath, const String& newFilePath, sl_bool flagReplaceIfExists)
+	sl_bool FsLogger::moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists)
 	{
-		if (!(m_flags & FsLogRename) || !m_regex.match(context->path))
-			return m_base->moveFile(context, newFileName, replaceIfExists);
+		if (!(m_flags & FsLogRename) || !m_regex.match(pathOld.toString()))
+			return m_base->moveFile(pathOld, pathNew, flagReplaceIfExists);
 
-		String desc = String::format("Rename(%s,%s,%d)", contextDesc, newFileName, replaceIfExists);
+		String desc = String::format("Move(%s,%s,%d)", pathOld, pathNew, flagReplaceIfExists);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			m_base->fsRename(context, newFileName, replaceIfExists);
+			sl_bool ret = m_base->moveFile(pathOld, pathNew, flagReplaceIfExists);
 			if (m_flags & FsLogRet)
-				LOG(desc);
+				LOG("%s\n  Ret: %d", desc, ret);
+			return ret;
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
@@ -237,7 +239,7 @@ namespace slib
 
 	sl_bool FsLogger::lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
 	{
-		if (!(m_flags & FsLogLock) || !m_regex.match(context->path))
+		if (!(m_flags & FsLogLock)/* || !m_regex.match(context->path)*/)
 			return m_base->lockFile(context, offset, length);
 
 		String desc = String::format("Lock(%s,0x%X,0x%X)", contextDesc, offset, length);
@@ -245,9 +247,10 @@ namespace slib
 			LOG(desc);
 
 		try {
-			m_base->fsLock(context, offset, length);
+			sl_bool ret = m_base->lockFile(context, offset, length);
 			if (m_flags & FsLogRet)
-				LOG(desc);
+				LOG("%s\n  Ret: %d", desc, ret);
+			return ret;
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
@@ -258,7 +261,7 @@ namespace slib
 
 	sl_bool FsLogger::unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
 	{
-		if (!(m_flags & FsLogUnlock) || !m_regex.match(context->path))
+		if (!(m_flags & FsLogUnlock)/* || !m_regex.match(context->path)*/)
 			return m_base->unlockFile(context, offset, length);
 
 		String desc = String::format("Unlock(%s,0x%X,0x%X)", contextDesc, offset, length);
@@ -266,36 +269,9 @@ namespace slib
 			LOG(desc);
 
 		try {
-			m_base->fsUnlock(context, offset, length);
+			sl_bool ret = m_base->unlockFile(context, offset, length);
 			if (m_flags & FsLogRet)
-				LOG(desc);
-		}
-		catch (FileSystemError error) {
-			if (m_flags & FsLogErrors)
-				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
-			throw error;
-		}
-	}
-
-	sl_bool FsLogger::getFileInfo(const String& filePath, FileInfo& outInfo, const FileInfoMask& mask)
-	{
-		if (!(m_flags & FsLogGetInfo) || !m_regex.match(context->path))
-			return m_base->getFileInfo(context);
-
-		String desc = String::format("GetFileInfo(%s)", contextDesc);
-		if (!(m_flags & FsLogRetAndErrors))
-			LOG(desc);
-
-		try {
-			FileInfo ret = m_base->getFileInfo(context);
-			if (m_flags & FsLogRet)
-				LOG("%s\n  Ret: (0x%X,%s,%d,%d%s)", desc,
-					ret.fileAttributes, ret.attr.isDirectory ? "DIR" : "FILE",
-					ret.size, ret.allocationSize,
-					(m_flags & FsLogAttrNoDate ? "" : ","
-						+ (m_flags & FsLogDateAsString
-							? String::format("%s,%s,%s", ret.createdAt.toString(), ret.modifiedAt.toString(), ret.lastAccessedAt.toString())
-							: String::format("%d,%d,%d", ret.createdAt.toInt(), ret.modifiedAt.toInt(), ret.lastAccessedAt.toInt()))));
+				LOG("%s\n  Ret: %d", desc, ret);
 			return ret;
 		}
 		catch (FileSystemError error) {
@@ -305,36 +281,40 @@ namespace slib
 		}
 	}
 
-	sl_bool FsLogger::setFileInfo(const String& filePath, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool FsLogger::getFileInfo(const StringParam& path, FileInfo& info, const FileInfoMask& mask)
 	{
-		if (!(m_flags & FsLogSetInfo) || !m_regex.match(context->path))
-			return m_base->setFileInfo(context, fileInfo, flags);
+		if (!(m_flags & FsLogGetInfo) || !m_regex.match(path.toString()))
+			return m_base->getFileInfo(path, info, mask);
 
-		String desc = String::format("SetFileInfo(%s,0x%X)", contextDesc, flags);
-		if (m_flags & FsLogSetInfoDetail) {
-			if (m_flags & FsLogSetAttrInfo && flags & FileInfoFlags::AttrInfo) {
-				desc = desc + String::format("  Attr: 0x%X, %s", fileInfo.fileAttributes, fileInfo.attr.isDirectory ? "DIR" : "FILE");
-			}
-			if (m_flags & FsLogSetTimeInfo && flags & FileInfoFlags::TimeInfo) {
-				if (m_flags & FsLogDateAsString)
-					desc = desc + String::format("  Time: %s,%s,%s", fileInfo.createdAt.toString(), fileInfo.modifiedAt.toString(), fileInfo.lastAccessedAt.toString());
-				else
-					desc = desc + String::format("  Time: %d,%d,%d", (sl_uint64)fileInfo.createdAt.toInt(), (sl_uint64)fileInfo.modifiedAt.toInt(), (sl_uint64)fileInfo.lastAccessedAt.toInt());
-			}
-			if (m_flags & FsLogSetFileSizeInfo && flags & FileInfoFlags::SizeInfo) {
-				desc = desc + String::format("  FileSize: %d", fileInfo.size);
-			}
-			if (m_flags & FsLogSetAllocSizeInfo && flags & FileInfoFlags::AllocSizeInfo) {
-				desc = desc + String::format("  AllocSize: %d", fileInfo.allocationSize);
-			}
-		}
+		String desc = String::format("GetFileInfo(%s,0x%X)", path, mask);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			m_base->setFileInfo(context, fileInfo, flags);
-			if (m_flags & FsLogRet)
-				LOG(desc);
+			sl_bool ret = m_base->getFileInfo(path, info, mask);
+			if (m_flags & FsLogRet) {
+				LOG("%s\n  Ret: %d", desc, ret);
+				if (mask & FileInfoMask::Attributes)
+					LOG("  Attributes: 0x%X, %d", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
+				if (mask & FileInfoMask::Size)
+					LOG("  Size: %d", info.size);
+				if (mask & FileInfoMask::AllocSize)
+					LOG("  AllocSize: %d", info.allocSize);
+				if (!(m_flags & FsLogAttrNoDate) &&
+					(mask & FileInfoMask::Time)) {
+					if (m_flags & FsLogDateAsString) {
+						LOG("  CreatedAt: %s", info.createdAt.toString());
+						LOG("  ModifiedAt: %s", info.modifiedAt.toString());
+						LOG("  AccessedAt: %s", info.lastAccessedAt.toString());
+					}
+					else {
+						LOG("  CreatedAt: %d", info.createdAt.toInt());
+						LOG("  ModifiedAt: %d", info.modifiedAt.toInt());
+						LOG("  AccessedAt: %d", info.lastAccessedAt.toInt());
+					}
+				}
+			}
+			return ret;
 		}
 		catch (FileSystemError error) {
 			if (m_flags & FsLogErrors)
@@ -343,24 +323,150 @@ namespace slib
 		}
 	}
 
-	HashMap<String, FileInfo> FsLogger::getFiles(FileContext* context, String pattern)
+	sl_bool FsLogger::getFileInfo(FileContext* context, FileInfo& info, const FileInfoMask& mask)
 	{
-		if (!(m_flags & FsLogList) || !m_regex.match(context->path))
-			return m_base->getFiles(context, pattern);
+		if (!(m_flags & FsLogGetInfo)/* || !m_regex.match(context->path)*/)
+			return m_base->getFileInfo(context, info, mask);
 
-		String desc = String::format("FindFiles(%s,%s)", contextDesc, pattern);
+		String desc = String::format("GetFileInfo(%s,0x%X)", contextDesc, mask);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		try {
-			HashMap<String, FileInfo> ret = m_base->fsFindFiles(context, pattern);
+			sl_bool ret = m_base->getFileInfo(context, info, mask);
+			if (m_flags & FsLogRet) {
+				LOG("%s\n  Ret: %d", desc, ret);
+				if (mask & FileInfoMask::Attributes)
+					LOG("  Attributes: 0x%X, %d", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
+				if (mask & FileInfoMask::Size)
+					LOG("  Size: %d", info.size);
+				if (mask & FileInfoMask::AllocSize)
+					LOG("  AllocSize: %d", info.allocSize);
+				if (!(m_flags & FsLogAttrNoDate) &&
+					(mask & FileInfoMask::Time)) {
+					if (m_flags & FsLogDateAsString) {
+						LOG("  CreatedAt: %s", info.createdAt.toString());
+						LOG("  ModifiedAt: %s", info.modifiedAt.toString());
+						LOG("  AccessedAt: %s", info.lastAccessedAt.toString());
+					}
+					else {
+						LOG("  CreatedAt: %d", info.createdAt.toInt());
+						LOG("  ModifiedAt: %d", info.modifiedAt.toInt());
+						LOG("  AccessedAt: %d", info.lastAccessedAt.toInt());
+					}
+				}
+			}
+			return ret;
+		}
+		catch (FileSystemError error) {
+			if (m_flags & FsLogErrors)
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
+			throw error;
+		}
+	}
+
+	sl_bool FsLogger::setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask)
+	{
+		if (!(m_flags & FsLogSetInfo) || !m_regex.match(path.toString()))
+			return m_base->setFileInfo(path, info, mask);
+
+		String desc = String::format("SetFileInfo(%s,0x%X)", path, mask);
+		if (!(m_flags & FsLogRetAndErrors))
+			LOG(desc);
+
+		try {
+			sl_bool ret = m_base->setFileInfo(path, info, mask);
+			if (m_flags & FsLogRet) {
+				LOG("%s\n  Ret: %d", desc, ret);
+				if (mask & FileInfoMask::Attributes)
+					LOG("  Attributes: 0x%X, %d", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
+				if (mask & FileInfoMask::Size)
+					LOG("  Size: %d", info.size);
+				if (mask & FileInfoMask::AllocSize)
+					LOG("  AllocSize: %d", info.allocSize);
+				if (!(m_flags & FsLogAttrNoDate) &&
+					(mask & FileInfoMask::Time)) {
+					if (m_flags & FsLogDateAsString) {
+						LOG("  CreatedAt: %s", info.createdAt.toString());
+						LOG("  ModifiedAt: %s", info.modifiedAt.toString());
+						LOG("  AccessedAt: %s", info.lastAccessedAt.toString());
+					}
+					else {
+						LOG("  CreatedAt: %d", info.createdAt.toInt());
+						LOG("  ModifiedAt: %d", info.modifiedAt.toInt());
+						LOG("  AccessedAt: %d", info.lastAccessedAt.toInt());
+					}
+				}
+			}
+			return ret;
+		}
+		catch (FileSystemError error) {
+			if (m_flags & FsLogErrors)
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
+			throw error;
+		}
+	}
+
+	sl_bool FsLogger::setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	{
+		if (!(m_flags & FsLogSetInfo)/* || !m_regex.match(context->path)*/)
+			return m_base->setFileInfo(context, info, mask);
+
+		String desc = String::format("SetFileInfo(%s,0x%X)", contextDesc, mask);
+		if (!(m_flags & FsLogRetAndErrors))
+			LOG(desc);
+
+		try {
+			sl_bool ret = m_base->setFileInfo(context, info, mask);
+			if (m_flags & FsLogRet) {
+				LOG("%s\n  Ret: %d", desc, ret);
+				if (mask & FileInfoMask::Attributes)
+					LOG("  Attributes: 0x%X, %d", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
+				if (mask & FileInfoMask::Size)
+					LOG("  Size: %d", info.size);
+				if (mask & FileInfoMask::AllocSize)
+					LOG("  AllocSize: %d", info.allocSize);
+				if (!(m_flags & FsLogAttrNoDate) &&
+					(mask & FileInfoMask::Time)) {
+					if (m_flags & FsLogDateAsString) {
+						LOG("  CreatedAt: %s", info.createdAt.toString());
+						LOG("  ModifiedAt: %s", info.modifiedAt.toString());
+						LOG("  AccessedAt: %s", info.lastAccessedAt.toString());
+					}
+					else {
+						LOG("  CreatedAt: %d", info.createdAt.toInt());
+						LOG("  ModifiedAt: %d", info.modifiedAt.toInt());
+						LOG("  AccessedAt: %d", info.lastAccessedAt.toInt());
+					}
+				}
+			}
+			return ret;
+		}
+		catch (FileSystemError error) {
+			if (m_flags & FsLogErrors)
+				LOG("%s\n  Error: %d, %s", desc, error, System::formatErrorCode((sl_uint32)error));
+			throw error;
+		}
+	}
+
+	HashMap<String, FileInfo> FsLogger::getFiles(const StringParam& path)
+	{
+		if (!(m_flags & FsLogList) || !m_regex.match(path.toString()))
+			return m_base->getFiles(path);
+
+		String desc = String::format("GetFiles(%s)", path);
+		if (!(m_flags & FsLogRetAndErrors))
+			LOG(desc);
+
+		try {
+			HashMap<String, FileInfo> ret = m_base->getFiles(path);
 			if (m_flags & FsLogRet) {
 				LOG(desc);
 				for (auto& file : ret) {
 					FileInfo info = file.value;
 					LOG("  %s: (0x%X,%s,%d,%d%s)", file.key,
-						info.fileAttributes, info.attr.isDirectory ? "DIR" : "FILE",
-						info.size, info.allocationSize,
+						info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE",
+						info.size, info.allocSize,
 						(m_flags & FsLogAttrNoDate ? "" : ","
 							+ (m_flags & FsLogDateAsString
 								? String::format("%s,%s,%s", info.createdAt.toString(), info.modifiedAt.toString(), info.lastAccessedAt.toString())
