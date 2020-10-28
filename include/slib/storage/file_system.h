@@ -199,6 +199,10 @@ namespace slib
 
 		virtual sl_bool setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask);
 
+		virtual sl_bool createDirectory(const StringParam& path) = 0;
+
+		virtual sl_bool deleteDirectory(const StringParam& path) = 0;
+
 		virtual HashMap<String, FileInfo> getFiles(const StringParam& pathDir) = 0;
 
 	};
@@ -296,6 +300,10 @@ namespace slib
 		sl_bool getFileInfo(const StringParam& path, FileInfo& outInfo, const FileInfoMask& mask) override;
 
 		sl_bool setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask) override;
+
+		sl_bool createDirectory(const StringParam& path) override;
+
+		sl_bool deleteDirectory(const StringParam& path) override;
 
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
 

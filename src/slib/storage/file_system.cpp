@@ -353,6 +353,16 @@ namespace slib
 		return m_base->setFileInfo(path, info, mask);
 	}
 
+	sl_bool FileSystemWrapper::createDirectory(const StringParam& path)
+	{
+		return m_base->createDirectory(path);
+	}
+
+	sl_bool FileSystemWrapper::deleteDirectory(const StringParam& path)
+	{
+		return m_base->deleteDirectory(path);
+	}
+
 	HashMap<String, FileInfo> FileSystemWrapper::getFiles(const StringParam& pathDir)
 	{
 		return m_base->getFiles(pathDir);
