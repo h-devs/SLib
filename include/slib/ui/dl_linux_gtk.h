@@ -722,12 +722,12 @@ namespace slib
 		)
 		#define gtk_combo_box_set_title slib::gtk::getApi_gtk_combo_box_set_title()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-			gtk_list_store_new,
+	        gtk_list_store_new,
 			GtkListStore*, ,
-			gint n_columns,
-			...
+	        gint          n_columns,
+	        ...
 		)
-		#define gtk_list_store_new slib::gtk::getApi_gtk_list_store_new()
+        #define gtk_list_store_new slib::gtk::getApi_gtk_list_store_new()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_list_store_append,
 			void, ,
@@ -1061,6 +1061,186 @@ namespace slib
 	        const gchar  *name
 	    )
         #define gtk_widget_set_name slib::gtk::getApi_gtk_widget_set_name()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_get_model,
+	        GtkTreeModel*, ,
+	        GtkTreeView  *tree_view
+	    )
+        #define gtk_tree_view_get_model slib::gtk::getApi_gtk_tree_view_get_model()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_model_get_n_columns,
+	        gint, ,
+	        GtkTreeModel *tree_model
+	    )
+        #define gtk_tree_model_get_n_columns slib::gtk::getApi_gtk_tree_model_get_n_columns()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_get_column,
+	        GtkTreeViewColumn*, ,
+	            GtkTreeView  *tree_view,
+	            gint n
+	    )
+        #define gtk_tree_view_get_column slib::gtk::getApi_gtk_tree_view_get_column()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_remove_column,
+	        gint, ,
+	        GtkTreeView  *tree_view,
+	        GtkTreeViewColumn  *column
+	    )
+        #define gtk_tree_view_remove_column slib::gtk::getApi_gtk_tree_view_remove_column()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_column_new,
+	        GtkTreeViewColumn*, ,
+	    )
+        #define gtk_tree_view_column_new slib::gtk::getApi_gtk_tree_view_column_new()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_append_column,
+	        gint, ,
+	        GtkTreeView     *tree_view,
+	        GtkTreeViewColumn   *column
+	    )
+        #define gtk_tree_view_append_column slib::gtk::getApi_gtk_tree_view_append_column()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_column_set_title,
+	        void, ,
+	        GtkTreeViewColumn   *tree_column,
+	        const gchar    *title
+	    )
+        #define gtk_tree_view_column_set_title slib::gtk::getApi_gtk_tree_view_column_set_title()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_column_set_fixed_width,
+	        void, ,
+	        GtkTreeViewColumn       *tree_column,
+	        gint                     fixed_width
+	    )
+        #define gtk_tree_view_column_set_fixed_width slib::gtk::getApi_gtk_tree_view_column_set_fixed_width()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_column_set_alignment,
+	        void, ,
+	        GtkTreeViewColumn       *tree_column,
+	        gfloat                   xalign
+	    )
+        #define gtk_tree_view_column_set_alignment slib::gtk::getApi_gtk_tree_view_column_set_alignment()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_model_iter_n_children,
+	        gint, ,
+	        GtkTreeModel *tree_model,
+	        GtkTreeIter  *iter
+	    )
+        #define gtk_tree_model_iter_n_children slib::gtk::getApi_gtk_tree_model_iter_n_children()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_list_store_remove,
+	        gboolean, ,
+	        GtkListStore *list_store,
+	        GtkTreeIter  *iter
+	    )
+        #define gtk_list_store_remove slib::gtk::getApi_gtk_list_store_remove()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_get_selection,
+	        GtkTreeSelection*, ,
+	        GtkTreeView               *tree_view
+	    )
+        #define gtk_tree_view_get_selection slib::gtk::getApi_gtk_tree_view_get_selection()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_selection_set_mode,
+	        void, ,
+	        GtkTreeSelection            *selection,
+	        GtkSelectionMode             type
+	    )
+        #define gtk_tree_selection_set_mode slib::gtk::getApi_gtk_tree_selection_set_mode()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_selection_get_selected,
+	        gboolean, ,
+	        GtkTreeSelection            *selection,
+	        GtkTreeModel               **model,
+	        GtkTreeIter                 *iter
+	    )
+        #define gtk_tree_selection_get_selected slib::gtk::getApi_gtk_tree_selection_get_selected()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_new,
+	        GtkWidget*, ,
+	    )
+        #define gtk_tree_view_new slib::gtk::getApi_gtk_tree_view_new()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_cell_renderer_text_new,
+	        GtkCellRenderer*, ,
+	    )
+        #define gtk_cell_renderer_text_new slib::gtk::getApi_gtk_cell_renderer_text_new()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_column_new_with_attributes,
+	        GtkTreeViewColumn*, ,
+	        const gchar             *title,
+	        GtkCellRenderer         *cell,
+	        ...
+	    )
+        #define gtk_tree_view_column_new_with_attributes slib::gtk::getApi_gtk_tree_view_column_new_with_attributes()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_set_model,
+	        void, ,
+	        GtkTreeView               *tree_view,
+	        GtkTreeModel              *model
+	    )
+        #define gtk_tree_view_set_model slib::gtk::getApi_gtk_tree_view_set_model()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_get_columns,
+	        GList*, ,
+	        GtkTreeView               *tree_view
+	    )
+        #define gtk_tree_view_get_columns slib::gtk::getApi_gtk_tree_view_get_columns()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_list_store_newv,
+	        GtkListStore*, ,
+	        gint          n_columns,
+	        GType        *types
+	    )
+        #define gtk_list_store_newv slib::gtk::getApi_gtk_list_store_newv()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_store_newv,
+	        GtkTreeStore*, ,
+	        gint          n_columns,
+	        GType        *types
+	    )
+        #define gtk_tree_store_newv slib::gtk::getApi_gtk_tree_store_newv()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_model_get_type,
+	        GType, ,
+	    )
+        #define gtk_tree_model_get_type slib::gtk::getApi_gtk_tree_model_get_type()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        g_type_interface_peek,
+	        gpointer, ,
+	        gpointer  instance_class,
+	        GType   iface_type
+	    )
+        #define g_type_interface_peek slib::gtk::getApi_g_type_interface_peek()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_store_remove,
+	        gboolean, ,
+	        GtkTreeStore *tree_store,
+	        GtkTreeIter  *iter
+	    )
+        #define gtk_tree_store_remove slib::gtk::getApi_gtk_tree_store_remove()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_store_append,
+	        void, ,
+	        GtkTreeStore *tree_store,
+	        GtkTreeIter  *iter,
+	        GtkTreeIter  *parent
+	    )
+        #define gtk_tree_store_append slib::gtk::getApi_gtk_tree_store_append()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_set_hadjustment,
+	        void, ,
+	        GtkTreeView  *tree_view,
+	        GtkAdjustment  *adjustment
+	    )
+        #define gtk_tree_view_set_hadjustment slib::gtk::getApi_gtk_tree_view_set_hadjustment()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_set_vadjustment,
+	        void, ,
+	        GtkTreeView  *tree_view,
+	        GtkAdjustment  *adjustment
+	    )
+        #define gtk_tree_view_set_vadjustment slib::gtk::getApi_gtk_tree_view_set_vadjustment()
 	SLIB_IMPORT_LIBRARY_END
 
 }
