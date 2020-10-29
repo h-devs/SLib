@@ -20,6 +20,8 @@ namespace slib
 	public:
 		sl_bool getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask) override;
 
+		sl_bool createDirectory(const StringParam& path) override;
+
 		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) override;
 
 		sl_size	readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size) override;
@@ -29,6 +31,8 @@ namespace slib
 		sl_bool flushFile(FileContext* context) override;
 
 		sl_bool	closeFile(FileContext* context) override;
+
+		sl_bool deleteDirectory(const StringParam& path) override;
 
 		sl_bool deleteFile(const StringParam& path) override;
 

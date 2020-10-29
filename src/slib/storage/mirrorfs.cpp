@@ -63,28 +63,20 @@ namespace slib
 		return sl_true;
 	}
 
+	sl_bool MirrorFs::createDirectory(const StringParam& path)
+	{
+		if (!File::createDirectory(m_root + path)) {
+			SLIB_THROW(getError(), sl_false);
+		}
+		return sl_true;
+	}
+
 	Ref<FileContext> MirrorFs::openFile(const StringParam& path, const FileOpenParam& param)
 	{
-		String filePath = m_root + path;
-		if (param.attributes & FileAttributes::Directory) {
-			if (param.mode.NotCreate == sl_false) {
-				if (!File::createDirectory(filePath)) {
-					SLIB_THROW(getError(), sl_null);
-				}
-			}
-			
-			if (!File::exists(filePath)) {
-				SLIB_THROW(FileSystemError::NotFound, sl_null);
-			}
-
-			return new MirrorFileContext();
-		}
-
 		Ref<File> file = File::open(m_root + path, param);
 		if (file.isNull()) {
 			SLIB_THROW(getError(), sl_null);
 		}
-
 		return new MirrorFileContext(file);
 	}
 
@@ -97,7 +89,6 @@ namespace slib
 				SLIB_THROW(getError(), sl_false);
 			}
 		}
-
 		return sl_true;
 	}
 
@@ -105,7 +96,7 @@ namespace slib
 	{
 		Ref<File> file = FileFromContext(context);
 
-		if (file.isNull() || !file->isOpened()) {	// directory context also can be null
+		if (file.isNull() || !file->isOpened()) {
 			SLIB_THROW(FileSystemError::InvalidContext, sl_false);
 		}
 
@@ -126,7 +117,7 @@ namespace slib
 	{
 		Ref<File> file = FileFromContext(context);
 
-		if (file.isNull() || !file->isOpened()) {	// directory context also can be null
+		if (file.isNull() || !file->isOpened()) {
 			SLIB_THROW(FileSystemError::InvalidContext, sl_false);
 		}
 
@@ -166,6 +157,14 @@ namespace slib
 #endif
 		}
 
+		return sl_true;
+	}
+
+	sl_bool MirrorFs::deleteDirectory(const StringParam& path)
+	{
+		if (!File::deleteFile(m_root + path, sl_true)) {
+			SLIB_THROW(getError(), sl_false);
+		}
 		return sl_true;
 	}
 
