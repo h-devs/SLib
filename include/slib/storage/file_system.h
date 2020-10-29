@@ -191,11 +191,11 @@ namespace slib
 
 		virtual sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length);
 
-		virtual sl_bool getFileInfo(FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) = 0;
+		virtual sl_bool getFileInfo(FileContext* context, FileInfo& outInfo, const FileInfoMask& mask);
 
 		virtual sl_bool setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask);
 
-		virtual sl_bool getFileInfo(const StringParam& path, FileInfo& outInfo, const FileInfoMask& mask) = 0;
+		virtual sl_bool getFileInfo(const StringParam& path, FileInfo& outInfo, const FileInfoMask& mask);
 
 		virtual sl_bool setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask);
 
@@ -205,8 +205,16 @@ namespace slib
 
 		virtual HashMap<String, FileInfo> getFiles(const StringParam& pathDir) = 0;
 
-
+	public: // Helpers
 		virtual sl_bool existsFile(const StringParam& path);
+
+		virtual sl_uint64 getFileSize(FileContext* context);
+
+		virtual sl_uint64 getFileSize(const StringParam& path);
+
+		virtual sl_bool getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask);
+
+		virtual sl_bool setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask);
 
 	};
 
@@ -309,6 +317,17 @@ namespace slib
 		sl_bool deleteDirectory(const StringParam& path) override;
 
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
+
+	public:
+		sl_bool existsFile(const StringParam& path) override;
+
+		sl_uint64 getFileSize(FileContext* context) override;
+
+		sl_uint64 getFileSize(const StringParam& path) override;
+
+		sl_bool getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) override;
+
+		sl_bool setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask) override;
 
 	protected:
 		// If you want to use different FileContext in wrapper, you will need to override this function.

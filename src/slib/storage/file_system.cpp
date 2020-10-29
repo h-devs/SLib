@@ -147,6 +147,51 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_uint64 FileSystemProvider::getFileSize(FileContext* context)
+	{
+		FileInfo info;
+		if (getFileInfo(sl_null, context, info, FileInfoMask::Size)) {
+			return info.size;
+		}
+		return 0;
+	}
+
+	sl_uint64 FileSystemProvider::getFileSize(const StringParam& path)
+	{
+		FileInfo info;
+		if (getFileInfo(path, sl_null, info, FileInfoMask::Size)) {
+			return info.size;
+		}
+		return 0;
+	}
+
+	sl_bool FileSystemProvider::getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask)
+	{
+		if (context) {
+			SLIB_TRY{
+				if (getFileInfo(context, outInfo, mask)) {
+					return sl_true;
+				}
+			} SLIB_CATCH(...)
+		}
+		if (path.isNotNull()) {
+			return getFileInfo(path, outInfo, mask);
+		}
+		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+	}
+
+	sl_bool FileSystemProvider::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	{
+		if (context) {
+			SLIB_TRY{
+				if (setFileInfo(context, info, mask)) {
+					return sl_true;
+				}
+			} SLIB_CATCH(...)
+		}
+		return setFileInfo(path, info, mask);
+	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileSystemHostParam)
 
@@ -377,6 +422,31 @@ namespace slib
 	HashMap<String, FileInfo> FileSystemWrapper::getFiles(const StringParam& pathDir)
 	{
 		return m_base->getFiles(pathDir);
+	}
+
+	sl_bool FileSystemWrapper::existsFile(const StringParam& path)
+	{
+		return m_base->existsFile(path);
+	}
+
+	sl_uint64 FileSystemWrapper::getFileSize(FileContext* context)
+	{
+		return m_base->getFileSize(context);
+	}
+
+	sl_uint64 FileSystemWrapper::getFileSize(const StringParam& path)
+	{
+		return m_base->getFileSize(path);
+	}
+
+	sl_bool FileSystemWrapper::getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask)
+	{
+		return m_base->getFileInfo(path, context, outInfo, mask);
+	}
+
+	sl_bool FileSystemWrapper::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	{
+		return m_base->setFileInfo(path, context, info, mask);
 	}
 
 	Ref<FileContext> FileSystemWrapper::createContext(FileContext* baseContext)
