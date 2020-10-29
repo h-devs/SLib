@@ -271,61 +271,17 @@ namespace slib
 		FSLOG_CATCH(desc)
 	}
 
-	sl_bool FsLogger::lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
+	sl_bool FsLogger::getFileInfo(const StringParam& path, FileContext* context, FileInfo& info, const FileInfoMask& mask)
 	{
-		if (!(m_flags & FsLogLock)/* || !m_regex.match(context->path)*/)
-			return m_base->lockFile(context, offset, length);
-
-		String desc = String::format("LockFile(%s,0x%X,0x%X)", contextDesc, offset, length);
-		if (!(m_flags & FsLogRetAndErrors))
-			LOG(desc);
-
-		FSLOG_TRY {
-			sl_bool ret = m_base->lockFile(context, offset, length);
-			if (ret && (m_flags & FsLogRet)) {
-				LOG(desc);
-			}
-			else if (!ret && (m_flags & FsLogRetFail)) {
-				LOG("%s\n  Error", desc);
-			}
-			return ret;
-		}
-		FSLOG_CATCH(desc)
-	}
-
-	sl_bool FsLogger::unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
-	{
-		if (!(m_flags & FsLogUnlock)/* || !m_regex.match(context->path)*/)
-			return m_base->unlockFile(context, offset, length);
-
-		String desc = String::format("UnlockFile(%s,0x%X,0x%X)", contextDesc, offset, length);
-		if (!(m_flags & FsLogRetAndErrors))
-			LOG(desc);
-
-		FSLOG_TRY {
-			sl_bool ret = m_base->unlockFile(context, offset, length);
-			if (ret && (m_flags & FsLogRet)) {
-				LOG(desc);
-			}
-			else if (!ret && (m_flags & FsLogRetFail)) {
-				LOG("%s\n  Error", desc);
-			}
-			return ret;
-		}
-		FSLOG_CATCH(desc)
-	}
-
-	sl_bool FsLogger::getFileInfo(const StringParam& path, FileInfo& info, const FileInfoMask& mask)
-	{
-		if (!(m_flags & FsLogGetInfoByName) || !m_regex.match(path.toString()))
-			return m_base->getFileInfo(path, info, mask);
+		if (!(m_flags & FsLogGetInfo) || path.isEmpty() || !m_regex.match(path.toString()))
+			return m_base->getFileInfo(path, context, info, mask);
 
 		String desc = String::format("GetFileInfo(%s,0x%X)", path, mask);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		FSLOG_TRY {
-			sl_bool ret = m_base->getFileInfo(path, info, mask);
+			sl_bool ret = m_base->getFileInfo(path, context, info, mask);
 			if (ret && (m_flags & FsLogRet)) {
 				LOG(desc);
 				if (mask & FileInfoMask::Attributes)
@@ -339,12 +295,12 @@ namespace slib
 					if (m_flags & FsLogTimeInfoAsString) {
 						LOG("  CreatedAt: %s", info.createdAt.toString());
 						LOG("  ModifiedAt: %s", info.modifiedAt.toString());
-						LOG("  AccessedAt: %s", info.lastAccessedAt.toString());
+						LOG("  AccessedAt: %s", info.accessedAt.toString());
 					}
 					else {
 						LOG("  CreatedAt: %d", info.createdAt.toInt());
 						LOG("  ModifiedAt: %d", info.modifiedAt.toInt());
-						LOG("  AccessedAt: %d", info.lastAccessedAt.toInt());
+						LOG("  AccessedAt: %d", info.accessedAt.toInt());
 					}
 				}
 			}
@@ -356,58 +312,17 @@ namespace slib
 		FSLOG_CATCH(desc)
 	}
 
-	sl_bool FsLogger::getFileInfo(FileContext* context, FileInfo& info, const FileInfoMask& mask)
+	sl_bool FsLogger::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
 	{
-		if (!(m_flags & FsLogGetInfoByContext)/* || !m_regex.match(context->path)*/)
-			return m_base->getFileInfo(context, info, mask);
-
-		String desc = String::format("GetFileInfo(%s,0x%X)", contextDesc, mask);
-		if (!(m_flags & FsLogRetAndErrors))
-			LOG(desc);
-
-		FSLOG_TRY {
-			sl_bool ret = m_base->getFileInfo(context, info, mask);
-			if (ret && (m_flags & FsLogRet)) {
-				LOG(desc);
-				if (mask & FileInfoMask::Attributes)
-					LOG("  Attributes: 0x%X, %d", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
-				if (mask & FileInfoMask::Size)
-					LOG("  Size: %d", info.size);
-				if (mask & FileInfoMask::AllocSize)
-					LOG("  AllocSize: %d", info.allocSize);
-				if ((m_flags & FsLogTimeInfo) &&
-					(mask & FileInfoMask::Time)) {
-					if (m_flags & FsLogTimeInfoAsString) {
-						LOG("  CreatedAt: %s", info.createdAt.toString());
-						LOG("  ModifiedAt: %s", info.modifiedAt.toString());
-						LOG("  AccessedAt: %s", info.lastAccessedAt.toString());
-					}
-					else {
-						LOG("  CreatedAt: %d", info.createdAt.toInt());
-						LOG("  ModifiedAt: %d", info.modifiedAt.toInt());
-						LOG("  AccessedAt: %d", info.lastAccessedAt.toInt());
-					}
-				}
-			}
-			else if (!ret && (m_flags & FsLogRetFail)) {
-				LOG("%s\n  Error", desc);
-			}
-			return ret;
-		}
-		FSLOG_CATCH(desc)
-	}
-
-	sl_bool FsLogger::setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask)
-	{
-		if (!(m_flags & FsLogSetInfoByName) || !m_regex.match(path.toString()))
-			return m_base->setFileInfo(path, info, mask);
+		if (!(m_flags & FsLogSetInfo) || path.isEmpty() || !m_regex.match(path.toString()))
+			return m_base->setFileInfo(path, context, info, mask);
 
 		String desc = String::format("SetFileInfo(%s,0x%X)", path, mask);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		FSLOG_TRY {
-			sl_bool ret = m_base->setFileInfo(path, info, mask);
+			sl_bool ret = m_base->setFileInfo(path, context, info, mask);
 			if (ret && (m_flags & FsLogRet)) {
 				LOG(desc);
 				if (mask & FileInfoMask::Attributes)
@@ -421,53 +336,12 @@ namespace slib
 					if (m_flags & FsLogTimeInfoAsString) {
 						LOG("  CreatedAt: %s", info.createdAt.toString());
 						LOG("  ModifiedAt: %s", info.modifiedAt.toString());
-						LOG("  AccessedAt: %s", info.lastAccessedAt.toString());
+						LOG("  AccessedAt: %s", info.accessedAt.toString());
 					}
 					else {
 						LOG("  CreatedAt: %d", info.createdAt.toInt());
 						LOG("  ModifiedAt: %d", info.modifiedAt.toInt());
-						LOG("  AccessedAt: %d", info.lastAccessedAt.toInt());
-					}
-				}
-			}
-			else if (!ret && (m_flags & FsLogRetFail)) {
-				LOG("%s\n  Error", desc);
-			}
-			return ret;
-		}
-		FSLOG_CATCH(desc)
-	}
-
-	sl_bool FsLogger::setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask)
-	{
-		if (!(m_flags & FsLogSetInfoByContext)/* || !m_regex.match(context->path)*/)
-			return m_base->setFileInfo(context, info, mask);
-
-		String desc = String::format("SetFileInfo(%s,0x%X)", contextDesc, mask);
-		if (!(m_flags & FsLogRetAndErrors))
-			LOG(desc);
-
-		FSLOG_TRY {
-			sl_bool ret = m_base->setFileInfo(context, info, mask);
-			if (ret && (m_flags & FsLogRet)) {
-				LOG(desc);
-				if (mask & FileInfoMask::Attributes)
-					LOG("  Attributes: 0x%X, %d", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
-				if (mask & FileInfoMask::Size)
-					LOG("  Size: %d", info.size);
-				if (mask & FileInfoMask::AllocSize)
-					LOG("  AllocSize: %d", info.allocSize);
-				if ((m_flags & FsLogTimeInfo) &&
-					(mask & FileInfoMask::Time)) {
-					if (m_flags & FsLogTimeInfoAsString) {
-						LOG("  CreatedAt: %s", info.createdAt.toString());
-						LOG("  ModifiedAt: %s", info.modifiedAt.toString());
-						LOG("  AccessedAt: %s", info.lastAccessedAt.toString());
-					}
-					else {
-						LOG("  CreatedAt: %d", info.createdAt.toInt());
-						LOG("  ModifiedAt: %d", info.modifiedAt.toInt());
-						LOG("  AccessedAt: %d", info.lastAccessedAt.toInt());
+						LOG("  AccessedAt: %d", info.accessedAt.toInt());
 					}
 				}
 			}
@@ -499,8 +373,8 @@ namespace slib
 						info.size, info.allocSize,
 						(!(m_flags & FsLogTimeInfo) ? "" : ","
 							+ (m_flags & FsLogTimeInfoAsString
-								? String::format("%s,%s,%s", info.createdAt.toString(), info.modifiedAt.toString(), info.lastAccessedAt.toString())
-								: String::format("%d,%d,%d", info.createdAt.toInt(), info.modifiedAt.toInt(), info.lastAccessedAt.toInt()))));
+								? String::format("%s,%s,%s", info.createdAt.toString(), info.modifiedAt.toString(), info.accessedAt.toString())
+								: String::format("%d,%d,%d", info.createdAt.toInt(), info.modifiedAt.toInt(), info.accessedAt.toInt()))));
 				}
 			}
 			else if (files.isEmpty() && (m_flags & FsLogRetFail)) {

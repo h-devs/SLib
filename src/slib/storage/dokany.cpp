@@ -279,7 +279,7 @@ namespace slib
 				DWORD attrs = INVALID_FILE_ATTRIBUTES;
 				SLIB_TRY {
 					FileInfo info;
-					provider->getFileInfo(szFileName, info, FileInfoMask::Attributes);
+					provider->getFileInfo(szFileName, sl_null, info, FileInfoMask::Attributes);
 					if (!(info.attributes & FileAttributes::NotExist)) {
 						attrs = info.attributes & 0x7ffff;
 					}
@@ -467,7 +467,7 @@ namespace slib
 						pFileInfo->nFileSizeLow = SLIB_GET_DWORD0(info.size);
 						pFileInfo->nFileSizeHigh = SLIB_GET_DWORD1(info.size);
 						pFileInfo->ftCreationTime = *((FILETIME*)(info.createdAt.toWindowsFileTime()));
-						pFileInfo->ftLastAccessTime = *((FILETIME*)(info.lastAccessedAt.toWindowsFileTime()));
+						pFileInfo->ftLastAccessTime = *((FILETIME*)(info.accessedAt.toWindowsFileTime()));
 						pFileInfo->ftLastWriteTime = *((FILETIME*)(info.modifiedAt.toWindowsFileTime()));
 						return 0;
 					}
@@ -499,7 +499,7 @@ namespace slib
 						fd.nFileSizeLow = SLIB_GET_DWORD0(info.size);
 						fd.nFileSizeHigh = SLIB_GET_DWORD1(info.size);
 						fd.ftCreationTime = *((FILETIME*)(info.createdAt.toWindowsFileTime()));
-						fd.ftLastAccessTime = *((FILETIME*)(info.lastAccessedAt.toWindowsFileTime()));
+						fd.ftLastAccessTime = *((FILETIME*)(info.accessedAt.toWindowsFileTime()));
 						fd.ftLastWriteTime = *((FILETIME*)(info.modifiedAt.toWindowsFileTime()));
 						item.key.getUtf16((sl_char16*)(fd.cFileName), CountOfArray(fd.cFileName));
 						funcFillFindData(&fd, pDokanFileInfo);
@@ -626,7 +626,7 @@ namespace slib
 				DOKANY_TRY{
 					FileInfo info;
 					info.createdAt.setWindowsFileTime(*((sl_int64*)ftCreationTime));
-					info.lastAccessedAt.setWindowsFileTime(*((sl_int64*)ftLastAccessTime));
+					info.accessedAt.setWindowsFileTime(*((sl_int64*)ftLastAccessTime));
 					info.modifiedAt.setWindowsFileTime(*((sl_int64*)ftLastWriteTime));
 					if (provider->setFileInfo(szFileName, context, info, FileInfoMask::Time)) {
 						return 0;

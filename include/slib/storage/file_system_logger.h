@@ -24,27 +24,19 @@ namespace slib
 			FsLogClose = 0x08,
 			FsLogRead = 0x10,
 			FsLogWrite = 0x20,
-			FsLogLock = 0x40,
-			FsLogUnlock = 0x80,
+			FsLogDelete = 0x40,
+			FsLogMove = 0x80,
 			FsLogOpenOp = FsLogCreate | FsLogOpen | FsLogClose,
 			FsLogCreateOpen = FsLogCreate | FsLogOpen,
 			FsLogReadWrite = FsLogRead | FsLogWrite,
-			FsLogLockOp = FsLogLock | FsLogUnlock,
 
 			FsLogBasicOp = 0xFF,
 
-			FsLogGetInfoByName = 0x0100,
-			FsLogSetInfoByName = 0x0200,
-			FsLogGetInfoByContext = 0x0400,
-			FsLogSetInfoByContext = 0x0800,
-			FsLogGetInfoOp = FsLogGetInfoByName | FsLogGetInfoByContext,
-			FsLogSetInfoOp = FsLogSetInfoByName | FsLogSetInfoByContext,
-			FsLogInfoOp = FsLogGetInfoOp | FsLogSetInfoOp,
-
-			FsLogDelete = 0x1000,
-			FsLogMove = 0x2000,
-			FsLogList = 0x4000,
-			FsLogFileSystemInfo = 0x8000,
+			FsLogGetInfo = 0x0100,
+			FsLogSetInfo = 0x0200,
+			FsLogList = 0x0400,
+			FsLogFileSystemInfo = 0x0800,
+			FsLogInfoOp = FsLogGetInfo | FsLogSetInfo,
 
 			FsLogAllOp = 0xFFFF,
 
@@ -92,17 +84,9 @@ namespace slib
 
 		sl_bool moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists) override;
 
-		sl_bool lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
+		sl_bool getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) override;
 
-		sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
-
-		sl_bool getFileInfo(FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) override;
-
-		sl_bool setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask) override;
-
-		sl_bool getFileInfo(const StringParam& path, FileInfo& outInfo, const FileInfoMask& mask) override;
-
-		sl_bool setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask) override;
+		sl_bool setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask) override;
 
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
 

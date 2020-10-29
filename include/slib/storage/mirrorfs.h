@@ -38,17 +38,9 @@ namespace slib
 
 		sl_bool moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists) override;
 
-		sl_bool lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
+		sl_bool getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) override;
 
-		sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
-
-		sl_bool getFileInfo(FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) override;
-
-		sl_bool setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask) override;
-
-		sl_bool getFileInfo(const StringParam& path, FileInfo& outInfo, const FileInfoMask& mask) override;
-
-		sl_bool setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask) override;
+		sl_bool setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask) override;
 
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
 

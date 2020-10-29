@@ -171,8 +171,10 @@ namespace slib
 
 		virtual sl_bool moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists);
 
+		// path or context can be null
 		virtual sl_bool getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) = 0;
 
+		// path or context can be null
 		virtual sl_bool setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask);
 
 		virtual sl_bool createDirectory(const StringParam& path) = 0;
