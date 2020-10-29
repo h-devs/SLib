@@ -18,7 +18,7 @@ namespace slib
 	{
 	public:
 		enum FsLogFlags : sl_uint32 {
-			//FsLogCreate = 0x01,
+			FsLogCreate = 0x01,
 			FsLogOpen = 0x02,
 			FsLogFlush = 0x04,
 			FsLogClose = 0x08,
@@ -26,43 +26,44 @@ namespace slib
 			FsLogWrite = 0x20,
 			FsLogLock = 0x40,
 			FsLogUnlock = 0x80,
-			FsLogOpenOp = /*FsLogCreate | */FsLogOpen | FsLogClose,
-			//FsLogCreateOpen = FsLogCreate | FsLogOpen,
+			FsLogOpenOp = FsLogCreate | FsLogOpen | FsLogClose,
+			FsLogCreateOpen = FsLogCreate | FsLogOpen,
 			FsLogReadWrite = FsLogRead | FsLogWrite,
 			FsLogLockOp = FsLogLock | FsLogUnlock,
-			FsLogFileBasicOp = 0xFF,
 
-			FsLogDelete = 0x0200,
-			FsLogRename = 0x0400,
-			FsLogList = 0x0800,
+			FsLogBasicOp = 0xFF,
 
-			FsLogGetInfo = 0x1000,
-			FsLogSetInfo = 0x2000,
-			FsLogInfoOp = FsLogGetInfo | FsLogSetInfo,
-			FsLogFileOp = 0xFFFF,
+			FsLogGetInfoByName = 0x0100,
+			FsLogSetInfoByName = 0x0200,
+			FsLogGetInfoByContext = 0x0400,
+			FsLogSetInfoByContext = 0x0800,
+			FsLogGetInfoOp = FsLogGetInfoByName | FsLogGetInfoByContext,
+			FsLogSetInfoOp = FsLogSetInfoByName | FsLogSetInfoByContext,
+			FsLogInfoOp = FsLogGetInfoOp | FsLogSetInfoOp,
 
-			//FsLogSetAttrInfo = 0x010000,
-			//FsLogSetTimeInfo = 0x020000,
-			//FsLogSetFileSizeInfo = 0x040000,
-			//FsLogSetAllocSizeInfo = 0x080000,
-			//FsLogSetInfoDetail = 0x0F0000,
+			FsLogDelete = 0x1000,
+			FsLogMove = 0x2000,
+			FsLogList = 0x4000,
+			FsLogFileSystemInfo = 0x8000,
 
-			FsLogGetVolumeInfo = 0x02000000,
-			FsLogGetVolumeSize = 0x04000000,
-			FsLogVolumeOp = 0x0F000000,
+			FsLogAllOp = 0xFFFF,
 
-			FsLogAllOp = FsLogFileOp | FsLogVolumeOp/* | FsLogSetInfoDetail*/,
+			FsLogTimeInfo = 0x01000000,
+			FsLogTimeInfoAsString = 0x02000000 | FsLogTimeInfo,
 
-			FsLogAttrNoDate = 0x400000,
-			FsLogDateAsString = 0x800000,
+			//FsLogFileName = 0x10000000,			// when this flag is set, ignores FsLogContextAddress
+			//FsLogContextAddress = 0x20000000,
 
-			FsLogFileName = 0x10000000,			// when this flag is set, ignores FsLogContextAddress
-			FsLogContextAddress = 0x20000000,
-			FsLogRet = 0x40000000,
-			FsLogErrors = 0x80000000,
-			FsLogRetAndErrors = FsLogRet | FsLogErrors,
-			FsLogDefault = FsLogFileName | FsLogRet | FsLogErrors,
-			FsLogDefaultErrors = FsLogFileName | FsLogErrors,
+			FsLogRetSuccess = 0x10000000,
+			FsLogRetFail = 0x20000000,
+			FsLogException = 0x40000000,
+			FsLogExceptionString = 0x80000000 | FsLogException,
+
+			FsLogRet = FsLogRetSuccess | FsLogRetFail,
+			FsLogSuccess = FsLogRetSuccess,
+			FsLogRetAndErrors = FsLogRet | FsLogException,
+			FsLogErrors = FsLogRetFail | FsLogExceptionString,
+			FsLogDefault = FsLogRet | FsLogException,
 
 			FsLogAll = 0xFFFFFFFF,
 		};
@@ -73,6 +74,8 @@ namespace slib
 	public:
 		sl_bool getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask) override;
 
+		sl_bool createDirectory(const StringParam& path) override;
+
 		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) override;
 
 		sl_size	readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size) override;
@@ -82,6 +85,8 @@ namespace slib
 		sl_bool flushFile(FileContext* context) override;
 
 		sl_bool	closeFile(FileContext* context) override;
+
+		sl_bool deleteDirectory(const StringParam& path) override;
 
 		sl_bool deleteFile(const StringParam& path) override;
 
