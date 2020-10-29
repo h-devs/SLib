@@ -205,6 +205,9 @@ namespace slib
 
 		virtual HashMap<String, FileInfo> getFiles(const StringParam& pathDir) = 0;
 
+
+		virtual sl_bool existsFile(const StringParam& path);
+
 	};
 
 	class FileSystemHostParam

@@ -136,6 +136,17 @@ namespace slib
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
+	sl_bool FileSystemProvider::existsFile(const StringParam& path)
+	{
+		SLIB_TRY {
+			FileInfo info;
+			if (getFileInfo(path, info, FileInfoMask::Attributes)) {
+				return sl_true;
+			}
+		} SLIB_CATCH(...)
+		return sl_false;
+	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileSystemHostParam)
 
