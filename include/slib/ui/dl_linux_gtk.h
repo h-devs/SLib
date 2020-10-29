@@ -1241,6 +1241,60 @@ namespace slib
 	        GtkAdjustment  *adjustment
 	    )
         #define gtk_tree_view_set_vadjustment slib::gtk::getApi_gtk_tree_view_set_vadjustment()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_notebook_get_n_pages,
+	        gint, ,
+	        GtkNotebook *notebook
+	    )
+        #define gtk_notebook_get_n_pages slib::gtk::getApi_gtk_notebook_get_n_pages()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_notebook_remove_page,
+	        void, ,
+	        GtkNotebook *notebook,
+	        gint         page_num
+	    )
+        #define gtk_notebook_remove_page slib::gtk::getApi_gtk_notebook_remove_page()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_notebook_append_page,
+	        gint, ,
+	        GtkNotebook *notebook,
+	        GtkWidget   *child,
+	        GtkWidget   *tab_label
+	    )
+        #define gtk_notebook_append_page slib::gtk::getApi_gtk_notebook_append_page()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_notebook_get_nth_page,
+	        GtkWidget*, ,
+	        GtkNotebook *notebook,
+	        gint         page_num
+	    )
+        #define gtk_notebook_get_nth_page slib::gtk::getApi_gtk_notebook_get_nth_page()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_notebook_set_tab_label_text,
+	        void, ,
+	        GtkNotebook *notebook,
+	        GtkWidget   *child,
+	        const gchar *tab_text
+	    )
+        #define gtk_notebook_set_tab_label_text slib::gtk::getApi_gtk_notebook_set_tab_label_text()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_notebook_set_current_page,
+	        void, ,
+	        GtkNotebook *notebook,
+	        gint         page_num
+	    )
+        #define gtk_notebook_set_current_page slib::gtk::getApi_gtk_notebook_set_current_page()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_notebook_get_current_page,
+	        gint, ,
+	        GtkNotebook *notebook
+	    )
+        #define gtk_notebook_get_current_page slib::gtk::getApi_gtk_notebook_get_current_page()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_notebook_new,
+	        GtkWidget*, ,
+	    )
+        #define gtk_notebook_new slib::gtk::getApi_gtk_notebook_new()
 	SLIB_IMPORT_LIBRARY_END
 
 }
