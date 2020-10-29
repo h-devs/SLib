@@ -66,15 +66,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileInfo)
-
-	FileInfo::FileInfo() :
-		size(0),
-		allocSize(0)
-	{
-	}
-
-
 	SLIB_DEFINE_OBJECT(FileContext, Object)
 
 	FileContext::FileContext()
@@ -112,16 +103,6 @@ namespace slib
 	}
 
 	sl_bool FileSystemProvider::moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists)
-	{
-		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
-	}
-
-	sl_bool FileSystemProvider::lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
-	{
-		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
-	}
-
-	sl_bool FileSystemProvider::unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
 	{
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
@@ -330,26 +311,6 @@ namespace slib
 	sl_bool FileSystemWrapper::moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists)
 	{
 		return m_base->moveFile(getBaseFileName(pathOld), getBaseFileName(pathNew), flagReplaceIfExists);
-	}
-
-	sl_bool FileSystemWrapper::lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
-	{
-		Ref<FileContext> baseContext = getBaseContext(context);
-		if (baseContext.isNotNull()) {
-			return m_base->lockFile(baseContext.get(), offset, length);
-		} else {
-			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
-		}
-	}
-
-	sl_bool FileSystemWrapper::unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length)
-	{
-		Ref<FileContext> baseContext = getBaseContext(context);
-		if (baseContext.isNotNull()) {
-			return m_base->unlockFile(baseContext.get(), offset, length);
-		} else {
-			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
-		}
 	}
 
 	sl_bool FileSystemWrapper::getFileInfo(const StringParam& path, FileContext* context, FileInfo& info, const FileInfoMask& mask)

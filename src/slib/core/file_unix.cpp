@@ -549,6 +549,38 @@ namespace slib
 		return ret;
 	}
 
+	HashMap<String, FileInfo> File::getFileInfos(const StringParam& _filePath)
+	{
+		String filePath = _filePath.toString();
+		if (filePath.isEmpty()) {
+			return sl_null;
+		}
+		if (File::isDirectory(filePath)) {
+			filePath = normalizeDirectoryPath(filePath);
+		}
+		else {
+			return sl_null;
+		}
+		HashMap<String, FileInfo> ret;
+		String dirPath = filePath;
+		DIR* dir = opendir(dirPath.getData());
+		if (dir) {
+			dirent* ent;
+			while ((ent = readdir(dir))) {
+				FileInfo info;
+				filePath = dirPath + "/" + String::fromUtf8(ent->d_name);
+				info.attributes = File::getAttributes(filePath);
+				info.size = info.allocSize = File::getSize(filePath);
+				info.createdAt = File::getCreatedTime(filePath);
+				info.modifiedAt = File::getModifiedTime(filePath);
+				info.accessedAt = File::getAccessedTime(filePath);
+				ret.add_NoLock(String::fromUtf8(ent->d_name), info);
+			}
+			closedir(dir);
+		}
+		return ret;
+	}
+
 	sl_bool File::_createDirectory(const StringParam& _filePath)
 	{
 		StringCstr filePath(_filePath);

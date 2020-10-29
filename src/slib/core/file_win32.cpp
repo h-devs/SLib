@@ -555,6 +555,46 @@ namespace slib
 		}
 	}
 
+	HashMap<String, FileInfo> File::getFileInfos(const StringParam& _filePath)
+	{
+		String filePath(_filePath.toString());
+		if (filePath.isEmpty()) {
+			return sl_null;
+		}
+		if (File::isDirectory(filePath)) {
+			filePath = normalizeDirectoryPath(filePath);
+		}
+		else {
+			return sl_null;
+		}
+
+		String16 query = String16::create(filePath + "/*");
+		WIN32_FIND_DATAW fd;
+		HANDLE handle = FindFirstFileW((LPCWSTR)(query.getData()), &fd);
+		if (handle != INVALID_HANDLE_VALUE) {
+			HashMap<String, FileInfo> ret;
+			BOOL c = TRUE;
+			while (c) {
+				String str = String::create((sl_char16*)(fd.cFileName));
+				if (str != "." && str != "..") {
+					FileInfo info;
+					info.attributes = (int)fd.dwFileAttributes;
+					info.size = info.allocSize = SLIB_MAKE_QWORD4(fd.nFileSizeHigh, fd.nFileSizeLow);
+					info.createdAt = FileTimeToTime(fd.ftCreationTime);
+					info.modifiedAt = FileTimeToTime(fd.ftLastWriteTime);
+					info.accessedAt = FileTimeToTime(fd.ftLastAccessTime);
+					ret.add_NoLock(Move(str), info);
+				}
+				c = FindNextFileW(handle, &fd);
+			}
+			FindClose(handle);
+			return ret;
+		}
+		else {
+			return sl_null;
+		}
+	}
+
 	sl_bool File::_createDirectory(const StringParam& _filePath)
 	{
 		StringCstr16 filePath(_filePath);

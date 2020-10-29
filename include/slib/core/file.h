@@ -26,6 +26,7 @@
 #include "definition.h"
 
 #include "list.h"
+#include "hash_map.h"
 #include "io.h"
 
 typedef sl_reg sl_file;
@@ -106,7 +107,24 @@ namespace slib
 			NotExist = 0x80000000
 		};
 	};
-	
+
+	class SLIB_EXPORT FileInfo
+	{
+	public:
+		FileAttributes attributes;
+		sl_uint64 size;
+		sl_uint64 allocSize;
+		Time createdAt;
+		Time modifiedAt;
+		Time accessedAt;
+
+	public:
+		FileInfo();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileInfo)
+
+	};
+
 	class SLIB_EXPORT FileOpenParam
 	{
 	public:
@@ -265,6 +283,8 @@ namespace slib
 	
 
 		static List<String> getFiles(const StringParam& dirPath);
+
+		static HashMap<String, FileInfo> getFileInfos(const StringParam& dirPath);
 	
 		static List<String> getAllDescendantFiles(const StringParam& dirPath);
 	

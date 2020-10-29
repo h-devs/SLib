@@ -50,6 +50,7 @@ namespace slib
 
 	};
 
+	// Equals to WinNT File System Flags
 	class FileSystemFlags
 	{
 	public:
@@ -58,9 +59,9 @@ namespace slib
 
 		enum {
 			CaseSensitive = 0x1,
-			SupportsFileCompression = 0x00000010,
-			SupportsEncryption = 0x00020000,
-			ReadOnlyVolume = 0x00080000,
+			SupportsFileCompression = 0x10,
+			SupportsEncryption = 0x20000,
+			ReadOnlyVolume = 0x80000,
 		};
 	};
 
@@ -112,23 +113,6 @@ namespace slib
 			Time = 0x8,
 			All = 0xffff
 		};
-	};
-
-	class SLIB_EXPORT FileInfo
-	{
-	public:
-		FileAttributes attributes;
-		sl_uint64 size;
-		sl_uint64 allocSize;
-		Time createdAt;
-		Time modifiedAt;
-		Time lastAccessedAt;
-
-	public:
-		FileInfo();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileInfo)
-
 	};
 
 	// Equals to WinNT error codes
@@ -186,10 +170,6 @@ namespace slib
 		virtual sl_bool deleteFile(const StringParam& path);
 
 		virtual sl_bool moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists);
-
-		virtual sl_bool lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length);
-
-		virtual sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length);
 
 		virtual sl_bool getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) = 0;
 
@@ -291,10 +271,6 @@ namespace slib
 		sl_bool deleteFile(const StringParam& path) override;
 
 		sl_bool moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists) override;
-
-		sl_bool lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
-
-		sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
 
 		sl_bool getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) override;
 

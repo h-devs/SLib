@@ -28,6 +28,15 @@
 namespace slib
 {
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileInfo)
+
+		FileInfo::FileInfo() :
+		size(0),
+		allocSize(0)
+	{
+	}
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileOpenParam)
 
 	FileOpenParam::FileOpenParam()
