@@ -2,7 +2,9 @@
 
 #include "slib/core/log.h"
 
+#ifndef TAG
 #define TAG "FileSystem"
+#endif
 #define LOG(...) SLIB_LOG(TAG, ##__VA_ARGS__)
 #define LOG_DEBUG(...) SLIB_LOG_DEBUG(TAG, ##__VA_ARGS__)
 #define LOG_ERROR(...) SLIB_LOG_ERROR(TAG, ##__VA_ARGS__)

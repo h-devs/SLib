@@ -1,11 +1,8 @@
 #include "slib/storage/file_system_logger.h"
-
 #include "slib/core/system.h"
 
-#include "slib/core/log.h"
-
 #define TAG "FileSystemLogger"
-#define LOG(...) SLIB_LOG(TAG, ##__VA_ARGS__)
+#include "file_system.h"
 
 #define FSLOG_TRY try
 #define FSLOG_CATCH(desc) catch (FileSystemError error) { \
@@ -27,7 +24,7 @@ namespace slib
 	FileSystemLogger::FileSystemLogger(Ref<FileSystemProvider> base, sl_uint32 logFlags, String regexFilter)
 		: FileSystemWrapper(base), m_flags(logFlags), m_regex(regexFilter)
 	{
-		LOG("LogFlags: 0x%08X", m_flags);
+		LOG_DEBUG("LogFlags: 0x%08X", m_flags);
 	}
 
 	sl_bool FileSystemLogger::getInformation(FileSystemInfo& info, const FileSystemInfoMask& mask)
@@ -285,7 +282,7 @@ namespace slib
 			if (ret && (m_flags & FsLogRet)) {
 				LOG(desc);
 				if (mask & FileInfoMask::Attributes)
-					LOG("  Attributes: 0x%X, %d", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
+					LOG("  Attributes: 0x%X, %s", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
 				if (mask & FileInfoMask::Size)
 					LOG("  Size: %d", info.size);
 				if (mask & FileInfoMask::AllocSize)
@@ -326,7 +323,7 @@ namespace slib
 			if (ret && (m_flags & FsLogRet)) {
 				LOG(desc);
 				if (mask & FileInfoMask::Attributes)
-					LOG("  Attributes: 0x%X, %d", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
+					LOG("  Attributes: 0x%X, %s", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
 				if (mask & FileInfoMask::Size)
 					LOG("  Size: %d", info.size);
 				if (mask & FileInfoMask::AllocSize)

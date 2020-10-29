@@ -7,10 +7,8 @@
 #include <windows.h>
 #endif
 
-#ifdef SLIB_FILE_SYSTEM_CAN_THROW
-#define SLIB_USE_THROW
-#endif
-#include "slib/core/throw.h"
+#define TAG "MirrorFileSystem"
+#include "file_system.h"
 
 #define FileFromContext(context)	(((MirrorFileContext*)(context))->file)
 
@@ -193,9 +191,9 @@ namespace slib
 
 		if (mask & FileInfoMask::Attributes) {
 			FileAttributes attr = File::getAttributes(filePath);	// FIXME returns NotExist on error
-			if (attr == FileAttributes::NotExist) {
+			if (attr & FileAttributes::NotExist) {
 				if (!isOpened) {
-					SLIB_THROW(FileSystemError::InvalidContext, sl_false);
+					SLIB_THROW(FileSystemError::NotFound, sl_false);
 				}
 
 #ifdef SLIB_PLATFORM_IS_WIN32
@@ -208,7 +206,7 @@ namespace slib
 					SLIB_THROW(getError(), sl_false);
 				}
 #else
-				SLIB_THROW(FIleSystemError::NotImplemented, sl_false);
+				SLIB_THROW(FileSystemError::NotImplemented, sl_false);
 #endif
 			}
 			else {
