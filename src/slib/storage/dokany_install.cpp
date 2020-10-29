@@ -134,8 +134,7 @@ namespace slib
 				DisableWow64FsRedirectionScope scopeDisableWow64;
 				if (Windows::is64BitSystem()) {
 					data = Zlib::decompress(::dokany::files::dokan_mounter_compressed_data64, ::dokany::files::dokan_mounter_compressed_size64);
-				}
-				else {
+				} else {
 					data = Zlib::decompress(::dokany::files::dokan_mounter_compressed_data, ::dokany::files::dokan_mounter_compressed_size);
 				}
 #endif
@@ -168,8 +167,7 @@ namespace slib
 #ifdef SLIB_PLATFORM_IS_WIN64
 				if (flagDokany) {
 					data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data, ::dokany::files::dokan1_sys_compressed_size);
-				}
-				else {
+				} else {
 					data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data, ::dokany::files::dokan_sys_compressed_size);
 				}
 #else
@@ -177,16 +175,13 @@ namespace slib
 				if (Windows::is64BitSystem()) {
 					if (flagDokany) {
 						data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data64, ::dokany::files::dokan1_sys_compressed_size64);
-					}
-					else {
+					} else {
 						data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data64, ::dokany::files::dokan_sys_compressed_size64);
 					}
-				}
-				else {
+				} else {
 					if (flagDokany) {
 						data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data, ::dokany::files::dokan1_sys_compressed_size);
-					}
-					else {
+					} else {
 						data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data, ::dokany::files::dokan_sys_compressed_size);
 					}
 				}

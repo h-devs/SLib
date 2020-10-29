@@ -71,8 +71,7 @@ namespace slib
 		if (signedArea == 0 || (ret.latitude == 0 && ret.longitude == 0)) {
 			ret.latitude = lat1;
 			ret.longitude = lon1;
-		}
-		else{
+		} else {
 			ret.latitude += (lat0 + lat1) * a;
 			ret.longitude += (lon0 + lon1) * a;
 
@@ -81,7 +80,6 @@ namespace slib
 			ret.longitude /= (6 * signedArea);
 		}
 		
-
 		return ret;
 	}
 

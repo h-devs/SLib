@@ -100,8 +100,7 @@ namespace slib
 		if (instance.isNotNull()) {
 			instance->selectItem((ComboBox*)this, index);
 			getInstanceText();
-		}
-		else {
+		} else {
 			invalidate(mode);
 		}
 	}

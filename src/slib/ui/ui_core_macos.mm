@@ -320,29 +320,24 @@ namespace slib
 						if ([NSApp sendAction:NSSelectorFromString(@"cut:") to:nil from:NSApp]) {
 							return (NSEvent*)nil;
 						}
-					}
-					else if ([key isEqualToString:@"c"]) {
+					} else if ([key isEqualToString:@"c"]) {
 						if ([NSApp sendAction:NSSelectorFromString(@"copy:") to:nil from:NSApp]) {
 							return (NSEvent*)nil;
 						}
-					}
-					else if ([key isEqualToString:@"v"]) {
+					} else if ([key isEqualToString:@"v"]) {
 						if ([NSApp sendAction:NSSelectorFromString(@"paste:") to:nil from:NSApp]) {
 							return (NSEvent*)nil;
 						}
-					}
-					else if ([key isEqualToString:@"z"]) {
+					} else if ([key isEqualToString:@"z"]) {
 						if ([NSApp sendAction:NSSelectorFromString(@"undo:") to:nil from:NSApp]) {
 							return (NSEvent*)nil;
 						}
-					}
-					else if ([key isEqualToString:@"a"]) {
+					} else if ([key isEqualToString:@"a"]) {
 						if ([NSApp sendAction:NSSelectorFromString(@"selectAll:") to:nil from:NSApp]) {
 							return (NSEvent*)nil;
 						}
 					}
-				}
-				else if (modifiers == (NSCommandKeyMask | NSShiftKeyMask)) {
+				} else if (modifiers == (NSCommandKeyMask | NSShiftKeyMask)) {
 					if ([key isEqualToString:@"Z"]) {
 						if ([NSApp sendAction:NSSelectorFromString(@"redo:") to:nil from:NSApp]) {
 							return (NSEvent*)nil;

@@ -50,6 +50,7 @@ namespace slib
 
 	};
 
+	// Equals to WinNT File System Flags
 	class FileSystemFlags
 	{
 	public:
@@ -114,23 +115,6 @@ namespace slib
 		};
 	};
 
-	class SLIB_EXPORT FileInfo
-	{
-	public:
-		FileAttributes attributes;
-		sl_uint64 size;
-		sl_uint64 allocSize;
-		Time createdAt;
-		Time modifiedAt;
-		Time lastAccessedAt;
-
-	public:
-		FileInfo();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileInfo)
-
-	};
-
 	// Equals to WinNT error codes
 	enum class FileSystemError
 	{
@@ -187,21 +171,13 @@ namespace slib
 
 		virtual sl_bool moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists);
 
-		virtual sl_bool lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length);
+		virtual sl_bool getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) = 0;
 
-		virtual sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length);
-
-		virtual sl_bool getFileInfo(FileContext* context, FileInfo& outInfo, const FileInfoMask& mask);
-
-		virtual sl_bool setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask);
-
-		virtual sl_bool getFileInfo(const StringParam& path, FileInfo& outInfo, const FileInfoMask& mask);
-
-		virtual sl_bool setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask);
+		virtual sl_bool setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask);
 
 		virtual sl_bool createDirectory(const StringParam& path) = 0;
 
-		virtual sl_bool deleteDirectory(const StringParam& path) = 0;
+		virtual sl_bool deleteDirectory(const StringParam& path);
 
 		virtual HashMap<String, FileInfo> getFiles(const StringParam& pathDir) = 0;
 
@@ -211,10 +187,6 @@ namespace slib
 		virtual sl_uint64 getFileSize(FileContext* context);
 
 		virtual sl_uint64 getFileSize(const StringParam& path);
-
-		virtual sl_bool getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask);
-
-		virtual sl_bool setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask);
 
 	};
 
@@ -300,17 +272,9 @@ namespace slib
 
 		sl_bool moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists) override;
 
-		sl_bool lockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
+		sl_bool getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) override;
 
-		sl_bool unlockFile(FileContext* context, sl_uint64 offset, sl_uint64 length) override;
-
-		sl_bool getFileInfo(FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) override;
-
-		sl_bool setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask) override;
-
-		sl_bool getFileInfo(const StringParam& path, FileInfo& outInfo, const FileInfoMask& mask) override;
-
-		sl_bool setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask) override;
+		sl_bool setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask) override;
 
 		sl_bool createDirectory(const StringParam& path) override;
 
@@ -318,16 +282,12 @@ namespace slib
 
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
 
-	public:
+	public: // Helpers
 		sl_bool existsFile(const StringParam& path) override;
 
 		sl_uint64 getFileSize(FileContext* context) override;
 
 		sl_uint64 getFileSize(const StringParam& path) override;
-
-		sl_bool getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) override;
-
-		sl_bool setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask) override;
 
 	protected:
 		// If you want to use different FileContext in wrapper, you will need to override this function.
@@ -335,6 +295,9 @@ namespace slib
 
 		// If you want to use different FileContext in wrapper, you will need to override this function.
 		virtual Ref<FileContext> getBaseContext(FileContext* context);
+
+		// If you want to use different path in wrapper, you will need to override this function.
+		virtual String getBaseFileName(const StringParam& path);
 
 	protected:
 		Ref<FileSystemProvider> m_base;
