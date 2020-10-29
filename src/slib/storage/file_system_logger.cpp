@@ -184,11 +184,8 @@ namespace slib
 
 	sl_bool FsLogger::closeFile(FileContext* context)
 	{
-		if (!(m_flags & FsLogClose)/* || !m_regex.match(context->path)*/) {
-			m_base->closeFile(context);
-			//if (m_flags & FsLogHandleCountOnClose)
-			//	LOG("Current open handles count: %d", m_openHandles[context->path]);
-			return;
+		if (!(m_flags & FsLogClose)) {
+			return m_base->closeFile(context);
 		}
 
 		String desc = String::format("CloseFile(%s)", contextDesc);
@@ -203,8 +200,6 @@ namespace slib
 			else if (!ret && (m_flags & FsLogRetFail)) {
 				LOG("%s\n  Error", desc);
 			}
-			//if (m_flags & FsLogHandleCountOnClose)
-			//	LOG("Current open handles count: %d", m_openHandles[context->path]);
 			return ret;
 		}
 		FSLOG_CATCH(desc)

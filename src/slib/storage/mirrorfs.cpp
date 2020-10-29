@@ -372,7 +372,7 @@ namespace slib
 		for (auto& name : names) {
 			try {
 				FileInfo info;
-				if (getFileInfo(pathDir + "\\" + name, info, FileInfoMask::All)) {
+				if (getFileInfo(pathDir.toString() + "\\" + name, info, FileInfoMask::All)) {
 					files.add(name, info);
 				}
 			}

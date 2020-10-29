@@ -58,9 +58,9 @@ namespace slib
 
 		enum {
 			CaseSensitive = 0x1,
-			SupportsFileCompression = 0x00000010,
-			SupportsEncryption = 0x00020000,
-			ReadOnlyVolume = 0x00080000,
+			SupportsFileCompression = 0x10,
+			SupportsEncryption = 0x20000,
+			ReadOnlyVolume = 0x80000,
 		};
 	};
 

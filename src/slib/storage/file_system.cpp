@@ -22,6 +22,8 @@
 
 #include "file_system.h"
 
+#include "slib/core/safe_static.h"
+
 #ifdef SLIB_PLATFORM_IS_WIN32
 #include "slib/storage/dokany.h"
 #endif
@@ -29,11 +31,25 @@
 namespace slib
 {
 
+	namespace priv
+	{
+		namespace file_system
+		{
+
+			typedef HashMap< String, FileSystemHost* > FileSystemHostMap;
+			SLIB_SAFE_STATIC_GETTER(FileSystemHostMap, GetFileSystemHostMap)
+
+		}
+	}
+
+	using namespace priv::file_system;
+
 	Ref<FileSystemHost> FileSystem::createHost()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		return Dokany::createHost();
 #elif defined(SLIB_PLATFORM_IS_UNIX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+		return sl_null;
 #else
 		return sl_null;
 #endif
@@ -41,6 +57,10 @@ namespace slib
 
 	Ref<FileSystemHost> FileSystem::getHost(const String& mountPoint)
 	{
+		FileSystemHostMap* map = GetFileSystemHostMap();
+		if (map) {
+			return map->getValue(mountPoint);
+		}
 		return sl_null;
 	}
 
@@ -49,6 +69,7 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		return Dokany::unmount(mountPoint);
 #elif defined(SLIB_PLATFORM_IS_UNIX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+		return sl_false;
 #else
 		return sl_false;
 #endif
@@ -232,6 +253,10 @@ namespace slib
 
 	sl_bool FileSystemHost::run(const FileSystemHostParam& param)
 	{
+		FileSystemHostMap* map = GetFileSystemHostMap();
+		if (!map) {
+			return sl_false;
+		}
 		if (param.mountPoint.isEmpty() || param.provider.isNull()) {
 			return sl_false;
 		}
@@ -242,10 +267,15 @@ namespace slib
 		if (m_flagRunning) {
 			return sl_false;
 		}
+		if (map->find(param.mountPoint)) {
+			return sl_false;
+		}
 		m_param = param;
 		m_flagRunning = sl_true;
+		map->put(param.mountPoint, this);
 		lock.unlock();
 		sl_bool bRet = _run();
+		map->remove(param.mountPoint);
 		m_flagRunning = sl_false;
 		return bRet;
 	}
