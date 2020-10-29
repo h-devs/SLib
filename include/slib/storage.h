@@ -27,6 +27,6 @@
 
 #include "storage/file_system.h"
 #include "storage/file_system_logger.h"
-#include "storage/mirrorfs.h"
+#include "storage/file_system_mirror.h"
 
 #endif

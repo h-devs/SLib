@@ -24,13 +24,13 @@
 namespace slib
 {
 
-	FsLogger::FsLogger(Ref<FileSystemProvider> base, sl_uint32 logFlags, String regexFilter)
+	FileSystemLogger::FileSystemLogger(Ref<FileSystemProvider> base, sl_uint32 logFlags, String regexFilter)
 		: FileSystemWrapper(base), m_flags(logFlags), m_regex(regexFilter)
 	{
 		LOG("LogFlags: 0x%08X", m_flags);
 	}
 
-	sl_bool FsLogger::getInformation(FileSystemInfo& info, const FileSystemInfoMask& mask)
+	sl_bool FileSystemLogger::getInformation(FileSystemInfo& info, const FileSystemInfoMask& mask)
 	{
 		if (!(m_flags & FsLogFileSystemInfo))
 			return m_base->getInformation(info, mask);
@@ -68,7 +68,7 @@ namespace slib
 		FSLOG_CATCH(desc)
 	}
 
-	sl_bool FsLogger::createDirectory(const StringParam& path)
+	sl_bool FileSystemLogger::createDirectory(const StringParam& path)
 	{
 		if (!(m_flags & FsLogCreate) || !m_regex.match(path.toString()))
 			return m_base->createDirectory(path);
@@ -90,7 +90,7 @@ namespace slib
 		FSLOG_CATCH(desc)
 	}
 
-	Ref<FileContext> FsLogger::openFile(const StringParam& path, const FileOpenParam& param)
+	Ref<FileContext> FileSystemLogger::openFile(const StringParam& path, const FileOpenParam& param)
 	{
 		if (!(m_flags & FsLogOpen) || !m_regex.match(path.toString()))
 			return m_base->openFile(path, param);
@@ -116,7 +116,7 @@ namespace slib
 		FSLOG_CATCH(desc)
 	}
 
-	sl_size FsLogger::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size)
+	sl_size FileSystemLogger::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size)
 	{
 		if (!(m_flags & FsLogRead)/* || !m_regex.match(context->path)*/)
 			return m_base->readFile(context, offset, buf, size);
@@ -138,7 +138,7 @@ namespace slib
 		FSLOG_CATCH(desc)
 	}
 
-	sl_size FsLogger::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size)
+	sl_size FileSystemLogger::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size)
 	{
 		if (!(m_flags & FsLogWrite)/* || !m_regex.match(context->path)*/)
 			return m_base->writeFile(context, offset, buf, size);
@@ -160,7 +160,7 @@ namespace slib
 		FSLOG_CATCH(desc)
 	}
 
-	sl_bool FsLogger::flushFile(FileContext* context)
+	sl_bool FileSystemLogger::flushFile(FileContext* context)
 	{
 		if (!(m_flags & FsLogFlush)/* || !m_regex.match(context->path)*/)
 			return m_base->flushFile(context);
@@ -182,7 +182,7 @@ namespace slib
 		FSLOG_CATCH(desc)
 	}
 
-	sl_bool FsLogger::closeFile(FileContext* context)
+	sl_bool FileSystemLogger::closeFile(FileContext* context)
 	{
 		if (!(m_flags & FsLogClose)) {
 			return m_base->closeFile(context);
@@ -205,7 +205,7 @@ namespace slib
 		FSLOG_CATCH(desc)
 	}
 
-	sl_bool FsLogger::deleteDirectory(const StringParam& path)
+	sl_bool FileSystemLogger::deleteDirectory(const StringParam& path)
 	{
 		if (!(m_flags & FsLogDelete) || !m_regex.match(path.toString()))
 			return m_base->deleteDirectory(path);
@@ -227,7 +227,7 @@ namespace slib
 		FSLOG_CATCH(desc)
 	}
 
-	sl_bool FsLogger::deleteFile(const StringParam& path)
+	sl_bool FileSystemLogger::deleteFile(const StringParam& path)
 	{
 		if (!(m_flags & FsLogDelete) || !m_regex.match(path.toString()))
 			return m_base->deleteFile(path);
@@ -249,7 +249,7 @@ namespace slib
 		FSLOG_CATCH(desc)
 	}
 
-	sl_bool FsLogger::moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists)
+	sl_bool FileSystemLogger::moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists)
 	{
 		if (!(m_flags & FsLogMove) || !m_regex.match(pathOld.toString()))
 			return m_base->moveFile(pathOld, pathNew, flagReplaceIfExists);
@@ -271,7 +271,7 @@ namespace slib
 		FSLOG_CATCH(desc)
 	}
 
-	sl_bool FsLogger::getFileInfo(const StringParam& path, FileContext* context, FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemLogger::getFileInfo(const StringParam& path, FileContext* context, FileInfo& info, const FileInfoMask& mask)
 	{
 		if (!(m_flags & FsLogGetInfo) || path.isEmpty() || !m_regex.match(path.toString()))
 			return m_base->getFileInfo(path, context, info, mask);
@@ -312,7 +312,7 @@ namespace slib
 		FSLOG_CATCH(desc)
 	}
 
-	sl_bool FsLogger::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemLogger::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
 	{
 		if (!(m_flags & FsLogSetInfo) || path.isEmpty() || !m_regex.match(path.toString()))
 			return m_base->setFileInfo(path, context, info, mask);
@@ -353,7 +353,7 @@ namespace slib
 		FSLOG_CATCH(desc)
 	}
 
-	HashMap<String, FileInfo> FsLogger::getFiles(const StringParam& path)
+	HashMap<String, FileInfo> FileSystemLogger::getFiles(const StringParam& path)
 	{
 		if (!(m_flags & FsLogList) || !m_regex.match(path.toString()))
 			return m_base->getFiles(path);

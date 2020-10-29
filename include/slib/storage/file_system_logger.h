@@ -14,7 +14,7 @@
 namespace slib
 {
 
-	class FsLogger : public FileSystemWrapper
+	class FileSystemLogger : public FileSystemWrapper
 	{
 	public:
 		enum FsLogFlags : sl_uint32 {
@@ -61,7 +61,7 @@ namespace slib
 		};
 
 	public:
-		FsLogger(Ref<FileSystemProvider> base, sl_uint32 logFlags = FsLogAll, String regexFilter = ".*");
+		FileSystemLogger(Ref<FileSystemProvider> base, sl_uint32 logFlags = FsLogAll, String regexFilter = ".*");
 
 	public:
 		sl_bool getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask) override;

@@ -12,10 +12,10 @@
 namespace slib
 {
 
-	class MirrorFs : public FileSystemProvider
+	class MirrorFileSystem : public FileSystemProvider
 	{
 	public:
-		MirrorFs(String path);
+		MirrorFileSystem(String path);
 
 	public:
 		sl_bool getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask) override;

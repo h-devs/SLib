@@ -1,4 +1,4 @@
-#include "slib/storage/mirrorfs.h"
+#include "slib/storage/file_system_mirror.h"
 #include "slib/core/file.h"
 #include "slib/core/system.h"
 #include "slib/core/variant.h"
@@ -32,11 +32,11 @@ namespace slib
 		}
 	};
 
-	MirrorFs::MirrorFs(String path) : m_root(path)
+	MirrorFileSystem::MirrorFileSystem(String path) : m_root(path)
 	{
 	}
 
-	sl_bool MirrorFs::getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask)
+	sl_bool MirrorFileSystem::getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask)
 	{
 		if (mask & FileSystemInfoMask::Basic) {
 			outInfo.fileSystemName = "MirrorFs";
@@ -63,7 +63,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MirrorFs::createDirectory(const StringParam& path)
+	sl_bool MirrorFileSystem::createDirectory(const StringParam& path)
 	{
 		if (!File::createDirectory(m_root + path)) {
 			SLIB_THROW(getError(), sl_false);
@@ -71,7 +71,7 @@ namespace slib
 		return sl_true;
 	}
 
-	Ref<FileContext> MirrorFs::openFile(const StringParam& path, const FileOpenParam& param)
+	Ref<FileContext> MirrorFileSystem::openFile(const StringParam& path, const FileOpenParam& param)
 	{
 		Ref<File> file = File::open(m_root + path, param);
 		if (file.isNull()) {
@@ -80,7 +80,7 @@ namespace slib
 		return new MirrorFileContext(file);
 	}
 
-	sl_bool MirrorFs::closeFile(FileContext* context)
+	sl_bool MirrorFileSystem::closeFile(FileContext* context)
 	{
 		Ref<File> file = FileFromContext(context);
 		if (file.isNotNull()) {
@@ -92,7 +92,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_size MirrorFs::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size)
+	sl_size MirrorFileSystem::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size)
 	{
 		Ref<File> file = FileFromContext(context);
 
@@ -113,7 +113,7 @@ namespace slib
 		return ret;
 	}
 
-	sl_size MirrorFs::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size)
+	sl_size MirrorFileSystem::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size)
 	{
 		Ref<File> file = FileFromContext(context);
 
@@ -141,7 +141,7 @@ namespace slib
 		return ret;
 	}
 
-	sl_bool MirrorFs::flushFile(FileContext* context)
+	sl_bool MirrorFileSystem::flushFile(FileContext* context)
 	{
 		Ref<File> file = FileFromContext(context);
 
@@ -160,7 +160,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MirrorFs::deleteDirectory(const StringParam& path)
+	sl_bool MirrorFileSystem::deleteDirectory(const StringParam& path)
 	{
 		if (!File::deleteFile(m_root + path, sl_true)) {
 			SLIB_THROW(getError(), sl_false);
@@ -168,7 +168,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MirrorFs::deleteFile(const StringParam& path)
+	sl_bool MirrorFileSystem::deleteFile(const StringParam& path)
 	{
 		if (!File::deleteFile(m_root + path, sl_true)) {
 			SLIB_THROW(getError(), sl_false);
@@ -176,7 +176,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MirrorFs::moveFile(const StringParam& oldPath, const StringParam& newPath, sl_bool flagReplaceIfExists)
+	sl_bool MirrorFileSystem::moveFile(const StringParam& oldPath, const StringParam& newPath, sl_bool flagReplaceIfExists)
 	{
 		// TODO replaceIfExists
 		if (!File::rename(m_root + oldPath, m_root + newPath)) {
@@ -185,7 +185,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MirrorFs::getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask)
+	sl_bool MirrorFileSystem::getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask)
 	{
 		String filePath = (path.isNotEmpty() ? m_root + path : sl_null);
 		Ref<File> file = (context ? FileFromContext(context) : sl_null);
@@ -240,7 +240,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MirrorFs::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool MirrorFileSystem::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
 	{
 		String filePath = (path.isNotEmpty() ? m_root + path : sl_null);
 		Ref<File> file = (context ? FileFromContext(context) : sl_null);
@@ -302,12 +302,12 @@ namespace slib
 		return sl_true;
 	}
 
-	HashMap<String, FileInfo> MirrorFs::getFiles(const StringParam& pathDir)
+	HashMap<String, FileInfo> MirrorFileSystem::getFiles(const StringParam& pathDir)
 	{
 		return File::getFileInfos(m_root + pathDir);
 	}
 
-	FileSystemError MirrorFs::getError(sl_uint32 error)
+	FileSystemError MirrorFileSystem::getError(sl_uint32 error)
 	{
 		return (FileSystemError)(error == 0 ? System::getLastError() : error);
 	}
