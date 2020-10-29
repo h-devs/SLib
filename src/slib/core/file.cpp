@@ -562,7 +562,7 @@ namespace slib
 	sl_bool File::createDirectory(const StringParam& dirPath, sl_bool flagErrorOnCreateExistingDirectory)
 	{
 		FileAttributes attr = File::getAttributes(dirPath);
-		if (attr !=  FileAttributes::NotExist) {
+		if (!(attr & FileAttributes::NotExist)) {
 			if (attr & FileAttributes::Directory) {
 				if (flagErrorOnCreateExistingDirectory) {
 					return sl_false;
@@ -602,7 +602,7 @@ namespace slib
 	sl_bool File::deleteFile(const StringParam& filePath, sl_bool flagErrorOnDeleteNotExistingFile)
 	{
 		FileAttributes attr = File::getAttributes(filePath);
-		if (attr ==  FileAttributes::NotExist) {
+		if (attr & FileAttributes::NotExist) {
 			if (flagErrorOnDeleteNotExistingFile) {
 				return sl_false;
 			} else {
