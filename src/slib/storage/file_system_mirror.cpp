@@ -1,4 +1,30 @@
+/*
+*   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+*
+*   Permission is hereby granted, free of charge, to any person obtaining a copy
+*   of this software and associated documentation files (the "Software"), to deal
+*   in the Software without restriction, including without limitation the rights
+*   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*   copies of the Software, and to permit persons to whom the Software is
+*   furnished to do so, subject to the following conditions:
+*
+*   The above copyright notice and this permission notice shall be included in
+*   all copies or substantial portions of the Software.
+*
+*   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+*   THE SOFTWARE.
+*/
+
+#define TAG "MirrorFileSystem"
+#include "slib/storage/file_system_internal.h"
+
 #include "slib/storage/file_system_mirror.h"
+
 #include "slib/core/file.h"
 #include "slib/core/system.h"
 #include "slib/core/variant.h"
@@ -6,9 +32,6 @@
 #ifdef SLIB_PLATFORM_IS_WIN32
 #include <windows.h>
 #endif
-
-#define TAG "MirrorFileSystem"
-#include "slib/storage/file_system_internal.h"
 
 #define FileFromContext(context)	(((MirrorFileContext*)(context))->file)
 
@@ -30,12 +53,18 @@ namespace slib
 		}
 	};
 
-	MirrorFileSystem::MirrorFileSystem(String path) : m_root(path)
+	SLIB_DEFINE_OBJECT(MirrorFileSystem, FileSystemProvider)
+
+	MirrorFileSystem::MirrorFileSystem(const String& path) : m_root(path)
 	{
 		// TODO m_fsInfo.volumeName
 		m_fsInfo.fileSystemName = "MirrorFs";
 		m_fsInfo.creationTime = File::getCreatedTime(m_root);
 		m_fsInfo.flags = FileSystemFlags::CaseSensitive;
+	}
+
+	MirrorFileSystem::~MirrorFileSystem()
+	{
 	}
 
 	sl_bool MirrorFileSystem::getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask)
@@ -125,8 +154,7 @@ namespace slib
 			if (!file->seekToEnd()) {
 				SLIB_THROW(getError(), 0);
 			}
-		}
-		else {
+		} else {
 			if (!file->seek(offset, SeekPosition::Begin)) {
 				SLIB_THROW(getError(), 0);
 			}
@@ -210,8 +238,7 @@ namespace slib
 #else
 				SLIB_THROW(FileSystemError::NotImplemented, sl_false);
 #endif
-			}
-			else {
+			} else {
 				outInfo.attributes = (sl_uint32)attr;
 			}
 		}
@@ -309,7 +336,7 @@ namespace slib
 
 	FileSystemError MirrorFileSystem::getError(sl_uint32 error)
 	{
-		return (FileSystemError)(error == 0 ? System::getLastError() : error);
+		return (FileSystemError)(error ? error : System::getLastError());
 	}
 
 }

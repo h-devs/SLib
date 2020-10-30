@@ -1,11 +1,27 @@
-/**
-* @file slib/storage/file_system_logger.h
-* FileSystem Logger Wrapper Definition.
+/*
+*   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
 *
-* @copyright 2020 Steve Han
+*   Permission is hereby granted, free of charge, to any person obtaining a copy
+*   of this software and associated documentation files (the "Software"), to deal
+*   in the Software without restriction, including without limitation the rights
+*   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*   copies of the Software, and to permit persons to whom the Software is
+*   furnished to do so, subject to the following conditions:
+*
+*   The above copyright notice and this permission notice shall be included in
+*   all copies or substantial portions of the Software.
+*
+*   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+*   THE SOFTWARE.
 */
 
-#pragma once
+#ifndef CHECKHEADER_SLIB_STORAGE_FILE_SYSTEM_LOGGER
+#define CHECKHEADER_SLIB_STORAGE_FILE_SYSTEM_LOGGER
 
 #include "file_system.h"
 
@@ -14,53 +30,68 @@
 namespace slib
 {
 
-	class FileSystemLogger : public FileSystemWrapper
+	class FileSystemLogFlags
 	{
 	public:
-		enum FsLogFlags : sl_uint32 {
-			FsLogCreate = 0x01,
-			FsLogOpen = 0x02,
-			FsLogFlush = 0x04,
-			FsLogClose = 0x08,
-			FsLogRead = 0x10,
-			FsLogWrite = 0x20,
-			FsLogDelete = 0x40,
-			FsLogMove = 0x80,
-			FsLogOpenOp = FsLogCreate | FsLogOpen | FsLogClose,
-			FsLogCreateOpen = FsLogCreate | FsLogOpen,
-			FsLogReadWrite = FsLogRead | FsLogWrite,
+		int value;
+		SLIB_MEMBERS_OF_FLAGS(FileSystemLogFlags, value)
 
-			FsLogBasicOp = 0xFF,
+		enum {
+			Create = 0x01,
+			Open = 0x02,
+			Flush = 0x04,
+			Close = 0x08,
+			Read = 0x10,
+			Write = 0x20,
+			Delete = 0x40,
+			Move = 0x80,
+			OpenOp = Create | Open | Close,
+			CreateOpen = Create | Open,
+			ReadWrite = Read | Write,
 
-			FsLogGetInfo = 0x0100,
-			FsLogSetInfo = 0x0200,
-			FsLogList = 0x0400,
-			FsLogFileSystemInfo = 0x0800,
-			FsLogInfoOp = FsLogGetInfo | FsLogSetInfo,
+			BasicOp = 0xFF,
 
-			FsLogAllOp = 0xFFFF,
+			GetInfo = 0x0100,
+			SetInfo = 0x0200,
+			List = 0x0400,
+			FileSystemInfo = 0x0800,
+			InfoOp = GetInfo | SetInfo,
 
-			FsLogTimeInfo = 0x01000000,
-			FsLogTimeInfoAsString = 0x02000000,
-			FsLogFileName = 0x04000000,
-			FsLogContextAddress = 0x08000000,
+			AllOp = 0xFFFF,
 
-			FsLogRetSuccess = 0x10000000,
-			FsLogRetFail = 0x20000000,
-			FsLogException = 0x40000000,
-			FsLogExceptionString = 0x80000000,
-			FsLogRet = FsLogRetSuccess | FsLogRetFail,
-			FsLogRetAndErrors = FsLogRet | FsLogException,
+			TimeInfo = 0x01000000,
+			TimeInfoAsString = 0x02000000,
+			FileName = 0x04000000,
+			ContextAddress = 0x08000000,
 
-			FsLogSuccess = FsLogFileName | FsLogRetSuccess,
-			FsLogErrors = FsLogFileName | FsLogRetFail | FsLogException | FsLogExceptionString,
-			FsLogDefault = FsLogFileName | FsLogRet | FsLogException | FsLogExceptionString,
+			RetSuccess = 0x10000000,
+			RetFail = 0x20000000,
+			Exception = 0x40000000,
+			ExceptionString = 0x80000000,
+			Ret = RetSuccess | RetFail,
+			RetAndErrors = Ret | Exception,
 
-			FsLogAll = 0xFFFFFFFFu,
+			Success = FileName | RetSuccess,
+			Errors = FileName | RetFail | Exception | ExceptionString,
+			Default = FileName | Ret | Exception | ExceptionString,
+
+			All = 0xFFFFFFFF
 		};
 
+	};
+
+	class FileSystemLogger : public FileSystemWrapper
+	{
+		SLIB_DECLARE_OBJECT
+		
 	public:
-		FileSystemLogger(Ref<FileSystemProvider> base, sl_uint32 logFlags = FsLogAll, String regexFilter = ".*");
+		FileSystemLogger(const Ref<FileSystemProvider>& base);
+
+		FileSystemLogger(const Ref<FileSystemProvider>& base, const FileSystemLogFlags& flags);
+
+		FileSystemLogger(const Ref<FileSystemProvider>& base, const FileSystemLogFlags& flags = FileSystemLogFlags::All, const String& filterRegex = ".*");
+
+		~FileSystemLogger();
 
 	public:
 		sl_bool getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask) override;
@@ -93,6 +124,9 @@ namespace slib
 		sl_uint32 m_flags;
 
 		RegEx m_regex;
+
 	};
 
 }
+
+#endif
