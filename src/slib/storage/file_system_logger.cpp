@@ -13,10 +13,8 @@
 	throw error; \
 }
 
-//#define contextDesc		String::fromUint64(context->handle) + \
-//						(m_flags & FsLogFileName ? ":" + context->path : \
-//						(m_flags & FsLogContextAddress ? ":0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true) : ""))
-#define contextDesc		"0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true)
+#define pathDesc		(m_flags & FsLogFileName ? path : "")
+#define contextDesc		(m_flags & FsLogContextAddress ? ":0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true) : "")
 
 namespace slib
 {
@@ -84,7 +82,7 @@ namespace slib
 		if (!(m_flags & FsLogCreate) || !m_regex.match(path.toString()))
 			return m_base->createDirectory(path);
 
-		String desc = String::format("CreateDirectory(%s)", path);
+		String desc = String::format("CreateDirectory(%s)", pathDesc);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
@@ -106,7 +104,7 @@ namespace slib
 		if (!(m_flags & FsLogOpen) || !m_regex.match(path.toString()))
 			return m_base->openFile(path, param);
 
-		String desc = String::format("OpenFile(%s,%s,%s%s,%s%s,%s%s%s,0x%X)", path,
+		String desc = String::format("OpenFile(%s,%s,%s%s,%s%s,%s%s%s,0x%X)", pathDesc,
 			param.attributes & FileAttributes::Directory ? "DIR" : "FILE",
 
 			(param.mode & FileMode::NotCreate ? "OPEN" : (param.mode & FileMode::NotTruncate ? "OPEN_OR_CREATE" : "CREATE")),
@@ -231,7 +229,7 @@ namespace slib
 		if (!(m_flags & FsLogDelete) || !m_regex.match(path.toString()))
 			return m_base->deleteDirectory(path);
 
-		String desc = String::format("DeleteDirectory(%s)", path);
+		String desc = String::format("DeleteDirectory(%s)", pathDesc);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
@@ -253,7 +251,7 @@ namespace slib
 		if (!(m_flags & FsLogDelete) || !m_regex.match(path.toString()))
 			return m_base->deleteFile(path);
 	
-		String desc = String::format("DeleteFile(%s)", path);
+		String desc = String::format("DeleteFile(%s)", pathDesc);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
@@ -297,7 +295,7 @@ namespace slib
 		if (!(m_flags & FsLogGetInfo) || path.isEmpty() || !m_regex.match(path.toString()))
 			return m_base->getFileInfo(path, context, info, mask);
 
-		String desc = String::format("GetFileInfo(%s,0x%X)", path, mask);
+		String desc = String::format("GetFileInfo(%s%s,0x%X)", pathDesc, contextDesc, mask);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
@@ -338,7 +336,7 @@ namespace slib
 		if (!(m_flags & FsLogSetInfo) || path.isEmpty() || !m_regex.match(path.toString()))
 			return m_base->setFileInfo(path, context, info, mask);
 
-		String desc = String::format("SetFileInfo(%s,0x%X)", path, mask);
+		String desc = String::format("SetFileInfo(%s%s,0x%X)", pathDesc, contextDesc, mask);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
@@ -379,7 +377,7 @@ namespace slib
 		if (!(m_flags & FsLogList) || !m_regex.match(path.toString()))
 			return m_base->getFiles(path);
 
-		String desc = String::format("GetFiles(%s)", path);
+		String desc = String::format("GetFiles(%s)", pathDesc);
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 

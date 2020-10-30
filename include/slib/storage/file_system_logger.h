@@ -42,20 +42,19 @@ namespace slib
 
 			FsLogTimeInfo = 0x01000000,
 			FsLogTimeInfoAsString = 0x02000000,
-
-			//FsLogFileName = 0x04000000,			// when this flag is set, ignores FsLogContextAddress
-			//FsLogContextAddress = 0x08000000,
+			FsLogFileName = 0x04000000,
+			FsLogContextAddress = 0x08000000,
 
 			FsLogRetSuccess = 0x10000000,
 			FsLogRetFail = 0x20000000,
 			FsLogException = 0x40000000,
 			FsLogExceptionString = 0x80000000,
-
 			FsLogRet = FsLogRetSuccess | FsLogRetFail,
-			FsLogSuccess = FsLogRetSuccess,
 			FsLogRetAndErrors = FsLogRet | FsLogException,
-			FsLogErrors = FsLogRetFail | FsLogException | FsLogExceptionString,
-			FsLogDefault = FsLogRet | FsLogException | FsLogExceptionString,
+
+			FsLogSuccess = FsLogFileName | FsLogRetSuccess,
+			FsLogErrors = FsLogFileName | FsLogRetFail | FsLogException | FsLogExceptionString,
+			FsLogDefault = FsLogFileName | FsLogRet | FsLogException | FsLogExceptionString,
 
 			FsLogAll = 0xFFFFFFFFu,
 		};
