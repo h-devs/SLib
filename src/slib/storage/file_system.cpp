@@ -20,7 +20,7 @@
 *   THE SOFTWARE.
 */
 
-#include "file_system.h"
+#include "slib/storage/file_system_internal.h"
 
 #include "slib/core/safe_static.h"
 

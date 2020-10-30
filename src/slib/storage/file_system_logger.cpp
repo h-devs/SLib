@@ -2,7 +2,7 @@
 #include "slib/core/system.h"
 
 #define TAG "FileSystemLogger"
-#include "file_system.h"
+#include "slib/storage/file_system_internal.h"
 
 #define FSLOG_TRY try
 #define FSLOG_CATCH(desc) catch (FileSystemError error) { \

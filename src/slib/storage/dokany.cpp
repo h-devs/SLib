@@ -35,7 +35,7 @@
 #include "slib/core/safe_static.h"
 
 #define TAG "DokanHost"
-#include "file_system.h"
+#include "slib/storage/file_system_internal.h"
 
 #define DOKAN_CHECK_FLAG(val, flag) if (val & flag) { LOG_DEBUG("\t" #flag); }
 

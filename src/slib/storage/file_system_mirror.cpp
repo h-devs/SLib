@@ -8,7 +8,7 @@
 #endif
 
 #define TAG "MirrorFileSystem"
-#include "file_system.h"
+#include "slib/storage/file_system_internal.h"
 
 #define FileFromContext(context)	(((MirrorFileContext*)(context))->file)
 
