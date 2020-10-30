@@ -89,7 +89,7 @@ namespace slib
 
 		FileSystemLogger(const Ref<FileSystemProvider>& base, const FileSystemLogFlags& flags);
 
-		FileSystemLogger(const Ref<FileSystemProvider>& base, const FileSystemLogFlags& flags = FileSystemLogFlags::All, const String& filterRegex = ".*");
+		FileSystemLogger(const Ref<FileSystemProvider>& base, const FileSystemLogFlags& flags, const String& filterRegex);
 
 		~FileSystemLogger();
 
