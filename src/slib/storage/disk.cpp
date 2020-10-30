@@ -37,4 +37,22 @@ namespace slib
 	}
 #endif
 
+	sl_uint64 Disk::getTotalSize(const StringParam& path)
+	{
+		sl_uint64 size;
+		if (getSize(path, &size)) {
+			return size;
+		}
+		return 0;
+	}
+
+	sl_uint64 Disk::getFreeSize(const StringParam& path)
+	{
+		sl_uint64 size;
+		if (getSize(path, sl_null, &size)) {
+			return size;
+		}
+		return 0;
+	}
+
 }
