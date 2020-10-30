@@ -30,14 +30,13 @@
 #define TRY SLIB_TRY
 #define CATCH(desc) SLIB_CATCH (FileSystemError error, { \
 	if (m_flags & FileSystemLogFlags::Exception) { \
-		LOG("%s\n  Error: %d%s", desc, error, \
-			(m_flags & FileSystemLogFlags::ExceptionString ? ", " + System::formatErrorCode((sl_uint32)error) : "")); \
+		LOG("%s\n  Error: %d%s", desc, error, (m_flags & FileSystemLogFlags::ExceptionString ? ", " + System::formatErrorCode((sl_uint32)error) : "")); \
 	} \
 	throw error; \
 })
 
-#define pathDesc		(m_flags & FileSystemLogFlags::FileName ? path : "")
-#define contextDesc		(m_flags & FileSystemLogFlags::ContextAddress ? ":0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true) : "")
+#define PATH_LOG(path) (m_flags & FileSystemLogFlags::FileName ? path : "")
+#define CONTEXT_LOG(context) (m_flags & FileSystemLogFlags::ContextAddress ? ":0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true) : "")
 
 namespace slib
 {
@@ -90,12 +89,14 @@ namespace slib
 
 	sl_bool FileSystemLogger::getInformation(FileSystemInfo& info, const FileSystemInfoMask& mask)
 	{
-		if (!(m_flags & FileSystemLogFlags::FileSystemInfo))
+		if (!(m_flags & FileSystemLogFlags::FileSystemInfo)) {
 			return m_base->getInformation(info, mask);
+		}
 
 		String desc = String::format("GetFileSystemInfo(%s)", mask);
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors))
+		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
+		}
 
 		TRY {
 			sl_bool ret = m_base->getInformation(info, mask);
@@ -127,12 +128,14 @@ namespace slib
 
 	sl_bool FileSystemLogger::createDirectory(const StringParam& path)
 	{
-		if (!(m_flags & FileSystemLogFlags::Create) || !m_regex.match(path.toString()))
+		if (!(m_flags & FileSystemLogFlags::Create) || !m_regex.match(path.toString())) {
 			return m_base->createDirectory(path);
+		}
 
-		String desc = String::format("CreateDirectory(%s)", pathDesc);
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors))
+		String desc = String::format("CreateDirectory(%s)", PATH_LOG(path));
+		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
+		}
 
 		TRY {
 			sl_bool ret = m_base->createDirectory(path);
@@ -148,10 +151,11 @@ namespace slib
 
 	Ref<FileContext> FileSystemLogger::openFile(const StringParam& path, const FileOpenParam& param)
 	{
-		if (!(m_flags & FileSystemLogFlags::Open) || !m_regex.match(path.toString()))
+		if (!(m_flags & FileSystemLogFlags::Open) || !m_regex.match(path.toString())) {
 			return m_base->openFile(path, param);
+		}
 
-		String desc = String::format("OpenFile(%s,%s,%s%s,%s%s,%s%s%s,0x%X)", pathDesc,
+		String desc = String::format("OpenFile(%s,%s,%s%s,%s%s,%s%s%s,0x%X)", PATH_LOG(path),
 			param.attributes & FileAttributes::Directory ? "DIR" : "FILE",
 
 			(param.mode & FileMode::NotCreate ? "OPEN" : (param.mode & FileMode::NotTruncate ? "OPEN_OR_CREATE" : "CREATE")),
@@ -166,8 +170,9 @@ namespace slib
 
 			param.attributes.value);
 
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors))
+		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
+		}
 
 		TRY {
 			Ref<FileContext> context = m_base->openFile(path, param);
@@ -183,10 +188,11 @@ namespace slib
 
 	sl_size FileSystemLogger::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size)
 	{
-		if (!(m_flags & FileSystemLogFlags::Read)/* || !m_regex.match(context->path)*/)
+		if (!(m_flags & FileSystemLogFlags::Read)) {
 			return m_base->readFile(context, offset, buf, size);
+		}
 
-		String desc = String::format("ReadFile(%s,0x%X,0x%X)", contextDesc, offset, size);
+		String desc = String::format("ReadFile(%s,0x%X,0x%X)", CONTEXT_LOG(context), offset, size);
 		if (!(m_flags & FileSystemLogFlags::RetAndErrors))
 			LOG(desc);
 
@@ -204,12 +210,14 @@ namespace slib
 
 	sl_size FileSystemLogger::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size)
 	{
-		if (!(m_flags & FileSystemLogFlags::Write)/* || !m_regex.match(context->path)*/)
+		if (!(m_flags & FileSystemLogFlags::Write)) {
 			return m_base->writeFile(context, offset, buf, size);
+		}
 
-		String desc = String::format("WriteFile(%s,0x%X,0x%X)", contextDesc, offset, size);
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors))
+		String desc = String::format("WriteFile(%s,0x%X,0x%X)", CONTEXT_LOG(context), offset, size);
+		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
+		}
 
 		TRY {
 			sl_size ret = m_base->writeFile(context, offset, buf, size);
@@ -225,10 +233,11 @@ namespace slib
 
 	sl_bool FileSystemLogger::flushFile(FileContext* context)
 	{
-		if (!(m_flags & FileSystemLogFlags::Flush)/* || !m_regex.match(context->path)*/)
+		if (!(m_flags & FileSystemLogFlags::Flush)) {
 			return m_base->flushFile(context);
+		}
 
-		String desc = String::format("FlushFile(%s)", contextDesc);
+		String desc = String::format("FlushFile(%s)", CONTEXT_LOG(context));
 		if (!(m_flags & FileSystemLogFlags::RetAndErrors))
 			LOG(desc);
 
@@ -250,9 +259,10 @@ namespace slib
 			return m_base->closeFile(context);
 		}
 
-		String desc = String::format("CloseFile(%s)", contextDesc);
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors))
+		String desc = String::format("CloseFile(%s)", CONTEXT_LOG(context));
+		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
+		}
 
 		TRY {
 			sl_bool ret = m_base->closeFile(context);
@@ -268,12 +278,14 @@ namespace slib
 
 	sl_bool FileSystemLogger::deleteDirectory(const StringParam& path)
 	{
-		if (!(m_flags & FileSystemLogFlags::Delete) || !m_regex.match(path.toString()))
+		if (!(m_flags & FileSystemLogFlags::Delete) || !m_regex.match(path.toString())) {
 			return m_base->deleteDirectory(path);
+		}
 
-		String desc = String::format("DeleteDirectory(%s)", pathDesc);
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors))
+		String desc = String::format("DeleteDirectory(%s)", PATH_LOG(path));
+		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
+		}
 
 		TRY {
 			sl_bool ret = m_base->deleteDirectory(path);
@@ -289,12 +301,14 @@ namespace slib
 
 	sl_bool FileSystemLogger::deleteFile(const StringParam& path)
 	{
-		if (!(m_flags & FileSystemLogFlags::Delete) || !m_regex.match(path.toString()))
+		if (!(m_flags & FileSystemLogFlags::Delete) || !m_regex.match(path.toString())) {
 			return m_base->deleteFile(path);
+		}
 	
-		String desc = String::format("DeleteFile(%s)", pathDesc);
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors))
+		String desc = String::format("DeleteFile(%s)", PATH_LOG(path));
+		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
+		}
 
 		TRY {
 			sl_bool ret = m_base->deleteFile(path);
@@ -310,12 +324,14 @@ namespace slib
 
 	sl_bool FileSystemLogger::moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists)
 	{
-		if (!(m_flags & FileSystemLogFlags::Move) || !m_regex.match(pathOld.toString()))
+		if (!(m_flags & FileSystemLogFlags::Move) || !m_regex.match(pathOld.toString())) {
 			return m_base->moveFile(pathOld, pathNew, flagReplaceIfExists);
+		}
 
 		String desc = String::format("MoveFile(%s,%s,%d)", pathOld, pathNew, flagReplaceIfExists);
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors))
+		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
+		}
 
 		TRY {
 			sl_bool ret = m_base->moveFile(pathOld, pathNew, flagReplaceIfExists);
@@ -331,25 +347,29 @@ namespace slib
 
 	sl_bool FileSystemLogger::getFileInfo(const StringParam& path, FileContext* context, FileInfo& info, const FileInfoMask& mask)
 	{
-		if (!(m_flags & FileSystemLogFlags::GetInfo) || path.isEmpty() || !m_regex.match(path.toString()))
+		if (!(m_flags & FileSystemLogFlags::GetInfo) || path.isEmpty() || !m_regex.match(path.toString())) {
 			return m_base->getFileInfo(path, context, info, mask);
+		}
 
-		String desc = String::format("GetFileInfo(%s%s,0x%X)", pathDesc, contextDesc, mask);
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors))
+		String desc = String::format("GetFileInfo(%s%s,0x%X)", PATH_LOG(path), CONTEXT_LOG(context), mask);
+		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
+		}
 
 		TRY {
 			sl_bool ret = m_base->getFileInfo(path, context, info, mask);
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG(desc);
-				if (mask & FileInfoMask::Attributes)
+				if (mask & FileInfoMask::Attributes) {
 					LOG("  Attributes: 0x%X, %s", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
-				if (mask & FileInfoMask::Size)
+				}
+				if (mask & FileInfoMask::Size) {
 					LOG("  Size: %d", info.size);
-				if (mask & FileInfoMask::AllocSize)
+				}
+				if (mask & FileInfoMask::AllocSize) {
 					LOG("  AllocSize: %d", info.allocSize);
-				if ((m_flags & FileSystemLogFlags::TimeInfo) &&
-					(mask & FileInfoMask::Time)) {
+				}
+				if ((m_flags & FileSystemLogFlags::TimeInfo) && (mask & FileInfoMask::Time)) {
 					if (m_flags & FileSystemLogFlags::TimeInfoAsString) {
 						LOG("  CreatedAt: %s", info.createdAt.toString());
 						LOG("  ModifiedAt: %s", info.modifiedAt.toString());
@@ -370,25 +390,29 @@ namespace slib
 
 	sl_bool FileSystemLogger::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
 	{
-		if (!(m_flags & FileSystemLogFlags::SetInfo) || path.isEmpty() || !m_regex.match(path.toString()))
+		if (!(m_flags & FileSystemLogFlags::SetInfo) || path.isEmpty() || !m_regex.match(path.toString())) {
 			return m_base->setFileInfo(path, context, info, mask);
+		}
 
-		String desc = String::format("SetFileInfo(%s%s,0x%X)", pathDesc, contextDesc, mask);
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors))
+		String desc = String::format("SetFileInfo(%s%s,0x%X)", PATH_LOG(path), CONTEXT_LOG(context), mask);
+		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
+		}
 
 		TRY {
 			sl_bool ret = m_base->setFileInfo(path, context, info, mask);
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG(desc);
-				if (mask & FileInfoMask::Attributes)
+				if (mask & FileInfoMask::Attributes) {
 					LOG("  Attributes: 0x%X, %s", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
-				if (mask & FileInfoMask::Size)
+				}
+				if (mask & FileInfoMask::Size) {
 					LOG("  Size: %d", info.size);
-				if (mask & FileInfoMask::AllocSize)
+				}
+				if (mask & FileInfoMask::AllocSize) {
 					LOG("  AllocSize: %d", info.allocSize);
-				if ((m_flags & FileSystemLogFlags::TimeInfo) &&
-					(mask & FileInfoMask::Time)) {
+				}
+				if ((m_flags & FileSystemLogFlags::TimeInfo) && (mask & FileInfoMask::Time)) {
 					if (m_flags & FileSystemLogFlags::TimeInfoAsString) {
 						LOG("  CreatedAt: %s", info.createdAt.toString());
 						LOG("  ModifiedAt: %s", info.modifiedAt.toString());
@@ -409,12 +433,14 @@ namespace slib
 
 	HashMap<String, FileInfo> FileSystemLogger::getFiles(const StringParam& path)
 	{
-		if (!(m_flags & FileSystemLogFlags::List) || !m_regex.match(path.toString()))
+		if (!(m_flags & FileSystemLogFlags::List) || !m_regex.match(path.toString())) {
 			return m_base->getFiles(path);
+		}
 
-		String desc = String::format("GetFiles(%s)", pathDesc);
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors))
+		String desc = String::format("GetFiles(%s)", PATH_LOG(path));
+		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
+		}
 
 		TRY {
 			HashMap<String, FileInfo> files = m_base->getFiles(path);

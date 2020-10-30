@@ -121,7 +121,7 @@ namespace slib
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
 
 	private:
-		sl_uint32 m_flags;
+		FileSystemLogFlags m_flags;
 
 		RegEx m_regex;
 
