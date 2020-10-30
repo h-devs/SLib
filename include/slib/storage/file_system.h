@@ -33,6 +33,12 @@
 
 #define SLIB_FILE_SYSTEM_CAN_THROW
 
+#ifdef SLIB_PLATFORM_IS_WINDOWS
+#define SLIB_FILE_SYSTEM_PATH_SEPARATOR "\\"
+#else
+#define SLIB_FILE_SYSTEM_PATH_SEPARATOR "/"
+#endif
+
 namespace slib
 {
 
@@ -292,14 +298,17 @@ namespace slib
 		sl_uint64 getFileSize(const StringParam& path) override;
 
 	protected:
-		// If you want to use different FileContext in wrapper, you will need to override this function.
-		virtual Ref<FileContext> createContext(FileContext* baseContext);
-
-		// If you want to use different FileContext in wrapper, you will need to override this function.
+		// If you want to use different FileContext in wrapper, you will need to override these functions.
+		virtual Ref<FileContext> createContext(FileContext* baseContext, const StringParam& path);
 		virtual Ref<FileContext> getBaseContext(FileContext* context);
 
-		// If you want to use different path in wrapper, you will need to override this function.
-		virtual String getBaseFileName(const StringParam& path);
+		// If you want to use different path in wrapper, you will need to override these functions.
+		virtual String toBasePath(const StringParam& path);
+		virtual String toWrapperPath(const String& basePath, sl_bool flagNameOnly, sl_uint32 depth);
+
+		// If you want to use different file info in wrapper, you will need to override these functions.
+		virtual void convertToBaseFileInfo(FileInfo& info, const FileInfoMask& mask) noexcept;
+		virtual void convertToWrapperFileInfo(FileInfo& baseInfo, const FileInfoMask& mask) noexcept;
 
 	protected:
 		Ref<FileSystemProvider> m_base;

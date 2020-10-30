@@ -296,9 +296,9 @@ namespace slib
 
 	Ref<FileContext> FileSystemWrapper::openFile(const StringParam& path, const FileOpenParam& param)
 	{
-		Ref<FileContext> context = m_base->openFile(getBaseFileName(path), param);
-		if (context.isNotNull()) {
-			return createContext(context.get());
+		Ref<FileContext> baseContext = m_base->openFile(toBasePath(path), param);
+		if (baseContext.isNotNull()) {
+			return createContext(baseContext.get(), path);
 		}
 		return sl_null;
 	}
@@ -345,29 +345,35 @@ namespace slib
 
 	sl_bool FileSystemWrapper::deleteFile(const StringParam& path)
 	{
-		return m_base->deleteFile(getBaseFileName(path));
+		return m_base->deleteFile(toBasePath(path));
 	}
 
 	sl_bool FileSystemWrapper::moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists)
 	{
-		return m_base->moveFile(getBaseFileName(pathOld), getBaseFileName(pathNew), flagReplaceIfExists);
+		return m_base->moveFile(toBasePath(pathOld), toBasePath(pathNew), flagReplaceIfExists);
 	}
 
 	sl_bool FileSystemWrapper::getFileInfo(const StringParam& path, FileContext* context, FileInfo& info, const FileInfoMask& mask)
 	{
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {
-			return m_base->getFileInfo(getBaseFileName(path), baseContext.get(), info, mask);
+			sl_bool ret = m_base->getFileInfo(toBasePath(path), baseContext.get(), info, mask);
+			if (ret) {
+				convertToWrapperFileInfo(info, mask);
+			}
+			return ret;
 		} else {
 			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
 		}
 	}
 
-	sl_bool FileSystemWrapper::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemWrapper::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& _info, const FileInfoMask& mask)
 	{
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {
-			return m_base->setFileInfo(getBaseFileName(path), baseContext.get(), info, mask);
+			FileInfo info = _info;
+			convertToBaseFileInfo(info, mask);
+			return m_base->setFileInfo(toBasePath(path), baseContext.get(), info, mask);
 		} else {
 			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
 		}
@@ -375,22 +381,52 @@ namespace slib
 
 	sl_bool FileSystemWrapper::createDirectory(const StringParam& path)
 	{
-		return m_base->createDirectory(getBaseFileName(path));
+		return m_base->createDirectory(toBasePath(path));
 	}
 
 	sl_bool FileSystemWrapper::deleteDirectory(const StringParam& path)
 	{
-		return m_base->deleteDirectory(getBaseFileName(path));
+		return m_base->deleteDirectory(toBasePath(path));
 	}
 
 	HashMap<String, FileInfo> FileSystemWrapper::getFiles(const StringParam& pathDir)
 	{
-		return m_base->getFiles(getBaseFileName(pathDir));
+		HashMap<String, FileInfo> base_files = m_base->getFiles(toBasePath(pathDir));
+		HashMap<String, FileInfo> files;
+
+		// calculate path depth
+		String path = pathDir.toString().replaceAll("\\", "/");
+		List<String> parts = path.split("/");
+		sl_uint32 depth = 0;
+		for (auto& part : parts) {
+			if (part.isNotEmpty()) {
+				depth++;
+			}
+		}
+
+		for (auto& file : base_files) {
+			String baseName = file.key;
+			String basePath = toBasePath(pathDir) + SLIB_FILE_SYSTEM_PATH_SEPARATOR + baseName;
+
+			String name = toWrapperPath(baseName, sl_true, depth);
+			if (name.isEmpty()) {
+				path = toWrapperPath(basePath, sl_false, depth);
+				if (path.isEmpty()) continue;	// ignore this entry
+
+				name = File::getFileName(path);
+			}
+
+			FileInfo& info = file.value;
+			convertToWrapperFileInfo(info, FileInfoMask::All);
+			files.add(name, info);
+		}
+
+		return files;
 	}
 
 	sl_bool FileSystemWrapper::existsFile(const StringParam& path)
 	{
-		return m_base->existsFile(getBaseFileName(path));
+		return m_base->existsFile(toBasePath(path));
 	}
 
 	sl_uint64 FileSystemWrapper::getFileSize(FileContext* context)
@@ -400,10 +436,10 @@ namespace slib
 
 	sl_uint64 FileSystemWrapper::getFileSize(const StringParam& path)
 	{
-		return m_base->getFileSize(getBaseFileName(path));
+		return m_base->getFileSize(toBasePath(path));
 	}
 
-	Ref<FileContext> FileSystemWrapper::createContext(FileContext* baseContext)
+	Ref<FileContext> FileSystemWrapper::createContext(FileContext* baseContext, const StringParam& path)
 	{
 		return baseContext;
 	}
@@ -413,9 +449,22 @@ namespace slib
 		return context;
 	}
 
-	String FileSystemWrapper::getBaseFileName(const StringParam& path)
+	String FileSystemWrapper::toBasePath(const StringParam& path)
 	{
 		return path.toString();
+	}
+
+	String FileSystemWrapper::toWrapperPath(const String& basePath, sl_bool flagNameOnly, sl_uint32 depth)
+	{
+		return basePath;
+	}
+
+	void FileSystemWrapper::convertToBaseFileInfo(FileInfo& info, const FileInfoMask& mask) noexcept
+	{
+	}
+
+	void FileSystemWrapper::convertToWrapperFileInfo(FileInfo& baseInfo, const FileInfoMask& mask) noexcept
+	{
 	}
 
 }
