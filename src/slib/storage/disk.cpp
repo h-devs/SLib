@@ -30,6 +30,11 @@ namespace slib
 	{		
 		return sl_null;
 	}
+
+	sl_bool Disk::getSize(const StringParam& path, sl_uint64* pTotalSize, sl_uint64* pFreeSize)
+	{
+		return sl_false;
+	}
 #endif
 
 }

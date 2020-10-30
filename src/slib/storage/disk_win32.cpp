@@ -138,4 +138,13 @@ namespace slib
 		return ret;
 	}
 
+	sl_bool Disk::getSize(const StringParam& _path, sl_uint64* pTotalSize, sl_uint64* pFreeSize)
+	{
+		StringCstr16 path(_path);
+		if (GetDiskFreeSpaceExW((LPCWSTR)(path.getData()), NULL, (ULARGE_INTEGER*)pTotalSize, (ULARGE_INTEGER*)pFreeSize)) {
+			return sl_true;
+		}
+		return sl_false;
+	}
+
 }

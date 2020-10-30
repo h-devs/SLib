@@ -34,6 +34,8 @@ namespace slib
 	{
 	public:
 		static String getSerialNumber(sl_uint32 diskNo);
+
+		static sl_bool getSize(const StringParam& path, sl_uint64* pTotalSize, sl_uint64* pFreeSize);
 	
 	};
 
