@@ -227,26 +227,21 @@ namespace slib
 		sl_bool isRunning();
 
 		sl_bool run(const FileSystemHostParam& param);
-		
-		void stop();
 
 		sl_size getOpenedHandlesCount();
 
-	public:
-		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param);
+		sl_size increaseOpenHandlesCount();
 
-		sl_bool closeFile(FileContext* context);
+		sl_size decreaseOpenHandlesCount();
 
 	protected:
 		virtual sl_bool _run() = 0;
-
-		virtual void _stop() = 0;
 
 	protected:
 		FileSystemHostParam m_param;
 
 		sl_bool m_flagRunning;
-		sl_reg m_nOpendHandles;
+		sl_reg m_nOpenedHandles;
 
 	};
 

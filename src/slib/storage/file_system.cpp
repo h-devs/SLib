@@ -183,7 +183,7 @@ namespace slib
 	FileSystemHost::FileSystemHost()
 	{
 		m_flagRunning = sl_false;
-		m_nOpendHandles = 0;
+		m_nOpenedHandles = 0;
 	}
 
 	FileSystemHost::~FileSystemHost()
@@ -234,40 +234,19 @@ namespace slib
 		return bRet;
 	}
 
-	void FileSystemHost::stop()
-	{
-		if (!(m_flagRunning)) {
-			return;
-		}
-		ObjectLocker lock(this);
-		if (!(m_flagRunning)) {
-			return;
-		}
-		_stop();
-	}
-
 	sl_size FileSystemHost::getOpenedHandlesCount()
 	{
-		return m_nOpendHandles;
+		return m_nOpenedHandles;
 	}
 
-	Ref<FileContext> FileSystemHost::openFile(const StringParam& path, const FileOpenParam& param)
+	sl_size FileSystemHost::increaseOpenHandlesCount()
 	{
-		Ref<FileContext> context = m_param.provider->openFile(path, param);
-		if (context.isNotNull()) {
-			Base::interlockedIncrement(&m_nOpendHandles);
-			return context;
-		}
-		return sl_null;
+		return Base::interlockedIncrement(&m_nOpenedHandles);
 	}
 
-	sl_bool FileSystemHost::closeFile(FileContext* context)
+	sl_size FileSystemHost::decreaseOpenHandlesCount()
 	{
-		if (m_param.provider->closeFile(context)) {
-			Base::interlockedDecrement(&m_nOpendHandles);
-			return sl_true;
-		}
-		return sl_false;
+		return Base::interlockedDecrement(&m_nOpenedHandles);
 	}
 
 

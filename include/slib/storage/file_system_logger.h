@@ -41,23 +41,23 @@ namespace slib
 			FsLogAllOp = 0xFFFF,
 
 			FsLogTimeInfo = 0x01000000,
-			FsLogTimeInfoAsString = 0x02000000 | FsLogTimeInfo,
+			FsLogTimeInfoAsString = 0x02000000,
 
-			//FsLogFileName = 0x10000000,			// when this flag is set, ignores FsLogContextAddress
-			//FsLogContextAddress = 0x20000000,
+			//FsLogFileName = 0x04000000,			// when this flag is set, ignores FsLogContextAddress
+			//FsLogContextAddress = 0x08000000,
 
 			FsLogRetSuccess = 0x10000000,
 			FsLogRetFail = 0x20000000,
 			FsLogException = 0x40000000,
-			FsLogExceptionString = 0x80000000 | FsLogException,
+			FsLogExceptionString = 0x80000000,
 
 			FsLogRet = FsLogRetSuccess | FsLogRetFail,
 			FsLogSuccess = FsLogRetSuccess,
 			FsLogRetAndErrors = FsLogRet | FsLogException,
-			FsLogErrors = FsLogRetFail | FsLogExceptionString,
-			FsLogDefault = FsLogRet | FsLogException,
+			FsLogErrors = FsLogRetFail | FsLogException | FsLogExceptionString,
+			FsLogDefault = FsLogRet | FsLogException | FsLogExceptionString,
 
-			FsLogAll = 0xFFFFFFFF,
+			FsLogAll = 0xFFFFFFFFu,
 		};
 
 	public:

@@ -76,7 +76,7 @@ namespace slib
 
 		FSLOG_TRY {
 			sl_bool ret = m_base->createDirectory(path);
-			if (ret && (m_flags & FsLogRet)) {
+			if (ret && (m_flags & FsLogRetSuccess)) {
 				LOG(desc);
 			}
 			else if (!ret && (m_flags & FsLogRetFail)) {
@@ -92,17 +92,27 @@ namespace slib
 		if (!(m_flags & FsLogOpen) || !m_regex.match(path.toString()))
 			return m_base->openFile(path, param);
 
-		String desc = String::format("OpenFile(%s,%s,%s%s,0x%X,0x%X)", path,
+		String desc = String::format("OpenFile(%s,%s,%s%s,%s%s,%s%s%s,0x%X)", path,
 			param.attributes & FileAttributes::Directory ? "DIR" : "FILE",
-			(param.mode & FileMode::NotCreate ? "NOT_CREATE" : "CREATE"),
+
+			(param.mode & FileMode::NotCreate ? "OPEN" : (param.mode & FileMode::NotTruncate ? "OPEN_OR_CREATE" : "CREATE")),
 			(param.mode & FileMode::NotTruncate ? "" : "|TRUNCATE"),
-			param.mode.value, param.attributes.value);
+
+			(param.mode & FileMode::Read ? "READ" : ""),
+			(param.mode & FileMode::Write ? "WRITE" : ""),
+
+			(param.mode & FileMode::ShareRead ? "R" : "-"), 
+			(param.mode & FileMode::ShareWrite ? "W" : "-"), 
+			(param.mode & FileMode::ShareDelete ? "D" : "-"),
+
+			param.attributes.value);
+
 		if (!(m_flags & FsLogRetAndErrors))
 			LOG(desc);
 
 		FSLOG_TRY {
 			Ref<FileContext> context = m_base->openFile(path, param);
-			if (context.isNotNull() && (m_flags & FsLogRet)) {
+			if (context.isNotNull() && (m_flags & FsLogRetSuccess)) {
 				LOG(desc);
 			}
 			else if (context.isNull() && (m_flags & FsLogRetFail)) {
@@ -124,7 +134,7 @@ namespace slib
 
 		FSLOG_TRY {
 			sl_size ret = m_base->readFile(context, offset, buf, size);
-			if (ret && (m_flags & FsLogRet)) {
+			if (ret && (m_flags & FsLogRetSuccess)) {
 				LOG("%s\n  Ret: %d", desc, ret);
 			}
 			else if (!ret && (m_flags & FsLogRetFail)) {
@@ -146,7 +156,7 @@ namespace slib
 
 		FSLOG_TRY {
 			sl_size ret = m_base->writeFile(context, offset, buf, size);
-			if (ret && (m_flags & FsLogRet)) {
+			if (ret && (m_flags & FsLogRetSuccess)) {
 				LOG("%s\n  Ret: %d", desc, ret);
 			}
 			else if (!ret && (m_flags & FsLogRetFail)) {
@@ -168,7 +178,7 @@ namespace slib
 
 		FSLOG_TRY {
 			sl_bool ret = m_base->flushFile(context);
-			if (ret && (m_flags & FsLogRet)) {
+			if (ret && (m_flags & FsLogRetSuccess)) {
 				LOG(desc);
 			}
 			else if (!ret && (m_flags & FsLogRetFail)) {
@@ -191,7 +201,7 @@ namespace slib
 
 		FSLOG_TRY {
 			sl_bool ret = m_base->closeFile(context);
-			if (ret && (m_flags & FsLogRet)) {
+			if (ret && (m_flags & FsLogRetSuccess)) {
 				LOG(desc);
 			}
 			else if (!ret && (m_flags & FsLogRetFail)) {
@@ -213,7 +223,7 @@ namespace slib
 
 		FSLOG_TRY {
 			sl_bool ret = m_base->deleteDirectory(path);
-			if (ret && (m_flags & FsLogRet)) {
+			if (ret && (m_flags & FsLogRetSuccess)) {
 				LOG(desc);
 			}
 			else if (!ret && (m_flags & FsLogRetFail)) {
@@ -235,7 +245,7 @@ namespace slib
 
 		FSLOG_TRY {
 			sl_bool ret = m_base->deleteFile(path);
-			if (ret && (m_flags & FsLogRet)) {
+			if (ret && (m_flags & FsLogRetSuccess)) {
 				LOG(desc);
 			}
 			else if (!ret && (m_flags & FsLogRetFail)) {
@@ -257,7 +267,7 @@ namespace slib
 
 		FSLOG_TRY {
 			sl_bool ret = m_base->moveFile(pathOld, pathNew, flagReplaceIfExists);
-			if (ret && (m_flags & FsLogRet)) {
+			if (ret && (m_flags & FsLogRetSuccess)) {
 				LOG(desc);
 			}
 			else if (!ret && (m_flags & FsLogRetFail)) {
@@ -279,7 +289,7 @@ namespace slib
 
 		FSLOG_TRY {
 			sl_bool ret = m_base->getFileInfo(path, context, info, mask);
-			if (ret && (m_flags & FsLogRet)) {
+			if (ret && (m_flags & FsLogRetSuccess)) {
 				LOG(desc);
 				if (mask & FileInfoMask::Attributes)
 					LOG("  Attributes: 0x%X, %s", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
@@ -320,7 +330,7 @@ namespace slib
 
 		FSLOG_TRY {
 			sl_bool ret = m_base->setFileInfo(path, context, info, mask);
-			if (ret && (m_flags & FsLogRet)) {
+			if (ret && (m_flags & FsLogRetSuccess)) {
 				LOG(desc);
 				if (mask & FileInfoMask::Attributes)
 					LOG("  Attributes: 0x%X, %s", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
@@ -361,7 +371,7 @@ namespace slib
 
 		FSLOG_TRY {
 			HashMap<String, FileInfo> files = m_base->getFiles(path);
-			if (files.isNotEmpty() && (m_flags & FsLogRet)) {
+			if (files.isNotEmpty() && (m_flags & FsLogRetSuccess)) {
 				LOG(desc);
 				for (auto& file : files) {
 					FileInfo info = file.value;

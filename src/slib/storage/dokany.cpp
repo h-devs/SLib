@@ -34,7 +34,10 @@
 #include "slib/core/platform_windows.h"
 #include "slib/core/safe_static.h"
 
+#define TAG "DokanHost"
 #include "file_system.h"
+
+#define DOKAN_CHECK_FLAG(val, flag) if (val & flag) { LOG_DEBUG("\t" #flag); }
 
 #define DOKAN_ERROR_CODE(err) (g_flagDokany ? getApi_DokanNtStatusFromWin32()((DWORD)err) : -(int)err)
 
@@ -165,6 +168,48 @@ namespace slib
 				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
 				FileSystemProvider* provider = host->getProvider();
 
+#if 0
+				LOG_DEBUG("CreateFile : %s", StringCstr16(szFileName));
+
+				//LOG_DEBUG("\tShareMode = 0x%x", dwShareMode);
+				//DOKAN_CHECK_FLAG(dwShareMode, FILE_SHARE_READ);
+				//DOKAN_CHECK_FLAG(dwShareMode, FILE_SHARE_WRITE);
+				//DOKAN_CHECK_FLAG(dwShareMode, FILE_SHARE_DELETE);
+
+				LOG_DEBUG(L"\tDesiredAccess = 0x%x", dwAccessMode);
+				DOKAN_CHECK_FLAG(dwAccessMode, GENERIC_READ);
+				DOKAN_CHECK_FLAG(dwAccessMode, GENERIC_WRITE);
+				DOKAN_CHECK_FLAG(dwAccessMode, GENERIC_EXECUTE);
+				DOKAN_CHECK_FLAG(dwAccessMode, DELETE);
+				DOKAN_CHECK_FLAG(dwAccessMode, FILE_READ_DATA);
+				DOKAN_CHECK_FLAG(dwAccessMode, FILE_READ_ATTRIBUTES);
+				DOKAN_CHECK_FLAG(dwAccessMode, FILE_READ_EA);
+				DOKAN_CHECK_FLAG(dwAccessMode, READ_CONTROL);
+				DOKAN_CHECK_FLAG(dwAccessMode, FILE_WRITE_DATA);
+				DOKAN_CHECK_FLAG(dwAccessMode, FILE_WRITE_ATTRIBUTES);
+				DOKAN_CHECK_FLAG(dwAccessMode, FILE_WRITE_EA);
+				DOKAN_CHECK_FLAG(dwAccessMode, FILE_APPEND_DATA);
+				DOKAN_CHECK_FLAG(dwAccessMode, WRITE_DAC);
+				DOKAN_CHECK_FLAG(dwAccessMode, WRITE_OWNER);
+				DOKAN_CHECK_FLAG(dwAccessMode, SYNCHRONIZE);
+				DOKAN_CHECK_FLAG(dwAccessMode, FILE_EXECUTE);
+				DOKAN_CHECK_FLAG(dwAccessMode, STANDARD_RIGHTS_READ);
+				DOKAN_CHECK_FLAG(dwAccessMode, STANDARD_RIGHTS_WRITE);
+				DOKAN_CHECK_FLAG(dwAccessMode, STANDARD_RIGHTS_EXECUTE);
+
+				LOG_DEBUG("\tFlagsAndAttributes = 0x%x", dwFlagsAndAttributes);
+				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_WRITE_THROUGH);
+				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_OVERLAPPED);
+				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_NO_BUFFERING);
+				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_RANDOM_ACCESS);
+				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_SEQUENTIAL_SCAN);
+				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_DELETE_ON_CLOSE);
+				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_BACKUP_SEMANTICS);
+				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_POSIX_SEMANTICS);
+				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_OPEN_REPARSE_POINT);
+				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_OPEN_NO_RECALL);
+#endif
+
 				DOKANY_TRY {
 
 					int iRetSuccess = 0;
@@ -223,11 +268,12 @@ namespace slib
 						param.mode |= FileMode::RandomAccess;
 					}
 
-					Ref<FileContext> context = host->openFile(szFileName, param);
+					Ref<FileContext> context = provider->openFile(szFileName, param);
 					if (context.isNull()) {
 						return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
 					}
 
+					host->increaseOpenHandlesCount();
 					context->increaseReference();
 					pDokanFileInfo->Context = (ULONG64)(sl_size)(context.get());
 
@@ -326,11 +372,10 @@ namespace slib
 					}
 				}
 				
-				if (attrs & FILE_ATTRIBUTE_DIRECTORY) {
+				if (pDokanFileInfo->IsDirectory) {
 					if (dwCreationDisposition == CREATE_NEW) {
 						return Dokany_CreateDirectory(szFileName, pDokanFileInfo);
-					}
-					else {
+					} else {
 						return Dokany_OpenDirectory(szFileName, pDokanFileInfo);
 					}
 				} else {
@@ -356,6 +401,12 @@ namespace slib
 						if (pDokanFileInfo->IsDirectory) {
 							provider->deleteDirectory(szFileName);
 						} else {
+							if (context) {
+								provider->closeFile(context);
+								host->decreaseOpenHandlesCount();
+								context->decreaseReference();
+								pDokanFileInfo->Context = 0;
+							}
 							provider->deleteFile(szFileName);
 						}
 					}
@@ -368,6 +419,7 @@ namespace slib
 					PDOKAN_FILE_INFO		pDokanFileInfo)
 			{
 				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
+				FileSystemProvider* provider = host->getProvider();
 				FileContext* context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
 
 				if (!context) {
@@ -375,10 +427,9 @@ namespace slib
 				}
 
 				SLIB_TRY {
-					host->closeFile(context);
-					if (context) {
-						context->decreaseReference();
-					}
+					provider->closeFile(context);
+					host->decreaseOpenHandlesCount();
+					context->decreaseReference();
 				} SLIB_CATCH(...)
 				return 0;
 			}
@@ -699,14 +750,14 @@ namespace slib
 					if (provider->getInformation(info, FileSystemInfoMask::Basic)) {
 						if (dwVolumeNameSize) {
 							szVolumeNameBuffer[0] = 0;
-							info.volumeName.getUtf16((sl_char16*)szVolumeNameBuffer, (sl_size)dwFileSystemNameSize);
+							info.volumeName.getUtf16((sl_char16*)szVolumeNameBuffer, (sl_size)dwVolumeNameSize);
 						}
 						*pVolumeSerialNumber = (DWORD)(info.serialNumber);
 						*pMaximumComponentLength = (DWORD)(info.maxPathLength);
 						*pFileSystemFlags = (DWORD)(info.flags);
 						if (dwFileSystemNameSize) {
 							szFileSystemNameBuffer[0] = 0;
-							info.fileSystemName.getUtf16((sl_char16*)szVolumeNameBuffer, (sl_size)dwFileSystemNameSize);
+							info.fileSystemName.getUtf16((sl_char16*)szFileSystemNameBuffer, (sl_size)dwFileSystemNameSize);
 						}
 						return 0;
 					}
@@ -782,11 +833,6 @@ namespace slib
 			public:
 				DokanHost()
 				{
-				}
-
-				~DokanHost()
-				{
-					stop();
 				}
 
 			public:
@@ -865,11 +911,6 @@ namespace slib
 						break;
 					}
 					return sl_false;
-				}
-
-				void _stop() override
-				{
-					
 				}
 				
 			};
