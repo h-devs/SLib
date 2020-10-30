@@ -108,6 +108,17 @@ namespace slib
 	{
 	}
 
+	sl_bool FileSystemProvider::getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask)
+	{
+		if (mask & FileSystemInfoMask::Basic) {
+			outInfo = m_fsInfo;
+		}
+		if (mask & FileSystemInfoMask::Size) {
+			SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+		}
+		return sl_true;
+	}
+
 	sl_size FileSystemProvider::writeFile(FileContext* context, sl_int64 offset, const void* data, sl_size size)
 	{
 		SLIB_THROW(FileSystemError::NotImplemented, 0)
@@ -250,8 +261,18 @@ namespace slib
 	}
 
 
-	FileSystemWrapper::FileSystemWrapper(const Ref<FileSystemProvider>& base) : m_base(base)
+	FileSystemWrapper::FileSystemWrapper(const Ref<FileSystemProvider>& base,
+		const StringParam& fileSystemName,
+		const StringParam& volumeName) : m_base(base)
 	{
+		m_base->getInformation(m_fsInfo, FileSystemInfoMask::Basic);
+
+		if (fileSystemName.isNotEmpty()) {
+			m_fsInfo.fileSystemName = fileSystemName.toString();
+		}
+		if (volumeName.isNotNull()) { // volume name can be empty string
+			m_fsInfo.volumeName = volumeName.toString();
+		}
 	}
 
 	FileSystemWrapper::~FileSystemWrapper()
@@ -260,7 +281,17 @@ namespace slib
 
 	sl_bool FileSystemWrapper::getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask)
 	{
-		return m_base->getInformation(outInfo, mask);
+		if (mask & FileSystemInfoMask::Basic) {
+			outInfo = m_fsInfo;
+		}
+
+		FileSystemInfo baseOutInfo;
+		sl_bool ret = m_base->getInformation(baseOutInfo, mask);
+		if (ret && (mask & FileSystemInfoMask::Size)) {
+			outInfo.totalSize = baseOutInfo.totalSize;
+			outInfo.freeSize = baseOutInfo.freeSize;
+		}
+		return ret;
 	}
 
 	Ref<FileContext> FileSystemWrapper::openFile(const StringParam& path, const FileOpenParam& param)

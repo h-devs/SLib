@@ -32,14 +32,16 @@ namespace slib
 
 	MirrorFileSystem::MirrorFileSystem(String path) : m_root(path)
 	{
+		// TODO m_fsInfo.volumeName
+		m_fsInfo.fileSystemName = "MirrorFs";
+		m_fsInfo.creationTime = File::getCreatedTime(m_root);
+		m_fsInfo.flags = FileSystemFlags::CaseSensitive;
 	}
 
 	sl_bool MirrorFileSystem::getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask)
 	{
 		if (mask & FileSystemInfoMask::Basic) {
-			outInfo.fileSystemName = "MirrorFs";
-			outInfo.creationTime = File::getCreatedTime(m_root);
-			outInfo.flags = FileSystemFlags::CaseSensitive;
+			outInfo = m_fsInfo;
 		}
 
 		if (mask & FileSystemInfoMask::Size) {

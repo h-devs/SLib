@@ -154,7 +154,7 @@ namespace slib
 		~FileSystemProvider();
 
 	public:
-		virtual sl_bool getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask) = 0;
+		virtual sl_bool getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask);
 		
 		virtual Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) = 0;
 
@@ -189,6 +189,9 @@ namespace slib
 		virtual sl_uint64 getFileSize(FileContext* context);
 
 		virtual sl_uint64 getFileSize(const StringParam& path);
+
+	protected:
+		FileSystemInfo m_fsInfo;
 
 	};
 
@@ -248,7 +251,9 @@ namespace slib
 	class FileSystemWrapper : public FileSystemProvider
 	{
 	public:
-		FileSystemWrapper(const Ref<FileSystemProvider>& base);
+		FileSystemWrapper(const Ref<FileSystemProvider>& base,
+			const StringParam& fileSystemName = sl_null,
+			const StringParam& volumeName = sl_null);
 
 		~FileSystemWrapper();
 

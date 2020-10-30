@@ -25,6 +25,20 @@ namespace slib
 		: FileSystemWrapper(base), m_flags(logFlags), m_regex(regexFilter)
 	{
 		LOG_DEBUG("LogFlags: 0x%08X", m_flags);
+
+		if (m_flags & FsLogFileSystemInfo) {
+			LOG("FileSystemInfo:");
+			LOG("  volumeName: %s", m_fsInfo.volumeName);
+			LOG("  fileSystemName: %s", m_fsInfo.fileSystemName);
+			LOG("  creationTime: %s", m_flags & FsLogTimeInfoAsString
+				? m_fsInfo.creationTime.toString()
+				: String::fromInt64(m_fsInfo.creationTime.toInt()));
+			LOG("  serialNumber: %d", m_fsInfo.serialNumber);
+			LOG("  sectorSize: %d", m_fsInfo.sectorSize);
+			LOG("  sectorsPerAllocationUnit: %d", m_fsInfo.sectorsPerAllocationUnit);
+			LOG("  maxPathLength: %d", m_fsInfo.maxPathLength);
+			LOG("  flags: 0x%X", m_fsInfo.flags.value);
+		}
 	}
 
 	sl_bool FileSystemLogger::getInformation(FileSystemInfo& info, const FileSystemInfoMask& mask)
