@@ -196,6 +196,10 @@ namespace slib
 
 		virtual sl_uint64 getFileSize(const StringParam& path);
 
+		virtual Memory readFile(const StringParam& path, sl_uint64 offset = 0, sl_size length = 0) noexcept;
+
+		virtual sl_bool writeFile(const StringParam& path, const Memory& buffer) noexcept;
+
 	protected:
 		FileSystemInfo m_fsInfo;
 

@@ -178,6 +178,92 @@ namespace slib
 		return 0;
 	}
 
+	Memory FileSystemProvider::readFile(const StringParam& path, sl_uint64 offset, sl_size length) noexcept
+	{
+		String fileName = path.toString();
+		if (!fileName.startsWith(SLIB_FILE_SYSTEM_PATH_SEPARATOR)) {
+			fileName = SLIB_FILE_SYSTEM_PATH_SEPARATOR + fileName;
+		}
+
+		Ref<FileContext> context;
+
+		try {
+			FileOpenParam param;
+			param.mode = FileMode::Read | FileMode::ShareRead;
+			context = openFile(fileName, param);
+			if (context.isNull()) {
+				return sl_null;
+			}
+
+			if (length == 0) {
+				FileInfo info;
+				if (!getFileInfo(sl_null, context, info, FileInfoMask::Size)) {
+					try {
+						closeFile(context);
+					} catch (...) {}
+					return sl_null;
+				}
+				length = (sl_size)(info.size - offset);
+			}
+
+			Memory buffer = Memory::create(length);
+			sl_size ret = readFile(context, offset, buffer.getData(), length);
+
+			closeFile(context);
+			return buffer.sub(0, ret);
+
+		} catch (FileSystemError error) {
+			LOG_DEBUG("ReadFile(%s,%d,%d)\n  Error: %d", fileName, offset, length, error);
+			if (context.isNotNull()) {
+				try {
+					closeFile(context);
+				} catch (...) {}
+			}
+
+			return sl_null;
+
+		} catch (...) {
+			return sl_null;
+		}
+	}
+
+	sl_bool FileSystemProvider::writeFile(const StringParam& path, const Memory& buffer) noexcept
+	{
+		String fileName = path.toString();
+		if (!fileName.startsWith(SLIB_FILE_SYSTEM_PATH_SEPARATOR)) {
+			fileName = SLIB_FILE_SYSTEM_PATH_SEPARATOR + fileName;
+		}
+
+		Ref<FileContext> context;
+
+		try {
+			FileOpenParam param;
+			param.mode = FileMode::Write | FileMode::ShareWrite;
+			context = openFile(fileName, param);
+			if (context.isNull()) {
+				return sl_null;
+			}
+
+			sl_size ret = writeFile(context.get(), 0, buffer.getData(), buffer.getSize());
+			
+			closeFile(context);
+			return ret;
+
+		} catch (FileSystemError error) {
+			LOG_DEBUG("WriteFile(%s,%d)\n  Error: %d", fileName, buffer.getSize(), error);
+			if (context.isNotNull()) {
+				try {
+					closeFile(context);
+				} catch (...) {}
+			}
+
+			return sl_false;
+
+		} catch (...) {
+			return sl_false;
+		}
+	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileSystemHostParam)
 
