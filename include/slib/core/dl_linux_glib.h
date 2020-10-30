@@ -150,13 +150,28 @@ namespace slib
 	        GType         g_type
 	    )
         #define g_value_init slib::gobject::getApi_g_value_init()
-	SLIB_IMPORT_LIBRARY_FUNCTION(
-	    g_value_set_string,
-	    void, ,
-	    GValue	      *value,
-	    const gchar  *v_string
-	)
-    #define g_value_set_string slib::gobject::getApi_g_value_set_string()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        g_value_set_string,
+	        void, ,
+	        GValue	      *value,
+	        const gchar  *v_string
+	    )
+        #define g_value_set_string slib::gobject::getApi_g_value_set_string()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        g_object_set_data,
+	        void, ,
+	        GObject        *object,
+	        const gchar    *key,
+	        gpointer        data
+	    )
+        #define g_object_set_data slib::gobject::getApi_g_object_set_data()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        g_object_get_data,
+	        gpointer, ,
+	        GObject        *object,
+	        const gchar    *key
+	    )
+        #define g_object_get_data slib::gobject::getApi_g_object_get_data()
 	SLIB_IMPORT_LIBRARY_END
 
 	SLIB_IMPORT_LIBRARY_BEGIN(gthread, "libgthread-2.0.so.0")

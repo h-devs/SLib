@@ -1295,6 +1295,87 @@ namespace slib
 	        GtkWidget*, ,
 	    )
         #define gtk_notebook_new slib::gtk::getApi_gtk_notebook_new()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_path_get_indices,
+	        gint*, ,
+	        GtkTreePath       *path
+	    )
+        #define gtk_tree_path_get_indices slib::gtk::getApi_gtk_tree_path_get_indices()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_widget_queue_resize,
+	        void, ,
+	        GtkWidget	       *widget
+	    )
+        #define gtk_widget_queue_resize slib::gtk::getApi_gtk_widget_queue_resize()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_model_row_changed,
+	        void, ,
+	        GtkTreeModel *tree_model,
+	        GtkTreePath  *path,
+	        GtkTreeIter  *iter
+	    )
+        #define gtk_tree_model_row_changed slib::gtk::getApi_gtk_tree_model_row_changed()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_model_row_inserted,
+	        void, ,
+	        GtkTreeModel *tree_model,
+	        GtkTreePath  *path,
+	        GtkTreeIter  *iter
+	    )
+        #define gtk_tree_model_row_inserted slib::gtk::getApi_gtk_tree_model_row_inserted()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_model_row_deleted,
+	        void, ,
+	        GtkTreeModel *tree_model,
+	        GtkTreePath  *path
+	    )
+        #define gtk_tree_model_row_deleted slib::gtk::getApi_gtk_tree_model_row_deleted()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_model_ref_node,
+	        void, ,
+	        GtkTreeModel *tree_model,
+	        GtkTreeIter  *iter
+	    )
+        #define gtk_tree_model_ref_node slib::gtk::getApi_gtk_tree_model_ref_node()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_get_bin_window,
+	        GdkWindow*, ,
+	        GtkTreeView *tree_view
+	    )
+        #define gtk_tree_view_get_bin_window slib::gtk::getApi_gtk_tree_view_get_bin_window()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_get_hadjustment,
+	        GtkAdjustment*, ,
+	        GtkTreeView *tree_view
+	    )
+        #define gtk_tree_view_get_hadjustment slib::gtk::getApi_gtk_tree_view_get_hadjustment()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_get_vadjustment,
+	        GtkAdjustment*, ,
+	        GtkTreeView *tree_view
+	    )
+        #define gtk_tree_view_get_vadjustment slib::gtk::getApi_gtk_tree_view_get_vadjustment()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_adjustment_set_step_increment,
+	        void, ,
+	        GtkAdjustment   *adjustment,
+	        gdouble   step_increment
+	    )
+        #define gtk_adjustment_set_step_increment slib::gtk::getApi_gtk_adjustment_set_step_increment()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_view_get_cell_area,
+	        void, ,
+	        GtkTreeView               *tree_view,
+	        GtkTreePath               *path,
+	        GtkTreeViewColumn         *column,
+	        GdkRectangle              *rect
+	    )
+        #define gtk_tree_view_get_cell_area slib::gtk::getApi_gtk_tree_view_get_cell_area()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_tree_path_new_first,
+	        GtkTreePath *, ,
+	    )
+        #define gtk_tree_path_new_first slib::gtk::getApi_gtk_tree_path_new_first()
 	SLIB_IMPORT_LIBRARY_END
 
 }

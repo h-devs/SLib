@@ -47,18 +47,6 @@ namespace slib
 	{
 		namespace list_control
 		{
-			const char* celldata(int row, int col){
-				if(col==0 && row==0)
-					return "111";
-				else if(col==0 && row==1)
-					return "222";
-				else if(col==1 && row==0)
-					return "333";
-				else if(col==1 && row==1)
-					return "444";
-				else
-					return "other";
-			}
 			static gfloat TranslateAlignment(Alignment _align)
 			{
 				gfloat align = 0;
@@ -73,6 +61,7 @@ namespace slib
 			class ListControlHelper : public ListControl
 			{
 			public:
+				int viewRows = 0;
 				static sl_uint32 getColumnsCountFromListView(GtkTreeView* handle)
 				{
 					GList* _list = gtk_tree_view_get_columns(handle);
@@ -100,18 +89,6 @@ namespace slib
 							gtk_tree_view_append_column(handle, column);
 						}
 					}
-					if(nOrig != nNew){
-						GType *type = (GType*)g_malloc(sizeof(GType)*nNew);
-						for(int i=0; i<nNew; i++){
-							type[i] = G_TYPE_STRING;
-						}
-						GtkTreeModel* newmodel = (GtkTreeModel*)gtk_tree_store_newv(nNew, type);
-						g_free(type);
-						GtkTreeModelIface *iface = GTK_TREE_MODEL_GET_IFACE(newmodel);
-						iface->get_value = tree_store_get_value;
-						gtk_tree_view_set_model(handle, newmodel);
-
-					}
 				}
 
 				void copyColumns(GtkTreeView* handle)
@@ -138,52 +115,111 @@ namespace slib
 				void applyRowsCount(GtkTreeView* handle)
 				{
 					GtkTreeModel *model = gtk_tree_view_get_model(handle);
-					sl_uint32 nNew = m_nRows;
-					sl_uint32 nOrig = gtk_tree_model_iter_n_children(model, NULL);
-					int columncount = gtk_tree_model_get_n_columns(model);
-					GtkTreeIter iter;
-					if (nOrig == nNew) {
-						return;
-					}
-					if (nOrig > nNew) {
-						GtkTreePath* path = gtk_tree_path_new_from_indices(0);
-						for (sl_uint32 i = nOrig; i > nNew; i--) {
-							if(path){
-								gtk_tree_model_get_iter(model, &iter, path);
-								gtk_tree_store_remove((GtkTreeStore*)model, &iter);
-							}
-						}
-						gtk_tree_path_free(path);
-					} else {
-						for (sl_uint32 i = nOrig; i < nNew; i++) {
-							gtk_tree_store_append((GtkTreeStore*)model, &iter, NULL);
-							GNode *node = (GNode*)(iter.user_data);
-							node->data = GINT_TO_POINTER(i);
-						}
-					}
-				}
-				static void tree_store_get_value (GtkTreeModel *tree_model, GtkTreeIter  *iter, gint column, GValue *value)
-				{
-					GtkTreeStore *store = (GtkTreeStore *)(tree_model);
-					int row = 0;
-					GNode *node = (GNode*)(iter->user_data);
-					if(node){
-						row = GPOINTER_TO_INT(node->data);
-					}
-					g_value_init(value, G_TYPE_STRING);
-					//g_value_set_string(value,  (gchar*)getItemText(row, column));
-					g_value_set_string(value,  (gchar*)celldata(row, column));
-				}
+					gtk_tree_view_set_model(handle, sl_null);
+					viewRows = m_nRows;
+					gtk_tree_view_set_model(handle, model);
 
+				}
+				void setupModel(GtkTreeView* view)
+				{
+					GtkTreeModel* model = (GtkTreeModel*)gtk_list_store_new(1, GTK_TYPE_STRING);
+					g_object_set_data((GObject*)model, "view", this);
+					g_object_set_data((GObject*)model, "rows", &viewRows);
+					viewRows = m_nRows;
+
+					GtkTreeModelIface *iface = GTK_TREE_MODEL_GET_IFACE(model);
+					iface->get_n_columns = list_store_get_n_columns;
+					iface->get_column_type = list_store_get_column_type;
+					iface->get_value = list_store_get_value;
+					iface->get_iter = list_store_get_iter;
+					iface->get_path = list_store_get_path;
+					iface->iter_next = list_store_iter_next;
+					iface->iter_children = list_store_iter_children;
+					iface->iter_has_child = list_store_iter_has_child;
+					iface->iter_parent = list_store_iter_parent;
+					iface->iter_n_children = list_store_iter_n_children;
+					iface->iter_nth_child = list_store_iter_nth_child;
+
+					gtk_tree_view_set_model(view, model);
+
+				}
+				static gboolean list_store_get_iter(GtkTreeModel *tree_model, GtkTreeIter  *iter, GtkTreePath  *path)
+				{
+					int rows = *(int*)(g_object_get_data((GObject*)tree_model, "rows"));
+					if (rows) {
+						iter->stamp = gtk_tree_path_get_indices (path)[0];;
+						return true;
+					} else {
+						return false;
+					}
+				}
+				static gboolean list_store_iter_next(GtkTreeModel *tree_model, GtkTreeIter  *iter)
+				{
+					int rows = *(int*)(g_object_get_data((GObject*)tree_model, "rows"));
+					int index = iter->stamp;
+					if (index < rows - 1 && index > -1) {
+						iter->stamp = index + 1;
+						return true;
+					}else{
+						return false;
+					}
+				}
+				static gboolean list_store_iter_has_child(GtkTreeModel *tree_model, GtkTreeIter *iter)
+				{
+					return false;
+				}
+				static gboolean list_store_iter_children(GtkTreeModel *tree_model,GtkTreeIter  *iter, GtkTreeIter  *parent)
+				{
+					return false;
+				}
+				static gint list_store_iter_n_children(GtkTreeModel *tree_model,GtkTreeIter  *iter)
+				{
+					return *(int*)(g_object_get_data((GObject*)tree_model, "rows"));
+				}
+				static gboolean list_store_iter_nth_child(GtkTreeModel *tree_model, GtkTreeIter  *iter,GtkTreeIter  *parent, gint n)
+				{
+					return false;
+				}
+				static gboolean list_store_iter_parent(GtkTreeModel *tree_model,GtkTreeIter  *iter, GtkTreeIter  *child)
+				{
+					return false;
+				}
+				static GtkTreePath * list_store_get_path(GtkTreeModel *tree_model, GtkTreeIter  *iter)
+				{
+					int rows = *(int*)(g_object_get_data((GObject*)tree_model, "rows"));
+					if (iter->stamp >= rows)
+						return NULL;
+					return gtk_tree_path_new_from_indices(iter->stamp, -1);
+				}
+				static void list_store_get_value(GtkTreeModel *tree_model, GtkTreeIter  *iter, gint column, GValue *value)
+				{
+					ListControlHelper *helper = (ListControlHelper*)(g_object_get_data((GObject*)tree_model, "view"));
+					g_value_init(value, G_TYPE_STRING);
+					g_value_set_string(value,  (gchar*)helper->getItemText(iter->stamp, column).getData());
+				}
+				static gint list_store_get_n_columns(GtkTreeModel *tree_model)
+				{
+					ListControlHelper *helper = (ListControlHelper*)(g_object_get_data((GObject*)tree_model, "view"));
+					return helper->getColumnsCount();
+				}
+				static GType list_store_get_column_type(GtkTreeModel *tree_model, gint  index)
+				{
+				  return G_TYPE_STRING;
+				}
 			};
 			class ListControlInstance : public GTK_ViewInstance, public IListControlInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
 			public:
+				GtkTreeView* m_handleTreeView;
+			public:
+				ListControlInstance()
+				{
+					m_handleTreeView = NULL;
+				}
 				GtkTreeView* getHandle()
 				{
-					return (GtkTreeView*)m_handle;
+					return (GtkTreeView*)m_handleTreeView;
 				}
 				
 				Ref<ListControlHelper> getHelper()
@@ -193,28 +229,93 @@ namespace slib
 
 				void initialize(View* _view) override
 				{
-					GtkTreeView* handle = getHandle();
+
+					GtkScrolledWindow* handleScrollWindow = (GtkScrolledWindow*)m_handle;
 					ListControlHelper* view = (ListControlHelper*)_view;
-					GtkTreeSelection *selection = gtk_tree_view_get_selection(handle);
-					gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
-					gtk_tree_view_set_hadjustment(handle, NULL);
-					gtk_tree_view_set_vadjustment(handle, NULL);
-/*
-					[handle setHasVerticalScroller:TRUE];
-					[handle setHasHorizontalScroller:TRUE];
-					[handle setBorderType:NSBezelBorder];
-					handle->table->m_viewInstance = this;*/
-					view->copyColumns(handle);
-					refreshRowsCount(view);
+
+					gtk_scrolled_window_set_policy(handleScrollWindow, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+					gtk_scrolled_window_set_shadow_type(handleScrollWindow, GTK_SHADOW_ETCHED_IN);
+
+					GtkTreeView* handle = (GtkTreeView*)gtk_tree_view_new();
+					if (handle) {
+						m_handleTreeView = handle;
+
+						GTK_WIDGET_SET_FLAGS(handle, GTK_CAN_FOCUS);
+						gtk_container_add((GtkContainer*)handleScrollWindow, (GtkWidget*)handle);
+						gtk_widget_show((GtkWidget*)handle);
+
+						GtkTreeSelection *selection = gtk_tree_view_get_selection(handle);
+						gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
+						GtkAdjustment *hadjustment, *vadjustment;
+						hadjustment = gtk_tree_view_get_hadjustment (handle);
+						vadjustment = gtk_tree_view_get_vadjustment (handle);
+						gtk_adjustment_set_step_increment (hadjustment, 10.0);
+						gtk_adjustment_set_step_increment (vadjustment, 10.0);
+						gtk_tree_view_set_hadjustment(handle, hadjustment);
+						gtk_tree_view_set_vadjustment(handle, vadjustment);
+						view->copyColumns(handle);
+						view->setupModel(handle);
+						refreshRowsCount(view);
+						g_signal_connect((GtkWidget*)selection, "changed", G_CALLBACK(onChanged), view);
+						g_signal_connect((GtkWidget*)handle, "button-press-event", G_CALLBACK(onButtonEvent), handleScrollWindow);
+					}
 					//view->applyFont(handle, view->getFont());
 				}
-				
+				static gboolean onButtonEvent(GtkWidget*, GdkEvent* _event, gpointer user_data)
+				{
+					Ref<ListControlInstance> instance = Ref<ListControlInstance>::from(UIPlatform::getViewInstance((GtkWidget*)user_data));
+					GdkEventButton* event = (GdkEventButton*)_event;
+					GtkTreeView* handle = instance->getHandle();
+					if (instance.isNotNull()) {
+						Ref<ListControlHelper> helper = Ref<ListControlHelper>::from(UIPlatform::getView((GtkWidget*)user_data));
+						if(!helper->viewRows)
+							return false;
+						int _x = event->x;
+						int _y = event->y;
+						GtkAdjustment *vadjustment = gtk_tree_view_get_vadjustment (handle);
+						GtkAdjustment *hadjustment = gtk_tree_view_get_hadjustment (handle);
+						_y += gtk_adjustment_get_value(vadjustment);
+						_x += gtk_adjustment_get_value(hadjustment);
+						if (_y < 0)
+						  _y = 0;
+						GList* _list = gtk_tree_view_get_columns(handle);
+						int colcount =  g_list_length(_list);
+						GtkTreePath * path = gtk_tree_path_new_first();
+						GdkRectangle rect;
+						int colindex = -1;
+						for(int i=0;i<colcount; i++){
+							GtkTreeViewColumn *column = gtk_tree_view_get_column(handle, i);
+							gtk_tree_view_get_cell_area(handle, path, column, &rect);
+							if(_x > rect.x && _x < rect.x + rect.width){
+								colindex = i;
+							}
+						}
+						int rowindex = (int)(_y / rect.height);
+						int curSelectedRow = -1;
+						instance->getSelectedRow(helper, curSelectedRow);
+						if(curSelectedRow != -1 && rowindex != curSelectedRow){
+							helper->dispatchSelectRow(rowindex);
+						}
+						if(event->button == 1){
+							if(event->type == GDK_BUTTON_PRESS){
+								helper->dispatchClickRow(rowindex, UIPointf(_x, _y));
+							}else if(event->type == GDK_BUTTON_PRESS){
+								helper->dispatchDoubleClickRow(rowindex, UIPointf(_x, _y));
+							}
+						}else if(event->button == 3){
+							if(event->type == GDK_BUTTON_PRESS){
+								helper->dispatchRightButtonClickRow(rowindex, UIPointf(_x, _y));
+							}
+						}
+					}
+					return sl_false;
+				}
+
 				void refreshColumnsCount(ListControl* view) override
 				{
 					GtkTreeView* handle = getHandle();
 					if (handle) {
 						static_cast<ListControlHelper*>(view)->applyColumnsCount(handle);
-						//[handle->table reloadData];
 					}
 				}
 				
@@ -276,9 +377,9 @@ namespace slib
 					if (handle) {
 						GtkTreeSelection *selection = gtk_tree_view_get_selection(handle);
 						GtkTreeIter iter;
-						gtk_tree_selection_get_selected(selection, NULL, &iter);
-						if(!g_sequence_iter_is_end((GSequenceIter*)iter.user_data)){
-							_out = g_sequence_iter_get_position((GSequenceIter*)iter.user_data);
+						bool ret = gtk_tree_selection_get_selected(selection, NULL, &iter);
+						if(ret){
+							_out = iter.stamp;
 							return sl_true;
 						}
 					}
@@ -292,49 +393,13 @@ namespace slib
 						//static_cast<ListControlHelper*>(view)->applyFont(handle, font);
 					}
 				}
-
-				/*
-				void onMouseDown(GtkTreeView_TableView* tv, NSEvent* ev)
+				static void onChanged (GtkTreeSelection *treeselection, gpointer handle)
 				{
-
-					Ref<ListControlHelper> helper = getHelper();
-					if (helper.isNotNull()) {
-						NSInteger indexRowBefore = [tv selectedRow];
-						NSPoint ptWindow = [ev locationInWindow];
-						NSPoint ptView = [tv convertPoint:ptWindow fromView:nil];
-						NSInteger indexRow = [tv rowAtPoint:ptView];
-						if (indexRow >= 0) {
-							if (indexRow == indexRowBefore) {
-								// don't call event callback when it is new selection because it is already called by default
-								helper->dispatchSelectRow((sl_uint32)(indexRow));
-							}
-							sl_ui_posf x = (sl_ui_posf)(ptView.x);
-							sl_ui_posf y = (sl_ui_posf)(ptView.y);
-							NSInteger clicks = [ev clickCount];
-							if (clicks == 1) {
-								helper->dispatchClickRow((sl_uint32)(indexRow), UIPointf(x, y));
-							} else if (clicks == 2) {
-								helper->dispatchDoubleClickRow((sl_uint32)(indexRow), UIPointf(x, y));
-							}
-						}
-					}
+					GtkTreeIter iter;
+					gtk_tree_selection_get_selected(treeselection, NULL, &iter);
+					ListControlHelper *helper = (ListControlHelper*)handle;
+					helper->dispatchSelectRow(iter.stamp);
 				}
-				
-				void onRightMouseDown(GtkTreeView_TableView* tv, NSEvent* ev)
-				{
-					Ref<ListControlHelper> helper = getHelper();
-					if (helper.isNotNull()) {
-						NSPoint ptWindow = [ev locationInWindow];
-						NSPoint ptView = [tv convertPoint:ptWindow fromView:nil];
-						NSInteger indexRow = [tv rowAtPoint:ptView];
-						if (indexRow >= 0) {
-							sl_ui_posf x = (sl_ui_posf)(ptView.x);
-							sl_ui_posf y = (sl_ui_posf)(ptView.y);
-							helper->dispatchRightButtonClickRow((sl_uint32)(indexRow), UIPointf(x, y));
-						}
-					}
-				}*/
-				
 			};
 			
 			SLIB_DEFINE_OBJECT(ListControlInstance, GTK_ViewInstance)
@@ -345,7 +410,7 @@ namespace slib
 
 	Ref<ViewInstance> ListControl::createNativeWidget(ViewInstance* parent)
 	{
-		GtkWidget* handle = gtk_tree_view_new();
+		GtkWidget* handle = gtk_scrolled_window_new(sl_null, sl_null);
 		Ref<ListControlInstance> ret = GTK_ViewInstance::create<ListControlInstance>(this, parent, handle);
 		if (ret.isNotNull()) {
 			return ret;
