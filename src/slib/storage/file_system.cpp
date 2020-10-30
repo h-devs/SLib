@@ -181,6 +181,8 @@ namespace slib
 	Memory FileSystemProvider::readFile(const StringParam& path, sl_uint64 offset, sl_size length) noexcept
 	{
 		String fileName = path.toString();
+		fileName = fileName.replaceAll("/", SLIB_FILE_SYSTEM_PATH_SEPARATOR);
+		fileName = fileName.replaceAll("\\", SLIB_FILE_SYSTEM_PATH_SEPARATOR);
 		if (!fileName.startsWith(SLIB_FILE_SYSTEM_PATH_SEPARATOR)) {
 			fileName = SLIB_FILE_SYSTEM_PATH_SEPARATOR + fileName;
 		}
@@ -230,6 +232,8 @@ namespace slib
 	sl_bool FileSystemProvider::writeFile(const StringParam& path, const Memory& buffer) noexcept
 	{
 		String fileName = path.toString();
+		fileName = fileName.replaceAll("/", SLIB_FILE_SYSTEM_PATH_SEPARATOR);
+		fileName = fileName.replaceAll("\\", SLIB_FILE_SYSTEM_PATH_SEPARATOR);
 		if (!fileName.startsWith(SLIB_FILE_SYSTEM_PATH_SEPARATOR)) {
 			fileName = SLIB_FILE_SYSTEM_PATH_SEPARATOR + fileName;
 		}
