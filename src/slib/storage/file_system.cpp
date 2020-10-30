@@ -510,21 +510,6 @@ namespace slib
 		return files;
 	}
 
-	sl_bool FileSystemWrapper::existsFile(const StringParam& path)
-	{
-		return m_base->existsFile(toBasePath(path));
-	}
-
-	sl_uint64 FileSystemWrapper::getFileSize(FileContext* context)
-	{
-		return m_base->getFileSize(getBaseContext(context));
-	}
-
-	sl_uint64 FileSystemWrapper::getFileSize(const StringParam& path)
-	{
-		return m_base->getFileSize(toBasePath(path));
-	}
-
 	Ref<FileContext> FileSystemWrapper::createContext(FileContext* baseContext, const StringParam& path)
 	{
 		return baseContext;

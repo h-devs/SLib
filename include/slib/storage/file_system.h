@@ -294,13 +294,6 @@ namespace slib
 
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
 
-	public: // Helpers
-		sl_bool existsFile(const StringParam& path) override;
-
-		sl_uint64 getFileSize(FileContext* context) override;
-
-		sl_uint64 getFileSize(const StringParam& path) override;
-
 	protected:
 		// If you want to use different FileContext in wrapper, you will need to override these functions.
 		virtual Ref<FileContext> createContext(FileContext* baseContext, const StringParam& path);
