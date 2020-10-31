@@ -105,6 +105,7 @@ namespace slib
 		Success = 0, // ERROR_SUCCESS
 		GeneralError = 1, // ERROR_INVALID_FUNCTION
 		NotFound = 2, // ERROR_FILE_NOT_FOUND
+		PathNotFound = 3, // ERROR_PATH_NOT_FOUND
 		AccessDenied = 5, // ERROR_ACCESS_DENIED
 		InvalidContext = 6, // ERROR_INVALID_HANDLE
 		InvalidData = 13, // ERROR_INVALID_DATA
@@ -182,6 +183,9 @@ namespace slib
 		virtual sl_uint32 writeFile(const StringParam& path, const void* buf, sl_uint32 size) noexcept;
 
 		virtual sl_uint32 writeFile(const StringParam& path, const Memory& mem) noexcept;
+
+	public:
+		virtual FileSystemError getLastError() noexcept;
 
 	protected:
 		FileSystemInfo m_fsInfo;
@@ -292,6 +296,9 @@ namespace slib
 		sl_bool deleteDirectory(const StringParam& path) override;
 
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
+
+	public:
+		FileSystemError getLastError() noexcept override;
 
 	protected:
 		// If you want to use different FileContext in wrapper, you will need to override these functions.

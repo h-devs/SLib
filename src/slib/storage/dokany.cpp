@@ -270,7 +270,7 @@ namespace slib
 
 					Ref<FileContext> context = provider->openFile(szFileName, param);
 					if (context.isNull()) {
-						return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+						return DOKAN_ERROR_CODE(provider->getLastError());
 					}
 
 					host->increaseOpenHandlesCount();
@@ -295,7 +295,7 @@ namespace slib
 					if (provider->createDirectory(szFileName)) {
 						return 0;
 					} else {
-						return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+						return DOKAN_ERROR_CODE(provider->getLastError());
 					}
 				} DOKANY_CATCH
 			}
@@ -312,7 +312,7 @@ namespace slib
 					if (provider->existsFile(szFileName)) {
 						return 0;
 					} else {
-						return DOKAN_ERROR_CODE(ERROR_NOT_FOUND);
+						return DOKAN_ERROR_CODE(ERROR_PATH_NOT_FOUND);
 					}
 				} DOKANY_CATCH
 			}
@@ -459,7 +459,7 @@ namespace slib
 					if (*pReadLength) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+					return DOKAN_ERROR_CODE(provider->getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -503,7 +503,7 @@ namespace slib
 					if (*pNumberOfBytesWritten) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+					return DOKAN_ERROR_CODE(provider->getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -523,7 +523,7 @@ namespace slib
 					if (provider->flushFile(context)) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+					return DOKAN_ERROR_CODE(provider->getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -547,7 +547,7 @@ namespace slib
 						((PLARGE_INTEGER)(&pFileInfo->ftLastWriteTime))->QuadPart = info.modifiedAt.toWindowsFileTime();
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+					return DOKAN_ERROR_CODE(provider->getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -595,7 +595,7 @@ namespace slib
 					if (provider->existsFile(szFileName)) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(ERROR_NOT_FOUND);
+					return DOKAN_ERROR_CODE(ERROR_FILE_NOT_FOUND);
 				} DOKANY_CATCH
 			}
 
@@ -627,7 +627,7 @@ namespace slib
 					if (provider->moveFile(szFileName, szNewFileName, bReplaceIfExisting)) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+					return DOKAN_ERROR_CODE(provider->getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -642,11 +642,11 @@ namespace slib
 
 				DOKANY_TRY {
 					FileInfo info;
-				info.size = (sl_uint64)iOffset;
+					info.size = (sl_uint64)iOffset;
 					if (provider->setFileInfo(szFileName, context, info, FileInfoMask::Size)) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+					return DOKAN_ERROR_CODE(provider->getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -665,7 +665,7 @@ namespace slib
 					if (provider->setFileInfo(szFileName, context, info, FileInfoMask::AllocSize)) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+					return DOKAN_ERROR_CODE(provider->getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -684,7 +684,7 @@ namespace slib
 					if (provider->setFileInfo(szFileName, context, info, FileInfoMask::Attributes)) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+					return DOKAN_ERROR_CODE(provider->getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -707,7 +707,7 @@ namespace slib
 					if (provider->setFileInfo(szFileName, context, info, FileInfoMask::Time)) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+					return DOKAN_ERROR_CODE(provider->getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -721,14 +721,14 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 
 				DOKANY_TRY{
-					sl_uint64 freeSize, totalSize;
+					sl_uint64 totalSize, freeSize;
 					if (provider->getSize(&totalSize, &freeSize)) {
 						*pFreeBytesAvailable = freeSize;
 						*pTotalNumberOfFreeBytes = freeSize;
 						*pTotalNumberOfBytes = totalSize;
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+					return DOKAN_ERROR_CODE(provider->getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -761,7 +761,7 @@ namespace slib
 						}
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+					return DOKAN_ERROR_CODE(provider->getLastError());
 				} DOKANY_CATCH
 			}
 

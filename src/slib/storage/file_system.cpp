@@ -269,6 +269,12 @@ namespace slib
 		return writeFile(path, mem.getData(), (sl_uint32)size);
 	}
 
+	FileSystemError FileSystemProvider::getLastError() noexcept
+	{
+		return FileSystemError::GeneralError;
+	}
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileSystemHostParam)
 
 	FileSystemHostParam::FileSystemHostParam()
@@ -489,6 +495,11 @@ namespace slib
 			files.add_NoLock(name, info);
 		}
 		return files;
+	}
+
+	FileSystemError FileSystemWrapper::getLastError() noexcept
+	{
+		return m_base->getLastError();
 	}
 
 	Ref<FileContext> FileSystemWrapper::createContext(FileContext* baseContext, const StringParam& path)
