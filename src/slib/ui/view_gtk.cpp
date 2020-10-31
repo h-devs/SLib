@@ -82,11 +82,16 @@ namespace slib
 		}
 		m_frame = view->getFrameInInstance();
 		m_translation = Transform2::getTranslationFromMatrix(view->getFinalTransformInInstance());
-		if (parent && GTK_IS_FIXED(parent)) {
-			sl_ui_pos x = m_frame.left + m_translation.x;
-			sl_ui_pos y = m_frame.top + m_translation.y;
-			gtk_fixed_put((GtkFixed*)parent, handle, x, y);
+		if (parent) {
+			if (GTK_IS_FIXED(parent)) {
+				sl_ui_pos x = m_frame.left + m_translation.x;
+				sl_ui_pos y = m_frame.top + m_translation.y;
+				gtk_fixed_put((GtkFixed*)parent, handle, x, y);
+			} else if (GTK_IS_SCROLLED_WINDOW(parent)){
+				gtk_scrolled_window_add_with_viewport((GtkScrolledWindow*)parent, handle);
+			}
 		}
+
 		gtk_widget_set_size_request(handle, m_frame.getWidth(), m_frame.getHeight());
 
 		if (view->isVisible()) {

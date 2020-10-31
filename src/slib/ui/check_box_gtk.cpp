@@ -50,18 +50,16 @@ namespace slib
 			{
 				CheckBox* view = (CheckBox*)_view;
 				GtkToggleButton* handle = (GtkToggleButton*)m_handle;
-
 				ButtonInstance::initialize(view);
-				gtk_toggle_button_set_active(handle, view->isChecked());
-
+				setChecked(view, view->isChecked());
 				g_signal_connect(handle, "toggled", G_CALLBACK(onChanged), handle);
 			}
 
 			sl_bool CheckBoxInstance::getChecked(CheckBox* view, sl_bool& _out)
 			{
-				GtkWidget* handle = m_handle;
+				GtkToggleButton* handle = (GtkToggleButton*)m_handle;
 				if (handle) {
-					_out = gtk_toggle_button_get_active((GtkToggleButton *)handle);
+					_out = gtk_toggle_button_get_active(handle);
 					return sl_true;
 				}
 				return sl_false;
@@ -69,9 +67,17 @@ namespace slib
 
 			void CheckBoxInstance::setChecked(CheckBox* view, sl_bool flag)
 			{
-				GtkWidget* handle = m_handle;
+				GtkToggleButton* handle = (GtkToggleButton*)m_handle;
 				if (handle) {
-					gtk_toggle_button_set_active((GtkToggleButton *)handle, flag);
+					if (GTK_IS_RADIO_BUTTON(handle)) {
+						if (!flag != !(gtk_toggle_button_get_active(handle))) {
+							GtkButtonClass* clsRadio = GTK_BUTTON_GET_CLASS(handle);
+							GtkButtonClass* clsCheck = (GtkButtonClass*)(g_type_class_peek_parent(clsRadio));
+							clsCheck->clicked((GtkButton*)handle);
+						}
+					} else {
+						gtk_toggle_button_set_active(handle, flag);
+					}
 				}
 			}
 
@@ -94,7 +100,9 @@ namespace slib
 				Ref<CheckBox> view = CastRef<CheckBox>(UIPlatform::getView((GtkWidget*)handle));
 				if (view.isNotNull()) {
 					bool isChecked = gtk_toggle_button_get_active((GtkToggleButton*)handle);
-					view->dispatchChange(isChecked);
+					if (isChecked != view->isChecked()) {
+						view->dispatchChange(isChecked);
+					}
 				}
 			}
 
