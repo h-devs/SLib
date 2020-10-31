@@ -108,6 +108,7 @@ namespace slib
 		AccessDenied = 5, // ERROR_ACCESS_DENIED
 		InvalidContext = 6, // ERROR_INVALID_HANDLE
 		InvalidData = 13, // ERROR_INVALID_DATA
+		OutOfMemory = 14, // ERROR_OUTOFMEMORY
 		FileExist = 80, // ERROR_FILE_EXISTS
 		InvalidPassword = 86, // ERROR_INVALID_PASSWORD
 		BufferOverflow = 122, // ERROR_INSUFFICIENT_BUFFER
@@ -187,6 +188,21 @@ namespace slib
 
 	};
 
+	class FileSystemHostFlags
+	{
+	public:
+		int value;
+		SLIB_MEMBERS_OF_FLAGS(FileSystemHostFlags, value)
+
+		enum {
+			DebugMode = 0x01,
+			UseStdErr = 0x02,
+			WriteProtect = 0x04,
+			MountAsRemovable = 0x08,
+			MountAsNetworkDrive = 0x10,
+		};
+	};
+
 	class FileSystemHostParam
 	{
 	public:
@@ -195,8 +211,7 @@ namespace slib
 
 		sl_uint32 threadCount;
 		sl_uint32 timeout;
-		sl_bool flagDebugMode;
-		sl_bool flagUseStderr;
+		FileSystemHostFlags flags;
 
 	public:
 		FileSystemHostParam();
@@ -228,6 +243,8 @@ namespace slib
 		sl_size increaseOpenHandlesCount();
 
 		sl_size decreaseOpenHandlesCount();
+
+		virtual String getErrorMessage() = 0;
 
 	protected:
 		virtual sl_bool _run() = 0;

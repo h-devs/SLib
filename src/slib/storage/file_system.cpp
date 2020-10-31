@@ -275,8 +275,7 @@ namespace slib
 	{
 		threadCount = 0;
 		timeout = 0;
-		flagDebugMode = sl_false;
-		flagUseStderr = sl_false;
+		flags = 0;
 	}
 
 	SLIB_DEFINE_OBJECT(FileSystemHost, Object)
@@ -313,9 +312,6 @@ namespace slib
 			return sl_false;
 		}
 		if (param.mountPoint.isEmpty() || param.provider.isNull()) {
-			return sl_false;
-		}
-		if (m_flagRunning) {
 			return sl_false;
 		}
 		ObjectLocker lock(this);
@@ -366,6 +362,12 @@ namespace slib
 
 	FileSystemWrapper::~FileSystemWrapper()
 	{
+	}
+
+	sl_bool FileSystemWrapper::getInformation(FileSystemInfo& outInfo)
+	{
+		outInfo = m_fsInfo;
+		return sl_true;
 	}
 
 	sl_bool FileSystemWrapper::getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize)
@@ -434,28 +436,18 @@ namespace slib
 
 	sl_bool FileSystemWrapper::getFileInfo(const StringParam& path, FileContext* context, FileInfo& info, const FileInfoMask& mask)
 	{
-		Ref<FileContext> baseContext = getBaseContext(context);
-		if (baseContext.isNotNull()) {
-			sl_bool ret = m_base->getFileInfo(toBasePath(path), baseContext.get(), info, mask);
-			if (ret) {
-				convertToWrapperFileInfo(info, mask);
-			}
-			return ret;
-		} else {
-			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
+		sl_bool ret = m_base->getFileInfo(toBasePath(path), getBaseContext(context), info, mask);
+		if (ret) {
+			convertToWrapperFileInfo(info, mask);
 		}
+		return ret;
 	}
 
 	sl_bool FileSystemWrapper::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& _info, const FileInfoMask& mask)
 	{
-		Ref<FileContext> baseContext = getBaseContext(context);
-		if (baseContext.isNotNull()) {
-			FileInfo info = _info;
-			convertToBaseFileInfo(info, mask);
-			return m_base->setFileInfo(toBasePath(path), baseContext.get(), info, mask);
-		} else {
-			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
-		}
+		FileInfo info = _info;
+		convertToBaseFileInfo(info, mask);
+		return m_base->setFileInfo(toBasePath(path), getBaseContext(context), info, mask);
 	}
 
 	sl_bool FileSystemWrapper::createDirectory(const StringParam& path)
@@ -475,6 +467,8 @@ namespace slib
 		String pathDirBase = toBasePath(pathDir);
 		HashMap<String, FileInfo> filesBase = m_base->getFiles(pathDirBase);
 
+		pathDirBase = File::normalizeDirectoryPath(pathDirBase);
+
 		for (auto& file : filesBase) {
 			String name = toWrapperPath(file.key, sl_true);
 			if (name.isEmpty()) {
@@ -484,7 +478,12 @@ namespace slib
 					continue;
 				}
 				name = File::getFileName(path);
+				if (name.isEmpty()) {
+					// ignore this entry
+					continue;
+				}
 			}
+
 			FileInfo& info = file.value;
 			convertToWrapperFileInfo(info, FileInfoMask::All);
 			files.add_NoLock(name, info);

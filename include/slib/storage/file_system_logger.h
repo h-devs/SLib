@@ -54,7 +54,7 @@ namespace slib
 			GetInfo = 0x0100,
 			SetInfo = 0x0200,
 			List = 0x0400,
-			FileSystemInfo = 0x0800,
+			Info = 0x0800,
 			Size = 0x1000,
 			InfoOp = GetInfo | SetInfo,
 

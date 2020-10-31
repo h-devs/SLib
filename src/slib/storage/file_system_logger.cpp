@@ -70,7 +70,7 @@ namespace slib
 	{
 		LOG_DEBUG("LogFlags: 0x%08X", m_flags);
 
-		if (m_flags & FileSystemLogFlags::FileSystemInfo) {
+		if (m_flags & FileSystemLogFlags::Info) {
 			LOG("FileSystemInfo:");
 			LOG("  volumeName: %s", m_fsInfo.volumeName);
 			LOG("  fileSystemName: %s", m_fsInfo.fileSystemName);
@@ -89,11 +89,11 @@ namespace slib
 
 	sl_bool FileSystemLogger::getInformation(FileSystemInfo& info)
 	{
-		if (!(m_flags & FileSystemLogFlags::FileSystemInfo)) {
+		if (!(m_flags & FileSystemLogFlags::Info)) {
 			return m_base->getInformation(info);
 		}
 
-		String desc = String::format("GetFileSystemInfo(%s)");
+		String desc = String::format("GetInfo(%s)");
 		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
 		}

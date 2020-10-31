@@ -833,6 +833,7 @@ namespace slib
 			public:
 				DokanHost()
 				{
+					m_iStatus = 0;
 				}
 
 			public:
@@ -858,15 +859,24 @@ namespace slib
 						options.Options = 8; // DOKAN_OPTION_KEEP_ALIVE (auto unmount)
 					}
 
-					if (param.flagDebugMode) {
+					if (param.flags & FileSystemHostFlags::DebugMode) {
 						options.Options |= DOKAN_OPTION_DEBUG;
 					}
-					if (param.flagUseStderr) {
+					if (param.flags & FileSystemHostFlags::UseStdErr) {
 						options.Options |= DOKAN_OPTION_STDERR;
+					}
+					if (param.flags & FileSystemHostFlags::WriteProtect) {
+						options.Options |= DOKAN_OPTION_WRITE_PROTECT;	// not supported in legacy dokan
+					}
+					if (param.flags & FileSystemHostFlags::MountAsRemovable) {
+						options.Options |= DOKAN_OPTION_REMOVABLE;
+					}
+					if (param.flags & FileSystemHostFlags::MountAsNetworkDrive) {
+						options.Options |= DOKAN_OPTION_NETWORK;
 					}
 
 					options.GlobalContext = (ULONG64)(void*)this;
-					
+
 					if (!(CheckDokanyOptions(options))) {
 						return sl_false;
 					}
@@ -880,39 +890,38 @@ namespace slib
 						return sl_false;
 					}
 
-					int status = funcMain(&options, (PDOKAN_OPERATIONS)GetDokanOperations());
+					m_iStatus = funcMain(&options, (PDOKAN_OPERATIONS)GetDokanOperations());
 
-					switch (status) {
+					return (m_iStatus == DOKAN_SUCCESS);
+				}
+
+				String getErrorMessage() override
+				{
+					switch (m_iStatus) {
 					case DOKAN_SUCCESS:
-						return sl_true;
+						return "Success";
 					case DOKAN_ERROR:
-						LOG_ERROR("Error");
-						break;
+						return "Drive mount error";
 					case DOKAN_DRIVE_LETTER_ERROR:
-						LOG_ERROR("Bad Drive letter");
-						break;
+						return "Bad drive letter";
 					case DOKAN_DRIVER_INSTALL_ERROR:
-						LOG_ERROR("Can't install driver");
-						break;
+						return "Can't install dokan driver";
 					case DOKAN_START_ERROR:
-						LOG_ERROR("Driver something wrong");
-						break;
+						return "Driver tells something wrong";
 					case DOKAN_MOUNT_ERROR:
-						LOG_ERROR("Can't assign a drive letter");
-						break;
+						return "Can't assign a drive letter";
 					case DOKAN_MOUNT_POINT_ERROR:
-						LOG_ERROR("Mount point error");
-						break;
+						return "Mount point error";
 					case DOKAN_VERSION_ERROR:
-						LOG_ERROR("Version error");
-						break;
+						return "Driver version error";
 					default:
-						LOG_ERROR("Unknown error: %d", status);
-						break;
+						return String::format("Unknown error: %d", m_iStatus);
 					}
-					return sl_false;
 				}
 				
+			private:
+				int m_iStatus;
+
 			};
 
 
