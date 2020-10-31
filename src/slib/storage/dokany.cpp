@@ -899,21 +899,21 @@ namespace slib
 				{
 					switch (m_iStatus) {
 					case DOKAN_SUCCESS:
-						return "Success";
+						SLIB_RETURN_STRING("Success");
 					case DOKAN_ERROR:
-						return "Drive mount error";
+						SLIB_RETURN_STRING("Drive mount error");
 					case DOKAN_DRIVE_LETTER_ERROR:
-						return "Bad drive letter";
+						SLIB_RETURN_STRING("Bad drive letter");
 					case DOKAN_DRIVER_INSTALL_ERROR:
-						return "Can't install dokan driver";
+						SLIB_RETURN_STRING("Can't install dokan driver");
 					case DOKAN_START_ERROR:
-						return "Driver tells something wrong";
+						SLIB_RETURN_STRING("Driver tells something wrong");
 					case DOKAN_MOUNT_ERROR:
-						return "Can't assign a drive letter";
+						SLIB_RETURN_STRING("Can't assign a drive letter");
 					case DOKAN_MOUNT_POINT_ERROR:
-						return "Mount point error";
+						SLIB_RETURN_STRING("Mount point error");
 					case DOKAN_VERSION_ERROR:
-						return "Driver version error";
+						SLIB_RETURN_STRING("Driver version error");
 					default:
 						return String::format("Unknown error: %d", m_iStatus);
 					}
