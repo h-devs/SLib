@@ -28,36 +28,40 @@
 #include "slib/core/file.h"
 #include "slib/core/system.h"
 #include "slib/core/variant.h"
+#include "slib/storage/disk.h"
 
-#ifdef SLIB_PLATFORM_IS_WIN32
-#include <windows.h>
-#endif
-
-#define FileFromContext(context)	(((MirrorFileContext*)(context))->file)
+#define FILE_FROM_CONTEXT(context)	(((MirrorFileContext*)(context))->file)
 
 namespace slib
 {
 
-	class MirrorFileContext : public FileContext
+	namespace priv
 	{
-	public:
-		Ref<File> file;
-
-	public:
-		MirrorFileContext()
+		namespace file_system_mirror
 		{
-		}
 
-		MirrorFileContext(Ref<File> file) : file(file)
-		{
+			class MirrorFileContext : public FileContext
+			{
+			public:
+				Ref<File> file;
+
+			public:
+				MirrorFileContext(Ref<File> file) : file(file)
+				{
+				}
+
+			};
+
 		}
-	};
+	}
+
+	using namespace priv::file_system_mirror;
+
 
 	SLIB_DEFINE_OBJECT(MirrorFileSystem, FileSystemProvider)
 
 	MirrorFileSystem::MirrorFileSystem(const String& path) : m_root(path)
 	{
-		// TODO m_fsInfo.volumeName
 		m_fsInfo.fileSystemName = "MirrorFs";
 		m_fsInfo.creationTime = File::getCreatedTime(m_root);
 		m_fsInfo.flags = FileSystemFlags::CaseSensitive;
@@ -67,29 +71,9 @@ namespace slib
 	{
 	}
 
-	sl_bool MirrorFileSystem::getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask)
+	sl_bool MirrorFileSystem::getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize)
 	{
-		if (mask & FileSystemInfoMask::Basic) {
-			outInfo = m_fsInfo;
-		}
-
-		if (mask & FileSystemInfoMask::Size) {
-#ifdef SLIB_PLATFORM_IS_WIN32
-			StringCstr16 root(m_root);
-			ULARGE_INTEGER totalSize, freeSize;
-
-			if (!GetDiskFreeSpaceExW((LPCWSTR)(root.getData()), 0, &totalSize, &freeSize)) {
-				return sl_false;
-			}
-
-			outInfo.totalSize = totalSize.QuadPart;
-			outInfo.freeSize = freeSize.QuadPart;
-#else
-			SLIB_THROW(FileSystemError::NotImplemented, sl_false); // TODO
-#endif
-		}
-
-		return sl_true;
+		return Disk::getSize(m_root, pTotalSize, pFreeSize);
 	}
 
 	sl_bool MirrorFileSystem::createDirectory(const StringParam& path)
@@ -111,7 +95,7 @@ namespace slib
 
 	sl_bool MirrorFileSystem::closeFile(FileContext* context)
 	{
-		Ref<File> file = FileFromContext(context);
+		Ref<File> file = FILE_FROM_CONTEXT(context);
 		if (file.isNotNull()) {
 			file->close();
 			if (file->isOpened()) {
@@ -121,9 +105,9 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_size MirrorFileSystem::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size)
+	sl_uint32 MirrorFileSystem::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
 	{
-		Ref<File> file = FileFromContext(context);
+		Ref<File> file = FILE_FROM_CONTEXT(context);
 
 		if (file.isNull() || !file->isOpened()) {
 			SLIB_THROW(FileSystemError::InvalidContext, sl_false);
@@ -133,8 +117,7 @@ namespace slib
 			SLIB_THROW(getError(), 0);
 		}
 
-		//auto ret = file->read(buf, size);	// IReader::read() only supports 1GB ?
-		auto ret = file->read32(buf, (sl_uint32)size);	// File::read32() returns -1 if zero byte read ?
+		sl_int32 ret = file->read32(buf, size);
 		if (ret < 0) {
 			SLIB_THROW(getError(), 0);
 		}
@@ -142,9 +125,9 @@ namespace slib
 		return ret;
 	}
 
-	sl_size MirrorFileSystem::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size)
+	sl_uint32 MirrorFileSystem::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size)
 	{
-		Ref<File> file = FileFromContext(context);
+		Ref<File> file = FILE_FROM_CONTEXT(context);
 
 		if (file.isNull() || !file->isOpened()) {
 			SLIB_THROW(FileSystemError::InvalidContext, sl_false);
@@ -160,8 +143,7 @@ namespace slib
 			}
 		}
 
-		//auto ret = file->write(buf, size);	// IReader::write() only supports 1GB ?
-		auto ret = file->write32(buf, (sl_uint32)size);	// File::write32() returns -1 if zero byte written ?
+		sl_int32 ret = file->write32(buf, size);
 		if (ret < 0) {
 			SLIB_THROW(getError(), 0);
 		}
@@ -171,26 +153,18 @@ namespace slib
 
 	sl_bool MirrorFileSystem::flushFile(FileContext* context)
 	{
-		Ref<File> file = FileFromContext(context);
-
+		Ref<File> file = FILE_FROM_CONTEXT(context);
 		if (file.isNotNull()) {
-#ifdef SLIB_PLATFORM_IS_WIN32
-			HANDLE handle = (HANDLE)(file->getHandle());
-			if (!handle || handle == INVALID_HANDLE_VALUE) {
+			if (file->flush()) {
 				return sl_true;
 			}
-			if (!FlushFileBuffers(handle)) {
-				SLIB_THROW(getError(), sl_false);
-			}
-#endif
 		}
-
-		return sl_true;
+		return sl_false;
 	}
 
 	sl_bool MirrorFileSystem::deleteDirectory(const StringParam& path)
 	{
-		if (!File::deleteFile(m_root + path, sl_true)) {
+		if (!File::deleteDirectory(m_root + path)) {
 			SLIB_THROW(getError(), sl_false);
 		}
 		return sl_true;
@@ -198,7 +172,7 @@ namespace slib
 
 	sl_bool MirrorFileSystem::deleteFile(const StringParam& path)
 	{
-		if (!File::deleteFile(m_root + path, sl_true)) {
+		if (!File::deleteFile(m_root + path)) {
 			SLIB_THROW(getError(), sl_false);
 		}
 		return sl_true;
@@ -206,8 +180,8 @@ namespace slib
 
 	sl_bool MirrorFileSystem::moveFile(const StringParam& oldPath, const StringParam& newPath, sl_bool flagReplaceIfExists)
 	{
-		// TODO replaceIfExists
-		if (!File::rename(m_root + oldPath, m_root + newPath)) {
+		
+		if (!File::move(m_root + oldPath, m_root + newPath)) {
 			SLIB_THROW(getError(), sl_false);
 		}
 		return sl_true;
@@ -216,35 +190,25 @@ namespace slib
 	sl_bool MirrorFileSystem::getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask)
 	{
 		String filePath = (path.isNotEmpty() ? m_root + path : sl_null);
-		Ref<File> file = (context ? FileFromContext(context) : sl_null);
-		sl_bool isOpened = file.isNotNull() && file->isOpened();
+		Ref<File> file = (context ? FILE_FROM_CONTEXT(context) : sl_null);
+		sl_bool bOpened = file.isNotNull() && file->isOpened();
 
 		if (mask & FileInfoMask::Attributes) {
-			FileAttributes attr = File::getAttributes(filePath);	// FIXME returns NotExist on error
+			FileAttributes attr = File::getAttributes(filePath);
 			if (attr & FileAttributes::NotExist) {
-				if (!isOpened) {
+				if (!bOpened) {
 					SLIB_THROW(FileSystemError::NotFound, sl_false);
 				}
-
-#ifdef SLIB_PLATFORM_IS_WIN32
-				HANDLE handle = (HANDLE)(file->getHandle());
-				BY_HANDLE_FILE_INFORMATION byHandleFileInfo;
-
-				if (GetFileInformationByHandle(handle, &byHandleFileInfo)) {
-					outInfo.attributes = byHandleFileInfo.dwFileAttributes;
-				} else {
-					SLIB_THROW(getError(), sl_false);
+				attr = file->getAttributes();
+				if (attr & FileAttributes::NotExist) {
+					SLIB_THROW(FileSystemError::NotFound, sl_false);
 				}
-#else
-				SLIB_THROW(FileSystemError::NotImplemented, sl_false);
-#endif
-			} else {
-				outInfo.attributes = (sl_uint32)attr;
 			}
+			outInfo.attributes = (sl_uint32)attr;
 		}
 
 		if ((mask & FileInfoMask::Size) || (mask & FileInfoMask::AllocSize)) {
-			if (isOpened) {
+			if (bOpened) {
 				outInfo.size = outInfo.allocSize = file->getSize();
 			} else {
 				outInfo.size = outInfo.allocSize = File::getSize(filePath);
@@ -252,7 +216,7 @@ namespace slib
 		}
 
 		if (mask & FileInfoMask::Time) {
-			if (isOpened) {
+			if (bOpened) {
 				outInfo.createdAt = file->getCreatedTime();
 				outInfo.modifiedAt = file->getModifiedTime();
 				outInfo.accessedAt = file->getAccessedTime();
@@ -270,7 +234,7 @@ namespace slib
 	sl_bool MirrorFileSystem::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
 	{
 		String filePath = (path.isNotEmpty() ? m_root + path : sl_null);
-		Ref<File> file = (context ? FileFromContext(context) : sl_null);
+		Ref<File> file = (context ? FILE_FROM_CONTEXT(context) : sl_null);
 		sl_bool isOpened = file.isNotNull() && file->isOpened();
 
 		if (mask & FileInfoMask::Attributes) {

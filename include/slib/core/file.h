@@ -214,12 +214,14 @@ namespace slib
 		
 		static sl_uint64 getDiskSize(sl_file fd);
 		
-		static sl_uint64 getDiskSize(const StringParam& path);
+		static sl_uint64 getDiskSize(const StringParam& devicePath);
 		
 		
 		sl_bool lock();
 
 		sl_bool unlock();
+
+		sl_bool flush();
 	
 		sl_uint64 getDiskSize();
 
@@ -249,6 +251,8 @@ namespace slib
 		static sl_bool setCreatedTime(const StringParam& filePath, Time time);
 
 
+		FileAttributes getAttributes();
+
 		static FileAttributes getAttributes(const StringParam& filePath);
 
 		static sl_bool setAttributes(const StringParam& filePath, const FileAttributes& attrs);
@@ -272,14 +276,18 @@ namespace slib
 
 		static sl_bool createDirectories(const StringParam& dirPath);
 
-		static sl_bool deleteFile(const StringParam& filePath, sl_bool flagErrorOnDeleteNotExistingFile = sl_false);
-	
+		static sl_bool deleteFile(const StringParam& filePath);
+
+		static sl_bool deleteDirectory(const StringParam& filePath);
+
+		static sl_bool remove(const StringParam& filePath, sl_bool flagErrorOnNotExisting = sl_false);
+
 
 		// Deletes the directory and its sub-directories and files
 		static sl_bool deleteDirectoryRecursively(const StringParam& dirPath);
 
-		// Changes the path of file or directory. Don't replace the existing file.
-		static sl_bool rename(const StringParam& filePathOriginal, const StringParam& filePathNew);
+		// Changes the path of file or directory
+		static sl_bool move(const StringParam& filePathOriginal, const StringParam& filePathNew, sl_bool flagReplaceIfExists = sl_false);
 	
 
 		static List<String> getFiles(const StringParam& dirPath);
@@ -367,10 +375,6 @@ namespace slib
 		static sl_bool _setAttributes(const StringParam& filePath, const FileAttributes& attrs);
 
 		static sl_bool _createDirectory(const StringParam& dirPath);
-
-		static sl_bool _deleteFile(const StringParam& dirPath);
-
-		static sl_bool _deleteDirectory(const StringParam& dirPath);
 
 	};
 	

@@ -30,7 +30,7 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileInfo)
 
-	FileInfo::FileInfo() :
+		FileInfo::FileInfo() :
 		size(0),
 		allocSize(0)
 	{
@@ -39,14 +39,14 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileOpenParam)
 
-	FileOpenParam::FileOpenParam()
+		FileOpenParam::FileOpenParam()
 	{
 	}
 
 
 	SLIB_DEFINE_OBJECT(File, IO)
 
-	File::File(sl_file file): m_file(file)
+		File::File(sl_file file) : m_file(file)
 	{
 	}
 
@@ -145,12 +145,12 @@ namespace slib
 	{
 		return m_file;
 	}
-	
+
 	void File::setHandle(sl_file handle)
 	{
 		m_file = handle;
 	}
-	
+
 	void File::clearHandle()
 	{
 		m_file = SLIB_FILE_INVALID_HANDLE;
@@ -166,9 +166,9 @@ namespace slib
 		return getDiskSize(m_file);
 	}
 
-	sl_uint64 File::getDiskSize(const StringParam& path)
+	sl_uint64 File::getDiskSize(const StringParam& devicePath)
 	{
-		Ref<File> file = openDevice(path, sl_false, sl_false);
+		Ref<File> file = openDevice(devicePath, sl_false, sl_false);
 		if (file.isNotNull()) {
 			return getDiskSize(file->m_file);
 		}
@@ -599,7 +599,7 @@ namespace slib
 		}
 	}
 
-	sl_bool File::deleteFile(const StringParam& filePath, sl_bool flagErrorOnDeleteNotExistingFile)
+	sl_bool File::remove(const StringParam& filePath, sl_bool flagErrorOnDeleteNotExistingFile)
 	{
 		FileAttributes attr = File::getAttributes(filePath);
 		if (attr & FileAttributes::NotExist) {
@@ -610,9 +610,9 @@ namespace slib
 			}
 		}
 		if (attr & FileAttributes::Directory) {
-			_deleteDirectory(filePath);
+			deleteDirectory(filePath);
 		} else {
-			_deleteFile(filePath);
+			deleteFile(filePath);
 		}
 		return !(File::exists(filePath));
 	}
@@ -634,7 +634,7 @@ namespace slib
 					}
 				}
 			}
-			ret = ret && File::deleteFile(path);
+			ret = ret && File::deleteDirectory(path);
 			return ret;
 		} else {
 			return sl_false;

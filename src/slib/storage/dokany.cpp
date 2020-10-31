@@ -141,7 +141,7 @@ namespace slib
 			{
 				SLIB_TRY {
 					FileSystemInfo info;
-					if (provider->getInformation(info, FileSystemInfoMask::Basic)) {
+					if (provider->getInformation(info)) {
 						if (info.sectorSize) {
 							options.SectorSize = info.sectorSize;
 							if (info.sectorsPerAllocationUnit) {
@@ -721,11 +721,11 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 
 				DOKANY_TRY{
-					FileSystemInfo info;
-					if (provider->getInformation(info, FileSystemInfoMask::Size)) {
-						*pFreeBytesAvailable = info.freeSize;
-						*pTotalNumberOfFreeBytes = info.freeSize;
-						*pTotalNumberOfBytes = info.totalSize;
+					sl_uint64 freeSize, totalSize;
+					if (provider->getSize(&totalSize, &freeSize)) {
+						*pFreeBytesAvailable = freeSize;
+						*pTotalNumberOfFreeBytes = freeSize;
+						*pTotalNumberOfBytes = totalSize;
 						return 0;
 					}
 					return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
@@ -747,7 +747,7 @@ namespace slib
 
 				DOKANY_TRY{
 					FileSystemInfo info;
-					if (provider->getInformation(info, FileSystemInfoMask::Basic)) {
+					if (provider->getInformation(info)) {
 						if (dwVolumeNameSize) {
 							szVolumeNameBuffer[0] = 0;
 							info.volumeName.getUtf16((sl_char16*)szVolumeNameBuffer, (sl_size)dwVolumeNameSize);

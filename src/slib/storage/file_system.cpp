@@ -108,18 +108,18 @@ namespace slib
 	{
 	}
 
-	sl_bool FileSystemProvider::getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask)
+	sl_bool FileSystemProvider::getInformation(FileSystemInfo& outInfo)
 	{
-		if (mask & FileSystemInfoMask::Basic) {
-			outInfo = m_fsInfo;
-		}
-		if (mask & FileSystemInfoMask::Size) {
-			SLIB_THROW(FileSystemError::NotImplemented, sl_false)
-		}
+		outInfo = m_fsInfo;
 		return sl_true;
 	}
 
-	sl_size FileSystemProvider::writeFile(FileContext* context, sl_int64 offset, const void* data, sl_size size)
+	sl_bool FileSystemProvider::getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize)
+	{
+		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+	}
+
+	sl_uint32 FileSystemProvider::writeFile(FileContext* context, sl_int64 offset, const void* data, sl_uint32 size)
 	{
 		SLIB_THROW(FileSystemError::NotImplemented, 0)
 	}
@@ -149,7 +149,7 @@ namespace slib
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_bool FileSystemProvider::existsFile(const StringParam& path)
+	sl_bool FileSystemProvider::existsFile(const StringParam& path) noexcept
 	{
 		SLIB_TRY {
 			FileInfo info;
@@ -178,96 +178,96 @@ namespace slib
 		return 0;
 	}
 
-	Memory FileSystemProvider::readFile(const StringParam& path, sl_uint64 offset, sl_size length) noexcept
+	Memory FileSystemProvider::readFile(const StringParam& path, sl_uint64 offset, sl_uint32 size) noexcept
 	{
-		String fileName = path.toString();
-		fileName = fileName.replaceAll("/", SLIB_FILE_SYSTEM_PATH_SEPARATOR);
-		fileName = fileName.replaceAll("\\", SLIB_FILE_SYSTEM_PATH_SEPARATOR);
-		if (!fileName.startsWith(SLIB_FILE_SYSTEM_PATH_SEPARATOR)) {
-			fileName = SLIB_FILE_SYSTEM_PATH_SEPARATOR + fileName;
+		if (!size) {
+			return sl_null;
 		}
 
 		Ref<FileContext> context;
 
-		try {
+		SLIB_TRY {
+			
 			FileOpenParam param;
 			param.mode = FileMode::Read | FileMode::ShareRead;
-			context = openFile(fileName, param);
-			if (context.isNull()) {
-				return sl_null;
-			}
-
-			if (length == 0) {
-				FileInfo info;
-				if (!getFileInfo(sl_null, context, info, FileInfoMask::Size)) {
-					try {
-						closeFile(context);
-					} catch (...) {}
-					return sl_null;
-				}
-				length = (sl_size)(info.size - offset);
-			}
-
-			Memory buffer = Memory::create(length);
-			sl_size ret = readFile(context, offset, buffer.getData(), length);
-
-			closeFile(context);
-			return buffer.sub(0, ret);
-
-		} catch (FileSystemError error) {
-			LOG_DEBUG("ReadFile(%s,%d,%d)\n  Error: %d", fileName, offset, length, error);
-			if (context.isNotNull()) {
-				try {
-					closeFile(context);
-				} catch (...) {}
-			}
-
-			return sl_null;
-
-		} catch (...) {
-			return sl_null;
-		}
-	}
-
-	sl_bool FileSystemProvider::writeFile(const StringParam& path, const Memory& buffer) noexcept
-	{
-		String fileName = path.toString();
-		fileName = fileName.replaceAll("/", SLIB_FILE_SYSTEM_PATH_SEPARATOR);
-		fileName = fileName.replaceAll("\\", SLIB_FILE_SYSTEM_PATH_SEPARATOR);
-		if (!fileName.startsWith(SLIB_FILE_SYSTEM_PATH_SEPARATOR)) {
-			fileName = SLIB_FILE_SYSTEM_PATH_SEPARATOR + fileName;
-		}
-
-		Ref<FileContext> context;
-
-		try {
-			FileOpenParam param;
-			param.mode = FileMode::Write | FileMode::ShareWrite;
-			context = openFile(fileName, param);
-			if (context.isNull()) {
-				return sl_null;
-			}
-
-			sl_size ret = writeFile(context.get(), 0, buffer.getData(), buffer.getSize());
 			
-			closeFile(context);
-			return ret;
-
-		} catch (FileSystemError error) {
-			LOG_DEBUG("WriteFile(%s,%d)\n  Error: %d", fileName, buffer.getSize(), error);
-			if (context.isNotNull()) {
-				try {
-					closeFile(context);
-				} catch (...) {}
+			context = openFile(path, param);
+			if (context.isNull()) {
+				return sl_null;
 			}
 
-			return sl_false;
+			FileInfo info;
+			if (!getFileInfo(sl_null, context, info, FileInfoMask::Size)) {
+				SLIB_TRY {
+					closeFile(context);
+				} SLIB_CATCH(...)
+				return sl_null;
+			}
 
-		} catch (...) {
-			return sl_false;
-		}
+			sl_uint64 limit = (sl_uint64)(info.size - offset);
+			if (limit > 0x40000000) {
+				limit = 0x40000000;
+			}
+			if (size > limit) {
+				size = (sl_uint32)limit;
+			}
+
+			Memory mem = Memory::create(size);
+			if (mem.isNull()) {
+				return sl_null;
+			}
+
+			sl_uint32 sizeRead = readFile(context, offset, mem.getData(), size);
+			closeFile(context);
+			if (sizeRead) {
+				return mem.sub(0, sizeRead);
+			}
+
+		} SLIB_CATCH(FileSystemError error, {
+			LOG_DEBUG("ReadFile(%s,%d,%d)\n  Error: %d", path, offset, size, error);
+			if (context.isNotNull()) {
+				SLIB_TRY {
+					closeFile(context);
+				} SLIB_CATCH(...)
+			}
+		}) SLIB_CATCH(...)
+
+		return sl_null;
 	}
 
+	sl_uint32 FileSystemProvider::writeFile(const StringParam& path, const void* buf, sl_uint32 size) noexcept
+	{
+		Ref<FileContext> context;
+		SLIB_TRY {
+			FileOpenParam param;
+			param.mode = FileMode::Write;
+			context = openFile(path, param);
+			if (context.isNull()) {
+				return 0;
+			}
+			sl_uint32 sizeWritten = writeFile(context.get(), 0, buf, size);
+			closeFile(context);
+			return sizeWritten;
+		} SLIB_CATCH (FileSystemError error, {
+			LOG_DEBUG("WriteFile(%s,%d)\n  Error: %d", path, size, error);
+			if (context.isNotNull()) {
+				SLIB_TRY {
+					closeFile(context);
+				} SLIB_CATCH(...)
+			}
+		}) SLIB_CATCH (...)
+		
+		return sl_false;
+	}
+
+	sl_uint32 FileSystemProvider::writeFile(const StringParam& path, const Memory& mem) noexcept
+	{
+		sl_size size = mem.getSize();
+		if (size > 0x40000000) {
+			size = 0x40000000;
+		}
+		return writeFile(path, mem.getData(), (sl_uint32)size);
+	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileSystemHostParam)
 
@@ -351,17 +351,16 @@ namespace slib
 	}
 
 
-	FileSystemWrapper::FileSystemWrapper(const Ref<FileSystemProvider>& base,
-		const StringParam& fileSystemName,
-		const StringParam& volumeName) : m_base(base)
+	FileSystemWrapper::FileSystemWrapper(const Ref<FileSystemProvider>& base, const String& fileSystemName, const String& volumeName) : m_base(base)
 	{
-		m_base->getInformation(m_fsInfo, FileSystemInfoMask::Basic);
-
-		if (fileSystemName.isNotEmpty()) {
-			m_fsInfo.fileSystemName = fileSystemName.toString();
+		SLIB_TRY{
+			base->getInformation(m_fsInfo);
+		} SLIB_CATCH(...)
+		if (fileSystemName.isNotNull()) {
+			m_fsInfo.fileSystemName = fileSystemName;
 		}
-		if (volumeName.isNotNull()) { // volume name can be empty string
-			m_fsInfo.volumeName = volumeName.toString();
+		if (volumeName.isNotNull()) {
+			m_fsInfo.volumeName = volumeName;
 		}
 	}
 
@@ -369,19 +368,9 @@ namespace slib
 	{
 	}
 
-	sl_bool FileSystemWrapper::getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask)
+	sl_bool FileSystemWrapper::getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize)
 	{
-		if (mask & FileSystemInfoMask::Basic) {
-			outInfo = m_fsInfo;
-		}
-
-		FileSystemInfo baseOutInfo;
-		sl_bool ret = m_base->getInformation(baseOutInfo, mask);
-		if (ret && (mask & FileSystemInfoMask::Size)) {
-			outInfo.totalSize = baseOutInfo.totalSize;
-			outInfo.freeSize = baseOutInfo.freeSize;
-		}
-		return ret;
+		return m_base->getSize(pTotalSize, pFreeSize);
 	}
 
 	Ref<FileContext> FileSystemWrapper::openFile(const StringParam& path, const FileOpenParam& param)
@@ -393,7 +382,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_size	FileSystemWrapper::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size)
+	sl_uint32	FileSystemWrapper::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
 	{
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {
@@ -403,7 +392,7 @@ namespace slib
 		}
 	}
 
-	sl_size FileSystemWrapper::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size)
+	sl_uint32 FileSystemWrapper::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size)
 	{
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {
@@ -481,36 +470,25 @@ namespace slib
 
 	HashMap<String, FileInfo> FileSystemWrapper::getFiles(const StringParam& pathDir)
 	{
-		HashMap<String, FileInfo> base_files = m_base->getFiles(toBasePath(pathDir));
 		HashMap<String, FileInfo> files;
 
-		// calculate path depth
-		String path = pathDir.toString().replaceAll("\\", "/");
-		List<String> parts = path.split("/");
-		sl_uint32 depth = 0;
-		for (auto& part : parts) {
-			if (part.isNotEmpty()) {
-				depth++;
-			}
-		}
+		String pathDirBase = toBasePath(pathDir);
+		HashMap<String, FileInfo> filesBase = m_base->getFiles(pathDirBase);
 
-		for (auto& file : base_files) {
-			String baseName = file.key;
-			String basePath = toBasePath(pathDir) + SLIB_FILE_SYSTEM_PATH_SEPARATOR + baseName;
-
-			String name = toWrapperPath(baseName, sl_true, depth);
+		for (auto& file : filesBase) {
+			String name = toWrapperPath(file.key, sl_true);
 			if (name.isEmpty()) {
-				path = toWrapperPath(basePath, sl_false, depth);
-				if (path.isEmpty()) continue;	// ignore this entry
-
+				String path = toWrapperPath(String::join(pathDirBase, "/", file.key), sl_false);
+				if (path.isEmpty()) {
+					// ignore this entry
+					continue;
+				}
 				name = File::getFileName(path);
 			}
-
 			FileInfo& info = file.value;
 			convertToWrapperFileInfo(info, FileInfoMask::All);
-			files.add(name, info);
+			files.add_NoLock(name, info);
 		}
-
 		return files;
 	}
 
@@ -529,7 +507,7 @@ namespace slib
 		return path.toString();
 	}
 
-	String FileSystemWrapper::toWrapperPath(const String& basePath, sl_bool flagNameOnly, sl_uint32 depth)
+	String FileSystemWrapper::toWrapperPath(const String& basePath, sl_bool flagNameOnly)
 	{
 		return basePath;
 	}

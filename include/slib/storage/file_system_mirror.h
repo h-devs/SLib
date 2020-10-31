@@ -38,15 +38,15 @@ namespace slib
 		~MirrorFileSystem();
 
 	public:
-		sl_bool getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask) override;
+		sl_bool getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize = sl_null) override;
 
 		sl_bool createDirectory(const StringParam& path) override;
 
 		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) override;
 
-		sl_size	readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size) override;
+		sl_uint32 readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
 
-		sl_size writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size) override;
+		sl_uint32 writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size) override;
 
 		sl_bool flushFile(FileContext* context) override;
 

@@ -33,12 +33,6 @@
 
 #define SLIB_FILE_SYSTEM_CAN_THROW
 
-#ifdef SLIB_PLATFORM_IS_WINDOWS
-#define SLIB_FILE_SYSTEM_PATH_SEPARATOR "\\"
-#else
-#define SLIB_FILE_SYSTEM_PATH_SEPARATOR "/"
-#endif
-
 namespace slib
 {
 
@@ -71,19 +65,6 @@ namespace slib
 		};
 	};
 
-	class FileSystemInfoMask
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(FileSystemInfoMask, value)
-
-		enum {
-			Basic = 0x1,
-			Size = 0x2,
-			All = 0xffff
-		};
-	};
-
 	class SLIB_EXPORT FileSystemInfo
 	{
 	public:
@@ -95,9 +76,6 @@ namespace slib
 		sl_uint16 sectorSize;
 		sl_uint16 sectorsPerAllocationUnit;
 		sl_uint32 maxPathLength;
-
-		sl_uint64 totalSize;
-		sl_uint64 freeSize;
 
 	public:
 		FileSystemInfo();
@@ -160,14 +138,16 @@ namespace slib
 		~FileSystemProvider();
 
 	public:
-		virtual sl_bool getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask);
+		virtual sl_bool getInformation(FileSystemInfo& outInfo);
 		
+		virtual sl_bool getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize = sl_null);
+
 		virtual Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) = 0;
 
-		virtual sl_size readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size) = 0;
+		virtual sl_uint32 readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) = 0;
 
 		// offset: negative value means end of file
-		virtual sl_size writeFile(FileContext* context, sl_int64 offset, const void* data, sl_size size);
+		virtual sl_uint32 writeFile(FileContext* context, sl_int64 offset, const void* data, sl_uint32 size);
 
 		virtual sl_bool flushFile(FileContext* context);
 
@@ -190,15 +170,17 @@ namespace slib
 		virtual HashMap<String, FileInfo> getFiles(const StringParam& pathDir) = 0;
 
 	public: // Helpers
-		virtual sl_bool existsFile(const StringParam& path);
+		virtual sl_bool existsFile(const StringParam& path) noexcept;
 
 		virtual sl_uint64 getFileSize(FileContext* context);
 
 		virtual sl_uint64 getFileSize(const StringParam& path);
 
-		virtual Memory readFile(const StringParam& path, sl_uint64 offset = 0, sl_size length = 0) noexcept;
+		virtual Memory readFile(const StringParam& path, sl_uint64 offset = 0, sl_uint32 size = SLIB_UINT32_MAX) noexcept;
 
-		virtual sl_bool writeFile(const StringParam& path, const Memory& buffer) noexcept;
+		virtual sl_uint32 writeFile(const StringParam& path, const void* buf, sl_uint32 size) noexcept;
+
+		virtual sl_uint32 writeFile(const StringParam& path, const Memory& mem) noexcept;
 
 	protected:
 		FileSystemInfo m_fsInfo;
@@ -261,20 +243,20 @@ namespace slib
 	class FileSystemWrapper : public FileSystemProvider
 	{
 	public:
-		FileSystemWrapper(const Ref<FileSystemProvider>& base,
-			const StringParam& fileSystemName = sl_null,
-			const StringParam& volumeName = sl_null);
+		FileSystemWrapper(const Ref<FileSystemProvider>& base, const String& fileSystemName = sl_null, const String& volumeName = sl_null);
 
 		~FileSystemWrapper();
 
 	public:
-		sl_bool getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask) override;
+		sl_bool getInformation(FileSystemInfo& outInfo) override;
+
+		sl_bool getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize = sl_null) override;
 
 		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) override;
 
-		sl_size	readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size) override;
+		sl_uint32	readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
 
-		sl_size writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size) override;
+		sl_uint32 writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size) override;
 
 		sl_bool flushFile(FileContext* context) override;
 
@@ -301,7 +283,7 @@ namespace slib
 
 		// If you want to use different path in wrapper, you will need to override these functions.
 		virtual String toBasePath(const StringParam& path);
-		virtual String toWrapperPath(const String& basePath, sl_bool flagNameOnly, sl_uint32 depth);
+		virtual String toWrapperPath(const String& basePath, sl_bool flagNameOnly);
 
 		// If you want to use different file info in wrapper, you will need to override these functions.
 		virtual void convertToBaseFileInfo(FileInfo& info, const FileInfoMask& mask) noexcept;

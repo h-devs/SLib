@@ -87,37 +87,63 @@ namespace slib
 	{
 	}
 
-	sl_bool FileSystemLogger::getInformation(FileSystemInfo& info, const FileSystemInfoMask& mask)
+	sl_bool FileSystemLogger::getInformation(FileSystemInfo& info)
 	{
 		if (!(m_flags & FileSystemLogFlags::FileSystemInfo)) {
-			return m_base->getInformation(info, mask);
+			return m_base->getInformation(info);
 		}
 
-		String desc = String::format("GetFileSystemInfo(%s)", mask);
+		String desc = String::format("GetFileSystemInfo(%s)");
 		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
 		}
 
 		TRY {
-			sl_bool ret = m_base->getInformation(info, mask);
+			sl_bool ret = m_base->getInformation(info);
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG(desc);
-				if (mask & FileSystemInfoMask::Basic) {
-					LOG("  volumeName: %s", info.volumeName);
-					LOG("  fileSystemName: %s", info.fileSystemName);
-					LOG("  creationTime: %s", m_flags & FileSystemLogFlags::TimeInfoAsString
-						? info.creationTime.toString()
-						: String::fromInt64(info.creationTime.toInt()));
-					LOG("  serialNumber: %d", info.serialNumber);
-					LOG("  sectorSize: %d", info.sectorSize);
-					LOG("  sectorsPerAllocationUnit: %d", info.sectorsPerAllocationUnit);
-					LOG("  maxPathLength: %d", info.maxPathLength);
-					LOG("  flags: 0x%X", info.flags.value);
-				}
-				if (mask & FileSystemInfoMask::Size) {
-					LOG("  totalSize: %d", info.totalSize);
-					LOG("  freeSize: %d", info.freeSize);
-				}
+				LOG("  volumeName: %s", info.volumeName);
+				LOG("  fileSystemName: %s", info.fileSystemName);
+				LOG("  creationTime: %s", m_flags & FileSystemLogFlags::TimeInfoAsString
+					? info.creationTime.toString()
+					: String::fromInt64(info.creationTime.toInt()));
+				LOG("  serialNumber: %d", info.serialNumber);
+				LOG("  sectorSize: %d", info.sectorSize);
+				LOG("  sectorsPerAllocationUnit: %d", info.sectorsPerAllocationUnit);
+				LOG("  maxPathLength: %d", info.maxPathLength);
+				LOG("  flags: 0x%X", info.flags.value);
+			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
+				LOG("%s\n  Error", desc);
+			}
+			return ret;
+		}
+		CATCH(desc)
+	}
+
+	sl_bool FileSystemLogger::getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize)
+	{
+		if (!(m_flags & FileSystemLogFlags::Size)) {
+			return m_base->getSize(pTotalSize, pFreeSize);
+		}
+
+		String desc = String::format("GetSize(%s)");
+		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+			LOG(desc);
+		}
+
+		TRY{
+			sl_uint64 totalSize, freeSize;
+			sl_bool ret = m_base->getSize(&totalSize, &freeSize);
+			if (pTotalSize) {
+				*pTotalSize = totalSize;
+			}
+			if (pFreeSize) {
+				*pFreeSize = freeSize;
+			}
+			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
+				LOG(desc);
+				LOG("  totalSize: %d", totalSize);
+				LOG("  freeSize: %d", freeSize);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
 				LOG("%s\n  Error", desc);
 			}
@@ -186,7 +212,7 @@ namespace slib
 		CATCH(desc)
 	}
 
-	sl_size FileSystemLogger::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size)
+	sl_uint32 FileSystemLogger::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
 	{
 		if (!(m_flags & FileSystemLogFlags::Read)) {
 			return m_base->readFile(context, offset, buf, size);
@@ -197,7 +223,7 @@ namespace slib
 			LOG(desc);
 
 		TRY {
-			sl_size ret = m_base->readFile(context, offset, buf, size);
+			sl_uint32 ret = m_base->readFile(context, offset, buf, size);
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG("%s\n  Ret: %d", desc, ret);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
@@ -208,7 +234,7 @@ namespace slib
 		CATCH(desc)
 	}
 
-	sl_size FileSystemLogger::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size)
+	sl_uint32 FileSystemLogger::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size)
 	{
 		if (!(m_flags & FileSystemLogFlags::Write)) {
 			return m_base->writeFile(context, offset, buf, size);
@@ -220,7 +246,7 @@ namespace slib
 		}
 
 		TRY {
-			sl_size ret = m_base->writeFile(context, offset, buf, size);
+			sl_uint32 ret = m_base->writeFile(context, offset, buf, size);
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG("%s\n  Ret: %d", desc, ret);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {

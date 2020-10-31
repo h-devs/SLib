@@ -55,6 +55,7 @@ namespace slib
 			SetInfo = 0x0200,
 			List = 0x0400,
 			FileSystemInfo = 0x0800,
+			Size = 0x1000,
 			InfoOp = GetInfo | SetInfo,
 
 			AllOp = 0xFFFF,
@@ -94,15 +95,17 @@ namespace slib
 		~FileSystemLogger();
 
 	public:
-		sl_bool getInformation(FileSystemInfo& outInfo, const FileSystemInfoMask& mask) override;
+		sl_bool getInformation(FileSystemInfo& outInfo) override;
+
+		sl_bool getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize = sl_null) override;
 
 		sl_bool createDirectory(const StringParam& path) override;
 
 		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) override;
 
-		sl_size	readFile(FileContext* context, sl_uint64 offset, void* buf, sl_size size) override;
+		sl_uint32 readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
 
-		sl_size writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_size size) override;
+		sl_uint32 writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size) override;
 
 		sl_bool flushFile(FileContext* context) override;
 
