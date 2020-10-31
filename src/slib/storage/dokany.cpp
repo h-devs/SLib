@@ -114,6 +114,20 @@ namespace slib
 				DWORD Error)
 
 
+			static String NormalizePath(LPCWSTR szPath)
+			{
+				String path = String::from(szPath);
+				sl_char8* data = path.getData();
+				sl_size len = path.getLength();
+				for (int i = 0; i < len; i++) {
+					sl_char8& ch = data[i];
+					if (ch == '\\') {
+						ch = '/';
+					}
+				}
+				return path;
+			}
+
 			static sl_bool CheckDokanyOptions(const DOKAN_OPTIONS& options)
 			{
 				if (!Base::getStringLength2((sl_char16*)(options.MountPoint))) {
@@ -210,11 +224,13 @@ namespace slib
 				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_OPEN_NO_RECALL);
 #endif
 
+				String path = NormalizePath(szFileName);
+
 				DOKANY_TRY {
 
 					int iRetSuccess = 0;
 					if (dwCreationDisposition == CREATE_ALWAYS || dwCreationDisposition == OPEN_ALWAYS) {
-						if (provider->existsFile(szFileName)) {
+						if (provider->existsFile(path)) {
 							if (g_flagDokany) {
 								iRetSuccess = STATUS_OBJECT_NAME_COLLISION;
 							} else {
@@ -243,7 +259,7 @@ namespace slib
 
 					switch (dwCreationDisposition) {
 					case CREATE_NEW:
-						if (provider->existsFile(szFileName)) {
+						if (provider->existsFile(path)) {
 							return DOKAN_ERROR_CODE(ERROR_FILE_EXISTS);
 						}
 						break;
@@ -268,7 +284,7 @@ namespace slib
 						param.mode |= FileMode::RandomAccess;
 					}
 
-					Ref<FileContext> context = provider->openFile(szFileName, param);
+					Ref<FileContext> context = provider->openFile(path, param);
 					if (context.isNull()) {
 						return DOKAN_ERROR_CODE(provider->getLastError());
 					}
@@ -292,7 +308,7 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 
 				DOKANY_TRY{
-					if (provider->createDirectory(szFileName)) {
+					if (provider->createDirectory(NormalizePath(szFileName))) {
 						return 0;
 					} else {
 						return DOKAN_ERROR_CODE(provider->getLastError());
@@ -309,7 +325,7 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 
 				DOKANY_TRY{
-					if (provider->existsFile(szFileName)) {
+					if (provider->existsFile(NormalizePath(szFileName))) {
 						return 0;
 					} else {
 						return DOKAN_ERROR_CODE(ERROR_PATH_NOT_FOUND);
@@ -343,7 +359,7 @@ namespace slib
 				DWORD attrs = INVALID_FILE_ATTRIBUTES;
 				SLIB_TRY {
 					FileInfo info;
-					provider->getFileInfo(szFileName, sl_null, info, FileInfoMask::Attributes);
+					provider->getFileInfo(NormalizePath(szFileName), sl_null, info, FileInfoMask::Attributes);
 					if (!(info.attributes & FileAttributes::NotExist)) {
 						attrs = info.attributes & 0x7ffff;
 					}
@@ -399,7 +415,7 @@ namespace slib
 				SLIB_TRY {
 					if (pDokanFileInfo->DeleteOnClose) {
 						if (pDokanFileInfo->IsDirectory) {
-							provider->deleteDirectory(szFileName);
+							provider->deleteDirectory(NormalizePath(szFileName));
 						} else {
 							if (context) {
 								provider->closeFile(context);
@@ -407,7 +423,7 @@ namespace slib
 								context->decreaseReference();
 								pDokanFileInfo->Context = 0;
 							}
-							provider->deleteFile(szFileName);
+							provider->deleteFile(NormalizePath(szFileName));
 						}
 					}
 				} SLIB_CATCH(...)
@@ -538,7 +554,7 @@ namespace slib
 
 				DOKANY_TRY {
 					FileInfo info;
-					if (provider->getFileInfo(szFileName, context, info, FileInfoMask::All)) {
+					if (provider->getFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::All)) {
 						pFileInfo->dwFileAttributes = info.attributes & 0x7ffff;
 						pFileInfo->nFileSizeLow = SLIB_GET_DWORD0(info.size);
 						pFileInfo->nFileSizeHigh = SLIB_GET_DWORD1(info.size);
@@ -592,7 +608,7 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 
 				DOKANY_TRY {
-					if (provider->existsFile(szFileName)) {
+					if (provider->existsFile(NormalizePath(szFileName))) {
 						return 0;
 					}
 					return DOKAN_ERROR_CODE(ERROR_FILE_NOT_FOUND);
@@ -607,7 +623,7 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 
 				DOKANY_TRY {
-					if (provider->getFiles(szFileName).isEmpty()) {
+					if (provider->getFiles(NormalizePath(szFileName)).isEmpty()) {
 						return 0;
 					}
 					return DOKAN_ERROR_CODE(ERROR_DIR_NOT_EMPTY);
@@ -624,7 +640,7 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 
 				DOKANY_TRY {
-					if (provider->moveFile(szFileName, szNewFileName, bReplaceIfExisting)) {
+					if (provider->moveFile(NormalizePath(szFileName), NormalizePath(szNewFileName), bReplaceIfExisting)) {
 						return 0;
 					}
 					return DOKAN_ERROR_CODE(provider->getLastError());
@@ -643,7 +659,7 @@ namespace slib
 				DOKANY_TRY {
 					FileInfo info;
 					info.size = (sl_uint64)iOffset;
-					if (provider->setFileInfo(szFileName, context, info, FileInfoMask::Size)) {
+					if (provider->setFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::Size)) {
 						return 0;
 					}
 					return DOKAN_ERROR_CODE(provider->getLastError());
@@ -662,7 +678,7 @@ namespace slib
 				DOKANY_TRY{
 					FileInfo info;
 					info.allocSize = (sl_uint64)iAllocSize;
-					if (provider->setFileInfo(szFileName, context, info, FileInfoMask::AllocSize)) {
+					if (provider->setFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::AllocSize)) {
 						return 0;
 					}
 					return DOKAN_ERROR_CODE(provider->getLastError());
@@ -681,7 +697,7 @@ namespace slib
 				DOKANY_TRY{
 					FileInfo info;
 					info.attributes = (int)(dwFileAttributes & 0x7ffff);
-					if (provider->setFileInfo(szFileName, context, info, FileInfoMask::Attributes)) {
+					if (provider->setFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::Attributes)) {
 						return 0;
 					}
 					return DOKAN_ERROR_CODE(provider->getLastError());
@@ -704,7 +720,7 @@ namespace slib
 					info.createdAt.setWindowsFileTime(*((sl_int64*)ftCreationTime));
 					info.accessedAt.setWindowsFileTime(*((sl_int64*)ftLastAccessTime));
 					info.modifiedAt.setWindowsFileTime(*((sl_int64*)ftLastWriteTime));
-					if (provider->setFileInfo(szFileName, context, info, FileInfoMask::Time)) {
+					if (provider->setFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::Time)) {
 						return 0;
 					}
 					return DOKAN_ERROR_CODE(provider->getLastError());
