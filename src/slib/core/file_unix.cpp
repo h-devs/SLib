@@ -621,7 +621,7 @@ namespace slib
 		return 0 == rmdir(dirPath.getData());
 	}
 
-	sl_bool File::move(const StringParam& _oldPath, const StringParam& _newPath)
+	sl_bool File::move(const StringParam& _oldPath, const StringParam& _newPath, sl_bool flagReplaceIfExisting)
 	{
 		StringCstr oldPath(_oldPath);
 		if (oldPath.isEmpty()) {
@@ -631,7 +631,14 @@ namespace slib
 		if (newPath.isEmpty()) {
 			return sl_false;
 		}
-		return 0 == ::rename(oldPath.getData(), newPath.getData());
+		sl_char8* szNewPath = newPath.getData();
+	    if (flagReplaceIfExisting) {
+	        struct stat st;
+            if (0 == stat(szNewPath, &st)) {
+                ::remove(szNewPath);
+            }
+	    }
+		return 0 == ::rename(oldPath.getData(), szNewPath);
 	}
 
 	sl_bool File::setNonBlocking(int fd, sl_bool flagEnable)
