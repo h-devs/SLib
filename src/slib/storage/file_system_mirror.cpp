@@ -30,7 +30,8 @@
 #include "slib/core/variant.h"
 #include "slib/storage/disk.h"
 
-#define FILE_FROM_CONTEXT(context)	(((MirrorFileContext*)(context))->file)
+#define FILE_FROM_CONTEXT(context)	(context ? ((MirrorFileContext*)(context))->file : sl_null)
+#define CONCAT_PATH(path)			(path.isNotEmpty() ? m_root + path : sl_null)
 
 namespace slib
 {
@@ -78,7 +79,7 @@ namespace slib
 
 	sl_bool MirrorFileSystem::createDirectory(const StringParam& path)
 	{
-		if (!File::createDirectory(m_root + path)) {
+		if (!File::createDirectory(CONCAT_PATH(path))) {
 			SLIB_THROW(getError(), sl_false);
 		}
 		return sl_true;
@@ -86,7 +87,7 @@ namespace slib
 
 	Ref<FileContext> MirrorFileSystem::openFile(const StringParam& path, const FileOpenParam& param)
 	{
-		Ref<File> file = File::open(m_root + path, param);
+		Ref<File> file = File::open(CONCAT_PATH(path), param);
 		if (file.isNull()) {
 			SLIB_THROW(getError(), sl_null);
 		}
@@ -110,7 +111,7 @@ namespace slib
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 
 		if (file.isNull() || !file->isOpened()) {
-			SLIB_THROW(FileSystemError::InvalidContext, sl_false);
+			SLIB_THROW(FileSystemError::InvalidContext, 0);
 		}
 
 		if (!file->seek(offset, SeekPosition::Begin)) {
@@ -130,7 +131,7 @@ namespace slib
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 
 		if (file.isNull() || !file->isOpened()) {
-			SLIB_THROW(FileSystemError::InvalidContext, sl_false);
+			SLIB_THROW(FileSystemError::InvalidContext, 0);
 		}
 
 		if (offset < 0) {
@@ -164,7 +165,7 @@ namespace slib
 
 	sl_bool MirrorFileSystem::deleteDirectory(const StringParam& path)
 	{
-		if (!File::deleteDirectory(m_root + path)) {
+		if (!File::deleteDirectory(CONCAT_PATH(path))) {
 			SLIB_THROW(getError(), sl_false);
 		}
 		return sl_true;
@@ -172,16 +173,15 @@ namespace slib
 
 	sl_bool MirrorFileSystem::deleteFile(const StringParam& path)
 	{
-		if (!File::deleteFile(m_root + path)) {
+		if (!File::deleteFile(CONCAT_PATH(path))) {
 			SLIB_THROW(getError(), sl_false);
 		}
 		return sl_true;
 	}
 
-	sl_bool MirrorFileSystem::moveFile(const StringParam& oldPath, const StringParam& newPath, sl_bool flagReplaceIfExists)
+	sl_bool MirrorFileSystem::moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists)
 	{
-		
-		if (!File::move(m_root + oldPath, m_root + newPath)) {
+		if (!File::move(CONCAT_PATH(pathOld), CONCAT_PATH(pathNew), flagReplaceIfExists)) {
 			SLIB_THROW(getError(), sl_false);
 		}
 		return sl_true;
@@ -189,14 +189,14 @@ namespace slib
 
 	sl_bool MirrorFileSystem::getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask)
 	{
-		String filePath = (path.isNotEmpty() ? m_root + path : sl_null);
-		Ref<File> file = (context ? FILE_FROM_CONTEXT(context) : sl_null);
-		sl_bool bOpened = file.isNotNull() && file->isOpened();
+		String filePath = CONCAT_PATH(path);
+		Ref<File> file = FILE_FROM_CONTEXT(context);
+		sl_bool flagOpened = file.isNotNull() && file->isOpened();
 
 		if (mask & FileInfoMask::Attributes) {
 			FileAttributes attr = File::getAttributes(filePath);
 			if (attr & FileAttributes::NotExist) {
-				if (!bOpened) {
+				if (!flagOpened) {
 					SLIB_THROW(FileSystemError::NotFound, sl_false);
 				}
 				attr = file->getAttributes();
@@ -208,7 +208,7 @@ namespace slib
 		}
 
 		if ((mask & FileInfoMask::Size) || (mask & FileInfoMask::AllocSize)) {
-			if (bOpened) {
+			if (flagOpened) {
 				outInfo.size = outInfo.allocSize = file->getSize();
 			} else {
 				outInfo.size = outInfo.allocSize = File::getSize(filePath);
@@ -216,7 +216,7 @@ namespace slib
 		}
 
 		if (mask & FileInfoMask::Time) {
-			if (bOpened) {
+			if (flagOpened) {
 				outInfo.createdAt = file->getCreatedTime();
 				outInfo.modifiedAt = file->getModifiedTime();
 				outInfo.accessedAt = file->getAccessedTime();
@@ -227,15 +227,14 @@ namespace slib
 			}
 		}
 
-
 		return sl_true;
 	}
 
 	sl_bool MirrorFileSystem::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
 	{
-		String filePath = (path.isNotEmpty() ? m_root + path : sl_null);
-		Ref<File> file = (context ? FILE_FROM_CONTEXT(context) : sl_null);
-		sl_bool isOpened = file.isNotNull() && file->isOpened();
+		String filePath = CONCAT_PATH(path);
+		Ref<File> file = FILE_FROM_CONTEXT(context);
+		sl_bool flagOpened = file.isNotNull() && file->isOpened();
 
 		if (mask & FileInfoMask::Attributes) {
 			if (!File::setAttributes(filePath, info.attributes)) {
@@ -246,7 +245,7 @@ namespace slib
 		if (mask & FileInfoMask::Time) {
 			if (info.createdAt.isNotZero()) {
 				sl_bool ret = sl_false;
-				if (isOpened) {
+				if (flagOpened) {
 					ret = file->setCreatedTime(info.createdAt);
 				}
 				if (!ret && !File::setCreatedTime(filePath, info.createdAt)) {
@@ -255,7 +254,7 @@ namespace slib
 			}
 			if (info.modifiedAt.isNotZero()) {
 				sl_bool ret = sl_false;
-				if (isOpened) {
+				if (flagOpened) {
 					ret = file->setModifiedTime(info.modifiedAt);
 				}
 				if (!ret && !File::setModifiedTime(filePath, info.modifiedAt)) {
@@ -264,7 +263,7 @@ namespace slib
 			}
 			if (info.accessedAt.isNotZero()) {
 				sl_bool ret = sl_false;
-				if (isOpened) {
+				if (flagOpened) {
 					ret = file->setAccessedTime(info.accessedAt);
 				}
 				if (!ret && !File::setAccessedTime(filePath, info.accessedAt)) {
@@ -274,7 +273,7 @@ namespace slib
 		}
 
 		if (mask & FileInfoMask::Size) {
-			if (!isOpened) {
+			if (!flagOpened) {
 				SLIB_THROW(FileSystemError::InvalidContext, sl_false);
 			}
 			if (!file->setSize(info.size)) {
@@ -283,7 +282,7 @@ namespace slib
 		}
 
 		if (mask & FileInfoMask::AllocSize) {
-			if (!isOpened) {
+			if (!flagOpened) {
 				SLIB_THROW(FileSystemError::InvalidContext, sl_false);
 			}
 			//if (!file->setAllocationSize(info.allocationSize))
@@ -295,7 +294,7 @@ namespace slib
 
 	HashMap<String, FileInfo> MirrorFileSystem::getFiles(const StringParam& pathDir)
 	{
-		return File::getFileInfos(m_root + pathDir);
+		return File::getFileInfos(CONCAT_PATH(pathDir));
 	}
 
 	FileSystemError MirrorFileSystem::getError(sl_uint32 error)
