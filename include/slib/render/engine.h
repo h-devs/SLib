@@ -206,11 +206,30 @@ namespace slib
 	
 	enum class RenderEngineType
 	{
-		OpenGL = 0x01010001,
-		OpenGL_ES = 0x01020001,
-		D3D9 = 0x02010901,
-		D3D11 = 0x02010B01
+		Any = 0,
+
+		GL = 0x01010000,
+		OpenGL = 0x01010100,
+		OpenGL_ES = 0x01010200,
+
+		D3D = 0x02010000,
+		D3D9 = 0x02010900,
+		D3D10 = 0x02010A00,
+		D3D10_1 = 0x02010A01,
+		D3D11 = 0x02010B00,
+
+		MASK_GL = 0x0fff0000,
+		MASK_OpenGL = 0x0fffff00,
+		MASK_OpenGL_ES = 0x0fffff00,
+
+		MASK_D3D = 0x0fff0000,
+		MASK_D3D9 = 0x0fffff00,
+		MASK_D3D10 = 0x0fffff00,
+		MASK_D3D10_1 = 0x0fffffff,
+		MASK_D3D11 = 0x0fffff00
 	};
+
+#define SLIB_RENDER_CHECK_ENGINE_TYPE(v, TYPE) ((((sl_uint32)(v)) & ((sl_uint32)(RenderEngineType::MASK_##TYPE))) == (sl_uint32)(RenderEngineType::TYPE))
 	
 	class SLIB_EXPORT RenderEngine : public Object
 	{
@@ -225,12 +244,6 @@ namespace slib
 		sl_uint64 getUniqueId();
 		
 		virtual RenderEngineType getEngineType() = 0;
-		
-		sl_bool isOpenGL();
-		
-		sl_bool isOpenGL_ES();
-		
-		sl_bool isD3D();
 
 		virtual sl_bool isShaderAvailable();
 		

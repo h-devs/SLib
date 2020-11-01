@@ -131,24 +131,6 @@ namespace slib
 		return m_uniqueId;
 	}
 	
-	sl_bool RenderEngine::isOpenGL()
-	{
-		RenderEngineType type = getEngineType();
-		return type == RenderEngineType::OpenGL;
-	}
-	
-	sl_bool RenderEngine::isOpenGL_ES()
-	{
-		RenderEngineType type = getEngineType();
-		return type == RenderEngineType::OpenGL_ES;
-	}
-	
-	sl_bool RenderEngine::isD3D()
-	{
-		RenderEngineType type = getEngineType();
-		return type == RenderEngineType::D3D9 || type == RenderEngineType::D3D11;
-	}
-
 	sl_bool RenderEngine::isShaderAvailable()
 	{
 		return sl_true;

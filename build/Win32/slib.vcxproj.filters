@@ -159,6 +159,9 @@
     <ClInclude Include="..\..\include\slib\ui.h">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\slib\render\d3d_impl.h">
+      <Filter>src\render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\slib\core\io.cpp">
@@ -1537,6 +1540,24 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\jpeg.cpp">
       <Filter>src\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\d3d.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\d3d9.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\d3d10.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\d3d10_1.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\d3d11.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\dl_windows_d3d.cpp">
+      <Filter>src\render</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

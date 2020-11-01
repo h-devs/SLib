@@ -39,6 +39,7 @@
     <ClInclude Include="..\..\include\slib\ui.h" />
     <ClInclude Include="..\..\src\slib\core\async_config.h" />
     <ClInclude Include="..\..\src\slib\network\network_async.h" />
+    <ClInclude Include="..\..\src\slib\render\d3d_impl.h" />
     <ClInclude Include="..\..\src\slib\render\opengl_egl_entries.h" />
     <ClInclude Include="..\..\src\slib\render\opengl_gl.h" />
     <ClInclude Include="..\..\src\slib\render\opengl_gles.h" />
@@ -362,6 +363,12 @@
     <ClCompile Include="..\..\src\slib\network\url_request_curl.cpp" />
     <ClCompile Include="..\..\src\slib\network\url_request_param.cpp" />
     <ClCompile Include="..\..\src\slib\network\url_request_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\render\d3d.cpp" />
+    <ClCompile Include="..\..\src\slib\render\d3d10.cpp" />
+    <ClCompile Include="..\..\src\slib\render\d3d10_1.cpp" />
+    <ClCompile Include="..\..\src\slib\render\d3d11.cpp" />
+    <ClCompile Include="..\..\src\slib\render\d3d9.cpp" />
+    <ClCompile Include="..\..\src\slib\render\dl_windows_d3d.cpp" />
     <ClCompile Include="..\..\src\slib\render\index_buffer.cpp" />
     <ClCompile Include="..\..\src\slib\render\opengl_egl.cpp" />
     <ClCompile Include="..\..\src\slib\render\opengl_gl.cpp" />

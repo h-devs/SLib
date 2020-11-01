@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,28 +20,6 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_RENDER_DEFINITION
-#define CHECKHEADER_SLIB_RENDER_DEFINITION
+#define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "../core/definition.h"
-
-#if defined(SLIB_PLATFORM_IS_WIN32)
-#	define SLIB_RENDER_SUPPORT_OPENGL_GL
-#	define SLIB_RENDER_SUPPORT_OPENGL_WGL
-#	define SLIB_RENDER_SUPPORT_OPENGL_GLES
-#	define SLIB_RENDER_SUPPORT_OPENGL_EGL
-#	define SLIB_RENDER_SUPPORT_D3D
-#elif defined(SLIB_PLATFORM_IS_MACOS)
-#	define SLIB_RENDER_SUPPORT_OPENGL_GL
-#elif defined(SLIB_PLATFORM_IS_IOS)
-#	define SLIB_RENDER_SUPPORT_OPENGL_GLES
-#elif defined(SLIB_PLATFORM_IS_ANDROID)
-#	define SLIB_RENDER_SUPPORT_OPENGL_GLES
-#elif defined(SLIB_PLATFORM_IS_TIZEN)
-#	define SLIB_RENDER_SUPPORT_OPENGL_GLES
-#elif defined(SLIB_PLATFORM_IS_LINUX)
-#	define SLIB_RENDER_SUPPORT_OPENGL_GL
-#	define SLIB_RENDER_SUPPORT_OPENGL_GLX
-#endif
-
-#endif
+#include "slib/render/dl_windows_d3d.h"
