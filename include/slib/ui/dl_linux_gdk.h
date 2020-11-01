@@ -190,14 +190,14 @@ namespace slib
 			GdkDisplay  *display
 		)
 		#define gdk_x11_display_get_xdisplay slib::gdk::getApi_gdk_x11_display_get_xdisplay()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        gdk_window_invalidate_rect,
-	        void, ,
-	        GdkWindow          *window,
-	        const GdkRectangle *rect,
-	        gboolean            invalidate_children
-	    )
-        #define gdk_window_invalidate_rect slib::gdk::getApi_gdk_window_invalidate_rect()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_window_invalidate_rect,
+			void, ,
+			GdkWindow *window,
+			const GdkRectangle *rect,
+			gboolean invalidate_children
+		)
+		#define gdk_window_invalidate_rect slib::gdk::getApi_gdk_window_invalidate_rect()
 	SLIB_IMPORT_LIBRARY_END
 
 }

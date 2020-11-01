@@ -138,7 +138,6 @@ namespace slib
 	RadioButton::RadioButton()
 	{
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
-		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 	}
 
 	RadioButton::~RadioButton()

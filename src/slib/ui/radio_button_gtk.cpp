@@ -34,6 +34,7 @@ namespace slib
 	{
 		namespace button
 		{
+
 			static void OnClickRadio(GtkButton* button)
 			{
 				GtkButtonClass* clsRadio = GTK_BUTTON_GET_CLASS(button);
@@ -42,6 +43,7 @@ namespace slib
 					clsCheck->clicked(button);
 				}
 			}
+
 		}
 	}
 

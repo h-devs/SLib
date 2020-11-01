@@ -30,17 +30,6 @@
 
 namespace slib
 {
-	namespace priv
-	{
-		namespace tab_view
-		{
-			class TabViewInstance;
-		}
-	}
-}
-
-namespace slib
-{
 
 	namespace priv
 	{
@@ -60,13 +49,13 @@ namespace slib
 					}
 					if (nOrig > nNew) {
 						for (sl_uint32 i = nOrig; i > nNew; i--) {
-							gtk_notebook_remove_page(handle, i-1);
+							gtk_notebook_remove_page(handle, i - 1);
 						}
 					} else {
 						for (sl_uint32 i = nOrig; i < nNew; i++) {
-							GtkWidget *child = gtk_event_box_new();
+							GtkWidget* child = gtk_event_box_new();
 							gtk_widget_show(child);
-							gtk_notebook_append_page(handle, child, NULL);
+							gtk_notebook_append_page(handle, child, sl_null);
 						}
 					}
 				}
@@ -77,7 +66,7 @@ namespace slib
 					applyTabsCount(handle);
 					for (sl_uint32 i = 0; i < items.count; i++) {
 						GtkWidget* child = gtk_notebook_get_nth_page(handle, i);
-						if(child){
+						if (child){
 							String label = items[i].label;
 							gtk_notebook_set_tab_label_text (handle, child, label.getData());
 							setTabContentView(handle, i, items[i].contentView);
@@ -94,24 +83,21 @@ namespace slib
 					if (!page) {
 						return;
 					}
-					GtkWidget* content = NULL;
+					GtkWidget* content = sl_null;
 					if (view.isNotNull()) {
-						Ref<ViewInstance> instance;
-						if(view->isInstance()){
-							instance = view->getViewInstance();
-						}else {
+						Ref<ViewInstance> instance = view->getViewInstance();
+						if (instance.isNull()) {
 							instance = view->attachToNewInstance(sl_null);
 						}
-						if (instance.isNotNull()) {
-							content = UIPlatform::getViewHandle(instance.get());
-						}
+						content = UIPlatform::getViewHandle(instance.get());
 						int width = 0, height = 0;
 						gtk_widget_get_size_request(page, &width, &height);
-						if(width != -1 && height != -1)
+						if (width != -1 && height != -1) {
 							view->setFrame((sl_ui_pos)0, (sl_ui_pos)0, (sl_ui_pos)(width), (sl_ui_pos)(height));
+						}
 						view->setParent(this);
 					}
-					if(content){
+					if (content) {
 						gtk_widget_show(content);
 						gtk_container_add((GtkContainer*)page, content);
 					}
@@ -119,17 +105,13 @@ namespace slib
 				
 				void updateContentViewSize(GtkNotebook* handle)
 				{
-					int width, height = 0;
+					int width = 0, height = 0;
 					gtk_widget_get_size_request((GtkWidget*)handle, &width, &height);
-					if(width == -1 && height == -1)
-						return;
 					UIRect frame;
-					sl_ui_pos w = (sl_ui_pos)(width);
-					sl_ui_pos h = (sl_ui_pos)(height);
-					frame.left = (sl_ui_pos)(0);
-					frame.top = (sl_ui_pos)(0);
-					frame.right = frame.left + w;
-					frame.bottom = frame.top + h;
+					frame.left = 0;
+					frame.top = 0;
+					frame.right = (sl_ui_pos)(width);
+					frame.bottom = (sl_ui_pos)(height);
 					ListLocker<TabViewItem> items(m_items);
 					for (sl_size i = 0; i < items.count; i++) {
 						Ref<View> view = items[i].contentView;
@@ -157,9 +139,8 @@ namespace slib
 
 				void initialize(View* _view) override
 				{
-					TabViewHelper* view = (TabViewHelper*)_view;					
+					TabViewHelper* view = (TabViewHelper*)_view;
 					GtkNotebook* handle = getHandle();
-					//setHandleFont(handle, view->getFont());
 					view->copyTabs(handle);
 					g_signal_connect((GtkNotebook*)handle, "switch-page", G_CALLBACK(onSelectTab), handle);
 				}
@@ -191,7 +172,7 @@ namespace slib
 				{
 					GtkNotebook* handle = getHandle();
 					if (handle) {
-						static_cast<TabViewHelper*>(view)->setTabContentView(handle, index, content);
+						(static_cast<TabViewHelper*>(view))->setTabContentView(handle, index, content);
 					}
 				}
 				
@@ -207,21 +188,13 @@ namespace slib
 				{
 					GtkNotebook* handle = getHandle();
 					if (handle) {
-						int height, width = 0;
+						int width = 0, height = 0;
 						gtk_widget_get_size_request((GtkWidget*)handle, &width, &height);
 						_out.x = (sl_ui_pos)(width);
 						_out.y = (sl_ui_pos)(height);
 						return sl_true;
 					}
 					return sl_false;
-				}
-				
-				void setFont(View* view, const Ref<Font>& font) override
-				{
-					GtkNotebook* handle = getHandle();
-					if (handle) {
-						//setHandleFont(handle, font);
-					}
 				}
 
 				static void onSelectTab(GtkNotebook *notebook, GtkWidget   *page, guint page_num, gpointer user_data)

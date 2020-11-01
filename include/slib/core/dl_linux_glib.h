@@ -73,30 +73,30 @@ namespace slib
 			GDestroyNotify notify
 		)
 		#define g_timeout_add_full slib::glib::getApi_g_timeout_add_full()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_sequence_iter_is_end,
-	        gboolean, ,
-	        GSequenceIter            *iter
-	    )
-        #define g_sequence_iter_is_end slib::glib::getApi_g_sequence_iter_is_end()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_sequence_iter_get_position,
-	        gint, ,
-	        GSequenceIter            *iter
-	    )
-        #define g_sequence_iter_get_position slib::glib::getApi_g_sequence_iter_get_position()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_list_length,
-	        guint, ,
-	        GList  *list
-	    )
-        #define g_list_length slib::glib::getApi_g_list_length()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_malloc,
-	        gpointer, ,
-	        gsize	 n_bytes
-	    )
-        #define g_malloc slib::glib::getApi_g_malloc()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_sequence_iter_is_end,
+			gboolean, ,
+			GSequenceIter			*iter
+		)
+		#define g_sequence_iter_is_end slib::glib::getApi_g_sequence_iter_is_end()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_sequence_iter_get_position,
+			gint, ,
+			GSequenceIter			*iter
+		)
+		#define g_sequence_iter_get_position slib::glib::getApi_g_sequence_iter_get_position()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_list_length,
+			guint, ,
+			GList  *list
+		)
+		#define g_list_length slib::glib::getApi_g_list_length()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_malloc,
+			gpointer, ,
+			gsize	 n_bytes
+		)
+		#define g_malloc slib::glib::getApi_g_malloc()
 	SLIB_IMPORT_LIBRARY_END
 
 	SLIB_IMPORT_LIBRARY_BEGIN(gobject, "libgobject-2.0.so.0")
@@ -137,41 +137,41 @@ namespace slib
 			GType iface_type
 		)
 		#define g_type_check_instance_cast slib::gobject::getApi_g_type_check_instance_cast()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_type_class_peek_parent,
-	        gpointer, ,
-	        gpointer g_class
-	    )
-        #define g_type_class_peek_parent slib::gobject::getApi_g_type_class_peek_parent()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_value_init,
-	        GValue*, ,
-	        GValue       *value,
-	        GType         g_type
-	    )
-        #define g_value_init slib::gobject::getApi_g_value_init()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_value_set_string,
-	        void, ,
-	        GValue	      *value,
-	        const gchar  *v_string
-	    )
-        #define g_value_set_string slib::gobject::getApi_g_value_set_string()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_object_set_data,
-	        void, ,
-	        GObject        *object,
-	        const gchar    *key,
-	        gpointer        data
-	    )
-        #define g_object_set_data slib::gobject::getApi_g_object_set_data()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_object_get_data,
-	        gpointer, ,
-	        GObject        *object,
-	        const gchar    *key
-	    )
-        #define g_object_get_data slib::gobject::getApi_g_object_get_data()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_type_class_peek_parent,
+			gpointer, ,
+			gpointer g_class
+		)
+		#define g_type_class_peek_parent slib::gobject::getApi_g_type_class_peek_parent()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_value_init,
+			GValue*, ,
+			GValue *value,
+			GType g_type
+		)
+		#define g_value_init slib::gobject::getApi_g_value_init()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_value_set_string,
+			void, ,
+			GValue *value,
+			const gchar *v_string
+		)
+		#define g_value_set_string slib::gobject::getApi_g_value_set_string()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_object_set_data,
+			void, ,
+			GObject *object,
+			const gchar	*key,
+			gpointer data
+		)
+		#define g_object_set_data slib::gobject::getApi_g_object_set_data()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_object_get_data,
+			gpointer, ,
+			GObject *object,
+			const gchar	*key
+		)
+		#define g_object_get_data slib::gobject::getApi_g_object_get_data()
 	SLIB_IMPORT_LIBRARY_END
 
 	SLIB_IMPORT_LIBRARY_BEGIN(gthread, "libgthread-2.0.so.0")

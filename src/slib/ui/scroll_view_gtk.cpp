@@ -30,17 +30,6 @@
 
 namespace slib
 {
-	namespace priv
-	{
-		namespace scroll_view
-		{
-			class ScrollViewInstance;
-		}
-	}
-}
-
-namespace slib
-{
 	
 	namespace priv
 	{
@@ -74,6 +63,12 @@ namespace slib
 					setBackgroundColor(view, view->getBackgroundColor());
 					setContentView(view, view->getContentView());
 					scrollTo(view, view->getScrollX(), view->getScrollY(), sl_false);
+
+					GtkAdjustment* adjust_h = gtk_scrolled_window_get_hadjustment(handle);
+					g_signal_connect(adjust_h, "value-changed", G_CALLBACK(onScrollHorz), handle);
+
+					GtkAdjustment* adjust_v = gtk_scrolled_window_get_vadjustment(handle);
+					g_signal_connect(adjust_v, "value-changed", G_CALLBACK(onScrollVert), handle);
 				}
 				
 				void refreshContentSize(ScrollView* view) override
@@ -110,10 +105,10 @@ namespace slib
 				{
 					GtkScrolledWindow* handle = getHandle();
 					if (handle) {
-						GtkAdjustment* hAdjustments =  gtk_scrolled_window_get_hadjustment(handle);
-						GtkAdjustment* vAdjustments =  gtk_scrolled_window_get_vadjustment(handle);
-						_out.x = (sl_scroll_pos)(gtk_adjustment_get_value(hAdjustments));
-						_out.y = (sl_scroll_pos)(gtk_adjustment_get_value(vAdjustments));
+						GtkAdjustment* adjust_h = gtk_scrolled_window_get_hadjustment(handle);
+						GtkAdjustment* adjust_v = gtk_scrolled_window_get_vadjustment(handle);
+						_out.x = (sl_scroll_pos)(gtk_adjustment_get_value(adjust_h));
+						_out.y = (sl_scroll_pos)(gtk_adjustment_get_value(adjust_v));
 						return sl_true;
 					}
 					return sl_false;
@@ -123,10 +118,10 @@ namespace slib
 				{
 					GtkScrolledWindow* handle = getHandle();
 					if (handle) {
-						GtkAdjustment* hAdjustments =  gtk_scrolled_window_get_hadjustment(handle);
-						GtkAdjustment* vAdjustments =  gtk_scrolled_window_get_vadjustment(handle);
-						_out.x = (sl_scroll_pos)(gtk_adjustment_get_upper(hAdjustments));
-						_out.y = (sl_scroll_pos)(gtk_adjustment_get_upper(vAdjustments));
+						GtkAdjustment* adjust_h = gtk_scrolled_window_get_hadjustment(handle);
+						GtkAdjustment* adjust_v = gtk_scrolled_window_get_vadjustment(handle);
+						_out.x = (sl_scroll_pos)(gtk_adjustment_get_upper(adjust_h));
+						_out.y = (sl_scroll_pos)(gtk_adjustment_get_upper(adjust_v));
 						if (_out.x < 0) {
 							_out.x = 0;
 						}
@@ -142,10 +137,10 @@ namespace slib
 				{
 					GtkScrolledWindow* handle = getHandle();
 					if (handle) {
-						GtkAdjustment* hAdjustments =  gtk_scrolled_window_get_hadjustment(handle);
-						GtkAdjustment* vAdjustments =  gtk_scrolled_window_get_vadjustment(handle);
-						gtk_adjustment_set_value(hAdjustments, x);
-						gtk_adjustment_set_value(vAdjustments, y);
+						GtkAdjustment* adjust_h = gtk_scrolled_window_get_hadjustment(handle);
+						GtkAdjustment* adjust_v = gtk_scrolled_window_get_vadjustment(handle);
+						gtk_adjustment_set_value(adjust_h, x);
+						gtk_adjustment_set_value(adjust_v, y);
 					}
 				}
 				
@@ -161,35 +156,37 @@ namespace slib
 					}
 				}
 				
-				void setBackgroundColor(View* view, const Color& color) override
-				{
-					GtkScrolledWindow* handle = getHandle();
-					if (handle) {
-						//_setBackgroundColor(handle, color);
-					}
-				}
-				
 				void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical) override
 				{
 					GtkScrolledWindow* handle = getHandle();
 					if (handle) {
-						GtkPolicyType hscrollbar_policy = flagHorizontal ? GTK_POLICY_ALWAYS : GTK_POLICY_NEVER;
-						GtkPolicyType vscrollbar_policy = flagVertical ? GTK_POLICY_ALWAYS : GTK_POLICY_NEVER;
-						gtk_scrolled_window_set_policy(handle, hscrollbar_policy, vscrollbar_policy);
+						GtkPolicyType policy_h = flagHorizontal ? GTK_POLICY_ALWAYS : GTK_POLICY_NEVER;
+						GtkPolicyType policy_v = flagVertical ? GTK_POLICY_ALWAYS : GTK_POLICY_NEVER;
+						gtk_scrolled_window_set_policy(handle, policy_h, policy_v);
 					}
 				}
-				
-				void onScroll(GtkScrolledWindow* sv)
+
+				static void onScrollHorz(GtkAdjustment*, gpointer user_data)
 				{
-					/*
-					NSClipView* clip = [sv contentView];
-					if (clip != nil) {
-						NSPoint pt = [clip bounds].origin;
-						Ref<ScrollViewHelper> helper = CastRef<ScrollViewHelper>(getView());
-						if (helper.isNotNull()) {
-							helper->_onScroll_NW((sl_ui_pos)(pt.x), (sl_ui_pos)(pt.y));
-						}
-					}*/
+					onScroll(user_data, sl_true);
+				}
+
+				static void onScrollVert(GtkAdjustment*, gpointer user_data)
+				{
+					onScroll(user_data, sl_false);
+				}
+
+				static void onScroll(gpointer user_data, sl_bool flagHorz)
+				{
+					GtkScrolledWindow* handle = (GtkScrolledWindow*)user_data;
+					Ref<ScrollViewHelper> view = CastRef<ScrollViewHelper>(UIPlatform::getView((GtkWidget*)handle));
+					if (view.isNotNull()) {
+						GtkAdjustment* adjust_h = gtk_scrolled_window_get_hadjustment(handle);
+						GtkAdjustment* adjust_v = gtk_scrolled_window_get_vadjustment(handle);
+						sl_scroll_pos x = (sl_scroll_pos)(gtk_adjustment_get_value(adjust_h));
+						sl_scroll_pos y = (sl_scroll_pos)(gtk_adjustment_get_value(adjust_v));
+						view->_onScroll_NW(x, y);
+					}
 				}
 				
 			};
@@ -203,7 +200,7 @@ namespace slib
 
 	Ref<ViewInstance> ScrollView::createNativeWidget(ViewInstance* parent)
 	{
-		GtkWidget *handle = gtk_scrolled_window_new (NULL, NULL);
+		GtkWidget *handle = gtk_scrolled_window_new(sl_null, sl_null);
 		return GTK_ViewInstance::create<ScrollViewInstance>(this, parent, handle);
 	}
 	
