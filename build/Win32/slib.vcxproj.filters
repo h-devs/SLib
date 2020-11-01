@@ -1535,5 +1535,8 @@
     <ClCompile Include="..\..\src\slib\storage\file_system_mirror.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\graphics\jpeg.cpp">
+      <Filter>src\graphics</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

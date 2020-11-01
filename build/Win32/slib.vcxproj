@@ -288,6 +288,7 @@
     <ClCompile Include="..\..\src\slib\graphics\image_jpeg.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\image_png.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\image_stb.cpp" />
+    <ClCompile Include="..\..\src\slib\graphics\jpeg.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\pen.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\pen_gdi.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\yuv.cpp" />
