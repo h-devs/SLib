@@ -601,7 +601,6 @@ namespace slib
 		return 0 == mkdir(filePath.getData(), 0777);
 	}
 
-
 	sl_bool File::deleteFile(const StringParam& _filePath)
 	{
 		StringCstr filePath(_filePath);
