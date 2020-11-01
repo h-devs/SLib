@@ -135,12 +135,32 @@ namespace slib
 		if (mode & FileMode::ShareDelete) {
 			dwShareMode |= FILE_SHARE_DELETE;
 		}
-
-		if (mode & FileMode::Write) {
-			dwDesiredAccess = GENERIC_WRITE;
-			if (mode & FileMode::Read) {
+		if (mode & FileMode::Read) {
+			if (mode & FileMode::ReadData) {
+				dwDesiredAccess |= FILE_READ_DATA;
+			}
+			if (mode & FileMode::ReadAttrs) {
+				dwDesiredAccess |= FILE_READ_ATTRIBUTES | FILE_READ_EA;
+			}
+			if (!(mode & (FileMode::ReadData | FileMode::ReadAttrs))) {
 				dwDesiredAccess |= GENERIC_READ;
 			}
+		}
+		if (mode & FileMode::Write) {
+			if (mode & FileMode::WriteData) {
+				dwDesiredAccess |= FILE_WRITE_DATA;
+			}
+			if (mode & FileMode::WriteAttrs) {
+				dwDesiredAccess |= FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA;
+			}
+			if (!(mode & (FileMode::WriteData | FileMode::WriteAttrs))) {
+				dwDesiredAccess |= GENERIC_WRITE;
+			}
+		}
+		if (mode & FileMode::Sync) {
+			dwDesiredAccess |= SYNCHRONIZE;
+		}
+		if (mode & FileMode::Write) {
 			if (mode & FileMode::NotCreate) {
 				if (mode & FileMode::NotTruncate) {
 					dwCreateDisposition = OPEN_EXISTING;
@@ -155,11 +175,13 @@ namespace slib
 				}
 			}
 		} else {
-			dwDesiredAccess = GENERIC_READ;
 			dwCreateDisposition = OPEN_EXISTING;
 		}
 		if (mode & FileMode::HintRandomAccess) {
 			dwFlags |= FILE_FLAG_RANDOM_ACCESS;
+		}
+		if (mode & FileMode::Directory) {
+			dwFlags |= FILE_FLAG_BACKUP_SEMANTICS;
 		}
 		
 		HANDLE handle = CreateFileW(

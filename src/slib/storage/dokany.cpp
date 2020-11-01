@@ -119,7 +119,7 @@ namespace slib
 				String path = String::from(szPath);
 				sl_char8* data = path.getData();
 				sl_size len = path.getLength();
-				for (int i = 0; i < len; i++) {
+				for (sl_size i = 0; i < len; i++) {
 					sl_char8& ch = data[i];
 					if (ch == '\\') {
 						ch = '/';
@@ -181,9 +181,10 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
 				FileSystemProvider* provider = host->getProvider();
+				String path = NormalizePath(szFileName);
 
 #if 0
-				LOG_DEBUG("CreateFile : %s", StringCstr16(szFileName));
+				LOG_DEBUG("CreateFile : %s", path);
 
 				//LOG_DEBUG("\tShareMode = 0x%x", dwShareMode);
 				//DOKAN_CHECK_FLAG(dwShareMode, FILE_SHARE_READ);
@@ -207,24 +208,22 @@ namespace slib
 				DOKAN_CHECK_FLAG(dwAccessMode, WRITE_OWNER);
 				DOKAN_CHECK_FLAG(dwAccessMode, SYNCHRONIZE);
 				DOKAN_CHECK_FLAG(dwAccessMode, FILE_EXECUTE);
-				DOKAN_CHECK_FLAG(dwAccessMode, STANDARD_RIGHTS_READ);
-				DOKAN_CHECK_FLAG(dwAccessMode, STANDARD_RIGHTS_WRITE);
-				DOKAN_CHECK_FLAG(dwAccessMode, STANDARD_RIGHTS_EXECUTE);
+				//DOKAN_CHECK_FLAG(dwAccessMode, STANDARD_RIGHTS_READ);
+				//DOKAN_CHECK_FLAG(dwAccessMode, STANDARD_RIGHTS_WRITE);
+				//DOKAN_CHECK_FLAG(dwAccessMode, STANDARD_RIGHTS_EXECUTE);
 
-				LOG_DEBUG("\tFlagsAndAttributes = 0x%x", dwFlagsAndAttributes);
-				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_WRITE_THROUGH);
-				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_OVERLAPPED);
-				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_NO_BUFFERING);
-				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_RANDOM_ACCESS);
-				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_SEQUENTIAL_SCAN);
-				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_DELETE_ON_CLOSE);
-				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_BACKUP_SEMANTICS);
-				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_POSIX_SEMANTICS);
-				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_OPEN_REPARSE_POINT);
-				DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_OPEN_NO_RECALL);
+				//LOG_DEBUG("\tFlagsAndAttributes = 0x%x", dwFlagsAndAttributes);
+				//DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_WRITE_THROUGH);
+				//DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_OVERLAPPED);
+				//DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_NO_BUFFERING);
+				//DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_RANDOM_ACCESS);
+				//DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_SEQUENTIAL_SCAN);
+				//DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_DELETE_ON_CLOSE);
+				//DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_BACKUP_SEMANTICS);
+				//DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_POSIX_SEMANTICS);
+				//DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_OPEN_REPARSE_POINT);
+				//DOKAN_CHECK_FLAG(dwFlagsAndAttributes, FILE_FLAG_OPEN_NO_RECALL);
 #endif
-
-				String path = NormalizePath(szFileName);
 
 				DOKANY_TRY {
 
@@ -243,9 +242,30 @@ namespace slib
 
 					if (dwAccessMode & (GENERIC_READ | FILE_READ_DATA | FILE_READ_ATTRIBUTES | FILE_READ_EA)) {
 						param.mode |= FileMode::Read;
+						if (dwAccessMode & FILE_READ_DATA) {
+							param.mode |= FileMode::ReadData;
+						}
+						if (dwAccessMode & FILE_READ_ATTRIBUTES) {
+							param.mode |= FileMode::ReadAttrs;
+						}
+						if (dwAccessMode & FILE_READ_EA) {
+							param.mode |= FileMode::ReadAttrs;
+						}
 					}
 					if (dwAccessMode & (GENERIC_WRITE | FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA)) {
 						param.mode |= FileMode::Write;
+						if (dwAccessMode & FILE_WRITE_DATA) {
+							param.mode |= FileMode::WriteData;
+						}
+						if (dwAccessMode & FILE_WRITE_ATTRIBUTES) {
+							param.mode |= FileMode::WriteAttrs;
+						}
+						if (dwAccessMode & FILE_WRITE_EA) {
+							param.mode |= FileMode::WriteAttrs;
+						}
+					}
+					if (dwAccessMode & SYNCHRONIZE) {
+						param.mode |= FileMode::Sync;
 					}
 					if (dwShareMode & FILE_SHARE_READ) {
 						param.mode |= FileMode::ShareRead;
@@ -446,6 +466,7 @@ namespace slib
 					provider->closeFile(context);
 					host->decreaseOpenHandlesCount();
 					context->decreaseReference();
+					pDokanFileInfo->Context = 0;
 				} SLIB_CATCH(...)
 				return 0;
 			}
@@ -579,11 +600,17 @@ namespace slib
 					WIN32_FIND_DATAW fd;
 					Base::zeroMemory(&fd, sizeof(fd));
 					fd.dwFileAttributes = FILE_ATTRIBUTE_DIRECTORY;
+					FileInfo dirInfo;
+					if (provider->getFileInfo(NormalizePath(szPathName), sl_null, dirInfo, FileInfoMask::Time)) {
+						((PLARGE_INTEGER)(&fd.ftCreationTime))->QuadPart = dirInfo.createdAt.toWindowsFileTime();
+						((PLARGE_INTEGER)(&fd.ftLastAccessTime))->QuadPart = dirInfo.accessedAt.toWindowsFileTime();
+						((PLARGE_INTEGER)(&fd.ftLastWriteTime))->QuadPart = dirInfo.modifiedAt.toWindowsFileTime();
+					}
 					fd.cFileName[0] = '.';
 					funcFillFindData(&fd, pDokanFileInfo);
 					fd.cFileName[1] = '.';
 					funcFillFindData(&fd, pDokanFileInfo);
-					HashMap<String, FileInfo> files = provider->getFiles(szPathName);
+					HashMap<String, FileInfo> files = provider->getFiles(NormalizePath(szPathName));
 					for (auto& item : files) {
 						FileInfo& info = item.value;
 						Base::zeroMemory(&fd, sizeof(fd));
@@ -717,9 +744,15 @@ namespace slib
 
 				DOKANY_TRY{
 					FileInfo info;
-					info.createdAt.setWindowsFileTime(*((sl_int64*)ftCreationTime));
-					info.accessedAt.setWindowsFileTime(*((sl_int64*)ftLastAccessTime));
-					info.modifiedAt.setWindowsFileTime(*((sl_int64*)ftLastWriteTime));
+					if (ftCreationTime && ftCreationTime->dwLowDateTime && ftCreationTime->dwHighDateTime) {
+						info.createdAt.setWindowsFileTime(*((sl_int64*)ftCreationTime));
+					}
+					if (ftLastAccessTime && ftLastAccessTime->dwLowDateTime && ftLastAccessTime->dwHighDateTime) {
+						info.accessedAt.setWindowsFileTime(*((sl_int64*)ftLastAccessTime));
+					}
+					if (ftLastWriteTime && ftLastWriteTime->dwLowDateTime && ftLastWriteTime->dwHighDateTime) {
+						info.modifiedAt.setWindowsFileTime(*((sl_int64*)ftLastWriteTime));
+					}
 					if (provider->setFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::Time)) {
 						return 0;
 					}

@@ -61,7 +61,7 @@ namespace slib
 			AllOp = 0xFFFF,
 
 			TimeInfo = 0x01000000,
-			TimeInfoAsString = 0x02000000,
+			TimeInfoAsInt = 0x02000000,
 			FileName = 0x04000000,
 			ContextAddress = 0x08000000,
 
