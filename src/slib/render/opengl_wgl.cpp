@@ -64,17 +64,15 @@ namespace slib
 				}
 
 			public:
-				static Ref<RendererImpl> create(void* _windowHandle, const RendererParam& _param)
+				static Ref<RendererImpl> create(void* windowHandle, const RendererParam& param)
 				{
-					HWND hWnd = (HWND)_windowHandle;
+					HWND hWnd = (HWND)windowHandle;
 					if (hWnd == 0) {
 						return sl_null;
 					}
 
 					HDC hDC = GetDC(hWnd);
 					if (hDC) {
-
-						RendererParam param = _param;
 
 						PIXELFORMATDESCRIPTOR pfd;
 						Base::zeroMemory(&pfd, sizeof(pfd));
