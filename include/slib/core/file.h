@@ -44,6 +44,13 @@ namespace slib
 		enum {
 			Read = 1,
 			Write = 2,
+			Sync = 4,
+			Directory = 8,
+
+			ReadData = 0x10,
+			WriteData = 0x20,
+			ReadAttrs = 0x40,
+			WriteAttrs = 0x80,
 
 			NotCreate = 0x100,
 			NotTruncate = 0x200,

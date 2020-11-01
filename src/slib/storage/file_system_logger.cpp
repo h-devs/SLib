@@ -68,13 +68,13 @@ namespace slib
 	FileSystemLogger::FileSystemLogger(const Ref<FileSystemProvider>& base, const FileSystemLogFlags& flags, const String& filter)
 		: FileSystemWrapper(base), m_flags(flags), m_regex(filter)
 	{
-		LOG_DEBUG("LogFlags: 0x%08X", m_flags);
+		LOG_DEBUG("LogFlags: 0x%08X", (sl_uint32)m_flags);
 
 		if (m_flags & FileSystemLogFlags::Info) {
 			LOG("FileSystemInfo:");
 			LOG("  volumeName: %s", m_fsInfo.volumeName);
 			LOG("  fileSystemName: %s", m_fsInfo.fileSystemName);
-			LOG("  creationTime: %s", m_flags & FileSystemLogFlags::TimeInfoAsString ? m_fsInfo.creationTime.toString() : String::fromInt64(m_fsInfo.creationTime.toInt()));
+			LOG("  creationTime: %s", m_flags & FileSystemLogFlags::TimeInfoAsInt ? String::fromInt64(m_fsInfo.creationTime.toInt()) : m_fsInfo.creationTime.toString());
 			LOG("  serialNumber: %d", m_fsInfo.serialNumber);
 			LOG("  sectorSize: %d", m_fsInfo.sectorSize);
 			LOG("  sectorsPerAllocationUnit: %d", m_fsInfo.sectorsPerAllocationUnit);
@@ -104,9 +104,9 @@ namespace slib
 				LOG(desc);
 				LOG("  volumeName: %s", info.volumeName);
 				LOG("  fileSystemName: %s", info.fileSystemName);
-				LOG("  creationTime: %s", m_flags & FileSystemLogFlags::TimeInfoAsString
-					? info.creationTime.toString()
-					: String::fromInt64(info.creationTime.toInt()));
+				LOG("  creationTime: %s", m_flags & FileSystemLogFlags::TimeInfoAsInt
+					? String::fromInt64(info.creationTime.toInt())
+					: info.creationTime.toString());
 				LOG("  serialNumber: %d", info.serialNumber);
 				LOG("  sectorSize: %d", info.sectorSize);
 				LOG("  sectorsPerAllocationUnit: %d", info.sectorsPerAllocationUnit);
@@ -181,20 +181,25 @@ namespace slib
 			return m_base->openFile(path, param);
 		}
 
-		String desc = String::format("OpenFile(%s,%s,%s%s,%s%s,%s%s%s,0x%X)", PATH_LOG(path),
+		String desc = String::format("OpenFile(%s,%s,%s%s,%s,%s,%s%s%s,0x%X,0x%X)", PATH_LOG(path),
 			param.attributes & FileAttributes::Directory ? "DIR" : "FILE",
 
 			(param.mode & FileMode::NotCreate ? "OPEN" : (param.mode & FileMode::NotTruncate ? "OPEN_OR_CREATE" : "CREATE")),
 			(param.mode & FileMode::NotTruncate ? "" : "|TRUNCATE"),
 
-			(param.mode & FileMode::Read ? "READ" : ""),
-			(param.mode & FileMode::Write ? "WRITE" : ""),
+			String::join((param.mode & FileMode::Read ? "READ" : ""), 
+				(param.mode & FileMode::ReadData ? "_DATA" : ""), 
+				(param.mode & FileMode::ReadAttrs ? "_ATTR" : "")),
+
+			String::join((param.mode & FileMode::Write ? "WRITE" : ""),
+				(param.mode & FileMode::WriteData ? "_DATA" : ""),
+				(param.mode & FileMode::WriteAttrs ? "_ATTR" : "")),
 
 			(param.mode & FileMode::ShareRead ? "R" : "-"), 
 			(param.mode & FileMode::ShareWrite ? "W" : "-"), 
 			(param.mode & FileMode::ShareDelete ? "D" : "-"),
 
-			param.attributes.value);
+			param.mode.value, param.attributes.value);
 
 		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
@@ -396,14 +401,14 @@ namespace slib
 					LOG("  AllocSize: %d", info.allocSize);
 				}
 				if ((m_flags & FileSystemLogFlags::TimeInfo) && (mask & FileInfoMask::Time)) {
-					if (m_flags & FileSystemLogFlags::TimeInfoAsString) {
-						LOG("  CreatedAt: %s", info.createdAt.toString());
-						LOG("  ModifiedAt: %s", info.modifiedAt.toString());
-						LOG("  AccessedAt: %s", info.accessedAt.toString());
-					} else {
+					if (m_flags & FileSystemLogFlags::TimeInfoAsInt) {
 						LOG("  CreatedAt: %d", info.createdAt.toInt());
 						LOG("  ModifiedAt: %d", info.modifiedAt.toInt());
 						LOG("  AccessedAt: %d", info.accessedAt.toInt());
+					} else {
+						LOG("  CreatedAt: %s", info.createdAt.toString());
+						LOG("  ModifiedAt: %s", info.modifiedAt.toString());
+						LOG("  AccessedAt: %s", info.accessedAt.toString());
 					}
 				}
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
@@ -421,6 +426,26 @@ namespace slib
 		}
 
 		String desc = String::format("SetFileInfo(%s%s,0x%X)", PATH_LOG(path), CONTEXT_LOG(context), mask);
+		if (mask & FileInfoMask::Attributes) {
+			desc += String::format(", Attributes: 0x%X, %s", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
+		}
+		if (mask & FileInfoMask::Size) {
+			desc += String::format(", Size: %d", info.size);
+		}
+		if (mask & FileInfoMask::AllocSize) {
+			desc += String::format(", AllocSize: %d", info.allocSize);
+		}
+		if ((m_flags & FileSystemLogFlags::TimeInfo) && (mask & FileInfoMask::Time)) {
+			if (m_flags & FileSystemLogFlags::TimeInfoAsInt) {
+				desc += String::format(", CreatedAt: %d", info.createdAt.toInt());
+				desc += String::format(", ModifiedAt: %d", info.modifiedAt.toInt());
+				desc += String::format(", AccessedAt: %d", info.accessedAt.toInt());
+			} else {
+				desc += String::format(", CreatedAt: %s", info.createdAt.toString());
+				desc += String::format(", ModifiedAt: %s", info.modifiedAt.toString());
+				desc += String::format(", AccessedAt: %s", info.accessedAt.toString());
+			}
+		}
 		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
 		}
@@ -429,26 +454,6 @@ namespace slib
 			sl_bool ret = m_base->setFileInfo(path, context, info, mask);
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG(desc);
-				if (mask & FileInfoMask::Attributes) {
-					LOG("  Attributes: 0x%X, %s", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
-				}
-				if (mask & FileInfoMask::Size) {
-					LOG("  Size: %d", info.size);
-				}
-				if (mask & FileInfoMask::AllocSize) {
-					LOG("  AllocSize: %d", info.allocSize);
-				}
-				if ((m_flags & FileSystemLogFlags::TimeInfo) && (mask & FileInfoMask::Time)) {
-					if (m_flags & FileSystemLogFlags::TimeInfoAsString) {
-						LOG("  CreatedAt: %s", info.createdAt.toString());
-						LOG("  ModifiedAt: %s", info.modifiedAt.toString());
-						LOG("  AccessedAt: %s", info.accessedAt.toString());
-					} else {
-						LOG("  CreatedAt: %d", info.createdAt.toInt());
-						LOG("  ModifiedAt: %d", info.modifiedAt.toInt());
-						LOG("  AccessedAt: %d", info.accessedAt.toInt());
-					}
-				}
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
 				LOG("%s\n  Error", desc);
 			}
@@ -478,9 +483,9 @@ namespace slib
 						info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE",
 						info.size, info.allocSize,
 						(!(m_flags & FileSystemLogFlags::TimeInfo) ? "" : ","
-							+ (m_flags & FileSystemLogFlags::TimeInfoAsString
-								? String::format("%s,%s,%s", info.createdAt.toString(), info.modifiedAt.toString(), info.accessedAt.toString())
-								: String::format("%d,%d,%d", info.createdAt.toInt(), info.modifiedAt.toInt(), info.accessedAt.toInt()))));
+							+ (m_flags & FileSystemLogFlags::TimeInfoAsInt
+								? String::format("%d,%d,%d", info.createdAt.toInt(), info.modifiedAt.toInt(), info.accessedAt.toInt())
+								: String::format("%s,%s,%s", info.createdAt.toString(), info.modifiedAt.toString(), info.accessedAt.toString()))));
 				}
 			} else if (files.isEmpty() && (m_flags & FileSystemLogFlags::RetFail)) {
 				LOG("%s\n  Error", desc);
