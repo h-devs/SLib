@@ -2681,11 +2681,11 @@ namespace slib
 	}
 
 
-	SkippableReader::SkippableReader(): m_reader(sl_null), m_seekable(sl_null)
+	SkippableReader::SkippableReader(): m_reader(sl_null), m_seekable(sl_null), m_pos(0)
 	{
 	}
 
-	SkippableReader::SkippableReader(const Ptrx<IReader, ISeekable>& reader): m_ref(reader.ref), m_reader(reader), m_seekable(reader)
+	SkippableReader::SkippableReader(const Ptrx<IReader, ISeekable>& reader): m_ref(reader.ref), m_reader(reader), m_seekable(reader), m_pos(0)
 	{
 	}
 
@@ -2703,17 +2703,38 @@ namespace slib
 
 	sl_reg SkippableReader::read(void* buf, sl_size size)
 	{
-		return m_reader->read(buf, size);
+		sl_reg iRead = m_reader->read(buf, size);
+		if (iRead > 0) {
+			m_pos += iRead;
+		}
+		return iRead;
 	}
 
 	sl_int32 SkippableReader::read32(void* buf, sl_uint32 size)
 	{
-		return m_reader->read32(buf, size);
+		sl_int32 iRead = m_reader->read32(buf, size);
+		if (iRead > 0) {
+			m_pos += iRead;
+		}
+		return iRead;
 	}
 
 	sl_uint64 SkippableReader::skip(sl_uint64 size)
 	{
-		return IOUtil::skip(Pointerx<IReader, ISeekable>(m_reader, m_seekable), size);
+		sl_uint64 nSkip = IOUtil::skip(Pointerx<IReader, ISeekable>(m_reader, m_seekable), size);
+		if (nSkip) {
+			m_pos += nSkip;
+		}
+		return nSkip;
+	}
+
+	sl_uint64 SkippableReader::getPosition()
+	{
+		if (m_seekable) {
+			return m_seekable->getPosition();
+		} else {
+			return m_pos;
+		}
 	}
 
 }

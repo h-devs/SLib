@@ -82,10 +82,14 @@ namespace slib
 
 		sl_uint64 skip(sl_uint64 size);
 
+		sl_uint64 getPosition();
+
 	private:
 		Ref<Referable> m_ref;
 		IReader* m_reader;
 		ISeekable* m_seekable;
+
+		sl_uint64 m_pos;
 
 	};
 
