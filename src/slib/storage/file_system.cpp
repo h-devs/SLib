@@ -225,6 +225,7 @@ namespace slib
 
 		} SLIB_CATCH(FileSystemError error, {
 			LOG_DEBUG("ReadFile(%s,%d,%d)\n  Error: %d", path, offset, size, error);
+			SLIB_UNUSED(error);
 			if (context.isNotNull()) {
 				SLIB_TRY {
 					closeFile(context);
@@ -250,6 +251,7 @@ namespace slib
 			return sizeWritten;
 		} SLIB_CATCH (FileSystemError error, {
 			LOG_DEBUG("WriteFile(%s,%d)\n  Error: %d", path, size, error);
+			SLIB_UNUSED(error);
 			if (context.isNotNull()) {
 				SLIB_TRY {
 					closeFile(context);
