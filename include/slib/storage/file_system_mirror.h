@@ -33,9 +33,12 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 
 	public:
-		MirrorFileSystem(const String& path);
+		MirrorFileSystem();
 
 		~MirrorFileSystem();
+
+	public:
+		sl_bool setPath(const String& path);
 
 	public:
 		sl_bool getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize = sl_null) override;
@@ -66,6 +69,8 @@ namespace slib
 
 	public:
 		FileSystemError getLastError() noexcept override;
+
+		void setLastError(FileSystemError error) noexcept override;
 
 	private:
 		String m_root;

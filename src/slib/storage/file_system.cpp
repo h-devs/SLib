@@ -274,6 +274,10 @@ namespace slib
 		return FileSystemError::GeneralError;
 	}
 
+	void FileSystemProvider::setLastError(FileSystemError error) noexcept
+	{
+	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileSystemHostParam)
 
@@ -500,6 +504,11 @@ namespace slib
 	FileSystemError FileSystemWrapper::getLastError() noexcept
 	{
 		return m_base->getLastError();
+	}
+
+	void FileSystemWrapper::setLastError(FileSystemError error) noexcept
+	{
+		return m_base->setLastError(error);
 	}
 
 	Ref<FileContext> FileSystemWrapper::createContext(FileContext* baseContext, const StringParam& path)

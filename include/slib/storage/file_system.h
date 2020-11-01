@@ -187,6 +187,8 @@ namespace slib
 	public:
 		virtual FileSystemError getLastError() noexcept;
 
+		virtual void setLastError(FileSystemError error) noexcept;
+
 	protected:
 		FileSystemInfo m_fsInfo;
 
@@ -299,6 +301,8 @@ namespace slib
 
 	public:
 		FileSystemError getLastError() noexcept override;
+
+		void setLastError(FileSystemError error) noexcept override;
 
 	protected:
 		// If you want to use different FileContext in wrapper, you will need to override these functions.

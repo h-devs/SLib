@@ -31,7 +31,7 @@
 #include "slib/storage/disk.h"
 
 #define FILE_FROM_CONTEXT(context)	(context ? ((MirrorFileContext*)(context))->file : sl_null)
-#define CONCAT_PATH(path)			(path.isNotEmpty() ? m_root + path : sl_null)
+#define CONCAT_PATH(path)			(m_root.isNotEmpty() && path.isNotEmpty() ? m_root + path : sl_null)
 
 namespace slib
 {
@@ -61,15 +61,29 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(MirrorFileSystem, FileSystemProvider)
 
-	MirrorFileSystem::MirrorFileSystem(const String& path) : m_root(path)
+	MirrorFileSystem::MirrorFileSystem()
 	{
 		m_fsInfo.fileSystemName = "MirrorFs";
-		m_fsInfo.creationTime = File::getCreatedTime(m_root);
 		m_fsInfo.flags = FileSystemFlags::CaseSensitive;
 	}
 
 	MirrorFileSystem::~MirrorFileSystem()
 	{
+	}
+
+	sl_bool MirrorFileSystem::setPath(const String& _path)
+	{
+		String path = File::normalizeDirectoryPath(_path);
+		if (!File::exists(path)) {
+			return sl_false;
+		}
+		if (!(File::getAttributes(path) & FileAttributes::Directory)) {
+			return sl_false;
+		}
+
+		m_root = path;
+		m_fsInfo.creationTime = File::getCreatedTime(path);
+		return sl_true;
 	}
 
 	sl_bool MirrorFileSystem::getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize)
@@ -300,6 +314,11 @@ namespace slib
 	FileSystemError MirrorFileSystem::getLastError() noexcept
 	{
 		return (FileSystemError)(System::getLastError());
+	}
+
+	void MirrorFileSystem::setLastError(FileSystemError error) noexcept
+	{
+		System::setLastError((sl_uint32)error);
 	}
 
 }
