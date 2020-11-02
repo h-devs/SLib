@@ -214,6 +214,10 @@ namespace slib
 		
 		
 		static void openUrl(const String& url);
+
+		static void openFile(const String& path);
+
+		static void openDirectory(const String& path);
 		
 		static void dismissKeyboard();
 		

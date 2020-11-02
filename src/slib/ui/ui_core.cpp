@@ -28,6 +28,7 @@
 #include "slib/ui/common_dialogs.h"
 #include "slib/graphics/font.h"
 #include "slib/device/device.h"
+#include "slib/network/url.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -719,6 +720,25 @@ namespace slib
 	void UI::openUrl(const String& url)
 	{
 		Device::openUrl(url);
+	}
+
+	void UI::openFile(const String& path)
+	{
+		Url url;
+		url.scheme = "file";
+		url.path = path.replaceAll("\\", "/");
+		UI::openUrl(url.toString());
+	}
+
+	void UI::openDirectory(const String& path)
+	{
+		Url url;
+		url.scheme = "file";
+		url.path = path.replaceAll("\\", "/");
+		if (!path.endsWith("/")) {	// directory url must end with '/' in Windows XP
+			url.path += "/";
+		}
+		UI::openUrl(url.toString());
 	}
 	
 #if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_ANDROID)
