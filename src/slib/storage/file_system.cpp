@@ -398,7 +398,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_uint32	FileSystemWrapper::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
+	sl_uint32 FileSystemWrapper::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
 	{
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {

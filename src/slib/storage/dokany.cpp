@@ -494,11 +494,12 @@ namespace slib
 					return DOKAN_ERROR_CODE(ERROR_INVALID_HANDLE);
 				}
 				if (!dwBufferLength) {
+					*pReadLength = 0;
 					return 0;
 				}
 
 				DOKANY_TRY {
-					FileSystem::setLastError(FileSystemError::GeneralError);
+					FileSystem::setLastError(FileSystemError::Success);
 					*pReadLength = (DWORD)(provider->readFile(context, (sl_uint64)iOffset, pBuffer, dwBufferLength));
 					if (*pReadLength) {
 						return 0;
@@ -542,7 +543,7 @@ namespace slib
 						return 0;
 					}
 
-					FileSystem::setLastError(FileSystemError::GeneralError);
+					FileSystem::setLastError(FileSystemError::Success);
 					*pNumberOfBytesWritten = (DWORD)(provider->writeFile(context, (sl_int64)iOffset, pBuffer, dwNumberOfBytesToWrite));
 					if (*pNumberOfBytesWritten) {
 						return 0;
@@ -610,10 +611,13 @@ namespace slib
 					Base::zeroMemory(&fd, sizeof(fd));
 					fd.dwFileAttributes = FILE_ATTRIBUTE_DIRECTORY;
 					FileInfo dirInfo;
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					if (provider->getFileInfo(NormalizePath(szPathName), sl_null, dirInfo, FileInfoMask::Time)) {
 						((PLARGE_INTEGER)(&fd.ftCreationTime))->QuadPart = dirInfo.createdAt.toWindowsFileTime();
 						((PLARGE_INTEGER)(&fd.ftLastAccessTime))->QuadPart = dirInfo.accessedAt.toWindowsFileTime();
 						((PLARGE_INTEGER)(&fd.ftLastWriteTime))->QuadPart = dirInfo.modifiedAt.toWindowsFileTime();
+					} else {
+						return DOKAN_ERROR_CODE(FileSystem::getLastError());
 					}
 					fd.cFileName[0] = '.';
 					funcFillFindData(&fd, pDokanFileInfo);
