@@ -36,6 +36,26 @@
 namespace slib
 {
 
+	// Equals to WinNT error codes
+	enum class FileSystemError
+	{
+		Success = 0, // ERROR_SUCCESS
+		GeneralError = 1, // ERROR_INVALID_FUNCTION
+		NotFound = 2, // ERROR_FILE_NOT_FOUND
+		PathNotFound = 3, // ERROR_PATH_NOT_FOUND
+		AccessDenied = 5, // ERROR_ACCESS_DENIED
+		InvalidContext = 6, // ERROR_INVALID_HANDLE
+		InvalidData = 13, // ERROR_INVALID_DATA
+		OutOfMemory = 14, // ERROR_OUTOFMEMORY
+		FileExist = 80, // ERROR_FILE_EXISTS
+		InvalidPassword = 86, // ERROR_INVALID_PASSWORD
+		BufferOverflow = 122, // ERROR_INSUFFICIENT_BUFFER
+		DirNotEmpty = 145, // ERROR_DIR_NOT_EMPTY
+		AlreadyExist = 183,	// ERROR_ALREADY_EXISTS
+		InitFailure = 575, // ERROR_APP_INIT_FAILURE
+		NotImplemented = -1,
+	};
+
 	class FileSystemProvider;
 	class FileSystemHost;
 
@@ -47,6 +67,10 @@ namespace slib
 		static Ref<FileSystemHost> getHost(const String& mountPoint);
 
 		static sl_bool unmount(const String& mountPoint);
+
+		static FileSystemError getLastError();
+
+		static void setLastError(FileSystemError error);
 
 	};
 
@@ -97,26 +121,6 @@ namespace slib
 			Time = 0x8,
 			All = 0xffff
 		};
-	};
-
-	// Equals to WinNT error codes
-	enum class FileSystemError
-	{
-		Success = 0, // ERROR_SUCCESS
-		GeneralError = 1, // ERROR_INVALID_FUNCTION
-		NotFound = 2, // ERROR_FILE_NOT_FOUND
-		PathNotFound = 3, // ERROR_PATH_NOT_FOUND
-		AccessDenied = 5, // ERROR_ACCESS_DENIED
-		InvalidContext = 6, // ERROR_INVALID_HANDLE
-		InvalidData = 13, // ERROR_INVALID_DATA
-		OutOfMemory = 14, // ERROR_OUTOFMEMORY
-		FileExist = 80, // ERROR_FILE_EXISTS
-		InvalidPassword = 86, // ERROR_INVALID_PASSWORD
-		BufferOverflow = 122, // ERROR_INSUFFICIENT_BUFFER
-		DirNotEmpty = 145, // ERROR_DIR_NOT_EMPTY
-		AlreadyExist = 183,	// ERROR_ALREADY_EXISTS
-		InitFailure = 575, // ERROR_APP_INIT_FAILURE
-		NotImplemented = -1,
 	};
 
 	class FileContext : public Object
@@ -183,11 +187,6 @@ namespace slib
 		virtual sl_uint32 writeFile(const StringParam& path, const void* buf, sl_uint32 size) noexcept;
 
 		virtual sl_uint32 writeFile(const StringParam& path, const Memory& mem) noexcept;
-
-	public:
-		virtual FileSystemError getLastError() noexcept;
-
-		virtual void setLastError(FileSystemError error) noexcept;
 
 	protected:
 		FileSystemInfo m_fsInfo;
@@ -277,7 +276,7 @@ namespace slib
 
 		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) override;
 
-		sl_uint32	readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
+		sl_uint32 readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
 
 		sl_uint32 writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size) override;
 
@@ -298,11 +297,6 @@ namespace slib
 		sl_bool deleteDirectory(const StringParam& path) override;
 
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
-
-	public:
-		FileSystemError getLastError() noexcept override;
-
-		void setLastError(FileSystemError error) noexcept override;
 
 	protected:
 		// If you want to use different FileContext in wrapper, you will need to override these functions.
