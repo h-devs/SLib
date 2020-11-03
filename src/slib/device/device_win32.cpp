@@ -121,10 +121,10 @@ namespace slib
 
 	void Device::openUrl(const String& url)
 	{
-		Windows::ShellExecuteParam param;
+		ShellExecuteParam param;
 		param.operation = "open";
 		param.path = url;
-		Windows::shellExecute(param);
+		Windows::shell(param);
 	}
 
 }

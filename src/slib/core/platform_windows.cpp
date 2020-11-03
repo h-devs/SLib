@@ -33,6 +33,7 @@
 
 #include <crtdbg.h>
 #include <shlwapi.h>
+#include <shlobj.h>
 
 namespace slib
 {
@@ -809,20 +810,17 @@ namespace slib
 		return flagResult != FALSE;
 	}
 
-	Windows::ShellExecuteParam::ShellExecuteParam()
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ShellExecuteParam)
+
+	ShellExecuteParam::ShellExecuteParam()
 	{
 		runAsAdmin = sl_false;
 		hWndParent = NULL;
 		nShow = SW_NORMAL;
 	}
 
-	Windows::ShellExecuteParam::~ShellExecuteParam() {}
-	Windows::ShellExecuteParam::ShellExecuteParam(const ShellExecuteParam& other) = default;
-	Windows::ShellExecuteParam::ShellExecuteParam(ShellExecuteParam&& other) = default;
-	Windows::ShellExecuteParam& Windows::ShellExecuteParam::operator=(const ShellExecuteParam& other) = default;
-	Windows::ShellExecuteParam& Windows::ShellExecuteParam::operator=(ShellExecuteParam&& other) = default;
-
-	sl_bool Windows::shellExecute(const ShellExecuteParam& param)
+	sl_bool Windows::shell(const ShellExecuteParam& param)
 	{
 		SHELLEXECUTEINFOW sei;
 		Base::zeroMemory(&sei, sizeof(sei));
@@ -850,6 +848,62 @@ namespace slib
 		}
 		return sl_false;
 	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ShellOpenFolderAndSelectItemsParam)
+
+	ShellOpenFolderAndSelectItemsParam::ShellOpenFolderAndSelectItemsParam()
+	{
+		flagEdit = sl_false;
+		flagOpenDesktop = sl_false;
+	}
+
+	sl_bool Windows::shell(const ShellOpenFolderAndSelectItemsParam& param)
+	{
+		sl_bool bRet = sl_false;
+
+		StringCstr16 path(param.path);
+
+		PIDLIST_ABSOLUTE pidl = ILCreateFromPathW((LPCWSTR)(path.getData()));
+		if (pidl) {
+
+			DWORD dwFlags = 0;
+			if (param.flagEdit) {
+				dwFlags |= OFASI_EDIT;
+			}
+			if (param.flagOpenDesktop) {
+				dwFlags |= OFASI_OPENDESKTOP;
+			}
+
+			ListLocker<StringParam> items(param.items);
+
+			sl_uint32 n = (sl_uint32)(items.count);
+			SLIB_SCOPED_BUFFER(LPITEMIDLIST, 256, arr, n)
+			
+			sl_uint32 i;
+			for (i = 0; i < n; i++) {
+				StringCstr16 pathItem(items[i]);
+				arr[i] = ILCreateFromPathW((LPCWSTR)(pathItem.getData()));
+				if (!(arr[i])) {
+					break;
+				}
+			}
+
+			if (i == n) {
+				HRESULT hr = SHOpenFolderAndSelectItems(pidl, n, (LPCITEMIDLIST*)arr, dwFlags);
+				bRet = hr == S_OK;
+			}
+
+			for (i = 0; i < n; i++) {
+				ILFree(arr[i]);
+			}
+
+			ILFree(pidl);
+		}
+
+		return bRet;
+	}
+
 
 	sl_bool Windows::getSYSTEMTIME(const Time& time, sl_bool flagUTC, SYSTEMTIME* _out)
 	{

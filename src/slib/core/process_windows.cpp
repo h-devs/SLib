@@ -304,11 +304,11 @@ namespace slib
 
 	void Process::runAsAdmin(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
 	{
-		Windows::ShellExecuteParam param;
+		ShellExecuteParam param;
 		param.runAsAdmin = sl_true;
 		param.path = pathExecutable;
 		param.params = Application::buildCommandLine(strArguments, nArguments);
-		Windows::shellExecute(param);
+		Windows::shell(param);
 	}
 
 	sl_bool Process::isAdmin()

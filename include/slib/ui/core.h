@@ -218,7 +218,9 @@ namespace slib
 		static void openFile(const String& path);
 
 		static void openDirectory(const String& path);
-		
+
+		static void openDirectoryAndSelectFile(const String& path);
+
 		static void dismissKeyboard();
 		
 		static UIKeyboardAdjustMode getKeyboardAdjustMode();
