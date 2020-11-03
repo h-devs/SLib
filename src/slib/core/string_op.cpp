@@ -1979,7 +1979,43 @@ namespace slib
 	{
 		namespace string
 		{
-			
+
+			template <class ST, class CT>
+			SLIB_INLINE static ST ReplaceAll(const CT* buf, sl_reg count, CT pattern, CT replace) noexcept
+			{
+				if (count <= 0) {
+					return sl_null;
+				}
+				ST ret = ST::allocate(count);
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				CT* data = ret.getData();
+				if (replace) {
+					for (sl_reg i = 0; i < count; i++) {
+						if (buf[i] == pattern) {
+							data[i] = replace;
+						} else {
+							data[i] = buf[i];
+						}
+					}
+				} else {
+					sl_reg k = 0;
+					for (sl_reg i = 0; i < count; i++) {
+						CT ch = buf[i];
+						if (ch != pattern) {
+							data[k] = ch;
+							k++;
+						}
+					}
+					if (k != count) {
+						data[k] = 0;
+					}
+					ret.setLength(k);
+				}
+				return ret;
+			}
+
 			struct STRING_REPLACE_SUBSET
 			{
 				sl_reg start;
@@ -1992,7 +2028,7 @@ namespace slib
 				if (countPat == 0) {
 					return sl_null;
 				}
-				if (count == 0) {
+				if (count <= 0) {
 					return sl_null;
 				}
 				LinkedQueue<STRING_REPLACE_SUBSET> queue;
@@ -2020,8 +2056,10 @@ namespace slib
 						MemoryTraits<CT>::copy(out, buf + subset.start, subset.len);
 						out += subset.len;
 						if (queue.isNotEmpty()) {
-							MemoryTraits<CT>::copy(out, bufReplace, countReplace);
-							out += countReplace;
+							if (countReplace) {
+								MemoryTraits<CT>::copy(out, bufReplace, countReplace);
+								out += countReplace;
+							}
 						}
 					}
 				}
@@ -2029,6 +2067,38 @@ namespace slib
 			}
 
 		}
+	}
+
+	String String::replaceAll(sl_char8 pattern, sl_char8 replacement) const noexcept
+	{
+		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern, replacement);
+	}
+
+	String16 String16::replaceAll(sl_char16 pattern, sl_char16 replacement) const noexcept
+	{
+		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern, replacement);
+	}
+
+	String Atomic<String>::replaceAll(sl_char8 pattern, sl_char8 replacement) const noexcept
+	{
+		String s(*this);
+		return s.replaceAll(pattern, replacement);
+	}
+
+	String16 Atomic<String16>::replaceAll(sl_char16 pattern, sl_char16 replacement) const noexcept
+	{
+		String16 s(*this);
+		return s.replaceAll(pattern, replacement);
+	}
+
+	String StringView::replaceAll(sl_char8 pattern, sl_char8 replacement) const noexcept
+	{
+		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern, replacement);
+	}
+
+	String16 StringView16::replaceAll(sl_char16 pattern, sl_char16 replacement) const noexcept
+	{
+		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern, replacement);
 	}
 
 	String String::replaceAll(const StringParam& _pattern, const StringParam& _replacement) const noexcept
@@ -2071,6 +2141,73 @@ namespace slib
 		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern.getData(), pattern.getLength(), replacement.getData(), replacement.getLength());
 	}
 
+	String String::removeAll(sl_char8 pattern) const noexcept
+	{
+		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern, 0);
+	}
+
+	String16 String16::removeAll(sl_char16 pattern) const noexcept
+	{
+		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern, 0);
+	}
+
+	String Atomic<String>::removeAll(sl_char8 pattern) const noexcept
+	{
+		String s(*this);
+		return s.removeAll(pattern);
+	}
+
+	String16 Atomic<String16>::removeAll(sl_char16 pattern) const noexcept
+	{
+		String16 s(*this);
+		return s.removeAll(pattern);
+	}
+
+	String StringView::removeAll(sl_char8 pattern) const noexcept
+	{
+		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern, 0);
+	}
+
+	String16 StringView16::removeAll(sl_char16 pattern) const noexcept
+	{
+		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern, 0);
+	}
+
+	String String::removeAll(const StringParam& _pattern) const noexcept
+	{
+		StringData pattern(_pattern);
+		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern.getData(), pattern.getLength(), sl_null, 0);
+	}
+
+	String16 String16::removeAll(const StringParam& _pattern) const noexcept
+	{
+		StringData16 pattern(_pattern);
+		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern.getData(), pattern.getLength(), sl_null, 0);
+	}
+
+	String Atomic<String>::removeAll(const StringParam& pattern) const noexcept
+	{
+		String s(*this);
+		return s.removeAll(pattern);
+	}
+
+	String16 Atomic<String16>::removeAll(const StringParam& pattern) const noexcept
+	{
+		String16 s(*this);
+		return s.removeAll(pattern);
+	}
+
+	String StringView::removeAll(const StringParam& _pattern) const noexcept
+	{
+		StringData pattern(_pattern);
+		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern.getData(), pattern.getLength(), sl_null, 0);
+	}
+
+	String16 StringView16::removeAll(const StringParam& _pattern) const noexcept
+	{
+		StringData16 pattern(_pattern);
+		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern.getData(), pattern.getLength(), sl_null, 0);
+	}
 
 	namespace priv
 	{

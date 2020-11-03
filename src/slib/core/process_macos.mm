@@ -39,10 +39,10 @@ namespace slib
 			static String FixArgument(const String& arg)
 			{
 				String s = arg;
-				s = s.replaceAll("\\", sl_null);
-				s = s.replaceAll("\"", sl_null);
-				s = s.replaceAll("'", sl_null);
-				if (s.contains(" ") || s.contains("\t") || s.contains("\r") || s.contains("\n")) {
+				s = s.removeAll('\\', 0);
+				s = s.removeAll('"', 0);
+				s = s.removeAll('\'', 0);
+				if (s.contains(' ') || s.contains('\t') || s.contains('\r') || s.contains('\n')) {
 					s = "'" + s + "'";
 				}
 				if (s.isEmpty()) {

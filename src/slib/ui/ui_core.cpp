@@ -726,7 +726,7 @@ namespace slib
 	{
 		Url url;
 		url.scheme = "file";
-		url.path = path.replaceAll("\\", "/");
+		url.path = path.replaceAll('\\', '/');
 		UI::openUrl(url.toString());
 	}
 
@@ -734,8 +734,9 @@ namespace slib
 	{
 		Url url;
 		url.scheme = "file";
-		url.path = path.replaceAll("\\", "/");
-		if (!path.endsWith("/")) {	// directory url must end with '/' in Windows XP
+		url.path = path.replaceAll('\\', '/');
+		if (!(path.endsWith('/'))) {
+			// directory url must end with '/' in Windows XP
 			url.path += "/";
 		}
 		UI::openUrl(url.toString());

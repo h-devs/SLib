@@ -451,7 +451,7 @@ namespace slib
 		}
 		String s = value;
 		if (flagNeedRemoveQuot) {
-			s = s.replaceAll("\"", sl_null);
+			s = s.removeAll('"');
 		}
 		if (flagNeedQuot) {
 			StringBuffer sb;

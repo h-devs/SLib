@@ -630,12 +630,27 @@ namespace slib
 		 * @return a copy of this string converted to lowercase.
 		 */
 		String toLower() const noexcept;
-		
+
+		/**
+		* Replaces each character of this string that matches the given `pattern` with the given `replacement`. if `replacement` is given as zero, then the matched chracters will be removed.
+		*/
+		String replaceAll(sl_char8 pattern, sl_char8 replacement) const noexcept;
+
 		/**
 		 * Replaces each substring of this string that matches the given `pattern` with the given `replacement`.
 		 */
 		String replaceAll(const StringParam& pattern, const StringParam& replacement) const noexcept;
-		
+
+		/**
+		* Removes all characters that matches the given `pattern`
+		*/
+		String removeAll(sl_char8 pattern) const noexcept;
+
+		/**
+		* Removes all characters that matches the given `pattern`
+		*/
+		String removeAll(const StringParam& pattern) const noexcept;
+
 		/**
 		 * Copy this string and then removes whitespaces from both ends of the new string.
 		 */
@@ -1436,10 +1451,25 @@ namespace slib
 		String toLower() const noexcept;
 		
 		/**
+		* Replaces each character of this string that matches the given `pattern` with the given `replacement`. if `replacement` is given as zero, then the matched chracters will be removed.
+		*/
+		String replaceAll(sl_char8 pattern, sl_char8 replacement) const noexcept;
+
+		/**
 		 * Replaces each substring of this string that matches the given `pattern` with the given `replacement`.
 		 */
 		String replaceAll(const StringParam& pattern, const StringParam& replacement) const noexcept;
-		
+
+		/**
+		* Removes all characters that matches the given `pattern`
+		*/
+		String removeAll(sl_char8 pattern) const noexcept;
+
+		/**
+		* Removes all characters that matches the given `pattern`
+		*/
+		String removeAll(const StringParam& pattern) const noexcept;
+
 		/**
 		 * Copy this string and then removes whitespaces from both ends of the new string.
 		 */

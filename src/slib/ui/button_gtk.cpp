@@ -63,7 +63,7 @@ namespace slib
 				GtkButton* handle = (GtkButton*)m_handle;
 				if (handle) {
 					if (view->isMnemonic()) {
-						String _text = text.replaceAll("&", "_");
+						String _text = text.replaceAll('&', '_');
 						gtk_button_set_label(handle, _text.getData());
 					} else {
 						gtk_button_set_label(handle, text.getData());
