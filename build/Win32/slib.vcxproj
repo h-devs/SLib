@@ -422,6 +422,7 @@
     <ClCompile Include="..\..\src\slib\storage\file_system.cpp" />
     <ClCompile Include="..\..\src\slib\storage\file_system_logger.cpp" />
     <ClCompile Include="..\..\src\slib\storage\file_system_mirror.cpp" />
+    <ClCompile Include="..\..\src\slib\storage\fusehost.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button_win32.cpp" />
     <ClCompile Include="..\..\src\slib\ui\camera_view.cpp" />

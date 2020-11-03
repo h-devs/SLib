@@ -29,6 +29,8 @@
 #include "slib/storage/dokany.h"
 #endif
 
+#include "slib/storage/fusehost.h"
+
 namespace slib
 {
 
@@ -48,9 +50,10 @@ namespace slib
 	Ref<FileSystemHost> FileSystem::createHost()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
+		return new FuseHost;
 		return Dokany::createHost();
 #elif defined(SLIB_PLATFORM_IS_UNIX) && defined(SLIB_PLATFORM_IS_DESKTOP)
-		return sl_null;
+		return new FuseHost;
 #else
 		return sl_null;
 #endif

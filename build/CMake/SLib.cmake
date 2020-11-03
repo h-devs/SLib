@@ -335,6 +335,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/social/wechat_sdk.cpp"
 
  "${SLIB_PATH}/src/slib/storage/disk.cpp"
+ "${SLIB_PATH}/src/slib/storage/fusehost.cpp"
  "${SLIB_PATH}/src/slib/storage/file_system.cpp"
  "${SLIB_PATH}/src/slib/storage/file_system_logger.cpp"
  "${SLIB_PATH}/src/slib/storage/file_system_mirror.cpp"
