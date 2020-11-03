@@ -144,11 +144,7 @@ namespace slib
 #elif defined(SLIB_PLATFORM_IS_WIN32)
 			String16 s = GetLineString16(_tag, _content);
 			OutputDebugStringW((LPCWSTR)(s.getData()));
-			HWND hWnd = GetConsoleWindow();
-			if (hWnd) {
-				Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
-				printf("%s", (char*)(mem.getData()));
-			}
+			Console::print(s);
 #else
 			String s = GetLineString(_tag, _content);
 			printf("%s", s.getData());
