@@ -33,6 +33,7 @@
 #define off_t FUSE_OFF_T
 #else
 #include "fuse/fuse.h"
+#include <errno.h>
 #endif
 
 #include "slib/core/dynamic_library.h"
@@ -57,7 +58,7 @@ namespace slib
 			{
 				LOG("statfs: %s", path);
 
-				memset(stbuf, 0, sizeof *stbuf);
+				Base::zeroMemory(stbuf, sizeof *stbuf);
 				stbuf->f_bsize = 1024;
 				stbuf->f_frsize = 1024;
 				stbuf->f_blocks = 1024 * 1024;
@@ -76,13 +77,13 @@ namespace slib
 
 				sl_bool flagDirectory = !path.endsWith("dummy.txt");
 
-				memset(stbuf, 0, sizeof *stbuf);
+				Base::zeroMemory(stbuf, sizeof *stbuf);
 				stbuf->st_mode = 0777 | (flagDirectory ? 0040000/* S_IFDIR */ : 0);
 				stbuf->st_nlink = 1;
 				stbuf->st_size = (flagDirectory ? 0 : 5);
 
 				sl_int64 now = Time::now().getSecondsCount();
-				stbuf->st_birthtim.tv_sec = now;
+				//stbuf->st_birthtim.tv_sec = now;
 				stbuf->st_ctim.tv_sec = now;
 				stbuf->st_mtim.tv_sec = now;
 				stbuf->st_atim.tv_sec = now;
@@ -113,15 +114,8 @@ namespace slib
 
 				LOG("readdir: %s, %d", path, off);
 
-				struct stat st;
-				memset(&st, 0, sizeof st);
+				struct stat st = { 0 };
 				st.st_nlink = 1;
-				//sl_int64 now = Time::now().getSecondsCount();
-				//st.st_birthtim.tv_sec = now;
-				//st.st_ctim.tv_sec = now;
-				//st.st_mtim.tv_sec = now;
-				//st.st_atim.tv_sec = now;
-
 				st.st_mode = 0777 | 0040000;
 				filler(buf, "dummy", &st, 0);
 				st.st_mode = 0777;

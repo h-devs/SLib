@@ -27,7 +27,7 @@
 
 /* This interface uses 64 bit off_t */
 #if _FILE_OFFSET_BITS != 64
-#error Please add -D_FILE_OFFSET_BITS=64 to your compile flags!
+#define off_t __int64
 #endif
 
 #ifdef __cplusplus
