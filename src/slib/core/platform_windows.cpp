@@ -33,6 +33,7 @@
 
 #include <crtdbg.h>
 #include <shlwapi.h>
+#pragma warning(disable: 4091)
 #include <shlobj.h>
 
 namespace slib
@@ -894,6 +895,7 @@ namespace slib
 				bRet = hr == S_OK;
 			}
 
+			n = i;
 			for (i = 0; i < n; i++) {
 				ILFree(arr[i]);
 			}
