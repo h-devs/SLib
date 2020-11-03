@@ -870,10 +870,10 @@ namespace slib
 
 			DWORD dwFlags = 0;
 			if (param.flagEdit) {
-				dwFlags |= OFASI_EDIT;
+				dwFlags |= 1; // OFASI_EDIT;
 			}
 			if (param.flagOpenDesktop) {
-				dwFlags |= OFASI_OPENDESKTOP;
+				dwFlags |= 2; // OFASI_OPENDESKTOP;
 			}
 
 			ListLocker<StringParam> items(param.items);
