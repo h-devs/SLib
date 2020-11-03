@@ -84,9 +84,11 @@ namespace slib
 
 		sl_reg read(void* buf, sl_size size) override;
 
-		sl_uint64 getPosition() override;
+		using ISeekable::getPosition;
+		sl_bool getPosition(sl_uint64& outPos) override;
 
-		sl_uint64 getSize() override;
+		using ISeekable::getSize;
+		sl_bool getSize(sl_uint64& outSize) override;
 
 		sl_bool seek(sl_int64 offset, SeekPosition pos) override;
 

@@ -43,6 +43,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#if defined(SLIB_PLATFORM_IS_LINUX)
+	typedef off64_t _off_t;
+	#define _lseek lseek64
+#else
+	typedef off_t _off_t;
+	#define _lseek lseek
+#endif
 
 namespace slib
 {
@@ -116,20 +123,17 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_uint64 File::getPosition()
+	sl_bool File::getPosition(sl_uint64& outPos)
 	{
 		int fd = (int)m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
-#if defined(SLIB_PLATFORM_IS_LINUX)
-			off64_t ret = lseek64(fd, 0, SEEK_CUR);
-#else
-			off_t ret = lseek(fd, 0, SEEK_CUR);
-#endif
-			if (ret != -1) {
-				return ret;
+			_off_t pos = _lseek(fd, 0, SEEK_CUR);
+			if (pos != -1) {
+				outPos = pos;
+				return sl_true;
 			}
 		}
-		return 0;
+		return sl_false;
 	}
 
 	sl_bool File::seek(sl_int64 pos, SeekPosition from)
@@ -146,13 +150,30 @@ namespace slib
 			} else {
 				return sl_false;
 			}
-#if defined(SLIB_PLATFORM_IS_LINUX)
-			off64_t ret = lseek64(fd, pos, origin);
-#else
-			off_t ret = lseek(fd, pos, origin);
-#endif
+			_off_t ret = _lseek(fd, pos, origin);
 			if (ret != -1) {
 				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool File::isEnd(sl_bool& outFlag)
+	{
+		int fd = (int)m_file;
+		if (fd != SLIB_FILE_INVALID_HANDLE) {
+			_off_t pos = _lseek(fd, 0, SEEK_CUR);
+			if (pos != -1) {
+				_off_t end = _lseek(fd, 0, SEEK_END);
+				if (end != -1) {
+					if (pos == end) {
+						outFlag = sl_true;
+					} else {
+						outFlag = sl_false;
+						_lseek(fd, pos, SEEK_SET);
+					}
+					return sl_true;
+				}
 			}
 		}
 		return sl_false;
@@ -211,36 +232,34 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_uint64 File::getSize(sl_file _fd)
+	sl_bool File::getSizeByHandle(sl_file _fd, sl_uint64& outSize)
 	{
 		int fd = (int)_fd;
 		if (fd != -1) {
 			struct stat st;
 			if (0 == fstat(fd, &st)) {
-				return st.st_size;
-			} else {
-				return 0;
+				outSize = st.st_size;
+				return sl_true;
 			}
-		} else {
-			return 0;
 		}
+		return sl_false;
 	}
 	
-	sl_uint64 File::getSize(const StringParam& _filePath)
+	sl_bool File::getSize(const StringParam& _filePath, sl_uint64& outSize)
 	{
 		StringCstr filePath(_filePath);
 		if (filePath.isEmpty()) {
-			return 0;
+			return sl_false;
 		}
 		struct stat st;
 		if (0 == stat(filePath.getData(), &st)) {
-			return st.st_size;
-		} else {
-			return 0;
+			outSize = st.st_size;
+			return sl_true;
 		}
+		return sl_false;
 	}
 	
-	sl_uint64 File::getDiskSize(sl_file _fd)
+	sl_bool File::getDiskSizeByHandle(sl_file _fd, sl_uint64& outSize)
 	{
 #if defined(SLIB_PLATFORM_IS_DESKTOP)
 #	if defined(SLIB_PLATFORM_IS_MACOS)
@@ -250,18 +269,18 @@ namespace slib
 			ioctl(fd, DKIOCGETBLOCKCOUNT, &nSectors);
 			sl_uint32 nSectorSize = 0;
 			ioctl(fd, DKIOCGETBLOCKSIZE, &nSectorSize);
-			return nSectorSize * nSectors;
+			outSize = nSectorSize * nSectors;
+			return sl_true;
 		}
 #	elif defined(SLIB_PLATFORM_IS_LINUX)
 		int fd = (int)_fd;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
-			sl_uint64 size = 0;
-			ioctl(fd, BLKGETSIZE64, &size);
-			return size;
+			ioctl(fd, BLKGETSIZE64, &outSize);
+			return sl_true;
 		}
 #	endif
 #endif
-		return 0;
+		return sl_false;
 	}
 	
 	sl_bool File::lock()
@@ -631,12 +650,12 @@ namespace slib
 			return sl_false;
 		}
 		sl_char8* szNewPath = newPath.getData();
-	    if (flagReplaceIfExisting) {
-	        struct stat st;
-            if (0 == stat(szNewPath, &st)) {
-                ::remove(szNewPath);
-            }
-	    }
+		if (flagReplaceIfExisting) {
+			struct stat st;
+			if (0 == stat(szNewPath, &st)) {
+				::remove(szNewPath);
+			}
+		}
 		return 0 == ::rename(oldPath.getData(), szNewPath);
 	}
 
