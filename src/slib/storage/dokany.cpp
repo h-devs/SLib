@@ -114,18 +114,9 @@ namespace slib
 				DWORD Error)
 
 
-			static String NormalizePath(LPCWSTR szPath)
+			static SLIB_INLINE String NormalizePath(LPCWSTR szPath)
 			{
-				String path = String::from(szPath);
-				sl_char8* data = path.getData();
-				sl_size len = path.getLength();
-				for (sl_size i = 0; i < len; i++) {
-					sl_char8& ch = data[i];
-					if (ch == '\\') {
-						ch = '/';
-					}
-				}
-				return path;
+				return String::from(szPath).replaceAll('\\', '/');
 			}
 
 			static sl_bool CheckDokanyOptions(const DOKAN_OPTIONS& options)
@@ -332,9 +323,8 @@ namespace slib
 					FileSystem::setLastError(FileSystemError::GeneralError);
 					if (provider->createDirectory(NormalizePath(szFileName))) {
 						return 0;
-					} else {
-						return DOKAN_ERROR_CODE(FileSystem::getLastError());
 					}
+					return DOKAN_ERROR_CODE(FileSystem::getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -438,16 +428,13 @@ namespace slib
 				}
 
 				SLIB_TRY{
-					FileSystem::setLastError(FileSystemError::GeneralError);
-					if (provider->closeFile(context)) {
-						host->decreaseOpenHandlesCount();
-						context->decreaseReference();
-						pDokanFileInfo->Context = 0;
-						return 0;
-					}
+					FileSystem::setLastError(FileSystemError::Success);
+					provider->closeFile(context);
+					host->decreaseOpenHandlesCount();
+					context->decreaseReference();
+					pDokanFileInfo->Context = 0;
 					return DOKAN_ERROR_CODE(FileSystem::getLastError());
 				} SLIB_CATCH(...)
-				return 0;
 			}
 
 			static int DOKAN_CALLBACK Dokany_Cleanup(
@@ -474,8 +461,8 @@ namespace slib
 							return DOKAN_ERROR_CODE(FileSystem::getLastError());
 						}
 					}
+					return 0;
 				} SLIB_CATCH(...)
-				return 0;
 			}
 
 			static int DOKAN_CALLBACK Dokany_ReadFile(
