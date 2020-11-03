@@ -29,6 +29,7 @@
 #include "slib/graphics/font.h"
 #include "slib/device/device.h"
 #include "slib/network/url.h"
+#include "slib/core/file.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
