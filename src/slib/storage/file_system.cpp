@@ -22,6 +22,7 @@
 
 #include "slib/storage/file_system_internal.h"
 
+#include "slib/core/system.h"
 #include "slib/core/safe_static.h"
 
 #ifdef SLIB_PLATFORM_IS_WIN32
@@ -73,6 +74,16 @@ namespace slib
 #else
 		return sl_false;
 #endif
+	}
+
+	FileSystemError FileSystem::getLastError()
+	{
+		return (FileSystemError)(System::getLastError());
+	}
+
+	void FileSystem::setLastError(FileSystemError error)
+	{
+		System::setLastError((sl_uint32)error);
 	}
 
 
@@ -269,15 +280,6 @@ namespace slib
 			size = 0x40000000;
 		}
 		return writeFile(path, mem.getData(), (sl_uint32)size);
-	}
-
-	FileSystemError FileSystemProvider::getLastError() noexcept
-	{
-		return FileSystemError::GeneralError;
-	}
-
-	void FileSystemProvider::setLastError(FileSystemError error) noexcept
-	{
 	}
 
 
@@ -501,16 +503,6 @@ namespace slib
 			files.add_NoLock(name, info);
 		}
 		return files;
-	}
-
-	FileSystemError FileSystemWrapper::getLastError() noexcept
-	{
-		return m_base->getLastError();
-	}
-
-	void FileSystemWrapper::setLastError(FileSystemError error) noexcept
-	{
-		return m_base->setLastError(error);
 	}
 
 	Ref<FileContext> FileSystemWrapper::createContext(FileContext* baseContext, const StringParam& path)

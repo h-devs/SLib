@@ -67,11 +67,6 @@ namespace slib
 
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
 
-	public:
-		FileSystemError getLastError() noexcept override;
-
-		void setLastError(FileSystemError error) noexcept override;
-
 	private:
 		String m_root;
 
