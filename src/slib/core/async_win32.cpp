@@ -63,7 +63,7 @@ namespace slib
 						if (ret.isNotNull()) {
 							ret->setHandle(handle);
 							if (mode & FileMode::SeekToEnd) {
-								ret->seek(File::getSize(handle));
+								ret->seek(File::getSizeByHandle(handle));
 							}
 							return ret;
 						}
@@ -197,7 +197,7 @@ namespace slib
 				sl_uint64 getSize() override
 				{
 					sl_file handle = getHandle();
-					return File::getSize(handle);
+					return File::getSizeByHandle(handle);
 				}
 
 				static sl_file _openHandle(const StringParam& _filePath, FileMode mode)

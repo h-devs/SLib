@@ -1315,9 +1315,41 @@ namespace slib
 	{
 	}
 
-	sl_bool ISeekable::isEOF()
+	sl_bool ISeekable::isEnd(sl_bool& outFlag)
 	{
-		return getPosition() >= getSize();
+		sl_uint64 pos, size;
+		if (getPosition(pos) && getSize(size)) {
+			outFlag = pos >= size;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_uint64 ISeekable::getPosition()
+	{
+		sl_uint64 pos;
+		if (getPosition(pos)) {
+			return pos;
+		}
+		return 0;
+	}
+
+	sl_uint64 ISeekable::getSize()
+	{
+		sl_uint64 size;
+		if (getSize(size)) {
+			return size;
+		}
+		return 0;
+	}
+
+	sl_bool ISeekable::isEnd()
+	{
+		sl_bool flag;
+		if (isEnd(flag)) {
+			return flag;
+		}
+		return sl_false;
 	}
 
 	sl_bool ISeekable::seekToBegin()
@@ -1863,14 +1895,16 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_uint64 MemoryIO::getSize()
+	sl_bool MemoryIO::getPosition(sl_uint64& outPos)
 	{
-		return getLength();
+		outPos = getOffset();
+		return sl_true;
 	}
 
-	sl_uint64 MemoryIO::getPosition()
+	sl_bool MemoryIO::getSize(sl_uint64& outSize)
 	{
-		return getOffset();
+		outSize = getLength();
+		return sl_true;
 	}
 
 	sl_bool MemoryIO::setSize(sl_uint64 _size)
@@ -2051,14 +2085,16 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_uint64 MemoryReader::getSize()
+	sl_bool MemoryReader::getPosition(sl_uint64& outPos)
 	{
-		return getLength();
+		outPos = getOffset();
+		return sl_true;
 	}
 
-	sl_uint64 MemoryReader::getPosition()
+	sl_bool MemoryReader::getSize(sl_uint64& outSize)
 	{
-		return getOffset();
+		outSize = getLength();
+		return sl_true;
 	}
 
 	sl_int64 MemoryReader::find(const void* pattern, sl_size nPattern, sl_int64 _startPosition, sl_int64 _endPosition)
@@ -2235,14 +2271,16 @@ namespace slib
 		return (char*)m_buf;
 	}
 
-	sl_uint64 MemoryWriter::getSize()
+	sl_bool MemoryWriter::getPosition(sl_uint64& outPos)
 	{
-		return getLength();
+		outPos = getOffset();
+		return sl_true;
 	}
 
-	sl_uint64 MemoryWriter::getPosition()
+	sl_bool MemoryWriter::getSize(sl_uint64& outSize)
 	{
-		return getOffset();
+		outSize = getLength();
+		return sl_true;
 	}
 
 
@@ -2550,14 +2588,16 @@ namespace slib
 		return nRead;
 	}
 
-	sl_uint64 BufferedSeekableReader::getPosition()
+	sl_bool BufferedSeekableReader::getPosition(sl_uint64& outPos)
 	{
-		return m_posCurrent;
+		outPos = m_posCurrent;
+		return sl_true;
 	}
 
-	sl_uint64 BufferedSeekableReader::getSize()
+	sl_bool BufferedSeekableReader::getSize(sl_uint64& outSize)
 	{
-		return m_sizeTotal;
+		outSize = m_sizeTotal;
+		return sl_true;
 	}
 
 	sl_bool BufferedSeekableReader::seek(sl_int64 offset, SeekPosition pos)

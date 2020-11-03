@@ -1583,13 +1583,17 @@ namespace slib
 	sl_bool AsyncOutputBuffer::copyFromFile(const String& path)
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
-		if (File::exists(path)) {
-			sl_uint64 size = File::getSize(path);
+		sl_uint64 size;
+		if (File::getSize(path, size)) {
 			if (size > 0) {
 				Ref<AsyncStream> file = AsyncFile::openIOCP(path, FileMode::Read);
 				if (file.isNotNull()) {
 					return copyFrom(file.get(), size);
+				} else {
+					return sl_false;
 				}
+			} else {
+				return sl_true;
 			}
 		}
 		return sl_false;
@@ -1600,16 +1604,17 @@ namespace slib
 
 	sl_bool AsyncOutputBuffer::copyFromFile(const String& path, const Ref<Dispatcher>& dispatcher)
 	{
-		if (!(File::exists(path))) {
-			return sl_false;
-		}
-		sl_uint64 size = File::getSize(path);
-		if (size > 0) {
-			Ref<AsyncFile> file = AsyncFile::openForRead(path, dispatcher);
-			if (file.isNotNull()) {
-				return copyFrom(file.get(), size);
+		sl_uint64 size;
+		if (File::getSize(path, size)) {
+			if (size > 0) {
+				Ref<AsyncFile> file = AsyncFile::openForRead(path, dispatcher);
+				if (file.isNotNull()) {
+					return copyFrom(file.get(), size);
+				} else {
+					return sl_false;
+				}
 			} else {
-				return sl_false;
+				return sl_true;
 			}
 		}
 		return sl_true;

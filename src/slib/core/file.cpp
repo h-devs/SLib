@@ -156,21 +156,62 @@ namespace slib
 		m_file = SLIB_FILE_INVALID_HANDLE;
 	}
 
-	sl_uint64 File::getSize()
+	sl_bool File::getSize(sl_uint64& outSize)
 	{
-		return getSize(m_file);
+		return getSizeByHandle(m_file, outSize);
+	}
+
+	sl_uint64 File::getSizeByHandle(sl_file handle)
+	{
+		sl_uint64 size;
+		if (getSizeByHandle(handle, size)) {
+			return size;
+		}
+		return 0;
+	}
+
+	sl_uint64 File::getSize(const StringParam& path)
+	{
+		sl_uint64 size;
+		if (getSize(path, size)) {
+			return size;
+		}
+		return 0;
+	}
+
+	sl_bool File::getDiskSize(sl_uint64& outSize)
+	{
+		return getDiskSizeByHandle(m_file, outSize);
 	}
 
 	sl_uint64 File::getDiskSize()
 	{
-		return getDiskSize(m_file);
+		return getDiskSizeByHandle(m_file);
+	}
+
+	sl_uint64 File::getDiskSizeByHandle(sl_file handle)
+	{
+		sl_uint64 size;
+		if (getDiskSizeByHandle(handle, size)) {
+			return size;
+		}
+		return 0;
+	}
+
+	sl_bool File::getDiskSize(const StringParam& devicePath, sl_uint64& outSize)
+	{
+		Ref<File> file = openDevice(devicePath, sl_false, sl_false);
+		if (file.isNotNull()) {
+			return getDiskSizeByHandle(file->m_file, outSize);
+		}
+		return sl_false;
 	}
 
 	sl_uint64 File::getDiskSize(const StringParam& devicePath)
 	{
-		Ref<File> file = openDevice(devicePath, sl_false, sl_false);
-		if (file.isNotNull()) {
-			return getDiskSize(file->m_file);
+		sl_uint64 size;
+		if (getDiskSize(devicePath, size)) {
+			return size;
 		}
 		return 0;
 	}

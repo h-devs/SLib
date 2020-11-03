@@ -183,7 +183,7 @@ namespace slib
 		if (mode & FileMode::Directory) {
 			dwFlags |= FILE_FLAG_BACKUP_SEMANTICS;
 		}
-		
+
 		HANDLE handle = CreateFileW(
 			(LPCWSTR)(filePath.getData())
 			, dwDesiredAccess
@@ -192,7 +192,7 @@ namespace slib
 			, dwCreateDisposition
 			, dwFlags
 			, NULL
-			);
+		);
 		return (sl_file)handle;
 	}
 
@@ -206,25 +206,16 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_uint64 File::getPosition()
+	sl_bool File::getPosition(sl_uint64& outPos)
 	{
 		HANDLE handle = (HANDLE)m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
-			sl_int64 pos = 0;
-			DWORD ret = SetFilePointer(handle, 0, ((LONG*)&pos) + 1, FILE_CURRENT);
-			DWORD err = NOERROR;
-			if (ret == -1) {
-				err = GetLastError();
+			static LARGE_INTEGER zero = { 0 };
+			if (SetFilePointerEx(handle, zero, ((LARGE_INTEGER*)&outPos), FILE_CURRENT)) {
+				return sl_true;
 			}
-			if (err == NOERROR) {
-				*((DWORD*)&pos) = ret;
-				return pos;
-			} else {
-				return 0;
-			}
-		} else {
-			return 0;
 		}
+		return sl_false;
 	}
 
 	sl_bool File::seek(sl_int64 location, SeekPosition from)
@@ -241,13 +232,30 @@ namespace slib
 			} else {
 				return sl_false;
 			}
-			DWORD ret = SetFilePointer(handle, *((LONG*)&location), ((LONG*)&location) + 1, dwFrom);
-			DWORD err = NOERROR;
-			if (ret == -1) {
-				err = GetLastError();
-			}
-			if (err == NOERROR) {
+			if (SetFilePointerEx(handle, *((LARGE_INTEGER*)&location), NULL, dwFrom)) {
 				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool File::isEnd(sl_bool& outFlag)
+	{
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
+			static LARGE_INTEGER zero = { 0 };
+			sl_uint64 cur;
+			if (SetFilePointerEx(handle, zero, ((LARGE_INTEGER*)&cur), FILE_CURRENT)) {
+				sl_uint64 end;
+				if (SetFilePointerEx(handle, zero, ((LARGE_INTEGER*)&end), FILE_END)) {
+					if (cur == end) {
+						outFlag = sl_true;
+					} else {
+						outFlag = sl_false;
+						SetFilePointerEx(handle, *((LARGE_INTEGER*)&cur), NULL, FILE_BEGIN);
+					}
+					return sl_true;
+				}
 			}
 		}
 		return sl_false;
@@ -291,47 +299,43 @@ namespace slib
 	{
 		HANDLE handle = (HANDLE)m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
-			sl_int64 pos_orig = getPosition();
+			sl_int64 posOld = getPosition();
 			if (seek(size, SeekPosition::Begin)) {
 				BOOL bRet = SetEndOfFile(handle);
-				seek(pos_orig, SeekPosition::Begin);
+				seek(posOld, SeekPosition::Begin);
 				return bRet != 0;
 			}
 		}
 		return sl_false;
 	}
 
-	sl_uint64 File::getSize(sl_file fd)
+	sl_bool File::getSizeByHandle(sl_file fd, sl_uint64& outSize)
 	{
 		HANDLE handle = (HANDLE)fd;
 		if (handle != INVALID_HANDLE_VALUE) {
-			sl_uint64 ret = 0;
-			if (GetFileSizeEx(handle, (PLARGE_INTEGER)(&ret))) {
-				return ret;
-			} else {
-				int n = GetFileType(handle);
+			if (GetFileSizeEx(handle, (PLARGE_INTEGER)(&outSize))) {
+				return sl_true;
 			}
 		}
-		return 0;
+		return sl_false;
 	}
 
-	sl_uint64 File::getSize(const StringParam& _filePath)
+	sl_bool File::getSize(const StringParam& _filePath, sl_uint64& outSize)
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
-			return 0;
+			return sl_false;
 		}
 		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), 0, 0, NULL, OPEN_EXISTING, 0, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
-			sl_uint64 ret = getSize((sl_file)handle);
+			sl_bool bRet = getSizeByHandle((sl_file)handle, outSize);
 			CloseHandle(handle);
-			return ret;
-		} else {
-			return 0;
+			return bRet;
 		}
+		return sl_false;
 	}
 
-	sl_uint64 File::getDiskSize(sl_file fd)
+	sl_bool File::getDiskSizeByHandle(sl_file fd, sl_uint64& outSize)
 	{
 		HANDLE handle = (HANDLE)fd;
 		if (handle != INVALID_HANDLE_VALUE) {

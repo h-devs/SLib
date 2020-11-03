@@ -241,14 +241,20 @@ namespace slib
 		virtual ~ISeekable();
 
 	public:
-		virtual sl_uint64 getPosition() = 0;
+		virtual sl_bool getPosition(sl_uint64& outPos) = 0;
 
-		virtual sl_uint64 getSize() = 0;
+		virtual sl_bool getSize(sl_uint64& outSize) = 0;
 
 		virtual sl_bool seek(sl_int64 offset, SeekPosition pos) = 0;
 
+		virtual sl_bool isEnd(sl_bool& outFlag);
+
 	public:
-		sl_bool isEOF();
+		sl_uint64 getPosition();
+
+		sl_uint64 getSize();
+
+		sl_bool isEnd();
 
 		sl_bool seekToBegin();
 
@@ -405,9 +411,11 @@ namespace slib
 	
 		sl_reg write(const void* buf, sl_size size) override;
 
-		sl_uint64 getPosition() override;
+		using IO::getPosition;
+		sl_bool getPosition(sl_uint64& outPos) override;
 
-		sl_uint64 getSize() override;
+		using IO::getSize;
+		sl_bool getSize(sl_uint64& outSize) override;
 
 		sl_bool seek(sl_int64 offset, SeekPosition pos = SeekPosition::Current) override;
 	
@@ -460,9 +468,11 @@ namespace slib
 		
 		sl_reg read(void* buf, sl_size size) override;
 
-		sl_uint64 getPosition() override;
+		using ISeekable::getPosition;
+		sl_bool getPosition(sl_uint64& outPos) override;
 
-		sl_uint64 getSize() override;
+		using ISeekable::getSize;
+		sl_bool getSize(sl_uint64& outSize) override;
 
 		sl_bool seek(sl_int64 offset, SeekPosition pos) override;
 
@@ -515,9 +525,11 @@ namespace slib
 	
 		char* getBuffer();
 	
-		sl_uint64 getPosition() override;
+		using ISeekable::getPosition;
+		sl_bool getPosition(sl_uint64& outPos) override;
 
-		sl_uint64 getSize() override;
+		using ISeekable::getSize;
+		sl_bool getSize(sl_uint64& outSize) override;
 		
 	protected:
 		void* m_buf;
