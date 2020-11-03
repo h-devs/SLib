@@ -171,22 +171,28 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_uint64 FileSystemProvider::getFileSize(FileContext* context)
+	sl_bool FileSystemProvider::getFileSize(FileContext* context, sl_uint64& outSize) noexcept
 	{
-		FileInfo info;
-		if (getFileInfo(sl_null, context, info, FileInfoMask::Size)) {
-			return info.size;
-		}
-		return 0;
+		SLIB_TRY {
+			FileInfo info;
+			if (getFileInfo(sl_null, context, info, FileInfoMask::Size)) {
+				outSize = info.size;
+				return sl_true;
+			}
+		} SLIB_CATCH(...)
+		return sl_false;
 	}
 
-	sl_uint64 FileSystemProvider::getFileSize(const StringParam& path)
+	sl_bool FileSystemProvider::getFileSize(const StringParam& path, sl_uint64& outSize) noexcept
 	{
-		FileInfo info;
-		if (getFileInfo(path, sl_null, info, FileInfoMask::Size)) {
-			return info.size;
-		}
-		return 0;
+		SLIB_TRY {
+			FileInfo info;
+			if (getFileInfo(path, sl_null, info, FileInfoMask::Size)) {
+				outSize = info.size;
+				return sl_true;
+			}
+		} SLIB_CATCH(...)
+		return sl_false;
 	}
 
 	Memory FileSystemProvider::readFile(const StringParam& path, sl_uint64 offset, sl_uint32 size) noexcept

@@ -206,25 +206,40 @@ namespace slib
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 		sl_bool flagOpened = file.isNotNull() && file->isOpened();
 
-		if (mask & FileInfoMask::Attributes) {
-			FileAttributes attr = File::getAttributes(filePath);
-			if (attr & FileAttributes::NotExist) {
-				if (!flagOpened) {
-					SLIB_THROW(FileSystemError::NotFound, sl_false);
-				}
-				attr = file->getAttributes();
-				if (attr & FileAttributes::NotExist) {
-					SLIB_THROW(FileSystemError::NotFound, sl_false);
-				}
+		FileAttributes attr = File::getAttributes(filePath);
+		if (attr & FileAttributes::NotExist) {
+			if (!flagOpened) {
+				SLIB_THROW(FileSystemError::NotFound, sl_false);
 			}
+			attr = file->getAttributes();
+			if (attr & FileAttributes::NotExist) {
+				SLIB_THROW(FileSystemError::NotFound, sl_false);
+			}
+		}
+
+		if (mask & FileInfoMask::Attributes) {
 			outInfo.attributes = (sl_uint32)attr;
 		}
 
-		if ((mask & FileInfoMask::Size) || (mask & FileInfoMask::AllocSize)) {
-			if (flagOpened) {
-				outInfo.size = outInfo.allocSize = file->getSize();
-			} else {
-				outInfo.size = outInfo.allocSize = File::getSize(filePath);
+		if (!(attr & FileAttributes::Directory)) {
+			if (mask & FileInfoMask::Size) {
+				sl_bool ret = sl_false;
+				if (flagOpened) {
+					ret = file->getSize(outInfo.size);
+				}
+				if (!ret && !(File::getSize(filePath, outInfo.size))) {
+					SLIB_THROW(FileSystem::getLastError(), sl_false);
+				}
+			}
+
+			if (mask & FileInfoMask::AllocSize) {
+				sl_bool ret = sl_false;
+				if (flagOpened) {
+					ret = file->getSize(outInfo.allocSize);
+				}
+				if (!ret && !(File::getSize(filePath, outInfo.allocSize))) {
+					SLIB_THROW(FileSystem::getLastError(), sl_false);
+				}
 			}
 		}
 
@@ -261,7 +276,7 @@ namespace slib
 				if (flagOpened) {
 					ret = file->setCreatedTime(info.createdAt);
 				}
-				if (!ret && !File::setCreatedTime(filePath, info.createdAt)) {
+				if (!ret && !(File::setCreatedTime(filePath, info.createdAt))) {
 					SLIB_THROW(FileSystem::getLastError(), sl_false);
 				}
 			}
@@ -270,7 +285,7 @@ namespace slib
 				if (flagOpened) {
 					ret = file->setModifiedTime(info.modifiedAt);
 				}
-				if (!ret && !File::setModifiedTime(filePath, info.modifiedAt)) {
+				if (!ret && !(File::setModifiedTime(filePath, info.modifiedAt))) {
 					SLIB_THROW(FileSystem::getLastError(), sl_false);
 				}
 			}
@@ -279,7 +294,7 @@ namespace slib
 				if (flagOpened) {
 					ret = file->setAccessedTime(info.accessedAt);
 				}
-				if (!ret && !File::setAccessedTime(filePath, info.accessedAt)) {
+				if (!ret && !(File::setAccessedTime(filePath, info.accessedAt))) {
 					SLIB_THROW(FileSystem::getLastError(), sl_false);
 				}
 			}

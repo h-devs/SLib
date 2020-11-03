@@ -178,9 +178,9 @@ namespace slib
 	public: // Helpers
 		virtual sl_bool existsFile(const StringParam& path) noexcept;
 
-		virtual sl_uint64 getFileSize(FileContext* context);
+		virtual sl_bool getFileSize(FileContext* context, sl_uint64& outSize) noexcept;
 
-		virtual sl_uint64 getFileSize(const StringParam& path);
+		virtual sl_bool getFileSize(const StringParam& path, sl_uint64& outSize) noexcept;
 
 		virtual Memory readFile(const StringParam& path, sl_uint64 offset = 0, sl_uint32 size = SLIB_UINT32_MAX) noexcept;
 

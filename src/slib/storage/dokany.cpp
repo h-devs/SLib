@@ -427,14 +427,14 @@ namespace slib
 					return 0;
 				}
 
-				SLIB_TRY{
+				DOKANY_TRY {
 					FileSystem::setLastError(FileSystemError::Success);
 					provider->closeFile(context);
 					host->decreaseOpenHandlesCount();
 					context->decreaseReference();
 					pDokanFileInfo->Context = 0;
 					return DOKAN_ERROR_CODE(FileSystem::getLastError());
-				} SLIB_CATCH(...)
+				} DOKANY_CATCH
 			}
 
 			static int DOKAN_CALLBACK Dokany_Cleanup(
@@ -445,7 +445,7 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 				FileContext* context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
 
-				SLIB_TRY {
+				DOKANY_TRY {
 					if (pDokanFileInfo->DeleteOnClose) {
 						sl_bool ret;
 						FileSystem::setLastError(FileSystemError::GeneralError);
@@ -462,7 +462,7 @@ namespace slib
 						}
 					}
 					return 0;
-				} SLIB_CATCH(...)
+				} DOKANY_CATCH
 			}
 
 			static int DOKAN_CALLBACK Dokany_ReadFile(
@@ -485,14 +485,34 @@ namespace slib
 					return 0;
 				}
 
-				DOKANY_TRY {
-					FileSystem::setLastError(FileSystemError::Success);
+				SLIB_TRY {
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					*pReadLength = (DWORD)(provider->readFile(context, (sl_uint64)iOffset, pBuffer, dwBufferLength));
 					if (*pReadLength) {
 						return 0;
 					}
+					sl_uint64 size;
+					if (provider->getFileSize(context, size)) {
+						if ((sl_uint64)iOffset == size) {
+							return 0;
+						}
+					}
 					return DOKAN_ERROR_CODE(FileSystem::getLastError());
-				} DOKANY_CATCH
+				} SLIB_CATCH(FileSystemError err, {
+					if (err == FileSystemError::NotImplemented) {
+						return (g_flagDokany ? STATUS_NOT_IMPLEMENTED : 0);
+					}
+					sl_uint64 size;
+					if (provider->getFileSize(context, size)) {
+						if ((sl_uint64)iOffset == size) {
+							return 0;
+						}
+					}
+					return DOKAN_ERROR_CODE(err);
+				})
+				SLIB_CATCH(..., {
+					return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+				})
 			}
 
 			static int DOKAN_CALLBACK Dokany_WriteFile(
@@ -510,27 +530,31 @@ namespace slib
 				if (!context) {
 					return DOKAN_ERROR_CODE(ERROR_INVALID_HANDLE);
 				}
-
-				DOKANY_TRY {
-					if (pDokanFileInfo->WriteToEndOfFile) {
-						iOffset = -1;
-					} else {
-						if (pDokanFileInfo->PagingIo) {
-							sl_uint64 size = provider->getFileSize(context);
+				if (pDokanFileInfo->WriteToEndOfFile) {
+					iOffset = -1;
+				} else {
+					if (pDokanFileInfo->PagingIo) {
+						sl_uint64 size;
+						FileSystem::setLastError(FileSystemError::GeneralError);
+						if (provider->getFileSize(context, size)) {
 							if ((sl_uint64)iOffset >= size) {
 								dwNumberOfBytesToWrite = 0;
 							}
 							if ((sl_uint64)(iOffset + dwNumberOfBytesToWrite) > size) {
 								dwNumberOfBytesToWrite = (DWORD)((size - iOffset) & 0xFFFFFFFFUL);
 							}
+						} else {
+							return DOKAN_ERROR_CODE(FileSystem::getLastError());
 						}
 					}
-					if (!dwNumberOfBytesToWrite) {
-						*pNumberOfBytesWritten = 0;
-						return 0;
-					}
+				}
+				if (!dwNumberOfBytesToWrite) {
+					*pNumberOfBytesWritten = 0;
+					return 0;
+				}
 
-					FileSystem::setLastError(FileSystemError::Success);
+				DOKANY_TRY {
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					*pNumberOfBytesWritten = (DWORD)(provider->writeFile(context, (sl_int64)iOffset, pBuffer, dwNumberOfBytesToWrite));
 					if (*pNumberOfBytesWritten) {
 						return 0;
