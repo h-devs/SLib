@@ -30,7 +30,7 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileInfo)
 
-		FileInfo::FileInfo() :
+	FileInfo::FileInfo() :
 		size(0),
 		allocSize(0)
 	{
@@ -39,14 +39,14 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileOpenParam)
 
-		FileOpenParam::FileOpenParam()
+	FileOpenParam::FileOpenParam()
 	{
 	}
 
 
 	SLIB_DEFINE_OBJECT(File, IO)
 
-		File::File(sl_file file) : m_file(file)
+	File::File(sl_file file) : m_file(file)
 	{
 	}
 
