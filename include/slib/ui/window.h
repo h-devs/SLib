@@ -393,6 +393,10 @@ namespace slib
 		
 		void showModal();
 
+		void show();
+
+		void hide();
+
 		
 		void addView(const Ref<View>& view, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
