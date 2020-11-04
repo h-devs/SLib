@@ -50,7 +50,6 @@ namespace slib
 	Ref<FileSystemHost> FileSystem::createHost()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
-		return new FuseHost;
 		return Dokany::createHost();
 #elif defined(SLIB_PLATFORM_IS_UNIX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 		return new FuseHost;
@@ -143,6 +142,11 @@ namespace slib
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
+	sl_bool FileSystemProvider::closeFile(FileContext* context)
+	{
+		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+	}
+
 	sl_bool FileSystemProvider::deleteFile(const StringParam& path)
 	{
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
@@ -154,6 +158,11 @@ namespace slib
 	}
 
 	sl_bool FileSystemProvider::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	{
+		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+	}
+
+	sl_bool FileSystemProvider::createDirectory(const StringParam& path)
 	{
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}

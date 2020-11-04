@@ -157,7 +157,7 @@ namespace slib
 
 		virtual sl_bool flushFile(FileContext* context);
 
-		virtual sl_bool closeFile(FileContext* context) = 0;
+		virtual sl_bool closeFile(FileContext* context);
 
 		virtual sl_bool deleteFile(const StringParam& path);
 
@@ -169,7 +169,7 @@ namespace slib
 		// path or context can be null
 		virtual sl_bool setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask);
 
-		virtual sl_bool createDirectory(const StringParam& path) = 0;
+		virtual sl_bool createDirectory(const StringParam& path);
 
 		virtual sl_bool deleteDirectory(const StringParam& path);
 
