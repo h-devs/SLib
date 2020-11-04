@@ -326,9 +326,11 @@ namespace slib
 					if (oflag & O_EXCL) {
 						// TODO
 					}
+#ifdef O_RANDOM
 					if (oflag & O_RANDOM) {
 						param.mode |= FileMode::HintRandomAccess;
 					}
+#endif
 
 					FileSystem::setLastError(FileSystemError::GeneralError);
 					Ref<FileContext> context = provider->openFile(path, param);
