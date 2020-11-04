@@ -566,6 +566,20 @@ namespace slib
 		}
 	}
 
+	Ref<View> ViewPage::getInitialFocus()
+	{
+		return m_viewInitialFocus;
+	}
+
+	void ViewPage::setInitialFocus(const Ref<View>& view)
+	{
+		m_viewInitialFocus = view;
+		if (view.isNotNull()) {
+			view->setFocus();
+		}
+	}
+
+
 	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Open)
 
 	void ViewPage::dispatchOpen()
@@ -623,6 +637,13 @@ namespace slib
 	void ViewPage::dispatchEndPageAnimation(ViewPageNavigationController* controller, UIPageAction action)
 	{
 		m_navigationController = controller;
+
+		if (action == UIPageAction::Resume || action == UIPageAction::Push) {
+			Ref<View> focus = m_viewInitialFocus;
+			if (focus.isNotNull()) {
+				focus->setFocus();
+			}
+		}
 		
 		SLIB_INVOKE_EVENT_HANDLER(EndPageAnimation, controller, action)
 	}

@@ -81,7 +81,6 @@ namespace slib
 
 	void ViewPageNavigationController::_onFinishAnimation(const Ref<View>& view, UIPageAction action)
 	{
-		dispatchEndPageAnimation(view.get(), action);
 		switch (action) {
 			case UIPageAction::Pause:
 			case UIPageAction::Pop:
@@ -95,6 +94,7 @@ namespace slib
 				break;
 		}
 		setEnabled(sl_true);
+		dispatchEndPageAnimation(view.get(), action);
 		Base::interlockedDecrement(&m_countActiveTransitionAnimations);
 	}
 
