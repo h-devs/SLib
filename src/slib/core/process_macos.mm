@@ -39,9 +39,9 @@ namespace slib
 			static String FixArgument(const String& arg)
 			{
 				String s = arg;
-				s = s.removeAll('\\', 0);
-				s = s.removeAll('"', 0);
-				s = s.removeAll('\'', 0);
+				s = s.removeAll('\\');
+				s = s.removeAll('"');
+				s = s.removeAll('\'');
 				if (s.contains(' ') || s.contains('\t') || s.contains('\r') || s.contains('\n')) {
 					s = "'" + s + "'";
 				}

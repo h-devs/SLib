@@ -29,6 +29,7 @@
 #include "slib/graphics/font.h"
 #include "slib/device/device.h"
 #include "slib/network/url.h"
+#include "slib/core/file.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -741,7 +742,14 @@ namespace slib
 		}
 		UI::openUrl(url.toString());
 	}
-	
+
+#if !defined(SLIB_UI_IS_WIN32)
+	void UI::openDirectoryAndSelectFile(const String& path)
+	{
+		openDirectory(File::getParentDirectoryPath(path));
+	}
+#endif
+
 #if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_ANDROID)
 	void UI::dismissKeyboard()
 	{
