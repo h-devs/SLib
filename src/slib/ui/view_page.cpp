@@ -63,7 +63,6 @@ namespace slib
 	ViewPage::ViewPage()
 	{
 		setCreatingInstance(sl_true);
-		setFocusable(sl_true);
 		
 		m_popupState = PopupState::None;
 		m_popupBackgroundColor = Color::zero();
