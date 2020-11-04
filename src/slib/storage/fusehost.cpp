@@ -118,11 +118,43 @@ namespace slib
 				} FUSE_CATCH
 			}
 
+			static int fusehost_fgetattr(const char *path, struct stat *stbuf,
+				struct fuse_file_info *fi)
+			{
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
+				FileSystemProvider* provider = host->getProvider();
+				FileContext* context = (FileContext*)((sl_size)(fi->fh));
+				if (!context) {
+					return -EBADF;
+				}
+
+				FUSE_TRY{
+					Base::zeroMemory(stbuf, sizeof *stbuf);
+					stbuf->st_mode = 0777;
+					stbuf->st_nlink = 1;
+
+					FileInfo info;
+					FileSystem::setLastError(FileSystemError::GeneralError);
+					if (provider->getFileInfo(path, context, info, FileInfoMask::All)) {
+						stbuf->st_mode |= (info.attributes & FileAttributes::Directory ? S_IFDIR : S_IFREG);
+						stbuf->st_size = info.size;
+						stbuf->st_ctim.tv_sec = info.createdAt.toUnixTime();
+						stbuf->st_atim.tv_sec = info.accessedAt.toUnixTime();
+						stbuf->st_mtim.tv_sec = info.modifiedAt.toUnixTime();
+					} else {
+						return FUSE_ERROR_CODE(FileSystem::getLastError());
+					}
+
+					return 0;
+				} FUSE_CATCH
+			}
+
 			static int fusehost_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t off,
 				struct fuse_file_info *fi)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
+				(void)off;
 
 				FUSE_TRY{
 					HashMap<String, FileInfo> files = provider->getFiles(path);
@@ -145,14 +177,158 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_open(const char *path, struct fuse_file_info *fi)
+			static int fusehost_mknod(const char *path, mode_t mode, dev_t dev)
+			{
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
+				FileSystemProvider* provider = host->getProvider();
+				(void)mode;
+				(void)dev;
+
+				FUSE_TRY{
+					if (provider->existsFile(path)) {
+						return -EEXIST;
+					}
+
+					FileOpenParam param;
+					param.mode = FileMode::Write;
+					FileSystem::setLastError(FileSystemError::GeneralError);
+					Ref<FileContext> context = provider->openFile(path, param);
+					if (context.isNull()) {
+						return FUSE_ERROR_CODE(FileSystem::getLastError());
+					}
+					provider->closeFile(context);
+					return 0;
+				} FUSE_CATCH
+			}
+
+			static int fusehost_mkdir(const char *path, mode_t mode)
+			{
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
+				FileSystemProvider* provider = host->getProvider();
+				(void)mode;
+
+				FUSE_TRY {
+					FileSystem::setLastError(FileSystemError::GeneralError);
+					if (provider->createDirectory(path)) {
+						return 0;
+					}
+					return FUSE_ERROR_CODE(FileSystem::getLastError());
+				} FUSE_CATCH
+			}
+
+			static int fusehost_rmdir(const char *path)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
 
 				FUSE_TRY{
+					FileSystem::setLastError(FileSystemError::GeneralError);
+					if (provider->deleteDirectory(path)) {
+						return 0;
+					}
+					return FUSE_ERROR_CODE(FileSystem::getLastError());
+				} FUSE_CATCH
+			}
+
+			static int fusehost_unlink(const char *path)
+			{
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
+				FileSystemProvider* provider = host->getProvider();
+
+				FUSE_TRY{
+					FileSystem::setLastError(FileSystemError::GeneralError);
+					if (provider->deleteFile(path)) {
+						return 0;
+					}
+					return FUSE_ERROR_CODE(FileSystem::getLastError());
+				} FUSE_CATCH
+			}
+
+			static int fusehost_rename(const char *oldpath, const char *newpath)
+			{
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
+				FileSystemProvider* provider = host->getProvider();
+
+				FUSE_TRY{
+					FileSystem::setLastError(FileSystemError::GeneralError);
+					if (provider->moveFile(oldpath, newpath, sl_true)) {
+						return 0;
+					}
+					return FUSE_ERROR_CODE(FileSystem::getLastError());
+				} FUSE_CATCH
+			}
+
+			static int fusehost_truncate(const char *path, off_t size)
+			{
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
+				FileSystemProvider* provider = host->getProvider();
+
+				FUSE_TRY{
+					FileInfo info;
+					info.size = size;
+					FileSystem::setLastError(FileSystemError::GeneralError);
+					if (provider->setFileInfo(path, sl_null, info, FileInfoMask::Size)) {
+						return 0;
+					}
+					return FUSE_ERROR_CODE(FileSystem::getLastError());
+				} FUSE_CATCH
+			}
+
+			static int fusehost_ftruncate(const char *path, off_t size,
+				struct fuse_file_info *fi)
+			{
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
+				FileSystemProvider* provider = host->getProvider();
+				FileContext* context = (FileContext*)((sl_size)(fi->fh));
+				if (!context) {
+					return -EBADF;
+				}
+
+				FUSE_TRY{
+					FileInfo info;
+					info.size = size;
+					FileSystem::setLastError(FileSystemError::GeneralError);
+					if (provider->setFileInfo(path, context, info, FileInfoMask::Size)) {
+						return 0;
+					}
+					return FUSE_ERROR_CODE(FileSystem::getLastError());
+				} FUSE_CATCH
+			}
+
+			static int fusehost_open(const char *path, struct fuse_file_info *fi)
+			{
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
+				FileSystemProvider* provider = host->getProvider();
+				int oflag = fi->flags;
+
+				FUSE_TRY {
 					FileOpenParam param;
-					param.mode = FileMode::Read;
+					param.mode = FileMode::ShareAll;
+
+					if (oflag == O_RDONLY) {
+						param.mode |= FileMode::Read;
+					}
+					if (oflag & O_WRONLY) {
+						param.mode |= FileMode::Write;
+					}
+					if (oflag & O_RDWR) {
+						param.mode |= FileMode::ReadWrite;
+					}
+					if (oflag & O_APPEND) {
+						param.mode |= FileMode::Append;
+					}
+					if (!(oflag & O_CREAT)) {
+						param.mode |= FileMode::NotCreate;
+					}
+					if (!(oflag & O_TRUNC)) {
+						param.mode |= FileMode::NotTruncate;
+					}
+					if (oflag & O_EXCL) {
+						// TODO
+					}
+					if (oflag & O_RANDOM) {
+						param.mode |= FileMode::HintRandomAccess;
+					}
 
 					FileSystem::setLastError(FileSystemError::GeneralError);
 					Ref<FileContext> context = provider->openFile(path, param);
@@ -179,12 +355,50 @@ namespace slib
 				}
 
 				FUSE_TRY{
-					FileSystem::setLastError(FileSystemError::GeneralError);
+					FileSystem::setLastError(FileSystemError::Success);
 					sl_uint64 ret = provider->readFile(context, offset, buf, size);
-					if (ret == 0) {
-						// TODO check if error
+					if (ret == 0) { // success or error ?
+						return FUSE_ERROR_CODE(FileSystem::getLastError());
 					}
 					return (int)(ret & SLIB_INT32_MAX);
+				} FUSE_CATCH
+			}
+
+			static int fusehost_write(const char *path, const char *buf, size_t size, off_t offset,
+				struct fuse_file_info *fi)
+			{
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
+				FileSystemProvider* provider = host->getProvider();
+				FileContext* context = (FileContext*)((sl_size)(fi->fh));
+				if (!context) {
+					return -EBADF;
+				}
+
+				FUSE_TRY{
+					FileSystem::setLastError(FileSystemError::Success);
+					sl_uint64 ret = provider->writeFile(context, offset, buf, size);
+					if (ret == 0) { // success or error ?
+						return FUSE_ERROR_CODE(FileSystem::getLastError());
+					}
+					return (int)(ret & SLIB_INT32_MAX);
+				} FUSE_CATCH
+			}
+
+			static int fusehost_flush(const char *path, struct fuse_file_info *fi)
+			{
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
+				FileSystemProvider* provider = host->getProvider();
+				FileContext* context = (FileContext*)((sl_size)(fi->fh));
+				if (!context) {
+					return 0;
+				}
+
+				FUSE_TRY{
+					FileSystem::setLastError(FileSystemError::GeneralError);
+					if (provider->flushFile(context)) {
+						return 0;
+					}
+					return FUSE_ERROR_CODE(FileSystem::getLastError());
 				} FUSE_CATCH
 			}
 
@@ -213,22 +427,23 @@ namespace slib
 				fuse_op.getattr = fusehost_getattr;
 				//fuse_op.readlink = fusehost_readlink;
 				//fuse_op.getdir = fusehost_getdir;
-				//fuse_op.mknod = fusehost_mknod;
-				//fuse_op.mkdir = fusehost_mkdir;
-				//fuse_op.unlink = fusehost_unlink;
-				//fuse_op.rmdir = fusehost_rmdir;
+				fuse_op.mknod = fusehost_mknod;
+				fuse_op.mkdir = fusehost_mkdir;
+				fuse_op.unlink = fusehost_unlink;
+				fuse_op.rmdir = fusehost_rmdir;
 				//fuse_op.symlink = fusehost_symlink;
-				//fuse_op.rename = fusehost_rename;
+				fuse_op.rename = fusehost_rename;
 				//fuse_op.link = fusehost_link;
 				//fuse_op.chmod = fusehost_chmod;
 				//fuse_op.chown = fusehost_chown;
-				//fuse_op.truncate = fusehost_truncate;
+				fuse_op.truncate = fusehost_truncate;
 				//fuse_op.utime = fusehost_utime;
+
 				fuse_op.open = fusehost_open;
 				fuse_op.read = fusehost_read;
-				//fuse_op.write = fusehost_write;
+				fuse_op.write = fusehost_write;
 				fuse_op.statfs = fusehost_statfs;
-				//fuse_op.flush = fusehost_flush;
+				fuse_op.flush = fusehost_flush;
 				fuse_op.release = fusehost_release;
 				//fuse_op.fsync = fusehost_fsync;
 
@@ -240,8 +455,8 @@ namespace slib
 				//fuse_op.destroy = fusehost_destroy;
 				//fuse_op.access = fusehost_access;
 				//fuse_op.create = fusehost_create;
-				//fuse_op.ftruncate = fusehost_ftruncate;
-				//fuse_op.fgetattr = fusehost_fgetattr;
+				fuse_op.ftruncate = fusehost_ftruncate;
+				fuse_op.fgetattr = fusehost_fgetattr;
 
 				return &fuse_op;
 			}
