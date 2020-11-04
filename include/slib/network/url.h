@@ -86,7 +86,7 @@ namespace slib
 		static String getPhoneNumber(const StringParam& url);
 
 
-		static String getPathFromFileUri(const StringParam& uri);
+		static String getPathFromFileUri(const StringParam& uri, sl_bool flagReturnOriginalOnError = sl_true);
 
 		static String toFileUri(const StringParam& path);
 

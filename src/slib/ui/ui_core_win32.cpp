@@ -376,7 +376,7 @@ namespace slib
 		}
 	}
 
-	void UI::openDirectoryAndSelectFile(const String& path)
+	void UI::openDirectoryAndSelectFile(const StringParam& path)
 	{
 		String dir = File::getParentDirectoryPath(path);
 		ShellOpenFolderAndSelectItemsParam param;

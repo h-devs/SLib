@@ -436,7 +436,7 @@ namespace slib
 		return sl_null;
 	}
 
-	String Url::getPathFromFileUri(const StringParam& _uri)
+	String Url::getPathFromFileUri(const StringParam& _uri, sl_bool flagReturnOriginalOnError)
 	{
 		StringData uri(_uri);
 		if (uri.startsWith("file://")) {
@@ -464,6 +464,9 @@ namespace slib
 				}
 			}
 			return uri.substring(7);
+		}
+		if (flagReturnOriginalOnError) {
+			return uri;
 		}
 		return sl_null;
 	}

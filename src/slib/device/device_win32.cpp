@@ -119,7 +119,7 @@ namespace slib
 		return ret;
 	}	
 
-	void Device::openUrl(const String& url)
+	void Device::openUrl(const StringParam& url)
 	{
 		ShellExecuteParam param;
 		param.operation = "open";
