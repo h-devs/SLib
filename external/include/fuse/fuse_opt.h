@@ -9,7 +9,14 @@
 #ifndef _FUSE_OPT_H_
 #define _FUSE_OPT_H_
 
-/* This file defines the option parsing interface of FUSE */
+/** @file
+ *
+ * This file defines the option parsing interface of FUSE
+ */
+
+#ifdef _MSC_VER
+#define strdup _strdup
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -97,7 +104,7 @@ struct fuse_opt {
  * Last option.  An array of 'struct fuse_opt' must end with a NULL
  * template value
  */
-#define FUSE_OPT_END { .templ = NULL }
+#define FUSE_OPT_END { NULL }
 
 /**
  * Argument list

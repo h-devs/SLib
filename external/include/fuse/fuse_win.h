@@ -7,6 +7,7 @@
 
 #include <time.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #ifdef _MSC_VER
 #define WIN32_NO_STATUS
@@ -20,11 +21,11 @@
 #endif
 
 #ifndef DEFAULT_FUSE_VOLUME_NAME
-#define DEFAULT_FUSE_VOLUME_NAME "DOKAN"
+#define DEFAULT_FUSE_VOLUME_NAME ""
 #endif
 
 #ifndef DEFAULT_FUSE_FILESYSTEM_NAME
-#define DEFAULT_FUSE_FILESYSTEM_NAME "Dokan user-level file system"
+#define DEFAULT_FUSE_FILESYSTEM_NAME "FuseFs"
 #endif
 
 #ifdef __cplusplus
@@ -160,13 +161,10 @@ struct flock {
 //We have a choice between CRT-compatible 32-bit off_t definition
 //and a custom 64-bit definition
 #define WIDE_OFF_T 1
-#ifndef WIDE_OFF_T
-#define FUSE_OFF_T off_t
-#define FUSE_STAT stat
+#ifdef WIDE_OFF_T
 
-#else
-#define FUSE_OFF_T __int64
-// #define FUSE_STAT _stati64
+#define off_t __int64
+// #define stat _stati64
 // use stat from cygwin instead for having more members and 
 // being more compatible
 // stat ported from cygwin sys/stat.h
@@ -179,7 +177,7 @@ struct stat64_cygwin
 	uid_t         st_uid;
 	gid_t         st_gid;
 	dev_t         st_rdev;
-	FUSE_OFF_T    st_size;
+	off_t         st_size;
 	timestruc_t   st_atim;
 	timestruc_t   st_mtim;
 	timestruc_t   st_ctim;
@@ -195,7 +193,8 @@ struct stat64_cygwin
 #define st_ctime st_ctim.tv_sec
 #define st_mtime st_mtim.tv_sec
 */
-#define FUSE_STAT stat64_cygwin
+
+#define stat stat64_cygwin
 #if 0
 struct stat64 {
 	dev_t st_dev;
@@ -205,7 +204,7 @@ struct stat64 {
 	short st_uid;
 	short st_gid;
 	dev_t st_rdev;
-	FUSE_OFF_T st_size;
+	off_t st_size;
 	time_t st_atime;
 	time_t st_mtime;
 	time_t st_ctime;

@@ -14,7 +14,9 @@
 #define _FUSE_COMMON_H_
 
 #include "fuse_opt.h"
+#ifndef _MSC_VER
 #include <stdint.h>
+#endif
 
 /** Major version of FUSE library interface */
 #define FUSE_MAJOR_VERSION 2
@@ -25,9 +27,14 @@
 #define FUSE_MAKE_VERSION(maj, min)  ((maj) * 10 + (min))
 #define FUSE_VERSION FUSE_MAKE_VERSION(FUSE_MAJOR_VERSION, FUSE_MINOR_VERSION)
 
+/* This interface uses 64 bit off_t, except on Windows where it's 
+possible to use 32-bit filelengths for compatibility with MSVC CRT */
+#ifndef _MSC_VER
 /* This interface uses 64 bit off_t */
 #if _FILE_OFFSET_BITS != 64
+//#error Please add -D_FILE_OFFSET_BITS=64 to your compile flags!
 #define off_t __int64
+#endif
 #endif
 
 #ifdef __cplusplus

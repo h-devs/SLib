@@ -9,25 +9,51 @@
 #ifndef _FUSE_H_
 #define _FUSE_H_
 
-/* This file defines the library interface of FUSE */
+/* Include Windows compatibility stuff early*/
+#ifdef _WIN32
+#include "fuse_win.h"
+#endif
 
-/* IMPORTANT: you should define FUSE_USE_VERSION before including this
-   header.  To use the newest API define it to 26 (recommended for any
-   new application), to use the old API define it to 21 (default) 22
-   or 25, to use the even older 1.X API define it to 11. */
+/* Add semaphore fix for Cygwin. TODO: think of a better workaround? */
+#ifdef __CYGWIN__
+#ifndef NO_CYGWIN_SEM_FIX
+#include "fuse_sem_fix.h"
+#endif
+#endif
+
+/** @file
+ *
+ * This file defines the library interface of FUSE
+ *
+ * IMPORTANT: you should define FUSE_USE_VERSION before including this
+ * header.  To use the newest API define it to 26 (recommended for any
+ * new application), to use the old API define it to 21 (default) 22
+ * or 25, to use the even older 1.X API define it to 11.
+ * NOTE: Windows port always uses the latest FUSE version.
+ */
 
 #ifndef FUSE_USE_VERSION
-#define FUSE_USE_VERSION 21
+#define FUSE_USE_VERSION 27
 #endif
 
 #include "fuse_common.h"
 
 #include <fcntl.h>
 #include <time.h>
-#include <utime.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/statvfs.h>
+
+#ifdef _WIN32
+# if defined(__CYGWIN__) || defined(__MINGW32__)
+#  include <utime.h>
+# endif
+# if defined(__CYGWIN__)
+#  include <sys/statvfs.h>
+# endif
+#else
+# include <utime.h>
+# include <sys/statvfs.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

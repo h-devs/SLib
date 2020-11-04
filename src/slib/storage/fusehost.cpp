@@ -20,23 +20,17 @@
 *   THE SOFTWARE.
 */
 
+#include "slib/storage/fusehost.h"
+
 #define TAG "FuseHost"
 #include "slib/storage/file_system_internal.h"
 
-#include "slib/storage/fusehost.h"
+#include "slib/core/dynamic_library.h"
 
 #define FUSE_USE_VERSION 27
-
-#ifdef SLIB_PLATFORM_IS_WIN32
-#include "dokany/fuse/fuse.h"
-#define stat FUSE_STAT
-#define off_t FUSE_OFF_T
-#else
 #include "fuse/fuse.h"
-#include <errno.h>
-#endif
 
-#include "slib/core/dynamic_library.h"
+#include <errno.h>
 
 namespace slib
 {
@@ -83,7 +77,6 @@ namespace slib
 				stbuf->st_size = (flagDirectory ? 0 : 5);
 
 				sl_int64 now = Time::now().getSecondsCount();
-				//stbuf->st_birthtim.tv_sec = now;
 				stbuf->st_ctim.tv_sec = now;
 				stbuf->st_mtim.tv_sec = now;
 				stbuf->st_atim.tv_sec = now;
