@@ -9637,6 +9637,10 @@ namespace slib
 
 	void View::dispatchOK(UIEvent* ev)
 	{
+		if (!m_flagEnabled) {
+			return;
+		}
+
 		SLIB_INVOKE_EVENT_HANDLER(OK, ev)
 
 		if (ev->isStoppedPropagation()) {
