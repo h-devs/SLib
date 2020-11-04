@@ -207,6 +207,8 @@ namespace slib
 		
 	protected:
 		virtual void layoutViews(sl_ui_len width, sl_ui_len height) = 0;
+
+		virtual void onInit();
 		
 	protected:
 		void _layoutViews_safe(sl_ui_len width, sl_ui_len height);
