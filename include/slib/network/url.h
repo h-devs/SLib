@@ -49,42 +49,48 @@ namespace slib
 	public:
 		Url();
 		
-		Url(const String& url);
+		Url(const StringParam& url);
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Url)
 		
 	public:
-		void parse(const String& url);
+		void parse(const StringParam& url);
 		
 		String toString() const;
 		
 		HashMap<String, String> getQueryParameters() const;
 		
 		void setQueryParameters(const HashMap<String, String>& params);
-		
+
 	public:
-		static String encodePercent(const String& value);
+		static String encodePercent(const StringParam& value);
 		
-		static String decodePercent(const String& value);
-		
-		
-		static String encodeUriComponent(const String& value);
-		
-		static String decodeUriComponent(const String& value);
+		static String decodePercent(const StringParam& value);
 		
 		
-		static String encodeUri(const String& value);
+		static String encodeUriComponent(const StringParam& value);
 		
-		static String decodeUri(const String& value);
+		static String decodeUriComponent(const StringParam& value);
 		
 		
-		static String encodeForm(const String& value);
+		static String encodeUri(const StringParam& value);
 		
-		static String decodeForm(const String& value);
+		static String decodeUri(const StringParam& value);
+		
+		
+		static String encodeForm(const StringParam& value);
+		
+		static String decodeForm(const StringParam& value);
 
 
-		static String getPhoneNumber(const String& url);
-		
+		static String getPhoneNumber(const StringParam& url);
+
+
+		static String getPathFromFileUri(const StringParam& uri);
+
+		static String toFileUri(const StringParam& path);
+
+
 	};
 
 }

@@ -110,7 +110,7 @@ namespace slib
 		static sl_uint32 getScreenHeight();
 		
 		
-		static void openUrl(const String& url);
+		static void openUrl(const StringParam& url);
 
 
 		static void openDial(const String& phoneNumber);

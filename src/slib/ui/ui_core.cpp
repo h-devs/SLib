@@ -718,33 +718,27 @@ namespace slib
 		return g_flagRunningApp;
 	}
 	
-	void UI::openUrl(const String& url)
+	void UI::openUrl(const StringParam& url)
 	{
 		Device::openUrl(url);
 	}
 
-	void UI::openFile(const String& path)
+	void UI::openFile(const StringParam& path)
 	{
-		Url url;
-		url.scheme = "file";
-		url.path = path.replaceAll('\\', '/');
-		UI::openUrl(url.toString());
+		UI::openUrl(Url::toFileUri(path));
 	}
 
-	void UI::openDirectory(const String& path)
+	void UI::openDirectory(const StringParam& path)
 	{
-		Url url;
-		url.scheme = "file";
-		url.path = path.replaceAll('\\', '/');
-		if (!(path.endsWith('/'))) {
-			// directory url must end with '/' in Windows XP
-			url.path += "/";
+		String uri = Url::toFileUri(path);
+		if (!(uri.endsWith('/'))) {
+			uri += "/";
 		}
-		UI::openUrl(url.toString());
+		UI::openUrl(uri);
 	}
 
 #if !defined(SLIB_UI_IS_WIN32)
-	void UI::openDirectoryAndSelectFile(const String& path)
+	void UI::openDirectoryAndSelectFile(const StringParam& path)
 	{
 		openDirectory(File::getParentDirectoryPath(path));
 	}
