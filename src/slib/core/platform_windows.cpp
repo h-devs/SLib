@@ -33,6 +33,7 @@
 
 #include <crtdbg.h>
 #include <shlwapi.h>
+#pragma warning(disable: 4091)
 #include <shlobj.h>
 
 namespace slib
@@ -869,10 +870,10 @@ namespace slib
 
 			DWORD dwFlags = 0;
 			if (param.flagEdit) {
-				dwFlags |= OFASI_EDIT;
+				dwFlags |= 1; // OFASI_EDIT;
 			}
 			if (param.flagOpenDesktop) {
-				dwFlags |= OFASI_OPENDESKTOP;
+				dwFlags |= 2; // OFASI_OPENDESKTOP;
 			}
 
 			ListLocker<StringParam> items(param.items);
@@ -894,6 +895,7 @@ namespace slib
 				bRet = hr == S_OK;
 			}
 
+			n = i;
 			for (i = 0; i < n; i++) {
 				ILFree(arr[i]);
 			}
