@@ -66,6 +66,8 @@ namespace slib
 		void goToHomePage(const Ref<View>& pageOther, const Transition& transition);
 		
 		void goToHomePage(const Ref<View>& pageOther);
+
+		Ref<Window> createNavigationWindow();
 		
 		
 		void popup(const Ref<View>& parent, const Transition& transition, sl_bool flagFillParentBackground = sl_true);

@@ -188,6 +188,23 @@ namespace slib
 		}
 	}
 
+	Ref<Window> ViewPage::createNavigationWindow()
+	{
+		Ref<ViewPageNavigationController> pager = new ViewPageNavigationController;
+		if (pager.isNull()) {
+			return sl_null;
+		}
+		Ref<Window> window = new Window;
+		if (window.isNull()) {
+			return sl_null;
+		}
+		pager->setWidthFilling(1, UIUpdateMode::Init);
+		pager->setHeightFilling(1, UIUpdateMode::Init);
+		pager->push(this);
+		window->addView(pager, UIUpdateMode::Init);
+		return window;
+	}
+
 	void ViewPage::_openPopup(const Ref<View>& parent, Transition transition, sl_bool flagFillParentBackground)
 	{
 		ObjectLocker lock(this);
