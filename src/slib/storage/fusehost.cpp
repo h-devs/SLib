@@ -62,7 +62,7 @@ namespace slib
 
 			static int fusehost_statfs(const char *path, struct statvfs *stbuf)
 			{
-				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()());
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
 
 				FUSE_TRY {
@@ -94,7 +94,7 @@ namespace slib
 
 			static int fusehost_getattr(const char *path, struct stat *stbuf)
 			{
-				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()());
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
 
 				FUSE_TRY{
@@ -121,7 +121,7 @@ namespace slib
 			static int fusehost_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t off,
 				struct fuse_file_info *fi)
 			{
-				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()());
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
 
 				FUSE_TRY{
@@ -147,7 +147,7 @@ namespace slib
 
 			static int fusehost_open(const char *path, struct fuse_file_info *fi)
 			{
-				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()());
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
 
 				FUSE_TRY{
@@ -171,7 +171,7 @@ namespace slib
 			static int fusehost_read(const char *path, char *buf, size_t size, off_t offset,
 				struct fuse_file_info *fi)
 			{
-				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()());
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
 				FileContext* context = (FileContext*)((sl_size)(fi->fh));
 				if (!context) {
@@ -190,7 +190,7 @@ namespace slib
 
 			static int fusehost_release(const char *path, struct fuse_file_info *fi)
 			{
-				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()());
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
 				FileContext* context = (FileContext*)((sl_size)(fi->fh));
 				if (!context) {
