@@ -40,8 +40,10 @@ namespace slib
 
 		String getErrorMessage() override;
 
-	private:
-		int m_iStatus;
+	public:
+		int m_iRet;
+
+		String m_strError;
 
 	};
 

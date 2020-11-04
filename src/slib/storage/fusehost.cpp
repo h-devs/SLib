@@ -476,7 +476,7 @@ namespace slib
 #else
 		g_libFuse = DynamicLibrary::loadLibrary("libfuse.so.2");
 #endif
-		m_iStatus = 0;
+		m_iRet = 0;
 	}
 
 	FuseHost::~FuseHost()
@@ -489,26 +489,26 @@ namespace slib
 	sl_bool FuseHost::_run()
 	{
 		if (!g_libFuse) {
-			LOG_ERROR("Cannot load fuse library.");
+			m_strError = "Cannot load fuse library.";
 			return sl_false;
 		}
 
 		auto funcVersion = getApi_fuse_version();
 		if (!funcVersion) {
-			LOG_ERROR("Cannot get fuse_version function address.");
+			m_strError = "Cannot get fuse_version function address.";
 			return sl_false;
 		}
 
 		int fuse_version = funcVersion();
 		LOG("Fuse library version is %d", fuse_version);
 		if (fuse_version < FUSE_USE_VERSION) {
-			LOG_ERROR("Fuse library version is lower than %d.", FUSE_USE_VERSION);
+			m_strError = String::format("Fuse library version is lower than %d.", FUSE_USE_VERSION);
 			return sl_false;
 		}
 
 		auto funcMain = getApi_fuse_main_real();
 		if (!funcMain) {
-			LOG_ERROR("Cannot get fuse_main_real function address.");
+			m_strError = "Cannot get fuse_main_real function address.";
 			return sl_false;
 		}
 
@@ -543,13 +543,16 @@ namespace slib
 		}
 		args.add(m_param.mountPoint.getData());
 
-		m_iStatus = funcMain(args.getCount(), args.getData(), fuse_op, sizeof(*fuse_op), this);
-		return m_iStatus == 0;
+		m_iRet = funcMain(args.getCount(), args.getData(), fuse_op, sizeof(*fuse_op), this);
+		return m_iRet == 0;
 	}
 
 	String FuseHost::getErrorMessage()
 	{
-		return String::format("Ret code %d.", m_iStatus);
+		if (m_strError.isEmpty()) {
+			return String::format("Ret code %d.", m_iRet);
+		}
+		return m_strError;
 	}
 
 }
