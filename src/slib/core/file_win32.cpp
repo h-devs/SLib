@@ -156,6 +156,9 @@ namespace slib
 			if (!(mode & (FileMode::WriteData | FileMode::WriteAttrs))) {
 				dwDesiredAccess |= GENERIC_WRITE;
 			}
+			if (mode & FileMode::SeekToEnd) {
+				dwDesiredAccess |= FILE_APPEND_DATA;
+			}
 		}
 		if (mode & FileMode::Sync) {
 			dwDesiredAccess |= SYNCHRONIZE;

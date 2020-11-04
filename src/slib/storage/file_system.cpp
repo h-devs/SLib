@@ -50,7 +50,11 @@ namespace slib
 	Ref<FileSystemHost> FileSystem::createHost()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
+# ifdef SLIB_FILE_SYSTEM_USE_FUSE
+		return new FuseHost;
+# else
 		return Dokany::createHost();
+# endif
 #elif defined(SLIB_PLATFORM_IS_UNIX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 		return new FuseHost;
 #else
