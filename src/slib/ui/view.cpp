@@ -10669,6 +10669,14 @@ namespace slib
 		}
 	}
 
+	void ViewInstance::onKillFocus()
+	{
+		Ref<View> view = getView();
+		if (view.isNotNull()) {
+			view->_setFocus(sl_false, sl_false, UIUpdateMode::Redraw);
+		}
+	}
+
 	void ViewInstance::onSwipe(GestureType type)
 	{
 		Ref<View> view = getView();
