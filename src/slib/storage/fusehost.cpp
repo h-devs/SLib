@@ -396,10 +396,8 @@ namespace slib
 				}
 
 				FUSE_TRY{
-					FileSystem::setLastError(FileSystemError::GeneralError);
-					if (provider->flushFile(context)) {
-						return 0;
-					}
+					FileSystem::setLastError(FileSystemError::Success);
+					provider->flushFile(context);
 					return FUSE_ERROR_CODE(FileSystem::getLastError());
 				} FUSE_CATCH
 			}
