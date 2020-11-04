@@ -725,6 +725,15 @@ namespace slib
 	{
 	}
 
+	String StringData::toString(const StringParam& param)
+	{
+		if (string.isNotNull()) {
+			return string;
+		} else {
+			return param.toString();
+		}
+	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(StringData16)
 
@@ -768,6 +777,15 @@ namespace slib
 
 	StringData16::StringData16(const sl_char16* str, sl_size length) noexcept: StringView16(str, length)
 	{
+	}
+
+	String16 StringData16::toString16(const StringParam& param)
+	{
+		if (string.isNotNull()) {
+			return string;
+		} else {
+			return param.toString16();
+		}
 	}
 
 
@@ -842,6 +860,15 @@ namespace slib
 		}
 	}
 
+	String StringCstr::toString(const StringParam& param)
+	{
+		if (string.isNotNull()) {
+			return string;
+		} else {
+			return param.toString();
+		}
+	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(StringCstr16)
 
@@ -911,6 +938,15 @@ namespace slib
 					data = string.getData(*((sl_size*)&length));
 				}
 			}
+		}
+	}
+
+	String16 StringCstr16::toString16(const StringParam& param)
+	{
+		if (string.isNotNull()) {
+			return string;
+		} else {
+			return param.toString16();
 		}
 	}
 

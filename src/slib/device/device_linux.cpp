@@ -81,8 +81,9 @@ namespace slib
 		return Sizei::zero();
 	}
 	
-	void Device::openUrl(const String& url)
+	void Device::openUrl(const StringParam& _url)
 	{
+		StringCstr url(_url);
 		GError* error = NULL;
 		gtk_show_uri(NULL, url.getData(), GDK_CURRENT_TIME, &error);
 	}

@@ -63,6 +63,7 @@ namespace slib
 	ViewPage::ViewPage()
 	{
 		setCreatingInstance(sl_true);
+		setFocusable(sl_true);
 		
 		m_popupState = PopupState::None;
 		m_popupBackgroundColor = Color::zero();
@@ -186,6 +187,29 @@ namespace slib
 		if (controller.isNotNull()) {
 			controller->pushPageAfterPopAllPages(page);
 		}
+	}
+
+	Ref<Window> ViewPage::createNavigationWindow()
+	{
+		Ref<ViewPageNavigationController> pager = new ViewPageNavigationController;
+		if (pager.isNull()) {
+			return sl_null;
+		}
+		Ref<Window> window = new Window;
+		if (window.isNull()) {
+			return sl_null;
+		}
+		pager->setWidthFilling(1, UIUpdateMode::Init);
+		pager->setHeightFilling(1, UIUpdateMode::Init);
+		pager->push(this);
+		window->addView(pager, UIUpdateMode::Init);
+		window->setOnCancel([pager](Window* window, UIEvent* ev) {
+			if (pager->getPagesCount() > 1) {
+				pager->pop();
+				ev->preventDefault();
+			}
+		});
+		return window;
 	}
 
 	void ViewPage::_openPopup(const Ref<View>& parent, Transition transition, sl_bool flagFillParentBackground)
@@ -640,7 +664,17 @@ namespace slib
 		if (ev->isPreventedDefault()) {
 			return;
 		}
-		close();
+
+		Ref<ViewPageNavigationController> controller = getNavigationController();
+		if (controller.isNotNull()) {
+			if (controller->getPagesCount() > 1) {
+				close();
+				ev->preventDefault();
+				return;
+			}
+		}
+
+		ViewGroup::dispatchCancel(ev);
 	}
 
 }

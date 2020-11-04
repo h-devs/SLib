@@ -8568,6 +8568,21 @@ namespace slib
 			return;
 		}
 
+		if (isNativeWidget()) {
+			Ref<GestureDetector> gesture = getGestureDetector();
+			if (gesture.isNotNull()) {
+				gesture->processEvent(ev);
+			}
+			if (!(ev->isStoppedPropagation())) {
+				priv::view::DuringEventScope scope(this, ev);
+				SLIB_INVOKE_EVENT_HANDLER(MouseEvent, ev)
+			}
+			if (m_flagCaptureEvents) {
+				ev->addFlag(UIEventFlags::Captured);
+			}
+			return;
+		}
+
 		_processAutoHideScrollBar(ev);
 
 		UIAction action = ev->getAction();
@@ -8797,6 +8812,22 @@ namespace slib
 			return;
 		}
 		if (!m_flagEnabled) {
+			return;
+		}
+
+		if (isNativeWidget()) {
+			Ref<GestureDetector> gesture = getGestureDetector();
+			if (gesture.isNotNull()) {
+				gesture->processEvent(ev);
+			}
+			if (!(ev->isStoppedPropagation())) {
+				priv::view::DuringEventScope scope(this, ev);
+				SLIB_INVOKE_EVENT_HANDLER(TouchEvent, ev)
+				SLIB_INVOKE_EVENT_HANDLER(MouseEvent, ev)
+			}
+			if (m_flagCaptureEvents) {
+				ev->addFlag(UIEventFlags::Captured);
+			}
 			return;
 		}
 
@@ -9139,6 +9170,12 @@ namespace slib
 			return;
 		}
 
+		if (isNativeWidget()) {
+			priv::view::DuringEventScope scope(this, ev);
+			SLIB_INVOKE_EVENT_HANDLER(MouseWheelEvent, ev)
+			return;
+		}
+
 		_processAutoHideScrollBar(ev);
 		
 		// pass event to children
@@ -9228,6 +9265,16 @@ namespace slib
 			return;
 		}
 
+		if (isNativeWidget()) {
+			priv::view::DuringEventScope scope(this, ev);
+			SLIB_INVOKE_EVENT_HANDLER(KeyEvent, ev)
+			if (ev->isPreventedDefault()) {
+				return;
+			}
+			_processKeyEvents(ev);
+			return;
+		}
+
 		_processAutoHideScrollBar(ev);
 		
 		if (!(ev->getFlags() & UIEventFlags::NotDispatchToChildren)) {
@@ -9258,64 +9305,7 @@ namespace slib
 			_processContentScrollingEvents(ev);
 		}
 		
-		if (ev->getAction() == UIAction::KeyDown) {
-			if (ev->isAltKey()) {
-				if (getParent().isNull()) {
-					Keycode keycode = ev->getKeycode();
-					char mneonicKey = 0;
-					if (keycode >= Keycode::A && keycode <= Keycode::Z) {
-						mneonicKey = 'A' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::A));
-					} else if (keycode >= Keycode::Num0 && keycode <= Keycode::Num9) {
-						mneonicKey = '0' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::Num0));
-					} else if (keycode >= Keycode::Numpad0 && keycode <= Keycode::Numpad9) {
-						mneonicKey = '0' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::Numpad0));
-					}
-					Ref<View> view = findViewByMnemonicKey(mneonicKey);
-					if (view.isNotNull()) {
-						view->dispatchMnemonic(ev);
-					}
-				}
-			} else {
-				Keycode keycode = ev->getKeycode();
-				switch (keycode) {
-				case Keycode::Tab:
-					if (isTabStopEnabled() && getFocusedChild().isNull()) {
-						if (ev->isShiftKey()) {
-							Ref<View> v = getPreviousTabStop();
-							if (v.isNotNull() && v != this) {
-								v->setFocus();
-								ev->stopPropagation();
-								ev->preventDefault();
-							}
-						} else {
-							Ref<View> v = getNextTabStop();
-							if (v.isNotNull() && v != this) {
-								v->setFocus();
-								ev->stopPropagation();
-								ev->preventDefault();
-							}
-						}
-					}
-					break;
-				case Keycode::Enter:
-					if (m_flagOkCancelEnabled) {
-						dispatchOK();
-						ev->stopPropagation();
-						ev->preventDefault();
-					}
-					break;
-				case Keycode::Escape:
-					if (m_flagOkCancelEnabled) {
-						dispatchCancel();
-						ev->stopPropagation();
-						ev->preventDefault();
-					}
-					break;
-				default:
-					break;
-				}
-			}
-		}		
+		_processKeyEvents(ev);
 	}
 	
 	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(Click)
@@ -9352,7 +9342,13 @@ namespace slib
 		if (! m_flagEnabled) {
 			return;
 		}
-		
+
+		if (isNativeWidget()) {
+			priv::view::DuringEventScope scope(this, ev);
+			SLIB_INVOKE_EVENT_HANDLER(SetCursor, ev)
+			return;
+		}
+
 		// pass event to children
 		{
 			Ref<View> scrollBars[2];
@@ -9449,7 +9445,13 @@ namespace slib
 		if (! m_flagEnabled) {
 			return;
 		}
-		
+
+		if (isNativeWidget()) {
+			priv::view::DuringEventScope scope(this, ev);
+			SLIB_INVOKE_EVENT_HANDLER(DropEvent, ev)
+			return;
+		}
+
 		UIAction action = ev->getAction();
 		
 		// pass event to children
@@ -9702,11 +9704,70 @@ namespace slib
 		SLIB_INVOKE_EVENT_HANDLER(Mnemonic, ev)
 	}
 
+	void View::_processKeyEvents(UIEvent* ev)
+	{
+		if (ev->getAction() == UIAction::KeyDown) {
+			if (ev->isAltKey()) {
+				if (getParent().isNull()) {
+					Keycode keycode = ev->getKeycode();
+					char mneonicKey = 0;
+					if (keycode >= Keycode::A && keycode <= Keycode::Z) {
+						mneonicKey = 'A' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::A));
+					} else if (keycode >= Keycode::Num0 && keycode <= Keycode::Num9) {
+						mneonicKey = '0' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::Num0));
+					} else if (keycode >= Keycode::Numpad0 && keycode <= Keycode::Numpad9) {
+						mneonicKey = '0' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::Numpad0));
+					}
+					Ref<View> view = findViewByMnemonicKey(mneonicKey);
+					if (view.isNotNull()) {
+						view->dispatchMnemonic(ev);
+					}
+				}
+			} else {
+				Keycode keycode = ev->getKeycode();
+				switch (keycode) {
+				case Keycode::Tab:
+					if (isTabStopEnabled() && getFocusedChild().isNull()) {
+						if (ev->isShiftKey()) {
+							Ref<View> v = getPreviousTabStop();
+							if (v.isNotNull() && v != this) {
+								v->setFocus();
+								ev->stopPropagation();
+								ev->preventDefault();
+							}
+						} else {
+							Ref<View> v = getNextTabStop();
+							if (v.isNotNull() && v != this) {
+								v->setFocus();
+								ev->stopPropagation();
+								ev->preventDefault();
+							}
+						}
+					}
+					break;
+				case Keycode::Enter:
+					if (m_flagOkCancelEnabled) {
+						dispatchOK();
+						ev->stopPropagation();
+						ev->preventDefault();
+					}
+					break;
+				case Keycode::Escape:
+					if (m_flagOkCancelEnabled) {
+						dispatchCancel();
+						ev->stopPropagation();
+						ev->preventDefault();
+					}
+					break;
+				default:
+					break;
+				}
+			}
+		}
+	}
+
 	void View::_processEventForStateAndClick(UIEvent* ev)
 	{
-		if (isNativeWidget()) {
-			return;
-		}
 		UIAction action = ev->getAction();
 		switch (action) {
 			case UIAction::LeftButtonDown:
@@ -9856,23 +9917,6 @@ namespace slib
 					}
 				}
 			}
-		}
-		
-		if (isNativeWidget()) {
-			switch (action) {
-				case UIAction::LeftButtonDown:
-				case UIAction::TouchBegin:
-					scrollAttrs->flagDownContent = sl_true;
-					scrollAttrs->mousePointDown = ev->getPoint();
-					break;
-				case UIAction::LeftButtonUp:
-				case UIAction::TouchEnd:
-				case UIAction::TouchCancel:
-					scrollAttrs->flagDownContent = sl_false;
-				default:
-					break;
-			}
-			return;
 		}
 		
 		sl_scroll_pos lineX = (sl_scroll_pos)(getWidth() / 20);
@@ -10238,7 +10282,7 @@ namespace slib
 	void View::_processAutoHideScrollBar(UIEvent* ev)
 	{
 		Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;
-		if (scrollAttrs.isNotNull() && !(isNativeWidget())) {
+		if (scrollAttrs.isNotNull()) {
 			if (scrollAttrs->flagAutoHideScrollBar && (scrollAttrs->flagValidHorz || scrollAttrs->flagValidVert)) {
 				UIAction action = ev->getAction();
 				sl_bool flagInvalidateScrollBar = sl_false;

@@ -70,7 +70,7 @@ namespace slib
 		return Sizei::zero();
 	}
 	
-	void Device::openUrl(const String& _url)
+	void Device::openUrl(const StringParam& _url)
 	{
 		if (_url.isNotEmpty()) {
 			NSString* s = Apple::getNSStringFromString(_url);

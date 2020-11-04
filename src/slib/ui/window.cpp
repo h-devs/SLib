@@ -1450,7 +1450,18 @@ namespace slib
 	{
 		UI::dispatchToUiThread(SLIB_BIND_REF(void(), Window, doModal, this));
 	}
-	
+
+	void Window::show()
+	{
+		setVisible(sl_true);
+		create();
+	}
+
+	void Window::hide()
+	{
+		setVisible(sl_false);
+	}
+
 	void Window::addView(const Ref<View>& child, UIUpdateMode mode)
 	{
 		if (child.isNotNull()) {

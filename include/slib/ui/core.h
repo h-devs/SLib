@@ -213,13 +213,13 @@ namespace slib
 		static sl_bool isRunningApp();
 		
 		
-		static void openUrl(const String& url);
+		static void openUrl(const StringParam& url);
 
-		static void openFile(const String& path);
+		static void openFile(const StringParam& path);
 
-		static void openDirectory(const String& path);
+		static void openDirectory(const StringParam& path);
 
-		static void openDirectoryAndSelectFile(const String& path);
+		static void openDirectoryAndSelectFile(const StringParam& path);
 
 		static void dismissKeyboard();
 		

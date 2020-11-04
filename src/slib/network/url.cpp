@@ -151,8 +151,9 @@ namespace slib
 				/*78*/	1,		1,		1,		0,		0,		0,		1,		0
 			};
 
-			static String EncodePercent(const String& value, const sl_bool patternUnreserved[128])
+			static String EncodePercent(const StringParam& _value, const sl_bool patternUnreserved[128])
 			{
+				StringData value(_value);
 				sl_size n = value.getLength();
 				if (n > 0) {
 					const sl_char8* src = value.getData();
@@ -188,13 +189,14 @@ namespace slib
 	{
 	}
 	
-	Url::Url(const String& url)
+	Url::Url(const StringParam& url)
 	{
 		parse(url);
 	}
 	
-	void Url::parse(const String& url)
+	void Url::parse(const StringParam& _url)
 	{
+		StringData url(_url);
 		const sl_char8* str = url.getData();
 		sl_reg n = url.getLength();
 		sl_reg indexHost = -1;
@@ -291,13 +293,14 @@ namespace slib
 		query = HttpRequest::buildQuery(params);
 	}
 	
-	String Url::encodePercent(const String& value)
+	String Url::encodePercent(const StringParam& value)
 	{
 		return EncodePercent(value, g_patternUnreserved);
 	}
 	
-	String Url::decodePercent(const String& value)
+	String Url::decodePercent(const StringParam& _value)
 	{
+		StringData value(_value);
 		sl_size n = value.getLength();
 		if (n > 0) {
 			const sl_char8* src = value.getData();
@@ -333,28 +336,29 @@ namespace slib
 		}
 	}
 	
-	String Url::encodeUriComponent(const String& value)
+	String Url::encodeUriComponent(const StringParam& value)
 	{
 		return EncodePercent(value, g_patternUnreserved_UriComponents);
 	}
 	
-	String Url::decodeUriComponent(const String& value)
+	String Url::decodeUriComponent(const StringParam& value)
 	{
 		return decodePercent(value);
 	}
 	
-	String Url::encodeUri(const String& value)
+	String Url::encodeUri(const StringParam& value)
 	{
 		return EncodePercent(value, g_patternUnreserved_Uri);
 	}
 	
-	String Url::decodeUri(const String& value)
+	String Url::decodeUri(const StringParam& value)
 	{
 		return decodePercent(value);
 	}
 	
-	String Url::encodeForm(const String& value)
+	String Url::encodeForm(const StringParam& _value)
 	{
+		StringData value(_value);
 		sl_size n = value.getLength();
 		if (n > 0) {
 			const sl_char8* src = value.getData();
@@ -381,8 +385,9 @@ namespace slib
 		}
 	}
 	
-	String Url::decodeForm(const String& value)
+	String Url::decodeForm(const StringParam& _value)
 	{
+		StringData value(_value);
 		sl_size n = value.getLength();
 		if (n > 0) {
 			const sl_char8* src = value.getData();
@@ -420,12 +425,80 @@ namespace slib
 		}
 	}
 
-	String Url::getPhoneNumber(const String& url)
+	String Url::getPhoneNumber(const StringParam& _url)
 	{
+		StringData url(_url);
 		if (url.startsWith("tel://")) {
 			return url.substring(6);
 		} else if (url.startsWith("tel:")) {
 			return url.substring(4);
+		}
+		return sl_null;
+	}
+
+	String Url::getPathFromFileUri(const StringParam& _uri, sl_bool flagReturnOriginalOnError)
+	{
+		StringData uri(_uri);
+		if (uri.startsWith("file://")) {
+			sl_char8* data = uri.getData();
+			sl_size len = uri.getLength();
+			if (len > 10 && data[7] == '/') {
+				if (SLIB_CHAR_IS_ALPHA(data[8]) && data[9] == ':' && data[10] == '/') {
+					String ret = String::allocate(len - 8);
+					if (ret.isNotNull()) {
+						sl_char8* dst = ret.getData();
+						Base::copyMemory(dst, data + 8, len - 8);
+						dst[2] = '\\';
+						return ret;
+					}
+				}
+			} else if (len > 9) {
+				if (SLIB_CHAR_IS_ALPHA(data[7]) && data[8] == ':' && data[9] == '/') {
+					String ret = String::allocate(len - 7);
+					if (ret.isNotNull()) {
+						sl_char8* dst = ret.getData();
+						Base::copyMemory(dst, data + 7, len - 7);
+						dst[2] = '\\';
+						return ret;
+					}
+				}
+			}
+			return uri.substring(7);
+		}
+		if (flagReturnOriginalOnError) {
+			return uri;
+		}
+		return sl_null;
+	}
+
+	String Url::toFileUri(const StringParam& _path)
+	{
+		StringData path(_path);
+		sl_uint32 nPrefix;
+		const char* szPrefix;
+		if (path.startsWith('/')) {
+			nPrefix = 7;
+			szPrefix = "file://";
+		} else {
+			nPrefix = 8;
+			szPrefix = "file:///";
+		}
+		sl_size len = path.getLength();
+		String ret = String::allocate(nPrefix + len);
+		if (ret.isNotNull()) {
+			sl_char8* src = path.getData();
+			sl_char8* dst = ret.getData();
+			Base::copyMemory(dst, szPrefix, nPrefix);
+			dst += nPrefix;
+			for (sl_size i = 0; i < len; i++) {
+				sl_char8 ch = src[i];
+				if (ch == '\\') {
+					dst[i] = '/';
+				} else {
+					dst[i] = ch;
+				}
+			}
+			return ret;
 		}
 		return sl_null;
 	}

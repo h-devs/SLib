@@ -360,15 +360,15 @@ namespace slib
 		static sl_bool appendAllTextUTF16BE(const StringParam& path, const StringParam& text);
 
 	
-		static String getParentDirectoryPath(const String& path);
+		static String getParentDirectoryPath(const StringParam& path);
 
-		static String getFileName(const String& path);
+		static String getFileName(const StringParam& path);
 
-		static String getFileExtension(const String& path);
+		static String getFileExtension(const StringParam& path);
 
-		static String getFileNameOnly(const String& path);
+		static String getFileNameOnly(const StringParam& path);
 
-		static String normalizeDirectoryPath(const String& path);
+		static String normalizeDirectoryPath(const StringParam& path);
 	
 
 		// converts any invalid characters (0~0x1f, 0x7f~0x9f, :*?"<>|\/) into "_"
