@@ -911,15 +911,15 @@ namespace slib
 			class DokanHost : public FileSystemHost
 			{
 			public:
-				DokanHost()
+				DokanHost() : m_iRet(0)
 				{
-					m_iStatus = 0;
 				}
 
 			public:
 				sl_bool _run() override
 				{
 					if (!Dokany::initialize()) {
+						m_strError = "Cannot load dokan library.";
 						return sl_false;
 					}
 
@@ -958,26 +958,31 @@ namespace slib
 					options.GlobalContext = (ULONG64)(void*)this;
 
 					if (!(CheckDokanyOptions(options))) {
+						m_strError = "Invalid dokan options.";
 						return sl_false;
 					}
 					if (!(CheckPovider(param.provider.get(), options))) {
+						m_strError = "Invalid provider.";
 						return sl_false;
 					}
 
 					auto funcMain = getApi_DokanMain();
 					if (!funcMain) {
-						LOG_ERROR("Cannot get DokanMain function address.");
+						m_strError = "Cannot get DokanMain function address.";
 						return sl_false;
 					}
 
-					m_iStatus = funcMain(&options, (PDOKAN_OPERATIONS)GetDokanOperations());
+					m_iRet = funcMain(&options, (PDOKAN_OPERATIONS)GetDokanOperations());
 
-					return (m_iStatus == DOKAN_SUCCESS);
+					return (m_iRet == DOKAN_SUCCESS);
 				}
 
 				String getErrorMessage() override
 				{
-					switch (m_iStatus) {
+					if (m_strError.isNotEmpty()) {
+						return m_strError;
+					}
+					switch (m_iRet) {
 					case DOKAN_SUCCESS:
 						SLIB_RETURN_STRING("Success");
 					case DOKAN_ERROR:
@@ -995,12 +1000,13 @@ namespace slib
 					case DOKAN_VERSION_ERROR:
 						SLIB_RETURN_STRING("Driver version error");
 					default:
-						return String::format("Unknown error: %d", m_iStatus);
+						return String::format("Unknown error: %d", m_iRet);
 					}
 				}
 				
 			private:
-				int m_iStatus;
+				int m_iRet;
+				String m_strError;
 
 			};
 

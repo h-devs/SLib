@@ -1559,7 +1559,7 @@
     <ClCompile Include="..\..\src\slib\render\dl_windows_d3d.cpp">
       <Filter>src\render</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\storage\fusehost.cpp">
+    <ClCompile Include="..\..\src\slib\storage\fuse.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
   </ItemGroup>

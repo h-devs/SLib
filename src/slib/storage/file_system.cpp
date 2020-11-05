@@ -29,7 +29,7 @@
 #include "slib/storage/dokany.h"
 #endif
 
-#include "slib/storage/fusehost.h"
+#include "slib/storage/fuse.h"
 
 namespace slib
 {
@@ -51,7 +51,7 @@ namespace slib
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
 # ifdef SLIB_FILE_SYSTEM_USE_FUSE
-		return new FuseHost;
+		return Fuse::createHost();
 # else
 		return Dokany::createHost();
 # endif
@@ -74,9 +74,13 @@ namespace slib
 	sl_bool FileSystem::unmount(const String& mountPoint)
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
+# ifdef SLIB_FILE_SYSTEM_USE_FUSE
+		return Fuse::unmount(mountPoint);
+# else
 		return Dokany::unmount(mountPoint);
+# endif
 #elif defined(SLIB_PLATFORM_IS_UNIX) && defined(SLIB_PLATFORM_IS_DESKTOP)
-		return sl_false;
+		return Fuse::unmount(mountPoint);
 #else
 		return sl_false;
 #endif

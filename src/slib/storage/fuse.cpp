@@ -20,7 +20,7 @@
 *   THE SOFTWARE.
 */
 
-#include "slib/storage/fusehost.h"
+#include "slib/storage/fuse.h"
 
 #define TAG "FuseHost"
 #include "slib/storage/file_system_internal.h"
@@ -49,7 +49,7 @@ namespace slib
 
 	namespace priv
 	{
-		namespace fusehost
+		namespace fuse
 		{
 			void* g_libFuse;
 			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libFuse, fuse_main_real, int, ,
@@ -57,10 +57,12 @@ namespace slib
 				size_t op_size, void *user_data)
 			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libFuse, fuse_get_context, struct fuse_context *, ,
 				void)
+			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libFuse, fuse_unmount, void, ,
+				const char *mountpoint, struct fuse_chan *ch)
 			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libFuse, fuse_version, int, ,
 				void)
 
-			static int fusehost_statfs(const char *path, struct statvfs *stbuf)
+			static int fuse_statfs(const char *path, struct statvfs *stbuf)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
@@ -92,7 +94,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_getattr(const char *path, struct stat *stbuf)
+			static int fuse_getattr(const char *path, struct stat *stbuf)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
@@ -118,7 +120,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_fgetattr(const char *path, struct stat *stbuf,
+			static int fuse_fgetattr(const char *path, struct stat *stbuf,
 				struct fuse_file_info *fi)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
@@ -149,7 +151,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t off,
+			static int fuse_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t off,
 				struct fuse_file_info *fi)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
@@ -177,7 +179,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_mknod(const char *path, mode_t mode, dev_t dev)
+			static int fuse_mknod(const char *path, mode_t mode, dev_t dev)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
@@ -201,7 +203,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_mkdir(const char *path, mode_t mode)
+			static int fuse_mkdir(const char *path, mode_t mode)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
@@ -216,7 +218,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_rmdir(const char *path)
+			static int fuse_rmdir(const char *path)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
@@ -230,7 +232,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_unlink(const char *path)
+			static int fuse_unlink(const char *path)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
@@ -244,7 +246,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_rename(const char *oldpath, const char *newpath)
+			static int fuse_rename(const char *oldpath, const char *newpath)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
@@ -258,7 +260,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_truncate(const char *path, off_t size)
+			static int fuse_truncate(const char *path, off_t size)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
@@ -274,7 +276,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_ftruncate(const char *path, off_t size,
+			static int fuse_ftruncate(const char *path, off_t size,
 				struct fuse_file_info *fi)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
@@ -295,7 +297,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_utimens(const char *path, const struct timespec tv[2])
+			static int fuse_utimens(const char *path, const struct timespec tv[2])
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
@@ -312,7 +314,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_open(const char *path, struct fuse_file_info *fi)
+			static int fuse_open(const char *path, struct fuse_file_info *fi)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
@@ -363,7 +365,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_read(const char *path, char *buf, size_t size, off_t offset,
+			static int fuse_read(const char *path, char *buf, size_t size, off_t offset,
 				struct fuse_file_info *fi)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
@@ -383,7 +385,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_write(const char *path, const char *buf, size_t size, off_t offset,
+			static int fuse_write(const char *path, const char *buf, size_t size, off_t offset,
 				struct fuse_file_info *fi)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
@@ -403,7 +405,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_flush(const char *path, struct fuse_file_info *fi)
+			static int fuse_flush(const char *path, struct fuse_file_info *fi)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
@@ -419,7 +421,7 @@ namespace slib
 				} FUSE_CATCH
 			}
 
-			static int fusehost_release(const char *path, struct fuse_file_info *fi)
+			static int fuse_release(const char *path, struct fuse_file_info *fi)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
@@ -441,135 +443,178 @@ namespace slib
 			static struct fuse_operations* GetFuseOperations()
 			{
 				static struct fuse_operations fuse_op = { 0 };
-				fuse_op.getattr = fusehost_getattr;
-				//fuse_op.readlink = fusehost_readlink;
-				//fuse_op.getdir = fusehost_getdir;
-				fuse_op.mknod = fusehost_mknod;
-				fuse_op.mkdir = fusehost_mkdir;
-				fuse_op.unlink = fusehost_unlink;
-				fuse_op.rmdir = fusehost_rmdir;
-				//fuse_op.symlink = fusehost_symlink;
-				fuse_op.rename = fusehost_rename;
-				//fuse_op.link = fusehost_link;
-				//fuse_op.chmod = fusehost_chmod;
-				//fuse_op.chown = fusehost_chown;
-				fuse_op.truncate = fusehost_truncate;
-				//fuse_op.utime = fusehost_utime;
-				fuse_op.utimens = fusehost_utimens;
+				fuse_op.getattr = fuse_getattr;
+				//fuse_op.readlink = fuse_readlink;
+				//fuse_op.getdir = fuse_getdir;
+				fuse_op.mknod = fuse_mknod;
+				fuse_op.mkdir = fuse_mkdir;
+				fuse_op.unlink = fuse_unlink;
+				fuse_op.rmdir = fuse_rmdir;
+				//fuse_op.symlink = fuse_symlink;
+				fuse_op.rename = fuse_rename;
+				//fuse_op.link = fuse_link;
+				//fuse_op.chmod = fuse_chmod;
+				//fuse_op.chown = fuse_chown;
+				fuse_op.truncate = fuse_truncate;
+				//fuse_op.utime = fuse_utime;
+				fuse_op.utimens = fuse_utimens;
 
-				fuse_op.open = fusehost_open;
-				fuse_op.read = fusehost_read;
-				fuse_op.write = fusehost_write;
-				fuse_op.statfs = fusehost_statfs;
-				fuse_op.flush = fusehost_flush;
-				fuse_op.release = fusehost_release;
-				//fuse_op.fsync = fusehost_fsync;
+				fuse_op.open = fuse_open;
+				fuse_op.read = fuse_read;
+				fuse_op.write = fuse_write;
+				fuse_op.statfs = fuse_statfs;
+				fuse_op.flush = fuse_flush;
+				fuse_op.release = fuse_release;
+				//fuse_op.fsync = fuse_fsync;
 
-				//fuse_op.opendir = fusehost_opendir;
-				fuse_op.readdir = fusehost_readdir;
-				//fuse_op.releasedir = fusehost_releasedir;
-				//fuse_op.fsyncdir = fusehost_fsyncdir;
-				//fuse_op.init = fusehost_init;
-				//fuse_op.destroy = fusehost_destroy;
-				//fuse_op.access = fusehost_access;
-				//fuse_op.create = fusehost_create;
-				fuse_op.ftruncate = fusehost_ftruncate;
-				fuse_op.fgetattr = fusehost_fgetattr;
+				//fuse_op.opendir = fuse_opendir;
+				fuse_op.readdir = fuse_readdir;
+				//fuse_op.releasedir = fuse_releasedir;
+				//fuse_op.fsyncdir = fuse_fsyncdir;
+				//fuse_op.init = fuse_init;
+				//fuse_op.destroy = fuse_destroy;
+				//fuse_op.access = fuse_access;
+				//fuse_op.create = fuse_create;
+				fuse_op.ftruncate = fuse_ftruncate;
+				fuse_op.fgetattr = fuse_fgetattr;
 
 				return &fuse_op;
 			}
 
+			class FuseHost : public FileSystemHost
+			{
+			public:
+				FuseHost() : m_iRet(0)
+				{
+				}
+
+			public:
+				sl_bool _run() override
+				{
+					if (!Fuse::initialize()) {
+						m_strError = "Cannot load fuse library.";
+						return sl_false;
+					}
+
+					auto funcVersion = getApi_fuse_version();
+					if (!funcVersion) {
+						m_strError = "Cannot get fuse_version function address.";
+						return sl_false;
+					}
+
+					int fuse_version = funcVersion();
+					LOG("Fuse library version is %d", fuse_version);
+					if (fuse_version < FUSE_USE_VERSION) {
+						m_strError = String::format("Fuse library version is lower than %d.", FUSE_USE_VERSION);
+						return sl_false;
+					}
+
+					auto funcMain = getApi_fuse_main_real();
+					if (!funcMain) {
+						m_strError = "Cannot get fuse_main_real function address.";
+						return sl_false;
+					}
+
+					FileSystemProvider* provider = getProvider();
+					if (!provider) {
+						m_strError = "Invalid provider.";
+						return sl_false;
+					}
+
+
+					List<char*> args;
+					StringCstr fsName = "FuseFs";
+
+					SLIB_TRY{
+						FileSystemInfo info;
+						if (provider->getInformation(info)) {
+							fsName = info.fileSystemName;
+						}
+					} SLIB_CATCH(...)
+
+					args.add(fsName.getData());
+					args.add(StringCstr("-f").getData());	// always use foreground mode
+					if (m_param.flags & FileSystemHostFlags::DebugMode) {
+						args.add(StringCstr("-d").getData());
+					} else if (m_param.flags & FileSystemHostFlags::UseStdErr) {
+						// TODO
+					}
+					if (m_param.flags & FileSystemHostFlags::WriteProtect) {
+						// TODO
+					}
+					if (m_param.flags & FileSystemHostFlags::MountAsRemovable) {
+						// TODO
+					}
+					if (m_param.flags & FileSystemHostFlags::MountAsNetworkDrive) {
+						// TODO
+					}
+					args.add(m_param.mountPoint.getData());
+
+					fuse_operations* fuse_op = GetFuseOperations();
+
+					m_iRet = funcMain(args.getCount(), args.getData(), fuse_op, sizeof(*fuse_op), this);
+					return m_iRet == 0;
+				}
+
+				String getErrorMessage() override
+				{
+					if (m_strError.isNotEmpty()) {
+						return m_strError;
+					}
+					return String::format("Fuse ret code: %d.", m_iRet);
+				}
+
+			public:
+				int m_iRet;
+				String m_strError;
+
+			};
+
 		}
 	}
 
-	using namespace priv::fusehost;
+	using namespace priv::fuse;
 
 
-	FuseHost::FuseHost()
+	sl_bool Fuse::initialize(const StringParam& libPath)
 	{
-#ifdef SLIB_PLATFORM_IS_WIN32
-		g_libFuse = DynamicLibrary::loadLibrary("dokanfuse1.dll");
-#else
-		g_libFuse = DynamicLibrary::loadLibrary("libfuse.so.2");
-#endif
-		m_iRet = 0;
+		void* lib = DynamicLibrary::loadLibrary(libPath);
+		if (lib) {
+			g_libFuse = lib;
+			return sl_true;
+		}
+		return sl_false;
 	}
 
-	FuseHost::~FuseHost()
+	sl_bool Fuse::initialize()
 	{
 		if (g_libFuse) {
-			DynamicLibrary::freeLibrary(g_libFuse);
+			return sl_true;
 		}
+#ifdef SLIB_PLATFORM_IS_WIN32
+		return initialize("dokanfuse1.dll");
+#else
+		return initialize("libfuse.so.2");
+#endif
 	}
 
-	sl_bool FuseHost::_run()
+	Ref<FileSystemHost> Fuse::createHost()
 	{
-		if (!g_libFuse) {
-			m_strError = "Cannot load fuse library.";
-			return sl_false;
-		}
-
-		auto funcVersion = getApi_fuse_version();
-		if (!funcVersion) {
-			m_strError = "Cannot get fuse_version function address.";
-			return sl_false;
-		}
-
-		int fuse_version = funcVersion();
-		LOG("Fuse library version is %d", fuse_version);
-		if (fuse_version < FUSE_USE_VERSION) {
-			m_strError = String::format("Fuse library version is lower than %d.", FUSE_USE_VERSION);
-			return sl_false;
-		}
-
-		auto funcMain = getApi_fuse_main_real();
-		if (!funcMain) {
-			m_strError = "Cannot get fuse_main_real function address.";
-			return sl_false;
-		}
-
-		fuse_operations* fuse_op = GetFuseOperations();
-
-		List<char*> args;
-
-		FileSystemProvider* provider = getProvider();
-		StringCstr fsName = "FuseFs";
-
-		SLIB_TRY {
-			FileSystemInfo info;
-			if (provider->getInformation(info)) {
-				fsName = info.fileSystemName;
-			}
-		} SLIB_CATCH(...)
-
-		args.add(fsName.getData());
-		args.add(StringCstr("-f").getData());	// always use foreground mode
-		if (m_param.flags & FileSystemHostFlags::DebugMode) {
-			args.add(StringCstr("-d").getData());
-		} else if (m_param.flags & FileSystemHostFlags::UseStdErr) {
-			// TODO
-		}
-		if (m_param.flags & FileSystemHostFlags::WriteProtect) {
-			// TODO
-		}
-		if (m_param.flags & FileSystemHostFlags::MountAsRemovable) {
-			// TODO
-		}
-		if (m_param.flags & FileSystemHostFlags::MountAsNetworkDrive) {
-			// TODO
-		}
-		args.add(m_param.mountPoint.getData());
-
-		m_iRet = funcMain(args.getCount(), args.getData(), fuse_op, sizeof(*fuse_op), this);
-		return m_iRet == 0;
+		return new FuseHost;
 	}
 
-	String FuseHost::getErrorMessage()
+	sl_bool Fuse::unmount(const StringParam& _mountPoint)
 	{
-		if (m_strError.isEmpty()) {
-			return String::format("Fuse ret code: %d.", m_iRet);
+		if (!(initialize())) {
+			return sl_false;
 		}
-		return m_strError;
+		auto func = getApi_fuse_unmount();
+		if (func) {
+			StringCstr mountPoint(_mountPoint);
+			func(mountPoint.getData(), sl_null);
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 }

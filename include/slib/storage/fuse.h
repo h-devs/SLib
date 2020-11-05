@@ -20,30 +20,24 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_STORAGE_FUSEHOST
-#define CHECKHEADER_SLIB_STORAGE_FUSEHOST
+#ifndef CHECKHEADER_SLIB_STORAGE_FUSE
+#define CHECKHEADER_SLIB_STORAGE_FUSE
 
 #include "file_system.h"
 
 namespace slib
 {
 
-	class FuseHost : public FileSystemHost
+	class SLIB_EXPORT Fuse
 	{
 	public:
-		FuseHost();
-		
-		~FuseHost();
+		static sl_bool initialize(const StringParam& libPath);
 
-	public:
-		sl_bool _run() override;
+		static sl_bool initialize();
 
-		String getErrorMessage() override;
+		static Ref<FileSystemHost> createHost();
 
-	public:
-		int m_iRet;
-
-		String m_strError;
+		static sl_bool unmount(const StringParam& mountPoint);
 
 	};
 
