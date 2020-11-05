@@ -2686,25 +2686,20 @@ namespace slib
 		}
 		m_flagNeedApplyLayout = sl_false;
 		
-		if (isNativeWidget()) {
-			ListElements< Ref<View> > children(getChildren());
-			for (sl_size i = 0; i < children.count; i++) {
-				Ref<View>& child = children[i];
-				child->_applyLayout(mode);
+		ListElements< Ref<View> > children(getChildren());
+		for (sl_size i = 0; i < children.count; i++) {
+			Ref<View>& child = children[i];
+			child->_applyLayout(UIUpdateMode::None);
+		}
+		if (layoutAttrs.isNotNull()) {
+			setFrame(layoutAttrs->layoutFrame, UIUpdateMode::None);
+		}
+		if (!(isNativeWidget())) {
+			if (isInstance()) {
+				invalidate();
+			} else {
+				invalidate(mode);
 			}
-			if (layoutAttrs.isNotNull()) {
-				setFrame(layoutAttrs->layoutFrame, UIUpdateMode::None);
-			}
-		} else {
-			ListElements< Ref<View> > children(getChildren());
-			for (sl_size i = 0; i < children.count; i++) {
-				Ref<View>& child = children[i];
-				child->_applyLayout(UIUpdateMode::None);
-			}
-			if (layoutAttrs.isNotNull()) {
-				setFrame(layoutAttrs->layoutFrame, UIUpdateMode::None);
-			}
-			invalidate(mode);
 		}
 	}
 

@@ -244,6 +244,15 @@ namespace slib
 			if (path) {
 				selectedPath = Url::getPathFromFileUri(path);
 				g_free(path);
+				if (type == FileDialogType::SaveFile) {
+					if (defaultFileExt.isNotEmpty()) {
+						String ext = File::getFileExtension(selectedPath);
+						if (ext.isEmpty()) {
+							selectedPath += ".";
+							selectedPath += defaultFileExt;
+						}
+					}
+				}
 				GSList* list = gtk_file_chooser_get_uris(chooser);
 				if (list) {
 					GSList* item = list;
