@@ -156,7 +156,7 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
-				(void)off;
+				SLIB_UNUSED(off)
 
 				FUSE_TRY{
 					HashMap<String, FileInfo> files = provider->getFiles(path);
@@ -183,8 +183,8 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
-				(void)mode;
-				(void)dev;
+				SLIB_UNUSED(mode);
+				SLIB_UNUSED(dev);
 
 				FUSE_TRY{
 					if (provider->existsFile(path)) {
@@ -207,7 +207,7 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
-				(void)mode;
+				SLIB_UNUSED(mode);
 
 				FUSE_TRY {
 					FileSystem::setLastError(FileSystemError::GeneralError);

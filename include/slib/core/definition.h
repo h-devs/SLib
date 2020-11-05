@@ -136,12 +136,11 @@ namespace slib
 {
 	namespace priv
 	{
-		SLIB_INLINE void BlankProc(const void*) noexcept {}
 		void Abort(const char* msg, const char* file, sl_uint32 line) noexcept;
 	}
 }
 
-#define SLIB_UNUSED(x)					slib::priv::BlankProc(&x);
+#define SLIB_UNUSED(x)					(void)x;
 
 #if defined(SLIB_DEBUG)
 #	define SLIB_ASSERT(EXPRESSION)		( (!!(EXPRESSION)) || (slib::priv::Abort(#EXPRESSION, __FILE__, __LINE__), 0) )
