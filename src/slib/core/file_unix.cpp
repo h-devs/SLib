@@ -524,9 +524,21 @@ namespace slib
 	}
 
 	FileAttributes File::getAttributes()
-	{
-		// not supported
-		return FileAttributes::NotExist;
+    {
+        int fd = (int)m_file;
+        if (fd != SLIB_FILE_INVALID_HANDLE) {
+            struct stat st;
+            if (0 == fstat(fd, &st)) {
+                int ret = 0;
+                if (S_ISDIR(st.st_mode)) {
+                    ret |= FileAttributes::Directory;
+                } else {
+                    ret |= FileAttributes::Normal;
+                }
+                return ret;
+            }
+        }
+        return FileAttributes::NotExist;
 	}
 
 	FileAttributes File::_getAttributes(const StringParam& _filePath)
