@@ -208,40 +208,45 @@ namespace slib
 
 		FileAttributes attr = File::getAttributes(filePath);
 		if (attr & FileAttributes::NotExist) {
-			if (!flagOpened) {
-				SLIB_THROW(FileSystemError::NotFound, sl_false);
-			}
-			attr = file->getAttributes();
-			if (attr & FileAttributes::NotExist) {
-				SLIB_THROW(FileSystemError::NotFound, sl_false);
-			}
+            if (flagOpened) {
+                attr = file->getAttributes();
+            }
 		}
 
 		if (mask & FileInfoMask::Attributes) {
+            if (attr & FileAttributes::NotExist) {
+                SLIB_THROW(FileSystemError::NotFound, sl_false);
+            }
 			outInfo.attributes = (sl_uint32)attr;
 		}
 
-		if (!(attr & FileAttributes::Directory)) {
-			if (mask & FileInfoMask::Size) {
-				sl_bool ret = sl_false;
-				if (flagOpened) {
-					ret = file->getSize(outInfo.size);
-				}
-				if (!ret && !(File::getSize(filePath, outInfo.size))) {
-					SLIB_THROW(FileSystem::getLastError(), sl_false);
-				}
-			}
+        if (mask & FileInfoMask::Size) {
+            sl_bool ret = sl_false;
+            if (flagOpened) {
+                ret = file->getSize(outInfo.size);
+            }
+            if (!ret && !(File::getSize(filePath, outInfo.size))) {
+                if (attr & FileAttributes::Directory) {
+                    outInfo.size = 0;
+                } else {
+                    SLIB_THROW(FileSystem::getLastError(), sl_false);
+                }
+            }
+        }
 
-			if (mask & FileInfoMask::AllocSize) {
-				sl_bool ret = sl_false;
-				if (flagOpened) {
-					ret = file->getSize(outInfo.allocSize);
-				}
-				if (!ret && !(File::getSize(filePath, outInfo.allocSize))) {
-					SLIB_THROW(FileSystem::getLastError(), sl_false);
-				}
-			}
-		}
+        if (mask & FileInfoMask::AllocSize) {
+            sl_bool ret = sl_false;
+            if (flagOpened) {
+                ret = file->getSize(outInfo.allocSize);
+            }
+            if (!ret && !(File::getSize(filePath, outInfo.allocSize))) {
+                if (attr & FileAttributes::Directory) {
+                    outInfo.allocSize = 0;
+                } else {
+                    SLIB_THROW(FileSystem::getLastError(), sl_false);
+                }
+            }
+        }
 
 		if (mask & FileInfoMask::Time) {
 			if (flagOpened) {
