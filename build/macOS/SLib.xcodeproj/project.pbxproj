@@ -99,6 +99,8 @@
 		267206282497433C006E6347 /* label_list.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 267206272497433B006E6347 /* label_list.cpp */; };
 		267464A32317189000DE8715 /* chromium_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 267464A22317189000DE8715 /* chromium_macos.mm */; settings = {COMPILER_FLAGS = "-I$(PROJECT_DIR)/../../external/src/libcef"; }; };
 		26781C1D2350F6A4002FCA2F /* brush_quartz.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26781C1C2350F6A4002FCA2F /* brush_quartz.mm */; };
+		267A25ED2553DA7C008C7757 /* fuse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 267A25EC2553DA7C008C7757 /* fuse.cpp */; };
+		267A25EF2553E1B0008C7757 /* dynamic_library_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 267A25EE2553E1AF008C7757 /* dynamic_library_unix.cpp */; };
 		267B9D69225D14640057DF2A /* instagram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 267B9D68225D14640057DF2A /* instagram.cpp */; };
 		26805B6723533D4300D8817C /* string_param.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26805B6623533D4300D8817C /* string_param.cpp */; };
 		26805B6923533D6B00D8817C /* string_buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26805B6823533D6A00D8817C /* string_buffer.cpp */; };
@@ -839,6 +841,8 @@
 		267206272497433B006E6347 /* label_list.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = label_list.cpp; sourceTree = "<group>"; };
 		267464A22317189000DE8715 /* chromium_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = chromium_macos.mm; sourceTree = "<group>"; };
 		26781C1C2350F6A4002FCA2F /* brush_quartz.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = brush_quartz.mm; sourceTree = "<group>"; };
+		267A25EC2553DA7C008C7757 /* fuse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fuse.cpp; sourceTree = "<group>"; };
+		267A25EE2553E1AF008C7757 /* dynamic_library_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dynamic_library_unix.cpp; sourceTree = "<group>"; };
 		267B9D68225D14640057DF2A /* instagram.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = instagram.cpp; path = social/instagram.cpp; sourceTree = "<group>"; };
 		267C16B81CE779D8000318C2 /* scroll_bar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scroll_bar.cpp; sourceTree = "<group>"; };
 		267D008B1E32AA5A002CC949 /* render_drawable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = render_drawable.cpp; sourceTree = "<group>"; };
@@ -1283,6 +1287,7 @@
 				265EA9372550D48C0098721F /* file_system_logger.cpp */,
 				265EA9382550D48C0098721F /* file_system_mirror.cpp */,
 				265EA9392550D48C0098721F /* file_system.cpp */,
+				267A25EC2553DA7C008C7757 /* fuse.cpp */,
 			);
 			path = storage;
 			sourceTree = "<group>";
@@ -1707,6 +1712,7 @@
 				265A936B2304832B00B155A2 /* console_unix.cpp */,
 				A234D6EA1B3F12A600ADDF4E /* content_type.cpp */,
 				26BC2EC71E2E09B500D0801E /* dispatch.cpp */,
+				267A25EE2553E1AF008C7757 /* dynamic_library_unix.cpp */,
 				A25F2FA61B03A33700854DAF /* event.cpp */,
 				A2DE1D8E1B383BC100A74698 /* event_unix.cpp */,
 				A25F2FA71B03A33700854DAF /* file.cpp */,
@@ -2129,6 +2135,7 @@
 				269308662368DE7E00C9C7F9 /* openssl_crypto.cpp in Sources */,
 				263D478F23872AD200DAC43F /* chat_sqlite.cpp in Sources */,
 				26D9D9971E96467B005F7BD3 /* icmp.cpp in Sources */,
+				267A25EF2553E1B0008C7757 /* dynamic_library_unix.cpp in Sources */,
 				26BAE00E221C90020085B5AB /* etsy_ui.cpp in Sources */,
 				26D9D9AB1E964683005F7BD3 /* opengl_gles.cpp in Sources */,
 				26E1B868222A8250007C222E /* inftrees.c in Sources */,
@@ -2199,6 +2206,7 @@
 				26A3DA8E228A08D40031CBDA /* chacha.cpp in Sources */,
 				26E1B884222ABAB2007C222E /* jchuff.c in Sources */,
 				26E1B883222ABAB2007C222E /* jcdctmgr.c in Sources */,
+				267A25ED2553DA7C008C7757 /* fuse.cpp in Sources */,
 				26E1B865222A8250007C222E /* infback.c in Sources */,
 				26D9D90C1E9645CE005F7BD3 /* spin_lock.cpp in Sources */,
 				26D9D95B1E964662005F7BD3 /* earth.cpp in Sources */,

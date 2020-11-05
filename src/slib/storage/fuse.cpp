@@ -83,9 +83,9 @@ namespace slib
 					if (provider->getSize(&totalSize, &freeSize)) {
 						stbuf->f_bsize = BLOCK_SIZE;
 						stbuf->f_frsize = BLOCK_SIZE;
-						stbuf->f_blocks = totalSize / BLOCK_SIZE;
-						stbuf->f_bfree = freeSize / BLOCK_SIZE;
-						stbuf->f_bavail = freeSize / BLOCK_SIZE;
+						stbuf->f_blocks = (fsblkcnt_t)(totalSize / BLOCK_SIZE);
+						stbuf->f_bfree = (fsblkcnt_t)(freeSize / BLOCK_SIZE);
+						stbuf->f_bavail = (fsblkcnt_t)(freeSize / BLOCK_SIZE);
 					} else {
 						return FUSE_ERROR_CODE(FileSystem::getLastError());
 					}
@@ -93,6 +93,17 @@ namespace slib
 					return 0;
 				} FUSE_CATCH
 			}
+			
+#if defined(SLIB_PLATFORM_IS_APPLE)
+#	define TO_UNIX_TIME1(NAME, T) { sl_uint64 t = T.getMicrosecondsCount(); NAME##timespec.tv_sec = (time_t)(t / 1000000); NAME##timespec.tv_nsec = (long)((t % 1000000) * 1000); }
+#else
+#	define TO_UNIX_TIME1(NAME, T) { sl_uint64 t = T.getMicrosecondsCount(); NAME##tim.tv_sec = (time_t)(t / 1000000); NAME##tim.tv_nsec = (long)((t % 1000000) * 1000); }
+#endif
+#define TO_UNIX_TIME(st, info) \
+			TO_UNIX_TIME1((st).st_c, info.createdAt) \
+			TO_UNIX_TIME1((st).st_m, info.modifiedAt) \
+			TO_UNIX_TIME1((st).st_a, info.accessedAt)
+
 
 			static int fuse_getattr(const char *path, struct stat *stbuf)
 			{
@@ -109,9 +120,7 @@ namespace slib
 					if (provider->getFileInfo(path, sl_null, info, FileInfoMask::All)) {
 						stbuf->st_mode |= (info.attributes & FileAttributes::Directory ? S_IFDIR : S_IFREG);
 						stbuf->st_size = info.size;
-						stbuf->st_ctim.tv_sec = info.createdAt.toUnixTime();
-						stbuf->st_atim.tv_sec = info.accessedAt.toUnixTime();
-						stbuf->st_mtim.tv_sec = info.modifiedAt.toUnixTime();
+						TO_UNIX_TIME(*stbuf, info)
 					} else {
 						return FUSE_ERROR_CODE(FileSystem::getLastError());
 					}
@@ -140,9 +149,7 @@ namespace slib
 					if (provider->getFileInfo(path, context, info, FileInfoMask::All)) {
 						stbuf->st_mode |= (info.attributes & FileAttributes::Directory ? S_IFDIR : S_IFREG);
 						stbuf->st_size = info.size;
-						stbuf->st_ctim.tv_sec = info.createdAt.toUnixTime();
-						stbuf->st_atim.tv_sec = info.accessedAt.toUnixTime();
-						stbuf->st_mtim.tv_sec = info.modifiedAt.toUnixTime();
+						TO_UNIX_TIME(*stbuf, info)
 					} else {
 						return FUSE_ERROR_CODE(FileSystem::getLastError());
 					}
@@ -168,9 +175,7 @@ namespace slib
 						st.st_mode = 0777;
 						st.st_mode |= (info.attributes & FileAttributes::Directory ? S_IFDIR : S_IFREG);
 						st.st_size = info.size;
-						st.st_ctim.tv_sec = info.createdAt.toUnixTime();
-						st.st_atim.tv_sec = info.accessedAt.toUnixTime();
-						st.st_mtim.tv_sec = info.modifiedAt.toUnixTime();
+						TO_UNIX_TIME(st, info)
 
 						filler(buf, item.key.getData(), &st, 0);
 					}
@@ -377,7 +382,7 @@ namespace slib
 
 				FUSE_TRY{
 					FileSystem::setLastError(FileSystemError::Success);
-					sl_uint64 ret = provider->readFile(context, offset, buf, size);
+					sl_uint64 ret = provider->readFile(context, offset, buf, (sl_uint32)size);
 					if (ret == 0) { // success or error ?
 						return FUSE_ERROR_CODE(FileSystem::getLastError());
 					}
@@ -397,7 +402,7 @@ namespace slib
 
 				FUSE_TRY{
 					FileSystem::setLastError(FileSystemError::Success);
-					sl_uint64 ret = provider->writeFile(context, offset, buf, size);
+					sl_uint64 ret = provider->writeFile(context, offset, buf, (sl_uint32)size);
 					if (ret == 0) { // success or error ?
 						return FUSE_ERROR_CODE(FileSystem::getLastError());
 					}
@@ -552,7 +557,7 @@ namespace slib
 
 					fuse_operations* fuse_op = GetFuseOperations();
 
-					m_iRet = funcMain(args.getCount(), args.getData(), fuse_op, sizeof(*fuse_op), this);
+					m_iRet = funcMain((int)(args.getCount()), args.getData(), fuse_op, sizeof(*fuse_op), this);
 					return m_iRet == 0;
 				}
 
