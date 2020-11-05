@@ -124,6 +124,10 @@ namespace slib
 		Ref<Menu> getMenu();
 		
 		virtual void setMenu(const Ref<Menu>& menu);
+
+		Ref<View> getInitialFocus();
+
+		void setInitialFocus(const Ref<View>& view);
 		
 		
 		sl_bool isActive();
@@ -459,6 +463,7 @@ namespace slib
 		Ref<priv::window::ContentView> m_viewContent;
 		AtomicRef<Screen> m_screen;
 		AtomicRef<Menu> m_menu;
+		AtomicRef<View> m_viewInitialFocus;
 		
 		UIRect m_frame;
 		AtomicString m_title;

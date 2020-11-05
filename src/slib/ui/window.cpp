@@ -292,6 +292,19 @@ namespace slib
 		}
 	}
 
+	Ref<View> Window::getInitialFocus()
+	{
+		return m_viewInitialFocus;
+	}
+
+	void Window::setInitialFocus(const Ref<View>& view)
+	{
+		m_viewInitialFocus = view;
+		if (view.isNotNull()) {
+			view->setFocus();
+		}
+	}
+
 	sl_bool Window::isActive()
 	{
 		Ref<WindowInstance> instance = m_instance;
@@ -1397,6 +1410,12 @@ namespace slib
 				window->setVisible(sl_true);
 				window->activate();
 			}
+
+			Ref<View> focus = m_viewInitialFocus;
+			if (focus.isNotNull()) {
+				focus->setFocus();
+			}
+
 		} else {
 			dispatchCreateFailed();
 		}
