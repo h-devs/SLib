@@ -295,6 +295,23 @@ namespace slib
 				} FUSE_CATCH
 			}
 
+			static int fusehost_utimens(const char *path, const struct timespec tv[2])
+			{
+				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
+				FileSystemProvider* provider = host->getProvider();
+
+				FUSE_TRY{
+					FileInfo info;
+					info.accessedAt.setUnixTime(tv[0].tv_sec);
+					info.modifiedAt.setUnixTime(tv[1].tv_sec);
+					FileSystem::setLastError(FileSystemError::GeneralError);
+					if (provider->setFileInfo(path, sl_null, info, FileInfoMask::Time)) {
+						return 0;
+					}
+					return FUSE_ERROR_CODE(FileSystem::getLastError());
+				} FUSE_CATCH
+			}
+
 			static int fusehost_open(const char *path, struct fuse_file_info *fi)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
@@ -438,6 +455,7 @@ namespace slib
 				//fuse_op.chown = fusehost_chown;
 				fuse_op.truncate = fusehost_truncate;
 				//fuse_op.utime = fusehost_utime;
+				fuse_op.utimens = fusehost_utimens;
 
 				fuse_op.open = fusehost_open;
 				fuse_op.read = fusehost_read;
@@ -528,7 +546,7 @@ namespace slib
 		if (m_param.flags & FileSystemHostFlags::DebugMode) {
 			args.add(StringCstr("-d").getData());
 		} else if (m_param.flags & FileSystemHostFlags::UseStdErr) {
-			args.add(StringCstr("-f").getData());
+			args.add(StringCstr("-f").getData());	// foreground mode
 		}
 		if (m_param.flags & FileSystemHostFlags::WriteProtect) {
 			// TODO
