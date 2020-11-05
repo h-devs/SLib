@@ -603,6 +603,8 @@ namespace slib
 		if (handle) {
 			if (gevent->in) {
 				onSetFocus();
+			} else {
+				onKillFocus();
 			}
 		}
 		return sl_false;

@@ -90,6 +90,11 @@ namespace slib
 		
 		static void setDefaultPopupBackgroundColor(const Color& color);
 
+		
+		Ref<View> getInitialFocus();
+
+		void setInitialFocus(const Ref<View>& view);
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ViewPage, Open)
 		SLIB_DECLARE_EVENT_HANDLER(ViewPage, Close)
@@ -138,6 +143,8 @@ namespace slib
 		Color m_popupBackgroundColor;
 
 		sl_reg m_countActiveTransitionAnimations;
+
+		AtomicRef<View> m_viewInitialFocus;
 		
 		friend class ViewPageNavigationController;
 		

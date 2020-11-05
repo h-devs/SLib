@@ -7352,16 +7352,20 @@ namespace slib
 	
 	Ref<View> View::getNextFocusableView()
 	{
-		Ref<View> parent = getParent();
-		if (parent.isNull()) {
-			return getFirstFocusableDescendant();
-		}
 		{
+			Ref<View> v = getFirstFocusableDescendant();
+			if (v.isNotNull()) {
+				return v;
+			}
+		}
+		Ref<View> parent = getParent();
+		Ref<View> current = this;
+		while (parent.isNotNull()) {
 			sl_size index = 0;
 			ListElements< Ref<View> > children(parent->getChildren());
 			sl_size i;
 			for (i = 0; i < children.count; i++) {
-				if (children[i] == this) {
+				if (children[i] == current) {
 					index = i;
 					break;
 				}
@@ -7369,68 +7373,71 @@ namespace slib
 			for (i = index + 1; i < children.count; i++) {
 				Ref<View>& child = children[i];
 				if (child.isNotNull()) {
-					Ref<View> ret = child->getFirstFocusableDescendant();
-					if (ret.isNotNull()) {
-						return ret;
+					if (child->isVisible() && child->isEnabled()) {
+						if (child->isFocusable()) {
+							return child;
+						}
+						Ref<View> v = child->getFirstFocusableDescendant();
+						if (v.isNotNull()) {
+							return v;
+						}
 					}
 				}
 			}
+			current = Move(parent);
+			parent = current->getParent();
 		}
-		Ref<View> ret = parent->getNextFocusableView();
-		if (ret.isNotNull()) {
-			return ret;
-		}
-		return this;
+		return current->getFirstFocusableDescendant();
 	}
 
 	Ref<View> View::getPreviousFocusableView()
 	{
 		Ref<View> parent = getParent();
-		if (parent.isNull()) {
-			return getLastFocusableDescendant();
-		}
-		{
+		Ref<View> current = this;
+		while (parent.isNotNull()) {
 			sl_size index = 0;
 			ListElements< Ref<View> > children(parent->getChildren());
 			sl_size i;
-			for (i = 0; i < children.count; i++) {
-				if (children[i] == this) {
-					index = i;
+			for (i = children.count; i > 0; i--) {
+				if (children[i - 1] == current) {
+					index = i - 1;
 					break;
 				}
 			}
 			for (i = index; i > 0; i--) {
-				Ref<View> child = children[i-1];
+				Ref<View>& child = children[i - 1];
 				if (child.isNotNull()) {
-					Ref<View> ret = child->getLastFocusableDescendant();
-					if (ret.isNotNull()) {
-						return ret;
+					if (child->isVisible() && child->isEnabled()) {
+						Ref<View> v = child->getLastFocusableDescendant();
+						if (v.isNotNull()) {
+							return v;
+						}
+						if (child->isFocusable()) {
+							return child;
+						}
 					}
 				}
 			}
+			current = Move(parent);
+			parent = current->getParent();
 		}
-		Ref<View> ret = parent->getPreviousFocusableView();
-		if (ret.isNotNull()) {
-			return ret;
-		}
-		return this;
+		return current->getLastFocusableDescendant();
 	}
 
 	Ref<View> View::getFirstFocusableDescendant()
 	{
-		if (!(isVisible())) {
-			return sl_null;
-		}
-		if (isFocusable()) {
-			return this;
-		}
 		ListElements< Ref<View> > children(getChildren());
 		for (sl_size i = 0; i < children.count; i++) {
 			Ref<View>& child = children[i];
 			if (child.isNotNull()) {
-				Ref<View> v = child->getFirstFocusableDescendant();
-				if (v.isNotNull()) {
-					return v;
+				if (child->isVisible() && child->isEnabled()) {
+					if (child->isFocusable()) {
+						return child;
+					}
+					Ref<View> v = child->getFirstFocusableDescendant();
+					if (v.isNotNull()) {
+						return v;
+					}
 				}
 			}
 		}
@@ -7439,19 +7446,18 @@ namespace slib
 
 	Ref<View> View::getLastFocusableDescendant()
 	{
-		if (!(isVisible())) {
-			return sl_null;
-		}
-		if (isFocusable()) {
-			return this;
-		}
 		ListElements< Ref<View> > children(getChildren());
 		for (sl_size i = children.count; i > 0; i--) {
 			Ref<View> child = children[i - 1];
 			if (child.isNotNull()) {
-				Ref<View> v = child->getLastFocusableDescendant();
-				if (v.isNotNull()) {
-					return v;
+				if (child->isVisible()) {
+					Ref<View> v = child->getLastFocusableDescendant();
+					if (v.isNotNull()) {
+						return v;
+					}
+					if (child->isFocusable() && child->isEnabled()) {
+						return child;
+					}
 				}
 			}
 		}
@@ -9256,13 +9262,21 @@ namespace slib
 
 	DEFINE_VIEW_EVENT_HANDLER(KeyEvent, UIEvent* ev)
 	
-	void View::dispatchKeyEvent(UIEvent* ev)
+		void View::dispatchKeyEvent(UIEvent* ev)
 	{
 		if (!ev) {
 			return;
 		}
-		if (! m_flagEnabled) {
+		if (!m_flagEnabled) {
 			return;
+		}
+
+		Ref<View> childFocused = getFocusedChild();
+		if (childFocused.isNotNull()) {
+			if (childFocused->isInstance()) {
+				_setFocusedChild(sl_null, UIUpdateMode::None);
+				childFocused.setNull();
+			}
 		}
 
 		if (isNativeWidget()) {
@@ -9278,12 +9292,8 @@ namespace slib
 		_processAutoHideScrollBar(ev);
 		
 		if (!(ev->getFlags() & UIEventFlags::NotDispatchToChildren)) {
-			Ref<ChildAttributes>& childAttrs = m_childAttrs;
-			if (childAttrs.isNotNull()) {
-				Ref<View> viewFocusedChild = childAttrs->childFocused;
-				if (viewFocusedChild.isNotNull() && !(viewFocusedChild->isInstance())) {
-					viewFocusedChild->dispatchKeyEvent(ev);
-				}
+			if (childFocused.isNotNull()) {
+				childFocused->dispatchKeyEvent(ev);
 			}
 		}
 		
@@ -9627,6 +9637,10 @@ namespace slib
 
 	void View::dispatchOK(UIEvent* ev)
 	{
+		if (!m_flagEnabled) {
+			return;
+		}
+
 		SLIB_INVOKE_EVENT_HANDLER(OK, ev)
 
 		if (ev->isStoppedPropagation()) {
@@ -10652,6 +10666,14 @@ namespace slib
 		Ref<View> view = getView();
 		if (view.isNotNull()) {
 			view->_setFocus(sl_true, sl_false, UIUpdateMode::Redraw);
+		}
+	}
+
+	void ViewInstance::onKillFocus()
+	{
+		Ref<View> view = getView();
+		if (view.isNotNull()) {
+			view->_setFocus(sl_false, sl_false, UIUpdateMode::Redraw);
 		}
 	}
 

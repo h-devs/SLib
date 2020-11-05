@@ -2039,7 +2039,9 @@ namespace slib
 		void onDropEvent(UIEvent* ev);
 		
 		void onSetFocus();
-		
+
+		void onKillFocus();
+
 		void onSwipe(GestureType type);
 		
 	protected:
