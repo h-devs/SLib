@@ -359,13 +359,13 @@ namespace slib
 					}
 				}
 				
-				sl_bool setClientSize(const UISize& size) override
+				sl_bool setClientSize(sl_ui_len width, sl_ui_len height) override
 				{
 					NSWindow* window = m_window;
 					if (window != nil) {
 						NSSize s;
-						s.width = (CGFloat)(size.x);
-						s.height = (CGFloat)(size.y);
+						s.width = (CGFloat)width;
+						s.height = (CGFloat)height;
 						[window setContentSize:s];
 						return sl_true;
 					}

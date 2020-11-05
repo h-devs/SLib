@@ -320,18 +320,19 @@ namespace slib
 					}
 				}
 				
-				sl_bool setClientSize(const UISize& size) override
+				sl_bool setClientSize(sl_ui_len width, sl_ui_len height) override
 				{
 					UIView* window = m_window;
 					if (window != nil) {
 						CGFloat f = UIPlatform::getGlobalScaleFactor();
 						CGRect frame = [window frame];
-						frame.size.width = (CGFloat)(size.x) / f;
-						frame.size.height = (CGFloat)(size.y) / f;
+						frame.size.width = (CGFloat)(width) / f;
+						frame.size.height = (CGFloat)(height) / f;
 						[window setFrame:frame];
 						if ([window isKindOfClass:[UIWindow class]]) {
 							UIViewController* controller = ((UIWindow*)window).rootViewController;
 							if (controller != nil && [controller isKindOfClass:[SLIBWindowRootViewController class]]) {
+								UISize size(width, height);
 								((SLIBWindowRootViewController*)controller)->m_sizeClient = size;
 								((SLIBWindowRootViewController*)controller)->m_sizeClientResizedByKeyboard = size;
 							}

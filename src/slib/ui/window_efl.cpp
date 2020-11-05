@@ -270,7 +270,7 @@ namespace slib
 					return getFrame().getSize();
 				}
 				
-				sl_bool setClientSize(const UISize& _size) override
+				sl_bool setClientSize(sl_ui_len width, sl_ui_len height) override
 				{
 					return sl_false;
 				}

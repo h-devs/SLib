@@ -319,7 +319,7 @@ namespace slib
 					}
 				}
 
-				sl_bool setClientSize(const UISize& size) override
+				sl_bool setClientSize(sl_ui_len width, sl_ui_len height) override
 				{
 					HWND hWnd = m_handle;
 					if (hWnd) {
@@ -331,7 +331,7 @@ namespace slib
 						int dy = rectWindow.bottom - rectWindow.top - rectClient.bottom;
 						SetWindowPos(hWnd, NULL,
 							0, 0,
-							dx + (int)(size.x), dy + (int)(size.y),
+							dx + (int)width, dy + (int)height,
 							SWP_NOMOVE | SWP_NOREPOSITION | SWP_NOZORDER | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
 						return sl_true;
 					}

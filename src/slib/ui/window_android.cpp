@@ -228,12 +228,12 @@ namespace slib
 					return UISize::zero();
 				}
 
-				sl_bool setClientSize(const UISize& size) override
+				sl_bool setClientSize(sl_ui_len width, sl_ui_len height) override
 				{
 					JniGlobal<jobject> _jwindow(m_window);
 					jobject jwindow = _jwindow;
 					if (jwindow) {
-						JWindow::setSize.call(jwindow, (int)(size.x), (int)(size.y));
+						JWindow::setSize.call(jwindow, (int)width, (int)height);
 						return sl_true;
 					}
 					return sl_false;

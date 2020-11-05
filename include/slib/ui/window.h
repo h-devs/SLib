@@ -155,10 +155,10 @@ namespace slib
 		void setTop(sl_ui_pos y);
 		
 		virtual UISize getSize();
-		
-		virtual void setSize(const UISize& size);
-		
-		void setSize(sl_ui_len width, sl_ui_len height);
+
+		virtual void setSize(sl_ui_len width, sl_ui_len height);
+
+		void setSize(const UISize& size);
 		
 		sl_ui_len getWidth();
 		
@@ -181,9 +181,9 @@ namespace slib
 		
 		UISize getClientSize();
 		
-		virtual void setClientSize(const UISize& size);
-
-		void setClientSize(sl_ui_len width, sl_ui_len height);
+		virtual void setClientSize(sl_ui_len width, sl_ui_len height);
+		
+		void setClientSize(const UISize& size);
 		
 		sl_ui_len getClientWidth();
 		
@@ -561,7 +561,7 @@ namespace slib
 		
 		virtual UISize getClientSize() = 0;
 		
-		virtual sl_bool setClientSize(const UISize& size) = 0;
+		virtual sl_bool setClientSize(sl_ui_len width, sl_ui_len height) = 0;
 		
 
 		virtual void setTitle(const String& title) = 0;
