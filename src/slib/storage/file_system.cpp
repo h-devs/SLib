@@ -56,7 +56,7 @@ namespace slib
 		return Dokany::createHost();
 # endif
 #elif defined(SLIB_PLATFORM_IS_UNIX) && defined(SLIB_PLATFORM_IS_DESKTOP)
-		return new FuseHost;
+        return Fuse::createHost();
 #else
 		return sl_null;
 #endif
