@@ -543,10 +543,11 @@ namespace slib
 		} SLIB_CATCH(...)
 
 		args.add(fsName.getData());
+		args.add(StringCstr("-f").getData());	// always use foreground mode
 		if (m_param.flags & FileSystemHostFlags::DebugMode) {
 			args.add(StringCstr("-d").getData());
 		} else if (m_param.flags & FileSystemHostFlags::UseStdErr) {
-			args.add(StringCstr("-f").getData());	// foreground mode
+			// TODO
 		}
 		if (m_param.flags & FileSystemHostFlags::WriteProtect) {
 			// TODO
@@ -566,7 +567,7 @@ namespace slib
 	String FuseHost::getErrorMessage()
 	{
 		if (m_strError.isEmpty()) {
-			return String::format("Ret code %d.", m_iRet);
+			return String::format("Fuse ret code: %d.", m_iRet);
 		}
 		return m_strError;
 	}
