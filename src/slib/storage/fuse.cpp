@@ -30,10 +30,6 @@
 #define FUSE_USE_VERSION 27
 #include "fuse/fuse.h"
 
-#ifdef SLIB_PLATFORM_IS_WIN32
-typedef fsblkcnt64_t fsblkcnt_t;
-#endif
-
 #include <errno.h>
 #define FUSE_ERROR_CODE(err) (-(int)(err))
 

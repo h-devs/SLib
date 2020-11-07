@@ -129,6 +129,8 @@ typedef __int64 int64_t;
 typedef unsigned __int64 fsfilcnt64_t;
 typedef unsigned __int64 fsblkcnt64_t;
 
+typedef fsblkcnt64_t fsblkcnt_t;
+
 /** Transplanted from <sys/statvfs.h>*/
 struct statvfs
 {
