@@ -9755,6 +9755,7 @@ namespace slib
 					}
 					break;
 				case Keycode::Enter:
+				case Keycode::NumpadEnter:
 					if (m_flagOkCancelEnabled) {
 						dispatchOK();
 						ev->stopPropagation();
