@@ -71,6 +71,8 @@ namespace slib
 					GtkEntry* entry = getEntry(handle);
 					if (entry) {
 						g_signal_connect(entry, "focus-in-event", G_CALLBACK(eventCallback), handle);
+						g_signal_connect(entry, "key-press-event", G_CALLBACK(eventCallback), handle);
+						gtk_widget_set_events((GtkWidget*)entry, gtk_widget_get_events((GtkWidget*)entry) | GDK_KEY_PRESS_MASK | GDK_FOCUS_CHANGE_MASK);
 					}
 				}
 				

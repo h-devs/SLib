@@ -395,6 +395,12 @@ namespace slib
 		)
 		#define gtk_widget_set_events slib::gtk::getApi_gtk_widget_set_events()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_widget_get_events,
+			gint, ,
+			GtkWidget *widget
+		)
+		#define gtk_widget_get_events slib::gtk::getApi_gtk_widget_get_events()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_widget_get_parent,
 			GtkWidget*, ,
 			GtkWidget *widget

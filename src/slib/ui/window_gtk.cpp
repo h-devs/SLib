@@ -123,6 +123,10 @@ namespace slib
 					g_signal_connect(window, "window-state-event", G_CALLBACK(_ui_win_on_window_state_cb), NULL);
 					g_signal_connect(window, "configure-event", G_CALLBACK(_ui_win_on_configure_event_cb), NULL);
 					g_signal_connect(window, "notify::is-active", G_CALLBACK(_ui_win_on_notify_is_active_cb), NULL);
+					if (contentWidget) {
+						g_signal_connect(window, "key-press-event", G_CALLBACK(_ui_win_on_key_event), contentWidget);
+						g_signal_connect(window, "key-release-event", G_CALLBACK(_ui_win_on_key_event), contentWidget);
+					}
 
 					gint x, y, width, height;
 					gtk_window_get_position(window, &x, &y);
@@ -304,6 +308,15 @@ namespace slib
 					if (instance.isNotNull()) {
 						((GTK_WindowInstance*)(instance.get()))->_on_notify_is_active(window);
 					}
+				}
+
+				static gboolean _ui_win_on_key_event(GtkWidget* widget, GdkEvent* ev, gpointer user_data)
+				{
+					GtkWidget* focus = gtk_window_get_focus((GtkWindow*)widget);
+					if (!focus) {
+						GTK_ViewInstance::eventCallback(widget, ev, user_data);
+					}
+					return 0;
 				}
 
 				static Ref<WindowInstance> create(const WindowInstanceParam& param)

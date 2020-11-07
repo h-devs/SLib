@@ -344,6 +344,9 @@ namespace slib
 			GtkWidget* handleConnect = handle;
 			if (isWindowContent()) {
 				handleConnect = gtk_widget_get_parent(handle);
+				if (!handleConnect) {
+					return;
+				}
 			}
 			g_signal_connect(handleConnect, "motion-notify-event", G_CALLBACK(eventCallback), handle);
 			g_signal_connect(handleConnect, "button-press-event", G_CALLBACK(eventCallback), handle);
@@ -386,7 +389,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	void GTK_ViewInstance::onExposeEvent(GdkEventExpose* event)
 	{
 		GtkWidget* handle = m_handle;

@@ -9257,7 +9257,7 @@ namespace slib
 
 	DEFINE_VIEW_EVENT_HANDLER(KeyEvent, UIEvent* ev)
 	
-		void View::dispatchKeyEvent(UIEvent* ev)
+	void View::dispatchKeyEvent(UIEvent* ev)
 	{
 		if (!ev) {
 			return;
