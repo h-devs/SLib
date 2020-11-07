@@ -198,6 +198,27 @@ namespace slib
 			gboolean invalidate_children
 		)
 		#define gdk_window_invalidate_rect slib::gdk::getApi_gdk_window_invalidate_rect()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_display_put_event,
+			void, ,
+			GdkDisplay *display,
+			const GdkEvent *event
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_event_handler_set,
+			void, ,
+			GdkEventFunc func,
+			gpointer data,
+			GDestroyNotify notify
+		)
+		#define gdk_event_handler_set slib::gdk::getApi_gdk_event_handler_set()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_event_put,
+			void, ,
+			const GdkEvent *event
+		)
+		#define gdk_event_put slib::gdk::getApi_gdk_event_put()
+
 	SLIB_IMPORT_LIBRARY_END
 
 }

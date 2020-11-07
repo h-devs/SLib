@@ -95,24 +95,24 @@ namespace slib
 				}
 				
 			};
-			
-			static gboolean DispatchCallback(gpointer user_data)
-			{
-				UIDispatcher::processCallbacks();
-				return sl_false;
-			}
 
-			static gboolean DelayedDispatchCallback(gpointer user_data)
+			static gboolean DispatchUrgentlyCallback(gpointer user_data)
 			{
 				Callable<void()>* callable = reinterpret_cast<Callable<void()>*>(user_data);
 				callable->invoke();
 				return sl_false;
 			}
 
-			static void DelayedDispatchDestroy(gpointer user_data)
+			static void DispatchUrgentlyDestroy(gpointer user_data)
 			{
 				Callable<void()>* callable = reinterpret_cast<Callable<void()>*>(user_data);
 				callable->decreaseReference();
+			}
+
+			static void EventHandler(GdkEvent* event, gpointer data)
+			{
+				UIDispatcher::processCallbacks();
+				gtk_main_do_event(event);
 			}
 
 		}
@@ -124,7 +124,11 @@ namespace slib
 	{
 		g_thread_init(NULL);
 		gdk_threads_init();
-		return gtk_init_check(NULL, NULL);
+		if (gtk_init_check(sl_null, sl_null)) {
+			gdk_event_handler_set(EventHandler, sl_null, sl_null);
+			return sl_true;
+		}
+		return sl_false;
 	}
 	
 	Ref<Screen> UI::getPrimaryScreen()
@@ -172,21 +176,36 @@ namespace slib
 	{
 		return g_threadMain == pthread_self();
 	}
-	
+
 	void UI::dispatchToUiThread(const Function<void()>& callback, sl_uint32 delayMillis)
 	{
 		if (callback.isNull()) {
 			return;
 		}
-		if (delayMillis == 0) {
-			if (UIDispatcher::addCallback(callback)) {
-				g_idle_add(DispatchCallback, sl_null);
+		if (delayMillis || !(UI::isUiThread())) {
+			dispatchToUiThreadUrgently([callback]() {
+				dispatchToUiThread(callback);
+			}, delayMillis);
+			return;
+		}
+		UIDispatcher::addCallback(callback);
+		GdkEvent event;
+		Base::zeroMemory(&event, sizeof(event));
+		event.type = GDK_NOTHING;
+		gdk_event_put(&event);
+	}
 
-			}
+	void UI::dispatchToUiThreadUrgently(const Function<void()>& callback, sl_uint32 delayMillis)
+	{
+		if (callback.isNull()) {
+			return;
+		}
+		Callable<void()>* callable = callback.ref.get();
+		callable->increaseReference();
+		if (delayMillis) {
+			g_timeout_add_full(G_PRIORITY_DEFAULT, delayMillis, DispatchUrgentlyCallback, callable, DispatchUrgentlyDestroy);
 		} else {
-			Callable<void()>* callable = callback.ref.get();
-			callable->increaseReference();
-			g_timeout_add_full(G_PRIORITY_DEFAULT, delayMillis, DelayedDispatchCallback, callable, DelayedDispatchDestroy);
+			g_idle_add_full(G_PRIORITY_DEFAULT, DispatchUrgentlyCallback, callable, DispatchUrgentlyDestroy);
 		}
 	}
 

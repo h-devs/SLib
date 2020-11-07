@@ -644,7 +644,7 @@ namespace slib
 		alert.show();
 	}
 	
-#if !defined(SLIB_UI_IS_MACOS)
+#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_GTK)
 	void UI::dispatchToUiThreadUrgently(const Function<void()>& callback, sl_uint32 delayMillis)
 	{
 		dispatchToUiThread(callback, delayMillis);
