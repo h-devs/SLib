@@ -25,6 +25,7 @@
 #include "slib/core/variant.h"
 
 #include "slib/core/string_buffer.h"
+#include "slib/core/parse_util.h"
 #include "slib/core/math.h"
 
 #define PTR_VAR(TYPE, x) ((TYPE*)((void*)(&(x))))
