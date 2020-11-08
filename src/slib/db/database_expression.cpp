@@ -23,6 +23,7 @@
 #include "slib/db/expression.h"
 
 #include "slib/db/sql.h"
+#include "slib/core/parse_util.h"
 #include "slib/core/safe_static.h"
 
 namespace slib

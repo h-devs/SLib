@@ -93,8 +93,11 @@ namespace slib
 
 	void ComboBox::notifySelectItem(sl_int32 index, UIUpdateMode mode)
 	{
+		String text = getItemTitle(index);
+		m_text = text;
 		if (m_cell.isNotNull()) {
 			m_cell->selectedIndex = m_indexSelected;
+			m_cell->text = text;
 		}
 		Ptr<IComboBoxInstance> instance = getComboBoxInstance();
 		if (instance.isNotNull()) {

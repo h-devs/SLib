@@ -56,6 +56,15 @@ namespace slib
 		)
 		#define g_idle_add slib::glib::getApi_g_idle_add()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_idle_add_full,
+			guint, ,
+			gint priority,
+			GSourceFunc function,
+			gpointer data,
+			GDestroyNotify notify
+		)
+		#define g_idle_add_full slib::glib::getApi_g_idle_add_full()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_timeout_add,
 			guint, ,
 			guint interval,
@@ -76,27 +85,33 @@ namespace slib
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_sequence_iter_is_end,
 			gboolean, ,
-			GSequenceIter			*iter
+			GSequenceIter *iter
 		)
 		#define g_sequence_iter_is_end slib::glib::getApi_g_sequence_iter_is_end()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_sequence_iter_get_position,
 			gint, ,
-			GSequenceIter			*iter
+			GSequenceIter *iter
 		)
 		#define g_sequence_iter_get_position slib::glib::getApi_g_sequence_iter_get_position()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_list_length,
 			guint, ,
-			GList  *list
+			GList *list
 		)
 		#define g_list_length slib::glib::getApi_g_list_length()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_malloc,
 			gpointer, ,
-			gsize	 n_bytes
+			gsize n_bytes
 		)
 		#define g_malloc slib::glib::getApi_g_malloc()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_main_context_wakeup,
+			void, ,
+			GMainContext *context
+		)
+		#define g_main_context_wakeup slib::glib::getApi_g_main_context_wakeup()
 	SLIB_IMPORT_LIBRARY_END
 
 	SLIB_IMPORT_LIBRARY_BEGIN(gobject, "libgobject-2.0.so.0")

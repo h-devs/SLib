@@ -199,11 +199,16 @@ namespace slib
 		
 		void clearHandle();
 
-		sl_uint64 getPosition() override;
+		using IO::getPosition;
+		sl_bool getPosition(sl_uint64& outPos) override;
 
-		sl_uint64 getSize() override;
+		using IO::getSize;
+		sl_bool getSize(sl_uint64& outSize) override;
 		
 		sl_bool seek(sl_int64 offset, SeekPosition from) override;
+
+		using IO::isEnd;
+		sl_bool isEnd(sl_bool& outFlag) override;
 	
 
 		sl_int32 read32(void* buf, sl_uint32 size) override;
@@ -215,14 +220,22 @@ namespace slib
 		sl_bool setSize(sl_uint64 size) override;
 
 		
-		static sl_uint64 getSize(sl_file fd);
+		static sl_bool getSizeByHandle(sl_file fd, sl_uint64& outSize);
+
+		static sl_uint64 getSizeByHandle(sl_file fd);
+		
+		static sl_bool getSize(const StringParam& path, sl_uint64& outSize);
 		
 		static sl_uint64 getSize(const StringParam& path);
-		
-		static sl_uint64 getDiskSize(sl_file fd);
-		
+
+		static sl_bool getDiskSizeByHandle(sl_file fd, sl_uint64& outSize);
+
+		static sl_uint64 getDiskSizeByHandle(sl_file fd);
+
+		static sl_bool getDiskSize(const StringParam& devicePath, sl_uint64& outSize);
+
 		static sl_uint64 getDiskSize(const StringParam& devicePath);
-		
+
 		
 		sl_bool lock();
 
@@ -230,6 +243,8 @@ namespace slib
 
 		sl_bool flush();
 	
+		sl_bool getDiskSize(sl_uint64& outSize);
+
 		sl_uint64 getDiskSize();
 
 		
@@ -345,15 +360,15 @@ namespace slib
 		static sl_bool appendAllTextUTF16BE(const StringParam& path, const StringParam& text);
 
 	
-		static String getParentDirectoryPath(const String& path);
+		static String getParentDirectoryPath(const StringParam& path);
 
-		static String getFileName(const String& path);
+		static String getFileName(const StringParam& path);
 
-		static String getFileExtension(const String& path);
+		static String getFileExtension(const StringParam& path);
 
-		static String getFileNameOnly(const String& path);
+		static String getFileNameOnly(const StringParam& path);
 
-		static String normalizeDirectoryPath(const String& path);
+		static String normalizeDirectoryPath(const StringParam& path);
 	
 
 		// converts any invalid characters (0~0x1f, 0x7f~0x9f, :*?"<>|\/) into "_"

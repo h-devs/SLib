@@ -36,6 +36,22 @@
 namespace slib
 {
 
+	enum class FileSystemError
+	{
+		Success = 0,
+		GeneralError = 1, // ERROR_INVALID_FUNCTION, EPERM
+		NotFound = 2, // ERROR_FILE_NOT_FOUND, ENOENT
+#ifdef SLIB_PLATFORM_IS_WINDOWS
+		AccessDenied = 5, // ERROR_ACCESS_DENIED
+		InvalidContext = 6, // ERROR_INVALID_HANDLE
+#else
+		AccessDenied = 13, // EACCES
+		InvalidContext = 9, // EBADF
+#endif
+		InvalidPassword = 86, // ERROR_INVALID_PASSWORD
+		NotImplemented = -1,
+	};
+
 	class FileSystemProvider;
 	class FileSystemHost;
 
@@ -47,6 +63,10 @@ namespace slib
 		static Ref<FileSystemHost> getHost(const String& mountPoint);
 
 		static sl_bool unmount(const String& mountPoint);
+
+		static FileSystemError getLastError();
+
+		static void setLastError(FileSystemError error);
 
 	};
 
@@ -99,26 +119,6 @@ namespace slib
 		};
 	};
 
-	// Equals to WinNT error codes
-	enum class FileSystemError
-	{
-		Success = 0, // ERROR_SUCCESS
-		GeneralError = 1, // ERROR_INVALID_FUNCTION
-		NotFound = 2, // ERROR_FILE_NOT_FOUND
-		PathNotFound = 3, // ERROR_PATH_NOT_FOUND
-		AccessDenied = 5, // ERROR_ACCESS_DENIED
-		InvalidContext = 6, // ERROR_INVALID_HANDLE
-		InvalidData = 13, // ERROR_INVALID_DATA
-		OutOfMemory = 14, // ERROR_OUTOFMEMORY
-		FileExist = 80, // ERROR_FILE_EXISTS
-		InvalidPassword = 86, // ERROR_INVALID_PASSWORD
-		BufferOverflow = 122, // ERROR_INSUFFICIENT_BUFFER
-		DirNotEmpty = 145, // ERROR_DIR_NOT_EMPTY
-		AlreadyExist = 183,	// ERROR_ALREADY_EXISTS
-		InitFailure = 575, // ERROR_APP_INIT_FAILURE
-		NotImplemented = -1,
-	};
-
 	class FileContext : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -153,7 +153,7 @@ namespace slib
 
 		virtual sl_bool flushFile(FileContext* context);
 
-		virtual sl_bool closeFile(FileContext* context) = 0;
+		virtual sl_bool closeFile(FileContext* context);
 
 		virtual sl_bool deleteFile(const StringParam& path);
 
@@ -165,7 +165,7 @@ namespace slib
 		// path or context can be null
 		virtual sl_bool setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask);
 
-		virtual sl_bool createDirectory(const StringParam& path) = 0;
+		virtual sl_bool createDirectory(const StringParam& path);
 
 		virtual sl_bool deleteDirectory(const StringParam& path);
 
@@ -174,18 +174,15 @@ namespace slib
 	public: // Helpers
 		virtual sl_bool existsFile(const StringParam& path) noexcept;
 
-		virtual sl_uint64 getFileSize(FileContext* context);
+		virtual sl_bool getFileSize(FileContext* context, sl_uint64& outSize) noexcept;
 
-		virtual sl_uint64 getFileSize(const StringParam& path);
+		virtual sl_bool getFileSize(const StringParam& path, sl_uint64& outSize) noexcept;
 
 		virtual Memory readFile(const StringParam& path, sl_uint64 offset = 0, sl_uint32 size = SLIB_UINT32_MAX) noexcept;
 
 		virtual sl_uint32 writeFile(const StringParam& path, const void* buf, sl_uint32 size) noexcept;
 
 		virtual sl_uint32 writeFile(const StringParam& path, const Memory& mem) noexcept;
-
-	public:
-		virtual FileSystemError getLastError() noexcept;
 
 	protected:
 		FileSystemInfo m_fsInfo;
@@ -275,7 +272,7 @@ namespace slib
 
 		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) override;
 
-		sl_uint32	readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
+		sl_uint32 readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
 
 		sl_uint32 writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size) override;
 
@@ -296,9 +293,6 @@ namespace slib
 		sl_bool deleteDirectory(const StringParam& path) override;
 
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
-
-	public:
-		FileSystemError getLastError() noexcept override;
 
 	protected:
 		// If you want to use different FileContext in wrapper, you will need to override these functions.

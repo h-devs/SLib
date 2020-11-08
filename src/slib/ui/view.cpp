@@ -2686,25 +2686,20 @@ namespace slib
 		}
 		m_flagNeedApplyLayout = sl_false;
 		
-		if (isNativeWidget()) {
-			ListElements< Ref<View> > children(getChildren());
-			for (sl_size i = 0; i < children.count; i++) {
-				Ref<View>& child = children[i];
-				child->_applyLayout(mode);
+		ListElements< Ref<View> > children(getChildren());
+		for (sl_size i = 0; i < children.count; i++) {
+			Ref<View>& child = children[i];
+			child->_applyLayout(UIUpdateMode::None);
+		}
+		if (layoutAttrs.isNotNull()) {
+			setFrame(layoutAttrs->layoutFrame, UIUpdateMode::None);
+		}
+		if (!(isNativeWidget())) {
+			if (isInstance()) {
+				invalidate();
+			} else {
+				invalidate(mode);
 			}
-			if (layoutAttrs.isNotNull()) {
-				setFrame(layoutAttrs->layoutFrame, UIUpdateMode::None);
-			}
-		} else {
-			ListElements< Ref<View> > children(getChildren());
-			for (sl_size i = 0; i < children.count; i++) {
-				Ref<View>& child = children[i];
-				child->_applyLayout(UIUpdateMode::None);
-			}
-			if (layoutAttrs.isNotNull()) {
-				setFrame(layoutAttrs->layoutFrame, UIUpdateMode::None);
-			}
-			invalidate(mode);
 		}
 	}
 
@@ -7352,16 +7347,20 @@ namespace slib
 	
 	Ref<View> View::getNextFocusableView()
 	{
-		Ref<View> parent = getParent();
-		if (parent.isNull()) {
-			return getFirstFocusableDescendant();
-		}
 		{
+			Ref<View> v = getFirstFocusableDescendant();
+			if (v.isNotNull()) {
+				return v;
+			}
+		}
+		Ref<View> parent = getParent();
+		Ref<View> current = this;
+		while (parent.isNotNull()) {
 			sl_size index = 0;
 			ListElements< Ref<View> > children(parent->getChildren());
 			sl_size i;
 			for (i = 0; i < children.count; i++) {
-				if (children[i] == this) {
+				if (children[i] == current) {
 					index = i;
 					break;
 				}
@@ -7369,68 +7368,71 @@ namespace slib
 			for (i = index + 1; i < children.count; i++) {
 				Ref<View>& child = children[i];
 				if (child.isNotNull()) {
-					Ref<View> ret = child->getFirstFocusableDescendant();
-					if (ret.isNotNull()) {
-						return ret;
+					if (child->isVisible() && child->isEnabled()) {
+						if (child->isFocusable()) {
+							return child;
+						}
+						Ref<View> v = child->getFirstFocusableDescendant();
+						if (v.isNotNull()) {
+							return v;
+						}
 					}
 				}
 			}
+			current = Move(parent);
+			parent = current->getParent();
 		}
-		Ref<View> ret = parent->getNextFocusableView();
-		if (ret.isNotNull()) {
-			return ret;
-		}
-		return this;
+		return current->getFirstFocusableDescendant();
 	}
 
 	Ref<View> View::getPreviousFocusableView()
 	{
 		Ref<View> parent = getParent();
-		if (parent.isNull()) {
-			return getLastFocusableDescendant();
-		}
-		{
+		Ref<View> current = this;
+		while (parent.isNotNull()) {
 			sl_size index = 0;
 			ListElements< Ref<View> > children(parent->getChildren());
 			sl_size i;
-			for (i = 0; i < children.count; i++) {
-				if (children[i] == this) {
-					index = i;
+			for (i = children.count; i > 0; i--) {
+				if (children[i - 1] == current) {
+					index = i - 1;
 					break;
 				}
 			}
 			for (i = index; i > 0; i--) {
-				Ref<View> child = children[i-1];
+				Ref<View>& child = children[i - 1];
 				if (child.isNotNull()) {
-					Ref<View> ret = child->getLastFocusableDescendant();
-					if (ret.isNotNull()) {
-						return ret;
+					if (child->isVisible() && child->isEnabled()) {
+						Ref<View> v = child->getLastFocusableDescendant();
+						if (v.isNotNull()) {
+							return v;
+						}
+						if (child->isFocusable()) {
+							return child;
+						}
 					}
 				}
 			}
+			current = Move(parent);
+			parent = current->getParent();
 		}
-		Ref<View> ret = parent->getPreviousFocusableView();
-		if (ret.isNotNull()) {
-			return ret;
-		}
-		return this;
+		return current->getLastFocusableDescendant();
 	}
 
 	Ref<View> View::getFirstFocusableDescendant()
 	{
-		if (!(isVisible())) {
-			return sl_null;
-		}
-		if (isFocusable()) {
-			return this;
-		}
 		ListElements< Ref<View> > children(getChildren());
 		for (sl_size i = 0; i < children.count; i++) {
 			Ref<View>& child = children[i];
 			if (child.isNotNull()) {
-				Ref<View> v = child->getFirstFocusableDescendant();
-				if (v.isNotNull()) {
-					return v;
+				if (child->isVisible() && child->isEnabled()) {
+					if (child->isFocusable()) {
+						return child;
+					}
+					Ref<View> v = child->getFirstFocusableDescendant();
+					if (v.isNotNull()) {
+						return v;
+					}
 				}
 			}
 		}
@@ -7439,19 +7441,18 @@ namespace slib
 
 	Ref<View> View::getLastFocusableDescendant()
 	{
-		if (!(isVisible())) {
-			return sl_null;
-		}
-		if (isFocusable()) {
-			return this;
-		}
 		ListElements< Ref<View> > children(getChildren());
 		for (sl_size i = children.count; i > 0; i--) {
 			Ref<View> child = children[i - 1];
 			if (child.isNotNull()) {
-				Ref<View> v = child->getLastFocusableDescendant();
-				if (v.isNotNull()) {
-					return v;
+				if (child->isVisible()) {
+					Ref<View> v = child->getLastFocusableDescendant();
+					if (v.isNotNull()) {
+						return v;
+					}
+					if (child->isFocusable() && child->isEnabled()) {
+						return child;
+					}
 				}
 			}
 		}
@@ -8568,6 +8569,21 @@ namespace slib
 			return;
 		}
 
+		if (isNativeWidget()) {
+			Ref<GestureDetector> gesture = getGestureDetector();
+			if (gesture.isNotNull()) {
+				gesture->processEvent(ev);
+			}
+			if (!(ev->isStoppedPropagation())) {
+				priv::view::DuringEventScope scope(this, ev);
+				SLIB_INVOKE_EVENT_HANDLER(MouseEvent, ev)
+			}
+			if (m_flagCaptureEvents) {
+				ev->addFlag(UIEventFlags::Captured);
+			}
+			return;
+		}
+
 		_processAutoHideScrollBar(ev);
 
 		UIAction action = ev->getAction();
@@ -8797,6 +8813,22 @@ namespace slib
 			return;
 		}
 		if (!m_flagEnabled) {
+			return;
+		}
+
+		if (isNativeWidget()) {
+			Ref<GestureDetector> gesture = getGestureDetector();
+			if (gesture.isNotNull()) {
+				gesture->processEvent(ev);
+			}
+			if (!(ev->isStoppedPropagation())) {
+				priv::view::DuringEventScope scope(this, ev);
+				SLIB_INVOKE_EVENT_HANDLER(TouchEvent, ev)
+				SLIB_INVOKE_EVENT_HANDLER(MouseEvent, ev)
+			}
+			if (m_flagCaptureEvents) {
+				ev->addFlag(UIEventFlags::Captured);
+			}
 			return;
 		}
 
@@ -9139,6 +9171,12 @@ namespace slib
 			return;
 		}
 
+		if (isNativeWidget()) {
+			priv::view::DuringEventScope scope(this, ev);
+			SLIB_INVOKE_EVENT_HANDLER(MouseWheelEvent, ev)
+			return;
+		}
+
 		_processAutoHideScrollBar(ev);
 		
 		// pass event to children
@@ -9224,19 +9262,33 @@ namespace slib
 		if (!ev) {
 			return;
 		}
-		if (! m_flagEnabled) {
+		if (!m_flagEnabled) {
+			return;
+		}
+
+		Ref<View> childFocused = getFocusedChild();
+		if (childFocused.isNotNull()) {
+			if (childFocused->isInstance()) {
+				_setFocusedChild(sl_null, UIUpdateMode::None);
+				childFocused.setNull();
+			}
+		}
+
+		if (isNativeWidget()) {
+			priv::view::DuringEventScope scope(this, ev);
+			SLIB_INVOKE_EVENT_HANDLER(KeyEvent, ev)
+			if (ev->isPreventedDefault()) {
+				return;
+			}
+			_processKeyEvents(ev);
 			return;
 		}
 
 		_processAutoHideScrollBar(ev);
 		
 		if (!(ev->getFlags() & UIEventFlags::NotDispatchToChildren)) {
-			Ref<ChildAttributes>& childAttrs = m_childAttrs;
-			if (childAttrs.isNotNull()) {
-				Ref<View> viewFocusedChild = childAttrs->childFocused;
-				if (viewFocusedChild.isNotNull() && !(viewFocusedChild->isInstance())) {
-					viewFocusedChild->dispatchKeyEvent(ev);
-				}
+			if (childFocused.isNotNull()) {
+				childFocused->dispatchKeyEvent(ev);
 			}
 		}
 		
@@ -9258,64 +9310,7 @@ namespace slib
 			_processContentScrollingEvents(ev);
 		}
 		
-		if (ev->getAction() == UIAction::KeyDown) {
-			if (ev->isAltKey()) {
-				if (getParent().isNull()) {
-					Keycode keycode = ev->getKeycode();
-					char mneonicKey = 0;
-					if (keycode >= Keycode::A && keycode <= Keycode::Z) {
-						mneonicKey = 'A' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::A));
-					} else if (keycode >= Keycode::Num0 && keycode <= Keycode::Num9) {
-						mneonicKey = '0' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::Num0));
-					} else if (keycode >= Keycode::Numpad0 && keycode <= Keycode::Numpad9) {
-						mneonicKey = '0' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::Numpad0));
-					}
-					Ref<View> view = findViewByMnemonicKey(mneonicKey);
-					if (view.isNotNull()) {
-						view->dispatchMnemonic(ev);
-					}
-				}
-			} else {
-				Keycode keycode = ev->getKeycode();
-				switch (keycode) {
-				case Keycode::Tab:
-					if (isTabStopEnabled() && getFocusedChild().isNull()) {
-						if (ev->isShiftKey()) {
-							Ref<View> v = getPreviousTabStop();
-							if (v.isNotNull() && v != this) {
-								v->setFocus();
-								ev->stopPropagation();
-								ev->preventDefault();
-							}
-						} else {
-							Ref<View> v = getNextTabStop();
-							if (v.isNotNull() && v != this) {
-								v->setFocus();
-								ev->stopPropagation();
-								ev->preventDefault();
-							}
-						}
-					}
-					break;
-				case Keycode::Enter:
-					if (m_flagOkCancelEnabled) {
-						dispatchOK();
-						ev->stopPropagation();
-						ev->preventDefault();
-					}
-					break;
-				case Keycode::Escape:
-					if (m_flagOkCancelEnabled) {
-						dispatchCancel();
-						ev->stopPropagation();
-						ev->preventDefault();
-					}
-					break;
-				default:
-					break;
-				}
-			}
-		}		
+		_processKeyEvents(ev);
 	}
 	
 	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(Click)
@@ -9352,7 +9347,13 @@ namespace slib
 		if (! m_flagEnabled) {
 			return;
 		}
-		
+
+		if (isNativeWidget()) {
+			priv::view::DuringEventScope scope(this, ev);
+			SLIB_INVOKE_EVENT_HANDLER(SetCursor, ev)
+			return;
+		}
+
 		// pass event to children
 		{
 			Ref<View> scrollBars[2];
@@ -9449,7 +9450,13 @@ namespace slib
 		if (! m_flagEnabled) {
 			return;
 		}
-		
+
+		if (isNativeWidget()) {
+			priv::view::DuringEventScope scope(this, ev);
+			SLIB_INVOKE_EVENT_HANDLER(DropEvent, ev)
+			return;
+		}
+
 		UIAction action = ev->getAction();
 		
 		// pass event to children
@@ -9625,6 +9632,10 @@ namespace slib
 
 	void View::dispatchOK(UIEvent* ev)
 	{
+		if (!m_flagEnabled) {
+			return;
+		}
+
 		SLIB_INVOKE_EVENT_HANDLER(OK, ev)
 
 		if (ev->isStoppedPropagation()) {
@@ -9702,11 +9713,71 @@ namespace slib
 		SLIB_INVOKE_EVENT_HANDLER(Mnemonic, ev)
 	}
 
+	void View::_processKeyEvents(UIEvent* ev)
+	{
+		if (ev->getAction() == UIAction::KeyDown) {
+			if (ev->isAltKey()) {
+				if (getParent().isNull()) {
+					Keycode keycode = ev->getKeycode();
+					char mneonicKey = 0;
+					if (keycode >= Keycode::A && keycode <= Keycode::Z) {
+						mneonicKey = 'A' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::A));
+					} else if (keycode >= Keycode::Num0 && keycode <= Keycode::Num9) {
+						mneonicKey = '0' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::Num0));
+					} else if (keycode >= Keycode::Numpad0 && keycode <= Keycode::Numpad9) {
+						mneonicKey = '0' + (char)((sl_uint32)keycode - (sl_uint32)(Keycode::Numpad0));
+					}
+					Ref<View> view = findViewByMnemonicKey(mneonicKey);
+					if (view.isNotNull()) {
+						view->dispatchMnemonic(ev);
+					}
+				}
+			} else {
+				Keycode keycode = ev->getKeycode();
+				switch (keycode) {
+				case Keycode::Tab:
+					if (isTabStopEnabled() && getFocusedChild().isNull()) {
+						if (ev->isShiftKey()) {
+							Ref<View> v = getPreviousTabStop();
+							if (v.isNotNull() && v != this) {
+								v->setFocus();
+								ev->stopPropagation();
+								ev->preventDefault();
+							}
+						} else {
+							Ref<View> v = getNextTabStop();
+							if (v.isNotNull() && v != this) {
+								v->setFocus();
+								ev->stopPropagation();
+								ev->preventDefault();
+							}
+						}
+					}
+					break;
+				case Keycode::Enter:
+				case Keycode::NumpadEnter:
+					if (m_flagOkCancelEnabled) {
+						dispatchOK();
+						ev->stopPropagation();
+						ev->preventDefault();
+					}
+					break;
+				case Keycode::Escape:
+					if (m_flagOkCancelEnabled) {
+						dispatchCancel();
+						ev->stopPropagation();
+						ev->preventDefault();
+					}
+					break;
+				default:
+					break;
+				}
+			}
+		}
+	}
+
 	void View::_processEventForStateAndClick(UIEvent* ev)
 	{
-		if (isNativeWidget()) {
-			return;
-		}
 		UIAction action = ev->getAction();
 		switch (action) {
 			case UIAction::LeftButtonDown:
@@ -9856,23 +9927,6 @@ namespace slib
 					}
 				}
 			}
-		}
-		
-		if (isNativeWidget()) {
-			switch (action) {
-				case UIAction::LeftButtonDown:
-				case UIAction::TouchBegin:
-					scrollAttrs->flagDownContent = sl_true;
-					scrollAttrs->mousePointDown = ev->getPoint();
-					break;
-				case UIAction::LeftButtonUp:
-				case UIAction::TouchEnd:
-				case UIAction::TouchCancel:
-					scrollAttrs->flagDownContent = sl_false;
-				default:
-					break;
-			}
-			return;
 		}
 		
 		sl_scroll_pos lineX = (sl_scroll_pos)(getWidth() / 20);
@@ -10238,7 +10292,7 @@ namespace slib
 	void View::_processAutoHideScrollBar(UIEvent* ev)
 	{
 		Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;
-		if (scrollAttrs.isNotNull() && !(isNativeWidget())) {
+		if (scrollAttrs.isNotNull()) {
 			if (scrollAttrs->flagAutoHideScrollBar && (scrollAttrs->flagValidHorz || scrollAttrs->flagValidVert)) {
 				UIAction action = ev->getAction();
 				sl_bool flagInvalidateScrollBar = sl_false;
@@ -10608,6 +10662,14 @@ namespace slib
 		Ref<View> view = getView();
 		if (view.isNotNull()) {
 			view->_setFocus(sl_true, sl_false, UIUpdateMode::Redraw);
+		}
+	}
+
+	void ViewInstance::onKillFocus()
+	{
+		Ref<View> view = getView();
+		if (view.isNotNull()) {
+			view->_setFocus(sl_false, sl_false, UIUpdateMode::Redraw);
 		}
 	}
 

@@ -53,6 +53,12 @@ namespace slib
 			void
 		)
 		#define gtk_main_quit slib::gtk::getApi_gtk_main_quit()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_main_do_event,
+			void, ,
+			GdkEvent *event
+		)
+		#define gtk_main_do_event slib::gtk::getApi_gtk_main_do_event()
 		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
 			gtk_show_uri,
 			gboolean, ,
@@ -388,6 +394,12 @@ namespace slib
 			gint events
 		)
 		#define gtk_widget_set_events slib::gtk::getApi_gtk_widget_set_events()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_widget_get_events,
+			gint, ,
+			GtkWidget *widget
+		)
+		#define gtk_widget_get_events slib::gtk::getApi_gtk_widget_get_events()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_widget_get_parent,
 			GtkWidget*, ,

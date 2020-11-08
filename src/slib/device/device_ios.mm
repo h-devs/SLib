@@ -79,11 +79,11 @@ namespace slib
 		return [[UIScreen mainScreen] scale] * 160;
 	}
 
-	void Device::openUrl(const String& _url)
+	void Device::openUrl(const StringParam& _url)
 	{
 		if (_url.isNotEmpty()) {
 			if (![NSThread isMainThread]) {
-				String url = _url;
+				String url = _url.toString();
 				dispatch_async(dispatch_get_main_queue(), ^{
 					Device::openUrl(url);
 				});

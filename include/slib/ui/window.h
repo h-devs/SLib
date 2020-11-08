@@ -124,6 +124,10 @@ namespace slib
 		Ref<Menu> getMenu();
 		
 		virtual void setMenu(const Ref<Menu>& menu);
+
+		Ref<View> getInitialFocus();
+
+		void setInitialFocus(const Ref<View>& view);
 		
 		
 		sl_bool isActive();
@@ -151,10 +155,10 @@ namespace slib
 		void setTop(sl_ui_pos y);
 		
 		virtual UISize getSize();
-		
-		virtual void setSize(const UISize& size);
-		
-		void setSize(sl_ui_len width, sl_ui_len height);
+
+		virtual void setSize(sl_ui_len width, sl_ui_len height);
+
+		void setSize(const UISize& size);
 		
 		sl_ui_len getWidth();
 		
@@ -177,9 +181,9 @@ namespace slib
 		
 		UISize getClientSize();
 		
-		virtual void setClientSize(const UISize& size);
-
-		void setClientSize(sl_ui_len width, sl_ui_len height);
+		virtual void setClientSize(sl_ui_len width, sl_ui_len height);
+		
+		void setClientSize(const UISize& size);
 		
 		sl_ui_len getClientWidth();
 		
@@ -393,6 +397,10 @@ namespace slib
 		
 		void showModal();
 
+		void show();
+
+		void hide();
+
 		
 		void addView(const Ref<View>& view, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
@@ -455,6 +463,7 @@ namespace slib
 		Ref<priv::window::ContentView> m_viewContent;
 		AtomicRef<Screen> m_screen;
 		AtomicRef<Menu> m_menu;
+		AtomicRef<View> m_viewInitialFocus;
 		
 		UIRect m_frame;
 		AtomicString m_title;
@@ -552,7 +561,7 @@ namespace slib
 		
 		virtual UISize getClientSize() = 0;
 		
-		virtual sl_bool setClientSize(const UISize& size) = 0;
+		virtual sl_bool setClientSize(sl_ui_len width, sl_ui_len height) = 0;
 		
 
 		virtual void setTitle(const String& title) = 0;

@@ -115,6 +115,7 @@
 #include "core/locale.h"
 #include "core/charset.h"
 #include "core/parse.h"
+#include "core/parse_util.h"
 #include "core/resource.h"
 #include "core/preference.h"
 #include "core/setting.h"

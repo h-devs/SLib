@@ -30,7 +30,7 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileInfo)
 
-		FileInfo::FileInfo() :
+	FileInfo::FileInfo() :
 		size(0),
 		allocSize(0)
 	{
@@ -39,14 +39,14 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileOpenParam)
 
-		FileOpenParam::FileOpenParam()
+	FileOpenParam::FileOpenParam()
 	{
 	}
 
 
 	SLIB_DEFINE_OBJECT(File, IO)
 
-		File::File(sl_file file) : m_file(file)
+	File::File(sl_file file) : m_file(file)
 	{
 	}
 
@@ -156,21 +156,62 @@ namespace slib
 		m_file = SLIB_FILE_INVALID_HANDLE;
 	}
 
-	sl_uint64 File::getSize()
+	sl_bool File::getSize(sl_uint64& outSize)
 	{
-		return getSize(m_file);
+		return getSizeByHandle(m_file, outSize);
+	}
+
+	sl_uint64 File::getSizeByHandle(sl_file handle)
+	{
+		sl_uint64 size;
+		if (getSizeByHandle(handle, size)) {
+			return size;
+		}
+		return 0;
+	}
+
+	sl_uint64 File::getSize(const StringParam& path)
+	{
+		sl_uint64 size;
+		if (getSize(path, size)) {
+			return size;
+		}
+		return 0;
+	}
+
+	sl_bool File::getDiskSize(sl_uint64& outSize)
+	{
+		return getDiskSizeByHandle(m_file, outSize);
 	}
 
 	sl_uint64 File::getDiskSize()
 	{
-		return getDiskSize(m_file);
+		return getDiskSizeByHandle(m_file);
+	}
+
+	sl_uint64 File::getDiskSizeByHandle(sl_file handle)
+	{
+		sl_uint64 size;
+		if (getDiskSizeByHandle(handle, size)) {
+			return size;
+		}
+		return 0;
+	}
+
+	sl_bool File::getDiskSize(const StringParam& devicePath, sl_uint64& outSize)
+	{
+		Ref<File> file = openDevice(devicePath, sl_false, sl_false);
+		if (file.isNotNull()) {
+			return getDiskSizeByHandle(file->m_file, outSize);
+		}
+		return sl_false;
 	}
 
 	sl_uint64 File::getDiskSize(const StringParam& devicePath)
 	{
-		Ref<File> file = openDevice(devicePath, sl_false, sl_false);
-		if (file.isNotNull()) {
-			return getDiskSize(file->m_file);
+		sl_uint64 size;
+		if (getDiskSize(devicePath, size)) {
+			return size;
 		}
 		return 0;
 	}
@@ -277,8 +318,9 @@ namespace slib
 		return sl_false;
 	}
 
-	String File::getParentDirectoryPath(const String& pathName)
+	String File::getParentDirectoryPath(const StringParam& _pathName)
 	{
+		StringData pathName(_pathName);
 		if (pathName.isEmpty()) {
 			return sl_null;
 		}
@@ -311,8 +353,9 @@ namespace slib
 		}
 	}
 
-	String File::getFileName(const String& pathName)
+	String File::getFileName(const StringParam& _pathName)
 	{
+		StringData pathName(_pathName);
 		if (pathName.isEmpty()) {
 			return sl_null;
 		}
@@ -338,8 +381,9 @@ namespace slib
 	}
 
 
-	String File::getFileExtension(const String& pathName)
+	String File::getFileExtension(const StringParam& _pathName)
 	{
+		StringData pathName(_pathName);
 		String fileName = getFileName(pathName);
 		if (fileName.isEmpty()) {
 			return sl_null;
@@ -352,8 +396,9 @@ namespace slib
 		}
 	}
 
-	String File::getFileNameOnly(const String& pathName)
+	String File::getFileNameOnly(const StringParam& _pathName)
 	{
+		StringData pathName(_pathName);
 		String fileName = getFileName(pathName);
 		if (fileName.isEmpty()) {
 			return sl_null;
@@ -366,13 +411,14 @@ namespace slib
 		}
 	}
 
-	String File::normalizeDirectoryPath(const String& _str)
+	String File::normalizeDirectoryPath(const StringParam& _str)
 	{
-		String str = _str;
+		StringData str(_str);
 		if (str.endsWith('\\') || str.endsWith('/')) {
-			str = str.substring(0, str.getLength() - 1);
+			return str.substring(0, str.getLength() - 1);
+		} else {
+			return str.toString(_str);
 		}
-		return str;
 	}
 	
 	Memory File::readAllBytes(sl_size maxSize)

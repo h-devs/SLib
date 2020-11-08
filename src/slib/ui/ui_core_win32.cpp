@@ -33,6 +33,7 @@
 #include "slib/ui/app.h"
 #include "slib/ui/window.h"
 #include "slib/core/queue.h"
+#include "slib/core/file.h"
 #include "slib/core/safe_static.h"
 
 #include <commctrl.h>
@@ -373,6 +374,15 @@ namespace slib
 				PostGlobalMessage(SLIB_UI_MESSAGE_DISPATCH, 0, 0);
 			}
 		}
+	}
+
+	void UI::openDirectoryAndSelectFile(const StringParam& path)
+	{
+		String dir = File::getParentDirectoryPath(path);
+		ShellOpenFolderAndSelectItemsParam param;
+		param.path = dir;
+		param.items.add(path);
+		Windows::shell(param);
 	}
 
 	void UI::setBadgeNumber(sl_uint32 num)

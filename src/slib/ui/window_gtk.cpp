@@ -123,6 +123,10 @@ namespace slib
 					g_signal_connect(window, "window-state-event", G_CALLBACK(_ui_win_on_window_state_cb), NULL);
 					g_signal_connect(window, "configure-event", G_CALLBACK(_ui_win_on_configure_event_cb), NULL);
 					g_signal_connect(window, "notify::is-active", G_CALLBACK(_ui_win_on_notify_is_active_cb), NULL);
+					if (contentWidget) {
+						g_signal_connect(window, "key-press-event", G_CALLBACK(_ui_win_on_key_event), contentWidget);
+						g_signal_connect(window, "key-release-event", G_CALLBACK(_ui_win_on_key_event), contentWidget);
+					}
 
 					gint x, y, width, height;
 					gtk_window_get_position(window, &x, &y);
@@ -239,6 +243,12 @@ namespace slib
 							m_origin.y = oy;
 							m_size.x -= ox;
 							m_size.y -= oy;
+							if (m_size.x < 1) {
+								m_size.x = 1;
+							}
+							if (m_size.y < 1) {
+								m_size.y = 1;
+							}
 							gtk_window_resize(window, m_size.x, m_size.y);
 							if (!(gtk_window_get_resizable(window))) {
 								gtk_widget_set_size_request((GtkWidget*)window, m_size.x, m_size.y);
@@ -300,6 +310,15 @@ namespace slib
 					}
 				}
 
+				static gboolean _ui_win_on_key_event(GtkWidget* widget, GdkEvent* ev, gpointer user_data)
+				{
+					GtkWidget* focus = gtk_window_get_focus((GtkWindow*)widget);
+					if (!focus) {
+						GTK_ViewInstance::eventCallback(widget, ev, user_data);
+					}
+					return 0;
+				}
+
 				static Ref<WindowInstance> create(const WindowInstanceParam& param)
 				{
 					GtkWindow* window = (GtkWindow*)(gtk_window_new(GTK_WINDOW_TOPLEVEL));
@@ -349,7 +368,14 @@ namespace slib
 						return sl_null;
 					}
 					
-					ret->m_size = frameWindow.getSize();
+					UISize size = frameWindow.getSize();
+					if (size.x < 1) {
+						size.x = 1;
+					}
+					if (size.y < 1) {
+						size.y = 1;
+					}
+					ret->m_size = size;
 					ret->m_location = frameWindow.getLocation();
 					
 					if (!(param.flagClientSize || param.flagBorderless || param.flagFullScreen || !(param.flagShowTitleBar))) {
@@ -357,7 +383,7 @@ namespace slib
 					}
 
 					gtk_widget_set_size_request((GtkWidget*)window, 0, 0);
-					gtk_window_resize(window, ret->m_size.x, ret->m_size.y);
+					gtk_window_resize(window, size.x, size.y);
 					
 					return ret;
 				}
@@ -439,6 +465,12 @@ namespace slib
 						UISize size;
 						size.x = frame.getWidth() - m_origin.x;
 						size.y = frame.getHeight() - m_origin.y;
+						if (size.x < 1) {
+							size.x = 1;
+						}
+						if (size.y < 1) {
+							size.y = 1;
+						}
 						if (m_location.isAlmostEqual(location) && m_size.isAlmostEqual(size)) {
 							return;
 						}
@@ -447,9 +479,9 @@ namespace slib
 						GtkWindow* window = m_window;
 						if (window) {
 							gtk_window_move(window, m_location.x, m_location.y);
-							gtk_window_resize(window, m_size.x, m_size.y);
+							gtk_window_resize(window, size.x, size.y);
 							if (!(gtk_window_get_resizable(window))) {
-								gtk_widget_set_size_request((GtkWidget*)window, m_size.x, m_size.y);
+								gtk_widget_set_size_request((GtkWidget*)window, size.x, size.y);
 							}
 						}
 					}
@@ -470,16 +502,23 @@ namespace slib
 					return m_size;
 				}
 				
-				sl_bool setClientSize(const UISize& size) override
+				sl_bool setClientSize(sl_ui_len width, sl_ui_len height) override
 				{
 					if (!m_flagClosed) {
-						if (m_size.isAlmostEqual(size)) {
+						if (width < 1) {
+							width = 1;
+						}
+						if (height < 1) {
+							height = 1;
+						}
+						if (m_size.isAlmostEqual(UISize(width, height))) {
 							return sl_true;
 						}
-						m_size = size;
+						m_size.x = width;
+						m_size.y = height;
 						GtkWindow* window = m_window;
 						if (window) {
-							gtk_window_resize(window, m_size.x, m_size.y);
+							gtk_window_resize(window, width, height);
 							return sl_true;
 						}
 					}

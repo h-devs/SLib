@@ -75,6 +75,39 @@ namespace slib
 		sl_uint32 build;
 	};
 
+	class ShellExecuteParam
+	{
+	public:
+		StringParam operation;
+		StringParam path;
+		StringParam params;
+		sl_bool runAsAdmin; // `shellExecute` returns sl_false if the user refused the elevation
+		StringParam currentDirectory;
+		HWND hWndParent;
+		int nShow;
+
+	public:
+		ShellExecuteParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ShellExecuteParam)
+
+	};
+
+	class ShellOpenFolderAndSelectItemsParam
+	{
+	public:
+		StringParam path;
+		ListParam<StringParam> items;
+		sl_bool flagEdit;
+		sl_bool flagOpenDesktop;
+
+	public:
+		ShellOpenFolderAndSelectItemsParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ShellOpenFolderAndSelectItemsParam)
+
+	};
+
 	typedef sl_bool(*WINDOWS_DEBUG_ALLOC_HOOK)(void* ptr, sl_size size, sl_uint32 requestNumber);
 	
 	class Variant;
@@ -152,25 +185,9 @@ namespace slib
 		static sl_bool isCurrentProcessRunAsAdmin();
 
 
-		class ShellExecuteParam
-		{
-		public:
-			StringParam operation;
-			StringParam path;
-			StringParam params;
-			sl_bool runAsAdmin; // `shellExecute` returns sl_false if the user refused the elevation
-			StringParam currentDirectory;
-			HWND hWndParent;
-			int nShow;
+		static sl_bool shell(const ShellExecuteParam& param);
 
-		public:
-			ShellExecuteParam();
-
-			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ShellExecuteParam)
-
-		};
-
-		static sl_bool shellExecute(const ShellExecuteParam& param);
+		static sl_bool shell(const ShellOpenFolderAndSelectItemsParam& param);
 
 
 		static sl_bool getSYSTEMTIME(const Time& time, sl_bool flagUTC, SYSTEMTIME* _out);

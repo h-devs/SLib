@@ -26,12 +26,11 @@
 #include "slib/storage/file_system_mirror.h"
 
 #include "slib/core/file.h"
-#include "slib/core/system.h"
 #include "slib/core/variant.h"
 #include "slib/storage/disk.h"
 
 #define FILE_FROM_CONTEXT(context)	(context ? ((MirrorFileContext*)(context))->file : sl_null)
-#define CONCAT_PATH(path)			(path.isNotEmpty() ? m_root + path : sl_null)
+#define CONCAT_PATH(path)			(m_root.isNotEmpty() && path.isNotEmpty() ? m_root + path : sl_null)
 
 namespace slib
 {
@@ -61,15 +60,29 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(MirrorFileSystem, FileSystemProvider)
 
-	MirrorFileSystem::MirrorFileSystem(const String& path) : m_root(path)
+	MirrorFileSystem::MirrorFileSystem()
 	{
 		m_fsInfo.fileSystemName = "MirrorFs";
-		m_fsInfo.creationTime = File::getCreatedTime(m_root);
 		m_fsInfo.flags = FileSystemFlags::CaseSensitive;
 	}
 
 	MirrorFileSystem::~MirrorFileSystem()
 	{
+	}
+
+	sl_bool MirrorFileSystem::setPath(const String& _path)
+	{
+		String path = File::normalizeDirectoryPath(_path);
+		if (!File::exists(path)) {
+			return sl_false;
+		}
+		if (!(File::getAttributes(path) & FileAttributes::Directory)) {
+			return sl_false;
+		}
+
+		m_root = path;
+		m_fsInfo.creationTime = File::getCreatedTime(path);
+		return sl_true;
 	}
 
 	sl_bool MirrorFileSystem::getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize)
@@ -80,7 +93,7 @@ namespace slib
 	sl_bool MirrorFileSystem::createDirectory(const StringParam& path)
 	{
 		if (!File::createDirectory(CONCAT_PATH(path))) {
-			SLIB_THROW(getLastError(), sl_false);
+			SLIB_THROW(FileSystem::getLastError(), sl_false);
 		}
 		return sl_true;
 	}
@@ -89,7 +102,7 @@ namespace slib
 	{
 		Ref<File> file = File::open(CONCAT_PATH(path), param);
 		if (file.isNull()) {
-			SLIB_THROW(getLastError(), sl_null);
+			SLIB_THROW(FileSystem::getLastError(), sl_null);
 		}
 		return new MirrorFileContext(file);
 	}
@@ -100,7 +113,7 @@ namespace slib
 		if (file.isNotNull()) {
 			file->close();
 			if (file->isOpened()) {
-				SLIB_THROW(getLastError(), sl_false);
+				SLIB_THROW(FileSystem::getLastError(), sl_false);
 			}
 		}
 		return sl_true;
@@ -115,12 +128,12 @@ namespace slib
 		}
 
 		if (!file->seek(offset, SeekPosition::Begin)) {
-			SLIB_THROW(getLastError(), 0);
+			SLIB_THROW(FileSystem::getLastError(), 0);
 		}
 
 		sl_int32 ret = file->read32(buf, size);
 		if (ret < 0) {
-			SLIB_THROW(getLastError(), 0);
+			SLIB_THROW(FileSystem::getLastError(), 0);
 		}
 
 		return ret;
@@ -136,17 +149,17 @@ namespace slib
 
 		if (offset < 0) {
 			if (!file->seekToEnd()) {
-				SLIB_THROW(getLastError(), 0);
+				SLIB_THROW(FileSystem::getLastError(), 0);
 			}
 		} else {
 			if (!file->seek(offset, SeekPosition::Begin)) {
-				SLIB_THROW(getLastError(), 0);
+				SLIB_THROW(FileSystem::getLastError(), 0);
 			}
 		}
 
 		sl_int32 ret = file->write32(buf, size);
 		if (ret < 0) {
-			SLIB_THROW(getLastError(), 0);
+			SLIB_THROW(FileSystem::getLastError(), 0);
 		}
 
 		return ret;
@@ -166,7 +179,7 @@ namespace slib
 	sl_bool MirrorFileSystem::deleteDirectory(const StringParam& path)
 	{
 		if (!File::deleteDirectory(CONCAT_PATH(path))) {
-			SLIB_THROW(getLastError(), sl_false);
+			SLIB_THROW(FileSystem::getLastError(), sl_false);
 		}
 		return sl_true;
 	}
@@ -174,7 +187,7 @@ namespace slib
 	sl_bool MirrorFileSystem::deleteFile(const StringParam& path)
 	{
 		if (!File::deleteFile(CONCAT_PATH(path))) {
-			SLIB_THROW(getLastError(), sl_false);
+			SLIB_THROW(FileSystem::getLastError(), sl_false);
 		}
 		return sl_true;
 	}
@@ -182,7 +195,7 @@ namespace slib
 	sl_bool MirrorFileSystem::moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists)
 	{
 		if (!File::move(CONCAT_PATH(pathOld), CONCAT_PATH(pathNew), flagReplaceIfExists)) {
-			SLIB_THROW(getLastError(), sl_false);
+			SLIB_THROW(FileSystem::getLastError(), sl_false);
 		}
 		return sl_true;
 	}
@@ -193,27 +206,47 @@ namespace slib
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 		sl_bool flagOpened = file.isNotNull() && file->isOpened();
 
+		FileAttributes attr = File::getAttributes(filePath);
+		if (attr & FileAttributes::NotExist) {
+            if (flagOpened) {
+                attr = file->getAttributes();
+            }
+		}
+
 		if (mask & FileInfoMask::Attributes) {
-			FileAttributes attr = File::getAttributes(filePath);
-			if (attr & FileAttributes::NotExist) {
-				if (!flagOpened) {
-					SLIB_THROW(FileSystemError::NotFound, sl_false);
-				}
-				attr = file->getAttributes();
-				if (attr & FileAttributes::NotExist) {
-					SLIB_THROW(FileSystemError::NotFound, sl_false);
-				}
-			}
+            if (attr & FileAttributes::NotExist) {
+                SLIB_THROW(FileSystemError::NotFound, sl_false);
+            }
 			outInfo.attributes = (sl_uint32)attr;
 		}
 
-		if ((mask & FileInfoMask::Size) || (mask & FileInfoMask::AllocSize)) {
-			if (flagOpened) {
-				outInfo.size = outInfo.allocSize = file->getSize();
-			} else {
-				outInfo.size = outInfo.allocSize = File::getSize(filePath);
-			}
-		}
+        if (mask & FileInfoMask::Size) {
+            sl_bool ret = sl_false;
+            if (flagOpened) {
+                ret = file->getSize(outInfo.size);
+            }
+            if (!ret && !(File::getSize(filePath, outInfo.size))) {
+                if (attr & FileAttributes::Directory) {
+                    outInfo.size = 0;
+                } else {
+                    SLIB_THROW(FileSystem::getLastError(), sl_false);
+                }
+            }
+        }
+
+        if (mask & FileInfoMask::AllocSize) {
+            sl_bool ret = sl_false;
+            if (flagOpened) {
+                ret = file->getSize(outInfo.allocSize);
+            }
+            if (!ret && !(File::getSize(filePath, outInfo.allocSize))) {
+                if (attr & FileAttributes::Directory) {
+                    outInfo.allocSize = 0;
+                } else {
+                    SLIB_THROW(FileSystem::getLastError(), sl_false);
+                }
+            }
+        }
 
 		if (mask & FileInfoMask::Time) {
 			if (flagOpened) {
@@ -238,7 +271,7 @@ namespace slib
 
 		if (mask & FileInfoMask::Attributes) {
 			if (!File::setAttributes(filePath, info.attributes)) {
-				SLIB_THROW(getLastError(), sl_false);
+				SLIB_THROW(FileSystem::getLastError(), sl_false);
 			}
 		}
 
@@ -248,8 +281,8 @@ namespace slib
 				if (flagOpened) {
 					ret = file->setCreatedTime(info.createdAt);
 				}
-				if (!ret && !File::setCreatedTime(filePath, info.createdAt)) {
-					SLIB_THROW(getLastError(), sl_false);
+				if (!ret && !(File::setCreatedTime(filePath, info.createdAt))) {
+					SLIB_THROW(FileSystem::getLastError(), sl_false);
 				}
 			}
 			if (info.modifiedAt.isNotZero()) {
@@ -257,8 +290,8 @@ namespace slib
 				if (flagOpened) {
 					ret = file->setModifiedTime(info.modifiedAt);
 				}
-				if (!ret && !File::setModifiedTime(filePath, info.modifiedAt)) {
-					SLIB_THROW(getLastError(), sl_false);
+				if (!ret && !(File::setModifiedTime(filePath, info.modifiedAt))) {
+					SLIB_THROW(FileSystem::getLastError(), sl_false);
 				}
 			}
 			if (info.accessedAt.isNotZero()) {
@@ -266,8 +299,8 @@ namespace slib
 				if (flagOpened) {
 					ret = file->setAccessedTime(info.accessedAt);
 				}
-				if (!ret && !File::setAccessedTime(filePath, info.accessedAt)) {
-					SLIB_THROW(getLastError(), sl_false);
+				if (!ret && !(File::setAccessedTime(filePath, info.accessedAt))) {
+					SLIB_THROW(FileSystem::getLastError(), sl_false);
 				}
 			}
 		}
@@ -277,7 +310,7 @@ namespace slib
 				SLIB_THROW(FileSystemError::InvalidContext, sl_false);
 			}
 			if (!file->setSize(info.size)) {
-				SLIB_THROW(getLastError(), sl_false);
+				SLIB_THROW(FileSystem::getLastError(), sl_false);
 			}
 		}
 
@@ -286,7 +319,7 @@ namespace slib
 				SLIB_THROW(FileSystemError::InvalidContext, sl_false);
 			}
 			//if (!file->setAllocationSize(info.allocationSize))
-			//	SLIB_THROW(getLastError(), sl_false);
+			//	SLIB_THROW(FileSystem::getLastError(), sl_false);
 		}
 
 		return sl_true;
@@ -295,11 +328,6 @@ namespace slib
 	HashMap<String, FileInfo> MirrorFileSystem::getFiles(const StringParam& pathDir)
 	{
 		return File::getFileInfos(CONCAT_PATH(pathDir));
-	}
-
-	FileSystemError MirrorFileSystem::getLastError() noexcept
-	{
-		return (FileSystemError)(System::getLastError());
 	}
 
 }

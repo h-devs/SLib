@@ -266,6 +266,8 @@ namespace slib
 		{
 			return StringData(s, N - 1);
 		}
+
+		String toString(const StringParam& param);
 		
 	};
 
@@ -289,6 +291,8 @@ namespace slib
 		{
 			return StringData16(s, N - 1);
 		}
+
+		String16 toString16(const StringParam& param);
 
 	};
 	
@@ -318,7 +322,9 @@ namespace slib
 		{
 			return StringCstr(s, N - 1);
 		}
-		
+
+		String toString(const StringParam& param);
+
 	};
 
 	class SLIB_EXPORT StringCstr16 : public StringView16
@@ -347,7 +353,9 @@ namespace slib
 		{
 			return StringCstr16(s, N - 1);
 		}
-		
+
+		String16 toString16(const StringParam& param);
+
 	};
 
 }

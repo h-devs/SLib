@@ -1510,10 +1510,12 @@ namespace slib
 		Ref<View> _findViewByMnemonicKey(char ch);
 
 
+		void _processKeyEvents(UIEvent* ev);
+
 		void _processEventForStateAndClick(UIEvent* ev);
-		
+
 		void _processContentScrollingEvents(UIEvent* ev);
-		
+
 		void _startContentScrollingFlow(sl_bool flagSmoothTarget, const Pointlf& speedOrTarget);
 		
 		void _stopContentScrollingFlow();
@@ -2037,7 +2039,9 @@ namespace slib
 		void onDropEvent(UIEvent* ev);
 		
 		void onSetFocus();
-		
+
+		void onKillFocus();
+
 		void onSwipe(GestureType type);
 		
 	protected:

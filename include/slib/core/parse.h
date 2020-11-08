@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -65,26 +65,6 @@ namespace slib
 	
 	template <class T>
 	sl_bool ParseInt(const StringParam& str, T* _out, sl_uint32 radix = 10) noexcept;
-
-
-	class ParseUtil
-	{
-	public:
-		static String applyBackslashEscapes(const StringParam& str, sl_bool flagDoubleQuote = sl_true, sl_bool flagAddQuote = sl_true, sl_bool flagEscapeNonAscii = sl_false) noexcept;
-
-		static String16 applyBackslashEscapes16(const StringParam& str, sl_bool flagDoubleQuote = sl_true, sl_bool flagAddQuote = sl_true, sl_bool flagEscapeNonAscii = sl_false) noexcept;
-
-		
-		static String parseBackslashEscapes(const StringParam& input, sl_size* lengthParsed = sl_null, sl_bool* flagError = sl_null) noexcept;
-
-		static String16 parseBackslashEscapes16(const StringParam& input, sl_size* lengthParsed = sl_null, sl_bool* flagError = sl_null) noexcept;
-
-		
-		static sl_size countLineNumber(const StringParam& input, sl_size* column = sl_null) noexcept;
-
-		static sl_reg indexOfLine(const StringParam& input, sl_reg start = 0) noexcept;
-		
-	};
 
 }
 

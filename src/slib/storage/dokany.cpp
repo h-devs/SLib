@@ -114,18 +114,9 @@ namespace slib
 				DWORD Error)
 
 
-			static String NormalizePath(LPCWSTR szPath)
+			static SLIB_INLINE String NormalizePath(LPCWSTR szPath)
 			{
-				String path = String::from(szPath);
-				sl_char8* data = path.getData();
-				sl_size len = path.getLength();
-				for (sl_size i = 0; i < len; i++) {
-					sl_char8& ch = data[i];
-					if (ch == '\\') {
-						ch = '/';
-					}
-				}
-				return path;
+				return String::from(szPath).replaceAll('\\', '/');
 			}
 
 			static sl_bool CheckDokanyOptions(const DOKAN_OPTIONS& options)
@@ -304,9 +295,10 @@ namespace slib
 						param.mode |= FileMode::RandomAccess;
 					}
 
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					Ref<FileContext> context = provider->openFile(path, param);
 					if (context.isNull()) {
-						return DOKAN_ERROR_CODE(provider->getLastError());
+						return DOKAN_ERROR_CODE(FileSystem::getLastError());
 					}
 
 					host->increaseOpenHandlesCount();
@@ -328,11 +320,11 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 
 				DOKANY_TRY{
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					if (provider->createDirectory(NormalizePath(szFileName))) {
 						return 0;
-					} else {
-						return DOKAN_ERROR_CODE(provider->getLastError());
 					}
+					return DOKAN_ERROR_CODE(FileSystem::getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -347,9 +339,8 @@ namespace slib
 				DOKANY_TRY{
 					if (provider->existsFile(NormalizePath(szFileName))) {
 						return 0;
-					} else {
-						return DOKAN_ERROR_CODE(ERROR_PATH_NOT_FOUND);
 					}
+					return DOKAN_ERROR_CODE(ERROR_PATH_NOT_FOUND);
 				} DOKANY_CATCH
 			}
 
@@ -424,35 +415,9 @@ namespace slib
 				}
 			}
 
-			static int DOKAN_CALLBACK Dokany_Cleanup(
-					LPCWSTR					szFileName,
-					PDOKAN_FILE_INFO		pDokanFileInfo)
-			{
-				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
-				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
-
-				SLIB_TRY {
-					if (pDokanFileInfo->DeleteOnClose) {
-						if (pDokanFileInfo->IsDirectory) {
-							provider->deleteDirectory(NormalizePath(szFileName));
-						} else {
-							if (context) {
-								provider->closeFile(context);
-								host->decreaseOpenHandlesCount();
-								context->decreaseReference();
-								pDokanFileInfo->Context = 0;
-							}
-							provider->deleteFile(NormalizePath(szFileName));
-						}
-					}
-				} SLIB_CATCH(...)
-				return 0;
-			}
-
 			static int DOKAN_CALLBACK Dokany_CloseFile(
-					LPCWSTR					szFileName,
-					PDOKAN_FILE_INFO		pDokanFileInfo)
+				LPCWSTR					szFileName,
+				PDOKAN_FILE_INFO		pDokanFileInfo)
 			{
 				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
 				FileSystemProvider* provider = host->getProvider();
@@ -462,13 +427,42 @@ namespace slib
 					return 0;
 				}
 
-				SLIB_TRY {
+				DOKANY_TRY {
+					FileSystem::setLastError(FileSystemError::Success);
 					provider->closeFile(context);
 					host->decreaseOpenHandlesCount();
 					context->decreaseReference();
 					pDokanFileInfo->Context = 0;
-				} SLIB_CATCH(...)
-				return 0;
+					return DOKAN_ERROR_CODE(FileSystem::getLastError());
+				} DOKANY_CATCH
+			}
+
+			static int DOKAN_CALLBACK Dokany_Cleanup(
+					LPCWSTR					szFileName,
+					PDOKAN_FILE_INFO		pDokanFileInfo)
+			{
+				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
+				FileSystemProvider* provider = host->getProvider();
+				FileContext* context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+
+				DOKANY_TRY {
+					if (pDokanFileInfo->DeleteOnClose) {
+						sl_bool ret;
+						FileSystem::setLastError(FileSystemError::GeneralError);
+						if (pDokanFileInfo->IsDirectory) {
+							ret = provider->deleteDirectory(NormalizePath(szFileName));
+						} else {
+							if (context) {
+								Dokany_CloseFile(szFileName, pDokanFileInfo);
+							}
+							ret = provider->deleteFile(NormalizePath(szFileName));
+						}
+						if (!ret) {
+							return DOKAN_ERROR_CODE(FileSystem::getLastError());
+						}
+					}
+					return 0;
+				} DOKANY_CATCH
 			}
 
 			static int DOKAN_CALLBACK Dokany_ReadFile(
@@ -486,18 +480,39 @@ namespace slib
 				if (!context) {
 					return DOKAN_ERROR_CODE(ERROR_INVALID_HANDLE);
 				}
-				
 				if (!dwBufferLength) {
+					*pReadLength = 0;
 					return 0;
 				}
 
-				DOKANY_TRY {
+				SLIB_TRY {
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					*pReadLength = (DWORD)(provider->readFile(context, (sl_uint64)iOffset, pBuffer, dwBufferLength));
 					if (*pReadLength) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(provider->getLastError());
-				} DOKANY_CATCH
+					sl_uint64 size;
+					if (provider->getFileSize(context, size)) {
+						if ((sl_uint64)iOffset == size) {
+							return 0;
+						}
+					}
+					return DOKAN_ERROR_CODE(FileSystem::getLastError());
+				} SLIB_CATCH(FileSystemError err, {
+					if (err == FileSystemError::NotImplemented) {
+						return (g_flagDokany ? STATUS_NOT_IMPLEMENTED : 0);
+					}
+					sl_uint64 size;
+					if (provider->getFileSize(context, size)) {
+						if ((sl_uint64)iOffset == size) {
+							return 0;
+						}
+					}
+					return DOKAN_ERROR_CODE(err);
+				})
+				SLIB_CATCH(..., {
+					return DOKAN_ERROR_CODE(FileSystemError::GeneralError);
+				})
 			}
 
 			static int DOKAN_CALLBACK Dokany_WriteFile(
@@ -515,32 +530,36 @@ namespace slib
 				if (!context) {
 					return DOKAN_ERROR_CODE(ERROR_INVALID_HANDLE);
 				}
-
 				if (pDokanFileInfo->WriteToEndOfFile) {
 					iOffset = -1;
 				} else {
 					if (pDokanFileInfo->PagingIo) {
-						sl_uint64 size = provider->getFileSize(context);
-						if ((sl_uint64)iOffset >= size) {
-							*pNumberOfBytesWritten = 0;
-							return 0;
-						}
-						if ((sl_uint64)(iOffset + dwNumberOfBytesToWrite) > size) {
-							dwNumberOfBytesToWrite = (DWORD)((size - iOffset) & 0xFFFFFFFFUL);
+						sl_uint64 size;
+						FileSystem::setLastError(FileSystemError::GeneralError);
+						if (provider->getFileSize(context, size)) {
+							if ((sl_uint64)iOffset >= size) {
+								dwNumberOfBytesToWrite = 0;
+							}
+							if ((sl_uint64)(iOffset + dwNumberOfBytesToWrite) > size) {
+								dwNumberOfBytesToWrite = (DWORD)((size - iOffset) & 0xFFFFFFFFUL);
+							}
+						} else {
+							return DOKAN_ERROR_CODE(FileSystem::getLastError());
 						}
 					}
 				}
-
 				if (!dwNumberOfBytesToWrite) {
+					*pNumberOfBytesWritten = 0;
 					return 0;
 				}
 
 				DOKANY_TRY {
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					*pNumberOfBytesWritten = (DWORD)(provider->writeFile(context, (sl_int64)iOffset, pBuffer, dwNumberOfBytesToWrite));
 					if (*pNumberOfBytesWritten) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(provider->getLastError());
+					return DOKAN_ERROR_CODE(FileSystem::getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -557,10 +576,11 @@ namespace slib
 				}
 
 				DOKANY_TRY {
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					if (provider->flushFile(context)) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(provider->getLastError());
+					return DOKAN_ERROR_CODE(FileSystem::getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -575,6 +595,7 @@ namespace slib
 
 				DOKANY_TRY {
 					FileInfo info;
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					if (provider->getFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::All)) {
 						pFileInfo->dwFileAttributes = info.attributes & 0x7ffff;
 						pFileInfo->nFileSizeLow = SLIB_GET_DWORD0(info.size);
@@ -584,7 +605,7 @@ namespace slib
 						((PLARGE_INTEGER)(&pFileInfo->ftLastWriteTime))->QuadPart = info.modifiedAt.toWindowsFileTime();
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(provider->getLastError());
+					return DOKAN_ERROR_CODE(FileSystem::getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -601,10 +622,13 @@ namespace slib
 					Base::zeroMemory(&fd, sizeof(fd));
 					fd.dwFileAttributes = FILE_ATTRIBUTE_DIRECTORY;
 					FileInfo dirInfo;
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					if (provider->getFileInfo(NormalizePath(szPathName), sl_null, dirInfo, FileInfoMask::Time)) {
 						((PLARGE_INTEGER)(&fd.ftCreationTime))->QuadPart = dirInfo.createdAt.toWindowsFileTime();
 						((PLARGE_INTEGER)(&fd.ftLastAccessTime))->QuadPart = dirInfo.accessedAt.toWindowsFileTime();
 						((PLARGE_INTEGER)(&fd.ftLastWriteTime))->QuadPart = dirInfo.modifiedAt.toWindowsFileTime();
+					} else {
+						return DOKAN_ERROR_CODE(FileSystem::getLastError());
 					}
 					fd.cFileName[0] = '.';
 					funcFillFindData(&fd, pDokanFileInfo);
@@ -667,10 +691,11 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 
 				DOKANY_TRY {
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					if (provider->moveFile(NormalizePath(szFileName), NormalizePath(szNewFileName), bReplaceIfExisting)) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(provider->getLastError());
+					return DOKAN_ERROR_CODE(FileSystem::getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -686,10 +711,11 @@ namespace slib
 				DOKANY_TRY {
 					FileInfo info;
 					info.size = (sl_uint64)iOffset;
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					if (provider->setFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::Size)) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(provider->getLastError());
+					return DOKAN_ERROR_CODE(FileSystem::getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -705,10 +731,11 @@ namespace slib
 				DOKANY_TRY{
 					FileInfo info;
 					info.allocSize = (sl_uint64)iAllocSize;
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					if (provider->setFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::AllocSize)) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(provider->getLastError());
+					return DOKAN_ERROR_CODE(FileSystem::getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -724,10 +751,11 @@ namespace slib
 				DOKANY_TRY{
 					FileInfo info;
 					info.attributes = (int)(dwFileAttributes & 0x7ffff);
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					if (provider->setFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::Attributes)) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(provider->getLastError());
+					return DOKAN_ERROR_CODE(FileSystem::getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -753,10 +781,11 @@ namespace slib
 					if (ftLastWriteTime && ftLastWriteTime->dwLowDateTime && ftLastWriteTime->dwHighDateTime) {
 						info.modifiedAt.setWindowsFileTime(*((sl_int64*)ftLastWriteTime));
 					}
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					if (provider->setFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::Time)) {
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(provider->getLastError());
+					return DOKAN_ERROR_CODE(FileSystem::getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -771,13 +800,14 @@ namespace slib
 
 				DOKANY_TRY{
 					sl_uint64 totalSize, freeSize;
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					if (provider->getSize(&totalSize, &freeSize)) {
 						*pFreeBytesAvailable = freeSize;
 						*pTotalNumberOfFreeBytes = freeSize;
 						*pTotalNumberOfBytes = totalSize;
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(provider->getLastError());
+					return DOKAN_ERROR_CODE(FileSystem::getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -796,6 +826,7 @@ namespace slib
 
 				DOKANY_TRY{
 					FileSystemInfo info;
+					FileSystem::setLastError(FileSystemError::GeneralError);
 					if (provider->getInformation(info)) {
 						if (dwVolumeNameSize) {
 							szVolumeNameBuffer[0] = 0;
@@ -810,7 +841,7 @@ namespace slib
 						}
 						return 0;
 					}
-					return DOKAN_ERROR_CODE(provider->getLastError());
+					return DOKAN_ERROR_CODE(FileSystem::getLastError());
 				} DOKANY_CATCH
 			}
 
@@ -880,15 +911,15 @@ namespace slib
 			class DokanHost : public FileSystemHost
 			{
 			public:
-				DokanHost()
+				DokanHost() : m_iRet(0)
 				{
-					m_iStatus = 0;
 				}
 
 			public:
 				sl_bool _run() override
 				{
 					if (!Dokany::initialize()) {
+						m_strError = "Cannot load dokan library.";
 						return sl_false;
 					}
 
@@ -927,26 +958,31 @@ namespace slib
 					options.GlobalContext = (ULONG64)(void*)this;
 
 					if (!(CheckDokanyOptions(options))) {
+						m_strError = "Invalid dokan options.";
 						return sl_false;
 					}
 					if (!(CheckPovider(param.provider.get(), options))) {
+						m_strError = "Invalid provider.";
 						return sl_false;
 					}
 
 					auto funcMain = getApi_DokanMain();
 					if (!funcMain) {
-						LOG_ERROR("Cannot get DokanMain function address.");
+						m_strError = "Cannot get DokanMain function address.";
 						return sl_false;
 					}
 
-					m_iStatus = funcMain(&options, (PDOKAN_OPERATIONS)GetDokanOperations());
+					m_iRet = funcMain(&options, (PDOKAN_OPERATIONS)GetDokanOperations());
 
-					return (m_iStatus == DOKAN_SUCCESS);
+					return (m_iRet == DOKAN_SUCCESS);
 				}
 
 				String getErrorMessage() override
 				{
-					switch (m_iStatus) {
+					if (m_strError.isNotEmpty()) {
+						return m_strError;
+					}
+					switch (m_iRet) {
 					case DOKAN_SUCCESS:
 						SLIB_RETURN_STRING("Success");
 					case DOKAN_ERROR:
@@ -964,12 +1000,13 @@ namespace slib
 					case DOKAN_VERSION_ERROR:
 						SLIB_RETURN_STRING("Driver version error");
 					default:
-						return String::format("Unknown error: %d", m_iStatus);
+						return String::format("Unknown error: %d", m_iRet);
 					}
 				}
 				
 			private:
-				int m_iStatus;
+				int m_iRet;
+				String m_strError;
 
 			};
 

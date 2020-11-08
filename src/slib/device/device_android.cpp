@@ -330,7 +330,7 @@ namespace slib
 		return 0;
 	}
 
-	void Device::openUrl(const String& _url) {
+	void Device::openUrl(const StringParam& _url) {
 		jobject jactivity = Android::getCurrentActivity();
 		if (jactivity) {
 			JniLocal<jstring> jurl = Jni::getJniString(_url);

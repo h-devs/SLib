@@ -23,8 +23,9 @@
 #include "slib/core/xml.h"
 
 #include "slib/core/file.h"
-#include "slib/core/log.h"
 #include "slib/core/string_buffer.h"
+#include "slib/core/parse_util.h"
+#include "slib/core/log.h"
 
 namespace slib
 {

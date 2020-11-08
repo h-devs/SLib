@@ -292,6 +292,19 @@ namespace slib
 		}
 	}
 
+	Ref<View> Window::getInitialFocus()
+	{
+		return m_viewInitialFocus;
+	}
+
+	void Window::setInitialFocus(const Ref<View>& view)
+	{
+		m_viewInitialFocus = view;
+		if (view.isNotNull()) {
+			view->setFocus();
+		}
+	}
+
 	sl_bool Window::isActive()
 	{
 		Ref<WindowInstance> instance = m_instance;
@@ -389,16 +402,16 @@ namespace slib
 		return getFrame().getSize();
 	}
 
-	void Window::setSize(const UISize& size)
+	void Window::setSize(sl_ui_len width, sl_ui_len height)
 	{
 		UIRect frame = getFrame();
-		frame.setSize(size);
+		frame.setSize(width, height);
 		setFrame(frame);
 	}
 
-	void Window::setSize(sl_ui_len width, sl_ui_len height)
+	void Window::setSize(const UISize& size)
 	{
-		setSize(UISize(width, height));
+		setSize(size.x, size.y);
 	}
 
 	sl_ui_len Window::getWidth()
@@ -478,27 +491,28 @@ namespace slib
 		}
 	}
 
-	void Window::setClientSize(const UISize& size)
+	void Window::setClientSize(sl_ui_len width, sl_ui_len height)
 	{
 		Ref<WindowInstance> instance = m_instance;
 		if (instance.isNotNull()) {
-			void (Window::*func)(const UISize&) = &Window::setClientSize;
-			SLIB_VIEW_RUN_ON_UI_THREAD(func, size)
+			void (Window::*func)(sl_ui_len, sl_ui_len) = &Window::setClientSize;
+			SLIB_VIEW_RUN_ON_UI_THREAD(func, width, height)
 
 			m_flagUseClientSizeRequested = sl_false;
-			if (!(instance->setClientSize(size))) {
-				setSize(size);
+			if (!(instance->setClientSize(width, height))) {
+				setSize(width, height);
 			}
 		} else {
 			m_flagUseClientSizeRequested = sl_true;
-			m_clientSizeRequested = size;
-			m_frame.setSize(size);
+			m_clientSizeRequested.x = width;
+			m_clientSizeRequested.y = height;
+			m_frame.setSize(width, height);
 		}
 	}
 
-	void Window::setClientSize(sl_ui_len width, sl_ui_len height)
+	void Window::setClientSize(const UISize& size)
 	{
-		setClientSize(UISize(width, height));
+		setClientSize(size.x, size.y);
 	}
 
 	sl_ui_len Window::getClientWidth()
@@ -512,7 +526,7 @@ namespace slib
 		if (instance.isNotNull()) {
 			SLIB_VIEW_RUN_ON_UI_THREAD(&Window::setClientWidth, width)
 			m_flagUseClientSizeRequested = sl_false;
-			if (!(instance->setClientSize(UISize(width, m_clientSizeRequested.y)))) {
+			if (!(instance->setClientSize(width, m_clientSizeRequested.y))) {
 				setWidth(width);
 			}
 		} else {
@@ -533,7 +547,7 @@ namespace slib
 		if (instance.isNotNull()) {
 			SLIB_VIEW_RUN_ON_UI_THREAD(&Window::setClientHeight, height)
 			m_flagUseClientSizeRequested = sl_false;
-			if (!(instance->setClientSize(UISize(m_clientSizeRequested.x, height)))) {
+			if (!(instance->setClientSize(m_clientSizeRequested.x, height))) {
 				setHeight(height);
 			}
 		} else {
@@ -1397,6 +1411,12 @@ namespace slib
 				window->setVisible(sl_true);
 				window->activate();
 			}
+
+			Ref<View> focus = m_viewInitialFocus;
+			if (focus.isNotNull()) {
+				focus->setFocus();
+			}
+
 		} else {
 			dispatchCreateFailed();
 		}
@@ -1450,7 +1470,18 @@ namespace slib
 	{
 		UI::dispatchToUiThread(SLIB_BIND_REF(void(), Window, doModal, this));
 	}
-	
+
+	void Window::show()
+	{
+		setVisible(sl_true);
+		create();
+	}
+
+	void Window::hide()
+	{
+		setVisible(sl_false);
+	}
+
 	void Window::addView(const Ref<View>& child, UIUpdateMode mode)
 	{
 		if (child.isNotNull()) {

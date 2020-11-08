@@ -28,6 +28,8 @@
 #include "slib/ui/common_dialogs.h"
 #include "slib/graphics/font.h"
 #include "slib/device/device.h"
+#include "slib/network/url.h"
+#include "slib/core/file.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -642,7 +644,7 @@ namespace slib
 		alert.show();
 	}
 	
-#if !defined(SLIB_UI_IS_MACOS)
+#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_GTK)
 	void UI::dispatchToUiThreadUrgently(const Function<void()>& callback, sl_uint32 delayMillis)
 	{
 		dispatchToUiThread(callback, delayMillis);
@@ -716,11 +718,32 @@ namespace slib
 		return g_flagRunningApp;
 	}
 	
-	void UI::openUrl(const String& url)
+	void UI::openUrl(const StringParam& url)
 	{
 		Device::openUrl(url);
 	}
-	
+
+	void UI::openFile(const StringParam& path)
+	{
+		UI::openUrl(Url::toFileUri(path));
+	}
+
+	void UI::openDirectory(const StringParam& path)
+	{
+		String uri = Url::toFileUri(path);
+		if (!(uri.endsWith('/'))) {
+			uri += "/";
+		}
+		UI::openUrl(uri);
+	}
+
+#if !defined(SLIB_UI_IS_WIN32)
+	void UI::openDirectoryAndSelectFile(const StringParam& path)
+	{
+		openDirectory(File::getParentDirectoryPath(path));
+	}
+#endif
+
 #if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_ANDROID)
 	void UI::dismissKeyboard()
 	{

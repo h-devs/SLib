@@ -68,7 +68,7 @@ namespace slib
 	FileSystemLogger::FileSystemLogger(const Ref<FileSystemProvider>& base, const FileSystemLogFlags& flags, const String& filter)
 		: FileSystemWrapper(base), m_flags(flags), m_regex(filter)
 	{
-		LOG_DEBUG("LogFlags: 0x%08X", (sl_uint32)m_flags);
+		LOG_DEBUG("LogFlags: 0x%08X, Filter: %s", (sl_uint32)m_flags, filter);
 
 		if (m_flags & FileSystemLogFlags::Info) {
 			LOG("FileSystemInfo:");
@@ -126,7 +126,7 @@ namespace slib
 			return m_base->getSize(pTotalSize, pFreeSize);
 		}
 
-		String desc = String::format("GetSize(%s)");
+		String desc = String::format("GetSize()");
 		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
 		}
@@ -487,8 +487,6 @@ namespace slib
 								? String::format("%d,%d,%d", info.createdAt.toInt(), info.modifiedAt.toInt(), info.accessedAt.toInt())
 								: String::format("%s,%s,%s", info.createdAt.toString(), info.modifiedAt.toString(), info.accessedAt.toString()))));
 				}
-			} else if (files.isEmpty() && (m_flags & FileSystemLogFlags::RetFail)) {
-				LOG("%s\n  Error", desc);
 			}
 			return files;
 		}

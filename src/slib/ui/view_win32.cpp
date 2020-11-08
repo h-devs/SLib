@@ -1039,6 +1039,11 @@ namespace slib
 					onSetFocus();
 					break;
 				}
+			case WM_KILLFOCUS:
+				{
+					onKillFocus();
+					break;
+				}
 			case WM_SETCURSOR:
 				{
 					if (onEventSetCursor()) {

@@ -213,8 +213,14 @@ namespace slib
 		static sl_bool isRunningApp();
 		
 		
-		static void openUrl(const String& url);
-		
+		static void openUrl(const StringParam& url);
+
+		static void openFile(const StringParam& path);
+
+		static void openDirectory(const StringParam& path);
+
+		static void openDirectoryAndSelectFile(const StringParam& path);
+
 		static void dismissKeyboard();
 		
 		static UIKeyboardAdjustMode getKeyboardAdjustMode();

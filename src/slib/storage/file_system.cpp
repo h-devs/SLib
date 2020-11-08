@@ -22,11 +22,21 @@
 
 #include "slib/storage/file_system_internal.h"
 
+#include "slib/core/system.h"
 #include "slib/core/safe_static.h"
 
+//#define WIN32_USE_FUSE
+
 #ifdef SLIB_PLATFORM_IS_WIN32
-#include "slib/storage/dokany.h"
+# ifdef WIN32_USE_FUSE
+#  include "slib/storage/fuse.h"
+# else
+#  include "slib/storage/dokany.h"
+# endif
+#else
+# include "slib/storage/fuse.h"
 #endif
+
 
 namespace slib
 {
@@ -47,9 +57,13 @@ namespace slib
 	Ref<FileSystemHost> FileSystem::createHost()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
+# ifdef WIN32_USE_FUSE
+		return Fuse::createHost();
+# else
 		return Dokany::createHost();
+# endif
 #elif defined(SLIB_PLATFORM_IS_UNIX) && defined(SLIB_PLATFORM_IS_DESKTOP)
-		return sl_null;
+        return Fuse::createHost();
 #else
 		return sl_null;
 #endif
@@ -67,12 +81,26 @@ namespace slib
 	sl_bool FileSystem::unmount(const String& mountPoint)
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
+# ifdef WIN32_USE_FUSE
+		return Fuse::unmount(mountPoint);
+# else
 		return Dokany::unmount(mountPoint);
+# endif
 #elif defined(SLIB_PLATFORM_IS_UNIX) && defined(SLIB_PLATFORM_IS_DESKTOP)
-		return sl_false;
+		return Fuse::unmount(mountPoint);
 #else
 		return sl_false;
 #endif
+	}
+
+	FileSystemError FileSystem::getLastError()
+	{
+		return (FileSystemError)(System::getLastError());
+	}
+
+	void FileSystem::setLastError(FileSystemError error)
+	{
+		System::setLastError((sl_uint32)error);
 	}
 
 
@@ -129,6 +157,11 @@ namespace slib
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
 
+	sl_bool FileSystemProvider::closeFile(FileContext* context)
+	{
+		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+	}
+
 	sl_bool FileSystemProvider::deleteFile(const StringParam& path)
 	{
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
@@ -140,6 +173,11 @@ namespace slib
 	}
 
 	sl_bool FileSystemProvider::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	{
+		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+	}
+
+	sl_bool FileSystemProvider::createDirectory(const StringParam& path)
 	{
 		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
 	}
@@ -160,22 +198,28 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_uint64 FileSystemProvider::getFileSize(FileContext* context)
+	sl_bool FileSystemProvider::getFileSize(FileContext* context, sl_uint64& outSize) noexcept
 	{
-		FileInfo info;
-		if (getFileInfo(sl_null, context, info, FileInfoMask::Size)) {
-			return info.size;
-		}
-		return 0;
+		SLIB_TRY {
+			FileInfo info;
+			if (getFileInfo(sl_null, context, info, FileInfoMask::Size)) {
+				outSize = info.size;
+				return sl_true;
+			}
+		} SLIB_CATCH(...)
+		return sl_false;
 	}
 
-	sl_uint64 FileSystemProvider::getFileSize(const StringParam& path)
+	sl_bool FileSystemProvider::getFileSize(const StringParam& path, sl_uint64& outSize) noexcept
 	{
-		FileInfo info;
-		if (getFileInfo(path, sl_null, info, FileInfoMask::Size)) {
-			return info.size;
-		}
-		return 0;
+		SLIB_TRY {
+			FileInfo info;
+			if (getFileInfo(path, sl_null, info, FileInfoMask::Size)) {
+				outSize = info.size;
+				return sl_true;
+			}
+		} SLIB_CATCH(...)
+		return sl_false;
 	}
 
 	Memory FileSystemProvider::readFile(const StringParam& path, sl_uint64 offset, sl_uint32 size) noexcept
@@ -225,6 +269,7 @@ namespace slib
 
 		} SLIB_CATCH(FileSystemError error, {
 			LOG_DEBUG("ReadFile(%s,%d,%d)\n  Error: %d", path, offset, size, error);
+			SLIB_UNUSED(error);
 			if (context.isNotNull()) {
 				SLIB_TRY {
 					closeFile(context);
@@ -250,6 +295,7 @@ namespace slib
 			return sizeWritten;
 		} SLIB_CATCH (FileSystemError error, {
 			LOG_DEBUG("WriteFile(%s,%d)\n  Error: %d", path, size, error);
+			SLIB_UNUSED(error);
 			if (context.isNotNull()) {
 				SLIB_TRY {
 					closeFile(context);
@@ -267,11 +313,6 @@ namespace slib
 			size = 0x40000000;
 		}
 		return writeFile(path, mem.getData(), (sl_uint32)size);
-	}
-
-	FileSystemError FileSystemProvider::getLastError() noexcept
-	{
-		return FileSystemError::GeneralError;
 	}
 
 
@@ -390,7 +431,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_uint32	FileSystemWrapper::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
+	sl_uint32 FileSystemWrapper::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
 	{
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {
@@ -495,11 +536,6 @@ namespace slib
 			files.add_NoLock(name, info);
 		}
 		return files;
-	}
-
-	FileSystemError FileSystemWrapper::getLastError() noexcept
-	{
-		return m_base->getLastError();
 	}
 
 	Ref<FileContext> FileSystemWrapper::createContext(FileContext* baseContext, const StringParam& path)

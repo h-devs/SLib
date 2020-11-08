@@ -49,7 +49,7 @@ namespace slib
 			static NSString* getButtonText(Button* view, const String& s)
 			{
 				if (view->isMnemonic()) {
-					return Apple::getNSStringFromString(s.replaceAll("&", sl_null));
+					return Apple::getNSStringFromString(s.removeAll('&'));
 				} else {
 					return Apple::getNSStringFromString(s);
 				}
