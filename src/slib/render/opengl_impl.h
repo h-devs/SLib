@@ -1488,7 +1488,15 @@ namespace slib
 		public:
 			static Ref<GLVertexBufferInstance> create(GL_ENGINE* engine, VertexBuffer* buffer)
 			{
-				sl_uint32 handle = GL_BASE::createVertexBuffer(buffer->getBuffer(), buffer->getSize(), buffer->isStatic());
+				sl_uint32 size = buffer->getSize();
+				if (!size) {
+					return sl_null;
+				}
+				Memory content = buffer->getSource();
+				if (content.getSize() < size) {
+					return sl_null;
+				}
+				sl_uint32 handle = GL_BASE::createVertexBuffer(content.getData(), size, buffer->getFlags() & RenderObjectFlags::StaticDraw);
 				if (handle) {
 					Ref<GLVertexBufferInstance> ret = new GLVertexBufferInstance();
 					if (ret.isNotNull()) {
@@ -1504,7 +1512,11 @@ namespace slib
 			void onUpdate(RenderBaseObject* object) override
 			{
 				VertexBuffer* buffer = (VertexBuffer*)object;
-				GL_BASE::updateVertexBuffer(handle, m_updatedOffset, buffer->getBuffer() + m_updatedOffset, m_updatedSize);
+				Memory content = buffer->getSource();
+				if (content.getSize() < m_updatedOffset + m_updatedSize) {
+					return;
+				}
+				GL_BASE::updateVertexBuffer(handle, m_updatedOffset, (sl_uint8*)(content.getData()) + m_updatedOffset, m_updatedSize);
 			}
 			
 		};
@@ -1536,7 +1548,15 @@ namespace slib
 		public:
 			static Ref<GLIndexBufferInstance> create(GL_ENGINE* engine, IndexBuffer* buffer)
 			{
-				sl_uint32 handle = GL_BASE::createIndexBuffer(buffer->getBuffer(), buffer->getSize(), buffer->isStatic());
+				sl_uint32 size = buffer->getSize();
+				if (!size) {
+					return sl_null;
+				}
+				Memory content = buffer->getSource();
+				if (content.getSize() < size) {
+					return sl_null;
+				}
+				sl_uint32 handle = GL_BASE::createIndexBuffer(content.getData(), size, buffer->getFlags() & RenderObjectFlags::StaticDraw);
 				if (handle) {
 					Ref<GLIndexBufferInstance> ret = new GLIndexBufferInstance();
 					if (ret.isNotNull()) {
@@ -1552,7 +1572,11 @@ namespace slib
 			void onUpdate(RenderBaseObject* object) override
 			{
 				IndexBuffer* buffer = (IndexBuffer*)object;
-				GL_BASE::updateIndexBuffer(handle, m_updatedOffset, buffer->getBuffer() + m_updatedOffset, m_updatedSize);
+				Memory content = buffer->getSource();
+				if (content.getSize() < m_updatedOffset + m_updatedSize) {
+					return;
+				}
+				GL_BASE::updateIndexBuffer(handle, m_updatedOffset, (sl_uint8*)(content.getData()) + m_updatedOffset, m_updatedSize);
 			}
 			
 		};
@@ -1584,10 +1608,11 @@ namespace slib
 		public:
 			static Ref<GLTextureInstance> create(GL_ENGINE* engine, Texture* texture)
 			{
-				sl_uint32 handle = GL_BASE::createTexture2D(texture->getSource());;
-				if (texture->isFreeSourceOnUpdate()) {
-					texture->freeSource();
+				Ref<Bitmap> content = texture->getSource();
+				if (content.isNull()) {
+					return sl_null;
 				}
+				sl_uint32 handle = GL_BASE::createTexture2D(content);
 				if (handle) {
 					Ref<GLTextureInstance> ret = new GLTextureInstance();
 					if (ret.isNotNull()) {
@@ -1603,11 +1628,12 @@ namespace slib
 			void onUpdate(RenderBaseObject* object) override
 			{
 				Texture* texture = (Texture*)object;
-				GL_BASE::bindTexture2D(handle);
-				GL_BASE::updateTexture2D(m_updatedRegion.left, m_updatedRegion.top, m_updatedRegion.getWidth(), m_updatedRegion.getHeight(), texture->getSource(), m_updatedRegion.left, m_updatedRegion.top);
-				if (texture->isFreeSourceOnUpdate()) {
-					texture->freeSource();
+				Ref<Bitmap> content = texture->getSource();
+				if (content.isNull()) {
+					return;
 				}
+				GL_BASE::bindTexture2D(handle);
+				GL_BASE::updateTexture2D(m_updatedRegion.left, m_updatedRegion.top, m_updatedRegion.getWidth(), m_updatedRegion.getHeight(), content, m_updatedRegion.left, m_updatedRegion.top);
 			}
 			
 		};
@@ -1633,13 +1659,15 @@ namespace slib
 					if (m_flagDeleteOnRelease) {
 						engine->m_listDirtyTextureHandles.add(m_name);
 					}
-					Ref<Referable> object = m_linkedObject;
-					if (object.isNotNull()) {
-						engine->m_listDirtyObjects.add(object);
-					}
 				}
 			}
 			
+		public:
+			Ref<Bitmap> getSource() override
+			{
+				return sl_null;
+			}
+
 		};
 		
 		Ref<TextureInstance> _createTextureInstance(Texture* texture) override
@@ -1734,11 +1762,11 @@ namespace slib
 			}
 			
 			GLVertexBufferInstance* vb = static_cast<GLVertexBufferInstance*>(primitive->vertexBufferInstance.get());
-			vb->_update(primitive->vertexBuffer.get());
+			vb->doUpdate(primitive->vertexBuffer.get());
 			GLIndexBufferInstance* ib = sl_null;
 			if (primitive->indexBufferInstance.isNotNull()) {
 				ib = (GLIndexBufferInstance*)(primitive->indexBufferInstance.get());
-				ib->_update(primitive->indexBuffer.get());
+				ib->doUpdate(primitive->indexBuffer.get());
 			}
 			
 			sl_bool flagResetProgramState = sl_false;
@@ -1809,9 +1837,9 @@ namespace slib
 			}
 			if (_instance) {
 				GLTextureInstance* instance = (GLTextureInstance*)_instance;
-				if (instance->_isUpdated()) {
+				if (instance->isUpdated()) {
 					_setActiveSampler(samplerNo);
-					instance->_update(texture);
+					instance->doUpdate(texture);
 				}
 				if (m_samplers[samplerNo].instance != instance) {
 					_setActiveSampler(samplerNo);

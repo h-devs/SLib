@@ -26,8 +26,7 @@
 #include "definition.h"
 
 #include "base.h"
-#include "vertex_buffer.h"
-#include "index_buffer.h"
+#include "buffer.h"
 #include "texture.h"
 #include "program.h"
 
@@ -246,7 +245,7 @@ namespace slib
 		virtual RenderEngineType getEngineType() = 0;
 
 		virtual sl_bool isShaderAvailable();
-		
+
 		sl_bool beginScene();
 		
 		void endScene();

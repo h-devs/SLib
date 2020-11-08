@@ -24,6 +24,7 @@
 
 #include "slib/core/thread.h"
 #include "slib/core/platform_windows.h"
+#include "slib/graphics/image.h"
 
 #include "slib/render/dl_windows_d3d.h"
 
@@ -38,172 +39,10 @@ namespace slib
 		namespace D3D_NAMESPACE
 		{
 
-			class EngineImpl : public RenderEngine
-			{
-			public:
-				ID3DDeviceContext* m_context;
-#if D3D_VERSION_MAJOR >= 10
-				ID3DRenderTargetView* m_pRenderTarget;
-#endif
-
-			public:
-				EngineImpl()
-				{
-					m_context = sl_null;
-#if D3D_VERSION_MAJOR >= 10
-					m_pRenderTarget = sl_null;
-#endif
-				}
-
-				~EngineImpl()
-				{
-
-				}
-
-			public:
-				RenderEngineType getEngineType() override
-				{
-					return RenderEngineType::D3D_TYPE;
-				}
-
-				Ref<RenderProgramInstance> _createProgramInstance(RenderProgram* program) override
-				{
-					return sl_null;
-				}
-
-				Ref<VertexBufferInstance> _createVertexBufferInstance(VertexBuffer* buffer) override
-				{
-					return sl_null;
-				}
-
-				Ref<IndexBufferInstance> _createIndexBufferInstance(IndexBuffer* buffer) override
-				{
-					return sl_null;
-				}
-
-				Ref<TextureInstance> _createTextureInstance(Texture* texture) override
-				{
-					return sl_null;
-				}
-
-				sl_bool _beginScene() override
-				{
-					ID3DDeviceContext* context = m_context;
-					if (!context) {
-						return sl_false;
-					}
-#if D3D_VERSION_MAJOR >= 10
-					return sl_true;
-#else
-					HRESULT hr = context->BeginScene();
-					return SUCCEEDED(hr);
-#endif
-				}
-
-				void _endScene() override
-				{
-#if D3D_VERSION_MAJOR < 10
-					ID3DDeviceContext* context = m_context;
-					if (!context) {
-						return;
-					}
-					context->EndScene();
-#endif
-				}
-
-				void _setViewport(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height) override
-				{
-				}
-
-				void _clear(const RenderClearParam& param) override
-				{
-#if D3D_VERSION_MAJOR >= 10
-					ID3DDeviceContext* context = m_context;
-					if (!context) {
-						return;
-					}
-					ID3DRenderTargetView* pRenderTarget = m_pRenderTarget;
-					if (!pRenderTarget) {
-						return;
-					}
-					if (param.flagColor) {
-						float c[4];
-						c[0] = param.color.getRedF();
-						c[1] = param.color.getGreenF();
-						c[2] = param.color.getBlueF();
-						c[3] = param.color.getAlphaF();
-						context->ClearRenderTargetView(pRenderTarget, c);
-					}
-#else
-					DWORD flags = 0;
-					if (param.flagColor) {
-						flags |= D3DCLEAR_TARGET;
-					}
-					if (param.flagDepth) {
-						flags |= D3DCLEAR_ZBUFFER;
-					}
-					if (param.flagStencil) {
-						flags |= D3DCLEAR_STENCIL;
-					}
-					m_context->Clear(0, sl_null,
-						flags,
-						D3DCOLOR_ARGB(param.color.a, param.color.r, param.color.g, param.color.b),
-						param.depth,
-						(DWORD)(param.stencil)
-					);
-#endif
-				}
-
-				void _setDepthTest(sl_bool flagEnableDepthTest) override
-				{
-				}
-
-				void _setDepthWriteEnabled(sl_bool flagEnableDepthWrite) override
-				{
-				}
-
-				void _setDepthFunction(RenderFunctionOperation op) override
-				{
-				}
-
-				void _setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW) override
-				{
-				}
-
-				void _setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param) override
-				{
-				}
-
-				sl_bool _beginProgram(RenderProgram* program, RenderProgramInstance* instance, RenderProgramState** ppState) override
-				{
-					return sl_false;
-				}
-
-				void _endProgram() override
-				{
-				}
-
-				void _resetCurrentBuffers() override
-				{
-				}
-
-				void _drawPrimitive(EnginePrimitive* primitive) override
-				{
-				}
-
-				void _applyTexture(Texture* texture, TextureInstance* instance, sl_reg sampler) override
-				{
-				}
-
-				void _setLineWidth(sl_real width) override
-				{
-				}
-
-			};
-
 			class RendererImpl : public Renderer
 			{
 			public:
+				RendererParam m_param;
 				sl_bool m_flagRequestRender;
 
 				ID3DDevice* m_device;
@@ -288,8 +127,26 @@ namespace slib
 							Base::zeroMemory(&d3dpp, sizeof(d3dpp));
 							d3dpp.Windowed = TRUE;
 							d3dpp.SwapEffect = D3DSWAPEFFECT_COPY;
-							d3dpp.EnableAutoDepthStencil = TRUE;
-							d3dpp.AutoDepthStencilFormat = D3DFMT_D24S8;
+							if (param.nDepthBits || param.nStencilBits) {
+								d3dpp.EnableAutoDepthStencil = TRUE;
+								if (param.nStencilBits) {
+									if (param.nDepthBits == 15 && param.nStencilBits == 1) {
+										d3dpp.AutoDepthStencilFormat = D3DFMT_D15S1;
+									} else if (param.nDepthBits == 24 && param.nStencilBits == 4) {
+										d3dpp.AutoDepthStencilFormat = D3DFMT_D24X4S4;
+									} else {
+										d3dpp.AutoDepthStencilFormat = D3DFMT_D24S8;
+									}
+								} else {
+									if (param.nDepthBits == 32) {
+										d3dpp.AutoDepthStencilFormat = D3DFMT_D32;
+									} else if (param.nDepthBits == 24) {
+										d3dpp.AutoDepthStencilFormat = D3DFMT_D24X8;
+									} else if (param.nDepthBits == 16) {
+										d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
+									}
+								}
+							}
 
 							HRESULT hr = d3d->CreateDevice(
 								D3DADAPTER_DEFAULT,
@@ -372,6 +229,7 @@ namespace slib
 									ret->m_hWnd = (HWND)windowHandle;
 
 									ret->initWithParam(param);
+									ret->m_param = param;
 
 									ret->m_threadRender = Thread::start(SLIB_FUNCTION_MEMBER(RendererImpl, run, ret.get()));
 
@@ -427,39 +285,7 @@ namespace slib
 					}
 				}
 
-				void run()
-				{
-					Ref<EngineImpl> engine = new EngineImpl;
-					if (engine.isNull()) {
-						return;
-					}
-
-					engine->m_context = m_context;
-#if D3D_VERSION_MAJOR >= 10
-					engine->m_pRenderTarget = m_pRenderTarget;
-#endif
-
-					TimeCounter timer;
-					Ref<Thread> thread = Thread::getCurrent();
-					while (thread.isNull() || thread->isNotStopping()) {
-						Ref<RendererImpl> thiz = this;
-						runStep(engine.get());
-						if (thread.isNull() || thread->isNotStopping()) {
-							sl_uint64 t = timer.getElapsedMilliseconds();
-							if (t < 10) {
-								Thread::sleep(10 - (sl_uint32)(t));
-							}
-							timer.reset();
-						} else {
-							break;
-						}
-					}
-
-					engine->m_context = sl_null;
-#if D3D_VERSION_MAJOR >= 10
-					engine->m_pRenderTarget = sl_null;
-#endif
-				}
+				void run();
 
 				void runStep(RenderEngine* engine)
 				{
@@ -498,6 +324,633 @@ namespace slib
 				}
 
 			};
+
+#if D3D_VERSION_MAJOR >= 10
+			static void PrepareObjectFlags(const RenderObjectFlags& flags, D3D_(USAGE)& usage, UINT& cpuAccessFlags)
+			{
+				if (flags & RenderObjectFlags::CpuAccessWrite) {
+					cpuAccessFlags |= D3D_(CPU_ACCESS_WRITE);
+					usage = D3D_(USAGE_DYNAMIC);
+				}
+				if (flags & RenderObjectFlags::CpuAccessRead) {
+					cpuAccessFlags |= D3D_(CPU_ACCESS_READ);
+					usage = D3D_(USAGE_STAGING);
+				}
+			}
+#endif
+
+			class VertexBufferInstanceImpl : public VertexBufferInstance
+			{
+			public:
+				ID3DDevice* device;
+				ID3DDeviceContext* context;
+				ID3DVertexBuffer* pVB;
+
+			public:
+				VertexBufferInstanceImpl()
+				{
+					device = sl_null;
+					context = sl_null;
+					pVB = sl_null;
+				}
+
+				~VertexBufferInstanceImpl()
+				{
+					if (pVB) {
+						pVB->Release();
+					}
+				}
+
+			public:
+				static Ref<VertexBufferInstanceImpl> create(ID3DDevice* device, ID3DDeviceContext* context, RenderEngine* engine, VertexBuffer* buffer)
+				{
+					UINT size = (UINT)(buffer->getSize());
+					if (!size) {
+						return sl_null;
+					}
+					Memory content = buffer->getSource();
+					if (content.getSize() < size) {
+						return sl_null;
+					}
+					ID3DVertexBuffer* vb = sl_null;
+#if D3D_VERSION_MAJOR >= 10
+					D3D_(BUFFER_DESC) desc = { 0 };
+					desc.BindFlags = D3D_(BIND_VERTEX_BUFFER);
+					desc.ByteWidth = size;
+					PrepareObjectFlags(buffer->getFlags(), desc.Usage, desc.CPUAccessFlags);
+					D3D_(SUBRESOURCE_DATA) data = { 0 };
+					data.pSysMem = content.getData();
+					device->CreateBuffer(&desc, &data, &vb);
+#else
+					device->CreateVertexBuffer(size, 0, 0, D3DPOOL_MANAGED, &vb, NULL);
+#endif
+					if (vb) {
+#if D3D_VERSION_MAJOR < 10
+						void* data = sl_null;
+						vb->Lock(0, size, &data, 0);
+						if (data) {
+							Base::copyMemory(data, content.getData(), size);
+							vb->Unlock();
+#endif
+							Ref<VertexBufferInstanceImpl> ret = new VertexBufferInstanceImpl;
+							if (ret.isNotNull()) {
+								ret->device = device;
+								ret->context = context;
+								ret->pVB = vb;
+								ret->link(engine, buffer);
+								return ret;
+							}
+#if D3D_VERSION_MAJOR < 10
+						}
+#endif
+						vb->Release();
+					}
+					return sl_null;
+				}
+
+				void onUpdate(RenderBaseObject* object) override
+				{
+					UINT offset = (UINT)m_updatedOffset;
+					UINT size = (UINT)m_updatedSize;
+					if (!size) {
+						return;
+					}
+					VertexBuffer* buffer = (VertexBuffer*)object;
+					Memory content = buffer->getSource();
+					if (content.getSize() < offset + size) {
+						return;
+					}
+					void* data = sl_null;
+#if D3D_VERSION_MAJOR >= 11
+					D3D_(MAPPED_SUBRESOURCE) res = { 0 };
+					context->Map(pVB, 0, D3D_(MAP_WRITE), 0, &res);
+					data = res.pData;
+#elif D3D_VERSION_MAJOR >= 10
+					pVB->Map(D3D_(MAP_WRITE), 0, &data);
+#else
+					pVB->Lock(offset, size, &data, 0);
+#endif
+					if (data) {
+						Base::copyMemory(data, (sl_uint8*)(content.getData()) + offset, size);
+#if D3D_VERSION_MAJOR >= 11
+						context->Unmap(pVB, 0);
+#elif D3D_VERSION_MAJOR >= 10
+						pVB->Unmap();
+#else
+						pVB->Unlock();
+#endif
+					}
+				}
+
+				sl_bool canUpdate() override
+				{
+					return sl_true;
+				}
+
+			};
+
+			class IndexBufferInstanceImpl : public IndexBufferInstance
+			{
+			public:
+				ID3DDevice* device;
+				ID3DDeviceContext* context;
+				ID3DIndexBuffer * pIB;
+
+			public:
+				IndexBufferInstanceImpl()
+				{
+					device = sl_null;
+					context = sl_null;
+					pIB = sl_null;
+				}
+
+				~IndexBufferInstanceImpl()
+				{
+					if (pIB) {
+						pIB->Release();
+					}
+				}
+
+			public:
+				static Ref<IndexBufferInstanceImpl> create(ID3DDevice* device, ID3DDeviceContext* context, RenderEngine* engine, IndexBuffer* buffer)
+				{
+					UINT size = (UINT)(buffer->getSize());
+					if (!size) {
+						return sl_null;
+					}
+					Memory content = buffer->getSource();
+					if (content.getSize() < size) {
+						return sl_null;
+					}
+					ID3DIndexBuffer* ib = sl_null;
+#if D3D_VERSION_MAJOR >= 10
+					D3D_(BUFFER_DESC) desc = { 0 };
+					desc.BindFlags = D3D_(BIND_INDEX_BUFFER);
+					desc.ByteWidth = size;
+					PrepareObjectFlags(buffer->getFlags(), desc.Usage, desc.CPUAccessFlags);
+					D3D_(SUBRESOURCE_DATA) data = { 0 };
+					data.pSysMem = content.getData();
+					device->CreateBuffer(&desc, &data, &ib);
+#else
+					device->CreateIndexBuffer(size, 0, D3DFMT_INDEX16, D3DPOOL_MANAGED, &ib, NULL);
+#endif
+					if (ib) {
+#if D3D_VERSION_MAJOR < 10
+						void* data = sl_null;
+						ib->Lock(0, size, &data, 0);
+						if (data) {
+							Base::copyMemory(data, content.getData(), size);
+							ib->Unlock();
+#endif
+							Ref<IndexBufferInstanceImpl> ret = new IndexBufferInstanceImpl;
+							if (ret.isNotNull()) {
+								ret->device = device;
+								ret->context = context;
+								ret->pIB = ib;
+								ret->link(engine, buffer);
+								return ret;
+							}
+#if D3D_VERSION_MAJOR < 10
+						}
+#endif
+						ib->Release();
+					}
+					return sl_null;
+				}
+
+				void onUpdate(RenderBaseObject* object) override
+				{
+					UINT offset = (UINT)m_updatedOffset;
+					UINT size = (UINT)m_updatedSize;
+					if (!size) {
+						return;
+					}
+					IndexBuffer* buffer = (IndexBuffer*)object;
+					Memory content = buffer->getSource();
+					if (content.getSize() < offset + size) {
+						return;
+					}
+					void* data = sl_null;
+#if D3D_VERSION_MAJOR >= 11
+					D3D_(MAPPED_SUBRESOURCE) res = { 0 };
+					context->Map(pIB, 0, D3D_(MAP_WRITE), 0, &res);
+					data = res.pData;
+#elif D3D_VERSION_MAJOR >= 10
+					pIB->Map(D3D_(MAP_WRITE), 0, &data);
+#else
+					pIB->Lock(offset, size, &data, 0);
+#endif
+					if (data) {
+						Base::copyMemory(data, (sl_uint8*)(content.getData()) + offset, size);
+#if D3D_VERSION_MAJOR >= 11
+						context->Unmap(pIB, 0);
+#elif D3D_VERSION_MAJOR >= 10
+						pIB->Unmap();
+#else
+						pIB->Unlock();
+#endif
+					}
+				}
+
+				sl_bool canUpdate() override
+				{
+					return sl_true;
+				}
+
+			};
+
+			class TextureInstanceImpl : public TextureInstance
+			{
+			public:
+				ID3DDevice* device;
+				ID3DDeviceContext* context;
+				ID3DTexture2D* pTexture;
+
+			public:
+				TextureInstanceImpl()
+				{
+					device = sl_null;
+					context = sl_null;
+					pTexture = sl_null;
+				}
+
+				~TextureInstanceImpl()
+				{
+					if (pTexture) {
+						pTexture->Release();
+					}
+				}
+
+			public:
+				static Ref<TextureInstanceImpl> create(ID3DDevice* device, ID3DDeviceContext* context, RenderEngine* engine, Texture* texture)
+				{
+					Ref<Bitmap> source = texture->getSource();
+					if (source.isNull()) {
+						return sl_null;
+					}
+					sl_uint32 width = source->getWidth();
+					if (!width) {
+						return sl_null;
+					}
+					sl_uint32 height = source->getHeight();
+					if (!height) {
+						return sl_null;
+					}
+					ID3DTexture2D* pTexture = sl_null;
+#if D3D_VERSION_MAJOR >= 10
+					Ref<Image> image = source->toImage();
+					if (image.isNull()) {
+						return sl_null;
+					}
+					D3D_(TEXTURE2D_DESC) desc = { 0 };
+					desc.Width = (UINT)width;
+					desc.Height = (UINT)height;
+					desc.MipLevels = 1;
+					desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+					desc.SampleDesc.Count = 1;
+					desc.BindFlags = D3D10_BIND_SHADER_RESOURCE;
+					PrepareObjectFlags(texture->getFlags(), desc.Usage, desc.CPUAccessFlags);
+					D3D_(SUBRESOURCE_DATA) data = { 0 };
+					data.pSysMem = image->getColors();
+					data.SysMemPitch = (UINT)(image->getStride() << 2);
+					device->CreateTexture2D(&desc, &data, &pTexture);
+#else
+					device->CreateTexture((UINT)width, (UINT)height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &pTexture, NULL);
+#endif
+					if (pTexture) {
+#if D3D_VERSION_MAJOR < 10
+						D3DLOCKED_RECT lr;
+						HRESULT hr = pTexture->LockRect(0, &lr, NULL, 0);
+						if (hr == D3D_OK) {
+							BitmapData bd;
+							bd.format = BitmapFormat::ARGB;
+							bd.data = lr.pBits;
+							bd.pitch = (sl_int32)(lr.Pitch);
+							bd.width = width;
+							bd.height = height;
+							source->readPixels(0, 0, bd);
+							pTexture->UnlockRect(0);
+#endif
+							Ref<TextureInstanceImpl> ret = new TextureInstanceImpl();
+							if (ret.isNotNull()) {
+								ret->device = device;
+								ret->context = context;
+								ret->pTexture = pTexture;
+								ret->link(engine, texture);
+								return ret;
+							}
+#if D3D_VERSION_MAJOR < 10
+						}
+#endif
+						pTexture->Release();
+					}
+					return sl_null;
+				}
+
+				void onUpdate(RenderBaseObject* object) override
+				{
+					Texture* texture = (Texture*)object;
+					Ref<Bitmap> source = texture->getSource();
+					if (source.isNull()) {
+						return;
+					}
+#if D3D_VERSION_MAJOR >= 11
+					D3D_(MAPPED_SUBRESOURCE) res = { 0 };
+					context->Map(pTexture, 0, D3D_(MAP_WRITE), 0, &res);
+					void* data = res.pData;
+					sl_int32 pitch = (sl_int32)(res.RowPitch);
+#elif D3D_VERSION_MAJOR >= 10
+					D3D_(MAPPED_TEXTURE2D) mt = { 0 };
+					pTexture->Map(0, D3D_(MAP_WRITE), 0, &mt);
+					void* data = mt.pData;
+					sl_int32 pitch = (sl_int32)(mt.RowPitch);
+#else
+					D3DLOCKED_RECT lr;
+					RECT rc;
+					rc.left = (LONG)(m_updatedRegion.left);
+					rc.top = (LONG)(m_updatedRegion.top);
+					rc.right = (LONG)(m_updatedRegion.right);
+					rc.bottom = (LONG)(m_updatedRegion.bottom);
+					pTexture->LockRect(0, &lr, &rc, 0);
+					void* data = lr.pBits;
+					sl_int32 pitch = (sl_int32)(lr.Pitch);
+#endif
+					if (data) {
+						BitmapData bd;
+						bd.format = BitmapFormat::ARGB;
+						bd.data = data;
+						bd.pitch = pitch;
+						bd.width = m_updatedRegion.getWidth();
+						bd.height = m_updatedRegion.getHeight();
+						source->readPixels(m_updatedRegion.left, m_updatedRegion.top, bd);
+#if D3D_VERSION_MAJOR >= 11
+						context->Unmap(pTexture, 0);
+#elif D3D_VERSION_MAJOR >= 10
+#else
+						pTexture->UnlockRect(0);
+#endif
+					}
+				}
+
+				sl_bool canUpdate() override
+				{
+					return sl_true;
+				}
+
+			};
+
+			class EngineImpl : public RenderEngine
+			{
+			public:
+				RendererImpl * m_renderer;
+
+			public:
+				EngineImpl()
+				{
+					m_renderer = sl_null;
+				}
+
+				~EngineImpl()
+				{
+				}
+
+			public:
+				SLIB_INLINE RendererParam* getRendererParam()
+				{
+					RendererImpl* renderer = m_renderer;
+					if (renderer) {
+						return &(renderer->m_param);
+					}
+					return sl_null;
+				}
+
+				SLIB_INLINE ID3DDevice* getDevice()
+				{
+					RendererImpl* renderer = m_renderer;
+					if (renderer) {
+						return renderer->m_device;
+					}
+					return sl_null;
+				}
+
+				SLIB_INLINE ID3DDeviceContext* getContext()
+				{
+					RendererImpl* renderer = m_renderer;
+					if (renderer) {
+						return renderer->m_context;
+					}
+					return sl_null;
+				}
+
+#if D3D_VERSION_MAJOR >= 10
+				SLIB_INLINE ID3DRenderTargetView* getRenderTarget()
+				{
+					RendererImpl* renderer = m_renderer;
+					if (renderer) {
+						return renderer->m_pRenderTarget;
+					}
+					return sl_null;
+				}
+#endif
+
+			public:
+				RenderEngineType getEngineType() override
+				{
+					return RenderEngineType::D3D_TYPE;
+				}
+
+				Ref<RenderProgramInstance> _createProgramInstance(RenderProgram* program) override
+				{
+					return sl_null;
+				}
+
+				Ref<VertexBufferInstance> _createVertexBufferInstance(VertexBuffer* buffer) override
+				{
+					ID3DDevice* device = getDevice();
+					if (!device) {
+						return sl_null;
+					}
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return sl_null;
+					}
+					return Ref<VertexBufferInstance>::from(VertexBufferInstanceImpl::create(device, context, this, buffer));
+				}
+
+				Ref<IndexBufferInstance> _createIndexBufferInstance(IndexBuffer* buffer) override
+				{
+					ID3DDevice* device = getDevice();
+					if (!device) {
+						return sl_null;
+					}
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return sl_null;
+					}
+					return Ref<IndexBufferInstance>::from(IndexBufferInstanceImpl::create(device, context, this, buffer));
+				}
+
+				Ref<TextureInstance> _createTextureInstance(Texture* texture) override
+				{
+					ID3DDevice* device = getDevice();
+					if (!device) {
+						return sl_null;
+					}
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return sl_null;
+					}
+					return Ref<TextureInstance>::from(TextureInstanceImpl::create(device, context, this, texture));
+				}
+
+				sl_bool _beginScene() override
+				{
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return sl_false;
+					}
+#if D3D_VERSION_MAJOR >= 10
+					return sl_true;
+#else
+					HRESULT hr = context->BeginScene();
+					return SUCCEEDED(hr);
+#endif
+				}
+
+				void _endScene() override
+				{
+#if D3D_VERSION_MAJOR < 10
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return;
+					}
+					context->EndScene();
+#endif
+				}
+
+				void _setViewport(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height) override
+				{
+				}
+
+				void _clear(const RenderClearParam& param) override
+				{
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return;
+					}
+					RendererParam* paramRenderer = getRendererParam();
+					if (!paramRenderer) {
+						return;
+					}
+
+#if D3D_VERSION_MAJOR >= 10
+					ID3DRenderTargetView* pRenderTarget = getRenderTarget();
+					if (!pRenderTarget) {
+						return;
+					}
+					if (param.flagColor) {
+						float c[4];
+						c[0] = param.color.getRedF();
+						c[1] = param.color.getGreenF();
+						c[2] = param.color.getBlueF();
+						c[3] = param.color.getAlphaF();
+						context->ClearRenderTargetView(pRenderTarget, c);
+					}
+#else
+					DWORD flags = 0;
+
+					if (param.flagColor) {
+						flags |= D3DCLEAR_TARGET;
+					}
+					if (param.flagDepth && (paramRenderer->nDepthBits || paramRenderer->nStencilBits)) {
+						flags |= D3DCLEAR_ZBUFFER;
+					}
+					if (param.flagStencil && paramRenderer->nStencilBits) {
+						flags |= D3DCLEAR_STENCIL;
+					}
+					context->Clear(0, sl_null,
+						flags,
+						D3DCOLOR_ARGB(param.color.a, param.color.r, param.color.g, param.color.b),
+						param.depth,
+						(DWORD)(param.stencil)
+					);
+#endif
+				}
+
+				void _setDepthTest(sl_bool flagEnableDepthTest) override
+				{
+				}
+
+				void _setDepthWriteEnabled(sl_bool flagEnableDepthWrite) override
+				{
+				}
+
+				void _setDepthFunction(RenderFunctionOperation op) override
+				{
+				}
+
+				void _setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW) override
+				{
+				}
+
+				void _setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param) override
+				{
+				}
+
+				sl_bool _beginProgram(RenderProgram* program, RenderProgramInstance* instance, RenderProgramState** ppState) override
+				{
+					return sl_false;
+				}
+
+				void _endProgram() override
+				{
+				}
+
+				void _resetCurrentBuffers() override
+				{
+				}
+
+				void _drawPrimitive(EnginePrimitive* primitive) override
+				{
+				}
+
+				void _applyTexture(Texture* texture, TextureInstance* instance, sl_reg sampler) override
+				{
+				}
+
+				void _setLineWidth(sl_real width) override
+				{
+				}
+
+			};
+
+			void RendererImpl::run()
+			{
+				Ref<EngineImpl> engine = new EngineImpl;
+				if (engine.isNull()) {
+					return;
+				}
+
+				engine->m_renderer = this;
+
+				TimeCounter timer;
+				Ref<Thread> thread = Thread::getCurrent();
+				while (thread.isNull() || thread->isNotStopping()) {
+					Ref<RendererImpl> thiz = this;
+					runStep(engine.get());
+					if (thread.isNull() || thread->isNotStopping()) {
+						sl_uint64 t = timer.getElapsedMilliseconds();
+						if (t < 10) {
+							Thread::sleep(10 - (sl_uint32)(t));
+						}
+						timer.reset();
+					} else {
+						break;
+					}
+				}
+
+				engine->m_renderer = sl_null;
+			}
 
 			Ref<Renderer> CreateRenderer(void* windowHandle, const RendererParam& param)
 			{

@@ -369,7 +369,6 @@
     <ClCompile Include="..\..\src\slib\render\d3d11.cpp" />
     <ClCompile Include="..\..\src\slib\render\d3d9.cpp" />
     <ClCompile Include="..\..\src\slib\render\dl_windows_d3d.cpp" />
-    <ClCompile Include="..\..\src\slib\render\index_buffer.cpp" />
     <ClCompile Include="..\..\src\slib\render\opengl_egl.cpp" />
     <ClCompile Include="..\..\src\slib\render\opengl_gl.cpp" />
     <ClCompile Include="..\..\src\slib\render\opengl_gles.cpp" />
@@ -381,7 +380,7 @@
     <ClCompile Include="..\..\src\slib\render\render_program.cpp" />
     <ClCompile Include="..\..\src\slib\render\render_resource.cpp" />
     <ClCompile Include="..\..\src\slib\render\texture.cpp" />
-    <ClCompile Include="..\..\src\slib\render\vertex_buffer.cpp" />
+    <ClCompile Include="..\..\src\slib\render\render_buffer.cpp" />
     <ClCompile Include="..\..\src\slib\service\captcha.cpp" />
     <ClCompile Include="..\..\src\slib\service\chat.cpp" />
     <ClCompile Include="..\..\src\slib\service\chat_client.cpp" />

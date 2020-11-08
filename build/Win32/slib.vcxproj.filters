@@ -590,9 +590,6 @@
     <ClCompile Include="..\..\src\slib\network\url_request_win32.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\render\index_buffer.cpp">
-      <Filter>src\render</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\render\opengl_egl.cpp">
       <Filter>src\render</Filter>
     </ClCompile>
@@ -624,9 +621,6 @@
       <Filter>src\render</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\render\texture.cpp">
-      <Filter>src\render</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\render\vertex_buffer.cpp">
       <Filter>src\render</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\button.cpp">
@@ -1557,6 +1551,9 @@
       <Filter>src\render</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\render\dl_windows_d3d.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\render_buffer.cpp">
       <Filter>src\render</Filter>
     </ClCompile>
   </ItemGroup>

@@ -26,8 +26,7 @@
 #include "render/engine.h"
 #include "render/opengl_engine.h"
 
-#include "render/vertex_buffer.h"
-#include "render/index_buffer.h"
+#include "render/buffer.h"
 #include "render/texture.h"
 #include "render/program.h"
 

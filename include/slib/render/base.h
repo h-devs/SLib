@@ -33,6 +33,20 @@
 namespace slib
 {
 
+	class RenderObjectFlags
+	{
+	public:
+		int value;
+		SLIB_MEMBERS_OF_FLAGS(RenderObjectFlags, value)
+
+		enum {
+			StaticDraw = 1, // OpenGL
+
+			CpuAccessRead = 0x10000,
+			CpuAccessWrite = 0x20000
+		};
+	};
+
 	class RenderEngine;
 	class RenderBaseObject;
 	
@@ -51,15 +65,18 @@ namespace slib
 		Ref<RenderBaseObject> getObject();
 		
 		Ref<RenderEngine> getEngine();
-		
+
 	protected:
 		virtual void onUpdate(RenderBaseObject* object);
-		
+
+		virtual sl_bool canUpdate();
+
+		void tryUpdate(RenderBaseObject* object);
+
 	public:
-		// should be called by only engine internally
-		void _update(RenderBaseObject* object);
-		
-		sl_bool _isUpdated();
+		void doUpdate(RenderBaseObject* object);
+
+		sl_bool isUpdated();
 		
 	protected:
 		AtomicWeakRef<RenderBaseObject> m_object;
@@ -70,7 +87,7 @@ namespace slib
 		friend class RenderBaseObject;
 		
 	};
-	
+
 	class SLIB_EXPORT RenderBaseObject : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -89,9 +106,16 @@ namespace slib
 		
 		Ref<RenderBaseObjectInstance> getInstance(RenderEngine* engine);
 		
+	public:
+		RenderObjectFlags getFlags();
+
+		void setFlags(const RenderObjectFlags& flags);
+
 	protected:
+		RenderObjectFlags m_flags;
+
 		AtomicRef<RenderBaseObjectInstance> m_instances[SLIB_MAX_RENDER_ENGINE_COUNT_PER_OBJECT];
-		
+
 	};
 
 }

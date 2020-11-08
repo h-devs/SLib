@@ -58,8 +58,20 @@ namespace slib
 	void RenderBaseObjectInstance::onUpdate(RenderBaseObject* object)
 	{
 	}
-	
-	void RenderBaseObjectInstance::_update(RenderBaseObject* object)
+
+	sl_bool RenderBaseObjectInstance::canUpdate()
+	{
+		return sl_false;
+	}
+
+	void RenderBaseObjectInstance::tryUpdate(RenderBaseObject* object)
+	{
+		if (canUpdate()) {
+			doUpdate(object);
+		}
+	}
+
+	void RenderBaseObjectInstance::doUpdate(RenderBaseObject* object)
 	{
 		if (m_flagUpdated) {
 			m_flagUpdated = sl_false;
@@ -67,7 +79,7 @@ namespace slib
 		}
 	}
 	
-	sl_bool RenderBaseObjectInstance::_isUpdated()
+	sl_bool RenderBaseObjectInstance::isUpdated()
 	{
 		return m_flagUpdated;
 	}
@@ -161,6 +173,16 @@ namespace slib
 			}
 		}
 		return sl_null;
+	}
+
+	RenderObjectFlags RenderBaseObject::getFlags()
+	{
+		return m_flags;
+	}
+
+	void RenderBaseObject::setFlags(const RenderObjectFlags& flags)
+	{
+		m_flags = flags;
 	}
 
 }

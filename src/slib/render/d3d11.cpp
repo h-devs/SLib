@@ -26,12 +26,15 @@
 
 #include "d3d/d3d11.h"
 
-#define D3D_NAMESPACE d3d11
-#define D3D_TYPE D3D11
+#define D3D_(X) D3D11_##X
 #define D3D_VERSION_MAJOR 11
 #define D3D_VERSION_MINOR 0
+
+#define D3D_NAMESPACE d3d11
+#define D3D_TYPE D3D11
 typedef ID3D11Device ID3DDevice;
 typedef ID3D11DeviceContext ID3DDeviceContext;
+
 typedef ID3D11RenderTargetView ID3DRenderTargetView;
 typedef ID3D11Texture2D ID3DTexture2D;
 typedef ID3D11Buffer ID3DIndexBuffer;
