@@ -68,7 +68,7 @@ namespace slib
 	FileSystemLogger::FileSystemLogger(const Ref<FileSystemProvider>& base, const FileSystemLogFlags& flags, const String& filter)
 		: FileSystemWrapper(base), m_flags(flags), m_regex(filter)
 	{
-		LOG_DEBUG("LogFlags: 0x%08X", (sl_uint32)m_flags);
+		LOG_DEBUG("LogFlags: 0x%08X, Filter: %s", (sl_uint32)m_flags, filter);
 
 		if (m_flags & FileSystemLogFlags::Info) {
 			LOG("FileSystemInfo:");
