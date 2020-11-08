@@ -36,23 +36,19 @@
 namespace slib
 {
 
-	// Equals to WinNT error codes
 	enum class FileSystemError
 	{
-		Success = 0, // ERROR_SUCCESS
-		GeneralError = 1, // ERROR_INVALID_FUNCTION
-		NotFound = 2, // ERROR_FILE_NOT_FOUND
-		PathNotFound = 3, // ERROR_PATH_NOT_FOUND
+		Success = 0,
+		GeneralError = 1, // ERROR_INVALID_FUNCTION, EPERM
+		NotFound = 2, // ERROR_FILE_NOT_FOUND, ENOENT
+#ifdef SLIB_PLATFORM_IS_WINDOWS
 		AccessDenied = 5, // ERROR_ACCESS_DENIED
 		InvalidContext = 6, // ERROR_INVALID_HANDLE
-		InvalidData = 13, // ERROR_INVALID_DATA
-		OutOfMemory = 14, // ERROR_OUTOFMEMORY
-		FileExist = 80, // ERROR_FILE_EXISTS
+#else
+		AccessDenied = 13, // EACCES
+		InvalidContext = 9, // EBADF
+#endif
 		InvalidPassword = 86, // ERROR_INVALID_PASSWORD
-		BufferOverflow = 122, // ERROR_INSUFFICIENT_BUFFER
-		DirNotEmpty = 145, // ERROR_DIR_NOT_EMPTY
-		AlreadyExist = 183,	// ERROR_ALREADY_EXISTS
-		InitFailure = 575, // ERROR_APP_INIT_FAILURE
 		NotImplemented = -1,
 	};
 

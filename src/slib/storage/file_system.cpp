@@ -25,13 +25,18 @@
 #include "slib/core/system.h"
 #include "slib/core/safe_static.h"
 
+//#define WIN32_USE_FUSE
+
 #ifdef SLIB_PLATFORM_IS_WIN32
-#include "slib/storage/dokany.h"
+# ifdef WIN32_USE_FUSE
+#  include "slib/storage/fuse.h"
+# else
+#  include "slib/storage/dokany.h"
+# endif
+#else
+# include "slib/storage/fuse.h"
 #endif
 
-#include "slib/storage/fuse.h"
-
-//#define USE_FUSE
 
 namespace slib
 {
@@ -52,7 +57,7 @@ namespace slib
 	Ref<FileSystemHost> FileSystem::createHost()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
-# ifdef USE_FUSE
+# ifdef WIN32_USE_FUSE
 		return Fuse::createHost();
 # else
 		return Dokany::createHost();
@@ -76,7 +81,7 @@ namespace slib
 	sl_bool FileSystem::unmount(const String& mountPoint)
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
-# ifdef USE_FUSE
+# ifdef WIN32_USE_FUSE
 		return Fuse::unmount(mountPoint);
 # else
 		return Dokany::unmount(mountPoint);
