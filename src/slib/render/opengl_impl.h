@@ -484,31 +484,33 @@ namespace slib
 	{
 		namespace gl
 		{
-			static void SetVertexArrayAttribute(sl_int32 attributeLocation, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize)
+			static void SetVertexArrayAttribute(sl_int32 attributeLocation, GLenum type, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize)
 			{
 				if (attributeLocation != -1) {
 					GL_ENTRY(glEnableVertexAttribArray)(attributeLocation);
-					GL_ENTRY(glVertexAttribPointer)(attributeLocation, countComponents, GL_FLOAT, flagDoNormalize ? GL_TRUE : GL_FALSE, strideBytes, data);
+					GL_ENTRY(glVertexAttribPointer)(attributeLocation, countComponents, type, flagDoNormalize ? GL_TRUE : GL_FALSE, strideBytes, data);
 				}
 			}
 		}
 	}
 	
-#define PRIV_DEFINE_SETVERTEXARRAY(t) \
+#define PRIV_DEFINE_SETVERTEXARRAY(t, TYPE) \
 	void GL_BASE::setVertex##t##ArrayAttributePtr(sl_int32 attributeLocation, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) \
 	{ \
-		priv::gl::SetVertexArrayAttribute(attributeLocation, data, countComponents, strideBytes, flagDoNormalize); \
+		priv::gl::SetVertexArrayAttribute(attributeLocation, TYPE, data, countComponents, strideBytes, flagDoNormalize); \
 	} \
 	void GL_BASE::setVertex##t##ArrayAttribute(sl_int32 attributeLocation, sl_size offsetValuesOnBuffer, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) \
 	{ \
-		priv::gl::SetVertexArrayAttribute(attributeLocation, (void*)offsetValuesOnBuffer, countComponents, strideBytes, flagDoNormalize); \
+		priv::gl::SetVertexArrayAttribute(attributeLocation, TYPE, (void*)offsetValuesOnBuffer, countComponents, strideBytes, flagDoNormalize); \
 	}
 	
-	PRIV_DEFINE_SETVERTEXARRAY(Float)
-	PRIV_DEFINE_SETVERTEXARRAY(Int8)
-	PRIV_DEFINE_SETVERTEXARRAY(Uint8)
-	PRIV_DEFINE_SETVERTEXARRAY(Int16)
-	PRIV_DEFINE_SETVERTEXARRAY(Uint16)
+	PRIV_DEFINE_SETVERTEXARRAY(Float, GL_FLOAT)
+	PRIV_DEFINE_SETVERTEXARRAY(Int8, GL_BYTE)
+	PRIV_DEFINE_SETVERTEXARRAY(Uint8, GL_UNSIGNED_BYTE)
+	PRIV_DEFINE_SETVERTEXARRAY(Int16, GL_SHORT)
+	PRIV_DEFINE_SETVERTEXARRAY(Uint16, GL_UNSIGNED_SHORT)
+	PRIV_DEFINE_SETVERTEXARRAY(Int32, GL_INT)
+	PRIV_DEFINE_SETVERTEXARRAY(Uint32, GL_UNSIGNED_INT)
 	
 	void GL_BASE::disableVertexArrayAttribute(sl_int32 attributeLocation)
 	{
@@ -1963,6 +1965,26 @@ namespace slib
 		void setVertexUint16ArrayAttribute(sl_int32 attributeLocation, sl_size offsetValuesOnBuffer, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
 		{
 			GL_BASE::setVertexUint16ArrayAttribute(attributeLocation, offsetValuesOnBuffer, countComponents, strideBytes, flagDoNormalize);
+		}
+		
+		void setVertexInt32ArrayAttributePtr(sl_int32 attributeLocation, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
+		{
+			GL_BASE::setVertexInt32ArrayAttributePtr(attributeLocation, data, countComponents, strideBytes, flagDoNormalize);
+		}
+		
+		void setVertexInt32ArrayAttribute(sl_int32 attributeLocation, sl_size offsetValuesOnBuffer, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
+		{
+			GL_BASE::setVertexInt32ArrayAttribute(attributeLocation, offsetValuesOnBuffer, countComponents, strideBytes, flagDoNormalize);
+		}
+		
+		void setVertexUint32ArrayAttributePtr(sl_int32 attributeLocation, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
+		{
+			GL_BASE::setVertexUint32ArrayAttributePtr(attributeLocation, data, countComponents, strideBytes, flagDoNormalize);
+		}
+		
+		void setVertexUint32ArrayAttribute(sl_int32 attributeLocation, sl_size offsetValuesOnBuffer, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
+		{
+			GL_BASE::setVertexUint32ArrayAttribute(attributeLocation, offsetValuesOnBuffer, countComponents, strideBytes, flagDoNormalize);
 		}
 		
 		void disableVertexArrayAttribute(sl_int32 attributeLocation) override
