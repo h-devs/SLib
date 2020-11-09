@@ -30,6 +30,8 @@
  
 #include "slib/crypto/chacha.h"
 
+#include "slib/core/base.h"
+
 #include "slib/core/mio.h"
 
 namespace slib
@@ -135,7 +137,9 @@ namespace slib
 	{
 		const sl_uint8* key = (const sl_uint8*)_key;
 		sl_uint32* input = m_input;
-		if (lenKey == 32) {
+		if (lenKey == 48) {
+			Base::copyMemory(input, key, lenKey);
+		} else if (lenKey == 32) {
 			input[0] = U8TO32_LITTLE('e', 'x', 'p', 'a');
 			input[1] = U8TO32_LITTLE('n', 'd', ' ', '3');
 			input[2] = U8TO32_LITTLE('2', '-', 'b', 'y');
