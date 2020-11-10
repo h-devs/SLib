@@ -24,7 +24,6 @@
 #define CHECKHEADER_SLIB_RENDER_HEADER
 
 #include "render/engine.h"
-#include "render/opengl_engine.h"
 
 #include "render/buffer.h"
 #include "render/texture.h"

@@ -339,6 +339,131 @@ namespace slib
 			}
 #endif
 
+			static Memory CompileShader(const String& str, sl_bool flagVertexShader)
+			{
+#if D3D_VERSION_MAJOR >= 10
+#if D3D_VERSION_MAJOR >= 11
+				auto func = slib::d3d_compiler::getApi_D3DCompile();
+#else
+				auto func = slib::d3dx10::getApi_D3DX10CompileFromMemory();
+#endif
+				if (!func) {
+					return sl_null;
+				}
+				ID3D10Blob* blob = sl_null;
+#if D3D_VERSION_MAJOR >= 11
+				func(str.getData(), (SIZE_T)(str.getLength()), NULL, NULL, NULL, "main", flagVertexShader ? "vs_4_0" : "ps_4_0", D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, &blob, NULL);
+#else
+				func(str.getData(), (SIZE_T)(str.getLength()), NULL, NULL, NULL, "main", flagVertexShader ? "vs_4_0" : "ps_4_0", D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, NULL, &blob, NULL, NULL);
+#endif
+				if (blob) {
+					Memory ret = Memory::create(blob->GetBufferPointer(), (sl_size)(blob->GetBufferSize()));
+					blob->Release();
+					return ret;
+				}
+#else
+				auto func = slib::d3dx9::getApi_D3DXCompileShader();
+				if (!func) {
+					return sl_null;
+				}
+				ID3DXBuffer* shader = sl_null;
+				func(str.getData(), (UINT)(str.getLength()), NULL, NULL, "main", flagVertexShader ? "vs_3_0" : "ps_3_0", 0, &shader, NULL, NULL);
+				if (shader) {
+					Memory ret = Memory::create(shader->GetBufferPointer(), (sl_size)(shader->GetBufferSize()));
+					shader->Release();
+					return ret;
+				}
+#endif
+				return sl_null;
+			}
+
+			class RenderProgramInstanceImpl : public RenderProgramInstance
+			{
+			public:
+				ID3DVertexShader* vertexShader;
+				ID3DPixelShader* pixelShader;
+				Ref<RenderProgramState> state;
+
+			public:
+				RenderProgramInstanceImpl()
+				{
+					vertexShader = sl_null;
+					pixelShader = sl_null;
+				}
+
+				~RenderProgramInstanceImpl()
+				{
+					if (vertexShader) {
+						vertexShader->Release();
+					}
+					if (pixelShader) {
+						pixelShader->Release();
+					}
+				}
+
+			public:
+				static Ref<RenderProgramInstanceImpl> create(ID3DDevice* device, RenderEngine* engine, RenderProgram* program)
+				{
+					Memory codeVertex = CompileShader(program->getHLSLVertexShader(engine), sl_true);
+					if (codeVertex.isNull()) {
+						return sl_null;
+					}
+					Memory codePixel = CompileShader(program->getHLSLPixelShader(engine), sl_false);
+					if (codePixel.isNull()) {
+						return sl_null;
+					}
+					ID3DVertexShader* vs = sl_null;
+#if D3D_VERSION_MAJOR >= 11
+					device->CreateVertexShader(codeVertex.getData(), (SIZE_T)(codeVertex.getSize()), NULL, &vs);
+#elif D3D_VERSION_MAJOR >= 10
+					device->CreateVertexShader(codeVertex.getData(), (SIZE_T)(codeVertex.getSize()), &vs);
+#else
+					device->CreateVertexShader((DWORD*)(codeVertex.getData()), &vs);
+#endif
+					if (vs) {
+						ID3DPixelShader* ps = sl_null;
+#if D3D_VERSION_MAJOR >= 11
+						device->CreatePixelShader(codeVertex.getData(), (SIZE_T)(codeVertex.getSize()), NULL, &ps);
+#elif D3D_VERSION_MAJOR >= 10
+						device->CreatePixelShader(codeVertex.getData(), (SIZE_T)(codeVertex.getSize()), &ps);
+#else
+						device->CreatePixelShader((DWORD*)(codeVertex.getData()), &ps);
+#endif
+						if (ps) {
+							Ref<RenderProgramState> state = program->onCreate(engine);
+							if (state.isNotNull()) {
+								Ref<RenderProgramInstanceImpl> ret = new RenderProgramInstanceImpl();
+								if (ret.isNotNull()) {
+									ret->vertexShader = vs;
+									ret->pixelShader = ps;
+									state->programInstance = ret.get();
+									if (program->onInit(engine, state.get())) {
+										ret->state = state;
+										ret->link(engine, program);
+										return ret;
+									}
+									return sl_null;
+								}
+							}
+							ps->Release();
+						}
+						vs->Release();
+					}
+					return sl_null;
+				}
+
+				Ref<RenderProgramConstant> getConstant(const char* name) override
+				{
+					return sl_null;
+				}
+
+				Ref<RenderInputLayout> createInputLayout(sl_uint32 stride, const RenderProgramStateItem* items, sl_uint32 nItems) override
+				{
+					return sl_null;
+				}
+
+			};
+
 			class VertexBufferInstanceImpl : public VertexBufferInstance
 			{
 			public:

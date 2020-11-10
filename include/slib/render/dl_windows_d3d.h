@@ -38,6 +38,16 @@ struct ID3D11Device;
 struct ID3D11DeviceContext;
 struct IDXGIAdapter;
 
+struct _D3DXMACRO;
+struct ID3DXInclude;
+struct ID3DXBuffer;
+struct ID3DXConstantTable;
+
+struct _D3D_SHADER_MACRO;
+struct ID3DInclude;
+struct ID3DX10ThreadPump;
+struct ID3D10Blob;
+
 namespace slib
 {
 
@@ -111,6 +121,87 @@ namespace slib
 		)
 
 	SLIB_IMPORT_LIBRARY_END
+	
+	namespace d3dx9
+	{
+
+		void* getLibrary();
+		void* getApi(const char* name);
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			D3DXCompileShader,
+			HRESULT, WINAPI,
+			LPCSTR pSrcData,
+			UINT srcDataLen,
+			const _D3DXMACRO *pDefines,
+			ID3DXInclude* pInclude,
+			LPCSTR pFunctionName,
+			LPCSTR pProfile,
+			DWORD Flags,
+			ID3DXBuffer **ppShader,
+			ID3DXBuffer **ppErrorMsgs,
+			ID3DXConstantTable **ppConstantTable
+		)
+
+	}
+
+	namespace d3dx10
+	{
+
+		void* getLibrary();
+		void* getApi(const char* name);
+	
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			D3DX10CompileFromMemory,
+			HRESULT, WINAPI,
+			LPCSTR pSrcData,
+			SIZE_T SrcDataLen,
+			LPCSTR pFileName,
+			const _D3D_SHADER_MACRO *pDefines,
+			ID3DInclude* pInclude,
+			LPCSTR pFunctionName,
+			LPCSTR pProfile,
+			UINT Flags1,
+			UINT Flags2,
+			ID3DX10ThreadPump *pPump,
+			ID3D10Blob **ppShader,
+			ID3D10Blob **ppErrorMsgs,
+			HRESULT *pHResult
+		)
+
+	}
+
+	namespace d3dx11
+	{
+
+		void* getLibrary();
+		void* getApi(const char* name);
+	
+	}
+
+	namespace d3d_compiler
+	{
+
+		void* getLibrary();
+		void* getApi(const char* name);
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			D3DCompile,
+			HRESULT, WINAPI,
+			LPCVOID pSrcData,
+			SIZE_T SrcDataSize,
+			LPCSTR pSourceName,
+			const _D3D_SHADER_MACRO *pDefines,
+			ID3DInclude* pInclude,
+			LPCSTR pEntrypoint,
+			LPCSTR pTarget,
+			UINT Flags1,
+			UINT Flags2,
+			ID3D10Blob **ppCode,
+			ID3D10Blob **ppErrorMsgs
+		)
+
+	}
 
 }
 

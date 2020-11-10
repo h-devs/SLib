@@ -457,8 +457,7 @@ namespace slib
 	class SLIB_EXPORT RenderProgramScope
 	{
 	public:
-		SLIB_INLINE RenderProgramScope():
-	 m_engine(sl_null), m_program(sl_null), m_state(sl_null)
+		SLIB_INLINE RenderProgramScope(): m_engine(sl_null), m_program(sl_null), m_state(sl_null)
 		{};
 		
 		SLIB_INLINE ~RenderProgramScope()

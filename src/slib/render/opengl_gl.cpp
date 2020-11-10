@@ -35,18 +35,6 @@ namespace slib
 	{
 	}
 	
-	sl_int32 GLRenderEngine::getAttributeLocation(sl_uint32 program, const String& _name)
-	{
-		String name(_name);
-		return getAttributeLocation(program, name.getData());
-	}
-	
-	sl_int32 GLRenderEngine::getUniformLocation(sl_uint32 program, const String& _name)
-	{
-		String name(_name);
-		return getUniformLocation(program, name.getData());
-	}
-
 }
 
 #if defined(SLIB_RENDER_SUPPORT_OPENGL_GL)

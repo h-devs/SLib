@@ -39,6 +39,8 @@ typedef ID3D11RenderTargetView ID3DRenderTargetView;
 typedef ID3D11Texture2D ID3DTexture2D;
 typedef ID3D11Buffer ID3DIndexBuffer;
 typedef ID3D11Buffer ID3DVertexBuffer;
+typedef ID3D11VertexShader ID3DVertexShader;
+typedef ID3D11PixelShader ID3DPixelShader;
 
 #include "d3d_impl.h"
 

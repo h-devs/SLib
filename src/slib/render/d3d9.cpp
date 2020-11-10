@@ -25,6 +25,7 @@
 #if defined(SLIB_RENDER_SUPPORT_D3D)
 
 #include "d3d/d3d9.h"
+#include "d3d/d3dx9shader.h"
 
 #define D3D_NAMESPACE d3d9
 #define D3D_TYPE D3D9
@@ -35,6 +36,8 @@ typedef IDirect3DDevice9 ID3DDeviceContext;
 typedef IDirect3DTexture9 ID3DTexture2D;
 typedef IDirect3DVertexBuffer9 ID3DVertexBuffer;
 typedef IDirect3DIndexBuffer9 ID3DIndexBuffer;
+typedef IDirect3DVertexShader9 ID3DVertexShader;
+typedef IDirect3DPixelShader9 ID3DPixelShader;
 
 #include "d3d_impl.h"
 

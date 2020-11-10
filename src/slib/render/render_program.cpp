@@ -24,273 +24,198 @@
 #include "slib/render/program.h"
 
 #include "slib/render/engine.h"
-#include "slib/render/opengl.h"
 
 namespace slib
 {
 
-/*******************************
-		RenderProgram
-*******************************/
-	
 	SLIB_DEFINE_OBJECT(RenderProgramInstance, RenderBaseObjectInstance)
-	
+
 	RenderProgramInstance::RenderProgramInstance()
 	{
 	}
-	
+
 	RenderProgramInstance::~RenderProgramInstance()
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(RenderProgram, RenderBaseObject)
-	
+
 	RenderProgram::RenderProgram()
 	{
 	}
-	
+
 	RenderProgram::~RenderProgram()
 	{
 	}
-	
+
 	sl_bool RenderProgram::onInit(RenderEngine* engine, RenderProgramState* state)
 	{
 		return sl_true;
 	}
-	
+
 	sl_bool RenderProgram::onPreRender(RenderEngine* engine, RenderProgramState* state)
 	{
 		return sl_true;
 	}
-	
+
 	void RenderProgram::onPostRender(RenderEngine* engine, RenderProgramState* state)
 	{
 	}
-	
+
 	String RenderProgram::getGLSLVertexShader(RenderEngine* engine)
 	{
 		return sl_null;
 	}
-	
+
 	String RenderProgram::getGLSLFragmentShader(RenderEngine* engine)
 	{
 		return sl_null;
 	}
-	
+
+	String RenderProgram::getHLSLVertexShader(RenderEngine* engine)
+	{
+		return sl_null;
+	}
+
+	String RenderProgram::getHLSLPixelShader(RenderEngine* engine)
+	{
+		return sl_null;
+	}
+
 	Ref<RenderProgramInstance> RenderProgram::getInstance(RenderEngine* engine)
 	{
 		return Ref<RenderProgramInstance>::from(RenderBaseObject::getInstance(engine));
 	}
-	
-	
-/*******************************
- 		RenderProgramState
-*******************************/
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RenderProgramStateItem)
+
+	RenderProgramStateItem::RenderProgramStateItem() : name(sl_null), kind(RenderProgramStateKind::None)
+	{
+	}
+
+	RenderProgramStateItem::RenderProgramStateItem(const char* _name) : name(_name), kind(RenderProgramStateKind::Uniform)
+	{
+	}
+
+	RenderProgramStateItem::RenderProgramStateItem(const char* _name, RenderInputType type, sl_uint32 offset, RenderInputSemanticName semanticName, sl_uint32 semanticIndex) : name(_name), kind(RenderProgramStateKind::Input), input({ type, offset, semanticName, semanticIndex })
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(RenderProgramConstant)
+
+	RenderProgramConstant::RenderProgramConstant()
+	{
+	}
+
+	RenderProgramConstant::~RenderProgramConstant()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(RenderInputLayout)
+
+	RenderInputLayout::RenderInputLayout()
+	{
+	}
+
+	RenderInputLayout::~RenderInputLayout()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(RenderProgramState)
 	
 	RenderProgramState::RenderProgramState()
 	{
+		programInstance = sl_null;
 	}
 	
 	RenderProgramState::~RenderProgramState()
 	{
 	}
-	
-	void RenderProgramState::setUniformFloatValue(sl_int32 uniformLocation, float value)
+
+	Ref<RenderProgramConstant> RenderProgramState::getConstant(const char* name)
 	{
-		gl_engine->setUniformFloatValue(uniformLocation, value);
-	}
-	
-	void RenderProgramState::setUniformFloatArray(sl_int32 uniformLocation, const float *arr, sl_uint32 n)
-	{
-		gl_engine->setUniformFloatArray(uniformLocation, arr, n);
-	}
-	
-	void RenderProgramState::setUniformIntValue(sl_int32 uniformLocation, sl_int32 value)
-	{
-		gl_engine->setUniformIntValue(uniformLocation, value);
-	}
-	
-	void RenderProgramState::setUniformIntArray(sl_int32 uniformLocation, const sl_int32 *arr, sl_uint32 n)
-	{
-		gl_engine->setUniformIntArray(uniformLocation, arr, n);
-	}
-	
-	void RenderProgramState::setUniformFloat2Value(sl_int32 uniformLocation, const Vector2& value)
-	{
-		gl_engine->setUniformFloat2Value(uniformLocation, value);
-	}
-	
-	void RenderProgramState::setUniformFloat2Array(sl_int32 uniformLocation, const Vector2* arr, sl_uint32 n)
-	{
-		gl_engine->setUniformFloat2Array(uniformLocation, arr, n);
-	}
-	
-	void RenderProgramState::setUniformFloat3Value(sl_int32 uniformLocation, const Vector3& value)
-	{
-		gl_engine->setUniformFloat3Value(uniformLocation, value);
-	}
-	
-	void RenderProgramState::setUniformFloat3Array(sl_int32 uniformLocation, const Vector3* arr, sl_uint32 n)
-	{
-		gl_engine->setUniformFloat3Array(uniformLocation, arr, n);
-	}
-	
-	void RenderProgramState::setUniformFloat4Value(sl_int32 uniformLocation, const Vector4& value)
-	{
-		gl_engine->setUniformFloat4Value(uniformLocation, value);
-	}
-	
-	void RenderProgramState::setUniformFloat4Array(sl_int32 uniformLocation, const Vector4* arr, sl_uint32 n)
-	{
-		gl_engine->setUniformFloat4Array(uniformLocation, arr, n);
-	}
-	
-	void RenderProgramState::setUniformMatrix3Value(sl_int32 uniformLocation, const Matrix3& value)
-	{
-		gl_engine->setUniformMatrix3Value(uniformLocation, value);
-	}
-	
-	void RenderProgramState::setUniformMatrix3Array(sl_int32 uniformLocation, const Matrix3* arr, sl_uint32 n)
-	{
-		gl_engine->setUniformMatrix3Array(uniformLocation, arr, n);
-	}
-	
-	void RenderProgramState::setUniformMatrix4Value(sl_int32 uniformLocation, const Matrix4& value)
-	{
-		gl_engine->setUniformMatrix4Value(uniformLocation, value);
-	}
-	
-	void RenderProgramState::setUniformMatrix4Array(sl_int32 uniformLocation, const Matrix4* arr, sl_uint32 n)
-	{
-		gl_engine->setUniformMatrix4Array(uniformLocation, arr, n);
-	}
-	
-	void RenderProgramState::setUniformTexture(sl_int32 uniformLocation, const Ref<Texture>& texture, sl_reg sampler)
-	{
-		gl_engine->applyTexture(texture, sampler);
-		gl_engine->setUniformTextureSampler(uniformLocation, (sl_uint32)sampler);
-	}
-	
-	void RenderProgramState::setUniformTextureArray(sl_int32 uniformLocation, const Ref<Texture>* textures, const sl_reg* samplers, sl_uint32 n)
-	{
-		for (sl_uint32 i = 0; i < n; i++) {
-			gl_engine->applyTexture(textures[i], samplers[i]);
+		if (programInstance) {
+			return programInstance->getConstant(name);
 		}
-		gl_engine->setUniformTextureSamplerArray(uniformLocation, samplers, n);
+		return sl_null;
 	}
-	
-/*******************************
-	RenderProgramTemplate
-*******************************/
-	
+
+	Ref<RenderInputLayout> RenderProgramState::createInputLayout(sl_uint32 stride, const RenderProgramStateItem* items, sl_uint32 nItems)
+	{
+		if (programInstance) {
+			return programInstance->createInputLayout(stride, items, nItems);
+		}
+		return sl_null;
+	}
+
 	namespace priv
 	{
 		namespace render_program
 		{
 
-			sl_bool RenderProgramTemplate::onInit(RenderEngine* _engine, RenderProgramState* _state)
+			class RenderProgramStateTemplate : public RenderProgramState
 			{
-				RenderEngineType type = _engine->getEngineType();
-				
-				if (type == RenderEngineType::OpenGL_ES || type == RenderEngineType::OpenGL) {
-					
-					GLRenderEngine* engine = (GLRenderEngine*)_engine;
-					RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
-					
-					sl_uint32 program = state->gl_program;
-					RenderProgramStateItem* item = state->items;
-					sl_int32 i = 0;
-					while (item->gl_name) {
-						if (item->type == 1) {
-							item->gl_location = engine->getUniformLocation(program, item->gl_name);
-						} else if (item->type == 2) {
-							item->gl_location = engine->getAttributeLocation(program, item->gl_name);
-							if (state->_indexFirstAttribute < 0) {
-								state->_indexFirstAttribute = i;
-							}
-							state->_indexLastAttribute = i;
+			public:
+				sl_uint32 vertexSize;
+				Ref<RenderInputLayout> inputLayout;
+				RenderProgramStateItem items[1];
+			};
+
+			sl_bool RenderProgramTemplate::onInit(RenderEngine* engine, RenderProgramState* _state)
+			{
+				RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
+
+				sl_int32 n = 0;
+				sl_int32 indexFirstInput = -1;
+				RenderProgramStateItem* item = state->items;
+
+				while (item->kind != RenderProgramStateKind::None) {
+					if (item->kind == RenderProgramStateKind::Uniform) {
+						if (item->name) {
+							item->uniform = state->getConstant(item->name);
 						}
-						item++;
-						i++;
+					} else if (item->kind == RenderProgramStateKind::Input) {
+						if (indexFirstInput < 0) {
+							indexFirstInput = n;
+						}
 					}
-					return sl_true;
+					item++;
+					n++;
 				}
-				
-				return sl_false;
+
+				if (indexFirstInput >= 0 && n > indexFirstInput) {
+					state->inputLayout = state->createInputLayout(state->vertexSize, state->items + indexFirstInput, n - indexFirstInput);
+				}
+
+				return sl_true;
 			}
 			
-			sl_bool RenderProgramTemplate::onPreRender(RenderEngine* _engine, RenderProgramState* _state)
+			sl_bool RenderProgramTemplate::onPreRender(RenderEngine* engine, RenderProgramState* _state)
 			{
-				RenderEngineType type = _engine->getEngineType();
-				
-				if (type == RenderEngineType::OpenGL_ES || type == RenderEngineType::OpenGL) {
-					
-					GLRenderEngine* engine = (GLRenderEngine*)_engine;
-					RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
-					
-					sl_int32 i = state->_indexFirstAttribute;
-					
-					if (i >= 0) {
-						sl_int32 n = state->_indexLastAttribute;
-						RenderProgramStateItem* items = state->items;
-						for (; i <= n; i++) {
-							if (items[i].type == 2 && items[i].gl_location >= 0) {
-								switch (items[i].attrType) {
-									case 0:
-										engine->setVertexFloatArrayAttribute(items[i].gl_location, items[i].attrOffset, items[i].attrCount, state->_sizeVertexData);
-										break;
-									case 1:
-										engine->setVertexInt8ArrayAttribute(items[i].gl_location, items[i].attrOffset, items[i].attrCount, state->_sizeVertexData);
-										break;
-									case 2:
-										engine->setVertexUint8ArrayAttribute(items[i].gl_location, items[i].attrOffset, items[i].attrCount, state->_sizeVertexData);
-										break;
-									case 3:
-										engine->setVertexInt16ArrayAttribute(items[i].gl_location, items[i].attrOffset, items[i].attrCount, state->_sizeVertexData);
-										break;
-									case 4:
-										engine->setVertexUint16ArrayAttribute(items[i].gl_location, items[i].attrOffset, items[i].attrCount, state->_sizeVertexData);
-										break;
-								}
-							}
-						}
-					}
-					return sl_true;
+				RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
+				if (state->inputLayout.isNotNull()) {
+					state->inputLayout->load();
 				}
-				
-				return sl_false;
+				return sl_true;
 			}
 			
 			void RenderProgramTemplate::onPostRender(RenderEngine* _engine, RenderProgramState* _state)
 			{
-				RenderEngineType type = _engine->getEngineType();
-				
-				if (type == RenderEngineType::OpenGL_ES || type == RenderEngineType::OpenGL) {
-					
-					GLRenderEngine* engine = (GLRenderEngine*)_engine;
-					RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
-					
-					sl_int32 i = state->_indexFirstAttribute;
-					
-					if (i >= 0) {
-						sl_int32 n = state->_indexLastAttribute;
-						RenderProgramStateItem* items = state->items;
-						for (; i <= n; i++) {
-							if (items[i].type == 2 && items[i].gl_location >= 0) {
-								engine->disableVertexArrayAttribute(items[i].gl_location);
-							}
-						}
-					}
+				RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
+				if (state->inputLayout.isNotNull()) {
+					state->inputLayout->unload();
 				}
 			}
 
 		}
 	}
 
-/*******************************
- RenderProgram2D_PositionTexture
-*******************************/
+
 	String RenderProgram2D_PositionTexture::getGLSLVertexShader(RenderEngine* engine)
 	{
 		String source;
@@ -324,9 +249,7 @@ namespace slib
 		return source;
 	}
 	
-/*******************************
- RenderProgram2D_PositionTextureYUV
-*******************************/
+
 	String RenderProgram2D_PositionTextureYUV::getGLSLFragmentShader(RenderEngine* engine)
 	{
 		String source = SLIB_STRINGIFY(
@@ -344,9 +267,7 @@ namespace slib
 		return source;
 	}
 	
-/*******************************
- RenderProgram2D_PositionTextureOES
-*******************************/
+
 	String RenderProgram2D_PositionTextureOES::getGLSLFragmentShader(RenderEngine* engine)
 	{
 		String source = "#extension GL_OES_EGL_image_external : require\n";
@@ -363,9 +284,7 @@ namespace slib
 		return source;
 	}
 	
-/*******************************
- RenderProgram2D_PositionColor
-*******************************/
+
 	String RenderProgram2D_PositionColor::getGLSLVertexShader(RenderEngine* engine)
 	{
 		String source = SLIB_STRINGIFY(
@@ -394,9 +313,7 @@ namespace slib
 		return source;
 	}
 	
-/*******************************
- RenderProgram2D_Position
-*******************************/
+
 	String RenderProgram2D_Position::getGLSLVertexShader(RenderEngine* engine)
 	{
 		String source = SLIB_STRINGIFY(
@@ -421,10 +338,7 @@ namespace slib
 		return source;
 	}
 	
-	
-/*******************************
- RenderProgram3D_PositionNormalColor
-*******************************/
+
 	String RenderProgram3D_PositionNormalColor::getGLSLVertexShader(RenderEngine* engine)
 	{
 		String source = SLIB_STRINGIFY(
@@ -461,9 +375,7 @@ namespace slib
 		return source;
 	}
 	
-/*******************************
- RenderProgram3D_PositionColor
-*******************************/
+
 	String RenderProgram3D_PositionColor::getGLSLVertexShader(RenderEngine* engine)
 	{
 		String source = SLIB_STRINGIFY(
@@ -493,9 +405,7 @@ namespace slib
 		return source;
 	}
 	
-/*******************************
- RenderProgram3D_PositionNormalTexture
-*******************************/
+
 	String RenderProgram3D_PositionNormalTexture::getGLSLVertexShader(RenderEngine* engine)
 	{
 		String source = SLIB_STRINGIFY(
@@ -538,9 +448,7 @@ namespace slib
 		return source;
 	}
 	
-/*******************************
- RenderProgram3D_PositionTexture
-*******************************/
+
 	String RenderProgram3D_PositionTexture::getGLSLVertexShader(RenderEngine* engine)
 	{
 		String source = SLIB_STRINGIFY(
@@ -571,9 +479,7 @@ namespace slib
 		return source;
 	}
 	
-/*******************************
- RenderProgram3D_PositionNormal
-*******************************/
+
 	String RenderProgram3D_PositionNormal::getGLSLVertexShader(RenderEngine* engine)
 	{
 		String source = SLIB_STRINGIFY(
@@ -610,9 +516,7 @@ namespace slib
 		return source;
 	}
 	
-/*******************************
- RenderProgram3D_Position
-*******************************/
+
 	String RenderProgram3D_Position::getGLSLVertexShader(RenderEngine* engine)
 	{
 		String source = SLIB_STRINGIFY(

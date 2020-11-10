@@ -55,7 +55,7 @@ namespace slib
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3_ARRAY(ClipTransform, u_ClipTransform)
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(ClipRect, u_ClipRect)
 			
-				SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(position, a_Position)
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position)
 			SLIB_RENDER_PROGRAM_STATE_END
 			
 			class RenderCanvasProgramParam
