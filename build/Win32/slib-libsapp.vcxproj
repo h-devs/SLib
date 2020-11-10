@@ -24,6 +24,21 @@
     <ClCompile Include="..\..\src\sapp\sapp_util.cpp" />
     <ClCompile Include="..\..\src\sapp\sapp_values.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\sapp\sapp.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_document.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_resources.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_util.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_values.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\sapp\sapp_document_color.inc" />
+    <None Include="..\..\src\sapp\sapp_document_drawable.inc" />
+    <None Include="..\..\src\sapp\sapp_document_layout.inc" />
+    <None Include="..\..\src\sapp\sapp_document_menu.inc" />
+    <None Include="..\..\src\sapp\sapp_document_raw.inc" />
+    <None Include="..\..\src\sapp\sapp_document_string.inc" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C489039E-F8D4-40E7-887C-341C0D76407D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

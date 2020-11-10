@@ -19,4 +19,41 @@
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\sapp\sapp.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_document.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_resources.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_util.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_values.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\sapp\sapp_document_color.inc">
+      <Filter>src</Filter>
+    </None>
+    <None Include="..\..\src\sapp\sapp_document_drawable.inc">
+      <Filter>src</Filter>
+    </None>
+    <None Include="..\..\src\sapp\sapp_document_layout.inc">
+      <Filter>src</Filter>
+    </None>
+    <None Include="..\..\src\sapp\sapp_document_menu.inc">
+      <Filter>src</Filter>
+    </None>
+    <None Include="..\..\src\sapp\sapp_document_raw.inc">
+      <Filter>src</Filter>
+    </None>
+    <None Include="..\..\src\sapp\sapp_document_string.inc">
+      <Filter>src</Filter>
+    </None>
+  </ItemGroup>
 </Project>
