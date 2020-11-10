@@ -44,6 +44,9 @@ typedef ID3D10Buffer ID3DVertexBuffer;
 typedef ID3D10VertexShader ID3DVertexShader;
 typedef ID3D10PixelShader ID3DPixelShader;
 typedef ID3D10InputLayout ID3DInputLayout;
+typedef ID3D10DepthStencilState ID3DDepthStencilState;
+typedef ID3D10RasterizerState ID3DRasterizerState;
+typedef ID3D10BlendState ID3DBlendState;
 
 #include "d3d_impl.h"
 

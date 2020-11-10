@@ -217,10 +217,8 @@ namespace slib
 						return GL_CONSTANT_COLOR;
 					case RenderBlendingFactor::OneMinusConstant:
 						return GL_ONE_MINUS_CONSTANT_COLOR;
-					case RenderBlendingFactor::ConstantAlpha:
-						return GL_CONSTANT_ALPHA;
-					case RenderBlendingFactor::OneMinusConstantAlpha:
-						return GL_ONE_MINUS_CONSTANT_ALPHA;
+					default:
+						break;
 				}
 				return GL_ZERO;
 			}

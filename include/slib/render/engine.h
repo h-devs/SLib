@@ -117,9 +117,7 @@ namespace slib
 		OneMinusDstColor = 9,
 		SrcAlphaSaturate = 10, // f = min(As, 1 - Ad)
 		Constant = 11,
-		OneMinusConstant = 12,
-		ConstantAlpha = 13,
-		OneMinusConstantAlpha = 14
+		OneMinusConstant = 12
 	};
 	
 	class SLIB_EXPORT RenderBlendingParam

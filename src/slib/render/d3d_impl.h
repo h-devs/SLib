@@ -1186,14 +1186,107 @@ namespace slib
 			public:
 				RendererImpl * m_renderer;
 
+#if D3D_VERSION_MAJOR >= 10
+				ID3DDepthStencilState* m_stateDepthStencil;
+				D3D_(DEPTH_STENCIL_DESC) m_stateDescDepthStencil;
+				sl_bool m_flagUpdatedDepthStencilState;
+				UINT m_stencilRef;
+				sl_bool m_flagUpdatedDepthStencilStateStencilRef;
+
+				ID3DRasterizerState* m_stateRasterizer;
+				D3D_(RASTERIZER_DESC) m_stateDescRasterizer;
+				sl_bool m_flagUpdatedRasterizerState;
+
+				ID3DBlendState* m_stateBlend;
+				D3D_(BLEND_DESC) m_stateDescBlend;
+				sl_bool m_flagUpdatedBlendState;
+				float m_blendFactor[4];
+				sl_bool m_flagUpdatedBlendStateBlendFactor;
+#endif
+
 			public:
 				EngineImpl()
 				{
 					m_renderer = sl_null;
+
+#if D3D_VERSION_MAJOR >= 10
+					m_stateDepthStencil = sl_null;
+					m_stateDescDepthStencil.DepthEnable = TRUE;
+					m_stateDescDepthStencil.DepthWriteMask = D3D_(DEPTH_WRITE_MASK_ALL);
+					m_stateDescDepthStencil.DepthFunc = D3D_(COMPARISON_LESS);
+					m_stateDescDepthStencil.StencilEnable = FALSE;
+					m_stateDescDepthStencil.StencilReadMask = D3D_(DEFAULT_STENCIL_READ_MASK);
+					m_stateDescDepthStencil.StencilWriteMask = D3D_(DEFAULT_STENCIL_WRITE_MASK);
+					m_stateDescDepthStencil.FrontFace.StencilFailOp = D3D_(STENCIL_OP_KEEP);
+					m_stateDescDepthStencil.FrontFace.StencilDepthFailOp = D3D_(STENCIL_OP_KEEP);
+					m_stateDescDepthStencil.FrontFace.StencilPassOp = D3D_(STENCIL_OP_KEEP);
+					m_stateDescDepthStencil.FrontFace.StencilFunc = D3D_(COMPARISON_ALWAYS);
+					m_stateDescDepthStencil.BackFace.StencilFailOp = D3D_(STENCIL_OP_KEEP);
+					m_stateDescDepthStencil.BackFace.StencilDepthFailOp = D3D_(STENCIL_OP_KEEP);
+					m_stateDescDepthStencil.BackFace.StencilPassOp = D3D_(STENCIL_OP_KEEP);
+					m_stateDescDepthStencil.BackFace.StencilFunc = D3D_(COMPARISON_ALWAYS);
+					m_flagUpdatedDepthStencilState = sl_false;
+					m_stencilRef = 0;
+					m_flagUpdatedDepthStencilStateStencilRef = sl_false;
+
+					m_stateRasterizer = sl_null;
+					m_stateDescRasterizer.FillMode = D3D_(FILL_SOLID);
+					m_stateDescRasterizer.CullMode = D3D_(CULL_BACK);
+					m_stateDescRasterizer.FrontCounterClockwise = FALSE;
+					m_stateDescRasterizer.DepthBias = 0;
+					m_stateDescRasterizer.DepthBiasClamp = 0.0f;
+					m_stateDescRasterizer.SlopeScaledDepthBias = 0.0f;
+					m_stateDescRasterizer.DepthClipEnable = TRUE;
+					m_stateDescRasterizer.ScissorEnable = FALSE;
+					m_stateDescRasterizer.MultisampleEnable = FALSE;
+					m_stateDescRasterizer.AntialiasedLineEnable = FALSE;
+					m_flagUpdatedRasterizerState = sl_false;
+
+					m_stateBlend = sl_null;
+					Base::zeroMemory(&m_stateDescBlend, sizeof(m_stateDescBlend));
+#if D3D_VERSION_MAJOR >= 11
+					{
+						for (sl_uint k = 0; k < 8; k++) {
+							m_stateDescBlend.RenderTarget[k].DestBlend = D3D_(BLEND_ZERO);
+							m_stateDescBlend.RenderTarget[k].BlendOp = D3D_(BLEND_OP_ADD);
+							m_stateDescBlend.RenderTarget[k].SrcBlendAlpha = D3D_(BLEND_ONE);
+							m_stateDescBlend.RenderTarget[k].DestBlendAlpha = D3D_(BLEND_ZERO);
+							m_stateDescBlend.RenderTarget[k].BlendOpAlpha = D3D_(BLEND_OP_ADD);
+							m_stateDescBlend.RenderTarget[k].RenderTargetWriteMask = D3D_(COLOR_WRITE_ENABLE_ALL);
+						}
+					}
+#else
+					m_stateDescBlend.SrcBlend = D3D_(BLEND_ONE);
+					m_stateDescBlend.DestBlend = D3D_(BLEND_ZERO);
+					m_stateDescBlend.BlendOp = D3D_(BLEND_OP_ADD);
+					m_stateDescBlend.SrcBlendAlpha = D3D_(BLEND_ONE);
+					m_stateDescBlend.DestBlendAlpha = D3D_(BLEND_ZERO);
+					m_stateDescBlend.BlendOpAlpha = D3D_(BLEND_OP_ADD);
+					{
+						for (sl_uint k = 0; k < 8; k++) {
+							m_stateDescBlend.RenderTargetWriteMask[k] = D3D_(COLOR_WRITE_ENABLE_ALL);
+						}
+					}
+#endif
+					m_flagUpdatedBlendState = sl_false;
+					m_blendFactor[0] = 0;
+					m_blendFactor[1] = 0;
+					m_blendFactor[2] = 0;
+					m_blendFactor[3] = 0;
+					m_flagUpdatedBlendStateBlendFactor = sl_false;
+#endif
 				}
 
 				~EngineImpl()
 				{
+#if D3D_VERSION_MAJOR >= 10
+					if (m_stateDepthStencil) {
+						m_stateDepthStencil->Release();
+					}
+					if (m_stateRasterizer) {
+						m_stateRasterizer->Release();
+					}
+#endif
 				}
 
 			public:
@@ -1243,7 +1336,15 @@ namespace slib
 
 				Ref<RenderProgramInstance> _createProgramInstance(RenderProgram* program) override
 				{
-					return sl_null;
+					ID3DDevice* device = getDevice();
+					if (!device) {
+						return sl_null;
+					}
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return sl_null;
+					}
+					return Ref<RenderProgramInstance>::from(RenderProgramInstanceImpl::create(device, context, this, program));
 				}
 
 				Ref<VertexBufferInstance> _createVertexBufferInstance(VertexBuffer* buffer) override
@@ -1312,6 +1413,36 @@ namespace slib
 
 				void _setViewport(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height) override
 				{
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return;
+					}
+#if D3D_VERSION_MAJOR >= 10
+					D3D_(VIEWPORT) v;
+#if D3D_VERSION_MAJOR >= 11
+					v.TopLeftX = (FLOAT)x;
+					v.TopLeftY = (FLOAT)y;
+					v.Width = (FLOAT)width;
+					v.Height = (FLOAT)height;
+#else
+					v.TopLeftX = (INT)x;
+					v.TopLeftY = (INT)y;
+					v.Width = (UINT)width;
+					v.Height = (UINT)height;
+#endif
+					v.MinDepth = 0.0f;
+					v.MaxDepth = 1.0f;
+					context->RSSetViewports(1, &v);
+#else
+					D3DVIEWPORT9 v;
+					v.X = (DWORD)x;
+					v.Y = (DWORD)y;
+					v.Width = (DWORD)width;
+					v.Height = (DWORD)height;
+					v.MinZ = 0.0f;
+					v.MaxZ = 1.0f;
+					context->SetViewport(&v);
+#endif
 				}
 
 				void _clear(const RenderClearParam& param) override
@@ -1361,22 +1492,186 @@ namespace slib
 
 				void _setDepthTest(sl_bool flagEnableDepthTest) override
 				{
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return;
+					}
+#if D3D_VERSION_MAJOR >= 10
+					BOOL v = flagEnableDepthTest ? TRUE : FALSE;
+					if (m_stateDescDepthStencil.DepthEnable != v) {
+						m_stateDescDepthStencil.DepthEnable = v;
+						m_flagUpdatedDepthStencilState = sl_true;
+					}
+#else
+					context->SetRenderState(D3DRS_ZENABLE, flagEnableDepthTest ? D3DZB_TRUE : D3DZB_FALSE);
+#endif
 				}
 
 				void _setDepthWriteEnabled(sl_bool flagEnableDepthWrite) override
 				{
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return;
+					}
+#if D3D_VERSION_MAJOR >= 10
+					D3D_(DEPTH_WRITE_MASK) v = flagEnableDepthWrite ? D3D_(DEPTH_WRITE_MASK_ALL) : D3D_(DEPTH_WRITE_MASK_ZERO);
+					if (m_stateDescDepthStencil.DepthWriteMask != v) {
+						m_stateDescDepthStencil.DepthWriteMask = v;
+						m_flagUpdatedDepthStencilState = sl_true;
+					}
+#else
+					context->SetRenderState(D3DRS_ZWRITEENABLE, flagEnableDepthWrite ? TRUE : FALSE);
+#endif
 				}
 
 				void _setDepthFunction(RenderFunctionOperation op) override
 				{
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return;
+					}
+#if D3D_VERSION_MAJOR >= 10
+					D3D_(COMPARISON_FUNC) v;
+					switch (op) {
+					case RenderFunctionOperation::Never:
+						v = D3D_(COMPARISON_NEVER);
+						break;
+					case RenderFunctionOperation::Always:
+						v = D3D_(COMPARISON_ALWAYS);
+						break;
+					case RenderFunctionOperation::Equal:
+						v = D3D_(COMPARISON_EQUAL);
+						break;
+					case RenderFunctionOperation::NotEqual:
+						v = D3D_(COMPARISON_NOT_EQUAL);
+						break;
+					case RenderFunctionOperation::Less:
+						v = D3D_(COMPARISON_LESS);
+						break;
+					case RenderFunctionOperation::LessEqual:
+						v = D3D_(COMPARISON_LESS_EQUAL);
+						break;
+					case RenderFunctionOperation::Greater:
+						v = D3D_(COMPARISON_GREATER);
+						break;
+					case RenderFunctionOperation::GreaterEqual:
+						v = D3D_(COMPARISON_GREATER_EQUAL);
+						break;
+					default:
+						return;
+					}
+					if (m_stateDescDepthStencil.DepthFunc != v) {
+						m_stateDescDepthStencil.DepthFunc = v;
+						m_flagUpdatedDepthStencilState = sl_true;
+					}
+#else
+					DWORD v;
+					switch (op) {
+					case RenderFunctionOperation::Never:
+						v = D3DCMP_NEVER;
+						break;
+					case RenderFunctionOperation::Always:
+						v = D3DCMP_ALWAYS;
+						break;
+					case RenderFunctionOperation::Equal:
+						v = D3DCMP_EQUAL;
+						break;
+					case RenderFunctionOperation::NotEqual:
+						v = D3DCMP_NOTEQUAL;
+						break;
+					case RenderFunctionOperation::Less:
+						v = D3DCMP_LESS;
+						break;
+					case RenderFunctionOperation::LessEqual:
+						v = D3DCMP_LESSEQUAL;
+						break;
+					case RenderFunctionOperation::Greater:
+						v = D3DCMP_GREATER;
+						break;
+					case RenderFunctionOperation::GreaterEqual:
+						v = D3DCMP_GREATEREQUAL;
+						break;
+					default:
+						return;
+					}
+					context->SetRenderState(D3DRS_ZFUNC, v);
+#endif
 				}
 
 				void _setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW) override
 				{
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return;
+					}
+#if D3D_VERSION_MAJOR >= 10
+					D3D_(CULL_MODE) v = flagEnableCull ? (flagCullCCW ? D3D_(CULL_BACK) : D3D_(CULL_FRONT)) : D3D_(CULL_NONE);
+					if (m_stateDescRasterizer.CullMode != v) {
+						m_stateDescRasterizer.CullMode = v;
+						m_flagUpdatedRasterizerState = sl_true;
+					}
+#else
+					context->SetRenderState(D3DRS_CULLMODE, flagEnableCull ? (flagCullCCW ? D3DCULL_CCW : D3DCULL_CW) : D3DCULL_NONE);
+#endif
 				}
 
 				void _setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param) override
 				{
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return;
+					}
+#if D3D_VERSION_MAJOR >= 10
+					BOOL v = flagEnableBlending ? TRUE : FALSE;
+#if D3D_VERSION_MAJOR >= 11
+					if (m_stateDescBlend.RenderTarget[0].BlendEnable != v) {
+						m_stateDescBlend.RenderTarget[0].BlendEnable = v;
+						m_flagUpdatedBlendState = sl_true;
+					}
+#else
+					if (m_stateDescBlend.BlendEnable[0] != v) {
+						m_stateDescBlend.BlendEnable[0] = v;
+						m_flagUpdatedBlendState = sl_true;
+					}
+#endif
+					
+					if (flagEnableBlending) {
+#if D3D_VERSION_MAJOR >= 11
+						_setBlendOperation(m_stateDescBlend.RenderTarget[0].BlendOp, param.operation, m_flagUpdatedBlendState);
+						_setBlendOperation(m_stateDescBlend.RenderTarget[0].BlendOpAlpha, param.operationAlpha, m_flagUpdatedBlendState);
+						_setBlendFactor(m_stateDescBlend.RenderTarget[0].SrcBlend, param.blendSrc, m_flagUpdatedBlendState);
+						_setBlendFactor(m_stateDescBlend.RenderTarget[0].DestBlend, param.blendDst, m_flagUpdatedBlendState);
+						_setBlendFactor(m_stateDescBlend.RenderTarget[0].SrcBlendAlpha, param.blendSrcAlpha, m_flagUpdatedBlendState);
+						_setBlendFactor(m_stateDescBlend.RenderTarget[0].DestBlendAlpha, param.blendDstAlpha, m_flagUpdatedBlendState);
+#else
+						_setBlendOperation(m_stateDescBlend.BlendOp, param.operation, m_flagUpdatedBlendState);
+						_setBlendOperation(m_stateDescBlend.BlendOpAlpha, param.operationAlpha, m_flagUpdatedBlendState);
+						_setBlendFactor(m_stateDescBlend.SrcBlend, param.blendSrc, m_flagUpdatedBlendState);
+						_setBlendFactor(m_stateDescBlend.DestBlend, param.blendDst, m_flagUpdatedBlendState);
+						_setBlendFactor(m_stateDescBlend.SrcBlendAlpha, param.blendSrcAlpha, m_flagUpdatedBlendState);
+						_setBlendFactor(m_stateDescBlend.DestBlendAlpha, param.blendDstAlpha, m_flagUpdatedBlendState);
+#endif
+						if (m_blendFactor[0] != param.blendConstant.x || m_blendFactor[1] != param.blendConstant.y || m_blendFactor[2] != param.blendConstant.z || m_blendFactor[3] != param.blendConstant.w) {
+							m_blendFactor[0] = param.blendConstant.x;
+							m_blendFactor[1] = param.blendConstant.y;
+							m_blendFactor[2] = param.blendConstant.z;
+							m_blendFactor[3] = param.blendConstant.w;
+							m_flagUpdatedBlendState = sl_true;
+						}
+					}
+#else
+					context->SetRenderState(D3DRS_ALPHABLENDENABLE, flagEnableBlending ? TRUE : FALSE);
+					if (flagEnableBlending) {
+						_setBlendOperation(context, D3DRS_BLENDOP, param.operation);
+						_setBlendOperation(context, D3DRS_BLENDOPALPHA, param.operationAlpha);
+						_setBlendFactor(context, D3DRS_SRCBLEND, param.blendSrc);
+						_setBlendFactor(context, D3DRS_DESTBLEND, param.blendDst);
+						_setBlendFactor(context, D3DRS_SRCBLENDALPHA, param.blendSrcAlpha);
+						_setBlendFactor(context, D3DRS_DESTBLENDALPHA, param.blendDstAlpha);
+						Color f(param.blendConstant);
+						context->SetRenderState(D3DRS_BLENDFACTOR, D3DCOLOR_ARGB(f.a, f.r, f.g, f.b));
+					}
+#endif
 				}
 
 				sl_bool _beginProgram(RenderProgram* program, RenderProgramInstance* instance, RenderProgramState** ppState) override
@@ -1403,6 +1698,220 @@ namespace slib
 				void _setLineWidth(sl_real width) override
 				{
 				}
+
+#if D3D_VERSION_MAJOR >= 10
+				void _updateDepthStencilState()
+				{
+					ID3DDevice* device = getDevice();
+					ID3DDeviceContext* context = getContext();
+					if (m_flagUpdatedDepthStencilState || m_flagUpdatedDepthStencilStateStencilRef) {
+						if (m_flagUpdatedDepthStencilState) {
+							m_flagUpdatedDepthStencilState = sl_false;
+							m_flagUpdatedDepthStencilStateStencilRef = sl_false;
+							ID3DDepthStencilState* state = sl_null;
+							device->CreateDepthStencilState(&m_stateDescDepthStencil, &state);
+							if (state) {
+								context->OMSetDepthStencilState(state, m_stencilRef);
+								ID3DDepthStencilState* stateOld = m_stateDepthStencil;
+								m_stateDepthStencil = state;
+								if (stateOld) {
+									stateOld->Release();
+								}
+							}
+						} else {
+							m_flagUpdatedDepthStencilStateStencilRef = sl_false;
+							context->OMSetDepthStencilState(m_stateDepthStencil, m_stencilRef);
+						}
+					}
+				}
+
+				void _updateRasterizerState()
+				{
+					ID3DDevice* device = getDevice();
+					ID3DDeviceContext* context = getContext();
+					if (!m_flagUpdatedRasterizerState) {
+						return;
+					}
+					m_flagUpdatedRasterizerState = sl_false;
+					ID3DRasterizerState* state = sl_null;
+					device->CreateRasterizerState(&m_stateDescRasterizer, &state);
+					if (state) {
+						context->RSSetState(state);
+						ID3DRasterizerState* stateOld = m_stateRasterizer;
+						m_stateRasterizer = state;
+						if (stateOld) {
+							stateOld->Release();
+						}
+					}
+				}
+
+				void _updateBlendState()
+				{
+					ID3DDevice* device = getDevice();
+					ID3DDeviceContext* context = getContext();
+					if (m_flagUpdatedBlendState || m_flagUpdatedBlendStateBlendFactor) {
+						if (m_flagUpdatedBlendState) {
+							m_flagUpdatedBlendState = sl_false;
+							m_flagUpdatedBlendStateBlendFactor = sl_false;
+							ID3DBlendState* state = sl_null;
+							device->CreateBlendState(&m_stateDescBlend, &state);
+							if (state) {
+								context->OMSetBlendState(state, m_blendFactor, 0xffffffff);
+								ID3DBlendState* stateOld = m_stateBlend;
+								m_stateBlend = state;
+								if (stateOld) {
+									stateOld->Release();
+								}
+							}
+						} else {
+							m_flagUpdatedBlendStateBlendFactor = sl_false;
+							context->OMSetBlendState(m_stateBlend, m_blendFactor, 0xffffffff);
+						}
+					}
+				}
+
+				static void _setBlendOperation(D3D_(BLEND_OP)& _out, RenderBlendingOperation op, sl_bool& flagUpdate)
+				{
+					D3D_(BLEND_OP) v;
+					switch (op) {
+					case RenderBlendingOperation::Add:
+						v = D3D_(BLEND_OP_ADD);
+						break;
+					case RenderBlendingOperation::Subtract:
+						v = D3D_(BLEND_OP_SUBTRACT);
+						break;
+					case RenderBlendingOperation::ReverseSubtract:
+						v = D3D_(BLEND_OP_REV_SUBTRACT);
+						break;
+					default:
+						return;
+					}
+					if (_out != v) {
+						_out = v;
+						flagUpdate = sl_true;
+					}
+				}
+
+				static void _setBlendFactor(D3D_(BLEND)& _out, RenderBlendingFactor f, sl_bool& flagUpdate)
+				{
+					D3D_(BLEND) v;
+					switch (f) {
+					case RenderBlendingFactor::One:
+						v = D3D_(BLEND_ONE);
+						break;
+					case RenderBlendingFactor::Zero:
+						v = D3D_(BLEND_ZERO);
+						break;
+					case RenderBlendingFactor::SrcAlpha:
+						v = D3D_(BLEND_SRC_ALPHA);
+						break;
+					case RenderBlendingFactor::OneMinusSrcAlpha:
+						v = D3D_(BLEND_INV_SRC_ALPHA);
+						break;
+					case RenderBlendingFactor::DstAlpha:
+						v = D3D_(BLEND_DEST_ALPHA);
+						break;
+					case RenderBlendingFactor::OneMinusDstAlpha:
+						v = D3D_(BLEND_INV_DEST_ALPHA);
+						break;
+					case RenderBlendingFactor::SrcColor:
+						v = D3D_(BLEND_SRC_COLOR);
+						break;
+					case RenderBlendingFactor::OneMinusSrcColor:
+						v = D3D_(BLEND_INV_SRC_COLOR);
+						break;
+					case RenderBlendingFactor::DstColor:
+						v = D3D_(BLEND_DEST_COLOR);
+						break;
+					case RenderBlendingFactor::OneMinusDstColor:
+						v = D3D_(BLEND_INV_DEST_COLOR);
+						break;
+					case RenderBlendingFactor::SrcAlphaSaturate:
+						v = D3D_(BLEND_SRC_ALPHA_SAT);
+						break;
+					case RenderBlendingFactor::Constant:
+						v = D3D_(BLEND_BLEND_FACTOR);
+						break;
+					case RenderBlendingFactor::OneMinusConstant:
+						v = D3D_(BLEND_INV_BLEND_FACTOR);
+						break;
+					default:
+						return;
+					}
+					if (_out != v) {
+						_out = v;
+						flagUpdate = sl_true;
+					}
+				}
+#else
+				static void _setBlendOperation(ID3DDeviceContext* context, D3DRENDERSTATETYPE state, RenderBlendingOperation op)
+				{
+					DWORD v;
+					switch (op) {
+					case RenderBlendingOperation::Add:
+						v = D3DBLENDOP_ADD;
+						break;
+					case RenderBlendingOperation::Subtract:
+						v = D3DBLENDOP_SUBTRACT;
+						break;
+					case RenderBlendingOperation::ReverseSubtract:
+						v = D3DBLENDOP_REVSUBTRACT;
+						break;
+					default:
+						return;
+					}
+					context->SetRenderState(state, v);
+				}
+
+				static void _setBlendFactor(ID3DDeviceContext* context, D3DRENDERSTATETYPE state, RenderBlendingFactor f)
+				{
+					DWORD v;
+					switch (f) {
+					case RenderBlendingFactor::One:
+						v = D3DBLEND_ONE;
+						break;
+					case RenderBlendingFactor::Zero:
+						v = D3DBLEND_ZERO;
+						break;
+					case RenderBlendingFactor::SrcAlpha:
+						v = D3DBLEND_SRCALPHA;
+						break;
+					case RenderBlendingFactor::OneMinusSrcAlpha:
+						v = D3DBLEND_INVSRCALPHA;
+						break;
+					case RenderBlendingFactor::DstAlpha:
+						v = D3DBLEND_DESTALPHA;
+						break;
+					case RenderBlendingFactor::OneMinusDstAlpha:
+						v = D3DBLEND_INVDESTALPHA;
+						break;
+					case RenderBlendingFactor::SrcColor:
+						v = D3DBLEND_SRCCOLOR;
+						break;
+					case RenderBlendingFactor::OneMinusSrcColor:
+						v = D3DBLEND_INVSRCCOLOR;
+						break;
+					case RenderBlendingFactor::DstColor:
+						v = D3DBLEND_DESTCOLOR;
+						break;
+					case RenderBlendingFactor::OneMinusDstColor:
+						v = D3DBLEND_INVDESTCOLOR;
+						break;
+					case RenderBlendingFactor::SrcAlphaSaturate:
+						v = D3DBLEND_SRCALPHASAT;
+						break;
+					case RenderBlendingFactor::Constant:
+						v = D3DBLEND_BLENDFACTOR;
+						break;
+					case RenderBlendingFactor::OneMinusConstant:
+						v = D3DBLEND_INVBLENDFACTOR;
+						break;
+					default:
+						return;
+					}
+					context->SetRenderState(state, v);
+				}
+#endif
 
 			};
 
