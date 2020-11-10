@@ -252,17 +252,16 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/graphics/yuv.cpp"
  "${SLIB_PATH}/src/slib/graphics/zxing.cpp"
 
- "${SLIB_PATH}/src/slib/render/index_buffer.cpp"
  "${SLIB_PATH}/src/slib/render/opengl_gl.cpp"
  "${SLIB_PATH}/src/slib/render/opengl_gles.cpp"
  "${SLIB_PATH}/src/slib/render/render_base.cpp"
+ "${SLIB_PATH}/src/slib/render/render_buffer.cpp"
  "${SLIB_PATH}/src/slib/render/render_canvas.cpp"
  "${SLIB_PATH}/src/slib/render/render_drawable.cpp"
  "${SLIB_PATH}/src/slib/render/render_engine.cpp"
  "${SLIB_PATH}/src/slib/render/render_program.cpp"
  "${SLIB_PATH}/src/slib/render/render_resource.cpp"
  "${SLIB_PATH}/src/slib/render/texture.cpp"
- "${SLIB_PATH}/src/slib/render/vertex_buffer.cpp"
  
  "${SLIB_PATH}/src/slib/media/audio_codec.cpp"
  "${SLIB_PATH}/src/slib/media/audio_data.cpp"
