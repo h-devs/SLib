@@ -24,16 +24,6 @@
 
 #include "slib/render/dl_windows_d3d.h"
 
-#define IMPLEMENT_GET_API \
-	void* getApi(const char* name) \
-	{ \
-		void* library = getLibrary(); \
-		if (library) { \
-			return DynamicLibrary::getFunctionAddress(library, name); \
-		} \
-		return sl_null; \
-	}
-
 
 namespace slib
 {
@@ -57,13 +47,33 @@ namespace slib
 		}
 	}
 
+#define IMPLEMENT_GET_LIBRARY(PREFIX) \
+	void* getLibrary() \
+	{ \
+		static void* library = sl_null; \
+		static sl_bool flagLoaded = sl_false; \
+		if (flagLoaded) { \
+			return library; \
+		} \
+		library = priv::d3d::GetLibrary(PREFIX); \
+		flagLoaded = sl_true; \
+		return library; \
+	} \
+
+#define IMPLEMENT_GET_API \
+	void* getApi(const char* name) \
+	{ \
+		void* library = getLibrary(); \
+		if (library) { \
+			return DynamicLibrary::getFunctionAddress(library, name); \
+		} \
+		return sl_null; \
+	}
+
 	namespace d3dx9
 	{
 
-		void* getLibrary()
-		{
-			return priv::d3d::GetLibrary("d3dx9_");
-		}
+		IMPLEMENT_GET_LIBRARY("d3dx9_")
 
 		IMPLEMENT_GET_API
 
@@ -72,10 +82,7 @@ namespace slib
 	namespace d3dx10
 	{
 
-		void* getLibrary()
-		{
-			return priv::d3d::GetLibrary("d3dx10_");
-		}
+		IMPLEMENT_GET_LIBRARY("d3dx10_")
 
 		IMPLEMENT_GET_API
 
@@ -84,10 +91,7 @@ namespace slib
 	namespace d3dx11
 	{
 
-		void* getLibrary()
-		{
-			return priv::d3d::GetLibrary("d3dx11_");
-		}
+		IMPLEMENT_GET_LIBRARY("d3dx11_")
 
 		IMPLEMENT_GET_API
 
@@ -96,14 +100,10 @@ namespace slib
 	namespace d3d_compiler
 	{
 
-		void* getLibrary()
-		{
-			return priv::d3d::GetLibrary("d3dcompiler_");
-		}
+		IMPLEMENT_GET_LIBRARY("d3dcompiler_")
 
 		IMPLEMENT_GET_API
 
 	}
-
 
 }

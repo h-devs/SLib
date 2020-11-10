@@ -78,7 +78,17 @@ namespace slib
 		return sl_null;
 	}
 
+	Memory RenderProgram::getHLSLCompiledVertexShader(RenderEngine* engine)
+	{
+		return sl_null;
+	}
+
 	String RenderProgram::getHLSLPixelShader(RenderEngine* engine)
+	{
+		return sl_null;
+	}
+
+	Memory RenderProgram::getHLSLCompiledPixelShader(RenderEngine* engine)
 	{
 		return sl_null;
 	}
@@ -95,23 +105,18 @@ namespace slib
 	{
 	}
 
-	RenderProgramStateItem::RenderProgramStateItem(const char* _name) : name(_name), kind(RenderProgramStateKind::Uniform)
+	RenderProgramStateItem::RenderProgramStateItem(const char* _name, sl_reg _uniformLocation, RenderShaderType _shaderType) : name(_name), kind(RenderProgramStateKind::Uniform)
 	{
+		uniform.shader = _shaderType;
+		uniform.location = _uniformLocation;
 	}
 
-	RenderProgramStateItem::RenderProgramStateItem(const char* _name, RenderInputType type, sl_uint32 offset, RenderInputSemanticName semanticName, sl_uint32 semanticIndex) : name(_name), kind(RenderProgramStateKind::Input), input({ type, offset, semanticName, semanticIndex })
+	RenderProgramStateItem::RenderProgramStateItem(const char* _name, RenderInputType type, sl_uint32 offset, RenderInputSemanticName semanticName, sl_uint32 semanticIndex) : name(_name), kind(RenderProgramStateKind::Input)
 	{
-	}
-
-
-	SLIB_DEFINE_ROOT_OBJECT(RenderProgramConstant)
-
-	RenderProgramConstant::RenderProgramConstant()
-	{
-	}
-
-	RenderProgramConstant::~RenderProgramConstant()
-	{
+		input.type = type;
+		input.offset = offset;
+		input.semanticName = semanticName;
+		input.semanticIndex = semanticIndex;
 	}
 
 
@@ -127,22 +132,14 @@ namespace slib
 
 
 	SLIB_DEFINE_ROOT_OBJECT(RenderProgramState)
-	
+
 	RenderProgramState::RenderProgramState()
 	{
 		programInstance = sl_null;
 	}
-	
+
 	RenderProgramState::~RenderProgramState()
 	{
-	}
-
-	Ref<RenderProgramConstant> RenderProgramState::getConstant(const char* name)
-	{
-		if (programInstance) {
-			return programInstance->getConstant(name);
-		}
-		return sl_null;
 	}
 
 	Ref<RenderInputLayout> RenderProgramState::createInputLayout(sl_uint32 stride, const RenderProgramStateItem* items, sl_uint32 nItems)
@@ -151,6 +148,102 @@ namespace slib
 			return programInstance->createInputLayout(stride, items, nItems);
 		}
 		return sl_null;
+	}
+
+	sl_bool RenderProgramState::getUniformLocation(const char* name, RenderUniformLocation* outLocation)
+	{
+		if (programInstance) {
+			return programInstance->getUniformLocation(name, outLocation);
+		}
+		return sl_false;
+	}
+
+	void RenderProgramState::setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 nItems)
+	{
+		if (programInstance) {
+			programInstance->setUniform(location, type, data, nItems);
+		}
+	}
+
+	void RenderProgramState::setFloatValue(const RenderUniformLocation& location, float value)
+	{
+		setUniform(location, RenderUniformType::Float, &value, 1);
+	}
+
+	void RenderProgramState::setFloatArray(const RenderUniformLocation& location, const float* arr, sl_uint32 n)
+	{
+		setUniform(location, RenderUniformType::Float, arr, n);
+	}
+
+	void RenderProgramState::setIntValue(const RenderUniformLocation& location, sl_int32 value)
+	{
+		setUniform(location, RenderUniformType::Int, &value, 1);
+	}
+
+	void RenderProgramState::setIntArray(const RenderUniformLocation& location, const sl_int32* arr, sl_uint32 n)
+	{
+		setUniform(location, RenderUniformType::Int, arr, n);
+	}
+
+	void RenderProgramState::setFloat2Value(const RenderUniformLocation& location, const Vector2& value)
+	{
+		setUniform(location, RenderUniformType::Float2, &value, 1);
+	}
+
+	void RenderProgramState::setFloat2Array(const RenderUniformLocation& location, const Vector2* arr, sl_uint32 n)
+	{
+		setUniform(location, RenderUniformType::Float2, arr, n);
+	}
+
+	void RenderProgramState::setFloat3Value(const RenderUniformLocation& location, const Vector3& value)
+	{
+		setUniform(location, RenderUniformType::Float3, &value, 1);
+	}
+
+	void RenderProgramState::setFloat3Array(const RenderUniformLocation& location, const Vector3* arr, sl_uint32 n)
+	{
+		setUniform(location, RenderUniformType::Float3, arr, n);
+	}
+
+	void RenderProgramState::setFloat4Value(const RenderUniformLocation& location, const Vector4& value)
+	{
+		setUniform(location, RenderUniformType::Float4, &value, 1);
+	}
+
+	void RenderProgramState::setFloat4Array(const RenderUniformLocation& location, const Vector4* arr, sl_uint32 n)
+	{
+		setUniform(location, RenderUniformType::Float4, arr, n);
+	}
+
+	void RenderProgramState::setMatrix3Value(const RenderUniformLocation& location, const Matrix3& value)
+	{
+		setUniform(location, RenderUniformType::Matrix3, &value, 1);
+	}
+
+	void RenderProgramState::setMatrix3Array(const RenderUniformLocation& location, const Matrix3* arr, sl_uint32 n)
+	{
+		setUniform(location, RenderUniformType::Matrix3, arr, n);
+	}
+
+	void RenderProgramState::setMatrix4Value(const RenderUniformLocation& location, const Matrix4& value)
+	{
+		setUniform(location, RenderUniformType::Matrix4, &value, 1);
+	}
+
+	void RenderProgramState::setMatrix4Array(const RenderUniformLocation& location, const Matrix4* arr, sl_uint32 n)
+	{
+		setUniform(location, RenderUniformType::Matrix4, arr, n);
+	}
+
+	void RenderProgramState::setSampler(const RenderUniformLocation& location, const Ref<Texture>& texture, sl_reg sampler)
+	{
+		if (programInstance) {
+			Ref<RenderEngine> engine = programInstance->getEngine();
+			if (engine.isNotNull()) {
+				engine->applyTexture(texture, sampler);
+				setUniform(location, RenderUniformType::Sampler, &sampler, 1);
+			}
+		}
 	}
 
 	namespace priv
@@ -176,8 +269,10 @@ namespace slib
 
 				while (item->kind != RenderProgramStateKind::None) {
 					if (item->kind == RenderProgramStateKind::Uniform) {
-						if (item->name) {
-							item->uniform = state->getConstant(item->name);
+						if (item->uniform.location == -1) {
+							if (item->name) {
+								state->getUniformLocation(item->name, &(item->uniform));
+							}
 						}
 					} else if (item->kind == RenderProgramStateKind::Input) {
 						if (indexFirstInput < 0) {

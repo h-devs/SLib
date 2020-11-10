@@ -1379,113 +1379,6 @@ namespace slib
 			return GL_BASE::isShaderAvailable();
 		}
 
-		class GLRenderProgramConstant : public RenderProgramConstant
-		{
-		public:
-			RenderEngine* engine;
-			sl_int32 location;
-
-		public:
-			static Ref<GLRenderProgramConstant> create(RenderEngine* engine, sl_uint32 program, const char* name)
-			{
-				sl_int32 location = GL::getUniformLocation(program, name);
-				if (location >= 0) {
-					Ref<GLRenderProgramConstant> ret = new GLRenderProgramConstant;
-					if (ret.isNotNull()) {
-						ret->engine = engine;
-						ret->location = location;
-						return ret;
-					}
-				}
-				return sl_null;
-			}
-
-		public:
-			void setFloatValue(float value) override
-			{
-				GL_BASE::setUniformFloatValue(location, value);
-			}
-
-			void setFloatArray(const float *arr, sl_uint32 n) override
-			{
-				GL_BASE::setUniformFloatArray(location, arr, n);
-			}
-
-			void setIntValue(sl_int32 value) override
-			{
-				GL_BASE::setUniformIntValue(location, value);
-			}
-
-			void setIntArray(const sl_int32 *arr, sl_uint32 n) override
-			{
-				GL_BASE::setUniformIntArray(location, arr, n);
-			}
-
-			void setFloat2Value(const Vector2& value) override
-			{
-				GL_BASE::setUniformFloat2Value(location, value);
-			}
-
-			void setFloat2Array(const Vector2* arr, sl_uint32 n) override
-			{
-				GL_BASE::setUniformFloat2Array(location, arr, n);
-			}
-
-			void setFloat3Value(const Vector3& value) override
-			{
-				GL_BASE::setUniformFloat3Value(location, value);
-			}
-
-			void setFloat3Array(const Vector3* arr, sl_uint32 n) override
-			{
-				GL_BASE::setUniformFloat3Array(location, arr, n);
-			}
-
-			void setFloat4Value(const Vector4& value) override
-			{
-				GL_BASE::setUniformFloat4Value(location, value);
-			}
-
-			void setFloat4Array(const Vector4* arr, sl_uint32 n) override
-			{
-				GL_BASE::setUniformFloat4Array(location, arr, n);
-			}
-
-			void setMatrix3Value(const Matrix3& value) override
-			{
-				GL_BASE::setUniformMatrix3Value(location, value);
-			}
-
-			void setMatrix3Array(const Matrix3* arr, sl_uint32 n) override
-			{
-				GL_BASE::setUniformMatrix3Array(location, arr, n);
-			}
-
-			void setMatrix4Value(const Matrix4& value) override
-			{
-				GL_BASE::setUniformMatrix4Value(location, value);
-			}
-
-			void setMatrix4Array(const Matrix4* arr, sl_uint32 n) override
-			{
-				GL_BASE::setUniformMatrix4Array(location, arr, n);
-			}
-
-			void setTexture(const Ref<Texture>& texture, sl_reg sampler) override
-			{
-				engine->applyTexture(texture, sampler);
-				GL_BASE::setUniformTextureSampler(location, (sl_uint32)sampler);
-			}
-
-			void setTextureArray(const Ref<Texture>* textures, const sl_reg* samplers, sl_uint32 n) override
-			{
-				for (sl_uint32 i = 0; i < n; i++) {
-					engine->applyTexture(textures[i], samplers[i]);
-				}
-				GL_BASE::setUniformTextureSamplerArray(location, samplers, n);
-			}
-
-		};
 
 		struct GLRenderInputLayoutItem
 		{
@@ -1669,15 +1562,6 @@ namespace slib
 			}
 
 		public:
-			Ref<RenderProgramConstant> getConstant(const char* name) override
-			{
-				Ref<RenderEngine> engine = getEngine();
-				if (engine.isNotNull()) {
-					return Ref<RenderProgramConstant>::from(GLRenderProgramConstant::create(engine.get(), program, name));
-				}
-				return sl_null;
-			}
-
 			Ref<RenderInputLayout> createInputLayout(sl_uint32 stride, const RenderProgramStateItem* items, sl_uint32 nItems) override
 			{
 				Ref<RenderEngine> engine = getEngine();
@@ -1686,7 +1570,85 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
+			sl_bool getUniformLocation(const char* name, RenderUniformLocation* outLocation) override
+			{
+				outLocation->location = GL::getUniformLocation(program, name);
+				if (outLocation->location >= 0) {
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			void setUniform(const RenderUniformLocation& l, RenderUniformType type, const void* data, sl_uint32 nItems) override
+			{
+				sl_int32 location = (sl_int32)(l.location);
+				switch (type) {
+				case RenderUniformType::Float:
+					if (nItems == 1) {
+						GL_BASE::setUniformFloatValue(location, *((float*)data));
+					} else {
+						GL_BASE::setUniformFloatArray(location, data, nItems);
+					}
+					break;
+				case RenderUniformType::Float2:
+					if (nItems == 1) {
+						GL_BASE::setUniformFloat2Value(location, *((Vector2*)data));
+					} else {
+						GL_BASE::setUniformFloat2Array(location, data, nItems);
+					}
+					break;
+				case RenderUniformType::Float3:
+					if (nItems == 1) {
+						GL_BASE::setUniformFloat3Value(location, *((Vector3*)data));
+					} else {
+						GL_BASE::setUniformFloat3Array(location, data, nItems);
+					}
+					break;
+				case RenderUniformType::Float4:
+					if (nItems == 1) {
+						GL_BASE::setUniformFloat4Value(location, *((Vector4*)data));
+					} else {
+						GL_BASE::setUniformFloat4Array(location, data, nItems);
+					}
+					break;
+				case RenderUniformType::Int:
+					if (nItems == 1) {
+						GL_BASE::setUniformIntValue(location, *((sl_int32*)data));
+					} else {
+						GL_BASE::setUniformIntArray(location, data, nItems);
+					}
+					break;
+				case RenderUniformType::Int2:
+					GL_BASE::setUniformInt2Array(location, data, nItems);
+					break;
+				case RenderUniformType::Int3:
+					GL_BASE::setUniformInt3Array(location, data, nItems);
+					break;
+				case RenderUniformType::Int4:
+					GL_BASE::setUniformInt4Array(location, data, nItems);
+					break;
+				case RenderUniformType::Matrix3:
+					if (nItems == 1) {
+						GL_BASE::setUniformMatrix3Value(location, *((Matrix3*)data));
+					} else {
+						GL_BASE::setUniformMatrix3Array(location, data, nItems);
+					}
+					break;
+				case RenderUniformType::Matrix4:
+					if (nItems == 1) {
+						GL_BASE::setUniformMatrix4Value(location, *((Matrix4*)data));
+					} else {
+						GL_BASE::setUniformMatrix4Array(location, data, nItems);
+					}
+					break;
+				case RenderUniformType::Sampler:
+					GL_BASE::setUniformTextureSampler(location, (sl_uint32)(*((sl_reg*)data)));
+				default:
+					break;
+				}
+			}
+
 		};
 		
 		Ref<RenderProgramInstance> _createProgramInstance(RenderProgram* program) override

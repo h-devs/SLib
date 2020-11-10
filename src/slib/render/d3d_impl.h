@@ -32,6 +32,14 @@
 #define m_context m_device
 #endif
 
+#if D3D_VERSION_MAJOR >= 10
+#define VERTEX_SHADER_TARGET "vs_4_0"
+#define PIXEL_SHADER_TARGET "ps_4_0"
+#else
+#define VERTEX_SHADER_TARGET "vs_3_0"
+#define PIXEL_SHADER_TARGET "ps_3_0"
+#endif
+
 namespace slib
 {
 	namespace priv
@@ -339,7 +347,7 @@ namespace slib
 			}
 #endif
 
-			static Memory CompileShader(const String& str, sl_bool flagVertexShader)
+			static Memory CompileShader(const String& str, const char* target)
 			{
 #if D3D_VERSION_MAJOR >= 10
 #if D3D_VERSION_MAJOR >= 11
@@ -352,9 +360,9 @@ namespace slib
 				}
 				ID3D10Blob* blob = sl_null;
 #if D3D_VERSION_MAJOR >= 11
-				func(str.getData(), (SIZE_T)(str.getLength()), NULL, NULL, NULL, "main", flagVertexShader ? "vs_4_0" : "ps_4_0", D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, &blob, NULL);
+				func(str.getData(), (SIZE_T)(str.getLength()), NULL, NULL, NULL, "main", target, D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, &blob, NULL);
 #else
-				func(str.getData(), (SIZE_T)(str.getLength()), NULL, NULL, NULL, "main", flagVertexShader ? "vs_4_0" : "ps_4_0", D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, NULL, &blob, NULL, NULL);
+				func(str.getData(), (SIZE_T)(str.getLength()), NULL, NULL, NULL, "main", target, D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, NULL, &blob, NULL, NULL);
 #endif
 				if (blob) {
 					Memory ret = Memory::create(blob->GetBufferPointer(), (sl_size)(blob->GetBufferSize()));
@@ -367,7 +375,7 @@ namespace slib
 					return sl_null;
 				}
 				ID3DXBuffer* shader = sl_null;
-				func(str.getData(), (UINT)(str.getLength()), NULL, NULL, "main", flagVertexShader ? "vs_3_0" : "ps_3_0", 0, &shader, NULL, NULL);
+				func(str.getData(), (UINT)(str.getLength()), NULL, NULL, "main", target, 0, &shader, NULL, NULL);
 				if (shader) {
 					Memory ret = Memory::create(shader->GetBufferPointer(), (sl_size)(shader->GetBufferSize()));
 					shader->Release();
@@ -404,13 +412,20 @@ namespace slib
 			public:
 				static Ref<RenderProgramInstanceImpl> create(ID3DDevice* device, RenderEngine* engine, RenderProgram* program)
 				{
-					Memory codeVertex = CompileShader(program->getHLSLVertexShader(engine), sl_true);
+					
+					Memory codeVertex = program->getHLSLCompiledVertexShader(engine);
 					if (codeVertex.isNull()) {
-						return sl_null;
+						codeVertex = CompileShader(program->getHLSLVertexShader(engine), VERTEX_SHADER_TARGET);
+						if (codeVertex.isNull()) {
+							return sl_null;
+						}
 					}
-					Memory codePixel = CompileShader(program->getHLSLPixelShader(engine), sl_false);
-					if (codePixel.isNull()) {
-						return sl_null;
+					Memory codePixel = program->getHLSLCompiledPixelShader(engine);
+					if (codePixel.isNotNull()) {
+						codePixel = CompileShader(program->getHLSLPixelShader(engine), PIXEL_SHADER_TARGET);
+						if (codePixel.isNull()) {
+							return sl_null;
+						}
 					}
 					ID3DVertexShader* vs = sl_null;
 #if D3D_VERSION_MAJOR >= 11
@@ -423,11 +438,11 @@ namespace slib
 					if (vs) {
 						ID3DPixelShader* ps = sl_null;
 #if D3D_VERSION_MAJOR >= 11
-						device->CreatePixelShader(codeVertex.getData(), (SIZE_T)(codeVertex.getSize()), NULL, &ps);
+						device->CreatePixelShader(codePixel.getData(), (SIZE_T)(codePixel.getSize()), NULL, &ps);
 #elif D3D_VERSION_MAJOR >= 10
-						device->CreatePixelShader(codeVertex.getData(), (SIZE_T)(codeVertex.getSize()), &ps);
+						device->CreatePixelShader(codePixel.getData(), (SIZE_T)(codePixel.getSize()), &ps);
 #else
-						device->CreatePixelShader((DWORD*)(codeVertex.getData()), &ps);
+						device->CreatePixelShader((DWORD*)(codePixel.getData()), &ps);
 #endif
 						if (ps) {
 							Ref<RenderProgramState> state = program->onCreate(engine);
@@ -452,14 +467,19 @@ namespace slib
 					return sl_null;
 				}
 
-				Ref<RenderProgramConstant> getConstant(const char* name) override
+				Ref<RenderInputLayout> createInputLayout(sl_uint32 stride, const RenderProgramStateItem* items, sl_uint32 nItems) override
 				{
 					return sl_null;
 				}
 
-				Ref<RenderInputLayout> createInputLayout(sl_uint32 stride, const RenderProgramStateItem* items, sl_uint32 nItems) override
+				sl_bool getUniformLocation(const char* name, RenderUniformLocation* outLocation) override
 				{
-					return sl_null;
+					return sl_false;
+				}
+
+				void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 nItems) override
+				{
+
 				}
 
 			};
