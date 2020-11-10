@@ -38,6 +38,7 @@ typedef IDirect3DVertexBuffer9 ID3DVertexBuffer;
 typedef IDirect3DIndexBuffer9 ID3DIndexBuffer;
 typedef IDirect3DVertexShader9 ID3DVertexShader;
 typedef IDirect3DPixelShader9 ID3DPixelShader;
+typedef IDirect3DVertexDeclaration9 ID3DInputLayout;
 
 #include "d3d_impl.h"
 

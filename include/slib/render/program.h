@@ -86,8 +86,7 @@ namespace slib
 		PositionT = 9,
 		Color = 10,
 		Fog = 11,
-		Depth = 12,
-		Sample = 13
+		Depth = 12
 	};
 
 	struct RenderInputDesc
@@ -96,6 +95,7 @@ namespace slib
 		sl_uint32 offset;
 		RenderInputSemanticName semanticName;
 		sl_uint32 semanticIndex;
+		sl_uint32 slot;
 	};
 
 	enum class RenderShaderType
@@ -128,7 +128,7 @@ namespace slib
 		RenderProgramStateItem(const char* name, sl_reg uniformLocation = -1, RenderShaderType type = RenderShaderType::Undefined);
 
 		// Input
-		RenderProgramStateItem(const char* name, RenderInputType type, sl_uint32 offset, RenderInputSemanticName semanticName = RenderInputSemanticName::Undefined, sl_uint32 semanticIndex = 0);
+		RenderProgramStateItem(const char* name, RenderInputType type, sl_uint32 offset, RenderInputSemanticName semanticName = RenderInputSemanticName::Undefined, sl_uint32 semanticIndex = 0, sl_uint32 slot = 0);
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RenderProgramStateItem)
 

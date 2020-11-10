@@ -205,7 +205,7 @@ namespace slib
 								pFactory->Release();
 							}
 						}
-						
+
 						if (pSwapChain) {
 
 							ID3DRenderTargetView* pRenderTarget = sl_null;
@@ -347,6 +347,251 @@ namespace slib
 			}
 #endif
 
+			class RenderInputLayoutImpl : public RenderInputLayout
+			{
+			public:
+				ID3DDevice* device;
+				ID3DDeviceContext* context;
+				ID3DInputLayout* layout;
+
+			public:
+				RenderInputLayoutImpl()
+				{
+					device = sl_null;
+					context = sl_null;
+					layout = sl_null;
+				}
+
+				~RenderInputLayoutImpl()
+				{
+					if (layout) {
+						layout->Release();
+					}
+				}
+
+			public:
+				static Ref<RenderInputLayoutImpl> create(ID3DDevice* device, ID3DDeviceContext* context, const Memory& codeVertexShader, const RenderProgramStateItem* items, sl_uint32 nItems)
+				{
+					ID3DInputLayout* layout = sl_null;
+#if D3D_VERSION_MAJOR >= 10
+					if (codeVertexShader.isNull()) {
+						return sl_null;
+					}
+					List<D3D_(INPUT_ELEMENT_DESC)> descs;
+					for (sl_uint32 i = 0; i < nItems; i++) {
+						const RenderProgramStateItem& item = items[i];
+						if (item.kind == RenderProgramStateKind::Input) {
+							D3D_(INPUT_ELEMENT_DESC) desc = { 0 };
+							switch (item.input.semanticName) {
+							case RenderInputSemanticName::Position:
+								desc.SemanticName = "POSITION";
+								break;
+							case RenderInputSemanticName::BlendWeight:
+								desc.SemanticName = "BLENDWEIGHT";
+								break;
+							case RenderInputSemanticName::BlendIndices:
+								desc.SemanticName = "BLENDINDICES";
+								break;
+							case RenderInputSemanticName::Normal:
+								desc.SemanticName = "NORMAL";
+								break;
+							case RenderInputSemanticName::PSize:
+								desc.SemanticName = "PSIZE";
+								break;
+							case RenderInputSemanticName::TexCoord:
+								desc.SemanticName = "TEXCOORD";
+								break;
+							case RenderInputSemanticName::Tangent:
+								desc.SemanticName = "TANGENT";
+								break;
+							case RenderInputSemanticName::BiNormal:
+								desc.SemanticName = "BINORMAL";
+								break;
+							case RenderInputSemanticName::TessFactor:
+								desc.SemanticName = "TESSFACTOR";
+								break;
+							case RenderInputSemanticName::PositionT:
+								desc.SemanticName = "POSITIONT";
+								break;
+							case RenderInputSemanticName::Color:
+								desc.SemanticName = "COLOR";
+								break;
+							case RenderInputSemanticName::Fog:
+								desc.SemanticName = "FOG";
+								break;
+							case RenderInputSemanticName::Depth:
+								desc.SemanticName = "DEPTH";
+								break;
+							default:
+								desc.SemanticName = NULL;
+								break;
+							}
+							if (desc.SemanticName) {
+								desc.SemanticIndex = (UINT)(item.input.semanticIndex);
+								switch (item.input.type) {
+								case RenderInputType::Float:
+									desc.Format = DXGI_FORMAT_R32_FLOAT;
+									break;
+								case RenderInputType::Float2:
+									desc.Format = DXGI_FORMAT_R32G32_FLOAT;
+									break;
+								case RenderInputType::Float3:
+									desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+									break;
+								case RenderInputType::Float4:
+									desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+									break;
+								case RenderInputType::UByte4:
+									desc.Format = DXGI_FORMAT_R8G8B8A8_UINT;
+									break;
+								case RenderInputType::Short2:
+									desc.Format = DXGI_FORMAT_R16G16_SINT;
+									break;
+								case RenderInputType::Short4:
+									desc.Format = DXGI_FORMAT_R16G16B16A16_SINT;
+									break;
+								default:
+									desc.Format = DXGI_FORMAT_UNKNOWN;
+									break;
+								}
+								if (desc.Format != DXGI_FORMAT_UNKNOWN) {
+									desc.InputSlot = (UINT)(item.input.slot);
+									desc.AlignedByteOffset = (UINT)(item.input.offset);
+									desc.InputSlotClass = D3D_(INPUT_PER_VERTEX_DATA);
+									desc.InstanceDataStepRate = 0;
+									descs.add_NoLock(desc);
+								}
+							}
+						}
+					}
+					if (descs.isEmpty()) {
+						return sl_null;
+					}
+					device->CreateInputLayout(descs.getData(), (UINT)(descs.getCount()), codeVertexShader.getData(), (SIZE_T)(codeVertexShader.getSize()), &layout);
+#else
+					List<D3DVERTEXELEMENT9> elements;
+					for (sl_uint32 i = 0; i < nItems; i++) {
+						const RenderProgramStateItem& item = items[i];
+						if (item.kind == RenderProgramStateKind::Input) {
+							D3DVERTEXELEMENT9 element = { 0 };
+							sl_bool flagValidUsage = sl_true;
+							switch (item.input.semanticName) {
+							case RenderInputSemanticName::Position:
+								element.Usage = D3DDECLUSAGE_POSITION;
+								break;
+							case RenderInputSemanticName::BlendWeight:
+								element.Usage = D3DDECLUSAGE_BLENDWEIGHT;
+								break;
+							case RenderInputSemanticName::BlendIndices:
+								element.Usage = D3DDECLUSAGE_BLENDINDICES;
+								break;
+							case RenderInputSemanticName::Normal:
+								element.Usage = D3DDECLUSAGE_NORMAL;
+								break;
+							case RenderInputSemanticName::PSize:
+								element.Usage = D3DDECLUSAGE_PSIZE;
+								break;
+							case RenderInputSemanticName::TexCoord:
+								element.Usage = D3DDECLUSAGE_TEXCOORD;
+								break;
+							case RenderInputSemanticName::Tangent:
+								element.Usage = D3DDECLUSAGE_TANGENT;
+								break;
+							case RenderInputSemanticName::BiNormal:
+								element.Usage = D3DDECLUSAGE_BINORMAL;
+								break;
+							case RenderInputSemanticName::TessFactor:
+								element.Usage = D3DDECLUSAGE_TESSFACTOR;
+								break;
+							case RenderInputSemanticName::PositionT:
+								element.Usage = D3DDECLUSAGE_POSITIONT;
+								break;
+							case RenderInputSemanticName::Color:
+								element.Usage = D3DDECLUSAGE_COLOR;
+								break;
+							case RenderInputSemanticName::Fog:
+								element.Usage = D3DDECLUSAGE_FOG;
+								break;
+							case RenderInputSemanticName::Depth:
+								element.Usage = D3DDECLUSAGE_DEPTH;
+								break;
+							default:
+								flagValidUsage = sl_false;
+								break;
+							}
+							if (flagValidUsage) {
+								element.UsageIndex = (BYTE)(element.UsageIndex);
+								switch (item.input.type) {
+								case RenderInputType::Float:
+									element.Type = D3DDECLTYPE_FLOAT1;
+									break;
+								case RenderInputType::Float2:
+									element.Type = D3DDECLTYPE_FLOAT2;
+									break;
+								case RenderInputType::Float3:
+									element.Type = D3DDECLTYPE_FLOAT3;
+									break;
+								case RenderInputType::Float4:
+									element.Type = D3DDECLTYPE_FLOAT4;
+									break;
+								case RenderInputType::UByte4:
+									element.Type = D3DDECLTYPE_UBYTE4;
+									break;
+								case RenderInputType::Short2:
+									element.Type = D3DDECLTYPE_SHORT2;
+									break;
+								case RenderInputType::Short4:
+									element.Type = D3DDECLTYPE_SHORT4;
+									break;
+								default:
+									element.Type = D3DDECLTYPE_UNUSED;
+									break;
+								}
+								if (element.Type != D3DDECLTYPE_UNUSED) {
+									element.Method = D3DDECLMETHOD_DEFAULT;
+									element.Offset = (WORD)(item.input.offset);
+									element.Stream = (WORD)(item.input.slot);
+									elements.add_NoLock(element);
+								}
+							}
+						}
+					}
+					if (elements.isEmpty()) {
+						return sl_null;
+					}
+					D3DVERTEXELEMENT9 element = D3DDECL_END();
+					elements.add_NoLock(element);
+					device->CreateVertexDeclaration(elements.getData(), &layout);
+#endif
+					if (!layout) {
+						return sl_null;
+					}
+					Ref<RenderInputLayoutImpl> ret = new RenderInputLayoutImpl;
+					if (ret.isNotNull()) {
+						ret->device = device;
+						ret->context = context;
+						ret->layout = layout;
+						return ret;
+					}
+					return sl_null;
+				}
+
+			public:
+				void load() override
+				{
+#if D3D_VERSION_MAJOR >= 10
+					context->IASetInputLayout(layout);
+#else
+					device->SetVertexDeclaration(layout);
+#endif
+				}
+
+				void unload() override
+				{
+				}
+
+			};
+
 			static Memory CompileShader(const String& str, const char* target)
 			{
 #if D3D_VERSION_MAJOR >= 10
@@ -388,13 +633,23 @@ namespace slib
 			class RenderProgramInstanceImpl : public RenderProgramInstance
 			{
 			public:
+				ID3DDevice* device;
+				ID3DDeviceContext* context;
+				
 				ID3DVertexShader* vertexShader;
 				ID3DPixelShader* pixelShader;
+
+#if D3D_VERSION_MAJOR >= 10
+				Memory codeVertexShader;
+#endif
+
 				Ref<RenderProgramState> state;
 
 			public:
 				RenderProgramInstanceImpl()
 				{
+					device = sl_null;
+					context = sl_null;
 					vertexShader = sl_null;
 					pixelShader = sl_null;
 				}
@@ -410,7 +665,7 @@ namespace slib
 				}
 
 			public:
-				static Ref<RenderProgramInstanceImpl> create(ID3DDevice* device, RenderEngine* engine, RenderProgram* program)
+				static Ref<RenderProgramInstanceImpl> create(ID3DDevice* device, ID3DDeviceContext* context, RenderEngine* engine, RenderProgram* program)
 				{
 					
 					Memory codeVertex = program->getHLSLCompiledVertexShader(engine);
@@ -449,11 +704,16 @@ namespace slib
 							if (state.isNotNull()) {
 								Ref<RenderProgramInstanceImpl> ret = new RenderProgramInstanceImpl();
 								if (ret.isNotNull()) {
+									ret->device = device;
+									ret->context = context;
 									ret->vertexShader = vs;
 									ret->pixelShader = ps;
 									state->programInstance = ret.get();
 									if (program->onInit(engine, state.get())) {
 										ret->state = state;
+#if D3D_VERSION_MAJOR >= 10
+										ret->codeVertexShader = codeVertex;
+#endif
 										ret->link(engine, program);
 										return ret;
 									}
@@ -469,7 +729,11 @@ namespace slib
 
 				Ref<RenderInputLayout> createInputLayout(sl_uint32 stride, const RenderProgramStateItem* items, sl_uint32 nItems) override
 				{
-					return sl_null;
+#if D3D_VERSION_MAJOR >= 10
+					return Ref<RenderInputLayout>::from(RenderInputLayoutImpl::create(device, context, codeVertexShader, items, nItems));
+#else
+					return Ref<RenderInputLayout>::from(RenderInputLayoutImpl::create(device, context, sl_null, items, nItems));
+#endif
 				}
 
 				sl_bool getUniformLocation(const char* name, RenderUniformLocation* outLocation) override
@@ -479,8 +743,81 @@ namespace slib
 
 				void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 nItems) override
 				{
-
+#if D3D_VERSION_MAJOR < 10
+					switch (type) {
+					case RenderUniformType::Float:
+						break;
+					case RenderUniformType::Float2:
+						type = RenderUniformType::Float;
+						nItems *= 2;
+						break;
+					case RenderUniformType::Float3:
+						type = RenderUniformType::Float;
+						nItems *= 3;
+						break;
+					case RenderUniformType::Float4:
+						type = RenderUniformType::Float;
+						nItems *= 4;
+						break;
+					case RenderUniformType::Matrix3:
+						type = RenderUniformType::Float;
+						nItems *= 9;
+						break;
+					case RenderUniformType::Matrix4:
+						type = RenderUniformType::Float;
+						nItems *= 16;
+						break;
+					case RenderUniformType::Int:
+						break;
+					case RenderUniformType::Int2:
+						type = RenderUniformType::Int;
+						nItems *= 2;
+						break;
+					case RenderUniformType::Int3:
+						type = RenderUniformType::Int;
+						nItems *= 3;
+						break;
+					case RenderUniformType::Int4:
+						type = RenderUniformType::Int;
+						nItems *= 4;
+						break;
+					case RenderUniformType::Sampler:
+						type = RenderUniformType::Int;
+						break;
+					}
+					sl_uint n4 = nItems >> 2;
+					if (n4) {
+						_setUniform(device, location, type, data, n4);
+					}
+					nItems = nItems & 3;
+					if (nItems) {
+						sl_uint8 t[16] = { 0 };
+						Base::copyMemory(t, data, nItems << 2);
+						RenderUniformLocation l = location;
+						l.location += n4;
+						_setUniform(device, l, type, t, 1);
+					}
+#endif
 				}
+
+#if D3D_VERSION_MAJOR < 10
+				static void _setUniform(ID3DDevice* dev, const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 countVector4)
+				{
+					if (location.shader == RenderShaderType::Vertex) {
+						if (type == RenderUniformType::Float) {
+							dev->SetVertexShaderConstantF((UINT)location.location, (float*)data, (UINT)countVector4);
+						} else if (type == RenderUniformType::Int) {
+							dev->SetVertexShaderConstantI((UINT)location.location, (int*)data, (UINT)countVector4);
+						}
+					} else if (location.shader == RenderShaderType::Pixel) {
+						if (type == RenderUniformType::Float) {
+							dev->SetPixelShaderConstantF((UINT)location.location, (float*)data, (UINT)countVector4);
+						} else if (type == RenderUniformType::Int) {
+							dev->SetPixelShaderConstantI((UINT)location.location, (int*)data, (UINT)countVector4);
+						}
+					}
+				}
+#endif
 
 			};
 

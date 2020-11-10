@@ -41,6 +41,7 @@ typedef ID3D11Buffer ID3DIndexBuffer;
 typedef ID3D11Buffer ID3DVertexBuffer;
 typedef ID3D11VertexShader ID3DVertexShader;
 typedef ID3D11PixelShader ID3DPixelShader;
+typedef ID3D11InputLayout ID3DInputLayout;
 
 #include "d3d_impl.h"
 

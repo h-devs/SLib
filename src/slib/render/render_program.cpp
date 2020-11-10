@@ -111,12 +111,13 @@ namespace slib
 		uniform.location = _uniformLocation;
 	}
 
-	RenderProgramStateItem::RenderProgramStateItem(const char* _name, RenderInputType type, sl_uint32 offset, RenderInputSemanticName semanticName, sl_uint32 semanticIndex) : name(_name), kind(RenderProgramStateKind::Input)
+	RenderProgramStateItem::RenderProgramStateItem(const char* _name, RenderInputType type, sl_uint32 offset, RenderInputSemanticName semanticName, sl_uint32 semanticIndex, sl_uint32 slot) : name(_name), kind(RenderProgramStateKind::Input)
 	{
 		input.type = type;
 		input.offset = offset;
 		input.semanticName = semanticName;
 		input.semanticIndex = semanticIndex;
+		input.slot = slot;
 	}
 
 
