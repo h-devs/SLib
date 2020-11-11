@@ -44,10 +44,25 @@ namespace slib
 				return sl_null;
 			}
 
+			static void* GetLibrary(const char* prefix1, const char* prefix2)
+			{
+				for (sl_uint32 i = 99; i > 0; i--) {
+					void* lib = DynamicLibrary::loadLibrary(prefix1 + String::fromUint32(i));
+					if (lib) {
+						return lib;
+					}
+					lib = DynamicLibrary::loadLibrary(prefix2 + String::fromUint32(i));
+					if (lib) {
+						return lib;
+					}
+				}
+				return sl_null;
+			}
+
 		}
 	}
 
-#define IMPLEMENT_GET_LIBRARY(PREFIX) \
+#define IMPLEMENT_GET_LIBRARY(...) \
 	void* getLibrary() \
 	{ \
 		static void* library = sl_null; \
@@ -55,7 +70,7 @@ namespace slib
 		if (flagLoaded) { \
 			return library; \
 		} \
-		library = priv::d3d::GetLibrary(PREFIX); \
+		library = priv::d3d::GetLibrary(__VA_ARGS__); \
 		flagLoaded = sl_true; \
 		return library; \
 	} \
@@ -73,7 +88,7 @@ namespace slib
 	namespace d3dx9
 	{
 
-		IMPLEMENT_GET_LIBRARY("d3dx9_")
+		IMPLEMENT_GET_LIBRARY("d3dx9_", "d3dx9d_")
 
 		IMPLEMENT_GET_API
 
@@ -82,7 +97,7 @@ namespace slib
 	namespace d3dx10
 	{
 
-		IMPLEMENT_GET_LIBRARY("d3dx10_")
+		IMPLEMENT_GET_LIBRARY("d3dx10_", "d3dx10d_")
 
 		IMPLEMENT_GET_API
 
@@ -91,7 +106,7 @@ namespace slib
 	namespace d3dx11
 	{
 
-		IMPLEMENT_GET_LIBRARY("d3dx11_")
+		IMPLEMENT_GET_LIBRARY("d3dx11_", "d3dx11d_")
 
 		IMPLEMENT_GET_API
 

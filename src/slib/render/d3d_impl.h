@@ -25,6 +25,7 @@
 #include "slib/core/thread.h"
 #include "slib/core/platform_windows.h"
 #include "slib/core/scoped.h"
+#include "slib/core/log.h"
 #include "slib/graphics/image.h"
 
 #include "slib/render/dl_windows_d3d.h"
@@ -319,9 +320,15 @@ namespace slib
 							engine->setViewport(0, 0, rect.right, rect.bottom);
 							dispatchFrame(engine);
 #if D3D_VERSION_MAJOR >= 10
-							m_pSwapChain->Present(0, 0);
+							IDXGISwapChain* swap = m_pSwapChain;
+							if (swap) {
+								swap->Present(0, 0);
+							}
 #else
-							m_device->Present(sl_null, sl_null, sl_null, sl_null);
+							ID3DDevice* device = m_device;
+							if (device) {
+								m_device->Present(sl_null, sl_null, sl_null, sl_null);
+							}
 #endif
 						}
 					}
@@ -574,6 +581,9 @@ namespace slib
 
 			static Memory CompileShader(const String& str, const char* target)
 			{
+				if (str.isEmpty()) {
+					return sl_null;
+				}
 #if D3D_VERSION_MAJOR >= 10
 #if D3D_VERSION_MAJOR >= 11
 				auto func = slib::d3d_compiler::getApi_D3DCompile();
@@ -584,10 +594,19 @@ namespace slib
 					return sl_null;
 				}
 				ID3D10Blob* blob = sl_null;
+#ifdef SLIB_DEBUG
+				ID3D10Blob* error = sl_null;
+#if D3D_VERSION_MAJOR >= 11
+				HRESULT hr = func(str.getData(), (SIZE_T)(str.getLength()), NULL, NULL, NULL, "main", target, D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, &blob, &error);
+#else
+				HRESULT hr = func(str.getData(), (SIZE_T)(str.getLength()), NULL, NULL, NULL, "main", target, D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, NULL, &blob, &error, NULL);
+#endif
+#else
 #if D3D_VERSION_MAJOR >= 11
 				func(str.getData(), (SIZE_T)(str.getLength()), NULL, NULL, NULL, "main", target, D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, &blob, NULL);
 #else
 				func(str.getData(), (SIZE_T)(str.getLength()), NULL, NULL, NULL, "main", target, D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, NULL, &blob, NULL, NULL);
+#endif
 #endif
 				if (blob) {
 					Memory ret = Memory::create(blob->GetBufferPointer(), (sl_size)(blob->GetBufferSize()));
@@ -600,11 +619,26 @@ namespace slib
 					return sl_null;
 				}
 				ID3DXBuffer* shader = sl_null;
+#ifdef SLIB_DEBUG
+				ID3DXBuffer* error = sl_null;
+				HRESULT hr = func(str.getData(), (UINT)(str.getLength()), NULL, NULL, "main", target, 0, &shader, &error, NULL);
+#else
 				func(str.getData(), (UINT)(str.getLength()), NULL, NULL, "main", target, 0, &shader, NULL, NULL);
+#endif
 				if (shader) {
 					Memory ret = Memory::create(shader->GetBufferPointer(), (sl_size)(shader->GetBufferSize()));
 					shader->Release();
 					return ret;
+				}
+#endif
+#ifdef SLIB_DEBUG
+				else {
+					if (error) {
+						SLIB_LOG_DEBUG("D3DCompileError", "hr=%d, %s", (sl_reg)hr, StringView((char*)(error->GetBufferPointer()), error->GetBufferSize()));
+						error->Release();
+					} else {
+						SLIB_LOG_DEBUG("D3DCompileError", "hr=%d", (sl_reg)hr);
+					}
 				}
 #endif
 				return sl_null;
@@ -656,7 +690,7 @@ namespace slib
 						}
 					}
 					Memory codePixel = program->getHLSLCompiledPixelShader(engine);
-					if (codePixel.isNotNull()) {
+					if (codePixel.isNull()) {
 						codePixel = CompileShader(program->getHLSLPixelShader(engine), PIXEL_SHADER_TARGET);
 						if (codePixel.isNull()) {
 							return sl_null;
@@ -721,8 +755,89 @@ namespace slib
 					return sl_false;
 				}
 
-				void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 nItems) override
+				void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* _data, sl_uint32 nItems) override
 				{
+					const void* data = _data;
+					float temp[16];
+					Memory memTemp;
+					if (type == RenderUniformType::Matrix3) {
+						type = RenderUniformType::Float;
+						if (nItems == 1) {
+							data = temp;
+							Matrix3& m = *((Matrix3*)_data);
+							temp[0] = m.m00;
+							temp[1] = m.m01;
+							temp[2] = m.m02;
+							temp[3] = 0;
+							temp[4] = m.m10;
+							temp[5] = m.m11;
+							temp[6] = m.m12;
+							temp[7] = 0;
+							temp[8] = m.m20;
+							temp[9] = m.m21;
+							temp[10] = m.m22;
+							temp[11] = 0;
+							nItems = 12;
+						} else {
+							sl_uint32 n = nItems;
+							nItems = n * 12;
+							memTemp = Memory::create(nItems << 2);
+							if (memTemp.isNull()) {
+								return;
+							}
+							float* t = (float*)(memTemp.getData());
+							Matrix3* m = (Matrix3*)_data;
+							for (sl_uint32 i = 0; i < n; i++) {
+								t[0] = m->m00;
+								t[1] = m->m01;
+								t[2] = m->m02;
+								t[3] = 0;
+								t[4] = m->m10;
+								t[5] = m->m11;
+								t[6] = m->m12;
+								t[7] = 0;
+								t[8] = m->m20;
+								t[9] = m->m21;
+								t[10] = m->m22;
+								t[11] = 0;
+								t += 12;
+								m++;
+							}
+							data = t;
+						}
+					} else if (type == RenderUniformType::Float3 || type == RenderUniformType::Int3) {
+						if (type == RenderUniformType::Float3) {
+							type = RenderUniformType::Float;
+						} else {
+							type = RenderUniformType::Int;
+						}
+						float* s = (float*)_data;
+						if (nItems == 1) {
+							data = temp;
+							temp[0] = s[0];
+							temp[1] = s[1];
+							temp[2] = s[2];
+							temp[3] = 0;
+							nItems = 4;
+						} else {
+							sl_uint32 n = nItems;
+							nItems = n * 4;
+							memTemp = Memory::create(nItems << 2);
+							if (memTemp.isNull()) {
+								return;
+							}
+							float* t = (float*)(memTemp.getData());
+							for (sl_uint32 i = 0; i < n; i++) {
+								t[0] = s[0];
+								t[1] = s[1];
+								t[2] = s[2];
+								t[3] = 0;
+								t += 4;
+								s += 3;
+							}
+							data = t;
+						}
+					}
 #if D3D_VERSION_MAJOR < 10
 					switch (type) {
 					case RenderUniformType::Float:
@@ -731,17 +846,9 @@ namespace slib
 						type = RenderUniformType::Float;
 						nItems *= 2;
 						break;
-					case RenderUniformType::Float3:
-						type = RenderUniformType::Float;
-						nItems *= 3;
-						break;
 					case RenderUniformType::Float4:
 						type = RenderUniformType::Float;
 						nItems *= 4;
-						break;
-					case RenderUniformType::Matrix3:
-						type = RenderUniformType::Float;
-						nItems *= 9;
 						break;
 					case RenderUniformType::Matrix4:
 						type = RenderUniformType::Float;
@@ -752,10 +859,6 @@ namespace slib
 					case RenderUniformType::Int2:
 						type = RenderUniformType::Int;
 						nItems *= 2;
-						break;
-					case RenderUniformType::Int3:
-						type = RenderUniformType::Int;
-						nItems *= 3;
 						break;
 					case RenderUniformType::Int4:
 						type = RenderUniformType::Int;
@@ -1683,6 +1786,7 @@ namespace slib
 						context->SetVertexShader(instance->vertexShader);
 						context->SetPixelShader(instance->pixelShader);
 #endif
+						m_currentProgramInstance = instance;
 					}
 					if (ppState) {
 						*ppState = instance->state.get();
