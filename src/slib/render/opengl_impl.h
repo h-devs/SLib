@@ -810,10 +810,10 @@ namespace slib
 						return GL_TRIANGLE_FAN;
 					case PrimitiveType::Line:
 						return GL_LINES;
-					case PrimitiveType::LineLoop:
-						return GL_LINE_LOOP;
 					case PrimitiveType::LineStrip:
 						return GL_LINE_STRIP;
+					case PrimitiveType::LineLoop:
+						return GL_LINE_LOOP;
 					case PrimitiveType::Point:
 						return GL_POINTS;
 				}
@@ -1290,6 +1290,9 @@ namespace slib
 		class GLRenderProgramInstance;
 		Ref<RenderProgram> m_currentProgram;
 		Ref<GLRenderProgramInstance> m_currentProgramInstance;
+
+		class GLRenderInputLayout;
+		Ref<GLRenderInputLayout> m_currentInputLayout;
 		
 		class GLVertexBufferInstance;
 		Ref<GLVertexBufferInstance> m_currentVertexBufferInstance;
@@ -1384,6 +1387,7 @@ namespace slib
 			GLenum type;
 			sl_uint32 offset;
 			sl_uint32 count;
+			sl_uint32 slot;
 		};
 
 		class GLRenderInputLayout : public RenderInputLayout
@@ -1393,15 +1397,19 @@ namespace slib
 			sl_uint32 m_stride;
 
 		public:
-			static Ref<GLRenderInputLayout> create(sl_uint32 program, sl_uint32 stride, const RenderProgramStateItem* inputs, sl_uint32 nItems)
+			static Ref<GLRenderInputLayout> create(sl_uint32 program, const RenderInputLayoutParam& param)
 			{
+				if (!(param.strides.getCount())) {
+					return sl_null;
+				}
 				List<GLRenderInputLayoutItem> items;
-				for (sl_uint32 i = 0; i < nItems; i++) {
-					const RenderProgramStateItem& input = inputs[i];
-					if (input.kind == RenderProgramStateKind::Input) {
+				ListElements<RenderInputLayoutItem> inputs(param.items);
+				for (sl_size i = 0; i < inputs.count; i++) {
+					RenderInputLayoutItem& input = inputs[i];
+					if (!(input.slot)) {
 						sl_bool flagValidType = sl_true;
 						GLRenderInputLayoutItem item;
-						switch (input.input.type) {
+						switch (input.type) {
 						case RenderInputType::Float:
 							item.type = GL_FLOAT;
 							item.count = 1;
@@ -1438,7 +1446,8 @@ namespace slib
 							sl_int32 location = GL_BASE::getAttributeLocation(program, input.name);
 							if (location >= 0) {
 								item.location = location;
-								item.offset = input.input.offset;
+								item.offset = input.offset;
+								item.slot = input.slot;
 								items.add_NoLock(item);
 							}
 						}
@@ -1447,7 +1456,7 @@ namespace slib
 				if (items.isNotEmpty()) {
 					Ref<GLRenderInputLayout> ret = new GLRenderInputLayout;
 					if (ret.isNotNull()) {
-						ret->m_stride = stride;
+						ret->m_stride = param.strides[0];
 						ret->m_items = items;
 						return ret;
 					}
@@ -1456,7 +1465,7 @@ namespace slib
 			}
 
 		public:
-			void load() override
+			void load()
 			{
 				ListElements<GLRenderInputLayoutItem> items(m_items);
 				for (sl_size i = 0; i < items.count; i++) {
@@ -1465,7 +1474,7 @@ namespace slib
 				}
 			}
 
-			void unload() override
+			void unload()
 			{
 				ListElements<GLRenderInputLayoutItem> items(m_items);
 				for (sl_size i = 0; i < items.count; i++) {
@@ -1524,8 +1533,8 @@ namespace slib
 										ret->vertexShader = vs;
 										ret->fragmentShader = fs;
 										ret->m_engine = engine;
-										state->programInstance = ret.get();
-										if (program->onInit(engine, state.get())) {
+										state->setProgramInstance(ret.get());
+										if (program->onInit(engine, ret.get(), state.get())) {
 											ret->state = state;
 											ret->link(engine, program);
 											return ret;
@@ -1560,11 +1569,11 @@ namespace slib
 			}
 
 		public:
-			Ref<RenderInputLayout> createInputLayout(sl_uint32 stride, const RenderProgramStateItem* items, sl_uint32 nItems) override
+			Ref<RenderInputLayout> createInputLayout(const RenderInputLayoutParam& param) override
 			{
 				Ref<RenderEngine> engine = getEngine();
 				if (engine.isNotNull()) {
-					return Ref<RenderInputLayout>::from(GLRenderInputLayout::create(program, stride, items, nItems));
+					return Ref<RenderInputLayout>::from(GLRenderInputLayout::create(program, param));
 				}
 				return sl_null;
 			}
@@ -1950,6 +1959,9 @@ namespace slib
 			}
 			
 			GLVertexBufferInstance* vb = static_cast<GLVertexBufferInstance*>(primitive->vertexBufferInstance.get());
+			if (!vb) {
+				return;
+			}
 			vb->doUpdate(primitive->vertexBuffer.get());
 			GLIndexBufferInstance* ib = sl_null;
 			if (primitive->indexBufferInstance.isNotNull()) {
@@ -1973,11 +1985,11 @@ namespace slib
 			
 			if (flagResetProgramState) {
 				if (m_currentProgramInstanceRendering.isNotNull()) {
-					m_currentProgramRendering->onPostRender(this, m_currentProgramInstanceRendering->state.get());
+					m_currentProgramRendering->onPostRender(this, m_currentProgramInstanceRendering.get(), m_currentProgramInstanceRendering->state.get());
 				}
 				m_currentProgramInstanceRendering = m_currentProgramInstance;
 				m_currentProgramRendering = m_currentProgram;
-				m_currentProgram->onPreRender(this, m_currentProgramInstance->state.get());
+				m_currentProgram->onPreRender(this, m_currentProgramInstance.get(), m_currentProgramInstance->state.get());
 			}
 			
 			if (ib) {
@@ -2082,6 +2094,22 @@ namespace slib
 					}
 				}
 			}
+		}
+
+		void _setInputLayout(RenderInputLayout* _layout) override
+		{
+			GLRenderInputLayout* layout = (GLRenderInputLayout*)_layout;
+			if (m_currentInputLayout == layout) {
+				return;
+			}
+			Ref<GLRenderInputLayout> old = Move(m_currentInputLayout);
+			if (old.isNotNull()) {
+				old->unload();
+			}
+			if (layout) {
+				layout->load();
+			}
+			m_currentInputLayout = layout;
 		}
 		
 		void _setLineWidth(sl_real width) override

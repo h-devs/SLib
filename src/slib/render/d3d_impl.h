@@ -24,6 +24,7 @@
 
 #include "slib/core/thread.h"
 #include "slib/core/platform_windows.h"
+#include "slib/core/scoped.h"
 #include "slib/graphics/image.h"
 
 #include "slib/render/dl_windows_d3d.h"
@@ -350,15 +351,12 @@ namespace slib
 			class RenderInputLayoutImpl : public RenderInputLayout
 			{
 			public:
-				ID3DDevice* device;
-				ID3DDeviceContext* context;
 				ID3DInputLayout* layout;
+				List<sl_uint32> strides;
 
 			public:
 				RenderInputLayoutImpl()
 				{
-					device = sl_null;
-					context = sl_null;
 					layout = sl_null;
 				}
 
@@ -370,97 +368,96 @@ namespace slib
 				}
 
 			public:
-				static Ref<RenderInputLayoutImpl> create(ID3DDevice* device, ID3DDeviceContext* context, const Memory& codeVertexShader, const RenderProgramStateItem* items, sl_uint32 nItems)
+				static Ref<RenderInputLayoutImpl> create(ID3DDevice* device, const Memory& codeVertexShader, const RenderInputLayoutParam& param)
 				{
+					ListElements<RenderInputLayoutItem> inputs(param.items);
 					ID3DInputLayout* layout = sl_null;
 #if D3D_VERSION_MAJOR >= 10
 					if (codeVertexShader.isNull()) {
 						return sl_null;
 					}
 					List<D3D_(INPUT_ELEMENT_DESC)> descs;
-					for (sl_uint32 i = 0; i < nItems; i++) {
-						const RenderProgramStateItem& item = items[i];
-						if (item.kind == RenderProgramStateKind::Input) {
-							D3D_(INPUT_ELEMENT_DESC) desc = { 0 };
-							switch (item.input.semanticName) {
-							case RenderInputSemanticName::Position:
-								desc.SemanticName = "POSITION";
+					for (sl_size i = 0; i < inputs.count; i++) {
+						RenderInputLayoutItem& item = inputs[i];
+						D3D_(INPUT_ELEMENT_DESC) desc = { 0 };
+						switch (item.semanticName) {
+						case RenderInputSemanticName::Position:
+							desc.SemanticName = "POSITION";
+							break;
+						case RenderInputSemanticName::BlendWeight:
+							desc.SemanticName = "BLENDWEIGHT";
+							break;
+						case RenderInputSemanticName::BlendIndices:
+							desc.SemanticName = "BLENDINDICES";
+							break;
+						case RenderInputSemanticName::Normal:
+							desc.SemanticName = "NORMAL";
+							break;
+						case RenderInputSemanticName::PSize:
+							desc.SemanticName = "PSIZE";
+							break;
+						case RenderInputSemanticName::TexCoord:
+							desc.SemanticName = "TEXCOORD";
+							break;
+						case RenderInputSemanticName::Tangent:
+							desc.SemanticName = "TANGENT";
+							break;
+						case RenderInputSemanticName::BiNormal:
+							desc.SemanticName = "BINORMAL";
+							break;
+						case RenderInputSemanticName::TessFactor:
+							desc.SemanticName = "TESSFACTOR";
+							break;
+						case RenderInputSemanticName::PositionT:
+							desc.SemanticName = "POSITIONT";
+							break;
+						case RenderInputSemanticName::Color:
+							desc.SemanticName = "COLOR";
+							break;
+						case RenderInputSemanticName::Fog:
+							desc.SemanticName = "FOG";
+							break;
+						case RenderInputSemanticName::Depth:
+							desc.SemanticName = "DEPTH";
+							break;
+						default:
+							desc.SemanticName = NULL;
+							break;
+						}
+						if (desc.SemanticName) {
+							desc.SemanticIndex = (UINT)(item.semanticIndex);
+							switch (item.type) {
+							case RenderInputType::Float:
+								desc.Format = DXGI_FORMAT_R32_FLOAT;
 								break;
-							case RenderInputSemanticName::BlendWeight:
-								desc.SemanticName = "BLENDWEIGHT";
+							case RenderInputType::Float2:
+								desc.Format = DXGI_FORMAT_R32G32_FLOAT;
 								break;
-							case RenderInputSemanticName::BlendIndices:
-								desc.SemanticName = "BLENDINDICES";
+							case RenderInputType::Float3:
+								desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
 								break;
-							case RenderInputSemanticName::Normal:
-								desc.SemanticName = "NORMAL";
+							case RenderInputType::Float4:
+								desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 								break;
-							case RenderInputSemanticName::PSize:
-								desc.SemanticName = "PSIZE";
+							case RenderInputType::UByte4:
+								desc.Format = DXGI_FORMAT_R8G8B8A8_UINT;
 								break;
-							case RenderInputSemanticName::TexCoord:
-								desc.SemanticName = "TEXCOORD";
+							case RenderInputType::Short2:
+								desc.Format = DXGI_FORMAT_R16G16_SINT;
 								break;
-							case RenderInputSemanticName::Tangent:
-								desc.SemanticName = "TANGENT";
-								break;
-							case RenderInputSemanticName::BiNormal:
-								desc.SemanticName = "BINORMAL";
-								break;
-							case RenderInputSemanticName::TessFactor:
-								desc.SemanticName = "TESSFACTOR";
-								break;
-							case RenderInputSemanticName::PositionT:
-								desc.SemanticName = "POSITIONT";
-								break;
-							case RenderInputSemanticName::Color:
-								desc.SemanticName = "COLOR";
-								break;
-							case RenderInputSemanticName::Fog:
-								desc.SemanticName = "FOG";
-								break;
-							case RenderInputSemanticName::Depth:
-								desc.SemanticName = "DEPTH";
+							case RenderInputType::Short4:
+								desc.Format = DXGI_FORMAT_R16G16B16A16_SINT;
 								break;
 							default:
-								desc.SemanticName = NULL;
+								desc.Format = DXGI_FORMAT_UNKNOWN;
 								break;
 							}
-							if (desc.SemanticName) {
-								desc.SemanticIndex = (UINT)(item.input.semanticIndex);
-								switch (item.input.type) {
-								case RenderInputType::Float:
-									desc.Format = DXGI_FORMAT_R32_FLOAT;
-									break;
-								case RenderInputType::Float2:
-									desc.Format = DXGI_FORMAT_R32G32_FLOAT;
-									break;
-								case RenderInputType::Float3:
-									desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-									break;
-								case RenderInputType::Float4:
-									desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-									break;
-								case RenderInputType::UByte4:
-									desc.Format = DXGI_FORMAT_R8G8B8A8_UINT;
-									break;
-								case RenderInputType::Short2:
-									desc.Format = DXGI_FORMAT_R16G16_SINT;
-									break;
-								case RenderInputType::Short4:
-									desc.Format = DXGI_FORMAT_R16G16B16A16_SINT;
-									break;
-								default:
-									desc.Format = DXGI_FORMAT_UNKNOWN;
-									break;
-								}
-								if (desc.Format != DXGI_FORMAT_UNKNOWN) {
-									desc.InputSlot = (UINT)(item.input.slot);
-									desc.AlignedByteOffset = (UINT)(item.input.offset);
-									desc.InputSlotClass = D3D_(INPUT_PER_VERTEX_DATA);
-									desc.InstanceDataStepRate = 0;
-									descs.add_NoLock(desc);
-								}
+							if (desc.Format != DXGI_FORMAT_UNKNOWN) {
+								desc.InputSlot = (UINT)(item.slot);
+								desc.AlignedByteOffset = (UINT)(item.offset);
+								desc.InputSlotClass = D3D_(INPUT_PER_VERTEX_DATA);
+								desc.InstanceDataStepRate = 0;
+								descs.add_NoLock(desc);
 							}
 						}
 					}
@@ -470,89 +467,87 @@ namespace slib
 					device->CreateInputLayout(descs.getData(), (UINT)(descs.getCount()), codeVertexShader.getData(), (SIZE_T)(codeVertexShader.getSize()), &layout);
 #else
 					List<D3DVERTEXELEMENT9> elements;
-					for (sl_uint32 i = 0; i < nItems; i++) {
-						const RenderProgramStateItem& item = items[i];
-						if (item.kind == RenderProgramStateKind::Input) {
-							D3DVERTEXELEMENT9 element = { 0 };
-							sl_bool flagValidUsage = sl_true;
-							switch (item.input.semanticName) {
-							case RenderInputSemanticName::Position:
-								element.Usage = D3DDECLUSAGE_POSITION;
+					for (sl_size i = 0; i < inputs.count; i++) {
+						RenderInputLayoutItem& item = inputs[i];
+						D3DVERTEXELEMENT9 element = { 0 };
+						sl_bool flagValidUsage = sl_true;
+						switch (item.semanticName) {
+						case RenderInputSemanticName::Position:
+							element.Usage = D3DDECLUSAGE_POSITION;
+							break;
+						case RenderInputSemanticName::BlendWeight:
+							element.Usage = D3DDECLUSAGE_BLENDWEIGHT;
+							break;
+						case RenderInputSemanticName::BlendIndices:
+							element.Usage = D3DDECLUSAGE_BLENDINDICES;
+							break;
+						case RenderInputSemanticName::Normal:
+							element.Usage = D3DDECLUSAGE_NORMAL;
+							break;
+						case RenderInputSemanticName::PSize:
+							element.Usage = D3DDECLUSAGE_PSIZE;
+							break;
+						case RenderInputSemanticName::TexCoord:
+							element.Usage = D3DDECLUSAGE_TEXCOORD;
+							break;
+						case RenderInputSemanticName::Tangent:
+							element.Usage = D3DDECLUSAGE_TANGENT;
+							break;
+						case RenderInputSemanticName::BiNormal:
+							element.Usage = D3DDECLUSAGE_BINORMAL;
+							break;
+						case RenderInputSemanticName::TessFactor:
+							element.Usage = D3DDECLUSAGE_TESSFACTOR;
+							break;
+						case RenderInputSemanticName::PositionT:
+							element.Usage = D3DDECLUSAGE_POSITIONT;
+							break;
+						case RenderInputSemanticName::Color:
+							element.Usage = D3DDECLUSAGE_COLOR;
+							break;
+						case RenderInputSemanticName::Fog:
+							element.Usage = D3DDECLUSAGE_FOG;
+							break;
+						case RenderInputSemanticName::Depth:
+							element.Usage = D3DDECLUSAGE_DEPTH;
+							break;
+						default:
+							flagValidUsage = sl_false;
+							break;
+						}
+						if (flagValidUsage) {
+							element.UsageIndex = (BYTE)(element.UsageIndex);
+							switch (item.type) {
+							case RenderInputType::Float:
+								element.Type = D3DDECLTYPE_FLOAT1;
 								break;
-							case RenderInputSemanticName::BlendWeight:
-								element.Usage = D3DDECLUSAGE_BLENDWEIGHT;
+							case RenderInputType::Float2:
+								element.Type = D3DDECLTYPE_FLOAT2;
 								break;
-							case RenderInputSemanticName::BlendIndices:
-								element.Usage = D3DDECLUSAGE_BLENDINDICES;
+							case RenderInputType::Float3:
+								element.Type = D3DDECLTYPE_FLOAT3;
 								break;
-							case RenderInputSemanticName::Normal:
-								element.Usage = D3DDECLUSAGE_NORMAL;
+							case RenderInputType::Float4:
+								element.Type = D3DDECLTYPE_FLOAT4;
 								break;
-							case RenderInputSemanticName::PSize:
-								element.Usage = D3DDECLUSAGE_PSIZE;
+							case RenderInputType::UByte4:
+								element.Type = D3DDECLTYPE_UBYTE4;
 								break;
-							case RenderInputSemanticName::TexCoord:
-								element.Usage = D3DDECLUSAGE_TEXCOORD;
+							case RenderInputType::Short2:
+								element.Type = D3DDECLTYPE_SHORT2;
 								break;
-							case RenderInputSemanticName::Tangent:
-								element.Usage = D3DDECLUSAGE_TANGENT;
-								break;
-							case RenderInputSemanticName::BiNormal:
-								element.Usage = D3DDECLUSAGE_BINORMAL;
-								break;
-							case RenderInputSemanticName::TessFactor:
-								element.Usage = D3DDECLUSAGE_TESSFACTOR;
-								break;
-							case RenderInputSemanticName::PositionT:
-								element.Usage = D3DDECLUSAGE_POSITIONT;
-								break;
-							case RenderInputSemanticName::Color:
-								element.Usage = D3DDECLUSAGE_COLOR;
-								break;
-							case RenderInputSemanticName::Fog:
-								element.Usage = D3DDECLUSAGE_FOG;
-								break;
-							case RenderInputSemanticName::Depth:
-								element.Usage = D3DDECLUSAGE_DEPTH;
+							case RenderInputType::Short4:
+								element.Type = D3DDECLTYPE_SHORT4;
 								break;
 							default:
-								flagValidUsage = sl_false;
+								element.Type = D3DDECLTYPE_UNUSED;
 								break;
 							}
-							if (flagValidUsage) {
-								element.UsageIndex = (BYTE)(element.UsageIndex);
-								switch (item.input.type) {
-								case RenderInputType::Float:
-									element.Type = D3DDECLTYPE_FLOAT1;
-									break;
-								case RenderInputType::Float2:
-									element.Type = D3DDECLTYPE_FLOAT2;
-									break;
-								case RenderInputType::Float3:
-									element.Type = D3DDECLTYPE_FLOAT3;
-									break;
-								case RenderInputType::Float4:
-									element.Type = D3DDECLTYPE_FLOAT4;
-									break;
-								case RenderInputType::UByte4:
-									element.Type = D3DDECLTYPE_UBYTE4;
-									break;
-								case RenderInputType::Short2:
-									element.Type = D3DDECLTYPE_SHORT2;
-									break;
-								case RenderInputType::Short4:
-									element.Type = D3DDECLTYPE_SHORT4;
-									break;
-								default:
-									element.Type = D3DDECLTYPE_UNUSED;
-									break;
-								}
-								if (element.Type != D3DDECLTYPE_UNUSED) {
-									element.Method = D3DDECLMETHOD_DEFAULT;
-									element.Offset = (WORD)(item.input.offset);
-									element.Stream = (WORD)(item.input.slot);
-									elements.add_NoLock(element);
-								}
+							if (element.Type != D3DDECLTYPE_UNUSED) {
+								element.Method = D3DDECLMETHOD_DEFAULT;
+								element.Offset = (WORD)(item.offset);
+								element.Stream = (WORD)(item.slot);
+								elements.add_NoLock(element);
 							}
 						}
 					}
@@ -568,26 +563,11 @@ namespace slib
 					}
 					Ref<RenderInputLayoutImpl> ret = new RenderInputLayoutImpl;
 					if (ret.isNotNull()) {
-						ret->device = device;
-						ret->context = context;
 						ret->layout = layout;
+						ret->strides = param.strides.toList();
 						return ret;
 					}
 					return sl_null;
-				}
-
-			public:
-				void load() override
-				{
-#if D3D_VERSION_MAJOR >= 10
-					context->IASetInputLayout(layout);
-#else
-					device->SetVertexDeclaration(layout);
-#endif
-				}
-
-				void unload() override
-				{
 				}
 
 			};
@@ -708,8 +688,8 @@ namespace slib
 									ret->context = context;
 									ret->vertexShader = vs;
 									ret->pixelShader = ps;
-									state->programInstance = ret.get();
-									if (program->onInit(engine, state.get())) {
+									state->setProgramInstance(ret.get());
+									if (program->onInit(engine, ret.get(), state.get())) {
 										ret->state = state;
 #if D3D_VERSION_MAJOR >= 10
 										ret->codeVertexShader = codeVertex;
@@ -727,12 +707,12 @@ namespace slib
 					return sl_null;
 				}
 
-				Ref<RenderInputLayout> createInputLayout(sl_uint32 stride, const RenderProgramStateItem* items, sl_uint32 nItems) override
+				Ref<RenderInputLayout> createInputLayout(const RenderInputLayoutParam& param) override
 				{
 #if D3D_VERSION_MAJOR >= 10
-					return Ref<RenderInputLayout>::from(RenderInputLayoutImpl::create(device, context, codeVertexShader, items, nItems));
+					return Ref<RenderInputLayout>::from(RenderInputLayoutImpl::create(device, codeVertexShader, param));
 #else
-					return Ref<RenderInputLayout>::from(RenderInputLayoutImpl::create(device, context, sl_null, items, nItems));
+					return Ref<RenderInputLayout>::from(RenderInputLayoutImpl::create(device, sl_null, param));
 #endif
 				}
 
@@ -1186,6 +1166,15 @@ namespace slib
 			public:
 				RendererImpl * m_renderer;
 
+				Ref<RenderProgram> m_currentProgram;
+				Ref<RenderProgramInstanceImpl> m_currentProgramInstance;
+				Ref<RenderInputLayoutImpl> m_currentInputLayout;
+				sl_uint32 m_currentVertexStride;
+				Ref<VertexBufferInstanceImpl> m_currentVertexBufferInstance;
+				Ref<IndexBufferInstanceImpl> m_currentIndexBufferInstance;
+				Ref<RenderProgram> m_currentProgramRendering;
+				Ref<RenderProgramInstanceImpl> m_currentProgramInstanceRendering;
+
 #if D3D_VERSION_MAJOR >= 10
 				ID3DDepthStencilState* m_stateDepthStencil;
 				D3D_(DEPTH_STENCIL_DESC) m_stateDescDepthStencil;
@@ -1208,6 +1197,8 @@ namespace slib
 				EngineImpl()
 				{
 					m_renderer = sl_null;
+
+					m_currentVertexStride = 0;
 
 #if D3D_VERSION_MAJOR >= 10
 					m_stateDepthStencil = sl_null;
@@ -1674,9 +1665,30 @@ namespace slib
 #endif
 				}
 
-				sl_bool _beginProgram(RenderProgram* program, RenderProgramInstance* instance, RenderProgramState** ppState) override
+				sl_bool _beginProgram(RenderProgram* program, RenderProgramInstance* _instance, RenderProgramState** ppState) override
 				{
-					return sl_false;
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return sl_false;
+					}
+					RenderProgramInstanceImpl* instance = (RenderProgramInstanceImpl*)_instance;
+					if (m_currentProgramInstance != instance) {
+#if D3D_VERSION_MAJOR >= 11
+						context->VSSetShader(instance->vertexShader, NULL, 0);
+						context->PSSetShader(instance->pixelShader, NULL, 0);
+#elif D3D_VERSION_MAJOR >= 10
+						context->VSSetShader(instance->vertexShader);
+						context->PSSetShader(instance->pixelShader);
+#else
+						context->SetVertexShader(instance->vertexShader);
+						context->SetPixelShader(instance->pixelShader);
+#endif
+					}
+					if (ppState) {
+						*ppState = instance->state.get();
+					}
+					m_currentProgram = program;
+					return sl_true;
 				}
 
 				void _endProgram() override
@@ -1685,14 +1697,177 @@ namespace slib
 
 				void _resetCurrentBuffers() override
 				{
+					m_currentProgram.setNull();
+					m_currentProgramInstance.setNull();
+					m_currentProgramRendering.setNull();
+					m_currentProgramInstanceRendering.setNull();
+					m_currentVertexBufferInstance.setNull();
+					m_currentIndexBufferInstance.setNull();
 				}
 
 				void _drawPrimitive(EnginePrimitive* primitive) override
 				{
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return;
+					}
+#if D3D_VERSION_MAJOR >= 10
+					switch (primitive->type) {
+					case PrimitiveType::Triangle:
+						context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_TRIANGLELIST));
+						break;
+					case PrimitiveType::TriangleStrip:
+						context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_TRIANGLESTRIP));
+						break;
+					case PrimitiveType::Line:
+						context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_LINELIST));
+						break;
+					case PrimitiveType::LineStrip:
+						context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_LINESTRIP));
+						break;
+					case PrimitiveType::Point:
+						context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_POINTLIST));
+						break;
+					default:
+						return;
+					}
+#else
+					D3DPRIMITIVETYPE type;
+					sl_int32 nPrimitives;
+					switch (primitive->type) {
+					case PrimitiveType::Triangle:
+						type = D3DPT_TRIANGLELIST;
+						nPrimitives = primitive->countElements / 3;
+						break;
+					case PrimitiveType::TriangleStrip:
+						type = D3DPT_TRIANGLESTRIP;
+						nPrimitives = primitive->countElements - 2;
+						break;
+					case PrimitiveType::TriangleFan:
+						type = D3DPT_TRIANGLEFAN;
+						nPrimitives = primitive->countElements - 2;
+						break;
+					case PrimitiveType::Line:
+						type = D3DPT_LINELIST;
+						nPrimitives = primitive->countElements / 2;
+						break;
+					case PrimitiveType::LineStrip:
+						type = D3DPT_LINESTRIP;
+						nPrimitives = primitive->countElements - 1;
+						break;
+					case PrimitiveType::Point:
+						type = D3DPT_POINTLIST;
+						nPrimitives = primitive->countElements;
+						break;
+					default:
+						return;
+					}
+					if (nPrimitives <= 0) {
+						return;
+					}
+#endif
+					if (m_currentProgram.isNull()) {
+						return;
+					}
+					if (m_currentProgramInstance.isNull()) {
+						return;
+					}
+
+					sl_bool flagResetProgramState = sl_false;
+					if (m_currentProgramInstanceRendering != m_currentProgramInstance) {
+						flagResetProgramState = sl_true;
+					}
+
+					if (flagResetProgramState) {
+						if (m_currentProgramInstanceRendering.isNotNull()) {
+							m_currentProgramRendering->onPostRender(this, m_currentProgramInstanceRendering.get(), m_currentProgramInstanceRendering->state.get());
+						}
+						m_currentProgramInstanceRendering = m_currentProgramInstance;
+						m_currentProgramRendering = m_currentProgram;
+						m_currentProgram->onPreRender(this, m_currentProgramInstance.get(), m_currentProgramInstance->state.get());
+					}
+
+					RenderInputLayoutImpl* layout = m_currentInputLayout.get();
+					if (!layout) {
+						return;
+					}
+					sl_uint32 nVerticesMin = 0;
+					VertexBufferInstanceImpl* vb = static_cast<VertexBufferInstanceImpl*>(primitive->vertexBufferInstance.get());
+					if (vb) {
+						vb->doUpdate(primitive->vertexBuffer.get());
+						UINT stride = (UINT)(layout->strides.getValueAt_NoLock(0));
+#if D3D_VERSION_MAJOR >= 10
+						UINT offset = 0;
+						context->IASetVertexBuffers(0, 1, &(vb->pVB), &stride, &offset);
+#else
+						context->SetStreamSource(0, vb->pVB, 0, stride);
+#endif
+					} else {
+						ListElements< Ref<VertexBufferInstance> > list(primitive->vertexBufferInstances);
+						if (!(list.count)) {
+							return;
+						}
+#if D3D_VERSION_MAJOR >= 10
+						SLIB_SCOPED_BUFFER(ID3DVertexBuffer*, 16, bufs, list.count)
+						SLIB_SCOPED_BUFFER(UINT, 16, strides, list.count)
+						SLIB_SCOPED_BUFFER(UINT, 16, offsets, list.count)
+#endif
+						for (sl_size i = 0; i < list.count; i++) {
+							VertexBufferInstanceImpl* vb = (VertexBufferInstanceImpl*)(list[i].get());
+							UINT stride = (UINT)(layout->strides.getValueAt_NoLock(i));
+#if D3D_VERSION_MAJOR >= 10
+							bufs[i] = vb->pVB;
+							offsets[i] = 0;
+							strides[i] = stride;
+#else
+							context->SetStreamSource((UINT)i, vb->pVB, 0, stride);
+#endif
+						}
+#if D3D_VERSION_MAJOR >= 10
+						context->IASetVertexBuffers(0, (UINT)(list.count), bufs, strides, offsets);
+#endif
+					}
+					if (primitive->indexBufferInstance.isNotNull()) {
+						IndexBufferInstanceImpl* ib = (IndexBufferInstanceImpl*)(primitive->indexBufferInstance.get());
+						ib->doUpdate(primitive->indexBuffer.get());
+#if D3D_VERSION_MAJOR >= 10
+						context->IASetIndexBuffer(ib->pIB, DXGI_FORMAT_R16_UINT, 0);
+						context->DrawIndexed((UINT)(primitive->countElements), 0, 0);
+#else
+						context->SetIndices(ib->pIB);
+						context->DrawIndexedPrimitive(type, 0, 0, (UINT)nVerticesMin, 0, (UINT)nPrimitives);
+#endif
+					} else {
+#if D3D_VERSION_MAJOR >= 10
+						context->Draw((UINT)(primitive->countElements), 0);
+#else
+						context->DrawPrimitive(type, 0, (UINT)nPrimitives);
+#endif
+					}
 				}
 
 				void _applyTexture(Texture* texture, TextureInstance* instance, sl_reg sampler) override
 				{
+				}
+
+				void _setInputLayout(RenderInputLayout* _layout) override
+				{
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return;
+					}
+					RenderInputLayoutImpl* layout = (RenderInputLayoutImpl*)_layout;
+					if (m_currentInputLayout == layout) {
+						return;
+					}
+					if (layout) {
+#if D3D_VERSION_MAJOR >= 10
+						context->IASetInputLayout(layout->layout);
+#else
+						context->SetVertexDeclaration(layout->layout);
+#endif
+					}
+					m_currentInputLayout = layout;
 				}
 
 				void _setLineWidth(sl_real width) override

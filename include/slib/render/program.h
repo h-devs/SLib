@@ -35,6 +35,7 @@ namespace slib
 
 	class Primitive;
 	class RenderEngine;
+	class RenderProgram;
 	class RenderProgramInstance;
 	class Texture;
 
@@ -134,6 +135,25 @@ namespace slib
 
 	};
 
+	struct RenderInputLayoutItem : RenderInputDesc
+	{
+		const char* name;
+	};
+
+	class SLIB_EXPORT RenderInputLayoutParam
+	{
+	public:
+		ListParam<sl_uint32> strides; // per slot
+		ListParam<RenderInputLayoutItem> items;
+
+	public:
+		RenderInputLayoutParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RenderInputLayoutParam)
+
+	};
+
+
 	class SLIB_EXPORT RenderInputLayout : public Referable
 	{
 		SLIB_DECLARE_OBJECT
@@ -143,20 +163,12 @@ namespace slib
 
 		~RenderInputLayout();
 
-	public:
-		virtual void load() = 0;
-
-		virtual void unload() = 0;
-
 	};
 
 
 	class SLIB_EXPORT RenderProgramState : public Referable
 	{
 		SLIB_DECLARE_OBJECT
-
-	public:
-		RenderProgramInstance* programInstance;
 
 	public:
 		RenderProgramState();
@@ -166,8 +178,14 @@ namespace slib
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(RenderProgramState)
 		
 	public:
-		Ref<RenderInputLayout> createInputLayout(sl_uint32 stride, const RenderProgramStateItem* items, sl_uint32 nItems);
-		
+		RenderProgramInstance* getProgramInstance();
+
+		void setProgramInstance(RenderProgramInstance* instance);
+
+		RenderInputLayout* getInputLayout();
+
+		void updateInputLayout(RenderProgram* program, sl_bool forceUpdate = sl_false);
+
 		sl_bool getUniformLocation(const char* name, RenderUniformLocation* outLocation);
 
 		void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 nItems);
@@ -202,6 +220,10 @@ namespace slib
 
 		void setSampler(const RenderUniformLocation& location, const Ref<Texture>& texture, sl_reg sampler = 0);
 
+	protected:
+		RenderProgramInstance* m_programInstance;
+		Ref<RenderInputLayout> m_inputLayout;
+
 	};
 
 
@@ -215,11 +237,14 @@ namespace slib
 		~RenderProgramInstance();
 		
 	public:
-		virtual Ref<RenderInputLayout> createInputLayout(sl_uint32 stride, const RenderProgramStateItem* items, sl_uint32 nItems) = 0;
+		virtual Ref<RenderInputLayout> createInputLayout(const RenderInputLayoutParam& param) = 0;
 
 		virtual sl_bool getUniformLocation(const char* name, RenderUniformLocation* outLocation) = 0;
 
 		virtual void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 nItems) = 0;
+
+	protected:
+		Ref<RenderInputLayout> m_inputLayout;
 
 	};
 
@@ -236,12 +261,14 @@ namespace slib
 	public:
 		virtual Ref<RenderProgramState> onCreate(RenderEngine* engine) = 0;
 		
-		virtual sl_bool onInit(RenderEngine* engine, RenderProgramState* state);
+		virtual sl_bool onInit(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state);
 		
-		virtual sl_bool onPreRender(RenderEngine* engine, RenderProgramState* state);
+		virtual sl_bool onPreRender(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state);
 		
-		virtual void onPostRender(RenderEngine* engine, RenderProgramState* state);
+		virtual void onPostRender(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state);
 
+		virtual sl_bool getInputLayoutParam(RenderProgramState* state, RenderInputLayoutParam& param);
+		
 
 		virtual String getGLSLVertexShader(RenderEngine* engine);
 		
@@ -257,7 +284,7 @@ namespace slib
 
 
 		Ref<RenderProgramInstance> getInstance(RenderEngine* engine);
-		
+
 	};
 
 
@@ -273,7 +300,7 @@ namespace slib
 	{ \
 	public: \
 		sl_uint32 vertexSize; \
-		Ref<RenderInputLayout> inputLayout; \
+		List<RenderInputLayoutItem> inputLayout; \
 		typedef VERTEX_TYPE VertexType; \
 		SLIB_INLINE TYPE() : vertexSize(sizeof(VertexType)) {}
 
@@ -370,11 +397,9 @@ namespace slib
 			class SLIB_EXPORT RenderProgramTemplate : public RenderProgram
 			{
 			public:
-				sl_bool onInit(RenderEngine* engine, RenderProgramState* state) override;
+				sl_bool onInit(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state) override;
 				
-				sl_bool onPreRender(RenderEngine* engine, RenderProgramState* state) override;
-				
-				void onPostRender(RenderEngine* engine, RenderProgramState* state) override;
+				sl_bool getInputLayoutParam(RenderProgramState* state, RenderInputLayoutParam& param) override;
 
 			};
 

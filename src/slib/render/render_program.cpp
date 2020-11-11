@@ -49,18 +49,25 @@ namespace slib
 	{
 	}
 
-	sl_bool RenderProgram::onInit(RenderEngine* engine, RenderProgramState* state)
+	sl_bool RenderProgram::onInit(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state)
 	{
 		return sl_true;
 	}
 
-	sl_bool RenderProgram::onPreRender(RenderEngine* engine, RenderProgramState* state)
+	sl_bool RenderProgram::onPreRender(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state)
 	{
+		state->updateInputLayout(this);
+		engine->setInputLayout(state->getInputLayout());
 		return sl_true;
 	}
 
-	void RenderProgram::onPostRender(RenderEngine* engine, RenderProgramState* state)
+	void RenderProgram::onPostRender(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state)
 	{
+	}
+
+	sl_bool RenderProgram::getInputLayoutParam(RenderProgramState* state, RenderInputLayoutParam& param)
+	{
+		return sl_false;
 	}
 
 	String RenderProgram::getGLSLVertexShader(RenderEngine* engine)
@@ -121,6 +128,12 @@ namespace slib
 	}
 
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RenderInputLayoutParam)
+
+	RenderInputLayoutParam::RenderInputLayoutParam()
+	{
+	}
+
 	SLIB_DEFINE_ROOT_OBJECT(RenderInputLayout)
 
 	RenderInputLayout::RenderInputLayout()
@@ -136,33 +149,59 @@ namespace slib
 
 	RenderProgramState::RenderProgramState()
 	{
-		programInstance = sl_null;
+		m_programInstance = sl_null;
 	}
 
 	RenderProgramState::~RenderProgramState()
 	{
 	}
 
-	Ref<RenderInputLayout> RenderProgramState::createInputLayout(sl_uint32 stride, const RenderProgramStateItem* items, sl_uint32 nItems)
+	RenderProgramInstance* RenderProgramState::getProgramInstance()
 	{
-		if (programInstance) {
-			return programInstance->createInputLayout(stride, items, nItems);
+		return m_programInstance;
+	}
+
+	void RenderProgramState::setProgramInstance(RenderProgramInstance* instance)
+	{
+		m_programInstance = instance;
+	}
+
+	RenderInputLayout* RenderProgramState::getInputLayout()
+	{
+		return m_inputLayout;
+	}
+
+	void RenderProgramState::updateInputLayout(RenderProgram* program, sl_bool forceUpdate)
+	{
+		RenderProgramInstance* instance = m_programInstance;
+		if (!instance) {
+			return;
 		}
-		return sl_null;
+		if (!forceUpdate) {
+			if (m_inputLayout.isNotNull()) {
+				return;
+			}
+		}
+		RenderInputLayoutParam param;
+		if (program->getInputLayoutParam(this, param)) {
+			m_inputLayout = instance->createInputLayout(param);
+		}
 	}
 
 	sl_bool RenderProgramState::getUniformLocation(const char* name, RenderUniformLocation* outLocation)
 	{
-		if (programInstance) {
-			return programInstance->getUniformLocation(name, outLocation);
+		RenderProgramInstance* instance = m_programInstance;
+		if (instance) {
+			return instance->getUniformLocation(name, outLocation);
 		}
 		return sl_false;
 	}
 
 	void RenderProgramState::setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 nItems)
 	{
-		if (programInstance) {
-			programInstance->setUniform(location, type, data, nItems);
+		RenderProgramInstance* instance = m_programInstance;
+		if (instance) {
+			instance->setUniform(location, type, data, nItems);
 		}
 	}
 
@@ -238,8 +277,9 @@ namespace slib
 
 	void RenderProgramState::setSampler(const RenderUniformLocation& location, const Ref<Texture>& texture, sl_reg sampler)
 	{
-		if (programInstance) {
-			Ref<RenderEngine> engine = programInstance->getEngine();
+		RenderProgramInstance* instance = m_programInstance;
+		if (instance) {
+			Ref<RenderEngine> engine = instance->getEngine();
 			if (engine.isNotNull()) {
 				engine->applyTexture(texture, sampler);
 				setUniform(location, RenderUniformType::Sampler, &sampler, 1);
@@ -256,18 +296,15 @@ namespace slib
 			{
 			public:
 				sl_uint32 vertexSize;
-				Ref<RenderInputLayout> inputLayout;
+				List<RenderInputLayoutItem> inputLayout;
 				RenderProgramStateItem items[1];
 			};
 
-			sl_bool RenderProgramTemplate::onInit(RenderEngine* engine, RenderProgramState* _state)
+			sl_bool RenderProgramTemplate::onInit(RenderEngine* engine, RenderProgramInstance*, RenderProgramState* _state)
 			{
 				RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
-
-				sl_int32 n = 0;
-				sl_int32 indexFirstInput = -1;
+				List<RenderInputLayoutItem> layouts;
 				RenderProgramStateItem* item = state->items;
-
 				while (item->kind != RenderProgramStateKind::None) {
 					if (item->kind == RenderProgramStateKind::Uniform) {
 						if (item->uniform.location == -1) {
@@ -276,38 +313,24 @@ namespace slib
 							}
 						}
 					} else if (item->kind == RenderProgramStateKind::Input) {
-						if (indexFirstInput < 0) {
-							indexFirstInput = n;
-						}
+						RenderInputLayoutItem layoutItem;
+						*((RenderInputDesc*)&layoutItem) = item->input;
+						layoutItem.name = item->name;
+						state->inputLayout.add_NoLock(layoutItem);
 					}
 					item++;
-					n++;
-				}
-
-				if (indexFirstInput >= 0 && n > indexFirstInput) {
-					state->inputLayout = state->createInputLayout(state->vertexSize, state->items + indexFirstInput, n - indexFirstInput);
-				}
-
-				return sl_true;
-			}
-			
-			sl_bool RenderProgramTemplate::onPreRender(RenderEngine* engine, RenderProgramState* _state)
-			{
-				RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
-				if (state->inputLayout.isNotNull()) {
-					state->inputLayout->load();
 				}
 				return sl_true;
 			}
-			
-			void RenderProgramTemplate::onPostRender(RenderEngine* _engine, RenderProgramState* _state)
+
+			sl_bool RenderProgramTemplate::getInputLayoutParam(RenderProgramState* _state, RenderInputLayoutParam& param)
 			{
 				RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
-				if (state->inputLayout.isNotNull()) {
-					state->inputLayout->unload();
-				}
+				param.strides.add(state->vertexSize);
+				param.items = state->inputLayout;
+				return sl_true;
 			}
-
+			
 		}
 	}
 

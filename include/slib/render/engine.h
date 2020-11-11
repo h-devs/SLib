@@ -46,8 +46,8 @@ namespace slib
 		TriangleStrip = 1,
 		TriangleFan = 2,
 		Line = 3,
-		LineLoop = 4,
-		LineStrip = 5,
+		LineStrip = 4,
+		LineLoop = 5,
 		Point = 6
 	};
 	
@@ -58,6 +58,7 @@ namespace slib
 		sl_uint32 countElements;
 		Ref<VertexBuffer> vertexBuffer;
 		Ref<IndexBuffer> indexBuffer;
+		ListParam< Ref<VertexBuffer> > vertexBuffers;
 		
 	public:
 		Primitive();
@@ -71,7 +72,8 @@ namespace slib
 	public:
 		Ref<VertexBufferInstance> vertexBufferInstance;
 		Ref<IndexBufferInstance> indexBufferInstance;
-		
+		ListParam< Ref<VertexBufferInstance> > vertexBufferInstances;
+
 	public:
 		EnginePrimitive(const Primitive& primitive);
 		
@@ -285,6 +287,8 @@ namespace slib
 		void drawPrimitive(sl_uint32 countElements, const Ref<VertexBuffer>& vb, PrimitiveType type = PrimitiveType::Triangle);
 		
 		void applyTexture(const Ref<Texture>& texture, sl_reg sampler);
+
+		void setInputLayout(RenderInputLayout* layout);
 		
 		Ref<TextureInstance> linkTexture(const Ref<Texture>& texture);
 		
@@ -424,7 +428,9 @@ namespace slib
 		virtual void _drawPrimitive(EnginePrimitive* primitive) = 0;
 		
 		virtual void _applyTexture(Texture* texture, TextureInstance* instance, sl_reg sampler) = 0;
-		
+
+		virtual void _setInputLayout(RenderInputLayout* layout) = 0;
+
 		virtual void _setLineWidth(sl_real width) = 0;
 		
 	protected:
