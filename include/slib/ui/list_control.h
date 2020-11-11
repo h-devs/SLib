@@ -99,7 +99,7 @@ namespace slib
 		
 		sl_int32 getSelectedRow();
 		
-		virtual void addRow(UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual sl_uint32 addRow(UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		virtual void insertRow(sl_uint32 row, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
