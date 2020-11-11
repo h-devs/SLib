@@ -36,8 +36,6 @@ namespace slib
 		namespace list_control
 		{
 
-			class ListControlHelper;
-
 			static gfloat TranslateAlignment(Alignment _align)
 			{
 				gfloat align = 0;
@@ -57,16 +55,6 @@ namespace slib
 			static void SetModelRows(GtkTreeModel* model, int rows)
 			{
 				g_object_set_data((GObject*)model, "rows", (gpointer)(sl_size)rows);
-			}
-
-			static ListControlHelper* GetModelView(GtkTreeModel* model)
-			{
-				return (ListControlHelper*)((sl_size)(g_object_get_data((GObject*)model, "view")));
-			}
-
-			static void SetModelView(GtkTreeModel* model, ListControl* view)
-			{
-				g_object_set_data((GObject*)model, "view", view);
 			}
 
 			class ListControlHelper : public ListControl
@@ -130,105 +118,154 @@ namespace slib
 
 				}
 
-				void setupModel(GtkTreeView* view)
-				{
-					GtkTreeModel* model = (GtkTreeModel*)(gtk_list_store_new(1, GTK_TYPE_STRING));
-
-					SetModelView(model, this);
-					SetModelRows(model, m_nRows);
-
-					GtkTreeModelIface *iface = GTK_TREE_MODEL_GET_IFACE(model);
-					iface->get_n_columns = list_store_get_n_columns;
-					iface->get_column_type = list_store_get_column_type;
-					iface->get_value = list_store_get_value;
-					iface->get_iter = list_store_get_iter;
-					iface->get_path = list_store_get_path;
-					iface->iter_next = list_store_iter_next;
-					iface->iter_children = list_store_iter_children;
-					iface->iter_has_child = list_store_iter_has_child;
-					iface->iter_parent = list_store_iter_parent;
-					iface->iter_n_children = list_store_iter_n_children;
-					iface->iter_nth_child = list_store_iter_nth_child;
-
-					gtk_tree_view_set_model(view, model);
-				}
-
-				static gboolean list_store_get_iter(GtkTreeModel* model, GtkTreeIter* iter, GtkTreePath* path)
-				{
-					int rows = GetModelRows(model);
-					if (rows) {
-						iter->stamp = gtk_tree_path_get_indices(path)[0];;
-						return 1;
-					} else {
-						return 0;
-					}
-				}
-
-				static gboolean list_store_iter_next(GtkTreeModel* model, GtkTreeIter* iter)
-				{
-					int rows = GetModelRows(model);
-					int index = iter->stamp;
-					if (index < rows - 1 && index >= 0) {
-						iter->stamp = index + 1;
-						return 1;
-					}else{
-						return 0;
-					}
-				}
-
-				static gboolean list_store_iter_has_child(GtkTreeModel* model, GtkTreeIter* iter)
-				{
-					return 0;
-				}
-
-				static gboolean list_store_iter_children(GtkTreeModel* model, GtkTreeIter* iter, GtkTreeIter* parent)
-				{
-					return 0;
-				}
-
-				static gint list_store_iter_n_children(GtkTreeModel* model, GtkTreeIter* iter)
-				{
-					return GetModelRows(model);
-				}
-
-				static gboolean list_store_iter_nth_child(GtkTreeModel* model, GtkTreeIter* iter, GtkTreeIter* parent, gint n)
-				{
-					return 0;
-				}
-
-				static gboolean list_store_iter_parent(GtkTreeModel* model, GtkTreeIter* iter, GtkTreeIter* child)
-				{
-					return 0;
-				}
-
-				static GtkTreePath* list_store_get_path(GtkTreeModel* model, GtkTreeIter* iter)
-				{
-					int rows = GetModelRows(model);
-					if (iter->stamp >= rows) {
-						return sl_null;
-					}
-					return gtk_tree_path_new_from_indices(iter->stamp, -1);
-				}
-
-				static void list_store_get_value(GtkTreeModel* model, GtkTreeIter* iter, gint column, GValue* value)
-				{
-					ListControlHelper* helper = GetModelView(model);
-					g_value_init(value, G_TYPE_STRING);
-					g_value_set_string(value,  (gchar*)helper->getItemText(iter->stamp, column).getData());
-				}
-
-				static gint list_store_get_n_columns(GtkTreeModel* model)
-				{
-					ListControlHelper* helper = GetModelView(model);
-					return helper->getColumnsCount();
-				}
-
-				static GType list_store_get_column_type(GtkTreeModel* model, gint  index)
-				{
-					return G_TYPE_STRING;
-				}
+				void setupModel(GtkTreeView* view);
 
 			};
+
+			static ListControlHelper* GetModelView(GtkTreeModel* model)
+			{
+				return (ListControlHelper*)((sl_size)(g_object_get_data((GObject*)model, "view")));
+			}
+
+			static void SetModelView(GtkTreeModel* model, ListControl* view)
+			{
+				g_object_set_data((GObject*)model, "view", view);
+			}
+
+			struct SlibListControlModel
+			{
+				GObject parent;
+			};
+
+			struct SlibListControlModelClass
+			{
+				GObjectClass parent_class;
+			};
+
+			static void slib_list_control_model_class_init(SlibListControlModelClass* cls)
+			{
+			}
+
+			static void slib_list_control_model_init(SlibListControlModel* obj)
+			{
+			}
+
+			static gboolean list_control_model_get_iter(GtkTreeModel* model, GtkTreeIter* iter, GtkTreePath* path)
+			{
+				int rows = GetModelRows(model);
+				if (rows) {
+					iter->stamp = gtk_tree_path_get_indices(path)[0];;
+					return 1;
+				} else {
+					return 0;
+				}
+			}
+
+			static gboolean list_control_model_iter_next(GtkTreeModel* model, GtkTreeIter* iter)
+			{
+				int rows = GetModelRows(model);
+				int index = iter->stamp;
+				if (index < rows - 1 && index >= 0) {
+					iter->stamp = index + 1;
+					return 1;
+				}else{
+					return 0;
+				}
+			}
+
+			static gboolean list_control_model_iter_has_child(GtkTreeModel* model, GtkTreeIter* iter)
+			{
+				return 0;
+			}
+
+			static gboolean list_control_model_iter_children(GtkTreeModel* model, GtkTreeIter* iter, GtkTreeIter* parent)
+			{
+				return 0;
+			}
+
+			static gint list_control_model_iter_n_children(GtkTreeModel* model, GtkTreeIter* iter)
+			{
+				return GetModelRows(model);
+			}
+
+			static gboolean list_control_model_iter_nth_child(GtkTreeModel* model, GtkTreeIter* iter, GtkTreeIter* parent, gint n)
+			{
+				return 0;
+			}
+
+			static gboolean list_control_model_iter_parent(GtkTreeModel* model, GtkTreeIter* iter, GtkTreeIter* child)
+			{
+				return 0;
+			}
+
+			static GtkTreePath* list_control_model_get_path(GtkTreeModel* model, GtkTreeIter* iter)
+			{
+				int rows = GetModelRows(model);
+				if (iter->stamp >= rows) {
+					return sl_null;
+				}
+				return gtk_tree_path_new_from_indices(iter->stamp, -1);
+			}
+
+			static void list_control_model_get_value(GtkTreeModel* model, GtkTreeIter* iter, gint column, GValue* value)
+			{
+				ListControlHelper* helper = GetModelView(model);
+				g_value_init(value, G_TYPE_STRING);
+				g_value_set_string(value, (gchar*)(helper->getItemText(iter->stamp, column).getData()));
+			}
+
+			static gint list_control_model_get_n_columns(GtkTreeModel* model)
+			{
+				ListControlHelper* helper = GetModelView(model);
+				return helper->getColumnsCount();
+			}
+
+			static GType list_control_model_get_column_type(GtkTreeModel* model, gint  index)
+			{
+				return G_TYPE_STRING;
+			}
+
+			static GtkTreeModelFlags list_control_model_get_flags (GtkTreeModel *tree_model)
+			{
+			  return (GtkTreeModelFlags)(GTK_TREE_MODEL_ITERS_PERSIST | GTK_TREE_MODEL_LIST_ONLY);
+			}
+
+			static void slib_list_control_model_tree_model_init(GtkTreeModelIface *iface)
+			{
+			  iface->get_flags = list_control_model_get_flags;
+			  iface->get_n_columns = list_control_model_get_n_columns;
+			  iface->get_column_type = list_control_model_get_column_type;
+			  iface->get_value = list_control_model_get_value;
+			  iface->get_iter = list_control_model_get_iter;
+			  iface->get_path = list_control_model_get_path;
+			  iface->iter_next = list_control_model_iter_next;
+			  iface->iter_children = list_control_model_iter_children;
+			  iface->iter_has_child = list_control_model_iter_has_child;
+			  iface->iter_parent = list_control_model_iter_parent;
+			  iface->iter_n_children = list_control_model_iter_n_children;
+			  iface->iter_nth_child = list_control_model_iter_nth_child;
+			}
+
+			G_DEFINE_TYPE_WITH_CODE(
+					SlibListControlModel,
+					slib_list_control_model,
+					G_TYPE_OBJECT,
+					G_IMPLEMENT_INTERFACE(GTK_TYPE_TREE_MODEL, slib_list_control_model_tree_model_init))
+
+			GtkTreeModel* list_control_model_new ()
+			{
+				SlibListControlModel *result;
+				result = (SlibListControlModel *)g_object_new(slib_list_control_model_get_type(), NULL);
+				return GTK_TREE_MODEL(result);
+			}
+
+			void ListControlHelper::setupModel(GtkTreeView* view)
+			{
+				GtkTreeModel* model = list_control_model_new();
+				SetModelView(model, this);
+				SetModelRows(model, m_nRows);
+				gtk_tree_view_set_model(view, model);
+			}
 
 			class ListControlInstance : public GTK_ViewInstance, public IListControlInstance
 			{
