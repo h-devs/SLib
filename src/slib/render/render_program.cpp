@@ -317,10 +317,8 @@ namespace slib
 				RenderProgramStateItem* item = state->items;
 				while (item->kind != RenderProgramStateKind::None) {
 					if (item->kind == RenderProgramStateKind::Uniform) {
-						if (item->uniform.location == -1) {
-							if (item->name) {
-								state->getUniformLocation(item->name, &(item->uniform));
-							}
+						if (item->name) {
+							state->getUniformLocation(item->name, &(item->uniform));
 						}
 					} else if (item->kind == RenderProgramStateKind::Input) {
 						RenderInputLayoutItem layoutItem;

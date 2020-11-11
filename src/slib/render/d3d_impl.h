@@ -1039,15 +1039,15 @@ namespace slib
 				{
 					if (location.shader == RenderShaderType::Vertex) {
 						if (type == RenderUniformType::Float) {
-							dev->SetVertexShaderConstantF((UINT)location.location, (float*)data, (UINT)countVector4);
+							dev->SetVertexShaderConstantF((UINT)(location.location), (float*)data, (UINT)countVector4);
 						} else if (type == RenderUniformType::Int) {
-							dev->SetVertexShaderConstantI((UINT)location.location, (int*)data, (UINT)countVector4);
+							dev->SetVertexShaderConstantI((UINT)(location.location), (int*)data, (UINT)countVector4);
 						}
 					} else if (location.shader == RenderShaderType::Pixel) {
 						if (type == RenderUniformType::Float) {
-							dev->SetPixelShaderConstantF((UINT)location.location, (float*)data, (UINT)countVector4);
+							dev->SetPixelShaderConstantF((UINT)(location.location), (float*)data, (UINT)countVector4);
 						} else if (type == RenderUniformType::Int) {
-							dev->SetPixelShaderConstantI((UINT)location.location, (int*)data, (UINT)countVector4);
+							dev->SetPixelShaderConstantI((UINT)(location.location), (int*)data, (UINT)countVector4);
 						}
 					}
 				}
@@ -1061,6 +1061,7 @@ namespace slib
 				ID3DDevice* device;
 				ID3DDeviceContext* context;
 				ID3DVertexBuffer* pVB;
+				sl_uint32 size;
 
 			public:
 				VertexBufferInstanceImpl()
@@ -1068,6 +1069,7 @@ namespace slib
 					device = sl_null;
 					context = sl_null;
 					pVB = sl_null;
+					size = 0;
 				}
 
 				~VertexBufferInstanceImpl()
@@ -1114,6 +1116,7 @@ namespace slib
 								ret->context = context;
 								ret->pVB = vb;
 								ret->link(engine, buffer);
+								ret->size = (sl_uint32)size;
 								return ret;
 							}
 #if D3D_VERSION_MAJOR < 10
@@ -2046,7 +2049,9 @@ namespace slib
 					if (!layout) {
 						return;
 					}
+#if D3D_VERSION_MAJOR < 10
 					sl_uint32 nVerticesMin = 0;
+#endif
 					VertexBufferInstanceImpl* vb = static_cast<VertexBufferInstanceImpl*>(primitive->vertexBufferInstance.get());
 					if (vb) {
 						vb->doUpdate(primitive->vertexBuffer.get());
@@ -2056,6 +2061,9 @@ namespace slib
 						context->IASetVertexBuffers(0, 1, &(vb->pVB), &stride, &offset);
 #else
 						context->SetStreamSource(0, vb->pVB, 0, stride);
+						if (stride) {
+							nVerticesMin = vb->size / stride;
+						}
 #endif
 					} else {
 						ListElements< Ref<VertexBufferInstance> > list(primitive->vertexBufferInstances);
@@ -2076,6 +2084,12 @@ namespace slib
 							strides[i] = stride;
 #else
 							context->SetStreamSource((UINT)i, vb->pVB, 0, stride);
+							if (stride) {
+								sl_uint32 nVertices = vb->size / stride;
+								if (!nVerticesMin || nVertices < nVerticesMin) {
+									nVerticesMin = nVertices;
+								}
+							}
 #endif
 						}
 #if D3D_VERSION_MAJOR >= 10
