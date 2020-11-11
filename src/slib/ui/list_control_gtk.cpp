@@ -227,23 +227,23 @@ namespace slib
 
 			static GtkTreeModelFlags list_control_model_get_flags (GtkTreeModel *tree_model)
 			{
-			  return (GtkTreeModelFlags)(GTK_TREE_MODEL_ITERS_PERSIST | GTK_TREE_MODEL_LIST_ONLY);
+				return (GtkTreeModelFlags)(GTK_TREE_MODEL_ITERS_PERSIST | GTK_TREE_MODEL_LIST_ONLY);
 			}
 
 			static void slib_list_control_model_tree_model_init(GtkTreeModelIface *iface)
 			{
-			  iface->get_flags = list_control_model_get_flags;
-			  iface->get_n_columns = list_control_model_get_n_columns;
-			  iface->get_column_type = list_control_model_get_column_type;
-			  iface->get_value = list_control_model_get_value;
-			  iface->get_iter = list_control_model_get_iter;
-			  iface->get_path = list_control_model_get_path;
-			  iface->iter_next = list_control_model_iter_next;
-			  iface->iter_children = list_control_model_iter_children;
-			  iface->iter_has_child = list_control_model_iter_has_child;
-			  iface->iter_parent = list_control_model_iter_parent;
-			  iface->iter_n_children = list_control_model_iter_n_children;
-			  iface->iter_nth_child = list_control_model_iter_nth_child;
+				iface->get_flags = list_control_model_get_flags;
+				iface->get_n_columns = list_control_model_get_n_columns;
+				iface->get_column_type = list_control_model_get_column_type;
+				iface->get_value = list_control_model_get_value;
+				iface->get_iter = list_control_model_get_iter;
+				iface->get_path = list_control_model_get_path;
+				iface->iter_next = list_control_model_iter_next;
+				iface->iter_children = list_control_model_iter_children;
+				iface->iter_has_child = list_control_model_iter_has_child;
+				iface->iter_parent = list_control_model_iter_parent;
+				iface->iter_n_children = list_control_model_iter_n_children;
+				iface->iter_nth_child = list_control_model_iter_nth_child;
 			}
 
 			G_DEFINE_TYPE_WITH_CODE(
