@@ -282,6 +282,10 @@ namespace slib
 
 		virtual Memory getHLSLCompiledPixelShader(RenderEngine* engine);
 
+		virtual sl_uint32 getVertexShaderConstantBufferSize();
+
+		virtual sl_uint32 getPixelShaderConstantBufferSize();
+
 
 		Ref<RenderProgramInstance> getInstance(RenderEngine* engine);
 

@@ -100,6 +100,16 @@ namespace slib
 		return sl_null;
 	}
 
+	sl_uint32 RenderProgram::getVertexShaderConstantBufferSize()
+	{
+		return 128;
+	}
+
+	sl_uint32 RenderProgram::getPixelShaderConstantBufferSize()
+	{
+		return 128;
+	}
+
 	Ref<RenderProgramInstance> RenderProgram::getInstance(RenderEngine* engine)
 	{
 		return Ref<RenderProgramInstance>::from(RenderBaseObject::getInstance(engine));

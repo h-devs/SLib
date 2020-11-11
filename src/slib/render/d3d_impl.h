@@ -647,14 +647,19 @@ namespace slib
 			class RenderProgramInstanceImpl : public RenderProgramInstance
 			{
 			public:
-				ID3DDevice* device;
+				ID3DDevice * device;
 				ID3DDeviceContext* context;
-				
+
 				ID3DVertexShader* vertexShader;
 				ID3DPixelShader* pixelShader;
 
 #if D3D_VERSION_MAJOR >= 10
 				Memory codeVertexShader;
+				ID3DBuffer* constantBuffer[2];
+				Memory memConstantBuffer[2];
+				sl_uint8* pConstantBuffer[2];
+				sl_uint32 sizeConstantBuffer[2];
+				sl_bool flagUpdatedConstantBuffer[2];
 #endif
 
 				Ref<RenderProgramState> state;
@@ -666,6 +671,14 @@ namespace slib
 					context = sl_null;
 					vertexShader = sl_null;
 					pixelShader = sl_null;
+#if D3D_VERSION_MAJOR >= 10
+					constantBuffer[0] = sl_null;
+					pConstantBuffer[0] = sl_null;
+					sizeConstantBuffer[0] = 0;
+					constantBuffer[1] = sl_null;
+					pConstantBuffer[1] = sl_null;
+					sizeConstantBuffer[1] = 0;
+#endif
 				}
 
 				~RenderProgramInstanceImpl()
@@ -676,12 +689,20 @@ namespace slib
 					if (pixelShader) {
 						pixelShader->Release();
 					}
+#if D3D_VERSION_MAJOR >= 10
+					if (constantBuffer[0]) {
+						constantBuffer[0]->Release();
+					}
+					if (constantBuffer[1]) {
+						constantBuffer[1]->Release();
+					}
+#endif
 				}
 
 			public:
 				static Ref<RenderProgramInstanceImpl> create(ID3DDevice* device, ID3DDeviceContext* context, RenderEngine* engine, RenderProgram* program)
 				{
-					
+
 					Memory codeVertex = program->getHLSLCompiledVertexShader(engine);
 					if (codeVertex.isNull()) {
 						codeVertex = CompileShader(program->getHLSLVertexShader(engine), VERTEX_SHADER_TARGET);
@@ -714,26 +735,46 @@ namespace slib
 						device->CreatePixelShader((DWORD*)(codePixel.getData()), &ps);
 #endif
 						if (ps) {
-							Ref<RenderProgramState> state = program->onCreate(engine);
-							if (state.isNotNull()) {
-								Ref<RenderProgramInstanceImpl> ret = new RenderProgramInstanceImpl();
-								if (ret.isNotNull()) {
-									ret->device = device;
-									ret->context = context;
-									ret->vertexShader = vs;
-									ret->pixelShader = ps;
-									state->setProgramInstance(ret.get());
-									if (program->onInit(engine, ret.get(), state.get())) {
-										ret->state = state;
 #if D3D_VERSION_MAJOR >= 10
-										ret->codeVertexShader = codeVertex;
+							Memory memConstantBuffer[2];
+							ID3DBuffer* constantBuffer[2];
+							if (createConstantBuffers(device, program, constantBuffer, memConstantBuffer)) {
 #endif
-										ret->link(engine, program);
-										return ret;
+								Ref<RenderProgramState> state = program->onCreate(engine);
+								if (state.isNotNull()) {
+									Ref<RenderProgramInstanceImpl> ret = new RenderProgramInstanceImpl();
+									if (ret.isNotNull()) {
+										ret->device = device;
+										ret->context = context;
+										ret->vertexShader = vs;
+										ret->pixelShader = ps;
+#if D3D_VERSION_MAJOR >= 10
+										ret->constantBuffer[0] = constantBuffer[0];
+										ret->pConstantBuffer[0] = (sl_uint8*)(memConstantBuffer[0].getData());
+										ret->sizeConstantBuffer[0] = (sl_uint32)(memConstantBuffer[0].getSize());
+										ret->memConstantBuffer[0] = Move(memConstantBuffer[0]);
+										ret->constantBuffer[1] = constantBuffer[1];
+										ret->pConstantBuffer[1] = (sl_uint8*)(memConstantBuffer[1].getData());
+										ret->sizeConstantBuffer[1] = (sl_uint32)(memConstantBuffer[1].getSize());
+										ret->memConstantBuffer[1] = Move(memConstantBuffer[1]);
+#endif
+										state->setProgramInstance(ret.get());
+										if (program->onInit(engine, ret.get(), state.get())) {
+											ret->state = state;
+#if D3D_VERSION_MAJOR >= 10
+											ret->codeVertexShader = codeVertex;
+#endif
+											ret->link(engine, program);
+											return ret;
+										}
+										return sl_null;
 									}
-									return sl_null;
 								}
+#if D3D_VERSION_MAJOR >= 10
+								constantBuffer[0]->Release();
+								constantBuffer[1]->Release();
 							}
+#endif
 							ps->Release();
 						}
 						vs->Release();
@@ -757,6 +798,20 @@ namespace slib
 
 				void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* _data, sl_uint32 nItems) override
 				{
+#if D3D_VERSION_MAJOR >= 10
+					sl_uint32 indexConstant;
+					if (location.shader == RenderShaderType::Vertex) {
+						indexConstant = 0;
+					} else if (location.shader == RenderShaderType::Pixel) {
+						indexConstant = 1;
+					} else {
+						return;
+					}
+					sl_uint32 loc = (sl_uint32)(location.location << 4);
+					if (loc >= sizeConstantBuffer[indexConstant]) {
+						return;
+					}
+#endif
 					const void* data = _data;
 					float temp[16];
 					Memory memTemp;
@@ -786,6 +841,7 @@ namespace slib
 								return;
 							}
 							float* t = (float*)(memTemp.getData());
+							data = t;
 							Matrix3* m = (Matrix3*)_data;
 							for (sl_uint32 i = 0; i < n; i++) {
 								t[0] = m->m00;
@@ -803,7 +859,6 @@ namespace slib
 								t += 12;
 								m++;
 							}
-							data = t;
 						}
 					} else if (type == RenderUniformType::Float3 || type == RenderUniformType::Int3) {
 						if (type == RenderUniformType::Float3) {
@@ -827,6 +882,7 @@ namespace slib
 								return;
 							}
 							float* t = (float*)(memTemp.getData());
+							data = t;
 							for (sl_uint32 i = 0; i < n; i++) {
 								t[0] = s[0];
 								t[1] = s[1];
@@ -835,10 +891,47 @@ namespace slib
 								t += 4;
 								s += 3;
 							}
-							data = t;
 						}
 					}
-#if D3D_VERSION_MAJOR < 10
+#if D3D_VERSION_MAJOR >= 10
+					else {
+						switch (type) {
+						case RenderUniformType::Float:
+							break;
+						case RenderUniformType::Float2:
+							nItems *= 2;
+							break;
+						case RenderUniformType::Float4:
+							nItems *= 4;
+							break;
+						case RenderUniformType::Matrix4:
+							nItems *= 16;
+							break;
+						case RenderUniformType::Int:
+							break;
+						case RenderUniformType::Int2:
+							nItems *= 2;
+							break;
+						case RenderUniformType::Int4:
+							nItems *= 4;
+							break;
+						case RenderUniformType::Sampler:
+							break;
+						default:
+							return;
+						}
+					}
+					sl_uint32 size = nItems << 2;
+					sl_uint32 limit = sizeConstantBuffer[indexConstant] - loc;
+					if (size > limit) {
+						size = limit;
+					}
+					if (!size) {
+						return;
+					}
+					Base::copyMemory(pConstantBuffer[indexConstant] + loc, data, size);
+					flagUpdatedConstantBuffer[indexConstant] = sl_true;
+#else
 					switch (type) {
 					case RenderUniformType::Float:
 						break;
@@ -867,6 +960,8 @@ namespace slib
 					case RenderUniformType::Sampler:
 						type = RenderUniformType::Int;
 						break;
+					default:
+						return;
 					}
 					sl_uint n4 = nItems >> 2;
 					if (n4) {
@@ -883,7 +978,63 @@ namespace slib
 #endif
 				}
 
-#if D3D_VERSION_MAJOR < 10
+#if D3D_VERSION_MAJOR >= 10
+				static sl_bool createConstantBuffers(ID3DDevice* device, RenderProgram* program, ID3DBuffer* buffer[2], Memory memConstantBuffer[2])
+				{
+					sl_uint32 size[2];
+					size[0] = program->getVertexShaderConstantBufferSize();
+					if (!(size[0])) {
+						return sl_null;
+					}
+					size[1] = program->getPixelShaderConstantBufferSize();
+					if (!(size[1])) {
+						return sl_null;
+					}
+					sl_uint32 i = 0;
+					for (; i < 2; i++) {
+						Memory mem = Memory::create(size[i]);
+						if (mem.isNull()) {
+							break;
+						}
+						Base::zeroMemory(mem.getData(), mem.getSize());
+
+						D3D_(BUFFER_DESC) desc = { 0 };
+						desc.BindFlags = D3D_(BIND_VERTEX_BUFFER);
+						desc.ByteWidth = size[i];
+
+						D3D_(SUBRESOURCE_DATA) data = { 0 };
+						data.pSysMem = mem.getData();
+
+						ID3DBuffer* buf = sl_null;
+						device->CreateBuffer(&desc, &data, &buf);
+						if (!buf) {
+							break;
+						}
+						memConstantBuffer[i] = Move(mem);
+						buffer[i] = buf;
+					}
+					if (i < 2) {
+						buffer[0]->Release();
+						buffer[0] = sl_null;
+						return sl_false;
+					}
+					return sl_true;
+				}
+
+				void applyConstantBuffer(ID3DDeviceContext* context)
+				{
+					if (flagUpdatedConstantBuffer[0]) {
+						context->UpdateSubresource(constantBuffer[0], 0, NULL, pConstantBuffer[0], 0, 0);
+						flagUpdatedConstantBuffer[0] = sl_false;
+					}
+					context->VSSetConstantBuffers(0, 1, constantBuffer);
+					if (flagUpdatedConstantBuffer[1]) {
+						context->UpdateSubresource(constantBuffer[1], 0, NULL, pConstantBuffer[1], 0, 0);
+						flagUpdatedConstantBuffer[1] = sl_false;
+					}
+					context->PSSetConstantBuffers(0, 1, constantBuffer + 1);
+				}
+#else
 				static void _setUniform(ID3DDevice* dev, const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 countVector4)
 				{
 					if (location.shader == RenderShaderType::Vertex) {
@@ -1931,6 +2082,9 @@ namespace slib
 						context->IASetVertexBuffers(0, (UINT)(list.count), bufs, strides, offsets);
 #endif
 					}
+#if D3D_VERSION_MAJOR >= 10
+					m_currentProgramInstanceRendering->applyConstantBuffer(context);
+#endif
 					if (primitive->indexBufferInstance.isNotNull()) {
 						IndexBufferInstanceImpl* ib = (IndexBufferInstanceImpl*)(primitive->indexBufferInstance.get());
 						ib->doUpdate(primitive->indexBuffer.get());
