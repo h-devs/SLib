@@ -457,11 +457,10 @@ namespace slib
 	{
 		SLIB_RETURN_STRING(SLIB_STRINGIFY(
 			uniform vec4 u_Color;
-				void main() {
-					gl_FragColor = u_Color;
-				}
-			)
-		)
+			void main() {
+				gl_FragColor = u_Color;
+			}
+		))
 	}
 
 	String RenderProgram2D_Position::getHLSLVertexShader(RenderEngine* engine)

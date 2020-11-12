@@ -982,7 +982,7 @@ namespace slib
 						Base::zeroMemory(mem.getData(), mem.getSize());
 
 						D3D_(BUFFER_DESC) desc = { 0 };
-						desc.BindFlags = D3D_(BIND_VERTEX_BUFFER);
+						desc.BindFlags = D3D_(BIND_CONSTANT_BUFFER);
 						desc.ByteWidth = size[i];
 
 						D3D_(SUBRESOURCE_DATA) data = { 0 };
