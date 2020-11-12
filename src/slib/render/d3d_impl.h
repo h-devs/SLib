@@ -342,15 +342,17 @@ namespace slib
 			};
 
 #if D3D_VERSION_MAJOR >= 10
-			static void PrepareObjectFlags(const RenderObjectFlags& flags, D3D_(USAGE)& usage, UINT& cpuAccessFlags)
+			static void PrepareObjectFlags(const RenderObjectFlags& flags, D3D_(USAGE)& usage, UINT& cpuAccessFlags, sl_bool& flagLockable)
 			{
 				if (flags & RenderObjectFlags::CpuAccessWrite) {
 					cpuAccessFlags |= D3D_(CPU_ACCESS_WRITE);
 					usage = D3D_(USAGE_DYNAMIC);
+					flagLockable = sl_true;
 				}
 				if (flags & RenderObjectFlags::CpuAccessRead) {
 					cpuAccessFlags |= D3D_(CPU_ACCESS_READ);
 					usage = D3D_(USAGE_STAGING);
+					flagLockable = sl_true;
 				}
 			}
 #endif
@@ -1036,32 +1038,47 @@ namespace slib
 
 			};
 
-			class VertexBufferInstanceImpl : public VertexBufferInstance
+#if D3D_VERSION_MAJOR < 10
+			static void CreateDeviceBuffer(ID3DDevice* device, UINT size, ID3DVertexBuffer** _out)
+			{
+				device->CreateVertexBuffer(size, 0, 0, D3DPOOL_MANAGED, _out, NULL);
+			}
+
+			static void CreateDeviceBuffer(ID3DDevice* device, UINT size, ID3DIndexBuffer** _out)
+			{
+				device->CreateIndexBuffer(size, 0, D3DFMT_INDEX16, D3DPOOL_MANAGED, _out, NULL);
+			}
+#endif
+
+			template <class BUFFER, class BUFFER_INSTANCE, class DEVICE_BUFFER>
+			class RenderBufferInstanceImpl : public BUFFER_INSTANCE
 			{
 			public:
 				ID3DDevice* device;
 				ID3DDeviceContext* context;
-				ID3DVertexBuffer* pVB;
+				DEVICE_BUFFER* handle;
 				sl_uint32 size;
+				sl_bool flagLockable;
 
 			public:
-				VertexBufferInstanceImpl()
+				RenderBufferInstanceImpl()
 				{
 					device = sl_null;
 					context = sl_null;
-					pVB = sl_null;
+					handle = sl_null;
 					size = 0;
+					flagLockable = sl_false;
 				}
 
-				~VertexBufferInstanceImpl()
+				~RenderBufferInstanceImpl()
 				{
-					if (pVB) {
-						pVB->Release();
+					if (handle) {
+						handle->Release();
 					}
 				}
 
 			public:
-				static Ref<VertexBufferInstanceImpl> create(ID3DDevice* device, ID3DDeviceContext* context, RenderEngine* engine, VertexBuffer* buffer)
+				static Ref<RenderBufferInstanceImpl> create(ID3DDevice* device, ID3DDeviceContext* context, RenderEngine* engine, BUFFER* buffer)
 				{
 					UINT size = (UINT)(buffer->getSize());
 					if (!size) {
@@ -1071,39 +1088,42 @@ namespace slib
 					if (content.getSize() < size) {
 						return sl_null;
 					}
-					ID3DVertexBuffer* vb = sl_null;
+					DEVICE_BUFFER* handle = sl_null;
 #if D3D_VERSION_MAJOR >= 10
+					sl_bool flagLockable = sl_false;
 					D3D_(BUFFER_DESC) desc = { 0 };
 					desc.BindFlags = D3D_(BIND_VERTEX_BUFFER);
 					desc.ByteWidth = size;
-					PrepareObjectFlags(buffer->getFlags(), desc.Usage, desc.CPUAccessFlags);
+					PrepareObjectFlags(buffer->getFlags(), desc.Usage, desc.CPUAccessFlags, flagLockable);
 					D3D_(SUBRESOURCE_DATA) data = { 0 };
 					data.pSysMem = content.getData();
-					device->CreateBuffer(&desc, &data, &vb);
+					device->CreateBuffer(&desc, &data, &handle);
 #else
-					device->CreateVertexBuffer(size, 0, 0, D3DPOOL_MANAGED, &vb, NULL);
+					sl_bool flagLockable = sl_true;
+					CreateDeviceBuffer(device, size, &handle);
 #endif
-					if (vb) {
+					if (handle) {
 #if D3D_VERSION_MAJOR < 10
 						void* data = sl_null;
-						vb->Lock(0, size, &data, 0);
+						handle->Lock(0, size, &data, 0);
 						if (data) {
 							Base::copyMemory(data, content.getData(), size);
-							vb->Unlock();
+							handle->Unlock();
 #endif
-							Ref<VertexBufferInstanceImpl> ret = new VertexBufferInstanceImpl;
+							Ref<RenderBufferInstanceImpl> ret = new RenderBufferInstanceImpl;
 							if (ret.isNotNull()) {
 								ret->device = device;
 								ret->context = context;
-								ret->pVB = vb;
+								ret->handle = handle;
 								ret->link(engine, buffer);
 								ret->size = (sl_uint32)size;
+								ret->flagLockable = flagLockable;
 								return ret;
 							}
 #if D3D_VERSION_MAJOR < 10
 						}
 #endif
-						vb->Release();
+						handle->Release();
 					}
 					return sl_null;
 				}
@@ -1115,139 +1135,35 @@ namespace slib
 					if (!size) {
 						return;
 					}
-					VertexBuffer* buffer = (VertexBuffer*)object;
+					BUFFER* buffer = (BUFFER*)object;
 					Memory content = buffer->getSource();
 					if (content.getSize() < offset + size) {
 						return;
 					}
 					void* data = sl_null;
-#if D3D_VERSION_MAJOR >= 11
-					D3D_(MAPPED_SUBRESOURCE) res = { 0 };
-					context->Map(pVB, 0, D3D_(MAP_WRITE), 0, &res);
-					data = res.pData;
-#elif D3D_VERSION_MAJOR >= 10
-					pVB->Map(D3D_(MAP_WRITE), 0, &data);
-#else
-					pVB->Lock(offset, size, &data, 0);
-#endif
-					if (data) {
-						Base::copyMemory(data, (sl_uint8*)(content.getData()) + offset, size);
-#if D3D_VERSION_MAJOR >= 11
-						context->Unmap(pVB, 0);
-#elif D3D_VERSION_MAJOR >= 10
-						pVB->Unmap();
-#else
-						pVB->Unlock();
-#endif
-					}
-				}
-
-				sl_bool canUpdate() override
-				{
-					return sl_true;
-				}
-
-			};
-
-			class IndexBufferInstanceImpl : public IndexBufferInstance
-			{
-			public:
-				ID3DDevice* device;
-				ID3DDeviceContext* context;
-				ID3DIndexBuffer * pIB;
-
-			public:
-				IndexBufferInstanceImpl()
-				{
-					device = sl_null;
-					context = sl_null;
-					pIB = sl_null;
-				}
-
-				~IndexBufferInstanceImpl()
-				{
-					if (pIB) {
-						pIB->Release();
-					}
-				}
-
-			public:
-				static Ref<IndexBufferInstanceImpl> create(ID3DDevice* device, ID3DDeviceContext* context, RenderEngine* engine, IndexBuffer* buffer)
-				{
-					UINT size = (UINT)(buffer->getSize());
-					if (!size) {
-						return sl_null;
-					}
-					Memory content = buffer->getSource();
-					if (content.getSize() < size) {
-						return sl_null;
-					}
-					ID3DIndexBuffer* ib = sl_null;
 #if D3D_VERSION_MAJOR >= 10
-					D3D_(BUFFER_DESC) desc = { 0 };
-					desc.BindFlags = D3D_(BIND_INDEX_BUFFER);
-					desc.ByteWidth = size;
-					PrepareObjectFlags(buffer->getFlags(), desc.Usage, desc.CPUAccessFlags);
-					D3D_(SUBRESOURCE_DATA) data = { 0 };
-					data.pSysMem = content.getData();
-					device->CreateBuffer(&desc, &data, &ib);
-#else
-					device->CreateIndexBuffer(size, 0, D3DFMT_INDEX16, D3DPOOL_MANAGED, &ib, NULL);
-#endif
-					if (ib) {
-#if D3D_VERSION_MAJOR < 10
-						void* data = sl_null;
-						ib->Lock(0, size, &data, 0);
-						if (data) {
-							Base::copyMemory(data, content.getData(), size);
-							ib->Unlock();
-#endif
-							Ref<IndexBufferInstanceImpl> ret = new IndexBufferInstanceImpl;
-							if (ret.isNotNull()) {
-								ret->device = device;
-								ret->context = context;
-								ret->pIB = ib;
-								ret->link(engine, buffer);
-								return ret;
-							}
-#if D3D_VERSION_MAJOR < 10
-						}
-#endif
-						ib->Release();
-					}
-					return sl_null;
-				}
-
-				void onUpdate(RenderBaseObject* object) override
-				{
-					UINT offset = (UINT)m_updatedOffset;
-					UINT size = (UINT)m_updatedSize;
-					if (!size) {
+					if (!flagLockable) {
+						context->UpdateSubresource(handle, 0, NULL, content.getData(), 0, 0);
 						return;
 					}
-					IndexBuffer* buffer = (IndexBuffer*)object;
-					Memory content = buffer->getSource();
-					if (content.getSize() < offset + size) {
-						return;
-					}
-					void* data = sl_null;
 #if D3D_VERSION_MAJOR >= 11
 					D3D_(MAPPED_SUBRESOURCE) res = { 0 };
-					context->Map(pIB, 0, D3D_(MAP_WRITE), 0, &res);
+					context->Map(handle, 0, D3D_(MAP_WRITE), 0, &res);
 					data = res.pData;
-#elif D3D_VERSION_MAJOR >= 10
-					pIB->Map(D3D_(MAP_WRITE), 0, &data);
+#else					
+					handle->Map(D3D_(MAP_WRITE), 0, &data);
+#endif
 #else
-					pIB->Lock(offset, size, &data, 0);
+					handle->Lock(offset, size, &data, 0);
 #endif
 					if (data) {
 						Base::copyMemory(data, (sl_uint8*)(content.getData()) + offset, size);
 #if D3D_VERSION_MAJOR >= 11
-						context->Unmap(pIB, 0);
+						context->Unmap(handle, 0);
 #elif D3D_VERSION_MAJOR >= 10
-						pIB->Unmap();
+						handle->Unmap();
 #else
-						pIB->Unlock();
+						handle->Unlock();
 #endif
 					}
 				}
@@ -1258,26 +1174,33 @@ namespace slib
 				}
 
 			};
+
+			typedef RenderBufferInstanceImpl<VertexBuffer, VertexBufferInstance, ID3DVertexBuffer> VertexBufferInstanceImpl;
+
+			typedef RenderBufferInstanceImpl<IndexBuffer, IndexBufferInstance, ID3DIndexBuffer> IndexBufferInstanceImpl;
+
 
 			class TextureInstanceImpl : public TextureInstance
 			{
 			public:
 				ID3DDevice* device;
 				ID3DDeviceContext* context;
-				ID3DTexture2D* pTexture;
+				ID3DTexture2D* handle;
+				sl_bool flagLockable;
 
 			public:
 				TextureInstanceImpl()
 				{
 					device = sl_null;
 					context = sl_null;
-					pTexture = sl_null;
+					handle = sl_null;
+					flagLockable = sl_false;
 				}
 
 				~TextureInstanceImpl()
 				{
-					if (pTexture) {
-						pTexture->Release();
+					if (handle) {
+						handle->Release();
 					}
 				}
 
@@ -1296,12 +1219,13 @@ namespace slib
 					if (!height) {
 						return sl_null;
 					}
-					ID3DTexture2D* pTexture = sl_null;
+					ID3DTexture2D* handle = sl_null;
 #if D3D_VERSION_MAJOR >= 10
 					Ref<Image> image = source->toImage();
 					if (image.isNull()) {
 						return sl_null;
 					}
+					sl_bool flagLockable = sl_false;
 					D3D_(TEXTURE2D_DESC) desc = { 0 };
 					desc.Width = (UINT)width;
 					desc.Height = (UINT)height;
@@ -1309,18 +1233,19 @@ namespace slib
 					desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 					desc.SampleDesc.Count = 1;
 					desc.BindFlags = D3D10_BIND_SHADER_RESOURCE;
-					PrepareObjectFlags(texture->getFlags(), desc.Usage, desc.CPUAccessFlags);
+					PrepareObjectFlags(texture->getFlags(), desc.Usage, desc.CPUAccessFlags, flagLockable);
 					D3D_(SUBRESOURCE_DATA) data = { 0 };
 					data.pSysMem = image->getColors();
 					data.SysMemPitch = (UINT)(image->getStride() << 2);
-					device->CreateTexture2D(&desc, &data, &pTexture);
+					device->CreateTexture2D(&desc, &data, &handle);
 #else
-					device->CreateTexture((UINT)width, (UINT)height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &pTexture, NULL);
+					sl_bool flagLockable = sl_true;
+					device->CreateTexture((UINT)width, (UINT)height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &handle, NULL);
 #endif
-					if (pTexture) {
+					if (handle) {
 #if D3D_VERSION_MAJOR < 10
 						D3DLOCKED_RECT lr;
-						HRESULT hr = pTexture->LockRect(0, &lr, NULL, 0);
+						HRESULT hr = handle->LockRect(0, &lr, NULL, 0);
 						if (hr == D3D_OK) {
 							BitmapData bd;
 							bd.format = BitmapFormat::ARGB;
@@ -1329,20 +1254,21 @@ namespace slib
 							bd.width = width;
 							bd.height = height;
 							source->readPixels(0, 0, bd);
-							pTexture->UnlockRect(0);
+							handle->UnlockRect(0);
 #endif
 							Ref<TextureInstanceImpl> ret = new TextureInstanceImpl();
 							if (ret.isNotNull()) {
 								ret->device = device;
 								ret->context = context;
-								ret->pTexture = pTexture;
+								ret->handle = handle;
+								ret->flagLockable = flagLockable;
 								ret->link(engine, texture);
 								return ret;
 							}
 #if D3D_VERSION_MAJOR < 10
 						}
 #endif
-						pTexture->Release();
+						handle->Release();
 					}
 					return sl_null;
 				}
@@ -1354,16 +1280,26 @@ namespace slib
 					if (source.isNull()) {
 						return;
 					}
+#if D3D_VERSION_MAJOR >= 10
+					if (!flagLockable) {
+						Ref<Image> image = source->toImage();
+						if (image.isNull()) {
+							return;
+						}
+						context->UpdateSubresource(handle, 0, NULL, image->getColors(), (UINT)(image->getStride() << 2), 0);
+						return;
+					}
 #if D3D_VERSION_MAJOR >= 11
 					D3D_(MAPPED_SUBRESOURCE) res = { 0 };
-					context->Map(pTexture, 0, D3D_(MAP_WRITE), 0, &res);
+					context->Map(handle, 0, D3D_(MAP_WRITE), 0, &res);
 					void* data = res.pData;
 					sl_int32 pitch = (sl_int32)(res.RowPitch);
-#elif D3D_VERSION_MAJOR >= 10
+#else
 					D3D_(MAPPED_TEXTURE2D) mt = { 0 };
-					pTexture->Map(0, D3D_(MAP_WRITE), 0, &mt);
+					handle->Map(0, D3D_(MAP_WRITE), 0, &mt);
 					void* data = mt.pData;
 					sl_int32 pitch = (sl_int32)(mt.RowPitch);
+#endif
 #else
 					D3DLOCKED_RECT lr;
 					RECT rc;
@@ -1371,7 +1307,7 @@ namespace slib
 					rc.top = (LONG)(m_updatedRegion.top);
 					rc.right = (LONG)(m_updatedRegion.right);
 					rc.bottom = (LONG)(m_updatedRegion.bottom);
-					pTexture->LockRect(0, &lr, &rc, 0);
+					handle->LockRect(0, &lr, &rc, 0);
 					void* data = lr.pBits;
 					sl_int32 pitch = (sl_int32)(lr.Pitch);
 #endif
@@ -1384,10 +1320,11 @@ namespace slib
 						bd.height = m_updatedRegion.getHeight();
 						source->readPixels(m_updatedRegion.left, m_updatedRegion.top, bd);
 #if D3D_VERSION_MAJOR >= 11
-						context->Unmap(pTexture, 0);
+						context->Unmap(handle, 0);
 #elif D3D_VERSION_MAJOR >= 10
+						handle->Unmap(0);
 #else
-						pTexture->UnlockRect(0);
+						handle->UnlockRect(0);
 #endif
 					}
 				}
@@ -2039,9 +1976,9 @@ namespace slib
 						UINT stride = (UINT)(layout->strides.getValueAt_NoLock(0));
 #if D3D_VERSION_MAJOR >= 10
 						UINT offset = 0;
-						context->IASetVertexBuffers(0, 1, &(vb->pVB), &stride, &offset);
+						context->IASetVertexBuffers(0, 1, &(vb->handle), &stride, &offset);
 #else
-						context->SetStreamSource(0, vb->pVB, 0, stride);
+						context->SetStreamSource(0, vb->handle, 0, stride);
 						if (stride) {
 							nVerticesMin = vb->size / stride;
 						}
@@ -2060,11 +1997,11 @@ namespace slib
 							VertexBufferInstanceImpl* vb = (VertexBufferInstanceImpl*)(list[i].get());
 							UINT stride = (UINT)(layout->strides.getValueAt_NoLock(i));
 #if D3D_VERSION_MAJOR >= 10
-							bufs[i] = vb->pVB;
+							bufs[i] = vb->handle;
 							offsets[i] = 0;
 							strides[i] = stride;
 #else
-							context->SetStreamSource((UINT)i, vb->pVB, 0, stride);
+							context->SetStreamSource((UINT)i, vb->handle, 0, stride);
 							if (stride) {
 								sl_uint32 nVertices = vb->size / stride;
 								if (!nVerticesMin || nVertices < nVerticesMin) {
@@ -2079,15 +2016,18 @@ namespace slib
 					}
 #if D3D_VERSION_MAJOR >= 10
 					m_currentProgramInstanceRendering->applyConstantBuffer(context);
+					_updateBlendState();
+					_updateRasterizerState();
+					_updateDepthStencilState();
 #endif
 					if (primitive->indexBufferInstance.isNotNull()) {
 						IndexBufferInstanceImpl* ib = (IndexBufferInstanceImpl*)(primitive->indexBufferInstance.get());
 						ib->doUpdate(primitive->indexBuffer.get());
 #if D3D_VERSION_MAJOR >= 10
-						context->IASetIndexBuffer(ib->pIB, DXGI_FORMAT_R16_UINT, 0);
+						context->IASetIndexBuffer(ib->handle, DXGI_FORMAT_R16_UINT, 0);
 						context->DrawIndexed((UINT)(primitive->countElements), 0, 0);
 #else
-						context->SetIndices(ib->pIB);
+						context->SetIndices(ib->handle);
 						context->DrawIndexedPrimitive(type, 0, 0, (UINT)nVerticesMin, 0, (UINT)nPrimitives);
 #endif
 					} else {
