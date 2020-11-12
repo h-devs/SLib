@@ -814,24 +814,56 @@ namespace slib
 #endif
 					const void* data = _data;
 					float temp[16];
+					float *t = temp;
 					Memory memTemp;
-					if (type == RenderUniformType::Matrix3) {
+					switch (type) {
+					case RenderUniformType::Float:
+						break;
+					case RenderUniformType::Float2:
+						type = RenderUniformType::Float;
+						nItems <<= 1;
+						break;
+					case RenderUniformType::Float3:
+					case RenderUniformType::Int3:
+						if (type == RenderUniformType::Float3) {
+							type = RenderUniformType::Float;
+						} else {
+							type = RenderUniformType::Int;
+						}
+						if (nItems == 1) {
+							float* s = (float*)_data;
+							data = t;
+							t[0] = s[0]; t[1] = s[1]; t[2] = s[2]; t[3] = 0;
+							nItems = 4;
+						} else {
+							sl_uint32 n = nItems;
+							nItems = n << 2;
+							memTemp = Memory::create(nItems << 2);
+							if (memTemp.isNull()) {
+								return;
+							}
+							float* s = (float*)_data;
+							float* t = (float*)(memTemp.getData());
+							data = t;
+							for (sl_uint32 i = 0; i < n; i++) {
+								t[0] = s[0]; t[1] = s[1]; t[2] = s[2]; t[3] = 0;
+								t += 4;
+								s += 3;
+							}
+						}
+						break;
+					case RenderUniformType::Float4:
+						type = RenderUniformType::Float;
+						nItems <<= 2;
+						break;
+					case RenderUniformType::Matrix3:
 						type = RenderUniformType::Float;
 						if (nItems == 1) {
-							data = temp;
+							data = t;
 							Matrix3& m = *((Matrix3*)_data);
-							temp[0] = m.m00;
-							temp[1] = m.m01;
-							temp[2] = m.m02;
-							temp[3] = 0;
-							temp[4] = m.m10;
-							temp[5] = m.m11;
-							temp[6] = m.m12;
-							temp[7] = 0;
-							temp[8] = m.m20;
-							temp[9] = m.m21;
-							temp[10] = m.m22;
-							temp[11] = 0;
+							t[0] = m.m00; t[1] = m.m10; t[2] = m.m20; t[3] = 0;
+							t[4] = m.m01; t[5] = m.m11; t[6] = m.m21; t[7] = 0;
+							t[8] = m.m02; t[9] = m.m12; t[10] = m.m22; t[11] = 0;
 							nItems = 12;
 						} else {
 							sl_uint32 n = nItems;
@@ -842,85 +874,65 @@ namespace slib
 							}
 							float* t = (float*)(memTemp.getData());
 							data = t;
-							Matrix3* m = (Matrix3*)_data;
+							Matrix3* _m = (Matrix3*)_data;
 							for (sl_uint32 i = 0; i < n; i++) {
-								t[0] = m->m00;
-								t[1] = m->m01;
-								t[2] = m->m02;
-								t[3] = 0;
-								t[4] = m->m10;
-								t[5] = m->m11;
-								t[6] = m->m12;
-								t[7] = 0;
-								t[8] = m->m20;
-								t[9] = m->m21;
-								t[10] = m->m22;
-								t[11] = 0;
+								Matrix3& m = *_m;
+								t[0] = m.m00; t[1] = m.m10; t[2] = m.m20; t[3] = 0;
+								t[4] = m.m01; t[5] = m.m11; t[6] = m.m21; t[7] = 0;
+								t[8] = m.m02; t[9] = m.m12; t[10] = m.m22; t[11] = 0;
 								t += 12;
-								m++;
+								_m++;
 							}
 						}
-					} else if (type == RenderUniformType::Float3 || type == RenderUniformType::Int3) {
-						if (type == RenderUniformType::Float3) {
-							type = RenderUniformType::Float;
-						} else {
-							type = RenderUniformType::Int;
-						}
-						float* s = (float*)_data;
+						break;
+					case RenderUniformType::Matrix4:
+						type = RenderUniformType::Float;
 						if (nItems == 1) {
-							data = temp;
-							temp[0] = s[0];
-							temp[1] = s[1];
-							temp[2] = s[2];
-							temp[3] = 0;
-							nItems = 4;
+							data = t;
+							Matrix4& m = *((Matrix4*)_data);
+							t[0] = m.m00; t[1] = m.m10; t[2] = m.m20; t[3] = m.m30;
+							t[4] = m.m01; t[5] = m.m11; t[6] = m.m21; t[7] = m.m31;
+							t[8] = m.m02; t[9] = m.m12; t[10] = m.m22; t[11] = m.m32;
+							t[8] = m.m03; t[9] = m.m13; t[10] = m.m23; t[11] = m.m33;
+							nItems = 16;
 						} else {
 							sl_uint32 n = nItems;
-							nItems = n * 4;
+							nItems = n << 4;
 							memTemp = Memory::create(nItems << 2);
 							if (memTemp.isNull()) {
 								return;
 							}
 							float* t = (float*)(memTemp.getData());
 							data = t;
+							Matrix4* _m = (Matrix4*)_data;
 							for (sl_uint32 i = 0; i < n; i++) {
-								t[0] = s[0];
-								t[1] = s[1];
-								t[2] = s[2];
-								t[3] = 0;
-								t += 4;
-								s += 3;
+								Matrix4& m = *_m;
+								t[0] = m.m00; t[1] = m.m10; t[2] = m.m20; t[3] = m.m30;
+								t[4] = m.m01; t[5] = m.m11; t[6] = m.m21; t[7] = m.m31;
+								t[8] = m.m02; t[9] = m.m12; t[10] = m.m22; t[11] = m.m32;
+								t[8] = m.m03; t[9] = m.m13; t[10] = m.m23; t[11] = m.m33;
+								t += 16;
+								_m++;
 							}
 						}
+						break;
+					case RenderUniformType::Int:
+						break;
+					case RenderUniformType::Int2:
+						type = RenderUniformType::Int;
+						nItems <<= 1;
+						break;
+					case RenderUniformType::Int4:
+						type = RenderUniformType::Int;
+						nItems <<= 2;
+						break;
+					case RenderUniformType::Sampler:
+						type = RenderUniformType::Int;
+						break;
+					default:
+						return;
 					}
 #if D3D_VERSION_MAJOR >= 10
-					else {
-						switch (type) {
-						case RenderUniformType::Float:
-							break;
-						case RenderUniformType::Float2:
-							nItems *= 2;
-							break;
-						case RenderUniformType::Float4:
-							nItems *= 4;
-							break;
-						case RenderUniformType::Matrix4:
-							nItems *= 16;
-							break;
-						case RenderUniformType::Int:
-							break;
-						case RenderUniformType::Int2:
-							nItems *= 2;
-							break;
-						case RenderUniformType::Int4:
-							nItems *= 4;
-							break;
-						case RenderUniformType::Sampler:
-							break;
-						default:
-							return;
-						}
-					}
 					sl_uint32 size = nItems << 2;
 					sl_uint32 limit = sizeConstantBuffer[indexConstant] - loc;
 					if (size > limit) {
@@ -932,37 +944,6 @@ namespace slib
 					Base::copyMemory(pConstantBuffer[indexConstant] + loc, data, size);
 					flagUpdatedConstantBuffer[indexConstant] = sl_true;
 #else
-					switch (type) {
-					case RenderUniformType::Float:
-						break;
-					case RenderUniformType::Float2:
-						type = RenderUniformType::Float;
-						nItems *= 2;
-						break;
-					case RenderUniformType::Float4:
-						type = RenderUniformType::Float;
-						nItems *= 4;
-						break;
-					case RenderUniformType::Matrix4:
-						type = RenderUniformType::Float;
-						nItems *= 16;
-						break;
-					case RenderUniformType::Int:
-						break;
-					case RenderUniformType::Int2:
-						type = RenderUniformType::Int;
-						nItems *= 2;
-						break;
-					case RenderUniformType::Int4:
-						type = RenderUniformType::Int;
-						nItems *= 4;
-						break;
-					case RenderUniformType::Sampler:
-						type = RenderUniformType::Int;
-						break;
-					default:
-						return;
-					}
 					sl_uint n4 = nItems >> 2;
 					if (n4) {
 						_setUniform(device, location, type, data, n4);
