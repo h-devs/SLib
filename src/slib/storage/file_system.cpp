@@ -490,7 +490,9 @@ namespace slib
 	{
 		sl_bool ret = m_base->getFileInfo(toBasePath(path), getBaseContext(context), info, mask);
 		if (ret) {
-			convertToWrapperFileInfo(info, mask);
+			if (!convertToWrapperFileInfo(info, mask)) {
+				SLIB_THROW(FileSystemError::AccessDenied, sl_false);
+			}
 		}
 		return ret;
 	}
@@ -498,7 +500,9 @@ namespace slib
 	sl_bool FileSystemWrapper::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& _info, const FileInfoMask& mask)
 	{
 		FileInfo info = _info;
-		convertToBaseFileInfo(info, mask);
+		if (!convertToBaseFileInfo(info, mask)) {
+			SLIB_THROW(FileSystemError::AccessDenied, sl_false);
+		}
 		return m_base->setFileInfo(toBasePath(path), getBaseContext(context), info, mask);
 	}
 
@@ -543,32 +547,34 @@ namespace slib
 		return files;
 	}
 
-	Ref<FileContext> FileSystemWrapper::createContext(FileContext* baseContext, const StringParam& path)
+	Ref<FileContext> FileSystemWrapper::createContext(FileContext* baseContext, const StringParam& path) noexcept
 	{
 		return baseContext;
 	}
 
-	Ref<FileContext> FileSystemWrapper::getBaseContext(FileContext* context)
+	Ref<FileContext> FileSystemWrapper::getBaseContext(FileContext* context) noexcept
 	{
 		return context;
 	}
 
-	String FileSystemWrapper::toBasePath(const StringParam& path)
+	String FileSystemWrapper::toBasePath(const StringParam& path) noexcept
 	{
 		return path.toString();
 	}
 
-	String FileSystemWrapper::toWrapperPath(const String& basePath, sl_bool flagNameOnly)
+	String FileSystemWrapper::toWrapperPath(const String& basePath, sl_bool flagNameOnly) noexcept
 	{
 		return basePath;
 	}
 
-	void FileSystemWrapper::convertToBaseFileInfo(FileInfo& info, const FileInfoMask& mask) noexcept
+	sl_bool FileSystemWrapper::convertToBaseFileInfo(FileInfo& info, const FileInfoMask& mask) noexcept
 	{
+		return sl_true;
 	}
 
-	void FileSystemWrapper::convertToWrapperFileInfo(FileInfo& baseInfo, const FileInfoMask& mask) noexcept
+	sl_bool FileSystemWrapper::convertToWrapperFileInfo(FileInfo& baseInfo, const FileInfoMask& mask) noexcept
 	{
+		return sl_true;
 	}
 
 }
