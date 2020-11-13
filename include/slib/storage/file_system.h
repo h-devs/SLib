@@ -261,7 +261,10 @@ namespace slib
 	class FileSystemWrapper : public FileSystemProvider
 	{
 	public:
-		FileSystemWrapper(const Ref<FileSystemProvider>& base, const String& fileSystemName = sl_null, const String& volumeName = sl_null);
+		FileSystemWrapper(const Ref<FileSystemProvider>& base, 
+			const String& fileSystemName = sl_null, 
+			const String& volumeName = sl_null,
+			sl_uint32 serialNumber = SLIB_UINT32_MAX);
 
 		~FileSystemWrapper();
 

@@ -394,7 +394,9 @@ namespace slib
 	}
 
 
-	FileSystemWrapper::FileSystemWrapper(const Ref<FileSystemProvider>& base, const String& fileSystemName, const String& volumeName) : m_base(base)
+	FileSystemWrapper::FileSystemWrapper(const Ref<FileSystemProvider>& base, 
+		const String& fileSystemName, const String& volumeName,
+		sl_uint32 serialNumber) : m_base(base)
 	{
 		SLIB_TRY{
 			base->getInformation(m_fsInfo);
@@ -404,6 +406,9 @@ namespace slib
 		}
 		if (volumeName.isNotNull()) {
 			m_fsInfo.volumeName = volumeName;
+		}
+		if (serialNumber != SLIB_UINT32_MAX) {
+			m_fsInfo.serialNumber = serialNumber;
 		}
 	}
 
