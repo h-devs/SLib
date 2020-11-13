@@ -100,12 +100,22 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_uint32 RenderProgram::getVertexShaderConstantBufferSize()
+	sl_uint32 RenderProgram::getVertexShaderConstantBuffersCount()
+	{
+		return 1;
+	}
+
+	sl_uint32 RenderProgram::getVertexShaderConstantBufferSize(sl_uint32 bufferNo)
 	{
 		return 128;
 	}
 
-	sl_uint32 RenderProgram::getPixelShaderConstantBufferSize()
+	sl_uint32 RenderProgram::getPixelShaderConstantBuffersCount()
+	{
+		return 1;
+	}
+
+	sl_uint32 RenderProgram::getPixelShaderConstantBufferSize(sl_uint32 bufferNo)
 	{
 		return 128;
 	}
@@ -122,10 +132,11 @@ namespace slib
 	{
 	}
 
-	RenderProgramStateItem::RenderProgramStateItem(const char* _name, sl_reg _uniformLocation, RenderShaderType _shaderType) : name(_name), kind(RenderProgramStateKind::Uniform)
+	RenderProgramStateItem::RenderProgramStateItem(const char* _name, RenderShaderType _shaderType, sl_reg _uniformLocation, sl_uint32 _bufferNo) : name(_name), kind(RenderProgramStateKind::Uniform)
 	{
 		uniform.shader = _shaderType;
 		uniform.location = _uniformLocation;
+		uniform.bufferNo = _bufferNo;
 	}
 
 	RenderProgramStateItem::RenderProgramStateItem(const char* _name, RenderInputType type, sl_uint32 offset, RenderInputSemanticName semanticName, sl_uint32 semanticIndex, sl_uint32 slot) : name(_name), kind(RenderProgramStateKind::Input)

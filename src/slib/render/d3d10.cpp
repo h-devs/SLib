@@ -28,14 +28,12 @@
 
 #define D3D_(X) D3D10_##X
 #define D3D_VERSION_MAJOR 10
-
-#ifndef D3D_VERSION_MINOR
 #define D3D_VERSION_MINOR 0
+
 #define D3D_NAMESPACE d3d10
 #define D3D_TYPE D3D10
 typedef ID3D10Device ID3DDevice;
 typedef ID3D10Device ID3DDeviceContext;
-#endif
 
 typedef ID3D10RenderTargetView ID3DRenderTargetView;
 typedef ID3D10Texture2D ID3DTexture2D;

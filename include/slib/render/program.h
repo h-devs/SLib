@@ -110,6 +110,7 @@ namespace slib
 	{
 		RenderShaderType shader;
 		sl_reg location;
+		sl_uint32 bufferNo;
 	};
 
 	class SLIB_EXPORT RenderProgramStateItem
@@ -126,7 +127,7 @@ namespace slib
 		RenderProgramStateItem();
 
 		// Uniform
-		RenderProgramStateItem(const char* name, sl_reg uniformLocation = -1, RenderShaderType type = RenderShaderType::Undefined);
+		RenderProgramStateItem(const char* name, RenderShaderType type = RenderShaderType::Undefined, sl_reg uniformLocation = -1, sl_uint32 bufferNo = 0);
 
 		// Input
 		RenderProgramStateItem(const char* name, RenderInputType type, sl_uint32 offset, RenderInputSemanticName semanticName = RenderInputSemanticName::Undefined, sl_uint32 semanticIndex = 0, sl_uint32 slot = 0);
@@ -282,9 +283,13 @@ namespace slib
 
 		virtual Memory getHLSLCompiledPixelShader(RenderEngine* engine);
 
-		virtual sl_uint32 getVertexShaderConstantBufferSize();
+		virtual sl_uint32 getVertexShaderConstantBuffersCount();
 
-		virtual sl_uint32 getPixelShaderConstantBufferSize();
+		virtual sl_uint32 getVertexShaderConstantBufferSize(sl_uint32 bufferNo);
+
+		virtual sl_uint32 getPixelShaderConstantBuffersCount();
+
+		virtual sl_uint32 getPixelShaderConstantBufferSize(sl_uint32 bufferNo);
 
 
 		Ref<RenderProgramInstance> getInstance(RenderEngine* engine);
@@ -493,8 +498,8 @@ namespace slib
 	};
 
 	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState2D_Position, RenderVertex2D_Position)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, 0, RenderShaderType::Vertex)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, 0, RenderShaderType::Pixel)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
 
 		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
 	SLIB_RENDER_PROGRAM_STATE_END

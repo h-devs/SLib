@@ -26,12 +26,27 @@
 
 #include "d3d/d3d10_1.h"
 
+#define D3D_(X) D3D10_##X
+#define D3D_VERSION_MAJOR 10
 #define D3D_VERSION_MINOR 1
+
 #define D3D_NAMESPACE d3d10_1
 #define D3D_TYPE D3D10_1
 typedef ID3D10Device1 ID3DDevice;
 typedef ID3D10Device1 ID3DDeviceContext;
 
-#include "d3d10.cpp"
+typedef ID3D10RenderTargetView ID3DRenderTargetView;
+typedef ID3D10Texture2D ID3DTexture2D;
+typedef ID3D10Buffer ID3DBuffer;
+typedef ID3D10Buffer ID3DIndexBuffer;
+typedef ID3D10Buffer ID3DVertexBuffer;
+typedef ID3D10VertexShader ID3DVertexShader;
+typedef ID3D10PixelShader ID3DPixelShader;
+typedef ID3D10InputLayout ID3DInputLayout;
+typedef ID3D10DepthStencilState ID3DDepthStencilState;
+typedef ID3D10RasterizerState ID3DRasterizerState;
+typedef ID3D10BlendState ID3DBlendState;
+
+#include "d3d_impl.h"
 
 #endif

@@ -581,6 +581,80 @@ namespace slib
 
 			};
 
+#if D3D_VERSION_MAJOR >= 10
+			class ConstantBuffer
+			{
+			public:
+				ID3DBuffer* handle;
+				Memory mem;
+				sl_uint8* data;
+				sl_uint32 size;
+				sl_bool flagUpdated;
+
+			public:
+				ConstantBuffer()
+				{
+					handle = sl_null;
+					data = sl_null;
+					size = 0;
+					flagUpdated = sl_false;
+				}
+
+				ConstantBuffer(const ConstantBuffer&) = delete;
+
+				ConstantBuffer(ConstantBuffer&& other)
+				{
+					handle = other.handle;
+					mem = Move(other.mem);
+					data = other.data;
+					size = other.size;
+					flagUpdated = other.flagUpdated;
+					other.handle = sl_null;
+				}
+
+				~ConstantBuffer()
+				{
+					if (handle) {
+						handle->Release();
+					}
+				}
+
+			public:
+				sl_bool init(ID3DDevice* device, sl_uint32 _size)
+				{
+					size = _size;
+					mem = Memory::create(size);
+					if (mem.isNull()) {
+						return sl_false;
+					}
+					data = (sl_uint8*)(mem.getData());
+					Base::zeroMemory(data, size);
+
+					D3D_(BUFFER_DESC) desc = { 0 };
+					desc.BindFlags = D3D_(BIND_CONSTANT_BUFFER);
+					desc.ByteWidth = size;
+
+					D3D_(SUBRESOURCE_DATA) res = { 0 };
+					res.pSysMem = data;
+
+					device->CreateBuffer(&desc, &res, &handle);
+					if (handle) {
+						return sl_true;
+					}
+					return sl_false;
+				}
+
+				void update(ID3DDeviceContext* context)
+				{
+					if (flagUpdated) {
+						context->UpdateSubresource(handle, 0, NULL, data, 0, 0);
+						flagUpdated = sl_false;
+					}
+				}
+
+			};
+#endif
+
 			static Memory CompileShader(const String& str, const char* target)
 			{
 				if (str.isEmpty()) {
@@ -649,7 +723,7 @@ namespace slib
 			class RenderProgramInstanceImpl : public RenderProgramInstance
 			{
 			public:
-				ID3DDevice * device;
+				ID3DDevice* device;
 				ID3DDeviceContext* context;
 
 				ID3DVertexShader* vertexShader;
@@ -657,11 +731,10 @@ namespace slib
 
 #if D3D_VERSION_MAJOR >= 10
 				Memory codeVertexShader;
-				ID3DBuffer* constantBuffer[2];
-				Memory memConstantBuffer[2];
-				sl_uint8* pConstantBuffer[2];
-				sl_uint32 sizeConstantBuffer[2];
-				sl_bool flagUpdatedConstantBuffer[2];
+				List<ConstantBuffer> constantBuffersVS;
+				List<ID3DBuffer*> constantBufferHandlesVS;
+				List<ConstantBuffer> constantBuffersPS;
+				List<ID3DBuffer*> constantBufferHandlesPS;
 #endif
 
 				Ref<RenderProgramState> state;
@@ -673,14 +746,6 @@ namespace slib
 					context = sl_null;
 					vertexShader = sl_null;
 					pixelShader = sl_null;
-#if D3D_VERSION_MAJOR >= 10
-					constantBuffer[0] = sl_null;
-					pConstantBuffer[0] = sl_null;
-					sizeConstantBuffer[0] = 0;
-					constantBuffer[1] = sl_null;
-					pConstantBuffer[1] = sl_null;
-					sizeConstantBuffer[1] = 0;
-#endif
 				}
 
 				~RenderProgramInstanceImpl()
@@ -691,14 +756,6 @@ namespace slib
 					if (pixelShader) {
 						pixelShader->Release();
 					}
-#if D3D_VERSION_MAJOR >= 10
-					if (constantBuffer[0]) {
-						constantBuffer[0]->Release();
-					}
-					if (constantBuffer[1]) {
-						constantBuffer[1]->Release();
-					}
-#endif
 				}
 
 			public:
@@ -738,9 +795,11 @@ namespace slib
 #endif
 						if (ps) {
 #if D3D_VERSION_MAJOR >= 10
-							Memory memConstantBuffer[2];
-							ID3DBuffer* constantBuffer[2];
-							if (createConstantBuffers(device, program, constantBuffer, memConstantBuffer)) {
+							List<ConstantBuffer> constantBuffersVS;
+							List<ID3DBuffer*> constantBufferHandlesVS;
+							List<ConstantBuffer> constantBuffersPS;
+							List<ID3DBuffer*> constantBufferHandlesPS;
+							if (createConstantBuffers(device, program, constantBuffersVS, constantBufferHandlesVS, constantBuffersPS, constantBufferHandlesPS)) {
 #endif
 								Ref<RenderProgramState> state = program->onCreate(engine);
 								if (state.isNotNull()) {
@@ -751,14 +810,10 @@ namespace slib
 										ret->vertexShader = vs;
 										ret->pixelShader = ps;
 #if D3D_VERSION_MAJOR >= 10
-										ret->constantBuffer[0] = constantBuffer[0];
-										ret->pConstantBuffer[0] = (sl_uint8*)(memConstantBuffer[0].getData());
-										ret->sizeConstantBuffer[0] = (sl_uint32)(memConstantBuffer[0].getSize());
-										ret->memConstantBuffer[0] = Move(memConstantBuffer[0]);
-										ret->constantBuffer[1] = constantBuffer[1];
-										ret->pConstantBuffer[1] = (sl_uint8*)(memConstantBuffer[1].getData());
-										ret->sizeConstantBuffer[1] = (sl_uint32)(memConstantBuffer[1].getSize());
-										ret->memConstantBuffer[1] = Move(memConstantBuffer[1]);
+										ret->constantBuffersVS = Move(constantBuffersVS);
+										ret->constantBufferHandlesVS = Move(constantBufferHandlesVS);
+										ret->constantBuffersPS = Move(constantBuffersPS);
+										ret->constantBufferHandlesPS = Move(constantBufferHandlesPS);
 #endif
 										state->setProgramInstance(ret.get());
 										if (program->onInit(engine, ret.get(), state.get())) {
@@ -773,8 +828,6 @@ namespace slib
 									}
 								}
 #if D3D_VERSION_MAJOR >= 10
-								constantBuffer[0]->Release();
-								constantBuffer[1]->Release();
 							}
 #endif
 							ps->Release();
@@ -801,16 +854,19 @@ namespace slib
 				void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* _data, sl_uint32 nItems) override
 				{
 #if D3D_VERSION_MAJOR >= 10
-					sl_uint32 indexConstant;
+					ConstantBuffer* buffer;
 					if (location.shader == RenderShaderType::Vertex) {
-						indexConstant = 0;
+						buffer = constantBuffersVS.getPointerAt(location.bufferNo);
 					} else if (location.shader == RenderShaderType::Pixel) {
-						indexConstant = 1;
+						buffer = constantBuffersPS.getPointerAt(location.bufferNo);
 					} else {
 						return;
 					}
+					if (!buffer) {
+						return;
+					}
 					sl_uint32 loc = (sl_uint32)(location.location << 4);
-					if (loc >= sizeConstantBuffer[indexConstant]) {
+					if (loc >= buffer->size) {
 						return;
 					}
 #endif
@@ -936,15 +992,15 @@ namespace slib
 					}
 #if D3D_VERSION_MAJOR >= 10
 					sl_uint32 size = nItems << 2;
-					sl_uint32 limit = sizeConstantBuffer[indexConstant] - loc;
+					sl_uint32 limit = buffer->size - loc;
 					if (size > limit) {
 						size = limit;
 					}
 					if (!size) {
 						return;
 					}
-					Base::copyMemory(pConstantBuffer[indexConstant] + loc, data, size);
-					flagUpdatedConstantBuffer[indexConstant] = sl_true;
+					Base::copyMemory(buffer->data + loc, data, size);
+					buffer->flagUpdated = sl_true;
 #else
 					sl_uint n4 = nItems >> 2;
 					if (n4) {
@@ -962,60 +1018,67 @@ namespace slib
 				}
 
 #if D3D_VERSION_MAJOR >= 10
-				static sl_bool createConstantBuffers(ID3DDevice* device, RenderProgram* program, ID3DBuffer* buffer[2], Memory memConstantBuffer[2])
+				static sl_bool createConstantBuffers(ID3DDevice* device, RenderProgram* program, List<ConstantBuffer>& buffersVS, List<ID3DBuffer*>& handlesVS, List<ConstantBuffer>& buffersPS, List<ID3DBuffer*>& handlesPS)
 				{
-					sl_uint32 size[2];
-					size[0] = program->getVertexShaderConstantBufferSize();
-					if (!(size[0])) {
-						return sl_null;
-					}
-					size[1] = program->getPixelShaderConstantBufferSize();
-					if (!(size[1])) {
-						return sl_null;
-					}
-					sl_uint32 i = 0;
-					for (; i < 2; i++) {
-						Memory mem = Memory::create(size[i]);
-						if (mem.isNull()) {
-							break;
+					{
+						sl_uint32 n = program->getVertexShaderConstantBuffersCount();
+						if (!n) {
+							return sl_false;
 						}
-						Base::zeroMemory(mem.getData(), mem.getSize());
-
-						D3D_(BUFFER_DESC) desc = { 0 };
-						desc.BindFlags = D3D_(BIND_CONSTANT_BUFFER);
-						desc.ByteWidth = size[i];
-
-						D3D_(SUBRESOURCE_DATA) data = { 0 };
-						data.pSysMem = mem.getData();
-
-						ID3DBuffer* buf = sl_null;
-						device->CreateBuffer(&desc, &data, &buf);
-						if (!buf) {
-							break;
+						for (sl_uint32 i = 0; i < n; i++) {
+							ConstantBuffer buffer;
+							if (buffer.init(device, program->getVertexShaderConstantBufferSize(i))) {
+								if (!(handlesVS.add_NoLock(buffer.handle))) {
+									return sl_false;
+								}
+								if (!(buffersVS.add_NoLock(Move(buffer)))) {
+									return sl_false;
+								}
+							} else {
+								return sl_false;
+							}
 						}
-						memConstantBuffer[i] = Move(mem);
-						buffer[i] = buf;
 					}
-					if (i < 2) {
-						buffer[0]->Release();
-						buffer[0] = sl_null;
-						return sl_false;
+					{
+						sl_uint32 n = program->getPixelShaderConstantBuffersCount();
+						if (!n) {
+							return sl_false;
+						}
+						for (sl_uint32 i = 0; i < n; i++) {
+							ConstantBuffer buffer;
+							if (buffer.init(device, program->getPixelShaderConstantBufferSize(i))) {
+								if (!(handlesPS.add_NoLock(buffer.handle))) {
+									return sl_false;
+								}
+								if (!(buffersPS.add_NoLock(Move(buffer)))) {
+									return sl_false;
+								}
+							} else {
+								return sl_false;
+							}
+						}
 					}
 					return sl_true;
 				}
 
 				void applyConstantBuffer(ID3DDeviceContext* context)
 				{
-					if (flagUpdatedConstantBuffer[0]) {
-						context->UpdateSubresource(constantBuffer[0], 0, NULL, pConstantBuffer[0], 0, 0);
-						flagUpdatedConstantBuffer[0] = sl_false;
+					{
+						ListElements<ConstantBuffer> list(constantBuffersVS);
+						for (sl_size i = 0; i < list.count; i++) {
+							ConstantBuffer& buffer = list[i];
+							buffer.update(context);
+						}
+						context->VSSetConstantBuffers(0, (UINT)(list.count), constantBufferHandlesVS.getData());
 					}
-					context->VSSetConstantBuffers(0, 1, constantBuffer);
-					if (flagUpdatedConstantBuffer[1]) {
-						context->UpdateSubresource(constantBuffer[1], 0, NULL, pConstantBuffer[1], 0, 0);
-						flagUpdatedConstantBuffer[1] = sl_false;
+					{
+						ListElements<ConstantBuffer> list(constantBuffersPS);
+						for (sl_size i = 0; i < list.count; i++) {
+							ConstantBuffer& buffer = list[i];
+							buffer.update(context);
+						}
+						context->PSSetConstantBuffers(0, (UINT)(list.count), constantBufferHandlesPS.getData());
 					}
-					context->PSSetConstantBuffers(0, 1, constantBuffer + 1);
 				}
 #else
 				static void _setUniform(ID3DDevice* dev, const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 countVector4)
