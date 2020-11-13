@@ -475,11 +475,11 @@ namespace slib
 	};
 
 	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState2D_PositionColor, RenderVertex2D_PositionColor)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Vertex, 3)
 
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position)
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT4(color, a_Color)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT4(color, a_Color, RenderInputSemanticName::Color)
 	SLIB_RENDER_PROGRAM_STATE_END
 
 	class SLIB_EXPORT RenderProgram2D_PositionColor : public RenderProgramT<RenderProgramState2D_PositionColor>
@@ -488,7 +488,11 @@ namespace slib
 		String getGLSLVertexShader(RenderEngine* engine) override;
 		
 		String getGLSLFragmentShader(RenderEngine* engine) override;
-		
+
+		String getHLSLVertexShader(RenderEngine* engine) override;
+
+		String getHLSLPixelShader(RenderEngine* engine) override;
+
 	};
 
 

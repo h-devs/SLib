@@ -408,49 +408,77 @@ namespace slib
 
 	String RenderProgram2D_PositionTextureOES::getGLSLFragmentShader(RenderEngine* engine)
 	{
-		String source = "#extension GL_OES_EGL_image_external : require\n";
-		source += SLIB_STRINGIFY(
-								 precision mediump float;
-								 uniform vec4 u_Color;
-								 uniform samplerExternalOES u_Texture;
-								 varying vec2 v_TexCoord;
-								 void main() {
-									 vec4 colorTexture = texture2D(u_Texture, v_TexCoord);
-									 gl_FragColor = colorTexture * u_Color;
-								 }
-								 );
-		return source;
+		SLIB_RETURN_STRING(
+			"#extension GL_OES_EGL_image_external : require\n"
+			SLIB_STRINGIFY(
+				precision mediump float;
+				uniform vec4 u_Color;
+				uniform samplerExternalOES u_Texture;
+				varying vec2 v_TexCoord;
+				void main() {
+					vec4 colorTexture = texture2D(u_Texture, v_TexCoord);
+					gl_FragColor = colorTexture * u_Color;
+				}
+			)
+		)
 	}
 	
 
 	String RenderProgram2D_PositionColor::getGLSLVertexShader(RenderEngine* engine)
 	{
-		String source = SLIB_STRINGIFY(
-									   uniform mat3 u_Transform;
-									   uniform vec4 u_Color;
-									   attribute vec2 a_Position;
-									   attribute vec4 a_Color;
-									   varying vec4 v_Color;
-									   void main() {
-										   vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
-										   gl_Position = vec4(P.x, P.y, 0.0, 1.0);
-										   v_Color = a_Color * u_Color;
-									   }
-									   );
-		return source;
+		SLIB_RETURN_STRING(SLIB_STRINGIFY(
+			uniform mat3 u_Transform;
+			uniform vec4 u_Color;
+			attribute vec2 a_Position;
+			attribute vec4 a_Color;
+			varying vec4 v_Color;
+			void main() {
+				vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
+				gl_Position = vec4(P.x, P.y, 0.0, 1.0);
+				v_Color = a_Color * u_Color;
+			}
+		))
 	}
 	
 	String RenderProgram2D_PositionColor::getGLSLFragmentShader(RenderEngine* engine)
 	{
-		String source = SLIB_STRINGIFY(
-									   varying vec4 v_Color;
-									   void main() {
-										   gl_FragColor = v_Color;
-									   }
-									   );
-		return source;
+		SLIB_RETURN_STRING(SLIB_STRINGIFY(
+			varying vec4 v_Color;
+			void main() {
+				gl_FragColor = v_Color;
+			}
+		))
 	}
-	
+
+	String RenderProgram2D_PositionColor::getHLSLVertexShader(RenderEngine* engine)
+	{
+		SLIB_RETURN_STRING(SLIB_STRINGIFY(
+			float3x3 u_Transform : register(c0);
+			float4 u_Color : register(c3);
+			struct VS_OUTPUT
+			{
+				float4 pos : SV_Position;
+				float4 color : COLOR0;
+			};
+			VS_OUTPUT main(in float2 a_Position : POSITION, in float4 a_Color : COLOR) {
+				VS_OUTPUT output;
+				float3 P = mul(float3(a_Position.x, a_Position.y, 1.0), u_Transform);
+				output.pos = float4(P.x, P.y, 0.0, 1.0);
+				output.color = u_Color * a_Color;
+				return output;
+			}
+		))
+	}
+
+	String RenderProgram2D_PositionColor::getHLSLPixelShader(RenderEngine* engine)
+	{
+		SLIB_RETURN_STRING(SLIB_STRINGIFY(
+			float4 main(in float4 v_Color : COLOR0) : SV_Target {
+				return v_Color;
+			}
+		))
+	}
+
 
 	String RenderProgram2D_Position::getGLSLVertexShader(RenderEngine* engine)
 	{
@@ -478,7 +506,7 @@ namespace slib
 	{
 		SLIB_RETURN_STRING(SLIB_STRINGIFY(
 			float3x3 u_Transform;
-			float4 main(in float2 a_Position : POSITION) : POSITION {
+			float4 main(in float2 a_Position : POSITION) : SV_Position {
 				float3 P = mul(float3(a_Position.x, a_Position.y, 1.0), u_Transform);
 				return float4(P.x, P.y, 0.0, 1.0);
 			}
@@ -489,7 +517,7 @@ namespace slib
 	{
 		SLIB_RETURN_STRING(SLIB_STRINGIFY(
 			float4 u_Color;
-			float4 main() : COLOR {
+			float4 main() : SV_Target {
 				return u_Color;
 			}
 		))
