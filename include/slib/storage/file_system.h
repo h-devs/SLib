@@ -261,7 +261,10 @@ namespace slib
 	class FileSystemWrapper : public FileSystemProvider
 	{
 	public:
-		FileSystemWrapper(const Ref<FileSystemProvider>& base, const String& fileSystemName = sl_null, const String& volumeName = sl_null);
+		FileSystemWrapper(const Ref<FileSystemProvider>& base, 
+			const String& fileSystemName = sl_null, 
+			const String& volumeName = sl_null,
+			sl_uint32 serialNumber = SLIB_UINT32_MAX);
 
 		~FileSystemWrapper();
 
@@ -296,16 +299,16 @@ namespace slib
 
 	protected:
 		// If you want to use different FileContext in wrapper, you will need to override these functions.
-		virtual Ref<FileContext> createContext(FileContext* baseContext, const StringParam& path);
-		virtual Ref<FileContext> getBaseContext(FileContext* context);
+		virtual Ref<FileContext> createContext(FileContext* baseContext, const StringParam& path) noexcept;
+		virtual Ref<FileContext> getBaseContext(FileContext* context) noexcept;
 
 		// If you want to use different path in wrapper, you will need to override these functions.
-		virtual String toBasePath(const StringParam& path);
-		virtual String toWrapperPath(const String& basePath, sl_bool flagNameOnly);
+		virtual String toBasePath(const StringParam& path) noexcept;
+		virtual String toWrapperPath(const String& basePath, sl_bool flagNameOnly) noexcept;
 
 		// If you want to use different file info in wrapper, you will need to override these functions.
-		virtual void convertToBaseFileInfo(FileInfo& info, const FileInfoMask& mask) noexcept;
-		virtual void convertToWrapperFileInfo(FileInfo& baseInfo, const FileInfoMask& mask) noexcept;
+		virtual sl_bool convertToBaseFileInfo(FileInfo& info, const FileInfoMask& mask) noexcept;
+		virtual sl_bool convertToWrapperFileInfo(FileInfo& baseInfo, const FileInfoMask& mask) noexcept;
 
 	protected:
 		Ref<FileSystemProvider> m_base;
