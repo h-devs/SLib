@@ -457,8 +457,8 @@ namespace slib
 			float4 u_Color : register(c3);
 			struct VS_OUTPUT
 			{
-				float4 pos : SV_Position;
-				float4 color : COLOR0;
+				float4 pos : POSITION;
+				float4 color : COLOR;
 			};
 			VS_OUTPUT main(in float2 a_Position : POSITION, in float4 a_Color : COLOR) {
 				VS_OUTPUT output;
@@ -473,7 +473,7 @@ namespace slib
 	String RenderProgram2D_PositionColor::getHLSLPixelShader(RenderEngine* engine)
 	{
 		SLIB_RETURN_STRING(SLIB_STRINGIFY(
-			float4 main(in float4 v_Color : COLOR0) : SV_Target {
+			float4 main(in float4 v_Color : COLOR) : COLOR {
 				return v_Color;
 			}
 		))
@@ -506,7 +506,7 @@ namespace slib
 	{
 		SLIB_RETURN_STRING(SLIB_STRINGIFY(
 			float3x3 u_Transform;
-			float4 main(in float2 a_Position : POSITION) : SV_Position {
+			float4 main(in float2 a_Position : POSITION) : POSITION {
 				float3 P = mul(float3(a_Position.x, a_Position.y, 1.0), u_Transform);
 				return float4(P.x, P.y, 0.0, 1.0);
 			}
@@ -517,7 +517,7 @@ namespace slib
 	{
 		SLIB_RETURN_STRING(SLIB_STRINGIFY(
 			float4 u_Color;
-			float4 main() : SV_Target {
+			float4 main() : COLOR {
 				return u_Color;
 			}
 		))
