@@ -44,4 +44,7 @@
 #	define SLIB_RENDER_SUPPORT_OPENGL_GLX
 #endif
 
+typedef sl_uint32 sl_render_sampler;
+typedef sl_int32 sl_render_location;
+
 #endif

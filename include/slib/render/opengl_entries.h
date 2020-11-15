@@ -56,15 +56,9 @@ namespace slib
 		
 		static void setDepthFunction(RenderFunctionOperation op);
 		
-		
 		static void setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW = sl_true);
 		
-		
-		static void setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param);
-		
-		static void setBlending(sl_bool flagEnableBlending);
-		
-		/* objects are represented as unsigned integers (zero means null object) */
+		static void setBlending(const RenderBlendParam& param);
 		
 		// draw
 		static void drawPrimitives(PrimitiveType type, sl_uint32 countVertices, sl_uint32 startIndex = 0);
@@ -249,8 +243,6 @@ namespace slib
 		static void setUniformMatrix4Array(sl_int32 uniformLocation, const void* values, sl_uint32 count);
 		
 		static void setUniformTextureSampler(sl_int32 uniformLocation, sl_uint32 samplerNo);
-		
-		static void setUniformTextureSamplerArray(sl_int32 uniformLocation, const sl_reg* values, sl_uint32 count);
 		
 #ifdef PRIV_SLIB_RENDER_ENTRIES_CLASS_GL
 		static void drawPixels(const BitmapData& bitmapData);

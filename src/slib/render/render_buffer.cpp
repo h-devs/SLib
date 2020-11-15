@@ -84,11 +84,9 @@ namespace slib
 		if (size > total - offset) {
 			size = total - offset;
 		}
-		for (int i = 0; i < SLIB_MAX_RENDER_ENGINE_COUNT_PER_OBJECT; i++) {
-			Ref<RenderBaseObjectInstance> instance = m_instances[i];
-			if (instance.isNotNull()) {
-				((RenderBufferInstance*)(instance.get()))->notifyUpdated(this, offset, size);
-			}
+		Ref<RenderBaseObjectInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			((RenderBufferInstance*)(instance.get()))->notifyUpdated(this, offset, size);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -38,16 +38,10 @@ namespace slib
 	{
 	}
 	
-	void RenderBaseObjectInstance::link(const Ref<RenderEngine>& engine, const Ref<RenderBaseObject>& object)
+	void RenderBaseObjectInstance::link(RenderEngine* engine, RenderBaseObject* object)
 	{
-		m_object = object;
 		m_engine = engine;
-		object->addInstance(this);
-	}
-	
-	Ref<RenderBaseObject> RenderBaseObjectInstance::getObject()
-	{
-		return m_object;
+		object->m_instance = this;
 	}
 	
 	Ref<RenderEngine> RenderBaseObjectInstance::getEngine()
@@ -95,80 +89,18 @@ namespace slib
 	{
 	}
 	
-	void RenderBaseObject::addInstance(const Ref<RenderBaseObjectInstance>& instanceNew)
-	{
-		if (instanceNew.isNull()) {
-			return;
-		}
-		Ref<RenderEngine> engineNew(instanceNew->m_engine);
-		if (engineNew.isNull()) {
-			return;
-		}
-		int indexEmpty = -1;
-		int i;
-		for (i = 0; i < SLIB_MAX_RENDER_ENGINE_COUNT_PER_OBJECT; i++) {
-			Ref<RenderBaseObjectInstance> instance = m_instances[i];
-			if (instance.isNotNull()) {
-				if (instance == instanceNew) {
-					return;
-				}
-				Ref<RenderEngine> engine(instance->m_engine);
-				if (engine.isNotNull()) {
-					if (engine.get() == engineNew.get()) {
-						return;
-					}
-				} else {
-					indexEmpty = i;
-					m_instances[i].setNull();
-				}
-			} else {
-				indexEmpty = i;
-			}
-		}
-		if (indexEmpty >= 0) {
-			m_instances[indexEmpty] = instanceNew;
-		} else {
-			for (i = 0; i < SLIB_MAX_RENDER_ENGINE_COUNT_PER_OBJECT - 1; i++) {
-				m_instances[i] = m_instances[i+1];
-			}
-			m_instances[i] = instanceNew;
-		}
-	}
-	
-	void RenderBaseObject::removeInstance(const Ref<RenderBaseObjectInstance>& instanceRemove)
-	{
-		if (instanceRemove.isNull()) {
-			return;
-		}
-		for (int i = 0; i < SLIB_MAX_RENDER_ENGINE_COUNT_PER_OBJECT; i++) {
-			if (m_instances[i] == instanceRemove) {
-				m_instances[i].setNull();
-				break;
-			}
-		}
-	}
-	
-	void RenderBaseObject::removeAllInstances()
-	{
-		for (int i = 0; i < SLIB_MAX_RENDER_ENGINE_COUNT_PER_OBJECT; i++) {
-			m_instances[i].setNull();
-		}
-	}
-	
 	Ref<RenderBaseObjectInstance> RenderBaseObject::getInstance(RenderEngine* engine)
 	{
 		if (engine) {
-			for (int i = 0; i < SLIB_MAX_RENDER_ENGINE_COUNT_PER_OBJECT; i++) {
-				Ref<RenderBaseObjectInstance> instance = m_instances[i];
-				if (instance.isNotNull()) {
-					Ref<RenderEngine> instanceEngine(instance->m_engine);
-					if (instanceEngine.isNotNull()) {
-						if (instanceEngine.get() == engine) {
-							return instance;
-						}
-					} else {
-						m_instances[i].setNull();
+			Ref<RenderBaseObjectInstance> instance = m_instance;
+			if (instance.isNotNull()) {
+				Ref<RenderEngine> _engine(instance->m_engine);
+				if (_engine.isNotNull()) {
+					if (_engine.get() == engine) {
+						return instance;
 					}
+				} else {
+					m_instance.setNull();
 				}
 			}
 		}
@@ -183,6 +115,167 @@ namespace slib
 	void RenderBaseObject::setFlags(const RenderObjectFlags& flags)
 	{
 		m_flags = flags;
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RenderDepthStencilParam)
+
+	RenderDepthStencilParam::RenderDepthStencilParam() :
+		flagTestDepth(sl_true),
+		flagWriteDepth(sl_true),
+		depthFunction(RenderFunctionOperation::Less),
+		flagStencil(sl_false),
+		stencilReadMask(0xff),
+		stencilWriteMask(0xff),
+		stencilRef(0)
+	{
+	}
+
+	SLIB_DEFINE_ROOT_OBJECT(RenderDepthStencilState)
+
+	RenderDepthStencilState::RenderDepthStencilState()
+	{
+	}
+
+	RenderDepthStencilState::~RenderDepthStencilState()
+	{
+	}
+
+	Ref<RenderDepthStencilState> RenderDepthStencilState::create(const RenderDepthStencilParam& param)
+	{
+		Ref<RenderDepthStencilState> state = new RenderDepthStencilState;
+		if (state.isNotNull()) {
+			state->m_param = param;
+			return state;
+		}
+		return sl_null;
+	}
+
+	const RenderDepthStencilParam& RenderDepthStencilState::getParam()
+	{
+		return m_param;
+	}
+
+	void RenderDepthStencilState::setStencilRef(sl_uint32 ref)
+	{
+		m_param.stencilRef = ref;
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RenderRasterizerParam)
+
+	RenderRasterizerParam::RenderRasterizerParam() :
+		flagCull(sl_true),
+		flagCullCCW(sl_true),
+		flagWireFrame(sl_false),
+		flagMultiSample(sl_false)
+	{
+	}
+
+	SLIB_DEFINE_ROOT_OBJECT(RenderRasterizerState)
+
+	RenderRasterizerState::RenderRasterizerState()
+	{
+	}
+
+	RenderRasterizerState::~RenderRasterizerState()
+	{
+	}
+
+	Ref<RenderRasterizerState> RenderRasterizerState::create(const RenderRasterizerParam& param)
+	{
+		Ref<RenderRasterizerState> state = new RenderRasterizerState;
+		if (state.isNotNull()) {
+			state->m_param = param;
+			return state;
+		}
+		return sl_null;
+	}
+
+	const RenderRasterizerParam& RenderRasterizerState::getParam()
+	{
+		return m_param;
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RenderBlendParam)
+
+	RenderBlendParam::RenderBlendParam() :
+		flagBlending(sl_false),
+		operation(RenderBlendingOperation::Add),
+		operationAlpha(RenderBlendingOperation::Add),
+		blendDst(RenderBlendingFactor::OneMinusSrcAlpha),
+		blendDstAlpha(RenderBlendingFactor::OneMinusSrcAlpha),
+		blendSrc(RenderBlendingFactor::SrcAlpha),
+		blendSrcAlpha(RenderBlendingFactor::One),
+		blendConstant(Vector4::zero())
+	{
+	}
+
+	SLIB_DEFINE_ROOT_OBJECT(RenderBlendState)
+
+	RenderBlendState::RenderBlendState()
+	{
+	}
+
+	RenderBlendState::~RenderBlendState()
+	{
+	}
+
+	Ref<RenderBlendState> RenderBlendState::create(const RenderBlendParam& param)
+	{
+		Ref<RenderBlendState> state = new RenderBlendState;
+		if (state.isNotNull()) {
+			state->m_param = param;
+			return state;
+		}
+		return sl_null;
+	}
+
+	const RenderBlendParam& RenderBlendState::getParam()
+	{
+		return m_param;
+	}
+
+	void RenderBlendState::setConstant(const Vector4& v)
+	{
+		m_param.blendConstant = v;
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RenderSamplerParam)
+
+	RenderSamplerParam::RenderSamplerParam() :
+		minFilter(TextureFilterMode::Linear),
+		magFilter(TextureFilterMode::Linear),
+		wrapX(TextureWrapMode::Clamp),
+		wrapY(TextureWrapMode::Clamp)
+	{
+	}
+
+	SLIB_DEFINE_ROOT_OBJECT(RenderSamplerState)
+
+	RenderSamplerState::RenderSamplerState()
+	{
+	}
+
+	RenderSamplerState::~RenderSamplerState()
+	{
+	}
+
+	Ref<RenderSamplerState> RenderSamplerState::create(const RenderSamplerParam& param)
+	{
+		Ref<RenderSamplerState> state = new RenderSamplerState;
+		if (state.isNotNull()) {
+			state->m_param = param;
+			return state;
+		}
+		return sl_null;
+	}
+
+	const RenderSamplerParam& RenderSamplerState::getParam()
+	{
+		return m_param;
 	}
 
 }

@@ -35,9 +35,6 @@
 #define STACK_BUFFER_COUNT 128
 #define STACK_IMAGE_SIZE 16384
 
-#define MAX_SAMPLER_COUNT 32
-#define MIN_SAMPLER_COUNT 4
-
 #ifdef SLIB_PLATFORM_IS_TIZEN
 #include <Elementary_GL_Helpers.h>
 ELEMENTARY_GLVIEW_GLOBAL_DEFINE()
@@ -226,9 +223,9 @@ namespace slib
 		}
 	}
 
-	void GL_BASE::setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param)
+	void GL_BASE::setBlending(const RenderBlendParam& param)
 	{
-		if (flagEnableBlending) {
+		if (param.flagBlending) {
 			GL_ENTRY(glEnable)(GL_BLEND);
 #ifdef NEED_CHECK_ENTRY
 			if (!GL_ENTRY(glBlendEquation)) {
@@ -258,12 +255,6 @@ namespace slib
 		} else {
 			GL_ENTRY(glDisable)(GL_BLEND);
 		}
-	}
-	
-	void GL_BASE::setBlending(sl_bool flagEnableBlending)
-	{
-		RenderBlendingParam param;
-		setBlending(flagEnableBlending, param);
 	}
 	
 	namespace priv
@@ -784,17 +775,6 @@ namespace slib
 		}
 	}
 	
-	void GL_BASE::setUniformTextureSamplerArray(sl_int32 uniformLocation, const sl_reg* samplers, sl_uint32 n)
-	{
-		if (uniformLocation != -1) {
-			SLIB_SCOPED_BUFFER(GLint, 64, m, n);
-			for (sl_uint32 i = 0; i < n; i++) {
-				m[i] = (GLint)(samplers[i]);
-			}
-			GL_ENTRY(glUniform1iv)(uniformLocation, n, m);
-		}
-	}
-	
 	namespace priv
 	{
 		namespace gl
@@ -1302,6 +1282,8 @@ namespace slib
 		
 		Ref<RenderProgram> m_currentProgramRendering;
 		Ref<GLRenderProgramInstance> m_currentProgramInstanceRendering;
+
+		Ref<RenderSamplerState> m_currentSamplerStates[8];
 		
 		class GLTextureInstance;
 		
@@ -1320,15 +1302,10 @@ namespace slib
 				instance.setNull();
 			}
 		};
-		GLSamplerState m_samplers[MAX_SAMPLER_COUNT];
-		sl_uint32 m_nSamplers;
-		sl_uint32 m_activeSampler;
 		
 	public:
 		GL_ENGINE()
 		{
-			m_nSamplers = 0;
-			m_activeSampler = -1;
 		}
 		
 		~GL_ENGINE()
@@ -1563,11 +1540,6 @@ namespace slib
 				return glsl;
 			}
 			
-			Ref<RenderProgram> getProgram()
-			{
-				return Ref<RenderProgram>::from(getObject());
-			}
-
 		public:
 			Ref<RenderInputLayout> createInputLayout(const RenderInputLayoutParam& param) override
 			{
@@ -1892,29 +1864,31 @@ namespace slib
 			GL_BASE::clear(param);
 		}
 		
-		void _setDepthTest(sl_bool flag) override
+		void _setDepthStencilState(RenderDepthStencilState* state) override
 		{
-			GL_BASE::setDepthTest(flag);
+			const RenderDepthStencilParam& param = state->getParam();
+			GL_BASE::setDepthTest(param.flagTestDepth);
+			GL_BASE::setDepthWriteEnabled(param.flagWriteDepth);
+			GL_BASE::setDepthFunction(param.depthFunction);
+		}
+
+		void _setRasterizerState(RenderRasterizerState* state) override
+		{
+			const RenderRasterizerParam& param = state->getParam();
+			GL_BASE::setCullFace(param.flagCull, param.flagCullCCW);
 		}
 		
-		void _setDepthWriteEnabled(sl_bool flagEnableDepthWrite) override
+		void _setBlendState(RenderBlendState* state) override
 		{
-			GL_BASE::setDepthWriteEnabled(flagEnableDepthWrite);
+			GL_BASE::setBlending(state->getParam());
 		}
-		
-		void _setDepthFunction(RenderFunctionOperation op) override
+
+		void _setSamplerState(sl_render_sampler samplerNo, RenderSamplerState* state)
 		{
-			GL_BASE::setDepthFunction(op);
-		}
-		
-		void _setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW = sl_true) override
-		{
-			GL_BASE::setCullFace(flagEnableCull, flagCullCCW);
-		}
-		
-		void _setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param) override
-		{
-			GL_BASE::setBlending(flagEnableBlending, param);
+			if (samplerNo >= CountOfArray(m_currentSamplerStates)) {
+				return;
+			}
+			m_currentSamplerStates[samplerNo] = state;
 		}
 		
 		sl_bool _beginProgram(RenderProgram* program, RenderProgramInstance* _instance, RenderProgramState** ppState) override
@@ -1943,10 +1917,6 @@ namespace slib
 			m_currentProgramInstanceRendering.setNull();
 			m_currentVertexBufferInstance.setNull();
 			m_currentIndexBufferInstance.setNull();
-			for (sl_uint32 i = 0; i < m_nSamplers; i++) {
-				m_samplers[i].reset();
-			}
-			m_activeSampler = -1;
 		}
 		
 		void _drawPrimitive(EnginePrimitive* primitive) override
@@ -1999,100 +1969,36 @@ namespace slib
 			}
 		}
 		
-		void _initSamplersCount()
+		void _applyTexture(Texture* texture, TextureInstance* _instance, sl_render_sampler samplerNo) override
 		{
-			if (m_nSamplers == 0) {
-				GLint n = 0;
-				GL_ENTRY(glGetIntegerv)(GL_MAX_TEXTURE_IMAGE_UNITS, &n);
-				if (n > MAX_SAMPLER_COUNT) {
-					n = MAX_SAMPLER_COUNT;
-				}
-				if (n < MIN_SAMPLER_COUNT) {
-					n = MIN_SAMPLER_COUNT;
-				}
-				m_nSamplers = n;
-			}
-		}
-		
-		void _setActiveSampler(sl_uint32 sampler)
-		{
-			if (m_activeSampler != sampler) {
-				GL_BASE::setActiveSampler(sampler);
-				m_activeSampler = sampler;
-			}
-		}
-		
-		void _applyTexture(Texture* texture, TextureInstance* _instance, sl_reg _samplerNo) override
-		{
-			_initSamplersCount();
-			sl_uint32 samplerNo = (sl_uint32)(_samplerNo);
-			if (samplerNo >= m_nSamplers) {
-				return;
-			}
+			GL_BASE::setActiveSampler(samplerNo);
 			if (!texture) {
-				m_samplers[samplerNo].reset();
-				_setActiveSampler(samplerNo);
 				GL_BASE::unbindTexture2D();
 				return;
 			}
 			if (_instance) {
 				GLTextureInstance* instance = (GLTextureInstance*)_instance;
 				if (instance->isUpdated()) {
-					_setActiveSampler(samplerNo);
 					instance->doUpdate(texture);
 				}
-				if (m_samplers[samplerNo].instance != instance) {
-					_setActiveSampler(samplerNo);
-					GL_BASE::bindTexture2D(instance->handle);
-					GL_BASE::setTexture2DFilterMode(texture->getMinFilter(), texture->getMagFilter());
-					GL_BASE::setTexture2DWrapMode(texture->getWrapX(), texture->getWrapY());
-					m_samplers[samplerNo].texture = texture;
-					m_samplers[samplerNo].instance = instance;
-					m_samplers[samplerNo].minFilter = texture->getMinFilter();
-					m_samplers[samplerNo].magFilter = texture->getMagFilter();
-					m_samplers[samplerNo].wrapX = texture->getWrapX();
-					m_samplers[samplerNo].wrapY = texture->getWrapY();
-				} else {
-					if (m_samplers[samplerNo].minFilter != texture->getMinFilter() || m_samplers[samplerNo].magFilter != texture->getMagFilter()) {
-						_setActiveSampler(samplerNo);
-						GL_BASE::setTexture2DFilterMode(texture->getMinFilter(), texture->getMagFilter());
-						m_samplers[samplerNo].minFilter = texture->getMinFilter();
-						m_samplers[samplerNo].magFilter = texture->getMagFilter();
-					}
-					if (m_samplers[samplerNo].wrapX != texture->getWrapX() || m_samplers[samplerNo].wrapY != texture->getWrapY()) {
-						_setActiveSampler(samplerNo);
-						GL_BASE::setTexture2DWrapMode(texture->getWrapX(), texture->getWrapY());
-						m_samplers[samplerNo].wrapX = texture->getWrapX();
-						m_samplers[samplerNo].wrapY = texture->getWrapY();
-					}
-				}
+				GL_BASE::bindTexture2D(instance->handle);
 			} else {
-				if (m_samplers[samplerNo].texture != texture) {
-					_setActiveSampler(samplerNo);
-					GLNamedTexture* named = static_cast<GLNamedTexture*>(texture);
-					GL_BASE::bindTexture(named->m_target, named->m_name);
-					GL_BASE::setTextureFilterMode(named->m_target, texture->getMinFilter(), texture->getMagFilter());
-					GL_BASE::setTextureWrapMode(named->m_target, texture->getWrapX(), texture->getWrapY());
-					m_samplers[samplerNo].texture = texture;
-					m_samplers[samplerNo].instance.setNull();
-					m_samplers[samplerNo].minFilter = texture->getMinFilter();
-					m_samplers[samplerNo].magFilter = texture->getMagFilter();
-					m_samplers[samplerNo].wrapX = texture->getWrapX();
-					m_samplers[samplerNo].wrapY = texture->getWrapY();
-				} else {
-					if (m_samplers[samplerNo].minFilter != texture->getMinFilter() || m_samplers[samplerNo].magFilter != texture->getMagFilter()) {
-						_setActiveSampler(samplerNo);
-						GL_BASE::setTexture2DFilterMode(texture->getMinFilter(), texture->getMagFilter());
-						m_samplers[samplerNo].minFilter = texture->getMinFilter();
-						m_samplers[samplerNo].magFilter = texture->getMagFilter();
-					}
-					if (m_samplers[samplerNo].wrapX != texture->getWrapX() || m_samplers[samplerNo].wrapY != texture->getWrapY()) {
-						_setActiveSampler(samplerNo);
-						GL_BASE::setTexture2DWrapMode(texture->getWrapX(), texture->getWrapY());
-						m_samplers[samplerNo].wrapX = texture->getWrapX();
-						m_samplers[samplerNo].wrapY = texture->getWrapY();
-					}
+				GLNamedTexture* named = static_cast<GLNamedTexture*>(texture);
+				GL_BASE::bindTexture(named->m_target, named->m_name);
+			}				
+			const RenderSamplerParam* param = sl_null;
+			if (samplerNo < CountOfArray(m_currentSamplerStates)) {
+				RenderSamplerState* state = m_currentSamplerStates[samplerNo].get();
+				if (state) {
+					param = &(state->getParam());
 				}
+			}
+			if (param) {
+				GL_BASE::setTexture2DFilterMode(param->minFilter, param->magFilter);
+				GL_BASE::setTexture2DWrapMode(param->wrapX, param->wrapY);
+			} else {
+				GL_BASE::setTexture2DFilterMode(TextureFilterMode::Linear, TextureFilterMode::Linear);
+				GL_BASE::setTexture2DWrapMode(TextureWrapMode::Clamp, TextureWrapMode::Clamp);
 			}
 		}
 

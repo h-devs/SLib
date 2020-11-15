@@ -57,20 +57,6 @@ namespace slib
 	}
 	
 	
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RenderBlendingParam)
-	
-	RenderBlendingParam::RenderBlendingParam()
-	{
-		operation = RenderBlendingOperation::Add;
-		operationAlpha = RenderBlendingOperation::Add;
-		blendDst = RenderBlendingFactor::OneMinusSrcAlpha;
-		blendDstAlpha = RenderBlendingFactor::OneMinusSrcAlpha;
-		blendSrc = RenderBlendingFactor::SrcAlpha;
-		blendSrcAlpha = RenderBlendingFactor::One;
-		blendConstant = Vector4::zero();
-	}
-	
-	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RendererParam)
 	
 	RendererParam::RendererParam()
@@ -106,8 +92,8 @@ namespace slib
 	{
 		m_onFrame(engine);
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(RenderEngine, Object)
 	
 	RenderEngine::RenderEngine()
@@ -187,38 +173,35 @@ namespace slib
 		param.depth = depth;
 		_clear(param);
 	}
-	
-	void RenderEngine::setDepthTest(sl_bool flagEnableDepthTest)
+
+	void RenderEngine::setDepthStencilState(const Ref<RenderDepthStencilState>& state)
 	{
-		_setDepthTest(flagEnableDepthTest);
+		if (state.isNotNull()) {
+			_setDepthStencilState(state.get());
+		}
 	}
-	
-	void RenderEngine::setDepthWriteEnabled(sl_bool flagEnableDepthWrite)
+
+	void RenderEngine::setRasterizerState(const Ref<RenderRasterizerState>& state)
 	{
-		_setDepthWriteEnabled(flagEnableDepthWrite);
+		if (state.isNotNull()) {
+			_setRasterizerState(state.get());
+		}
 	}
-	
-	void RenderEngine::setDepthFunction(RenderFunctionOperation op)
+
+	void RenderEngine::setBlendState(const Ref<RenderBlendState>& state)
 	{
-		_setDepthFunction(op);
+		if (state.isNotNull()) {
+			_setBlendState(state.get());
+		}
 	}
-	
-	void RenderEngine::setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW)
+
+	void RenderEngine::setSamplerState(sl_render_sampler samplerNo, const Ref<RenderSamplerState>& state)
 	{
-		_setCullFace(flagEnableCull, flagCullCCW);
+		if (state.isNotNull()) {
+			_setSamplerState(samplerNo, state.get());
+		}
 	}
-	
-	void RenderEngine::setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param)
-	{
-		_setBlending(flagEnableBlending, param);
-	}
-	
-	void RenderEngine::setBlending(sl_bool flagEnableBlending)
-	{
-		RenderBlendingParam param;
-		_setBlending(flagEnableBlending, param);
-	}
-	
+
 	sl_bool RenderEngine::beginProgram(const Ref<RenderProgram>& program, RenderProgramState** ppState)
 	{
 		if (program.isNotNull()) {
@@ -299,7 +282,7 @@ namespace slib
 		drawPrimitive(&p);
 	}
 	
-	void RenderEngine::applyTexture(const Ref<Texture>& _texture, sl_reg sampler)
+	void RenderEngine::applyTexture(const Ref<Texture>& _texture, sl_render_sampler sampler)
 	{
 		Texture* texture = _texture.get();
 		if (texture) {
@@ -713,7 +696,16 @@ namespace slib
 				return;
 			}
 		}
-		setDepthTest(sl_false);
+
+		Ref<RenderDepthStencilState> state = m_stateDepthStencilForDrawDebug;
+		if (state.isNull()) {
+			RenderDepthStencilParam param;
+			param.flagTestDepth = sl_false;
+			state = RenderDepthStencilState::create(param);
+			m_stateDepthStencilForDrawDebug = state;
+		}
+		setDepthStencilState(state);
+
 		String text;
 		text = "FPS:";
 		double duration = (now - m_timeLastDebugText).getMillisecondsCountf();

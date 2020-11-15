@@ -113,6 +113,17 @@ namespace slib
 		m_flagDebugTextVisible = sl_false;
 		m_flagDebugTextVisibleOnRelease = sl_false;
 
+		{
+			RenderDepthStencilParam param;
+			param.flagTestDepth = sl_false;
+			m_stateCanvasDepthStencil = RenderDepthStencilState::create(param);
+		}
+		{
+			RenderBlendParam param;
+			param.flagBlending = sl_true;
+			m_stateCanvasBlend = RenderBlendState::create(param);
+		}
+
 		setBackgroundColor(Color::Black, UIUpdateMode::Init);
 	}
 
@@ -204,8 +215,8 @@ namespace slib
 
 	void RenderView::renderViewContent(RenderEngine* engine)
 	{
-		engine->setDepthTest(sl_false);
-		engine->setBlending(sl_true);
+		engine->setDepthStencilState(m_stateCanvasDepthStencil);
+		engine->setBlendState(m_stateCanvasBlend);
 		Ref<RenderCanvas> canvas = RenderCanvas::create(engine, (sl_real)(getWidth()), (sl_real)(getHeight()));
 		if (canvas.isNotNull()) {
 			dispatchDraw(canvas.get());

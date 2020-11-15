@@ -25,6 +25,7 @@
 
 #include "definition.h"
 
+#include "constants.h"
 #include "base.h"
 
 #include "../math/matrix4.h"
@@ -46,50 +47,6 @@ namespace slib
 		Input = 2
 	};
 
-	enum class RenderUniformType
-	{
-		Float = 0,
-		Float2 = 1,
-		Float3 = 2,
-		Float4 = 4,
-		Int = 0x10,
-		Int2 = 0x11,
-		Int3 = 0x12,
-		Int4 = 0x13,
-		Matrix3 = 0x21,
-		Matrix4 = 0x22,
-		Sampler = 0x30
-	};
-
-	enum class RenderInputType
-	{
-		Float = 0,
-		Float2 = 1,
-		Float3 = 2,
-		Float4 = 3,
-		UByte4 = 0x10,
-		Short2 = 0x11,
-		Short4 = 0x12
-	};
-
-	enum class RenderInputSemanticName
-	{
-		Undefined = 255,
-		Position = 0,
-		BlendWeight = 1,
-		BlendIndices = 2,
-		Normal = 3,
-		PSize = 4,
-		TexCoord = 5,
-		Tangent = 6,
-		BiNormal = 7,
-		TessFactor = 8,
-		PositionT = 9,
-		Color = 10,
-		Fog = 11,
-		Depth = 12
-	};
-
 	struct RenderInputDesc
 	{
 		RenderInputType type;
@@ -99,17 +56,10 @@ namespace slib
 		sl_uint32 slot;
 	};
 
-	enum class RenderShaderType
-	{
-		Undefined = 0,
-		Vertex = 1,
-		Pixel = 2
-	};
-
 	struct RenderUniformLocation
 	{
 		RenderShaderType shader;
-		sl_reg location;
+		sl_render_location location;
 		sl_uint32 bufferNo;
 	};
 
@@ -120,6 +70,7 @@ namespace slib
 		RenderProgramStateKind kind;
 
 		RenderUniformLocation uniform;
+		sl_render_sampler samplerNo;
 		RenderInputDesc input;
 
 	public:
@@ -127,7 +78,9 @@ namespace slib
 		RenderProgramStateItem();
 
 		// Uniform
-		RenderProgramStateItem(const char* name, RenderShaderType type = RenderShaderType::Undefined, sl_reg uniformLocation = -1, sl_uint32 bufferNo = 0);
+		RenderProgramStateItem(const char* name);
+		RenderProgramStateItem(const char* name, sl_render_sampler samplerNo);
+		RenderProgramStateItem(const char* name, RenderShaderType type, sl_render_location uniformLocation = -1, sl_uint32 bufferNo = 0);
 
 		// Input
 		RenderProgramStateItem(const char* name, RenderInputType type, sl_uint32 offset, RenderInputSemanticName semanticName = RenderInputSemanticName::Undefined, sl_uint32 semanticIndex = 0, sl_uint32 slot = 0);
@@ -219,7 +172,7 @@ namespace slib
 
 		void setMatrix4Array(const RenderUniformLocation& location, const Matrix4* arr, sl_uint32 n);
 
-		void setSampler(const RenderUniformLocation& location, const Ref<Texture>& texture, sl_reg sampler = 0);
+		void setSampler(const RenderUniformLocation& location, const Ref<Texture>& texture, sl_render_location sampler = 0);
 
 	protected:
 		RenderProgramInstance* m_programInstance;
@@ -375,7 +328,7 @@ namespace slib
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const Ref<slib::Texture>& texture) { if (NAME.uniform.location >= 0) setSampler(NAME.uniform, texture); }
+	SLIB_INLINE void set##NAME(const Ref<slib::Texture>& texture) { if (NAME.uniform.location >= 0) setSampler(NAME.uniform, texture, NAME.samplerNo); }
 
 #define SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT(MEMBER, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(SHADER_NAME, #SHADER_NAME, RenderInputType::Float, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), ##__VA_ARGS__)
@@ -435,13 +388,13 @@ namespace slib
 	};
 
 	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState2D_PositionTexture, RenderVertex2D_PositionTexture)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(TextureTransform, u_TextureTransform)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(TextureTransform, u_TextureTransform, RenderShaderType::Vertex, 3)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
 
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position)
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord, RenderInputSemanticName::TexCoord)
 	SLIB_RENDER_PROGRAM_STATE_END
 
 	class SLIB_EXPORT RenderProgram2D_PositionTexture : public RenderProgramT<RenderProgramState2D_PositionTexture>
@@ -450,7 +403,11 @@ namespace slib
 		String getGLSLVertexShader(RenderEngine* engine) override;
 		
 		String getGLSLFragmentShader(RenderEngine* engine) override;
-		
+
+		String getHLSLVertexShader(RenderEngine* engine) override;
+
+		String getHLSLPixelShader(RenderEngine* engine) override;
+
 	};
 
 	class SLIB_EXPORT RenderProgram2D_PositionTextureYUV : public RenderProgram2D_PositionTexture
@@ -458,6 +415,8 @@ namespace slib
 	public:
 		String getGLSLFragmentShader(RenderEngine* engine) override;
 		
+		String getHLSLPixelShader(RenderEngine* engine) override;
+
 	};
 
 	class SLIB_EXPORT RenderProgram2D_PositionTextureOES : public RenderProgram2D_PositionTexture

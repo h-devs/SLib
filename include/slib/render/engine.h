@@ -25,7 +25,9 @@
 
 #include "definition.h"
 
+#include "constants.h"
 #include "base.h"
+#include "state.h"
 #include "buffer.h"
 #include "texture.h"
 #include "program.h"
@@ -96,60 +98,6 @@ namespace slib
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RenderClearParam)
 		
-	};
-	
-	enum class RenderBlendingOperation
-	{
-		Add = 0,
-		Subtract = 1,
-		ReverseSubtract = 2
-	};
-	
-	enum class RenderBlendingFactor
-	{
-		One = 0,
-		Zero = 1,
-		SrcAlpha = 2,
-		OneMinusSrcAlpha = 3,
-		DstAlpha = 4,
-		OneMinusDstAlpha = 5,
-		SrcColor = 6,
-		OneMinusSrcColor = 7,
-		DstColor = 8,
-		OneMinusDstColor = 9,
-		SrcAlphaSaturate = 10, // f = min(As, 1 - Ad)
-		Constant = 11,
-		OneMinusConstant = 12
-	};
-	
-	class SLIB_EXPORT RenderBlendingParam
-	{
-	public:
-		RenderBlendingOperation operation;
-		RenderBlendingOperation operationAlpha;
-		RenderBlendingFactor blendSrc;
-		RenderBlendingFactor blendSrcAlpha;
-		RenderBlendingFactor blendDst;
-		RenderBlendingFactor blendDstAlpha;
-		Vector4 blendConstant;
-		
-	public:
-		RenderBlendingParam();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RenderBlendingParam)
-		
-	};
-	
-	enum class RenderFunctionOperation
-	{
-		Never = 0,
-		Always = 1,
-		Equal = 2,
-		NotEqual = 3,
-		Less = 4,
-		LessEqual = 5,
-		Greater = 6,
-		GreaterEqual = 7,
 	};
 	
 	class SLIB_EXPORT RendererParam
@@ -229,7 +177,7 @@ namespace slib
 	};
 
 #define SLIB_RENDER_CHECK_ENGINE_TYPE(v, TYPE) ((((sl_uint32)(v)) & ((sl_uint32)(RenderEngineType::MASK_##TYPE))) == (sl_uint32)(RenderEngineType::TYPE))
-	
+
 	class SLIB_EXPORT RenderEngine : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -260,18 +208,14 @@ namespace slib
 		
 		void clearDepth(float depth = 1.0f);
 		
-		void setDepthTest(sl_bool flagEnableDepthTest);
-		
-		void setDepthWriteEnabled(sl_bool flagEnableDepthWrite);
-		
-		void setDepthFunction(RenderFunctionOperation op);
-		
-		void setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW = sl_true);
-		
-		void setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param);
-		
-		void setBlending(sl_bool flagEnableBlending);
-		
+		void setDepthStencilState(const Ref<RenderDepthStencilState>& state);
+
+		void setRasterizerState(const Ref<RenderRasterizerState>& state);
+
+		void setBlendState(const Ref<RenderBlendState>& state);
+
+		void setSamplerState(sl_render_sampler samplerNo, const Ref<RenderSamplerState>& state);
+
 		sl_bool beginProgram(const Ref<RenderProgram>& program, RenderProgramState** ppState = sl_null /* RenderProgramState** */);
 		
 		void endProgram();
@@ -286,7 +230,7 @@ namespace slib
 		
 		void drawPrimitive(sl_uint32 countElements, const Ref<VertexBuffer>& vb, PrimitiveType type = PrimitiveType::Triangle);
 		
-		void applyTexture(const Ref<Texture>& texture, sl_reg sampler);
+		void applyTexture(const Ref<Texture>& texture, sl_render_sampler sampler);
 
 		void setInputLayout(RenderInputLayout* layout);
 		
@@ -408,17 +352,15 @@ namespace slib
 		virtual void _setViewport(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height) = 0;
 		
 		virtual void _clear(const RenderClearParam& param) = 0;
-		
-		virtual void _setDepthTest(sl_bool flagEnableDepthTest) = 0;
-		
-		virtual void _setDepthWriteEnabled(sl_bool flagEnableDepthWrite) = 0;
-		
-		virtual void _setDepthFunction(RenderFunctionOperation op) = 0;
-		
-		virtual void _setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW) = 0;
-		
-		virtual void _setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param) = 0;
-		
+
+		virtual void _setDepthStencilState(RenderDepthStencilState* state) = 0;
+
+		virtual void _setRasterizerState(RenderRasterizerState* state) = 0;
+
+		virtual void _setBlendState(RenderBlendState* state) = 0;
+
+		virtual void _setSamplerState(sl_render_sampler samplerNo, RenderSamplerState* state) = 0;
+
 		virtual sl_bool _beginProgram(RenderProgram* program, RenderProgramInstance* instance, RenderProgramState** ppState) = 0;
 		
 		virtual void _endProgram() = 0;
@@ -427,7 +369,7 @@ namespace slib
 		
 		virtual void _drawPrimitive(EnginePrimitive* primitive) = 0;
 		
-		virtual void _applyTexture(Texture* texture, TextureInstance* instance, sl_reg sampler) = 0;
+		virtual void _applyTexture(Texture* texture, TextureInstance* instance, sl_render_sampler sampler) = 0;
 
 		virtual void _setInputLayout(RenderInputLayout* layout) = 0;
 
@@ -454,7 +396,9 @@ namespace slib
 		
 		AtomicRef<RenderProgram2D_Position> m_defaultRenderProgramForDrawLine2D;
 		AtomicRef<RenderProgram3D_Position> m_defaultRenderProgramForDrawLine3D;
-		
+
+		AtomicRef<RenderDepthStencilState> m_stateDepthStencilForDrawDebug;
+
 	};
 	
 	template <class StateType>

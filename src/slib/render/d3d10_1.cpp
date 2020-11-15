@@ -37,6 +37,8 @@ typedef ID3D10Device1 ID3DDeviceContext;
 
 typedef ID3D10RenderTargetView ID3DRenderTargetView;
 typedef ID3D10Texture2D ID3DTexture2D;
+typedef ID3D10ShaderResourceView ID3DShaderResourceView;
+typedef ID3D10SamplerState ID3DSamplerState;
 typedef ID3D10Buffer ID3DBuffer;
 typedef ID3D10Buffer ID3DIndexBuffer;
 typedef ID3D10Buffer ID3DVertexBuffer;

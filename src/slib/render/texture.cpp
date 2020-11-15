@@ -88,10 +88,6 @@ namespace slib
 	{
 		m_width = 0;
 		m_height = 0;
-		m_minFilter = TextureFilterMode::Linear;
-		m_magFilter = TextureFilterMode::Linear;
-		m_wrapX = TextureWrapMode::Clamp;
-		m_wrapY = TextureWrapMode::Clamp;
 	}
 	
 	Texture::~Texture()
@@ -195,46 +191,6 @@ namespace slib
 		m_height = height;
 	}
 
-	TextureFilterMode Texture::getMinFilter()
-	{
-		return m_minFilter;
-	}
-
-	void Texture::setMinFilter(TextureFilterMode mode)
-	{
-		m_minFilter = mode;
-	}
-
-	TextureFilterMode Texture::getMagFilter()
-	{
-		return m_magFilter;
-	}
-
-	void Texture::setMagFilter(TextureFilterMode mode)
-	{
-		m_magFilter = mode;
-	}
-
-	TextureWrapMode Texture::getWrapX()
-	{
-		return m_wrapX;
-	}
-
-	void Texture::setWrapX(TextureWrapMode mode)
-	{
-		m_wrapX = mode;
-	}
-
-	TextureWrapMode Texture::getWrapY()
-	{
-		return m_wrapY;
-	}
-
-	void Texture::setWrapY(TextureWrapMode mode)
-	{
-		m_wrapY = mode;
-	}
-
 	void Texture::update(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height)
 	{
 		if (x >= m_width) {
@@ -249,11 +205,9 @@ namespace slib
 		if (height > m_height - y) {
 			height = m_height - y;
 		}
-		for (int i = 0; i < SLIB_MAX_RENDER_ENGINE_COUNT_PER_OBJECT; i++) {
-			Ref<RenderBaseObjectInstance> instance = m_instances[i];
-			if (instance.isNotNull()) {
-				((TextureInstance*)(instance.get()))->notifyUpdated(this, x, y, width, height);
-			}
+		Ref<RenderBaseObjectInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			((TextureInstance*)(instance.get()))->notifyUpdated(this, x, y, width, height);
 		}
 	}
 	

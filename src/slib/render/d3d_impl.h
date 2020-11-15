@@ -985,8 +985,7 @@ namespace slib
 						nItems <<= 2;
 						break;
 					case RenderUniformType::Sampler:
-						type = RenderUniformType::Int;
-						break;
+						return;
 					default:
 						return;
 					}
@@ -1249,6 +1248,9 @@ namespace slib
 				ID3DDevice* device;
 				ID3DDeviceContext* context;
 				ID3DTexture2D* handle;
+#if D3D_VERSION_MAJOR >= 10
+				ID3DShaderResourceView* view;
+#endif
 				sl_bool flagLockable;
 
 			public:
@@ -1257,6 +1259,9 @@ namespace slib
 					device = sl_null;
 					context = sl_null;
 					handle = sl_null;
+#if D3D_VERSION_MAJOR >= 10
+					view = sl_null;
+#endif
 					flagLockable = sl_false;
 				}
 
@@ -1265,6 +1270,11 @@ namespace slib
 					if (handle) {
 						handle->Release();
 					}
+#if D3D_VERSION_MAJOR >= 10
+					if (view) {
+						view->Release();
+					}
+#endif
 				}
 
 			public:
@@ -1306,7 +1316,16 @@ namespace slib
 					device->CreateTexture((UINT)width, (UINT)height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &handle, NULL);
 #endif
 					if (handle) {
-#if D3D_VERSION_MAJOR < 10
+#if D3D_VERSION_MAJOR >= 10
+						ID3DShaderResourceView* view = sl_null;
+						D3D_(SHADER_RESOURCE_VIEW_DESC) view_desc;
+						Base::zeroMemory(&view_desc, sizeof(view_desc));
+						view_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+						view_desc.ViewDimension = D3D_(SRV_DIMENSION_TEXTURE2D);
+						view_desc.Texture2D.MipLevels = 1;
+						device->CreateShaderResourceView(handle, &view_desc, &view);
+						if (view) {
+#else
 						D3DLOCKED_RECT lr;
 						HRESULT hr = handle->LockRect(0, &lr, NULL, 0);
 						if (hr == D3D_OK) {
@@ -1324,13 +1343,17 @@ namespace slib
 								ret->device = device;
 								ret->context = context;
 								ret->handle = handle;
+#if D3D_VERSION_MAJOR >= 10
+								ret->view = view;
+#endif
 								ret->flagLockable = flagLockable;
 								ret->link(engine, texture);
 								return ret;
 							}
-#if D3D_VERSION_MAJOR < 10
-						}
+#if D3D_VERSION_MAJOR >= 10
+							view->Release();
 #endif
+						}
 						handle->Release();
 					}
 					return sl_null;
@@ -1399,6 +1422,259 @@ namespace slib
 
 			};
 
+#if D3D_VERSION_MAJOR >= 10
+			static D3D_(COMPARISON_FUNC) GetComparisonFunction(RenderFunctionOperation op)
+			{
+				switch (op) {
+				case RenderFunctionOperation::Never:
+					return D3D_(COMPARISON_NEVER);
+				case RenderFunctionOperation::Always:
+					return D3D_(COMPARISON_ALWAYS);
+				case RenderFunctionOperation::Equal:
+					return D3D_(COMPARISON_EQUAL);
+				case RenderFunctionOperation::NotEqual:
+					return D3D_(COMPARISON_NOT_EQUAL);
+				case RenderFunctionOperation::Less:
+					return D3D_(COMPARISON_LESS);
+				case RenderFunctionOperation::LessEqual:
+					return D3D_(COMPARISON_LESS_EQUAL);
+				case RenderFunctionOperation::Greater:
+					return D3D_(COMPARISON_GREATER);
+				case RenderFunctionOperation::GreaterEqual:
+					return D3D_(COMPARISON_GREATER_EQUAL);
+				default:
+					break;
+				}
+				return D3D_(COMPARISON_NEVER);
+			}
+
+			static void CreateState(ID3DDevice* device, const RenderDepthStencilParam& param, ID3DDepthStencilState** state)
+			{
+				D3D_(DEPTH_STENCIL_DESC) desc = { 0 };
+				desc.DepthEnable = param.flagTestDepth ? TRUE : FALSE;
+				desc.DepthWriteMask = param.flagWriteDepth ? D3D_(DEPTH_WRITE_MASK_ALL) : D3D_(DEPTH_WRITE_MASK_ZERO);
+				desc.DepthFunc = GetComparisonFunction(param.depthFunction);
+				desc.StencilEnable = param.flagStencil ? TRUE : FALSE;
+				desc.StencilReadMask = (UINT8)(param.stencilReadMask);
+				desc.StencilWriteMask = (UINT8)(param.stencilWriteMask);
+				desc.FrontFace.StencilFailOp = D3D_(STENCIL_OP_KEEP);
+				desc.FrontFace.StencilDepthFailOp = D3D_(STENCIL_OP_KEEP);
+				desc.FrontFace.StencilPassOp = D3D_(STENCIL_OP_KEEP);
+				desc.FrontFace.StencilFunc = D3D_(COMPARISON_ALWAYS);
+				desc.BackFace.StencilFailOp = D3D_(STENCIL_OP_KEEP);
+				desc.BackFace.StencilDepthFailOp = D3D_(STENCIL_OP_KEEP);
+				desc.BackFace.StencilPassOp = D3D_(STENCIL_OP_KEEP);
+				desc.BackFace.StencilFunc = D3D_(COMPARISON_ALWAYS);
+				device->CreateDepthStencilState(&desc, state);
+			}
+
+			static void SetState(ID3DDeviceContext* context, ID3DDepthStencilState* state, const RenderDepthStencilParam& param, sl_render_sampler samplerNo)
+			{
+				context->OMSetDepthStencilState(state, (UINT)(param.stencilRef));
+			}
+
+			static void CreateState(ID3DDevice* device, const RenderRasterizerParam& param, ID3DRasterizerState** state)
+			{
+				D3D_(RASTERIZER_DESC) desc;
+				Base::zeroMemory(&desc, sizeof(desc));
+				desc.FillMode = param.flagWireFrame ? D3D_(FILL_WIREFRAME) : D3D_(FILL_SOLID);
+				desc.CullMode = param.flagCull ? (param.flagCullCCW ? D3D_(CULL_BACK) : D3D_(CULL_FRONT)) : D3D_(CULL_NONE);
+				desc.FrontCounterClockwise = FALSE;
+				desc.DepthBias = 0;
+				desc.DepthBiasClamp = 0.0f;
+				desc.SlopeScaledDepthBias = 0.0f;
+				desc.DepthClipEnable = TRUE;
+				desc.ScissorEnable = FALSE;
+				desc.MultisampleEnable = param.flagMultiSample ? TRUE : FALSE;
+				desc.AntialiasedLineEnable = FALSE;
+				device->CreateRasterizerState(&desc, state);
+			}
+
+			static void SetState(ID3DDeviceContext* context, ID3DRasterizerState* state, const RenderRasterizerParam& param, sl_render_sampler samplerNo)
+			{
+				context->RSSetState(state);
+			}
+
+			static D3D_(BLEND_OP) GetBlendOperation( RenderBlendingOperation op)
+			{
+				switch (op) {
+				case RenderBlendingOperation::Add:
+					return D3D_(BLEND_OP_ADD);
+				case RenderBlendingOperation::Subtract:
+					return D3D_(BLEND_OP_SUBTRACT);
+				case RenderBlendingOperation::ReverseSubtract:
+					return D3D_(BLEND_OP_REV_SUBTRACT);
+				default:
+					break;
+				}
+				return D3D_(BLEND_OP_ADD);
+			}
+
+			static D3D_(BLEND) GetBlendFactor(RenderBlendingFactor f)
+			{
+				switch (f) {
+				case RenderBlendingFactor::One:
+					return D3D_(BLEND_ONE);
+				case RenderBlendingFactor::Zero:
+					return D3D_(BLEND_ZERO);
+				case RenderBlendingFactor::SrcAlpha:
+					return D3D_(BLEND_SRC_ALPHA);
+				case RenderBlendingFactor::OneMinusSrcAlpha:
+					return D3D_(BLEND_INV_SRC_ALPHA);
+				case RenderBlendingFactor::DstAlpha:
+					return D3D_(BLEND_DEST_ALPHA);
+				case RenderBlendingFactor::OneMinusDstAlpha:
+					return D3D_(BLEND_INV_DEST_ALPHA);
+				case RenderBlendingFactor::SrcColor:
+					return D3D_(BLEND_SRC_COLOR);
+				case RenderBlendingFactor::OneMinusSrcColor:
+					return D3D_(BLEND_INV_SRC_COLOR);
+				case RenderBlendingFactor::DstColor:
+					return D3D_(BLEND_DEST_COLOR);
+				case RenderBlendingFactor::OneMinusDstColor:
+					return D3D_(BLEND_INV_DEST_COLOR);
+				case RenderBlendingFactor::SrcAlphaSaturate:
+					return D3D_(BLEND_SRC_ALPHA_SAT);
+				case RenderBlendingFactor::Constant:
+					return D3D_(BLEND_BLEND_FACTOR);
+				case RenderBlendingFactor::OneMinusConstant:
+					return D3D_(BLEND_INV_BLEND_FACTOR);
+				default:
+					break;
+				}
+				return D3D_(BLEND_ONE);
+			}
+
+			void CreateState(ID3DDevice* device, const RenderBlendParam& param, ID3DBlendState** state)
+			{
+				D3D_(BLEND_DESC) desc;
+				Base::zeroMemory(&desc, sizeof(desc));
+#if D3D_VERSION_MAJOR >= 11
+				for (sl_uint k = 0; k < 8; k++) {
+					desc.RenderTarget[k].DestBlend = D3D_(BLEND_ZERO);
+					desc.RenderTarget[k].BlendOp = D3D_(BLEND_OP_ADD);
+					desc.RenderTarget[k].SrcBlendAlpha = D3D_(BLEND_ONE);
+					desc.RenderTarget[k].DestBlendAlpha = D3D_(BLEND_ZERO);
+					desc.RenderTarget[k].BlendOpAlpha = D3D_(BLEND_OP_ADD);
+					desc.RenderTarget[k].RenderTargetWriteMask = D3D_(COLOR_WRITE_ENABLE_ALL);
+				}
+				desc.RenderTarget[0].BlendEnable = param.flagBlending ? TRUE : FALSE;
+				desc.RenderTarget[0].BlendOp = GetBlendOperation(param.operation);
+				desc.RenderTarget[0].BlendOpAlpha = GetBlendOperation(param.operationAlpha);
+				desc.RenderTarget[0].SrcBlend = GetBlendFactor(param.blendSrc);
+				desc.RenderTarget[0].DestBlend = GetBlendFactor(param.blendDst);
+				desc.RenderTarget[0].SrcBlendAlpha = GetBlendFactor(param.blendSrcAlpha);
+				desc.RenderTarget[0].DestBlendAlpha = GetBlendFactor(param.blendDstAlpha);
+#else
+				desc.BlendEnable[0] = param.flagBlending ? TRUE : FALSE;
+				desc.BlendOp = GetBlendOperation(param.operation);
+				desc.BlendOpAlpha = GetBlendOperation(param.operationAlpha);
+				desc.SrcBlend = GetBlendFactor(param.blendSrc);
+				desc.DestBlend = GetBlendFactor(param.blendDst);
+				desc.SrcBlendAlpha = GetBlendFactor(param.blendSrcAlpha);
+				desc.DestBlendAlpha = GetBlendFactor(param.blendDstAlpha);
+				for (sl_uint k = 0; k < 8; k++) {
+					desc.RenderTargetWriteMask[k] = D3D_(COLOR_WRITE_ENABLE_ALL);
+				}
+#endif
+				device->CreateBlendState(&desc, state);
+			}
+
+			static void SetState(ID3DDeviceContext* context, ID3DBlendState* state, const RenderBlendParam& param, sl_render_sampler samplerNo)
+			{
+				FLOAT f[] = { param.blendConstant.x, param.blendConstant.y, param.blendConstant.z, param.blendConstant.w };
+				context->OMSetBlendState(state, f, 0xffffffff);
+			}
+
+			static D3D_(TEXTURE_ADDRESS_MODE) GetTextureAddressMode(TextureWrapMode mode)
+			{
+				switch (mode) {
+				case TextureWrapMode::Clamp:
+					return D3D_(TEXTURE_ADDRESS_CLAMP);
+				case TextureWrapMode::Mirror:
+					return D3D_(TEXTURE_ADDRESS_MIRROR);
+				case TextureWrapMode::Repeat:
+					return D3D_(TEXTURE_ADDRESS_WRAP);
+				default:
+					break;
+				}
+				return D3D_(TEXTURE_ADDRESS_CLAMP);
+			}
+
+			static void CreateState(ID3DDevice* device, const RenderSamplerParam& param, ID3DSamplerState** state)
+			{
+				D3D_(SAMPLER_DESC) desc;
+				Base::zeroMemory(&desc, sizeof(desc));
+				if (param.magFilter == TextureFilterMode::Point) {
+					if (param.minFilter == TextureFilterMode::Point) {
+						desc.Filter = D3D_(FILTER_MIN_MAG_MIP_POINT);
+					} else {
+						desc.Filter = D3D_(FILTER_MIN_POINT_MAG_MIP_LINEAR);
+					}
+				} else {
+					if (param.minFilter == TextureFilterMode::Point) {
+						desc.Filter = D3D_(FILTER_MIN_LINEAR_MAG_MIP_POINT);
+					} else {
+						desc.Filter = D3D_(FILTER_MIN_MAG_MIP_LINEAR);
+					}
+				}
+				desc.AddressU = GetTextureAddressMode(param.wrapX);
+				desc.AddressV = GetTextureAddressMode(param.wrapY);
+				desc.AddressW = D3D_(TEXTURE_ADDRESS_CLAMP);
+				desc.MaxLOD = 3.402823466e+38f;
+				desc.MaxAnisotropy = 16;
+				desc.ComparisonFunc = D3D_(COMPARISON_NEVER);
+				device->CreateSamplerState(&desc, state);
+			}
+
+			static void SetState(ID3DDeviceContext* context, ID3DSamplerState* state, const RenderSamplerParam& param, sl_render_sampler samplerNo)
+			{
+				context->PSSetSamplers((UINT)(samplerNo), 1, &state);
+			}
+
+			template <class STATE, class STATE_HANDLE>
+			class StateInstanceImpl : public RenderBaseObjectInstance
+			{
+			public:
+				STATE_HANDLE* handle;
+
+			public:
+				StateInstanceImpl()
+				{
+					handle = sl_null;
+				}
+
+				~StateInstanceImpl()
+				{
+					if (handle) {
+						handle->Release();
+					}
+				}
+
+			public:
+				static void setState(ID3DDevice* device, ID3DDeviceContext* context, RenderEngine* engine, STATE* state, sl_render_sampler samplerNo = 0)
+				{
+					Ref<RenderBaseObjectInstance> _instance = state->getInstance(engine);
+					if (_instance.isNotNull()) {
+						SetState(context, ((StateInstanceImpl*)(_instance.get()))->handle, state->getParam(), samplerNo);
+						return;
+					}
+					STATE_HANDLE* handle = sl_null;
+					CreateState(device, state->getParam(), &handle);
+					if (handle) {
+						Ref<StateInstanceImpl> instance = new StateInstanceImpl;
+						if (instance.isNotNull()) {
+							instance->handle = handle;
+							instance->link(engine, state);
+							SetState(context, handle, state->getParam(), samplerNo);
+						}
+						handle->Release();
+					}
+				}
+
+			};
+#endif
+
 			class EngineImpl : public RenderEngine
 			{
 			public:
@@ -1413,109 +1689,16 @@ namespace slib
 				Ref<RenderProgram> m_currentProgramRendering;
 				Ref<RenderProgramInstanceImpl> m_currentProgramInstanceRendering;
 
-#if D3D_VERSION_MAJOR >= 10
-				ID3DDepthStencilState* m_stateDepthStencil;
-				D3D_(DEPTH_STENCIL_DESC) m_stateDescDepthStencil;
-				sl_bool m_flagUpdatedDepthStencilState;
-				UINT m_stencilRef;
-				sl_bool m_flagUpdatedDepthStencilStateStencilRef;
-
-				ID3DRasterizerState* m_stateRasterizer;
-				D3D_(RASTERIZER_DESC) m_stateDescRasterizer;
-				sl_bool m_flagUpdatedRasterizerState;
-
-				ID3DBlendState* m_stateBlend;
-				D3D_(BLEND_DESC) m_stateDescBlend;
-				sl_bool m_flagUpdatedBlendState;
-				float m_blendFactor[4];
-				sl_bool m_flagUpdatedBlendStateBlendFactor;
-#endif
-
 			public:
 				EngineImpl()
 				{
 					m_renderer = sl_null;
 
 					m_currentVertexStride = 0;
-
-#if D3D_VERSION_MAJOR >= 10
-					m_stateDepthStencil = sl_null;
-					m_stateDescDepthStencil.DepthEnable = TRUE;
-					m_stateDescDepthStencil.DepthWriteMask = D3D_(DEPTH_WRITE_MASK_ALL);
-					m_stateDescDepthStencil.DepthFunc = D3D_(COMPARISON_LESS);
-					m_stateDescDepthStencil.StencilEnable = FALSE;
-					m_stateDescDepthStencil.StencilReadMask = D3D_(DEFAULT_STENCIL_READ_MASK);
-					m_stateDescDepthStencil.StencilWriteMask = D3D_(DEFAULT_STENCIL_WRITE_MASK);
-					m_stateDescDepthStencil.FrontFace.StencilFailOp = D3D_(STENCIL_OP_KEEP);
-					m_stateDescDepthStencil.FrontFace.StencilDepthFailOp = D3D_(STENCIL_OP_KEEP);
-					m_stateDescDepthStencil.FrontFace.StencilPassOp = D3D_(STENCIL_OP_KEEP);
-					m_stateDescDepthStencil.FrontFace.StencilFunc = D3D_(COMPARISON_ALWAYS);
-					m_stateDescDepthStencil.BackFace.StencilFailOp = D3D_(STENCIL_OP_KEEP);
-					m_stateDescDepthStencil.BackFace.StencilDepthFailOp = D3D_(STENCIL_OP_KEEP);
-					m_stateDescDepthStencil.BackFace.StencilPassOp = D3D_(STENCIL_OP_KEEP);
-					m_stateDescDepthStencil.BackFace.StencilFunc = D3D_(COMPARISON_ALWAYS);
-					m_flagUpdatedDepthStencilState = sl_false;
-					m_stencilRef = 0;
-					m_flagUpdatedDepthStencilStateStencilRef = sl_false;
-
-					m_stateRasterizer = sl_null;
-					m_stateDescRasterizer.FillMode = D3D_(FILL_SOLID);
-					m_stateDescRasterizer.CullMode = D3D_(CULL_BACK);
-					m_stateDescRasterizer.FrontCounterClockwise = FALSE;
-					m_stateDescRasterizer.DepthBias = 0;
-					m_stateDescRasterizer.DepthBiasClamp = 0.0f;
-					m_stateDescRasterizer.SlopeScaledDepthBias = 0.0f;
-					m_stateDescRasterizer.DepthClipEnable = TRUE;
-					m_stateDescRasterizer.ScissorEnable = FALSE;
-					m_stateDescRasterizer.MultisampleEnable = FALSE;
-					m_stateDescRasterizer.AntialiasedLineEnable = FALSE;
-					m_flagUpdatedRasterizerState = sl_false;
-
-					m_stateBlend = sl_null;
-					Base::zeroMemory(&m_stateDescBlend, sizeof(m_stateDescBlend));
-#if D3D_VERSION_MAJOR >= 11
-					{
-						for (sl_uint k = 0; k < 8; k++) {
-							m_stateDescBlend.RenderTarget[k].DestBlend = D3D_(BLEND_ZERO);
-							m_stateDescBlend.RenderTarget[k].BlendOp = D3D_(BLEND_OP_ADD);
-							m_stateDescBlend.RenderTarget[k].SrcBlendAlpha = D3D_(BLEND_ONE);
-							m_stateDescBlend.RenderTarget[k].DestBlendAlpha = D3D_(BLEND_ZERO);
-							m_stateDescBlend.RenderTarget[k].BlendOpAlpha = D3D_(BLEND_OP_ADD);
-							m_stateDescBlend.RenderTarget[k].RenderTargetWriteMask = D3D_(COLOR_WRITE_ENABLE_ALL);
-						}
-					}
-#else
-					m_stateDescBlend.SrcBlend = D3D_(BLEND_ONE);
-					m_stateDescBlend.DestBlend = D3D_(BLEND_ZERO);
-					m_stateDescBlend.BlendOp = D3D_(BLEND_OP_ADD);
-					m_stateDescBlend.SrcBlendAlpha = D3D_(BLEND_ONE);
-					m_stateDescBlend.DestBlendAlpha = D3D_(BLEND_ZERO);
-					m_stateDescBlend.BlendOpAlpha = D3D_(BLEND_OP_ADD);
-					{
-						for (sl_uint k = 0; k < 8; k++) {
-							m_stateDescBlend.RenderTargetWriteMask[k] = D3D_(COLOR_WRITE_ENABLE_ALL);
-						}
-					}
-#endif
-					m_flagUpdatedBlendState = sl_false;
-					m_blendFactor[0] = 0;
-					m_blendFactor[1] = 0;
-					m_blendFactor[2] = 0;
-					m_blendFactor[3] = 0;
-					m_flagUpdatedBlendStateBlendFactor = sl_false;
-#endif
 				}
 
 				~EngineImpl()
 				{
-#if D3D_VERSION_MAJOR >= 10
-					if (m_stateDepthStencil) {
-						m_stateDepthStencil->Release();
-					}
-					if (m_stateRasterizer) {
-						m_stateRasterizer->Release();
-					}
-#endif
 				}
 
 			public:
@@ -1719,83 +1902,24 @@ namespace slib
 #endif
 				}
 
-				void _setDepthTest(sl_bool flagEnableDepthTest) override
+				void _setDepthStencilState(RenderDepthStencilState* state) override
 				{
 					ID3DDeviceContext* context = getContext();
 					if (!context) {
 						return;
 					}
 #if D3D_VERSION_MAJOR >= 10
-					BOOL v = flagEnableDepthTest ? TRUE : FALSE;
-					if (m_stateDescDepthStencil.DepthEnable != v) {
-						m_stateDescDepthStencil.DepthEnable = v;
-						m_flagUpdatedDepthStencilState = sl_true;
-					}
-#else
-					context->SetRenderState(D3DRS_ZENABLE, flagEnableDepthTest ? D3DZB_TRUE : D3DZB_FALSE);
-#endif
-				}
-
-				void _setDepthWriteEnabled(sl_bool flagEnableDepthWrite) override
-				{
-					ID3DDeviceContext* context = getContext();
-					if (!context) {
+					ID3DDevice* device = getDevice();
+					if (!device) {
 						return;
 					}
-#if D3D_VERSION_MAJOR >= 10
-					D3D_(DEPTH_WRITE_MASK) v = flagEnableDepthWrite ? D3D_(DEPTH_WRITE_MASK_ALL) : D3D_(DEPTH_WRITE_MASK_ZERO);
-					if (m_stateDescDepthStencil.DepthWriteMask != v) {
-						m_stateDescDepthStencil.DepthWriteMask = v;
-						m_flagUpdatedDepthStencilState = sl_true;
-					}
+					StateInstanceImpl<RenderDepthStencilState, ID3DDepthStencilState>::setState(device, context, this, state);
 #else
-					context->SetRenderState(D3DRS_ZWRITEENABLE, flagEnableDepthWrite ? TRUE : FALSE);
-#endif
-				}
-
-				void _setDepthFunction(RenderFunctionOperation op) override
-				{
-					ID3DDeviceContext* context = getContext();
-					if (!context) {
-						return;
-					}
-#if D3D_VERSION_MAJOR >= 10
-					D3D_(COMPARISON_FUNC) v;
-					switch (op) {
-					case RenderFunctionOperation::Never:
-						v = D3D_(COMPARISON_NEVER);
-						break;
-					case RenderFunctionOperation::Always:
-						v = D3D_(COMPARISON_ALWAYS);
-						break;
-					case RenderFunctionOperation::Equal:
-						v = D3D_(COMPARISON_EQUAL);
-						break;
-					case RenderFunctionOperation::NotEqual:
-						v = D3D_(COMPARISON_NOT_EQUAL);
-						break;
-					case RenderFunctionOperation::Less:
-						v = D3D_(COMPARISON_LESS);
-						break;
-					case RenderFunctionOperation::LessEqual:
-						v = D3D_(COMPARISON_LESS_EQUAL);
-						break;
-					case RenderFunctionOperation::Greater:
-						v = D3D_(COMPARISON_GREATER);
-						break;
-					case RenderFunctionOperation::GreaterEqual:
-						v = D3D_(COMPARISON_GREATER_EQUAL);
-						break;
-					default:
-						return;
-					}
-					if (m_stateDescDepthStencil.DepthFunc != v) {
-						m_stateDescDepthStencil.DepthFunc = v;
-						m_flagUpdatedDepthStencilState = sl_true;
-					}
-#else
+					const RenderDepthStencilParam& param = state->getParam();
+					context->SetRenderState(D3DRS_ZENABLE, param.flagTestDepth ? D3DZB_TRUE : D3DZB_FALSE);
+					context->SetRenderState(D3DRS_ZWRITEENABLE, param.flagWriteDepth ? TRUE : FALSE);
 					DWORD v;
-					switch (op) {
+					switch (param.depthFunction) {
 					case RenderFunctionOperation::Never:
 						v = D3DCMP_NEVER;
 						break;
@@ -1821,76 +1945,53 @@ namespace slib
 						v = D3DCMP_GREATEREQUAL;
 						break;
 					default:
-						return;
+						v = D3DCMP_NEVER;
+						break;
 					}
 					context->SetRenderState(D3DRS_ZFUNC, v);
+					context->SetRenderState(D3DRS_STENCILENABLE, param.flagStencil ? TRUE : FALSE);
+					context->SetRenderState(D3DRS_STENCILMASK, (DWORD)(param.stencilReadMask));
+					context->SetRenderState(D3DRS_STENCILWRITEMASK, (DWORD)(param.stencilWriteMask));
+					context->SetRenderState(D3DRS_STENCILREF, (DWORD)(param.stencilRef));
 #endif
 				}
 
-				void _setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW) override
+				void _setRasterizerState(RenderRasterizerState* state) override
 				{
 					ID3DDeviceContext* context = getContext();
 					if (!context) {
 						return;
 					}
 #if D3D_VERSION_MAJOR >= 10
-					D3D_(CULL_MODE) v = flagEnableCull ? (flagCullCCW ? D3D_(CULL_BACK) : D3D_(CULL_FRONT)) : D3D_(CULL_NONE);
-					if (m_stateDescRasterizer.CullMode != v) {
-						m_stateDescRasterizer.CullMode = v;
-						m_flagUpdatedRasterizerState = sl_true;
+					ID3DDevice* device = getDevice();
+					if (!device) {
+						return;
 					}
+					StateInstanceImpl<RenderRasterizerState, ID3DRasterizerState>::setState(device, context, this, state);
 #else
-					context->SetRenderState(D3DRS_CULLMODE, flagEnableCull ? (flagCullCCW ? D3DCULL_CCW : D3DCULL_CW) : D3DCULL_NONE);
+					const RenderRasterizerParam& param = state->getParam();
+					context->SetRenderState(D3DRS_CULLMODE, param.flagCull ? (param.flagCullCCW ? D3DCULL_CCW : D3DCULL_CW) : D3DCULL_NONE);
+					context->SetRenderState(D3DRS_FILLMODE, param.flagWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
+					context->SetRenderState(D3DRS_MULTISAMPLEANTIALIAS, param.flagMultiSample ? TRUE : FALSE);
 #endif
 				}
 
-				void _setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param) override
+				void _setBlendState(RenderBlendState* state) override
 				{
 					ID3DDeviceContext* context = getContext();
 					if (!context) {
 						return;
 					}
 #if D3D_VERSION_MAJOR >= 10
-					BOOL v = flagEnableBlending ? TRUE : FALSE;
-#if D3D_VERSION_MAJOR >= 11
-					if (m_stateDescBlend.RenderTarget[0].BlendEnable != v) {
-						m_stateDescBlend.RenderTarget[0].BlendEnable = v;
-						m_flagUpdatedBlendState = sl_true;
+					ID3DDevice* device = getDevice();
+					if (!device) {
+						return;
 					}
+					StateInstanceImpl<RenderBlendState, ID3DBlendState>::setState(device, context, this, state);
 #else
-					if (m_stateDescBlend.BlendEnable[0] != v) {
-						m_stateDescBlend.BlendEnable[0] = v;
-						m_flagUpdatedBlendState = sl_true;
-					}
-#endif
-					
-					if (flagEnableBlending) {
-#if D3D_VERSION_MAJOR >= 11
-						_setBlendOperation(m_stateDescBlend.RenderTarget[0].BlendOp, param.operation, m_flagUpdatedBlendState);
-						_setBlendOperation(m_stateDescBlend.RenderTarget[0].BlendOpAlpha, param.operationAlpha, m_flagUpdatedBlendState);
-						_setBlendFactor(m_stateDescBlend.RenderTarget[0].SrcBlend, param.blendSrc, m_flagUpdatedBlendState);
-						_setBlendFactor(m_stateDescBlend.RenderTarget[0].DestBlend, param.blendDst, m_flagUpdatedBlendState);
-						_setBlendFactor(m_stateDescBlend.RenderTarget[0].SrcBlendAlpha, param.blendSrcAlpha, m_flagUpdatedBlendState);
-						_setBlendFactor(m_stateDescBlend.RenderTarget[0].DestBlendAlpha, param.blendDstAlpha, m_flagUpdatedBlendState);
-#else
-						_setBlendOperation(m_stateDescBlend.BlendOp, param.operation, m_flagUpdatedBlendState);
-						_setBlendOperation(m_stateDescBlend.BlendOpAlpha, param.operationAlpha, m_flagUpdatedBlendState);
-						_setBlendFactor(m_stateDescBlend.SrcBlend, param.blendSrc, m_flagUpdatedBlendState);
-						_setBlendFactor(m_stateDescBlend.DestBlend, param.blendDst, m_flagUpdatedBlendState);
-						_setBlendFactor(m_stateDescBlend.SrcBlendAlpha, param.blendSrcAlpha, m_flagUpdatedBlendState);
-						_setBlendFactor(m_stateDescBlend.DestBlendAlpha, param.blendDstAlpha, m_flagUpdatedBlendState);
-#endif
-						if (m_blendFactor[0] != param.blendConstant.x || m_blendFactor[1] != param.blendConstant.y || m_blendFactor[2] != param.blendConstant.z || m_blendFactor[3] != param.blendConstant.w) {
-							m_blendFactor[0] = param.blendConstant.x;
-							m_blendFactor[1] = param.blendConstant.y;
-							m_blendFactor[2] = param.blendConstant.z;
-							m_blendFactor[3] = param.blendConstant.w;
-							m_flagUpdatedBlendState = sl_true;
-						}
-					}
-#else
-					context->SetRenderState(D3DRS_ALPHABLENDENABLE, flagEnableBlending ? TRUE : FALSE);
-					if (flagEnableBlending) {
+					const RenderBlendParam& param = state->getParam();
+					context->SetRenderState(D3DRS_ALPHABLENDENABLE, param.flagBlending ? TRUE : FALSE);
+					if (param.flagBlending) {
 						_setBlendOperation(context, D3DRS_BLENDOP, param.operation);
 						_setBlendOperation(context, D3DRS_BLENDOPALPHA, param.operationAlpha);
 						_setBlendFactor(context, D3DRS_SRCBLEND, param.blendSrc);
@@ -1900,6 +2001,28 @@ namespace slib
 						Color f(param.blendConstant);
 						context->SetRenderState(D3DRS_BLENDFACTOR, D3DCOLOR_ARGB(f.a, f.r, f.g, f.b));
 					}
+#endif
+				}
+
+				void _setSamplerState(sl_render_sampler samplerNo, RenderSamplerState* state) override
+				{
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return;
+					}
+#if D3D_VERSION_MAJOR >= 10
+					ID3DDevice* device = getDevice();
+					if (!device) {
+						return;
+					}
+					StateInstanceImpl<RenderSamplerState, ID3DSamplerState> ::setState(device, context, this, state, samplerNo);
+#else
+					const RenderSamplerParam& param = state->getParam();
+					DWORD s = (DWORD)samplerNo;
+					context->SetSamplerState(s, D3DSAMP_MAGFILTER, _getTextureFilterType(param.magFilter));
+					context->SetSamplerState(s, D3DSAMP_MINFILTER, _getTextureFilterType(param.minFilter));
+					context->SetSamplerState(s, D3DSAMP_ADDRESSU, _getTextureWrapType(param.wrapX));
+					context->SetSamplerState(s, D3DSAMP_ADDRESSV, _getTextureWrapType(param.wrapY));
 #endif
 				}
 
@@ -2079,9 +2202,6 @@ namespace slib
 					}
 #if D3D_VERSION_MAJOR >= 10
 					m_currentProgramInstanceRendering->applyConstantBuffer(context);
-					_updateBlendState();
-					_updateRasterizerState();
-					_updateDepthStencilState();
 #endif
 					if (primitive->indexBufferInstance.isNotNull()) {
 						IndexBufferInstanceImpl* ib = (IndexBufferInstanceImpl*)(primitive->indexBufferInstance.get());
@@ -2102,8 +2222,27 @@ namespace slib
 					}
 				}
 
-				void _applyTexture(Texture* texture, TextureInstance* instance, sl_reg sampler) override
+				void _applyTexture(Texture* texture, TextureInstance* _instance, sl_render_sampler sampler) override
 				{
+					ID3DDeviceContext* context = getContext();
+					if (!context) {
+						return;
+					}
+					TextureInstanceImpl* instance = (TextureInstanceImpl*)_instance;
+					if (!instance) {
+#if D3D_VERSION_MAJOR >= 10
+#else
+						context->SetTexture((DWORD)sampler, sl_null);
+#endif
+						return;
+					}
+					instance->doUpdate(texture);
+#if D3D_VERSION_MAJOR >= 10
+					UINT s = (UINT)sampler;
+					context->PSSetShaderResources(s, 1, &(instance->view));
+#else
+					context->SetTexture((DWORD)sampler, instance->handle);
+#endif
 				}
 
 				void _setInputLayout(RenderInputLayout* _layout) override
@@ -2130,151 +2269,7 @@ namespace slib
 				{
 				}
 
-#if D3D_VERSION_MAJOR >= 10
-				void _updateDepthStencilState()
-				{
-					ID3DDevice* device = getDevice();
-					ID3DDeviceContext* context = getContext();
-					if (m_flagUpdatedDepthStencilState || m_flagUpdatedDepthStencilStateStencilRef) {
-						if (m_flagUpdatedDepthStencilState) {
-							m_flagUpdatedDepthStencilState = sl_false;
-							m_flagUpdatedDepthStencilStateStencilRef = sl_false;
-							ID3DDepthStencilState* state = sl_null;
-							device->CreateDepthStencilState(&m_stateDescDepthStencil, &state);
-							if (state) {
-								context->OMSetDepthStencilState(state, m_stencilRef);
-								ID3DDepthStencilState* stateOld = m_stateDepthStencil;
-								m_stateDepthStencil = state;
-								if (stateOld) {
-									stateOld->Release();
-								}
-							}
-						} else {
-							m_flagUpdatedDepthStencilStateStencilRef = sl_false;
-							context->OMSetDepthStencilState(m_stateDepthStencil, m_stencilRef);
-						}
-					}
-				}
-
-				void _updateRasterizerState()
-				{
-					ID3DDevice* device = getDevice();
-					ID3DDeviceContext* context = getContext();
-					if (!m_flagUpdatedRasterizerState) {
-						return;
-					}
-					m_flagUpdatedRasterizerState = sl_false;
-					ID3DRasterizerState* state = sl_null;
-					device->CreateRasterizerState(&m_stateDescRasterizer, &state);
-					if (state) {
-						context->RSSetState(state);
-						ID3DRasterizerState* stateOld = m_stateRasterizer;
-						m_stateRasterizer = state;
-						if (stateOld) {
-							stateOld->Release();
-						}
-					}
-				}
-
-				void _updateBlendState()
-				{
-					ID3DDevice* device = getDevice();
-					ID3DDeviceContext* context = getContext();
-					if (m_flagUpdatedBlendState || m_flagUpdatedBlendStateBlendFactor) {
-						if (m_flagUpdatedBlendState) {
-							m_flagUpdatedBlendState = sl_false;
-							m_flagUpdatedBlendStateBlendFactor = sl_false;
-							ID3DBlendState* state = sl_null;
-							device->CreateBlendState(&m_stateDescBlend, &state);
-							if (state) {
-								context->OMSetBlendState(state, m_blendFactor, 0xffffffff);
-								ID3DBlendState* stateOld = m_stateBlend;
-								m_stateBlend = state;
-								if (stateOld) {
-									stateOld->Release();
-								}
-							}
-						} else {
-							m_flagUpdatedBlendStateBlendFactor = sl_false;
-							context->OMSetBlendState(m_stateBlend, m_blendFactor, 0xffffffff);
-						}
-					}
-				}
-
-				static void _setBlendOperation(D3D_(BLEND_OP)& _out, RenderBlendingOperation op, sl_bool& flagUpdate)
-				{
-					D3D_(BLEND_OP) v;
-					switch (op) {
-					case RenderBlendingOperation::Add:
-						v = D3D_(BLEND_OP_ADD);
-						break;
-					case RenderBlendingOperation::Subtract:
-						v = D3D_(BLEND_OP_SUBTRACT);
-						break;
-					case RenderBlendingOperation::ReverseSubtract:
-						v = D3D_(BLEND_OP_REV_SUBTRACT);
-						break;
-					default:
-						return;
-					}
-					if (_out != v) {
-						_out = v;
-						flagUpdate = sl_true;
-					}
-				}
-
-				static void _setBlendFactor(D3D_(BLEND)& _out, RenderBlendingFactor f, sl_bool& flagUpdate)
-				{
-					D3D_(BLEND) v;
-					switch (f) {
-					case RenderBlendingFactor::One:
-						v = D3D_(BLEND_ONE);
-						break;
-					case RenderBlendingFactor::Zero:
-						v = D3D_(BLEND_ZERO);
-						break;
-					case RenderBlendingFactor::SrcAlpha:
-						v = D3D_(BLEND_SRC_ALPHA);
-						break;
-					case RenderBlendingFactor::OneMinusSrcAlpha:
-						v = D3D_(BLEND_INV_SRC_ALPHA);
-						break;
-					case RenderBlendingFactor::DstAlpha:
-						v = D3D_(BLEND_DEST_ALPHA);
-						break;
-					case RenderBlendingFactor::OneMinusDstAlpha:
-						v = D3D_(BLEND_INV_DEST_ALPHA);
-						break;
-					case RenderBlendingFactor::SrcColor:
-						v = D3D_(BLEND_SRC_COLOR);
-						break;
-					case RenderBlendingFactor::OneMinusSrcColor:
-						v = D3D_(BLEND_INV_SRC_COLOR);
-						break;
-					case RenderBlendingFactor::DstColor:
-						v = D3D_(BLEND_DEST_COLOR);
-						break;
-					case RenderBlendingFactor::OneMinusDstColor:
-						v = D3D_(BLEND_INV_DEST_COLOR);
-						break;
-					case RenderBlendingFactor::SrcAlphaSaturate:
-						v = D3D_(BLEND_SRC_ALPHA_SAT);
-						break;
-					case RenderBlendingFactor::Constant:
-						v = D3D_(BLEND_BLEND_FACTOR);
-						break;
-					case RenderBlendingFactor::OneMinusConstant:
-						v = D3D_(BLEND_INV_BLEND_FACTOR);
-						break;
-					default:
-						return;
-					}
-					if (_out != v) {
-						_out = v;
-						flagUpdate = sl_true;
-					}
-				}
-#else
+#if D3D_VERSION_MAJOR < 10
 				static void _setBlendOperation(ID3DDeviceContext* context, D3DRENDERSTATETYPE state, RenderBlendingOperation op)
 				{
 					DWORD v;
@@ -2341,6 +2336,30 @@ namespace slib
 						return;
 					}
 					context->SetRenderState(state, v);
+				}
+
+				static D3DTEXTUREFILTERTYPE _getTextureFilterType(TextureFilterMode mode)
+				{
+					if (mode == TextureFilterMode::Point) {
+						return D3DTEXF_POINT;
+					} else {
+						return D3DTEXF_LINEAR;
+					}
+				}
+
+				static D3DTEXTUREADDRESS _getTextureWrapType(TextureWrapMode mode)
+				{
+					switch (mode) {
+					case TextureWrapMode::Clamp:
+						return D3DTADDRESS_CLAMP;
+					case TextureWrapMode::Mirror:
+						return D3DTADDRESS_MIRROR;
+					case TextureWrapMode::Repeat:
+						return D3DTADDRESS_WRAP;
+					default:
+						break;
+					}
+					return D3DTADDRESS_WRAP;
 				}
 #endif
 

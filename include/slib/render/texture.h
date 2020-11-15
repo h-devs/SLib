@@ -32,14 +32,6 @@
 namespace slib
 {
 
-	enum class TextureFilterMode
-	{
-		Point,
-		Linear
-	};
-	
-	typedef TileMode TextureWrapMode;
-
 	class Texture;
 	
 	class SLIB_EXPORT TextureInstance : public RenderBaseObjectInstance
@@ -94,22 +86,6 @@ namespace slib
 
 		void setHeight(sl_uint32 height);
 
-		TextureFilterMode getMinFilter();
-
-		void setMinFilter(TextureFilterMode mode);
-
-		TextureFilterMode getMagFilter();
-
-		void setMagFilter(TextureFilterMode mode);
-
-		TextureWrapMode getWrapX();
-		
-		void setWrapX(TextureWrapMode mode);
-
-		TextureWrapMode getWrapY();
-
-		void setWrapY(TextureWrapMode mode);
-
 		void update(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
 		
 		void update();
@@ -122,10 +98,6 @@ namespace slib
 	protected:
 		sl_uint32 m_width;
 		sl_uint32 m_height;
-		TextureFilterMode m_minFilter;
-		TextureFilterMode m_magFilter;
-		TextureWrapMode m_wrapX;
-		TextureWrapMode m_wrapY;
 
 	};
 
