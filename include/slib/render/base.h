@@ -64,10 +64,6 @@ namespace slib
 	protected:
 		virtual void onUpdate(RenderBaseObject* object);
 
-		virtual sl_bool canUpdate();
-
-		void tryUpdate(RenderBaseObject* object);
-
 	public:
 		void doUpdate(RenderBaseObject* object);
 

@@ -1883,7 +1883,7 @@ namespace slib
 			GL_BASE::setBlending(state->getParam());
 		}
 
-		void _setSamplerState(sl_render_sampler samplerNo, RenderSamplerState* state)
+		void _setSamplerState(sl_render_sampler samplerNo, RenderSamplerState* state) override
 		{
 			if (samplerNo >= CountOfArray(m_currentSamplerStates)) {
 				return;

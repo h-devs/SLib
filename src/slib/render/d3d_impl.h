@@ -1230,11 +1230,6 @@ namespace slib
 					}
 				}
 
-				sl_bool canUpdate() override
-				{
-					return sl_true;
-				}
-
 			};
 
 			typedef RenderBufferInstanceImpl<VertexBuffer, VertexBufferInstance, ID3DVertexBuffer> VertexBufferInstanceImpl;
@@ -1321,9 +1316,9 @@ namespace slib
 						ID3DShaderResourceView* view = sl_null;
 						D3D_(SHADER_RESOURCE_VIEW_DESC) view_desc;
 						Base::zeroMemory(&view_desc, sizeof(view_desc));
-						view_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+						view_desc.Format = desc.Format;
 						view_desc.ViewDimension = D3D_(SRV_DIMENSION_TEXTURE2D);
-						view_desc.Texture2D.MipLevels = 1;
+						view_desc.Texture2D.MipLevels = desc.MipLevels;
 						device->CreateShaderResourceView(handle, &view_desc, &view);
 						if (view) {
 #else
@@ -1414,11 +1409,6 @@ namespace slib
 						handle->UnlockRect(0);
 #endif
 					}
-				}
-
-				sl_bool canUpdate() override
-				{
-					return sl_true;
 				}
 
 			};

@@ -78,7 +78,6 @@ namespace slib
 			m_updatedRegion.bottom = y + height;
 			m_flagUpdated = sl_true;
 		}
-		tryUpdate(texture);
 	}
 	
 

@@ -446,15 +446,14 @@ namespace slib
 	String RenderProgram2D_PositionTextureYUV::getHLSLPixelShader(RenderEngine* engine)
 	{
 		SLIB_RETURN_STRING(SLIB_STRINGIFY(
-			vec4 u_Color;
-			sampler2D u_Texture;
-			varying vec2 v_TexCoord;
-			void main() {
-				vec4 YUV = texture2D(u_Texture, v_TexCoord);
+			float4 u_Color;
+			sampler u_Texture;
+			float4 main(float2 v_TexCoord : TEXCOORD) : COLOR{
+				float4 YUV = tex2D(u_Texture, v_TexCoord);
 				float R = YUV.r + 1.370705*(YUV.b - 0.5);
 				float G = YUV.r - 0.698001*(YUV.g - 0.5) - 0.337633*(YUV.b - 0.5);
 				float B = YUV.r + 1.732446*(YUV.g - 0.5);
-				gl_FragColor = vec4(R, G, B, YUV.a) * u_Color;
+				return float4(R, G, B, YUV.a) * u_Color;
 			}
 		))
 	}

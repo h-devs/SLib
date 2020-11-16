@@ -55,7 +55,6 @@ namespace slib
 			m_updatedSize = size;
 			m_flagUpdated = sl_true;
 		}
-		tryUpdate(buffer);
 	}
 
 

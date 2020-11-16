@@ -53,18 +53,6 @@ namespace slib
 	{
 	}
 
-	sl_bool RenderBaseObjectInstance::canUpdate()
-	{
-		return sl_false;
-	}
-
-	void RenderBaseObjectInstance::tryUpdate(RenderBaseObject* object)
-	{
-		if (canUpdate()) {
-			doUpdate(object);
-		}
-	}
-
 	void RenderBaseObjectInstance::doUpdate(RenderBaseObject* object)
 	{
 		if (m_flagUpdated) {
