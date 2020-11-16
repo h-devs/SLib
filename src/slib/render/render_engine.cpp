@@ -697,14 +697,25 @@ namespace slib
 			}
 		}
 
-		Ref<RenderDepthStencilState> state = m_stateDepthStencilForDrawDebug;
-		if (state.isNull()) {
-			RenderDepthStencilParam param;
-			param.flagTestDepth = sl_false;
-			state = RenderDepthStencilState::create(param);
-			m_stateDepthStencilForDrawDebug = state;
+		{
+			Ref<RenderDepthStencilState> state = m_stateDepthStencilForDrawDebug;
+			if (state.isNull()) {
+				RenderDepthStencilParam param;
+				param.flagTestDepth = sl_false;
+				state = RenderDepthStencilState::create(param);
+				m_stateDepthStencilForDrawDebug = state;
+			}
+			setDepthStencilState(state);
 		}
-		setDepthStencilState(state);
+		{
+			Ref<RenderSamplerState> state = m_stateSamplerForDrawDebug;
+			if (state.isNull()) {
+				RenderSamplerParam param;
+				state = RenderSamplerState::create(param);
+				m_stateSamplerForDrawDebug = state;
+			}
+			setSamplerState(0, state);
+		}
 
 		String text;
 		text = "FPS:";

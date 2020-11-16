@@ -398,6 +398,7 @@ namespace slib
 		AtomicRef<RenderProgram3D_Position> m_defaultRenderProgramForDrawLine3D;
 
 		AtomicRef<RenderDepthStencilState> m_stateDepthStencilForDrawDebug;
+		AtomicRef<RenderSamplerState> m_stateSamplerForDrawDebug;
 
 	};
 	

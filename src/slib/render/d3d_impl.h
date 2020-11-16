@@ -1306,6 +1306,7 @@ namespace slib
 					desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 					desc.SampleDesc.Count = 1;
 					desc.BindFlags = D3D10_BIND_SHADER_RESOURCE;
+					desc.ArraySize = 1;
 					PrepareObjectFlags(texture->getFlags(), desc.Usage, desc.CPUAccessFlags, flagLockable);
 					D3D_(SUBRESOURCE_DATA) data = { 0 };
 					data.pSysMem = image->getColors();
@@ -1313,7 +1314,7 @@ namespace slib
 					device->CreateTexture2D(&desc, &data, &handle);
 #else
 					sl_bool flagLockable = sl_true;
-					device->CreateTexture((UINT)width, (UINT)height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &handle, NULL);
+					device->CreateTexture((UINT)width, (UINT)height, 1, 0, D3DFMT_A8B8G8R8, D3DPOOL_MANAGED, &handle, NULL);
 #endif
 					if (handle) {
 #if D3D_VERSION_MAJOR >= 10
@@ -1330,7 +1331,7 @@ namespace slib
 						HRESULT hr = handle->LockRect(0, &lr, NULL, 0);
 						if (hr == D3D_OK) {
 							BitmapData bd;
-							bd.format = BitmapFormat::ARGB;
+							bd.format = BitmapFormat::RGBA;
 							bd.data = lr.pBits;
 							bd.pitch = (sl_int32)(lr.Pitch);
 							bd.width = width;
@@ -1399,7 +1400,7 @@ namespace slib
 #endif
 					if (data) {
 						BitmapData bd;
-						bd.format = BitmapFormat::ARGB;
+						bd.format = BitmapFormat::RGBA;
 						bd.data = data;
 						bd.pitch = pitch;
 						bd.width = m_updatedRegion.getWidth();
@@ -1667,6 +1668,7 @@ namespace slib
 							instance->handle = handle;
 							instance->link(engine, state);
 							SetState(context, handle, state->getParam(), samplerNo);
+							return;
 						}
 						handle->Release();
 					}
@@ -2230,16 +2232,11 @@ namespace slib
 					}
 					TextureInstanceImpl* instance = (TextureInstanceImpl*)_instance;
 					if (!instance) {
-#if D3D_VERSION_MAJOR >= 10
-#else
-						context->SetTexture((DWORD)sampler, sl_null);
-#endif
 						return;
 					}
 					instance->doUpdate(texture);
 #if D3D_VERSION_MAJOR >= 10
-					UINT s = (UINT)sampler;
-					context->PSSetShaderResources(s, 1, &(instance->view));
+					context->PSSetShaderResources((UINT)sampler, 1, &(instance->view));
 #else
 					context->SetTexture((DWORD)sampler, instance->handle);
 #endif

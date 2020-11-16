@@ -86,8 +86,8 @@ namespace slib
 	
 	Texture::Texture(sl_uint32 width, sl_uint32 height)
 	{
-		m_width = 0;
-		m_height = 0;
+		m_width = width;
+		m_height = height;
 	}
 	
 	Texture::~Texture()
