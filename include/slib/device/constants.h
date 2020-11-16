@@ -59,18 +59,10 @@ namespace slib
 		Normal = 2
 	};
 
-	class DeviceSetVolumeFlags
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(DeviceSetVolumeFlags, value)
-		
-	public:
-		enum {
-			ShowUI = 1,
-			PlaySound = 4
-		};
-	};
+	SLIB_DEFINE_FLAGS(DeviceSetVolumeFlags, {
+		ShowUI = 1,
+		PlaySound = 4
+	})
 
 }
 

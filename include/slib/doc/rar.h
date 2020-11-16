@@ -59,108 +59,75 @@ namespace slib
 		Max = 5
 	};
 
-	class SLIB_EXPORT RarBlockFlags4
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(RarBlockFlags4, value)
+	SLIB_DEFINE_FLAGS(RarBlockFlags4, {
 
-		enum {
-			Main_Volume = 0x0001,
-			Main_Comment = 0x0002,
-			Main_Lock = 0x0004,
-			Main_Solid = 0x0008,
-			Main_PackComment = 0x0010,
-			Main_NewNumbering = 0x0010,
-			Main_AV = 0x0020,
-			Main_Protect = 0x0040,
-			Main_Password = 0x0080,
-			Main_FirstVolume = 0x0100,
+		Main_Volume = 0x0001,
+		Main_Comment = 0x0002,
+		Main_Lock = 0x0004,
+		Main_Solid = 0x0008,
+		Main_PackComment = 0x0010,
+		Main_NewNumbering = 0x0010,
+		Main_AV = 0x0020,
+		Main_Protect = 0x0040,
+		Main_Password = 0x0080,
+		Main_FirstVolume = 0x0100,
 
-			File_SplitBefore = 0x0001,
-			File_SplitAfter = 0x0002,
-			File_Password = 0x0004,
-			File_Comment = 0x0008,
-			File_Solid = 0x0010,
+		File_SplitBefore = 0x0001,
+		File_SplitAfter = 0x0002,
+		File_Password = 0x0004,
+		File_Comment = 0x0008,
+		File_Solid = 0x0010,
 
-			File_Window_Mask = 0x00e0,
-			File_Window_Directory = 0x00e0,
-			File_Window_64 = 0x0000,
-			File_Window_128 = 0x0020,
-			File_Window_256 = 0x0040,
-			File_Window_512 = 0x0060,
-			File_Window_1024 = 0x0080,
-			File_Window_2048 = 0x00a0,
-			File_Window_4096 = 0x00c0,
+		File_Window_Mask = 0x00e0,
+		File_Window_Directory = 0x00e0,
+		File_Window_64 = 0x0000,
+		File_Window_128 = 0x0020,
+		File_Window_256 = 0x0040,
+		File_Window_512 = 0x0060,
+		File_Window_1024 = 0x0080,
+		File_Window_2048 = 0x00a0,
+		File_Window_4096 = 0x00c0,
 
-			File_Large = 0x0100,
-			File_Unicode = 0x0200,
-			File_Salt = 0x0400,
-			File_Version = 0x0800,
-			File_ExtTime = 0x1000,
+		File_Large = 0x0100,
+		File_Unicode = 0x0200,
+		File_Salt = 0x0400,
+		File_Version = 0x0800,
+		File_ExtTime = 0x1000,
 
-			SkipIfUnknown = 0x4000,
-			LongBlock = 0x8000
-		};
-	};
+		SkipIfUnknown = 0x4000,
+		LongBlock = 0x8000
 
-	class SLIB_EXPORT RarBlockFlags5
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(RarBlockFlags5, value)
+	})
 
-		enum {
-			ExtraArea = 0x0001, // Extra area is present in the end of header
-			DataArea = 0x0002, // Data area is present in the end of header
-			SkipIfUnknown = 0x0004, // Blocks with unknown type and this flag must be skipped when updating an archive
-			DataPreviousVolume = 0x0008, // Data area is continuing from previous volume
-			DataNextVolume = 0x0010, // Data area is continuing in next volume
-			DependsOnPrecedingBlock = 0x0020, // Block depends on preceding file block
-			PreserveChildBlock = 0x0040, // Preserve a child block if host block is modified
-		};
-	};
+	SLIB_DEFINE_FLAGS(RarBlockFlags5, {
+		ExtraArea = 0x0001, // Extra area is present in the end of header
+		DataArea = 0x0002, // Data area is present in the end of header
+		SkipIfUnknown = 0x0004, // Blocks with unknown type and this flag must be skipped when updating an archive
+		DataPreviousVolume = 0x0008, // Data area is continuing from previous volume
+		DataNextVolume = 0x0010, // Data area is continuing in next volume
+		DependsOnPrecedingBlock = 0x0020, // Block depends on preceding file block
+		PreserveChildBlock = 0x0040 // Preserve a child block if host block is modified
+	})
 
-	class SLIB_EXPORT RarArchiveFlags5
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(RarArchiveFlags5, value)
+	SLIB_DEFINE_FLAGS(RarArchiveFlags5, {
+		Volume = 0x0001, // Archive is a part of multivolume set.
+		VolumeNumber = 0x0002, // Volume number field is present. This flag is present in all volumes except first.
+		Solid = 0x0004, // Solid archive.
+		RecoveryRecord = 0x0008, // Recovery record is present.
+		Lock = 0x0010, // Locked archive.
+	})
 
-		enum {
-			Volume = 0x0001, // Archive is a part of multivolume set.
-			VolumeNumber = 0x0002, // Volume number field is present. This flag is present in all volumes except first.
-			Solid = 0x0004, // Solid archive.
-			RecoveryRecord = 0x0008, // Recovery record is present.
-			Lock = 0x0010, // Locked archive.
-		};
-	};
+	SLIB_DEFINE_FLAGS(RarEncryptionFlags5, {
+		PasswordCheck = 0x0001, // Password check data is present
+		TweakedChecksums = 0x0002 // Use tweaked checksums instead of plain checksums. Only used in file encryption record. If flag 0x0002 is present, RAR transforms the checksum preserving file or service data integrity, so it becomes dependent on encryption key. It makes guessing file contents based on checksum impossible. It affects both data CRC32 in file header and checksums in file hash record in extra area.
+	})
 
-	class SLIB_EXPORT RarEncryptionFlags5
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(RarEncryptionFlags5, value)
-
-		enum {
-			PasswordCheck = 0x0001, // Password check data is present
-			TweakedChecksums = 0x0002 // Use tweaked checksums instead of plain checksums. Only used in file encryption record. If flag 0x0002 is present, RAR transforms the checksum preserving file or service data integrity, so it becomes dependent on encryption key. It makes guessing file contents based on checksum impossible. It affects both data CRC32 in file header and checksums in file hash record in extra area.
-		};
-	};
-
-	class SLIB_EXPORT RarFileFlags5
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(RarFileFlags5, value)
-
-		enum {
-			Directory = 0x0001, // Directory file system object (file header only)
-			Time = 0x0002, // Time field in Unix format is present
-			CRC32 = 0x0004, // CRC32 field is present
-			UnknownUnpackedSize = 0x0008 // Unpacked size is unknown
-		};
-	};
+	SLIB_DEFINE_FLAGS(RarFileFlags5, {
+		Directory = 0x0001, // Directory file system object (file header only)
+		Time = 0x0002, // Time field in Unix format is present
+		CRC32 = 0x0004, // CRC32 field is present
+		UnknownUnpackedSize = 0x0008 // Unpacked size is unknown
+	})
 
 	enum class RarHostOS5
 	{

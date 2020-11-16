@@ -71,19 +71,12 @@ namespace slib
 	};
 
 	// Equals to WinNT File System Flags
-	class FileSystemFlags
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(FileSystemFlags, value)
-
-		enum {
-			CaseSensitive = 0x1,
-			SupportsFileCompression = 0x10,
-			SupportsEncryption = 0x20000,
-			ReadOnlyVolume = 0x80000,
-		};
-	};
+	SLIB_DEFINE_FLAGS(FileSystemFlags, {
+		CaseSensitive = 0x1,
+		SupportsFileCompression = 0x10,
+		SupportsEncryption = 0x20000,
+		ReadOnlyVolume = 0x80000,
+	})
 
 	class SLIB_EXPORT FileSystemInfo
 	{
@@ -104,20 +97,13 @@ namespace slib
 
 	};
 
-	class FileInfoMask
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(FileInfoMask, value)
-
-		enum {
-			Attributes = 0x1,
-			Size = 0x2,
-			AllocSize = 0x4,
-			Time = 0x8,
-			All = 0xffff
-		};
-	};
+	SLIB_DEFINE_FLAGS(FileInfoMask, {
+		Attributes = 0x1,
+		Size = 0x2,
+		AllocSize = 0x4,
+		Time = 0x8,
+		All = 0xffff
+	})
 
 	class FileContext : public Object
 	{
@@ -189,20 +175,13 @@ namespace slib
 
 	};
 
-	class FileSystemHostFlags
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(FileSystemHostFlags, value)
-
-		enum {
-			DebugMode = 0x01,
-			UseStdErr = 0x02,
-			WriteProtect = 0x04,
-			MountAsRemovable = 0x08,
-			MountAsNetworkDrive = 0x10,
-		};
-	};
+	SLIB_DEFINE_FLAGS(FileSystemHostFlags, {
+		DebugMode = 0x01,
+		UseStdErr = 0x02,
+		WriteProtect = 0x04,
+		MountAsRemovable = 0x08,
+		MountAsNetworkDrive = 0x10
+	})
 
 	class FileSystemHostParam
 	{

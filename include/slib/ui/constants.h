@@ -77,24 +77,16 @@ namespace slib
 		
 	};
 	
-	class UIEventFlags
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(UIEventFlags, value)
-		
-	public:
-		enum {
-			PreventDefault = 0x0001,
-			StopPropagation = 0x0002,
-			PassToNext = 0x0004,
-			Internal = 0x0008,
-			DispatchToParent = 0x1000,
-			NotDispatchToChildren = 0x2000,
-			KeepKeyboard = 0x4000,
-			Captured = 0x8000
-		};
-	};
+	SLIB_DEFINE_FLAGS(UIEventFlags, {
+		PreventDefault = 0x0001,
+		StopPropagation = 0x0002,
+		PassToNext = 0x0004,
+		Internal = 0x0008,
+		DispatchToParent = 0x1000,
+		NotDispatchToChildren = 0x2000,
+		KeepKeyboard = 0x4000,
+		Captured = 0x8000
+	})
 	
 	enum class TouchPhase
 	{
@@ -243,24 +235,18 @@ namespace slib
 
 	};
 	
-	class Modifiers
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(Modifiers, value)
-		
-	public:
-		enum {
-			Mask = 0xFFFF0000,
+	SLIB_DEFINE_FLAGS(Modifiers, {
+
+		Mask = 0xFFFF0000,
 			
-			Control = 0x00010000,
-			Alt = 0x00020000,
-			Option = Alt,
-			Shift = 0x00040000,
-			Windows = 0x00080000,
-			Command = Windows
-		};
-	};
+		Control = 0x00010000,
+		Alt = 0x00020000,
+		Option = Alt,
+		Shift = 0x00040000,
+		Windows = 0x00080000,
+		Command = Windows
+
+	})
 	
 	enum class ButtonState
 	{
@@ -461,24 +447,16 @@ namespace slib
 		
 	};
 	
-	class DragOperations
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(DragOperations, value)
-		
-	public:
-		enum {
-			None = 0,
-			All = 0xFFFF,
-			Copy = 0x0001, // The data can be copied
-			Link = 0x0002, // The data can be shared
-			Generic = 0x0004, // The operation can be defined by the destination
-			Private = 0x0008, // The operation is negotiated privately between the source and the destination
-			Move = 0x0010, // The data can be moved.
-			Delete = 0x0020 // The data can be deleted.
-		};
-	};
+	SLIB_DEFINE_FLAGS(DragOperations, {
+		None = 0,
+		All = 0xFFFF,
+		Copy = 0x0001, // The data can be copied
+		Link = 0x0002, // The data can be shared
+		Generic = 0x0004, // The operation can be defined by the destination
+		Private = 0x0008, // The operation is negotiated privately between the source and the destination
+		Move = 0x0010, // The data can be moved.
+		Delete = 0x0020 // The data can be deleted.
+	})
 	
 }
 

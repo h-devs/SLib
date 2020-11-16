@@ -58,24 +58,15 @@ namespace slib
 	
 	class AnimationLoop;
 	
-	class AnimationFlags
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(AnimationFlags, value)
-
-	public:
-		enum {
-			Default = 0,
-			AutoStart = 1,
-			Repeat = 2,
-			AutoReverse = 4,
-			NotNative = 8,
-			NotUpdateWhenStart = 16,
-			NotSelfAlive = 32
-		};
-
-	};
+	SLIB_DEFINE_FLAGS(AnimationFlags, {
+		Default = 0,
+		AutoStart = 1,
+		Repeat = 2,
+		AutoReverse = 4,
+		NotNative = 8,
+		NotUpdateWhenStart = 16,
+		NotSelfAlive = 32
+	})
 	
 	class Animation : public Object
 	{

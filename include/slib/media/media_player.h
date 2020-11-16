@@ -38,22 +38,14 @@ namespace slib
 {
 	class MediaPlayer;
 
-	class MediaPlayerFlags
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(MediaPlayerFlags, value)
-
-	public:
-		enum {
-			Default = 0,
-			NotStart = 1,
-			Repeat = 2,
-			Video = 16,
-			NotSelfAlive = 32,
-			NotAutoRelease = 64
-		};
-	};
+	SLIB_DEFINE_FLAGS(MediaPlayerFlags, {
+		Default = 0,
+		NotStart = 1,
+		Repeat = 2,
+		Video = 16,
+		NotSelfAlive = 32,
+		NotAutoRelease = 64
+	})
 
 	class SLIB_EXPORT MediaPlayerParam
 	{

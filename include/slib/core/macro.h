@@ -138,23 +138,18 @@ public: \
 	constexpr sl_bool operator!=(const CLASS& other) const { return VALUE != other.VALUE; } \
 	constexpr sl_bool operator!=(TYPE _value) const { return VALUE != _value; }
 
-#define SLIB_MEMBERS_OF_FLAGS(CLASS, VALUE) \
-	SLIB_MEMBERS_OF_PRIMITIVE_WRAPPER(CLASS, int, VALUE) \
-	constexpr CLASS() : VALUE(0) {} \
-	SLIB_INLINE CLASS& operator|=(int _value) { VALUE |= _value; return *this; } \
-	SLIB_INLINE CLASS& operator&=(int _value) { VALUE &= _value; return *this; } \
-	SLIB_INLINE static const CLASS& none() { return *((CLASS*)(void*)(&(slib::priv::flags::g_flagsNone))); }
-
-	namespace slib
-	{
-		namespace priv
-		{
-			namespace flags
-			{
-				extern int g_flagsNone;
-			}
-		}
-	}
+#define SLIB_DEFINE_FLAGS(CLASS, ...) \
+	class CLASS \
+	{ \
+	public: \
+		int value; \
+		SLIB_MEMBERS_OF_PRIMITIVE_WRAPPER(CLASS, int, value) \
+		constexpr CLASS() : value(0) {} \
+		SLIB_INLINE CLASS& operator|=(int _value) { value |= _value; return *this; } \
+		SLIB_INLINE CLASS& operator&=(int _value) { value &= _value; return *this; } \
+	public: \
+		enum __VA_ARGS__; \
+	};
 
 #define SLIB_PROPERTY(TYPE, NAME) \
 protected: \

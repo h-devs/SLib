@@ -61,6 +61,7 @@ namespace slib
 	class RenderCanvasState : public Referable
 	{
 	public:
+		RenderEngineType engineType;
 		Matrix3 matrix;
 		sl_bool flagClipRect;
 		Rectangle clipRect;

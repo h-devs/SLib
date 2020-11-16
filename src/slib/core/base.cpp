@@ -914,13 +914,4 @@ namespace slib
 #endif
 	}
 
-
-	namespace priv
-	{
-		namespace flags
-		{
-			int g_flagsNone = 0;
-		}
-	}
-
 }

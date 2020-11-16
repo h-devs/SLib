@@ -30,19 +30,12 @@
 namespace slib
 {
 
-	class RenderObjectFlags
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(RenderObjectFlags, value)
+	SLIB_DEFINE_FLAGS(RenderObjectFlags, {
+		StaticDraw = 1, // OpenGL
 
-		enum {
-			StaticDraw = 1, // OpenGL
-
-			CpuAccessRead = 0x10000,
-			CpuAccessWrite = 0x20000
-		};
-	};
+		CpuAccessRead = 0x10000,
+		CpuAccessWrite = 0x20000
+	})
 
 	class RenderEngine;
 	class RenderBaseObject;

@@ -30,56 +30,50 @@
 namespace slib
 {
 
-	class FileSystemLogFlags
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(FileSystemLogFlags, value)
+	SLIB_DEFINE_FLAGS(FileSystemLogFlags, {
+		
+		Create = 0x01,
+		Open = 0x02,
+		Flush = 0x04,
+		Close = 0x08,
+		Read = 0x10,
+		Write = 0x20,
+		Delete = 0x40,
+		Move = 0x80,
+		OpenOp = Create | Open | Close,
+		CreateOpen = Create | Open,
+		ReadWrite = Read | Write,
 
-		enum {
-			Create = 0x01,
-			Open = 0x02,
-			Flush = 0x04,
-			Close = 0x08,
-			Read = 0x10,
-			Write = 0x20,
-			Delete = 0x40,
-			Move = 0x80,
-			OpenOp = Create | Open | Close,
-			CreateOpen = Create | Open,
-			ReadWrite = Read | Write,
+		BasicOp = 0xFF,
 
-			BasicOp = 0xFF,
+		GetInfo = 0x0100,
+		SetInfo = 0x0200,
+		List = 0x0400,
+		Info = 0x0800,
+		Size = 0x1000,
+		InfoOp = GetInfo | SetInfo,
 
-			GetInfo = 0x0100,
-			SetInfo = 0x0200,
-			List = 0x0400,
-			Info = 0x0800,
-			Size = 0x1000,
-			InfoOp = GetInfo | SetInfo,
+		AllOp = 0xFFFF,
 
-			AllOp = 0xFFFF,
+		TimeInfo = 0x01000000,
+		TimeInfoAsInt = 0x02000000,
+		FileName = 0x04000000,
+		ContextAddress = 0x08000000,
 
-			TimeInfo = 0x01000000,
-			TimeInfoAsInt = 0x02000000,
-			FileName = 0x04000000,
-			ContextAddress = 0x08000000,
+		RetSuccess = 0x10000000,
+		RetFail = 0x20000000,
+		Exception = 0x40000000,
+		ExceptionString = 0x80000000,
+		Ret = RetSuccess | RetFail,
+		RetAndErrors = Ret | Exception,
 
-			RetSuccess = 0x10000000,
-			RetFail = 0x20000000,
-			Exception = 0x40000000,
-			ExceptionString = 0x80000000,
-			Ret = RetSuccess | RetFail,
-			RetAndErrors = Ret | Exception,
+		Success = FileName | RetSuccess,
+		Errors = FileName | RetFail | Exception | ExceptionString,
+		Default = FileName | Ret | Exception | ExceptionString,
 
-			Success = FileName | RetSuccess,
-			Errors = FileName | RetFail | Exception | ExceptionString,
-			Default = FileName | Ret | Exception | ExceptionString,
+		All = 0xFFFFFFFF
 
-			All = 0xFFFFFFFF
-		};
-
-	};
+	})
 
 	class FileSystemLogger : public FileSystemWrapper
 	{

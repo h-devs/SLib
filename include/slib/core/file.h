@@ -35,85 +35,74 @@ typedef sl_reg sl_file;
 namespace slib
 {
 	
-	class FileMode
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(FileMode, value)
-		
-		enum {
-			Read = 1,
-			Write = 2,
-			Sync = 4,
-			Directory = 8,
+	SLIB_DEFINE_FLAGS(FileMode, {
 
-			ReadData = 0x10,
-			WriteData = 0x20,
-			ReadAttrs = 0x40,
-			WriteAttrs = 0x80,
+		Read = 1,
+		Write = 2,
+		Sync = 4,
+		Directory = 8,
 
-			NotCreate = 0x100,
-			NotTruncate = 0x200,
-			SeekToEnd = 0x1000,
-			HintRandomAccess = 0x2000,
+		ReadData = 0x10,
+		WriteData = 0x20,
+		ReadAttrs = 0x40,
+		WriteAttrs = 0x80,
 
-			ReadWrite = Read | Write,
-			Append = Write | NotTruncate | SeekToEnd,
-			RandomAccess = Read | Write | NotTruncate | HintRandomAccess,
-			RandomRead = Read | HintRandomAccess,
+		NotCreate = 0x100,
+		NotTruncate = 0x200,
+		SeekToEnd = 0x1000,
+		HintRandomAccess = 0x2000,
 
-			ShareRead = 0x10000,
-			ShareWrite = 0x20000,
-			ShareReadWrite = ShareRead | ShareWrite,
-			ShareDelete = 0x40000,
-			ShareAll = ShareRead | ShareWrite | ShareDelete
+		ReadWrite = Read | Write,
+		Append = Write | NotTruncate | SeekToEnd,
+		RandomAccess = Read | Write | NotTruncate | HintRandomAccess,
+		RandomRead = Read | HintRandomAccess,
 
-		};
-	};
+		ShareRead = 0x10000,
+		ShareWrite = 0x20000,
+		ShareReadWrite = ShareRead | ShareWrite,
+		ShareDelete = 0x40000,
+		ShareAll = ShareRead | ShareWrite | ShareDelete
+
+	})
 
 	// Equals to WinNT File Attributes
-	class FileAttributes
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(FileAttributes, value)
+	SLIB_DEFINE_FLAGS(FileAttributes, {
+	
+		Default = 0,
+		ReadOnly = 0x1,
+		Hidden = 0x2,
+		System = 0x4,
+		Directory = 0x10,
+		Archive = 0x20,
+		Device = 0x40,
+		Normal = 0x80,
+		Temporary = 0x100,
+		SparseFile = 0x200,
+		ReparsePoint = 0x400,
+		Compressed = 0x800,
+		Offline = 0x1000,
+		NotContentIndexed = 0x2000,
+		Encrypted = 0x4000,
+		Virtual = 0x10000,
 
-		enum {
-			Default = 0,
-			ReadOnly = 0x1,
-			Hidden = 0x2,
-			System = 0x4,
-			Directory = 0x10,
-			Archive = 0x20,
-			Device = 0x40,
-			Normal = 0x80,
-			Temporary = 0x100,
-			SparseFile = 0x200,
-			ReparsePoint = 0x400,
-			Compressed = 0x800,
-			Offline = 0x1000,
-			NotContentIndexed = 0x2000,
-			Encrypted = 0x4000,
-			Virtual = 0x10000,
+		ReadByOthers = 0x00100000,
+		WriteByOthers = 0x00200000,
+		ExecuteByOthers = 0x00400000,
+		ReadByGroup = 0x00800000,
+		WriteByGroup = 0x01000000,
+		ExecuteByGroup = 0x02000000,
+		ReadByUser = 0x04000000,
+		WriteByUser = 0x08000000,
+		ExecuteByUser = 0x10000000,
+		ReadByAnyone = ReadByUser | ReadByGroup | ReadByOthers,
+		WriteByAnyone = WriteByUser | WriteByGroup | WriteByOthers,
+		ExecuteByAnyone = ExecuteByUser | ExecuteByGroup | ExecuteByOthers,
+		AllAccess = ReadByAnyone | WriteByAnyone | ExecuteByAnyone,
+		NoAccess = 0x20000000,
 
-			ReadByOthers = 0x00100000,
-			WriteByOthers = 0x00200000,
-			ExecuteByOthers = 0x00400000,
-			ReadByGroup = 0x00800000,
-			WriteByGroup = 0x01000000,
-			ExecuteByGroup = 0x02000000,
-			ReadByUser = 0x04000000,
-			WriteByUser = 0x08000000,
-			ExecuteByUser = 0x10000000,
-			ReadByAnyone = ReadByUser | ReadByGroup | ReadByOthers,
-			WriteByAnyone = WriteByUser | WriteByGroup | WriteByOthers,
-			ExecuteByAnyone = ExecuteByUser | ExecuteByGroup | ExecuteByOthers,
-			AllAccess = ReadByAnyone | WriteByAnyone | ExecuteByAnyone,
-			NoAccess = 0x20000000,
-
-			NotExist = 0x80000000
-		};
-	};
+		NotExist = 0x80000000
+		
+	})
 
 	class SLIB_EXPORT FileInfo
 	{
