@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -43,24 +43,25 @@ namespace slib
 		{
 			
 			SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderCanvasProgramState, RenderVertex2D_Position)
-				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform)
-				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture)
-				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterR, u_ColorFilterR)
-				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterG, u_ColorFilterG)
-				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterB, u_ColorFilterB)
-				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterA, u_ColorFilterA)
-				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterC, u_ColorFilterC)
-				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(RectSrc, u_RectSrc)
-				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3_ARRAY(ClipTransform, u_ClipTransform)
-				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(ClipRect, u_ClipRect)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterR, u_ColorFilterR, RenderShaderType::Pixel, 1)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterG, u_ColorFilterG, RenderShaderType::Pixel, 2)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterB, u_ColorFilterB, RenderShaderType::Pixel, 3)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterA, u_ColorFilterA, RenderShaderType::Pixel, 4)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterC, u_ColorFilterC, RenderShaderType::Pixel, 5)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(RectSrc, u_RectSrc, RenderShaderType::Vertex, 3)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3_ARRAY(ClipTransform, u_ClipTransform, RenderShaderType::Vertex, 32)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(ClipRect, u_ClipRect, RenderShaderType::Vertex | RenderShaderType::Pixel, 16)
 			
-				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position)
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position, 0)
 			SLIB_RENDER_PROGRAM_STATE_END
 			
 			class RenderCanvasProgramParam
 			{
 			public:
+				sl_bool flagHLSL;
 				sl_bool flagUseTexture;
 				sl_bool flagUseColorFilter;
 				RenderCanvasClip* clips[MAX_SHADER_CLIP + 1];
@@ -69,6 +70,7 @@ namespace slib
 			public:
 				RenderCanvasProgramParam()
 				{
+					flagHLSL = sl_false;
 					flagUseTexture = sl_false;
 					flagUseColorFilter = sl_false;
 					countClips = 0;
@@ -76,6 +78,7 @@ namespace slib
 				
 				void prepare(RenderCanvasState* state, sl_bool flagIgnoreRectClip)
 				{
+					flagHLSL = SLIB_RENDER_CHECK_ENGINE_TYPE(state->engineType, D3D);
 					countClips = 0;
 					if (!flagIgnoreRectClip && state->flagClipRect) {
 						storageRectClip.type = RenderCanvasClipType::Rectangle;
@@ -138,44 +141,128 @@ namespace slib
 				{
 					return m_fragmentShader;
 				}
-				
+
+				String getHLSLVertexShader(RenderEngine* engine) override
+				{
+					return m_vertexShader;
+				}
+
+				String getHLSLPixelShader(RenderEngine* engine) override
+				{
+					return m_fragmentShader;
+				}
+
+				sl_uint32 getVertexShaderConstantBufferSize(sl_uint32 slot) override
+				{
+					return 1024;
+				}
+
+				sl_uint32 getPixelShaderConstantBufferSize(sl_uint32 slot) override
+				{
+					return 1024;
+				}
+
 				static void generateShaderSources(const RenderCanvasProgramParam& param, char* signatures, StringBuffer* bufVertexShader, StringBuffer* bufFragmentShader)
 				{
+					sl_bool flagHLSL = param.flagHLSL;
+
 					StringBuffer bufVBHeader;
 					StringBuffer bufVBContent;
 					StringBuffer bufFBHeader;
 					StringBuffer bufFBContent;
+
+					// For HLSL
+					StringBuffer bufVSInput;
+					StringBuffer bufVSOutput;
+					StringBuffer bufPSInput;
 					
 					if (signatures) {
 						*(signatures++) = 'S';
 					}
 					
 					if (bufVertexShader) {
-						bufVBHeader.addStatic(SLIB_STRINGIFY(
-													   uniform mat3 u_Transform;
-													   attribute vec2 a_Position;
-													   ));
-						bufVBContent.addStatic("void main() {");
-						bufVBContent.addStatic(SLIB_STRINGIFY(
-														gl_Position = vec4((vec3(a_Position, 1.0) * u_Transform).xy, 0.0, 1.0);
-														));
-						bufFBHeader.addStatic(SLIB_STRINGIFY(
-													   uniform vec4 u_Color;
-													   ));
-						bufFBContent.addStatic("void main() { vec4 l_Color = u_Color; ");
+						if (flagHLSL) {
+							bufVBHeader.addStatic(SLIB_STRINGIFY(
+								float3x3 u_Transform : register(c0);
+							));
+							bufVSInput.addStatic(SLIB_STRINGIFY(
+								float2 pos : POSITION;
+							));
+							bufVSOutput.addStatic(SLIB_STRINGIFY(
+								float4 pos : POSITION;
+							));
+							bufVBContent.addStatic(SLIB_STRINGIFY(
+								VS_OUTPUT main(VS_INPUT input) {
+									VS_OUTPUT ret;
+									ret.pos = float4(mul(float3(input.pos, 1.0), u_Transform).xy, 0.0, 1.0);
+							));
+							bufFBHeader.addStatic(SLIB_STRINGIFY(
+								float4 u_Color : register(c0);
+							));
+							bufPSInput.addStatic(SLIB_STRINGIFY(
+								float4 pos : POSITION;
+							));
+							bufFBContent.addStatic(SLIB_STRINGIFY(
+								float4 main(PS_INPUT input) : COLOR {
+									float4 l_Color = u_Color;
+							));
+						} else {
+							bufVBHeader.addStatic(SLIB_STRINGIFY(
+								uniform mat3 u_Transform;
+								attribute vec2 a_Position;
+							));
+							bufVBContent.addStatic(SLIB_STRINGIFY(
+								void main() {							
+									gl_Position = vec4((vec3(a_Position, 1.0) * u_Transform).xy, 0.0, 1.0);
+							));
+							bufFBHeader.addStatic(SLIB_STRINGIFY(
+								uniform vec4 u_Color;
+							));
+							bufFBContent.addStatic(SLIB_STRINGIFY(
+								void main() {
+									vec4 l_Color = u_Color;
+							));
+						}
 					}
-					
+					if (param.flagUseTexture) {						
+						if (bufVertexShader) {
+							if (flagHLSL) {
+								bufVSOutput.addStatic(SLIB_STRINGIFY(
+									float2 texCoord : TEXCOORD0;
+								));
+								bufPSInput.addStatic(SLIB_STRINGIFY(
+									float2 texCoord : TEXCOORD0;
+								));
+							}
+						}
+					}
 					if (param.countClips > 0) {
 						if (bufVertexShader) {
-							bufVBHeader.add(String::format(SLIB_STRINGIFY(
-																		  varying vec2 v_ClipPos[%d];
-																		  uniform vec4 u_ClipRect[%d];
-																		  uniform mat3 u_ClipTransform[%d];
-																		  ), param.countClips));
-							bufFBHeader.add(String::format(SLIB_STRINGIFY(
-																		  varying vec2 v_ClipPos[%d];
-																		  uniform vec4 u_ClipRect[%d];
-																		  ), param.countClips));
+							if (flagHLSL) {
+								bufVBHeader.add(String::format(SLIB_STRINGIFY(
+									float4 u_ClipRect[%d] : register(c16);
+									float3x3 u_ClipTransform[%d] : register(c32);
+								), param.countClips));
+								bufVSOutput.add(String::format(SLIB_STRINGIFY(
+									float2 clipPos[%d] : TEXCOORD1;
+								), param.countClips));
+								bufFBHeader.add(String::format(SLIB_STRINGIFY(
+									float4 u_ClipRect[%d] : register(c16);
+								), param.countClips));
+								bufPSInput.add(String::format(SLIB_STRINGIFY(
+									float2 clipPos[%d] : TEXCOORD1;
+								), param.countClips));
+							} else {
+								bufVBHeader.add(String::format(SLIB_STRINGIFY(
+									varying vec2 v_ClipPos[%d];
+									uniform vec4 u_ClipRect[%d];
+									uniform mat3 u_ClipTransform[%d];
+								), param.countClips));
+								bufFBHeader.add(String::format(SLIB_STRINGIFY(
+									varying vec2 v_ClipPos[%d];
+									uniform vec4 u_ClipRect[%d];
+								), param.countClips));
+							}
 						}
 						for (sl_uint32 i = 0; i < param.countClips; i++) {
 							RenderCanvasClipType type = param.clips[i]->type;
@@ -189,25 +276,40 @@ namespace slib
 									}
 								}
 								if (bufVertexShader) {
-									bufVBContent.add(String::format(SLIB_STRINGIFY(
-																				   v_ClipPos[%d] = (vec3(a_Position, 1.0) * u_ClipTransform[%d]).xy - (u_ClipRect[%d].xy + u_ClipRect[%d].zw) / 2.0;
-																				   ), i));
+									if (flagHLSL) {
+										bufVBContent.add(String::format(SLIB_STRINGIFY(
+											ret.clipPos[%d] = mul(float3(input.pos.x, input.pos.y, 1.0), u_ClipTransform[%d]).xy - (u_ClipRect[%d].xy + u_ClipRect[%d].zw) / 2.0;
+										), i));
+										bufFBContent.add(String::format(SLIB_STRINGIFY(
+											float xClip%d = input.clipPos[%d].x;
+											float yClip%d = input.clipPos[%d].y;
+										), i));
+									} else {
+										bufVBContent.add(String::format(SLIB_STRINGIFY(
+											v_ClipPos[%d] = (vec3(a_Position, 1.0) * u_ClipTransform[%d]).xy - (u_ClipRect[%d].xy + u_ClipRect[%d].zw) / 2.0;
+										), i));
+										bufFBContent.add(String::format(SLIB_STRINGIFY(
+											float xClip%d = v_ClipPos[%d].x;
+											float yClip%d = v_ClipPos[%d].y;
+										), i));
+									}
 									bufFBContent.add(String::format(SLIB_STRINGIFY(
-																				   float wClip%d = (u_ClipRect[%d].z - u_ClipRect[%d].x) / 2.0;
-																				   float hClip%d = (u_ClipRect[%d].w - u_ClipRect[%d].y) / 2.0;
-																				   float xClip%d = v_ClipPos[%d].x / wClip%d;
-																				   float yClip%d = v_ClipPos[%d].y / hClip%d;
-																				   float lenClip%d = xClip%d * xClip%d + yClip%d * yClip%d;
-																				   if (lenClip%d > 1.0) {
-																					   discard;
-																				   }
-																				   ), i));
+										float wClip%d = (u_ClipRect[%d].z - u_ClipRect[%d].x) / 2.0;
+										float hClip%d = (u_ClipRect[%d].w - u_ClipRect[%d].y) / 2.0;
+										xClip%d /= wClip%d;
+										yClip%d /= hClip%d;
+										float lenClip%d = xClip%d * xClip%d + yClip%d * yClip%d;
+										if (lenClip%d > 1.0) {
+											discard;
+										}
+									), i));
 									if (flagOval) {
 										bufFBContent.add(String::format(SLIB_STRINGIFY(
-																					   else {
-																						   lenClip%d = sqrt(lenClip%d);
-																						   l_Color.w *= smoothstep(0.0, 1.5/sqrt(wClip%d * hClip%d), 1.0-lenClip%d);
-																					   }), i));
+											else {
+												lenClip%d = sqrt(lenClip%d);
+												l_Color.w *= smoothstep(0.0, 1.5 / sqrt(wClip%d * hClip%d), 1.0 - lenClip%d);
+											}
+										), i));
 									}
 								}
 							} else {
@@ -215,15 +317,29 @@ namespace slib
 									*(signatures++) = 'C';
 								}
 								if (bufVertexShader) {
-									bufVBContent.add(String::format(SLIB_STRINGIFY(
-																				   v_ClipPos[%d] = (vec3(a_Position, 1.0) * u_ClipTransform[%d]).xy;
-																				   ), i));
+									if (flagHLSL) {
+										bufVBContent.add(String::format(SLIB_STRINGIFY(
+											ret.clipPos[%d] = mul(float3(input.pos.x, input.pos.y, 1.0), u_ClipTransform[%d]).xy;
+										), i));
+										bufFBContent.add(String::format(SLIB_STRINGIFY(
+											float xClip%d = input.clipPos[%d].x;
+											float yClip%d = input.clipPos[%d].y;
+										), i));
+									} else {
+										bufVBContent.add(String::format(SLIB_STRINGIFY(
+											v_ClipPos[%d] = (vec3(a_Position, 1.0) * u_ClipTransform[%d]).xy;
+										), i));
+										bufFBContent.add(String::format(SLIB_STRINGIFY(
+											float xClip%d = v_ClipPos[%d].x;
+											float yClip%d = v_ClipPos[%d].y;
+										), i));
+									}
 									bufFBContent.add(String::format(SLIB_STRINGIFY(
-																				   float fClip%d = step(u_ClipRect[%d].x, v_ClipPos[%d].x) * step(u_ClipRect[%d].y, v_ClipPos[%d].y) * step(v_ClipPos[%d].x, u_ClipRect[%d].z) * step(v_ClipPos[%d].y, u_ClipRect[%d].w);
-																				   if (fClip%d < 0.5) {
-																					   discard;
-																				   }
-																				   ), i));
+										float fClip%d = step(u_ClipRect[%d].x, xClip%d) * step(u_ClipRect[%d].y, yClip%d) * step(xClip%d, u_ClipRect[%d].z) * step(yClip%d, u_ClipRect[%d].w);
+									if (fClip%d < 0.5) {
+										discard;
+									}
+									), i));
 								}
 							}
 						}
@@ -234,17 +350,29 @@ namespace slib
 							*(signatures++) = 'T';
 						}
 						if (bufVertexShader) {
-							bufVBHeader.addStatic(SLIB_STRINGIFY(
-														   uniform vec4 u_RectSrc;
-														   varying vec2 v_TexCoord;
-														   ));
-							bufVBContent.addStatic(SLIB_STRINGIFY(
-															v_TexCoord = a_Position * u_RectSrc.zw + u_RectSrc.xy;
-															));
-							bufFBHeader.addStatic(SLIB_STRINGIFY(
-														   uniform sampler2D u_Texture;
-														   varying vec2 v_TexCoord;
-														   ));
+							if (flagHLSL) {
+								bufVBHeader.addStatic(SLIB_STRINGIFY(
+									float4 u_RectSrc : register(c3);
+								));
+								bufVBContent.addStatic(SLIB_STRINGIFY(
+									ret.texCoord = input.pos * u_RectSrc.zw + u_RectSrc.xy;
+								));
+								bufFBHeader.addStatic(SLIB_STRINGIFY(
+									sampler u_Texture;
+								));
+							} else {
+								bufVBHeader.addStatic(SLIB_STRINGIFY(
+									uniform vec4 u_RectSrc;
+									varying vec2 v_TexCoord;
+								));
+								bufVBContent.addStatic(SLIB_STRINGIFY(
+									v_TexCoord = a_Position * u_RectSrc.zw + u_RectSrc.xy;
+								));
+								bufFBHeader.addStatic(SLIB_STRINGIFY(
+									uniform sampler2D u_Texture;
+									varying vec2 v_TexCoord;
+								));
+							}
 						}
 						
 						if (param.flagUseColorFilter) {
@@ -252,39 +380,81 @@ namespace slib
 								*(signatures++) = 'F';
 							}
 							if (bufVertexShader) {
-								bufFBHeader.addStatic(SLIB_STRINGIFY(
-															   uniform vec4 u_ColorFilterR;
-															   uniform vec4 u_ColorFilterG;
-															   uniform vec4 u_ColorFilterB;
-															   uniform vec4 u_ColorFilterA;
-															   uniform vec4 u_ColorFilterC;
-															   ));
-								bufFBContent.addStatic(SLIB_STRINGIFY(
-																vec4 color = texture2D(u_Texture, v_TexCoord);
-																color = vec4(dot(color, u_ColorFilterR), dot(color, u_ColorFilterG), dot(color, u_ColorFilterB), dot(color, u_ColorFilterA)) + u_ColorFilterC;
-																color = color * l_Color;
-																));
+								if (flagHLSL) {
+									bufFBHeader.addStatic(SLIB_STRINGIFY(
+										float4 u_ColorFilterR : register(c1);
+										float4 u_ColorFilterG : register(c2);
+										float4 u_ColorFilterB : register(c3);
+										float4 u_ColorFilterA : register(c4);
+										float4 u_ColorFilterC : register(c5);
+									));
+									bufFBContent.addStatic(SLIB_STRINGIFY(
+										float4 color = tex2D(u_Texture, input.texCoord);
+										color = float4(dot(color, u_ColorFilterR), dot(color, u_ColorFilterG), dot(color, u_ColorFilterB), dot(color, u_ColorFilterA)) + u_ColorFilterC;
+										color = color * l_Color;
+									));
+								} else {
+									bufFBHeader.addStatic(SLIB_STRINGIFY(
+										uniform vec4 u_ColorFilterR;
+										uniform vec4 u_ColorFilterG;
+										uniform vec4 u_ColorFilterB;
+										uniform vec4 u_ColorFilterA;
+										uniform vec4 u_ColorFilterC;
+									));
+									bufFBContent.addStatic(SLIB_STRINGIFY(
+										vec4 color = texture2D(u_Texture, v_TexCoord);
+										color = vec4(dot(color, u_ColorFilterR), dot(color, u_ColorFilterG), dot(color, u_ColorFilterB), dot(color, u_ColorFilterA)) + u_ColorFilterC;
+										color = color * l_Color;
+									));
+								}
 							}
 						} else {
 							if (bufVertexShader) {
-								bufFBContent.addStatic(SLIB_STRINGIFY(
-																vec4 color = texture2D(u_Texture, v_TexCoord) * l_Color;
-																));
+								if (flagHLSL) {
+									bufFBContent.addStatic(SLIB_STRINGIFY(
+										float4 color = tex2D(u_Texture, input.texCoord) * l_Color;
+									));
+								} else {
+									bufFBContent.addStatic(SLIB_STRINGIFY(
+										vec4 color = texture2D(u_Texture, v_TexCoord) * l_Color;
+									));
+								}
 							}
 						}
 					} else {
 						if (bufVertexShader) {
-							bufFBContent.addStatic(SLIB_STRINGIFY(
-															vec4 color = l_Color;
-															));
+							if (flagHLSL) {
+								bufFBContent.addStatic(SLIB_STRINGIFY(
+									float4 color = l_Color;
+								));
+							} else {
+								bufFBContent.addStatic(SLIB_STRINGIFY(
+									vec4 color = l_Color;
+								));
+							}
 						}
 					}
-					
-					
 					if (bufVertexShader) {
-						bufFBContent.addStatic(SLIB_STRINGIFY(
-														gl_FragColor = color;
-														));
+						if (flagHLSL) {
+							bufVBContent.addStatic(SLIB_STRINGIFY(
+								return ret;
+							));
+							bufFBContent.addStatic(SLIB_STRINGIFY(
+								return color;
+							));
+							bufVBHeader.addStatic("struct VS_INPUT {");
+							bufVBHeader.link(bufVSInput);
+							bufVBHeader.addStatic("}; struct VS_OUTPUT {");
+							bufVBHeader.link(bufVSOutput);
+							bufVBHeader.addStatic("};");
+							bufFBHeader.addStatic("struct PS_INPUT {");
+							bufFBHeader.link(bufPSInput);
+							bufFBHeader.addStatic("};");
+						} else {
+							bufFBContent.addStatic(SLIB_STRINGIFY(
+								gl_FragColor = color;
+							));
+						}
 						bufVBContent.addStatic("}");
 						bufFBContent.addStatic("}");
 						bufVertexShader->link(bufVBHeader);
@@ -371,7 +541,7 @@ namespace slib
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RenderCanvasState)
 	
 	RenderCanvasState::RenderCanvasState()
-	 : matrix(Matrix3::identity()), flagClipRect(sl_false)
+	 : engineType(RenderEngineType::Any), matrix(Matrix3::identity()), flagClipRect(sl_false)
 	{
 	}
 	
@@ -404,6 +574,7 @@ namespace slib
 					ret->m_matViewport = Matrix3(2/width, 0, 0, 0, -2/height, 0, -1, 1, 1);
 					
 					ret->m_state = state;
+					state->engineType = engine->getEngineType();
 					
 					ret->setType(CanvasType::Render);
 					ret->setSize(Size(width, height));
