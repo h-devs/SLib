@@ -56,7 +56,7 @@
 #	define SLIB_STRINGIFY(...)				#__VA_ARGS__
 #	define SLIB_STRINGIFY_UNICODE(...)		SLIB_UNICODE(#__VA_ARGS__)
 #elif defined(SLIB_COMPILER_IS_GCC)
-#	define SLIB_STRINGIFY(x...)				(#x)
+#	define SLIB_STRINGIFY(x...)				#x
 #	define SLIB_STRINGIFY_UNICODE(x...)		SLIB_UNICODE(#x)
 #endif
 
