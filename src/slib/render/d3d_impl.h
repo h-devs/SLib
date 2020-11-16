@@ -851,7 +851,29 @@ namespace slib
 					return sl_false;
 				}
 
-				void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* _data, sl_uint32 nItems) override
+				void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 nItems) override
+				{
+					switch (location.shader) {
+					case RenderShaderType::Vertex:
+					case RenderShaderType::Pixel:
+						_setUniform(location, type, data, nItems);
+						break;
+					default:
+						break;
+					}
+					if (location.shader & RenderShaderType::Vertex) {
+						RenderUniformLocation l = location;
+						l.shader = RenderShaderType::Vertex;
+						_setUniform(l, type, data, nItems);
+					}
+					if (location.shader & RenderShaderType::Pixel) {
+						RenderUniformLocation l = location;
+						l.shader = RenderShaderType::Pixel;
+						_setUniform(l, type, data, nItems);
+					}
+				}
+
+				void _setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* _data, sl_uint32 nItems)
 				{
 #if D3D_VERSION_MAJOR >= 10
 					ConstantBuffer* buffer;
