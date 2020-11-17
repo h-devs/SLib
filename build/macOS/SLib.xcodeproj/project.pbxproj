@@ -13,6 +13,7 @@
 		260B73F6220D7DF600858EEA /* oauth.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 260B73F4220D7DF600858EEA /* oauth.cpp */; };
 		260B73FA220D872F00858EEA /* twitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 260B73F9220D872F00858EEA /* twitter.cpp */; };
 		260B73FE220DCB1D00858EEA /* oauth_ui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 260B73FD220DCB1D00858EEA /* oauth_ui.cpp */; };
+		261180E62563BCA10082AA0A /* render_buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 261180E52563BCA10082AA0A /* render_buffer.cpp */; };
 		2614723623944E6D00F7CD0C /* wechat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2614723523944E6D00F7CD0C /* wechat.cpp */; };
 		2614723823944E7300F7CD0C /* wechat_sdk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2614723723944E7300F7CD0C /* wechat_sdk.cpp */; };
 		261782C8251C9E1200C2AAC0 /* service_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 261782C7251C9E1200C2AAC0 /* service_manager.cpp */; };
@@ -304,7 +305,6 @@
 		26D9D9A61E96467B005F7BD3 /* url.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26C13E421DDA30FD00612945 /* url.cpp */; };
 		26D9D9A71E96467B005F7BD3 /* url_request.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26C13E441DDA32F000612945 /* url_request.cpp */; };
 		26D9D9A81E96467B005F7BD3 /* url_request_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26C13E461DDA516D00612945 /* url_request_apple.mm */; };
-		26D9D9A91E964683005F7BD3 /* index_buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4D91C11940A00D47AB0 /* index_buffer.cpp */; };
 		26D9D9AA1E964683005F7BD3 /* opengl_gl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4DC1C11940A00D47AB0 /* opengl_gl.cpp */; };
 		26D9D9AB1E964683005F7BD3 /* opengl_gles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4DE1C11940A00D47AB0 /* opengl_gles.cpp */; };
 		26D9D9AC1E964683005F7BD3 /* render_base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4E21C11940A00D47AB0 /* render_base.cpp */; };
@@ -313,7 +313,6 @@
 		26D9D9B01E964683005F7BD3 /* render_program.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4E61C11940A00D47AB0 /* render_program.cpp */; };
 		26D9D9B11E964683005F7BD3 /* render_resource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 260A402D1D2AAAD8009CFCE8 /* render_resource.cpp */; };
 		26D9D9B21E964683005F7BD3 /* texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4E71C11940A00D47AB0 /* texture.cpp */; };
-		26D9D9B31E964683005F7BD3 /* vertex_buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4E81C11940A00D47AB0 /* vertex_buffer.cpp */; };
 		26D9D9B41E96468D005F7BD3 /* button.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4EA1C11940A00D47AB0 /* button.cpp */; };
 		26D9D9B51E96468D005F7BD3 /* button_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4ED1C11940A00D47AB0 /* button_macos.mm */; };
 		26D9D9B61E96468D005F7BD3 /* camera_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2688DD861C16FBDF00973672 /* camera_view.cpp */; };
@@ -625,6 +624,7 @@
 		260B73F9220D872F00858EEA /* twitter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = twitter.cpp; path = social/twitter.cpp; sourceTree = "<group>"; };
 		260B73FD220DCB1D00858EEA /* oauth_ui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oauth_ui.cpp; path = social/oauth_ui.cpp; sourceTree = "<group>"; };
 		260CB16A230F103500597B56 /* button_macos.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = button_macos.h; sourceTree = "<group>"; };
+		261180E52563BCA10082AA0A /* render_buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = render_buffer.cpp; sourceTree = "<group>"; };
 		2614723523944E6D00F7CD0C /* wechat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wechat.cpp; path = social/wechat.cpp; sourceTree = "<group>"; };
 		2614723723944E7300F7CD0C /* wechat_sdk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wechat_sdk.cpp; path = social/wechat_sdk.cpp; sourceTree = "<group>"; };
 		261782C7251C9E1200C2AAC0 /* service_manager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = service_manager.cpp; sourceTree = "<group>"; };
@@ -792,7 +792,6 @@
 		266DD4D41C11940A00D47AB0 /* socket_event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = socket_event.cpp; sourceTree = "<group>"; };
 		266DD4D51C11940A00D47AB0 /* socket_event_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = socket_event_unix.cpp; sourceTree = "<group>"; };
 		266DD4D71C11940A00D47AB0 /* tcpip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tcpip.cpp; sourceTree = "<group>"; };
-		266DD4D91C11940A00D47AB0 /* index_buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = index_buffer.cpp; sourceTree = "<group>"; };
 		266DD4DC1C11940A00D47AB0 /* opengl_gl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = opengl_gl.cpp; sourceTree = "<group>"; };
 		266DD4DD1C11940A00D47AB0 /* opengl_gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = opengl_gl.h; sourceTree = "<group>"; };
 		266DD4DE1C11940A00D47AB0 /* opengl_gles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = opengl_gles.cpp; sourceTree = "<group>"; };
@@ -802,7 +801,6 @@
 		266DD4E31C11940A00D47AB0 /* render_engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = render_engine.cpp; sourceTree = "<group>"; };
 		266DD4E61C11940A00D47AB0 /* render_program.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = render_program.cpp; sourceTree = "<group>"; };
 		266DD4E71C11940A00D47AB0 /* texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = texture.cpp; sourceTree = "<group>"; };
-		266DD4E81C11940A00D47AB0 /* vertex_buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vertex_buffer.cpp; sourceTree = "<group>"; };
 		266DD4EA1C11940A00D47AB0 /* button.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = button.cpp; sourceTree = "<group>"; };
 		266DD4ED1C11940A00D47AB0 /* button_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = button_macos.mm; sourceTree = "<group>"; };
 		266DD4F21C11940A00D47AB0 /* check_box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = check_box.cpp; sourceTree = "<group>"; };
@@ -1437,20 +1435,19 @@
 		266DD4D81C11940A00D47AB0 /* render */ = {
 			isa = PBXGroup;
 			children = (
-				266DD4D91C11940A00D47AB0 /* index_buffer.cpp */,
 				266DD4DC1C11940A00D47AB0 /* opengl_gl.cpp */,
 				266DD4DD1C11940A00D47AB0 /* opengl_gl.h */,
 				266DD4DE1C11940A00D47AB0 /* opengl_gles.cpp */,
 				266DD4DF1C11940A00D47AB0 /* opengl_gles.h */,
 				266DD4E01C11940A00D47AB0 /* opengl_impl.h */,
 				266DD4E21C11940A00D47AB0 /* render_base.cpp */,
+				261180E52563BCA10082AA0A /* render_buffer.cpp */,
 				26CF1D0F1DBA6B1700B6B65B /* render_canvas.cpp */,
 				267D008B1E32AA5A002CC949 /* render_drawable.cpp */,
 				266DD4E31C11940A00D47AB0 /* render_engine.cpp */,
 				266DD4E61C11940A00D47AB0 /* render_program.cpp */,
 				260A402D1D2AAAD8009CFCE8 /* render_resource.cpp */,
 				266DD4E71C11940A00D47AB0 /* texture.cpp */,
-				266DD4E81C11940A00D47AB0 /* vertex_buffer.cpp */,
 			);
 			path = render;
 			sourceTree = "<group>";
@@ -2274,7 +2271,6 @@
 				26D9D9151E9645CE005F7BD3 /* blowfish.cpp in Sources */,
 				265EA93A2550D48C0098721F /* file_system_logger.cpp in Sources */,
 				26D9D9E31E96468D005F7BD3 /* ui_event.cpp in Sources */,
-				26D9D9A91E964683005F7BD3 /* index_buffer.cpp in Sources */,
 				26D9D9161E9645CE005F7BD3 /* async_kqueue.cpp in Sources */,
 				26E1B898222ABAB2007C222E /* jdmainct.c in Sources */,
 				26C7959F22154CB80053C5A1 /* clipboard.cpp in Sources */,
@@ -2411,7 +2407,6 @@
 				26D9D9DE1E96468D005F7BD3 /* ui_app.cpp in Sources */,
 				26E1B88F222ABAB2007C222E /* jdapistd.c in Sources */,
 				26D9D92F1E9645CE005F7BD3 /* vector4.cpp in Sources */,
-				26D9D9B31E964683005F7BD3 /* vertex_buffer.cpp in Sources */,
 				26E1B8A5222ABAB2007C222E /* jidctint.c in Sources */,
 				26E1B88D222ABAB2007C222E /* jctrans.c in Sources */,
 				26BAE0332223E3BC0085B5AB /* http_openssl.cpp in Sources */,
@@ -2508,6 +2503,7 @@
 				26D9D9491E9645CE005F7BD3 /* triangle.cpp in Sources */,
 				26F607B323ABE0C600DCE0C3 /* postgresql.cpp in Sources */,
 				26D9D94A1E9645CE005F7BD3 /* system.cpp in Sources */,
+				261180E62563BCA10082AA0A /* render_buffer.cpp in Sources */,
 				262D599F2324E9A500F85780 /* emoji.cpp in Sources */,
 				26D9D9CB1E96468D005F7BD3 /* progress_bar.cpp in Sources */,
 				267206282497433C006E6347 /* label_list.cpp in Sources */,

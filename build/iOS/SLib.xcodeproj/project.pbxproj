@@ -13,6 +13,7 @@
 		260B73EF220CAD1C00858EEA /* oauth.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 260B73EE220CAD1C00858EEA /* oauth.cpp */; };
 		260B73F8220D872600858EEA /* twitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 260B73F7220D872600858EEA /* twitter.cpp */; };
 		260B73FC220DCA8E00858EEA /* oauth_ui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 260B73FB220DCA8D00858EEA /* oauth_ui.cpp */; };
+		261180E42563BC730082AA0A /* render_buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 261180E32563BC730082AA0A /* render_buffer.cpp */; };
 		2614D10D237A6556001C52F0 /* device_contacts_ios.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2614D10C237A6556001C52F0 /* device_contacts_ios.mm */; };
 		261782CA251C9EAE00C2AAC0 /* service_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 261782C9251C9EAE00C2AAC0 /* service_manager.cpp */; };
 		261E7F422353AA6100ACE4E8 /* string_buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 261E7F402353AA6100ACE4E8 /* string_buffer.cpp */; };
@@ -282,7 +283,6 @@
 		26D9D8A71E962962005F7BD3 /* url.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2631B77D1DDB14E600729A87 /* url.cpp */; };
 		26D9D8A81E962962005F7BD3 /* url_request.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2631B77F1DDB14ED00729A87 /* url_request.cpp */; };
 		26D9D8A91E962962005F7BD3 /* url_request_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2631B7811DDB14F200729A87 /* url_request_apple.mm */; };
-		26D9D8AA1E962969005F7BD3 /* index_buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3EE1C118B9900D47AB0 /* index_buffer.cpp */; };
 		26D9D8AB1E962969005F7BD3 /* opengl_gl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3F11C118B9900D47AB0 /* opengl_gl.cpp */; };
 		26D9D8AC1E962969005F7BD3 /* opengl_gles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3F31C118B9900D47AB0 /* opengl_gles.cpp */; };
 		26D9D8AD1E962969005F7BD3 /* render_base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3F71C118B9900D47AB0 /* render_base.cpp */; };
@@ -292,7 +292,6 @@
 		26D9D8B11E962969005F7BD3 /* render_program.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3FB1C118B9900D47AB0 /* render_program.cpp */; };
 		26D9D8B21E962969005F7BD3 /* render_resource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266F926D1D51CD5D0040166C /* render_resource.cpp */; };
 		26D9D8B31E962969005F7BD3 /* texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3FC1C118B9900D47AB0 /* texture.cpp */; };
-		26D9D8B41E962969005F7BD3 /* vertex_buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3FD1C118B9900D47AB0 /* vertex_buffer.cpp */; };
 		26D9D8B51E962976005F7BD3 /* button.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4311C118FF200D47AB0 /* button.cpp */; };
 		26D9D8B71E962976005F7BD3 /* camera_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26A9B7611C172BCC004C9B0E /* camera_view.cpp */; };
 		26D9D8B81E962976005F7BD3 /* check_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4351C11901A00D47AB0 /* check_box.cpp */; };
@@ -555,6 +554,7 @@
 		260D83E320C838F90013B34E /* jutils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jutils.c; path = ../../external/src/libjpeg/jutils.c; sourceTree = "<group>"; };
 		260D83E420C838F90013B34E /* jquant2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jquant2.c; path = ../../external/src/libjpeg/jquant2.c; sourceTree = "<group>"; };
 		260D83E520C838F90013B34E /* jquant1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jquant1.c; path = ../../external/src/libjpeg/jquant1.c; sourceTree = "<group>"; };
+		261180E32563BC730082AA0A /* render_buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = render_buffer.cpp; sourceTree = "<group>"; };
 		2614D10C237A6556001C52F0 /* device_contacts_ios.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = device_contacts_ios.mm; sourceTree = "<group>"; };
 		261782C9251C9EAE00C2AAC0 /* service_manager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = service_manager.cpp; sourceTree = "<group>"; };
 		261B4C841DB10149000A385A /* transition.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = transition.cpp; sourceTree = "<group>"; };
@@ -675,7 +675,6 @@
 		266DD3D21C1181B500D47AB0 /* socket_event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = socket_event.cpp; sourceTree = "<group>"; };
 		266DD3D31C1181B500D47AB0 /* socket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = socket.cpp; sourceTree = "<group>"; };
 		266DD3D41C1181B500D47AB0 /* tcpip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tcpip.cpp; sourceTree = "<group>"; };
-		266DD3EE1C118B9900D47AB0 /* index_buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = index_buffer.cpp; sourceTree = "<group>"; };
 		266DD3F11C118B9900D47AB0 /* opengl_gl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = opengl_gl.cpp; sourceTree = "<group>"; };
 		266DD3F21C118B9900D47AB0 /* opengl_gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = opengl_gl.h; sourceTree = "<group>"; };
 		266DD3F31C118B9900D47AB0 /* opengl_gles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = opengl_gles.cpp; sourceTree = "<group>"; };
@@ -685,7 +684,6 @@
 		266DD3F81C118B9900D47AB0 /* render_engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = render_engine.cpp; sourceTree = "<group>"; };
 		266DD3FB1C118B9900D47AB0 /* render_program.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = render_program.cpp; sourceTree = "<group>"; };
 		266DD3FC1C118B9900D47AB0 /* texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = texture.cpp; sourceTree = "<group>"; };
-		266DD3FD1C118B9900D47AB0 /* vertex_buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vertex_buffer.cpp; sourceTree = "<group>"; };
 		266DD41A1C118E4A00D47AB0 /* cursor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cursor.cpp; sourceTree = "<group>"; };
 		266DD4281C118F6D00D47AB0 /* view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = view.cpp; sourceTree = "<group>"; };
 		266DD42A1C118F7800D47AB0 /* view_ios.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = view_ios.h; sourceTree = "<group>"; };
@@ -1447,20 +1445,19 @@
 		A25F2F131B039EF600854DAF /* render */ = {
 			isa = PBXGroup;
 			children = (
-				266DD3EE1C118B9900D47AB0 /* index_buffer.cpp */,
 				266DD3F11C118B9900D47AB0 /* opengl_gl.cpp */,
 				266DD3F21C118B9900D47AB0 /* opengl_gl.h */,
 				266DD3F31C118B9900D47AB0 /* opengl_gles.cpp */,
 				266DD3F41C118B9900D47AB0 /* opengl_gles.h */,
 				266DD3F51C118B9900D47AB0 /* opengl_impl.h */,
 				266DD3F71C118B9900D47AB0 /* render_base.cpp */,
+				261180E32563BC730082AA0A /* render_buffer.cpp */,
 				26C267731DB9048200FA8FFD /* render_canvas.cpp */,
 				267D00891E32AA3B002CC949 /* render_drawable.cpp */,
 				266DD3F81C118B9900D47AB0 /* render_engine.cpp */,
 				266DD3FB1C118B9900D47AB0 /* render_program.cpp */,
 				266F926D1D51CD5D0040166C /* render_resource.cpp */,
 				266DD3FC1C118B9900D47AB0 /* texture.cpp */,
-				266DD3FD1C118B9900D47AB0 /* vertex_buffer.cpp */,
 			);
 			path = render;
 			sourceTree = "<group>";
@@ -1737,7 +1734,6 @@
 				26D9D8DD1E962976005F7BD3 /* ui_app.cpp in Sources */,
 				26E1B8BC222ABBE7007C222E /* pngget.c in Sources */,
 				26D9D8091E9628E0005F7BD3 /* system_unix.cpp in Sources */,
-				26D9D8B41E962969005F7BD3 /* vertex_buffer.cpp in Sources */,
 				26D9D80A1E9628E0005F7BD3 /* gcm.cpp in Sources */,
 				26D9D89A1E962962005F7BD3 /* mac_address.cpp in Sources */,
 				26D9D8BF1E962976005F7BD3 /* image_view.cpp in Sources */,
@@ -1777,6 +1773,7 @@
 				262ED4EA228DEBEE0029F409 /* ecc.cpp in Sources */,
 				26BAE04522267D100085B5AB /* tls.cpp in Sources */,
 				26E1B8C5222ABBE7007C222E /* pngwio.c in Sources */,
+				261180E42563BC730082AA0A /* render_buffer.cpp in Sources */,
 				26C795A72215675C0053C5A1 /* url_request_param.cpp in Sources */,
 				26D9D8531E96292E005F7BD3 /* database.cpp in Sources */,
 				260B73FC220DCA8E00858EEA /* oauth_ui.cpp in Sources */,
@@ -1902,7 +1899,6 @@
 				26D9D8E41E962976005F7BD3 /* ui_menu.cpp in Sources */,
 				26D9D82C1E9628E0005F7BD3 /* view_frustum.cpp in Sources */,
 				26D9D87A1E96294F005F7BD3 /* yuv.cpp in Sources */,
-				26D9D8AA1E962969005F7BD3 /* index_buffer.cpp in Sources */,
 				26D9D8EE1E962976005F7BD3 /* window_ios.mm in Sources */,
 				26C795C92215FC7C0053C5A1 /* drawables.cpp in Sources */,
 				261E7F432353AA6100ACE4E8 /* string_param.cpp in Sources */,

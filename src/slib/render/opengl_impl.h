@@ -1552,7 +1552,7 @@ namespace slib
 
 			sl_bool getUniformLocation(const char* name, RenderUniformLocation* outLocation) override
 			{
-				outLocation->location = GL::getUniformLocation(program, name);
+				outLocation->location = GL_BASE::getUniformLocation(program, name);
 				if (outLocation->location >= 0) {
 					return sl_true;
 				}
