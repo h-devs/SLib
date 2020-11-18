@@ -122,6 +122,11 @@ namespace slib
 		return sl_true;
 	}
 
+	sl_bool RenderEngine::isInputLayoutAvailable()
+	{
+		return sl_true;
+	}
+
 	sl_bool RenderEngine::beginScene()
 	{
 		m_nCountDrawnElementsOnLastScene = 0;

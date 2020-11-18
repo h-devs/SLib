@@ -56,8 +56,10 @@ namespace slib
 
 	sl_bool RenderProgram::onPreRender(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state)
 	{
-		state->updateInputLayout(this);
-		engine->setInputLayout(state->getInputLayout());
+		if (engine->isInputLayoutAvailable()) {
+			state->updateInputLayout(this);
+			engine->setInputLayout(state->getInputLayout());
+		}
 		return sl_true;
 	}
 
@@ -331,7 +333,7 @@ namespace slib
 				RenderProgramStateItem items[1];
 			};
 
-			sl_bool RenderProgramTemplate::onInit(RenderEngine* engine, RenderProgramInstance*, RenderProgramState* _state)
+			void RenderProgramTemplate::initializeState(RenderProgramState* _state)
 			{
 				RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
 				List<RenderInputLayoutItem> layouts;
@@ -349,7 +351,6 @@ namespace slib
 					}
 					item++;
 				}
-				return sl_true;
 			}
 
 			sl_bool RenderProgramTemplate::getInputLayoutParam(RenderProgramState* _state, RenderInputLayoutParam& param)

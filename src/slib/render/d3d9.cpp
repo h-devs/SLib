@@ -40,6 +40,55 @@ typedef IDirect3DVertexShader9 ID3DVertexShader;
 typedef IDirect3DPixelShader9 ID3DPixelShader;
 typedef IDirect3DVertexDeclaration9 ID3DInputLayout;
 
+typedef D3DVIEWPORT9 D3DVIEWPORT;
+
 #include "d3d_impl.h"
+
+namespace slib
+{
+	namespace priv
+	{
+		namespace d3d9
+		{
+
+			Memory CompileShader(const StringParam& _source, const StringParam& _target)
+			{
+				if (_source.isEmpty()) {
+					return sl_null;
+				}
+				auto func = slib::d3dx9::getApi_D3DXCompileShader();
+				if (!func) {
+					return sl_null;
+				}
+				ID3DXBuffer* shader = sl_null;
+				StringData source(_source);
+				StringCstr target(_target);
+#ifdef SLIB_DEBUG
+				ID3DXBuffer* error = sl_null;
+				HRESULT hr = func(source.getData(), (UINT)(source.getLength()), NULL, NULL, "main", target.getData(), 0, &shader, &error, NULL);
+#else
+				func(source.getData(), (UINT)(source.getLength()), NULL, NULL, "main", target.getData(), 0, &shader, NULL, NULL);
+#endif
+				if (shader) {
+					Memory ret = Memory::create(shader->GetBufferPointer(), (sl_size)(shader->GetBufferSize()));
+					shader->Release();
+					return ret;
+				}
+#ifdef SLIB_DEBUG
+				else {
+					if (error) {
+						SLIB_LOG_DEBUG("D3DCompileError", "hr=%d, %s", (sl_reg)hr, StringView((char*)(error->GetBufferPointer()), error->GetBufferSize()));
+						error->Release();
+					} else {
+						SLIB_LOG_DEBUG("D3DCompileError", "hr=%d", (sl_reg)hr);
+					}
+				}
+#endif
+				return sl_null;
+			}
+
+		}
+	}
+}
 
 #endif

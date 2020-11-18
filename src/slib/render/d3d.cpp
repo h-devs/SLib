@@ -25,6 +25,7 @@
 #if defined(SLIB_RENDER_SUPPORT_D3D)
 
 #include "slib/render/d3d.h"
+#include "slib/render/dl_windows_d3d.h"
 
 namespace slib
 {
@@ -32,16 +33,24 @@ namespace slib
 	namespace priv
 	{
 
+		namespace d3d8
+		{
+			Ref<Renderer> CreateRenderer(void* windowHandle, const RendererParam& param);
+			Ref<Renderer> CreateRenderer(IDirect3DDevice8* device, const RendererParam& param, void* windowHandle, sl_bool flagFreeOnFailure);
+		}
+
 		namespace d3d9
 		{
 			Ref<Renderer> CreateRenderer(void* windowHandle, const RendererParam& param);
 			Ref<Renderer> CreateRenderer(IDirect3DDevice9* device, const RendererParam& param, void* windowHandle, sl_bool flagFreeOnFailure);
+			Memory CompileShader(const StringParam& source, const StringParam& target);
 		}
 
 		namespace d3d10
 		{
 			Ref<Renderer> CreateRenderer(void* windowHandle, const RendererParam& param);
 			Ref<Renderer> CreateRenderer(ID3D10Device* device, const RendererParam& param, void* windowHandle, sl_bool flagFreeOnFailure);
+			Memory CompileShader(const StringParam& source, const StringParam& target);
 		}
 
 		namespace d3d10_1
@@ -76,6 +85,7 @@ namespace slib
 			if (renderer.isNotNull()) {
 				return renderer;
 			}
+			return priv::d3d9::CreateRenderer(windowHandle, param);
 		} else {
 			if (version >= RenderEngineType::D3D11) {
 				return priv::d3d11::CreateRenderer(windowHandle, param);
@@ -86,8 +96,16 @@ namespace slib
 			if (version >= RenderEngineType::D3D10) {
 				return priv::d3d10::CreateRenderer(windowHandle, param);
 			}
+			if (version >= RenderEngineType::D3D9) {
+				return priv::d3d9::CreateRenderer(windowHandle, param);
+			}
+			return priv::d3d8::CreateRenderer(windowHandle, param);
 		}
-		return priv::d3d9::CreateRenderer(windowHandle, param);
+	}
+
+	Ref<Renderer> Direct3D::createRenderer(IDirect3DDevice8* device, const RendererParam& param, void* windowHandle, sl_bool flagFreeOnFailure)
+	{
+		return priv::d3d8::CreateRenderer(device, param, windowHandle, flagFreeOnFailure);
 	}
 
 	Ref<Renderer> Direct3D::createRenderer(IDirect3DDevice9* device, const RendererParam& param, void* windowHandle, sl_bool flagFreeOnFailure)
@@ -110,6 +128,15 @@ namespace slib
 		return priv::d3d11::CreateRenderer(device, param, windowHandle, flagFreeOnFailure);
 	}
 
+	Memory Direct3D::compileShader(const StringParam& source, const StringParam& target)
+	{
+		if (slib::d3d_compiler::getApi_D3DCompile() || slib::d3dx10::getApi_D3DX10CompileFromMemory()) {
+			return priv::d3d10::CompileShader(source, target);
+		} else {
+			return priv::d3d9::CompileShader(source, target);
+		}
+	}
+
 }
 
 #else
@@ -118,6 +145,11 @@ namespace slib
 {
 
 	Ref<Renderer> Direct3D::createRenderer(RenderEngineType version, void* windowHandle, const RendererParam& param)
+	{
+		return sl_null;
+	}
+
+	Memory Direct3D::compileShader(const StringParam& source, const StringParam& target)
 	{
 		return sl_null;
 	}

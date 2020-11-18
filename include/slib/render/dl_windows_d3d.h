@@ -31,6 +31,7 @@
 
 #include <windows.h>
 
+struct IDirect3D8;
 struct IDirect3D9;
 struct ID3D10Device;
 struct ID3D10Device1;
@@ -58,6 +59,16 @@ namespace slib
 			HRESULT, WINAPI,
 			REFIID riid,
 			void **ppFactory
+		)
+
+	SLIB_IMPORT_LIBRARY_END
+
+	SLIB_IMPORT_LIBRARY_BEGIN(d3d8, "d3d8.dll")
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			Direct3DCreate8,
+			IDirect3D8*, WINAPI,
+			UINT SDKVersion
 		)
 
 	SLIB_IMPORT_LIBRARY_END
@@ -121,7 +132,22 @@ namespace slib
 		)
 
 	SLIB_IMPORT_LIBRARY_END
-	
+
+	SLIB_IMPORT_LIBRARY_BEGIN(d3dx8, "d3dx8d.dll")
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			D3DXAssembleShader,
+			HRESULT, WINAPI,
+			LPCVOID pSrcData,
+			UINT SrcDataLen,
+			DWORD Flags,
+			ID3DXBuffer** ppConstants,
+			ID3DXBuffer** ppCompiledShader,
+			ID3DXBuffer** ppCompilationErrors
+		)
+
+	SLIB_IMPORT_LIBRARY_END
+
 	namespace d3dx9
 	{
 

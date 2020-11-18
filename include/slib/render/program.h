@@ -359,7 +359,7 @@ namespace slib
 			class SLIB_EXPORT RenderProgramTemplate : public RenderProgram
 			{
 			public:
-				sl_bool onInit(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state) override;
+				void initializeState(RenderProgramState* state);
 				
 				sl_bool getInputLayoutParam(RenderProgramState* state, RenderInputLayoutParam& param) override;
 
@@ -375,7 +375,12 @@ namespace slib
 	public:
 		Ref<RenderProgramState> onCreate(RenderEngine* engine) override
 		{
-			return new StateType;
+			Ref<RenderProgramState> ret = new StateType;
+			if (ret.isNotNull()) {
+				initializeState(ret.get());
+				return ret;
+			}
+			return sl_null;
 		}
 		
 	};

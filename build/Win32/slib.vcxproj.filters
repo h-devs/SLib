@@ -1559,5 +1559,8 @@
     <ClCompile Include="..\..\src\slib\render\render_buffer.cpp">
       <Filter>src\render</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\d3d8.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

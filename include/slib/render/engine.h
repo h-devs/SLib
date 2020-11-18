@@ -160,6 +160,7 @@ namespace slib
 		OpenGL_ES = 0x01010200,
 
 		D3D = 0x02010000,
+		D3D8 = 0x02010800,
 		D3D9 = 0x02010900,
 		D3D10 = 0x02010A00,
 		D3D10_1 = 0x02010A01,
@@ -170,6 +171,7 @@ namespace slib
 		MASK_OpenGL_ES = 0x0fffff00,
 
 		MASK_D3D = 0x0fff0000,
+		MASK_D3D8 = 0x0fffff00,
 		MASK_D3D9 = 0x0fffff00,
 		MASK_D3D10 = 0x0fffff00,
 		MASK_D3D10_1 = 0x0fffffff,
@@ -193,6 +195,8 @@ namespace slib
 		virtual RenderEngineType getEngineType() = 0;
 
 		virtual sl_bool isShaderAvailable();
+
+		virtual sl_bool isInputLayoutAvailable();
 
 		sl_bool beginScene();
 		

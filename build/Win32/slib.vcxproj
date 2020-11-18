@@ -367,6 +367,7 @@
     <ClCompile Include="..\..\src\slib\render\d3d10.cpp" />
     <ClCompile Include="..\..\src\slib\render\d3d10_1.cpp" />
     <ClCompile Include="..\..\src\slib\render\d3d11.cpp" />
+    <ClCompile Include="..\..\src\slib\render\d3d8.cpp" />
     <ClCompile Include="..\..\src\slib\render\d3d9.cpp" />
     <ClCompile Include="..\..\src\slib\render\dl_windows_d3d.cpp" />
     <ClCompile Include="..\..\src\slib\render\opengl_egl.cpp" />

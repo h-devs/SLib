@@ -29,6 +29,7 @@
 
 #include "engine.h"
 
+struct IDirect3DDevice8;
 struct IDirect3DDevice9;
 struct ID3D10Device;
 struct ID3D10Device1;
@@ -41,7 +42,9 @@ namespace slib
 	{
 	public:
 		static Ref<Renderer> createRenderer(RenderEngineType version, void* windowHandle, const RendererParam& param);
-		
+
+		static Ref<Renderer> createRenderer(IDirect3DDevice8* device, const RendererParam& param, void* windowHandle, sl_bool flagFreeOnFailure = sl_true);
+
 		static Ref<Renderer> createRenderer(IDirect3DDevice9* device, const RendererParam& param, void* windowHandle, sl_bool flagFreeOnFailure = sl_true);
 
 		static Ref<Renderer> createRenderer(ID3D10Device* device, const RendererParam& param, void* windowHandle, sl_bool flagFreeOnFailure = sl_true);
@@ -49,6 +52,8 @@ namespace slib
 		static Ref<Renderer> createRenderer(ID3D10Device1* device, const RendererParam& param, void* windowHandle, sl_bool flagFreeOnFailure = sl_true);
 
 		static Ref<Renderer> createRenderer(ID3D11Device* device, const RendererParam& param, void* windowHandle, sl_bool flagFreeOnFailure = sl_true);
+
+		static Memory compileShader(const StringParam& source, const StringParam& target);
 
 	};
 

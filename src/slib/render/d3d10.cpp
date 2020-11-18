@@ -51,4 +51,65 @@ typedef ID3D10BlendState ID3DBlendState;
 
 #include "d3d_impl.h"
 
+namespace slib
+{
+	namespace priv
+	{
+		namespace d3d10
+		{
+
+			Memory CompileShader(const StringParam& _source, const StringParam& _target)
+			{
+				if (_source.isEmpty()) {
+					return sl_null;
+				}
+				ID3D10Blob* blob = sl_null;
+#ifdef SLIB_DEBUG
+				ID3D10Blob* error = sl_null;
+				HRESULT hr;
+#endif
+				auto func1 = slib::d3d_compiler::getApi_D3DCompile();
+				if (func1) {
+					StringData source(_source);
+					StringCstr target(_target);
+#ifdef SLIB_DEBUG
+					hr = func1(source.getData(), (SIZE_T)(source.getLength()), NULL, NULL, NULL, "main", target.getData(), D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, &blob, &error);
+#else
+					func1(source.getData(), (SIZE_T)(source.getLength()), NULL, NULL, NULL, "main", target.getData(), D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, &blob, NULL);
+#endif
+				} else {
+					auto func2 = slib::d3dx10::getApi_D3DX10CompileFromMemory();
+					if (!func2) {
+						return sl_null;
+					}
+					StringData source(_source);
+					StringCstr target(_target);
+#ifdef SLIB_DEBUG
+					hr = func2(source.getData(), (SIZE_T)(source.getLength()), NULL, NULL, NULL, "main", target.getData(), D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, NULL, &blob, &error, NULL);
+#else
+					func2(source.getData(), (SIZE_T)(source.getLength()), NULL, NULL, NULL, "main", target.getData(), D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, NULL, &blob, NULL, NULL);
+#endif
+				}
+				if (blob) {
+					Memory ret = Memory::create(blob->GetBufferPointer(), (sl_size)(blob->GetBufferSize()));
+					blob->Release();
+					return ret;
+				}
+#ifdef SLIB_DEBUG
+				else {
+					if (error) {
+						SLIB_LOG_DEBUG("D3DCompileError", "hr=%d, %s", (sl_reg)hr, StringView((char*)(error->GetBufferPointer()), error->GetBufferSize()));
+						error->Release();
+					} else {
+						SLIB_LOG_DEBUG("D3DCompileError", "hr=%d", (sl_reg)hr);
+					}
+				}
+#endif
+				return sl_null;
+			}
+
+		}
+	}
+}
+
 #endif

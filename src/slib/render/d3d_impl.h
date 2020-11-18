@@ -126,9 +126,15 @@ namespace slib
 					}
 #	endif
 #else
+#	if D3D_VERSION_MAJOR >= 9
 					auto funcCreateD3D = slib::d3d9::getApi_Direct3DCreate9();
 					if (funcCreateD3D) {
 						IDirect3D9* d3d = funcCreateD3D(D3D_SDK_VERSION);
+#	else
+					auto funcCreateD3D = slib::d3d8::getApi_Direct3DCreate8();
+					if (funcCreateD3D) {
+						IDirect3D8* d3d = funcCreateD3D(D3D_SDK_VERSION);
+#	endif
 						if (d3d) {
 
 							ID3DDevice* device = sl_null;
@@ -136,7 +142,8 @@ namespace slib
 							D3DPRESENT_PARAMETERS d3dpp;
 							Base::zeroMemory(&d3dpp, sizeof(d3dpp));
 							d3dpp.Windowed = TRUE;
-							d3dpp.SwapEffect = D3DSWAPEFFECT_COPY;
+							d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
+							d3dpp.BackBufferFormat = D3DFMT_A8R8G8B8;
 							if (param.nDepthBits || param.nStencilBits) {
 								d3dpp.EnableAutoDepthStencil = TRUE;
 								if (param.nStencilBits) {
@@ -357,6 +364,7 @@ namespace slib
 			}
 #endif
 
+#if D3D_VERSION_MAJOR >= 9
 			class RenderInputLayoutImpl : public RenderInputLayout
 			{
 			public:
@@ -380,6 +388,9 @@ namespace slib
 				static Ref<RenderInputLayoutImpl> create(ID3DDevice* device, const Memory& codeVertexShader, const RenderInputLayoutParam& param)
 				{
 					ListElements<RenderInputLayoutItem> inputs(param.items);
+					if (!(inputs.count)) {
+						return sl_null;
+					}
 					ID3DInputLayout* layout = sl_null;
 #if D3D_VERSION_MAJOR >= 10
 					if (codeVertexShader.isNull()) {
@@ -580,6 +591,7 @@ namespace slib
 				}
 
 			};
+#endif
 
 #if D3D_VERSION_MAJOR >= 10
 			class ConstantBuffer
@@ -655,79 +667,20 @@ namespace slib
 			};
 #endif
 
-			static Memory CompileShader(const String& str, const char* target)
-			{
-				if (str.isEmpty()) {
-					return sl_null;
-				}
-#if D3D_VERSION_MAJOR >= 10
-#if D3D_VERSION_MAJOR >= 11
-				auto func = slib::d3d_compiler::getApi_D3DCompile();
-#else
-				auto func = slib::d3dx10::getApi_D3DX10CompileFromMemory();
-#endif
-				if (!func) {
-					return sl_null;
-				}
-				ID3D10Blob* blob = sl_null;
-#ifdef SLIB_DEBUG
-				ID3D10Blob* error = sl_null;
-#if D3D_VERSION_MAJOR >= 11
-				HRESULT hr = func(str.getData(), (SIZE_T)(str.getLength()), NULL, NULL, NULL, "main", target, D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, &blob, &error);
-#else
-				HRESULT hr = func(str.getData(), (SIZE_T)(str.getLength()), NULL, NULL, NULL, "main", target, D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, NULL, &blob, &error, NULL);
-#endif
-#else
-#if D3D_VERSION_MAJOR >= 11
-				func(str.getData(), (SIZE_T)(str.getLength()), NULL, NULL, NULL, "main", target, D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, &blob, NULL);
-#else
-				func(str.getData(), (SIZE_T)(str.getLength()), NULL, NULL, NULL, "main", target, D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, NULL, &blob, NULL, NULL);
-#endif
-#endif
-				if (blob) {
-					Memory ret = Memory::create(blob->GetBufferPointer(), (sl_size)(blob->GetBufferSize()));
-					blob->Release();
-					return ret;
-				}
-#else
-				auto func = slib::d3dx9::getApi_D3DXCompileShader();
-				if (!func) {
-					return sl_null;
-				}
-				ID3DXBuffer* shader = sl_null;
-#ifdef SLIB_DEBUG
-				ID3DXBuffer* error = sl_null;
-				HRESULT hr = func(str.getData(), (UINT)(str.getLength()), NULL, NULL, "main", target, 0, &shader, &error, NULL);
-#else
-				func(str.getData(), (UINT)(str.getLength()), NULL, NULL, "main", target, 0, &shader, NULL, NULL);
-#endif
-				if (shader) {
-					Memory ret = Memory::create(shader->GetBufferPointer(), (sl_size)(shader->GetBufferSize()));
-					shader->Release();
-					return ret;
-				}
-#endif
-#ifdef SLIB_DEBUG
-				else {
-					if (error) {
-						SLIB_LOG_DEBUG("D3DCompileError", "hr=%d, %s", (sl_reg)hr, StringView((char*)(error->GetBufferPointer()), error->GetBufferSize()));
-						error->Release();
-					} else {
-						SLIB_LOG_DEBUG("D3DCompileError", "hr=%d", (sl_reg)hr);
-					}
-				}
-#endif
-				return sl_null;
-			}
-
 			class RenderProgramInstanceImpl : public RenderProgramInstance
 			{
 			public:
 				ID3DDevice* device;
 				ID3DDeviceContext* context;
 
+#if D3D_VERSION_MAJOR >= 9
 				ID3DVertexShader* vertexShader;
 				ID3DPixelShader* pixelShader;
+#else
+				DWORD hVertexShader;
+				DWORD hPixelShader;
+				List<sl_uint32> strides;
+#endif
 
 #if D3D_VERSION_MAJOR >= 10
 				Memory codeVertexShader;
@@ -744,18 +697,35 @@ namespace slib
 				{
 					device = sl_null;
 					context = sl_null;
+#if D3D_VERSION_MAJOR >= 9
 					vertexShader = sl_null;
 					pixelShader = sl_null;
+#else
+					hVertexShader = 0;
+					hPixelShader = 0;
+#endif
 				}
 
 				~RenderProgramInstanceImpl()
 				{
+#if D3D_VERSION_MAJOR >= 9
 					if (vertexShader) {
 						vertexShader->Release();
 					}
 					if (pixelShader) {
 						pixelShader->Release();
 					}
+#else
+					Ref<RenderEngine> engine = getEngine();
+					if (engine.isNotNull()) {
+						if (hVertexShader) {
+							device->DeleteVertexShader(hVertexShader);
+						}
+						if (hPixelShader) {
+							device->DeletePixelShader(hPixelShader);
+						}
+					}
+#endif
 				}
 
 			public:
@@ -764,18 +734,20 @@ namespace slib
 
 					Memory codeVertex = program->getHLSLCompiledVertexShader(engine);
 					if (codeVertex.isNull()) {
-						codeVertex = CompileShader(program->getHLSLVertexShader(engine), VERTEX_SHADER_TARGET);
+						codeVertex = Direct3D::compileShader(program->getHLSLVertexShader(engine), VERTEX_SHADER_TARGET);
 						if (codeVertex.isNull()) {
 							return sl_null;
 						}
+
 					}
 					Memory codePixel = program->getHLSLCompiledPixelShader(engine);
 					if (codePixel.isNull()) {
-						codePixel = CompileShader(program->getHLSLPixelShader(engine), PIXEL_SHADER_TARGET);
+						codePixel = Direct3D::compileShader(program->getHLSLPixelShader(engine), PIXEL_SHADER_TARGET);
 						if (codePixel.isNull()) {
 							return sl_null;
 						}
 					}
+#if D3D_VERSION_MAJOR >= 9
 					ID3DVertexShader* vs = sl_null;
 #if D3D_VERSION_MAJOR >= 11
 					device->CreateVertexShader(codeVertex.getData(), (SIZE_T)(codeVertex.getSize()), NULL, &vs);
@@ -785,6 +757,24 @@ namespace slib
 					device->CreateVertexShader((DWORD*)(codeVertex.getData()), &vs);
 #endif
 					if (vs) {
+#else
+					Ref<RenderProgramState> state = program->onCreate(engine);
+					if (state.isNull()) {
+						return sl_null;
+					}
+					RenderInputLayoutParam inputLayoutParam;
+					if (!(program->getInputLayoutParam(state, inputLayoutParam))) {
+						return sl_null;
+					}
+					List<DWORD> decl = createVertexDecl(inputLayoutParam.items);
+					if (decl.isEmpty()) {
+						return sl_null;
+					}
+					DWORD hVertexShader = 0;
+					device->CreateVertexShader(decl.getData(), (DWORD*)(codeVertex.getData()), &hVertexShader, 0);
+					if (hVertexShader) {
+#endif
+#if D3D_VERSION_MAJOR >= 9
 						ID3DPixelShader* ps = sl_null;
 #if D3D_VERSION_MAJOR >= 11
 						device->CreatePixelShader(codePixel.getData(), (SIZE_T)(codePixel.getSize()), NULL, &ps);
@@ -794,6 +784,11 @@ namespace slib
 						device->CreatePixelShader((DWORD*)(codePixel.getData()), &ps);
 #endif
 						if (ps) {
+#else
+						DWORD hPixelShader = 0;
+						device->CreatePixelShader((DWORD*)(codePixel.getData()), &hPixelShader);
+						if (hPixelShader) {
+#endif
 #if D3D_VERSION_MAJOR >= 10
 							List<ConstantBuffer> constantBuffersVS;
 							List<ID3DBuffer*> constantBufferHandlesVS;
@@ -801,14 +796,22 @@ namespace slib
 							List<ID3DBuffer*> constantBufferHandlesPS;
 							if (createConstantBuffers(device, program, constantBuffersVS, constantBufferHandlesVS, constantBuffersPS, constantBufferHandlesPS)) {
 #endif
+#if D3D_VERSION_MAJOR >= 9
 								Ref<RenderProgramState> state = program->onCreate(engine);
 								if (state.isNotNull()) {
+#endif
 									Ref<RenderProgramInstanceImpl> ret = new RenderProgramInstanceImpl();
 									if (ret.isNotNull()) {
 										ret->device = device;
 										ret->context = context;
+#if D3D_VERSION_MAJOR >= 9
 										ret->vertexShader = vs;
 										ret->pixelShader = ps;
+#else
+										ret->hVertexShader = hVertexShader;
+										ret->hPixelShader = hPixelShader;
+										ret->strides = inputLayoutParam.strides.toList();
+#endif
 #if D3D_VERSION_MAJOR >= 10
 										ret->constantBuffersVS = Move(constantBuffersVS);
 										ret->constantBufferHandlesVS = Move(constantBufferHandlesVS);
@@ -826,13 +829,23 @@ namespace slib
 										}
 										return sl_null;
 									}
+#if D3D_VERSION_MAJOR >= 9
 								}
+#endif
 #if D3D_VERSION_MAJOR >= 10
 							}
 #endif
+#if D3D_VERSION_MAJOR >= 9
 							ps->Release();
+#else
+							device->DeletePixelShader(hPixelShader);
+#endif
 						}
+#if D3D_VERSION_MAJOR >= 9
 						vs->Release();
+#else
+						device->DeleteVertexShader(hVertexShader);
+#endif
 					}
 					return sl_null;
 				}
@@ -841,8 +854,10 @@ namespace slib
 				{
 #if D3D_VERSION_MAJOR >= 10
 					return Ref<RenderInputLayout>::from(RenderInputLayoutImpl::create(device, codeVertexShader, param));
-#else
+#elif D3D_VERSION_MAJOR >= 9
 					return Ref<RenderInputLayout>::from(RenderInputLayoutImpl::create(device, sl_null, param));
+#else
+					return sl_null;
 #endif
 				}
 
@@ -1105,17 +1120,144 @@ namespace slib
 				static void _setUniform(ID3DDevice* dev, const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 countVector4)
 				{
 					if (location.shader == RenderShaderType::Vertex) {
+#if D3D_VERSION_MAJOR >= 9
 						if (type == RenderUniformType::Float) {
 							dev->SetVertexShaderConstantF((UINT)(location.location), (float*)data, (UINT)countVector4);
 						} else if (type == RenderUniformType::Int) {
 							dev->SetVertexShaderConstantI((UINT)(location.location), (int*)data, (UINT)countVector4);
 						}
+#else
+						dev->SetVertexShaderConstant((DWORD)(location.location), data, (DWORD)countVector4);
+#endif
 					} else if (location.shader == RenderShaderType::Pixel) {
+#if D3D_VERSION_MAJOR >= 9
 						if (type == RenderUniformType::Float) {
 							dev->SetPixelShaderConstantF((UINT)(location.location), (float*)data, (UINT)countVector4);
 						} else if (type == RenderUniformType::Int) {
 							dev->SetPixelShaderConstantI((UINT)(location.location), (int*)data, (UINT)countVector4);
 						}
+#else
+						dev->SetPixelShaderConstant((DWORD)(location.location), data, (DWORD)countVector4);
+#endif
+					}
+				}
+#endif
+
+#if D3D_VERSION_MAJOR < 9
+				static List<DWORD> createVertexDecl(ListParam<RenderInputLayoutItem>& _items)
+				{
+					ListLocker<RenderInputLayoutItem> items(_items);
+					List<DWORD> decl;
+					sl_uint32 slot = 0xffffffff;
+					for (sl_size i = 0; i < items.count; i++) {
+						RenderInputLayoutItem& item = items[i];
+						if (item.slot != slot) {
+							decl.add_NoLock(D3DVSD_STREAM((DWORD)item.slot));
+							slot = item.slot;
+						}
+						DWORD type = 0;
+						switch (item.type) {
+						case RenderInputType::Float:
+							type = D3DVSDT_FLOAT1;
+							break;
+						case RenderInputType::Float2:
+							type = D3DVSDT_FLOAT2;
+							break;
+						case RenderInputType::Float3:
+							type = D3DVSDT_FLOAT3;
+							break;
+						case RenderInputType::Float4:
+							type = D3DVSDT_FLOAT4;
+							break;
+						case RenderInputType::UByte4:
+							type = D3DVSDT_UBYTE4;
+							break;
+						case RenderInputType::Short2:
+							type = D3DVSDT_SHORT2;
+							break;
+						case RenderInputType::Short4:
+							type = D3DVSDT_SHORT4;
+							break;
+						default:
+							break;
+						}
+						decl.add_NoLock(D3DVSD_REG((DWORD)i, type));
+					}
+					if (decl.isEmpty()) {
+						return sl_null;
+					}
+					decl.add_NoLock(D3DVSD_END());
+					return decl;
+				}
+
+				static DWORD getRegisterMapping(RenderInputSemanticName name, sl_uint32 index)
+				{
+					sl_bool flagError = sl_false;
+					DWORD reg = 0;
+					switch (name) {
+					case RenderInputSemanticName::Position:
+						reg = D3DVSDE_POSITION;
+						break;
+					case RenderInputSemanticName::BlendWeight:
+						reg = D3DVSDE_BLENDWEIGHT;
+						break;
+					case RenderInputSemanticName::BlendIndices:
+						reg = D3DVSDE_BLENDINDICES;
+						break;
+					case RenderInputSemanticName::Normal:
+						reg = D3DVSDE_NORMAL;
+						break;
+					case RenderInputSemanticName::PSize:
+						reg = D3DVSDE_PSIZE;
+						break;
+					case RenderInputSemanticName::TexCoord:
+						reg = D3DVSDE_TEXCOORD0;
+						break;
+					case RenderInputSemanticName::Color:
+						reg = D3DVSDE_DIFFUSE;
+						break;
+					case RenderInputSemanticName::Tangent:
+					case RenderInputSemanticName::BiNormal:
+					case RenderInputSemanticName::TessFactor:
+					case RenderInputSemanticName::PositionT:
+					case RenderInputSemanticName::Fog:
+					case RenderInputSemanticName::Depth:
+						flagError = sl_true;
+						break;
+					}
+					if (!flagError && index) {
+						if (reg == D3DVSDE_POSITION) {
+							if (index == 1) {
+								reg = D3DVSDE_POSITION2;
+							} else {
+								flagError = sl_true;
+							}
+						} else if (reg == D3DVSDE_NORMAL) {
+							if (index == 1) {
+								reg = D3DVSDE_NORMAL2;
+							} else {
+								flagError = sl_true;
+							}
+						} else if (reg == D3DVSDE_DIFFUSE) {
+							if (index == 1) {
+								reg = D3DVSDE_SPECULAR;
+							} else {
+								flagError = sl_true;
+							}
+						} else if (reg == D3DVSDE_TEXCOORD0) {
+							if (index < 8) {
+								reg += (DWORD)index;
+							} else {
+								flagError = sl_true;
+							}
+						} else {
+							flagError = sl_true;
+						}						
+					}
+					if (flagError) {
+						return 0xffffffff;
+					} else {
+						return reg;
 					}
 				}
 #endif
@@ -1125,12 +1267,20 @@ namespace slib
 #if D3D_VERSION_MAJOR < 10
 			static void CreateDeviceBuffer(ID3DDevice* device, UINT size, ID3DVertexBuffer** _out)
 			{
+#if D3D_VERSION_MAJOR >= 9
 				device->CreateVertexBuffer(size, 0, 0, D3DPOOL_MANAGED, _out, NULL);
+#else
+				device->CreateVertexBuffer(size, 0, 0, D3DPOOL_MANAGED, _out);
+#endif
 			}
 
 			static void CreateDeviceBuffer(ID3DDevice* device, UINT size, ID3DIndexBuffer** _out)
 			{
+#if D3D_VERSION_MAJOR >= 9
 				device->CreateIndexBuffer(size, 0, D3DFMT_INDEX16, D3DPOOL_MANAGED, _out, NULL);
+#else
+				device->CreateIndexBuffer(size, 0, D3DFMT_INDEX16, D3DPOOL_MANAGED, _out);
+#endif
 			}
 #endif
 
@@ -1189,7 +1339,11 @@ namespace slib
 					if (handle) {
 #if D3D_VERSION_MAJOR < 10
 						void* data = sl_null;
+#if D3D_VERSION_MAJOR >= 9
 						handle->Lock(0, size, &data, 0);
+#else
+						handle->Lock(0, size, (BYTE**)&data, 0);
+#endif
 						if (data) {
 							Base::copyMemory(data, content.getData(), size);
 							handle->Unlock();
@@ -1238,7 +1392,11 @@ namespace slib
 					handle->Map(D3D_(MAP_WRITE), 0, &data);
 #endif
 #else
+#if D3D_VERSION_MAJOR >= 9
 					handle->Lock(offset, size, &data, 0);
+#else
+					handle->Lock(offset, size, (BYTE**)&data, 0);
+#endif
 #endif
 					if (data) {
 						Base::copyMemory(data, (sl_uint8*)(content.getData()) + offset, size);
@@ -1331,7 +1489,11 @@ namespace slib
 					device->CreateTexture2D(&desc, &data, &handle);
 #else
 					sl_bool flagLockable = sl_true;
+#if D3D_VERSION_MAJOR >= 9
 					device->CreateTexture((UINT)width, (UINT)height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &handle, NULL);
+#else
+					device->CreateTexture((UINT)width, (UINT)height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &handle);
+#endif
 #endif
 					if (handle) {
 #if D3D_VERSION_MAJOR >= 10
@@ -1696,7 +1858,9 @@ namespace slib
 
 				Ref<RenderProgram> m_currentProgram;
 				Ref<RenderProgramInstanceImpl> m_currentProgramInstance;
+#if D3D_VERSION_MAJOR >= 9
 				Ref<RenderInputLayoutImpl> m_currentInputLayout;
+#endif
 				sl_uint32 m_currentVertexStride;
 				Ref<VertexBufferInstanceImpl> m_currentVertexBufferInstance;
 				Ref<IndexBufferInstanceImpl> m_currentIndexBufferInstance;
@@ -1860,7 +2024,7 @@ namespace slib
 					v.MaxDepth = 1.0f;
 					context->RSSetViewports(1, &v);
 #else
-					D3DVIEWPORT9 v;
+					D3DVIEWPORT v;
 					v.X = (DWORD)x;
 					v.Y = (DWORD)y;
 					v.Width = (DWORD)width;
@@ -2007,13 +2171,15 @@ namespace slib
 					context->SetRenderState(D3DRS_ALPHABLENDENABLE, param.flagBlending ? TRUE : FALSE);
 					if (param.flagBlending) {
 						_setBlendOperation(context, D3DRS_BLENDOP, param.operation);
-						_setBlendOperation(context, D3DRS_BLENDOPALPHA, param.operationAlpha);
 						_setBlendFactor(context, D3DRS_SRCBLEND, param.blendSrc);
 						_setBlendFactor(context, D3DRS_DESTBLEND, param.blendDst);
+#if D3D_VERSION_MAJOR >= 9
+						_setBlendOperation(context, D3DRS_BLENDOPALPHA, param.operationAlpha);
 						_setBlendFactor(context, D3DRS_SRCBLENDALPHA, param.blendSrcAlpha);
 						_setBlendFactor(context, D3DRS_DESTBLENDALPHA, param.blendDstAlpha);
 						Color f(param.blendConstant);
 						context->SetRenderState(D3DRS_BLENDFACTOR, D3DCOLOR_ARGB(f.a, f.r, f.g, f.b));
+#endif
 					}
 #endif
 				}
@@ -2033,10 +2199,17 @@ namespace slib
 #else
 					const RenderSamplerParam& param = state->getParam();
 					DWORD s = (DWORD)samplerNo;
+#if D3D_VERSION_MAJOR >= 9
 					context->SetSamplerState(s, D3DSAMP_MAGFILTER, _getTextureFilterType(param.magFilter));
 					context->SetSamplerState(s, D3DSAMP_MINFILTER, _getTextureFilterType(param.minFilter));
 					context->SetSamplerState(s, D3DSAMP_ADDRESSU, _getTextureWrapType(param.wrapX));
 					context->SetSamplerState(s, D3DSAMP_ADDRESSV, _getTextureWrapType(param.wrapY));
+#else
+					context->SetTextureStageState(s, D3DTSS_MAGFILTER, _getTextureFilterType(param.magFilter));
+					context->SetTextureStageState(s, D3DTSS_MINFILTER, _getTextureFilterType(param.minFilter));
+					context->SetTextureStageState(s, D3DTSS_ADDRESSU, _getTextureWrapType(param.wrapX));
+					context->SetTextureStageState(s, D3DTSS_ADDRESSV, _getTextureWrapType(param.wrapY));
+#endif
 #endif
 				}
 
@@ -2054,9 +2227,12 @@ namespace slib
 #elif D3D_VERSION_MAJOR >= 10
 						context->VSSetShader(instance->vertexShader);
 						context->PSSetShader(instance->pixelShader);
-#else
+#elif D3D_VERSION_MAJOR >= 9
 						context->SetVertexShader(instance->vertexShader);
 						context->SetPixelShader(instance->pixelShader);
+#else
+						context->SetVertexShader(instance->hVertexShader);
+						context->SetPixelShader(instance->hPixelShader);
 #endif
 						m_currentProgramInstance = instance;
 					}
@@ -2163,22 +2339,32 @@ namespace slib
 						m_currentProgram->onPreRender(this, m_currentProgramInstance.get(), m_currentProgramInstance->state.get());
 					}
 
+#if D3D_VERSION_MAJOR >= 9
 					RenderInputLayoutImpl* layout = m_currentInputLayout.get();
 					if (!layout) {
 						return;
 					}
+#endif
 #if D3D_VERSION_MAJOR < 10
 					sl_uint32 nVerticesMin = 0;
 #endif
 					VertexBufferInstanceImpl* vb = static_cast<VertexBufferInstanceImpl*>(primitive->vertexBufferInstance.get());
 					if (vb) {
 						vb->doUpdate(primitive->vertexBuffer.get());
+#if D3D_VERSION_MAJOR >= 9
 						UINT stride = (UINT)(layout->strides.getValueAt_NoLock(0));
+#else
+						UINT stride = (UINT)(m_currentProgramInstanceRendering->strides.getValueAt_NoLock(0));
+#endif
 #if D3D_VERSION_MAJOR >= 10
 						UINT offset = 0;
 						context->IASetVertexBuffers(0, 1, &(vb->handle), &stride, &offset);
 #else
+#if D3D_VERSION_MAJOR >= 9
 						context->SetStreamSource(0, vb->handle, 0, stride);
+#else
+						context->SetStreamSource(0, vb->handle, stride);
+#endif
 						if (stride) {
 							nVerticesMin = vb->size / stride;
 						}
@@ -2195,13 +2381,21 @@ namespace slib
 #endif
 						for (sl_size i = 0; i < list.count; i++) {
 							VertexBufferInstanceImpl* vb = (VertexBufferInstanceImpl*)(list[i].get());
+#if D3D_VERSION_MAJOR >= 9
 							UINT stride = (UINT)(layout->strides.getValueAt_NoLock(i));
+#else
+							UINT stride = (UINT)(m_currentProgramInstanceRendering->strides.getValueAt_NoLock(i));
+#endif
 #if D3D_VERSION_MAJOR >= 10
 							bufs[i] = vb->handle;
 							offsets[i] = 0;
 							strides[i] = stride;
 #else
+#if D3D_VERSION_MAJOR >= 9
 							context->SetStreamSource((UINT)i, vb->handle, 0, stride);
+#else
+							context->SetStreamSource((UINT)i, vb->handle, stride);
+#endif
 							if (stride) {
 								sl_uint32 nVertices = vb->size / stride;
 								if (!nVerticesMin || nVertices < nVerticesMin) {
@@ -2224,8 +2418,13 @@ namespace slib
 						context->IASetIndexBuffer(ib->handle, DXGI_FORMAT_R16_UINT, 0);
 						context->DrawIndexed((UINT)(primitive->countElements), 0, 0);
 #else
+#if D3D_VERSION_MAJOR >= 9
 						context->SetIndices(ib->handle);
 						context->DrawIndexedPrimitive(type, 0, 0, (UINT)nVerticesMin, 0, (UINT)nPrimitives);
+#else
+						context->SetIndices(ib->handle, 0);
+						context->DrawIndexedPrimitive(type, 0, (UINT)nVerticesMin, 0, (UINT)nPrimitives);
+#endif
 #endif
 					} else {
 #if D3D_VERSION_MAJOR >= 10
@@ -2254,8 +2453,16 @@ namespace slib
 #endif
 				}
 
+#if D3D_VERSION_MAJOR < 9
+				sl_bool isInputLayoutAvailable() override
+				{
+					return sl_false;
+				}
+#endif
+
 				void _setInputLayout(RenderInputLayout* _layout) override
 				{
+#if D3D_VERSION_MAJOR >= 9
 					ID3DDeviceContext* context = getContext();
 					if (!context) {
 						return;
@@ -2272,6 +2479,7 @@ namespace slib
 #endif
 					}
 					m_currentInputLayout = layout;
+#endif
 				}
 
 				void _setLineWidth(sl_real width) override
@@ -2335,12 +2543,14 @@ namespace slib
 					case RenderBlendingFactor::SrcAlphaSaturate:
 						v = D3DBLEND_SRCALPHASAT;
 						break;
+#if D3D_VERSION_MAJOR >= 9
 					case RenderBlendingFactor::Constant:
 						v = D3DBLEND_BLENDFACTOR;
 						break;
 					case RenderBlendingFactor::OneMinusConstant:
 						v = D3DBLEND_INVBLENDFACTOR;
 						break;
+#endif
 					default:
 						return;
 					}
