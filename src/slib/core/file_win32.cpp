@@ -344,10 +344,12 @@ namespace slib
 		if (handle != INVALID_HANDLE_VALUE) {
 			sl_uint64 size = 0;
 			DWORD nOutput;
-			DeviceIoControl(handle, IOCTL_DISK_GET_LENGTH_INFO, NULL, 0, &size, sizeof(size), &nOutput, NULL);
-			return size;
+			if (DeviceIoControl(handle, IOCTL_DISK_GET_LENGTH_INFO, NULL, 0, &size, sizeof(size), &nOutput, NULL)) {
+				outSize = size;
+				return sl_true;
+			}
 		}
-		return 0;
+		return sl_false;
 	}
 
 	sl_bool File::lock()
