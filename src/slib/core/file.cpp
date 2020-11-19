@@ -85,7 +85,7 @@ namespace slib
 
 	Ref<File> File::openForRead(const StringParam& filePath, sl_bool flagShareRead)
 	{
-		return open(filePath, flagShareRead ? (FileMode::Read | FileMode::ShareRead) : FileMode::Read);
+		return open(filePath, flagShareRead ? (FileMode::Read | FileMode::ShareRead | FileMode::ShareWrite) : FileMode::Read);
 	}
 
 	Ref<File> File::openForWrite(const StringParam& filePath)
@@ -118,12 +118,12 @@ namespace slib
 		FileMode mode = FileMode::NotCreate | FileMode::NotTruncate | FileMode::HintRandomAccess;
 		if (flagRead) {
 			mode |= FileMode::Read;
-			mode |= FileMode::ShareRead;
 		}
 		if (flagWrite) {
 			mode |= FileMode::Write;
-			mode |= FileMode::ShareWrite;
 		}
+		mode |= FileMode::ShareRead;
+		mode |= FileMode::ShareWrite;
 		return open(path, mode);
 	}
 
