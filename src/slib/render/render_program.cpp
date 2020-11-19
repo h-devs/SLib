@@ -102,6 +102,26 @@ namespace slib
 		return sl_null;
 	}
 
+	String RenderProgram::getAssemblyVertexShader(RenderEngine* engine)
+	{
+		return sl_null;
+	}
+
+	Memory RenderProgram::getAssembledVertexShader(RenderEngine* engine)
+	{
+		return sl_null;
+	}
+
+	String RenderProgram::getAssemblyPixelShader(RenderEngine* engine)
+	{
+		return sl_null;
+	}
+
+	Memory RenderProgram::getAssembledPixelShader(RenderEngine* engine)
+	{
+		return sl_null;
+	}
+
 	sl_uint32 RenderProgram::getVertexShaderConstantBuffersCount()
 	{
 		return 1;

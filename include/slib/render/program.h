@@ -236,6 +236,14 @@ namespace slib
 
 		virtual Memory getHLSLCompiledPixelShader(RenderEngine* engine);
 
+		virtual String getAssemblyVertexShader(RenderEngine* engine);
+
+		virtual Memory getAssembledVertexShader(RenderEngine* engine);
+
+		virtual String getAssemblyPixelShader(RenderEngine* engine);
+
+		virtual Memory getAssembledPixelShader(RenderEngine* engine);
+
 		virtual sl_uint32 getVertexShaderConstantBuffersCount();
 
 		virtual sl_uint32 getVertexShaderConstantBufferSize(sl_uint32 bufferNo);

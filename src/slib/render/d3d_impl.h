@@ -731,14 +731,13 @@ namespace slib
 			public:
 				static Ref<RenderProgramInstanceImpl> create(ID3DDevice* device, ID3DDeviceContext* context, RenderEngine* engine, RenderProgram* program)
 				{
-
+#if D3D_VERSION_MAJOR >= 9
 					Memory codeVertex = program->getHLSLCompiledVertexShader(engine);
 					if (codeVertex.isNull()) {
 						codeVertex = Direct3D::compileShader(program->getHLSLVertexShader(engine), VERTEX_SHADER_TARGET);
 						if (codeVertex.isNull()) {
 							return sl_null;
 						}
-
 					}
 					Memory codePixel = program->getHLSLCompiledPixelShader(engine);
 					if (codePixel.isNull()) {
@@ -747,7 +746,6 @@ namespace slib
 							return sl_null;
 						}
 					}
-#if D3D_VERSION_MAJOR >= 9
 					ID3DVertexShader* vs = sl_null;
 #if D3D_VERSION_MAJOR >= 11
 					device->CreateVertexShader(codeVertex.getData(), (SIZE_T)(codeVertex.getSize()), NULL, &vs);
@@ -758,6 +756,20 @@ namespace slib
 #endif
 					if (vs) {
 #else
+					Memory codeVertex = program->getAssembledVertexShader(engine);
+					if (codeVertex.isNull()) {
+						codeVertex = Direct3D::assembleShader(program->getAssemblyVertexShader(engine));
+						if (codeVertex.isNull()) {
+							return sl_null;
+						}
+					}
+					Memory codePixel = program->getAssembledPixelShader(engine);
+					if (codePixel.isNull()) {
+						codePixel = Direct3D::assembleShader(program->getAssemblyPixelShader(engine));
+						if (codePixel.isNull()) {
+							return sl_null;
+						}
+					}
 					Ref<RenderProgramState> state = program->onCreate(engine);
 					if (state.isNull()) {
 						return sl_null;
@@ -2621,6 +2633,55 @@ namespace slib
 			{
 				return RendererImpl::create(device, param, windowHandle, flagFreeOnFailure);
 			}
+
+#if D3D_VERSION_MAJOR < 10
+			Memory AssembleShader(const StringParam& _source)
+			{
+				if (_source.isEmpty()) {
+					return sl_null;
+				}
+#if D3D_VERSION_MAJOR >= 9
+				auto func = slib::d3dx9::getApi_D3DXAssembleShader();
+#else
+				auto func = slib::d3dx8::getApi_D3DXAssembleShader();
+#endif
+				if (!func) {
+					return sl_null;
+				}
+				ID3DXBuffer* shader = sl_null;
+				StringData source(_source);
+#ifdef SLIB_DEBUG
+				ID3DXBuffer* error = sl_null;
+#if D3D_VERSION_MAJOR >= 9
+				HRESULT hr = func(source.getData(), (UINT)(source.getLength()), NULL, NULL, 0, &shader, &error);
+#else
+				HRESULT hr = func(source.getData(), (UINT)(source.getLength()), 0, NULL, &shader, &error);
+#endif
+#else
+#if D3D_VERSION_MAJOR >= 9
+				func(source.getData(), (UINT)(source.getLength()), NULL, NULL, 0, &shader, NULL);
+#else
+				func(source.getData(), (UINT)(source.getLength()), 0, NULL, &shader, NULL);
+#endif
+#endif
+				if (shader) {
+					Memory ret = Memory::create(shader->GetBufferPointer(), (sl_size)(shader->GetBufferSize()));
+					shader->Release();
+					return ret;
+				}
+#ifdef SLIB_DEBUG
+				else {
+					if (error) {
+						SLIB_LOG_DEBUG("D3DAssembleError", "hr=%d, %s", (sl_reg)hr, StringView((char*)(error->GetBufferPointer()), error->GetBufferSize()));
+						error->Release();
+					} else {
+						SLIB_LOG_DEBUG("D3DAssembleError", "hr=%d", (sl_reg)hr);
+					}
+				}
+#endif
+				return sl_null;
+			}
+#endif
 
 		}
 	}

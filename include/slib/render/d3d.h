@@ -55,6 +55,8 @@ namespace slib
 
 		static Memory compileShader(const StringParam& source, const StringParam& target);
 
+		static Memory assembleShader(const StringParam& source);
+
 	};
 
 }

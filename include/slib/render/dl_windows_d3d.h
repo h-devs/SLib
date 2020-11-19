@@ -169,6 +169,18 @@ namespace slib
 			ID3DXConstantTable **ppConstantTable
 		)
 
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			D3DXAssembleShader,
+			HRESULT, WINAPI,
+			LPCSTR pSrcData,
+			UINT SrcDataLen,
+			const _D3DXMACRO *pDefines,
+			ID3DXInclude *pInclude,
+			DWORD Flags,
+			ID3DXBuffer **ppShader,
+			ID3DXBuffer **ppErrorMsgs
+		)
+
 	}
 
 	namespace d3dx10
