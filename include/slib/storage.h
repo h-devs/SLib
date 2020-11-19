@@ -29,4 +29,9 @@
 #include "storage/file_system_logger.h"
 #include "storage/file_system_mirror.h"
 
+#include "storage/fuse.h"
+#include "storage/dokany.h"
+
+#include "storage/ntfs.h"
+
 #endif
