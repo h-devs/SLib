@@ -239,6 +239,7 @@
     <ClCompile Include="..\..\src\slib\db\database_expression.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_sql.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_statement.cpp" />
+    <ClCompile Include="..\..\src\slib\db\dl_libmysql.cpp" />
     <ClCompile Include="..\..\src\slib\db\mysql.cpp" />
     <ClCompile Include="..\..\src\slib\db\postgresql.cpp" />
     <ClCompile Include="..\..\src\slib\db\sqlite.cpp" />

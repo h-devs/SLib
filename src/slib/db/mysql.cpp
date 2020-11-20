@@ -24,7 +24,12 @@
 
 #if defined(SLIB_DATABASE_SUPPORT_MYSQL)
 
+#ifdef SLIB_PLATFORM_IS_WIN32
+#include "slib/db/dl_libmysql.h"
+#else
 #include "libmariadb/mysql.h"
+#endif
+
 #include "libmariadb/errmsg.h"
 
 #include "slib/core/thread.h"
