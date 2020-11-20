@@ -731,6 +731,8 @@ namespace slib
 							return ret;
 						}
 						sqlite3_finalize(statement);
+					} else {
+						_logError(sql);
 					}
 					return ret;
 				}

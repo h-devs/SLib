@@ -74,8 +74,6 @@ namespace slib
 		Ref<DatabaseStatement> ret = _prepareStatement(sql);
 		if (ret.isNotNull()) {
 			_logSQL(sql);
-		} else {
-			_logError(sql);
 		}
 		return ret;
 	}

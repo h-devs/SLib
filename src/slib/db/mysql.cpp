@@ -801,6 +801,12 @@ namespace slib
 							m_statement = statement;
 							return sl_true;
 						}
+						Ref<Database> db = getDatabase();
+						if (db.isNotNull()) {
+							if (db->isLoggingErrors()) {
+								LogError((char*)(getObjectType()), "Error: %s SQL: %s", mysql_stmt_error(statement), m_sql);
+							}
+						}
 						mysql_stmt_close(statement);
 					}
 					return sl_false;

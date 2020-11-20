@@ -442,6 +442,8 @@ namespace slib
 					if (ret.isNotNull()) {
 						if (ret->m_name.isNotEmpty()) {
 							return ret;
+						} else {
+							_logError(sql);
 						}
 					}
 					return sl_null;
