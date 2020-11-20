@@ -370,9 +370,10 @@ namespace slib
 				DWORD attrs = INVALID_FILE_ATTRIBUTES;
 				SLIB_TRY {
 					FileInfo info;
-					provider->getFileInfo(NormalizePath(szFileName), sl_null, info, FileInfoMask::Attributes);
-					if (!(info.attributes & FileAttributes::NotExist)) {
-						attrs = info.attributes & 0x7ffff;
+					if (provider->getFileInfo(NormalizePath(szFileName), sl_null, info, FileInfoMask::Attributes)) {
+						if (!(info.attributes & FileAttributes::NotExist)) {
+							attrs = info.attributes & 0x7ffff;
+						}
 					}
 				} SLIB_CATCH(...)
 				if (attrs != INVALID_FILE_ATTRIBUTES) {
