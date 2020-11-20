@@ -32,13 +32,15 @@ namespace slib
 	{
 		SLIB_DECLARE_OBJECT
 
-	public:
+	protected:
 		MirrorFileSystem();
 
 		~MirrorFileSystem();
 
 	public:
-		sl_bool setPath(const String& path);
+		static Ref<MirrorFileSystem> create(const StringParam& path);
+
+		sl_bool setPath(const StringParam& path);
 
 	public:
 		sl_bool getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize = sl_null) override;
@@ -67,7 +69,7 @@ namespace slib
 
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
 
-	private:
+	protected:
 		String m_root;
 
 	};
