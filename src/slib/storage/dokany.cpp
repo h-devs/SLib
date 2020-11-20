@@ -480,8 +480,9 @@ namespace slib
 				if (!context) {
 					return DOKAN_ERROR_CODE(ERROR_INVALID_HANDLE);
 				}
+
+				*pReadLength = 0;
 				if (!dwBufferLength) {
-					*pReadLength = 0;
 					return 0;
 				}
 
@@ -530,6 +531,8 @@ namespace slib
 				if (!context) {
 					return DOKAN_ERROR_CODE(ERROR_INVALID_HANDLE);
 				}
+
+				*pNumberOfBytesWritten = 0;
 				if (pDokanFileInfo->WriteToEndOfFile) {
 					iOffset = -1;
 				} else {
@@ -548,8 +551,8 @@ namespace slib
 						}
 					}
 				}
+
 				if (!dwNumberOfBytesToWrite) {
-					*pNumberOfBytesWritten = 0;
 					return 0;
 				}
 
