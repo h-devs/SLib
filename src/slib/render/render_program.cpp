@@ -447,6 +447,32 @@ namespace slib
 		))
 	}
 
+	String RenderProgram2D_PositionTexture::getAssemblyVertexShader(RenderEngine* engine)
+	{
+		SLIB_RETURN_STRING(R"(
+			vs.1.0
+			def c50, 1.0f, 0.0f, 0.0f, 1.0f
+			mov r0.xy, v0.xy
+			mov r0.z, c50.x
+			m3x3 r1, r0, c0
+			mov r1.zw, c50.zw;
+			mov	oPos, r1
+			mov r0.xy, v1.xy
+			m3x3 r1, r0, c3
+			mov r1.zw, c50.zw;
+			mov	oT0, r1
+		)")
+	}
+
+	String RenderProgram2D_PositionTexture::getAssemblyPixelShader(RenderEngine* engine)
+	{
+		SLIB_RETURN_STRING(R"(
+			ps.1.0
+			tex t0
+			mul r0, t0, c0
+		)")
+	}
+
 
 	String RenderProgram2D_PositionTextureYUV::getGLSLFragmentShader(RenderEngine* engine)
 	{
@@ -552,6 +578,28 @@ namespace slib
 		))
 	}
 
+	String RenderProgram2D_PositionColor::getAssemblyVertexShader(RenderEngine* engine)
+	{
+		SLIB_RETURN_STRING(R"(
+			vs.1.0
+			def c50, 1.0f, 0.0f, 0.0f, 1.0f
+			mov r0.xy, v0.xy
+			mov r0.z, c50.x
+			m3x3 r1, r0, c0
+			mov r1.zw, c50.zw;
+			mov	oPos, r1
+			mul oD0, c3, v1
+		)")
+	}
+
+	String RenderProgram2D_PositionColor::getAssemblyPixelShader(RenderEngine* engine)
+	{
+		SLIB_RETURN_STRING(R"(
+			ps.1.0
+			mov r0, v0
+		)")
+	}
+
 
 	String RenderProgram2D_Position::getGLSLVertexShader(RenderEngine* engine)
 	{
@@ -594,6 +642,27 @@ namespace slib
 				return u_Color;
 			}
 		))
+	}
+
+	String RenderProgram2D_Position::getAssemblyVertexShader(RenderEngine* engine)
+	{
+		SLIB_RETURN_STRING(R"(
+			vs.1.0
+			def c50, 1.0f, 0.0f, 0.0f, 1.0f
+			mov r0.xy, v0.xy
+			mov r0.z, c50.x
+			m3x3 r1, r0, c0
+			mov r1.zw, c50.zw
+			mov	oPos, r1
+		)")
+	}
+
+	String RenderProgram2D_Position::getAssemblyPixelShader(RenderEngine* engine)
+	{
+		SLIB_RETURN_STRING(R"(
+			ps.1.0
+			mov r0, c0
+		)")
 	}
 
 

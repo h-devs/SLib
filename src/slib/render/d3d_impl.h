@@ -757,15 +757,16 @@ namespace slib
 					if (vs) {
 #else
 					Memory codeVertex = program->getAssembledVertexShader(engine);
+					Memory constantsVertex;
 					if (codeVertex.isNull()) {
-						codeVertex = Direct3D::assembleShader(program->getAssemblyVertexShader(engine));
+						codeVertex = assembleShader(program->getAssemblyVertexShader(engine), &constantsVertex);
 						if (codeVertex.isNull()) {
 							return sl_null;
 						}
 					}
 					Memory codePixel = program->getAssembledPixelShader(engine);
 					if (codePixel.isNull()) {
-						codePixel = Direct3D::assembleShader(program->getAssemblyPixelShader(engine));
+						codePixel = assembleShader(program->getAssemblyPixelShader(engine), sl_null);
 						if (codePixel.isNull()) {
 							return sl_null;
 						}
@@ -781,6 +782,9 @@ namespace slib
 					List<DWORD> decl = createVertexDecl(inputLayoutParam.items);
 					if (decl.isEmpty()) {
 						return sl_null;
+					}
+					if (constantsVertex.isNotNull()) {
+						decl.insertElements(0, (DWORD*)(constantsVertex.getData()), constantsVertex.getSize() >> 2);
 					}
 					DWORD hVertexShader = 0;
 					device->CreateVertexShader(decl.getData(), (DWORD*)(codeVertex.getData()), &hVertexShader, 0);
@@ -1271,6 +1275,48 @@ namespace slib
 					} else {
 						return reg;
 					}
+				}
+
+				static Memory assembleShader(const StringParam& _source, Memory* pOutConstantsDefinition)
+				{
+					if (_source.isEmpty()) {
+						return sl_null;
+					}
+					auto func = slib::d3dx8::getApi_D3DXAssembleShader();
+					if (!func) {
+						return sl_null;
+					}
+					ID3DXBuffer* shader = sl_null;
+					ID3DXBuffer* error = sl_null;
+					ID3DXBuffer* constants = sl_null;
+					StringData source(_source);
+					HRESULT hr = func(source.getData(), (UINT)(source.getLength()), 0, &constants, &shader, &error);
+					Memory ret;
+					if (hr == S_OK && shader) {
+						ret = Memory::create(shader->GetBufferPointer(), (sl_size)(shader->GetBufferSize()));
+						if (constants && pOutConstantsDefinition) {
+							*pOutConstantsDefinition = Memory::create(constants->GetBufferPointer(), (sl_size)(constants->GetBufferSize()));
+						}
+					}
+#ifdef SLIB_DEBUG
+					else {
+						if (error) {
+							SLIB_LOG_DEBUG("D3DAssembleError", "hr=%d, %s", (sl_reg)hr, StringView((char*)(error->GetBufferPointer()), error->GetBufferSize()));
+						} else {
+							SLIB_LOG_DEBUG("D3DAssembleError", "hr=%d", (sl_reg)hr);
+						}
+					}
+#endif
+					if (error) {
+						error->Release();
+					}
+					if (constants) {
+						constants->Release();
+					}
+					if (shader) {
+						shader->Release();
+					}
+					return ret;
 				}
 #endif
 
@@ -2633,55 +2679,6 @@ namespace slib
 			{
 				return RendererImpl::create(device, param, windowHandle, flagFreeOnFailure);
 			}
-
-#if D3D_VERSION_MAJOR < 10
-			Memory AssembleShader(const StringParam& _source)
-			{
-				if (_source.isEmpty()) {
-					return sl_null;
-				}
-#if D3D_VERSION_MAJOR >= 9
-				auto func = slib::d3dx9::getApi_D3DXAssembleShader();
-#else
-				auto func = slib::d3dx8::getApi_D3DXAssembleShader();
-#endif
-				if (!func) {
-					return sl_null;
-				}
-				ID3DXBuffer* shader = sl_null;
-				StringData source(_source);
-#ifdef SLIB_DEBUG
-				ID3DXBuffer* error = sl_null;
-#if D3D_VERSION_MAJOR >= 9
-				HRESULT hr = func(source.getData(), (UINT)(source.getLength()), NULL, NULL, 0, &shader, &error);
-#else
-				HRESULT hr = func(source.getData(), (UINT)(source.getLength()), 0, NULL, &shader, &error);
-#endif
-#else
-#if D3D_VERSION_MAJOR >= 9
-				func(source.getData(), (UINT)(source.getLength()), NULL, NULL, 0, &shader, NULL);
-#else
-				func(source.getData(), (UINT)(source.getLength()), 0, NULL, &shader, NULL);
-#endif
-#endif
-				if (shader) {
-					Memory ret = Memory::create(shader->GetBufferPointer(), (sl_size)(shader->GetBufferSize()));
-					shader->Release();
-					return ret;
-				}
-#ifdef SLIB_DEBUG
-				else {
-					if (error) {
-						SLIB_LOG_DEBUG("D3DAssembleError", "hr=%d, %s", (sl_reg)hr, StringView((char*)(error->GetBufferPointer()), error->GetBufferSize()));
-						error->Release();
-					} else {
-						SLIB_LOG_DEBUG("D3DAssembleError", "hr=%d", (sl_reg)hr);
-					}
-				}
-#endif
-				return sl_null;
-			}
-#endif
 
 		}
 	}
