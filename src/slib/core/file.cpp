@@ -83,9 +83,9 @@ namespace slib
 		return open(filePath, mode, 0);
 	}
 
-	Ref<File> File::openForRead(const StringParam& filePath, sl_bool flagShareRead)
+	Ref<File> File::openForRead(const StringParam& filePath)
 	{
-		return open(filePath, flagShareRead ? (FileMode::Read | FileMode::ShareRead | FileMode::ShareWrite) : FileMode::Read);
+		return open(filePath, FileMode::Read | FileMode::ShareRead | FileMode::ShareWrite);
 	}
 
 	Ref<File> File::openForWrite(const StringParam& filePath)
@@ -108,23 +108,19 @@ namespace slib
 		return open(filePath, FileMode::RandomAccess);
 	}
 
-	Ref<File> File::openForRandomRead(const StringParam& filePath, sl_bool flagShareRead)
+	Ref<File> File::openForRandomRead(const StringParam& filePath)
 	{
-		return open(filePath, flagShareRead ? (FileMode::RandomRead | FileMode::ShareRead) : FileMode::RandomRead);
+		return open(filePath, FileMode::RandomRead | FileMode::ShareRead | FileMode::ShareWrite);
 	}
 
-	Ref<File> File::openDevice(const StringParam& path, sl_bool flagRead, sl_bool flagWrite)
+	Ref<File> File::openDevice(const StringParam& path, const FileMode& mode)
 	{
-		FileMode mode = FileMode::NotCreate | FileMode::NotTruncate | FileMode::HintRandomAccess;
-		if (flagRead) {
-			mode |= FileMode::Read;
-		}
-		if (flagWrite) {
-			mode |= FileMode::Write;
-		}
-		mode |= FileMode::ShareRead;
-		mode |= FileMode::ShareWrite;
-		return open(path, mode);
+		return open(path, mode | FileMode::NotCreate | FileMode::NotTruncate | FileMode::HintRandomAccess);
+	}
+	
+	Ref<File> File::openDeviceForRead(const StringParam& path)
+	{
+		return openDevice(path, FileMode::Read | FileMode::ShareRead | FileMode::ShareWrite);
 	}
 
 	void File::close()
@@ -200,7 +196,7 @@ namespace slib
 
 	sl_bool File::getDiskSize(const StringParam& devicePath, sl_uint64& outSize)
 	{
-		Ref<File> file = openDevice(devicePath, sl_false, sl_false);
+		Ref<File> file = openDevice(devicePath, 0);
 		if (file.isNotNull()) {
 			return getDiskSizeByHandle(file->m_file, outSize);
 		}

@@ -153,7 +153,7 @@ namespace slib
 
 		static Ref<File> open(const StringParam& filePath, const FileMode& mode);
 	
-		static Ref<File> openForRead(const StringParam& filePath, sl_bool flagShareRead = sl_true);
+		static Ref<File> openForRead(const StringParam& filePath);
 
 		static Ref<File> openForWrite(const StringParam& filePath);
 
@@ -163,7 +163,7 @@ namespace slib
 
 		static Ref<File> openForRandomAccess(const StringParam& filePath);
 	
-		static Ref<File> openForRandomRead(const StringParam& filePath, sl_bool flagShareRead = sl_true);
+		static Ref<File> openForRandomRead(const StringParam& filePath);
 
 		/*
 			Physical Disks and Volumes
@@ -175,7 +175,9 @@ namespace slib
 		 		"/dev/disk0"  (macOS)
 		 		"/dev/sda1"   (Linux)
 		*/
-		static Ref<File> openDevice(const StringParam& path, sl_bool flagRead, sl_bool flagWrite);
+		static Ref<File> openDevice(const StringParam& path, const FileMode& mode);
+
+		static Ref<File> openDeviceForRead(const StringParam& path);
 
 	public:
 		void close() override;
