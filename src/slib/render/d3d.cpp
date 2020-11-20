@@ -37,7 +37,6 @@ namespace slib
 		{
 			Ref<Renderer> CreateRenderer(void* windowHandle, const RendererParam& param);
 			Ref<Renderer> CreateRenderer(IDirect3DDevice8* device, const RendererParam& param, void* windowHandle, sl_bool flagFreeOnFailure);
-			Memory AssembleShader(const StringParam& source);
 		}
 
 		namespace d3d9
@@ -45,7 +44,6 @@ namespace slib
 			Ref<Renderer> CreateRenderer(void* windowHandle, const RendererParam& param);
 			Ref<Renderer> CreateRenderer(IDirect3DDevice9* device, const RendererParam& param, void* windowHandle, sl_bool flagFreeOnFailure);
 			Memory CompileShader(const StringParam& source, const StringParam& target);
-			Memory AssembleShader(const StringParam& source);
 		}
 
 		namespace d3d10
@@ -136,15 +134,6 @@ namespace slib
 			return priv::d3d10::CompileShader(source, target);
 		} else {
 			return priv::d3d9::CompileShader(source, target);
-		}
-	}
-
-	Memory Direct3D::assembleShader(const StringParam& source)
-	{
-		if (slib::d3dx9::getApi_D3DXAssembleShader()) {
-			return priv::d3d9::AssembleShader(source);
-		} else {
-			return priv::d3d8::AssembleShader(source);
 		}
 	}
 

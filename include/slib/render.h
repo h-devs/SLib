@@ -32,4 +32,7 @@
 #include "render/canvas.h"
 #include "render/drawable.h"
 
+#include "render/opengl.h"
+#include "render/d3d.h"
+
 #endif

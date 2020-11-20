@@ -421,6 +421,10 @@ namespace slib
 
 		String getHLSLPixelShader(RenderEngine* engine) override;
 
+		String getAssemblyVertexShader(RenderEngine* engine) override;
+
+		String getAssemblyPixelShader(RenderEngine* engine) override;
+
 	};
 
 	class SLIB_EXPORT RenderProgram2D_PositionTextureYUV : public RenderProgram2D_PositionTexture
@@ -465,6 +469,10 @@ namespace slib
 
 		String getHLSLPixelShader(RenderEngine* engine) override;
 
+		String getAssemblyVertexShader(RenderEngine* engine) override;
+
+		String getAssemblyPixelShader(RenderEngine* engine) override;
+
 	};
 
 
@@ -490,6 +498,10 @@ namespace slib
 		String getHLSLVertexShader(RenderEngine* engine) override;
 
 		String getHLSLPixelShader(RenderEngine* engine) override;
+
+		String getAssemblyVertexShader(RenderEngine* engine) override;
+
+		String getAssemblyPixelShader(RenderEngine* engine) override;
 
 	};
 
