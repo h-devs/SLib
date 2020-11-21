@@ -1552,8 +1552,9 @@ namespace slib
 
 			sl_bool getUniformLocation(const char* name, RenderUniformLocation* outLocation) override
 			{
-				outLocation->location = GL_BASE::getUniformLocation(program, name);
-				if (outLocation->location >= 0) {
+				sl_int32 location = GL_BASE::getUniformLocation(program, name);
+				if (location >= 0) {
+					outLocation->location = location;
 					return sl_true;
 				}
 				return sl_false;
@@ -1562,6 +1563,9 @@ namespace slib
 			void setUniform(const RenderUniformLocation& l, RenderUniformType type, const void* data, sl_uint32 nItems) override
 			{
 				sl_int32 location = (sl_int32)(l.location);
+				if (location < 0) {
+					return;
+				}
 				switch (type) {
 				case RenderUniformType::Float:
 					if (nItems == 1) {

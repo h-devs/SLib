@@ -60,6 +60,7 @@ namespace slib
 	{
 		RenderShaderType shader;
 		sl_render_location location;
+		sl_int32 registerNo;
 		sl_uint32 bufferNo;
 	};
 
@@ -80,7 +81,7 @@ namespace slib
 		// Uniform
 		RenderProgramStateItem(const char* name);
 		RenderProgramStateItem(const char* name, sl_render_sampler samplerNo);
-		RenderProgramStateItem(const char* name, RenderShaderType type, sl_render_location uniformLocation = -1, sl_uint32 bufferNo = 0);
+		RenderProgramStateItem(const char* name, RenderShaderType type, sl_int32 registerNo, sl_uint32 bufferNo = 0);
 
 		// Input
 		RenderProgramStateItem(const char* name, RenderInputType type, sl_uint32 offset, RenderInputSemanticName semanticName = RenderInputSemanticName::Undefined, sl_uint32 semanticIndex = 0, sl_uint32 slot = 0);
@@ -196,9 +197,6 @@ namespace slib
 		virtual sl_bool getUniformLocation(const char* name, RenderUniformLocation* outLocation) = 0;
 
 		virtual void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 nItems) = 0;
-
-	protected:
-		Ref<RenderInputLayout> m_inputLayout;
 
 	};
 
@@ -367,8 +365,8 @@ namespace slib
 			class SLIB_EXPORT RenderProgramTemplate : public RenderProgram
 			{
 			public:
-				void initializeState(RenderProgramState* state);
-				
+				sl_bool onInit(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state) override;
+
 				sl_bool getInputLayoutParam(RenderProgramState* state, RenderInputLayoutParam& param) override;
 
 			};
@@ -383,12 +381,7 @@ namespace slib
 	public:
 		Ref<RenderProgramState> onCreate(RenderEngine* engine) override
 		{
-			Ref<RenderProgramState> ret = new StateType;
-			if (ret.isNotNull()) {
-				initializeState(ret.get());
-				return ret;
-			}
-			return sl_null;
+			return new StateType;
 		}
 		
 	};

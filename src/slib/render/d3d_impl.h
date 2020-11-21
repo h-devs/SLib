@@ -775,6 +775,14 @@ namespace slib
 					if (state.isNull()) {
 						return sl_null;
 					}
+					Ref<RenderProgramInstanceImpl> ret = new RenderProgramInstanceImpl();
+					if (ret.isNull()) {
+						return sl_null;
+					}
+					state->setProgramInstance(ret.get());
+					if (!(program->onInit(engine, ret.get(), state.get()))) {
+						return sl_null;
+					}
 					RenderInputLayoutParam inputLayoutParam;
 					if (!(program->getInputLayoutParam(state, inputLayoutParam))) {
 						return sl_null;
@@ -815,9 +823,9 @@ namespace slib
 #if D3D_VERSION_MAJOR >= 9
 								Ref<RenderProgramState> state = program->onCreate(engine);
 								if (state.isNotNull()) {
-#endif
 									Ref<RenderProgramInstanceImpl> ret = new RenderProgramInstanceImpl();
 									if (ret.isNotNull()) {
+#endif
 										ret->device = device;
 										ret->context = context;
 #if D3D_VERSION_MAJOR >= 9
@@ -834,18 +842,20 @@ namespace slib
 										ret->constantBuffersPS = Move(constantBuffersPS);
 										ret->constantBufferHandlesPS = Move(constantBufferHandlesPS);
 #endif
+#if D3D_VERSION_MAJOR >= 9
 										state->setProgramInstance(ret.get());
 										if (program->onInit(engine, ret.get(), state.get())) {
+#endif
 											ret->state = state;
 #if D3D_VERSION_MAJOR >= 10
 											ret->codeVertexShader = codeVertex;
 #endif
 											ret->link(engine, program);
 											return ret;
+#if D3D_VERSION_MAJOR >= 9
 										}
 										return sl_null;
 									}
-#if D3D_VERSION_MAJOR >= 9
 								}
 #endif
 #if D3D_VERSION_MAJOR >= 10
@@ -879,11 +889,18 @@ namespace slib
 
 				sl_bool getUniformLocation(const char* name, RenderUniformLocation* outLocation) override
 				{
+					if (outLocation->registerNo >= 0) {
+						outLocation->location = 0;
+						return sl_true;
+					}
 					return sl_false;
 				}
 
 				void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 nItems) override
 				{
+					if (location.registerNo < 0) {
+						return;
+					}
 					switch (location.shader) {
 					case RenderShaderType::Vertex:
 					case RenderShaderType::Pixel:
@@ -918,7 +935,7 @@ namespace slib
 					if (!buffer) {
 						return;
 					}
-					sl_uint32 loc = (sl_uint32)(location.location << 4);
+					sl_uint32 loc = (sl_uint32)(location.registerNo << 4);
 					if (loc >= buffer->size) {
 						return;
 					}
@@ -1063,7 +1080,7 @@ namespace slib
 						sl_uint8 t[16] = { 0 };
 						Base::copyMemory(t, data, nItems << 2);
 						RenderUniformLocation l = location;
-						l.location += n4;
+						l.registerNo += n4;
 						_setUniform(device, l, type, t, 1);
 					}
 #endif
@@ -1138,22 +1155,22 @@ namespace slib
 					if (location.shader == RenderShaderType::Vertex) {
 #if D3D_VERSION_MAJOR >= 9
 						if (type == RenderUniformType::Float) {
-							dev->SetVertexShaderConstantF((UINT)(location.location), (float*)data, (UINT)countVector4);
+							dev->SetVertexShaderConstantF((UINT)(location.registerNo), (float*)data, (UINT)countVector4);
 						} else if (type == RenderUniformType::Int) {
-							dev->SetVertexShaderConstantI((UINT)(location.location), (int*)data, (UINT)countVector4);
+							dev->SetVertexShaderConstantI((UINT)(location.registerNo), (int*)data, (UINT)countVector4);
 						}
 #else
-						dev->SetVertexShaderConstant((DWORD)(location.location), data, (DWORD)countVector4);
+						dev->SetVertexShaderConstant((DWORD)(location.registerNo), data, (DWORD)countVector4);
 #endif
 					} else if (location.shader == RenderShaderType::Pixel) {
 #if D3D_VERSION_MAJOR >= 9
 						if (type == RenderUniformType::Float) {
-							dev->SetPixelShaderConstantF((UINT)(location.location), (float*)data, (UINT)countVector4);
+							dev->SetPixelShaderConstantF((UINT)(location.registerNo), (float*)data, (UINT)countVector4);
 						} else if (type == RenderUniformType::Int) {
-							dev->SetPixelShaderConstantI((UINT)(location.location), (int*)data, (UINT)countVector4);
+							dev->SetPixelShaderConstantI((UINT)(location.registerNo), (int*)data, (UINT)countVector4);
 						}
 #else
-						dev->SetPixelShaderConstant((DWORD)(location.location), data, (DWORD)countVector4);
+						dev->SetPixelShaderConstant((DWORD)(location.registerNo), data, (DWORD)countVector4);
 #endif
 					}
 				}
