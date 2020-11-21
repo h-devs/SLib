@@ -70,7 +70,18 @@ namespace slib
 	{
 	}
 
-	sl_bool MirrorFileSystem::setPath(const String& _path)
+	Ref<MirrorFileSystem> MirrorFileSystem::create(const StringParam& path)
+	{
+		Ref<MirrorFileSystem> ret = new MirrorFileSystem;
+		if (ret.isNotNull()) {
+			if (ret->setPath(path)) {
+				return ret;
+			}
+		}
+		return sl_null;
+	}
+
+	sl_bool MirrorFileSystem::setPath(const StringParam& _path)
 	{
 		String path = File::normalizeDirectoryPath(_path);
 		if (!File::exists(path)) {
