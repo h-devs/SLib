@@ -1561,7 +1561,10 @@ namespace slib
 
 			void setUniform(const RenderUniformLocation& l, RenderUniformType type, const void* data, sl_uint32 nItems) override
 			{
-				sl_int32 location = (sl_int32)(l.location);
+				sl_int32 location = l.location;
+				if (location < 0) {
+					return;
+				}
 				switch (type) {
 				case RenderUniformType::Float:
 					if (nItems == 1) {

@@ -156,18 +156,23 @@ namespace slib
 
 	RenderProgramStateItem::RenderProgramStateItem(const char* _name) : name(_name), kind(RenderProgramStateKind::Uniform), samplerNo(0)
 	{
+		uniform.shader = RenderShaderType::Undefined;
+		uniform.location = -1;
+		uniform.registerNo = -1;
 	}
 
 	RenderProgramStateItem::RenderProgramStateItem(const char* _name, sl_render_sampler _sampler) : name(_name), kind(RenderProgramStateKind::Uniform), samplerNo(_sampler)
 	{
 		uniform.shader = RenderShaderType::Pixel;
-		uniform.location = 0;
+		uniform.location = -1;
+		uniform.registerNo = -1;
 	}
 
-	RenderProgramStateItem::RenderProgramStateItem(const char* _name, RenderShaderType _shaderType, sl_render_location _uniformLocation, sl_uint32 _bufferNo) : name(_name), kind(RenderProgramStateKind::Uniform), samplerNo(0)
+	RenderProgramStateItem::RenderProgramStateItem(const char* _name, RenderShaderType _shaderType, sl_int32 _registerNo, sl_uint32 _bufferNo) : name(_name), kind(RenderProgramStateKind::Uniform), samplerNo(0)
 	{
 		uniform.shader = _shaderType;
-		uniform.location = _uniformLocation;
+		uniform.location = -1;
+		uniform.registerNo = _registerNo;
 		uniform.bufferNo = _bufferNo;
 	}
 
@@ -353,7 +358,7 @@ namespace slib
 				RenderProgramStateItem items[1];
 			};
 
-			void RenderProgramTemplate::initializeState(RenderProgramState* _state)
+			sl_bool RenderProgramTemplate::onInit(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* _state)
 			{
 				RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
 				List<RenderInputLayoutItem> layouts;
@@ -371,6 +376,7 @@ namespace slib
 					}
 					item++;
 				}
+				return sl_true;
 			}
 
 			sl_bool RenderProgramTemplate::getInputLayoutParam(RenderProgramState* _state, RenderInputLayoutParam& param)
