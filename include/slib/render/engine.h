@@ -384,6 +384,8 @@ namespace slib
 		
 		sl_uint32 m_viewportWidth;
 		sl_uint32 m_viewportHeight;
+
+		Ref<Referable> m_canvasContext;
 		
 		// debug
 		sl_uint32 m_nCountDrawnElementsOnLastScene;

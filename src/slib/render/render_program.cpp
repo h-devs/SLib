@@ -461,12 +461,12 @@ namespace slib
 			mov r0.xy, v0.xy
 			mov r0.z, c50.x
 			m3x3 r1, r0, c0
-			mov r1.zw, c50.zw;
-			mov	oPos, r1
+			mov r1.zw, c50.zw
+			mov oPos, r1
 			mov r0.xy, v1.xy
 			m3x3 r1, r0, c3
-			mov r1.zw, c50.zw;
-			mov	oT0, r1
+			mov r1.zw, c50.zw
+			mov oT0, r1
 		)")
 	}
 
@@ -592,8 +592,8 @@ namespace slib
 			mov r0.xy, v0.xy
 			mov r0.z, c50.x
 			m3x3 r1, r0, c0
-			mov r1.zw, c50.zw;
-			mov	oPos, r1
+			mov r1.zw, c50.zw
+			mov oPos, r1
 			mul oD0, c3, v1
 		)")
 	}
@@ -659,7 +659,7 @@ namespace slib
 			mov r0.z, c50.x
 			m3x3 r1, r0, c0
 			mov r1.zw, c50.zw
-			mov	oPos, r1
+			mov oPos, r1
 		)")
 	}
 

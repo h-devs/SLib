@@ -133,5 +133,12 @@ namespace slib
 		return ((int)v1) & ((int)v2);
 	}
 
+	enum class RenderShaderLanguage
+	{
+		Assembly = 0,
+		GLSL = 1,
+		HLSL = 2
+	};
+
 }
 #endif

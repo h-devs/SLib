@@ -61,7 +61,7 @@ namespace slib
 			class RenderCanvasProgramParam
 			{
 			public:
-				sl_bool flagHLSL;
+				RenderShaderLanguage language;
 				sl_bool flagUseTexture;
 				sl_bool flagUseColorFilter;
 				RenderCanvasClip* clips[MAX_SHADER_CLIP + 1];
@@ -70,7 +70,7 @@ namespace slib
 			public:
 				RenderCanvasProgramParam()
 				{
-					flagHLSL = sl_false;
+					language = RenderShaderLanguage::GLSL;
 					flagUseTexture = sl_false;
 					flagUseColorFilter = sl_false;
 					countClips = 0;
@@ -78,7 +78,15 @@ namespace slib
 				
 				void prepare(RenderCanvasState* state, sl_bool flagIgnoreRectClip)
 				{
-					flagHLSL = SLIB_RENDER_CHECK_ENGINE_TYPE(state->engineType, D3D);
+					if (SLIB_RENDER_CHECK_ENGINE_TYPE(state->engineType, D3D)) {
+						if (SLIB_RENDER_CHECK_ENGINE_TYPE(state->engineType, D3D8)) {
+							language = RenderShaderLanguage::Assembly;
+						} else {
+							language = RenderShaderLanguage::HLSL;
+						}
+					} else {
+						language = RenderShaderLanguage::GLSL;
+					}
 					countClips = 0;
 					if (!flagIgnoreRectClip && state->flagClipRect) {
 						storageRectClip.type = RenderCanvasClipType::Rectangle;
@@ -162,9 +170,19 @@ namespace slib
 					return 1024;
 				}
 
+				String getAssemblyVertexShader(RenderEngine* engine) override
+				{
+					return m_vertexShader;
+				}
+
+				String getAssemblyPixelShader(RenderEngine* engine) override
+				{
+					return m_fragmentShader;
+				}
+
 				static void generateShaderSources(const RenderCanvasProgramParam& param, char* signatures, StringBuffer* bufVertexShader, StringBuffer* bufFragmentShader)
 				{
-					sl_bool flagHLSL = param.flagHLSL;
+					RenderShaderLanguage lang = param.language;
 
 					StringBuffer bufVBHeader;
 					StringBuffer bufVBContent;
@@ -181,7 +199,8 @@ namespace slib
 					}
 					
 					if (bufVertexShader) {
-						if (flagHLSL) {
+						switch (lang) {
+						case RenderShaderLanguage::HLSL:
 							bufVBHeader.addStatic(SLIB_STRINGIFY(
 								float3x3 u_Transform : register(c0);
 							));
@@ -206,7 +225,8 @@ namespace slib
 								float4 main(PS_INPUT input) : COLOR {
 									float4 l_Color = u_Color;
 							));
-						} else {
+							break;
+						case RenderShaderLanguage::GLSL:
 							bufVBHeader.addStatic(SLIB_STRINGIFY(
 								uniform mat3 u_Transform;
 								attribute vec2 a_Position;
@@ -222,11 +242,26 @@ namespace slib
 								void main() {
 									vec4 l_Color = u_Color;
 							));
+							break;
+						case RenderShaderLanguage::Assembly:
+							bufVBContent.addStatic(
+								"vs.1.0\n"
+								"def c50, 1.0f, 0.0f, 0.0f, 1.0f\n"
+								"mov r0.xy, v0.xy\n"
+								"mov r0.z, c50.x\n"
+								"m3x3 r1, r0, c0\n"
+								"mov r1.zw, c50.zw\n"
+								"mov oPos, r1\n"
+							);
+							bufFBContent.addStatic("ps.1.0\n");
+							break;
+						default:
+							break;
 						}
 					}
 					if (param.flagUseTexture) {						
 						if (bufVertexShader) {
-							if (flagHLSL) {
+							if (lang == RenderShaderLanguage::HLSL) {
 								bufVSOutput.addStatic(SLIB_STRINGIFY(
 									float2 texCoord : TEXCOORD0;
 								));
@@ -236,9 +271,10 @@ namespace slib
 							}
 						}
 					}
-					if (param.countClips > 0) {
+					if (param.countClips > 0 && (lang != RenderShaderLanguage::Assembly)) {
 						if (bufVertexShader) {
-							if (flagHLSL) {
+							switch (lang) {
+							case RenderShaderLanguage::HLSL:
 								bufVBHeader.add(String::format(SLIB_STRINGIFY(
 									float4 u_ClipRect[%d] : register(c16);
 									float3x3 u_ClipTransform[%d] : register(c32);
@@ -252,7 +288,8 @@ namespace slib
 								bufPSInput.add(String::format(SLIB_STRINGIFY(
 									float2 clipPos[%d] : TEXCOORD1;
 								), param.countClips));
-							} else {
+								break;
+							case RenderShaderLanguage::GLSL:
 								bufVBHeader.add(String::format(SLIB_STRINGIFY(
 									varying vec2 v_ClipPos[%d];
 									uniform vec4 u_ClipRect[%d];
@@ -262,6 +299,9 @@ namespace slib
 									varying vec2 v_ClipPos[%d];
 									uniform vec4 u_ClipRect[%d];
 								), param.countClips));
+								break;
+							default:
+								break;
 							}
 						}
 						for (sl_uint32 i = 0; i < param.countClips; i++) {
@@ -276,7 +316,8 @@ namespace slib
 									}
 								}
 								if (bufVertexShader) {
-									if (flagHLSL) {
+									switch (lang) {
+									case RenderShaderLanguage::HLSL:
 										bufVBContent.add(String::format(SLIB_STRINGIFY(
 											ret.clipPos[%d] = mul(float3(input.pos.x, input.pos.y, 1.0), u_ClipTransform[%d]).xy - (u_ClipRect[%d].xy + u_ClipRect[%d].zw) / 2.0;
 										), i));
@@ -284,7 +325,8 @@ namespace slib
 											float xClip%d = input.clipPos[%d].x;
 											float yClip%d = input.clipPos[%d].y;
 										), i));
-									} else {
+										break;
+									case RenderShaderLanguage::GLSL:
 										bufVBContent.add(String::format(SLIB_STRINGIFY(
 											v_ClipPos[%d] = (vec3(a_Position, 1.0) * u_ClipTransform[%d]).xy - (u_ClipRect[%d].xy + u_ClipRect[%d].zw) / 2.0;
 										), i));
@@ -292,6 +334,9 @@ namespace slib
 											float xClip%d = v_ClipPos[%d].x;
 											float yClip%d = v_ClipPos[%d].y;
 										), i));
+										break;
+									default:
+										break;
 									}
 									bufFBContent.add(String::format(SLIB_STRINGIFY(
 										float wClip%d = (u_ClipRect[%d].z - u_ClipRect[%d].x) / 2.0;
@@ -317,7 +362,8 @@ namespace slib
 									*(signatures++) = 'C';
 								}
 								if (bufVertexShader) {
-									if (flagHLSL) {
+									switch (lang) {
+									case RenderShaderLanguage::HLSL:
 										bufVBContent.add(String::format(SLIB_STRINGIFY(
 											ret.clipPos[%d] = mul(float3(input.pos.x, input.pos.y, 1.0), u_ClipTransform[%d]).xy;
 										), i));
@@ -325,7 +371,8 @@ namespace slib
 											float xClip%d = input.clipPos[%d].x;
 											float yClip%d = input.clipPos[%d].y;
 										), i));
-									} else {
+										break;
+									case RenderShaderLanguage::GLSL:
 										bufVBContent.add(String::format(SLIB_STRINGIFY(
 											v_ClipPos[%d] = (vec3(a_Position, 1.0) * u_ClipTransform[%d]).xy;
 										), i));
@@ -333,6 +380,9 @@ namespace slib
 											float xClip%d = v_ClipPos[%d].x;
 											float yClip%d = v_ClipPos[%d].y;
 										), i));
+										break;
+									default:
+										break;
 									}
 									bufFBContent.add(String::format(SLIB_STRINGIFY(
 										float fClip%d = step(u_ClipRect[%d].x, xClip%d) * step(u_ClipRect[%d].y, yClip%d) * step(xClip%d, u_ClipRect[%d].z) * step(yClip%d, u_ClipRect[%d].w);
@@ -350,7 +400,8 @@ namespace slib
 							*(signatures++) = 'T';
 						}
 						if (bufVertexShader) {
-							if (flagHLSL) {
+							switch (lang) {
+							case RenderShaderLanguage::HLSL:
 								bufVBHeader.addStatic(SLIB_STRINGIFY(
 									float4 u_RectSrc : register(c3);
 								));
@@ -360,7 +411,8 @@ namespace slib
 								bufFBHeader.addStatic(SLIB_STRINGIFY(
 									sampler u_Texture;
 								));
-							} else {
+								break;
+							case RenderShaderLanguage::GLSL:
 								bufVBHeader.addStatic(SLIB_STRINGIFY(
 									uniform vec4 u_RectSrc;
 									varying vec2 v_TexCoord;
@@ -372,15 +424,27 @@ namespace slib
 									uniform sampler2D u_Texture;
 									varying vec2 v_TexCoord;
 								));
+								break;
+							case RenderShaderLanguage::Assembly:
+								bufVBContent.addStatic(
+									"mov r1.xy, c3.zw\n"
+									"mad r0.xy, v0.xy, r1.xy, c3.xy\n"
+									"mov r0.zw, c50.zw\n"
+									"mov oT0, r0\n"
+								);
+								break;
+							default:
+								break;
 							}
 						}
 						
-						if (param.flagUseColorFilter) {
+						if (param.flagUseColorFilter && lang != RenderShaderLanguage::Assembly) {
 							if (signatures) {
 								*(signatures++) = 'F';
 							}
 							if (bufVertexShader) {
-								if (flagHLSL) {
+								switch (lang) {
+								case RenderShaderLanguage::HLSL:
 									bufFBHeader.addStatic(SLIB_STRINGIFY(
 										float4 u_ColorFilterR : register(c1);
 										float4 u_ColorFilterG : register(c2);
@@ -393,7 +457,8 @@ namespace slib
 										color = float4(dot(color, u_ColorFilterR), dot(color, u_ColorFilterG), dot(color, u_ColorFilterB), dot(color, u_ColorFilterA)) + u_ColorFilterC;
 										color = color * l_Color;
 									));
-								} else {
+									break;
+								case RenderShaderLanguage::GLSL:
 									bufFBHeader.addStatic(SLIB_STRINGIFY(
 										uniform vec4 u_ColorFilterR;
 										uniform vec4 u_ColorFilterG;
@@ -406,36 +471,56 @@ namespace slib
 										color = vec4(dot(color, u_ColorFilterR), dot(color, u_ColorFilterG), dot(color, u_ColorFilterB), dot(color, u_ColorFilterA)) + u_ColorFilterC;
 										color = color * l_Color;
 									));
+									break;
+								default:
+									break;
 								}
 							}
 						} else {
 							if (bufVertexShader) {
-								if (flagHLSL) {
+								switch (lang) {
+								case RenderShaderLanguage::HLSL:
 									bufFBContent.addStatic(SLIB_STRINGIFY(
 										float4 color = tex2D(u_Texture, input.texCoord) * l_Color;
 									));
-								} else {
+									break;
+								case RenderShaderLanguage::GLSL:
 									bufFBContent.addStatic(SLIB_STRINGIFY(
 										vec4 color = texture2D(u_Texture, v_TexCoord) * l_Color;
 									));
+									break;
+								case RenderShaderLanguage::Assembly:
+									bufFBContent.addStatic("tex t0\nmul r0, t0, c0\n");
+									break;
+								default:
+									break;
 								}
 							}
 						}
 					} else {
 						if (bufVertexShader) {
-							if (flagHLSL) {
+							switch (lang) {
+							case RenderShaderLanguage::HLSL:
 								bufFBContent.addStatic(SLIB_STRINGIFY(
 									float4 color = l_Color;
 								));
-							} else {
+								break;
+							case RenderShaderLanguage::GLSL:
 								bufFBContent.addStatic(SLIB_STRINGIFY(
 									vec4 color = l_Color;
 								));
+								break;
+							case RenderShaderLanguage::Assembly:
+								bufFBContent.addStatic("mov r0, c0\n");
+								break;
+							default:
+								break;
 							}
 						}
 					}
 					if (bufVertexShader) {
-						if (flagHLSL) {
+						switch (lang) {
+						case RenderShaderLanguage::HLSL:
 							bufVBContent.addStatic(SLIB_STRINGIFY(
 								return ret;
 							));
@@ -450,13 +535,19 @@ namespace slib
 							bufFBHeader.addStatic("struct PS_INPUT {");
 							bufFBHeader.link(bufPSInput);
 							bufFBHeader.addStatic("};");
-						} else {
+							break;
+						case RenderShaderLanguage::GLSL:
 							bufFBContent.addStatic(SLIB_STRINGIFY(
 								gl_FragColor = color;
 							));
+							break;
+						default:
+							break;
 						}
-						bufVBContent.addStatic("}");
-						bufFBContent.addStatic("}");
+						if (lang != RenderShaderLanguage::Assembly) {
+							bufVBContent.addStatic("}");
+							bufFBContent.addStatic("}");
+						}
 						bufVertexShader->link(bufVBHeader);
 						bufVertexShader->link(bufVBContent);
 						bufFragmentShader->link(bufFBHeader);
@@ -484,15 +575,15 @@ namespace slib
 				}
 				
 			};
-			
-			class SharedContext
+
+			class EngineContext : public Referable
 			{
 			public:
 				CHashMap< String, Ref<RenderCanvasProgram> > programs;
 				Ref<VertexBuffer> vbRectangle;
 				
 			public:
-				SharedContext()
+				EngineContext()
 				{
 					static RenderVertex2D_Position v[] = {
 						{ { 0, 0 } }
@@ -522,9 +613,35 @@ namespace slib
 				}
 				
 			};
-			
-			SLIB_SAFE_STATIC_GETTER(SharedContext, GetSharedContext)
-						
+
+			class EngineHelper : public RenderEngine
+			{
+			public:
+				EngineContext* getContext()
+				{
+					if (m_canvasContext.isNull()) {
+						m_canvasContext = new EngineContext;
+					}
+					return (EngineContext*)(m_canvasContext.get());
+				}
+
+			};
+
+			class RenderCanvasHelper : public RenderCanvas
+			{
+			public:
+				EngineContext * getContext()
+				{
+					return ((EngineHelper*)(m_engine.get()))->getContext();
+				}
+
+			};
+
+			static EngineContext* GetEngineContext(RenderCanvas* canvas)
+			{
+				return ((RenderCanvasHelper*)canvas)->getContext();
+			}
+
 		}
 	}
 
@@ -836,9 +953,9 @@ namespace slib
 	void RenderCanvas::drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
 		if (brush.isNotNull()) {
-			RenderCanvas::drawRectangle(rect, pen, brush->getColor());
+			drawRectangle(rect, pen, brush->getColor());
 		} else {
-			RenderCanvas::drawRectangle(rect, pen, Color::zero());
+			drawRectangle(rect, pen, Color::zero());
 		}
 	}
 	
@@ -868,8 +985,8 @@ namespace slib
 	
 	void RenderCanvas::_fillRectangle(const Rectangle& _rect, const Color& _color)
 	{
-		SharedContext* shared = GetSharedContext();
-		if (!shared) {
+		EngineContext* context = GetEngineContext(this);
+		if (!context) {
 			return;
 		}
 		
@@ -886,7 +1003,7 @@ namespace slib
 		pp.prepare(state, sl_true);
 		
 		RenderProgramScope<RenderCanvasProgramState> scope;
-		if (scope.begin(m_engine.get(), shared->getProgram(pp))) {
+		if (scope.begin(m_engine.get(), context->getProgram(pp))) {
 			Matrix3 mat;
 			mat.m00 = rect.getWidth(); mat.m10 = 0; mat.m20 = rect.left;
 			mat.m01 = 0; mat.m11 = rect.getHeight(); mat.m21 = rect.top;
@@ -898,7 +1015,7 @@ namespace slib
 			Color4f color = _color;
 			color.w *= getAlpha();
 			scope->setColor(color);
-			m_engine->drawPrimitive(4, shared->vbRectangle, PrimitiveType::TriangleStrip);
+			m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 		}
 		
 	}
@@ -910,8 +1027,8 @@ namespace slib
 	
 	void RenderCanvas::drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
-		SharedContext* shared = GetSharedContext();
-		if (!shared) {
+		EngineContext* context = GetEngineContext(this);
+		if (!context) {
 			return;
 		}
 		
@@ -932,7 +1049,7 @@ namespace slib
 			pp.addFinalClip(&clip);
 			
 			RenderProgramScope<RenderCanvasProgramState> scope;
-			if (scope.begin(m_engine.get(), shared->getProgram(pp))) {
+			if (scope.begin(m_engine.get(), context->getProgram(pp))) {
 				Matrix3 mat;
 				mat.m00 = rect.getWidth(); mat.m10 = 0; mat.m20 = rect.left;
 				mat.m01 = 0; mat.m11 = rect.getHeight(); mat.m21 = rect.top;
@@ -944,7 +1061,7 @@ namespace slib
 				Color4f color = brush->getColor();
 				color.w *= getAlpha();
 				scope->setColor(color);
-				m_engine->drawPrimitive(4, shared->vbRectangle, PrimitiveType::TriangleStrip);
+				m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 			}
 		}
 	}
@@ -964,8 +1081,8 @@ namespace slib
 	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& _rectSrc, const DrawParam& param, const Color4f& color)
 	{
 		
-		SharedContext* shared = GetSharedContext();
-		if (!shared) {
+		EngineContext* context = GetEngineContext(this);
+		if (!context) {
 			return;
 		}
 		
@@ -987,7 +1104,7 @@ namespace slib
 		}
 		
 		RenderProgramScope<RenderCanvasProgramState> scope;
-		if (scope.begin(m_engine.get(), shared->getProgram(pp))) {
+		if (scope.begin(m_engine.get(), context->getProgram(pp))) {
 			pp.applyToProgramState(scope.getState(), transform);
 			scope->setTexture(texture);
 			scope->setTransform(transform * state->matrix * m_matViewport);
@@ -1004,7 +1121,7 @@ namespace slib
 			} else {
 				scope->setColor(Color4f(color.x, color.y, color.z, color.w * getAlpha()));
 			}
-			m_engine->drawPrimitive(4, shared->vbRectangle, PrimitiveType::TriangleStrip);
+			m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 		}
 		
 	}
@@ -1039,8 +1156,8 @@ namespace slib
 	void RenderCanvas::drawTexture(const Rectangle& _rectDst, const Ref<Texture>& texture, const Rectangle& _rectSrc, const DrawParam& param, const Color4f& color)
 	{
 		
-		SharedContext* shared = GetSharedContext();
-		if (!shared) {
+		EngineContext* context = GetEngineContext(this);
+		if (!context) {
 			return;
 		}
 		
@@ -1074,7 +1191,7 @@ namespace slib
 		}
 		
 		RenderProgramScope<RenderCanvasProgramState> scope;
-		if (scope.begin(m_engine.get(), shared->getProgram(pp))) {
+		if (scope.begin(m_engine.get(), context->getProgram(pp))) {
 			scope->setTexture(texture);
 			Matrix3 mat;
 			mat.m00 = rectDst.getWidth(); mat.m10 = 0; mat.m20 = rectDst.left;
@@ -1097,7 +1214,7 @@ namespace slib
 			} else {
 				scope->setColor(Color4f(color.x, color.y, color.z, color.w * getAlpha()));
 			}
-			m_engine->drawPrimitive(4, shared->vbRectangle, PrimitiveType::TriangleStrip);
+			m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 		}
 		
 	}
@@ -1143,8 +1260,8 @@ namespace slib
 	
 	void RenderCanvas::drawRectangle(const Rectangle& rect, RenderProgramState2D_Position* programState, const DrawParam& param)
 	{
-		SharedContext* shared = GetSharedContext();
-		if (!shared) {
+		EngineContext* context = GetEngineContext(this);
+		if (!context) {
 			return;
 		}
 		
@@ -1161,7 +1278,7 @@ namespace slib
 		Color4f color(1, 1, 1, param.alpha * getAlpha());
 		programState->setColor(color);
 		
-		m_engine->drawPrimitive(4, shared->vbRectangle, PrimitiveType::TriangleStrip);
+		m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 		
 	}
 	
@@ -1191,8 +1308,8 @@ namespace slib
 			return;
 		}
 		
-		SharedContext* shared = GetSharedContext();
-		if (!shared) {
+		EngineContext* context = GetEngineContext(this);
+		if (!context) {
 			return;
 		}
 		
@@ -1271,7 +1388,7 @@ namespace slib
 							sl_real sh = (sl_real)(texture->getHeight());
 							if (sw > SLIB_EPSILON && sh > SLIB_EPSILON) {
 								if (!flagBeginScope) {
-									Ref<RenderProgram> program = shared->getProgram(pp);
+									Ref<RenderProgram> program = context->getProgram(pp);
 									if (!(scope.begin(m_engine.get(), program))) {
 										return;
 									}
@@ -1309,7 +1426,7 @@ namespace slib
 									textureBefore = texture;
 								}
 								scope->setRectSrc(Vector4(rcSrc.left, rcSrc.top, rcSrc.getWidth(), rcSrc.getHeight()));
-								m_engine->drawPrimitive(4, shared->vbRectangle, PrimitiveType::TriangleStrip);
+								m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 							}
 						}
 					}
