@@ -24,19 +24,19 @@
 #include "slib/storage/file_system_internal.h"
 
 #include "slib/storage/file_system_logger.h"
-
 #include "slib/core/system.h"
+
+#define PATH_LOG(path) (m_flags & FileSystemLogFlags::FileName ? path : "")
+#define CONTEXT_LOG(context) (m_flags & FileSystemLogFlags::ContextAddress ? ":0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true) : "")
+#define ERROR_LOG(error) (String::fromUint32((sl_uint32)(error)) + (m_flags & FileSystemLogFlags::ExceptionString ? ", " + System::formatErrorCode((sl_uint32)(error)) : ""))
 
 #define TRY SLIB_TRY
 #define CATCH(desc) SLIB_CATCH (FileSystemError error, { \
 	if (m_flags & FileSystemLogFlags::Exception) { \
-		LOG("%s\n  Error: %d%s", desc, error, (m_flags & FileSystemLogFlags::ExceptionString ? ", " + System::formatErrorCode((sl_uint32)error) : "")); \
+		LOG("%s\n  Exception: %s", desc, ERROR_LOG(error)); \
 	} \
 	throw error; \
 })
-
-#define PATH_LOG(path) (m_flags & FileSystemLogFlags::FileName ? path : "")
-#define CONTEXT_LOG(context) (m_flags & FileSystemLogFlags::ContextAddress ? ":0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true) : "")
 
 namespace slib
 {
@@ -113,7 +113,7 @@ namespace slib
 				LOG("  maxPathLength: %d", info.maxPathLength);
 				LOG("  flags: 0x%X", info.flags.value);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
-				LOG("%s\n  Error", desc);
+				LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 			}
 			return ret;
 		}
@@ -145,7 +145,7 @@ namespace slib
 				LOG("  totalSize: %d", totalSize);
 				LOG("  freeSize: %d", freeSize);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
-				LOG("%s\n  Error", desc);
+				LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 			}
 			return ret;
 		}
@@ -168,7 +168,7 @@ namespace slib
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG(desc);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
-				LOG("%s\n  Error", desc);
+				LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 			}
 			return ret;
 		}
@@ -210,7 +210,7 @@ namespace slib
 			if (context.isNotNull() && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG(desc);
 			} else if (context.isNull() && (m_flags & FileSystemLogFlags::RetFail)) {
-				LOG("%s\n  Error", desc);
+				LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 			}
 			return context;
 		}
@@ -232,7 +232,7 @@ namespace slib
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG("%s\n  Ret: %d", desc, ret);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
-				LOG("%s\n  Error", desc);
+				LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 			}
 			return ret;
 		}
@@ -255,7 +255,7 @@ namespace slib
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG("%s\n  Ret: %d", desc, ret);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
-				LOG("%s\n  Error", desc);
+				LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 			}
 			return ret;
 		}
@@ -277,7 +277,7 @@ namespace slib
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG(desc);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
-				LOG("%s\n  Error", desc);
+				LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 			}
 			return ret;
 		}
@@ -300,7 +300,7 @@ namespace slib
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG(desc);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
-				LOG("%s\n  Error", desc);
+				LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 			}
 			return ret;
 		}
@@ -323,7 +323,7 @@ namespace slib
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG(desc);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
-				LOG("%s\n  Error", desc);
+				LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 			}
 			return ret;
 		}
@@ -346,7 +346,7 @@ namespace slib
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG(desc);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
-				LOG("%s\n  Error", desc);
+				LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 			}
 			return ret;
 		}
@@ -369,7 +369,7 @@ namespace slib
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG(desc);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
-				LOG("%s\n  Error", desc);
+				LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 			}
 			return ret;
 		}
@@ -412,7 +412,7 @@ namespace slib
 					}
 				}
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
-				LOG("%s\n  Error", desc);
+				LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 			}
 			return ret;
 		}
@@ -455,7 +455,7 @@ namespace slib
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG(desc);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {
-				LOG("%s\n  Error", desc);
+				LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 			}
 			return ret;
 		}
