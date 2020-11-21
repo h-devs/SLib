@@ -131,6 +131,19 @@ namespace slib
 		}
 	}
 
+	PE_DirectoryEntry* PE::getExportTableDirectory()
+	{
+		if (!flagLoadedHeaders) {
+			return sl_null;
+		}
+		if (flag64Bit) {
+			return optional64.directoryEntry + SLIB_PE_DIRECTORY_EXPORT_TABLE;
+		}
+		else {
+			return optional32.directoryEntry + SLIB_PE_DIRECTORY_EXPORT_TABLE;
+		}
+	}
+
 	PE_ImportDescriptor* PE::findImportTable(const void* baseAddress, const char* dllName)
 	{		
 		PE_DirectoryEntry* pImportEntry = getImportTableDirectory();
@@ -148,5 +161,27 @@ namespace slib
 		}
 		return sl_null;
 	}
+	
+	void* PE::findExportFunction(const void* baseAddress, const char* functionName)
+	{
+		PE_DirectoryEntry* pExportEntry = getExportTableDirectory();
+		if (!pExportEntry) {
+			return sl_null;
+		}
+		sl_uint8* base = (sl_uint8*)baseAddress;
+		PE_EXPORT_DIRECTORY* pExportDirectory = (PE_EXPORT_DIRECTORY*)(base + pExportEntry->address);
+		sl_uint32 nameRVA = pExportDirectory->AddressOfNames;
+		sl_uint32 funcRVA = pExportDirectory->AddressOfFunctions;
+		sl_uint32 nameOrdinalRVA = pExportDirectory->AddressOfNameOrdinals;
 
+		for (sl_uint32 i = 0; i < pExportDirectory->NumberOfNames; i++) {
+			sl_uint32 nameBase = *(sl_uint32*)(base + nameRVA + i * 4);
+			sl_uint16 funcIndex = *(sl_uint16*)(base + nameOrdinalRVA + i * 2);
+			if (Base::equalsStringIgnoreCase((char*)(base + nameBase), functionName)) {
+				return (base + *(sl_uint32*)(base + funcRVA + funcIndex * 4));
+			}
+		}
+		return sl_null;
+	}
+	
 }

@@ -51,6 +51,10 @@
 #define SLIB_PE_DIRECTORY_CLR						14
 // Reserved											15
 
+
+#define SLIB_PE_SECTION_RELOCATION_SIZE				10
+#define SLIB_PE_SECTION_SYMBOL_SIZE					18
+
 namespace slib
 {
 
@@ -152,6 +156,22 @@ namespace slib
 		PE_DirectoryEntry directoryEntry[SLIB_PE_NUMBER_OF_DIRECTORY_ENTRIES];
 	};
 
+
+	class SLIB_EXPORT PE_EXPORT_DIRECTORY {
+	public:
+		sl_uint32   Characteristics;
+		sl_uint32   TimeDateStamp;
+		sl_uint16   MajorVersion;
+		sl_uint16   MinorVersion;
+		sl_uint32   Name;
+		sl_uint32   Base;
+		sl_uint32   NumberOfFunctions;
+		sl_uint32   NumberOfNames;
+		sl_uint32   AddressOfFunctions;     // RVA from base of image
+		sl_uint32   AddressOfNames;         // RVA from base of image
+		sl_uint32   AddressOfNameOrdinals;  // RVA from base of image
+	};
+
 	class SLIB_EXPORT PE_OptionalHeader64
 	{
 	public:
@@ -164,7 +184,7 @@ namespace slib
 		sl_uint32 addressOfEntryPoint; // entry point function, relative to the image base address. 0 when no entry point is present
 		sl_uint32 baseOfCode; // A pointer to the beginning of the code section, relative to the image base
 		sl_uint64 imageBase;  // The preferred address of the first byte of the image when it is loaded in memory. This value is a multiple of 64K bytes. The default value for DLLs is 0x10000000. The default value for applications is 0x00400000, except on Windows CE where it is 0x00010000.
- sl_uint32 sectionAlignment; // The alignment of sections loaded in memory. must be greater than or equal to the `fileAlignment` member. The default value is the page size for the system.
+		sl_uint32 sectionAlignment; // The alignment of sections loaded in memory. must be greater than or equal to the `fileAlignment` member. The default value is the page size for the system.
 		sl_uint32 fileAlignment; // The alignment of the raw data of sections in the image file. The value should be a power of 2 between 512 and 64K (inclusive). The default is 512. If the `sectionAlignment` member is less than the system page size, this member must be the same as `sectionAlignment`.
 		sl_uint16 majorOperatingSystemVersion; // The major version number of the required operating system.
 		sl_uint16 minorOperatingSystemVersion; // The minor version number of the required operating system.
@@ -196,6 +216,33 @@ namespace slib
 		sl_uint32 name; // relative virtual address to dll name
 		sl_uint32 firstThunk; // relative virtual address to Import-Address-Table (if bound this IAT has actual addresses)
 	};
+
+
+	class SLIB_EXPORT PE_SectionRelocator {
+	public:
+		union {
+			sl_uint32   VirtualAddress;
+			sl_uint32   RelocCount;             // Set to the real count when IMAGE_SCN_LNK_NRELOC_OVFL is set
+		};
+		sl_uint32   SymbolTableIndex;
+		sl_int32    Type;
+	};
+
+	class SLIB_EXPORT PE_SectionSymbol {
+		union {
+			sl_uint8    ShortName[8];
+			struct {
+				sl_uint32   Short;				// if 0, use LongName
+				sl_uint32   Long;				// offset into string table
+			} Name;
+			sl_uint32   LongName[2];			// PBYTE [2]
+		} N;
+		sl_uint32   Value;
+		sl_uint16   SectionNumber;
+		sl_uint16    Type;
+		sl_uint8    StorageClass;
+		sl_uint8    NumberOfAuxSymbols;
+	};
 	
 	class SLIB_EXPORT PE
 	{
@@ -223,8 +270,11 @@ namespace slib
 		
 		PE_DirectoryEntry* getImportTableDirectory();
 
-		PE_ImportDescriptor* findImportTable(const void* baseAddress, const char* dllName);
+		PE_DirectoryEntry* getExportTableDirectory();
 
+		PE_ImportDescriptor* findImportTable(const void* baseAddress, const char* dllName);
+		
+		void* findExportFunction(const void* baseAddress, const char* functionName);
 	};
 
 }
