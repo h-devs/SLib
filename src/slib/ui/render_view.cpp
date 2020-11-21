@@ -103,7 +103,11 @@ namespace slib
 		setCreatingChildInstances(sl_false);
 		setRendering(sl_true);
 
+#ifdef SLIB_PLATFORM_IS_DESKTOP
+		setPreferredEngineType(RenderEngineType::OpenGL);
+#else
 		setPreferredEngineType(RenderEngineType::OpenGL_ES);
+#endif
 
 		m_redrawMode = RedrawMode::Continuously;
 		m_flagDispatchEventsToRenderingThread = sl_false;
