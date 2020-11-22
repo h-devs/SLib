@@ -236,40 +236,52 @@ namespace slib
 				ReleaseCapture();
 				MSG msg;
 				while (GetMessageW(&msg, NULL, 0, 0)) {
-					if (msg.message == WM_QUIT) {
+					switch (msg.message) {
+					case WM_QUIT:
+						PostQuitMessage((int)(msg.wParam));
 						break;
-					} else if (msg.message == SLIB_UI_MESSAGE_DISPATCH) {
+					case SLIB_UI_MESSAGE_QUIT_LOOP:
+						break;
+					case SLIB_UI_MESSAGE_DISPATCH:
 						UIDispatcher::processCallbacks();
-					} else if (msg.message == SLIB_UI_MESSAGE_DISPATCH_DELAYED) {
+						break;
+					case SLIB_UI_MESSAGE_DISPATCH_DELAYED:
 						UIDispatcher::processDelayedCallback((sl_reg)(msg.lParam));
-					} else if (msg.message == SLIB_UI_MESSAGE_CLOSE || msg.message == WM_DESTROY) {
+						break;
+					case SLIB_UI_MESSAGE_CLOSE:
+					case WM_DESTROY:
 						DestroyWindow(msg.hwnd);
 						if (hWndModalDialog) {
 							if (msg.hwnd == hWndModalDialog) {
 								break;
 							}
 						}
-					} else if (msg.message == WM_MENUCOMMAND) {
+						break;
+					case WM_MENUCOMMAND:
 						priv::menu::ProcessMenuCommand(msg.wParam, msg.lParam);
-					} else if (g_messageTaskbarButtonCreated && msg.message == g_messageTaskbarButtonCreated) {
-						ApplyBadgeNumber();
-					} else {
-						do {
-							if (priv::menu::ProcessMenuShortcutKey(msg)) {
-								break;
-							}
-							Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(msg.hwnd));
-							if (instance.isNotNull()) {
-								Ref<View> view = instance->getView();
-								if (view.isNotNull()) {
-									if (priv::view::CaptureChildInstanceEvents(view.get(), msg)) {
-										break;
+						break;
+					default:
+						if (g_messageTaskbarButtonCreated && msg.message == g_messageTaskbarButtonCreated) {
+							ApplyBadgeNumber();
+						} else {
+							do {
+								if (priv::menu::ProcessMenuShortcutKey(msg)) {
+									break;
+								}
+								Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(msg.hwnd));
+								if (instance.isNotNull()) {
+									Ref<View> view = instance->getView();
+									if (view.isNotNull()) {
+										if (priv::view::CaptureChildInstanceEvents(view.get(), msg)) {
+											break;
+										}
 									}
 								}
-							}
-							TranslateMessage(&msg);
-							DispatchMessageW(&msg);
-						} while (0);
+								TranslateMessage(&msg);
+								DispatchMessageW(&msg);
+							} while (0);
+						}
+						break;
 					}
 					if (g_bFlagQuit) {
 						return;
@@ -399,7 +411,7 @@ namespace slib
 
 	void UIPlatform::quitLoop()
 	{
-		PostQuitMessage(0);
+		PostGlobalMessage(SLIB_UI_MESSAGE_QUIT_LOOP, 0, 0);
 	}
 
 	void UIPlatform::runApp()
