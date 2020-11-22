@@ -1929,7 +1929,7 @@ namespace slib
 			class EngineImpl : public RenderEngine
 			{
 			public:
-				RendererImpl * m_renderer;
+				RendererImpl* m_renderer;
 
 				Ref<RenderProgram> m_currentProgram;
 				Ref<RenderProgramInstanceImpl> m_currentProgramInstance;
