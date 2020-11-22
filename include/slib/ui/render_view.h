@@ -67,8 +67,6 @@ namespace slib
 		
 		void renderViewContent(RenderEngine* engine);
 
-		void renderChildren(Canvas* canvas, const Ref<View>* children, sl_size count) override;
-		
 		Size measureText(const String& text, const Ref<Font>& font, sl_bool flagMultiLine = sl_false) override;
 		
 		Ref<AnimationLoop> getAnimationLoop() override;
