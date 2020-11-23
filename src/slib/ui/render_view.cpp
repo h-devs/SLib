@@ -127,6 +127,14 @@ namespace slib
 			param.flagBlending = sl_true;
 			m_stateCanvasBlend = RenderBlendState::create(param);
 		}
+		{
+			RenderRasterizerParam param;
+			m_stateCanvasRasterizer = RenderRasterizerState::create(param);
+		}
+		{
+			RenderSamplerParam param;
+			m_stateCanvasSampler = RenderSamplerState::create(param);
+		}
 
 		setBackgroundColor(Color::Black, UIUpdateMode::Init);
 	}
@@ -221,6 +229,8 @@ namespace slib
 	{
 		engine->setDepthStencilState(m_stateCanvasDepthStencil);
 		engine->setBlendState(m_stateCanvasBlend);
+		engine->setRasterizerState(m_stateCanvasRasterizer);
+		engine->setSamplerState(0, m_stateCanvasSampler);
 		Ref<RenderCanvas> canvas = RenderCanvas::create(engine, (sl_real)(getWidth()), (sl_real)(getHeight()));
 		if (canvas.isNotNull()) {
 			dispatchDraw(canvas.get());
