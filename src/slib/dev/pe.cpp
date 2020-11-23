@@ -170,11 +170,11 @@ namespace slib
 		}
 		sl_uint8* base = (sl_uint8*)baseAddress;
 		PE_EXPORT_DIRECTORY* pExportDirectory = (PE_EXPORT_DIRECTORY*)(base + pExportEntry->address);
-		sl_uint32 nameRVA = pExportDirectory->AddressOfNames;
-		sl_uint32 funcRVA = pExportDirectory->AddressOfFunctions;
-		sl_uint32 nameOrdinalRVA = pExportDirectory->AddressOfNameOrdinals;
+		sl_uint32 nameRVA = pExportDirectory->addressOfNames;
+		sl_uint32 funcRVA = pExportDirectory->addressOfFunctions;
+		sl_uint32 nameOrdinalRVA = pExportDirectory->addressOfNameOrdinals;
 
-		for (sl_uint32 i = 0; i < pExportDirectory->NumberOfNames; i++) {
+		for (sl_uint32 i = 0; i < pExportDirectory->numberOfNames; i++) {
 			sl_uint32 nameBase = *(sl_uint32*)(base + nameRVA + i * 4);
 			sl_uint16 funcIndex = *(sl_uint16*)(base + nameOrdinalRVA + i * 2);
 			if (Base::equalsStringIgnoreCase((char*)(base + nameBase), functionName)) {

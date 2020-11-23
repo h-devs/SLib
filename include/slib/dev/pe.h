@@ -5,6 +5,8 @@
 
 #include "coff.h"
 
+#include "../core/string.h"
+
 #define SLIB_PE_OPTIONAL_MAGIC_EXE32		0x10b // 32-bit executable image
 #define SLIB_PE_OPTIONAL_MAGIC_EXE64		0x20b // 64-bit executable image
 #define SLIB_PE_OPTIONAL_MAGIC_ROM			0x107 // ROM image
@@ -51,9 +53,8 @@
 #define SLIB_PE_DIRECTORY_CLR						14
 // Reserved											15
 
-
-#define SLIB_PE_SECTION_RELOCATION_SIZE				10
-#define SLIB_PE_SECTION_SYMBOL_SIZE					18
+#define SLIB_PE_RELOC_I386_REL32					0x0014
+#define SLIB_PE_REL_AMD64_REL32								0x0004
 
 namespace slib
 {
@@ -159,17 +160,17 @@ namespace slib
 
 	class SLIB_EXPORT PE_EXPORT_DIRECTORY {
 	public:
-		sl_uint32   Characteristics;
-		sl_uint32   TimeDateStamp;
-		sl_uint16   MajorVersion;
-		sl_uint16   MinorVersion;
-		sl_uint32   Name;
-		sl_uint32   Base;
-		sl_uint32   NumberOfFunctions;
-		sl_uint32   NumberOfNames;
-		sl_uint32   AddressOfFunctions;     // RVA from base of image
-		sl_uint32   AddressOfNames;         // RVA from base of image
-		sl_uint32   AddressOfNameOrdinals;  // RVA from base of image
+		sl_uint32   characteristics;
+		sl_uint32   timeDateStamp;
+		sl_uint16   majorVersion;
+		sl_uint16   minorVersion;
+		sl_uint32   name;
+		sl_uint32   base;
+		sl_uint32   numberOfFunctions;
+		sl_uint32   numberOfNames;
+		sl_uint32   addressOfFunctions;     // RVA from base of image
+		sl_uint32   addressOfNames;         // RVA from base of image
+		sl_uint32   addressOfNameOrdinals;  // RVA from base of image
 	};
 
 	class SLIB_EXPORT PE_OptionalHeader64
@@ -217,33 +218,35 @@ namespace slib
 		sl_uint32 firstThunk; // relative virtual address to Import-Address-Table (if bound this IAT has actual addresses)
 	};
 
-
-	class SLIB_EXPORT PE_SectionRelocator {
+#pragma pack(push, 1)
+	class SLIB_EXPORT PE_SectionRelocator 
+	{
 	public:
-		union {
-			sl_uint32   VirtualAddress;
-			sl_uint32   RelocCount;             // Set to the real count when IMAGE_SCN_LNK_NRELOC_OVFL is set
+		union 
+		{
+			sl_uint32   virtualAddress;
+			sl_uint32   relocCount;             // Set to the real count when IMAGE_SCN_LNK_NRELOC_OVFL is set
 		};
-		sl_uint32   SymbolTableIndex;
-		sl_int32    Type;
+		sl_uint32   symbolTableIndex;
+		sl_int16    type;
 	};
 
-	class SLIB_EXPORT PE_SectionSymbol {
-		union {
-			sl_uint8    ShortName[8];
-			struct {
-				sl_uint32   Short;				// if 0, use LongName
-				sl_uint32   Long;				// offset into string table
-			} Name;
-			sl_uint32   LongName[2];			// PBYTE [2]
-		} N;
-		sl_uint32   Value;
-		sl_uint16   SectionNumber;
-		sl_uint16    Type;
-		sl_uint8    StorageClass;
-		sl_uint8    NumberOfAuxSymbols;
+	class SLIB_EXPORT PE_Symbol
+	{
+	public:
+		union 
+		{
+			sl_uint8    shortName[8];
+			sl_uint32   longName[2];
+		} name;
+		sl_uint32   value;
+		sl_uint16   sectionNumber;
+		sl_uint16   type;
+		sl_uint8    storageClass;
+		sl_uint8    numberOfAuxSymbols;
 	};
-	
+#pragma pack(pop)
+
 	class SLIB_EXPORT PE
 	{
 	public:
@@ -275,8 +278,8 @@ namespace slib
 		PE_ImportDescriptor* findImportTable(const void* baseAddress, const char* dllName);
 		
 		void* findExportFunction(const void* baseAddress, const char* functionName);
-	};
 
+	};
 }
 
 #endif
