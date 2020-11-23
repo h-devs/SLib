@@ -251,6 +251,130 @@ namespace slib
 		}
 	
 
+		SLIB_INLINE static sl_int32 readInt24LE(const void* src)
+		{
+			sl_uint8* s = (sl_uint8*)src;
+			sl_uint32 n = ((sl_uint32)(s[0])) | ((sl_uint32)(s[1]) << 8) | ((sl_uint32)(s[2]) << 16);
+			if (n & 0x800000) {
+				return n | 0xff000000;
+			} else {
+				return n;
+			}
+		}
+
+		SLIB_INLINE static sl_int32 readInt24BE(const void* src)
+		{
+			sl_uint8* s = (sl_uint8*)src;
+			sl_uint32 n = ((sl_uint32)(s[0]) << 16) | ((sl_uint32)(s[1]) << 8) | ((sl_uint32)(s[2]));
+			if (n & 0x800000) {
+				return n | 0xff000000;
+			} else {
+				return n;
+			}
+		}
+
+		SLIB_INLINE static sl_int32 readInt24(const void* src)
+		{
+			return readInt24LE(src);
+		}
+
+		SLIB_INLINE static sl_uint32 readInt24(const void* src, EndianType endian)
+		{
+			if (endian == Endian::Big) {
+				return readInt24BE(src);
+			} else {
+				return readInt24LE(src);
+			}
+		}
+
+		SLIB_INLINE static void writeInt24LE(void* dst, sl_int32 v)
+		{
+			sl_uint8* d = (sl_uint8*)dst;
+			d[0] = (sl_uint8)(v);
+			d[1] = (sl_uint8)(v >> 8);
+			d[2] = (sl_uint8)(v >> 16);
+		}
+
+		SLIB_INLINE static void writeInt24BE(void* dst, sl_int32 v)
+		{
+			sl_uint8* d = (sl_uint8*)dst;
+			d[0] = (sl_uint8)(v >> 16);
+			d[1] = (sl_uint8)(v >> 8);
+			d[2] = (sl_uint8)(v);
+		}
+
+		SLIB_INLINE static void writeUint24(void* dst, sl_int32 v)
+		{
+			writeInt24LE(dst, v);
+		}
+
+		SLIB_INLINE static void writeUint24(void* dst, sl_int32 v, EndianType endian)
+		{
+			if (endian == Endian::Big) {
+				writeInt24BE(dst, v);
+			} else {
+				writeInt24LE(dst, v);
+			}
+		}
+
+
+		SLIB_INLINE static sl_uint32 readUint24LE(const void* src)
+		{
+			sl_uint8* s = (sl_uint8*)src;
+			return ((sl_uint32)(s[0])) | ((sl_uint32)(s[1]) << 8) | ((sl_uint32)(s[2]) << 16);
+		}
+
+		SLIB_INLINE static sl_uint32 readUint24BE(const void* src)
+		{
+			sl_uint8* s = (sl_uint8*)src;
+			return ((sl_uint32)(s[0]) << 16) | ((sl_uint32)(s[1]) << 8) | ((sl_uint32)(s[2]));
+		}
+
+		SLIB_INLINE static sl_uint32 readUint24(const void* src)
+		{
+			return readUint24LE(src);
+		}
+
+		SLIB_INLINE static sl_uint32 readUint24(const void* src, EndianType endian)
+		{
+			if (endian == Endian::Big) {
+				return readUint24BE(src);
+			} else {
+				return readUint24LE(src);
+			}
+		}
+
+		SLIB_INLINE static void writeUint24LE(void* dst, sl_uint32 v)
+		{
+			sl_uint8* d = (sl_uint8*)dst;
+			d[0] = (sl_uint8)(v);
+			d[1] = (sl_uint8)(v >> 8);
+			d[2] = (sl_uint8)(v >> 16);
+		}
+
+		SLIB_INLINE static void writeUint24BE(void* dst, sl_uint32 v)
+		{
+			sl_uint8* d = (sl_uint8*)dst;
+			d[0] = (sl_uint8)(v >> 16);
+			d[1] = (sl_uint8)(v >> 8);
+			d[2] = (sl_uint8)(v);
+		}
+
+		SLIB_INLINE static void writeUint24(void* dst, sl_uint32 v)
+		{
+			writeUint24LE(dst, v);
+		}
+
+		SLIB_INLINE static void writeUint24(void* dst, sl_uint32 v, EndianType endian)
+		{
+			if (endian == Endian::Big) {
+				writeUint24BE(dst, v);
+			} else {
+				writeUint24LE(dst, v);
+			}
+		}
+
+
 		SLIB_INLINE static sl_int32 readInt32LE(const void* src)
 		{
 			sl_uint8* s = (sl_uint8*)src;
