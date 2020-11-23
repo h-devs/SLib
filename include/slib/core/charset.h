@@ -282,6 +282,9 @@ namespace slib
 
 		static String16 decode16(Charset charset, const void* input, sl_size sizeInput);
 
+		
+		static sl_bool checkUtf8(const void* utf8, sl_size size);
+
 	};
 
 }
