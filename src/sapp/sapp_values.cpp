@@ -1345,10 +1345,9 @@ namespace slib
 			return sl_true;
 		}
 		
-		if (!(str.startsWith("@drawable/"))) {
-			return sl_false;
+		if (str.startsWith("@drawable/")) {
+			str = str.substring(10);
 		}
-		str = str.substring(10);
 		
 		sl_char8* sz = str.getData();
 		sl_size len = str.getLength();
