@@ -218,7 +218,7 @@ namespace slib
 
 		void setBlendState(const Ref<RenderBlendState>& state);
 
-		void setSamplerState(sl_render_sampler samplerNo, const Ref<RenderSamplerState>& state);
+		void setSamplerState(sl_int32 samplerNo, const Ref<RenderSamplerState>& state);
 
 		sl_bool beginProgram(const Ref<RenderProgram>& program, RenderProgramState** ppState = sl_null /* RenderProgramState** */);
 		
@@ -234,7 +234,7 @@ namespace slib
 		
 		void drawPrimitive(sl_uint32 countElements, const Ref<VertexBuffer>& vb, PrimitiveType type = PrimitiveType::Triangle);
 		
-		void applyTexture(const Ref<Texture>& texture, sl_render_sampler sampler);
+		void applyTexture(const Ref<Texture>& texture, sl_int32 sampler);
 
 		void setInputLayout(RenderInputLayout* layout);
 		
@@ -363,7 +363,7 @@ namespace slib
 
 		virtual void _setBlendState(RenderBlendState* state) = 0;
 
-		virtual void _setSamplerState(sl_render_sampler samplerNo, RenderSamplerState* state) = 0;
+		virtual void _setSamplerState(sl_int32 samplerNo, RenderSamplerState* state) = 0;
 
 		virtual sl_bool _beginProgram(RenderProgram* program, RenderProgramInstance* instance, RenderProgramState** ppState) = 0;
 		
@@ -373,7 +373,7 @@ namespace slib
 		
 		virtual void _drawPrimitive(EnginePrimitive* primitive) = 0;
 		
-		virtual void _applyTexture(Texture* texture, TextureInstance* instance, sl_render_sampler sampler) = 0;
+		virtual void _applyTexture(Texture* texture, TextureInstance* instance, sl_int32 sampler) = 0;
 
 		virtual void _setInputLayout(RenderInputLayout* layout) = 0;
 

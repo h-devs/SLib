@@ -1887,9 +1887,9 @@ namespace slib
 			GL_BASE::setBlending(state->getParam());
 		}
 
-		void _setSamplerState(sl_render_sampler samplerNo, RenderSamplerState* state) override
+		void _setSamplerState(sl_int32 samplerNo, RenderSamplerState* state) override
 		{
-			if (samplerNo >= CountOfArray(m_currentSamplerStates)) {
+			if ((sl_uint32)samplerNo >= CountOfArray(m_currentSamplerStates)) {
 				return;
 			}
 			m_currentSamplerStates[samplerNo] = state;
@@ -1973,7 +1973,7 @@ namespace slib
 			}
 		}
 		
-		void _applyTexture(Texture* texture, TextureInstance* _instance, sl_render_sampler samplerNo) override
+		void _applyTexture(Texture* texture, TextureInstance* _instance, sl_int32 samplerNo) override
 		{
 			GL_BASE::setActiveSampler(samplerNo);
 			if (!texture) {
@@ -1991,7 +1991,7 @@ namespace slib
 				GL_BASE::bindTexture(named->m_target, named->m_name);
 			}				
 			const RenderSamplerParam* param = sl_null;
-			if (samplerNo < CountOfArray(m_currentSamplerStates)) {
+			if ((sl_uint32)samplerNo < CountOfArray(m_currentSamplerStates)) {
 				RenderSamplerState* state = m_currentSamplerStates[samplerNo].get();
 				if (state) {
 					param = &(state->getParam());
