@@ -236,11 +236,14 @@ namespace slib
 				ReleaseCapture();
 				MSG msg;
 				while (GetMessageW(&msg, NULL, 0, 0)) {
+					sl_bool flagQuitLoop = sl_false;
 					switch (msg.message) {
 					case WM_QUIT:
 						PostQuitMessage((int)(msg.wParam));
+						flagQuitLoop = sl_true;
 						break;
 					case SLIB_UI_MESSAGE_QUIT_LOOP:
+						flagQuitLoop = sl_true;
 						break;
 					case SLIB_UI_MESSAGE_DISPATCH:
 						UIDispatcher::processCallbacks();
@@ -253,6 +256,7 @@ namespace slib
 						DestroyWindow(msg.hwnd);
 						if (hWndModalDialog) {
 							if (msg.hwnd == hWndModalDialog) {
+								flagQuitLoop = sl_true;
 								break;
 							}
 						}
@@ -281,6 +285,9 @@ namespace slib
 								DispatchMessageW(&msg);
 							} while (0);
 						}
+						break;
+					}
+					if (flagQuitLoop) {
 						break;
 					}
 					if (g_bFlagQuit) {
