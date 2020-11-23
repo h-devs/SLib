@@ -1565,5 +1565,8 @@
     <ClCompile Include="..\..\src\slib\db\dl_libmysql.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\db\mysql_data.cpp">
+      <Filter>src\db</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
