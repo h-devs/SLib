@@ -368,14 +368,12 @@ namespace slib
 
 				// When filePath is a directory, needs to change the flag so that the file can be opened.
 				DWORD attrs = INVALID_FILE_ATTRIBUTES;
-				SLIB_TRY {
-					FileInfo info;
-					if (provider->getFileInfo(NormalizePath(szFileName), sl_null, info, FileInfoMask::Attributes)) {
-						if (!(info.attributes & FileAttributes::NotExist)) {
-							attrs = info.attributes & 0x7ffff;
-						}
+				FileInfo info;
+				if (provider->getFileInfo(NormalizePath(szFileName), info, FileInfoMask::Attributes)) {
+					if (!(info.attributes & FileAttributes::NotExist)) {
+						attrs = info.attributes & 0x7ffff;
 					}
-				} SLIB_CATCH(...)
+				}
 				if (attrs != INVALID_FILE_ATTRIBUTES) {
 					if (attrs & FILE_ATTRIBUTE_DIRECTORY) {
 						if (uCreateOptions & FILE_NON_DIRECTORY_FILE) {
@@ -422,9 +420,8 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
-
-				if (!context) {
+				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				if (context.isNull()) {
 					return 0;
 				}
 
@@ -444,7 +441,7 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
 
 				DOKANY_TRY {
 					if (pDokanFileInfo->DeleteOnClose) {
@@ -476,9 +473,8 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
-
-				if (!context) {
+				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				if (context.isNull()) {
 					return DOKAN_ERROR_CODE(ERROR_INVALID_HANDLE);
 				}
 
@@ -527,9 +523,8 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
-
-				if (!context) {
+				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				if (context.isNull()) {
 					return DOKAN_ERROR_CODE(ERROR_INVALID_HANDLE);
 				}
 
@@ -573,9 +568,8 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
-
-				if (!context) {
+				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				if (context.isNull()) {
 					return 0;
 				}
 
@@ -595,12 +589,15 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				if (context.isNull()) {
+					context = provider->createContext(sl_null, NormalizePath(szFileName));
+				}
 
 				DOKANY_TRY {
 					FileInfo info;
 					FileSystem::setLastError(FileSystemError::GeneralError);
-					if (provider->getFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::All)) {
+					if (provider->getFileInfo(context, info, FileInfoMask::All)) {
 						pFileInfo->dwFileAttributes = info.attributes & 0x7ffff;
 						pFileInfo->nFileSizeLow = SLIB_GET_DWORD0(info.size);
 						pFileInfo->nFileSizeHigh = SLIB_GET_DWORD1(info.size);
@@ -627,7 +624,7 @@ namespace slib
 					fd.dwFileAttributes = FILE_ATTRIBUTE_DIRECTORY;
 					FileInfo dirInfo;
 					FileSystem::setLastError(FileSystemError::GeneralError);
-					if (provider->getFileInfo(NormalizePath(szPathName), sl_null, dirInfo, FileInfoMask::Time)) {
+					if (provider->getFileInfo(NormalizePath(szPathName), dirInfo, FileInfoMask::Time)) {
 						((PLARGE_INTEGER)(&fd.ftCreationTime))->QuadPart = dirInfo.createdAt.toWindowsFileTime();
 						((PLARGE_INTEGER)(&fd.ftLastAccessTime))->QuadPart = dirInfo.accessedAt.toWindowsFileTime();
 						((PLARGE_INTEGER)(&fd.ftLastWriteTime))->QuadPart = dirInfo.modifiedAt.toWindowsFileTime();
@@ -710,13 +707,16 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				if (context.isNull()) {
+					context = provider->createContext(sl_null, NormalizePath(szFileName));
+				}
 
 				DOKANY_TRY {
 					FileInfo info;
 					info.size = (sl_uint64)iOffset;
 					FileSystem::setLastError(FileSystemError::GeneralError);
-					if (provider->setFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::Size)) {
+					if (provider->setFileInfo(context, info, FileInfoMask::Size)) {
 						return 0;
 					}
 					return DOKAN_ERROR_CODE(FileSystem::getLastError());
@@ -730,13 +730,16 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				if (context.isNull()) {
+					context = provider->createContext(sl_null, NormalizePath(szFileName));
+				}
 
 				DOKANY_TRY{
 					FileInfo info;
 					info.allocSize = (sl_uint64)iAllocSize;
 					FileSystem::setLastError(FileSystemError::GeneralError);
-					if (provider->setFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::AllocSize)) {
+					if (provider->setFileInfo(context, info, FileInfoMask::AllocSize)) {
 						return 0;
 					}
 					return DOKAN_ERROR_CODE(FileSystem::getLastError());
@@ -750,13 +753,16 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				if (context.isNull()) {
+					context = provider->createContext(sl_null, NormalizePath(szFileName));
+				}
 
 				DOKANY_TRY{
 					FileInfo info;
 					info.attributes = (int)(dwFileAttributes & 0x7ffff);
 					FileSystem::setLastError(FileSystemError::GeneralError);
-					if (provider->setFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::Attributes)) {
+					if (provider->setFileInfo(context, info, FileInfoMask::Attributes)) {
 						return 0;
 					}
 					return DOKAN_ERROR_CODE(FileSystem::getLastError());
@@ -772,7 +778,10 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(pDokanFileInfo->DokanOptions->GlobalContext);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
+				if (context.isNull()) {
+					context = provider->createContext(sl_null, NormalizePath(szFileName));
+				}
 
 				DOKANY_TRY{
 					FileInfo info;
@@ -786,7 +795,7 @@ namespace slib
 						info.modifiedAt.setWindowsFileTime(*((sl_int64*)ftLastWriteTime));
 					}
 					FileSystem::setLastError(FileSystemError::GeneralError);
-					if (provider->setFileInfo(NormalizePath(szFileName), context, info, FileInfoMask::Time)) {
+					if (provider->setFileInfo(context, info, FileInfoMask::Time)) {
 						return 0;
 					}
 					return DOKAN_ERROR_CODE(FileSystem::getLastError());

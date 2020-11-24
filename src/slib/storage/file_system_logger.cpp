@@ -26,7 +26,6 @@
 #include "slib/storage/file_system_logger.h"
 #include "slib/core/system.h"
 
-#define PATH_FROM_CONTEXT(context) (context ? context->path : "")
 #define PATH_LOG(path) (m_flags & FileSystemLogFlags::FileName ? path : "")
 #define CONTEXT_LOG(context) PATH_LOG(PATH_FROM_CONTEXT(context)) + (m_flags & FileSystemLogFlags::ContextAddress ? ":0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true) : "")
 #define ERROR_LOG(error) (String::fromUint32((sl_uint32)(error)) + (m_flags & FileSystemLogFlags::ExceptionString ? ", " + System::formatErrorCode((sl_uint32)(error)) : ""))
@@ -377,19 +376,19 @@ namespace slib
 		CATCH(desc)
 	}
 
-	sl_bool FileSystemLogger::getFileInfo(const StringParam& path, FileContext* context, FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemLogger::getFileInfo(FileContext* context, FileInfo& info, const FileInfoMask& mask)
 	{
-		if (!(m_flags & FileSystemLogFlags::GetInfo) || !(m_regex.match(path.toString()) || m_regex.match(PATH_FROM_CONTEXT(context)))) {
-			return m_base->getFileInfo(path, context, info, mask);
+		if (!(m_flags & FileSystemLogFlags::GetInfo) || !m_regex.match(PATH_FROM_CONTEXT(context))) {
+			return m_base->getFileInfo(context, info, mask);
 		}
 
-		String desc = String::format("GetFileInfo(%s,%s,0x%X)", PATH_LOG(path), CONTEXT_LOG(context), mask);
+		String desc = String::format("GetFileInfo(%s,0x%X)", CONTEXT_LOG(context), mask);
 		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
 		}
 
 		TRY {
-			sl_bool ret = m_base->getFileInfo(path, context, info, mask);
+			sl_bool ret = m_base->getFileInfo(context, info, mask);
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG(desc);
 				if (mask & FileInfoMask::Attributes) {
@@ -420,13 +419,13 @@ namespace slib
 		CATCH(desc)
 	}
 
-	sl_bool FileSystemLogger::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemLogger::setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask)
 	{
-		if (!(m_flags & FileSystemLogFlags::SetInfo) || !(m_regex.match(path.toString()) || m_regex.match(PATH_FROM_CONTEXT(context)))) {
-			return m_base->setFileInfo(path, context, info, mask);
+		if (!(m_flags & FileSystemLogFlags::SetInfo) || !m_regex.match(PATH_FROM_CONTEXT(context))) {
+			return m_base->setFileInfo(context, info, mask);
 		}
 
-		String desc = String::format("SetFileInfo(%s,%s,0x%X)", PATH_LOG(path), CONTEXT_LOG(context), mask);
+		String desc = String::format("SetFileInfo(%s,0x%X)", CONTEXT_LOG(context), mask);
 		if (mask & FileInfoMask::Attributes) {
 			desc += String::format(", Attributes: 0x%X, %s", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
 		}
@@ -452,7 +451,7 @@ namespace slib
 		}
 
 		TRY {
-			sl_bool ret = m_base->setFileInfo(path, context, info, mask);
+			sl_bool ret = m_base->setFileInfo(context, info, mask);
 			if (ret && (m_flags & FileSystemLogFlags::RetSuccess)) {
 				LOG(desc);
 			} else if (!ret && (m_flags & FileSystemLogFlags::RetFail)) {

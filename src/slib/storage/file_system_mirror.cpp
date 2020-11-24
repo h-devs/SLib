@@ -29,7 +29,7 @@
 #include "slib/core/variant.h"
 #include "slib/storage/disk.h"
 
-#define FILE_FROM_CONTEXT(context)	(context ? CastInstance<File>(context->ref.get()) : sl_null)
+#define FILE_FROM_CONTEXT(context)	(context ? CastInstance<File>(context->ref.ptr) : sl_null)
 #define CONCAT_PATH(path)			(m_root.isNotEmpty() && path.isNotEmpty() ? m_root + path : sl_null)
 
 namespace slib
@@ -92,7 +92,7 @@ namespace slib
 		if (file.isNull()) {
 			SLIB_THROW(FileSystem::getLastError(), sl_null);
 		}
-		return new FileContext(file, path);
+		return createContext(file, path);
 	}
 
 	sl_bool MirrorFileSystem::closeFile(FileContext* context)
@@ -188,9 +188,9 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MirrorFileSystem::getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask)
+	sl_bool MirrorFileSystem::getFileInfo(FileContext* context, FileInfo& outInfo, const FileInfoMask& mask)
 	{
-		String filePath = CONCAT_PATH(path);
+		String filePath = CONCAT_PATH(PATH_FROM_CONTEXT(context));
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 		sl_bool flagOpened = file.isNotNull() && file->isOpened();
 
@@ -251,9 +251,9 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MirrorFileSystem::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool MirrorFileSystem::setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask)
 	{
-		String filePath = CONCAT_PATH(path);
+		String filePath = CONCAT_PATH(PATH_FROM_CONTEXT(context));
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 		sl_bool flagOpened = file.isNotNull() && file->isOpened();
 

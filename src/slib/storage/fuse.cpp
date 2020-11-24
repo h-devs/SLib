@@ -227,7 +227,7 @@ namespace slib
 
 					FileInfo info;
 					FileSystem::setLastError(FileSystemError::GeneralError);
-					if (provider->getFileInfo(path, sl_null, info, FileInfoMask::All)) {
+					if (provider->getFileInfo(path, info, FileInfoMask::All)) {
 						stbuf->st_mode |= (info.attributes & FileAttributes::Directory ? S_IFDIR : S_IFREG);
 						stbuf->st_size = info.size;
 						TO_UNIX_TIME(*stbuf, info)
@@ -244,8 +244,8 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(fi->fh));
-				if (!context) {
+				Ref<FileContext> context = (FileContext*)((sl_size)(fi->fh));
+				if (context.isNull()) {
 					return -EBADF;
 				}
 
@@ -256,7 +256,7 @@ namespace slib
 
 					FileInfo info;
 					FileSystem::setLastError(FileSystemError::GeneralError);
-					if (provider->getFileInfo(path, context, info, FileInfoMask::All)) {
+					if (provider->getFileInfo(context, info, FileInfoMask::All)) {
 						stbuf->st_mode |= (info.attributes & FileAttributes::Directory ? S_IFDIR : S_IFREG);
 						stbuf->st_size = info.size;
 						TO_UNIX_TIME(*stbuf, info)
@@ -384,7 +384,7 @@ namespace slib
 					FileInfo info;
 					info.size = size;
 					FileSystem::setLastError(FileSystemError::GeneralError);
-					if (provider->setFileInfo(path, sl_null, info, FileInfoMask::Size)) {
+					if (provider->setFileInfo(path, info, FileInfoMask::Size)) {
 						return 0;
 					}
 					return FUSE_ERROR_CODE(FileSystem::getLastError());
@@ -396,8 +396,8 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(fi->fh));
-				if (!context) {
+				Ref<FileContext> context = (FileContext*)((sl_size)(fi->fh));
+				if (context.isNull()) {
 					return -EBADF;
 				}
 
@@ -405,7 +405,7 @@ namespace slib
 					FileInfo info;
 					info.size = size;
 					FileSystem::setLastError(FileSystemError::GeneralError);
-					if (provider->setFileInfo(path, context, info, FileInfoMask::Size)) {
+					if (provider->setFileInfo(context, info, FileInfoMask::Size)) {
 						return 0;
 					}
 					return FUSE_ERROR_CODE(FileSystem::getLastError());
@@ -422,7 +422,7 @@ namespace slib
 					info.accessedAt.setUnixTime(tv[0].tv_sec);
 					info.modifiedAt.setUnixTime(tv[1].tv_sec);
 					FileSystem::setLastError(FileSystemError::GeneralError);
-					if (provider->setFileInfo(path, sl_null, info, FileInfoMask::Time)) {
+					if (provider->setFileInfo(path, info, FileInfoMask::Time)) {
 						return 0;
 					}
 					return FUSE_ERROR_CODE(FileSystem::getLastError());
@@ -485,8 +485,8 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(fi->fh));
-				if (!context) {
+				Ref<FileContext> context = (FileContext*)((sl_size)(fi->fh));
+				if (context.isNull()) {
 					return -EBADF;
 				}
 
@@ -505,8 +505,8 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(fi->fh));
-				if (!context) {
+				Ref<FileContext> context = (FileContext*)((sl_size)(fi->fh));
+				if (context.isNull()) {
 					return -EBADF;
 				}
 
@@ -524,8 +524,8 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(fi->fh));
-				if (!context) {
+				Ref<FileContext> context = (FileContext*)((sl_size)(fi->fh));
+				if (context.isNull()) {
 					return 0;
 				}
 
@@ -540,8 +540,8 @@ namespace slib
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
-				FileContext* context = (FileContext*)((sl_size)(fi->fh));
-				if (!context) {
+				Ref<FileContext> context = (FileContext*)((sl_size)(fi->fh));
+				if (context.isNull()) {
 					return 0;
 				}
 
