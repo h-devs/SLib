@@ -26,8 +26,9 @@
 #include "slib/storage/file_system_logger.h"
 #include "slib/core/system.h"
 
+#define PATH_FROM_CONTEXT(context) (context ? context->path : "")
 #define PATH_LOG(path) (m_flags & FileSystemLogFlags::FileName ? path : "")
-#define CONTEXT_LOG(context) (m_flags & FileSystemLogFlags::ContextAddress ? ":0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true) : "")
+#define CONTEXT_LOG(context) PATH_LOG(PATH_FROM_CONTEXT(context)) + (m_flags & FileSystemLogFlags::ContextAddress ? ":0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true) : "")
 #define ERROR_LOG(error) (String::fromUint32((sl_uint32)(error)) + (m_flags & FileSystemLogFlags::ExceptionString ? ", " + System::formatErrorCode((sl_uint32)(error)) : ""))
 
 #define TRY SLIB_TRY
@@ -219,7 +220,7 @@ namespace slib
 
 	sl_uint32 FileSystemLogger::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
 	{
-		if (!(m_flags & FileSystemLogFlags::Read)) {
+		if (!(m_flags & FileSystemLogFlags::Read) || !m_regex.match(PATH_FROM_CONTEXT(context))) {
 			return m_base->readFile(context, offset, buf, size);
 		}
 
@@ -241,7 +242,7 @@ namespace slib
 
 	sl_uint32 FileSystemLogger::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size)
 	{
-		if (!(m_flags & FileSystemLogFlags::Write)) {
+		if (!(m_flags & FileSystemLogFlags::Write) || !m_regex.match(PATH_FROM_CONTEXT(context))) {
 			return m_base->writeFile(context, offset, buf, size);
 		}
 
@@ -264,7 +265,7 @@ namespace slib
 
 	sl_bool FileSystemLogger::flushFile(FileContext* context)
 	{
-		if (!(m_flags & FileSystemLogFlags::Flush)) {
+		if (!(m_flags & FileSystemLogFlags::Flush) || !m_regex.match(PATH_FROM_CONTEXT(context))) {
 			return m_base->flushFile(context);
 		}
 
@@ -286,7 +287,7 @@ namespace slib
 
 	sl_bool FileSystemLogger::closeFile(FileContext* context)
 	{
-		if (!(m_flags & FileSystemLogFlags::Close)) {
+		if (!(m_flags & FileSystemLogFlags::Close) || !m_regex.match(PATH_FROM_CONTEXT(context))) {
 			return m_base->closeFile(context);
 		}
 
@@ -378,11 +379,11 @@ namespace slib
 
 	sl_bool FileSystemLogger::getFileInfo(const StringParam& path, FileContext* context, FileInfo& info, const FileInfoMask& mask)
 	{
-		if (!(m_flags & FileSystemLogFlags::GetInfo) || path.isEmpty() || !m_regex.match(path.toString())) {
+		if (!(m_flags & FileSystemLogFlags::GetInfo) || !(m_regex.match(path.toString()) || m_regex.match(PATH_FROM_CONTEXT(context)))) {
 			return m_base->getFileInfo(path, context, info, mask);
 		}
 
-		String desc = String::format("GetFileInfo(%s%s,0x%X)", PATH_LOG(path), CONTEXT_LOG(context), mask);
+		String desc = String::format("GetFileInfo(%s,%s,0x%X)", PATH_LOG(path), CONTEXT_LOG(context), mask);
 		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
 		}
@@ -421,11 +422,11 @@ namespace slib
 
 	sl_bool FileSystemLogger::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
 	{
-		if (!(m_flags & FileSystemLogFlags::SetInfo) || path.isEmpty() || !m_regex.match(path.toString())) {
+		if (!(m_flags & FileSystemLogFlags::SetInfo) || !(m_regex.match(path.toString()) || m_regex.match(PATH_FROM_CONTEXT(context)))) {
 			return m_base->setFileInfo(path, context, info, mask);
 		}
 
-		String desc = String::format("SetFileInfo(%s%s,0x%X)", PATH_LOG(path), CONTEXT_LOG(context), mask);
+		String desc = String::format("SetFileInfo(%s,%s,0x%X)", PATH_LOG(path), CONTEXT_LOG(context), mask);
 		if (mask & FileInfoMask::Attributes) {
 			desc += String::format(", Attributes: 0x%X, %s", info.attributes, info.attributes & FileAttributes::Directory ? "DIR" : "FILE");
 		}

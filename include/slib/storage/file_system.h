@@ -110,7 +110,16 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 
 	public:
-		FileContext();
+		String path;
+		union {
+			sl_uint64 handle;
+			Ref<Referable> ref;
+		};
+
+	public:
+		FileContext(sl_uint64 handle, const StringParam& path);
+
+		FileContext(Ref<Referable> ref, const StringParam& path);
 
 		~FileContext();
 

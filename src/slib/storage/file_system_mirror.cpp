@@ -29,34 +29,11 @@
 #include "slib/core/variant.h"
 #include "slib/storage/disk.h"
 
-#define FILE_FROM_CONTEXT(context)	(context ? ((MirrorFileContext*)(context))->file : sl_null)
+#define FILE_FROM_CONTEXT(context)	(context ? CastInstance<File>(context->ref.get()) : sl_null)
 #define CONCAT_PATH(path)			(m_root.isNotEmpty() && path.isNotEmpty() ? m_root + path : sl_null)
 
 namespace slib
 {
-
-	namespace priv
-	{
-		namespace file_system_mirror
-		{
-
-			class MirrorFileContext : public FileContext
-			{
-			public:
-				Ref<File> file;
-
-			public:
-				MirrorFileContext(Ref<File> file) : file(file)
-				{
-				}
-
-			};
-
-		}
-	}
-
-	using namespace priv::file_system_mirror;
-
 
 	SLIB_DEFINE_OBJECT(MirrorFileSystem, FileSystemProvider)
 
@@ -115,7 +92,7 @@ namespace slib
 		if (file.isNull()) {
 			SLIB_THROW(FileSystem::getLastError(), sl_null);
 		}
-		return new MirrorFileContext(file);
+		return new FileContext(file, path);
 	}
 
 	sl_bool MirrorFileSystem::closeFile(FileContext* context)

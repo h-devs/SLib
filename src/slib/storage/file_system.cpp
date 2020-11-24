@@ -117,7 +117,13 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(FileContext, Object)
 
-	FileContext::FileContext()
+	FileContext::FileContext(sl_uint64 handle, const StringParam& path)
+		: handle(handle), path(path.toString())
+	{
+	}
+
+	FileContext::FileContext(Ref<Referable> ref, const StringParam& path)
+		: ref(ref), path(path.toString())
 	{
 	}
 
