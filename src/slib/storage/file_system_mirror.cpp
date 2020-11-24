@@ -80,80 +80,83 @@ namespace slib
 
 	sl_bool MirrorFileSystem::createDirectory(const StringParam& path)
 	{
-		if (!File::createDirectory(CONCAT_PATH(path))) {
-			SLIB_THROW(FileSystem::getLastError(), sl_false);
-		}
-		return sl_true;
+		return File::createDirectory(CONCAT_PATH(path));
 	}
 
 	Ref<FileContext> MirrorFileSystem::openFile(const StringParam& path, const FileOpenParam& param)
 	{
 		Ref<File> file = File::open(CONCAT_PATH(path), param);
 		if (file.isNull()) {
-			SLIB_THROW(FileSystem::getLastError(), sl_null);
+			return sl_null;
 		}
 		return createContext(file, path);
 	}
 
-	sl_bool MirrorFileSystem::closeFile(FileContext* context)
+	sl_bool MirrorFileSystem::closeFile(Ref<FileContext> context)
 	{
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 		if (file.isNotNull()) {
 			file->close();
 			if (file->isOpened()) {
-				SLIB_THROW(FileSystem::getLastError(), sl_false);
+				return sl_false;
 			}
 		}
 		return sl_true;
 	}
 
-	sl_uint32 MirrorFileSystem::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
+	sl_uint32 MirrorFileSystem::readFile(Ref<FileContext> context, sl_uint64 offset, void* buf, sl_uint32 size)
 	{
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 
 		if (file.isNull() || !file->isOpened()) {
-			SLIB_THROW(FileSystemError::InvalidContext, 0);
+			file = File::openForRead(PATH_FROM_CONTEXT(context));
+		}
+		if (file.isNull() || !file->isOpened()) {
+			SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, 0);
 		}
 
 		if (!file->seek(offset, SeekPosition::Begin)) {
-			SLIB_THROW(FileSystem::getLastError(), 0);
+			SET_ERROR_AND_RETURN(FileSystem::getLastError(), 0);
 		}
 
 		sl_int32 ret = file->read32(buf, size);
 		if (ret < 0) {
-			SLIB_THROW(FileSystem::getLastError(), 0);
+			SET_ERROR_AND_RETURN(FileSystem::getLastError(), 0);
 		}
 
 		return ret;
 	}
 
-	sl_uint32 MirrorFileSystem::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size)
+	sl_uint32 MirrorFileSystem::writeFile(Ref<FileContext> context, sl_int64 offset, const void* buf, sl_uint32 size)
 	{
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 
+		//if (file.isNull() || !file->isOpened()) {
+		//	file = File::openForWrite(PATH_FROM_CONTEXT(context));
+		//}
 		if (file.isNull() || !file->isOpened()) {
-			SLIB_THROW(FileSystemError::InvalidContext, 0);
+			SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, 0);
 		}
 
 		if (offset < 0) {
 			if (!file->seekToEnd()) {
-				SLIB_THROW(FileSystem::getLastError(), 0);
+				SET_ERROR_AND_RETURN(FileSystem::getLastError(), 0);
 			}
 		} else {
 			if (!file->seek(offset, SeekPosition::Begin)) {
-				SLIB_THROW(FileSystem::getLastError(), 0);
+				SET_ERROR_AND_RETURN(FileSystem::getLastError(), 0);
 			}
 		}
 
 		sl_int32 ret = file->write32(buf, size);
 		if (ret < 0) {
-			SLIB_THROW(FileSystem::getLastError(), 0);
+			SET_ERROR_AND_RETURN(FileSystem::getLastError(), 0);
 		}
 
 		return ret;
 	}
 
-	sl_bool MirrorFileSystem::flushFile(FileContext* context)
+	sl_bool MirrorFileSystem::flushFile(Ref<FileContext> context)
 	{
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 		if (file.isNotNull()) {
@@ -166,29 +169,20 @@ namespace slib
 
 	sl_bool MirrorFileSystem::deleteDirectory(const StringParam& path)
 	{
-		if (!File::deleteDirectory(CONCAT_PATH(path))) {
-			SLIB_THROW(FileSystem::getLastError(), sl_false);
-		}
-		return sl_true;
+		return File::deleteDirectory(CONCAT_PATH(path));
 	}
 
 	sl_bool MirrorFileSystem::deleteFile(const StringParam& path)
 	{
-		if (!File::deleteFile(CONCAT_PATH(path))) {
-			SLIB_THROW(FileSystem::getLastError(), sl_false);
-		}
-		return sl_true;
+		return File::deleteFile(CONCAT_PATH(path));
 	}
 
 	sl_bool MirrorFileSystem::moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists)
 	{
-		if (!File::move(CONCAT_PATH(pathOld), CONCAT_PATH(pathNew), flagReplaceIfExists)) {
-			SLIB_THROW(FileSystem::getLastError(), sl_false);
-		}
-		return sl_true;
+		return File::move(CONCAT_PATH(pathOld), CONCAT_PATH(pathNew), flagReplaceIfExists);
 	}
 
-	sl_bool MirrorFileSystem::getFileInfo(FileContext* context, FileInfo& outInfo, const FileInfoMask& mask)
+	sl_bool MirrorFileSystem::getFileInfo(Ref<FileContext> context, FileInfo& outInfo, const FileInfoMask& mask)
 	{
 		String filePath = CONCAT_PATH(PATH_FROM_CONTEXT(context));
 		Ref<File> file = FILE_FROM_CONTEXT(context);
@@ -203,7 +197,7 @@ namespace slib
 
 		if (mask & FileInfoMask::Attributes) {
             if (attr & FileAttributes::NotExist) {
-                SLIB_THROW(FileSystemError::NotFound, sl_false);
+				SET_ERROR_AND_RETURN(FileSystemError::NotFound, sl_false);
             }
 			outInfo.attributes = (sl_uint32)attr;
 		}
@@ -217,7 +211,7 @@ namespace slib
                 if (attr & FileAttributes::Directory) {
                     outInfo.size = 0;
                 } else {
-                    SLIB_THROW(FileSystem::getLastError(), sl_false);
+					return sl_false;
                 }
             }
         }
@@ -231,7 +225,7 @@ namespace slib
                 if (attr & FileAttributes::Directory) {
                     outInfo.allocSize = 0;
                 } else {
-                    SLIB_THROW(FileSystem::getLastError(), sl_false);
+					return sl_false;
                 }
             }
         }
@@ -251,7 +245,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MirrorFileSystem::setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool MirrorFileSystem::setFileInfo(Ref<FileContext> context, const FileInfo& info, const FileInfoMask& mask)
 	{
 		String filePath = CONCAT_PATH(PATH_FROM_CONTEXT(context));
 		Ref<File> file = FILE_FROM_CONTEXT(context);
@@ -259,7 +253,7 @@ namespace slib
 
 		if (mask & FileInfoMask::Attributes) {
 			if (!File::setAttributes(filePath, info.attributes)) {
-				SLIB_THROW(FileSystem::getLastError(), sl_false);
+				return sl_false;
 			}
 		}
 
@@ -270,7 +264,7 @@ namespace slib
 					ret = file->setCreatedTime(info.createdAt);
 				}
 				if (!ret && !(File::setCreatedTime(filePath, info.createdAt))) {
-					SLIB_THROW(FileSystem::getLastError(), sl_false);
+					return sl_false;
 				}
 			}
 			if (info.modifiedAt.isNotZero()) {
@@ -279,7 +273,7 @@ namespace slib
 					ret = file->setModifiedTime(info.modifiedAt);
 				}
 				if (!ret && !(File::setModifiedTime(filePath, info.modifiedAt))) {
-					SLIB_THROW(FileSystem::getLastError(), sl_false);
+					return sl_false;
 				}
 			}
 			if (info.accessedAt.isNotZero()) {
@@ -288,26 +282,27 @@ namespace slib
 					ret = file->setAccessedTime(info.accessedAt);
 				}
 				if (!ret && !(File::setAccessedTime(filePath, info.accessedAt))) {
-					SLIB_THROW(FileSystem::getLastError(), sl_false);
+					return sl_false;
 				}
 			}
 		}
 
 		if (mask & FileInfoMask::Size) {
 			if (!flagOpened) {
-				SLIB_THROW(FileSystemError::InvalidContext, sl_false);
+				SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, sl_false);
 			}
 			if (!file->setSize(info.size)) {
-				SLIB_THROW(FileSystem::getLastError(), sl_false);
+				return sl_false;
 			}
 		}
 
 		if (mask & FileInfoMask::AllocSize) {
 			if (!flagOpened) {
-				SLIB_THROW(FileSystemError::InvalidContext, sl_false);
+				SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, sl_false);
 			}
-			//if (!file->setAllocationSize(info.allocationSize))
-			//	SLIB_THROW(FileSystem::getLastError(), sl_false);
+			//if (!file->setAllocationSize(info.allocationSize)) {
+			//	return sl_false;
+			//}
 		}
 
 		return sl_true;

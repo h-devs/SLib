@@ -34,10 +34,9 @@
 #define LOG_DEBUG(...) SLIB_LOG_DEBUG(TAG, ##__VA_ARGS__)
 #define LOG_ERROR(...) SLIB_LOG_ERROR(TAG, ##__VA_ARGS__)
 
-#ifdef SLIB_FILE_SYSTEM_CAN_THROW
-#define SLIB_USE_THROW
-#endif
-#include "../core/throw.h"
+#define SET_ERROR_AND_RETURN(error, ret)	\
+	FileSystem::setLastError(error); \
+	return ret;
 
 #define PATH_FROM_CONTEXT(context)			(context ? context->path : sl_null)
 #define HANDLE_FROM_CONTEXT(context)		(context ? context->handle : 0)
