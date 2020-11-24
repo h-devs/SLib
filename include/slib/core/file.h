@@ -314,10 +314,6 @@ namespace slib
 		
 		static Memory readAllBytes(const StringParam& path, sl_size maxSize = SLIB_SIZE_MAX);
 		
-		Memory readRegion(sl_uint64 pos, sl_size size);
-
-		static Memory readRegion(const StringParam& path, sl_uint64 pos, sl_size size);
-
 		String readAllTextUTF8(sl_size maxSize = SLIB_SIZE_MAX);
 
 		static String readAllTextUTF8(const StringParam& path, sl_size maxSize = SLIB_SIZE_MAX);

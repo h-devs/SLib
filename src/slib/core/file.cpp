@@ -430,40 +430,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-
-	Memory File::readRegion(sl_uint64 pos, sl_size size)
-	{
-		sl_uint64 sizeTotal = getSize();
-		if (pos >= sizeTotal) {
-			return sl_null;
-		}
-		if (seek(pos, SeekPosition::Begin)) {
-			if (pos + size > sizeTotal) {
-				size = (sl_size)(sizeTotal - pos);
-			}
-			Memory ret = Memory::create(size);
-			if (ret.isNotNull()) {
-				sl_reg nRead = readFully(ret.getData(), ret.getSize());
-				if (nRead == size) {
-					return ret;
-				}
-				if (nRead > 0) {
-					return ret.sub(0, nRead);
-				}
-			}
-		}
-		return sl_null;
-	}
-
-	Memory File::readRegion(const StringParam& path, sl_uint64 pos, sl_size size)
-	{
-		Ref<File> file = File::openForRead(path);
-		if (file.isNotNull()) {
-			return file->readRegion(pos, size);
-		}
-		return sl_null;
-	}
-
+	
 	String File::readAllTextUTF8(sl_size maxSize)
 	{
 		return IO::readAllTextUTF8(maxSize);
