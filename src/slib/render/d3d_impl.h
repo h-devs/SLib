@@ -1718,7 +1718,7 @@ namespace slib
 				device->CreateDepthStencilState(&desc, state);
 			}
 
-			static void SetState(ID3DDeviceContext* context, ID3DDepthStencilState* state, const RenderDepthStencilParam& param, sl_render_sampler samplerNo)
+			static void SetState(ID3DDeviceContext* context, ID3DDepthStencilState* state, const RenderDepthStencilParam& param, sl_int32 samplerNo)
 			{
 				context->OMSetDepthStencilState(state, (UINT)(param.stencilRef));
 			}
@@ -1740,7 +1740,7 @@ namespace slib
 				device->CreateRasterizerState(&desc, state);
 			}
 
-			static void SetState(ID3DDeviceContext* context, ID3DRasterizerState* state, const RenderRasterizerParam& param, sl_render_sampler samplerNo)
+			static void SetState(ID3DDeviceContext* context, ID3DRasterizerState* state, const RenderRasterizerParam& param, sl_int32 samplerNo)
 			{
 				context->RSSetState(state);
 			}
@@ -1830,7 +1830,7 @@ namespace slib
 				device->CreateBlendState(&desc, state);
 			}
 
-			static void SetState(ID3DDeviceContext* context, ID3DBlendState* state, const RenderBlendParam& param, sl_render_sampler samplerNo)
+			static void SetState(ID3DDeviceContext* context, ID3DBlendState* state, const RenderBlendParam& param, sl_int32 samplerNo)
 			{
 				FLOAT f[] = { param.blendConstant.x, param.blendConstant.y, param.blendConstant.z, param.blendConstant.w };
 				context->OMSetBlendState(state, f, 0xffffffff);
@@ -1877,7 +1877,7 @@ namespace slib
 				device->CreateSamplerState(&desc, state);
 			}
 
-			static void SetState(ID3DDeviceContext* context, ID3DSamplerState* state, const RenderSamplerParam& param, sl_render_sampler samplerNo)
+			static void SetState(ID3DDeviceContext* context, ID3DSamplerState* state, const RenderSamplerParam& param, sl_int32 samplerNo)
 			{
 				context->PSSetSamplers((UINT)(samplerNo), 1, &state);
 			}
@@ -1902,7 +1902,7 @@ namespace slib
 				}
 
 			public:
-				static void setState(ID3DDevice* device, ID3DDeviceContext* context, RenderEngine* engine, STATE* state, sl_render_sampler samplerNo = 0)
+				static void setState(ID3DDevice* device, ID3DDeviceContext* context, RenderEngine* engine, STATE* state, sl_int32 samplerNo = 0)
 				{
 					Ref<RenderBaseObjectInstance> _instance = state->getInstance(engine);
 					if (_instance.isNotNull()) {
@@ -1929,7 +1929,7 @@ namespace slib
 			class EngineImpl : public RenderEngine
 			{
 			public:
-				RendererImpl * m_renderer;
+				RendererImpl* m_renderer;
 
 				Ref<RenderProgram> m_currentProgram;
 				Ref<RenderProgramInstanceImpl> m_currentProgramInstance;
@@ -2259,7 +2259,7 @@ namespace slib
 #endif
 				}
 
-				void _setSamplerState(sl_render_sampler samplerNo, RenderSamplerState* state) override
+				void _setSamplerState(sl_int32 samplerNo, RenderSamplerState* state) override
 				{
 					ID3DDeviceContext* context = getContext();
 					if (!context) {
@@ -2510,7 +2510,7 @@ namespace slib
 					}
 				}
 
-				void _applyTexture(Texture* texture, TextureInstance* _instance, sl_render_sampler sampler) override
+				void _applyTexture(Texture* texture, TextureInstance* _instance, sl_int32 sampler) override
 				{
 					ID3DDeviceContext* context = getContext();
 					if (!context) {

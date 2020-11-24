@@ -200,7 +200,7 @@ namespace slib
 		}
 	}
 
-	void RenderEngine::setSamplerState(sl_render_sampler samplerNo, const Ref<RenderSamplerState>& state)
+	void RenderEngine::setSamplerState(sl_int32 samplerNo, const Ref<RenderSamplerState>& state)
 	{
 		if (state.isNotNull()) {
 			_setSamplerState(samplerNo, state.get());
@@ -287,7 +287,7 @@ namespace slib
 		drawPrimitive(&p);
 	}
 	
-	void RenderEngine::applyTexture(const Ref<Texture>& _texture, sl_render_sampler sampler)
+	void RenderEngine::applyTexture(const Ref<Texture>& _texture, sl_int32 sampler)
 	{
 		Texture* texture = _texture.get();
 		if (texture) {

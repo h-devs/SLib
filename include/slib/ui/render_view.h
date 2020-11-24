@@ -67,8 +67,6 @@ namespace slib
 		
 		void renderViewContent(RenderEngine* engine);
 
-		void renderChildren(Canvas* canvas, const Ref<View>* children, sl_size count) override;
-		
 		Size measureText(const String& text, const Ref<Font>& font, sl_bool flagMultiLine = sl_false) override;
 		
 		Ref<AnimationLoop> getAnimationLoop() override;
@@ -151,8 +149,11 @@ namespace slib
 		sl_bool m_flagDebugTextVisibleOnRelease;
 		
 		Mutex m_lockRender;
+
 		Ref<RenderDepthStencilState> m_stateCanvasDepthStencil;
 		Ref<RenderBlendState> m_stateCanvasBlend;
+		Ref<RenderRasterizerState> m_stateCanvasRasterizer;
+		Ref<RenderSamplerState> m_stateCanvasSampler;
 
 	};
 	

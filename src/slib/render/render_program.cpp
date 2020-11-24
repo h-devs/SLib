@@ -150,25 +150,18 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RenderProgramStateItem)
 
-	RenderProgramStateItem::RenderProgramStateItem() : name(sl_null), kind(RenderProgramStateKind::None), samplerNo(0)
+	RenderProgramStateItem::RenderProgramStateItem() : name(sl_null), kind(RenderProgramStateKind::None)
 	{
 	}
 
-	RenderProgramStateItem::RenderProgramStateItem(const char* _name) : name(_name), kind(RenderProgramStateKind::Uniform), samplerNo(0)
+	RenderProgramStateItem::RenderProgramStateItem(const char* _name) : name(_name), kind(RenderProgramStateKind::Uniform)
 	{
 		uniform.shader = RenderShaderType::Undefined;
 		uniform.location = -1;
 		uniform.registerNo = -1;
 	}
 
-	RenderProgramStateItem::RenderProgramStateItem(const char* _name, sl_render_sampler _sampler) : name(_name), kind(RenderProgramStateKind::Uniform), samplerNo(_sampler)
-	{
-		uniform.shader = RenderShaderType::Pixel;
-		uniform.location = -1;
-		uniform.registerNo = -1;
-	}
-
-	RenderProgramStateItem::RenderProgramStateItem(const char* _name, RenderShaderType _shaderType, sl_int32 _registerNo, sl_uint32 _bufferNo) : name(_name), kind(RenderProgramStateKind::Uniform), samplerNo(0)
+	RenderProgramStateItem::RenderProgramStateItem(const char* _name, RenderShaderType _shaderType, sl_int32 _registerNo, sl_uint32 _bufferNo) : name(_name), kind(RenderProgramStateKind::Uniform)
 	{
 		uniform.shader = _shaderType;
 		uniform.location = -1;
@@ -333,14 +326,14 @@ namespace slib
 		setUniform(location, RenderUniformType::Matrix4, arr, n);
 	}
 
-	void RenderProgramState::setSampler(const RenderUniformLocation& location, const Ref<Texture>& texture, sl_render_location sampler)
+	void RenderProgramState::setTextureValue(const RenderUniformLocation& location, const Ref<Texture>& texture)
 	{
 		RenderProgramInstance* instance = m_programInstance;
 		if (instance) {
 			Ref<RenderEngine> engine = instance->getEngine();
 			if (engine.isNotNull()) {
-				engine->applyTexture(texture, sampler);
-				setUniform(location, RenderUniformType::Sampler, &sampler, 1);
+				engine->applyTexture(texture, location.registerNo);
+				setUniform(location, RenderUniformType::Sampler, &(location.registerNo), 1);
 			}
 		}
 	}
@@ -461,12 +454,12 @@ namespace slib
 			mov r0.xy, v0.xy
 			mov r0.z, c50.x
 			m3x3 r1, r0, c0
-			mov r1.zw, c50.zw;
-			mov	oPos, r1
+			mov r1.zw, c50.zw
+			mov oPos, r1
 			mov r0.xy, v1.xy
 			m3x3 r1, r0, c3
-			mov r1.zw, c50.zw;
-			mov	oT0, r1
+			mov r1.zw, c50.zw
+			mov oT0, r1
 		)")
 	}
 
@@ -592,8 +585,8 @@ namespace slib
 			mov r0.xy, v0.xy
 			mov r0.z, c50.x
 			m3x3 r1, r0, c0
-			mov r1.zw, c50.zw;
-			mov	oPos, r1
+			mov r1.zw, c50.zw
+			mov oPos, r1
 			mul oD0, c3, v1
 		)")
 	}
@@ -659,7 +652,7 @@ namespace slib
 			mov r0.z, c50.x
 			m3x3 r1, r0, c0
 			mov r1.zw, c50.zw
-			mov	oPos, r1
+			mov oPos, r1
 		)")
 	}
 

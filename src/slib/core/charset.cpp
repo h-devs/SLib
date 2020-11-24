@@ -731,4 +731,86 @@ namespace slib
 		return ConvertUtf32ToUtf16<EndianType::Little>(utf32, sizeUtf32 >> 2, utf16, lenUtf16Buffer);
 	}
 
+	sl_bool Charsets::checkUtf8(const void* _buf, sl_size size)
+	{
+		sl_uint8* buf = (sl_uint8*)_buf;
+		for (sl_size i = 0; i < size; i++) {
+			sl_uint8 ch = buf[i];
+			if (ch >= 0x80) {
+				if (ch < 0xC0) {
+					return sl_false;
+				} else if (ch < 0xE0) {
+					if (i + 1 < size) {
+						sl_uint32 ch1 = (sl_uint32)((sl_uint8)buf[++i]);
+						if ((ch1 & 0xC0) != 0x80) {
+							return sl_false;
+						}
+					} else {
+						return sl_false;
+					}
+				} else if (ch < 0xF0) {
+					if (i + 2 < size) {
+						sl_uint32 ch1 = (sl_uint32)((sl_uint8)buf[++i]);
+						if ((ch1 & 0xC0) == 0x80) {
+							sl_uint32 ch2 = (sl_uint32)((sl_uint8)buf[++i]);
+							if ((ch2 & 0xC0) != 0x80) {
+								return sl_false;
+							}
+						} else {
+							return sl_false;
+						}
+					} else {
+						return sl_false;
+					}
+				} else if (ch < 0xF8) {
+					if (i + 3 < size) {
+						sl_uint32 ch1 = (sl_uint32)((sl_uint8)buf[++i]);
+						if ((ch1 & 0xC0) == 0x80) {
+							sl_uint32 ch2 = (sl_uint32)((sl_uint8)buf[++i]);
+							if ((ch2 & 0xC0) == 0x80) {
+								sl_uint32 ch3 = (sl_uint32)((sl_uint8)buf[++i]);
+								if ((ch3 & 0xC0) != 0x80) {
+									return sl_false;
+								}
+							} else {
+								return sl_false;
+							}
+						} else {
+							return sl_false;
+						}
+					} else {
+						return sl_false;
+					}
+				} else if (ch < 0xFC) {
+					if (i + 4 < size) {
+						sl_uint32 ch1 = (sl_uint32)((sl_uint8)buf[++i]);
+						if ((ch1 & 0xC0) == 0x80) {
+							sl_uint32 ch2 = (sl_uint32)((sl_uint8)buf[++i]);
+							if ((ch2 & 0xC0) == 0x80) {
+								sl_uint32 ch3 = (sl_uint32)((sl_uint8)buf[++i]);
+								if ((ch3 & 0xC0) == 0x80) {
+									sl_uint32 ch4 = (sl_uint32)((sl_uint8)buf[++i]);
+									if ((ch4 & 0xC0) != 0x80) {
+										return sl_false;
+									}
+								} else {
+									return sl_false;
+								}
+							} else {
+								return sl_false;
+							}
+						} else {
+							return sl_false;
+						}
+					} else {
+						return sl_false;
+					}
+				} else {
+					return sl_false;
+				}
+			}
+		}
+		return sl_true;
+	}
+
 }

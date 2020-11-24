@@ -58,8 +58,8 @@ namespace slib
 
 	struct RenderUniformLocation
 	{
-		sl_render_location location;
 		RenderShaderType shader;
+		sl_int32 location;
 		sl_int32 registerNo;
 		sl_uint32 bufferNo;
 	};
@@ -71,7 +71,6 @@ namespace slib
 		RenderProgramStateKind kind;
 
 		RenderUniformLocation uniform;
-		sl_render_sampler samplerNo;
 		RenderInputDesc input;
 
 	public:
@@ -80,7 +79,6 @@ namespace slib
 
 		// Uniform
 		RenderProgramStateItem(const char* name);
-		RenderProgramStateItem(const char* name, sl_render_sampler samplerNo);
 		RenderProgramStateItem(const char* name, RenderShaderType type, sl_int32 registerNo, sl_uint32 bufferNo = 0);
 
 		// Input
@@ -173,7 +171,7 @@ namespace slib
 
 		void setMatrix4Array(const RenderUniformLocation& location, const Matrix4* arr, sl_uint32 n);
 
-		void setSampler(const RenderUniformLocation& location, const Ref<Texture>& texture, sl_render_location sampler = 0);
+		void setTextureValue(const RenderUniformLocation& location, const Ref<Texture>& texture);
 
 	protected:
 		RenderProgramInstance* m_programInstance;
@@ -197,9 +195,6 @@ namespace slib
 		virtual sl_bool getUniformLocation(const char* name, RenderUniformLocation* outLocation) = 0;
 
 		virtual void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 nItems) = 0;
-
-	protected:
-		Ref<RenderInputLayout> m_inputLayout;
 
 	};
 
@@ -337,7 +332,7 @@ namespace slib
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const Ref<slib::Texture>& texture) { if (NAME.uniform.location >= 0) setSampler(NAME.uniform, texture, NAME.samplerNo); }
+	SLIB_INLINE void set##NAME(const Ref<slib::Texture>& texture) { if (NAME.uniform.location >= 0) setTextureValue(NAME.uniform, texture); }
 
 #define SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT(MEMBER, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(SHADER_NAME, #SHADER_NAME, RenderInputType::Float, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), ##__VA_ARGS__)
@@ -384,11 +379,7 @@ namespace slib
 	public:
 		Ref<RenderProgramState> onCreate(RenderEngine* engine) override
 		{
-			Ref<RenderProgramState> ret = new StateType;
-			if (ret.isNotNull()) {
-				return ret;
-			}
-			return sl_null;
+			return new StateType;
 		}
 		
 	};
