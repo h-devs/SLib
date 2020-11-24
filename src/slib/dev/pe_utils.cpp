@@ -27,6 +27,7 @@ namespace slib
 {
 
 	sl_uint32 PE_Utils::getObjSectionVirtualOffset(void* base, sl_int32 sectionIndex) {
+		PE_Header* header = (PE_Header*)base;
 		sl_uint8* sectionBase = (sl_uint8*)base + sizeof(PE_Header);
 		sl_uint32 ret = 0;
 		if (sectionIndex > 0) {
@@ -34,7 +35,16 @@ namespace slib
 				PE_SectionHeader* sectionHeader = (PE_SectionHeader*)sectionBase;
 				if (Base::compareString((char*)(sectionHeader->name), "text") == 0)
 				{
-					ret += ((sectionHeader->sizeOfRawData - 1) | 3) + 1;
+					sl_uint32 sizeOfRawData = sectionHeader->sizeOfRawData;
+					if (header->machine == SLIB_COFF_MACHINE_I386)
+					{
+						sizeOfRawData = ((sizeOfRawData - 1) | 3) + 1;
+					}
+					else if (header->machine == SLIB_COFF_MACHINE_AMD64 || header->machine == SLIB_COFF_MACHINE_IA64)
+					{
+						sizeOfRawData = ((sizeOfRawData - 1) | 7) + 1;
+					}
+					ret += sizeOfRawData;
 				}
 				sectionBase += sizeof(PE_SectionHeader);
 			}
@@ -76,8 +86,14 @@ namespace slib
 
 					relocBase += sizeof(PE_SectionRelocator);
 				}
-
-				sizeOfRawData = ((sizeOfRawData - 1) | 3) + 1;
+				if (header->machine == SLIB_COFF_MACHINE_I386)
+				{
+					sizeOfRawData = ((sizeOfRawData - 1) | 3) + 1;
+				}
+				else if (header->machine == SLIB_COFF_MACHINE_AMD64 || header->machine == SLIB_COFF_MACHINE_IA64)
+				{
+					sizeOfRawData = ((sizeOfRawData - 1) | 7) + 1;
+				}
 				shellCodeBuffer.addStatic(base + pointerToRawData, sizeOfRawData);
 			}
 			sectionBase += sizeof(PE_SectionHeader);
