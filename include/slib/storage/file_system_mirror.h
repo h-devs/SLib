@@ -49,13 +49,13 @@ namespace slib
 
 		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) override;
 
-		sl_uint32 readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
+		sl_uint32 readFile(Ref<FileContext> context, sl_uint64 offset, void* buf, sl_uint32 size) override;
 
-		sl_uint32 writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size) override;
+		sl_uint32 writeFile(Ref<FileContext> context, sl_int64 offset, const void* buf, sl_uint32 size) override;
 
-		sl_bool flushFile(FileContext* context) override;
+		sl_bool flushFile(Ref<FileContext> context) override;
 
-		sl_bool	closeFile(FileContext* context) override;
+		sl_bool	closeFile(Ref<FileContext> context) override;
 
 		sl_bool deleteDirectory(const StringParam& path) override;
 
@@ -63,9 +63,9 @@ namespace slib
 
 		sl_bool moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists) override;
 
-		sl_bool getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) override;
+		sl_bool getFileInfo(Ref<FileContext> context, FileInfo& outInfo, const FileInfoMask& mask) override;
 
-		sl_bool setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask) override;
+		sl_bool setFileInfo(Ref<FileContext> context, const FileInfo& info, const FileInfoMask& mask) override;
 
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
 

@@ -117,7 +117,13 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(FileContext, Object)
 
-	FileContext::FileContext()
+	FileContext::FileContext(sl_uint64 handle, const StringParam& path)
+		: handle(handle), path(path.toString())
+	{
+	}
+
+	FileContext::FileContext(Ref<Referable> ref, const StringParam& path)
+		: ref(ref), path(path.toString())
 	{
 	}
 
@@ -144,81 +150,97 @@ namespace slib
 
 	sl_bool FileSystemProvider::getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize)
 	{
-		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_uint32 FileSystemProvider::writeFile(FileContext* context, sl_int64 offset, const void* data, sl_uint32 size)
+	sl_uint32 FileSystemProvider::writeFile(Ref<FileContext> context, sl_int64 offset, const void* data, sl_uint32 size)
 	{
-		SLIB_THROW(FileSystemError::NotImplemented, 0)
+		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, 0)
 	}
 
-	sl_bool FileSystemProvider::flushFile(FileContext* context)
+	sl_bool FileSystemProvider::flushFile(Ref<FileContext> context)
 	{
-		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_bool FileSystemProvider::closeFile(FileContext* context)
+	sl_bool FileSystemProvider::closeFile(Ref<FileContext> context)
 	{
-		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
 	}
 
 	sl_bool FileSystemProvider::deleteFile(const StringParam& path)
 	{
-		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
 	}
 
 	sl_bool FileSystemProvider::moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists)
 	{
-		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_bool FileSystemProvider::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemProvider::setFileInfo(Ref<FileContext> context, const FileInfo& info, const FileInfoMask& mask)
 	{
-		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
 	}
 
 	sl_bool FileSystemProvider::createDirectory(const StringParam& path)
 	{
-		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
 	}
 
 	sl_bool FileSystemProvider::deleteDirectory(const StringParam& path)
 	{
-		SLIB_THROW(FileSystemError::NotImplemented, sl_false)
+		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_bool FileSystemProvider::existsFile(const StringParam& path) noexcept
+	Ref<FileContext> FileSystemProvider::createContext(sl_uint64 handle, const StringParam& path) noexcept
 	{
-		SLIB_TRY {
-			FileInfo info;
-			if (getFileInfo(path, sl_null, info, FileInfoMask::Attributes)) {
-				return sl_true;
-			}
-		} SLIB_CATCH(...)
-		return sl_false;
+		return new FileContext(handle, path);
 	}
 
-	sl_bool FileSystemProvider::getFileSize(FileContext* context, sl_uint64& outSize) noexcept
+	Ref<FileContext> FileSystemProvider::createContext(Ref<Referable> ref, const StringParam& path) noexcept
 	{
-		SLIB_TRY {
-			FileInfo info;
-			if (getFileInfo(sl_null, context, info, FileInfoMask::Size)) {
-				outSize = info.size;
-				return sl_true;
-			}
-		} SLIB_CATCH(...)
+		return new FileContext(ref, path);
+	}
+
+	sl_bool FileSystemProvider::getFileInfo(const StringParam& path, FileInfo& outInfo, const FileInfoMask& mask) noexcept
+	{
+		Ref<FileContext> context = createContext(sl_null, path);
+		return getFileInfo(context, outInfo, mask);
+	}
+
+	sl_bool FileSystemProvider::setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask) noexcept
+	{
+		Ref<FileContext> context = createContext(sl_null, path);
+		return setFileInfo(context, info, mask);
+	}
+
+	sl_bool FileSystemProvider::getFileSize(Ref<FileContext> context, sl_uint64& outSize) noexcept
+	{
+		FileInfo info;
+		if (getFileInfo(context, info, FileInfoMask::Size)) {
+			outSize = info.size;
+			return sl_true;
+		}
 		return sl_false;
 	}
 
 	sl_bool FileSystemProvider::getFileSize(const StringParam& path, sl_uint64& outSize) noexcept
 	{
-		SLIB_TRY {
-			FileInfo info;
-			if (getFileInfo(path, sl_null, info, FileInfoMask::Size)) {
-				outSize = info.size;
-				return sl_true;
-			}
-		} SLIB_CATCH(...)
+		FileInfo info;
+		if (getFileInfo(path, info, FileInfoMask::Size)) {
+			outSize = info.size;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool FileSystemProvider::existsFile(const StringParam& path) noexcept
+	{
+		FileInfo info;
+		if (getFileInfo(path, info, FileInfoMask::Attributes)) {
+			return sl_true;
+		}
 		return sl_false;
 	}
 
@@ -228,82 +250,54 @@ namespace slib
 			return sl_null;
 		}
 
-		Ref<FileContext> context;
+		FileOpenParam param;
+		param.mode = FileMode::Read | FileMode::ShareRead;
 
-		SLIB_TRY {
-			
-			FileOpenParam param;
-			param.mode = FileMode::Read | FileMode::ShareRead;
-			
-			context = openFile(path, param);
-			if (context.isNull()) {
-				return sl_null;
-			}
+		Ref<FileContext> context = openFile(path, param);
+		if (context.isNull()) {
+			return sl_null;
+		}
 
-			FileInfo info;
-			if (!getFileInfo(sl_null, context, info, FileInfoMask::Size)) {
-				SLIB_TRY {
-					closeFile(context);
-				} SLIB_CATCH(...)
-				return sl_null;
-			}
-
-			sl_uint64 limit = (sl_uint64)(info.size - offset);
-			if (limit > 0x40000000) {
-				limit = 0x40000000;
-			}
-			if (size > limit) {
-				size = (sl_uint32)limit;
-			}
-
-			Memory mem = Memory::create(size);
-			if (mem.isNull()) {
-				return sl_null;
-			}
-
-			sl_uint32 sizeRead = readFile(context, offset, mem.getData(), size);
+		FileInfo info;
+		if (!getFileInfo(context, info, FileInfoMask::Size)) {
 			closeFile(context);
-			if (sizeRead) {
-				return mem.sub(0, sizeRead);
-			}
+			return sl_null;
+		}
 
-		} SLIB_CATCH(FileSystemError error, {
-			LOG_DEBUG("ReadFile(%s,%d,%d)\n  Error: %d", path, offset, size, error);
-			SLIB_UNUSED(error);
-			if (context.isNotNull()) {
-				SLIB_TRY {
-					closeFile(context);
-				} SLIB_CATCH(...)
-			}
-		}) SLIB_CATCH(...)
+		sl_uint64 limit = (sl_uint64)(info.size - offset);
+		if (limit > 0x40000000) {
+			limit = 0x40000000;
+		}
+		if (size > limit) {
+			size = (sl_uint32)limit;
+		}
+
+		Memory mem = Memory::create(size);
+		if (mem.isNull()) {
+			return sl_null;
+		}
+
+		sl_uint32 sizeRead = readFile(context, offset, mem.getData(), size);
+		closeFile(context);
+		if (sizeRead) {
+			return mem.sub(0, sizeRead);
+		}
 
 		return sl_null;
 	}
 
 	sl_uint32 FileSystemProvider::writeFile(const StringParam& path, const void* buf, sl_uint32 size) noexcept
 	{
-		Ref<FileContext> context;
-		SLIB_TRY {
-			FileOpenParam param;
-			param.mode = FileMode::Write;
-			context = openFile(path, param);
-			if (context.isNull()) {
-				return 0;
-			}
-			sl_uint32 sizeWritten = writeFile(context.get(), 0, buf, size);
-			closeFile(context);
-			return sizeWritten;
-		} SLIB_CATCH (FileSystemError error, {
-			LOG_DEBUG("WriteFile(%s,%d)\n  Error: %d", path, size, error);
-			SLIB_UNUSED(error);
-			if (context.isNotNull()) {
-				SLIB_TRY {
-					closeFile(context);
-				} SLIB_CATCH(...)
-			}
-		}) SLIB_CATCH (...)
-		
-		return sl_false;
+		FileOpenParam param;
+		param.mode = FileMode::Write;
+
+		Ref<FileContext> context = openFile(path, param);
+		if (context.isNull()) {
+			return 0;
+		}
+		sl_uint32 sizeWritten = writeFile(context.get(), 0, buf, size);
+		closeFile(context);
+		return sizeWritten;
 	}
 
 	sl_uint32 FileSystemProvider::writeFile(const StringParam& path, const Memory& mem) noexcept
@@ -398,9 +392,8 @@ namespace slib
 		const String& fileSystemName, const String& volumeName,
 		sl_uint32 serialNumber) : m_base(base)
 	{
-		SLIB_TRY{
-			base->getInformation(m_fsInfo);
-		} SLIB_CATCH(...)
+		base->getInformation(m_fsInfo);
+		
 		if (fileSystemName.isNotNull()) {
 			m_fsInfo.fileSystemName = fileSystemName;
 		}
@@ -431,48 +424,48 @@ namespace slib
 	{
 		Ref<FileContext> baseContext = m_base->openFile(toBasePath(path), param);
 		if (baseContext.isNotNull()) {
-			return createContext(baseContext.get(), path);
+			return getWrapperContext(baseContext, path);
 		}
 		return sl_null;
 	}
 
-	sl_uint32 FileSystemWrapper::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
+	sl_uint32 FileSystemWrapper::readFile(Ref<FileContext> context, sl_uint64 offset, void* buf, sl_uint32 size)
 	{
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {
 			return m_base->readFile(baseContext.get(), offset, buf, size);
 		} else {
-			SLIB_THROW(FileSystemError::InvalidContext, 0)
+			SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, 0)
 		}
 	}
 
-	sl_uint32 FileSystemWrapper::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size)
+	sl_uint32 FileSystemWrapper::writeFile(Ref<FileContext> context, sl_int64 offset, const void* buf, sl_uint32 size)
 	{
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {
 			return m_base->writeFile(baseContext.get(), offset, buf, size);
 		} else {
-			SLIB_THROW(FileSystemError::InvalidContext, 0)
+			SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, 0)
 		}
 	}
 
-	sl_bool FileSystemWrapper::flushFile(FileContext* context)
+	sl_bool FileSystemWrapper::flushFile(Ref<FileContext> context)
 	{
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {
 			return m_base->flushFile(baseContext.get());
 		} else {
-			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
+			SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, sl_false)
 		}
 	}
 
-	sl_bool	FileSystemWrapper::closeFile(FileContext* context)
+	sl_bool	FileSystemWrapper::closeFile(Ref<FileContext> context)
 	{
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {
 			return m_base->closeFile(baseContext.get());
 		} else {
-			SLIB_THROW(FileSystemError::InvalidContext, sl_false)
+			SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, sl_false)
 		}
 	}
 
@@ -486,24 +479,24 @@ namespace slib
 		return m_base->moveFile(toBasePath(pathOld), toBasePath(pathNew), flagReplaceIfExists);
 	}
 
-	sl_bool FileSystemWrapper::getFileInfo(const StringParam& path, FileContext* context, FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemWrapper::getFileInfo(Ref<FileContext> context, FileInfo& info, const FileInfoMask& mask)
 	{
-		sl_bool ret = m_base->getFileInfo(toBasePath(path), getBaseContext(context), info, mask);
+		sl_bool ret = m_base->getFileInfo(getBaseContext(context), info, mask);
 		if (ret) {
 			if (!convertToWrapperFileInfo(info, mask)) {
-				SLIB_THROW(FileSystemError::AccessDenied, sl_false);
+				SET_ERROR_AND_RETURN(FileSystemError::AccessDenied, sl_false);
 			}
 		}
 		return ret;
 	}
 
-	sl_bool FileSystemWrapper::setFileInfo(const StringParam& path, FileContext* context, const FileInfo& _info, const FileInfoMask& mask)
+	sl_bool FileSystemWrapper::setFileInfo(Ref<FileContext> context, const FileInfo& _info, const FileInfoMask& mask)
 	{
 		FileInfo info = _info;
 		if (!convertToBaseFileInfo(info, mask)) {
-			SLIB_THROW(FileSystemError::AccessDenied, sl_false);
+			SET_ERROR_AND_RETURN(FileSystemError::AccessDenied, sl_false);
 		}
-		return m_base->setFileInfo(toBasePath(path), getBaseContext(context), info, mask);
+		return m_base->setFileInfo(getBaseContext(context), info, mask);
 	}
 
 	sl_bool FileSystemWrapper::createDirectory(const StringParam& path)
@@ -547,14 +540,24 @@ namespace slib
 		return files;
 	}
 
-	Ref<FileContext> FileSystemWrapper::createContext(FileContext* baseContext, const StringParam& path) noexcept
+	Ref<FileContext> FileSystemWrapper::createContext(sl_uint64 handle, const StringParam& path) noexcept
 	{
-		return baseContext;
+		return getWrapperContext(m_base->createContext(handle, toBasePath(path)), path);
 	}
 
-	Ref<FileContext> FileSystemWrapper::getBaseContext(FileContext* context) noexcept
+	Ref<FileContext> FileSystemWrapper::createContext(Ref<Referable> ref, const StringParam& path) noexcept
+	{
+		return getWrapperContext(m_base->createContext(ref, toBasePath(path)), path);
+	}
+
+	Ref<FileContext> FileSystemWrapper::getBaseContext(Ref<FileContext> context) noexcept
 	{
 		return context;
+	}
+
+	Ref<FileContext> FileSystemWrapper::getWrapperContext(Ref<FileContext> baseContext, const StringParam& path) noexcept
+	{
+		return baseContext;
 	}
 
 	String FileSystemWrapper::toBasePath(const StringParam& path) noexcept

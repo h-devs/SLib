@@ -31,8 +31,6 @@
 #include "../core/file.h"
 #include "../core/hash_map.h"
 
-#define SLIB_FILE_SYSTEM_CAN_THROW
-
 namespace slib
 {
 
@@ -110,7 +108,16 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 
 	public:
-		FileContext();
+		String path;
+		union {
+			sl_uint64 handle;
+			Ref<Referable> ref;
+		};
+
+	public:
+		FileContext(sl_uint64 handle, const StringParam& path);
+
+		FileContext(Ref<Referable> ref, const StringParam& path);
 
 		~FileContext();
 
@@ -132,24 +139,22 @@ namespace slib
 
 		virtual Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) = 0;
 
-		virtual sl_uint32 readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) = 0;
+		virtual sl_uint32 readFile(Ref<FileContext> context, sl_uint64 offset, void* buf, sl_uint32 size) = 0;
 
 		// offset: negative value means end of file
-		virtual sl_uint32 writeFile(FileContext* context, sl_int64 offset, const void* data, sl_uint32 size);
+		virtual sl_uint32 writeFile(Ref<FileContext> context, sl_int64 offset, const void* data, sl_uint32 size);
 
-		virtual sl_bool flushFile(FileContext* context);
+		virtual sl_bool flushFile(Ref<FileContext> context);
 
-		virtual sl_bool closeFile(FileContext* context);
+		virtual sl_bool closeFile(Ref<FileContext> context);
 
 		virtual sl_bool deleteFile(const StringParam& path);
 
 		virtual sl_bool moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists);
 
-		// path or context can be null
-		virtual sl_bool getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) = 0;
+		virtual sl_bool getFileInfo(Ref<FileContext> context, FileInfo& outInfo, const FileInfoMask& mask) = 0;
 
-		// path or context can be null
-		virtual sl_bool setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask);
+		virtual sl_bool setFileInfo(Ref<FileContext> context, const FileInfo& info, const FileInfoMask& mask);
 
 		virtual sl_bool createDirectory(const StringParam& path);
 
@@ -158,11 +163,19 @@ namespace slib
 		virtual HashMap<String, FileInfo> getFiles(const StringParam& pathDir) = 0;
 
 	public: // Helpers
-		virtual sl_bool existsFile(const StringParam& path) noexcept;
+		virtual Ref<FileContext> createContext(sl_uint64 handle, const StringParam& path) noexcept;
 
-		virtual sl_bool getFileSize(FileContext* context, sl_uint64& outSize) noexcept;
+		virtual Ref<FileContext> createContext(Ref<Referable> ref, const StringParam& path) noexcept;
+
+		virtual sl_bool getFileInfo(const StringParam& path, FileInfo& outInfo, const FileInfoMask& mask) noexcept;
+
+		virtual sl_bool setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask) noexcept;
+
+		virtual sl_bool getFileSize(Ref<FileContext> context, sl_uint64& outSize) noexcept;
 
 		virtual sl_bool getFileSize(const StringParam& path, sl_uint64& outSize) noexcept;
+
+		virtual sl_bool existsFile(const StringParam& path) noexcept;
 
 		virtual Memory readFile(const StringParam& path, sl_uint64 offset = 0, sl_uint32 size = SLIB_UINT32_MAX) noexcept;
 
@@ -254,21 +267,21 @@ namespace slib
 
 		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) override;
 
-		sl_uint32 readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
+		sl_uint32 readFile(Ref<FileContext> context, sl_uint64 offset, void* buf, sl_uint32 size) override;
 
-		sl_uint32 writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size) override;
+		sl_uint32 writeFile(Ref<FileContext> context, sl_int64 offset, const void* buf, sl_uint32 size) override;
 
-		sl_bool flushFile(FileContext* context) override;
+		sl_bool flushFile(Ref<FileContext> context) override;
 
-		sl_bool	closeFile(FileContext* context) override;
+		sl_bool	closeFile(Ref<FileContext> context) override;
 
 		sl_bool deleteFile(const StringParam& path) override;
 
 		sl_bool moveFile(const StringParam& pathOld, const StringParam& pathNew, sl_bool flagReplaceIfExists) override;
 
-		sl_bool getFileInfo(const StringParam& path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) override;
+		sl_bool getFileInfo(Ref<FileContext> context, FileInfo& outInfo, const FileInfoMask& mask) override;
 
-		sl_bool setFileInfo(const StringParam& path, FileContext* context, const FileInfo& info, const FileInfoMask& mask) override;
+		sl_bool setFileInfo(Ref<FileContext> context, const FileInfo& info, const FileInfoMask& mask) override;
 
 		sl_bool createDirectory(const StringParam& path) override;
 
@@ -276,10 +289,15 @@ namespace slib
 
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
 
+	public:
+		Ref<FileContext> createContext(sl_uint64 handle, const StringParam& path) noexcept override;
+
+		Ref<FileContext> createContext(Ref<Referable> ref, const StringParam& path) noexcept override;
+
 	protected:
 		// If you want to use different FileContext in wrapper, you will need to override these functions.
-		virtual Ref<FileContext> createContext(FileContext* baseContext, const StringParam& path) noexcept;
-		virtual Ref<FileContext> getBaseContext(FileContext* context) noexcept;
+		virtual Ref<FileContext> getBaseContext(Ref<FileContext> context) noexcept;
+		virtual Ref<FileContext> getWrapperContext(Ref<FileContext> baseContext, const StringParam& path) noexcept;
 
 		// If you want to use different path in wrapper, you will need to override these functions.
 		virtual String toBasePath(const StringParam& path) noexcept;
