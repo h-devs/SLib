@@ -158,7 +158,7 @@ namespace slib
 	};
 
 
-	class SLIB_EXPORT PE_EXPORT_DIRECTORY {
+	class SLIB_EXPORT PE_Export_Directory {
 	public:
 		sl_uint32   characteristics;
 		sl_uint32   timeDateStamp;
