@@ -107,17 +107,20 @@ namespace slib
 	{
 		SLIB_DECLARE_OBJECT
 
+		friend FileSystemProvider;
+
 	public:
 		String path;
 		union {
 			sl_uint64 handle;
-			Ref<Referable> ref;
+			Referable* ptr;
 		};
+		sl_bool flagUseRef;
 
-	public:
-		FileContext(sl_uint64 handle, const StringParam& path);
+	protected:
+		FileContext(String path, sl_uint64 handle);
 
-		FileContext(Ref<Referable> ref, const StringParam& path);
+		FileContext(String path, Ref<Referable> ref);
 
 		~FileContext();
 
@@ -163,9 +166,9 @@ namespace slib
 		virtual HashMap<String, FileInfo> getFiles(const StringParam& pathDir) = 0;
 
 	public: // Helpers
-		virtual Ref<FileContext> createContext(sl_uint64 handle, const StringParam& path) noexcept;
+		virtual Ref<FileContext> createContext(const StringParam& path, sl_uint64 handle) noexcept;
 
-		virtual Ref<FileContext> createContext(Ref<Referable> ref, const StringParam& path) noexcept;
+		virtual Ref<FileContext> createContext(const StringParam& path, Ref<Referable> ref = sl_null) noexcept;
 
 		virtual sl_bool getFileInfo(const StringParam& path, FileInfo& outInfo, const FileInfoMask& mask) noexcept;
 
@@ -290,9 +293,9 @@ namespace slib
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
 
 	public:
-		Ref<FileContext> createContext(sl_uint64 handle, const StringParam& path) noexcept override;
+		Ref<FileContext> createContext(const StringParam& path, sl_uint64 handle) noexcept override;
 
-		Ref<FileContext> createContext(Ref<Referable> ref, const StringParam& path) noexcept override;
+		Ref<FileContext> createContext(const StringParam& path, Ref<Referable> ref = sl_null) noexcept override;
 
 	protected:
 		// If you want to use different FileContext in wrapper, you will need to override these functions.

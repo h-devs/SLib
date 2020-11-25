@@ -117,18 +117,24 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(FileContext, Object)
 
-	FileContext::FileContext(sl_uint64 handle, const StringParam& path)
-		: handle(handle), path(path.toString())
+	FileContext::FileContext(String path, sl_uint64 handle)
+		: path(path), handle(handle), flagUseRef(sl_false)
 	{
 	}
 
-	FileContext::FileContext(Ref<Referable> ref, const StringParam& path)
-		: ref(ref), path(path.toString())
+	FileContext::FileContext(String path, Ref<Referable> ref)
+		: path(path), ptr(ref.ptr), flagUseRef(sl_true)
 	{
+		if (ptr) {
+			ptr->increaseReference();
+		}
 	}
 
 	FileContext::~FileContext()
 	{
+		if (ptr && flagUseRef) {
+			ptr->decreaseReference();
+		}
 	}
 
 
@@ -193,25 +199,25 @@ namespace slib
 		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
 	}
 
-	Ref<FileContext> FileSystemProvider::createContext(sl_uint64 handle, const StringParam& path) noexcept
+	Ref<FileContext> FileSystemProvider::createContext(const StringParam& path, sl_uint64 handle) noexcept
 	{
-		return new FileContext(handle, path);
+		return new FileContext(path.toString(), handle);
 	}
 
-	Ref<FileContext> FileSystemProvider::createContext(Ref<Referable> ref, const StringParam& path) noexcept
+	Ref<FileContext> FileSystemProvider::createContext(const StringParam& path, Ref<Referable> ref) noexcept
 	{
-		return new FileContext(ref, path);
+		return new FileContext(path.toString(), ref);
 	}
 
 	sl_bool FileSystemProvider::getFileInfo(const StringParam& path, FileInfo& outInfo, const FileInfoMask& mask) noexcept
 	{
-		Ref<FileContext> context = createContext(sl_null, path);
+		Ref<FileContext> context = createContext(path);
 		return getFileInfo(context, outInfo, mask);
 	}
 
 	sl_bool FileSystemProvider::setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask) noexcept
 	{
-		Ref<FileContext> context = createContext(sl_null, path);
+		Ref<FileContext> context = createContext(path);
 		return setFileInfo(context, info, mask);
 	}
 
@@ -540,14 +546,14 @@ namespace slib
 		return files;
 	}
 
-	Ref<FileContext> FileSystemWrapper::createContext(sl_uint64 handle, const StringParam& path) noexcept
+	Ref<FileContext> FileSystemWrapper::createContext(const StringParam& path, sl_uint64 handle) noexcept
 	{
-		return getWrapperContext(m_base->createContext(handle, toBasePath(path)), path);
+		return getWrapperContext(m_base->createContext(toBasePath(path), handle), path);
 	}
 
-	Ref<FileContext> FileSystemWrapper::createContext(Ref<Referable> ref, const StringParam& path) noexcept
+	Ref<FileContext> FileSystemWrapper::createContext(const StringParam& path, Ref<Referable> ref) noexcept
 	{
-		return getWrapperContext(m_base->createContext(ref, toBasePath(path)), path);
+		return getWrapperContext(m_base->createContext(toBasePath(path), ref), path);
 	}
 
 	Ref<FileContext> FileSystemWrapper::getBaseContext(FileContext* context) noexcept

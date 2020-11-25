@@ -546,7 +546,7 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
 				if (context.isNull()) {
-					context = provider->createContext(sl_null, NormalizePath(szFileName));
+					context = provider->createContext(NormalizePath(szFileName));
 				}
 
 				FileInfo info;
@@ -654,7 +654,7 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
 				if (context.isNull()) {
-					context = provider->createContext(sl_null, NormalizePath(szFileName));
+					context = provider->createContext(NormalizePath(szFileName));
 				}
 
 				FileInfo info;
@@ -675,7 +675,7 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
 				if (context.isNull()) {
-					context = provider->createContext(sl_null, NormalizePath(szFileName));
+					context = provider->createContext(NormalizePath(szFileName));
 				}
 
 				FileInfo info;
@@ -696,7 +696,7 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
 				if (context.isNull()) {
-					context = provider->createContext(sl_null, NormalizePath(szFileName));
+					context = provider->createContext(NormalizePath(szFileName));
 				}
 
 				FileInfo info;
@@ -719,7 +719,7 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
 				if (context.isNull()) {
-					context = provider->createContext(sl_null, NormalizePath(szFileName));
+					context = provider->createContext(NormalizePath(szFileName));
 				}
 
 				FileInfo info;

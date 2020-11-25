@@ -29,7 +29,7 @@
 #include "slib/core/variant.h"
 #include "slib/storage/disk.h"
 
-#define FILE_FROM_CONTEXT(context)	(context ? CastInstance<File>(context->ref.ptr) : sl_null)
+#define FILE_FROM_CONTEXT(context)	(context ? CastInstance<File>(context->ptr) : sl_null)
 #define CONCAT_PATH(path)			(m_root.isNotEmpty() && path.isNotEmpty() ? m_root + path : sl_null)
 
 namespace slib
@@ -89,7 +89,7 @@ namespace slib
 		if (file.isNull()) {
 			return sl_null;
 		}
-		return createContext(file, path);
+		return createContext(path, file);
 	}
 
 	sl_bool MirrorFileSystem::closeFile(FileContext* context)
