@@ -131,9 +131,9 @@ namespace slib
 	{
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 
-		//if (file.isNull() || !file->isOpened()) {
-		//	file = File::openForWrite(PATH_FROM_CONTEXT(context));
-		//}
+		if (file.isNull() || !file->isOpened()) {
+			file = File::openForWrite(PATH_FROM_CONTEXT(context));
+		}
 		if (file.isNull() || !file->isOpened()) {
 			SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, 0);
 		}
@@ -289,7 +289,10 @@ namespace slib
 
 		if (mask & FileInfoMask::Size) {
 			if (!flagOpened) {
-				SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, sl_false);
+				file = File::openForWrite(PATH_FROM_CONTEXT(context));
+				if (file.isNull() || !file->isOpened()) {
+					return sl_false;
+				}
 			}
 			if (!file->setSize(info.size)) {
 				return sl_false;
@@ -297,9 +300,9 @@ namespace slib
 		}
 
 		if (mask & FileInfoMask::AllocSize) {
-			if (!flagOpened) {
-				SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, sl_false);
-			}
+			//if (!flagOpened) {
+			//	SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, sl_false);
+			//}
 			//if (!file->setAllocationSize(info.allocationSize)) {
 			//	return sl_false;
 			//}
