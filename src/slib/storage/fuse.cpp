@@ -402,7 +402,7 @@ namespace slib
 				FileOpenParam param;
 				param.mode = FileMode::ShareAll;
 
-				if (oflag == O_RDONLY) {
+				if ((oflag & 0x03) == O_RDONLY) {
 					param.mode |= FileMode::Read;
 				}
 				if (oflag & O_WRONLY) {
@@ -420,8 +420,8 @@ namespace slib
 				if (!(oflag & O_TRUNC)) {
 					param.mode |= FileMode::NotTruncate;
 				}
-				if (oflag & O_EXCL) {
-					// TODO
+				if (oflag & (O_CREAT | O_EXCL)) {
+					// TODO CREATE_NEW
 				}
 #ifdef O_RANDOM
 				if (oflag & O_RANDOM) {
