@@ -490,7 +490,9 @@ namespace slib
 				}
 
 				FileSystem::setLastError(FileSystemError::GeneralError);
-				provider->flushFile(context);
+				if (provider->flushFile(context)) {
+					return 0;
+				}
 				return FUSE_ERROR_CODE(FileSystem::getLastError());
 			}
 
@@ -503,7 +505,7 @@ namespace slib
 					return 0;
 				}
 
-				FileSystem::setLastError(FileSystemError::GeneralError);
+				FileSystem::setLastError(FileSystemError::Success);
 				provider->closeFile(context);
 				host->decreaseOpenHandlesCount();
 				context->decreaseReference();

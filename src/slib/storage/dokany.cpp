@@ -404,7 +404,7 @@ namespace slib
 					return 0;
 				}
 
-				FileSystem::setLastError(FileSystemError::GeneralError);
+				FileSystem::setLastError(FileSystemError::Success);
 				provider->closeFile(context);
 				host->decreaseOpenHandlesCount();
 				context->decreaseReference();
