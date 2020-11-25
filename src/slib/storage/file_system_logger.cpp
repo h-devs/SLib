@@ -27,7 +27,8 @@
 #include "slib/core/system.h"
 
 #define PATH_LOG(path) (m_flags & FileSystemLogFlags::FileName ? path : "")
-#define CONTEXT_LOG(context) PATH_LOG(PATH_FROM_CONTEXT(context)) + (m_flags & FileSystemLogFlags::ContextAddress ? ":0x" + String::fromUint64((sl_uint64)&context, 16, 8, sl_true) : "")
+#define HANDLE_LOG(handle) ("0x" + String::fromUint64(handle, 16, 8, sl_true))
+#define CONTEXT_LOG(context) PATH_LOG(PATH_FROM_CONTEXT(context)) + (m_flags & FileSystemLogFlags::ContextHandle ? ":" + HANDLE_LOG(HANDLE_FROM_CONTEXT(context)) : "")
 #define ERROR_LOG(error) (String::fromUint32((sl_uint32)(error)) + (m_flags & FileSystemLogFlags::ExceptionString ? ", " + System::formatErrorCode((sl_uint32)(error)) : ""))
 
 namespace slib
@@ -85,7 +86,7 @@ namespace slib
 			return m_base->getInformation(info);
 		}
 
-		String desc = String::format("GetInfo(%s)");
+		String desc = String::format("GetInfo()");
 		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
 			LOG(desc);
 		}
@@ -164,11 +165,14 @@ namespace slib
 			return m_base->openFile(path, param);
 		}
 
-		String desc = String::format("OpenFile(%s,%s,%s%s,%s,%s,%s%s%s,0x%X,0x%X)", PATH_LOG(path),
+		String desc = String::format("OpenFile(%s,%s,%s,%s,%s,%s%s%s,0x%X,0x%X)", PATH_LOG(path),
 			param.attributes & FileAttributes::Directory ? "DIR" : "FILE",
 
-			(param.mode & FileMode::NotCreate ? "OPEN" : (param.mode & FileMode::NotTruncate ? "OPEN_OR_CREATE" : "CREATE")),
-			(param.mode & FileMode::NotTruncate ? "" : "|TRUNCATE"),
+			(param.mode & FileMode::Write 
+				? String::join(
+					(param.mode & FileMode::NotCreate ? "OPEN" : (param.mode & FileMode::NotTruncate ? "OPEN_OR_CREATE" : "CREATE")),
+					(param.mode & FileMode::NotTruncate ? "" : "|TRUNCATE"))
+				: "OPEN"),
 
 			String::join((param.mode & FileMode::Read ? "READ" : ""), 
 				(param.mode & FileMode::ReadData ? "_DATA" : ""), 
@@ -190,7 +194,7 @@ namespace slib
 
 		Ref<FileContext> context = m_base->openFile(path, param);
 		if (context.isNotNull() && (m_flags & FileSystemLogFlags::RetSuccess)) {
-			LOG(desc);
+			LOG("%s\n  Handle: %s", desc, HANDLE_LOG(context->handle));
 		} else if (context.isNull() && (m_flags & FileSystemLogFlags::RetFail)) {
 			LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 		}
