@@ -319,7 +319,10 @@ namespace slib
 	
 	sl_bool File::flush()
 	{
-		// not implemented
+		int fd = (int)m_file;
+		if (fd != SLIB_FILE_INVALID_HANDLE) {
+			return 0 == ::fsync(fd);
+		}
 		return sl_false;
 	}
 

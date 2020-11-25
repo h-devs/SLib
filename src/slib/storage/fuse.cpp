@@ -478,16 +478,18 @@ namespace slib
 				return (int)(ret & SLIB_INT32_MAX);
 			}
 
-			static int fuse_flush(const char *path, struct fuse_file_info *fi)
+			static int fuse_fsync(const char *path, int isdatasync, struct fuse_file_info *fi)
 			{
 				FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 				FileSystemProvider* provider = host->getProvider();
+				SLIB_UNUSED(isdatasync);
+
 				Ref<FileContext> context = (FileContext*)((sl_size)(fi->fh));
 				if (context.isNull()) {
 					return 0;
 				}
 
-				FileSystem::setLastError(FileSystemError::Success);
+				FileSystem::setLastError(FileSystemError::GeneralError);
 				provider->flushFile(context);
 				return FUSE_ERROR_CODE(FileSystem::getLastError());
 			}
@@ -501,7 +503,7 @@ namespace slib
 					return 0;
 				}
 
-				FileSystem::setLastError(FileSystemError::Success);
+				FileSystem::setLastError(FileSystemError::GeneralError);
 				provider->closeFile(context);
 				host->decreaseOpenHandlesCount();
 				context->decreaseReference();
@@ -532,9 +534,9 @@ namespace slib
 				fuse_op.read = fuse_read;
 				fuse_op.write = fuse_write;
 				fuse_op.statfs = fuse_statfs;
-				fuse_op.flush = fuse_flush;
+				//fuse_op.flush = fuse_flush;
 				fuse_op.release = fuse_release;
-				//fuse_op.fsync = fuse_fsync;
+				fuse_op.fsync = fuse_fsync;
 
 				//fuse_op.opendir = fuse_opendir;
 				fuse_op.readdir = fuse_readdir;
