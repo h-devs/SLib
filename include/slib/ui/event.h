@@ -434,7 +434,9 @@ namespace slib
 		static String getKeyName(Keycode key, sl_bool flagShort = sl_false);
 		
 		static Keycode getKeycodeFromName(const String& keyName);
-		
+
+		static sl_char8 getCharFromKeycode(Keycode key, sl_bool flagUpper);
+
 		static DragContext& getCurrentDragContext();
 		
 	protected:

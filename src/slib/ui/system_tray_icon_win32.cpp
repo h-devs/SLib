@@ -353,11 +353,11 @@ namespace slib
 						action = UIAction::MiddleButtonDoubleClick;
 						break;
 					case WM_MOUSEMOVE:
-						if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
+						if (GetKeyState(VK_LBUTTON) & 0x8000) {
 							action = UIAction::LeftButtonDrag;
-						} else if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) {
+						} else if (GetKeyState(VK_RBUTTON) & 0x8000) {
 							action = UIAction::RightButtonDrag;
-						} else if (GetAsyncKeyState(VK_MBUTTON) & 0x8000) {
+						} else if (GetKeyState(VK_MBUTTON) & 0x8000) {
 							action = UIAction::MiddleButtonDrag;
 						} else {
 							action = UIAction::MouseMove;

@@ -178,7 +178,7 @@ namespace slib
 		
 		static sl_bool checkRightButtonPressed();
 
-		static sl_bool checkMiddleButtonPressed();				
+		static sl_bool checkMiddleButtonPressed();
 		
 		static sl_bool checkCapsLockOn();
 		

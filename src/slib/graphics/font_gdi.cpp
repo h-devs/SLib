@@ -290,10 +290,11 @@ namespace slib
 		Size ret(0, 0);
 		if (fs->graphics) {
 			StringData16 text(_text);
-			Gdiplus::StringFormat format(Gdiplus::StringFormatFlagsNoWrap | Gdiplus::StringFormatFlagsNoClip | Gdiplus::StringFormatFlagsNoFitBlackBox);
+			Gdiplus::StringFormat format(Gdiplus::StringFormat::GenericTypographic());
+			format.SetFormatFlags(format.GetFormatFlags() | Gdiplus::StringFormatFlagsMeasureTrailingSpaces);
 			Gdiplus::RectF bound;
 			Gdiplus::PointF origin(0, 0);
-			Gdiplus::Status result = fs->graphics->MeasureString((WCHAR*)(text.getData()), (INT)(text.getLength()), handle, origin, Gdiplus::StringFormat::GenericTypographic(), &bound);
+			Gdiplus::Status result = fs->graphics->MeasureString((WCHAR*)(text.getData()), (INT)(text.getLength()), handle, origin, &format, &bound);
 			if (result == Gdiplus::Ok) {
 				ret.x = bound.Width;
 				ret.y = bound.Height;

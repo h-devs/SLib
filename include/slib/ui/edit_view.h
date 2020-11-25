@@ -113,6 +113,8 @@ namespace slib
 		void onDraw(Canvas* canvas) override;
 
 		void onClickEvent(UIEvent* ev) override;
+
+		void onChangeFocus(sl_bool flagFocused) override;
 		
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
@@ -139,6 +141,9 @@ namespace slib
 		sl_bool m_flagAutoDismissKeyboard;
 		
 		Ref<Referable> m_dialog;
+
+		AtomicRef<Timer> m_timerDrawCaret;
+		sl_uint32 m_nCountDrawCaret;
 
 	};
 	

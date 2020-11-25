@@ -1219,6 +1219,90 @@ sl_bool UIEvent::is##NAME##Key() const \
 		return Keycode::Unknown;
 	}
 
+#define KEYCODE_CHAR_MAPPING(CODE, ch) \
+	case Keycode::CODE: \
+		return ch;
+#define KEYCODE_CHAR_MAPPING2(CODE, chLower, chUpper) \
+	case Keycode::CODE: \
+		if (flagUpper) { \
+			return chUpper; \
+		} else { \
+			return chLower; \
+		}
+
+	sl_char8 UIEvent::getCharFromKeycode(Keycode code, sl_bool flagUpper)
+	{
+		switch (code) {
+			KEYCODE_CHAR_MAPPING(Tab, '\t')
+			KEYCODE_CHAR_MAPPING(Enter, '\n')
+			KEYCODE_CHAR_MAPPING(Space, ' ')
+			KEYCODE_CHAR_MAPPING2(Grave, '`', '~')
+			KEYCODE_CHAR_MAPPING2(Equal, '=', '+')
+			KEYCODE_CHAR_MAPPING2(Semicolon, ';', ':')
+			KEYCODE_CHAR_MAPPING2(Backslash, '\\', '|')
+			KEYCODE_CHAR_MAPPING2(LeftBaracket, '[', '{')
+			KEYCODE_CHAR_MAPPING2(RightBaracket, ']', '}')
+			KEYCODE_CHAR_MAPPING2(Quote, '\'', '"')
+			KEYCODE_CHAR_MAPPING2(Comma, ',', '<')
+			KEYCODE_CHAR_MAPPING2(Minus, '-', '_')
+			KEYCODE_CHAR_MAPPING2(Period, '.', '>')
+			KEYCODE_CHAR_MAPPING2(Divide, '/', '?')
+			KEYCODE_CHAR_MAPPING2(Num0, '0', ')')
+			KEYCODE_CHAR_MAPPING2(Num1, '1', '!')
+			KEYCODE_CHAR_MAPPING2(Num2, '2', '@')
+			KEYCODE_CHAR_MAPPING2(Num3, '3', '#')
+			KEYCODE_CHAR_MAPPING2(Num4, '4', '$')
+			KEYCODE_CHAR_MAPPING2(Num5, '5', '%')
+			KEYCODE_CHAR_MAPPING2(Num6, '6', '^')
+			KEYCODE_CHAR_MAPPING2(Num7, '7', '&')
+			KEYCODE_CHAR_MAPPING2(Num8, '8', '*')
+			KEYCODE_CHAR_MAPPING2(Num9, '9', '(')
+			KEYCODE_CHAR_MAPPING2(A, 'a', 'A')
+			KEYCODE_CHAR_MAPPING2(B, 'b', 'B')
+			KEYCODE_CHAR_MAPPING2(C, 'c', 'C')
+			KEYCODE_CHAR_MAPPING2(D, 'd', 'D')
+			KEYCODE_CHAR_MAPPING2(E, 'e', 'E')
+			KEYCODE_CHAR_MAPPING2(F, 'f', 'F')
+			KEYCODE_CHAR_MAPPING2(G, 'g', 'G')
+			KEYCODE_CHAR_MAPPING2(H, 'h', 'H')
+			KEYCODE_CHAR_MAPPING2(I, 'i', 'I')
+			KEYCODE_CHAR_MAPPING2(J, 'j', 'J')
+			KEYCODE_CHAR_MAPPING2(K, 'k', 'K')
+			KEYCODE_CHAR_MAPPING2(L, 'l', 'L')
+			KEYCODE_CHAR_MAPPING2(M, 'm', 'M')
+			KEYCODE_CHAR_MAPPING2(N, 'n', 'N')
+			KEYCODE_CHAR_MAPPING2(O, 'o', 'O')
+			KEYCODE_CHAR_MAPPING2(P, 'p', 'P')
+			KEYCODE_CHAR_MAPPING2(Q, 'q', 'Q')
+			KEYCODE_CHAR_MAPPING2(R, 'r', 'R')
+			KEYCODE_CHAR_MAPPING2(S, 's', 'S')
+			KEYCODE_CHAR_MAPPING2(T, 't', 'T')
+			KEYCODE_CHAR_MAPPING2(U, 'u', 'U')
+			KEYCODE_CHAR_MAPPING2(V, 'v', 'V')
+			KEYCODE_CHAR_MAPPING2(W, 'w', 'W')
+			KEYCODE_CHAR_MAPPING2(X, 'x', 'X')
+			KEYCODE_CHAR_MAPPING2(Y, 'y', 'Y')
+			KEYCODE_CHAR_MAPPING2(Z, 'z', 'Z')
+			KEYCODE_CHAR_MAPPING(Numpad0, '0')
+			KEYCODE_CHAR_MAPPING(Numpad1, '1')
+			KEYCODE_CHAR_MAPPING(Numpad2, '2')
+			KEYCODE_CHAR_MAPPING(Numpad3, '3')
+			KEYCODE_CHAR_MAPPING(Numpad4, '4')
+			KEYCODE_CHAR_MAPPING(Numpad5, '5')
+			KEYCODE_CHAR_MAPPING(Numpad6, '6')
+			KEYCODE_CHAR_MAPPING(Numpad7, '7')
+			KEYCODE_CHAR_MAPPING(Numpad8, '8')
+			KEYCODE_CHAR_MAPPING(Numpad9, '9')
+			KEYCODE_CHAR_MAPPING(NumpadDivide, '/')
+			KEYCODE_CHAR_MAPPING(NumpadMultiply, '*')
+			KEYCODE_CHAR_MAPPING(NumpadMinus, '-')
+			KEYCODE_CHAR_MAPPING(NumpadPlus, '+')
+			KEYCODE_CHAR_MAPPING(NumpadEnter, '\n')
+			KEYCODE_CHAR_MAPPING(NumpadDecimal, '.')
+		}
+		return 0;
+	}
+
 	DragContext& UIEvent::getCurrentDragContext()
 	{
 		return g_currentDragContext;

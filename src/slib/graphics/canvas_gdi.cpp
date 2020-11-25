@@ -378,7 +378,8 @@ namespace slib
 						Gdiplus::Graphics* graphics = m_graphics;
 						Gdiplus::Font* pf = GraphicsPlatform::getGdiplusFont(font.get());
 						if (pf) {
-							Gdiplus::StringFormat format(Gdiplus::StringFormatFlagsNoWrap | Gdiplus::StringFormatFlagsNoClip);
+							Gdiplus::StringFormat format(Gdiplus::StringFormat::GenericTypographic());
+							format.SetFormatFlags(format.GetFormatFlags() | Gdiplus::StringFormatFlagsMeasureTrailingSpaces);
 							int a = param.color.a;
 							sl_real alpha = getAlpha();
 							if (alpha < 0.995f) {
@@ -397,7 +398,7 @@ namespace slib
 								path.AddString((const WCHAR*)(text.getData()), (INT)(lenText),
 									&family, pf->GetStyle(), pf->GetSize(),
 									Gdiplus::PointF((Gdiplus::REAL)(x), (Gdiplus::REAL)(y + 1)),
-									Gdiplus::StringFormat::GenericTypographic());
+									&format);
 								Gdiplus::GraphicsPath* pathShadow = path.Clone();
 								if (pathShadow) {
 									Gdiplus::GraphicsState state = graphics->Save();
@@ -423,7 +424,7 @@ namespace slib
 								graphics->DrawString((const WCHAR*)(text.getData()), (INT)(lenText),
 									pf,
 									Gdiplus::PointF((Gdiplus::REAL)(x), (Gdiplus::REAL)(y + 1)),
-									Gdiplus::StringFormat::GenericTypographic(),
+									&format,
 									&brush);
 							}
 						}

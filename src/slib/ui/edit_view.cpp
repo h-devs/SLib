@@ -36,6 +36,10 @@
 #	define HAS_NATIVE_WIDGET_IMPL 0
 #endif
 
+#ifdef SLIB_PLATFORM_IS_DESKTOP
+#define HAS_SIMPLE_INPUT
+#endif
+
 namespace slib
 {
 
@@ -258,6 +262,8 @@ namespace slib
 		m_keyboardType = UIKeyboardType::Default;
 		m_autoCapitalizationType = UIAutoCapitalizationType::None;
 		m_flagAutoDismissKeyboard = sl_true;
+
+		m_nCountDrawCaret = 0;
 	}
 
 	EditView::~EditView()
@@ -591,15 +597,67 @@ namespace slib
 	
 	void EditView::onDraw(Canvas* canvas)
 	{
+		String text;
+		Ref<Font> font;
+		Color color;
+		Alignment gravity;
 		if (m_text.isEmpty()) {
-			canvas->drawText(m_hintText, getBoundsInnerPadding(), getHintFont(), m_hintTextColor, m_hintGravity);
+			text = m_hintText;
+			font = getHintFont();
+			color = m_hintTextColor;
+			gravity = m_hintGravity;
 		} else {
+			font = getFont();
+			color = m_textColor;
+			gravity = m_gravity;
 			if (m_flagPassword) {
-				canvas->drawText(String('*', m_text.getLength()), getBoundsInnerPadding(), getFont(), m_textColor, m_gravity);
+				text = String('*', m_text.getLength());
 			} else {
-				canvas->drawText(m_text, getBoundsInnerPadding(), getFont(), m_textColor, m_gravity);
+				text = m_text;
 			}
 		}
+		if (font.isNull()) {
+			return;
+		}
+		Rectangle rect = getBoundsInnerPadding();
+		canvas->drawText(text, rect, font, color, gravity);
+#ifdef HAS_SIMPLE_INPUT
+		if (isFocused()) {
+			Ref<View> root = getRootView();
+			if (root.isNotNull()) {
+				if (root->getFocusedDescendant() != this) {
+					return;
+				}
+			}
+			Size size;
+			if (text.isNotEmpty()) {
+				size = canvas->measureText(font, text);
+			} else {
+				size.x = 0;
+			}
+			size.y = font->getFontHeight();
+			Alignment hAlign = gravity & Alignment::HorizontalMask;
+			Alignment vAlign = gravity & Alignment::VerticalMask;
+			sl_real xCaret, yCaret;
+			if (hAlign == Alignment::Right) {
+				xCaret = rect.right;
+			} else if (hAlign == Alignment::Center) {
+				xCaret = (rect.left + rect.right + size.x) / 2;
+			} else {
+				xCaret = rect.left + size.x;
+			}
+			if (vAlign == Alignment::Bottom) {
+				yCaret = rect.bottom - size.y;
+			} else if (vAlign == Alignment::Middle) {
+				yCaret = (rect.top + rect.bottom - size.y) / 2;
+			} else {
+				yCaret = rect.top;
+			}
+			if (!(m_nCountDrawCaret % 2)) {
+				canvas->fillRectangle(xCaret, yCaret, 1, size.y, Color::Black);
+			}
+		}
+#endif
 	}
 	
 	void EditView::onClickEvent(UIEvent* ev)
@@ -611,9 +669,36 @@ namespace slib
 		if (instance.isNotNull()) {
 			return;
 		}
+#if defined(HAS_SIMPLE_INPUT)
+		setFocus();
+#else
 		if (m_dialog.isNull()) {
 			m_dialog = EditDialog::open(this);
 		}
+#endif
+	}
+
+	void EditView::onChangeFocus(sl_bool flagFocused)
+	{
+		if (flagFocused) {
+			if (!(isNativeWidget())) {
+				if (m_timerDrawCaret.isNull()) {
+					WeakRef<EditView> thiz = ToWeakRef(this);
+					m_timerDrawCaret = startTimer([this, thiz](Timer*) {
+						Ref<EditView> ref = thiz;
+						if (ref.isNull()) {
+							return;
+						}
+						m_nCountDrawCaret++;
+						invalidate();
+					}, 500);
+				}
+				m_nCountDrawCaret = 0;
+				invalidate();
+				return;
+			}
+		}
+		m_timerDrawCaret.setNull();
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(EditView, Change, String& value)
@@ -655,8 +740,45 @@ namespace slib
 			View::dispatchKeyEvent(ev);
 		} else {
 			SLIB_INVOKE_EVENT_HANDLER(KeyEvent, ev)
+			if (ev->isPreventedDefault()) {
+				return;
+			}
 			ev->stopPropagation();
 		}
+#ifdef HAS_SIMPLE_INPUT
+		if (ev->getAction() == UIAction::KeyDown) {
+			if (isNativeWidget()) {
+				return;
+			}
+			if (ev->isControlKey() || ev->isWindowsKey()) {
+				return;
+			}
+			Keycode key = ev->getKeycode();
+			if (key == Keycode::Tab) {
+				return;
+			}
+			if (key == Keycode::Enter || key == Keycode::NumpadEnter) {
+				return;
+			}
+			if (key == Keycode::Backspace) {
+				String text = m_text;
+				m_text = text.substring(0, text.getLength() - 1);
+				invalidate();
+			} else {
+				sl_bool flagUpper = ev->isShiftKey();
+				if (key >= Keycode::A && key <= Keycode::Z) {
+					if (UI::checkCapsLockOn()) {
+						flagUpper = !flagUpper;
+					}
+				}
+				sl_char8 ch = UIEvent::getCharFromKeycode(key, flagUpper);
+				if (ch) {
+					m_text += StringView(&ch, 1);
+					invalidate();
+				}
+			}
+		}
+#endif
 	}
 
 	

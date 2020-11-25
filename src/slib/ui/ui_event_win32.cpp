@@ -241,7 +241,7 @@ namespace slib
 	{
 		sl_uint32 vk = UIEvent::getSystemKeycode(key);
 		if (vk != -1) {
-			return (GetAsyncKeyState(vk) & 0x8000) != 0;
+			return (GetKeyState(vk) & 0x8000) != 0;
 		} else {
 			return sl_false;
 		}
@@ -249,17 +249,17 @@ namespace slib
 
 	sl_bool UI::checkCapsLockOn()
 	{
-		return (GetAsyncKeyState(VK_CAPITAL) & 1) != 0;
+		return (GetKeyState(VK_CAPITAL) & 1) != 0;
 	}
 
 	sl_bool UI::checkNumLockOn()
 	{
-		return (GetAsyncKeyState(VK_NUMLOCK) & 1) != 0;
+		return (GetKeyState(VK_NUMLOCK) & 1) != 0;
 	}
 
 	sl_bool UI::checkScrollLockOn()
 	{
-		return (GetAsyncKeyState(VK_SCROLL) & 1) != 0;
+		return (GetKeyState(VK_SCROLL) & 1) != 0;
 	}
 
 	UIPoint UI::getCursorPos()
@@ -271,17 +271,17 @@ namespace slib
 
 	sl_bool UI::checkLeftButtonPressed()
 	{
-		return (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+		return (GetKeyState(VK_LBUTTON) & 0x8000) != 0;
 	}
 
 	sl_bool UI::checkRightButtonPressed()
 	{
-		return (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
+		return (GetKeyState(VK_RBUTTON) & 0x8000) != 0;
 	}
 
 	sl_bool UI::checkMiddleButtonPressed()
 	{
-		return (GetAsyncKeyState(VK_MBUTTON) & 0x8000) != 0;
+		return (GetKeyState(VK_MBUTTON) & 0x8000) != 0;
 	}
 
 	void UI::sendKeyEvent(UIAction action, Keycode key)
