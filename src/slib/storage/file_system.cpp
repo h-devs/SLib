@@ -153,17 +153,17 @@ namespace slib
 		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_uint32 FileSystemProvider::writeFile(Ref<FileContext> context, sl_int64 offset, const void* data, sl_uint32 size)
+	sl_uint32 FileSystemProvider::writeFile(FileContext* context, sl_int64 offset, const void* data, sl_uint32 size)
 	{
 		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, 0)
 	}
 
-	sl_bool FileSystemProvider::flushFile(Ref<FileContext> context)
+	sl_bool FileSystemProvider::flushFile(FileContext* context)
 	{
 		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_bool FileSystemProvider::closeFile(Ref<FileContext> context)
+	sl_bool FileSystemProvider::closeFile(FileContext* context)
 	{
 		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
 	}
@@ -178,7 +178,7 @@ namespace slib
 		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
 	}
 
-	sl_bool FileSystemProvider::setFileInfo(Ref<FileContext> context, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemProvider::setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask)
 	{
 		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
 	}
@@ -215,7 +215,7 @@ namespace slib
 		return setFileInfo(context, info, mask);
 	}
 
-	sl_bool FileSystemProvider::getFileSize(Ref<FileContext> context, sl_uint64& outSize) noexcept
+	sl_bool FileSystemProvider::getFileSize(FileContext* context, sl_uint64& outSize) noexcept
 	{
 		FileInfo info;
 		if (getFileInfo(context, info, FileInfoMask::Size)) {
@@ -429,7 +429,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_uint32 FileSystemWrapper::readFile(Ref<FileContext> context, sl_uint64 offset, void* buf, sl_uint32 size)
+	sl_uint32 FileSystemWrapper::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
 	{
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {
@@ -439,7 +439,7 @@ namespace slib
 		}
 	}
 
-	sl_uint32 FileSystemWrapper::writeFile(Ref<FileContext> context, sl_int64 offset, const void* buf, sl_uint32 size)
+	sl_uint32 FileSystemWrapper::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size)
 	{
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {
@@ -449,7 +449,7 @@ namespace slib
 		}
 	}
 
-	sl_bool FileSystemWrapper::flushFile(Ref<FileContext> context)
+	sl_bool FileSystemWrapper::flushFile(FileContext* context)
 	{
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {
@@ -459,7 +459,7 @@ namespace slib
 		}
 	}
 
-	sl_bool	FileSystemWrapper::closeFile(Ref<FileContext> context)
+	sl_bool FileSystemWrapper::closeFile(FileContext* context)
 	{
 		Ref<FileContext> baseContext = getBaseContext(context);
 		if (baseContext.isNotNull()) {
@@ -479,7 +479,7 @@ namespace slib
 		return m_base->moveFile(toBasePath(pathOld), toBasePath(pathNew), flagReplaceIfExists);
 	}
 
-	sl_bool FileSystemWrapper::getFileInfo(Ref<FileContext> context, FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemWrapper::getFileInfo(FileContext* context, FileInfo& info, const FileInfoMask& mask)
 	{
 		sl_bool ret = m_base->getFileInfo(getBaseContext(context), info, mask);
 		if (ret) {
@@ -490,7 +490,7 @@ namespace slib
 		return ret;
 	}
 
-	sl_bool FileSystemWrapper::setFileInfo(Ref<FileContext> context, const FileInfo& _info, const FileInfoMask& mask)
+	sl_bool FileSystemWrapper::setFileInfo(FileContext* context, const FileInfo& _info, const FileInfoMask& mask)
 	{
 		FileInfo info = _info;
 		if (!convertToBaseFileInfo(info, mask)) {
@@ -550,12 +550,12 @@ namespace slib
 		return getWrapperContext(m_base->createContext(ref, toBasePath(path)), path);
 	}
 
-	Ref<FileContext> FileSystemWrapper::getBaseContext(Ref<FileContext> context) noexcept
+	Ref<FileContext> FileSystemWrapper::getBaseContext(FileContext* context) noexcept
 	{
 		return context;
 	}
 
-	Ref<FileContext> FileSystemWrapper::getWrapperContext(Ref<FileContext> baseContext, const StringParam& path) noexcept
+	Ref<FileContext> FileSystemWrapper::getWrapperContext(FileContext* baseContext, const StringParam& path) noexcept
 	{
 		return baseContext;
 	}

@@ -92,7 +92,7 @@ namespace slib
 		return createContext(file, path);
 	}
 
-	sl_bool MirrorFileSystem::closeFile(Ref<FileContext> context)
+	sl_bool MirrorFileSystem::closeFile(FileContext* context)
 	{
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 		if (file.isNotNull()) {
@@ -104,7 +104,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_uint32 MirrorFileSystem::readFile(Ref<FileContext> context, sl_uint64 offset, void* buf, sl_uint32 size)
+	sl_uint32 MirrorFileSystem::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
 	{
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 
@@ -127,7 +127,7 @@ namespace slib
 		return ret;
 	}
 
-	sl_uint32 MirrorFileSystem::writeFile(Ref<FileContext> context, sl_int64 offset, const void* buf, sl_uint32 size)
+	sl_uint32 MirrorFileSystem::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size)
 	{
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 
@@ -156,7 +156,7 @@ namespace slib
 		return ret;
 	}
 
-	sl_bool MirrorFileSystem::flushFile(Ref<FileContext> context)
+	sl_bool MirrorFileSystem::flushFile(FileContext* context)
 	{
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 		if (file.isNotNull()) {
@@ -182,7 +182,7 @@ namespace slib
 		return File::move(CONCAT_PATH(pathOld), CONCAT_PATH(pathNew), flagReplaceIfExists);
 	}
 
-	sl_bool MirrorFileSystem::getFileInfo(Ref<FileContext> context, FileInfo& outInfo, const FileInfoMask& mask)
+	sl_bool MirrorFileSystem::getFileInfo(FileContext* context, FileInfo& outInfo, const FileInfoMask& mask)
 	{
 		String filePath = CONCAT_PATH(PATH_FROM_CONTEXT(context));
 		Ref<File> file = FILE_FROM_CONTEXT(context);
@@ -245,7 +245,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MirrorFileSystem::setFileInfo(Ref<FileContext> context, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool MirrorFileSystem::setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask)
 	{
 		String filePath = CONCAT_PATH(PATH_FROM_CONTEXT(context));
 		Ref<File> file = FILE_FROM_CONTEXT(context);

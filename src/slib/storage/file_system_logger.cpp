@@ -197,7 +197,7 @@ namespace slib
 		return context;
 	}
 
-	sl_uint32 FileSystemLogger::readFile(Ref<FileContext> context, sl_uint64 offset, void* buf, sl_uint32 size)
+	sl_uint32 FileSystemLogger::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
 	{
 		if (!(m_flags & FileSystemLogFlags::Read) || !m_regex.match(PATH_FROM_CONTEXT(context))) {
 			return m_base->readFile(context, offset, buf, size);
@@ -217,7 +217,7 @@ namespace slib
 		return ret;
 	}
 
-	sl_uint32 FileSystemLogger::writeFile(Ref<FileContext> context, sl_int64 offset, const void* buf, sl_uint32 size)
+	sl_uint32 FileSystemLogger::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size)
 	{
 		if (!(m_flags & FileSystemLogFlags::Write) || !m_regex.match(PATH_FROM_CONTEXT(context))) {
 			return m_base->writeFile(context, offset, buf, size);
@@ -237,7 +237,7 @@ namespace slib
 		return ret;
 	}
 
-	sl_bool FileSystemLogger::flushFile(Ref<FileContext> context)
+	sl_bool FileSystemLogger::flushFile(FileContext* context)
 	{
 		if (!(m_flags & FileSystemLogFlags::Flush) || !m_regex.match(PATH_FROM_CONTEXT(context))) {
 			return m_base->flushFile(context);
@@ -257,7 +257,7 @@ namespace slib
 		return ret;
 	}
 
-	sl_bool FileSystemLogger::closeFile(Ref<FileContext> context)
+	sl_bool FileSystemLogger::closeFile(FileContext* context)
 	{
 		if (!(m_flags & FileSystemLogFlags::Close) || !m_regex.match(PATH_FROM_CONTEXT(context))) {
 			return m_base->closeFile(context);
@@ -337,7 +337,7 @@ namespace slib
 		return ret;
 	}
 
-	sl_bool FileSystemLogger::getFileInfo(Ref<FileContext> context, FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemLogger::getFileInfo(FileContext* context, FileInfo& info, const FileInfoMask& mask)
 	{
 		if (!(m_flags & FileSystemLogFlags::GetInfo) || !m_regex.match(PATH_FROM_CONTEXT(context))) {
 			return m_base->getFileInfo(context, info, mask);
@@ -377,7 +377,7 @@ namespace slib
 		return ret;
 	}
 
-	sl_bool FileSystemLogger::setFileInfo(Ref<FileContext> context, const FileInfo& info, const FileInfoMask& mask)
+	sl_bool FileSystemLogger::setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask)
 	{
 		if (!(m_flags & FileSystemLogFlags::SetInfo) || !m_regex.match(PATH_FROM_CONTEXT(context))) {
 			return m_base->setFileInfo(context, info, mask);
