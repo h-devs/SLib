@@ -106,10 +106,11 @@ namespace slib
 
 	sl_uint32 MirrorFileSystem::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
 	{
+		String filePath = CONCAT_PATH(PATH_FROM_CONTEXT(context));
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 
 		if (file.isNull() || !file->isOpened()) {
-			file = File::openForRead(PATH_FROM_CONTEXT(context));
+			file = File::openForRead(filePath);
 		}
 		if (file.isNull() || !file->isOpened()) {
 			SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, 0);
@@ -129,10 +130,11 @@ namespace slib
 
 	sl_uint32 MirrorFileSystem::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size)
 	{
+		String filePath = CONCAT_PATH(PATH_FROM_CONTEXT(context));
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 
 		if (file.isNull() || !file->isOpened()) {
-			file = File::openForWrite(PATH_FROM_CONTEXT(context));
+			file = File::openForWriteExisting(filePath);
 		}
 		if (file.isNull() || !file->isOpened()) {
 			SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, 0);
@@ -289,7 +291,7 @@ namespace slib
 
 		if (mask & FileInfoMask::Size) {
 			if (!flagOpened) {
-				file = File::openForWrite(PATH_FROM_CONTEXT(context));
+				file = File::openForWriteExisting(filePath);
 				if (file.isNull() || !file->isOpened()) {
 					return sl_false;
 				}
