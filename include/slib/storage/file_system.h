@@ -107,20 +107,11 @@ namespace slib
 	{
 		SLIB_DECLARE_OBJECT
 
-		friend FileSystemProvider;
-
 	public:
 		String path;
-		union {
-			sl_uint64 handle;
-			Referable* ptr;
-		};
-		sl_bool flagUseRef;
 
 	protected:
-		FileContext(String path, sl_uint64 handle);
-
-		FileContext(String path, Ref<Referable> ref);
+		FileContext(const String& path);
 
 		~FileContext();
 
@@ -139,6 +130,8 @@ namespace slib
 		virtual sl_bool getInformation(FileSystemInfo& outInfo);
 		
 		virtual sl_bool getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize = sl_null);
+
+		virtual Ref<FileContext> createContext(const StringParam& path) = 0;
 
 		virtual Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) = 0;
 
@@ -166,10 +159,6 @@ namespace slib
 		virtual HashMap<String, FileInfo> getFiles(const StringParam& pathDir) = 0;
 
 	public: // Helpers
-		virtual Ref<FileContext> createContext(const StringParam& path, sl_uint64 handle) noexcept;
-
-		virtual Ref<FileContext> createContext(const StringParam& path, Ref<Referable> ref = sl_null) noexcept;
-
 		virtual sl_bool getFileInfo(const StringParam& path, FileInfo& outInfo, const FileInfoMask& mask) noexcept;
 
 		virtual sl_bool setFileInfo(const StringParam& path, const FileInfo& info, const FileInfoMask& mask) noexcept;
@@ -268,6 +257,8 @@ namespace slib
 
 		sl_bool getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize = sl_null) override;
 
+		Ref<FileContext> createContext(const StringParam& path) override;
+
 		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) override;
 
 		sl_uint32 readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
@@ -292,11 +283,6 @@ namespace slib
 
 		HashMap<String, FileInfo> getFiles(const StringParam& pathDir) override;
 
-	public:
-		Ref<FileContext> createContext(const StringParam& path, sl_uint64 handle) noexcept override;
-
-		Ref<FileContext> createContext(const StringParam& path, Ref<Referable> ref = sl_null) noexcept override;
-
 	protected:
 		// If you want to use different FileContext in wrapper, you will need to override these functions.
 		virtual Ref<FileContext> getBaseContext(FileContext* context) noexcept;
@@ -316,5 +302,37 @@ namespace slib
 	};
 	
 }
+
+#define SLIB_DECLARE_FILE_CONTEXT_SINGLE_MEMBER_INLINE(CLASS_NAME, VAR_TYPE, VAR_NAME) \
+	class CLASS_NAME : public FileContext \
+	{ \
+	public: \
+		VAR_TYPE VAR_NAME; \
+	public: \
+		CLASS_NAME(const String& path) : FileContext(path), VAR_NAME() {} \
+		CLASS_NAME(const String& path, const VAR_TYPE& VAR_NAME) \
+			: FileContext(path), VAR_NAME(VAR_NAME) {} \
+		~CLASS_NAME() {} \
+	};
+
+#define SLIB_DECLARE_FILE_CONTEXT_SINGLE_MEMBER(CLASS_NAME, VAR_TYPE, VAR_NAME) \
+	class CLASS_NAME : public FileContext \
+	{ \
+		SLIB_DECLARE_OBJECT \
+	public: \
+		VAR_TYPE VAR_NAME; \
+	public: \
+		CLASS_NAME(const String& path); \
+		CLASS_NAME(const String& path, const VAR_TYPE& VAR_NAME); \
+		~CLASS_NAME(); \
+	};
+
+#define SLIB_DEFINE_FILE_CONTEXT_SINGLE_MEMBER(CLASS_NAME, VAR_TYPE, VAR_NAME) \
+	SLIB_DEFINE_OBJECT(CLASS_NAME, FileContext) \
+	CLASS_NAME::CLASS_NAME(const String& path) \
+		: FileContext(path), VAR_NAME() {} \
+	CLASS_NAME::CLASS_NAME(const String& path, const VAR_TYPE& VAR_NAME) \
+		: FileContext(path), VAR_NAME(VAR_NAME) {} \
+	CLASS_NAME::~CLASS_NAME() {}
 
 #endif

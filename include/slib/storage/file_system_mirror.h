@@ -28,6 +28,8 @@
 namespace slib
 {
 
+	SLIB_DECLARE_FILE_CONTEXT_SINGLE_MEMBER(MirrorFileContext, Ref<File>, file)
+
 	class MirrorFileSystem : public FileSystemProvider
 	{
 		SLIB_DECLARE_OBJECT
@@ -46,6 +48,8 @@ namespace slib
 		sl_bool getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize = sl_null) override;
 
 		sl_bool createDirectory(const StringParam& path) override;
+
+		Ref<FileContext> createContext(const StringParam& path) override;
 
 		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) override;
 

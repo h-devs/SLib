@@ -39,6 +39,5 @@
 	return ret;
 
 #define PATH_FROM_CONTEXT(context)			(context ? context->path : sl_null)
-#define HANDLE_FROM_CONTEXT(context)		(context ? context->handle : 0)
 
 #endif

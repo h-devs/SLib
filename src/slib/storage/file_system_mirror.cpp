@@ -29,11 +29,13 @@
 #include "slib/core/variant.h"
 #include "slib/storage/disk.h"
 
-#define FILE_FROM_CONTEXT(context)	(context ? CastInstance<File>(context->ptr) : sl_null)
+#define FILE_FROM_CONTEXT(context)	(context ? ((MirrorFileContext*)(context))->file : sl_null)
 #define CONCAT_PATH(path)			(m_root.isNotEmpty() && path.isNotEmpty() ? m_root + path : sl_null)
 
 namespace slib
 {
+
+	SLIB_DEFINE_FILE_CONTEXT_SINGLE_MEMBER(MirrorFileContext, Ref<File>, file)
 
 	SLIB_DEFINE_OBJECT(MirrorFileSystem, FileSystemProvider)
 
@@ -83,13 +85,18 @@ namespace slib
 		return File::createDirectory(CONCAT_PATH(path));
 	}
 
+	Ref<FileContext> MirrorFileSystem::createContext(const StringParam& path)
+	{
+		return new MirrorFileContext(path.toString());
+	}
+
 	Ref<FileContext> MirrorFileSystem::openFile(const StringParam& path, const FileOpenParam& param)
 	{
 		Ref<File> file = File::open(CONCAT_PATH(path), param);
 		if (file.isNull()) {
 			return sl_null;
 		}
-		return createContext(path, file);
+		return new MirrorFileContext(path.toString(), file);
 	}
 
 	sl_bool MirrorFileSystem::closeFile(FileContext* context)
