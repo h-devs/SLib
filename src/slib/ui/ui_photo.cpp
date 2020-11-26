@@ -85,6 +85,7 @@ namespace slib
 	
 	TakePhoto::TakePhoto()
 	{
+		flagFlipHorizontal = sl_false;
 	}
 	
 	void TakePhoto::takeFromCamera(const Function<void(TakePhotoResult&)>& onComplete)
@@ -132,9 +133,20 @@ namespace slib
 		camera->setAutoStart(sl_true);
 		camera->setScaleMode(ScaleMode::Cover);
 		camera->setControlsVisible(sl_true, UIUpdateMode::Init);
+		if (flagFlipHorizontal) {
+			camera->setFlip(FlipMode::Horizontal);
+		}
 		camera->setOnTakePicture([thiz, dlg](CameraView*, CameraTakePictureResult& result) {
 			priv::ui_photo::TakePhotoResultEx tr;
-			tr.setResult(result.getImage());
+			if (thiz.flagFlipHorizontal) {
+				Ref<Image> image = result.getImage();
+				if (image.isNotNull()) {
+					image = image->flipImage(FlipMode::Horizontal);
+					tr.setResult(image);
+				}
+			} else {
+				tr.setResult(result.getImage());
+			}
 			dlg->close(DialogResult::Ok);
 			thiz.onComplete(tr);
 		});

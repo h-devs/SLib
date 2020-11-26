@@ -8645,7 +8645,7 @@ namespace slib
 			return;
 		}
 
-		if (isNativeWidget()) {
+		if (isNativeWidget() && !(getChildrenCount())) {
 			Ref<GestureDetector> gesture = getGestureDetector();
 			if (gesture.isNotNull()) {
 				gesture->processEvent(ev);
@@ -8892,7 +8892,7 @@ namespace slib
 			return;
 		}
 
-		if (isNativeWidget()) {
+		if (isNativeWidget() && !(getChildrenCount())) {
 			Ref<GestureDetector> gesture = getGestureDetector();
 			if (gesture.isNotNull()) {
 				gesture->processEvent(ev);
@@ -9247,7 +9247,7 @@ namespace slib
 			return;
 		}
 
-		if (isNativeWidget()) {
+		if (isNativeWidget() && !(getChildrenCount())) {
 			priv::view::DuringEventScope scope(this, ev);
 			SLIB_INVOKE_EVENT_HANDLER(MouseWheelEvent, ev)
 			return;
@@ -9350,7 +9350,7 @@ namespace slib
 			}
 		}
 
-		if (isNativeWidget()) {
+		if (isNativeWidget() && !(getChildrenCount())) {
 			priv::view::DuringEventScope scope(this, ev);
 			SLIB_INVOKE_EVENT_HANDLER(KeyEvent, ev)
 			if (ev->isPreventedDefault()) {
@@ -9424,7 +9424,7 @@ namespace slib
 			return;
 		}
 
-		if (isNativeWidget()) {
+		if (isNativeWidget() && !(getChildrenCount())) {
 			priv::view::DuringEventScope scope(this, ev);
 			SLIB_INVOKE_EVENT_HANDLER(SetCursor, ev)
 			return;
@@ -9527,7 +9527,7 @@ namespace slib
 			return;
 		}
 
-		if (isNativeWidget()) {
+		if (isNativeWidget() && !(getChildrenCount())) {
 			priv::view::DuringEventScope scope(this, ev);
 			SLIB_INVOKE_EVENT_HANDLER(DropEvent, ev)
 			return;

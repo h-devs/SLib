@@ -70,6 +70,7 @@ namespace slib
 	public:
 		Ref<Window> parent;
 		String outputFilePath;
+		sl_bool flagFlipHorizontal;
 		Function<void(TakePhotoResult&)> onComplete;
 		
 	public:
