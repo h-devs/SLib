@@ -28,7 +28,6 @@
 #include "array_traits.h"
 #include "ref.h"
 #include "compare.h"
-#include "null_value.h"
 #include "sort.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES

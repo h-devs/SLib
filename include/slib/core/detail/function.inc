@@ -484,7 +484,7 @@ namespace slib
 					if (o.isNotNull()) {
 						return FunctionInvoker<RET_TYPE>::invokeMember(o.ptr, func, Forward<ARGS>(args)...);
 					} else {
-						return NullValue<RET_TYPE>::get();
+						return RET_TYPE();
 					}
 				}
 			};
@@ -510,7 +510,7 @@ namespace slib
 					if (o.isNotNull()) {
 						return BindInvoker<RET_TYPE>::invokeMember(o.ptr, func, binds, Forward<ARGS>(args)...);
 					} else {
-						return NullValue<RET_TYPE>::get();
+						return RET_TYPE();
 					}
 				}
 			};
@@ -535,7 +535,7 @@ namespace slib
 					if (o.isNotNull()) {
 						return FunctionInvoker<RET_TYPE>::invokeMember(o.ptr, func, Forward<ARGS>(args)...);
 					} else {
-						return NullValue<RET_TYPE>::get();
+						return RET_TYPE();
 					}
 				}
 			};
@@ -561,7 +561,7 @@ namespace slib
 					if (o.isNotNull()) {
 						return BindInvoker<RET_TYPE>::invokeMember(o.ptr, func, binds, Forward<ARGS>(args)...);
 					} else {
-						return NullValue<RET_TYPE>::get();
+						return RET_TYPE();
 					}
 				}
 			};
@@ -606,7 +606,7 @@ namespace slib
 					if (o.isNotNull()) {
 						return FunctionInvoker<RET_TYPE>::invoke(func, Forward<ARGS>(args)...);
 					} else {
-						return NullValue<RET_TYPE>::get();
+						return RET_TYPE();
 					}
 				}
 			};
@@ -631,7 +631,7 @@ namespace slib
 					if (o.isNotNull()) {
 						return FunctionInvoker<RET_TYPE>::invoke(func, Forward<ARGS>(args)...);
 					} else {
-						return NullValue<RET_TYPE>::get();
+						return RET_TYPE();
 					}
 				}
 			};
@@ -661,7 +661,7 @@ namespace slib
 		if (object) {
 			return object->invoke(args...);
 		} else {
-			return NullValue<RET_TYPE>::get();
+			return RET_TYPE();
 		}
 	}
 	
@@ -687,7 +687,7 @@ namespace slib
 		if (object.isNotNull()) {
 			return object->invoke(args...);
 		} else {
-			return NullValue<RET_TYPE>::get();
+			return RET_TYPE();
 		}
 	}
 	
@@ -983,7 +983,7 @@ namespace slib
 				functions[i](args...);
 			}
 		}
-		return NullValue<RET_TYPE>::get();
+		return RET_TYPE();
 	}
 	
 	

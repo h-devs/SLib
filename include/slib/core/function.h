@@ -28,7 +28,6 @@
 #include "ref.h"
 #include "ptr.h"
 #include "tuple.h"
-#include "null_value.h"
 #include "list.h"
 
 namespace slib

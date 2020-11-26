@@ -294,7 +294,7 @@ namespace slib
 		if (node) {
 			return node->value;
 		} else {
-			return NullValue<VT>::get();
+			return VT();
 		}
 	}
 	

@@ -114,7 +114,7 @@ namespace slib
 					if (getAt(i, &value)) {
 						ret.add_NoLock(Move(value));
 					} else {
-						ret.add_NoLock(NullValue<T>::get());
+						ret.add_NoLock(T());
 					}
 				}
 				return ret;

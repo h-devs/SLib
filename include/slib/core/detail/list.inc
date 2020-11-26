@@ -348,7 +348,7 @@ namespace slib
 		if (index < m_count) {
 			return m_data[index];
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 	
@@ -359,7 +359,7 @@ namespace slib
 		if (index < m_count) {
 			return m_data[index];
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 	
@@ -413,7 +413,7 @@ namespace slib
 		if (m_count) {
 			return m_data[0];
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 	
@@ -424,7 +424,7 @@ namespace slib
 		if (m_count) {
 			return m_data[0];
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 	
@@ -481,7 +481,7 @@ namespace slib
 		if (count) {
 			return m_data[count - 1];
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 	
@@ -493,7 +493,7 @@ namespace slib
 		if (count) {
 			return m_data[count - 1];
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 	
@@ -1585,7 +1585,7 @@ namespace slib
 		if (obj) {
 			return obj->getValueAt_NoLock(index);
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 
@@ -1596,7 +1596,7 @@ namespace slib
 		if (obj) {
 			return obj->getValueAt(index);
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 
@@ -1647,7 +1647,7 @@ namespace slib
 		if (obj) {
 			return obj->getFirstValue_NoLock();
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 	
@@ -1658,7 +1658,7 @@ namespace slib
 		if (obj) {
 			return obj->getFirstValue();
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 	
@@ -1709,7 +1709,7 @@ namespace slib
 		if (obj) {
 			return obj->getLastValue_NoLock();
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 	
@@ -1720,7 +1720,7 @@ namespace slib
 		if (obj) {
 			return obj->getLastValue();
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 	
@@ -2852,7 +2852,7 @@ namespace slib
 		if (obj.isNotNull()) {
 			return obj->getValueAt(index);
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 
@@ -2883,7 +2883,7 @@ namespace slib
 		if (obj.isNotNull()) {
 			return obj->getFirstValue();
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 	
@@ -2914,7 +2914,7 @@ namespace slib
 		if (obj.isNotNull()) {
 			return obj->getLastValue();
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 	
@@ -2946,7 +2946,7 @@ namespace slib
 		if (obj.isNotNull()) {
 			return obj->getValueAt(index);
 		} else {
-			return NullValue<T>::get();
+			return T();
 		}
 	}
 

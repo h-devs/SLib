@@ -25,8 +25,6 @@
 
 #include "definition.h"
 
-#include "null_value.h"
-
 #include "hash.h"
 
 namespace slib
@@ -36,18 +34,16 @@ namespace slib
 	class Nullable
 	{
 	public:
-		SLIB_INLINE Nullable(): flagNull(sl_true)
+		SLIB_INLINE Nullable(): flagNull(sl_true), value()
 		{
-			NullValue<T>::get(&value);
 		}
 		
 		SLIB_INLINE Nullable(const Nullable& other): flagNull(other.flagNull), value(other.value) {}
 		
 		SLIB_INLINE Nullable(Nullable&& other): flagNull(Move(other.flagNull)), value(Move(other.value)) {}
 		
-		SLIB_INLINE Nullable(sl_null_t): flagNull(sl_true)
+		SLIB_INLINE Nullable(sl_null_t): flagNull(sl_true), value()
 		{
-			NullValue<T>::get(&value);
 		}
 		
 		template <class OTHER>
@@ -83,7 +79,7 @@ namespace slib
 		SLIB_INLINE Nullable& operator=(sl_null_t)
 		{
 			flagNull = sl_true;
-			NullValue<T>::get(&value);
+			value = T();
 			return *this;
 		}
 		
@@ -116,7 +112,7 @@ namespace slib
 		SLIB_INLINE void setNull()
 		{
 			flagNull = sl_true;
-			NullValue<T>::get(&value);
+			value = T();
 		}
 
 		SLIB_INLINE constexpr T const& get() const noexcept

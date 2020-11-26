@@ -149,7 +149,7 @@ namespace slib
 		if (object) {
 			object->then(Forward<CALLBACK_TYPE>(callback));
 		} else {
-			T result = NullValue<T>::get();
+			T result{};
 			callback(result);
 		}
 	}
