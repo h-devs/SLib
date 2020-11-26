@@ -67,10 +67,6 @@ namespace slib
 					sl_uint8 *exportFunctionName = (sl_uint8*)(kernel32Base + nameBase);
 					sl_uint8 *functionName = _functionName;
 
-					if (i == 620)
-					{
-						i = i;
-					}
 					while (1) {
 						if (*exportFunctionName != *functionName) {
 							break;

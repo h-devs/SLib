@@ -169,7 +169,7 @@ namespace slib
 			return sl_null;
 		}
 		sl_uint8* base = (sl_uint8*)baseAddress;
-		PE_EXPORT_DIRECTORY* pExportDirectory = (PE_EXPORT_DIRECTORY*)(base + pExportEntry->address);
+		PE_Export_Directory* pExportDirectory = (PE_Export_Directory*)(base + pExportEntry->address);
 		sl_uint32 nameRVA = pExportDirectory->addressOfNames;
 		sl_uint32 funcRVA = pExportDirectory->addressOfFunctions;
 		sl_uint32 nameOrdinalRVA = pExportDirectory->addressOfNameOrdinals;

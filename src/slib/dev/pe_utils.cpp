@@ -52,13 +52,23 @@ namespace slib
 		return ret;
 	}
 
-	Memory PE_Utils::generateShellCode(const void* obj, sl_size size)
+	Memory PE_Utils::generateShellCode(const void* obj, sl_size size, const StringParam& entryFuntionName)
 	{
 		PE_Header* header = (PE_Header*)obj;
 		sl_uint8* base = (sl_uint8*)obj;
 		sl_uint8* sectionBase = base + sizeof(PE_Header);
 		
 		MemoryBuffer shellCodeBuffer;
+		
+		PE_Symbol* entrySymbol = findSymbol(base, entryFuntionName);
+		sl_uint32 shellCodeEntryPoint = getObjSectionVirtualOffset(base, entrySymbol->sectionNumber) + 4;
+
+		Memory entryCode = Memory::create(8);
+		sl_uint8 jmpCode = 0xE9;
+		entryCode.write(0, 1, &jmpCode);
+		entryCode.write(1, 4, &shellCodeEntryPoint);
+
+		shellCodeBuffer.add(entryCode);
 		for (sl_uint32 sectionIndex = 0; sectionIndex < header->numberOfSections; sectionIndex++)
 		{
 			PE_SectionHeader* sectionHeader = (PE_SectionHeader*)sectionBase;
@@ -101,10 +111,10 @@ namespace slib
 		return shellCodeBuffer.merge();
 	}
 
-	Memory PE_Utils::generateShellCodeFromFile(const StringParam& filePath)
+	Memory PE_Utils::generateShellCodeFromFile(const StringParam& filePath, const StringParam& entryFuntionName)
 	{
 		Memory fileContent = File::readAllBytes(filePath);
-		return generateShellCode(fileContent.getData(), fileContent.getSize());
+		return generateShellCode(fileContent.getData(), fileContent.getSize(), entryFuntionName);
 	}
 
 
@@ -116,6 +126,25 @@ namespace slib
 
 		sl_uint8* symbolBase = (base + pointerToSymbolTable);
 		return (PE_Symbol*)(symbolBase + sizeof(PE_Symbol) * symbolIndex);
+	}
+
+	PE_Symbol* PE_Utils::findSymbol(const void* baseAddress, const StringParam& symbolName)
+	{
+		sl_uint8* base = (sl_uint8*)baseAddress;
+		PE_Header* header = (PE_Header*)baseAddress;
+		sl_uint32 numberOfSymbols = header->numberOfSymbols;
+		
+		sl_uint32 symbolIndex = 0;
+		while (symbolIndex < numberOfSymbols)
+		{
+			String name = getObjSymbolName(baseAddress, symbolIndex);
+			if (name.contains(symbolName))
+			{
+				return getObjSymbol(baseAddress, symbolIndex);
+			}
+			symbolIndex++;
+		}
+		return sl_null;
 	}
 
 	String PE_Utils::getObjSymbolName(const void* baseAddress, sl_uint32 symbolIndex)
@@ -133,17 +162,15 @@ namespace slib
 		if (symbol->name.longName[0] == 0 && symbol->name.longName[1] != 0)
 		{
 			strName = (char*)(symbolStringBase + symbol->name.longName[1]);
+			sl_int32 nameLen = Base::getStringLength(strName);
+			return String::fromUtf8(strName, nameLen);
 		}
 		else
 		{
 			strName = (char*)(symbol->name.shortName);
-		}
-
-		if (strName != sl_null)
-		{
 			sl_int32 nameLen = Base::getStringLength(strName, 8);
 			return String::fromUtf8(strName, nameLen);
 		}
-
+		return "";
 	}
 }
