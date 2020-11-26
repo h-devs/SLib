@@ -12,7 +12,7 @@ namespace slib
 
 	void* GetKernel32AddressFromPEB()
 	{
-#if not defined SLIB_PLATFORM_IS_WIN64
+#if !defined(SLIB_PLATFORM_IS_WIN64)
 		sl_uint32* peb = (sl_uint32*)__readfsdword(0x30) + 3;
 		sl_uint32* pebLoaderDlls = (sl_uint32*)(*peb + 0x14);
 		while (1) {
@@ -23,7 +23,7 @@ namespace slib
 				return (void*)*(pebLoaderDlls + 4);
 			}
 		}
-#elif defined SLIB_PLATFORM_IS_WIN64
+#elif defined(SLIB_PLATFORM_IS_WIN64)
 		sl_uint64* peb = (sl_uint64*)__readgsqword(0x60) + 3;
 		sl_uint64* pebLoaderDlls = (sl_uint64*)(*peb + 0x10);
 		while (1) {
