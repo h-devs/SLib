@@ -247,6 +247,7 @@
     <ClCompile Include="..\..\src\slib\device\device.cpp" />
     <ClCompile Include="..\..\src\slib\device\device_win32.cpp" />
     <ClCompile Include="..\..\src\slib\device\sensor.cpp" />
+    <ClCompile Include="..\..\src\slib\dev\pe_utils.cpp" />
     <ClCompile Include="..\..\src\slib\dev\vtable.cpp" />
     <ClCompile Include="..\..\src\slib\dev\hook.cpp" />
     <ClCompile Include="..\..\src\slib\dev\module.cpp" />

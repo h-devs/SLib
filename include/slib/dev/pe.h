@@ -5,6 +5,8 @@
 
 #include "coff.h"
 
+#include "../core/string.h"
+
 #define SLIB_PE_OPTIONAL_MAGIC_EXE32		0x10b // 32-bit executable image
 #define SLIB_PE_OPTIONAL_MAGIC_EXE64		0x20b // 64-bit executable image
 #define SLIB_PE_OPTIONAL_MAGIC_ROM			0x107 // ROM image
@@ -50,6 +52,9 @@
 #define SLIB_PE_DIRECTORY_DELAY_IMPORT_DESCRIPTOR	13
 #define SLIB_PE_DIRECTORY_CLR						14
 // Reserved											15
+
+#define SLIB_PE_RELOC_I386_REL32					0x0014
+#define SLIB_PE_REL_AMD64_REL32								0x0004
 
 namespace slib
 {
@@ -164,7 +169,7 @@ namespace slib
 		sl_uint32 addressOfEntryPoint; // entry point function, relative to the image base address. 0 when no entry point is present
 		sl_uint32 baseOfCode; // A pointer to the beginning of the code section, relative to the image base
 		sl_uint64 imageBase;  // The preferred address of the first byte of the image when it is loaded in memory. This value is a multiple of 64K bytes. The default value for DLLs is 0x10000000. The default value for applications is 0x00400000, except on Windows CE where it is 0x00010000.
- sl_uint32 sectionAlignment; // The alignment of sections loaded in memory. must be greater than or equal to the `fileAlignment` member. The default value is the page size for the system.
+		sl_uint32 sectionAlignment; // The alignment of sections loaded in memory. must be greater than or equal to the `fileAlignment` member. The default value is the page size for the system.
 		sl_uint32 fileAlignment; // The alignment of the raw data of sections in the image file. The value should be a power of 2 between 512 and 64K (inclusive). The default is 512. If the `sectionAlignment` member is less than the system page size, this member must be the same as `sectionAlignment`.
 		sl_uint16 majorOperatingSystemVersion; // The major version number of the required operating system.
 		sl_uint16 minorOperatingSystemVersion; // The minor version number of the required operating system.
@@ -196,7 +201,52 @@ namespace slib
 		sl_uint32 name; // relative virtual address to dll name
 		sl_uint32 firstThunk; // relative virtual address to Import-Address-Table (if bound this IAT has actual addresses)
 	};
-	
+
+	class SLIB_EXPORT PE_ExportDirectory
+	{
+	public:
+		sl_uint32 characteristics;
+		sl_uint32 timeDateStamp;
+		sl_uint16 majorVersion;
+		sl_uint16 minorVersion;
+		sl_uint32 name;
+		sl_uint32 base;
+		sl_uint32 numberOfFunctions;
+		sl_uint32 numberOfNames;
+		sl_uint32 addressOfFunctions; // RVA from base of image
+		sl_uint32 addressOfNames; // RVA from base of image
+		sl_uint32 addressOfNameOrdinals; // RVA from base of image
+	};
+
+#pragma pack(push, 1)
+	class SLIB_EXPORT PE_SectionRelocator
+	{
+	public:
+		union 
+		{
+			sl_uint32 virtualAddress;
+			sl_uint32 relocCount; // Set to the real count when IMAGE_SCN_LNK_NRELOC_OVFL is set
+		};
+		sl_uint32 symbolTableIndex;
+		sl_int16 type;
+	};
+
+	class SLIB_EXPORT PE_Symbol
+	{
+	public:
+		union 
+		{
+			sl_uint8 shortName[8];
+			sl_uint32 longName[2];
+		} name;
+		sl_uint32 value;
+		sl_uint16 sectionNumber;
+		sl_uint16 type;
+		sl_uint8 storageClass;
+		sl_uint8 numberOfAuxSymbols;
+	};
+#pragma pack(pop)
+
 	class SLIB_EXPORT PE
 	{
 	public:
@@ -223,10 +273,13 @@ namespace slib
 		
 		PE_DirectoryEntry* getImportTableDirectory();
 
+		PE_DirectoryEntry* getExportTableDirectory();
+
 		PE_ImportDescriptor* findImportTable(const void* baseAddress, const char* dllName);
+		
+		void* findExportFunction(const void* baseAddress, const char* functionName);
 
 	};
-
 }
 
 #endif
