@@ -93,11 +93,6 @@ namespace slib
 		return open(filePath, FileMode::Write);
 	}
 
-	Ref<File> File::openForWriteExisting(const StringParam& filePath)
-	{
-		return open(filePath, FileMode::Write | FileMode::NotCreate | FileMode::NotTruncate);
-	}
-
 	Ref<File> File::openForReadWrite(const StringParam& filePath)
 	{
 		return open(filePath, FileMode::ReadWrite);
