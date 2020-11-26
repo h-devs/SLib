@@ -10,7 +10,7 @@
 namespace slib
 {
 
-	void* GetKernel32AddressFromPEB()
+	static void* GetKernel32AddressFromPEB()
 	{
 #if !defined(SLIB_PLATFORM_IS_WIN64)
 		sl_uint32* peb = (sl_uint32*)__readfsdword(0x30) + 3;
@@ -38,7 +38,7 @@ namespace slib
 		return sl_null;
 	}
 
-	void* GetKernel32Function(sl_uint8* _functionName)
+	static void* GetKernel32Function(sl_uint8* _functionName)
 	{
 		sl_uint8* kernel32Base = (sl_uint8*)getKernel32AddressFromPEB();
 		if (kernel32Base != sl_null) {
@@ -83,7 +83,7 @@ namespace slib
 		return sl_null;
 	}
 
-	void* PEB_GetModuleFileNameA()
+	static void* PEB_GetModuleFileNameA()
 	{
 		sl_uint32 funcName[0x30] = { 'MteG', 'ludo', 'liFe', 'maNe', 'Ae'};
 		return getKernel32Function((sl_uint8*)funcName);
