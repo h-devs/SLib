@@ -1756,7 +1756,7 @@ namespace slib
 		} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) {
 			return p2->getValueAt_NoLock(index);
 		}
-		return sl_null;
+		return Variant();
 	}
 
 	Variant Variant::getElement(sl_size index) const noexcept
@@ -1769,7 +1769,7 @@ namespace slib
 		} else if (CList< HashMap<String, Variant> >* p3 = CastInstance< CList< HashMap<String, Variant> > >(obj.ptr)) {
 			return p2->getValueAt(index);
 		}
-		return sl_null;
+		return Variant();
 	}
 
 	sl_bool Variant::setElement_NoLock(sl_size index, const Variant& value) noexcept
@@ -1869,7 +1869,7 @@ namespace slib
 		} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj.ptr)) {
 			return p2->getValue_NoLock(key);
 		}
-		return sl_null;
+		return Variant();
 	}
 
 	Variant Variant::getItem(const String& key) const noexcept
@@ -1880,7 +1880,7 @@ namespace slib
 		} else if (CHashMap<String, Variant>* p2 = CastInstance< CHashMap<String, Variant> >(obj.ptr)) {
 			return p2->getValue(key);
 		}
-		return sl_null;
+		return Variant();
 	}
 	
 	sl_bool Variant::putItem_NoLock(const String& key, const Variant& value) noexcept
