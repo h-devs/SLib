@@ -108,16 +108,16 @@
 
 
 #if defined(SLIB_COMPILER_IS_VC)
-#	define SLIB_HAS_FEATURE_iS_CONVERTIBLE_TO
+#	define SLIB_HAS_FEATURE_IS_CONVERTIBLE_TO
 #elif defined(SLIB_COMPILER_IS_GCC)
 #	if defined(__has_feature)
 #		if __has_feature(is_convertible_to)
-#			define SLIB_HAS_FEATURE_iS_CONVERTIBLE_TO
+#			define SLIB_HAS_FEATURE_IS_CONVERTIBLE_TO
 #		endif
 #	endif
 #endif
 
-#if defined(SLIB_HAS_FEATURE_iS_CONVERTIBLE_TO)
+#if defined(SLIB_HAS_FEATURE_IS_CONVERTIBLE_TO)
 #	define SLIB_TRY_CONVERT_TYPE(FROM, TO) \
 		{ static_assert(__is_convertible_to(FROM, TO), "Cannot convert from '" #FROM "' to '" #TO "'"); }
 #else
