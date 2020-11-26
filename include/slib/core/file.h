@@ -157,8 +157,6 @@ namespace slib
 
 		static Ref<File> openForWrite(const StringParam& filePath);
 
-		static Ref<File> openForWriteExisting(const StringParam& filePath);
-
 		static Ref<File> openForReadWrite(const StringParam& filePath);
 
 		static Ref<File> openForAppend(const StringParam& filePath);

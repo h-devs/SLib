@@ -141,7 +141,7 @@ namespace slib
 		Ref<File> file = FILE_FROM_CONTEXT(context);
 
 		if (file.isNull() || !file->isOpened()) {
-			file = File::openForWriteExisting(filePath);
+			file = File::open(filePath, FileMode::Write | FileMode::NotCreate | FileMode::NotTruncate);
 		}
 		if (file.isNull() || !file->isOpened()) {
 			SET_ERROR_AND_RETURN(FileSystemError::InvalidContext, 0);
@@ -298,7 +298,7 @@ namespace slib
 
 		if (mask & FileInfoMask::Size) {
 			if (!flagOpened) {
-				file = File::openForWriteExisting(filePath);
+				file = File::open(filePath, FileMode::Write | FileMode::NotCreate | FileMode::NotTruncate);
 				if (file.isNull() || !file->isOpened()) {
 					return sl_false;
 				}
