@@ -58,7 +58,7 @@ namespace slib
 		TimeInfo = 0x01000000,
 		TimeInfoAsInt = 0x02000000,
 		FileName = 0x04000000,
-		ContextHandle = 0x08000000,
+		ContextAddress = 0x08000000,
 
 		RetSuccess = 0x10000000,
 		RetFail = 0x20000000,
@@ -94,6 +94,8 @@ namespace slib
 		sl_bool getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize = sl_null) override;
 
 		sl_bool createDirectory(const StringParam& path) override;
+
+		Ref<FileContext> createContext(const StringParam& path) override;
 
 		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) override;
 

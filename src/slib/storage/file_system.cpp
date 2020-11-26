@@ -117,24 +117,13 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(FileContext, Object)
 
-	FileContext::FileContext(String path, sl_uint64 handle)
-		: path(path), handle(handle), flagUseRef(sl_false)
+	FileContext::FileContext(const String& path)
+		: path(path)
 	{
-	}
-
-	FileContext::FileContext(String path, Ref<Referable> ref)
-		: path(path), ptr(ref.ptr), flagUseRef(sl_true)
-	{
-		if (ptr) {
-			ptr->increaseReference();
-		}
 	}
 
 	FileContext::~FileContext()
 	{
-		if (ptr && flagUseRef) {
-			ptr->decreaseReference();
-		}
 	}
 
 
@@ -197,16 +186,6 @@ namespace slib
 	sl_bool FileSystemProvider::deleteDirectory(const StringParam& path)
 	{
 		SET_ERROR_AND_RETURN(FileSystemError::NotImplemented, sl_false)
-	}
-
-	Ref<FileContext> FileSystemProvider::createContext(const StringParam& path, sl_uint64 handle) noexcept
-	{
-		return new FileContext(path.toString(), handle);
-	}
-
-	Ref<FileContext> FileSystemProvider::createContext(const StringParam& path, Ref<Referable> ref) noexcept
-	{
-		return new FileContext(path.toString(), ref);
 	}
 
 	sl_bool FileSystemProvider::getFileInfo(const StringParam& path, FileInfo& outInfo, const FileInfoMask& mask) noexcept
@@ -426,6 +405,11 @@ namespace slib
 		return m_base->getSize(pTotalSize, pFreeSize);
 	}
 
+	Ref<FileContext> FileSystemWrapper::createContext(const StringParam& path)
+	{
+		return getWrapperContext(m_base->createContext(toBasePath(path)), path);
+	}
+
 	Ref<FileContext> FileSystemWrapper::openFile(const StringParam& path, const FileOpenParam& param)
 	{
 		Ref<FileContext> baseContext = m_base->openFile(toBasePath(path), param);
@@ -544,16 +528,6 @@ namespace slib
 			files.add_NoLock(name, info);
 		}
 		return files;
-	}
-
-	Ref<FileContext> FileSystemWrapper::createContext(const StringParam& path, sl_uint64 handle) noexcept
-	{
-		return getWrapperContext(m_base->createContext(toBasePath(path), handle), path);
-	}
-
-	Ref<FileContext> FileSystemWrapper::createContext(const StringParam& path, Ref<Referable> ref) noexcept
-	{
-		return getWrapperContext(m_base->createContext(toBasePath(path), ref), path);
 	}
 
 	Ref<FileContext> FileSystemWrapper::getBaseContext(FileContext* context) noexcept

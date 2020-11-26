@@ -27,8 +27,8 @@
 #include "slib/core/system.h"
 
 #define PATH_LOG(path) (m_flags & FileSystemLogFlags::FileName ? path : "")
-#define HANDLE_LOG(handle) ("0x" + String::fromUint64(handle, 16, 8, sl_true))
-#define CONTEXT_LOG(context) PATH_LOG(PATH_FROM_CONTEXT(context)) + (m_flags & FileSystemLogFlags::ContextHandle ? ":" + HANDLE_LOG(HANDLE_FROM_CONTEXT(context)) : "")
+#define ADDR_LOG(ptr) ("0x" + String::fromUint64((sl_uint64)(sl_ptr)(ptr), 16, 8, sl_true))
+#define CONTEXT_LOG(context) PATH_LOG(PATH_FROM_CONTEXT(context)) + (m_flags & FileSystemLogFlags::ContextAddress ? ":" + ADDR_LOG(context) : "")
 #define ERROR_LOG(error) (String::fromUint32((sl_uint32)(error)) + (m_flags & FileSystemLogFlags::ExceptionString ? ", " + System::formatErrorCode((sl_uint32)(error)) : ""))
 
 namespace slib
@@ -159,6 +159,26 @@ namespace slib
 		return ret;
 	}
 
+	Ref<FileContext> FileSystemLogger::createContext(const StringParam& path)
+	{
+		if (!(m_flags & FileSystemLogFlags::Create) || !m_regex.match(path.toString())) {
+			return m_base->createContext(path);
+		}
+
+		String desc = String::format("CreateContext(%s)", PATH_LOG(path));
+		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+			LOG(desc);
+		}
+
+		Ref<FileContext> context = m_base->createContext(path);
+		if (context.isNotNull() && (m_flags & FileSystemLogFlags::RetSuccess)) {
+			LOG("%s\n  Context: %s", desc, ADDR_LOG(context));
+		} else if (context.isNull() && (m_flags & FileSystemLogFlags::RetFail)) {
+			LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
+		}
+		return context;
+	}
+
 	Ref<FileContext> FileSystemLogger::openFile(const StringParam& path, const FileOpenParam& param)
 	{
 		if (!(m_flags & FileSystemLogFlags::Open) || !m_regex.match(path.toString())) {
@@ -194,7 +214,7 @@ namespace slib
 
 		Ref<FileContext> context = m_base->openFile(path, param);
 		if (context.isNotNull() && (m_flags & FileSystemLogFlags::RetSuccess)) {
-			LOG("%s\n  Handle: %s", desc, HANDLE_LOG(context->handle));
+			LOG("%s\n  Context: %s", desc, ADDR_LOG(context));
 		} else if (context.isNull() && (m_flags & FileSystemLogFlags::RetFail)) {
 			LOG("%s\n  Error: %s", desc, ERROR_LOG(FileSystem::getLastError()));
 		}
