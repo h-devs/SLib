@@ -199,6 +199,8 @@ namespace slib
 						curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, requestBody.getSize());
 					} else {
 						if (requestBody.isNotNull()) {
+							curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+							curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)requestBody.getSize());
 							curl_easy_setopt(curl, CURLOPT_READFUNCTION, CurlRequestImpl::callbackRead);
 							curl_easy_setopt(curl, CURLOPT_READDATA, (void*)this);
 						}
