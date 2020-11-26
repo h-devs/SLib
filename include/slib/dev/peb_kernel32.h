@@ -40,7 +40,7 @@ namespace slib
 
 	static void* GetKernel32Function(sl_uint8* _functionName)
 	{
-		sl_uint8* kernel32Base = (sl_uint8*)getKernel32AddressFromPEB();
+		sl_uint8* kernel32Base = (sl_uint8*)(GetKernel32AddressFromPEB());
 		if (kernel32Base != sl_null) {
 			PE_DosHeader* dosHeader = (PE_DosHeader*)kernel32Base;
 			sl_uint32 offsetOptional = dosHeader->newHeader + 4 + sizeof(PE_Header);
@@ -56,7 +56,7 @@ namespace slib
 			}
 
 			if (exportEntry != sl_null) {
-				PE_Export_Directory* exportDirectory = (PE_Export_Directory*)(kernel32Base + exportEntry->address);
+				PE_ExportDirectory* exportDirectory = (PE_ExportDirectory*)(kernel32Base + exportEntry->address);
 				sl_uint32 nameRVA = exportDirectory->addressOfNames;
 				sl_uint32 functionRVA = exportDirectory->addressOfFunctions;
 				sl_uint32 nameIndexRVA = exportDirectory->addressOfNameOrdinals;
@@ -86,7 +86,7 @@ namespace slib
 	static void* PEB_GetModuleFileNameA()
 	{
 		sl_uint32 funcName[0x30] = { 'MteG', 'ludo', 'liFe', 'maNe', 'Ae'};
-		return getKernel32Function((sl_uint8*)funcName);
+		return GetKernel32Function((sl_uint8*)funcName);
 	}
 
 }
