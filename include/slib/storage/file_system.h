@@ -309,7 +309,7 @@ namespace slib
 	public: \
 		VAR_TYPE VAR_NAME; \
 	public: \
-		CLASS_NAME(const String& path) : FileContext(path) {} \
+		CLASS_NAME(const String& path) : FileContext(path), VAR_NAME() {} \
 		CLASS_NAME(const String& path, const VAR_TYPE& VAR_NAME) \
 			: FileContext(path), VAR_NAME(VAR_NAME) {} \
 		~CLASS_NAME() {} \
@@ -329,7 +329,8 @@ namespace slib
 
 #define SLIB_DEFINE_FILE_CONTEXT_SINGLE_MEMBER(CLASS_NAME, VAR_TYPE, VAR_NAME) \
 	SLIB_DEFINE_OBJECT(CLASS_NAME, FileContext) \
-	CLASS_NAME::CLASS_NAME(const String& path) : FileContext(path) {} \
+	CLASS_NAME::CLASS_NAME(const String& path) \
+		: FileContext(path), VAR_NAME() {} \
 	CLASS_NAME::CLASS_NAME(const String& path, const VAR_TYPE& VAR_NAME) \
 		: FileContext(path), VAR_NAME(VAR_NAME) {} \
 	CLASS_NAME::~CLASS_NAME() {}
