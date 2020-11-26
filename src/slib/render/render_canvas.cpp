@@ -51,6 +51,7 @@ namespace slib
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterB, u_ColorFilterB, RenderShaderType::Pixel, 3)
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterA, u_ColorFilterA, RenderShaderType::Pixel, 4)
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterC, u_ColorFilterC, RenderShaderType::Pixel, 5)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterM, u_ColorFilterM, RenderShaderType::Pixel, 6)
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(RectSrc, u_RectSrc, RenderShaderType::Vertex, 3)
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3_ARRAY(ClipTransform, u_ClipTransform, RenderShaderType::Vertex, 32)
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(ClipRect, u_ClipRect, RenderShaderType::Vertex | RenderShaderType::Pixel, 16)
@@ -438,7 +439,7 @@ namespace slib
 							}
 						}
 						
-						if (param.flagUseColorFilter && lang != RenderShaderLanguage::Assembly) {
+						if (param.flagUseColorFilter) {
 							if (signatures) {
 								*(signatures++) = 'F';
 							}
@@ -471,6 +472,13 @@ namespace slib
 										color = vec4(dot(color, u_ColorFilterR), dot(color, u_ColorFilterG), dot(color, u_ColorFilterB), dot(color, u_ColorFilterA)) + u_ColorFilterC;
 										color = color * l_Color;
 									));
+									break;
+								case RenderShaderLanguage::Assembly:
+									bufFBContent.addStatic(
+										"tex t0\n"
+										"mad r0, c6, t0, c5\n"
+										"mul r0, r0, c0\n"
+									);
 									break;
 								default:
 									break;
@@ -1115,6 +1123,7 @@ namespace slib
 				scope->setColorFilterB(param.colorMatrix.blue);
 				scope->setColorFilterA(param.colorMatrix.alpha);
 				scope->setColorFilterC(param.colorMatrix.bias);
+				scope->setColorFilterM(Vector4(param.colorMatrix.red.x, param.colorMatrix.green.y, param.colorMatrix.blue.z, param.colorMatrix.alpha.w));
 			}
 			if (param.useAlpha) {
 				scope->setColor(Color4f(color.x, color.y, color.z, color.w * param.alpha * getAlpha()));
@@ -1208,6 +1217,7 @@ namespace slib
 				scope->setColorFilterB(param.colorMatrix.blue);
 				scope->setColorFilterA(param.colorMatrix.alpha);
 				scope->setColorFilterC(param.colorMatrix.bias);
+				scope->setColorFilterM(Vector4(param.colorMatrix.red.x, param.colorMatrix.green.y, param.colorMatrix.blue.z, param.colorMatrix.alpha.w));
 			}
 			if (param.useAlpha) {
 				scope->setColor(Color4f(color.x, color.y, color.z, color.w * param.alpha * getAlpha()));
