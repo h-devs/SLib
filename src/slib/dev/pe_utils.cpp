@@ -59,7 +59,7 @@ namespace slib
 		MemoryBuffer shellCodeBuffer;
 		
 		PE_Symbol* entrySymbol = findSymbol(base, entryFuntionName);
-		sl_uint32 shellCodeEntryPoint = getObjSectionVirtualOffset(base, entrySymbol->sectionNumber) + 4;
+		sl_uint32 shellCodeEntryPoint = getObjSectionVirtualOffset(base, entrySymbol->sectionNumber) + 3;
 
 		Memory entryCode = Memory::create(8);
 		sl_uint8 jmpCode = 0xE9;
