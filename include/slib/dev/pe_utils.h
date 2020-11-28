@@ -2,7 +2,7 @@
 #define CHECKHEADER_SLIB_DEV_PE_UTILS
 
 #include "definition.h"
-
+#include "../core/map.h"
 #include "../dev/pe.h"
 #include "../core/memory.h"
 #include "../core/string.h"
@@ -25,6 +25,11 @@ namespace slib
 
 		static PE_Symbol* findSymbol(const void* baseAddress, const StringParam& symbolName);
 
+		static void optimizeSections(const void* baseAddress, const StringParam& entryFuntionName);
+
+		static void enumerateValidSections(const void* baseAddress, Map<sl_uint32, sl_uint32> validSections);
+		
+		
 	};
 
 }

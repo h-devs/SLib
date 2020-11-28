@@ -57,6 +57,7 @@ namespace slib
 		sl_uint8* sectionBase = base + sizeof(PE_Header);
 		
 		MemoryBuffer shellCodeBuffer;
+		optimizeSections(obj, entryFuntionName);
 		
 		PE_Symbol* entrySymbol = findSymbol(base, entryFuntionName);
 		sl_uint32 shellCodeEntryPoint = getObjSectionVirtualOffset(base, entrySymbol->sectionNumber) + 3;
@@ -121,6 +122,62 @@ namespace slib
 
 		sl_uint8* symbolBase = (base + pointerToSymbolTable);
 		return (PE_Symbol*)(symbolBase + sizeof(PE_Symbol) * symbolIndex);
+	}
+
+	void PE_Utils::enumerateValidSections(const void* baseAddress, Map<sl_uint32, sl_uint32> validSections)
+	{
+		sl_uint8* base = (sl_uint8*)baseAddress;
+		PE_SectionHeader* sectionBase = (PE_SectionHeader*)(base + sizeof(PE_Header));
+		sl_bool newSectionFound = sl_false;
+
+		for (auto& item : validSections) {
+			if (item.value == 0) {
+				item.value = 1;
+				newSectionFound = sl_true;
+				sl_uint32 sectionIndex = item.key;
+				PE_SectionHeader* sectionHeader = sectionBase + sectionIndex - 1;
+				if (Base::compareString((char*)sectionHeader->name, "text") == 0) {
+					sl_uint8* relocBase = base + sectionHeader->pointerToRelocations;
+					for (sl_uint32 relocIndex = 0; relocIndex < sectionHeader->numberOfRelocations; relocIndex++) {
+						PE_SectionRelocator* reloc = (PE_SectionRelocator*)relocBase;
+						if (reloc->type == SLIB_PE_RELOC_I386_REL32 || reloc->type == SLIB_PE_REL_AMD64_REL32) {
+							PE_Symbol* symbol = getObjSymbol(base, reloc->symbolTableIndex);
+							if (!validSections.find(symbol->sectionNumber)) {
+								validSections.add(symbol->sectionNumber, 0);
+							}
+						}
+						relocBase += sizeof(PE_SectionRelocator);
+					}
+				}
+			}
+		}
+		if (newSectionFound) {
+			enumerateValidSections(baseAddress, validSections);
+		}
+	}
+
+	void PE_Utils::optimizeSections(const void* baseAddress, const StringParam& entryFuntionName)
+	{
+		Map<sl_uint32, sl_uint32> validSections;
+		sl_uint8* base = (sl_uint8*)baseAddress;
+		PE_Header* header = (PE_Header*)baseAddress;
+		PE_SectionHeader* sectionBase = (PE_SectionHeader*)(base + sizeof(PE_Header));
+
+		PE_Symbol* entrySymbol = findSymbol(baseAddress, entryFuntionName);
+		validSections.add(entrySymbol->sectionNumber, 0);
+		enumerateValidSections(baseAddress, validSections);
+
+		for (sl_uint32 sectionIndex = 0; sectionIndex < header->numberOfSections; sectionIndex++) {
+			PE_SectionHeader* sectionHeader = (PE_SectionHeader*)sectionBase;
+			if (Base::compareString((char*)sectionHeader->name, "text") == 0) {
+				if (!validSections.find(sectionIndex + 1)) {
+					Base::copyString(sectionHeader->name, "garbage");
+				} else {
+					Base::copyString(sectionHeader->name, "text");
+				}
+			}
+			sectionBase++;
+		}
 	}
 
 	PE_Symbol* PE_Utils::findSymbol(const void* baseAddress, const StringParam& symbolName)
