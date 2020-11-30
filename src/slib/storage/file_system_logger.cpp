@@ -29,7 +29,7 @@
 #define PATH_LOG(path) (m_flags & FileSystemLogFlags::FileName ? path : "")
 #define ADDR_LOG(ptr) ("0x" + String::fromUint64((sl_uint64)(sl_ptr)(ptr), 16, 8, sl_true))
 #define CONTEXT_LOG(context) PATH_LOG(PATH_FROM_CONTEXT(context)) + (m_flags & FileSystemLogFlags::ContextAddress ? ":" + ADDR_LOG(context) : "")
-#define ERROR_LOG(error) (String::fromUint32((sl_uint32)(error)) + (m_flags & FileSystemLogFlags::ExceptionString ? ", " + System::formatErrorCode((sl_uint32)(error)) : ""))
+#define ERROR_LOG(error) (String::fromUint32((sl_uint32)(error)) + (m_flags & FileSystemLogFlags::ErrorString ? ", " + System::formatErrorCode((sl_uint32)(error)) : ""))
 
 namespace slib
 {
@@ -87,7 +87,7 @@ namespace slib
 		}
 
 		String desc = String::format("GetInfo()");
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 
@@ -117,7 +117,7 @@ namespace slib
 		}
 
 		String desc = String::format("GetSize()");
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 
@@ -146,7 +146,7 @@ namespace slib
 		}
 
 		String desc = String::format("CreateDirectory(%s)", PATH_LOG(path));
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 
@@ -166,7 +166,7 @@ namespace slib
 		}
 
 		String desc = String::format("CreateContext(%s)", PATH_LOG(path));
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 
@@ -208,7 +208,7 @@ namespace slib
 
 			param.mode.value, param.attributes.value);
 
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 
@@ -228,7 +228,7 @@ namespace slib
 		}
 
 		String desc = String::format("ReadFile(%s,0x%X,0x%X)", CONTEXT_LOG(context), offset, size);
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 
@@ -248,7 +248,7 @@ namespace slib
 		}
 
 		String desc = String::format("WriteFile(%s,0x%X,0x%X)", CONTEXT_LOG(context), offset, size);
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 
@@ -268,7 +268,7 @@ namespace slib
 		}
 
 		String desc = String::format("FlushFile(%s)", CONTEXT_LOG(context));
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 
@@ -288,7 +288,7 @@ namespace slib
 		}
 
 		String desc = String::format("CloseFile(%s)", CONTEXT_LOG(context));
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 
@@ -308,7 +308,7 @@ namespace slib
 		}
 
 		String desc = String::format("DeleteDirectory(%s)", PATH_LOG(path));
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 
@@ -328,7 +328,7 @@ namespace slib
 		}
 	
 		String desc = String::format("DeleteFile(%s)", PATH_LOG(path));
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 
@@ -348,7 +348,7 @@ namespace slib
 		}
 
 		String desc = String::format("MoveFile(%s,%s,%d)", pathOld, pathNew, flagReplaceIfExists);
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 
@@ -368,7 +368,7 @@ namespace slib
 		}
 
 		String desc = String::format("GetFileInfo(%s,0x%X)", CONTEXT_LOG(context), mask);
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 
@@ -428,7 +428,7 @@ namespace slib
 				desc += String::format(", AccessedAt: %s", info.accessedAt.toString());
 			}
 		}
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 
@@ -448,7 +448,7 @@ namespace slib
 		}
 
 		String desc = String::format("GetFiles(%s)", PATH_LOG(path));
-		if (!(m_flags & FileSystemLogFlags::RetAndErrors)) {
+		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);
 		}
 

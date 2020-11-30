@@ -62,14 +62,12 @@ namespace slib
 
 		RetSuccess = 0x10000000,
 		RetFail = 0x20000000,
-		Exception = 0x40000000,
-		ExceptionString = 0x80000000,
+		ErrorString = 0x80000000,
 		Ret = RetSuccess | RetFail,
-		RetAndErrors = Ret | Exception,
 
 		Success = FileName | RetSuccess,
-		Errors = FileName | RetFail | Exception | ExceptionString,
-		Default = FileName | Ret | Exception | ExceptionString,
+		Errors = FileName | RetFail | ErrorString,
+		Default = FileName | Ret | ErrorString,
 
 		All = 0xFFFFFFFF
 
