@@ -29,6 +29,7 @@
 #include "slib/core/process.h"
 #include "slib/core/dynamic_library.h"
 #include "slib/core/platform_windows.h"
+#include "slib/core/log.h"
 
 #include "slib/crypto/zlib.h"
 
@@ -73,6 +74,11 @@ namespace slib
 				}
 			}
 
+			static String GetCatalogPath(/*sl_bool flagDokany = sl_true*/)
+			{
+				return Windows::getSystemDirectory() + "\\catroot\\{F750E6C3-38EE-11D1-85E5-00C04FC295EE}\\dokan1.cat";
+			}
+
 			static String GetLibraryPath(sl_bool flagDokany)
 			{
 				if (flagDokany) {
@@ -109,9 +115,11 @@ namespace slib
 					return sl_true;
 				}
 				if (state == ServiceState::None) {
+					SLIB_LOG_DEBUG("DokanInstall", "StartDriver State: None (%s)", driverName);
 					return sl_false;
 				}
 				if (!(ServiceManager::start(driverName))) {
+					SLIB_LOG_DEBUG("DokanInstall", "StartDriver start FAILURE (%s)", driverName);
 					return sl_false;
 				}
 				if (!flagDokany) {
@@ -154,85 +162,6 @@ namespace slib
 					return sl_false;
 				}
 				return sl_true;
-			}
-
-			static sl_bool RegisterDriver(sl_bool flagDokany)
-			{
-				String driverName = GetDriverName(flagDokany);
-				ServiceState state = ServiceManager::getState(driverName);
-				if (state != ServiceState::None) {
-					return sl_true;
-				}
-				Memory data;
-#ifdef SLIB_PLATFORM_IS_WIN64
-				if (flagDokany) {
-					data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data, ::dokany::files::dokan1_sys_compressed_size);
-				} else {
-					data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data, ::dokany::files::dokan_sys_compressed_size);
-				}
-#else
-				DisableWow64FsRedirectionScope scopeDisableWow64;
-				if (Windows::is64BitSystem()) {
-					if (flagDokany) {
-						data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data64, ::dokany::files::dokan1_sys_compressed_size64);
-					} else {
-						data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data64, ::dokany::files::dokan_sys_compressed_size64);
-					}
-				} else {
-					if (flagDokany) {
-						data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data, ::dokany::files::dokan1_sys_compressed_size);
-					} else {
-						data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data, ::dokany::files::dokan_sys_compressed_size);
-					}
-				}
-#endif
-				if (data.isNull()) {
-					return sl_false;
-				}
-				String path = GetDriverPath(flagDokany);
-				if (File::writeAllBytes(path, data) != data.getSize()) {
-					return sl_false;
-				}
-				ServiceCreateParam param;
-				param.type = ServiceType::FileSystem;
-				param.startType = ServiceStartType::Auto;
-				param.name = driverName;
-				param.path = path;
-				if (!(ServiceManager::create(param))) {
-					return sl_false;
-				}
-				if (!flagDokany) {
-					return RegisterMounter();
-				}
-				return sl_true;
-			}
-
-			static sl_bool InstallDriver(sl_bool& flagDokany)
-			{
-				if (CheckDriver(sl_true)) {
-					flagDokany = sl_true;
-					return sl_true;
-				}
-				if (CheckDriver(sl_false)) {
-					flagDokany = sl_false;
-					return sl_true;
-				}
-				if (!(Process::isAdmin())) {
-					return sl_false;
-				}
-				if (StartDriver(sl_true)) {
-					flagDokany = sl_true;
-					return sl_true;
-				}
-				if (StartDriver(sl_false)) {
-					flagDokany = sl_false;
-					return sl_true;
-				}
-				flagDokany = IsDokanySupported();
-				if (!(RegisterDriver(flagDokany))) {
-					return sl_false;
-				}
-				return StartDriver(flagDokany);
 			}
 
 			static sl_bool CheckLibrary(sl_bool flagDokany)
@@ -285,6 +214,130 @@ namespace slib
 				return CheckLibrary(flagDokany);
 			}
 
+			static sl_bool RegisterCatalog(/*sl_bool flagDokany = sl_true*/)
+			{
+				// Correct way of catalog installation using SignTool
+				//   signtool catdb dokan1.cat
+
+				// Correct way of catalog installation using WinTrust API:
+				// 
+				//#include <SoftPub.h>
+				////#include <mscat.h>
+				//#include "dl_windows_wintrust.h"
+				// 
+				// HCATADMIN catAdmin;
+				// GUID catRootGuid = DRIVER_ACTION_VERIFY;
+				// if (!(CryptCATAdminAcquireContext(&catAdmin, &catRootGuid, NULL))) {
+				// 	return sl_false;
+				// }
+				// HCATINFO catInfo = CryptCATAdminAddCatalog(catAdmin, 
+				//		L"C:\\Windows\\System32\\DRVSTORE\\dokan_E30037CFB60886C502594F6D325117CE8637F427\\dokan1.cat", L"dokan1.cat", NULL);
+				// if (catInfo == NULL) {
+				// 	CryptCATAdminReleaseContext(catAdmin, NULL);
+				// 	return sl_false;
+				// }
+				// CryptCATAdminReleaseCatalogContext(catAdmin, catInfo, NULL);
+				// CryptCATAdminReleaseContext(catAdmin, NULL);
+
+				Memory data = Zlib::decompress(::dokany::files::dokan1_cat_compressed_data, ::dokany::files::dokan1_cat_compressed_size);
+				String path = GetCatalogPath();
+				if (File::writeAllBytes(path, data) != data.getSize()) {
+					return sl_false;
+				}
+				return sl_true;
+			}
+
+			static sl_bool RegisterDriver(sl_bool flagDokany)
+			{
+				String driverName = GetDriverName(flagDokany);
+				ServiceState state = ServiceManager::getState(driverName);
+				if (state != ServiceState::None) {
+					return sl_true;
+				}
+				Memory data;
+#ifdef SLIB_PLATFORM_IS_WIN64
+				if (flagDokany) {
+					data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data, ::dokany::files::dokan1_sys_compressed_size);
+				} else {
+					data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data, ::dokany::files::dokan_sys_compressed_size);
+				}
+#else
+				DisableWow64FsRedirectionScope scopeDisableWow64;
+				if (Windows::is64BitSystem()) {
+					if (flagDokany) {
+						data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data64, ::dokany::files::dokan1_sys_compressed_size64);
+					} else {
+						data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data64, ::dokany::files::dokan_sys_compressed_size64);
+					}
+				} else {
+					if (flagDokany) {
+						data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data, ::dokany::files::dokan1_sys_compressed_size);
+					} else {
+						data = Zlib::decompress(::dokany::files::dokan_sys_compressed_data, ::dokany::files::dokan_sys_compressed_size);
+					}
+				}
+#endif
+				if (data.isNull()) {
+					return sl_false;
+				}
+				String path = GetDriverPath(flagDokany);
+				if (File::writeAllBytes(path, data) != data.getSize()) {
+					return sl_false;
+				}
+
+				ServiceCreateParam param;
+				param.type = ServiceType::FileSystem;
+				param.startType = ServiceStartType::Auto;
+				param.name = driverName;
+				param.path = path;
+				if (!(ServiceManager::create(param))) {
+					return sl_false;
+				}
+				if (!flagDokany) {
+					return RegisterMounter();
+				}
+				return sl_true;
+			}
+
+			static sl_bool InstallDriver(sl_bool& flagDokany)
+			{
+				if (CheckDriver(sl_true)) {
+					flagDokany = sl_true;
+					return sl_true;
+				}
+				if (CheckDriver(sl_false)) {
+					flagDokany = sl_false;
+					return sl_true;
+				}
+				if (!(Process::isAdmin())) {
+					return sl_false;
+				}
+				if (StartDriver(sl_true)) {
+					flagDokany = sl_true;
+					return sl_true;
+				}
+				if (StartDriver(sl_false)) {
+					flagDokany = sl_false;
+					return sl_true;
+				}
+				flagDokany = IsDokanySupported();
+				if (!(InstallLibrary(flagDokany))) {
+					return sl_false;
+				}
+				SLIB_LOG_DEBUG("DokanInstall", "InstallLibrary OK (flagDokany: %d)", flagDokany);
+				if (flagDokany) {
+					if (!(RegisterCatalog())) {
+						return sl_false;
+					}
+					SLIB_LOG_DEBUG("DokanInstall", "RegisterCatalog OK (flagDokany: %d)", flagDokany);
+				}
+				if (!(RegisterDriver(flagDokany))) {
+					return sl_false;
+				}
+				SLIB_LOG_DEBUG("DokanInstall", "RegisterDriver OK (flagDokany: %d)", flagDokany);
+				return StartDriver(flagDokany);
+			}
+
 		}
 	}
 
@@ -294,9 +347,7 @@ namespace slib
 	{
 		sl_bool flagDokany = sl_true;
 		if (InstallDriver(flagDokany)) {
-			if (InstallLibrary(flagDokany)) {
-				return initialize(flagDokany, GetDriverName(flagDokany), GetLibraryPath(flagDokany));
-			}
+			return initialize(flagDokany, GetDriverName(flagDokany), GetLibraryPath(flagDokany));
 		}
 		return sl_false;
 	}
