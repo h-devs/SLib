@@ -35,6 +35,9 @@ namespace dokany
 		extern unsigned long dokan1_sys_compressed_size64;
 #endif
 
+		extern unsigned char* dokan1_cat_compressed_data;
+		extern unsigned long dokan1_cat_compressed_size;
+
 	}
 }
 

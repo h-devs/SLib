@@ -79,5 +79,11 @@ namespace dokany
 		unsigned long dokan1_sys_compressed_size64 = sizeof(dokan1_arr_sys64);
 #endif
 
+		static unsigned char dokan1_arr_cat[] = {
+#include "dokan1_cat.txt"
+		};
+		unsigned char* dokan1_cat_compressed_data = dokan1_arr_cat;
+		unsigned long dokan1_cat_compressed_size = sizeof(dokan1_arr_cat);
+
 	}
 }
