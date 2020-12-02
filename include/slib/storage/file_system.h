@@ -30,6 +30,7 @@
 #include "../core/time.h"
 #include "../core/file.h"
 #include "../core/hash_map.h"
+#include "../core/system.h"
 
 namespace slib
 {
@@ -47,7 +48,7 @@ namespace slib
 		InvalidContext = 9, // EBADF
 #endif
 		InvalidPassword = 86, // ERROR_INVALID_PASSWORD
-		NotImplemented = -1,
+		NotImplemented = SLIB_INT32_MAX,
 	};
 
 	class FileSystemProvider;
@@ -64,7 +65,7 @@ namespace slib
 
 		static FileSystemError getLastError();
 
-		static void setLastError(FileSystemError error);
+		static void setLastError(FileSystemError error, PlatformType platform = PlatformType::CurrentPlatform);
 
 	};
 
