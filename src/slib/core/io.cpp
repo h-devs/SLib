@@ -495,14 +495,14 @@ namespace slib
 	{
 		Memory mem = Memory::create(size);
 		if (mem.isNotNull()) {
-			size = readFully(mem.getData(), size);
-			if (size > 0) {
-				mem = mem.sub(0, size);
-			} else {
-				mem.setNull();
+			sl_reg nRead = readFully(mem.getData(), size);
+			if (nRead == size) {
+				return mem;
+			} else if (nRead > 0) {
+				return mem.sub(0, nRead);
 			}
 		}
-		return mem;
+		return sl_null;
 	}
 
 	sl_bool IReader::readSectionData(void* mem, sl_size& size)
@@ -1391,335 +1391,362 @@ namespace slib
 	{
 	}
 	
-	namespace priv
-	{
-		namespace io
-		{
 
-			String SeekableReaderHelperStatic::readLine(IReader* reader, ISeekable* seekable)
-			{
-				StringBuffer sb;
-#define IO_READLINE_BUF_SIZE 512
-				char buf[IO_READLINE_BUF_SIZE];
-				while (1) {
-					sl_reg n = reader->read(buf, IO_READLINE_BUF_SIZE);
-					if (n > 0) {
-						for (sl_reg i = 0; i < n; i++) {
-							char ch = buf[i];
-							if (ch == '\r' || ch == '\n') {
-								sb.add(String(buf, i));
-								if (ch == '\r') {
-									if (i == IO_READLINE_BUF_SIZE - 1) {
-										if (reader->readUint8('\n') != '\n') {
-											seekable->seek(-1, SeekPosition::Current);
-										}
-									} else {
-										if (i + 1 < n && buf[i + 1] == '\n') {
-											if (i + 2 != n) {
-												seekable->seek(i + 2 - n, SeekPosition::Current);
-											}
-										} else {
-											if (i + 1 != n) {
-												seekable->seek(i + 1 - n, SeekPosition::Current);
-											}
-										}
+	String SeekableReaderHelper::readLine(IReader* reader, ISeekable* seekable)
+	{
+		StringBuffer sb;
+		char buf[512];
+		sl_bool flagNull = sl_true;
+		for (;;) {
+			sl_reg n = reader->read(buf, sizeof(buf));
+			if (n > 0) {
+				flagNull = sl_false;
+				for (sl_reg i = 0; i < n; i++) {
+					char ch = buf[i];
+					if (ch == '\r' || ch == '\n') {
+						if (i) {
+							sb.add(String(buf, i));
+						}
+						if (ch == '\r') {
+							if (i == n - 1) {
+								if (reader->readUint8('\n') != '\n') {
+									seekable->seek(-1, SeekPosition::Current);
+								}
+							} else {
+								if (buf[i + 1] == '\n') {
+									if (i != n - 2) {
+										seekable->seek(i + 2 - n, SeekPosition::Current);
 									}
 								} else {
-									if (i + 1 != n) {
-										seekable->seek(i + 1 - n, SeekPosition::Current);
-									}
+									seekable->seek(i + 1 - n, SeekPosition::Current);
 								}
-								return sb.merge();
+							}
+						} else {
+							if (i != n - 1) {
+								seekable->seek(i + 1 - n, SeekPosition::Current);
 							}
 						}
-						if (!(sb.add(String(buf, n)))) {
-							return String::null();
+						return sb.merge();
+					}
+				}
+				if (!(sb.add(String(buf, n)))) {
+					return sl_null;
+				}
+			} else {
+				break;
+			}
+		}
+		if (flagNull) {
+			return sl_null;
+		}
+		return sb.merge();
+	}
+
+	String SeekableReaderHelper::readNullTerminatedString(IReader* reader, ISeekable* seekable)
+	{
+		StringBuffer sb;
+		char buf[128];
+		sl_bool flagNull = sl_true;
+		for (;;) {
+			sl_reg n = reader->read(buf, sizeof(buf));
+			if (n > 0) {
+				flagNull = sl_false;
+				for (sl_reg i = 0; i < n; i++) {
+					char ch = buf[i];
+					if (!ch) {
+						if (i) {
+							sb.add(String(buf, i));
 						}
-					} else {
+						if (i != n - 1) {
+							seekable->seek(i + 1 - n, SeekPosition::Current);
+						}
+						return sb.merge();
+					}
+				}
+				if (!(sb.add(String(buf, n)))) {
+					return sl_null;
+				}
+			} else {
+				break;
+			}
+		}
+		if (flagNull) {
+			return sl_null;
+		}
+		return sb.merge();
+	}
+	
+	Memory SeekableReaderHelper::readAllBytes(IReader* reader, ISeekable* seekable, sl_size maxSize)
+	{
+#if defined(SLIB_ARCH_IS_64BIT)
+		sl_uint64 size = seekable->getSize();
+#else
+		sl_uint64 _size = seekable->getSize();
+		if (_size > 0x7fffffff) {
+			_size = 0x7fffffff;
+		}
+		sl_size size = (sl_size)_size;
+#endif
+		if (size > maxSize) {
+			size = maxSize;
+		}
+		if (size == 0) {
+			return sl_null;
+		}
+		Memory ret = Memory::create(size);
+		if (ret.isNotNull()) {
+			char* buf = (char*)(ret.getData());
+			if (seekable->seekToBegin()) {
+				if (reader->read(buf, size) == (sl_reg)size) {
+					return ret;
+				}
+			}
+		}
+		return sl_null;
+	}
+	
+	String SeekableReaderHelper::readAllTextUTF8(IReader* reader, ISeekable* seekable, sl_size maxSize)
+	{
+#if defined(SLIB_ARCH_IS_64BIT)
+		sl_uint64 size = seekable->getSize();
+#else
+		sl_uint64 _size = seekable->getSize();
+		if (_size > 0x7fffffff) {
+			return sl_null;
+		}
+		sl_size size = (sl_size)_size;
+#endif
+		if (size > maxSize) {
+			size = maxSize;
+		}
+		if (seekable->seekToBegin()) {
+			return reader->readTextUTF8(size);
+		}
+		return sl_null;
+	}
+	
+	String16 SeekableReaderHelper::readAllTextUTF16(IReader* reader, ISeekable* seekable, EndianType endian, sl_size maxSize)
+	{
+#if defined(SLIB_ARCH_IS_64BIT)
+		sl_uint64 size = seekable->getSize();
+#else
+		sl_uint64 _size = seekable->getSize();
+		if (_size > 0x7fffffff) {
+			return sl_null;
+		}
+		sl_size size = (sl_size)_size;
+#endif
+		if (size > maxSize) {
+			size = maxSize;
+		}
+		if (seekable->seekToBegin()) {
+			return reader->readTextUTF16(size, endian);
+		}
+		return sl_null;
+	}
+	
+	String SeekableReaderHelper::readAllText(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize)
+	{
+#if defined(SLIB_ARCH_IS_64BIT)
+		sl_uint64 size = seekable->getSize();
+#else
+		sl_uint64 _size = seekable->getSize();
+		if (_size > 0x7fffffff) {
+			return sl_null;
+		}
+		sl_size size = (sl_size)_size;
+#endif
+		if (size > maxSize) {
+			size = maxSize;
+		}
+		if (seekable->seekToBegin()) {
+			return reader->readText(size, outCharset);
+		}
+		return sl_null;
+	}
+	
+	String16 SeekableReaderHelper::readAllText16(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize)
+	{
+#if defined(SLIB_ARCH_IS_64BIT)
+		sl_uint64 size = seekable->getSize();
+#else
+		sl_uint64 _size = seekable->getSize();
+		if (_size > 0x7fffffff) {
+			return sl_null;
+		}
+		sl_size size = (sl_size)_size;
+#endif
+		if (size > maxSize) {
+			size = maxSize;
+		}
+		if (seekable->seekToBegin()) {
+			return reader->readText16(size, outCharset);
+		}
+		return sl_null;
+	}
+
+	sl_int64 SeekableReaderHelper::find(IReader* reader, ISeekable* seekable, const void* _pattern, sl_size nPattern, sl_int64 _startPosition, sl_uint64 sizeFind)
+	{
+		sl_uint64 size = seekable->getSize();
+		if (!size) {
+			return -1;
+		}
+		if (!sizeFind) {
+			return -1;
+		}
+		sl_uint64 startPosition;
+		if (_startPosition < 0) {
+			startPosition = 0;
+		} else {
+			startPosition = _startPosition;
+			if (startPosition >= size) {
+				return -1;
+			}
+		}
+		if (!nPattern) {
+			return startPosition;
+		}
+		sl_uint64 sizeRemain = size - startPosition;
+		if (sizeFind > sizeRemain) {
+			sizeFind = sizeRemain;
+		}
+		if (!(seekable->seek(startPosition, SeekPosition::Begin))) {
+			return -1;
+		}
+		sl_uint8* pattern = (sl_uint8*)_pattern;
+		sl_uint8 buf[1024];
+		sl_reg posMatching = 0;
+		sl_uint64 endPosition = startPosition + sizeFind;
+		while (startPosition < endPosition) {
+			sl_uint64 n = endPosition - startPosition;
+			if (n > sizeof(buf)) {
+				n = sizeof(buf);
+			}
+			sl_reg nRead = reader->readFully(buf, (sl_size)n);
+			if (nRead <= 0) {
+				return -1;
+			}
+			sl_size bMatching = posMatching != 0;
+			sl_reg i = -posMatching;
+			for (; i < nRead; i++) {
+				sl_size k;
+				if (bMatching) {
+					k = posMatching;
+					bMatching = sl_false;
+				} else {
+					k = 0;
+				}
+				for (; k < nPattern; k++) {
+					sl_reg j = i + k;
+					if (j >= nRead) {
 						break;
 					}
-				}
-				if (sb.getLength() == 0) {
-					return String::null();
-				} else {
-					return sb.merge();
-				}
-			}
-	
-			Memory SeekableReaderHelperStatic::readAllBytes(IReader* reader, ISeekable* seekable, sl_size maxSize)
-			{
-#if defined(SLIB_ARCH_IS_64BIT)
-				sl_uint64 size = seekable->getSize();
-#else
-				sl_uint64 _size = seekable->getSize();
-				if (_size > 0x7fffffff) {
-					_size = 0x7fffffff;
-				}
-				sl_size size = (sl_size)_size;
-#endif
-				if (size > maxSize) {
-					size = maxSize;
-				}
-				if (size == 0) {
-					return sl_null;
-				}
-				Memory ret = Memory::create(size);
-				if (ret.isNotNull()) {
-					char* buf = (char*)(ret.getData());
-					if (seekable->seekToBegin()) {
-						if (reader->read(buf, size) == (sl_reg)size) {
-							return ret;
+					if (j >= 0) {
+						if (buf[j] != pattern[k]) {
+							break;
 						}
-					}
-				}
-				return sl_null;
-			}
-	
-			String SeekableReaderHelperStatic::readAllTextUTF8(IReader* reader, ISeekable* seekable, sl_size maxSize)
-			{
-#if defined(SLIB_ARCH_IS_64BIT)
-				sl_uint64 size = seekable->getSize();
-#else
-				sl_uint64 _size = seekable->getSize();
-				if (_size > 0x7fffffff) {
-					return sl_null;
-				}
-				sl_size size = (sl_size)_size;
-#endif
-				if (size > maxSize) {
-					size = maxSize;
-				}
-				if (seekable->seekToBegin()) {
-					return reader->readTextUTF8(size);
-				}
-				return sl_null;
-			}
-	
-			String16 SeekableReaderHelperStatic::readAllTextUTF16(IReader* reader, ISeekable* seekable, EndianType endian, sl_size maxSize)
-			{
-#if defined(SLIB_ARCH_IS_64BIT)
-				sl_uint64 size = seekable->getSize();
-#else
-				sl_uint64 _size = seekable->getSize();
-				if (_size > 0x7fffffff) {
-					return sl_null;
-				}
-				sl_size size = (sl_size)_size;
-#endif
-				if (size > maxSize) {
-					size = maxSize;
-				}
-				if (seekable->seekToBegin()) {
-					return reader->readTextUTF16(size, endian);
-				}
-				return sl_null;
-			}
-	
-			String SeekableReaderHelperStatic::readAllText(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize)
-			{
-#if defined(SLIB_ARCH_IS_64BIT)
-				sl_uint64 size = seekable->getSize();
-#else
-				sl_uint64 _size = seekable->getSize();
-				if (_size > 0x7fffffff) {
-					return sl_null;
-				}
-				sl_size size = (sl_size)_size;
-#endif
-				if (size > maxSize) {
-					size = maxSize;
-				}
-				if (seekable->seekToBegin()) {
-					return reader->readText(size, outCharset);
-				}
-				return sl_null;
-			}
-	
-			String16 SeekableReaderHelperStatic::readAllText16(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize)
-			{
-#if defined(SLIB_ARCH_IS_64BIT)
-				sl_uint64 size = seekable->getSize();
-#else
-				sl_uint64 _size = seekable->getSize();
-				if (_size > 0x7fffffff) {
-					return sl_null;
-				}
-				sl_size size = (sl_size)_size;
-#endif
-				if (size > maxSize) {
-					size = maxSize;
-				}
-				if (seekable->seekToBegin()) {
-					return reader->readText16(size, outCharset);
-				}
-				return sl_null;
-			}
-
-			sl_int64 SeekableReaderHelperStatic::find(IReader* reader, ISeekable* seekable, const void* _pattern, sl_size nPattern, sl_int64 _startPosition, sl_uint64 sizeFind)
-			{
-				sl_uint64 size = seekable->getSize();
-				if (!size) {
-					return -1;
-				}
-				if (!sizeFind) {
-					return -1;
-				}
-				sl_uint64 startPosition;
-				if (_startPosition < 0) {
-					startPosition = 0;
-				} else {
-					startPosition = _startPosition;
-					if (startPosition >= size) {
-						return -1;
-					}
-				}
-				if (!nPattern) {
-					return startPosition;
-				}
-				sl_uint64 sizeRemain = size - startPosition;
-				if (sizeFind > sizeRemain) {
-					sizeFind = sizeRemain;
-				}
-				if (!(seekable->seek(startPosition, SeekPosition::Begin))) {
-					return -1;
-				}
-				sl_uint8* pattern = (sl_uint8*)_pattern;
-				sl_uint8 buf[1024];
-				sl_reg posMatching = 0;
-				sl_uint64 endPosition = startPosition + sizeFind;
-				while (startPosition < endPosition) {
-					sl_uint64 n = endPosition - startPosition;
-					if (n > sizeof(buf)) {
-						n = sizeof(buf);
-					}
-					sl_reg nRead = reader->readFully(buf, (sl_size)n);
-					if (nRead <= 0) {
-						return -1;
-					}
-					sl_size bMatching = posMatching != 0;
-					sl_reg i = -posMatching;
-					for (; i < nRead; i++) {
-						sl_size k;
-						if (bMatching) {
-							k = posMatching;
-							bMatching = sl_false;
-						} else {
-							k = 0;
-						}
-						for (; k < nPattern; k++) {
-							sl_reg j = i + k;
-							if (j >= nRead) {
-								break;
-							}
-							if (j >= 0) {
-								if (buf[j] != pattern[k]) {
-									break;
-								}
-							} else {
-								if (pattern[posMatching + j] != pattern[k]) {
-									break;
-								}
-							}
-						}
-						if (k == nPattern) {
-							return startPosition + i;
-						}
-						if (i + k == nRead) {
-							posMatching = k;
+					} else {
+						if (pattern[posMatching + j] != pattern[k]) {
 							break;
 						}
 					}
-					if (i == nRead) {
-						posMatching = 0;
-					}
-					startPosition += nRead;
 				}
-				return -1;
+				if (k == nPattern) {
+					return startPosition + i;
+				}
+				if (i + k == nRead) {
+					posMatching = k;
+					break;
+				}
 			}
-
-			sl_int64 SeekableReaderHelperStatic::findBackward(IReader* reader, ISeekable* seekable, const void* _pattern, sl_size nPattern, sl_int64 _startPosition, sl_uint64 sizeFind)
-			{
-				sl_uint64 size = seekable->getSize();
-				if (!size) {
-					return -1;
-				}
-				if (!sizeFind) {
-					return -1;
-				}
-				sl_uint64 startPosition;
-				if (_startPosition < 0) {
-					startPosition = size;
-				} else {
-					startPosition = _startPosition;
-					if (startPosition >= size) {
-						startPosition = size;
-					}
-				}
-				if (!nPattern) {
-					return startPosition;
-				}
-				if (sizeFind > startPosition) {
-					sizeFind = startPosition;
-				}
-				sl_uint8* pattern = (sl_uint8*)_pattern;
-				sl_uint8 buf[1024];
-				sl_reg posMatching = 0;
-				sl_uint64 endPosition = startPosition - sizeFind;
-				while (endPosition < startPosition) {
-					sl_uint64 _n = startPosition - endPosition;
-					if (_n > sizeof(buf)) {
-						_n = sizeof(buf);
-					}
-					sl_size n = (sl_size)_n;
-					if (!(seekable->seek(startPosition - _n, SeekPosition::Begin))) {
-						return -1;
-					}
-					sl_reg nRead = reader->readFully(buf, n);
-					if (nRead != n) {
-						return -1;
-					}
-					sl_size bMatching = posMatching != 0;
-					sl_reg i = -posMatching;
-					for (; i < nRead; i++) {
-						sl_size k;
-						if (bMatching) {
-							k = posMatching;
-							bMatching = sl_false;
-						} else {
-							k = 0;
-						}
-						for (; k < nPattern; k++) {
-							sl_reg j = i + k;
-							if (j >= nRead) {
-								break;
-							}
-							if (j >= 0) {
-								if (buf[nRead - 1 - j] != pattern[nPattern - 1 - k]) {
-									break;
-								}
-							} else {
-								if (pattern[nPattern - 1 - (posMatching + j)] != pattern[nPattern - 1 - k]) {
-									break;
-								}
-							}
-						}
-						if (k == nPattern) {
-							return startPosition - i - nPattern;
-						}
-						if (i + k == nRead) {
-							posMatching = k;
-							break;
-						}
-					}
-					if (i == nRead) {
-						posMatching = 0;
-					}
-					startPosition -= nRead;
-				}
-				return -1;
+			if (i == nRead) {
+				posMatching = 0;
 			}
-
+			startPosition += nRead;
 		}
+		return -1;
+	}
+
+	sl_int64 SeekableReaderHelper::findBackward(IReader* reader, ISeekable* seekable, const void* _pattern, sl_size nPattern, sl_int64 _startPosition, sl_uint64 sizeFind)
+	{
+		sl_uint64 size = seekable->getSize();
+		if (!size) {
+			return -1;
+		}
+		if (!sizeFind) {
+			return -1;
+		}
+		sl_uint64 startPosition;
+		if (_startPosition < 0) {
+			startPosition = size;
+		} else {
+			startPosition = _startPosition;
+			if (startPosition >= size) {
+				startPosition = size;
+			}
+		}
+		if (!nPattern) {
+			return startPosition;
+		}
+		if (sizeFind > startPosition) {
+			sizeFind = startPosition;
+		}
+		sl_uint8* pattern = (sl_uint8*)_pattern;
+		sl_uint8 buf[1024];
+		sl_reg posMatching = 0;
+		sl_uint64 endPosition = startPosition - sizeFind;
+		while (endPosition < startPosition) {
+			sl_uint64 _n = startPosition - endPosition;
+			if (_n > sizeof(buf)) {
+				_n = sizeof(buf);
+			}
+			sl_size n = (sl_size)_n;
+			if (!(seekable->seek(startPosition - _n, SeekPosition::Begin))) {
+				return -1;
+			}
+			sl_reg nRead = reader->readFully(buf, n);
+			if (nRead != n) {
+				return -1;
+			}
+			sl_size bMatching = posMatching != 0;
+			sl_reg i = -posMatching;
+			for (; i < nRead; i++) {
+				sl_size k;
+				if (bMatching) {
+					k = posMatching;
+					bMatching = sl_false;
+				} else {
+					k = 0;
+				}
+				for (; k < nPattern; k++) {
+					sl_reg j = i + k;
+					if (j >= nRead) {
+						break;
+					}
+					if (j >= 0) {
+						if (buf[nRead - 1 - j] != pattern[nPattern - 1 - k]) {
+							break;
+						}
+					} else {
+						if (pattern[nPattern - 1 - (posMatching + j)] != pattern[nPattern - 1 - k]) {
+							break;
+						}
+					}
+				}
+				if (k == nPattern) {
+					return startPosition - i - nPattern;
+				}
+				if (i + k == nRead) {
+					posMatching = k;
+					break;
+				}
+			}
+			if (i == nRead) {
+				posMatching = 0;
+			}
+			startPosition -= nRead;
+		}
+		return -1;
 	}
 
 
@@ -2712,12 +2739,12 @@ namespace slib
 
 	sl_int64 IOUtil::find(const Pointer<IReader, ISeekable>& reader, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind)
 	{
-		return priv::io::SeekableReaderHelperStatic::find(reader, reader, pattern, nPattern, startPosition, sizeFind);
+		return SeekableReaderHelper::find(reader, reader, pattern, nPattern, startPosition, sizeFind);
 	}
 
 	sl_int64 IOUtil::findBackward(const Pointer<IReader, ISeekable>& reader, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind)
 	{
-		return priv::io::SeekableReaderHelperStatic::findBackward(reader, reader, pattern, nPattern, startPosition, sizeFind);
+		return SeekableReaderHelper::findBackward(reader, reader, pattern, nPattern, startPosition, sizeFind);
 	}
 
 

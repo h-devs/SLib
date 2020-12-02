@@ -295,80 +295,81 @@ namespace slib
 		
 	};
 
-	namespace priv
+	class SeekableReaderHelper
 	{
-		namespace io
-		{
-			class SeekableReaderHelperStatic
-			{
-			public:
-				static String readLine(IReader* reader, ISeekable* seekable);
+	public:
+		static String readLine(IReader* reader, ISeekable* seekable);
 
-				static Memory readAllBytes(IReader* reader, ISeekable* seekable, sl_size maxSize);
+		static String readNullTerminatedString(IReader* reader, ISeekable* seekable);
 
-				static String readAllTextUTF8(IReader* reader, ISeekable* seekable, sl_size maxSize);
+		static Memory readAllBytes(IReader* reader, ISeekable* seekable, sl_size maxSize);
 
-				static String16 readAllTextUTF16(IReader* reader, ISeekable* seekable, EndianType endian, sl_size maxSize);
+		static String readAllTextUTF8(IReader* reader, ISeekable* seekable, sl_size maxSize);
 
-				static String readAllText(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize);
+		static String16 readAllTextUTF16(IReader* reader, ISeekable* seekable, EndianType endian, sl_size maxSize);
 
-				static String16 readAllText16(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize);
+		static String readAllText(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize);
 
-				static sl_int64 find(IReader* reader, ISeekable* seekable, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind);
+		static String16 readAllText16(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize);
 
-				static sl_int64 findBackward(IReader* reader, ISeekable* seekable, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind);
+		static sl_int64 find(IReader* reader, ISeekable* seekable, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind);
 
-			};
-		}
-	}
+		static sl_int64 findBackward(IReader* reader, ISeekable* seekable, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind);
+
+	};
 
 	template <class READER>
-	class SLIB_EXPORT SeekableReaderHelper
+	class SLIB_EXPORT SeekableReaderBase
 	{
 	public:
 		String readLine()
 		{
-			return priv::io::SeekableReaderHelperStatic::readLine((READER*)this, (READER*)this);
+			return SeekableReaderHelper::readLine((READER*)this, (READER*)this);
+		}
+
+		String readNullTerminatedString()
+		{
+			return SeekableReaderHelper::readNullTerminatedString((READER*)this, (READER*)this);
 		}
 
 		Memory readAllBytes(sl_size maxSize = SLIB_SIZE_MAX)
 		{
-			return priv::io::SeekableReaderHelperStatic::readAllBytes((READER*)this, (READER*)this, maxSize);
+			return SeekableReaderHelper::readAllBytes((READER*)this, (READER*)this, maxSize);
 		}
 
 		String readAllTextUTF8(sl_size maxSize = SLIB_SIZE_MAX)
 		{
-			return priv::io::SeekableReaderHelperStatic::readAllTextUTF8((READER*)this, (READER*)this, maxSize);
+			return SeekableReaderHelper::readAllTextUTF8((READER*)this, (READER*)this, maxSize);
 		}
 
 		String16 readAllTextUTF16(EndianType endian = Endian::Little, sl_size maxSize = SLIB_SIZE_MAX)
 		{
-			return priv::io::SeekableReaderHelperStatic::readAllTextUTF16((READER*)this, (READER*)this, endian, maxSize);
+			return SeekableReaderHelper::readAllTextUTF16((READER*)this, (READER*)this, endian, maxSize);
 		}
 
 		String readAllText(Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX)
 		{
-			return priv::io::SeekableReaderHelperStatic::readAllText((READER*)this, (READER*)this, outCharset, maxSize);
+			return SeekableReaderHelper::readAllText((READER*)this, (READER*)this, outCharset, maxSize);
 		}
 
 		String16 readAllText16(Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX)
 		{
-			return priv::io::SeekableReaderHelperStatic::readAllText16((READER*)this, (READER*)this, outCharset, maxSize);
+			return SeekableReaderHelper::readAllText16((READER*)this, (READER*)this, outCharset, maxSize);
 		}
 
 		sl_int64 find(const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_uint64 sizeFind = SLIB_UINT64_MAX)
 		{
-			return priv::io::SeekableReaderHelperStatic::find((READER*)this, (READER*)this, pattern, nPattern, startPosition, sizeFind);
+			return SeekableReaderHelper::find((READER*)this, (READER*)this, pattern, nPattern, startPosition, sizeFind);
 		}
 
 		sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_uint64 sizeFind = SLIB_UINT64_MAX)
 		{
-			return priv::io::SeekableReaderHelperStatic::findBackward((READER*)this, (READER*)this, pattern, nPattern, startPosition, sizeFind);
+			return SeekableReaderHelper::findBackward((READER*)this, (READER*)this, pattern, nPattern, startPosition, sizeFind);
 		}
 
 	};
 
-	class SLIB_EXPORT IO : public Stream, public ISeekable, public IResizable, public SeekableReaderHelper<IO>
+	class SLIB_EXPORT IO : public Stream, public ISeekable, public IResizable, public SeekableReaderBase<IO>
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -444,7 +445,7 @@ namespace slib
 	
 	};
 	
-	class SLIB_EXPORT MemoryReader : public Object, public IReader, public ISeekable, public SeekableReaderHelper<MemoryReader>
+	class SLIB_EXPORT MemoryReader : public Object, public IReader, public ISeekable, public SeekableReaderBase<MemoryReader>
 	{
 		SLIB_DECLARE_OBJECT
 		

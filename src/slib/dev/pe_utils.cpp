@@ -23,85 +23,102 @@
 #include "slib/dev/pe_utils.h"
 
 #include "slib/core/file.h"
+#include "slib/core/mio.h"
 
 namespace slib
 {
 
-	sl_uint32 PE_Utils::getObjSectionVirtualOffset(void* base, sl_int32 sectionIndex)
+	namespace priv
 	{
-		PE_Header* header = (PE_Header*)base;
-		sl_uint8* sectionBase = (sl_uint8*)base + sizeof(PE_Header);
-		sl_uint32 ret = 0;
-		if (sectionIndex > 0) {
-			for (sl_int32 i = 0; i < sectionIndex - 1; i++) {
-				PE_SectionHeader* sectionHeader = (PE_SectionHeader*)sectionBase;
-				if (Base::compareString((char*)(sectionHeader->name), "text") == 0) {
-					sl_uint32 sizeOfRawData = sectionHeader->sizeOfRawData;
-					if (header->machine == SLIB_COFF_MACHINE_I386) {
-						sizeOfRawData = ((sizeOfRawData - 1) | 3) + 1;
-					} else if (header->machine == SLIB_COFF_MACHINE_AMD64 || header->machine == SLIB_COFF_MACHINE_IA64) {
-						sizeOfRawData = ((sizeOfRawData - 1) | 7) + 1;
-					}
-					ret += sizeOfRawData;
+		namespace pe_utils
+		{
+
+			static Memory GetLinkedCodeSectionContent(Coff& coff, CoffCodeSectionSet& set, const CoffCodeSection& section)
+			{
+				Memory mem = coff.getSectionData(section);
+				if (mem.isNull()) {
+					return sl_null;
 				}
-				sectionBase += sizeof(PE_SectionHeader);
+				sl_uint8* data = (sl_uint8*)(mem.getData());
+				for (sl_uint32 i = 0; i < section.numberOfRelocations; i++) {
+					CoffSectionRelocation relocation;
+					if (!(coff.getSectionRelocation(section, i, relocation))) {
+						return sl_null;
+					}
+					if (relocation.type == SLIB_PE_RELOC_I386_REL32 || relocation.type == SLIB_PE_REL_AMD64_REL32) {
+						CoffSymbol* pSymbol = coff.getSymbol(relocation.symbolTableIndex);
+						if (!pSymbol) {
+							return sl_null;
+						}
+						sl_uint32 offsetRelocation = relocation.virtualAddress;
+						CoffCodeSection* pSectionRef = set.getSectionByNumber(pSymbol->sectionNumber);
+						if (!pSectionRef) {
+							return sl_null;
+						}
+						MIO::writeUint32(data + offsetRelocation, pSectionRef->codeOffset - section.codeOffset - offsetRelocation - 4);
+					}
+				}
+				return mem;
 			}
+
 		}
-		return ret;
 	}
+
+	using namespace priv::pe_utils;
 
 	Memory PE_Utils::generateShellCode(const void* obj, sl_size size, const StringParam& entryFuntionName)
 	{
-		PE_Header* header = (PE_Header*)obj;
-		sl_uint8* base = (sl_uint8*)obj;
-		sl_uint8* sectionBase = base + sizeof(PE_Header);
-		
-		MemoryBuffer shellCodeBuffer;
-		optimizeSections(obj, entryFuntionName);
-		
-		PE_Symbol* entrySymbol = findSymbol(base, entryFuntionName);
-		sl_uint32 shellCodeEntryPoint = getObjSectionVirtualOffset(base, entrySymbol->sectionNumber) + 3;
-
-		Memory entryCode = Memory::create(8);
-		sl_uint8 jmpCode = 0xE9;
-		entryCode.write(0, 1, &jmpCode);
-		entryCode.write(1, 4, &shellCodeEntryPoint);
-
-		shellCodeBuffer.add(entryCode);
-
-		for (sl_uint32 sectionIndex = 0; sectionIndex < header->numberOfSections; sectionIndex++) {
-
-			PE_SectionHeader* sectionHeader = (PE_SectionHeader*)sectionBase;
-			sl_uint32 sizeOfRawData = sectionHeader->sizeOfRawData;
-			sl_uint32 pointerToRawData = sectionHeader->pointerToRawData;
-
-			if (Base::compareString((char*)sectionHeader->name, "text") == 0) {
-				sl_uint8* relocBase = base + sectionHeader->pointerToRelocations;
-				for (sl_uint32 relocIndex = 0; relocIndex < sectionHeader->numberOfRelocations; relocIndex++) {
-					PE_SectionRelocator* reloc = (PE_SectionRelocator*)relocBase;
-					if (reloc->type == SLIB_PE_RELOC_I386_REL32 || reloc->type == SLIB_PE_REL_AMD64_REL32) {
-						PE_Symbol* symbol = getObjSymbol(base, reloc->symbolTableIndex);
-						sl_uint32 relocVirtualOffset = reloc->virtualAddress;
-						sl_uint8* relocBaseOffset = base + pointerToRawData + relocVirtualOffset;
-
-						sl_uint32 targetAddr = getObjSectionVirtualOffset(base, symbol->sectionNumber);
-						sl_uint32 currentAddr = getObjSectionVirtualOffset(base, sectionIndex) + relocVirtualOffset;
-						sl_uint32 newAddr = targetAddr - currentAddr - 4; // 4: CALL Address size
-
-						Base::copyMemory(relocBaseOffset, &newAddr, 4);
-					}
-					relocBase += sizeof(PE_SectionRelocator);
-				}
-				if (header->machine == SLIB_COFF_MACHINE_I386) {
-					sizeOfRawData = ((sizeOfRawData - 1) | 3) + 1;
-				} else if (header->machine == SLIB_COFF_MACHINE_AMD64 || header->machine == SLIB_COFF_MACHINE_IA64) {
-					sizeOfRawData = ((sizeOfRawData - 1) | 7) + 1;
-				}
-				shellCodeBuffer.addStatic(base + pointerToRawData, sizeOfRawData);
-			}
-			sectionBase += sizeof(PE_SectionHeader);
+		Coff coff;
+		if (!(coff.load(obj, size))) {
+			return sl_null;
 		}
-		return shellCodeBuffer.merge();
+
+		CoffSymbol* pSymbolEntry = coff.findSymbol(entryFuntionName);
+		if (!pSymbolEntry) {
+			return sl_null;
+		}
+		CoffCodeSectionSet sections(coff.getCodeSectionsReferencedFrom(entryFuntionName));
+		if (!(sections.count)) {
+			return sl_null;
+		}
+		CoffCodeSection* pSectionEntry = sections.getSectionByNumber(pSymbolEntry->sectionNumber);
+		if (!pSectionEntry) {
+			return sl_null;
+		}
+
+		{
+			sl_uint32 codeOffset = 0;
+			for (sl_uint32 i = 0; i < sections.count; i++) {
+				CoffCodeSection& section = sections[i];
+				section.codeOffset = codeOffset;
+				codeOffset += coff.getCodeSectionSize(section);
+			}
+		}
+
+		MemoryWriter writer;
+		{
+			writer.writeUint8(0xE9);
+			writer.writeUint32(pSectionEntry->codeOffset + 11);
+			sl_uint8 zero[11] = { 0 };
+			writer.write(zero, 11);
+		}
+
+		for (sl_uint32 i = 0; i < sections.count; i++) {
+			CoffCodeSection& section = sections[i];
+			Memory mem = GetLinkedCodeSectionContent(coff, sections, section);
+			if (mem.isNull()) {
+				return sl_null;
+			}
+			writer.write(mem);
+			sl_uint8 zero[7] = { 0 };
+			if (coff.header.machine == SLIB_COFF_MACHINE_I386) {
+				writer.write(zero, ((section.sizeOfRawData - 1) | 3) + 1 - section.sizeOfRawData);
+			} else if (coff.header.machine == SLIB_COFF_MACHINE_AMD64 || coff.header.machine == SLIB_COFF_MACHINE_IA64) {
+				writer.write(zero, ((section.sizeOfRawData - 1) | 7) + 1 - section.sizeOfRawData);
+			}
+		}
+
+		return writer.getData();
 	}
 
 	Memory PE_Utils::generateShellCodeFromFile(const StringParam& filePath, const StringParam& entryFuntionName)
@@ -113,111 +130,4 @@ namespace slib
 		return generateShellCode(fileContent.getData(), fileContent.getSize(), entryFuntionName);
 	}
 
-
-	PE_Symbol* PE_Utils::getObjSymbol(const void* baseAddress, sl_uint32 symbolIndex)
-	{
-		sl_uint8* base = (sl_uint8*)baseAddress;
-		PE_Header* header = (PE_Header*)baseAddress;
-		sl_uint32 pointerToSymbolTable = header->pointerToSymbolTable;
-
-		sl_uint8* symbolBase = (base + pointerToSymbolTable);
-		return (PE_Symbol*)(symbolBase + sizeof(PE_Symbol) * symbolIndex);
-	}
-
-	void PE_Utils::enumerateValidSections(const void* baseAddress, Map<sl_uint32, sl_uint32> validSections)
-	{
-		sl_uint8* base = (sl_uint8*)baseAddress;
-		PE_SectionHeader* sectionBase = (PE_SectionHeader*)(base + sizeof(PE_Header));
-		sl_bool newSectionFound = sl_false;
-
-		for (auto& item : validSections) {
-			if (item.value == 0) {
-				item.value = 1;
-				newSectionFound = sl_true;
-				sl_uint32 sectionIndex = item.key;
-				PE_SectionHeader* sectionHeader = sectionBase + sectionIndex - 1;
-				if (Base::compareString((char*)sectionHeader->name, "text") == 0) {
-					sl_uint8* relocBase = base + sectionHeader->pointerToRelocations;
-					for (sl_uint32 relocIndex = 0; relocIndex < sectionHeader->numberOfRelocations; relocIndex++) {
-						PE_SectionRelocator* reloc = (PE_SectionRelocator*)relocBase;
-						if (reloc->type == SLIB_PE_RELOC_I386_REL32 || reloc->type == SLIB_PE_REL_AMD64_REL32) {
-							PE_Symbol* symbol = getObjSymbol(base, reloc->symbolTableIndex);
-							if (!validSections.find(symbol->sectionNumber)) {
-								validSections.add(symbol->sectionNumber, 0);
-							}
-						}
-						relocBase += sizeof(PE_SectionRelocator);
-					}
-				}
-			}
-		}
-		if (newSectionFound) {
-			enumerateValidSections(baseAddress, validSections);
-		}
-	}
-
-	void PE_Utils::optimizeSections(const void* baseAddress, const StringParam& entryFuntionName)
-	{
-		Map<sl_uint32, sl_uint32> validSections;
-		sl_uint8* base = (sl_uint8*)baseAddress;
-		PE_Header* header = (PE_Header*)baseAddress;
-		PE_SectionHeader* sectionBase = (PE_SectionHeader*)(base + sizeof(PE_Header));
-
-		PE_Symbol* entrySymbol = findSymbol(baseAddress, entryFuntionName);
-		validSections.add(entrySymbol->sectionNumber, 0);
-		enumerateValidSections(baseAddress, validSections);
-
-		for (sl_uint32 sectionIndex = 0; sectionIndex < header->numberOfSections; sectionIndex++) {
-			PE_SectionHeader* sectionHeader = (PE_SectionHeader*)sectionBase;
-			if (Base::compareString((char*)sectionHeader->name, "text") == 0) {
-				if (!validSections.find(sectionIndex + 1)) {
-					Base::copyString(sectionHeader->name, "garbage");
-				} else {
-					Base::copyString(sectionHeader->name, "text");
-				}
-			}
-			sectionBase++;
-		}
-	}
-
-	PE_Symbol* PE_Utils::findSymbol(const void* baseAddress, const StringParam& symbolName)
-	{
-		sl_uint8* base = (sl_uint8*)baseAddress;
-		PE_Header* header = (PE_Header*)baseAddress;
-		sl_uint32 numberOfSymbols = header->numberOfSymbols;
-		
-		sl_uint32 symbolIndex = 0;
-		while (symbolIndex < numberOfSymbols) {
-			String name = getObjSymbolName(baseAddress, symbolIndex);
-			if (name.contains(symbolName)) {
-				return getObjSymbol(baseAddress, symbolIndex);
-			}
-			symbolIndex++;
-		}
-		return sl_null;
-	}
-
-	String PE_Utils::getObjSymbolName(const void* baseAddress, sl_uint32 symbolIndex)
-	{
-		sl_uint8* base = (sl_uint8*)baseAddress;
-		PE_Header* header = (PE_Header*)baseAddress;
-		sl_uint32 numberOfSymbols = header->numberOfSymbols;
-		sl_uint32 pointerToSymbolTable = header->pointerToSymbolTable;
-
-		sl_uint8* symbolBase = (base + pointerToSymbolTable);
-		PE_Symbol* symbol = (PE_Symbol*)(symbolBase + sizeof(PE_Symbol) * symbolIndex);
-		sl_uint8* symbolStringBase = (symbolBase + sizeof(PE_Symbol) * numberOfSymbols);
-		char *strName = sl_null;
-
-		if (symbol->name.longName[0] == 0 && symbol->name.longName[1] != 0) {
-			strName = (char*)(symbolStringBase + symbol->name.longName[1]);
-			sl_int32 nameLen = Base::getStringLength(strName);
-			return String::fromUtf8(strName, nameLen);
-		} else {
-			strName = (char*)(symbol->name.shortName);
-			sl_int32 nameLen = Base::getStringLength(strName, 8);
-			return String::fromUtf8(strName, nameLen);
-		}
-		return sl_null;
-	}
 }

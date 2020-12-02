@@ -67,7 +67,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT BufferedSeekableReader : public Object, public IReader, public ISeekable, public IClosable, public SeekableReaderHelper<BufferedSeekableReader>
+	class SLIB_EXPORT BufferedSeekableReader : public Object, public IReader, public ISeekable, public IClosable, public SeekableReaderBase<BufferedSeekableReader>
 	{
 		SLIB_DECLARE_OBJECT
 

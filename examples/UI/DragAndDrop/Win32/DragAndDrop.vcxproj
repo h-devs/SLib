@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{5CFAE98B-ECB5-48F1-A486-A5759EB269F4}</ProjectGuid>
+    <ProjectGuid>{E9E5E98B-D59A-460B-9181-DAC00ACD6CA2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>DragAndDrop</RootNamespace>
   </PropertyGroup>
