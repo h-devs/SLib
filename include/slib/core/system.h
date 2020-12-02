@@ -31,6 +31,20 @@ namespace slib
 {
 	
 	typedef void (*SIGNAL_HANDLER)(int signal);
+
+	enum class PlatformType
+	{
+		Unknown = 0,
+		Windows = 1,
+		Unix = 2,
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		CurrentPlatform = Windows
+#elif defined(SLIB_PLATFORM_IS_UNIX)
+		CurrentPlatform = Unix
+#else
+		CurrentPlatform = Unknown
+#endif
+	};
 	
 	class SLIB_EXPORT System
 	{
@@ -73,6 +87,8 @@ namespace slib
 		static sl_uint32 getLastError();
 
 		static void setLastError(sl_uint32 errorCode);
+
+		static sl_uint32 mapError(sl_uint32 errorCode, PlatformType to, PlatformType from = PlatformType::CurrentPlatform);
 
 		static String getLastErrorMessage();
 
