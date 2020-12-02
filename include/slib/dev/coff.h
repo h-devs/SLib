@@ -204,6 +204,8 @@ namespace slib
 
 		List<CoffCodeSection> getCodeSectionsReferencedFrom(const StringParam& entrySymbolName);
 
+		sl_uint32 getCodeSectionSize(const CoffSectionDesc& section);
+
 	protected:
 		void _init(const void* baseAddress, const Ptr<IReader, ISeekable>& reader);
 

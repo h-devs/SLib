@@ -348,13 +348,8 @@ namespace slib
 			if (getSection(i, section)) {
 				if (section.name == "text") {
 					section.codeOffset = codeOffset;
-					sl_uint32 sizeOfRawData = section.sizeOfRawData;
-					if (header.machine == SLIB_COFF_MACHINE_I386) {
-						sizeOfRawData = ((sizeOfRawData - 1) | 3) + 1;
-					} else if (header.machine == SLIB_COFF_MACHINE_AMD64 || header.machine == SLIB_COFF_MACHINE_IA64) {
-						sizeOfRawData = ((sizeOfRawData - 1) | 7) + 1;
-					}
-					codeOffset += sizeOfRawData;
+					section.sectionIndex = i;
+					codeOffset += getCodeSectionSize(section);
 					if (!(ret.add_NoLock(Move(section)))) {
 						return sl_null;
 					}
@@ -437,6 +432,17 @@ namespace slib
 		return ret;
 	}
 
+	sl_uint32 Coff::getCodeSectionSize(const CoffSectionDesc& section)
+	{
+		sl_uint32 sizeOfRawData = section.sizeOfRawData;
+		if (header.machine == SLIB_COFF_MACHINE_I386) {
+			return ((sizeOfRawData - 1) | 3) + 1;
+		} else if (header.machine == SLIB_COFF_MACHINE_AMD64 || header.machine == SLIB_COFF_MACHINE_IA64) {
+			return ((sizeOfRawData - 1) | 7) + 1;
+		}
+		return sizeOfRawData;
+	}
+
 	sl_bool Coff::_loadSymbols()
 	{
 		if (m_symbols.isNotNull()) {
@@ -465,6 +471,9 @@ namespace slib
 					return sl_false;
 				}
 				symbol.name = SeekableReaderHelper::readNullTerminatedString(reader, seeker);
+				if (!(seeker->seek(header.offsetToSymbolTable + (i + 1) * sizeof(CoffSymbolDesc), SeekPosition::Begin))) {
+					return sl_false;
+				}
 			}
 			list.add_NoLock(Move(symbol));
 		}
@@ -478,7 +487,7 @@ namespace slib
 	CoffCodeSectionSet::CoffCodeSectionSet(const List<CoffCodeSection>& sections): ListElements(sections)
 	{
 		for (sl_uint32 i = 0; i < count; i++) {
-			m_mapSectionIndex.put_NoLock(data[i].sectionIndex, (sl_uint32)i);
+			m_mapSectionIndex.put_NoLock(data[i].sectionIndex + 1, (sl_uint32)i);
 		}
 	}
 

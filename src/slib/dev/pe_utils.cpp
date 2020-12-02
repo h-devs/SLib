@@ -55,7 +55,7 @@ namespace slib
 						if (!pSectionRef) {
 							return sl_null;
 						}
-						MIO::writeUint32(data + offsetRelocation, pSectionRef->codeOffset - section.codeOffset - 4);
+						MIO::writeUint32(data + offsetRelocation, pSectionRef->codeOffset - section.codeOffset - offsetRelocation - 4);
 					}
 				}
 				return mem;
@@ -86,10 +86,19 @@ namespace slib
 			return sl_null;
 		}
 
+		{
+			sl_uint32 codeOffset = 0;
+			for (sl_uint32 i = 0; i < sections.count; i++) {
+				CoffCodeSection& section = sections[i];
+				section.codeOffset = codeOffset;
+				codeOffset += coff.getCodeSectionSize(section);
+			}
+		}
+
 		MemoryWriter writer;
 		{
 			writer.writeUint8(0xE9);
-			writer.writeUint16(pSectionEntry->codeOffset + 3);
+			writer.writeUint32(pSectionEntry->codeOffset + 11);
 			sl_uint8 zero[11] = { 0 };
 			writer.write(zero, 11);
 		}

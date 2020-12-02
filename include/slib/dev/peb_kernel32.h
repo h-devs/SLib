@@ -43,8 +43,8 @@ namespace slib
 		sl_uint8* kernel32Base = (sl_uint8*)(GetKernel32AddressFromPEB());
 		if (kernel32Base != sl_null) {
 			PE_DosHeader* dosHeader = (PE_DosHeader*)kernel32Base;
-			sl_uint32 offsetOptional = dosHeader->newHeader + 4 + sizeof(PE_Header);
-			PE_Header* header = (PE_Header*)(kernel32Base + dosHeader->newHeader + 4);
+			sl_uint32 offsetOptional = dosHeader->newHeader + 4 + sizeof(CoffHeader);
+			CoffHeader* header = (CoffHeader*)(kernel32Base + dosHeader->newHeader + 4);
 			PE_DirectoryEntry* exportEntry = 0;
 
 			if (header->machine == SLIB_COFF_MACHINE_I386) {
