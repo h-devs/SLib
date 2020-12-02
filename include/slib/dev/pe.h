@@ -5,8 +5,6 @@
 
 #include "coff.h"
 
-#include "../core/string.h"
-
 #define SLIB_PE_OPTIONAL_MAGIC_EXE32		0x10b // 32-bit executable image
 #define SLIB_PE_OPTIONAL_MAGIC_EXE64		0x20b // 64-bit executable image
 #define SLIB_PE_OPTIONAL_MAGIC_ROM			0x107 // ROM image
@@ -73,9 +71,6 @@ namespace slib
 
 	*/
 	
-	typedef CoffHeader PE_Header;
-	typedef CoffSectionHeader PE_SectionHeader;
-
 	class SLIB_EXPORT PE_DosHeader
 	{
 	public:
@@ -218,48 +213,15 @@ namespace slib
 		sl_uint32 addressOfNameOrdinals; // RVA from base of image
 	};
 
-#pragma pack(push, 1)
-	class SLIB_EXPORT PE_SectionRelocator
-	{
-	public:
-		union 
-		{
-			sl_uint32 virtualAddress;
-			sl_uint32 relocCount; // Set to the real count when IMAGE_SCN_LNK_NRELOC_OVFL is set
-		};
-		sl_uint32 symbolTableIndex;
-		sl_int16 type;
-	};
-
-	class SLIB_EXPORT PE_Symbol
-	{
-	public:
-		union 
-		{
-			sl_uint8 shortName[8];
-			sl_uint32 longName[2];
-		} name;
-		sl_uint32 value;
-		sl_uint16 sectionNumber;
-		sl_uint16 type;
-		sl_uint8 storageClass;
-		sl_uint8 numberOfAuxSymbols;
-	};
-#pragma pack(pop)
-
-	class SLIB_EXPORT PE
+	class SLIB_EXPORT PE : public Coff
 	{
 	public:
 		PE_DosHeader dos;
-		PE_Header header;
 		union {
 			PE_OptionalHeader32 optional32;
 			PE_OptionalHeader64 optional64;
 		};
-		PE_SectionHeader sections[96];
-		sl_uint32 nSections;
 
-		sl_bool flagLoadedHeaders;
 		sl_bool flag64Bit;
 		sl_uint64 imageBase;
 
@@ -269,17 +231,19 @@ namespace slib
 		~PE();
 
 	public:
-		sl_bool loadHeaders(const void* dataExe, sl_size sizeExe = 0x7fffffff);
-		
+		using Coff::load;
+		sl_bool load(const void* baseAddress, const Ptr<IReader, ISeekable>& reader) override;
+
 		PE_DirectoryEntry* getImportTableDirectory();
 
 		PE_DirectoryEntry* getExportTableDirectory();
 
-		PE_ImportDescriptor* findImportTable(const void* baseAddress, const char* dllName);
+		PE_ImportDescriptor* findImportTable(const StringParam& dllName);
 		
-		void* findExportFunction(const void* baseAddress, const char* functionName);
+		void* findExportFunction(const StringParam& functionName);
 
 	};
+
 }
 
 #endif

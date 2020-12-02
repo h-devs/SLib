@@ -38,8 +38,8 @@ namespace slib
 	{
 		sl_uint8* base = (sl_uint8*)moduleBaseAddress;
 		PE pe;
-		if (pe.loadHeaders(base)) {
-			PE_ImportDescriptor* import = pe.findImportTable(base, dllName);
+		if (pe.load(base)) {
+			PE_ImportDescriptor* import = pe.findImportTable(dllName);
 			if (import) {
 				void** pNameThunk = (void**)(base + import->originalFirstThunk);
 				void** pThunk = (void**)(base + import->firstThunk);
