@@ -164,8 +164,7 @@ namespace slib
 					return ENOEXEC;
 				}
 			}
-		}
-		else if (from == PlatformType::Unix && to == PlatformType::Windows) {
+		} else if (from == PlatformType::Unix && to == PlatformType::Windows) {
 			switch (errorCode)
 			{
 			case EPERM:
