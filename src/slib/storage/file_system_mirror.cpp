@@ -29,6 +29,10 @@
 #include "slib/core/variant.h"
 #include "slib/storage/disk.h"
 
+#ifdef SLIB_PLATFORM_IS_WINDOWS
+#include <Windows.h>
+#endif
+
 #define FILE_FROM_CONTEXT(context)	(context ? ((MirrorFileContext*)(context))->file : sl_null)
 #define CONCAT_PATH(path)			(m_root.isNotEmpty() && path.isNotEmpty() ? m_root + path : sl_null)
 
@@ -72,6 +76,21 @@ namespace slib
 
 		m_root = path;
 		m_fsInfo.creationTime = File::getCreatedTime(path);
+
+#ifdef SLIB_PLATFORM_IS_WINDOWS
+		StringCstr16 fullPath(path);
+		WCHAR Root[MAX_PATH];
+		if (GetVolumePathNameW((LPCWSTR)(fullPath.getData()), Root, MAX_PATH)) {
+			WCHAR VolumeName[MAX_PATH];
+			if (GetVolumeInformationW(Root,
+				VolumeName, MAX_PATH,
+				(LPDWORD)&m_fsInfo.serialNumber, (LPDWORD)&m_fsInfo.maxPathLength,
+				0, 0, 0)) {
+				m_fsInfo.volumeName = String::fromUtf16((const sl_char16*)VolumeName);
+			}
+		}
+#endif
+
 		return sl_true;
 	}
 
