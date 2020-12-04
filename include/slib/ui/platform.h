@@ -216,6 +216,9 @@ namespace slib
 
 		static void applyEventModifiers(UIEvent* event, guint state);
 
+		static GtkWidget* getMenuHandle(const Ref<Menu>& menu);
+		static Ref<Menu> getMenu(GtkWidget* hMenu);
+
 #elif defined(SLIB_UI_IS_EFL)
 		static Ref<ViewInstance> createViewInstance(EFL_ViewType type, Evas_Object* handle, sl_bool flagFreeOnRelease = sl_true);
 		static void registerViewInstance(Evas_Object* handle, ViewInstance* instance);
