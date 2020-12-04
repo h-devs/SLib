@@ -1388,6 +1388,106 @@ namespace slib
 			GtkTreePath *, ,
 		)
 		#define gtk_tree_path_new_first slib::gtk::getApi_gtk_tree_path_new_first()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_menu_new,
+	        GtkWidget *, ,
+	    )
+        #define gtk_menu_new slib::gtk::getApi_gtk_menu_new()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_menu_bar_new,
+	        GtkWidget *, ,
+	    )
+        #define gtk_menu_bar_new slib::gtk::getApi_gtk_menu_bar_new()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_separator_menu_item_new,
+	        GtkWidget *, ,
+	    )
+        #define gtk_separator_menu_item_new slib::gtk::getApi_gtk_separator_menu_item_new()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_menu_shell_insert,
+	        void, ,
+	        GtkMenuShell *menu_shell,
+	        GtkWidget    *child,
+	        gint          position
+	    )
+        #define gtk_menu_shell_insert slib::gtk::getApi_gtk_menu_shell_insert()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_menu_item_new_with_mnemonic,
+	        GtkWidget*, ,
+	        const gchar  *label
+	    )
+        #define gtk_menu_item_new_with_mnemonic slib::gtk::getApi_gtk_menu_item_new_with_mnemonic()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_menu_item_set_submenu,
+	        void, ,
+	        GtkMenuItem         *menu_item,
+	        GtkWidget           *submenu
+	    )
+        #define gtk_menu_item_set_submenu slib::gtk::getApi_gtk_menu_item_set_submenu()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_menu_item_set_label,
+	        void, ,
+	        GtkMenuItem         *menu_item,
+	        const gchar         *label
+	    )
+        #define gtk_menu_item_set_label slib::gtk::getApi_gtk_menu_item_set_label()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_get_current_event_time,
+	        guint32, ,
+	    )
+        #define gtk_get_current_event_time slib::gtk::getApi_gtk_get_current_event_time()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_menu_popup,
+	        void, ,
+	        GtkMenu	       *menu,
+	        GtkWidget	       *parent_menu_shell,
+	        GtkWidget	       *parent_menu_item,
+	        GtkMenuPositionFunc	func,
+	        gpointer		data,
+	        guint		button,
+	        guint32		activate_time
+	    )
+        #define gtk_menu_popup slib::gtk::getApi_gtk_menu_popup()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_menu_item_new_with_label,
+	        GtkWidget*, ,
+	        const gchar         *label
+	    )
+        #define gtk_menu_item_new_with_label slib::gtk::getApi_gtk_menu_item_new_with_label()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_vbox_new,
+	        GtkWidget*, ,
+	        gboolean homogeneous,
+	        gint     spacing
+	    )
+        #define gtk_vbox_new slib::gtk::getApi_gtk_vbox_new()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_box_pack_start,
+	        void, ,
+	        GtkBox         *box,
+	        GtkWidget      *child,
+	        gboolean        expand,
+	        gboolean        fill,
+	        guint           padding
+	    )
+        #define gtk_box_pack_start slib::gtk::getApi_gtk_box_pack_start()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_box_pack_end,
+	        void, ,
+	        GtkBox         *box,
+	        GtkWidget      *child,
+	        gboolean        expand,
+	        gboolean        fill,
+	        guint           padding
+	    )
+        #define gtk_box_pack_end slib::gtk::getApi_gtk_box_pack_end()
+	    SLIB_IMPORT_LIBRARY_FUNCTION(
+	        gtk_menu_bar_set_child_pack_direction,
+	        void, ,
+	        GtkMenuBar       *menubar,
+	        GtkPackDirection  child_pack_dir
+	    )
+        #define gtk_menu_bar_set_child_pack_direction slib::gtk::getApi_gtk_menu_bar_set_child_pack_direction()
 	SLIB_IMPORT_LIBRARY_END
 
 }
@@ -1395,3 +1495,4 @@ namespace slib
 #endif
 
 #endif
+
