@@ -98,7 +98,11 @@ namespace slib
 			{
 				if (flag) {
 					if (handle.registeredDraggedTypes == nil || handle.registeredDraggedTypes.count == 0) {
-						[handle registerForDraggedTypes:@[NSPasteboardTypeString]];
+						if (@available(macOS 10.13, *)) {
+							[handle registerForDraggedTypes:@[NSPasteboardTypeString, NSPasteboardTypeFileURL]];
+						} else {
+							[handle registerForDraggedTypes:@[NSPasteboardTypeString, NSFilenamesPboardType]];
+						}
 					}
 				} else {
 					if (handle.registeredDraggedTypes != nil && handle.registeredDraggedTypes.count) {
@@ -683,6 +687,19 @@ namespace slib
 			context.operationMask = FromNSDragOperation(info.draggingSourceOperationMask);
 			NSPasteboard* paste = info.draggingPasteboard;
 			context.item.setText(Apple::getStringFromNSString([paste stringForType:NSPasteboardTypeString]));
+			NSArray* fileUrls = [paste readObjectsForClasses:@[[NSURL class]] options:@{ NSPasteboardURLReadingFileURLsOnlyKey: [NSNumber numberWithBool:YES] }];
+			if (fileUrls != nil) {
+				List<String> files;
+				for (NSURL* url in fileUrls) {
+					String path = Apple::getFilePathFromNSURL(url);
+					if (path.isNotEmpty()) {
+						files.add_NoLock(Move(path));
+					}
+				}
+				if (files.isNotNull()) {
+					context.item.setFiles(files);
+				}
+			}
 			NSPoint loc = info.draggingLocation;
 			NSPoint pt = [handle convertPoint:loc fromView:nil];
 			Ref<UIEvent> ev = UIEvent::createDragEvent(action, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), context, Time::now());
