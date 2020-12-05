@@ -217,6 +217,12 @@ sl_bool UIEvent::is##NAME##Key() const \
 	{
 	}
 
+	void DragItem::clear()
+	{
+		m_text.setNull();
+		m_files.setNull();
+	}
+
 	const String& DragItem::getText() const
 	{
 		return m_text;
@@ -225,6 +231,16 @@ sl_bool UIEvent::is##NAME##Key() const \
 	void DragItem::setText(const String& text)
 	{
 		m_text = text;
+	}
+
+	const List<String>& DragItem::getFiles() const
+	{
+		return m_files;
+	}
+
+	void DragItem::setFiles(const List<String>& files)
+	{
+		m_files = files;
 	}
 
 	const UIRect& DragItem::getFrame() const
@@ -255,7 +271,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DragContext)
 
-	DragContext::DragContext(): operation(0), operationMask(DragOperations::All), sn(0)
+	DragContext::DragContext(): operation(0), operationMask(DragOperations::All)
 	{
 	}
 
@@ -268,6 +284,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 	{
 		view.setNull();
 	}
+
 
 	SLIB_DEFINE_ROOT_OBJECT(UIEvent)
 
@@ -822,7 +839,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 		if (IsInstanceOf<DragEvent>(this)) {
 			return ((DragEvent*)this)->m_context.item;
 		}
-		static DragItem item;
+		SLIB_SAFE_LOCAL_STATIC(DragItem, item);
 		return item;
 	}
 
@@ -860,21 +877,6 @@ sl_bool UIEvent::is##NAME##Key() const \
 	{
 		if (IsInstanceOf<DragEvent>(this)) {
 			((DragEvent*)this)->m_context.operation = op;
-		}
-	}
-
-	sl_uint64 UIEvent::getDragId() const
-	{
-		if (IsInstanceOf<DragEvent>(this)) {
-			return ((DragEvent*)this)->m_context.sn;
-		}
-		return 0;
-	}
-
-	void UIEvent::setDragId(sl_uint64 _id)
-	{
-		if (IsInstanceOf<DragEvent>(this)) {
-			((DragEvent*)this)->m_context.sn = _id;
 		}
 	}
 

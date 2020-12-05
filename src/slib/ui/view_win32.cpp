@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,8 @@
 
 #include "slib/ui/core.h"
 #include "slib/ui/window.h"
-#include "slib/ui/select_view.h"
 #include "slib/math/transform2d.h"
+#include "slib/core/win32_com.h"
 #include "slib/core/dl_windows_user32.h"
 #include "slib/core/safe_static.h"
 
@@ -46,6 +46,8 @@ namespace slib
 	{
 		namespace view
 		{
+
+			sl_bool g_flagDuringPaint = sl_false;
 
 			Color GetDefaultBackColor()
 			{
@@ -182,7 +184,308 @@ namespace slib
 				return CaptureChildInstanceEvents(view, uMsg);
 			}
 
-			sl_bool g_flagDuringPaint = sl_false;
+			static DWORD ToDropEffect(int op)
+			{
+				DWORD ret = 0;
+				if (op & DragOperations::Copy) {
+					ret |= DROPEFFECT_COPY;
+				}
+				if (op & DragOperations::Link) {
+					ret |= DROPEFFECT_LINK;
+				}
+				if (op & DragOperations::Move) {
+					ret |= DROPEFFECT_MOVE;
+				}
+				if (op & DragOperations::Scroll) {
+					ret |= DROPEFFECT_SCROLL;
+				}
+				return ret;
+			}
+
+			static int FromDropEffect(DWORD dwEffect)
+			{
+				int ret = 0;
+				if (dwEffect & DROPEFFECT_COPY) {
+					ret |= DragOperations::Copy;
+				}
+				if (dwEffect & DROPEFFECT_LINK) {
+					ret |= DragOperations::Link;
+				}
+				if (dwEffect & DROPEFFECT_MOVE) {
+					ret |= DragOperations::Move;
+				}
+				if (dwEffect & DROPEFFECT_SCROLL) {
+					ret |= DragOperations::Scroll;
+				}
+				return ret;
+			}
+
+			class ViewDropTarget : public IDropTarget
+			{
+			private:
+				ULONG m_nRef;
+				WeakRef<Win32_ViewInstance> m_instance;
+
+				DragContext m_context;
+				POINTL m_ptLast;
+
+			public:
+				ViewDropTarget(Win32_ViewInstance* instance): m_instance(instance)
+				{
+					m_nRef = 0;
+				}
+
+			public:
+				ULONG STDMETHODCALLTYPE AddRef() override
+				{
+					return ++m_nRef;
+				}
+
+				ULONG STDMETHODCALLTYPE Release() override
+				{
+					ULONG nRef = --m_nRef;
+					if (!nRef) {
+						delete this;
+					}
+					return nRef;
+				}
+
+				HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) override
+				{
+					if (!ppvObject) {
+						return E_POINTER;
+					}
+					if (riid == __uuidof(IDropTarget) || riid == __uuidof(IUnknown)) {
+						*ppvObject = this;
+						AddRef();
+						return S_OK;
+					}
+					return E_NOINTERFACE;
+				}
+
+				HRESULT STDMETHODCALLTYPE DragEnter(
+					IDataObject *pDataObj,
+					DWORD grfKeyState,
+					POINTL pt,
+					DWORD *pdwEffect
+				) override
+				{
+					if (!pdwEffect) {
+						return E_INVALIDARG;
+					}
+					if (setData(pDataObj)) {
+						m_context.operationMask = FromDropEffect(*pdwEffect);
+						m_ptLast = pt;
+						*pdwEffect = onEvent(UIAction::DragEnter);
+						return S_OK;
+					}
+					return E_UNEXPECTED;
+				}
+
+				HRESULT STDMETHODCALLTYPE DragOver(
+					DWORD grfKeyState,
+					POINTL pt,
+					DWORD *pdwEffect
+				) override
+				{
+					if (!pdwEffect) {
+						return E_INVALIDARG;
+					}
+					m_ptLast = pt;
+					*pdwEffect = onEvent(UIAction::DragOver);
+					return S_OK;
+				}
+
+				HRESULT STDMETHODCALLTYPE DragLeave() override
+				{
+					onEvent(UIAction::DragLeave);
+					return S_OK;
+				}
+
+				HRESULT STDMETHODCALLTYPE Drop(
+					IDataObject *pDataObj,
+					DWORD grfKeyState,
+					POINTL pt,
+					DWORD *pdwEffect
+				) override
+				{
+					if (setData(pDataObj)) {
+						m_context.operationMask = FromDropEffect(*pdwEffect);
+						m_ptLast = pt;
+						*pdwEffect = onEvent(UIAction::Drop);
+						return S_OK;
+					}
+					return E_UNEXPECTED;
+				}
+
+			private:
+				DWORD onEvent(UIAction action)
+				{
+					Ref<Win32_ViewInstance> instance = m_instance;
+					if (instance.isNotNull()) {
+						POINT pt;
+						pt.x = m_ptLast.x;
+						pt.y = m_ptLast.y;
+						ScreenToClient(instance->getHandle(), &pt);
+						Ref<UIEvent> ev = UIEvent::createDragEvent(action, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), m_context, Time::now());
+						if (ev.isNotNull()) {
+							instance->onDragDropEvent(ev.get());
+							return ToDropEffect(ev->getDragOperation());
+						}
+					}
+					return DROPEFFECT_NONE;
+				}
+
+				sl_bool setData(IDataObject* data)
+				{
+					m_context.item.clear();
+					if (setFiles(data)) {
+						return sl_true;
+					}
+					if (setText(data)) {
+						return sl_true;
+					}
+					return sl_false;
+				}
+
+				sl_bool setFiles(IDataObject* data)
+				{
+					FORMATETC fmt = { 0 };
+					fmt.cfFormat = CF_HDROP;
+					fmt.dwAspect = DVASPECT_CONTENT;
+					fmt.lindex = -1;
+					fmt.tymed = TYMED_HGLOBAL;
+
+					STGMEDIUM medium = { 0 };
+					medium.tymed = TYMED_HGLOBAL;
+
+					HRESULT hr = data->GetData(&fmt, &medium);
+					if (hr != S_OK) {
+						return sl_false;
+					}
+
+					sl_bool flagValid = sl_false;
+					if (medium.hGlobal) {
+						HDROP handle = (HDROP)(medium.hGlobal);
+						List<String> files;
+						UINT nFiles = DragQueryFileW(handle, 0xFFFFFFFF, NULL, 0);
+						for (UINT i = 0; i < nFiles; i++) {
+							WCHAR sz[512];
+							UINT len = DragQueryFileW(handle, i, sz, 512);
+							files.add_NoLock(String::from(sz, len));
+						}
+						m_context.item.setFiles(Move(files));
+						flagValid = sl_true;
+					}
+
+					ReleaseStgMedium(&medium);
+
+					return flagValid;
+				}
+
+				sl_bool setText(IDataObject* data)
+				{
+					FORMATETC fmt = { 0 };
+					fmt.cfFormat = CF_UNICODETEXT;
+					fmt.dwAspect = DVASPECT_CONTENT;
+					fmt.lindex = -1;
+					fmt.tymed = TYMED_HGLOBAL;
+
+					STGMEDIUM medium = { 0 };
+					medium.tymed = TYMED_HGLOBAL;
+
+					HRESULT hr = data->GetData(&fmt, &medium);
+					if (hr != S_OK) {
+						return sl_false;
+					}
+
+					sl_bool flagValid = sl_false;
+					if (medium.hGlobal) {
+						LPVOID pData = GlobalLock(medium.hGlobal);
+						if (pData) {
+							sl_char16* sz = (sl_char16*)pData;
+							sl_size size = (sl_size)(GlobalSize(medium.hGlobal));
+							sl_size len = size >> 1;
+							String text = String::fromUtf16(sz, Base::getStringLength2(sz, len));
+							m_context.item.setText(text);
+							flagValid = sl_true;
+							GlobalUnlock(medium.hGlobal);
+						}
+					}
+
+					ReleaseStgMedium(&medium);
+
+					return flagValid;
+				}
+
+			};
+
+			class ViewDropSource : public IDropSource
+			{
+			private:
+				ULONG m_nRef;
+				DragContext* m_context;
+
+			public:
+				ViewDropSource(DragContext* context) : m_context(context)
+				{
+					m_nRef = 0;
+				}
+
+			public:
+				ULONG STDMETHODCALLTYPE AddRef() override
+				{
+					return ++m_nRef;
+				}
+
+				ULONG STDMETHODCALLTYPE Release() override
+				{
+					ULONG nRef = --m_nRef;
+					if (!nRef) {
+						delete this;
+					}
+					return nRef;
+				}
+
+				HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) override
+				{
+					if (!ppvObject) {
+						return E_POINTER;
+					}
+					if (riid == __uuidof(IDropSource) || riid == __uuidof(IUnknown)) {
+						*ppvObject = this;
+						AddRef();
+						return S_OK;
+					}
+					return E_NOINTERFACE;
+				}
+
+				HRESULT STDMETHODCALLTYPE QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState) override
+				{
+					if (fEscapePressed) {
+						return DRAGDROP_S_CANCEL;
+					}
+					if (!(grfKeyState & MK_LBUTTON)) {
+						return DRAGDROP_S_DROP;
+					}
+					return S_OK;
+				}
+
+				HRESULT STDMETHODCALLTYPE GiveFeedback(DWORD dwEffect) override
+				{
+					Ref<View>& view = m_context->view;
+					if (view.isNotNull()) {
+						POINT pt;
+						GetCursorPos(&pt);
+						Ref<UIEvent> ev = UIEvent::createDragEvent(UIAction::Drag, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), *m_context, Time::now());
+						if (ev.isNotNull()) {
+							view->dispatchDragDropEvent(ev.get());
+						}
+					}
+					return DRAGDROP_S_USEDEFAULTCURSORS;
+				}
+
+			};
 
 		}
 	}
@@ -207,6 +510,9 @@ namespace slib
 			if (m_flagDestroyOnRelease) {
 				PostMessageW(m_handle, SLIB_UI_MESSAGE_CLOSE, 0, 0);
 			}
+		}
+		if (m_dropTarget) {
+			m_dropTarget->Release();
 		}
 	}
 
@@ -552,6 +858,25 @@ namespace slib
 		}
 	}
 
+	void Win32_ViewInstance::setDropTarget(View* view, sl_bool flag)
+	{
+		HWND handle = m_handle;
+		if (handle) {
+			if (m_dropTarget) {
+				return;
+			}
+			ViewDropTarget* target = new ViewDropTarget(this);
+			m_dropTarget = target;
+			RegisterDragDrop(handle, target);
+		} else {
+			if (!m_dropTarget) {
+				return;
+			}			
+			RevokeDragDrop(handle);
+			m_dropTarget = sl_null;
+		}
+	}
+
 	void Win32_ViewInstance::setText(const StringParam& _text)
 	{
 		HWND handle = m_handle;
@@ -879,9 +1204,49 @@ namespace slib
 				}
 			case WM_LBUTTONDOWN:
 				{
+					DragContext& dragContext = UIEvent::getCurrentDragContext();
+					dragContext.release();
+
 					sl_bool flag = onEventMouse(UIAction::LeftButtonDown, wParam, lParam);
-					m_actionMouseCapture = UIAction::LeftButtonDown;
-					SetCapture(hWnd);
+
+					Ref<View>& viewDrag = dragContext.view;
+					if (viewDrag.isNotNull()) {
+						GenericDataObject* data = new GenericDataObject;
+						if (data) {
+							data->AddRef();
+							data->setText(dragContext.item.getText());
+							ViewDropSource* source = new ViewDropSource(&dragContext);
+							if (source) {
+								source->AddRef();
+								{
+									POINT pt;
+									GetCursorPos(&pt);
+									Ref<UIEvent> ev = UIEvent::createDragEvent(UIAction::DragStart, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), dragContext, Time::now());
+									if (ev.isNotNull()) {
+										viewDrag->dispatchDragDropEvent(ev.get());
+									}
+								}
+								DWORD dwEffect = 0;
+								HRESULT hr = DoDragDrop(data, source, ToDropEffect(dragContext.operationMask), &dwEffect);
+								{
+									viewDrag->cancelPressedState();
+									viewDrag->cancelHoverState();
+									dragContext.operation = FromDropEffect(dwEffect);
+									POINT pt;
+									GetCursorPos(&pt);
+									Ref<UIEvent> ev = UIEvent::createDragEvent(UIAction::DragEnd, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), dragContext, Time::now());
+									if (ev.isNotNull()) {
+										viewDrag->dispatchDragDropEvent(ev.get());
+									}
+								}
+								source->Release();
+							}
+							data->Release();
+						}
+					} else {
+						m_actionMouseCapture = UIAction::LeftButtonDown;
+						SetCapture(hWnd);
+					}
 					if (flag) {
 						return 0;
 					}

@@ -170,9 +170,15 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DragItem)
 		
 	public:
+		void clear();
+
 		const String& getText() const;
 		
 		void setText(const String& text);
+
+		const List<String>& getFiles() const;
+
+		void setFiles(const List<String>& files);
 		
 		const UIRect& getFrame() const;
 		
@@ -186,6 +192,7 @@ namespace slib
 		
 	protected:
 		String m_text;
+		List<String> m_files;
 		UIRect m_frame;
 		Ref<Drawable> m_image;
 		
@@ -198,7 +205,6 @@ namespace slib
 		DragItem item;
 		DragOperations operationMask;
 		DragOperations operation;
-		sl_uint64 sn;
 
 	public:
 		DragContext();
@@ -352,10 +358,6 @@ namespace slib
 		DragOperations getDragOperation() const;
 		
 		void setDragOperation(const DragOperations& op);
-		
-		sl_uint64 getDragId() const;
-		
-		void setDragId(sl_uint64 _id);
 		
 		// modifiers
 		void setShiftKey();
