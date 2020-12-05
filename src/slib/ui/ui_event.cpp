@@ -1301,6 +1301,8 @@ sl_bool UIEvent::is##NAME##Key() const \
 			KEYCODE_CHAR_MAPPING(NumpadPlus, '+')
 			KEYCODE_CHAR_MAPPING(NumpadEnter, '\n')
 			KEYCODE_CHAR_MAPPING(NumpadDecimal, '.')
+			default:
+				break;
 		}
 		return 0;
 	}
