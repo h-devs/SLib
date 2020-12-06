@@ -149,6 +149,8 @@ namespace slib
 
 		void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical) override;
 
+		void setDropTarget(View* view, sl_bool flag) override;
+
 	public:
 		void setText(const StringParam& text);
 
@@ -187,6 +189,7 @@ namespace slib
 		Ref<Font> m_font;
 
 		Ref<Win32_LayeredViewContext> m_layered;
+		IUnknown* m_dropTarget;
 
 	};
 

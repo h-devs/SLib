@@ -143,7 +143,7 @@ namespace slib
 		
 		void setShadowColor(View* view, const Color& color) override;
 		
-		void setDroppable(View* view, sl_bool flag) override;
+		void setDropTarget(View* view, sl_bool flag) override;
 		
 	public:
 		static NSRect getViewFrameAndTransform(const UIRect& frame, const Matrix3& transform, sl_real& rotation);

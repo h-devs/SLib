@@ -98,9 +98,9 @@ namespace slib
 		return (FileSystemError)(System::getLastError());
 	}
 
-	void FileSystem::setLastError(FileSystemError error)
+	void FileSystem::setLastError(FileSystemError error, PlatformType platform)
 	{
-		System::setLastError((sl_uint32)error);
+		System::setLastError(System::mapError((sl_uint32)error, PlatformType::CurrentPlatform, platform));
 	}
 
 

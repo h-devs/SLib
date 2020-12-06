@@ -64,8 +64,9 @@ namespace slib
 		m_flagOkCancelEnabled(sl_true),
 		m_flagTabStopEnabled(sl_true),
 		m_flagKeepKeyboard(sl_false),
-		m_flagDraggable(sl_false),
-		m_flagDroppable(sl_false),
+		m_flagDragSource(sl_false),
+		m_flagDropTarget(sl_false),
+		m_flagDropFiles(sl_false),
 		m_flagPlaySoundOnClick(sl_false),
 		m_flagClientEdge(sl_true),
 	
@@ -1139,8 +1140,8 @@ namespace slib
 		child->setParent(this);
 		onAddChild(child);
 		
-		if (child->isDroppable() && !(child->isInstance())) {
-			setDroppable();
+		if (child->isDropTarget() && !(child->isInstance())) {
+			setDropTarget();
 		}
 		
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
@@ -7605,37 +7606,53 @@ namespace slib
 	}
 
 
-	sl_bool View::isDraggable()
+	sl_bool View::isDragSource()
 	{
-		return m_flagDraggable;
+		return m_flagDragSource;
 	}
 
-	void View::setDraggable(sl_bool flag)
+	void View::setDragSource(sl_bool flag)
 	{
-		m_flagDraggable = flag;
+		m_flagDragSource = flag;
 	}
 
-	sl_bool View::isDroppable()
+	sl_bool View::isDropTarget()
 	{
-		return m_flagDroppable;
+		return m_flagDropTarget;
 	}
 
-	void View::setDroppable(sl_bool flag)
+	void View::setDropTarget(sl_bool flag)
 	{
-		m_flagDroppable = flag;
+		Ref<ViewInstance> instance = getNativeWidget();
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(&View::setDropTarget, flag)
+		}
+		m_flagDropTarget = flag;
 		if (flag) {
-			Ref<ViewInstance> instance = m_instance;
 			if (instance.isNotNull()) {
-				instance->setDroppable(this, sl_true);
+				instance->setDropTarget(this, sl_true);
 			} else {
 				Ref<View> parent = m_parent;
 				if (parent.isNotNull()) {
-					parent->setDroppable(sl_true);
+					parent->setDropTarget(sl_true);
 				}
 			}
 		}
 	}
 
+	sl_bool View::isDropFiles()
+	{
+		return m_flagDropFiles;
+	}
+	
+	void View::setDropFiles(sl_bool flag)
+	{
+		m_flagDropFiles = flag;
+		if (flag) {
+			setDropTarget();			
+		}
+	}
+	
 	const DragItem& View::getDragItem()
 	{
 		Ref<OtherAttributes>& attrs = m_otherAttrs;
@@ -7645,7 +7662,7 @@ namespace slib
 				return *item;
 			}
 		}
-		static DragItem item;
+		SLIB_SAFE_LOCAL_STATIC(DragItem, item)
 		return item;
 	}
 
@@ -7655,7 +7672,7 @@ namespace slib
 		Ref<OtherAttributes>& attrs = m_otherAttrs;
 		if (attrs.isNotNull()) {
 			attrs->dragItem = MakeShared<DragItem>(item);
-			m_flagDraggable = sl_true;
+			m_flagDragSource = sl_true;
 		}
 	}
 
@@ -8739,7 +8756,7 @@ namespace slib
 			ev->stopPropagation();
 		}
 		
-		if (m_flagDraggable) {
+		if (m_flagDragSource) {
 			DragContext& context = UIEvent::getCurrentDragContext();
 			if (!(context.isAlive())) {
 				beginDragging(getDragItem(), getDragOperationMask());
@@ -9509,16 +9526,9 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER(DragEvent, UIEvent* ev)
+	DEFINE_VIEW_EVENT_HANDLER(DragDropEvent, UIEvent* ev)
 
-	void View::dispatchDragEvent(UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(DragEvent, ev)
-	}
-
-	DEFINE_VIEW_EVENT_HANDLER(DropEvent, UIEvent* ev)
-
-	void View::dispatchDropEvent(UIEvent* ev)
+	void View::dispatchDragDropEvent(UIEvent* ev)
 	{
 		if (!ev) {
 			return;
@@ -9527,38 +9537,43 @@ namespace slib
 			return;
 		}
 
-		if (isNativeWidget() && !(getChildrenCount())) {
+		UIAction action = ev->getAction();
+		if (action == UIAction::Drag || action == UIAction::DragStart || action == UIAction::DragEnd) {
 			priv::view::DuringEventScope scope(this, ev);
-			SLIB_INVOKE_EVENT_HANDLER(DropEvent, ev)
+			SLIB_INVOKE_EVENT_HANDLER(DragDropEvent, ev)
 			return;
 		}
 
-		UIAction action = ev->getAction();
-		
+		if (isNativeWidget() && !(getChildrenCount())) {
+			priv::view::DuringEventScope scope(this, ev);
+			SLIB_INVOKE_EVENT_HANDLER(DragDropEvent, ev)
+			return;
+		}
+
 		// pass event to children
 		if (!m_flagCaptureEvents && !(ev->getFlags() & UIEventFlags::NotDispatchToChildren)) {
 			Ref<ChildAttributes>& childAttrs = m_childAttrs;
 			if (childAttrs.isNotNull()) {
 				Ref<View> oldChildDragOver;
-				if (action == UIAction::DropOver || action == UIAction::DropEnter) {
+				if (action == UIAction::DragOver || action == UIAction::DragEnter) {
 					oldChildDragOver = childAttrs->childDragOver;
 				}
 				if (childAttrs->flagPassEventToChildren) {
 					ListElements< Ref<View> > children(getChildren());
 					if (children.count > 0) {
-						if (dispatchDropEventToChildren(ev, children.data, children.count)) {
+						if (dispatchDragDropEventToChildren(ev, children.data, children.count)) {
 							oldChildDragOver.setNull();
 						}
 					}
 				} else {
 					oldChildDragOver.setNull();
 				}
-				if (action == UIAction::DropOver || action == UIAction::DropEnter) {
+				if (action == UIAction::DragOver || action == UIAction::DragEnter) {
 					if (oldChildDragOver.isNotNull()) {
 						sl_bool flagSP = ev->isStoppedPropagation();
 						UIAction action = ev->getAction();
-						ev->setAction(UIAction::DropLeave);
-						dispatchDropEventToChild(ev, oldChildDragOver.get());
+						ev->setAction(UIAction::DragLeave);
+						dispatchDragDropEventToChild(ev, oldChildDragOver.get());
 						ev->setAction(action);
 						ev->setStoppedPropagation(flagSP);
 						childAttrs->childDragOver.setNull();
@@ -9575,11 +9590,25 @@ namespace slib
 		}
 		
 		ev->resetFlags();
+
+		SLIB_INVOKE_EVENT_HANDLER(DragDropEvent, ev)
+
+		if (ev->isPreventedDefault()) {
+			return;
+		}
+		if (m_flagDropTarget && m_flagDropFiles) {
+			if (action == UIAction::DragOver || action == UIAction::DragEnter) {
+				if (ev->getDragItem().getFiles().isNotNull()) {
+					if (ev->getDragOperationMask() & DragOperations::Copy) {
+						ev->setDragOperation(DragOperations::Copy);
+					}
+				}
+			}
+		}
 		
-		SLIB_INVOKE_EVENT_HANDLER(DropEvent, ev)
 	}
 
-	sl_bool View::dispatchDropEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count)
+	sl_bool View::dispatchDragDropEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count)
 	{
 		Ref<ChildAttributes>& childAttrs = m_childAttrs;
 		if (childAttrs.isNull()) {
@@ -9591,8 +9620,8 @@ namespace slib
 		
 		Ref<View> oldChild;
 		switch (action) {
-			case UIAction::DropOver:
-			case UIAction::DropEnter:
+			case UIAction::DragOver:
+			case UIAction::DragEnter:
 				oldChild = childAttrs->childDragOver;
 				for (sl_size i = 0; i < count; i++) {
 					View* child = children[count - 1 - i].get();
@@ -9600,19 +9629,19 @@ namespace slib
 						UIPointf pt = child->convertCoordinateFromParent(ptMouse);
 						if (child->hitTest(pt)) {
 							if (oldChild == child) {
-								ev->setAction(UIAction::DropOver);
+								ev->setAction(UIAction::DragOver);
 							} else {
-								ev->setAction(UIAction::DropEnter);
+								ev->setAction(UIAction::DragEnter);
 							}
 							ev->setPoint(pt);
-							dispatchDropEventToChild(ev, child, sl_false);
+							dispatchDragDropEventToChild(ev, child, sl_false);
 							ev->setPoint(ptMouse);
 							ev->setAction(action);
 							if (!(ev->isPassedToNext())) {
 								childAttrs->childDragOver = child;
 								if (oldChild.isNotNull() && oldChild != child) {
-									ev->setAction(UIAction::DropLeave);
-									dispatchDropEventToChild(ev, oldChild.get());
+									ev->setAction(UIAction::DragLeave);
+									dispatchDragDropEventToChild(ev, oldChild.get());
 									ev->setAction(action);
 								}
 								return sl_true;
@@ -9621,11 +9650,11 @@ namespace slib
 					}
 				}
 				break;
-			case UIAction::DropLeave:
+			case UIAction::DragLeave:
 			case UIAction::Drop:
 				oldChild = childAttrs->childDragOver;
 				if (oldChild.isNotNull()) {
-					dispatchDropEventToChild(ev, oldChild.get());
+					dispatchDragDropEventToChild(ev, oldChild.get());
 					childAttrs->childDragOver.setNull();
 				}
 				return sl_true;
@@ -9635,17 +9664,17 @@ namespace slib
 		return sl_false;
 	}
 
-	void View::dispatchDropEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints)
+	void View::dispatchDragDropEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints)
 	{
 		if (child) {
 			ev->resetFlags();
 			if (flagTransformPoints) {
 				UIPointf ptMouse = ev->getPoint();
 				ev->setPoint(child->convertCoordinateFromParent(ptMouse));
-				child->dispatchDropEvent(ev);
+				child->dispatchDragDropEvent(ev);
 				ev->setPoint(ptMouse);
 			} else {
-				child->dispatchDropEvent(ev);
+				child->dispatchDragDropEvent(ev);
 			}
 		}
 	}
@@ -10510,7 +10539,7 @@ namespace slib
 	{
 	}
 
-	void ViewInstance::setDroppable(View* view, sl_bool flag)
+	void ViewInstance::setDropTarget(View* view, sl_bool flag)
 	{
 	}
 	
@@ -10717,19 +10746,11 @@ namespace slib
 		}
 	}
 	
-	void ViewInstance::onDragEvent(UIEvent* ev)
+	void ViewInstance::onDragDropEvent(UIEvent* ev)
 	{
 		Ref<View> view = getView();
 		if (view.isNotNull()) {
-			view->dispatchDragEvent(ev);
-		}
-	}
-
-	void ViewInstance::onDropEvent(UIEvent* ev)
-	{
-		Ref<View> view = getView();
-		if (view.isNotNull()) {
-			view->dispatchDropEvent(ev);
+			view->dispatchDragDropEvent(ev);
 		}
 	}
 

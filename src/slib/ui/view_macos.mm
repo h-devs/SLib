@@ -94,11 +94,15 @@ namespace slib
 				return op;
 			}
 		
-			static void SetDroppable(NSView* handle, sl_bool flag)
+			static void SetDropTarget(NSView* handle, sl_bool flag)
 			{
 				if (flag) {
 					if (handle.registeredDraggedTypes == nil || handle.registeredDraggedTypes.count == 0) {
-						[handle registerForDraggedTypes:@[NSPasteboardTypeString]];
+						if (@available(macOS 10.13, *)) {
+							[handle registerForDraggedTypes:@[NSPasteboardTypeString, NSPasteboardTypeFileURL]];
+						} else {
+							[handle registerForDraggedTypes:@[NSPasteboardTypeString, NSFilenamesPboardType]];
+						}
 					}
 				} else {
 					if (handle.registeredDraggedTypes != nil && handle.registeredDraggedTypes.count) {
@@ -176,8 +180,8 @@ namespace slib
 			}
 		}
 		
-		if (view->isDroppable()) {
-			SetDroppable(handle, sl_true);
+		if (view->isDropTarget()) {
+			SetDropTarget(handle, sl_true);
 		}
 	}
 	
@@ -458,11 +462,11 @@ namespace slib
 		}
 	}
 	
-	void macOS_ViewInstance::setDroppable(View* view, sl_bool flag)
+	void macOS_ViewInstance::setDropTarget(View* view, sl_bool flag)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
-			SetDroppable(handle, flag);
+			SetDropTarget(handle, flag);
 		}
 	}
 
@@ -680,15 +684,27 @@ namespace slib
 		NSView* handle = m_handle;
 		if (handle != nil) {
 			DragContext context;
-			context.sn = (sl_uint64)(info.draggingSequenceNumber);
 			context.operationMask = FromNSDragOperation(info.draggingSourceOperationMask);
 			NSPasteboard* paste = info.draggingPasteboard;
 			context.item.setText(Apple::getStringFromNSString([paste stringForType:NSPasteboardTypeString]));
+			NSArray* fileUrls = [paste readObjectsForClasses:@[[NSURL class]] options:@{ NSPasteboardURLReadingFileURLsOnlyKey: [NSNumber numberWithBool:YES] }];
+			if (fileUrls != nil) {
+				List<String> files;
+				for (NSURL* url in fileUrls) {
+					String path = Apple::getFilePathFromNSURL(url);
+					if (path.isNotEmpty()) {
+						files.add_NoLock(Move(path));
+					}
+				}
+				if (files.isNotNull()) {
+					context.item.setFiles(files);
+				}
+			}
 			NSPoint loc = info.draggingLocation;
 			NSPoint pt = [handle convertPoint:loc fromView:nil];
 			Ref<UIEvent> ev = UIEvent::createDragEvent(action, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), context, Time::now());
 			if (ev.isNotNull()) {
-				onDropEvent(ev.get());
+				onDragDropEvent(ev.get());
 				return ev;
 			}
 		}
@@ -1110,7 +1126,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 {
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
-		Ref<UIEvent> ev = instance->onEventDrop(UIAction::DropEnter, sender);
+		Ref<UIEvent> ev = instance->onEventDrop(UIAction::DragEnter, sender);
 		if (ev.isNotNull()) {
 			return ToNSDragOperation(ev->getDragOperation());
 		}
@@ -1122,7 +1138,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 {
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
-		Ref<UIEvent> ev = instance->onEventDrop(UIAction::DropOver, sender);
+		Ref<UIEvent> ev = instance->onEventDrop(UIAction::DragOver, sender);
 		if (ev.isNotNull()) {
 			return ToNSDragOperation(ev->getDragOperation());
 		}
@@ -1134,7 +1150,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 {
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
-		instance->onEventDrop(UIAction::DropLeave, sender);
+		instance->onEventDrop(UIAction::DragLeave, sender);
 	}
 }
 
@@ -1167,7 +1183,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	if (view.isNotNull()) {
 		Ref<UIEvent> ev = UIEvent::createDragEvent(UIAction::DragStart, (sl_ui_posf)(screenPoint.x), (sl_ui_posf)(screenPoint.y), self->context, Time::now());
 		if (ev.isNotNull()) {
-			view->dispatchDragEvent(ev.get());
+			view->dispatchDragDropEvent(ev.get());
 		}
 	}
 }
@@ -1178,7 +1194,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	if (view.isNotNull()) {
 		Ref<UIEvent> ev = UIEvent::createDragEvent(UIAction::Drag, (sl_ui_posf)(screenPoint.x), (sl_ui_posf)(screenPoint.y), self->context, Time::now());
 		if (ev.isNotNull()) {
-			view->dispatchDragEvent(ev.get());
+			view->dispatchDragDropEvent(ev.get());
 		}
 	}
 }
@@ -1192,7 +1208,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 		self->context.operation = FromNSDragOperation(operation);
 		Ref<UIEvent> ev = UIEvent::createDragEvent(UIAction::DragEnd, (sl_ui_posf)(screenPoint.x), (sl_ui_posf)(screenPoint.y), self->context, Time::now());
 		if (ev.isNotNull()) {
-			view->dispatchDragEvent(ev.get());
+			view->dispatchDragDropEvent(ev.get());
 		}
 	}
 }

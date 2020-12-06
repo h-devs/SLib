@@ -485,7 +485,7 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			sl_bool ret = SetModifiedTime(handle, time);
 			CloseHandle(handle);
@@ -511,7 +511,7 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			sl_bool ret = SetAccessedTime(handle, time);
 			CloseHandle(handle);
@@ -537,7 +537,7 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			sl_bool ret = SetCreatedTime(handle, time);
 			CloseHandle(handle);

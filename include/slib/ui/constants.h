@@ -71,9 +71,9 @@ namespace slib
 		DragEnd = SLIB_UI_ACTION_TYPE_DRAG | 0x03,
 		Drag = SLIB_UI_ACTION_TYPE_DRAG | 0x04,
 		Drop = SLIB_UI_ACTION_TYPE_DRAG | 0x11,
-		DropEnter = SLIB_UI_ACTION_TYPE_DRAG | 0x12,
-		DropLeave = SLIB_UI_ACTION_TYPE_DRAG | 0x13,
-		DropOver = SLIB_UI_ACTION_TYPE_DRAG | 0x14
+		DragEnter = SLIB_UI_ACTION_TYPE_DRAG | 0x12,
+		DragLeave = SLIB_UI_ACTION_TYPE_DRAG | 0x13,
+		DragOver = SLIB_UI_ACTION_TYPE_DRAG | 0x14
 		
 	};
 	
@@ -452,10 +452,11 @@ namespace slib
 		All = 0xFFFF,
 		Copy = 0x0001, // The data can be copied
 		Link = 0x0002, // The data can be shared
-		Generic = 0x0004, // The operation can be defined by the destination
-		Private = 0x0008, // The operation is negotiated privately between the source and the destination
+		Generic = 0x0004, // The operation can be defined by the destination [macOS]
+		Private = 0x0008, // The operation is negotiated privately between the source and the destination [macOS]
 		Move = 0x0010, // The data can be moved.
-		Delete = 0x0020 // The data can be deleted.
+		Delete = 0x0020, // The data can be deleted. [macOS]
+		Scroll = 0x0040 // Scrolling is about to start or is currently occurring in the target. [Win32]
 	})
 	
 }

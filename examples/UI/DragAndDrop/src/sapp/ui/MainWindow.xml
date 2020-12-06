@@ -37,6 +37,7 @@
 				height='fill'
 				background='#8080ff'
 				padding='5'
+				clipping='true'
 				>
 				
 				<label

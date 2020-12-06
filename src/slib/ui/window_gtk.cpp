@@ -43,6 +43,7 @@ namespace slib
 			{
 			public:
 				GtkWindow* m_window;
+				GtkWidget* m_menuBox;
 				AtomicRef<ViewInstance> m_viewContent;
 				sl_bool m_flagClosed;
 				
@@ -99,34 +100,42 @@ namespace slib
 					m_origin.y = 0;
 					
 					GtkWidget* contentWidget = sl_null;
-					GtkWidget* contentContainer = gtk_event_box_new();
-					if (contentContainer) {
-						gtk_container_add((GtkContainer*)window, contentContainer);
-						contentWidget = gtk_fixed_new();
-						if (contentWidget) {
-							GTK_WIDGET_SET_FLAGS(contentWidget, GTK_CAN_FOCUS);
-							gtk_container_add((GtkContainer*)contentContainer, contentWidget);
-							gtk_widget_show(contentWidget);
+					GtkWidget* vBox = gtk_vbox_new(false, 0);
+					if(vBox){
+						gtk_widget_show(vBox);
+						gtk_container_add((GtkContainer*)m_window, vBox);
+						m_menuBox = gtk_event_box_new();
+						if(m_menuBox){
+							gtk_box_pack_start((GtkBox*)vBox, m_menuBox, false, false, 0);
+							gtk_widget_show(m_menuBox);
 						}
-						gtk_widget_show(contentContainer);
+						GtkWidget* contentBox = gtk_event_box_new();
+						if(contentBox){
+							gtk_widget_show(contentBox);
+							gtk_box_pack_start((GtkBox*)vBox, contentBox, true, true, 0);
+							contentWidget = gtk_fixed_new();
+							if (contentWidget) {
+								gtk_container_add((GtkContainer*)contentBox, contentWidget);
+								GTK_WIDGET_SET_FLAGS(contentWidget, GTK_CAN_FOCUS);
+								gtk_widget_show(contentWidget);
+
+								Ref<GTK_ViewInstance> content = GTK_ViewInstance::create<GTK_ViewInstance>(contentWidget);
+								if (content.isNotNull()) {
+									content->setWindowContent(sl_true);
+									content->installEventsWithDrawing();
+									m_viewContent = content;
+								}
+								g_signal_connect(window, "key-press-event", G_CALLBACK(_ui_win_on_key_event), contentWidget);
+								g_signal_connect(window, "key-release-event", G_CALLBACK(_ui_win_on_key_event), contentWidget);
+							}
+						}
 					}
 
-					Ref<GTK_ViewInstance> content = GTK_ViewInstance::create<GTK_ViewInstance>(contentWidget);
-					if (content.isNotNull()) {
-						content->setWindowContent(sl_true);
-						content->installEventsWithDrawing();
-						m_viewContent = content;
-					}
-					
 					g_signal_connect(window, "destroy", G_CALLBACK(_ui_win_on_destroy_cb), NULL);
 					g_signal_connect(window, "delete-event", G_CALLBACK(_ui_win_on_close_cb), NULL);
 					g_signal_connect(window, "window-state-event", G_CALLBACK(_ui_win_on_window_state_cb), NULL);
 					g_signal_connect(window, "configure-event", G_CALLBACK(_ui_win_on_configure_event_cb), NULL);
 					g_signal_connect(window, "notify::is-active", G_CALLBACK(_ui_win_on_notify_is_active_cb), NULL);
-					if (contentWidget) {
-						g_signal_connect(window, "key-press-event", G_CALLBACK(_ui_win_on_key_event), contentWidget);
-						g_signal_connect(window, "key-release-event", G_CALLBACK(_ui_win_on_key_event), contentWidget);
-					}
 
 					gint x, y, width, height;
 					gtk_window_get_position(window, &x, &y);
@@ -367,7 +376,9 @@ namespace slib
 						g_object_unref(window);
 						return sl_null;
 					}
-					
+
+					ret->_setMenu(param.menu);
+
 					UISize size = frameWindow.getSize();
 					if (size.x < 1) {
 						size.x = 1;
@@ -693,6 +704,26 @@ namespace slib
 				{
 				}
 				
+				void setMenu(const Ref<Menu>& menu) override
+				{
+					GtkWindow* handle = m_window;
+					if (handle) {
+						_setMenu(menu);
+					}
+				}
+
+				void _setMenu(const Ref<Menu>& menu)
+				{
+					GtkWidget* _menu = UIPlatform::getMenuHandle(menu);
+					GtkWidget* menuOld = gtk_bin_get_child((GtkBin*)m_menuBox);
+					if (menuOld){
+						gtk_container_remove((GtkContainer*)m_menuBox, menuOld);
+					}
+					if(_menu){
+						gtk_container_add((GtkContainer*)m_menuBox, _menu);
+					}
+				}
+
 				UIPointf convertCoordinateFromScreenToWindow(const UIPointf& ptScreen) override
 				{
 					return UIPointf(ptScreen.x - m_location.x, ptScreen.y - m_location.y);

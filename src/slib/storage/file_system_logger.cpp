@@ -161,7 +161,7 @@ namespace slib
 
 	Ref<FileContext> FileSystemLogger::createContext(const StringParam& path)
 	{
-		if (!(m_flags & FileSystemLogFlags::Create) || !m_regex.match(path.toString())) {
+		if (!(m_flags & FileSystemLogFlags::ContextAddress) || !m_regex.match(path.toString())) {
 			return m_base->createContext(path);
 		}
 

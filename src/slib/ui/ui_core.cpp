@@ -107,7 +107,11 @@ namespace slib
 			
 			static void QuitLoop()
 			{
-				UIPlatform::quitLoop();
+				if (g_nLevelRunLoop) {
+					UIPlatform::quitLoop();
+				} else {
+					UIPlatform::quitApp();
+				}
 			}
 			
 			static void QuitApp()
