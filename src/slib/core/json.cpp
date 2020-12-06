@@ -532,7 +532,7 @@ namespace slib
 								key = ST::from(ParseUtil::parseBackslashEscapes(StringParam(buf + pos, len - pos), &m, &f));
 							} else {
 								key = ST::from(ParseUtil::parseBackslashEscapes16(StringParam(buf + pos, len - pos), &m, &f));
-							}							
+							}
 							pos += m;
 							if (f) {
 								flagError = sl_true;

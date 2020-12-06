@@ -1285,7 +1285,7 @@ namespace slib
 							}
 						} else {
 							flagError = sl_true;
-						}						
+						}
 					}
 					if (flagError) {
 						return 0xffffffff;

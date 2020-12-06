@@ -923,7 +923,7 @@ namespace slib
 	String OAuth2::generateCodeChallenge(const String& verifier, OAuthCodeChallengeMethod method)
 	{
 		if (method == OAuthCodeChallengeMethod::S256) {
-			char hash[32];			
+			char hash[32];
 			SHA256::hash(verifier, hash);
 			return Base64::encodeUrl(hash, 32);
 		} else {

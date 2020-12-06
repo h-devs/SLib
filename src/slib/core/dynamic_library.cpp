@@ -82,7 +82,7 @@ namespace slib
 			return getFunctionAddress(library, name.getData());
 		} else {
 			return sl_null;
-		}		
+		}
 	}
 
 	void* DynamicLibrary::loadLibrary(const StringParam& path1, const StringParam& path2)

@@ -87,7 +87,7 @@ namespace slib
 							flagSuccess = sl_true;
 						}
 					}
-				}		
+				}
 			};
 			
 			static void RunTakePhoto(TakePhoto& takePhoto, SLIBTakePhotoController* controller)

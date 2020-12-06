@@ -76,7 +76,7 @@ namespace slib
 		sl_uint32 m_nWidth;
 		sl_uint32 m_nHeight;
 		
-	};	
+	};
 }
 
 #endif

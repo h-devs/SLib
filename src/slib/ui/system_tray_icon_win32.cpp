@@ -298,7 +298,7 @@ namespace slib
 								m_hIcon = nid.hIcon;
 							}
 						}
-					}					
+					}
 				}
 
 				void setToolTip_NI(const String& toolTip) override

@@ -63,7 +63,7 @@ namespace slib
 							JPen::color.set(jpen, desc.color.getARGB());
 							JPen::width.set(jpen, desc.width);
 							JPen::miterLimit.set(jpen, desc.miterLimit);
-							JPen::setStyle.call(jpen, desc.style);				
+							JPen::setStyle.call(jpen, desc.style);
 							m_pen = gpen;
 						}
 					}

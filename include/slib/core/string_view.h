@@ -470,7 +470,7 @@ namespace slib
 		 *
 		 * @return parsed hex data
 		 */
-		Memory parseHexString() const noexcept;		
+		Memory parseHexString() const noexcept;
 
 	protected:
 		sl_char8* data;
@@ -933,7 +933,7 @@ namespace slib
 		 *
 		 * @return parsed hex data
 		 */
-		Memory parseHexString() const noexcept;		
+		Memory parseHexString() const noexcept;
 
 	protected:
 		sl_char16* data;

@@ -77,7 +77,7 @@ public class UiFont {
 			} else {
 				base = Typeface.DEFAULT;
 			}
-			Typeface face = null;			
+			Typeface face = null;
 			int _style = style & 3;
 			if (base != null) {
 				face = Typeface.create(base, _style);
@@ -101,7 +101,7 @@ public class UiFont {
 		paint.setAntiAlias(true);
 		paint.setTypeface(font);
 		paint.setUnderlineText(flagUnderline);
-		paint.setStrikeThruText(flagStrikeout);		
+		paint.setStrikeThruText(flagStrikeout);
 		paint.setTextSize(size);
 	}
 	

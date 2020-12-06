@@ -83,7 +83,7 @@ namespace slib
 
 		static sl_reg calculate(double* result, sl_bool* isDivisionByZero, const sl_char8* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
 		
-		static sl_reg calculate(double* result, sl_bool* isDivisionByZero, const sl_char16* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;		
+		static sl_reg calculate(double* result, sl_bool* isDivisionByZero, const sl_char16* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
 		
 		static sl_bool calculate(const sl_char8* sz, double* result, sl_bool* isDivisionByZero = sl_null) noexcept;
 		

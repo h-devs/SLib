@@ -397,7 +397,7 @@ namespace slib
 	{
 		if (json.isUndefined()) {
 			return;
-		}		
+		}
 		HashMap<KT, VT, HASH, KEY_COMPARE> t;
 		FromJson(json, t);
 		_out = Move(t);

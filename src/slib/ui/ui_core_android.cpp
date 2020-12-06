@@ -67,7 +67,7 @@ namespace slib
 				SLIB_JNI_STATIC_METHOD(setScreenOrientations, "setScreenOrientations", "(Landroid/app/Activity;ZZZZ)V");
 				SLIB_JNI_STATIC_METHOD(getSafeAreaInsets, "getSafeAreaInsets", "(Landroid/app/Activity;)Landroid/graphics/Rect;");
 				SLIB_JNI_STATIC_METHOD(getStatusBarHeight, "getStatusBarHeight", "(Landroid/app/Activity;)I");
-				SLIB_JNI_STATIC_METHOD(setStatusBarStyle, "setStatusBarStyle", "(Landroid/app/Activity;I)V");		
+				SLIB_JNI_STATIC_METHOD(setStatusBarStyle, "setStatusBarStyle", "(Landroid/app/Activity;I)V");
 				SLIB_JNI_STATIC_METHOD(setBadgeNumber, "setBadgeNumber", "(Landroid/app/Activity;I)V");
 			SLIB_JNI_END_CLASS
 

@@ -135,7 +135,7 @@ namespace slib
 				~CanvasImpl()
 				{
 					if (m_flagFreeOnRelease) {
-						delete m_graphics;			
+						delete m_graphics;
 					}
 				}
 

@@ -136,7 +136,7 @@ namespace slib
 		LoopQueue<sl_int16> m_queue;
 		AtomicArray<sl_int16> m_processData;
 		
-	};	
+	};
 }
 
 #endif

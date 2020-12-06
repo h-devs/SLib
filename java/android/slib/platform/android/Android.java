@@ -57,7 +57,7 @@ public class Android {
 	
 	public static InputStream openAsset(Activity activity, String path) {
 		try {
-			AssetManager assets = activity.getAssets();			
+			AssetManager assets = activity.getAssets();
 			return assets.open(path);
 		} catch (Throwable e) {
 			Logger.exception(e);

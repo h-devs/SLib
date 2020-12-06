@@ -358,7 +358,7 @@ namespace slib
 	{
 		if (m_flagTouchFocus) {
 			Point pt = ev->getPoint();
-			Ref<View> child = getTopmostViewAt(pt);			
+			Ref<View> child = getTopmostViewAt(pt);
 			if (child.isNotNull() && child != m_controls) {
 				return;
 			}

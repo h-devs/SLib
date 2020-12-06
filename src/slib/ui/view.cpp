@@ -3092,7 +3092,7 @@ namespace slib
 	{
 		if (m_layoutAttrs.isNull()) {
 			return;
-		}		
+		}
 		if (!flagVertical && !flagHorizontal) {
 			return;
 		}
@@ -6691,7 +6691,7 @@ namespace slib
 					x = 0;
 				}
 				return x;
-			}			
+			}
 		}
 	}
 
@@ -7649,7 +7649,7 @@ namespace slib
 	{
 		m_flagDropFiles = flag;
 		if (flag) {
-			setDropTarget();			
+			setDropTarget();
 		}
 	}
 	
@@ -10784,6 +10784,7 @@ namespace slib
 		}
 	}
 
+
 	SLIB_DEFINE_OBJECT(ViewCell, Object)
 
 	ViewCell::ViewCell()
@@ -11105,7 +11106,7 @@ namespace slib
 
 	ViewGroup::ViewGroup()
 	{
-		setCreatingChildInstances(sl_true);	
+		setCreatingChildInstances(sl_true);
 	}
 
 	ViewGroup::~ViewGroup()

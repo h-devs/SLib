@@ -100,7 +100,7 @@ namespace slib
 	public:
 		static sl_bool isValidSamplingRate(sl_uint32 nSamplesPerSecond);
 		
-	};	
+	};
 }
 
 #endif

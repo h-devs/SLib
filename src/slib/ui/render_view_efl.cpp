@@ -97,7 +97,7 @@ namespace slib
 					m_flagContinuously = (view->getRedrawMode() == RedrawMode::Continuously);
 					m_timer = ecore_animator_add(timer, handle);
 
-					installTouchEvents();					
+					installTouchEvents();
 				}
 
 				void setRedrawMode(RenderView* view, RedrawMode mode) override

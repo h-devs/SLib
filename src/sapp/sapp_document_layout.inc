@@ -2508,7 +2508,7 @@ namespace slib
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(iconAlign, setIconAlignment)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(textAlign, setTextAlignment)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(textBeforeIcon, setTextBeforeIcon)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(extendTextFrame, setExtendTextFrame)		
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(extendTextFrame, setExtendTextFrame)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(orientation, setLayoutOrientation)
 		
 		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(iconMarginLeft, setIconMarginLeft, checkPosition)

@@ -221,7 +221,7 @@ namespace slib
 						setTextColor(view, view->getTextColor());
 						setGravity(view, view->getGravity());
 						setReadOnly(view, view->isReadOnly());
-						setFont(view, view->getFont());				
+						setFont(view, view->getFont());
 		
 						GtkTextBuffer* buffer = gtk_text_view_get_buffer(handleText);
 						if (buffer) {
@@ -403,7 +403,7 @@ namespace slib
 
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* _parent)
 	{
-		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);		
+		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
 		GtkWidget* handle = gtk_entry_new();
 		return GTK_ViewInstance::create<EditViewInstance>(this, parent, handle);
 	}

@@ -38,6 +38,6 @@
 	FileSystem::setLastError(error); \
 	return ret;
 
-#define PATH_FROM_CONTEXT(context)			(context ? context->path : sl_null)
+#define PATH_FROM_CONTEXT(context) (context ? context->path : sl_null)
 
 #endif

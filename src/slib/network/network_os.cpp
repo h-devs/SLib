@@ -101,7 +101,7 @@ namespace slib
 		for (sl_size i = 0; i < devices.count; i++) {
 			if (devices[i].displayName == name) {
 				if(pInfo) {
-					*pInfo = devices[i];				
+					*pInfo = devices[i];
 				}
 				return sl_true;
 			}

@@ -65,7 +65,7 @@ typedef long long			sl_int64;
 typedef unsigned long long	sl_uint64;
 typedef __SIZE_TYPE__		sl_size_t;
 
-#	define SLIB_ALIGN(n)		__attribute__((aligned(n)))
+#	define SLIB_ALIGN(n)	__attribute__((aligned(n)))
 
 #	if __GNUC__ >= 4
 #		define SLIB_EXPORT			__attribute__((visibility("default")))
@@ -140,11 +140,11 @@ namespace slib
 	}
 }
 
-#define SLIB_UNUSED(x)					(void)x;
+#define SLIB_UNUSED(x) (void)x;
 
 #if defined(SLIB_DEBUG)
-#	define SLIB_ASSERT(EXPRESSION)		( (!!(EXPRESSION)) || (slib::priv::Abort(#EXPRESSION, __FILE__, __LINE__), 0) )
-#	define SLIB_ABORT(MESSAGE)			(slib::priv::Abort(MESSAGE, __FILE__, __LINE__))
+#	define SLIB_ASSERT(EXPRESSION) ( (!!(EXPRESSION)) || (slib::priv::Abort(#EXPRESSION, __FILE__, __LINE__), 0) )
+#	define SLIB_ABORT(MESSAGE) (slib::priv::Abort(MESSAGE, __FILE__, __LINE__))
 #else
 #	define SLIB_ASSERT(EXPRESSION)
 #	define SLIB_ABORT(MESSAGE)

@@ -95,7 +95,7 @@ namespace slib
 				InitializeTLS();
 				if (index == TLS_OUT_OF_INDEXES) {
 					return;
-				}				
+				}
 				HLOCAL hLocal = LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, 8);
 				if (hLocal) {
 					*((sl_uint64*)hLocal) = value;

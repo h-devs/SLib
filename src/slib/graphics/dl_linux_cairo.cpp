@@ -29,13 +29,13 @@ namespace slib
 	namespace cairo
 	{
 
-		cairo_public cairo_surface_t * wrap_cairo_surface_create_for_rectangle(
-				cairo_surface_t * target,
-				double x,
-				double y,
-				double width,
-				double height)
-		{
+		cairo_public cairo_surface_t* wrap_cairo_surface_create_for_rectangle(
+			cairo_surface_t* target,
+			double x,
+			double y,
+			double width,
+			double height
+		) {
 			auto func = getApi_cairo_surface_create_for_rectangle();
 			if (func) {
 				return func(target, x, y, width, height);
@@ -48,25 +48,19 @@ namespace slib
 	namespace pango
 	{
 
-		// SLIB_IMPORT_LIBRARY_FUNCTION(
-		// 	pango_font_map_create_context,
-		// 	PangoContext *, ,
-		// 	PangoFontMap *fontmap
-		// )
-		// #define pango_font_map_create_context	slib::pango::getApi_pango_font_map_create_context()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			pango_context_new,
 			PangoContext *, ,
 			void
 		)
-		#define pango_context_new	slib::pango::getApi_pango_context_new()
+		#define pango_context_new slib::pango::getApi_pango_context_new()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			pango_context_set_font_map,
 			void, ,
 			PangoContext *context,
 			PangoFontMap *font_map
 		)
-		#define pango_context_set_font_map	slib::pango::getApi_pango_context_set_font_map()
+		#define pango_context_set_font_map slib::pango::getApi_pango_context_set_font_map()
 		
 	}
 
@@ -78,38 +72,31 @@ namespace slib
 			PangoFontMap *, ,
 			void
 		)
-		#define pango_cairo_font_map_get_default	slib::pangocairo::getApi_pango_cairo_font_map_get_default()
+		#define pango_cairo_font_map_get_default slib::pangocairo::getApi_pango_cairo_font_map_get_default()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			pango_cairo_update_context,
 			void, ,
-			cairo_t      *cr,
+			cairo_t *cr,
 			PangoContext *context
 		)
-		#define pango_cairo_update_context	slib::pangocairo::getApi_pango_cairo_update_context()
+		#define pango_cairo_update_context slib::pangocairo::getApi_pango_cairo_update_context()
 
 		PangoContext * wrap_pango_cairo_create_context(cairo_t * cr)
 		{
-			auto func = getApi_pango_cairo_create_context();			// defined above pango >= 1.21.0
+			auto func = getApi_pango_cairo_create_context(); // defined above pango >= 1.21.0
 			if (func) {
 				return func(cr);
 			}
-			
-			PangoFontMap *fontmap;
-			PangoContext *context;
-
-			// g_return_val_if_fail (cr != NULL, NULL);
-			if (cr == NULL) return NULL;
-
-			fontmap = pango_cairo_font_map_get_default ();
-			// context = pango_font_map_create_context (fontmap);		// defined above pango >= 1.21.4
-			{
-				// g_return_val_if_fail (fontmap != NULL, NULL);
-				if (fontmap == NULL) return NULL;
-				context = pango_context_new ();
-				pango_context_set_font_map (context, fontmap);
+			if (!cr) {
+				return sl_null;
 			}
-			pango_cairo_update_context (cr, context);
-
+			PangoFontMap* fontmap = pango_cairo_font_map_get_default();
+			if (!fontmap) {
+				return sl_null;
+			}
+			PangoContext* context = pango_context_new();
+			pango_context_set_font_map(context, fontmap);
+			pango_cairo_update_context(cr, context);
 			return context;
 		}
 

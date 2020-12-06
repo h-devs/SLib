@@ -337,7 +337,7 @@ namespace slib
 		if (!context) {
 			return sl_false;
 		}
-		return context->update(mask);		
+		return context->update(mask);
 	}
 
 }

@@ -73,7 +73,7 @@ namespace slib
 			public:
 				static Ref<PcapCapture> create(const NetCaptureParam& param)
 				{
-					String name = param.deviceName;		
+					String name = param.deviceName;
 					String name8;
 					const char* szName;
 					if (name.isEmpty()) {
@@ -175,7 +175,7 @@ namespace slib
 					}
 					m_flagInit = sl_false;
 
-					m_flagRunning = sl_false;		
+					m_flagRunning = sl_false;
 					if (m_thread.isNotNull()) {
 						m_thread->finishAndWait();
 						m_thread.setNull();

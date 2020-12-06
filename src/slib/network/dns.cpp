@@ -238,7 +238,7 @@ namespace slib
 					now++;
 					if (now + lenLabel > size) {
 						return 0;
-					}				
+					}
 					if (lenName) {
 						name[lenName] = '.';
 						lenName++;

@@ -101,7 +101,7 @@ namespace slib
 
 			static sl_bool BuildHuffman(JpegHuffmanTable& table)
 			{
-				sl_uint32 i, j;				
+				sl_uint32 i, j;
 				sl_uint32 k = 0;
 				for (i = 0; i < 16; i++) {
 					for (j = 0; j < table.bits[i]; j++) {
@@ -1073,7 +1073,7 @@ namespace slib
 			if (width && height) {
 				sl_uint32 nx = (width + 7) >> 3;
 				sl_uint32 ny = (height + 7) >> 3;
-				Ref<Image> image = Image::create(nx << 3, ny << 3);				
+				Ref<Image> image = Image::create(nx << 3, ny << 3);
 				if (image.isNotNull()) {
 					ImageDesc desc;
 					image->getDesc(desc);

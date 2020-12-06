@@ -1076,7 +1076,7 @@ namespace slib
 			public:
 				DatabaseImpl()
 				{
-					m_mysql = sl_null;					
+					m_mysql = sl_null;
 				}
 
 				~DatabaseImpl()

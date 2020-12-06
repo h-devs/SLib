@@ -259,7 +259,7 @@ public class UrlRequest {
 			Logger.exception(e);
 			onError(e.getLocalizedMessage());
 		} else {
-			onError("Unknown Error");			
+			onError("Unknown Error");
 		}
 	}
 

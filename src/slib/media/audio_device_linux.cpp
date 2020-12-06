@@ -486,7 +486,7 @@ namespace slib
 					sl_uint32 st = m_param.frameLengthInMilliseconds / 2;
 					
 					while (thread->isNotStopping()) {
-						sl_bool flagWritten = sl_false;						
+						sl_bool flagWritten = sl_false;
 						int nAvail = (int)(snd_pcm_avail_update(handle));
 						if (nAvail == -EPIPE) {
 							snd_pcm_recover(handle, nAvail, 0);

@@ -178,7 +178,7 @@ namespace slib
 	public:
 		virtual Ref<AudioPlayer> createPlayer(const AudioPlayerParam& param) = 0;
 		
-	};	
+	};
 }
 
 #endif

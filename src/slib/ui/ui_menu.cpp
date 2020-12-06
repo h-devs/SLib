@@ -136,7 +136,7 @@ namespace slib
 				sl_bool isSeparator() const override
 				{
 					return sl_true;
-				}				
+				}
 			};
 		}
 	}

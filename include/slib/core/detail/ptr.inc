@@ -996,7 +996,7 @@ namespace slib
 				SLIB_INLINE ~SharedPtrContainer()
 				{
 					delete ptr;
-				}				
+				}
 			};
 
 			template <class T, class DELETER>

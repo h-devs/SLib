@@ -155,7 +155,7 @@ namespace slib
 			{
 				if (!lenUtf16) {
 					return 0;
-				}				
+				}
 				if (!sizeOutputBuffer) {
 					return 0;
 				}
@@ -182,7 +182,7 @@ namespace slib
 			{
 				if (!sizeInput) {
 					return 0;
-				}				
+				}
 				if (!lenUtf16Buffer) {
 					return 0;
 				}

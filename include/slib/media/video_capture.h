@@ -86,7 +86,7 @@ namespace slib
 		
 		virtual void onCaptureVideoFrame(VideoCaptureFrame& frame);
 		
-	};	
+	};
 }
 
 #endif

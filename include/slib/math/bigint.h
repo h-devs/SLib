@@ -371,7 +371,7 @@ namespace slib
 		*/
 		sl_bool gcd(const CBigInt& A, const CBigInt& B) noexcept;
 
-		sl_bool gcd(const CBigInt& B) noexcept;		
+		sl_bool gcd(const CBigInt& B) noexcept;
 		
 		/*
 		 	lcm - least common multiple

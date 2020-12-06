@@ -141,7 +141,7 @@ namespace slib
 					return fnRestore;
 				}
 				Base::freeMemory(fnRestore);
-			}		
+			}
 		}
 		return sl_null;
 	}

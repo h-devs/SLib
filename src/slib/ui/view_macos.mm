@@ -527,7 +527,7 @@ namespace slib
 			canvas->setAlpha(alpha);
 		}
 		
-		view->dispatchDraw(canvas.get());		
+		view->dispatchDraw(canvas.get());
 	}
 
 	UIEventFlags macOS_ViewInstance::onEventKey(sl_bool flagDown, NSEvent* event)

@@ -871,7 +871,7 @@ namespace slib
 		} else {
 			if (!m_dropTarget) {
 				return;
-			}			
+			}
 			RevokeDragDrop(handle);
 			m_dropTarget = sl_null;
 		}
@@ -957,7 +957,7 @@ namespace slib
 			canvasBitmap->setAntiAlias(sl_false);
 		}
 
-		Color colorBack(0);		
+		Color colorBack(0);
 		do {
 			if (view->isOpaque()) {
 				break;

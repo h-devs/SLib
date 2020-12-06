@@ -103,7 +103,7 @@ namespace slib
 
 		static void applyEventModifiers(UIEvent* ev);
 
-#elif defined(SLIB_UI_IS_MACOS)		
+#elif defined(SLIB_UI_IS_MACOS)
 #	if defined(__OBJC__)
 		static Ref<ViewInstance> createViewInstance(NSView* handle);
 		static void registerViewInstance(NSView* handle, ViewInstance* instance);

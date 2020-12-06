@@ -828,7 +828,7 @@ namespace slib
 					}
 				} else {
 					buf[posBuf] = '?';
-				}			
+				}
 			}
 			return String(buf + posBuf, 128 - posBuf);
 		}

@@ -53,7 +53,7 @@ namespace slib
 		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(SelectView, SelectItem, sl_uint32 index)		
+		SLIB_DECLARE_EVENT_HANDLER(SelectView, SelectItem, sl_uint32 index)
 
 	protected:
 		void onDraw(Canvas* canvas) override;

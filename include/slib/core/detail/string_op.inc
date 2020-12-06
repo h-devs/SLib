@@ -273,7 +273,7 @@ namespace slib
 				SLIB_INLINE static typename OP::ReturnType call(const std::u32string& a2, const STRING& a1) noexcept
 				{
 					return OP::call(a2.c_str(), a2.length(), a1);
-				}				
+				}
 #endif
 				
 				template <class T>

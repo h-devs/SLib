@@ -542,7 +542,7 @@ namespace slib
 					if (!h) {
 						h = heightAverage;
 					}
-				}				
+				}
 				if (h < heightMinimum) {
 					h = heightMinimum;
 				}

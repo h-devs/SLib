@@ -163,7 +163,7 @@ namespace slib
 
 				void initialize(View* _view) override
 				{
-					TabViewHelper* view = (TabViewHelper*)_view;					
+					TabViewHelper* view = (TabViewHelper*)_view;
 					NSTabView* handle = getHandle();
 
 					setHandleFont(handle, view->getFont());

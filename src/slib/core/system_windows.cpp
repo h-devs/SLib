@@ -163,7 +163,7 @@ namespace slib
 		auto func = kernel32::getApi_GetTickCount64();
 		if (func) {
 			return (sl_uint64)(func());
-		}		
+		}
 		static sl_uint32 tickOld = 0;
 		static sl_uint32 tickHigh = 0;
 		SLIB_STATIC_SPINLOCKER(lock)

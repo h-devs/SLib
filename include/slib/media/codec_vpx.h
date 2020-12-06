@@ -99,7 +99,7 @@ namespace slib
 	public:
 		static Ref<VpxDecoder> create(const VpxDecoderParam& param);
 		
-	};	
+	};
 }
 
 #endif

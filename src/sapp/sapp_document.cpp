@@ -811,7 +811,7 @@ namespace slib
 				_logError(g_str_error_file_write_failed.arg(pathHeader));
 				return sl_false;
 			}
-		}		
+		}
 		return sl_true;
 	}
 	

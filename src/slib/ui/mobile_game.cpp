@@ -60,7 +60,7 @@ namespace slib
 	MobileGameView::MobileGameView()
 	{
 		setRedrawMode(RedrawMode::WhenDirty);
-		setDispatchingEventsToRenderingThread(sl_true);		
+		setDispatchingEventsToRenderingThread(sl_true);
 	}
 
 	MobileGameView::~MobileGameView()

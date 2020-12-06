@@ -77,7 +77,7 @@ namespace slib
 		
 		void copySamplesFrom(const AudioData& other) const;
 		
-	};	
+	};
 }
 
 #endif

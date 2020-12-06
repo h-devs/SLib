@@ -643,7 +643,7 @@ namespace slib
 		sl_bool parse(const ST& str, const TimeZone& zone) noexcept
 		{
 			return Parse(str, zone, this);
-		}		
+		}
 		
 		/* platform functions */
 	protected:

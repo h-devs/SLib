@@ -1674,7 +1674,7 @@ namespace slib
 		String16 argBy(const ListParam<Variant>& params) const noexcept;
 
 	private:
-		StringContainer16* _retainContainer() const noexcept;		
+		StringContainer16* _retainContainer() const noexcept;
 		void _replaceContainer(StringContainer16* other) noexcept;
 
 		friend class String16;

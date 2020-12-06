@@ -30,11 +30,11 @@ namespace slib
 
 			sl_bool setCapacity(void* pData, sl_size elementSize, sl_size* pCapacity, sl_size* pCount, sl_size newCapacity) noexcept;
 			
-			sl_bool adjustCapacity(void* pData, sl_size elementSize, sl_size* pCapacity, sl_size* pCount, sl_size newCount) noexcept;		
+			sl_bool adjustCapacity(void* pData, sl_size elementSize, sl_size* pCapacity, sl_size* pCount, sl_size newCount) noexcept;
 
-			sl_bool growCapacity(void* pData, sl_size elementSize, sl_size* pCapacity, sl_size newCount) noexcept;		
+			sl_bool growCapacity(void* pData, sl_size elementSize, sl_size* pCapacity, sl_size newCount) noexcept;
 
-			sl_bool shrinkCapacity(void* pData, sl_size elementSize, sl_size* pCapacity, sl_size newCount) noexcept;		
+			sl_bool shrinkCapacity(void* pData, sl_size elementSize, sl_size* pCapacity, sl_size newCount) noexcept;
 
 		}
 	}

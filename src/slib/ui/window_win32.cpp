@@ -910,7 +910,7 @@ namespace slib
 								}
 							}
 							break;
-						}					
+						}
 					}
 				}
 				return priv::view::ViewInstanceProc(hWnd, uMsg, wParam, lParam);

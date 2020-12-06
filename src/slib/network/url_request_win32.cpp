@@ -146,7 +146,7 @@ namespace slib
 								comps.lpszPassword[comps.dwPasswordLength] = 0;
 							}
 							sl_int32 connectionId = Base::interlockedIncrement32(&(lastConnectionId)) & 0x7FFFFFFF;
-							HINTERNET hConnect = WinHttpConnect(hInternet, comps.lpszHostName, comps.nPort, 0);					
+							HINTERNET hConnect = WinHttpConnect(hInternet, comps.lpszHostName, comps.nPort, 0);
 							if (hConnect) {
 								Ref<Connection> ret = new Connection(hConnect, connectionId, address, comps.nScheme == INTERNET_SCHEME_HTTPS);
 								if (ret.isNotNull()) {

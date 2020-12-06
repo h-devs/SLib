@@ -51,7 +51,7 @@ namespace slib
 		void setText(const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(ComboBox, SelectItem, sl_int32 index)		
+		SLIB_DECLARE_EVENT_HANDLER(ComboBox, SelectItem, sl_int32 index)
 		
 		SLIB_DECLARE_EVENT_HANDLER(ComboBox, Change, String& value)
 

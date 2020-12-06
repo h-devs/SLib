@@ -110,7 +110,7 @@ namespace slib
 					if (path.isNotNull()) {
 						CGPathRef handle = GraphicsPlatform::getGraphicsPath(path.get());
 						if (handle) {
-							_clipToPath(handle, path->getFillMode());				
+							_clipToPath(handle, path->getFillMode());
 						}
 					}
 				}

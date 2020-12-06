@@ -75,7 +75,7 @@ namespace slib
 						::system_info_get_platform_int("http://tizen.org/feature/screen.height", &(ret->m_height));
 #endif
 						return ret;
-					}			
+					}
 					return sl_null;
 				}
 

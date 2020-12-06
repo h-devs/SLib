@@ -584,7 +584,7 @@ namespace slib
 			constexpr static sl_uint32 GetHour12(sl_uint32 hour)
 			{
 				return hour % 12 ? hour % 12 : 12;
-			}				
+			}
 		}
 	}
 

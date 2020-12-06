@@ -239,7 +239,7 @@ public class UiSelectView extends Spinner implements IView {
 						TextView tv = (TextView)ret;
 						tv.setTypeface(font.getTypeface());
 					}
-				}				
+				}
 			}
 			return ret;
 		}

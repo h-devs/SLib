@@ -55,7 +55,7 @@ namespace slib
 					);
 					if (ret > 0) {
 						return (sl_size)ret;
-					}					
+					}
 				}
 				return 0;
 			}

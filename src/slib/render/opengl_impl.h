@@ -1989,7 +1989,7 @@ namespace slib
 			} else {
 				GLNamedTexture* named = static_cast<GLNamedTexture*>(texture);
 				GL_BASE::bindTexture(named->m_target, named->m_name);
-			}				
+			}
 			const RenderSamplerParam* param = sl_null;
 			if ((sl_uint32)samplerNo < CountOfArray(m_currentSamplerStates)) {
 				RenderSamplerState* state = m_currentSamplerStates[samplerNo].get();

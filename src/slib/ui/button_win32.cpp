@@ -50,7 +50,7 @@ namespace slib
 
 			void ButtonInstance::initialize(View* _view)
 			{
-				Button* view = (Button*)_view;				
+				Button* view = (Button*)_view;
 				setPadding(view, view->getPadding());
 			}
 

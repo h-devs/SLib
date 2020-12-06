@@ -94,7 +94,7 @@ namespace slib
 			Ref<BitmapCache> cache = m_renderingTextureCached;
 			if (cache.isNotNull()) {
 				cache->update(0, 0, getBitmapWidth(), getBitmapHeight());
-			}		
+			}
 		}
 	}
 

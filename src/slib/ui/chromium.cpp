@@ -1046,7 +1046,7 @@ namespace slib
 			CefRefPtr<DeleteCookiesCallback> refWrapperCallback = new DeleteCookiesCallback;
 			DeleteCookiesCallback* wrapperCallback = refWrapperCallback.get();
 			if (wrapperCallback) {
-				wrapperCallback->callback = callback;				
+				wrapperCallback->callback = callback;
 				manager->DeleteCookies(GetCefString(url), GetCefString(name), refWrapperCallback);
 				return;
 			}
