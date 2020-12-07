@@ -105,7 +105,11 @@ namespace slib
 		sl_size getHashCode() const noexcept;
 		
 		sl_size getHashCodeIgnoreCase() const noexcept;
-		
+
+		static const StringView& null() noexcept;
+
+		static const StringView& getEmpty() noexcept;
+
 	public:
 		PRIV_SLIB_DECLARE_STRING_CLASS_OP_TEMPLATE(sl_bool, equals)
 
@@ -266,7 +270,12 @@ namespace slib
 		 * a view of the substring that removed whitespaces from the right of the new string.
 		 */
 		StringView trimRight() const noexcept;
-		
+
+		/**
+		* Copy this string and then removes CR/LF from both ends of the new string.
+		*/
+		StringView trimLine() const noexcept;
+
 		/**
 		 * Splits this string into the list of strings by the `pattern` separator.
 		 */
@@ -568,6 +577,10 @@ namespace slib
 		sl_size getHashCode() const noexcept;
 		
 		sl_size getHashCodeIgnoreCase() const noexcept;
+
+		static const StringView16& null() noexcept;
+
+		static const StringView16& getEmpty() noexcept;
 		
 	public:
 		PRIV_SLIB_DECLARE_STRING_CLASS_OP_TEMPLATE(sl_bool, equals)
@@ -729,7 +742,12 @@ namespace slib
 		 * a view of the substring that removed whitespaces from the right of the new string.
 		 */
 		StringView16 trimRight() const noexcept;
-		
+
+		/**
+		* Copy this string and then removes CR/LF from both ends of the new string.
+		*/
+		StringView16 trimLine() const noexcept;
+
 		/**
 		 * Splits this string into the list of strings by the `pattern` separator.
 		 */

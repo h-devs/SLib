@@ -27,6 +27,25 @@
 namespace slib
 {
 
+	namespace priv
+	{
+		namespace string_view
+		{
+
+			struct StringViewContainer
+			{
+				const sl_char8* data;
+				sl_reg length;
+			};
+
+			StringViewContainer g_stringView_null = { sl_null, 0 };
+			StringViewContainer g_stringView_empty = { "\0\0\0\0", 0 };
+
+		}
+	}
+
+	using namespace priv::string_view;
+
 	StringView::StringView(const String& value) noexcept
 	{
 		if (value.isNotNull()) {
@@ -93,6 +112,26 @@ namespace slib
 
 	StringView16::StringView16(const std::u16string& str) noexcept: data((sl_char16*)(str.c_str())), length((sl_reg)(str.length()))
 	{
+	}
+
+	const StringView& StringView::null() noexcept
+	{
+		return *((StringView*)&g_stringView_null);
+	}
+
+	const StringView16& StringView16::null() noexcept
+	{
+		return *((StringView16*)&g_stringView_null);
+	}
+
+	const StringView& StringView::getEmpty() noexcept
+	{
+		return *((StringView*)&g_stringView_empty);
+	}
+
+	const StringView16& StringView16::getEmpty() noexcept
+	{
+		return *((StringView16*)&g_stringView_empty);
 	}
 
 	StringView& StringView::operator=(sl_null_t) noexcept

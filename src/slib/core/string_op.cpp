@@ -974,6 +974,9 @@ namespace slib
 
 	String String::substring(sl_reg start, sl_reg end) const noexcept
 	{
+		if (isNull()) {
+			return sl_null;
+		}
 		sl_reg count = getLength();
 		if (start < 0) {
 			start = 0;
@@ -982,7 +985,7 @@ namespace slib
 			end = count;
 		}
 		if (start >= end) {
-			return sl_null;
+			return getEmpty();
 		}
 		if (start == 0 && end == count) {
 			return *this;
@@ -992,6 +995,9 @@ namespace slib
 
 	String16 String16::substring(sl_reg start, sl_reg end) const noexcept
 	{
+		if (isNull()) {
+			return sl_null;
+		}
 		sl_reg count = getLength();
 		if (start < 0) {
 			start = 0;
@@ -1000,7 +1006,7 @@ namespace slib
 			end = count;
 		}
 		if (start >= end) {
-			return sl_null;
+			return getEmpty();
 		}
 		if (start == 0 && end == count) {
 			return *this;
@@ -1022,6 +1028,9 @@ namespace slib
 
 	StringView StringView::substring(sl_reg start, sl_reg end) const noexcept
 	{
+		if (isNull()) {
+			return sl_null;
+		}
 		sl_reg count = getLength();
 		if (start < 0) {
 			start = 0;
@@ -1030,13 +1039,16 @@ namespace slib
 			end = count;
 		}
 		if (start >= end) {
-			return sl_null;
+			return getEmpty();
 		}
 		return StringView(getData() + start, end - start);
 	}
 
 	StringView16 StringView16::substring(sl_reg start, sl_reg end) const noexcept
 	{
+		if (isNull()) {
+			return sl_null;
+		}
 		sl_reg count = getLength();
 		if (start < 0) {
 			start = 0;
@@ -1045,7 +1057,7 @@ namespace slib
 			end = count;
 		}
 		if (start >= end) {
-			return sl_null;
+			return getEmpty();
 		}
 		return StringView16(getData() + start, end - start);
 	}
@@ -2217,22 +2229,25 @@ namespace slib
 			template <class ST, class CT>
 			SLIB_INLINE static ST Trim(const ST& str) noexcept
 			{
+				if (str.isNull()) {
+					return sl_null;
+				}
 				const CT* sz = str.getData();
 				sl_size n = str.getLength();
 				sl_size i = 0;
 				for (; i < n; i++) {
 					CT c = sz[i];
-					if (c != ' ' && c != '\t' && c != '\r' && c != '\n') {
+					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
 						break;
 					}
 				}
 				if (i >= n) {
-					return sl_null;
+					return ST::getEmpty();
 				}
 				sl_size j = n - 1;
 				for (; j >= i; j--) {
 					CT c = sz[j];
-					if (c != ' ' && c != '\t' && c != '\r' && c != '\n') {
+					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
 						break;
 					}
 				}
@@ -2242,17 +2257,20 @@ namespace slib
 			template <class ST, class CT>
 			SLIB_INLINE static ST TrimLeft(const ST& str) noexcept
 			{
+				if (str.isNull()) {
+					return sl_null;
+				}
 				const CT* sz = str.getData();
 				sl_size n = str.getLength();
 				sl_size i = 0;
 				for (; i < n; i++) {
 					CT c = sz[i];
-					if (c != ' ' && c != '\t' && c != '\r' && c != '\n') {
+					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
 						break;
 					}
 				}
 				if (i >= n) {
-					return sl_null;
+					return ST::getEmpty();
 				}
 				return str.substring(i);
 			}
@@ -2260,21 +2278,52 @@ namespace slib
 			template <class ST, class CT>
 			SLIB_INLINE static ST TrimRight(const ST& str) noexcept
 			{
+				if (str.isNull()) {
+					return sl_null;
+				}
 				const CT* sz = str.getData();
 				sl_size n = str.getLength();
 				sl_size j = n;
 				for (; j > 0; j--) {
 					CT c = sz[j-1];
-					if (c != ' ' && c != '\t' && c != '\r' && c != '\n') {
+					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
 						break;
 					}
 				}
 				if (j == 0) {
-					return sl_null;
+					return ST::getEmpty();
 				}
 				return str.substring(0, j);
 			}
-			
+
+			template <class ST, class CT>
+			SLIB_INLINE static ST TrimLine(const ST& str) noexcept
+			{
+				if (str.isNull()) {
+					return sl_null;
+				}
+				const CT* sz = str.getData();
+				sl_size n = str.getLength();
+				sl_size i = 0;
+				for (; i < n; i++) {
+					CT c = sz[i];
+					if (c != '\r' && c != '\n') {
+						break;
+					}
+				}
+				if (i >= n) {
+					return ST::getEmpty();
+				}
+				sl_size j = n - 1;
+				for (; j >= i; j--) {
+					CT c = sz[j];
+					if (c != '\r' && c != '\n') {
+						break;
+					}
+				}
+				return str.substring(i, j + 1);
+			}
+
 		}
 	}
 
@@ -2372,6 +2421,38 @@ namespace slib
 	StringView16 StringView16::trimRight() const noexcept
 	{
 		return priv::string::TrimRight<StringView16, sl_char16>(*this);
+	}
+
+	String String::trimLine() const noexcept
+	{
+		return priv::string::TrimLine<String, sl_char8>(*this);
+	}
+
+	String16 String16::trimLine() const noexcept
+	{
+		return priv::string::TrimLine<String16, sl_char16>(*this);
+	}
+
+	String Atomic<String>::trimLine() const noexcept
+	{
+		String s(*this);
+		return s.trimLine();
+	}
+
+	String16 Atomic<String16>::trimLine() const noexcept
+	{
+		String16 s(*this);
+		return s.trimLine();
+	}
+
+	StringView StringView::trimLine() const noexcept
+	{
+		return priv::string::TrimLine<StringView, sl_char8>(*this);
+	}
+
+	StringView16 StringView16::trimLine() const noexcept
+	{
+		return priv::string::TrimLine<StringView16, sl_char16>(*this);
 	}
 
 

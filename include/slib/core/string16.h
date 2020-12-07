@@ -651,7 +651,12 @@ namespace slib
 		 * Copy this string and then removes whitespaces from the right of the new string.
 		 */
 		String16 trimRight() const noexcept;
-		
+
+		/**
+		* Copy this string and then removes CR/LF from both ends of the new string.
+		*/
+		String16 trimLine() const noexcept;
+
 		/**
 		 * Splits this string into the list of strings by the `pattern` separator.
 		 */
@@ -1457,7 +1462,12 @@ namespace slib
 		 * Copy this string and then removes whitespaces from the right of the new string.
 		 */
 		String16 trimRight() const noexcept;
-		
+
+		/**
+		* Copy this string and then removes CR/LF from both ends of the new string.
+		*/
+		String16 trimLine() const noexcept;
+
 		/**
 		 * Splits this string into the list of strings by the `pattern` separator.
 		 */
