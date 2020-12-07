@@ -85,7 +85,7 @@ namespace slib
 	
 	SLIB_INLINE sl_bool String::isNull() const noexcept
 	{
-		return m_container == sl_null;
+		return !m_container;
 	}
 
 	SLIB_INLINE sl_bool String::isNotNull() const noexcept
@@ -96,7 +96,7 @@ namespace slib
 	SLIB_INLINE sl_bool String::isEmpty() const noexcept
 	{
 		if (m_container) {
-			return (m_container->len == 0);
+			return !(m_container->len);
 		} else {
 			return sl_true;
 		}
@@ -200,7 +200,7 @@ namespace slib
 	
 	SLIB_INLINE sl_bool String16::isNull() const noexcept
 	{
-		return m_container == sl_null;
+		return !m_container;
 	}
 	
 	SLIB_INLINE sl_bool String16::isNotNull() const noexcept
@@ -211,7 +211,7 @@ namespace slib
 	SLIB_INLINE sl_bool String16::isEmpty() const noexcept
 	{
 		if (m_container) {
-			return (m_container->len == 0);
+			return !(m_container->len);
 		} else {
 			return sl_true;
 		}

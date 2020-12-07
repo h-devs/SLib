@@ -1283,9 +1283,6 @@
     <ClCompile Include="..\..\src\slib\core\time_windows.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\console_windows.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\console.cpp">
       <Filter>src\core</Filter>
     </ClCompile>

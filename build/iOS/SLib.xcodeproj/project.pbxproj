@@ -56,7 +56,6 @@
 		265A935823043CBF00B155A2 /* process.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A935723043CBE00B155A2 /* process.cpp */; };
 		265A935E2304783200B155A2 /* console.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A935D2304783200B155A2 /* console.cpp */; };
 		265A9360230478E300B155A2 /* time_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A935F230478E300B155A2 /* time_unix.cpp */; };
-		265A936E230485B200B155A2 /* console_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A936D230485B200B155A2 /* console_unix.cpp */; };
 		265A937023048D8600B155A2 /* process_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A936F23048D8600B155A2 /* process_unix.cpp */; };
 		26635C9F226706F3005E4BA6 /* ui_photo_ios.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26635C9E226706F3005E4BA6 /* ui_photo_ios.mm */; };
 		26635CA1226706FD005E4BA6 /* ui_photo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26635CA0226706FD005E4BA6 /* ui_photo.cpp */; };
@@ -613,7 +612,6 @@
 		265A935723043CBE00B155A2 /* process.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = process.cpp; sourceTree = "<group>"; };
 		265A935D2304783200B155A2 /* console.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = console.cpp; sourceTree = "<group>"; };
 		265A935F230478E300B155A2 /* time_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = time_unix.cpp; sourceTree = "<group>"; };
-		265A936D230485B200B155A2 /* console_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = console_unix.cpp; sourceTree = "<group>"; };
 		265A936F23048D8600B155A2 /* process_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = process_unix.cpp; sourceTree = "<group>"; };
 		265EBF2A1C23051F00AD81D9 /* database_cursor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = database_cursor.cpp; sourceTree = "<group>"; };
 		265EBF2B1C23051F00AD81D9 /* database_statement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = database_statement.cpp; sourceTree = "<group>"; };
@@ -1272,7 +1270,6 @@
 				269C2F9F235EDDB600775765 /* charset_ext.cpp */,
 				26C72AD01E22484F00F7D6D0 /* collection.cpp */,
 				265A935D2304783200B155A2 /* console.cpp */,
-				265A936D230485B200B155A2 /* console_unix.cpp */,
 				A234D6ED1B3F12F600ADDF4E /* content_type.cpp */,
 				26BC2EC51E2DFF4900D0801E /* dispatch.cpp */,
 				A25F2ED11B039EF600854DAF /* event.cpp */,
@@ -1809,7 +1806,6 @@
 				26BAE01A221FFC830085B5AB /* facebook_sdk.cpp in Sources */,
 				26D9D85F1E962937005F7BD3 /* globe.cpp in Sources */,
 				26D9D8151E9628E0005F7BD3 /* variant.cpp in Sources */,
-				265A936E230485B200B155A2 /* console_unix.cpp in Sources */,
 				26C7959D221538D90053C5A1 /* clipboard.cpp in Sources */,
 				26D9D8161E9628E0005F7BD3 /* platform_android.cpp in Sources */,
 				26539FA82374BA130064340D /* ui_notification_xgpush_ios.mm in Sources */,

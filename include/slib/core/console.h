@@ -47,6 +47,40 @@ namespace slib
 
 		static sl_char16 readChar(sl_bool flagPrintEcho = sl_false);
 
+		static sl_bool readInt32(sl_int32* _out);
+
+		static sl_int32 readInt32(sl_int32 def = 0);
+
+		static sl_bool readUint32(sl_uint32* _out);
+
+		static sl_uint32 readUint32(sl_uint32 def = 0);
+
+		static sl_bool readInt64(sl_int64* _out);
+
+		static sl_int64 readInt64(sl_int64 def = 0);
+
+		static sl_bool readUint64(sl_uint64* _out);
+
+		static sl_uint64 readUint64(sl_uint64 def = 0);
+
+		static sl_bool readInt(sl_reg* _out);
+
+		static sl_reg readInt(sl_reg def = 0);
+
+		static sl_bool readUint(sl_size* _out);
+
+		static sl_size readUint(sl_size def = 0);
+
+		static sl_bool readFloat(float* _out);
+
+		static float readFloat(float def = 0);
+
+		static sl_bool readDouble(double* _out);
+
+		static double readDouble(double def = 0);
+
+		static String readString();
+
 	};
 	
 	template <class... ARGS>

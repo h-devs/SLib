@@ -78,7 +78,6 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/charset_ext.cpp"
  "${SLIB_PATH}/src/slib/core/collection.cpp"
  "${SLIB_PATH}/src/slib/core/console.cpp"
- "${SLIB_PATH}/src/slib/core/console_unix.cpp"
  "${SLIB_PATH}/src/slib/core/content_type.cpp"
  "${SLIB_PATH}/src/slib/core/dispatch.cpp"
  "${SLIB_PATH}/src/slib/core/dynamic_library.cpp"

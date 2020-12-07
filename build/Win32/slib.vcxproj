@@ -149,7 +149,6 @@
     <ClCompile Include="..\..\src\slib\core\charset_windows.cpp" />
     <ClCompile Include="..\..\src\slib\core\collection.cpp" />
     <ClCompile Include="..\..\src\slib\core\console.cpp" />
-    <ClCompile Include="..\..\src\slib\core\console_windows.cpp" />
     <ClCompile Include="..\..\src\slib\core\content_type.cpp" />
     <ClCompile Include="..\..\src\slib\core\dispatch.cpp" />
     <ClCompile Include="..\..\src\slib\core\dl_windows_bcrypt.cpp" />
