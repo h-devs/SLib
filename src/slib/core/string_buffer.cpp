@@ -167,11 +167,21 @@ namespace slib
 
 	String StringBuffer::merge() const noexcept
 	{
-		if (m_queue.getCount() == 0) {
+		sl_size total = m_len;
+		if (!total) {
 			return String::getEmpty();
 		}
 		Link<StringStorage>* front = m_queue.getFront();
-		sl_size total = m_len;
+		sl_size nQueueCount = m_queue.getCount();
+		if (!nQueueCount) {
+			return String::getEmpty();
+		}
+		if (nQueueCount == 1) {
+			String& s = front->value.string8;
+			if (s.isNotNull()) {
+				return s;
+			}
+		}
 		String ret = String::allocate(total);
 		if (ret.isNotEmpty()) {
 			sl_char8* buf = (sl_char8*)(ret.getData());
@@ -194,11 +204,21 @@ namespace slib
 	
 	String16 StringBuffer16::merge() const noexcept
 	{
-		if (m_queue.getCount() == 0) {
+		sl_size total = m_len;
+		if (!total) {
 			return String16::getEmpty();
 		}
 		Link<StringStorage>* front = m_queue.getFront();
-		sl_size total = m_len;
+		sl_size nQueueCount = m_queue.getCount();
+		if (!nQueueCount) {
+			return String16::getEmpty();
+		}
+		if (nQueueCount == 1) {
+			String16& s = front->value.string16;
+			if (s.isNotNull()) {
+				return s;
+			}
+		}
 		String16 ret = String16::allocate(total);
 		if (ret.isNotEmpty()) {
 			sl_char16* buf = (sl_char16*)(ret.getData());
