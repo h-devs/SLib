@@ -76,13 +76,11 @@ namespace slib
 
 #else
 
-#ifndef __STDC_LIB_EXT1__
-#define __STDC_LIB_EXT1__
-#endif
 #include <stdio.h>
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 #	include <conio.h>
+#	define scanf scanf_s
 #else
 #	include <stdlib.h>
 #	include <termios.h>
@@ -101,8 +99,8 @@ namespace slib
 		Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
 		printf("%s", (char*)(mem.getData()));
 #else
-		StringCstr _s(s);
-		printf("%s", _s.getData());
+		StringCstr s(_s);
+		printf("%s", s.getData());
 #endif
 	}
 
@@ -116,8 +114,8 @@ namespace slib
 		Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
 		printf("%s\n", (char*)(mem.getData()));
 #else
-		StringCstr _s(s);
-		printf("%s\n", _s.getData());
+		StringCstr s(_s);
+		printf("%s\n", s.getData());
 #endif
 	}
 
@@ -172,7 +170,7 @@ namespace slib
 	sl_bool Console::readInt32(sl_int32* _out)
 	{
 		int n = 0;
-		if (scanf_s("%d", &n) == 1) {
+		if (scanf("%d", &n) == 1) {
 			if (_out) {
 				*_out = (sl_int32)n;
 			}
@@ -184,7 +182,7 @@ namespace slib
 	sl_bool Console::readUint32(sl_uint32* _out)
 	{
 		unsigned int n = 0;
-		if (scanf_s("%u", &n) == 1) {
+		if (scanf("%u", &n) == 1) {
 			if (_out) {
 				*_out = (sl_uint32)n;
 			}
@@ -197,9 +195,9 @@ namespace slib
 	{
 		sl_int64 n = 0;
 #ifdef SLIB_PLATFORM_IS_WIN32
-		if (scanf_s("%I64d", &n) == 1) {
+		if (scanf("%I64d", &n) == 1) {
 #else
-		if (scanf_s("%lld", &n) == 1) {
+		if (scanf("%lld", &n) == 1) {
 #endif
 			if (_out) {
 				*_out = n;
@@ -213,9 +211,9 @@ namespace slib
 	{
 		sl_uint64 n = 0;
 #ifdef SLIB_PLATFORM_IS_WIN32
-		if (scanf_s("%I64u", &n) == 1) {
+		if (scanf("%I64u", &n) == 1) {
 #else
-		if (scanf_s("%llu", &n) == 1) {
+		if (scanf("%llu", &n) == 1) {
 #endif
 			if (_out) {
 				*_out = n;
@@ -228,7 +226,7 @@ namespace slib
 	sl_bool Console::readFloat(float* _out)
 	{
 		float n = 0;
-		if (scanf_s("%f", &n) == 1) {
+		if (scanf("%f", &n) == 1) {
 			if (_out) {
 				*_out = n;
 			}
@@ -240,7 +238,7 @@ namespace slib
 	sl_bool Console::readDouble(double* _out)
 	{
 		double n = 0;
-		if (scanf_s("%lf", &n) == 1) {
+		if (scanf("%lf", &n) == 1) {
 			if (_out) {
 				*_out = n;
 			}
@@ -253,7 +251,11 @@ namespace slib
 	{
 		char sz[1024];
 		sz[0] = 0;
-		if (scanf_s("%s", sz, (unsigned int)(sizeof(sz))) == 1) {
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		if (scanf("%s", sz, (unsigned int)(sizeof(sz))) == 1) {
+#else
+		if (scanf("%s", sz) == 1) {
+#endif
 			sl_size len = Base::getStringLength(sz, sizeof(sz));
 			if (len) {
 #if defined(SLIB_PLATFORM_IS_WIN32)
