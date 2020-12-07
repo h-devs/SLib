@@ -38,8 +38,6 @@ namespace slib
 	Service::Service()
 	{
 		m_flagPlatformService = sl_false;
-
-		setCrashRecoverySupport(sl_true);
 	}
 
 	Service::~Service()
