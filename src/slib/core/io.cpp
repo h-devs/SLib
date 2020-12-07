@@ -1399,42 +1399,82 @@ namespace slib
 		sl_bool flagNull = sl_true;
 		for (;;) {
 			sl_reg n = reader->read(buf, sizeof(buf));
-			if (n > 0) {
-				flagNull = sl_false;
-				for (sl_reg i = 0; i < n; i++) {
-					char ch = buf[i];
-					if (ch == '\r' || ch == '\n') {
-						if (i) {
-							sb.add(String(buf, i));
-						}
-						if (ch == '\r') {
-							if (i == n - 1) {
-								if (reader->readUint8('\n') != '\n') {
-									seekable->seek(-1, SeekPosition::Current);
-								}
-							} else {
-								if (buf[i + 1] == '\n') {
-									if (i != n - 2) {
-										seekable->seek(i + 2 - n, SeekPosition::Current);
-									}
-								} else {
-									seekable->seek(i + 1 - n, SeekPosition::Current);
-								}
+			if (n <= 0) {
+				break;
+			}
+			flagNull = sl_false;
+			for (sl_reg i = 0; i < n; i++) {
+				char ch = buf[i];
+				if (ch == '\r' || ch == '\n') {
+					if (i) {
+						sb.add(String(buf, i));
+					}
+					if (ch == '\r') {
+						if (i == n - 1) {
+							if (reader->readUint8('\n') != '\n') {
+								seekable->seek(-1, SeekPosition::Current);
 							}
 						} else {
-							if (i != n - 1) {
+							if (buf[i + 1] == '\n') {
+								if (i != n - 2) {
+									seekable->seek(i + 2 - n, SeekPosition::Current);
+								}
+							} else {
 								seekable->seek(i + 1 - n, SeekPosition::Current);
 							}
 						}
-						return sb.merge();
+					} else {
+						if (i != n - 1) {
+							seekable->seek(i + 1 - n, SeekPosition::Current);
+						}
 					}
+					return sb.merge();
 				}
-				if (!(sb.add(String(buf, n)))) {
-					return sl_null;
-				}
-			} else {
+			}
+			if (!(sb.add(String(buf, n)))) {
+				return sl_null;
+			}
+		}
+		if (flagNull) {
+			return sl_null;
+		}
+		return sb.merge();
+	}
+
+	String SeekableReaderHelper::readStringUntilWhitespace(IReader* reader, ISeekable* seekable)
+	{
+		StringBuffer sb;
+		char buf[512];
+		sl_bool flagNull = sl_true;
+		sl_bool flagFoundStart = sl_false;
+		for (;;) {
+			sl_reg n = reader->read(buf, sizeof(buf));
+			if (n <= 0) {
 				break;
 			}
+			flagNull = sl_false;
+			sl_reg start = 0;
+			if (!flagFoundStart) {
+				for (sl_reg i = 0; i < n; i++) {
+					sl_char8 ch = buf[i];
+					if (ch && !SLIB_CHAR_IS_WHITE_SPACE(buf[i])) {
+						flagFoundStart = sl_true;
+						start = i;
+						break;
+					}
+				}
+			}
+			for (sl_reg i = start; i < n; i++) {
+				char ch = buf[i];
+				if (!ch || SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+					sb.add(String(buf + start, i - start));
+					if (i != n - 1) {
+						seekable->seek(i + 1 - n, SeekPosition::Current);
+					}
+					return sb.merge();
+				}
+			}
+			sb.add(String(buf + start, n - start));
 		}
 		if (flagNull) {
 			return sl_null;
@@ -1449,25 +1489,24 @@ namespace slib
 		sl_bool flagNull = sl_true;
 		for (;;) {
 			sl_reg n = reader->read(buf, sizeof(buf));
-			if (n > 0) {
-				flagNull = sl_false;
-				for (sl_reg i = 0; i < n; i++) {
-					char ch = buf[i];
-					if (!ch) {
-						if (i) {
-							sb.add(String(buf, i));
-						}
-						if (i != n - 1) {
-							seekable->seek(i + 1 - n, SeekPosition::Current);
-						}
-						return sb.merge();
-					}
-				}
-				if (!(sb.add(String(buf, n)))) {
-					return sl_null;
-				}
-			} else {
+			if (n <= 0) {
 				break;
+			}
+			flagNull = sl_false;
+			for (sl_reg i = 0; i < n; i++) {
+				char ch = buf[i];
+				if (!ch) {
+					if (i) {
+						sb.add(String(buf, i));
+					}
+					if (i != n - 1) {
+						seekable->seek(i + 1 - n, SeekPosition::Current);
+					}
+					return sb.merge();
+				}
+			}
+			if (!(sb.add(String(buf, n)))) {
+				return sl_null;
 			}
 		}
 		if (flagNull) {

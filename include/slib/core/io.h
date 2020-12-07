@@ -300,6 +300,8 @@ namespace slib
 	public:
 		static String readLine(IReader* reader, ISeekable* seekable);
 
+		static String readStringUntilWhitespace(IReader* reader, ISeekable* seekable);
+
 		static String readNullTerminatedString(IReader* reader, ISeekable* seekable);
 
 		static Memory readAllBytes(IReader* reader, ISeekable* seekable, sl_size maxSize);
@@ -325,6 +327,11 @@ namespace slib
 		String readLine()
 		{
 			return SeekableReaderHelper::readLine((READER*)this, (READER*)this);
+		}
+
+		String readStringUntilWhitespace()
+		{
+			return SeekableReaderHelper::readStringUntilWhitespace((READER*)this, (READER*)this);
 		}
 
 		String readNullTerminatedString()
