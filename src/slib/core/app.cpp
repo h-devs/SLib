@@ -60,7 +60,11 @@ namespace slib
 					List<String> args = app->getArguments();
 					String* s = args.getData();
 					sl_uint32 n = (sl_uint32)(args.getCount());
-					Process::exec(app->getExecutablePath(), s, n);
+					if (n) {
+						Process::exec(app->getExecutablePath(), s + 1, n - 1);
+					} else {
+						Process::exec(app->getExecutablePath(), s, n);
+					}
 				}
 			}
 #endif
