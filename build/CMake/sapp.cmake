@@ -46,7 +46,7 @@ target_link_libraries (
 set_target_properties (
  tool-sapp
  PROPERTIES
- LINK_FLAGS "-static-libgcc -Wl,--wrap=memcpy"
+ LINK_FLAGS "-static-libgcc -static-libstdc++ -Wl,--wrap=memcpy"
  RUNTIME_OUTPUT_DIRECTORY "${SLIB_PATH}/bin/${CMAKE_SYSTEM_NAME}"
  RUNTIME_OUTPUT_NAME "sapp"
 )
