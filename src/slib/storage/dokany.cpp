@@ -31,8 +31,9 @@
 
 #include "slib/core/service_manager.h"
 #include "slib/core/dynamic_library.h"
-#include "slib/core/platform_windows.h"
 #include "slib/core/safe_static.h"
+
+#include "slib/core/windows.h"
 
 #define TAG "DokanHost"
 #include "slib/storage/file_system_internal.h"

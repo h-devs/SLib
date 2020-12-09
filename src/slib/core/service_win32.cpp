@@ -27,8 +27,7 @@
 #include "slib/core/service.h"
 
 #include "slib/core/safe_static.h"
-
-#include <windows.h>
+#include "slib/core/windows.h"
 
 #pragma comment(lib, "advapi32.lib")
 

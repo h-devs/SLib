@@ -28,7 +28,7 @@
 #include "slib/core/safe_static.h"
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
-#include <windows.h>
+#include "slib/core/windows.h"
 #include <stdio.h>
 #elif defined(SLIB_PLATFORM_IS_ANDROID)
 #include <android/log.h>

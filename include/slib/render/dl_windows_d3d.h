@@ -29,7 +29,7 @@
 
 #include "../core/dl.h"
 
-#include <windows.h>
+#include "../core/windows.h"
 
 struct IDirect3D8;
 struct IDirect3D9;

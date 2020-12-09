@@ -37,7 +37,7 @@
 
 #	if defined (SLIB_PLATFORM_IS_WIN32)
 
-#include <Windows.h>
+#include "slib/core/windows.h"
 
 namespace slib
 {

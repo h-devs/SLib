@@ -24,9 +24,9 @@
 
 #ifdef SLIB_PLATFORM_IS_WINDOWS
 
-#include <windows.h>
-
 #include "slib/core/pipe.h"
+
+#include "slib/core/windows.h"
 
 namespace slib
 {

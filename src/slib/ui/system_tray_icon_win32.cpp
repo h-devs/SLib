@@ -34,6 +34,8 @@
 
 #include "ui_core_win32.h"
 
+#include <shellapi.h>
+
 namespace slib
 {
 

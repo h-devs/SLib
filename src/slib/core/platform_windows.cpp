@@ -32,6 +32,7 @@
 #include "slib/core/dl_windows_kernel32.h"
 
 #include <crtdbg.h>
+#include <shellapi.h>
 #include <shlwapi.h>
 #pragma warning(disable: 4091)
 #include <shlobj.h>

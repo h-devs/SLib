@@ -29,7 +29,7 @@
 
 #include "dl.h"
 
-#include <windows.h>
+#include "windows.h"
 
 namespace slib
 {

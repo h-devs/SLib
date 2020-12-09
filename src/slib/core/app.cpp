@@ -30,9 +30,7 @@
 #include "slib/core/string_buffer.h"
 #include "slib/core/log.h"
 
-#ifdef SLIB_PLATFORM_IS_WIN32
-#include <windows.h>
-#endif
+#include "slib/core/windows.h"
 
 namespace slib
 {

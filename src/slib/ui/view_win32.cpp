@@ -34,6 +34,7 @@
 #include "slib/core/safe_static.h"
 
 #include <commctrl.h>
+#include <shellapi.h>
 
 #ifdef max
 #undef max

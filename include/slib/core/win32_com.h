@@ -27,12 +27,14 @@
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
-#include <windows.h>
+#include "windows.h"
 
 #include "object.h"
 #include "memory.h"
 #include "string.h"
 #include "list.h"
+
+#include <objidl.h>
 
 namespace slib
 {

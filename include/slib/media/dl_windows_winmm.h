@@ -29,7 +29,9 @@
 
 #include "../core/dl.h"
 
-#include <windows.h>
+#include "../core/windows.h"
+
+#include <mmsystem.h>
 
 namespace slib
 {

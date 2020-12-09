@@ -20,24 +20,16 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_DL_WINDOWS_WININET
-#define CHECKHEADER_SLIB_CORE_DL_WINDOWS_WININET
+#ifndef CHECKHEADER_SLIB_CORE_WINDOWS
+#define CHECKHEADER_SLIB_CORE_WINDOWS
 
 #include "definition.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
-#include "dl.h"
-
-#include "windows.h"
-
-namespace slib
-{
-
-	SLIB_IMPORT_LIBRARY_BEGIN(wininet, "wininet.dll")
-	SLIB_IMPORT_LIBRARY_END
-
-}
+#define WIN32_LEAN_AND_MEAN
+#define NOCOMM
+#include <windows.h>
 
 #endif
 
