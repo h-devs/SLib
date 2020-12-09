@@ -35,6 +35,7 @@
 
 #pragma warning(disable: 4091)
 #include <shlobj.h>
+#include <commdlg.h>
 
 namespace slib
 {

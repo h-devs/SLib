@@ -25,6 +25,8 @@
 #include "slib/core/platform_windows.h"
 #include "slib/core/scoped.h"
 
+#include <winioctl.h>
+
 namespace slib
 {
 

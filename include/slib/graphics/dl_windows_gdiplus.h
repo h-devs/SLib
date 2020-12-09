@@ -30,6 +30,9 @@
 #include "../core/dl.h"
 
 #include "../core/windows.h"
+
+#include <objidl.h>
+
 #define GDIPVER 0x0110
 #define GdipCreateEffect SLIB_GdipCreateEffect
 #define GdipDeleteEffect SLIB_GdipDeleteEffect

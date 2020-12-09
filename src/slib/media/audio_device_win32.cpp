@@ -20,17 +20,19 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/media/audio_device.h"
+#include "slib/core/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
-#include <initguid.h>
-#include <mmsystem.h>
-#include <dsound.h>
+#include "slib/media/audio_device.h"
 
 #include "slib/core/platform_windows.h"
 #include "slib/core/log.h"
 #include "slib/core/thread.h"
+
+#include <initguid.h>
+#include <mmsystem.h>
+#include <dsound.h>
 
 #define TAG "Audio"
 #define LOG_ERROR(...) LogError(TAG, ##__VA_ARGS__)

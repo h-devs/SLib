@@ -31,6 +31,8 @@
 
 #include "../core/windows.h"
 
+#include <mmsystem.h>
+
 namespace slib
 {
 
