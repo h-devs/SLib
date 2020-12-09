@@ -33,7 +33,7 @@ namespace slib
 	public:
 		constexpr SpinLock() noexcept: m_flagLock(0) {}
 
-		constexpr SpinLock(const SpinLock& other) noexcept: m_flagLock(0) {}
+		constexpr SpinLock(const SpinLock&) noexcept: m_flagLock(0) {}
 
 	public:
 		void lock() const noexcept;
