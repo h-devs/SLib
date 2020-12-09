@@ -26,14 +26,14 @@
 
 #include "slib/network/url_request.h"
 
-#include "slib/core/platform_windows.h"
-
 #include "slib/network/url.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/scoped.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/async.h"
 #include "slib/core/system.h"
+
+#include "slib/core/windows.h"
 
 #include <winhttp.h>
 #pragma comment(lib, "winhttp.lib")

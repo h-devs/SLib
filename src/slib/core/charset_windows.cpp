@@ -26,7 +26,7 @@
 
 #include "slib/core/charset.h"
 
-#include <windows.h>
+#include "slib/core/windows.h"
 
 namespace slib
 {

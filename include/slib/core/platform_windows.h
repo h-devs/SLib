@@ -27,7 +27,7 @@
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
-#include <windows.h>
+#include "windows.h"
 
 #include "string.h"
 #include "time.h"

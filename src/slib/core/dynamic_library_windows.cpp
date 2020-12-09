@@ -26,7 +26,7 @@
 
 #include "slib/core/dynamic_library.h"
 
-#include <windows.h>
+#include "slib/core/windows.h"
 
 namespace slib
 {

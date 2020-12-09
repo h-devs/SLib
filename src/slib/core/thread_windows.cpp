@@ -24,9 +24,9 @@
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
-#include <windows.h>
-
 #include "slib/core/thread.h"
+
+#include "slib/core/windows.h"
 
 namespace slib
 {

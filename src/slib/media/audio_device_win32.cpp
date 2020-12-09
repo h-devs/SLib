@@ -25,8 +25,7 @@
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
 #include <initguid.h>
-#include <Windows.h>
-#include <MMSystem.h>
+#include <mmsystem.h>
 #include <dsound.h>
 
 #include "slib/core/platform_windows.h"

@@ -28,8 +28,6 @@
 
 #include "slib/core/dl_windows_kernel32.h"
 
-#include <windows.h>
-
 namespace slib
 {
 

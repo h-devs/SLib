@@ -30,8 +30,7 @@
 #include "slib/core/thread.h"
 #include "slib/core/time.h"
 #include "slib/core/scoped.h"
-
-#include <windows.h>
+#include "slib/core/windows.h"
 
 #pragma comment(lib, "advapi32.lib")
 

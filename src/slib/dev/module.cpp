@@ -26,8 +26,9 @@
 
 #include "slib/core/base.h"
 
+#include "slib/core/windows.h"
+
 #define PSAPI_VERSION 1
-#include <windows.h>
 #include <psapi.h>
 
 #pragma comment(lib, "psapi.lib")

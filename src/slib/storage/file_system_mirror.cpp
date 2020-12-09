@@ -29,9 +29,7 @@
 #include "slib/core/variant.h"
 #include "slib/storage/disk.h"
 
-#ifdef SLIB_PLATFORM_IS_WINDOWS
-#include <Windows.h>
-#endif
+#include "slib/core/windows.h"
 
 #define FILE_FROM_CONTEXT(context)	(context ? ((MirrorFileContext*)(context))->file : sl_null)
 #define CONCAT_PATH(path)			(m_root.isNotEmpty() && path.isNotEmpty() ? m_root + path : sl_null)
