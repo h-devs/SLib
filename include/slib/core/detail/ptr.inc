@@ -1058,9 +1058,9 @@ namespace slib
 	template<class T, class... ARGS>
 	SLIB_INLINE Ptr<T> MakeShared(ARGS&&... args)
 	{
-		priv::ptr::SharedPtrObjectContainer<T>* ptr = new priv::ptr::SharedPtrObjectContainer<T>(Forward<ARGS>(args)...);
-		if (ptr) {
-			return Ptr<T>(&(ptr->object), ToRef(ptr));
+		Ref< priv::ptr::SharedPtrObjectContainer<T> > ptr = new priv::ptr::SharedPtrObjectContainer<T>(Forward<ARGS>(args)...);
+		if (ptr.isNotNull()) {
+			return Ptr<T>(&(ptr->object), ptr);
 		} else {
 			return sl_null;
 		}
