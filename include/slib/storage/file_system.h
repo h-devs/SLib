@@ -245,6 +245,8 @@ namespace slib
 
 	class FileSystemWrapper : public FileSystemProvider
 	{
+		SLIB_DECLARE_OBJECT
+
 	public:
 		FileSystemWrapper(const Ref<FileSystemProvider>& base, 
 			const String& fileSystemName = sl_null, 
@@ -252,6 +254,9 @@ namespace slib
 			sl_uint32 serialNumber = SLIB_UINT32_MAX);
 
 		~FileSystemWrapper();
+
+	public:
+		const Ref<FileSystemProvider>& getBaseProvider();
 
 	public:
 		sl_bool getInformation(FileSystemInfo& outInfo) override;
@@ -301,7 +306,23 @@ namespace slib
 		Ref<FileSystemProvider> m_base;
 
 	};
-	
+
+	template <class T>
+	Ref<T> FindFileSystemProviderInWrappers(FileSystemProvider* root) noexcept
+	{
+		if (!root) {
+			return sl_null;
+		}
+		if (IsInstanceOf<T>(root)) {
+			return CastInstance<T>(root);
+		}
+		FileSystemWrapper* wrapper = CastInstance<FileSystemWrapper>(root);
+		if (wrapper) {
+			return FindFileSystemProviderInWrappers<T>(wrapper->getBaseProvider().get());
+		}
+		return sl_null;
+	}
+
 }
 
 #define SLIB_DECLARE_FILE_CONTEXT_SINGLE_MEMBER_INLINE(CLASS_NAME, VAR_TYPE, VAR_NAME) \

@@ -373,6 +373,8 @@ namespace slib
 	}
 
 
+	SLIB_DEFINE_OBJECT(FileSystemWrapper, FileSystemProvider)
+
 	FileSystemWrapper::FileSystemWrapper(const Ref<FileSystemProvider>& base, 
 		const String& fileSystemName, const String& volumeName,
 		sl_uint32 serialNumber) : m_base(base)
@@ -392,6 +394,11 @@ namespace slib
 
 	FileSystemWrapper::~FileSystemWrapper()
 	{
+	}
+
+	const Ref<FileSystemProvider>& FileSystemWrapper::getBaseProvider()
+	{
+		return m_base;
 	}
 
 	sl_bool FileSystemWrapper::getInformation(FileSystemInfo& outInfo)
