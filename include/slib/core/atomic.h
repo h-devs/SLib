@@ -37,18 +37,51 @@ namespace slib
 	class SLIB_EXPORT Atomic
 	{
 	public:
-		Atomic();
+		Atomic()
+		{
+		}
 
-		Atomic(const T& value);
+		Atomic(const T& value)
+		: m_value(value)
+		{
+		}
 
-		Atomic(T&& value);
+		Atomic(T&& value)
+		: m_value(Move(value))
+		{
+		}
 
 	public:
-		Atomic<T>& operator=(const T& other);
+		Atomic<T>& operator=(const T& other)
+		{
+			SLIB_ALIGN(8) char t[sizeof(T)];
+			m_lock.lock();
+			new ((T*)t) T(Move(m_value));
+			m_value = other;
+			m_lock.unlock();
+			((T*)t)->~T();
+			return *this;
+		}
 
-		Atomic<T>& operator=(T&& other);
+		Atomic<T>& operator=(T&& other)
+		{
+			SLIB_ALIGN(8) char t[sizeof(T)];
+			m_lock.lock();
+			new ((T*)t) T(Move(m_value));
+			m_value = Move(other);
+			m_lock.unlock();
+			((T*)t)->~T();
+			return *this;
+		}
 
-		operator T() const;
+		operator T() const
+		{
+			SLIB_ALIGN(8) char t[sizeof(T)];
+			m_lock.lock();
+			new ((T*)t) T(m_value);
+			m_lock.unlock();
+			return *((T*)t);
+		}
 
 	protected:
 		T m_value;
@@ -132,7 +165,5 @@ namespace slib
 	};
 	
 }
-
-#include "detail/atomic.inc"
 
 #endif

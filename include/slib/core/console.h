@@ -36,12 +36,20 @@ namespace slib
 		static void print(const StringParam& s);
 
 		template <class... ARGS>
-		static void print(const StringParam& format, ARGS&&... args);
+		static void print(const StringParam& format, ARGS&&... args)
+		{
+			String content = String::format(format, args...);
+			print(content);
+		}
 	
 		static void println(const StringParam& s);
 
 		template <class... ARGS>
-		static void println(const StringParam& format, ARGS&&... args);
+		static void println(const StringParam& format, ARGS&&... args)
+		{
+			String content = String::format(format, args...);
+			println(content);
+		}
 	
 		static String readLine();
 
@@ -84,13 +92,19 @@ namespace slib
 	};
 	
 	template <class... ARGS>
-	void Printf(const StringParam& format, ARGS&&... args);
+	void Printf(const StringParam& format, ARGS&&... args)
+	{
+		String content = String::format(format, args...);
+		Console::print(content);
+	}
 	
 	template <class... ARGS>
-	void Println(const StringParam& format, ARGS&&... args);
+	void Println(const StringParam& format, ARGS&&... args)
+	{
+		String content = String::format(format, args...);
+		Console::println(content);
+	}
 	
 }
-
-#include "detail/console.inc"
 
 #endif

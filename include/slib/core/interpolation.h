@@ -25,6 +25,8 @@
 
 #include "definition.h"
 
+#define SLIB_LERP(a, b, factor) (((a) * (1 - factor)) + ((b) * factor))
+
 namespace slib
 {
 	
@@ -32,14 +34,13 @@ namespace slib
 	class SLIB_EXPORT Interpolation
 	{
 	public:
-		static TYPE interpolate(const TYPE& a, const TYPE& b, float factor);
+		static TYPE interpolate(const TYPE& a, const TYPE& b, float factor)
+		{
+			return SLIB_LERP(a, b, factor);
+		}
 
 	};
 
 }
-
-#define SLIB_LERP(a, b, factor) (((a) * (1 - factor)) + ((b) * factor))
-
-#include "detail/interpolation.inc"
 
 #endif
