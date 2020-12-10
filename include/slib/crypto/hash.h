@@ -84,12 +84,42 @@ namespace slib
 			return Memory::create(v, CLASS::HashSize);
 		}
 		
-		void applyMask_MGF1(const void* seed, sl_uint32 sizeSeed, void* target, sl_uint32 sizeTarget);
+		void applyMask_MGF1(const void* seed, sl_uint32 sizeSeed, void* target, sl_uint32 sizeTarget)
+		{
+			CLASS* thiz = ((CLASS*)this);
+			sl_uint32 n = CLASS::HashSize;
+			if (n == 0) {
+				return;
+			}
+			SLIB_SCOPED_BUFFER(sl_uint8, 128, h, n);
+			sl_uint8* target = (sl_uint8*)(_target);
+			sl_uint32 i = 0;
+			sl_uint8 C[4];
+			while (sizeTarget >= n) {
+				thiz->start();
+				thiz->update(seed, sizeSeed);
+				MIO::writeUint32BE(C, i);
+				thiz->update(C, 4);
+				thiz->finish(h);
+				for (sl_uint32 k = 0; k < n; k++) {
+					target[k] ^= h[k];
+				}
+				i++;
+				target += n;
+				sizeTarget -= n;
+			}
+			thiz->start();
+			thiz->update(seed, sizeSeed);
+			MIO::writeUint32BE(C, i);
+			thiz->update(C, 4);
+			thiz->finish(h);
+			for (sl_uint32 k = 0; k < sizeTarget; k++) {
+				target[k] ^= h[k];
+			}
+		}
 
 	};
 	
 }
-
-#include "detail/hash.inc"
 
 #endif

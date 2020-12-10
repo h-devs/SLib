@@ -55,7 +55,27 @@ namespace slib
 			const void* password, sl_uint32 lenPassword,
 			const void* salt, sl_uint32 lenSalt,
 			sl_uint32 nIteration,
-			void* outDK, sl_uint32 lenDK);
+			void* outDK, sl_uint32 lenDK)
+		{
+			char t[HASH::HashSize];
+			char* outDK = (char*)_outDK;
+
+			HASH hash;
+			hash.start();
+			hash.update(password, lenPassword);
+			hash.update(salt, lenSalt);
+			hash.finish(t);
+			
+			sl_uint32 i;
+			for (i = 1; i < nIteration; i++) {
+				hash.start();
+				hash.update(t, HASH::HashSize);
+				hash.finish(t);
+			}
+			for (i = 0; i < lenDK; i++) {
+				outDK[i] = t[i];
+			}
+		}
 
 	};
 
@@ -78,7 +98,49 @@ namespace slib
 			const void* password, sl_uint32 lenPassword,
 			const void* salt, sl_uint32 lenSalt,
 			sl_uint32 nIteration,			
-			void* outDK, sl_size lenDK);
+			void* outDK, sl_size lenDK)
+		{
+			char f[KEYED_HASH::HashSize];
+			char u[KEYED_HASH::HashSize];
+
+			sl_uint8 bi[4] = {0, 0, 0, 1};
+			char* outDK = (char*)_outDK;
+			char* endDK = outDK + lenDK;
+
+			KEYED_HASH h;
+			sl_uint32 i = 1;
+			sl_uint32 j, k;
+
+			for (;;) {
+				h.start(password, lenPassword);
+				h.update(salt, lenSalt);
+				h.update(bi, 4);
+				h.finish(u);
+				for (j = 0; j < KEYED_HASH::HashSize; j++) {
+					f[j] = u[j];
+				}
+				for (k = 1; k < nIteration; k++) {
+					h.start(password, lenPassword);
+					h.update(u, KEYED_HASH::HashSize);
+					h.finish(u);
+					for (j = 0; j < KEYED_HASH::HashSize; j++) {
+						f[j] ^= u[j];
+					}
+				}
+				if (outDK + (sl_size)(KEYED_HASH::HashSize) >= endDK) {
+					Base::copyMemory(outDK, f, endDK - outDK);
+					break;
+				} else {
+					Base::copyMemory(outDK, f, KEYED_HASH::HashSize);
+				}
+				outDK += KEYED_HASH::HashSize;
+				i++;
+				bi[0] = (sl_uint8)(i >> 24);
+				bi[1] = (sl_uint8)(i >> 16);
+				bi[2] = (sl_uint8)(i >> 8);
+				bi[3] = (sl_uint8)(i);
+			}
+		}
 
 	};
 
@@ -90,7 +152,5 @@ namespace slib
 	typedef PBKDF2_HMAC<SHA256> PBKDF2_HMAC_SHA256;
 
 }
-
-#include "detail/pbkdf.inc"
 
 #endif

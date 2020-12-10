@@ -195,33 +195,33 @@ namespace slib
 		};
 	
 	public:
-		SLIB_INLINE constexpr Color() noexcept:
+		constexpr Color() noexcept:
 		 r(0), g(0), b(0), a(0)
 		{}
 
-		SLIB_INLINE constexpr Color(const Color& other) noexcept:
+		constexpr Color(const Color& other) noexcept:
 		 r(other.r), g(other.g), b(other.b), a(other.a)
 		{}
 
-		SLIB_INLINE constexpr Color(sl_uint32 _r, sl_uint32 _g, sl_uint32 _b, sl_uint32 _a = 255) noexcept:
+		constexpr Color(sl_uint32 _r, sl_uint32 _g, sl_uint32 _b, sl_uint32 _a = 255) noexcept:
 		 r(_r), g(_g), b(_b), a(_a)
 		{}
 
-		SLIB_INLINE constexpr Color(sl_uint32 argb) noexcept:
+		constexpr Color(sl_uint32 argb) noexcept:
 		 r((sl_uint8)((argb >> 16) & 0xFF)),
 		 g((sl_uint8)((argb >> 8) & 0xFF)),
 		 b((sl_uint8)(argb & 0xFF)),
 		 a((sl_uint8)((argb >> 24) & 0xFF))
 		{}
 
-		SLIB_INLINE constexpr Color(const Color3f& v) noexcept:
+		constexpr Color(const Color3f& v) noexcept:
 		 r((sl_uint8)(Math::clamp0_255((sl_int32)(v.x * 255)))),
 		 g((sl_uint8)(Math::clamp0_255((sl_int32)(v.y * 255)))),
 		 b((sl_uint8)(Math::clamp0_255((sl_int32)(v.z * 255)))),
 		 a(255)
 		{}
 
-		SLIB_INLINE constexpr Color(const Color4f& v) noexcept:
+		constexpr Color(const Color4f& v) noexcept:
 		 r((sl_uint8)(Math::clamp0_255((sl_int32)(v.x * 255)))),
 		 g((sl_uint8)(Math::clamp0_255((sl_int32)(v.y * 255)))),
 		 b((sl_uint8)(Math::clamp0_255((sl_int32)(v.z * 255)))),
@@ -229,79 +229,121 @@ namespace slib
 		{}
 	
 	public:
-		static const Color& zero() noexcept;
+		static const Color& zero() noexcept
+		{
+			return *(reinterpret_cast<Color const*>(&_zero));
+		}
 
-		SLIB_INLINE constexpr sl_bool isZero() const noexcept
+		constexpr sl_bool isZero() const noexcept
 		{
 			return r == 0 && g == 0 && b == 0 && a == 0;
 		}
 
-		SLIB_INLINE constexpr sl_bool isNotZero() const noexcept
+		constexpr sl_bool isNotZero() const noexcept
 		{
 			return r != 0 || g != 0 || b != 0 || a != 0;
 		}
 
-		void setZero() noexcept;
+		void setZero() noexcept
+		{
+			r = 0;
+			g = 0;
+			b = 0;
+			a = 0;
+		}
 	
-		SLIB_INLINE constexpr float getBlueF() const noexcept
+		constexpr float getBlueF() const noexcept
 		{
 			return (float)(b) / 255.0f;
 		}
 
 		void setBlueF(float v) noexcept;
 
-		SLIB_INLINE constexpr float getGreenF() const noexcept
+		constexpr float getGreenF() const noexcept
 		{
 			return (float)(g) / 255.0f;
 		}
 
 		void setGreenF(float v) noexcept;
 
-		SLIB_INLINE constexpr float getRedF() const noexcept
+		constexpr float getRedF() const noexcept
 		{
 			return (float)(r) / 255.0f;
 		}
 
 		void setRedF(float v) noexcept;
 
-		SLIB_INLINE constexpr float getAlphaF() const noexcept
+		constexpr float getAlphaF() const noexcept
 		{
 			return (float)(a) / 255.0f;
 		}
 
 		void setAlphaF(float v) noexcept;
 
-		void setRGBA(sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a) noexcept;
+		void setRGBA(sl_uint8 _r, sl_uint8 _g, sl_uint8 _b, sl_uint8 _a) noexcept
+		{
+			r = _r;
+			g = _g;
+			b = _b;
+			a = _a;
+		}
 	
-		SLIB_INLINE constexpr sl_uint32 getARGB() const noexcept
+		constexpr sl_uint32 getARGB() const noexcept
 		{
 			return ((sl_uint32)(a) << 24) | ((sl_uint32)(r) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(b));
 		}
 	
-		void setARGB(sl_uint32 v) noexcept;
+		void setARGB(sl_uint32 v) noexcept
+		{
+			b = (sl_uint8)(v & 0xFF);
+			g = (sl_uint8)((v >> 8) & 0xFF);
+			r = (sl_uint8)((v >> 16) & 0xFF);
+			a = (sl_uint8)((v >> 24) & 0xFF);
+		}
 
-		SLIB_INLINE constexpr sl_uint32 getABGR() const noexcept
+		constexpr sl_uint32 getABGR() const noexcept
 		{
 			return ((sl_uint32)(a) << 24) | ((sl_uint32)(b) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(r));
 		}
 
-		void setABGR(sl_uint32 v) noexcept;
+		void setABGR(sl_uint32 v) noexcept
+		{
+			r = (sl_uint8)(v & 0xFF);
+			g = (sl_uint8)((v >> 8) & 0xFF);
+			b = (sl_uint8)((v >> 16) & 0xFF);
+			a = (sl_uint8)((v >> 24) & 0xFF);
+		}
 
-		SLIB_INLINE constexpr sl_uint32 getRGB() const noexcept
+		constexpr sl_uint32 getRGB() const noexcept
 		{
 			return ((sl_uint32)(r) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(b));
 		}
 	
-		void setRGB(sl_uint8 r, sl_uint8 g, sl_uint8 b) noexcept;
+		void setRGB(sl_uint8 _r, sl_uint8 _g, sl_uint8 _b) noexcept
+		{
+			r = _r;
+			g = _g;
+			b = _b;
+		}
 
-		void setRGB(sl_uint32 v) noexcept;
+		void setRGB(sl_uint32 v) noexcept
+		{
+			b = (sl_uint8)(v & 0xFF);
+			g = (sl_uint8)((v >> 8) & 0xFF);
+			r = (sl_uint8)((v >> 16) & 0xFF);
+		}
 	
-		SLIB_INLINE constexpr sl_uint32 getBGR() const noexcept
+		constexpr sl_uint32 getBGR() const noexcept
 		{
 			return ((sl_uint32)(b) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(r));
 		}
 	
-		void setBGR(sl_uint32 v) noexcept;
+		void setBGR(sl_uint32 v) noexcept
+		{
+			r = (sl_uint8)(v & 0xFF);
+			g = (sl_uint8)((v >> 8) & 0xFF);
+			b = (sl_uint8)((v >> 16) & 0xFF);
+		}
 
 
 		// assume that` dst is premultiplied alpha, and src is non-premultiplied alpha
@@ -359,24 +401,31 @@ namespace slib
 		}
 
 	public:
-		Color& operator=(const Color& other) noexcept;
+		Color& operator=(const Color& other) noexcept
+		{
+			r = other.r;
+			g = other.g;
+			b = other.b;
+			a = other.a;
+			return *this;
+		}
 
-		SLIB_INLINE constexpr sl_bool operator==(const Color& other) const noexcept
+		constexpr sl_bool operator==(const Color& other) const noexcept
 		{
 			return r == other.r && g == other.g && b == other.b && a == other.a;
 		}
 
-		SLIB_INLINE constexpr sl_bool operator!=(const Color& other) const noexcept
+		constexpr sl_bool operator!=(const Color& other) const noexcept
 		{
 			return r != other.r || g != other.g || b != other.b || a != other.a;
 		}
 
-		SLIB_INLINE constexpr operator Color3f() const noexcept
+		constexpr operator Color3f() const noexcept
 		{
 			return Color3f((sl_real)(r) / 255, (sl_real)(g) / 255, (sl_real)(b) / 255);
 		}
 
-		SLIB_INLINE constexpr operator Color4f() const noexcept
+		constexpr operator Color4f() const noexcept
 		{
 			return Color4f((sl_real)(r) / 255, (sl_real)(g) / 255, (sl_real)(b) / 255, (sl_real)(a) / 255);
 		}
@@ -425,6 +474,5 @@ namespace slib
 	SLIB_ALIGN(8) static sl_uint8 _static_color_buf_##name[] = {R, G, B, A}; \
 	Color& name = *(reinterpret_cast<Color*>(_static_color_buf_##name));
 
-#include "detail/color.inc"
 
 #endif

@@ -44,15 +44,61 @@ namespace slib
 		};
 
 	public:
-		void start(const void* key, sl_size lenKey);
+		void start(const void* _key, sl_size lenKey)
+		{
+			sl_size i;
+			const sl_uint8* key = (const sl_uint8*)_key;
+			sl_uint8 keyLocal[HASH::BlockSize];
+			if (lenKey > HASH::BlockSize) {
+				HASH::hash(key, lenKey, keyLocal);
+				for (i = HASH::HashSize; i < HASH::BlockSize; i++) {
+					keyLocal[i] = 0;
+				}
+				key = keyLocal;
+			} else if (lenKey < HASH::BlockSize) {
+				for (i = 0; i < lenKey; i++) {
+					keyLocal[i] = key[i];
+				}
+				for (; i < HASH::BlockSize; i++) {
+					keyLocal[i] = 0;
+				}
+				key = keyLocal;
+			}
 
-		void update(const void* input, sl_size n);
+			// hash(o_key_pad | hash(i_key_pad | message)), i_key_pad = key xor [0x36 * BlockSize], o_key_pad = key xor [0x5c * BlockSize]
+			m_hash.start();
+			for (i = 0; i < HASH::BlockSize; i++) {
+				m_keyPad[i] = key[i] ^ 0x36;
+			}
+			m_hash.update(m_keyPad, HASH::BlockSize);
+			for (i = 0; i < HASH::BlockSize; i++) {
+				m_keyPad[i] = key[i] ^ 0x5c;
+			}
+		}
+
+		void update(const void* input, sl_size n)
+		{
+			m_hash.update(input, n);
+		}
 
 		// output: length of HASH size
-		void finish(void* output);
+		void finish(void* output)
+		{
+			m_hash.finish(output);
+			m_hash.start();
+			m_hash.update(m_keyPad, HASH::BlockSize);
+			m_hash.update(output, HASH::HashSize);
+			m_hash.finish(output);
+		}
 
 		// output: length of HASH size
-		static void execute(const void* key, sl_size lenKey, const void* message, sl_size lenMessage, void* output);
+		static void execute(const void* key, sl_size lenKey, const void* message, sl_size lenMessage, void* output)
+		{
+			HMAC<HASH> hmac;
+			hmac.start(key, lenKey);
+			hmac.update(message, lenMessage);
+			hmac.finish(output);
+		}
 
 	private:
 		HASH m_hash;
@@ -63,7 +109,5 @@ namespace slib
 	typedef HMAC<SHA256> HMAC_SHA256;
 
 }
-
-#include "detail/hmac.inc"
 
 #endif

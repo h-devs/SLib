@@ -81,7 +81,10 @@ namespace slib
 		void setRequestBodyAsXml(const Ref<XmlDocument>& xml);
 		
 		template <class MAP>
-		void setRequestBodyAsMap(const MAP& map);
+		void setRequestBodyAsMap(const MAP& params)
+		{
+			setRequestBodyAsString(HttpRequest::buildFormUrlEncoded(params));
+		}
 		
 		void setRequestBody(const Variant& var);
 		
@@ -90,11 +93,18 @@ namespace slib
 		void addRequestHeader(const String& header, const String& value);
 		
 		template <class MAP>
-		void setCookie(const MAP& cookies);
-		
+		void setCookie(const MAP& cookies)
+		{
+			String value = HttpHeaderHelper::mergeValueMap(cookies, ';');
+			setRequestHeader(HttpHeader::Cookie, value);
+		}	
 
 		template <class MAP>
-		void setFormData(const MAP& map);
+		void setFormData(const MAP& params)
+		{
+			setContentType(ContentType::WebForm);
+			setRequestBodyAsMap(params);
+		}
 		
 		void setMultipartFormData(const HashMap<String, Variant>& params);
 		
@@ -335,7 +345,5 @@ namespace slib
 	};
 
 }
-
-#include "detail/url_request.inc"
 
 #endif

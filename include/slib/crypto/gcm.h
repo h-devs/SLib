@@ -87,38 +87,157 @@ namespace slib
 	class SLIB_EXPORT GCM : public GCM_Base
 	{
 	public:
-		GCM();
+		GCM()
+		{
+			setCipher(sl_null);
+		}
 
-		GCM(const CLASS* cipher);
+		GCM(const CLASS* cipher)
+		{
+			setCipher(cipher);
+		}
 
-		~GCM();
+		~GCM()
+		{
+		}
 
 	public:
-		sl_bool setCipher(const CLASS* cipher);
+		sl_bool setCipher(const CLASS* cipher)
+		{
+			if (cipher) {
+				if (CLASS::BlockSize != 16) {
+					return sl_false;
+				}
+				sl_uint8 H[16] = { 0 };
+				cipher->encryptBlock(H, H);
+				generateTable(H);
+			}
+			m_cipher = cipher;
+			return sl_true;
+		}
 
-		sl_bool start(const void* IV, sl_size lenIV);
+		sl_bool start(const void* IV, sl_size lenIV)
+		{
+			if (!m_cipher) {
+				return sl_false;
+			}
+			calculateCIV(IV, lenIV, CIV);
+			m_cipher->encryptBlock(CIV, GCTR0);
+			Base::zeroMemory(GHASH_X, 16);
+			return sl_true;
+		}
 
-		void encryptBlock(const void* src, void* dst /* out */, sl_uint32 n = 16 /* n <= 16 */);
+		void encryptBlock(const void* src, void* dst /* out */, sl_uint32 n = 16 /* n <= 16 */)
+		{
+			sl_uint8 GCTR[16];
+			sl_size k;
+			const sl_uint8* P = (const sl_uint8*)src;
+			sl_uint8* C = (sl_uint8*)dst;
+			increaseCIV();
+			m_cipher->encryptBlock(CIV, GCTR);
+			for (k = 0; k < n; k++) {
+				*C = *P ^ GCTR[k];
+				GHASH_X[k] ^= *C;
+				C++;
+				P++;
+			}
+			multiplyH(GHASH_X, GHASH_X);
+		}
 
-		void encrypt(const void* src, void *dst /* out */, sl_size len);
+		void encrypt(const void* src, void *dst /* out */, sl_size len)
+		{
+			sl_uint8 GCTR[16];
+			sl_size i, k, n;
+			const sl_uint8* P = (const sl_uint8*)src;
+			sl_uint8* C = (sl_uint8*)dst;
+			
+			for (i = 0; i < len; i += 16) {
+				increaseCIV();
+				m_cipher->encryptBlock(CIV, GCTR);
+				n = len - i;
+				if (n > 16) {
+					n = 16;
+				}
+				for (k = 0; k < n; k++) {
+					*C = *P ^ GCTR[k];
+					GHASH_X[k] ^= *C;
+					C++;
+					P++;
+				}
+				multiplyH(GHASH_X, GHASH_X);
+			}
+		}
 
-		void decryptBlock(const void* src, void* dst /* out */, sl_uint32 n = 16 /* n <= 16 */);
+		void decryptBlock(const void* src, void* dst /* out */, sl_uint32 n = 16 /* n <= 16 */)
+		{
+			sl_uint8 GCTR[16];
+			sl_size k;
+			const sl_uint8* C = (const sl_uint8*)src;
+			sl_uint8* P = (sl_uint8*)dst;
+			increaseCIV();
+			m_cipher->encryptBlock(CIV, GCTR);
+			for (k = 0; k < n; k++) {
+				GHASH_X[k] ^= *C;
+				*P = *C ^ GCTR[k];
+				C++;
+				P++;
+			}
+			multiplyH(GHASH_X, GHASH_X);
+		}
 
-		void decrypt(const void* src, void *dst /* out */, sl_size len);
+		void decrypt(const void* src, void *dst /* out */, sl_size len)
+		{
+			sl_uint8 GCTR[16];
+			sl_size i, k, n;
+			const sl_uint8* C = (const sl_uint8*)src;
+			sl_uint8* P = (sl_uint8*)dst;
+			
+			for (i = 0; i < len; i += 16) {
+				increaseCIV();
+				m_cipher->encryptBlock(CIV, GCTR);
+				n = len - i;
+				if (n > 16) {
+					n = 16;
+				}
+				for (k = 0; k < n; k++) {
+					GHASH_X[k] ^= *C;
+					*P = *C ^ GCTR[k];
+					C++;
+					P++;
+				}
+				multiplyH(GHASH_X, GHASH_X);
+			}
+		}
 
 		sl_bool encrypt(
 			const void* IV, sl_size lenIV,
 			const void* A, sl_size lenA,
 			const void* input, void* output /* out */, sl_size len,
 			void* tag /* out */, sl_size lenTag = 16 /* 4 <= lenTag <= 16 */
-		);
+		)
+		{
+			if (!start(IV, lenIV)) {
+				return sl_false;
+			}
+			put(A, lenA);
+			encrypt(input, output, len);
+			return finish(lenA, len, tag, lenTag);
+		}
 
 		sl_bool decrypt(
 			const void* IV, sl_size lenIV,
 			const void* A, sl_size lenA,
 			const void* input, void* output /* out */, sl_size len,
 			const void* tag, sl_size lenTag = 16 /* 4 <= lenTag <= 16 */
-		);
+		)
+		{
+			if (!start(IV, lenIV)) {
+				return sl_false;
+			}
+			put(A, lenA);
+			decrypt(input, output, len);
+			return finishAndCheckTag(lenA, len, tag, lenTag);
+		}
 	
 
 #ifdef check
@@ -129,7 +248,15 @@ namespace slib
 			const void* A, sl_size lenA,
 			const void* C, sl_size lenC,
 			const void* tag, sl_size lenTag = 16 /* 4 <= lenTag <= 16 */
-		);
+		)
+		{
+			if (!start(IV, lenIV)) {
+				return sl_false;
+			}
+			put(A, lenA);
+			put(C, lenC);
+			return finishAndCheckTag(lenA, lenC, tag, lenTag);
+		}
 
 	protected:
 		const CLASS* m_cipher;
@@ -137,7 +264,5 @@ namespace slib
 	};
 	
 }
-
-#include "detail/gcm.inc"
 
 #endif

@@ -48,6 +48,53 @@ namespace slib
 		
 	};
 	
+	namespace priv
+	{
+		namespace graphics_resource
+		{
+			
+			class ImageEntry
+			{
+			public:
+				sl_bool flagValid;
+
+				sl_uint32 width;
+				sl_uint32 height;
+
+				const sl_uint8* source_bytes;
+				sl_uint32 source_size;
+
+				sl_int32 lock;
+				void* image;
+				sl_bool flag_load;
+
+			public:
+				Ref<Image> getImage();
+
+				Ref<Image> getMatchingImage(sl_uint32 width, sl_uint32 height);
+
+			};
+			
+			class FreeImageContext
+			{
+			public:
+				FreeImageContext(ImageEntry* entries);
+
+				~FreeImageContext();
+
+			private:
+				ImageEntry* m_entries;
+
+			};
+			
+			Ref<Image> GetImage(ImageEntry* entries, sl_uint32 requiredWidth, sl_uint32 requiredHeight);
+			
+			List< Ref<Image> > GetImages(ImageEntry* entries);
+			
+			Ref<Drawable> GetDrawable(ImageEntry* entries, sl_uint32 width, sl_uint32 height);
+			
+		}
+	}
 }
 
 #define SLIB_DECLARE_COLOR_RESOURCE(NAME) \
@@ -205,6 +252,5 @@ namespace slib
 #define SLIB_DEFINE_DRAWABLE_RESOURCE_MAP_ITEM(NAME) SLIB_DEFINE_LOCALIZED_RESOURCE_MAP_ITEM(NAME)
 #define SLIB_DEFINE_DRAWABLE_RESOURCE_MAP_END SLIB_DEFINE_LOCALIZED_RESOURCE_MAP_END(slib::Ref<slib::Drawable>, sl_null)
 
-#include "detail/resource.inc"
 
 #endif

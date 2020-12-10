@@ -147,102 +147,223 @@ namespace slib
 
 	public:
 		// 4 bits, version is 4 for IPv4
-		sl_uint8 getVersion() const;
+		sl_uint8 getVersion() const
+		{
+			return _versionAndHeaderLength >> 4;
+		}
 		
 		// 4 bits, version is 4 for IPv4
-		void setVersion(sl_uint8 version = 4);
+		void setVersion(sl_uint8 version = 4)
+		{
+			_versionAndHeaderLength = (_versionAndHeaderLength & 0x0F) | (version << 4);
+		}
 
 		// 4 bits, get the count of 32bit words for the header including options and padding
-		sl_uint8 getHeaderLength() const;
+		sl_uint8 getHeaderLength() const
+		{
+			return _versionAndHeaderLength & 0x0F;
+		}
 		
 		// 4 bits, set the count of 32bit words for the header including options and padding (5 if no option is included)
-		void setHeaderLength(sl_uint8 length = 5);
+		void setHeaderLength(sl_uint8 length = 5)
+		{
+			_versionAndHeaderLength = (_versionAndHeaderLength & 0xF0) | (length & 0x0F);
+		}
 		
 		// header size in bytes
-		sl_uint8 getHeaderSize() const;
+		sl_uint8 getHeaderSize() const
+		{
+			return (_versionAndHeaderLength & 0x0F) << 2;
+		}
 		
 		// header size in bytes
-		void setHeaderSize(sl_uint8 size);
+		void setHeaderSize(sl_uint8 size)
+		{
+			setHeaderLength((size + 3) >> 2);
+		}
 		
 		// 8 bits, TOS is deprecated and replaced with DSCP&ECN
-		sl_uint8 getTypeOfService() const;
+		sl_uint8 getTypeOfService() const
+		{
+			return m_TOS_DSCP_ECN;
+		}
 		
 		// 8 bits, TOS is deprecated and replaced with DSCP&ECN
-		void setTypeOfService(sl_uint8 TOS);
+		void setTypeOfService(sl_uint8 TOS)
+		{
+			m_TOS_DSCP_ECN = TOS;
+		}
 		
 		// 6 bits
-		sl_uint8 getDSCP() const;
+		sl_uint8 getDSCP() const
+		{
+			return ((m_TOS_DSCP_ECN >> 2) & 0x3F);
+		}
 		
 		// 6 bits
-		void setDSCP(sl_uint8 DSCP);
+		void setDSCP(sl_uint8 DSCP)
+		{
+			m_TOS_DSCP_ECN = (sl_uint8)((m_TOS_DSCP_ECN & 3) | ((DSCP & 0x3F) << 2));
+		}
 		
 		// 2 bits
-		sl_uint8 getECN() const;
+		sl_uint8 getECN() const
+		{
+			return (m_TOS_DSCP_ECN & 3);
+		}
 		
 		// 2 bits
-		void setECN(sl_uint8 ECN);
+		void setECN(sl_uint8 ECN)
+		{
+			m_TOS_DSCP_ECN = (sl_uint8)((m_TOS_DSCP_ECN & 0xFC) | (ECN & 3));
+		}
 		
 		// 16 bits, total size (including header and data) in bytes
-		sl_uint16 getTotalSize() const;
+		sl_uint16 getTotalSize() const
+		{
+			return ((sl_uint16)(_totalLength[0]) << 8) | ((sl_uint16)(_totalLength[1]));
+		}
 		
 		// 16 bits, total size (including header and data) in bytes
-		void setTotalSize(sl_uint16 size);
+		void setTotalSize(sl_uint16 size)
+		{
+			_totalLength[0] = (sl_uint8)(size >> 8);
+			_totalLength[1] = (sl_uint8)(size);
+		}
 
 		// 16 bits
-		sl_uint16 getIdentification() const;
+		sl_uint16 getIdentification() const
+		{
+			return ((sl_uint16)(_identification[0]) << 8) | ((sl_uint16)(_identification[1]));
+		}
 		
 		// 16 bits
-		void setIdentification(sl_uint16 identification);
+		void setIdentification(sl_uint16 identification)
+		{
+			_identification[0] = (sl_uint8)(identification >> 8);
+			_identification[1] = (sl_uint8)(identification);
+		}
 
 		// true = Do not fragment, false = Fragment
-		sl_bool isDF() const;
+		sl_bool isDF() const
+		{
+			return (_flagsAndFragmentOffset[0] & 0x40) != 0;
+		}
 		
 		// true = Do not fragment, false = Fragment
-		void setDF(sl_bool flag);
+		void setDF(sl_bool flag)
+		{
+			_flagsAndFragmentOffset[0] = (sl_uint8)((_flagsAndFragmentOffset[0] & 0xBF) | (flag ? 0x40 : 0));
+		}
 
 		// true = More Fragment, false = Last Fragment
-		sl_bool isMF() const;
+		sl_bool isMF() const
+		{
+			return (_flagsAndFragmentOffset[0] & 0x20) != 0;
+		}
 		
 		// true = More Fragment, false = Last Fragment
-		void setMF(sl_bool flag);
+		void setMF(sl_bool flag)
+		{
+			_flagsAndFragmentOffset[0] = (sl_uint8)((_flagsAndFragmentOffset[0] & 0xDF) | (flag ? 0x20 : 0));
+		}
 		
 		// 13 bits, the fragment offset measured in units of 8 octets (64 bits)
-		sl_uint16 getFragmentOffset() const;
+		sl_uint16 getFragmentOffset() const
+		{
+			return (((sl_uint16)(_flagsAndFragmentOffset[0] & 0x1F)) << 8) | _flagsAndFragmentOffset[1];
+		}
 		
 		// 13 bits, the fragment offset measured in units of 8 octets (64 bits)
-		void setFragmentOffset(sl_uint16 offset);
+		void setFragmentOffset(sl_uint16 offset)
+		{
+			_flagsAndFragmentOffset[1] = (sl_uint8)offset;
+			_flagsAndFragmentOffset[0] = (sl_uint8)((_flagsAndFragmentOffset[0] & 0xE0) | ((offset >> 8) & 0x1F));
+		}
 		
 		// Time To Live
-		sl_uint8 getTTL() const;
+		sl_uint8 getTTL() const
+		{
+			return _timeToLive;
+		}
 		
 		// Time To Live
-		void setTTL(sl_uint8 TTL);
+		void setTTL(sl_uint8 TTL)
+		{
+			_timeToLive = TTL;
+		}
 		
-		NetworkInternetProtocol getProtocol() const;
+		NetworkInternetProtocol getProtocol() const
+		{
+			return (NetworkInternetProtocol)_protocol;
+		}
 		
-		void setProtocol(NetworkInternetProtocol protocol);
+		void setProtocol(NetworkInternetProtocol protocol)
+		{
+			_protocol = (sl_uint8)(protocol);
+		}
 		
-		sl_uint16 getChecksum() const;
+		sl_uint16 getChecksum() const
+		{
+			return ((sl_uint16)(_headerChecksum[0]) << 8) | ((sl_uint16)(_headerChecksum[1]));
+		}
 		
-		void setChecksum(sl_uint16 checksum);
+		void setChecksum(sl_uint16 checksum)
+		{
+			_headerChecksum[0] = (sl_uint8)(checksum >> 8);
+			_headerChecksum[1] = (sl_uint8)(checksum);
+		}
 		
-		IPv4Address getSourceAddress() const;
+		IPv4Address getSourceAddress() const
+		{
+			return {_sourceIp[0], _sourceIp[1], _sourceIp[2], _sourceIp[3]};
+		}
 		
-		void setSourceAddress(const IPv4Address& address);
+		void setSourceAddress(const IPv4Address& address)
+		{
+			_sourceIp[0] = address.a;
+			_sourceIp[1] = address.b;
+			_sourceIp[2] = address.c;
+			_sourceIp[3] = address.d;
+		}
 		
-		IPv4Address getDestinationAddress() const;
+		IPv4Address getDestinationAddress() const
+		{
+			return {_destinationIp[0], _destinationIp[1], _destinationIp[2], _destinationIp[3]};
+		}
 		
-		void setDestinationAddress(const IPv4Address& address);
+		void setDestinationAddress(const IPv4Address& address)
+		{
+			_destinationIp[0] = address.a;
+			_destinationIp[1] = address.b;
+			_destinationIp[2] = address.c;
+			_destinationIp[3] = address.d;
+		}
 		
-		const sl_uint8* getOptions() const;
+		const sl_uint8* getOptions() const
+		{
+			return (const sl_uint8*)(this) + sizeof(IPv4Packet);
+		}
 		
-		sl_uint8* getOptions();
+		sl_uint8* getOptions()
+		{
+			return (sl_uint8*)(this) + sizeof(IPv4Packet);
+		}
 		
-		const sl_uint8* getContent() const;
+		const sl_uint8* getContent() const
+		{
+			return (const sl_uint8*)(this) + getHeaderSize();
+		}
 		
-		sl_uint8* getContent();
+		sl_uint8* getContent()
+		{
+			return (sl_uint8*)(this) + getHeaderSize();
+		}
 		
-		sl_uint16 getContentSize() const;
+		sl_uint16 getContentSize() const
+		{
+			return getTotalSize() - getHeaderSize();
+		}
 	
 public:
 		void updateChecksum();
@@ -291,42 +412,100 @@ public:
 		
 	public:
 		// 4 bits, version is 6 for IPv6
-		sl_uint8 getVersion() const;
+		sl_uint8 getVersion() const
+		{
+			return _version_TrafficClass_FlowLabel[0] >> 4;
+		}
 		
 		// 4 bits, version is 6 for IPv6
-		void setVersion(sl_uint8 version = 6);
+		void setVersion(sl_uint8 version = 6)
+		{
+			_version_TrafficClass_FlowLabel[0] = (_version_TrafficClass_FlowLabel[0] & 0x0F) | (version << 4);
+		}
 		
-		sl_uint8 getTrafficClass() const;
+		sl_uint8 getTrafficClass() const
+		{
+			return ((_version_TrafficClass_FlowLabel[0] & 0x0F) << 4) | (_version_TrafficClass_FlowLabel[1] >> 4);
+		}
 		
-		void setTrafficClass(sl_uint8 value);
+		void setTrafficClass(sl_uint8 value)
+		{
+			_version_TrafficClass_FlowLabel[0] = (_version_TrafficClass_FlowLabel[0] & 0xF0) | (value >> 4);
+			_version_TrafficClass_FlowLabel[1] = (_version_TrafficClass_FlowLabel[1] & 0x0F) | ((value & 0x0F) << 4);
+		}
 		
-		sl_uint32 getFlowLabel() const;
+		sl_uint32 getFlowLabel() const
+		{
+			return ((sl_uint32)(_version_TrafficClass_FlowLabel[1] & 0x0F) << 16) | ((sl_uint32)(_version_TrafficClass_FlowLabel[2]) << 8) | _version_TrafficClass_FlowLabel[3];
+		}
 		
-		void setFlowLabel(sl_uint32 value);
+		void setFlowLabel(sl_uint32 value)
+		{
+			_version_TrafficClass_FlowLabel[1] = (_version_TrafficClass_FlowLabel[0] & 0xF0) | (sl_uint8)((value >> 16) & 0x0F);
+			_version_TrafficClass_FlowLabel[2] = (sl_uint8)(value >> 8);
+			_version_TrafficClass_FlowLabel[3] = (sl_uint8)(value);
+		}
 		
-		sl_uint16 getPayloadLength() const;
+		sl_uint16 getPayloadLength() const
+		{
+			return ((sl_uint16)(_payloadLength[0]) << 8) | ((sl_uint16)(_payloadLength[1]));
+		}
 		
-		void setPayloadLength(sl_uint16 length);
+		void setPayloadLength(sl_uint16 length)
+		{
+			_payloadLength[0] = (sl_uint8)(length >> 8);
+			_payloadLength[1] = (sl_uint8)(length);
+		}
 		
-		NetworkInternetProtocol getNextHeader() const;
+		NetworkInternetProtocol getNextHeader() const
+		{
+			return (NetworkInternetProtocol)(_nextHeader);
+		}
 		
-		void setNextHeader(NetworkInternetProtocol protocol);
+		void setNextHeader(NetworkInternetProtocol protocol)
+		{
+			_nextHeader = (sl_uint8)(protocol);
+		}
 		
-		sl_uint8 getHopLimit() const;
+		sl_uint8 getHopLimit() const
+		{
+			return _hopLimit;
+		}
 		
-		void setHopLimit(sl_uint8 limit);
+		void setHopLimit(sl_uint8 limit)
+		{
+			_hopLimit = limit;
+		}
 		
-		IPv6Address getSourceAddress() const;
+		IPv6Address getSourceAddress() const
+		{
+			return IPv6Address(_sourceAddress);
+		}
 		
-		void setSourceAddresss(const IPv6Address& address);
+		void setSourceAddresss(const IPv6Address& address)
+		{
+			address.getBytes(_sourceAddress);
+		}
 		
-		IPv6Address getDestinationAddress() const;
+		IPv6Address getDestinationAddress() const
+		{
+			return IPv6Address(_destinationAddress);
+		}
 		
-		void setDestinationAddresss(const IPv6Address& address);
+		void setDestinationAddresss(const IPv6Address& address)
+		{
+			address.getBytes(_destinationAddress);
+		}
 		
-		const sl_uint8* getContent() const;
+		const sl_uint8* getContent() const
+		{
+			return (const sl_uint8*)(this) + HeaderSize;
+		}
 		
-		sl_uint8* getContent();
+		sl_uint8* getContent()
+		{
+			return (sl_uint8*)(this) + HeaderSize;
+		}
 
 	public:
 		// used in TCP/UDP protocol
@@ -356,89 +535,220 @@ public:
 		};
 		
 	public:
-		sl_uint16 getSourcePort() const;
+		sl_uint16 getSourcePort() const
+		{
+			return ((sl_uint16)(_sourcePort[0]) << 8) | ((sl_uint16)(_sourcePort[1]));
+		}
 		
-		void setSourcePort(sl_uint16 port);
+		void setSourcePort(sl_uint16 port)
+		{
+			_sourcePort[0] = (sl_uint8)(port >> 8);
+			_sourcePort[1] = (sl_uint8)(port);
+		}
 		
-		sl_uint16 getDestinationPort() const;
+		sl_uint16 getDestinationPort() const
+		{
+			return ((sl_uint16)(_destinationPort[0]) << 8) | ((sl_uint16)(_destinationPort[1]));
+		}
 		
-		void setDestinationPort(sl_uint16 port);
+		void setDestinationPort(sl_uint16 port)
+		{
+			_destinationPort[0] = (sl_uint8)(port >> 8);
+			_destinationPort[1] = (sl_uint8)(port);
+		}
 		
-		sl_uint32 getSequenceNumber() const;
+		sl_uint32 getSequenceNumber() const
+		{
+			return ((sl_uint32)(_sequenceNumber[0]) << 24) | ((sl_uint32)(_sequenceNumber[1]) << 16) | ((sl_uint32)(_sequenceNumber[2]) << 8) | ((sl_uint32)(_sequenceNumber[3]));
+		}
 		
-		void setSequenceNumber(sl_uint32 num);
+		void setSequenceNumber(sl_uint32 num)
+		{
+			_sequenceNumber[0] = (sl_uint8)(num >> 24);
+			_sequenceNumber[1] = (sl_uint8)(num >> 16);
+			_sequenceNumber[2] = (sl_uint8)(num >> 8);
+			_sequenceNumber[3] = (sl_uint8)(num);
+		}
 
-		sl_uint32 getAcknowledgmentNumber() const;
+		sl_uint32 getAcknowledgmentNumber() const
+		{
+			return ((sl_uint32)(_acknowledgmentNumber[0]) << 24) | ((sl_uint32)(_acknowledgmentNumber[1]) << 16) | ((sl_uint32)(_acknowledgmentNumber[2]) << 8) | ((sl_uint32)(_acknowledgmentNumber[3]));
+		}
 		
-		void setAcknowledgmentNumber(sl_uint32 num);
+		void setAcknowledgmentNumber(sl_uint32 num)
+		{
+			_acknowledgmentNumber[0] = (sl_uint8)(num >> 24);
+			_acknowledgmentNumber[1] = (sl_uint8)(num >> 16);
+			_acknowledgmentNumber[2] = (sl_uint8)(num >> 8);
+			_acknowledgmentNumber[3] = (sl_uint8)(num);
+		}
 		
 		// 4 bits, the size of the TCP header in 32-bit words
-		sl_uint8 getHeaderLength() const;
+		sl_uint8 getHeaderLength() const
+		{
+			return _dataOffsetAndFlags[0] >> 4;
+		}
 		
 		// 4 bits, the size of the TCP header in 32-bit words
-		void setHeaderLength(sl_uint8 length = 5);
+		void setHeaderLength(sl_uint8 length = 5)
+		{
+			_dataOffsetAndFlags[0] = (sl_uint8)((_dataOffsetAndFlags[0] & 0x0F) | (length << 4));
+		}
 
 		// header size in bytes
-		sl_uint8 getHeaderSize() const;
+		sl_uint8 getHeaderSize() const
+		{
+			return (_dataOffsetAndFlags[0] >> 4) << 2;
+		}
 		
 		// header size in bytes
-		void setHeaderSize(sl_uint8 size);
+		void setHeaderSize(sl_uint8 size)
+		{
+			setHeaderLength((size + 3) >> 2);
+		}
 
-		sl_bool isNS() const;
+		sl_bool isNS() const
+		{
+			return (_dataOffsetAndFlags[0] & 1) != 0;
+		}
 		
-		void setNS(sl_bool flag);
+		void setNS(sl_bool flag)
+		{
+			_dataOffsetAndFlags[0] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xFE) | (flag ? 1 : 0));
+		}
 		
-		sl_bool isCWR() const;
+		sl_bool isCWR() const
+		{
+			return (_dataOffsetAndFlags[1] & 0x80) != 0;
+		}
 		
-		void setCWR(sl_bool flag);
+		void setCWR(sl_bool flag)
+		{
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0x7F) | (flag ? 0x80 : 0));
+		}
 		
-		sl_bool isECE() const;
+		sl_bool isECE() const
+		{
+			return (_dataOffsetAndFlags[1] & 0x40) != 0;
+		}
 		
-		void setECE(sl_bool flag);
+		void setECE(sl_bool flag)
+		{
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xBF) | (flag ? 0x40 : 0));
+		}
 		
-		sl_bool isURG() const;
+		sl_bool isURG() const
+		{
+			return (_dataOffsetAndFlags[1] & 0x20) != 0;
+		}
 		
-		void setURG(sl_bool flag);
+		void setURG(sl_bool flag)
+		{
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xDF) | (flag ? 0x20 : 0));
+		}
 		
-		sl_bool isACK() const;
+		sl_bool isACK() const
+		{
+			return (_dataOffsetAndFlags[1] & 0x10) != 0;
+		}
 		
-		void setACK(sl_bool flag);
+		void setACK(sl_bool flag)
+		{
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xEF) | (flag ? 0x10 : 0));
+		}
 
-		sl_bool isPSH() const;
+		sl_bool isPSH() const
+		{
+			return (_dataOffsetAndFlags[1] & 0x08) != 0;
+		}
 		
-		void setPSH(sl_bool flag);
+		void setPSH(sl_bool flag)
+		{
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xF7) | (flag ? 0x08 : 0));
+		}
 		
-		sl_bool isRST() const;
+		sl_bool isRST() const
+		{
+			return (_dataOffsetAndFlags[1] & 0x04) != 0;
+		}
 		
-		void setRST(sl_bool flag);
+		void setRST(sl_bool flag)
+		{
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xFB) | (flag ? 0x04 : 0));
+		}
 		
-		sl_bool isSYN() const;
+		sl_bool isSYN() const
+		{
+			return (_dataOffsetAndFlags[1] & 0x02) != 0;
+		}
 		
-		void setSYN(sl_bool flag);
+		void setSYN(sl_bool flag)
+		{
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xFD) | (flag ? 0x02 : 0));
+		}
 
-		sl_bool isFIN() const;
+		sl_bool isFIN() const
+		{
+			return (_dataOffsetAndFlags[1] & 0x01) != 0;
+		}
 		
-		void setFIN(sl_bool flag);
+		void setFIN(sl_bool flag)
+		{
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xFE) | (flag ? 0x01 : 0));
+		}
 		
-		sl_uint16 getWindowSize() const;
+		sl_uint16 getWindowSize() const
+		{
+			return ((sl_uint16)(_windowSize[0]) << 8) | ((sl_uint16)(_windowSize[1]));
+		}
 		
-		void setWindowSize(sl_uint16 size);
+		void setWindowSize(sl_uint16 size)
+		{
+			_windowSize[0] = (sl_uint8)(size >> 8);
+			_windowSize[1] = (sl_uint8)(size);
+		}
 		
-		sl_uint16 getChecksum() const;
+		sl_uint16 getChecksum() const
+		{
+			return ((sl_uint16)(_checksum[0]) << 8) | ((sl_uint16)(_checksum[1]));
+		}
 		
-		void setChecksum(sl_uint16 checksum);
+		void setChecksum(sl_uint16 checksum)
+		{
+			_checksum[0] = (sl_uint8)(checksum >> 8);
+			_checksum[1] = (sl_uint8)(checksum);
+		}
 
-		sl_uint16 getUrgentPointer() const;
+		sl_uint16 getUrgentPointer() const
+		{
+			return ((sl_uint16)(_urgentPointer[0]) << 8) | ((sl_uint16)(_urgentPointer[1]));
+		}
 		
-		void setUrgentPointer(sl_uint16 urgentPointer);
+		void setUrgentPointer(sl_uint16 urgentPointer)
+		{
+			_urgentPointer[0] = (sl_uint8)(urgentPointer >> 8);
+			_urgentPointer[1] = (sl_uint8)(urgentPointer);
+		}
 		
-		const sl_uint8* getOptions() const;
+		const sl_uint8* getOptions() const
+		{
+			return (const sl_uint8*)(this) + HeaderSizeBeforeOptions;
+		}
 		
-		sl_uint8* getOptions();
+		sl_uint8* getOptions()
+		{
+			return (sl_uint8*)(this) + HeaderSizeBeforeOptions;
+		}
 		
-		const sl_uint8* getContent() const;
+		const sl_uint8* getContent() const
+		{
+			return (const sl_uint8*)(this) + getHeaderSize();
+		}
 		
-		sl_uint8* getContent();
+		sl_uint8* getContent()
+		{
+			return (sl_uint8*)(this) + getHeaderSize();
+		}
 
 	public:
 		sl_bool checkSize(sl_size sizeTcp) const;
@@ -478,29 +788,66 @@ public:
 		};
 		
 	public:
-		sl_uint16 getSourcePort() const;
+		sl_uint16 getSourcePort() const
+		{
+			return ((sl_uint16)(_sourcePort[0]) << 8) | ((sl_uint16)(_sourcePort[1]));
+		}
 		
-		void setSourcePort(sl_uint16 port);
+		void setSourcePort(sl_uint16 port)
+		{
+			_sourcePort[0] = (sl_uint8)(port >> 8);
+			_sourcePort[1] = (sl_uint8)(port);
+		}
 		
-		sl_uint16 getDestinationPort() const;
+		sl_uint16 getDestinationPort() const
+		{
+			return ((sl_uint16)(_destinationPort[0]) << 8) | ((sl_uint16)(_destinationPort[1]));
+		}
 		
-		void setDestinationPort(sl_uint16 port);
+		void setDestinationPort(sl_uint16 port)
+		{
+			_destinationPort[0] = (sl_uint8)(port >> 8);
+			_destinationPort[1] = (sl_uint8)(port);
+		}
 		
 		// including header and data
-		sl_uint16 getTotalSize() const;
+		sl_uint16 getTotalSize() const
+		{
+			return ((sl_uint16)(_length[0]) << 8) | ((sl_uint16)(_length[1]));
+		}
 		
 		// including header and data
-		void setTotalSize(sl_uint16 size);
+		void setTotalSize(sl_uint16 size)
+		{
+			_length[0] = (sl_uint8)(size >> 8);
+			_length[1] = (sl_uint8)(size);
+		}
 
-		sl_uint16 getChecksum() const;
+		sl_uint16 getChecksum() const
+		{
+			return ((sl_uint16)(_checksum[0]) << 8) | ((sl_uint16)(_checksum[1]));
+		}
 		
-		void setChecksum(sl_uint16 checksum);
+		void setChecksum(sl_uint16 checksum)
+		{
+			_checksum[0] = (sl_uint8)(checksum >> 8);
+			_checksum[1] = (sl_uint8)(checksum);
+		}
 		
-		const sl_uint8* getContent() const;
+		const sl_uint8* getContent() const
+		{
+			return (const sl_uint8*)(this) + HeaderSize;
+		}
 		
-		sl_uint8* getContent();
+		sl_uint8* getContent()
+		{
+			return (sl_uint8*)(this) + HeaderSize;
+		}
 		
-		sl_uint16 getContentSize() const;
+		sl_uint16 getContentSize() const
+		{
+			return getTotalSize() - HeaderSize;
+		}
 		
 	public:
 		sl_bool checkSize(sl_size sizeUdp) const;
@@ -612,7 +959,5 @@ public:
 	};
 	
 }
-
-#include "detail/tcpip.inc"
 
 #endif

@@ -41,7 +41,7 @@ namespace slib
 	public:
 		SLIB_INLINE MacAddress() noexcept {}
 		
-		MacAddress(const MacAddress& other) noexcept;
+		MacAddress(const MacAddress& other) noexcept = default;
 		
 		MacAddress(const sl_uint8* m) noexcept;
 		
@@ -50,25 +50,49 @@ namespace slib
 		MacAddress(const String& address) noexcept;
 		
 	public:
-		static const MacAddress& zero() noexcept;
+		static const MacAddress& zero() noexcept
+		{
+			return *(reinterpret_cast<MacAddress const*>(&_zero));
+		}
 		
-		sl_bool isZero() const noexcept;
+		sl_bool isZero() const noexcept
+		{
+			return m[0] == 0 && m[1] == 0 && m[2] == 0 && m[3] == 0 && m[4] == 0 && m[5] == 0;
+		}
 		
-		sl_bool isNotZero() const noexcept;
+		sl_bool isNotZero() const noexcept
+		{
+			return m[0] != 0 || m[1] != 0 || m[2] != 0 || m[3] != 0 || m[4] != 0 || m[5] != 0;
+		}
 		
 		void setZero() noexcept;
 		
-		static const MacAddress& getBroadcast() noexcept;
+		static const MacAddress& getBroadcast() noexcept
+		{
+			return *(reinterpret_cast<MacAddress const*>(&_broadcast));
+		}
 		
-		sl_bool isBroadcast() const noexcept;
+		sl_bool isBroadcast() const noexcept
+		{
+			return m[0] == 255 && m[1] == 255 && m[2] == 255 && m[3] == 255 && m[4] == 255 && m[5] == 255;
+		}
 		
-		sl_bool isNotBroadcast() const noexcept;
+		sl_bool isNotBroadcast() const noexcept
+		{
+			return m[0] != 255 || m[1] != 255 || m[2] != 255 || m[3] != 255 || m[4] != 255 || m[5] != 255;
+		}
 		
 		void setBroadcast() noexcept;
 		
-		sl_bool isMulticast() const noexcept;
+		sl_bool isMulticast() const noexcept
+		{
+			return (m[0] & 1);
+		}
 		
-		sl_bool isNotMulticast() const noexcept;
+		sl_bool isNotMulticast() const noexcept
+		{
+			return (m[0] & 1) == 0;
+		}
 		
 		void makeMulticast(const IPv4Address& addrMulticast) noexcept;
 		
@@ -101,13 +125,19 @@ namespace slib
 		}
 		
 	public:
-		MacAddress& operator=(const MacAddress& other) noexcept;
+		MacAddress& operator=(const MacAddress& other) noexcept = default;
 		
 		MacAddress& operator=(const String& address) noexcept;
 		
-		sl_bool operator==(const MacAddress& other) const noexcept;
+		sl_bool operator==(const MacAddress& other) const noexcept
+		{
+			return m[0] == other.m[0] && m[1] == other.m[1] && m[2] == other.m[2] && m[3] == other.m[3] && m[4] == other.m[4] && m[5] == other.m[5];
+		}
 		
-		sl_bool operator!=(const MacAddress& other) const noexcept;
+		sl_bool operator!=(const MacAddress& other) const noexcept
+		{
+			return m[0] != other.m[0] || m[1] != other.m[1] || m[2] != other.m[2] || m[3] != other.m[3] || m[4] != other.m[4] || m[5] != other.m[5];
+		}
 		
 	private:
 		static const sl_uint8 _zero[6];
@@ -144,7 +174,5 @@ namespace slib
 	};
 	
 }
-	
-#include "detail/mac_address.inc"
 
 #endif
