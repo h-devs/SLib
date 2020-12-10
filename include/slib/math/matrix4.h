@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -202,11 +202,6 @@ namespace slib
 
 		sl_bool operator!=(const Matrix4T<T>& other) const noexcept;
 
-	private:
-		static T _zero[16];
-		static T _one[16];
-		static T _identity[16];
-	
 	};
 	
 	template <class T>
@@ -222,8 +217,6 @@ namespace slib
 		static Matrix4T<T> interpolate(const Matrix4T<T>& a, const Matrix4T<T>& b, float factor) noexcept;
 	};
 	
-	extern template class Matrix4T<float>;
-	extern template class Matrix4T<double>;
 	typedef Matrix4T<sl_real> Matrix4;
 	typedef Matrix4T<float> Matrix4f;
 	typedef Matrix4T<double> Matrix4lf;

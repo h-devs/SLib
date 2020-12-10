@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,15 @@
  *   THE SOFTWARE.
  */
 
+#include "../../core/math.h"
+
 namespace slib
 {
 
 	template <class T>
 	SLIB_INLINE const QuaternionT<T>& QuaternionT<T>::identity() noexcept
 	{
+		static SLIB_ALIGN(8) T _identity[4] = { 0, 0, 0, 1 };
 		return *(reinterpret_cast<QuaternionT<T> const*>(&_identity));
 	}
 
@@ -72,6 +75,128 @@ namespace slib
 		z = other.z;
 		w = other.w;
 		return *this;
+	}
+
+	template <class T>
+	SLIB_INLINE T QuaternionT<T>::getLength2p() const noexcept
+	{
+		return x * x + y * y + z * z + w * w;
+	}
+
+	template <class T>
+	SLIB_INLINE T QuaternionT<T>::getLength() const noexcept
+	{
+		return Math::sqrt(x * x + y * y + z * z + w * w);
+	}
+
+	template <class T>
+	SLIB_INLINE void QuaternionT<T>::multiply(const QuaternionT<T>& other) noexcept
+	{
+		T ox = other.x, oy = other.y, oz = other.z, ow = other.w;
+		T qx = w * ox + x * ow + y * oz - z * oy;
+		T qy = w * oy + y * ow + z * ox - x * oz;
+		T qz = w * oz + z * ow + x * oy - y * ox;
+		T qw = w * ow + x * ox + y * oy - z * oz;
+		x = qx; y = qy; z = qz; w = qw;
+	}
+
+	template <class T>
+	SLIB_INLINE void QuaternionT<T>::divide(const QuaternionT<T>& other) noexcept
+	{
+		T ox = -other.x, oy = -other.y, oz = -other.z, ow = other.w;
+		T qx = w * ox + x * ow + y * oz - z * oy;
+		T qy = w * oy + y * ow + z * ox - x * oz;
+		T qz = w * oz + z * ow + x * oy - y * ox;
+		T qw = w * ow + x * ox + y * oy - z * oz;
+		x = qx; y = qy; z = qz; w = qw;
+	}
+
+	template <class T>
+	SLIB_INLINE void QuaternionT<T>::setRotation(const Vector3T<T>& vAxis, T fAngle) noexcept
+	{
+		T f = Math::sin(fAngle / 2) / vAxis.getLength();
+		x = vAxis.x * f;
+		y = vAxis.y * f;
+		z = vAxis.z * f;
+		w = Math::cos(fAngle / 2);
+	}
+
+	template <class T>
+	SLIB_INLINE QuaternionT<T> QuaternionT<T>::getRotation(const Vector3T<T>& vAxis, T fAngle) noexcept
+	{
+		QuaternionT<T> ret;
+		ret.setRotation(vAxis, fAngle);
+		return ret;
+	}
+
+	template <class T>
+	SLIB_INLINE T QuaternionT<T>::getAngle() const noexcept
+	{
+		return 2 * Math::arccos(w);
+	}
+
+	template <class T>
+	SLIB_INLINE Vector4T<T> QuaternionT<T>::getAxis() const noexcept
+	{
+		return {x, y, z, 0};
+	}
+
+	template <class T>
+	SLIB_INLINE void QuaternionT<T>::makeInverse() noexcept
+	{
+		x = -x;
+		y = -y;
+		z = -z;
+	}
+
+	template <class T>
+	SLIB_INLINE QuaternionT<T> QuaternionT<T>::inverse() const noexcept
+	{
+		QuaternionT<T> ret = *this;
+		ret.makeInverse();
+		return ret;
+	}
+
+	template <class T>
+	SLIB_INLINE QuaternionT<T>& QuaternionT<T>::operator*=(const QuaternionT<T>& other) noexcept
+	{
+		multiply(other);
+		return *this;
+	}
+
+	template <class T>
+	SLIB_INLINE QuaternionT<T> QuaternionT<T>::operator*(const QuaternionT<T>& other) const noexcept
+	{
+		QuaternionT<T> ret = *this;
+		ret.multiply(other);
+		return ret;
+	}
+
+	template <class T>
+	SLIB_INLINE QuaternionT<T>& QuaternionT<T>::operator/=(const QuaternionT<T>& other) noexcept
+	{
+		divide(other);
+		return *this;
+	}
+
+	template <class T>
+	SLIB_INLINE QuaternionT<T> QuaternionT<T>::operator/(QuaternionT<T>& other) const noexcept
+	{
+		QuaternionT<T> ret = *this;
+		ret.divide(other);
+		return ret;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool QuaternionT<T>::operator==(const QuaternionT<T>& other) const noexcept
+	{
+		return (x == other.x) && (y == other.y) && (z == other.z) && (w == other.w);
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool QuaternionT<T>::operator!=(const QuaternionT<T>& other) const noexcept
+	{
+		return (x != other.x) || (y != other.y) || (z != other.z) || (w != other.w);
 	}
 
 }

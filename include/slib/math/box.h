@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -105,13 +105,8 @@ namespace slib
 		template <class O>
 		BoxT<T>& operator=(const BoxT<O>& other) noexcept;
 
-	private:
-		static T _zero[6];
-	
 	};
 	
-	extern template class BoxT<float>;
-	extern template class BoxT<double>;
 	typedef BoxT<sl_real> Box;
 	typedef BoxT<float> Boxf;
 	typedef BoxT<double> Boxlf;

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/math/transform2d.h"
-
-#include "slib/core/math.h"
+#include "../../core/math.h"
 
 namespace slib
 {
@@ -275,7 +273,5 @@ namespace slib
 		ret.y = mat.m21;
 		return ret;
 	}
-
-	SLIB_DEFINE_GEOMETRY_TYPE(Transform2)
 
 }

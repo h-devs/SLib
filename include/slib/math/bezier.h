@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -83,8 +83,6 @@ namespace slib
 
 	};
 	
-	extern template class CubicBezierCurveT<float>;
-	extern template class CubicBezierCurveT<double>;
 	typedef CubicBezierCurveT<sl_real> CubicBezierCurve;
 	typedef CubicBezierCurveT<float> CubicBezierCurvef;
 	typedef CubicBezierCurveT<double> CubicBezierCurvelf;

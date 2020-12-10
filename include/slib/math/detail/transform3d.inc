@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/math/transform3d.h"
-
-#include "slib/core/math.h"
+#include "../../core/math.h"
 
 namespace slib
 {
@@ -652,7 +650,5 @@ namespace slib
 			rcInScreen.right * 2 / viewportWidth - 1,
 			1 - rcInScreen.top * 2 / viewportHeight};
 	}
-
-	SLIB_DEFINE_GEOMETRY_TYPE(Transform3)
 
 }

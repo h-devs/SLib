@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,14 @@ namespace slib
 
 	template <class T>
 	template <class O>
-	TriangleT<T>::TriangleT(const TriangleT<O>& other) noexcept
-	 : point1(other.point1), point2(other.point2), point3(other.point3)
-	 {}
+	TriangleT<T>::TriangleT(const TriangleT<O>& other) noexcept:
+		point1(other.point1), point2(other.point2), point3(other.point3)
+	{}
+
+	template <class T>
+	TriangleT<T>::TriangleT(const PointT<T>& _point1, const PointT<T>& _point2, const PointT<T>& _point3) noexcept:
+		point1(_point1), point2(_point2), point3(_point3)
+	{}
 	
 	template <class T>
 	template <class O>
@@ -37,6 +42,32 @@ namespace slib
 		point2 = other.point2;
 		point3 = other.point3;
 		return *this;
+	}
+
+	template <class T>
+	T TriangleT<T>::getCross(const PointT<T>& _point1, const PointT<T>& _point2, const PointT<T>& _point3) noexcept
+	{
+		return (_point1.x - _point2.x) * (_point2.y - _point3.y) - (_point2.x - _point3.x) * (_point1.y - _point2.y);
+	}
+
+	template <class T>
+	T TriangleT<T>::getCross() const noexcept
+	{
+		return getCross(point1, point2, point3);
+	}
+
+	template <class T>
+	T TriangleT<T>::getSize() const noexcept
+	{
+		return getCross(point1, point2, point3) / 2;
+	}
+
+	template <class T>
+	void TriangleT<T>::transform(Matrix3T<T>& mat) noexcept
+	{
+		point1 = mat.transformPosition(point1);
+		point2 = mat.transformPosition(point2);
+		point3 = mat.transformPosition(point3);
 	}
 
 }

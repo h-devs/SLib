@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -106,13 +106,8 @@ namespace slib
 
 		sl_bool operator!=(const QuaternionT<T>& other) const noexcept;
 
-	private:
-		static T _identity[4];
-
 	};
 	
-	extern template class QuaternionT<float>;
-	extern template class QuaternionT<double>;
 	typedef QuaternionT<sl_real> Quaternion;
 	typedef QuaternionT<float> Quaternionf;
 	typedef QuaternionT<double> Quaternionlf;

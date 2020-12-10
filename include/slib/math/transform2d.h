@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -101,12 +101,12 @@ namespace slib
 		
 	};
 	
-	extern template class Transform2T<float>;
-	extern template class Transform2T<double>;
 	typedef Transform2T<sl_real> Transform2;
 	typedef Transform2T<float> Transform2f;
 	typedef Transform2T<double> Transform2lf;
 
 }
+
+#include "detail/transform2d.inc"
 
 #endif

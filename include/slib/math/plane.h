@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -98,8 +98,6 @@ namespace slib
 	
 	};
 	
-	extern template class PlaneT<float>;
-	extern template class PlaneT<double>;
 	typedef PlaneT<sl_real> Plane;
 	typedef PlaneT<float> Planef;
 	typedef PlaneT<double> Planelf;

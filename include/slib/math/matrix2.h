@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -161,16 +161,9 @@ namespace slib
 		sl_bool operator==(const Matrix2T<T>& other) const noexcept;
 
 		sl_bool operator!=(const Matrix2T<T>& other) const noexcept;
-
-	private:
-		static T _zero[4];
-		static T _one[4];
-		static T _identity[4];
 	
 	};
 	
-	extern template class Matrix2T<float>;
-	extern template class Matrix2T<double>;
 	typedef Matrix2T<sl_real> Matrix2;
 	typedef Matrix2T<float> Matrix2f;
 	typedef Matrix2T<double> Matrix2lf;

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -89,8 +89,6 @@ namespace slib
 	
 	};
 	
-	extern template class Triangle3T<float>;
-	extern template class Triangle3T<double>;
 	typedef Triangle3T<sl_real> Triangle3;
 	typedef Triangle3T<float> Triangle3f;
 	typedef Triangle3T<double> Triangle3lf;

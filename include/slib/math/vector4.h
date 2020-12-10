@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -127,15 +127,8 @@ namespace slib
 
 		sl_bool operator!=(const Vector4T<T, FT>& other) const noexcept;
 
-	private:
-		static T _zero[4];
-
 	};
 
-	extern template class Vector4T<float>;
-	extern template class Vector4T<double>;
-	extern template class Vector4T<sl_int32, float>;
-	extern template class Vector4T<sl_int64, double>;
 	typedef Vector4T<sl_real> Vector4;
 	typedef Vector4T<float> Vector4f;
 	typedef Vector4T<double> Vector4lf;

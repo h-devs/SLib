@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -177,15 +177,8 @@ namespace slib
 		template <class O, class FO>
 		RectangleT<T, FT>& operator=(const RectangleT<O, FO>& other) noexcept;
 
-	private:
-		static T _zero[4];
-	
 	};
 	
-	extern template class RectangleT<float>;
-	extern template class RectangleT<double>;
-	extern template class RectangleT<sl_int32, float>;
-	extern template class RectangleT<sl_int64, double>;
 	typedef RectangleT<sl_real> Rectangle;
 	typedef RectangleT<float> Rectanglef;
 	typedef RectangleT<double> Rectanglelf;
