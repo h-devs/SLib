@@ -40,7 +40,176 @@
 
 namespace slib
 {
+	namespace priv
+	{
+		namespace java
+		{
+			class SLIB_EXPORT JNativeMethod
+			{
+			public:
+				JNativeMethod(priv::java::JClass* gcls, const char* name, const char* sig, const void* fn);
 
+			public:
+				priv::java::JClass*gcls;
+				const char* name;
+				const char* sig;
+				const void* fn;
+			};
+
+			class SLIB_EXPORT JClass
+			{
+			public:
+				JClass(const char* name);
+
+			public:
+				const char* name;
+				JniClass cls;
+			};
+
+			class SLIB_EXPORT JMethod
+			{
+			public:
+				JMethod(JClass* gcls, const char* name, const char* sig);
+
+			public:
+				jobject callObject(jobject _this, ...);
+				jboolean callBoolean(jobject _this, ...);
+				jbyte callByte(jobject _this, ...);
+				jchar callChar(jobject _this, ...);
+				jshort callShort(jobject _this, ...);
+				jint callInt(jobject _this, ...);
+				jlong callLong(jobject _this, ...);
+				jfloat callFloat(jobject _this, ...);
+				jdouble callDouble(jobject _this, ...);
+				void call(jobject _this, ...);
+				String callString(jobject _this, ...);
+				jobject newObject(jobject _null, ...);
+
+			public:
+				JClass * gcls;
+				const char* name;
+				const char* sig;
+				jclass cls;
+				jmethodID id;
+			};
+
+			class SLIB_EXPORT JStaticMethod
+			{
+			public:
+				JStaticMethod(JClass* gcls, const char* name, const char* sig);
+
+			public:
+				jobject callObject(jobject _null, ...);
+				jboolean callBoolean(jobject _null, ...);
+				jbyte callByte(jobject _null, ...);
+				jchar callChar(jobject _null, ...);
+				jshort callShort(jobject _null, ...);
+				jint callInt(jobject _null, ...);
+				jlong callLong(jobject _null, ...);
+				jfloat callFloat(jobject _null, ...);
+				jdouble callDouble(jobject _null, ...);
+				void call(jobject _null, ...);
+				String callString(jobject _null, ...);
+
+			public:
+				JClass * gcls;
+				const char* name;
+				const char* sig;
+				jclass cls;
+				jmethodID id;
+			};
+
+			class SLIB_EXPORT JField
+			{
+			public:
+				JField(JClass* gcls, const char* name, const char* sig);
+
+			public:
+				jobject getObject(jobject _this);
+				void setObject(jobject _this, jobject value);
+				jboolean getBoolean(jobject _this);
+				void setBoolean(jobject _this, jboolean value);
+				jbyte getByte(jobject _this);
+				void setByte(jobject _this, jbyte value);
+				jchar getChar(jobject _this);
+				void setChar(jobject _this, jchar value);
+				jshort getShort(jobject _this);
+				void setShort(jobject _this, jshort value);
+				jint getInt(jobject _this);
+				void setInt(jobject _this, jint value);
+				jlong getLong(jobject _this);
+				void setLong(jobject _this, jlong value);
+				jfloat getFloat(jobject _this);
+				void setFloat(jobject _this, jfloat value);
+				jdouble getDouble(jobject _this);
+				void setDouble(jobject _this, jdouble value);
+				String getString(jobject _this);
+				void setString(jobject _this, const StringParam& value);
+
+			public:
+				JClass * gcls;
+				const char* name;
+				const char* sig;
+				jclass cls;
+				jfieldID id;
+			};
+
+
+			class SLIB_EXPORT JObjectField : protected JField
+			{
+			public:
+				JObjectField(JClass* gcls, const char* name, const char* sig);
+			public:
+				jobject get(jobject _this);
+				void set(jobject _this, jobject value);
+			};
+
+			class SLIB_EXPORT JStaticField
+			{
+			public:
+				JStaticField(JClass* gcls, const char* name, const char* sig);
+
+			public:
+				jobject getObject(jobject _null);
+				void setObject(jobject _null, jobject value);
+				jboolean getBoolean(jobject _null);
+				void setBoolean(jobject _null, jboolean value);
+				jbyte getByte(jobject _null);
+				void setByte(jobject _null, jbyte value);
+				jchar getChar(jobject _null);
+				void setChar(jobject _null, jchar value);
+				jshort getShort(jobject _null);
+				void setShort(jobject _null, jshort value);
+				jint getInt(jobject _null);
+				void setInt(jobject _null, jint value);
+				jlong getLong(jobject _null);
+				void setLong(jobject _null, jlong value);
+				jfloat getFloat(jobject _null);
+				void setFloat(jobject _null, jfloat value);
+				jdouble getDouble(jobject _null);
+				void setDouble(jobject _null, jdouble value);
+				String getString(jobject _null);
+				void setString(jobject _null, const StringParam& value);
+
+			public:
+				JClass * gcls;
+				const char* name;
+				const char* sig;
+				jclass cls;
+				jfieldID id;
+			};
+
+			class SLIB_EXPORT JStaticObjectField : protected JStaticField
+			{
+			public:
+				JStaticObjectField(JClass* gcls, const char* name, const char* sig);
+			public:
+				jobject get();
+				void set(jobject value);
+			};
+
+		}
+	}
 	template <class T>
 	class SLIB_EXPORT JniLocal
 	{
@@ -48,28 +217,63 @@ namespace slib
 		T value;
 
 	public:
-		JniLocal();
+		JniLocal() : value(sl_null)
+		{
+		}
 
-		JniLocal(T value);
+		JniLocal(T value) : value(_value)
+		{
+		}
 
-		~JniLocal();
+		~JniLocal()
+		{
+			free();
+		}
 
 	public:
-		operator T&();
+		operator T&()
+		{
+			return value;
+		}
 
-		operator T() const;
+		operator T() const
+		{
+			return value;
+		}
 
-		T operator=(T value);
+		T operator=(T value)
+		{
+			this->value = value;
+			return value;
+		}
 
-		T get() const;
+		T get() const
+		{
+			return value;
+		}
 
-		sl_bool isNotNull() const;
+		sl_bool isNotNull() const
+		{
+			return value != sl_null;
+		}
 
-		sl_bool isNull() const;
+		sl_bool isNull() const
+		{
+			return value == sl_null;
+		}
 
-		void setNull();
+		void setNull()
+		{
+			this->value = sl_null;
+		}
 
-		void free();
+		void free()
+		{
+			if (value) {
+				Jni::deleteLocalRef(value);
+				value = sl_null;
+			}
+		}
 
 	};
 
@@ -84,10 +288,29 @@ namespace slib
 	protected:
 		CJniGlobal() = default;
 
-		~CJniGlobal();
+		~CJniGlobal()
+		{
+			Jni::deleteGlobalRef(object);
+		}
 
 	public:
-		static Ref< CJniGlobal<T> > from(T obj);
+		static Ref< CJniGlobal<T> > from(T obj)
+		{
+			Ref< CJniGlobal<T> > ret;
+			if (obj) {
+				jobject jglobal = Jni::newGlobalRef(obj);
+				if (jglobal) {
+					ret = new CJniGlobal<T>();
+					if (ret.isNotNull()) {
+						ret->object = (T)jglobal;
+						return ret;
+					}
+					Jni::deleteGlobalRef(jglobal);
+				}
+			}
+			return sl_null;
+		}
+
 
 	public:
 		T object;
@@ -102,22 +325,54 @@ namespace slib
 		SLIB_REF_WRAPPER(JniGlobal, CJniGlobal<T>)
 
 	public:
-		JniGlobal(T obj);
+		JniGlobal(T obj) : ref(CJniGlobal<T>::from(obj))
+		{
+		}
 
-		JniGlobal(const JniLocal<T>& obj);
-
-	public:
-		static JniGlobal<T> from(T obj);
-
-	public:
-		JniGlobal<T>& operator=(T obj);
-
-		JniGlobal<T>& operator=(const JniLocal<T>& obj);
+		JniGlobal(const JniLocal<T>& obj) : ref(CJniGlobal<T>::from(obj.value))
+		{
+		}
 
 	public:
-		T get() const;
+		static JniGlobal<T> from(T obj)
+		{
+			return JniGlobal<T>(obj);
+		}
 
-		operator T() const;
+	public:
+		JniGlobal<T>& operator=(T obj)
+		{
+			ref = CJniGlobal<T>::from(obj);
+			return *this;
+		}
+
+		JniGlobal<T>& operator=(const JniLocal<T>& obj)
+		{
+			ref = CJniGlobal<T>::from(obj.value);
+			return *this;
+		}
+
+
+	public:
+		T get() const
+		{
+			CJniGlobal<T>* o = ref.get();
+			if (o) {
+				return o->object;
+			} else {
+				return 0;
+			}
+		}
+
+		operator T() const
+		{
+			CJniGlobal<T>* o = ref.get();
+			if (o) {
+				return o->object;
+			} else {
+				return 0;
+			}
+		}
 
 	};
 
@@ -130,17 +385,37 @@ namespace slib
 		SLIB_ATOMIC_REF_WRAPPER(CJniGlobal<T>)
 
 	public:
-		Atomic(T obj);
+		Atomic(T obj) : ref(CJniGlobal<T>::from(obj))
+		{
+		}
 
-		Atomic(JniLocal<T>& obj);
+		Atomic(JniLocal<T>& obj) : ref(CJniGlobal<T>::from(obj.value))
+		{
+		}
 
 	public:
-		Atomic& operator=(T obj);
+		Atomic& operator=(T obj)
+		{
+			ref = CJniGlobal<T>::from(obj);
+			return *this;
+		}
 
-		Atomic& operator=(JniLocal<T>& obj);
+		Atomic& operator=(JniLocal<T>& obj)
+		{
+			ref = CJniGlobal<T>::from(obj.value);
+			return *this;
+		}
 
 	public:
-		T get() const;
+		T get() const
+		{
+			Ref< CJniGlobal<T> > o(ref);
+			if (o.isNotNull()) {
+				return o->object;
+			} else {
+				return 0;
+			}
+		}
 
 	};
 
@@ -518,7 +793,52 @@ namespace CLASS \
 	static slib::priv::java::JNativeMethod native_##VAR(&_gcls, NAME, SIG, (const void*)(JNativeMethodImpl_##VAR)); \
 	RET JNICALL JNativeMethodImpl_##VAR(JNIEnv* env, jobject _this, ##__VA_ARGS__)
 
-#include "detail/java.inc"
+
+#define PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(TYPE, NAME) \
+	namespace priv { \
+		namespace java { \
+			class J##NAME##Field : protected JField \
+			{ \
+			public: \
+				J##NAME##Field(JClass* gcls, const char* name); \
+				TYPE get(jobject _this); \
+				void set(jobject _this, TYPE value); \
+			}; \
+		} \
+	}
+
+PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(jboolean, Boolean)
+PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_int8, Byte)
+PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_uint16, Char)
+PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_int16, Short)
+PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_int32, Int)
+PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_int64, Long)
+PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(float, Float)
+PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(double, Double)
+PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(String, String)
+
+#define PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(TYPE, NAME) \
+	namespace priv { \
+		namespace java { \
+			class JStatic##NAME##Field : protected JStaticField \
+			{ \
+			public: \
+				JStatic##NAME##Field(JClass* gcls, const char* name); \
+				TYPE get(); \
+				void set(TYPE value); \
+			}; \
+		} \
+	}
+
+PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(jboolean, Boolean)
+PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_int8, Byte)
+PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_uint16, Char)
+PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_int16, Short)
+PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_int32, Int)
+PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_int64, Long)
+PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(float, Float)
+PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(double, Double)
+PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(String, String)
 
 #endif
 
