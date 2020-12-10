@@ -124,17 +124,32 @@ namespace slib
 	};
 
 	template <class... ARGS>
-	void Log(const StringParam& tag, const StringParam& format, ARGS&&... args);
+	void Log(const StringParam& tag, const StringParam& format, ARGS&&... args)
+	{
+		String content = String::format(format, Forward<ARGS>(args)...);
+		Logger::logGlobal(tag, content);
+	}
 	
 	template <class... ARGS>
-	void LogError(const StringParam& tag, const StringParam& format, ARGS&&... args);
+	void LogError(const StringParam& tag, const StringParam& format, ARGS&&... args)
+	{
+		String content = String::format(format, Forward<ARGS>(args)...);
+		Logger::logGlobalError(tag, content);
+	}
 	
 #ifdef SLIB_DEBUG
 	template <class... ARGS>
-	void LogDebug(const StringParam& tag, const StringParam& format, ARGS&&... args);
+	void LogDebug(const StringParam& tag, const StringParam& format, ARGS&&... args)
+	{
+		String content = String::format(format, Forward<ARGS>(args)...);
+		Logger::logGlobalDebug(tag, content);
+	}
 #else
 	template <class... ARGS>
 	void LogDebug(const ARGS&... args);
+	SLIB_INLINE void LogDebug(const ARGS&... args)
+	{
+	}
 #endif
 
 #define SLIB_LOG(TAG, FORMAT, ...) slib::Log(TAG, FORMAT, ##__VA_ARGS__)
@@ -146,7 +161,5 @@ namespace slib
 #endif
 
 }
-
-#include "detail/log.inc"
 
 #endif

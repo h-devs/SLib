@@ -58,16 +58,104 @@ namespace slib
 
 
 	template <class T>
-	sl_bool Parse(const StringParam& str, T* _out) noexcept;
+	sl_bool Parse(const StringParam& _str, T* _out) noexcept
+	{
+		if (_str.isNotNull()) {
+			if (_str.is8()) {
+				StringData str(_str);
+				sl_reg n = str.getUnsafeLength();
+				if (n) {
+					if (n < 0) {
+						const sl_char8* data = str.getData();
+						sl_reg ret = Parser<T, sl_char8>::parse(_out, data, 0, n);
+						return ret != SLIB_PARSE_ERROR && data[ret] == 0;
+					} else {
+						return Parser<T, sl_char8>::parse(_out, str.getData(), 0, n) == (sl_reg)n;
+					}
+				}
+			} else {
+				StringData16 str(_str);
+				sl_reg n = str.getUnsafeLength();
+				if (n) {
+					if (n < 0) {
+						const sl_char16* data = str.getData();
+						sl_reg ret = Parser<T, sl_char16>::parse(_out, str.getData(), 0, n);
+						return ret != SLIB_PARSE_ERROR && data[ret] == 0;
+					} else {
+						return Parser<T, sl_char16>::parse(_out, str.getData(), 0, n) == (sl_reg)n;
+					}
+				}
+			}
+		}
+		return sl_false;
+	}
 
 	template <class T, class ArgType>
-	sl_bool Parse(const StringParam& str, const ArgType& arg, T* _out) noexcept;
+	sl_bool Parse(const StringParam& _str, const ArgType& arg, T* _out) noexcept
+	{
+		if (_str.isNotNull()) {
+			if (_str.is8()) {
+				StringData str(_str);
+				sl_reg n = str.getUnsafeLength();
+				if (n) {
+					if (n < 0) {
+						const sl_char8* data = str.getData();
+						sl_reg ret = Parser2<T, sl_char8, ArgType>::parse(_out, arg, str.getData(), 0, n);
+						return ret != SLIB_PARSE_ERROR && data[ret] == 0;
+					} else {
+						return Parser2<T, sl_char8, ArgType>::parse(_out, arg, str.getData(), 0, n) == (sl_reg)n;
+					}
+				}
+			} else {
+				StringData16 str(_str);
+				sl_reg n = str.getUnsafeLength();
+				if (n) {
+					if (n < 0) {
+						const sl_char16* data = str.getData();
+						sl_reg ret = Parser2<T, sl_char16, ArgType>::parse(_out, arg, str.getData(), 0, n);
+						return ret != SLIB_PARSE_ERROR && data[ret] == 0;
+					} else {
+						return Parser2<T, sl_char16, ArgType>::parse(_out, arg, str.getData(), 0, n) == (sl_reg)n;
+					}
+				}
+			}
+		}
+		return sl_false;
+	}
 	
 	template <class T>
-	sl_bool ParseInt(const StringParam& str, T* _out, sl_uint32 radix = 10) noexcept;
+	sl_bool ParseInt(const StringParam& _str, T* _out, sl_uint32 radix = 10) noexcept
+	{
+		if (_str.isNotNull()) {
+			if (_str.is8()) {
+				StringData str(_str);
+				sl_reg n = str.getUnsafeLength();
+				if (n) {
+					if (n < 0) {
+						const sl_char8* data = str.getData();
+						sl_reg ret = IntParser<T, sl_char8>::parse(_out, radix, str.getData(), 0, n);
+						return ret != SLIB_PARSE_ERROR && data[ret] == 0;
+					} else {
+						return IntParser<T, sl_char8>::parse(_out, radix, str.getData(), 0, n) == (sl_reg)n;
+					}
+				}
+			} else {
+				StringData16 str(_str);
+				sl_reg n = str.getUnsafeLength();
+				if (n) {
+					if (n < 0) {
+						const sl_char16* data = str.getData();
+						sl_reg ret = IntParser<T, sl_char16>::parse(_out, radix, str.getData(), 0, n);
+						return ret != SLIB_PARSE_ERROR && data[ret] == 0;
+					} else {
+						return IntParser<T, sl_char16>::parse(_out, radix, str.getData(), 0, n) == (sl_reg)n;
+					}
+				}
+			}
+		}
+		return sl_false;
+	}
 
 }
-
-#include "detail/parse.inc"
 
 #endif
