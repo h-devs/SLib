@@ -84,7 +84,7 @@ namespace slib
 			return Memory::create(v, CLASS::HashSize);
 		}
 		
-		void applyMask_MGF1(const void* seed, sl_uint32 sizeSeed, void* target, sl_uint32 sizeTarget)
+		void applyMask_MGF1(const void* seed, sl_uint32 sizeSeed, void* _target, sl_uint32 sizeTarget)
 		{
 			CLASS* thiz = ((CLASS*)this);
 			sl_uint32 n = CLASS::HashSize;
