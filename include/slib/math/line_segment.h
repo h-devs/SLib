@@ -44,30 +44,84 @@ namespace slib
 		LineSegmentT() noexcept = default;
 
 		template <class O>
-		LineSegmentT(const LineSegmentT<O>& other) noexcept;
+		LineSegmentT(const LineSegmentT<O>& other) noexcept :
+			point1(other.point1), point2(other.point2)
+		{
+		}
 
-		LineSegmentT(const PointT<T>& point1, const PointT<T>& point2) noexcept;
+		LineSegmentT(const PointT<T>& point1, const PointT<T>& point2) noexcept :
+			point1(_point1), point2(_point2)
+		{
+			point1 = _point1;
+			point2 = _point2;
+		}
 
-		LineSegmentT(T x1, T y1, T x2, T y2) noexcept;
+		LineSegmentT(T x1, T y1, T x2, T y2) noexcept :
+			point1(x1, y1), point2(x2, y2)
+		{
+		}
 
 	public:
-		Vector2T<T> getDirection() const noexcept;
+		Vector2T<T> getDirection() const noexcept
+		{
+			return (point2 - point1);
+		}
 
-		T getLength2p() const noexcept;
+		T getLength2p() const noexcept
+		{
+			return point1.getLength2p(point2);
+		}
 
-		T getLength() const noexcept;
+		T getLength() const noexcept
+		{
+			return point1.getLength(point2);
+		}
 
-		void transform(const Matrix3T<T>& mat) noexcept;
+		void transform(const Matrix3T<T>& mat) noexcept
+		{
+			point1 = mat.transformPosition(point1);
+			point2 = mat.transformPosition(point2);
+		}
 
-		PointT<T> projectPoint(const PointT<T>& point) const noexcept;
+		PointT<T> projectPoint(const PointT<T>& point) const noexcept
+		{
+			Vector2T<T> dir = point2 - point1;
+			PointT<T> ret = point1 + (point - point1).dot(dir) * dir;
+			return ret;
+		}
 
-		T getDistanceFromPoint(const PointT<T>& point) const noexcept;
+		T getDistanceFromPoint(const PointT<T>& point) const noexcept
+		{
+			Vector2T<T> dir = point2 - point1;
+			T f = (point - point1).dot(dir);
+			Vector2T<T> proj = point1 + f * dir;
+			if (f < 0) {
+				return point1.getLength(point);
+			} else {
+				if (f > getLength()) {
+					return point2.getLength(point);
+				} else {
+					return proj.getLength(point);
+				}
+			}
+		}
 
-		T getDistanceFromPointOnInfiniteLine(const PointT<T>& point) const noexcept;
+		T getDistanceFromPointOnInfiniteLine(const PointT<T>& point) const noexcept
+		{
+			Vector2T<T> dir = point2 - point1;
+			T f = (point - point1).dot(dir);
+			Vector2T<T> proj = point1 + f * dir;
+			return proj.getLength(point);
+		}
 
 	public:
 		template <class O>
-		LineSegmentT<T>& operator=(const LineSegmentT<O>& other) noexcept;
+		LineSegmentT<T>& operator=(const LineSegmentT<O>& other) noexcept
+		{
+			point1 = other.point1;
+			point2 = other.point2;
+			return *this;
+		}
 
 	};
 	
@@ -76,7 +130,5 @@ namespace slib
 	typedef LineSegmentT<double> LineSegmentlf;
 
 }
-
-#include "detail/line_segment.inc"
 
 #endif
