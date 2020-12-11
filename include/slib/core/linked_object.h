@@ -39,8 +39,8 @@ namespace slib
 	class SLIB_EXPORT LinkedObject : public Object
 	{
 	public:
-		Ref<T> next;
-		WeakRef<T> before;
+		Ref<LinkedObject<T>> next;
+		WeakRef<LinkedObject<T>> before;
 
 	};
 	
@@ -355,10 +355,11 @@ namespace slib
 			Ref<T> back = Move(m_back);
 			if (back.isNotNull()) {
 				m_count--;
-				Ref<T>& before = back->before;
+				Ref<T> before = back->before;
 				if (before.isNotNull()) {
 					before->next.setNull();
 					m_back = Move(before);
+					back->before.setNull();
 				} else {
 					m_front.setNull();
 					m_back.setNull();
@@ -402,11 +403,11 @@ namespace slib
 
 		void _remove(const Ref<T>& object) noexcept
 		{
-			T* before = object->before.get();
+			Ref<T> before = object->before;
 			T* next = object->next.get();
 			if (m_front == object) {
 				m_front = Move(object->next);
-			} else if (before) {
+			} else if (before.isNotNull()) {
 				before->next = Move(object->next);
 			} else {
 				return;
@@ -424,12 +425,12 @@ namespace slib
 		void _insertBefore(const Ref<T>& objectWhere, const Ref<T>& objectNew) noexcept
 		{
 			objectNew->next = objectWhere;
-			T* before = objectWhere->before.get();
+			Ref<T> before = objectWhere->before;
 			objectNew->before = Move(objectWhere->before);
 			objectWhere->before = objectNew;
 			if (m_front == objectWhere) {
 				m_front = objectNew;
-			} else if (before) {
+			} else if (before.isNotNull()) {
 				before->next = objectNew;
 			} else {
 				return;

@@ -552,7 +552,7 @@ namespace slib
 			return m_seeker.getFramesCount();
 		}
 
-		T& getFrame(sl_size index)
+		AnimationFrame<T>& getFrame(sl_size index)
 		{
 			return m_seeker.getFrame(index);
 		}

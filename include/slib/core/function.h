@@ -977,9 +977,9 @@ namespace slib
 			return sl_null;
 		}
 
-		static Function<RET_TYPE(ARGS...)> fromList(const List< Function<RET_TYPE(ARGS...)> >&) noexcept
+		static Function<RET_TYPE(ARGS...)> fromList(const List< Function<RET_TYPE(ARGS...)> >& list) noexcept
 		{
-			return new FunctionList<RET_TYPE(ARGS...)>(list);
+			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new FunctionList<RET_TYPE(ARGS...)>(list));
 		}
 		
 	public:
