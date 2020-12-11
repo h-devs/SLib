@@ -212,17 +212,17 @@ namespace slib
 		sl_int64 m_time; // microseconds
 
 	public:
-		SLIB_INLINE constexpr Time() noexcept: m_time(0) {}
+		constexpr Time() noexcept: m_time(0) {}
 
-		SLIB_INLINE constexpr Time(const Time& other) noexcept: m_time(other.m_time) {}
+		constexpr Time(const Time& other) noexcept: m_time(other.m_time) {}
 
-		SLIB_INLINE constexpr Time(sl_int32 time) noexcept: m_time(time) {}
+		constexpr Time(sl_int32 time) noexcept: m_time(time) {}
 
-		SLIB_INLINE constexpr Time(sl_uint32 time) noexcept: m_time(time) {}
+		constexpr Time(sl_uint32 time) noexcept: m_time(time) {}
 
-		SLIB_INLINE constexpr Time(sl_int64 time) noexcept: m_time(time) {}
+		constexpr Time(sl_int64 time) noexcept: m_time(time) {}
 
-		SLIB_INLINE constexpr Time(sl_uint64 time) noexcept: m_time(time) {}
+		constexpr Time(sl_uint64 time) noexcept: m_time(time) {}
 
 		Time(sl_int32 year, sl_int32 month, sl_int32 date, const TimeZone& zone = TimeZone::Local) noexcept;
 
@@ -231,12 +231,12 @@ namespace slib
 		Time(const TimeComponents& comps, const TimeZone& zone = TimeZone::Local) noexcept;
 		
 		Time(const StringParam& str) noexcept;
-		SLIB_INLINE Time(const String& value) noexcept: Time(StringParam(value)) {}
-		SLIB_INLINE Time(const String16& value) noexcept: Time(StringParam(value)) {}
-		SLIB_INLINE Time(const AtomicString& value) noexcept: Time(StringParam(value)) {}
-		SLIB_INLINE Time(const AtomicString16& value) noexcept: Time(StringParam(value)) {}
-		SLIB_INLINE Time(const sl_char8* value) noexcept: Time(StringParam(value)) {}
-		SLIB_INLINE Time(const sl_char16* value) noexcept: Time(StringParam(value)) {}
+		Time(const String& value) noexcept: Time(StringParam(value)) {}
+		Time(const String16& value) noexcept: Time(StringParam(value)) {}
+		Time(const AtomicString& value) noexcept: Time(StringParam(value)) {}
+		Time(const AtomicString16& value) noexcept: Time(StringParam(value)) {}
+		Time(const sl_char8* value) noexcept: Time(StringParam(value)) {}
+		Time(const sl_char16* value) noexcept: Time(StringParam(value)) {}
 
 		Time(const StringParam& str, const TimeZone& zone) noexcept;
 
@@ -279,36 +279,53 @@ namespace slib
 		
 		static Time withTimef(double hours, double minutes, double seconds, double milliseconds, double microseconds) noexcept;
 		
-		SLIB_INLINE constexpr static Time zero()
+		constexpr static Time zero()
 		{
 			return 0;
 		}
 
-		Time& setZero() noexcept;
+		Time& setZero() noexcept
+		{
+			m_time = 0;
+			return *this;
+		}		
 
-		SLIB_INLINE constexpr sl_bool isZero() const
+		constexpr sl_bool isZero() const
 		{
 			return m_time == 0;
 		}
 
-		SLIB_INLINE constexpr sl_bool isNotZero() const
+		constexpr sl_bool isNotZero() const
 		{
 			return m_time != 0;
 		}
 
-		sl_int64 toInt() const noexcept;
+		sl_int64 toInt() const noexcept	
+		{
+			return m_time;
+		}
 	
 		Time& setInt(sl_int64 time) noexcept;
 		
 		static Time fromInt(sl_int64 time) noexcept;
 		
-		sl_int64 toUnixTime() const noexcept;
+		sl_int64 toUnixTime() const noexcept
+		{
+			sl_int64 n = m_time / 1000000;
+			if ((m_time % 1000000) < 0) {
+				n += 1;
+			}
+			return n;
+		}		
 
 		Time& setUnixTime(sl_int64 time) noexcept;
 		
 		static Time fromUnixTime(sl_int64 time) noexcept;
 		
-		double toUnixTimef() const noexcept;
+		double toUnixTimef() const noexcept
+		{
+			return (double)(m_time / 1000000);
+		}		
 		
 		Time& setUnixTimef(double time) noexcept;
 		
@@ -328,48 +345,112 @@ namespace slib
 		Time& add(const Time& other) noexcept;
 	
 	public:
-		Time& operator=(const Time& other) noexcept;
+		Time& operator=(const Time& other) noexcept
+		{
+			m_time = other.m_time;
+			return *this;
+		}		
 
-		Time& operator=(sl_int32 time) noexcept;
+		Time& operator=(sl_int32 time) noexcept
+		{
+			m_time = time;
+			return *this;
+		}		
 
-		Time& operator=(sl_uint32 time) noexcept;
+		Time& operator=(sl_uint32 time) noexcept
+		{
+			m_time = time;
+			return *this;
+		}		
 
-		Time& operator=(sl_int64 time) noexcept;
+		Time& operator=(sl_int64 time) noexcept
+		{
+			m_time = time;
+			return *this;
+		}		
 
-		Time& operator=(sl_uint64 time) noexcept;
+		Time& operator=(sl_uint64 time) noexcept
+		{
+			m_time = time;
+			return *this;
+		}		
 
 		Time& operator=(const StringParam& str) noexcept;
 
 
-		sl_bool operator==(const Time& other) const noexcept;
+		sl_bool operator==(const Time& other) const noexcept
+		{
+			return m_time == other.m_time;
+		}		
 
-		sl_bool operator<=(const Time& other) const noexcept;
+		sl_bool operator<=(const Time& other) const noexcept
+		{
+			return m_time <= other.m_time;
+		}		
 
-		sl_bool operator>=(const Time& other) const noexcept;
+		sl_bool operator>=(const Time& other) const noexcept
+		{
+			return m_time >= other.m_time;
+		}		
 
-		sl_bool operator!=(const Time& other) const noexcept;
+		sl_bool operator!=(const Time& other) const noexcept
+		{
+			return m_time != other.m_time;
+		}		
 
-		sl_bool operator<(const Time& other) const noexcept;
+		sl_bool operator<(const Time& other) const noexcept
+		{
+			return m_time < other.m_time;
+		}		
 
-		sl_bool operator>(const Time& other) const noexcept;
-	
+		sl_bool operator>(const Time& other) const noexcept
+		{
+			return m_time > other.m_time;
+		}		
 
-		Time operator+(sl_int64 time) const noexcept;
+		Time operator+(sl_int64 time) const noexcept
+		{
+			return m_time + time;
+		}		
 
-		Time operator+(const Time& time) const noexcept;
+		Time operator+(const Time& time) const noexcept
+		{
+			return m_time + time.m_time;
+		}		
 
-		Time& operator+=(sl_int64 time) noexcept;
+		Time& operator+=(sl_int64 time) noexcept
+		{
+			m_time += time;
+			return *this;
+		}		
 
-		Time& operator+=(const Time& time) noexcept;
-	
+		Time& operator+=(const Time& time) noexcept
+		{
+			m_time += time.m_time;
+			return *this;
+		}		
 
-		Time operator-(sl_int64 time) const noexcept;
+		Time operator-(sl_int64 time) const noexcept
+		{
+			return m_time - time;
+		}		
 
-		Time operator-(const Time& time) const noexcept;
+		Time operator-(const Time& time) const noexcept
+		{
+			return m_time - time.m_time;
+		}		
 
-		Time& operator-=(sl_int64 time) noexcept;
+		Time& operator-=(sl_int64 time) noexcept
+		{
+			m_time -= time;
+			return *this;
+		}		
 
-		Time& operator-=(const Time& time) noexcept;
+		Time& operator-=(const Time& time) noexcept
+		{
+			m_time -= time.m_time;
+			return *this;
+		}		
 
 	public:
 		Time& setNow() noexcept;
@@ -772,7 +853,5 @@ namespace slib
 	};
 
 }
-
-#include "detail/time.inc"
 
 #endif

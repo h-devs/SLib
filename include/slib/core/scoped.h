@@ -35,24 +35,47 @@ namespace slib
 	class SLIB_EXPORT ScopedPtr
 	{
 	public:
-		ScopedPtr();
+		ScopedPtr() : ptr(sl_null)
+		{
+		}
 
-		ScopedPtr(T* ptr);
+		ScopedPtr(T* _ptr) : ptr(_ptr)
+		{
+		}
 
-		~ScopedPtr();
+		~ScopedPtr()
+		{
+			release();
+		}		
 
 	public:
-		void release();
+		void release()
+		{
+			delete ptr;
+			ptr = sl_null;
+		}		
 
-		sl_bool isNull();
+		sl_bool isNull()
+		{
+			return ptr == sl_null;
+		}		
 
-		sl_bool isNotNull();
+		sl_bool isNotNull()
+		{
+			return ptr != sl_null;
+		}		
 
 		void setNull();
 
-		T& operator*();
+		T& operator*()
+		{
+			return *(ptr);
+		}		
 
-		T* operator->();
+		T* operator->()
+		{
+			return ptr;
+		}		
 
 	public:
 		T* ptr;
@@ -63,12 +86,20 @@ namespace slib
 	class SLIB_EXPORT ScopedPtrNew : public ScopedPtr<T>
 	{
 	public:
-		ScopedPtrNew();
+		ScopedPtrNew(): ScopedPtr<T>(new T)
+		{
+		}
 
 	public:
-		T& operator*();
+		T& operator*()
+		{
+			return *(this->ptr);
+		}		
 
-		T* operator->();
+		T* operator->()
+		{
+			return this->ptr;
+		}		
 
 	};
 
@@ -76,26 +107,60 @@ namespace slib
 	class SLIB_EXPORT ScopedArray
 	{
 	public:
-		ScopedArray();
+		ScopedArray() : data(sl_null), count(0)
+		{
+		}
 
-		ScopedArray(T* data, sl_size count);
+		ScopedArray(T* _data, sl_size _count): data(_data), count(_count)
+		{
+		}
 
-		ScopedArray(sl_size count);
+		ScopedArray(sl_size _count)
+		{
+			data = NewHelper<T>::create(_count);
+			if (data) {
+				count = _count;
+			} else {
+				count = 0;
+			}
+		}		
 	
-		~ScopedArray();
+		~ScopedArray()
+		{
+			release();
+		}		
 	
 	public:
-		void release();
+		void release()
+		{
+			if (data) {
+				NewHelper<T>::free(data, count);
+				data = sl_null;
+			}
+			count = 0;
+		}		
 	
-		sl_bool isNull();
+		sl_bool isNull()
+		{
+			return data == sl_null;
+		}		
 	
-		sl_bool isNotNull();
+		sl_bool isNotNull()
+		{
+			return data != sl_null;
+		}		
 	
 		void setNull();
 	
-		T& operator[](sl_size index);
+		T& operator[](sl_size index)
+		{
+			return data[index];
+		}		
 
-		T* operator+(sl_size offset);
+		T* operator+(sl_size offset)
+		{
+			return data + offset;
+		}		
 
 	public:
 		T* data;
@@ -112,20 +177,52 @@ namespace slib
 	class SLIB_EXPORT ScopedBuffer
 	{
 	public:
-		ScopedBuffer(sl_size _count);
+		ScopedBuffer(sl_size _count)
+		{
+			if (_count < countStack) {
+				data = stack;
+			} else {
+				data = NewHelper<T>::create(_count);
+			}
+			count = _count;
+		}		
 
-		~ScopedBuffer();
+		~ScopedBuffer()
+		{
+			release();
+		}		
 
 	public:
-		void release();
+		void release()
+		{
+			if (data) {
+				if (data != stack) {
+					NewHelper<T>::free(data, count);
+				}
+				data = sl_null;
+			}
+			count = 0;
+		}		
 
-		sl_bool isNull();
+		sl_bool isNull()
+		{
+			return data == sl_null;
+		}		
 
-		sl_bool isNotNull();
+		sl_bool isNotNull()
+		{
+			return data != sl_null;
+		}		
 
-		T& operator[](sl_size index);
+		T& operator[](sl_size index)
+		{
+			return data[index];
+		}		
 
-		T* operator+(sl_size offset);
+		T* operator+(sl_size offset)
+		{
+			return data + offset;
+		}		
 
 	public:
 		T* data;
@@ -161,7 +258,5 @@ namespace slib
 	};
 
 }
-
-#include "detail/scoped.inc"
 
 #endif

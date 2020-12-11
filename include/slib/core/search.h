@@ -32,12 +32,44 @@ namespace slib
 	{
 	public:
 		template < class T1, class T2, class COMPARE=Compare<T1, T2> >
-		static sl_bool search(const T1* list, sl_size size, const T2& what, sl_size* pIndexGreaterEqual = sl_null, const COMPARE& compare = COMPARE()) noexcept;
+		static sl_bool search(const T1* list, sl_size size, const T2& what, sl_size* pIndexGreaterEqual = sl_null, const COMPARE& compare = COMPARE()) noexcept
+		{
+			sl_size mid;
+			if (size > 0) {
+				sl_size start = 0;
+				sl_size end = size - 1;
+				do {
+					mid = (start + end) >> 1;
+					int c = compare(list[mid], what);
+					if (c == 0) {
+						if (pIndexGreaterEqual) {
+							*pIndexGreaterEqual = mid;
+						}
+						return sl_true;
+					} else if (c < 0) {
+						if (end == mid) {
+							mid++;
+							break;
+						}
+						start = mid + 1;
+					} else {
+						if (start == mid) {
+							break;
+						}
+						end = mid - 1;
+					}
+				} while(1);
+			} else {
+				mid = 0;
+			}
+			if (pIndexGreaterEqual) {
+				*pIndexGreaterEqual = mid;
+			}
+			return sl_false;
+		}		
 
 	};
 
 }
-
-#include "detail/search.inc"
 
 #endif
