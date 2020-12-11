@@ -237,7 +237,7 @@ namespace slib
 		static CList<T>* create(sl_size count, sl_size capacity, const T& initialValue) noexcept
 		{
 			if (count > 0 || capacity > 0) {
-				CList<T>* ret = new CList<T>(count, capacity, intialValue);
+				CList<T>* ret = new CList<T>(count, capacity, initialValue);
 				if (ret) {
 					if (ret->m_capacity > 0) {
 						return ret;
@@ -3611,7 +3611,7 @@ namespace slib
 		ListParam(const CList<T>& list) noexcept
 		{
 			_count = (sl_reg)(ListType::CList);
-			_value = &list;
+			_value = (void*)(&list);
 		}
 
 		ListParam(const T* data, sl_size count) noexcept
@@ -3626,7 +3626,7 @@ namespace slib
 		}
 		
 		template <sl_size N>
-		ListParam(T(&)[N]) noexcept
+		ListParam(T(&data)[N]) noexcept
 		{
 			_count = N & SLIB_SIZE_MASK_NO_SIGN_BITS;
 			_value = data;
@@ -3717,7 +3717,7 @@ namespace slib
 		{
 			_free();
 			_count = (sl_reg)(ListType::CList);
-			_value = &list;
+			_value = (void*)(&list);
 			return *this;
 		}
 

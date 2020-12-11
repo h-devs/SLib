@@ -178,7 +178,7 @@ namespace slib
 		{
 			CPromise<T>* object = ref.ptr;
 			if (object) {
-				object->getState();
+				return object->getState();
 			} else {
 				return PromiseState::Resolved;
 			}

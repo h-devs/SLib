@@ -36,7 +36,7 @@ namespace slib
 	public:
 		static TYPE interpolate(const TYPE& a, const TYPE& b, float factor)
 		{
-			return SLIB_LERP(a, b, factor);
+			return (TYPE)(SLIB_LERP(a, b, factor));
 		}
 
 	};

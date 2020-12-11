@@ -335,7 +335,7 @@ namespace slib
 		}		
 
 		template <class OTHER>
-		Ref<T>& operator=(const WeakRef<OTHER>& other) noexcept
+		Ref<T>& operator=(const WeakRef<OTHER>& _other) noexcept
 		{
 			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 			Ref<OTHER> other(_other.lock());
@@ -347,7 +347,7 @@ namespace slib
 				_replaceObject(o);
 			}
 			return *this;
-		}		
+		}
 
 		template <class OTHER>
 		Ref<T>& operator=(const AtomicWeakRef<OTHER>& _other) noexcept
@@ -362,7 +362,7 @@ namespace slib
 				_replaceObject(o);
 			}
 			return *this;
-		}		
+		}
 	
 		template <class T1, class T2, class... TYPES>
 		Ref<T>& operator=(const Ref<T1, T2, TYPES...>& other) noexcept;
