@@ -91,11 +91,11 @@ namespace slib
 	class SLIB_EXPORT SpinLockPool
 	{
 	public:
-		static SpinLock* get(const void* _ptr) noexcept
+		static SpinLock* get(const void* ptr) noexcept
 		{
-			sl_size index = ((sl_size)(_ptr)) % SLIB_SPINLOCK_POOL_SIZE;
+			sl_size index = ((sl_size)(ptr)) % SLIB_SPINLOCK_POOL_SIZE;
 			return reinterpret_cast<SpinLock*>(m_locks + index);
-		}		
+		}
 
 	private:
 		static sl_int32 m_locks[SLIB_SPINLOCK_POOL_SIZE];

@@ -431,9 +431,12 @@ namespace slib
 		T* operator->() const noexcept
 		{
 			return ptr;
-		}		
+		}
 
-		operator T*() const noexcept;
+		operator T*() const noexcept
+		{
+			return ptr;
+		}
 
 		explicit operator sl_bool() const noexcept
 		{

@@ -65,8 +65,6 @@ namespace slib
 			return ptr != sl_null;
 		}		
 
-		void setNull();
-
 		T& operator*()
 		{
 			return *(ptr);
@@ -138,7 +136,7 @@ namespace slib
 				data = sl_null;
 			}
 			count = 0;
-		}		
+		}
 	
 		sl_bool isNull()
 		{
@@ -148,9 +146,7 @@ namespace slib
 		sl_bool isNotNull()
 		{
 			return data != sl_null;
-		}		
-	
-		void setNull();
+		}
 	
 		T& operator[](sl_size index)
 		{
@@ -173,7 +169,7 @@ namespace slib
 	TYPE* NAME = _scoped_array__##NAME.data;
 
 	
-	template <class T, sl_size countStack = 0>
+	template <class T, sl_size countStack>
 	class SLIB_EXPORT ScopedBuffer
 	{
 	public:
