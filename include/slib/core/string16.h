@@ -81,20 +81,25 @@ namespace slib
 		StringContainer16* m_container;
 		
 	private:
-		SLIB_INLINE constexpr String16(StringContainer16* container) noexcept : m_container(container) {}
+		constexpr String16(StringContainer16* container) noexcept : m_container(container) {}
 
 	public:
 		
 		/**
 		 * Initializes as a null string.
 		 */
-		SLIB_INLINE constexpr String16() noexcept : m_container(sl_null) {}
-		SLIB_INLINE constexpr String16(sl_null_t) noexcept : m_container(sl_null) {}
+		constexpr String16() noexcept : m_container(sl_null) {}
+		constexpr String16(sl_null_t) noexcept : m_container(sl_null) {}
 		
 		/**
 		 * Constructors
 		 */
-		String16(String16&& src) noexcept;
+		String16(String16&& src) noexcept
+		{
+			m_container = src.m_container;
+			src.m_container = sl_null;
+		}		
+
 		String16(const String16& src) noexcept;
 		String16(const AtomicString16& src) noexcept;
 		String16(const StringView16& src) noexcept;
@@ -166,7 +171,11 @@ namespace slib
 		 * Creates a string pointing the `str` as the content, without copying the data.
 		 * `str` should not be freed while the returned string is being used.
 		 */
-		template <sl_size N> static String16 fromStatic(const sl_char16 (&str)[N]) noexcept;
+		template <sl_size N> static String16 fromStatic(const sl_char16 (&str)[N]) noexcept
+		{
+			return fromStatic(str, N - 1);
+		}		
+
 		static String16 fromStatic(const sl_char16* str, sl_reg len) noexcept;
 		
 		/**
@@ -298,37 +307,69 @@ namespace slib
 		/**
 		 * @return null string.
 		 */
-		static const String16& null() noexcept;
+		static const String16& null() noexcept
+		{
+			return *(reinterpret_cast<String16 const*>(&(priv::string::g_null16)));
+		}		
 		
 		/**
 		 * @return empty string.
 		 */
-		static const String16& getEmpty() noexcept;
+		static const String16& getEmpty() noexcept
+		{
+			return *(reinterpret_cast<String16 const*>(&(priv::string::g_empty16)));
+		}		
 		
 		/**
 		 * @return empty string if this string is null. otherwise returns this string.
 		 */
-		const String16& getNotNull() const noexcept;
+		const String16& getNotNull() const noexcept
+		{
+			if (!m_container) {
+				return *(reinterpret_cast<String16 const*>(&(priv::string::g_empty16)));
+			}
+			return *this;
+		}		
 		
 		/**
 		 * @return `true` if this string is null.
 		 */
-		sl_bool isNull() const noexcept;
+		sl_bool isNull() const noexcept
+		{
+			return !m_container;
+		}		
 		
 		/**
 		 * @return `true` if this string is not null.
 		 */
-		sl_bool isNotNull() const noexcept;
+		sl_bool isNotNull() const noexcept
+		{
+			return m_container != sl_null;
+		}		
 		
 		/**
 		 * @return `true` if this string is empty.
 		 */
-		sl_bool isEmpty() const noexcept;
+		sl_bool isEmpty() const noexcept
+		{
+			if (m_container) {
+				return !(m_container->len);
+			} else {
+				return sl_true;
+			}
+		}		
 		
 		/**
 		 * @return `true` if this string is not empty.
 		 */
-		sl_bool isNotEmpty() const noexcept;
+		sl_bool isNotEmpty() const noexcept
+		{
+			if (m_container) {
+				return (m_container->len != 0);
+			} else {
+				return sl_false;
+			}
+		}		
 		
 		/**
 		 * Sets this string as a null.
@@ -344,17 +385,40 @@ namespace slib
 		/**
 		 * @return string content.
 		 */
-		sl_char16* getData() const noexcept;
+		sl_char16* getData() const noexcept
+		{
+			if (m_container) {
+				return m_container->sz;
+			} else {
+				return (sl_char16*)((void*)(L""));
+			}
+		}		
 		
 		/**
 		 * @return string content and length.
 		 */
-		sl_char16* getData(sl_size& outLength) const noexcept;
+		sl_char16* getData(sl_size& outLength) const noexcept
+		{
+			if (m_container) {
+				outLength = m_container->len;
+				return m_container->sz;
+			} else {
+				outLength = 0;
+				return (sl_char16*)((void*)(u""));
+			}
+		}		
 		
 		/**
 		 * @return string length.
 		 */
-		sl_size getLength() const noexcept;
+		sl_size getLength() const noexcept
+		{
+			if (m_container) {
+				return m_container->len;
+			} else {
+				return 0;
+			}
+		}		
 		
 		/**
 		 * @return the hash code.
@@ -423,8 +487,12 @@ namespace slib
 		String16& operator+=(const String16& other) noexcept;
 		String16& operator+=(const AtomicString16& other) noexcept;
 		String16& operator+=(sl_null_t) noexcept;
+		
 		template <class T>
-		String16& operator+=(T&& other) noexcept;
+		String16& operator+=(T&& other) noexcept
+		{
+			return *this = *this + Forward<T>(other);
+		}
 		
 	public:
 		static String16 merge(const sl_char16* a1, sl_reg len1, const sl_char16* a2, sl_reg len2) noexcept;
@@ -1144,13 +1212,18 @@ namespace slib
 		/**
 		 * Initialize as a null string.
 		 */
-		SLIB_INLINE constexpr Atomic() noexcept : m_container(sl_null) {}
-		SLIB_INLINE constexpr Atomic(sl_null_t) noexcept : m_container(sl_null) {}
+		constexpr Atomic() noexcept : m_container(sl_null) {}
+		constexpr Atomic(sl_null_t) noexcept : m_container(sl_null) {}
 		
 		/**
 		 * Constructors
 		 */
-		Atomic(String16&& src) noexcept;
+		Atomic(String16&& src) noexcept
+		{
+			m_container = src.m_container;
+			src.m_container = sl_null;
+		}		
+
 		Atomic(const String16& src) noexcept;
 		Atomic(const AtomicString16& src) noexcept;
 		Atomic(const StringView16& src) noexcept;
@@ -1189,22 +1262,34 @@ namespace slib
 		/**
 		 * @return null string.
 		 */
-		static const AtomicString16& null() noexcept;
+		static const AtomicString16& null() noexcept
+		{
+			return *(reinterpret_cast<AtomicString16 const*>(&(priv::string::g_null16)));
+		}		
 		
 		/**
 		 * @return empty string.
 		 */
-		static const AtomicString16& getEmpty() noexcept;
+		static const AtomicString16& getEmpty() noexcept
+		{
+			return *(reinterpret_cast<AtomicString16 const*>(&(priv::string::g_empty16)));
+		}		
 		
 		/**
 		 * @return `true` if this string is null.
 		 */
-		sl_bool isNull() const noexcept;
+		sl_bool isNull() const noexcept
+		{
+			return m_container == sl_null;
+		}		
 		
 		/**
 		 * @return `true` if this string is not null.
 		 */
-		sl_bool isNotNull() const noexcept;
+		sl_bool isNotNull() const noexcept
+		{
+			return m_container != sl_null;
+		}		
 		
 		/**
 		 * @return `true` if this string is empty.
@@ -1268,8 +1353,12 @@ namespace slib
 		AtomicString16& operator+=(const String16& other) noexcept;
 		AtomicString16& operator+=(const AtomicString16& other) noexcept;
 		AtomicString16& operator+=(sl_null_t) noexcept;
+
 		template <class T>
-		AtomicString16& operator+=(T&& other) noexcept;
+		AtomicString16& operator+=(T&& other) noexcept
+		{
+			return *this = String16(*this) + Forward<T>(other);
+		}
 		
 	public:
 		PRIV_SLIB_DECLARE_STRING_CLASS_OP(String16, sl_bool, equals)

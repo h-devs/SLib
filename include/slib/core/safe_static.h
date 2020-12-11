@@ -96,7 +96,76 @@
 	PRIV_SLIB_ZERO_LOCAL_STATIC_DESTRUCTOR(NAME)
 
 
-#include "detail/safe_static.inc"
+namespace slib
+{
+	
+	namespace priv
+	{
+		namespace safe_static
+		{
+			
+			template <class T>
+			class FreeGlobal
+			{
+			public:
+				T* object;
+				sl_bool* pFreedStatus;
+
+			public:
+				FreeGlobal(T* _object, sl_bool* _pFreedStatus): object(_object), pFreedStatus(_pFreedStatus)
+				{
+				}
+
+				~FreeGlobal()
+				{
+					*pFreedStatus = sl_true;
+					object->~T();
+				}
+			};
+
+			class IFreeable
+			{
+			public:
+				IFreeable();
+				virtual ~IFreeable();
+			};
+
+			template <class T>
+			class FreeLocal : public IFreeable
+			{
+			public:
+				T* object;
+				sl_bool* pFreedStatus;
+
+			public:
+				FreeLocal(T* _object, sl_bool* _pFreedStatus): object(_object), pFreedStatus(_pFreedStatus)
+				{
+				}
+
+				~FreeLocal()
+				{
+					if (pFreedStatus) {
+						*pFreedStatus = sl_true;
+					}
+					object->~T();
+				}
+			};
+
+			void FreeObjectOnExitImpl(IFreeable* obj);
+			
+			template <typename T>
+			SLIB_INLINE void FreeObjectOnExit(T* obj, sl_bool* outFreedStatus)
+			{
+				priv::safe_static::IFreeable* d = new priv::safe_static::FreeLocal<T>(obj, outFreedStatus);
+				if (d) {
+					priv::safe_static::FreeObjectOnExitImpl(d);
+				}
+			}
+
+		}
+	}
+	
+}
 
 #endif
 

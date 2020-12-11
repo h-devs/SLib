@@ -1071,12 +1071,30 @@ namespace slib
 		}
 		
 		template < class COMPARE = Compare<T> >
-		void sort(const COMPARE& compare = COMPARE()) const noexcept;
+		void sort(const COMPARE& compare = COMPARE()) const noexcept
+		{
+			Ref< CArray<T> > obj(ref);
+			if (obj.isNotNull()) {
+				obj->sort(compare);
+			}
+		}
 		
 		template < class COMPARE = Compare<T> >
-		void sortDesc(const COMPARE& compare = COMPARE()) const noexcept;
+		void sortDesc(const COMPARE& compare = COMPARE()) const noexcept
+		{
+			Ref< CArray<T> > obj(ref);
+			if (obj.isNotNull()) {
+				obj->sortDesc(compare);
+			}
+		}
 		
-		void reverse() const noexcept;
+		void reverse() const noexcept
+		{
+			Ref< CArray<T> > obj(ref);
+			if (obj.isNotNull()) {
+				obj->reverse();
+			}
+		}
 
 		// range-based for loop
 		ArrayPosition<T> begin() const noexcept

@@ -270,7 +270,7 @@ namespace slib
 	class SLIB_EXPORT BlockCipher_CTR
 	{
 	public:
-		static sl_size encrypt(const CLASS* crypto, const void* input, sl_size size, void* output, void* counter, sl_uint32 offset)
+		static sl_size encrypt(const CLASS* crypto, const void* _input, sl_size _size, void* _output, void* _counter, sl_uint32 offset)
 		{
 			if (_size == 0) {
 				return 0;

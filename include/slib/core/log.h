@@ -146,8 +146,7 @@ namespace slib
 	}
 #else
 	template <class... ARGS>
-	void LogDebug(const ARGS&... args);
-	SLIB_INLINE void LogDebug(const ARGS&... args)
+	void LogDebug(const ARGS&... args)
 	{
 	}
 #endif

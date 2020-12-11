@@ -40,11 +40,11 @@ namespace slib
 	class SLIB_EXPORT StringView
 	{
 	public:
-		SLIB_INLINE StringView() noexcept: data(sl_null), length(0) {}
+		StringView() noexcept: data(sl_null), length(0) {}
 		
-		SLIB_INLINE StringView(sl_null_t) noexcept: data(sl_null), length(0) {}
+		StringView(sl_null_t) noexcept: data(sl_null), length(0) {}
 		
-		SLIB_INLINE StringView(const StringView& other) noexcept: data(other.data), length(other.length) {}
+		StringView(const StringView& other) noexcept: data(other.data), length(other.length) {}
 		
 	public:
 		StringView(const String& value) noexcept;
@@ -78,27 +78,67 @@ namespace slib
 		StringView& operator=(std::string const&&) = delete;
 #endif
 		
-		sl_char8 operator[](sl_size index) const noexcept;
+		sl_char8 operator[](sl_size index) const noexcept
+		{
+			return data[index];
+		}		
 		
-		sl_char8& operator[](sl_size index) noexcept;
+		sl_char8& operator[](sl_size index) noexcept
+		{
+			return data[index];
+		}		
 		
 	public:
 		template <sl_size N>
-		static StringView literal(const sl_char8 (&s)[N]) noexcept;
+		static StringView literal(const sl_char8 (&s)[N]) noexcept
+		{
+			return StringView(s, N - 1);
+		}		
 		
-		sl_bool isNull() const noexcept;
+		sl_bool isNull() const noexcept
+		{
+			return !data;
+		}		
 
-		sl_bool isNotNull() const noexcept;
+		sl_bool isNotNull() const noexcept
+		{
+			return data != sl_null;
+		}		
 
-		sl_bool isEmpty() const noexcept;
+		sl_bool isEmpty() const noexcept
+		{
+			if (length) {
+				if (length > 0) {
+					return sl_false;
+				}
+				return !(*data);
+			}
+			return sl_true;
+		}		
 
-		sl_bool isNotEmpty() const noexcept;
+		sl_bool isNotEmpty() const noexcept
+		{
+			return !(isEmpty());
+		}		
 
-		sl_char8* getUnsafeData() const noexcept;
+		sl_char8* getUnsafeData() const noexcept
+		{
+			return data;
+		}		
 		
-		sl_reg getUnsafeLength() const noexcept;
+		sl_reg getUnsafeLength() const noexcept
+		{
+			return length;
+		}		
 		
-		sl_char8* getData() const noexcept;
+		sl_char8* getData() const noexcept
+		{
+			if (data) {
+				return data;
+			} else {
+				return (sl_char8*)((void*)(""));
+			}
+		}		
 		
 		sl_size getLength() const noexcept;
 		
@@ -512,11 +552,11 @@ namespace slib
 	class SLIB_EXPORT StringView16
 	{
 	public:
-		SLIB_INLINE StringView16() noexcept: data(sl_null), length(0) {}
+		StringView16() noexcept: data(sl_null), length(0) {}
 		
-		SLIB_INLINE StringView16(sl_null_t) noexcept: data(sl_null), length(0) {}
+		StringView16(sl_null_t) noexcept: data(sl_null), length(0) {}
 		
-		SLIB_INLINE StringView16(const StringView16& other) noexcept: data(other.data), length(other.length) {}
+		StringView16(const StringView16& other) noexcept: data(other.data), length(other.length) {}
 		
 	public:
 		StringView16(const String16& value) noexcept;
@@ -550,27 +590,67 @@ namespace slib
 		StringView16& operator=(std::u16string const&&) = delete;
 #endif
 		
-		sl_char16 operator[](sl_size index) const noexcept;
+		sl_char16 operator[](sl_size index) const noexcept
+		{
+			return data[index];
+		}		
 		
-		sl_char16& operator[](sl_size index) noexcept;
+		sl_char16& operator[](sl_size index) noexcept
+		{
+			return data[index];
+		}		
 		
 	public:
 		template <sl_size N>
-		static StringView16 literal(const sl_char16 (&s)[N]) noexcept;
+		static StringView16 literal(const sl_char16 (&s)[N]) noexcept
+		{
+			return StringView16(s, N - 1);
+		}		
 		
-		sl_bool isNull() const noexcept;
+		sl_bool isNull() const noexcept
+		{
+			return !data;
+		}		
 
-		sl_bool isNotNull() const noexcept;
+		sl_bool isNotNull() const noexcept
+		{
+			return data != sl_null;
+		}		
 
-		sl_bool isEmpty() const noexcept;
+		sl_bool isEmpty() const noexcept
+		{
+			if (length) {
+				if (length > 0) {
+					return sl_false;
+				}
+				return !(*data);
+			}
+			return sl_true;
+		}		
 
-		sl_bool isNotEmpty() const noexcept;
+		sl_bool isNotEmpty() const noexcept
+		{
+			return !(isEmpty());
+		}		
 
-		sl_char16* getUnsafeData() const noexcept;
+		sl_char16* getUnsafeData() const noexcept
+		{
+			return data;
+		}		
 		
-		sl_reg getUnsafeLength() const noexcept;
+		sl_reg getUnsafeLength() const noexcept
+		{
+			return length;
+		}		
 		
-		sl_char16* getData() const noexcept;
+		sl_char16* getData() const noexcept
+		{
+			if (data) {
+				return data;
+			} else {
+				return (sl_char16*)((void*)(u""));
+			}
+		}		
 		
 		sl_size getLength() const noexcept;
 		

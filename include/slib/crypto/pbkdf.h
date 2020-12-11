@@ -55,7 +55,7 @@ namespace slib
 			const void* password, sl_uint32 lenPassword,
 			const void* salt, sl_uint32 lenSalt,
 			sl_uint32 nIteration,
-			void* outDK, sl_uint32 lenDK)
+			void* _outDK, sl_uint32 lenDK)
 		{
 			char t[HASH::HashSize];
 			char* outDK = (char*)_outDK;
