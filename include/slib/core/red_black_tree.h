@@ -699,7 +699,7 @@ namespace slib
 		}		
 		
 		template <class NODE>
-		static NODE* duplicateNode(NODE* other) noexcept
+		static NODE* duplicateNode(NODE* nodeSource) noexcept
 		{
 			if (!nodeSource) {
 				return sl_null;
