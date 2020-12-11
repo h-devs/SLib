@@ -46,64 +46,240 @@ namespace slib
 		BoxT() noexcept = default;
 
 		template <class O>
-		BoxT(const BoxT<O>& other) noexcept;
+		BoxT(const BoxT<O>& other) noexcept :
+			x1((T)(other.x1)), x2((T)(other.x2)),
+			y1((T)(other.y1)), y2((T)(other.y2)),
+			z1((T)(other.z1)), z2((T)(other.z2))
+		{}
 
-		BoxT(T x1, T y1, T z1,
-			 T x2, T y2, T z2) noexcept;
+		BoxT(T _x1, T _y1, T _z1,
+			 T _x2, T _y2, T _z2) noexcept
+			:
+			x1(_x1), y1(_y1), z1(_z1),
+			x2(_x2), y2(_y2), z2(_z2)
+		{}
 
 	public:
-		static const BoxT<T>& zero() noexcept;
+		static const BoxT<T>& zero() noexcept
+		{
+			static SLIB_ALIGN(8) T _zero[6] = { 0, 0, 0, 0, 0, 0 };
+			return *((BoxT*)((void*)_zero));
+		}
 
-		Vector3T<T> getStart() const noexcept;
+		Vector3T<T> getStart() const noexcept
+		{
+			return { x1, y1, z1 };
+		}
 
-		void setStart(T x, T y, T z) noexcept;
+		void setStart(T x, T y, T z) noexcept
+		{
+			x1 = x;
+			y1 = y;
+			z1 = z;
+		}
 
-		void setStart(const Vector3T<T>& v) noexcept;
+		void setStart(const Vector3T<T>& v) noexcept
+		{
+			x1 = v.x;
+			y1 = v.y;
+			z1 = v.z;
+		}
 
-		Vector3T<T> getEnd() const noexcept;
+		Vector3T<T> getEnd() const noexcept
+		{
+			return { x2, y2, z2 };
+		}
 
-		void setEnd(T x, T y, T z) noexcept;
+		void setEnd(T x, T y, T z) noexcept
+		{
+			x2 = x;
+			y2 = y;
+			z2 = z;
+		}
 
-		void setEnd(const Vector3T<T>& v) noexcept;
+		void setEnd(const Vector3T<T>& v) noexcept
+		{
+			x2 = v.x;
+			y2 = v.y;
+			z2 = v.z;
+		}
 
-		Vector3T<T> getSize() const noexcept;
+		Vector3T<T> getSize() const noexcept
+		{
+			return { x2 - x1, y2 - y1, z2 - z1 };
+		}
 
-		Vector3T<T> getCenter() const noexcept;
+		Vector3T<T> getCenter() const noexcept
+		{
+			return { (x2 + x1) / 2, (y2 + y1) / 2, (z2 + z1) / 2 };
+		}
 
-		void setZero() noexcept;
+		void setZero() noexcept
+		{
+			x1 = 0; y1 = 0; z1 = 0;
+			x2 = 0; y2 = 0; z2 = 0;
+		}
 
-		sl_bool containsPoint(T x, T y, T z) const noexcept;
+		sl_bool containsPoint(T x, T y, T z) const noexcept
+		{
+			return
+				x >= x1 && x <= x2 &&
+				y >= y1 && y <= y2 &&
+				z >= z1 && z <= z2;
+		}
 
-		sl_bool containsPoint(const Vector3T<T>& pt) const noexcept;
+		sl_bool containsPoint(const Vector3T<T>& pt) const noexcept
+		{
+			return
+				pt.x >= x1 && pt.x <= x2 &&
+				pt.y >= y1 && pt.y <= y2 &&
+				pt.z >= z1 && pt.z <= z2;
+		}
 
-		sl_bool containsBox(const BoxT<T>& other) const noexcept;
+		sl_bool containsBox(const BoxT<T>& other) const noexcept
+		{
+			return
+				x1 <= other.x2 && x2 >= other.x1 &&
+				y1 <= other.y2 && y2 >= other.y1 &&
+				z1 <= other.z2 && z2 >= other.z1;
+		}
 
-		void setFromPoint(T x, T y, T z) noexcept;
+		void setFromPoint(T x, T y, T z) noexcept
+		{
+			x1 = x2 = x;
+			y1 = y2 = y;
+			z1 = z2 = z;
+		}
 
-		void setFromPoint(const Vector3T<T>& pt) noexcept;
+		void setFromPoint(const Vector3T<T>& pt) noexcept
+		{
+			setFromPoint(pt.x, pt.y, pt.z);
+		}
 
-		void mergePoint(T x, T y, T z) noexcept;
+		void mergePoint(T x, T y, T z) noexcept
+		{
+			if (x1 > x) {
+				x1 = x;
+			}
+			if (x2 < x) {
+				x2 = x;
+			}
+			if (y1 > y) {
+				y1 = y;
+			}
+			if (y2 < y) {
+				y2 = y;
+			}
+			if (z1 > z) {
+				z1 = z;
+			}
+			if (z2 < z) {
+				z2 = z;
+			}
+		}
 
-		void mergePoint(const Vector3T<T>& pt) noexcept;
+		void mergePoint(const Vector3T<T>& pt) noexcept
+		{
+			mergePoint(pt.x, pt.y, pt.z);
+		}
 
-		void mergePoints(const Vector3T<T>* points, sl_size count) noexcept;
+		void mergePoints(const Vector3T<T>* points, sl_size count) noexcept
+		{
+			for (sl_size i = 0; i < count; i++) {
+				const Vector3T<T>& v = points[i];
+				if (x1 > v.x) {
+					x1 = v.x;
+				}
+				if (x2 < v.x) {
+					x2 = v.x;
+				}
+				if (y1 > v.y) {
+					y1 = v.y;
+				}
+				if (y2 < v.y) {
+					y2 = v.y;
+				}
+				if (z1 > v.z) {
+					z1 = v.z;
+				}
+				if (z2 < v.z) {
+					z2 = v.z;
+				}
+			}
+		}
 
-		void mergePoints(const List< Vector3T<T> >& points) noexcept;
+		void mergePoints(const List< Vector3T<T> >& points) noexcept
+		{
+			ListLocker< Vector3T<T> > list(points);
+			mergePoints(list.data, list.count);
+		}
 
-		void setFromPoints(const Vector3T<T>* points, sl_size count) noexcept;
+		void setFromPoints(const Vector3T<T>* points, sl_size count) noexcept
+		{
+			if (count > 0) {
+				setFromPoint(points[0]);
+				if (count > 1) {
+					mergePoints(points + 1, count - 1);
+				}
+			}
+		}
 
-		void setFromPoints(const List< Vector3T<T> >& points) noexcept;
+		void setFromPoints(const List< Vector3T<T> >& points) noexcept
+		{
+			ListLocker< Vector3T<T> > list(points);
+			setFromPoints(list.data, list.count);
+		}
 
-		void setFromPoints(const Vector3T<T>& pt1, const Vector3T<T>& pt2) noexcept;
+		void setFromPoints(const Vector3T<T>& pt1, const Vector3T<T>& pt2) noexcept
+		{
+			setFromPoint(pt1);
+			mergePoint(pt2);
+		}
 
-		void mergeBox(const BoxT<T>& other) noexcept;
+		void mergeBox(const BoxT<T>& other) noexcept
+		{
+			if (x1 > other.x1) {
+				x1 = other.x1;
+			}
+			if (x2 < other.x2) {
+				x2 = other.x2;
+			}
+			if (y1 > other.y1) {
+				y1 = other.y1;
+			}
+			if (y2 < other.y2) {
+				y2 = other.y2;
+			}
+			if (z1 > other.z1) {
+				z1 = other.z1;
+			}
+			if (z2 < other.z2) {
+				z2 = other.z2;
+			}
+		}
 
 		// 8 points
-		void getCornerPoints(Vector3T<T>* _out) const noexcept;
+		void getCornerPoints(Vector3T<T>* _out) const noexcept
+		{
+			_out[0].x = x1; _out[0].y = y1; _out[0].z = z1;
+			_out[1].x = x2; _out[1].y = y1; _out[1].z = z1;
+			_out[2].x = x1; _out[2].y = y2; _out[2].z = z1;
+			_out[3].x = x2; _out[3].y = y2; _out[3].z = z1;
+			_out[4].x = x1; _out[4].y = y1; _out[4].z = z2;
+			_out[5].x = x2; _out[5].y = y1; _out[5].z = z2;
+			_out[6].x = x1; _out[6].y = y2; _out[6].z = z2;
+			_out[7].x = x2; _out[7].y = y2; _out[7].z = z2;
+		}
 
 	public:
 		template <class O>
-		BoxT<T>& operator=(const BoxT<O>& other) noexcept;
+		BoxT<T>& operator=(const BoxT<O>& other) noexcept
+		{
+			x1 = (T)(other.x1); x2 = (T)(other.x2);
+			y1 = (T)(other.y1); y2 = (T)(other.y2);
+			z1 = (T)(other.z1); z2 = (T)(other.z2);
+			return *this;
+		} 
 
 	};
 	
@@ -113,6 +289,5 @@ namespace slib
 
 }
 
-#include "detail/box.inc"
 
 #endif
