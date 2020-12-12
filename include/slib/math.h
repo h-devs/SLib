@@ -28,10 +28,12 @@
 #include "math/bigint.h"
 #include "math/int128.h"
 
+#include "math/vector.h"
 #include "math/vector2.h"
 #include "math/vector3.h"
 #include "math/vector4.h"
 
+#include "math/matrix.h"
 #include "math/matrix2.h"
 #include "math/matrix3.h"
 #include "math/matrix4.h"
