@@ -757,13 +757,13 @@ namespace slib
 		void get(AtomicWeakRef<T>& _out) const noexcept
 		{
 			_out = CastRef<T>(getObject());
-		}		
+		}
 
 		template <class T>
 		void set(const AtomicWeakRef<T>& _in) noexcept
 		{
 			_assignAtomicWeakRef(&_in);
-		}		
+		}
 		
 		void get(Memory& _out) const noexcept;
 		void set(const Memory& _in) noexcept;
@@ -913,7 +913,7 @@ namespace slib
 				_type = VariantType::Null;
 				_value = 1;
 			}
-		}		
+		}
 	
 		template <class T>
 		Atomic(const Nullable<T>& value) noexcept
@@ -924,31 +924,31 @@ namespace slib
 				_type = VariantType::Null;
 				_value = 0;
 			}
-		}		
+		}
 
 		template <class T>
 		Atomic(const Ref<T>& ref) noexcept
 		{
 			_constructorRef(&ref);
-		}		
+		}
 
 		template <class T>
 		Atomic(const AtomicRef<T>& ref) noexcept
 		{
 			_constructorAtomicRef(&ref);
-		}		
+		}
 
 		template <class T>
 		Atomic(const WeakRef<T>& weak) noexcept
 		{
 			_constructorWeakRef(&weak);
-		}		
+		}
 
 		template <class T>
 		Atomic(const AtomicWeakRef<T>& weak) noexcept
 		{
 			_constructorAtomicWeakRef(&weak);
-		}		
+		}
 	
 		Atomic(const Memory& mem) noexcept;
 
@@ -982,12 +982,12 @@ namespace slib
 		static const AtomicVariant& undefined() noexcept
 		{
 			return *(reinterpret_cast<AtomicVariant const*>(&(priv::variant::g_undefined)));
-		}		
+		}
 		
 		static const AtomicVariant& null() noexcept
 		{
 			return *(reinterpret_cast<AtomicVariant const*>(&(priv::variant::g_null)));
-		}		
+		}
 
 	public:
 		AtomicVariant& operator=(const AtomicVariant& other) noexcept;
@@ -1003,7 +1003,7 @@ namespace slib
 		{
 			set(value);
 			return *this;
-		}		
+		}
 		
 		Variant operator[](sl_size list_index) const noexcept;
 
@@ -1013,31 +1013,31 @@ namespace slib
 		VariantType getType() const noexcept
 		{
 			return _type;
-		}		
+		}
 
 		void setUndefined() noexcept;
 		
 		sl_bool isUndefined() const noexcept
 		{
 			return _type == VariantType::Null && _value == 0;
-		}		
+		}
 		
 		sl_bool isNotUndefined() const noexcept
 		{
 			return _type != VariantType::Null || _value != 0;
-		}		
+		}
 
 		void setNull() noexcept;
 
 		sl_bool isNull() const noexcept
 		{
 			return _type == VariantType::Null;
-		}		
+		}
 
 		sl_bool isNotNull() const noexcept
 		{
 			return _type != VariantType::Null;
-		}		
+		}
 
 	public:
 		sl_bool isInt32() const noexcept;
@@ -1170,19 +1170,19 @@ namespace slib
 		{
 			Variant var(*this);
 			return var.getObject(def);
-		}		
+		}
 
 		template <class T>
 		void setObject(const Ref<T>& object) noexcept
 		{
 			_assignRef(&object);
-		}		
+		}
 	
 		template <class T>
 		void setWeak(const WeakRef<T>& weak) noexcept
 		{
 			_assignWeakRef(&weak);
-		}		
+		}
 	
 		sl_bool isObjectNotNull() const noexcept;
 
@@ -1383,7 +1383,7 @@ namespace slib
 			} else {
 				set(_in.value);
 			}
-		}		
+		}
 		
 		template <class T>
 		void get(Ref<T>& _out) const noexcept
@@ -1395,7 +1395,7 @@ namespace slib
 		void set(const Ref<T>& _in) noexcept
 		{
 			_assignRef(&_in);
-		}		
+		}
 		
 		template <class T>
 		void get(AtomicRef<T>& _out) const noexcept
@@ -1407,7 +1407,7 @@ namespace slib
 		void set(const AtomicRef<T>& _in) noexcept
 		{
 			_assignAtomicRef(&_in);
-		}		
+		}
 		
 		template <class T>
 		void get(WeakRef<T>& _out) const noexcept
@@ -1419,7 +1419,7 @@ namespace slib
 		void set(const WeakRef<T>& _in) noexcept
 		{
 			_assignWeakRef(&_in);
-		}		
+		}
 		
 		template <class T>
 		void get(AtomicWeakRef<T>& _out) const noexcept
@@ -1431,7 +1431,7 @@ namespace slib
 		void set(const AtomicWeakRef<T>& _in) noexcept
 		{
 			_assignAtomicWeakRef(&_in);
-		}		
+		}
 		
 		void get(Memory& _out) const noexcept;
 		void set(const Memory& ref) noexcept;
@@ -1608,7 +1608,7 @@ namespace slib
 	{
 		VariantEx params[] = {Forward<ARGS>(args)...};
 		return argBy(params, sizeof...(args));
-	}	
+	}
 
 	template <>
 	SLIB_INLINE sl_object_type CMap<String, Variant>::ObjectType() noexcept
@@ -1623,13 +1623,13 @@ namespace slib
 			return sl_true;
 		}
 		return Object::isDerivedFrom(type);
-	}	
+	}
 
 	template <>
 	SLIB_INLINE sl_object_type CMap<String, Variant>::getObjectType() const noexcept
 	{
 		return priv::variant::g_variantMap_ClassID;
-	}	
+	}
 
 	template <>
 	SLIB_INLINE sl_bool CMap<String, Variant>::isInstanceOf(sl_object_type type) const noexcept
@@ -1638,7 +1638,7 @@ namespace slib
 			return sl_true;
 		}
 		return Object::isDerivedFrom(type);
-	}	
+	}
 
 	template <>
 	SLIB_INLINE sl_object_type CHashMap<String, Variant>::ObjectType() noexcept
@@ -1659,7 +1659,7 @@ namespace slib
 	SLIB_INLINE sl_object_type CHashMap<String, Variant>::getObjectType() const noexcept
 	{
 		return priv::variant::g_variantHashMap_ClassID;
-	}	
+	}
 
 	template <>
 	SLIB_INLINE sl_bool CHashMap<String, Variant>::isInstanceOf(sl_object_type type) const noexcept
@@ -1786,7 +1786,7 @@ namespace slib
 	SLIB_INLINE sl_bool CPromise<Variant>::isInstanceOf(sl_object_type type) const noexcept
 	{
 		return type == priv::variant::g_variantPromise_ClassID || type == priv::promise::g_classID;
-	}	
+	}
 
 
 }

@@ -117,7 +117,7 @@ namespace slib
 		ret.x = (int)(GetSystemMetrics(SM_CXSCREEN));
 		ret.y = (int)(GetSystemMetrics(SM_CYSCREEN));
 		return ret;
-	}	
+	}
 
 	void Device::openUrl(const StringParam& url)
 	{

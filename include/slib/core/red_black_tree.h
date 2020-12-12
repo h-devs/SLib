@@ -72,13 +72,13 @@ namespace slib
 		static NODE* getPreviousNode(NODE* node) noexcept
 		{
 			return reinterpret_cast<NODE*>(priv::rb_tree::Helper::getPrevious(reinterpret_cast<RedBlackTreeNode*>(node)));
-		}		
+		}
 		
 		template <class NODE>
 		static NODE* getNextNode(NODE* node) noexcept
 		{
 			return reinterpret_cast<NODE*>(priv::rb_tree::Helper::getNext(reinterpret_cast<RedBlackTreeNode*>(node)));
-		}		
+		}
 		
 		template <class NODE>
 		static NODE* getFirstNode(NODE* root) noexcept
@@ -88,7 +88,7 @@ namespace slib
 			} else {
 				return sl_null;
 			}
-		}		
+		}
 		
 		template <class NODE>
 		static NODE* getLastNode(NODE* root) noexcept
@@ -98,7 +98,7 @@ namespace slib
 			} else {
 				return sl_null;
 			}
-		}		
+		}
 		
 		template <class NODE, class KEY, class KEY_COMPARE>
 		static NODE* tryFind(NODE* look, const KEY& key, const KEY_COMPARE& key_compare, sl_compare_result& compare_result) noexcept
@@ -126,7 +126,7 @@ namespace slib
 			}
 			compare_result = comp;
 			return look;
-		}		
+		}
 		
 		template <class NODE, class KEY, class KEY_COMPARE>
 		static sl_bool getEqualRange(NODE* look, const KEY& key, const KEY_COMPARE& key_compare, NODE** pStart = sl_null, NODE** pEnd = sl_null) noexcept
@@ -192,7 +192,7 @@ namespace slib
 				*pEnd = last_equal;
 			}
 			return sl_true;
-		}		
+		}
 		
 		template <class NODE, class KEY, class KEY_COMPARE>
 		static void getNearest(NODE* look, const KEY& key, const KEY_COMPARE& key_compare, NODE** pLessEqual = sl_null, NODE** pGreaterEqual = sl_null) noexcept
@@ -229,7 +229,7 @@ namespace slib
 					*pGreaterEqual = reinterpret_cast<NODE*>(priv::rb_tree::Helper::getNext(reinterpret_cast<RedBlackTreeNode*>(node)));
 				}
 			}
-		}		
+		}
 		
 		template <class NODE, class KEY, class KEY_COMPARE>
 		static NODE* getLowerBound(NODE* look, const KEY& key, const KEY_COMPARE& key_compare) noexcept
@@ -257,7 +257,7 @@ namespace slib
 				}
 			}
 			return last_greater_equal;
-		}		
+		}
 		
 		template <class NODE, class KEY, class KEY_COMPARE>
 		static NODE* getUpperBound(NODE* look, const KEY& key, const KEY_COMPARE& key_compare) noexcept
@@ -285,7 +285,7 @@ namespace slib
 				}
 			}
 			return last_greater;
-		}		
+		}
 		
 		template <class NODE, class KEY, class KEY_COMPARE>
 		static NODE* find(NODE* look, const KEY& key, const KEY_COMPARE& key_compare) noexcept
@@ -299,7 +299,7 @@ namespace slib
 				return node;
 			}
 			return sl_null;
-		}		
+		}
 
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE, class VALUE_EQUALS>
 		static NODE* findKeyAndValue(NODE* look, const KEY& key, const KEY_COMPARE& key_compare, const VALUE& value, const VALUE_EQUALS& value_equals) noexcept
@@ -317,7 +317,7 @@ namespace slib
 				}
 			}
 			return sl_null;
-		}		
+		}
 
 		template <class VT, class NODE, class KEY, class KEY_COMPARE>
 		static void getValues(List<VT>& list, NODE* look, const KEY& key, const KEY_COMPARE& key_compare) noexcept
@@ -332,7 +332,7 @@ namespace slib
 					node = reinterpret_cast<NODE*>(priv::rb_tree::Helper::getNext(reinterpret_cast<RedBlackTreeNode*>(node)));
 				}
 			}
-		}		
+		}
 
 		template <class VT, class NODE, class KEY, class KEY_COMPARE, class VALUE, class VALUE_EQUALS>
 		static void getValuesByKeyAndValue(List<VT>& list, NODE* look, const KEY& key, const KEY_COMPARE& key_compare, const VALUE& value, const VALUE_EQUALS& value_equals) noexcept
@@ -349,7 +349,7 @@ namespace slib
 					node = reinterpret_cast<NODE*>(priv::rb_tree::Helper::getNext(reinterpret_cast<RedBlackTreeNode*>(node)));
 				}
 			}
-		}		
+		}
 		
 		template <class NODE>
 		static void insertNode(NODE** pRoot, NODE* node, NODE* where, sl_compare_result compare_result) noexcept
@@ -361,7 +361,7 @@ namespace slib
 			}
 			node->parent = where;
 			priv::rb_tree::Helper::rebalanceAfterInsert(reinterpret_cast<RedBlackTreeNode*>(node), reinterpret_cast<RedBlackTreeNode**>(pRoot));
-		}		
+		}
 		
 		template <class NODE, class KEY_COMPARE>
 		static void addNode(NODE** pRoot, NODE* node, const KEY_COMPARE& key_compare) noexcept
@@ -393,7 +393,7 @@ namespace slib
 				*pRoot = node;
 			}
 			
-		}		
+		}
 		
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE>
 		static NODE* put(NODE** pRoot, sl_size& count, KEY&& key, const KEY_COMPARE& key_compare, VALUE&& value, sl_bool* isInsertion) noexcept
@@ -433,7 +433,7 @@ namespace slib
 				*isInsertion = sl_false;
 			}
 			return sl_null;
-		}		
+		}
 		
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE>
 		static NODE* replace(NODE* root, const KEY& key, const KEY_COMPARE& key_compare, VALUE&& value) noexcept
@@ -449,7 +449,7 @@ namespace slib
 			} else {
 				return sl_null;
 			}
-		}		
+		}
 		
 		template <class NODE, class KEY, class KEY_COMPARE, class... VALUE_ARGS>
 		static NODE* add(NODE** pRoot, sl_size& count, KEY&& key, const KEY_COMPARE& key_compare, VALUE_ARGS&&... value_args) noexcept
@@ -461,7 +461,7 @@ namespace slib
 				return node;
 			}
 			return sl_null;
-		}		
+		}
 
 		template <class NODE, class KEY, class KEY_COMPARE, class... VALUE_ARGS>
 		static MapEmplaceReturn<NODE> emplace(NODE** pRoot, sl_size& count, KEY&& key, const KEY_COMPARE& key_compare, VALUE_ARGS&&... value_args) noexcept
@@ -488,7 +488,7 @@ namespace slib
 				}
 			}
 			return sl_null;
-		}		
+		}
 		
 		template <class NODE>
 		static void removeNode(NODE** pRoot, sl_size& count, NODE* node) noexcept
@@ -496,7 +496,7 @@ namespace slib
 			count--;
 			priv::rb_tree::Helper::removeNode(reinterpret_cast<RedBlackTreeNode*>(node), reinterpret_cast<RedBlackTreeNode**>(pRoot));
 			delete node;
-		}		
+		}
 
 		template <class NODE>
 		static sl_size removeNodes(NODE** pRoot, sl_size& count, NODE* node, sl_size countRemove) noexcept
@@ -516,7 +516,7 @@ namespace slib
 			}
 			removeNode(pRoot, count, node);
 			return countRemove;
-		}		
+		}
 
 		template <class NODE>
 		static sl_size removeRange(NODE** pRoot, sl_size& count, NODE* node, NODE* last) noexcept
@@ -545,7 +545,7 @@ namespace slib
 				}
 			}
 			return n;
-		}		
+		}
 
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE>
 		static sl_bool remove(NODE** pRoot, sl_size& count, const KEY& key, const KEY_COMPARE& key_compare, VALUE* outValue) noexcept
@@ -563,7 +563,7 @@ namespace slib
 				}
 			}
 			return sl_false;
-		}		
+		}
 
 		template <class NODE, class KEY, class KEY_COMPARE>
 		static sl_size removeItems(NODE** pRoot, sl_size& count, const KEY& key, const KEY_COMPARE& key_compare) noexcept
@@ -587,7 +587,7 @@ namespace slib
 			} else {
 				return 0;
 			}
-		}		
+		}
 		
 		template <class VT, class NODE, class KEY, class KEY_COMPARE>
 		static sl_size removeItemsAndReturnValues(List<VT>& list, NODE** pRoot, sl_size& count, const KEY& key, const KEY_COMPARE& key_compare) noexcept
@@ -612,7 +612,7 @@ namespace slib
 			} else {
 				return 0;
 			}
-		}		
+		}
 
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE, class VALUE_EQUALS>
 		static sl_bool removeKeyAndValue(NODE** pRoot, sl_size& count, const KEY& key, const KEY_COMPARE& key_compare, const VALUE& value, const VALUE_EQUALS& value_equals) noexcept
@@ -632,7 +632,7 @@ namespace slib
 				}
 			}
 			return sl_false;
-		}		
+		}
 		
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE, class VALUE_EQUALS>
 		static sl_size removeItemsByKeyAndValue(NODE** pRoot, sl_size& count, const KEY& key, const KEY_COMPARE& key_compare, const VALUE& value, const VALUE_EQUALS& value_equals) noexcept
@@ -663,7 +663,7 @@ namespace slib
 			} else {
 				return 0;
 			}
-		}		
+		}
 		
 		template <class NODE>
 		static void freeNodes(NODE* node) noexcept
@@ -696,7 +696,7 @@ namespace slib
 					}
 				}
 			}
-		}		
+		}
 		
 		template <class NODE>
 		static NODE* duplicateNode(NODE* nodeSource) noexcept
@@ -775,7 +775,7 @@ namespace slib
 			}
 			
 			return nodeTargetRoot;
-		}		
+		}
 		
 	};
 	

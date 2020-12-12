@@ -676,7 +676,7 @@ namespace slib
 	void Atomic< Ptr<T> >::set(const Pointer<TYPES...>& other) noexcept
 	{
 		_replace(other, Ref<Referable>::null());
-	}	
+	}
 }
 
 #endif

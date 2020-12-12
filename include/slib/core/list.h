@@ -1358,7 +1358,7 @@ namespace slib
 		T const* end() const noexcept
 		{
 			return m_data + m_count;
-		}	
+		}
 	};
 	
 	

@@ -111,7 +111,7 @@ namespace slib
 			_out = (float)((sl_int8)((sl_int32)_in - 128)) / 128.0f;
 		}
 		
-		static void convertSamples(sl_size count, const sl_uint8* _in, float* _out);		
+		static void convertSamples(sl_size count, const sl_uint8* _in, float* _out);
 		
 		// S16 => S8
 		static void convertSample(sl_int16 _in, sl_int8& _out)

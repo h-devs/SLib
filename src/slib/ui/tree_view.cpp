@@ -108,7 +108,7 @@ namespace slib
 				
 			};
 
-		}	
+		}
 	}
 
 	using namespace priv::tree_view;

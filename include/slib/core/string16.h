@@ -98,7 +98,7 @@ namespace slib
 		{
 			m_container = src.m_container;
 			src.m_container = sl_null;
-		}		
+		}
 
 		String16(const String16& src) noexcept;
 		String16(const AtomicString16& src) noexcept;
@@ -174,7 +174,7 @@ namespace slib
 		template <sl_size N> static String16 fromStatic(const sl_char16 (&str)[N]) noexcept
 		{
 			return fromStatic(str, N - 1);
-		}		
+		}
 
 		static String16 fromStatic(const sl_char16* str, sl_reg len) noexcept;
 		
@@ -310,7 +310,7 @@ namespace slib
 		static const String16& null() noexcept
 		{
 			return *(reinterpret_cast<String16 const*>(&(priv::string::g_null16)));
-		}		
+		}
 		
 		/**
 		 * @return empty string.
@@ -318,7 +318,7 @@ namespace slib
 		static const String16& getEmpty() noexcept
 		{
 			return *(reinterpret_cast<String16 const*>(&(priv::string::g_empty16)));
-		}		
+		}
 		
 		/**
 		 * @return empty string if this string is null. otherwise returns this string.
@@ -329,7 +329,7 @@ namespace slib
 				return *(reinterpret_cast<String16 const*>(&(priv::string::g_empty16)));
 			}
 			return *this;
-		}		
+		}
 		
 		/**
 		 * @return `true` if this string is null.
@@ -337,7 +337,7 @@ namespace slib
 		sl_bool isNull() const noexcept
 		{
 			return !m_container;
-		}		
+		}
 		
 		/**
 		 * @return `true` if this string is not null.
@@ -345,7 +345,7 @@ namespace slib
 		sl_bool isNotNull() const noexcept
 		{
 			return m_container != sl_null;
-		}		
+		}
 		
 		/**
 		 * @return `true` if this string is empty.
@@ -357,7 +357,7 @@ namespace slib
 			} else {
 				return sl_true;
 			}
-		}		
+		}
 		
 		/**
 		 * @return `true` if this string is not empty.
@@ -369,7 +369,7 @@ namespace slib
 			} else {
 				return sl_false;
 			}
-		}		
+		}
 		
 		/**
 		 * Sets this string as a null.
@@ -392,7 +392,7 @@ namespace slib
 			} else {
 				return (sl_char16*)((void*)(L""));
 			}
-		}		
+		}
 		
 		/**
 		 * @return string content and length.
@@ -406,7 +406,7 @@ namespace slib
 				outLength = 0;
 				return (sl_char16*)((void*)(u""));
 			}
-		}		
+		}
 		
 		/**
 		 * @return string length.
@@ -418,7 +418,7 @@ namespace slib
 			} else {
 				return 0;
 			}
-		}		
+		}
 		
 		/**
 		 * @return the hash code.
@@ -1222,7 +1222,7 @@ namespace slib
 		{
 			m_container = src.m_container;
 			src.m_container = sl_null;
-		}		
+		}
 
 		Atomic(const String16& src) noexcept;
 		Atomic(const AtomicString16& src) noexcept;
@@ -1265,7 +1265,7 @@ namespace slib
 		static const AtomicString16& null() noexcept
 		{
 			return *(reinterpret_cast<AtomicString16 const*>(&(priv::string::g_null16)));
-		}		
+		}
 		
 		/**
 		 * @return empty string.
@@ -1273,7 +1273,7 @@ namespace slib
 		static const AtomicString16& getEmpty() noexcept
 		{
 			return *(reinterpret_cast<AtomicString16 const*>(&(priv::string::g_empty16)));
-		}		
+		}
 		
 		/**
 		 * @return `true` if this string is null.
@@ -1281,7 +1281,7 @@ namespace slib
 		sl_bool isNull() const noexcept
 		{
 			return m_container == sl_null;
-		}		
+		}
 		
 		/**
 		 * @return `true` if this string is not null.
@@ -1289,7 +1289,7 @@ namespace slib
 		sl_bool isNotNull() const noexcept
 		{
 			return m_container != sl_null;
-		}		
+		}
 		
 		/**
 		 * @return `true` if this string is empty.

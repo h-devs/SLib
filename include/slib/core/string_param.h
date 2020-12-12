@@ -134,24 +134,24 @@ namespace slib
 		static const StringParam& undefined() noexcept
 		{
 			return *(reinterpret_cast<StringParam const*>(&(priv::string_param::g_undefined)));
-		}		
+		}
 		
 		static const StringParam& null() noexcept
 		{
 			return *(reinterpret_cast<StringParam const*>(&(priv::string_param::g_null)));
-		}		
+		}
 		
 		template <sl_size N>
 		static StringParam literal(const sl_char8 (&s)[N]) noexcept
 		{
 			return StringParam(s, N-1);
-		}		
+		}
 		
 		template <sl_size N>
 		static StringParam literal(const sl_char16 (&s)[N]) noexcept
 		{
 			return StringParam(s, N-1);
-		}		
+		}
 		
 	public:
 		StringParam& operator=(StringParam&& other) noexcept;
@@ -200,24 +200,24 @@ namespace slib
 		sl_bool isUndefined() const noexcept
 		{
 			return (!_value) && (!_length);
-		}		
+		}
 		
 		sl_bool isNotUndefined() const noexcept
 		{
 			return _value || _length;
-		}		
+		}
 		
 		void setNull() noexcept;
 		
 		sl_bool isNull() const noexcept
 		{
 			return !_value;
-		}		
+		}
 		
 		sl_bool isNotNull() const noexcept
 		{
 			return _value != 0;
-		}		
+		}
 		
 		
 		sl_bool isEmpty() const noexcept;

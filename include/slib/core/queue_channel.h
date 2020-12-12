@@ -49,12 +49,12 @@ namespace slib
 		QueueChannelArray() noexcept
 		{
 			m_channelCurrent = 0;
-		}		
+		}
 	
 		sl_size getChannelsCount() noexcept
 		{
 			return m_arr.getCount();
-		}		
+		}
 	
 		sl_bool setChannelsCount(sl_size n) noexcept
 		{
@@ -65,7 +65,7 @@ namespace slib
 				return sl_true;
 			}
 			return sl_false;
-		}		
+		}
 
 		sl_size getAllItemsCount() const noexcept
 		{
@@ -76,7 +76,7 @@ namespace slib
 				count += info[i].queue.getCount();
 			}
 			return count;
-		}		
+		}
 
 		sl_size removeAll() noexcept
 		{
@@ -87,7 +87,7 @@ namespace slib
 				count += info[i].queue.removeAll();
 			}
 			return count;
-		}		
+		}
 
 		template <class... ARGS>
 		sl_bool pushBack(sl_size channelNo, ARGS&&... args) noexcept
@@ -97,7 +97,7 @@ namespace slib
 				return queue.pushBack(Forward<ARGS>(args)...);
 			}
 			return sl_null;
-		}		
+		}
 
 		sl_bool popBack(sl_size channelNo, T* _out = sl_null) noexcept
 		{
@@ -106,7 +106,7 @@ namespace slib
 				return queue.popBack(_out);
 			}
 			return sl_false;
-		}		
+		}
 
 		template <class... ARGS>
 		sl_bool pushFront(sl_size channelNo, ARGS&&... args) noexcept
@@ -116,7 +116,7 @@ namespace slib
 				return queue.pushFront(Forward<ARGS>(args)...);
 			}
 			return sl_null;
-		}		
+		}
 
 		sl_bool popFront(sl_size channelNo, T* _out = sl_null) noexcept
 		{
@@ -125,7 +125,7 @@ namespace slib
 				return queue.popFront(_out);
 			}
 			return sl_false;
-		}		
+		}
 
 		sl_bool popBack(T* _out = sl_null) noexcept
 		{
@@ -150,7 +150,7 @@ namespace slib
 			}
 			m_channelCurrent = no;
 			return sl_false;
-		}		
+		}
 
 		sl_bool popFront(T* _out = sl_null) noexcept
 		{
@@ -175,7 +175,7 @@ namespace slib
 			}
 			m_channelCurrent = no;
 			return sl_false;
-		}		
+		}
 
 	protected:
 		LinkedList<T> _getChannelQueue(sl_size no) noexcept
@@ -186,7 +186,7 @@ namespace slib
 				return info[no].queue;
 			}
 			return sl_null;
-		}		
+		}
 
 		LinkedList<T> _activateChannelQueue(sl_size no) noexcept
 		{
@@ -201,7 +201,7 @@ namespace slib
 				return channel.queue;
 			}
 			return sl_null;
-		}		
+		}
 
 	};
 
