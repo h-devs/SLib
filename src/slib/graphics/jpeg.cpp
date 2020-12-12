@@ -190,31 +190,31 @@ namespace slib
 	{
 	}
 
-	SLIB_INLINE sl_uint32 JpegHuffmanReader::read(sl_uint32 len)
+	sl_uint32 JpegHuffmanReader::read(sl_uint32 len)
 	{
 		prepare(len);
 		return pop(len);
 	}
 
-	SLIB_INLINE sl_uint32 JpegHuffmanReader::get(sl_uint32 len)
+	sl_uint32 JpegHuffmanReader::get(sl_uint32 len)
 	{
 		return m_buf >> (32 - len);
 	}
 
-	SLIB_INLINE void JpegHuffmanReader::remove(sl_uint32 len)
+	void JpegHuffmanReader::remove(sl_uint32 len)
 	{
 		m_buf <<= len;
 		m_len -= len;
 	}
 
-	SLIB_INLINE sl_uint32 JpegHuffmanReader::pop(sl_uint32 len)
+	sl_uint32 JpegHuffmanReader::pop(sl_uint32 len)
 	{
 		sl_uint32 v = get(len);
 		remove(len);
 		return v;
 	}
 
-	SLIB_INLINE sl_int32 JpegHuffmanReader::extendReceive(sl_uint32 len)
+	sl_int32 JpegHuffmanReader::extendReceive(sl_uint32 len)
 	{
 		prepare(len);
 		sl_int32 sign = ((sl_int32)m_buf) >> 31;

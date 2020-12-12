@@ -66,7 +66,7 @@ namespace slib
 		sl_bool addStatic(const sl_char8* buf, sl_size length) noexcept;
 
 		template <sl_size N>
-		SLIB_INLINE sl_bool addStatic(const sl_char8 (&s)[N]) noexcept
+		sl_bool addStatic(const sl_char8 (&s)[N]) noexcept
 		{
 			return addStatic(s, N - 1);
 		}
@@ -140,7 +140,7 @@ namespace slib
 		sl_bool addStatic(const sl_char16* buf, sl_size length) noexcept;
 		
 		template <sl_size N>
-		SLIB_INLINE sl_bool addStatic(const sl_char16 (&s)[N]) noexcept
+		sl_bool addStatic(const sl_char16 (&s)[N]) noexcept
 		{
 			return addStatic(s, N - 1);
 		}

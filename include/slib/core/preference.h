@@ -41,13 +41,13 @@ namespace slib
 		static Json getValue(const String& key);
 
 		template <class T>
-		SLIB_INLINE static void getValue(const String& key, T& _out)
+		static void getValue(const String& key, T& _out)
 		{
 			getValue(key).get(_out);
 		}
 		
 		template <class T>
-		SLIB_INLINE static void getValue(const String& key, T& _out, const T& _def)
+		static void getValue(const String& key, T& _out, const T& _def)
 		{
 			getValue(key).get(_out, _def);
 		}

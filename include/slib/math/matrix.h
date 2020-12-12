@@ -326,8 +326,8 @@ namespace slib
 		return ret;
 	}
 	
-	template <sl_uint32 ROWS, sl_uint32 COLS, class T>
-	SLIB_INLINE MatrixT<ROWS, COLS, T>& operator*=(MatrixT<ROWS, COLS, T>& m, T value) noexcept
+	template <sl_uint32 ROWS, sl_uint32 COLS, class T, class O>
+	SLIB_INLINE MatrixT<ROWS, COLS, T>& operator*=(MatrixT<ROWS, COLS, T>& m, const O& value) noexcept
 	{
 		m.multiply(value);
 		return m;
@@ -349,7 +349,7 @@ namespace slib
 	SLIB_INLINE MatrixT<ROWS, COLS, T> operator*(const MatrixT<ROWS, ROWS2, T>& m1, const MatrixT<ROWS2, COLS, T>& m2) noexcept
 	{
 		MatrixT<ROWS, COLS, T> ret;
-		Multiply(ret, m1, m2);
+		ret.multiply(m1, m2);
 		return ret;
 	}
 

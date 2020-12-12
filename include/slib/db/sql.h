@@ -498,7 +498,7 @@ namespace slib
 		void appendStatic(const char* sz, sl_size len);
 		
 		template <sl_size N>
-		SLIB_INLINE void appendStatic(const char (&str)[N])
+		void appendStatic(const char (&str)[N])
 		{
 			appendStatic(str, N - 1);
 		}
@@ -519,7 +519,7 @@ namespace slib
 		void appendIdentifier(const char* name, sl_size length);
 		
 		template <sl_size N>
-		SLIB_INLINE void appendIdentifier(const char (&name)[N])
+		void appendIdentifier(const char (&name)[N])
 		{
 			appendIdentifier(name, N - 1);
 		}

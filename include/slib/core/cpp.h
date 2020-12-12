@@ -84,7 +84,7 @@ namespace slib
 	}
 
 	template<class T, sl_size_t N>
-	constexpr sl_size_t CountOfArray(const T (&)[N]) noexcept
+	SLIB_INLINE constexpr sl_size_t CountOfArray(const T (&)[N]) noexcept
 	{
 		return N;
 	}

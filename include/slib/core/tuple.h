@@ -37,11 +37,11 @@ namespace slib
 	class Tuple<>
 	{
 	public:
-		SLIB_INLINE Tuple(const Tuple& other) = default;
+		Tuple(const Tuple& other) = default;
 
-		SLIB_INLINE Tuple(Tuple&& other) = default;
+		Tuple(Tuple&& other) = default;
 
-		SLIB_INLINE Tuple() = default;
+		Tuple() = default;
 
 	};
 	
@@ -52,12 +52,12 @@ namespace slib
 		T1 m1;
 
 	public:
-		SLIB_INLINE Tuple(const Tuple& other) = default;
+		Tuple(const Tuple& other) = default;
 
-		SLIB_INLINE Tuple(Tuple&& other) = default;
+		Tuple(Tuple&& other) = default;
 
 		template <class O1>
-		SLIB_INLINE Tuple(O1&& _m1):
+		Tuple(O1&& _m1):
 		 m1(Forward<O1>(_m1))
 		{}
 
@@ -71,12 +71,12 @@ namespace slib
 		T2 m2;
 
 	public:
-		SLIB_INLINE Tuple(const Tuple& other) = default;
+		Tuple(const Tuple& other) = default;
 
-		SLIB_INLINE Tuple(Tuple&& other) = default;
+		Tuple(Tuple&& other) = default;
 
 		template <class O1, class O2>
-		SLIB_INLINE Tuple(O1&& _m1, O2&& _m2):
+		Tuple(O1&& _m1, O2&& _m2):
 		 m1(Forward<O1>(_m1)),
 		 m2(Forward<O2>(_m2))
 		{}
@@ -92,12 +92,12 @@ namespace slib
 		T3 m3;
 
 	public:
-		SLIB_INLINE Tuple(const Tuple& other) = default;
+		Tuple(const Tuple& other) = default;
 
-		SLIB_INLINE Tuple(Tuple&& other) = default;
+		Tuple(Tuple&& other) = default;
 
 		template <class O1, class O2, class O3>
-		SLIB_INLINE Tuple(O1&& _m1, O2&& _m2, O3&& _m3):
+		Tuple(O1&& _m1, O2&& _m2, O3&& _m3):
 		 m1(Forward<O1>(_m1)),
 		 m2(Forward<O2>(_m2)),
 		 m3(Forward<O3>(_m3))
@@ -115,12 +115,12 @@ namespace slib
 		T4 m4;
 
 	public:
-		SLIB_INLINE Tuple(const Tuple& other) = default;
+		Tuple(const Tuple& other) = default;
 
-		SLIB_INLINE Tuple(Tuple&& other) = default;
+		Tuple(Tuple&& other) = default;
 
 		template <class O1, class O2, class O3, class O4>
-		SLIB_INLINE Tuple(O1&& _m1, O2&& _m2, O3&& _m3, O4&& _m4):
+		Tuple(O1&& _m1, O2&& _m2, O3&& _m3, O4&& _m4):
 		 m1(Forward<O1>(_m1)),
 		 m2(Forward<O2>(_m2)),
 		 m3(Forward<O3>(_m3)),
@@ -140,12 +140,12 @@ namespace slib
 		T5 m5;
 
 	public:
-		SLIB_INLINE Tuple(const Tuple& other) = default;
+		Tuple(const Tuple& other) = default;
 
-		SLIB_INLINE Tuple(Tuple&& other) = default;
+		Tuple(Tuple&& other) = default;
 
 		template <class O1, class O2, class O3, class O4, class O5>
-		SLIB_INLINE Tuple(O1&& _m1, O2&& _m2, O3&& _m3, O4&& _m4, O5&& _m5):
+		Tuple(O1&& _m1, O2&& _m2, O3&& _m3, O4&& _m4, O5&& _m5):
 		 m1(Forward<O1>(_m1)),
 		 m2(Forward<O2>(_m2)),
 		 m3(Forward<O3>(_m3)),
@@ -167,12 +167,12 @@ namespace slib
 		T6 m6;
 
 	public:
-		SLIB_INLINE Tuple(const Tuple& other) = default;
+		Tuple(const Tuple& other) = default;
 
-		SLIB_INLINE Tuple(Tuple&& other) = default;
+		Tuple(Tuple&& other) = default;
 
 		template <class O1, class O2, class O3, class O4, class O5, class O6>
-		SLIB_INLINE Tuple(O1&& _m1, O2&& _m2, O3&& _m3, O4&& _m4, O5&& _m5, O6&& _m6):
+		Tuple(O1&& _m1, O2&& _m2, O3&& _m3, O4&& _m4, O5&& _m5, O6&& _m6):
 		 m1(Forward<O1>(_m1)),
 		 m2(Forward<O2>(_m2)),
 		 m3(Forward<O3>(_m3)),
@@ -196,12 +196,12 @@ namespace slib
 		T7 m7;
 
 	public:
-		SLIB_INLINE Tuple(const Tuple& other) = default;
+		Tuple(const Tuple& other) = default;
 
-		SLIB_INLINE Tuple(Tuple&& other) = default;
+		Tuple(Tuple&& other) = default;
 
 		template <class O1, class O2, class O3, class O4, class O5, class O6, class O7>
-		SLIB_INLINE Tuple(O1&& _m1, O2&& _m2, O3&& _m3, O4&& _m4, O5&& _m5, O6&& _m6, O7&& _m7):
+		Tuple(O1&& _m1, O2&& _m2, O3&& _m3, O4&& _m4, O5&& _m5, O6&& _m6, O7&& _m7):
 		 m1(Forward<O1>(_m1)),
 		 m2(Forward<O2>(_m2)),
 		 m3(Forward<O3>(_m3)),
@@ -227,12 +227,12 @@ namespace slib
 		T8 m8;
 
 	public:
-		SLIB_INLINE Tuple(const Tuple& other) = default;
+		Tuple(const Tuple& other) = default;
 
-		SLIB_INLINE Tuple(Tuple&& other) = default;
+		Tuple(Tuple&& other) = default;
 
 		template <class O1, class O2, class O3, class O4, class O5, class O6, class O7, class O8>
-		SLIB_INLINE Tuple(O1&& _m1, O2&& _m2, O3&& _m3, O4&& _m4, O5&& _m5, O6&& _m6, O7&& _m7, O8&& _m8):
+		Tuple(O1&& _m1, O2&& _m2, O3&& _m3, O4&& _m4, O5&& _m5, O6&& _m6, O7&& _m7, O8&& _m8):
 		 m1(Forward<O1>(_m1)),
 		 m2(Forward<O2>(_m2)),
 		 m3(Forward<O3>(_m3)),
@@ -260,12 +260,12 @@ namespace slib
 		T9 m9;
 
 	public:
-		SLIB_INLINE Tuple(const Tuple& other) = default;
+		Tuple(const Tuple& other) = default;
 
-		SLIB_INLINE Tuple(Tuple&& other) = default;
+		Tuple(Tuple&& other) = default;
 
 		template <class O1, class O2, class O3, class O4, class O5, class O6, class O7, class O8, class O9>
-		SLIB_INLINE Tuple(O1&& _m1, O2&& _m2, O3&& _m3, O4&& _m4, O5&& _m5, O6&& _m6, O7&& _m7, O8&& _m8, O9&& _m9):
+		Tuple(O1&& _m1, O2&& _m2, O3&& _m3, O4&& _m4, O5&& _m5, O6&& _m6, O7&& _m7, O8&& _m8, O9&& _m9):
 		 m1(Forward<O1>(_m1)),
 		 m2(Forward<O2>(_m2)),
 		 m3(Forward<O3>(_m3)),
@@ -295,12 +295,12 @@ namespace slib
 		T10 m10;
 
 	public:
-		SLIB_INLINE Tuple(const Tuple& other) = default;
+		Tuple(const Tuple& other) = default;
 
-		SLIB_INLINE Tuple(Tuple&& other) = default;
+		Tuple(Tuple&& other) = default;
 
 		template <class O1, class O2, class O3, class O4, class O5, class O6, class O7, class O8, class O9, class O10>
-		SLIB_INLINE Tuple(O1&& _m1, O2&& _m2, O3&& _m3, O4&& _m4, O5&& _m5, O6&& _m6, O7&& _m7, O8&& _m8, O9&& _m9, O10&& _m10):
+		Tuple(O1&& _m1, O2&& _m2, O3&& _m3, O4&& _m4, O5&& _m5, O6&& _m6, O7&& _m7, O8&& _m8, O9&& _m9, O10&& _m10):
 		 m1(Forward<O1>(_m1)),
 		 m2(Forward<O2>(_m2)),
 		 m3(Forward<O3>(_m3)),

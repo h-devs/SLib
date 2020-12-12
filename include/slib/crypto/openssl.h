@@ -52,7 +52,7 @@ namespace slib
 		static Ref<OpenSSL_Key> createPrivateKey(const StringParam& pem);
 		
 	public:
-		SLIB_INLINE evp_pkey_st* get_EVP_PKEY()
+		evp_pkey_st* get_EVP_PKEY()
 		{
 			return m_key;
 		}

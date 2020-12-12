@@ -217,7 +217,7 @@ namespace slib
 		sl_bool addStatic(const void* buf, sl_size size);
 	
 		template <sl_size N>
-		SLIB_INLINE sl_bool addStatic(const char (&buf)[N])
+		sl_bool addStatic(const char (&buf)[N])
 		{
 			return addStatic(buf, N - 1);
 		}
@@ -255,7 +255,7 @@ namespace slib
 		sl_bool addStatic_NoLock(const void* buf, sl_size size);
 
 		template <sl_size N>
-		SLIB_INLINE sl_bool addStatic_NoLock(const char (&buf)[N])
+		sl_bool addStatic_NoLock(const char (&buf)[N])
 		{
 			return addStatic_NoLock(buf, N - 1);
 		}
@@ -263,7 +263,7 @@ namespace slib
 		sl_bool addStatic(const void* buf, sl_size size);
 		
 		template <sl_size N>
-		SLIB_INLINE sl_bool addStatic(const char (&buf)[N])
+		sl_bool addStatic(const char (&buf)[N])
 		{
 			return addStatic(buf, N - 1);
 		}

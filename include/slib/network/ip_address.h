@@ -52,15 +52,15 @@ namespace slib
 		};
 		
 	public:
-		SLIB_INLINE constexpr IPv4Address() noexcept: a(0), b(0), c(0), d(0) {}
+		constexpr IPv4Address() noexcept: a(0), b(0), c(0), d(0) {}
 		
-		SLIB_INLINE constexpr IPv4Address(const IPv4Address& other) noexcept: a(other.a), b(other.b), c(other.c), d(other.d) {}
+		constexpr IPv4Address(const IPv4Address& other) noexcept: a(other.a), b(other.b), c(other.c), d(other.d) {}
 		
-		SLIB_INLINE constexpr IPv4Address(sl_uint8 const addr[4]) noexcept: a(addr[0]), b(addr[1]), c(addr[2]), d(addr[3]) {}
+		constexpr IPv4Address(sl_uint8 const addr[4]) noexcept: a(addr[0]), b(addr[1]), c(addr[2]), d(addr[3]) {}
 		
-		SLIB_INLINE constexpr IPv4Address(sl_uint8 _a, sl_uint8 _b, sl_uint8 _c, sl_uint8 _d) noexcept: a(_a), b(_b), c(_c), d(_d) {}
+		constexpr IPv4Address(sl_uint8 _a, sl_uint8 _b, sl_uint8 _c, sl_uint8 _d) noexcept: a(_a), b(_b), c(_c), d(_d) {}
 		
-		SLIB_INLINE constexpr IPv4Address(sl_uint32 addr) noexcept: a((sl_uint8)(addr >> 24)), b((sl_uint8)(addr >> 16)), c((sl_uint8)(addr >> 8)), d((sl_uint8)(addr)) {}
+		constexpr IPv4Address(sl_uint32 addr) noexcept: a((sl_uint8)(addr >> 24)), b((sl_uint8)(addr >> 16)), c((sl_uint8)(addr >> 8)), d((sl_uint8)(addr)) {}
 		
 		IPv4Address(const String& address) noexcept;
 		
@@ -142,7 +142,7 @@ namespace slib
 		}
 		
 	public:
-		SLIB_INLINE IPv4Address& operator=(const IPv4Address& other) = default;
+		IPv4Address& operator=(const IPv4Address& other) = default;
 		
 		IPv4Address& operator=(sl_uint32 addr) noexcept
 		{
@@ -250,7 +250,7 @@ namespace slib
 		sl_uint8 m[16];
 		
 	public:
-		SLIB_INLINE IPv6Address() noexcept {}
+		IPv6Address() noexcept {}
 		
 		IPv6Address(const IPv6Address& other) noexcept;
 		
@@ -405,7 +405,7 @@ namespace slib
 		sl_uint8 m[PRIV_SLIB_NET_IPADDRESS_SIZE];
 		
 	public:
-		SLIB_INLINE IPAddress() noexcept: type(IPAddressType::None) {}
+		IPAddress() noexcept: type(IPAddressType::None) {}
 		
 		IPAddress(const IPAddress& other) noexcept;
 		

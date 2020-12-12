@@ -42,18 +42,18 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(QuaternionT)
 		
-		SLIB_INLINE QuaternionT() noexcept = default;
+		QuaternionT() noexcept = default;
 
 		template <class O>
-		SLIB_INLINE constexpr QuaternionT(const QuaternionT<O>& other)
+		constexpr QuaternionT(const QuaternionT<O>& other)
 		 : x((T)(other.x)), y((T)(other.y)), z((T)(other.z)), w((T)(other.w))
 		 {}
 	
-		SLIB_INLINE QuaternionT(T _x, T _y, T _z, T _w)
+		QuaternionT(T _x, T _y, T _z, T _w)
 		 : x(_x), y(_y), z(_z), w(_w)
 		 {}
 
-		SLIB_INLINE QuaternionT(const Vector4T<T>& other)
+		QuaternionT(const Vector4T<T>& other)
 		 : x(other.x), y(other.y), z(other.z), w(other.w)
 		 {}
 	

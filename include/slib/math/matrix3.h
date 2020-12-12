@@ -322,15 +322,24 @@ namespace slib
 
 		void multiply(const MatrixT& m1, const MatrixT& m2) noexcept
 		{
-			m00 = m1.m00 * m2.m00 + m1.m01 * m2.m10 + m1.m02 * m2.m20;
-			m01 = m1.m00 * m2.m01 + m1.m01 * m2.m11 + m1.m02 * m2.m21;
-			m02 = m1.m00 * m2.m02 + m1.m01 * m2.m12 + m1.m02 * m2.m22;
-			m10 = m1.m10 * m2.m00 + m1.m11 * m2.m10 + m1.m12 * m2.m20;
-			m11 = m1.m10 * m2.m01 + m1.m11 * m2.m11 + m1.m12 * m2.m21;
-			m12 = m1.m10 * m2.m02 + m1.m11 * m2.m12 + m1.m12 * m2.m22;
-			m20 = m1.m20 * m2.m00 + m1.m21 * m2.m10 + m1.m22 * m2.m20;
-			m21 = m1.m20 * m2.m01 + m1.m21 * m2.m11 + m1.m22 * m2.m21;
-			m22 = m1.m20 * m2.m02 + m1.m21 * m2.m12 + m1.m22 * m2.m22;
+			T v0, v1, v2;
+			v0 = m1.m00 * m2.m00 + m1.m01 * m2.m10 + m1.m02 * m2.m20;
+			v1 = m1.m00 * m2.m01 + m1.m01 * m2.m11 + m1.m02 * m2.m21;
+			v2 = m1.m00 * m2.m02 + m1.m01 * m2.m12 + m1.m02 * m2.m22;
+			m00 = v0; m01 = v1; m02 = v2;
+			v0 = m1.m10 * m2.m00 + m1.m11 * m2.m10 + m1.m12 * m2.m20;
+			v1 = m1.m10 * m2.m01 + m1.m11 * m2.m11 + m1.m12 * m2.m21;
+			v2 = m1.m10 * m2.m02 + m1.m11 * m2.m12 + m1.m12 * m2.m22;
+			m10 = v0; m11 = v1; m12 = v2;
+			v0 = m1.m20 * m2.m00 + m1.m21 * m2.m10 + m1.m22 * m2.m20;
+			v1 = m1.m20 * m2.m01 + m1.m21 * m2.m11 + m1.m22 * m2.m21;
+			v2 = m1.m20 * m2.m02 + m1.m21 * m2.m12 + m1.m22 * m2.m22;
+			m20 = v0; m21 = v1; m22 = v2;
+		}
+
+		void multiply(const MatrixT& m) noexcept
+		{
+			multiply(*this, m);
 		}
 
 		template <sl_uint32 ROWS2>

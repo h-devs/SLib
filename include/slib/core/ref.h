@@ -1304,6 +1304,67 @@ namespace slib
 
 	
 	template <class T>
+	SLIB_INLINE sl_bool operator==(sl_null_t, const Ref<T>& b) noexcept
+	{
+		return sl_null == b.ptr;
+	}
+	
+	template <class T>
+	SLIB_INLINE sl_bool operator==(T* a, const Ref<T>& b) noexcept
+	{
+		return a == b.ptr;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator!=(sl_null_t, const Ref<T>& b) noexcept
+	{
+		return sl_null != b.ptr;
+	}
+	
+	template <class T>
+	SLIB_INLINE sl_bool operator!=(T* a, const Ref<T>& b) noexcept
+	{
+		return a != b.ptr;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator==(sl_null_t, const AtomicRef<T>& b) noexcept
+	{
+		return sl_null == b._ptr;
+	}
+	
+	template <class T>
+	SLIB_INLINE sl_bool operator==(T* a, const AtomicRef<T>& b) noexcept
+	{
+		return a == b._ptr;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator!=(sl_null_t, const AtomicRef<T>& b) noexcept
+	{
+		return sl_null != b._ptr;
+	}
+	
+	template <class T>
+	SLIB_INLINE sl_bool operator!=(T* a, const AtomicRef<T>& b) noexcept
+	{
+		return a != b._ptr;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator>(const Ref<T>& a, const Ref<T>& b) noexcept
+	{
+		return a.ptr > b.ptr;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator<(const Ref<T>& a, const Ref<T>& b) noexcept
+	{
+		return a.ptr < b.ptr;
+	}
+
+
+	template <class T>
 	Ref<T> New() noexcept
 	{
 		return new T;
@@ -1377,152 +1438,61 @@ namespace slib
 	}
 
 	template <class T>
-	Ref<T> ToRef(T* object) noexcept;
-
-	template <class T>
-	const Ref<T>& ToRef(const Ref<T>& other) noexcept;
-	
-	template <class T>
-	Ref<T> ToRef(const AtomicRef<T>& other) noexcept;
-	
-	template <class T>
-	Ref<T> ToRef(const WeakRef<T>& other) noexcept;
-	
-	template <class T>
-	Ref<T> ToRef(const AtomicWeakRef<T>& other) noexcept;
-	
-	template <class T>
-	WeakRef<T> ToWeakRef(T* object) noexcept;
-	
-	template <class T>
-	WeakRef<T> ToWeakRef(const Ref<T>& other) noexcept;
-	
-	template <class T>
-	WeakRef<T> ToWeakRef(const AtomicRef<T>& other) noexcept;
-	
-	template <class T>
-	const WeakRef<T>& ToWeakRef(const WeakRef<T>& other) noexcept;
-	
-	template <class T>
-	WeakRef<T> ToWeakRef(const AtomicWeakRef<T>& other) noexcept;
-
-	template <class T>
-	sl_bool operator==(sl_null_t, const Ref<T>& b) noexcept
-	{
-		return sl_null == b.ptr;
-	}
-	
-	template <class T>
-	sl_bool operator==(T* a, const Ref<T>& b) noexcept
-	{
-		return a == b.ptr;
-	}
-
-	template <class T>
-	sl_bool operator!=(sl_null_t, const Ref<T>& b) noexcept
-	{
-		return sl_null != b.ptr;
-	}
-	
-	template <class T>
-	sl_bool operator!=(T* a, const Ref<T>& b) noexcept
-	{
-		return a != b.ptr;
-	}
-
-	template <class T>
-	SLIB_INLINE sl_bool operator==(sl_null_t, const AtomicRef<T>& b) noexcept
-	{
-		return sl_null == b._ptr;
-	}
-	
-	template <class T>
-	SLIB_INLINE sl_bool operator==(T* a, const AtomicRef<T>& b) noexcept
-	{
-		return a == b._ptr;
-	}
-
-	template <class T>
-	SLIB_INLINE sl_bool operator!=(sl_null_t, const AtomicRef<T>& b) noexcept
-	{
-		return sl_null != b._ptr;
-	}
-	
-	template <class T>
-	SLIB_INLINE sl_bool operator!=(T* a, const AtomicRef<T>& b) noexcept
-	{
-		return a != b._ptr;
-	}
-
-	template <class T>
-	SLIB_INLINE sl_bool operator>(const Ref<T>& a, const Ref<T>& b) noexcept
-	{
-		return a.ptr > b.ptr;
-	}
-
-	template <class T>
-	SLIB_INLINE sl_bool operator<(const Ref<T>& a, const Ref<T>& b) noexcept
-	{
-		return a.ptr < b.ptr;
-	}
-
-
-	template <class T>
-	SLIB_INLINE Ref<T> ToRef(T* other) noexcept
+	Ref<T> ToRef(T* other) noexcept
 	{
 		return Ref<T>(other);
 	}
 
 	template <class T>
-	SLIB_INLINE const Ref<T>& ToRef(const Ref<T>& other) noexcept
+	const Ref<T>& ToRef(const Ref<T>& other) noexcept
 	{
 		return other;
 	}
 
 	template <class T>
-	SLIB_INLINE Ref<T> ToRef(const AtomicRef<T>& other) noexcept
+	Ref<T> ToRef(const AtomicRef<T>& other) noexcept
 	{
 		return Ref<T>(other);
 	}
 
 	template <class T>
-	SLIB_INLINE Ref<T> ToRef(const WeakRef<T>& other) noexcept
+	Ref<T> ToRef(const WeakRef<T>& other) noexcept
 	{
 		return Ref<T>(other);
 	}
 
 	template <class T>
-	SLIB_INLINE Ref<T> ToRef(const AtomicWeakRef<T>& other) noexcept
+	Ref<T> ToRef(const AtomicWeakRef<T>& other) noexcept
 	{
 		return Ref<T>(other);
 	}
 
 	template <class T>
-	SLIB_INLINE WeakRef<T> ToWeakRef(T* other) noexcept
+	WeakRef<T> ToWeakRef(T* other) noexcept
 	{
 		return WeakRef<T>(other);
 	}
 
 	template <class T>
-	SLIB_INLINE WeakRef<T> ToWeakRef(const Ref<T>& other) noexcept
+	WeakRef<T> ToWeakRef(const Ref<T>& other) noexcept
 	{
 		return WeakRef<T>(other);
 	}
 
 	template <class T>
-	SLIB_INLINE WeakRef<T> ToWeakRef(const AtomicRef<T>& other) noexcept
+	WeakRef<T> ToWeakRef(const AtomicRef<T>& other) noexcept
 	{
 		return WeakRef<T>(other);
 	}
 
 	template <class T>
-	SLIB_INLINE const WeakRef<T>& ToWeakRef(const WeakRef<T>& other) noexcept
+	const WeakRef<T>& ToWeakRef(const WeakRef<T>& other) noexcept
 	{
 		return other;
 	}
 
 	template <class T>
-	SLIB_INLINE WeakRef<T> ToWeakRef(const AtomicWeakRef<T>& other) noexcept
+	WeakRef<T> ToWeakRef(const AtomicWeakRef<T>& other) noexcept
 	{
 		return WeakRef<T>(other);
 	}

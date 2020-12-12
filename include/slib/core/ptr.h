@@ -849,6 +849,55 @@ namespace slib
 	};
 	
 
+	template <class T>
+	SLIB_INLINE sl_bool operator==(sl_null_t, const Ptr<T>& o) noexcept
+	{
+		return o.ptr == sl_null;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator==(T* other, const Ptr<T>& o) noexcept
+	{
+		return o.ptr == other;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator!=(sl_null_t, const Ptr<T>& o) noexcept
+	{
+		return o.ptr != sl_null;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator!=(T* other, const Ptr<T>& o) noexcept
+	{
+		return o.ptr != other;
+	}
+	
+	template <class T>
+	SLIB_INLINE sl_bool operator==(sl_null_t, const Atomic< Ptr<T> >& p) noexcept
+	{
+		return p._ptr == sl_null;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator==(T* other, const Atomic< Ptr<T> >& p) noexcept
+	{
+		return p._ptr == other;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator!=(sl_null_t, const Atomic< Ptr<T> >& p) noexcept
+	{
+		return p._ptr != sl_null;
+	}
+
+	template <class T>
+	SLIB_INLINE sl_bool operator!=(T* other, const Atomic< Ptr<T> >& p) noexcept
+	{
+		return p._ptr != other;
+	}
+
+
 	template <class... TYPES>
 	class SLIB_EXPORT PtrLocker;
 
@@ -970,20 +1019,24 @@ namespace slib
 	Ptr<T> SharedPtr(T* _ptr)
 	{
 		if (_ptr) {
-			return Ptr<T>(_ptr, ToRef(new priv::ptr::SharedPtrContainer<T>(_ptr)));
-		} else {
-			return sl_null;
+			Ref<Referable> ref = new priv::ptr::SharedPtrContainer<T>(_ptr);
+			if (ref.isNotNull()) {
+				return Ptr<T>(_ptr, ref);
+			}
 		}
+		return sl_null;
 	}
 	
 	template <class T, class Deleter>
 	Ptr<T> SharedPtr(T* _ptr, const Deleter& deleter)
 	{
 		if (_ptr) {
-			return Ptr<T>(_ptr, ToRef(new priv::ptr::SharedPtrContainerWithDeleter<T, DELETER>(_ptr, deleter)));
-		} else {
-			return sl_null;
+			Ref<Referable> ref = new priv::ptr::SharedPtrContainerWithDeleter<T, TDELETER>(_ptr, deleter);
+			if (ref.isNotNull()) {
+				return Ptr<T>(_ptr, ref);
+			}
 		}
+		return sl_null;
 	}
 
 	template <class T, class... Args>
@@ -995,54 +1048,6 @@ namespace slib
 		} else {
 			return sl_null;
 		}
-	}
-
-	template <class T>
-	SLIB_INLINE sl_bool operator==(sl_null_t, const Ptr<T>& o) noexcept
-	{
-		return o.ptr == sl_null;
-	}
-
-	template <class T>
-	SLIB_INLINE sl_bool operator==(T* other, const Ptr<T>& o) noexcept
-	{
-		return o.ptr == other;
-	}
-
-	template <class T>
-	SLIB_INLINE sl_bool operator!=(sl_null_t, const Ptr<T>& o) noexcept
-	{
-		return o.ptr != sl_null;
-	}
-
-	template <class T>
-	SLIB_INLINE sl_bool operator!=(T* other, const Ptr<T>& o) noexcept
-	{
-		return o.ptr != other;
-	}
-	
-	template <class T>
-	SLIB_INLINE sl_bool operator==(sl_null_t, const Atomic< Ptr<T> >& p) noexcept
-	{
-		return p._ptr == sl_null;
-	}
-
-	template <class T>
-	SLIB_INLINE sl_bool operator==(T* other, const Atomic< Ptr<T> >& p) noexcept
-	{
-		return p._ptr == other;
-	}
-
-	template <class T>
-	SLIB_INLINE sl_bool operator!=(sl_null_t, const Atomic< Ptr<T> >& p) noexcept
-	{
-		return p._ptr != sl_null;
-	}
-
-	template <class T>
-	SLIB_INLINE sl_bool operator!=(T* other, const Atomic< Ptr<T> >& p) noexcept
-	{
-		return p._ptr != other;
 	}
 
 }

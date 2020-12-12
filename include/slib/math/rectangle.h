@@ -46,18 +46,18 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(RectangleT)
 		
-		SLIB_INLINE RectangleT() noexcept = default;
+		RectangleT() noexcept = default;
 
 		template <class O, class FO>
-		SLIB_INLINE constexpr RectangleT(const RectangleT<O, FO>& other) noexcept
+		constexpr RectangleT(const RectangleT<O, FO>& other) noexcept
 		 : left((T)(other.left)), top((T)(other.top)), right((T)(other.right)), bottom((T)(other.bottom))
 		 {}
 
-		SLIB_INLINE constexpr RectangleT(T _left, T _top, T _right, T _bottom)
+		constexpr RectangleT(T _left, T _top, T _right, T _bottom)
 		 : left(_left), top(_top), right(_right), bottom(_bottom)
 		 {}
 
-		SLIB_INLINE constexpr RectangleT(const PointT<T, FT>& leftTop, const SizeT<T, FT>& rightBottom)
+		constexpr RectangleT(const PointT<T, FT>& leftTop, const SizeT<T, FT>& rightBottom)
 		 : left(leftTop.x), top(leftTop.y), right(rightBottom.x), bottom(rightBottom.y)
 		 {}
 

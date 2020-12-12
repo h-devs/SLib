@@ -138,7 +138,7 @@ namespace slib
 	class Compare< Atomic<T>, Atomic<T> >
 	{
 	public:
-		SLIB_INLINE sl_compare_result operator()(const T& a, const T& b) const noexcept
+		sl_compare_result operator()(const T& a, const T& b) const noexcept
 		{
 			return Compare<T>()(a, b);
 		}
@@ -148,7 +148,7 @@ namespace slib
 	class Equals< Atomic<T>, Atomic<T> >
 	{
 	public:
-		SLIB_INLINE sl_bool operator()(const T& a, const T& b) const noexcept
+		sl_bool operator()(const T& a, const T& b) const noexcept
 		{
 			return Equals<T>()(a, b);
 		}
@@ -158,7 +158,7 @@ namespace slib
 	class Hash< Atomic<T>, sl_false >
 	{
 	public:
-		SLIB_INLINE sl_size operator()(const T& a) const noexcept
+		sl_size operator()(const T& a) const noexcept
 		{
 			return Hash<T>()(a);
 		}

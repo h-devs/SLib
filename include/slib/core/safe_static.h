@@ -154,7 +154,7 @@ namespace slib
 			void FreeObjectOnExitImpl(IFreeable* obj);
 			
 			template <typename T>
-			SLIB_INLINE void FreeObjectOnExit(T* obj, sl_bool* outFreedStatus)
+			void FreeObjectOnExit(T* obj, sl_bool* outFreedStatus)
 			{
 				priv::safe_static::IFreeable* d = new priv::safe_static::FreeLocal<T>(obj, outFreedStatus);
 				if (d) {

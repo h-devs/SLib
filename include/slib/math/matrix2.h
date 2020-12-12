@@ -243,10 +243,19 @@ namespace slib
 
 		void multiply(const MatrixT& m1, const MatrixT& m2) noexcept
 		{
-			m00 = m1.m00 * m2.m00 + m1.m01 * m2.m10;
-			m01 = m1.m00 * m2.m01 + m1.m01 * m2.m11;
-			m10 = m1.m10 * m2.m00 + m1.m11 * m2.m10;
-			m11 = m1.m10 * m2.m01 + m1.m11 * m2.m11;
+			T _m00 = m1.m00 * m2.m00 + m1.m01 * m2.m10;
+			T _m01 = m1.m00 * m2.m01 + m1.m01 * m2.m11;
+			T _m10 = m1.m10 * m2.m00 + m1.m11 * m2.m10;
+			T _m11 = m1.m10 * m2.m01 + m1.m11 * m2.m11;
+			m00 = _m00;
+			m01 = _m01;
+			m10 = _m10;
+			m11 = _m11;
+		}
+
+		void multiply(const MatrixT& m) noexcept
+		{
+			multiply(*this, m);
 		}
 
 		template <sl_uint32 ROWS2>

@@ -39,7 +39,7 @@ namespace slib
 		sl_uint8 m[6];
 		
 	public:
-		SLIB_INLINE MacAddress() noexcept {}
+		MacAddress() noexcept {}
 		
 		MacAddress(const MacAddress& other) noexcept = default;
 		

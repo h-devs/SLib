@@ -99,149 +99,149 @@ namespace slib
 
 	public:
 		// 3 bytes
-		SLIB_INLINE sl_uint8* getJmpCode() const
+		sl_uint8* getJmpCode() const
 		{
 			return (sl_uint8*)jmp;
 		}
 
 
 		// 8 bytes
-		SLIB_INLINE sl_uint8* getOemId() const
+		sl_uint8* getOemId() const
 		{
 			return (sl_uint8*)oemID;
 		}
 
 
-		SLIB_INLINE sl_uint16 getBytesPerSector() const
+		sl_uint16 getBytesPerSector() const
 		{
 			return MIO::readUint16LE(bytesPerSector);
 		}
 
-		SLIB_INLINE void setBytesPerSector(sl_uint16 value)
+		void setBytesPerSector(sl_uint16 value)
 		{
 			MIO::writeUint16LE(bytesPerSector, value);
 		}
 
 
-		SLIB_INLINE sl_uint8 getSectorsPerCluster() const
+		sl_uint8 getSectorsPerCluster() const
 		{
 			return sectorsPerCluster;
 		}
 
-		SLIB_INLINE void setSectorsPerCluster(sl_uint8 value)
+		void setSectorsPerCluster(sl_uint8 value)
 		{
 			sectorsPerCluster = value;
 		}
 
 		
-		SLIB_INLINE sl_uint16 getSectorsPerTrack() const
+		sl_uint16 getSectorsPerTrack() const
 		{
 			return MIO::readUint16LE(sectorsPerTrack);
 		}
 
-		SLIB_INLINE void setSectorsPerTrack(sl_uint16 value)
+		void setSectorsPerTrack(sl_uint16 value)
 		{
 			MIO::writeUint16LE(sectorsPerTrack, value);
 		}
 
 
-		SLIB_INLINE sl_uint16 getNumberOfHeads() const
+		sl_uint16 getNumberOfHeads() const
 		{
 			return MIO::readUint16LE(numberOfHeads);
 		}
 
-		SLIB_INLINE void setNumberOfHeads(sl_uint16 value)
+		void setNumberOfHeads(sl_uint16 value)
 		{
 			MIO::writeUint16LE(numberOfHeads, value);
 		}
 
 
-		SLIB_INLINE sl_uint32 getHiddenSectors() const
+		sl_uint32 getHiddenSectors() const
 		{
 			return MIO::readUint32LE(hiddenSectors);
 		}
 
-		SLIB_INLINE void setHiddenSectors(sl_uint32 value)
+		void setHiddenSectors(sl_uint32 value)
 		{
 			MIO::writeUint32LE(hiddenSectors, value);
 		}
 
 
-		SLIB_INLINE sl_uint64 getTotalSectors() const
+		sl_uint64 getTotalSectors() const
 		{
 			return MIO::readUint64LE(totalSectors);
 		}
 
-		SLIB_INLINE void setTotalSectors(sl_uint64 value)
+		void setTotalSectors(sl_uint64 value)
 		{
 			MIO::writeUint64LE(totalSectors, value);
 		}
 
 
-		SLIB_INLINE sl_uint64 getMftClusterNumber() const
+		sl_uint64 getMftClusterNumber() const
 		{
 			return MIO::readUint64LE(mftClusterNumber);
 		}
 
-		SLIB_INLINE void setMftClusterNumber(sl_uint64 value)
+		void setMftClusterNumber(sl_uint64 value)
 		{
 			MIO::writeUint64LE(mftClusterNumber, value);
 		}
 
 
-		SLIB_INLINE sl_uint64 getMftMirrorClusterNumber() const
+		sl_uint64 getMftMirrorClusterNumber() const
 		{
 			return MIO::readUint64LE(mftMirrorClusterNumber);
 		}
 
-		SLIB_INLINE void setMftMirrorClusterNumber(sl_uint64 value)
+		void setMftMirrorClusterNumber(sl_uint64 value)
 		{
 			MIO::writeUint64LE(mftMirrorClusterNumber, value);
 		}
 
 
-		SLIB_INLINE sl_uint8 getClustersPerFileRecordSegment() const
+		sl_uint8 getClustersPerFileRecordSegment() const
 		{
 			return clustersPerFileRecordSegment;
 		}
 
-		SLIB_INLINE void setClustersPerFileRecordSegment(sl_uint8 value)
+		void setClustersPerFileRecordSegment(sl_uint8 value)
 		{
 			clustersPerFileRecordSegment = value;
 		}
 
 
-		SLIB_INLINE sl_uint8 getClustersPerIndexBuffer() const
+		sl_uint8 getClustersPerIndexBuffer() const
 		{
 			return clustersPerIndexBuffer;
 		}
 
-		SLIB_INLINE void setClustersPerIndexBuffer(sl_uint8 value)
+		void setClustersPerIndexBuffer(sl_uint8 value)
 		{
 			clustersPerIndexBuffer = value;
 		}
 
 
 		// 8 bytes
-		SLIB_INLINE sl_uint8* getSerialNumber() const
+		sl_uint8* getSerialNumber() const
 		{
 			return (sl_uint8*)serialNumber;
 		}
 
 
 		// 426 bytes
-		SLIB_INLINE sl_uint8* getBootstrapCode() const
+		sl_uint8* getBootstrapCode() const
 		{
 			return (sl_uint8*)bootstrapCode;
 		}
 
 
-		SLIB_INLINE sl_uint16 getEndMarker() const
+		sl_uint16 getEndMarker() const
 		{
 			return MIO::readUint16LE(endMarker);
 		}
 
-		SLIB_INLINE void setEndMarker(sl_uint16 value)
+		void setEndMarker(sl_uint16 value)
 		{
 			MIO::writeUint16LE(endMarker, value);
 		}

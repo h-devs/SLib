@@ -56,27 +56,26 @@ namespace slib
 		sl_text_pos length;
 		
 	public:
-		SLIB_INLINE constexpr TextRange() noexcept : location(SLIB_TEXT_RANGE_NOT_FOUND), length(0) {}
+		constexpr TextRange() noexcept : location(SLIB_TEXT_RANGE_NOT_FOUND), length(0) {}
 		
-		SLIB_INLINE constexpr TextRange(sl_null_t) noexcept : location(SLIB_TEXT_RANGE_NOT_FOUND), length(0) {}
+		constexpr TextRange(sl_null_t) noexcept : location(SLIB_TEXT_RANGE_NOT_FOUND), length(0) {}
 		
-		SLIB_INLINE constexpr TextRange(sl_text_pos _location, sl_text_pos _length) noexcept : location(_location), length(_length) {}
+		constexpr TextRange(sl_text_pos _location, sl_text_pos _length) noexcept : location(_location), length(_length) {}
 		
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(TextRange)
 		
 	public:
-		
-		SLIB_INLINE constexpr sl_bool operator==(const TextRange& other) const noexcept
+		constexpr sl_bool operator==(const TextRange& other) const noexcept
 		{
 			return location == other.location && length == other.length;
 		}
 		
-		SLIB_INLINE constexpr sl_bool operator!=(const TextRange& other) const noexcept
+		constexpr sl_bool operator!=(const TextRange& other) const noexcept
 		{
 			return location != other.location || length != other.length;
 		}
 		
-		SLIB_INLINE constexpr sl_bool isNotFound() const noexcept
+		constexpr sl_bool isNotFound() const noexcept
 		{
 			return location == SLIB_TEXT_RANGE_NOT_FOUND;
 		}

@@ -258,7 +258,7 @@ namespace slib
 	class T_##NAME : public slib::RenderProgramStateItem \
 	{ \
 	public: \
-		SLIB_INLINE T_##NAME() : RenderProgramStateItem(__VA_ARGS__) {} \
+		T_##NAME() : RenderProgramStateItem(__VA_ARGS__) {} \
 	} NAME;
 
 #define SLIB_RENDER_PROGRAM_STATE_BEGIN(TYPE, VERTEX_TYPE) \
@@ -268,7 +268,7 @@ namespace slib
 		sl_uint32 vertexSize; \
 		List<RenderInputLayoutItem> inputLayout; \
 		typedef VERTEX_TYPE VertexType; \
-		SLIB_INLINE TYPE() : vertexSize(sizeof(VertexType)) {}
+		TYPE() : vertexSize(sizeof(VertexType)) {}
 
 #define SLIB_RENDER_PROGRAM_STATE_END \
 		SLIB_RENDER_INPUT_ITEM(_endOfInputs) \
@@ -276,63 +276,63 @@ namespace slib
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_INT(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(sl_int32 value) { if (NAME.uniform.location >= 0) setIntValue(NAME.uniform, value); }
+	void set##NAME(sl_int32 value) { if (NAME.uniform.location >= 0) setIntValue(NAME.uniform, value); }
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_INT_ARRAY(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const sl_int32* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setIntArray(NAME.uniform, values, count); }
+	void set##NAME(const sl_int32* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setIntArray(NAME.uniform, values, count); }
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(float value) { if (NAME.uniform.location >= 0) setFloatValue(NAME.uniform, value); }
+	void set##NAME(float value) { if (NAME.uniform.location >= 0) setFloatValue(NAME.uniform, value); }
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT_ARRAY(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const float* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setFloatArray(NAME.uniform, values, count); }
+	void set##NAME(const float* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setFloatArray(NAME.uniform, values, count); }
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR2(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const slib::Vector2& value) { if (NAME.uniform.location >= 0) setFloat2Value(NAME.uniform, value); }
+	void set##NAME(const slib::Vector2& value) { if (NAME.uniform.location >= 0) setFloat2Value(NAME.uniform, value); }
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR2_ARRAY(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const slib::Vector2* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setFloat2Array(NAME.uniform, values, count); }
+	void set##NAME(const slib::Vector2* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setFloat2Array(NAME.uniform, values, count); }
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const slib::Vector3& value) { if (NAME.uniform.location >= 0) setFloat3Value(NAME.uniform, value); }
+	void set##NAME(const slib::Vector3& value) { if (NAME.uniform.location >= 0) setFloat3Value(NAME.uniform, value); }
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3_ARRAY(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const slib::Vector3* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setFloat3Array(NAME.uniform, values, count); }
+	void set##NAME(const slib::Vector3* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setFloat3Array(NAME.uniform, values, count); }
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const slib::Vector4& value) { if (NAME.uniform.location >= 0) setFloat4Value(NAME.uniform, value); }
+	void set##NAME(const slib::Vector4& value) { if (NAME.uniform.location >= 0) setFloat4Value(NAME.uniform, value); }
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const slib::Vector4* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setFloat4Array(NAME.uniform, values, count); }
+	void set##NAME(const slib::Vector4* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setFloat4Array(NAME.uniform, values, count); }
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const slib::Matrix3& value) { if (NAME.uniform.location >= 0) setMatrix3Value(NAME.uniform, value); }
+	void set##NAME(const slib::Matrix3& value) { if (NAME.uniform.location >= 0) setMatrix3Value(NAME.uniform, value); }
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3_ARRAY(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const slib::Matrix3* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setMatrix3Array(NAME.uniform, values, count); }
+	void set##NAME(const slib::Matrix3* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setMatrix3Array(NAME.uniform, values, count); }
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const slib::Matrix4& value) { if (NAME.uniform.location >= 0) setMatrix4Value(NAME.uniform, value); }
+	void set##NAME(const slib::Matrix4& value) { if (NAME.uniform.location >= 0) setMatrix4Value(NAME.uniform, value); }
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4_ARRAY(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const slib::Matrix4* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setMatrix4Array(NAME.uniform, values, count); }
+	void set##NAME(const slib::Matrix4* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setMatrix4Array(NAME.uniform, values, count); }
 
 #define SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(NAME, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
-	SLIB_INLINE void set##NAME(const Ref<slib::Texture>& texture) { if (NAME.uniform.location >= 0) setTextureValue(NAME.uniform, texture); }
+	void set##NAME(const Ref<slib::Texture>& texture) { if (NAME.uniform.location >= 0) setTextureValue(NAME.uniform, texture); }
 
 #define SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT(MEMBER, SHADER_NAME, ...) \
 	SLIB_RENDER_INPUT_ITEM(SHADER_NAME, #SHADER_NAME, RenderInputType::Float, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), ##__VA_ARGS__)
