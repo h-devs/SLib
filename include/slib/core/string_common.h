@@ -26,8 +26,7 @@
 #include "definition.h"
 
 #include "ref.h"
-#include "string8.h"
-#include "string16.h"
+#include "atomic.h"
 
 #define SLIB_CHAR_IS_ALPHA(c) (((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z'))
 #define SLIB_CHAR_IS_ALPHA_UPPER(c) ((c) >= 'A' && (c) <= 'Z')
@@ -47,6 +46,11 @@
 namespace slib
 {
 
+	class String;
+	class String16;
+	class StringContainer;
+	class StringContainer16;
+	
 	class SLIB_EXPORT StringStorage
 	{
 	public:
@@ -85,14 +89,44 @@ namespace slib
 	struct CharTypeFromStringType<String> { typedef sl_char8 Type; };
 
 	template <>
-	struct CharTypeFromStringType<AtomicString> { typedef sl_char8 Type; };
+	struct CharTypeFromStringType< Atomic<String> > { typedef sl_char8 Type; };
 
 	template <>
 	struct CharTypeFromStringType<String16> { typedef sl_char16 Type; };
 	
 	template <>
-	struct CharTypeFromStringType<AtomicString16> { typedef sl_char16 Type; };
+	struct CharTypeFromStringType< Atomic<String16> > { typedef sl_char16 Type; };
 	
+	namespace priv
+	{
+		namespace string
+		{
+			struct ConstContainer
+			{
+				StringContainer* container;
+				sl_int32 lock;
+			};
+
+			extern const ConstContainer g_null;
+			extern const ConstContainer g_empty;
+			
+			struct ConstContainer16
+			{
+				StringContainer16* container;
+				sl_int32 lock;
+			};
+
+			extern const ConstContainer16 g_null16;
+			extern const ConstContainer16 g_empty16;
+
+			extern const char* g_conv_radixPatternUpper;
+			extern const char* g_conv_radixPatternLower;
+			extern const sl_uint8* g_conv_radixInversePatternBig;
+			extern const sl_uint8* g_conv_radixInversePatternSmall;
+
+		}
+	}
+
 }
 
 #endif

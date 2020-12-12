@@ -25,47 +25,9 @@
 
 #include "definition.h"
 
-namespace slib
-{
-
-	class StringContainer;
-	class StringContainer16;
-	
-	namespace priv
-	{
-		namespace string
-		{
-			struct ConstContainer
-			{
-				StringContainer* container;
-				sl_int32 lock;
-			};
-
-			extern const ConstContainer g_null;
-			extern const ConstContainer g_empty;
-			
-			struct ConstContainer16
-			{
-				StringContainer16* container;
-				sl_int32 lock;
-			};
-
-			extern const ConstContainer16 g_null16;
-			extern const ConstContainer16 g_empty16;
-
-			extern const char* g_conv_radixPatternUpper;
-			extern const char* g_conv_radixPatternLower;
-			extern const sl_uint8* g_conv_radixInversePatternBig;
-			extern const sl_uint8* g_conv_radixInversePatternSmall;
-
-		}
-	}
-
-}
-
+#include "string_common.h"
 #include "string8.h"
 #include "string16.h"
-#include "string_common.h"
 #include "string_view.h"
 #include "string_param.h"
 #include "string_op.h"
