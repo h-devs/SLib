@@ -51,12 +51,19 @@ namespace slib
 		MatrixT() noexcept = default;
 
 		template <class O>
-		constexpr MatrixT(const MatrixT<2, 2, O>& other) noexcept
-		{
-			m00 = (T)(other.m00); m01 = (T)(other.m01);
-			m10 = (T)(other.m10); m11 = (T)(other.m11);
-		}
+		constexpr MatrixT(const MatrixT<2, 2, O>& other) noexcept:
+			m00((T)(other.m00)), m01((T)(other.m01)),
+			m10((T)(other.m10)), m11((T)(other.m11))
+		{}
 	
+		constexpr MatrixT(
+			T _m00, T _m01,
+			T _m10, T _m11
+		) noexcept:
+			m00(_m00), m01(_m01),
+			m10(_m10), m11(_m11)
+		{}
+		
 		template <class O>
 		MatrixT(const O* arr) noexcept
 		{
@@ -69,15 +76,6 @@ namespace slib
 		{
 			m00 = (T)(rows[0].x); m01 = (T)(rows[0].y);
 			m10 = (T)(rows[1].x); m11 = (T)(rows[1].y);
-		}
-
-		constexpr MatrixT(
-			T _m00, T _m01,
-			T _m10, T _m11
-		) noexcept
-		{
-			m00 = _m00; m01 = _m01;
-			m10 = _m10; m11 = _m11;
 		}
 
 	public:

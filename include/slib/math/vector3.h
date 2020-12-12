@@ -49,26 +49,16 @@ namespace slib
 		VectorT() noexcept = default;
 
 		template <class O, class FO>
-		constexpr VectorT(const VectorT<3, O, FO>& other) noexcept
-		{
-			x = (T)(other.x);
-			y = (T)(other.y);
-			z = (T)(other.z);
-		}
+		constexpr VectorT(const VectorT<3, O, FO>& other) noexcept: x((T)(other.x)), y((T)(other.y)), z((T)(other.z)) {}
 	
+		constexpr VectorT(T _x, T _y, T _z) noexcept: x(_x), y(_y), z(_z) {}
+		
 		template <class O>
-		constexpr VectorT(const O* arr) noexcept
+		VectorT(const O* arr) noexcept
 		{
 			x = (T)(arr[0]);
 			y = (T)(arr[1]);
 			z = (T)(arr[2]);
-		}
-	
-		constexpr VectorT(T _x, T _y, T _z) noexcept
-		{
-			x = _x;
-			y = _y;
-			z = _z;
 		}
 	
 	public:

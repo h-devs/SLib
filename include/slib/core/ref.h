@@ -802,6 +802,29 @@ namespace slib
 	};
 
 	
+	class SLIB_EXPORT CWeakRef : public Referable
+	{
+		SLIB_DECLARE_OBJECT
+		
+	public:
+		CWeakRef() noexcept;
+		
+		~CWeakRef() noexcept;
+		
+	public:
+		Referable* m_object;
+		SpinLock m_lock;
+		
+	public:
+		static CWeakRef* create(Referable* object) noexcept;
+		
+	public:
+		Ref<Referable> lock() noexcept;
+		
+		void release() noexcept;
+		
+	};
+	
 	template <class T>
 	class SLIB_EXPORT WeakRef
 	{
@@ -1276,30 +1299,6 @@ namespace slib
 	{
 		typedef Ref<T> const& ArgType;
 		typedef Ref<T> RetType;
-	};
-
-	
-	class SLIB_EXPORT CWeakRef : public Referable
-	{
-		SLIB_DECLARE_OBJECT
-		
-	public:
-		CWeakRef() noexcept;
-
-		~CWeakRef() noexcept;
-
-	public:
-		Referable* m_object;
-		SpinLock m_lock;
-
-	public:
-		static CWeakRef* create(Referable* object) noexcept;
-
-	public:
-		Ref<Referable> lock() noexcept;
-
-		void release() noexcept;
-		
 	};
 
 	

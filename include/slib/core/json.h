@@ -25,11 +25,30 @@
 
 #include "definition.h"
 
-#include "json_conv.h"
+#include "variant.h"
+#include "cast.h"
+
+#ifdef SLIB_SUPPORT_STD_TYPES
+#include <initializer_list>
+#include <string>
+#include <vector>
+#include <map>
+#include <unordered_map>
+#endif
 
 namespace slib
 {
 
+	typedef List<Json> JsonList;
+	typedef AtomicList<Json> AtomicJsonList;
+	typedef HashMap<String, Json> JsonMap;
+	typedef AtomicHashMap<String, Json> AtomicJsonMap;
+	typedef List< HashMap<String, Json> > JsonMapList;
+	typedef AtomicList< HashMap<String, Json> > AtomicJsonMapList;
+	typedef Pair<String, Json> JsonItem;
+	
+	class BigInt;
+	
 	class SLIB_EXPORT JsonParseParam
 	{
 	public:
@@ -556,6 +575,8 @@ namespace slib
 	}
 
 }
+
+#include "json_conv.h"
 
 
 #define SLIB_JSON \

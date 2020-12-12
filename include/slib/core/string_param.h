@@ -23,17 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CORE_STRING_PARAM
 #define CHECKHEADER_SLIB_CORE_STRING_PARAM
 
-#include "string8.h"
-#include "string16.h"
-
-#ifdef SLIB_SUPPORT_STD_TYPES
-#include <string>
-#endif
-
 namespace slib
 {
-
-	class Variant;
 
 	enum class StringType : sl_reg
 	{
@@ -410,6 +401,7 @@ namespace slib
 		StringParam params[] = {s, Forward<ARGS>(args)...};
 		return join(params, 1 + sizeof...(args));
 	}
+	
 }
 
 #endif

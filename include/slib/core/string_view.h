@@ -23,19 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CORE_STRING_VIEW
 #define CHECKHEADER_SLIB_CORE_STRING_VIEW
 
-#include "definition.h"
-
-#ifdef SLIB_SUPPORT_STD_TYPES
-#include <string>
-#endif
-
-#include "string_op.h"
-
 namespace slib
 {
-
-	class String;
-	class String16;
 
 	class SLIB_EXPORT StringView
 	{

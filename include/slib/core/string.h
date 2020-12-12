@@ -25,7 +25,116 @@
 
 #include "definition.h"
 
-#include "string_base.h"
+#include "charset.h"
+#include "memory.h"
+#include "list.h"
+#include "hash.h"
+
+#ifdef SLIB_SUPPORT_STD_TYPES
+#include <string>
+#endif
+
+#define SLIB_CHAR_IS_ALPHA(c) (((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z'))
+#define SLIB_CHAR_IS_ALPHA_UPPER(c) ((c) >= 'A' && (c) <= 'Z')
+#define SLIB_CHAR_IS_ALPHA_LOWER(c) ((c) >= 'a' && (c) <= 'z')
+#define SLIB_CHAR_IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
+#define SLIB_CHAR_IS_ALNUM(c) (((c) >= '0' && (c) <= '9') || ((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z'))
+#define SLIB_CHAR_IS_HEX(c) (((c) >= '0' && (c) <= '9') || ((c) >= 'A' && (c) <= 'F') || ((c) >= 'a' && (c) <= 'f'))
+#define SLIB_CHAR_IS_WHITE_SPACE(c) (c == ' ' || c == '\t' || c == '\r' || c == '\n')
+#define SLIB_CHAR_IS_SPACE_TAB(c) (c == ' ' || c == '\t')
+#define SLIB_CHAR_IS_C_NAME(c) (((c) >= '0' && (c) <= '9') || ((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z') || c == '_')
+
+#define SLIB_CHAR_DIGIT_TO_INT(c) (((c) >= '0' && (c) <= '9') ? ((c) - '0') : 10)
+#define SLIB_CHAR_HEX_TO_INT(c) (((c) >= '0' && (c) <= '9') ? ((c) - '0') : (((c) >= 'A' && (c) <= 'F') ? ((c) -  55) : ((c) >= 'a' && (c) <= 'f') ? ((c) -  87) : 16))
+#define SLIB_CHAR_UPPER_TO_LOWER(c) (((c) >= 'A' && (c) <= 'Z')?((c) + ('a' - 'A')):(c))
+#define SLIB_CHAR_LOWER_TO_UPPER(c) (((c) >= 'a' && (c) <= 'z')?((c) - ('a' - 'A')):(c))
+
+namespace slib
+{
+
+	class String;
+	class String16;
+	class StringContainer;
+	class StringContainer16;
+	class StringView;
+	class StringView16;
+	class StringParam;
+	class StringStorage;
+	
+	typedef Atomic<String> AtomicString;
+	typedef Atomic<String16> AtomicString16;
+
+	class Locale;
+	class Variant;
+	class Json;
+	class Time;
+
+	template <class CharType>
+	struct StringTypeFromCharType;
+	
+	template <>
+	struct StringTypeFromCharType<sl_char16> { typedef String16 Type; };
+	
+	template <>
+	struct StringTypeFromCharType<sl_char8> { typedef String Type; };
+	
+	
+	template <class StringType>
+	struct CharTypeFromStringType;
+
+	template <>
+	struct CharTypeFromStringType<String> { typedef sl_char8 Type; };
+
+	template <>
+	struct CharTypeFromStringType< Atomic<String> > { typedef sl_char8 Type; };
+
+	template <>
+	struct CharTypeFromStringType<String16> { typedef sl_char16 Type; };
+	
+	template <>
+	struct CharTypeFromStringType< Atomic<String16> > { typedef sl_char16 Type; };
+	
+	namespace priv
+	{
+		namespace string
+		{
+			struct ConstContainer
+			{
+				StringContainer* container;
+				sl_int32 lock;
+			};
+
+			extern const ConstContainer g_null;
+			extern const ConstContainer g_empty;
+			
+			struct ConstContainer16
+			{
+				StringContainer16* container;
+				sl_int32 lock;
+			};
+
+			extern const ConstContainer16 g_null16;
+			extern const ConstContainer16 g_empty16;
+
+			extern const char* g_conv_radixPatternUpper;
+			extern const char* g_conv_radixPatternLower;
+			extern const sl_uint8* g_conv_radixInversePatternBig;
+			extern const sl_uint8* g_conv_radixInversePatternSmall;
+
+		}
+	}
+
+}
+
+#define PRIV_SLIB_DECLARE_STRING_CLASS_OP_TEMPLATE(RET, FUNC) \
+	template <class CHAR, sl_size N> RET FUNC(CHAR (&other)[N]) const noexcept; \
+	template <class ARG> RET FUNC(const ARG& other) const noexcept;
+
+#define PRIV_SLIB_DECLARE_STRING_CLASS_OP(STRING, RET, FUNC) \
+	RET FUNC(const STRING& other) const noexcept; \
+	RET FUNC(const Atomic<STRING>& other) const noexcept; \
+	PRIV_SLIB_DECLARE_STRING_CLASS_OP_TEMPLATE(RET, FUNC)
+
 #include "string8.h"
 #include "string16.h"
 #include "string_view.h"
@@ -54,16 +163,6 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StringStorage)
 
 	};
-
-	PRIV_SLIB_DEFINE_STRING_CLASS_OP_TEMPLATE(sl_bool, equals, EqualsOperator)
-	PRIV_SLIB_DEFINE_STRING_CLASS_OP_TEMPLATE(sl_compare_result, compare, CompareOperator)
-
-	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE(== , s.equals(other), s.equals(other))
-	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE(!= , !(s.equals(other)), !(s.equals(other)))
-	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE(>= , s.compare(other) >= 0, s.compare(other) <= 0)
-	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE(<= , s.compare(other) <= 0, s.compare(other) >= 0)
-	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE(>, s.compare(other)>0, s.compare(other)<0)
-	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE(<, s.compare(other)<0, s.compare(other)>0)
 
 }
 

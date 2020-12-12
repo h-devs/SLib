@@ -23,19 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_STRING16
 #define CHECKHEADER_SLIB_CORE_STRING16
 
-#include "definition.h"
-
-#include "charset.h"
-#include "memory.h"
-#include "list.h"
-#include "hash.h"
-
-#ifdef SLIB_SUPPORT_STD_TYPES
-#include <string>
-#endif
-
-#include "string_op.h"
-
 /**
  * @addtogroup core
  *  @{
@@ -43,17 +30,6 @@
 
 namespace slib
 {
-
-	class String16;
-	typedef Atomic<String16> AtomicString16;
-	class String;
-	class StringView;
-	class StringView16;
-	class StringStorage;
-	class Locale;
-	class Variant;
-	class Json;
-	class Time;
 
 	class SLIB_EXPORT StringContainer16
 	{
@@ -1280,7 +1256,7 @@ namespace slib
 		 */
 		sl_bool isNull() const noexcept
 		{
-			return m_container == sl_null;
+			return !m_container;
 		}
 		
 		/**

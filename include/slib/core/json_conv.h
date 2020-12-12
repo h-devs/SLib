@@ -23,17 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_JSON_CONV
 #define CHECKHEADER_SLIB_CORE_JSON_CONV
 
-#include "variant.h"
-#include "cast.h"
-
-#ifdef SLIB_SUPPORT_STD_TYPES
-#include <initializer_list>
-#include <string>
-#include <vector>
-#include <map>
-#include <unordered_map>
-#endif
-
 namespace slib
 {
 	
@@ -80,18 +69,6 @@ namespace slib
 		}
 	}
 
-	class Json;
-	
-	typedef List<Json> JsonList;
-	typedef AtomicList<Json> AtomicJsonList;
-	typedef HashMap<String, Json> JsonMap;
-	typedef AtomicHashMap<String, Json> AtomicJsonMap;
-	typedef List< HashMap<String, Json> > JsonMapList;
-	typedef AtomicList< HashMap<String, Json> > AtomicJsonMapList;
-	typedef Pair<String, Json> JsonItem;
-
-	class BigInt;
-	
 	void FromJson(const Json& json, Json& _out);
 	void ToJson(Json& json, const Json& _in);
 	
@@ -239,7 +216,7 @@ namespace slib
 	}
 
 	template <class T>
-	static void ToJson(Json& json, const Ref<T>& ref)
+	static void ToJson(Json& json, const Ref<T>& _in)
 	{
 		if (_in.isNotNull()) {
 			json = _in->toJson();

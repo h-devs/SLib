@@ -1031,7 +1031,7 @@ namespace slib
 	Ptr<T> SharedPtr(T* _ptr, const Deleter& deleter)
 	{
 		if (_ptr) {
-			Ref<Referable> ref = new priv::ptr::SharedPtrContainerWithDeleter<T, TDELETER>(_ptr, deleter);
+			Ref<Referable> ref = new priv::ptr::SharedPtrContainerWithDeleter<T, Deleter>(_ptr, deleter);
 			if (ref.isNotNull()) {
 				return Ptr<T>(_ptr, ref);
 			}
