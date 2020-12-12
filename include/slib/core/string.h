@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#include "string_common.h"
+#include "string_base.h"
 #include "string8.h"
 #include "string16.h"
 #include "string_view.h"
@@ -34,6 +34,26 @@
 
 namespace slib
 {
+
+	class SLIB_EXPORT StringStorage
+	{
+	public:
+		union {
+			const sl_char8* data8;
+			const sl_char16* data16;
+			const sl_char32* data32;
+		};
+		sl_size length;
+		Ref<Referable> refer;
+		String string8;
+		String16 string16;
+
+	public:
+		StringStorage() noexcept;
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StringStorage)
+
+	};
 
 	PRIV_SLIB_DEFINE_STRING_CLASS_OP_TEMPLATE(sl_bool, equals, EqualsOperator)
 	PRIV_SLIB_DEFINE_STRING_CLASS_OP_TEMPLATE(sl_compare_result, compare, CompareOperator)

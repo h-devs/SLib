@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_STRING_COMMON
-#define CHECKHEADER_SLIB_CORE_STRING_COMMON
+#ifndef CHECKHEADER_SLIB_CORE_STRING_BASE
+#define CHECKHEADER_SLIB_CORE_STRING_BASE
 
 #include "definition.h"
 
@@ -50,7 +50,6 @@ namespace slib
 	class String16;
 	class StringContainer;
 	class StringContainer16;
-	
 	
 	template <class CharType>
 	struct StringTypeFromCharType;
