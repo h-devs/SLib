@@ -67,7 +67,7 @@ namespace slib
 		{
 		}
 
-		CubicBezierCurveT(T x0, T y0, T x1, T y1, T x2, T y2, T x3, T y3) noexcept
+		CubicBezierCurveT(T _x0, T _y0, T _x1, T _y1, T _x2, T _y2, T _x3, T _y3) noexcept
 			:x0(_x0), y0(_y0),
 			x1(_x1), y1(_y1),
 			x2(_x2), y2(_y2),

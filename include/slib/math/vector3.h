@@ -198,7 +198,7 @@ namespace slib
 			x = (T)(other.x);
 			y = (T)(other.y);
 			z = (T)(other.z);
-			return *this;			
+			return *this;
 		}
 
 		VectorT operator+(const VectorT& other) const noexcept

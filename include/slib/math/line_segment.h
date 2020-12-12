@@ -49,7 +49,7 @@ namespace slib
 		{
 		}
 
-		LineSegmentT(const PointT<T>& point1, const PointT<T>& point2) noexcept :
+		LineSegmentT(const PointT<T>& _point1, const PointT<T>& _point2) noexcept :
 			point1(_point1), point2(_point2)
 		{
 			point1 = _point1;

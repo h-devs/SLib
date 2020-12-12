@@ -72,7 +72,7 @@ namespace slib
 		{
 			static SLIB_ALIGN(8) T _zero[2] = { 0 };
 			return *(reinterpret_cast<VectorT const*>(&_zero));
-		}		
+		}
 
 		static const VectorT& fromArray(const T arr[2]) noexcept
 		{
@@ -101,7 +101,7 @@ namespace slib
 
 		FT getLength() const noexcept
 		{
-			return Math::sqrt((FT)(x * x + y * y));		
+			return Math::sqrt((FT)(x * x + y * y));
 		}
 
 		T getLength2p(const VectorT& other) const noexcept

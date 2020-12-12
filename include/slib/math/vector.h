@@ -338,7 +338,7 @@ namespace slib
 	public:
 		static VectorT<N, T, FT> interpolate(const VectorT<N, T, FT>& a, const VectorT<N, T, FT>& b, float factor) noexcept
 		{
-			return a.lerp(b, factor);	
+			return a.lerp(b, factor);
 		}
 
 	};

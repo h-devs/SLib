@@ -60,6 +60,13 @@ namespace slib
 			return *((ViewFrustumT<T>*)(void*)&MVP);
 		}
 
+#ifdef near
+#undef near
+#endif
+#ifdef far
+#undef far
+#endif
+
 		void getPlanes(PlaneT<T>& near, PlaneT<T>& far, PlaneT<T>& left, PlaneT<T>& right, PlaneT<T>& top, PlaneT<T>& bottom) const noexcept
 		{
 			const Matrix4T<T>& m = MVP;

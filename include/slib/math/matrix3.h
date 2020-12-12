@@ -98,7 +98,7 @@ namespace slib
 		static const MatrixT& zero() noexcept
 		{
 			static SLIB_ALIGN(8) T _zero[9] = { 0 };
-			return *(reinterpret_cast<MatrixT const*>(&_zero));			
+			return *(reinterpret_cast<MatrixT const*>(&_zero));
 		}
 
 		static const MatrixT& one() noexcept
