@@ -37,6 +37,8 @@ namespace slib
 	class String16;
 	class StringView;
 	class StringView16;
+	class StringData;
+	class StringData16;
 	class StringParam;
 
 #define PRIV_SLIB_DECLARE_STRING_CLASS_OP_TEMPLATE(RET, FUNC) \
