@@ -27,6 +27,8 @@
 
 #include "ref.h"
 
+#include <new>
+
 namespace slib
 {
 	namespace priv
