@@ -41,6 +41,7 @@ namespace slib
 		{
 
 			pthread_t g_threadMain = 0;
+			sl_bool g_flagRunningAppLoop = sl_false;
 
 			class ScreenImpl : public Screen
 			{
@@ -227,14 +228,20 @@ namespace slib
 		
 		UIApp::dispatchStartToApp();
 
-		gtk_main();
+		if (!(UI::isQuitingApp())) {
+			g_flagRunningAppLoop = sl_true;
+			gtk_main();
+			g_flagRunningAppLoop = sl_false;
+		}
 		
 		UIApp::dispatchExitToApp();
 	}
 
 	void UIPlatform::quitApp()
 	{
-		gtk_main_quit();
+		if (g_flagRunningAppLoop) {
+			gtk_main_quit();
+		}
 	}
 
 	void UIPlatform::getGdkColor(const Color& color, GdkColor* _out)
