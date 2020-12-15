@@ -53,17 +53,23 @@ namespace slib
 		sl_size m_latency;
 	
 	public:
-		LoopQueue(sl_size size = 10, sl_size latency = 0) noexcept
+		LoopQueue(sl_size size = 0, sl_size latency = 0) noexcept
 		{
 			m_first = 0;
 			m_count = 0;
 			m_latency = latency;
-			m_data = NewHelper<T>::create(size);
-			if (m_data) {
-				m_size = size;
-			} else {
+			do {
+				if (size) {
+					m_data = NewHelper<T>::create(size);
+					if (m_data) {
+						m_size = size;
+						break;
+					}
+				} else {
+					m_data = sl_null;
+				}
 				m_size = 0;
-			}
+			} while (0);
 		}
 
 		~LoopQueue() noexcept
@@ -85,12 +91,17 @@ namespace slib
 			if (m_data) {
 				NewHelper<T>::free(m_data, m_size);
 				m_data = sl_null;
-			}
-			m_data = NewHelper<T>::create(size);
-			if (m_data) {
 				m_first = 0;
 				m_count = 0;
-				m_size = size;
+				m_size = 0;
+			}
+			if (size) {
+				m_data = NewHelper<T>::create(size);
+				if (m_data) {
+					m_size = size;
+					return sl_true;
+				}
+			} else {
 				return sl_true;
 			}
 			return sl_false;
@@ -125,7 +136,7 @@ namespace slib
 			return m_latency;
 		}
 
-		sl_bool push(const T& data, sl_bool flagShift = sl_true) noexcept
+		sl_bool push(const T& value, sl_bool flagShift = sl_true) noexcept
 		{
 			ObjectLocker lock(this);
 			if (m_size == 0) {
@@ -135,7 +146,7 @@ namespace slib
 				return sl_false;
 			}
 			sl_size last = m_first + m_count;
-			m_data[last % m_size] = data;
+			m_data[last % m_size] = value;
 			m_count ++;
 			if (m_count > m_size) {
 				m_count = m_size;
@@ -219,7 +230,7 @@ namespace slib
 			return ret;
 		}
 
-		sl_size copy(T* buffer, sl_size count) const noexcept
+		sl_size read(T* buffer, sl_size count) const noexcept
 		{
 			ObjectLocker lock(this);
 			if (count > m_count) {
