@@ -766,7 +766,6 @@ namespace slib
 		return g_keyboardAdjustMode;
 	}
 	
-	
 	void UI::setKeyboardAdjustMode(UIKeyboardAdjustMode mode)
 	{
 		g_keyboardAdjustMode = mode;

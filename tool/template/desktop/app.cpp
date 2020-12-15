@@ -14,6 +14,6 @@ void SLIB_TEMPLATE_APP_NAMEApp::onStart()
 	window->setOnClose([](Window* window, UIEvent* ev) {
 		UIApp::quit();
 	});
-	window->create();
+	window->show();
 	setMainWindow(window);
 }
