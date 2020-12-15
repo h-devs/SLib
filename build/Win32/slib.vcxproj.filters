@@ -1508,5 +1508,8 @@
     <ClCompile Include="..\..\src\slib\dev\pe_utils.cpp">
       <Filter>src\dev</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\audio_view.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

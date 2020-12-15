@@ -78,6 +78,7 @@
 #include "ui/render_view.h"
 #include "ui/web_view.h"
 #include "ui/video_view.h"
+#include "ui/audio_view.h"
 #include "ui/camera_view.h"
 #include "ui/qr_code_scanner.h"
 
