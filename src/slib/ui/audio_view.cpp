@@ -161,7 +161,7 @@ namespace slib
 		}
 		{
 			for (sl_uint32 i = iStart; i < nFramesPerWindow; i++) {
-				sl_uint32 y = h2 - (sl_uint32)(window[i - iStart]) * height / 0x7fff;
+				sl_int32 y = h2 - (sl_uint32)(window[i - iStart]) * height / 0x10000;
 				pts[i].x = (sl_real)(bounds.left + i * width / nFramesPerWindow);
 				pts[i].y = (sl_real)(bounds.top + y);
 				pts[iEndPts - i].x = pts[i].x;
