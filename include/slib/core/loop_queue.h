@@ -230,24 +230,29 @@ namespace slib
 			return ret;
 		}
 
-		sl_size read(T* buffer, sl_size count) const noexcept
+		sl_size read(T* _out, sl_size count) const noexcept
+		{
+			return read(0, _out, count);
+		}
+
+		sl_size read(sl_size offset, T* _out, sl_size count) const noexcept
 		{
 			ObjectLocker lock(this);
-			if (count > m_count) {
-				count = m_count;
+			if (offset > m_count) {
+				return 0;
+			}
+			if (count > m_count - offset) {
+				count = m_count - offset;
 			}
 			{
 				sl_size n = 0;
-				sl_size i = m_first;
-				while (i < m_size && n < count) {
-					buffer[n] = m_data[i];
-					i++;
-					n++;
-				}
-				i = 0;
+				sl_size i = (m_first + offset) % m_size;
 				while (n < count) {
-					buffer[n] = m_data[i];
+					_out[n] = m_data[i];
 					i++;
+					if (i >= m_size) {
+						i = 0;
+					}
 					n++;
 				}
 			}
