@@ -244,11 +244,11 @@ namespace slib
 		virtual Ref<ButtonCell> createButtonCell();
 
 	public:
-		void setEnabled(sl_bool flagEnabled, UIUpdateMode mode = UIUpdateMode::Redraw) override;
+		void setEnabled(sl_bool flagEnabled = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 		
-		void setPressedState(sl_bool flagState, UIUpdateMode mode = UIUpdateMode::Redraw) override;
+		void setPressedState(sl_bool flagState = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 		
-		void setHoverState(sl_bool flagState, UIUpdateMode mode = UIUpdateMode::Redraw) override;
+		void setHoverState(sl_bool flagState = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 		
 		void dispatchDraw(Canvas* canvas) override;
 
