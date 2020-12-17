@@ -40,7 +40,8 @@ namespace slib
 	enum class OpusEncoderType
 	{
 		Voice = 0,
-		Music = 1
+		Music = 1,
+		Auto = 2
 	};
 	
 	class SLIB_EXPORT OpusEncoderParam

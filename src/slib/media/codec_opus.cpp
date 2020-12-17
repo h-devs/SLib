@@ -128,14 +128,18 @@ namespace slib
 						if (encoderBackup) {
 #endif
 							int app = OPUS_APPLICATION_VOIP;
-							if (param.type == OpusEncoderType::Music) {
+							if (param.type != OpusEncoderType::Voice) {
 								app = OPUS_APPLICATION_AUDIO;
 							}
-							int error = ::opus_encoder_init(encoder, (opus_int32)(param.samplesPerSecond), (opus_int32)(param.channelsCount), app);
+							int error = opus_encoder_init(encoder, (opus_int32)(param.samplesPerSecond), (opus_int32)(param.channelsCount), app);
 							if (error == OPUS_OK) {
 								
-								if (app == OPUS_SIGNAL_VOICE) {
-									::opus_encoder_ctl(encoder, OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
+								if (param.type == OpusEncoderType::Voice) {
+									opus_encoder_ctl(encoder, OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
+								} else if (param.type == OpusEncoderType::Music) {
+									opus_encoder_ctl(encoder, OPUS_SET_SIGNAL(OPUS_SIGNAL_MUSIC));
+								} else {
+									opus_encoder_ctl(encoder, OPUS_SET_SIGNAL(OPUS_AUTO));
 								}
 								
 								Ref<EncoderImpl> ret = new EncoderImpl();
@@ -221,7 +225,7 @@ namespace slib
 							ObjectLocker lock(this);
 							if (m_flagResetBitrate) {
 								sl_uint32 bitrate = getBitrate();
-								::opus_encoder_ctl(m_encoder, OPUS_SET_BITRATE(bitrate));
+								opus_encoder_ctl(m_encoder, OPUS_SET_BITRATE(bitrate));
 								m_flagResetBitrate = sl_false;
 							}
 #ifdef OPUS_RESET_INTERVAL
@@ -234,9 +238,9 @@ namespace slib
 							sl_uint8 output[4000]; // opus recommends 4000 bytes for output buffer
 							int ret;
 							if (flagFloat) {
-								ret = ::opus_encode_float(m_encoder, (float*)(audio.data), (int)(audio.count), (unsigned char*)output, sizeof(output));
+								ret = opus_encode_float(m_encoder, (float*)(audio.data), (int)(audio.count), (unsigned char*)output, sizeof(output));
 							} else {
-								ret = ::opus_encode(m_encoder, (opus_int16*)(audio.data), (int)(audio.count), (unsigned char*)output, sizeof(output));
+								ret = opus_encode(m_encoder, (opus_int16*)(audio.data), (int)(audio.count), (unsigned char*)output, sizeof(output));
 							}
 							if (ret > 0) {
 								return Memory::create(output, ret);
@@ -310,7 +314,7 @@ namespace slib
 				
 				~DecoderImpl()
 				{
-					::opus_decoder_destroy(m_decoder);
+					opus_decoder_destroy(m_decoder);
 				}
 
 			public:
@@ -330,7 +334,7 @@ namespace slib
 						return sl_null;
 					}
 					int error;
-					::OpusDecoder* decoder = ::opus_decoder_create((opus_int32)(param.samplesPerSecond), (opus_int32)(param.channelsCount), &error);
+					::OpusDecoder* decoder = opus_decoder_create((opus_int32)(param.samplesPerSecond), (opus_int32)(param.channelsCount), &error);
 					if (! decoder) {
 						return sl_null;
 					}
@@ -340,7 +344,7 @@ namespace slib
 						ret->m_nSamplesPerSecond = param.samplesPerSecond;
 						ret->m_nChannels = param.channelsCount;
 					} else {
-						::opus_decoder_destroy(decoder);
+						opus_decoder_destroy(decoder);
 					}
 					return ret;
 				}
@@ -386,9 +390,9 @@ namespace slib
 					{
 						ObjectLocker lock(this);
 						if (flagFloat) {
-							ret = ::opus_decode_float(m_decoder, (unsigned char*)input, (int)sizeInput, (float*)(audio.data), (int)(audio.count), 0);
+							ret = opus_decode_float(m_decoder, (unsigned char*)input, (int)sizeInput, (float*)(audio.data), (int)(audio.count), 0);
 						} else {
-							ret = ::opus_decode(m_decoder, (unsigned char*)input, (int)sizeInput, (opus_int16*)(audio.data), (int)(audio.count), 0);
+							ret = opus_decode(m_decoder, (unsigned char*)input, (int)sizeInput, (opus_int16*)(audio.data), (int)(audio.count), 0);
 						}
 					}
 					if (ret > 0) {
