@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,9 @@
 
 #if defined(SLIB_UI_IS_ANDROID)
 
-#include "slib/ui/window.h"
+#include "window.h"
 
-#include "slib/ui/view.h"
-#include "slib/ui/platform.h"
+#include "view_android.h"
 
 namespace slib
 {
@@ -118,9 +117,9 @@ namespace slib
 					return sl_null;
 				}
 
-				static jobject createHandle(const WindowInstanceParam& param)
+				static jobject createHandle(Window* window)
 				{
-					jobject jactivity = (jobject)(param.activity);
+					jobject jactivity = (jobject)(window->getActivity());
 					if (!jactivity) {
 						jactivity = Android::getCurrentActivity();
 						if (!jactivity) {
@@ -128,9 +127,23 @@ namespace slib
 						}
 					}
 					jobject jwindow = JWindow::create.callObject(sl_null, jactivity
-						, param.flagFullScreen, param.flagCenterScreen
-						, (int)(param.location.x), (int)(param.location.y), (int)(param.size.x), (int)(param.size.y));
-					return jwindow;
+						, window->isFullScreen(), window->isCenterScreen()
+						, (int)(window->getLeft()), (int)(window->getTop()), (int)(window->getWidth()), (int)(window->getHeight()));
+					if (jwindow) {
+						if (!(window->isDefaultBackgroundColor())) {
+							Color color = window->getBackgroundColor();
+							JWindow::setBackgroundColor.call(jwindow, color.getARGB());
+						}
+						sl_real alpha = window->getAlpha();
+						if (alpha <= 0.9999f) {
+							JWindow::setAlpha.call(jwindow, (jfloat)alpha);
+						}
+						if (window->isAlwaysOnTop()) {
+							JWindow::setAlwaysOnTop.call(jwindow, 1);
+						}
+						return jwindow;
+					}
+					return sl_null;
 				}
 
 				void close() override
@@ -370,9 +383,9 @@ namespace slib
 
 	using namespace priv::window;
 
-	Ref<WindowInstance> Window::createWindowInstance(const WindowInstanceParam& param)
+	Ref<WindowInstance> Window::createWindowInstance()
 	{
-		JniLocal<jobject> jwindow = Android_WindowInstance::createHandle(param);
+		JniLocal<jobject> jwindow = Android_WindowInstance::createHandle(this);
 		if (jwindow.isNotNull()) {
 			return Android_WindowInstance::create(jwindow);
 		}

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -30,44 +30,6 @@
 
 namespace slib
 {
-	
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(WindowInstanceParam)
-	
-	WindowInstanceParam::WindowInstanceParam()
-	{
-		flagBorderless = sl_false;
-		flagShowTitleBar = sl_false;
-		flagFullScreen = sl_true;
-		flagCenterScreen = sl_true;
-		flagDialog = sl_false;
-		flagModal = sl_false;
-		flagSheet = sl_false;
-		
-#if defined(SLIB_UI_IS_ANDROID)
-		activity = sl_null;
-#endif
-#if defined(SLIB_UI_IS_GTK)
-		flagClientSize = sl_false;
-#endif
-	}
-
-	UIRect WindowInstanceParam::calculateRegion(const UIRect& screenFrame) const
-	{
-		UIRect frame;
-		if (flagFullScreen) {
-			frame.setLeftTop(0, 0);
-			frame.setSize(screenFrame.getSize());
-		} else {
-			if (flagCenterScreen) {
-				frame.setLeftTop(screenFrame.getWidth() / 2 - size.x / 2, screenFrame.getHeight() / 2 - size.y / 2);
-			} else {
-				frame.setLeftTop(location);
-			}
-			frame.setSize(size);
-		}
-		frame.fixSizeError();
-		return frame;
-	}
 	
 	namespace priv
 	{
@@ -468,6 +430,11 @@ namespace slib
 		}
 	}
 
+	sl_bool Window::isRequestedClientSize()
+	{
+		return m_flagUseClientSizeRequested;
+	}
+
 	UIRect Window::getClientFrame()
 	{
 		Ref<WindowInstance> instance = m_instance;
@@ -486,7 +453,7 @@ namespace slib
 			if (m_flagUseClientSizeRequested) {
 				return m_clientSizeRequested;
 			} else {
-				return UISize::zero();
+				return getSize();
 			}
 		}
 	}
@@ -611,6 +578,11 @@ namespace slib
 			m_flagDefaultBackgroundColor = sl_true;
 			m_backgroundColor.setZero();
 		}
+	}
+
+	sl_bool Window::isDefaultBackgroundColor()
+	{
+		return m_flagDefaultBackgroundColor;
 	}
 
 	sl_bool Window::isMinimized()
@@ -1300,13 +1272,6 @@ namespace slib
 			return;
 		}
 		
-		WindowInstanceParam param;
-
-		Ref<Window> parent = m_parent;
-		if (parent.isNotNull()) {
-			param.parent = parent->m_instance;
-		}
-		
 		if (m_flagWidthWrapping || m_flagHeightWrapping) {
 			UISize sizeMeasured = m_viewContent->measureLayoutWrappingSize(m_flagWidthWrapping, m_flagHeightWrapping);
 			if (m_flagWidthWrapping) {
@@ -1323,29 +1288,7 @@ namespace slib
 			}
 		}
 		
-		param.screen = m_screen;
-		param.menu = m_menu;
-		param.flagBorderless = m_flagBorderless;
-		param.flagFullScreen = m_flagFullScreen;
-		param.flagCenterScreen = m_flagCenterScreen;
-		param.flagDialog = m_flagDialog;
-		param.flagModal = m_flagModal;
-		param.flagSheet = m_flagSheet;
-		param.location = m_frame.getLocation();
-		param.size = m_frame.getSize();
-		param.title = m_title;
-		param.flagShowTitleBar = m_flagShowTitleBar;
-#if defined(SLIB_UI_IS_ANDROID)
-		param.activity = m_activity;
-#endif
-#if defined(SLIB_UI_IS_GTK)
-		param.flagClientSize = m_flagUseClientSizeRequested;
-		if (m_flagUseClientSizeRequested) {
-			param.size = m_clientSizeRequested;
-		}
-#endif
-
-		Ref<WindowInstance> window = createWindowInstance(param);
+		Ref<WindowInstance> window = createWindowInstance();
 		
 		if (window.isNotNull()) {
 			
@@ -1353,30 +1296,6 @@ namespace slib
 				increaseReference();
 				window->setKeepWindow(sl_true);
 			}
-			
-			if (!m_flagDefaultBackgroundColor) {
-				window->setBackgroundColor(m_backgroundColor);
-			}
-			
-			window->setCloseButtonEnabled(m_flagCloseButtonEnabled);
-			window->setMinimizeButtonEnabled(m_flagMinimizeButtonEnabled);
-			window->setMaximizeButtonEnabled(m_flagMaximizeButtonEnabled);
-			window->setFullScreenButtonEnabled(m_flagFullScreenButtonEnabled);
-			window->setResizable(m_flagResizable);
-			window->setLayered(m_flagLayered);
-			window->setAlpha(m_alpha);
-			window->setTransparent(m_flagTransparent);
-			
-			window->setSizeRange(m_sizeMin, m_sizeMax, m_aspectRatioMinimum, m_aspectRatioMaximum);
-			
-#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32)
-			if (m_flagUseClientSizeRequested) {
-				UISize size = window->getWindowSizeFromClientSize(m_clientSizeRequested);
-				m_frame = window->getFrame();
-				m_frame.setSize(size);
-				window->setFrame(m_frame);
-			}
-#endif
 
 			if (m_flagMinimized) {
 				window->setMinimized(sl_true);
@@ -1388,24 +1307,12 @@ namespace slib
 				window->setMaximized(sl_true);
 #endif
 			}
-			if (m_flagAlwaysOnTop) {
-				window->setAlwaysOnTop(sl_true);
-			}
 			
 			attach(window, sl_false);
 
 			dispatchCreate();
 
-#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_EFL)
-			UISize sizeClient = getClientSize();
-			dispatchResize(sizeClient.x, sizeClient.y);
-#endif
-#if defined(SLIB_UI_IS_WIN32)
-			if (m_flagDialog || m_flagBorderless || m_flagFullScreen || !m_flagShowTitleBar) {
-				UISize sizeClient = getClientSize();
-				dispatchResize(sizeClient.x, sizeClient.y);
-			}
-#endif
+			window->doPostCreate();
 			
 			if (m_flagVisible) {
 				window->setVisible(sl_true);
@@ -1920,6 +1827,10 @@ namespace slib
 	sl_bool WindowInstance::doModal()
 	{
 		return sl_false;
+	}
+
+	void WindowInstance::doPostCreate()
+	{
 	}
 
 	sl_bool WindowInstance::onClose()

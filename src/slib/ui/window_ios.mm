@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,11 +24,8 @@
 
 #if defined(SLIB_UI_IS_IOS)
 
-#include "slib/ui/window.h"
+#include "window.h"
 
-#include "slib/ui/view.h"
-#include "slib/ui/screen.h"
-#include "slib/ui/core.h"
 #include "slib/ui/platform.h"
 #include "slib/ui/resource.h"
 
@@ -123,21 +120,9 @@ namespace slib
 					return sl_null;
 				}
 				
-				static Ref<WindowInstance> create(const WindowInstanceParam& param)
+				static Ref<WindowInstance> create(Window* window)
 				{
-					UIRect screenFrame;
-					Ref<Screen> _screen = param.screen;
-					if (_screen.isNotNull()) {
-						screenFrame = _screen->getRegion();
-					} else {
-						_screen = UI::getPrimaryScreen();
-						if (_screen.isNotNull()) {
-							screenFrame = _screen->getRegion();
-						} else {
-							screenFrame = UIRect::zero();
-						}
-					}
-					UIRect _rect = param.calculateRegion(screenFrame);
+					UIRect _rect = MakeWindowFrame(window);
 					CGRect rect;
 					CGFloat f = UIPlatform::getGlobalScaleFactor();
 					rect.origin.x = (CGFloat)(_rect.left) / f;
@@ -145,24 +130,39 @@ namespace slib
 					rect.size.width = (CGFloat)(_rect.getWidth()) / f;
 					rect.size.height = (CGFloat)(_rect.getHeight()) / f;
 					
-					UIWindow* window;
+					UIWindow* handle;
 					sl_bool flagMainWindow = sl_false;
 					static sl_bool flagFirstWindow = sl_true;
 					if (flagFirstWindow) {
-						window = UIPlatform::getMainWindow();
+						handle = UIPlatform::getMainWindow();
 						flagFirstWindow = sl_false;
 						flagMainWindow = sl_true;
 					} else {
-						window = [[UIWindow alloc] initWithFrame:rect];
+						handle = [[UIWindow alloc] initWithFrame:rect];
 					}
-					if (window != nil) {
+					if (handle != nil) {
+						Color backColor = window->getBackgroundColor();
+						if (backColor.isNotZero()) {
+							[handle setBackgroundColor:GraphicsPlatform::getUIColorFromColor(backColor)];
+						}
+						sl_real alpha = window->getAlpha();
+						if (alpha < 0.9999f) {
+							if (alpha < 0) {
+								alpha = 0;
+							}
+							handle.alpha = alpha;
+						}
+						if (window->isAlwaysOnTop()) {
+							handle.windowLevel = UIWindowLevelAlert + 1;
+						}
 #ifndef SLIB_PLATFORM_IS_IOS_CATALYST
-						if (!flagMainWindow) {
+						else if (!flagMainWindow) {
+							Ref<Screen> _screen = window->getScreen();
 							UIScreen* screen = UIPlatform::getScreenHandle(_screen.get());
 							if (screen != nil) {
-								window.screen = screen;
+								handle.screen = screen;
 							}
-							window.windowLevel = UIWindowLevelNormal + 1;
+							handle.windowLevel = UIWindowLevelNormal + 1;
 						}
 #endif
 						SLIBWindowRootViewController* controller = [[SLIBWindowRootViewController alloc] init];
@@ -173,8 +173,8 @@ namespace slib
 							if (view != nil) {
 								view.opaque = NO;
 								controller.view = view;
-								window.rootViewController = controller;
-								Ref<iOS_WindowInstance> ret = create(window);
+								handle.rootViewController = controller;
+								Ref<iOS_WindowInstance> ret = create(handle);
 								if (ret.isNotNull()) {
 									controller->m_window = ret;
 									ret->activate();
@@ -537,9 +537,9 @@ namespace slib
 	using namespace priv::platform;
 	using namespace priv::window;
 
-	Ref<WindowInstance> Window::createWindowInstance(const WindowInstanceParam& param)
+	Ref<WindowInstance> Window::createWindowInstance()
 	{
-		return iOS_WindowInstance::create(param);
+		return iOS_WindowInstance::create(this);
 	}
 	
 	Ref<Window> Window::getActiveWindow()

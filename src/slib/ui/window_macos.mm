@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,8 @@
 
 #if defined(SLIB_UI_IS_MACOS)
 
-#include "slib/ui/window.h"
+#include "window.h"
 
-#include "slib/ui/screen.h"
-#include "slib/ui/core.h"
 #include "slib/ui/platform.h"
 
 #include "view_macos.h"
@@ -126,18 +124,24 @@ namespace slib
 					return sl_null;
 				}
 				
-				static Ref<WindowInstance> create(const WindowInstanceParam& param)
+				static Ref<WindowInstance> create(Window* window)
 				{
 					
-					NSWindow* parent = nil;
-					if (param.parent.isNotNull()) {
-						macOS_WindowInstance* w = static_cast<macOS_WindowInstance*>(param.parent.get());
-						parent = w->m_window;
-					}
+					Ref<Window> _parent = window->getParent();
+					NSWindow* parent = static_cast<macOS_WindowInstance*>(UIPlatform::getWindowHandle(_parent.get()));
 					
+					UIRect frameScreen;
+					NSScreen* screen = nil;
+					Ref<Screen> _screen = window->getScreen();
+					if (_screen.isNotNull()) {
+						frameScreen = _screen->getRegion();
+						screen = UIPlatform::getScreenHandle(_screen.get());
+					} else {
+						frameScreen = UI::getScreenRegion();
+					}
+
 					sl_bool flagSheet = param.flagSheet && parent != nil;
 					
-					NSScreen* screen = nil;
 					int styleMask = 0;
 					NSRect rect;
 					
@@ -145,73 +149,100 @@ namespace slib
 						
 						rect.origin.x = 0;
 						rect.origin.y = 0;
-						rect.size.width = param.size.x;
-						rect.size.height = param.size.y;
+						rect.size.width = window->getWidth();
+						rect.size.height = window->getHeight();
 						
 						styleMask = NSTitledWindowMask;
 						
 					} else {
 						
-						if (param.flagBorderless) {
+						if (window->isBorderless()) {
 							styleMask = NSBorderlessWindowMask;
 						} else {
-							if (param.flagShowTitleBar){
-								styleMask = NSTitledWindowMask | NSClosableWindowMask;
-							} else {
-								styleMask = NSClosableWindowMask | NSMiniaturizableWindowMask;
+							if (window->isTitleBarVisible()) {
+								styleMask = NSTitledWindowMask;
+							}
+							if (window->isCloseButtonEnabled()) {
+								styleMask |= NSClosableWindowMask;
+							}
+							if (window->MinimizeButtonEnabled()) {
+								styleMask |= NSMiniaturizableWindowMask;
+							}
+							if (window->isResizable()) {
+								styleMask |= NSResizableWindowMask;
 							}
 						}
 
-						screen = UIPlatform::getScreenHandle(param.screen.get());
-						
-						UIRect screenFrame;
-						Ref<Screen> _screen = param.screen;
-						if (_screen.isNotNull()) {
-							screenFrame = _screen->getRegion();
-						} else {
-							_screen = UI::getPrimaryScreen();
-							if (_screen.isNotNull()) {
-								screenFrame = _screen->getRegion();
-							} else {
-								screenFrame = UIRect::zero();
-							}
+						NSRect rcDiff = [NSWindow contentRectForFrameRect:NSMakeRect(0, 0, 100, 100) styleMask:styleMask];
+						sl_ui_len widthDiff = (sl_ui_len)(100 - rcDiff.size.width);
+						sl_ui_len heightDiff = (sl_ui_len)(100 - rcDiff.size.height);
+						UIFrame frame = window->getFrame();
+						if (window->isRequestedClientSize()) {
+							UISize size = window->getClientSize();
+							size.x += widthDiff;
+							size.y += heightDiff;
+							frame.setSize(size);
 						}
-						
-						WindowInstanceParam _param(param);
-						_param.flagFullScreen = sl_false;
-						_getNSRect(rect, _param.calculateRegion(screenFrame), screenFrame.getHeight());
-						
-						rect = [NSWindow contentRectForFrameRect:rect styleMask:styleMask];
+						UIRect frameWindow = MakeWindowFrame(window, frame);
+						frameWindow.right -= widthDiff;
+						frameWindow.bottom -= heightDiff;
+						_getNSRect(rect, frameWindow, frameScreen.getHeight());
 					}
 					
-					SLIBWindowHandle* window = [[SLIBWindowHandle alloc] initWithContentRect:rect styleMask:styleMask backing:NSBackingStoreBuffered defer:YES screen:screen];
+					SLIBWindowHandle* handle = [[SLIBWindowHandle alloc] initWithContentRect:rect styleMask:styleMask backing:NSBackingStoreBuffered defer:YES screen:screen];
 					
-					if (window != nil) {
+					if (handle != nil) {
 						
-						[window setDelegate: window];
-						window.animationBehavior = NSWindowAnimationBehaviorDocumentWindow;
+						[handle setDelegate: handle];
+						handle.animationBehavior = NSWindowAnimationBehaviorDocumentWindow;
 
-						window->m_flagStateResizingWidth = sl_false;
-						[window setReleasedWhenClosed:NO];
-						[window setContentView:[[SLIBViewHandle alloc] init]];
+						handle->m_flagStateResizingWidth = sl_false;
+						[handle setReleasedWhenClosed:NO];
+						[handle setContentView:[[SLIBViewHandle alloc] init]];
 						
-						Ref<macOS_WindowInstance> ret = create(window);
+						Ref<macOS_WindowInstance> ret = create(handle);
 						
 						if (ret.isNotNull()) {
 							
 							ret->m_parent = parent;
 							
-							window->m_window = ret;
+							handle->m_window = ret;
 							
 							{
-								NSString* title = Apple::getNSStringFromString(param.title);
-								[window setTitle: title];
+								NSString* title = Apple::getNSStringFromString(window->getTitle());
+								[handle setTitle: title];
+
+								Color _color = window->getBackgroundColor();
+								if (_color.isNotZero()) {
+									NSColor* color = GraphicsPlatform::getNSColorFromColor(_color);
+									[handle setBackgroundColor:color];
+								}
+
+								if (window->isFullScreenButtonEnabled()) {
+									handle.collectionBehavior = NSWindowCollectionBehaviorFullScreenPrimary;
+								}
+
+								sl_real alpha = window->getAlpha();
+								if (alpha < 0.9999f) {
+									if (alpha < 0) {
+										alpha = 0;
+									}
+									[handle setAlphaValue:alpha];
+								}
+
+								if (window->isTransparent()) {
+									[handle setIgnoresMouseEvents: TRUE];
+								}
+
+								if (window->isAlwaysOnTop()) {
+									[handle setLevel:NSFloatingWindowLevel];
+								}
 							}
 							
 							if (flagSheet) {
 								ret->m_flagSheet = sl_true;
 								WeakRef<macOS_WindowInstance> retWeak = ret;
-								[parent beginSheet:window completionHandler:^(NSModalResponse returnCode) {
+								[parent beginSheet:handle completionHandler:^(NSModalResponse returnCode) {
 									Ref<macOS_WindowInstance> w = retWeak;
 									if (w.isNotNull()) {
 										w->m_flagSheet = sl_false;
@@ -219,11 +250,11 @@ namespace slib
 								}];
 							}
 
-							if (param.flagFullScreen) {
-								window.animationBehavior = NSWindowAnimationBehaviorNone;
-								UI::dispatchToUiThread([window]() {
-									window.collectionBehavior = NSWindowCollectionBehaviorFullScreenPrimary;
-									[window toggleFullScreen: nil];
+							if (window->isFullScreen()) {
+								handle.animationBehavior = NSWindowAnimationBehaviorNone;
+								UI::dispatchToUiThread([handle]() {
+									handle.collectionBehavior = NSWindowCollectionBehaviorFullScreenPrimary;
+									[handle toggleFullScreen: nil];
 								});
 							}
 							return ret;
@@ -540,10 +571,6 @@ namespace slib
 					}
 				}
 				
-				void setMaximizeButtonEnabled(sl_bool flag) override
-				{
-				}
-				
 				void setFullScreenButtonEnabled(sl_bool flag) override
 				{
 					NSWindow* window = m_window;
@@ -767,6 +794,12 @@ namespace slib
 					}
 					return sl_false;
 				}
+
+				void doPostCreate() override
+				{
+					UISize sizeClient = getClientSize();
+					onResize(sizeClient.x, sizeClient.y);
+				}
 				
 			private:
 				static void _applyRectLimit(NSRect& rect)
@@ -822,9 +855,9 @@ namespace slib
 	
 	using namespace priv::window;
 	
-	Ref<WindowInstance> Window::createWindowInstance(const WindowInstanceParam& param)
+	Ref<WindowInstance> Window::createWindowInstance()
 	{
-		return macOS_WindowInstance::create(param);
+		return macOS_WindowInstance::create(this);
 	}
 
 	Ref<Window> Window::getActiveWindow()

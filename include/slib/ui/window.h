@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -52,44 +52,6 @@ namespace slib
 			class ContentView;
 		}
 	}
-
-	class SLIB_EXPORT WindowInstanceParam
-	{
-	public:
-		Ref<WindowInstance> parent;
-		
-		Ref<Screen> screen;
-		Ref<Menu> menu;
-		sl_bool flagBorderless;
-		sl_bool flagFullScreen;
-		sl_bool flagCenterScreen;
-		sl_bool flagDialog;
-		sl_bool flagModal;
-		sl_bool flagSheet; // Used in macOS
-		UIPoint location;
-		UISize size;
-
-		String title;
-		sl_bool flagShowTitleBar;
-
-#if defined(SLIB_UI_IS_ANDROID)
-		// jobject
-		void* activity;
-#endif
-
-#if defined(SLIB_UI_IS_GTK)
-		sl_bool flagClientSize;
-#endif
-		
-	public:
-		WindowInstanceParam();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(WindowInstanceParam)
-		
-	public:
-		UIRect calculateRegion(const UIRect& screenFrame) const;
-		
-	};
 
 	class SLIB_EXPORT Window : public Object
 	{
@@ -177,8 +139,10 @@ namespace slib
 		void setHeightWrapping(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		
+		sl_bool isRequestedClientSize();
+
 		UIRect getClientFrame();
-		
+
 		UISize getClientSize();
 		
 		virtual void setClientSize(sl_ui_len width, sl_ui_len height);
@@ -206,48 +170,50 @@ namespace slib
 		
 		// set to default
 		virtual void resetBackgroundColor();
+
+		sl_bool isDefaultBackgroundColor();
 		
 		
 		sl_bool isMinimized();
 		
-		virtual void setMinimized(sl_bool flag);
+		virtual void setMinimized(sl_bool flag = sl_true);
 		
 		sl_bool isMaximized();
 		
-		virtual void setMaximized(sl_bool flag);
+		virtual void setMaximized(sl_bool flag = sl_true);
 		
 		sl_bool isFullScreen();
 		
-		virtual void setFullScreen(sl_bool flag);
+		virtual void setFullScreen(sl_bool flag = sl_true);
 		
 		sl_bool isVisible();
 		
-		virtual void setVisible(sl_bool flag);
+		virtual void setVisible(sl_bool flag = sl_true);
 		
 		sl_bool isAlwaysOnTop();
 		
-		virtual void setAlwaysOnTop(sl_bool flag);
+		virtual void setAlwaysOnTop(sl_bool flag = sl_true);
 		
 		
 		sl_bool isCloseButtonEnabled();
 		
-		virtual void setCloseButtonEnabled(sl_bool flag);
+		virtual void setCloseButtonEnabled(sl_bool flag = sl_true);
 		
 		sl_bool isMinimizeButtonEnabled();
 		
-		virtual void setMinimizeButtonEnabled(sl_bool flag);
+		virtual void setMinimizeButtonEnabled(sl_bool flag = sl_true);
 		
 		sl_bool isMaximizeButtonEnabled();
 		
-		virtual void setMaximizeButtonEnabled(sl_bool flag);
+		virtual void setMaximizeButtonEnabled(sl_bool flag = sl_true);
 		
 		sl_bool isFullScreenButtonEnabled();
 		
-		virtual void setFullScreenButtonEnabled(sl_bool flag);
+		virtual void setFullScreenButtonEnabled(sl_bool flag = sl_true);
 		
 		sl_bool isResizable();
 		
-		virtual void setResizable(sl_bool flag);
+		virtual void setResizable(sl_bool flag = sl_true);
 		
 
 		sl_bool isLayered();
@@ -341,27 +307,27 @@ namespace slib
 		sl_bool isSheet();
 		
 		// Call before creating window
-		void setSheet(sl_bool flag);
+		void setSheet(sl_bool flag = sl_true);
 		
 		sl_bool isDialog();
 		
 		// Call before creating window
-		void setDialog(sl_bool flag);
+		void setDialog(sl_bool flag = sl_true);
 		
 		sl_bool isBorderless();
 		
 		// Call before creating window
-		void setBorderless(sl_bool flag);
+		void setBorderless(sl_bool flag = sl_true);
 		
 		sl_bool isTitleBarVisible();
 		
 		// Call before creating window
-		void setTitleBarVisible(sl_bool flag);
+		void setTitleBarVisible(sl_bool flag = sl_true);
 
 		sl_bool isCenterScreen();
 		
 		// Call before creating window
-		void setCenterScreen(sl_bool flag);
+		void setCenterScreen(sl_bool flag = sl_true);
 		
 		
 		sl_bool isCloseOnOK();
@@ -438,13 +404,13 @@ namespace slib
 		void dispatchCancel();
 		
 	protected:
-		Ref<WindowInstance> createWindowInstance(const WindowInstanceParam& param);
+		Ref<WindowInstance> createWindowInstance();
 
 		void attach(const Ref<WindowInstance>& instance, sl_bool flagAttachContent = sl_true);
 		
 		void detach();
 
-	private:
+	protected:
 		void _create(sl_bool flagKeepReference);
 		
 		void _attachContent();
@@ -457,7 +423,7 @@ namespace slib
 		
 		void _applyContentWrappingSize();
 		
-	private:
+	protected:
 		AtomicRef<WindowInstance> m_instance;
 		AtomicWeakRef<Window> m_parent;
 		Ref<priv::window::ContentView> m_viewContent;
@@ -514,8 +480,9 @@ namespace slib
 		// jobject
 		void* m_activity;
 #endif
+
 		friend class WindowInstance;
-		
+
 	};
 
 
@@ -624,6 +591,9 @@ namespace slib
 		virtual void setSizeRange(const UISize& sizeMinimum, const UISize& sizeMaximum, float aspectRatioMinimum, float aspectRatioMaximum);
 		
 		virtual sl_bool doModal();
+
+
+		virtual void doPostCreate();
 		
 	public:
 		sl_bool onClose();
@@ -653,7 +623,7 @@ namespace slib
 	public:
 		virtual void onAttachedContentView();
 		
-	private:
+	protected:
 		AtomicWeakRef<Window> m_window;
 		sl_bool m_flagKeepWindow;
 		

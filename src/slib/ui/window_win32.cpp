@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,7 @@
 
 #if defined(SLIB_UI_IS_WIN32)
 
-#include "slib/ui/core.h"
-#include "slib/ui/screen.h"
-#include "slib/ui/window.h"
-#include "slib/ui/platform.h"
+#include "window.h"
 
 #include "view_win32.h"
 
@@ -54,6 +51,7 @@ namespace slib
 			{
 			public:
 				HWND m_handle;
+				Ref<Menu> m_menu;
 
 				sl_bool m_flagBorderless;
 				sl_bool m_flagFullscreen;
@@ -94,12 +92,12 @@ namespace slib
 				}
 
 			public:
-				static Ref<Win32_WindowInstance> create(HWND hWnd, const WindowInstanceParam* pParam, sl_bool flagDestroyOnRelease)
+				static Ref<Win32_WindowInstance> create(Window* window, HWND hWnd, sl_bool flagDestroyOnRelease)
 				{
 					if (hWnd) {
 						Ref<Win32_WindowInstance> ret = new Win32_WindowInstance();
 						if (ret.isNotNull()) {
-							ret->initialize(hWnd, pParam, flagDestroyOnRelease);
+							ret->initialize(window, hWnd, flagDestroyOnRelease);
 							return ret;
 						}
 						if (flagDestroyOnRelease) {
@@ -109,76 +107,127 @@ namespace slib
 					return sl_null;
 				}
 
-				static HWND createHandle(const WindowInstanceParam& param)
+				static HWND createHandle(Window* window)
 				{
 					Win32_UI_Shared* shared = Win32_UI_Shared::get();
 					if (!shared) {
 						return NULL;
 					}
 
-					HINSTANCE hInst = GetModuleHandleW(NULL);
-
-					HWND hParent = NULL;
-					if (param.parent.isNotNull()) {
-						Win32_WindowInstance* w = static_cast<Win32_WindowInstance*>(param.parent.get());
-						hParent = w->m_handle;
+					HINSTANCE hInst = shared->hInstance;
+					ATOM atom;
+					if (window->isCloseButtonEnabled()) {
+						atom = shared->getWndClassForWindow();
+					} else {
+						atom = shared->getWndClassForWindowNoClose();
 					}
 
-					// create handle
-					HWND hWnd;
-					{
-						DWORD style = WS_CLIPCHILDREN;
-						DWORD styleEx = WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY;
-						if (param.flagBorderless || param.flagFullScreen) {
-							style |= WS_POPUP;
-						} else {
-							if (param.flagShowTitleBar) {
-								if (param.flagDialog) {
-									style |= (WS_POPUP | WS_SYSMENU | WS_CAPTION | WS_BORDER);
-									styleEx |= WS_EX_DLGMODALFRAME;
-								} else {
-									style |= (WS_OVERLAPPED | WS_SYSMENU | WS_CAPTION);
-								}
+					Ref<Window> parent = window->getParent();
+					HWND hParent = UIPlatform::getWindowHandle(parent.get());
+
+					HMENU hMenu = UIPlatform::getMenuHandle(window->getMenu());
+
+					DWORD style = WS_CLIPCHILDREN;
+					DWORD styleEx = WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY;
+					if (window->isBorderless() || window->isFullScreen()) {
+						style |= WS_POPUP;
+					} else {
+						if (window->isTitleBarVisible()) {
+							if (window->isDialog()) {
+								style |= (WS_POPUP | WS_SYSMENU | WS_CAPTION | WS_BORDER);
+								styleEx |= WS_EX_DLGMODALFRAME;
 							} else {
-								style |= (WS_POPUP | WS_BORDER);
+								style |= (WS_OVERLAPPED | WS_SYSMENU | WS_CAPTION);
 							}
-						}
-
-						UIRect frameScreen;
-						if (param.screen.isNotNull()) {
-							frameScreen = param.screen->getRegion();
 						} else {
-							frameScreen = UI::getScreenRegion();
+							style |= (WS_POPUP | WS_BORDER);
 						}
-						UIRect frameWindow = param.calculateRegion(frameScreen);
-						String16 title = String16::from(param.title);
-						hWnd = CreateWindowExW(
-							styleEx, // ex-style
-							(LPCWSTR)((LONG_PTR)(shared->wndClassForWindow)),
-							(LPCWSTR)(title.getData()),
-							style,
-							(int)(frameWindow.left), (int)(frameWindow.top),
-							(int)(frameWindow.getWidth()), (int)(frameWindow.getHeight()),
-							hParent, // parent
-							UIPlatform::getMenuHandle(param.menu), // menu
-							hInst,
-							NULL);
+						if (window->isMinimizeButtonEnabled()) {
+							style |= WS_MINIMIZEBOX;
+						}
+						if (window->isMaximizeButtonEnabled()) {
+							style |= WS_MAXIMIZEBOX;
+						}
+						if (window->isResizable()) {
+							style |= WS_THICKFRAME;
+						}
+						if (window->isLayered()) {
+							styleEx |= WS_EX_LAYERED;
+						}
 					}
+					sl_uint8 alpha = toWindowAlpha(window->getAlpha());
+					if (alpha < 255) {
+						styleEx |= WS_EX_LAYERED;
+					}
+					if (window->isTransparent()) {
+						styleEx |= WS_EX_TRANSPARENT;
+					}
+					if (window->isAlwaysOnTop()) {
+						styleEx |= WS_EX_TOPMOST;
+					}
+
+					UIRect frame;
+					if (window->isRequestedClientSize()) {
+						UISize size = window->getClientSize();
+						RECT rc;
+						rc.left = 0;
+						rc.top = 0;
+						rc.right = (LONG)(size.x);
+						rc.bottom = (LONG)(size.y);
+						if (AdjustWindowRectEx(&rc, style, hMenu != NULL, styleEx)) {
+							frame.setLeftTop(window->getLocation());
+							frame.setWidth((sl_ui_len)(rc.right - rc.left));
+							frame.setHeight((sl_ui_len)(rc.bottom - rc.top));
+						} else {
+							frame = window->getFrame();
+						}
+					} else {
+						frame = window->getFrame();
+					}
+					UIRect frameWindow = MakeWindowFrame(window, frame);
+
+					String16 title = String16::from(window->getTitle());
+
+					HWND hWnd = CreateWindowExW(
+						styleEx, // ex-style
+						(LPCWSTR)((LONG_PTR)atom),
+						(LPCWSTR)(title.getData()),
+						style,
+						(int)(frameWindow.left), (int)(frameWindow.top),
+						(int)(frameWindow.getWidth()), (int)(frameWindow.getHeight()),
+						hParent, // parent
+						hMenu, // menu
+						hInst,
+						NULL);
+
+					if (hWnd) {
+						if (alpha < 255) {
+							SetLayeredWindowAttributes(hWnd, 0, alpha, LWA_ALPHA);
+						}
+					}
+					
 					return hWnd;
 				}
 
-				void initialize(HWND hWnd, const WindowInstanceParam* pParam, sl_bool flagDestroyOnRelease)
+				void initialize(Window* window, HWND hWnd, sl_bool flagDestroyOnRelease)
 				{
 					m_handle = hWnd;
 					m_flagDestroyOnRelease = flagDestroyOnRelease;
-					if (pParam) {
-						m_flagBorderless = pParam->flagBorderless;
-						m_flagFullscreen = pParam->flagFullScreen;
+					if (window) {
+						m_flagBorderless = window->isBorderless();
+						m_flagFullscreen = window->isFullScreen();
+						if (window->isDefaultBackgroundColor()) {
+							m_backgroundColor = window->getBackgroundColor();
+						}
+						m_alpha = toWindowAlpha(window->getAlpha());
 					}
 					Ref<ViewInstance> content = UIPlatform::createViewInstance(hWnd, sl_false);
 					if (content.isNotNull()) {
 						content->setWindowContent(sl_true);
 						m_viewContent = content;
+						if (window->isLayered()) {
+							((Win32_ViewInstance*)(content.get()))->setLayered(sl_true);
+						}
 					}
 					UIPlatform::registerWindowInstance(hWnd, this);
 				}
@@ -189,7 +238,6 @@ namespace slib
 					HWND hWnd = m_handle;
 					if (hWnd) {
 						m_handle = NULL;
-						_setMenu(hWnd, NULL);
 						UIPlatform::removeWindowInstance(hWnd);
 						m_viewContent.setNull();
 						if (m_flagDestroyOnRelease) {
@@ -441,24 +489,6 @@ namespace slib
 					}
 				}
 
-				void setCloseButtonEnabled(sl_bool flag) override
-				{
-					if (m_flagBorderless || m_flagFullscreen) {
-						return;
-					}
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						LONG old = GetClassLongW(hWnd, GCL_STYLE);
-						if (flag) {
-							SetClassLongW(hWnd, GCL_STYLE, old & (~CS_NOCLOSE));
-						} else {
-							SetClassLongW(hWnd, GCL_STYLE, old | CS_NOCLOSE);
-						}
-						SetWindowPos(hWnd, NULL, 0, 0, 0, 0,
-							SWP_FRAMECHANGED | SWP_NOREPOSITION | SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
-					}
-				}
-
 				void setMinimizeButtonEnabled(sl_bool flag) override
 				{
 					if (m_flagBorderless || m_flagFullscreen) {
@@ -500,24 +530,30 @@ namespace slib
 					}
 				}
 
-				void setAlpha(sl_real _alpha) override
+				static sl_uint8 toWindowAlpha(float alpha)
+				{
+					int a = (int)(alpha * 255);
+					if (a < 0) {
+						return 0;
+					}
+					if (a > 255) {
+						return 255;
+					}
+					return (sl_uint8)a;
+				}
+
+				void setAlpha(sl_real alpha) override
 				{
 					if (m_flagLayered) {
 						return;
 					}
 					HWND hWnd = m_handle;
 					if (hWnd) {
-						int a = (int)(_alpha * 255);
-						if (a < 0) {
-							a = 0;
-						}
-						if (a > 255) {
-							a = 255;
-						}
-						if (m_alpha == (sl_uint8)a) {
+						sl_uint8 a = toWindowAlpha(alpha);
+						if (m_alpha == a) {
 							return;
 						}
-						m_alpha = (sl_uint8)a;
+						m_alpha = a;
 						Windows::setWindowExStyle(hWnd, WS_EX_LAYERED, m_alpha < 255);
 						SetLayeredWindowAttributes(hWnd, 0, m_alpha, LWA_ALPHA);
 						RedrawWindow(hWnd,
@@ -679,6 +715,17 @@ namespace slib
 						}
 					}
 					return sl_true;
+				}
+
+				void doPostCreate()
+				{
+					HWND hWnd = m_handle;
+					if (hWnd) {
+						if (GetWindowLongW(hWnd, GWL_STYLE) & WS_POPUP) {
+							UISize sizeClient = getClientSize();
+							WindowInstance::onResize(sizeClient.x, sizeClient.y);
+						}
+					}
 				}
 
 				void redrawLayered()
@@ -921,11 +968,11 @@ namespace slib
 
 	using namespace priv::window;
 
-	Ref<WindowInstance> Window::createWindowInstance(const WindowInstanceParam& param)
+	Ref<WindowInstance> Window::createWindowInstance()
 	{
-		HWND hWnd = Win32_WindowInstance::createHandle(param);
+		HWND hWnd = Win32_WindowInstance::createHandle(this);
 		if (hWnd) {
-			return Win32_WindowInstance::create(hWnd, &param, sl_true);
+			return Win32_WindowInstance::create(this, hWnd, sl_true);
 		}
 		return sl_null;
 	}
@@ -949,7 +996,7 @@ namespace slib
 		if (ret.isNotNull()) {
 			return ret;
 		}
-		return Win32_WindowInstance::create(hWnd, sl_null, flagDestroyOnRelease);
+		return Win32_WindowInstance::create(sl_null, hWnd, flagDestroyOnRelease);
 	}
 
 	void UIPlatform::registerWindowInstance(HWND hWnd, WindowInstance* instance)
