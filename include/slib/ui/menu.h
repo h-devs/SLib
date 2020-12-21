@@ -110,6 +110,7 @@ namespace slib
 		String text;
 		KeycodeAndModifiers shortcutKey;
 		KeycodeAndModifiers secondShortcutKey;
+		sl_bool flagCheckable;
 		sl_bool flagEnabled;
 		sl_bool flagChecked;
 		Ref<Drawable> icon;
@@ -160,21 +161,27 @@ namespace slib
 		
 		Ref<MenuItem> addMenuItem(const String& title);
 		
+		Ref<MenuItem> addMenuItem(const String& title, sl_bool flagChecked);
+		
 		Ref<MenuItem> addMenuItem(const String& title, const Ref<Drawable>& icon);
 		
-		Ref<MenuItem> addMenuItem(const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon);
+		Ref<MenuItem> addMenuItem(const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked = sl_false);
 		
 		Ref<MenuItem> addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey);
 		
+		Ref<MenuItem> addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, sl_bool flagChecked);
+		
 		Ref<MenuItem> addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, const Ref<Drawable>& icon);
 		
-		Ref<MenuItem> addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon);
+		Ref<MenuItem> addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked = sl_false);
 		
 		Ref<MenuItem> addSubmenu(Ref<Menu>& submenu, const String& title);
 		
+		Ref<MenuItem> addSubmenu(Ref<Menu>& submenu, const String& title, sl_bool flagChecked);
+		
 		Ref<MenuItem> addSubmenu(Ref<Menu>& submenu, const String& title, const Ref<Drawable>& icon);
 		
-		Ref<MenuItem> addSubmenu(Ref<Menu>& submenu, const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon);
+		Ref<MenuItem> addSubmenu(Ref<Menu>& submenu, const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked = sl_false);
 		
 		sl_bool processShortcutKey(const KeycodeAndModifiers& km);
 		

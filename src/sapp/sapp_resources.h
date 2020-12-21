@@ -170,6 +170,7 @@ namespace slib
 		SAppStringValue title;
 		KeycodeAndModifiers shortcutKey;
 		KeycodeAndModifiers macShortcutKey;
+		SAppBooleanValue checked;
 		SAppDrawableValue icon;
 		SAppDrawableValue checkedIcon;
 		CList< Ref<SAppMenuResourceItem> > children;

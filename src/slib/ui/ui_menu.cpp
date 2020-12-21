@@ -166,6 +166,7 @@ namespace slib
 	
 	MenuItemParam::MenuItemParam()
 	{
+		flagCheckable = sl_false;
 		flagEnabled = sl_true;
 		flagChecked = sl_false;
 	}
@@ -208,6 +209,15 @@ namespace slib
 		return addMenuItem(param);
 	}
 	
+	Ref<MenuItem> Menu::addMenuItem(const String& title, sl_bool flagChecked)
+	{
+		MenuItemParam param;
+		param.text = title;
+		param.flagCheckable = sl_true;
+		param.flagChecked = flagChecked;
+		return addMenuItem(param);
+	}
+	
 	Ref<MenuItem> Menu::addMenuItem(const String& title, const Ref<Drawable>& icon)
 	{
 		MenuItemParam param;
@@ -216,12 +226,14 @@ namespace slib
 		return addMenuItem(param);
 	}
 	
-	Ref<MenuItem> Menu::addMenuItem(const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon)
+	Ref<MenuItem> Menu::addMenuItem(const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked)
 	{
 		MenuItemParam param;
 		param.text = title;
 		param.icon = icon;
 		param.checkedIcon = checkedIcon;
+		param.flagCheckable = sl_true;
+		param.flagChecked = flagChecked;
 		return addMenuItem(param);
 	}
 	
@@ -230,6 +242,16 @@ namespace slib
 		MenuItemParam param;
 		param.text = title;
 		param.shortcutKey = shortcutKey;
+		return addMenuItem(param);
+	}
+	
+	Ref<MenuItem> Menu::addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, sl_bool flagChecked)
+	{
+		MenuItemParam param;
+		param.text = title;
+		param.shortcutKey = shortcutKey;
+		param.flagCheckable = sl_true;
+		param.flagChecked = flagChecked;
 		return addMenuItem(param);
 	}
 	
@@ -242,13 +264,15 @@ namespace slib
 		return addMenuItem(param);
 	}
 	
-	Ref<MenuItem> Menu::addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon)
+	Ref<MenuItem> Menu::addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked)
 	{
 		MenuItemParam param;
 		param.text = title;
 		param.shortcutKey = shortcutKey;
 		param.icon = icon;
 		param.checkedIcon = checkedIcon;
+		param.flagCheckable = sl_true;
+		param.flagChecked = flagChecked;
 		return addMenuItem(param);
 	}
 	
@@ -257,6 +281,16 @@ namespace slib
 		MenuItemParam param;
 		param.text = title;
 		param.submenu = submenu;
+		return addMenuItem(param);
+	}
+	
+	Ref<MenuItem> Menu::addSubmenu(Ref<Menu>& submenu, const String& title, sl_bool flagChecked)
+	{
+		MenuItemParam param;
+		param.text = title;
+		param.submenu = submenu;
+		param.flagCheckable = sl_true;
+		param.flagChecked = flagChecked;
 		return addMenuItem(param);
 	}
 	
@@ -269,12 +303,14 @@ namespace slib
 		return addMenuItem(param);
 	}
 	
-	Ref<MenuItem> Menu::addSubmenu(Ref<Menu>& submenu, const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon)
+	Ref<MenuItem> Menu::addSubmenu(Ref<Menu>& submenu, const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked)
 	{
 		MenuItemParam param;
 		param.text = title;
 		param.icon = icon;
 		param.checkedIcon = checkedIcon;
+		param.flagCheckable = sl_true;
+		param.flagChecked = flagChecked;
 		param.submenu = submenu;
 		return addMenuItem(param);
 	}
