@@ -42,12 +42,12 @@ namespace slib
 
 			};
 
-			static UIRect MakeWindowFrame(Window* window)
+			SLIB_INLINE UIRect MakeWindowFrame(Window* window)
 			{
 				return ((WindowHelper*)window)->makeFrame(window->getFrame());
 			}
 
-			static UIRect MakeWindowFrame(Window* window, const UIRect& frame)
+			SLIB_INLINE UIRect MakeWindowFrame(Window* window, const UIRect& frame)
 			{
 				return ((WindowHelper*)window)->makeFrame(frame);
 			}

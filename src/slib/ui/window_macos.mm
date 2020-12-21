@@ -128,7 +128,7 @@ namespace slib
 				{
 					
 					Ref<Window> _parent = window->getParent();
-					NSWindow* parent = static_cast<macOS_WindowInstance*>(UIPlatform::getWindowHandle(_parent.get()));
+					NSWindow* parent = UIPlatform::getWindowHandle(_parent.get());
 					
 					UIRect frameScreen;
 					NSScreen* screen = nil;
@@ -140,7 +140,7 @@ namespace slib
 						frameScreen = UI::getScreenRegion();
 					}
 
-					sl_bool flagSheet = param.flagSheet && parent != nil;
+					sl_bool flagSheet = window->isSheet() && parent != nil;
 					
 					int styleMask = 0;
 					NSRect rect;
@@ -165,7 +165,7 @@ namespace slib
 							if (window->isCloseButtonEnabled()) {
 								styleMask |= NSClosableWindowMask;
 							}
-							if (window->MinimizeButtonEnabled()) {
+							if (window->isMinimizeButtonEnabled()) {
 								styleMask |= NSMiniaturizableWindowMask;
 							}
 							if (window->isResizable()) {
@@ -176,7 +176,7 @@ namespace slib
 						NSRect rcDiff = [NSWindow contentRectForFrameRect:NSMakeRect(0, 0, 100, 100) styleMask:styleMask];
 						sl_ui_len widthDiff = (sl_ui_len)(100 - rcDiff.size.width);
 						sl_ui_len heightDiff = (sl_ui_len)(100 - rcDiff.size.height);
-						UIFrame frame = window->getFrame();
+						UIRect frame = window->getFrame();
 						if (window->isRequestedClientSize()) {
 							UISize size = window->getClientSize();
 							size.x += widthDiff;
