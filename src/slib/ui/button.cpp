@@ -1034,7 +1034,7 @@ namespace slib
 	}
 
 	void Button::onDrawBackground(Canvas* canvas)
-	{		
+	{
 		Ref<Drawable> background = getCurrentBackground();
 		if (background.isNotNull()) {
 			drawBackground(canvas, background);

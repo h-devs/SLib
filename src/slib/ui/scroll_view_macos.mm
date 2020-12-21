@@ -40,7 +40,7 @@ namespace slib
 }
 
 @interface SLIBScrollViewHandle : NSScrollView
-{	
+{
 	@public slib::WeakRef<slib::priv::scroll_view::ScrollViewInstance> m_viewInstance;
 }
 @end

@@ -1427,7 +1427,7 @@ namespace slib
 		if (!hWnd) {
 			return 0;
 		}
-		switch (msg) {		
+		switch (msg) {
 		case WM_LBUTTONDOWN:
 			if (onEventMouse(UIAction::LeftButtonDown, wParam, lParam)) {
 				return 0;

@@ -101,7 +101,7 @@ namespace slib
 
 			public:
 				static Ref<MediaPlayerImpl> create(const MediaPlayerParam& param)
-				{		
+				{
 					JniLocal<jobject> player;
 					if (param.url.isNotEmpty()) {
 						JniLocal<jstring> url = Jni::getJniString(param.url);

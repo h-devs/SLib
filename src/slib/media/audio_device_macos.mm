@@ -613,11 +613,12 @@ namespace slib
 				}
 				
 				OSStatus onFrame(AudioBufferList *outputData)
-				{		
+				{
 					UInt32 size = outputData->mBuffers->mDataByteSize / m_formatDst.mBytesPerFrame;
 					AudioConverterFillComplexBuffer(m_converter, ConverterProc, this, &size, outputData, NULL);
 					return 0;
 				}
+				
 				static OSStatus DeviceIOProc(AudioDeviceID, const AudioTimeStamp*,
 													const AudioBufferList* inputData,
 													const AudioTimeStamp* inputTime,

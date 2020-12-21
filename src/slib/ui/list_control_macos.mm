@@ -41,7 +41,7 @@ namespace slib
 }
 
 @interface SLIBListControlHandle_TableView : NSTableView
-{	
+{
 	@public slib::WeakRef<slib::priv::list_control::ListControlInstance> m_viewInstance;
 }
 @end

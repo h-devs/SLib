@@ -40,7 +40,7 @@ namespace slib
 }
 
 @interface SLIBSelectViewHandle : NSPopUpButton
-{	
+{
 	@public slib::WeakRef<slib::priv::select_view::SelectViewInstance> m_viewInstance;
 }
 @end

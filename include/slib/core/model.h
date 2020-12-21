@@ -130,7 +130,7 @@ namespace slib
 	{
 	public:
 		SimpleListModel(const List<T>& list): m_list(list)
-		{			
+		{
 		}
 
 	public:

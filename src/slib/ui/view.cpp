@@ -306,7 +306,7 @@ namespace slib
 	{}
 
 	View::DrawAttributes::~DrawAttributes()
-	{		
+	{
 	}
 
 	void View::_initializeDrawAttributes()
@@ -10872,7 +10872,7 @@ namespace slib
 			return m_flagEnabled;
 		} else {
 			Ref<View> view = m_view;
-			if (view.isNotNull()) {				
+			if (view.isNotNull()) {
 				return view->isEnabled();
 			}
 			return sl_true;

@@ -30,7 +30,7 @@ namespace slib
 	SLIB_DEFINE_OBJECT(TileLayout, ViewGroup)
 	
 	TileLayout::TileLayout()
-	{		
+	{
 		setCustomLayout(sl_true);
 		setSavingCanvasState(sl_false);
 		

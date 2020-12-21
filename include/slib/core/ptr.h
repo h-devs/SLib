@@ -804,7 +804,7 @@ namespace slib
 		{
 			if ((void*)this == (void*)(&(priv::ptr::g_null))) {
 				return sl_null;
-			} else {			
+			} else {
 				m_lock.lock();
 				reference = _ref;
 				T* ret = _ptr;
@@ -972,7 +972,7 @@ namespace slib
 				
 			public:
 				SharedPtrContainer(T* _ptr) : ptr(_ptr)
-				{					
+				{
 				}
 				
 				~SharedPtrContainer()

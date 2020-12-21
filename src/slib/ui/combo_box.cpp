@@ -38,7 +38,7 @@ namespace slib
 	template class SingleSelectionViewBase<ComboBox, sl_int32>;
 	
 	ComboBox::ComboBox()
-	{		
+	{
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 		

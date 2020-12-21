@@ -233,7 +233,7 @@ namespace slib
 								attribute vec2 a_Position;
 							));
 							bufVBContent.addStatic(SLIB_STRINGIFY(
-								void main() {							
+								void main() {
 									gl_Position = vec4((vec3(a_Position, 1.0) * u_Transform).xy, 0.0, 1.0);
 							));
 							bufFBHeader.addStatic(SLIB_STRINGIFY(
@@ -260,7 +260,7 @@ namespace slib
 							break;
 						}
 					}
-					if (param.flagUseTexture) {						
+					if (param.flagUseTexture) {
 						if (bufVertexShader) {
 							if (lang == RenderShaderLanguage::HLSL) {
 								bufVSOutput.addStatic(SLIB_STRINGIFY(

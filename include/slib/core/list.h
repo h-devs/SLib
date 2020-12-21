@@ -3552,7 +3552,7 @@ namespace slib
 	public:
 		ListParam() noexcept
 		: _value(sl_null), _count(0)
-		{		
+		{
 		}
 
 		ListParam(sl_null_t) noexcept

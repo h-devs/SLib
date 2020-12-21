@@ -31,7 +31,7 @@ namespace slib
 	SLIB_DEFINE_OBJECT(LabelView, View)
 
 	LabelView::LabelView()
-	{		
+	{
 		setSavingCanvasState(sl_false);
 		setUsingFont(sl_true);
 		

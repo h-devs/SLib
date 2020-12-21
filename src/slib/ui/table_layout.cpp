@@ -844,7 +844,7 @@ namespace slib
 			}
 			for (iCol = 0; iCol < nCols; iCol++) {
 				Column& col = cols[iCol];
-				if (colWidthModes[iCol] == SizeMode::Wrapping) {					
+				if (colWidthModes[iCol] == SizeMode::Wrapping) {
 					sumWidth += col.widthLayout;
 				}
 			}

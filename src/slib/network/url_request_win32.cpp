@@ -475,7 +475,7 @@ namespace slib
 						return;
 					}
 					m_offsetReceiving += size;
-					if (m_sizeContentReceived + size >= m_sizeContentTotal) {				
+					if (m_sizeContentReceived + size >= m_sizeContentTotal) {
 						finishReceiving();
 						return;
 					}

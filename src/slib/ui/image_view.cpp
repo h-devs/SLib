@@ -29,7 +29,7 @@ namespace slib
 	SLIB_DEFINE_OBJECT(ImageView, View)
 	
 	ImageView::ImageView()
-	{		
+	{
 		setSavingCanvasState(sl_false);
 		
 		m_scaleMode = ScaleMode::Stretch;

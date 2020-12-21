@@ -241,7 +241,7 @@ namespace slib
 	}
 	
 	void UIPlatform::runApp()
-	{		
+	{
 		char* args[] = {sl_null};
 		@autoreleasepool {
 			UIApplicationMain(0, args, nil, NSStringFromClass([SLIBAppDelegate class]));
