@@ -45,6 +45,7 @@ namespace slib
 				GtkWindow* m_window;
 				GtkWidget* m_widgetMenu;
 				GtkWidget* m_widgetContent;
+				GtkWidget* m_widgetContentBox;
 				AtomicRef<ViewInstance> m_viewContent;
 
 				sl_bool m_flagResizable;
@@ -388,6 +389,7 @@ namespace slib
 								content->installEventsWithDrawing();
 								ret->m_viewContent = Move(content);
 								ret->m_widgetContent = contentWidget;
+								ret->m_widgetContentBox = contentBox;
 								Color color = window->getBackgroundColor();
 								if (color.a) {
 									GdkColor gcolor;
@@ -400,11 +402,10 @@ namespace slib
 						}
 					}
 
-					Ref<Menu> menu = window->getMenu();
 					GtkMenuShell* hMenu = sl_null;
-					if (UIPlatform::isPopupMenu(menu)) {
+					Ref<Menu> menu = window->getMenu();
+					if (!(UIPlatform::isPopupMenu(menu))) {
 						hMenu = UIPlatform::getMenuHandle(menu);
-						gtk_widget_show((GtkWidget*)hMenu);
 					}
 					if (hMenu) {
 						GtkWidget* box = gtk_vbox_new(0, 0);
@@ -425,12 +426,7 @@ namespace slib
 
 					return ret;
 				}
-				
-				Ref<ViewInstance> getContentView() override
-				{
-					return m_viewContent;
-				}
-				
+
 				void close() override
 				{
 					if (!m_flagClosed) {
@@ -463,6 +459,53 @@ namespace slib
 							gtk_window_set_transient_for(window, sl_null);
 						}
 					}
+				}
+
+				Ref<ViewInstance> getContentView() override
+				{
+					return m_viewContent;
+				}
+
+				static void _callback_remove_child(GtkWidget *widget, gpointer data)
+				{
+					gtk_container_remove((GtkContainer*)data, widget);
+				}
+
+				void setMenu(const Ref<Menu>& menu) override
+				{
+					if (m_flagClosed) {
+						return;
+					}
+					GtkWindow* window = m_window;
+					if (!window) {
+						return;
+					}
+					GtkWidget* hMenu = sl_null;
+					if (!(UIPlatform::isPopupMenu(menu))) {
+						hMenu = (GtkWidget*)(UIPlatform::getMenuHandle(menu));
+					}
+					if (hMenu == m_widgetMenu) {
+						return;
+					}
+					GtkWidget* contentBox = m_widgetContentBox;
+					if (!contentBox) {
+						return;
+					}
+					g_object_ref(contentBox);
+					gtk_container_foreach((GtkContainer*)window, &_callback_remove_child, window);
+					if (hMenu) {
+						GtkWidget* box = gtk_vbox_new(0, 0);
+						if(box){
+							gtk_widget_show(box);
+							gtk_box_pack_start((GtkBox*)box, hMenu, 0, 0, 0);
+							gtk_box_pack_start((GtkBox*)box, contentBox, 1, 1, 0);
+							gtk_container_add((GtkContainer*)window, box);
+							m_widgetMenu = hMenu;
+						}
+					} else {
+						gtk_container_add((GtkContainer*)window, contentBox);
+					}
+					g_object_unref(contentBox);
 				}
 
 				sl_bool isActive() override

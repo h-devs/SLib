@@ -328,12 +328,17 @@ namespace slib
 		}
 	}
 
+	void GTK_ViewInstance::installEvents()
+	{
+		installEvents(getEventMask());
+	}
+
 	void GTK_ViewInstance::installEventsWithDrawing()
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
 			g_signal_connect(handle, "expose_event", G_CALLBACK(eventCallback), handle);
-			installEvents(GDK_EXPOSURE_MASK | SLIB_GTK_EVENT_MASK_DEFAULT);
+			installEvents(GDK_EXPOSURE_MASK | getEventMask());
 		}
 	}
 
@@ -613,7 +618,11 @@ namespace slib
 		return sl_false;
 	}
 	
-	
+	gint GTK_ViewInstance::getEventMask()
+	{
+		return SLIB_GTK_EVENT_MASK_DEFAULT;
+	}
+
 	Ref<ViewInstance> View::createGenericInstance(ViewInstance* _parent)
 	{
 		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);

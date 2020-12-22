@@ -125,6 +125,14 @@ namespace slib
 		)
 		#define gtk_container_remove slib::gtk::getApi_gtk_container_remove()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_container_foreach,
+			void, ,
+			GtkContainer *container,
+			GtkCallback callback,
+			gpointer callback_data
+		)
+		#define gtk_container_foreach slib::gtk::getApi_gtk_container_foreach()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_drawing_area_new,
 			GtkWidget*, ,
 			void
@@ -412,6 +420,12 @@ namespace slib
 			GtkWidget *widget
 		)
 		#define gtk_widget_get_window slib::gtk::wrap_gtk_widget_get_window
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
+			gtk_widget_get_realized,
+			gboolean, ,
+			GtkWidget *widget
+		)
+		#define gtk_widget_get_realized slib::gtk::getApi_gtk_widget_get_realized()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_widget_show,
 			void, ,

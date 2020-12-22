@@ -81,7 +81,6 @@ namespace slib
 		}
 
 	public:
-
 		void applyProperties(View* view, ViewInstance* parent);
 
 		GtkWidget* getHandle();
@@ -124,8 +123,10 @@ namespace slib
 		
 	public:
 		void installEventsWithDrawing();
-		
-		void installEvents(gint events = SLIB_GTK_EVENT_MASK_DEFAULT);
+
+		void installEvents();
+
+		void installEvents(gint mask);
 
 		static gboolean eventCallback(GtkWidget* widget, GdkEvent* event, gpointer user_data);
 		
@@ -143,6 +144,8 @@ namespace slib
 		virtual gboolean onScrollEvent(GdkEventScroll* event);
 		
 		virtual gboolean onFocusEvent(GdkEventFocus* event);
+
+		virtual gint getEventMask();
 
 	private:
 		void _init(GtkWidget* handle);
