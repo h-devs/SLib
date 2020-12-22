@@ -17,7 +17,7 @@ namespace slib
 			class WindowHelper : public Window
 			{
 			public:
-				UIRect makeFrame(const UIRect& _frame)
+				UIRect makeFrame()
 				{
 					UIRect frameScreen;
 					Ref<Screen> screen = m_screen;
@@ -31,7 +31,7 @@ namespace slib
 						frame.setLeftTop(0, 0);
 						frame.setSize(frameScreen.getSize());
 					} else {
-						frame = _frame;
+						frame = getFrame();
 						if (m_flagCenterScreen) {
 							frame.setLocation(frameScreen.getWidth() / 2 - frame.getWidth() / 2, frameScreen.getHeight() / 2 - frame.getHeight() / 2);
 						}
@@ -44,12 +44,7 @@ namespace slib
 
 			SLIB_INLINE UIRect MakeWindowFrame(Window* window)
 			{
-				return ((WindowHelper*)window)->makeFrame(window->getFrame());
-			}
-
-			SLIB_INLINE UIRect MakeWindowFrame(Window* window, const UIRect& frame)
-			{
-				return ((WindowHelper*)window)->makeFrame(frame);
+				return ((WindowHelper*)window)->makeFrame();
 			}
 
 		}

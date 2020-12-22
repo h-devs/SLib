@@ -228,33 +228,6 @@ namespace slib
 					return m_viewContent;
 				}
 				
-				sl_bool isActive() override
-				{
-					UIView* view = m_window;
-					if (view != nil) {
-						if ([view isKindOfClass:[UIWindow class]]) {
-							UIWindow* window = (UIWindow*)view;
-							return [window isKeyWindow];
-						} else {
-							return [view isFirstResponder];
-						}
-					}
-					return sl_false;
-				}
-				
-				void activate() override
-				{
-					UIView* view = m_window;
-					if (view != nil) {
-						if ([view isKindOfClass:[UIWindow class]]) {
-							UIWindow* window = (UIWindow*)view;
-							[window makeKeyAndVisible];
-						} else {
-							[view becomeFirstResponder];
-						}
-					}
-				}
-				
 				UIRect getFrame() override
 				{
 					UIView* window = m_window;
@@ -294,56 +267,31 @@ namespace slib
 					}
 				}
 				
-				UIRect getClientFrame() override
+				sl_bool isActive() override
 				{
-					return getFrame();
-				}
-				
-				UISize getClientSize() override
-				{
-					UIView* window = m_window;
-					if (window != nil) {
-						if ([window isKindOfClass:[UIWindow class]]) {
-							UIViewController* controller = ((UIWindow*)window).rootViewController;
-							if (controller != nil && [controller isKindOfClass:[SLIBWindowRootViewController class]]) {
-								return ((SLIBWindowRootViewController*)controller)->m_sizeClientResizedByKeyboard;
-							}
+					UIView* view = m_window;
+					if (view != nil) {
+						if ([view isKindOfClass:[UIWindow class]]) {
+							UIWindow* window = (UIWindow*)view;
+							return [window isKeyWindow];
+						} else {
+							return [view isFirstResponder];
 						}
-						CGFloat f = UIPlatform::getGlobalScaleFactor();
-						CGRect rect = [window frame];
-						UISize ret;
-						ret.x = (sl_ui_pos)(rect.size.width * f);
-						ret.y = (sl_ui_pos)(rect.size.height * f);
-						return ret;
-					} else {
-						return UISize::zero();
-					}
-				}
-				
-				sl_bool setClientSize(sl_ui_len width, sl_ui_len height) override
-				{
-					UIView* window = m_window;
-					if (window != nil) {
-						CGFloat f = UIPlatform::getGlobalScaleFactor();
-						CGRect frame = [window frame];
-						frame.size.width = (CGFloat)(width) / f;
-						frame.size.height = (CGFloat)(height) / f;
-						[window setFrame:frame];
-						if ([window isKindOfClass:[UIWindow class]]) {
-							UIViewController* controller = ((UIWindow*)window).rootViewController;
-							if (controller != nil && [controller isKindOfClass:[SLIBWindowRootViewController class]]) {
-								UISize size(width, height);
-								((SLIBWindowRootViewController*)controller)->m_sizeClient = size;
-								((SLIBWindowRootViewController*)controller)->m_sizeClientResizedByKeyboard = size;
-							}
-						}
-						return sl_true;
 					}
 					return sl_false;
 				}
 				
-				void setTitle(const String& title) override
+				void activate() override
 				{
+					UIView* view = m_window;
+					if (view != nil) {
+						if ([view isKindOfClass:[UIWindow class]]) {
+							UIWindow* window = (UIWindow*)view;
+							[window makeKeyAndVisible];
+						} else {
+							[view becomeFirstResponder];
+						}
+					}
 				}
 				
 				void setBackgroundColor(const Color& _color) override
@@ -396,102 +344,6 @@ namespace slib
 						}
 						window.alpha = alpha;
 					}
-				}
-				
-				UIPointf convertCoordinateFromScreenToWindow(const UIPointf& ptScreen) override
-				{
-					UIView* view = m_window;
-					if (view != nil) {
-						CGFloat f = UIPlatform::getGlobalScaleFactor();
-						if ([view isKindOfClass:[UIWindow class]]) {
-							UIWindow* window = (UIWindow*)view;
-							CGPoint pt;
-							pt.x = (CGFloat)(ptScreen.x) / f;
-							pt.y = (CGFloat)(ptScreen.y) / f;
-							pt = [window convertPoint:pt fromWindow:nil];
-							UIPointf ret;
-							ret.x = (sl_ui_posf)(pt.x * f);
-							ret.y = (sl_ui_posf)(pt.y * f);
-							return ret;
-						} else {
-							UIWindow* window = [view window];
-							if (window != nil) {
-								CGPoint pt;
-								pt.x = (CGFloat)(ptScreen.x) / f;
-								pt.y = (CGFloat)(ptScreen.y) / f;
-								pt = [window convertPoint:pt fromWindow:nil];
-								pt = [window convertPoint:pt toView:view];
-								UIPointf ret;
-								ret.x = (sl_ui_posf)(pt.x * f);
-								ret.y = (sl_ui_posf)(pt.y * f);
-								return ret;
-							}
-						}
-					}
-					return ptScreen;
-				}
-				
-				UIPointf convertCoordinateFromWindowToScreen(const UIPointf& ptWindow) override
-				{
-					UIView* view = m_window;
-					if (view != nil) {
-						CGFloat f = UIPlatform::getGlobalScaleFactor();
-						if ([view isKindOfClass:[UIWindow class]]) {
-							UIWindow* window = (UIWindow*)view;
-							CGPoint pt;
-							pt.x = (CGFloat)(ptWindow.x) / f;
-							pt.y = (CGFloat)(ptWindow.y) / f;
-							pt = [window convertPoint:pt toWindow:nil];
-							UIPointf ret;
-							ret.x = (sl_ui_posf)(pt.x * f);
-							ret.y = (sl_ui_posf)(pt.y * f);
-							return ret;
-						} else {
-							UIWindow* window = [view window];
-							if (window != nil) {
-								CGPoint pt;
-								pt.x = (CGFloat)(ptWindow.x) / f;
-								pt.y = (CGFloat)(ptWindow.y) / f;
-								pt = [window convertPoint:pt fromView:view];
-								pt = [window convertPoint:pt toWindow:nil];
-								UIPointf ret;
-								ret.x = (sl_ui_posf)(pt.x * f);
-								ret.y = (sl_ui_posf)(pt.y * f);
-								return ret;
-							}
-						}
-					}
-					return ptWindow;
-				}
-				
-				UIPointf convertCoordinateFromScreenToClient(const UIPointf& ptScreen) override
-				{
-					return convertCoordinateFromScreenToWindow(ptScreen);
-				}
-				
-				UIPointf convertCoordinateFromClientToScreen(const UIPointf& ptClient) override
-				{
-					return convertCoordinateFromWindowToScreen(ptClient);
-				}
-				
-				UIPointf convertCoordinateFromWindowToClient(const UIPointf& ptWindow) override
-				{
-					return ptWindow;
-				}
-				
-				UIPointf convertCoordinateFromClientToWindow(const UIPointf& ptClient) override
-				{
-					return ptClient;
-				}
-				
-				UISize getWindowSizeFromClientSize(const UISize& sizeClient) override
-				{
-					return sizeClient;
-				}
-				
-				UISize getClientSizeFromWindowSize(const UISize& sizeWindow) override
-				{
-					return sizeWindow;
 				}
 				
 			};

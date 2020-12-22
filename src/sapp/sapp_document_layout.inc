@@ -1513,6 +1513,35 @@ namespace slib
 	{
 		Window* view = params->window;
 		
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR(minWidth, setMinimumWidth, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR(maxWidth, setMaximumWidth, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR(minHeight, setMinimumHeight, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR(maxHeight, setMaximumHeight, checkForWindow)
+		LAYOUT_CONTROL_GENERIC_ATTR(aspectRatio, setAspectRatio)
+		LAYOUT_CONTROL_GENERIC_ATTR(minAspectRatio, setMinimumAspectRatio)
+		LAYOUT_CONTROL_GENERIC_ATTR(maxAspectRatio, setMaximumAspectRatio)
+		
+		LAYOUT_CONTROL_GENERIC_ATTR(minimized, setMinimized)
+		LAYOUT_CONTROL_GENERIC_ATTR(maximized, setMaximized)
+		LAYOUT_CONTROL_GENERIC_ATTR(visible, setVisible)
+		LAYOUT_CONTROL_GENERIC_ATTR(alwaysOnTop, setAlwaysOnTop)
+		LAYOUT_CONTROL_GENERIC_ATTR(closeButton, setCloseButtonEnabled)
+		LAYOUT_CONTROL_GENERIC_ATTR(minimizeButton, setMinimizeButtonEnabled)
+		LAYOUT_CONTROL_GENERIC_ATTR(maximizeButton, setMaximizeButtonEnabled)
+		LAYOUT_CONTROL_GENERIC_ATTR(fullScreenButton, setFullScreenButtonEnabled)
+		LAYOUT_CONTROL_GENERIC_ATTR(resizable, setResizable)
+		LAYOUT_CONTROL_GENERIC_ATTR(layered, setLayered)
+		LAYOUT_CONTROL_GENERIC_ATTR(alpha, setAlpha)
+		LAYOUT_CONTROL_GENERIC_ATTR(transparent, setTransparent)
+		LAYOUT_CONTROL_COLOR_ATTR(backgroundColor, setBackgroundColor)
+
+		LAYOUT_CONTROL_GENERIC_ATTR(modal, setModal)
+		LAYOUT_CONTROL_GENERIC_ATTR(dialog, setDialog)
+		LAYOUT_CONTROL_GENERIC_ATTR(borderless, setBorderless)
+		LAYOUT_CONTROL_GENERIC_ATTR(titleBar, setTitleBarVisible)
+		LAYOUT_CONTROL_GENERIC_ATTR(fullScreen, setFullScreen)
+		LAYOUT_CONTROL_GENERIC_ATTR(centerScreen, setCenterScreen)
+		
 		LAYOUT_CONTROL_MENU_ATTR(menu, setMenu)
 		LAYOUT_CONTROL_STRING_ATTR(title, setTitle)
 		if (op == OP_PARSE) {
@@ -1559,35 +1588,6 @@ namespace slib
 				flagOnLayout = sl_false;
 			}
 		}
-		
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR(minWidth, setMinimumWidth, checkForWindow)
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR(maxWidth, setMaximumWidth, checkForWindow)
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR(minHeight, setMinimumHeight, checkForWindow)
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR(maxHeight, setMaximumHeight, checkForWindow)
-		LAYOUT_CONTROL_GENERIC_ATTR(aspectRatio, setAspectRatio)
-		LAYOUT_CONTROL_GENERIC_ATTR(minAspectRatio, setMinimumAspectRatio)
-		LAYOUT_CONTROL_GENERIC_ATTR(maxAspectRatio, setMaximumAspectRatio)
-		
-		LAYOUT_CONTROL_GENERIC_ATTR(minimized, setMinimized)
-		LAYOUT_CONTROL_GENERIC_ATTR(maximized, setMaximized)
-		LAYOUT_CONTROL_GENERIC_ATTR(visible, setVisible)
-		LAYOUT_CONTROL_GENERIC_ATTR(alwaysOnTop, setAlwaysOnTop)
-		LAYOUT_CONTROL_GENERIC_ATTR(closeButton, setCloseButtonEnabled)
-		LAYOUT_CONTROL_GENERIC_ATTR(minimizeButton, setMinimizeButtonEnabled)
-		LAYOUT_CONTROL_GENERIC_ATTR(maximizeButton, setMaximizeButtonEnabled)
-		LAYOUT_CONTROL_GENERIC_ATTR(fullScreenButton, setFullScreenButtonEnabled)
-		LAYOUT_CONTROL_GENERIC_ATTR(resizable, setResizable)
-		LAYOUT_CONTROL_GENERIC_ATTR(layered, setLayered)
-		LAYOUT_CONTROL_GENERIC_ATTR(alpha, setAlpha)
-		LAYOUT_CONTROL_GENERIC_ATTR(transparent, setTransparent)
-		LAYOUT_CONTROL_COLOR_ATTR(backgroundColor, setBackgroundColor)
-
-		LAYOUT_CONTROL_GENERIC_ATTR(modal, setModal)
-		LAYOUT_CONTROL_GENERIC_ATTR(dialog, setDialog)
-		LAYOUT_CONTROL_GENERIC_ATTR(borderless, setBorderless)
-		LAYOUT_CONTROL_GENERIC_ATTR(titleBar, setTitleBarVisible)
-		LAYOUT_CONTROL_GENERIC_ATTR(fullScreen, setFullScreen)
-		LAYOUT_CONTROL_GENERIC_ATTR(centerScreen, setCenterScreen)
 		
 		params->name = "m_contentView";
 		if (!(_processLayoutResourceControl_View(params))) {

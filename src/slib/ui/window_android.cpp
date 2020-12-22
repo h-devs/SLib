@@ -63,14 +63,10 @@ namespace slib
 				SLIB_JNI_METHOD(activate, "activate", "()V");
 				SLIB_JNI_METHOD(getFrame, "getFrame", "()Landroid/graphics/Rect;");
 				SLIB_JNI_METHOD(setFrame, "setFrame", "(IIII)V");
-				SLIB_JNI_METHOD(getSize, "getSize", "()Landroid/graphics/Point;");
-				SLIB_JNI_METHOD(setSize, "setSize", "(II)V");
 				SLIB_JNI_METHOD(setBackgroundColor, "setWindowBackgroundColor", "(I)V");
 				SLIB_JNI_METHOD(setVisible, "setVisible", "(Z)V");
 				SLIB_JNI_METHOD(setAlwaysOnTop, "setAlwaysOnTop", "(Z)V");
 				SLIB_JNI_METHOD(setAlpha, "setWindowAlpha", "(F)V");
-				SLIB_JNI_METHOD(convertCoordinateFromScreenToWindow, "convertCoordinateFromScreenToWindow", "(II)Landroid/graphics/Point;");
-				SLIB_JNI_METHOD(convertCoordinateFromWindowToScreen, "convertCoordinateFromWindowToScreen", "(II)Landroid/graphics/Point;");
 
 				SLIB_JNI_NATIVE(onResize, "nativeOnResize", "(JII)V", OnResize);
 				SLIB_JNI_NATIVE(onClose, "nativeOnClose", "(J)Z", OnClose);
@@ -173,25 +169,6 @@ namespace slib
 					return m_viewContent;
 				}
 
-				sl_bool isActive() override
-				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
-					if (jwindow) {
-						return JWindow::isActive.callBoolean(jwindow);
-					}
-					return sl_false;
-				}
-				
-				void activate() override
-				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
-					if (jwindow) {
-						JWindow::activate.call(jwindow);
-					}
-				}
-
 				UIRect getFrame() override
 				{
 					JniGlobal<jobject> _jwindow(m_window);
@@ -220,40 +197,23 @@ namespace slib
 					}
 				}
 
-				UIRect getClientFrame() override
-				{
-					return getFrame();
-				}
-
-				UISize getClientSize() override
+				sl_bool isActive() override
 				{
 					JniGlobal<jobject> _jwindow(m_window);
 					jobject jwindow = _jwindow;
 					if (jwindow) {
-						JniLocal<jobject> size = JWindow::getSize.callObject(jwindow);
-						if (size.isNotNull()) {
-							UISize ret;
-							ret.x = (sl_ui_pos)(JPoint::x.get(size));
-							ret.y = (sl_ui_pos)(JPoint::y.get(size));
-							return ret;
-						}
-					}
-					return UISize::zero();
-				}
-
-				sl_bool setClientSize(sl_ui_len width, sl_ui_len height) override
-				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
-					if (jwindow) {
-						JWindow::setSize.call(jwindow, (int)width, (int)height);
-						return sl_true;
+						return JWindow::isActive.callBoolean(jwindow);
 					}
 					return sl_false;
 				}
-
-				void setTitle(const String& title) override
+				
+				void activate() override
 				{
+					JniGlobal<jobject> _jwindow(m_window);
+					jobject jwindow = _jwindow;
+					if (jwindow) {
+						JWindow::activate.call(jwindow);
+					}
 				}
 
 				void setBackgroundColor(const Color& color) override
@@ -290,68 +250,6 @@ namespace slib
 					if (jwindow) {
 						JWindow::setAlpha.call(jwindow, (jfloat)alpha);
 					}
-				}
-
-				UIPointf convertCoordinateFromScreenToWindow(const UIPointf& ptScreen) override
-				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
-					if (jwindow) {
-						JniLocal<jobject> jpt = JWindow::convertCoordinateFromScreenToWindow.callObject(jwindow, 0, 0);
-						if (jpt.isNotNull()) {
-							UIPointf ret;
-							ret.x = ptScreen.x + (sl_ui_posf)(JPoint::x.get(jpt));
-							ret.y = ptScreen.y + (sl_ui_posf)(JPoint::y.get(jpt));
-							return ret;
-						}
-					}
-					return ptScreen;
-				}
-
-				UIPointf convertCoordinateFromWindowToScreen(const UIPointf& ptWindow) override
-				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
-					if (jwindow) {
-						JniLocal<jobject> jpt = JWindow::convertCoordinateFromWindowToScreen.callObject(jwindow, 0, 0);
-						if (jpt.isNotNull()) {
-							UIPointf ret;
-							ret.x = ptWindow.x + (sl_ui_posf)(JPoint::x.get(jpt));
-							ret.y = ptWindow.y + (sl_ui_posf)(JPoint::y.get(jpt));
-							return ret;
-						}
-					}
-					return ptWindow;
-				}
-
-				UIPointf convertCoordinateFromScreenToClient(const UIPointf& ptScreen) override
-				{
-					return convertCoordinateFromScreenToWindow(ptScreen);
-				}
-
-				UIPointf convertCoordinateFromClientToScreen(const UIPointf& ptClient) override
-				{
-					return convertCoordinateFromWindowToScreen(ptClient);
-				}
-
-				UIPointf convertCoordinateFromWindowToClient(const UIPointf& ptWindow) override
-				{
-					return ptWindow;
-				}
-
-				UIPointf convertCoordinateFromClientToWindow(const UIPointf& ptClient) override
-				{
-					return ptClient;
-				}
-
-				UISize getWindowSizeFromClientSize(const UISize& size) override
-				{
-					return size;
-				}
-
-				UISize getClientSizeFromWindowSize(const UISize& size) override
-				{
-					return size;
 				}
 
 			};

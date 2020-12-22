@@ -135,7 +135,6 @@ namespace slib
 		m_flagHeightWrapping = sl_false;
 		m_flagCloseOnOK = sl_false;
 
-		m_flagUseClientSizeRequested = sl_false;
 		m_flagStateResizingWidth = sl_false;
 		m_flagStateDoModal = sl_false;
 		m_flagDispatchedDestroy = sl_false;
@@ -298,15 +297,15 @@ namespace slib
 	{
 		Ref<WindowInstance> instance = m_instance;
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&Window::activate)
+			void (Window::*func)(const UIRect&) = &Window::setFrame;
+			SLIB_VIEW_RUN_ON_UI_THREAD(func, _frame)
 		}
 		UIRect frame = _frame;
-		_constrainSize(frame, frame.getWidth() > 0);
+		_constrainWindowSize(frame, frame.getWidth() > 0);
 		m_frame = frame;
 		if (instance.isNotNull()) {
 			instance->setFrame(frame);
 		}
-		m_flagUseClientSizeRequested = sl_false;
 	}
 
 	void Window::setFrame(sl_ui_pos left, sl_ui_pos top, sl_ui_len width, sl_ui_len height)
@@ -430,51 +429,35 @@ namespace slib
 		}
 	}
 
-	sl_bool Window::isRequestedClientSize()
-	{
-		return m_flagUseClientSizeRequested;
-	}
-
 	UIRect Window::getClientFrame()
 	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			return instance->getClientFrame();
-		}
-		return UIRect::zero();
+		return getClientFrameFromWindowFrame(getFrame());
+	}
+
+	void Window::setClientFrame(const UIRect& frame)
+	{
+		setFrame(getWindowFrameFromClientFrame(frame));
+	}
+
+	void Window::setClientFrame(sl_ui_pos left, sl_ui_pos top, sl_ui_len width, sl_ui_len height)
+	{
+		UIRect rect;
+		rect.left = left;
+		rect.top = top;
+		rect.setSize(width, height);
+		setClientFrame(rect);
 	}
 
 	UISize Window::getClientSize()
 	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			return instance->getClientSize();
-		} else {
-			if (m_flagUseClientSizeRequested) {
-				return m_clientSizeRequested;
-			} else {
-				return getSize();
-			}
-		}
+		return getClientFrame().getSize();
 	}
 
 	void Window::setClientSize(sl_ui_len width, sl_ui_len height)
 	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			void (Window::*func)(sl_ui_len, sl_ui_len) = &Window::setClientSize;
-			SLIB_VIEW_RUN_ON_UI_THREAD(func, width, height)
-
-			m_flagUseClientSizeRequested = sl_false;
-			if (!(instance->setClientSize(width, height))) {
-				setSize(width, height);
-			}
-		} else {
-			m_flagUseClientSizeRequested = sl_true;
-			m_clientSizeRequested.x = width;
-			m_clientSizeRequested.y = height;
-			m_frame.setSize(width, height);
-		}
+		UIRect frame = getClientFrame();
+		frame.setSize(width, height);
+		setClientFrame(frame);
 	}
 
 	void Window::setClientSize(const UISize& size)
@@ -484,50 +467,26 @@ namespace slib
 
 	sl_ui_len Window::getClientWidth()
 	{
-		return getClientSize().x;
+		return getClientFrame().getWidth();
 	}
 	
 	void Window::setClientWidth(sl_ui_len width)
 	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&Window::setClientWidth, width)
-			m_flagUseClientSizeRequested = sl_false;
-			if (!(instance->setClientSize(width, m_clientSizeRequested.y))) {
-				setWidth(width);
-			}
-		} else {
-			m_flagUseClientSizeRequested = sl_true;
-			m_clientSizeRequested.x = width;
-			m_frame.setWidth(width);
-		}
+		UIRect frame = getClientFrame();
+		frame.setWidth(width);
+		setClientFrame(frame);
 	}
 	
 	sl_ui_len Window::getClientHeight()
 	{
-		return getClientSize().y;
+		return getClientFrame().getHeight();
 	}
 	
 	void Window::setClientHeight(sl_ui_len height)
 	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&Window::setClientHeight, height)
-			m_flagUseClientSizeRequested = sl_false;
-			if (!(instance->setClientSize(m_clientSizeRequested.x, height))) {
-				setHeight(height);
-			}
-		} else {
-			m_flagUseClientSizeRequested = sl_true;
-			m_clientSizeRequested.y = height;
-			m_frame.setHeight(height);
-		}
-	}
-
-	UIRect Window::getClientBounds()
-	{
-		UISize size = getClientSize();
-		return UIRect(0, 0, size.x, size.y);
+		UIRect frame = getClientFrame();
+		frame.setHeight(height);
+		setClientFrame(frame);
 	}
 
 	String Window::getTitle()
@@ -830,134 +789,6 @@ namespace slib
 		}
 	}
 
-	UIPointf Window::convertCoordinateFromScreenToWindow(const UIPointf& ptScreen)
-	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			return instance->convertCoordinateFromScreenToWindow(ptScreen);
-		} else {
-			return UIPointf::zero();
-		}
-	}
-
-	UIRectf Window::convertCoordinateFromScreenToWindow(const UIRectf& rect)
-	{
-		UIRectf ret;
-		ret.setLeftTop(convertCoordinateFromScreenToWindow(rect.getLeftTop()));
-		ret.setRightBottom(convertCoordinateFromScreenToWindow(rect.getRightBottom()));
-		return ret;
-	}
-
-	UIPointf Window::convertCoordinateFromWindowToScreen(const UIPointf& ptWindow)
-	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			return instance->convertCoordinateFromWindowToScreen(ptWindow);
-		} else {
-			return UIPointf::zero();
-		}
-	}
-
-	UIRectf Window::convertCoordinateFromWindowToScreen(const UIRectf& rect)
-	{
-		UIRectf ret;
-		ret.setLeftTop(convertCoordinateFromWindowToScreen(rect.getLeftTop()));
-		ret.setRightBottom(convertCoordinateFromWindowToScreen(rect.getRightBottom()));
-		return ret;
-	}
-
-	UIPointf Window::convertCoordinateFromScreenToClient(const UIPointf& ptScreen)
-	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			return instance->convertCoordinateFromScreenToClient(ptScreen);
-		} else {
-			return UIPointf::zero();
-		}
-	}
-
-	UIRectf Window::convertCoordinateFromScreenToClient(const UIRectf& rect)
-	{
-		UIRectf ret;
-		ret.setLeftTop(convertCoordinateFromScreenToClient(rect.getLeftTop()));
-		ret.setRightBottom(convertCoordinateFromScreenToClient(rect.getRightBottom()));
-		return ret;
-	}
-
-	UIPointf Window::convertCoordinateFromClientToScreen(const UIPointf& ptClient)
-	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			return instance->convertCoordinateFromClientToScreen(ptClient);
-		} else {
-			return UIPointf::zero();
-		}
-	}
-
-	UIRectf Window::convertCoordinateFromClientToScreen(const UIRectf& rect)
-	{
-		UIRectf ret;
-		ret.setLeftTop(convertCoordinateFromClientToScreen(rect.getLeftTop()));
-		ret.setRightBottom(convertCoordinateFromClientToScreen(rect.getRightBottom()));
-		return ret;
-	}
-
-	UIPointf Window::convertCoordinateFromWindowToClient(const UIPointf& ptWindow)
-	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			return instance->convertCoordinateFromWindowToClient(ptWindow);
-		} else {
-			return UIPointf::zero();
-		}
-	}
-
-	UIRectf Window::convertCoordinateFromWindowToClient(const UIRectf& rect)
-	{
-		UIRectf ret;
-		ret.setLeftTop(convertCoordinateFromWindowToClient(rect.getLeftTop()));
-		ret.setRightBottom(convertCoordinateFromWindowToClient(rect.getRightBottom()));
-		return ret;
-	}
-
-	UIPointf Window::convertCoordinateFromClientToWindow(const UIPointf& ptClient)
-	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			return instance->convertCoordinateFromClientToWindow(ptClient);
-		} else {
-			return UIPointf::zero();
-		}
-	}
-
-	UIRectf Window::convertCoordinateFromClientToWindow(const UIRectf& rect)
-	{
-		UIRectf ret;
-		ret.setLeftTop(convertCoordinateFromClientToWindow(rect.getLeftTop()));
-		ret.setRightBottom(convertCoordinateFromClientToWindow(rect.getRightBottom()));
-		return ret;
-	}
-
-	UISize Window::getWindowSizeFromClientSize(const UISize& sizeClient)
-	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			return instance->getWindowSizeFromClientSize(sizeClient);
-		} else {
-			return UISize::zero();
-		}
-	}
-
-	UISize Window::getClientSizeFromWindowSize(const UISize& sizeWindow)
-	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			return instance->getClientSizeFromWindowSize(sizeWindow);
-		} else {
-			return UISize::zero();
-		}
-	}
-	
 	void Window::setSizeRange(const UISize& _sizeMinimum, const UISize& _sizeMaximum, float aspectRatioMinimum, float aspectRatioMaximum)
 	{
 		Ref<WindowInstance> instance = m_instance;
@@ -994,14 +825,133 @@ namespace slib
 			instance->setSizeRange(sizeMinimum, sizeMaximum, aspectRatioMinimum, m_aspectRatioMaximum);
 		}
 		
-		UIRect frame = m_frame;
-		UIRect frameOld = frame;
-		_constrainSize(frame, frame.getWidth() > 0);
-		if (!(frame.isAlmostEqual(frameOld))) {
-			setFrame(frame);
+		UISize size = getClientSize();
+		UISize sizeOld = size;
+		_constrainClientSize(size, size.x > 0);
+		if (!(size.isAlmostEqual(sizeOld))) {
+			setClientSize(size);
 		}
 	}
-	
+
+	UIEdgeInsets Window::getClientInsets()
+	{
+		UIEdgeInsets ret;
+		Ref<WindowInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			if (instance->getClientInsets(ret)) {
+				return ret;
+			}
+		}
+		if (_getClientInsets(ret)) {
+			return ret;
+		}
+		ret.left = 0;
+		ret.top = 0;
+		ret.right = 0;
+		ret.bottom = 0;
+		return ret;
+	}
+
+	UIRect Window::getWindowFrameFromClientFrame(const UIRect& frame)
+	{
+		UIEdgeInsets insets = getClientInsets();
+		return UIRect(frame.left - insets.left, frame.top - insets.top, frame.right + insets.right, frame.bottom + insets.bottom);
+	}
+
+	UIRect Window::getClientFrameFromWindowFrame(const UIRect& frame)
+	{
+		UIEdgeInsets insets = getClientInsets();
+		return UIRect(frame.left + insets.left, frame.top + insets.top, frame.right - insets.right, frame.bottom - insets.bottom);
+	}
+
+	UISize Window::getWindowSizeFromClientSize(const UISize& size)
+	{
+		UIEdgeInsets insets = getClientInsets();
+		return UISize(size.x + insets.left + insets.right, size.y + insets.top + insets.bottom);
+	}
+
+	UISize Window::getClientSizeFromWindowSize(const UISize& size)
+	{
+		UIEdgeInsets insets = getClientInsets();
+		return UISize(size.x - insets.left - insets.right, size.y - insets.top - insets.bottom);
+	}
+
+	UIPointf Window::convertCoordinateFromScreenToWindow(const UIPointf& pt)
+	{
+		UIPointf origin = getLocation();
+		return UIPointf(pt.x - origin.x, pt.y - origin.y);
+	}
+
+	UIRectf Window::convertCoordinateFromScreenToWindow(const UIRectf& rect)
+	{
+		UIPointf origin = getLocation();
+		return UIRectf(rect.left - origin.x, rect.top - origin.y, rect.right - origin.x, rect.bottom - origin.y);
+	}
+
+	UIPointf Window::convertCoordinateFromWindowToScreen(const UIPointf& pt)
+	{
+		UIPointf origin = getLocation();
+		return UIPointf(pt.x + origin.x, pt.y + origin.y);
+	}
+
+	UIRectf Window::convertCoordinateFromWindowToScreen(const UIRectf& rect)
+	{
+		UIPointf origin = getLocation();
+		return UIRectf(rect.left + origin.x, rect.top + origin.y, rect.right + origin.x, rect.bottom + origin.y);
+	}
+
+	UIPointf Window::convertCoordinateFromScreenToClient(const UIPointf& pt)
+	{
+		UIPointf origin = getClientFrame().getLocation();
+		return UIPointf(pt.x - origin.x, pt.y - origin.y);
+	}
+
+	UIRectf Window::convertCoordinateFromScreenToClient(const UIRectf& rect)
+	{
+		UIPointf origin = getClientFrame().getLocation();
+		return UIRectf(rect.left - origin.x, rect.top - origin.y, rect.right - origin.x, rect.bottom - origin.y);
+	}
+
+	UIPointf Window::convertCoordinateFromClientToScreen(const UIPointf& pt)
+	{
+		UIPointf origin = getClientFrame().getLocation();
+		return UIPointf(pt.x + origin.x, pt.y + origin.y);
+	}
+
+	UIRectf Window::convertCoordinateFromClientToScreen(const UIRectf& rect)
+	{
+		UIPointf origin = getClientFrame().getLocation();
+		return UIRectf(rect.left + origin.x, rect.top + origin.y, rect.right + origin.x, rect.bottom + origin.y);
+	}
+
+	UIPointf Window::convertCoordinateFromWindowToClient(const UIPointf& pt)
+	{
+		UIEdgeInsets insets = getClientInsets();
+		UIPointf origin((sl_real)(insets.left), (sl_real)(insets.top));
+		return UIPointf(pt.x - origin.x, pt.y - origin.y);
+	}
+
+	UIRectf Window::convertCoordinateFromWindowToClient(const UIRectf& rect)
+	{
+		UIEdgeInsets insets = getClientInsets();
+		UIPointf origin((sl_real)(insets.left), (sl_real)(insets.top));
+		return UIRectf(rect.left - origin.x, rect.top - origin.y, rect.right - origin.x, rect.bottom - origin.y);
+	}
+
+	UIPointf Window::convertCoordinateFromClientToWindow(const UIPointf& pt)
+	{
+		UIEdgeInsets insets = getClientInsets();
+		UIPointf origin((sl_real)(insets.left), (sl_real)(insets.top));
+		return UIPointf(pt.x + origin.x, pt.y + origin.y);
+	}
+
+	UIRectf Window::convertCoordinateFromClientToWindow(const UIRectf& rect)
+	{
+		UIEdgeInsets insets = getClientInsets();
+		UIPointf origin((sl_real)(insets.left), (sl_real)(insets.top));
+		return UIRectf(rect.left + origin.x, rect.top + origin.y, rect.right + origin.x, rect.bottom + origin.y);
+	}
+
 	UISize Window::getMinimumSize()
 	{
 		return m_sizeMin;
@@ -1273,19 +1223,23 @@ namespace slib
 		}
 		
 		if (m_flagWidthWrapping || m_flagHeightWrapping) {
+			UISize sizeOld = getClientSize();
 			UISize sizeMeasured = m_viewContent->measureLayoutWrappingSize(m_flagWidthWrapping, m_flagHeightWrapping);
 			if (m_flagWidthWrapping) {
 				if (sizeMeasured.x < 100) {
 					sizeMeasured.x = 100;
 				}
-				m_frame.setWidth(sizeMeasured.x);
+			} else {
+				sizeMeasured.x = sizeOld.x;
 			}
 			if (m_flagHeightWrapping) {
 				if (sizeMeasured.y < 100) {
 					sizeMeasured.y = 100;
 				}
-				m_frame.setHeight(sizeMeasured.y);
+			} else {
+				sizeMeasured.y = sizeOld.y;
 			}
+			setClientSize(sizeMeasured);
 		}
 		
 		Ref<WindowInstance> window = createWindowInstance();
@@ -1498,27 +1452,32 @@ namespace slib
 		SLIB_INVOKE_EVENT_HANDLER(Move)
 	}
 	
-	SLIB_DEFINE_EVENT_HANDLER(Window, Resizing, UISize& size)
+	SLIB_DEFINE_EVENT_HANDLER(Window, Resizing, UISize& clientSize)
 
-	void Window::dispatchResizing(UISize& size)
+	void Window::dispatchResizing(UISize& clientSize)
 	{
-		if (isWidthWrapping()) {
-			size.x = getWidth();
+		sl_bool flagWrappingWidth = isWidthWrapping();
+		sl_bool flagWrappingHeight = isHeightWrapping();
+		if (flagWrappingWidth || flagWrappingHeight) {
+			UISize sizeOld = getClientSize();
+			if (flagWrappingWidth) {
+				clientSize.x = sizeOld.x;
+			}
+			if (flagWrappingHeight) {
+				clientSize.y = sizeOld.y;
+			}
 		}
-		if (isHeightWrapping()) {
-			size.y = getHeight();
-		}
-		
-		_constrainSize(size, m_flagStateResizingWidth);
+				
+		_constrainClientSize(clientSize, m_flagStateResizingWidth);
 
-		SLIB_INVOKE_EVENT_HANDLER(Resizing, size)
+		SLIB_INVOKE_EVENT_HANDLER(Resizing, clientSize)
 	}
 	
 	SLIB_DEFINE_EVENT_HANDLER(Window, Resize, sl_ui_len clientWidth, sl_ui_len clientHeight)
 
 	void Window::dispatchResize(sl_ui_len clientWidth, sl_ui_len clientHeight)
 	{
-		_refreshSize(UISize(clientWidth, clientHeight));
+		_refreshClientSize(UISize(clientWidth, clientHeight));
 		if (clientWidth > 0 && clientHeight > 0) {
 			Ref<View> viewContent = m_viewContent;
 			if (viewContent.isNotNull()) {
@@ -1529,6 +1488,12 @@ namespace slib
 		}
 		
 		SLIB_INVOKE_EVENT_HANDLER(Resize, clientWidth, clientHeight)
+	}
+
+	void Window::dispatchResize()
+	{
+		UISize size = getClientSize();
+		dispatchResize(size.x, size.y);
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(Window, Minimize)
@@ -1552,7 +1517,7 @@ namespace slib
 	void Window::dispatchMaximize()
 	{
 		m_flagMaximized = sl_true;
-		_refreshSize(getClientSize());
+		_refreshClientSize(getClientSize());
 		SLIB_INVOKE_EVENT_HANDLER(Maximize)
 	}
 	
@@ -1561,7 +1526,7 @@ namespace slib
 	void Window::dispatchDemaximize()
 	{
 		m_flagMaximized = sl_false;
-		_refreshSize(getClientSize());
+		_refreshClientSize(getClientSize());
 		SLIB_INVOKE_EVENT_HANDLER(Demaximize)
 	}
 
@@ -1570,7 +1535,7 @@ namespace slib
 	void Window::dispatchEnterFullScreen()
 	{
 		m_flagFullScreen = sl_true;
-		_refreshSize(getClientSize());
+		_refreshClientSize(getClientSize());
 		SLIB_INVOKE_EVENT_HANDLER(EnterFullScreen)
 	}
 
@@ -1579,7 +1544,7 @@ namespace slib
 	void Window::dispatchExitFullScreen()
 	{
 		m_flagFullScreen = sl_false;
-		_refreshSize(getClientSize());
+		_refreshClientSize(getClientSize());
 		SLIB_INVOKE_EVENT_HANDLER(ExitFullScreen)
 	}
 
@@ -1624,7 +1589,7 @@ namespace slib
 		}
 	}
 
-	void Window::_refreshSize(const UISize& size)
+	void Window::_refreshClientSize(const UISize& size)
 	{
 		Ref<View> view = m_viewContent;
 		if (view.isNotNull()) {
@@ -1635,7 +1600,7 @@ namespace slib
 		}
 	}
 
-	void Window::_constrainSize(UISize& size, sl_bool flagAdjustHeight)
+	void Window::_constrainClientSize(UISize& size, sl_bool flagAdjustHeight)
 	{
 		sl_ui_len minX = m_sizeMin.x;
 		sl_ui_len minY = m_sizeMin.y;
@@ -1703,13 +1668,27 @@ namespace slib
 		}
 	}
 	
-	void Window::_constrainSize(UIRect& frame, sl_bool flagAdjustHeight)
+	void Window::_constrainClientSize(UIRect& frame, sl_bool flagAdjustHeight)
 	{
 		UISize size = frame.getSize();
-		_constrainSize(size, flagAdjustHeight);
+		_constrainClientSize(size, flagAdjustHeight);
 		frame.setSize(size);
 	}
-	
+
+	void Window::_constrainWindowSize(UISize& size, sl_bool flagAdjustHeight)
+	{
+		UISize clientSize = getClientSizeFromWindowSize(size);
+		_constrainClientSize(clientSize, flagAdjustHeight);
+		size = getWindowSizeFromClientSize(clientSize);
+	}
+
+	void Window::_constrainWindowSize(UIRect& frame, sl_bool flagAdjustHeight)
+	{
+		UISize size = frame.getSize();
+		_constrainWindowSize(size, flagAdjustHeight);
+		frame.setSize(size);
+	}
+
 	void Window::_applyContentWrappingSize()
 	{
 		m_viewContent->applyWrappingContentSize();
@@ -1747,11 +1726,24 @@ namespace slib
 		m_flagKeepWindow = flag;
 	}
 
+	void WindowInstance::setTitle(const String& title)
+	{
+	}
+
 	void WindowInstance::setMenu(const Ref<Menu>& menu)
 	{
 	}
-	
-	void WindowInstance::setSizeRange(const UISize& sizeMinimum, const UISize& sizeMaximum, float aspectRatioMinimum, float aspectRatioMaximum)
+
+	sl_bool WindowInstance::isActive()
+	{
+		return sl_true;
+	}
+
+	void WindowInstance::activate()
+	{
+	}
+
+	void WindowInstance::setBackgroundColor(const Color& color)
 	{
 	}
 
@@ -1824,6 +1816,15 @@ namespace slib
 	{
 	}
 
+	sl_bool WindowInstance::getClientInsets(UIEdgeInsets& _out)
+	{
+		return sl_false;
+	}
+
+	void WindowInstance::setSizeRange(const UISize& sizeMinimum, const UISize& sizeMaximum, float aspectRatioMinimum, float aspectRatioMaximum)
+	{
+	}
+
 	sl_bool WindowInstance::doModal()
 	{
 		return sl_false;
@@ -1889,6 +1890,14 @@ namespace slib
 		}
 	}
 
+	void WindowInstance::onResize()
+	{
+		Ref<Window> window = getWindow();
+		if (window.isNotNull()) {
+			window->dispatchResize();
+		}
+	}
+
 	void WindowInstance::onMinimize()
 	{
 		Ref<Window> window = getWindow();
@@ -1940,5 +1949,13 @@ namespace slib
 	void WindowInstance::onAttachedContentView()
 	{
 	}
+
+
+#if !(defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_GTK))
+	sl_bool Window::_getClientInsets(UIEdgeInsets& _out)
+	{
+		return sl_false;
+	}
+#endif
 
 }
