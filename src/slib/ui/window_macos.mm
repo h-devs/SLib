@@ -59,6 +59,80 @@ namespace slib
 	{
 		namespace window
 		{
+
+			static void ApplyRectLimit(NSRect& rect)
+			{
+				if (rect.origin.x < -16000.0f) {
+					rect.origin.x = -16000.0f;
+				}
+				if (rect.origin.x > 16000.0f) {
+					rect.origin.x = 16000.0f;
+				}
+				if (rect.origin.y < -16000.0f) {
+					rect.origin.y = -16000.0f;
+				}
+				if (rect.origin.y > 16000.0f) {
+					rect.origin.y = 16000.0f;
+				}
+				if (rect.size.width < 0.0f) {
+					rect.size.width = 0.0f;
+				}
+				if (rect.size.width > 10000.0f) {
+					rect.size.width = 10000.0f;
+				}
+				if (rect.size.height < 0.0f) {
+					rect.size.height = 0.0f;
+				}
+				if (rect.size.height > 10000.0f) {
+					rect.size.height = 10000.0f;
+				}
+			}
+			
+			static void ToNSRect(NSRect& rectOut, const UIRect& rectIn, sl_ui_len heightScreen)
+			{
+				rectOut.origin.x = (int)(rectIn.left);
+				rectOut.origin.y = (int)(heightScreen - rectIn.bottom);
+				rectOut.size.width = (int)(rectIn.getWidth());
+				rectOut.size.height = (int)(rectIn.getHeight());
+				ApplyRectLimit(rectOut);
+			}
+			
+			static void ToUIRect(UIRect& rectOut, const NSRect& rectIn, sl_ui_len heightScreen)
+			{
+				rectOut.left = (sl_ui_pos)(rectIn.origin.x);
+				rectOut.top = heightScreen - (sl_ui_pos)(rectIn.origin.y + rectIn.size.height);
+				rectOut.setWidth((sl_ui_pos)(rectIn.size.width));
+				rectOut.setHeight((sl_ui_pos)(rectIn.size.height));
+				rectOut.fixSizeError();
+			}
+
+			static int MakeWindowStyleMask(Window* window)
+			{
+				int styleMask;
+				if (window->isSheet()) {
+					styleMask = NSTitledWindowMask;
+				} else {
+					if (window->isBorderless()) {
+						styleMask = NSBorderlessWindowMask;
+					} else {
+						if (window->isTitleBarVisible()) {
+							styleMask = NSTitledWindowMask;
+						} else {
+							styleMask = NSClosableWindowMask | NSMiniaturizableWindowMask;
+						}
+						if (window->isCloseButtonEnabled()) {
+							styleMask |= NSClosableWindowMask;
+						}
+						if (window->isMinimizeButtonEnabled()) {
+							styleMask |= NSMiniaturizableWindowMask;
+						}
+						if (window->isResizable()) {
+							styleMask |= NSResizableWindowMask;
+						}
+					}
+				}
+				return styleMask;
+			}
 			
 			class macOS_WindowInstance : public WindowInstance
 			{
@@ -140,53 +214,24 @@ namespace slib
 						frameScreen = UI::getScreenRegion();
 					}
 
-					sl_bool flagSheet = window->isSheet() && parent != nil;
+					sl_bool flagSheet = window->isSheet();
+					if (parent == nil) {
+						flagSheet = sl_false;
+						window->setSheet(sl_false);
+					}
 					
-					int styleMask = 0;
 					NSRect rect;
-					
+					int styleMask = MakeWindowStyleMask(window);
 					if (flagSheet) {
-						
+						UISize size = window->getSize();
 						rect.origin.x = 0;
 						rect.origin.y = 0;
-						rect.size.width = window->getWidth();
-						rect.size.height = window->getHeight();
-						
-						styleMask = NSTitledWindowMask;
-						
+						rect.size.width = (CGFloat)(size.x);
+						rect.size.height = (CGFloat)(size.y);
 					} else {
-						
-						if (window->isBorderless()) {
-							styleMask = NSBorderlessWindowMask;
-						} else {
-							if (window->isTitleBarVisible()) {
-								styleMask = NSTitledWindowMask;
-							}
-							if (window->isCloseButtonEnabled()) {
-								styleMask |= NSClosableWindowMask;
-							}
-							if (window->isMinimizeButtonEnabled()) {
-								styleMask |= NSMiniaturizableWindowMask;
-							}
-							if (window->isResizable()) {
-								styleMask |= NSResizableWindowMask;
-							}
-						}
-
-						NSRect rcDiff = [NSWindow contentRectForFrameRect:NSMakeRect(0, 0, 100, 100) styleMask:styleMask];
-						sl_ui_len widthDiff = (sl_ui_len)(100 - rcDiff.size.width);
-						sl_ui_len heightDiff = (sl_ui_len)(100 - rcDiff.size.height);
-						UIRect frame = window->getFrame();
-						if (window->isRequestedClientSize()) {
-							UISize size = window->getClientSize();
-							size.x += widthDiff;
-							size.y += heightDiff;
-							frame.setSize(size);
-						}
-						UIRect frameWindow = MakeWindowFrame(window, frame);
-						frameWindow.right -= widthDiff;
-						frameWindow.bottom -= heightDiff;
-						_getNSRect(rect, frameWindow, frameScreen.getHeight());
+						UIRect frameWindow = MakeWindowFrame(window);
+						frameWindow = window->getClientFrameFromWindowFrame(frameWindow);
+						ToNSRect(rect, frameWindow, frameScreen.getHeight());
 					}
 					
 					SLIBWindowHandle* handle = [[SLIBWindowHandle alloc] initWithContentRect:rect styleMask:styleMask backing:NSBackingStoreBuffered defer:YES screen:screen];
@@ -324,31 +369,13 @@ namespace slib
 					return m_viewContent;
 				}
 				
-				sl_bool isActive() override
-				{
-					NSWindow* window = m_window;
-					if (window != nil) {
-						return [window isKeyWindow];
-						return sl_true;
-					}
-					return sl_false;
-				}
-				
-				void activate() override
-				{
-					NSWindow* window = m_window;
-					if (window != nil) {
-						[window makeKeyAndOrderFront:NSApp];
-					}
-				}
-				
 				UIRect getFrame() override
 				{
 					NSWindow* window = m_window;
 					if (window != nil) {
 						NSRect rect = [window frame];
 						UIRect frame;
-						_getFrame(frame, rect, m_heightScreen);
+						ToUIRect(frame, rect, m_heightScreen);
 						return frame;
 					} else {
 						return UIRect::zero();
@@ -360,47 +387,9 @@ namespace slib
 					NSWindow* window = m_window;
 					if (window != nil) {
 						NSRect rect;
-						_getNSRect(rect, frame, m_heightScreen);
+						ToNSRect(rect, frame, m_heightScreen);
 						[window setFrame:rect display:TRUE];
 					}
-				}
-				
-				UIRect getClientFrame() override
-				{
-					NSWindow* window = m_window;
-					if (window != nil) {
-						NSRect fr = [window frame];
-						NSRect cr = [window contentRectForFrameRect:fr];
-						UIRect frame;
-						_getFrame(frame, cr, m_heightScreen);
-						return frame;
-					} else {
-						return UIRect::zero();
-					}
-				}
-				
-				UISize getClientSize() override
-				{
-					NSWindow* window = m_window;
-					if (window != nil) {
-						NSRect rect = [window contentRectForFrameRect:[window frame]];
-						return UISize((sl_ui_pos)(rect.size.width), (sl_ui_pos)(rect.size.height));
-					} else {
-						return UISize::zero();
-					}
-				}
-				
-				sl_bool setClientSize(sl_ui_len width, sl_ui_len height) override
-				{
-					NSWindow* window = m_window;
-					if (window != nil) {
-						NSSize s;
-						s.width = (CGFloat)width;
-						s.height = (CGFloat)height;
-						[window setContentSize:s];
-						return sl_true;
-					}
-					return sl_false;
 				}
 				
 				void setTitle(const String& title) override
@@ -408,6 +397,23 @@ namespace slib
 					NSWindow* window = m_window;
 					if (window != nil) {
 						[window setTitle: Apple::getNSStringFromString(title)];
+					}
+				}
+				
+				sl_bool isActive() override
+				{
+					NSWindow* window = m_window;
+					if (window != nil) {
+						return [window isKeyWindow];
+					}
+					return sl_false;
+				}
+				
+				void activate() override
+				{
+					NSWindow* window = m_window;
+					if (window != nil) {
+						[window makeKeyAndOrderFront:NSApp];
 					}
 				}
 				
@@ -628,159 +634,21 @@ namespace slib
 					}
 				}
 				
-				
-				UIPointf convertCoordinateFromScreenToWindow(const UIPointf& ptScreen) override
-				{
-					NSWindow* window = m_window;
-					if (window != nil) {
-						NSRect rect;
-						rect.origin.x = (CGFloat)(ptScreen.x);
-						rect.origin.y = (CGFloat)(m_heightScreen - ptScreen.y);
-						rect.size.width = 0;
-						rect.size.height = 0;
-						rect = [window convertRectFromScreen:rect];
-						NSRect frame = [window frame];
-						UIPointf ret;
-						ret.x = (sl_ui_pos)(rect.origin.x);
-						ret.y = (sl_ui_pos)(frame.size.height - rect.origin.y);
-						return ret;
-					} else {
-						return ptScreen;
-					}
-				}
-				
-				UIPointf convertCoordinateFromWindowToScreen(const UIPointf& ptWindow) override
-				{
-					NSWindow* window = m_window;
-					if (window != nil) {
-						NSRect frame = [window frame];
-						NSRect rect;
-						rect.origin.x = (CGFloat)(ptWindow.x);
-						rect.origin.y = (CGFloat)(frame.size.height - ptWindow.y);
-						rect.size.width = 0;
-						rect.size.height = 0;
-						rect = [window convertRectToScreen:rect];
-						UIPointf ret;
-						ret.x = (sl_ui_posf)(rect.origin.x);
-						ret.y = (sl_ui_posf)(m_heightScreen - rect.origin.y);
-						return ret;
-					} else {
-						return ptWindow;
-					}
-				}
-				
-				UIPointf convertCoordinateFromScreenToClient(const UIPointf& ptScreen) override
-				{
-					NSWindow* window = m_window;
-					if (window != nil) {
-						NSRect rect;
-						rect.origin.x = (CGFloat)(ptScreen.x);
-						rect.origin.y = (CGFloat)(m_heightScreen - ptScreen.y);
-						rect.size.width = 0;
-						rect.size.height = 0;
-						rect = [window convertRectFromScreen:rect];
-						NSRect client = [window contentRectForFrameRect:[window frame]];
-						UIPointf ret;
-						ret.x = (sl_ui_posf)(rect.origin.x);
-						ret.y = (sl_ui_posf)(client.size.height - rect.origin.y);
-						return ret;
-					} else {
-						return ptScreen;
-					}
-				}
-				
-				UIPointf convertCoordinateFromClientToScreen(const UIPointf& ptClient) override
-				{
-					NSWindow* window = m_window;
-					if (window != nil) {
-						NSRect client = [window contentRectForFrameRect:[window frame]];
-						NSRect rect;
-						rect.origin.x = (CGFloat)(ptClient.x);
-						rect.origin.y = (CGFloat)(client.size.height - ptClient.y);
-						rect.size.width = 0;
-						rect.size.height = 0;
-						rect = [window convertRectToScreen:rect];
-						UIPointf ret;
-						ret.x = (sl_ui_posf)(rect.origin.x);
-						ret.y = (sl_ui_posf)(m_heightScreen - rect.origin.y);
-						return ret;
-					} else {
-						return ptClient;
-					}
-				}
-				
-				UIPointf convertCoordinateFromWindowToClient(const UIPointf& ptWindow) override
+				sl_bool getClientInsets(UIEdgeInsets& _out) override
 				{
 					NSWindow* window = m_window;
 					if (window != nil) {
 						NSRect frame = [window frame];
 						NSRect client = [window contentRectForFrameRect:frame];
-						UIPointf ret;
-						ret.x = (sl_ui_posf)(ptWindow.x);
-						ret.y = (sl_ui_posf)(client.size.height - (frame.size.height - ptWindow.y));
-						return ret;
-					} else {
-						return ptWindow;
+						_out.left = (sl_ui_len)(client.origin.x - frame.origin.x);
+						_out.top = (sl_ui_len)(frame.origin.y + frame.size.height - (client.origin.y + client.size.height));
+						_out.right = (sl_ui_len)(frame.origin.x + frame.size.width - (client.origin.x + client.size.width));
+						_out.bottom = (sl_ui_len)(client.origin.y - frame.origin.y);
+						return sl_true;
 					}
+					return sl_false;
 				}
-				
-				UIPointf convertCoordinateFromClientToWindow(const UIPointf& ptClient) override
-				{
-					NSWindow* window = m_window;
-					if (window != nil) {
-						NSRect frame = [window frame];
-						NSRect client = [window contentRectForFrameRect:frame];
-						UIPointf ret;
-						ret.x = (sl_ui_posf)(ptClient.x);
-						ret.y = (sl_ui_posf)(frame.size.height - (client.size.height - ptClient.y));
-						return ret;
-					} else {
-						return ptClient;
-					}
-				}
-				
-				UISize getWindowSizeFromClientSize(const UISize& sizeClient) override
-				{
-					NSWindow* window = m_window;
-					if (window != nil) {
-						NSRect frame = [window frame];
-						NSRect client = [window contentRectForFrameRect:frame];
-						UISize ret;
-						ret.x = sizeClient.x + (sl_ui_pos)(frame.size.width - client.size.width);
-						ret.y = sizeClient.y + (sl_ui_pos)(frame.size.height - client.size.height);
-						if (ret.x < 0) {
-							ret.x = 0;
-						}
-						if (ret.y < 0) {
-							ret.y = 0;
-						}
-						return ret;
-					} else {
-						return sizeClient;
-					}
-				}
-				
-				UISize getClientSizeFromWindowSize(const UISize& sizeWindow) override
-				{
-					NSWindow* window = m_window;
-					if (window != nil) {
-						NSRect frame = [window frame];
-						NSRect client = [window contentRectForFrameRect:frame];
-						UISize ret;
-						ret.x = sizeWindow.x - (sl_ui_pos)(frame.size.width - client.size.width);
-						ret.y = sizeWindow.y - (sl_ui_pos)(frame.size.height - client.size.height);
-						if (ret.x < 0) {
-							ret.x = 0;
-						}
-						if (ret.y < 0) {
-							ret.y = 0;
-						}
-						return ret;
-					} else {
-						return sizeWindow;
-					}
-				}
-				
+
 				sl_bool doModal() override
 				{
 					NSWindow* window = m_window;
@@ -799,53 +667,6 @@ namespace slib
 				{
 					UISize sizeClient = getClientSize();
 					onResize(sizeClient.x, sizeClient.y);
-				}
-				
-			private:
-				static void _applyRectLimit(NSRect& rect)
-				{
-					if (rect.origin.x < -16000.0f) {
-						rect.origin.x = -16000.0f;
-					}
-					if (rect.origin.x > 16000.0f) {
-						rect.origin.x = 16000.0f;
-					}
-					if (rect.origin.y < -16000.0f) {
-						rect.origin.y = -16000.0f;
-					}
-					if (rect.origin.y > 16000.0f) {
-						rect.origin.y = 16000.0f;
-					}
-					if (rect.size.width < 0.0f) {
-						rect.size.width = 0.0f;
-					}
-					if (rect.size.width > 10000.0f) {
-						rect.size.width = 10000.0f;
-					}
-					if (rect.size.height < 0.0f) {
-						rect.size.height = 0.0f;
-					}
-					if (rect.size.height > 10000.0f) {
-						rect.size.height = 10000.0f;
-					}
-				}
-				
-				static void _getNSRect(NSRect& rectOut, const UIRect& rectIn, sl_ui_len heightScreen)
-				{
-					rectOut.origin.x = (int)(rectIn.left);
-					rectOut.origin.y = (int)(heightScreen - rectIn.bottom);
-					rectOut.size.width = (int)(rectIn.getWidth());
-					rectOut.size.height = (int)(rectIn.getHeight());
-					_applyRectLimit(rectOut);
-				}
-				
-				static void _getFrame(UIRect& rectOut, const NSRect& rectIn, sl_ui_len heightScreen)
-				{
-					rectOut.left = (sl_ui_pos)(rectIn.origin.x);
-					rectOut.top = heightScreen - (sl_ui_pos)(rectIn.origin.y + rectIn.size.height);
-					rectOut.setWidth((sl_ui_pos)(rectIn.size.width));
-					rectOut.setHeight((sl_ui_pos)(rectIn.size.height));
-					rectOut.fixSizeError();
 				}
 				
 			};
@@ -872,6 +693,18 @@ namespace slib
 		return sl_null;
 	}
 	
+	sl_bool Window::_getClientInsets(UIEdgeInsets& _out)
+	{
+		int styleMask = MakeWindowStyleMask(this);
+		NSRect frame = NSMakeRect(100, 100, 200, 200);
+		NSRect client = [NSWindow contentRectForFrameRect:frame styleMask:styleMask];
+		_out.left = (sl_ui_len)(client.origin.x - frame.origin.x);
+		_out.top = (sl_ui_len)(frame.origin.y + frame.size.height - (client.origin.y + client.size.height));
+		_out.right = (sl_ui_len)(frame.origin.x + frame.size.width - (client.origin.x + client.size.width));
+		_out.bottom = (sl_ui_len)(client.origin.y - frame.origin.y);
+		return sl_true;
+	}
+
 	
 	Ref<WindowInstance> UIPlatform::createWindowInstance(NSWindow* window)
 	{
@@ -1002,7 +835,15 @@ using namespace slib::priv::window;
 		if (size.x != self.frame.size.width) {
 			m_flagStateResizingWidth = sl_true;
 		}
+		NSRect fr = [self frame];
+		NSRect cr = [self contentRectForFrameRect:fr];
+		sl_ui_len dw = (sl_ui_len)(fr.size.width - cr.size.width);
+		sl_ui_len dh = (sl_ui_len)(fr.size.height - cr.size.height);
+		size.x -= dw;
+		size.y -= dh;
 		window->onResizing(size, m_flagStateResizingWidth);
+		size.x += dw;
+		size.y += dh;
 		frameSize.width = (CGFloat)(size.x);
 		frameSize.height = (CGFloat)(size.y);
 	}

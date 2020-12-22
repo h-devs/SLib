@@ -221,19 +221,6 @@ namespace slib
 					return m_viewContent;
 				}
 				
-				sl_bool isActive() override
-				{
-					return sl_true;
-				}
-				
-				void activate() override
-				{
-					Evas_Object* window = m_window;
-					if (window) {
-						elm_win_raise(window);
-					}
-				}
-				
 				UIRect getFrame() override
 				{
 					return UI::getScreenBounds();
@@ -243,27 +230,12 @@ namespace slib
 				{
 				}
 				
-				UIRect getClientFrame() override
+				void activate() override
 				{
-					return getFrame();
-				}
-				
-				UISize getClientSize() override
-				{
-					return getFrame().getSize();
-				}
-				
-				sl_bool setClientSize(sl_ui_len width, sl_ui_len height) override
-				{
-					return sl_false;
-				}
-				
-				void setTitle(const String& title) override
-				{
-				}
-				
-				void setBackgroundColor(const Color& _color) override
-				{
+					Evas_Object* window = m_window;
+					if (window) {
+						elm_win_raise(window);
+					}
 				}
 				
 				void setVisible(sl_bool flag) override
@@ -276,46 +248,6 @@ namespace slib
 							evas_object_hide(window);
 						}
 					}
-				}
-				
-				UIPointf convertCoordinateFromScreenToWindow(const UIPointf& ptScreen) override
-				{
-					return ptScreen;
-				}
-				
-				UIPointf convertCoordinateFromWindowToScreen(const UIPointf& ptWindow) override
-				{
-					return ptWindow;
-				}
-				
-				UIPointf convertCoordinateFromScreenToClient(const UIPointf& ptScreen) override
-				{
-					return convertCoordinateFromScreenToWindow(ptScreen);
-				}
-				
-				UIPointf convertCoordinateFromClientToScreen(const UIPointf& ptClient) override
-				{
-					return convertCoordinateFromWindowToScreen(ptClient);
-				}
-				
-				UIPointf convertCoordinateFromWindowToClient(const UIPointf& ptWindow) override
-				{
-					return ptWindow;
-				}
-				
-				UIPointf convertCoordinateFromClientToWindow(const UIPointf& ptClient) override
-				{
-					return ptClient;
-				}
-				
-				UISize getWindowSizeFromClientSize(const UISize& sizeClient) override
-				{
-					return sizeClient;
-				}
-				
-				UISize getClientSizeFromWindowSize(const UISize& sizeWindow) override
-				{
-					return sizeWindow;
 				}
 				
 				void doPostCreate() override
