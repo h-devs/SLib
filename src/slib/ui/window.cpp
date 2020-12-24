@@ -68,12 +68,19 @@ namespace slib
 						return;
 					}
 					if (window->getWindowInstance().isNotNull()) {
-						if (window->isCenterScreen()) {
-							UISize sizeWindowNew = window->getWindowSizeFromClientSize(sizeNew);
-							UIRect frame = window->getFrame();
-							frame.left -= (sizeWindowNew.x - frame.getWidth()) / 2;
-							frame.top -= (sizeWindowNew.y - frame.getHeight()) / 2;
-							frame.setSize(sizeWindowNew);
+						if (window->isCenterScreen() && (Time::now() - window->getCreationTime()).getMillisecondsCount() < 500) {
+							UISize sizeWindow = window->getWindowSizeFromClientSize(sizeNew);
+							UISize sizeScreen;
+							Ref<Screen> screen = window->getScreen();
+							if (screen.isNotNull()) {
+								sizeScreen = screen->getRegion().getSize();
+							} else {
+								sizeScreen = UI::getScreenSize();
+							}
+							UIRect frame;
+							frame.left = (sizeScreen.x - sizeWindow.x) / 2;
+							frame.top = (sizeScreen.y - sizeWindow.y) / 2;
+							frame.setSize(sizeWindow);
 							window->setFrame(frame);
 							return;
 						}
@@ -1143,6 +1150,11 @@ namespace slib
 		close();
 	}
 
+	Time Window::getCreationTime()
+	{
+		return m_timeCreation;
+	}
+
 #if defined(SLIB_UI_IS_ANDROID)
 	void* Window::getActivity()
 	{
@@ -1245,6 +1257,8 @@ namespace slib
 		Ref<WindowInstance> window = createWindowInstance();
 		
 		if (window.isNotNull()) {
+
+			m_timeCreation = Time::now();
 			
 			if (flagKeepReference) {
 				increaseReference();

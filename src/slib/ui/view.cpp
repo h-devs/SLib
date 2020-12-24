@@ -1410,6 +1410,9 @@ namespace slib
 	{
 		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
+			if (instance->isWindowContent()) {
+				return;
+			}
 			SLIB_VIEW_RUN_ON_UI_THREAD(&View::_updateInstanceFrames)
 			instance->setFrame(this, getFrameInInstance());
 		} else {

@@ -359,15 +359,18 @@ namespace slib
 		sl_bool isCloseOnOK();
 		
 		void setCloseOnOK(sl_bool flag = sl_true);
-		
-		
+
+
 		Variant getResult();
 		
 		void setResult(const Variant& result);
 		
 		void close(const Variant& result);
-		
-		
+
+
+		Time getCreationTime();
+
+
 #if defined(SLIB_UI_IS_ANDROID)
 		void* getActivity();
 		
@@ -507,6 +510,8 @@ namespace slib
 		
 		Variant* m_result;
 		SpinLock m_lockResult;
+
+		Time m_timeCreation;
 
 #if defined(SLIB_UI_IS_ANDROID)
 		// jobject

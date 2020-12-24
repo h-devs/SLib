@@ -51,7 +51,6 @@ namespace slib
 
 			public:
 				GtkMenuItem* m_handle;
-				String m_accel;
 				sl_bool m_flagCheckable;
 
 			public:
@@ -65,9 +64,6 @@ namespace slib
 				{
 					GtkMenuItem* handle = m_handle;
 					if (handle) {
-						if (m_accel.isNotNull()) {
-							gtk_accel_map_add_entry(m_accel.getData(), 0, (GdkModifierType)0);
-						}
 						g_object_unref(handle);
 						m_handle = handle;
 					}
@@ -86,37 +82,14 @@ namespace slib
 
 				void setShortcutKey(const KeycodeAndModifiers& km) override
 				{
-					ObjectLocker lock(this);
 					MenuItem::setShortcutKey(km);
-					guint key = UIEvent::getSystemKeycode(km.getKeycode());
-					int modifiers = 0;
-					if (km.isAltKey()) {
-						modifiers |= GDK_MOD1_MASK;
-					}
-					if (km.isWindowsKey()) {
-						modifiers |= GDK_MOD4_MASK;
-					}
-					if (km.isShiftKey()) {
-						modifiers |= GDK_SHIFT_MASK;
-					}
-					if (km.isControlKey()) {
-						modifiers |= GDK_CONTROL_MASK;
-					}
-					if (m_accel.isNull()) {
-						if (km.getKeycode() != Keycode::Unknown) {
-							static sl_int32 _n = 0;
-							sl_int32 n = Base::interlockedIncrement32(&_n);
-							m_accel = "<slib>/<a" + String::fromUint32(n) + ">";
-							gtk_accel_map_add_entry(m_accel.getData(), key, (GdkModifierType)modifiers);
-							gtk_menu_item_set_accel_path(m_handle, m_accel.getData());
-						}
-					} else {
-						if (km.getKeycode() == Keycode::Unknown) {
-							gtk_accel_map_add_entry(m_accel.getData(), 0, (GdkModifierType)0);
-						} else {
-							gtk_accel_map_change_entry(m_accel.getData(), key, (GdkModifierType)modifiers, 1);
-						}
-					}
+					_setAccelString();
+				}
+
+				void setSecondShortcutKey(const KeycodeAndModifiers& km) override
+				{
+					MenuItem::setSecondShortcutKey(km);
+					_setAccelString();
 				}
 
 				void setEnabled(sl_bool flag) override
@@ -140,7 +113,37 @@ namespace slib
 					gtk_menu_item_set_submenu(m_handle, (GtkWidget*)hSubmenu);
 				}
 
-				static void _on_selected(GtkMenuItem*, gpointer user_data)
+				void _setAccelString()
+				{
+					GtkAccelLabel* label = (GtkAccelLabel*)(gtk_bin_get_child((GtkBin*)m_handle));
+					if (label) {
+						String text;
+						KeycodeAndModifiers& km1 = m_shortcutKey;
+						KeycodeAndModifiers& km2 = m_secondShortcutKey;
+						if (km1.getKeycode() != Keycode::Unknown) {
+							text = km1.toString();
+							if (km2.getKeycode() != Keycode::Unknown) {
+								text += ", ";
+								text += km2.toString();
+							}
+						}
+						if (text.equals(label->accel_string)) {
+							return;
+						}
+						if (label->accel_string) {
+							g_free(label->accel_string);
+						}
+						sl_size len = text.getLength();
+						void* p = g_malloc(len + len);
+						if (p) {
+							Base::copyMemory(p, text.getData(), len);
+							label->accel_string = (gchar*)p;
+							label->accel_string_width = (guint16)len;
+						}
+					}
+				}
+
+				static void _callback_activated(GtkMenuItem*, gpointer user_data)
 				{
 					MenuItemImpl* menu = (MenuItemImpl*)user_data;
 					if (menu){
@@ -243,6 +246,7 @@ namespace slib
 					}
 					GtkWidget* handle = gtk_separator_menu_item_new();
 					if (handle) {
+						gtk_widget_show(handle);
 						gtk_menu_shell_insert(m_handle, handle, index);
 						Ref<MenuItem> item = MenuItem::createSeparator();
 						if (item.isNotNull()) {
@@ -274,7 +278,7 @@ namespace slib
 					}
 				}
 
-				static void _menu_position_func(GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer user_data)
+				static void _callback_menu_position(GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer user_data)
 				{
 					UIPoint *pt = (UIPoint*)user_data;
 					*x = (gint)(pt->x);
@@ -287,7 +291,7 @@ namespace slib
 					if (m_flagPopup) {
 						UIPoint pt = {x, y};
 						int event_time = gtk_get_current_event_time();
-						gtk_menu_popup((GtkMenu*)m_handle, sl_null, sl_null, &_menu_position_func, &pt, 0, event_time);
+						gtk_menu_popup((GtkMenu*)m_handle, sl_null, sl_null, &_callback_menu_position, &pt, 0, event_time);
 					}
 				}
 
@@ -339,14 +343,12 @@ namespace slib
 					ret->m_icon = param.icon;
 					ret->m_checkedIcon = param.checkedIcon;
 					ret->m_submenu = param.submenu;
+					ret->m_shortcutKey = param.shortcutKey;
+					ret->m_secondShortcutKey = param.secondShortcutKey;
+					ret->_setAccelString();
 					ret->setAction(param.action);
 
-					if (param.shortcutKey.getKeycode() != Keycode::Unknown) {
-						ret->setShortcutKey(param.shortcutKey);
-					}
-					ret->m_secondShortcutKey = param.secondShortcutKey;
-
-					g_signal_connect(item, "select", G_CALLBACK(_on_selected), ret.get());
+					g_signal_connect(item, "activate", G_CALLBACK(_callback_activated), ret.get());
 					gtk_widget_show(widget);
 
 					return ret;

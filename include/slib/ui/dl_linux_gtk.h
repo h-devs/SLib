@@ -309,6 +309,20 @@ namespace slib
 			gdouble opacity
 		)
 		#define gtk_window_set_opacity slib::gtk::wrap_gtk_window_set_opacity
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
+			gtk_window_set_gravity,
+			void, ,
+			GtkWindow *window,
+			GdkGravity gravity
+		)
+		#define gtk_window_set_gravity slib::gtk::getApi_gtk_window_set_gravity()
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
+			gtk_window_set_position,
+			void, ,
+			GtkWindow *window,
+			GtkWindowPosition position
+		)
+		#define gtk_window_set_position slib::gtk::getApi_gtk_window_set_position()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_window_set_geometry_hints,
 			void, ,
