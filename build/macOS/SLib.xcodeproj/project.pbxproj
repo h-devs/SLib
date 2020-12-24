@@ -435,6 +435,7 @@
 		26E1B8A9222ABAB2007C222E /* jquant2.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605069C20CFB01400032B2C /* jquant2.c */; };
 		26E1B8AA222ABAB2007C222E /* jutils.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506A720CFB01400032B2C /* jutils.c */; };
 		26E44AE92321832000A88D93 /* collection_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2650D3912320694C00B0CF2C /* collection_view.cpp */; };
+		26E9133C25948C54008A35D2 /* jpeg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26E9133B25948C54008A35D2 /* jpeg.cpp */; };
 		26EA2061239A90E2008218D7 /* ui_notification_fcm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26EA2060239A90E2008218D7 /* ui_notification_fcm.cpp */; };
 		26EA207123A2BF75008218D7 /* database_sql.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26EA206F23A2BF75008218D7 /* database_sql.cpp */; };
 		26EA207223A2BF75008218D7 /* database_expression.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26EA207023A2BF75008218D7 /* database_expression.cpp */; };
@@ -920,6 +921,7 @@
 		26E1B857222841AB007C222E /* pinterest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pinterest.cpp; path = social/pinterest.cpp; sourceTree = "<group>"; };
 		26E1B85B22291D53007C222E /* ebay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ebay.cpp; path = social/ebay.cpp; sourceTree = "<group>"; };
 		26E63F441E337B2300F50E8A /* ui_animation_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ui_animation_apple.mm; sourceTree = "<group>"; };
+		26E9133B25948C54008A35D2 /* jpeg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jpeg.cpp; sourceTree = "<group>"; };
 		26EA2060239A90E2008218D7 /* ui_notification_fcm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ui_notification_fcm.cpp; sourceTree = "<group>"; };
 		26EA206F23A2BF75008218D7 /* database_sql.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = database_sql.cpp; sourceTree = "<group>"; };
 		26EA207023A2BF75008218D7 /* database_expression.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = database_expression.cpp; sourceTree = "<group>"; };
@@ -1561,6 +1563,7 @@
 				266DD4881C1193C400D47AB0 /* image_jpeg.cpp */,
 				266DD4891C1193C400D47AB0 /* image_png.cpp */,
 				266DD48A1C1193C400D47AB0 /* image_stb.cpp */,
+				26E9133B25948C54008A35D2 /* jpeg.cpp */,
 				266DD48D1C1193C400D47AB0 /* pen.cpp */,
 				26483B2B1C99D8F3009075BF /* yuv.cpp */,
 				2628EED821C4259900D8CD00 /* zxing.cpp */,
@@ -2378,6 +2381,7 @@
 				26D9D9D61E96468D005F7BD3 /* split_layout.cpp in Sources */,
 				26D9D93D1E9645CE005F7BD3 /* gcm.cpp in Sources */,
 				26D9D9DC1E96468D005F7BD3 /* ui_animation.cpp in Sources */,
+				26E9133C25948C54008A35D2 /* jpeg.cpp in Sources */,
 				26D9D93E1E9645CE005F7BD3 /* memory.cpp in Sources */,
 				26E1B85C22291D54007C222E /* ebay.cpp in Sources */,
 				263D47872386B13D00DAC43F /* chat_view.cpp in Sources */,

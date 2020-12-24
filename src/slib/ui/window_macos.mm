@@ -665,8 +665,7 @@ namespace slib
 
 				void doPostCreate() override
 				{
-					UISize sizeClient = getClientSize();
-					onResize(sizeClient.x, sizeClient.y);
+					onResize();
 				}
 				
 			};

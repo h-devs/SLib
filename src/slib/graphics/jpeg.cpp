@@ -69,21 +69,23 @@ namespace slib
 			static sl_bool IsSOF(JpegMarkerCode code)
 			{
 				switch (code) {
-				case JpegMarkerCode::SOF0:
-				case JpegMarkerCode::SOF1:
-				case JpegMarkerCode::SOF2:
-				case JpegMarkerCode::SOF9:
-				case JpegMarkerCode::SOF10:
-				case JpegMarkerCode::SOF3:
-				case JpegMarkerCode::SOF5:
-				case JpegMarkerCode::SOF6:
-				case JpegMarkerCode::SOF7:
-				case JpegMarkerCode::JPG:
-				case JpegMarkerCode::SOF11:
-				case JpegMarkerCode::SOF13:
-				case JpegMarkerCode::SOF14:
-				case JpegMarkerCode::SOF15:
-					return sl_true;
+					case JpegMarkerCode::SOF0:
+					case JpegMarkerCode::SOF1:
+					case JpegMarkerCode::SOF2:
+					case JpegMarkerCode::SOF9:
+					case JpegMarkerCode::SOF10:
+					case JpegMarkerCode::SOF3:
+					case JpegMarkerCode::SOF5:
+					case JpegMarkerCode::SOF6:
+					case JpegMarkerCode::SOF7:
+					case JpegMarkerCode::JPG:
+					case JpegMarkerCode::SOF11:
+					case JpegMarkerCode::SOF13:
+					case JpegMarkerCode::SOF14:
+					case JpegMarkerCode::SOF15:
+						return sl_true;
+					default:
+						break;
 				}
 				return sl_false;
 			}
@@ -91,12 +93,14 @@ namespace slib
 			static sl_bool IsSupportedSOF(JpegMarkerCode code)
 			{
 				switch (code) {
-				case JpegMarkerCode::SOF0:
-				case JpegMarkerCode::SOF1:
-				case JpegMarkerCode::SOF2:
-				case JpegMarkerCode::SOF9:
-				case JpegMarkerCode::SOF10:
-					return sl_true;
+					case JpegMarkerCode::SOF0:
+					case JpegMarkerCode::SOF1:
+					case JpegMarkerCode::SOF2:
+					case JpegMarkerCode::SOF9:
+					case JpegMarkerCode::SOF10:
+						return sl_true;
+					default:
+						break;
 				}
 				return sl_false;
 			}
@@ -434,7 +438,6 @@ namespace slib
 		sl_int32 pos;
 		sl_int16 I16 = 16;
 		sl_int16 I63 = 63;
-		sl_int16 I64 = 64;
 
 		sl_int16 Diff = data[0] - component.dc_Wprediction; component.dc_Wprediction = data[0];
 		//Encode DC
@@ -1102,7 +1105,6 @@ namespace slib
 							if (!(reader.decodeBlock(data, comp, dc_huffman_tables[dc_huffman_table_no], ac_huffman_tables[ac_huffman_table_no]))) {
 								return sl_false;
 							}
-							sl_bool aa = onDecodeHuffmanBlock.isNull();
 							if (onDecodeHuffmanBlock.isNull() || onDecodeHuffmanBlock(data, comp, dc_huffman_tables[dc_huffman_table_no], ac_huffman_tables[ac_huffman_table_no])) {
 								if (onFinishJob.isNotNull()) {
 									if (onFinishJob()) {
@@ -1433,7 +1435,7 @@ namespace slib
 			};
 
 			file.onReachedScandata = [&file, &writer]() {
-				sl_size headerSize = file.m_reader.getPosition();
+				sl_size headerSize = (sl_size)(file.m_reader.getPosition());
 				if (file.m_reader.getSeekable()->seekToBegin()) {
 					Memory buf = file.m_reader.readToMemory(headerSize);
 					if (buf.getSize() == headerSize) {
