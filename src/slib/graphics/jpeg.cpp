@@ -29,8 +29,6 @@
 #include "slib/graphics/image.h"
 #include "slib/graphics/yuv.h"
 
-#include "slib/core/log.h"
-
 #define HUFFMAN_FAST_BITS SLIB_JPEG_HUFFMAN_FAST_BITS
 
 namespace slib
@@ -1424,7 +1422,7 @@ namespace slib
 			};
 			file.onDecodeRestartControl = [&file, &writer, &huffWriter, &nRestartIndex](sl_int32& count) {
 				if (nRestartIndex > 0) {
-					sl_uint8 value = abs(nRestartIndex - 1) % 8;
+					sl_uint8 value = Math::abs(nRestartIndex - 1) % 8;
 					huffWriter.writeFlush();
 					// RST Marker
 					writer.writeUint8(0xFF);
