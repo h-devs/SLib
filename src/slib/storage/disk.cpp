@@ -27,7 +27,7 @@ namespace slib
 
 #if !defined(SLIB_PLATFORM_IS_WIN32)
 	String Disk::getSerialNumber(sl_uint32 diskNo)
-	{		
+	{
 		return sl_null;
 	}
 

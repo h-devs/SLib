@@ -647,7 +647,7 @@ namespace slib
 			AudioRecorderImpl::DeviceProperty& prop = props[i];
 			AudioRecorderInfo info;
 			info.id = prop.szGuid;
-			info.name = prop.name;
+			info.name = prop.description;
 			info.description = prop.description;
 			ret.add_NoLock(info);
 		}
@@ -667,7 +667,7 @@ namespace slib
 			AudioPlayerDeviceImpl::DeviceProperty& prop = props[i];
 			AudioPlayerInfo info;
 			info.id = prop.szGuid;
-			info.name = prop.name;
+			info.name = prop.description;
 			info.description = prop.description;
 			ret.add_NoLock(info);
 		}

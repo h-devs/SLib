@@ -71,29 +71,29 @@ namespace slib
 	{
 	public:
 		template <typename T>
-		SLIB_INLINE constexpr static T max(T a, T b) noexcept
+		constexpr static T max(T a, T b) noexcept
 		{
 			return (a > b) ? a : b;
 		}
 
 		template <typename T>
-		SLIB_INLINE constexpr static T min(T a, T b) noexcept
+		constexpr static T min(T a, T b) noexcept
 		{
 			return (a < b) ? a : b;
 		}
 
 		template <typename T>
-		SLIB_INLINE constexpr static T abs(T v) noexcept
+		constexpr static T abs(T v) noexcept
 		{
 			return (v > 0) ? (v) : (-v);
 		}
 
-		SLIB_INLINE constexpr static sl_int32 sign(float v) noexcept
+		constexpr static sl_int32 sign(float v) noexcept
 		{
 			return (v >= 0) ? 1 : -1;
 		}
 
-		SLIB_INLINE constexpr static sl_int32 sign(double v) noexcept
+		constexpr static sl_int32 sign(double v) noexcept
 		{
 			return (v >= 0) ? 1 : -1;
 		}
@@ -102,12 +102,12 @@ namespace slib
 
 		static double pow(double x, double y) noexcept;
 
-		SLIB_INLINE constexpr static float square(float x) noexcept
+		constexpr static float square(float x) noexcept
 		{
 			return x * x;
 		}
 
-		SLIB_INLINE constexpr static double square(double x) noexcept
+		constexpr static double square(double x) noexcept
 		{
 			return x * x;
 		}
@@ -197,141 +197,141 @@ namespace slib
 		static sl_bool isInfinite(double f) noexcept;
 	
 
-		SLIB_INLINE constexpr static float saturate(float f) noexcept
+		constexpr static float saturate(float f) noexcept
 		{
 			return (f<0.0f) ? 0.0f : ((f>1.0f) ? 1.0f : f);
 		}
 
-		SLIB_INLINE constexpr static double saturate(double f) noexcept
+		constexpr static double saturate(double f) noexcept
 		{
 			return (f<0.0) ? 0.0 : ((f>1.0) ? 1.0 : f);
 		}
 
 		template <typename T>
-		SLIB_INLINE constexpr static T clamp(T v, T vMin, T vMax) noexcept
+		constexpr static T clamp(T v, T vMin, T vMax) noexcept
 		{
 			return (v<vMin) ? vMin : ((v>vMax) ? vMax : v);
 		}
 
-		SLIB_INLINE constexpr static sl_int32 clamp0_255(sl_int32 v) noexcept
+		constexpr static sl_int32 clamp0_255(sl_int32 v) noexcept
 		{
 			// ((-v) >> 31) & v <=> arithmetic sign shift, clamp to >=0
 			return (((0xFF - (((-v) >> 31) & v)) >> 31) | (((-v) >> 31) & v)) & 0xFF; // clamp to < 256
 		}
 
-		SLIB_INLINE constexpr static sl_int32 clamp0_65535(sl_int32 v) noexcept
+		constexpr static sl_int32 clamp0_65535(sl_int32 v) noexcept
 		{
 			// ((-v) >> 31) & v <=> arithmetic sign shift, clamp to >=0
 			return (((0xFFFF - (((-v) >> 31) & v)) >> 31) | (((-v) >> 31) & v)) & 0xFFFF; // clamp to < 65536
 		}
 	
-		SLIB_INLINE constexpr static sl_bool isAlmostZero(float f) noexcept
+		constexpr static sl_bool isAlmostZero(float f) noexcept
 		{
 			return (f > -SLIB_EPSILON && f < SLIB_EPSILON);
 		}
 
-		SLIB_INLINE constexpr static sl_bool isAlmostZero(double f) noexcept
+		constexpr static sl_bool isAlmostZero(double f) noexcept
 		{
 			return (f > -SLIB_EPSILON_LONG && f < SLIB_EPSILON_LONG);
 		}
 
-		SLIB_INLINE constexpr static sl_bool isAlmostZero(sl_int32 v) noexcept
+		constexpr static sl_bool isAlmostZero(sl_int32 v) noexcept
 		{
 			return v == 0;
 		}
 
-		SLIB_INLINE constexpr static sl_bool isAlmostZero(sl_uint32 v) noexcept
+		constexpr static sl_bool isAlmostZero(sl_uint32 v) noexcept
 		{
 			return v == 0;
 		}
 
-		SLIB_INLINE constexpr static sl_bool isAlmostZero(sl_int64 v) noexcept
+		constexpr static sl_bool isAlmostZero(sl_int64 v) noexcept
 		{
 			return v == 0;
 		}
 
-		SLIB_INLINE constexpr static sl_bool isAlmostZero(sl_uint64 v) noexcept
+		constexpr static sl_bool isAlmostZero(sl_uint64 v) noexcept
 		{
 			return v == 0;
 		}
 	
-		SLIB_INLINE constexpr static sl_bool isLessThanEpsilon(float f) noexcept
+		constexpr static sl_bool isLessThanEpsilon(float f) noexcept
 		{
 			return (f < SLIB_EPSILON);
 		}
 
-		SLIB_INLINE constexpr static sl_bool isLessThanEpsilon(double f) noexcept
+		constexpr static sl_bool isLessThanEpsilon(double f) noexcept
 		{
 			return (f < SLIB_EPSILON_LONG);
 		}
 
-		SLIB_INLINE constexpr static sl_bool isLessThanEpsilon(sl_int32 v) noexcept
+		constexpr static sl_bool isLessThanEpsilon(sl_int32 v) noexcept
 		{
 			return (v <= 0);
 		}
 
-		SLIB_INLINE constexpr static sl_bool isLessThanEpsilon(sl_uint32 v) noexcept
+		constexpr static sl_bool isLessThanEpsilon(sl_uint32 v) noexcept
 		{
 			return (v <= 0);
 		}
 
-		SLIB_INLINE constexpr static sl_bool isLessThanEpsilon(sl_int64 v) noexcept
+		constexpr static sl_bool isLessThanEpsilon(sl_int64 v) noexcept
 		{
 			return (v <= 0);
 		}
 
-		SLIB_INLINE constexpr static sl_bool isLessThanEpsilon(sl_uint64 v) noexcept
+		constexpr static sl_bool isLessThanEpsilon(sl_uint64 v) noexcept
 		{
 			return (v <= 0);
 		}
 	
 
-		SLIB_INLINE constexpr static float getRadianFromDegrees(float f) noexcept
+		constexpr static float getRadianFromDegrees(float f) noexcept
 		{
 			return (f * SLIB_PI / 180.0f);
 		}
 
-		SLIB_INLINE constexpr static double getRadianFromDegrees(double f) noexcept
+		constexpr static double getRadianFromDegrees(double f) noexcept
 		{
 			return (f * SLIB_PI_LONG / 180.0);
 		}
 
-		SLIB_INLINE constexpr static float getDegreesFromRadian(float f) noexcept
+		constexpr static float getDegreesFromRadian(float f) noexcept
 		{
 			return (f * 180.0f / SLIB_PI);
 		}
 
-		SLIB_INLINE constexpr static double getDegreesFromRadian(double f) noexcept
+		constexpr static double getDegreesFromRadian(double f) noexcept
 		{
 			return (f * 180.0 / SLIB_PI_LONG);
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr static T PI() noexcept
+		constexpr static T PI() noexcept
 		{
 			return MathContants<T>::PI;
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr static T DualPI() noexcept
+		constexpr static T DualPI() noexcept
 		{
 			return MathContants<T>::PI_DUAL;
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr static T HalfPI() noexcept
+		constexpr static T HalfPI() noexcept
 		{
 			return MathContants<T>::PI_HALF;
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr static T QuarterPI() noexcept
+		constexpr static T QuarterPI() noexcept
 		{
 			return MathContants<T>::PI_QUARTER;
 		}
 
 		template <class T>
-		SLIB_INLINE constexpr static T Epsilon() noexcept
+		constexpr static T Epsilon() noexcept
 		{
 			return MathContants<T>::EPSILON;
 		}
@@ -378,42 +378,42 @@ namespace slib
 		static sl_uint64 roundUpToPowerOfTwo64(sl_uint64 num) noexcept;
 
 		
-		SLIB_INLINE constexpr static sl_uint32 rotateLeft(sl_uint32 x, sl_uint32 n) noexcept
+		constexpr static sl_uint32 rotateLeft(sl_uint32 x, sl_uint32 n) noexcept
 		{
 			return (x << n) | (x >> (32 - n));
 		}
 		
-		SLIB_INLINE constexpr static sl_uint32 rotateLeft32(sl_uint32 x, sl_uint32 n) noexcept
+		constexpr static sl_uint32 rotateLeft32(sl_uint32 x, sl_uint32 n) noexcept
 		{
 			return (x << n) | (x >> (32 - n));
 		}
 
-		SLIB_INLINE constexpr static sl_uint64 rotateLeft(sl_uint64 x, sl_uint32 n) noexcept
+		constexpr static sl_uint64 rotateLeft(sl_uint64 x, sl_uint32 n) noexcept
 		{
 			return (x << n) | (x >> (64 - n));
 		}
 		
-		SLIB_INLINE constexpr static sl_uint64 rotateLeft64(sl_uint64 x, sl_uint32 n) noexcept
+		constexpr static sl_uint64 rotateLeft64(sl_uint64 x, sl_uint32 n) noexcept
 		{
 			return (x << n) | (x >> (64 - n));
 		}
 
-		SLIB_INLINE constexpr static sl_uint32 rotateRight(sl_uint32 x, sl_uint32 n) noexcept
+		constexpr static sl_uint32 rotateRight(sl_uint32 x, sl_uint32 n) noexcept
 		{
 			return (x >> n) | (x << (32 - n));
 		}
 		
-		SLIB_INLINE constexpr static sl_uint32 rotateRight32(sl_uint32 x, sl_uint32 n) noexcept
+		constexpr static sl_uint32 rotateRight32(sl_uint32 x, sl_uint32 n) noexcept
 		{
 			return (x >> n) | (x << (32 - n));
 		}
 
-		SLIB_INLINE constexpr static sl_uint64 rotateRight(sl_uint64 x, sl_uint32 n) noexcept
+		constexpr static sl_uint64 rotateRight(sl_uint64 x, sl_uint32 n) noexcept
 		{
 			return (x >> n) | (x << (64 - n));
 		}
 		
-		SLIB_INLINE constexpr static sl_uint64 rotateRight64(sl_uint64 x, sl_uint32 n) noexcept
+		constexpr static sl_uint64 rotateRight64(sl_uint64 x, sl_uint32 n) noexcept
 		{
 			return (x >> n) | (x << (64 - n));
 		}

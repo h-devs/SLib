@@ -2149,7 +2149,7 @@ namespace slib
 	{
 		if (shift == 0) {
 			return copyFrom(a);
-		}	
+		}
 		sl_size nba = a.getMostSignificantBits();
 		if (nba <= shift) {
 			setZero();

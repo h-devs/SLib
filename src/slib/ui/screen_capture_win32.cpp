@@ -199,7 +199,7 @@ namespace slib
 		POINT pt;
 		GetCursorPos(&pt);
 		HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-		if (hMonitor) {			
+		if (hMonitor) {
 			MONITORINFOEXW info;
 			Base::zeroMemory(&info, sizeof(info));
 			info.cbSize = sizeof(info);

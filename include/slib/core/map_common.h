@@ -36,19 +36,19 @@ namespace slib
 		NODE* node;
 		
 	public:
-		SLIB_INLINE constexpr MapEmplaceReturn(sl_bool _isSuccess, NODE* _node) noexcept
+		constexpr MapEmplaceReturn(sl_bool _isSuccess, NODE* _node) noexcept
 		 : isSuccess(_isSuccess), node(_node)
 		 {}
 		
-		SLIB_INLINE constexpr MapEmplaceReturn(sl_null_t) noexcept
+		constexpr MapEmplaceReturn(sl_null_t) noexcept
 		 : isSuccess(sl_false), node(sl_null)
 		 {}
 
-		SLIB_INLINE constexpr MapEmplaceReturn(const MapEmplaceReturn& other) noexcept = default;
+		constexpr MapEmplaceReturn(const MapEmplaceReturn& other) noexcept = default;
 		
-		SLIB_INLINE MapEmplaceReturn& operator=(const MapEmplaceReturn& other) noexcept = default;
+		MapEmplaceReturn& operator=(const MapEmplaceReturn& other) noexcept = default;
 		
-		SLIB_INLINE constexpr operator sl_bool() const noexcept
+		constexpr operator sl_bool() const noexcept
 		{
 			return isSuccess;
 		}

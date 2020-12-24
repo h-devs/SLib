@@ -39,7 +39,7 @@ namespace slib
 		namespace media_player
 		{
 			class MediaPlayerImpl;
-		}	
+		}
 	}
 }
 

@@ -170,7 +170,7 @@ namespace slib
 
 			public:
 				void cancelPending() override
-				{					
+				{
 				}
 
 				void removeFromDeliveredList() override

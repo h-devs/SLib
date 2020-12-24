@@ -412,16 +412,16 @@ namespace slib
 	class SLIB_EXPORT RenderProgramScope
 	{
 	public:
-		SLIB_INLINE RenderProgramScope(): m_engine(sl_null), m_program(sl_null), m_state(sl_null)
+		RenderProgramScope(): m_engine(sl_null), m_program(sl_null), m_state(sl_null)
 		{};
 		
-		SLIB_INLINE ~RenderProgramScope()
+		~RenderProgramScope()
 		{
 			end();
 		}
 		
 	public:
-		SLIB_INLINE sl_bool begin(RenderEngine* engine, const Ref<RenderProgram>& program)
+		sl_bool begin(RenderEngine* engine, const Ref<RenderProgram>& program)
 		{
 			if (program.isNotNull()) {
 				if (engine->beginProgram(program, reinterpret_cast<RenderProgramState**>(&m_state))) {
@@ -433,12 +433,12 @@ namespace slib
 			return sl_false;
 		}
 		
-		SLIB_INLINE sl_bool begin(const Ref<RenderEngine>& engine, const Ref<RenderProgram>& program)
+		sl_bool begin(const Ref<RenderEngine>& engine, const Ref<RenderProgram>& program)
 		{
 			return begin(engine.get(), program);
 		}
 		
-		SLIB_INLINE void end()
+		void end()
 		{
 			if (m_engine) {
 				m_engine->endProgram();
@@ -446,12 +446,12 @@ namespace slib
 			}
 		}
 		
-		SLIB_INLINE StateType* operator->()
+		StateType* operator->()
 		{
 			return m_state;
 		}
 		
-		SLIB_INLINE StateType* getState()
+		StateType* getState()
 		{
 			return m_state;
 		}

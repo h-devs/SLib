@@ -51,7 +51,7 @@ namespace slib
 			point1(other.point1), point2(other.point2), point3(other.point3)
 		{}
 
-		Triangle3T(const Vector3T<T>& point1, const Vector3T<T>& point2, const Vector3T<T>& point3) noexcept :
+		Triangle3T(const Vector3T<T>& _point1, const Vector3T<T>& _point2, const Vector3T<T>& _point3) noexcept :
 			point1(_point1), point2(_point2), point3(_point3)
 		{}
 

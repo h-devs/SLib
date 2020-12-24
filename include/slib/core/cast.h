@@ -40,7 +40,7 @@ namespace slib
 	{
 	public:
 		template <class T>
-		SLIB_INLINE T2 operator()(T&& v) const noexcept
+		T2 operator()(T&& v) const noexcept
 		{
 			return T2(Forward<T>(v));
 		}
@@ -50,7 +50,7 @@ namespace slib
 	class Cast<T, T>
 	{
 	public:
-		SLIB_INLINE T const& operator()(const T& v) const noexcept
+		T const& operator()(const T& v) const noexcept
 		{
 			return v;
 		}

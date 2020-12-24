@@ -40,11 +40,11 @@ namespace slib
 		sl_uint64 low;
 	
 	public:
-		SLIB_INLINE constexpr Uint128() noexcept: high(0), low(0) {}
+		constexpr Uint128() noexcept: high(0), low(0) {}
 
-		SLIB_INLINE constexpr Uint128(const Uint128& other) noexcept: high(other.high), low(other.low) {}
+		constexpr Uint128(const Uint128& other) noexcept: high(other.high), low(other.low) {}
 
-		SLIB_INLINE constexpr Uint128(sl_uint64 num) noexcept: high(0), low(num) {}
+		constexpr Uint128(sl_uint64 num) noexcept: high(0), low(num) {}
 
 	private:
 		static const sl_uint64 _zero[2];
@@ -55,12 +55,12 @@ namespace slib
 			return *((Uint128*)((void*)_zero));
 		}
 
-		SLIB_INLINE constexpr sl_bool isZero() const noexcept
+		constexpr sl_bool isZero() const noexcept
 		{
 			return high == 0 && low == 0;
 		}
 
-		SLIB_INLINE constexpr sl_bool isNotZero() const noexcept
+		constexpr sl_bool isNotZero() const noexcept
 		{
 			return high != 0 || low != 0;
 		}

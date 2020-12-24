@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,7 @@
 
 #if defined(SLIB_UI_IS_WIN32)
 
-#include "slib/ui/core.h"
-#include "slib/ui/screen.h"
-#include "slib/ui/window.h"
-#include "slib/ui/platform.h"
+#include "window.h"
 
 #include "view_win32.h"
 
@@ -50,10 +47,67 @@ namespace slib
 		namespace window
 		{
 
+			static sl_uint8 ToWindowAlpha(float alpha)
+			{
+				int a = (int)(alpha * 255);
+				if (a < 0) {
+					return 0;
+				}
+				if (a > 255) {
+					return 255;
+				}
+				return (sl_uint8)a;
+			}
+
+			static void MakeWindowStyle(Window* window, DWORD& style, DWORD& styleEx, HMENU& hMenu)
+			{
+				hMenu = UIPlatform::getMenuHandle(window->getMenu());
+
+				style = WS_CLIPCHILDREN;
+				styleEx = WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY;
+				if (window->isBorderless() || window->isFullScreen()) {
+					style |= WS_POPUP;
+				} else {
+					if (window->isTitleBarVisible()) {
+						if (window->isDialog()) {
+							style |= (WS_POPUP | WS_SYSMENU | WS_CAPTION | WS_BORDER);
+							styleEx |= WS_EX_DLGMODALFRAME;
+						} else {
+							style |= (WS_OVERLAPPED | WS_SYSMENU | WS_CAPTION);
+						}
+					} else {
+						style |= (WS_POPUP | WS_BORDER);
+					}
+					if (window->isMinimizeButtonEnabled()) {
+						style |= WS_MINIMIZEBOX;
+					}
+					if (window->isMaximizeButtonEnabled()) {
+						style |= WS_MAXIMIZEBOX;
+					}
+					if (window->isResizable()) {
+						style |= WS_THICKFRAME;
+					}
+					if (window->isLayered()) {
+						styleEx |= WS_EX_LAYERED;
+					}
+				}
+				sl_uint8 alpha = ToWindowAlpha(window->getAlpha());
+				if (alpha < 255) {
+					styleEx |= WS_EX_LAYERED;
+				}
+				if (window->isTransparent()) {
+					styleEx |= WS_EX_TRANSPARENT;
+				}
+				if (window->isAlwaysOnTop()) {
+					styleEx |= WS_EX_TOPMOST;
+				}
+			}
+
 			class Win32_WindowInstance : public WindowInstance
 			{
 			public:
 				HWND m_handle;
+				Ref<Menu> m_menu;
 
 				sl_bool m_flagBorderless;
 				sl_bool m_flagFullscreen;
@@ -94,12 +148,12 @@ namespace slib
 				}
 
 			public:
-				static Ref<Win32_WindowInstance> create(HWND hWnd, const WindowInstanceParam* pParam, sl_bool flagDestroyOnRelease)
+				static Ref<Win32_WindowInstance> create(Window* window, HWND hWnd, sl_bool flagDestroyOnRelease)
 				{
 					if (hWnd) {
 						Ref<Win32_WindowInstance> ret = new Win32_WindowInstance();
 						if (ret.isNotNull()) {
-							ret->initialize(hWnd, pParam, flagDestroyOnRelease);
+							ret->initialize(window, hWnd, flagDestroyOnRelease);
 							return ret;
 						}
 						if (flagDestroyOnRelease) {
@@ -109,76 +163,74 @@ namespace slib
 					return sl_null;
 				}
 
-				static HWND createHandle(const WindowInstanceParam& param)
+				static HWND createHandle(Window* window)
 				{
 					Win32_UI_Shared* shared = Win32_UI_Shared::get();
 					if (!shared) {
 						return NULL;
 					}
 
-					HINSTANCE hInst = GetModuleHandleW(NULL);
-
-					HWND hParent = NULL;
-					if (param.parent.isNotNull()) {
-						Win32_WindowInstance* w = static_cast<Win32_WindowInstance*>(param.parent.get());
-						hParent = w->m_handle;
+					HINSTANCE hInst = shared->hInstance;
+					ATOM atom;
+					if (window->isCloseButtonEnabled()) {
+						atom = shared->getWndClassForWindow();
+					} else {
+						atom = shared->getWndClassForWindowNoClose();
 					}
 
-					// create handle
-					HWND hWnd;
-					{
-						DWORD style = WS_CLIPCHILDREN;
-						DWORD styleEx = WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY;
-						if (param.flagBorderless || param.flagFullScreen) {
-							style |= WS_POPUP;
-						} else {
-							if (param.flagShowTitleBar) {
-								if (param.flagDialog) {
-									style |= (WS_POPUP | WS_SYSMENU | WS_CAPTION | WS_BORDER);
-									styleEx |= WS_EX_DLGMODALFRAME;
-								} else {
-									style |= (WS_OVERLAPPED | WS_SYSMENU | WS_CAPTION);
-								}
-							} else {
-								style |= (WS_POPUP | WS_BORDER);
-							}
-						}
+					Ref<Window> parent = window->getParent();
+					HWND hParent = UIPlatform::getWindowHandle(parent.get());
 
-						UIRect frameScreen;
-						if (param.screen.isNotNull()) {
-							frameScreen = param.screen->getRegion();
-						} else {
-							frameScreen = UI::getScreenRegion();
+					HMENU hMenu;
+					DWORD style;
+					DWORD styleEx;
+					MakeWindowStyle(window, style, styleEx, hMenu);
+
+					UIRect frameWindow = MakeWindowFrame(window);
+
+					String16 title = String16::from(window->getTitle());
+
+					HWND hWnd = CreateWindowExW(
+						styleEx, // ex-style
+						(LPCWSTR)((LONG_PTR)atom),
+						(LPCWSTR)(title.getData()),
+						style,
+						(int)(frameWindow.left), (int)(frameWindow.top),
+						(int)(frameWindow.getWidth()), (int)(frameWindow.getHeight()),
+						hParent, // parent
+						hMenu, // menu
+						hInst,
+						NULL);
+
+					if (hWnd) {
+						sl_uint8 alpha = ToWindowAlpha(window->getAlpha());
+						if (alpha < 255) {
+							SetLayeredWindowAttributes(hWnd, 0, alpha, LWA_ALPHA);
 						}
-						UIRect frameWindow = param.calculateRegion(frameScreen);
-						String16 title = String16::from(param.title);
-						hWnd = CreateWindowExW(
-							styleEx, // ex-style
-							(LPCWSTR)((LONG_PTR)(shared->wndClassForWindow)),
-							(LPCWSTR)(title.getData()),
-							style,
-							(int)(frameWindow.left), (int)(frameWindow.top),
-							(int)(frameWindow.getWidth()), (int)(frameWindow.getHeight()),
-							hParent, // parent
-							UIPlatform::getMenuHandle(param.menu), // menu
-							hInst,
-							NULL);
 					}
+					
 					return hWnd;
 				}
 
-				void initialize(HWND hWnd, const WindowInstanceParam* pParam, sl_bool flagDestroyOnRelease)
+				void initialize(Window* window, HWND hWnd, sl_bool flagDestroyOnRelease)
 				{
 					m_handle = hWnd;
 					m_flagDestroyOnRelease = flagDestroyOnRelease;
-					if (pParam) {
-						m_flagBorderless = pParam->flagBorderless;
-						m_flagFullscreen = pParam->flagFullScreen;
+					if (window) {
+						m_flagBorderless = window->isBorderless();
+						m_flagFullscreen = window->isFullScreen();
+						if (window->isDefaultBackgroundColor()) {
+							m_backgroundColor = window->getBackgroundColor();
+						}
+						m_alpha = ToWindowAlpha(window->getAlpha());
 					}
 					Ref<ViewInstance> content = UIPlatform::createViewInstance(hWnd, sl_false);
 					if (content.isNotNull()) {
 						content->setWindowContent(sl_true);
 						m_viewContent = content;
+						if (window->isLayered()) {
+							((Win32_ViewInstance*)(content.get()))->setLayered(sl_true);
+						}
 					}
 					UIPlatform::registerWindowInstance(hWnd, this);
 				}
@@ -189,7 +241,6 @@ namespace slib
 					HWND hWnd = m_handle;
 					if (hWnd) {
 						m_handle = NULL;
-						_setMenu(hWnd, NULL);
 						UIPlatform::removeWindowInstance(hWnd);
 						m_viewContent.setNull();
 						if (m_flagDestroyOnRelease) {
@@ -224,6 +275,38 @@ namespace slib
 					return m_viewContent;
 				}
 
+				UIRect getFrame() override
+				{
+					HWND hWnd = m_handle;
+					if (hWnd) {
+						RECT rect;
+						GetWindowRect(hWnd, &rect);
+						return UIRect((sl_ui_pos)(rect.left), (sl_ui_pos)(rect.top), (sl_ui_pos)(rect.right), (sl_ui_pos)(rect.bottom));
+					} else {
+						return UIRect::zero();
+					}
+				}
+
+				void setFrame(const UIRect& frame) override
+				{
+					HWND hWnd = m_handle;
+					if (hWnd) {
+						SetWindowPos(hWnd, NULL,
+							(int)(frame.left), (int)(frame.top),
+							(int)(frame.getWidth()), (int)(frame.getHeight()),
+							SWP_NOREPOSITION | SWP_NOZORDER | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
+						applyRegion(hWnd, frame.getWidth(), frame.getHeight());
+					}
+				}
+
+				void setTitle(const String& title) override
+				{
+					HWND hWnd = m_handle;
+					if (hWnd) {
+						Windows::setWindowText(hWnd, title);
+					}
+				}
+
 				void setMenu(const Ref<Menu>& menu) override
 				{
 					HWND hWnd = m_handle;
@@ -256,93 +339,6 @@ namespace slib
 					HWND hWnd = m_handle;
 					if (hWnd) {
 						SetForegroundWindow(hWnd);
-					}
-				}
-
-				UIRect getFrame() override
-				{
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						RECT rect;
-						GetWindowRect(hWnd, &rect);
-						return UIRect((sl_ui_pos)(rect.left), (sl_ui_pos)(rect.top), (sl_ui_pos)(rect.right), (sl_ui_pos)(rect.bottom));
-					} else {
-						return UIRect::zero();
-					}
-				}
-
-				void setFrame(const UIRect& frame) override
-				{
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						SetWindowPos(hWnd, NULL,
-							(int)(frame.left), (int)(frame.top),
-							(int)(frame.getWidth()), (int)(frame.getHeight()),
-							SWP_NOREPOSITION | SWP_NOZORDER | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
-						applyRegion(hWnd, frame.getWidth(), frame.getHeight());
-					}
-				}
-
-				UIRect getClientFrame() override
-				{
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						UIRect ret;
-						RECT rect;
-						GetClientRect(hWnd, &rect);
-						POINT pt;
-						pt.x = 0;
-						pt.y = 0;
-						ClientToScreen(hWnd, &pt);
-						ret.left = (sl_ui_pos)(pt.x);
-						ret.top = (sl_ui_pos)(pt.y);
-						pt.x = rect.right;
-						pt.y = rect.bottom;
-						ClientToScreen(hWnd, &pt);
-						ret.right = (sl_ui_pos)(pt.x);
-						ret.bottom = (sl_ui_pos)(pt.y);
-						return ret;
-					} else {
-						return UIRect::zero();
-					}
-				}
-
-				UISize getClientSize() override
-				{
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						RECT rect;
-						GetClientRect(hWnd, &rect);
-						return UISize((sl_ui_pos)(rect.right), (sl_ui_pos)(rect.bottom));
-					} else {
-						return UISize::zero();
-					}
-				}
-
-				sl_bool setClientSize(sl_ui_len width, sl_ui_len height) override
-				{
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						RECT rectClient;
-						GetClientRect(hWnd, &rectClient);
-						RECT rectWindow;
-						GetWindowRect(hWnd, &rectWindow);
-						int dx = rectWindow.right - rectWindow.left - rectClient.right;
-						int dy = rectWindow.bottom - rectWindow.top - rectClient.bottom;
-						SetWindowPos(hWnd, NULL,
-							0, 0,
-							dx + (int)width, dy + (int)height,
-							SWP_NOMOVE | SWP_NOREPOSITION | SWP_NOZORDER | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				void setTitle(const String& title) override
-				{
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						Windows::setWindowText(hWnd, title);
 					}
 				}
 
@@ -441,24 +437,6 @@ namespace slib
 					}
 				}
 
-				void setCloseButtonEnabled(sl_bool flag) override
-				{
-					if (m_flagBorderless || m_flagFullscreen) {
-						return;
-					}
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						LONG old = GetClassLongW(hWnd, GCL_STYLE);
-						if (flag) {
-							SetClassLongW(hWnd, GCL_STYLE, old & (~CS_NOCLOSE));
-						} else {
-							SetClassLongW(hWnd, GCL_STYLE, old | CS_NOCLOSE);
-						}
-						SetWindowPos(hWnd, NULL, 0, 0, 0, 0,
-							SWP_FRAMECHANGED | SWP_NOREPOSITION | SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
-					}
-				}
-
 				void setMinimizeButtonEnabled(sl_bool flag) override
 				{
 					if (m_flagBorderless || m_flagFullscreen) {
@@ -500,24 +478,18 @@ namespace slib
 					}
 				}
 
-				void setAlpha(sl_real _alpha) override
+				void setAlpha(sl_real alpha) override
 				{
 					if (m_flagLayered) {
 						return;
 					}
 					HWND hWnd = m_handle;
 					if (hWnd) {
-						int a = (int)(_alpha * 255);
-						if (a < 0) {
-							a = 0;
-						}
-						if (a > 255) {
-							a = 255;
-						}
-						if (m_alpha == (sl_uint8)a) {
+						sl_uint8 a = ToWindowAlpha(alpha);
+						if (m_alpha == a) {
 							return;
 						}
-						m_alpha = (sl_uint8)a;
+						m_alpha = a;
 						Windows::setWindowExStyle(hWnd, WS_EX_LAYERED, m_alpha < 255);
 						SetLayeredWindowAttributes(hWnd, 0, m_alpha, LWA_ALPHA);
 						RedrawWindow(hWnd,
@@ -532,132 +504,26 @@ namespace slib
 					Windows::setWindowExStyle(m_handle, WS_EX_TRANSPARENT, flag);
 				}
 
-				UIPointf convertCoordinateFromScreenToWindow(const UIPointf& ptScreen) override
+				sl_bool getClientInsets(UIEdgeInsets& _out) override
 				{
 					HWND hWnd = m_handle;
 					if (hWnd) {
-						RECT rect;
-						GetWindowRect(hWnd, &rect);
-						return UIPointf(ptScreen.x - (sl_ui_posf)(rect.left), ptScreen.y - (sl_ui_posf)(rect.top));
-					} else {
-						return ptScreen;
-					}
-				}
-
-				UIPointf convertCoordinateFromWindowToScreen(const UIPointf& ptWindow) override
-				{
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						RECT rect;
-						GetWindowRect(hWnd, &rect);
-						return UIPointf(ptWindow.x + (sl_ui_posf)(rect.left), ptWindow.y + (sl_ui_posf)(rect.top));
-					} else {
-						return ptWindow;
-					}
-				}
-
-				UIPointf convertCoordinateFromScreenToClient(const UIPointf& ptScreen) override
-				{
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						POINT pt;
-						pt.x = (int)(ptScreen.x);
-						pt.y = (int)(ptScreen.y);
-						ScreenToClient(hWnd, &pt);
-						return UIPointf((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y));
-					} else {
-						return ptScreen;
-					}
-				}
-
-				UIPointf convertCoordinateFromClientToScreen(const UIPointf& ptClient) override
-				{
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						POINT pt;
-						pt.x = (int)(ptClient.x);
-						pt.y = (int)(ptClient.y);
-						ClientToScreen(hWnd, &pt);
-						return UIPointf((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y));
-					} else {
-						return ptClient;
-					}
-				}
-
-				UIPointf convertCoordinateFromWindowToClient(const UIPointf& ptWindow) override
-				{
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						RECT rect;
-						GetWindowRect(hWnd, &rect);
-						POINT pt;
-						pt.x = (int)(ptWindow.x) + rect.left;
-						pt.y = (int)(ptWindow.y) + rect.top;
-						ScreenToClient(hWnd, &pt);
-						return UIPointf((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y));
-					} else {
-						return ptWindow;
-					}
-				}
-
-				UIPointf convertCoordinateFromClientToWindow(const UIPointf& ptClient) override
-				{
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						POINT pt;
-						pt.x = (int)(ptClient.x);
-						pt.y = (int)(ptClient.y);
-						ClientToScreen(hWnd, &pt);
-						RECT rect;
-						GetWindowRect(hWnd, &rect);
-						return UIPointf((sl_ui_posf)(pt.x - rect.left), (sl_ui_posf)(pt.y - rect.top));
-					} else {
-						return ptClient;
-					}
-				}
-
-				UISize getWindowSizeFromClientSize(const UISize& size) override
-				{
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						RECT rectClient;
-						GetClientRect(hWnd, &rectClient);
-						RECT rectWindow;
-						GetWindowRect(hWnd, &rectWindow);
-						UISize ret((sl_ui_pos)(rectWindow.right - rectWindow.left - rectClient.right + size.x),
-							(sl_ui_pos)(rectWindow.bottom - rectWindow.top - rectClient.bottom + size.y));
-						if (ret.x < 0) {
-							ret.x = 0;
+						POINT pt = { 0, 0 };
+						if (ClientToScreen(hWnd, &pt)) {
+							RECT rcWindow;
+							if (GetWindowRect(hWnd, &rcWindow)) {
+								RECT rcClient;
+								if (GetClientRect(hWnd, &rcClient)) {
+									_out.left = (sl_ui_len)(pt.x - rcWindow.left);
+									_out.top = (sl_ui_len)(pt.y - rcWindow.top);
+									_out.right = (sl_ui_len)(rcWindow.right - (pt.x + rcClient.right - rcClient.left));
+									_out.bottom = (sl_ui_len)(rcWindow.bottom - (pt.y + rcClient.bottom - rcClient.top));
+									return sl_true;
+								}
+							}
 						}
-						if (ret.y < 0) {
-							ret.y = 0;
-						}
-						return ret;
-					} else {
-						return size;
 					}
-				}
-
-				UISize getClientSizeFromWindowSize(const UISize& size) override
-				{
-					HWND hWnd = m_handle;
-					if (hWnd) {
-						RECT rectClient;
-						GetClientRect(hWnd, &rectClient);
-						RECT rectWindow;
-						GetWindowRect(hWnd, &rectWindow);
-						UISize ret(size.x - (sl_ui_pos)(rectWindow.right - rectWindow.left - rectClient.right),
-							size.y - (sl_ui_pos)(rectWindow.bottom - rectWindow.top - rectClient.bottom));
-						if (ret.x < 0) {
-							ret.x = 0;
-						}
-						if (ret.y < 0) {
-							ret.y = 0;
-						}
-						return ret;
-					} else {
-						return size;
-					}
+					return sl_false;
 				}
 
 				sl_bool doModal() override
@@ -679,6 +545,16 @@ namespace slib
 						}
 					}
 					return sl_true;
+				}
+
+				void doPostCreate()
+				{
+					HWND hWnd = m_handle;
+					if (hWnd) {
+						if (GetWindowLongW(hWnd, GWL_STYLE) & WS_POPUP) {
+							WindowInstance::onResize();
+						}
+					}
 				}
 
 				void redrawLayered()
@@ -798,8 +674,17 @@ namespace slib
 						}
 					case WM_SIZING:
 						{
+							RECT rcClient = { 0 };
+							RECT rcWindow = { 0 };
+							GetClientRect(hWnd, &rcClient);
+							GetWindowRect(hWnd, &rcWindow);
+							sl_ui_len dw = (sl_ui_len)(rcWindow.right - rcWindow.left - (rcClient.right - rcClient.left));
+							sl_ui_len dh = (sl_ui_len)(rcWindow.bottom - rcWindow.top - (rcClient.bottom - rcClient.top));
+
 							RECT& rect = *(RECT*)(lParam);
 							UISize size((sl_ui_pos)(rect.right - rect.left), (sl_ui_pos)(rect.bottom - rect.top));
+							size.x -= dw;
+							size.y -= dh;
 							window->onResizing(size, wParam != WMSZ_TOP && wParam != WMSZ_BOTTOM);
 							if (size.x < 0) {
 								size.x = 0;
@@ -813,6 +698,8 @@ namespace slib
 							if (size.y > 60000) {
 								size.y = 60000;
 							}
+							size.x += dw;
+							size.y += dh;
 							switch (wParam) {
 							case WMSZ_TOPLEFT:
 								rect.left = (int)(rect.right - size.x);
@@ -921,15 +808,15 @@ namespace slib
 
 	using namespace priv::window;
 
-	Ref<WindowInstance> Window::createWindowInstance(const WindowInstanceParam& param)
+	Ref<WindowInstance> Window::createWindowInstance()
 	{
-		HWND hWnd = Win32_WindowInstance::createHandle(param);
+		HWND hWnd = Win32_WindowInstance::createHandle(this);
 		if (hWnd) {
-			return Win32_WindowInstance::create(hWnd, &param, sl_true);
+			return Win32_WindowInstance::create(this, hWnd, sl_true);
 		}
 		return sl_null;
 	}
-
+	
 	Ref<Window> Window::getActiveWindow()
 	{
 		HWND hWnd = GetActiveWindow();
@@ -942,6 +829,23 @@ namespace slib
 		return sl_null;
 	}
 
+	sl_bool Window::_getClientInsets(UIEdgeInsets& _out)
+	{
+		HMENU hMenu;
+		DWORD style;
+		DWORD styleEx;
+		MakeWindowStyle(this, style, styleEx, hMenu);
+		RECT rc = { 100, 100, 200, 200 };
+		if (AdjustWindowRectEx(&rc, style, hMenu != sl_null, styleEx)) {
+			_out.left = (sl_ui_len)(100 - rc.left);
+			_out.top = (sl_ui_len)(100 - rc.top);
+			_out.right = (sl_ui_len)(rc.right - 200);
+			_out.bottom = (sl_ui_len)(rc.bottom - 200);
+			return sl_true;
+		}
+		return sl_false;
+	}
+
 
 	Ref<WindowInstance> UIPlatform::createWindowInstance(HWND hWnd, sl_bool flagDestroyOnRelease)
 	{
@@ -949,7 +853,7 @@ namespace slib
 		if (ret.isNotNull()) {
 			return ret;
 		}
-		return Win32_WindowInstance::create(hWnd, sl_null, flagDestroyOnRelease);
+		return Win32_WindowInstance::create(sl_null, hWnd, flagDestroyOnRelease);
 	}
 
 	void UIPlatform::registerWindowInstance(HWND hWnd, WindowInstance* instance)

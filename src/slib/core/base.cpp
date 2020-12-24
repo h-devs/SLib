@@ -290,7 +290,7 @@ namespace slib
 	}
 
 	sl_uint8* Base::findMemory(const void* m, sl_size size, sl_uint8 pattern) noexcept
-	{		
+	{
 		return (sl_uint8*)(memchr(m, pattern, size));
 	}
 

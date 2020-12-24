@@ -1025,7 +1025,7 @@ namespace slib
 		}
 		
 		template <class VALUE>
-		sl_bool pushFrontAll_NoLock(const LinkedList<VALUE>& other) noexcept
+		sl_bool pushFrontAll_NoLock(const LinkedList<VALUE>& _other) noexcept
 		{
 			LinkedList<T>* other = _other.ref.ptr;
 			if (!other) {
@@ -1041,7 +1041,7 @@ namespace slib
 		}
 
 		template <class VALUE>
-		sl_bool pushFrontAll(const LinkedList<VALUE>& other) noexcept
+		sl_bool pushFrontAll(const LinkedList<VALUE>& _other) noexcept
 		{
 			LinkedList<T>* other = _other.ref.ptr;
 			if (!other) {
@@ -1387,7 +1387,7 @@ namespace slib
 		}
 
 		template <class VALUE>
-		sl_bool pushBackAll(const LinkedList<VALUE>& other) noexcept
+		sl_bool pushBackAll(const LinkedList<VALUE>& _other) noexcept
 		{
 			CLinkedList<T>* other = _other.ref.ptr;
 			if (!other) {

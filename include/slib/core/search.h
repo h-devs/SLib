@@ -66,7 +66,7 @@ namespace slib
 				*pIndexGreaterEqual = mid;
 			}
 			return sl_false;
-		}		
+		}
 
 	};
 

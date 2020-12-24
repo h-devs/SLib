@@ -347,14 +347,14 @@ namespace slib
 		{
 			QuaternionT<T> q;
 			q.setRotation(vAxis, fAngle);
-			setRotation(_out, q);
+			return getRotationMatrix(q);
 		}
 
 		static void rotate(Matrix4T<T>& mat, const Vector3T<T>& vAxis, T fAngle) noexcept
 		{
-			Matrix4T<T> ret;
-			setRotation(ret, vAxis, fAngle);
-			return ret;
+			QuaternionT<T> q;
+			q.setRotation(vAxis, fAngle);
+			rotate(mat, q);
 		}
 
 		// Slib uses Left-Handed coordinate system

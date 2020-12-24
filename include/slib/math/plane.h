@@ -48,14 +48,14 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(PlaneT)
 		
-		SLIB_INLINE PlaneT() noexcept = default;
+		PlaneT() noexcept = default;
 
 		template <class O>
-		SLIB_INLINE constexpr PlaneT(const PlaneT<O>& other)
+		constexpr PlaneT(const PlaneT<O>& other)
 		 : a((T)(other.a)), b((T)(other.b)), c((T)(other.c)), d((T)(other.d))
 		 {}
 
-		SLIB_INLINE constexpr PlaneT(T _a, T _b, T _c, T _d)
+		constexpr PlaneT(T _a, T _b, T _c, T _d)
 		 : a(_a), b(_b), c(_c), d(_d)
 		 {}
 

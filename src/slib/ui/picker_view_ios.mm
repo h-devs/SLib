@@ -85,7 +85,7 @@ namespace slib
 				}
 
 				void initialize(View* _view) override
-				{					
+				{
 					PickerViewHelper* view = (PickerViewHelper*)_view;
 					SLIBPickerViewHandle* handle = getHandle();
 

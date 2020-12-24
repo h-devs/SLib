@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,32 +20,59 @@
  *   THE SOFTWARE.
  */
 
+#ifndef CHECKHEADER_SLIB_UI_AUDIO_VIEW
+#define CHECKHEADER_SLIB_UI_AUDIO_VIEW
+
+#include "definition.h"
+
+#include "view.h"
+
+#include "../media/audio_data.h"
+#include "../core/loop_queue.h"
+
 namespace slib
 {
 
-	SLIB_INLINE Uint128& Uint128::operator=(const Uint128& other) noexcept
+	class SLIB_EXPORT AudioView : public View
 	{
-		low = other.low;
-		high = other.high;
-		return *this;
-	}
-	
-	SLIB_INLINE Uint128& Uint128::operator=(sl_uint64 num) noexcept
-	{
-		high = 0;
-		low = num;
-		return *this;
-	}
+		SLIB_DECLARE_OBJECT
+		
+	public:
+		AudioView();
+		
+		~AudioView();
 
-	SLIB_INLINE const Uint128& Uint128::zero() noexcept
-	{
-		return *((Uint128*)((void*)_zero));
-	}
-	
-	SLIB_INLINE void Uint128::setZero() noexcept
-	{
-		high = 0;
-		low = 0;
-	}
+	public:
+		sl_uint32 getSamplesPerFrame();
+
+		void setSamplesPerFrame(sl_uint32 n);
+
+		sl_uint32 getFramesPerWindow();
+
+		void setFramesPerWindow(sl_uint32 n);
+
+		const Color& getColor();
+
+		void setColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void pushFrames(const AudioData& data, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+	protected:
+		void onDraw(Canvas* canvas) override;
+
+	protected:
+		sl_uint32 m_nSamplesPerFrame;
+		sl_uint32 m_nFramesPerWindow;
+
+		Color m_color;
+
+		LoopQueue<sl_uint16> m_queueFrames;
+		Array<sl_uint16> m_bufProcess;
+		Array<sl_uint16> m_bufWindow;
+		Array<Point> m_ptsWindow;
+		
+	};
 
 }
+
+#endif

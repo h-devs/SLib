@@ -331,11 +331,11 @@ namespace slib
 		T value;
 
 	public:
-		SLIB_INLINE AnimationFrame() : fraction(0) {}
+		AnimationFrame() : fraction(0) {}
 
-		SLIB_INLINE AnimationFrame(const AnimationFrame& other) : fraction(other.fraction), value(other.value) {}
+		AnimationFrame(const AnimationFrame& other) : fraction(other.fraction), value(other.value) {}
 
-		SLIB_INLINE AnimationFrame(float _fraction, const T& _value) : fraction(_fraction), value(_value) {}
+		AnimationFrame(float _fraction, const T& _value) : fraction(_fraction), value(_value) {}
 
 	};
 	
@@ -343,11 +343,11 @@ namespace slib
 	class AnimationFrames
 	{
 	public:
-		SLIB_INLINE AnimationFrames() {}
+		AnimationFrames() {}
 
-		SLIB_INLINE AnimationFrames(const AnimationFrames& other) {}
+		AnimationFrames(const AnimationFrames& other) {}
 
-		SLIB_INLINE AnimationFrames(const T& _startValue, const T& _endValue) : startValue(_startValue), endValue(_endValue) {}
+		AnimationFrames(const T& _startValue, const T& _endValue) : startValue(_startValue), endValue(_endValue) {}
 
 	public:
 		void addFrame(float fraction, const T& value)
@@ -534,7 +534,7 @@ namespace slib
 	class AnimationTargetT : public AnimationTarget
 	{
 	public:
-		SLIB_INLINE AnimationTargetT(const AnimationFrames<T>& frames) : m_seeker(frames) {}
+		AnimationTargetT(const AnimationFrames<T>& frames) : m_seeker(frames) {}
 
 	public:
 		T& getStartValue()

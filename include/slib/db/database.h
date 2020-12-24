@@ -49,7 +49,7 @@ namespace slib
 		sl_int64 executeBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
 		
 		template <class T>
-		SLIB_INLINE sl_int64 executeBy(const SqlBuilder& builder, const T& _params)
+		sl_int64 executeBy(const SqlBuilder& builder, const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, builder.parameters);
 			return executeBy(builder.toString(), params.data, params.count);
@@ -58,7 +58,7 @@ namespace slib
 		sl_int64 execute(const StringParam& sql);
 		
 		template <class... ARGS>
-		SLIB_INLINE sl_int64 execute(const StringParam& sql, ARGS&&... args)
+		sl_int64 execute(const StringParam& sql, ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return executeBy(sql, params, sizeof...(args));
@@ -67,7 +67,7 @@ namespace slib
 		Ref<DatabaseCursor> queryBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
 		
 		template <class T>
-		SLIB_INLINE Ref<DatabaseCursor> queryBy(const SqlBuilder& builder, const T& _params)
+		Ref<DatabaseCursor> queryBy(const SqlBuilder& builder, const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, builder.parameters);
 			return queryBy(builder.toString(), params.data, params.count);
@@ -76,7 +76,7 @@ namespace slib
 		Ref<DatabaseCursor> query(const StringParam& sql);
 		
 		template <class... ARGS>
-		SLIB_INLINE Ref<DatabaseCursor> query(const StringParam& sql, ARGS&&... args)
+		Ref<DatabaseCursor> query(const StringParam& sql, ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return queryBy(sql, params, sizeof...(args));
@@ -85,7 +85,7 @@ namespace slib
 		List< HashMap<String, Variant> > getRecordsBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
 		
 		template <class T>
-		SLIB_INLINE List< HashMap<String, Variant> > getRecordsBy(const SqlBuilder& builder, const T& _params)
+		List< HashMap<String, Variant> > getRecordsBy(const SqlBuilder& builder, const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, builder.parameters);
 			return getRecordsBy(builder.toString(), params.data, params.count);
@@ -94,7 +94,7 @@ namespace slib
 		List< HashMap<String, Variant> > getRecords(const StringParam& sql);
 		
 		template <class... ARGS>
-		SLIB_INLINE List< HashMap<String, Variant> > getRecords(const StringParam& sql, ARGS&&... args)
+		List< HashMap<String, Variant> > getRecords(const StringParam& sql, ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getRecordsBy(sql, params, sizeof...(args));
@@ -103,7 +103,7 @@ namespace slib
 		HashMap<String, Variant> getRecordBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
 		
 		template <class T>
-		SLIB_INLINE HashMap<String, Variant> getRecordBy(const SqlBuilder& builder, const T& _params)
+		HashMap<String, Variant> getRecordBy(const SqlBuilder& builder, const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, builder.parameters);
 			return getRecordBy(builder.toString(), params.data, params.count);
@@ -112,7 +112,7 @@ namespace slib
 		HashMap<String, Variant> getRecord(const StringParam& sql);
 		
 		template <class... ARGS>
-		SLIB_INLINE HashMap<String, Variant> getRecord(const StringParam& sql, ARGS&&... args)
+		HashMap<String, Variant> getRecord(const StringParam& sql, ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getRecordBy(sql, params, sizeof...(args));
@@ -121,7 +121,7 @@ namespace slib
 		Variant getValueBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
 		
 		template <class T>
-		SLIB_INLINE Variant getValueBy(const SqlBuilder& builder, const T& _params)
+		Variant getValueBy(const SqlBuilder& builder, const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, builder.parameters);
 			return getValueBy(builder.toString(), params.data, params.count);
@@ -130,7 +130,7 @@ namespace slib
 		Variant getValue(const StringParam& sql);
 		
 		template <class... ARGS>
-		SLIB_INLINE Variant getValue(const StringParam& sql, ARGS&&... args)
+		Variant getValue(const StringParam& sql, ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getValueBy(sql, params, sizeof...(args));

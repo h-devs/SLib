@@ -304,7 +304,7 @@ namespace slib
 		}
 		
 		template <class... ARGS>
-		static CList<T>* createFromElements(ARGS&&... values) noexcept
+		static CList<T>* createFromElements(ARGS&&... _values) noexcept
 		{
 			T values[] = {Forward<ARGS>(_values)...};
 			return create(values, sizeof...(_values));
@@ -1358,7 +1358,7 @@ namespace slib
 		T const* end() const noexcept
 		{
 			return m_data + m_count;
-		}	
+		}
 	};
 	
 	
@@ -1942,7 +1942,7 @@ namespace slib
 #endif
 		
 		template <class VALUE>
-		sl_bool insertAll_NoLock(sl_size index, const List<VALUE>& other) noexcept
+		sl_bool insertAll_NoLock(sl_size index, const List<VALUE>& _other) noexcept
 		{
 			CList<VALUE>* other = _other.ref.ptr;
 			if (!other) {
@@ -1968,7 +1968,7 @@ namespace slib
 		}
 
 		template <class VALUE>
-		sl_bool insertAll(sl_size index, const List<VALUE>& other) noexcept
+		sl_bool insertAll(sl_size index, const List<VALUE>& _other) noexcept
 		{
 			CList<VALUE>* other = _other.ref.ptr;
 			if (!other) {
@@ -2162,7 +2162,7 @@ namespace slib
 		template <class VALUE>
 		sl_bool addAll_NoLock(const AtomicList<VALUE>& _other) noexcept
 		{
-			return addAll_NoLock(List<VALUE>(other));
+			return addAll_NoLock(List<VALUE>(_other));
 		}
 
 		template <class VALUE>
@@ -2195,7 +2195,7 @@ namespace slib
 		template <class VALUE>
 		sl_bool addAll(const AtomicList<VALUE>& _other) noexcept
 		{
-			return addAll(List<VALUE>(other));
+			return addAll(List<VALUE>(_other));
 		}
 
 		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
@@ -2989,7 +2989,7 @@ namespace slib
 #endif
 		
 		template <class VALUE>
-		sl_bool insertAll(sl_size index, const List<VALUE>& other) noexcept
+		sl_bool insertAll(sl_size index, const List<VALUE>& _other) noexcept
 		{
 			CList<VALUE>* other = _other.ref.ptr;
 			if (!other) {
@@ -3132,7 +3132,7 @@ namespace slib
 		template <class VALUE>
 		sl_bool addAll(const AtomicList<VALUE>& _other) noexcept
 		{
-			return addAll(List<VALUE>(other));
+			return addAll(List<VALUE>(_other));
 		}
 
 		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
@@ -3552,7 +3552,7 @@ namespace slib
 	public:
 		ListParam() noexcept
 		: _value(sl_null), _count(0)
-		{		
+		{
 		}
 
 		ListParam(sl_null_t) noexcept
@@ -3722,7 +3722,7 @@ namespace slib
 		}
 
 		template <sl_size N>
-		ListParam& operator=(T(&)[N]) noexcept
+		ListParam& operator=(T(&data)[N]) noexcept
 		{
 			_free();
 			_count = N & SLIB_SIZE_MASK_NO_SIGN_BITS;

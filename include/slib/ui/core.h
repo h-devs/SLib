@@ -211,6 +211,8 @@ namespace slib
 		static void quitApp();
 
 		static sl_bool isRunningApp();
+
+		static sl_bool isQuitingApp();
 		
 		
 		static void openUrl(const StringParam& url);

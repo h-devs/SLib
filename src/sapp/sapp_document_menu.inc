@@ -196,6 +196,13 @@ namespace slib
 				}
 			}
 			
+			String strChecked;
+			strChecked = element->getAttribute("checked");
+			if (!(item->checked.parse(strChecked))) {
+				_logError(element, g_str_error_resource_menu_checked_invalid.arg(strChecked));
+				return Ref<SAppMenuResourceItem>::null();
+			}
+
 			String strIcon;
 			strIcon = element->getAttribute("icon");
 			if (!(item->icon.parseWhole(strIcon))) {
@@ -375,17 +382,29 @@ namespace slib
 			if (!(item->icon.flagDefined) && !(item->checkedIcon.flagDefined)) {
 				String strTitle;
 				if (_getStringAccessString(resource->localNamespace, item->title, item->element, strTitle)) {
-					sbCpp.add(String::format("SLIB_DEFINE_SUBMENU(%s, %s, %s)%n", parentName, item->name, strTitle));
+					if (item->checked.flagDefined) {
+						sbCpp.add(String::format("SLIB_DEFINE_SUBMENU(%s, %s, %s, %s)%n", parentName, item->name, strTitle, item->checked.getAccessString()));
+					} else {
+						sbCpp.add(String::format("SLIB_DEFINE_SUBMENU(%s, %s, %s)%n", parentName, item->name, strTitle));
+					}
 				} else {
 					return sl_false;
 				}
 			} else {
-				String strTitle, strIcon, strCheckedIcon;
+				String strTitle, strIcon;
 				if (_getStringAccessString(resource->localNamespace, item->title, item->element, strTitle) &&
-					_getImageAccessString(resource->localNamespace, item->icon, item->element, strIcon) &&
-					_getImageAccessString(resource->localNamespace, item->checkedIcon, item->element, strCheckedIcon)
-					) {
-					sbCpp.add(String::format("SLIB_DEFINE_SUBMENU(%s, %s, %s, %s, %s)%n", parentName, item->name, strTitle, strIcon, strCheckedIcon));
+					_getImageAccessString(resource->localNamespace, item->icon, item->element, strIcon)
+				) {
+					if (item->checkedIcon.flagDefined) {
+						String strCheckedIcon;
+						if (_getImageAccessString(resource->localNamespace, item->checkedIcon, item->element, strCheckedIcon)) {
+							sbCpp.add(String::format("SLIB_DEFINE_SUBMENU(%s, %s, %s, %s, %s, %s)%n", parentName, item->name, strTitle, strIcon, strCheckedIcon, item->checked.getAccessString()));
+						} else {
+							return sl_false;
+						}
+					} else {
+						sbCpp.add(String::format("SLIB_DEFINE_SUBMENU(%s, %s, %s, %s)%n", parentName, item->name, strTitle, strIcon));
+					}
 				} else {
 					return sl_false;
 				}
@@ -425,17 +444,28 @@ namespace slib
 			if (!(item->icon.flagDefined) && !(item->checkedIcon.flagDefined)) {
 				String strTitle;
 				if (_getStringAccessString(resource->localNamespace, item->title, item->element, strTitle)) {
-					sbCpp.add(String::format("SLIB_DEFINE_MENU_ITEM(%s, %s, %s, %s)%n", parentName, item->name, strTitle, strShortcutKey));
+					if (item->checked.flagDefined) {
+						sbCpp.add(String::format("SLIB_DEFINE_MENU_ITEM(%s, %s, %s, %s, %s)%n", parentName, item->name, strTitle, strShortcutKey, item->checked.getAccessString()));
+					} else {
+						sbCpp.add(String::format("SLIB_DEFINE_MENU_ITEM(%s, %s, %s, %s)%n", parentName, item->name, strTitle, strShortcutKey));
+					}
 				} else {
 					return sl_false;
 				}
 			} else {
 				String strTitle, strIcon, strCheckedIcon;
 				if (_getStringAccessString(resource->localNamespace, item->title, item->element, strTitle) &&
-					_getImageAccessString(resource->localNamespace, item->icon, item->element, strIcon) &&
-					_getImageAccessString(resource->localNamespace, item->checkedIcon, item->element, strCheckedIcon)
-					) {
-					sbCpp.add(String::format("SLIB_DEFINE_MENU_ITEM(%s, %s, %s, %s, %s, %s)%n", parentName, item->name, strTitle, strShortcutKey, strIcon, strCheckedIcon));
+					_getImageAccessString(resource->localNamespace, item->icon, item->element, strIcon)
+				) {
+					if (item->checkedIcon.flagDefined) {
+						if (_getImageAccessString(resource->localNamespace, item->checkedIcon, item->element, strCheckedIcon)) {
+							sbCpp.add(String::format("SLIB_DEFINE_MENU_ITEM(%s, %s, %s, %s, %s, %s, %s)%n", parentName, item->name, strTitle, strShortcutKey, strIcon, strCheckedIcon, item->checked.getAccessString()));
+						} else {
+							return sl_false;
+						}
+					} else {
+						sbCpp.add(String::format("SLIB_DEFINE_MENU_ITEM(%s, %s, %s, %s, %s)%n", parentName, item->name, strTitle, strShortcutKey, strIcon));
+					}
 				} else {
 					return sl_false;
 				}

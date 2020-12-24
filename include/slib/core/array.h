@@ -30,8 +30,6 @@
 #include "compare.h"
 #include "sort.h"
 
-#include <new>
-
 #ifdef SLIB_SUPPORT_STD_TYPES
 #include <initializer_list>
 #endif

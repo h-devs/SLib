@@ -97,7 +97,7 @@ namespace slib
 		{
 			String value = HttpHeaderHelper::mergeValueMap(cookies, ';');
 			setRequestHeader(HttpHeader::Cookie, value);
-		}	
+		}
 
 		template <class MAP>
 		void setFormData(const MAP& params)

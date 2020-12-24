@@ -216,8 +216,9 @@ namespace slib
 
 		static void applyEventModifiers(UIEvent* event, guint state);
 
-		static GtkWidget* getMenuHandle(const Ref<Menu>& menu);
-		static Ref<Menu> getMenu(GtkWidget* hMenu);
+		static GtkMenuShell* getMenuHandle(const Ref<Menu>& menu);
+		static Ref<Menu> getMenu(GtkMenuShell* hMenu);
+		static sl_bool isPopupMenu(const Ref<Menu>& menu);
 
 #elif defined(SLIB_UI_IS_EFL)
 		static Ref<ViewInstance> createViewInstance(EFL_ViewType type, Evas_Object* handle, sl_bool flagFreeOnRelease = sl_true);

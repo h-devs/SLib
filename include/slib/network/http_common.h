@@ -465,7 +465,7 @@ namespace slib
 		HashMap<String, String> getRequestCookies() const;
 		
 		template <class MAP>
-		void setRequestCookies(const MAP& map)
+		void setRequestCookies(const MAP& cookies)
 		{
 			String value = HttpHeaderHelper::mergeValueMap(cookies, ';');
 			setRequestHeader(HttpHeader::Cookie, value);

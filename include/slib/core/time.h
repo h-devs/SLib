@@ -288,7 +288,7 @@ namespace slib
 		{
 			m_time = 0;
 			return *this;
-		}		
+		}
 
 		constexpr sl_bool isZero() const
 		{
@@ -316,7 +316,7 @@ namespace slib
 				n += 1;
 			}
 			return n;
-		}		
+		}
 
 		Time& setUnixTime(sl_int64 time) noexcept;
 		
@@ -325,7 +325,7 @@ namespace slib
 		double toUnixTimef() const noexcept
 		{
 			return (double)(m_time / 1000000);
-		}		
+		}
 		
 		Time& setUnixTimef(double time) noexcept;
 		
@@ -349,31 +349,31 @@ namespace slib
 		{
 			m_time = other.m_time;
 			return *this;
-		}		
+		}
 
 		Time& operator=(sl_int32 time) noexcept
 		{
 			m_time = time;
 			return *this;
-		}		
+		}
 
 		Time& operator=(sl_uint32 time) noexcept
 		{
 			m_time = time;
 			return *this;
-		}		
+		}
 
 		Time& operator=(sl_int64 time) noexcept
 		{
 			m_time = time;
 			return *this;
-		}		
+		}
 
 		Time& operator=(sl_uint64 time) noexcept
 		{
 			m_time = time;
 			return *this;
-		}		
+		}
 
 		Time& operator=(const StringParam& str) noexcept;
 
@@ -381,76 +381,76 @@ namespace slib
 		sl_bool operator==(const Time& other) const noexcept
 		{
 			return m_time == other.m_time;
-		}		
+		}
 
 		sl_bool operator<=(const Time& other) const noexcept
 		{
 			return m_time <= other.m_time;
-		}		
+		}
 
 		sl_bool operator>=(const Time& other) const noexcept
 		{
 			return m_time >= other.m_time;
-		}		
+		}
 
 		sl_bool operator!=(const Time& other) const noexcept
 		{
 			return m_time != other.m_time;
-		}		
+		}
 
 		sl_bool operator<(const Time& other) const noexcept
 		{
 			return m_time < other.m_time;
-		}		
+		}
 
 		sl_bool operator>(const Time& other) const noexcept
 		{
 			return m_time > other.m_time;
-		}		
+		}
 
 		Time operator+(sl_int64 time) const noexcept
 		{
 			return m_time + time;
-		}		
+		}
 
 		Time operator+(const Time& time) const noexcept
 		{
 			return m_time + time.m_time;
-		}		
+		}
 
 		Time& operator+=(sl_int64 time) noexcept
 		{
 			m_time += time;
 			return *this;
-		}		
+		}
 
 		Time& operator+=(const Time& time) noexcept
 		{
 			m_time += time.m_time;
 			return *this;
-		}		
+		}
 
 		Time operator-(sl_int64 time) const noexcept
 		{
 			return m_time - time;
-		}		
+		}
 
 		Time operator-(const Time& time) const noexcept
 		{
 			return m_time - time.m_time;
-		}		
+		}
 
 		Time& operator-=(sl_int64 time) noexcept
 		{
 			m_time -= time;
 			return *this;
-		}		
+		}
 
 		Time& operator-=(const Time& time) noexcept
 		{
 			m_time -= time.m_time;
 			return *this;
-		}		
+		}
 
 	public:
 		Time& setNow() noexcept;

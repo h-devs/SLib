@@ -34,49 +34,45 @@ namespace slib
 	class Nullable
 	{
 	public:
-		SLIB_INLINE Nullable(): flagNull(sl_true), value()
-		{
-		}
+		Nullable(): flagNull(sl_true), value() {}
 		
-		SLIB_INLINE Nullable(const Nullable& other): flagNull(other.flagNull), value(other.value) {}
+		Nullable(const Nullable& other): flagNull(other.flagNull), value(other.value) {}
 		
-		SLIB_INLINE Nullable(Nullable&& other): flagNull(Move(other.flagNull)), value(Move(other.value)) {}
+		Nullable(Nullable&& other): flagNull(Move(other.flagNull)), value(Move(other.value)) {}
 		
-		SLIB_INLINE Nullable(sl_null_t): flagNull(sl_true), value()
-		{
-		}
+		Nullable(sl_null_t): flagNull(sl_true), value() {}
 		
 		template <class OTHER>
-		SLIB_INLINE Nullable(const Nullable<OTHER>& other) : flagNull(other.flagNull), value(other.value) {}
+		Nullable(const Nullable<OTHER>& other) : flagNull(other.flagNull), value(other.value) {}
 		
 		template <class... ARGS>
-		SLIB_INLINE Nullable(ARGS... args) : flagNull(sl_false), value(Forward<ARGS...>(args...)) {}
+		Nullable(ARGS... args) : flagNull(sl_false), value(Forward<ARGS...>(args...)) {}
 
-		SLIB_INLINE constexpr operator T const&() const noexcept
+		constexpr operator T const&() const noexcept
 		{
 			return value;
 		}
 
-		SLIB_INLINE operator T&() noexcept
+		operator T&() noexcept
 		{
 			return value;
 		}
 		
-		SLIB_INLINE Nullable& operator=(const Nullable& other)
+		Nullable& operator=(const Nullable& other)
 		{
 			flagNull = other.flagNull;
 			value = other.value;
 			return *this;
 		}
 		
-		SLIB_INLINE Nullable& operator=(Nullable&& other)
+		Nullable& operator=(Nullable&& other)
 		{
 			flagNull = other.flagNull;
 			value = Move(other.value);
 			return *this;
 		}
 		
-		SLIB_INLINE Nullable& operator=(sl_null_t)
+		Nullable& operator=(sl_null_t)
 		{
 			flagNull = sl_true;
 			value = T();
@@ -84,7 +80,7 @@ namespace slib
 		}
 		
 		template <class OTHER>
-		SLIB_INLINE Nullable& operator=(const Nullable<OTHER>& other)
+		Nullable& operator=(const Nullable<OTHER>& other)
 		{
 			flagNull = other.flagNull;
 			value = other.value;
@@ -92,40 +88,40 @@ namespace slib
 		}
 		
 		template <class ARG>
-		SLIB_INLINE Nullable& operator=(ARG&& arg)
+		Nullable& operator=(ARG&& arg)
 		{
 			flagNull = sl_false;
 			value = Forward<ARG>(arg);
 			return *this;
 		}
 		
-		SLIB_INLINE constexpr sl_bool isNull() const noexcept
+		constexpr sl_bool isNull() const noexcept
 		{
 			return flagNull;
 		}
 		
-		SLIB_INLINE constexpr sl_bool isNotNull() const noexcept
+		constexpr sl_bool isNotNull() const noexcept
 		{
 			return !flagNull;
 		}
 		
-		SLIB_INLINE void setNull()
+		void setNull()
 		{
 			flagNull = sl_true;
 			value = T();
 		}
 
-		SLIB_INLINE constexpr T const& get() const noexcept
+		constexpr T const& get() const noexcept
 		{
 			return value;
 		}
 		
-		SLIB_INLINE T& get() noexcept
+		T& get() noexcept
 		{
 			return value;
 		}
 		
-		SLIB_INLINE sl_bool operator==(const Nullable<T>& other) const
+		sl_bool operator==(const Nullable<T>& other) const
 		{
 			if (flagNull == other.flagNull) {
 				if (flagNull) {
@@ -138,7 +134,7 @@ namespace slib
 			}
 		}
 		
-		SLIB_INLINE sl_bool operator!=(const Nullable<T>& other) const
+		sl_bool operator!=(const Nullable<T>& other) const
 		{
 			if (flagNull == other.flagNull) {
 				if (flagNull) {
@@ -151,7 +147,7 @@ namespace slib
 			}
 		}
 		
-		SLIB_INLINE sl_bool operator>(const Nullable<T>& other) const
+		sl_bool operator>(const Nullable<T>& other) const
 		{
 			if (flagNull == other.flagNull) {
 				if (flagNull) {
@@ -164,7 +160,7 @@ namespace slib
 			}
 		}
 
-		SLIB_INLINE sl_bool operator>=(const Nullable<T>& other) const
+		sl_bool operator>=(const Nullable<T>& other) const
 		{
 			if (other.flagNull) {
 				return sl_true;
@@ -177,7 +173,7 @@ namespace slib
 			}
 		}
 		
-		SLIB_INLINE sl_bool operator<(const Nullable<T>& other) const
+		sl_bool operator<(const Nullable<T>& other) const
 		{
 			if (flagNull == other.flagNull) {
 				if (flagNull) {
@@ -190,7 +186,7 @@ namespace slib
 			}
 		}
 		
-		SLIB_INLINE sl_bool operator<=(const Nullable<T>& other) const
+		sl_bool operator<=(const Nullable<T>& other) const
 		{
 			if (flagNull) {
 				return sl_true;
@@ -213,7 +209,7 @@ namespace slib
 	class Hash< Nullable<T>, sl_false >
 	{
 	public:
-		SLIB_INLINE sl_size operator()(const Nullable<T>& v) const
+		sl_size operator()(const Nullable<T>& v) const
 		{
 			if (v.flagNull) {
 				return 0;
@@ -221,6 +217,7 @@ namespace slib
 				return Hash<T>()(v.value);
 			}
 		}
+		
 	};
 
 }

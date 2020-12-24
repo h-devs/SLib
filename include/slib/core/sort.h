@@ -52,7 +52,7 @@ namespace slib
 					Swap(list[sel], list[i]);
 				}
 			}
-		}		
+		}
 
 		template < class TYPE, class COMPARE = Compare<TYPE> >
 		static void sortDesc(TYPE* list, sl_size size, const COMPARE& compare = COMPARE()) noexcept
@@ -72,7 +72,7 @@ namespace slib
 					Swap(list[sel], list[i]);
 				}
 			}
-		}		
+		}
 
 	};
 	
@@ -99,7 +99,7 @@ namespace slib
 					list[j] = x;
 				}
 			}
-		}		
+		}
 
 		template < class TYPE, class COMPARE = Compare<TYPE> >
 		static void sortDesc(TYPE* list, sl_size size, const COMPARE& compare = COMPARE()) noexcept
@@ -121,7 +121,7 @@ namespace slib
 					list[j] = x;
 				}
 			}
-		}		
+		}
 
 		template < class TYPE, class COMPARE = Compare<TYPE> >
 		static void sortAsc(const TYPE* src, TYPE* dst, sl_size size, const COMPARE& compare = COMPARE()) noexcept
@@ -145,7 +145,7 @@ namespace slib
 				}
 				dst[j] = src[i];
 			}
-		}		
+		}
 
 		template < class TYPE, class COMPARE = Compare<TYPE> >
 		static void sortDesc(const TYPE* src, TYPE* dst, sl_size size, const COMPARE& compare = COMPARE()) noexcept
@@ -169,7 +169,7 @@ namespace slib
 				}
 				dst[j] = src[i];
 			}
-		}		
+		}
 
 	};
 	
@@ -253,7 +253,7 @@ namespace slib
 				start = stack_start[nStack];
 				end = stack_end[nStack];
 			}
-		}		
+		}
 
 		template < class TYPE, class COMPARE = Compare<TYPE> >
 		static void sortDesc(TYPE* list, sl_size size, const COMPARE& compare = COMPARE()) noexcept
@@ -332,7 +332,7 @@ namespace slib
 				start = stack_start[nStack];
 				end = stack_end[nStack];
 			}
-		}		
+		}
 
 	};
 

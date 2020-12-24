@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #if defined(SLIB_UI_IS_GTK)
 
-#include "slib/ui/window.h"
+#include "window.h"
 
 #include "slib/ui/screen.h"
 #include "slib/ui/core.h"
@@ -43,10 +43,16 @@ namespace slib
 			{
 			public:
 				GtkWindow* m_window;
-				GtkWidget* m_menuBox;
+				GtkWidget* m_widgetMenu;
+				GtkWidget* m_widgetContent;
 				AtomicRef<ViewInstance> m_viewContent;
+
+				sl_bool m_flagResizable;
+
 				sl_bool m_flagClosed;
-				
+				sl_bool m_flagMinimized;
+				sl_bool m_flagMaximized;
+
 				UIPoint m_location;
 				UISize m_size;
 				UIPoint m_origin;
@@ -54,22 +60,24 @@ namespace slib
 				sl_bool m_flagFirstMove;
 				sl_bool m_flagFirstResize;
 				sl_bool m_flagResizeByOrigin;
-				
-				sl_bool m_flagMinimized;
-				sl_bool m_flagMaximized;
-				
+
 			public:
 				GTK_WindowInstance()
 				{
 					m_window = sl_null;
+					m_widgetMenu = sl_null;
+					m_widgetContent = sl_null;
+
+					m_flagResizable = sl_true;
+
 					m_flagClosed = sl_true;
-					
+					m_flagMinimized = sl_false;
+					m_flagMaximized = sl_false;
+
 					m_flagFirstMove = sl_true;
 					m_flagFirstResize = sl_true;
 					m_flagResizeByOrigin = sl_false;
-					
-					m_flagMinimized = sl_false;
-					m_flagMaximized = sl_false;
+
 				}
 				
 				~GTK_WindowInstance()
@@ -93,43 +101,22 @@ namespace slib
 				void _init(GtkWindow* window)
 				{
 					g_object_ref_sink(window);
-					
+
 					m_window = window;
 					m_flagClosed = sl_false;
+
+					gint x, y, width, height;
+					gtk_window_get_position(window, &x, &y);
+					gtk_window_get_size(window, &width, &height);
+
+					m_location.x = x;
+					m_location.y = y;
+					m_size.x = width;
+					m_size.y = height;
 					m_origin.x = 0;
 					m_origin.y = 0;
-					
-					GtkWidget* contentWidget = sl_null;
-					GtkWidget* vBox = gtk_vbox_new(false, 0);
-					if(vBox){
-						gtk_widget_show(vBox);
-						gtk_container_add((GtkContainer*)m_window, vBox);
-						m_menuBox = gtk_event_box_new();
-						if(m_menuBox){
-							gtk_box_pack_start((GtkBox*)vBox, m_menuBox, false, false, 0);
-							gtk_widget_show(m_menuBox);
-						}
-						GtkWidget* contentBox = gtk_event_box_new();
-						if(contentBox){
-							gtk_widget_show(contentBox);
-							gtk_box_pack_start((GtkBox*)vBox, contentBox, true, true, 0);
-							contentWidget = gtk_fixed_new();
-							if (contentWidget) {
-								gtk_container_add((GtkContainer*)contentBox, contentWidget);
-								GTK_WIDGET_SET_FLAGS(contentWidget, GTK_CAN_FOCUS);
-								gtk_widget_show(contentWidget);
 
-								Ref<GTK_ViewInstance> content = GTK_ViewInstance::create<GTK_ViewInstance>(contentWidget);
-								if (content.isNotNull()) {
-									content->setWindowContent(sl_true);
-									content->installEventsWithDrawing();
-									m_viewContent = content;
-								}
-								g_signal_connect(window, "key-press-event", G_CALLBACK(_ui_win_on_key_event), contentWidget);
-								g_signal_connect(window, "key-release-event", G_CALLBACK(_ui_win_on_key_event), contentWidget);
-							}
-						}
-					}
+					UIPlatform::registerWindowInstance(window, this);
 
 					g_signal_connect(window, "destroy", G_CALLBACK(_ui_win_on_destroy_cb), NULL);
 					g_signal_connect(window, "delete-event", G_CALLBACK(_ui_win_on_close_cb), NULL);
@@ -137,16 +124,6 @@ namespace slib
 					g_signal_connect(window, "configure-event", G_CALLBACK(_ui_win_on_configure_event_cb), NULL);
 					g_signal_connect(window, "notify::is-active", G_CALLBACK(_ui_win_on_notify_is_active_cb), NULL);
 
-					gint x, y, width, height;
-					gtk_window_get_position(window, &x, &y);
-					gtk_window_get_size(window, &width, &height);
-					
-					m_location.x = x;
-					m_location.y = y;
-					m_size.x = width;
-					m_size.y = height;
-
-					UIPlatform::registerWindowInstance(window, this);
 				}
 				
 				static void _release_handle(GtkWindow* window)
@@ -258,8 +235,9 @@ namespace slib
 							if (m_size.y < 1) {
 								m_size.y = 1;
 							}
-							gtk_window_resize(window, m_size.x, m_size.y);
-							if (!(gtk_window_get_resizable(window))) {
+							if (m_flagResizable) {
+								gtk_window_resize(window, m_size.x, m_size.y);
+							} else {
 								gtk_widget_set_size_request((GtkWidget*)window, m_size.x, m_size.y);
 							}
 							m_flagResizeByOrigin = sl_false;
@@ -328,57 +306,55 @@ namespace slib
 					return 0;
 				}
 
-				static Ref<WindowInstance> create(const WindowInstanceParam& param)
+				static Ref<WindowInstance> create(Window* window)
 				{
-					GtkWindow* window = (GtkWindow*)(gtk_window_new(GTK_WINDOW_TOPLEVEL));
-					if (!window) {
+					GtkWindow* handle = (GtkWindow*)(gtk_window_new(GTK_WINDOW_TOPLEVEL));
+					if (!handle) {
 						return sl_null;
 					}
 
-					if (param.parent.isNotNull()) {
-						GTK_WindowInstance* w = (GTK_WindowInstance*)(param.parent.get());
-						gtk_window_set_transient_for(window, w->m_window);
-					}
-					
-					if (param.flagBorderless || param.flagFullScreen || !(param.flagShowTitleBar)) {
-						gtk_window_set_decorated(window, sl_false);
-					}
-					
-					if (param.flagDialog) {
-						gtk_window_set_type_hint(window, GDK_WINDOW_TYPE_HINT_DIALOG);
-					}
-					
-					if (param.flagModal) {
-						gtk_window_set_modal(window, sl_true);
-					}
-					
-					if (param.flagFullScreen) {
-						gtk_window_fullscreen(window);
-					}
-					
-					gtk_window_set_title(window, param.title.getData());
-
-					UIRect frameScreen;
-					if (param.screen.isNotNull()) {
-						frameScreen = param.screen->getRegion();
-						GdkScreen* screen = UIPlatform::getScreenHandle(param.screen.get());
-						if (screen) {
-							gtk_window_set_screen(window, screen);
+					Ref<Window> parent = window->getParent();
+					if (parent.isNotNull()) {
+						GtkWindow* hParent = UIPlatform::getWindowHandle(window);
+						if (hParent) {
+							gtk_window_set_transient_for(handle, hParent);
 						}
-					} else {
-						frameScreen = UI::getScreenRegion();
 					}
-					UIRect frameWindow = param.calculateRegion(frameScreen);
 					
-					Ref<GTK_WindowInstance> ret = create(window);
+					if (window->isBorderless() || window->isFullScreen() || !(window->isTitleBarVisible())) {
+						gtk_window_set_decorated(handle, sl_false);
+					}
+					if (window->isDialog()) {
+						gtk_window_set_type_hint(handle, GDK_WINDOW_TYPE_HINT_DIALOG);
+					}
+					if (window->isModal()) {
+						gtk_window_set_modal(handle, sl_true);
+					}
+					if (window->isFullScreen()) {
+						gtk_window_fullscreen(handle);
+					}
+					if (!(window->isCloseButtonEnabled())) {
+						gtk_window_set_deletable(handle, 0);
+					}
+					sl_real alpha = window->getAlpha();
+					if (alpha < 0.9999f) {
+						if (alpha < 0) {
+							alpha = 0;
+						}
+						gtk_window_set_opacity(handle, alpha);
+					}
+					
+					String title = window->getTitle();
+					gtk_window_set_title(handle, title.getData());
+
+					Ref<GTK_WindowInstance> ret = create(handle);
 					if (ret.isNull()) {
-						g_object_ref_sink(window);
-						g_object_unref(window);
+						g_object_ref_sink(handle);
+						g_object_unref(handle);
 						return sl_null;
 					}
 
-					ret->_setMenu(param.menu);
-
+					UIRect frameWindow = MakeWindowFrame(window);
 					UISize size = frameWindow.getSize();
 					if (size.x < 1) {
 						size.x = 1;
@@ -388,14 +364,65 @@ namespace slib
 					}
 					ret->m_size = size;
 					ret->m_location = frameWindow.getLocation();
-					
-					if (!(param.flagClientSize || param.flagBorderless || param.flagFullScreen || !(param.flagShowTitleBar))) {
+					gtk_window_move(handle, frameWindow.left, frameWindow.top);
+					if (window->isResizable()) {
+						ret->m_flagResizable = sl_true;
+						gtk_window_resize(handle, size.x, size.y);
+					} else {
+						ret->m_flagResizable = sl_false;
+						gtk_window_set_resizable(handle, sl_false);
+						gtk_widget_set_size_request((GtkWidget*)handle, size.x, size.y);
+					}
+
+					GtkWidget* contentBox = gtk_event_box_new();
+					if(contentBox){
+						gtk_widget_show(contentBox);
+						GtkWidget* contentWidget = gtk_fixed_new();
+						if (contentWidget) {
+							gtk_container_add((GtkContainer*)contentBox, contentWidget);
+							GTK_WIDGET_SET_FLAGS(contentWidget, GTK_CAN_FOCUS);
+							gtk_widget_show(contentWidget);
+							Ref<GTK_ViewInstance> content = GTK_ViewInstance::create<GTK_ViewInstance>(contentWidget);
+							if (content.isNotNull()) {
+								content->setWindowContent(sl_true);
+								content->installEventsWithDrawing();
+								ret->m_viewContent = Move(content);
+								ret->m_widgetContent = contentWidget;
+								Color color = window->getBackgroundColor();
+								if (color.a) {
+									GdkColor gcolor;
+									UIPlatform::getGdkColor(color, &gcolor);
+									gtk_widget_modify_bg(contentWidget, GTK_STATE_NORMAL, &gcolor);
+								}
+							}
+							g_signal_connect(handle, "key-press-event", G_CALLBACK(_ui_win_on_key_event), contentWidget);
+							g_signal_connect(handle, "key-release-event", G_CALLBACK(_ui_win_on_key_event), contentWidget);
+						}
+					}
+
+					Ref<Menu> menu = window->getMenu();
+					GtkMenuShell* hMenu = sl_null;
+					if (UIPlatform::isPopupMenu(menu)) {
+						hMenu = UIPlatform::getMenuHandle(menu);
+						gtk_widget_show((GtkWidget*)hMenu);
+					}
+					if (hMenu) {
+						GtkWidget* box = gtk_vbox_new(0, 0);
+						if(box){
+							gtk_widget_show(box);
+							gtk_box_pack_start((GtkBox*)box, (GtkWidget*)hMenu, 0, 0, 0);
+							gtk_box_pack_start((GtkBox*)box, contentBox, 1, 1, 0);
+							gtk_container_add((GtkContainer*)handle, box);
+							ret->m_widgetMenu = (GtkWidget*)hMenu;
+						}
+					} else {
+						gtk_container_add((GtkContainer*)handle, contentBox);
+					}
+
+					if (!(window->isRequestedClientSize() || window->isBorderless() || window->isFullScreen() || !(window->isTitleBarVisible()))) {
 						ret->m_flagResizeByOrigin = sl_true;
 					}
 
-					gtk_widget_set_size_request((GtkWidget*)window, 0, 0);
-					gtk_window_resize(window, size.x, size.y);
-					
 					return ret;
 				}
 				
@@ -490,8 +517,9 @@ namespace slib
 						GtkWindow* window = m_window;
 						if (window) {
 							gtk_window_move(window, m_location.x, m_location.y);
-							gtk_window_resize(window, size.x, size.y);
-							if (!(gtk_window_get_resizable(window))) {
+							if (m_flagResizable) {
+								gtk_window_resize(window, size.x, size.y);
+							} else {
 								gtk_widget_set_size_request((GtkWidget*)window, size.x, size.y);
 							}
 						}
@@ -529,7 +557,11 @@ namespace slib
 						m_size.y = height;
 						GtkWindow* window = m_window;
 						if (window) {
-							gtk_window_resize(window, width, height);
+							if (m_flagResizable) {
+								gtk_window_resize(window, width, height);
+							} else {
+								gtk_widget_set_size_request((GtkWidget*)window, width, height);
+							}
 							return sl_true;
 						}
 					}
@@ -549,17 +581,14 @@ namespace slib
 				void setBackgroundColor(const Color& color) override
 				{
 					if (!m_flagClosed) {
-						Ref<ViewInstance> viewContent = m_viewContent;
-						if (viewContent.isNotNull()) {
-							GtkWidget* content = UIPlatform::getViewHandle(viewContent.get());
-							if (content) {
-								if (color.a == 0) {
-									gtk_widget_modify_bg(content, GTK_STATE_NORMAL, sl_null);
-								} else {
-									GdkColor gcolor;
-									UIPlatform::getGdkColor(color, &gcolor);
-									gtk_widget_modify_bg(content, GTK_STATE_NORMAL, &gcolor);
-								}
+						GtkWidget* content = m_widgetContent;
+						if (content) {
+							if (color.a) {
+								GdkColor gcolor;
+								UIPlatform::getGdkColor(color, &gcolor);
+								gtk_widget_modify_bg(content, GTK_STATE_NORMAL, &gcolor);
+							} else {
+								gtk_widget_modify_bg(content, GTK_STATE_NORMAL, sl_null);
 							}
 						}
 					}
@@ -660,67 +689,20 @@ namespace slib
 						}
 					}
 				}
-				
-				void setMinimizeButtonEnabled(sl_bool flag) override
-				{
-				}
-				
-				void setMaximizeButtonEnabled(sl_bool flag) override
-				{
-				}
-				
-				void setResizable(sl_bool flag) override
-				{
-					if (!m_flagClosed) {
-						GtkWindow* window = m_window;
-						if (window) {
-							if (flag) {
-								if (!(gtk_window_get_resizable(window))) {
-									gtk_widget_set_size_request((GtkWidget*)window, 0, 0);
-									gtk_window_set_resizable(window, sl_true);
-									gtk_window_resize(window, m_size.x, m_size.y);
-								}
-							} else {
-								if (gtk_window_get_resizable(window)) {
-									gtk_widget_set_size_request((GtkWidget*)window, m_size.x, m_size.y);
-									gtk_window_set_resizable(window, sl_false);
-								}
-							}
-						}
-					}
-				}
-				
+
 				void setAlpha(sl_real alpha) override
 				{
 					if (!m_flagClosed) {
 						GtkWindow* window = m_window;
 						if (window) {
+							if (alpha < 0) {
+								alpha = 0;
+							}
+							if (alpha >= 1.0f) {
+								alpha = 1.0f;
+							}
 							gtk_window_set_opacity(window, alpha);
 						}
-					}
-				}
-				
-				void setTransparent(sl_bool flag) override
-				{
-				}
-				
-				void setMenu(const Ref<Menu>& menu) override
-				{
-					GtkWindow* handle = m_window;
-					if (handle) {
-						_setMenu(menu);
-					}
-				}
-
-				void _setMenu(const Ref<Menu>& menu)
-				{
-					GtkWidget* _menu = UIPlatform::getMenuHandle(menu);
-					GtkWidget* menuOld = gtk_bin_get_child((GtkBin*)m_menuBox);
-					if (menuOld){
-						gtk_container_remove((GtkContainer*)m_menuBox, menuOld);
-					}
-					if(_menu){
-						gtk_container_add((GtkContainer*)m_menuBox, _menu);
 					}
 				}
 
@@ -766,46 +748,53 @@ namespace slib
 				
 				void setSizeRange(const UISize& sizeMinimum, const UISize& sizeMaximum, float aspectRatioMinimum, float aspectRatioMaximum) override
 				{
-					if (!m_flagClosed) {
-						GtkWindow* window = m_window;
-						if (window) {
-							GdkGeometry geometry;
-							Base::zeroMemory(&geometry, sizeof(geometry));
-
-							gint hints = GDK_HINT_MIN_SIZE;
-							geometry.min_width = SLIB_MAX(0, sizeMinimum.x);
-							geometry.min_height = SLIB_MAX(0, sizeMinimum.y);
-
-							if (sizeMaximum.x > 0 || sizeMaximum.y > 0) {
-								hints |= GDK_HINT_MAX_SIZE;
-								gint w = sizeMaximum.x;
-								if (w <= 0) {
-									w = 1000000;
-								}
-								geometry.max_width = w;
-								gint h = sizeMaximum.y;
-								if (h <= 0) {
-									h = 1000000;
-								}
-								geometry.max_height = h;
-							}
-							if (aspectRatioMinimum > 0 || aspectRatioMaximum > 0) {
-								hints |= GDK_HINT_ASPECT;
-								gdouble r;
-								r = aspectRatioMinimum;
-								if (r <= 0) {
-									r = 0.00001;
-								}
-								geometry.min_aspect = r;
-								r = aspectRatioMaximum;
-								if (r <= 0) {
-									r = 100000;
-								}
-								geometry.max_aspect = r;
-							}
-							gtk_window_set_geometry_hints(window, (GtkWidget*)window, &geometry, (GdkWindowHints)(hints));
-						}
+					if (m_flagClosed) {
+						return;
 					}
+					GtkWindow* window = m_window;
+					if (!window) {
+						return;
+					}
+					if (!(gtk_window_get_resizable(window))) {
+						return;
+					}
+
+					GdkGeometry geometry;
+					Base::zeroMemory(&geometry, sizeof(geometry));
+
+					gint hints = GDK_HINT_MIN_SIZE;
+					geometry.min_width = SLIB_MAX(0, sizeMinimum.x);
+					geometry.min_height = SLIB_MAX(0, sizeMinimum.y);
+
+					if (sizeMaximum.x > 0 || sizeMaximum.y > 0) {
+						hints |= GDK_HINT_MAX_SIZE;
+						gint w = sizeMaximum.x;
+						if (w <= 0) {
+							w = 1000000;
+						}
+						geometry.max_width = w;
+						gint h = sizeMaximum.y;
+						if (h <= 0) {
+							h = 1000000;
+						}
+						geometry.max_height = h;
+					}
+					if (aspectRatioMinimum > 0 || aspectRatioMaximum > 0) {
+						hints |= GDK_HINT_ASPECT;
+						gdouble r;
+						r = aspectRatioMinimum;
+						if (r <= 0) {
+							r = 0.00001;
+						}
+						geometry.min_aspect = r;
+						r = aspectRatioMaximum;
+						if (r <= 0) {
+							r = 100000;
+						}
+						geometry.max_aspect = r;
+					}
+					gtk_window_set_geometry_hints(window, (GtkWidget*)window, &geometry, (GdkWindowHints)(hints));
+
 				}
 				
 			};
@@ -815,9 +804,9 @@ namespace slib
 
 	using namespace priv::window;
 	
-	Ref<WindowInstance> Window::createWindowInstance(const WindowInstanceParam& param)
+	Ref<WindowInstance> Window::createWindowInstance()
 	{
-		return GTK_WindowInstance::create(param);
+		return GTK_WindowInstance::create(this);
 	}
 	
 	Ref<Window> Window::getActiveWindow()

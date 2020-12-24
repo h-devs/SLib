@@ -25,99 +25,250 @@
 
 #include "definition.h"
 
-#include "../core/interpolation.h"
+#include "vector.h"
 
 namespace slib
 {
-	
-	template <class T, class FT = T>
-	class SLIB_EXPORT Vector2T
+
+	template <class T, class FT>
+	class SLIB_EXPORT VectorT<2, T, FT>
 	{
 	public:
-		T x;
-		T y;
+		union {
+			struct {
+				T x;
+				T y;
+			};
+			T m[2];
+		};
 	
 	public:
-		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Vector2T)
+		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(VectorT)
 		
-		SLIB_INLINE Vector2T() noexcept = default;
+		VectorT() noexcept = default;
 	
 		template <class O, class FO>
-		SLIB_INLINE constexpr Vector2T(const Vector2T<O, FO>& other) noexcept : x((T)(other.x)), y((T)(other.y)) {}
+		constexpr VectorT(const VectorT<2, O, FO>& other) noexcept: x((T)(other.x)), y((T)(other.y)) {}
 	
-		SLIB_INLINE constexpr Vector2T(T _x, T _y) noexcept : x(_x), y(_y) {}
+		constexpr VectorT(T _x, T _y) noexcept: x(_x), y(_y) {}
+
+		template <class O>
+		VectorT(const O* arr) noexcept
+		{
+			x = (T)(arr[0]);
+			y = (T)(arr[1]);
+		}
 	
 	public:
-		static const Vector2T<T, FT>& zero() noexcept;
+		static const VectorT& zero() noexcept
+		{
+			static SLIB_ALIGN(8) T _zero[2] = { 0 };
+			return *(reinterpret_cast<VectorT const*>(&_zero));
+		}
 
-		static const Vector2T<T, FT>& fromArray(const T arr[2]) noexcept;
+		static const VectorT& fromArray(const T arr[2]) noexcept
+		{
+			return *(reinterpret_cast<VectorT const*>(arr));
+		}
 
-		static Vector2T<T, FT>& fromArray(T arr[2]) noexcept;
+		static VectorT& fromArray(T arr[2]) noexcept
+		{
+			return *(reinterpret_cast<VectorT*>(arr));
+		}
 
-		T dot(const Vector2T<T, FT>& other) const noexcept;
+		T dot(const VectorT& other) const noexcept
+		{
+			return x * other.x + y * other.y;
+		}
 
-		T cross(const Vector2T<T, FT>& other) const noexcept;
+		T cross(const VectorT& other) const noexcept
+		{
+			return x * other.y - y * other.x;
+		}
 
-		T getLength2p() const noexcept;
+		T getLength2p() const noexcept
+		{
+			return x * x + y * y;
+		}
 
-		FT getLength() const noexcept;
+		FT getLength() const noexcept
+		{
+			return Math::sqrt((FT)(x * x + y * y));
+		}
 
-		T getLength2p(const Vector2T<T, FT>& other) const noexcept;
+		T getLength2p(const VectorT& other) const noexcept
+		{
+			T dx = x - other.x;
+			T dy = y - other.y;
+			return dx * dx + dy * dy;
+		}
 
-		FT getLength(const Vector2T<T, FT>& other) const noexcept;
+		FT getLength(const VectorT& other) const noexcept
+		{
+			T dx = x - other.x;
+			T dy = y - other.y;
+			return Math::sqrt((FT)(dx * dx + dy * dy));
+		}
 
-		void normalize() noexcept;
+		void normalize() noexcept
+		{
+			T l = x * x + y * y;
+			if (l > 0) {
+				FT d = Math::sqrt((FT)l);
+				x = (T)((FT)x / d);
+				y = (T)((FT)y / d);
+			}
+		}
 
-		Vector2T<T, FT> getNormalized() noexcept;
+		VectorT getNormalized() noexcept
+		{
+			T l = x * x + y * y;
+			if (l > 0) {
+				FT d = Math::sqrt((FT)l);
+				return {(T)((FT)x / d), (T)((FT)y / d)};
+			}
+			return *this;
+		}
 
-		FT getCosBetween(const Vector2T<T, FT>& other) const noexcept;
+		FT getCosBetween(const VectorT& other) const noexcept
+		{
+			return (FT)(dot(other)) / Math::sqrt((FT)(getLength2p() * other.getLength2p()));
+		}
 
-		FT getAbsAngleBetween(const Vector2T<T, FT>& other) const noexcept;
+		FT getAbsAngleBetween(const VectorT& other) const noexcept
+		{
+			return Math::arccos(getCosBetween(other));
+		}
 
-		FT getAngleBetween(const Vector2T<T, FT>& other) const noexcept;
+		FT getAngleBetween(const VectorT& other) const noexcept
+		{
+			FT a = getAbsAngleBetween(other);
+			if (cross(other) > 0) {
+				a = -a;
+			}
+			return a;
+		}
 
-		sl_bool equals(const Vector2T<T, FT>& other) const noexcept;
-
-		sl_bool isAlmostEqual(const Vector2T<T, FT>& other) const noexcept;
-
-		Vector2T<T, FT> lerp(const Vector2T<T, FT>& target, float factor) const noexcept;
+		VectorT lerp(const VectorT& target, float factor) const noexcept
+		{
+			return {(T)SLIB_LERP(x, target.x, factor), (T)SLIB_LERP(y, target.y, factor)};
+		}
 	
+		VectorT divideReverse(T f) const noexcept
+		{
+			return {f / x, f / y};
+		}
+
+		sl_bool equals(const VectorT& other) const noexcept
+		{
+			return x == other.x && y == other.y;
+		}
+
+		sl_bool isAlmostEqual(const VectorT& other) const noexcept
+		{
+			return Math::isAlmostZero(x - other.x) && Math::isAlmostZero(y - other.y);
+		}
+
 	public:
 		template <class O, class FO>
-		Vector2T<T, FT>& operator=(const Vector2T<O, FO>& other) noexcept;
+		VectorT& operator=(const VectorT<2, O, FO>& other) noexcept
+		{
+			x = (T)(other.x);
+			y = (T)(other.y);
+			return *this;
+		}
 
-		Vector2T<T, FT> operator+(const Vector2T<T, FT>& other) const noexcept;
+		VectorT operator+(const VectorT& other) const noexcept
+		{
+			return {x + other.x, y + other.y};
+		}
 
-		Vector2T<T, FT>& operator+=(const Vector2T<T, FT>& other) noexcept;
+		VectorT& operator+=(const VectorT& other) noexcept
+		{
+			x += other.x;
+			y += other.y;
+			return *this;
+		}
 
-		Vector2T<T, FT> operator-(const Vector2T<T, FT>& other) const noexcept;
+		VectorT operator-(const VectorT& other) const noexcept
+		{
+			return {x - other.x, y - other.y};
+		}
 
-		Vector2T<T, FT>& operator-=(const Vector2T<T, FT>& other) noexcept;
+		VectorT& operator-=(const VectorT& other) noexcept
+		{
+			x -= other.x;
+			y -= other.y;
+			return *this;
+		}
 
-		Vector2T<T, FT> operator*(T f) const noexcept;
+		VectorT operator*(T f) const noexcept
+		{
+			return {x * f, y * f};
+		}
 
-		Vector2T<T, FT>& operator*=(T f) noexcept;
+		VectorT& operator*=(T f) noexcept
+		{
+			x *= f;
+			y *= f;
+			return *this;
+		}
 
-		Vector2T<T, FT> operator*(const Vector2T<T, FT>& other) const noexcept;
+		VectorT operator*(const VectorT& other) const noexcept
+		{
+			return {x * other.x, y * other.y};
+		}
 
-		Vector2T<T, FT>& operator*=(const Vector2T<T, FT>& other) noexcept;
+		VectorT& operator*=(const VectorT& other) noexcept
+		{
+			x *= other.x;
+			y *= other.y;
+			return *this;
+		}
 
-		Vector2T<T, FT> operator/(T f) const noexcept;
+		VectorT operator/(T f) const noexcept
+		{
+			return {x / f, y / f};
+		}
 
-		Vector2T<T, FT>& operator/=(T f) noexcept;
+		VectorT& operator/=(T f) noexcept
+		{
+			x /= f;
+			y /= f;
+			return *this;
+		}
 
-		Vector2T<T, FT> operator/(const Vector2T<T, FT>& other) const noexcept;
+		VectorT operator/(const VectorT& other) const noexcept
+		{
+			return {x / other.x, y / other.y};
+		}
 
-		Vector2T<T, FT>& operator/(const Vector2T<T, FT>& other) noexcept;
+		VectorT& operator/=(const VectorT& other) noexcept
+		{
+			x /= other.x;
+			y /= other.y;
+			return *this;
+		}
 
-		Vector2T<T, FT> operator-() const noexcept;
+		VectorT operator-() const noexcept
+		{
+			return {-x, -y};
+		}
 
-		sl_bool operator==(const Vector2T<T, FT>& other) const noexcept;
+		sl_bool operator==(const VectorT& other) const noexcept
+		{
+			return x == other.x && y == other.y;
+		}
 
-		sl_bool operator!=(const Vector2T<T, FT>& other) const noexcept;
+		sl_bool operator!=(const VectorT& other) const noexcept
+		{
+			return x != other.x || y != other.y;
+		}
 
 	};
 	
+	template <class T, class FT = T>
+	using Vector2T = VectorT<2, T, FT>;
 	
 	typedef Vector2T<sl_real> Vector2;
 	typedef Vector2T<float> Vector2f;
@@ -125,21 +276,6 @@ namespace slib
 	typedef Vector2T<sl_int32, float> Vector2i;
 	typedef Vector2T<sl_int64, double> Vector2li;
 	
-	template <class T, class FT>
-	Vector2T<T, FT> operator*(T f, const Vector2T<T, FT>& v) noexcept;
-	
-	template <class T, class FT>
-	Vector2T<T, FT> operator/(T f, const Vector2T<T, FT>& v) noexcept;
-	
-	template <class T, class FT>
-	class Interpolation< Vector2T<T, FT> >
-	{
-	public:
-		static Vector2T<T, FT> interpolate(const Vector2T<T, FT>& a, const Vector2T<T, FT>& b, float factor) noexcept;
-	};
-
 }
-
-#include "detail/vector2.inc"
 
 #endif

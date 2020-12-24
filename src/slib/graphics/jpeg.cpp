@@ -256,31 +256,31 @@ namespace slib
 	{
 	}
 
-	SLIB_INLINE sl_uint32 JpegHuffmanReader::read(sl_uint32 len)
+	sl_uint32 JpegHuffmanReader::read(sl_uint32 len)
 	{
 		prepare(len);
 		return pop(len);
 	}
 
-	SLIB_INLINE sl_uint32 JpegHuffmanReader::get(sl_uint32 len)
+	sl_uint32 JpegHuffmanReader::get(sl_uint32 len)
 	{
 		return m_buf >> (32 - len);
 	}
 
-	SLIB_INLINE void JpegHuffmanReader::remove(sl_uint32 len)
+	void JpegHuffmanReader::remove(sl_uint32 len)
 	{
 		m_buf <<= len;
 		m_len -= len;
 	}
 
-	SLIB_INLINE sl_uint32 JpegHuffmanReader::pop(sl_uint32 len)
+	sl_uint32 JpegHuffmanReader::pop(sl_uint32 len)
 	{
 		sl_uint32 v = get(len);
 		remove(len);
 		return v;
 	}
 
-	SLIB_INLINE sl_int32 JpegHuffmanReader::extendReceive(sl_uint32 len)
+	sl_int32 JpegHuffmanReader::extendReceive(sl_uint32 len)
 	{
 		prepare(len);
 		sl_int32 sign = ((sl_int32)m_buf) >> 31;
@@ -1082,7 +1082,8 @@ namespace slib
 		for (sl_uint32 mcu_y = 0; mcu_y < mcu_count_y; mcu_y++) {
 			for (sl_uint32 mcu_x = 0; mcu_x < mcu_count_x; mcu_x++) {
 				for (sl_uint8 iComp = 0; iComp < scan_header.nComponents; iComp++) {
-					JpegComponent& comp = frame_header.components[scan_header.components[iComp].index];
+					sl_uint8 index = scan_header.components[iComp].index;
+					JpegComponent& comp = frame_header.components[index];
 					sl_uint8 ac_huffman_table_no = scan_header.components[iComp].ac_huffman_table_no;
 					if (!(ac_huffman_tables[ac_huffman_table_no].flagDefined)) {
 						return sl_false;
@@ -1112,8 +1113,8 @@ namespace slib
 									}
 								} 
 
-								dezigzag(data, dataz);
 								dequantizeBlock(data, quantization_table[comp.quant_table_no]);
+								dezigzag(data, dataz);
 								idctBlock(dataz, colors);
 								onLoadBlock(tx0 + tx, ty0 + ty, iComp, colors);
 							}
@@ -1280,36 +1281,71 @@ namespace slib
 	Ref<Image> Jpeg::load(const Ptrx<IReader, ISeekable>& reader)
 	{
 		JpegFile file;
+
 		file.setReader(reader);
+
 		if (file.readHeader()) {
+
 			sl_uint32 width = file.frame_header.width;
 			sl_uint32 height = file.frame_header.height;
+
 			if (width && height) {
-				sl_uint32 nx = (width + 7) >> 3;
-				sl_uint32 ny = (height + 7) >> 3;
-				Ref<Image> image = Image::create(nx << 3, ny << 3);
+
+				sl_uint32 mcu_w = file.frame_header.horizontal_sample_factor_max << 3;
+				sl_uint32 mcu_h = file.frame_header.vertical_sample_factor_max << 3;
+				sl_uint32 nx = (width + mcu_w - 1) / mcu_w * mcu_w;
+				sl_uint32 ny = (height + mcu_h - 1) / mcu_h * mcu_h;
+
+				Ref<Image> image = Image::create(nx, ny);
 				if (image.isNotNull()) {
+
 					ImageDesc desc;
 					image->getDesc(desc);
 					Color* colors = desc.colors;
 					sl_uint32 stride = desc.stride;
-					file.onLoadBlock = [stride, colors, nx, ny](sl_uint32 ix, sl_uint32 iy, sl_uint8 comp, sl_uint8* src) {
-						if (ix >= nx || iy >= ny) {
-							return;
-						}
-						Color* p = colors + (ix << 3) + (iy << 3) * stride;
+
+					file.onLoadBlock = [&file, stride, colors](sl_uint32 ix, sl_uint32 iy, sl_uint8 index, sl_uint8* src) {
+						JpegComponent& comp = file.frame_header.components[index];
+						sl_uint32 fx = file.frame_header.horizontal_sample_factor_max;
+						sl_uint32 fy = file.frame_header.vertical_sample_factor_max;
 						sl_uint32 pitch = stride << 2;
-						sl_uint8* dst = ((sl_uint8*)p) + comp;
-						for (sl_uint32 y = 0; y < 8; y++) {
-							sl_uint8* d = dst;
-							sl_uint8* s = src;
-							for (sl_uint32 x = 0; x < 8; x++) {
-								*d = *s;
-								d += 4;
-								s++;
+						if (comp.horizontal_sample_factor == fx && comp.vertical_sample_factor == fy) {
+							Color* p = colors + (ix << 3) + (iy << 3) * stride;
+							sl_uint8* dst = ((sl_uint8*)p) + index;
+							for (sl_uint32 y = 0; y < 8; y++) {
+								sl_uint8* d = dst;
+								sl_uint8* s = src;
+								for (sl_uint32 x = 0; x < 8; x++) {
+									*d = *s;
+									d += 4;
+									s++;
+								}
+								dst += pitch;
+								src += 8;
 							}
-							dst += pitch;
-							src += 8;
+						} else if (comp.horizontal_sample_factor == 1 && comp.vertical_sample_factor == 1) {
+							Color* p = colors + (ix << 3) * fx + (iy << 3) * fy * stride;
+							sl_uint8* dst = ((sl_uint8*)p) + index;
+							for (sl_uint32 y = 0; y < 8; y++) {
+								sl_uint8* d = dst;
+								sl_uint8* s = src;
+								for (sl_uint32 x = 0; x < 8; x++) {
+									sl_uint8* dst_sub = d;
+									sl_uint8 v = *s;
+									for (sl_uint32 ty = 0; ty < fy; ty++) {
+										sl_uint8* d_sub = dst_sub;
+										for (sl_uint32 tx = 0; tx < fx; tx++) {
+											*d_sub = v;
+											d_sub += 4;
+										}
+										dst_sub += pitch;
+									}
+									d += (fx << 2);
+									s++;
+								}
+								dst += pitch * fy;
+								src += 8;
+							}
 						}
 					};
 					if (file.readContent()) {

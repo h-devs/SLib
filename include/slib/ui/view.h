@@ -74,37 +74,37 @@ namespace slib
 		sl_bool isCreatingInstance();
 		
 		// set before attaching
-		void setCreatingInstance(sl_bool flag);
+		void setCreatingInstance(sl_bool flag = sl_true);
 		
 		sl_bool isCreatingChildInstances();
 		
 		// set before attaching
-		void setCreatingChildInstances(sl_bool flag);
+		void setCreatingChildInstances(sl_bool flag = sl_true);
 
 		sl_bool isSupportedNativeWidget();
 
 		// set at constructor
-		void setSupportedNativeWidget(sl_bool flag);
+		void setSupportedNativeWidget(sl_bool flag = sl_true);
 
 		sl_bool isCreatingNativeWidget();
 		
 		// set before attaching
-		void setCreatingNativeWidget(sl_bool flag);
+		void setCreatingNativeWidget(sl_bool flag = sl_true);
 		
 		sl_bool isCreatingNativeLayer();
 		
 		// set before attaching
-		void setCreatingNativeLayer(sl_bool flag);
+		void setCreatingNativeLayer(sl_bool flag = sl_true);
 
 		sl_bool isCreatingLargeContent();
 		
 		// set before attaching
-		void setCreatingLargeContent(sl_bool flag);
+		void setCreatingLargeContent(sl_bool flag = sl_true);
 		
 		sl_bool isCreatingEmptyContent();
 		
 		// set before attaching
-		void setCreatingEmptyContent(sl_bool flag);
+		void setCreatingEmptyContent(sl_bool flag = sl_true);
 		
 		UIAttachMode getAttachMode();
 		
@@ -255,32 +255,32 @@ namespace slib
 		
 		sl_bool isVisibleInInstance();
 		
-		void setVisible(sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setVisible(sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		sl_bool isEnabled();
 		
-		virtual void setEnabled(sl_bool flagEnabled, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setEnabled(sl_bool flagEnabled = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_bool isClipping();
 		
-		void setClipping(sl_bool flagClipping, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setClipping(sl_bool flagClipping = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_bool isDrawing();
 		
-		void setDrawing(sl_bool flagDrawing, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setDrawing(sl_bool flagDrawing = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_bool isRendering();
 		
-		void setRendering(sl_bool flagRendering);
+		void setRendering(sl_bool flagRendering = sl_true);
 		
 		sl_bool isSavingCanvasState();
 		
-		void setSavingCanvasState(sl_bool flag);
+		void setSavingCanvasState(sl_bool flag = sl_true);
 		
 		
 		sl_bool isHitTestable();
 		
-		void setHitTestable(sl_bool flag);
+		void setHitTestable(sl_bool flag = sl_true);
 		
 		// local coordinate
 		virtual sl_bool hitTest(sl_ui_pos x, sl_ui_pos y);
@@ -291,7 +291,7 @@ namespace slib
 		
 		sl_bool isFocusable();
 		
-		void setFocusable(sl_bool flagFocusable);
+		void setFocusable(sl_bool flagFocusable = sl_true);
 		
 		sl_bool isFocused();
 		
@@ -304,7 +304,7 @@ namespace slib
 		
 		sl_bool isPressedState();
 		
-		virtual void setPressedState(sl_bool flagState, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setPressedState(sl_bool flagState = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void cancelPressedState();
 		
@@ -312,7 +312,7 @@ namespace slib
 		
 		sl_bool isHoverState();
 		
-		virtual void setHoverState(sl_bool flagState, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setHoverState(sl_bool flagState = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void cancelHoverState();
 		

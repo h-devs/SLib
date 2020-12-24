@@ -49,12 +49,12 @@ namespace slib
 			point1(other.point1), point2(other.point2), point3(other.point3)
 		{}
 
-		TriangleT(const PointT<T>& point1, const PointT<T>& point2, const PointT<T>& point3) noexcept :
+		TriangleT(const PointT<T>& _point1, const PointT<T>& _point2, const PointT<T>& _point3) noexcept :
 			point1(_point1), point2(_point2), point3(_point3)
 		{}
 
 	public:
-		static T getCross(const PointT<T>& point1, const PointT<T>& point2, const PointT<T>& point3) noexcept
+		static T getCross(const PointT<T>& _point1, const PointT<T>& _point2, const PointT<T>& _point3) noexcept
 		{
 			return (_point1.x - _point2.x) * (_point2.y - _point3.y) - (_point2.x - _point3.x) * (_point1.y - _point2.y);
 		}

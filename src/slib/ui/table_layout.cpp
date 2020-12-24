@@ -690,6 +690,12 @@ namespace slib
 		cell->colspan = colspan;
 		cell->rowspan = rowspan;
 		if (view.isNotNull()) {
+			if (view->isLeftFree() && view->isRightFree()) {
+				view->setAlignParentLeft(UIUpdateMode::Init);
+			}
+			if (view->isTopFree() && view->isBottomFree()) {
+				view->setAlignParentTop(UIUpdateMode::Init);
+			}
 			addChild(view, mode);
 		}
 	}
@@ -838,7 +844,7 @@ namespace slib
 			}
 			for (iCol = 0; iCol < nCols; iCol++) {
 				Column& col = cols[iCol];
-				if (colWidthModes[iCol] == SizeMode::Wrapping) {					
+				if (colWidthModes[iCol] == SizeMode::Wrapping) {
 					sumWidth += col.widthLayout;
 				}
 			}

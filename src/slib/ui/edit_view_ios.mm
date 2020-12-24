@@ -43,7 +43,7 @@ namespace slib
 }
 
 @interface SLIBEditViewHandle : UITextField<UITextFieldDelegate>
-{	
+{
 	@public slib::WeakRef<slib::priv::edit_view::EditViewInstance> m_viewInstance;
 }
 @end

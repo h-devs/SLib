@@ -77,7 +77,7 @@ namespace slib
 
 			public:
 				static Ref<AudioRecorderImpl> create(const AudioRecorderParam& param)
-				{					
+				{
 					if (param.channelsCount != 1 && param.channelsCount != 2) {
 						return sl_null;
 					}

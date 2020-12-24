@@ -46,14 +46,14 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(LineT)
 		
-		SLIB_INLINE LineT() noexcept = default;
+		LineT() noexcept = default;
 
 		template <class O>
-		SLIB_INLINE constexpr LineT(const LineT<O>& other) noexcept
+		constexpr LineT(const LineT<O>& other) noexcept
 		 : a((T)(other.a)), b((T)(other.b)), c((T)(other.c))
 		{}
 
-		SLIB_INLINE constexpr LineT(T _a, T _b, T _c) noexcept
+		constexpr LineT(T _a, T _b, T _c) noexcept
 		 : a(_a), b(_b), c(_c)
 		{}
 

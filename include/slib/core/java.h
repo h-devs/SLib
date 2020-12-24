@@ -40,176 +40,125 @@
 
 namespace slib
 {
-	namespace priv
+
+	class JniClass;
+
+	class SLIB_EXPORT Jni
 	{
-		namespace java
-		{
-			class SLIB_EXPORT JNativeMethod
-			{
-			public:
-				JNativeMethod(priv::java::JClass* gcls, const char* name, const char* sig, const void* fn);
+	public:
+		static void initialize(JavaVM* jvm);
 
-			public:
-				priv::java::JClass*gcls;
-				const char* name;
-				const char* sig;
-				const void* fn;
-			};
+		static void setSharedJVM(JavaVM* jvm);
+		static JavaVM* getSharedJVM();
 
-			class SLIB_EXPORT JClass
-			{
-			public:
-				JClass(const char* name);
+		// thread-storage
+		static JNIEnv* getCurrent();
+		static void setCurrent(JNIEnv* jni);
 
-			public:
-				const char* name;
-				JniClass cls;
-			};
+		// attach and set current
+		static JNIEnv* attachThread(JavaVM* jvm = sl_null);
+		static void detachThread(JavaVM* jvm = sl_null);
 
-			class SLIB_EXPORT JMethod
-			{
-			public:
-				JMethod(JClass* gcls, const char* name, const char* sig);
+		// class
+		static JniClass getClass(const String& className);
+		static void registerClass(const String& className, jclass cls);
+		static void unregisterClass(const String& className);
+		static JniClass findClass(const char* className);
 
-			public:
-				jobject callObject(jobject _this, ...);
-				jboolean callBoolean(jobject _this, ...);
-				jbyte callByte(jobject _this, ...);
-				jchar callChar(jobject _this, ...);
-				jshort callShort(jobject _this, ...);
-				jint callInt(jobject _this, ...);
-				jlong callLong(jobject _this, ...);
-				jfloat callFloat(jobject _this, ...);
-				jdouble callDouble(jobject _this, ...);
-				void call(jobject _this, ...);
-				String callString(jobject _this, ...);
-				jobject newObject(jobject _null, ...);
+		// object
+		static sl_bool isSameObject(jobject ref1, jobject ref2);
 
-			public:
-				JClass * gcls;
-				const char* name;
-				const char* sig;
-				jclass cls;
-				jmethodID id;
-			};
+		static jobjectRefType getRefType(jobject obj);
+		static sl_bool isInvalidRef(jobject obj);
 
-			class SLIB_EXPORT JStaticMethod
-			{
-			public:
-				JStaticMethod(JClass* gcls, const char* name, const char* sig);
+		static sl_bool isLocalRef(jobject obj);
+		static jobject newLocalRef(jobject obj);
+		static void deleteLocalRef(jobject obj);
 
-			public:
-				jobject callObject(jobject _null, ...);
-				jboolean callBoolean(jobject _null, ...);
-				jbyte callByte(jobject _null, ...);
-				jchar callChar(jobject _null, ...);
-				jshort callShort(jobject _null, ...);
-				jint callInt(jobject _null, ...);
-				jlong callLong(jobject _null, ...);
-				jfloat callFloat(jobject _null, ...);
-				jdouble callDouble(jobject _null, ...);
-				void call(jobject _null, ...);
-				String callString(jobject _null, ...);
+		static sl_bool isGlobalRef(jobject obj);
+		static jobject newGlobalRef(jobject obj);
+		static void deleteGlobalRef(jobject obj);
 
-			public:
-				JClass * gcls;
-				const char* name;
-				const char* sig;
-				jclass cls;
-				jmethodID id;
-			};
+		static sl_bool isWeakRef(jobject obj);
+		static jobject newWeakRef(jobject obj);
+		static void deleteWeakRef(jobject obj);
 
-			class SLIB_EXPORT JField
-			{
-			public:
-				JField(JClass* gcls, const char* name, const char* sig);
+		// string
+		static jstring getJniString(const StringParam& str);
+		static jstring getJniString(const sl_char16* str, const sl_size length);
+		static String getString(jstring str);
 
-			public:
-				jobject getObject(jobject _this);
-				void setObject(jobject _this, jobject value);
-				jboolean getBoolean(jobject _this);
-				void setBoolean(jobject _this, jboolean value);
-				jbyte getByte(jobject _this);
-				void setByte(jobject _this, jbyte value);
-				jchar getChar(jobject _this);
-				void setChar(jobject _this, jchar value);
-				jshort getShort(jobject _this);
-				void setShort(jobject _this, jshort value);
-				jint getInt(jobject _this);
-				void setInt(jobject _this, jint value);
-				jlong getLong(jobject _this);
-				void setLong(jobject _this, jlong value);
-				jfloat getFloat(jobject _this);
-				void setFloat(jobject _this, jfloat value);
-				jdouble getDouble(jobject _this);
-				void setDouble(jobject _this, jdouble value);
-				String getString(jobject _this);
-				void setString(jobject _this, const StringParam& value);
+		/*
+		 * Array release<TYPE>ArrayElements Mode
+		 * 0 - commit and free
+		 * JNI_COMMIT - commit only
+		 * JNI_ABORT - free only
+		 */
+		static sl_uint32 getArrayLength(jarray array);
+		static jobjectArray newObjectArray(jclass clsElement, sl_uint32 length);
+		static jobject getObjectArrayElement(jobjectArray array, sl_uint32 index);
+		static void setObjectArrayElement(jobjectArray array, sl_uint32 index, jobject value);
+		static jobjectArray newStringArray(sl_uint32 length);
+		static String getStringArrayElement(jobjectArray array, sl_uint32 index);
+		static void setStringArrayElement(jobjectArray array, sl_uint32 index, const StringParam& value);
+		static jbooleanArray newBooleanArray(sl_uint32 length);
+		static jboolean* getBooleanArrayElements(jbooleanArray array, jboolean* isCopy = sl_null);
+		static void releaseBooleanArrayElements(jbooleanArray array, jboolean* buf, jint mode = 0);
+		static void getBooleanArrayRegion(jbooleanArray array, sl_uint32 index, sl_uint32 len, jboolean* buf);
+		static void setBooleanArrayRegion(jbooleanArray array, sl_uint32 index, sl_uint32 len, jboolean* buf);
+		static jbyteArray newByteArray(sl_uint32 length);
+		static jbyte* getByteArrayElements(jbyteArray array, jboolean* isCopy);
+		static void releaseByteArrayElements(jbyteArray array, jbyte* buf, jint mode = 0);
+		static void getByteArrayRegion(jbyteArray array, sl_uint32 index, sl_uint32 len, jbyte* buf);
+		static void setByteArrayRegion(jbyteArray array, sl_uint32 index, sl_uint32 len, jbyte* buf);
+		static jcharArray newCharArray(sl_uint32 length);
+		static jchar* getCharArrayElements(jcharArray array, jboolean* isCopy = sl_null);
+		static void releaseCharArrayElements(jcharArray array, jchar* buf, jint mode = 0);
+		static void getCharArrayRegion(jcharArray array, sl_uint32 index, sl_uint32 len, jchar* buf);
+		static void setCharArrayRegion(jcharArray array, sl_uint32 index, sl_uint32 len, jchar* buf);
+		static jshortArray newShortArray(sl_uint32 length);
+		static jshort* getShortArrayElements(jshortArray array, jboolean* isCopy = sl_null);
+		static void releaseShortArrayElements(jshortArray array, jshort* buf, jint mode = 0);
+		static void getShortArrayRegion(jshortArray array, sl_uint32 index, sl_uint32 len, jshort* buf);
+		static void setShortArrayRegion(jshortArray array, sl_uint32 index, sl_uint32 len, jshort* buf);
+		static jintArray newIntArray(sl_uint32 length);
+		static jint* getIntArrayElements(jintArray array, jboolean* isCopy = sl_null);
+		static void releaseIntArrayElements(jintArray array, jint* buf, jint mode = 0);
+		static void getIntArrayRegion(jintArray array, sl_uint32 index, sl_uint32 len, jint* buf);
+		static void setIntArrayRegion(jintArray array, sl_uint32 index, sl_uint32 len, jint* buf);
+		static jlongArray newLongArray(sl_uint32 length);
+		static jlong* getLongArrayElements(jlongArray array, jboolean* isCopy = sl_null);
+		static void releaseLongArrayElements(jlongArray array, jlong* buf, jint mode = 0);
+		static void getLongArrayRegion(jlongArray array, sl_uint32 index, sl_uint32 len, jlong* buf);
+		static void setLongArrayRegion(jlongArray array, sl_uint32 index, sl_uint32 len, jlong* buf);
+		static jfloatArray newFloatArray(sl_uint32 length);
+		static jfloat* getFloatArrayElements(jfloatArray array, jboolean* isCopy = sl_null);
+		static void releaseFloatArrayElements(jfloatArray array, jfloat* buf, jint mode = 0);
+		static void getFloatArrayRegion(jfloatArray array, sl_uint32 index, sl_uint32 len, jfloat* buf);
+		static void setFloatArrayRegion(jfloatArray array, sl_uint32 index, sl_uint32 len, jfloat* buf);
+		static jdoubleArray newDoubleArray(sl_uint32 length);
+		static jdouble* getDoubleArrayElements(jdoubleArray array, jboolean* isCopy = sl_null);
+		static void releaseDoubleArrayElements(jdoubleArray array, jdouble* buf, jint mode = 0);
+		static void getDoubleArrayRegion(jdoubleArray array, sl_uint32 index, sl_uint32 len, jdouble* buf);
+		static void setDoubleArrayRegion(jdoubleArray array, sl_uint32 index, sl_uint32 len, jdouble* buf);
 
-			public:
-				JClass * gcls;
-				const char* name;
-				const char* sig;
-				jclass cls;
-				jfieldID id;
-			};
+		// direct buffer
+		static jobject newDirectByteBuffer(void* address, sl_size capacity);
+		static void* getDirectBufferAddress(jobject buf);
+		static sl_size getDirectBufferCapacity(jobject buf);
+
+		// exception
+		static sl_bool checkException();
+		static void clearException();
+		static void printException();
+
+		// input stream
+		static sl_int32 readFromInputStream(jobject stream, jbyteArray array);
+		static void closeInputStream(jobject stream);
+	
+	};
 
 
-			class SLIB_EXPORT JObjectField : protected JField
-			{
-			public:
-				JObjectField(JClass* gcls, const char* name, const char* sig);
-			public:
-				jobject get(jobject _this);
-				void set(jobject _this, jobject value);
-			};
-
-			class SLIB_EXPORT JStaticField
-			{
-			public:
-				JStaticField(JClass* gcls, const char* name, const char* sig);
-
-			public:
-				jobject getObject(jobject _null);
-				void setObject(jobject _null, jobject value);
-				jboolean getBoolean(jobject _null);
-				void setBoolean(jobject _null, jboolean value);
-				jbyte getByte(jobject _null);
-				void setByte(jobject _null, jbyte value);
-				jchar getChar(jobject _null);
-				void setChar(jobject _null, jchar value);
-				jshort getShort(jobject _null);
-				void setShort(jobject _null, jshort value);
-				jint getInt(jobject _null);
-				void setInt(jobject _null, jint value);
-				jlong getLong(jobject _null);
-				void setLong(jobject _null, jlong value);
-				jfloat getFloat(jobject _null);
-				void setFloat(jobject _null, jfloat value);
-				jdouble getDouble(jobject _null);
-				void setDouble(jobject _null, jdouble value);
-				String getString(jobject _null);
-				void setString(jobject _null, const StringParam& value);
-
-			public:
-				JClass * gcls;
-				const char* name;
-				const char* sig;
-				jclass cls;
-				jfieldID id;
-			};
-
-			class SLIB_EXPORT JStaticObjectField : protected JStaticField
-			{
-			public:
-				JStaticObjectField(JClass* gcls, const char* name, const char* sig);
-			public:
-				jobject get();
-				void set(jobject value);
-			};
-
-		}
-	}
 	template <class T>
 	class SLIB_EXPORT JniLocal
 	{
@@ -221,7 +170,7 @@ namespace slib
 		{
 		}
 
-		JniLocal(T value) : value(_value)
+		JniLocal(T _value) : value(_value)
 		{
 		}
 
@@ -423,8 +372,6 @@ namespace slib
 	using AtomicJniGlobal = Atomic< JniGlobal<T> >;
 
 
-	class JniClass;
-
 	template <>
 	class SLIB_EXPORT Atomic<JniClass>
 	{
@@ -624,221 +571,279 @@ namespace slib
 	};
 
 
-	class SLIB_EXPORT Jni
+	namespace priv
 	{
-	public:
-		static void initialize(JavaVM* jvm);
+		namespace java
+		{
 
-		static void setSharedJVM(JavaVM* jvm);
-		static JavaVM* getSharedJVM();
+			class SLIB_EXPORT JClass
+			{
+			public:
+				JClass(const char* name);
 
-		// thread-storage
-		static JNIEnv* getCurrent();
-		static void setCurrent(JNIEnv* jni);
+			public:
+				const char* name;
+				JniClass cls;
+			};
 
-		// attach and set current
-		static JNIEnv* attachThread(JavaVM* jvm = sl_null);
-		static void detachThread(JavaVM* jvm = sl_null);
+			class SLIB_EXPORT JNativeMethod
+			{
+			public:
+				JNativeMethod(priv::java::JClass* gcls, const char* name, const char* sig, const void* fn);
 
-		// class
-		static JniClass getClass(const String& className);
-		static void registerClass(const String& className, jclass cls);
-		static void unregisterClass(const String& className);
-		static JniClass findClass(const char* className);
+			public:
+				priv::java::JClass*gcls;
+				const char* name;
+				const char* sig;
+				const void* fn;
+			};
 
-		// object
-		static sl_bool isSameObject(jobject ref1, jobject ref2);
+			class SLIB_EXPORT JMethod
+			{
+			public:
+				JMethod(JClass* gcls, const char* name, const char* sig);
 
-		static jobjectRefType getRefType(jobject obj);
-		static sl_bool isInvalidRef(jobject obj);
+			public:
+				jobject callObject(jobject _this, ...);
+				jboolean callBoolean(jobject _this, ...);
+				jbyte callByte(jobject _this, ...);
+				jchar callChar(jobject _this, ...);
+				jshort callShort(jobject _this, ...);
+				jint callInt(jobject _this, ...);
+				jlong callLong(jobject _this, ...);
+				jfloat callFloat(jobject _this, ...);
+				jdouble callDouble(jobject _this, ...);
+				void call(jobject _this, ...);
+				String callString(jobject _this, ...);
+				jobject newObject(jobject _null, ...);
 
-		static sl_bool isLocalRef(jobject obj);
-		static jobject newLocalRef(jobject obj);
-		static void deleteLocalRef(jobject obj);
+			public:
+				JClass * gcls;
+				const char* name;
+				const char* sig;
+				jclass cls;
+				jmethodID id;
+			};
 
-		static sl_bool isGlobalRef(jobject obj);
-		static jobject newGlobalRef(jobject obj);
-		static void deleteGlobalRef(jobject obj);
+			class SLIB_EXPORT JStaticMethod
+			{
+			public:
+				JStaticMethod(JClass* gcls, const char* name, const char* sig);
 
-		static sl_bool isWeakRef(jobject obj);
-		static jobject newWeakRef(jobject obj);
-		static void deleteWeakRef(jobject obj);
+			public:
+				jobject callObject(jobject _null, ...);
+				jboolean callBoolean(jobject _null, ...);
+				jbyte callByte(jobject _null, ...);
+				jchar callChar(jobject _null, ...);
+				jshort callShort(jobject _null, ...);
+				jint callInt(jobject _null, ...);
+				jlong callLong(jobject _null, ...);
+				jfloat callFloat(jobject _null, ...);
+				jdouble callDouble(jobject _null, ...);
+				void call(jobject _null, ...);
+				String callString(jobject _null, ...);
 
-		// string
-		static jstring getJniString(const StringParam& str);
-		static jstring getJniString(const sl_char16* str, const sl_size length);
-		static String getString(jstring str);
+			public:
+				JClass * gcls;
+				const char* name;
+				const char* sig;
+				jclass cls;
+				jmethodID id;
+			};
 
-		/*
-		 * Array release<TYPE>ArrayElements Mode
-		 * 0 - commit and free
-		 * JNI_COMMIT - commit only
-		 * JNI_ABORT - free only
-		 */
-		static sl_uint32 getArrayLength(jarray array);
-		static jobjectArray newObjectArray(jclass clsElement, sl_uint32 length);
-		static jobject getObjectArrayElement(jobjectArray array, sl_uint32 index);
-		static void setObjectArrayElement(jobjectArray array, sl_uint32 index, jobject value);
-		static jobjectArray newStringArray(sl_uint32 length);
-		static String getStringArrayElement(jobjectArray array, sl_uint32 index);
-		static void setStringArrayElement(jobjectArray array, sl_uint32 index, const StringParam& value);
-		static jbooleanArray newBooleanArray(sl_uint32 length);
-		static jboolean* getBooleanArrayElements(jbooleanArray array, jboolean* isCopy = sl_null);
-		static void releaseBooleanArrayElements(jbooleanArray array, jboolean* buf, jint mode = 0);
-		static void getBooleanArrayRegion(jbooleanArray array, sl_uint32 index, sl_uint32 len, jboolean* buf);
-		static void setBooleanArrayRegion(jbooleanArray array, sl_uint32 index, sl_uint32 len, jboolean* buf);
-		static jbyteArray newByteArray(sl_uint32 length);
-		static jbyte* getByteArrayElements(jbyteArray array, jboolean* isCopy);
-		static void releaseByteArrayElements(jbyteArray array, jbyte* buf, jint mode = 0);
-		static void getByteArrayRegion(jbyteArray array, sl_uint32 index, sl_uint32 len, jbyte* buf);
-		static void setByteArrayRegion(jbyteArray array, sl_uint32 index, sl_uint32 len, jbyte* buf);
-		static jcharArray newCharArray(sl_uint32 length);
-		static jchar* getCharArrayElements(jcharArray array, jboolean* isCopy = sl_null);
-		static void releaseCharArrayElements(jcharArray array, jchar* buf, jint mode = 0);
-		static void getCharArrayRegion(jcharArray array, sl_uint32 index, sl_uint32 len, jchar* buf);
-		static void setCharArrayRegion(jcharArray array, sl_uint32 index, sl_uint32 len, jchar* buf);
-		static jshortArray newShortArray(sl_uint32 length);
-		static jshort* getShortArrayElements(jshortArray array, jboolean* isCopy = sl_null);
-		static void releaseShortArrayElements(jshortArray array, jshort* buf, jint mode = 0);
-		static void getShortArrayRegion(jshortArray array, sl_uint32 index, sl_uint32 len, jshort* buf);
-		static void setShortArrayRegion(jshortArray array, sl_uint32 index, sl_uint32 len, jshort* buf);
-		static jintArray newIntArray(sl_uint32 length);
-		static jint* getIntArrayElements(jintArray array, jboolean* isCopy = sl_null);
-		static void releaseIntArrayElements(jintArray array, jint* buf, jint mode = 0);
-		static void getIntArrayRegion(jintArray array, sl_uint32 index, sl_uint32 len, jint* buf);
-		static void setIntArrayRegion(jintArray array, sl_uint32 index, sl_uint32 len, jint* buf);
-		static jlongArray newLongArray(sl_uint32 length);
-		static jlong* getLongArrayElements(jlongArray array, jboolean* isCopy = sl_null);
-		static void releaseLongArrayElements(jlongArray array, jlong* buf, jint mode = 0);
-		static void getLongArrayRegion(jlongArray array, sl_uint32 index, sl_uint32 len, jlong* buf);
-		static void setLongArrayRegion(jlongArray array, sl_uint32 index, sl_uint32 len, jlong* buf);
-		static jfloatArray newFloatArray(sl_uint32 length);
-		static jfloat* getFloatArrayElements(jfloatArray array, jboolean* isCopy = sl_null);
-		static void releaseFloatArrayElements(jfloatArray array, jfloat* buf, jint mode = 0);
-		static void getFloatArrayRegion(jfloatArray array, sl_uint32 index, sl_uint32 len, jfloat* buf);
-		static void setFloatArrayRegion(jfloatArray array, sl_uint32 index, sl_uint32 len, jfloat* buf);
-		static jdoubleArray newDoubleArray(sl_uint32 length);
-		static jdouble* getDoubleArrayElements(jdoubleArray array, jboolean* isCopy = sl_null);
-		static void releaseDoubleArrayElements(jdoubleArray array, jdouble* buf, jint mode = 0);
-		static void getDoubleArrayRegion(jdoubleArray array, sl_uint32 index, sl_uint32 len, jdouble* buf);
-		static void setDoubleArrayRegion(jdoubleArray array, sl_uint32 index, sl_uint32 len, jdouble* buf);
+			class SLIB_EXPORT JField
+			{
+			public:
+				JField(JClass* gcls, const char* name, const char* sig);
 
-		// direct buffer
-		static jobject newDirectByteBuffer(void* address, sl_size capacity);
-		static void* getDirectBufferAddress(jobject buf);
-		static sl_size getDirectBufferCapacity(jobject buf);
+			public:
+				jobject getObject(jobject _this);
+				void setObject(jobject _this, jobject value);
+				jboolean getBoolean(jobject _this);
+				void setBoolean(jobject _this, jboolean value);
+				jbyte getByte(jobject _this);
+				void setByte(jobject _this, jbyte value);
+				jchar getChar(jobject _this);
+				void setChar(jobject _this, jchar value);
+				jshort getShort(jobject _this);
+				void setShort(jobject _this, jshort value);
+				jint getInt(jobject _this);
+				void setInt(jobject _this, jint value);
+				jlong getLong(jobject _this);
+				void setLong(jobject _this, jlong value);
+				jfloat getFloat(jobject _this);
+				void setFloat(jobject _this, jfloat value);
+				jdouble getDouble(jobject _this);
+				void setDouble(jobject _this, jdouble value);
+				String getString(jobject _this);
+				void setString(jobject _this, const StringParam& value);
 
-		// exception
-		static sl_bool checkException();
-		static void clearException();
-		static void printException();
+			public:
+				JClass * gcls;
+				const char* name;
+				const char* sig;
+				jclass cls;
+				jfieldID id;
+			};
 
-		// input stream
-		static sl_int32 readFromInputStream(jobject stream, jbyteArray array);
-		static void closeInputStream(jobject stream);
-	
-	};
-}
 
-#define SLIB_JNI_BEGIN_CLASS(CLASS, NAME) \
-namespace CLASS \
-{ \
-	static slib::priv::java::JClass _gcls(NAME); \
-	SLIB_INLINE slib::JniClass get() { \
-		return _gcls.cls; \
+			class SLIB_EXPORT JObjectField : protected JField
+			{
+			public:
+				JObjectField(JClass* gcls, const char* name, const char* sig);
+			public:
+				jobject get(jobject _this);
+				void set(jobject _this, jobject value);
+			};
+
+			class SLIB_EXPORT JStaticField
+			{
+			public:
+				JStaticField(JClass* gcls, const char* name, const char* sig);
+
+			public:
+				jobject getObject(jobject _null);
+				void setObject(jobject _null, jobject value);
+				jboolean getBoolean(jobject _null);
+				void setBoolean(jobject _null, jboolean value);
+				jbyte getByte(jobject _null);
+				void setByte(jobject _null, jbyte value);
+				jchar getChar(jobject _null);
+				void setChar(jobject _null, jchar value);
+				jshort getShort(jobject _null);
+				void setShort(jobject _null, jshort value);
+				jint getInt(jobject _null);
+				void setInt(jobject _null, jint value);
+				jlong getLong(jobject _null);
+				void setLong(jobject _null, jlong value);
+				jfloat getFloat(jobject _null);
+				void setFloat(jobject _null, jfloat value);
+				jdouble getDouble(jobject _null);
+				void setDouble(jobject _null, jdouble value);
+				String getString(jobject _null);
+				void setString(jobject _null, const StringParam& value);
+
+			public:
+				JClass * gcls;
+				const char* name;
+				const char* sig;
+				jclass cls;
+				jfieldID id;
+			};
+
+			class SLIB_EXPORT JStaticObjectField : protected JStaticField
+			{
+			public:
+				JStaticObjectField(JClass* gcls, const char* name, const char* sig);
+			public:
+				jobject get();
+				void set(jobject value);
+			};
+
+		}
 	}
 
-#define SLIB_JNI_END_CLASS \
-}
+	#define SLIB_JNI_BEGIN_CLASS(CLASS, NAME) \
+	namespace CLASS \
+	{ \
+		static slib::priv::java::JClass _gcls(NAME); \
+		SLIB_INLINE slib::JniClass get() { \
+			return _gcls.cls; \
+		}
 
-#define SLIB_JNI_BEGIN_CLASS_SECTION(CLASS) \
-namespace CLASS \
-{ \
-
-#define SLIB_JNI_END_CLASS_SECTION \
-}
-
-#define SLIB_JNI_NEW(VAR, SIG) static slib::priv::java::JMethod VAR(&_gcls, "<init>", SIG);
-
-#define SLIB_JNI_METHOD(VAR, NAME, SIG) static slib::priv::java::JMethod VAR(&_gcls, NAME, SIG);
-#define SLIB_JNI_STATIC_METHOD(VAR, NAME, SIG) static slib::priv::java::JStaticMethod VAR(&_gcls, NAME, SIG);
-
-#define SLIB_JNI_FIELD(VAR, NAME, SIG) static slib::priv::java::JField VAR(&_gcls, NAME, SIG);
-#define SLIB_JNI_OBJECT_FIELD(VAR, SIG) static slib::priv::java::JObjectField VAR(&_gcls, (#VAR), SIG);
-#define SLIB_JNI_BOOLEAN_FIELD(VAR) static slib::priv::java::JBooleanField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_BYTE_FIELD(VAR) static slib::priv::java::JByteField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_CHAR_FIELD(VAR) static slib::priv::java::JCharField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_SHORT_FIELD(VAR) static slib::priv::java::JShortField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_INT_FIELD(VAR) static slib::priv::java::JIntField VAR(&_gcls, (#VAR));;
-#define SLIB_JNI_LONG_FIELD(VAR) static slib::priv::java::JLongField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_FLOAT_FIELD(VAR) static slib::priv::java::JFloatField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_DOUBLE_FIELD(VAR) static slib::priv::java::JDoubleField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_STRING_FIELD(VAR) static slib::priv::java::JStringField VAR(&_gcls, (#VAR));
-
-#define SLIB_JNI_STATIC_FIELD(VAR, NAME, SIG) static slib::priv::java::JStaticField VAR(&_gcls, NAME, SIG);
-#define SLIB_JNI_STATIC_OBJECT_FIELD(VAR, SIG) static slib::priv::java::JStaticObjectField VAR(&_gcls, (#VAR), SIG);
-#define SLIB_JNI_STATIC_BOOLEAN_FIELD(VAR) static slib::priv::java::JStaticBooleanField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_STATIC_BYTE_FIELD(VAR) static slib::priv::java::JStaticByteField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_STATIC_CHAR_FIELD(VAR) static slib::priv::java::JStaticCharField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_STATIC_SHORT_FIELD(VAR) static slib::priv::java::JStaticShortField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_STATIC_INT_FIELD(VAR) static slib::priv::java::JStaticIntField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_STATIC_LONG_FIELD(VAR) static slib::priv::java::JStaticLongField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_STATIC_FLOAT_FIELD(VAR) static slib::priv::java::JStaticFloatField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_STATIC_DOUBLE_FIELD(VAR) static slib::priv::java::JStaticDoubleField VAR(&_gcls, (#VAR));
-#define SLIB_JNI_STATIC_STRING_FIELD(VAR) static slib::priv::java::JStaticStringField VAR(&_gcls, (#VAR));
-
-#define SLIB_JNI_NATIVE(VAR, NAME, SIG, fn) static slib::priv::java::JNativeMethod native_##VAR(&_gcls, NAME, SIG, (const void*)(fn));
-#define SLIB_JNI_NATIVE_IMPL(VAR, NAME, SIG, RET, ...) \
-	static RET JNICALL JNativeMethodImpl_##VAR(JNIEnv* env, jobject _this, ##__VA_ARGS__); \
-	static slib::priv::java::JNativeMethod native_##VAR(&_gcls, NAME, SIG, (const void*)(JNativeMethodImpl_##VAR)); \
-	RET JNICALL JNativeMethodImpl_##VAR(JNIEnv* env, jobject _this, ##__VA_ARGS__)
-
-
-#define PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(TYPE, NAME) \
-	namespace priv { \
-		namespace java { \
-			class J##NAME##Field : protected JField \
-			{ \
-			public: \
-				J##NAME##Field(JClass* gcls, const char* name); \
-				TYPE get(jobject _this); \
-				void set(jobject _this, TYPE value); \
-			}; \
-		} \
+	#define SLIB_JNI_END_CLASS \
 	}
 
-PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(jboolean, Boolean)
-PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_int8, Byte)
-PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_uint16, Char)
-PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_int16, Short)
-PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_int32, Int)
-PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_int64, Long)
-PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(float, Float)
-PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(double, Double)
-PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(String, String)
+	#define SLIB_JNI_BEGIN_CLASS_SECTION(CLASS) \
+	namespace CLASS \
+	{ \
 
-#define PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(TYPE, NAME) \
-	namespace priv { \
-		namespace java { \
-			class JStatic##NAME##Field : protected JStaticField \
-			{ \
-			public: \
-				JStatic##NAME##Field(JClass* gcls, const char* name); \
-				TYPE get(); \
-				void set(TYPE value); \
-			}; \
-		} \
+	#define SLIB_JNI_END_CLASS_SECTION \
 	}
 
-PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(jboolean, Boolean)
-PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_int8, Byte)
-PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_uint16, Char)
-PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_int16, Short)
-PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_int32, Int)
-PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_int64, Long)
-PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(float, Float)
-PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(double, Double)
-PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(String, String)
+	#define SLIB_JNI_NEW(VAR, SIG) static slib::priv::java::JMethod VAR(&_gcls, "<init>", SIG);
+
+	#define SLIB_JNI_METHOD(VAR, NAME, SIG) static slib::priv::java::JMethod VAR(&_gcls, NAME, SIG);
+	#define SLIB_JNI_STATIC_METHOD(VAR, NAME, SIG) static slib::priv::java::JStaticMethod VAR(&_gcls, NAME, SIG);
+
+	#define SLIB_JNI_FIELD(VAR, NAME, SIG) static slib::priv::java::JField VAR(&_gcls, NAME, SIG);
+	#define SLIB_JNI_OBJECT_FIELD(VAR, SIG) static slib::priv::java::JObjectField VAR(&_gcls, (#VAR), SIG);
+	#define SLIB_JNI_BOOLEAN_FIELD(VAR) static slib::priv::java::JBooleanField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_BYTE_FIELD(VAR) static slib::priv::java::JByteField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_CHAR_FIELD(VAR) static slib::priv::java::JCharField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_SHORT_FIELD(VAR) static slib::priv::java::JShortField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_INT_FIELD(VAR) static slib::priv::java::JIntField VAR(&_gcls, (#VAR));;
+	#define SLIB_JNI_LONG_FIELD(VAR) static slib::priv::java::JLongField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_FLOAT_FIELD(VAR) static slib::priv::java::JFloatField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_DOUBLE_FIELD(VAR) static slib::priv::java::JDoubleField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_STRING_FIELD(VAR) static slib::priv::java::JStringField VAR(&_gcls, (#VAR));
+
+	#define SLIB_JNI_STATIC_FIELD(VAR, NAME, SIG) static slib::priv::java::JStaticField VAR(&_gcls, NAME, SIG);
+	#define SLIB_JNI_STATIC_OBJECT_FIELD(VAR, SIG) static slib::priv::java::JStaticObjectField VAR(&_gcls, (#VAR), SIG);
+	#define SLIB_JNI_STATIC_BOOLEAN_FIELD(VAR) static slib::priv::java::JStaticBooleanField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_STATIC_BYTE_FIELD(VAR) static slib::priv::java::JStaticByteField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_STATIC_CHAR_FIELD(VAR) static slib::priv::java::JStaticCharField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_STATIC_SHORT_FIELD(VAR) static slib::priv::java::JStaticShortField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_STATIC_INT_FIELD(VAR) static slib::priv::java::JStaticIntField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_STATIC_LONG_FIELD(VAR) static slib::priv::java::JStaticLongField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_STATIC_FLOAT_FIELD(VAR) static slib::priv::java::JStaticFloatField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_STATIC_DOUBLE_FIELD(VAR) static slib::priv::java::JStaticDoubleField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_STATIC_STRING_FIELD(VAR) static slib::priv::java::JStaticStringField VAR(&_gcls, (#VAR));
+
+	#define SLIB_JNI_NATIVE(VAR, NAME, SIG, fn) static slib::priv::java::JNativeMethod native_##VAR(&_gcls, NAME, SIG, (const void*)(fn));
+	#define SLIB_JNI_NATIVE_IMPL(VAR, NAME, SIG, RET, ...) \
+		static RET JNICALL JNativeMethodImpl_##VAR(JNIEnv* env, jobject _this, ##__VA_ARGS__); \
+		static slib::priv::java::JNativeMethod native_##VAR(&_gcls, NAME, SIG, (const void*)(JNativeMethodImpl_##VAR)); \
+		RET JNICALL JNativeMethodImpl_##VAR(JNIEnv* env, jobject _this, ##__VA_ARGS__)
+
+
+	#define PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(TYPE, NAME) \
+		namespace priv { \
+			namespace java { \
+				class J##NAME##Field : protected JField \
+				{ \
+				public: \
+					J##NAME##Field(JClass* gcls, const char* name); \
+					TYPE get(jobject _this); \
+					void set(jobject _this, TYPE value); \
+				}; \
+			} \
+		}
+
+	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(jboolean, Boolean)
+	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_int8, Byte)
+	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_uint16, Char)
+	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_int16, Short)
+	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_int32, Int)
+	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_int64, Long)
+	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(float, Float)
+	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(double, Double)
+	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(String, String)
+
+	#define PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(TYPE, NAME) \
+		namespace priv { \
+			namespace java { \
+				class JStatic##NAME##Field : protected JStaticField \
+				{ \
+				public: \
+					JStatic##NAME##Field(JClass* gcls, const char* name); \
+					TYPE get(); \
+					void set(TYPE value); \
+				}; \
+			} \
+		}
+
+	PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(jboolean, Boolean)
+	PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_int8, Byte)
+	PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_uint16, Char)
+	PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_int16, Short)
+	PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_int32, Int)
+	PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_int64, Long)
+	PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(float, Float)
+	PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(double, Double)
+	PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(String, String)
+
+}
 
 #endif
 

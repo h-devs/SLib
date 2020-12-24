@@ -285,7 +285,7 @@ namespace slib
 	}
 
 	sl_bool Process::run(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
-	{		
+	{
 		PROCESS_INFORMATION pi;
 		ZeroMemory(&pi, sizeof(pi));
 

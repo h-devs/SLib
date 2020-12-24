@@ -241,7 +241,7 @@ namespace slib
 	SLIB_DEFINE_OBJECT(EditView, View)
 
 	EditView::EditView()
-	{		
+	{
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 		

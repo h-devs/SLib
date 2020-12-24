@@ -30,7 +30,7 @@ namespace slib
 	SLIB_DEFINE_OBJECT(LinearLayout, ViewGroup)
 	
 	LinearLayout::LinearLayout()
-	{		
+	{
 		setCustomLayout(sl_true);
 		setSavingCanvasState(sl_false);
 		

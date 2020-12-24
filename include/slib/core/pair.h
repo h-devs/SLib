@@ -40,26 +40,21 @@ namespace slib
 		SECOND_T second;
 
 	public:
-		SLIB_INLINE Pair() noexcept
-		 {}
+		Pair() noexcept {}
 
-		SLIB_INLINE Pair(const Pair& other)
-		 = default;
+		Pair(const Pair& other) = default;
 
-		SLIB_INLINE Pair(Pair&& other)
-		 = default;
+		Pair(Pair&& other) = default;
 
 		template <class FIRST, class SECOND>
-		SLIB_INLINE Pair(FIRST&& _first, SECOND&& _second) noexcept
+		Pair(FIRST&& _first, SECOND&& _second) noexcept
 		 : first(Forward<FIRST>(_first)), second(Forward<SECOND>(_second))
-		 {}
+		{}
 
 	public:
-		SLIB_INLINE Pair& operator=(const Pair& other)
-		 = default;
+		Pair& operator=(const Pair& other)  = default;
 
-		SLIB_INLINE Pair& operator=(Pair&& other)
-		 = default;
+		Pair& operator=(Pair&& other) = default;
 
 	};
 	
@@ -75,6 +70,7 @@ namespace slib
 			}
 			return Compare<SECOND_T>()(a.second, b.second);
 		}
+
 	};
 	
 	template <class FIRST_T, class SECOND_T>
@@ -89,6 +85,7 @@ namespace slib
 			return Rehash64ToSize(SLIB_MAKE_QWORD4(Hash<FIRST_T>()(pair.first), Hash<SECOND_T>()(pair.second)));
 #endif
 		}
+
 	};
 
 }

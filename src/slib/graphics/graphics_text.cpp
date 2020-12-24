@@ -1241,7 +1241,7 @@ namespace slib
 	namespace priv
 	{
 		namespace text_paragraph
-		{			
+		{
 			class Layouter
 			{
 			public:

@@ -51,19 +51,19 @@ namespace slib
 		virtual sl_int64 executeBy(const Variant* params, sl_uint32 nParams) = 0;
 
 		template <class T>
-		SLIB_INLINE sl_int64 executeBy(const T& _params)
+		sl_int64 executeBy(const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, m_names);
 			return executeBy(params.data, params.count);
 		}
 
-		SLIB_INLINE sl_int64 execute()
+		sl_int64 execute()
 		{
 			return executeBy(sl_null, 0);
 		}
 
 		template <class... ARGS>
-		SLIB_INLINE sl_int64 execute(ARGS&&... args)
+		sl_int64 execute(ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return executeBy(params, sizeof...(args));
@@ -72,19 +72,19 @@ namespace slib
 		virtual Ref<DatabaseCursor> queryBy(const Variant* params, sl_uint32 nParams) = 0;
 
 		template <class T>
-		SLIB_INLINE Ref<DatabaseCursor> queryBy(const T& _params)
+		Ref<DatabaseCursor> queryBy(const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, m_names);
 			return queryBy(params.data, params.count);
 		}
 
-		SLIB_INLINE Ref<DatabaseCursor> query()
+		Ref<DatabaseCursor> query()
 		{
 			return queryBy(sl_null, 0);
 		}
 
 		template <class... ARGS>
-		SLIB_INLINE Ref<DatabaseCursor> query(ARGS&&... args)
+		Ref<DatabaseCursor> query(ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return queryBy(params, sizeof...(args));
@@ -93,19 +93,19 @@ namespace slib
 		virtual List< HashMap<String, Variant> > getRecordsBy(const Variant* params, sl_uint32 nParams);
 		
 		template <class T>
-		SLIB_INLINE List< HashMap<String, Variant> > getRecordsBy(const T& _params)
+		List< HashMap<String, Variant> > getRecordsBy(const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, m_names);
 			return getRecordsBy(params.data, params.count);
 		}
 
-		SLIB_INLINE List< HashMap<String, Variant> > getRecords()
+		List< HashMap<String, Variant> > getRecords()
 		{
 			return getRecordsBy(sl_null, 0);
 		}
 
 		template <class... ARGS>
-		SLIB_INLINE List< HashMap<String, Variant> > getRecords(ARGS&&... args)
+		List< HashMap<String, Variant> > getRecords(ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getRecordsBy(params, sizeof...(args));
@@ -114,19 +114,19 @@ namespace slib
 		virtual HashMap<String, Variant> getRecordBy(const Variant* params, sl_uint32 nParams);
 
 		template <class T>
-		SLIB_INLINE HashMap<String, Variant> getRecordBy(const T& _params)
+		HashMap<String, Variant> getRecordBy(const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, m_names);
 			return getRecordBy(params.data, params.count);
 		}
 
-		SLIB_INLINE HashMap<String, Variant> getRecord()
+		HashMap<String, Variant> getRecord()
 		{
 			return getRecordBy(sl_null, 0);
 		}
 
 		template <class... ARGS>
-		SLIB_INLINE HashMap<String, Variant> getRecord(ARGS&&... args)
+		HashMap<String, Variant> getRecord(ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getRecordBy(params, sizeof...(args));
@@ -135,19 +135,19 @@ namespace slib
 		virtual Variant getValueBy(const Variant* params, sl_uint32 nParams);
 		
 		template <class T>
-		SLIB_INLINE Variant getValueBy(const T& _params)
+		Variant getValueBy(const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, m_names);
 			return getValueBy(params.data, params.count);
 		}
 		
-		SLIB_INLINE Variant getValue()
+		Variant getValue()
 		{
 			return getValueBy(sl_null, 0);
 		}
 
 		template <class... ARGS>
-		SLIB_INLINE Variant getValue(ARGS&&... args)
+		Variant getValue(ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getValueBy(params, sizeof...(args));

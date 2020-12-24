@@ -109,7 +109,7 @@ namespace slib
 			{
 				if (g_nLevelRunLoop) {
 					UIPlatform::quitLoop();
-				} else {
+				} else if (g_flagRunningApp) {
 					UIPlatform::quitApp();
 				}
 			}
@@ -677,6 +677,9 @@ namespace slib
 
 	void UI::runLoop()
 	{
+		if (g_flagQuitApp) {
+			return;
+		}
 		if (!(UI::isUiThread())) {
 			return;
 		}
@@ -699,6 +702,9 @@ namespace slib
 
 	void UI::runApp()
 	{
+		if (g_flagQuitApp) {
+			return;
+		}
 		g_flagRunningApp = sl_true;
 		UIPlatform::runApp();
 		g_flagRunningApp = sl_false;
@@ -717,7 +723,12 @@ namespace slib
 	{
 		return g_flagRunningApp;
 	}
-	
+
+	sl_bool UI::isQuitingApp()
+	{
+		return g_flagQuitApp;
+	}
+
 	void UI::openUrl(const StringParam& url)
 	{
 		Device::openUrl(url);
@@ -754,7 +765,6 @@ namespace slib
 	{
 		return g_keyboardAdjustMode;
 	}
-	
 	
 	void UI::setKeyboardAdjustMode(UIKeyboardAdjustMode mode)
 	{

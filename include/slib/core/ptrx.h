@@ -35,63 +35,63 @@
 		using Ptr<T>::ref; \
 		using Ptr<T>::lockRef; \
 		template <class... OTHERS> \
-		SLIB_INLINE Ptr(const Ptr<OTHERS...>& v) noexcept : Ptr<T>(v) { _init(v); } \
+		Ptr(const Ptr<OTHERS...>& v) noexcept : Ptr<T>(v) { _init(v); } \
 		template <class... OTHER> \
-		SLIB_INLINE Ptr(Ptr<OTHER...>&& v) noexcept : Ptr<T>(Move(v)) { _init(v); } \
+		Ptr(Ptr<OTHER...>&& v) noexcept : Ptr<T>(Move(v)) { _init(v); } \
 		template <class OTHER> \
-		SLIB_INLINE Ptr(const AtomicPtr<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {} \
+		Ptr(const AtomicPtr<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {} \
 		template <class... OTHERS> \
-		SLIB_INLINE Ptr(const Ref<OTHERS...>& v) noexcept : Ptr<T>(v) { _init(v); } \
+		Ptr(const Ref<OTHERS...>& v) noexcept : Ptr<T>(v) { _init(v); } \
 		template <class OTHER> \
-		SLIB_INLINE Ptr(const AtomicRef<OTHER>& v) noexcept : Ptr(Ref<OTHER>(v)) {} \
+		Ptr(const AtomicRef<OTHER>& v) noexcept : Ptr(Ref<OTHER>(v)) {} \
 		template <class OTHER> \
-		SLIB_INLINE Ptr(const WeakRef<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {} \
+		Ptr(const WeakRef<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {} \
 		template <class OTHER> \
-		SLIB_INLINE Ptr(const AtomicWeakRef<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {} \
+		Ptr(const AtomicWeakRef<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {} \
 		template <class OTHER> \
-		SLIB_INLINE Ptr(OTHER* v) noexcept : Ptr<T>(v) { _init(v); } \
+		Ptr(OTHER* v) noexcept : Ptr<T>(v) { _init(v); } \
 		template <class... OTHERS> \
-		SLIB_INLINE Ptr(const Pointer<OTHERS...>& v) noexcept : Ptr<T>(v) { _init(v); } \
-		SLIB_INLINE static const Ptr null() noexcept { return sl_null; } \
-		SLIB_INLINE void setNull() noexcept { Ptr<T>::setNull(); _init(sl_null); } \
+		Ptr(const Pointer<OTHERS...>& v) noexcept : Ptr<T>(v) { _init(v); } \
+		static const Ptr null() noexcept { return sl_null; } \
+		void setNull() noexcept { Ptr<T>::setNull(); _init(sl_null); } \
 		template <class... OTHERS> \
-		SLIB_INLINE static const Ptr& from(const Ptr<OTHERS...>& other) noexcept { return *(reinterpret_cast<Ptr const*>(&other)); } \
+		static const Ptr& from(const Ptr<OTHERS...>& other) noexcept { return *(reinterpret_cast<Ptr const*>(&other)); } \
 		template <class... OTHERS> \
-		SLIB_INLINE static Ptr& from(Ptr<OTHERS...>& other) noexcept { return *(reinterpret_cast<Ptr*>(&other)); } \
+		static Ptr& from(Ptr<OTHERS...>& other) noexcept { return *(reinterpret_cast<Ptr*>(&other)); } \
 		template <class... OTHERS> \
-		SLIB_INLINE static Ptr&& from(Ptr<OTHERS...>&& other) noexcept { return static_cast<Ptr&&>(*(reinterpret_cast<Ptr*>(&other))); } \
-		SLIB_INLINE void set(sl_null_t) noexcept { setNull(); } \
+		static Ptr&& from(Ptr<OTHERS...>&& other) noexcept { return static_cast<Ptr&&>(*(reinterpret_cast<Ptr*>(&other))); } \
+		void set(sl_null_t) noexcept { setNull(); } \
 		template <class OTHER> \
-		SLIB_INLINE void set(OTHER* v) noexcept { Ptr<T>::set(v); _init(v); } \
+		void set(OTHER* v) noexcept { Ptr<T>::set(v); _init(v); } \
 		template <class... OTHERS> \
-		SLIB_INLINE void set(const Ptr<OTHERS...>& v) noexcept { Ptr<T>::set(v); _init(v); } \
+		void set(const Ptr<OTHERS...>& v) noexcept { Ptr<T>::set(v); _init(v); } \
 		template <class... OTHERS> \
-		SLIB_INLINE void set(Ptr<OTHERS...>&& v) noexcept { Ptr<T>::set(Move(v)); _init(v); } \
+		void set(Ptr<OTHERS...>&& v) noexcept { Ptr<T>::set(Move(v)); _init(v); } \
 		template <class OTHER> \
-		SLIB_INLINE void set(const AtomicPtr<OTHER>& v) noexcept { set(Ptr<OTHER>(v)); } \
+		void set(const AtomicPtr<OTHER>& v) noexcept { set(Ptr<OTHER>(v)); } \
 		template <class... OTHERS> \
-		SLIB_INLINE void set(const Ref<OTHERS...>& v) noexcept { Ptr<T>::set(v); _init(v); } \
+		void set(const Ref<OTHERS...>& v) noexcept { Ptr<T>::set(v); _init(v); } \
 		template <class OTHER> \
-		SLIB_INLINE void set(const AtomicRef<OTHER>& v) noexcept { set(Ref<OTHER>(v)); } \
+		void set(const AtomicRef<OTHER>& v) noexcept { set(Ref<OTHER>(v)); } \
 		template <class OTHER> \
-		SLIB_INLINE void set(const WeakRef<OTHER>& v) noexcept { set(Ptr<OTHER>(v)); } \
+		void set(const WeakRef<OTHER>& v) noexcept { set(Ptr<OTHER>(v)); } \
 		template <class OTHER> \
-		SLIB_INLINE void set(const AtomicWeakRef<OTHER>& v) noexcept { set(Ptr<OTHER>(v)); } \
+		void set(const AtomicWeakRef<OTHER>& v) noexcept { set(Ptr<OTHER>(v)); } \
 		template <class... OTHERS> \
-		SLIB_INLINE void set(const Pointer<OTHERS...>& v) noexcept { Ptr<T>::set(v); _init(v); } \
+		void set(const Pointer<OTHERS...>& v) noexcept { Ptr<T>::set(v); _init(v); } \
 		template <class OTHER> \
-		SLIB_INLINE Ptr& operator=(OTHER&& other) noexcept { set(Forward<OTHER>(other)); return *this; }
+		Ptr& operator=(OTHER&& other) noexcept { set(Forward<OTHER>(other)); return *this; }
 
 #define PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(...) \
 	private: \
 		Ptr<__VA_ARGS__> m_ptr; \
 	public: \
 		template <class... OTHERS> \
-		SLIB_INLINE PtrLocker(const Ptr<OTHERS...>& ptr) noexcept: m_ptr(ptr.lock()) {} \
+		PtrLocker(const Ptr<OTHERS...>& ptr) noexcept: m_ptr(ptr.lock()) {} \
 	public: \
-		SLIB_INLINE void unlock() noexcept { m_ptr.setNull(); } \
-		SLIB_INLINE sl_bool isNull() noexcept { return m_ptr.isNull(); } \
-		SLIB_INLINE sl_bool isNotNull() noexcept { return m_ptr.isNotNull(); }
+		void unlock() noexcept { m_ptr.setNull(); } \
+		sl_bool isNull() noexcept { return m_ptr.isNull(); } \
+		sl_bool isNotNull() noexcept { return m_ptr.isNotNull(); }
 
 namespace slib
 {
@@ -676,7 +676,8 @@ namespace slib
 	void Atomic< Ptr<T> >::set(const Pointer<TYPES...>& other) noexcept
 	{
 		_replace(other, Ref<Referable>::null());
-	}	
+	}
+
 }
 
 #endif

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,32 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CORE_STRING_OP
 #define CHECKHEADER_SLIB_CORE_STRING_OP
 
-#include "definition.h"
-
-#include "atomic.h"
-
-#ifdef SLIB_SUPPORT_STD_TYPES
-#include <string>
-#endif
-
 namespace slib
 {
-	class String;
-	class String16;
-	class StringView;
-	class StringView16;
-	class StringData;
-	class StringData16;
-	class StringParam;
-
-#define PRIV_SLIB_DECLARE_STRING_CLASS_OP_TEMPLATE(RET, FUNC) \
-	template <class CHAR, sl_size N> RET FUNC(CHAR (&other)[N]) const noexcept; \
-	template <class ARG> RET FUNC(const ARG& other) const noexcept;
-
-#define PRIV_SLIB_DECLARE_STRING_CLASS_OP(STRING, RET, FUNC) \
-	RET FUNC(const STRING& other) const noexcept; \
-	RET FUNC(const Atomic<STRING>& other) const noexcept; \
-	PRIV_SLIB_DECLARE_STRING_CLASS_OP_TEMPLATE(RET, FUNC)
 
 #define PRIV_SLIB_DECLARE_STRING_OP_SUB2(STRING1, STRING2, RET, OP) \
 	RET OP(const STRING1& a1, const STRING2& a2) noexcept;
@@ -90,7 +66,7 @@ namespace slib
 	PRIV_SLIB_DECLARE_STRING_OP(sl_bool, operator<=)
 	PRIV_SLIB_DECLARE_STRING_OP(sl_bool, operator>)
 	PRIV_SLIB_DECLARE_STRING_OP(sl_bool, operator<)
-	
+
 	namespace priv
 	{
 		namespace string
@@ -731,6 +707,17 @@ namespace slib
 	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE_SECTION(OP, StringView, BODY, BODY_FRIEND) \
 	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE_SECTION(OP, StringView16, BODY, BODY_FRIEND) \
 	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE_SECTION(OP, StringParam, BODY, BODY_FRIEND)
+
+
+	PRIV_SLIB_DEFINE_STRING_CLASS_OP_TEMPLATE(sl_bool, equals, EqualsOperator)
+	PRIV_SLIB_DEFINE_STRING_CLASS_OP_TEMPLATE(sl_compare_result, compare, CompareOperator)
+
+	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE(== , s.equals(other), s.equals(other))
+	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE(!= , !(s.equals(other)), !(s.equals(other)))
+	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE(>= , s.compare(other) >= 0, s.compare(other) <= 0)
+	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE(<= , s.compare(other) <= 0, s.compare(other) >= 0)
+	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE(>, s.compare(other)>0, s.compare(other)<0)
+	PRIV_SLIB_STRING_DEFINE_COMPARE_OPERATOR_TEMPLATE(<, s.compare(other)<0, s.compare(other)>0)
 
 }
 

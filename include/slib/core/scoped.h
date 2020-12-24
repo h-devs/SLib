@@ -46,34 +46,34 @@ namespace slib
 		~ScopedPtr()
 		{
 			release();
-		}		
+		}
 
 	public:
 		void release()
 		{
 			delete ptr;
 			ptr = sl_null;
-		}		
+		}
 
 		sl_bool isNull()
 		{
 			return ptr == sl_null;
-		}		
+		}
 
 		sl_bool isNotNull()
 		{
 			return ptr != sl_null;
-		}		
+		}
 
 		T& operator*()
 		{
 			return *(ptr);
-		}		
+		}
 
 		T* operator->()
 		{
 			return ptr;
-		}		
+		}
 
 	public:
 		T* ptr;
@@ -92,12 +92,12 @@ namespace slib
 		T& operator*()
 		{
 			return *(this->ptr);
-		}		
+		}
 
 		T* operator->()
 		{
 			return this->ptr;
-		}		
+		}
 
 	};
 
@@ -121,12 +121,12 @@ namespace slib
 			} else {
 				count = 0;
 			}
-		}		
+		}
 	
 		~ScopedArray()
 		{
 			release();
-		}		
+		}
 	
 	public:
 		void release()
@@ -141,7 +141,7 @@ namespace slib
 		sl_bool isNull()
 		{
 			return data == sl_null;
-		}		
+		}
 	
 		sl_bool isNotNull()
 		{
@@ -151,12 +151,12 @@ namespace slib
 		T& operator[](sl_size index)
 		{
 			return data[index];
-		}		
+		}
 
 		T* operator+(sl_size offset)
 		{
 			return data + offset;
-		}		
+		}
 
 	public:
 		T* data;
@@ -181,12 +181,12 @@ namespace slib
 				data = NewHelper<T>::create(_count);
 			}
 			count = _count;
-		}		
+		}
 
 		~ScopedBuffer()
 		{
 			release();
-		}		
+		}
 
 	public:
 		void release()
@@ -198,27 +198,27 @@ namespace slib
 				data = sl_null;
 			}
 			count = 0;
-		}		
+		}
 
 		sl_bool isNull()
 		{
 			return data == sl_null;
-		}		
+		}
 
 		sl_bool isNotNull()
 		{
 			return data != sl_null;
-		}		
+		}
 
 		T& operator[](sl_size index)
 		{
 			return data[index];
-		}		
+		}
 
 		T* operator+(sl_size offset)
 		{
 			return data + offset;
-		}		
+		}
 
 	public:
 		T* data;
