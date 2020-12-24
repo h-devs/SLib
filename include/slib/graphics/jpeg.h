@@ -104,6 +104,11 @@ namespace slib
 
 	};
 
+	struct EncHuffTableItem {
+		sl_uint32 co;
+		char si;
+	};
+
 	class SLIB_EXPORT JpegAdobeSegment
 	{
 	public:
@@ -150,8 +155,23 @@ namespace slib
 		sl_uint32 max_code[18];
 		sl_int32 delta[17];
 
+		sl_uint32 ehufco[256];	/* code for each symbol */
+		sl_int8 ehufsi[256];		/* length of code for each symbol */
+
+		static sl_uint8 category[65535];
+		static EncHuffTableItem bitcode[65535];
+
 	public:
 		JpegHuffmanTable();
+
+		EncHuffTableItem getEncHuffTableItem(sl_int16 index) {
+			EncHuffTableItem item;
+			item.co = ehufco[index];
+			item.si = ehufsi[index];
+			return item;
+		}
+
+		void initCategoryNumber();
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(JpegHuffmanTable)
 
@@ -166,6 +186,7 @@ namespace slib
 		sl_uint8 quant_table_no;
 
 		sl_int32 dc_prediction;
+		sl_int32 dc_Wprediction; //for writing
 
 	public:
 		JpegComponent();
@@ -284,6 +305,37 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT JpegHuffmanWriter
+	{
+	public:
+		JpegHuffmanWriter(JpegFile* file, IWriter* writer);
+
+		~JpegHuffmanWriter();
+
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(JpegHuffmanWriter)
+
+	public:
+		sl_bool encodeBlock(
+			sl_int16 _in[64],
+			JpegComponent& component,
+			JpegHuffmanTable& dc_huffman_table,
+			JpegHuffmanTable& ac_huffman_table
+		);
+
+		void writeBits(const EncHuffTableItem& bs);
+
+		void writeFlush();
+
+		void restart();
+
+	public:
+		JpegFile* m_file;
+		IWriter* m_writer;
+
+		sl_uint8 m_buf;
+		sl_int8 m_len;
+
+	};
 
 	class SLIB_EXPORT JpegFile
 	{
@@ -313,8 +365,12 @@ namespace slib
 		sl_uint16 restart_interval;
 
 		// x, y: block number
-		Function<sl_bool(sl_uint32 x, sl_uint32 y, sl_uint8 color_index, sl_int16 data[64])> onDecodeHuffmanBlock;
+		Function<sl_bool(sl_int16 data[64], JpegComponent& component, JpegHuffmanTable& dc_huffman_table, JpegHuffmanTable& ac_huffman_table)> onDecodeHuffmanBlock;
+		Function<void(sl_int32& count)> onDecodeRestartControl;
 		Function<void(sl_uint32 x, sl_uint32 y, sl_uint8 color_index, sl_uint8 data[64])> onLoadBlock;
+		Function<void()> onReachedScandata;
+		Function<sl_bool()> onFinishJob;
+		SkippableReader m_reader;
 
 	public:
 		JpegFile();
@@ -330,7 +386,6 @@ namespace slib
 
 		sl_bool readContent();
 
-	private:
 		JpegMarkerCode readMarkerCode();
 
 		void setReadMarkerCode(JpegMarkerCode code);
@@ -372,14 +427,13 @@ namespace slib
 		static void idctBlock(sl_int16 input[64], sl_uint8 output[64]);
 
 	private:
-		SkippableReader m_reader;
+		
 		sl_bool m_flagReadFully;
 
 		sl_bool m_flagReadMarkerCode;
 		JpegMarkerCode m_lastMarkerCode;
-		sl_int32 m_nRestartCountDown;
 
-		friend JpegHuffmanReader;
+		sl_int32 m_nRestartCountDown;
 
 	};
 
@@ -395,6 +449,10 @@ namespace slib
 		static Ref<Image> loadFromMemory(const Memory& mem);
 
 		static Ref<Image> loadFromFile(const StringParam& path);
+		
+		static sl_bool loadHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<sl_bool(sl_int16 data[64])>& onLoadBlock);
+		
+		static Memory modifyHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<void(sl_int16 data[64])>& onLoadBlock);
 
 	};
 
