@@ -26,6 +26,8 @@
 
 #include "slib/ui/list_control.h"
 
+#include "slib/ui/core.h"
+
 #include "view_gtk.h"
 
 namespace slib
@@ -319,8 +321,8 @@ namespace slib
 						view->setupModel(handle);
 						refreshRowsCount(view);
 
-						g_signal_connect((GtkWidget*)selection, "changed", G_CALLBACK(onSelectionChanged), handleScrollWindow);
-						g_signal_connect((GtkWidget*)handle, "button-press-event", G_CALLBACK(onButtonEvent), handleScrollWindow);
+						g_signal_connect((GtkWidget*)selection, "changed", G_CALLBACK(_callback_selection_changed), handleScrollWindow);
+						g_signal_connect((GtkWidget*)handle, "button-press-event", G_CALLBACK(_callback_button_press_event), handleScrollWindow);
 					}
 				}
 
@@ -399,7 +401,7 @@ namespace slib
 					return sl_false;
 				}
 
-				static void onSelectionChanged(GtkTreeSelection* selection, gpointer user_data)
+				static void _callback_selection_changed(GtkTreeSelection* selection, gpointer user_data)
 				{
 					Ref<ListControlHelper> helper = Ref<ListControlHelper>::from(UIPlatform::getView((GtkWidget*)user_data));
 					if (helper.isNull()) {
@@ -410,7 +412,7 @@ namespace slib
 					helper->dispatchSelectRow(iter.stamp);
 				}
 
-				static gboolean onButtonEvent(GtkWidget*, GdkEvent* _event, gpointer user_data)
+				static gboolean _callback_button_press_event(GtkWidget*, GdkEvent* _event, gpointer user_data)
 				{
 					Ref<ListControlInstance> instance = Ref<ListControlInstance>::from(UIPlatform::getViewInstance((GtkWidget*)user_data));
 					if (instance.isNull()) {
@@ -446,13 +448,14 @@ namespace slib
 					}
 
 					GdkEventButton* event = (GdkEventButton*)_event;
-					int x = event->x;
-					int y = event->y;
 
-					GtkAdjustment* adjust_v = gtk_tree_view_get_vadjustment(handle);
+					gint x = event->x;
+					gint y = event->y;
+
 					GtkAdjustment* adjust_h = gtk_tree_view_get_hadjustment(handle);
-					y += gtk_adjustment_get_value(adjust_v);
 					x += gtk_adjustment_get_value(adjust_h);
+					GtkAdjustment* adjust_v = gtk_tree_view_get_vadjustment(handle);
+					y += gtk_adjustment_get_value(adjust_v);
 					if (y < 0) {
 						y = 0;
 					}
@@ -485,15 +488,17 @@ namespace slib
 						helper->dispatchSelectRow(iRow);
 					}
 
+					UIPoint pt = helper->convertCoordinateFromScreen(UI::getCursorPos());
+
 					if (event->button == 1) {
 						if (event->type == GDK_BUTTON_PRESS) {
-							helper->dispatchClickRow(iRow, UIPointf(x, y));
+							helper->dispatchClickRow(iRow, pt);
 						} else if (event->type == GDK_2BUTTON_PRESS) {
-							helper->dispatchDoubleClickRow(iRow, UIPointf(x, y));
+							helper->dispatchDoubleClickRow(iRow, pt);
 						}
 					} else if (event->button == 3) {
 						if (event->type == GDK_BUTTON_PRESS) {
-							helper->dispatchRightButtonClickRow(iRow, UIPointf(x, y));
+							helper->dispatchRightButtonClickRow(iRow, pt);
 						}
 					}
 

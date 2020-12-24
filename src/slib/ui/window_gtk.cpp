@@ -300,17 +300,19 @@ namespace slib
 				UIRect getFrame() override
 				{
 					if (!m_flagClosed) {
-						GtkWindow* window = m_window;
-						if (window) {
-							gint x, y, width, height;
-							gtk_window_get_position(window, &x, &y);
-							gtk_window_get_size(window, &width, &height);
-							UIRect ret;
-							ret.left = (sl_ui_len)x;
-							ret.top = (sl_ui_len)y;
-							ret.right = (sl_ui_len)(x + width);
-							ret.bottom = (sl_ui_len)(y + height);
-							return ret;
+						GtkWindow* handle = m_window;
+						if (handle) {
+							GdkWindow* window = gtk_widget_get_window((GtkWidget*)handle);
+							if (window) {
+								GdkRectangle frame;
+								gdk_window_get_frame_extents(window, &frame);
+								UIRect ret;
+								ret.left = (sl_ui_len)(frame.x);
+								ret.top = (sl_ui_len)(frame.y);
+								ret.right = (sl_ui_len)(frame.x + frame.width);
+								ret.bottom = (sl_ui_len)(frame.y + frame.height);
+								return ret;
+							}
 						}
 					}
 					return UIRect::zero();
@@ -527,10 +529,26 @@ namespace slib
 
 				sl_bool getClientInsets(UIEdgeInsets& _out) override
 				{
-					_out.top = -_getMenuHeight();
-					_out.left = 0;
-					_out.right = 0;
-					_out.bottom = 0;
+					if (m_flagClosed) {
+						return sl_false;
+					}
+					GtkWindow* handle = m_window;
+					if (!handle) {
+						return sl_false;
+					}
+					GdkWindow* window = gtk_widget_get_window((GtkWidget*)handle);
+					if (!window) {
+						return sl_false;
+					}
+					GdkRectangle rect;
+					gdk_window_get_frame_extents(window, &rect);
+					gint x = 0, y = 0, width, height;
+					gdk_window_get_origin(window, &x, &y);
+					gdk_window_get_geometry(window, sl_null, sl_null, &width, &height, sl_null);
+					_out.left = (sl_ui_len)(x - rect.x);
+					_out.top = (sl_ui_len)(y + _getMenuHeight() - rect.y);
+					_out.right = (sl_ui_len)(rect.x + rect.width - (x + width));
+					_out.bottom = (sl_ui_len)(rect.y + rect.height - (y + height));
 					return sl_true;
 				}
 
