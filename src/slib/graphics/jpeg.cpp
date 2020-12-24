@@ -488,7 +488,7 @@ namespace slib
 			m_len--;
 			if (m_len < 0) {
 				if (m_buf == 0xFF) {
-					m_writer->writeInt8(0xFF);
+					m_writer->writeInt8((sl_uint8)0xFF);
 					m_writer->writeInt8(0);
 				}
 				else {
@@ -1111,7 +1111,7 @@ namespace slib
 									else {
 										continue;
 									}
-								} 
+								}
 
 								dequantizeBlock(data, quantization_table[comp.quant_table_no]);
 								dezigzag(data, dataz);
@@ -1407,7 +1407,7 @@ namespace slib
 		return sl_false;
 	}
 
-	Memory Jpeg::modifyHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<void(sl_int16 data[64])>& onLoadBlock)
+	Memory Jpeg::modifyHuffmanBlocks(const Ptr<IReader, ISeekable>& reader, const Function<void(sl_int16 data[64])>& onLoadBlock)
 	{
 		MemoryWriter writer;
 		JpegFile file;
@@ -1433,11 +1433,13 @@ namespace slib
 			};
 
 			file.onReachedScandata = [&file, &writer]() {
-				sl_int32 headerSize = file.m_reader.getPosition();
-				file.m_reader.getSeekable()->seekToBegin();
-				Memory headerBuffer = Memory::create(headerSize);
-				file.m_reader.read(headerBuffer.getData(), headerSize);
-				writer.write(headerBuffer.getData(), headerSize);
+				sl_size headerSize = file.m_reader.getPosition();
+				if (file.m_reader.getSeekable()->seekToBegin()) {
+					Memory buf = file.m_reader.readToMemory(headerSize);
+					if (buf.getSize() == headerSize) {
+						writer.write(buf);
+					}
+				}
 			};
 
 			if (file.readContent()) {
@@ -1448,7 +1450,7 @@ namespace slib
 					huffWriter.writeBits(fillbits);
 				}
 				writer.writeUint8(0xFF);
-				writer.writeUint8((sl_uint8)JpegMarkerCode::EOI); //EOI
+				writer.writeUint8((sl_uint8)(JpegMarkerCode::EOI)); //EOI
 				return writer.getData();
 			}
 		}
