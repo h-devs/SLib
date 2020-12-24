@@ -427,7 +427,6 @@ namespace slib
 		static void idctBlock(sl_int16 input[64], sl_uint8 output[64]);
 
 	private:
-		
 		sl_bool m_flagReadFully;
 
 		sl_bool m_flagReadMarkerCode;
@@ -452,7 +451,7 @@ namespace slib
 		
 		static sl_bool loadHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<sl_bool(sl_int16 data[64])>& onLoadBlock);
 		
-		static Memory modifyHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<void(sl_int16 data[64])>& onLoadBlock);
+		static Memory modifyHuffmanBlocks(const Ptr<IReader, ISeekable>& reader, const Function<void(sl_int16 data[64])>& onLoadBlock);
 
 	};
 
