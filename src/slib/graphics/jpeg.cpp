@@ -29,6 +29,8 @@
 #include "slib/graphics/image.h"
 #include "slib/graphics/yuv.h"
 
+#include "slib/core/log.h"
+
 #define HUFFMAN_FAST_BITS SLIB_JPEG_HUFFMAN_FAST_BITS
 
 namespace slib
@@ -165,7 +167,71 @@ namespace slib
 					}
 				}
 			}
+			
+			static void BuildHuffDerivedTbl(JpegHuffmanTable& htbl)
+			{
+				int p, i, l, lastp, si, maxsymbol;
+				char huffsize[257];
+				unsigned int huffcode[257];
+				unsigned int code;
 
+				/* Figure C.1: make table of Huffman code length for each symbol */
+
+				p = 0;
+				for (l = 1; l <= 16; l++) {
+					i = (int)htbl.bits[l - 1];
+					if (i < 0 || p + i > 256)	/* protect against table overrun */
+						return;
+					while (i--)
+						huffsize[p++] = (char)l;
+				}
+				huffsize[p] = 0;
+				lastp = p;
+
+				/* Figure C.2: generate the codes themselves */
+				/* We also validate that the counts represent a legal Huffman code tree. */
+
+				code = 0;
+				si = huffsize[0];
+				p = 0;
+				while (huffsize[p]) {
+					while (((int)huffsize[p]) == si) {
+						huffcode[p++] = code;
+						code++;
+					}
+					/* code is now 1 more than the last code used for codelength si; but
+					* it must still fit in si bits, since no code is allowed to be all ones.
+					*/
+					if (((sl_int32)code) >= (((sl_int32)1) << si))
+						return;
+					code <<= 1;
+					si++;
+				}
+
+				/* Figure C.3: generate encoding tables */
+				/* These are code and size indexed by symbol value */
+
+				/* Set all codeless symbols to have code length 0;
+				* this lets us detect duplicate VAL entries here, and later
+				* allows emit_bits to detect any attempt to emit such symbols.
+				*/
+				Base::resetMemory(htbl.ehufsi, sizeof(htbl.ehufsi), 0);
+
+				/* This is also a convenient place to check for out-of-range
+				* and duplicated VAL entries.  We allow 0..255 for AC symbols
+				* but only 0..15 for DC.  (We could constrain them further
+				* based on data depth and mode, but this seems enough.)
+				*/
+				maxsymbol = htbl.flagAC ? 255 : 15;
+
+				for (p = 0; p < lastp; p++) {
+					i = htbl.values[p];
+					if (i < 0 || i > maxsymbol || htbl.ehufsi[i])
+						return;
+					htbl.ehufco[i] = huffcode[p];
+					htbl.ehufsi[i] = huffsize[p];
+				}
+			}
 		}
 	}
 
@@ -348,6 +414,106 @@ namespace slib
 	}
 
 
+	JpegHuffmanWriter::JpegHuffmanWriter(JpegFile* file, IWriter* writer) : m_file(file), m_writer(writer)
+	{
+		restart();
+	}
+
+	JpegHuffmanWriter::~JpegHuffmanWriter()
+	{
+	}
+
+	sl_bool JpegHuffmanWriter::encodeBlock(
+		sl_int16 data[64],
+		JpegComponent& component,
+		JpegHuffmanTable& dc_huffman_table,
+		JpegHuffmanTable& ac_huffman_table)
+	{
+		EncHuffTableItem EOB = ac_huffman_table.getEncHuffTableItem(0);
+		EncHuffTableItem M16zeroes = ac_huffman_table.getEncHuffTableItem(0xF0);
+		sl_int32 pos;
+		sl_int16 I16 = 16;
+		sl_int16 I63 = 63;
+		sl_int16 I64 = 64;
+
+		sl_int16 Diff = data[0] - component.dc_Wprediction; component.dc_Wprediction = data[0];
+		//Encode DC
+		if (Diff == 0) {
+			writeBits(dc_huffman_table.getEncHuffTableItem(0)); // Diff might be 0
+		} else {
+			pos = 32767 + Diff;
+			writeBits(dc_huffman_table.getEncHuffTableItem(JpegHuffmanTable::category[pos]));
+			writeBits(JpegHuffmanTable::bitcode[pos]);
+		}
+		//Encode ACs
+		sl_int16 end0pos = 63; // was const... which is crazy
+		for (; (end0pos>0) && (data[end0pos] == 0); end0pos--) {};
+		//end0pos = first element in reverse order !=0
+		if (end0pos == 0) {
+			writeBits(EOB);
+			return sl_true;
+		}
+		sl_int16 i = 1;
+		sl_int16 lng;
+		while (i <= end0pos) {
+			sl_int16 startpos = i;
+			for (; (data[i] == 0) && (i <= end0pos); ++i) {}
+			sl_int16 nrzeroes = i - startpos;
+			if (nrzeroes >= I16) {
+				lng = nrzeroes >> 4;
+				for (sl_int16 nrmarker = 1; nrmarker <= lng; ++nrmarker)
+					writeBits(M16zeroes);
+				nrzeroes = nrzeroes & 0xF;
+			}
+			pos = 32767 + data[i];
+			writeBits(ac_huffman_table.getEncHuffTableItem((nrzeroes << 4) + JpegHuffmanTable::category[pos]));
+			writeBits(JpegHuffmanTable::bitcode[pos]);
+			i++;
+		}
+		if (end0pos != I63) {
+			writeBits(EOB);
+		}
+		return sl_true;
+	}
+
+	void JpegHuffmanWriter::writeBits(const EncHuffTableItem& bs)
+	{
+		sl_uint32 value = bs.co;
+		sl_int8 posval = bs.si - 1;
+		while (posval >= 0) {
+			if (value & (1 << posval)) {
+				m_buf |= (1 << m_len);
+			}
+			posval--;
+			m_len--;
+			if (m_len < 0) {
+				if (m_buf == 0xFF) {
+					m_writer->writeInt8(0xFF);
+					m_writer->writeInt8(0);
+				}
+				else {
+					m_writer->writeInt8(m_buf);
+				}
+				restart();
+			}
+		}
+	}
+
+	void JpegHuffmanWriter::writeFlush()
+	{
+		EncHuffTableItem EOB;
+		EOB.co = 0x7f;
+		EOB.si = 7;
+		writeBits(EOB);
+	}
+
+	void JpegHuffmanWriter::restart()
+	{
+		m_buf = 0;
+		m_len = 7;
+	}
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(JpegAdobeSegment)
 
 	JpegAdobeSegment::JpegAdobeSegment():
@@ -368,8 +534,34 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(JpegHuffmanTable)
 
+	sl_uint8 JpegHuffmanTable::category[65535] = { 0 };
+	EncHuffTableItem JpegHuffmanTable::bitcode[65535] = { 0 };
+	
 	JpegHuffmanTable::JpegHuffmanTable(): flagDefined(sl_false)
 	{
+		initCategoryNumber();
+	}
+
+	void JpegHuffmanTable::initCategoryNumber()
+	{
+		sl_int32 nrlower = 1;
+		sl_int32 nrupper = 2;
+		for (sl_int32 cat = 1; cat <= 15; cat++) {
+			//Positive numbers
+			for (sl_int32 nr = nrlower; nr<nrupper; nr++) {
+				category[32767 + nr] = cat;
+				bitcode[32767 + nr].si = cat;
+				bitcode[32767 + nr].co = nr;
+			}
+			//Negative numbers
+			for (sl_int32 nrneg = -(nrupper - 1); nrneg <= -nrlower; nrneg++) {
+				category[32767 + nrneg] = cat;
+				bitcode[32767 + nrneg].si = cat;
+				bitcode[32767 + nrneg].co = nrupper - 1 + nrneg;
+			}
+			nrlower <<= 1;
+			nrupper <<= 1;
+		}
 	}
 
 
@@ -380,7 +572,8 @@ namespace slib
 		horizontal_sample_factor(0),
 		vertical_sample_factor(0),
 		quant_table_no(0),
-		dc_prediction(0)
+		dc_prediction(0),
+		dc_Wprediction(0)
 	{
 	}
 
@@ -442,7 +635,7 @@ namespace slib
 			return sl_false;
 		}
 		for (;;) {
-			JpegMarker marker;
+			JpegMarker marker; 
 			if (readMarker(marker)) {
 				if (IsSOF(marker.code)) {
 					if (IsSupportedSOF(marker.code)) {
@@ -466,6 +659,9 @@ namespace slib
 					break;
 				}
 				if (marker.code == JpegMarkerCode::SOS) {
+					if (onReachedScandata.isNotNull()) {
+						onReachedScandata();
+					}
 					if (!(readScanData())) {
 						return sl_false;
 					}
@@ -767,6 +963,7 @@ namespace slib
 				pTable = dc_huffman_tables + index;
 			}
 			JpegHuffmanTable& table = *pTable;
+			table.flagAC = flagAC;
 
 			if (reader->readFully(table.bits, 16) != 16) {
 				return sl_false;
@@ -785,6 +982,9 @@ namespace slib
 			if (reader->readFully(table.values, nTotal) != nTotal) {
 				return sl_false;
 			}
+
+			BuildHuffDerivedTbl(table);
+
 			nRead += nTotal;
 
 			if (flagAC) {
@@ -902,7 +1102,17 @@ namespace slib
 							if (!(reader.decodeBlock(data, comp, dc_huffman_tables[dc_huffman_table_no], ac_huffman_tables[ac_huffman_table_no]))) {
 								return sl_false;
 							}
-							if (onDecodeHuffmanBlock.isNull() || onDecodeHuffmanBlock(tx0 + tx, ty0 + ty, index, data)) {
+							sl_bool aa = onDecodeHuffmanBlock.isNull();
+							if (onDecodeHuffmanBlock.isNull() || onDecodeHuffmanBlock(data, comp, dc_huffman_tables[dc_huffman_table_no], ac_huffman_tables[ac_huffman_table_no])) {
+								if (onFinishJob.isNotNull()) {
+									if (onFinishJob()) {
+										return sl_true;
+									}
+									else {
+										continue;
+									}
+								} 
+
 								dequantizeBlock(data, quantization_table[comp.quant_table_no]);
 								dezigzag(data, dataz);
 								idctBlock(dataz, colors);
@@ -947,8 +1157,12 @@ namespace slib
 		reader->restart();
 		for (sl_uint32 i = 0; i < 4; i++) {
 			frame_header.components[i].dc_prediction = 0;
+			frame_header.components[i].dc_Wprediction = 0;
 		}
 		m_nRestartCountDown = restart_interval ? restart_interval : 0x7fffffff;
+		if (!onDecodeRestartControl.isNull()) {
+			onDecodeRestartControl(m_nRestartCountDown);
+		}
 	}
 
 	void JpegFile::zigzag(sl_int16 input[64], sl_int16 output[64])
@@ -1169,6 +1383,74 @@ namespace slib
 		Ref<File> file = File::openForRead(path);
 		if (file.isNotNull()) {
 			return load(file.get());
+		}
+		return sl_null;
+	}
+
+	sl_bool Jpeg::loadHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<sl_bool(sl_int16 data[64])>& onLoadBlock)
+	{
+		JpegFile file;
+		file.setReader(reader);
+		sl_bool isFinished = sl_false;
+		if (file.readHeader()) {
+			file.onDecodeHuffmanBlock = [&isFinished, onLoadBlock](sl_int16 data[64], JpegComponent& component, JpegHuffmanTable& dc_huffman_table, JpegHuffmanTable& ac_huffman_table) {
+				isFinished = onLoadBlock(data);
+				return sl_true;
+			};
+			file.onFinishJob = [&isFinished]() {
+				return isFinished;
+			};
+			if (file.readContent()) {
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	Memory Jpeg::modifyHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<void(sl_int16 data[64])>& onLoadBlock)
+	{
+		MemoryWriter writer;
+		JpegFile file;
+		file.setReader(reader);
+		if (file.readHeader()) {
+			JpegHuffmanWriter huffWriter(&file, &writer);
+			sl_int32 nRestartIndex = 0;
+			file.onDecodeHuffmanBlock = [&huffWriter, &file, onLoadBlock](sl_int16 data[64], JpegComponent& comp, JpegHuffmanTable& dc_huffman_table, JpegHuffmanTable& ac_huffman_table) {
+				onLoadBlock(data);
+				huffWriter.encodeBlock(data, comp, dc_huffman_table, ac_huffman_table);// encode and write data;
+				return sl_true;
+			};
+			file.onDecodeRestartControl = [&file, &writer, &huffWriter, &nRestartIndex](sl_int32& count) {
+				if (nRestartIndex > 0) {
+					sl_uint8 value = abs(nRestartIndex - 1) % 8;
+					huffWriter.writeFlush();
+					// RST Marker
+					writer.writeUint8(0xFF);
+					writer.writeUint8((sl_uint8)(JpegMarkerCode::RST0) + value);
+				}
+				nRestartIndex++;
+				huffWriter.restart();
+			};
+
+			file.onReachedScandata = [&file, &writer]() {
+				sl_int32 headerSize = file.m_reader.getPosition();
+				file.m_reader.getSeekable()->seekToBegin();
+				Memory headerBuffer = Memory::create(headerSize);
+				file.m_reader.read(headerBuffer.getData(), headerSize);
+				writer.write(headerBuffer.getData(), headerSize);
+			};
+
+			if (file.readContent()) {
+				if (huffWriter.m_len >= 0) {
+					EncHuffTableItem fillbits = { 0 };
+					fillbits.si = huffWriter.m_len + 1;
+					fillbits.co = (1 << (huffWriter.m_len + 1)) - 1;
+					huffWriter.writeBits(fillbits);
+				}
+				writer.writeUint8(0xFF);
+				writer.writeUint8((sl_uint8)JpegMarkerCode::EOI); //EOI
+				return writer.getData();
+			}
 		}
 		return sl_null;
 	}
