@@ -439,6 +439,7 @@
 		26EA2061239A90E2008218D7 /* ui_notification_fcm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26EA2060239A90E2008218D7 /* ui_notification_fcm.cpp */; };
 		26EA207123A2BF75008218D7 /* database_sql.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26EA206F23A2BF75008218D7 /* database_sql.cpp */; };
 		26EA207223A2BF75008218D7 /* database_expression.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26EA207023A2BF75008218D7 /* database_expression.cpp */; };
+		26F0B25F259571660084E18D /* combo_box_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26F0B25E259571660084E18D /* combo_box_macos.mm */; };
 		26F2F8D91EC2E0EB0074C29E /* red_black_tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26F2F8D81EC2E0EB0074C29E /* red_black_tree.cpp */; };
 		26F53F7E22DB4F6D0031D485 /* date_picker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26F53F7C22DB4F6C0031D485 /* date_picker.cpp */; };
 		26F53F7F22DB4F6D0031D485 /* date_picker_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26F53F7D22DB4F6D0031D485 /* date_picker_macos.mm */; };
@@ -925,6 +926,7 @@
 		26EA2060239A90E2008218D7 /* ui_notification_fcm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ui_notification_fcm.cpp; sourceTree = "<group>"; };
 		26EA206F23A2BF75008218D7 /* database_sql.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = database_sql.cpp; sourceTree = "<group>"; };
 		26EA207023A2BF75008218D7 /* database_expression.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = database_expression.cpp; sourceTree = "<group>"; };
+		26F0B25E259571660084E18D /* combo_box_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = combo_box_macos.mm; sourceTree = "<group>"; };
 		26F2F8D81EC2E0EB0074C29E /* red_black_tree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = red_black_tree.cpp; sourceTree = "<group>"; };
 		26F53F7C22DB4F6C0031D485 /* date_picker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = date_picker.cpp; sourceTree = "<group>"; };
 		26F53F7D22DB4F6D0031D485 /* date_picker_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = date_picker_macos.mm; sourceTree = "<group>"; };
@@ -1427,6 +1429,7 @@
 				26C795A022154CBE0053C5A1 /* clipboard_macos.mm */,
 				2650D3912320694C00B0CF2C /* collection_view.cpp */,
 				2647C96425023E95005560C7 /* combo_box.cpp */,
+				26F0B25E259571660084E18D /* combo_box_macos.mm */,
 				2649C2341CBBCB54003E7561 /* common_dialogs.cpp */,
 				2649C2361CBBCB7E003E7561 /* common_dialogs_macos.mm */,
 				266DD4F51C11940A00D47AB0 /* cursor.cpp */,
@@ -2226,6 +2229,7 @@
 				26D9D9F41E968240005F7BD3 /* http_io.cpp in Sources */,
 				2644BD0C2364BE43001B9842 /* oauth_server.cpp in Sources */,
 				26D9D91A1E9645CE005F7BD3 /* setting.cpp in Sources */,
+				26F0B25F259571660084E18D /* combo_box_macos.mm in Sources */,
 				26E1B86C222ABA51007C222E /* png.c in Sources */,
 				26A39D8920EFBCBB004707C9 /* calculator.cpp in Sources */,
 				263D477F2386AE2F00DAC43F /* chat.cpp in Sources */,
