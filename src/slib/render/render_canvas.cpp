@@ -882,17 +882,13 @@ namespace slib
 		return measureRenderingText(font, text, flagMultiLine);
 	}
 	
-	Size RenderCanvas::measureRenderingText(const Ref<Font>& _font, const StringParam& text, sl_bool flagMultiLine)
+	Size RenderCanvas::measureRenderingText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine)
 	{
 		if (text.isEmpty()) {
 			return Size::zero();
 		}
-		Ref<Font> font = _font;
 		if (font.isNull()) {
-			font = Font::getDefault();
-			if (font.isNull()) {
-				return Size::zero();
-			}
+			return Size::zero();
 		}
 		Ref<FontAtlas> fa = font->getSharedAtlas();
 		if (fa.isNull()) {
