@@ -1352,6 +1352,12 @@ namespace slib
 		create();
 	}
 
+	void Window::showAndKeep()
+	{
+		setVisible(sl_true);
+		createAndKeep();
+	}
+
 	void Window::hide()
 	{
 		setVisible(sl_false);

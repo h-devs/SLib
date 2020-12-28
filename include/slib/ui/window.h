@@ -394,6 +394,8 @@ namespace slib
 
 		void show();
 
+		void showAndKeep();
+
 		void hide();
 
 		
