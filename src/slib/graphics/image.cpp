@@ -412,23 +412,25 @@ namespace slib
 
 	sl_bool Image::resetPixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color& color)
 	{
-		ImageDesc& imd = m_desc;
-		if (x >= imd.width || y >= imd.height) {
+		ImageDesc& desc = m_desc;
+		if (x >= desc.width || y >= desc.height) {
 			return sl_false;
 		}
-		if (x + width > imd.width) {
-			width = imd.width - x;
+		if (x + width > desc.width) {
+			width = desc.width - x;
 		}
-		if (y + height > imd.height) {
-			height = imd.height - y;
+		if (y + height > desc.height) {
+			height = desc.height - y;
 		}
+		sl_int32 stride = desc.stride;
 		Color* colors = getColorsAt(x, y);
 		for (sl_uint32 yi = 0; yi < height; yi++) {
-			Color* colorsDst = colors;
+			Color* d = colors;
 			for (sl_uint32 xi = 0; xi < width; xi++) {
-				colorsDst[xi] = color;
+				*d = color;
+				d++;
 			}
-			colors += m_desc.stride;
+			colors += stride;
 		}
 		return sl_true;
 	}
@@ -450,37 +452,37 @@ namespace slib
 		return resetPixels(0, 0, getWidth(), getHeight(), color);
 	}
 
-	Ref<Canvas> Image::getCanvas()
-	{
-		return sl_null;
-	}
-
 	void Image::fillColor(const Color& color)
 	{
-		Color* colorsDst;
-		Color* colorsDstLine = m_desc.colors;
-		for (sl_uint32 y = 0; y < m_desc.height; y++) {
-			colorsDst = colorsDstLine;
-			for (sl_uint32 x = 0; x < m_desc.width; x++) {
-				colorsDst[x] = color;
+		sl_uint32 width = m_desc.width;
+		sl_uint32 height = m_desc.height;
+		sl_int32 stride = m_desc.stride;
+		Color* colors = m_desc.colors;
+		for (sl_uint32 y = 0; y < height; y++) {
+			Color* d = colors;
+			for (sl_uint32 x = 0; x < width; x++) {
+				*d = color;
+				d++;
 			}
-			colorsDstLine += m_desc.stride;
+			colors += stride;
 		}
 	}
 	
 	void Image::tintColor(const Color& color)
 	{
-		Color* colorsDst;
-		Color* colorsDstLine = m_desc.colors;
-		for (sl_uint32 y = 0; y < m_desc.height; y++) {
-			colorsDst = colorsDstLine;
-			for (sl_uint32 x = 0; x < m_desc.width; x++) {
-				Color& c = colorsDst[x];
-				c.r = color.r;
-				c.g = color.g;
-				c.b = color.b;
+		sl_uint32 width = m_desc.width;
+		sl_uint32 height = m_desc.height;
+		sl_int32 stride = m_desc.stride;
+		Color* colors = m_desc.colors;
+		for (sl_uint32 y = 0; y < height; y++) {
+			Color* d = colors;
+			for (sl_uint32 x = 0; x < width; x++) {
+				d->r = color.r;
+				d->g = color.g;
+				d->b = color.b;
+				d++;
 			}
-			colorsDstLine += m_desc.stride;
+			colors += stride;
 		}
 	}
 
@@ -1444,8 +1446,8 @@ namespace slib
 	}
 
 	void Image::drawImage(sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
-						  const Ref<Image>& src, sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
-						  BlendMode blend, StretchMode stretch)
+		const Ref<Image>& src, sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
+		BlendMode blend, StretchMode stretch)
 	{
 		if (src.isNull()) {
 			return;
@@ -1454,26 +1456,50 @@ namespace slib
 		src->getDesc(srcDesc);
 		priv::image::DrawImage(m_desc, dx, dy, dw, dh, srcDesc, sx, sy, sw, sh, blend, stretch);
 	}
-	
+
+	void Image::drawImage(sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
+		const Ref<Image>& src, BlendMode blend, StretchMode stretch)
+	{
+		if (src.isNull()) {
+			return;
+		}
+		drawImage(dx, dy, dw, dh, src, 0, 0, src->getWidth(), src->getHeight(), blend, stretch);
+	}
+
+	void Image::drawImage(sl_int32 dx, sl_int32 dy,
+		const Ref<Image>& src, BlendMode blend, StretchMode stretch)
+	{
+		if (src.isNull()) {
+			return;
+		}
+		sl_uint32 w = src->getWidth();
+		sl_uint32 h = src->getHeight();
+		drawImage(dx, dy, w, h, src, 0, 0, w, h, blend, stretch);
+	}
+
 	void Image::drawImage(const Rectanglei& rectDst,
-						  const Ref<Image>& src, const Rectanglei& rectSrc,
-						  BlendMode blend, StretchMode stretch)
+		const Ref<Image>& src, const Rectanglei& rectSrc,
+		BlendMode blend, StretchMode stretch)
 	{
 		drawImage(rectDst.left, rectDst.top, rectDst.getWidth(), rectDst.getHeight(),
-				  src, rectSrc.left, rectSrc.top, rectSrc.getWidth(), rectSrc.getHeight(),
-				  blend, stretch);
+			src, rectSrc.left, rectSrc.top, rectSrc.getWidth(), rectSrc.getHeight(),
+			blend, stretch);
 	}
 
-	void Image::drawImage(sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
-						  const Ref<Image>& src, sl_int32 sx, sl_int32 sy,
-						  BlendMode blend, StretchMode stretch)
+	void Image::drawImage(const Rectanglei& rectDst,
+		const Ref<Image>& src, BlendMode blend, StretchMode stretch)
 	{
-		drawImage(dx, dy, dw, dh, src, sx, sy, dw, dh, blend, stretch);
+		if (src.isNull()) {
+			return;
+		}
+		drawImage(rectDst.left, rectDst.top, rectDst.getWidth(), rectDst.getHeight(),
+			src, 0, 0, src->getWidth(), src->getHeight(),
+			blend, stretch);
 	}
 
 	void Image::drawImage(sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
-						  const Ref<Image>& src, const Color& srcAdd, sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
-						  BlendMode blend, StretchMode stretch)
+		const Ref<Image>& src, const Color& srcAdd, sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
+		BlendMode blend, StretchMode stretch)
 	{
 		if (src.isNull()) {
 			return;
@@ -1814,36 +1840,6 @@ namespace slib
 		return drawableCached;
 	}
 
-	void Image::onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param)
-	{
-		if (m_customDrawable.isNotNull()) {
-			Ref<Drawable> drawable = m_customDrawable;
-			if (drawable.isNotNull()) {
-				drawable->onDraw(canvas, rectDst, rectSrc, param);
-				return;
-			}
-		}
-		Ref<Drawable> drawableCached = getDrawableCache(canvas);
-		if (drawableCached.isNotNull()) {
-			drawableCached->onDraw(canvas, rectDst, rectSrc, param);
-		}
-	}
-
-	void Image::onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param)
-	{
-		if (m_customDrawable.isNotNull()) {
-			Ref<Drawable> drawable = m_customDrawable;
-			if (drawable.isNotNull()) {
-				drawable->onDrawAll(canvas, rectDst, param);
-				return;
-			}
-		}
-		Ref<Drawable> drawableCached = getDrawableCache(canvas);
-		if (drawableCached.isNotNull()) {
-			drawableCached->onDrawAll(canvas, rectDst, param);
-		}
-	}
-	
 	Ref<Drawable> Image::getCustomDrawable()
 	{
 		return m_customDrawable;
@@ -2009,7 +2005,7 @@ namespace slib
 			}
 		
 			template <class BLEND>
-			void DrawHorizontalLine(const BLEND& blend, ImageDesc& dst, sl_int32 x1, sl_int32 x2, sl_int32 y, const Color& color)
+			static void DrawHorizontalLine(const BLEND& blend, ImageDesc& dst, sl_int32 x1, sl_int32 x2, sl_int32 y, const Color& color)
 			{
 				sl_int32 w = (sl_int32)(dst.width);
 				sl_int32 h = (sl_int32)(dst.height);
@@ -2237,6 +2233,77 @@ namespace slib
 		priv::image::DrawLine(m_desc, x1, y1, x2, y2, color, blend, sl_true);
 	}
 
+	namespace priv
+	{
+		namespace image
+		{
+
+			template <class BLEND>
+			static void FillRectangle(const BLEND& blend, ImageDesc& dst, sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color)
+			{
+				if (x1 == x2) {
+					return;
+				}
+				if (y1 == y2) {
+					return;
+				}
+				if (x1 > x2) {
+					sl_int32 t = x2;
+					x2 = x1;
+					x1 = t;
+				}
+				if (y1 > y2) {
+					sl_int32 t = y2;
+					y2 = y1;
+					y1 = t;
+				}
+				sl_int32 w = (sl_int32)(dst.width);
+				sl_int32 h = (sl_int32)(dst.height);
+				if (x2 <= 0 || x1 >= w) {
+					return;
+				}
+				if (x1 < 0) {
+					x1 = 0;
+				}
+				if (x2 > w) {
+					x2 = w;
+				}
+				if (y2 <= 0 || y1 >= h) {
+					return;
+				}
+				if (y1 < 0) {
+					y1 = 0;
+				}
+				if (y2 > h) {
+					y2 = h;
+				}
+				sl_int32 stride = dst.stride;
+				Color* colors = dst.colors + y1 * stride + x1;
+				for (sl_int32 y = y1; y < y2; y++) {
+					Color* d = colors;
+					for (sl_int32 x = x1; x < x2; x++) {
+						blend(*d, color);
+						d++;
+					}
+					colors += stride;
+				}
+			}
+
+			static void FillRectangle(ImageDesc& dst, sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend)
+			{
+				switch (blend) {
+				case BlendMode::Copy:
+					FillRectangle(Blend_Copy<ColorOp_None>(ColorOp_None()), dst, x1, y1, x2, y2, color);
+					break;
+				case BlendMode::Over:
+					FillRectangle(Blend_Over<ColorOp_None>(ColorOp_None()), dst, x1, y1, x2, y2, color);
+					break;
+				}
+			}
+
+		}
+	}
+
 	void Image::drawRectangle(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend)
 	{
 		if (x1 == x2) {
@@ -2263,6 +2330,11 @@ namespace slib
 		}
 	}
 
+	void Image::fillRectangle(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend)
+	{
+		priv::image::FillRectangle(m_desc, x1, y1, x2, y2, color, blend);
+	}
+
 	namespace priv
 	{
 		namespace image
@@ -2287,7 +2359,7 @@ namespace slib
 			}
 
 			template <class BLEND>
-			void DrawEllipse(const BLEND& blend, ImageDesc& dst, sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, sl_bool flagAntialias)
+			static void DrawEllipse(const BLEND& blend, ImageDesc& dst, sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, sl_bool flagAntialias)
 			{
 				if (x1 == x2) {
 					return;
@@ -2442,7 +2514,7 @@ namespace slib
 				}
 			}
 		
-			void DrawEllipse(ImageDesc& dst, sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend, sl_bool flagAntialias)
+			static void DrawEllipse(ImageDesc& dst, sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend, sl_bool flagAntialias)
 			{
 				switch (blend) {
 					case BlendMode::Copy:

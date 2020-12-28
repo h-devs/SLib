@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -129,20 +129,25 @@ namespace slib
 		static void draw(ImageDesc& dst, const ImageDesc& src, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
 
 		void drawImage(sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
-					   const Ref<Image>& src, sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
-					   BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
-		
+			const Ref<Image>& src, sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
+			BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
+
+		void drawImage(sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
+			const Ref<Image>& src, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
+
+		void drawImage(sl_int32 dx, sl_int32 dy,
+			const Ref<Image>& src, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
+
 		void drawImage(const Rectanglei& rectDst,
-					   const Ref<Image>& src, const Rectanglei& rectSrc,
-					   BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
-		
+			const Ref<Image>& src, const Rectanglei& rectSrc,
+			BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
+
+		void drawImage(const Rectanglei& rectDst,
+			const Ref<Image>& src, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
+
 		void drawImage(sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
-					   const Ref<Image>& src, sl_int32 sx, sl_int32 sy,
-					   BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
-		
-		void drawImage(sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
-					   const Ref<Image>& src, const Color& srcAdd, sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
-					   BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
+			const Ref<Image>& src, const Color& srcAdd, sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
+			BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
 
 		void copyBitmap(const Ref<Bitmap>& bitmap, sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
 
@@ -234,7 +239,9 @@ namespace slib
 		void drawSmoothLine(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
 		
 		void drawRectangle(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
-		
+
+		void fillRectangle(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
+
 		void drawEllipse(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
 		
 		void drawSmoothEllipse(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
