@@ -80,9 +80,9 @@ namespace slib
 				void _drawLine(const Point& pt1, const Point& pt2, const Color& color)
 				{
 					if (isAntiAlias()) {
-						image->drawSmoothLine((sl_int32)(pt1.x), (sl_int32)(pt1.y), (sl_int32)(pt2.x), (sl_int32)(pt2.y), color);
+						image->drawSmoothLineF(pt1.x, pt1.y, pt2.x, pt2.y, color);
 					} else {
-						image->drawLine((sl_int32)(pt1.x), (sl_int32)(pt1.y), (sl_int32)(pt2.x), (sl_int32)(pt2.y), color);
+						image->drawLine((sl_int32)(pt1.x + 0.5f), (sl_int32)(pt1.y + 0.5f), (sl_int32)(pt2.x + 0.5f), (sl_int32)(pt2.y + 0.5f), color);
 					}
 				}
 

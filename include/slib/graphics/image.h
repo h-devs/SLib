@@ -237,7 +237,9 @@ namespace slib
 		void drawLine(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
 		
 		void drawSmoothLine(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
-		
+
+		void drawSmoothLineF(sl_real x1, sl_real y1, sl_real x2, sl_real y2, const Color& color, BlendMode blend = BlendMode::Over);
+
 		void drawRectangle(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
 
 		void fillRectangle(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
