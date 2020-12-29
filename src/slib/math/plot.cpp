@@ -131,19 +131,164 @@ namespace slib
 
 	Plot::Plot()
 	{
-		backgroundColor = Color::White;
-		gridColor = Color::Gray;
-		labelColor = Color::Black;
-		labelFont = Font::create("Arial", 12);
-		marginLeft = 40;
-		marginRight = 20;
-		marginTop = 20;
-		marginBottom = 30;
-		textMargin = 5;
+		m_backgroundColor = Color::White;
+		m_gridColor = Color::Gray;
+		
+		m_labelColor = Color::Black;
+		m_labelFont = Font::create("Arial", 12);
+		m_labelMargin = 5;
+		
+		m_marginLeft = 40;
+		m_marginRight = 20;
+		m_marginTop = 20;
+		m_marginBottom = 30;
+
+		m_minX = 0;
+		m_flagDefinedMinX = sl_false;
+		m_maxX = 0;
+		m_flagDefinedMaxX = sl_false;
+		m_minY = 0;
+		m_flagDefinedMinY = sl_false;
+		m_maxY = 0;
+		m_flagDefinedMaxY = sl_false;
 	}
 
 	Plot::~Plot()
 	{
+	}
+
+	const Color& Plot::getBackgroundColor()
+	{
+		return m_backgroundColor;
+	}
+
+	void Plot::setBackgroundColor(const Color& color)
+	{
+		m_backgroundColor = color;
+	}
+
+	const Color& Plot::getGridLineColor()
+	{
+		return m_gridColor;
+	}
+
+	void Plot::setGridLineColor(const Color& color)
+	{
+		m_gridColor = color;
+	}
+
+	const Color& Plot::getLabelColor()
+	{
+		return m_labelColor;
+	}
+
+	void Plot::setLabelColor(const Color& color)
+	{
+		m_labelColor = color;
+	}
+
+	Ref<Font> Plot::getLabelFont()
+	{
+		return m_labelFont;
+	}
+
+	void Plot::setLabelFont(const Ref<Font>& font)
+	{
+		m_labelFont = font;
+	}
+
+	sl_int32 Plot::getLabelMargin()
+	{
+		return m_labelMargin;
+	}
+
+	void Plot::setLabelMargin(sl_int32 margin)
+	{
+		m_labelMargin = margin;
+	}
+
+	sl_int32 Plot::getMarginLeft()
+	{
+		return m_marginLeft;
+	}
+
+	void Plot::setMarginLeft(sl_int32 margin)
+	{
+		m_marginLeft = margin;
+	}
+
+	sl_int32 Plot::getMarginTop()
+	{
+		return m_marginTop;
+	}
+
+	void Plot::setMarginTop(sl_int32 margin)
+	{
+		m_marginTop = margin;
+	}
+
+	sl_int32 Plot::getMarginRight()
+	{
+		return m_marginRight;
+	}
+
+	void Plot::setMarginRight(sl_int32 margin)
+	{
+		m_marginRight = margin;
+	}
+
+	sl_int32 Plot::getMarginBottom()
+	{
+		return m_marginBottom;
+	}
+
+	void Plot::setMarginBottom(sl_int32 margin)
+	{
+		m_marginBottom = margin;
+	}
+
+	sl_real Plot::getMinimumX()
+	{
+		return m_minX;
+	}
+
+	void Plot::setMinimumX(sl_real x)
+	{
+		m_minX = x;
+		m_flagDefinedMinX = sl_true;
+	}
+
+	sl_real Plot::getMaximumX()
+	{
+		return m_maxX;
+	}
+
+	void Plot::setMaximumX(sl_real x)
+	{
+		m_maxX = x;
+		m_flagDefinedMaxX = sl_true;
+	}
+
+	sl_real Plot::getMinimumY()
+	{
+		return m_minY;
+	}
+
+	void Plot::setMinimumY(sl_real y)
+	{
+		m_minY = y;
+		m_flagDefinedMinY = sl_true;
+	}
+
+	sl_real Plot::getMaximumY()
+	{
+		return m_maxY;
+	}
+
+	void Plot::setMaximumY(sl_real y)
+	{
+		m_maxY = y;
+		m_flagDefinedMaxY = sl_true;
 	}
 
 	Ref<PlotGraph> Plot::add(const Array<Point>& points, const PlotGraphParam& param)
@@ -171,10 +316,10 @@ namespace slib
 	void Plot::draw(Canvas* canvas, sl_uint32 width, sl_uint32 height)
 	{
 		Rectangle rectDst;
-		rectDst.left = (sl_real)marginLeft;
-		rectDst.top = (sl_real)marginTop;
-		rectDst.right = (sl_real)((sl_int32)width - marginRight);
-		rectDst.bottom = (sl_real)((sl_int32)height - marginBottom);
+		rectDst.left = (sl_real)m_marginLeft;
+		rectDst.top = (sl_real)m_marginTop;
+		rectDst.right = (sl_real)((sl_int32)width - m_marginRight);
+		rectDst.bottom = (sl_real)((sl_int32)height - m_marginBottom);
 
 		if (rectDst.getWidth() < SLIB_EPSILON) {
 			return;
@@ -196,6 +341,24 @@ namespace slib
 					rectSrc = rect;
 				}
 			}
+			if (m_flagDefinedMinX) {
+				rectSrc.left = m_minX;
+			}
+			if (m_flagDefinedMinY) {
+				rectSrc.top = m_minY;
+			}
+			if (m_flagDefinedMaxX) {
+				rectSrc.right = m_maxX;
+			}
+			if (m_flagDefinedMaxY) {
+				rectSrc.bottom = m_maxY;
+			}
+			if (rectSrc.right <= rectSrc.left) {
+				rectSrc.right = rectSrc.left + 1;
+			}
+			if (rectSrc.bottom <= rectSrc.top) {
+				rectSrc.bottom = rectSrc.top + 1;
+			}
 		}
 
 		sl_real stepX = GetStep(rectSrc.getWidth());
@@ -214,20 +377,23 @@ namespace slib
 		sl_real sx = rectDst.getWidth() / rectSrc.getWidth();
 		sl_real sy = rectDst.getHeight() / rectSrc.getHeight();
 
-		canvas->fillRectangle(0, 0, (sl_real)width, (sl_real)height, backgroundColor);
+		canvas->fillRectangle(0, 0, (sl_real)width, (sl_real)height, m_backgroundColor);
 		{
-			Ref<Pen> pen = Pen::createSolidPen(1, gridColor);
+			sl_real margin = (sl_real)m_labelMargin;
+			const Color& color = m_labelColor;
+			Ref<Font> font = m_labelFont;
+			Ref<Pen> pen = Pen::createSolidPen(1, m_gridColor);
 			for (sl_int32 ix = rectSrci.left; ix <= rectSrci.right; ix ++) {
 				sl_real x = (sl_real)(ix * stepX);
 				sl_real _x = CONVERT_X(x);
 				canvas->drawLine(_x, rectDst.top, _x, rectDst.bottom, pen);
-				canvas->drawText(String::fromFloat(x), _x, rectDst.bottom + (sl_real)textMargin, labelFont, labelColor, Alignment::TopCenter);
+				canvas->drawText(String::fromFloat(x), _x, rectDst.bottom + margin, font, color, Alignment::TopCenter);
 			}
 			for (sl_int32 iy = rectSrci.top; iy <= rectSrci.bottom; iy ++) {
 				sl_real y = (sl_real)(iy * stepY);
 				sl_real _y = CONVERT_Y(y);
 				canvas->drawLine(rectDst.left, _y, rectDst.right, _y, pen);
-				canvas->drawText(String::fromFloat(y), rectDst.left - (sl_real)textMargin, _y, labelFont, labelColor, Alignment::MiddleRight);
+				canvas->drawText(String::fromFloat(y), rectDst.left - margin, _y, font, color, Alignment::MiddleRight);
 			}
 		}
 		{

@@ -93,15 +93,57 @@ namespace slib
 		~Plot();
 
 	public:
-		Color backgroundColor;
-		Color gridColor;
-		Color labelColor;
-		Ref<Font> labelFont;
-		sl_int32 marginLeft;
-		sl_int32 marginTop;
-		sl_int32 marginRight;
-		sl_int32 marginBottom;
-		sl_int32 textMargin;
+		const Color& getBackgroundColor();
+
+		void setBackgroundColor(const Color& color);
+
+		const Color& getGridLineColor();
+
+		void setGridLineColor(const Color& color);
+
+		const Color& getLabelColor();
+
+		void setLabelColor(const Color& color);
+
+		Ref<Font> getLabelFont();
+
+		void setLabelFont(const Ref<Font>& font);
+
+		sl_int32 getLabelMargin();
+
+		void setLabelMargin(sl_int32 margin);
+
+		sl_int32 getMarginLeft();
+
+		void setMarginLeft(sl_int32 margin);
+
+		sl_int32 getMarginTop();
+
+		void setMarginTop(sl_int32 margin);
+
+		sl_int32 getMarginRight();
+
+		void setMarginRight(sl_int32 margin);
+
+		sl_int32 getMarginBottom();
+
+		void setMarginBottom(sl_int32 margin);
+
+		sl_real getMinimumX();
+
+		void setMinimumX(sl_real x);
+
+		sl_real getMaximumX();
+
+		void setMaximumX(sl_real x);
+
+		sl_real getMinimumY();
+
+		void setMinimumY(sl_real y);
+
+		sl_real getMaximumY();
+
+		void setMaximumY(sl_real y);
 
 	public:
 		Ref<PlotGraph> add(const Array<Point>& points, const PlotGraphParam& param);
@@ -219,6 +261,28 @@ namespace slib
 		{
 			pt = _pt;
 		}
+
+	protected:
+		Color m_backgroundColor;
+		Color m_gridColor;
+
+		Color m_labelColor;
+		AtomicRef<Font> m_labelFont;
+		sl_int32 m_labelMargin;
+
+		sl_int32 m_marginLeft;
+		sl_int32 m_marginTop;
+		sl_int32 m_marginRight;
+		sl_int32 m_marginBottom;
+
+		sl_real m_minX;
+		sl_bool m_flagDefinedMinX;
+		sl_real m_maxX;
+		sl_bool m_flagDefinedMaxX;
+		sl_real m_minY;
+		sl_bool m_flagDefinedMinY;
+		sl_real m_maxY;
+		sl_bool m_flagDefinedMaxY;
 
 	};
 	
