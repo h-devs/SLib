@@ -191,10 +191,28 @@ namespace slib
 		List< Ref<PlotGraph> > m_graphs;
 
 	private:
-		static void _setGraphValue(Point& pt, sl_uint32 i, sl_real y)
+		static void _setGraphValue(Point& pt, sl_uint32 i, float y)
 		{
 			pt.x = (sl_real)i;
-			pt.y = y;
+			pt.y = (sl_real)y;
+		}
+
+		static void _setGraphValue(Point& pt, sl_uint32 i, double y)
+		{
+			pt.x = (sl_real)i;
+			pt.y = (sl_real)y;
+		}
+
+		static void _setGraphValue(Point& pt, sl_uint32 i, sl_int32 y)
+		{
+			pt.x = (sl_real)i;
+			pt.y = (sl_real)y;
+		}
+
+		static void _setGraphValue(Point& pt, sl_uint32 i, sl_int64 y)
+		{
+			pt.x = (sl_real)i;
+			pt.y = (sl_real)y;
 		}
 
 		static void _setGraphValue(Point& pt, sl_uint32 i, const Point& _pt)
