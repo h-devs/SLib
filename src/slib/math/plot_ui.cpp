@@ -53,8 +53,8 @@ namespace slib
 				window->setCenterScreen();
 				window->setMaximizeButtonEnabled();
 				window->setMinimizeButtonEnabled();
-				window->setWidth(width);
-				window->setHeight(height);
+				window->setClientWidth(width);
+				window->setClientHeight(height);
 				window->showAndKeep();
 				return window;
 			}

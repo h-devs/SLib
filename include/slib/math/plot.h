@@ -146,7 +146,7 @@ namespace slib
 			if (pts.isNotNull()) {
 				Point* p = pts.getData();
 				for (sl_size i = 0; i < count; i++) {
-					*p = f((sl_uint32)i, (sl_uint32)count);
+					_setGraphValue(*p, (sl_uint32)i, f((sl_uint32)i));
 					p++;
 				}
 				return add(pts, param);
@@ -189,6 +189,18 @@ namespace slib
 
 	protected:
 		List< Ref<PlotGraph> > m_graphs;
+
+	private:
+		static void _setGraphValue(Point& pt, sl_uint32 i, sl_real y)
+		{
+			pt.x = (sl_real)i;
+			pt.y = y;
+		}
+
+		static void _setGraphValue(Point& pt, sl_uint32 i, const Point& _pt)
+		{
+			pt = _pt;
+		}
 
 	};
 	
