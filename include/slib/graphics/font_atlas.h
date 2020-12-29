@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,21 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FontAtlasChar)
 
 	};
-	
+
+	class SLIB_EXPORT FontAtlasCharImage
+	{
+	public:
+		Ref<Image> image;
+		sl_real fontWidth;
+		sl_real fontHeight;
+
+	public:
+		FontAtlasCharImage();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FontAtlasCharImage)
+
+	};
+
 	class SLIB_EXPORT FontAtlas : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -82,6 +96,8 @@ namespace slib
 
 	public:
 		sl_bool getChar(sl_char32 ch, FontAtlasChar& _out);
+		
+		sl_bool getCharImage(sl_char32 ch, FontAtlasCharImage& _out);
 
 		Size getFontSize(sl_char32 ch);
 
@@ -109,6 +125,8 @@ namespace slib
 		sl_uint32 m_currentPlaneY;
 		sl_uint32 m_currentPlaneX;
 		sl_uint32 m_currentPlaneRowHeight;
+
+		CHashMap<sl_char32, FontAtlasCharImage> m_mapImage;
 
 	};
 
