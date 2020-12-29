@@ -1840,6 +1840,36 @@ namespace slib
 		return drawableCached;
 	}
 
+	void Image::onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param)
+	{
+		if (m_customDrawable.isNotNull()) {
+			Ref<Drawable> drawable = m_customDrawable;
+			if (drawable.isNotNull()) {
+				drawable->onDraw(canvas, rectDst, rectSrc, param);
+				return;
+			}
+		}
+		Ref<Drawable> drawableCached = getDrawableCache(canvas);
+		if (drawableCached.isNotNull()) {
+			drawableCached->onDraw(canvas, rectDst, rectSrc, param);
+		}
+	}
+
+	void Image::onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param)
+	{
+		if (m_customDrawable.isNotNull()) {
+			Ref<Drawable> drawable = m_customDrawable;
+			if (drawable.isNotNull()) {
+				drawable->onDrawAll(canvas, rectDst, param);
+				return;
+			}
+		}
+		Ref<Drawable> drawableCached = getDrawableCache(canvas);
+		if (drawableCached.isNotNull()) {
+			drawableCached->onDrawAll(canvas, rectDst, param);
+		}
+	}
+
 	Ref<Drawable> Image::getCustomDrawable()
 	{
 		return m_customDrawable;
