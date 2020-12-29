@@ -373,3 +373,38 @@ namespace slib
 	}
 
 }
+
+#if defined(SLIB_UI_IS_WIN32)
+#include "slib/core/windows.h"
+#endif
+
+namespace slib
+{
+
+#if defined(SLIB_UI_IS_WIN32)
+
+	sl_bool Console::open()
+	{
+		return AllocConsole() != 0;
+	}
+
+	sl_bool Console::close()
+	{
+		return FreeConsole() != 0;
+	}
+
+#else
+
+	sl_bool Console::open()
+	{
+		return sl_false;
+	}
+
+	sl_bool Console::close()
+	{
+		return sl_false;
+	}
+
+#endif
+
+}

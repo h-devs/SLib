@@ -89,6 +89,11 @@ namespace slib
 
 		static String readString();
 
+
+		static sl_bool open();
+
+		static sl_bool close();
+
 	};
 	
 	template <class... ARGS>
