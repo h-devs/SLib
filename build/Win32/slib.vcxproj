@@ -288,6 +288,7 @@
     <ClCompile Include="..\..\src\slib\graphics\graphics_text.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\graphics_util.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\image.cpp" />
+    <ClCompile Include="..\..\src\slib\graphics\image_canvas.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\image_jpeg.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\image_png.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\image_stb.cpp" />
@@ -298,7 +299,10 @@
     <ClCompile Include="..\..\src\slib\graphics\zxing.cpp" />
     <ClCompile Include="..\..\src\slib\math\bigint.cpp" />
     <ClCompile Include="..\..\src\slib\math\calculator.cpp" />
+    <ClCompile Include="..\..\src\slib\math\fft.cpp" />
     <ClCompile Include="..\..\src\slib\math\int128.cpp" />
+    <ClCompile Include="..\..\src\slib\math\plot.cpp" />
+    <ClCompile Include="..\..\src\slib\math\plot_ui.cpp" />
     <ClCompile Include="..\..\src\slib\media\audio_codec.cpp" />
     <ClCompile Include="..\..\src\slib\media\audio_data.cpp" />
     <ClCompile Include="..\..\src\slib\media\audio_device.cpp" />
