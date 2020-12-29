@@ -371,6 +371,11 @@ namespace slib
 			}
 		}
 
+		void mergePoints(const Array< PointT<T, FT> >& points) noexcept
+		{
+			mergePoints(points.getData(), points.getCount());
+		}
+
 		void mergePoints(const List< PointT<T, FT> >& points) noexcept
 		{
 			ListLocker< PointT<T, FT> > list(points);
@@ -384,7 +389,14 @@ namespace slib
 				if (count > 1) {
 					mergePoints(points + 1, count - 1);
 				}
+			} else {
+				setZero();
 			}
+		}
+
+		void setFromPoints(const Array< PointT<T, FT> >& points) noexcept
+		{
+			setFromPoints(points.getData(), points.getCount());
 		}
 
 		void setFromPoints(const List< PointT<T, FT> >& points) noexcept
