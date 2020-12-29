@@ -840,7 +840,7 @@ namespace slib
 		
 		sl_bool isOpaque();
 		
-		virtual void setOpaque(sl_bool flagOpaque, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setOpaque(sl_bool flagOpaque = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_real getAlpha();
 		

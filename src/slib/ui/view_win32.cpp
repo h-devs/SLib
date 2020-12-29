@@ -958,11 +958,11 @@ namespace slib
 			canvasBitmap->setAntiAlias(sl_false);
 		}
 
-		Color colorBack(0);
 		do {
 			if (view->isOpaque()) {
 				break;
 			}
+			Color colorBack(0);
 			if (m_flagWindowContent) {
 				Ref<Window> window = view->getWindow();
 				if (window.isNull()) {
@@ -976,13 +976,13 @@ namespace slib
 			Color c = GetDefaultBackColor();
 			c.blend_PA_NPA(colorBack);
 			colorBack = c;
+			if (colorBack.isNotZero()) {
+				bitmap->resetPixels(0, 0, widthBitmap, heightBitmap, colorBack);
+			} else {
+				bitmap->resetPixels(0, 0, widthBitmap, 1, Color::White);
+			}
 		} while (0);
 		rc.setSize(size);
-		if (colorBack.isNotZero()) {
-			bitmap->resetPixels(0, 0, widthBitmap, heightBitmap, colorBack);
-		} else {
-			bitmap->resetPixels(0, 0, widthBitmap, 1, Color::White);
-		}
 		canvasBitmap->setInvalidatedRect(rc);
 		CanvasStateScope scope(canvasBitmap.get());
 		canvasBitmap->translate(-(sl_real)(rc.left), -(sl_real)(rc.top));
@@ -1003,10 +1003,10 @@ namespace slib
 			return;
 		}
 		if (ps.rcPaint.right > ps.rcPaint.left && ps.rcPaint.bottom > ps.rcPaint.top) {
+			RECT rectClient;
+			GetClientRect(hWnd, &rectClient);
 			Gdiplus::Graphics graphics(hDC);
-			RECT rect;
-			GetClientRect(hWnd, &rect);
-			Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, &graphics, rect.right, rect.bottom, sl_false);
+			Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, &graphics, rectClient.right, rectClient.bottom, sl_false);
 			if (canvas.isNotNull()) {
 				canvas->setAntiAlias(sl_false);
 				canvas->setInvalidatedRect(Rectangle((sl_real)(ps.rcPaint.left), (sl_real)(ps.rcPaint.top), (sl_real)(ps.rcPaint.right), (sl_real)(ps.rcPaint.bottom)));
@@ -1196,7 +1196,9 @@ namespace slib
 		}
 		switch (msg) {
 			case WM_ERASEBKGND:
-				return TRUE;
+				{
+					return TRUE;
+				}
 
 			case WM_PAINT:
 				{

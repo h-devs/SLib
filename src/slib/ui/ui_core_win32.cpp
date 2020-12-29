@@ -566,7 +566,7 @@ namespace slib
 		wc.lpfnWndProc = priv::view::ViewInstanceProc;
 		wc.hInstance = hInstance;
 		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-		wc.hbrBackground = (HBRUSH)(COLOR_MENU + 1);
+		wc.hbrBackground = NULL;
 		wc.lpszClassName = PRIV_SLIB_UI_VIEW_WINDOW_CLASS_NAME;
 	}
 
@@ -579,7 +579,7 @@ namespace slib
 		wc.hInstance = hInstance;
 		wc.hIcon = LoadIcon(hInstance, IDI_APPLICATION);
 		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-		wc.hbrBackground = (HBRUSH)(COLOR_MENU + 1);
+		wc.hbrBackground = NULL;
 		wc.lpszClassName = PRIV_SLIB_UI_GENERIC_WINDOW_CLASS_NAME;
 	}
 
