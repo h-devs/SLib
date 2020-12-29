@@ -1155,6 +1155,13 @@ namespace slib
 		return m_timeCreation;
 	}
 
+	void Window::setQuitOnDestroy()
+	{
+		setOnDestroy([](Window*) {
+			UI::quitApp();
+		});
+	}
+
 #if defined(SLIB_UI_IS_ANDROID)
 	void* Window::getActivity()
 	{
@@ -1227,7 +1234,12 @@ namespace slib
 	void Window::_create(sl_bool flagKeepReference)
 	{
 		if (!(UI::isRunningApp() && UI::isUiThread())) {
-			UI::dispatchToUiThread(Function<void()>::bindWeakRef(this, &Window::_create, flagKeepReference));
+			if (flagKeepReference) {
+				UI::dispatchToUiThread(Function<void()>::bindRef(this, &Window::_create, flagKeepReference));
+			} else {
+				UI::dispatchToUiThread(Function<void()>::bindWeakRef(this, &Window::_create, flagKeepReference));
+			}
+			return;
 		}
 
 		if (m_instance.isNotNull()) {

@@ -371,6 +371,9 @@ namespace slib
 		Time getCreationTime();
 
 
+		void setQuitOnDestroy();
+
+
 #if defined(SLIB_UI_IS_ANDROID)
 		void* getActivity();
 		
