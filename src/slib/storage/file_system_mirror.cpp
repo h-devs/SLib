@@ -50,7 +50,9 @@ namespace slib
 	MirrorFileSystem::MirrorFileSystem()
 	{
 		m_fsInfo.fileSystemName = "MirrorFs";
+	#ifdef SLIB_PLATFORM_IS_UNIX
 		m_fsInfo.flags = FileSystemFlags::CaseSensitive;
+	#endif
 	}
 
 	MirrorFileSystem::~MirrorFileSystem()
