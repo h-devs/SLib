@@ -212,6 +212,9 @@ namespace slib
 		static void openSystemOverlaySetting();
 
 	protected:
+		sl_int32 _doRun();
+
+	protected:
 		String m_executablePath;
 		String m_commandLine;
 		List<String> m_arguments;

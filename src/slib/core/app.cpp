@@ -118,7 +118,7 @@ namespace slib
 	{
 		m_commandLine = commandLine;
 		m_arguments = breakCommandLine(commandLine);
-		return doRun();
+		return _doRun();
 	}
 
 	sl_int32 Application::run(int argc, const char* argv[])
@@ -133,7 +133,7 @@ namespace slib
 		}
 		m_arguments = list;
 		m_commandLine = buildCommandLine(list.getData(), list.getCount());
-		return doRun();
+		return _doRun();
 	}
 
 	sl_int32 Application::run()
@@ -143,15 +143,18 @@ namespace slib
 		m_commandLine = commandLine;
 		m_arguments = breakCommandLine(commandLine);
 #endif
+		return _doRun();
+	}
+
+	sl_int32 Application::_doRun()
+	{
+		Application::setApp(this);
+		m_executablePath = Application::getApplicationPath();
 		return doRun();
 	}
 
 	sl_int32 Application::doRun()
 	{
-		Application::setApp(this);
-		
-		m_executablePath = Application::getApplicationPath();
-		
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 		String instanceId = getUniqueInstanceId();
 		if (instanceId.isNotEmpty()) {
@@ -164,7 +167,6 @@ namespace slib
 		if (isCrashRecoverySupport()) {
 			System::setCrashHandler(CrashHandler);
 		}
-		
 #endif
 		
 		sl_int32 iRet = onRunApp();
