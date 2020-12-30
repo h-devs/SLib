@@ -2,7 +2,7 @@
 
 using namespace slib;
 
-#define COUNT 64
+#define COUNT 256
 
 int main(int argc, const char * argv[])
 { 
@@ -13,7 +13,7 @@ int main(int argc, const char * argv[])
 	Complex c[COUNT];
 	for (sl_uint32 i = 0; i < COUNT; i++) {
 		sl_real x = (sl_real)i * 2 * SLIB_PI / COUNT - SLIB_PI;
-		c[i].real = Math::cos(x * 5 + 0.1f) + Math::sin(x * 12 + 1.2f) + Math::sin(x * 2 + 2.0f);
+		c[i].real = 0.5f * Math::cos(x * 5 + 0.1f) + Math::sin(x * 12 + 1.2f) + 0.8f * Math::sin(x * 2 + 2.0f);
 		c[i].imag = 0;
 	}
 

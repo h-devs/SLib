@@ -652,6 +652,12 @@ namespace slib
 		} else {
 			cftfsub(n << 1, &(data->real), w);
 		}
+		sl_real* a = &(data->real);
+		sl_real s = (sl_real)(n);
+		for (sl_uint32 i = 0; i < n; i++) {
+			data[i].real /= s;
+			data[i].imag /= s;
+		}
 	}
 
 	void FFT::inverse(Complex* data) const
@@ -667,12 +673,6 @@ namespace slib
 			cftfsub(n << 1, &(data->real), w);
 		} else {
 			cftfsub(n << 1, &(data->real), w);
-		}
-		sl_real* a = &(data->real);
-		sl_real s = (sl_real)(n);
-		for (sl_uint32 i = 0; i < n; i++) {
-			data[i].real /= s;
-			data[i].imag /= s;
 		}
 	}
 
