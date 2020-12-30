@@ -142,9 +142,7 @@ namespace slib
 			if (mode & FileMode::ReadAttrs) {
 				dwDesiredAccess |= FILE_READ_ATTRIBUTES | FILE_READ_EA;
 			}
-			if (!(mode & (FileMode::ReadData | FileMode::ReadAttrs))) {
-				dwDesiredAccess |= GENERIC_READ;
-			}
+			dwDesiredAccess |= GENERIC_READ;
 		}
 		if (mode & FileMode::Write) {
 			if (mode & FileMode::WriteData) {
@@ -153,9 +151,7 @@ namespace slib
 			if (mode & FileMode::WriteAttrs) {
 				dwDesiredAccess |= FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA;
 			}
-			if (!(mode & (FileMode::WriteData | FileMode::WriteAttrs))) {
-				dwDesiredAccess |= GENERIC_WRITE;
-			}
+			dwDesiredAccess |= GENERIC_WRITE;
 			if (mode & FileMode::SeekToEnd) {
 				dwDesiredAccess |= FILE_APPEND_DATA;
 			}
