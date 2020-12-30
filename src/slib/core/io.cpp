@@ -123,7 +123,7 @@ namespace slib
 
 	sl_bool IReader::readInt8(sl_int8* output)
 	{
-		if (readFully(output, 1) == 1) {
+		if (read32(output, 1) == 1) {
 			return sl_true;
 		} else {
 			return sl_false;
@@ -142,7 +142,7 @@ namespace slib
 
 	sl_bool IReader::readUint8(sl_uint8* output)
 	{
-		if (readFully(output, 1) == 1) {
+		if (read32(output, 1) == 1) {
 			return sl_true;
 		} else {
 			return sl_false;
@@ -1024,12 +1024,12 @@ namespace slib
 
 	sl_bool IWriter::writeInt8(sl_int8 value)
 	{
-		return writeFully(&value, 1) == 1;
+		return write32(&value, 1) == 1;
 	}
 
 	sl_bool IWriter::writeUint8(sl_uint8 value)
 	{
-		return writeInt8(value);
+		return write32(&value, 1) == 1;
 	}
 
 	sl_bool IWriter::writeInt16(sl_int16 value, EndianType endian)
