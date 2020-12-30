@@ -1233,7 +1233,7 @@ namespace slib
 			}
 		}
 #endif
-    }
+	}
 
 	void GL_BASE::setRasterPosition(float x, float y)
 	{

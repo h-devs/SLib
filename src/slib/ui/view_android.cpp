@@ -323,8 +323,8 @@ namespace slib
 			if (parent) {
 				jobject jparent = UIPlatform::getViewHandle(parent);
 				if (jparent) {
-					JView::addChild.call(sl_null, jparent, jhandle);            
-				}            
+					JView::addChild.call(sl_null, jparent, jhandle);
+				}
 			}
 			return sl_true;
 		}

@@ -31,7 +31,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(LabelList, ListBox)
 
-    LabelList::LabelList()
+	LabelList::LabelList()
 	{
 		setBackgroundColor(Color::White, UIUpdateMode::Init);
 		setSelectedItemBackgroundColor(Color(35, 12, 146), UIUpdateMode::Init);

@@ -30,10 +30,10 @@ namespace slib
 	{
 
 		gboolean wrap_gtk_show_uri(
-				GdkScreen   *screen,
+				GdkScreen *screen,
 				const gchar *uri,
-				guint32      timestamp,
-				GError     **error
+				guint32 timestamp,
+				GError **error
 		)
 		{
 			auto func = getApi_gtk_show_uri();
