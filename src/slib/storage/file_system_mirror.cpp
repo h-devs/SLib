@@ -31,8 +31,14 @@
 
 #include "slib/core/windows.h"
 
-#define FILE_FROM_CONTEXT(context)	(context ? ((MirrorFileContext*)(context))->file : sl_null)
-#define CONCAT_PATH(path)			(m_root.isNotEmpty() && path.isNotEmpty() ? m_root + path : sl_null)
+#define FILE_FROM_CONTEXT(context) (context ? ((MirrorFileContext*)(context))->file : sl_null)
+
+#define CONCAT_PATH_SHORT(path) (m_root.isNotEmpty() && path.isNotEmpty() ? m_root + path : sl_null)
+#ifdef SLIB_PLATFORM_IS_WIN32
+#define CONCAT_PATH(path) (m_root.isNotEmpty() && path.isNotEmpty() ? "\\\\?\\" + (m_root + path).replaceAll('/', '\\') : sl_null)
+#else
+#define CONCAT_PATH(path) CONCAT_PATH_SHORT(path)
+#endif
 
 namespace slib
 {
@@ -216,45 +222,45 @@ namespace slib
 
 		FileAttributes attr = File::getAttributes(filePath);
 		if (attr & FileAttributes::NotExist) {
-            if (flagOpened) {
-                attr = file->getAttributes();
-            }
+			if (flagOpened) {
+				attr = file->getAttributes();
+			}
 		}
 
 		if (mask & FileInfoMask::Attributes) {
-            if (attr & FileAttributes::NotExist) {
+			if (attr & FileAttributes::NotExist) {
 				SET_ERROR_AND_RETURN(FileSystemError::NotFound, sl_false);
-            }
+			}
 			outInfo.attributes = (sl_uint32)attr;
 		}
 
-        if (mask & FileInfoMask::Size) {
-            sl_bool ret = sl_false;
-            if (flagOpened) {
-                ret = file->getSize(outInfo.size);
-            }
-            if (!ret && !(File::getSize(filePath, outInfo.size))) {
-                if (attr & FileAttributes::Directory) {
-                    outInfo.size = 0;
-                } else {
+		if (mask & FileInfoMask::Size) {
+			sl_bool ret = sl_false;
+			if (flagOpened) {
+				ret = file->getSize(outInfo.size);
+			}
+			if (!ret && !(File::getSize(filePath, outInfo.size))) {
+				if (attr & FileAttributes::Directory) {
+					outInfo.size = 0;
+				} else {
 					return sl_false;
-                }
-            }
-        }
+				}
+			}
+		}
 
-        if (mask & FileInfoMask::AllocSize) {
-            sl_bool ret = sl_false;
-            if (flagOpened) {
-                ret = file->getSize(outInfo.allocSize);
-            }
-            if (!ret && !(File::getSize(filePath, outInfo.allocSize))) {
-                if (attr & FileAttributes::Directory) {
-                    outInfo.allocSize = 0;
-                } else {
+		if (mask & FileInfoMask::AllocSize) {
+			sl_bool ret = sl_false;
+			if (flagOpened) {
+				ret = file->getSize(outInfo.allocSize);
+			}
+			if (!ret && !(File::getSize(filePath, outInfo.allocSize))) {
+				if (attr & FileAttributes::Directory) {
+					outInfo.allocSize = 0;
+				} else {
 					return sl_false;
-                }
-            }
-        }
+				}
+			}
+		}
 
 		if (mask & FileInfoMask::Time) {
 			if (flagOpened) {
@@ -339,7 +345,7 @@ namespace slib
 
 	HashMap<String, FileInfo> MirrorFileSystem::getFiles(const StringParam& pathDir)
 	{
-		return File::getFileInfos(CONCAT_PATH(pathDir));
+		return File::getFileInfos(CONCAT_PATH_SHORT(pathDir));
 	}
 
 }

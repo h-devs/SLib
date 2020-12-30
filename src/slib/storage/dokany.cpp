@@ -288,7 +288,9 @@ namespace slib
 					FileSystemError err = FileSystem::getLastError();
 					if (g_flagDokany) {
 						if (err == FileSystemError::PathNotFound) {
-							return STATUS_ACCESS_DENIED;
+							if (!(param.mode & FileMode::NotCreate)) {
+								return STATUS_ACCESS_DENIED;
+							}
 						}
 					}
 					return DOKAN_ERROR_CODE(err);
