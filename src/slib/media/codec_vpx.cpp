@@ -23,7 +23,7 @@
 #include "slib/media/codec_vpx.h"
 
 #include "slib/core/log.h"
-#include "slib/core/io.h"
+#include "slib/core/memory_io.h"
 #include "slib/core/scoped.h"
 
 #include "vpx/vp8cx.h"

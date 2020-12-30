@@ -23,6 +23,7 @@
 #include "slib/graphics/image.h"
 
 #include "slib/core/file.h"
+#include "slib/core/memory_io.h"
 
 #include "libpng/png.h"
 #include "libpng/pngstruct.h"

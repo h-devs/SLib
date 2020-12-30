@@ -21,6 +21,8 @@
  */
 
 #include "slib/core/io.h"
+#include "slib/core/memory_io.h"
+#include "slib/core/bit_io.h"
 
 #include "slib/core/mio.h"
 #include "slib/core/string_buffer.h"

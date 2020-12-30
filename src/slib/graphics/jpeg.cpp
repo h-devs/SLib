@@ -23,6 +23,7 @@
 #include "slib/graphics/jpeg.h"
 
 #include "slib/core/mio.h"
+#include "slib/core/memory_io.h"
 #include "slib/core/math.h"
 #include "slib/core/file.h"
 

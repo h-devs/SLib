@@ -97,6 +97,8 @@
 #include "core/asset.h"
 
 #include "core/io.h"
+#include "core/memory_io.h"
+#include "core/bit_io.h"
 #include "core/io_util.h"
 #include "core/buffered_io.h"
 #include "core/file.h"

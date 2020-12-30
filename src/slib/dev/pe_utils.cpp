@@ -24,6 +24,7 @@
 
 #include "slib/core/file.h"
 #include "slib/core/mio.h"
+#include "slib/core/memory_io.h"
 
 namespace slib
 {

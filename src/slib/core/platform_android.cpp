@@ -26,7 +26,7 @@
 
 #include "slib/core/platform_android.h"
 
-#include "slib/core/io.h"
+#include "slib/core/memory_io.h"
 #include "slib/core/safe_static.h"
 
 namespace slib

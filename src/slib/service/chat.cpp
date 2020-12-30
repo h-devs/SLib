@@ -22,7 +22,7 @@
 
 #include "slib/service/chat.h"
 
-#include "slib/core/io.h"
+#include "slib/core/memory_io.h"
 
 namespace slib
 {
