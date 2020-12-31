@@ -128,13 +128,12 @@ namespace slib
 
 		CArray(const T* data, sl_size count, Referable* refer) noexcept
 		{
+			m_flagStatic = sl_true;
 			if (data && count > 0) {
-				m_flagStatic = sl_true;
 				m_data = const_cast<T*>(data);
 				m_count = count;
 				m_refer = refer;
 			} else {
-				m_flagStatic = sl_true;
 				m_data = sl_null;
 				m_count = 0;
 			}
@@ -142,7 +141,7 @@ namespace slib
 
 		~CArray() noexcept
 		{
-			if (! m_flagStatic) {
+			if (!m_flagStatic) {
 				T* data = m_data;
 				if (data) {
 					ArrayTraits<T>::free(data, m_count);
