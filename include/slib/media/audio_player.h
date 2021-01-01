@@ -30,9 +30,9 @@
 #include "../core/object.h"
 #include "../core/event.h"
 #include "../core/array.h"
-#include "../core/loop_queue.h"
 #include "../core/string.h"
-#include "../core/memory.h"
+#include "../core/loop_queue.h"
+#include "../core/memory_queue.h"
 #include "../core/function.h"
 
 namespace slib

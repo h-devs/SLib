@@ -25,10 +25,11 @@
 
 #include "definition.h"
 
-#include "../core/string.h"
-#include "../crypto/zlib.h"
-
 #include "async.h"
+
+#include "../core/string.h"
+#include "../core/memory_queue.h"
+#include "../crypto/zlib.h"
 
 namespace slib
 {

@@ -33,6 +33,7 @@
 #include "../core/variant.h"
 #include "../core/json.h"
 #include "../core/xml.h"
+#include "../core/memory_queue.h"
 
 namespace slib
 {

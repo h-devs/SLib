@@ -60,6 +60,8 @@
 
 namespace slib
 {
+
+	class MemoryBuffer;
 	
 	typedef HashMap<String, String, HashIgnoreCaseString, CompareIgnoreCaseString> HttpHeaderMap;
 	typedef HashMap<String, String, HashIgnoreCaseString, CompareIgnoreCaseString> HttpHeaderValueMap;

@@ -23,6 +23,7 @@
 #include "util.h"
 
 #include "slib/core/file.h"
+#include "slib/core/memory_buffer.h"
 
 using namespace slib;
 

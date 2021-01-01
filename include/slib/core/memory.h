@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,41 +25,94 @@
 
 #include "definition.h"
 
-#include "array.h"
-#include "queue.h"
+#include "ref.h"
 
 namespace slib
 {
 
-	class MemoryData;
-	
-	class CMemory : public CArray<sl_uint8>
+	class Memory;
+
+	class SLIB_EXPORT MemoryData
+	{
+	public:
+		void* data;
+		sl_size size;
+		Ref<Referable> refer;
+
+	public:
+		MemoryData() noexcept;
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MemoryData)
+
+	public:
+		Memory getMemory() const noexcept;
+
+		Memory sub(sl_size offset, sl_size size = SLIB_SIZE_MAX) const noexcept;
+
+	};
+
+	class CMemory : public Referable
 	{
 		SLIB_DECLARE_OBJECT
 
-	protected:
-		CMemory();
+	private:
+		CMemory() noexcept;
+
+		CMemory(const void* data, sl_size size, Referable* refer, sl_bool flagStatic) noexcept;
+
+		~CMemory() noexcept;
 
 	public:
-		CMemory(sl_size count);
+		CMemory(const CMemory& other) = delete;
 
-		CMemory(const void* data, sl_size size);
+		CMemory(CMemory&& other) = delete;
 
-		CMemory(const void* data, sl_size size, Referable* refer);
+		CMemory& operator=(const CMemory& other) = delete;
 
-		~CMemory();
+		CMemory& operator=(CMemory&& other) = delete;
 
 	public:
-		static CMemory* create(sl_size size);
+		static CMemory* create(const void* data, sl_size size, Referable* refer, sl_bool flagStatic) noexcept;
 
-		static CMemory* create(const void* data, sl_size size);
+		static CMemory* create(sl_size size) noexcept;
 
-		static CMemory* createStatic(const void* data, sl_size size, Referable* refer);
+		static CMemory* create(const void* data, sl_size size) noexcept;
+
+		static CMemory* createResizable(sl_size size) noexcept;
+
+		static CMemory* createResizable(const void* data, sl_size size) noexcept;
+
+		static CMemory* createNoCopy(const void* data, sl_size size) noexcept;
+
+		static CMemory* createStatic(const void* data, sl_size size, Referable* refer = sl_null) noexcept;
 	
 	public:
-		CMemory* sub(sl_size start, sl_size size = SLIB_SIZE_MAX);
+		void* getData() const noexcept;
 
-		CMemory* duplicate() const;
+		sl_size getSize() const noexcept;
+
+		sl_bool setSize(sl_size size) noexcept;
+
+		sl_bool isStatic() const noexcept;
+
+		const Ref<Referable>& getRefer() const noexcept;
+
+	public:
+		CMemory* sub(sl_size offset, sl_size size = SLIB_SIZE_MAX) const noexcept;
+
+		sl_size read(sl_size offsetSource, sl_size size, void* dst) const noexcept;
+
+		sl_size write(sl_size offsetTarget, sl_size size, const void* src) const noexcept;
+
+		sl_size copy(sl_size offsetTarget, const CMemory* source, sl_size offsetSource = 0, sl_size size = SLIB_SIZE_MAX) const noexcept;
+
+		CMemory* duplicate() const noexcept;
+		
+	protected:
+		void* m_data;
+		sl_size m_size;
+		Ref<Referable> m_refer;
+		sl_bool m_flagStatic;
 
 	};
 	
@@ -73,27 +126,27 @@ namespace slib
 		SLIB_ATOMIC_REF_WRAPPER(CMemory)
 
 	public:
-		sl_size getSize() const;
+		sl_size getSize() const noexcept;
 
-		Memory sub(sl_size start, sl_size count = SLIB_SIZE_MAX) const;
+		Memory sub(sl_size offset, sl_size size = SLIB_SIZE_MAX) const noexcept;
 
-		sl_size read(sl_size startSource, sl_size len, void* bufDst) const;
+		sl_size read(sl_size offsetSource, sl_size size, void* bufDst) const noexcept;
 
-		sl_size write(sl_size startTarget, sl_size len, const void* bufSrc) const;
+		sl_size write(sl_size offsetTarget, sl_size size, const void* bufSrc) const noexcept;
 
-		sl_size copy(sl_size startTarget, const Memory& source, sl_size startSource = 0, sl_size len = SLIB_SIZE_MAX) const;
+		sl_size copy(sl_size offsetTarget, const Memory& source, sl_size offsetSource = 0, sl_size size = SLIB_SIZE_MAX) const noexcept;
 
-		sl_size copy(const Memory& source, sl_size startSource = 0, sl_size len = SLIB_SIZE_MAX) const;
+		sl_size copy(const Memory& source, sl_size offsetSource = 0, sl_size size = SLIB_SIZE_MAX) const noexcept;
 
-		Memory duplicate() const;
+		Memory duplicate() const noexcept;
 
-		sl_bool getData(MemoryData& data) const;
+		sl_bool getData(MemoryData& data) const noexcept;
 
-		sl_compare_result compare(const Memory& other) const;
+		sl_compare_result compare(const Memory& other) const noexcept;
 		
-		sl_bool equals(const Memory& other) const;
+		sl_bool equals(const Memory& other) const noexcept;
 		
-		sl_size getHashCode() const;
+		sl_size getHashCode() const noexcept;
 		
 	};
 	
@@ -104,38 +157,51 @@ namespace slib
 		SLIB_REF_WRAPPER(Memory, CMemory)
 
 	public:
-		static Memory create(sl_size count);
+		static Memory create(const void* buf, sl_size size, Referable* refer, sl_bool flagStatic) noexcept;
 
-		static Memory create(const void* buf, sl_size size);
+		static Memory create(sl_size count) noexcept;
 
-		static Memory createStatic(const void* buf, sl_size size);
+		static Memory create(const void* buf, sl_size size) noexcept;
 
-		static Memory createStatic(const void* buf, sl_size size, Referable* refer);
+		static Memory createResizable(sl_size count) noexcept;
+
+		static Memory createResizable(const void* buf, sl_size size) noexcept;
+
+		static Memory createNoCopy(const void* buf, sl_size size) noexcept;
+
+		static Memory createStatic(const void* buf, sl_size size, Referable* refer = sl_null) noexcept;
 
 	public:
-		void* getData() const;
+		void* getData() const noexcept;
 
-		sl_size getSize() const;
+		sl_size getSize() const noexcept;
 
-		Memory sub(sl_size start, sl_size size = SLIB_SIZE_MAX) const;
+		sl_bool setSize(sl_size size) noexcept;
 
-		sl_size read(sl_size startSource, sl_size size, void* bufDst) const;
+		sl_bool isStatic() const noexcept;
 
-		sl_size write(sl_size startTarget, sl_size size, const void* bufSrc) const;
+		const Ref<Referable>& getRefer() const noexcept;
 
-		sl_size copy(sl_size startTarget, const Memory& source, sl_size startSource = 0, sl_size size = SLIB_SIZE_MAX) const;
+	public:
+		Memory sub(sl_size offset, sl_size size = SLIB_SIZE_MAX) const noexcept;
 
-		sl_size copy(const Memory& source, sl_size start = 0, sl_size size = SLIB_SIZE_MAX) const;
+		sl_size read(sl_size offsetSource, sl_size size, void* bufDst) const noexcept;
 
-		Memory duplicate() const;
+		sl_size write(sl_size offsetTarget, sl_size size, const void* bufSrc) const noexcept;
 
-		sl_bool getData(MemoryData& data) const;
+		sl_size copy(sl_size offsetTarget, const Memory& source, sl_size offsetSource = 0, sl_size size = SLIB_SIZE_MAX) const noexcept;
+
+		sl_size copy(const Memory& source, sl_size offset = 0, sl_size size = SLIB_SIZE_MAX) const noexcept;
+
+		Memory duplicate() const noexcept;
+
+		sl_bool getData(MemoryData& data) const noexcept;
 		
-		sl_compare_result compare(const Memory& other) const;
+		sl_compare_result compare(const Memory& other) const noexcept;
 
-		sl_bool equals(const Memory& other) const;
+		sl_bool equals(const Memory& other) const noexcept;
 		
-		sl_size getHashCode() const;
+		sl_size getHashCode() const noexcept;
 		
 	};
 	
@@ -179,123 +245,6 @@ namespace slib
 	};
 	
 	
-	class SLIB_EXPORT MemoryData
-	{
-	public:
-		void* data;
-		sl_size size;
-		Ref<Referable> refer;
-
-	public:
-		MemoryData();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MemoryData)
-		
-	public:
-		Memory getMemory() const;
-
-		Memory sub(sl_size start, sl_size size = SLIB_SIZE_MAX) const;
-
-	};
-	
-	
-	// MemoryBuffer is not thread-safe
-	class SLIB_EXPORT MemoryBuffer : public Object
-	{
-	public:
-		MemoryBuffer();
-
-		~MemoryBuffer();
-	
-	public:
-		sl_size getSize() const;
-
-		sl_bool add(const MemoryData& mem);
-	
-		sl_bool add(const Memory& mem);
-
-		sl_bool addStatic(const void* buf, sl_size size);
-	
-		template <sl_size N>
-		sl_bool addStatic(const char (&buf)[N])
-		{
-			return addStatic(buf, N - 1);
-		}
-	
-		void link(MemoryBuffer& buf);
-	
-		void clear();
-	
-		Memory merge() const;
-	
-	protected:
-		LinkedQueue<MemoryData> m_queue;
-		sl_size m_size;
-
-	};
-	
-	class SLIB_EXPORT MemoryQueue : public Object
-	{
-	public:
-		MemoryQueue();
-
-		~MemoryQueue();
-	
-	public:
-		sl_size getSize() const;
-		
-		sl_bool add_NoLock(const MemoryData& mem);
-		
-		sl_bool add(const MemoryData& mem);
-		
-		sl_bool add_NoLock(const Memory& mem);
-		
-		sl_bool add(const Memory& mem);
-		
-		sl_bool addStatic_NoLock(const void* buf, sl_size size);
-
-		template <sl_size N>
-		sl_bool addStatic_NoLock(const char (&buf)[N])
-		{
-			return addStatic_NoLock(buf, N - 1);
-		}
-
-		sl_bool addStatic(const void* buf, sl_size size);
-		
-		template <sl_size N>
-		sl_bool addStatic(const char (&buf)[N])
-		{
-			return addStatic(buf, N - 1);
-		}
-
-		void link_NoLock(MemoryQueue& buf);
-		
-		void link(MemoryQueue& buf);
-		
-		void clear_NoLock();
-		
-		void clear();
-
-		sl_bool pop_NoLock(MemoryData& data);
-		
-		sl_bool pop(MemoryData& data);
-		
-		sl_size pop_NoLock(void* buf, sl_size size);
-	
-		sl_size pop(void* buf, sl_size size);
-		
-		Memory merge_NoLock() const;
-	
-		Memory merge() const;
-	
-	private:
-		LinkedQueue<MemoryData> m_queue;
-		sl_size m_size;
-		MemoryData m_memCurrent;
-		sl_size m_posCurrent;
-
-	};
-
 }
 
 #endif

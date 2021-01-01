@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,117 +21,314 @@
  */
 
 #include "slib/core/memory.h"
+#include "slib/core/memory_buffer.h"
+#include "slib/core/memory_queue.h"
 
 namespace slib
 {
 
-	SLIB_DEFINE_OBJECT(CMemory, CArray<sl_uint8>)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MemoryData)
 
-	CMemory::CMemory()
+	MemoryData::MemoryData() noexcept : data(sl_null), size(0)
 	{
 	}
 
-	CMemory::CMemory(sl_size count) : CArray(count)
+	Memory MemoryData::getMemory() const noexcept
+	{
+		if (CMemory* mem = CastInstance<CMemory>(refer.ptr)) {
+			if (mem->getData() == data && mem->getSize() == size) {
+				return mem;
+			}
+		}
+		return Memory::createStatic(data, size, refer.ptr);
+	}
+
+	Memory MemoryData::sub(sl_size offset, sl_size sizeSub) const noexcept
+	{
+		if (offset >= size) {
+			return sl_null;
+		}
+		sl_size limit = size - offset;
+		if (sizeSub > limit) {
+			sizeSub = limit;
+		}
+		if (sizeSub == size) {
+			return getMemory();
+		}
+		return Memory::createStatic((sl_uint8*)data + offset, sizeSub, refer.ptr);
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CMemory)
+
+	CMemory::CMemory() noexcept
 	{
 	}
 
-	CMemory::CMemory(const void* data, sl_size count) : CArray((sl_uint8 const*)data, count)
+	CMemory::CMemory(const void* data, sl_size size, Referable* refer, sl_bool flagStatic) noexcept: m_refer(refer)
 	{
+		m_data = (void*)(data);
+		m_size = size;
+		m_flagStatic = flagStatic;
 	}
 
-	CMemory::CMemory(const void* data, sl_size count, Referable* refer) : CArray((sl_uint8 const*)data, count, refer)
+	CMemory::~CMemory() noexcept
 	{
+		if (!m_flagStatic) {
+			void* data = m_data;
+			if (data) {
+				Base::freeMemory((void*)data);
+			}
+		}
 	}
 
-	CMemory::~CMemory()
+	CMemory* CMemory::create(const void* data, sl_size size, Referable* refer, sl_bool flagStatic) noexcept
 	{
+		if (data && size) {
+			return new CMemory(data, size, refer, flagStatic);
+		}
+		return sl_null;
 	}
 
-	CMemory* CMemory::create(sl_size count)
+	CMemory* CMemory::create(sl_size size) noexcept
 	{
-		if (count > 0) {
-			CMemory* ret = new CMemory(count);
-			if (ret) {
-				if (ret->m_data) {
+		if (size) {
+			sl_uint8* mem = new sl_uint8[sizeof(CMemory) + size];
+			if (mem) {
+				CMemory* ret = (CMemory*)mem;
+				new (ret) CMemory();
+				ret->m_data = mem + sizeof(CMemory);
+				ret->m_size = size;
+				ret->m_flagStatic = sl_true;
+				return ret;
+			}
+		}
+		return sl_null;
+	}
+
+	CMemory* CMemory::create(const void* data, sl_size size) noexcept
+	{
+		CMemory* ret = create(size);
+		if (ret) {
+			Base::copyMemory(ret->m_data, data, size);
+			return ret;
+		}
+		return sl_null;
+	}
+
+	CMemory* CMemory::createResizable(sl_size size) noexcept
+	{
+		if (size) {
+			void* mem = Base::createMemory(size);
+			if (mem) {
+				CMemory* ret = new CMemory;
+				if (ret) {
+					ret->m_data = mem;
+					ret->m_size = size;
+					ret->m_flagStatic = sl_false;
 					return ret;
 				}
-				delete ret;
+				Base::freeMemory(mem);
 			}
 		}
 		return sl_null;
 	}
 
-
-	CMemory* CMemory::create(const void* data, sl_size count)
+	CMemory* CMemory::createResizable(const void* data, sl_size size) noexcept
 	{
-		if (count > 0) {
-			CMemory* ret = new CMemory(data, count);
+		CMemory* ret = createResizable(size);
+		if (ret) {
+			Base::copyMemory(ret->m_data, data, size);
+			return ret;
+		}
+		return sl_null;
+	}
+
+	CMemory* CMemory::createNoCopy(const void* data, sl_size size) noexcept
+	{
+		if (data && size) {
+			CMemory* ret = new CMemory;
 			if (ret) {
-				if (ret->m_data) {
-					return ret;
-				}
-				delete ret;
+				ret->m_data = (void*)data;
+				ret->m_size = size;
+				ret->m_flagStatic = sl_false;
+				return ret;
 			}
 		}
 		return sl_null;
 	}
 
-	CMemory* CMemory::createStatic(const void* data, sl_size count, Referable* refer)
+	CMemory* CMemory::createStatic(const void* data, sl_size size, Referable* refer) noexcept
 	{
-		if (data && count > 0) {
-			return new CMemory(data, count, refer);
+		if (data && size) {
+			return new CMemory(data, size, refer, sl_true);
 		}
 		return sl_null;
 	}
 
-	CMemory* CMemory::sub(sl_size start, sl_size count)
+	void* CMemory::getData() const noexcept
 	{
-		sl_size countParent = m_count;
-		if (start < countParent) {
-			if (count > countParent - start) {
-				count = countParent - start;
-			}
-			if (count > 0) {
-				if (start == 0 && countParent == count) {
-					return (CMemory*)this;
-				}
-				if (m_flagStatic) {
-					return createStatic(m_data + start, count, m_refer.ptr);
+		return m_data;
+	}
+
+	sl_size CMemory::getSize() const noexcept
+	{
+		return m_size;
+	}
+
+	sl_bool CMemory::setSize(sl_size size) noexcept
+	{
+		if (!m_flagStatic) {
+			void* data = m_data;
+			if (data) {
+				if (size) {
+					data = Base::reallocMemory(data, size);
+					if (data) {
+						m_data = data;
+						m_size = size;
+						return sl_true;
+					}
 				} else {
-					return createStatic(m_data + start, count, this);
+					Base::freeMemory(data);
+					m_data = sl_null;
+					m_size = 0;
+					m_refer.setNull();
+					m_flagStatic = sl_true;
+					return sl_true;
+				}
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool CMemory::isStatic() const noexcept
+	{
+		return m_flagStatic;
+	}
+
+	const Ref<Referable>& CMemory::getRefer() const noexcept
+	{
+		return m_refer;
+	}
+
+	CMemory* CMemory::sub(sl_size offset, sl_size size) const noexcept
+	{
+		sl_size sizeParent = m_size;
+		if (offset < sizeParent) {
+			sl_size limit = sizeParent - offset;
+			if (size > limit) {
+				size = limit;
+			}
+			if (sizeParent == size) {
+				return (CMemory*)this;
+			}
+			if (size) {
+				if (m_flagStatic) {
+					return createStatic((sl_uint8*)m_data + offset, size, m_refer.ptr);
+				} else {
+					return createStatic((sl_uint8*)m_data + offset, size, (Referable*)this);
 				}
 			}
 		}
 		return sl_null;
 	}
 
-	CMemory* CMemory::duplicate() const
+	sl_size CMemory::read(sl_size offsetSource, sl_size size, void* dst) const noexcept
 	{
-		return create(m_data, m_count);
+		sl_uint8* pSrc = (sl_uint8*)m_data;
+		sl_uint8* pDst = (sl_uint8*)dst;
+		if (pDst && pSrc) {
+			sl_size sizeSrc = m_size;
+			if (offsetSource < sizeSrc) {
+				sl_size n = sizeSrc - offsetSource;
+				if (size > n) {
+					size = n;
+				}
+				Base::copyMemory(pDst, pSrc + offsetSource, size);
+				return size;
+			}
+		}
+		return 0;
+	}
+
+	sl_size CMemory::write(sl_size offsetTarget, sl_size size, const void* src) const noexcept
+	{
+		sl_uint8* pDst = (sl_uint8*)m_data;
+		sl_uint8* pSrc = (sl_uint8*)src;
+		if (pSrc && pDst) {
+			sl_size sizeTarget = m_size;
+			if (offsetTarget < sizeTarget) {
+				sl_size n = sizeTarget - offsetTarget;
+				if (size > n) {
+					size = n;
+				}
+				Base::copyMemory(pDst + offsetTarget, pSrc, size);
+				return size;
+			}
+		}
+		return 0;
+	}
+
+	sl_size CMemory::copy(sl_size offsetTarget, const CMemory* source, sl_size offsetSource, sl_size size) const noexcept
+	{
+		if (source) {
+			sl_uint8* pSrc = (sl_uint8*)(source->getData());
+			if (pSrc) {
+				sl_size sizeSrc = source->getSize();
+				if (offsetSource < sizeSrc) {
+					sl_size n = sizeSrc - offsetSource;
+					if (size > n) {
+						size = n;
+					}
+					return write(offsetSource, size, pSrc + offsetSource);
+				}
+			}
+		}
+		return 0;
+	}
+
+	CMemory* CMemory::duplicate() const noexcept
+	{
+		return create(m_data, m_size);
 	}
 
 
-	Memory Memory::create(sl_size count)
+	Memory Memory::create(const void* buf, sl_size size, Referable* refer, sl_bool flagStatic) noexcept
 	{
-		return CMemory::create(count);
+		return CMemory::create(buf, size, refer, flagStatic);
 	}
 
-	Memory Memory::create(const void* buf, sl_size count)
+	Memory Memory::create(sl_size size) noexcept
 	{
-		return CMemory::create(buf, count);
+		return CMemory::create(size);
 	}
 
-	Memory Memory::createStatic(const void* buf, sl_size count)
+	Memory Memory::create(const void* buf, sl_size size) noexcept
 	{
-		return CMemory::createStatic(buf, count, sl_null);
+		return CMemory::create(buf, size);
 	}
 
-	Memory Memory::createStatic(const void* buf, sl_size count, Referable* refer)
+	Memory Memory::createResizable(sl_size size) noexcept
 	{
-		return CMemory::createStatic(buf, count, refer);
+		return CMemory::createResizable(size);
 	}
 
-	void* Memory::getData() const
+	Memory Memory::createResizable(const void* buf, sl_size size) noexcept
+	{
+		return CMemory::createResizable(buf, size);
+	}
+
+	Memory Memory::createNoCopy(const void* buf, sl_size size) noexcept
+	{
+		return CMemory::createNoCopy(buf, size);
+	}
+
+	Memory Memory::createStatic(const void* buf, sl_size size, Referable* refer) noexcept
+	{
+		return CMemory::createStatic(buf, size, refer);
+	}
+
+	void* Memory::getData() const noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
@@ -140,57 +337,77 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_size Memory::getSize() const
+	sl_size Memory::getSize() const noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
-			return obj->getCount();
+			return obj->getSize();
 		}
 		return 0;
 	}
 
-	Memory Memory::sub(sl_size start, sl_size size) const
+	sl_bool Memory::setSize(sl_size size) noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
-			return obj->sub(start, size);
+			if (size) {
+				return obj->setSize(size);
+			} else {
+				ref.setNull();
+				return sl_true;
+			}
+		} else {
+			if (size) {
+				ref = CMemory::create(size);
+				return ref.isNotNull();
+			} else {
+				return sl_true;
+			}
+		}
+	}
+
+	Memory Memory::sub(sl_size offset, sl_size size) const noexcept
+	{
+		CMemory* obj = ref.ptr;
+		if (obj) {
+			return obj->sub(offset, size);
 		}
 		return sl_null;
 	}
 
-	sl_size Memory::read(sl_size startSource, sl_size len, void* bufDst) const
+	sl_size Memory::read(sl_size offsetSource, sl_size size, void* bufDst) const noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
-			return obj->read(startSource, len, (sl_uint8*)bufDst);
+			return obj->read(offsetSource, size, (sl_uint8*)bufDst);
 		}
 		return 0;
 	}
 
-	sl_size Memory::write(sl_size startTarget, sl_size len, const void* bufSrc) const
+	sl_size Memory::write(sl_size offsetTarget, sl_size size, const void* bufSrc) const noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
-			return obj->write(startTarget, len, (const sl_uint8*)bufSrc);
+			return obj->write(offsetTarget, size, (const sl_uint8*)bufSrc);
 		}
 		return 0;
 	}
 
-	sl_size Memory::copy(sl_size startTarget, const Memory& source, sl_size startSource, sl_size len) const
+	sl_size Memory::copy(sl_size offsetTarget, const Memory& source, sl_size offsetSource, sl_size size) const noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
-			return obj->copy(startTarget, source.ref.ptr, startSource, len);
+			return obj->copy(offsetTarget, source.ref.ptr, offsetSource, size);
 		}
 		return 0;
 	}
 
-	sl_size Memory::copy(const Memory& source, sl_size start, sl_size len) const
+	sl_size Memory::copy(const Memory& source, sl_size offset, sl_size size) const noexcept
 	{
-		return copy(0, source, start, len);
+		return copy(0, source, offset, size);
 	}
 
-	Memory Memory::duplicate() const
+	Memory Memory::duplicate() const noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
@@ -199,12 +416,12 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool Memory::getData(MemoryData& data) const
+	sl_bool Memory::getData(MemoryData& data) const noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
 			data.data = obj->getData();
-			data.size = obj->getCount();
+			data.size = obj->getSize();
 			if (obj->isStatic()) {
 				data.refer = obj->getRefer();
 			} else {
@@ -219,7 +436,7 @@ namespace slib
 		}
 	}
 	
-	sl_compare_result Memory::compare(const Memory& other) const
+	sl_compare_result Memory::compare(const Memory& other) const noexcept
 	{
 		sl_size size1 = getSize();
 		sl_size size2 = other.getSize();
@@ -249,7 +466,7 @@ namespace slib
 		}
 	}
 	
-	sl_bool Memory::equals(const Memory& other) const
+	sl_bool Memory::equals(const Memory& other) const noexcept
 	{
 		sl_size size1 = getSize();
 		sl_size size2 = other.getSize();
@@ -263,7 +480,7 @@ namespace slib
 		}
 	}
 	
-	sl_size Memory::getHashCode() const
+	sl_size Memory::getHashCode() const noexcept
 	{
 		sl_size size = getSize();
 		if (size) {
@@ -273,61 +490,61 @@ namespace slib
 	}
 
 
-	sl_size Atomic<Memory>::getSize() const
+	sl_size Atomic<Memory>::getSize() const noexcept
 	{
 		Ref<CMemory> obj(ref);
 		if (obj.isNotNull()) {
-			return obj->getCount();
+			return obj->getSize();
 		}
 		return 0;
 	}
 
-	Memory Atomic<Memory>::sub(sl_size start, sl_size count) const
+	Memory Atomic<Memory>::sub(sl_size offset, sl_size size) const noexcept
 	{
 		Ref<CMemory> obj(ref);
 		if (obj.isNotNull()) {
-			return obj->sub(start, count);
+			return obj->sub(offset, size);
 		}
 		return sl_null;
 	}
 
-	sl_size Atomic<Memory>::read(sl_size startSource, sl_size len, void* bufDst) const
+	sl_size Atomic<Memory>::read(sl_size offsetSource, sl_size size, void* bufDst) const noexcept
 	{
 		Ref<CMemory> obj(ref);
 		if (obj.isNotNull()) {
-			return obj->read(startSource, len, (sl_uint8*)bufDst);
+			return obj->read(offsetSource, size, (sl_uint8*)bufDst);
 		}
 		return 0;
 	}
 
-	sl_size Atomic<Memory>::write(sl_size startTarget, sl_size len, const void* bufSrc) const
+	sl_size Atomic<Memory>::write(sl_size offsetTarget, sl_size size, const void* bufSrc) const noexcept
 	{
 		Ref<CMemory> obj(ref);
 		if (obj.isNotNull()) {
-			return obj->write(startTarget, len, (const sl_uint8*)bufSrc);
+			return obj->write(offsetTarget, size, (const sl_uint8*)bufSrc);
 		}
 		return 0;
 	}
 
-	sl_size Atomic<Memory>::copy(sl_size startTarget, const Memory& source, sl_size startSource, sl_size len) const
+	sl_size Atomic<Memory>::copy(sl_size offsetTarget, const Memory& source, sl_size offsetSource, sl_size size) const noexcept
 	{
 		Ref<CMemory> obj(ref);
 		if (obj.isNotNull()) {
-			return obj->copy(startTarget, source.ref.ptr, startSource, len);
+			return obj->copy(offsetTarget, source.ref.ptr, offsetSource, size);
 		}
 		return 0;
 	}
 
-	sl_size Atomic<Memory>::copy(const Memory& source, sl_size startSource, sl_size len) const
+	sl_size Atomic<Memory>::copy(const Memory& source, sl_size offsetSource, sl_size size) const noexcept
 	{
 		Ref<CMemory> obj(ref);
 		if (obj.isNotNull()) {
-			return obj->copy(0, source.ref.ptr, startSource, len);
+			return obj->copy(0, source.ref.ptr, offsetSource, size);
 		}
 		return 0;
 	}
 
-	Memory Atomic<Memory>::duplicate() const
+	Memory Atomic<Memory>::duplicate() const noexcept
 	{
 		Ref<CMemory> obj(ref);
 		if (obj.isNotNull()) {
@@ -336,25 +553,25 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool Atomic<Memory>::getData(MemoryData& data) const
+	sl_bool Atomic<Memory>::getData(MemoryData& data) const noexcept
 	{
 		Memory mem(*this);
 		return mem.getData(data);
 	}
 
-	sl_compare_result Atomic<Memory>::compare(const Memory& other) const
+	sl_compare_result Atomic<Memory>::compare(const Memory& other) const noexcept
 	{
 		Memory mem(*this);
 		return mem.compare(other);
 	}
 
-	sl_bool Atomic<Memory>::equals(const Memory& other) const
+	sl_bool Atomic<Memory>::equals(const Memory& other) const noexcept
 	{
 		Memory mem(*this);
 		return mem.equals(other);
 	}
 
-	sl_size Atomic<Memory>::getHashCode() const
+	sl_size Atomic<Memory>::getHashCode() const noexcept
 	{
 		Memory mem(*this);
 		return mem.getHashCode();
@@ -426,45 +643,8 @@ namespace slib
 		return a.getHashCode();
 	}
 
-	
-/*******************************************
-			MemoryData
-*******************************************/
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MemoryData)
-	
-	MemoryData::MemoryData()
-	 : data(sl_null), size(0)
-	{
-	}
-
-	Memory MemoryData::getMemory() const
-	{
-		if (CMemory* mem = CastInstance<CMemory>(refer.ptr)) {
-			if (mem->getData() == data && mem->getCount() == size) {
-				return mem;
-			}
-		}
-		return Memory::createStatic(data, size, refer.ptr);
-	}
-
-	Memory MemoryData::sub(sl_size start, sl_size sizeSub) const
-	{
-		if (start >= size) {
-			return sl_null;
-		}
-		if (sizeSub > size - start) {
-			sizeSub = size - start;
-		}
-		if (start == 0 && sizeSub == size) {
-			return getMemory();
-		}
-		return Memory::createStatic((sl_uint8*)data + start, sizeSub, refer.ptr);
-	}
-
-/*******************************************
-			MemoryBuffer
-*******************************************/
+	SLIB_DEFINE_ROOT_OBJECT(MemoryBuffer)
 
 	MemoryBuffer::MemoryBuffer()
 	{
@@ -557,9 +737,8 @@ namespace slib
 		return ret;
 	}
 
-/*******************************************
-			MemoryQueue
-*******************************************/
+
+	SLIB_DEFINE_OBJECT(MemoryQueue, Object)
 
 	MemoryQueue::MemoryQueue()
 	{
