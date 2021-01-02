@@ -302,17 +302,18 @@ namespace slib
 		{
 			sl_size countParent = m_count;
 			if (start < countParent) {
-				if (count > countParent - start) {
-					count = countParent - start;
+				sl_size n = countParent - start;
+				if (count > n) {
+					count = n;
 				}
 				if (count) {
-					if (start == 0 && countParent == count) {
-						return this;
+					if (countParent == count) {
+						return (CArray<T>*)this;
 					}
 					if (m_flagStatic) {
 						return createStatic(m_data + start, count, m_refer.ptr);
 					} else {
-						return createStatic(m_data + start, count, this);
+						return createStatic(m_data + start, count, (Referable*)this);
 					}
 				}
 			}
