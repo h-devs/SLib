@@ -366,6 +366,24 @@ namespace slib
 		}
 	}
 
+	sl_bool Memory::isStatic() const noexcept
+	{
+		CMemory* obj = ref.ptr;
+		if (obj) {
+			return obj->isStatic();
+		}
+		return sl_false;
+	}
+
+	const Ref<Referable>& Memory::getRefer() const noexcept
+	{
+		CMemory* obj = ref.ptr;
+		if (obj) {
+			return obj->getRefer();
+		}
+		return Ref<Referable>::null();
+	}
+
 	Memory Memory::sub(sl_size offset, sl_size size) const noexcept
 	{
 		CMemory* obj = ref.ptr;
