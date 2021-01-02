@@ -31,6 +31,7 @@
 
 #include "../core/object.h"
 #include "../core/function.h"
+#include "../core/linked_list.h"
 #include "../core/animation.h"
 #include "../core/time.h"
 

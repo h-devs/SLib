@@ -27,6 +27,8 @@
 
 #include "async.h"
 
+#include "../core/async_output.h"
+#include "../core/async_stream_filter.h"
 #include "../core/string.h"
 #include "../core/memory_queue.h"
 #include "../crypto/zlib.h"

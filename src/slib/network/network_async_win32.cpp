@@ -28,6 +28,7 @@
 #include <mswsock.h>
 #pragma comment(lib, "mswsock.lib")
 
+#include "slib/core/thread.h"
 #include "slib/core/log.h"
 
 #include "network_async.h"
@@ -69,8 +70,8 @@ namespace slib
 				static Ref<AsyncTcpSocketInstanceImpl> create(const Ref<Socket>& socket)
 				{
 					if (socket.isNotNull()) {
-						sl_file handle = (sl_file)(socket->getHandle());
-						if (handle != SLIB_FILE_INVALID_HANDLE) {
+						sl_async_handle handle = (sl_async_handle)(socket->getHandle());
+						if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 							Ref<AsyncTcpSocketInstanceImpl> ret = new AsyncTcpSocketInstanceImpl();
 							if (ret.isNotNull()) {
 								ret->m_socket = socket;
@@ -85,7 +86,7 @@ namespace slib
 
 				void initializeConnectEx()
 				{
-					sl_file handle = getHandle();
+					sl_async_handle handle = getHandle();
 					m_funcConnectEx = sl_null;
 					// ConnectEx
 					{
@@ -105,7 +106,7 @@ namespace slib
 
 				void close()
 				{
-					setHandle(SLIB_FILE_INVALID_HANDLE);
+					setHandle(SLIB_ASYNC_INVALID_HANDLE);
 					m_socket.setNull();
 				}
 
@@ -115,8 +116,8 @@ namespace slib
 					if (socket.isNull()) {
 						return;
 					}
-					sl_file handle = getHandle();
-					if (handle == SLIB_FILE_INVALID_HANDLE) {
+					sl_async_handle handle = getHandle();
+					if (handle == SLIB_ASYNC_INVALID_HANDLE) {
 						return;
 					}
 					if (m_requestReading.isNull()) {
@@ -222,8 +223,8 @@ namespace slib
 
 				void onEvent(EventDesc* pev)
 				{
-					sl_file handle = getHandle();
-					if (handle == SLIB_FILE_INVALID_HANDLE) {
+					sl_async_handle handle = getHandle();
+					if (handle == SLIB_ASYNC_INVALID_HANDLE) {
 						return;
 					}
 					OVERLAPPED* pOverlapped = (OVERLAPPED*)(pev->pOverlapped);
@@ -293,8 +294,8 @@ namespace slib
 				static Ref<AsyncTcpServerInstanceImpl> create(const Ref<Socket>& socket)
 				{
 					if (socket.isNotNull()) {
-						sl_file handle = (sl_file)(socket->getHandle());
-						if (handle != SLIB_FILE_INVALID_HANDLE) {
+						sl_async_handle handle = (sl_async_handle)(socket->getHandle());
+						if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 							Ref<AsyncTcpServerInstanceImpl> ret = new AsyncTcpServerInstanceImpl();
 							if (ret.isNotNull()) {
 								ret->m_socket = socket;
@@ -310,7 +311,7 @@ namespace slib
 
 				sl_bool initialize()
 				{
-					sl_file handle = getHandle();
+					sl_async_handle handle = getHandle();
 					m_funcAcceptEx = sl_null;
 					m_funcGetAcceptExSockaddrs = sl_null;
 					// AcceptEx
@@ -348,7 +349,7 @@ namespace slib
 				{
 					AsyncTcpServerInstance::close();
 					m_socket.setNull();
-					setHandle(SLIB_FILE_INVALID_HANDLE);
+					setHandle(SLIB_ASYNC_INVALID_HANDLE);
 				}
 
 				void onOrder()
@@ -356,8 +357,8 @@ namespace slib
 					if (m_flagAccepting) {
 						return;
 					}
-					sl_file handle = getHandle();
-					if (handle == SLIB_FILE_INVALID_HANDLE) {
+					sl_async_handle handle = getHandle();
+					if (handle == SLIB_ASYNC_INVALID_HANDLE) {
 						return;
 					}
 					Ref<Thread> thread = Thread::getCurrent();
@@ -400,8 +401,8 @@ namespace slib
 
 				void onEvent(EventDesc* pev)
 				{
-					sl_file handle = getHandle();
-					if (handle == SLIB_FILE_INVALID_HANDLE) {
+					sl_async_handle handle = getHandle();
+					if (handle == SLIB_ASYNC_INVALID_HANDLE) {
 						return;
 					}
 					OVERLAPPED* pOverlapped = (OVERLAPPED*)(pev->pOverlapped);
@@ -480,8 +481,8 @@ namespace slib
 				{
 					if (socket.isNotNull()) {
 						if (socket->setNonBlockingMode(sl_true)) {
-							sl_file handle = (sl_file)(socket->getHandle());
-							if (handle != SLIB_FILE_INVALID_HANDLE) {
+							sl_async_handle handle = (sl_async_handle)(socket->getHandle());
+							if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 								Ref<AsyncUdpSocketInstancenceImpl> ret = new AsyncUdpSocketInstancenceImpl();
 								if (ret.isNotNull()) {
 									ret->m_socket = socket;
@@ -498,7 +499,7 @@ namespace slib
 				void close()
 				{
 					AsyncUdpSocketInstance::close();
-					setHandle(SLIB_FILE_INVALID_HANDLE);
+					setHandle(SLIB_ASYNC_INVALID_HANDLE);
 					m_socket.setNull();
 				}
 
@@ -509,8 +510,8 @@ namespace slib
 
 				void onEvent(EventDesc* pev)
 				{
-					sl_file handle = getHandle();
-					if (handle == SLIB_FILE_INVALID_HANDLE) {
+					sl_async_handle handle = getHandle();
+					if (handle == SLIB_ASYNC_INVALID_HANDLE) {
 						return;
 					}
 					OVERLAPPED* pOverlapped = (OVERLAPPED*)(pev->pOverlapped);
@@ -545,8 +546,8 @@ namespace slib
 					if (m_flagReceiving) {
 						return;
 					}
-					sl_file handle = getHandle();
-					if (handle == SLIB_FILE_INVALID_HANDLE) {
+					sl_async_handle handle = getHandle();
+					if (handle == SLIB_ASYNC_INVALID_HANDLE) {
 						return;
 					}
 					Ref<Socket> socket = m_socket;

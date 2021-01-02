@@ -29,6 +29,7 @@
 #include "thread.h"
 #include "time.h"
 #include "map.h"
+#include "queue.h"
 
 namespace slib
 {

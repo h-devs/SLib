@@ -26,6 +26,8 @@
 
 #include "network_async.h"
 
+#include "slib/core/thread.h"
+
 namespace slib
 {
 	
@@ -60,8 +62,8 @@ namespace slib
 				{
 					if (socket.isNotNull()) {
 						if (socket->setNonBlockingMode(sl_true)) {
-							sl_file handle = (sl_file)(socket->getHandle());
-							if (handle != SLIB_FILE_INVALID_HANDLE) {
+							sl_async_handle handle = (sl_async_handle)(socket->getHandle());
+							if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 								Ref<AsyncTcpSocketInstanceImpl> ret = new AsyncTcpSocketInstanceImpl();
 								if (ret.isNotNull()) {
 									ret->m_socket = socket;
@@ -77,7 +79,7 @@ namespace slib
 				void close() override
 				{
 					AsyncTcpSocketInstance::close();
-					setHandle(SLIB_FILE_INVALID_HANDLE);
+					setHandle(SLIB_ASYNC_INVALID_HANDLE);
 					m_socket.setNull();
 				}
 				
@@ -255,8 +257,8 @@ namespace slib
 				{
 					if (socket.isNotNull()) {
 						if (socket->setNonBlockingMode(sl_true)) {
-							sl_file handle = (sl_file)(socket->getHandle());
-							if (handle != SLIB_FILE_INVALID_HANDLE) {
+							sl_async_handle handle = (sl_async_handle)(socket->getHandle());
+							if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 								Ref<AsyncTcpServerInstanceImpl> ret = new AsyncTcpServerInstanceImpl();
 								if (ret.isNotNull()) {
 									ret->m_socket = socket;
@@ -273,7 +275,7 @@ namespace slib
 				{
 					AsyncTcpServerInstance::close();
 					m_socket.setNull();
-					setHandle(SLIB_FILE_INVALID_HANDLE);
+					setHandle(SLIB_ASYNC_INVALID_HANDLE);
 				}
 				
 				void onOrder() override
@@ -326,8 +328,8 @@ namespace slib
 				{
 					if (socket.isNotNull()) {
 						if (socket->setNonBlockingMode(sl_true)) {
-							sl_file handle = (sl_file)(socket->getHandle());
-							if (handle != SLIB_FILE_INVALID_HANDLE) {
+							sl_async_handle handle = (sl_async_handle)(socket->getHandle());
+							if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 								Ref<AsyncUdpSocketInstanceImpl> ret = new AsyncUdpSocketInstanceImpl();
 								if (ret.isNotNull()) {
 									ret->m_socket = socket;
@@ -344,7 +346,7 @@ namespace slib
 				void close() override
 				{
 					AsyncUdpSocketInstance::close();
-					setHandle(SLIB_FILE_INVALID_HANDLE);
+					setHandle(SLIB_ASYNC_INVALID_HANDLE);
 					m_socket.setNull();
 				}
 				

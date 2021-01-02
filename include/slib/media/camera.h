@@ -29,6 +29,7 @@
 
 #include "../graphics/image.h"
 #include "../core/function.h"
+#include "../core/queue.h"
 
 namespace slib
 {

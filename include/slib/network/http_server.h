@@ -29,7 +29,7 @@
 #include "http_io.h"
 #include "socket_address.h"
 
-#include "../core/thread_pool.h"
+#include "../core/io.h"
 #include "../crypto/tls.h"
 
 namespace slib
@@ -37,6 +37,8 @@ namespace slib
 
 	class HttpServer;
 	class HttpServerConnection;
+
+	class ThreadPool;
 	
 	class SLIB_EXPORT HttpServerContext : public Object, public HttpRequest, public HttpResponse, public HttpOutputBuffer
 	{

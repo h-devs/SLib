@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,17 @@
  */
 
 #include "slib/core/async.h"
+#include "slib/core/async_stream.h"
+#include "slib/core/async_stream_simulator.h"
+#include "slib/core/async_stream_filter.h"
+#include "slib/core/async_reader.h"
+#include "slib/core/async_writer.h"
+#include "slib/core/async_file.h"
+#include "slib/core/async_copy.h"
+#include "slib/core/async_output.h"
 
+#include "slib/core/thread.h"
+#include "slib/core/dispatch_loop.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -279,12 +289,12 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_file AsyncIoInstance::getHandle()
+	sl_async_handle AsyncIoInstance::getHandle()
 	{
 		return m_handle;
 	}
 
-	void AsyncIoInstance::setHandle(sl_file handle)
+	void AsyncIoInstance::setHandle(sl_async_handle handle)
 	{
 		m_handle = handle;
 	}
@@ -376,16 +386,6 @@ namespace slib
 			}
 			m_ioInstance.setNull();
 		}
-	}
-
-	Variant AsyncIoObject::getUserData()
-	{
-		return m_userData;
-	}
-
-	void AsyncIoObject::setUserData(const Variant& data)
-	{
-		m_userData = data;
 	}
 
 

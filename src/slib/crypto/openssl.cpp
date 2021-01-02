@@ -22,6 +22,8 @@
 
 #include "slib/crypto/openssl.h"
 
+#include "slib/core/thread.h"
+
 #include "openssl/ssl.h"
 
 namespace slib

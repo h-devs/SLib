@@ -28,6 +28,7 @@
 #include "view.h"
 
 #include "../render/engine.h"
+#include "../core/queue.h"
 
 namespace slib
 {
