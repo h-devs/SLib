@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_MEMORY_IO
-#define CHECKHEADER_SLIB_CORE_MEMORY_IO
+#ifndef CHECKHEADER_SLIB_CORE_MEMORY_WRITER
+#define CHECKHEADER_SLIB_CORE_MEMORY_WRITER
 
 #include "definition.h"
 
@@ -29,45 +29,32 @@
 
 namespace slib
 {
-	
-	// MemoryIO is not thread-safe
-	class SLIB_EXPORT MemoryIO : public IO
+
+	class SLIB_EXPORT MemoryWriter : public Object, public IWriter, public ISeekable
 	{
 		SLIB_DECLARE_OBJECT
 		
 	public:
-		MemoryIO();
-		
-		MemoryIO(sl_size size);
+		MemoryWriter(const Memory& mem);
 
-		MemoryIO(void* data, sl_size size);
+		MemoryWriter(void* buf, sl_size size);
 
-		MemoryIO(const Memory& mem);
-	
-		~MemoryIO();
+		~MemoryWriter();
 	
 	public:
-		void initialize();
-
-		void initialize(sl_size size);
-
-		void initialize(void* data, sl_size size);
-
 		void initialize(const Memory& mem);
 
-		void close() override;
-	
-		sl_reg read(void* buf, sl_size size) override;
-	
+		void initialize(void* buf, sl_size size);
+		
 		sl_reg write(const void* buf, sl_size size) override;
+
+		sl_reg write(const Memory& mem);
+	
+		sl_bool seek(sl_int64 offset, SeekPosition pos) override;
 
 		sl_bool getPosition(sl_uint64& outPos) override;
 
 		sl_bool getSize(sl_uint64& outSize) override;
-
-		sl_bool seek(sl_int64 offset, SeekPosition pos = SeekPosition::Current) override;
-	
-		sl_bool setSize(sl_uint64 size) override;
 
 		sl_size getPosition();
 
@@ -75,36 +62,35 @@ namespace slib
 
 		sl_uint8* getBuffer();
 
-		sl_bool isResizable();
+	public:
+		sl_bool writeInt8(sl_int8 value);
 
-		sl_bool setResizable(sl_bool flag);
+		sl_bool writeUint8(sl_uint8 value);
 
-		Memory getData();
+		sl_bool writeInt16(sl_int16 value, EndianType endian = Endian::Little);
 
-		sl_int64 find(const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_int64 endPosition = -1);
+		sl_bool writeUint16(sl_uint16 value, EndianType endian = Endian::Little);
 
-		sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_int64 endPosition = -1);
+		sl_bool writeInt32(sl_int32 value, EndianType endian = Endian::Little);
 
-	protected:
-		void _initialize();
+		sl_bool writeUint32(sl_uint32 value, EndianType endian = Endian::Little);
 
-		void _initialize(sl_size size);
+		sl_bool writeInt64(sl_int64 value, EndianType endian = Endian::Little);
 
-		void _initialize(void* data, sl_size size);
+		sl_bool writeUint64(sl_uint64 value, EndianType endian = Endian::Little);
 
-		void _initialize(const Memory& mem);
+		sl_bool writeFloat(float value, EndianType endian = Endian::Little);
 
-		sl_bool _growCapacity(sl_size size);
+		sl_bool writeDouble(double value, EndianType endian = Endian::Little);
 
 	protected:
 		void* m_buf;
 		sl_size m_size;
 		sl_size m_offset;
-		sl_bool m_flagResizable;
-		Memory m_data;
-	
-	};
+		Memory m_mem;
 
+	};
+	
 }
 
 #endif

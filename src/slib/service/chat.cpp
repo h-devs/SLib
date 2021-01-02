@@ -22,7 +22,8 @@
 
 #include "slib/service/chat.h"
 
-#include "slib/core/memory_io.h"
+#include "slib/core/memory_reader.h"
+#include "slib/core/memory_output.h"
 
 namespace slib
 {
@@ -38,7 +39,7 @@ namespace slib
 
 	Memory ChatMessageBody::packBody() const
 	{
-		MemoryWriter writer;
+		MemoryOutput writer;
 		writer.writeTime(time);
 		sl_uint16 flags = (((sl_uint16)flagEncrypted) << 7) | (((sl_uint16)flagInlined) << 6) | ((sl_uint16)contentType);
 		writer.writeUint16(flags);

@@ -20,12 +20,10 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_BIT_IO
-#define CHECKHEADER_SLIB_CORE_BIT_IO
+#ifndef CHECKHEADER_SLIB_CORE_BIT_WRITER
+#define CHECKHEADER_SLIB_CORE_BIT_WRITER
 
 #include "definition.h"
-
-#include "io.h"
 
 namespace slib
 {

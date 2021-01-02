@@ -22,8 +22,9 @@
 
 #include "slib/graphics/jpeg.h"
 
+#include "slib/core/memory_reader.h"
+#include "slib/core/memory_output.h"
 #include "slib/core/mio.h"
-#include "slib/core/memory_io.h"
 #include "slib/core/math.h"
 #include "slib/core/file.h"
 
@@ -1410,7 +1411,7 @@ namespace slib
 
 	Memory Jpeg::modifyHuffmanBlocks(const Ptr<IReader, ISeekable>& reader, const Function<void(sl_int16 data[64])>& onLoadBlock)
 	{
-		MemoryWriter writer;
+		MemoryOutput writer;
 		JpegFile file;
 		file.setReader(reader);
 		if (file.readHeader()) {

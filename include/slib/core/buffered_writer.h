@@ -20,54 +20,49 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DOC_PDF
-#define CHECKHEADER_SLIB_DOC_PDF
+#ifndef CHECKHEADER_SLIB_CORE_BUFFERED_WRITER
+#define CHECKHEADER_SLIB_CORE_BUFFERED_WRITER
 
 #include "definition.h"
 
-#include "../core/string.h"
-#include "../core/hash_map.h"
-#include "../core/buffered_reader.h"
+#include "io.h"
+#include "ptrx.h"
+
+#define SLIB_BUFFERED_WRITER_DEFAULT_SIZE 8192
 
 namespace slib
 {
-
-	class SLIB_EXPORT PdfDocument
+	
+	class SLIB_EXPORT BufferedWriter : public Object, public IWriter, public IClosable
 	{
-	public:
-		sl_uint8 majorVersion;
-		sl_uint8 minorVersion;
-		sl_uint32 fileSize;
-		sl_uint32 offsetOfLastCrossRef;
-		HashMap<String, String> lastTrailer;
+		SLIB_DECLARE_OBJECT
+
+	protected:
+		BufferedWriter();
+
+		~BufferedWriter();
 
 	public:
-		PdfDocument();
-
-		~PdfDocument();
+		static Ref<BufferedWriter> create(const Ptrx<IWriter, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_WRITER_DEFAULT_SIZE);
 
 	public:
-		sl_bool setReader(const Ptr<IReader, ISeekable>& reader);
+		sl_reg write(const void* buf, sl_size size) override;
 
-	public:
-		sl_bool readHeader();
+		void close() override;
 
-	public:
-		static sl_bool isEncrypted(const Ptr<IReader, ISeekable>& reader);
-		static sl_bool isEncryptedFile(const StringParam& path);
+	protected:
+		void _init(const Ptrx<IWriter, IClosable>& reader, const Memory& buf);
 
-	private:
-		String readWord();
+	protected:
+		Ref<Referable> m_ref;
+		IWriter* m_writer;
+		IClosable* m_closable;
 
-		sl_bool readInt64(sl_int64& n);
-		sl_bool readUint64(sl_uint64& n);
-		sl_bool readInt32(sl_int32& n);
-		sl_bool readUint32(sl_uint32& n);
+		sl_size m_sizeWrite;
 
-		sl_bool readDictionary(HashMap<String, String>& map);
-
-	private:
-		Ref<BufferedSeekableReader> m_reader;
+		Memory m_buf;
+		sl_uint8* m_dataBuf;
+		sl_size m_sizeBuf;
 
 	};
 

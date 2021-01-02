@@ -1209,7 +1209,7 @@ namespace slib
 					Ref<Referable> obj(getObject());
 					if (obj.isNotNull()) {
 						if (CMemory* p = CastInstance<CMemory>(obj.ptr)) {
-							return String::fromUtf8(p->getData(), p->getCount());
+							return String::fromUtf8(p->getData(), p->getSize());
 						}
 					}
 				}
@@ -1267,7 +1267,7 @@ namespace slib
 					Ref<Referable> obj(getObject());
 					if (obj.isNotNull()) {
 						if (CMemory* p = CastInstance<CMemory>(obj.ptr)) {
-							return String16::fromUtf8(p->getData(), p->getCount());
+							return String16::fromUtf8(p->getData(), p->getSize());
 						}
 					}
 				}

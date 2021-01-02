@@ -22,7 +22,7 @@
 
 #include "slib/dev/pe.h"
 
-#include "slib/core/memory_io.h"
+#include "slib/core/memory_reader.h"
 
 namespace slib
 {

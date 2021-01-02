@@ -151,7 +151,7 @@ namespace slib
 
 		Time readTime();
 
-		Time readTime(Time def);
+		Time readTime(const Time& def);
 	
 		String readTextUTF8(sl_size size);
 

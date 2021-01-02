@@ -20,57 +20,66 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DOC_PDF
-#define CHECKHEADER_SLIB_DOC_PDF
+#ifndef CHECKHEADER_SLIB_CORE_MEMORY_OUTPUT
+#define CHECKHEADER_SLIB_CORE_MEMORY_OUTPUT
 
 #include "definition.h"
 
-#include "../core/string.h"
-#include "../core/hash_map.h"
-#include "../core/buffered_reader.h"
+#include "io.h"
+
+#include "../core/memory_buffer.h"
 
 namespace slib
 {
 
-	class SLIB_EXPORT PdfDocument
+	// MemoryOutput is not thread-safe
+	class SLIB_EXPORT MemoryOutput : public Object, public IWriter
 	{
-	public:
-		sl_uint8 majorVersion;
-		sl_uint8 minorVersion;
-		sl_uint32 fileSize;
-		sl_uint32 offsetOfLastCrossRef;
-		HashMap<String, String> lastTrailer;
+		SLIB_DECLARE_OBJECT
 
 	public:
-		PdfDocument();
+		MemoryOutput();
 
-		~PdfDocument();
-
-	public:
-		sl_bool setReader(const Ptr<IReader, ISeekable>& reader);
+		~MemoryOutput();
 
 	public:
-		sl_bool readHeader();
+		sl_reg write(const void* buf, sl_size size) override;
+
+		sl_reg write(const Memory& mem);
+
+		sl_bool flush();
+
+		sl_size getSize();
+
+		Memory getData();
 
 	public:
-		static sl_bool isEncrypted(const Ptr<IReader, ISeekable>& reader);
-		static sl_bool isEncryptedFile(const StringParam& path);
+		sl_bool writeInt8(sl_int8 value);
 
-	private:
-		String readWord();
+		sl_bool writeUint8(sl_uint8 value);
 
-		sl_bool readInt64(sl_int64& n);
-		sl_bool readUint64(sl_uint64& n);
-		sl_bool readInt32(sl_int32& n);
-		sl_bool readUint32(sl_uint32& n);
+		sl_bool writeInt16(sl_int16 value, EndianType endian = Endian::Little);
 
-		sl_bool readDictionary(HashMap<String, String>& map);
+		sl_bool writeUint16(sl_uint16 value, EndianType endian = Endian::Little);
 
-	private:
-		Ref<BufferedSeekableReader> m_reader;
+		sl_bool writeInt32(sl_int32 value, EndianType endian = Endian::Little);
+
+		sl_bool writeUint32(sl_uint32 value, EndianType endian = Endian::Little);
+
+		sl_bool writeInt64(sl_int64 value, EndianType endian = Endian::Little);
+
+		sl_bool writeUint64(sl_uint64 value, EndianType endian = Endian::Little);
+
+		sl_bool writeFloat(float value, EndianType endian = Endian::Little);
+
+		sl_bool writeDouble(double value, EndianType endian = Endian::Little);
+
+	protected:
+		MemoryBuffer m_queue;
+		List<sl_uint8> m_buffer;
 
 	};
-
+	
 }
 
 #endif

@@ -27,7 +27,6 @@
 
 #include "../core/string.h"
 #include "../core/io_util.h"
-#include "../core/memory_io.h"
 
 namespace slib
 {
@@ -213,6 +212,8 @@ namespace slib
 		sl_bool read(IReader* reader, Memory* pMemory = sl_null);
 
 	};
+
+	class MemoryReader;
 
 	class SLIB_EXPORT RarExtraArea5
 	{

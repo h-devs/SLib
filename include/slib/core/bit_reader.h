@@ -20,57 +20,16 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DOC_PDF
-#define CHECKHEADER_SLIB_DOC_PDF
+#ifndef CHECKHEADER_SLIB_CORE_BIT_READER
+#define CHECKHEADER_SLIB_CORE_BIT_READER
 
 #include "definition.h"
 
-#include "../core/string.h"
-#include "../core/hash_map.h"
-#include "../core/buffered_reader.h"
-
 namespace slib
 {
-
-	class SLIB_EXPORT PdfDocument
-	{
-	public:
-		sl_uint8 majorVersion;
-		sl_uint8 minorVersion;
-		sl_uint32 fileSize;
-		sl_uint32 offsetOfLastCrossRef;
-		HashMap<String, String> lastTrailer;
-
-	public:
-		PdfDocument();
-
-		~PdfDocument();
-
-	public:
-		sl_bool setReader(const Ptr<IReader, ISeekable>& reader);
-
-	public:
-		sl_bool readHeader();
-
-	public:
-		static sl_bool isEncrypted(const Ptr<IReader, ISeekable>& reader);
-		static sl_bool isEncryptedFile(const StringParam& path);
-
-	private:
-		String readWord();
-
-		sl_bool readInt64(sl_int64& n);
-		sl_bool readUint64(sl_uint64& n);
-		sl_bool readInt32(sl_int32& n);
-		sl_bool readUint32(sl_uint32& n);
-
-		sl_bool readDictionary(HashMap<String, String>& map);
-
-	private:
-		Ref<BufferedSeekableReader> m_reader;
-
-	};
-
+	
+	
+	
 }
 
 #endif

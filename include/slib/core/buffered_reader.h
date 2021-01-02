@@ -20,15 +20,15 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_BUFFERED_IO
-#define CHECKHEADER_SLIB_CORE_BUFFERED_IO
+#ifndef CHECKHEADER_SLIB_CORE_BUFFERED_READER
+#define CHECKHEADER_SLIB_CORE_BUFFERED_READER
 
 #include "definition.h"
 
 #include "io.h"
 #include "ptrx.h"
 
-#define SLIB_BUFFERED_IO_DEFAULT_SIZE 8192
+#define SLIB_BUFFERED_READER_DEFAULT_SIZE 8192
 
 namespace slib
 {
@@ -43,7 +43,7 @@ namespace slib
 		~BufferedReader();
 
 	public:
-		static Ref<BufferedReader> create(const Ptrx<IReader, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_IO_DEFAULT_SIZE);
+		static Ref<BufferedReader> create(const Ptrx<IReader, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_READER_DEFAULT_SIZE);
 
 	public:
 		sl_reg read(void* buf, sl_size size) override;
@@ -77,7 +77,7 @@ namespace slib
 		~BufferedSeekableReader();
 
 	public:
-		static Ref<BufferedSeekableReader> create(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_IO_DEFAULT_SIZE);
+		static Ref<BufferedSeekableReader> create(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_READER_DEFAULT_SIZE);
 
 	public:
 		sl_reg read(void*& buf);
