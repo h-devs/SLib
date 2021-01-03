@@ -33,6 +33,7 @@
 namespace slib
 {
 	
+	// Not thread-safe
 	class SLIB_EXPORT BufferedReader : public Object, public IReader, public IClosable
 	{
 		SLIB_DECLARE_OBJECT
@@ -49,6 +50,47 @@ namespace slib
 		sl_reg read(void* buf, sl_size size) override;
 
 		void close() override;
+
+	public:
+		sl_bool readInt8(sl_int8* output);
+
+		sl_int8 readInt8(sl_int8 def = 0);
+
+		sl_bool readUint8(sl_uint8* output);
+
+		sl_uint8 readUint8(sl_uint8 def = 0);
+
+		sl_bool readInt16(sl_int16* output, EndianType endian = Endian::Little);
+
+		sl_int16 readInt16(sl_int16 def = 0, EndianType endian = Endian::Little);
+
+		sl_bool readUint16(sl_uint16* output, EndianType endian = Endian::Little);
+
+		sl_uint16 readUint16(sl_uint16 def = 0, EndianType endian = Endian::Little);
+
+		sl_bool readInt32(sl_int32* output, EndianType endian = Endian::Little);
+
+		sl_int32 readInt32(sl_int32 def = 0, EndianType endian = Endian::Little);
+
+		sl_bool readUint32(sl_uint32* output, EndianType endian = Endian::Little);
+
+		sl_uint32 readUint32(sl_uint32 def = 0, EndianType endian = Endian::Little);
+
+		sl_bool readInt64(sl_int64* output, EndianType endian = Endian::Little);
+
+		sl_int64 readInt64(sl_int64 def = 0, EndianType endian = Endian::Little);
+
+		sl_bool readUint64(sl_uint64* output, EndianType endian = Endian::Little);
+
+		sl_uint64 readUint64(sl_uint64 def = 0, EndianType endian = Endian::Little);
+
+		sl_bool readFloat(float* output, EndianType endian = Endian::Little);
+
+		float readFloat(float def = 0, EndianType endian = Endian::Little);
+
+		sl_bool readDouble(double* output, EndianType endian = Endian::Little);
+
+		double readDouble(double def = 0, EndianType endian = Endian::Little);
 
 	private:
 		void _init(const Ptrx<IReader, IClosable>& reader, const Memory& buf);
