@@ -2800,7 +2800,7 @@ namespace slib
 			if (flush()) {
 				Memory mem = Memory::create(buf, size);
 				if (mem.isNotNull()) {
-					if (m_queue.add(Move(mem))) {
+					if (m_queue.add(mem)) {
 						return size;
 					}
 				}

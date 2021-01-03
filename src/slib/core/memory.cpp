@@ -223,8 +223,9 @@ namespace slib
 				return (CMemory*)this;
 			}
 			if (size) {
-				if (m_flagStatic) {
-					return createStatic((sl_uint8*)m_data + offset, size, m_refer.ptr);
+				Referable* refer = m_refer.ptr;
+				if (refer) {
+					return createStatic((sl_uint8*)m_data + offset, size, refer);
 				} else {
 					return createStatic((sl_uint8*)m_data + offset, size, (Referable*)this);
 				}
@@ -440,9 +441,8 @@ namespace slib
 		if (obj) {
 			data.data = obj->getData();
 			data.size = obj->getSize();
-			if (obj->isStatic()) {
-				data.refer = obj->getRefer();
-			} else {
+			data.refer = obj->getRefer();
+			if (data.refer.isNull()) {
 				data.refer = obj;
 			}
 			return sl_true;
