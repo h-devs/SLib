@@ -25,10 +25,129 @@
 
 #include "definition.h"
 
+#include "cpp.h"
+
 namespace slib
 {
-	
-	
+
+	template <class WRITER>
+	class SLIB_EXPORT BitWriterLE
+	{
+	public:
+		WRITER writer;
+		sl_uint32 bitNo;
+		sl_uint8 byte;
+
+	public:
+		template <class T>
+		BitWriterLE(T&& t): writer(Forward<T>(t))
+		{
+			bitNo = 0;
+			byte = 0;
+		}
+
+		~BitWriterLE()
+		{
+			flush();
+		}
+
+	public:
+		template <class T>
+		sl_bool write(T bit)
+		{
+			sl_uint8 old = byte;
+			if (bit) {
+				byte = old | (1 << bitNo);
+			}
+			if (bitNo == 7) {
+				if (writer->writeUint8(byte)) {
+					bitNo = 0;
+					byte = 0;
+					return sl_true;
+				} else {
+					byte = old;
+					return sl_false;
+				}
+			} else {
+				bitNo++;
+				return sl_true;
+			}
+		}
+
+		sl_bool flush()
+		{
+			if (bitNo) {
+				if (writer->writeUint8(byte)) {
+					bitNo = 0;
+					byte = 0;
+					return sl_true;
+				}
+				return sl_false;
+			} else {
+				return sl_true;
+			}
+		}
+
+	};
+
+	template <class WRITER>
+	class SLIB_EXPORT BitWriterBE
+	{
+	public:
+		WRITER writer;
+		sl_uint32 bitNo;
+		sl_uint8 byte;
+
+	public:
+		template <class T>
+		BitWriterBE(T&& t): writer(Forward<T>(t))
+		{
+			bitNo = 7;
+			byte = 0;
+		}
+
+		~BitWriterBE()
+		{
+			flush();
+		}
+
+	public:
+		template <class T>
+		sl_bool write(T bit)
+		{
+			sl_uint8 old = byte;
+			if (bit) {
+				byte = old | (1 << bitNo);
+			}
+			if (bitNo) {
+				bitNo--;
+				return sl_true;
+			} else {
+				if (writer->writeUint8(byte)) {
+					bitNo = 7;
+					byte = 0;
+					return sl_true;
+				} else {
+					byte = old;
+					return sl_false;
+				}
+			}
+		}
+
+		sl_bool flush()
+		{
+			if (bitNo == 7) {
+				return sl_true;
+			} else {
+				if (writer->writeUint8(byte)) {
+					bitNo = 7;
+					byte = 0;
+				}
+				return sl_false;
+			}
+		}
+
+	};
 	
 }
 

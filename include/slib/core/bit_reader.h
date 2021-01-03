@@ -25,11 +25,105 @@
 
 #include "definition.h"
 
+#include "cpp.h"
+
 namespace slib
 {
 	
-	
-	
+	template <class READER>
+	class SLIB_EXPORT BitReaderLE
+	{
+	public:
+		READER reader;
+		sl_uint32 bitNo;
+		sl_uint8 byte;
+
+	public:
+		template <class T>
+		BitReaderLE(T&& t): reader(Forward<T>(t))
+		{
+			bitNo = 8;
+			byte = 0;
+		}
+
+	public:
+		sl_uint8 read()
+		{
+			if (bitNo == 8) {
+				byte = reader->readUint8();
+				bitNo = 0;
+			}
+			sl_uint8 ret = byte & 1;
+			bitNo++;
+			byte >>= 1;
+			return ret;
+		}
+
+		template <class T>
+		sl_bool read(T& _out)
+		{
+			if (bitNo == 8) {
+				if (reader->readUint8(&byte)) {
+					bitNo = 0;
+				} else {
+					return sl_false;
+				}
+			}
+			_out = (T)(byte & 1);
+			bitNo++;
+			byte >>= 1;
+			return sl_true;
+		}
+
+	};
+
+	template <class READER>
+	class SLIB_EXPORT BitReaderBE
+	{
+	public:
+		READER reader;
+		sl_uint32 bitNo;
+		sl_uint8 byte;
+
+	public:
+		template <class T>
+		BitReaderBE(T&& t) : reader(Forward<T>(t))
+		{
+			bitNo = 8;
+			byte = 0;
+		}
+
+	public:
+		sl_uint8 read()
+		{
+			if (bitNo == 8) {
+				byte = reader->readUint8();
+				bitNo = 0;
+			}
+			sl_uint8 ret = byte >> 7;
+			bitNo++;
+			byte <<= 1;
+			return ret;
+		}
+
+		template <class T>
+		sl_bool read(T& _out)
+		{
+			if (bitNo == 8) {
+				if (reader->readUint8(&byte)) {
+					bitNo = 0;
+				} else {
+					return sl_false;
+				}
+			}
+			_out = (T)(byte >> 7);
+			bitNo++;
+			byte <<= 1;
+			return sl_true;
+		}
+
+	};
+
 }
 
 #endif
