@@ -500,20 +500,42 @@ namespace slib
 				}
 			};
 
-			class ColorOp_AddColor
+			class ColorOp_MulAddColor
 			{
 			public:
-				Color colorAdd;
+				Color4f colorMul;
+				Color4f colorAdd;
 				
 			public:
-				SLIB_INLINE ColorOp_AddColor(const Color& color): colorAdd(color)
+				SLIB_INLINE ColorOp_MulAddColor(const Color4f& _colorMul, const Color4f& _colorAdd): colorMul(_colorMul), colorAdd(_colorAdd)
 				{
 				}
 				
 			public:
 				SLIB_INLINE Color operator()(const Color& src) const
 				{
-					return Color(Math::clamp0_255((sl_int32)(src.r) + (sl_int32)(colorAdd.r)), Math::clamp0_255((sl_int32)(src.g) + (sl_int32)(colorAdd.g)), Math::clamp0_255((sl_int32)(src.b) + (sl_int32)(colorAdd.b)), Math::clamp0_255((sl_int32)(src.a) + (sl_int32)(colorAdd.a)));
+					return Color(
+						Math::clamp0_255((sl_int32)(src.r * colorMul.x + colorAdd.x * 255)),
+						Math::clamp0_255((sl_int32)(src.g * colorMul.y + colorAdd.y * 255)),
+						Math::clamp0_255((sl_int32)(src.b * colorMul.z + colorAdd.z * 255)),
+						Math::clamp0_255((sl_int32)(src.a * colorMul.w + colorAdd.w * 255)));
+				}
+			};
+
+			class ColorOp_ColorMatrix
+			{
+			public:
+				const ColorMatrix* cm;
+
+			public:
+				SLIB_INLINE ColorOp_ColorMatrix(const ColorMatrix* _cm) : cm(_cm)
+				{
+				}
+
+			public:
+				SLIB_INLINE Color operator()(const Color& src) const
+				{
+					return cm->transformColor(src);
 				}
 			};
 
@@ -1320,11 +1342,12 @@ namespace slib
 					Stretch::template stretch< Stretch_Smooth<Stretch_Smooth_BoxFilter> >(dst, src, src_op, blend);
 				}
 			}
-		
+
 			template <class COLOR_OP>
-			static void DrawImage(ImageDesc& dst, sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
-						   ImageDesc& src, const COLOR_OP& src_op, sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
-						   BlendMode blend, StretchMode stretch)
+			static void DrawImage(
+				ImageDesc& dst, sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
+				ImageDesc& src, const COLOR_OP& src_op, sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
+				BlendMode blend, StretchMode stretch)
 			{
 				if (dw <= 0 || dh <= 0) {
 					return;
@@ -1418,25 +1441,39 @@ namespace slib
 				descSrc.stride = src.stride;
 				Draw(descDst, descSrc, src_op, blend, stretch);
 			}
-			
-			static void DrawImage(ImageDesc& dst, sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
-						   ImageDesc& src, sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
-						   BlendMode blend, StretchMode stretch)
+
+			static void DrawImage(
+				ImageDesc& dst, sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
+				ImageDesc& src, sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
+				BlendMode blend, StretchMode stretch)
 			{
 				DrawImage(dst, dx, dy, dw, dh,
-						  src, ColorOp_None(), sx, sy, sw, sh,
-						  blend, stretch);
+					src, ColorOp_None(), sx, sy, sw, sh,
+					blend, stretch);
 			}
 
-			static void DrawImage(ImageDesc& dst, sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
-						   ImageDesc& src, const Color& srcAdd, sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
-						   BlendMode blend, StretchMode stretch)
+			static void DrawImage(
+				ImageDesc& dst, sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
+				ImageDesc& src, const Color4f& srcMul, const Color4f& srcAdd,
+				sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
+				BlendMode blend, StretchMode stretch)
 			{
 				DrawImage(dst, dx, dy, dw, dh,
-						  src, ColorOp_AddColor(srcAdd), sx, sy, sw, sh,
-						  blend, stretch);
+					src, ColorOp_MulAddColor(srcMul, srcAdd), sx, sy, sw, sh,
+					blend, stretch);
 			}
-		
+
+			static void DrawImage(
+				ImageDesc& dst, sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
+				ImageDesc& src, const ColorMatrix& cm,
+				sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
+				BlendMode blend, StretchMode stretch)
+			{
+				DrawImage(dst, dx, dy, dw, dh,
+					src, ColorOp_ColorMatrix(&cm), sx, sy, sw, sh,
+					blend, stretch);
+			}
+
 		}
 	}
 	
@@ -1498,7 +1535,8 @@ namespace slib
 	}
 
 	void Image::drawImage(sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
-		const Ref<Image>& src, const Color& srcAdd, sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
+		const Ref<Image>& src, const Color4f& srcMul, const Color4f& srcAdd,
+		sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
 		BlendMode blend, StretchMode stretch)
 	{
 		if (src.isNull()) {
@@ -1506,7 +1544,20 @@ namespace slib
 		}
 		ImageDesc srcDesc;
 		src->getDesc(srcDesc);
-		priv::image::DrawImage(m_desc, dx, dy, dw, dh, srcDesc, srcAdd, sx, sy, sw, sh, blend, stretch);
+		priv::image::DrawImage(m_desc, dx, dy, dw, dh, srcDesc, srcMul, srcAdd, sx, sy, sw, sh, blend, stretch);
+	}
+
+	void Image::drawImage(sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
+		const Ref<Image>& src, const ColorMatrix& cm,
+		sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
+		BlendMode blend, StretchMode stretch)
+	{
+		if (src.isNull()) {
+			return;
+		}
+		ImageDesc srcDesc;
+		src->getDesc(srcDesc);
+		priv::image::DrawImage(m_desc, dx, dy, dw, dh, srcDesc, cm, sx, sy, sw, sh, blend, stretch);
 	}
 
 	void Image::copyBitmap(const Ref<Bitmap>& bitmap, sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height)
@@ -2765,9 +2816,14 @@ namespace slib
 				DrawImage(dst, src, ColorOp_None(), transform, blend, stretch);
 			}
 
-			static void DrawImage(ImageDesc& dst, ImageDesc& src, const Color& srcAdd, const Matrix3& transform, BlendMode blend, StretchMode stretch)
+			static void DrawImage(ImageDesc& dst, ImageDesc& src, const Color4f& srcMul, const Color4f& srcAdd, const Matrix3& transform, BlendMode blend, StretchMode stretch)
 			{
-				DrawImage(dst, src, ColorOp_AddColor(srcAdd), transform, blend, stretch);
+				DrawImage(dst, src, ColorOp_MulAddColor(srcMul, srcAdd), transform, blend, stretch);
+			}
+
+			static void DrawImage(ImageDesc& dst, ImageDesc& src, const ColorMatrix& cm, const Matrix3& transform, BlendMode blend, StretchMode stretch)
+			{
+				DrawImage(dst, src, ColorOp_ColorMatrix(&cm), transform, blend, stretch);
 			}
 
 		}
@@ -2839,14 +2895,24 @@ namespace slib
 		priv::image::DrawImage(m_desc, srcDesc, transform, blend, stretch);
 	}
 
-	void Image::drawImage(const Ref<Image>& src, const Color& srcAdd, const Matrix3& transform, BlendMode blend, StretchMode stretch)
+	void Image::drawImage(const Ref<Image>& src, const Color4f& srcMul, const Color4f& srcAdd, const Matrix3& transform, BlendMode blend, StretchMode stretch)
 	{
 		if (src.isNull()) {
 			return;
 		}
 		ImageDesc srcDesc;
 		src->getDesc(srcDesc);
-		priv::image::DrawImage(m_desc, srcDesc, srcAdd, transform, blend, stretch);
+		priv::image::DrawImage(m_desc, srcDesc, srcMul, srcAdd, transform, blend, stretch);
+	}
+
+	void Image::drawImage(const Ref<Image>& src, const ColorMatrix& cm, const Matrix3& transform, BlendMode blend, StretchMode stretch)
+	{
+		if (src.isNull()) {
+			return;
+		}
+		ImageDesc srcDesc;
+		src->getDesc(srcDesc);
+		priv::image::DrawImage(m_desc, srcDesc, cm, transform, blend, stretch);
 	}
 
 	sl_bool Image::getDrawnBounds(Rectanglei* _out) const

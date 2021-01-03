@@ -231,23 +231,15 @@ namespace slib
 
 							if (fa->getCharImage(ch, fac)) {
 
-								sl_real fw = fac.fontWidth;
-								sl_real fh = fac.fontHeight;
-								sl_real fxn = fx + fw;
-
 								if (fac.image.isNotNull()) {
-
-									Rectangle rcDst;
-									rcDst.left = fx;
-									rcDst.right = fxn;
-									rcDst.top = y + (fontHeight - fh);
-									rcDst.bottom = rcDst.top + fh;
-
-									image->drawImage(rcDst, fac.image);
-
+									image->drawImage(
+										(sl_int32)fx, (sl_int32)(y + (fontHeight - fac.fontHeight)),
+										(sl_int32)(fac.fontWidth), (sl_int32)(fac.fontHeight),
+										fac.image, color, Color4f::zero(),
+										0, 0, fac.image->getWidth(), fac.image->getHeight());
 								}
 
-								fx = fxn;
+								fx += fac.fontWidth;
 							}
 						}
 					}
