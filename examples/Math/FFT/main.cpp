@@ -5,7 +5,7 @@ using namespace slib;
 #define COUNT 256
 
 int main(int argc, const char * argv[])
-{ 
+{
 	Console::close();
 	
 	Plot plot;
