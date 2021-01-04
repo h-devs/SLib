@@ -2018,8 +2018,9 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool MemoryIO::setSize(sl_uint64 size)
+	sl_bool MemoryIO::setSize(sl_uint64 _size)
 	{
+		sl_size size = (sl_size)_size;
 		if (!m_flagResizable) {
 			return sl_false;
 		}

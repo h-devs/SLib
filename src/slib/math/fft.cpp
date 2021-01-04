@@ -652,7 +652,6 @@ namespace slib
 		} else {
 			cftfsub(n << 1, &(data->real), w);
 		}
-		sl_real* a = &(data->real);
 		sl_real s = (sl_real)(n);
 		for (sl_uint32 i = 0; i < n; i++) {
 			data[i].real /= s;

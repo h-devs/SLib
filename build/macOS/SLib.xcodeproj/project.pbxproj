@@ -451,6 +451,10 @@
 		26FADD30215676D50057F7EA /* stun.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FADD2F215676D40057F7EA /* stun.cpp */; };
 		26FBB34B1ED5581F0086C27A /* ui_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FBB34A1ED5581F0086C27A /* ui_text.cpp */; };
 		26FD9030235DE31600574068 /* charset_ext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FD902F235DE31600574068 /* charset_ext.cpp */; };
+		26FE7D8A25A2F1B300B787F0 /* fft.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8925A2F1B300B787F0 /* fft.cpp */; };
+		26FE7D8D25A2F1B900B787F0 /* plot_ui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8B25A2F1B800B787F0 /* plot_ui.cpp */; };
+		26FE7D8E25A2F1B900B787F0 /* plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8C25A2F1B800B787F0 /* plot.cpp */; };
+		26FE7D9025A2F1CB00B787F0 /* image_canvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8F25A2F1CB00B787F0 /* image_canvas.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -951,6 +955,10 @@
 		26FBDE661DA2B48800FF1B55 /* bitmap_quartz.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = bitmap_quartz.mm; sourceTree = "<group>"; };
 		26FBDE681DA2BDE900FF1B55 /* graphics_platform_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = graphics_platform_apple.mm; sourceTree = "<group>"; };
 		26FD902F235DE31600574068 /* charset_ext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = charset_ext.cpp; sourceTree = "<group>"; };
+		26FE7D8925A2F1B300B787F0 /* fft.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fft.cpp; sourceTree = "<group>"; };
+		26FE7D8B25A2F1B800B787F0 /* plot_ui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = plot_ui.cpp; sourceTree = "<group>"; };
+		26FE7D8C25A2F1B800B787F0 /* plot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = plot.cpp; sourceTree = "<group>"; };
+		26FE7D8F25A2F1CB00B787F0 /* image_canvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = image_canvas.cpp; sourceTree = "<group>"; };
 		A21C166A1BA74E8F006B1FA1 /* hash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = hash.cpp; sourceTree = "<group>"; };
 		A234D6EA1B3F12A600ADDF4E /* content_type.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = content_type.cpp; sourceTree = "<group>"; };
 		A25F2F901B03A32300854DAF /* slib */ = {isa = PBXFileReference; lastKnownFileType = folder; path = slib; sourceTree = "<group>"; };
@@ -1563,6 +1571,7 @@
 				26BFCFC41E41CFC700F4493D /* graphics_text.cpp */,
 				266DD4871C1193C400D47AB0 /* graphics_util.cpp */,
 				266DD48C1C1193C400D47AB0 /* image.cpp */,
+				26FE7D8F25A2F1CB00B787F0 /* image_canvas.cpp */,
 				266DD4881C1193C400D47AB0 /* image_jpeg.cpp */,
 				266DD4891C1193C400D47AB0 /* image_png.cpp */,
 				266DD48A1C1193C400D47AB0 /* image_stb.cpp */,
@@ -1781,7 +1790,10 @@
 			children = (
 				266DD49E1C1193DB00D47AB0 /* bigint.cpp */,
 				26A39D8820EFBCBB004707C9 /* calculator.cpp */,
+				26FE7D8925A2F1B300B787F0 /* fft.cpp */,
 				266DD4A01C1193DB00D47AB0 /* int128.cpp */,
+				26FE7D8C25A2F1B800B787F0 /* plot.cpp */,
+				26FE7D8B25A2F1B800B787F0 /* plot_ui.cpp */,
 			);
 			path = math;
 			sourceTree = "<group>";
@@ -2101,6 +2113,8 @@
 				26E1B8A0222ABAB2007C222E /* jfdctflt.c in Sources */,
 				265EA93B2550D48C0098721F /* file_system_mirror.cpp in Sources */,
 				26E1B876222ABA51007C222E /* pngtrans.c in Sources */,
+				26FE7D8E25A2F1B900B787F0 /* plot.cpp in Sources */,
+				26FE7D8A25A2F1B300B787F0 /* fft.cpp in Sources */,
 				26D9D98B1E964675005F7BD3 /* codec_vpx.cpp in Sources */,
 				26D9D97B1E964675005F7BD3 /* audio_codec.cpp in Sources */,
 				26C1B62C20D4305100E36539 /* bitmap.cpp in Sources */,
@@ -2332,6 +2346,7 @@
 				26D9D9601E964662005F7BD3 /* latlon.cpp in Sources */,
 				26E1B873222ABA51007C222E /* pngrtran.c in Sources */,
 				26F5C77A237AEF44009F3EEF /* contact.cpp in Sources */,
+				26FE7D9025A2F1CB00B787F0 /* image_canvas.cpp in Sources */,
 				26D9D9E71E96468D005F7BD3 /* ui_platform.cpp in Sources */,
 				26D9D9C91E96468D005F7BD3 /* motion_tracker.cpp in Sources */,
 				26C795BF2215F9C70053C5A1 /* raws.cpp in Sources */,
@@ -2413,6 +2428,7 @@
 				26D9D9C61E96468D005F7BD3 /* list_view.cpp in Sources */,
 				262D59A9232587AF00F85780 /* noto_emoji.cpp in Sources */,
 				26C1B63520D4FF5200E36539 /* canvas.cpp in Sources */,
+				26FE7D8D25A2F1B900B787F0 /* plot_ui.cpp in Sources */,
 				26D9D98E1E964675005F7BD3 /* media_player_apple.mm in Sources */,
 				26D9D9931E96467B005F7BD3 /* dns.cpp in Sources */,
 				26C795BC2215F9C70053C5A1 /* drawables.cpp in Sources */,

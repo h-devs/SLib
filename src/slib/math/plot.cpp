@@ -97,7 +97,6 @@ namespace slib
 			Ref<Pen> pen = Pen::createSolidPen(param.size, param.color);
 			Point old;
 			for (sl_size i = 0; i < n; i++) {
-				Point& pt = pts[i];
 				sl_real x = CONVERT_X(pts->x);
 				sl_real y = CONVERT_Y(pts->y);
 				if (i) {
@@ -110,7 +109,6 @@ namespace slib
 		} else {
 			sl_real size = param.size;
 			for (sl_size i = 0; i < n; i++) {
-				Point& pt = pts[i];
 				sl_real x = CONVERT_X(pts->x);
 				sl_real y = CONVERT_Y(pts->y);
 				canvas->fillRectangle(x - size / 2, y - size / 2, size, size, param.color);
