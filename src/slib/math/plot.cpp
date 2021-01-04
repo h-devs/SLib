@@ -133,7 +133,7 @@ namespace slib
 		m_gridColor = Color::Gray;
 		
 		m_labelColor = Color::Black;
-		m_labelFont = Font::create("Arial", 12);
+		m_labelFont = Font::create(sl_null, 15);
 		m_labelMargin = 5;
 		
 		m_marginLeft = 40;

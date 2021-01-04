@@ -218,6 +218,19 @@ namespace slib
 			if (fac.bitmap.isNotNull()) {
 				_out.image = Image::createCopyBitmap(fac.bitmap, fac.region.left, fac.region.top, fac.region.getWidth(), fac.region.getHeight());
 				if (_out.image.isNotNull()) {
+					Color* colors = _out.image->getColors();
+					sl_uint32 width = _out.image->getWidth();
+					sl_uint32 height = _out.image->getHeight();
+					sl_uint32 stride = _out.image->getStride();
+					for (sl_uint32 i = 0; i < height; i++) {
+						Color* c = colors;
+						for (sl_uint32 j = 0; j < width; j++) {
+							c->a = c->a * (c->r + c->g + c->b) / 765;
+							c->r = c->g = c->b = 255;
+							c++;
+						}
+						colors += stride;
+					}
 					m_mapImage.put_NoLock(ch, _out);
 					return sl_true;
 				}
