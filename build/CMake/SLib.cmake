@@ -156,7 +156,10 @@ set (SLIB_CORE_FILES
 
  "${SLIB_PATH}/src/slib/math/bigint.cpp"
  "${SLIB_PATH}/src/slib/math/calculator.cpp"
+ "${SLIB_PATH}/src/slib/math/fft.cpp"
  "${SLIB_PATH}/src/slib/math/int128.cpp"
+ "${SLIB_PATH}/src/slib/math/plot.cpp"
+ "${SLIB_PATH}/src/slib/math/plot_ui.cpp"
 
  "${SLIB_PATH}/src/slib/network/arp.cpp"
  "${SLIB_PATH}/src/slib/network/dns.cpp"
@@ -224,6 +227,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/graphics/graphics_text.cpp"
  "${SLIB_PATH}/src/slib/graphics/graphics_util.cpp"
  "${SLIB_PATH}/src/slib/graphics/image.cpp"
+ "${SLIB_PATH}/src/slib/graphics/image_canvas.cpp"
  "${SLIB_PATH}/src/slib/graphics/image_jpeg.cpp"
  "${SLIB_PATH}/src/slib/graphics/image_png.cpp"
  "${SLIB_PATH}/src/slib/graphics/image_stb.cpp"
