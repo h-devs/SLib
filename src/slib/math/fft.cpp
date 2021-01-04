@@ -269,6 +269,24 @@ namespace slib
 				}
 			}
 
+			static void makect(sl_uint32 nc, sl_uint32 *ip, sl_real *c)
+			{
+				sl_uint32 j, nch;
+				sl_real delta;
+
+				ip[1] = nc;
+				if (nc > 1) {
+					nch = nc >> 1;
+					delta = Math::arctan((sl_real)1) / nch;
+					c[0] = Math::cos(delta * (sl_real)nch);
+					c[nch] = 0.5f * c[0];
+					for (j = 1; j < nch; j++) {
+						c[j] = 0.5f * Math::cos(delta * (sl_real)j);
+						c[nc - j] = 0.5f * Math::sin(delta * (sl_real)j);
+					}
+				}
+			}
+
 			static void cft1st(sl_uint32 n, sl_real *a, sl_real *w)
 			{
 				sl_uint32 j, k1, k2;
@@ -597,6 +615,76 @@ namespace slib
 				}
 			}
 
+			static void rftbsub(sl_uint32 n, sl_real *a, sl_uint32 nc, sl_real *c)
+			{
+				sl_uint32 j, k, kk, ks, m;
+				sl_real wkr, wki, xr, xi, yr, yi;
+
+				a[1] = -a[1];
+				m = n >> 1;
+				ks = 2 * nc / m;
+				kk = 0;
+				for (j = 2; j < m; j += 2) {
+					k = n - j;
+					kk += ks;
+					wkr = 0.5f - c[nc - kk];
+					wki = c[kk];
+					xr = a[j] - a[k];
+					xi = a[j + 1] + a[k + 1];
+					yr = wkr * xr + wki * xi;
+					yi = wkr * xi - wki * xr;
+					a[j] -= yr;
+					a[j + 1] = yi - a[j + 1];
+					a[k] += yr;
+					a[k + 1] = yi - a[k + 1];
+				}
+				a[m + 1] = -a[m + 1];
+			}
+
+			static void rftfsub(sl_uint32 n, sl_real *a, sl_uint32 nc, sl_real *c)
+			{
+				sl_uint32 j, k, kk, ks, m;
+				sl_real wkr, wki, xr, xi, yr, yi;
+
+				m = n >> 1;
+				ks = 2 * nc / m;
+				kk = 0;
+				for (j = 2; j < m; j += 2) {
+					k = n - j;
+					kk += ks;
+					wkr = 0.5f - c[nc - kk];
+					wki = c[kk];
+					xr = a[j] - a[k];
+					xi = a[j + 1] + a[k + 1];
+					yr = wkr * xr - wki * xi;
+					yi = wkr * xi + wki * xr;
+					a[j] -= yr;
+					a[j + 1] -= yi;
+					a[k] += yr;
+					a[k + 1] -= yi;
+				}
+			}
+
+			static void dctsub(sl_uint32 n, sl_real *a, sl_uint32 nc, sl_real *c)
+			{
+				sl_uint32 j, k, kk, ks, m;
+				sl_real wkr, wki, xr;
+
+				m = n >> 1;
+				ks = nc / n;
+				kk = 0;
+				for (j = 1; j < m; j++) {
+					k = n - j;
+					kk += ks;
+					wkr = c[kk] - c[nc - kk];
+					wki = c[kk] + c[nc - kk];
+					xr = wki * a[j] - wkr * a[k];
+					a[j] = wkr * a[j] + wki * a[k];
+					a[k] = xr;
+				}
+				a[m] *= c[0];
+			}
+
 		}
 	}
 
@@ -620,7 +708,7 @@ namespace slib
 	void FFT::_init(sl_uint32 n)
 	{
 		if (n >= 2) {
-			sl_uint32* ip = new sl_uint32[2 + (sl_uint32)(Math::sqrt((float)n))];
+			sl_uint32* ip = new sl_uint32[2 + n];
 			if (ip) {
 				sl_real* w = new sl_real[n >> 1];
 				if (w) {
@@ -673,6 +761,100 @@ namespace slib
 		} else {
 			cftfsub(n << 1, &(data->real), w);
 		}
+	}
+
+
+	DCT::DCT(sl_uint32 N)
+	{
+		_init(N);
+	}
+
+	DCT::~DCT()
+	{
+		if (m_ip) {
+			delete[] m_ip;
+		}
+		if (m_w) {
+			delete[] m_w;
+		}
+	}
+
+	void DCT::_init(sl_uint32 n)
+	{
+		if (n >= 2) {
+			sl_uint32* ip = new sl_uint32[2 + n];
+			if (ip) {
+				sl_real* w = new sl_real[n << 1];
+				if (w) {
+					makewt(n >> 2, ip, w);
+					makect(n, ip, w + (n >> 2));
+					m_count = n;
+					m_ip = ip;
+					m_w = w;
+					return;
+				}
+				delete[] ip;
+			}
+		}
+		m_count = 0;
+		m_ip = sl_null;
+		m_w = sl_null;
+	}
+
+	void DCT::transform(sl_real* a) const
+	{
+		sl_uint32 n = m_count;
+		if (n < 4) {
+			return;
+		}
+		sl_real xr = a[n - 1];
+		for (sl_uint32 j = n - 2; j >= 2; j -= 2) {
+			a[j + 1] = a[j] - a[j - 1];
+			a[j] += a[j - 1];
+		}
+		a[1] = a[0] - xr;
+		a[0] += xr;
+		if (n > 4) {
+			rftbsub(n, a, n, m_w + (n >> 2));
+			bitrv2(n, m_ip + 2, a);
+			cftbsub(n, a, m_w);
+		} else {
+			cftfsub(n, a, m_w);
+		}
+		dctsub(n, a, n, m_w + (n >> 2));
+		sl_real s = Math::sqrt((sl_real)2 / (sl_real)n);
+		for (sl_uint32 i = 1; i < n; i++) {
+			a[i] *= s;
+		}
+		a[0] *= Math::sqrt((sl_real)1 / (sl_real)n);
+	}
+
+	void DCT::inverse(sl_real* a) const
+	{
+		sl_uint32 n = m_count;
+		if (n < 4) {
+			return;
+		}
+		sl_real s = Math::sqrt((sl_real)2 / (sl_real)n);
+		for (sl_uint32 i = 1; i < n; i++) {
+			a[i] *= s;
+		}
+		a[0] *= Math::sqrt((sl_real)1 / (sl_real)n);
+		dctsub(n, a, n, m_w + (n >> 2));
+		if (n > 4) {
+			bitrv2(n, m_ip + 2, a);
+			cftfsub(n, a, m_w);
+			rftfsub(n, a, n, m_w + (n >> 2));
+		} else if (n == 4) {
+			cftfsub(n, a, m_w);
+		}
+		sl_real xr = a[0] - a[1];
+		a[0] += a[1];
+		for (sl_uint32 j = 2; j < n; j += 2) {
+			a[j - 1] = a[j] - a[j + 1];
+			a[j] += a[j + 1];
+		}
+		a[n - 1] = xr;
 	}
 
 }

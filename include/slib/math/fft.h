@@ -57,6 +57,30 @@ namespace slib
 
 	};
 
+
+	class SLIB_EXPORT DCT
+	{
+	public:
+		// N: count of input/output data, power of 2 ( N = 2^O )
+		DCT(sl_uint32 N);
+
+		~DCT();
+
+	public:
+		void transform(sl_real* data) const;
+
+		void inverse(sl_real* data) const;
+
+	protected:
+		void _init(sl_uint32 N);
+
+	protected:
+		sl_uint32 m_count;
+		sl_uint32* m_ip; // work area for bit reversal
+		sl_real* m_w; // cos/sin table
+
+	};
+
 }
 
 #endif
