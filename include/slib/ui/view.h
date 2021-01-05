@@ -106,6 +106,10 @@ namespace slib
 		
 		// set before attaching
 		void setCreatingEmptyContent(sl_bool flag = sl_true);
+
+		sl_bool isDoubleBuffer();
+
+		void setDoubleBuffer(sl_bool flag = sl_true);
 		
 		UIAttachMode getAttachMode();
 		
@@ -1545,6 +1549,7 @@ namespace slib
 		sl_bool m_flagCreatingNativeLayer : 1;
 		sl_bool m_flagCreatingLargeContent: 1;
 		sl_bool m_flagCreatingEmptyContent: 1;
+		sl_bool m_flagDoubleBuffer: 1;
 		sl_bool m_flagUsingChildLayouts : 1;
 		sl_bool m_flagEnabled : 1;
 		sl_bool m_flagHitTestable : 1;

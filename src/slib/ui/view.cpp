@@ -53,6 +53,7 @@ namespace slib
 		m_flagCreatingNativeLayer(sl_false),
 		m_flagCreatingLargeContent(sl_false),
 		m_flagCreatingEmptyContent(sl_false),
+		m_flagDoubleBuffer(sl_true),
 		m_flagUsingChildLayouts(sl_true),
 		m_flagEnabled(sl_true),
 		m_flagHitTestable(sl_true),
@@ -541,6 +542,16 @@ namespace slib
 	void View::setCreatingEmptyContent(sl_bool flag)
 	{
 		m_flagCreatingEmptyContent = flag;
+	}
+
+	sl_bool View::isDoubleBuffer()
+	{
+		return m_flagDoubleBuffer;
+	}
+
+	void View::setDoubleBuffer(sl_bool flag)
+	{
+		m_flagDoubleBuffer = flag;
 	}
 
 	UIAttachMode View::getAttachMode()

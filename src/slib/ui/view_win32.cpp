@@ -919,9 +919,46 @@ namespace slib
 			return;
 		}
 
+		UIRect rc = canvas->getInvalidatedRect();
+
+		sl_bool flagOpaque = sl_false;
+		Color colorBack;
+		if (view->isOpaque()) {
+			flagOpaque = sl_true;
+		} else {
+			if (m_flagWindowContent) {
+				Ref<Window> window = view->getWindow();
+				if (window.isNull()) {
+					return;
+				}
+				colorBack = view->getBackgroundColor();
+				if (colorBack.a == 255) {
+					flagOpaque = sl_true;
+				} else {
+					colorBack = window->getBackgroundColor();
+				}
+			}
+			if (!flagOpaque) {
+				Color c = GetDefaultBackColor();
+				c.blend_PA_NPA(colorBack);
+				colorBack = c;
+			}
+		}
+		
+		if (!(view->isDoubleBuffer())) {
+			if (!flagOpaque) {
+				if (colorBack.isNotZero()) {
+					canvas->fillRectangle(rc, colorBack);
+				} else {
+					canvas->fillRectangle(rc, Color::White);
+				}
+			}
+			view->dispatchDraw(canvas);
+			return;
+		}
+
 		static Ref<Bitmap> bitmap;
 		static Ref<Canvas> canvasBitmap;
-		UIRect rc = canvas->getInvalidatedRect();
 		UISize size = rc.getSize();
 		if (size.x < 1) {
 			return;
@@ -958,30 +995,13 @@ namespace slib
 			canvasBitmap->setAntiAlias(sl_false);
 		}
 
-		do {
-			if (view->isOpaque()) {
-				break;
-			}
-			Color colorBack(0);
-			if (m_flagWindowContent) {
-				Ref<Window> window = view->getWindow();
-				if (window.isNull()) {
-					return;
-				}
-				colorBack = window->getBackgroundColor();
-				if (colorBack.a == 255) {
-					break;
-				}
-			}
-			Color c = GetDefaultBackColor();
-			c.blend_PA_NPA(colorBack);
-			colorBack = c;
+		if (!flagOpaque) {
 			if (colorBack.isNotZero()) {
 				bitmap->resetPixels(0, 0, widthBitmap, heightBitmap, colorBack);
 			} else {
 				bitmap->resetPixels(0, 0, widthBitmap, 1, Color::White);
 			}
-		} while (0);
+		}
 		rc.setSize(size);
 		canvasBitmap->setInvalidatedRect(rc);
 		CanvasStateScope scope(canvasBitmap.get());
