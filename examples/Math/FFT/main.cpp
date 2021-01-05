@@ -3,7 +3,7 @@
 using namespace slib;
 
 #define COUNT 256
-#define USE_DCT
+//#define USE_DCT
 
 int main(int argc, const char * argv[])
 {
