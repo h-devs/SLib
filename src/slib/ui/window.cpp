@@ -1299,11 +1299,6 @@ namespace slib
 				window->activate();
 			}
 
-			Ref<View> focus = m_viewInitialFocus;
-			if (focus.isNotNull()) {
-				focus->setFocus();
-			}
-
 		} else {
 			dispatchCreateFailed();
 		}
@@ -1515,6 +1510,10 @@ namespace slib
 			if (viewContent.isNotNull()) {
 				if (!(viewContent->isInstance())) {
 					_attachContent();
+					Ref<View> focus = m_viewInitialFocus;
+					if (focus.isNotNull()) {
+						focus->setFocus();
+					}
 				}
 			}
 		}
