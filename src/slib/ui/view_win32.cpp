@@ -49,6 +49,9 @@ namespace slib
 		{
 
 			sl_bool g_flagDuringPaint = sl_false;
+			
+			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Bitmap>, g_bitmapDoubleBuffer)
+			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Canvas>, g_canvasDoubleBuffer)
 
 			Color GetDefaultBackColor()
 			{
@@ -957,8 +960,6 @@ namespace slib
 			return;
 		}
 
-		static Ref<Bitmap> bitmap;
-		static Ref<Canvas> canvasBitmap;
 		UISize size = rc.getSize();
 		if (size.x < 1) {
 			return;
@@ -978,37 +979,40 @@ namespace slib
 		sl_uint32 heightBitmap = (sl_uint32)(size.y);
 		sl_uint32 widthOldBitmap = 0;
 		sl_uint32 heightOldBitmap = 0;
-		if (bitmap.isNotNull()) {
-			widthOldBitmap = bitmap->getWidth();
-			heightOldBitmap = bitmap->getHeight();
+
+		Ref<Bitmap>& bitmapBuffer = g_bitmapDoubleBuffer;
+		Ref<Canvas>& canvasBuffer = g_canvasDoubleBuffer;
+		if (bitmapBuffer.isNotNull()) {
+			widthOldBitmap = bitmapBuffer->getWidth();
+			heightOldBitmap = bitmapBuffer->getHeight();
 		}
-		if (bitmap.isNull() || canvasBitmap.isNull() || widthOldBitmap < widthBitmap || heightOldBitmap < heightBitmap) {
+		if (bitmapBuffer.isNull() || canvasBuffer.isNull() || widthOldBitmap < widthBitmap || heightOldBitmap < heightBitmap) {
 			Ref<Bitmap> bitmapNew = Bitmap::create(Math::max(widthOldBitmap, widthBitmap), Math::max(heightOldBitmap, heightBitmap));
 			if (bitmapNew.isNull()) {
 				return;
 			}
-			bitmap = bitmapNew;
-			canvasBitmap = bitmap->getCanvas();
-			if (canvasBitmap.isNull()) {
+			bitmapBuffer = bitmapNew;
+			canvasBuffer = bitmapBuffer->getCanvas();
+			if (canvasBuffer.isNull()) {
 				return;
 			}
-			canvasBitmap->setAntiAlias(sl_false);
+			canvasBuffer->setAntiAlias(sl_false);
 		}
 
 		if (!flagOpaque) {
 			if (colorBack.isNotZero()) {
-				bitmap->resetPixels(0, 0, widthBitmap, heightBitmap, colorBack);
+				bitmapBuffer->resetPixels(0, 0, widthBitmap, heightBitmap, colorBack);
 			} else {
-				bitmap->resetPixels(0, 0, widthBitmap, 1, Color::White);
+				bitmapBuffer->resetPixels(0, 0, widthBitmap, 1, Color::White);
 			}
 		}
 		rc.setSize(size);
-		canvasBitmap->setInvalidatedRect(rc);
-		CanvasStateScope scope(canvasBitmap.get());
-		canvasBitmap->translate(-(sl_real)(rc.left), -(sl_real)(rc.top));
-		view->dispatchDraw(canvasBitmap.get());
-		canvasBitmap->translate((sl_real)(rc.left), (sl_real)(rc.top));
-		canvas->draw(rc, bitmap, Rectangle(0, 0, (sl_real)(size.x), (sl_real)(size.y)));
+		canvasBuffer->setInvalidatedRect(rc);
+		CanvasStateScope scope(canvasBuffer.get());
+		canvasBuffer->translate(-(sl_real)(rc.left), -(sl_real)(rc.top));
+		view->dispatchDraw(canvasBuffer.get());
+		canvasBuffer->translate((sl_real)(rc.left), (sl_real)(rc.top));
+		canvas->draw(rc, bitmapBuffer, Rectangle(0, 0, (sl_real)(size.x), (sl_real)(size.y)));
 	}
 
 	void Win32_ViewInstance::onPaint()
