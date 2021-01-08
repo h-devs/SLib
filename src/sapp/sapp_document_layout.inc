@@ -291,6 +291,7 @@ namespace slib
 		pp.resource = layout;
 		pp.resourceItem = item;
 		pp.parentResourceItem = parent;
+		pp.name = item->name;
 		if (!(_processLayoutResourceControl(&pp))) {
 			return sl_false;
 		}
@@ -533,6 +534,14 @@ namespace slib
 		if (!(_generateLayoutsCpp_Item(layout, layout, sl_null, sbHeader, sbCpp, sbLayout, String::null()))) {
 			return sl_false;
 		}
+
+		if (layout->initialFocus.isNotEmpty()) {
+			if (layout->layoutType == SAppLayoutType::Window || layout->layoutType == SAppLayoutType::Page) {
+				if (layout->itemsByName.find(layout->initialFocus)) {
+					sbCpp.add(String::format("\t\t\tsetInitialFocus(%s);%n", layout->initialFocus));
+				}
+			}
+		}
 		
 		sbCpp.add(String::format("\t\t}%n%n\t\tvoid %s::layoutViews(sl_ui_len CONTENT_WIDTH, sl_ui_len CONTENT_HEIGHT)%n\t\t{%n", name));
 		sbCpp.link(sbLayout);
@@ -690,6 +699,7 @@ namespace slib
 		pp.window = window.get();
 		pp.view = view;
 		pp.parentView = parentView;
+		pp.name = item->name;
 		pp.flagOnLayout = flagOnLayout;
 		if (!(_processLayoutResourceControl(&pp))) {
 			return Ref<View>::null();
@@ -2389,7 +2399,13 @@ namespace slib
 			LAYOUT_CONTROL_GENERIC_ATTR(playSoundOnClick, setPlaySoundOnClick)
 			LAYOUT_CONTROL_GENERIC_ATTR(clientEdge, setClientEdge)
 		}
-		
+
+		SAppBooleanValue focus;
+		LAYOUT_CONTROL_PARSE_ATTR(, focus)
+		if (focus.flagDefined && focus.value) {
+			resource->initialFocus = name;
+		}
+
 		LAYOUT_CONTROL_ADD_STATEMENT
 		
 	}

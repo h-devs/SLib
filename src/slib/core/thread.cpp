@@ -163,6 +163,9 @@ namespace slib
 	sl_bool Thread::finishAndWait(sl_int32 timeout)
 	{
 		Ref<Thread> thiz = this;
+		if (thiz.isNull()) {
+			return sl_true;
+		}
 		if (isCurrentThread()) {
 			if (m_flagRunning) {
 				m_flagRequestStop = sl_true;
