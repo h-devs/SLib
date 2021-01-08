@@ -104,11 +104,6 @@ namespace slib
 
 	};
 
-	struct EncHuffTableItem {
-		sl_uint32 co;
-		char si;
-	};
-
 	class SLIB_EXPORT JpegAdobeSegment
 	{
 	public:
@@ -139,6 +134,12 @@ namespace slib
 
 	};
 
+	struct SLIB_EXPORT JpegHuffmanEncodeItem
+	{
+		sl_uint16 code;
+		sl_uint8 size;
+	};
+
 	class SLIB_EXPORT JpegHuffmanTable
 	{
 	public:
@@ -148,32 +149,31 @@ namespace slib
 		sl_uint8 bits[16]; // bits[k]: number of symbols with codes of length k+1 bits
 		sl_uint8 values[256];
 
-		sl_uint8 fast[1 << SLIB_JPEG_HUFFMAN_FAST_BITS];
-		sl_int16 fast_ac[1 << SLIB_JPEG_HUFFMAN_FAST_BITS];
-		sl_uint16 code[256];
-		sl_uint8  size[257];
+		sl_uint8 count;
+		sl_uint16 code[257];
+		sl_uint8 size[257];
 		sl_uint32 max_code[18];
 		sl_int32 delta[17];
 
-		sl_uint32 ehufco[256];	/* code for each symbol */
-		sl_int8 ehufsi[256];		/* length of code for each symbol */
+		sl_uint8 fast[1 << SLIB_JPEG_HUFFMAN_FAST_BITS];
+		sl_int16 fast_ac[1 << SLIB_JPEG_HUFFMAN_FAST_BITS];
 
-		static sl_uint8 category[65535];
-		static EncHuffTableItem bitcode[65535];
+		sl_uint16 encode_code[256];
+		sl_uint8 encode_size[256];
 
 	public:
 		JpegHuffmanTable();
 
-		EncHuffTableItem getEncHuffTableItem(sl_int16 index) {
-			EncHuffTableItem item;
-			item.co = ehufco[index];
-			item.si = ehufsi[index];
-			return item;
-		}
-
-		void initCategoryNumber();
-
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(JpegHuffmanTable)
+
+	public:
+		sl_bool build();
+
+		void buildFastAC();
+
+		void buildEncodeItems();
+
+		JpegHuffmanEncodeItem getEncodeItem(sl_int16 index);
 
 	};
 
@@ -322,18 +322,18 @@ namespace slib
 			JpegHuffmanTable& ac_huffman_table
 		);
 
-		void writeBits(const EncHuffTableItem& bs);
+		void writeBits(const JpegHuffmanEncodeItem& item);
 
-		void writeFlush();
+		void flush();
 
 		void restart();
 
-	public:
+	private:
 		JpegFile* m_file;
 		IWriter* m_writer;
 
-		sl_uint8 m_buf;
-		sl_int8 m_len;
+		sl_uint32 m_buf;
+		sl_uint32 m_len;
 
 	};
 
@@ -368,7 +368,7 @@ namespace slib
 		Function<sl_bool(sl_int16 data[64], JpegComponent& component, JpegHuffmanTable& dc_huffman_table, JpegHuffmanTable& ac_huffman_table)> onDecodeHuffmanBlock;
 		Function<void(sl_int32& count)> onDecodeRestartControl;
 		Function<void(sl_uint32 x, sl_uint32 y, sl_uint8 color_index, sl_uint8 data[64])> onLoadBlock;
-		Function<void()> onReachedScandata;
+		Function<void()> onReachedScanData;
 		Function<sl_bool()> onFinishJob;
 		SkippableReader m_reader;
 

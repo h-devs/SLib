@@ -105,137 +105,41 @@ namespace slib
 				return sl_false;
 			}
 
-			static sl_bool BuildHuffman(JpegHuffmanTable& table)
+			class EncodeContext
 			{
-				sl_uint32 i, j;
-				sl_uint32 k = 0;
-				for (i = 0; i < 16; i++) {
-					for (j = 0; j < table.bits[i]; j++) {
-						table.size[k++] = (sl_uint8)(i + 1);
-					}
-				}
-				table.size[k] = 0;
+			public:
+				sl_uint8 category[65535];
+				JpegHuffmanEncodeItem bitcode[65535];
+				sl_bool flagInit;
 
-				sl_uint32 code = 0;
-				k = 0;
-				for (j = 1; j <= 16; j++) {
-					table.delta[j] = k - code;
-					if (table.size[k] == j) {
-						do {
-							table.code[k++] = (sl_uint16)(code++);
-						} while (table.size[k] == j);
-						if (code > (sl_uint32)(1 << j)) {
-							return sl_false;
-						}
-					}
-					table.max_code[j] = code << (16 - j);
-					code <<= 1;
-				}
-				table.max_code[17] = 0xffffffff;
-
-				Base::resetMemory(table.fast, 1 << HUFFMAN_FAST_BITS, 255);
-				for (i = 0; i < k; i++) {
-					sl_uint8 s = table.size[i];
-					if (s <= HUFFMAN_FAST_BITS) {
-						sl_uint32 c = table.code[i] << (HUFFMAN_FAST_BITS - s);
-						sl_uint32 m = 1 << (HUFFMAN_FAST_BITS - s);
-						for (j = 0; j < m; j++) {
-							table.fast[c + j] = (sl_uint8)i;
-						}
-					}
-				}
-				return sl_true;
-			}
-
-			static void BuildFastHuffmanAc(JpegHuffmanTable& table)
-			{
-				sl_uint32 n = 1 << HUFFMAN_FAST_BITS;
-				for (sl_uint32 i = 0; i < n; i++) {
-					sl_uint8 fast = table.fast[i];
-					table.fast_ac[i] = 0;
-					if (fast < 255) {
-						sl_int32 rs = table.values[fast];
-						sl_int32 run = (rs >> 4) & 15;
-						sl_int32 magbits = rs & 15;
-						sl_int32 len = table.size[fast];
-						if (magbits && len + magbits <= HUFFMAN_FAST_BITS) {
-							sl_int32 k = ((i << len) & (n - 1)) >> (HUFFMAN_FAST_BITS - magbits);
-							sl_int32 m = 1 << (magbits - 1);
-							if (k < m) {
-								k += ((sl_uint32)(0xffffffff) << magbits) + 1;
-							}
-							if (k >= -128 && k <= 127) {
-								table.fast_ac[i] = (sl_int16)((k << 8) + (run << 4) + (len + magbits));
-							}
-						}
-					}
-				}
-			}
-			
-			static void BuildHuffDerivedTbl(JpegHuffmanTable& htbl)
-			{
-				int p, i, l, lastp, si, maxsymbol;
-				char huffsize[257];
-				unsigned int huffcode[257];
-				unsigned int code;
-
-				/* Figure C.1: make table of Huffman code length for each symbol */
-
-				p = 0;
-				for (l = 1; l <= 16; l++) {
-					i = (int)htbl.bits[l - 1];
-					if (i < 0 || p + i > 256)	/* protect against table overrun */
+			public:
+				void initialize()
+				{
+					if (flagInit) {
 						return;
-					while (i--)
-						huffsize[p++] = (char)l;
-				}
-				huffsize[p] = 0;
-				lastp = p;
-
-				/* Figure C.2: generate the codes themselves */
-				/* We also validate that the counts represent a legal Huffman code tree. */
-
-				code = 0;
-				si = huffsize[0];
-				p = 0;
-				while (huffsize[p]) {
-					while (((int)huffsize[p]) == si) {
-						huffcode[p++] = code;
-						code++;
 					}
-					/* code is now 1 more than the last code used for codelength si; but
-					* it must still fit in si bits, since no code is allowed to be all ones.
-					*/
-					if (((sl_int32)code) >= (((sl_int32)1) << si))
-						return;
-					code <<= 1;
-					si++;
+					sl_int32 lower = 1;
+					sl_int32 upper = 2;
+					for (sl_int32 cat = 1; cat <= 15; cat++) {
+						sl_int32 v;
+						for (v = lower; v < upper; v++) {
+							category[32767 + v] = cat;
+							bitcode[32767 + v].size = cat;
+							bitcode[32767 + v].code = v;
+						}
+						for (v = -(upper - 1); v <= -lower; v++) {
+							category[32767 + v] = cat;
+							bitcode[32767 + v].size = cat;
+							bitcode[32767 + v].code = upper - 1 + v;
+						}
+						lower <<= 1;
+						upper <<= 1;
+					}
+					flagInit = sl_true;
 				}
 
-				/* Figure C.3: generate encoding tables */
-				/* These are code and size indexed by symbol value */
+			} g_encodeContext = { 0 };
 
-				/* Set all codeless symbols to have code length 0;
-				* this lets us detect duplicate VAL entries here, and later
-				* allows emit_bits to detect any attempt to emit such symbols.
-				*/
-				Base::resetMemory(htbl.ehufsi, sizeof(htbl.ehufsi), 0);
-
-				/* This is also a convenient place to check for out-of-range
-				* and duplicated VAL entries.  We allow 0..255 for AC symbols
-				* but only 0..15 for DC.  (We could constrain them further
-				* based on data depth and mode, but this seems enough.)
-				*/
-				maxsymbol = htbl.flagAC ? 255 : 15;
-
-				for (p = 0; p < lastp; p++) {
-					i = htbl.values[p];
-					if (i < 0 || i > maxsymbol || htbl.ehufsi[i])
-						return;
-					htbl.ehufco[i] = huffcode[p];
-					htbl.ehufsi[i] = huffsize[p];
-				}
-			}
 		}
 	}
 
@@ -420,6 +324,7 @@ namespace slib
 
 	JpegHuffmanWriter::JpegHuffmanWriter(JpegFile* file, IWriter* writer) : m_file(file), m_writer(writer)
 	{
+		g_encodeContext.initialize();
 		restart();
 	}
 
@@ -433,68 +338,78 @@ namespace slib
 		JpegHuffmanTable& dc_huffman_table,
 		JpegHuffmanTable& ac_huffman_table)
 	{
-		EncHuffTableItem EOB = ac_huffman_table.getEncHuffTableItem(0);
-		EncHuffTableItem M16zeroes = ac_huffman_table.getEncHuffTableItem(0xF0);
-		sl_int32 pos;
-		sl_int16 I16 = 16;
-		sl_int16 I63 = 63;
+		JpegHuffmanEncodeItem endOfBlock = ac_huffman_table.getEncodeItem(0);
+		JpegHuffmanEncodeItem zero16 = ac_huffman_table.getEncodeItem(0xF0);
 
-		sl_int16 Diff = data[0] - component.dc_Wprediction; component.dc_Wprediction = data[0];
+		sl_int32 diff = data[0] - component.dc_Wprediction;
+		component.dc_Wprediction = data[0];
 		//Encode DC
-		if (Diff == 0) {
-			writeBits(dc_huffman_table.getEncHuffTableItem(0)); // Diff might be 0
+		if (diff) {
+			sl_int32 pos = 32767 + diff;
+			writeBits(dc_huffman_table.getEncodeItem(g_encodeContext.category[pos]));
+			writeBits(g_encodeContext.bitcode[pos]);
 		} else {
-			pos = 32767 + Diff;
-			writeBits(dc_huffman_table.getEncHuffTableItem(JpegHuffmanTable::category[pos]));
-			writeBits(JpegHuffmanTable::bitcode[pos]);
+			writeBits(dc_huffman_table.getEncodeItem(0)); // Diff might be 0
 		}
 		//Encode ACs
-		sl_int16 end0pos = 63; // was const... which is crazy
-		for (; (end0pos>0) && (data[end0pos] == 0); end0pos--) {};
-		//end0pos = first element in reverse order !=0
-		if (end0pos == 0) {
-			writeBits(EOB);
+		sl_int16 posNotZero = 63; // first element in reverse order which is not zero
+		while (posNotZero) {
+			if (data[posNotZero]) {
+				break;
+			}
+			posNotZero--;
+		}
+		if (!posNotZero) {
+			writeBits(endOfBlock);
 			return sl_true;
 		}
 		sl_int16 i = 1;
-		sl_int16 lng;
-		while (i <= end0pos) {
-			sl_int16 startpos = i;
-			for (; (data[i] == 0) && (i <= end0pos); ++i) {}
-			sl_int16 nrzeroes = i - startpos;
-			if (nrzeroes >= I16) {
-				lng = nrzeroes >> 4;
-				for (sl_int16 nrmarker = 1; nrmarker <= lng; ++nrmarker)
-					writeBits(M16zeroes);
-				nrzeroes = nrzeroes & 0xF;
+		while (i <= posNotZero) {
+			sl_int16 value;
+			sl_uint32 nZeros = 0;
+			while (i <= posNotZero) {
+				value = data[i];
+				if (value) {
+					break;
+				} else {
+					nZeros++;
+					i++;
+				}
 			}
-			pos = 32767 + data[i];
-			writeBits(ac_huffman_table.getEncHuffTableItem((nrzeroes << 4) + JpegHuffmanTable::category[pos]));
-			writeBits(JpegHuffmanTable::bitcode[pos]);
+			if (nZeros >= 16) {
+				sl_int32 n = nZeros >> 4;
+				for (sl_int16 i = 0; i < n; i++) {
+					writeBits(zero16);
+				}
+				nZeros &= 15;
+			}
+			sl_int32 pos = 32767 + data[i];
+			writeBits(ac_huffman_table.getEncodeItem((nZeros << 4) + g_encodeContext.category[pos]));
+			writeBits(g_encodeContext.bitcode[pos]);
 			i++;
 		}
-		if (end0pos != I63) {
-			writeBits(EOB);
+		if (posNotZero != 63) {
+			writeBits(endOfBlock);
 		}
 		return sl_true;
 	}
 
-	void JpegHuffmanWriter::writeBits(const EncHuffTableItem& bs)
+	void JpegHuffmanWriter::writeBits(const JpegHuffmanEncodeItem& bs)
 	{
-		sl_uint32 value = bs.co;
-		sl_int8 posval = bs.si - 1;
-		while (posval >= 0) {
-			if (value & (1 << posval)) {
+		sl_uint16 value = bs.code;
+		sl_uint8 pos = bs.size;
+		while (pos) {
+			pos--;
+			if (value & (1 << pos)) {
 				m_buf |= (1 << m_len);
 			}
-			posval--;
-			m_len--;
-			if (m_len < 0) {
+			if (m_len) {
+				m_len--;
+			} else {
 				if (m_buf == 0xFF) {
 					m_writer->writeInt8((sl_uint8)0xFF);
 					m_writer->writeInt8(0);
-				}
-				else {
+				} else {
 					m_writer->writeInt8(m_buf);
 				}
 				restart();
@@ -502,12 +417,12 @@ namespace slib
 		}
 	}
 
-	void JpegHuffmanWriter::writeFlush()
+	void JpegHuffmanWriter::flush()
 	{
-		EncHuffTableItem EOB;
-		EOB.co = 0x7f;
-		EOB.si = 7;
-		writeBits(EOB);
+		JpegHuffmanEncodeItem item;
+		item.size = m_len + 1;
+		item.code = (sl_int16)((1 << (m_len + 1)) - 1);
+		writeBits(item);
 	}
 
 	void JpegHuffmanWriter::restart()
@@ -537,34 +452,92 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(JpegHuffmanTable)
 
-	sl_uint8 JpegHuffmanTable::category[65535] = { 0 };
-	EncHuffTableItem JpegHuffmanTable::bitcode[65535] = { 0 };
-	
 	JpegHuffmanTable::JpegHuffmanTable(): flagDefined(sl_false)
 	{
-		initCategoryNumber();
 	}
 
-	void JpegHuffmanTable::initCategoryNumber()
+	sl_bool JpegHuffmanTable::build()
 	{
-		sl_int32 nrlower = 1;
-		sl_int32 nrupper = 2;
-		for (sl_int32 cat = 1; cat <= 15; cat++) {
-			//Positive numbers
-			for (sl_int32 nr = nrlower; nr<nrupper; nr++) {
-				category[32767 + nr] = cat;
-				bitcode[32767 + nr].si = cat;
-				bitcode[32767 + nr].co = nr;
+		JpegHuffmanTable& table = *this;
+		sl_uint32 i, j;
+		sl_uint32 k = 0;
+		for (i = 0; i < 16; i++) {
+			for (j = 0; j < table.bits[i]; j++) {
+				table.size[k++] = (sl_uint8)(i + 1);
 			}
-			//Negative numbers
-			for (sl_int32 nrneg = -(nrupper - 1); nrneg <= -nrlower; nrneg++) {
-				category[32767 + nrneg] = cat;
-				bitcode[32767 + nrneg].si = cat;
-				bitcode[32767 + nrneg].co = nrupper - 1 + nrneg;
-			}
-			nrlower <<= 1;
-			nrupper <<= 1;
 		}
+		table.size[k] = 0;
+		table.count = k;
+
+		sl_uint32 code = 0;
+		k = 0;
+		for (j = 1; j <= 16; j++) {
+			table.delta[j] = k - code;
+			if (table.size[k] == j) {
+				do {
+					table.code[k++] = (sl_uint16)(code++);
+				} while (table.size[k] == j);
+				if (code > (sl_uint32)(1 << j)) {
+					return sl_false;
+				}
+			}
+			table.max_code[j] = code << (16 - j);
+			code <<= 1;
+		}
+		table.max_code[17] = 0xffffffff;
+
+		Base::resetMemory(table.fast, 1 << HUFFMAN_FAST_BITS, 255);
+		for (i = 0; i < k; i++) {
+			sl_uint8 s = table.size[i];
+			if (s <= HUFFMAN_FAST_BITS) {
+				sl_uint32 c = table.code[i] << (HUFFMAN_FAST_BITS - s);
+				sl_uint32 m = 1 << (HUFFMAN_FAST_BITS - s);
+				for (j = 0; j < m; j++) {
+					table.fast[c + j] = (sl_uint8)i;
+				}
+			}
+		}
+		return sl_true;
+	}
+
+	void JpegHuffmanTable::buildFastAC()
+	{
+		JpegHuffmanTable& table = *this;
+		sl_uint32 n = 1 << HUFFMAN_FAST_BITS;
+		for (sl_uint32 i = 0; i < n; i++) {
+			sl_uint8 v = table.fast[i];
+			table.fast_ac[i] = 0;
+			if (v < 255) {
+				sl_int32 rs = table.values[v];
+				sl_int32 run = (rs >> 4) & 15;
+				sl_int32 magbits = rs & 15;
+				sl_int32 len = table.size[v];
+				if (magbits && len + magbits <= HUFFMAN_FAST_BITS) {
+					sl_int32 k = ((i << len) & (n - 1)) >> (HUFFMAN_FAST_BITS - magbits);
+					sl_int32 m = 1 << (magbits - 1);
+					if (k < m) {
+						k += ((sl_uint32)(0xffffffff) << magbits) + 1;
+					}
+					if (k >= -128 && k <= 127) {
+						table.fast_ac[i] = (sl_int16)((k << 8) + (run << 4) + (len + magbits));
+					}
+				}
+			}
+		}
+	}
+
+	void JpegHuffmanTable::buildEncodeItems()
+	{
+		for (sl_uint8 p = 0; p < count; p++) {
+			sl_uint8 v = values[p];
+			encode_code[v] = code[p];
+			encode_size[v] = size[p];
+		}
+	}
+
+	JpegHuffmanEncodeItem JpegHuffmanTable::getEncodeItem(sl_int16 index)
+	{
+		return {encode_code[index], encode_size[index]};
 	}
 
 
@@ -662,8 +635,8 @@ namespace slib
 					break;
 				}
 				if (marker.code == JpegMarkerCode::SOS) {
-					if (onReachedScandata.isNotNull()) {
-						onReachedScandata();
+					if (onReachedScanData.isNotNull()) {
+						onReachedScanData();
 					}
 					if (!(readScanData())) {
 						return sl_false;
@@ -979,19 +952,15 @@ namespace slib
 			if (nTotal > 256) {
 				return sl_false;
 			}
-
-			BuildHuffman(table);
-
 			if (reader->readFully(table.values, nTotal) != nTotal) {
 				return sl_false;
 			}
-
-			BuildHuffDerivedTbl(table);
-
 			nRead += nTotal;
 
+			table.build();
+			table.buildEncodeItems();
 			if (flagAC) {
-				BuildFastHuffmanAc(table);
+				table.buildFastAC();
 			}
 
 			table.flagDefined = sl_true;
@@ -1411,21 +1380,25 @@ namespace slib
 
 	Memory Jpeg::modifyHuffmanBlocks(const Ptr<IReader, ISeekable>& reader, const Function<void(sl_int16 data[64])>& onLoadBlock)
 	{
-		MemoryOutput writer;
 		JpegFile file;
 		file.setReader(reader);
+
 		if (file.readHeader()) {
+
+			MemoryOutput writer;
 			JpegHuffmanWriter huffWriter(&file, &writer);
 			sl_int32 nRestartIndex = 0;
+
 			file.onDecodeHuffmanBlock = [&huffWriter, &file, onLoadBlock](sl_int16 data[64], JpegComponent& comp, JpegHuffmanTable& dc_huffman_table, JpegHuffmanTable& ac_huffman_table) {
 				onLoadBlock(data);
 				huffWriter.encodeBlock(data, comp, dc_huffman_table, ac_huffman_table);// encode and write data;
 				return sl_true;
 			};
+
 			file.onDecodeRestartControl = [&file, &writer, &huffWriter, &nRestartIndex](sl_int32& count) {
 				if (nRestartIndex > 0) {
 					sl_uint8 value = Math::abs(nRestartIndex - 1) % 8;
-					huffWriter.writeFlush();
+					huffWriter.flush();
 					// RST Marker
 					writer.writeUint8(0xFF);
 					writer.writeUint8((sl_uint8)(JpegMarkerCode::RST0) + value);
@@ -1434,7 +1407,7 @@ namespace slib
 				huffWriter.restart();
 			};
 
-			file.onReachedScandata = [&file, &writer]() {
+			file.onReachedScanData = [&file, &writer]() {
 				sl_size headerSize = (sl_size)(file.m_reader.getPosition());
 				if (file.m_reader.getSeekable()->seekToBegin()) {
 					Memory buf = file.m_reader.readToMemory(headerSize);
@@ -1445,12 +1418,7 @@ namespace slib
 			};
 
 			if (file.readContent()) {
-				if (huffWriter.m_len >= 0) {
-					EncHuffTableItem fillbits = { 0 };
-					fillbits.si = huffWriter.m_len + 1;
-					fillbits.co = (1 << (huffWriter.m_len + 1)) - 1;
-					huffWriter.writeBits(fillbits);
-				}
+				huffWriter.flush();
 				writer.writeUint8(0xFF);
 				writer.writeUint8((sl_uint8)(JpegMarkerCode::EOI)); //EOI
 				return writer.getData();
