@@ -45,6 +45,7 @@
 #include "include/views/cef_browser_view.h"
 #include "include/wrapper/cef_helpers.h"
 #include "include/wrapper/cef_stream_resource_handler.h"
+#include "include/wrapper/cef_closure_task.h"
 
 #ifdef SLIB_UI_IS_MACOS
 
@@ -413,14 +414,14 @@ namespace slib
 				
 				void closeBrowsers()
 				{
-					CefBrowser* browser = m_browser.get();
-					if (browser) {
-						m_browser = sl_null;
-					}
 					CefBrowserHost* host = m_host.get();
 					if (host) {
 						host->CloseBrowser(sl_true);
 						m_host = sl_null;
+					}
+					CefBrowser* browser = m_browser.get();
+					if (browser) {
+						m_browser = sl_null;
 					}
 				}
 				
@@ -686,9 +687,7 @@ namespace slib
 			}
 			
 			
-			StaticContext::StaticContext() :
-			app(new ChromiumApp),
-			handler(new ChromiumHandler)
+			StaticContext::StaticContext(): app(new ChromiumApp), handler(new ChromiumHandler)
 			{
 				app->m_context = this;
 				handler->m_context = this;
@@ -698,8 +697,14 @@ namespace slib
 			{
 			}
 			
-			void CloseBrowsers()
+			static void CloseBrowsers()
 			{
+#ifndef SLIB_UI_IS_MACOS
+				if (!CefCurrentlyOn(TID_UI)) {
+					CefPostTask(TID_UI, base::Bind(&CloseBrowsers));
+					return;
+				}
+#endif
 				StaticContext* context = GetStaticContext();
 				if (!context) {
 					return;
@@ -719,12 +724,12 @@ namespace slib
 			}
 			
 #ifdef SLIB_UI_IS_MACOS
-			void ChromiumRunLoop()
+			static void ChromiumRunLoop()
 			{
 				CefRunMessageLoop();
 			}
 			
-			void QuitApp()
+			static void QuitApp()
 			{
 				StaticContext* context = GetStaticContext();
 				if (!context) {
@@ -744,7 +749,7 @@ namespace slib
 			}
 #endif
 			
-			void Startup(CefMainArgs& args, const ChromiumSettings& _settings)
+			static void Startup(CefMainArgs& args, const ChromiumSettings& _settings)
 			{
 				
 				printf("Starting Chromium Embeded Framework\n");
@@ -819,7 +824,7 @@ namespace slib
 				
 			}
 			
-			void Shutdown()
+			static void Shutdown()
 			{
 #ifndef SLIB_UI_IS_MACOS
 				StaticContext* context = GetStaticContext();
