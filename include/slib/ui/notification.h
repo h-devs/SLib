@@ -26,6 +26,7 @@
 #include "definition.h"
 
 #include "../core/function.h"
+#include "../core/flags.h"
 #include "../service/push_notification.h"
 #include "../graphics/image.h"
 

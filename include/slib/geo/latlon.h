@@ -26,6 +26,7 @@
 #include "definition.h"
 
 #include "../core/interpolation.h"
+#include "../core/default_members.h"
 
 namespace slib
 {

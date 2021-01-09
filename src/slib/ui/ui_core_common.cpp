@@ -23,6 +23,7 @@
 #include "ui_core_common.h"
 
 #include "slib/core/queue.h"
+#include "slib/core/hash_map.h"
 #include "slib/core/safe_static.h"
 
 namespace slib

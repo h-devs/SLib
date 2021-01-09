@@ -22,6 +22,8 @@
 
 #include "slib/core/ref.h"
 
+#include "slib/core/base.h"
+
 #define PRIV_SIGNATURE 0x15181289
 
 namespace slib

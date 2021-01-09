@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_REFRESH_VIEW
 #define CHECKHEADER_SLIB_UI_REFRESH_VIEW
 
-#include "definition.h"
-
 #include "view.h"
 
 namespace slib

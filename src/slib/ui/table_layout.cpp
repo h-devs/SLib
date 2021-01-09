@@ -22,7 +22,6 @@
 
 #include "slib/ui/table_layout.h"
 
-#include "slib/core/math.h"
 #include "slib/core/scoped.h"
 
 namespace slib

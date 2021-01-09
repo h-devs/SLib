@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_RSA
 #define CHECKHEADER_SLIB_CRYPTO_RSA
 
-#include "definition.h"
-
 #include "hash.h"
 
 #include "../math/bigint.h"

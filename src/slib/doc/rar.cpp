@@ -23,6 +23,7 @@
 #include "slib/doc/rar.h"
 
 #include "slib/core/file.h"
+#include "slib/core/list.h"
 #include "slib/core/memory_reader.h"
 
 namespace slib

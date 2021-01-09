@@ -22,8 +22,9 @@
 
 #include "slib/ui/label_view.h"
 
-#include "slib/graphics/util.h"
+#include "slib/ui/cursor.h"
 #include "slib/ui/core.h"
+#include "slib/graphics/util.h"
 
 namespace slib
 {

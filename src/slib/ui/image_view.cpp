@@ -22,6 +22,7 @@
 
 #include "slib/ui/image_view.h"
 
+#include "slib/graphics/canvas.h"
 #include "slib/core/timer.h"
 
 namespace slib

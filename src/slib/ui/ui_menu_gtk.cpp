@@ -27,6 +27,7 @@
 #include "slib/ui/menu.h"
 
 #include "slib/ui/platform.h"
+#include "slib/core/hash_map.h"
 #include "slib/core/safe_static.h"
 
 #include "view_gtk.h"

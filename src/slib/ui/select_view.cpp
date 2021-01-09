@@ -22,7 +22,7 @@
 
 #include "slib/ui/select_view.h"
 
-#include "slib/ui/core.h"
+#include "slib/graphics/canvas.h"
 #include "slib/core/safe_static.h"
 
 #include "label_list_base_impl.h"

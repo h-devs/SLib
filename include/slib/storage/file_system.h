@@ -25,12 +25,9 @@
 
 #include "definition.h"
 
-#include "../core/object.h"
-#include "../core/string.h"
-#include "../core/time.h"
 #include "../core/file.h"
 #include "../core/hash_map.h"
-#include "../core/system.h"
+#include "../core/platform_type.h"
 
 namespace slib
 {
@@ -66,7 +63,7 @@ namespace slib
 
 		static FileSystemError getLastError();
 
-		static void setLastError(FileSystemError error, PlatformType platform = PlatformType::CurrentPlatform);
+		static void setLastError(FileSystemError error, PlatformType platform = PlatformType::Current);
 
 	};
 

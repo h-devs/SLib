@@ -23,11 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_THREAD
 #define CHECKHEADER_SLIB_CORE_THREAD
 
-#include "definition.h"
-
-#include "mutex.h"
-#include "event.h"
-#include "object.h"
 #include "function.h"
 #include "string.h"
 #include "hash_map.h"
@@ -36,6 +31,8 @@
 
 namespace slib
 {
+
+	class Event;
 	
 	enum class ThreadPriority
 	{

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_CHECK_BOX
 #define CHECKHEADER_SLIB_UI_CHECK_BOX
 
-#include "definition.h"
-
 #include "button.h"
 
 namespace slib

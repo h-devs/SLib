@@ -27,6 +27,7 @@
 
 #include "../core/string.h"
 #include "../core/io_util.h"
+#include "../core/flags.h"
 
 namespace slib
 {

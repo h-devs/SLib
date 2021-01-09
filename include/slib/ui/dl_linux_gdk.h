@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_UI_DL_LINUX_GDK
 #define CHECKHEADER_SLIB_UI_DL_LINUX_GDK
 
-#include "definition.h"
+#include "../core/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 

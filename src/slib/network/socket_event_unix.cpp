@@ -25,6 +25,7 @@
 #if defined(SLIB_PLATFORM_IS_UNIX)
 
 #include "slib/network/event.h"
+
 #include "slib/core/pipe.h"
 #include "slib/core/thread.h"
 #include "slib/core/scoped.h"

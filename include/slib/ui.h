@@ -28,6 +28,7 @@
 #include "ui/core.h"
 #include "ui/cursor.h"
 #include "ui/event.h"
+#include "ui/drag.h"
 #include "ui/text.h"
 #include "ui/screen.h"
 #include "ui/window.h"

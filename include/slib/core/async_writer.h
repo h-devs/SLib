@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_ASYNC_WRITER
 #define CHECKHEADER_SLIB_CORE_ASYNC_WRITER
 
-#include "definition.h"
-
 #include "async_stream_simulator.h"
 #include "ptr.h"
 

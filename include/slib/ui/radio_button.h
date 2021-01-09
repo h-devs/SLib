@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_RADIO_BUTTON
 #define CHECKHEADER_SLIB_UI_RADIO_BUTTON
 
-#include "definition.h"
-
 #include "check_box.h"
 
 namespace slib

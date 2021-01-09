@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_PTRX
 #define CHECKHEADER_SLIB_CORE_PTRX
 
-#include "definition.h"
-
 #include "ptr.h"
 #include "refx.h"
 

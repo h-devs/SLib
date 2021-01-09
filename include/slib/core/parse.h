@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_PARSE
 #define CHECKHEADER_SLIB_CORE_PARSE
 
-#include "definition.h"
-
 #include "string.h"
 
 #define SLIB_PARSE_ERROR (-1)

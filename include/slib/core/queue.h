@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_QUEUE
 #define CHECKHEADER_SLIB_CORE_QUEUE
 
-#include "definition.h"
-
 #include "linked_list.h"
 
 namespace slib

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_SPLIT_LAYOUT
 #define CHECKHEADER_SLIB_UI_SPLIT_LAYOUT
 
-#include "definition.h"
-
 #include "view.h"
 
 namespace slib

@@ -26,6 +26,7 @@
 #include "definition.h"
 
 #include "../core/math.h"
+#include "../core/default_members.h"
 
 namespace slib
 {
@@ -40,20 +41,14 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(ComplexT)
 
-			ComplexT() noexcept = default;
+		ComplexT() noexcept = default;
 
 		template <class O>
-		constexpr ComplexT(const ComplexT<O>& other) noexcept :
-			real((T)(other.real)), imag((T)(other.imag))
-		{}
+		constexpr ComplexT(const ComplexT<O>& other) noexcept: real((T)(other.real)), imag((T)(other.imag)) {}
 
-		constexpr ComplexT(const T& _real, const T& _imag) noexcept :
-			real(_real), imag(_imag)
-		{}
+		constexpr ComplexT(const T& _real, const T& _imag) noexcept: real(_real), imag(_imag) {}
 
-		constexpr ComplexT(const T& _real) noexcept :
-			real(_real), imag(0)
-		{}
+		constexpr ComplexT(const T& _real) noexcept: real(_real), imag(0) {}
 
 	public:
 		ComplexT conjugate() const noexcept

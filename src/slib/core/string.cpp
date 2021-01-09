@@ -26,6 +26,7 @@
 
 #include "slib/core/base.h"
 #include "slib/core/endian.h"
+#include "slib/core/memory.h"
 #include "slib/core/mio.h"
 
 namespace slib

@@ -26,6 +26,7 @@
 
 #include "slib/core/service.h"
 
+#include "slib/core/event.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/windows.h"
 

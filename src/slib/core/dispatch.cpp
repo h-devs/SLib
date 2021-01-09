@@ -23,8 +23,10 @@
 #include "slib/core/dispatch.h"
 #include "slib/core/dispatch_loop.h"
 
-#include "slib/core/safe_static.h"
+#include "slib/core/timer.h"
+#include "slib/core/thread.h"
 #include "slib/core/system.h"
+#include "slib/core/safe_static.h"
 
 namespace slib
 {
@@ -77,6 +79,13 @@ namespace slib
 	Ref<Timer> Dispatch::setInterval(const Function<void(Timer*)>& task, sl_uint64 interval_ms)
 	{
 		return Dispatch::setInterval(DispatchLoop::getDefault(), task, interval_ms);
+	}
+
+
+	SLIB_DEFINE_MEMBER_CLASS_DEFAULT_MEMBERS(DispatchLoop, TimerTask)
+
+	DispatchLoop::TimerTask::TimerTask()
+	{
 	}
 
 

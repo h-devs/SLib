@@ -28,7 +28,7 @@
 
 #include "slib/core/app.h"
 #include "slib/core/thread.h"
-#include "slib/core/time.h"
+#include "slib/core/time_counter.h"
 #include "slib/core/scoped.h"
 #include "slib/core/windows.h"
 

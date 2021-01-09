@@ -23,12 +23,9 @@
 #ifndef CHECKHEADER_SLIB_UI_CORE
 #define CHECKHEADER_SLIB_UI_CORE
 
-#include "definition.h"
-
 #include "event.h"
 
 #include "../core/string.h"
-#include "../core/thread.h"
 #include "../core/function.h"
 #include "../core/dispatch.h"
 

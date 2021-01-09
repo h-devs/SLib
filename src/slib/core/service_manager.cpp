@@ -20,8 +20,6 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
-
 #include "slib/core/service_manager.h"
 
 #ifdef SLIB_PLATFORM_IS_WIN32

@@ -23,14 +23,13 @@
 #ifndef CHECKHEADER_SLIB_CORE_MEMORY_READER
 #define CHECKHEADER_SLIB_CORE_MEMORY_READER
 
-#include "definition.h"
-
 #include "io.h"
 
 namespace slib
 {
 	
-	class SLIB_EXPORT MemoryReader : public Object, public IReader, public ISeekable, public SeekableReaderBase<MemoryReader>
+	// MemoryReader is not thread-safe
+	class SLIB_EXPORT MemoryReader : public Referable, public IReader, public ISeekable, public SeekableReaderBase<MemoryReader>
 	{
 		SLIB_DECLARE_OBJECT
 		

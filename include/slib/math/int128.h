@@ -27,7 +27,6 @@
 
 #include "../core/compare.h"
 #include "../core/hash.h"
-#include "../core/string.h"
 #include "../core/parse.h"
 
 namespace slib

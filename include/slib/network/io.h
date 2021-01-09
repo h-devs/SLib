@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_IO
 #define CHECKHEADER_SLIB_NETWORK_IO
 
-#include "definition.h"
-
 #include "socket.h"
 
 #include "../core/io.h"

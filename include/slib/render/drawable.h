@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_RENDER_DRAWABLE
 #define CHECKHEADER_SLIB_RENDER_DRAWABLE
 
-#include "definition.h"
-
 #include "canvas.h"
 
 #include "../graphics/drawable.h"

@@ -23,15 +23,15 @@
 #ifndef CHECKHEADER_SLIB_CORE_ASYNC
 #define CHECKHEADER_SLIB_CORE_ASYNC
 
-#include "definition.h"
-
 #include "dispatch.h"
 #include "function.h"
 #include "queue.h"
 
 namespace slib
 {
-	
+
+	class Thread;
+
 	enum class AsyncIoMode
 	{
 		None = 0,
@@ -42,8 +42,6 @@ namespace slib
 
 	class AsyncIoInstance;
 	class AsyncIoObject;
-
-	class Thread;
 
 	typedef sl_reg sl_async_handle;
 	#define SLIB_ASYNC_INVALID_HANDLE ((sl_async_handle)(-1))

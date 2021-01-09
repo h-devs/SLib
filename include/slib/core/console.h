@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_CONSOLE
 #define CHECKHEADER_SLIB_CORE_CONSOLE
 
-#include "definition.h"
-
 #include "string.h"
 
 namespace slib

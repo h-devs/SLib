@@ -22,10 +22,12 @@
 
 #include "slib/core/definition.h"
 
+#if defined(SLIB_GRAPHICS_IS_CAIRO)
+
+#include "slib/graphics/canvas.h"
+
 #include "slib/graphics/image.h"
 #include "slib/graphics/platform.h"
-
-#if defined(SLIB_GRAPHICS_IS_CAIRO)
 
 namespace slib
 {

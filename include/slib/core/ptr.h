@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_PTR
 #define CHECKHEADER_SLIB_CORE_PTR
 
-#include "definition.h"
-
 #include "ref.h"
 
 #include <new>

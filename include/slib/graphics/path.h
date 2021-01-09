@@ -23,11 +23,8 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_PATH
 #define CHECKHEADER_SLIB_GRAPHICS_PATH
 
-#include "definition.h"
-
 #include "constants.h"
 
-#include "../core/object.h"
 #include "../core/list.h"
 #include "../math/rectangle.h"
 

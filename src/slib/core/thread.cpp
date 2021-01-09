@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,8 +21,10 @@
  */
 
 #include "slib/core/thread.h"
+#include "slib/core/thread_pool.h"
 
 #include "slib/core/system.h"
+#include "slib/core/event.h"
 #include "slib/core/safe_static.h"
 
 #if defined(SLIB_PLATFORM_IS_ANDROID)
@@ -374,6 +376,156 @@ namespace slib
 		m_handle = sl_null;
 		m_flagRunning = sl_false;
 		m_eventExit->set();
+	}
+
+
+	SLIB_DEFINE_OBJECT(ThreadPool, Dispatcher)
+
+	ThreadPool::ThreadPool()
+	{
+		m_minimumThreadsCount = 1;
+		m_maximumThreadsCount = 30;
+		m_threadStackSize = SLIB_THREAD_DEFAULT_STACK_SIZE;
+		m_flagRunning = sl_true;
+	}
+
+	ThreadPool::~ThreadPool()
+	{
+		release();
+	}
+
+	Ref<ThreadPool> ThreadPool::create(sl_uint32 minThreads, sl_uint32 maxThreads)
+	{
+		Ref<ThreadPool> ret = new ThreadPool();
+		if (ret.isNotNull()) {
+			ret->setMinimumThreadsCount(minThreads);
+			ret->setMaximumThreadsCount(maxThreads);
+		}
+		return ret;
+	}
+
+	sl_uint32 ThreadPool::getMinimumThreadsCount()
+	{
+		return m_minimumThreadsCount;
+	}
+
+	void ThreadPool::setMinimumThreadsCount(sl_uint32 n)
+	{
+		m_minimumThreadsCount = n;
+	}
+
+	sl_uint32 ThreadPool::getMaximumThreadsCount()
+	{
+		return m_maximumThreadsCount;
+	}
+
+	void ThreadPool::setMaximumThreadsCount(sl_uint32 n)
+	{
+		m_maximumThreadsCount = n;
+	}
+
+	sl_uint32 ThreadPool::getThreadStackSize()
+	{
+		return m_threadStackSize;
+	}
+
+	void ThreadPool::setThreadStackSize(sl_uint32 n)
+	{
+		m_threadStackSize = n;
+	}
+
+	void ThreadPool::release()
+	{
+		ObjectLocker lock(this);
+		if (!m_flagRunning) {
+			return;
+		}
+		m_flagRunning = sl_false;
+
+		ListElements< Ref<Thread> > threads(m_threadWorkers);
+		sl_size i;
+		for (i = 0; i < threads.count; i++) {
+			threads[i]->finish();
+		}
+		for (i = 0; i < threads.count; i++) {
+			threads[i]->finishAndWait();
+		}
+	}
+
+	sl_bool ThreadPool::isRunning()
+	{
+		return m_flagRunning;
+	}
+
+	sl_uint32 ThreadPool::getThreadsCount()
+	{
+		return (sl_uint32)(m_threadWorkers.getCount());
+	}
+
+	sl_bool ThreadPool::addTask(const Function<void()>& task)
+	{
+		if (task.isNull()) {
+			return sl_false;
+		}
+		ObjectLocker lock(this);
+		if (!m_flagRunning) {
+			return sl_false;
+		}
+		// add task
+		if (!(m_tasks.push(task))) {
+			return sl_false;
+		}
+
+		// wake a sleeping worker
+		{
+			Ref<Thread> thread;
+			if (m_threadSleeping.pop_NoLock(&thread)) {
+				thread->wakeSelfEvent();
+				return sl_true;
+			}
+		}
+
+		// increase workers
+		{
+			sl_size nThreads = m_threadWorkers.getCount();
+			if (nThreads == 0 || (nThreads < getMaximumThreadsCount())) {
+				Ref<Thread> worker = Thread::start(SLIB_FUNCTION_MEMBER(ThreadPool, onRunWorker, this), getThreadStackSize());
+				if (worker.isNotNull()) {
+					m_threadWorkers.add_NoLock(worker);
+				}
+			}
+		}
+		return sl_true;
+	}
+
+	sl_bool ThreadPool::dispatch(const Function<void()>& callback, sl_uint64 delay_ms)
+	{
+		return addTask(callback);
+	}
+
+	void ThreadPool::onRunWorker()
+	{
+		Ref<Thread> thread = Thread::getCurrent();
+		if (thread.isNull()) {
+			return;
+		}
+		while (m_flagRunning && thread->isNotStopping()) {
+			Function<void()> task;
+			if (m_tasks.pop(&task)) {
+				task();
+			} else {
+				ObjectLocker lock(this);
+				sl_size nThreads = m_threadWorkers.getCount();
+				if (nThreads > getMinimumThreadsCount()) {
+					m_threadWorkers.remove_NoLock(thread);
+					return;
+				} else {
+					m_threadSleeping.push_NoLock(thread);
+					lock.unlock();
+					thread->wait();
+				}
+			}
+		}
 	}
 
 }

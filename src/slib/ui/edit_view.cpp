@@ -27,6 +27,7 @@
 #include "slib/ui/core.h"
 #include "slib/ui/button.h"
 
+#include "slib/core/timer.h"
 #include "slib/core/parse_util.h"
 #include "slib/core/platform_android.h"
 

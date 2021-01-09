@@ -23,11 +23,9 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_VIDEO_CODEC
 #define CHECKHEADER_SLIB_MEDIA_VIDEO_CODEC
 
-#include "definition.h"
-
 #include "video_frame.h"
 
-#include "../core/object.h"
+#include "../core/function.h"
 
 namespace slib
 {

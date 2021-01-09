@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_CHROMIUM
 #define CHECKHEADER_SLIB_UI_CHROMIUM
 
-#include "definition.h"
-
 #include "web_view.h"
 
 namespace slib

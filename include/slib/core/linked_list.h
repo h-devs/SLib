@@ -23,11 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_LINKED_LIST
 #define CHECKHEADER_SLIB_CORE_LINKED_LIST
 
-#include "definition.h"
-
-#include "object.h"
 #include "list.h"
-#include "array.h"
 
 namespace slib
 {

@@ -123,7 +123,6 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/system.cpp"
  "${SLIB_PATH}/src/slib/core/system_unix.cpp"
  "${SLIB_PATH}/src/slib/core/thread.cpp"
- "${SLIB_PATH}/src/slib/core/thread_pool.cpp"
  "${SLIB_PATH}/src/slib/core/thread_unix.cpp"
  "${SLIB_PATH}/src/slib/core/time.cpp"
  "${SLIB_PATH}/src/slib/core/time_unix.cpp"

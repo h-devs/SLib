@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_NEW_HELPER
 #define CHECKHEADER_SLIB_CORE_NEW_HELPER
 
-#include "definition.h"
-
-#include "base.h"
 #include "array_traits.h"
 
 #include <new>

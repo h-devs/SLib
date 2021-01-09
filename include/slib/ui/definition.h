@@ -26,7 +26,6 @@
 #include "../core/definition.h"
 
 #include "../math/rectangle.h"
-#include "../math/point.h"
 
 typedef sl_int32 sl_ui_pos;
 typedef sl_int32 sl_ui_len;

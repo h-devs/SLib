@@ -23,10 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_BUFFERED_READER
 #define CHECKHEADER_SLIB_CORE_BUFFERED_READER
 
-#include "definition.h"
-
-#include "io.h"
+#include "io_base.h"
 #include "ptrx.h"
+#include "memory.h"
 
 #define SLIB_BUFFERED_READER_DEFAULT_SIZE 8192
 
@@ -34,7 +33,7 @@ namespace slib
 {
 	
 	// Not thread-safe
-	class SLIB_EXPORT BufferedReader : public Object, public IReader, public IClosable
+	class SLIB_EXPORT BufferedReader : public Referable, public IReader, public IClosable
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -106,66 +105,6 @@ namespace slib
 		Memory m_buf;
 		sl_uint8* m_dataBuf;
 		sl_size m_sizeBuf;
-
-	};
-
-	class SLIB_EXPORT BufferedSeekableReader : public Object, public IReader, public ISeekable, public IClosable, public SeekableReaderBase<BufferedSeekableReader>
-	{
-		SLIB_DECLARE_OBJECT
-
-	private:
-		BufferedSeekableReader();
-
-		~BufferedSeekableReader();
-
-	public:
-		static Ref<BufferedSeekableReader> create(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_READER_DEFAULT_SIZE);
-
-	public:
-		sl_reg read(void*& buf);
-
-		sl_reg read(void* buf, sl_size size) override;
-
-		using ISeekable::getPosition;
-		sl_bool getPosition(sl_uint64& outPos) override;
-
-		using ISeekable::getSize;
-		sl_bool getSize(sl_uint64& outSize) override;
-
-		sl_bool seek(sl_int64 offset, SeekPosition pos) override;
-
-		void close() override;
-
-	private:
-		void _init(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_uint64 size, const Memory& buf);
-
-		sl_reg _readInBuf(void* buf, sl_size size);
-
-		sl_bool _seekInternal(sl_uint64 pos);
-
-		sl_reg _readInternal(sl_uint64 pos, void* buf, sl_size size);
-
-		sl_reg _fillBuf(sl_uint64 pos, sl_size size);
-
-		sl_reg _fillBuf(sl_uint64 pos);
-
-		sl_reg _readFillingBuf(sl_uint64 pos, void* buf, sl_size size);
-
-	private:
-		Ref<Referable> m_ref;
-		IReader* m_reader;
-		ISeekable* m_seekable;
-		IClosable* m_closable;
-
-		sl_uint64 m_posInternal;
-		sl_uint64 m_posCurrent;
-		sl_uint64 m_sizeTotal;
-
-		Memory m_buf;
-		sl_uint8* m_dataBuf;
-		sl_size m_sizeBuf;
-		sl_size m_sizeRead;
-		sl_uint64 m_posBuf;
 
 	};
 

@@ -23,6 +23,8 @@
 #ifndef CHECKHEADER_SLIB_UI_LABEL_LIST_BASE_IMPL
 #define CHECKHEADER_SLIB_UI_LABEL_LIST_BASE_IMPL
 
+#include "slib/ui/core.h"
+
 namespace slib
 {
 

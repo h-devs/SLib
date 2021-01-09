@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_PROCESS
 #define CHECKHEADER_SLIB_CORE_PROCESS
 
-#include "definition.h"
-
-#include "string.h"
 #include "io.h"
 
 namespace slib

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_ASYNC_COPY
 #define CHECKHEADER_SLIB_CORE_ASYNC_COPY
 
-#include "definition.h"
-
 #include "async_stream.h"
 #include "memory.h"
 

@@ -24,6 +24,5 @@
 #define CHECKHEADER_SLIB_MATH_DEFINITION
 
 #include "../core/definition.h"
-#include "../core/macro.h"
 
 #endif

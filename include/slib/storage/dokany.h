@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_STORAGE_DOKANY
 #define CHECKHEADER_SLIB_STORAGE_DOKANY
 
-#include "definition.h"
+#include "../core/definition.h"
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 

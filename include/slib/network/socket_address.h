@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_SOCKET_ADDRESS
 #define CHECKHEADER_SLIB_NETWORK_SOCKET_ADDRESS
 
-#include "definition.h"
-
 #include "ip_address.h"
 
 #include "../core/string.h"

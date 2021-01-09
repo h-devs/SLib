@@ -26,7 +26,9 @@
 #include "sapp_util.h"
 
 #include "slib/core/variant.h"
+#include "slib/core/time_parse.h"
 #include "slib/math/calculator.h"
+#include "slib/graphics/color_parse.h"
 #include "slib/ui/radio_button.h"
 
 namespace slib

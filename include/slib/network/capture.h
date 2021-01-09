@@ -32,14 +32,10 @@
 		
 *****************************************************************/
 
-#include "definition.h"
-
 #include "constants.h"
 #include "ip_address.h"
 
-#include "../core/object.h"
 #include "../core/time.h"
-#include "../core/string.h"
 #include "../core/function.h"
 
 namespace slib

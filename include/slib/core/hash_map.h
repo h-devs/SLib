@@ -23,11 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_HASH_MAP
 #define CHECKHEADER_SLIB_CORE_HASH_MAP
 
-#include "definition.h"
-
 #include "map.h"
-
-#include "hash.h"
 #include "hash_table.h"
 #include "math.h"
 

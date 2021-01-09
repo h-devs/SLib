@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MATH_TRANSFORM2D
 #define CHECKHEADER_SLIB_MATH_TRANSFORM2D
 
-#include "definition.h"
-
-#include "vector2.h"
 #include "matrix3.h"
 
 namespace slib

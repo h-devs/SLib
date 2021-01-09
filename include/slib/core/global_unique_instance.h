@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_GLOBAL_UNIQUE_INSTANCE
 #define CHECKHEADER_SLIB_CORE_GLOBAL_UNIQUE_INSTANCE
 
-#include "definition.h"
-
-#include "ref.h"
 #include "string.h"
 
 namespace slib

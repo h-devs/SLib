@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_ATOMIC
 #define CHECKHEADER_SLIB_CORE_ATOMIC
 
-#include "definition.h"
-
-#include "cpp.h"
 #include "spin_lock.h"
 #include "compare.h"
 #include "hash.h"
@@ -125,13 +122,6 @@ namespace slib
 	
 	template <class T>
 	struct RemoveAtomic< Atomic<T> > { typedef T Type; };
-	
-	template <class T>
-	struct PropertyTypeHelper< Atomic<T> >
-	{
-		typedef typename PropertyTypeHelper<T>::ArgType ArgType;
-		typedef typename RemoveConstReference< typename PropertyTypeHelper<T>::RetType >::Type RetType;
-	};
 	
 	
 	template <class T>

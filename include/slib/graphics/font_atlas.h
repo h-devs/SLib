@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_FONT_ATLAS
 #define CHECKHEADER_SLIB_GRAPHICS_FONT_ATLAS
 
-#include "definition.h"
-
 #include "font.h"
 #include "bitmap.h"
 

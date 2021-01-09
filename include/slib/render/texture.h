@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_RENDER_TEXTURE
 #define CHECKHEADER_SLIB_RENDER_TEXTURE
 
-#include "definition.h"
-
 #include "base.h"
 
 #include "../graphics/bitmap.h"

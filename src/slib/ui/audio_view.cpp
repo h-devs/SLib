@@ -22,6 +22,8 @@
 
 #include "slib/ui/audio_view.h"
 
+#include "slib/graphics/canvas.h"
+
 namespace slib
 {
 

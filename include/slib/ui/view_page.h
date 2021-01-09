@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_VIEW_PAGE
 #define CHECKHEADER_SLIB_VIEW_PAGE
 
-#include "definition.h"
-
 #include "view_page_navigation.h"
 
 namespace slib

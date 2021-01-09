@@ -86,6 +86,9 @@ namespace slib
 #	include <termios.h>
 #endif
 
+#include "slib/core/memory.h"
+#include "slib/core/base.h"
+
 namespace slib
 {
 

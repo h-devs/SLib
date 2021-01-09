@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_DL_LINUX_CAIRO
 #define CHECKHEADER_SLIB_GRAPHICS_DL_LINUX_CAIRO
 
-#include "definition.h"
+#include "../core/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 

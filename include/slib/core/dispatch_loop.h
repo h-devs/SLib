@@ -23,16 +23,16 @@
 #ifndef CHECKHEADER_SLIB_CORE_DISPATCH_LOOP
 #define CHECKHEADER_SLIB_CORE_DISPATCH_LOOP
 
-#include "definition.h"
-
 #include "dispatch.h"
-#include "thread.h"
-#include "time.h"
+#include "time_counter.h"
 #include "map.h"
 #include "queue.h"
 
 namespace slib
 {
+
+	class Thread;
+	class Timer;
 	
 	class SLIB_EXPORT DispatchLoop : public Dispatcher
 	{
@@ -84,6 +84,11 @@ namespace slib
 
 		class TimerTask
 		{
+		public:
+			TimerTask();
+
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TimerTask)
+
 		public:
 			WeakRef<Timer> timer;
 

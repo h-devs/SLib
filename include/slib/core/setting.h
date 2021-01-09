@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_SETTING
 #define CHECKHEADER_SLIB_CORE_SETTING
 
-#include "definition.h"
-
-#include "hash_map.h"
 #include "variant.h"
 
 namespace slib

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_CURL
 #define CHECKHEADER_SLIB_NETWORK_CURL
 
-#include "definition.h"
-
 #include "url_request.h"
 
 namespace slib

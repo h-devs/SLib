@@ -23,7 +23,6 @@
 #include "slib/core/charset.h"
 
 #include "slib/core/endian.h"
-#include "slib/core/macro.h"
 
 namespace slib
 {

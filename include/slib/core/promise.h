@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_PROMISE
 #define CHECKHEADER_SLIB_CORE_PROMISE
 
-#include "definition.h"
-
 #include "function.h"
 #include "event.h"
 #include "dispatch.h"

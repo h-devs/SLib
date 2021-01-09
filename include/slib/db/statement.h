@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_DB_STATEMENT
 #define CHECKHEADER_SLIB_DB_STATEMENT
 
-#include "definition.h"
-
 #include "parameter.h"
 
 namespace slib

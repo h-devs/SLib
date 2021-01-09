@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_OPENSSL
 #define CHECKHEADER_SLIB_CRYPTO_OPENSSL
 
-#include "definition.h"
-
 #include "tls.h"
 #include "rsa.h"
 #include "ecc.h"

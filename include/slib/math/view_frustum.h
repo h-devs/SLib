@@ -23,13 +23,9 @@
 #ifndef CHECKHEADER_SLIB_MATH_VIEW_FRUSTUM
 #define CHECKHEADER_SLIB_MATH_VIEW_FRUSTUM
 
-#include "definition.h"
-
-#include "vector3.h"
 #include "plane.h"
 #include "sphere.h"
 #include "box.h"
-#include "matrix4.h"
 
 /*
 	ViewFrustum defined on View Coordinate

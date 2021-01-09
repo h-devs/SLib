@@ -23,7 +23,6 @@
 #include "slib/crypto/aes.h"
 
 #include "slib/crypto/sha2.h"
-#include "slib/core/mio.h"
 
 /*
 	AES - Advanced Encryption Standard

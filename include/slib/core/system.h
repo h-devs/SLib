@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,29 +23,16 @@
 #ifndef CHECKHEADER_SLIB_CORE_SYSTEM
 #define CHECKHEADER_SLIB_CORE_SYSTEM
 
-#include "definition.h"
-
-#include "string.h"
+#include "platform_type.h"
 
 namespace slib
 {
-	
+
+	class String;
+	class StringParam;
+
 	typedef void (*SIGNAL_HANDLER)(int signal);
 
-	enum class PlatformType
-	{
-		Unknown = 0,
-		Windows = 1,
-		Unix = 2,
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-		CurrentPlatform = Windows
-#elif defined(SLIB_PLATFORM_IS_UNIX)
-		CurrentPlatform = Unix
-#else
-		CurrentPlatform = Unknown
-#endif
-	};
-	
 	class SLIB_EXPORT System
 	{
 	public:
@@ -88,7 +75,7 @@ namespace slib
 
 		static void setLastError(sl_uint32 errorCode);
 
-		static sl_uint32 mapError(sl_uint32 errorCode, PlatformType to, PlatformType from = PlatformType::CurrentPlatform);
+		static sl_uint32 mapError(sl_uint32 errorCode, PlatformType to, PlatformType from = PlatformType::Current);
 
 		static String getLastErrorMessage();
 

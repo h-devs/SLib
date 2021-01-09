@@ -483,7 +483,7 @@ namespace slib
 			
 			SLIB_DEFINE_OBJECT(ChromiumViewInstance, BaseViewInstance)
 			
-			class ChromiumHandler : public CefClient, public CefDisplayHandler, public CefLifeSpanHandler, public CefLoadHandler, public CefRequestHandler
+			class ChromiumHandler : public CefClient, public CefDisplayHandler, public CefLifeSpanHandler, public CefLoadHandler, public CefRequestHandler, public CefKeyboardHandler
 			{
 			public:
 				StaticContext* m_context;
@@ -544,6 +544,11 @@ namespace slib
 				}
 				
 				CefRefPtr<CefRequestHandler> GetRequestHandler() override
+				{
+					return this;
+				}
+
+				CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() override
 				{
 					return this;
 				}
@@ -656,7 +661,40 @@ namespace slib
 					}
 					return false;
 				}
-				
+
+				bool OnPreKeyEvent(
+					CefRefPtr<CefBrowser> browser,
+					const CefKeyEvent& ev,
+					CefEventHandle os_event,
+					bool* is_keyboard_shortcut) override
+				{
+					if (ev.type == KEYEVENT_KEYDOWN || ev.type == KEYEVENT_RAWKEYDOWN) {
+						if (ev.modifiers & EVENTFLAG_ALT_DOWN) {
+							if (ev.windows_key_code == 0x25 /* VK_LEFT */) {
+								browser->GoBack();
+								return true;
+							} else if (ev.windows_key_code == 0x27 /* VK_RIGHT */) {
+								browser->GoForward();
+								return true;
+							}
+						}
+						if (ev.modifiers & EVENTFLAG_CONTROL_DOWN) {
+							if (ev.windows_key_code == 0xBB /* VK_OEM_PLUS */ || ev.windows_key_code == 0x6B /* VK_ADD */) {
+								CefRefPtr<CefBrowserHost> host = browser->GetHost().get();
+								if (host.get()) {
+									host->SetZoomLevel(Math::clamp(host->GetZoomLevel() + 1, -4.0, 8.0));
+								}
+							} else if (ev.windows_key_code == 0xBD /* VK_OEM_MINUS */ || ev.windows_key_code == 0x6D /* VK_SUBTRACT */) {
+								CefRefPtr<CefBrowserHost> host = browser->GetHost().get();
+								if (host.get()) {
+									host->SetZoomLevel(Math::clamp(host->GetZoomLevel() - 1, -4.0, 8.0));
+								}
+							}
+						}
+					}
+					return false;
+				}
+
 			private:
 				IMPLEMENT_REFCOUNTING(ChromiumHandler);
 			};

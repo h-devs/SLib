@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_HTTP_IO
 #define CHECKHEADER_SLIB_NETWORK_HTTP_IO
 
-#include "definition.h"
-
 #include "async.h"
 
 #include "../core/async_output.h"

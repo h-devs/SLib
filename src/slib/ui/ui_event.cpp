@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
  */
 
 #include "slib/ui/event.h"
+#include "slib/ui/drag.h"
 
 #include "slib/ui/core.h"
 #include "slib/ui/view.h"
@@ -39,6 +40,10 @@ namespace slib
 	}
 
 	TouchPoint::TouchPoint(const UIPointf& _point) : point(_point), pressure(0), phase(TouchPhase::Move), pointerId(0)
+	{
+	}
+
+	TouchPoint::TouchPoint(const UIPointf& _point, sl_real _pressure) : point(_point), pressure(_pressure), phase(TouchPhase::Move), pointerId(0)
 	{
 	}
 

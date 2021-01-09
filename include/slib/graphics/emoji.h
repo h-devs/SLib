@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_EMOJI
 #define CHECKHEADER_SLIB_GRAPHICS_EMOJI
 
-#include "definition.h"
-
 #include "image.h"
 
 namespace slib

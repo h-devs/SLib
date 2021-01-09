@@ -710,14 +710,14 @@ namespace slib
 						if (!(m_fds[index].isNull)) {
 							if (m_fds[index].isError) {
 								if (type == MYSQL_TYPE_STRING) {
-									return Time(_getStringEx(index));
+									return Time::fromString(_getStringEx(index));
 								}
 							} else {
 								switch (type) {
 								case MYSQL_TYPE_DATETIME:
 									return fromMySQLTime(m_fds[index].time);
 								case MYSQL_TYPE_STRING:
-									return Time(String::fromUtf8(m_fds[index].buf, m_fds[index].length));
+									return Time::fromString(String::fromUtf8(m_fds[index].buf, m_fds[index].length));
 								default:
 									break;
 								}

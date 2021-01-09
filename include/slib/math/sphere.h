@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MATH_SPHERE
 #define CHECKHEADER_SLIB_MATH_SPHERE
 
-#include "definition.h"
-
-#include "vector3.h"
 #include "line3.h"
 
 namespace slib

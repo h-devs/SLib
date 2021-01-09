@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_CODEC_VPX
 #define CHECKHEADER_SLIB_MEDIA_CODEC_VPX
 
-#include "definition.h"
-
 #include "video_codec.h"
 
 namespace slib

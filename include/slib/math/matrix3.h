@@ -23,10 +23,7 @@
 #ifndef CHECKHEADER_SLIB_MATH_MATRIX3
 #define CHECKHEADER_SLIB_MATH_MATRIX3
 
-#include "definition.h"
-
 #include "matrix2.h"
-#include "vector2.h"
 #include "vector3.h"
 
 #define SLIB_MATH_MATRIX_DETERMINANT3(m00,m01,m02,m10,m11,m12,m20,m21,m22) ((m00)*SLIB_MATH_MATRIX_DETERMINANT2(m11,m12,m21,m22)-(m01)*SLIB_MATH_MATRIX_DETERMINANT2(m10,m12,m20,m22)+(m02)*SLIB_MATH_MATRIX_DETERMINANT2(m10,m11,m20,m21))

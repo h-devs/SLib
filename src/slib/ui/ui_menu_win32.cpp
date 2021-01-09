@@ -28,6 +28,8 @@
 
 #include "slib/ui/window.h"
 #include "slib/ui/platform.h"
+
+#include "slib/core/hash_map.h"
 #include "slib/core/safe_static.h"
 
 #include "ui_core_win32.h"

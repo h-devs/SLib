@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MATH_BOX
 #define CHECKHEADER_SLIB_MATH_BOX
 
-#include "definition.h"
-
-#include "vector3.h"
 #include "matrix4.h"
 
 #include "../core/list.h"

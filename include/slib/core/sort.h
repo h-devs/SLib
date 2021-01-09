@@ -23,10 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CORE_SORT
 #define CHECKHEADER_SLIB_CORE_SORT
 
-#include "definition.h"
-
-#include "cpp.h"
 #include "compare.h"
+#include "swap.h"
 
 namespace slib
 {

@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_BTREE
 #define CHECKHEADER_SLIB_CORE_BTREE
 
-#include "definition.h"
-
-#include "compare.h"
 #include "search.h"
 #include "list.h"
 #include "new_helper.h"

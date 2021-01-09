@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GEO_GEOLOCATION
 #define CHECKHEADER_SLIB_GEO_GEOLOCATION
 
-#include "definition.h"
-
 #include "latlon.h"
 
 namespace slib

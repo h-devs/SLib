@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_PEN
 #define CHECKHEADER_SLIB_GRAPHICS_PEN
 
-#include "definition.h"
-
 #include "constants.h"
 #include "color.h"
 

@@ -23,11 +23,11 @@
 #include "slib/network/url_request.h"
 
 #include "slib/network/url.h"
-#include "slib/core/json.h"
-#include "slib/core/thread_pool.h"
-#include "slib/core/safe_static.h"
 #include "slib/core/event.h"
 #include "slib/core/system.h"
+#include "slib/core/thread_pool.h"
+#include "slib/core/json.h"
+#include "slib/core/safe_static.h"
 
 namespace slib
 {

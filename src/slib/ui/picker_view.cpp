@@ -23,10 +23,9 @@
 #include "slib/ui/picker_view.h"
 
 #include "slib/ui/resource.h"
-#include "slib/ui/core.h"
-#include "slib/core/safe_static.h"
-#include "slib/core/math.h"
+
 #include "slib/core/timer.h"
+#include "slib/core/safe_static.h"
 
 #include "label_list_base_impl.h"
 

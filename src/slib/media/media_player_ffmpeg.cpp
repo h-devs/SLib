@@ -23,6 +23,7 @@
 #include "slib/media/ffmpeg.h"
 
 #include "slib/media/audio_player.h"
+#include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
 #include "slib/core/asset.h"
 #include "slib/core/log.h"

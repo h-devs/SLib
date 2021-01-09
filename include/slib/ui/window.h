@@ -23,13 +23,10 @@
 #ifndef CHECKHEADER_SLIB_UI_WINDOW
 #define CHECKHEADER_SLIB_UI_WINDOW
 
-#include "definition.h"
-
 #include "event.h"
 #include "menu.h"
 
 #include "../core/string.h"
-#include "../core/object.h"
 #include "../core/function.h"
 #include "../graphics/color.h"
 #include "../math/rectangle.h"

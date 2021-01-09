@@ -28,6 +28,7 @@
 
 #include "slib/render/opengl.h"
 #include "slib/ui/mobile_app.h"
+#include "slib/core/time_counter.h"
 
 #include "view_ios.h"
 

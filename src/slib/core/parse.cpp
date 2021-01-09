@@ -23,6 +23,7 @@
 #include "slib/core/parse.h"
 #include "slib/core/parse_util.h"
 
+#include "slib/core/list.h"
 #include "slib/core/scoped.h"
 #include "slib/core/math.h"
 

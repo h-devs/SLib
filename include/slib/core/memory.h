@@ -23,9 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CORE_MEMORY
 #define CHECKHEADER_SLIB_CORE_MEMORY
 
-#include "definition.h"
-
 #include "ref.h"
+#include "default_members.h"
 
 namespace slib
 {

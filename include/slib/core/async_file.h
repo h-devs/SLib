@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_ASYNC_FILE
 #define CHECKHEADER_SLIB_CORE_ASYNC_FILE
 
-#include "definition.h"
-
 #include "async_stream_simulator.h"
 #include "file.h"
 

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_ASYNC_STREAM_FILTER
 #define CHECKHEADER_SLIB_CORE_ASYNC_STREAM_FILTER
 
-#include "definition.h"
-
 #include "async_stream.h"
 #include "memory_queue.h"
 

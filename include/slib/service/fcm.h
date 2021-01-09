@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_SERVICE_FCM
 #define CHECKHEADER_SLIB_SERVICE_FCM
 
-#include "definition.h"
-
 #include "push_notification.h"
 
 namespace slib

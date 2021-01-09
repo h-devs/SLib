@@ -23,10 +23,9 @@
 #ifndef CHECKHEADER_SLIB_VIEW_PAGER
 #define CHECKHEADER_SLIB_VIEW_PAGER
 
-#include "definition.h"
-
 #include "view.h"
 #include "adapter.h"
+#include "motion_tracker.h"
 
 namespace slib
 {

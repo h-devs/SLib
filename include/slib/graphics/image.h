@@ -23,13 +23,10 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_IMAGE
 #define CHECKHEADER_SLIB_GRAPHICS_IMAGE
 
-#include "definition.h"
-
 #include "constants.h"
 #include "color.h"
 #include "bitmap.h"
 
-#include "../core/object.h"
 #include "../core/memory.h"
 #include "../core/string.h"
 

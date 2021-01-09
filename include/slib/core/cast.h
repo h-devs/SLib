@@ -23,9 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_CAST
 #define CHECKHEADER_SLIB_CORE_CAST
 
-#include "definition.h"
-
-#include "cpp.h"
+#include "cpp_helper.h"
 #include "string.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES
@@ -35,6 +33,12 @@
 namespace slib
 {
 	
+	template <class T, class V>
+	SLIB_INLINE T& ForcedCast(const V& v)
+	{
+		return *((T*)((void*)&v));
+	}
+
 	template <class T1, class T2>
 	class Cast
 	{

@@ -20,8 +20,6 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
-
 #include "slib/ui/web_view.h"
 
 #include "slib/ui/core.h"

@@ -23,12 +23,15 @@
 #ifndef CHECKHEADER_SLIB_TRANSITION
 #define CHECKHEADER_SLIB_TRANSITION
 
-#include "definition.h"
+#include "constants.h"
 
-#include "view.h"
+#include "../core/animation.h"
+#include "../core/default_members.h"
 
 namespace slib
 {
+
+	class View;
 
 	enum class TransitionType
 	{

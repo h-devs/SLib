@@ -23,12 +23,12 @@
 #ifndef CHECKHEADER_SLIB_CORE_DISPATCH
 #define CHECKHEADER_SLIB_CORE_DISPATCH
 
-#include "definition.h"
-
-#include "timer.h"
+#include "function.h"
 
 namespace slib
 {
+
+	class Timer;
 	
 	class SLIB_EXPORT Dispatcher : public Object
 	{

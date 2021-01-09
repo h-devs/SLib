@@ -23,14 +23,14 @@
 #ifndef CHECKHEADER_SLIB_CORE_MEMORY_WRITER
 #define CHECKHEADER_SLIB_CORE_MEMORY_WRITER
 
-#include "definition.h"
-
-#include "io.h"
+#include "io_base.h"
+#include "memory.h"
 
 namespace slib
 {
 
-	class SLIB_EXPORT MemoryWriter : public Object, public IWriter, public ISeekable
+	// MemoryWriter is not thread-safe
+	class SLIB_EXPORT MemoryWriter : public Referable, public IWriter, public ISeekable
 	{
 		SLIB_DECLARE_OBJECT
 		

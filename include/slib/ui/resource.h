@@ -23,15 +23,13 @@
 #ifndef CHECKHEADER_SLIB_UI_RESOURCE
 #define CHECKHEADER_SLIB_UI_RESOURCE
 
-#include "definition.h"
-
-#include "../core/resource.h"
-
 #include "menu.h"
 #include "event.h"
 #include "view.h"
 #include "window.h"
 #include "mobile_app.h"
+
+#include "../core/resource.h"
 
 namespace slib
 {

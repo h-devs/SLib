@@ -26,6 +26,7 @@
 #include "slib/core/app.h"
 #include "slib/core/asset.h"
 #include "slib/core/async_file.h"
+#include "slib/core/file_util.h"
 #include "slib/core/thread_pool.h"
 #include "slib/core/json.h"
 #include "slib/core/xml.h"

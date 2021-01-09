@@ -23,18 +23,16 @@
 #ifndef CHECKHEADER_SLIB_UI_PHOTO
 #define CHECKHEADER_SLIB_UI_PHOTO
 
-#include "definition.h"
-
 #include "constants.h"
-#include "window.h"
 
-#include "../core/object.h"
 #include "../core/string.h"
 #include "../core/function.h"
 #include "../graphics/image.h"
 
 namespace slib
 {
+
+	class Window;
 
 	class SLIB_EXPORT TakePhotoResult
 	{

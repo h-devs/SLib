@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_DL_LINUX_ALSA
 #define CHECKHEADER_SLIB_CORE_DL_LINUX_ALSA
 
-#include "definition.h"
+#include "../core/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 

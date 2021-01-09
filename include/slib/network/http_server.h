@@ -23,13 +23,12 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_HTTP_SERVER
 #define CHECKHEADER_SLIB_NETWORK_HTTP_SERVER
 
-#include "definition.h"
-
 #include "http_common.h"
 #include "http_io.h"
 #include "socket_address.h"
 
 #include "../core/io.h"
+#include "../core/property.h"
 #include "../crypto/tls.h"
 
 namespace slib

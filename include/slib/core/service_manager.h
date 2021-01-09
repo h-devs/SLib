@@ -23,9 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CORE_SERVICE_MANAGER
 #define CHECKHEADER_SLIB_CORE_SERVICE_MANAGER
 
-#include "definition.h"
-
 #include "string.h"
+#include "list.h"
 
 namespace slib
 {

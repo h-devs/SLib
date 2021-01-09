@@ -26,6 +26,7 @@
 #include "slib/core/variant.h"
 #include "slib/core/file.h"
 #include "slib/core/memory_buffer.h"
+#include "slib/core/parse.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/scoped.h"
 

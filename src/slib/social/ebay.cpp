@@ -23,6 +23,7 @@
 #include "slib/social/ebay.h"
 
 #include "slib/core/safe_static.h"
+#include "slib/core/stringify.h"
 
 namespace slib
 {

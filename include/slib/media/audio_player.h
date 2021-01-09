@@ -23,13 +23,8 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_AUDIO_PLAYER
 #define CHECKHEADER_SLIB_MEDIA_AUDIO_PLAYER
 
-#include "definition.h"
-
 #include "audio_data.h"
 
-#include "../core/object.h"
-#include "../core/event.h"
-#include "../core/array.h"
 #include "../core/string.h"
 #include "../core/loop_queue.h"
 #include "../core/memory_queue.h"
@@ -37,6 +32,8 @@
 
 namespace slib
 {
+
+	class Event;
 
 	class SLIB_EXPORT AudioPlayerInfo
 	{

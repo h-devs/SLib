@@ -23,10 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_BUFFERED_WRITER
 #define CHECKHEADER_SLIB_CORE_BUFFERED_WRITER
 
-#include "definition.h"
-
-#include "io.h"
+#include "io_base.h"
 #include "ptrx.h"
+#include "memory.h"
 
 #define SLIB_BUFFERED_WRITER_DEFAULT_SIZE 8192
 
@@ -34,7 +33,7 @@ namespace slib
 {
 
 	// Not thread-safe
-	class SLIB_EXPORT BufferedWriter : public Object, public IWriter, public IClosable
+	class SLIB_EXPORT BufferedWriter : public Referable, public IWriter, public IClosable
 	{
 		SLIB_DECLARE_OBJECT
 

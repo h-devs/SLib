@@ -1,8 +1,6 @@
 #ifndef CHECKHEADER_SLIB_DEV_PE
 #define CHECKHEADER_SLIB_DEV_PE
 
-#include "definition.h"
-
 #include "coff.h"
 
 #define SLIB_PE_OPTIONAL_MAGIC_EXE32		0x10b // 32-bit executable image

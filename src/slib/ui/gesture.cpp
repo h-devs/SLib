@@ -24,7 +24,6 @@
 
 #include "slib/ui/view.h"
 #include "slib/ui/resource.h"
-#include "slib/core/math.h"
 
 namespace slib
 {

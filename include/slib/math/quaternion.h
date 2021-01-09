@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MATH_QUATERNION
 #define CHECKHEADER_SLIB_MATH_QUATERNION
 
-#include "definition.h"
-
 #include "vector4.h"
 
 namespace slib

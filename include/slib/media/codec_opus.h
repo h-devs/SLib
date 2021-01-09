@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_CODEC_OPUS
 #define CHECKHEADER_SLIB_MEDIA_CODEC_OPUS
 
-#include "definition.h"
-
 #include "audio_codec.h"
 
 /*

@@ -22,6 +22,8 @@
 
 #include "slib/ui/list_box.h"
 
+#include "slib/graphics/canvas.h"
+
 namespace slib
 {
 

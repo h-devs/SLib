@@ -23,6 +23,7 @@
 #include "slib/media/audio_data.h"
 
 #include "slib/media/audio_util.h"
+#include "slib/core/base.h"
 #include "slib/core/endian.h"
 
 namespace slib

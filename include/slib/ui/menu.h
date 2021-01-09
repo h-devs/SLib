@@ -23,14 +23,11 @@
 #ifndef CHECKHEADER_SLIB_UI_MENU
 #define CHECKHEADER_SLIB_UI_MENU
 
-#include "definition.h"
+#include "event.h"
 
-#include "../core/object.h"
 #include "../core/string.h"
 #include "../core/function.h"
 #include "../graphics/bitmap.h"
-
-#include "event.h"
 
 namespace slib
 {

@@ -22,6 +22,7 @@
 
 #include "slib/ui/button.h"
 
+#include "slib/ui/view_attributes.h"
 #include "slib/ui/core.h"
 #include "slib/graphics/util.h"
 #include "slib/core/safe_static.h"
@@ -912,7 +913,7 @@ namespace slib
 				return background;
 			}
 			sl_bool flagUseDefaultColorFilter = m_cell->flagUseDefaultColorFilter;
-			Ref<DrawAttributes>& attrs = m_drawAttrs;
+			Ref<ViewDrawAttributes>& attrs = m_drawAttrs;
 			if (attrs.isNotNull()) {
 				switch (m_cell->state) {
 				case ButtonState::Hover:

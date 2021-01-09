@@ -23,9 +23,9 @@
 #ifndef CHECKHEADER_SLIB_UI_LIST_CONTROL
 #define CHECKHEADER_SLIB_UI_LIST_CONTROL
 
-#include "definition.h"
-
 #include "view.h"
+
+#include "../core/string.h"
 
 namespace slib
 {

@@ -22,6 +22,8 @@
 
 #include "slib/ui/label_list.h"
 
+#include "slib/ui/text.h"
+
 #include "label_list_base_impl.h"
 
 namespace slib

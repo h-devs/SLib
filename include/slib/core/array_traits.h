@@ -23,11 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_ARRAY_TRAITS
 #define CHECKHEADER_SLIB_CORE_ARRAY_TRAITS
 
-#include "definition.h"
-
-#include "cpp.h"
 #include "base.h"
 #include "compare.h"
+#include "cpp_helper.h"
 
 #include <new>
 

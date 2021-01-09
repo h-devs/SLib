@@ -23,11 +23,7 @@
 #ifndef CHECKHEADER_SLIB_UI_LABEL_LIST
 #define CHECKHEADER_SLIB_UI_LABEL_LIST
 
-#include "definition.h"
-
 #include "list_box.h"
-#include "label_view.h"
-#include "core.h"
 
 namespace slib
 {

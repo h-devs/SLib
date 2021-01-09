@@ -23,9 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_BIT_READER
 #define CHECKHEADER_SLIB_CORE_BIT_READER
 
-#include "definition.h"
-
-#include "cpp.h"
+#include "cpp_helper.h"
 
 namespace slib
 {

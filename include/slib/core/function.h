@@ -23,12 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_FUNCTION
 #define CHECKHEADER_SLIB_CORE_FUNCTION
 
-#include "definition.h"
-
-#include "ref.h"
+#include "list.h"
 #include "ptr.h"
 #include "tuple.h"
-#include "list.h"
 
 namespace slib
 {

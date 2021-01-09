@@ -162,9 +162,8 @@
 
 ********************************************************************/
 
-#include "definition.h"
-
-#include "tcpip.h"
+#include "constants.h"
+#include "ip_address.h"
 
 namespace slib
 {

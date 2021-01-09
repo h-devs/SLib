@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_ASYNC_STREAM_SIMULATOR
 #define CHECKHEADER_SLIB_CORE_ASYNC_STREAM_SIMULATOR
 
-#include "definition.h"
-
 #include "async_stream.h"
 
 namespace slib

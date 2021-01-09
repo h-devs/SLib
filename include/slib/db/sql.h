@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_DB_DATABASE_SQL
 #define CHECKHEADER_SLIB_DB_DATABASE_SQL
 
-#include "definition.h"
-
 #include "constants.h"
 #include "expression.h"
 

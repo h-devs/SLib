@@ -25,6 +25,8 @@
 #include "slib/render/canvas.h"
 #include "slib/graphics/zxing.h"
 #include "slib/graphics/yuv.h"
+#include "slib/core/timer.h"
+#include "slib/core/stringify.h"
 
 namespace slib
 {

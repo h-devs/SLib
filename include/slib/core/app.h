@@ -23,15 +23,14 @@
 #ifndef CHECKHEADER_SLIB_CORE_APP
 #define CHECKHEADER_SLIB_CORE_APP
 
-#include "definition.h"
-
-#include "object.h"
 #include "string.h"
 #include "function.h"
-#include "global_unique_instance.h"
+#include "flags.h"
 
 namespace slib
 {
+
+	class GlobalUniqueInstance;
 
 	enum class AppType
 	{

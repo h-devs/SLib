@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_TEXT
 #define CHECKHEADER_SLIB_GRAPHICS_TEXT
 
-#include "definition.h"
-
 #include "constants.h"
 #include "canvas.h"
 

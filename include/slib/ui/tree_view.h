@@ -23,11 +23,10 @@
 #ifndef CHECKHEADER_SLIB_UI_TREE_VIEW
 #define CHECKHEADER_SLIB_UI_TREE_VIEW
 
-#include "definition.h"
-
 #include "scroll_view.h"
 
-#include "../core/variant.h"
+#include "../core/string.h"
+#include "../core/function.h"
 
 namespace slib
 {
@@ -138,9 +137,7 @@ namespace slib
 		
 	public:
 		SLIB_PROPERTY_FUNCTION(void(TreeViewItem*), OnSelect)
-		SLIB_PROPERTY(AtomicRef<Referable>, UserObject)
-		SLIB_PROPERTY(AtomicVariant, UserData)
-		
+
 	private:
 		void _addChild(TreeViewItem* item, UIUpdateMode mode);
 		

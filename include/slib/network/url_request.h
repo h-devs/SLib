@@ -23,14 +23,10 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_URL_REQUEST
 #define CHECKHEADER_SLIB_NETWORK_URL_REQUEST
 
-#include "definition.h"
-
 #include "http_common.h"
 
-#include "../core/string.h"
 #include "../core/function.h"
 #include "../core/dispatch.h"
-#include "../core/variant.h"
 #include "../core/json.h"
 #include "../core/xml.h"
 #include "../core/memory_queue.h"

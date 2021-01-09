@@ -25,15 +25,12 @@
 
 #include "definition.h"
 
-#include "../math/vector3.h"
 #include "../math/vector4.h"
-
-#include "../core/string.h"
-#include "../core/parse.h"
-#include "../core/math.h"
 
 namespace slib
 {
+
+	class String;
 	
 	typedef Vector3f Color3f;
 	typedef Vector4f Color4f;
@@ -389,16 +386,10 @@ namespace slib
 
 
 		template <class ST>
-		static sl_bool parse(const ST& str, Color* _out) noexcept
-		{
-			return Parse(str, _out);
-		}
+		static sl_bool parse(const ST& str, Color* _out) noexcept;
 
 		template <class ST>
-		sl_bool parse(const ST& str) noexcept
-		{
-			return Parse(str, this);
-		}
+		sl_bool parse(const ST& str) noexcept;
 
 	public:
 		Color& operator=(const Color& other) noexcept
@@ -434,12 +425,6 @@ namespace slib
 		static sl_uint8 _zero[4];
 
 	};
-	
-	template <>
-	sl_reg Parser<Color, sl_char8>::parse(Color* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept;
-	
-	template <>
-	sl_reg Parser<Color, sl_char16>::parse(Color* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept;
 	
 	class SLIB_EXPORT ColorMatrix
 	{

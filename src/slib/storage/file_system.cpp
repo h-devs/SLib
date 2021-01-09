@@ -100,7 +100,7 @@ namespace slib
 
 	void FileSystem::setLastError(FileSystemError error, PlatformType platform)
 	{
-		System::setLastError(System::mapError((sl_uint32)error, PlatformType::CurrentPlatform, platform));
+		System::setLastError(System::mapError((sl_uint32)error, PlatformType::Current, platform));
 	}
 
 

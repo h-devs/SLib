@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MATH_PLOT
 #define CHECKHEADER_SLIB_MATH_PLOT
 
-#include "definition.h"
-
 #include "rectangle.h"
 
 #include "../core/object.h"

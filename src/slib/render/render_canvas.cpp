@@ -30,6 +30,7 @@
 #include "slib/core/string_buffer.h"
 #include "slib/core/variant.h"
 #include "slib/core/safe_static.h"
+#include "slib/core/stringify.h"
 
 #define MAX_PROGRAM_COUNT 256
 #define MAX_SHADER_CLIP 8

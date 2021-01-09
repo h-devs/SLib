@@ -24,6 +24,7 @@
 #include "slib/render/program.h"
 
 #include "slib/render/engine.h"
+#include "slib/core/stringify.h"
 
 namespace slib
 {

@@ -23,13 +23,10 @@
 #ifndef CHECKHEADER_SLIB_UI_PLATFORM
 #define CHECKHEADER_SLIB_UI_PLATFORM
 
-#include "definition.h"
+#include "event.h"
 
-#include "../core/ref.h"
 #include "../core/function.h"
 #include "../graphics/platform.h"
-
-#include "event.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 #	include "../core/platform_windows.h"

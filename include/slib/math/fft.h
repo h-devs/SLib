@@ -27,8 +27,6 @@
 	Fast Fourier Transform
 */
 
-#include "definition.h"
-
 #include "complex.h"
 
 namespace slib

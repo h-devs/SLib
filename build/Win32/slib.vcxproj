@@ -202,7 +202,6 @@
     <ClCompile Include="..\..\src\slib\core\system.cpp" />
     <ClCompile Include="..\..\src\slib\core\system_windows.cpp" />
     <ClCompile Include="..\..\src\slib\core\thread.cpp" />
-    <ClCompile Include="..\..\src\slib\core\thread_pool.cpp" />
     <ClCompile Include="..\..\src\slib\core\thread_windows.cpp" />
     <ClCompile Include="..\..\src\slib\core\time.cpp" />
     <ClCompile Include="..\..\src\slib\core\timer.cpp" />

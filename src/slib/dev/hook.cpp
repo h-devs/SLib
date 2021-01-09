@@ -27,9 +27,7 @@
 #include "slib/dev/pe.h"
 #include "slib/dev/protect.h"
 #include "slib/dev/module.h"
-
 #include "slib/core/base.h"
-#include "slib/core/macro.h"
 
 namespace slib
 {

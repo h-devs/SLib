@@ -23,17 +23,14 @@
 #ifndef CHECKHEADER_SLIB_CORE_MEMORY_OUTPUT
 #define CHECKHEADER_SLIB_CORE_MEMORY_OUTPUT
 
-#include "definition.h"
-
-#include "io.h"
-
-#include "../core/memory_buffer.h"
+#include "io_base.h"
+#include "memory_buffer.h"
 
 namespace slib
 {
 
 	// MemoryOutput is not thread-safe
-	class SLIB_EXPORT MemoryOutput : public Object, public IWriter
+	class SLIB_EXPORT MemoryOutput : public Referable, public IWriter
 	{
 		SLIB_DECLARE_OBJECT
 

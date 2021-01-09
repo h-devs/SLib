@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_BITMAP_FORMAT
 #define CHECKHEADER_SLIB_GRAPHICS_BITMAP_FORMAT
 
-#include "definition.h"
-
 #include "constants.h"
 
 

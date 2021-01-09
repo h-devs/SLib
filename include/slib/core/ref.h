@@ -23,11 +23,117 @@
 #ifndef CHECKHEADER_SLIB_CORE_REF
 #define CHECKHEADER_SLIB_CORE_REF
 
-#include "definition.h"
-
-#include "base.h"
 #include "atomic.h"
-#include "macro.h"
+#include "convert.h"
+
+#define SLIB_DECLARE_OBJECT \
+public: \
+	static sl_object_type ObjectType() noexcept; \
+	static sl_bool isDerivedFrom(sl_object_type type) noexcept; \
+	sl_object_type getObjectType() const noexcept override; \
+	sl_bool isInstanceOf(sl_object_type type) const noexcept override;
+
+#define SLIB_DEFINE_OBJECT_TYPE(CLASS) \
+	namespace slib_def { namespace obj_##CLASS { char g_objectId[] = #CLASS; } } \
+	sl_object_type CLASS::ObjectType() noexcept { return slib_def::obj_##CLASS::g_objectId; } \
+
+#define SLIB_DEFINE_ROOT_OBJECT(CLASS) \
+	SLIB_DEFINE_OBJECT_TYPE(CLASS) \
+	sl_bool CLASS::isDerivedFrom(sl_object_type type) noexcept { return type == slib_def::obj_##CLASS::g_objectId; } \
+	sl_object_type CLASS::getObjectType() const noexcept { return slib_def::obj_##CLASS::g_objectId; } \
+	sl_bool CLASS::isInstanceOf(sl_object_type type) const noexcept { return type == slib_def::obj_##CLASS::g_objectId; }
+
+#define SLIB_DEFINE_OBJECT(CLASS, BASE) \
+	SLIB_DEFINE_OBJECT_TYPE(CLASS) \
+	sl_bool CLASS::isDerivedFrom(sl_object_type type) noexcept { if (type == slib_def::obj_##CLASS::g_objectId) return sl_true; return BASE::isDerivedFrom(type); } \
+	sl_object_type CLASS::getObjectType() const noexcept { return slib_def::obj_##CLASS::g_objectId; } \
+	sl_bool CLASS::isInstanceOf(sl_object_type type) const noexcept { if (type == slib_def::obj_##CLASS::g_objectId) return sl_true; return BASE::isDerivedFrom(type); }
+
+#define SLIB_TEMPLATE_ROOT_OBJECT(ID) \
+public: \
+	static sl_object_type ObjectType() noexcept { return ID; } \
+	static sl_bool isDerivedFrom(sl_object_type type) noexcept { return type == ID; } \
+	sl_object_type getObjectType() const noexcept override { return ID; } \
+	sl_bool isInstanceOf(sl_object_type type) const noexcept override { return type == ID; }
+
+#define SLIB_TEMPLATE_OBJECT(BASE, ID) \
+public: \
+	static sl_object_type ObjectType() noexcept { return ID; } \
+	static sl_bool isDerivedFrom(sl_object_type type) noexcept { if (type == ID) return sl_true; return BASE::isDerivedFrom(type); } \
+	sl_object_type getObjectType() const noexcept override { return ID; } \
+	sl_bool isInstanceOf(sl_object_type type) const noexcept override { if (type == ID) return sl_true; return BASE::isDerivedFrom(type); }
+
+#define SLIB_REF_WRAPPER_NO_OP(WRAPPER, ...) \
+public: \
+	static sl_object_type ObjectType() noexcept { return __VA_ARGS__::ObjectType(); } \
+	WRAPPER() noexcept {} \
+	WRAPPER(sl_null_t) noexcept {} \
+	WRAPPER(__VA_ARGS__* obj) noexcept : ref(obj) {} \
+	WRAPPER(const WRAPPER& other) noexcept : ref(other.ref) {} \
+	WRAPPER(WRAPPER& other) noexcept : ref(other.ref) {} \
+	WRAPPER(const WRAPPER&& other) noexcept : ref(Move(other.ref)) {} \
+	WRAPPER(WRAPPER&& other) noexcept : ref(Move(other.ref)) {} \
+	WRAPPER(const Atomic<WRAPPER>& other) noexcept : ref(*(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))) {} \
+	WRAPPER(Atomic<WRAPPER>& other) noexcept : ref(*(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))) {} \
+	WRAPPER(const Atomic<WRAPPER>&& other) noexcept : ref(Move(*(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other)))) {} \
+	WRAPPER(Atomic<WRAPPER>&& other) noexcept : ref(Move(*(reinterpret_cast<AtomicRef<__VA_ARGS__>*>(&other)))) {} \
+	static const WRAPPER& null() noexcept { return *(reinterpret_cast<WRAPPER const*>(&(priv::ref::g_null))); } \
+	sl_bool isNull() const noexcept { return ref.isNull(); } \
+	sl_bool isNotNull() const noexcept { return ref.isNotNull(); } \
+	void setNull() noexcept { ref.setNull(); } \
+	WRAPPER& operator=(sl_null_t) noexcept { ref.setNull(); return *this; } \
+	WRAPPER& operator=(__VA_ARGS__* obj) noexcept { ref = obj; return *this; } \
+	WRAPPER& operator=(const WRAPPER& other) noexcept { ref = other.ref; return *this; } \
+	WRAPPER& operator=(WRAPPER& other) noexcept { ref = other.ref; return *this; } \
+	WRAPPER& operator=(const WRAPPER&& other) noexcept { ref = Move(other.ref); return *this; } \
+	WRAPPER& operator=(WRAPPER&& other) noexcept { ref = Move(other.ref); return *this; } \
+	WRAPPER& operator=(const Atomic<WRAPPER>& other) noexcept { ref = *(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other)); return *this; } \
+	WRAPPER& operator=(Atomic<WRAPPER>& other) noexcept { ref = *(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other)); return *this; } \
+	WRAPPER& operator=(const Atomic<WRAPPER>&& other) noexcept { ref = Move(*(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))); return *this; } \
+	WRAPPER& operator=(Atomic<WRAPPER>&& other) noexcept { ref = Move(*(reinterpret_cast<AtomicRef<__VA_ARGS__>*>(&other))); return *this; }
+
+#define SLIB_REF_WRAPPER(WRAPPER, ...) \
+	SLIB_REF_WRAPPER_NO_OP(WRAPPER, __VA_ARGS__) \
+	sl_bool operator==(const WRAPPER& other) const noexcept { return ref.ptr == other.ref.ptr; } \
+	sl_bool operator==(const Atomic<WRAPPER>& other) const noexcept { return ref.ptr == (reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))->_ptr; } \
+	sl_bool operator!=(const WRAPPER& other) const noexcept { return ref.ptr != other.ref.ptr; } \
+	sl_bool operator!=(const Atomic<WRAPPER>& other) const noexcept { return ref.ptr != (reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))->_ptr; } \
+	explicit operator sl_bool() const noexcept { return ref.ptr != sl_null; }
+
+#define SLIB_ATOMIC_REF_WRAPPER_NO_OP(...) \
+public: \
+	Atomic() noexcept {} \
+	Atomic(sl_null_t) noexcept {} \
+	Atomic(__VA_ARGS__* obj) noexcept : ref(obj) {} \
+	Atomic(typename RemoveAtomic<Atomic>::Type const& other) noexcept : ref(*(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other))) {} \
+	Atomic(typename RemoveAtomic<Atomic>::Type& other) noexcept : ref(*(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other))) {} \
+	Atomic(typename RemoveAtomic<Atomic>::Type const&& other) noexcept : ref(Move(*(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other)))) {} \
+	Atomic(typename RemoveAtomic<Atomic>::Type&& other) noexcept : ref(Move(*(reinterpret_cast<Ref<__VA_ARGS__>*>(&other)))) {} \
+	Atomic(const Atomic& other) noexcept : ref(other.ref) {} \
+	Atomic(Atomic& other) noexcept : ref(other.ref) {} \
+	Atomic(const Atomic&& other) noexcept : ref(Move(other.ref)) {} \
+	Atomic(Atomic&& other) noexcept : ref(Move(other.ref)) {} \
+	sl_bool isNull() const noexcept { return ref.isNull(); } \
+	sl_bool isNotNull() const noexcept { return ref.isNotNull(); } \
+	void setNull() noexcept { ref.setNull(); } \
+	Atomic& operator=(sl_null_t) noexcept { ref.setNull(); return *this; } \
+	Atomic& operator=(__VA_ARGS__* obj) noexcept { ref = obj; return *this; } \
+	Atomic& operator=(typename RemoveAtomic<Atomic>::Type const& other) noexcept { ref = *(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other)); return *this; } \
+	Atomic& operator=(typename RemoveAtomic<Atomic>::Type& other) noexcept { ref = *(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other)); return *this; } \
+	Atomic& operator=(typename RemoveAtomic<Atomic>::Type const&& other) noexcept { ref = Move(*(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other))); return *this; } \
+	Atomic& operator=(typename RemoveAtomic<Atomic>::Type&& other) noexcept { ref = Move(*(reinterpret_cast<Ref<__VA_ARGS__>*>(&other))); return *this; } \
+	Atomic& operator=(const Atomic& other) noexcept { ref = other.ref; return *this; } \
+	Atomic& operator=(Atomic& other) noexcept { ref = other.ref; return *this; } \
+	Atomic& operator=(Atomic const&& other) noexcept { ref = Move(other.ref); return *this; } \
+	Atomic& operator=(Atomic&& other) noexcept { ref = Move(other.ref); return *this; }
+
+#define SLIB_ATOMIC_REF_WRAPPER(...) \
+	SLIB_ATOMIC_REF_WRAPPER_NO_OP(__VA_ARGS__) \
+	sl_bool operator==(typename RemoveAtomic<Atomic>::Type const& other) const noexcept { return ref._ptr == (reinterpret_cast<const Ref<__VA_ARGS__>*>(&other))->ptr; } \
+	sl_bool operator==(const Atomic& other) const noexcept { return ref._ptr == other.ref._ptr; } \
+	sl_bool operator!=(typename RemoveAtomic<Atomic>::Type const& other) const noexcept { return ref._ptr != (reinterpret_cast<const Ref<__VA_ARGS__>*>(&other))->ptr; } \
+	sl_bool operator!=(const Atomic& other) const noexcept { return ref._ptr != other.ref._ptr; } \
+	explicit operator sl_bool() const noexcept { return ref._ptr != sl_null; }
 
 typedef const void* sl_object_type;
 
@@ -1294,13 +1400,6 @@ namespace slib
 	
 	};
 	
-	template <class T>
-	struct PropertyTypeHelper< WeakRef<T> >
-	{
-		typedef Ref<T> const& ArgType;
-		typedef Ref<T> RetType;
-	};
-
 	
 	template <class T>
 	SLIB_INLINE sl_bool operator==(sl_null_t, const Ref<T>& b) noexcept

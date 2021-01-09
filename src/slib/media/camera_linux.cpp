@@ -26,8 +26,8 @@
 
 #include "slib/media/camera.h"
 
+#include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
-#include "slib/core/time.h"
 #include "slib/core/log.h"
 
 #include <unistd.h>

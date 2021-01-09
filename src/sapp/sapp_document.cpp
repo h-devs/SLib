@@ -29,6 +29,7 @@
 #include "slib/core/resource.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/scoped.h"
+#include "slib/graphics/color_parse.h"
 #include "slib/ui.h"
 
 #define TAG "SApp"

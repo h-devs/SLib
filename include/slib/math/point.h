@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MATH_POINT
 #define CHECKHEADER_SLIB_MATH_POINT
 
-#include "definition.h"
-
 #include "vector2.h"
 
 namespace slib

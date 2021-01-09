@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_SOCKET
 #define CHECKHEADER_SLIB_NETWORK_SOCKET
 
-#include "definition.h"
-
 #include "constants.h"
 #include "socket_address.h"
 #include "mac_address.h"

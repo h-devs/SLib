@@ -27,7 +27,7 @@
 
 #include "../core/string.h"
 #include "../core/hash_map.h"
-#include "../core/buffered_reader.h"
+#include "../core/buffered_seekable_reader.h"
 
 namespace slib
 {

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_SELECT_VIEW
 #define CHECKHEADER_SLIB_UI_SELECT_VIEW
 
-#include "definition.h"
-
 #include "label_list.h"
 
 namespace slib

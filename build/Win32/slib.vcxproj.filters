@@ -236,9 +236,6 @@
     <ClCompile Include="..\..\src\slib\core\math.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\thread_pool.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\platform_windows.cpp">
       <Filter>src\core</Filter>
     </ClCompile>

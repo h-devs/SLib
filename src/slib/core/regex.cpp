@@ -22,6 +22,7 @@
 
 #include "slib/core/regex.h"
 
+#include "slib/core/base.h"
 #include "slib/core/safe_static.h"
 
 #include <regex>

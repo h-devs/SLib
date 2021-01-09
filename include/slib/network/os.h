@@ -23,10 +23,9 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_OS
 #define CHECKHEADER_SLIB_NETWORK_OS
 
-#include "definition.h"
-
 #include "ip_address.h"
 #include "mac_address.h"
+
 #include "../core/string.h"
 
 namespace slib

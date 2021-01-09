@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_MEMORY_TRAITS
 #define CHECKHEADER_SLIB_CORE_MEMORY_TRAITS
 
-#include "definition.h"
-
 #include "base.h"
 
 namespace slib

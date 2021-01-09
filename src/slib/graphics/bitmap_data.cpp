@@ -23,6 +23,7 @@
 #include "slib/graphics/bitmap_data.h"
 
 #include "slib/graphics/yuv.h"
+#include "slib/core/base.h"
 #include "slib/core/compile_optimize.h"
 
 namespace slib

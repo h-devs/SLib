@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_AUDIO_CODEC
 #define CHECKHEADER_SLIB_MEDIA_AUDIO_CODEC
 
-#include "definition.h"
-
 #include "audio_data.h"
 
 #include "../core/object.h"

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_MEMORY_QUEUE
 #define CHECKHEADER_SLIB_CORE_MEMORY_QUEUE
 
-#include "definition.h"
-
 #include "memory.h"
 #include "queue.h"
 

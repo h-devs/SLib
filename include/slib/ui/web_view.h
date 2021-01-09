@@ -23,9 +23,10 @@
 #ifndef CHECKHEADER_SLIB_UI_WEB_VIEW
 #define CHECKHEADER_SLIB_UI_WEB_VIEW
 
-#include "definition.h"
-
 #include "view.h"
+
+#include "../core/string.h"
+#include "../core/find_options.h"
 
 namespace slib
 {
@@ -42,9 +43,9 @@ namespace slib
 		~WebView();
 
 	public:
-		virtual void loadURL(const String& url);
+		void loadURL(const String& url);
 		
-		virtual void loadHTML(const String& html, const String& baseURL);
+		void loadHTML(const String& html, const String& baseURL);
 		
 		sl_bool isOfflineContent();
 		
@@ -54,10 +55,19 @@ namespace slib
 		
 		String getPageTitle();
 		
-		virtual void goBack();
+		void goBack();
 		
-		virtual void goForward();
+		void goForward();
+
+		// level: -5 ~ 10
+		void setZoomLevel(float level);
 		
+		void zoomIn();
+
+		void zoomOut();
+
+		void find(const String& text);
+
 		virtual void reload();
 		
 		virtual void runJavaScript(const String& script);

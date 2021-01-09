@@ -23,6 +23,7 @@
 #include "slib/media/audio_device.h"
 
 #include "slib/media/audio_format.h"
+#include "slib/core/event.h"
 #include "slib/core/safe_static.h"
 
 namespace slib

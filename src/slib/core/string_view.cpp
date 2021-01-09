@@ -24,6 +24,8 @@
 
 #include "slib/core/string.h"
 
+#include "slib/core/base.h"
+
 namespace slib
 {
 

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_MEMORY_IO
 #define CHECKHEADER_SLIB_CORE_MEMORY_IO
 
-#include "definition.h"
-
 #include "io.h"
 
 namespace slib

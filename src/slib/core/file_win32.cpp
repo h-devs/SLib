@@ -25,7 +25,9 @@
 #ifdef SLIB_PLATFORM_IS_WIN32
 
 #include "slib/core/file.h"
+#include "slib/core/file_util.h"
 
+#include "slib/core/hash_map.h"
 #include "slib/core/dl_windows_kernel32.h"
 
 #include <winioctl.h>

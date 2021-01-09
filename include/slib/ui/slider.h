@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_SLIDER
 #define CHECKHEADER_SLIB_UI_SLIDER
 
-#include "definition.h"
-
 #include "progress_bar.h"
 
 namespace slib

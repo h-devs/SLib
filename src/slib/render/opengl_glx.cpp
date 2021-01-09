@@ -26,6 +26,7 @@
 
 #include "slib/render/engine.h"
 #include "slib/render/opengl.h"
+#include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
 
 

@@ -23,9 +23,9 @@
 #ifndef CHECKHEADER_SLIB_UI_COMBO_BOX
 #define CHECKHEADER_SLIB_UI_COMBO_BOX
 
-#include "definition.h"
-
 #include "label_list.h"
+
+#include "../core/string.h"
 
 namespace slib
 {

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_TIMER
 #define CHECKHEADER_SLIB_CORE_TIMER
 
-#include "definition.h"
-
-#include "object.h"
 #include "function.h"
 
 namespace slib
@@ -57,6 +54,16 @@ namespace slib
 		static Ref<Timer> startWithDispatcher(const Ref<Dispatcher>& dispatcher, const Function<void(Timer*)>& task, sl_uint64 interval_ms);
 
 	public:
+		sl_uint64 getLastRunTime();
+
+		void setLastRunTime(sl_uint64 time);
+
+
+		sl_uint32 getMaxConcurrentThread();
+
+		void setMaxConcurrentThread(sl_uint32 n);
+
+
 		void start();
 
 		void stop();
@@ -71,11 +78,6 @@ namespace slib
 
 		void stopAndWait();
 
-	public:
-		SLIB_PROPERTY(sl_uint64, LastRunTime)
-
-		SLIB_PROPERTY(sl_uint32, MaxConcurrentThread)
-
 	protected:
 		void _runFromDispatcher();
 
@@ -84,6 +86,9 @@ namespace slib
 		Function<void(Timer*)> m_task;
 		sl_uint64 m_interval;
 		sl_int32 m_nCountRun;
+
+		sl_uint64 m_lastRunTime;
+		sl_uint32 m_maxConcurrentThread;
 
 		Ref<Dispatcher> m_dispatcher;
 		WeakRef<DispatchLoop> m_loop;

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_SOCIAL_WECHAT
 #define CHECKHEADER_SLIB_SOCIAL_WECHAT
 
-#include "definition.h"
-
 #include "oauth.h"
 
 #include "../core/xml.h"

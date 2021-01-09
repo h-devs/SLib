@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_SOCIAL_TWITTER
 #define CHECKHEADER_SLIB_SOCIAL_TWITTER
 
-#include "definition.h"
-
 #include "oauth.h"
 
 #include "../graphics/image.h"

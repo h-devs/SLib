@@ -23,16 +23,10 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_CANVAS
 #define CHECKHEADER_SLIB_GRAPHICS_CANVAS
 
-#include "definition.h"
-
-#include "constants.h"
-#include "pen.h"
-#include "brush.h"
 #include "font.h"
 #include "path.h"
 #include "drawable.h"
 
-#include "../core/object.h"
 #include "../core/time.h"
 #include "../math/matrix3.h"
 

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_MOBILE_APP
 #define CHECKHEADER_SLIB_UI_MOBILE_APP
 
-#include "definition.h"
-
 #include "app.h"
 #include "event.h"
 #include "window.h"

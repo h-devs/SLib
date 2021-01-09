@@ -23,11 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CORE_ARRAY
 #define CHECKHEADER_SLIB_CORE_ARRAY
 
-#include "definition.h"
-
 #include "array_traits.h"
 #include "ref.h"
-#include "compare.h"
 #include "sort.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES

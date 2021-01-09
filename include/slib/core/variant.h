@@ -23,13 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_VARIANT
 #define CHECKHEADER_SLIB_CORE_VARIANT
 
-#include "definition.h"
-
-#include "ref.h"
-#include "time.h"
 #include "string.h"
-#include "nullable.h"
-#include "list.h"
+#include "time.h"
+#include "memory.h"
 #include "map.h"
 #include "hash_map.h"
 #include "promise.h"

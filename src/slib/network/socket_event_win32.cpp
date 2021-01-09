@@ -28,6 +28,7 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #include "slib/network/event.h"
+
 #include "slib/core/scoped.h"
 
 namespace slib

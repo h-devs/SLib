@@ -23,9 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_MODEL
 #define CHECKHEADER_SLIB_CORE_MODEL
 
-#include "definition.h"
-
-#include "object.h"
+#include "list.h"
 #include "nullable.h"
 
 namespace slib

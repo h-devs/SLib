@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_SOCIAL_LINKEDIN
 #define CHECKHEADER_SLIB_SOCIAL_LINKEDIN
 
-#include "definition.h"
-
 #include "oauth.h"
 
 namespace slib

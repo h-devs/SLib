@@ -24,6 +24,7 @@
 
 #include "slib/core/system.h"
 #include "slib/core/memory_traits.h"
+#include "slib/core/assert.h"
 
 #if !defined(SLIB_PLATFORM_IS_APPLE)
 #	include <malloc.h>

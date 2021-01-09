@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MATH_MATRIX2
 #define CHECKHEADER_SLIB_MATH_MATRIX2
 
-#include "definition.h"
-
 #include "matrix.h"
 #include "vector2.h"
 

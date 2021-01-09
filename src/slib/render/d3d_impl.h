@@ -22,11 +22,13 @@
 
 #include "slib/render/d3d.h"
 
+#include "slib/graphics/image.h"
+
+#include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
-#include "slib/core/platform_windows.h"
 #include "slib/core/scoped.h"
 #include "slib/core/log.h"
-#include "slib/graphics/image.h"
+#include "slib/core/platform_windows.h"
 
 #include "slib/render/dl_windows_d3d.h"
 

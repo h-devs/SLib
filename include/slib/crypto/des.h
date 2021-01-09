@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_DES
 #define CHECKHEADER_SLIB_CRYPTO_DES
 
-#include "definition.h"
-
 #include "block_cipher.h"
 
 /*

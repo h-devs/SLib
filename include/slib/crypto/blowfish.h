@@ -23,10 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_BLOWFISH
 #define CHECKHEADER_SLIB_CRYPTO_BLOWFISH
 
-#include "definition.h"
-
-#include "../core/string.h"
-
 #include "block_cipher.h"
 
 /*
@@ -38,6 +34,8 @@
 
 namespace slib
 {
+	
+	class String;
 
 	class SLIB_EXPORT Blowfish : public BlockCipher<Blowfish>
 	{

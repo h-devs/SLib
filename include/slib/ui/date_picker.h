@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_DATE_PICKER
 #define CHECKHEADER_SLIB_UI_DATE_PICKER
 
-#include "definition.h"
-
 #include "view.h"
 
 #include "../core/time.h"
