@@ -23,7 +23,7 @@ void SpectrogramApp::onStart()
 	m_recorder = AudioRecorder::create(rp);
 	
 	auto window = New<Window>();
-	window->setTitle("CepstrumApp");
+	window->setTitle("Spectrogram");
 	window->setCenterScreen();
 	window->setClientSize(BITMAP_WIDTH, BITMAP_HEIGHT);
 	window->setResizable();
@@ -92,7 +92,7 @@ void SpectrogramApp::onProcessAudio(float* a)
 	sl_uint8 colors[BITMAP_HEIGHT];
 	{
 		for (sl_uint32 i = 0; i < BITMAP_HEIGHT; i++) {
-			colors[i] = (sl_uint8)(Math::clamp0_255((int)(c[i].abs() * 50000)));
+			colors[i] = (sl_uint8)(Math::clamp0_255((int)(c[i].abs() * 20000)));
 		}
 	}
 
