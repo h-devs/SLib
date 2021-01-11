@@ -930,16 +930,18 @@ namespace slib
 		if (view->isOpaque()) {
 			flagOpaque = sl_true;
 		} else {
-			if (m_flagWindowContent) {
-				Ref<Window> window = view->getWindow();
-				if (window.isNull()) {
-					return;
-				}
-				colorBack = view->getBackgroundColor();
-				if (colorBack.a == 255) {
-					flagOpaque = sl_true;
-				} else {
-					colorBack = window->getBackgroundColor();
+			Color colorView = view->getBackgroundColor();
+			if (colorView.a == 255) {
+				flagOpaque = sl_true;
+			} else {
+				if (m_flagWindowContent) {
+					Ref<Window> window = view->getWindow();
+					if (window.isNotNull()) {
+						colorBack = window->getBackgroundColor();
+						if (colorBack.a == 255) {
+							flagOpaque = sl_true;
+						}
+					}
 				}
 			}
 			if (!flagOpaque) {

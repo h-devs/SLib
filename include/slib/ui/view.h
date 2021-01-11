@@ -329,7 +329,7 @@ namespace slib
 		
 		sl_bool isLockScroll();
 		
-		virtual void setLockScroll(sl_bool flagLock);
+		virtual void setLockScroll(sl_bool flagLock = sl_true);
 		
 
 		Ref<Cursor> getCursor();
@@ -357,7 +357,7 @@ namespace slib
 
 		sl_bool isCustomLayout();
 		
-		void setCustomLayout(sl_bool flagCustom);
+		void setCustomLayout(sl_bool flagCustom = sl_true);
 		
 		const UIRect& getRequestedFrame();
 		
@@ -655,7 +655,7 @@ namespace slib
 		
 		sl_bool isUsingChildLayouts();
 		
-		void setUsingChildLayouts(sl_bool flag);
+		void setUsingChildLayouts(sl_bool flag = sl_true);
 		
 		
 		sl_bool getFinalTransform(Matrix3* _out);
@@ -844,7 +844,7 @@ namespace slib
 
 		sl_bool isUsingFont();
 		
-		void setUsingFont(sl_bool flag);
+		void setUsingFont(sl_bool flag = sl_true);
 		
 		
 		sl_bool isOpaque();
@@ -1063,11 +1063,11 @@ namespace slib
 		
 		sl_bool isVerticalScrolling();
 
-		void setHorizontalScrolling(sl_bool flagHorizontal, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHorizontalScrolling(sl_bool flagHorizontal = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		void setVerticalScrolling(sl_bool flagVertical, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setVerticalScrolling(sl_bool flagVertical = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		virtual void setScrolling(sl_bool flagHorizontal, sl_bool flagVertical, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setScrolling(sl_bool flagHorizontal = sl_true, sl_bool flagVertical = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Ref<ScrollBar> getHorizontalScrollBar();
 		
@@ -1081,19 +1081,19 @@ namespace slib
 		
 		sl_bool isVerticalScrollBarVisible();
 		
-		virtual void setScrollBarsVisible(sl_bool flagHorizontal, sl_bool flagVertical, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setScrollBarsVisible(sl_bool flagHorizontal = sl_true, sl_bool flagVertical = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		void setHorizontalScrollBarVisible(sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHorizontalScrollBarVisible(sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		void setVerticalScrollBarVisible(sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setVerticalScrollBarVisible(sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isAutoHideScrollBar();
 
-		void setAutoHideScrollBar(sl_bool flag);
+		void setAutoHideScrollBar(sl_bool flag = sl_true);
 
 		sl_bool isCanvasScrolling();
 
-		void setCanvasScrolling(sl_bool flag);
+		void setCanvasScrolling(sl_bool flag = sl_true);
 
 		virtual Pointlf getScrollPosition();
 		
@@ -1103,7 +1103,7 @@ namespace slib
 		
 		virtual void scrollTo(sl_scroll_pos x, sl_scroll_pos y, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		void scrollTo(const Pointlf& position, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void scrollTo(const ScrollPoint& position, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void scrollToX(sl_scroll_pos x, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
@@ -1111,7 +1111,7 @@ namespace slib
 		
 		virtual void smoothScrollTo(sl_scroll_pos x, sl_scroll_pos y, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		void smoothScrollTo(const Pointlf& position, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void smoothScrollTo(const ScrollPoint& position, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void smoothScrollToX(sl_scroll_pos x, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
@@ -1153,7 +1153,7 @@ namespace slib
 		
 		sl_bool isPaging();
 		
-		void setPaging(sl_bool flagPaging);
+		void setPaging(sl_bool flagPaging = sl_true);
 		
 		sl_ui_len getPageWidth();
 		
@@ -1166,37 +1166,37 @@ namespace slib
 		
 		sl_bool isContentScrollingByMouse();
 		
-		void setContentScrollingByMouse(sl_bool flag);
+		void setContentScrollingByMouse(sl_bool flag = sl_true);
 		
 		sl_bool isContentScrollingByTouch();
 		
-		void setContentScrollingByTouch(sl_bool flag);
+		void setContentScrollingByTouch(sl_bool flag = sl_true);
 		
 		sl_bool isContentScrollingByMouseWheel();
 		
-		void setContentScrollingByMouseWheel(sl_bool flag);
+		void setContentScrollingByMouseWheel(sl_bool flag = sl_true);
 		
 		sl_bool isContentScrollingByKeyboard();
 		
-		void setContentScrollingByKeyboard(sl_bool flag);
+		void setContentScrollingByKeyboard(sl_bool flag = sl_true);
 		
 		sl_bool isSmoothContentScrolling();
 		
-		void setSmoothContentScrolling(sl_bool flag);
+		void setSmoothContentScrolling(sl_bool flag = sl_true);
 
 		
 		sl_bool isTouchMultipleChildren();
 		
-		void setTouchMultipleChildren(sl_bool flag);
+		void setTouchMultipleChildren(sl_bool flag = sl_true);
 		
 		sl_bool isPassingEventsToChildren();
 		
-		void setPassingEventsToChildren(sl_bool flag);
+		void setPassingEventsToChildren(sl_bool flag = sl_true);
 		
 		
 		sl_bool isOkCancelEnabled();
 		
-		void setOkCancelEnabled(sl_bool flag);
+		void setOkCancelEnabled(sl_bool flag = sl_true);
 		
 		void setOkOnClick();
 		
@@ -1267,12 +1267,12 @@ namespace slib
 
 		sl_bool isClientEdge();
 
-		void setClientEdge(sl_bool flag);
+		void setClientEdge(sl_bool flag = sl_true);
 
 		
 		sl_bool isCapturingEvents();
 		
-		void setCapturingEvents(sl_bool flag);
+		void setCapturingEvents(sl_bool flag = sl_true);
 
 		Function<sl_bool(const UIPoint& pt)> getCapturingChildInstanceEvents();
 		
