@@ -23,6 +23,7 @@
 #include "slib/core/base.h"
 
 #include "slib/core/system.h"
+#include "slib/core/string.h"
 #include "slib/core/memory_traits.h"
 #include "slib/core/assert.h"
 

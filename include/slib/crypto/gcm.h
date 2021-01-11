@@ -123,7 +123,9 @@ namespace slib
 			}
 			calculateCIV(IV, lenIV, CIV);
 			m_cipher->encryptBlock(CIV, GCTR0);
-			Base::zeroMemory(GHASH_X, 16);
+			for (sl_uint32 i = 0; i < 16; i++) {
+	    		GHASH_X[i] = 0;
+			}
 			return sl_true;
 		}
 

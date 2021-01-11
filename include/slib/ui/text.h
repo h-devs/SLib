@@ -23,6 +23,8 @@
 #ifndef CHECKHEADER_SLIB_UI_TEXT
 #define CHECKHEADER_SLIB_UI_TEXT
 
+#include "definition.h"
+
 #include "../graphics/text.h"
 
 namespace slib

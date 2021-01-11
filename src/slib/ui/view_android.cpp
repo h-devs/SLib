@@ -26,6 +26,7 @@
 
 #include "view_android.h"
 
+#include "slib/ui/gesture.h"
 #include "slib/ui/scroll_view.h"
 #include "slib/math/transform2d.h"
 

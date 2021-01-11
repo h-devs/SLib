@@ -24,12 +24,14 @@
 
 #ifdef SLIB_PLATFORM_IS_UNIX
 
+#include "slib/core/pipe.h"
+
+#include "slib/core/base.h"
+
 #define _FILE_OFFSET_BITS 64
 #include <unistd.h>
 #include <errno.h>
 #include <poll.h>
-
-#include "slib/core/pipe.h"
 
 namespace slib
 {

@@ -26,12 +26,13 @@
 
 #include "view_win32.h"
 
-#include "slib/ui/core.h"
 #include "slib/ui/window.h"
+#include "slib/ui/core.h"
+#include "slib/ui/drag.h"
 #include "slib/math/transform2d.h"
 #include "slib/core/win32_com.h"
-#include "slib/core/dl_windows_user32.h"
 #include "slib/core/safe_static.h"
+#include "slib/core/dl_windows_user32.h"
 
 #include <commctrl.h>
 #include <shellapi.h>
