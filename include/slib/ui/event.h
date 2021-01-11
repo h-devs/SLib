@@ -368,6 +368,8 @@ namespace slib
 		static sl_uint32 getSystemKeycode(Keycode key);
 		
 		static Keycode getKeycodeFromSystemKeycode(sl_uint32 systemKeycode);
+
+		static Keycode getKeycodeFromWin32Keycode(sl_uint32 win32Keycode);
 		
 		static String getKeyName(Keycode key, sl_bool flagShort = sl_false);
 		
