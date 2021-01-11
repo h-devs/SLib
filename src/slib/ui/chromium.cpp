@@ -721,6 +721,9 @@ namespace slib
 							}
 							_ev->addFlag(UIEventFlags::DispatchToParent | UIEventFlags::NotDispatchToChildren);
 							instance->onKeyEvent(_ev.get());
+							if (_ev->isPreventedDefault()) {
+								return true;
+							}
 						}
 					} while (0);
 					if (ev.type == KEYEVENT_KEYDOWN || ev.type == KEYEVENT_RAWKEYDOWN) {
