@@ -59,18 +59,9 @@ namespace slib
 		
 		void goForward();
 
-		// level: -5 ~ 10
-		void setZoomLevel(float level);
+		void reload();
 		
-		void zoomIn();
-
-		void zoomOut();
-
-		void find(const String& text);
-
-		virtual void reload();
-		
-		virtual void runJavaScript(const String& script);
+		void runJavaScript(const String& script);
 		
 		
 		String getErrorMessage();
@@ -81,6 +72,21 @@ namespace slib
 		
 		void queryUserAgent(const Function<void(WebView*, String)>& callbackQueryCompletion);
 		
+
+		float getZoomLevel();
+
+		void setZoomLevel(float level);
+
+		void zoomIn();
+
+		void zoomOut();
+
+		void find(const StringParam& text, const FindOptions& options);
+
+		void find(const StringParam& text);
+
+		void stopFinding();
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(WebView, StartLoad, const String& url)
 		SLIB_DECLARE_EVENT_HANDLER(WebView, FinishLoad, const String& url, sl_bool flagFailed)
@@ -103,6 +109,8 @@ namespace slib
 		AtomicString m_customUserAgent;
 		AtomicFunction<void(WebView*, String)> m_callbackQueryUserAgentCompletion;
 
+		float m_zoomLevel;
+
 	};
 	
 	class SLIB_EXPORT IWebViewInstance
@@ -119,13 +127,20 @@ namespace slib
 		virtual void goBack(WebView* view) = 0;
 		
 		virtual void goForward(WebView* view) = 0;
-		
+
 		virtual void reload(WebView* view) = 0;
 		
 		virtual void runJavaScript(WebView* view, const String& script) = 0;
 		
-		virtual void setCustomUserAgent(WebView* view, const String& agent) = 0;
-		
+
+		virtual void setCustomUserAgent(WebView* view, const String& agent);
+
+		virtual void setZoomLevel(WebView* view, float level);
+
+		virtual void find(WebView* view, const StringParam& text, const FindOptions& options);
+
+		virtual void stopFinding(WebView* view);
+
 	};
 	
 	class SLIB_EXPORT DefaultWebViewProvider

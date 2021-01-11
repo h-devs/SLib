@@ -28,7 +28,11 @@
 namespace slib
 {
 	
-	
+	SLIB_DEFINE_FLAGS(FindOptions, {
+		MatchCase = 1,
+		MatchWholeWord = 2,
+		Backward = 4
+	})
 
 }
 

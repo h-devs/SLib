@@ -268,22 +268,22 @@ namespace slib
 			class ChromiumViewInstance : public BaseViewInstance, public IWebViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				CefRefPtr<CefBrowserHost> m_host;
 				CefRefPtr<CefBrowser> m_browser;
-				
+
 				sl_bool m_flagLoadOffline;
 				AtomicString m_title;
-				
+
 				sl_bool m_flagResizeAfterCreate;
 				sl_bool m_flagReloadAfterCreate;
-				
+
 			public:
 				ChromiumViewInstance();
-				
+
 				~ChromiumViewInstance();
-				
+
 			public:
 				Ref<ChromiumViewHelper> getHelper()
 				{
@@ -306,7 +306,7 @@ namespace slib
 #endif
 					view->apply(this, windowInfo);
 				}
-				
+
 				void refreshSize(WebView* view) override
 				{
 					CefBrowserHost* host = m_host.get();
@@ -317,13 +317,13 @@ namespace slib
 #endif
 #ifdef SLIB_UI_IS_MACOS
 						NSView* handle = (__bridge NSView*)(host->GetWindowHandle());
-						[handle setFrame:NSMakeRect(0, 0, (CGFloat)(view->getWidth()), (CGFloat)(view->getHeight()))];
+						[handle setFrame : NSMakeRect(0, 0, (CGFloat)(view->getWidth()), (CGFloat)(view->getHeight()))];
 #endif
 					} else {
 						m_flagResizeAfterCreate = sl_true;
 					}
 				}
-				
+
 				void load(WebView* view) override
 				{
 					ChromiumViewHelper* helper = static_cast<ChromiumViewHelper*>(view);
@@ -335,7 +335,7 @@ namespace slib
 						m_flagReloadAfterCreate = sl_true;
 					}
 				}
-				
+
 				sl_bool getURL(WebView* view, String& _out) override
 				{
 					CefBrowser* browser = m_browser.get();
@@ -345,13 +345,13 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				sl_bool getPageTitle(WebView* view, String& _out) override
 				{
 					_out = m_title;
 					return sl_true;
 				}
-				
+
 				void goBack(WebView* view) override
 				{
 					CefBrowser* browser = m_browser.get();
@@ -359,7 +359,7 @@ namespace slib
 						browser->GoBack();
 					}
 				}
-				
+
 				void goForward(WebView* view) override
 				{
 					CefBrowser* browser = m_browser.get();
@@ -367,7 +367,7 @@ namespace slib
 						browser->GoForward();
 					}
 				}
-				
+
 				void reload(WebView* view) override
 				{
 					CefBrowser* browser = m_browser.get();
@@ -375,7 +375,7 @@ namespace slib
 						browser->Reload();
 					}
 				}
-				
+
 				void runJavaScript(WebView* view, const String& script) override
 				{
 					CefBrowser* browser = m_browser.get();
@@ -384,10 +384,29 @@ namespace slib
 						frame->ExecuteJavaScript(GetCefString(script), frame->GetURL(), 0);
 					}
 				}
-				
-				void setCustomUserAgent(WebView* view, const String& agent) override
+
+				void setZoomLevel(WebView* view, float level) override
 				{
-					// not supported
+					CefBrowserHost* host = m_host.get();
+					if (host) {
+						host->SetZoomLevel(level);
+					}
+				}
+
+				void find(WebView* view, const StringParam& text, const FindOptions& options) override
+				{
+					CefBrowserHost* host = m_host.get();
+					if (host) {
+						host->Find(0, GetCefString(text), !(options & FindOptions::Backward), options & FindOptions::MatchCase, false);
+					}
+				}
+
+				void stopFinding(WebView* view)
+				{
+					CefBrowserHost* host = m_host.get();
+					if (host) {
+						host->StopFinding(true);
+					}
 				}
 				
 #ifdef SLIB_UI_IS_WIN32
@@ -486,8 +505,8 @@ namespace slib
 			class ChromiumHandler : public CefClient, public CefDisplayHandler, public CefLifeSpanHandler, public CefLoadHandler, public CefRequestHandler, public CefKeyboardHandler
 			{
 			public:
-				StaticContext* m_context;
-				
+				StaticContext * m_context;
+
 			public:
 				Ref<ChromiumViewInstance> getInstance(CefRefPtr<CefBrowser> browser)
 				{
@@ -527,7 +546,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				CefRefPtr<CefDisplayHandler> GetDisplayHandler() override
 				{
 					return this;
@@ -668,27 +687,57 @@ namespace slib
 					CefEventHandle os_event,
 					bool* is_keyboard_shortcut) override
 				{
+					Ref<ChromiumViewInstance> instance = getInstance(browser);
+					if (instance.isNull()) {
+						return false;
+					}
+					Ref<ChromiumView> view = CastRef<ChromiumView>(instance->getView());
+					if (view.isNull()) {
+						return false;
+					}
+					do {
+						Keycode keycode = UIEvent::getKeycodeFromWin32Keycode(ev.windows_key_code);
+						UIAction action;
+						if (ev.type == KEYEVENT_KEYDOWN || ev.type == KEYEVENT_RAWKEYDOWN) {
+							action = UIAction::KeyDown;
+						} else if (ev.type == KEYEVENT_KEYUP) {
+							action = UIAction::KeyUp;
+						} else {
+							break;
+						}
+						Ref<UIEvent> _ev = UIEvent::createKeyEvent(action, keycode, 0, Time::now());
+						if (_ev.isNotNull()) {
+							if (ev.modifiers & EVENTFLAG_ALT_DOWN) {
+								_ev->setAltKey();
+							}
+							if (ev.modifiers & EVENTFLAG_CONTROL_DOWN) {
+								_ev->setControlKey();
+							}
+							if (ev.modifiers & EVENTFLAG_SHIFT_DOWN) {
+								_ev->setShiftKey();
+							}
+							if (ev.modifiers & EVENTFLAG_COMMAND_DOWN) {
+								_ev->setCommandKey();
+							}
+							_ev->addFlag(UIEventFlags::DispatchToParent | UIEventFlags::NotDispatchToChildren);
+							instance->onKeyEvent(_ev.get());
+						}
+					} while (0);
 					if (ev.type == KEYEVENT_KEYDOWN || ev.type == KEYEVENT_RAWKEYDOWN) {
 						if (ev.modifiers & EVENTFLAG_ALT_DOWN) {
 							if (ev.windows_key_code == 0x25 /* VK_LEFT */) {
-								browser->GoBack();
+								view->goBack();
 								return true;
 							} else if (ev.windows_key_code == 0x27 /* VK_RIGHT */) {
-								browser->GoForward();
+								view->goForward();
 								return true;
 							}
 						}
 						if (ev.modifiers & EVENTFLAG_CONTROL_DOWN) {
 							if (ev.windows_key_code == 0xBB /* VK_OEM_PLUS */ || ev.windows_key_code == 0x6B /* VK_ADD */) {
-								CefRefPtr<CefBrowserHost> host = browser->GetHost().get();
-								if (host.get()) {
-									host->SetZoomLevel(Math::clamp(host->GetZoomLevel() + 1, -4.0, 8.0));
-								}
+								view->zoomIn();
 							} else if (ev.windows_key_code == 0xBD /* VK_OEM_MINUS */ || ev.windows_key_code == 0x6D /* VK_SUBTRACT */) {
-								CefRefPtr<CefBrowserHost> host = browser->GetHost().get();
-								if (host.get()) {
-									host->SetZoomLevel(Math::clamp(host->GetZoomLevel() - 1, -4.0, 8.0));
-								}
+								view->zoomOut();
 							}
 						}
 					}
