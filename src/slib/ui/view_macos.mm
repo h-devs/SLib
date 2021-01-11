@@ -27,7 +27,7 @@
 #include "view_macos.h"
 
 #include "slib/ui/view.h"
-
+#include "slib/ui/drag.h"
 #include "slib/math/transform2d.h"
 
 @interface SLIBDraggingSource : NSObject<NSDraggingSource>
