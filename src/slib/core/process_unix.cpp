@@ -27,6 +27,7 @@
 #include "slib/core/process.h"
 
 #include "slib/core/file.h"
+#include "slib/core/list.h"
 
 #include <stdlib.h>
 #include <stdio.h>

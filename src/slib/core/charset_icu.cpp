@@ -26,8 +26,9 @@
 
 #include "slib/core/charset.h"
 
-#include "slib/core/string.h"
 #include "slib/core/file.h"
+#include "slib/core/string.h"
+#include "slib/core/list.h"
 #include "slib/core/scoped.h"
 
 #include "unicode/ucnv.h"
