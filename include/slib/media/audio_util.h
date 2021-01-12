@@ -210,7 +210,7 @@ namespace slib
 		// Float => S16
 		static void convertSample(float _in, sl_int16& _out)
 		{
-			_out = (sl_int16)(Math::clamp0_65535((sl_int32)(_in * 32768.0f)) - 0x8000);
+			_out = (sl_int16)(Math::clamp0_65535((sl_int32)(_in * 32768.0f) + 0x8000) - 0x8000);
 		}
 		
 		static void convertSamples(sl_size count, const float* _in, sl_int16* _out);
@@ -218,7 +218,7 @@ namespace slib
 		// Float => U16
 		static void convertSample(float _in, sl_uint16& _out)
 		{
-			_out = (sl_int16)(Math::clamp0_65535((sl_int32)(_in * 32768.0f)));
+			_out = (sl_int16)(Math::clamp0_65535((sl_int32)(_in * 32768.0f) + 0x8000));
 		}
 		
 		static void convertSamples(sl_size count, const float* _in, sl_uint16* _out);
