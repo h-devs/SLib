@@ -252,10 +252,7 @@ namespace slib
 				}
 				
 			public:
-				CefRefPtr<CefResourceHandler> GetResourceHandler(
-																 CefRefPtr<CefBrowser> browser,
-																 CefRefPtr<CefFrame> frame,
-																 CefRefPtr<CefRequest> request) override
+				CefRefPtr<CefResourceHandler> GetResourceHandler(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request) override
 				{
 					CefRefPtr<CefStreamReader> stream = CefStreamReader::CreateForData(m_content.getData(), m_content.getLength());
 					return new CefStreamResourceHandler("text/html", stream);
@@ -583,18 +580,19 @@ namespace slib
 				
 				// CefLifeSpanHandler
 				bool OnBeforePopup(
-								   CefRefPtr<CefBrowser> browser,
-								   CefRefPtr<CefFrame> frame,
-								   const CefString& target_url,
-								   const CefString& target_frame_name,
-								   CefLifeSpanHandler::WindowOpenDisposition target_disposition,
-								   bool user_gesture,
-								   const CefPopupFeatures& popupFeatures,
-								   CefWindowInfo& windowInfo,
-								   CefRefPtr<CefClient>& client,
-								   CefBrowserSettings& settings,
-								   CefRefPtr<CefDictionaryValue>& extra_info,
-								   bool* no_javascript_access) override
+					CefRefPtr<CefBrowser> browser,
+					CefRefPtr<CefFrame> frame,
+					const CefString& target_url,
+					const CefString& target_frame_name,
+					CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+					bool user_gesture,
+					const CefPopupFeatures& popupFeatures,
+					CefWindowInfo& windowInfo,
+					CefRefPtr<CefClient>& client,
+					CefBrowserSettings& settings,
+					CefRefPtr<CefDictionaryValue>& extra_info,
+					bool* no_javascript_access
+				) override
 				{
 					return false;
 				}
@@ -644,13 +642,14 @@ namespace slib
 				
 				// CefRequestHandler
 				CefRefPtr<CefResourceRequestHandler> GetResourceRequestHandler(
-																			   CefRefPtr<CefBrowser> browser,
-																			   CefRefPtr<CefFrame> frame,
-																			   CefRefPtr<CefRequest> request,
-																			   bool is_navigation,
-																			   bool is_download,
-																			   const CefString& request_initiator,
-																			   bool& disable_default_handling) override
+					CefRefPtr<CefBrowser> browser,
+					CefRefPtr<CefFrame> frame,
+					CefRefPtr<CefRequest> request,
+					bool is_navigation,
+					bool is_download,
+					const CefString& request_initiator,
+					bool& disable_default_handling
+				) override
 				{
 					if (is_navigation) {
 						Ref<ChromiumViewInstance> instance = getInstance(browser);
@@ -681,11 +680,7 @@ namespace slib
 					return false;
 				}
 
-				bool OnPreKeyEvent(
-					CefRefPtr<CefBrowser> browser,
-					const CefKeyEvent& ev,
-					CefEventHandle os_event,
-					bool* is_keyboard_shortcut) override
+				bool OnPreKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEvent& ev, CefEventHandle os_event, bool* is_keyboard_shortcut) override
 				{
 					Ref<ChromiumViewInstance> instance = getInstance(browser);
 					if (instance.isNull()) {
