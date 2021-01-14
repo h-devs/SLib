@@ -6875,7 +6875,8 @@ namespace slib
 			attrs->contentHeight = height;
 			_initScrollBars(UIUpdateMode::None);
 			onResizeContent(width, height);
-			refreshScroll(mode);
+			refreshScroll(UIUpdateMode::None);
+			invalidate(mode);
 		}
 	}
 
