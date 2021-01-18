@@ -159,7 +159,6 @@ namespace slib
 					return sl_false;
 				}
 				ServiceCreateParam param;
-				//param.type = ServiceType::FileSystem;
 				param.startType = ServiceStartType::Auto;
 				param.name = serviceName;
 				param.path = path;
