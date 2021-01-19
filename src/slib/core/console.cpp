@@ -112,6 +112,7 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		StringCstr16 s(_s);
 		if (s.isEmpty()) {
+			printf("\n");
 			return;
 		}
 		Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
