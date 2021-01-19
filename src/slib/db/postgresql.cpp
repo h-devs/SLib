@@ -224,7 +224,7 @@ namespace slib
 							Memory mem = params[i].getMemory();
 							values[i] = (char*)(mem.getData());
 							lengths[i] = (int)(mem.getSize());
-						} if (params[i].isSz8()) {
+						} else if (params[i].isSz8()) {
 							values[i] = params[i].getSz8();
 							lengths[i] = (int)(Base::getStringLength(values[i]));
 						} else {

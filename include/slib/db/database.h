@@ -229,7 +229,9 @@ namespace slib
 		}
 		
 		Ref<DatabaseStatement> prepareQuery(const DatabaseIdentifier& table, const DatabaseExpression& where);
-		
+
+		List< HashMap<String, Variant> > findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where);
+
 		template <class... ARGS>
 		List< HashMap<String, Variant> > findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
 		{
@@ -250,7 +252,9 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
+		HashMap<String, Variant> findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where);
+
 		template <class... ARGS>
 		HashMap<String, Variant> findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
 		{
@@ -271,7 +275,9 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
+		Variant findValue(const DatabaseIdentifier& table, const DatabaseExpression& where);
+
 		template <class... ARGS>
 		Variant findValue(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
 		{

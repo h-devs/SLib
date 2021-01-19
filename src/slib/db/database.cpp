@@ -334,6 +334,33 @@ namespace slib
 		return prepareStatement(sql);
 	}
 
+	List< HashMap<String, Variant> > Database::findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where)
+	{
+		Ref<DatabaseStatement> stmt = prepareQuery(table, where);
+		if (stmt.isNotNull()) {
+			return stmt->getRecordsBy(sl_null, 0);
+		}
+		return sl_null;
+	}
+
+	HashMap<String, Variant> Database::findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where)
+	{
+		Ref<DatabaseStatement> stmt = prepareQuery(table, where);
+		if (stmt.isNotNull()) {
+			return stmt->getRecordBy(sl_null, 0);
+		}
+		return sl_null;
+	}
+
+	Variant Database::findValue(const DatabaseIdentifier& table, const DatabaseExpression& where)
+	{
+		Ref<DatabaseStatement> stmt = prepareQuery(table, where);
+		if (stmt.isNotNull()) {
+			return stmt->getValueBy(sl_null, 0);
+		}
+		return sl_null;
+	}
+
 	sl_bool Database::startTransaction()
 	{
 		SLIB_STATIC_STRING(s, "BEGIN")
