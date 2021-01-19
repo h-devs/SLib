@@ -136,12 +136,8 @@ namespace slib
 							(float)(matrix.m02), (float)(matrix.m12), (float)(matrix.m22));
 				}
 
-				void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& _pen) override
+				void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen) override
 				{
-					Ref<Pen> pen = _pen;
-					if (pen.isNull()) {
-						pen = Pen::getDefault();
-					}
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 					if (hPen) {
 						JGraphics::drawLine.call(m_canvas
@@ -150,14 +146,10 @@ namespace slib
 					}
 				}
 
-				void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& _pen) override
+				void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) override
 				{
 					if (countPoints < 2) {
 						return;
-					}
-					Ref<Pen> pen = _pen;
-					if (pen.isNull()) {
-						pen = Pen::getDefault();
 					}
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 					if (hPen) {
@@ -169,12 +161,8 @@ namespace slib
 					}
 				}
 
-				void drawArc(const Rectangle& rect, sl_real startDegrees, sl_real endDegrees, const Ref<Pen>& _pen) override
+				void drawArc(const Rectangle& rect, sl_real startDegrees, sl_real endDegrees, const Ref<Pen>& pen) override
 				{
-					Ref<Pen> pen = _pen;
-					if (pen.isNull()) {
-						pen = Pen::getDefault();
-					}
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 					if (hPen) {
 						JGraphics::drawArc.call(m_canvas
@@ -184,12 +172,8 @@ namespace slib
 					}
 				}
 
-				void drawRectangle(const Rectangle& rect, const Ref<Pen>& _pen, const Ref<Brush>& brush) override
+				void drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
-					Ref<Pen> pen = _pen;
-					if (brush.isNull() && pen.isNull()) {
-						pen = Pen::getDefault();
-					}
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
 					if (hPen || hBrush) {
@@ -199,12 +183,8 @@ namespace slib
 					}
 				}
 
-				void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& _pen, const Ref<Brush>& brush) override
+				void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
-					Ref<Pen> pen = _pen;
-					if (brush.isNull() && pen.isNull()) {
-						pen = Pen::getDefault();
-					}
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
 					if (hPen || hBrush) {
@@ -214,12 +194,8 @@ namespace slib
 					}
 				}
 
-				void drawEllipse(const Rectangle& rect, const Ref<Pen>& _pen, const Ref<Brush>& brush) override
+				void drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
-					Ref<Pen> pen = _pen;
-					if (brush.isNull() && pen.isNull()) {
-						pen = Pen::getDefault();
-					}
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
 					if (hPen || hBrush) {
@@ -229,14 +205,10 @@ namespace slib
 					}
 				}
 
-				void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& _pen, const Ref<Brush>& brush, FillMode fillMode) override
+				void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
 				{
 					if (countPoints <= 2) {
 						return;
-					}
-					Ref<Pen> pen = _pen;
-					if (brush.isNull() && pen.isNull()) {
-						pen = Pen::getDefault();
 					}
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
@@ -249,12 +221,8 @@ namespace slib
 					}
 				}
 
-				void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real endDegrees, const Ref<Pen>& _pen, const Ref<Brush>& brush) override
+				void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real endDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
-					Ref<Pen> pen = _pen;
-					if (brush.isNull() && pen.isNull()) {
-						pen = Pen::getDefault();
-					}
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
 					if (hPen || hBrush) {
@@ -265,14 +233,10 @@ namespace slib
 					}
 				}
 				
-				void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& _pen, const Ref<Brush>& brush) override
+				void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
 					jobject hPath = GraphicsPlatform::getGraphicsPath(path.get());
 					if (hPath) {
-						Ref<Pen> pen = _pen;
-						if (brush.isNull() && pen.isNull()) {
-							pen = Pen::getDefault();
-						}
 						jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 						jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
 						if (hPen || hBrush) {

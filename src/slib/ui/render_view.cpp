@@ -24,6 +24,7 @@
 
 #include "slib/render/canvas.h"
 #include "slib/math/transform2d.h"
+#include "slib/ui/gesture.h"
 #include "slib/core/thread.h"
 #include "slib/core/dispatch.h"
 
@@ -104,9 +105,9 @@ namespace slib
 		setRendering(sl_true);
 
 #ifdef SLIB_PLATFORM_IS_DESKTOP
-		setPreferredEngineType(RenderEngineType::OpenGL);
+		m_preferredEngineType = RenderEngineType::OpenGL;
 #else
-		setPreferredEngineType(RenderEngineType::OpenGL_ES);
+		m_preferredEngineType = RenderEngineType::OpenGL_ES;
 #endif
 
 		m_redrawMode = RedrawMode::Continuously;
@@ -148,6 +149,16 @@ namespace slib
 		ViewGroup::init();
 
 		m_animationLoop = new priv::render_view::AnimationLoopImpl(this);
+	}
+
+	RenderEngineType RenderView::getPreferredEngineType()
+	{
+		return m_preferredEngineType;
+	}
+
+	void RenderView::setPreferredEngineType(RenderEngineType type)
+	{
+		m_preferredEngineType = type;
 	}
 
 	RedrawMode RenderView::getRedrawMode()

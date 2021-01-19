@@ -26,7 +26,7 @@
 
 #include "slib/core/platform_android.h"
 
-#include "slib/core/io.h"
+#include "slib/core/memory_output.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -103,7 +103,7 @@ namespace slib
 			JniLocal<jbyteArray> arr = Jni::newByteArray(512);
 			jbyte buf[512];
 			if (arr.isNotNull()) {
-				MemoryWriter writer;
+				MemoryOutput writer;
 				while (1) {
 					sl_int32 n = Jni::readFromInputStream(is, arr);
 					if (n > 0) {

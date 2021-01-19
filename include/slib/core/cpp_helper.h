@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_CPP
-#define CHECKHEADER_SLIB_CORE_CPP
+#ifndef CHECKHEADER_SLIB_CORE_CPP_HELPER
+#define CHECKHEADER_SLIB_CORE_CPP_HELPER
 
 #include "definition.h"
 
@@ -75,50 +75,12 @@ namespace slib
 		return static_cast<T&&>(v);
 	}
 
-	template <class T>
-	SLIB_INLINE void Swap(T& a, T& b) noexcept
-	{
-		T t(Move(a));
-		a = Move(b);
-		b = Move(t);
-	}
-
 	template<class T, sl_size_t N>
-	SLIB_INLINE constexpr sl_size_t CountOfArray(const T (&)[N]) noexcept
+	constexpr sl_size_t CountOfArray(const T (&)[N]) noexcept
 	{
 		return N;
 	}
-
-	template <class T, class V>
-	SLIB_INLINE T& ForcedCast(const V& v)
-	{
-		return *((T*)((void*)&v));
-	}
-
-	template <class T> struct PropertyTypeHelper { typedef T const& ArgType; typedef T const& RetType; };
 	
-	template <class T> T&& DeclaredValue() noexcept;
-	
-	template <class FROM, class TO>
-	class IsConvertibleHelper
-	{
-	private:
-		template<class T> static void _test_implicit(T);
-
-		template<class OTHER_FROM, class OTHER_TO, class OTHER_T = decltype(_test_implicit<OTHER_TO>(DeclaredValue<OTHER_FROM>()))>
-		static ConstValue<bool, true> _test(int);
-
-		template <class OTHER_FROM, class OTHER_TO>
-		static ConstValue<bool, false> _test(...);
-
-	public:
-		typedef decltype(_test<FROM, TO>(0)) type;
-
-	};
-	
-	template <typename FROM, typename TO>
-	struct IsConvertible : public IsConvertibleHelper<FROM, TO>::type {};
-
 }
 
 #endif

@@ -25,7 +25,10 @@
 
 #include "definition.h"
 
-#include "../core/async.h"
+#include "../core/async_stream.h"
+#include "../core/memory.h"
+#include "../core/hash_map.h"
+#include "../core/string.h"
 
 namespace slib
 {

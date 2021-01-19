@@ -23,7 +23,7 @@
 #include "slib/core/atomic.h"
 
 #include "slib/core/base.h"
-#include "slib/core/time.h"
+#include "slib/core/time_counter.h"
 #include "slib/core/system.h"
 
 namespace slib

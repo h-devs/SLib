@@ -23,9 +23,9 @@
 #ifndef CHECKHEADER_SLIB_UI_EDIT_VIEW
 #define CHECKHEADER_SLIB_UI_EDIT_VIEW
 
-#include "definition.h"
-
 #include "view.h"
+
+#include "../core/string.h"
 
 namespace slib
 {

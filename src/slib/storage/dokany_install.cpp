@@ -25,7 +25,7 @@
 #ifdef SLIB_PLATFORM_IS_WIN32
 
 #include "slib/core/service_manager.h"
-#include "slib/core/file.h"
+#include "slib/core/file_util.h"
 #include "slib/core/process.h"
 #include "slib/core/dynamic_library.h"
 #include "slib/core/platform_windows.h"
@@ -59,9 +59,9 @@ namespace slib
 			static String GetDriverName(sl_bool flagDokany)
 			{
 				if (flagDokany) {
-					return "Dokan1";
+					SLIB_RETURN_STRING("Dokan1")
 				} else {
-					return "Dokan";
+					SLIB_RETURN_STRING("Dokan")
 				}
 			}
 
@@ -94,9 +94,14 @@ namespace slib
 				return ServiceManager::isRunning(driverName);
 			}
 
+			static String GetMounterName()
+			{
+				SLIB_RETURN_STRING("DokanMounter")
+			}
+
 			static sl_bool StartMounter()
 			{
-				String serviceName = "DokanMounter";
+				String serviceName = GetMounterName();
 				ServiceState state = ServiceManager::getState(serviceName);
 				if (state == ServiceState::Running) {
 					return sl_true;
@@ -130,7 +135,7 @@ namespace slib
 
 			static sl_bool RegisterMounter()
 			{
-				String serviceName = "DokanMounter";
+				String serviceName = GetMounterName();
 				ServiceState state = ServiceManager::getState(serviceName);
 				if (state != ServiceState::None) {
 					return sl_true;
@@ -149,12 +154,11 @@ namespace slib
 				if (data.isNull()) {
 					return sl_false;
 				}
-				String path = Windows::getSystemDirectory() + "\\mounter.exe";
+				String path = Windows::getSystemDirectory() + "\\dokan_mounter.exe";
 				if (File::writeAllBytes(path, data) != data.getSize()) {
 					return sl_false;
 				}
 				ServiceCreateParam param;
-				//param.type = ServiceType::FileSystem;
 				param.startType = ServiceStartType::Auto;
 				param.name = serviceName;
 				param.path = path;

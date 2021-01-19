@@ -22,7 +22,6 @@
 
 #include "slib/ui/table_layout.h"
 
-#include "slib/core/math.h"
 #include "slib/core/scoped.h"
 
 namespace slib
@@ -844,7 +843,7 @@ namespace slib
 			}
 			for (iCol = 0; iCol < nCols; iCol++) {
 				Column& col = cols[iCol];
-				if (colWidthModes[iCol] == SizeMode::Wrapping) {					
+				if (colWidthModes[iCol] == SizeMode::Wrapping) {
 					sumWidth += col.widthLayout;
 				}
 			}

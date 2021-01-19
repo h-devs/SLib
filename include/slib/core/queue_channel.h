@@ -23,10 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_QUEUE_CHANNEL
 #define CHECKHEADER_SLIB_CORE_QUEUE_CHANNEL
 
-#include "definition.h"
-
 #include "queue.h"
-#include "array.h"
 
 namespace slib
 {

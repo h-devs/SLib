@@ -38,11 +38,13 @@ namespace slib
 	public:
 		HINSTANCE hInstance;
 		ATOM wndClassForView;
-		ATOM wndClassForWindow;
 		HWND hWndMessage;
 
 	private:
+		ATOM m_wndClassForWindow;
+		ATOM m_wndClassForWindowNoClose;
 		ATOM m_wndClassForMessage;
+		Mutex m_lock;
 
 	public:
 		Win32_UI_Shared();
@@ -54,9 +56,24 @@ namespace slib
 
 		static void initialize();
 
+	public:
+		ATOM getWndClassForWindow();
+
+		ATOM getWndClassForWindowNoClose();
+
+	private:
+		void prepareClassForView(WNDCLASSEXW& wc);
+
+		void prepareClassForWindow(WNDCLASSEXW& wc);
+
 	};
 
 }
+
+#define PRIV_SLIB_UI_GENERIC_WINDOW_CLASS_NAME L"FB4A9373-CA06-414D-B486-5FFC7FB13933"
+#define PRIV_SLIB_UI_NOCLOSE_WINDOW_CLASS_NAME L"D9FF2361-B4CC-40D5-B55C-3D85DE89438F"
+#define PRIV_SLIB_UI_VIEW_WINDOW_CLASS_NAME L"6F5719AC-5FAF-4F90-8A1D-FA35D3F24E87"
+#define PRIV_SLIB_UI_MESSAGE_WINDOW_CLASS_NAME L"F619E22E-D761-4E18-987E-0458117D32E4"
 
 #endif
 

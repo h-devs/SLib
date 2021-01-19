@@ -22,6 +22,7 @@
 
 #include "slib/ui/transition.h"
 
+#include "slib/ui/view.h"
 #include "slib/ui/core.h"
 
 namespace slib

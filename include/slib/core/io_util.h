@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_IO_UTIL
 #define CHECKHEADER_SLIB_CORE_IO_UTIL
 
-#include "definition.h"
-
 #include "io.h"
 #include "ptrx.h"
 

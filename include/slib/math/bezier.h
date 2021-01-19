@@ -36,9 +36,6 @@ C(n,m)	= Combinations of n things, taken m at a time
 #ifndef CHECKHEADER_SLIB_MATH_BEZIER
 #define CHECKHEADER_SLIB_MATH_BEZIER
 
-#include "definition.h"
-
-#include "point.h"
 #include "rectangle.h"
 
 namespace slib

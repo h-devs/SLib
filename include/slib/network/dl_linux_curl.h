@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_DL_LINUX_CURL
 #define CHECKHEADER_SLIB_NETWORK_DL_LINUX_CURL
 
-#include "definition.h"
+#include "../core/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 

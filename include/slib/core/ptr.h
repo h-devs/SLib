@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_PTR
 #define CHECKHEADER_SLIB_CORE_PTR
 
-#include "definition.h"
-
 #include "ref.h"
 
 #include <new>
@@ -804,7 +802,7 @@ namespace slib
 		{
 			if ((void*)this == (void*)(&(priv::ptr::g_null))) {
 				return sl_null;
-			} else {			
+			} else {
 				m_lock.lock();
 				reference = _ref;
 				T* ret = _ptr;
@@ -972,7 +970,7 @@ namespace slib
 				
 			public:
 				SharedPtrContainer(T* _ptr) : ptr(_ptr)
-				{					
+				{
 				}
 				
 				~SharedPtrContainer()

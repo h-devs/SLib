@@ -23,12 +23,7 @@
 #ifndef CHECKHEADER_SLIB_MATH_TRIANGLE3
 #define CHECKHEADER_SLIB_MATH_TRIANGLE3
 
-#include "definition.h"
-
-#include "vector3.h"
-#include "line3.h"
 #include "plane.h"
-#include "matrix4.h"
 
 namespace slib
 {

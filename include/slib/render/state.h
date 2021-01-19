@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_RENDER_STATE
 #define CHECKHEADER_SLIB_RENDER_STATE
 
-#include "definition.h"
-
 #include "constants.h"
 #include "base.h"
 

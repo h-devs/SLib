@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_RENDER_OPENGL_ENGINE
 #define CHECKHEADER_SLIB_RENDER_OPENGL_ENGINE
 
-#include "definition.h"
-
 #include "engine.h"
 
 namespace slib

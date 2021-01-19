@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_OBJECT
 #define CHECKHEADER_SLIB_CORE_OBJECT
 
-#include "definition.h"
-
-#include "macro.h"
 #include "ref.h"
 #include "mutex.h"
 

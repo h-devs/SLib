@@ -23,12 +23,13 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_HTTP_IO
 #define CHECKHEADER_SLIB_NETWORK_HTTP_IO
 
-#include "definition.h"
-
-#include "../core/string.h"
-#include "../crypto/zlib.h"
-
 #include "async.h"
+
+#include "../core/async_output.h"
+#include "../core/async_stream_filter.h"
+#include "../core/string.h"
+#include "../core/memory_queue.h"
+#include "../crypto/zlib.h"
 
 namespace slib
 {

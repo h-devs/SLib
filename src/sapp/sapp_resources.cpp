@@ -685,6 +685,18 @@ namespace slib
 		viewContent = doc->_simulateLayoutCreateOrLayoutView(this, layout, sl_null, sl_null, sl_false);
 		setInitialized();
 		if (viewContent.isNotNull()) {
+			if (layout->initialFocus.isNotEmpty()) {
+				if (layout->layoutType == SAppLayoutType::Window || layout->layoutType == SAppLayoutType::Page) {
+					Ref<View> view = getViewByName(layout->initialFocus);
+					if (view.isNotNull()) {
+						if (layout->layoutType == SAppLayoutType::Window) {
+							setInitialFocus(view);
+						} else {
+							((ViewPage*)(viewContent.get()))->setInitialFocus(view);
+						}
+					}
+				}
+			}
 			if (layout->layoutType != SAppLayoutType::Window) {
 				if (viewContent->getBackgroundColor().isZero()) {
 					viewContent->setBackgroundColor(Color::White, UIUpdateMode::Init);

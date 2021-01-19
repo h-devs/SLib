@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_HMAC
 #define CHECKHEADER_SLIB_CRYPTO_HMAC
 
-#include "definition.h"
-
-
 #include "sha2.h"
 
 /*

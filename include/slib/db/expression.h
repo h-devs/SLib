@@ -23,11 +23,8 @@
 #ifndef CHECKHEADER_SLIB_DB_DATABASE_EXPR
 #define CHECKHEADER_SLIB_DB_DATABASE_EXPR
 
-#include "definition.h"
-
 #include "constants.h"
 
-#include "../core/object.h"
 #include "../core/variant.h"
 
 namespace slib

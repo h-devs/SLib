@@ -23,6 +23,7 @@
 #include "slib/media/audio_device.h"
 
 #include "slib/media/audio_format.h"
+#include "slib/core/event.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -170,7 +171,7 @@ namespace slib
 			temp.count = 1024;
 			sl_size n = audioOut.count;
 			ObjectLocker lock(&m_queue);
-			if (n > m_queue.getCount()) {
+			if (n <= m_queue.getCount()) {
 				while (n > 0) {
 					sl_size m = n;
 					if (m > 1024) {

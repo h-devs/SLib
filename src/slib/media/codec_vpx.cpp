@@ -22,9 +22,10 @@
 
 #include "slib/media/codec_vpx.h"
 
-#include "slib/core/log.h"
-#include "slib/core/io.h"
+#include "slib/core/memory_reader.h"
+#include "slib/core/memory_output.h"
 #include "slib/core/scoped.h"
+#include "slib/core/log.h"
 
 #include "vpx/vp8cx.h"
 #include "vpx/vp8dx.h"
@@ -210,7 +211,7 @@ namespace slib
 						if (res == VPX_CODEC_OK) {
 							vpx_codec_iter_t iter = sl_null;
 							const vpx_codec_cx_pkt_t *pkt = sl_null;
-							MemoryWriter encodeWriter;
+							MemoryOutput encodeWriter;
 
 							while ((pkt = vpx_codec_get_cx_data(m_codec, &iter)) != sl_null) {
 								if (pkt->kind == VPX_CODEC_CX_FRAME_PKT) {
@@ -337,7 +338,7 @@ namespace slib
 						if (!(reader.readInt64(&size))) {
 							break;
 						}
-						sl_size offset = reader.getOffset();
+						sl_size offset = reader.getPosition();
 						if (offset + size > inputSize) {
 							break;
 						}

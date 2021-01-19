@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MATH_LINE_SEGMENT
 #define CHECKHEADER_SLIB_MATH_LINE_SEGMENT
 
-#include "definition.h"
-
 #include "point.h"
 #include "matrix3.h"
 

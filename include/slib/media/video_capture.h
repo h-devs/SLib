@@ -23,11 +23,8 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_VIDEO_CAPTURE
 #define CHECKHEADER_SLIB_MEDIA_VIDEO_CAPTURE
 
-#include "definition.h"
-
 #include "video_frame.h"
 
-#include "../core/object.h"
 #include "../core/string.h"
 #include "../core/function.h"
 

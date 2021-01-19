@@ -23,6 +23,7 @@
 #include "slib/graphics/font.h"
 
 #include "slib/graphics/font_atlas.h"
+#include "slib/core/memory.h"
 #include "slib/core/locale.h"
 #include "slib/core/safe_static.h"
 

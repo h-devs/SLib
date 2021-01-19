@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_LIST
 #define CHECKHEADER_SLIB_CORE_LIST
 
-#include "definition.h"
-
 #include "object.h"
 #include "array.h"
 
@@ -3552,7 +3550,7 @@ namespace slib
 	public:
 		ListParam() noexcept
 		: _value(sl_null), _count(0)
-		{		
+		{
 		}
 
 		ListParam(sl_null_t) noexcept

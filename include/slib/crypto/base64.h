@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_BASE64
 #define CHECKHEADER_SLIB_CRYPTO_BASE64
 
-#include "definition.h"
-
 #include "../core/string.h"
 
 namespace slib

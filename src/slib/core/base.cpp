@@ -23,7 +23,9 @@
 #include "slib/core/base.h"
 
 #include "slib/core/system.h"
+#include "slib/core/string.h"
 #include "slib/core/memory_traits.h"
+#include "slib/core/assert.h"
 
 #if !defined(SLIB_PLATFORM_IS_APPLE)
 #	include <malloc.h>
@@ -290,7 +292,7 @@ namespace slib
 	}
 
 	sl_uint8* Base::findMemory(const void* m, sl_size size, sl_uint8 pattern) noexcept
-	{		
+	{
 		return (sl_uint8*)(memchr(m, pattern, size));
 	}
 

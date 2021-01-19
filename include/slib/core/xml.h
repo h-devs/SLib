@@ -36,10 +36,7 @@
  
 ************************************************************/
 
-#include "definition.h"
-
 #include "variant.h"
-#include "function.h"
 
 namespace slib
 {

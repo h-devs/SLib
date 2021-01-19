@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MATH_VECTOR3
 #define CHECKHEADER_SLIB_MATH_VECTOR3
 
-#include "definition.h"
-
 #include "vector2.h"
 
 namespace slib

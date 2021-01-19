@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/macro.h"
+#include "../core/flags.h"
 
 namespace slib
 {

@@ -23,11 +23,8 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_MAC_ADDRESS
 #define CHECKHEADER_SLIB_NETWORK_MAC_ADDRESS
 
-#include "definition.h"
-
 #include "ip_address.h"
 
-#include "../core/string.h"
 #include "../core/parse.h"
 
 namespace slib

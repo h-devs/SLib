@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_SERVICE_XGPUSH
 #define CHECKHEADER_SLIB_SERVICE_XGPUSH
 
-#include "definition.h"
-
 #include "push_notification.h"
 
 namespace slib

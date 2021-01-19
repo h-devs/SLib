@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_NULLABLE
 #define CHECKHEADER_SLIB_CORE_NULLABLE
 
-#include "definition.h"
-
 #include "hash.h"
 
 namespace slib

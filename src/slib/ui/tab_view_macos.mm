@@ -40,7 +40,7 @@ namespace slib
 }
 
 @interface SLIBTabViewHandle : NSTabView<NSTabViewDelegate>
-{	
+{
 	@public slib::WeakRef<slib::priv::tab_view::TabViewInstance> m_viewInstance;
 }
 @end

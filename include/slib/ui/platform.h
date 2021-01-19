@@ -23,13 +23,10 @@
 #ifndef CHECKHEADER_SLIB_UI_PLATFORM
 #define CHECKHEADER_SLIB_UI_PLATFORM
 
-#include "definition.h"
+#include "event.h"
 
-#include "../core/ref.h"
 #include "../core/function.h"
 #include "../graphics/platform.h"
-
-#include "event.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 #	include "../core/platform_windows.h"
@@ -216,8 +213,9 @@ namespace slib
 
 		static void applyEventModifiers(UIEvent* event, guint state);
 
-		static GtkWidget* getMenuHandle(const Ref<Menu>& menu);
-		static Ref<Menu> getMenu(GtkWidget* hMenu);
+		static GtkMenuShell* getMenuHandle(const Ref<Menu>& menu);
+		static Ref<Menu> getMenu(GtkMenuShell* hMenu);
+		static sl_bool isPopupMenu(const Ref<Menu>& menu);
 
 #elif defined(SLIB_UI_IS_EFL)
 		static Ref<ViewInstance> createViewInstance(EFL_ViewType type, Evas_Object* handle, sl_bool flagFreeOnRelease = sl_true);

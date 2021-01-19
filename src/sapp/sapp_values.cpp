@@ -26,7 +26,9 @@
 #include "sapp_util.h"
 
 #include "slib/core/variant.h"
+#include "slib/core/time_parse.h"
 #include "slib/math/calculator.h"
+#include "slib/graphics/color_parse.h"
 #include "slib/ui/radio_button.h"
 
 namespace slib
@@ -1348,6 +1350,7 @@ namespace slib
 		if (str.startsWith("@drawable/")) {
 			str = str.substring(10);
 		}
+		str = str.trim();
 		
 		sl_char8* sz = str.getData();
 		sl_size len = str.getLength();
@@ -1659,10 +1662,11 @@ namespace slib
 			return sl_true;
 		}
 		
-		if (!(str.startsWith("@drawable/"))) {
-			return sl_false;
+		if (str.startsWith("@drawable/")) {
+			str = str.substring(10);
 		}
-		str = str.substring(10).trim();
+		str = str.trim();
+
 		if (!(SAppUtil::checkName(str.getData(), str.getLength()))) {
 			return sl_false;
 		}
@@ -1728,10 +1732,12 @@ namespace slib
 			flagNull = sl_true;
 			return sl_true;
 		}
-		if (!(str.startsWith("@menu/"))) {
-			return sl_false;
+		
+		if (str.startsWith("@menu/")) {
+			str = str.substring(6);
 		}
-		str = str.substring(6).trim();
+		str = str.trim();
+
 		if (!(SAppUtil::checkName(str.getData(), str.getLength()))) {
 			return sl_false;
 		}

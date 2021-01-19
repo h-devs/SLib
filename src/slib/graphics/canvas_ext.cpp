@@ -63,11 +63,6 @@ namespace slib
 		}
 		if (font.isNotNull()) {
 			return font->measureText(text, flagMultiLine);
-		} else {
-			Ref<Font> _font = Font::getDefault();
-			if (_font.isNotNull()) {
-				return _font->measureText(text, flagMultiLine);
-			}
 		}
 		return Size::zero();
 	}
@@ -79,10 +74,7 @@ namespace slib
 		}
 		Ref<Font> font = param.font;
 		if (font.isNull()) {
-			font = Font::getDefault();
-			if (font.isNull()) {
-				return;
-			}
+			return;
 		}
 		if (!(param.flagMultiLine)) {
 			if (param.alignment == Alignment::TopLeft) {

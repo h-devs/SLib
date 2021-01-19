@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,15 +23,13 @@
 #ifndef CHECKHEADER_SLIB_CORE_THREAD_POOL
 #define CHECKHEADER_SLIB_CORE_THREAD_POOL
 
-#include "definition.h"
-
-#include "queue.h"
 #include "thread.h"
 #include "dispatch.h"
+#include "queue.h"
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT ThreadPool : public Dispatcher
 	{
 		SLIB_DECLARE_OBJECT
@@ -45,6 +43,21 @@ namespace slib
 		static Ref<ThreadPool> create(sl_uint32 minThreads = 0, sl_uint32 maxThreads = 30);
 	
 	public:
+		sl_uint32 getMinimumThreadsCount();
+
+		void setMinimumThreadsCount(sl_uint32 n);
+
+		
+		sl_uint32 getMaximumThreadsCount();
+
+		void setMaximumThreadsCount(sl_uint32 n);
+
+		
+		sl_uint32 getThreadStackSize();
+
+		void setThreadStackSize(sl_uint32 n);
+
+
 		void release();
 
 		sl_bool isRunning();
@@ -55,11 +68,6 @@ namespace slib
 
 		sl_bool dispatch(const Function<void()>& callback, sl_uint64 delay_ms = 0) override;
 	
-	public:
-		SLIB_PROPERTY(sl_uint32, MinimumThreadsCount)
-		SLIB_PROPERTY(sl_uint32, MaximumThreadsCount)
-		SLIB_PROPERTY(sl_uint32, ThreadStackSize)
-	
 	protected:
 		void onRunWorker();
 	
@@ -67,6 +75,10 @@ namespace slib
 		CList< Ref<Thread> > m_threadWorkers;
 		LinkedQueue< Ref<Thread> > m_threadSleeping;
 		LinkedQueue< Function<void()> > m_tasks;
+
+		sl_uint32 m_minimumThreadsCount;
+		sl_uint32 m_maximumThreadsCount;
+		sl_uint32 m_threadStackSize;
 
 		sl_bool m_flagRunning;
 

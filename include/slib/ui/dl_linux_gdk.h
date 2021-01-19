@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_UI_DL_LINUX_GDK
 #define CHECKHEADER_SLIB_UI_DL_LINUX_GDK
 
-#include "definition.h"
+#include "../core/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 
@@ -139,7 +139,13 @@ namespace slib
 			gint *y,
 			GdkModifierType *mask
 		)
-		#define gdk_display_get_pointer slib::gdk::getApi_gdk_display_get_pointer()
+		#define gdk_display_get_pointer slib::gdk::getApi_gdk_display_get_pointer()		
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_window_get_parent,
+			GdkWindow *, ,
+			GdkWindow *window
+		)
+		#define gdk_window_get_parent slib::gdk::getApi_gdk_window_get_parent()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gdk_window_get_origin,
 			gint, ,
@@ -148,6 +154,32 @@ namespace slib
 			gint *y
 		)
 		#define gdk_window_get_origin slib::gdk::getApi_gdk_window_get_origin()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_window_get_root_origin,
+			void, ,
+			GdkWindow *window,
+			gint *x,
+			gint *y
+		)
+		#define gdk_window_get_root_origin slib::gdk::getApi_gdk_window_get_root_origin()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_window_get_frame_extents,
+			void, ,
+			GdkWindow *window,
+			GdkRectangle *rect
+		)
+		#define gdk_window_get_frame_extents slib::gdk::getApi_gdk_window_get_frame_extents()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_window_get_geometry,
+			void, ,
+			GdkWindow *window,
+			gint *x,
+			gint *y,
+			gint *width,
+			gint *height,
+			gint *depth
+		)
+		#define gdk_window_get_geometry slib::gdk::getApi_gdk_window_get_geometry()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gdk_window_raise,
 			void, ,

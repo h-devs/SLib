@@ -25,6 +25,7 @@
 #if defined(SLIB_PLATFORM_IS_MACOS)
 
 #include "slib/device/device.h"
+
 #include "slib/core/platform_apple.h"
 
 namespace slib

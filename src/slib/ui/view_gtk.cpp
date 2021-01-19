@@ -27,6 +27,7 @@
 #include "view_gtk.h"
 
 #include "slib/ui/core.h"
+#include "slib/ui/window.h"
 #include "slib/math/transform2d.h"
 
 namespace slib
@@ -328,12 +329,17 @@ namespace slib
 		}
 	}
 
+	void GTK_ViewInstance::installEvents()
+	{
+		installEvents(getEventMask());
+	}
+
 	void GTK_ViewInstance::installEventsWithDrawing()
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
 			g_signal_connect(handle, "expose_event", G_CALLBACK(eventCallback), handle);
-			installEvents(GDK_EXPOSURE_MASK | SLIB_GTK_EVENT_MASK_DEFAULT);
+			installEvents(GDK_EXPOSURE_MASK | getEventMask());
 		}
 	}
 
@@ -546,6 +552,20 @@ namespace slib
 				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
 					return sl_true;
 				}
+				if (isWindowContent()) {
+					Ref<View> view = getView();
+					if (view.isNotNull()) {
+						Ref<Window> window = view->getWindow();
+						if (window.isNotNull()) {
+							Ref<Menu> menu = window->getMenu();
+							if (menu.isNotNull()) {
+								if (menu->processShortcutKey(event->getKeycodeAndModifiers())) {
+									return sl_true;
+								}
+							}
+						}
+					}
+				}
 			}
 			if (key == Keycode::Up || key == Keycode::Down) {
 				return sl_true;
@@ -613,7 +633,11 @@ namespace slib
 		return sl_false;
 	}
 	
-	
+	gint GTK_ViewInstance::getEventMask()
+	{
+		return SLIB_GTK_EVENT_MASK_DEFAULT;
+	}
+
 	Ref<ViewInstance> View::createGenericInstance(ViewInstance* _parent)
 	{
 		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);

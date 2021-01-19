@@ -26,6 +26,7 @@
 
 #include "view_android.h"
 
+#include "slib/ui/gesture.h"
 #include "slib/ui/scroll_view.h"
 #include "slib/math/transform2d.h"
 
@@ -323,8 +324,8 @@ namespace slib
 			if (parent) {
 				jobject jparent = UIPlatform::getViewHandle(parent);
 				if (jparent) {
-					JView::addChild.call(sl_null, jparent, jhandle);            
-				}            
+					JView::addChild.call(sl_null, jparent, jhandle);
+				}
 			}
 			return sl_true;
 		}

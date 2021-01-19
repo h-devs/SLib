@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_SYSTEM_TRAY_ICON
 #define CHECKHEADER_SLIB_UI_SYSTEM_TRAY_ICON
 
-#include "definition.h"
-
 #include "menu.h"
 #include "event.h"
 #include "common_dialogs.h"

@@ -1,9 +1,7 @@
 #ifndef CHECKHEADER_SLIB_DEV_PEB_KERNEL32
 #define CHECKHEADER_SLIB_DEV_PEB_KERNEL32
 
-#include "definition.h"
-
-#include "../dev/pe.h"
+#include "pe.h"
 
 #include <intrin.h>
 

@@ -322,7 +322,7 @@ namespace slib
 							frame.image.format = BitmapFormat::BGR;
 							frame.image.pitch =  - frame.image.calculatePitchAlign4(frame.image.width, 24);
 							frame.image.data = pBuffer + cbBuffer + frame.image.pitch;
-							if (frame.image.format != BitmapFormat::None) {					
+							if (frame.image.format != BitmapFormat::None) {
 								onCaptureVideoFrame(frame);
 							}
 						}

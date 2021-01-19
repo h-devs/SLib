@@ -37,6 +37,7 @@
 #include "network/capture.h"
 
 #include "network/tcpip.h"
+#include "network/tcpip_fragment.h"
 #include "network/dns.h"
 #include "network/icmp.h"
 #include "network/nat.h"

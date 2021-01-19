@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_PBKDF
 #define CHECKHEADER_SLIB_CRYPTO_PBKDF
 
-#include "definition.h"
-
 #include "hmac.h"
 
 /*

@@ -23,11 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_LOG
 #define CHECKHEADER_SLIB_CORE_LOG
 
-#include "definition.h"
-
-#include "string.h"
-#include "object.h"
-#include "list.h"
 #include "variant.h"
 
 namespace slib

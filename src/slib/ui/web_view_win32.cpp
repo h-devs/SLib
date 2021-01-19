@@ -448,10 +448,6 @@ namespace slib
 					}
 				}
 
-				void setCustomUserAgent(WebView* view, const String& agent) override
-				{
-				}
-
 				IHTMLDocument2* getDoc()
 				{
 					IWebBrowser2* browser = m_browser;

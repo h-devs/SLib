@@ -23,13 +23,11 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_BRUSH
 #define CHECKHEADER_SLIB_GRAPHICS_BRUSH
 
-#include "definition.h"
-
 #include "constants.h"
 #include "color.h"
 
-#include "../core/object.h"
 #include "../math/point.h"
+#include "../core/list.h"
 
 namespace slib
 {

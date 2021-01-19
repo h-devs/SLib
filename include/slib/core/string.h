@@ -23,12 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_STRING
 #define CHECKHEADER_SLIB_CORE_STRING
 
-#include "definition.h"
-
 #include "charset.h"
-#include "memory.h"
-#include "list.h"
-#include "hash.h"
+#include "ref.h"
+#include "default_members.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 #include <string>
@@ -52,6 +49,17 @@
 namespace slib
 {
 
+	class Memory;
+	class MemoryData;
+	class Locale;
+	class Variant;
+	class Json;
+	class Time;
+	class Referable;
+
+	template <class T> class List;
+	template <class T> class ListParam;
+
 	class String;
 	class String16;
 	class StringContainer;
@@ -63,11 +71,6 @@ namespace slib
 	
 	typedef Atomic<String> AtomicString;
 	typedef Atomic<String16> AtomicString16;
-
-	class Locale;
-	class Variant;
-	class Json;
-	class Time;
 
 	template <class CharType>
 	struct StringTypeFromCharType;

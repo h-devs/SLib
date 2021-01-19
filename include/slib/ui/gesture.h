@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_GESTURE
 #define CHECKHEADER_SLIB_UI_GESTURE
 
-#include "definition.h"
-
 #include "constants.h"
 #include "motion_tracker.h"
 

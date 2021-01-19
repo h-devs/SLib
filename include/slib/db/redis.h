@@ -25,7 +25,6 @@
 
 #include "definition.h"
 
-#include "../core/object.h"
 #include "../core/variant.h"
 
 namespace slib

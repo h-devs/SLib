@@ -22,7 +22,6 @@
 
 #include "slib/core/math.h"
 
-#include "slib/core/time.h"
 #include "slib/core/system.h"
 #include "slib/core/process.h"
 #include "slib/core/thread.h"

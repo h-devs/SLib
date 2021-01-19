@@ -27,6 +27,7 @@
 #include "view_ios.h"
 
 #include "slib/ui/core.h"
+#include "slib/ui/gesture.h"
 
 namespace slib
 {

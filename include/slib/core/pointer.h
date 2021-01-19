@@ -25,8 +25,6 @@
 
 #include "definition.h"
 
-#include "macro.h"
-
 #define PRIV_SLIB_DEFINE_POINTER_COMMON_FUNCTIONS \
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Pointer) \
 	public: \
@@ -39,7 +37,7 @@
 namespace slib
 {
 
-    template <class... TYPES>
+	template <class... TYPES>
 	class Pointer;
 	
 	template <class T>
@@ -59,9 +57,9 @@ namespace slib
 		T* ptr;
 
 	public:
-        constexpr Pointer() noexcept: ptr(sl_null) {}
+		constexpr Pointer() noexcept: ptr(sl_null) {}
 
-        constexpr Pointer(sl_null_t) noexcept: ptr(sl_null) {}
+		constexpr Pointer(sl_null_t) noexcept: ptr(sl_null) {}
 
 	public:
 		operator T*() const noexcept
@@ -198,9 +196,9 @@ namespace slib
 		T3* ptr3;
 
 	public:
-        constexpr Pointer() noexcept: ptr(sl_null), ptr2(sl_null), ptr3(sl_null) {}
+		constexpr Pointer() noexcept: ptr(sl_null), ptr2(sl_null), ptr3(sl_null) {}
 
-        constexpr Pointer(sl_null_t) noexcept: ptr(sl_null), ptr2(sl_null), ptr3(sl_null) {}
+		constexpr Pointer(sl_null_t) noexcept: ptr(sl_null), ptr2(sl_null), ptr3(sl_null) {}
 
 		Pointer(T1* v1, T2* v2, T3* v3) noexcept: ptr(v1), ptr2(v2), ptr3(v3) {}
 
@@ -246,9 +244,9 @@ namespace slib
 		T4* ptr4;
 
 	public:
-        constexpr Pointer() noexcept: ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+		constexpr Pointer() noexcept: ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
-        constexpr Pointer(sl_null_t) noexcept: ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+		constexpr Pointer(sl_null_t) noexcept: ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
 		Pointer(T1* v1, T2* v2, T3* v3, T4* v4) noexcept: ptr(v1), ptr2(v2), ptr3(v3), ptr4(v4) {}
 

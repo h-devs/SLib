@@ -170,6 +170,7 @@ namespace slib
 		SAppStringValue title;
 		KeycodeAndModifiers shortcutKey;
 		KeycodeAndModifiers macShortcutKey;
+		SAppBooleanValue checked;
 		SAppDrawableValue icon;
 		SAppDrawableValue checkedIcon;
 		CList< Ref<SAppMenuResourceItem> > children;
@@ -1093,6 +1094,8 @@ namespace slib
 			sl_uint32 itemsCount;
 		};
 		CMap<String, ItemArrayDesc> itemArrays;
+
+		String initialFocus;
 
 		sl_uint32 nAutoIncreaseNameView = 0;
 		sl_uint32 nAutoIncreaseNameViewGroup = 0;

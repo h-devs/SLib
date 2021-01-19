@@ -23,11 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_EXPIRE
 #define CHECKHEADER_SLIB_CORE_EXPIRE
 
-#include "definition.h"
-
-#include "object.h"
 #include "hash_map.h"
 #include "dispatch_loop.h"
+#include "timer.h"
 
 namespace slib
 {

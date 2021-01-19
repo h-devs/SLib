@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_MD5
 #define CHECKHEADER_SLIB_CRYPTO_MD5
 
-#include "definition.h"
-
 #include "hash.h"
 
 /*

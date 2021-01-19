@@ -22,7 +22,7 @@
 
 #include "slib/geo/geo_rectangle.h"
 
-#include "slib/core/macro.h"
+#include "slib/core/math.h"
 
 namespace slib
 {
@@ -33,10 +33,10 @@ namespace slib
 
 	GeoRectangle::GeoRectangle(const LatLon& pt1, const LatLon& pt2)
 	{
-		bottomLeft.latitude = SLIB_MIN(pt1.latitude, pt2.latitude);
-		bottomLeft.longitude = SLIB_MIN(pt1.longitude, pt2.longitude);
-		topRight.latitude = SLIB_MAX(pt1.latitude, pt2.latitude);
-		topRight.longitude = SLIB_MAX(pt1.longitude, pt2.longitude);
+		bottomLeft.latitude = Math::min(pt1.latitude, pt2.latitude);
+		bottomLeft.longitude = Math::min(pt1.longitude, pt2.longitude);
+		topRight.latitude = Math::max(pt1.latitude, pt2.latitude);
+		topRight.longitude = Math::max(pt1.longitude, pt2.longitude);
 	}
 
 	sl_bool GeoRectangle::contains(const LatLon& pt) const

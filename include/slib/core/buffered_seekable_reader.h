@@ -20,54 +20,16 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_BUFFERED_IO
-#define CHECKHEADER_SLIB_CORE_BUFFERED_IO
-
-#include "definition.h"
+#ifndef CHECKHEADER_SLIB_CORE_BUFFERED_SEEKABLE_READER
+#define CHECKHEADER_SLIB_CORE_BUFFERED_SEEKABLE_READER
 
 #include "io.h"
-#include "ptrx.h"
-
-#define SLIB_BUFFERED_IO_DEFAULT_SIZE 8192
+#include "buffered_reader.h"
 
 namespace slib
 {
 	
-	class SLIB_EXPORT BufferedReader : public Object, public IReader, public IClosable
-	{
-		SLIB_DECLARE_OBJECT
-
-	private:
-		BufferedReader();
-
-		~BufferedReader();
-
-	public:
-		static Ref<BufferedReader> create(const Ptrx<IReader, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_IO_DEFAULT_SIZE);
-
-	public:
-		sl_reg read(void* buf, sl_size size) override;
-
-		void close() override;
-
-	private:
-		void _init(const Ptrx<IReader, IClosable>& reader, const Memory& buf);
-
-	private:
-		Ref<Referable> m_ref;
-		IReader* m_reader;
-		IClosable* m_closable;
-
-		sl_size m_posInBuf;
-		sl_size m_sizeRead;
-
-		Memory m_buf;
-		sl_uint8* m_dataBuf;
-		sl_size m_sizeBuf;
-
-	};
-
-	class SLIB_EXPORT BufferedSeekableReader : public Object, public IReader, public ISeekable, public IClosable, public SeekableReaderBase<BufferedSeekableReader>
+	class SLIB_EXPORT BufferedSeekableReader : public Referable, public IReader, public ISeekable, public IClosable, public SeekableReaderBase<BufferedSeekableReader>
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -77,7 +39,7 @@ namespace slib
 		~BufferedSeekableReader();
 
 	public:
-		static Ref<BufferedSeekableReader> create(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_IO_DEFAULT_SIZE);
+		static Ref<BufferedSeekableReader> create(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_READER_DEFAULT_SIZE);
 
 	public:
 		sl_reg read(void*& buf);

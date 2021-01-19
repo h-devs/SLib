@@ -22,8 +22,8 @@
 
 #include "slib/ui/camera_view.h"
 
+#include "slib/ui/button.h"
 #include "slib/ui/resource.h"
-
 #include "slib/ui/core.h"
 
 #include "../resources.h"

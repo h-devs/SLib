@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_JWT
 #define CHECKHEADER_SLIB_CRYPTO_JWT
 
-#include "definition.h"
-
 #include "openssl.h"
 
 #include "../core/json.h"

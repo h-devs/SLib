@@ -26,9 +26,9 @@
 
 #include "slib/media/audio_device.h"
 
-#include "slib/core/platform_windows.h"
-#include "slib/core/log.h"
 #include "slib/core/thread.h"
+#include "slib/core/log.h"
+#include "slib/core/platform_windows.h"
 
 #include <initguid.h>
 #include <mmsystem.h>

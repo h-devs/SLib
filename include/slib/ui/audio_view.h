@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_AUDIO_VIEW
 #define CHECKHEADER_SLIB_UI_AUDIO_VIEW
 
-#include "definition.h"
-
 #include "view.h"
 
 #include "../media/audio_data.h"

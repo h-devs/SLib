@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_BASE
 #define CHECKHEADER_SLIB_CORE_BASE
 
-#include "definition.h"
-
-#include "cpp.h"
 #include "compare.h"
 
 namespace slib

@@ -3,8 +3,6 @@
 
 #include "definition.h"
 
-#include "../core/string.h"
-#include "../core/list.h"
 #include "../core/map.h"
 #include "../core/io.h"
 #include "../core/ptrx.h"

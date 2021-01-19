@@ -76,13 +76,23 @@ namespace slib
 	
 	Renderer::Renderer()
 	{
-		setRenderingContinuously(sl_false);
+		m_flagRenderingContinuously = sl_false;
 	}
 	
 	Renderer::~Renderer()
 	{
 	}
 	
+	sl_bool Renderer::isRenderingContinuously()
+	{
+		return m_flagRenderingContinuously;
+	}
+
+	void Renderer::setRenderingContinuously(sl_bool flag)
+	{
+		m_flagRenderingContinuously = flag;
+	}
+
 	void Renderer::initWithParam(const RendererParam& param)
 	{
 		m_onFrame = param.onFrame;

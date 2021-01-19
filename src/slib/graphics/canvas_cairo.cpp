@@ -22,10 +22,12 @@
 
 #include "slib/core/definition.h"
 
+#if defined(SLIB_GRAPHICS_IS_CAIRO)
+
+#include "slib/graphics/canvas.h"
+
 #include "slib/graphics/image.h"
 #include "slib/graphics/platform.h"
-
-#if defined(SLIB_GRAPHICS_IS_CAIRO)
 
 namespace slib
 {
@@ -331,12 +333,8 @@ namespace slib
 					cairo_transform(m_graphics, &t);
 				}
 
-				void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& _pen) override
+				void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen) override
 				{
-					Ref<Pen> pen = _pen;
-					if (pen.isNull()) {
-						pen = Pen::getDefault();
-					}
 					if (pen.isNotNull()) {
 						_applyPen(pen.get());
 						cairo_move_to(m_graphics, pt1.x, pt1.y);
@@ -345,14 +343,10 @@ namespace slib
 					}
 				}
 
-				void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& _pen) override
+				void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) override
 				{
 					if (countPoints < 2) {
 						return;
-					}
-					Ref<Pen> pen = _pen;
-					if (pen.isNull()) {
-						pen = Pen::getDefault();
 					}
 					if (pen.isNotNull()) {
 						_applyPen(pen.get());
@@ -432,12 +426,8 @@ namespace slib
 					}
 				}
 
-				void _drawPath(const Ref<Pen>& _pen, const Ref<Brush>& brush)
+				void _drawPath(const Ref<Pen>& pen, const Ref<Brush>& brush)
 				{
-					Ref<Pen> pen = _pen;
-					if (brush.isNull() && pen.isNull()) {
-						pen = Pen::getDefault();
-					}
 					if (brush.isNotNull()) {
 						if (pen.isNotNull()) {
 							_fill(brush.get(), sl_true);

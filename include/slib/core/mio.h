@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_MIO
 #define CHECKHEADER_SLIB_CORE_MIO
 
-#include "definition.h"
-
 #include "endian.h"
 
 // MIO allows reading/writing from unaligned addresses

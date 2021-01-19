@@ -21,6 +21,7 @@
  */
 
 #include "slib/core/file.h"
+#include "slib/core/file_util.h"
 
 #include "slib/core/string_buffer.h"
 #include "slib/core/scoped.h"

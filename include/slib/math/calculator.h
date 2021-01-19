@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -34,68 +34,31 @@ namespace slib
 	{
 	public:
 		static sl_reg calculate(sl_int32* result, sl_bool* isDivisionByZero, const sl_char8* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
+
 		static sl_reg calculate(sl_int32* result, sl_bool* isDivisionByZero, const sl_char16* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
 
-		static sl_bool calculate(const sl_char8* sz, sl_int32* result, sl_bool* isDivisionByZero = sl_null) noexcept;
+		static sl_bool calculate(const StringParam& str, sl_int32* result, sl_bool* isDivisionByZero = sl_null) noexcept;
 
-		static sl_bool calculate(const sl_char16* sz, sl_int32* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-
-		static sl_bool calculate(const String& str, sl_int32* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-
-		static sl_bool calculate(const AtomicString& str, sl_int32* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-
-		static sl_bool calculate(const String16& str, sl_int32* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const AtomicString16& str, sl_int32* result, sl_bool* isDivisionByZero = sl_null) noexcept;
 
 		static sl_reg calculate(sl_int64* result, sl_bool* isDivisionByZero, const sl_char8* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
+
 		static sl_reg calculate(sl_int64* result, sl_bool* isDivisionByZero, const sl_char16* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
-		static sl_bool calculate(const sl_char8* sz, sl_int64* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const sl_char16* sz, sl_int64* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const String& str, sl_int64* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const AtomicString& str, sl_int64* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const String16& str, sl_int64* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const AtomicString16& str, sl_int64* result, sl_bool* isDivisionByZero = sl_null) noexcept;
+
+		static sl_bool calculate(const StringParam& str, sl_int64* result, sl_bool* isDivisionByZero = sl_null) noexcept;
+
 
 		static sl_reg calculate(float* result, sl_bool* isDivisionByZero, const sl_char8* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
+
 		static sl_reg calculate(float* result, sl_bool* isDivisionByZero, const sl_char16* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
-		static sl_bool calculate(const sl_char8* sz, float* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const sl_char16* sz, float* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const String& str, float* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const AtomicString& str, float* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const String16& str, float* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const AtomicString16& str, float* result, sl_bool* isDivisionByZero = sl_null) noexcept;
+
+		static sl_bool calculate(const StringParam& str, float* result, sl_bool* isDivisionByZero = sl_null) noexcept;
+
 
 		static sl_reg calculate(double* result, sl_bool* isDivisionByZero, const sl_char8* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
+
 		static sl_reg calculate(double* result, sl_bool* isDivisionByZero, const sl_char16* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
-		static sl_bool calculate(const sl_char8* sz, double* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const sl_char16* sz, double* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const String& str, double* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const AtomicString& str, double* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const String16& str, double* result, sl_bool* isDivisionByZero = sl_null) noexcept;
-		
-		static sl_bool calculate(const AtomicString16& str, double* result, sl_bool* isDivisionByZero = sl_null) noexcept;
+
+		static sl_bool calculate(const StringParam& str, double* result, sl_bool* isDivisionByZero = sl_null) noexcept;
 
 	};
 	

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_RENDER_ENGINE
 #define CHECKHEADER_SLIB_RENDER_ENGINE
 
-#include "definition.h"
-
 #include "constants.h"
 #include "base.h"
 #include "state.h"
@@ -138,7 +136,9 @@ namespace slib
 		virtual void requestRender() = 0;
 		
 	public:
-		SLIB_BOOLEAN_PROPERTY(RenderingContinuously)
+		sl_bool isRenderingContinuously();
+
+		void setRenderingContinuously(sl_bool flag);
 		
 	protected:
 		void initWithParam(const RendererParam& param);
@@ -146,6 +146,7 @@ namespace slib
 		void dispatchFrame(RenderEngine* engine);
 		
 	protected:
+		sl_bool m_flagRenderingContinuously;
 		Function<void(RenderEngine*)> m_onFrame;
 		
 	};

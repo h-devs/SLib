@@ -26,6 +26,7 @@
 #include "definition.h"
 
 #include "../core/object.h"
+#include "../core/flags.h"
 
 namespace slib
 {

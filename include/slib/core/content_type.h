@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_CONTENT_TYPE
 #define CHECKHEADER_SLIB_CORE_CONTENT_TYPE
 
-#include "definition.h"
-
 #include "string.h"
 
 namespace slib

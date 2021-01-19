@@ -23,6 +23,7 @@
 #include "slib/graphics/image.h"
 
 #include "slib/core/file.h"
+#include "slib/core/memory_output.h"
 
 #include "libpng/png.h"
 #include "libpng/pngstruct.h"
@@ -66,7 +67,7 @@ namespace slib
 	{
 		if (png_ptr == NULL)
 			return;
-		MemoryWriter& writer = *((MemoryWriter*)(png_ptr->io_ptr));
+		MemoryOutput& writer = *((MemoryOutput*)(png_ptr->io_ptr));
 		writer.write(data, length);
 	}
 
@@ -89,7 +90,7 @@ namespace slib
 
 			png_ptr->warning_fn = _slib_image_png_encode_warning;
 
-			MemoryWriter writer;
+			MemoryOutput writer;
 
 			if (!setjmp(png_jmpbuf(png_ptr))) {
 

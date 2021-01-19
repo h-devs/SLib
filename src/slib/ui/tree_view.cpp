@@ -22,6 +22,8 @@
 
 #include "slib/ui/tree_view.h"
 
+#include "slib/graphics/canvas.h"
+
 namespace slib
 {
 

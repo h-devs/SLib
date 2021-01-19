@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,16 @@
 #ifndef CHECKHEADER_SLIB_UI_EVENT
 #define CHECKHEADER_SLIB_UI_EVENT
 
-#include "definition.h"
-
 #include "constants.h"
-#include "gesture.h"
 
-#include "../core/string.h"
 #include "../core/time.h"
-#include "../math/point.h"
-#include "../math/size.h"
 #include "../math/matrix3.h"
 
 namespace slib
 {
 
-	class Window;
-	class View;
+	class DragItem;
+	class DragContext;
 
 	class SLIB_EXPORT TouchPoint
 	{
@@ -159,64 +153,6 @@ namespace slib
 
 	KeycodeAndModifiers operator|(int modifiers, Keycode keycode);
 
-
-	class Drawable;
-
-	class SLIB_EXPORT DragItem
-	{
-	public:
-		DragItem();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DragItem)
-		
-	public:
-		void clear();
-
-		const String& getText() const;
-		
-		void setText(const String& text);
-
-		const List<String>& getFiles() const;
-
-		void setFiles(const List<String>& files);
-		
-		const UIRect& getFrame() const;
-		
-		void setFrame(const UIRect& frame);
-		
-		void setDraggingSize(sl_ui_pos width, sl_ui_pos height);
-		
-		const Ref<Drawable>& getDraggingImage() const;
-		
-		void setDraggingImage(const Ref<Drawable>& image);
-		
-	protected:
-		String m_text;
-		List<String> m_files;
-		UIRect m_frame;
-		Ref<Drawable> m_image;
-		
-	};
-
-	class SLIB_EXPORT DragContext
-	{
-	public:
-		Ref<View> view;
-		DragItem item;
-		DragOperations operationMask;
-		DragOperations operation;
-
-	public:
-		DragContext();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DragContext)
-		
-	public:
-		sl_bool isAlive() const;
-		
-		void release();
-		
-	};
 
 
 	class SLIB_EXPORT UIEvent : public Referable
@@ -432,6 +368,8 @@ namespace slib
 		static sl_uint32 getSystemKeycode(Keycode key);
 		
 		static Keycode getKeycodeFromSystemKeycode(sl_uint32 systemKeycode);
+
+		static Keycode getKeycodeFromWin32Keycode(sl_uint32 win32Keycode);
 		
 		static String getKeyName(Keycode key, sl_bool flagShort = sl_false);
 		

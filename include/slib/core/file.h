@@ -23,17 +23,17 @@
 #ifndef CHECKHEADER_SLIB_CORE_FILE
 #define CHECKHEADER_SLIB_CORE_FILE
 
-#include "definition.h"
-
-#include "list.h"
-#include "hash_map.h"
 #include "io.h"
+#include "flags.h"
 
 typedef sl_reg sl_file;
 #define SLIB_FILE_INVALID_HANDLE ((sl_file)(-1))
 
 namespace slib
 {
+
+	template <class T> class List;
+	template <class KT, class VT, class HASH, class KEY_COMPARE> class HashMap;
 	
 	SLIB_DEFINE_FLAGS(FileMode, {
 
@@ -305,7 +305,7 @@ namespace slib
 
 		static List<String> getFiles(const StringParam& dirPath);
 
-		static HashMap<String, FileInfo> getFileInfos(const StringParam& dirPath);
+		static HashMap< String, FileInfo, Hash<String>, Compare<String> > getFileInfos(const StringParam& dirPath);
 	
 		static List<String> getAllDescendantFiles(const StringParam& dirPath);
 	
@@ -391,40 +391,6 @@ namespace slib
 
 	};
 	
-	// FilePathSegments is not thread-safe
-	class SLIB_EXPORT FilePathSegments
-	{
-	public:
-		sl_uint32 parentLevel;
-		List<String> segments;
-	
-	public:
-		FilePathSegments();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FilePathSegments)
-
-	public:
-		void parsePath(const String& path);
-
-		String buildPath();
-	
-	};
-
-
-	class SLIB_EXPORT DisableWow64FsRedirectionScope
-	{
-	public:
-		DisableWow64FsRedirectionScope();
-
-		~DisableWow64FsRedirectionScope();
-
-	private:
-#ifdef SLIB_PLATFORM_IS_WIN32
-		void* m_pOldValue;
-#endif
-
-	};
-
 }
 
 #endif

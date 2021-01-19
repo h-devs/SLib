@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_RENDER_DL_WINDOWS_D3D
 #define CHECKHEADER_SLIB_RENDER_DL_WINDOWS_D3D
 
-#include "definition.h"
+#include "../core/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 

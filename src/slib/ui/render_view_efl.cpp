@@ -47,7 +47,7 @@ namespace slib
 		{
 
 			class RenderViewHelper : public RenderView
-			{				
+			{
 			};
 
 			class RenderViewInstance : public EFL_ViewInstance

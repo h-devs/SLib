@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_SOCIAL_PAYPAL
 #define CHECKHEADER_SLIB_SOCIAL_PAYPAL
 
-#include "definition.h"
-
 #include "oauth.h"
 
 namespace slib

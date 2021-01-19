@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MATH_RECTANGLE
 #define CHECKHEADER_SLIB_MATH_RECTANGLE
 
-#include "definition.h"
-
 #include "point.h"
 #include "size.h"
 #include "matrix3.h"
@@ -294,10 +292,10 @@ namespace slib
 		sl_bool intersectRectangle(const RectangleT<T, FT>& other, RectangleT<T, FT>* outIntersect = sl_null) const noexcept
 		{
 			if (outIntersect) {
-				T _left = SLIB_MAX(left, other.left);
-				T _right = SLIB_MIN(right, other.right);
-				T _top = SLIB_MAX(top, other.top);
-				T _bottom = SLIB_MIN(bottom, other.bottom);
+				T _left = Math::max(left, other.left);
+				T _right = Math::min(right, other.right);
+				T _top = Math::max(top, other.top);
+				T _bottom = Math::min(bottom, other.bottom);
 				outIntersect->left = _left;
 				outIntersect->right = _right;
 				outIntersect->top = _top;
@@ -371,6 +369,11 @@ namespace slib
 			}
 		}
 
+		void mergePoints(const Array< PointT<T, FT> >& points) noexcept
+		{
+			mergePoints(points.getData(), points.getCount());
+		}
+
 		void mergePoints(const List< PointT<T, FT> >& points) noexcept
 		{
 			ListLocker< PointT<T, FT> > list(points);
@@ -384,7 +387,14 @@ namespace slib
 				if (count > 1) {
 					mergePoints(points + 1, count - 1);
 				}
+			} else {
+				setZero();
 			}
+		}
+
+		void setFromPoints(const Array< PointT<T, FT> >& points) noexcept
+		{
+			setFromPoints(points.getData(), points.getCount());
 		}
 
 		void setFromPoints(const List< PointT<T, FT> >& points) noexcept

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_CONSOLE
 #define CHECKHEADER_SLIB_CORE_CONSOLE
 
-#include "definition.h"
-
 #include "string.h"
 
 namespace slib
@@ -88,6 +86,11 @@ namespace slib
 		static double readDouble(double def = 0);
 
 		static String readString();
+
+
+		static sl_bool open();
+
+		static sl_bool close();
 
 	};
 	

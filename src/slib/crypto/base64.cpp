@@ -22,6 +22,8 @@
 
 #include "slib/crypto/base64.h"
 
+#include "slib/core/memory.h"
+
 #define BASE64_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 #define BASE64_CHARS_URL "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_DYNAMIC_LIBRARY
 #define CHECKHEADER_SLIB_CORE_DYNAMIC_LIBRARY
 
-#include "definition.h"
-
 #include "string.h"
 
 namespace slib

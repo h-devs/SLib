@@ -30,11 +30,22 @@
 #endif
 
 #include "core/definition.h"
+
 #include "core/base.h"
 #include "core/endian.h"
 #include "core/mio.h"
+#include "core/assert.h"
 
-#include "core/cpp.h"
+#include "core/cpp_helper.h"
+#include "core/new_helper.h"
+#include "core/swap.h"
+#include "core/cast.h"
+#include "core/convert.h"
+#include "core/nullable.h"
+#include "core/scoped.h"
+#include "core/safe_static.h"
+#include "core/singleton.h"
+
 #include "core/atomic.h"
 #include "core/tuple.h"
 #include "core/ref.h"
@@ -43,26 +54,24 @@
 #include "core/ptrx.h"
 #include "core/pointer.h"
 #include "core/object.h"
+#include "core/property.h"
 #include "core/function.h"
 #include "core/promise.h"
-#include "core/new_helper.h"
 
-#include "core/macro.h"
-#include "core/scoped.h"
-#include "core/safe_static.h"
-#include "core/singleton.h"
-
-#include "core/spin_lock.h"
-#include "core/mutex.h"
 #include "core/string.h"
 #include "core/string_buffer.h"
 #include "core/memory.h"
-#include "core/time.h"
-#include "core/variant.h"
+#include "core/memory_buffer.h"
+#include "core/memory_queue.h"
 #include "core/memory_traits.h"
+#include "core/variant.h"
 
-#include "core/cast.h"
-#include "core/nullable.h"
+#include "core/time.h"
+#include "core/time_counter.h"
+#include "core/time_keeper.h"
+#include "core/time_zone.h"
+#include "core/time_parse.h"
+
 #include "core/compare.h"
 #include "core/hash.h"
 #include "core/search.h"
@@ -86,6 +95,8 @@
 #include "core/animation.h"
 
 #include "core/system.h"
+#include "core/spin_lock.h"
+#include "core/mutex.h"
 #include "core/console.h"
 #include "core/event.h"
 #include "core/dynamic_library.h"
@@ -97,11 +108,30 @@
 #include "core/asset.h"
 
 #include "core/io.h"
+#include "core/memory_io.h"
+#include "core/memory_reader.h"
+#include "core/memory_writer.h"
+#include "core/memory_output.h"
+#include "core/buffered_reader.h"
+#include "core/buffered_writer.h"
+#include "core/buffered_seekable_reader.h"
 #include "core/io_util.h"
-#include "core/buffered_io.h"
-#include "core/file.h"
-#include "core/pipe.h"
+#include "core/bit_reader.h"
+#include "core/bit_writer.h"
+
 #include "core/async.h"
+#include "core/async_stream.h"
+#include "core/async_stream_simulator.h"
+#include "core/async_stream_filter.h"
+#include "core/async_reader.h"
+#include "core/async_writer.h"
+#include "core/async_file.h"
+#include "core/async_copy.h"
+#include "core/async_output.h"
+
+#include "core/file.h"
+#include "core/file_util.h"
+#include "core/pipe.h"
 #include "core/dispatch.h"
 #include "core/dispatch_loop.h"
 #include "core/timer.h"
@@ -122,6 +152,9 @@
 #include "core/regex.h"
 #include "core/json.h"
 #include "core/xml.h"
+
+#include "core/platform_type.h"
+#include "core/find_options.h"
 
 #endif
 

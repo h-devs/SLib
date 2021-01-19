@@ -23,10 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_REGEX
 #define CHECKHEADER_SLIB_CORE_REGEX
 
-#include "definition.h"
-
 #include "object.h"
 #include "string.h"
+#include "flags.h"
 
 namespace slib
 {

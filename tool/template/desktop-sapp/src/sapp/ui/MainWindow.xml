@@ -9,11 +9,6 @@
 		
 		<linear alignCenter='true'>
 
-			<image
-				src='@drawable/slib_icon'
-				width='150'
-				/>
-
 			<label
 				text='Hello World'
 				fontSize='20'

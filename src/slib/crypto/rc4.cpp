@@ -22,7 +22,7 @@
 
 #include "slib/crypto/rc4.h"
 
-#include "slib/core/cpp.h"
+#include "slib/core/swap.h"
 
 namespace slib
 {

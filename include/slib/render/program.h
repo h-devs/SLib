@@ -23,11 +23,10 @@
 #ifndef CHECKHEADER_SLIB_RENDER_PROGRAM
 #define CHECKHEADER_SLIB_RENDER_PROGRAM
 
-#include "definition.h"
-
 #include "constants.h"
 #include "base.h"
 
+#include "../core/list.h"
 #include "../math/matrix4.h"
 #include "../graphics/color.h"
 
@@ -39,6 +38,7 @@ namespace slib
 	class RenderProgram;
 	class RenderProgramInstance;
 	class Texture;
+	class Memory;
 
 	enum class RenderProgramStateKind
 	{

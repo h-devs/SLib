@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_BUTTON
 #define CHECKHEADER_SLIB_UI_BUTTON
 
-#include "definition.h"
-
 #include "label_view.h"
 
 namespace slib

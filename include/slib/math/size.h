@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MATH_SIZE
 #define CHECKHEADER_SLIB_MATH_SIZE
 
-#include "definition.h"
-
 #include "vector2.h"
 
 namespace slib

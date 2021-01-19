@@ -23,14 +23,9 @@
 #ifndef CHECKHEADER_SLIB_MATH_TRANSFORM3D
 #define CHECKHEADER_SLIB_MATH_TRANSFORM3D
 
-#include "definition.h"
-
-#include "vector2.h"
-#include "vector3.h"
 #include "quaternion.h"
 #include "line3.h"
 #include "rectangle.h"
-#include "matrix4.h"
 
 namespace slib
 {

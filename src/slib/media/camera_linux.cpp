@@ -26,8 +26,8 @@
 
 #include "slib/media/camera.h"
 
+#include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
-#include "slib/core/time.h"
 #include "slib/core/log.h"
 
 #include <unistd.h>
@@ -432,8 +432,8 @@ namespace slib
 
 					int iRet = ioctl(handle, VIDIOC_DQBUF, &buf);
 					if (iRet == -1) {
-                        int err = errno;
-                        switch (err) {
+						int err = errno;
+						switch (err) {
 							case EAGAIN:
 								return sl_true;
 							case EIO:

@@ -291,6 +291,7 @@ namespace slib
 		pp.resource = layout;
 		pp.resourceItem = item;
 		pp.parentResourceItem = parent;
+		pp.name = item->name;
 		if (!(_processLayoutResourceControl(&pp))) {
 			return sl_false;
 		}
@@ -533,6 +534,14 @@ namespace slib
 		if (!(_generateLayoutsCpp_Item(layout, layout, sl_null, sbHeader, sbCpp, sbLayout, String::null()))) {
 			return sl_false;
 		}
+
+		if (layout->initialFocus.isNotEmpty()) {
+			if (layout->layoutType == SAppLayoutType::Window || layout->layoutType == SAppLayoutType::Page) {
+				if (layout->itemsByName.find(layout->initialFocus)) {
+					sbCpp.add(String::format("\t\t\tsetInitialFocus(%s);%n", layout->initialFocus));
+				}
+			}
+		}
 		
 		sbCpp.add(String::format("\t\t}%n%n\t\tvoid %s::layoutViews(sl_ui_len CONTENT_WIDTH, sl_ui_len CONTENT_HEIGHT)%n\t\t{%n", name));
 		sbCpp.link(sbLayout);
@@ -690,6 +699,7 @@ namespace slib
 		pp.window = window.get();
 		pp.view = view;
 		pp.parentView = parentView;
+		pp.name = item->name;
 		pp.flagOnLayout = flagOnLayout;
 		if (!(_processLayoutResourceControl(&pp))) {
 			return Ref<View>::null();
@@ -1513,6 +1523,35 @@ namespace slib
 	{
 		Window* view = params->window;
 		
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR(minWidth, setMinimumWidth, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR(maxWidth, setMaximumWidth, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR(minHeight, setMinimumHeight, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR(maxHeight, setMaximumHeight, checkForWindow)
+		LAYOUT_CONTROL_GENERIC_ATTR(aspectRatio, setAspectRatio)
+		LAYOUT_CONTROL_GENERIC_ATTR(minAspectRatio, setMinimumAspectRatio)
+		LAYOUT_CONTROL_GENERIC_ATTR(maxAspectRatio, setMaximumAspectRatio)
+		
+		LAYOUT_CONTROL_GENERIC_ATTR(minimized, setMinimized)
+		LAYOUT_CONTROL_GENERIC_ATTR(maximized, setMaximized)
+		LAYOUT_CONTROL_GENERIC_ATTR(visible, setVisible)
+		LAYOUT_CONTROL_GENERIC_ATTR(alwaysOnTop, setAlwaysOnTop)
+		LAYOUT_CONTROL_GENERIC_ATTR(closeButton, setCloseButtonEnabled)
+		LAYOUT_CONTROL_GENERIC_ATTR(minimizeButton, setMinimizeButtonEnabled)
+		LAYOUT_CONTROL_GENERIC_ATTR(maximizeButton, setMaximizeButtonEnabled)
+		LAYOUT_CONTROL_GENERIC_ATTR(fullScreenButton, setFullScreenButtonEnabled)
+		LAYOUT_CONTROL_GENERIC_ATTR(resizable, setResizable)
+		LAYOUT_CONTROL_GENERIC_ATTR(layered, setLayered)
+		LAYOUT_CONTROL_GENERIC_ATTR(alpha, setAlpha)
+		LAYOUT_CONTROL_GENERIC_ATTR(transparent, setTransparent)
+		LAYOUT_CONTROL_COLOR_ATTR(backgroundColor, setBackgroundColor)
+
+		LAYOUT_CONTROL_GENERIC_ATTR(modal, setModal)
+		LAYOUT_CONTROL_GENERIC_ATTR(dialog, setDialog)
+		LAYOUT_CONTROL_GENERIC_ATTR(borderless, setBorderless)
+		LAYOUT_CONTROL_GENERIC_ATTR(titleBar, setTitleBarVisible)
+		LAYOUT_CONTROL_GENERIC_ATTR(fullScreen, setFullScreen)
+		LAYOUT_CONTROL_GENERIC_ATTR(centerScreen, setCenterScreen)
+		
 		LAYOUT_CONTROL_MENU_ATTR(menu, setMenu)
 		LAYOUT_CONTROL_STRING_ATTR(title, setTitle)
 		if (op == OP_PARSE) {
@@ -1559,35 +1598,6 @@ namespace slib
 				flagOnLayout = sl_false;
 			}
 		}
-		
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR(minWidth, setMinimumWidth, checkForWindow)
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR(maxWidth, setMaximumWidth, checkForWindow)
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR(minHeight, setMinimumHeight, checkForWindow)
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR(maxHeight, setMaximumHeight, checkForWindow)
-		LAYOUT_CONTROL_GENERIC_ATTR(aspectRatio, setAspectRatio)
-		LAYOUT_CONTROL_GENERIC_ATTR(minAspectRatio, setMinimumAspectRatio)
-		LAYOUT_CONTROL_GENERIC_ATTR(maxAspectRatio, setMaximumAspectRatio)
-		
-		LAYOUT_CONTROL_GENERIC_ATTR(minimized, setMinimized)
-		LAYOUT_CONTROL_GENERIC_ATTR(maximized, setMaximized)
-		LAYOUT_CONTROL_GENERIC_ATTR(visible, setVisible)
-		LAYOUT_CONTROL_GENERIC_ATTR(alwaysOnTop, setAlwaysOnTop)
-		LAYOUT_CONTROL_GENERIC_ATTR(closeButton, setCloseButtonEnabled)
-		LAYOUT_CONTROL_GENERIC_ATTR(minimizeButton, setMinimizeButtonEnabled)
-		LAYOUT_CONTROL_GENERIC_ATTR(maximizeButton, setMaximizeButtonEnabled)
-		LAYOUT_CONTROL_GENERIC_ATTR(fullScreenButton, setFullScreenButtonEnabled)
-		LAYOUT_CONTROL_GENERIC_ATTR(resizable, setResizable)
-		LAYOUT_CONTROL_GENERIC_ATTR(layered, setLayered)
-		LAYOUT_CONTROL_GENERIC_ATTR(alpha, setAlpha)
-		LAYOUT_CONTROL_GENERIC_ATTR(transparent, setTransparent)
-		LAYOUT_CONTROL_COLOR_ATTR(backgroundColor, setBackgroundColor)
-
-		LAYOUT_CONTROL_GENERIC_ATTR(modal, setModal)
-		LAYOUT_CONTROL_GENERIC_ATTR(dialog, setDialog)
-		LAYOUT_CONTROL_GENERIC_ATTR(borderless, setBorderless)
-		LAYOUT_CONTROL_GENERIC_ATTR(titleBar, setTitleBarVisible)
-		LAYOUT_CONTROL_GENERIC_ATTR(fullScreen, setFullScreen)
-		LAYOUT_CONTROL_GENERIC_ATTR(centerScreen, setCenterScreen)
 		
 		params->name = "m_contentView";
 		if (!(_processLayoutResourceControl_View(params))) {
@@ -2389,7 +2399,13 @@ namespace slib
 			LAYOUT_CONTROL_GENERIC_ATTR(playSoundOnClick, setPlaySoundOnClick)
 			LAYOUT_CONTROL_GENERIC_ATTR(clientEdge, setClientEdge)
 		}
-		
+
+		SAppBooleanValue focus;
+		LAYOUT_CONTROL_PARSE_ATTR(, focus)
+		if (focus.flagDefined && focus.value) {
+			resource->initialFocus = name;
+		}
+
 		LAYOUT_CONTROL_ADD_STATEMENT
 		
 	}

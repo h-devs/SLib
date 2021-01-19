@@ -23,6 +23,8 @@
 #include "slib/doc/rar.h"
 
 #include "slib/core/file.h"
+#include "slib/core/list.h"
+#include "slib/core/memory_reader.h"
 
 namespace slib
 {
@@ -152,7 +154,7 @@ namespace slib
 		} else {
 			dataSize = 0;
 		}
-		customHeaderPosition = readerHeader.getOffset();
+		customHeaderPosition = readerHeader.getPosition();
 		return sl_true;
 	}
 
@@ -170,14 +172,14 @@ namespace slib
 		if (!(reader.readUint32CVLI(&size))) {
 			return sl_false;
 		}
-		sl_size pos = reader.getOffset();
+		sl_size pos = reader.getPosition();
 		sl_size end = pos + size;
 		sl_uint32 _type;
 		if (!(reader.readUint32CVLI(&_type))) {
 			return sl_false;
 		}
 		type = (RarExtraType5)_type;
-		dataPosition = reader.getOffset();
+		dataPosition = reader.getPosition();
 		if (dataPosition > end) {
 			return sl_false;
 		}

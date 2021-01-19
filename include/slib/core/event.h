@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_EVENT
 #define CHECKHEADER_SLIB_CORE_EVENT
 
-#include "definition.h"
-
 #include "ref.h"
 
 namespace slib

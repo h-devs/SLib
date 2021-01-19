@@ -27,6 +27,7 @@
 #include "slib/graphics/bitmap.h"
 
 #include "slib/graphics/platform.h"
+#include "slib/core/memory.h"
 #include "slib/core/endian.h"
 #include "slib/core/scoped.h"
 

@@ -26,6 +26,7 @@
 
 #include "slib/core/global_unique_instance.h"
 
+#include "slib/core/base.h"
 #include "slib/core/file.h"
 #include "slib/core/system.h"
 

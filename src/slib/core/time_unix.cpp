@@ -26,6 +26,8 @@
 
 #include "slib/core/time.h"
 
+#include "slib/core/base.h"
+
 #include <time.h>
 #include <sys/time.h>
 

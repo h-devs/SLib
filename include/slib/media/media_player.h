@@ -25,10 +25,10 @@
 
 #include "definition.h"
 
-#include "../core/object.h"
 #include "../core/memory.h"
 #include "../core/string.h"
 #include "../core/function.h"
+#include "../core/flags.h"
 
 #include "../media/video_frame.h"
 #include "../render/texture.h"

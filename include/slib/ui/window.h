@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,13 +23,10 @@
 #ifndef CHECKHEADER_SLIB_UI_WINDOW
 #define CHECKHEADER_SLIB_UI_WINDOW
 
-#include "definition.h"
-
 #include "event.h"
 #include "menu.h"
 
 #include "../core/string.h"
-#include "../core/object.h"
 #include "../core/function.h"
 #include "../graphics/color.h"
 #include "../math/rectangle.h"
@@ -53,44 +50,6 @@ namespace slib
 		}
 	}
 
-	class SLIB_EXPORT WindowInstanceParam
-	{
-	public:
-		Ref<WindowInstance> parent;
-		
-		Ref<Screen> screen;
-		Ref<Menu> menu;
-		sl_bool flagBorderless;
-		sl_bool flagFullScreen;
-		sl_bool flagCenterScreen;
-		sl_bool flagDialog;
-		sl_bool flagModal;
-		sl_bool flagSheet; // Used in macOS
-		UIPoint location;
-		UISize size;
-
-		String title;
-		sl_bool flagShowTitleBar;
-
-#if defined(SLIB_UI_IS_ANDROID)
-		// jobject
-		void* activity;
-#endif
-
-#if defined(SLIB_UI_IS_GTK)
-		sl_bool flagClientSize;
-#endif
-		
-	public:
-		WindowInstanceParam();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(WindowInstanceParam)
-		
-	public:
-		UIRect calculateRegion(const UIRect& screenFrame) const;
-		
-	};
-
 	class SLIB_EXPORT Window : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -104,7 +63,7 @@ namespace slib
 		void init() override;
 		
 	public:
-		virtual void close();
+		void close();
 		
 		sl_bool isClosed();
 		
@@ -113,7 +72,7 @@ namespace slib
 		
 		Ref<Window> getParent();
 		
-		virtual void setParent(const Ref<Window>& parent);
+		void setParent(const Ref<Window>& parent);
 		
 		Ref<Screen> getScreen();
 		
@@ -123,7 +82,7 @@ namespace slib
 		
 		Ref<Menu> getMenu();
 		
-		virtual void setMenu(const Ref<Menu>& menu);
+		void setMenu(const Ref<Menu>& menu);
 
 		Ref<View> getInitialFocus();
 
@@ -132,17 +91,17 @@ namespace slib
 		
 		sl_bool isActive();
 		
-		virtual void activate();
+		void activate();
 
 		UIRect getFrame();
 		
-		virtual void setFrame(const UIRect& frame);
+		void setFrame(const UIRect& frame);
 		
 		void setFrame(sl_ui_pos left, sl_ui_pos top, sl_ui_len width, sl_ui_len height);
 		
 		UIPoint getLocation();
 		
-		virtual void setLocation(const UIPoint& location);
+		void setLocation(const UIPoint& location);
 		
 		void setLocation(sl_ui_pos x, sl_ui_pos y);
 		
@@ -154,9 +113,9 @@ namespace slib
 		
 		void setTop(sl_ui_pos y);
 		
-		virtual UISize getSize();
+		UISize getSize();
 
-		virtual void setSize(sl_ui_len width, sl_ui_len height);
+		void setSize(sl_ui_len width, sl_ui_len height);
 
 		void setSize(const UISize& size);
 		
@@ -176,12 +135,16 @@ namespace slib
 		
 		void setHeightWrapping(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
-		
+
 		UIRect getClientFrame();
-		
+
+		void setClientFrame(const UIRect& rect);
+
+		void setClientFrame(sl_ui_pos left, sl_ui_pos top, sl_ui_len width, sl_ui_len height);
+
 		UISize getClientSize();
 		
-		virtual void setClientSize(sl_ui_len width, sl_ui_len height);
+		void setClientSize(sl_ui_len width, sl_ui_len height);
 		
 		void setClientSize(const UISize& size);
 		
@@ -193,61 +156,61 @@ namespace slib
 		
 		void setClientHeight(sl_ui_len height);
 
-		UIRect getClientBounds();
-
 		
 		String getTitle();
 		
-		virtual void setTitle(const String& title);
+		void setTitle(const String& title);
 		
 		Color getBackgroundColor();
 		
-		virtual void setBackgroundColor(const Color& color);
+		void setBackgroundColor(const Color& color);
 		
 		// set to default
-		virtual void resetBackgroundColor();
+		void resetBackgroundColor();
+
+		sl_bool isDefaultBackgroundColor();
 		
 		
 		sl_bool isMinimized();
 		
-		virtual void setMinimized(sl_bool flag);
+		void setMinimized(sl_bool flag = sl_true);
 		
 		sl_bool isMaximized();
 		
-		virtual void setMaximized(sl_bool flag);
+		void setMaximized(sl_bool flag = sl_true);
 		
 		sl_bool isFullScreen();
 		
-		virtual void setFullScreen(sl_bool flag);
+		void setFullScreen(sl_bool flag = sl_true);
 		
 		sl_bool isVisible();
 		
-		virtual void setVisible(sl_bool flag);
+		void setVisible(sl_bool flag = sl_true);
 		
 		sl_bool isAlwaysOnTop();
 		
-		virtual void setAlwaysOnTop(sl_bool flag);
+		void setAlwaysOnTop(sl_bool flag = sl_true);
 		
 		
 		sl_bool isCloseButtonEnabled();
 		
-		virtual void setCloseButtonEnabled(sl_bool flag);
+		void setCloseButtonEnabled(sl_bool flag = sl_true);
 		
 		sl_bool isMinimizeButtonEnabled();
 		
-		virtual void setMinimizeButtonEnabled(sl_bool flag);
+		void setMinimizeButtonEnabled(sl_bool flag = sl_true);
 		
 		sl_bool isMaximizeButtonEnabled();
 		
-		virtual void setMaximizeButtonEnabled(sl_bool flag);
+		void setMaximizeButtonEnabled(sl_bool flag = sl_true);
 		
 		sl_bool isFullScreenButtonEnabled();
 		
-		virtual void setFullScreenButtonEnabled(sl_bool flag);
+		void setFullScreenButtonEnabled(sl_bool flag = sl_true);
 		
 		sl_bool isResizable();
 		
-		virtual void setResizable(sl_bool flag);
+		void setResizable(sl_bool flag = sl_true);
 		
 
 		sl_bool isLayered();
@@ -256,80 +219,106 @@ namespace slib
 		
 		sl_real getAlpha();
 		
-		virtual void setAlpha(sl_real alpha);
+		void setAlpha(sl_real alpha);
 		
 		sl_bool isTransparent();
 		
-		virtual void setTransparent(sl_bool flag);
+		void setTransparent(sl_bool flag);
 
-		
-		virtual UIPointf convertCoordinateFromScreenToWindow(const UIPointf& ptScreen);
-		
-		UIRectf convertCoordinateFromScreenToWindow(const UIRectf& rect);
-		
-		virtual UIPointf convertCoordinateFromWindowToScreen(const UIPointf& ptWindow);
-
-		UIRectf convertCoordinateFromWindowToScreen(const UIRectf& rect);
-		
-		virtual UIPointf convertCoordinateFromScreenToClient(const UIPointf& ptScreen);
-		
-		UIRectf convertCoordinateFromScreenToClient(const UIRectf& rect);
-		
-		virtual UIPointf convertCoordinateFromClientToScreen(const UIPointf& ptClient);
-		
-		UIRectf convertCoordinateFromClientToScreen(const UIRectf& rect);
-		
-		virtual UIPointf convertCoordinateFromWindowToClient(const UIPointf& ptWindow);
-		
-		UIRectf convertCoordinateFromWindowToClient(const UIRectf& rect);
-		
-		virtual UIPointf convertCoordinateFromClientToWindow(const UIPointf& ptClient);
-		
-		UIRectf convertCoordinateFromClientToWindow(const UIRectf& rect);
-		
-		virtual UISize getWindowSizeFromClientSize(const UISize& sizeClient);
-		
-		virtual UISize getClientSizeFromWindowSize(const UISize& sizeWindow);
 
 		// aspect = width / height
-		virtual void setSizeRange(const UISize& sizeMinimum, const UISize& sizeMaximum, float aspectRatioMinimum = 0, float aspectRatioMaximum = 0);
-		
+		void setSizeRange(const UISize& sizeMinimum, const UISize& sizeMaximum, float aspectRatioMinimum = 0, float aspectRatioMaximum = 0);
+
+		UIEdgeInsets getClientInsets();
+
+		UIRect getWindowFrameFromClientFrame(const UIRect& frame);
+
+		UIRect getClientFrameFromWindowFrame(const UIRect& frame);
+
+		UISize getWindowSizeFromClientSize(const UISize& sizeClient);
+
+		UISize getClientSizeFromWindowSize(const UISize& sizeWindow);
+
+		UIPointf convertCoordinateFromScreenToWindow(const UIPointf& ptScreen);
+
+		UIRectf convertCoordinateFromScreenToWindow(const UIRectf& rect);
+
+		UIPointf convertCoordinateFromWindowToScreen(const UIPointf& ptWindow);
+
+		UIRectf convertCoordinateFromWindowToScreen(const UIRectf& rect);
+
+		UIPointf convertCoordinateFromScreenToClient(const UIPointf& ptScreen);
+
+		UIRectf convertCoordinateFromScreenToClient(const UIRectf& rect);
+
+		UIPointf convertCoordinateFromClientToScreen(const UIPointf& ptClient);
+
+		UIRectf convertCoordinateFromClientToScreen(const UIRectf& rect);
+
+		UIPointf convertCoordinateFromWindowToClient(const UIPointf& ptWindow);
+
+		UIRectf convertCoordinateFromWindowToClient(const UIRectf& rect);
+
+		UIPointf convertCoordinateFromClientToWindow(const UIPointf& ptClient);
+
+		UIRectf convertCoordinateFromClientToWindow(const UIRectf& rect);
+
+
+		// For client size
 		UISize getMinimumSize();
 		
+		// For client size
 		void setMinimumSize(const UISize& sizeMinimum);
 		
+		// For client size
 		void setMinimumSize(sl_ui_len width, sl_ui_len height);
 		
+		// For client size
 		sl_ui_len getMinimumWidth();
 		
+		// For client size
 		void setMinimumWidth(sl_ui_len width);
 		
+		// For client size
 		sl_ui_len getMinimumHeight();
 		
+		// For client size
 		void setMinimumHeight(sl_ui_len height);
 
+		// For client size
 		UISize getMaximumSize();
 		
+		// For client size
 		void setMaximumSize(const UISize& sizeMaximum);
 		
+		// For client size
 		void setMaximumSize(sl_ui_len width, sl_ui_len height);
 
+		// For client size
 		sl_ui_len getMaximumWidth();
 		
+		// For client size
 		void setMaximumWidth(sl_ui_len width);
 		
+		// For client size
 		sl_ui_len getMaximumHeight();
 		
+		// For client size
 		void setMaximumHeight(sl_ui_len height);
 		
+		// For client size
 		float getMinimumAspectRatio();
 		
+		// For client size
 		void setMinimumAspectRatio(float ratio);
 		
+		// For client size
 		float getMaximumAspectRatio();
 		
+		// For client size
 		void setMaximumAspectRatio(float ratio);
 		
+		// For client size
 		void setAspectRatio(float ratio);
 
 		
@@ -341,41 +330,47 @@ namespace slib
 		sl_bool isSheet();
 		
 		// Call before creating window
-		void setSheet(sl_bool flag);
+		void setSheet(sl_bool flag = sl_true);
 		
 		sl_bool isDialog();
 		
 		// Call before creating window
-		void setDialog(sl_bool flag);
+		void setDialog(sl_bool flag = sl_true);
 		
 		sl_bool isBorderless();
 		
 		// Call before creating window
-		void setBorderless(sl_bool flag);
+		void setBorderless(sl_bool flag = sl_true);
 		
 		sl_bool isTitleBarVisible();
 		
 		// Call before creating window
-		void setTitleBarVisible(sl_bool flag);
+		void setTitleBarVisible(sl_bool flag = sl_true);
 
 		sl_bool isCenterScreen();
 		
 		// Call before creating window
-		void setCenterScreen(sl_bool flag);
+		void setCenterScreen(sl_bool flag = sl_true);
 		
 		
 		sl_bool isCloseOnOK();
 		
 		void setCloseOnOK(sl_bool flag = sl_true);
-		
-		
+
+
 		Variant getResult();
 		
 		void setResult(const Variant& result);
 		
 		void close(const Variant& result);
-		
-		
+
+
+		Time getCreationTime();
+
+
+		void setQuitOnDestroy();
+
+
 #if defined(SLIB_UI_IS_ANDROID)
 		void* getActivity();
 		
@@ -399,6 +394,8 @@ namespace slib
 
 		void show();
 
+		void showAndKeep();
+
 		void hide();
 
 		
@@ -421,7 +418,7 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(Window, Activate)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Deactivate)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Move)
-		SLIB_DECLARE_EVENT_HANDLER(Window, Resizing, UISize& size)
+		SLIB_DECLARE_EVENT_HANDLER(Window, Resizing, UISize& clientSize)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Resize, sl_ui_len clientWidth, sl_ui_len clientHeight)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Minimize)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Deminimize)
@@ -436,28 +433,36 @@ namespace slib
 		void dispatchOK();
 		
 		void dispatchCancel();
-		
-	protected:
-		Ref<WindowInstance> createWindowInstance(const WindowInstanceParam& param);
 
+		void dispatchResize();
+
+	protected:
+		Ref<WindowInstance> createWindowInstance();
+		
 		void attach(const Ref<WindowInstance>& instance, sl_bool flagAttachContent = sl_true);
 		
 		void detach();
 
-	private:
+	protected:
 		void _create(sl_bool flagKeepReference);
 		
 		void _attachContent();
 		
-		void _refreshSize(const UISize& size);
+		void _refreshClientSize(const UISize& size);
 		
-		void _constrainSize(UISize& size, sl_bool flagAdjustHeight);
+		void _constrainClientSize(UISize& size, sl_bool flagAdjustHeight);
 		
-		void _constrainSize(UIRect& frame, sl_bool flagAdjustHeight);
-		
+		void _constrainClientSize(UIRect& frame, sl_bool flagAdjustHeight);
+
+		void _constrainWindowSize(UISize& size, sl_bool flagAdjustHeight);
+
+		void _constrainWindowSize(UIRect& frame, sl_bool flagAdjustHeight);
+
 		void _applyContentWrappingSize();
-		
-	private:
+
+		sl_bool _getClientInsets(UIEdgeInsets& _out);
+
+	protected:
 		AtomicRef<WindowInstance> m_instance;
 		AtomicWeakRef<Window> m_parent;
 		Ref<priv::window::ContentView> m_viewContent;
@@ -465,14 +470,13 @@ namespace slib
 		AtomicRef<Menu> m_menu;
 		AtomicRef<View> m_viewInitialFocus;
 		
-		UIRect m_frame;
 		AtomicString m_title;
 		Color m_backgroundColor;
 		sl_bool m_flagDefaultBackgroundColor;
 		
 		sl_real m_alpha;
-		UISize m_clientSizeRequested;
 		
+		UIRect m_frame;
 		UISize m_sizeMin;
 		UISize m_sizeMax;
 		float m_aspectRatioMinimum;
@@ -502,7 +506,6 @@ namespace slib
 		sl_bool m_flagHeightWrapping : 1;
 		sl_bool m_flagCloseOnOK : 1;
 
-		sl_bool m_flagUseClientSizeRequested : 1;
 		sl_bool m_flagStateResizingWidth : 1;
 		sl_bool m_flagStateDoModal : 1;
 		sl_bool m_flagDispatchedDestroy : 1;
@@ -510,12 +513,15 @@ namespace slib
 		Variant* m_result;
 		SpinLock m_lockResult;
 
+		Time m_timeCreation;
+
 #if defined(SLIB_UI_IS_ANDROID)
 		// jobject
 		void* m_activity;
 #endif
+
 		friend class WindowInstance;
-		
+
 	};
 
 
@@ -545,28 +551,21 @@ namespace slib
 		
 		virtual Ref<ViewInstance> getContentView() = 0;
 		
-		virtual void setMenu(const Ref<Menu>& menu);
-		
-		
-		virtual sl_bool isActive() = 0;
-
-		virtual void activate() = 0;
-
 		
 		virtual UIRect getFrame() = 0;
 		
 		virtual void setFrame(const UIRect& frame) = 0;
 		
-		virtual UIRect getClientFrame() = 0;
-		
-		virtual UISize getClientSize() = 0;
-		
-		virtual sl_bool setClientSize(sl_ui_len width, sl_ui_len height) = 0;
-		
 
-		virtual void setTitle(const String& title) = 0;
-		
-		virtual void setBackgroundColor(const Color& color) = 0;
+		virtual void setTitle(const String& title);
+
+		virtual void setMenu(const Ref<Menu>& menu);
+
+		virtual sl_bool isActive();
+
+		virtual void activate();
+
+		virtual void setBackgroundColor(const Color& color);
 
 		virtual void resetBackgroundColor();
 		
@@ -581,7 +580,6 @@ namespace slib
 		virtual void isFullScreen(sl_bool& _out);
 		
 		virtual void setFullScreen(sl_bool flag);
-		
 		
 		virtual void setVisible(sl_bool flag);
 
@@ -603,27 +601,16 @@ namespace slib
 		
 		virtual void setTransparent(sl_bool flag);
 
-		
-		virtual UIPointf convertCoordinateFromScreenToWindow(const UIPointf& ptScreen) = 0;
-		
-		virtual UIPointf convertCoordinateFromWindowToScreen(const UIPointf& ptWindow) = 0;
-		
-		virtual UIPointf convertCoordinateFromScreenToClient(const UIPointf& ptScreen) = 0;
-		
-		virtual UIPointf convertCoordinateFromClientToScreen(const UIPointf& ptClient) = 0;
-		
-		virtual UIPointf convertCoordinateFromWindowToClient(const UIPointf& ptWindow) = 0;
-		
-		virtual UIPointf convertCoordinateFromClientToWindow(const UIPointf& ptClient) = 0;
-		
-		virtual UISize getWindowSizeFromClientSize(const UISize& sizeClient) = 0;
-		
-		virtual UISize getClientSizeFromWindowSize(const UISize& sizeWindow) = 0;
-		
+
+		virtual sl_bool getClientInsets(UIEdgeInsets& _out);
 		
 		virtual void setSizeRange(const UISize& sizeMinimum, const UISize& sizeMaximum, float aspectRatioMinimum, float aspectRatioMaximum);
 		
+
 		virtual sl_bool doModal();
+
+
+		virtual void doPostCreate();
 		
 	public:
 		sl_bool onClose();
@@ -634,10 +621,12 @@ namespace slib
 		
 		void onMove();
 		
-		void onResizing(UISize& size, sl_bool flagResizingWidth);
+		void onResizing(UISize& clientSize, sl_bool flagResizingWidth);
 		
 		void onResize(sl_ui_len clientWidth, sl_ui_len clientHeight);
-		
+
+		void onResize();
+
 		void onMinimize();
 		
 		void onDeminimize();
@@ -653,7 +642,7 @@ namespace slib
 	public:
 		virtual void onAttachedContentView();
 		
-	private:
+	protected:
 		AtomicWeakRef<Window> m_window;
 		sl_bool m_flagKeepWindow;
 		

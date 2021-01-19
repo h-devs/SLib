@@ -23,9 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CORE_PARSE_UTIL
 #define CHECKHEADER_SLIB_CORE_PARSE_UTIL
 
-#include "definition.h"
-
 #include "string.h"
+#include "parse.h"
 
 namespace slib
 {

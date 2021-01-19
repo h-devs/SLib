@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_UTIL
 #define CHECKHEADER_SLIB_GRAPHICS_UTIL
 
-#include "definition.h"
-
 #include "constants.h"
 
 #include "../math/rectangle.h"

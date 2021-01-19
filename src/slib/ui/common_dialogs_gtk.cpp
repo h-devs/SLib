@@ -152,7 +152,7 @@ namespace slib
 
 	DialogResult FileDialog::_run()
 	{
-        const char* szTitle = "";
+		const char* szTitle = "";
 		if (title.isNotEmpty()) {
 			szTitle = title.getData();
 		}

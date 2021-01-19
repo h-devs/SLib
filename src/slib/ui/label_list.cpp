@@ -22,6 +22,8 @@
 
 #include "slib/ui/label_list.h"
 
+#include "slib/ui/text.h"
+
 #include "label_list_base_impl.h"
 
 namespace slib
@@ -31,7 +33,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(LabelList, ListBox)
 
-    LabelList::LabelList()
+	LabelList::LabelList()
 	{
 		setBackgroundColor(Color::White, UIUpdateMode::Init);
 		setSelectedItemBackgroundColor(Color(35, 12, 146), UIUpdateMode::Init);

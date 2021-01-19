@@ -23,6 +23,7 @@
 #include "slib/ui/tab_view.h"
 
 #include "slib/ui/core.h"
+#include "slib/graphics/canvas.h"
 #include "slib/graphics/util.h"
 
 #define MAX_TABS_COUNT 100

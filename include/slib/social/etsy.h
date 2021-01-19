@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_SOCIAL_ETSY
 #define CHECKHEADER_SLIB_SOCIAL_ETSY
 
-#include "definition.h"
-
 #include "oauth.h"
 
 namespace slib

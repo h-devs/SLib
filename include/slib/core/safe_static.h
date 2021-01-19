@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_SAFE_STATIC
 #define CHECKHEADER_SLIB_CORE_SAFE_STATIC
 
-#include "definition.h"
-
 #include "spin_lock.h"
 
 #include <new>

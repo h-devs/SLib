@@ -22,7 +22,7 @@
 
 #include "slib/ui/scroll_bar.h"
 
-#include "slib/core/math.h"
+#include "slib/graphics/canvas.h"
 #include "slib/core/safe_static.h"
 
 #define CHECK_STATUS(...) \

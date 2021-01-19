@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -187,6 +187,41 @@ namespace slib
 				return SLIB_PARSE_ERROR;
 			}
 
+			template <class RT>
+			static sl_bool Calculate(const StringParam& _str, RT* result, sl_bool* isDivisionByZero) noexcept
+			{
+				if (_str.isEmpty()) {
+					return sl_false;
+				}
+				if (_str.is8()) {
+					StringData str(_str);
+					sl_char8* data = str.getUnsafeData();
+					sl_reg n = str.getUnsafeLength();
+					if (n >= 0) {
+						return Calculate(result, isDivisionByZero, data, 0, n) == n;
+					} else {
+						sl_reg ret = Calculate(result, isDivisionByZero, data, 0, SLIB_SIZE_MAX);
+						if (ret != SLIB_PARSE_ERROR && data[ret] == 0) {
+							return sl_true;
+						}
+						return sl_false;
+					}
+				} else {
+					StringData16 str(_str);
+					sl_char16* data = str.getUnsafeData();
+					sl_reg n = str.getUnsafeLength();
+					if (n >= 0) {
+						return Calculate(result, isDivisionByZero, data, 0, n) == n;
+					} else {
+						sl_reg ret = Calculate(result, isDivisionByZero, data, 0, SLIB_SIZE_MAX);
+						if (ret != SLIB_PARSE_ERROR && data[ret] == 0) {
+							return sl_true;
+						}
+						return sl_false;
+					}
+				}
+			}
+
 		}
 	}
 
@@ -194,266 +229,62 @@ namespace slib
 
 	sl_reg Calculator::calculate(sl_int32* result, sl_bool* isDivisionByZero, const sl_char8* sz, sl_size posBegin, sl_size posEnd) noexcept
 	{
-		return Calculate<sl_int32, sl_char8>(result, isDivisionByZero, sz, posBegin, posEnd);
+		return Calculate(result, isDivisionByZero, sz, posBegin, posEnd);
 	}
 
 	sl_reg Calculator::calculate(sl_int32* result, sl_bool* isDivisionByZero, const sl_char16* sz, sl_size posBegin, sl_size posEnd) noexcept
 	{
-		return Calculate<sl_int32, sl_char16>(result, isDivisionByZero, sz, posBegin, posEnd);
+		return Calculate(result, isDivisionByZero, sz, posBegin, posEnd);
 	}
-	
-	sl_bool Calculator::calculate(const sl_char8* sz, sl_int32* result, sl_bool* isDivisionByZero) noexcept
+
+	sl_bool Calculator::calculate(const StringParam& str, sl_int32* result, sl_bool* isDivisionByZero) noexcept
 	{
-		sl_reg ret = Calculate<sl_int32, sl_char8>(result, isDivisionByZero, sz, 0, SLIB_SIZE_MAX);
-		if (ret != SLIB_PARSE_ERROR && sz[ret] == 0) {
-			return sl_true;
-		}
-		return sl_false;
-	}
-	
-	sl_bool Calculator::calculate(const sl_char16* sz, sl_int32* result, sl_bool* isDivisionByZero) noexcept
-	{
-		sl_reg ret = Calculate<sl_int32, sl_char16>(result, isDivisionByZero, sz, 0, SLIB_SIZE_MAX);
-		if (ret != SLIB_PARSE_ERROR && sz[ret] == 0) {
-			return sl_true;
-		}
-		return sl_false;
-	}
-	
-	sl_bool Calculator::calculate(const String& str, sl_int32* result, sl_bool* isDivisionByZero) noexcept
-	{
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<sl_int32, sl_char8>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
-	}
-	
-	sl_bool Calculator::calculate(const AtomicString& _str, sl_int32* result, sl_bool* isDivisionByZero) noexcept
-	{
-		String str(_str);
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<sl_int32, sl_char8>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
-	}
-	
-	sl_bool Calculator::calculate(const String16& str, sl_int32* result, sl_bool* isDivisionByZero) noexcept
-	{
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<sl_int32, sl_char16>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
-	}
-	
-	sl_bool Calculator::calculate(const AtomicString16& _str, sl_int32* result, sl_bool* isDivisionByZero) noexcept
-	{
-		String16 str(_str);
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<sl_int32, sl_char16>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
+		return Calculate(str, result, isDivisionByZero);
 	}
 	
 	sl_reg Calculator::calculate(sl_int64* result, sl_bool* isDivisionByZero, const sl_char8* sz, sl_size posBegin, sl_size posEnd) noexcept
 	{
-		return Calculate<sl_int64, sl_char8>(result, isDivisionByZero, sz, posBegin, posEnd);
+		return Calculate(result, isDivisionByZero, sz, posBegin, posEnd);
 	}
 	
 	sl_reg Calculator::calculate(sl_int64* result, sl_bool* isDivisionByZero, const sl_char16* sz, sl_size posBegin, sl_size posEnd) noexcept
 	{
-		return Calculate<sl_int64, sl_char16>(result, isDivisionByZero, sz, posBegin, posEnd);
+		return Calculate(result, isDivisionByZero, sz, posBegin, posEnd);
 	}
-	
-	sl_bool Calculator::calculate(const sl_char8* sz, sl_int64* result, sl_bool* isDivisionByZero) noexcept
+
+	sl_bool Calculator::calculate(const StringParam& str, sl_int64* result, sl_bool* isDivisionByZero) noexcept
 	{
-		sl_reg ret = Calculate<sl_int64, sl_char8>(result, isDivisionByZero, sz, 0, SLIB_SIZE_MAX);
-		if (ret != SLIB_PARSE_ERROR && sz[ret] == 0) {
-			return sl_true;
-		}
-		return sl_false;
+		return Calculate(str, result, isDivisionByZero);
 	}
-	
-	sl_bool Calculator::calculate(const sl_char16* sz, sl_int64* result, sl_bool* isDivisionByZero) noexcept
-	{
-		sl_reg ret = Calculate<sl_int64, sl_char16>(result, isDivisionByZero, sz, 0, SLIB_SIZE_MAX);
-		if (ret != SLIB_PARSE_ERROR && sz[ret] == 0) {
-			return sl_true;
-		}
-		return sl_false;
-	}
-	
-	sl_bool Calculator::calculate(const String& str, sl_int64* result, sl_bool* isDivisionByZero) noexcept
-	{
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<sl_int64, sl_char8>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
-	}
-	
-	sl_bool Calculator::calculate(const AtomicString& _str, sl_int64* result, sl_bool* isDivisionByZero) noexcept
-	{
-		String str(_str);
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<sl_int64, sl_char8>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
-	}
-	
-	sl_bool Calculator::calculate(const String16& str, sl_int64* result, sl_bool* isDivisionByZero) noexcept
-	{
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<sl_int64, sl_char16>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
-	}
-	
-	sl_bool Calculator::calculate(const AtomicString16& _str, sl_int64* result, sl_bool* isDivisionByZero) noexcept
-	{
-		String16 str(_str);
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<sl_int64, sl_char16>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
-	}
-	
+
 	sl_reg Calculator::calculate(float* result, sl_bool* isDivisionByZero, const sl_char8* sz, sl_size posBegin, sl_size posEnd) noexcept
 	{
-		return Calculate<float, sl_char8>(result, isDivisionByZero, sz, posBegin, posEnd);
+		return Calculate(result, isDivisionByZero, sz, posBegin, posEnd);
 	}
 	
 	sl_reg Calculator::calculate(float* result, sl_bool* isDivisionByZero, const sl_char16* sz, sl_size posBegin, sl_size posEnd) noexcept
 	{
-		return Calculate<float, sl_char16>(result, isDivisionByZero, sz, posBegin, posEnd);
+		return Calculate(result, isDivisionByZero, sz, posBegin, posEnd);
 	}
-	
-	sl_bool Calculator::calculate(const sl_char8* sz, float* result, sl_bool* isDivisionByZero) noexcept
+
+	sl_bool Calculator::calculate(const StringParam& str, float* result, sl_bool* isDivisionByZero) noexcept
 	{
-		sl_reg ret = Calculate<float, sl_char8>(result, isDivisionByZero, sz, 0, SLIB_SIZE_MAX);
-		if (ret != SLIB_PARSE_ERROR && sz[ret] == 0) {
-			return sl_true;
-		}
-		return sl_false;
+		return Calculate(str, result, isDivisionByZero);
 	}
-	
-	sl_bool Calculator::calculate(const sl_char16* sz, float* result, sl_bool* isDivisionByZero) noexcept
-	{
-		sl_reg ret = Calculate<float, sl_char16>(result, isDivisionByZero, sz, 0, SLIB_SIZE_MAX);
-		if (ret != SLIB_PARSE_ERROR && sz[ret] == 0) {
-			return sl_true;
-		}
-		return sl_false;
-	}
-	
-	sl_bool Calculator::calculate(const String& str, float* result, sl_bool* isDivisionByZero) noexcept
-	{
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<float, sl_char8>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
-	}
-	
-	sl_bool Calculator::calculate(const AtomicString& _str, float* result, sl_bool* isDivisionByZero) noexcept
-	{
-		String str(_str);
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<float, sl_char8>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
-	}
-	
-	sl_bool Calculator::calculate(const String16& str, float* result, sl_bool* isDivisionByZero) noexcept
-	{
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<float, sl_char16>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
-	}
-	
-	sl_bool Calculator::calculate(const AtomicString16& _str, float* result, sl_bool* isDivisionByZero) noexcept
-	{
-		String16 str(_str);
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<float, sl_char16>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
-	}
-	
+
 	sl_reg Calculator::calculate(double* result, sl_bool* isDivisionByZero, const sl_char8* sz, sl_size posBegin, sl_size posEnd) noexcept
 	{
-		return Calculate<double, sl_char8>(result, isDivisionByZero, sz, posBegin, posEnd);
+		return Calculate(result, isDivisionByZero, sz, posBegin, posEnd);
 	}
 	
 	sl_reg Calculator::calculate(double* result, sl_bool* isDivisionByZero, const sl_char16* sz, sl_size posBegin, sl_size posEnd) noexcept
 	{
-		return Calculate<double, sl_char16>(result, isDivisionByZero, sz, posBegin, posEnd);
+		return Calculate(result, isDivisionByZero, sz, posBegin, posEnd);
 	}
 
-	sl_bool Calculator::calculate(const sl_char8* sz, double* result, sl_bool* isDivisionByZero) noexcept
+	sl_bool Calculator::calculate(const StringParam& str, double* result, sl_bool* isDivisionByZero) noexcept
 	{
-		sl_reg ret = Calculate<double, sl_char8>(result, isDivisionByZero, sz, 0, SLIB_SIZE_MAX);
-		if (ret != SLIB_PARSE_ERROR && sz[ret] == 0) {
-			return sl_true;
-		}
-		return sl_false;
-	}
-	
-	sl_bool Calculator::calculate(const sl_char16* sz, double* result, sl_bool* isDivisionByZero) noexcept
-	{
-		sl_reg ret = Calculate<double, sl_char16>(result, isDivisionByZero, sz, 0, SLIB_SIZE_MAX);
-		if (ret != SLIB_PARSE_ERROR && sz[ret] == 0) {
-			return sl_true;
-		}
-		return sl_false;
-	}
-	
-	sl_bool Calculator::calculate(const String& str, double* result, sl_bool* isDivisionByZero) noexcept
-	{
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<double, sl_char8>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
-	}
-	
-	sl_bool Calculator::calculate(const AtomicString& _str, double* result, sl_bool* isDivisionByZero) noexcept
-	{
-		String str(_str);
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<double, sl_char8>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
-	}
-	
-	sl_bool Calculator::calculate(const String16& str, double* result, sl_bool* isDivisionByZero) noexcept
-	{
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<double, sl_char16>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
-	}
-	
-	sl_bool Calculator::calculate(const AtomicString16& _str, double* result, sl_bool* isDivisionByZero) noexcept
-	{
-		String16 str(_str);
-		sl_size n = str.getLength();
-		if (n == 0) {
-			return sl_false;
-		}
-		return Calculate<double, sl_char16>(result, isDivisionByZero, str.getData(), 0, n) == (sl_reg)n;
+		return Calculate(str, result, isDivisionByZero);
 	}
 	
 }

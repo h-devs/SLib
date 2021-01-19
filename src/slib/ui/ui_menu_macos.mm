@@ -25,6 +25,7 @@
 #if defined(SLIB_UI_IS_MACOS)
 
 #include "slib/ui/menu.h"
+
 #include "slib/ui/core.h"
 #include "slib/ui/app.h"
 #include "slib/ui/platform.h"

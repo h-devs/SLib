@@ -23,18 +23,17 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_AUDIO_RECORDER
 #define CHECKHEADER_SLIB_MEDIA_AUDIO_RECORDER
 
-#include "definition.h"
-
 #include "audio_data.h"
 
-#include "../core/object.h"
-#include "../core/event.h"
 #include "../core/loop_queue.h"
 #include "../core/string.h"
 #include "../core/function.h"
 
 namespace slib
 {
+
+	class Event;
+
 	class SLIB_EXPORT AudioRecorderInfo
 	{
 	public:

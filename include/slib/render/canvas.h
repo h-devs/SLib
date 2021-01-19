@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_RENDER_CANVAS
 #define CHECKHEADER_SLIB_RENDER_CANVAS
 
-#include "definition.h"
-
 #include "engine.h"
 
 #include "../graphics/canvas.h"

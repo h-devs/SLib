@@ -23,6 +23,7 @@
 #include "slib/ui/adapter.h"
 
 #include "slib/ui/linear_layout.h"
+#include "slib/core/queue.h"
 
 namespace slib
 {

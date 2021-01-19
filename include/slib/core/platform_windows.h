@@ -30,9 +30,9 @@
 #include "windows.h"
 
 #include "string.h"
+#include "list.h"
 #include "time.h"
 #include "event.h"
-#include "object.h"
 
 namespace slib
 {

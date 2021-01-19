@@ -23,13 +23,10 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_PLATFORM
 #define CHECKHEADER_SLIB_GRAPHICS_PLATFORM
 
-#include "definition.h"
-
 #include "color.h"
 #include "canvas.h"
 #include "bitmap.h"
 
-#include "../core/ref.h"
 #include "../math/matrix3.h"
 #include "../math/matrix4.h"
 

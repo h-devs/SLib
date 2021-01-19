@@ -22,6 +22,7 @@
 
 #include "slib/ui/linear_layout.h"
 
+#include "slib/ui/view_attributes.h"
 #include "slib/core/scoped.h"
 
 namespace slib
@@ -30,7 +31,7 @@ namespace slib
 	SLIB_DEFINE_OBJECT(LinearLayout, ViewGroup)
 	
 	LinearLayout::LinearLayout()
-	{		
+	{
 		setCustomLayout(sl_true);
 		setSavingCanvasState(sl_false);
 		
@@ -114,7 +115,7 @@ namespace slib
 		
 		UpdateLayoutFrameParam updateLayoutParam;
 		{
-			Ref<PaddingAttributes>& paddingAttrs = m_paddingAttrs;
+			Ref<ViewPaddingAttributes>& paddingAttrs = m_paddingAttrs;
 			if (paddingAttrs.isNotNull()) {
 				updateLayoutParam.parentContentFrame.left = paddingAttrs->paddingLeft;
 				updateLayoutParam.parentContentFrame.top = paddingAttrs->paddingTop;

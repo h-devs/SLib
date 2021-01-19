@@ -285,7 +285,15 @@ namespace slib
 				FileSystem::setLastError(FileSystemError::GeneralError);
 				Ref<FileContext> context = provider->openFile(path, param);
 				if (context.isNull()) {
-					return DOKAN_ERROR_CODE(FileSystem::getLastError());
+					FileSystemError err = FileSystem::getLastError();
+					if (g_flagDokany) {
+						if (err == FileSystemError::PathNotFound) {
+							if (!(param.mode & FileMode::NotCreate)) {
+								return STATUS_ACCESS_DENIED;
+							}
+						}
+					}
+					return DOKAN_ERROR_CODE(err);
 				}
 
 				host->increaseOpenHandlesCount();

@@ -22,7 +22,9 @@
 
 #include "slib/ui/split_layout.h"
 
+#include "slib/ui/cursor.h"
 #include "slib/ui/core.h"
+#include "slib/graphics/canvas.h"
 
 namespace slib
 {

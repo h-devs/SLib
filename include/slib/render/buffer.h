@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_RENDER_BUFFER
 #define CHECKHEADER_SLIB_RENDER_BUFFER
 
-#include "definition.h"
-
 #include "base.h"
 
 #include "../core/memory.h"

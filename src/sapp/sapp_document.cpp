@@ -29,6 +29,7 @@
 #include "slib/core/resource.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/scoped.h"
+#include "slib/graphics/color_parse.h"
 #include "slib/ui.h"
 
 #define TAG "SApp"
@@ -112,6 +113,7 @@ namespace slib
 			SLIB_STATIC_STRING(g_str_error_resource_menu_name_invalid, "Menu Resource: Invalid name attribute value: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_menu_name_redefined, "Menu Resource: name is redefined: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_menu_title_refer_invalid, "Menu Resource: title should be valid string value or string resource: %s")
+			SLIB_STATIC_STRING(g_str_error_resource_menu_checked_invalid, "Menu Resource: Invalid checked attribute value: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_menu_icon_invalid, "Menu Resource: Invalid icon image resource: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_menu_platform_invalid, "Menu Resource: Invalid platform attribute value: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_menu_shortcutKey_invalid, "Menu Resource: Invalid shortcutKey attribute value: %s")

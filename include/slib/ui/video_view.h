@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_VIDEO_VIEW
 #define CHECKHEADER_SLIB_UI_VIDEO_VIEW
 
-#include "definition.h"
-
 #include "render_view.h"
 
 #include "slider.h"

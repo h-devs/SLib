@@ -23,11 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_PAIR
 #define CHECKHEADER_SLIB_CORE_PAIR
 
-#include "definition.h"
-
-#include "cpp.h"
 #include "compare.h"
 #include "hash.h"
+#include "cpp_helper.h"
 
 namespace slib
 {

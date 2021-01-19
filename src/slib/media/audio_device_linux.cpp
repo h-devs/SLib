@@ -26,8 +26,8 @@
 
 #include "slib/media/audio_device.h"
 
+#include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
-#include "slib/core/time.h"
 #include "slib/core/log.h"
 #include "slib/core/endian.h"
 #include "slib/core/scoped.h"

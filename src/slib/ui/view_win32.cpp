@@ -26,12 +26,13 @@
 
 #include "view_win32.h"
 
-#include "slib/ui/core.h"
 #include "slib/ui/window.h"
+#include "slib/ui/core.h"
+#include "slib/ui/drag.h"
 #include "slib/math/transform2d.h"
 #include "slib/core/win32_com.h"
-#include "slib/core/dl_windows_user32.h"
 #include "slib/core/safe_static.h"
+#include "slib/core/dl_windows_user32.h"
 
 #include <commctrl.h>
 #include <shellapi.h>
@@ -49,6 +50,9 @@ namespace slib
 		{
 
 			sl_bool g_flagDuringPaint = sl_false;
+			
+			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Bitmap>, g_bitmapDoubleBuffer)
+			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Canvas>, g_canvasDoubleBuffer)
 
 			Color GetDefaultBackColor()
 			{
@@ -919,9 +923,46 @@ namespace slib
 			return;
 		}
 
-		static Ref<Bitmap> bitmap;
-		static Ref<Canvas> canvasBitmap;
 		UIRect rc = canvas->getInvalidatedRect();
+
+		sl_bool flagOpaque = sl_false;
+		Color colorBack;
+		if (view->isOpaque()) {
+			flagOpaque = sl_true;
+		} else {
+			Color colorView = view->getBackgroundColor();
+			if (colorView.a == 255) {
+				flagOpaque = sl_true;
+			} else {
+				if (m_flagWindowContent) {
+					Ref<Window> window = view->getWindow();
+					if (window.isNotNull()) {
+						colorBack = window->getBackgroundColor();
+						if (colorBack.a == 255) {
+							flagOpaque = sl_true;
+						}
+					}
+				}
+			}
+			if (!flagOpaque) {
+				Color c = GetDefaultBackColor();
+				c.blend_PA_NPA(colorBack);
+				colorBack = c;
+			}
+		}
+		
+		if (!(view->isDoubleBuffer())) {
+			if (!flagOpaque) {
+				if (colorBack.isNotZero()) {
+					canvas->fillRectangle(rc, colorBack);
+				} else {
+					canvas->fillRectangle(rc, Color::White);
+				}
+			}
+			view->dispatchDraw(canvas);
+			return;
+		}
+
 		UISize size = rc.getSize();
 		if (size.x < 1) {
 			return;
@@ -941,54 +982,40 @@ namespace slib
 		sl_uint32 heightBitmap = (sl_uint32)(size.y);
 		sl_uint32 widthOldBitmap = 0;
 		sl_uint32 heightOldBitmap = 0;
-		if (bitmap.isNotNull()) {
-			widthOldBitmap = bitmap->getWidth();
-			heightOldBitmap = bitmap->getHeight();
+
+		Ref<Bitmap>& bitmapBuffer = g_bitmapDoubleBuffer;
+		Ref<Canvas>& canvasBuffer = g_canvasDoubleBuffer;
+		if (bitmapBuffer.isNotNull()) {
+			widthOldBitmap = bitmapBuffer->getWidth();
+			heightOldBitmap = bitmapBuffer->getHeight();
 		}
-		if (bitmap.isNull() || canvasBitmap.isNull() || widthOldBitmap < widthBitmap || heightOldBitmap < heightBitmap) {
+		if (bitmapBuffer.isNull() || canvasBuffer.isNull() || widthOldBitmap < widthBitmap || heightOldBitmap < heightBitmap) {
 			Ref<Bitmap> bitmapNew = Bitmap::create(Math::max(widthOldBitmap, widthBitmap), Math::max(heightOldBitmap, heightBitmap));
 			if (bitmapNew.isNull()) {
 				return;
 			}
-			bitmap = bitmapNew;
-			canvasBitmap = bitmap->getCanvas();
-			if (canvasBitmap.isNull()) {
+			bitmapBuffer = bitmapNew;
+			canvasBuffer = bitmapBuffer->getCanvas();
+			if (canvasBuffer.isNull()) {
 				return;
 			}
-			canvasBitmap->setAntiAlias(sl_false);
+			canvasBuffer->setAntiAlias(sl_false);
 		}
 
-		Color colorBack(0);
-		do {
-			if (view->isOpaque()) {
-				break;
+		if (!flagOpaque) {
+			if (colorBack.isNotZero()) {
+				bitmapBuffer->resetPixels(0, 0, widthBitmap, heightBitmap, colorBack);
+			} else {
+				bitmapBuffer->resetPixels(0, 0, widthBitmap, 1, Color::White);
 			}
-			if (m_flagWindowContent) {
-				Ref<Window> window = view->getWindow();
-				if (window.isNull()) {
-					return;
-				}
-				colorBack = window->getBackgroundColor();
-				if (colorBack.a == 255) {
-					break;
-				}
-			}
-			Color c = GetDefaultBackColor();
-			c.blend_PA_NPA(colorBack);
-			colorBack = c;
-		} while (0);
-		rc.setSize(size);
-		if (colorBack.isNotZero()) {
-			bitmap->resetPixels(0, 0, widthBitmap, heightBitmap, colorBack);
-		} else {
-			bitmap->resetPixels(0, 0, widthBitmap, 1, Color::White);
 		}
-		canvasBitmap->setInvalidatedRect(rc);
-		CanvasStateScope scope(canvasBitmap.get());
-		canvasBitmap->translate(-(sl_real)(rc.left), -(sl_real)(rc.top));
-		view->dispatchDraw(canvasBitmap.get());
-		canvasBitmap->translate((sl_real)(rc.left), (sl_real)(rc.top));
-		canvas->draw(rc, bitmap, Rectangle(0, 0, (sl_real)(size.x), (sl_real)(size.y)));
+		rc.setSize(size);
+		canvasBuffer->setInvalidatedRect(rc);
+		CanvasStateScope scope(canvasBuffer.get());
+		canvasBuffer->translate(-(sl_real)(rc.left), -(sl_real)(rc.top));
+		view->dispatchDraw(canvasBuffer.get());
+		canvasBuffer->translate((sl_real)(rc.left), (sl_real)(rc.top));
+		canvas->draw(rc, bitmapBuffer, Rectangle(0, 0, (sl_real)(size.x), (sl_real)(size.y)));
 	}
 
 	void Win32_ViewInstance::onPaint()
@@ -1003,10 +1030,10 @@ namespace slib
 			return;
 		}
 		if (ps.rcPaint.right > ps.rcPaint.left && ps.rcPaint.bottom > ps.rcPaint.top) {
+			RECT rectClient;
+			GetClientRect(hWnd, &rectClient);
 			Gdiplus::Graphics graphics(hDC);
-			RECT rect;
-			GetClientRect(hWnd, &rect);
-			Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, &graphics, rect.right, rect.bottom, sl_false);
+			Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, &graphics, rectClient.right, rectClient.bottom, sl_false);
 			if (canvas.isNotNull()) {
 				canvas->setAntiAlias(sl_false);
 				canvas->setInvalidatedRect(Rectangle((sl_real)(ps.rcPaint.left), (sl_real)(ps.rcPaint.top), (sl_real)(ps.rcPaint.right), (sl_real)(ps.rcPaint.bottom)));
@@ -1196,7 +1223,9 @@ namespace slib
 		}
 		switch (msg) {
 			case WM_ERASEBKGND:
-				return TRUE;
+				{
+					return TRUE;
+				}
 
 			case WM_PAINT:
 				{
@@ -1427,7 +1456,7 @@ namespace slib
 		if (!hWnd) {
 			return 0;
 		}
-		switch (msg) {		
+		switch (msg) {
 		case WM_LBUTTONDOWN:
 			if (onEventMouse(UIAction::LeftButtonDown, wParam, lParam)) {
 				return 0;

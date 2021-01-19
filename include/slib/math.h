@@ -27,6 +27,7 @@
 
 #include "math/bigint.h"
 #include "math/int128.h"
+#include "math/complex.h"
 
 #include "math/vector.h"
 #include "math/vector2.h"
@@ -56,7 +57,10 @@
 #include "math/transform3d.h"
 
 #include "math/bezier.h"
+#include "math/fft.h"
 
 #include "math/calculator.h"
+
+#include "math/plot.h"
 
 #endif

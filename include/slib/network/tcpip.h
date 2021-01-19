@@ -23,12 +23,8 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_TCPIP
 #define CHECKHEADER_SLIB_NETWORK_TCPIP
 
-#include "definition.h"
-
 #include "constants.h"
 #include "ip_address.h"
-
-#include "../core/expire.h"
 
 /********************************************************************
 					IPv4 Header from RFC 791
@@ -902,59 +898,6 @@ public:
 	{
 	public:
 		sl_size operator()(const IPv4PacketIdentifier& v) const;
-		
-	};
-	
-	class SLIB_EXPORT IPv4Fragment
-	{
-	public:
-		sl_uint16 offset;
-		Memory data;
-		
-	public:
-		IPv4Fragment();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(IPv4Fragment)
-		
-	};
-
-	class SLIB_EXPORT IPv4FragmentedPacket : public Referable
-	{
-	public:
-		Memory header;
-		List<IPv4Fragment> fragments;
-		
-	public:
-		IPv4FragmentedPacket();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(IPv4FragmentedPacket)
-		
-	};
-
-	class SLIB_EXPORT IPv4Fragmentation : public Object
-	{
-		SLIB_DECLARE_OBJECT
-		
-	public:
-		IPv4Fragmentation();
-		
-		~IPv4Fragmentation();
-
-	public:
-		void setupExpiringDuration(sl_uint32 ms, const Ref<DispatchLoop>& loop);
-		
-		void setupExpiringDuration(sl_uint32 ms);
-		
-		static sl_bool isNeededReassembly(const IPv4Packet* packet);
-
-		Memory reassemble(const IPv4Packet* packet);
-
-		static sl_bool isNeededFragmentation(const IPv4Packet* packet, sl_uint16 mtu = 1500);
-		
-		static List<Memory> makeFragments(const IPv4Packet* packet, sl_uint16 mtu = 1500);
-		
-	protected:
-		ExpiringMap< IPv4PacketIdentifier, Ref<IPv4FragmentedPacket> > m_packets;
 		
 	};
 	

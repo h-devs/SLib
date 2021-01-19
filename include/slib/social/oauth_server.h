@@ -23,12 +23,11 @@
 #ifndef CHECKHEADER_SLIB_SOCIAL_OAUTH_SERVER
 #define CHECKHEADER_SLIB_SOCIAL_OAUTH_SERVER
 
-#include "definition.h"
-
 #include "oauth.h"
 
 #include "../network/http_server.h"
 #include "../crypto/jwt.h"
+#include "../core/property.h"
 
 namespace slib
 {

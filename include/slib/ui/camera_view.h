@@ -23,15 +23,14 @@
 #ifndef CHECKHEADER_SLIB_UI_CAMERA_VIEW
 #define CHECKHEADER_SLIB_UI_CAMERA_VIEW
 
-#include "definition.h"
-
 #include "video_view.h"
-#include "button.h"
 
 #include "../media/camera.h"
 
 namespace slib
 {
+
+	class Button;
 	
 	namespace priv
 	{

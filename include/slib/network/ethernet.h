@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_ETHERNET
 #define CHECKHEADER_SLIB_NETWORK_ETHERNET
 
-#include "definition.h"
-
 #include "constants.h"
 #include "mac_address.h"
 

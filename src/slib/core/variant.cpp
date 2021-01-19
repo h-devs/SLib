@@ -1209,7 +1209,7 @@ namespace slib
 					Ref<Referable> obj(getObject());
 					if (obj.isNotNull()) {
 						if (CMemory* p = CastInstance<CMemory>(obj.ptr)) {
-							return String::fromUtf8(p->getData(), p->getCount());
+							return String::fromUtf8(p->getData(), p->getSize());
 						}
 					}
 				}
@@ -1267,7 +1267,7 @@ namespace slib
 					Ref<Referable> obj(getObject());
 					if (obj.isNotNull()) {
 						if (CMemory* p = CastInstance<CMemory>(obj.ptr)) {
-							return String16::fromUtf8(p->getData(), p->getCount());
+							return String16::fromUtf8(p->getData(), p->getSize());
 						}
 					}
 				}
@@ -1479,13 +1479,13 @@ namespace slib
 			case VariantType::Time:
 				return REF_VAR(Time const, _value);
 			case VariantType::String8:
-				return Time(REF_VAR(String const, _value));
+				return Time::fromString(REF_VAR(String const, _value));
 			case VariantType::String16:
-				return Time(REF_VAR(String16 const, _value));
+				return Time::fromString(REF_VAR(String16 const, _value));
 			case VariantType::Sz8:
-				return Time(StringParam(REF_VAR(sl_char8 const* const, _value), -1));
+				return Time::fromString(StringParam(REF_VAR(sl_char8 const* const, _value), -1));
 			case VariantType::Sz16:
-				return Time(StringParam(REF_VAR(sl_char16 const* const, _value), -1));
+				return Time::fromString(StringParam(REF_VAR(sl_char16 const* const, _value), -1));
 			default:
 				break;
 		}

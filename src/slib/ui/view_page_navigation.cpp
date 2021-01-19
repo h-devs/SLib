@@ -23,7 +23,7 @@
 #include "slib/ui/view_page_navigation.h"
 
 #include "slib/ui/view_page.h"
-
+#include "slib/ui/gesture.h"
 #include "slib/core/scoped.h"
 
 #if defined(SLIB_UI_IS_ANDROID)
@@ -36,7 +36,7 @@ namespace slib
 	SLIB_DEFINE_OBJECT(ViewPageNavigationController, ViewGroup)
 
 	ViewPageNavigationController::ViewPageNavigationController()
-	{		
+	{
 		setCreatingInstance(sl_true);
 		
 		m_flagSwipeNavigation = sl_false;

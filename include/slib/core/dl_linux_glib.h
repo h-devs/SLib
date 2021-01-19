@@ -122,6 +122,12 @@ namespace slib
 
 	SLIB_IMPORT_LIBRARY_BEGIN(gobject, "libgobject-2.0.so.0")
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_object_ref,
+			gpointer, ,
+			gpointer object
+		)
+		#define g_object_ref slib::gobject::getApi_g_object_ref()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_object_ref_sink,
 			gpointer, ,
 			gpointer object
@@ -196,35 +202,35 @@ namespace slib
 	    SLIB_IMPORT_LIBRARY_FUNCTION(
 	        g_type_class_adjust_private_offset,
 	        void, ,
-	        gpointer  g_class,
-	        gint   *private_size_or_offset
+			gpointer g_class,
+			gint *private_size_or_offset
 	    )
         #define g_type_class_adjust_private_offset slib::gobject::getApi_g_type_class_adjust_private_offset()
 	    SLIB_IMPORT_LIBRARY_FUNCTION(
 	        g_type_register_static_simple,
 	        GType, ,
-	        GType                      parent_type,
-	        const gchar                *type_name,
-	        guint                       class_size,
-	        GClassInitFunc              class_init,
-	        guint                       instance_size,
-	        GInstanceInitFunc           instance_init,
-	        GTypeFlags	             flags
+			GType parent_type,
+			const gchar *type_name,
+			guint class_size,
+			GClassInitFunc class_init,
+			guint instance_size,
+			GInstanceInitFunc instance_init,
+			GTypeFlags flags
 	    )
         #define g_type_register_static_simple slib::gobject::getApi_g_type_register_static_simple()
 	    SLIB_IMPORT_LIBRARY_FUNCTION(
 	        g_type_add_interface_static,
 	        void, ,
-	        GType	instance_type,
-	        GType	interface_type,
-	        const GInterfaceInfo	    *info
+			GType instance_type,
+			GType interface_type,
+			const GInterfaceInfo *info
 	    )
         #define g_type_add_interface_static slib::gobject::getApi_g_type_add_interface_static()
 	    SLIB_IMPORT_LIBRARY_FUNCTION(
 	        g_object_new,
 	        gpointer, ,
-	        GType           object_type,
-	        const gchar    *first_property_name,
+			GType object_type,
+			const gchar *first_property_name,
 	        ...
 	    )
         #define g_object_new slib::gobject::getApi_g_object_new()
@@ -240,7 +246,7 @@ namespace slib
 	    SLIB_IMPORT_LIBRARY_FUNCTION(
 	        g_once_init_enter,
 	        gboolean, ,
-	        volatile void  *location
+			volatile void *location
 	    )
         #ifdef g_once_init_enter
         #	undef g_once_init_enter
@@ -249,8 +255,8 @@ namespace slib
 	    SLIB_IMPORT_LIBRARY_FUNCTION(
 	        g_once_init_leave,
 	        void, ,
-	        volatile void  *location,
-	        gsize           result
+			volatile void *location,
+			gsize result
 	    )
         #ifdef g_once_init_leave
         #	undef g_once_init_leave

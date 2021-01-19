@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_PIPE
 #define CHECKHEADER_SLIB_CORE_PIPE
 
-#include "definition.h"
-
 #include "io.h"
 #include "event.h"
 

@@ -23,13 +23,9 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_DNS
 #define CHECKHEADER_SLIB_NETWORK_DNS
 
-#include "definition.h"
-
 #include "socket_address.h"
 #include "async.h"
 
-#include "../core/string.h"
-#include "../core/hash_map.h"
 #include "../core/json.h"
 #include "../crypto/aes.h"
 

@@ -23,14 +23,11 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_NAT
 #define CHECKHEADER_SLIB_NETWORK_NAT
 
-#include "definition.h"
-
 #include "socket.h"
 #include "tcpip.h"
 #include "icmp.h"
-#include "socket_address.h"
 
-#include "../core/object.h"
+#include "../core/time.h"
 #include "../core/hash_map.h"
 
 /*

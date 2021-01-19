@@ -30,6 +30,7 @@
 #include "slib/core/string_buffer.h"
 #include "slib/core/variant.h"
 #include "slib/core/safe_static.h"
+#include "slib/core/stringify.h"
 
 #define MAX_PROGRAM_COUNT 256
 #define MAX_SHADER_CLIP 8
@@ -233,7 +234,7 @@ namespace slib
 								attribute vec2 a_Position;
 							));
 							bufVBContent.addStatic(SLIB_STRINGIFY(
-								void main() {							
+								void main() {
 									gl_Position = vec4((vec3(a_Position, 1.0) * u_Transform).xy, 0.0, 1.0);
 							));
 							bufFBHeader.addStatic(SLIB_STRINGIFY(
@@ -260,7 +261,7 @@ namespace slib
 							break;
 						}
 					}
-					if (param.flagUseTexture) {						
+					if (param.flagUseTexture) {
 						if (bufVertexShader) {
 							if (lang == RenderShaderLanguage::HLSL) {
 								bufVSOutput.addStatic(SLIB_STRINGIFY(
@@ -882,17 +883,13 @@ namespace slib
 		return measureRenderingText(font, text, flagMultiLine);
 	}
 	
-	Size RenderCanvas::measureRenderingText(const Ref<Font>& _font, const StringParam& text, sl_bool flagMultiLine)
+	Size RenderCanvas::measureRenderingText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine)
 	{
 		if (text.isEmpty()) {
 			return Size::zero();
 		}
-		Ref<Font> font = _font;
 		if (font.isNull()) {
-			font = Font::getDefault();
-			if (font.isNull()) {
-				return Size::zero();
-			}
+			return Size::zero();
 		}
 		Ref<FontAtlas> fa = font->getSharedAtlas();
 		if (fa.isNull()) {

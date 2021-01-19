@@ -22,6 +22,8 @@
 
 #include "slib/crypto/zlib.h"
 
+#include "slib/core/memory_buffer.h"
+
 #include "zlib/zlib.h"
 
 #undef compress

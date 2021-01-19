@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_RESOURCE
 #define CHECKHEADER_SLIB_GRAPHICS_RESOURCE
 
-#include "definition.h"
-
 #include "image.h"
 #include "color.h"
 

@@ -27,6 +27,7 @@
 #include "slib/ui/render_view.h"
 
 #include "slib/render/opengl.h"
+#include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
 
 #include "view_macos.h"

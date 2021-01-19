@@ -41,13 +41,13 @@ namespace slib
 }
 
 @interface SLIBEditViewHandle : NSTextField<NSTextFieldDelegate>
-{	
+{
 	@public slib::WeakRef<slib::priv::edit_view::EditViewInstance> m_viewInstance;
 }
 @end
 
 @interface SLIBTextAreaHandle_TextView : NSTextView
-{	
+{
 	@public slib::WeakRef<slib::priv::edit_view::TextAreaInstance> m_viewInstance;
 	@public NSAttributedString* m_placeholderString;
 	@public slib::Alignment m_placeholderVerticalAlignment;
@@ -55,7 +55,7 @@ namespace slib
 @end
 
 @interface SLIBTextAreaHandle : NSScrollView<NSTextViewDelegate>
-{	
+{
 	@public slib::WeakRef<slib::priv::edit_view::TextAreaInstance> m_viewInstance;
 	@public SLIBTextAreaHandle_TextView* m_textView;
 }

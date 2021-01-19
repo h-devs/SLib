@@ -37,7 +37,7 @@
 #define ENCRYPTION_PREFIX_SIZE 80
 
 namespace slib
-{	
+{
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SQLiteParam)
 

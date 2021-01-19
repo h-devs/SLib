@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_RW_LOCK
 #define CHECKHEADER_SLIB_CORE_RW_LOCK
 
-#include "definition.h"
-
 #include "mutex.h"
 
 namespace slib

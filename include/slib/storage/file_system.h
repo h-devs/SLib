@@ -25,12 +25,9 @@
 
 #include "definition.h"
 
-#include "../core/object.h"
-#include "../core/string.h"
-#include "../core/time.h"
 #include "../core/file.h"
 #include "../core/hash_map.h"
-#include "../core/system.h"
+#include "../core/platform_type.h"
 
 namespace slib
 {
@@ -41,6 +38,7 @@ namespace slib
 		GeneralError = 1, // ERROR_INVALID_FUNCTION, EPERM
 		NotFound = 2, // ERROR_FILE_NOT_FOUND, ENOENT
 #ifdef SLIB_PLATFORM_IS_WINDOWS
+		PathNotFound = 3, // ERROR_PATH_NOT_FOUND
 		AccessDenied = 5, // ERROR_ACCESS_DENIED
 		InvalidContext = 6, // ERROR_INVALID_HANDLE
 #else
@@ -65,7 +63,7 @@ namespace slib
 
 		static FileSystemError getLastError();
 
-		static void setLastError(FileSystemError error, PlatformType platform = PlatformType::CurrentPlatform);
+		static void setLastError(FileSystemError error, PlatformType platform = PlatformType::Current);
 
 	};
 

@@ -102,19 +102,19 @@ namespace slib
 						}
 					}
 					UIFont* font = [UIFont fontWithDescriptor:descriptor size:size];
-                    if (font == nil) {
-                        descriptor = [UIFontDescriptor fontDescriptorWithName:@"Arial" size:size];
-                        if (descriptor != nil) {
-                            if (traits) {
-                                UIFontDescriptor* descriptorWithTraits = [descriptor fontDescriptorWithSymbolicTraits:traits];
-                                if (descriptorWithTraits != nil) {
-                                    descriptor = descriptorWithTraits;
-                                }
-                            }
-                            font = [UIFont fontWithDescriptor:descriptor size:size];
-                        }
-                    }
-                    m_font = font;
+					if (font == nil) {
+						descriptor = [UIFontDescriptor fontDescriptorWithName:@"Arial" size:size];
+						if (descriptor != nil) {
+							if (traits) {
+								UIFontDescriptor* descriptorWithTraits = [descriptor fontDescriptorWithSymbolicTraits:traits];
+								if (descriptorWithTraits != nil) {
+									descriptor = descriptorWithTraits;
+								}
+							}
+							font = [UIFont fontWithDescriptor:descriptor size:size];
+						}
+					}
+					m_font = font;
 					m_lastUIScaleFactor = scaleFactor;
 					return m_font;
 				}

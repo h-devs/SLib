@@ -23,11 +23,8 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_BITMAP
 #define CHECKHEADER_SLIB_GRAPHICS_BITMAP
 
-#include "definition.h"
-
 #include "color.h"
 #include "bitmap_data.h"
-
 #include "drawable.h"
 #include "canvas.h"
 

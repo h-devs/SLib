@@ -23,6 +23,7 @@
 #include "slib/core/spin_lock.h"
 
 #include "slib/core/system.h"
+#include "slib/core/swap.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 #define USE_CPP_ATOMIC

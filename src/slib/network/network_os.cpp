@@ -236,7 +236,7 @@ namespace slib
 {
 
 	namespace priv
-	{		
+	{
 		namespace network_os
 		{
 

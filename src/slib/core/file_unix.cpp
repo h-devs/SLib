@@ -26,6 +26,8 @@
 
 #include "slib/core/file.h"
 
+#include "slib/core/hash_map.h"
+
 #define _FILE_OFFSET_BITS 64
 #include <unistd.h>
 #include <fcntl.h>
@@ -527,21 +529,21 @@ namespace slib
 	}
 
 	FileAttributes File::getAttributes()
-    {
-        int fd = (int)m_file;
-        if (fd != SLIB_FILE_INVALID_HANDLE) {
-            struct stat st;
-            if (0 == fstat(fd, &st)) {
-                int ret = 0;
-                if (S_ISDIR(st.st_mode)) {
-                    ret |= FileAttributes::Directory;
-                } else {
-                    ret |= FileAttributes::Normal;
-                }
-                return ret;
-            }
-        }
-        return FileAttributes::NotExist;
+	{
+		int fd = (int)m_file;
+		if (fd != SLIB_FILE_INVALID_HANDLE) {
+			struct stat st;
+			if (0 == fstat(fd, &st)) {
+				int ret = 0;
+				if (S_ISDIR(st.st_mode)) {
+					ret |= FileAttributes::Directory;
+				} else {
+					ret |= FileAttributes::Normal;
+				}
+				return ret;
+			}
+		}
+		return FileAttributes::NotExist;
 	}
 
 	FileAttributes File::_getAttributes(const StringParam& _filePath)

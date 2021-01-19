@@ -22,6 +22,7 @@
 
 #include "slib/ui/scroll_view.h"
 
+#include "slib/ui/view_attributes.h"
 #include "slib/ui/core.h"
 
 #if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_IOS) || defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_ANDROID) || defined(SLIB_UI_IS_GTK)
@@ -103,7 +104,7 @@ namespace slib
 			SLIB_VIEW_RUN_ON_UI_THREAD(func, _width, _height, mode)
 		}
 		_initializeScrollAttributes();
-		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
+		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNull()) {
 			return;
 		}

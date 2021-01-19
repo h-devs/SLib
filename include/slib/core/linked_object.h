@@ -23,10 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_LINKED_OBJECT
 #define CHECKHEADER_SLIB_CORE_LINKED_OBJECT
 
-#include "definition.h"
-
-#include "object.h"
-#include "array.h"
 #include "list.h"
 
 namespace slib

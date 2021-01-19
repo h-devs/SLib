@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,8 +21,8 @@
  */
 
 #include "slib/graphics/color.h"
+#include "slib/graphics/color_parse.h"
 
-#include "slib/core/math.h"
 #include "slib/core/variant.h"
 #include "slib/core/safe_static.h"
 

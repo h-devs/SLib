@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_BLOCKCIPHER
 #define CHECKHEADER_SLIB_CRYPTO_BLOCKCIPHER
 
-#include "definition.h"
-
 #include "../core/memory.h"
 #include "../core/base.h"
 #include "../core/mio.h"

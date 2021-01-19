@@ -37,7 +37,7 @@ namespace slib
 		namespace select_view
 		{
 			class SelectViewInstance;
-            class SelectViewHelper;
+			class SelectViewHelper;
 		}
 	}
 }
@@ -47,7 +47,7 @@ namespace slib
 	@public UIPickerView* m_picker;
 	@public sl_uint32 m_selectionBefore;
 	@public slib::WeakRef<slib::priv::select_view::SelectViewInstance> m_viewInstance;
-    @public slib::WeakRef<slib::priv::select_view::SelectViewHelper> m_view;
+	@public slib::WeakRef<slib::priv::select_view::SelectViewHelper> m_view;
 }
 @end
 

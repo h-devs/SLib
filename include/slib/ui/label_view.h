@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_LABEL_VIEW
 #define CHECKHEADER_SLIB_UI_LABEL_VIEW
 
-#include "definition.h"
-
 #include "view.h"
 
 #include "../graphics/text.h"

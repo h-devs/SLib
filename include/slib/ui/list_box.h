@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_LIST_BOX
 #define CHECKHEADER_SLIB_UI_LIST_BOX
 
-#include "definition.h"
-
 #include "view.h"
 
 namespace slib

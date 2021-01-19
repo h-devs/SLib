@@ -455,7 +455,7 @@ namespace slib
 		if (appId.isEmpty()) {
 			return -1;
 		}
-		HWND hWnd = FindWindowW(L"SLIBMESSAGEHANDLER", (LPCWSTR)(appId.getData()));
+		HWND hWnd = FindWindowW(PRIV_SLIB_UI_MESSAGE_WINDOW_CLASS_NAME, (LPCWSTR)(appId.getData()));
 		if (hWnd) {
 			COPYDATASTRUCT data;
 			Base::zeroMemory(&data, sizeof(data));
@@ -478,48 +478,20 @@ namespace slib
 		// register view class
 		{
 			WNDCLASSEXW wc;
-			Base::zeroMemory(&wc, sizeof(wc));
-			wc.cbSize = sizeof(wc);
-			wc.style = CS_DBLCLKS | CS_PARENTDC;
-			wc.lpfnWndProc = priv::view::ViewInstanceProc;
-			wc.cbClsExtra = 0;
-			wc.cbWndExtra = 0;
-			wc.hInstance = hInstance;
-			wc.hIcon = NULL;
-			wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-			wc.hbrBackground = (HBRUSH)(COLOR_MENU + 1);
-			wc.lpszMenuName = NULL;
-			wc.lpszClassName = L"SLIBUIVIEW";
-			wc.hIconSm = NULL;
+			prepareClassForView(wc);
 			wndClassForView = RegisterClassExW(&wc);
 		}
 
-		// register window class
-		{
-			WNDCLASSEXW wc;
-			Base::zeroMemory(&wc, sizeof(wc));
-			wc.cbSize = sizeof(wc);
-			wc.style = CS_DBLCLKS;
-			wc.lpfnWndProc = priv::window::WindowInstanceProc;
-			wc.cbClsExtra = 0;
-			wc.cbWndExtra = 0;
-			wc.hInstance = hInstance;
-			wc.hIcon = LoadIcon(hInstance, IDI_APPLICATION);
-			wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-			wc.hbrBackground = (HBRUSH)(COLOR_MENU + 1);
-			wc.lpszMenuName = NULL;
-			wc.lpszClassName = L"SLIBUIWINDOW";
-			wc.hIconSm = NULL;
-			wndClassForWindow = RegisterClassExW(&wc);
-		}
-
+		m_wndClassForWindow = 0;
+		m_wndClassForWindowNoClose = 0;
+		
 		// Mesage Window
 		{
 			WNDCLASSW wc;
 			Base::zeroMemory(&wc, sizeof(wc));
 			wc.hInstance = hInstance;
 			wc.lpfnWndProc = MessageWindowProc;
-			wc.lpszClassName = L"SLIBMESSAGEHANDLER";
+			wc.lpszClassName = PRIV_SLIB_UI_MESSAGE_WINDOW_CLASS_NAME;
 			m_wndClassForMessage = RegisterClassW(&wc);
 			String16 appId;
 			Ref<UIApp> app = UIApp::getApp();
@@ -546,6 +518,69 @@ namespace slib
 	void Win32_UI_Shared::initialize()
 	{
 		InitializeSharedUIContext();
+	}
+
+	ATOM Win32_UI_Shared::getWndClassForWindow()
+	{
+		if (m_wndClassForWindow) {
+			return m_wndClassForWindow;
+		}
+		MutexLocker lock(&m_lock);
+		if (m_wndClassForWindow) {
+			return m_wndClassForWindow;
+		}
+		WNDCLASSEXW wc;
+		prepareClassForWindow(wc);
+		ATOM atom = RegisterClassExW(&wc);
+		if (atom) {
+			m_wndClassForWindow = atom;
+		}
+		return atom;
+	}
+
+	ATOM Win32_UI_Shared::getWndClassForWindowNoClose()
+	{
+		if (m_wndClassForWindowNoClose) {
+			return m_wndClassForWindowNoClose;
+		}
+		MutexLocker lock(&m_lock);
+		if (m_wndClassForWindowNoClose) {
+			return m_wndClassForWindowNoClose;
+		}
+		WNDCLASSEXW wc;
+		prepareClassForWindow(wc);
+		wc.style |= CS_NOCLOSE;
+		wc.lpszClassName = PRIV_SLIB_UI_NOCLOSE_WINDOW_CLASS_NAME;
+		ATOM atom = RegisterClassExW(&wc);
+		if (atom) {
+			m_wndClassForWindowNoClose = atom;
+		}
+		return atom;
+	}
+
+	void Win32_UI_Shared::prepareClassForView(WNDCLASSEXW& wc)
+	{
+		Base::zeroMemory(&wc, sizeof(wc));
+		wc.cbSize = sizeof(wc);
+		wc.style = CS_DBLCLKS | CS_PARENTDC;
+		wc.lpfnWndProc = priv::view::ViewInstanceProc;
+		wc.hInstance = hInstance;
+		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wc.hbrBackground = NULL;
+		wc.lpszClassName = PRIV_SLIB_UI_VIEW_WINDOW_CLASS_NAME;
+	}
+
+	void Win32_UI_Shared::prepareClassForWindow(WNDCLASSEXW& wc)
+	{
+		Base::zeroMemory(&wc, sizeof(wc));
+		wc.cbSize = sizeof(wc);
+		wc.style = CS_DBLCLKS;
+		wc.lpfnWndProc = priv::window::WindowInstanceProc;
+		wc.hInstance = hInstance;
+		wc.hIcon = LoadIcon(hInstance, IDI_APPLICATION);
+		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wc.hbrBackground = NULL;
+		wc.lpszClassName = PRIV_SLIB_UI_GENERIC_WINDOW_CLASS_NAME;
 	}
 
 }

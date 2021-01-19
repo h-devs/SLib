@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,15 +24,10 @@
 
 #if defined(SLIB_UI_IS_EFL)
 
-#include "slib/ui/window.h"
+#include "window.h"
 
-#include "slib/ui/view.h"
-#include "slib/ui/screen.h"
-#include "slib/ui/core.h"
 #include "slib/ui/mobile_app.h"
-#include "slib/ui/platform.h"
 #include "slib/core/safe_static.h"
-
 #include "slib/core/platform_tizen.h"
 
 #include "view_efl.h"
@@ -141,7 +136,7 @@ namespace slib
 					}
 				}
 
-				static Ref<WindowInstance> create(const WindowInstanceParam& param)
+				static Ref<WindowInstance> create(Window* window)
 				{
 					Evas_Object* win = elm_win_util_standard_add("", "");
 					if (win) {
@@ -153,20 +148,8 @@ namespace slib
 							}
 						}
 
-						if (!(param.flagFullScreen)) {
-							UIRect screenFrame;
-							Ref<Screen> _screen = param.screen;
-							if (_screen.isNotNull()) {
-								screenFrame = _screen->getRegion();
-							} else {
-								_screen = UI::getPrimaryScreen();
-								if (_screen.isNotNull()) {
-									screenFrame = _screen->getRegion();
-								} else {
-									screenFrame = UIRect::zero();
-								}
-							}
-							UIRect rect = param.calculateRegion(screenFrame);
+						if (!(window->isFullScreen())) {
+							UIRect rect = MakeWindowFrame(window);
 							/*
 							* Following move&resize code has no effect because Tizen policy fills the window in the screen.
 							* Just left for the further update.
@@ -238,19 +221,6 @@ namespace slib
 					return m_viewContent;
 				}
 				
-				sl_bool isActive() override
-				{
-					return sl_true;
-				}
-				
-				void activate() override
-				{
-					Evas_Object* window = m_window;
-					if (window) {
-						elm_win_raise(window);
-					}
-				}
-				
 				UIRect getFrame() override
 				{
 					return UI::getScreenBounds();
@@ -260,27 +230,12 @@ namespace slib
 				{
 				}
 				
-				UIRect getClientFrame() override
+				void activate() override
 				{
-					return getFrame();
-				}
-				
-				UISize getClientSize() override
-				{
-					return getFrame().getSize();
-				}
-				
-				sl_bool setClientSize(sl_ui_len width, sl_ui_len height) override
-				{
-					return sl_false;
-				}
-				
-				void setTitle(const String& title) override
-				{
-				}
-				
-				void setBackgroundColor(const Color& _color) override
-				{
+					Evas_Object* window = m_window;
+					if (window) {
+						elm_win_raise(window);
+					}
 				}
 				
 				void setVisible(sl_bool flag) override
@@ -295,44 +250,10 @@ namespace slib
 					}
 				}
 				
-				UIPointf convertCoordinateFromScreenToWindow(const UIPointf& ptScreen) override
+				void doPostCreate() override
 				{
-					return ptScreen;
-				}
-				
-				UIPointf convertCoordinateFromWindowToScreen(const UIPointf& ptWindow) override
-				{
-					return ptWindow;
-				}
-				
-				UIPointf convertCoordinateFromScreenToClient(const UIPointf& ptScreen) override
-				{
-					return convertCoordinateFromScreenToWindow(ptScreen);
-				}
-				
-				UIPointf convertCoordinateFromClientToScreen(const UIPointf& ptClient) override
-				{
-					return convertCoordinateFromWindowToScreen(ptClient);
-				}
-				
-				UIPointf convertCoordinateFromWindowToClient(const UIPointf& ptWindow) override
-				{
-					return ptWindow;
-				}
-				
-				UIPointf convertCoordinateFromClientToWindow(const UIPointf& ptClient) override
-				{
-					return ptClient;
-				}
-				
-				UISize getWindowSizeFromClientSize(const UISize& sizeClient) override
-				{
-					return sizeClient;
-				}
-				
-				UISize getClientSizeFromWindowSize(const UISize& sizeWindow) override
-				{
-					return sizeWindow;
+					UISize sizeClient = getClientSize();
+					onResize(sizeClient.x, sizeClient.y);
 				}
 				
 			};
@@ -342,9 +263,9 @@ namespace slib
 
 	using namespace priv::window;
 	
-	Ref<WindowInstance> Window::createWindowInstance(const WindowInstanceParam& param)
+	Ref<WindowInstance> Window::createWindowInstance()
 	{
-		return EFL_WindowInstance::create(param);
+		return EFL_WindowInstance::create(this);
 	}
 
 
@@ -393,7 +314,6 @@ namespace slib
 		}
 		return sl_null;
 	}
-
 
 	Evas_Object* UIPlatform::getMainWindow()
 	{

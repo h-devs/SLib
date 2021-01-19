@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_DL_LIBMYSQL
 #define CHECKHEADER_SLIB_CORE_DL_LIBMYSQL
 
-#include "definition.h"
+#include "../core/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_DESKTOP)
 

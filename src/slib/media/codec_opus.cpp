@@ -22,8 +22,8 @@
 
 #include "slib/media/codec_opus.h"
 
+#include "slib/core/time_counter.h"
 #include "slib/core/log.h"
-#include "slib/core/time.h"
 #include "slib/core/scoped.h"
 
 #include "opus/opus.h"

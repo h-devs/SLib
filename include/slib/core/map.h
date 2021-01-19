@@ -23,10 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_MAP
 #define CHECKHEADER_SLIB_CORE_MAP
 
-#include "definition.h"
-
 #include "object.h"
-#include "map_common.h"
 #include "node_position.h"
 #include "pair.h"
 #include "red_black_tree.h"

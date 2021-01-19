@@ -26,26 +26,26 @@
 
 namespace slib
 {
-    namespace gdk
-    {
-        
-        gdouble wrap_gdk_screen_get_resolution(GdkScreen *screen)
-        {
-            auto func = getApi_gdk_screen_get_resolution();
-            if (func) {
-                return func(screen);
-            }
-            return 96.0;
-        }
+	namespace gdk
+	{
+		
+		gdouble wrap_gdk_screen_get_resolution(GdkScreen *screen)
+		{
+			auto func = getApi_gdk_screen_get_resolution();
+			if (func) {
+				return func(screen);
+			}
+			return 96.0;
+		}
 
-        gboolean wrap_gdk_keymap_get_caps_lock_state(GdkKeymap *keymap)
-        {
-            auto func = getApi_gdk_keymap_get_caps_lock_state();
-            if (func) {
-                return func(keymap);
-            }
-            return sl_false;
-        }
-        
-    }
+		gboolean wrap_gdk_keymap_get_caps_lock_state(GdkKeymap *keymap)
+		{
+			auto func = getApi_gdk_keymap_get_caps_lock_state();
+			if (func) {
+				return func(keymap);
+			}
+			return sl_false;
+		}
+		
+	}
 }

@@ -23,11 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_SERVICE
 #define CHECKHEADER_SLIB_CORE_SERVICE
 
-#include "definition.h"
-
 #include "app.h"
-#include "string.h"
-#include "thread.h"
 
 namespace slib
 {

@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_DL_NETWORK_IPHLPAPI
 #define CHECKHEADER_SLIB_CORE_DL_NETWORK_IPHLPAPI
 
-#include "definition.h"
+#include "../core/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 

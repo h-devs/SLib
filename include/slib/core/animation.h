@@ -23,13 +23,11 @@
 #ifndef CHECKHEADER_SLIB_CORE_ANIMATION
 #define CHECKHEADER_SLIB_CORE_ANIMATION
 
-#include "definition.h"
-
-#include "object.h"
 #include "function.h"
 #include "hash_map.h"
 #include "math.h"
 #include "interpolation.h"
+#include "flags.h"
 
 /*
 	Basic functions for Graphics/Rendering/UI animations

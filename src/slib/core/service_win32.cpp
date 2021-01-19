@@ -26,6 +26,7 @@
 
 #include "slib/core/service.h"
 
+#include "slib/core/event.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/windows.h"
 
@@ -152,7 +153,7 @@ namespace slib
 			{
 				setCrashRecoverySupport(sl_false);
 				m_flagPlatformService = sl_true;
-				Application::doRun();
+				Application::_doRun();
 			}
 
 			void ServiceHelper::_run()

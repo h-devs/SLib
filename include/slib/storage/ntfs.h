@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_STORAGE_NTFS
 #define CHECKHEADER_SLIB_STORAGE_NTFS
 
-#include "definition.h"
-
 #include "../core/mio.h"
 
 namespace slib

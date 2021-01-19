@@ -66,7 +66,7 @@ namespace slib
 	}
 
 	GeoLocation GeoLocation::lerp(const GeoLocation& target, float factor) const
-	{	
+	{
 		return GeoLocation(LatLon(latitude, longitude).lerp(LatLon(target.latitude, target.longitude), factor),
 						SLIB_LERP(altitude, target.altitude, factor));
 	}

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_RENDER_OPENGL
 #define CHECKHEADER_SLIB_RENDER_OPENGL
 
-#include "definition.h"
-
 #include "opengl_engine.h"
 #include "opengl_wgl.h"
 #include "opengl_egl.h"

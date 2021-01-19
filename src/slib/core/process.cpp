@@ -22,6 +22,8 @@
 
 #include "slib/core/process.h"
 
+#include "slib/core/list.h"
+
 namespace slib
 {
 	

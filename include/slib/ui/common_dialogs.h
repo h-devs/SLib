@@ -23,10 +23,9 @@
 #ifndef CHECKHEADER_SLIB_UI_COMMON_DIALOGS
 #define CHECKHEADER_SLIB_UI_COMMON_DIALOGS
 
-#include "definition.h"
-
-#include "window.h"
 #include "view.h"
+
+#include "../core/string.h"
 
 namespace slib
 {

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_TABLE_LAYOUT
 #define CHECKHEADER_SLIB_UI_TABLE_LAYOUT
 
-#include "definition.h"
-
 #include "scroll_view.h"
 #include "adapter.h"
 

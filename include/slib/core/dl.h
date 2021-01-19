@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_DL
 #define CHECKHEADER_SLIB_CORE_DL
 
-#include "definition.h"
-
 #ifdef SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
 #include "dynamic_library.h"

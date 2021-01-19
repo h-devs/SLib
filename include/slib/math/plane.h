@@ -23,11 +23,7 @@
 #ifndef CHECKHEADER_SLIB_MATH_PLANE
 #define CHECKHEADER_SLIB_MATH_PLANE
 
-#include "definition.h"
-
-#include "vector3.h"
 #include "line3.h"
-#include "matrix4.h"
 
 /*
 	ax + by + cz + d = 0

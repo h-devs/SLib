@@ -63,7 +63,7 @@ namespace slib
 		return Dokany::createHost();
 # endif
 #elif defined(SLIB_PLATFORM_IS_UNIX) && defined(SLIB_PLATFORM_IS_DESKTOP)
-        return Fuse::createHost();
+		return Fuse::createHost();
 #else
 		return sl_null;
 #endif
@@ -100,7 +100,7 @@ namespace slib
 
 	void FileSystem::setLastError(FileSystemError error, PlatformType platform)
 	{
-		System::setLastError(System::mapError((sl_uint32)error, PlatformType::CurrentPlatform, platform));
+		System::setLastError(System::mapError((sl_uint32)error, PlatformType::Current, platform));
 	}
 
 

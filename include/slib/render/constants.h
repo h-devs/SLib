@@ -23,6 +23,8 @@
 #ifndef CHECKHEADER_SLIB_RENDER_CONSTANTS
 #define CHECKHEADER_SLIB_RENDER_CONSTANTS
 
+#include "definition.h"
+
 #include "../graphics/constants.h"
 
 namespace slib

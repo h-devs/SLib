@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_HTTP_COMMON
 #define CHECKHEADER_SLIB_NETWORK_HTTP_COMMON
 
-#include "definition.h"
-
 /****************************************************************************
 	
 				Hypertext Transfer Protocol -- HTTP/1.1
@@ -50,16 +48,16 @@
 
 #include "url.h"
 
-#include "../core/string.h"
 #include "../core/time.h"
 #include "../core/content_type.h"
 #include "../core/hash_map.h"
-#include "../core/nullable.h"
 #include "../core/string_buffer.h"
 #include "../core/cast.h"
 
 namespace slib
 {
+
+	class MemoryBuffer;
 	
 	typedef HashMap<String, String, HashIgnoreCaseString, CompareIgnoreCaseString> HttpHeaderMap;
 	typedef HashMap<String, String, HashIgnoreCaseString, CompareIgnoreCaseString> HttpHeaderValueMap;

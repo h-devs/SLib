@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MATH_LINE3
 #define CHECKHEADER_SLIB_MATH_LINE3
 
-#include "definition.h"
-
-#include "vector3.h"
 #include "matrix4.h"
 
 namespace slib

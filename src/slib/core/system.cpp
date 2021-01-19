@@ -60,7 +60,7 @@ namespace slib
 			return errorCode;
 		}
 		if (from == PlatformType::Unknown) {
-			from = PlatformType::CurrentPlatform;
+			from = PlatformType::Current;
 		}
 		if (from == to) {
 			return errorCode;

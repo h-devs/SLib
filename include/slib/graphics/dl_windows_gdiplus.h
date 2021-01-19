@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_DL_WINDOWS_GDIPLUS
 #define CHECKHEADER_SLIB_CORE_DL_WINDOWS_GDIPLUS
 
-#include "definition.h"
+#include "../core/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 

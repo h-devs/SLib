@@ -22,7 +22,7 @@
 
 #include "slib/ui/slider.h"
 
-#include "slib/core/math.h"
+#include "slib/graphics/canvas.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -78,7 +78,7 @@ namespace slib
 	SLIB_DEFINE_OBJECT(Slider, ProgressBar)
 	
 	Slider::Slider(LayoutOrientation orientation) : ProgressBar(orientation)
-	{		
+	{
 		StaticContext* s = GetStaticContext();
 		if (s) {
 			m_track = s->defaultTrack;

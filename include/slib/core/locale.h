@@ -23,12 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_LOCALE
 #define CHECKHEADER_SLIB_CORE_LOCALE
 
-#include "definition.h"
-
-#include "macro.h"
-#include "string.h"
 #include "parse.h"
 #include "function.h"
+#include "primitive_wrapper.h"
 
 namespace slib
 {

@@ -23,6 +23,7 @@
 #include "slib/ui/date_picker.h"
 
 #include "slib/ui/core.h"
+#include "slib/graphics/font.h"
 
 #if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32)
 #	define HAS_NATIVE_WIDGET_IMPL 1

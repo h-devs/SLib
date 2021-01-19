@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_SCOPED
 #define CHECKHEADER_SLIB_CORE_SCOPED
 
-#include "definition.h"
-
-#include "base.h"
 #include "new_helper.h"
 
 namespace slib

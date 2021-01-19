@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_PICKER_VIEW
 #define CHECKHEADER_SLIB_UI_PICKER_VIEW
 
-#include "definition.h"
-
 #include "label_list.h"
 #include "motion_tracker.h"
 

@@ -24,7 +24,7 @@
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
-#include "slib/core/async.h"
+#include "slib/core/async_file.h"
 
 #include "slib/core/windows.h"
 

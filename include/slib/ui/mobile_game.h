@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_MOBILE_GAME
 #define CHECKHEADER_SLIB_UI_MOBILE_GAME
 
-#include "definition.h"
-
 #include "mobile_app.h"
 #include "render_view.h"
 

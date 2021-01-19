@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_REFX
 #define CHECKHEADER_SLIB_CORE_REFX
 
-#include "definition.h"
-
 #include "ref.h"
 #include "pointer.h"
 

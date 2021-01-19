@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_CHACHA
 #define CHECKHEADER_SLIB_CRYPTO_CHACHA
 
-#include "definition.h"
-
 #include "poly1305.h"
 
 /*

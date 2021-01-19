@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_ZXING
 #define CHECKHEADER_SLIB_GRAPHICS_ZXING
 
-#include "definition.h"
-
 #include "image.h"
 
 namespace slib

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_LOOP_QUEUE
 #define CHECKHEADER_SLIB_CORE_LOOP_QUEUE
 
-#include "definition.h"
-
 #include "object.h"
 #include "new_helper.h"
 

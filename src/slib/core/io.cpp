@@ -21,15 +21,20 @@
  */
 
 #include "slib/core/io.h"
+#include "slib/core/memory_io.h"
+#include "slib/core/memory_reader.h"
+#include "slib/core/memory_writer.h"
+#include "slib/core/memory_output.h"
+#include "slib/core/buffered_reader.h"
+#include "slib/core/buffered_writer.h"
+#include "slib/core/buffered_seekable_reader.h"
+#include "slib/core/io_util.h"
 
 #include "slib/core/mio.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/thread.h"
 #include "slib/core/scoped.h"
 #include "slib/math/bigint.h"
-
-#include "slib/core/io_util.h"
-#include "slib/core/buffered_io.h"
 
 namespace slib
 {
@@ -121,7 +126,7 @@ namespace slib
 
 	sl_bool IReader::readInt8(sl_int8* output)
 	{
-		if (readFully(output, 1) == 1) {
+		if (read32(output, 1) == 1) {
 			return sl_true;
 		} else {
 			return sl_false;
@@ -140,7 +145,7 @@ namespace slib
 
 	sl_bool IReader::readUint8(sl_uint8* output)
 	{
-		if (readFully(output, 1) == 1) {
+		if (read32(output, 1) == 1) {
 			return sl_true;
 		} else {
 			return sl_false;
@@ -677,7 +682,7 @@ namespace slib
 		}
 	}
 
-	Time IReader::readTime(Time def)
+	Time IReader::readTime(const Time& def)
 	{
 		Time ret;
 		if (readTime(&ret)) {
@@ -1022,12 +1027,12 @@ namespace slib
 
 	sl_bool IWriter::writeInt8(sl_int8 value)
 	{
-		return writeFully(&value, 1) == 1;
+		return write32(&value, 1) == 1;
 	}
 
 	sl_bool IWriter::writeUint8(sl_uint8 value)
 	{
-		return writeInt8(value);
+		return write32(&value, 1) == 1;
 	}
 
 	sl_bool IWriter::writeInt16(sl_int16 value, EndianType endian)
@@ -1801,15 +1806,20 @@ namespace slib
 
 
 	SLIB_DEFINE_OBJECT(MemoryIO, IO)
-	
-	MemoryIO::MemoryIO(sl_size size, sl_bool flagResizable)
+
+	MemoryIO::MemoryIO()
 	{
-		_initialize(size, flagResizable);
+		_initialize();
+	}
+
+	MemoryIO::MemoryIO(sl_size size)
+	{
+		_initialize(size);
 	}
 	
-	MemoryIO::MemoryIO(const void* data, sl_size size, sl_bool flagResizable)
+	MemoryIO::MemoryIO(void* data, sl_size size)
 	{
-		_initialize(data, size, flagResizable);
+		_initialize(data, size);
 	}
 
 	MemoryIO::MemoryIO(const Memory& mem)
@@ -1822,85 +1832,120 @@ namespace slib
 		_free();
 	}
 
-	void MemoryIO::_initialize(const void* data, sl_size size, sl_bool flagResizable)
+	void MemoryIO::_initialize()
 	{
-		if (size > 0) {
-			m_buf = Base::createMemory(size);
-			if (m_buf) {
+		m_buf = sl_null;
+		m_size = 0;
+		m_offset = 0;
+		m_flagResizable = sl_true;
+	}
+
+	void MemoryIO::_initialize(sl_size size)
+	{
+		if (size) {
+			Memory data = Memory::createResizable(size);
+			if (data.isNotNull()) {
+				m_buf = data.getData();
 				m_size = size;
-				if (data) {
-					Base::copyMemory(m_buf, data, size);
-				}
-			} else {
-				m_size = 0;
+				m_offset = 0;
+				m_flagResizable = sl_true;
+				m_data = Move(data);
+				return;
 			}
+		}
+		_initialize();
+	}
+
+	void MemoryIO::_initialize(void* data, sl_size size)
+	{
+		m_flagResizable = sl_false;
+		m_offset = 0;
+		if (data && size) {
+			m_buf = data;
+			m_size = size;
 		} else {
 			m_buf = sl_null;
 			m_size = 0;
 		}
+	}
+
+	void MemoryIO::_initialize(const Memory& data)
+	{
 		m_offset = 0;
-		m_flagResizable = flagResizable;
-	}
-	
-	void MemoryIO::initialize(const void* data, sl_size size, sl_bool flagResizable)
-	{
-		_free();
-		_initialize(data, size, flagResizable);
-	}
-
-	void MemoryIO::_initialize(sl_size size, sl_bool flagResizable)
-	{
-		_initialize(sl_null, size, flagResizable);
-	}
-	
-	void MemoryIO::initialize(sl_size size, sl_bool flagResizable)
-	{
-		initialize(sl_null, size, flagResizable);
-	}
-	
-	void MemoryIO::_initialize(const Memory& mem)
-	{
-		_initialize(mem.getData(), mem.getSize(), sl_false);
-	}
-
-	void MemoryIO::initialize(const Memory& mem)
-	{
-		initialize(mem.getData(), mem.getSize(), sl_false);
-	}
-	
-	void MemoryIO::_free()
-	{
-		if (m_buf) {
-			Base::freeMemory(m_buf);
+		if (data.isNotNull()) {
+			m_buf = data.getData();
+			m_size = data.getSize();
+			m_flagResizable = !(data.isStatic());
+			m_data = data;
+		} else {
 			m_buf = sl_null;
+			m_size = 0;
+			m_flagResizable = sl_false;
 		}
-		m_size = 0;
-		m_offset = 0;
 	}
 
-	sl_size MemoryIO::getOffset()
+	sl_bool MemoryIO::_growCapacity(sl_size size)
 	{
-		return m_offset;
+		if (!m_flagResizable) {
+			return sl_false;
+		}
+		sl_size n = m_data.getSize();
+		if (size < n) {
+			m_size = size;
+			return sl_true;
+		}
+		if (n < 16) {
+			n = 16;
+		} else {
+			n = n + (n >> 1);
+		}
+		if (n < size) {
+			n = size;
+		}
+		if (m_data.setSize(n)) {
+			m_buf = m_data.getData();
+			m_size = size;
+			return sl_true;
+		}
+		return sl_false;
 	}
 
-	sl_size MemoryIO::getLength()
+	void MemoryIO::initialize()
 	{
-		return m_size;
+		m_data.setNull();
+		_initialize();
 	}
 
-	char* MemoryIO::getBuffer()
+	void MemoryIO::initialize(sl_size size)
 	{
-		return (char*)m_buf;
+		m_data.setNull();
+		_initialize(size);
+	}
+
+	void MemoryIO::initialize(void* data, sl_size size)
+	{
+		m_data.setNull();
+		_initialize(data, size);
+	}
+
+	void MemoryIO::initialize(const Memory& data)
+	{
+		m_data.setNull();
+		_initialize(data);
 	}
 
 	void MemoryIO::close()
 	{
-		_free();
+		m_data.setNull();
+		m_buf = sl_null;
+		m_size = 0;
+		m_offset = 0;
+		m_flagResizable = sl_false;
 	}
 
 	sl_reg MemoryIO::read(void* buf, sl_size size)
 	{
-		if (size == 0) {
+		if (!size) {
 			return 0;
 		}
 		if (m_offset >= m_size) {
@@ -1919,7 +1964,7 @@ namespace slib
 
 	sl_reg MemoryIO::write(const void* buf, sl_size size)
 	{
-		if (size == 0) {
+		if (!size) {
 			return 0;
 		}
 		if (m_offset >= m_size) {
@@ -1928,15 +1973,16 @@ namespace slib
 		sl_size limit = m_size - m_offset;
 		if (size > limit) {
 			if (m_flagResizable) {
-				sl_size n = m_size * 3 / 2;
-				if (n < m_offset + size) {
-					n = m_offset + size;
+				sl_size limitMax = SLIB_SIZE_MAX - m_offset;
+				if (size > limitMax) {
+					size = limitMax;
 				}
-				if (setSize(n)) {
-					limit = m_size - m_offset;
+				if (!(_growCapacity(m_offset + size))) {
+					size = limit;
 				}
+			} else {
+				size = limit;
 			}
-			size = limit;
 		}
 		if (size > 0) {
 			Base::copyMemory((char*)m_buf + m_offset, buf, size);
@@ -1963,48 +2009,80 @@ namespace slib
 
 	sl_bool MemoryIO::getPosition(sl_uint64& outPos)
 	{
-		outPos = getOffset();
+		outPos = m_offset;
 		return sl_true;
 	}
 
 	sl_bool MemoryIO::getSize(sl_uint64& outSize)
 	{
-		outSize = getLength();
+		outSize = m_size;
 		return sl_true;
 	}
 
 	sl_bool MemoryIO::setSize(sl_uint64 _size)
 	{
+		sl_size size = (sl_size)_size;
 		if (!m_flagResizable) {
 			return sl_false;
 		}
-		sl_size size = (sl_size)_size;
-		if (size == 0) {
-			close();
-			return sl_true;
-		} else {
-			void* data;
+		if (m_data.isNull()) {
 			if (m_buf) {
-				data = Base::reallocMemory(m_buf, size);
-			} else {
-				data = Base::createMemory(size);
-			}
-			if (data) {
-				m_buf = data;
-				m_size = size;
-				if (m_offset > size) {
-					m_offset = size;
-				}
-				return sl_true;
-			} else {
 				return sl_false;
 			}
 		}
+		if (size < m_data.getSize()) {
+			m_size = size;
+			if (m_offset > size) {
+				m_offset = size;
+			}
+			return sl_true;
+		}
+		if (m_data.setSize(size)) {
+			m_buf = m_data.getData();
+			m_size = size;
+			return sl_true;
+		}
+		return sl_false;
 	}
-	
+
+	sl_size MemoryIO::getPosition()
+	{
+		return m_offset;
+	}
+
+	sl_size MemoryIO::getSize()
+	{
+		return m_size;
+	}
+
+	sl_uint8* MemoryIO::getBuffer()
+	{
+		return (sl_uint8*)m_buf;
+	}
+
 	sl_bool MemoryIO::isResizable()
 	{
 		return m_flagResizable;
+	}
+
+	sl_bool MemoryIO::setResizable(sl_bool flag)
+	{
+		if (m_data.isNull()) {
+			if (m_buf) {
+				return sl_false;
+			}
+		}
+		m_flagResizable = flag;
+		return sl_true;
+	}
+
+	Memory MemoryIO::getData()
+	{
+		if (m_data.isNotNull()) {
+			return m_data.sub(0, m_size);
+		} else {
+			return Memory::createStatic(m_buf, m_size);
+		}
 	}
 
 	namespace priv
@@ -2065,7 +2143,8 @@ namespace slib
 		return -1;
 	}
 
-	SLIB_DEFINE_OBJECT(MemoryReader, Object)
+
+	SLIB_DEFINE_ROOT_OBJECT(MemoryReader)
 	
 	MemoryReader::MemoryReader(const Memory& mem)
 	{
@@ -2101,24 +2180,9 @@ namespace slib
 		m_offset = 0;
 	}
 
-	sl_size MemoryReader::getOffset()
-	{
-		return m_offset;
-	}
-
-	sl_size MemoryReader::getLength()
-	{
-		return m_size;
-	}
-
-	char* MemoryReader::getBuffer()
-	{
-		return (char*)m_buf;
-	}
-
 	sl_reg MemoryReader::read(void* buf, sl_size size)
 	{
-		if (size == 0) {
+		if (!size) {
 			return 0;
 		}
 		if (m_offset >= m_size) {
@@ -2153,14 +2217,29 @@ namespace slib
 
 	sl_bool MemoryReader::getPosition(sl_uint64& outPos)
 	{
-		outPos = getOffset();
+		outPos = m_offset;
 		return sl_true;
 	}
 
 	sl_bool MemoryReader::getSize(sl_uint64& outSize)
 	{
-		outSize = getLength();
+		outSize = m_size;
 		return sl_true;
+	}
+
+	sl_size MemoryReader::getPosition()
+	{
+		return m_offset;
+	}
+
+	sl_size MemoryReader::getSize()
+	{
+		return m_size;
+	}
+
+	sl_uint8* MemoryReader::getBuffer()
+	{
+		return (sl_uint8*)m_buf;
 	}
 
 	sl_int64 MemoryReader::find(const void* pattern, sl_size nPattern, sl_int64 _startPosition, sl_int64 _endPosition)
@@ -2191,13 +2270,284 @@ namespace slib
 		return -1;
 	}
 
-	
-	SLIB_DEFINE_OBJECT(MemoryWriter, Object)
-
-	MemoryWriter::MemoryWriter()
+	sl_bool MemoryReader::readInt8(sl_int8* output)
 	{
-		initialize();
+		if (m_offset < m_size) {
+			if (output) {
+				*output = ((sl_int8*)m_buf)[m_offset];
+			}
+			m_offset++;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
 	}
+
+	sl_int8 MemoryReader::readInt8(sl_int8 def)
+	{
+		if (m_offset < m_size) {
+			sl_int8 ret = ((sl_int8*)m_buf)[m_offset];
+			m_offset++;
+			return ret;
+		} else {
+			m_offset = m_size;
+		}
+		return def;
+	}
+
+	sl_bool MemoryReader::readUint8(sl_uint8* output)
+	{
+		if (m_offset < m_size) {
+			if (output) {
+				*output = ((sl_uint8*)m_buf)[m_offset];
+			}
+			m_offset++;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_uint8 MemoryReader::readUint8(sl_uint8 def)
+	{
+		if (m_offset < m_size) {
+			sl_uint8 ret = ((sl_int8*)m_buf)[m_offset];
+			m_offset++;
+			return ret;
+		} else {
+			m_offset = m_size;
+		}
+		return def;
+	}
+
+	sl_bool MemoryReader::readInt16(sl_int16* output, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 2;
+		if (offsetNext <= m_size) {
+			if (output) {
+				*output = MIO::readInt16((char*)m_buf + m_offset, endian);
+			}
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_int16 MemoryReader::readInt16(sl_int16 def, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 2;
+		if (offsetNext <= m_size) {
+			sl_int16 ret = MIO::readInt16((char*)m_buf + m_offset, endian);
+			m_offset = offsetNext;
+			return ret;
+		} else {
+			m_offset = m_size;
+		}
+		return def;
+	}
+
+	sl_bool MemoryReader::readUint16(sl_uint16* output, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 2;
+		if (offsetNext <= m_size) {
+			if (output) {
+				*output = MIO::readUint16((char*)m_buf + m_offset, endian);
+			}
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_uint16 MemoryReader::readUint16(sl_uint16 def, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 2;
+		if (offsetNext <= m_size) {
+			sl_uint16 ret = MIO::readUint16((char*)m_buf + m_offset, endian);
+			m_offset = offsetNext;
+			return ret;
+		} else {
+			m_offset = m_size;
+		}
+		return def;
+	}
+
+	sl_bool MemoryReader::readInt32(sl_int32* output, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 4;
+		if (offsetNext <= m_size) {
+			if (output) {
+				*output = MIO::readInt32((char*)m_buf + m_offset, endian);
+			}
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_int32 MemoryReader::readInt32(sl_int32 def, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 4;
+		if (offsetNext <= m_size) {
+			sl_int32 ret = MIO::readInt32((char*)m_buf + m_offset, endian);
+			m_offset = offsetNext;
+			return ret;
+		} else {
+			m_offset = m_size;
+		}
+		return def;
+	}
+
+	sl_bool MemoryReader::readUint32(sl_uint32* output, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 4;
+		if (offsetNext <= m_size) {
+			if (output) {
+				*output = MIO::readUint32((char*)m_buf + m_offset, endian);
+			}
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_uint32 MemoryReader::readUint32(sl_uint32 def, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 4;
+		if (offsetNext <= m_size) {
+			sl_uint32 ret = MIO::readUint32((char*)m_buf + m_offset, endian);
+			m_offset = offsetNext;
+			return ret;
+		} else {
+			m_offset = m_size;
+		}
+		return def;
+	}
+
+	sl_bool MemoryReader::readInt64(sl_int64* output, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 8;
+		if (offsetNext <= m_size) {
+			if (output) {
+				*output = MIO::readInt64((char*)m_buf + m_offset, endian);
+			}
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_int64 MemoryReader::readInt64(sl_int64 def, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 8;
+		if (offsetNext <= m_size) {
+			sl_int64 ret = MIO::readInt64((char*)m_buf + m_offset, endian);
+			m_offset = offsetNext;
+			return ret;
+		} else {
+			m_offset = m_size;
+		}
+		return def;
+	}
+
+	sl_bool MemoryReader::readUint64(sl_uint64* output, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 8;
+		if (offsetNext <= m_size) {
+			if (output) {
+				*output = MIO::readUint64((char*)m_buf + m_offset, endian);
+			}
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_uint64 MemoryReader::readUint64(sl_uint64 def, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 8;
+		if (offsetNext <= m_size) {
+			sl_uint64 ret = MIO::readUint64((char*)m_buf + m_offset, endian);
+			m_offset = offsetNext;
+			return ret;
+		} else {
+			m_offset = m_size;
+		}
+		return def;
+	}
+
+	sl_bool MemoryReader::readFloat(float* output, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 4;
+		if (offsetNext <= m_size) {
+			if (output) {
+				*output = MIO::readFloat((char*)m_buf + m_offset, endian);
+			}
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	float MemoryReader::readFloat(float def, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 4;
+		if (offsetNext <= m_size) {
+			float ret = MIO::readFloat((char*)m_buf + m_offset, endian);
+			m_offset = offsetNext;
+			return ret;
+		} else {
+			m_offset = m_size;
+		}
+		return def;
+	}
+
+	sl_bool MemoryReader::readDouble(double* output, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 8;
+		if (offsetNext <= m_size) {
+			if (output) {
+				*output = MIO::readDouble((char*)m_buf + m_offset, endian);
+			}
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	double MemoryReader::readDouble(double def, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 8;
+		if (offsetNext <= m_size) {
+			double ret = MIO::readDouble((char*)m_buf + m_offset, endian);
+			m_offset = offsetNext;
+			return ret;
+		} else {
+			m_offset = m_size;
+		}
+		return def;
+	}
+
+	
+	SLIB_DEFINE_ROOT_OBJECT(MemoryWriter)
 
 	MemoryWriter::MemoryWriter(const Memory& mem)
 	{
@@ -2211,13 +2561,6 @@ namespace slib
 
 	MemoryWriter::~MemoryWriter()
 	{
-	}
-	
-	void MemoryWriter::initialize()
-	{
-		m_buf = sl_null;
-		m_size = 0;
-		m_offset = 0;
 	}
 	
 	void MemoryWriter::initialize(const Memory& mem)
@@ -2242,117 +2585,343 @@ namespace slib
 	
 	sl_reg MemoryWriter::write(const void* buf, sl_size size)
 	{
-		if (size == 0) {
+		if (!size) {
 			return 0;
 		}
-		if (m_buf) {
-			if (m_offset >= m_size) {
-				return -1;
-			}
-			sl_size limit = m_size - m_offset;
-			if (size > limit) {
-				size = limit;
-			}
-			if (size > 0) {
-				Base::copyMemory((char*)m_buf + m_offset, buf, size);
-				m_offset += size;
-			}
-		} else {
-			m_buffer.add(Memory::create(buf, size));
+		if (m_offset >= m_size) {
+			return -1;
+		}
+		sl_size limit = m_size - m_offset;
+		if (size > limit) {
+			size = limit;
+		}
+		if (size > 0) {
+			Base::copyMemory((char*)m_buf + m_offset, buf, size);
+			m_offset += size;
 		}
 		return size;
 	}
 
 	sl_reg MemoryWriter::write(const Memory& mem)
 	{
-		if (mem.getSize() == 0) {
-			return 0;
-		}
-		if (m_buf) {
-			return write(mem.getData(), mem.getSize());
-		} else {
-			m_buffer.add(mem);
-			return mem.getSize();
-		}
+		return write(mem.getData(), mem.getSize());
 	}
 
 	sl_bool MemoryWriter::seek(sl_int64 offset, SeekPosition pos)
 	{
-		if (m_buf) {
-			sl_uint64 p = m_offset;
-			if (pos == SeekPosition::Begin) {
-				p = 0;
-			} else if (pos == SeekPosition::End) {
-				p = m_size;
-			}
-			p += offset;
-			if (p > m_size) {
-				return sl_false;
-			}
-			m_offset = (sl_size)p;
-			return sl_true;
-		} else {
+		sl_uint64 p = m_offset;
+		if (pos == SeekPosition::Begin) {
+			p = 0;
+		} else if (pos == SeekPosition::End) {
+			p = m_size;
+		}
+		p += offset;
+		if (p > m_size) {
 			return sl_false;
 		}
-	}
-
-	Memory MemoryWriter::getData()
-	{
-		if (m_buf) {
-			if (m_mem.isNotNull()) {
-				return m_mem;
-			} else {
-				return Memory::createStatic(m_buf, m_size, this);
-			}
-		} else {
-			return m_buffer.merge();
-		}
-	}
-
-	MemoryBuffer& MemoryWriter::getMemoryBuffer()
-	{
-		return m_buffer;
-	}
-
-	sl_size MemoryWriter::getOffset()
-	{
-		if (m_buf) {
-			return m_offset;
-		} else {
-			return m_buffer.getSize();
-		}
-	}
-
-	sl_size MemoryWriter::getLength()
-	{
-		if (m_buf) {
-			return m_size;
-		} else {
-			return m_buffer.getSize();
-		}
-	}
-
-	char* MemoryWriter::getBuffer()
-	{
-		return (char*)m_buf;
+		m_offset = (sl_size)p;
+		return sl_true;
 	}
 
 	sl_bool MemoryWriter::getPosition(sl_uint64& outPos)
 	{
-		outPos = getOffset();
+		outPos = m_offset;
 		return sl_true;
 	}
 
 	sl_bool MemoryWriter::getSize(sl_uint64& outSize)
 	{
-		outSize = getLength();
+		outSize = m_size;
 		return sl_true;
 	}
 
+	sl_size MemoryWriter::getPosition()
+	{
+		return m_offset;
+	}
 
-	SLIB_DEFINE_OBJECT(BufferedReader, Object)
+	sl_size MemoryWriter::getSize()
+	{
+		return m_size;
+	}
 
-		BufferedReader::BufferedReader() : m_reader(sl_null), m_closable(sl_null), m_posInBuf(0), m_sizeRead(0), m_dataBuf(sl_null), m_sizeBuf(0)
+	sl_uint8* MemoryWriter::getBuffer()
+	{
+		return (sl_uint8*)m_buf;
+	}
+
+	sl_bool MemoryWriter::writeInt8(sl_int8 value)
+	{
+		if (m_offset < m_size) {
+			((sl_int8*)m_buf)[m_offset] = value;
+			m_offset++;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_bool MemoryWriter::writeUint8(sl_uint8 value)
+	{
+		if (m_offset < m_size) {
+			((sl_uint8*)m_buf)[m_offset] = value;
+			m_offset++;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_bool MemoryWriter::writeInt16(sl_int16 value, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 2;
+		if (offsetNext <= m_size) {
+			MIO::writeInt16((char*)m_buf + m_offset, value, endian);
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_bool MemoryWriter::writeUint16(sl_uint16 value, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 2;
+		if (offsetNext <= m_size) {
+			MIO::writeUint16((char*)m_buf + m_offset, value, endian);
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_bool MemoryWriter::writeInt32(sl_int32 value, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 4;
+		if (offsetNext <= m_size) {
+			MIO::writeInt32((char*)m_buf + m_offset, value, endian);
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_bool MemoryWriter::writeUint32(sl_uint32 value, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 4;
+		if (offsetNext <= m_size) {
+			MIO::writeUint32((char*)m_buf + m_offset, value, endian);
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_bool MemoryWriter::writeInt64(sl_int64 value, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 8;
+		if (offsetNext <= m_size) {
+			MIO::writeInt64((char*)m_buf + m_offset, value, endian);
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_bool MemoryWriter::writeUint64(sl_uint64 value, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 8;
+		if (offsetNext <= m_size) {
+			MIO::writeUint64((char*)m_buf + m_offset, value, endian);
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_bool MemoryWriter::writeFloat(float value, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 4;
+		if (offsetNext <= m_size) {
+			MIO::writeFloat((char*)m_buf + m_offset, value, endian);
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	sl_bool MemoryWriter::writeDouble(double value, EndianType endian)
+	{
+		sl_size offsetNext = m_offset + 8;
+		if (offsetNext <= m_size) {
+			MIO::writeDouble((char*)m_buf + m_offset, value, endian);
+			m_offset = offsetNext;
+			return sl_true;
+		} else {
+			m_offset = m_size;
+		}
+		return sl_false;
+	}
+
+	
+	SLIB_DEFINE_ROOT_OBJECT(MemoryOutput)
+
+	MemoryOutput::MemoryOutput()
+	{
+	}
+
+	MemoryOutput::~MemoryOutput()
+	{
+	}
+
+	sl_reg MemoryOutput::write(const void* buf, sl_size size)
+	{
+		if (!size) {
+			return 0;
+		}
+		if (size <= 64) {
+			if (m_buffer.addElements_NoLock((sl_uint8*)buf, size)) {
+				return size;
+			}
+		} else {
+			if (flush()) {
+				Memory mem = Memory::create(buf, size);
+				if (mem.isNotNull()) {
+					if (m_queue.add(mem)) {
+						return size;
+					}
+				}
+			}
+		}
+		return -1;
+	}
+
+	sl_reg MemoryOutput::write(const Memory& mem)
+	{
+		if (mem.isNull()) {
+			return 0;
+		}
+		if (flush()) {
+			if (m_queue.add(mem)) {
+				return mem.getSize();
+			}
+		}
+		return -1;
+	}
+
+	sl_bool MemoryOutput::flush()
+	{
+		sl_size n = m_buffer.getCount();
+		if (!n) {
+			return sl_true;
+		}
+		MemoryData mem;
+		mem.data = m_buffer.getData();
+		mem.size = n;
+		mem.refer = Move(m_buffer.ref);
+		if (m_queue.add(mem)) {
+			return sl_true;
+		}
+		m_buffer.ref = Move(Ref< CList<sl_uint8> >::from(mem.refer));
+		return sl_false;
+	}
+
+	sl_size MemoryOutput::getSize()
+	{
+		return m_queue.getSize() + m_buffer.getCount();
+	}
+
+	Memory MemoryOutput::getData()
+	{
+		flush();
+		return m_queue.merge();
+	}
+
+	sl_bool MemoryOutput::writeInt8(sl_int8 value)
+	{
+		return m_buffer.add_NoLock(value);
+	}
+
+	sl_bool MemoryOutput::writeUint8(sl_uint8 value)
+	{
+		return m_buffer.add_NoLock(value);
+	}
+
+	sl_bool MemoryOutput::writeInt16(sl_int16 value, EndianType endian)
+	{
+		sl_uint8 v[2];
+		MIO::writeInt16(v, value, endian);
+		return m_buffer.addElements_NoLock(v, 2);
+	}
+
+	sl_bool MemoryOutput::writeUint16(sl_uint16 value, EndianType endian)
+	{
+		sl_uint8 v[2];
+		MIO::writeUint16(v, value, endian);
+		return m_buffer.addElements_NoLock(v, 2);
+	}
+
+	sl_bool MemoryOutput::writeInt32(sl_int32 value, EndianType endian)
+	{
+		sl_uint8 v[4];
+		MIO::writeInt32(v, value, endian);
+		return m_buffer.addElements_NoLock(v, 4);
+	}
+
+	sl_bool MemoryOutput::writeUint32(sl_uint32 value, EndianType endian)
+	{
+		sl_uint8 v[4];
+		MIO::writeUint32(v, value, endian);
+		return m_buffer.addElements_NoLock(v, 4);
+	}
+
+	sl_bool MemoryOutput::writeInt64(sl_int64 value, EndianType endian)
+	{
+		sl_uint8 v[8];
+		MIO::writeInt64(v, value, endian);
+		return m_buffer.addElements_NoLock(v, 8);
+	}
+
+	sl_bool MemoryOutput::writeUint64(sl_uint64 value, EndianType endian)
+	{
+		sl_uint8 v[8];
+		MIO::writeUint64(v, value, endian);
+		return m_buffer.addElements_NoLock(v, 8);
+	}
+
+	sl_bool MemoryOutput::writeFloat(float value, EndianType endian)
+	{
+		sl_uint8 v[4];
+		MIO::writeFloat(v, value, endian);
+		return m_buffer.addElements_NoLock(v, 4);
+	}
+
+	sl_bool MemoryOutput::writeDouble(double value, EndianType endian)
+	{
+		sl_uint8 v[8];
+		MIO::writeDouble(v, value, endian);
+		return m_buffer.addElements_NoLock(v, 8);
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(BufferedReader)
+
+	BufferedReader::BufferedReader(): m_reader(sl_null), m_closable(sl_null), m_posInBuf(0), m_sizeRead(0), m_dataBuf(sl_null), m_sizeBuf(0)
 	{
 	}
 
@@ -2423,6 +2992,262 @@ namespace slib
 		m_ref.setNull();
 	}
 
+	sl_bool BufferedReader::readInt8(sl_int8* output)
+	{
+		if (m_posInBuf < m_sizeRead) {
+			if (output) {
+				*output = m_dataBuf[m_posInBuf];
+			}
+			m_posInBuf++;
+			return sl_true;
+		} else {
+			return IReader::readInt8(output);
+		}
+	}
+
+	sl_int8 BufferedReader::readInt8(sl_int8 def)
+	{
+		if (m_posInBuf < m_sizeRead) {
+			sl_int8 ret = m_dataBuf[m_posInBuf];
+			m_posInBuf++;
+			return ret;
+		} else {
+			return IReader::readInt8(def);
+		}
+	}
+
+	sl_bool BufferedReader::readUint8(sl_uint8* output)
+	{
+		if (m_posInBuf < m_sizeRead) {
+			if (output) {
+				*output = m_dataBuf[m_posInBuf];
+			}
+			m_posInBuf++;
+			return sl_true;
+		} else {
+			return IReader::readUint8(output);
+		}
+	}
+
+	sl_uint8 BufferedReader::readUint8(sl_uint8 def)
+	{
+		if (m_posInBuf < m_sizeRead) {
+			sl_uint8 ret = m_dataBuf[m_posInBuf];
+			m_posInBuf++;
+			return ret;
+		} else {
+			return IReader::readUint8(def);
+		}
+	}
+
+	sl_bool BufferedReader::readInt16(sl_int16* output, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 2;
+		if (offsetNext <= m_sizeRead) {
+			if (output) {
+				*output = MIO::readInt16(m_dataBuf + m_posInBuf, endian);
+			}
+			m_posInBuf = offsetNext;
+			return sl_true;
+		} else {
+			return IReader::readInt16(output, endian);
+		}
+	}
+
+	sl_int16 BufferedReader::readInt16(sl_int16 def, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 2;
+		if (offsetNext <= m_sizeRead) {
+			sl_int16 ret = MIO::readInt16(m_dataBuf + m_posInBuf, endian);
+			m_posInBuf = offsetNext;
+			return ret;
+		} else {
+			return IReader::readInt16(def, endian);
+		}
+	}
+
+	sl_bool BufferedReader::readUint16(sl_uint16* output, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 2;
+		if (offsetNext <= m_sizeRead) {
+			if (output) {
+				*output = MIO::readUint16(m_dataBuf + m_posInBuf, endian);
+			}
+			m_posInBuf = offsetNext;
+			return sl_true;
+		} else {
+			return IReader::readUint16(output, endian);
+		}
+	}
+
+	sl_uint16 BufferedReader::readUint16(sl_uint16 def, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 2;
+		if (offsetNext <= m_sizeRead) {
+			sl_uint16 ret = MIO::readUint16(m_dataBuf + m_posInBuf, endian);
+			m_posInBuf = offsetNext;
+			return ret;
+		} else {
+			return IReader::readUint16(def, endian);
+		}
+	}
+
+	sl_bool BufferedReader::readInt32(sl_int32* output, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 4;
+		if (offsetNext <= m_sizeRead) {
+			if (output) {
+				*output = MIO::readInt32(m_dataBuf + m_posInBuf, endian);
+			}
+			m_posInBuf = offsetNext;
+			return sl_true;
+		} else {
+			return IReader::readInt32(output, endian);
+		}
+	}
+
+	sl_int32 BufferedReader::readInt32(sl_int32 def, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 4;
+		if (offsetNext <= m_sizeRead) {
+			sl_int32 ret = MIO::readInt32(m_dataBuf + m_posInBuf, endian);
+			m_posInBuf = offsetNext;
+			return ret;
+		} else {
+			return IReader::readInt32(def, endian);
+		}
+	}
+
+	sl_bool BufferedReader::readUint32(sl_uint32* output, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 4;
+		if (offsetNext <= m_sizeRead) {
+			if (output) {
+				*output = MIO::readUint32(m_dataBuf + m_posInBuf, endian);
+			}
+			m_posInBuf = offsetNext;
+			return sl_true;
+		} else {
+			return IReader::readUint32(output, endian);
+		}
+	}
+
+	sl_uint32 BufferedReader::readUint32(sl_uint32 def, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 4;
+		if (offsetNext <= m_sizeRead) {
+			sl_uint32 ret = MIO::readUint32(m_dataBuf + m_posInBuf, endian);
+			m_posInBuf = offsetNext;
+			return ret;
+		} else {
+			return IReader::readUint32(def, endian);
+		}
+	}
+
+	sl_bool BufferedReader::readInt64(sl_int64* output, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 8;
+		if (offsetNext <= m_sizeRead) {
+			if (output) {
+				*output = MIO::readInt64(m_dataBuf + m_posInBuf, endian);
+			}
+			m_posInBuf = offsetNext;
+			return sl_true;
+		} else {
+			return IReader::readInt64(output, endian);
+		}
+	}
+
+	sl_int64 BufferedReader::readInt64(sl_int64 def, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 8;
+		if (offsetNext <= m_sizeRead) {
+			sl_int64 ret = MIO::readInt64(m_dataBuf + m_posInBuf, endian);
+			m_posInBuf = offsetNext;
+			return ret;
+		} else {
+			return IReader::readInt64(def, endian);
+		}
+	}
+
+	sl_bool BufferedReader::readUint64(sl_uint64* output, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 8;
+		if (offsetNext <= m_sizeRead) {
+			if (output) {
+				*output = MIO::readUint64(m_dataBuf + m_posInBuf, endian);
+			}
+			m_posInBuf = offsetNext;
+			return sl_true;
+		} else {
+			return IReader::readUint64(output, endian);
+		}
+	}
+
+	sl_uint64 BufferedReader::readUint64(sl_uint64 def, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 8;
+		if (offsetNext <= m_sizeRead) {
+			sl_uint64 ret = MIO::readUint64(m_dataBuf + m_posInBuf, endian);
+			m_posInBuf = offsetNext;
+			return ret;
+		} else {
+			return IReader::readUint64(def, endian);
+		}
+	}
+
+	sl_bool BufferedReader::readFloat(float* output, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 4;
+		if (offsetNext <= m_sizeRead) {
+			if (output) {
+				*output = MIO::readFloat(m_dataBuf + m_posInBuf, endian);
+			}
+			m_posInBuf = offsetNext;
+			return sl_true;
+		} else {
+			return IReader::readFloat(output, endian);
+		}
+	}
+
+	float BufferedReader::readFloat(float def, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 4;
+		if (offsetNext <= m_sizeRead) {
+			float ret = MIO::readFloat(m_dataBuf + m_posInBuf, endian);
+			m_posInBuf = offsetNext;
+			return ret;
+		} else {
+			return IReader::readFloat(def, endian);
+		}
+	}
+
+	sl_bool BufferedReader::readDouble(double* output, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 8;
+		if (offsetNext <= m_sizeRead) {
+			if (output) {
+				*output = MIO::readDouble(m_dataBuf + m_posInBuf, endian);
+			}
+			m_posInBuf = offsetNext;
+			return sl_true;
+		} else {
+			return IReader::readDouble(output, endian);
+		}
+	}
+
+	double BufferedReader::readDouble(double def, EndianType endian)
+	{
+		sl_size offsetNext = m_posInBuf + 8;
+		if (offsetNext <= m_sizeRead) {
+			double ret = MIO::readDouble(m_dataBuf + m_posInBuf, endian);
+			m_posInBuf = offsetNext;
+			return ret;
+		} else {
+			return IReader::readDouble(def, endian);
+		}
+	}
+
 	void BufferedReader::_init(const Ptrx<IReader, IClosable>& reader, const Memory& buf)
 	{
 		m_ref = reader.ref;
@@ -2434,10 +3259,229 @@ namespace slib
 		m_sizeBuf = buf.getSize();
 	}
 
+	
+	SLIB_DEFINE_ROOT_OBJECT(BufferedWriter)
 
-	SLIB_DEFINE_OBJECT(BufferedSeekableReader, Object)
+	BufferedWriter::BufferedWriter(): m_writer(sl_null), m_closable(sl_null), m_dataBuf(sl_null), m_sizeBuf(0), m_sizeWritten(0)
+	{
+	}
 
-		BufferedSeekableReader::BufferedSeekableReader() : m_reader(sl_null), m_seekable(sl_null), m_closable(sl_null), m_posCurrent(0), m_sizeTotal(0), m_posInternal(0), m_dataBuf(sl_null), m_sizeBuf(0), m_sizeRead(0), m_posBuf(0)
+	BufferedWriter::~BufferedWriter()
+	{
+		flush();
+	}
+
+	Ref<BufferedWriter> BufferedWriter::create(const Ptrx<IWriter, IClosable>& _obj, sl_size bufferSize)
+	{
+		if (!bufferSize) {
+			return sl_null;
+		}
+		Memory buf = Memory::create(bufferSize);
+		if (buf.isNull()) {
+			return sl_null;
+		}
+		Ptrx<IWriter, IClosable> obj = _obj.lock();
+		if (!(obj.ptr)) {
+			return sl_null;
+		}
+		Ref<BufferedWriter> ret = new BufferedWriter;
+		if (ret.isNotNull()) {
+			ret->_init(obj, buf);
+			return ret;
+		}
+		return sl_null;
+	}
+
+	sl_reg BufferedWriter::write(const void* buf, sl_size size)
+	{
+		if (!size) {
+			return -1;
+		}
+		IWriter* writer = m_writer;
+		if (!writer) {
+			return -1;
+		}
+		if (size <= m_sizeBuf - m_sizeWritten) {
+			Base::copyMemory(m_dataBuf + m_sizeWritten, buf, size);
+			m_sizeWritten += size;
+			return size;
+		} else {
+			if (flush()) {
+				return writer->write(buf, size);
+			}
+		}
+		return -1;
+	}
+
+	void BufferedWriter::close()
+	{
+		flush();
+		if (m_closable) {
+			m_closable->close();
+		}
+		m_writer = sl_null;
+		m_closable = sl_null;
+		m_ref.setNull();
+	}
+
+	sl_bool BufferedWriter::flush()
+	{
+		sl_size size = m_sizeWritten;
+		if (!size) {
+			return sl_true;
+		}
+		IWriter* writer = m_writer;
+		if (!writer) {
+			return sl_false;
+		}
+		sl_reg n = writer->writeFully(m_dataBuf, size);
+		if (n == size) {
+			m_sizeWritten = 0;
+			return sl_true;
+		}
+		if (n <= 0) {
+			return sl_false;
+		}
+		size -= n;
+		Base::moveMemory(m_dataBuf, m_dataBuf + n, size);
+		m_sizeWritten = size;
+		return sl_false;
+	}
+
+	sl_bool BufferedWriter::writeInt8(sl_int8 value)
+	{
+		if (m_sizeWritten < m_sizeBuf) {
+			m_dataBuf[m_sizeWritten] = value;
+			m_sizeWritten++;
+			return sl_true;
+		} else {
+			return IWriter::writeInt8(value);
+		}
+	}
+
+	sl_bool BufferedWriter::writeUint8(sl_uint8 value)
+	{
+		if (m_sizeWritten < m_sizeBuf) {
+			m_dataBuf[m_sizeWritten] = value;
+			m_sizeWritten++;
+			return sl_true;
+		} else {
+			return IWriter::writeUint8(value);
+		}
+	}
+
+	sl_bool BufferedWriter::writeInt16(sl_int16 value, EndianType endian)
+	{
+		sl_size offsetNext = m_sizeWritten + 2;
+		if (offsetNext <= m_sizeBuf) {
+			MIO::writeInt16(m_dataBuf + m_sizeWritten, value, endian);
+			m_sizeWritten = offsetNext;
+			return sl_true;
+		} else {
+			return IWriter::writeInt16(value, endian);
+		}
+	}
+
+	sl_bool BufferedWriter::writeUint16(sl_uint16 value, EndianType endian)
+	{
+		sl_size offsetNext = m_sizeWritten + 2;
+		if (offsetNext <= m_sizeBuf) {
+			MIO::writeUint16(m_dataBuf + m_sizeWritten, value, endian);
+			m_sizeWritten = offsetNext;
+			return sl_true;
+		} else {
+			return IWriter::writeUint16(value, endian);
+		}
+	}
+
+	sl_bool BufferedWriter::writeInt32(sl_int32 value, EndianType endian)
+	{
+		sl_size offsetNext = m_sizeWritten + 4;
+		if (offsetNext <= m_sizeBuf) {
+			MIO::writeInt32(m_dataBuf + m_sizeWritten, value, endian);
+			m_sizeWritten = offsetNext;
+			return sl_true;
+		} else {
+			return IWriter::writeInt32(value, endian);
+		}
+	}
+
+	sl_bool BufferedWriter::writeUint32(sl_uint32 value, EndianType endian)
+	{
+		sl_size offsetNext = m_sizeWritten + 4;
+		if (offsetNext <= m_sizeBuf) {
+			MIO::writeUint32(m_dataBuf + m_sizeWritten, value, endian);
+			m_sizeWritten = offsetNext;
+			return sl_true;
+		} else {
+			return IWriter::writeUint32(value, endian);
+		}
+	}
+
+	sl_bool BufferedWriter::writeInt64(sl_int64 value, EndianType endian)
+	{
+		sl_size offsetNext = m_sizeWritten + 8;
+		if (offsetNext <= m_sizeBuf) {
+			MIO::writeInt64(m_dataBuf + m_sizeWritten, value, endian);
+			m_sizeWritten = offsetNext;
+			return sl_true;
+		} else {
+			return IWriter::writeInt64(value, endian);
+		}
+	}
+
+	sl_bool BufferedWriter::writeUint64(sl_uint64 value, EndianType endian)
+	{
+		sl_size offsetNext = m_sizeWritten + 8;
+		if (offsetNext <= m_sizeBuf) {
+			MIO::writeUint64(m_dataBuf + m_sizeWritten, value, endian);
+			m_sizeWritten = offsetNext;
+			return sl_true;
+		} else {
+			return IWriter::writeUint64(value, endian);
+		}
+	}
+
+	sl_bool BufferedWriter::writeFloat(float value, EndianType endian)
+	{
+		sl_size offsetNext = m_sizeWritten + 4;
+		if (offsetNext <= m_sizeBuf) {
+			MIO::writeFloat(m_dataBuf + m_sizeWritten, value, endian);
+			m_sizeWritten = offsetNext;
+			return sl_true;
+		} else {
+			return IWriter::writeFloat(value, endian);
+		}
+	}
+
+	sl_bool BufferedWriter::writeDouble(double value, EndianType endian)
+	{
+		sl_size offsetNext = m_sizeWritten + 8;
+		if (offsetNext <= m_sizeBuf) {
+			MIO::writeDouble(m_dataBuf + m_sizeWritten, value, endian);
+			m_sizeWritten = offsetNext;
+			return sl_true;
+		} else {
+			return IWriter::writeDouble(value, endian);
+		}
+	}
+
+	void BufferedWriter::_init(const Ptrx<IWriter, IClosable>& writer, const Memory& buf)
+	{
+		m_ref = writer.ref;
+		m_writer = writer;
+		m_closable = writer;
+
+		m_buf = buf;
+		m_dataBuf = (sl_uint8*)(buf.getData());
+		m_sizeBuf = buf.getSize();
+		m_sizeWritten = 0;
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(BufferedSeekableReader)
+
+	BufferedSeekableReader::BufferedSeekableReader() : m_reader(sl_null), m_seekable(sl_null), m_closable(sl_null), m_posCurrent(0), m_sizeTotal(0), m_posInternal(0), m_dataBuf(sl_null), m_sizeBuf(0), m_sizeRead(0), m_posBuf(0)
 	{
 	}
 

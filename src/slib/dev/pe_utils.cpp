@@ -24,6 +24,7 @@
 
 #include "slib/core/file.h"
 #include "slib/core/mio.h"
+#include "slib/core/memory_output.h"
 
 namespace slib
 {
@@ -95,7 +96,7 @@ namespace slib
 			}
 		}
 
-		MemoryWriter writer;
+		MemoryOutput writer;
 		{
 			writer.writeUint8(0xE9);
 			writer.writeUint32(pSectionEntry->codeOffset + 11);
