@@ -95,7 +95,7 @@ namespace slib
 		static void generateKey(
 			const void* password, sl_uint32 lenPassword,
 			const void* salt, sl_uint32 lenSalt,
-			sl_uint32 nIteration,			
+			sl_uint32 nIteration,
 			void* _outDK, sl_size lenDK)
 		{
 			char f[KEYED_HASH::HashSize];
