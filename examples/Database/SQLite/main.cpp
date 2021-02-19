@@ -31,6 +31,7 @@ int main(int argc, const char * argv[])
 		map.put_NoLock("title", title);
 		map.put_NoLock("abstract", abstract);
 		db->insert("book", map);
+		Println("Inserted %dth row", i);
 	}
 	for (auto& row : db->findRecords("book", DatabaseExpression::null())) {
 		String title = row["title"].getString();

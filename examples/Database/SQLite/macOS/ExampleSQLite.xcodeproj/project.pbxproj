@@ -25,7 +25,7 @@
 
 /* Begin PBXFileReference section */
 		263BCA551EA6891E005C75F4 /* ExampleSQLite */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ExampleSQLite; sourceTree = BUILT_PRODUCTS_DIR; };
-		263BCA5F1EA68ABD005C75F4 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		263BCA5F1EA68ABD005C75F4 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ../main.cpp; sourceTree = "<group>"; };
 		265BF19A2172481E0073F7B8 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
