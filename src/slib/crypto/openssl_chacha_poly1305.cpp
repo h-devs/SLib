@@ -51,10 +51,10 @@ namespace slib
 	void OpenSSL_ChaCha20::setKey(const void* _key)
 	{
 		const sl_uint8* key = (const sl_uint8*)_key;
-		sl_uint32* input = m_key;
+		sl_uint32* t = m_key;
 		for (sl_uint32 i = 0; i < 8; i++) {
-			sl_uint32 j = i << 2;
-			input[i] = SLIB_MAKE_DWORD(key[j+3], key[j+2], key[j+1], key[j]);
+			t[i] = SLIB_MAKE_DWORD(key[3], key[2], key[1], *key);
+			key += 4;
 		}
 	}
 	

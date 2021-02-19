@@ -35,18 +35,79 @@
 
 namespace slib
 {
-	
+
 #define ROUNDS 20
-	
+
 #define ROTATE(v, c) (((v) << (c)) | ((v) >> (32 - (c))))
-	
-#define QUARTERROUND(a,b,c,d) \
+
+#define U8TO32_LITTLE(A, B, C, D) ((((sl_uint32)(sl_uint8)(A))) | (((sl_uint32)(sl_uint8)(B))<<8) | (((sl_uint32)(sl_uint8)(C))<<16) | (((sl_uint32)(sl_uint8)(D))<<24))
+
+#define QUARTERROUND(x, a, b, c, d) \
 	x[a] += x[b]; x[d] = ROTATE(x[d]^x[a], 16); \
 	x[c] += x[d]; x[b] = ROTATE(x[b]^x[c], 12); \
 	x[a] += x[b]; x[d] = ROTATE(x[d]^x[a], 8); \
 	x[c] += x[d]; x[b] = ROTATE(x[b]^x[c], 7);
-	
-#define U8TO32_LITTLE(A,B,C,D) ((((sl_uint32)(sl_uint8)(A))) | (((sl_uint32)(sl_uint8)(B))<<8) | (((sl_uint32)(sl_uint8)(C))<<16) | (((sl_uint32)(sl_uint8)(D))<<24))
+
+#define MAKE_STATE(state, constants, key, nonce) \
+	state[0] = constants[0]; \
+	state[1] = constants[1]; \
+	state[2] = constants[2]; \
+	state[3] = constants[3]; \
+	state[4] = key[0]; \
+	state[5] = key[1]; \
+	state[6] = key[2]; \
+	state[7] = key[3]; \
+	state[8] = key[4]; \
+	state[9] = key[5]; \
+	state[10] = key[6]; \
+	state[11] = key[7]; \
+	state[12] = nonce0; \
+	state[13] = nonce1; \
+	state[14] = nonce2; \
+	state[15] = nonce3;
+
+#define INNER_BLOCK(x) \
+	{ \
+		for (sl_uint32 i = ROUNDS; i > 0; i -= 2) { \
+			QUARTERROUND(x, 0, 4, 8, 12) \
+			QUARTERROUND(x, 1, 5, 9, 13) \
+			QUARTERROUND(x, 2, 6, 10, 14) \
+			QUARTERROUND(x, 3, 7, 11, 15) \
+			QUARTERROUND(x, 0, 5, 10, 15) \
+			QUARTERROUND(x, 1, 6, 11, 12) \
+			QUARTERROUND(x, 2, 7, 8, 13) \
+			QUARTERROUND(x, 3, 4, 9, 14) \
+		} \
+	}
+
+#define SERIALIZE_ELEMENT(e, t, ...) \
+	{ \
+		sl_uint32 v = e; \
+		*(t++) = (sl_uint8)(v) __VA_ARGS__; \
+		*(t++) = (sl_uint8)((v) >> 8) __VA_ARGS__; \
+		*(t++) = (sl_uint8)((v) >> 16) __VA_ARGS__; \
+		*(t++) = (sl_uint8)((v) >> 24) __VA_ARGS__; \
+	}
+
+#define SERIALIZE_OUTPUT(output, state, constants, key, nonce, ...) \
+	{ \
+		SERIALIZE_ELEMENT(state[0] + constants[0], output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[1] + constants[1], output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[2] + constants[2], output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[3] + constants[3], output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[4] + key[0], output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[5] + key[1], output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[6] + key[2], output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[7] + key[3], output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[8] + key[4], output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[9] + key[5], output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[10] + key[6], output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[11] + key[7], output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[12] + nonce0, output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[13] + nonce1, output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[14] + nonce2, output, ##__VA_ARGS__) \
+		SERIALIZE_ELEMENT(state[15] + nonce3, output, ##__VA_ARGS__) \
+	}
 
 	namespace priv
 	{
@@ -54,70 +115,29 @@ namespace slib
 		namespace chacha
 		{
 			
-			static void salsa20_wordtobyte(sl_uint8 output[64], const sl_uint32 input[12], sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3)
+			static void salsa20_wordtobyte(
+				sl_uint8* output, // 64
+				const sl_uint32* constants, // 4
+				const sl_uint32* key, // 8
+				sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3)
 			{
-				sl_uint32 x[16];
-				sl_uint32 i;
-				for (i = 0; i < 12; i++) {
-					x[i] = input[i];
-				}
-				x[12] = nonce0;
-				x[13] = nonce1;
-				x[14] = nonce2;
-				x[15] = nonce3;
-				for (i = ROUNDS; i > 0; i -= 2) {
-					QUARTERROUND(0, 4, 8, 12)
-					QUARTERROUND(1, 5, 9, 13)
-					QUARTERROUND(2, 6, 10, 14)
-					QUARTERROUND(3, 7, 11, 15)
-					QUARTERROUND(0, 5, 10, 15)
-					QUARTERROUND(1, 6, 11, 12)
-					QUARTERROUND(2, 7, 8, 13)
-					QUARTERROUND(3, 4, 9, 14)
-				}
-				sl_uint8* t = output;
-				for (i = 0; i < 16; i++) {
-					sl_uint32 v = x[i] + input[i];
-					t[0] = (sl_uint8)v;
-					t[1] = (sl_uint8)(v >> 8);
-					t[2] = (sl_uint8)(v >> 16);
-					t[3] = (sl_uint8)(v >> 24);
-					t += 4;
-				}
+				sl_uint32 state[16];
+				MAKE_STATE(state, constants, key, nonce)
+				INNER_BLOCK(state)
+				SERIALIZE_OUTPUT(output, state, constants, key, nonce)
 			}
 			
-			static void salsa20_wordtobyte(const sl_uint8 data[64], sl_uint8 output[64], const sl_uint32 input[12], sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3)
+			static void salsa20_wordtobyte(
+				const sl_uint8* data, // 64
+				sl_uint8* output, // 64
+				const sl_uint32* constants, // 4
+				const sl_uint32* key, // 8
+				sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3)
 			{
-				sl_uint32 x[16];
-				sl_uint32 i;
-				for (i = 0; i < 12; i++) {
-					x[i] = input[i];
-				}
-				x[12] = nonce0;
-				x[13] = nonce1;
-				x[14] = nonce2;
-				x[15] = nonce3;
-				for (i = ROUNDS; i > 0; i -= 2) {
-					QUARTERROUND(0, 4, 8, 12)
-					QUARTERROUND(1, 5, 9, 13)
-					QUARTERROUND(2, 6, 10, 14)
-					QUARTERROUND(3, 7, 11, 15)
-					QUARTERROUND(0, 5, 10, 15)
-					QUARTERROUND(1, 6, 11, 12)
-					QUARTERROUND(2, 7, 8, 13)
-					QUARTERROUND(3, 4, 9, 14)
-				}
-				sl_uint8* t = output;
-				const sl_uint8* u = data;
-				for (i = 0; i < 16; i++) {
-					sl_uint32 v = x[i] + input[i];
-					t[0] = u[0] ^ (sl_uint8)v;
-					t[1] = u[1] ^ (sl_uint8)(v >> 8);
-					t[2] = u[2] ^ (sl_uint8)(v >> 16);
-					t[3] = u[3] ^ (sl_uint8)(v >> 24);
-					t += 4;
-					u += 4;
-				}
+				sl_uint32 state[16];
+				MAKE_STATE(state, constants, key, nonce)
+				INNER_BLOCK(state)
+				SERIALIZE_OUTPUT(output, state, constants, key, nonce, ^ *(data++))
 			}
 			
 		}
@@ -132,50 +152,73 @@ namespace slib
 	{
 	}
 	
-	sl_bool ChaCha20_Core::setKey(const void* _key, sl_uint32 lenKey)
+	void ChaCha20_Core::setKey(const void* _key)
+	{
+		static sl_uint32 constants[4] = {
+			U8TO32_LITTLE('e', 'x', 'p', 'a'),
+			U8TO32_LITTLE('n', 'd', ' ', '3'),
+			U8TO32_LITTLE('2', '-', 'b', 'y'),
+			U8TO32_LITTLE('t', 'e', ' ', 'k')
+		};
+		m_constants = constants;
+		const sl_uint8* key = (const sl_uint8*)_key;
+		sl_uint32* k = m_key;
+		for (sl_uint32 i = 0; i < 8; i++) {
+			k[i] = U8TO32_LITTLE(*key, key[1], key[2], key[3]);
+			key += 4;
+		}
+	}
+
+	void ChaCha20_Core::setKey16(const void* _key)
+	{
+		static sl_uint32 constants[4] = {
+			U8TO32_LITTLE('e', 'x', 'p', 'a'),
+			U8TO32_LITTLE('n', 'd', ' ', '1'),
+			U8TO32_LITTLE('6', '-', 'b', 'y'),
+			U8TO32_LITTLE('t', 'e', ' ', 'k')
+		};
+		m_constants = constants;
+		const sl_uint8* key = (const sl_uint8*)_key;
+		sl_uint32* k = m_key;
+		for (sl_uint32 i = 0; i < 4; i++) {
+			k[i + 4] = k[i] = U8TO32_LITTLE(*key, key[1], key[2], key[3]);
+			key += 4;
+		}
+	}
+
+	void ChaCha20_Core::setKey48(const void* _key)
 	{
 		const sl_uint8* key = (const sl_uint8*)_key;
-		sl_uint32* input = m_input;
-		if (lenKey == 48) {
-			Base::copyMemory(input, key, lenKey);
-		} else if (lenKey == 32) {
-			input[0] = U8TO32_LITTLE('e', 'x', 'p', 'a');
-			input[1] = U8TO32_LITTLE('n', 'd', ' ', '3');
-			input[2] = U8TO32_LITTLE('2', '-', 'b', 'y');
-			input[3] = U8TO32_LITTLE('t', 'e', ' ', 'k');
-			for (sl_uint32 i = 0; i < 8; i++) {
-				sl_uint32 j = i << 2;
-				input[4 + i] = U8TO32_LITTLE(key[j], key[j+1], key[j+2], key[j+3]);
-			}
-		} else if (lenKey == 16) {
-			input[0] = U8TO32_LITTLE('e', 'x', 'p', 'a');
-			input[1] = U8TO32_LITTLE('n', 'd', ' ', '1');
-			input[2] = U8TO32_LITTLE('6', '-', 'b', 'y');
-			input[3] = U8TO32_LITTLE('t', 'e', ' ', 'k');
+		{
+			sl_uint32* k = m_arrConstants;
 			for (sl_uint32 i = 0; i < 4; i++) {
-				sl_uint32 j = i << 2;
-				input[4 + i] = U8TO32_LITTLE(key[j], key[j+1], key[j+2], key[j+3]);
-				input[8 + i] = U8TO32_LITTLE(key[j], key[j+1], key[j+2], key[j+3]);
+				k[i] = U8TO32_LITTLE(*key, key[1], key[2], key[3]);
+				key += 4;
 			}
-		} else {
-			return sl_false;
+			m_constants = m_arrConstants;
 		}
-		return sl_true;
+		{
+			sl_uint32* k = m_key;
+			for (sl_uint32 i = 0; i < 8; i++) {
+				k[i] = U8TO32_LITTLE(*key, key[1], key[2], key[3]);
+				key += 4;
+			}
+		}
 	}
 	
 	void ChaCha20_Core::generateBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, void* output) const
 	{
-		priv::chacha::salsa20_wordtobyte((sl_uint8*)output, m_input, nonce0, nonce1, nonce2, nonce3);
+		priv::chacha::salsa20_wordtobyte((sl_uint8*)output, m_constants, m_key, nonce0, nonce1, nonce2, nonce3);
 	}
 	
 	void ChaCha20_Core::encryptBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, const void* input, void* output) const
 	{
-		priv::chacha::salsa20_wordtobyte((const sl_uint8*)input, (sl_uint8*)output, m_input, nonce0, nonce1, nonce2, nonce3);
+		priv::chacha::salsa20_wordtobyte((const sl_uint8*)input, (sl_uint8*)output, m_constants, m_key, nonce0, nonce1, nonce2, nonce3);
 	}
 	
 	void ChaCha20_Core::decryptBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, const void* input, void* output) const
 	{
-		priv::chacha::salsa20_wordtobyte((const sl_uint8*)input, (sl_uint8*)output, m_input, nonce0, nonce1, nonce2, nonce3);
+		priv::chacha::salsa20_wordtobyte((const sl_uint8*)input, (sl_uint8*)output, m_constants, m_key, nonce0, nonce1, nonce2, nonce3);
 	}
 	
 	
@@ -240,7 +283,7 @@ namespace slib
 		sl_uint32 pos = m_pos;
 		for (sl_size k = 0; k < len; k++) {
 			if (!pos) {
-				priv::chacha::salsa20_wordtobyte(y, m_input, m_nonce[0], m_nonce[1], m_nonce[2], m_nonce[3]);
+				priv::chacha::salsa20_wordtobyte(y, m_constants, m_key, m_nonce[0], m_nonce[1], m_nonce[2], m_nonce[3]);
 				m_nonce[0]++;
 				if (!m_flagCounter32) {
 					if (!m_nonce[0]) {
@@ -280,7 +323,7 @@ namespace slib
 	
 	void ChaCha20_Poly1305::setKey(const void* key)
 	{
-		m_cipher.setKey(key, 32);
+		m_cipher.setKey(key);
 	}
 	
 	void ChaCha20_Poly1305::start(sl_uint32 senderId, const void* _iv)

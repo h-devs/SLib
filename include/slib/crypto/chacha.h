@@ -46,9 +46,15 @@ namespace slib
 		~ChaCha20_Core();
 		
 	public:
-		// Recommended Key Size = 32 bytes (256 bits), lenKey = 16, 32 bytes
-		sl_bool setKey(const void* key, sl_uint32 lenKey);
+		// key: 32 bytes
+		void setKey(const void* key);
 		
+		// key: 16 bytes
+		void setKey16(const void* key);
+
+		// key: 48 bytes
+		void setKey48(const void* key);
+
 		// output: 64 bytes
 		void generateBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, void* output) const;
 		
@@ -59,7 +65,9 @@ namespace slib
 		void decryptBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, const void* input, void* output) const;
 
 	protected:
-		sl_uint32 m_input[12];
+		sl_uint32* m_constants;
+		sl_uint32 m_key[8];
+		sl_uint32 m_arrConstants[4];
 
 	};
 	
