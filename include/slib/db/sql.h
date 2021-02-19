@@ -229,10 +229,6 @@ namespace slib
 	public:
 		DatabaseQuerySource();
 		
-		DatabaseQuerySource(const char* name);
-		
-		DatabaseQuerySource(const String& name);
-		
 		DatabaseQuerySource(const DatabaseIdentifier& table);
 		
 		DatabaseQuerySource(const String& name, const DatabaseIdentifier& table);

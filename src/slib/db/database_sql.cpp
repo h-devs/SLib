@@ -212,14 +212,6 @@ namespace slib
 	{
 	}
 
-	DatabaseQuerySource::DatabaseQuerySource(const char* _name): name(_name)
-	{
-	}
-
-	DatabaseQuerySource::DatabaseQuerySource(const String& _name): name(_name)
-	{
-	}
-
 	DatabaseQuerySource::DatabaseQuerySource(const DatabaseIdentifier& _table): table(_table)
 	{
 	}

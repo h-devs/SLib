@@ -322,7 +322,18 @@ namespace slib
 		}
 		return prepareStatement(sql);
 	}
-	
+
+	Ref<DatabaseStatement> Database::prepareQuery(const DatabaseSelectParam& param)
+	{
+		SqlBuilder builder(m_dialect);
+		builder.generateSelect(param);
+		String sql = builder.toString();
+		if (sql.isEmpty()) {
+			return sl_null;
+		}
+		return prepareStatement(sql);
+	}
+
 	Ref<DatabaseStatement> Database::prepareQuery(const DatabaseIdentifier& table, const DatabaseExpression& where)
 	{
 		SqlBuilder builder(m_dialect);
@@ -396,14 +407,14 @@ namespace slib
 	void Database::_logError(const StringParam& sql)
 	{
 		if (m_flagLogErrors) {
-			LogError((char*)(getObjectType()), "Error: %s SQL: %s", getErrorMessage(), sql);
+			LogError((char*)(getObjectType()), "Error: %s, SQL: %s", getErrorMessage(), sql);
 		}
 	}
 
 	void Database::_logError(const StringParam& sql, const Variant* params, sl_uint32 nParams)
 	{
 		if (m_flagLogErrors) {
-			LogError((char*)(getObjectType()), "Error: %s SQL: %s Params=%s", getErrorMessage(), sql, Variant(VariantList(params, nParams)).toJsonString());
+			LogError((char*)(getObjectType()), "Error: %s, SQL: %s Params=%s", getErrorMessage(), sql, Variant(VariantList(params, nParams)).toJsonString());
 		}
 	}
 

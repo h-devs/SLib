@@ -225,7 +225,9 @@ namespace slib
 			}
 			return -1;
 		}
-		
+
+		Ref<DatabaseStatement> prepareQuery(const DatabaseSelectParam& query);
+
 		Ref<DatabaseStatement> prepareQuery(const DatabaseIdentifier& table, const DatabaseExpression& where);
 
 		List< HashMap<String, Variant> > findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where);
