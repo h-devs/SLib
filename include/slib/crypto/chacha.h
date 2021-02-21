@@ -164,6 +164,33 @@ namespace slib
 		
 	};
 
+	class SLIB_EXPORT ChaCha20FileEncryptor
+	{
+	public:
+		enum {
+			HeaderSize = 80
+		};
+
+	public:
+		ChaCha20FileEncryptor();
+
+		~ChaCha20FileEncryptor();
+
+	public:
+		// header: `HeaderSize` bytes
+		void create(void* header, const void* password, sl_uint32 lenPassword);
+
+		// header: `HeaderSize` bytes
+		sl_bool open(const void* header, const void* password, sl_uint32 lenPassword);
+
+		void encrypt(sl_uint64 offset, const void* src, void* dst, sl_size size);
+		
+	protected:
+		ChaCha20_Core m_encrypt;
+		sl_uint32 m_iv[4];
+
+	};
+
 }
 
 #endif

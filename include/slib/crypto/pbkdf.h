@@ -143,9 +143,7 @@ namespace slib
 	};
 
 	template <class HASH>
-	class SLIB_EXPORT PBKDF2_HMAC : public PBKDF2< HMAC<HASH> >
-	{
-	};
+	using PBKDF2_HMAC = PBKDF2< HMAC<HASH> >;
 
 	typedef PBKDF2_HMAC<SHA256> PBKDF2_HMAC_SHA256;
 

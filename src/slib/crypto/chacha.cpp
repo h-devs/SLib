@@ -32,6 +32,8 @@
 
 #include "slib/core/base.h"
 #include "slib/core/mio.h"
+#include "slib/core/math.h"
+#include "slib/crypto/pbkdf.h"
 
 namespace slib
 {
@@ -445,4 +447,138 @@ namespace slib
 		return finishAndCheckTag(tag);
 	}
 	
+
+	ChaCha20FileEncryptor::ChaCha20FileEncryptor()
+	{
+	}
+
+	ChaCha20FileEncryptor::~ChaCha20FileEncryptor()
+	{
+	}
+
+	namespace priv
+	{
+		namespace chacha
+		{
+
+			static sl_uint32 GenerateCheckIteration(sl_uint32& code, sl_uint32& len)
+			{
+				len = 11 + ((code >> 28) & 1); // 11, 12
+				code = (code & 0xFFFFFFF) | ((len - 10) << 28);
+				return (1 << len) + (code & ((1 << (len + 1)) - 1));
+			}
+
+			static sl_uint32 GetMainIteration(sl_uint32 code, sl_uint32 len)
+			{
+				return (1 << len) + (code & ((1 << (len + 1)) - 1));
+			}
+
+			static sl_uint32 GetCheckIteration(sl_uint32 code, sl_uint32& len)
+			{
+				len = (code >> 28) + 10;
+				return GetMainIteration(code, len);
+			}
+
+		}
+	}
+
+#define CHECK_LEN_HASH_ITERATION 1001
+
+	void ChaCha20FileEncryptor::create(void* _header, const void* password, sl_uint32 lenPassword)
+	{
+		sl_uint8* header = (sl_uint8*)_header;
+		Math::randomMemory(header, HeaderSize);
+
+		sl_uint32 nIter;
+		{
+			sl_uint8 h[32];
+			sl_uint32 code = MIO::readUint32LE(header + 12);
+			sl_uint32 iter = priv::chacha::GenerateCheckIteration(code, nIter);
+			PBKDF2_HMAC_SHA256::generateKey(header + 48, 12, header, 12, CHECK_LEN_HASH_ITERATION, h, 4);
+			MIO::writeUint32LE(header + 12, code ^ MIO::readUint32LE(h));
+			SHA256::hash(password, lenPassword, h);
+			PBKDF2_HMAC_SHA256::generateKey(h, 32, header, 12, iter, header + 16, 32);
+		}
+		{
+			sl_uint32 code = MIO::readUint32LE(header + 60);
+			sl_uint32 iter = priv::chacha::GetMainIteration(code, nIter);
+			sl_uint8 key[48];
+			PBKDF2_HMAC_SHA256::generateKey(password, lenPassword, header + 48, 12, iter, key, 48);
+			m_encrypt.setKey48(key);
+			m_iv[0] = MIO::readUint32LE(header + 64);
+			m_iv[1] = MIO::readUint32LE(header + 68);
+			m_iv[2] = MIO::readUint32LE(header + 72);
+			m_iv[3] = MIO::readUint32LE(header + 76);
+		}
+	}
+
+	sl_bool ChaCha20FileEncryptor::open(const void* _header, const void* password, sl_uint32 lenPassword)
+	{
+		sl_uint8* header = (sl_uint8*)_header;
+
+		sl_uint32 nIter;
+		{
+			sl_uint8 h[32];
+			PBKDF2_HMAC_SHA256::generateKey(header + 48, 12, header, 12, CHECK_LEN_HASH_ITERATION, h, 4);
+			sl_uint32 code = MIO::readUint32LE(header + 12) ^ MIO::readUint32LE(h);
+			sl_uint32 iter = priv::chacha::GetCheckIteration(code, nIter);
+			SHA256::hash(password, lenPassword, h);
+			sl_uint8 c[32];
+			PBKDF2_HMAC_SHA256::generateKey(h, 32, header, 12, iter, c, 32);
+			if (!(Base::equalsMemory(c, header + 16, 32))) {
+				return sl_false;
+			}
+		}
+		{
+			sl_uint32 code = MIO::readUint32LE(header + 60);
+			sl_uint32 iter = priv::chacha::GetMainIteration(code, nIter);
+			sl_uint8 key[48];
+			PBKDF2_HMAC_SHA256::generateKey(password, lenPassword, header + 48, 12, iter, key, 48);
+			m_encrypt.setKey48(key);
+			m_iv[0] = MIO::readUint32LE(header + 64);
+			m_iv[1] = MIO::readUint32LE(header + 68);
+			m_iv[2] = MIO::readUint32LE(header + 72);
+			m_iv[3] = MIO::readUint32LE(header + 76);
+		}
+		return sl_true;
+	}
+
+	void ChaCha20FileEncryptor::encrypt(sl_uint64 offset, const void* _src, void* _dst, sl_size size)
+	{
+		if (!size) {
+			return;
+		}
+		sl_uint8* src = (sl_uint8*)_src;
+		sl_uint8* dst = (sl_uint8*)_dst;
+		sl_uint64 block = offset >> 6;
+		sl_uint64 offsetEnd = (sl_uint64)(offset + size);
+		sl_uint64 blockEnd = offsetEnd >> 6;
+		sl_bool flagFirstBlock = sl_true;
+		sl_size pos = 0;
+		char h[64];
+		for (; block <= blockEnd; block++) {
+			m_encrypt.generateBlock(m_iv[0], m_iv[1], m_iv[2] ^ ((sl_uint32)(block >> 32)), m_iv[3] ^ ((sl_uint32)block), h);
+			sl_uint32 n;
+			if (block == blockEnd) {
+				n = (sl_uint32)(offsetEnd & 63);
+			} else {
+				n = 64;
+			}
+			if (flagFirstBlock) {
+				flagFirstBlock = sl_false;
+				sl_uint32 s = offset & 63;
+				n -= s;
+				for (sl_uint32 i = 0; i < n; i++) {
+					dst[i] = src[i] ^ h[s + i];
+				}
+			} else {
+				for (sl_uint32 i = 0; i < n; i++) {
+					dst[i] = src[i] ^ h[i];
+				}
+			}
+			src += n;
+			dst += n;
+		}
+	}
+
 }
