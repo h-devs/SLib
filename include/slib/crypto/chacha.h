@@ -177,8 +177,9 @@ namespace slib
 		~ChaCha20FileEncryptor();
 
 	public:
-		// header: `HeaderSize` bytes
-		void create(void* header, const void* password, sl_uint32 lenPassword);
+		// outHeader: `HeaderSize` bytes
+		void create(void* outHeader, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCount);
+		void create(void* outHeader, const void* password, sl_uint32 lenPassword);
 
 		// header: `HeaderSize` bytes
 		sl_bool open(const void* header, const void* password, sl_uint32 lenPassword);
