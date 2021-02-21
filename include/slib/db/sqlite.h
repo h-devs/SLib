@@ -35,7 +35,7 @@ namespace slib
 		sl_bool flagCreate;
 		sl_bool flagReadonly;
 		String encryptionKey;
-				
+		
 	public:
 		SQLiteParam();
 		
