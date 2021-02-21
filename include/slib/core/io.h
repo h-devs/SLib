@@ -69,9 +69,36 @@ namespace slib
 	};
 
 	template <class READER>
-	class SLIB_EXPORT SeekableReaderBase
+	class SLIB_EXPORT SeekableReaderBase : public IBlockReader
 	{
 	public:
+		sl_reg readAt(sl_uint64 offset, void* buf, sl_size size) override
+		{
+			READER* reader = (READER*)this;
+			if (reader->seek(offset, SeekPosition::Begin)) {
+				return reader->read(buf, size);
+			}
+			return -1;
+		}
+
+		sl_int32 readAt32(sl_uint64 offset, void* buf, sl_uint32 size) override
+		{
+			READER* reader = (READER*)this;
+			if (reader->seek(offset, SeekPosition::Begin)) {
+				return reader->read32(buf, size);
+			}
+			return -1;
+		}
+
+		sl_reg readFullyAt(sl_uint64 offset, void* buf, sl_size size) override
+		{
+			READER* reader = (READER*)this;
+			if (reader->seek(offset, SeekPosition::Begin)) {
+				return reader->readFully(buf, size);
+			}
+			return -1;
+		}
+
 		String readLine()
 		{
 			return SeekableReaderHelper::readLine((READER*)this, (READER*)this);
@@ -124,7 +151,40 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT IO : public Stream, public ISeekable, public IResizable, public SeekableReaderBase<IO>
+	template <class WRITER>
+	class SLIB_EXPORT SeekableWriterBase : public IBlockWriter
+	{
+	public:
+		sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size) override
+		{
+			WRITER* writer = (WRITER*)this;
+			if (writer->seek(offset, SeekPosition::Begin)) {
+				return writer->write(buf, size);
+			}
+			return -1;
+		}
+
+		sl_int32 writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size) override
+		{
+			WRITER* writer = (WRITER*)this;
+			if (writer->seek(offset, SeekPosition::Begin)) {
+				return writer->write32(buf, size);
+			}
+			return -1;
+		}
+
+		sl_reg writeFullyAt(sl_uint64 offset, const void* buf, sl_size size) override
+		{
+			WRITER* writer = (WRITER*)this;
+			if (writer->seek(offset, SeekPosition::Begin)) {
+				return writer->writeFully(buf, size);
+			}
+			return -1;
+		}
+
+	};
+
+	class SLIB_EXPORT IO : public Stream, public ISeekable, public IResizable, public SeekableReaderBase<IO>, public SeekableWriterBase<IO>
 	{
 		SLIB_DECLARE_OBJECT
 

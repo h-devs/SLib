@@ -233,34 +233,52 @@ namespace slib
 		sl_bool writeTextUTF16BE(const StringParam& text, sl_bool flagWriteByteOrderMark = sl_false);
 
 	};
-	
-	class SLIB_EXPORT ISeekable
+
+	class SLIB_EXPORT IBlockReader
 	{
 	public:
-		ISeekable();
+		IBlockReader();
 
-		virtual ~ISeekable();
+		virtual ~IBlockReader();
 
 	public:
-		virtual sl_bool getPosition(sl_uint64& outPos) = 0;
+		virtual sl_reg readAt(sl_uint64 offset, void* buf, sl_size size);
 
+		virtual sl_int32 readAt32(sl_uint64 offset, void* buf, sl_uint32 size);
+
+		virtual sl_reg readFullyAt(sl_uint64 offset, void* buf, sl_size size);
+
+	};
+
+	class SLIB_EXPORT IBlockWriter
+	{
+	public:
+		IBlockWriter();
+
+		virtual ~IBlockWriter();
+
+	public:
+		virtual sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size);
+
+		virtual sl_int32 writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size);
+
+		virtual sl_reg writeFullyAt(sl_uint64 offset, const void* buf, sl_size size);
+
+	};
+
+	class SLIB_EXPORT ISize
+	{
+	public:
+		ISize();
+
+		virtual ~ISize();
+
+	public:
 		virtual sl_bool getSize(sl_uint64& outSize) = 0;
 
-		virtual sl_bool seek(sl_int64 offset, SeekPosition pos) = 0;
-
-		virtual sl_bool isEnd(sl_bool& outFlag);
-
 	public:
-		sl_uint64 getPosition();
-
 		sl_uint64 getSize();
 
-		sl_bool isEnd();
-
-		sl_bool seekToBegin();
-
-		sl_bool seekToEnd();
-	
 	};
 
 	class SLIB_EXPORT IResizable
@@ -273,7 +291,32 @@ namespace slib
 	public:
 		virtual sl_bool setSize(sl_uint64 size) = 0;
 	};
+
+	class SLIB_EXPORT ISeekable : public ISize
+	{
+	public:
+		ISeekable();
+
+		virtual ~ISeekable();
+
+	public:
+		virtual sl_bool getPosition(sl_uint64& outPos) = 0;
+
+		virtual sl_bool seek(sl_int64 offset, SeekPosition pos) = 0;
+
+		virtual sl_bool isEnd(sl_bool& outFlag);
+
+	public:
+		sl_uint64 getPosition();
+
+		sl_bool isEnd();
+
+		sl_bool seekToBegin();
+
+		sl_bool seekToEnd();
 	
+	};
+
 	class SLIB_EXPORT IClosable
 	{
 	public:
@@ -284,7 +327,7 @@ namespace slib
 	public:
 		virtual void close() = 0;
 	};
-	
+
 }
 
 #endif

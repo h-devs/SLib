@@ -1312,6 +1312,156 @@ namespace slib
 	}
 
 
+	IBlockReader::IBlockReader()
+	{
+	}
+
+	IBlockReader::~IBlockReader()
+	{
+	}
+
+	sl_int32 IBlockReader::readAt32(sl_uint64 offset, void* buf, sl_uint32 size)
+	{
+		return (sl_int32)(readAt(offset, buf, size));
+	}
+
+	sl_reg IBlockReader::readAt(sl_uint64 offset, void* buf, sl_size size)
+	{
+		if (size >= 0x40000000) {
+			size = 0x40000000; // 1GB
+		}
+		return readAt32(offset, buf, (sl_uint32)size);
+	}
+
+	sl_reg IBlockReader::readFullyAt(sl_uint64 offset, void* _buf, sl_size size)
+	{
+		char* buf = (char*)_buf;
+		if (size == 0) {
+			return 0;
+		}
+		sl_size nRead = 0;
+		while (nRead < size) {
+			sl_size n = size - nRead;
+			sl_reg m = readAt(offset + nRead, buf + nRead, n);
+			if (m < 0) {
+				if (nRead) {
+					return nRead;
+				} else {
+					return m;
+				}
+			}
+			nRead += m;
+			if (Thread::isStoppingCurrent()) {
+				return nRead;
+			}
+			if (m == 0) {
+				Thread::sleep(1);
+				if (Thread::isStoppingCurrent()) {
+					return nRead;
+				}
+			}
+		}
+		return nRead;
+	}
+
+
+	IBlockWriter::IBlockWriter()
+	{
+	}
+
+	IBlockWriter::~IBlockWriter()
+	{
+	}
+
+	sl_int32 IBlockWriter::writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size)
+	{
+		return (sl_int32)(writeAt(offset, buf, size));
+	}
+
+	sl_reg IBlockWriter::writeAt(sl_uint64 offset, const void* _buf, sl_size size)
+	{
+		char* buf = (char*)_buf;
+		if (size == 0) {
+			return 0;
+		}
+		sl_size nWrite = 0;
+		while (nWrite < size) {
+			sl_size n = size - nWrite;
+			if (n > 0x40000000) {
+				n = 0x40000000; // 1GB
+			}
+			sl_uint32 n32 = (sl_uint32)n;
+			sl_int32 m = writeAt32(offset, buf + nWrite, n32);
+			if (m <= 0) {
+				break;
+			}
+			nWrite += m;
+			if (m != n32 || Thread::isStoppingCurrent()) {
+				return nWrite;
+			}
+		}
+		return nWrite;
+	}
+
+	sl_reg IBlockWriter::writeFullyAt(sl_uint64 offset, const void* _buf, sl_size size)
+	{
+		char* buf = (char*)_buf;
+		if (size == 0) {
+			return 0;
+		}
+		sl_size nWrite = 0;
+		while (nWrite < size) {
+			sl_size n = size - nWrite;
+			sl_reg m = writeAt(offset + nWrite, buf + nWrite, n);
+			if (m < 0) {
+				if (nWrite) {
+					return nWrite;
+				} else {
+					return m;
+				}
+			}
+			nWrite += m;
+			if (Thread::isStoppingCurrent()) {
+				return nWrite;
+			}
+			if (m == 0) {
+				Thread::sleep(1);
+				if (Thread::isStoppingCurrent()) {
+					return nWrite;
+				}
+			}
+		}
+		return nWrite;
+	}
+
+
+	ISize::ISize()
+	{
+	}
+
+	ISize::~ISize()
+	{
+	}
+
+	sl_uint64 ISize::getSize()
+	{
+		sl_uint64 size;
+		if (getSize(size)) {
+			return size;
+		}
+		return 0;
+	}
+
+
+	IResizable::IResizable()
+	{
+	}
+
+	IResizable::~IResizable()
+	{
+	}
+
+
 	ISeekable::ISeekable()
 	{
 	}
@@ -1339,15 +1489,6 @@ namespace slib
 		return 0;
 	}
 
-	sl_uint64 ISeekable::getSize()
-	{
-		sl_uint64 size;
-		if (getSize(size)) {
-			return size;
-		}
-		return 0;
-	}
-
 	sl_bool ISeekable::isEnd()
 	{
 		sl_bool flag;
@@ -1365,15 +1506,6 @@ namespace slib
 	sl_bool ISeekable::seekToEnd()
 	{
 		return seek(0, SeekPosition::End);
-	}
-
-
-	IResizable::IResizable()
-	{
-	}
-
-	IResizable::~IResizable()
-	{
 	}
 
 
