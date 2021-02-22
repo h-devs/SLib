@@ -22,7 +22,7 @@
 
 #include "app.h"
 
-SLIB_DEFINE_APPLICATION(ExampleCameraViewApp, MobileApp)
+SLIB_DEFINE_APPLICATION(ExampleCameraViewApp)
 
 ExampleCameraViewApp::ExampleCameraViewApp()
 {

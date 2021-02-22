@@ -2,7 +2,7 @@
 
 #include "MainPage.h"
 
-SLIB_DEFINE_APPLICATION(PhoneCallApp, MobileApp)
+SLIB_DEFINE_APPLICATION(PhoneCallApp)
 
 PhoneCallApp::PhoneCallApp()
 {

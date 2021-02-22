@@ -22,7 +22,7 @@
 
 #include "app.h"
 
-SLIB_DEFINE_APPLICATION(ExampleXgPushApp, MobileApp)
+SLIB_DEFINE_APPLICATION(ExampleXgPushApp)
 
 ExampleXgPushApp::ExampleXgPushApp()
 {

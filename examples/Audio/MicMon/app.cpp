@@ -1,6 +1,6 @@
 #include "app.h"
 
-SLIB_DEFINE_APPLICATION(MicMonApp, UIApp)
+SLIB_DEFINE_APPLICATION(MicMonApp)
 
 MicMonApp::MicMonApp()
 {

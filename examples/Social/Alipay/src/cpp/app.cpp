@@ -3,7 +3,7 @@
 #include "config.h"
 #include "MainPage.h"
 
-SLIB_DEFINE_APPLICATION(ExampleAlipayApp, MobileApp)
+SLIB_DEFINE_APPLICATION(ExampleAlipayApp)
 
 ExampleAlipayApp::ExampleAlipayApp()
 {

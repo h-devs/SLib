@@ -1,6 +1,6 @@
 #include "app.h"
 
-SLIB_DEFINE_APPLICATION(QRCodeExampleApp, MobileApp)
+SLIB_DEFINE_APPLICATION(QRCodeExampleApp)
 
 QRCodeExampleApp::QRCodeExampleApp()
 {

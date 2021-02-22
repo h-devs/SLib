@@ -22,7 +22,7 @@
 
 #include "app.h"
 
-SLIB_DEFINE_APPLICATION(ExampleWebViewApp, MobileApp)
+SLIB_DEFINE_APPLICATION(ExampleWebViewApp)
 
 ExampleWebViewApp::ExampleWebViewApp()
 {

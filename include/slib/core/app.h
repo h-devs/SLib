@@ -229,7 +229,6 @@ namespace slib
 
 
 #define SLIB_DECLARE_APPLICATION(CLASS) \
-	SLIB_DECLARE_OBJECT \
 public: \
 	static int main(const slib::String& commandLine); \
 	static int main(int argc, const char * argv[]); \
@@ -238,8 +237,7 @@ public: \
 	static slib::Ref<CLASS> getApp();
 
 
-#define SLIB_DEFINE_APPLICATION(CLASS, BASE) \
-	SLIB_DEFINE_OBJECT(CLASS, BASE) \
+#define SLIB_DEFINE_APPLICATION(CLASS) \
 	int CLASS::main(const slib::String& commandLine) { \
 		slib::Ref<CLASS> app = new CLASS; \
 		if (app.isNotNull()) { \

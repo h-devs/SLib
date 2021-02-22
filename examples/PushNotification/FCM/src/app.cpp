@@ -24,7 +24,7 @@
 
 #include "config.h"
 
-SLIB_DEFINE_APPLICATION(ExampleFCMApp, MobileApp)
+SLIB_DEFINE_APPLICATION(ExampleFCMApp)
 
 ExampleFCMApp::ExampleFCMApp()
 {

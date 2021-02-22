@@ -22,7 +22,7 @@
 
 #include "app.h"
 
-SLIB_DEFINE_APPLICATION(ExampleChromiumViewApp, MobileApp)
+SLIB_DEFINE_APPLICATION(ExampleChromiumViewApp)
 
 ExampleChromiumViewApp::ExampleChromiumViewApp()
 {

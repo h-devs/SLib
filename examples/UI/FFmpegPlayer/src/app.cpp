@@ -22,7 +22,7 @@
 
 #include "app.h"
 
-SLIB_DEFINE_APPLICATION(FFmpegPlayerApp, MobileApp)
+SLIB_DEFINE_APPLICATION(FFmpegPlayerApp)
 
 FFmpegPlayerApp::FFmpegPlayerApp()
 {

@@ -2,7 +2,7 @@
 
 #include "MainWindow.h"
 
-SLIB_DEFINE_APPLICATION(DragAndDropApp, UIApp)
+SLIB_DEFINE_APPLICATION(DragAndDropApp)
 
 DragAndDropApp::DragAndDropApp()
 {

@@ -22,7 +22,7 @@
 
 #include "app.h"
 
-SLIB_DEFINE_APPLICATION(ExampleImageViewApp, MobileApp)
+SLIB_DEFINE_APPLICATION(ExampleImageViewApp)
 
 ExampleImageViewApp::ExampleImageViewApp()
 {
