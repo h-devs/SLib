@@ -184,6 +184,18 @@ namespace slib
 		}
 	}
 
+	sl_bool Thread::_nativeCheckRunning()
+	{
+		HANDLE hThread = (HANDLE)m_handle;
+		if (hThread) {
+			DWORD exitCode;
+			if (GetExitCodeThread(hThread, &exitCode)) {
+				return exitCode == STILL_ACTIVE;
+			}
+		}
+		return sl_false;
+	}
+
 	sl_uint64 Thread::getCurrentThreadId()
 	{
 		return (sl_uint32)(GetCurrentThreadId());

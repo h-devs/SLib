@@ -131,6 +131,11 @@ namespace slib
 	{
 	}
 
+	sl_bool Thread::_nativeCheckRunning()
+	{
+		return sl_true;
+	}
+
 	void Thread::_nativeSetPriority()
 	{
 		double p = GetThreadPriority(m_priority);

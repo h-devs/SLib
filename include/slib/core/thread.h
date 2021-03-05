@@ -144,6 +144,7 @@ namespace slib
 		static void _nativeSetCurrentThreadUniqueId(sl_uint64 n);
 		void _nativeStart(sl_uint32 stackSize);
 		void _nativeClose();
+		sl_bool _nativeCheckRunning();
 		void _nativeSetPriority();
 	
 	public:

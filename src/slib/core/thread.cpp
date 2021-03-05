@@ -146,7 +146,7 @@ namespace slib
 
 	void Thread::finish()
 	{
-		if (m_flagRunning) {
+		if (isRunning()) {
 			m_flagRequestStop = sl_true;
 			wake();
 		}
@@ -154,7 +154,7 @@ namespace slib
 
 	sl_bool Thread::join(sl_int32 timeout)
 	{
-		if (m_flagRunning) {
+		if (isRunning()) {
 			if (!m_eventExit->wait(timeout)) {
 				return sl_false;
 			}
@@ -169,13 +169,13 @@ namespace slib
 			return sl_true;
 		}
 		if (isCurrentThread()) {
-			if (m_flagRunning) {
+			if (isRunning()) {
 				m_flagRequestStop = sl_true;
 			}
 			return sl_false;
 		}
 		if (timeout >= 0) {
-			if (m_flagRunning) {
+			if (isRunning()) {
 				m_flagRequestStop = sl_true;
 				while (1) {
 					wake();
@@ -193,7 +193,7 @@ namespace slib
 				}
 			}
 		} else {
-			while (m_flagRunning) {
+			while (isRunning()) {
 				m_flagRequestStop = sl_true;
 				wake();
 				System::sleep(1);
@@ -257,12 +257,12 @@ namespace slib
 
 	sl_bool Thread::isRunning()
 	{
-		return m_flagRunning;
+		return m_flagRunning && _nativeCheckRunning();
 	}
 
 	sl_bool Thread::isNotRunning()
 	{
-		return !m_flagRunning;
+		return !(isRunning());
 	}
 
 	sl_bool Thread::isStopping()
