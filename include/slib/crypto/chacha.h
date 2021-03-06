@@ -178,11 +178,12 @@ namespace slib
 
 	public:
 		// outHeader: `HeaderSize` bytes
-		void create(void* outHeader, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCount);
 		void create(void* outHeader, const void* password, sl_uint32 lenPassword);
+		void create(void* outHeader, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCount);
 
 		// header: `HeaderSize` bytes
 		sl_bool open(const void* header, const void* password, sl_uint32 lenPassword);
+		sl_bool open(const void* header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCountLimit);
 
 		void encrypt(sl_uint64 offset, const void* src, void* dst, sl_size size);
 		

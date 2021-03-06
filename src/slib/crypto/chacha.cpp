@@ -492,8 +492,8 @@ namespace slib
 		if (iterationBitsCount < 11) {
 			iterationBitsCount = 11;
 		}
-		if (iterationBitsCount > 20) {
-			iterationBitsCount = 20;
+		if (iterationBitsCount > 26) {
+			iterationBitsCount = 26;
 		}
 		{
 			sl_uint8 h[32];
@@ -522,7 +522,7 @@ namespace slib
 		create(header, password, lenPassword, 13);
 	}
 
-	sl_bool ChaCha20FileEncryptor::open(const void* _header, const void* password, sl_uint32 lenPassword)
+	sl_bool ChaCha20FileEncryptor::open(const void* _header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCountLimit)
 	{
 		sl_uint8* header = (sl_uint8*)_header;
 
@@ -532,7 +532,7 @@ namespace slib
 			PBKDF2_HMAC_SHA256::generateKey(header + 48, 12, header, 12, CHECK_LEN_HASH_ITERATION, h, 4);
 			sl_uint32 code = MIO::readUint32LE(header + 12) ^ MIO::readUint32LE(h);
 			sl_uint32 iter = priv::chacha::GetCheckIteration(code, nIterationBitsCount);
-			if (nIterationBitsCount > 20) {
+			if (nIterationBitsCount > iterationBitsCountLimit) {
 				return sl_false;
 			}
 			SHA256::hash(password, lenPassword, h);
@@ -554,6 +554,11 @@ namespace slib
 			m_iv[3] = MIO::readUint32LE(header + 76);
 		}
 		return sl_true;
+	}
+
+	sl_bool ChaCha20FileEncryptor::open(const void* _header, const void* password, sl_uint32 lenPassword)
+	{
+		return open(_header, password, lenPassword, 20);
 	}
 
 	void ChaCha20FileEncryptor::encrypt(sl_uint64 offset, const void* _src, void* _dst, sl_size size)
