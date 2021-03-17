@@ -2299,7 +2299,7 @@ namespace slib
 	Variant Variant::getElement_NoLock(sl_uint64 index) const
 	{
 		if (_type == VariantType::List) {
-			return REF_VAR(VariantList, _value).getValueAt_NoLock(index);
+			return REF_VAR(VariantList, _value).getValueAt_NoLock((sl_size)index);
 		} else {
 			Ref<Collection> collection(GET_COLLECTION(*this));
 			if (collection.isNotNull()) {
@@ -2312,7 +2312,7 @@ namespace slib
 	Variant Variant::getElement(sl_uint64 index) const
 	{
 		if (_type == VariantType::List) {
-			return REF_VAR(VariantList, _value).getValueAt(index);
+			return REF_VAR(VariantList, _value).getValueAt((sl_size)index);
 		} else {
 			Ref<Collection> collection(GET_COLLECTION(*this));
 			if (collection.isNotNull()) {
@@ -2325,7 +2325,7 @@ namespace slib
 	sl_bool Variant::setElement_NoLock(sl_uint64 index, const Variant& value)
 	{
 		if (_type == VariantType::List) {
-			return REF_VAR(VariantList, _value).setAt_NoLock(index, value);
+			return REF_VAR(VariantList, _value).setAt_NoLock((sl_size)index, value);
 		} else {
 			Ref<Collection> collection(GET_COLLECTION(*this));
 			if (collection.isNotNull()) {
@@ -2338,7 +2338,7 @@ namespace slib
 	sl_bool Variant::setElement(sl_uint64 index, const Variant& value)
 	{
 		if (_type == VariantType::List) {
-			return REF_VAR(VariantList, _value).setAt(index, value);
+			return REF_VAR(VariantList, _value).setAt((sl_size)index, value);
 		} else {
 			Ref<Collection> collection(GET_COLLECTION(*this));
 			if (collection.isNotNull()) {
