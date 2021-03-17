@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_APPLE)
 

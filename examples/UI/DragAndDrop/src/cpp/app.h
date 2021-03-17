@@ -9,7 +9,7 @@ using namespace sapp;
 
 class DragAndDropApp : public UIApp
 {
-	SLIB_DECLARE_APPLICATION(DragAndDropApp)
+	SLIB_APPLICATION(DragAndDropApp)
 public:
 	DragAndDropApp();
 	

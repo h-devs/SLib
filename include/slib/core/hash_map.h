@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -64,9 +64,7 @@ namespace slib
 #endif
 
 		template <class KEY, class... VALUE_ARGS>
-		HashMapNode(KEY&& _key, VALUE_ARGS&&... value_args) noexcept
-		: key(Forward<KEY>(_key)), value(Forward<VALUE_ARGS>(value_args)...), parent(sl_null), left(sl_null), right(sl_null), flagRed(sl_false)
-		{}
+		HashMapNode(KEY&& _key, VALUE_ARGS&&... value_args) noexcept: key(Forward<KEY>(_key)), value(Forward<VALUE_ARGS>(value_args)...), parent(sl_null), left(sl_null), right(sl_null), flagRed(sl_false) {}
 		
 	public:
 		HashMapNode* getNext() const noexcept
@@ -80,20 +78,21 @@ namespace slib
 		}
 		
 	};
-	
-	namespace priv
+
+	class SLIB_EXPORT CHashMapBase : public Referable, public Lockable
 	{
-		namespace hash_map
-		{
-			extern const char g_classID[];
-		}
-	}
+		SLIB_DECLARE_OBJECT
+
+	public:
+		CHashMapBase();
+
+		~CHashMapBase();
+
+	};
 	
 	template < class KT, class VT, class HASH = Hash<KT>, class KEY_COMPARE = Compare<KT> >
-	class SLIB_EXPORT CHashMap : public Object
+	class SLIB_EXPORT CHashMap : public CHashMapBase
 	{
-		SLIB_TEMPLATE_OBJECT(Object, priv::hash_map::g_classID)
-		
 	public:
 		typedef KT KEY_TYPE;
 		typedef VT VALUE_TYPE;
@@ -119,8 +118,7 @@ namespace slib
 		KEY_COMPARE m_compare;
 		
 	public:
-		CHashMap(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
-		: m_hash(hash), m_compare(compare)
+		CHashMap(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: m_hash(hash), m_compare(compare)
 		{
 			priv::hash_table::Helper::initialize(reinterpret_cast<HashTableStructBase*>(&m_table), capacityMinimum, capacityMaximum);
 			m_nodeFirst = sl_null;
@@ -137,8 +135,7 @@ namespace slib
 		
 		CHashMap& operator=(const CHashMap& other) = delete;
 		
-		CHashMap(CHashMap&& other) noexcept
-		: m_hash(Move(other.m_hash)), m_compare(Move(other.m_compare))
+		CHashMap(CHashMap&& other) noexcept: m_hash(Move(other.m_hash)), m_compare(Move(other.m_compare))
 		{
 			priv::hash_table::Helper::move(reinterpret_cast<HashTableStructBase*>(&m_table), reinterpret_cast<HashTableStructBase*>(&(other.m_table)));
 			m_nodeFirst = other.m_nodeFirst;
@@ -161,8 +158,7 @@ namespace slib
 		}
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
-		CHashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
-		: m_hash(hash), m_compare(compare)
+		CHashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: m_hash(hash), m_compare(compare)
 		{
 			priv::hash_table::Helper::initialize(reinterpret_cast<HashTableStructBase*>(&m_table), capacityMinimum, capacityMaximum);
 			m_nodeFirst = sl_null;
@@ -1081,7 +1077,9 @@ namespace slib
 			ObjectLocker lock(this);
 			return toList_NoLock();
 		}
-		
+
+		Ref<Object> toObject() noexcept;
+
 		// range-based for loop
 		POSITION begin() const noexcept
 		{
@@ -1092,7 +1090,7 @@ namespace slib
 		{
 			return sl_null;
 		}
-		
+
 	protected:
 		void _free() noexcept
 		{
@@ -1259,14 +1257,10 @@ namespace slib
 		typedef CHashMap<KT, VT, HASH, KEY_COMPARE> CMAP;
 		
 	public:
-		HashMap(sl_size capacityMinimum, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
-		: ref(new CMAP(capacityMinimum, capacityMaximum, hash, compare))
-		{}
+		HashMap(sl_size capacityMinimum, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: ref(new CMAP(capacityMinimum, capacityMaximum, hash, compare)) {}
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
-		HashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
-		: ref(new CMAP(l, capacityMinimum, capacityMaximum, hash, compare))
-		{}
+		HashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: ref(new CMAP(l, capacityMinimum, capacityMaximum, hash, compare)) {}
 #endif
 		
 	public:
@@ -1274,6 +1268,8 @@ namespace slib
 		{
 			return new CMAP(capacityMinimum, capacityMaximum, hash, compare);
 		}
+
+		static HashMap create(Object* object);
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
 		static HashMap create(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
@@ -2108,6 +2104,24 @@ namespace slib
 			return sl_null;
 		}
 		
+		Ref<Object> toObject() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->toObject();
+			}
+			return sl_null;
+		}
+
+		const Mutex* getLocker() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getLocker();
+			}
+			return sl_null;
+		}
+
 		// range-based for loop
 		POSITION begin() const noexcept
 		{
@@ -2120,15 +2134,6 @@ namespace slib
 		
 		POSITION end() const noexcept
 		{
-			return sl_null;
-		}
-		
-		const Mutex* getLocker() const noexcept
-		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->getLocker();
-			}
 			return sl_null;
 		}
 		
@@ -2180,14 +2185,10 @@ namespace slib
 		typedef CHashMap<KT, VT, HASH, KEY_COMPARE> CMAP;
 		
 	public:
-		Atomic(sl_size capacityMinimum, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
-		: ref(new CMAP(capacityMinimum, capacityMaximum, hash, compare))
-		{}
+		Atomic(sl_size capacityMinimum, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: ref(new CMAP(capacityMinimum, capacityMaximum, hash, compare)) {}
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Atomic(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
-		: ref(new CMAP(l, capacityMinimum, capacityMaximum, hash, compare))
-		{}
+		Atomic(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: ref(new CMAP(l, capacityMinimum, capacityMaximum, hash, compare)) {}
 #endif
 		
 	public:
@@ -2623,6 +2624,15 @@ namespace slib
 			}
 			return sl_null;
 		}
+
+		Ref<Object> toObject() const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->toObject();
+			}
+			return sl_null;
+		}
 		
 		// range-based for loop
 		POSITION begin() const noexcept
@@ -2664,9 +2674,8 @@ namespace slib
 		class EnumHelper
 		{
 		public:
-			EnumHelper(const HashMap<KT, VT, HASH, KEY_COMPARE>& map) noexcept
-			: node(map.getFirstNode()), ref(map.ref)
-			{}
+			EnumHelper(const HashMap<KT, VT, HASH, KEY_COMPARE>& map) noexcept: node(map.getFirstNode()), ref(map.ref) {}
+
 		public:
 			NODE* node;
 			Ref<Referable> ref;

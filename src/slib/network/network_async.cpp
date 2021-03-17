@@ -27,10 +27,6 @@
 namespace slib
 {
 
-/*******************************************
-			AsyncTcpSocket
-********************************************/
-
 	SLIB_DEFINE_OBJECT(AsyncTcpSocketInstance, AsyncStreamInstance)
 
 	AsyncTcpSocketInstance::AsyncTcpSocketInstance()
@@ -271,10 +267,6 @@ namespace slib
 	}
 
 
-/*******************************************
-			AsyncTcpServer
-********************************************/
-
 	SLIB_DEFINE_OBJECT(AsyncTcpServerInstance, AsyncIoInstance)
 
 	AsyncTcpServerInstance::AsyncTcpServerInstance()
@@ -472,10 +464,6 @@ namespace slib
 		m_onError(this);
 	}
 
-
-/*******************************************
-			AsyncUdpSocket
-********************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncUdpSocketInstance, AsyncIoInstance)
 

@@ -26,6 +26,7 @@
 #include "pen.h"
 #include "brush.h"
 
+#include "../core/object.h"
 #include "../math/rectangle.h"
 
 namespace slib

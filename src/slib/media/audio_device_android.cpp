@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/media/definition.h"
 
 #ifdef SLIB_PLATFORM_IS_ANDROID
 

@@ -36,7 +36,7 @@ namespace slib
 		template <class... ARGS>
 		static void print(const StringParam& format, ARGS&&... args)
 		{
-			String content = String::format(format, args...);
+			String content = String::format(format, Forward<ARGS>(args)...);
 			print(content);
 		}
 	
@@ -45,7 +45,7 @@ namespace slib
 		template <class... ARGS>
 		static void println(const StringParam& format, ARGS&&... args)
 		{
-			String content = String::format(format, args...);
+			String content = String::format(format, Forward<ARGS>(args)...);
 			println(content);
 		}
 	
@@ -97,14 +97,14 @@ namespace slib
 	template <class... ARGS>
 	void Printf(const StringParam& format, ARGS&&... args)
 	{
-		String content = String::format(format, args...);
+		String content = String::format(format, Forward<ARGS>(args)...);
 		Console::print(content);
 	}
 	
 	template <class... ARGS>
 	void Println(const StringParam& format, ARGS&&... args)
 	{
-		String content = String::format(format, args...);
+		String content = String::format(format, Forward<ARGS>(args)...);
 		Console::println(content);
 	}
 	

@@ -222,14 +222,14 @@ namespace slib
 				if (param.indexMedia < param.medias.getCount()) {
 					rp.method = HttpMethod::POST;
 					rp.url = "https://upload.twitter.com/1.1/media/upload.json";
-					VariantHashMap map;
+					VariantMap map;
 					map.put("media", param.medias.getValueAt(param.indexMedia));
 					rp.setMultipartFormData(map);
 					rp.onComplete = Function<void(UrlRequest*)>::bind(callback, param);
 				} else {
 					rp.method = HttpMethod::POST;
 					rp.url = getRequestUrl("statuses/update.json");
-					VariantHashMap map;
+					VariantMap map;
 					map.put("status", param.status);
 					if (param.mediaIds.isNotEmpty()) {
 						map.put("media_ids", String::join(param.mediaIds, ","));

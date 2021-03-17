@@ -52,8 +52,6 @@ namespace slib
 	{
 		namespace promise
 		{
-			extern const char g_classID[];
-
 			template <class T>
 			struct PromiseAllContext : public Referable
 			{
@@ -63,12 +61,20 @@ namespace slib
 			};
 		}
 	}
+
+	class SLIB_EXPORT CPromiseBase : public Referable
+	{
+		SLIB_DECLARE_OBJECT
+	public:
+		CPromiseBase();
+
+		~CPromiseBase();
+
+	};
 	
 	template <class T>
-	class SLIB_EXPORT CPromise : public Referable
+	class SLIB_EXPORT CPromise : public CPromiseBase
 	{
-		SLIB_TEMPLATE_ROOT_OBJECT(priv::promise::g_classID)
-
 	private:
 		PromiseState m_state;
 		Function<void(T& result)> m_callback;
@@ -76,9 +82,7 @@ namespace slib
 		sl_uint8 m_result[sizeof(T)];
 
 	public:
-		CPromise(): m_state(PromiseState::Pending)
-		{
-		}
+		CPromise(): m_state(PromiseState::Pending) {}
 		
 		template <class... ARGS>
 		CPromise(PromiseState state, ARGS&&... args): m_state(state)

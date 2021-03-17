@@ -28,7 +28,7 @@ using namespace slib;
 
 class ExampleWebViewApp : public MobileApp
 {
-	SLIB_DECLARE_APPLICATION(ExampleWebViewApp)
+	SLIB_APPLICATION(ExampleWebViewApp)
 public:
 	ExampleWebViewApp();
 	

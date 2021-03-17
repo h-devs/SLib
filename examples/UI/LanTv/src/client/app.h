@@ -6,7 +6,7 @@ using namespace slib;
 
 class LanTvClientApp : public UIApp
 {
-	SLIB_DECLARE_APPLICATION(LanTvClientApp)
+	SLIB_APPLICATION(LanTvClientApp)
 public:
 	LanTvClientApp();
 	

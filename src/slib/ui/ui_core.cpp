@@ -707,7 +707,9 @@ namespace slib
 		}
 		g_flagRunningApp = sl_true;
 		UIPlatform::runApp();
+	#if !defined(SLIB_PLATFORM_IS_ANDROID)
 		g_flagRunningApp = sl_false;
+	#endif
 	}
 
 	void UI::quitApp()

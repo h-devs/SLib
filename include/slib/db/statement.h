@@ -88,43 +88,43 @@ namespace slib
 			return queryBy(params, sizeof...(args));
 		}
 	
-		virtual List< HashMap<String, Variant> > getRecordsBy(const Variant* params, sl_uint32 nParams);
+		virtual List<VariantMap> getRecordsBy(const Variant* params, sl_uint32 nParams);
 		
 		template <class T>
-		List< HashMap<String, Variant> > getRecordsBy(const T& _params)
+		List<VariantMap> getRecordsBy(const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, m_names);
 			return getRecordsBy(params.data, params.count);
 		}
 
-		List< HashMap<String, Variant> > getRecords()
+		List<VariantMap> getRecords()
 		{
 			return getRecordsBy(sl_null, 0);
 		}
 
 		template <class... ARGS>
-		List< HashMap<String, Variant> > getRecords(ARGS&&... args)
+		List<VariantMap> getRecords(ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getRecordsBy(params, sizeof...(args));
 		}
 
-		virtual HashMap<String, Variant> getRecordBy(const Variant* params, sl_uint32 nParams);
+		virtual VariantMap getRecordBy(const Variant* params, sl_uint32 nParams);
 
 		template <class T>
-		HashMap<String, Variant> getRecordBy(const T& _params)
+		VariantMap getRecordBy(const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, m_names);
 			return getRecordBy(params.data, params.count);
 		}
 
-		HashMap<String, Variant> getRecord()
+		VariantMap getRecord()
 		{
 			return getRecordBy(sl_null, 0);
 		}
 
 		template <class... ARGS>
-		HashMap<String, Variant> getRecord(ARGS&&... args)
+		VariantMap getRecord(ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getRecordBy(params, sizeof...(args));

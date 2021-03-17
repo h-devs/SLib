@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,87 +20,147 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/array.h"
+#include "slib/core/collection.h"
 
-namespace slib
-{
-	
-	SLIB_DEFINE_ROOT_OBJECT(CArrayBase)
-	
-	CArrayBase::CArrayBase() noexcept
-	{
-	}
-	
-	CArrayBase::~CArrayBase() noexcept
-	{
-	}
-	
-}
-
-
-#include "slib/core/map.h"
-#include "slib/core/hash_map.h"
-
-namespace slib
-{
-	namespace priv
-	{
-		
-		namespace map
-		{
-			const char g_classID[] = "map";
-		}
-		
-		namespace hash_map
-		{
-			const char g_classID[] = "hash_map";
-		}
-		
-	}
-}
-
-
+#include "slib/core/variant.h"
 #include "slib/core/linked_list.h"
-#include "slib/core/loop_queue.h"
 #include "slib/core/queue.h"
 #include "slib/core/queue_channel.h"
 #include "slib/core/linked_object.h"
+#include "slib/core/loop_queue.h"
+#include "slib/core/string_buffer.h"
 
 namespace slib
 {
 
-	SLIB_DEFINE_OBJECT(CLinkedListBase, Object)
+	SLIB_DEFINE_ROOT_OBJECT(Collection)
 
-	CLinkedListBase::CLinkedListBase() noexcept
+	Collection::Collection()
 	{
 	}
 
-	CLinkedListBase::~CLinkedListBase() noexcept
+	Collection::~Collection()
 	{
 	}
 
-
-	SLIB_DEFINE_OBJECT(LoopQueueBase, Object)
-
-	LoopQueueBase::LoopQueueBase() noexcept
+	sl_uint64 Collection::getElementsCount()
 	{
+		return 0;
 	}
 
-	LoopQueueBase::~LoopQueueBase() noexcept
+	Variant Collection::getElement(sl_uint64 index)
 	{
+		return Variant();
+	}
+
+	sl_bool Collection::setElement(sl_uint64 index, const Variant& item)
+	{
+		return sl_false;
+	}
+
+	sl_bool Collection::addElement(const Variant& item)
+	{
+		return sl_false;
+	}
+
+	String Collection::toString()
+	{
+		StringBuffer buf;
+		if (toJsonString(buf)) {
+			return buf.merge();
+		}
+		return sl_null;
+	}
+
+	sl_bool Collection::toJsonString(StringBuffer& buf)
+	{
+		sl_uint64 n = getElementsCount();
+		if (!(buf.addStatic("["))) {
+			return sl_false;
+		}
+		for (sl_uint64 i = 0; i < n; i++) {
+			Variant v = getElement(i);
+			if (i) {
+				if (!(buf.addStatic(", "))) {
+					return sl_false;
+				}
+			}
+			if (!(v.toJsonString(buf))) {
+				return sl_false;
+			}
+		}
+		if (!(buf.addStatic("]"))) {
+			return sl_false;
+		}
+		return sl_true;
 	}
 
 
-	SLIB_DEFINE_OBJECT(LinkedObjectListBase, Object)
-
-	LinkedObjectListBase::LinkedObjectListBase() noexcept
-	{
-	}
-
-	LinkedObjectListBase::~LinkedObjectListBase() noexcept
-	{
-	}
+	SLIB_DEFINE_ROOT_OBJECT(CArrayBase)
 	
+	CArrayBase::CArrayBase()
+	{
+	}
+
+	CArrayBase::~CArrayBase()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CMapBase)
+
+	CMapBase::CMapBase()
+	{
+	}
+
+	CMapBase::~CMapBase()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CHashMapBase)
+
+	CHashMapBase::CHashMapBase()
+	{
+	}
+
+	CHashMapBase::~CHashMapBase()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CLinkedListBase)
+
+	CLinkedListBase::CLinkedListBase()
+	{
+	}
+
+	CLinkedListBase::~CLinkedListBase()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(LinkedObjectListBase)
+
+	LinkedObjectListBase::LinkedObjectListBase()
+	{
+	}
+
+	LinkedObjectListBase::~LinkedObjectListBase()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(LoopQueueBase)
+
+	LoopQueueBase::LoopQueueBase()
+	{
+	}
+
+	LoopQueueBase::~LoopQueueBase()
+	{
+	}
+
 }
 
 
@@ -133,12 +193,23 @@ namespace slib
 {
 	
 	SLIB_DEFINE_ROOT_OBJECT(CallableBase)
+
+	CallableBase::CallableBase()
+	{
+	}
+
+	CallableBase::~CallableBase()
+	{
+	}
 	
 	namespace priv
 	{
 		namespace function_list
 		{
-			const char g_classID[] = "FunctionList";
+			sl_object_type GetObjectType()
+			{
+				return (sl_object_type)(sl_size)(object_types::FunctionList);
+			}
 		}
 	}
 	
@@ -149,11 +220,15 @@ namespace slib
 
 namespace slib
 {
-	namespace priv
+
+	SLIB_DEFINE_ROOT_OBJECT(CPromiseBase)
+
+	CPromiseBase::CPromiseBase()
 	{
-		namespace promise
-		{
-			const char g_classID[] = "promise";
-		}
 	}
+
+	CPromiseBase::~CPromiseBase()
+	{
+	}
+
 }

@@ -41,7 +41,7 @@ namespace slib
 	public:
 		String url;
 		HttpMethod method;
-		HashMap<String, Variant> parameters;
+		VariantMap parameters;
 		HttpHeaderMap requestHeaders;
 		Memory requestBody;
 		String downloadFilePath;
@@ -103,7 +103,7 @@ namespace slib
 			setRequestBodyAsMap(params);
 		}
 		
-		void setMultipartFormData(const HashMap<String, Variant>& params);
+		void setMultipartFormData(const VariantMap& params);
 		
 		void setJsonData(const Json& json);
 		
@@ -215,7 +215,7 @@ namespace slib
 		
 		sl_size getRequestBodySize();
 		
-		HashMap<String, Variant> getParameters();
+		VariantMap getParameters();
 		
 		HttpHeaderMap getRequestHeaders();
 		
@@ -306,7 +306,7 @@ namespace slib
 		
 		HttpMethod m_method;
 		Memory m_requestBody;
-		HashMap<String, Variant> m_parameters;
+		VariantMap m_parameters;
 		HttpHeaderMap m_requestHeaders;
 		
 		MemoryQueue m_bufResponseContent;

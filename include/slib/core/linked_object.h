@@ -40,14 +40,14 @@ namespace slib
 
 	};
 	
-	class SLIB_EXPORT LinkedObjectListBase : public Object
+	class SLIB_EXPORT LinkedObjectListBase : public Referable, public Lockable
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		LinkedObjectListBase() noexcept;
+		LinkedObjectListBase();
 
-		~LinkedObjectListBase() noexcept;
+		~LinkedObjectListBase();
 
 	};
 	

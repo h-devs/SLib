@@ -206,4 +206,11 @@ typedef char32_t			sl_char32;
 #	endif
 #endif
 
+#ifdef SLIB_USE_OBJECT_TYPE_CONSTANTS
+#   ifndef PRIV_SLIB_INCLUDED_OBJECT_TYPES
+#       define PRIV_SLIB_INCLUDED_OBJECT_TYPES
+#       include "object_types.h"
+#   endif
+#endif
+
 #endif

@@ -26,6 +26,8 @@
 #include "constants.h"
 #include "motion_tracker.h"
 
+#include "../core/object.h"
+
 namespace slib
 {
 

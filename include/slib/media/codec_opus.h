@@ -60,6 +60,8 @@ namespace slib
 	
 	class SLIB_EXPORT OpusEncoder : public AudioEncoder
 	{
+		SLIB_DECLARE_OBJECT
+
 	public:
 		OpusEncoder();
 		
@@ -88,6 +90,8 @@ namespace slib
 	
 	class SLIB_EXPORT OpusDecoder : public AudioDecoder
 	{
+		SLIB_DECLARE_OBJECT
+
 	public:
 		OpusDecoder();
 		

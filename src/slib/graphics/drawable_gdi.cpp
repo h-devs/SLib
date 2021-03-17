@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_GDI)
 
@@ -41,7 +41,7 @@ namespace slib
 		namespace gdi
 		{
 
-			class ImageDrawable : public Drawable
+			class ImageDrawableImpl : public Drawable
 			{
 				SLIB_DECLARE_OBJECT
 			public:
@@ -50,11 +50,11 @@ namespace slib
 				Ref<Referable> m_ref;
 				
 			public:
-				ImageDrawable()
+				ImageDrawableImpl()
 				{
 				}
 				
-				~ImageDrawable()
+				~ImageDrawableImpl()
 				{
 					if (m_flagFreeOnRelease) {
 						delete m_image;
@@ -62,10 +62,10 @@ namespace slib
 				}
 				
 			public:
-				static Ref<ImageDrawable> create(Gdiplus::Image* image, sl_bool flagFreeOnRelease, Referable* ref)
+				static Ref<ImageDrawableImpl> create(Gdiplus::Image* image, sl_bool flagFreeOnRelease, Referable* ref)
 				{
 					if (image) {
-						Ref<ImageDrawable> ret = new ImageDrawable();
+						Ref<ImageDrawableImpl> ret = new ImageDrawableImpl();
 						if (ret.isNotNull()) {
 							ret->m_image = image;
 							ret->m_flagFreeOnRelease = flagFreeOnRelease;
@@ -96,7 +96,7 @@ namespace slib
 				
 			};
 
-			SLIB_DEFINE_OBJECT(ImageDrawable, Drawable)
+			SLIB_DEFINE_OBJECT(ImageDrawableImpl, Drawable)
 
 		}
 	}
@@ -124,12 +124,12 @@ namespace slib
 
 	Ref<Drawable> GraphicsPlatform::createImageDrawable(Gdiplus::Image* image, sl_bool flagFreeOnRelease, Referable* ref)
 	{
-		return ImageDrawable::create(image, flagFreeOnRelease, ref);
+		return ImageDrawableImpl::create(image, flagFreeOnRelease, ref);
 	}
 
 	Gdiplus::Image* GraphicsPlatform::getImageDrawableHandle(Drawable* _drawable)
 	{
-		if (ImageDrawable* drawable = CastInstance<ImageDrawable>(_drawable)) {
+		if (ImageDrawableImpl* drawable = CastInstance<ImageDrawableImpl>(_drawable)) {
 			return drawable->m_image;
 		}
 		if (Bitmap* bitmap = CastInstance<Bitmap>(_drawable)) {

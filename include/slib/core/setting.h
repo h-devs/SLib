@@ -28,10 +28,8 @@
 namespace slib
 {
 	
-	class SLIB_EXPORT IniSetting : public Object
+	class SLIB_EXPORT IniSetting
 	{
-		SLIB_DECLARE_OBJECT
-
 	public:
 		IniSetting();
 

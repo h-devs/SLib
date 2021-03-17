@@ -48,6 +48,7 @@ namespace slib
 		port = 0;
 	}
 
+
 	SLIB_DEFINE_OBJECT(PostgreSQL, Database)
 
 	PostgreSQL::PostgreSQL()
@@ -140,9 +141,9 @@ namespace slib
 					return (sl_int32)(PQfnumber(m_result, name.getData()));
 				}
 
-				HashMap<String, Variant> getRow() override
+				VariantMap getRow() override
 				{
-					HashMap<String, Variant> ret;
+					VariantMap ret;
 					if (m_nColumnNames > 0) {
 						for (sl_uint32 index = 0; index < m_nColumnNames; index++) {
 							ret.put_NoLock(m_columnNames[index], _getValue(index));

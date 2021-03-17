@@ -32,8 +32,6 @@ namespace slib
 		namespace list
 		{
 
-			const char g_classID[] = "list";
-
 			sl_bool setCapacity(void* _pData, sl_size elementSize, sl_size* pCapacity, sl_size *pCount, sl_size capacity) noexcept
 			{
 				void** pData = reinterpret_cast<void**>(_pData);
@@ -147,5 +145,16 @@ namespace slib
 			
 		}
 	}
-		
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CListBase)
+	
+	CListBase::CListBase()
+	{
+	}
+
+	CListBase::~CListBase()
+	{
+	}
+
 }

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -59,6 +59,7 @@
 #include "core/promise.h"
 
 #include "core/string.h"
+#include "core/string_cast.h"
 #include "core/string_buffer.h"
 #include "core/memory.h"
 #include "core/memory_buffer.h"
@@ -77,10 +78,14 @@
 #include "core/search.h"
 #include "core/sort.h"
 
+#include "core/collection.h"
 #include "core/array.h"
+#include "core/array_collection.h"
 #include "core/list.h"
+#include "core/list_collection.h"
 #include "core/map.h"
 #include "core/hash_map.h"
+#include "core/map_object.h"
 #include "core/hash_table.h"
 #include "core/linked_list.h"
 #include "core/queue.h"
@@ -97,6 +102,7 @@
 #include "core/system.h"
 #include "core/spin_lock.h"
 #include "core/mutex.h"
+#include "core/lockable.h"
 #include "core/console.h"
 #include "core/event.h"
 #include "core/dynamic_library.h"

@@ -43,14 +43,25 @@ namespace slib
 	public:
 		ChaCha20_Core();
 		
+		ChaCha20_Core(const ChaCha20_Core& other);
+
 		~ChaCha20_Core();
 		
 	public:
+		ChaCha20_Core & operator=(const ChaCha20_Core& other);
+
+	public:
+		// size: 16, 32, 48
+		sl_bool setKey(const void* key, sl_uint32 size);
+
 		// key: 32 bytes
 		void setKey(const void* key);
-		
+
 		// key: 16 bytes
 		void setKey16(const void* key);
+
+		// key: 32 bytes
+		void setKey32(const void* key);
 
 		// key: 48 bytes
 		void setKey48(const void* key);
@@ -63,6 +74,9 @@ namespace slib
 		
 		// input, output: 64 bytes
 		void decryptBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, const void* input, void* output) const;
+
+	protected:
+		void _copy(const ChaCha20_Core& other);
 
 	protected:
 		sl_uint32* m_constants;

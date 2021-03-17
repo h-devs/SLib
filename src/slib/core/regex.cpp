@@ -52,7 +52,7 @@ namespace slib
 
 	using namespace priv::regex;
 
-	SLIB_DEFINE_OBJECT(CRegEx, Object)
+	SLIB_DEFINE_ROOT_OBJECT(CRegEx)
 	
 	CRegEx::CRegEx() noexcept
 	{
@@ -128,8 +128,9 @@ namespace slib
 		return _create(pattern, flags);
 	}
 	
-	sl_bool CRegEx::match(const String& str, const RegExMatchFlags& _flags) noexcept
+	sl_bool CRegEx::match(const StringParam& _str, const RegExMatchFlags& _flags) noexcept
 	{
+		StringData str(_str);
 		int flags = 0;
 		int v = _flags.value;
 		if (v) {
@@ -173,17 +174,15 @@ namespace slib
 		return std::regex_match(start, end, *obj, (std::regex_constants::match_flag_type)flags);
 	}
 	
-	RegEx::RegEx(const String& pattern) noexcept
-	 : ref(CRegEx::create(pattern))
+	RegEx::RegEx(const String& pattern) noexcept: ref(CRegEx::create(pattern))
 	{
 	}
 
-	RegEx::RegEx(const String& pattern, const RegExFlags& flags) noexcept
-	 : ref(CRegEx::create(pattern, flags))
+	RegEx::RegEx(const String& pattern, const RegExFlags& flags) noexcept: ref(CRegEx::create(pattern, flags))
 	{
 	}
 	
-	sl_bool RegEx::match(const String& str, const RegExMatchFlags& flags) noexcept
+	sl_bool RegEx::match(const StringParam& str, const RegExMatchFlags& flags) noexcept
 	{
 		if (ref.isNotNull()) {
 			return ref->match(str, flags);
@@ -191,17 +190,15 @@ namespace slib
 		return sl_false;
 	}
 	
-	Atomic<RegEx>::Atomic(const String& pattern) noexcept
-	 : ref(CRegEx::create(pattern, 0))
+	Atomic<RegEx>::Atomic(const String& pattern) noexcept: ref(CRegEx::create(pattern, 0))
 	{
 	}
 	
-	Atomic<RegEx>::Atomic(const String& pattern, const RegExFlags& flags) noexcept
-	 : ref(CRegEx::create(pattern, flags))
+	Atomic<RegEx>::Atomic(const String& pattern, const RegExFlags& flags) noexcept: ref(CRegEx::create(pattern, flags))
 	{
 	}
 	
-	sl_bool Atomic<RegEx>::match(const String& str, const RegExMatchFlags& flags) noexcept
+	sl_bool Atomic<RegEx>::match(const StringParam& str, const RegExMatchFlags& flags) noexcept
 	{
 		Ref<CRegEx> ref(this->ref);
 		if (ref.isNotNull()) {
@@ -211,7 +208,7 @@ namespace slib
 	}
 
 	
-	sl_bool RegEx::matchEmail(const String& str) noexcept
+	sl_bool RegEx::matchEmail(const StringParam& str) noexcept
 	{
 		SLIB_SAFE_LOCAL_STATIC(RegEx, regex, "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$");
 		if (SLIB_SAFE_STATIC_CHECK_FREED(regex)) {

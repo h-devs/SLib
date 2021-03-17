@@ -756,7 +756,7 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_OBJECT(MemoryQueue, Object)
+	SLIB_DEFINE_ROOT_OBJECT(MemoryQueue)
 
 	MemoryQueue::MemoryQueue()
 	{

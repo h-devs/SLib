@@ -80,37 +80,37 @@ namespace slib
 			return queryBy(sql, params, sizeof...(args));
 		}
 		
-		List< HashMap<String, Variant> > getRecordsBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
+		List<VariantMap> getRecordsBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
 		
 		template <class T>
-		List< HashMap<String, Variant> > getRecordsBy(const SqlBuilder& builder, const T& _params)
+		List<VariantMap> getRecordsBy(const SqlBuilder& builder, const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, builder.parameters);
 			return getRecordsBy(builder.toString(), params.data, params.count);
 		}
 
-		List< HashMap<String, Variant> > getRecords(const StringParam& sql);
+		List<VariantMap> getRecords(const StringParam& sql);
 		
 		template <class... ARGS>
-		List< HashMap<String, Variant> > getRecords(const StringParam& sql, ARGS&&... args)
+		List<VariantMap> getRecords(const StringParam& sql, ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getRecordsBy(sql, params, sizeof...(args));
 		}
 		
-		HashMap<String, Variant> getRecordBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
+		VariantMap getRecordBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
 		
 		template <class T>
-		HashMap<String, Variant> getRecordBy(const SqlBuilder& builder, const T& _params)
+		VariantMap getRecordBy(const SqlBuilder& builder, const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, builder.parameters);
 			return getRecordBy(builder.toString(), params.data, params.count);
 		}
 
-		HashMap<String, Variant> getRecord(const StringParam& sql);
+		VariantMap getRecord(const StringParam& sql);
 		
 		template <class... ARGS>
-		HashMap<String, Variant> getRecord(const StringParam& sql, ARGS&&... args)
+		VariantMap getRecord(const StringParam& sql, ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getRecordBy(sql, params, sizeof...(args));
@@ -230,10 +230,10 @@ namespace slib
 
 		Ref<DatabaseStatement> prepareQuery(const DatabaseIdentifier& table, const DatabaseExpression& where);
 
-		List< HashMap<String, Variant> > findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where);
+		List<VariantMap> findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where);
 
 		template <class... ARGS>
-		List< HashMap<String, Variant> > findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
+		List<VariantMap> findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
@@ -244,7 +244,7 @@ namespace slib
 		}
 
 		template <class T>
-		List< HashMap<String, Variant> > findRecordsBy(const DatabaseIdentifier& table, const DatabaseExpression& where, const T& params)
+		List<VariantMap> findRecordsBy(const DatabaseIdentifier& table, const DatabaseExpression& where, const T& params)
 		{
 			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
 			if (stmt.isNotNull()) {
@@ -253,10 +253,10 @@ namespace slib
 			return sl_null;
 		}
 
-		HashMap<String, Variant> findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where);
+		VariantMap findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where);
 
 		template <class... ARGS>
-		HashMap<String, Variant> findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
+		VariantMap findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
@@ -267,7 +267,7 @@ namespace slib
 		}
 		
 		template <class T>
-		HashMap<String, Variant> findRecordBy(const DatabaseIdentifier& table, const DatabaseExpression& where, const T& params)
+		VariantMap findRecordBy(const DatabaseIdentifier& table, const DatabaseExpression& where, const T& params)
 		{
 			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
 			if (stmt.isNotNull()) {

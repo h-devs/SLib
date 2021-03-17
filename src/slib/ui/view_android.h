@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_SRC_UI_VIEW_ANDROID
 #define CHECKHEADER_SLIB_SRC_UI_VIEW_ANDROID
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_ANDROID)
 

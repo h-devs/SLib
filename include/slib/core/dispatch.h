@@ -23,6 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_DISPATCH
 #define CHECKHEADER_SLIB_CORE_DISPATCH
 
+#include "object.h"
 #include "function.h"
 
 namespace slib

@@ -1250,10 +1250,7 @@ namespace slib
 	}
 #endif
 
-/*****************************************
- 			OpenGL Engine
-******************************************/
-	
+
 	class GL_ENGINE : public GLRenderEngine
 	{
 	public:

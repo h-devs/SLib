@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -365,9 +365,7 @@ namespace slib
 				
 			public:
 				template <class OTHER_FUNC>
-				CallableFromFunction(OTHER_FUNC&& _func) noexcept
-				: func(Forward<OTHER_FUNC>(_func))
-				{}
+				CallableFromFunction(OTHER_FUNC&& _func) noexcept: func(Forward<OTHER_FUNC>(_func)) {}
 				
 			public:
 				RET_TYPE invoke(ARGS... args) override
@@ -391,9 +389,7 @@ namespace slib
 				
 			public:
 				template <class OTHER_FUNC, class OTHER_BIND_TUPLE>
-				BindFromFunction(OTHER_FUNC&& _func, OTHER_BIND_TUPLE&& _binds) noexcept
-				: func(Forward<OTHER_FUNC>(_func)), binds(Forward<OTHER_BIND_TUPLE>(_binds))
-				{}
+				BindFromFunction(OTHER_FUNC&& _func, OTHER_BIND_TUPLE&& _binds) noexcept: func(Forward<OTHER_FUNC>(_func)), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
 				
 			public:
 				RET_TYPE invoke(ARGS... args) override
@@ -410,9 +406,7 @@ namespace slib
 				FUNC func;
 				
 			public:
-				CallableFromMember(CLASS* _object, const FUNC& _func) noexcept
-				: object(_object), func(_func)
-				{}
+				CallableFromMember(CLASS* _object, const FUNC& _func) noexcept: object(_object), func(_func) {}
 				
 			public:
 				RET_TYPE invoke(ARGS... args) override
@@ -431,9 +425,7 @@ namespace slib
 				
 			public:
 				template <class OTHER_BIND_TUPLE>
-				BindFromMember(CLASS* _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept
-				: object(_object), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds))
-				{}
+				BindFromMember(CLASS* _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept: object(_object), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
 				
 			public:
 				RET_TYPE invoke(ARGS... args) override
@@ -451,9 +443,7 @@ namespace slib
 				
 			public:
 				template <class T>
-				CallableFromRef(T&& _object, const FUNC& _func) noexcept
-				: object(Forward<T>(_object)), func(_func)
-				{}
+				CallableFromRef(T&& _object, const FUNC& _func) noexcept: object(Forward<T>(_object)), func(_func) {}
 				
 			public:
 				RET_TYPE invoke(ARGS... args) override
@@ -472,9 +462,7 @@ namespace slib
 				
 			public:
 				template <class T, class OTHER_BIND_TUPLE>
-				BindFromRef(T&& _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept
-				: object(Forward<T>(_object)), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds))
-				{}
+				BindFromRef(T&& _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept: object(Forward<T>(_object)), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
 				
 			public:
 				RET_TYPE invoke(ARGS... args) override
@@ -492,9 +480,7 @@ namespace slib
 				
 			public:
 				template <class T>
-				CallableFromWeakRef(T&& _object, const FUNC& _func) noexcept
-				: object(Forward<T>(_object)), func(_func)
-				{}
+				CallableFromWeakRef(T&& _object, const FUNC& _func) noexcept: object(Forward<T>(_object)), func(_func) {}
 				
 			public:
 				RET_TYPE invoke(ARGS... args) override
@@ -518,9 +504,7 @@ namespace slib
 				
 			public:
 				template <class T, class OTHER_BIND_TUPLE>
-				BindFromWeakRef(T&& _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept
-				: object(Forward<T>(_object)), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds))
-				{}
+				BindFromWeakRef(T&& _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept: object(Forward<T>(_object)), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
 				
 			public:
 				RET_TYPE invoke(ARGS... args) override
@@ -543,9 +527,7 @@ namespace slib
 				
 			public:
 				template <class T>
-				CallableFromPtr(T&& _object, const FUNC& _func) noexcept
-				: object(Forward<T>(_object)), func(_func)
-				{}
+				CallableFromPtr(T&& _object, const FUNC& _func) noexcept: object(Forward<T>(_object)), func(_func) {}
 				
 			public:
 				RET_TYPE invoke(ARGS... args) override
@@ -569,9 +551,7 @@ namespace slib
 				
 			public:
 				template <class T, class OTHER_BIND_TUPLE>
-				BindFromPtr(T&& _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept
-				: object(Forward<T>(_object)), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds))
-				{}
+				BindFromPtr(T&& _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept: object(Forward<T>(_object)), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
 				
 			public:
 				RET_TYPE invoke(ARGS... args) override
@@ -594,9 +574,7 @@ namespace slib
 				
 			public:
 				template <class OTHER_CLASS, class OTHER_FUNC>
-				CallableWithRef(OTHER_CLASS&& _object, OTHER_FUNC&& _func) noexcept
-				: object(Forward<OTHER_CLASS>(_object)), func(Forward<OTHER_FUNC>(_func))
-				{}
+				CallableWithRef(OTHER_CLASS&& _object, OTHER_FUNC&& _func) noexcept: object(Forward<OTHER_CLASS>(_object)), func(Forward<OTHER_FUNC>(_func)) {}
 				
 			public:
 				RET_TYPE invoke(ARGS... args) override
@@ -614,9 +592,7 @@ namespace slib
 				
 			public:
 				template <class OTHER_CLASS, class OTHER_FUNC>
-				CallableWithWeakRef(OTHER_CLASS&& _object, OTHER_FUNC&& _func) noexcept
-				: object(Forward<OTHER_CLASS>(_object)), func(Forward<OTHER_FUNC>(_func))
-				{}
+				CallableWithWeakRef(OTHER_CLASS&& _object, OTHER_FUNC&& _func) noexcept: object(Forward<OTHER_CLASS>(_object)), func(Forward<OTHER_FUNC>(_func)) {}
 				
 			public:
 				RET_TYPE invoke(ARGS... args) override
@@ -639,9 +615,7 @@ namespace slib
 				
 			public:
 				template <class OTHER_CLASS, class OTHER_FUNC>
-				CallableWithPtr(OTHER_CLASS&& _object, OTHER_FUNC&& _func) noexcept
-				: object(Forward<OTHER_CLASS>(_object)), func(Forward<OTHER_FUNC>(_func))
-				{}
+				CallableWithPtr(OTHER_CLASS&& _object, OTHER_FUNC&& _func) noexcept: object(Forward<OTHER_CLASS>(_object)), func(Forward<OTHER_FUNC>(_func)) {}
 				
 			public:
 				RET_TYPE invoke(ARGS... args) override
@@ -663,6 +637,12 @@ namespace slib
 	{
 	public:
 		SLIB_DECLARE_OBJECT
+
+	public:
+		CallableBase();
+
+		~CallableBase();
+
 	};
 	
 	template <class RET_TYPE, class... ARGS>
@@ -682,9 +662,7 @@ namespace slib
 
 	public:
 		template <class FUNC>
-		Function(FUNC&& func) noexcept
-		: ref(new priv::function::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func)))
-		{}
+		Function(FUNC&& func) noexcept: ref(new priv::function::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func))) {}
 
 	public:
 		template <class FUNC>
@@ -1108,9 +1086,7 @@ namespace slib
 
 	public:
 		template <class FUNC>
-		Atomic(FUNC&& func) noexcept
-		: ref(new priv::function::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func)))
-		{}
+		Atomic(FUNC&& func) noexcept: ref(new priv::function::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func))) {}
 
 	public:
 		template <class FUNC>
@@ -1214,7 +1190,7 @@ namespace slib
 	{
 		namespace function_list
 		{
-			extern const char g_classID[];
+			sl_object_type GetObjectType();
 		}
 	}
 	
@@ -1227,12 +1203,12 @@ namespace slib
 	public:
 		static sl_object_type ObjectType() noexcept
 		{
-			return priv::function_list::g_classID;
+			return priv::function_list::GetObjectType();
 		}
 		
 		static sl_bool isDerivedFrom(sl_object_type type) noexcept
 		{
-			if (type == priv::function_list::g_classID) {
+			if (type == priv::function_list::GetObjectType()) {
 				return sl_true;
 			}
 			return CallableBase::isDerivedFrom(type);
@@ -1240,12 +1216,12 @@ namespace slib
 		
 		sl_object_type getObjectType() const noexcept override
 		{
-			return priv::function_list::g_classID;
+			return priv::function_list::GetObjectType();
 		}
 		
 		sl_bool isInstanceOf(sl_object_type type) const noexcept override
 		{
-			if (type == priv::function_list::g_classID) {
+			if (type == priv::function_list::GetObjectType()) {
 				return sl_true;
 			}
 			return CallableBase::isDerivedFrom(type);
@@ -1254,7 +1230,7 @@ namespace slib
 	public:
 		FunctionList() noexcept {}
 		
-		FunctionList(const List< Function<RET_TYPE(ARGS...)> >& _list) noexcept : list(_list) {}
+		FunctionList(const List< Function<RET_TYPE(ARGS...)> >& _list) noexcept: list(_list) {}
 		
 	public:
 		RET_TYPE invoke(ARGS... args) override

@@ -57,6 +57,7 @@ namespace slib
 	{
 	}
 
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontAtlasChar)
 	
 	FontAtlasChar::FontAtlasChar()
@@ -65,6 +66,7 @@ namespace slib
 		fontHeight = 0;
 	}
 
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontAtlasCharImage)
 
 	FontAtlasCharImage::FontAtlasCharImage()
@@ -72,6 +74,7 @@ namespace slib
 		fontWidth = 0;
 		fontHeight = 0;
 	}
+
 
 	SLIB_DEFINE_OBJECT(FontAtlas, Object)
 

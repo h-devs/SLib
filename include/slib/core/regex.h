@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_REGEX
 #define CHECKHEADER_SLIB_CORE_REGEX
 
-#include "object.h"
+#include "ref.h"
 #include "string.h"
 #include "flags.h"
 
@@ -59,7 +59,7 @@ namespace slib
 		FormatFirstOnly = 0x0400
 	})
 	
-	class CRegEx : public Object
+	class CRegEx : public Referable
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -74,7 +74,7 @@ namespace slib
 		static Ref<CRegEx> create(const String& pattern, const RegExFlags& flags) noexcept;
 
 	public:
-		sl_bool match(const String& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
+		sl_bool match(const StringParam& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
 		
 	private:
 		static Ref<CRegEx> _create(const String& pattern, int flags) noexcept;
@@ -97,7 +97,7 @@ namespace slib
 		Atomic(const String& pattern, const RegExFlags& flags) noexcept;
 		
 	public:
-		sl_bool match(const String& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
+		sl_bool match(const StringParam& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
 
 	private:
 		AtomicRef<CRegEx> ref;
@@ -117,10 +117,10 @@ namespace slib
 		RegEx(const String& pattern, const RegExFlags& flags) noexcept;
 				
 	public:
-		sl_bool match(const String& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
+		sl_bool match(const StringParam& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
 		
 	public:
-		static sl_bool matchEmail(const String& str) noexcept;
+		static sl_bool matchEmail(const StringParam& str) noexcept;
 
 	private:
 		Ref<CRegEx> ref;

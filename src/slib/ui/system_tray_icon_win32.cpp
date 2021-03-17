@@ -22,7 +22,7 @@
 
 #define NTDDI_VERSION NTDDI_WIN7
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 

@@ -770,7 +770,7 @@ namespace slib
 		return getLoginUrl(param);
 	}
 	
-	void OAuth2::requestAccessToken(HashMap<String, Variant>& params, const Function<void(OAuthAccessTokenResult&)>& onComplete)
+	void OAuth2::requestAccessToken(VariantMap& params, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
 		if (m_clientId.isEmpty() || m_clientSecret.isEmpty()) {
 			OAuthAccessTokenResult result;
@@ -810,7 +810,7 @@ namespace slib
 	
 	void OAuth2::requestAccessTokenFromCode(const String& code, const String& redirectUri, const String& codeVerifier, const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
-		HashMap<String, Variant> params;
+		VariantMap params;
 		params.put_NoLock("grant_type", "authorization_code");
 		params.put_NoLock("code", code);
 		if (redirectUri.isNotEmpty()) {
@@ -847,7 +847,7 @@ namespace slib
 	
 	void OAuth2::requestAccessTokenFromClientCredentials(const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
-		HashMap<String, Variant> params;
+		VariantMap params;
 		params.put_NoLock("grant_type", "client_credentials");
 		if (scopes.isNotNull()) {
 			String s = String::join(scopes, " ").trim();
@@ -865,7 +865,7 @@ namespace slib
 	
 	void OAuth2::requestAccessTokenFromUserPassword(const String& username, const String& password, const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
-		HashMap<String, Variant> params;
+		VariantMap params;
 		params.put_NoLock("grant_type", "password");
 		params.put_NoLock("username", username);
 		params.put_NoLock("password", password);
@@ -885,7 +885,7 @@ namespace slib
 	
 	void OAuth2::refreshAccessToken(const String& refreshToken, const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
-		HashMap<String, Variant> params;
+		VariantMap params;
 		params.put_NoLock("grant_type", "refresh_token");
 		params.put_NoLock("refresh_token", refreshToken);
 		if (scopes.isNotNull()) {

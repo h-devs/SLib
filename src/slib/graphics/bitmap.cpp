@@ -35,6 +35,7 @@ namespace slib
 	{
 	}
 
+
 	SLIB_DEFINE_OBJECT(Bitmap, Drawable)
 
 	Bitmap::Bitmap()

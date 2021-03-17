@@ -31,8 +31,7 @@ namespace slib
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ImageDesc)
 
-	ImageDesc::ImageDesc()
-	: width(0), height(0), stride(0), colors(sl_null)
+	ImageDesc::ImageDesc(): width(0), height(0), stride(0), colors(sl_null)
 	{
 	}
 	

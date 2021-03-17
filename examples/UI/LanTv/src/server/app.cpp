@@ -2,8 +2,6 @@
 
 #include "../common.h"
 
-SLIB_DEFINE_APPLICATION(LanTvServerApp)
-
 LanTvServerApp::LanTvServerApp()
 {
 }

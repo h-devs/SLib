@@ -630,10 +630,6 @@ namespace slib
 	}
 	
 	
-/***********************************************************************
-							HttpRequest
-***********************************************************************/
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(HttpRequest)
 	
 	HttpRequest::HttpRequest()
@@ -1417,7 +1413,7 @@ namespace slib
 		}
 	}
 	
-	sl_bool HttpRequest::buildMultipartFormData(MemoryBuffer& output, const String& _boundary, HashMap<String, Variant>& parameters)
+	sl_bool HttpRequest::buildMultipartFormData(MemoryBuffer& output, const String& _boundary, VariantMap& parameters)
 	{
 		Memory boundary = _boundary.toMemory();
 		
@@ -1430,15 +1426,17 @@ namespace slib
 			HttpHeaderMap const* headers = sl_null;
 			Memory memData;
 
-			Ref<Referable> ref = value.getObject();
-			if (ref.isNotNull()) {
-				if (IsInstanceOf<CMemory>(ref)) {
-					memData = (CMemory*)(ref.get());
-				} else if (IsInstanceOf<HttpUploadFile>(ref)) {
-					HttpUploadFile* file = (HttpUploadFile*)(ref.get());
-					memData = file->getDataMemory();
-					fileName = HttpHeaderHelper::makeSafeValue(file->getFileName());
-					headers = &(file->getHeaders());
+			if (value.isRef()) {
+				if (value.isMemory()) {
+					memData = value.getMemory();
+				} else {
+					Ref<Referable> ref = value.getRef();
+					if (IsInstanceOf<HttpUploadFile>(ref)) {
+						HttpUploadFile* file = (HttpUploadFile*)(ref.get());
+						memData = file->getDataMemory();
+						fileName = HttpHeaderHelper::makeSafeValue(file->getFileName());
+						headers = &(file->getHeaders());
+					}
 				}
 			} else {
 				memData = value.getString().toMemory();
@@ -1491,18 +1489,15 @@ namespace slib
 		return sl_true;
 	}
 
-	Memory HttpRequest::buildMultipartFormData(const String& boundary, const HashMap<String, Variant>& parameters)
+	Memory HttpRequest::buildMultipartFormData(const String& boundary, const VariantMap& parameters)
 	{
 		MemoryBuffer buf;
-		if (buildMultipartFormData(buf, boundary, *((HashMap<String, Variant>*)&parameters))) {
+		if (buildMultipartFormData(buf, boundary, *((VariantMap*)&parameters))) {
 			return buf.merge();
 		}
 		return sl_null;
 	}
 
-/***********************************************************************
-							HttpResponse
-***********************************************************************/
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(HttpResponse)
 	

@@ -62,8 +62,7 @@ namespace slib
 	
 	SLIB_DEFINE_OBJECT(TextItem, Object)
 
-	TextItem::TextItem(TextItemType type) noexcept
-	 : m_type(type), m_layoutPosition(0, 0), m_layoutSize(0, 0)
+	TextItem::TextItem(TextItemType type) noexcept: m_type(type), m_layoutPosition(0, 0), m_layoutSize(0, 0)
 	{
 	}
 

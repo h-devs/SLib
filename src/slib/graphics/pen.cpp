@@ -41,7 +41,7 @@ namespace slib
 	}
 
 	
-	SLIB_DEFINE_OBJECT(Pen, Object)
+	SLIB_DEFINE_ROOT_OBJECT(Pen)
 
 	Pen::Pen()
 	{

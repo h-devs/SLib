@@ -77,14 +77,14 @@ namespace slib
 							case REDIS_REPLY_STATUS:
 								return String(reply->str);
 							case REDIS_REPLY_ARRAY:
-							{
-								VariantList list;
-								for (size_t i = 0; i < reply->elements; i++) {
-									list.add(_parseReply(reply->element[i]));
+								{
+									List<Variant> list;
+									for (size_t i = 0; i < reply->elements; i++) {
+										list.add(_parseReply(reply->element[i]));
+									}
+									return list;
 								}
-								return list;
-							}
-							case REDIS_REPLY_ERROR:
+								case REDIS_REPLY_ERROR:
 								processError(reply->str);
 								break;
 						}
@@ -152,7 +152,7 @@ namespace slib
 					}
 				}
 				
-				sl_bool _processListReply(redisReply* reply, VariantList* pValue)
+				sl_bool _processListReply(redisReply* reply, List<Variant>* pValue)
 				{
 					Variant out;
 					if (pValue) {

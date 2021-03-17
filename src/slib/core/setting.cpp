@@ -27,8 +27,6 @@
 namespace slib
 {
 
-	SLIB_DEFINE_OBJECT(IniSetting, Object)
-
 	IniSetting::IniSetting()
 	{
 	}

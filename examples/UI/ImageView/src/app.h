@@ -28,7 +28,7 @@ using namespace slib;
 
 class ExampleImageViewApp : public MobileApp
 {
-	SLIB_DECLARE_APPLICATION(ExampleImageViewApp)
+	SLIB_APPLICATION(ExampleImageViewApp)
 public:
 	ExampleImageViewApp();
 	

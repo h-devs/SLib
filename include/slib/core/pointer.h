@@ -25,6 +25,8 @@
 
 #include "definition.h"
 
+#include "default_members.h"
+
 #define PRIV_SLIB_DEFINE_POINTER_COMMON_FUNCTIONS \
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Pointer) \
 	public: \

@@ -52,7 +52,8 @@
 #include "../core/content_type.h"
 #include "../core/hash_map.h"
 #include "../core/string_buffer.h"
-#include "../core/cast.h"
+#include "../core/string_cast.h"
+#include "../core/variant_def.h"
 
 namespace slib
 {
@@ -566,9 +567,9 @@ namespace slib
 			return sb.merge();
 		}
 		
-		static sl_bool buildMultipartFormData(MemoryBuffer& output, const String& boundary, HashMap<String, Variant>& parameters);
+		static sl_bool buildMultipartFormData(MemoryBuffer& output, const String& boundary, VariantMap& parameters);
 		
-		static Memory buildMultipartFormData(const String& boundary, const HashMap<String, Variant>& parameters);
+		static Memory buildMultipartFormData(const String& boundary, const VariantMap& parameters);
 		
 	protected:
 		HttpMethod m_method;

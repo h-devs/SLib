@@ -33,18 +33,15 @@
 namespace slib
 {
 
-	Mutex::Mutex() noexcept
-	 : m_object(sl_null)
+	Mutex::Mutex() noexcept: m_object(sl_null)
 	{
 	}
 
-	Mutex::Mutex(const Mutex& other) noexcept
-	 : m_object(sl_null)
+	Mutex::Mutex(const Mutex& other) noexcept: m_object(sl_null)
 	{
 	}
 	
-	Mutex::Mutex(Mutex&& other) noexcept
-	 : m_object(sl_null)
+	Mutex::Mutex(Mutex&& other) noexcept: m_object(sl_null)
 	{
 	}
 

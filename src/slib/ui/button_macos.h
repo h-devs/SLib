@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_UI_BUTTON_MACOS
 #define CHECKHEADER_SLIB_UI_BUTTON_MACOS
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_MACOS)
 

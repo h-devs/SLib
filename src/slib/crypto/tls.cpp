@@ -29,8 +29,7 @@ namespace slib
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TlsContextParam)
 
-	TlsContextParam::TlsContextParam()
-	 : flagVerify(sl_false)
+	TlsContextParam::TlsContextParam(): flagVerify(sl_false)
 	{
 	}
 	
@@ -74,13 +73,14 @@ namespace slib
 		setPrivateKey(serverName, File::readAllBytes(path_PEM));
 	}
 	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TlsStreamResult)
 	
-	TlsStreamResult::TlsStreamResult(AsyncStream* _stream)
-	 : stream(_stream), flagError(sl_true)
+	TlsStreamResult::TlsStreamResult(AsyncStream* _stream): stream(_stream), flagError(sl_true)
 	{
 	}
 	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TlsStreamParam)
 	
 	TlsStreamParam::TlsStreamParam():
@@ -90,6 +90,7 @@ namespace slib
 	{
 	}
 	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TlsConnectStreamParam)
 
 	TlsConnectStreamParam::TlsConnectStreamParam()
@@ -97,6 +98,7 @@ namespace slib
 		readingBufferSize = 0x100000;
 		writingBufferSize = 0x20000;
 	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TlsAcceptStreamParam)
 	
@@ -106,6 +108,7 @@ namespace slib
 		writingBufferSize = 0x80000;
 	}
 	
+
 	SLIB_DEFINE_OBJECT(TlsContext, Object)
 	
 	TlsContext::TlsContext()
@@ -115,6 +118,7 @@ namespace slib
 	TlsContext::~TlsContext()
 	{
 	}
+	
 	
 	SLIB_DEFINE_OBJECT(TlsAsyncStream, AsyncStream)
 	

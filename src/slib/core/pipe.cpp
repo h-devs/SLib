@@ -85,10 +85,6 @@ namespace slib
 	}
 
 
-/********************************************
-				PipeEvent
-********************************************/
-
 	PipeEvent::PipeEvent()
 	{
 		m_flagSet = sl_false;

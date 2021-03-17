@@ -28,7 +28,7 @@ using namespace slib;
 
 class ExampleChromiumViewApp : public MobileApp
 {
-	SLIB_DECLARE_APPLICATION(ExampleChromiumViewApp)
+	SLIB_APPLICATION(ExampleChromiumViewApp)
 public:
 	ExampleChromiumViewApp();
 	

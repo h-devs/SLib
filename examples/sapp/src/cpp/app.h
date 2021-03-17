@@ -28,7 +28,7 @@ using namespace slib;
 
 class SAppExampleApp : public MobileApp
 {
-	SLIB_DECLARE_APPLICATION(SAppExampleApp)
+	SLIB_APPLICATION(SAppExampleApp)
 public:
 	SAppExampleApp();
 	

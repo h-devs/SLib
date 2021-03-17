@@ -32,7 +32,7 @@ namespace slib
 		namespace image
 		{
 
-			class CanvasImpl : public CanvasExt
+			class ImageCanvasImpl : public CanvasExt
 			{
 				SLIB_DECLARE_OBJECT
 
@@ -40,13 +40,13 @@ namespace slib
 				Ref<Image> image;
 
 			public:
-				CanvasImpl(Image* _image) : image(_image)
+				ImageCanvasImpl(Image* _image) : image(_image)
 				{
 					setType(CanvasType::Image);
 					setSize(Size((sl_real)(_image->getWidth()), (sl_real)(_image->getHeight())));
 				}
 
-				~CanvasImpl()
+				~ImageCanvasImpl()
 				{
 				}
 
@@ -277,7 +277,7 @@ namespace slib
 
 			};
 
-			SLIB_DEFINE_OBJECT(CanvasImpl, CanvasExt)
+			SLIB_DEFINE_OBJECT(ImageCanvasImpl, CanvasExt)
 
 		}
 	}
@@ -286,7 +286,7 @@ namespace slib
 
 	Ref<Canvas> Image::getCanvas()
 	{
-		return new CanvasImpl(this);
+		return new ImageCanvasImpl(this);
 	}
 
 }

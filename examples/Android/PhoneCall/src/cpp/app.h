@@ -9,7 +9,7 @@ using namespace sapp;
 
 class PhoneCallApp : public MobileApp
 {
-	SLIB_DECLARE_APPLICATION(PhoneCallApp)
+	SLIB_APPLICATION(PhoneCallApp)
 public:
 	PhoneCallApp();
 	

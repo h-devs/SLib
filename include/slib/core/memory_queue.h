@@ -29,7 +29,7 @@
 namespace slib
 {
 	
-	class SLIB_EXPORT MemoryQueue : public Object
+	class SLIB_EXPORT MemoryQueue : public Referable, public Lockable
 	{
 		SLIB_DECLARE_OBJECT
 

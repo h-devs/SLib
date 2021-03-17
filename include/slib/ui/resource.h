@@ -163,7 +163,6 @@ namespace slib
 #define SLIB_DECLARE_UILAYOUT_BEGIN(NAME, BASE_CLASS) \
 	class NAME : public BASE_CLASS \
 	{ \
-		SLIB_DECLARE_OBJECT \
 	public: \
 		NAME(); \
 	protected: \
@@ -176,7 +175,6 @@ namespace slib
 	};
 	
 #define SLIB_DEFINE_UILAYOUT(NAME, BASE_CLASS) \
-	SLIB_DEFINE_OBJECT(NAME, BASE_CLASS) \
 	NAME::NAME() {} \
 	void NAME::init() \
 	{ \

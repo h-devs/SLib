@@ -119,9 +119,9 @@ namespace slib
 					return m_mapColumnIndexes.getValue_NoLock(name.toString(), -1);
 				}
 
-				HashMap<String, Variant> getRow() override
+				VariantMap getRow() override
 				{
-					HashMap<String, Variant> ret;
+					VariantMap ret;
 					if (m_nColumnNames > 0) {
 						for (sl_uint32 index = 0; index < m_nColumnNames; index++) {
 							ret.put_NoLock(m_columnNames[index], _getValue(index));

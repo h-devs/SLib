@@ -132,11 +132,11 @@ namespace slib
 		return ret;
 	}
 	
-	List< HashMap<String, Variant> > Database::getRecordsBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
+	List<VariantMap> Database::getRecordsBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
 	{
 		Ref<DatabaseCursor> cursor = queryBy(sql, params, nParams);
 		if (cursor.isNotNull()) {
-			List< HashMap<String, Variant> > ret;
+			List<VariantMap> ret;
 			while (cursor->moveNext()) {
 				ret.add_NoLock(cursor->getRow());
 			}
@@ -145,11 +145,11 @@ namespace slib
 		return sl_null;
 	}
 
-	List< HashMap<String, Variant> > Database::getRecords(const StringParam& sql)
+	List<VariantMap> Database::getRecords(const StringParam& sql)
 	{
 		Ref<DatabaseCursor> cursor = query(sql);
 		if (cursor.isNotNull()) {
-			List< HashMap<String, Variant> > ret;
+			List<VariantMap> ret;
 			while (cursor->moveNext()) {
 				ret.add_NoLock(cursor->getRow());
 			}
@@ -158,7 +158,7 @@ namespace slib
 		return sl_null;
 	}
 	
-	HashMap<String, Variant> Database::getRecordBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
+	VariantMap Database::getRecordBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
 	{
 		Ref<DatabaseCursor> cursor = queryBy(sql, params, nParams);
 		if (cursor.isNotNull()) {
@@ -169,7 +169,7 @@ namespace slib
 		return sl_null;
 	}
 
-	HashMap<String, Variant> Database::getRecord(const StringParam& sql)
+	VariantMap Database::getRecord(const StringParam& sql)
 	{
 		Ref<DatabaseCursor> cursor = query(sql);
 		if (cursor.isNotNull()) {
@@ -345,7 +345,7 @@ namespace slib
 		return prepareStatement(sql);
 	}
 
-	List< HashMap<String, Variant> > Database::findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where)
+	List<VariantMap> Database::findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where)
 	{
 		Ref<DatabaseStatement> stmt = prepareQuery(table, where);
 		if (stmt.isNotNull()) {
@@ -354,7 +354,7 @@ namespace slib
 		return sl_null;
 	}
 
-	HashMap<String, Variant> Database::findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where)
+	VariantMap Database::findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where)
 	{
 		Ref<DatabaseStatement> stmt = prepareQuery(table, where);
 		if (stmt.isNotNull()) {
@@ -400,7 +400,7 @@ namespace slib
 	void Database::_logSQL(const StringParam& sql, const Variant* params, sl_uint32 nParams)
 	{
 		if (m_flagLogSQL) {
-			Log((char*)(getObjectType()), "SQL: %s Params=%s", sql, Variant(VariantList(params, nParams)).toJsonString());
+			Log((char*)(getObjectType()), "SQL: %s Params=%s", sql, Variant(List<Variant>(params, nParams)).toJsonString());
 		}
 	}
 	
@@ -414,7 +414,7 @@ namespace slib
 	void Database::_logError(const StringParam& sql, const Variant* params, sl_uint32 nParams)
 	{
 		if (m_flagLogErrors) {
-			LogError((char*)(getObjectType()), "Error: %s, SQL: %s Params=%s", getErrorMessage(), sql, Variant(VariantList(params, nParams)).toJsonString());
+			LogError((char*)(getObjectType()), "Error: %s, SQL: %s Params=%s", getErrorMessage(), sql, Variant(List<Variant>(params, nParams)).toJsonString());
 		}
 	}
 

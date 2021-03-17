@@ -6,7 +6,7 @@ using namespace slib;
 
 class SpectrogramApp : public UIApp
 {
-	SLIB_DECLARE_APPLICATION(SpectrogramApp)
+	SLIB_APPLICATION(SpectrogramApp)
 public:
 	SpectrogramApp();
 	

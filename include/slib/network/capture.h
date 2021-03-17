@@ -35,6 +35,7 @@
 #include "constants.h"
 #include "ip_address.h"
 
+#include "../core/object.h"
 #include "../core/time.h"
 #include "../core/function.h"
 

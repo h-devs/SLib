@@ -28,7 +28,7 @@ using namespace slib;
 
 class FFmpegPlayerApp : public MobileApp
 {
-	SLIB_DECLARE_APPLICATION(FFmpegPlayerApp)
+	SLIB_APPLICATION(FFmpegPlayerApp)
 public:
 	FFmpegPlayerApp();
 	

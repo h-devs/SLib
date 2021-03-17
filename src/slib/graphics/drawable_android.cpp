@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_ANDROID)
 
@@ -46,26 +46,25 @@ namespace slib
 				SLIB_JNI_STATIC_METHOD(returnArrayBuffer, "returnArrayBuffer", "([I)V");
 			SLIB_JNI_END_CLASS
 
-			class ImageDrawable : public Drawable
+			class ImageDrawableImpl : public Drawable
 			{
 				SLIB_DECLARE_OBJECT
 			public:
 				ImageDesc m_image;
 
 			public:
-				static Ref<ImageDrawable> create(const ImageDesc& image)
+				static Ref<ImageDrawableImpl> create(const ImageDesc& image)
 				{
-					Ref<ImageDrawable> ret;
 					sl_uint32 width = image.width;
 					sl_uint32 height = image.height;
 					if (width > 0 && height > 0) {
-						ret = new ImageDrawable();
+						Ref<ImageDrawableImpl> ret = new ImageDrawableImpl();
 						if (ret.isNotNull()) {
 							ret->m_image = image;
 							return ret;
 						}
 					}
-					return ret;
+					return sl_null;
 				}
 
 				void onDraw(Canvas* canvas, const Rectangle& _rectDst, const Rectangle& _rectSrc, const DrawParam& param) override
@@ -204,7 +203,7 @@ namespace slib
 				}
 			};
 
-			SLIB_DEFINE_OBJECT(ImageDrawable, Drawable);
+			SLIB_DEFINE_OBJECT(ImageDrawableImpl, Drawable);
 
 		}
 	}
@@ -213,7 +212,6 @@ namespace slib
 
 	Ref<Drawable> PlatformDrawable::create(const ImageDesc& desc)
 	{
-		//return ImageDrawable::create(desc);
 		sl_uint32 widthScreen = GraphicsResource::getScreenWidth();
 		sl_uint32 heightScreen = GraphicsResource::getScreenHeight();
 		if (widthScreen > 0 && heightScreen > 0) {

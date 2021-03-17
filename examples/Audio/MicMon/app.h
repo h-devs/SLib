@@ -6,7 +6,7 @@ using namespace slib;
 
 class MicMonApp : public UIApp
 {
-	SLIB_DECLARE_APPLICATION(MicMonApp)
+	SLIB_APPLICATION(MicMonApp)
 public:
 	MicMonApp();
 	

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,15 +24,21 @@
 #define CHECKHEADER_SLIB_CORE_OBJECT
 
 #include "ref.h"
-#include "mutex.h"
+#include "lockable.h"
 
 namespace slib
 {
-	
+
+	class StringParam;
 	class Variant;
-	class String;
-	
-	class SLIB_EXPORT Object : public Referable
+
+	template <class T>
+	class Function;
+
+	template <class T>
+	class List;
+
+	class SLIB_EXPORT Object : public Referable, public Lockable
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -46,63 +52,29 @@ namespace slib
 		~Object() noexcept;
 
 	public:
-		Mutex* getLocker() const noexcept;
+		virtual Variant getProperty(const StringParam& name) const;
 
-		void lock() const noexcept;
-	
-		void unlock() const noexcept;
-	
-		sl_bool tryLock() const noexcept;
-		
-		Variant getProperty(const String& name) noexcept;
-		
-		void setProperty(const String& name, const Variant& value) noexcept;
-		
-		void clearProperty(const String& name) noexcept;
-		
+		virtual sl_bool setProperty(const StringParam& name, const Variant& value);
+
+		virtual sl_bool clearProperty(const StringParam& name);
+
+		virtual sl_bool enumerateProperties(const Function<sl_bool(const StringParam& name, const Variant& value)>& callback) const;
+
+		virtual List<String> getPropertyNames() const;
+
+	public:
+		sl_bool toJsonString(StringBuffer& buf) override;
+
 	public:
 		Object& operator=(const Object& other) = delete;
 		
 		Object& operator=(Object&& other) = delete;
 	
 	private:
-		Mutex m_locker;
 		void* m_properties;
 
 	};
 	
-	class SLIB_EXPORT ObjectLocker : public MutexLocker
-	{
-	public:
-		ObjectLocker() noexcept;
-
-		ObjectLocker(const Object* object) noexcept;
-		
-		~ObjectLocker() noexcept;
-
-	public:
-		void lock(const Object* object) noexcept;
-
-	};
-
-	class SLIB_EXPORT MultipleObjectsLocker : public MultipleMutexLocker
-	{
-	public:
-		MultipleObjectsLocker() noexcept;
-		
-		MultipleObjectsLocker(const Object* object) noexcept;
-		
-		MultipleObjectsLocker(const Object* object1, const Object* object2) noexcept;
-		
-		~MultipleObjectsLocker() noexcept;
-		
-	public:
-		void lock(const Object* object) noexcept;
-		
-		void lock(const Object* object1, const Object* object2) noexcept;
-		
-	};
-
 }
 
 #endif

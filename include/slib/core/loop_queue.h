@@ -23,20 +23,21 @@
 #ifndef CHECKHEADER_SLIB_CORE_LOOP_QUEUE
 #define CHECKHEADER_SLIB_CORE_LOOP_QUEUE
 
-#include "object.h"
+#include "ref.h"
+#include "lockable.h"
 #include "new_helper.h"
 
 namespace slib
 {
 	
-	class SLIB_EXPORT LoopQueueBase : public Object
+	class SLIB_EXPORT LoopQueueBase : public Referable, public Lockable
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		LoopQueueBase() noexcept;
+		LoopQueueBase();
 
-		~LoopQueueBase() noexcept;
+		~LoopQueueBase();
 
 	};
 	

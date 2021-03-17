@@ -23,6 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_APP
 #define CHECKHEADER_SLIB_CORE_APP
 
+#include "object.h"
 #include "string.h"
 #include "function.h"
 #include "flags.h"
@@ -227,46 +228,37 @@ namespace slib
 	
 }
 
-
-#define SLIB_DECLARE_APPLICATION(CLASS) \
+#define SLIB_APPLICATION(CLASS) \
 public: \
-	static int main(const slib::String& commandLine); \
-	static int main(int argc, const char * argv[]); \
-	static int main(int argc, char** argv); \
-	static int main(); \
-	static slib::Ref<CLASS> getApp();
-
-
-#define SLIB_DEFINE_APPLICATION(CLASS) \
-	int CLASS::main(const slib::String& commandLine) { \
+	static int main(const slib::String& commandLine) { \
 		slib::Ref<CLASS> app = new CLASS; \
 		if (app.isNotNull()) { \
 			return (int)(app->run(commandLine)); \
 		} \
 		return -1; \
 	} \
-	int CLASS::main(int argc, const char * argv[]) { \
+	static int main(int argc, const char * argv[]) { \
 		slib::Ref<CLASS> app = new CLASS; \
 		if (app.isNotNull()) { \
 			return (int)(app->run(argc, argv)); \
 		} \
 		return -1; \
 	} \
-	int CLASS::main(int argc, char** argv) { \
+	static int main(int argc, char** argv) { \
 		slib::Ref<CLASS> app = new CLASS; \
 		if (app.isNotNull()) { \
 			return (int)(app->run(argc, (const char**)argv)); \
 		} \
 		return -1; \
 	} \
-	int CLASS::main() { \
+	static int main() { \
 		slib::Ref<CLASS> app = new CLASS; \
 		if (app.isNotNull()) { \
 			return (int)(app->run()); \
 		} \
 		return -1; \
 	} \
-	slib::Ref<CLASS> CLASS::getApp() { \
+	static slib::Ref<CLASS> getApp() { \
 		return slib::CastRef<CLASS>(slib::Application::getApp()); \
 	}
 

@@ -97,7 +97,7 @@ namespace slib
 		return m_requestBody.getSize();
 	}
 	
-	HashMap<String, Variant> UrlRequest::getParameters()
+	VariantMap UrlRequest::getParameters()
 	{
 		return m_parameters;
 	}

@@ -25,9 +25,6 @@
 #include "slib/core/math.h"
 #include "slib/core/mio.h"
 
-/*************************************
-			Uint128
-**************************************/
 
 namespace slib
 {

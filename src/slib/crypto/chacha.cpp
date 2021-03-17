@@ -149,26 +149,52 @@ namespace slib
 	ChaCha20_Core::ChaCha20_Core()
 	{
 	}
+
+	ChaCha20_Core::ChaCha20_Core(const ChaCha20_Core& other)
+	{
+		_copy(other);
+	}
 	
 	ChaCha20_Core::~ChaCha20_Core()
 	{
 	}
-	
+
+	ChaCha20_Core& ChaCha20_Core::operator=(const ChaCha20_Core& other)
+	{
+		_copy(other);
+		return *this;
+	}
+
+	void ChaCha20_Core::_copy(const ChaCha20_Core& other)
+	{
+		Base::copyMemory(m_key, other.m_key, sizeof(m_key));
+		if (other.m_constants == other.m_arrConstants) {
+			Base::copyMemory(m_arrConstants, other.m_arrConstants, sizeof(m_arrConstants));
+			m_constants = m_arrConstants;
+		} else {
+			m_constants = other.m_constants;
+		}
+	}
+
+	sl_bool ChaCha20_Core::setKey(const void* _key, sl_uint32 n)
+	{
+		switch (n) {
+		case 16:
+			setKey16(_key);
+			return sl_true;
+		case 32:
+			setKey32(_key);
+			return sl_true;
+		case 48:
+			setKey48(_key);
+			return sl_true;
+		}
+		return sl_false;
+	}
+
 	void ChaCha20_Core::setKey(const void* _key)
 	{
-		static sl_uint32 constants[4] = {
-			U8TO32_LITTLE('e', 'x', 'p', 'a'),
-			U8TO32_LITTLE('n', 'd', ' ', '3'),
-			U8TO32_LITTLE('2', '-', 'b', 'y'),
-			U8TO32_LITTLE('t', 'e', ' ', 'k')
-		};
-		m_constants = constants;
-		const sl_uint8* key = (const sl_uint8*)_key;
-		sl_uint32* k = m_key;
-		for (sl_uint32 i = 0; i < 8; i++) {
-			k[i] = U8TO32_LITTLE(*key, key[1], key[2], key[3]);
-			key += 4;
-		}
+		setKey32(_key);
 	}
 
 	void ChaCha20_Core::setKey16(const void* _key)
@@ -184,6 +210,23 @@ namespace slib
 		sl_uint32* k = m_key;
 		for (sl_uint32 i = 0; i < 4; i++) {
 			k[i + 4] = k[i] = U8TO32_LITTLE(*key, key[1], key[2], key[3]);
+			key += 4;
+		}
+	}
+
+	void ChaCha20_Core::setKey32(const void* _key)
+	{
+		static sl_uint32 constants[4] = {
+			U8TO32_LITTLE('e', 'x', 'p', 'a'),
+			U8TO32_LITTLE('n', 'd', ' ', '3'),
+			U8TO32_LITTLE('2', '-', 'b', 'y'),
+			U8TO32_LITTLE('t', 'e', ' ', 'k')
+		};
+		m_constants = constants;
+		const sl_uint8* key = (const sl_uint8*)_key;
+		sl_uint32* k = m_key;
+		for (sl_uint32 i = 0; i < 8; i++) {
+			k[i] = U8TO32_LITTLE(*key, key[1], key[2], key[3]);
 			key += 4;
 		}
 	}

@@ -38,10 +38,6 @@
 namespace slib
 {
 
-/**********************************************
-			HttpServerContext
-**********************************************/
-
 	SLIB_DEFINE_OBJECT(HttpServerContext, Object)
 
 	HttpServerContext::HttpServerContext()
@@ -198,9 +194,7 @@ namespace slib
 		m_flagKeepAlive = flag;
 	}
 
-/******************************************************
-			HttpServerConnection
-******************************************************/
+
 #define SIZE_READ_BUF 0x10000
 #define SIZE_COPY_BUF 0x10000
 	
@@ -618,10 +612,7 @@ namespace slib
 		sendResponseAndClose(Memory::createStatic(s, sizeof(s) - 1));
 	}
 
-/******************************************************
-			HttpServerConnectionProvider
-******************************************************/
-	
+
 	SLIB_DEFINE_OBJECT(HttpServerConnectionProvider, Object)
 
 	HttpServerConnectionProvider::HttpServerConnectionProvider()
@@ -719,9 +710,6 @@ namespace slib
 		}
 	}
 	
-/******************************************************
-					HttpServer
-******************************************************/
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(HttpServerRoute)
 
@@ -1336,37 +1324,42 @@ namespace slib
 			}
 		} else {
 			flagProcessed = sl_true;
-			if (response.isString()) {
-				if (context->getResponseContentType().isNull()) {
-					context->setResponseContentType(ContentType::TextHtml_Utf8);
-				}
-				context->write(response.getString());
-			} else {
-				Ref<Referable> ref = response.getObject();
-				if (ref.isNotNull()) {
-					if (IsInstanceOf<CMemory>(ref)) {
-						if (context->getResponseContentType().isNull()) {
-							context->setResponseContentType(ContentType::OctetStream);
-						}
-						context->write(Memory((CMemory*)(ref.get())));
-					} else if (IsInstanceOf<XmlDocument>(ref)) {
-						if (context->getResponseContentType().isNull()) {
-							context->setResponseContentType(ContentType::TextXml);
-						}
-						context->write(((XmlDocument*)(ref.get()))->toString());
-					} else if (response.isVariantList() || response.isVariantMapOrVariantHashMap() || response.isVariantMapListOrVariantHashMapList()) {
-						if (context->getResponseContentType().isNull()) {
-							context->setResponseContentType(ContentType::Json);
-						}
-						context->write(Json(response).toJsonString());
-					}
-				} else {
+			do {
+				if (response.isString()) {
 					if (context->getResponseContentType().isNull()) {
 						context->setResponseContentType(ContentType::TextHtml_Utf8);
 					}
 					context->write(response.getString());
+					break;
+				} else if (response.isRef()) {
+					if (response.isMemory()) {
+						if (context->getResponseContentType().isNull()) {
+							context->setResponseContentType(ContentType::OctetStream);
+						}
+						context->write(response.getMemory());
+						break;
+					} else if (response.isObject() || response.isCollection()) {
+						if (context->getResponseContentType().isNull()) {
+							context->setResponseContentType(ContentType::Json);
+						}
+						context->write(Json(response).toJsonString());
+						break;
+					} else {
+						Ref<Referable> ref = response.getRef();
+						if (IsInstanceOf<XmlDocument>(ref)) {
+							if (context->getResponseContentType().isNull()) {
+								context->setResponseContentType(ContentType::TextXml);
+							}
+							context->write(((XmlDocument*)(ref.get()))->toString());
+							break;
+						}
+					}
 				}
-			}
+				if (context->getResponseContentType().isNull()) {
+					context->setResponseContentType(ContentType::TextHtml_Utf8);
+				}
+				context->write(response.toString());
+			} while (0);
 		}
 		if (!flagProcessed) {
 			flagProcessed = sl_true;

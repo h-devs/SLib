@@ -26,7 +26,6 @@
 #include "slib/graphics/bitmap.h"
 #include "slib/graphics/image.h"
 #include "slib/graphics/util.h"
-
 #include "slib/core/safe_static.h"
 
 namespace slib

@@ -1,7 +1,5 @@
 #include "app.h"
 
-SLIB_DEFINE_APPLICATION(SpectrogramApp)
-
 #define BITMAP_WIDTH 1024
 #define BITMAP_HEIGHT 256
 #define FRAME_SIZE (BITMAP_HEIGHT*4)

@@ -1339,13 +1339,13 @@ namespace slib
 		m_comment = String::from(comment);
 	}
 
-	
+
 	SLIB_DEFINE_OBJECT(XmlWhiteSpace, XmlNode)
 
 	XmlWhiteSpace::XmlWhiteSpace() : XmlNode(XmlNodeType::WhiteSpace)
 	{
 	}
-	
+
 	XmlWhiteSpace::~XmlWhiteSpace()
 	{
 	}

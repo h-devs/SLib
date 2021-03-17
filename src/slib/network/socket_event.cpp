@@ -26,6 +26,7 @@
 
 namespace slib
 {
+
 	SLIB_DEFINE_OBJECT(SocketEvent, Event)
 	
 	SocketEvent::SocketEvent()

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -66,10 +66,8 @@ namespace slib
 #endif
 		
 		template <class KEY, class... VALUE_ARGS>
-		MapNode(KEY&& _key, VALUE_ARGS&&... value_args) noexcept
-		: key(Forward<KEY>(_key)), value(Forward<VALUE_ARGS>(value_args)...),
-		parent(sl_null), left(sl_null), right(sl_null), flagRed(sl_false)
-		{}
+		MapNode(KEY&& _key, VALUE_ARGS&&... value_args) noexcept: key(Forward<KEY>(_key)), value(Forward<VALUE_ARGS>(value_args)...),
+		parent(sl_null), left(sl_null), right(sl_null), flagRed(sl_false) {}
 		
 	public:
 		MapNode* getNext() const noexcept
@@ -84,19 +82,20 @@ namespace slib
 		
 	};
 	
-	namespace priv
+	class SLIB_EXPORT CMapBase : public Referable, public Lockable
 	{
-		namespace map
-		{
-			extern const char g_classID[];
-		}
-	}
-	
+		SLIB_DECLARE_OBJECT
+
+	public:
+		CMapBase();
+
+		~CMapBase();
+
+	};
+
 	template < class KT, class VT, class KEY_COMPARE = Compare<KT> >
-	class SLIB_EXPORT CMap : public Object
+	class SLIB_EXPORT CMap : public CMapBase
 	{
-		SLIB_TEMPLATE_OBJECT(Object, priv::map::g_classID)
-		
 	public:
 		typedef KT KEY_TYPE;
 		typedef VT VALUE_TYPE;
@@ -109,13 +108,9 @@ namespace slib
 		KEY_COMPARE m_compare;
 		
 	public:
-		CMap() noexcept
-		: m_root(sl_null), m_count(0)
-		{}
+		CMap() noexcept: m_root(sl_null), m_count(0) {}
 
-		CMap(const KEY_COMPARE& compare) noexcept
-		: m_root(sl_null), m_count(0), m_compare(compare)
-		{}
+		CMap(const KEY_COMPARE& compare) noexcept: m_root(sl_null), m_count(0), m_compare(compare) {}
 		
 		~CMap() noexcept
 		{
@@ -132,8 +127,7 @@ namespace slib
 		
 		CMap& operator=(const CMap& other) = delete;
 		
-		CMap(CMap&& other) noexcept
-		: m_root(other.m_root), m_count(other.m_count), m_compare(Move(other.m_compare))
+		CMap(CMap&& other) noexcept: m_root(other.m_root), m_count(other.m_count), m_compare(Move(other.m_compare))
 		{
 			other.m_root = sl_null;
 			other.m_count = 0;
@@ -154,8 +148,7 @@ namespace slib
 		}
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
-		CMap(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
-		: m_compare(compare)
+		CMap(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: m_compare(compare)
 		{
 			m_root = sl_null;
 			m_count = 0;
@@ -827,7 +820,9 @@ namespace slib
 			ObjectLocker lock(this);
 			return toList_NoLock();
 		}
-		
+
+		Ref<Object> toObject() noexcept;
+
 		// range-based for loop
 		POSITION begin() const noexcept
 		{
@@ -838,7 +833,7 @@ namespace slib
 		{
 			return sl_null;
 		}
-				
+
 	public:
 		class EnumLockHelper
 		{
@@ -883,9 +878,7 @@ namespace slib
 		
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Map(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
-		: ref(new CMAP(l, compare))
-		{}
+		Map(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: ref(new CMAP(l, compare)) {}
 #endif
 		
 	public:
@@ -898,7 +891,9 @@ namespace slib
 		{
 			return new CMAP(compare);
 		}
-		
+
+		static Map create(Object* object);
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		static Map create(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
 		{
@@ -1698,6 +1693,24 @@ namespace slib
 			return sl_null;
 		}
 
+		Ref<Object> toObject() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->toObject();
+			}
+			return sl_null;
+		}
+
+		const Mutex* getLocker() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getLocker();
+			}
+			return sl_null;
+		}
+
 		// range-based for loop
 		POSITION begin() const noexcept
 		{
@@ -1712,16 +1725,7 @@ namespace slib
 		{
 			return sl_null;
 		}
-		
-		const Mutex* getLocker() const noexcept
-		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->getLocker();
-			}
-			return sl_null;
-		}
-		
+
 	public:
 		class EnumLockHelper
 		{
@@ -1771,9 +1775,7 @@ namespace slib
 		
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Atomic(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
-		: ref(new CMAP(l, compare))
-		{}
+		Atomic(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: ref(new CMAP(l, compare)) {}
 #endif
 		
 	public:
@@ -2163,6 +2165,15 @@ namespace slib
 			return sl_null;
 		}
 
+		Ref<Object> toObject() const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->toObject();
+			}
+			return sl_null;
+		}
+
 		// range-based for loop
 		POSITION begin() const noexcept
 		{
@@ -2177,7 +2188,7 @@ namespace slib
 		{
 			return sl_null;
 		}
-		
+
 	public:
 		class EnumLockHelper
 		{
@@ -2203,9 +2214,8 @@ namespace slib
 		class EnumHelper
 		{
 		public:
-			EnumHelper(const Map<KT, VT, KEY_COMPARE>& map) noexcept
-			: node(map.getFirstNode()), ref(map.ref)
-			{}
+			EnumHelper(const Map<KT, VT, KEY_COMPARE>& map) noexcept: node(map.getFirstNode()), ref(map.ref) {}
+
 		public:
 			NODE* node;
 			Ref<Referable> ref;

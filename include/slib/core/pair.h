@@ -45,9 +45,7 @@ namespace slib
 		Pair(Pair&& other) = default;
 
 		template <class FIRST, class SECOND>
-		Pair(FIRST&& _first, SECOND&& _second) noexcept
-		 : first(Forward<FIRST>(_first)), second(Forward<SECOND>(_second))
-		{}
+		Pair(FIRST&& _first, SECOND&& _second) noexcept: first(Forward<FIRST>(_first)), second(Forward<SECOND>(_second)) {}
 
 	public:
 		Pair& operator=(const Pair& other)  = default;

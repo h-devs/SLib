@@ -25,9 +25,6 @@
 namespace slib
 {
 
-/***********************************************************************
-						HttpOutputBuffer
-***********************************************************************/
 	HttpOutputBuffer::HttpOutputBuffer()
 	{
 	}
@@ -76,9 +73,7 @@ namespace slib
 		return m_bufferOutput.getOutputLength();
 	}
 
-/***********************************************************************
-						HttpHeaderReader
-***********************************************************************/
+
 	HttpHeaderReader::HttpHeaderReader()
 	{
 		m_last[0] = 0;
@@ -162,9 +157,6 @@ namespace slib
 		m_buffer.clear();
 	}
 
-/***********************************************************************
-						HttpContentReader
-***********************************************************************/
 
 	SLIB_DEFINE_OBJECT(HttpContentReader, AsyncStreamFilter)
 	

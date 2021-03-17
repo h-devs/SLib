@@ -44,6 +44,8 @@ namespace slib
 	}
 
 
+	SLIB_DEFINE_OBJECT(OpusEncoder, AudioEncoder)
+
 	OpusEncoder::OpusEncoder()
 	{
 	}
@@ -282,6 +284,8 @@ namespace slib
 		channelsCount = 1;
 	}
 
+
+	SLIB_DEFINE_OBJECT(OpusDecoder, AudioDecoder)
 
 	OpusDecoder::OpusDecoder()
 	{

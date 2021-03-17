@@ -44,6 +44,7 @@ namespace slib
 	{
 	}
 	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(BrushDesc)
 
 	BrushDesc::BrushDesc()
@@ -51,6 +52,7 @@ namespace slib
 		style = BrushStyle::Solid;
 		color = Color::White;
 	}
+
 
 	SLIB_DEFINE_ROOT_OBJECT(Brush)
 

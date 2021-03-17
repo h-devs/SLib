@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_QUARTZ)
 
@@ -43,7 +43,7 @@ namespace slib
 				ref->decreaseReference();
 			}
 
-			class ImageDrawable : public Drawable
+			class ImageDrawableImpl : public Drawable
 			{
 				SLIB_DECLARE_OBJECT
 				
@@ -54,17 +54,17 @@ namespace slib
 				sl_bool m_flagFlipped;
 				
 			public:
-				ImageDrawable()
+				ImageDrawableImpl()
 				{
 				}
 				
-				~ImageDrawable()
+				~ImageDrawableImpl()
 				{
 					CGImageRelease(m_image);
 				}
 				
 			public:
-				static Ref<ImageDrawable> create(CGImageRef image, sl_bool flagFlipped)
+				static Ref<ImageDrawableImpl> create(CGImageRef image, sl_bool flagFlipped)
 				{
 					if (image) {
 						CGImageRetain(image);
@@ -72,7 +72,7 @@ namespace slib
 						if (width > 0) {
 							sl_int32 height = (sl_int32)(CGImageGetHeight(image));
 							if (height > 0) {
-								Ref<ImageDrawable> ret = new ImageDrawable();
+								Ref<ImageDrawableImpl> ret = new ImageDrawableImpl();
 								if (ret.isNotNull()) {
 									ret->m_image = image;
 									ret->m_width = width;
@@ -118,7 +118,7 @@ namespace slib
 				
 			};
 
-			SLIB_DEFINE_OBJECT(ImageDrawable, Drawable)
+			SLIB_DEFINE_OBJECT(ImageDrawableImpl, Drawable)
 
 		}
 	}
@@ -177,12 +177,12 @@ namespace slib
 
 	Ref<Drawable> GraphicsPlatform::createImageDrawable(CGImageRef image, sl_bool flagFlipped)
 	{
-		return ImageDrawable::create(image, flagFlipped);
+		return ImageDrawableImpl::create(image, flagFlipped);
 	}
 
 	CGImageRef GraphicsPlatform::getImageDrawableHandle(Drawable* _drawable)
 	{
-		if (ImageDrawable* drawable = CastInstance<ImageDrawable>(_drawable)) {
+		if (ImageDrawableImpl* drawable = CastInstance<ImageDrawableImpl>(_drawable)) {
 			return drawable->m_image;
 		}
 		return NULL;

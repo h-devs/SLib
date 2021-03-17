@@ -122,7 +122,7 @@ namespace slib
 	{
 	public:
 		String callbackUrl; // If empty, uses instance's callbackUrl attribute
-		HashMap<String, Variant> customParameters;
+		VariantMap customParameters;
 
 	public:
 		OAuth1_AuthorizationRequestParam();
@@ -381,7 +381,7 @@ namespace slib
 		String codeChallenge;
 		OAuthCodeChallengeMethod codeChallengeMethod;
 		
-		HashMap<String, Variant> customParameters;
+		VariantMap customParameters;
 		
 	public:
 		OAuthAuthorizationRequestParam();
@@ -538,7 +538,7 @@ namespace slib
 
 		String getLoginUrl(const List<String>& scopes = List<String>::null(), const String& state = String::null());
 
-		void requestAccessToken(HashMap<String, Variant>& params, const Function<void(OAuthAccessTokenResult&)>& onComplete);
+		void requestAccessToken(VariantMap& params, const Function<void(OAuthAccessTokenResult&)>& onComplete);
 		
 		// grant_type=authorization_code
 		void requestAccessTokenFromCode(const String& code, const String& redirectUri, const String& codeVerifier, const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete);

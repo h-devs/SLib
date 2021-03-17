@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_SRC_UI_VIEW_WIN32
 #define CHECKHEADER_SLIB_SRC_UI_VIEW_WIN32
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 

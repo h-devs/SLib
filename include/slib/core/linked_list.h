@@ -87,14 +87,14 @@ namespace slib
 
 	};
 	
-	class SLIB_EXPORT CLinkedListBase : public Object
+	class SLIB_EXPORT CLinkedListBase : public Referable, public Lockable
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		CLinkedListBase() noexcept;
+		CLinkedListBase();
 
-		~CLinkedListBase() noexcept;
+		~CLinkedListBase();
 
 	};
 	

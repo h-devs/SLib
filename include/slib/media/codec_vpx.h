@@ -77,6 +77,8 @@ namespace slib
 	
 	class SLIB_EXPORT VpxEncoder : public VideoEncoder
 	{
+		SLIB_DECLARE_OBJECT
+
 	public:
 		VpxEncoder();
 		
@@ -89,6 +91,8 @@ namespace slib
 	
 	class SLIB_EXPORT VpxDecoder : public VideoDecoder
 	{
+		SLIB_DECLARE_OBJECT
+
 	public:
 		VpxDecoder();
 		

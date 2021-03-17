@@ -338,7 +338,6 @@ namespace slib
 #define SLIB_DECLARE_FILE_CONTEXT_SINGLE_MEMBER(CLASS_NAME, VAR_TYPE, VAR_NAME) \
 	class CLASS_NAME : public FileContext \
 	{ \
-		SLIB_DECLARE_OBJECT \
 	public: \
 		VAR_TYPE VAR_NAME; \
 	public: \
@@ -348,7 +347,6 @@ namespace slib
 	};
 
 #define SLIB_DEFINE_FILE_CONTEXT_SINGLE_MEMBER(CLASS_NAME, VAR_TYPE, VAR_NAME) \
-	SLIB_DEFINE_OBJECT(CLASS_NAME, FileContext) \
 	CLASS_NAME::CLASS_NAME(const String& path) \
 		: FileContext(path), VAR_NAME() {} \
 	CLASS_NAME::CLASS_NAME(const String& path, const VAR_TYPE& VAR_NAME) \

@@ -27,10 +27,6 @@
 namespace slib
 {
 
-/**************************************************
-					Globe
-***************************************************/
-	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Globe)
 	
 	Globe::Globe() = default;
@@ -279,10 +275,6 @@ namespace slib
 		return getGeoLocation(position.x, position.y, position.z);
 	}
 
-
-/**************************************************
-				SphericalGlobe
-***************************************************/
 
 	SphericalGlobe::SphericalGlobe() = default;
 

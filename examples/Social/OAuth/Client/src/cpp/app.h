@@ -9,7 +9,7 @@ using namespace sapp;
 
 class OAuthClientApp : public UIApp
 {
-	SLIB_DECLARE_APPLICATION(OAuthClientApp)
+	SLIB_APPLICATION(OAuthClientApp)
 public:
 	OAuthClientApp();
 	

@@ -26,7 +26,6 @@
 #include "slib/core/io.h"
 #include "slib/core/mio.h"
 #include "slib/core/scoped.h"
-
 #include "slib/core/compile_optimize.h"
 
 #define STACK_BUFFER_SIZE 4096

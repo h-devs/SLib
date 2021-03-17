@@ -26,6 +26,7 @@
 #include "array_traits.h"
 #include "ref.h"
 #include "sort.h"
+#include "collection.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 #include <initializer_list>
@@ -55,22 +56,24 @@ namespace slib
 	
 	template <class T>
 	using AtomicArray = Atomic< Array<T> >;
-	
-	
+
 	class SLIB_EXPORT CArrayBase : public Referable
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		CArrayBase() noexcept;
+		CArrayBase();
 
-		~CArrayBase() noexcept;
+		~CArrayBase();
 
 	};
 	
 	template <class T>
 	class SLIB_EXPORT CArray : public CArrayBase
 	{
+	public:
+		typedef T ELEMENT_TYPE;
+		
 	protected:
 		T* m_data;
 		sl_size m_count;
@@ -123,9 +126,7 @@ namespace slib
 		}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		CArray(const std::initializer_list<T>& l) noexcept : CArray(l.begin(), l.size())
-		{
-		}
+		CArray(const std::initializer_list<T>& l) noexcept : CArray(l.begin(), l.size()) {}
 #endif
 
 		~CArray() noexcept
@@ -142,8 +143,7 @@ namespace slib
 	public:
 		CArray(const CArray& other) = delete;
 		
-		CArray(CArray&& other) noexcept
-		 : m_refer(Move(other.m_refer))
+		CArray(CArray&& other) noexcept: m_refer(Move(other.m_refer))
 		{
 			m_flagStatic = other.m_flagStatic;
 			m_data = other.m_data;
@@ -430,6 +430,8 @@ namespace slib
 			ArrayTraits<T>::reverse(m_data, m_count);
 		}
 
+		Ref<Collection> toCollection() noexcept;
+
 		T* begin() noexcept
 		{
 			return m_data;
@@ -449,7 +451,7 @@ namespace slib
 		{
 			return m_data + m_count;
 		}
-	
+
 	};
 	
 	template <class T>
@@ -520,27 +522,22 @@ namespace slib
 	class SLIB_EXPORT Array
 	{
 	public:
+		typedef T ELEMENT_TYPE;
+		
+	public:
 		Ref< CArray<T> > ref;
 		SLIB_REF_WRAPPER(Array, CArray<T>)
 	
 	public:
-		Array(sl_size count) noexcept : ref(CArray<T>::create(count))
-		{
-		}
+		Array(sl_size count) noexcept: ref(CArray<T>::create(count)) {}
 		
 		template <class VALUE>
-		Array(const VALUE* data, sl_size count) noexcept : ref(CArray<T>::create(data, count))
-		{
-		}
+		Array(const VALUE* data, sl_size count) noexcept: ref(CArray<T>::create(data, count)) {}
 
-		Array(const T* data, sl_size count, Referable* refer) noexcept : ref(CArray<T>::createStatic(data, count, refer))
-		{
-		}
+		Array(const T* data, sl_size count, Referable* refer) noexcept: ref(CArray<T>::createStatic(data, count, refer)) {}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Array(const std::initializer_list<T>& l) noexcept : ref(CArray<T>::create(l.begin(), l.size()))
-		{
-		}
+		Array(const std::initializer_list<T>& l) noexcept: ref(CArray<T>::create(l.begin(), l.size())) {}
 #endif
 		
 	public:
@@ -559,6 +556,8 @@ namespace slib
 		{
 			return CArray<T>::createStatic(data, count, refer);
 		}
+
+		static Array<T> create(Collection* collection);
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 		static Array<T> create(const std::initializer_list<T>& l) noexcept
@@ -811,6 +810,15 @@ namespace slib
 			}
 		}
 
+		Ref<Collection> toCollection() const noexcept
+		{
+			CArray<T>* obj = ref.ptr;
+			if (obj) {
+				return obj->toCollection();
+			}
+			return sl_null;
+		}
+
 		// range-based for loop
 		T* begin() const noexcept
 		{
@@ -829,7 +837,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 	};
 	
 	
@@ -837,27 +845,22 @@ namespace slib
 	class SLIB_EXPORT Atomic< Array<T> >
 	{
 	public:
+		typedef T ELEMENT_TYPE;
+		
+	public:
 		AtomicRef< CArray<T> > ref;
 		SLIB_ATOMIC_REF_WRAPPER(CArray<T>)
 		
 	public:	
-		Atomic(const T* data, sl_size count, Referable* refer, sl_bool flagStatic = sl_true) noexcept : ref(CArray<T>::create(data, count, refer, flagStatic))
-		{
-		}
+		Atomic(const T* data, sl_size count, Referable* refer, sl_bool flagStatic = sl_true) noexcept: ref(CArray<T>::create(data, count, refer, flagStatic)) {}
 		
-		Atomic(sl_size count) noexcept : ref(CArray<T>::create(count))
-		{
-		}
+		Atomic(sl_size count) noexcept: ref(CArray<T>::create(count)) {}
 		
 		template <class VALUE>
-		Atomic(const VALUE* data, sl_size count) noexcept : ref(CArray<T>::create(data, count))
-		{
-		}
+		Atomic(const VALUE* data, sl_size count) noexcept: ref(CArray<T>::create(data, count)) {}
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Atomic(const std::initializer_list<T>& l) noexcept : ref(CArray<T>::create(l.begin(), l.size()))
-		{
-		}
+		Atomic(const std::initializer_list<T>& l) noexcept: ref(CArray<T>::create(l.begin(), l.size())) {}
 #endif
 		
 	public:
@@ -1075,6 +1078,15 @@ namespace slib
 			if (obj.isNotNull()) {
 				obj->reverse();
 			}
+		}
+
+		Ref<Collection> toCollection() const noexcept
+		{
+			Ref< CArray<T> > obj(ref);
+			if (obj.isNotNull()) {
+				return obj->toCollection();
+			}
+			return sl_null;
 		}
 
 		// range-based for loop

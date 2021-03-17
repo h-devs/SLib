@@ -46,6 +46,7 @@ namespace slib
 		return sl_null;
 	}
 	
+
 	SLIB_DEFINE_OBJECT(GestureDetector, Object)
 	
 	class GestureRecognizer : public Referable

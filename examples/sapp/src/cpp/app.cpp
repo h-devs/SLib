@@ -25,8 +25,6 @@
 #include "LaunchScreen.h"
 #include "MainMenu.h"
 
-SLIB_DEFINE_APPLICATION(SAppExampleApp)
-
 SAppExampleApp::SAppExampleApp()
 {
 }

@@ -23,6 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_TIMER
 #define CHECKHEADER_SLIB_CORE_TIMER
 
+#include "object.h"
 #include "function.h"
 
 namespace slib

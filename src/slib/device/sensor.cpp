@@ -40,6 +40,7 @@ namespace slib
 		flagAutoStart = sl_true;
 	}
 
+
 	SLIB_DEFINE_OBJECT(Sensor, Object)
 
 	Sensor::Sensor()

@@ -33,35 +33,41 @@ public: \
 	sl_object_type getObjectType() const noexcept override; \
 	sl_bool isInstanceOf(sl_object_type type) const noexcept override;
 
-#define SLIB_DEFINE_OBJECT_TYPE(CLASS) \
-	namespace slib_def { namespace obj_##CLASS { char g_objectId[] = #CLASS; } } \
+#define SLIB_DEFINE_VARIABLE_OBJECT_TYPE(CLASS) \
+	namespace slib_def { namespace obj_##CLASS { char g_objectId[1]; } } \
 	sl_object_type CLASS::ObjectType() noexcept { return slib_def::obj_##CLASS::g_objectId; } \
 
-#define SLIB_DEFINE_ROOT_OBJECT(CLASS) \
-	SLIB_DEFINE_OBJECT_TYPE(CLASS) \
+#define SLIB_DEFINE_ROOT_OBJECT_BY_VARIABLE_TYPE(CLASS) \
+	SLIB_DEFINE_VARIABLE_OBJECT_TYPE(CLASS) \
 	sl_bool CLASS::isDerivedFrom(sl_object_type type) noexcept { return type == slib_def::obj_##CLASS::g_objectId; } \
 	sl_object_type CLASS::getObjectType() const noexcept { return slib_def::obj_##CLASS::g_objectId; } \
 	sl_bool CLASS::isInstanceOf(sl_object_type type) const noexcept { return type == slib_def::obj_##CLASS::g_objectId; }
 
-#define SLIB_DEFINE_OBJECT(CLASS, BASE) \
-	SLIB_DEFINE_OBJECT_TYPE(CLASS) \
+#define SLIB_DEFINE_OBJECT_BY_VARIABLE_TYPE(CLASS, BASE) \
+	SLIB_DEFINE_VARIABLE_OBJECT_TYPE(CLASS) \
 	sl_bool CLASS::isDerivedFrom(sl_object_type type) noexcept { if (type == slib_def::obj_##CLASS::g_objectId) return sl_true; return BASE::isDerivedFrom(type); } \
 	sl_object_type CLASS::getObjectType() const noexcept { return slib_def::obj_##CLASS::g_objectId; } \
 	sl_bool CLASS::isInstanceOf(sl_object_type type) const noexcept { if (type == slib_def::obj_##CLASS::g_objectId) return sl_true; return BASE::isDerivedFrom(type); }
 
-#define SLIB_TEMPLATE_ROOT_OBJECT(ID) \
-public: \
-	static sl_object_type ObjectType() noexcept { return ID; } \
-	static sl_bool isDerivedFrom(sl_object_type type) noexcept { return type == ID; } \
-	sl_object_type getObjectType() const noexcept override { return ID; } \
-	sl_bool isInstanceOf(sl_object_type type) const noexcept override { return type == ID; }
+#define SLIB_DEFINE_ROOT_OBJECT_BY_CONSTANT_TYPE(CLASS) \
+	sl_object_type CLASS::ObjectType() noexcept { return (sl_object_type)(sl_size)(object_types::CLASS); } \
+	sl_bool CLASS::isDerivedFrom(sl_object_type type) noexcept { return type == (sl_object_type)(sl_size)(object_types::CLASS); } \
+	sl_object_type CLASS::getObjectType() const noexcept { return (sl_object_type)(sl_size)(object_types::CLASS); } \
+	sl_bool CLASS::isInstanceOf(sl_object_type type) const noexcept { return type == (sl_object_type)(sl_size)(object_types::CLASS); }
 
-#define SLIB_TEMPLATE_OBJECT(BASE, ID) \
-public: \
-	static sl_object_type ObjectType() noexcept { return ID; } \
-	static sl_bool isDerivedFrom(sl_object_type type) noexcept { if (type == ID) return sl_true; return BASE::isDerivedFrom(type); } \
-	sl_object_type getObjectType() const noexcept override { return ID; } \
-	sl_bool isInstanceOf(sl_object_type type) const noexcept override { if (type == ID) return sl_true; return BASE::isDerivedFrom(type); }
+#define SLIB_DEFINE_OBJECT_BY_CONSTANT_TYPE(CLASS, BASE) \
+	sl_object_type CLASS::ObjectType() noexcept { return (sl_object_type)(sl_size)(object_types::CLASS); } \
+	sl_bool CLASS::isDerivedFrom(sl_object_type type) noexcept { if (type == (sl_object_type)(sl_size)(object_types::CLASS)) return sl_true; return BASE::isDerivedFrom(type); } \
+	sl_object_type CLASS::getObjectType() const noexcept { return (sl_object_type)(sl_size)(object_types::CLASS); } \
+	sl_bool CLASS::isInstanceOf(sl_object_type type) const noexcept { if (type == (sl_object_type)(sl_size)(object_types::CLASS)) return sl_true; return BASE::isDerivedFrom(type); }
+
+#ifdef SLIB_USE_OBJECT_TYPE_CONSTANTS
+#	define SLIB_DEFINE_ROOT_OBJECT(CLASS) SLIB_DEFINE_ROOT_OBJECT_BY_CONSTANT_TYPE(CLASS)
+#	define SLIB_DEFINE_OBJECT(CLASS, BASE) SLIB_DEFINE_OBJECT_BY_CONSTANT_TYPE(CLASS, BASE)
+#else
+#	define SLIB_DEFINE_ROOT_OBJECT(CLASS) SLIB_DEFINE_ROOT_OBJECT_BY_VARIABLE_TYPE(CLASS)
+#	define SLIB_DEFINE_OBJECT(CLASS, BASE) SLIB_DEFINE_OBJECT_BY_VARIABLE_TYPE(CLASS, BASE)
+#endif
 
 #define SLIB_REF_WRAPPER_NO_OP(WRAPPER, ...) \
 public: \
@@ -135,7 +141,7 @@ public: \
 	sl_bool operator!=(const Atomic& other) const noexcept { return ref._ptr != other.ref._ptr; } \
 	explicit operator sl_bool() const noexcept { return ref._ptr != sl_null; }
 
-typedef const void* sl_object_type;
+typedef void* sl_object_type;
 
 namespace slib
 {
@@ -150,7 +156,25 @@ namespace slib
 	}
 
 	class CWeakRef;
-	
+
+	template <class... TYPES>
+	class Ref;
+
+	template <class T>
+	class WeakRef;
+
+	template <class T>
+	using AtomicRef = Atomic< Ref<T> >;
+
+	template <class T>
+	using AtomicWeakRef = Atomic< WeakRef<T> >;
+
+	template <class... TYPES>
+	class Pointer;
+
+	class String;
+	class StringBuffer;
+
 	class SLIB_EXPORT Referable
 	{
 	public:
@@ -183,6 +207,11 @@ namespace slib
 
 		virtual sl_bool isInstanceOf(sl_object_type type) const noexcept;
 
+	public:
+		virtual String toString();
+
+		virtual sl_bool toJsonString(StringBuffer& buf);
+
 	private:
 		void _clearWeak() noexcept;
 
@@ -206,23 +235,6 @@ namespace slib
 		
 	};
 
-	
-	template <class... TYPES>
-	class Ref;
-	
-	template <class T>
-	class WeakRef;
-	
-	template <class T>
-	using AtomicRef = Atomic< Ref<T> >;
-	
-	template <class T>
-	using AtomicWeakRef = Atomic< WeakRef<T> >;
-
-
-	template <class... TYPES>
-	class Pointer;
-	
 
 	template <class T>
 	class SLIB_EXPORT Ref<T>

@@ -6,7 +6,7 @@ using namespace slib;
 
 class ExampleSensorApp : public MobileApp
 {
-	SLIB_DECLARE_APPLICATION(ExampleSensorApp)
+	SLIB_APPLICATION(ExampleSensorApp)
 public:
 	ExampleSensorApp();
 	

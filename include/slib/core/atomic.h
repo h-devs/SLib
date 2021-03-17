@@ -26,6 +26,7 @@
 #include "spin_lock.h"
 #include "compare.h"
 #include "hash.h"
+#include "new_helper.h"
 
 namespace slib
 {
@@ -36,52 +37,95 @@ namespace slib
 	public:
 		Atomic()
 		{
+			new ((T*)m_value) T();
 		}
 
 		Atomic(const T& value)
-		: m_value(value)
 		{
+			new ((T*)m_value) T(value);
 		}
 
 		Atomic(T&& value)
-		: m_value(Move(value))
 		{
+			new ((T*)m_value) T(Move(value));
+		}
+
+		Atomic(const Atomic<T>& value)
+		{
+			value._retain_construct(m_value);
+		}
+
+		~Atomic()
+		{
+			((T*)m_value)->~T();
 		}
 
 	public:
 		Atomic<T>& operator=(const T& other)
 		{
-			SLIB_ALIGN(8) char t[sizeof(T)];
-			m_lock.lock();
-			new ((T*)t) T(Move(m_value));
-			m_value = other;
-			m_lock.unlock();
-			((T*)t)->~T();
+			_assign_copy(&other);
 			return *this;
 		}
 
 		Atomic<T>& operator=(T&& other)
 		{
-			SLIB_ALIGN(8) char t[sizeof(T)];
-			m_lock.lock();
-			new ((T*)t) T(Move(m_value));
-			m_value = Move(other);
-			m_lock.unlock();
-			((T*)t)->~T();
+			_assign_move(&other);
+			return *this;
+		}
+
+		Atomic<T>& operator=(const Atomic<T>& _other)
+		{
+			SLIB_ALIGN(8) char other[sizeof(T)];
+			_other._retain_construct(other);
+			_assign_move(other);
+			((T*)other)->~T();
 			return *this;
 		}
 
 		operator T() const
 		{
-			SLIB_ALIGN(8) char t[sizeof(T)];
+			T value;
+			_retain_assign(&value);
+			return value;
+		}
+
+	public:
+		void _retain_construct(void* other) const
+		{
 			m_lock.lock();
-			new ((T*)t) T(m_value);
+			new ((T*)other) T(*((T*)m_value));
 			m_lock.unlock();
-			return *((T*)t);
+		}
+
+		void _retain_assign(void* other) const
+		{
+			m_lock.lock();
+			*((T*)other) = *((T*)m_value);
+			m_lock.unlock();
+		}
+
+		void _assign_copy(const void* other)
+		{
+			SLIB_ALIGN(8) char old[sizeof(T)];
+			m_lock.lock();
+			new ((T*)old) T(Move(*((T*)m_value)));
+			*((T*)m_value) = *((T*)other);
+			m_lock.unlock();
+			((T*)old)->~T();
+		}
+
+		void _assign_move(void* other)
+		{
+			SLIB_ALIGN(8) char old[sizeof(T)];
+			m_lock.lock();
+			new ((T*)old) T(Move(*((T*)m_value)));
+			*((T*)m_value) = Move(*((T*)other));
+			m_lock.unlock();
+			((T*)old)->~T();
 		}
 
 	protected:
-		T m_value;
+		char m_value[sizeof(T)];
 		SpinLock m_lock;
 
 	};
@@ -98,7 +142,7 @@ namespace slib
 	public:
 		sl_int32 operator=(sl_int32 value);
 
-		operator sl_int32 () const;
+		operator sl_int32() const;
 
 	public:
 		sl_int32 increase();

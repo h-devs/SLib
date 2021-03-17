@@ -28,7 +28,7 @@ using namespace slib;
 
 class ExampleXgPushApp : public MobileApp
 {
-	SLIB_DECLARE_APPLICATION(ExampleXgPushApp)
+	SLIB_APPLICATION(ExampleXgPushApp)
 public:
 	ExampleXgPushApp();
 	

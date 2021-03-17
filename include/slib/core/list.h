@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CORE_LIST
 #define CHECKHEADER_SLIB_CORE_LIST
 
-#include "object.h"
 #include "array.h"
+#include "lockable.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 #include <initializer_list>
@@ -43,8 +43,6 @@ namespace slib
 	{
 		namespace list
 		{
-			extern const char g_classID[];
-
 			sl_bool setCapacity(void* pData, sl_size elementSize, sl_size* pCapacity, sl_size* pCount, sl_size newCapacity) noexcept;
 			
 			sl_bool adjustCapacity(void* pData, sl_size elementSize, sl_size* pCapacity, sl_size* pCount, sl_size newCount) noexcept;
@@ -54,21 +52,31 @@ namespace slib
 			sl_bool shrinkCapacity(void* pData, sl_size elementSize, sl_size* pCapacity, sl_size newCount) noexcept;
 		}
 	}
+
+	class SLIB_EXPORT CListBase : public Referable, public Lockable
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		CListBase();
+
+		~CListBase();
+
+	};
 	
 	template <class T>
-	class SLIB_EXPORT CList : public Object
+	class SLIB_EXPORT CList : public CListBase
 	{
-		SLIB_TEMPLATE_OBJECT(Object, priv::list::g_classID)
-
+	public:
+		typedef T ELEMENT_TYPE;
+		
 	protected:
 		T* m_data;
 		sl_size m_count;
 		sl_size m_capacity;
 
 	public:
-		CList() noexcept
-		: m_data(sl_null), m_count(0), m_capacity(0)
-		{}
+		CList() noexcept: m_data(sl_null), m_count(0), m_capacity(0) {}
 
 		CList(sl_size count) noexcept
 		{
@@ -148,10 +156,7 @@ namespace slib
 		}
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
-		CList(const std::initializer_list<T>& l) noexcept
-		: CList(l.begin(), l.size())
-		{
-		}
+		CList(const std::initializer_list<T>& l) noexcept: CList(l.begin(), l.size()) {}
 #endif
 
 		~CList() noexcept
@@ -1337,6 +1342,8 @@ namespace slib
 			return slice_NoLock(index, count);
 		}
 
+		Ref<Collection> toCollection() noexcept;
+
 		// range-based for loop
 		T* begin() noexcept
 		{
@@ -1357,6 +1364,7 @@ namespace slib
 		{
 			return m_data + m_count;
 		}
+
 	};
 	
 	
@@ -1364,32 +1372,24 @@ namespace slib
 	class SLIB_EXPORT List
 	{
 	public:
+		typedef T ELEMENT_TYPE;
+		
+	public:
 		Ref< CList<T> > ref;
 		SLIB_REF_WRAPPER(List, CList<T>)
 
 	public:
-		List(sl_size count) noexcept
-		: ref(CList<T>::create(count))
-		{}
+		List(sl_size count) noexcept: ref(CList<T>::create(count)) {}
 		
-		List(sl_size count, sl_size capacity) noexcept
-		: ref(CList<T>::create(count, capacity))
-		{}
+		List(sl_size count, sl_size capacity) noexcept: ref(CList<T>::create(count, capacity)) {}
 		
-		List(sl_size count, sl_size capacity, const T& initialValue) noexcept
-		: ref(CList<T>::create(count, capacity, initialValue))
-		{}
+		List(sl_size count, sl_size capacity, const T& initialValue) noexcept: ref(CList<T>::create(count, capacity, initialValue)) {}
 		
 		template <class VALUE>
-		List(const VALUE* values, sl_size count) noexcept
-		: ref(CList<T>::create(values, count))
-		{}
+		List(const VALUE* values, sl_size count) noexcept: ref(CList<T>::create(values, count)) {}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		List(const std::initializer_list<T>& l) noexcept
-		: ref(CList<T>::create(l.begin(), l.size()))
-		{
-		}
+		List(const std::initializer_list<T>& l) noexcept: ref(CList<T>::create(l.begin(), l.size())) {}
 #endif
 		
 	public:
@@ -1424,6 +1424,8 @@ namespace slib
 		{
 			return CList<T>::create(array.getData(), array.getCount());
 		}
+
+		static List<T> create(Collection* collection);
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 		static List<T> create(const std::initializer_list<T>& l) noexcept
@@ -1461,7 +1463,7 @@ namespace slib
 		{
 			return *(const_cast<List<T>*>(reinterpret_cast<List<T> const*>(&other)));
 		}
-		
+
 	public:
 		sl_size getCount() const noexcept
 		{
@@ -2647,6 +2649,15 @@ namespace slib
 			return sl_null;
 		}
 
+		Ref<Collection> toCollection() const noexcept
+		{
+			CList<T>* obj = ref.ptr;
+			if (obj) {
+				return obj->toCollection();
+			}
+			return sl_null;
+		}
+
 		const Mutex* getLocker() const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -2682,32 +2693,24 @@ namespace slib
 	class SLIB_EXPORT Atomic< List<T> >
 	{
 	public:
+		typedef T ELEMENT_TYPE;
+		
+	public:
 		AtomicRef< CList<T> > ref;
 		SLIB_ATOMIC_REF_WRAPPER(CList<T>)
 		
 	public:
-		Atomic(sl_size count) noexcept
-		: ref(CList<T>::create(count))
-		{}
+		Atomic(sl_size count) noexcept: ref(CList<T>::create(count)) {}
 		
-		Atomic(sl_size count, sl_size capacity) noexcept
-		: ref(CList<T>::create(count, capacity))
-		{}
+		Atomic(sl_size count, sl_size capacity) noexcept: ref(CList<T>::create(count, capacity)) {}
 		
-		Atomic(sl_size count, sl_size capacity, const T& initialValue) noexcept
-		: ref(CList<T>::create(count, capacity, initialValue))
-		{}
+		Atomic(sl_size count, sl_size capacity, const T& initialValue) noexcept: ref(CList<T>::create(count, capacity, initialValue)) {}
 		
 		template <class VALUE>
-		Atomic(const VALUE* values, sl_size count) noexcept
-		: ref(CList<T>::create(values, count))
-		{}
+		Atomic(const VALUE* values, sl_size count) noexcept: ref(CList<T>::create(values, count)) {}
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Atomic(const std::initializer_list<T>& l) noexcept
-		: ref(CList<T>::create(l.begin(), l.size()))
-		{
-		}
+		Atomic(const std::initializer_list<T>& l) noexcept: ref(CList<T>::create(l.begin(), l.size())) {}
 #endif
 
 	public:
@@ -3363,6 +3366,15 @@ namespace slib
 			return sl_null;
 		}
 
+		Ref<Collection> toCollection() const noexcept
+		{
+			Ref< CList<T> > obj(ref);
+			if (obj.isNotNull()) {
+				return obj->toCollection();
+			}
+			return sl_null;
+		}
+
 		// range-based for loop
 		ArrayPosition<T> begin() const noexcept
 		{
@@ -3393,39 +3405,29 @@ namespace slib
 		List<T> list;
 
 	public:
-		ListLocker(List<T>&& _list) noexcept
-		: ObjectLocker(_list.ref.ptr), list(Move(_list))
+		ListLocker(List<T>&& _list) noexcept: ObjectLocker(_list.ref.ptr), list(Move(_list))
 		{
 			data = list.getData();
 			count = list.getCount();
 		}
 
-		ListLocker(const List<T>& _list) noexcept
-		: ObjectLocker(_list.ref.ptr), list(_list)
+		ListLocker(const List<T>& _list) noexcept: ObjectLocker(_list.ref.ptr), list(_list)
 		{
 			data = list.getData();
 			count = list.getCount();
 		}
 
-		ListLocker(AtomicList<T>&& _list) noexcept
-		: ListLocker(List<T>(Move(_list)))
+		ListLocker(const AtomicList<T>& _list) noexcept: ListLocker(List<T>(_list))
 		{
 		}
 
-		ListLocker(const AtomicList<T>& _list) noexcept
-		: ListLocker(List<T>(_list))
-		{
-		}
-
-		ListLocker(const CList<T>& _list) noexcept
-		: ObjectLocker(&_list)
+		ListLocker(const CList<T>& _list) noexcept: ObjectLocker(&_list)
 		{
 			data = _list.getData();
 			count = _list.getCount();
 		}
 
-		ListLocker(const ListParam<T>& _list) noexcept
-		: ObjectLocker(_list.getObject()), list(_list._getList())
+		ListLocker(const ListParam<T>& _list) noexcept: ObjectLocker(_list.getObject()), list(_list._getList())
 		{
 			data = _list.getData();
 			count = _list.getCount();
@@ -3465,29 +3467,19 @@ namespace slib
 		List<T> list;
 
 	public:
-		ListElements(List<T>&& _list) noexcept
-		: list(Move(_list))
+		ListElements(List<T>&& _list) noexcept: list(Move(_list))
 		{
 			data = list.getData();
 			count = list.getCount();
 		}
 
-		ListElements(const List<T>& _list) noexcept
-		: list(_list)
+		ListElements(const List<T>& _list) noexcept: list(_list)
 		{
 			data = list.getData();
 			count = list.getCount();
 		}
 
-		ListElements(AtomicList<T>&& _list) noexcept
-		: list(Move(_list))
-		{
-			data = list.getData();
-			count = list.getCount();
-		}
-
-		ListElements(const AtomicList<T>& _list) noexcept
-		: list(_list)
+		ListElements(const AtomicList<T>& _list) noexcept: list(_list)
 		{
 			data = list.getData();
 			count = list.getCount();
@@ -3499,8 +3491,7 @@ namespace slib
 			count = _list.getCount();
 		}
 
-		ListElements(const ListParam<T>& _list) noexcept
-		: list(_list._getList())
+		ListElements(const ListParam<T>& _list) noexcept: list(_list._getList())
 		{
 			data = _list.getData();
 			count = _list.getCount();
@@ -3548,13 +3539,11 @@ namespace slib
 		};
 
 	public:
-		ListParam() noexcept
-		: _value(sl_null), _count(0)
+		ListParam() noexcept: _value(sl_null), _count(0)
 		{
 		}
 
-		ListParam(sl_null_t) noexcept
-		: _value(sl_null), _count(0)
+		ListParam(sl_null_t) noexcept: _value(sl_null), _count(0)
 		{
 		}
 
@@ -3596,13 +3585,11 @@ namespace slib
 			}
 		}
 		
-		ListParam(AtomicList<T>&& list) noexcept
-		: ListParam(List<T>(Move(list)))
+		ListParam(AtomicList<T>&& list) noexcept: ListParam(List<T>(Move(list)))
 		{
 		}
 
-		ListParam(const AtomicList<T>& list) noexcept
-		: ListParam(List<T>(list))
+		ListParam(const AtomicList<T>& list) noexcept: ListParam(List<T>(list))
 		{
 		}
 

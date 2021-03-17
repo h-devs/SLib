@@ -59,6 +59,8 @@ namespace slib
 	}
 
 
+	SLIB_DEFINE_OBJECT(VpxEncoder, VideoEncoder)
+
 	VpxEncoder::VpxEncoder()
 	{
 	}
@@ -248,6 +250,9 @@ namespace slib
 
 		}
 	}
+
+
+	SLIB_DEFINE_OBJECT(VpxDecoder, VideoDecoder)
 
 	VpxDecoder::VpxDecoder()
 	{

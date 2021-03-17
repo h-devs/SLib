@@ -3,8 +3,6 @@
 #include "MainPage.h"
 #include "config.h"
 
-SLIB_DEFINE_APPLICATION(ExampleWechatApp)
-
 ExampleWechatApp::ExampleWechatApp()
 {
 }

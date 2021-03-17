@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 #include "slib/core/string.h"
 
+#include "slib/core/string_cast.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/memory_traits.h"
 #include "slib/core/parse.h"
@@ -6183,27 +6184,31 @@ https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html
 		return String16::fromDouble(v);
 	}
 
-	
-	String Cast<Variant, String>::operator()(const Variant& var) const noexcept
-	{
-		return String::from(var);
-	}
 
-	String16 Cast<Variant, String16>::operator()(const Variant& var) const noexcept
+	const StringParam& Cast<StringParam, StringParam>::operator()(const StringParam& v) const noexcept
 	{
-		return String16::from(var);
-	}
-
-	String Cast<Json, String>::operator()(const Json& json) const noexcept
-	{
-		return json.getString();
+		return v;
 	}
 	
-	String16 Cast<Json, String16>::operator()(const Json& json) const noexcept
+	String Cast<StringParam, String>::operator()(const StringParam& v) const noexcept
 	{
-		return json.getString16();
+		return v.toString();
 	}
 
+	String16 Cast<StringParam, String16>::operator()(const StringParam& v) const noexcept
+	{
+		return v.toString16();
+	}
+
+	StringParam Cast<String, StringParam>::operator()(const String& v) const noexcept
+	{
+		return v;
+	}
+
+	StringParam Cast<String16, StringParam>::operator()(const String16& v) const noexcept
+	{
+		return v;
+	}
 
 #define DEFINE_STRING_OPERATOR_SUB2(STRING1, STRING2, RET, FUNC, OP, OP_STRING) \
 	RET FUNC(const STRING1& s1, const STRING2& s2) noexcept \

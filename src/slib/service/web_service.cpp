@@ -55,13 +55,13 @@ namespace slib
 		if (m_handlers.get(sig, &handler)) {
 			Variant ret(handler(context, method, path));
 			if (ret.isNotNull()) {
-				if (ret.isObject()) {
-					Ref<Referable> obj = ret.getObject();
-					if (obj.isNotNull()) {
-						if (XmlDocument* xml = CastInstance<XmlDocument>(obj.get())) {
+				if (ret.isRef()) {
+					if (ret.isMemory()) {
+						context->write(ret.getMemory());
+					} else {
+						Ref<Referable> ref = ret.getRef();
+						if (XmlDocument* xml = CastInstance<XmlDocument>(ref.get())) {
 							context->write(xml->toString());
-						} else if (CMemory* mem = CastInstance<CMemory>(obj.get())) {
-							context->write(mem);
 						} else {
 							context->write(ret.toJsonString());
 						}

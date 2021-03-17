@@ -26,7 +26,7 @@
 #include "constants.h"
 #include "color.h"
 
-#include "../core/object.h"
+#include "../core/ref.h"
 
 namespace slib
 {
@@ -48,9 +48,9 @@ namespace slib
 		
 	};
 	
-	class SLIB_EXPORT Pen : public Object
+	class SLIB_EXPORT Pen : public Referable
 	{
-		SLIB_DECLARE_OBJECT;
+		SLIB_DECLARE_OBJECT
 
 	protected:
 		Pen();

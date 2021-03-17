@@ -33,8 +33,7 @@ namespace slib
 	{
 	}
 
-	Atomic<sl_int32>::Atomic(sl_int32 value)
-	: m_value(value)
+	Atomic<sl_int32>::Atomic(sl_int32 value): m_value(value)
 	{
 	}
 
@@ -44,7 +43,7 @@ namespace slib
 		return m_value;
 	}
 
-	Atomic<sl_int32>::operator sl_int32 () const
+	Atomic<sl_int32>::operator sl_int32() const
 	{
 		return m_value;
 	}

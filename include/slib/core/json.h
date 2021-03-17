@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,10 @@
 #define CHECKHEADER_SLIB_CORE_JSON
 
 #include "variant.h"
-#include "cast.h"
 #include "macro_arg.h"
+#include "array_collection.h"
+#include "list_collection.h"
+#include "map_object.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 #include <initializer_list>
@@ -38,12 +40,6 @@
 namespace slib
 {
 
-	typedef List<Json> JsonList;
-	typedef AtomicList<Json> AtomicJsonList;
-	typedef HashMap<String, Json> JsonMap;
-	typedef AtomicHashMap<String, Json> AtomicJsonMap;
-	typedef List< HashMap<String, Json> > JsonMapList;
-	typedef AtomicList< HashMap<String, Json> > AtomicJsonMapList;
 	typedef Pair<String, Json> JsonItem;
 	
 	class BigInt;
@@ -85,10 +81,14 @@ namespace slib
 		Json(const Json& other);
 		
 		Json(Json&& other);
-		
-		Json(const Variant& variant);
-		
-		Json(const AtomicVariant& variant);
+
+		Json(const Atomic<Json>& other);
+
+		Json(const Variant& other);
+
+		Json(Variant&& other);
+
+		Json(const Atomic<Variant>& other);
 		
 		~Json();
 		
@@ -122,13 +122,13 @@ namespace slib
 		Json(sl_bool value);
 		
 		Json(const String& value);
-		
+
+		Json(String&& value);
+
 		Json(const String16& value);
-		
-		Json(const AtomicString& value);
-		
-		Json(const AtomicString16& value);
-		
+
+		Json(String16&& value);
+
 		Json(const sl_char8* sz8);
 		
 		Json(const sl_char16* sz16);
@@ -144,111 +144,38 @@ namespace slib
 		Json(const Time& value);
 		
 		template <class T>
-		Json(const Nullable<T>& value) : Variant(value) {}
-		
-		template <class T>
-		Json(const Ref<T>& ref)
-		{
-			ToJson(*this, ref);
-		}
-		
-		template <class T>
-		Json(const AtomicRef<T>& ref)
-		{
-			ToJson(*this, ref);
-		}
-		
-		template <class T>
-		Json(const WeakRef<T>& weak)
-		{
-			ToJson(*this, weak);
-		}
-		
-		template <class T>
-		Json(const AtomicWeakRef<T>& weak)
-		{
-			ToJson(*this, weak);
-		}
-
-		Json(const List<Variant>& list);
-		
-		Json(const AtomicList<Variant>& list);
-		
-		Json(const Map<String, Variant>& map);
-		
-		Json(const AtomicMap<String, Variant>& map);
-		
-		Json(const HashMap<String, Variant>& map);
-		
-		Json(const AtomicHashMap<String, Variant>& map);
-		
-		Json(const List< Map<String, Variant> >& list);
-		
-		Json(const AtomicList< Map<String, Variant> >& list);
-				
-		Json(const List< HashMap<String, Variant> >& list);
-		
-		Json(const AtomicList< HashMap<String, Variant> >& list);
+		Json(const Nullable<T>& value): Variant(value) {}
 		
 		Json(const JsonList& list);
 
-		Json(const AtomicJsonList& list);
-		
+		Json(JsonList&& list);
+
 		Json(const JsonMap& map);
-		
-		Json(const AtomicJsonMap& map);
-		
-		Json(const JsonMapList& list);
-		
-		Json(const AtomicJsonMapList& list);
-		
-		template <class T>
-		Json(const List<T>& list)
-		{
-			ToJson(*this, list);
-		}
-		
-		template <class T>
-		Json(const AtomicList<T>& list)
-		{
-			ToJson(*this, list);
-		}
-		
-		template <class T>
-		Json(const ListParam<T>& list)
-		{
-			ToJson(*this, list);
-		}
-		
-		template <class KT, class VT, class KEY_COMPARE>
-		Json(const Map<KT, VT, KEY_COMPARE>& map)
-		{
-			ToJson(*this, map);
-		}
-		
-		template <class KT, class VT, class KEY_COMPARE>
-		Json(const AtomicMap<KT, VT, KEY_COMPARE>& map)
-		{
-			ToJson(*this, map);
-		}
-		
-		template <class KT, class VT, class HASH, class KEY_COMPARE>
-		Json(const HashMap<KT, VT, HASH, KEY_COMPARE>& map)
-		{
-			ToJson(*this, map);
-		}
-		
-		template <class KT, class VT, class HASH, class KEY_COMPARE>
-		Json(const AtomicHashMap<KT, VT, HASH, KEY_COMPARE>& map)
-		{
-			ToJson(*this, map);
-		}
-		
+
+		Json(JsonMap&& map);
+
+		Json(const VariantList& list);
+
+		Json(VariantList&& list);
+
+		Json(const VariantMap& map);
+
+		Json(VariantMap&& map);
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Json(const std::initializer_list<JsonItem>& pairs);
 		
 		Json(const std::initializer_list<Json>& elements);
 #endif
+
+		template <class T>
+		Json(const Atomic<T>& t): Json(T(t)) {}
+
+		template <class T>
+		Json(const T& value)
+		{
+			ToJson(*this, value);
+		}
 
 	public:
 		static const Json& undefined()
@@ -269,10 +196,14 @@ namespace slib
 		Json& operator=(const Json& json);
 		
 		Json& operator=(Json&& json);
-		
+
+		Json& operator=(const Atomic<Json>& json);
+
 		Json& operator=(const Variant& variant);
-		
-		Json& operator=(const AtomicVariant& variant);
+
+		Json& operator=(Variant&& variant);
+
+		Json& operator=(const Atomic<Variant>& variant);
 		
 		Json& operator=(sl_null_t);
 		
@@ -281,12 +212,87 @@ namespace slib
 		
 		Json& operator=(const std::initializer_list<Json>& elements);
 #endif
+
+		template <class T>
+		Json& operator=(T&& value) noexcept
+		{
+			set(Forward<T>(value));
+			return *this;
+		}
+
+		Json operator[](sl_size index) const;
+
+		Json operator[](const StringParam& key) const;
+
+	public:
+		template <class T>
+		void get(T& value) const
+		{
+			FromJson(*this, value);
+		}
+
+		template <class T>
+		void get(T& value, const T& defaultValue) const
+		{
+			FromJson(*this, value, defaultValue);
+		}
+
+		template <class T>
+		void set(T&& t)
+		{
+			_free(_type, _value);
+			new (this) Json(Forward<T>(t));
+		}
+
+		Json getElement_NoLock(sl_size index) const;
+
+		template <class T>
+		void getElement_NoLock(sl_size index, T& _out) const
+		{
+			FromJson(getElement_NoLock(index), _out);
+		}
+
+		Json getElement(sl_size index) const;
+
+		template <class T>
+		void getElement(sl_size index, T& _out) const
+		{
+			FromJson(getElement(index), _out);
+		}
+
+		sl_bool setElement_NoLock(sl_uint64 index, const Json& value);
+
+		sl_bool setElement(sl_uint64 index, const Json& value);
+
+		sl_bool addElement_NoLock(const Json& value);
+
+		sl_bool addElement(const Json& value);
+
+		Json getItem_NoLock(const StringParam& key) const;
+
+		template <class T>
+		void getItem_NoLock(const StringParam& key, T& _out) const
+		{
+			FromJson(getItem_NoLock(key), _out);
+		}
+
+		Json getItem(const StringParam& key) const;
 		
+		template <class T>
+		void getItem(const StringParam& key, T& _out) const
+		{
+			FromJson(getItem(key), _out);
+		}
+
+		sl_bool putItem_NoLock(const StringParam& key, const Json& value);
+
+		sl_bool putItem(const StringParam& key, const Json& value);
+
 	public:
 		static Json parseJson(const sl_char8* sz, sl_size len, JsonParseParam& param);
 
 		static Json parseJson(const sl_char8* sz, sl_size len);
-		
+
 		static Json parseJson(const sl_char16* sz, sl_size len, JsonParseParam& param);
 
 		static Json parseJson(const sl_char16* sz, sl_size len);
@@ -299,90 +305,8 @@ namespace slib
 
 		static Json parseJsonFromTextFile(const StringParam& filePath);
 
-	public:
-		sl_bool isJsonList() const;
-		
-		JsonList getJsonList() const;
-		
-		void setJsonList(const JsonList& list);
-		
-		sl_bool isJsonMap() const;
-		
-		JsonMap getJsonMap() const;
-		
-		void setJsonMap(const JsonMap& map);
-		
-		sl_bool isJsonMapList() const;
-		
-		JsonMapList getJsonMapList() const;
-		
-		void setJsonMapList(const JsonMapList& list);
-
-		Json getElement(sl_size index) const;
-
-		template <class T>
-		void getElement(sl_size index, T& _out) const
-		{
-			FromJson(getElement(index), _out);
-		}
-		
-		sl_bool setElement(sl_size index, const Json& value);
-		
-		sl_bool addElement(const Json& value);
-		
-		Json getItem(const String& key) const;
-		
-		template <class T>
-		void getItem(const String& key, T& _out) const
-		{
-			FromJson(getItem(key), _out);
-		}
-
-		sl_bool putItem(const String& key, const Json& value);
-		
-		sl_bool removeItem(const String& key);
-		
-		void merge(const Json& other);
-		
 	protected:
 		String toString() const;
-		
-	public:
-		Json operator[](sl_size list_index) const;
-
-		Json operator[](const String& map_key) const;
-
-	public:
-		template <class T>
-		Json(const T& value)
-		{
-			ToJson(*this, value);
-		}
-		
-		template <class T>
-		Json& operator=(const T& value)
-		{
-			ToJson(*this, value);
-			return *this;
-		}
-		
-		template <class T>
-		void get(T& value) const
-		{
-			FromJson(*this, value);
-		}
-		
-		template <class T>
-		void get(T& value, const T& defaultValue) const
-		{
-			FromJson(*this, value, defaultValue);
-		}
-		
-		template <class T>
-		void set(const T& value)
-		{
-			ToJson(*this, value);
-		}
 		
 	};
 	
@@ -391,165 +315,20 @@ namespace slib
 	{
 		return JsonItem(str, v);
 	}
-	
+
+	SLIB_INLINE JsonItem operator<<=(const String& str, Json&& v)
+	{
+		return JsonItem(str, Move(v));
+	}
+
 	SLIB_INLINE JsonItem operator>>=(const String& str, const Json& v)
 	{
 		return JsonItem(str, v);
 	}
 
-	
-	template <>
-	SLIB_INLINE sl_object_type CMap<String, Json>::ObjectType() noexcept
+	SLIB_INLINE JsonItem operator>>=(const String& str, Json&& v)
 	{
-		return priv::variant::g_variantMap_ClassID;
-	}
-
-	template <>
-	SLIB_INLINE sl_bool CMap<String, Json>::isDerivedFrom(sl_object_type type) noexcept
-	{
-		if (type == priv::variant::g_variantMap_ClassID || type == priv::map::g_classID) {
-			return sl_true;
-		}
-		return Object::isDerivedFrom(type);
-	}
-
-	template <>
-	SLIB_INLINE sl_object_type CMap<String, Json>::getObjectType() const noexcept
-	{
-		return priv::variant::g_variantMap_ClassID;
-	}
-
-	template <>
-	SLIB_INLINE sl_bool CMap<String, Json>::isInstanceOf(sl_object_type type) const noexcept
-	{
-		if (type == priv::variant::g_variantMap_ClassID || type == priv::map::g_classID) {
-			return sl_true;
-		}
-		return Object::isDerivedFrom(type);
-	}
-
-
-	template <>
-	SLIB_INLINE sl_object_type CHashMap<String, Json>::ObjectType() noexcept
-	{
-		return priv::variant::g_variantHashMap_ClassID;
-	}
-
-	template <>
-	SLIB_INLINE sl_bool CHashMap<String, Json>::isDerivedFrom(sl_object_type type) noexcept
-	{
-		if (type == priv::variant::g_variantHashMap_ClassID || type == priv::hash_map::g_classID) {
-			return sl_true;
-		}
-		return Object::isDerivedFrom(type);
-	}
-
-	template <>
-	SLIB_INLINE sl_object_type CHashMap<String, Json>::getObjectType() const noexcept
-	{
-		return priv::variant::g_variantHashMap_ClassID;
-	}
-
-	template <>
-	SLIB_INLINE sl_bool CHashMap<String, Json>::isInstanceOf(sl_object_type type) const noexcept
-	{
-		if (type == priv::variant::g_variantHashMap_ClassID || type == priv::hash_map::g_classID) {
-			return sl_true;
-		}
-		return Object::isDerivedFrom(type);
-	}
-
-
-	template <>
-	SLIB_INLINE sl_object_type CList<Json>::ObjectType() noexcept
-	{
-		return priv::variant::g_variantList_ClassID;
-	}
-
-	template <>
-	SLIB_INLINE sl_bool CList<Json>::isDerivedFrom(sl_object_type type) noexcept
-	{
-		if (type == priv::variant::g_variantList_ClassID || type == priv::list::g_classID) {
-			return sl_true;
-		}
-		return Object::isDerivedFrom(type);
-	}
-
-	template <>
-	SLIB_INLINE sl_object_type CList<Json>::getObjectType() const noexcept
-	{
-		return priv::variant::g_variantList_ClassID;
-	}
-
-	template <>
-	SLIB_INLINE sl_bool CList<Json>::isInstanceOf(sl_object_type type) const noexcept
-	{
-		if (type == priv::variant::g_variantList_ClassID || type == priv::list::g_classID) {
-			return sl_true;
-		}
-		return Object::isDerivedFrom(type);
-	}
-
-
-	template <>
-	SLIB_INLINE sl_object_type CList< Map<String, Json> >::ObjectType() noexcept
-	{
-		return priv::variant::g_variantMapList_ClassID;
-	}
-
-	template <>
-	SLIB_INLINE sl_bool CList< Map<String, Json> >::isDerivedFrom(sl_object_type type) noexcept
-	{
-		if (type == priv::variant::g_variantMapList_ClassID || type == priv::list::g_classID) {
-			return sl_true;
-		}
-		return Object::isDerivedFrom(type);
-	}
-
-	template <>
-	SLIB_INLINE sl_object_type CList< Map<String, Json> >::getObjectType() const noexcept
-	{
-		return priv::variant::g_variantMapList_ClassID;
-	}
-
-	template <>
-	SLIB_INLINE sl_bool CList< Map<String, Json> >::isInstanceOf(sl_object_type type) const noexcept
-	{
-		if (type == priv::variant::g_variantMapList_ClassID || type == priv::list::g_classID) {
-			return sl_true;
-		}
-		return Object::isDerivedFrom(type);
-	}
-
-
-	template <>
-	SLIB_INLINE sl_object_type CList< HashMap<String, Json> >::ObjectType() noexcept
-	{
-		return priv::variant::g_variantHashMapList_ClassID;
-	}
-
-	template <>
-	SLIB_INLINE sl_bool CList< HashMap<String, Json> >::isDerivedFrom(sl_object_type type) noexcept
-	{
-		if (type == priv::variant::g_variantHashMapList_ClassID || type == priv::list::g_classID) {
-			return sl_true;
-		}
-		return Object::isDerivedFrom(type);
-	}
-
-	template <>
-	SLIB_INLINE sl_object_type CList< HashMap<String, Json> >::getObjectType() const noexcept
-	{
-		return priv::variant::g_variantHashMapList_ClassID;
-	}
-
-	template <>
-	SLIB_INLINE sl_bool CList< HashMap<String, Json> >::isInstanceOf(sl_object_type type) const noexcept
-	{
-		if (type == priv::variant::g_variantHashMapList_ClassID || type == priv::list::g_classID) {
-			return sl_true;
-		}
-		return Object::isDerivedFrom(type);
+		return JsonItem(str, Move(v));
 	}
 
 
