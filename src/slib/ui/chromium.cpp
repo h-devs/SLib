@@ -398,7 +398,7 @@ namespace slib
 					}
 				}
 
-				void stopFinding(WebView* view)
+				void stopFinding(WebView* view) override
 				{
 					CefBrowserHost* host = m_host.get();
 					if (host) {

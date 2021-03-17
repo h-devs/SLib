@@ -615,7 +615,6 @@ namespace slib
 		sl_uint64 offsetEnd = (sl_uint64)(offset + size);
 		sl_uint64 blockEnd = offsetEnd >> 6;
 		sl_bool flagFirstBlock = sl_true;
-		sl_size pos = 0;
 		char h[64];
 		for (; block <= blockEnd; block++) {
 			m_encrypt.generateBlock(m_iv[0], m_iv[1], m_iv[2] ^ ((sl_uint32)(block >> 32)), m_iv[3] ^ ((sl_uint32)block), h);
