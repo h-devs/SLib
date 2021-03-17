@@ -1,33 +1,33 @@
 [submodule "external/bin/FacebookSDK"]
 	path = external/bin/FacebookSDK
-	url = http://git.slib.io/SLIB/SLibExternalBin_FacebookSDK.git
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_FacebookSDK.git
 [submodule "external/bin/OpenSSL"]
 	path = external/bin/OpenSSL
-	url = http://git.slib.io/SLIB/SLibExternalBin_OpenSSL.git
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_OpenSSL.git
 [submodule "external/bin/FFmpeg"]
 	path = external/bin/FFmpeg
-	url = http://git.slib.io/SLIB/SLibExternalBin_FFmpeg.git
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_FFmpeg.git
 [submodule "external/bin/libmysqlclient"]
 	path = external/bin/libmysqlclient
-	url = http://git.slib.io/SLIB/SLibExternalBin_libmysqlclient.git
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_libmysqlclient.git
 [submodule "external/bin/libcef"]
 	path = external/bin/libcef
-	url = http://git.slib.io/SLIB/SLibExternalBin_libcef.git
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_libcef.git
 [submodule "external/bin/XgPush"]
 	path = external/bin/XgPush
-	url = http://git.slib.io/SLIB/SLibExternalBin_XgPush
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_XgPush
 [submodule "external/bin/WeChat"]
 	path = external/bin/WeChat
-	url = http://git.slib.io/SLIB/SLibExternalBin_WeChat.git
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_WeChat.git
 [submodule "external/bin/Firebase"]
 	path = external/bin/Firebase
-	url = http://git.slib.io/SLIB/SLibExternalBin_Firebase
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_Firebase
 [submodule "external/bin/Alipay"]
 	path = external/bin/Alipay
-	url = http://git.slib.io/SLIB/SLibExternalBin_Alipay.git
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_Alipay.git
 [submodule "external/bin/libpq"]
 	path = external/bin/libpq
-	url = http://git.slib.io/SLIB/SLibExternalBin_libpq.git
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_libpq.git
 [submodule "external/lib"]
 	path = external/lib
-	url = http://git.slib.io/SLIB/SLibExternalLib.git
+	url = http://git.slib.io/SLIBIO/SLibExternalLib.git
