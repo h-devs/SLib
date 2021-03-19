@@ -94,7 +94,7 @@ namespace slib
 
 	Ref<File> File::openForReadWrite(const StringParam& filePath)
 	{
-		return open(filePath, FileMode::ReadWrite);
+		return open(filePath, FileMode::ReadWrite | FileMode::NotTruncate);
 	}
 
 	Ref<File> File::openForAppend(const StringParam& filePath)

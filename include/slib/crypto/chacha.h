@@ -182,7 +182,7 @@ namespace slib
 	{
 	public:
 		enum {
-			HeaderSize = 80
+			HeaderSize = 128
 		};
 
 	public:
@@ -198,6 +198,14 @@ namespace slib
 		// header: `HeaderSize` bytes
 		sl_bool open(const void* header, const void* password, sl_uint32 lenPassword);
 		sl_bool open(const void* header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCountLimit);
+
+		// header: `HeaderSize` bytes
+		static sl_bool checkPassword(const void* header, const void* password, sl_uint32 lenPassword);
+		static sl_bool checkPassword(const void* header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCountLimit);
+
+		// header: `HeaderSize` bytes
+		static sl_bool changePassword(void* header, const void* oldPassword, sl_uint32 lenOldPassword, const void* newPassword, sl_uint32 lenNewPassword);
+		static sl_bool changePassword(void* header, const void* oldPassword, sl_uint32 lenOldPassword, const void* newPassword, sl_uint32 lenNewPassword, sl_uint32 iterationBitsCountLimit);
 
 		void encrypt(sl_uint64 offset, const void* src, void* dst, sl_size size);
 		
