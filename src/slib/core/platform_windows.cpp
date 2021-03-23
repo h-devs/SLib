@@ -446,61 +446,61 @@ namespace slib
 			if (out) {
 				if (size > 0) {
 					switch (type) {
-					case REG_BINARY:
-					case REG_MULTI_SZ:
-					{
-						SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
-						if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, buf, &size)) {
-							Memory mem = Memory::create(buf, size);
-							if (mem.isNotNull()) {
-								out->setMemory(mem);
-								flagSuccess = sl_true;
-							}
-						}
-					}
-					break;
-					case REG_EXPAND_SZ:
-					case REG_SZ:
-					{
-						SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
-						if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, buf, &size)) {
-							String16 s(reinterpret_cast<sl_char16*>(buf), size / 2 - 1);
-							out->setString(s);
-							flagSuccess = sl_true;
-						}
-					}
-					break;
-					case REG_DWORD:
-					case REG_DWORD_BIG_ENDIAN:
-						if (size == 4) {
-							sl_uint32 n;
-							if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, reinterpret_cast<BYTE*>(&n), &size)) {
-								if (size == 4) {
-									if (type == REG_DWORD) {
-										out->setUint32(n);
-									} else {
-										out->setUint32(Endian::swap32(n));
+						case REG_BINARY:
+						case REG_MULTI_SZ:
+							{
+								SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
+								if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, buf, &size)) {
+									Memory mem = Memory::create(buf, size);
+									if (mem.isNotNull()) {
+										out->setMemory(mem);
+										flagSuccess = sl_true;
 									}
+								}
+							}
+							break;
+						case REG_EXPAND_SZ:
+						case REG_SZ:
+							{
+								SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
+								if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, buf, &size)) {
+									String16 s(reinterpret_cast<sl_char16*>(buf), size / 2 - 1);
+									out->setString(s);
 									flagSuccess = sl_true;
 								}
 							}
-						}
-						break;
-					case REG_QWORD:
-						if (size == 8) {
-							sl_uint64 n;
-							if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, reinterpret_cast<BYTE*>(&n), &size)) {
-								if (size == 8) {
-									out->setUint64(n);
-									flagSuccess = sl_true;
+							break;
+						case REG_DWORD:
+						case REG_DWORD_BIG_ENDIAN:
+							if (size == 4) {
+								sl_uint32 n;
+								if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, reinterpret_cast<BYTE*>(&n), &size)) {
+									if (size == 4) {
+										if (type == REG_DWORD) {
+											out->setUint32(n);
+										} else {
+											out->setUint32(Endian::swap32(n));
+										}
+										flagSuccess = sl_true;
+									}
 								}
 							}
-						}
-						break;
-					default: // REG_NONE
-						out->setNull();
-						flagSuccess = sl_true;
-						break;
+							break;
+						case REG_QWORD:
+							if (size == 8) {
+								sl_uint64 n;
+								if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, reinterpret_cast<BYTE*>(&n), &size)) {
+									if (size == 8) {
+										out->setUint64(n);
+										flagSuccess = sl_true;
+									}
+								}
+							}
+							break;
+						default: // REG_NONE
+							out->setNull();
+							flagSuccess = sl_true;
+							break;
 					}
 				} else {
 					out->setNull();
