@@ -110,12 +110,12 @@ namespace slib
 				{
 					HANDLE handle = m_hRead;
 					if (handle != INVALID_HANDLE_VALUE) {
-						if (size == 0) {
+						if (!size) {
 							return 0;
 						}
 						sl_uint32 ret = 0;
 						if (ReadFile(handle, buf, size, (DWORD*)&ret, NULL)) {
-							if (ret > 0) {
+							if (ret) {
 								return ret;
 							}
 						}
@@ -128,12 +128,12 @@ namespace slib
 				{
 					HANDLE handle = m_hWrite;
 					if (handle != INVALID_HANDLE_VALUE) {
-						if (size == 0) {
+						if (!size) {
 							return 0;
 						}
 						sl_uint32 ret = 0;
 						if (WriteFile(handle, (LPVOID)buf, size, (DWORD*)&ret, NULL)) {
-							if (ret > 0) {
+							if (ret) {
 								return ret;
 							}
 						}
@@ -192,13 +192,19 @@ namespace slib
 							si.dwFlags = STARTF_USESTDHANDLES;
 							if (Execute(pathExecutable, strArguments, nArguments, &pi, &si, sl_true)) {
 								CloseHandle(pi.hThread);
+								CloseHandle(hStdinRead);
+								CloseHandle(hStdoutWrite);
 								Ref<ProcessImpl> ret = new ProcessImpl;
-								ret->m_hProcess = pi.hProcess;
-								Ref<ProcessStream> stream = new ProcessStream;
-								stream->m_hRead = hStdoutRead;
-								stream->m_hWrite = hStdinWrite;
-								ret->m_stream = stream;
-								return ret;
+								if (ret.isNotNull()) {
+									ret->m_hProcess = pi.hProcess;
+									Ref<ProcessStream> stream = new ProcessStream;
+									if (stream.isNotNull()) {
+										stream->m_hRead = hStdoutRead;
+										stream->m_hWrite = hStdinWrite;
+										ret->m_stream = Move(stream);
+										return ret;
+									}
+								}
 							}
 							CloseHandle(hStdoutRead);
 							CloseHandle(hStdoutWrite);
