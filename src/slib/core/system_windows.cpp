@@ -88,6 +88,9 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		sl_char16 sz[PRIV_PATH_MAX] = {0};
 		sl_int32 n = GetTempPathW(PRIV_PATH_MAX - 1, (LPWSTR)sz);
+		if (sz[n - 1] == '\\') {
+			n--;
+		}
 		return String::create(sz, n);
 #else
 		SLIB_STATIC_STRING(temp, "/temp");
