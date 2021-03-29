@@ -201,6 +201,11 @@ namespace slib
 
 		static String getSystemWow64Directory();
 
+
+		static sl_bool installDriver(const StringParam& pathToInf, const StringParam& hardwareId, sl_bool* pOutRebootRequired = sl_null);
+		
+		static sl_bool uninstallDriver(const StringParam& hardwareIds, sl_bool* pOutRebootRequired = sl_null);
+
 	};
 	
 }
