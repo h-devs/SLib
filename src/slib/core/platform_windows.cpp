@@ -720,8 +720,8 @@ namespace slib
 #ifdef SLIB_PLATFORM_IS_WIN64
 		return sl_true;
 #else
-		sl_bool flag64Bit = sl_false;
-		sl_bool flagInit = sl_true;
+		static sl_bool flag64Bit = sl_false;
+		static sl_bool flagInit = sl_true;
 		if (flagInit) {
 			auto func = kernel32::getApi_IsWow64Process();
 			if (func) {
@@ -731,7 +731,7 @@ namespace slib
 			}
 			flagInit = sl_false;
 		}
-		return flagInit;
+		return flag64Bit;
 #endif
 	}
 
