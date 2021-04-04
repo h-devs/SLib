@@ -39,6 +39,7 @@
 #include <sched.h>
 #include <signal.h>
 #include <pwd.h>
+#include <stdlib.h>
 
 #include <sys/time.h>
 
@@ -173,6 +174,12 @@ namespace slib
 		sched_yield();
 	}
 	
+	sl_int32 System::execute(const StringParam& _command)
+	{
+		StringCstr command(_command);
+		return (sl_int32)(system(command.getData()));
+	}
+
 	sl_uint32 System::getLastError()
 	{
 		return errno;

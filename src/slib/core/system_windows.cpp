@@ -33,6 +33,7 @@
 #include <assert.h>
 #include <signal.h>
 #include <float.h>
+#include <stdlib.h>
 
 #pragma warning(disable: 4091)
 #include <shlobj.h>
@@ -193,6 +194,12 @@ namespace slib
 #else
 		System::sleep(0);
 #endif
+	}
+
+	sl_int32 System::execute(const StringParam& _command)
+	{
+		StringCstr16 command(_command);
+		return (sl_int32)(_wsystem((WCHAR*)(command.getData())));
 	}
 
 	sl_uint32 System::getLastError()

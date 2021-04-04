@@ -69,6 +69,9 @@ namespace slib
 		static void yield();
 
 		static void yield(sl_uint32 elapsed);
+
+		
+		static sl_int32 execute(const StringParam& command);
 	
 		
 		static sl_uint32 getLastError();
