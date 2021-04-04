@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,36 +20,64 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_NETWORK_HEADER
-#define CHECKHEADER_SLIB_NETWORK_HEADER
+#ifndef CHECKHEADER_SLIB_NETWORK_TAP
+#define CHECKHEADER_SLIB_NETWORK_TAP
 
-#include "network/constants.h"
+#include "socket_address.h"
 
-#include "network/mac_address.h"
-#include "network/ip_address.h"
-#include "network/socket_address.h"
+#include "../core/object.h"
+#include "../core/service_manager.h"
 
-#include "network/os.h"
-#include "network/socket.h"
-#include "network/async.h"
-#include "network/io.h"
-#include "network/event.h"
+namespace slib
+{
 
-#include "network/tcpip.h"
-#include "network/tcpip_fragment.h"
-#include "network/dns.h"
-#include "network/icmp.h"
-#include "network/nat.h"
-#include "network/ethernet.h"
-#include "network/arp.h"
+	class SLIB_EXPORT Tap : public Object
+	{
+		SLIB_DECLARE_OBJECT
 
-#include "network/url.h"
-#include "network/url_request.h"
-#include "network/curl.h"
-#include "network/http.h"
-#include "network/stun.h"
+	protected:
+		Tap();
 
-#include "network/capture.h"
-#include "network/tap.h"
+		~Tap();
+
+	public:
+		static Ref<Tap> open(const StringParam& name);
+
+		static Ref<Tap> open();
+
+	public:
+		sl_bool isOpened();
+		
+		void close();
+
+		String getDeviceName();
+
+		String getInterfaceName();
+
+	public:
+		virtual sl_int32 read(void* buf, sl_uint32 size) = 0;
+
+		virtual sl_int32 write(const void* buf, sl_uint32 size) = 0;
+
+		virtual sl_bool setIpAddress(const StringParam& ip, const StringParam& mask) = 0;
+
+	public:
+		static ServiceState getDriverState();
+
+		static sl_bool install();
+
+		static sl_bool uninstall();
+
+	protected:
+		virtual void _close() = 0;
+
+	protected:
+		sl_bool m_flagOpened;
+		String m_deviceName;
+		String m_interfaceName;
+
+	};
+
+}
 
 #endif

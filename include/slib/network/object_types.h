@@ -53,7 +53,8 @@ namespace slib
 			StunServer,
 			NetCapture,
 			NatTable,
-			IPv4Fragmentation
+			IPv4Fragmentation,
+			Tap
 		};
 
 	}

@@ -182,6 +182,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/network/socket_event.cpp"
  "${SLIB_PATH}/src/slib/network/socket_event_unix.cpp"
  "${SLIB_PATH}/src/slib/network/stun.cpp"
+ "${SLIB_PATH}/src/slib/network/tap.cpp"
  "${SLIB_PATH}/src/slib/network/tcpip.cpp"
  "${SLIB_PATH}/src/slib/network/url.cpp"
  "${SLIB_PATH}/src/slib/network/url_request.cpp"
@@ -454,6 +455,8 @@ else ()
   "${SLIB_PATH}/src/slib/ui/dl_linux_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/dl_linux_gdk.cpp"
   "${SLIB_PATH}/src/slib/ui/dl_linux_x11.cpp"
+
+  "${SLIB_PATH}/src/slib/network/tap_unix.cpp"
 
   "${SLIB_PATH}/src/slib/db/mysql.cpp"
   "${SLIB_PATH}/src/slib/db/postgresql.cpp"

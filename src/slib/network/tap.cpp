@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,36 +20,71 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_NETWORK_HEADER
-#define CHECKHEADER_SLIB_NETWORK_HEADER
+#include "slib/network/tap.h"
 
-#include "network/constants.h"
+namespace slib
+{
 
-#include "network/mac_address.h"
-#include "network/ip_address.h"
-#include "network/socket_address.h"
+	SLIB_DEFINE_OBJECT(Tap, Object)
 
-#include "network/os.h"
-#include "network/socket.h"
-#include "network/async.h"
-#include "network/io.h"
-#include "network/event.h"
+	Tap::Tap()
+	{
+		m_flagOpened = sl_true;
+	}
 
-#include "network/tcpip.h"
-#include "network/tcpip_fragment.h"
-#include "network/dns.h"
-#include "network/icmp.h"
-#include "network/nat.h"
-#include "network/ethernet.h"
-#include "network/arp.h"
+	Tap::~Tap()
+	{
+	}
 
-#include "network/url.h"
-#include "network/url_request.h"
-#include "network/curl.h"
-#include "network/http.h"
-#include "network/stun.h"
+	Ref<Tap> Tap::open()
+	{
+		return open(sl_null);
+	}
 
-#include "network/capture.h"
-#include "network/tap.h"
+	sl_bool Tap::isOpened()
+	{
+		return m_flagOpened;
+	}
 
+	void Tap::close()
+	{
+		ObjectLocker lock(this);
+		if (m_flagOpened) {
+			m_flagOpened = sl_false;
+			_close();
+		}
+	}
+
+	String Tap::getDeviceName()
+	{
+		return m_deviceName;
+	}
+
+	String Tap::getInterfaceName()
+	{
+		return m_interfaceName;
+	}
+
+#if defined(SLIB_PLATFORM_IS_MOBILE) || (!defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_UNIX))
+	Ref<Tap> Tap::open(const StringParam& deviceName)
+	{
+		return sl_null;
+	}
+
+	ServiceState Tap::getDriverState()
+	{
+		return ServiceState::None;
+	}
+
+	sl_bool Tap::install()
+	{
+		return sl_false;
+	}
+
+	sl_bool Tap::uninstall()
+	{
+		return sl_false;
+	}
 #endif
+
+}
