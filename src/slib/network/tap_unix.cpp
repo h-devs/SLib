@@ -34,6 +34,9 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/poll.h>
+#include <sys/ioctl.h>
+#include <linux/if.h>
+#include <linux/if_tun.h>
 
 namespace slib
 {
@@ -64,21 +67,28 @@ namespace slib
 					StringCstr deviceName(_deviceName);
 					const char* szDeviceName;
 					if (deviceName.isEmpty()) {
-						szDeviceName = "/dev/net/tun";
+						szDeviceName = "tap";
 					} else {
 						szDeviceName = deviceName.getData();
 					}
 
-					int handle = ::open(szDeviceName, O_RDWR);
+					int handle = ::open("/dev/net/tun", O_RDWR);
 					if (handle != -1) {
 						File::setNonBlocking(handle, sl_true);
-						Ref<TapImpl> tap = new TapImpl;
-						if (tap.isNotNull()) {
-							tap->m_handle = handle;
-							tap->m_deviceName = szDeviceName;
-							tap->m_interfaceName = szDeviceName;
-							return tap;
+						ifreq ifr;
+						Base::zeroMemory(&ifr, sizeof(ifr));
+						ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+						Base::copyString(ifr.ifr_name, szDeviceName, IFNAMSIZ);
+						if (ioctl(handle, TUNSETIFF, &ifr) >= 0) {
+							Ref<TapImpl> tap = new TapImpl;
+							if (tap.isNotNull()) {
+								tap->m_handle = handle;
+								tap->m_deviceName = szDeviceName;
+								tap->m_interfaceName = szDeviceName;
+								return tap;
+							}
 						}
+
 					}
 					return sl_null;
 				}
