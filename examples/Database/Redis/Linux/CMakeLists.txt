@@ -4,6 +4,8 @@ project(RedisClientExample)
 
 include ($ENV{SLIB_PATH}/tool/slib-app.cmake)
 
+link_directories("${SLIB_PATH}/external/lib/Linux/${CMAKE_SYSTEM_PROCESSOR}")
+
 add_executable(RedisClientExample
   ../main.cpp
 )

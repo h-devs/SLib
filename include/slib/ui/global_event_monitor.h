@@ -23,9 +23,9 @@
 #ifndef CHECKHEADER_SLIB_UI_GLOBAL_EVENT_MONITOR
 #define CHECKHEADER_SLIB_UI_GLOBAL_EVENT_MONITOR
 
-#include "definition.h"
-
 #include "event.h"
+
+#include "../core/function.h"
 
 namespace slib
 {

@@ -32,7 +32,19 @@ namespace slib
 	{
 		namespace twitter
 		{
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<Twitter>, g_instance)
+
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Twitter>, g_instance)
+
+			class ShareLocalParams : public TwitterShareParam
+			{
+			public:
+				ShareLocalParams(const TwitterShareParam& param): TwitterShareParam(param) {}
+			public:
+				sl_size indexMedia;
+				List<String> mediaIds;
+				Ref<Twitter> twitter;
+			};
+
 		}
 	}
 	
@@ -187,18 +199,9 @@ namespace slib
 	
 	void Twitter::share(const TwitterShareParam& _param)
 	{
-		class Params : public TwitterShareParam
-		{
-		public:
-			Params(const TwitterShareParam& param): TwitterShareParam(param) {}
-		public:
-			sl_size indexMedia;
-			List<String> mediaIds;
-			Ref<Twitter> twitter;
-		};
-		static Function<void(Params param, UrlRequest*)> callback;
+		static Function<void(ShareLocalParams param, UrlRequest*)> callback;
 		if (callback.isNull()) {
-			callback = [](Params param, UrlRequest* request) {
+			callback = [](ShareLocalParams param, UrlRequest* request) {
 				if (request) {
 					TwitterShareResult result(request);
 					if (request->isError()) {
@@ -219,14 +222,14 @@ namespace slib
 				if (param.indexMedia < param.medias.getCount()) {
 					rp.method = HttpMethod::POST;
 					rp.url = "https://upload.twitter.com/1.1/media/upload.json";
-					VariantHashMap map;
+					VariantMap map;
 					map.put("media", param.medias.getValueAt(param.indexMedia));
 					rp.setMultipartFormData(map);
 					rp.onComplete = Function<void(UrlRequest*)>::bind(callback, param);
 				} else {
 					rp.method = HttpMethod::POST;
 					rp.url = getRequestUrl("statuses/update.json");
-					VariantHashMap map;
+					VariantMap map;
 					map.put("status", param.status);
 					if (param.mediaIds.isNotEmpty()) {
 						map.put("media_ids", String::join(param.mediaIds, ","));
@@ -254,7 +257,7 @@ namespace slib
 			};
 		}
 		
-		Params param(_param);
+		ShareLocalParams param(_param);
 		param.indexMedia = 0;
 		param.mediaIds = List<String>::create();
 		param.twitter = this;

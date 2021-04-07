@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,15 +23,15 @@
 #ifndef CHECKHEADER_SLIB_UI_EDIT_VIEW
 #define CHECKHEADER_SLIB_UI_EDIT_VIEW
 
-#include "definition.h"
-
 #include "view.h"
+
+#include "../core/string.h"
 
 namespace slib
 {
 	
 	class IEditViewInstance;
-	
+
 	class SLIB_EXPORT EditView : public View
 	{
 		SLIB_DECLARE_OBJECT
@@ -44,43 +44,45 @@ namespace slib
 	public:
 		String getText();
 		
-		virtual void setText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		String getInstanceText();
+
+		void setText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		Alignment getGravity();
 		
-		virtual void setGravity(const Alignment& gravity, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setGravity(const Alignment& gravity, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Color getTextColor();
 		
-		virtual void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		String getHintText();
 		
-		virtual void setHintText(const String& str, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHintText(const String& str, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Alignment getHintGravity();
 		
-		virtual void setHintGravity(const Alignment& gravity, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHintGravity(const Alignment& gravity, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Color getHintTextColor();
 		
-		virtual void setHintTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHintTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Ref<Font> getHintFont();
 		
-		virtual void setHintFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHintFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_bool isReadOnly();
 		
-		virtual void setReadOnly(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setReadOnly(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_bool isPassword();
 		
-		virtual void setPassword(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setPassword(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		MultiLineMode getMultiLine();
 		
-		virtual void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
+		void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
 		
 		UIReturnKeyType getReturnKeyType();
 		
@@ -89,10 +91,10 @@ namespace slib
 		UIKeyboardType getKeyboardType();
 		
 		void setKeyboardType(UIKeyboardType type);
-		
-		void setAutoCapitalizationType(UIAutoCapitalizationType type);
-		
+
 		UIAutoCapitalizationType getAutoCaptializationType();
+
+		void setAutoCapitalizationType(UIAutoCapitalizationType type);
 		
 		sl_bool isAutoDismissKeyboard();
 		
@@ -101,7 +103,7 @@ namespace slib
 		void setFocusNextOnReturnKey();
 		
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(EditView, Change, String* pValue)
+		SLIB_DECLARE_EVENT_HANDLER(EditView, Change, String& value)
 		
 		SLIB_DECLARE_EVENT_HANDLER(EditView, ReturnKey)
 		
@@ -111,6 +113,8 @@ namespace slib
 		void onDraw(Canvas* canvas) override;
 
 		void onClickEvent(UIEvent* ev) override;
+
+		void onChangeFocus(sl_bool flagFocused) override;
 		
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
@@ -120,15 +124,6 @@ namespace slib
 	public:
 		void dispatchKeyEvent(UIEvent* ev) override;
 		
-	private:
-		void _onChangeEditViewNative(EditView* ev, String* text);
-		
-		void _onReturnKeyEditViewNative(EditView* ev);
-		
-		void _onDoneEditViewNativeButton(View* view);
-
-		void _onCloseWindowEditViewNative(Window* window, UIEvent* ev);
-
 	protected:
 		AtomicString m_text;
 		Alignment m_gravity;
@@ -145,9 +140,11 @@ namespace slib
 		UIAutoCapitalizationType m_autoCapitalizationType;
 		sl_bool m_flagAutoDismissKeyboard;
 		
-		Ref<Window> m_windowEdit;
-		Ref<EditView> m_editViewNative;
-		
+		Ref<Referable> m_dialog;
+
+		AtomicRef<Timer> m_timerDrawCaret;
+		sl_uint32 m_nCountDrawCaret;
+
 	};
 	
 	class PasswordView : public EditView
@@ -207,7 +204,7 @@ namespace slib
 		virtual sl_ui_len measureHeight(EditView* view) = 0;
 		
 	};
-	
+
 }
 
 #endif

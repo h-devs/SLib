@@ -34,7 +34,7 @@ namespace slib
 	void Etsy::login(const EtsyLoginParam& _param)
 	{
 		OAuth1_LoginParam param = _param;
-		HashMap<String, Variant> requestTokenParams;
+		VariantMap requestTokenParams;
 		requestTokenParams.putAll_NoLock(_param.authorization.customParameters);
 		if (_param.scopes.isNotEmpty()) {
 			requestTokenParams.put_NoLock("scope", String::join(_param.scopes, " "));

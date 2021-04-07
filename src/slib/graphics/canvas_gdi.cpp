@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_GDI)
 
@@ -58,10 +58,6 @@ namespace slib
 #define DRAW_PEN_BEGIN \
 			Gdiplus::Graphics* graphics = m_graphics; \
 			sl_real alpha = getAlpha(); \
-			Ref<Pen> pen = _pen; \
-			if (pen.isNull()) { \
-				pen = Pen::getDefault(); \
-			} \
 			Gdiplus::Pen* hPen = GraphicsPlatform::getPenHandle(pen.get()); \
 			Gdiplus::Pen* hPenClone = NULL; \
 			if (alpha < 0.995f) { \
@@ -84,10 +80,6 @@ namespace slib
 			Gdiplus::Graphics* graphics = m_graphics; \
 			sl_real alpha = getAlpha(); \
 			Gdiplus::Brush* hBrush = GraphicsPlatform::getBrushHandle(brush.get()); \
-			Ref<Pen> pen = _pen; \
-			if (brush.isNull() && pen.isNull()) { \
-				pen = Pen::getDefault(); \
-			} \
 			Gdiplus::Pen* hPen = GraphicsPlatform::getPenHandle(pen.get()); \
 			Gdiplus::Brush* hBrushClone = NULL; \
 			Gdiplus::Pen* hPenClone = NULL; \
@@ -135,7 +127,7 @@ namespace slib
 				~CanvasImpl()
 				{
 					if (m_flagFreeOnRelease) {
-						delete m_graphics;			
+						delete m_graphics;
 					}
 				}
 
@@ -236,7 +228,7 @@ namespace slib
 					setMatrix(mat);
 				}
 
-				void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& _pen) override
+				void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen) override
 				{
 					DRAW_PEN_BEGIN
 					if (hPen) {
@@ -245,7 +237,7 @@ namespace slib
 					DRAW_PEN_END
 				}
 
-				void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& _pen) override
+				void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) override
 				{
 					if (countPoints < 2) {
 						return;
@@ -258,7 +250,7 @@ namespace slib
 					DRAW_PEN_END
 				}
 
-				void drawArc(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& _pen) override
+				void drawArc(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen) override
 				{
 					DRAW_PEN_BEGIN
 					if (hPen) {
@@ -268,7 +260,7 @@ namespace slib
 					DRAW_PEN_END
 				}
 
-				void drawRectangle(const Rectangle& rect, const Ref<Pen>& _pen, const Ref<Brush>& brush) override
+				void drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
 					sl_real width = rect.getWidth();
 					sl_real height = rect.getHeight();
@@ -283,18 +275,18 @@ namespace slib
 					DRAW_PEN_BRUSH_END
 				}
 
-				void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& _pen, const Ref<Brush>& brush) override
+				void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
 					sl_real width = rect.getWidth();
 					sl_real height = rect.getHeight();
 					Ref<GraphicsPath> path = GraphicsPath::create();
 					if (path.isNotNull()) {
 						path->addRoundRect(rect.left, rect.top, width, height, radius.x, radius.y);
-						drawPath(path, _pen, brush);
+						drawPath(path, pen, brush);
 					}
 				}
 
-				void drawEllipse(const Rectangle& rect, const Ref<Pen>& _pen, const Ref<Brush>& brush) override
+				void drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
 					sl_real width = rect.getWidth();
 					sl_real height = rect.getHeight();
@@ -309,7 +301,7 @@ namespace slib
 					DRAW_PEN_BRUSH_END
 				}
 
-				void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& _pen, const Ref<Brush>& brush, FillMode fillMode) override
+				void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
 				{
 					if (countPoints <= 2) {
 						return;
@@ -338,7 +330,7 @@ namespace slib
 
 				}
 
-				void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& _pen, const Ref<Brush>& brush) override
+				void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
 					DRAW_PEN_BRUSH_BEGIN
 					if (hBrush) {
@@ -352,7 +344,7 @@ namespace slib
 					DRAW_PEN_BRUSH_END
 				}
 
-				void drawPath(const Ref<GraphicsPath>& _path, const Ref<Pen>& _pen, const Ref<Brush>& brush) override
+				void drawPath(const Ref<GraphicsPath>& _path, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
 					Ref<GraphicsPath> path = _path;
 					if (path.isNotNull()) {
@@ -378,7 +370,8 @@ namespace slib
 						Gdiplus::Graphics* graphics = m_graphics;
 						Gdiplus::Font* pf = GraphicsPlatform::getGdiplusFont(font.get());
 						if (pf) {
-							Gdiplus::StringFormat format(Gdiplus::StringFormatFlagsNoWrap | Gdiplus::StringFormatFlagsNoClip);
+							Gdiplus::StringFormat format(Gdiplus::StringFormat::GenericTypographic());
+							format.SetFormatFlags(format.GetFormatFlags() | Gdiplus::StringFormatFlagsMeasureTrailingSpaces);
 							int a = param.color.a;
 							sl_real alpha = getAlpha();
 							if (alpha < 0.995f) {
@@ -397,7 +390,7 @@ namespace slib
 								path.AddString((const WCHAR*)(text.getData()), (INT)(lenText),
 									&family, pf->GetStyle(), pf->GetSize(),
 									Gdiplus::PointF((Gdiplus::REAL)(x), (Gdiplus::REAL)(y + 1)),
-									Gdiplus::StringFormat::GenericTypographic());
+									&format);
 								Gdiplus::GraphicsPath* pathShadow = path.Clone();
 								if (pathShadow) {
 									Gdiplus::GraphicsState state = graphics->Save();
@@ -423,7 +416,7 @@ namespace slib
 								graphics->DrawString((const WCHAR*)(text.getData()), (INT)(lenText),
 									pf,
 									Gdiplus::PointF((Gdiplus::REAL)(x), (Gdiplus::REAL)(y + 1)),
-									Gdiplus::StringFormat::GenericTypographic(),
+									&format,
 									&brush);
 							}
 						}
@@ -443,7 +436,7 @@ namespace slib
 
 			};
 
-			SLIB_DEFINE_OBJECT(CanvasImpl, Canvas)
+			SLIB_DEFINE_OBJECT(CanvasImpl, CanvasExt)
 
 		}
 	}
@@ -515,7 +508,7 @@ namespace slib
 		}
 
 		do {
-			if (param.isBlur() && Windows::getAPI_GdipCreateEffect()) {
+			if (param.isBlur() && gdiplus::getApi_GdipCreateEffect()) {
 				Gdiplus::Blur blur;
 				Gdiplus::BlurParams bp;
 				bp.expandEdge = FALSE;

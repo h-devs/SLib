@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 #include "slib/graphics/font_atlas.h"
 
+#include "slib/graphics/image.h"
 #include "slib/core/variant.h"
 #include "slib/core/safe_static.h"
 
@@ -56,6 +57,7 @@ namespace slib
 	{
 	}
 
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontAtlasChar)
 	
 	FontAtlasChar::FontAtlasChar()
@@ -63,6 +65,16 @@ namespace slib
 		fontWidth = 0;
 		fontHeight = 0;
 	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontAtlasCharImage)
+
+	FontAtlasCharImage::FontAtlasCharImage()
+	{
+		fontWidth = 0;
+		fontHeight = 0;
+	}
+
 
 	SLIB_DEFINE_OBJECT(FontAtlas, Object)
 
@@ -194,6 +206,42 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 		return _getChar(ch, sl_false, _out);
+	}
+
+	sl_bool FontAtlas::getCharImage(sl_char32 ch, FontAtlasCharImage& _out)
+	{
+		ObjectLocker lock(this);
+		if (m_mapImage.get_NoLock(ch, &_out)) {
+			return sl_true;
+		}
+		FontAtlasChar fac;
+		if (_getChar(ch, sl_false, fac)) {
+			_out.fontWidth = fac.fontWidth;
+			_out.fontHeight = fac.fontHeight;
+			if (fac.bitmap.isNotNull()) {
+				_out.image = Image::createCopyBitmap(fac.bitmap, fac.region.left, fac.region.top, fac.region.getWidth(), fac.region.getHeight());
+				if (_out.image.isNotNull()) {
+					Color* colors = _out.image->getColors();
+					sl_uint32 width = _out.image->getWidth();
+					sl_uint32 height = _out.image->getHeight();
+					sl_uint32 stride = _out.image->getStride();
+					for (sl_uint32 i = 0; i < height; i++) {
+						Color* c = colors;
+						for (sl_uint32 j = 0; j < width; j++) {
+							c->a = c->a * (c->r + c->g + c->b) / 765;
+							c->r = c->g = c->b = 255;
+							c++;
+						}
+						colors += stride;
+					}
+					m_mapImage.put_NoLock(ch, _out);
+					return sl_true;
+				}
+			} else {
+				return sl_true;
+			}
+		}
+		return sl_false;
 	}
 
 	Size FontAtlas::getFontSize(sl_char32 ch)

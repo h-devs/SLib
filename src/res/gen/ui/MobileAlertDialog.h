@@ -7,12 +7,12 @@ namespace slib
 	namespace ui
 	{
 		SLIB_DECLARE_PAGE_LAYOUT_BEGIN(MobileAlertDialog)
-			slib::Ref<slib::LinearView> _linear1;
+			slib::Ref<slib::LinearLayout> _linear1;
 			slib::Ref<slib::LabelView> txtTitle;
 			slib::Ref<slib::ScrollView> _scroll1;
 			slib::Ref<slib::LabelView> txtContent;
 			slib::Ref<slib::View> _view1;
-			slib::Ref<slib::LinearView> _linear2;
+			slib::Ref<slib::LinearLayout> _linear2;
 			slib::Ref<slib::Button> btnOK;
 			slib::Ref<slib::View> _view2;
 			slib::Ref<slib::Button> btnYes;

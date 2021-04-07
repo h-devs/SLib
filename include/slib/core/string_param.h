@@ -23,17 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CORE_STRING_PARAM
 #define CHECKHEADER_SLIB_CORE_STRING_PARAM
 
-#include "string8.h"
-#include "string16.h"
-
-#ifdef SLIB_SUPPORT_STD_TYPES
-#include <string>
-#endif
-
 namespace slib
 {
-
-	class Variant;
 
 	enum class StringType : sl_reg
 	{
@@ -45,6 +36,21 @@ namespace slib
 		Sz16 = -6
 	};
 	
+	namespace priv
+	{
+		namespace string_param
+		{
+			struct ConstContainer
+			{
+				void* value;
+				sl_size length;
+			};
+
+			extern const ConstContainer g_undefined;
+			extern const ConstContainer g_null;
+		}
+	}
+
 	class SLIB_EXPORT StringParam
 	{
 	public:
@@ -62,9 +68,9 @@ namespace slib
 		};
 		
 	public:
-		SLIB_INLINE constexpr StringParam() noexcept : _value(sl_null), _length(0) {}
+		constexpr StringParam() noexcept : _value(sl_null), _length(0) {}
 		
-		SLIB_INLINE constexpr StringParam(sl_null_t) noexcept : _value(sl_null), _length(1) {}
+		constexpr StringParam(sl_null_t) noexcept : _value(sl_null), _length(1) {}
 		
 		StringParam(StringParam&& other) noexcept;
 		
@@ -83,11 +89,7 @@ namespace slib
 		
 		StringParam(const AtomicString& value) noexcept;
 		
-		StringParam(AtomicString&& value) noexcept;
-		
 		StringParam(const AtomicString16& value) noexcept;
-		
-		StringParam(AtomicString16&& value) noexcept;
 		
 		StringParam(const StringView& value) noexcept;
 		
@@ -120,15 +122,27 @@ namespace slib
 #endif
 		
 	public:
-		static const StringParam& undefined() noexcept;
+		static const StringParam& undefined() noexcept
+		{
+			return *(reinterpret_cast<StringParam const*>(&(priv::string_param::g_undefined)));
+		}
 		
-		static const StringParam& null() noexcept;
+		static const StringParam& null() noexcept
+		{
+			return *(reinterpret_cast<StringParam const*>(&(priv::string_param::g_null)));
+		}
 		
 		template <sl_size N>
-		static StringParam literal(const sl_char8 (&s)[N]) noexcept;
+		static StringParam literal(const sl_char8 (&s)[N]) noexcept
+		{
+			return StringParam(s, N-1);
+		}
 		
 		template <sl_size N>
-		static StringParam literal(const sl_char16 (&s)[N]) noexcept;
+		static StringParam literal(const sl_char16 (&s)[N]) noexcept
+		{
+			return StringParam(s, N-1);
+		}
 		
 	public:
 		StringParam& operator=(StringParam&& other) noexcept;
@@ -147,11 +161,7 @@ namespace slib
 
 		StringParam& operator=(const AtomicString& value) noexcept;
 		
-		StringParam& operator=(AtomicString&& value) noexcept;
-		
 		StringParam& operator=(const AtomicString16& value) noexcept;
-		
-		StringParam& operator=(AtomicString16&& value) noexcept;
 		
 		StringParam& operator=(const StringView& value) noexcept;
 		
@@ -178,15 +188,27 @@ namespace slib
 	public:
 		void setUndefined() noexcept;
 		
-		sl_bool isUndefined() const noexcept;
+		sl_bool isUndefined() const noexcept
+		{
+			return (!_value) && (!_length);
+		}
 		
-		sl_bool isNotUndefined() const noexcept;
+		sl_bool isNotUndefined() const noexcept
+		{
+			return _value || _length;
+		}
 		
 		void setNull() noexcept;
 		
-		sl_bool isNull() const noexcept;
+		sl_bool isNull() const noexcept
+		{
+			return !_value;
+		}
 		
-		sl_bool isNotNull() const noexcept;
+		sl_bool isNotNull() const noexcept
+		{
+			return _value != 0;
+		}
 		
 		
 		sl_bool isEmpty() const noexcept;
@@ -270,10 +292,12 @@ namespace slib
 		
 	public:
 		template <sl_size N>
-		SLIB_INLINE static StringData literal(const sl_char8 (&s)[N]) noexcept
+		static StringData literal(const sl_char8 (&s)[N]) noexcept
 		{
 			return StringData(s, N - 1);
 		}
+
+		String toString(const StringParam& param);
 		
 	};
 
@@ -293,10 +317,12 @@ namespace slib
 		
 	public:
 		template <sl_size N>
-		SLIB_INLINE static StringData16 literal(const sl_char16 (&s)[N]) noexcept
+		static StringData16 literal(const sl_char16 (&s)[N]) noexcept
 		{
 			return StringData16(s, N - 1);
 		}
+
+		String16 toString16(const StringParam& param);
 
 	};
 	
@@ -322,11 +348,13 @@ namespace slib
 		
 	public:
 		template <sl_size N>
-		SLIB_INLINE static StringCstr literal(const sl_char8 (&s)[N]) noexcept
+		static StringCstr literal(const sl_char8 (&s)[N]) noexcept
 		{
 			return StringCstr(s, N - 1);
 		}
-		
+
+		String toString(const StringParam& param);
+
 	};
 
 	class SLIB_EXPORT StringCstr16 : public StringView16
@@ -351,13 +379,29 @@ namespace slib
 		
 	public:
 		template <sl_size N>
-		SLIB_INLINE static StringCstr16 literal(const sl_char16 (&s)[N]) noexcept
+		static StringCstr16 literal(const sl_char16 (&s)[N]) noexcept
 		{
 			return StringCstr16(s, N - 1);
 		}
-		
+
+		String16 toString16(const StringParam& param);
+
 	};
 
+	template <class... ARGS>
+	String String::join(const StringParam& s, ARGS&&... args) noexcept
+	{
+		StringParam params[] = {s, Forward<ARGS>(args)...};
+		return join(params, 1 + sizeof...(args));
+	}
+
+	template <class... ARGS>
+	String16 String16::join(const StringParam& s, ARGS&&... args) noexcept
+	{
+		StringParam params[] = {s, Forward<ARGS>(args)...};
+		return join(params, 1 + sizeof...(args));
+	}
+	
 }
 
 #endif

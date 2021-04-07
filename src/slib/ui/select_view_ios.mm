@@ -20,11 +20,12 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_IOS)
 
 #include "slib/ui/select_view.h"
+
 #include "slib/ui/core.h"
 
 #include "view_ios.h"
@@ -36,6 +37,7 @@ namespace slib
 		namespace select_view
 		{
 			class SelectViewInstance;
+			class SelectViewHelper;
 		}
 	}
 }
@@ -45,6 +47,7 @@ namespace slib
 	@public UIPickerView* m_picker;
 	@public sl_uint32 m_selectionBefore;
 	@public slib::WeakRef<slib::priv::select_view::SelectViewInstance> m_viewInstance;
+	@public slib::WeakRef<slib::priv::select_view::SelectViewHelper> m_view;
 }
 @end
 
@@ -82,21 +85,36 @@ namespace slib
 			class SelectViewHelper : public SelectView
 			{
 			public:
-				sl_uint32 getItemsCount()
-				{
-					return (sl_uint32)(m_titles.getCount());
-				}
-				
 				NSString* getItemTitle(sl_uint32 row)
 				{
-					String s = m_titles.getValueAt(row);
-					return Apple::getNSStringFromString(s);
+					return Apple::getNSStringFromString(SelectView::getItemTitle(row));
 				}
 				
 				void selectItem(SLIBSelectViewHandle* handle, sl_uint32 row)
 				{
 					handle.text = getItemTitle(row);
 					[handle->m_picker selectRow:row inComponent:0 animated:NO];
+				}
+				
+				void onSelectItem(SLIBSelectViewHandle* handle, sl_uint32 row)
+				{
+					handle.text = getItemTitle(row);
+					dispatchSelectItem(row);
+				}
+				
+				void onStartSelection(SLIBSelectViewHandle* handle)
+				{
+					sl_uint32 index = getSelectedIndex();
+					handle->m_selectionBefore = index;
+					UIPickerView* picker = handle->m_picker;
+					dispatch_async(dispatch_get_main_queue(), ^{
+						[picker selectRow:index inComponent:0 animated:NO];
+					});
+				}
+				
+				void onCancelSelection(SLIBSelectViewHandle* handle)
+				{
+					onSelectItem(handle, handle->m_selectionBefore);
 				}
 				
 			};
@@ -115,8 +133,23 @@ namespace slib
 				{
 					return CastRef<SelectViewHelper>(getView());
 				}
+
+				void initialize(View* _view) override
+				{
+					SelectViewHelper* view = (SelectViewHelper*)_view;
+					SLIBSelectViewHandle* handle = getHandle();
+
+					handle->m_view = view;
+					view->selectItem(handle, view->getSelectedIndex());
+					[handle setTextAlignment:(TranslateAlignment(view->getGravity()))];
+					[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(view->getTextColor()))];
+					SetBorder(handle, view->isBorder());
+					Color backColor = view->getBackgroundColor();
+					[handle setBackgroundColor:(backColor.isZero() ? nil : GraphicsPlatform::getUIColorFromColor(backColor))];
+					setHandleFont(handle, view->getFont());
+				}
 				
-				void select(SelectView* view, sl_uint32 index) override
+				void selectItem(SelectView* view, sl_uint32 index) override
 				{
 					SLIBSelectViewHandle* handle = getHandle();
 					if (handle != nil) {
@@ -124,22 +157,12 @@ namespace slib
 					}
 				}
 				
-				void refreshItemsCount(SelectView* view) override
-				{
-					refreshItemsContent(view);
-				}
-				
-				void refreshItemsContent(SelectView* view) override
+				void refreshItems(SelectView* view) override
 				{
 					SLIBSelectViewHandle* handle = getHandle();
 					if (handle != nil) {
 						[handle->m_picker reloadAllComponents];
 					}
-				}
-				
-				void setItemTitle(SelectView* view, sl_uint32 index, const String& title) override
-				{
-					refreshItemsContent(view);
 				}
 				
 				void setGravity(SelectView* view, const Alignment& gravity) override
@@ -182,33 +205,6 @@ namespace slib
 					}
 				}
 				
-				void onSelectItem(SLIBSelectViewHandle* handle, sl_uint32 row)
-				{
-					Ref<SelectViewHelper> helper = getHelper();
-					if (helper.isNotNull()) {
-						handle.text = helper->getItemTitle(row);
-						helper->dispatchSelectItem(row);
-					}
-				}
-				
-				void onStartSelection(SLIBSelectViewHandle* handle)
-				{
-					Ref<SelectViewHelper> helper = getHelper();
-					if (helper.isNotNull()) {
-						sl_uint32 index = helper->getSelectedIndex();
-						handle->m_selectionBefore = index;
-						UIPickerView* picker = handle->m_picker;
-						dispatch_async(dispatch_get_main_queue(), ^{
-							[picker selectRow:index inComponent:0 animated:NO];
-						});
-					}
-				}
-				
-				void onCancelSelection(SLIBSelectViewHandle* handle)
-				{
-					onSelectItem(handle, handle->m_selectionBefore);
-				}
-				
 			};
 
 			SLIB_DEFINE_OBJECT(SelectViewInstance, iOS_ViewInstance)
@@ -220,19 +216,7 @@ namespace slib
 	
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<SelectViewInstance> ret = iOS_ViewInstance::create<SelectViewInstance, SLIBSelectViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			SLIBSelectViewHandle* handle = ret->getHandle();
-			static_cast<SelectViewHelper*>(this)->selectItem(handle, m_indexSelected);
-			[handle setTextAlignment:(TranslateAlignment(m_gravity))];
-			[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(m_textColor))];
-			SetBorder(handle, isBorder());
-			Color backColor = getBackgroundColor();
-			[handle setBackgroundColor:(backColor.isZero() ? nil : GraphicsPlatform::getUIColorFromColor(backColor))];
-			iOS_ViewInstance::setHandleFont(handle, getFont());
-			return ret;
-		}
-		return sl_null;
+		return iOS_ViewInstance::create<SelectViewInstance, SLIBSelectViewHandle>(this, parent);
 	}
 	
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()
@@ -355,45 +339,36 @@ IOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component
 {
-	Ref<SelectViewInstance> instance = m_viewInstance;
-	if (instance.isNotNull()) {
-		instance->onSelectItem(self, (sl_uint32)row);
+	Ref<SelectViewHelper> view = m_view;
+	if (view.isNotNull()) {
+		view->onSelectItem(self, (sl_uint32)row);
 	}
 }
 
 - (NSInteger)pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component;
 {
-	Ref<SelectViewInstance> instance = m_viewInstance;
-	if (instance.isNotNull()) {
-		Ref<SelectViewHelper> helper = instance->getHelper();
-		if (helper.isNotNull()) {
-			return (NSInteger)(helper->getItemsCount());
-		}
+	Ref<SelectViewHelper> view = m_view;
+	if (view.isNotNull()) {
+		return (NSInteger)(view->getItemsCount());
 	}
 	return 0;
 }
 
 - (NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component;
 {
-	Ref<SelectViewInstance> instance = m_viewInstance;
-	if (instance.isNotNull()) {
-		Ref<SelectViewHelper> helper = instance->getHelper();
-		if (helper.isNotNull()) {
-			return helper->getItemTitle((sl_uint32)row);
-		}
+	Ref<SelectViewHelper> view = m_view;
+	if (view.isNotNull()) {
+		return view->getItemTitle((sl_uint32)row);
 	}
 	return @"";
 }
 
 - (BOOL)textFieldShouldBeginEditing:(UITextField *)aTextField
 {
-	Ref<SelectViewInstance> instance = m_viewInstance;
-	if (instance.isNotNull()) {
-		Ref<SelectViewHelper> helper = instance->getHelper();
-		if (helper.isNotNull()) {
-			if ((NSInteger)(helper->getItemsCount()) > 0) {
-				return YES;
-			}
+	Ref<SelectViewHelper> view = m_view;
+	if (view.isNotNull()) {
+		if ((NSInteger)(view->getItemsCount()) > 0) {
+			return YES;
 		}
 	}
 	return NO;
@@ -402,9 +377,9 @@ IOS_VIEW_DEFINE_ON_FOCUS
 - (void)textFieldDidBeginEditing:(UITextField *)textField
 {
 	[self sendActionsForControlEvents:UIControlEventEditingDidBegin];
-	Ref<SelectViewInstance> instance = m_viewInstance;
-	if (instance.isNotNull()) {
-		instance->onStartSelection(self);
+	Ref<SelectViewHelper> view = m_view;
+	if (view.isNotNull()) {
+		view->onStartSelection(self);
 	}
 }
 
@@ -427,9 +402,9 @@ IOS_VIEW_DEFINE_ON_FOCUS
 -(void)cancelClicked:(id)sender
 {
 	[self resignFirstResponder];
-	Ref<SelectViewInstance> instance = m_viewInstance;
-	if (instance.isNotNull()) {
-		instance->onCancelSelection(self);
+	Ref<SelectViewHelper> view = m_view;
+	if (view.isNotNull()) {
+		view->onCancelSelection(self);
 	}
 }
 @end

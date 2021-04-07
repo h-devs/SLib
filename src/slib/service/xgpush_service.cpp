@@ -129,9 +129,9 @@ namespace slib
 		UrlRequest::post(url, headers, body, [callback](UrlRequest* request) {
 			String response = request->getResponseContentAsString();
 			if (request->isError()) {
-				LogError("XgPush", "[Status] %d %s - Error: %s %s", (int)(request->getResponseStatus()), request->getResponseMessage(), request->getLastErrorMessage(), response);
+				LogError("XgPush", "[Status] %d %s - Error: %s %s", (int)(request->getResponseStatus()), request->getResponseMessage(), request->getErrorMessage(), response);
 				if (response.isEmpty()) {
-					response = request->getLastErrorMessage();
+					response = request->getErrorMessage();
 				}
 				callback(sl_false, response);
 			} else {

@@ -20,11 +20,12 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_MACOS)
 
 #include "slib/ui/menu.h"
+
 #include "slib/ui/core.h"
 #include "slib/ui/app.h"
 #include "slib/ui/platform.h"
@@ -178,7 +179,7 @@ namespace slib
 			{
 				SLIBMenuItemHandle* handle = [[SLIBMenuItemHandle alloc] init];
 				if (handle != nil) {
-					handle.title = Apple::getNSStringFromString(param.text.replaceAll("&", String::null()));
+					handle.title = Apple::getNSStringFromString(param.text.removeAll('&'));
 					NSUInteger keMask;
 					if (param.shortcutKey.getKeycode() != Keycode::Unknown) {
 						handle.keyEquivalent = UIPlatform::getKeyEquivalent(param.shortcutKey, keMask);
@@ -219,7 +220,7 @@ namespace slib
 			void MenuItemImpl::setText(const String& text)
 			{
 				MenuItem::setText(text);
-				m_handle.title = Apple::getNSStringFromString(text.replaceAll("&", String::null()));
+				m_handle.title = Apple::getNSStringFromString(text.removeAll('&'));
 				if (m_handle.submenu != nil) {
 					m_handle.submenu.title = m_handle.title;
 				}
@@ -339,7 +340,7 @@ namespace slib
 					if (nsItem != nil) {
 						NSMenu* nsSubMenu = [nsItem submenu];
 						if (nsSubMenu != nil) {
-							[nsSubMenu setTitle:(Apple::getNSStringFromString(text.replaceAll("&", String::null()) + " "))];
+							[nsSubMenu setTitle:(Apple::getNSStringFromString(text.removeAll('&') + " "))];
 						}
 					}
 				}

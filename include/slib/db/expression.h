@@ -23,11 +23,8 @@
 #ifndef CHECKHEADER_SLIB_DB_DATABASE_EXPR
 #define CHECKHEADER_SLIB_DB_DATABASE_EXPR
 
-#include "definition.h"
-
 #include "constants.h"
 
-#include "../core/object.h"
 #include "../core/variant.h"
 
 namespace slib
@@ -95,7 +92,7 @@ namespace slib
 		DatabaseExpression function(const String& name, const DatabaseExpression& param, ARGS&&... args)
 		{
 			DatabaseExpression params[] = { param, Forward<ARGS>(args)... };
-			return Fn(name, params);
+			return function(name, ListParam<DatabaseExpression>(params));
 		}
 		
 		static DatabaseExpression binaryOp(const String& op, DatabaseExpression& e1, DatabaseExpression& e2);
@@ -132,21 +129,21 @@ namespace slib
 	DatabaseExpression In(const DatabaseExpression& e, const DatabaseExpression& param, ARGS&&... args)
 	{
 		DatabaseExpression params[] = { param, Forward<ARGS>(args)... };
-		return In(e, params);
+		return In(e, ListParam<DatabaseExpression>(params));
 	}
 	DatabaseExpression NotIn(const DatabaseExpression& e, const ListParam<DatabaseExpression>& params);
 	template <class... ARGS>
 	DatabaseExpression NotIn(const DatabaseExpression& e, const DatabaseExpression& param, ARGS&&... args)
 	{
 		DatabaseExpression params[] = { param, Forward<ARGS>(args)... };
-		return NotIn(e, params);
+		return NotIn(e, ListParam<DatabaseExpression>(params));
 	}
 	DatabaseExpression Concat(const ListParam<DatabaseExpression>& params);
 	template <class... ARGS>
 	DatabaseExpression Concat(const DatabaseExpression& param1, const DatabaseExpression& param2, ARGS&&... args)
 	{
 		DatabaseExpression params[] = { param1, param2, Forward<ARGS>(args)... };
-		return Concat(params);
+		return Concat(ListParam<DatabaseExpression>(params));
 	}
 	DatabaseExpression Abs(const DatabaseExpression& e);
 

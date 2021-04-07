@@ -23,19 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_STRING16
 #define CHECKHEADER_SLIB_CORE_STRING16
 
-#include "definition.h"
-
-#include "charset.h"
-#include "memory.h"
-#include "list.h"
-#include "hash.h"
-
-#ifdef SLIB_SUPPORT_STD_TYPES
-#include <string>
-#endif
-
-#include "string_op.h"
-
 /**
  * @addtogroup core
  *  @{
@@ -43,17 +30,6 @@
 
 namespace slib
 {
-
-	class String16;
-	typedef Atomic<String16> AtomicString16;
-	class String;
-	class StringView;
-	class StringView16;
-	class StringStorage;
-	class Locale;
-	class Variant;
-	class Json;
-	class Time;
 
 	class SLIB_EXPORT StringContainer16
 	{
@@ -81,21 +57,25 @@ namespace slib
 		StringContainer16* m_container;
 		
 	private:
-		SLIB_INLINE constexpr String16(StringContainer16* container) noexcept : m_container(container) {}
+		constexpr String16(StringContainer16* container) noexcept : m_container(container) {}
 
 	public:
 		
 		/**
 		 * Initializes as a null string.
 		 */
-		SLIB_INLINE constexpr String16() noexcept : m_container(sl_null) {}
-		SLIB_INLINE constexpr String16(sl_null_t) noexcept : m_container(sl_null) {}
+		constexpr String16() noexcept : m_container(sl_null) {}
+		constexpr String16(sl_null_t) noexcept : m_container(sl_null) {}
 		
 		/**
 		 * Constructors
 		 */
-		String16(String16&& src) noexcept;
-		String16(AtomicString16&& _src) noexcept;
+		String16(String16&& src) noexcept
+		{
+			m_container = src.m_container;
+			src.m_container = sl_null;
+		}
+
 		String16(const String16& src) noexcept;
 		String16(const AtomicString16& src) noexcept;
 		String16(const StringView16& src) noexcept;
@@ -167,7 +147,11 @@ namespace slib
 		 * Creates a string pointing the `str` as the content, without copying the data.
 		 * `str` should not be freed while the returned string is being used.
 		 */
-		template <sl_size N> static String16 fromStatic(const sl_char16 (&str)[N]) noexcept;
+		template <sl_size N> static String16 fromStatic(const sl_char16 (&str)[N]) noexcept
+		{
+			return fromStatic(str, N - 1);
+		}
+
 		static String16 fromStatic(const sl_char16* str, sl_reg len) noexcept;
 		
 		/**
@@ -299,37 +283,69 @@ namespace slib
 		/**
 		 * @return null string.
 		 */
-		static const String16& null() noexcept;
+		static const String16& null() noexcept
+		{
+			return *(reinterpret_cast<String16 const*>(&(priv::string::g_null16)));
+		}
 		
 		/**
 		 * @return empty string.
 		 */
-		static const String16& getEmpty() noexcept;
+		static const String16& getEmpty() noexcept
+		{
+			return *(reinterpret_cast<String16 const*>(&(priv::string::g_empty16)));
+		}
 		
 		/**
 		 * @return empty string if this string is null. otherwise returns this string.
 		 */
-		const String16& getNotNull() const noexcept;
+		const String16& getNotNull() const noexcept
+		{
+			if (!m_container) {
+				return *(reinterpret_cast<String16 const*>(&(priv::string::g_empty16)));
+			}
+			return *this;
+		}
 		
 		/**
 		 * @return `true` if this string is null.
 		 */
-		sl_bool isNull() const noexcept;
+		sl_bool isNull() const noexcept
+		{
+			return !m_container;
+		}
 		
 		/**
 		 * @return `true` if this string is not null.
 		 */
-		sl_bool isNotNull() const noexcept;
+		sl_bool isNotNull() const noexcept
+		{
+			return m_container != sl_null;
+		}
 		
 		/**
 		 * @return `true` if this string is empty.
 		 */
-		sl_bool isEmpty() const noexcept;
+		sl_bool isEmpty() const noexcept
+		{
+			if (m_container) {
+				return !(m_container->len);
+			} else {
+				return sl_true;
+			}
+		}
 		
 		/**
 		 * @return `true` if this string is not empty.
 		 */
-		sl_bool isNotEmpty() const noexcept;
+		sl_bool isNotEmpty() const noexcept
+		{
+			if (m_container) {
+				return (m_container->len != 0);
+			} else {
+				return sl_false;
+			}
+		}
 		
 		/**
 		 * Sets this string as a null.
@@ -345,17 +361,40 @@ namespace slib
 		/**
 		 * @return string content.
 		 */
-		sl_char16* getData() const noexcept;
+		sl_char16* getData() const noexcept
+		{
+			if (m_container) {
+				return m_container->sz;
+			} else {
+				return (sl_char16*)((void*)(L""));
+			}
+		}
 		
 		/**
 		 * @return string content and length.
 		 */
-		sl_char16* getData(sl_size& outLength) const noexcept;
+		sl_char16* getData(sl_size& outLength) const noexcept
+		{
+			if (m_container) {
+				outLength = m_container->len;
+				return m_container->sz;
+			} else {
+				outLength = 0;
+				return (sl_char16*)((void*)(u""));
+			}
+		}
 		
 		/**
 		 * @return string length.
 		 */
-		sl_size getLength() const noexcept;
+		sl_size getLength() const noexcept
+		{
+			if (m_container) {
+				return m_container->len;
+			} else {
+				return 0;
+			}
+		}
 		
 		/**
 		 * @return the hash code.
@@ -410,7 +449,6 @@ namespace slib
 		 * String assignment
 		 */
 		String16& operator=(String16&& other) noexcept;
-		String16& operator=(AtomicString16&& other) noexcept;
 		String16& operator=(const String16& other) noexcept;
 		String16& operator=(const AtomicString16& other) noexcept;
 		String16& operator=(const StringView16& other) noexcept;
@@ -422,12 +460,15 @@ namespace slib
 #endif
 		
 		String16& operator+=(String16&& other) noexcept;
-		String16& operator+=(AtomicString16&& other) noexcept;
 		String16& operator+=(const String16& other) noexcept;
 		String16& operator+=(const AtomicString16& other) noexcept;
 		String16& operator+=(sl_null_t) noexcept;
+		
 		template <class T>
-		String16& operator+=(T&& other) noexcept;
+		String16& operator+=(T&& other) noexcept
+		{
+			return *this = *this + Forward<T>(other);
+		}
 		
 	public:
 		static String16 merge(const sl_char16* a1, sl_reg len1, const sl_char16* a2, sl_reg len2) noexcept;
@@ -619,12 +660,27 @@ namespace slib
 		 * @return a copy of this string converted to lowercase.
 		 */
 		String16 toLower() const noexcept;
-		
+
+		/**
+		* Replaces each character of this string that matches the given `pattern` with the given `replacement`. if `replacement` is given as zero, then the matched chracters will be removed.
+		*/
+		String16 replaceAll(sl_char16 pattern, sl_char16 replacement) const noexcept;
+
 		/**
 		 * Replaces each substring of this string that matches the given `pattern` with the given `replacement`.
 		 */
 		String16 replaceAll(const StringParam& pattern, const StringParam& replacement) const noexcept;
-		
+
+		/**
+		* Removes all characters that matches the given `pattern`
+		*/
+		String16 removeAll(sl_char16 pattern) const noexcept;
+
+		/**
+		* Removes all characters that matches the given `pattern`
+		*/
+		String16 removeAll(const StringParam& pattern) const noexcept;
+
 		/**
 		 * Copy this string and then removes whitespaces from both ends of the new string.
 		 */
@@ -639,7 +695,12 @@ namespace slib
 		 * Copy this string and then removes whitespaces from the right of the new string.
 		 */
 		String16 trimRight() const noexcept;
-		
+
+		/**
+		* Copy this string and then removes CR/LF from both ends of the new string.
+		*/
+		String16 trimLine() const noexcept;
+
 		/**
 		 * Splits this string into the list of strings by the `pattern` separator.
 		 */
@@ -684,7 +745,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseInt32(sl_int32 radix, sl_int32* value) const noexcept;
-		
+		sl_bool parseInt32(sl_int32* value) const noexcept;
+
 		/**
 		 * Convert this string to a 32 bit integer of the specified radix.
 		 *
@@ -717,7 +779,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseUint32(sl_int32 radix, sl_uint32* value) const noexcept;
-		
+		sl_bool parseUint32(sl_uint32* value) const noexcept;
+
 		/**
 		 * Convert this string to a 32 bit unsigned integer of the specified radix.
 		 *
@@ -750,7 +813,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseInt64(sl_int32 radix, sl_int64* value) const noexcept;
-		
+		sl_bool parseInt64(sl_int64* value) const noexcept;
+
 		/**
 		 * Convert this string to a 64 bit integer of the specified radix.
 		 *
@@ -783,7 +847,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseUint64(sl_int32 radix, sl_uint64* value) const noexcept;
-		
+		sl_bool parseUint64(sl_uint64* value) const noexcept;
+
 		/**
 		 * Convert this string to a 64 bit unsigned integer of the specified radix.
 		 *
@@ -803,7 +868,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseInt(sl_int32 radix, sl_reg* value) const noexcept;
-		
+		sl_bool parseInt(sl_reg* value) const noexcept;
+
 		/**
 		 * Convert this string to an integer of the specified radix.
 		 *
@@ -823,7 +889,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseSize(sl_int32 radix, sl_size* value) const noexcept;
-		
+		sl_bool parseSize(sl_size* value) const noexcept;
+
 		/**
 		 * Convert this string to an unsigned integer of the specified radix.
 		 *
@@ -1121,14 +1188,18 @@ namespace slib
 		/**
 		 * Initialize as a null string.
 		 */
-		SLIB_INLINE constexpr Atomic() noexcept : m_container(sl_null) {}
-		SLIB_INLINE constexpr Atomic(sl_null_t) noexcept : m_container(sl_null) {}
+		constexpr Atomic() noexcept : m_container(sl_null) {}
+		constexpr Atomic(sl_null_t) noexcept : m_container(sl_null) {}
 		
 		/**
 		 * Constructors
 		 */
-		Atomic(String16&& src) noexcept;
-		Atomic(AtomicString16&& src) noexcept;
+		Atomic(String16&& src) noexcept
+		{
+			m_container = src.m_container;
+			src.m_container = sl_null;
+		}
+
 		Atomic(const String16& src) noexcept;
 		Atomic(const AtomicString16& src) noexcept;
 		Atomic(const StringView16& src) noexcept;
@@ -1167,22 +1238,34 @@ namespace slib
 		/**
 		 * @return null string.
 		 */
-		static const AtomicString16& null() noexcept;
+		static const AtomicString16& null() noexcept
+		{
+			return *(reinterpret_cast<AtomicString16 const*>(&(priv::string::g_null16)));
+		}
 		
 		/**
 		 * @return empty string.
 		 */
-		static const AtomicString16& getEmpty() noexcept;
+		static const AtomicString16& getEmpty() noexcept
+		{
+			return *(reinterpret_cast<AtomicString16 const*>(&(priv::string::g_empty16)));
+		}
 		
 		/**
 		 * @return `true` if this string is null.
 		 */
-		sl_bool isNull() const noexcept;
+		sl_bool isNull() const noexcept
+		{
+			return !m_container;
+		}
 		
 		/**
 		 * @return `true` if this string is not null.
 		 */
-		sl_bool isNotNull() const noexcept;
+		sl_bool isNotNull() const noexcept
+		{
+			return m_container != sl_null;
+		}
 		
 		/**
 		 * @return `true` if this string is empty.
@@ -1232,7 +1315,6 @@ namespace slib
 		 * String assignment
 		 */
 		AtomicString16& operator=(String16&& other) noexcept;
-		AtomicString16& operator=(AtomicString16&& other) noexcept;
 		AtomicString16& operator=(const String16& other) noexcept;
 		AtomicString16& operator=(const AtomicString16& other) noexcept;
 		AtomicString16& operator=(const StringView16& other) noexcept;
@@ -1244,12 +1326,15 @@ namespace slib
 #endif
 		
 		AtomicString16& operator+=(String16&& other) noexcept;
-		AtomicString16& operator+=(AtomicString16&& other) noexcept;
 		AtomicString16& operator+=(const String16& other) noexcept;
 		AtomicString16& operator+=(const AtomicString16& other) noexcept;
 		AtomicString16& operator+=(sl_null_t) noexcept;
+
 		template <class T>
-		AtomicString16& operator+=(T&& other) noexcept;
+		AtomicString16& operator+=(T&& other) noexcept
+		{
+			return *this = String16(*this) + Forward<T>(other);
+		}
 		
 	public:
 		PRIV_SLIB_DECLARE_STRING_CLASS_OP(String16, sl_bool, equals)
@@ -1407,12 +1492,27 @@ namespace slib
 		 * @return a copy of this string converted to lowercase.
 		 */
 		String16 toLower() const noexcept;
-		
+
+		/**
+		* Replaces each character of this string that matches the given `pattern` with the given `replacement`. if `replacement` is given as zero, then the matched chracters will be removed.
+		*/
+		String16 replaceAll(sl_char16 pattern, sl_char16 replacement) const noexcept;
+
 		/**
 		 * Replaces each substring of this string that matches the given `pattern` with the given `replacement`.
 		 */
 		String16 replaceAll(const StringParam& pattern, const StringParam& replacement) const noexcept;
-		
+
+		/**
+		* Removes all characters that matches the given `pattern`
+		*/
+		String16 removeAll(sl_char16 pattern) const noexcept;
+
+		/**
+		* Removes all characters that matches the given `pattern`
+		*/
+		String16 removeAll(const StringParam& pattern) const noexcept;
+
 		/**
 		 * Copy this string and then removes whitespaces from both ends of the new string.
 		 */
@@ -1427,7 +1527,12 @@ namespace slib
 		 * Copy this string and then removes whitespaces from the right of the new string.
 		 */
 		String16 trimRight() const noexcept;
-		
+
+		/**
+		* Copy this string and then removes CR/LF from both ends of the new string.
+		*/
+		String16 trimLine() const noexcept;
+
 		/**
 		 * Splits this string into the list of strings by the `pattern` separator.
 		 */
@@ -1443,7 +1548,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseInt32(sl_int32 radix, sl_int32* value) const noexcept;
-		
+		sl_bool parseInt32(sl_int32* value) const noexcept;
+
 		/**
 		 * Convert this string to a 32 bit integer of the specified radix.
 		 *
@@ -1463,7 +1569,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseUint32(sl_int32 radix, sl_uint32* value) const noexcept;
-		
+		sl_bool parseUint32(sl_uint32* value) const noexcept;
+
 		/**
 		 * Convert this string to a 32 bit unsigned integer of the specified radix.
 		 *
@@ -1483,7 +1590,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseInt64(sl_int32 radix, sl_int64* value) const noexcept;
-		
+		sl_bool parseInt64(sl_int64* value) const noexcept;
+
 		/**
 		 * Convert this string to a 64 bit integer of the specified radix.
 		 *
@@ -1503,7 +1611,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseUint64(sl_int32 radix, sl_uint64* value) const noexcept;
-		
+		sl_bool parseUint64(sl_uint64* value) const noexcept;
+
 		/**
 		 * Convert this string to a 64 bit unsigned integer of the specified radix.
 		 *
@@ -1523,7 +1632,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseInt(sl_int32 radix, sl_reg* value) const noexcept;
-		
+		sl_bool parseInt(sl_reg* value) const noexcept;
+
 		/**
 		 * Convert this string to an unsigned integer of the specified radix.
 		 *
@@ -1543,7 +1653,8 @@ namespace slib
 		 * @return `true` if this string is valid integer
 		 */
 		sl_bool parseSize(sl_int32 radix, sl_size* value) const noexcept;
-		
+		sl_bool parseSize(sl_size* value) const noexcept;
+
 		/**
 		 * Convert this string to an unsigned integer of the specified radix.
 		 *
@@ -1638,7 +1749,7 @@ namespace slib
 		String16 argBy(const ListParam<Variant>& params) const noexcept;
 
 	private:
-		StringContainer16* _retainContainer() const noexcept;		
+		StringContainer16* _retainContainer() const noexcept;
 		void _replaceContainer(StringContainer16* other) noexcept;
 
 		friend class String16;

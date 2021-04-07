@@ -23,6 +23,13 @@
 #include "slib/ui/date_picker.h"
 
 #include "slib/ui/core.h"
+#include "slib/graphics/font.h"
+
+#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32)
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
+#endif
 
 namespace slib
 {
@@ -31,7 +38,9 @@ namespace slib
 
 	DatePicker::DatePicker()
 	{
-		setCreatingNativeWidget(sl_true);
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+
 		setUsingFont(sl_true);
 		setFocusable(sl_true);
 		
@@ -125,7 +134,7 @@ namespace slib
 		}
 	}
 	
-#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> DatePicker::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;

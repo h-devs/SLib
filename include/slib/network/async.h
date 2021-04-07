@@ -23,11 +23,9 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_ASYNC
 #define CHECKHEADER_SLIB_NETWORK_ASYNC
 
-#include "definition.h"
-
 #include "socket.h"
 
-#include "../core/async.h"
+#include "../core/async_stream.h"
 
 namespace slib
 {

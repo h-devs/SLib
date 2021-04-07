@@ -23,11 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_ARRAY_TRAITS
 #define CHECKHEADER_SLIB_CORE_ARRAY_TRAITS
 
-#include "definition.h"
-
-#include "cpp.h"
 #include "base.h"
 #include "compare.h"
+#include "cpp_helper.h"
 
 #include <new>
 
@@ -38,7 +36,7 @@ namespace slib
 	{
 		
 		template <class T>
-		SLIB_INLINE static void construct(T* dst, sl_reg count) noexcept
+		static void construct(T* dst, sl_reg count) noexcept
 		{
 			while (count-- > 0) {
 				new (dst++) T();
@@ -46,7 +44,7 @@ namespace slib
 		}
 		
 		template <class T, class TYPE>
-		SLIB_INLINE static void copy_construct(T* dst, const TYPE* src, sl_reg count) noexcept
+		static void copy_construct(T* dst, const TYPE* src, sl_reg count) noexcept
 		{
 			while (count-- > 0) {
 				new (dst++) T(*(src++));
@@ -54,7 +52,7 @@ namespace slib
 		}
 		
 		template <class T, class TYPE>
-		SLIB_INLINE static void copy(T* dst, const TYPE* src, sl_reg count) noexcept
+		static void copy(T* dst, const TYPE* src, sl_reg count) noexcept
 		{
 			while (count-- > 0) {
 				*(dst++) = *(src++);
@@ -62,7 +60,7 @@ namespace slib
 		}
 		
 		template <class T>
-		SLIB_INLINE static void free(T* dst, sl_reg count) noexcept
+		static void free(T* dst, sl_reg count) noexcept
 		{
 			while (count-- > 0) {
 				(dst++)->~T();
@@ -92,79 +90,79 @@ namespace slib
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, char startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, char startIndex) noexcept
 		{
 			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, signed char startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, signed char startIndex) noexcept
 		{
 			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, unsigned char startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, unsigned char startIndex) noexcept
 		{
 			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, short startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, short startIndex) noexcept
 		{
 			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, unsigned short startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, unsigned short startIndex) noexcept
 		{
 			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, int startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, int startIndex) noexcept
 		{
 			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, unsigned int startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, unsigned int startIndex) noexcept
 		{
 			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, long startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, long startIndex) noexcept
 		{
 			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, unsigned long startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, unsigned long startIndex) noexcept
 		{
 			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, sl_int64 startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, sl_int64 startIndex) noexcept
 		{
 			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, sl_uint64 startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, sl_uint64 startIndex) noexcept
 		{
 			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, float startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, float startIndex) noexcept
 		{
 			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, double startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, double startIndex) noexcept
 		{
 			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
@@ -200,79 +198,79 @@ namespace slib
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, char startIndex) noexcept
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, char startIndex) noexcept
 		{
 			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, signed char startIndex) noexcept
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, signed char startIndex) noexcept
 		{
 			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, unsigned char startIndex) noexcept
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, unsigned char startIndex) noexcept
 		{
 			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, short startIndex) noexcept
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, short startIndex) noexcept
 		{
 			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, unsigned short startIndex) noexcept
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, unsigned short startIndex) noexcept
 		{
 			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, int startIndex) noexcept
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, int startIndex) noexcept
 		{
 			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, unsigned int startIndex) noexcept
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, unsigned int startIndex) noexcept
 		{
 			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, long startIndex) noexcept
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, long startIndex) noexcept
 		{
 			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, unsigned long startIndex) noexcept
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, unsigned long startIndex) noexcept
 		{
 			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, sl_int64 startIndex) noexcept
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, sl_int64 startIndex) noexcept
 		{
 			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, sl_uint64 startIndex) noexcept
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, sl_uint64 startIndex) noexcept
 		{
 			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, float startIndex) noexcept
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, float startIndex) noexcept
 		{
 			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
 		
 		template <class T, class VALUE>
-		SLIB_INLINE static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, double startIndex) noexcept
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, double startIndex) noexcept
 		{
 			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
@@ -320,18 +318,18 @@ namespace slib
 	{
 		
 		template <class T>
-		SLIB_INLINE static void construct(T* dst, sl_reg count) noexcept
+		static void construct(T* dst, sl_reg count) noexcept
 		{
 		}
 		
 		template <class T>
-		SLIB_INLINE static void copy_construct(T* dst, const T* src, sl_reg count) noexcept
+		static void copy_construct(T* dst, const T* src, sl_reg count) noexcept
 		{
 			Base::copyMemory(dst, src, ((sl_size)count)*sizeof(T));
 		}
 
 		template <class T, class TYPE>
-		SLIB_INLINE static void copy_construct(T* dst, const TYPE* src, sl_reg count) noexcept
+		static void copy_construct(T* dst, const TYPE* src, sl_reg count) noexcept
 		{
 			while (count-- > 0) {
 				*(dst++) = *(src++);
@@ -339,13 +337,13 @@ namespace slib
 		}
 		
 		template <class T>
-		SLIB_INLINE static void copy(T* dst, const T* src, sl_reg count) noexcept
+		static void copy(T* dst, const T* src, sl_reg count) noexcept
 		{
 			Base::copyMemory(dst, src, ((sl_size)count)*sizeof(T));
 		}
 		
 		template <class T, class TYPE>
-		SLIB_INLINE static void copy(T* dst, const TYPE* src, sl_reg count) noexcept
+		static void copy(T* dst, const TYPE* src, sl_reg count) noexcept
 		{
 			while (count-- > 0) {
 				*(dst++) = *(src++);
@@ -353,7 +351,7 @@ namespace slib
 		}
 		
 		template <class T>
-		SLIB_INLINE static void free(T* dst, sl_reg count) noexcept
+		static void free(T* dst, sl_reg count) noexcept
 		{
 		}
 		
@@ -394,7 +392,7 @@ namespace slib
 	{
 		
 		template <class T>
-		SLIB_INLINE static void construct(T* dst, sl_reg count) noexcept
+		static void construct(T* dst, sl_reg count) noexcept
 		{
 			Base::zeroMemory(dst, ((sl_size)count) * sizeof(T));
 		}
@@ -407,7 +405,7 @@ namespace slib
 	class String16;
 	template <> struct ArrayTraits<String16> : public ArrayTraits_ZeroInit {};
 	
-	template <class T> class Ref;
+	template <class... TYPES> class Ref;
 	template <class T> struct ArrayTraits< Ref<T> > : public ArrayTraits_ZeroInit {};
 	
 	template <class T> class WeakRef;

@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_UI_BUTTON_WIN32
 #define CHECKHEADER_SLIB_UI_BUTTON_WIN32
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 
@@ -50,7 +50,7 @@ namespace slib
 				~ButtonInstance();
 				
 			public:
-				sl_bool processCommand(SHORT code, LRESULT& result) override;
+				void initialize(View* view) override;
 
 				void setPadding(View* view, const UIEdgeInsets& padding) override;
 
@@ -59,6 +59,8 @@ namespace slib
 				void setDefaultButton(Button* view, sl_bool flag) override;
 				
 				sl_bool measureSize(Button* view, UISize& _out) override;
+
+				sl_bool processCommand(SHORT code, LRESULT& result) override;
 
 			};
 
@@ -72,6 +74,8 @@ namespace slib
 				~CheckBoxInstance();
 
 			public:
+				void initialize(View* view) override;
+
 				sl_bool getChecked(CheckBox* view, sl_bool& flag) override;
 
 				void setChecked(CheckBox* view, sl_bool flag) override;

@@ -182,18 +182,17 @@ namespace slib
 		float rh = ry * 2;
 		float xr = x + w - rw;
 		float yb = y + h - rh;
-		float k0 = 0.5f;
 		float k1 = 0.77614234f;
 		float k2 = 0.22385763f;
-		moveTo(xr + rw, yb + k0 * rh);
-		cubicTo(xr + rw, yb + k1 * rh, xr + k1 * rw, yb + rh, xr + k0 * rw, yb + rh);
-		lineTo(x + k0 * rw, yb + rh);
-		cubicTo(x + k2 * rw, yb + rh, x, yb + k1 * rh, x, yb + k0 * rh);
-		lineTo(x, y + k0 * rh);
-		cubicTo(x, y + k2 * rh, x + k2 * rw, y, x + k0 * rw, y);
-		lineTo(xr + k0 * rw, y);
-		cubicTo(xr + k1 * rw, y, xr + rw, y + k2 * rh, xr + rw, y + k0 * rh);
-		//lineTo(xr + rw, yb + k0 * rh);
+		moveTo(xr + rw, yb + ry);
+		cubicTo(xr + rw, yb + k1 * rh, xr + k1 * rw, yb + rh, xr + rx, yb + rh);
+		lineTo(x + rx, yb + rh);
+		cubicTo(x + k2 * rw, yb + rh, x, yb + k1 * rh, x, yb + ry);
+		lineTo(x, y + ry);
+		cubicTo(x, y + k2 * rh, x + k2 * rw, y, x + rx, y);
+		lineTo(xr + rx, y);
+		cubicTo(xr + k1 * rw, y, xr + rw, y + k2 * rh, xr + rw, y + ry);
+		//lineTo(xr + rw, yb + ry);
 		closeSubpath();
 	}
 

@@ -105,6 +105,11 @@ namespace slib
 	{
 	}
 
+	sl_bool Thread::_nativeCheckRunning()
+	{
+		return sl_true;
+	}
+
 	namespace priv
 	{
 		namespace thread

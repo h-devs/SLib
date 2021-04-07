@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_UI_BUTTON_MACOS
 #define CHECKHEADER_SLIB_UI_BUTTON_MACOS
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_MACOS)
 
@@ -51,7 +51,9 @@ namespace slib
 				
 			public:
 				NSButton* getHandle();
-				
+
+				void initialize(View* view) override;
+
 				void setText(Button* view, const String& text) override;
 				
 				void setDefaultButton(Button* view, sl_bool flag) override;

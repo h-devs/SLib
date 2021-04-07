@@ -413,7 +413,7 @@ namespace slib
 
 			}
 
-		} else if (grantType == "client_credentials") {			
+		} else if (grantType == "client_credentials") {
 
 			if (!(isSupportedClientCredentialsGrant())) {
 				respondError(context, OAuthErrorCode::UnsupportedGrantType);

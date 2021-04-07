@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_ANDROID)
 
@@ -63,7 +63,7 @@ namespace slib
 				{
 					Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
 					if (helper.isNotNull()) {
-						helper->m_lastErrorMessage = Jni::getString(jerror);
+						helper->m_errorMessage = Jni::getString(jerror);
 						String url = Jni::getString(jurl);
 						helper->dispatchFinishLoad(url, sl_true);
 					}
@@ -122,6 +122,14 @@ namespace slib
 				SLIB_DECLARE_OBJECT
 
 			public:
+				void initialize(View* _view) override
+				{
+					WebView* view = (WebView*)_view;
+
+					setCustomUserAgent(view, view->getCustomUserAgent());
+					load(view);
+				}
+
 				void refreshSize(WebView* view) override
 				{
 				}
@@ -208,16 +216,8 @@ namespace slib
 	Ref<ViewInstance> WebView::createNativeWidget(ViewInstance* _parent)
 	{
 		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
-		if (parent) {
-			JniLocal<jobject> handle = JWebView::create.callObject(sl_null, parent->getContext());
-			Ref<WebViewInstance> ret = Android_ViewInstance::create<WebViewInstance>(this, parent, handle.get());
-			if (ret.isNotNull()) {
-				ret->setCustomUserAgent(this, getCustomUserAgent());
-				ret->load(this);
-				return ret;
-			}
-		}
-		return sl_null;
+		JniLocal<jobject> handle = JWebView::create.callObject(sl_null, parent->getContext());
+		return Android_ViewInstance::create<WebViewInstance>(this, parent, handle.get());
 	}
 
 	Ptr<IWebViewInstance> WebView::getWebViewInstance()

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_VIEW_PAGE_NAVIGATION
 #define CHECKHEADER_SLIB_VIEW_PAGE_NAVIGATION
 
-#include "definition.h"
-
 #include "view.h"
 #include "transition.h"
 

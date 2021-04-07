@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -37,8 +37,8 @@ namespace slib
 		
 		m_flagDispatched = sl_false;
 		
-		setLastRunTime(0);
-		setMaxConcurrentThread(1);
+		m_lastRunTime = 0;
+		m_maxConcurrentThread = 1;
 		
 	}
 
@@ -115,7 +115,27 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
+	sl_uint64 Timer::getLastRunTime()
+	{
+		return m_lastRunTime;
+	}
+
+	void Timer::setLastRunTime(sl_uint64 time)
+	{
+		m_lastRunTime = time;
+	}
+
+	sl_uint32 Timer::getMaxConcurrentThread()
+	{
+		return m_maxConcurrentThread;
+	}
+
+	void Timer::setMaxConcurrentThread(sl_uint32 n)
+	{
+		m_maxConcurrentThread = n;
+	}
+
 	void Timer::start()
 	{
 		ObjectLocker lock(this);

@@ -136,7 +136,7 @@ namespace slib
 				sl_bool isSeparator() const override
 				{
 					return sl_true;
-				}				
+				}
 			};
 		}
 	}
@@ -166,6 +166,7 @@ namespace slib
 	
 	MenuItemParam::MenuItemParam()
 	{
+		flagCheckable = sl_false;
 		flagEnabled = sl_true;
 		flagChecked = sl_false;
 	}
@@ -208,6 +209,15 @@ namespace slib
 		return addMenuItem(param);
 	}
 	
+	Ref<MenuItem> Menu::addMenuItem(const String& title, sl_bool flagChecked)
+	{
+		MenuItemParam param;
+		param.text = title;
+		param.flagCheckable = sl_true;
+		param.flagChecked = flagChecked;
+		return addMenuItem(param);
+	}
+	
 	Ref<MenuItem> Menu::addMenuItem(const String& title, const Ref<Drawable>& icon)
 	{
 		MenuItemParam param;
@@ -216,12 +226,14 @@ namespace slib
 		return addMenuItem(param);
 	}
 	
-	Ref<MenuItem> Menu::addMenuItem(const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon)
+	Ref<MenuItem> Menu::addMenuItem(const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked)
 	{
 		MenuItemParam param;
 		param.text = title;
 		param.icon = icon;
 		param.checkedIcon = checkedIcon;
+		param.flagCheckable = sl_true;
+		param.flagChecked = flagChecked;
 		return addMenuItem(param);
 	}
 	
@@ -230,6 +242,16 @@ namespace slib
 		MenuItemParam param;
 		param.text = title;
 		param.shortcutKey = shortcutKey;
+		return addMenuItem(param);
+	}
+	
+	Ref<MenuItem> Menu::addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, sl_bool flagChecked)
+	{
+		MenuItemParam param;
+		param.text = title;
+		param.shortcutKey = shortcutKey;
+		param.flagCheckable = sl_true;
+		param.flagChecked = flagChecked;
 		return addMenuItem(param);
 	}
 	
@@ -242,13 +264,15 @@ namespace slib
 		return addMenuItem(param);
 	}
 	
-	Ref<MenuItem> Menu::addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon)
+	Ref<MenuItem> Menu::addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked)
 	{
 		MenuItemParam param;
 		param.text = title;
 		param.shortcutKey = shortcutKey;
 		param.icon = icon;
 		param.checkedIcon = checkedIcon;
+		param.flagCheckable = sl_true;
+		param.flagChecked = flagChecked;
 		return addMenuItem(param);
 	}
 	
@@ -257,6 +281,16 @@ namespace slib
 		MenuItemParam param;
 		param.text = title;
 		param.submenu = submenu;
+		return addMenuItem(param);
+	}
+	
+	Ref<MenuItem> Menu::addSubmenu(Ref<Menu>& submenu, const String& title, sl_bool flagChecked)
+	{
+		MenuItemParam param;
+		param.text = title;
+		param.submenu = submenu;
+		param.flagCheckable = sl_true;
+		param.flagChecked = flagChecked;
 		return addMenuItem(param);
 	}
 	
@@ -269,12 +303,14 @@ namespace slib
 		return addMenuItem(param);
 	}
 	
-	Ref<MenuItem> Menu::addSubmenu(Ref<Menu>& submenu, const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon)
+	Ref<MenuItem> Menu::addSubmenu(Ref<Menu>& submenu, const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked)
 	{
 		MenuItemParam param;
 		param.text = title;
 		param.icon = icon;
 		param.checkedIcon = checkedIcon;
+		param.flagCheckable = sl_true;
+		param.flagChecked = flagChecked;
 		param.submenu = submenu;
 		return addMenuItem(param);
 	}
@@ -301,7 +337,7 @@ namespace slib
 #include "slib/ui/core.h"
 #include "slib/ui/mobile_app.h"
 #include "slib/ui/button.h"
-#include "slib/ui/linear_view.h"
+#include "slib/ui/linear_layout.h"
 
 #include "../resources.h"
 
@@ -343,7 +379,7 @@ namespace slib
 				
 				void setCheckedIcon(const Ref<Drawable>& icon) override
 				{
-					m_button->setIcon(icon, ButtonState::Normal, 1);
+					m_button->setIcon(icon, ButtonState::Default, 1);
 				}
 				
 			};
@@ -376,14 +412,14 @@ namespace slib
 					button->setWidthWrapping(UIUpdateMode::Init);
 					button->setHeightWrapping(UIUpdateMode::Init);
 					button->setFontSize(UIResource::dpToPixel(20), UIUpdateMode::Init);
-					button->setTextColor(Color::Black, ButtonState::Normal, 0, UIUpdateMode::Init);
+					button->setTextColor(Color::Black, ButtonState::Default, 0, UIUpdateMode::Init);
 					button->setText(param.text, UIUpdateMode::Init);
 					button->setPadding(UIResource::dpToPixel(4), UIUpdateMode::Init);
 					if (param.icon.isNotNull()) {
 						button->setIcon(param.icon, UIUpdateMode::Init);
 					}
 					if (param.checkedIcon.isNotNull()) {
-						button->setIcon(param.icon, ButtonState::Normal, 1, UIUpdateMode::Init);
+						button->setIcon(param.icon, ButtonState::Default, 1, UIUpdateMode::Init);
 					}
 					if (param.flagChecked) {
 						button->setCurrentCategory(1, UIUpdateMode::Init);

@@ -33,16 +33,16 @@ if "%APP_ID%"=="" goto :eof
 echo New SLib Mobile App (Android): %APP_NAME% (%APP_ID%)
 
 xcopy /h /e "%SLIB_PATH%\tool\template\Android" "%CURRENT_PATH%\"
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%CURRENT_PATH%\settings.gradle" "%CURRENT_PATH%\settings.gradle" SLIB_TEMPLATE_APP_NAME %APP_NAME%
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%CURRENT_PATH%\app\build.gradle" "%CURRENT_PATH%\app\build.gradle" SLIB_TEMPLATE_APP_ID %APP_ID%
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%CURRENT_PATH%\app\src\main\AndroidManifest.xml" "%CURRENT_PATH%\app\src\main\AndroidManifest.xml" SLIB_TEMPLATE_APP_ID %APP_ID%
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%CURRENT_PATH%\app\src\main\res\values\strings.xml" "%CURRENT_PATH%\app\src\main\res\values\strings.xml" SLIB_TEMPLATE_APP_NAME %APP_NAME%
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%CURRENT_PATH%\app\src\main\java\MainActivity.java" "%CURRENT_PATH%\app\src\main\java\MainActivity.java" SLIB_TEMPLATE_APP_ID %APP_ID%
+ReplaceTextInFile.exe "%CURRENT_PATH%\settings.gradle" "%CURRENT_PATH%\settings.gradle" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%CURRENT_PATH%\app\build.gradle" "%CURRENT_PATH%\app\build.gradle" SLIB_TEMPLATE_APP_ID %APP_ID%
+ReplaceTextInFile.exe "%CURRENT_PATH%\app\src\main\AndroidManifest.xml" "%CURRENT_PATH%\app\src\main\AndroidManifest.xml" SLIB_TEMPLATE_APP_ID %APP_ID%
+ReplaceTextInFile.exe "%CURRENT_PATH%\app\src\main\res\values\strings.xml" "%CURRENT_PATH%\app\src\main\res\values\strings.xml" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%CURRENT_PATH%\app\src\main\java\MainActivity.java" "%CURRENT_PATH%\app\src\main\java\MainActivity.java" SLIB_TEMPLATE_APP_ID %APP_ID%
 set PACKAGE_DIR=%APP_ID:.=\%
 mkdir "%CURRENT_PATH%\app\src\main\java\%PACKAGE_DIR%"
 copy "%CURRENT_PATH%\app\src\main\java\MainActivity.java" "%CURRENT_PATH%\app\src\main\java\%PACKAGE_DIR%\"
 del "%CURRENT_PATH%\app\src\main\java\MainActivity.java"
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%CURRENT_PATH%\app\src\main\cpp\native-lib.cpp" "%CURRENT_PATH%\app\src\main\cpp\native-lib.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%CURRENT_PATH%\app\src\main\cpp\native-lib.cpp" "%CURRENT_PATH%\app\src\main\cpp\native-lib.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%
 
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%SLIB_PATH%\tool\template\mobile\app.h" "%CURRENT_PATH%\app\src\main\cpp\app.h" SLIB_TEMPLATE_APP_NAME %APP_NAME%
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%SLIB_PATH%\tool\template\mobile\app.cpp" "%CURRENT_PATH%\app\src\main\cpp\app.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%SLIB_PATH%\tool\template\mobile\app.h" "%CURRENT_PATH%\app\src\main\cpp\app.h" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%SLIB_PATH%\tool\template\mobile\app.cpp" "%CURRENT_PATH%\app\src\main\cpp\app.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%

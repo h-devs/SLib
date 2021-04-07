@@ -22,8 +22,8 @@
 
 #include "slib/ui/camera_view.h"
 
+#include "slib/ui/button.h"
 #include "slib/ui/resource.h"
-
 #include "slib/ui/core.h"
 
 #include "../resources.h"
@@ -46,7 +46,12 @@ namespace slib
 	{
 		Ref<Camera> camera = m_camera;
 		if (camera.isNotNull()) {
+			camera->setOnCaptureVideoFrame(sl_null);
+#ifdef SLIB_PLATFORM_IS_WIN32
+			stop();
+#else
 			Dispatch::dispatch([camera]() {});
+#endif
 		}
 	}
 
@@ -353,7 +358,7 @@ namespace slib
 	{
 		if (m_flagTouchFocus) {
 			Point pt = ev->getPoint();
-			Ref<View> child = getTopmostViewAt(pt);			
+			Ref<View> child = getTopmostViewAt(pt);
 			if (child.isNotNull() && child != m_controls) {
 				return;
 			}

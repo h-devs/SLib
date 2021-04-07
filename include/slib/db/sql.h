@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_DB_DATABASE_SQL
 #define CHECKHEADER_SLIB_DB_DATABASE_SQL
 
-#include "definition.h"
-
 #include "constants.h"
 #include "expression.h"
 
@@ -230,10 +228,6 @@ namespace slib
 		
 	public:
 		DatabaseQuerySource();
-		
-		DatabaseQuerySource(const char* name);
-		
-		DatabaseQuerySource(const String& name);
 		
 		DatabaseQuerySource(const DatabaseIdentifier& table);
 		
@@ -498,7 +492,7 @@ namespace slib
 		void appendStatic(const char* sz, sl_size len);
 		
 		template <sl_size N>
-		SLIB_INLINE void appendStatic(const char (&str)[N])
+		void appendStatic(const char (&str)[N])
 		{
 			appendStatic(str, N - 1);
 		}
@@ -519,7 +513,7 @@ namespace slib
 		void appendIdentifier(const char* name, sl_size length);
 		
 		template <sl_size N>
-		SLIB_INLINE void appendIdentifier(const char (&name)[N])
+		void appendIdentifier(const char (&name)[N])
 		{
 			appendIdentifier(name, N - 1);
 		}

@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_MACOS)
 
@@ -40,7 +40,7 @@ namespace slib
 }
 
 @interface SLIBTabViewHandle : NSTabView<NSTabViewDelegate>
-{	
+{
 	@public slib::WeakRef<slib::priv::tab_view::TabViewInstance> m_viewInstance;
 }
 @end
@@ -160,6 +160,15 @@ namespace slib
 				{
 					return CastRef<TabViewHelper>(getView());
 				}
+
+				void initialize(View* _view) override
+				{
+					TabViewHelper* view = (TabViewHelper*)_view;
+					NSTabView* handle = getHandle();
+
+					setHandleFont(handle, view->getFont());
+					view->copyTabs(handle);
+				}
 				
 				void refreshTabsCount(TabView* view) override
 				{
@@ -240,14 +249,7 @@ namespace slib
 
 	Ref<ViewInstance> TabView::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<TabViewInstance> ret = macOS_ViewInstance::create<TabViewInstance, SLIBTabViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			NSTabView* handle = ret->getHandle();
-			macOS_ViewInstance::setHandleFont(handle, getFont());
-			static_cast<TabViewHelper*>(this)->copyTabs(handle);
-			return ret;
-		}
-		return sl_null;
+		return macOS_ViewInstance::create<TabViewInstance, SLIBTabViewHandle>(this, parent);
 	}
 	
 	Ptr<ITabViewInstance> TabView::getTabViewInstance()
@@ -262,8 +264,7 @@ using namespace slib::priv::tab_view;
 
 @implementation SLIBTabViewHandle
 
-MACOS_VIEW_DEFINE_ON_FOCUS
-MACOS_VIEW_DEFINE_ON_KEY
+MACOS_VIEW_DEFINE_ON_CHILD_VIEW
 
 -(id)initWithFrame:(NSRect)frame
 {

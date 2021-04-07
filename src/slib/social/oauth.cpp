@@ -392,7 +392,7 @@ namespace slib
 	void OAuth1::logUrlRequestError(UrlRequest* request)
 	{
 		if (m_flagLogErrors) {
-			LogError(TAG, "Error: %s, Status: %s, Response: %s", request->getLastErrorMessage(), HttpStatusHelper::toString(request->getResponseStatus()), request->getResponseContentAsString());
+			LogError(TAG, "Error: %s, Status: %s, Response: %s", request->getErrorMessage(), HttpStatusHelper::toString(request->getResponseStatus()), request->getResponseContentAsString());
 		}
 	}
 	
@@ -770,7 +770,7 @@ namespace slib
 		return getLoginUrl(param);
 	}
 	
-	void OAuth2::requestAccessToken(HashMap<String, Variant>& params, const Function<void(OAuthAccessTokenResult&)>& onComplete)
+	void OAuth2::requestAccessToken(VariantMap& params, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
 		if (m_clientId.isEmpty() || m_clientSecret.isEmpty()) {
 			OAuthAccessTokenResult result;
@@ -810,7 +810,7 @@ namespace slib
 	
 	void OAuth2::requestAccessTokenFromCode(const String& code, const String& redirectUri, const String& codeVerifier, const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
-		HashMap<String, Variant> params;
+		VariantMap params;
 		params.put_NoLock("grant_type", "authorization_code");
 		params.put_NoLock("code", code);
 		if (redirectUri.isNotEmpty()) {
@@ -847,7 +847,7 @@ namespace slib
 	
 	void OAuth2::requestAccessTokenFromClientCredentials(const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
-		HashMap<String, Variant> params;
+		VariantMap params;
 		params.put_NoLock("grant_type", "client_credentials");
 		if (scopes.isNotNull()) {
 			String s = String::join(scopes, " ").trim();
@@ -865,7 +865,7 @@ namespace slib
 	
 	void OAuth2::requestAccessTokenFromUserPassword(const String& username, const String& password, const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
-		HashMap<String, Variant> params;
+		VariantMap params;
 		params.put_NoLock("grant_type", "password");
 		params.put_NoLock("username", username);
 		params.put_NoLock("password", password);
@@ -885,7 +885,7 @@ namespace slib
 	
 	void OAuth2::refreshAccessToken(const String& refreshToken, const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
-		HashMap<String, Variant> params;
+		VariantMap params;
 		params.put_NoLock("grant_type", "refresh_token");
 		params.put_NoLock("refresh_token", refreshToken);
 		if (scopes.isNotNull()) {
@@ -923,7 +923,7 @@ namespace slib
 	String OAuth2::generateCodeChallenge(const String& verifier, OAuthCodeChallengeMethod method)
 	{
 		if (method == OAuthCodeChallengeMethod::S256) {
-			char hash[32];			
+			char hash[32];
 			SHA256::hash(verifier, hash);
 			return Base64::encodeUrl(hash, 32);
 		} else {
@@ -934,7 +934,7 @@ namespace slib
 	void OAuth2::logUrlRequestError(UrlRequest* request)
 	{
 		if (m_flagLogErrors) {
-			LogError(TAG, "Error: %s, Status: %s, Response: %s", request->getLastErrorMessage(), HttpStatusHelper::toString(request->getResponseStatus()), request->getResponseContentAsString());
+			LogError(TAG, "Error: %s, Status: %s, Response: %s", request->getErrorMessage(), HttpStatusHelper::toString(request->getResponseStatus()), request->getResponseContentAsString());
 		}
 	}
 	

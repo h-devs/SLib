@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_QUARTZ)
 
@@ -101,7 +101,20 @@ namespace slib
 							descriptor = descriptorWithTraits;
 						}
 					}
-					m_font = [UIFont fontWithDescriptor:descriptor size:size];
+					UIFont* font = [UIFont fontWithDescriptor:descriptor size:size];
+					if (font == nil) {
+						descriptor = [UIFontDescriptor fontDescriptorWithName:@"Arial" size:size];
+						if (descriptor != nil) {
+							if (traits) {
+								UIFontDescriptor* descriptorWithTraits = [descriptor fontDescriptorWithSymbolicTraits:traits];
+								if (descriptorWithTraits != nil) {
+									descriptor = descriptorWithTraits;
+								}
+							}
+							font = [UIFont fontWithDescriptor:descriptor size:size];
+						}
+					}
+					m_font = font;
 					m_lastUIScaleFactor = scaleFactor;
 					return m_font;
 				}

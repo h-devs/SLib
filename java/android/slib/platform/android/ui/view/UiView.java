@@ -112,7 +112,7 @@ public class UiView {
 		if (UiThread.isUiThread()) {
 			view.invalidate();
 		} else {
-			view.postInvalidate();			
+			view.postInvalidate();
 		}
 	}
 	

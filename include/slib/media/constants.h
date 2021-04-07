@@ -25,8 +25,6 @@
 
 #include "definition.h"
 
-#include "../core/macro.h"
-
 namespace slib
 {
 

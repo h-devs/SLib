@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/macro.h"
+#include "../core/flags.h"
 
 namespace slib
 {
@@ -126,45 +126,29 @@ namespace slib
 		ExcpetAll = 5
 	};
 
-	class SLIB_EXPORT DatabaseColumnFlags
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(DatabaseColumnFlags, value)
-		
-		enum
-		{
-			PrimaryKey = 1,
-			Asc = (1 << 1),
-			Desc = (1 << 2),
-			AutoIncrement = (1 << 3),
-			NotNull = (1 << 4),
-			Unique = (1 << 5),
-			Unsigned = (1 << 6),
-			ZeroFill = (1 << 7),
-			WithTimeZone = (1 << 8)
-		};
-	};
+	SLIB_DEFINE_FLAGS(DatabaseColumnFlags, {
+		PrimaryKey = 1,
+		Asc = (1 << 1),
+		Desc = (1 << 2),
+		AutoIncrement = (1 << 3),
+		NotNull = (1 << 4),
+		Unique = (1 << 5),
+		Unsigned = (1 << 6),
+		ZeroFill = (1 << 7),
+		WithTimeZone = (1 << 8)
+	})
 
-	class SLIB_EXPORT DatabaseFlags
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(DatabaseFlags, value)
-		
-		enum
-		{
-			Temp = 1,
-			IfNotExists = (1 << 1),
-			IfExists = (1 << 2),
-			WithoutRowId = (1 << 3),
-			Cascade = (1 << 4),
-			Restrict = (1 << 5),
-			Unique = (1 << 6),
-			NullsFirst = (1 << 7),
-			NullsLast = (1  << 8)
-		};
-	};
+	SLIB_DEFINE_FLAGS(DatabaseFlags, {
+		Temp = 1,
+		IfNotExists = (1 << 1),
+		IfExists = (1 << 2),
+		WithoutRowId = (1 << 3),
+		Cascade = (1 << 4),
+		Restrict = (1 << 5),
+		Unique = (1 << 6),
+		NullsFirst = (1 << 7),
+		NullsLast = (1  << 8)
+	})
 
 }
 

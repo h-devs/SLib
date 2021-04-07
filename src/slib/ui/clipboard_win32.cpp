@@ -45,7 +45,7 @@ namespace slib
 				case WM_CHANGECBCHAIN:
 					return 0;
 				}
-				return DefWindowProc(hwnd, message, wparam, lparam);
+				return DefWindowProcW(hwnd, message, wparam, lparam);
 			}
 
 			class ClipboardManager
@@ -56,14 +56,15 @@ namespace slib
 			public:
 				ClipboardManager()
 				{
+					LPCWSTR szClassName = L"SLibClipboardOwner";
 					WNDCLASSEXW wc;
 					Base::zeroMemory(&wc, sizeof(wc));
 					wc.cbSize = sizeof(wc);
-					wc.lpszClassName = L"SLibClipboardOwner";
+					wc.lpszClassName = szClassName;
 					wc.lpfnWndProc = OwnerWndProc;
 					wc.hInstance = GetModuleHandle(NULL);
-					RegisterClassEx(&wc);
-					owner = CreateWindowW(L"SLibClipboardOwner", L"", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, 0, 0);
+					RegisterClassExW(&wc);
+					owner = CreateWindowW(szClassName, L"", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, 0, 0);
 				}
 
 				~ClipboardManager()

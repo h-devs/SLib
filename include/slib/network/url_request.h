@@ -23,16 +23,13 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_URL_REQUEST
 #define CHECKHEADER_SLIB_NETWORK_URL_REQUEST
 
-#include "definition.h"
-
 #include "http_common.h"
 
-#include "../core/string.h"
 #include "../core/function.h"
 #include "../core/dispatch.h"
-#include "../core/variant.h"
 #include "../core/json.h"
 #include "../core/xml.h"
+#include "../core/memory_queue.h"
 
 namespace slib
 {
@@ -44,7 +41,7 @@ namespace slib
 	public:
 		String url;
 		HttpMethod method;
-		HashMap<String, Variant> parameters;
+		VariantMap parameters;
 		HttpHeaderMap requestHeaders;
 		Memory requestBody;
 		String downloadFilePath;
@@ -81,7 +78,10 @@ namespace slib
 		void setRequestBodyAsXml(const Ref<XmlDocument>& xml);
 		
 		template <class MAP>
-		void setRequestBodyAsMap(const MAP& map);
+		void setRequestBodyAsMap(const MAP& params)
+		{
+			setRequestBodyAsString(HttpRequest::buildFormUrlEncoded(params));
+		}
 		
 		void setRequestBody(const Variant& var);
 		
@@ -90,13 +90,20 @@ namespace slib
 		void addRequestHeader(const String& header, const String& value);
 		
 		template <class MAP>
-		void setCookie(const MAP& cookies);
-		
+		void setCookie(const MAP& cookies)
+		{
+			String value = HttpHeaderHelper::mergeValueMap(cookies, ';');
+			setRequestHeader(HttpHeader::Cookie, value);
+		}
 
 		template <class MAP>
-		void setFormData(const MAP& map);
+		void setFormData(const MAP& params)
+		{
+			setContentType(ContentType::WebForm);
+			setRequestBodyAsMap(params);
+		}
 		
-		void setMultipartFormData(const HashMap<String, Variant>& params);
+		void setMultipartFormData(const VariantMap& params);
 		
 		void setJsonData(const Json& json);
 		
@@ -208,7 +215,7 @@ namespace slib
 		
 		sl_size getRequestBodySize();
 		
-		HashMap<String, Variant> getParameters();
+		VariantMap getParameters();
 		
 		HttpHeaderMap getRequestHeaders();
 		
@@ -259,7 +266,7 @@ namespace slib
 		
 		sl_bool isError();
 		
-		String getLastErrorMessage();
+		String getErrorMessage();
 
 		sl_bool isClosed();
 		
@@ -299,7 +306,7 @@ namespace slib
 		
 		HttpMethod m_method;
 		Memory m_requestBody;
-		HashMap<String, Variant> m_parameters;
+		VariantMap m_parameters;
 		HttpHeaderMap m_requestHeaders;
 		
 		MemoryQueue m_bufResponseContent;
@@ -327,7 +334,7 @@ namespace slib
 		
 		sl_bool m_flagClosed;
 		sl_bool m_flagError;
-		AtomicString m_lastErrorMessage;
+		AtomicString m_errorMessage;
 		
 		Ref<Event> m_eventSync;
 		
@@ -335,7 +342,5 @@ namespace slib
 	};
 
 }
-
-#include "detail/url_request.inc"
 
 #endif

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GEO_EARTH
 #define CHECKHEADER_SLIB_GEO_EARTH
 
-#include "definition.h"
-
 #include "globe.h"
 
 // Based on WGS-84 World Geodetic System (X,Y,Z axes are custom-defined)

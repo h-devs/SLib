@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_AUDIO_FORMAT
 #define CHECKHEADER_SLIB_MEDIA_AUDIO_FORMAT
 
-#include "definition.h"
-
 #include "constants.h"
 
 namespace slib

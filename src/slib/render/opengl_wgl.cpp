@@ -22,14 +22,15 @@
 
 #include "slib/render/opengl_wgl.h"
 
-#if defined(SLIB_RENDER_SUPPORT_OPENGL_WGL) && defined(SLIB_PLATFORM_IS_WIN32)
+#if defined(SLIB_RENDER_SUPPORT_OPENGL_WGL)
 
 #include "slib/render/engine.h"
 #include "slib/render/opengl.h"
+#include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
 #include "slib/core/platform_windows.h"
 
-#pragma comment (lib, "opengl32.lib")
+#pragma comment(lib, "opengl32.lib")
 
 namespace slib
 {
@@ -64,17 +65,15 @@ namespace slib
 				}
 
 			public:
-				static Ref<RendererImpl> create(void* _windowHandle, const RendererParam& _param)
+				static Ref<RendererImpl> create(void* windowHandle, const RendererParam& param)
 				{
-					HWND hWnd = (HWND)_windowHandle;
+					HWND hWnd = (HWND)windowHandle;
 					if (hWnd == 0) {
 						return sl_null;
 					}
 
-					HDC hDC = ::GetDC(hWnd);
+					HDC hDC = GetDC(hWnd);
 					if (hDC) {
-
-						RendererParam param = _param;
 
 						PIXELFORMATDESCRIPTOR pfd;
 						Base::zeroMemory(&pfd, sizeof(pfd));
@@ -89,10 +88,10 @@ namespace slib
 						pfd.cStencilBits = param.nStencilBits;
 						pfd.iLayerType = PFD_MAIN_PLANE;
 
-						int iPixelFormat = ::ChoosePixelFormat(hDC, &pfd);
+						int iPixelFormat = ChoosePixelFormat(hDC, &pfd);
 						if (iPixelFormat) {
 
-							if (::SetPixelFormat(hDC, iPixelFormat, &pfd)) {
+							if (SetPixelFormat(hDC, iPixelFormat, &pfd)) {
 								
 								HGLRC context = wglCreateContext(hDC);
 								if (context) {
@@ -115,7 +114,7 @@ namespace slib
 								}
 							}
 						}
-						::ReleaseDC(hWnd, hDC);
+						ReleaseDC(hWnd, hDC);
 					}
 					return sl_null;
 				}
@@ -132,8 +131,9 @@ namespace slib
 
 					if (m_context) {
 						wglDeleteContext(m_context);
-						::ReleaseDC(m_hWindow, m_hDC);
+						ReleaseDC(m_hWindow, m_hDC);
 						m_context = sl_null;
+						m_hDC = sl_null;
 					}
 				}
 
@@ -151,6 +151,7 @@ namespace slib
 					TimeCounter timer;
 					Ref<Thread> thread = Thread::getCurrent();
 					while (thread.isNull() || thread->isNotStopping()) {
+						Ref<RendererImpl> thiz = this;
 						runStep(engine.get());
 						if (thread.isNull() || thread->isNotStopping()) {
 							sl_uint64 t = timer.getElapsedMilliseconds();
@@ -181,11 +182,13 @@ namespace slib
 					m_flagRequestRender = sl_false;
 					if (flagUpdate) {
 						RECT rect;
-						::GetClientRect(m_hWindow, &rect);
+						GetClientRect(m_hWindow, &rect);
 						if (rect.right != 0 && rect.bottom != 0) {
 							engine->setViewport(0, 0, rect.right, rect.bottom);
 							dispatchFrame(engine);
-							::SwapBuffers(m_hDC);
+							if (m_hDC) {
+								SwapBuffers(m_hDC);
+							}
 						}
 					}
 				}

@@ -20,13 +20,14 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_ANDROID)
 
 #include "slib/graphics/bitmap.h"
 
 #include "slib/graphics/platform.h"
+#include "slib/core/memory.h"
 #include "slib/core/endian.h"
 #include "slib/core/scoped.h"
 

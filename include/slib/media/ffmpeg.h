@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_FFMPEG
 #define CHECKHEADER_SLIB_MEDIA_FFMPEG
 
-#include "definition.h"
-
 #include "media_player.h"
 
 namespace slib

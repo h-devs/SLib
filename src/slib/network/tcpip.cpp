@@ -21,6 +21,7 @@
  */
 
 #include "slib/network/tcpip.h"
+#include "slib/network/tcpip_fragment.h"
 
 #include "slib/core/mio.h"
 

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_CODEC_OPUS
 #define CHECKHEADER_SLIB_MEDIA_CODEC_OPUS
 
-#include "definition.h"
-
 #include "audio_codec.h"
 
 /*
@@ -40,7 +38,8 @@ namespace slib
 	enum class OpusEncoderType
 	{
 		Voice = 0,
-		Music = 1
+		Music = 1,
+		Auto = 2
 	};
 	
 	class SLIB_EXPORT OpusEncoderParam
@@ -61,6 +60,8 @@ namespace slib
 	
 	class SLIB_EXPORT OpusEncoder : public AudioEncoder
 	{
+		SLIB_DECLARE_OBJECT
+
 	public:
 		OpusEncoder();
 		
@@ -89,6 +90,8 @@ namespace slib
 	
 	class SLIB_EXPORT OpusDecoder : public AudioDecoder
 	{
+		SLIB_DECLARE_OBJECT
+
 	public:
 		OpusDecoder();
 		
@@ -100,7 +103,7 @@ namespace slib
 	public:
 		static sl_bool isValidSamplingRate(sl_uint32 nSamplesPerSecond);
 		
-	};	
+	};
 }
 
 #endif

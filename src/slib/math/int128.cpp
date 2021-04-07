@@ -25,9 +25,6 @@
 #include "slib/core/math.h"
 #include "slib/core/mio.h"
 
-/*************************************
-			Uint128
-**************************************/
 
 namespace slib
 {
@@ -828,7 +825,7 @@ namespace slib
 					}
 				} else {
 					buf[posBuf] = '?';
-				}			
+				}
 			}
 			return String(buf + posBuf, 128 - posBuf);
 		}

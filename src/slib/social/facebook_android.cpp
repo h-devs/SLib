@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/social/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_ANDROID)
 
@@ -70,7 +70,7 @@ namespace slib
 			public:
 				static FacebookSDKContext* get()
 				{
-					SLIB_SAFE_STATIC(FacebookSDKContext, s)
+					SLIB_SAFE_LOCAL_STATIC(FacebookSDKContext, s)
 					if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
 						return sl_null;
 					}

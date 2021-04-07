@@ -23,10 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_AES
 #define CHECKHEADER_SLIB_CRYPTO_AES
 
-#include "definition.h"
-
-#include "../core/string.h"
-
 #include "block_cipher.h"
 #include "gcm.h"
 
@@ -39,6 +35,8 @@
 
 namespace slib
 {
+
+	class String;
 
 	class SLIB_EXPORT AES : public BlockCipher<AES>
 	{

@@ -23,10 +23,16 @@
 #ifndef CHECKHEADER_SLIB_UI_DEFINITION
 #define CHECKHEADER_SLIB_UI_DEFINITION
 
+#ifdef SLIB_USE_OBJECT_TYPE_CONSTANTS
+#   ifndef PRIV_SLIB_INCLUDED_OBJECT_TYPES
+#       define PRIV_SLIB_INCLUDED_OBJECT_TYPES
+#       include "object_types.h"
+#   endif
+#endif
+
 #include "../core/definition.h"
 
 #include "../math/rectangle.h"
-#include "../math/point.h"
 
 typedef sl_int32 sl_ui_pos;
 typedef sl_int32 sl_ui_len;

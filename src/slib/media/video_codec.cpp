@@ -62,5 +62,15 @@ namespace slib
 	{
 	}
 
+	sl_bool VideoDecoder::decode(const void* input, sl_uint32 inputSize, VideoFrame& output)
+	{
+		return decode(input, inputSize, &output, sl_null);
+	}
+
+	sl_bool VideoDecoder::decode(const void* input, sl_uint32 inputSize, const Function<void(VideoFrame&)>& callback)
+	{
+		return decode(input, inputSize, sl_null, callback);
+	}
+
 }
 

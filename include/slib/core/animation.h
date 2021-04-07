@@ -23,13 +23,11 @@
 #ifndef CHECKHEADER_SLIB_CORE_ANIMATION
 #define CHECKHEADER_SLIB_CORE_ANIMATION
 
-#include "definition.h"
-
-#include "object.h"
 #include "function.h"
 #include "hash_map.h"
 #include "math.h"
 #include "interpolation.h"
+#include "flags.h"
 
 /*
 	Basic functions for Graphics/Rendering/UI animations
@@ -58,24 +56,15 @@ namespace slib
 	
 	class AnimationLoop;
 	
-	class AnimationFlags
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(AnimationFlags, value)
-
-	public:
-		enum {
-			Default = 0,
-			AutoStart = 1,
-			Repeat = 2,
-			AutoReverse = 4,
-			NotNative = 8,
-			NotUpdateWhenStart = 16,
-			NotSelfAlive = 32
-		};
-
-	};
+	SLIB_DEFINE_FLAGS(AnimationFlags, {
+		Default = 0,
+		AutoStart = 1,
+		Repeat = 2,
+		AutoReverse = 4,
+		NotNative = 8,
+		NotUpdateWhenStart = 16,
+		NotSelfAlive = 32
+	})
 	
 	class Animation : public Object
 	{
@@ -340,11 +329,11 @@ namespace slib
 		T value;
 
 	public:
-		SLIB_INLINE AnimationFrame() : fraction(0) {}
+		AnimationFrame() : fraction(0) {}
 
-		SLIB_INLINE AnimationFrame(const AnimationFrame& other) : fraction(other.fraction), value(other.value) {}
+		AnimationFrame(const AnimationFrame& other) : fraction(other.fraction), value(other.value) {}
 
-		SLIB_INLINE AnimationFrame(float _fraction, const T& _value) : fraction(_fraction), value(_value) {}
+		AnimationFrame(float _fraction, const T& _value) : fraction(_fraction), value(_value) {}
 
 	};
 	
@@ -352,16 +341,50 @@ namespace slib
 	class AnimationFrames
 	{
 	public:
-		SLIB_INLINE AnimationFrames() {}
+		AnimationFrames() {}
 
-		SLIB_INLINE AnimationFrames(const AnimationFrames& other) {}
+		AnimationFrames(const AnimationFrames& other) {}
 
-		SLIB_INLINE AnimationFrames(const T& _startValue, const T& _endValue) : startValue(_startValue), endValue(_endValue) {}
+		AnimationFrames(const T& _startValue, const T& _endValue) : startValue(_startValue), endValue(_endValue) {}
 
 	public:
-		void addFrame(float fraction, const T& value);
+		void addFrame(float fraction, const T& value)
+		{
+			frames.add(AnimationFrame<T>(fraction, value));
+		}
 
-		T getValue(float fraction);
+		T getValue(float fraction)
+		{
+			T* sv = &startValue;
+			float st = 0;
+			ListLocker< AnimationFrame<T> > f(frames);
+			for (sl_size i = 0; i <= f.count; i++) {
+				float et;
+				if (i == f.count) {
+					et = 1;
+				} else {
+					et = f[i].fraction;
+				}
+				if (et > st + SLIB_EPSILON) {
+					T* ev;
+					if (i == f.count) {
+						ev = &endValue;
+					} else {
+						ev = &(f[i].value);
+					}
+					if (Math::isAlmostZero(fraction - et)) {
+						return f[i].value;
+					}
+					if (fraction <= et) {
+						float w = (fraction - st) / (et - st);
+						return INTERPOLATION::interpolate(*sv, *ev, w);
+					}
+					sv = ev;
+					st = et;
+				}
+			}
+			return endValue;
+		}
 
 	public:
 		T startValue;
@@ -375,14 +398,93 @@ namespace slib
 	class AnimationFramesSeeker : public Object
 	{
 	public:
-		AnimationFramesSeeker(const AnimationFrames<T, INTERPOLATION>& frames);
+		AnimationFramesSeeker(const AnimationFrames<T, INTERPOLATION>& frames)
+		{
+			startValue = frames.startValue;
+			endValue = frames.endValue;
+			m_arrFrames = frames.frames.toArray();
+			m_frames = m_arrFrames.getData();
+			m_countFrames = m_arrFrames.getCount();
+			m_currentIndex = 0;
+			m_currentStartFraction = 0;
+			if (m_countFrames > 0) {
+				m_currentEndFraction = m_frames[0].fraction;
+			} else {
+				m_currentEndFraction = 1;
+			}
+			m_currentStartValue = &startValue;
+			if (m_countFrames > 0) {
+				m_currentEndValue = &(m_frames[0].value);
+			} else {
+				m_currentEndValue = &endValue;
+			}
+		}
 
 	public:
-		T seek(float fraction);
+		T seek(float fraction)
+		{
+			if (m_countFrames == 0) {
+				return INTERPOLATION::interpolate(startValue, endValue, fraction);
+			}
+			if (Math::isAlmostZero(fraction - m_currentStartFraction)) {
+				return *m_currentStartValue;
+			}
+			if (Math::isAlmostZero(fraction - m_currentEndFraction)) {
+				return *m_currentEndValue;
+			}
+			ObjectLocker lock(this);
+			sl_bool flagSeek;
+			if (fraction < m_currentStartFraction) {
+				m_currentIndex = 0;
+				flagSeek = sl_true;
+			} else if (fraction > m_currentEndFraction) {
+				if (m_currentIndex >= m_countFrames) {
+					return endValue;
+				}
+				m_currentIndex ++;
+				flagSeek = sl_true;
+			} else {
+				flagSeek = sl_false;
+			}
+			if (flagSeek) {
+				for (; m_currentIndex < m_countFrames; m_currentIndex++) {
+					if (fraction < m_frames[m_currentIndex].fraction) {
+						break;
+					}
+				}
+				if (m_currentIndex > 0) {
+					m_currentStartFraction = m_frames[m_currentIndex - 1].fraction;
+					m_currentStartValue = &(m_frames[m_currentIndex - 1].value);
+				} else {
+					m_currentStartFraction = 0;
+					m_currentStartValue = &(startValue);
+				}
+				if (m_currentIndex < m_countFrames) {
+					m_currentEndFraction = m_frames[m_currentIndex].fraction;
+					m_currentEndValue = &(m_frames[m_currentIndex].value);
+				} else {
+					m_currentEndFraction = 1;
+					m_currentEndValue = &(endValue);
+				}
+			}
+			float w = fraction - m_currentStartFraction;
+			float t = m_currentEndFraction - m_currentStartFraction;
+			if (t < SLIB_EPSILON) {
+				return *m_currentEndValue;
+			}
+			w /= t;
+			return INTERPOLATION::interpolate(*m_currentStartValue, *m_currentEndValue, w);
+		}
 
-		sl_size getFramesCount();
+		sl_size getFramesCount()
+		{
+			return m_countFrames;
+		}
 
-		AnimationFrame<T>& getFrame(sl_size index);
+		AnimationFrame<T>& getFrame(sl_size index)
+		{
+			return m_frames[index];
+		}
 	
 	public:
 		T startValue;
@@ -430,18 +532,33 @@ namespace slib
 	class AnimationTargetT : public AnimationTarget
 	{
 	public:
-		SLIB_INLINE AnimationTargetT(const AnimationFrames<T>& frames) : m_seeker(frames) {}
+		AnimationTargetT(const AnimationFrames<T>& frames) : m_seeker(frames) {}
 
 	public:
-		T& getStartValue();
+		T& getStartValue()
+		{
+			return m_seeker.startValue;
+		}
 
-		T& getEndValue();
+		T& getEndValue()
+		{
+			return m_seeker.endValue;
+		}
 	
-		sl_size getFramesCount();
+		sl_size getFramesCount()
+		{
+			return m_seeker.getFramesCount();
+		}
 
-		T& getFrame(sl_size index);
+		AnimationFrame<T>& getFrame(sl_size index)
+		{
+			return m_seeker.getFrame(index);
+		}
 
-		void update(float fraction) override;
+		void update(float fraction) override
+		{
+			update(fraction, m_seeker.seek(fraction));
+		}
 
 		virtual void update(float fraction, const T& value) = 0;
 		
@@ -451,8 +568,6 @@ namespace slib
 	};
 
 }
-
-#include "detail/animation.inc"
 
 #endif
 

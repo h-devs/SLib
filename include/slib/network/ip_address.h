@@ -52,34 +52,52 @@ namespace slib
 		};
 		
 	public:
-		SLIB_INLINE constexpr IPv4Address() noexcept: a(0), b(0), c(0), d(0) {}
+		constexpr IPv4Address() noexcept: a(0), b(0), c(0), d(0) {}
 		
-		SLIB_INLINE constexpr IPv4Address(const IPv4Address& other) noexcept: a(other.a), b(other.b), c(other.c), d(other.d) {}
+		constexpr IPv4Address(const IPv4Address& other) noexcept: a(other.a), b(other.b), c(other.c), d(other.d) {}
 		
-		SLIB_INLINE constexpr IPv4Address(sl_uint8 const addr[4]) noexcept: a(addr[0]), b(addr[1]), c(addr[2]), d(addr[3]) {}
+		constexpr IPv4Address(sl_uint8 const addr[4]) noexcept: a(addr[0]), b(addr[1]), c(addr[2]), d(addr[3]) {}
 		
-		SLIB_INLINE constexpr IPv4Address(sl_uint8 _a, sl_uint8 _b, sl_uint8 _c, sl_uint8 _d) noexcept: a(_a), b(_b), c(_c), d(_d) {}
+		constexpr IPv4Address(sl_uint8 _a, sl_uint8 _b, sl_uint8 _c, sl_uint8 _d) noexcept: a(_a), b(_b), c(_c), d(_d) {}
 		
-		SLIB_INLINE constexpr IPv4Address(sl_uint32 addr) noexcept: a((sl_uint8)(addr >> 24)), b((sl_uint8)(addr >> 16)), c((sl_uint8)(addr >> 8)), d((sl_uint8)(addr)) {}
+		constexpr IPv4Address(sl_uint32 addr) noexcept: a((sl_uint8)(addr >> 24)), b((sl_uint8)(addr >> 16)), c((sl_uint8)(addr >> 8)), d((sl_uint8)(addr)) {}
 		
 		IPv4Address(const String& address) noexcept;
 		
 	public:
 		void setElements(sl_uint8 a, sl_uint8 b, sl_uint8 c, sl_uint8 d) noexcept;
 		
-		sl_uint32 getInt() const noexcept;
+		sl_uint32 getInt() const noexcept
+		{
+			return ((sl_uint32)(a) << 24) | ((sl_uint32)(b) << 16) | ((sl_uint32)(c) << 8) | ((sl_uint32)(d));
+		}
 		
-		void setInt(sl_uint32 addr) noexcept;
+		void setInt(sl_uint32 addr) noexcept
+		{
+			a = (sl_uint8)(addr >> 24);
+			b = (sl_uint8)(addr >> 16);
+			c = (sl_uint8)(addr >> 8);
+			d = (sl_uint8)(addr);
+		}
 		
 		void getBytes(void* bytes) const noexcept;
 		
 		void setBytes(const void* bytes) noexcept;
 		
-		static const IPv4Address& zero() noexcept;
+		static const IPv4Address& zero() noexcept
+		{
+			return *(reinterpret_cast<IPv4Address const*>(&_zero));
+		}
 		
-		sl_bool isZero() const noexcept;
+		sl_bool isZero() const noexcept
+		{
+			return getInt() == 0;
+		}
 		
-		sl_bool isNotZero() const noexcept;
+		sl_bool isNotZero() const noexcept
+		{
+			return getInt() != 0;
+		}
 		
 		void setZero() noexcept;
 		
@@ -124,19 +142,38 @@ namespace slib
 		}
 		
 	public:
-		SLIB_INLINE IPv4Address& operator=(const IPv4Address& other) = default;
+		IPv4Address& operator=(const IPv4Address& other) = default;
 		
-		IPv4Address& operator=(sl_uint32 addr) noexcept;
+		IPv4Address& operator=(sl_uint32 addr) noexcept
+		{
+			a = (sl_uint8)(addr >> 24);
+			b = (sl_uint8)(addr >> 16);
+			c = (sl_uint8)(addr >> 8);
+			d = (sl_uint8)(addr);
+			return *this;
+		}
 		
 		IPv4Address& operator=(const String& address) noexcept;
 		
-		sl_bool operator==(const IPv4Address& other) const noexcept;
+		sl_bool operator==(const IPv4Address& other) const noexcept
+		{
+			return getInt() == other.getInt();
+		}
 		
-		sl_bool operator==(sl_uint32 addr) const noexcept;
+		sl_bool operator==(sl_uint32 addr) const noexcept
+		{
+			return getInt() == addr;
+		}
 		
-		sl_bool operator!=(const IPv4Address& other) const noexcept;
+		sl_bool operator!=(const IPv4Address& other) const noexcept
+		{
+			return getInt() != other.getInt();
+		}
 		
-		sl_bool operator!=(sl_uint32 addr) const noexcept;
+		sl_bool operator!=(sl_uint32 addr) const noexcept
+		{
+			return getInt() != addr;
+		}
 		
 		sl_bool operator>=(const IPv4Address& other) const noexcept;
 		
@@ -213,7 +250,7 @@ namespace slib
 		sl_uint8 m[16];
 		
 	public:
-		SLIB_INLINE IPv6Address() noexcept {}
+		IPv6Address() noexcept {}
 		
 		IPv6Address(const IPv6Address& other) noexcept;
 		
@@ -250,7 +287,10 @@ namespace slib
 		// 16 elements
 		void setBytes(const void* bytes) noexcept;
 		
-		static const IPv6Address& zero() noexcept;
+		static const IPv6Address& zero() noexcept
+		{
+			return *(reinterpret_cast<IPv6Address const*>(&_zero));
+		}
 		
 		void setZero() noexcept;
 		
@@ -258,7 +298,10 @@ namespace slib
 		
 		sl_bool isNotZero() const noexcept;
 		
-		static const IPv6Address& getLoopback() noexcept;
+		static const IPv6Address& getLoopback() noexcept
+		{
+			return *(reinterpret_cast<IPv6Address const*>(&_loopback));
+		}
 		
 		sl_bool isLoopback() const noexcept;
 		
@@ -362,7 +405,7 @@ namespace slib
 		sl_uint8 m[PRIV_SLIB_NET_IPADDRESS_SIZE];
 		
 	public:
-		SLIB_INLINE IPAddress() noexcept: type(IPAddressType::None) {}
+		IPAddress() noexcept: type(IPAddressType::None) {}
 		
 		IPAddress(const IPAddress& other) noexcept;
 		
@@ -373,13 +416,25 @@ namespace slib
 		IPAddress(const String& address) noexcept;
 		
 	public:
-		static const IPAddress& none() noexcept;
+		static const IPAddress& none() noexcept
+		{
+			return *(reinterpret_cast<IPAddress const*>(&_none));
+		}
 		
-		void setNone() noexcept;
+		void setNone() noexcept
+		{
+			type = IPAddressType::None;
+		}
 		
-		sl_bool isNone() const noexcept;
+		sl_bool isNone() const noexcept
+		{
+			return type == IPAddressType::None;
+		}
 		
-		sl_bool isNotNone() const noexcept;
+		sl_bool isNotNone() const noexcept
+		{
+			return type != IPAddressType::None;
+		}
 		
 		sl_bool isIPv4() const noexcept;
 		
@@ -467,7 +522,5 @@ namespace slib
 	};
 	
 }
-
-#include "detail/ip_address.inc"
 
 #endif

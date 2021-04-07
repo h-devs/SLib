@@ -23,7 +23,7 @@ private:
 
 private:
 	Ref<AudioRecorder> m_recorder;
-	Ref<AudioPlayerBuffer> m_player;
+	Ref<AudioPlayer> m_player;
 
 	MemoryBuffer m_bufRecordedAudio;
 	sl_size m_nSamplesPlayed = 0;

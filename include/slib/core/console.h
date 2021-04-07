@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_CONSOLE
 #define CHECKHEADER_SLIB_CORE_CONSOLE
 
-#include "definition.h"
-
 #include "string.h"
 
 namespace slib
@@ -36,27 +34,80 @@ namespace slib
 		static void print(const StringParam& s);
 
 		template <class... ARGS>
-		static void print(const StringParam& format, ARGS&&... args);
+		static void print(const StringParam& format, ARGS&&... args)
+		{
+			String content = String::format(format, Forward<ARGS>(args)...);
+			print(content);
+		}
 	
 		static void println(const StringParam& s);
 
 		template <class... ARGS>
-		static void println(const StringParam& format, ARGS&&... args);
+		static void println(const StringParam& format, ARGS&&... args)
+		{
+			String content = String::format(format, Forward<ARGS>(args)...);
+			println(content);
+		}
 	
 		static String readLine();
 
 		static sl_char16 readChar(sl_bool flagPrintEcho = sl_false);
 
+		static sl_bool readInt32(sl_int32* _out);
+
+		static sl_int32 readInt32(sl_int32 def = 0);
+
+		static sl_bool readUint32(sl_uint32* _out);
+
+		static sl_uint32 readUint32(sl_uint32 def = 0);
+
+		static sl_bool readInt64(sl_int64* _out);
+
+		static sl_int64 readInt64(sl_int64 def = 0);
+
+		static sl_bool readUint64(sl_uint64* _out);
+
+		static sl_uint64 readUint64(sl_uint64 def = 0);
+
+		static sl_bool readInt(sl_reg* _out);
+
+		static sl_reg readInt(sl_reg def = 0);
+
+		static sl_bool readUint(sl_size* _out);
+
+		static sl_size readUint(sl_size def = 0);
+
+		static sl_bool readFloat(float* _out);
+
+		static float readFloat(float def = 0);
+
+		static sl_bool readDouble(double* _out);
+
+		static double readDouble(double def = 0);
+
+		static String readString();
+
+
+		static sl_bool open();
+
+		static sl_bool close();
+
 	};
 	
 	template <class... ARGS>
-	void Printf(const StringParam& format, ARGS&&... args);
+	void Printf(const StringParam& format, ARGS&&... args)
+	{
+		String content = String::format(format, Forward<ARGS>(args)...);
+		Console::print(content);
+	}
 	
 	template <class... ARGS>
-	void Println(const StringParam& format, ARGS&&... args);
+	void Println(const StringParam& format, ARGS&&... args)
+	{
+		String content = String::format(format, Forward<ARGS>(args)...);
+		Console::println(content);
+	}
 	
 }
-
-#include "detail/console.inc"
 
 #endif

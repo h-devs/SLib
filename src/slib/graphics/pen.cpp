@@ -41,7 +41,7 @@ namespace slib
 	}
 
 	
-	SLIB_DEFINE_OBJECT(Pen, Object)
+	SLIB_DEFINE_ROOT_OBJECT(Pen)
 
 	Pen::Pen()
 	{
@@ -53,7 +53,7 @@ namespace slib
 
 	Ref<Pen> Pen::getDefault()
 	{
-		SLIB_SAFE_STATIC(Ref<Pen>, defaultPen, create(PenDesc()))
+		SLIB_SAFE_LOCAL_STATIC(Ref<Pen>, defaultPen, create(PenDesc()))
 		if (SLIB_SAFE_STATIC_CHECK_FREED(defaultPen)) {
 			return sl_null;
 		}

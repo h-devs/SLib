@@ -188,6 +188,29 @@ namespace slib
 		}
 	}
 
+	Ref<Window> ViewPage::createNavigationWindow()
+	{
+		Ref<ViewPageNavigationController> pager = new ViewPageNavigationController;
+		if (pager.isNull()) {
+			return sl_null;
+		}
+		Ref<Window> window = new Window;
+		if (window.isNull()) {
+			return sl_null;
+		}
+		pager->setWidthFilling(1, UIUpdateMode::Init);
+		pager->setHeightFilling(1, UIUpdateMode::Init);
+		pager->push(this);
+		window->addView(pager, UIUpdateMode::Init);
+		window->setOnCancel([pager](Window* window, UIEvent* ev) {
+			if (pager->getPagesCount() > 1) {
+				pager->pop();
+				ev->preventDefault();
+			}
+		});
+		return window;
+	}
+
 	void ViewPage::_openPopup(const Ref<View>& parent, Transition transition, sl_bool flagFillParentBackground)
 	{
 		ObjectLocker lock(this);
@@ -543,6 +566,20 @@ namespace slib
 		}
 	}
 
+	Ref<View> ViewPage::getInitialFocus()
+	{
+		return m_viewInitialFocus;
+	}
+
+	void ViewPage::setInitialFocus(const Ref<View>& view)
+	{
+		m_viewInitialFocus = view;
+		if (view.isNotNull()) {
+			view->setFocus();
+		}
+	}
+
+
 	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Open)
 
 	void ViewPage::dispatchOpen()
@@ -600,6 +637,13 @@ namespace slib
 	void ViewPage::dispatchEndPageAnimation(ViewPageNavigationController* controller, UIPageAction action)
 	{
 		m_navigationController = controller;
+
+		if (action == UIPageAction::Resume || action == UIPageAction::Push) {
+			Ref<View> focus = m_viewInitialFocus;
+			if (focus.isNotNull()) {
+				focus->setFocus();
+			}
+		}
 		
 		SLIB_INVOKE_EVENT_HANDLER(EndPageAnimation, controller, action)
 	}
@@ -640,7 +684,17 @@ namespace slib
 		if (ev->isPreventedDefault()) {
 			return;
 		}
-		close();
+
+		Ref<ViewPageNavigationController> controller = getNavigationController();
+		if (controller.isNotNull()) {
+			if (controller->getPagesCount() > 1) {
+				close();
+				ev->preventDefault();
+				return;
+			}
+		}
+
+		ViewGroup::dispatchCancel(ev);
 	}
 
 }

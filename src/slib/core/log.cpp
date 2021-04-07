@@ -27,17 +27,48 @@
 #include "slib/core/variant.h"
 #include "slib/core/safe_static.h"
 
-#if defined(SLIB_PLATFORM_IS_ANDROID)
+#if defined(SLIB_PLATFORM_IS_WIN32)
+#include "slib/core/windows.h"
+#include <stdio.h>
+#elif defined(SLIB_PLATFORM_IS_ANDROID)
 #include <android/log.h>
-#endif
-
-#if defined(SLIB_PLATFORM_IS_TIZEN)
+#elif defined(SLIB_PLATFORM_IS_TIZEN)
 #include <dlog.h>
+#else
+#include <stdio.h>
 #endif
 
 namespace slib
 {
 
+	namespace priv
+	{
+		namespace log
+		{
+			
+			static String GetLineString(const StringParam& tag, const StringParam& content)
+			{
+				return String::format("%s [%s] %s\n", Time::now(), tag, content);
+			}
+			
+			static String GetLineStringCRLF(const StringParam& tag, const StringParam& content)
+			{
+				return String::format("%s [%s] %s\r\n", Time::now(), tag, content);
+			}
+			
+#ifdef SLIB_PLATFORM_IS_WIN32
+			static String16 GetLineString16(const StringParam& tag, const StringParam& content)
+			{
+				return String16::format(SLIB_UNICODE("%s [%s] %s\n"), Time::now(), tag, content);
+			}
+#endif
+			
+		}
+	}
+	
+	using namespace priv::log;
+
+	
 	SLIB_DEFINE_OBJECT(Logger, Object)
 
 	Logger::Logger()
@@ -52,16 +83,12 @@ namespace slib
 	{
 		log(tag, content);
 	}
-	
-	namespace priv
+
+	void Logger::logDebug(const StringParam& tag, const StringParam& content)
 	{
-		namespace log
-		{
-			static String getLineString(const StringParam& tag, const StringParam& content)
-			{
-				return String::format("%s [%s] %s", Time::now(), tag, content);
-			}
-		}
+#ifdef SLIB_DEBUG
+		log(tag, content);
+#endif
 	}
 
 	FileLogger::FileLogger()
@@ -83,11 +110,8 @@ namespace slib
 		if (fileName.isEmpty()) {
 			return;
 		}
-		String s = priv::log::getLineString(tag, content) + "\r\n";
-		if (s.getLength() > 0) {
-			ObjectLocker lock(this);
-			File::appendAllTextUTF8(fileName, s);
-		}
+		ObjectLocker lock(this);
+		File::appendAllTextUTF8(fileName, GetLineStringCRLF(tag, content));
 	}
 	
 	String FileLogger::getFileName()
@@ -113,13 +137,17 @@ namespace slib
 			StringCstr content(_content);
 			ObjectLocker lock(this);
 			if (content.isNotEmpty()) {
-				::dlog_print(DLOG_INFO, tag.getData(), "%s", content.getData());
+				dlog_print(DLOG_INFO, tag.getData(), "%s", content.getData());
 			} else {
-				::dlog_print(DLOG_INFO, tag.getData(), " ");
+				dlog_print(DLOG_INFO, tag.getData(), " ");
 			}
+#elif defined(SLIB_PLATFORM_IS_WIN32)
+			String16 s = GetLineString16(_tag, _content);
+			OutputDebugStringW((LPCWSTR)(s.getData()));
+			Console::print(s);
 #else
-			String s = priv::log::getLineString(_tag, _content);
-			Console::println(s);
+			String s = GetLineString(_tag, _content);
+			printf("%s", s.getData());
 #endif
 		}
 
@@ -135,14 +163,24 @@ namespace slib
 			StringCstr content(_content);
 			ObjectLocker lock(this);
 			if (content.isNotEmpty()) {
-				::dlog_print(DLOG_ERROR, tag.getData(), "%s", content.getData());
+				dlog_print(DLOG_ERROR, tag.getData(), "%s", content.getData());
 			} else {
-				::dlog_print(DLOG_ERROR, tag.getData(), " ");
+				dlog_print(DLOG_ERROR, tag.getData(), " ");
+			}
+#elif defined(SLIB_PLATFORM_IS_WIN32)
+			String16 s = GetLineString16(_tag, _content);
+			OutputDebugStringW((LPCWSTR)(s.getData()));
+			HWND hWnd = GetConsoleWindow();
+			if (hWnd) {
+				Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
+				fprintf(stderr, "%s", (char*)(mem.getData()));
 			}
 #else
-			log(_tag, _content);
+			String s = GetLineString(_tag, _content);
+			fprintf(stderr, "%s", s.getData());
 #endif
 		}
+
 	};
 
 
@@ -223,7 +261,7 @@ namespace slib
 	Ref<LoggerSet> Logger::global()
 	{
 		Ref<Logger> console(getConsoleLogger());
-		SLIB_SAFE_STATIC(Ref<LoggerSet>, log, new LoggerSet(console, console))
+		SLIB_SAFE_LOCAL_STATIC(Ref<LoggerSet>, log, new LoggerSet(console, console))
 		if (SLIB_SAFE_STATIC_CHECK_FREED(log)) {
 			return sl_null;
 		}
@@ -232,7 +270,7 @@ namespace slib
 
 	Ref<Logger> Logger::getConsoleLogger()
 	{
-		SLIB_SAFE_STATIC(Ref<Logger>, logger, new ConsoleLogger)
+		SLIB_SAFE_LOCAL_STATIC(Ref<Logger>, logger, new ConsoleLogger)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(logger)) {
 			return sl_null;
 		}
@@ -257,6 +295,14 @@ namespace slib
 		Ref<LoggerSet> log = global();
 		if (log.isNotNull()) {
 			log->logError(tag, content);
+		}
+	}
+
+	void Logger::logGlobalDebug(const StringParam& tag, const StringParam& content)
+	{
+		Ref<LoggerSet> log = global();
+		if (log.isNotNull()) {
+			log->logDebug(tag, content);
 		}
 	}
 

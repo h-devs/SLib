@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_ANDROID)
 
@@ -63,7 +63,7 @@ namespace slib
 							JPen::color.set(jpen, desc.color.getARGB());
 							JPen::width.set(jpen, desc.width);
 							JPen::miterLimit.set(jpen, desc.miterLimit);
-							JPen::setStyle.call(jpen, desc.style);				
+							JPen::setStyle.call(jpen, desc.style);
 							m_pen = gpen;
 						}
 					}

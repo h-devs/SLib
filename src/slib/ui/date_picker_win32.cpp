@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 
@@ -43,6 +43,13 @@ namespace slib
 				SLIB_DECLARE_OBJECT
 
 			public:
+				void initialize(View* _view) override
+				{
+					DatePicker* view = (DatePicker*)_view;
+
+					setDate(view, view->getDate());
+				}
+
 				sl_bool getDate(DatePicker* view, Time& _out) override
 				{
 					HWND handle = m_handle;
@@ -100,12 +107,7 @@ namespace slib
 	Ref<ViewInstance> DatePicker::createNativeWidget(ViewInstance* parent)
 	{
 		SLIB_STATIC_STRING16(text, "DateTime")
-		Ref<DatePickerInstance> ret = Win32_ViewInstance::create<DatePickerInstance>(this, parent, L"SysDateTimePick32", text, 0, 0);
-		if (ret.isNotNull()) {
-			HWND handle = ret->getHandle();
-			ret->setDate(this, m_date);
-		}
-		return ret;
+		return Win32_ViewInstance::create<DatePickerInstance>(this, parent, L"SysDateTimePick32", text, 0, 0);
 	}
 
 	Ptr<IDatePickerInstance> DatePicker::getDatePickerInstance()

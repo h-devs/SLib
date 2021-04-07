@@ -23,8 +23,7 @@
 #include "slib/ui/switch_view.h"
 
 #include "slib/ui/core.h"
-
-#include "slib/core/math.h"
+#include "slib/graphics/canvas.h"
 #include "slib/core/timer.h"
 #include "slib/core/safe_static.h"
 

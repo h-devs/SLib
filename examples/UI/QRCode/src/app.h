@@ -6,7 +6,7 @@ using namespace slib;
 
 class QRCodeExampleApp : public MobileApp
 {
-	SLIB_DECLARE_APPLICATION(QRCodeExampleApp)
+	SLIB_APPLICATION(QRCodeExampleApp)
 public:
 	QRCodeExampleApp();
 	

@@ -20,25 +20,32 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
-
 #include "slib/ui/web_view.h"
 
 #include "slib/ui/core.h"
 
+#if defined(SLIB_UI)
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
+#endif
+
 namespace slib
 {
-	
+
 	SLIB_DEFINE_OBJECT(WebView, View)
-	
+
 	WebView::WebView()
 	{
-		setCreatingNativeWidget(sl_true);
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+
 		setFocusable(sl_true);
-		
+
 		m_flagOfflineContent = sl_false;
+		m_zoomLevel = 0;
 	}
-	
+
 	WebView::~WebView()
 	{
 	}
@@ -56,7 +63,7 @@ namespace slib
 			instance->load(this);
 		}
 	}
-	
+
 	void WebView::loadHTML(const String& html, const String& baseURL)
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
@@ -70,17 +77,17 @@ namespace slib
 			instance->load(this);
 		}
 	}
-	
+
 	sl_bool WebView::isOfflineContent()
 	{
 		return m_flagOfflineContent;
 	}
-	
+
 	String WebView::getOriginURL()
 	{
 		return m_urlOrigin;
 	}
-	
+
 	String WebView::getURL()
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
@@ -92,7 +99,7 @@ namespace slib
 		}
 		return m_urlOrigin;
 	}
-	
+
 	String WebView::getPageTitle()
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
@@ -104,7 +111,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void WebView::goBack()
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
@@ -113,7 +120,7 @@ namespace slib
 			instance->goBack(this);
 		}
 	}
-	
+
 	void WebView::goForward()
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
@@ -122,7 +129,7 @@ namespace slib
 			instance->goForward(this);
 		}
 	}
-	
+
 	void WebView::reload()
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
@@ -131,7 +138,7 @@ namespace slib
 			instance->reload(this);
 		}
 	}
-	
+
 	void WebView::runJavaScript(const String& script)
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
@@ -140,17 +147,17 @@ namespace slib
 			instance->runJavaScript(this, script);
 		}
 	}
-	
+
 	String WebView::getErrorMessage()
 	{
-		return m_lastErrorMessage;
+		return m_errorMessage;
 	}
-	
+
 	String WebView::getCustomUserAgent()
 	{
 		return m_customUserAgent;
 	}
-	
+
 	void WebView::setCustomUserAgent(const String& userAgent)
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
@@ -162,7 +169,7 @@ namespace slib
 			m_customUserAgent = userAgent;
 		}
 	}
-	
+
 	void WebView::queryUserAgent(const Function<void(WebView*, String)>& callbackQueryCompletion)
 	{
 		if (!m_flagOfflineContent && m_urlOrigin.isEmpty()) {
@@ -172,24 +179,85 @@ namespace slib
 		runJavaScript("slib.send('result_query_user_agent', navigator.userAgent)");
 	}
 
+	float WebView::getZoomLevel()
+	{
+		return m_zoomLevel;
+	}
+
+	void WebView::setZoomLevel(float level)
+	{
+		m_zoomLevel = level;
+		Ptr<IWebViewInstance> instance = getWebViewInstance();
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(&WebView::setZoomLevel, level)
+			instance->setZoomLevel(this, level);
+		}
+	}
+
+	void WebView::zoomIn()
+	{
+		float level = Math::round(m_zoomLevel + 1.0f);
+		if (level > 10) {
+			level = 10;
+		}
+		setZoomLevel(level);
+	}
+
+	void WebView::zoomOut()
+	{
+		float level = Math::round(m_zoomLevel - 1.0f);
+		if (level < -5) {
+			level = -5;
+		}
+		setZoomLevel(level);
+	}
+
+	void WebView::find(const StringParam& text, const FindOptions& options)
+	{
+		if (text.isEmpty()) {
+			return;
+		}
+		Ptr<IWebViewInstance> instance = getWebViewInstance();
+		if (instance.isNotNull()) {
+			void (WebView::*func)(const StringParam&, const FindOptions&) = &WebView::find;
+			SLIB_VIEW_RUN_ON_UI_THREAD(func, text, options)
+			instance->find(this, text, options);
+		}
+	}
+
+	void WebView::find(const StringParam& text)
+	{
+		find(text, 0);
+	}
+
+	void WebView::stopFinding()
+	{
+		Ptr<IWebViewInstance> instance = getWebViewInstance();
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(&WebView::stopFinding)
+			instance->stopFinding(this);
+		}
+	}
+
+
 	SLIB_DEFINE_EVENT_HANDLER(WebView, StartLoad, const String& url)
-	
+
 	void WebView::dispatchStartLoad(const String& url)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(StartLoad, url)
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(WebView, FinishLoad, const String& url, sl_bool flagFailed)
 
 	void WebView::dispatchFinishLoad(const String& url, sl_bool flagFailed)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(FinishLoad, url, flagFailed)
-		
+
 		if (!flagFailed && m_callbackQueryUserAgentCompletion.isNotNull()) {
 			runJavaScript("slib.send('result_query_user_agent', navigator.userAgent);");
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(WebView, MessageFromJavaScript, const String& msg, const String& param)
 
 	void WebView::dispatchMessageFromJavaScript(const String& msg, const String& param)
@@ -202,10 +270,10 @@ namespace slib
 			}
 			return;
 		}
-		
+
 		SLIB_INVOKE_EVENT_HANDLER(MessageFromJavaScript, msg, param)
 	}
-	
+
 	void WebView::dispatchResize(sl_ui_len width, sl_ui_len height)
 	{
 		View::dispatchResize(width, height);
@@ -214,8 +282,25 @@ namespace slib
 			instance->refreshSize(this);
 		}
 	}
+
+
+	void IWebViewInstance::setCustomUserAgent(WebView* view, const String& agent)
+	{
+	}
+
+	void IWebViewInstance::setZoomLevel(WebView* view, float level)
+	{
+	}
+
+	void IWebViewInstance::find(WebView* view, const StringParam& text, const FindOptions& options)
+	{
+	}
+
+	void IWebViewInstance::stopFinding(WebView* view)
+	{
+	}
 	
-#if !defined(SLIB_UI)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> WebView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;

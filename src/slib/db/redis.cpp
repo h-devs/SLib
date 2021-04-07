@@ -24,6 +24,7 @@
 
 #include "slib/db/redis.h"
 
+#include "slib/core/system.h"
 #include "slib/core/log.h"
 
 #define TAG "Redis"
@@ -67,7 +68,7 @@ namespace slib
 				
 				Variant _parseReply(redisReply* reply)
 				{
-					clearError();
+					clearErrorMessage();
 					if (reply) {
 						switch (reply->type) {
 							case REDIS_REPLY_INTEGER:
@@ -76,14 +77,14 @@ namespace slib
 							case REDIS_REPLY_STATUS:
 								return String(reply->str);
 							case REDIS_REPLY_ARRAY:
-							{
-								VariantList list;
-								for (size_t i = 0; i < reply->elements; i++) {
-									list.add(_parseReply(reply->element[i]));
+								{
+									List<Variant> list;
+									for (size_t i = 0; i < reply->elements; i++) {
+										list.add(_parseReply(reply->element[i]));
+									}
+									return list;
 								}
-								return list;
-							}
-							case REDIS_REPLY_ERROR:
+								case REDIS_REPLY_ERROR:
 								processError(reply->str);
 								break;
 						}
@@ -151,7 +152,7 @@ namespace slib
 					}
 				}
 				
-				sl_bool _processListReply(redisReply* reply, VariantList* pValue)
+				sl_bool _processListReply(redisReply* reply, List<Variant>* pValue)
 				{
 					Variant out;
 					if (pValue) {
@@ -454,23 +455,23 @@ namespace slib
 	{
 		m_flagLogErrors = flag;
 	}
-	
-	String RedisDatabase::getLastError()
+
+	String RedisDatabase::getErrorMessage()
 	{
-		return m_lastError;
+		return m_errorMessage;
 	}
 	
 	void RedisDatabase::processError(const String& error)
 	{
-		m_lastError = error;
+		m_errorMessage = error;
 		if (m_flagLogErrors) {
 			LogError(TAG, "%s", error);
 		}
 	}
-	
-	void RedisDatabase::clearError()
+
+	void RedisDatabase::clearErrorMessage()
 	{
-		m_lastError.setNull();
+		m_errorMessage.setNull();
 	}
 
 	Ref<RedisDatabase> RedisDatabase::connect(const String& ip, sl_uint16 port)

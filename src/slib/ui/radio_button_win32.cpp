@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 
@@ -36,13 +36,7 @@ namespace slib
 	Ref<ViewInstance> RadioButton::createNativeWidget(ViewInstance* parent)
 	{
 		UINT style = BS_RADIOBUTTON | WS_TABSTOP;
-		Ref<CheckBoxInstance> ret = Win32_ViewInstance::create<CheckBoxInstance>(this, parent, L"BUTTON", getText(), style, 0);
-		if (ret.isNotNull()) {
-			ret->setPadding(this, getPadding());
-			ret->setChecked(this, m_flagChecked);
-			return ret;
-		}
-		return sl_null;
+		return Win32_ViewInstance::create<CheckBoxInstance>(this, parent, L"BUTTON", getText(), style, 0);
 	}
 
 }

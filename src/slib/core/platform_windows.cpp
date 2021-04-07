@@ -29,9 +29,13 @@
 #include "slib/core/scoped.h"
 #include "slib/core/variant.h"
 #include "slib/core/endian.h"
+#include "slib/core/dl_windows_kernel32.h"
 
 #include <crtdbg.h>
+#include <shellapi.h>
 #include <shlwapi.h>
+#pragma warning(disable: 4091)
+#include <shlobj.h>
 
 namespace slib
 {
@@ -39,7 +43,7 @@ namespace slib
 	String Windows::getStringFromGUID(const GUID& guid)
 	{
 		WCHAR sz[40] = { 0 };
-		if (::StringFromGUID2(guid, sz, 40) < 40) {
+		if (StringFromGUID2(guid, sz, 40) < 40) {
 			return String::create((sl_char16*)sz);
 		}
 		return sl_null;
@@ -74,13 +78,13 @@ namespace slib
 
 	sl_bool Windows::isWindowVisible(HWND hWnd)
 	{
-		if (!::IsWindow(hWnd)) {
+		if (!(IsWindow(hWnd))) {
 			return sl_false;
 		}
-		if (!::IsWindowVisible(hWnd)) {
+		if (!(IsWindowVisible(hWnd))) {
 			return sl_false;
 		}
-		if (::IsIconic(hWnd)) {
+		if (IsIconic(hWnd)) {
 			return sl_false;
 		}
 		hWnd = Windows::getParentWindow(hWnd);
@@ -400,7 +404,7 @@ namespace slib
 
 			int DebugAllocHook(int allocType, void* userData, size_t size, int blockType, long requestNumber, const unsigned char* filename, int lineNumber)
 			{
-				return g_debugAllocHook(userData, (sl_size)size);
+				return g_debugAllocHook(userData, (sl_size)size, (sl_uint32)requestNumber);
 			}
 		}
 	}
@@ -411,111 +415,6 @@ namespace slib
 		priv::platform::g_debugAllocHook = hook;
 		_CrtSetAllocHook(priv::platform::DebugAllocHook);
 #endif
-	}
-
-	HMODULE Windows::loadLibrary(const StringParam& _path)
-	{
-		StringCstr16 path(_path);
-		if (path.isNotEmpty()) {
-			return LoadLibraryW((LPCWSTR)(path.getData()));
-		} else {
-			return 0;
-		}
-	}
-
-#define LOAD_LIBRARY(name, path) \
-	HMODULE Windows::loadLibrary_##name() \
-	{ \
-		static HMODULE hDll = 0; \
-		static sl_bool flagLoad = sl_false; \
-		if (!flagLoad) { \
-			hDll = loadLibrary(path); \
-			flagLoad = sl_true; \
-		} \
-		return hDll; \
-	}
-
-#define GET_API(dll, func) \
-	WINAPI_##func Windows::getAPI_##func() { \
-		static FARPROC proc = 0; \
-		static sl_bool flagLoad = sl_false; \
-		if (!flagLoad) { \
-			HMODULE hDll = loadLibrary_##dll(); \
-			if (hDll) { \
-				proc = GetProcAddress(hDll, #func); \
-			} \
-			flagLoad = sl_true; \
-		} \
-		return (WINAPI_##func)(proc); \
-	}
-
-	LOAD_LIBRARY(kernel32, "kernel32.dll")
-	GET_API(kernel32, GetQueuedCompletionStatusEx)
-	GET_API(kernel32, GetUserDefaultLocaleName)
-	GET_API(kernel32, GetTickCount64)
-
-	LOAD_LIBRARY(user32, "user32.dll")
-	GET_API(user32, ShowScrollBar)
-
-	LOAD_LIBRARY(wininet, "wininet.dll")
-
-	LOAD_LIBRARY(bcrypt, "bcrypt.dll")
-	GET_API(bcrypt, BCryptOpenAlgorithmProvider)
-	GET_API(bcrypt, BCryptCloseAlgorithmProvider)
-	GET_API(bcrypt, BCryptGenRandom)
-
-	LOAD_LIBRARY(gdiplus, "gdiplus.dll")
-	GET_API(gdiplus, GdipCreateEffect)
-	GET_API(gdiplus, GdipDeleteEffect)
-	GET_API(gdiplus, GdipSetEffectParameters)
-	GET_API(gdiplus, GdipDrawImageFX)
-
-	extern "C"
-	{
-
-		Gdiplus::Status __stdcall SLIB_GdipCreateEffect(const GUID guid, Gdiplus::CGpEffect **effect)
-		{
-			WINAPI_GdipCreateEffect func = Windows::getAPI_GdipCreateEffect();
-			if (func) {
-				return func(guid, effect);
-			}
-			return Gdiplus::AccessDenied;
-		}
-
-		Gdiplus::Status __stdcall SLIB_GdipDeleteEffect(Gdiplus::CGpEffect *effect)
-		{
-			WINAPI_GdipDeleteEffect func = Windows::getAPI_GdipDeleteEffect();
-			if (func) {
-				return func(effect);
-			}
-			return Gdiplus::AccessDenied;
-		}
-
-		Gdiplus::Status __stdcall SLIB_GdipSetEffectParameters(Gdiplus::CGpEffect *effect, const VOID *params, const UINT size)
-		{
-			WINAPI_GdipSetEffectParameters func = Windows::getAPI_GdipSetEffectParameters();
-			if (func) {
-				return func(effect, params, size);
-			}
-			return Gdiplus::AccessDenied;
-		}
-
-		Gdiplus::GpStatus WINGDIPAPI SLIB_GdipDrawImageFX(
-			Gdiplus::GpGraphics *graphics,
-			Gdiplus::GpImage *image,
-			Gdiplus::GpRectF *source,
-			Gdiplus::GpMatrix *xForm,
-			Gdiplus::CGpEffect *effect,
-			Gdiplus::GpImageAttributes *imageAttributes,
-			Gdiplus::GpUnit srcUnit)
-		{
-			WINAPI_GdipDrawImageFX func = Windows::getAPI_GdipDrawImageFX();
-			if (func) {
-				return func(graphics, image, source, xForm, effect, imageAttributes, srcUnit);
-			}
-			return Gdiplus::AccessDenied;
-		}
-
 	}
 
 	sl_bool Windows::getRegistryValue(HKEY hKeyParent, const StringParam& _path, const StringParam& _name, Variant* out)
@@ -547,61 +446,61 @@ namespace slib
 			if (out) {
 				if (size > 0) {
 					switch (type) {
-					case REG_BINARY:
-					case REG_MULTI_SZ:
-					{
-						SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
-						if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, buf, &size)) {
-							Memory mem = Memory::create(buf, size);
-							if (mem.isNotNull()) {
-								out->setMemory(mem);
-								flagSuccess = sl_true;
-							}
-						}
-					}
-					break;
-					case REG_EXPAND_SZ:
-					case REG_SZ:
-					{
-						SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
-						if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, buf, &size)) {
-							String16 s(reinterpret_cast<sl_char16*>(buf), size / 2 - 1);
-							out->setString(s);
-							flagSuccess = sl_true;
-						}
-					}
-					break;
-					case REG_DWORD:
-					case REG_DWORD_BIG_ENDIAN:
-						if (size == 4) {
-							sl_uint32 n;
-							if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, reinterpret_cast<BYTE*>(&n), &size)) {
-								if (size == 4) {
-									if (type == REG_DWORD) {
-										out->setUint32(n);
-									} else {
-										out->setUint32(Endian::swap32(n));
+						case REG_BINARY:
+						case REG_MULTI_SZ:
+							{
+								SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
+								if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, buf, &size)) {
+									Memory mem = Memory::create(buf, size);
+									if (mem.isNotNull()) {
+										out->setMemory(mem);
+										flagSuccess = sl_true;
 									}
+								}
+							}
+							break;
+						case REG_EXPAND_SZ:
+						case REG_SZ:
+							{
+								SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
+								if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, buf, &size)) {
+									String16 s(reinterpret_cast<sl_char16*>(buf), size / 2 - 1);
+									out->setString(s);
 									flagSuccess = sl_true;
 								}
 							}
-						}
-						break;
-					case REG_QWORD:
-						if (size == 8) {
-							sl_uint64 n;
-							if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, reinterpret_cast<BYTE*>(&n), &size)) {
-								if (size == 8) {
-									out->setUint64(n);
-									flagSuccess = sl_true;
+							break;
+						case REG_DWORD:
+						case REG_DWORD_BIG_ENDIAN:
+							if (size == 4) {
+								sl_uint32 n;
+								if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, reinterpret_cast<BYTE*>(&n), &size)) {
+									if (size == 4) {
+										if (type == REG_DWORD) {
+											out->setUint32(n);
+										} else {
+											out->setUint32(Endian::swap32(n));
+										}
+										flagSuccess = sl_true;
+									}
 								}
 							}
-						}
-						break;
-					default: // REG_NONE
-						out->setNull();
-						flagSuccess = sl_true;
-						break;
+							break;
+						case REG_QWORD:
+							if (size == 8) {
+								sl_uint64 n;
+								if (ERROR_SUCCESS == RegQueryValueExW(hKey, (LPCWSTR)(name.getData()), NULL, &type, reinterpret_cast<BYTE*>(&n), &size)) {
+									if (size == 8) {
+										out->setUint64(n);
+										flagSuccess = sl_true;
+									}
+								}
+							}
+							break;
+						default: // REG_NONE
+							out->setNull();
+							flagSuccess = sl_true;
+							break;
 					}
 				} else {
 					out->setNull();
@@ -694,7 +593,7 @@ namespace slib
 				LSTATUS lRet = RegEnumValueW(hKey, dwIndex, (LPWSTR)name, &dwLenName, NULL, &dwType, (LPBYTE)data, &nData);
 				if (lRet == ERROR_SUCCESS) {
 					if (dwType == REG_SZ) {
-						if ((const StringView&)path == data) {
+						if (path.equals(data)) {
 							if (flagRegister) {
 								// already registered
 								return;
@@ -816,6 +715,26 @@ namespace slib
 		return priv::platform::GetWindowsVersion();
 	}
 
+	sl_bool Windows::is64BitSystem()
+	{
+#ifdef SLIB_PLATFORM_IS_WIN64
+		return sl_true;
+#else
+		static sl_bool flag64Bit = sl_false;
+		static sl_bool flagInit = sl_true;
+		if (flagInit) {
+			auto func = kernel32::getApi_IsWow64Process();
+			if (func) {
+				BOOL flag = FALSE;
+				func(GetCurrentProcess(), &flag);
+				flag64Bit = flag;
+			}
+			flagInit = sl_false;
+		}
+		return flag64Bit;
+#endif
+	}
+
 	WindowsDllVersion Windows::getDllVersion(const StringParam& _pathDll)
 	{
 		StringCstr16 pathDll(_pathDll);
@@ -846,16 +765,16 @@ namespace slib
 	{
 		BOOL flagResult = FALSE;
 		HANDLE hToken;
-		if (::OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE, &hToken)) {
+		if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE, &hToken)) {
 			WindowsVersion version = priv::platform::GetWindowsVersion();
 			sl_bool flagError = sl_false;
 			HANDLE hTokenToCheck = NULL;
 			if (SLIB_WINDOWS_MAJOR_VERSION(version) >= 6) { // Windows Vista or later
 				TOKEN_ELEVATION_TYPE elevType;
 				DWORD cbSize = 0;
-				if (::GetTokenInformation(hToken, TokenElevationType, &elevType, sizeof(elevType), &cbSize)) {
+				if (GetTokenInformation(hToken, TokenElevationType, &elevType, sizeof(elevType), &cbSize)) {
 					if (elevType == TokenElevationTypeLimited) {
-						if (!::GetTokenInformation(hToken, TokenLinkedToken, &hTokenToCheck, sizeof(hTokenToCheck), &cbSize)) {
+						if (!GetTokenInformation(hToken, TokenLinkedToken, &hTokenToCheck, sizeof(hTokenToCheck), &cbSize)) {
 							flagError = sl_true;
 						}
 					}
@@ -870,7 +789,7 @@ namespace slib
 				if (hTokenToCheck) {
 					BYTE adminSID[SECURITY_MAX_SID_SIZE];
 					DWORD cbSize = sizeof(adminSID);
-					if (::CreateWellKnownSid(WinBuiltinAdministratorsSid, NULL, &adminSID, &cbSize)) {
+					if (CreateWellKnownSid(WinBuiltinAdministratorsSid, NULL, &adminSID, &cbSize)) {
 						CheckTokenMembership(hTokenToCheck, &adminSID, &flagResult);
 					}
 					CloseHandle(hTokenToCheck);
@@ -886,27 +805,24 @@ namespace slib
 		BOOL flagResult = FALSE;
 		SID_IDENTIFIER_AUTHORITY siAuthority = SECURITY_NT_AUTHORITY;
 		PSID pSidAdmin = NULL;
-		if (::AllocateAndInitializeSid(&siAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &pSidAdmin)) {
+		if (AllocateAndInitializeSid(&siAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &pSidAdmin)) {
 			CheckTokenMembership(NULL, pSidAdmin, &flagResult);
 			FreeSid(pSidAdmin);
 		}
 		return flagResult != FALSE;
 	}
 
-	Windows::ShellExecuteParam::ShellExecuteParam()
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ShellExecuteParam)
+
+	ShellExecuteParam::ShellExecuteParam()
 	{
 		runAsAdmin = sl_false;
 		hWndParent = NULL;
 		nShow = SW_NORMAL;
 	}
 
-	Windows::ShellExecuteParam::~ShellExecuteParam() {}
-	Windows::ShellExecuteParam::ShellExecuteParam(const ShellExecuteParam& other) = default;
-	Windows::ShellExecuteParam::ShellExecuteParam(ShellExecuteParam&& other) = default;
-	Windows::ShellExecuteParam& Windows::ShellExecuteParam::operator=(const ShellExecuteParam& other) = default;
-	Windows::ShellExecuteParam& Windows::ShellExecuteParam::operator=(ShellExecuteParam&& other) = default;
-
-	sl_bool Windows::shellExecute(const ShellExecuteParam& param)
+	sl_bool Windows::shell(const ShellExecuteParam& param)
 	{
 		SHELLEXECUTEINFOW sei;
 		Base::zeroMemory(&sei, sizeof(sei));
@@ -929,11 +845,68 @@ namespace slib
 		}
 		sei.hwnd = param.hWndParent;
 		sei.nShow = param.nShow;
-		if (::ShellExecuteExW(&sei)) {
+		if (ShellExecuteExW(&sei)) {
 			return sl_true;
 		}
 		return sl_false;
 	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ShellOpenFolderAndSelectItemsParam)
+
+	ShellOpenFolderAndSelectItemsParam::ShellOpenFolderAndSelectItemsParam()
+	{
+		flagEdit = sl_false;
+		flagOpenDesktop = sl_false;
+	}
+
+	sl_bool Windows::shell(const ShellOpenFolderAndSelectItemsParam& param)
+	{
+		sl_bool bRet = sl_false;
+
+		StringCstr16 path(param.path);
+
+		PIDLIST_ABSOLUTE pidl = ILCreateFromPathW((LPCWSTR)(path.getData()));
+		if (pidl) {
+
+			DWORD dwFlags = 0;
+			if (param.flagEdit) {
+				dwFlags |= 1; // OFASI_EDIT;
+			}
+			if (param.flagOpenDesktop) {
+				dwFlags |= 2; // OFASI_OPENDESKTOP;
+			}
+
+			ListLocker<StringParam> items(param.items);
+
+			sl_uint32 n = (sl_uint32)(items.count);
+			SLIB_SCOPED_BUFFER(LPITEMIDLIST, 256, arr, n)
+			
+			sl_uint32 i;
+			for (i = 0; i < n; i++) {
+				StringCstr16 pathItem(items[i]);
+				arr[i] = ILCreateFromPathW((LPCWSTR)(pathItem.getData()));
+				if (!(arr[i])) {
+					break;
+				}
+			}
+
+			if (i == n) {
+				HRESULT hr = SHOpenFolderAndSelectItems(pidl, n, (LPCITEMIDLIST*)arr, dwFlags);
+				bRet = hr == S_OK;
+			}
+
+			n = i;
+			for (i = 0; i < n; i++) {
+				ILFree(arr[i]);
+			}
+
+			ILFree(pidl);
+		}
+
+		return bRet;
+	}
+
 
 	sl_bool Windows::getSYSTEMTIME(const Time& time, sl_bool flagUTC, SYSTEMTIME* _out)
 	{
@@ -967,6 +940,27 @@ namespace slib
 			SystemTimeToFileTime(&utc, (PFILETIME)&n);
 		}
 		return n / 10 - SLIB_INT64(11644473600000000);  // Convert 1601 Based (FILETIME mode) to 1970 Based (time_t mode)
+	}
+
+	String Windows::getWindowsDirectory()
+	{
+		WCHAR path[MAX_PATH];
+		UINT nLen = GetWindowsDirectoryW(path, MAX_PATH);
+		return String::from(path, nLen);
+	}
+
+	String Windows::getSystemDirectory()
+	{
+		WCHAR path[MAX_PATH];
+		UINT nLen = GetSystemDirectoryW(path, MAX_PATH);
+		return String::from(path, nLen);
+	}
+
+	String Windows::getSystemWow64Directory()
+	{
+		WCHAR path[MAX_PATH];
+		UINT nLen = GetSystemWow64DirectoryW(path, MAX_PATH);
+		return String::from(path, nLen);
 	}
 
 }

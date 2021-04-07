@@ -22,6 +22,8 @@
 
 #include "slib/render/drawable.h"
 
+#include "slib/core/stringify.h"
+
 namespace slib
 {
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,16 +23,16 @@
 #ifndef CHECKHEADER_SLIB_UI_SELECT_VIEW
 #define CHECKHEADER_SLIB_UI_SELECT_VIEW
 
-#include "definition.h"
-
-#include "view.h"
+#include "label_list.h"
 
 namespace slib
 {
 	
 	class ISelectViewInstance;
 
-	class SLIB_EXPORT SelectView : public View
+	class SelectSwitchCell;
+
+	class SLIB_EXPORT SelectView : public View, public SingleSelectionViewBase<SelectView, sl_uint32>
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -42,81 +42,16 @@ namespace slib
 		~SelectView();
 
 	public:
-		sl_uint32 getItemsCount();
-		
-		virtual void setItemsCount(sl_uint32 n, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		void removeAllItems(UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		
-		String getItemValue(sl_uint32 index);
-		
-		virtual void setItemValue(sl_uint32 index, const String& value);
-		
-		List<String> getValues();
-		
-		virtual void setValues(const List<String>& values);
-		
-		
-		String getItemTitle(sl_uint32 index);
-		
-		virtual void setItemTitle(sl_uint32 index, const String& title, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		List<String> getTitles();
-		
-		virtual void setTitles(const List<String>& values, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		
-		void addItem(const String& value, const String& title, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		
-		virtual void selectIndex(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		virtual void selectValue(const String& value, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		sl_uint32 getSelectedIndex();
-		
-		String getSelectedValue();
-		
-		String getSelectedTitle();
-		
-		
-		const UISize& getIconSize();
-		
-		virtual void setIconSize(const UISize& size, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
-		void setIconSize(sl_ui_len width, sl_ui_len height, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
-		void setIconSize(sl_ui_len size, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
-		sl_ui_len getIconWidth();
-		
-		void setIconWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
-		sl_ui_len getIconHeight();
-		
-		void setIconHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
-		
-		Ref<Drawable> getLeftIcon();
-		
-		virtual void setLeftIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		Ref<Drawable> getRightIcon();
-		
-		virtual void setRightIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		
 		Alignment getGravity();
 		
-		virtual void setGravity(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setGravity(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Color getTextColor();
 		
-		virtual void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(SelectView, SelectItem, sl_uint32 index)		
+		SLIB_DECLARE_EVENT_HANDLER(SelectView, SelectItem, sl_uint32 index)
 
 	protected:
 		void onDraw(Canvas* canvas) override;
@@ -126,47 +61,137 @@ namespace slib
 		void onUpdateLayout() override;
 		
 	protected:
-		UIRect getLeftIconRegion();
-		
-		UIRect getRightIconRegion();
-		
-	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 		
 		virtual Ptr<ISelectViewInstance> getSelectViewInstance();
-		
+	
+	private:
+		void _initCell();
+
+	public:
+		SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(SelectView, sl_uint32)
+	
 	protected:
-		AtomicList<String> m_values;
-		AtomicList<String> m_titles;
-		sl_uint32 m_indexSelected;
-		
-		UISize m_iconSize;
-		AtomicRef<Drawable> m_leftIcon;
-		AtomicRef<Drawable> m_rightIcon;
-		int m_clickedIconNo;
-		
+		Ref<SelectSwitchCell> m_cell;
+
 		Alignment m_gravity;
 		Color m_textColor;
-		
+
 	};
 	
 	class SLIB_EXPORT ISelectViewInstance
 	{
 	public:
-		virtual void select(SelectView* view, sl_uint32 index) = 0;
-		
-		virtual void refreshItemsCount(SelectView* view) = 0;
-		
-		virtual void refreshItemsContent(SelectView* view) = 0;
-		
-		virtual void setItemTitle(SelectView* view, sl_uint32 index, const String& title) = 0;
-		
+		SLIB_DECLARE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(SelectView, sl_uint32)
+
 		virtual void setGravity(SelectView* view, const Alignment& gravity);
 		
 		virtual void setTextColor(SelectView* view, const Color& color);
 		
 		virtual sl_bool measureSize(SelectView* view, UISize& _out);
-		
+
+	};
+
+
+	class SLIB_EXPORT SelectSwitch : public View, public SingleSelectionViewBase<SelectSwitch, sl_uint32>
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		SelectSwitch();
+
+		~SelectSwitch();
+
+	protected:
+		void init() override;
+
+	public:
+		const UISize& getIconSize();
+
+		virtual void setIconSize(const UISize& size, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void setIconSize(sl_ui_len width, sl_ui_len height, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void setIconSize(sl_ui_len size, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		sl_ui_len getIconWidth();
+
+		void setIconWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		sl_ui_len getIconHeight();
+
+		void setIconHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+
+		Ref<Drawable> getLeftIcon();
+
+		virtual void setLeftIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Ref<Drawable> getRightIcon();
+
+		virtual void setRightIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+
+		Alignment getGravity();
+
+		virtual void setGravity(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Color getTextColor();
+
+		virtual void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+	public:
+		SLIB_DECLARE_EVENT_HANDLER(SelectSwitch, SelectItem, sl_uint32 index)
+
+	protected:
+		void onDraw(Canvas* canvas) override;
+
+		void onMouseEvent(UIEvent* ev) override;
+
+		void onUpdateLayout() override;
+
+	public:
+		SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(SelectSwitch, sl_uint32)
+
+	protected:
+		Ref<SelectSwitchCell> m_cell;
+
+	};
+
+	class SLIB_EXPORT SelectSwitchCell : public SingleSelectionViewCellBase<sl_uint32>
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		Alignment gravity;
+		Color textColor;
+
+		UISize iconSize;
+		AtomicRef<Drawable> leftIcon;
+		AtomicRef<Drawable> rightIcon;
+
+		Function<void(sl_uint32 index)> onSelectItem;
+
+	public:
+		SelectSwitchCell();
+
+		~SelectSwitchCell();
+
+	public:
+		void onDraw(Canvas* canvas) override;
+
+		void onMouseEvent(UIEvent* ev) override;
+
+		void onMeasure(UISize& size, sl_bool flagHorizontalWrapping, sl_bool flagVerticalWrapping) override;
+
+	protected:
+		UIRect getLeftIconRegion();
+
+		UIRect getRightIconRegion();
+
+	protected:
+		int m_clickedIconNo;
+
 	};
 
 }

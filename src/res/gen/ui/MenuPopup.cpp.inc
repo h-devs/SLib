@@ -16,7 +16,7 @@ namespace slib
 			this->setPaddingBottom(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(10.0f)), slib::UIUpdateMode::Init);
 			this->setBackground(slib::NinePatchDrawable::create(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(16.0f)), slib::UIResource::toUiPos(slib::UIResource::dpToPixel(16.0f)), slib::UIResource::toUiPos(slib::UIResource::dpToPixel(16.0f)), slib::UIResource::toUiPos(slib::UIResource::dpToPixel(16.0f)), drawable::round_shadow_back::get(), 32.0f, 32.0f, 32.0f, 32.0f), slib::UIUpdateMode::Init);
 
-			container = new slib::LinearView;
+			container = new slib::LinearLayout;
 			container->setWidthWrapping(slib::UIUpdateMode::Init);
 			container->setHeightWrapping(slib::UIUpdateMode::Init);
 			container->setAlignParentLeft(slib::UIUpdateMode::Init);

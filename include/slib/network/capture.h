@@ -32,14 +32,11 @@
 		
 *****************************************************************/
 
-#include "definition.h"
-
 #include "constants.h"
 #include "ip_address.h"
 
 #include "../core/object.h"
 #include "../core/time.h"
-#include "../core/string.h"
 #include "../core/function.h"
 
 namespace slib
@@ -134,7 +131,7 @@ namespace slib
 		// send a L2-packet
 		virtual sl_bool sendPacket(const void* buf, sl_uint32 size) = 0;
 		
-		virtual String getLastErrorMessage();
+		virtual String getErrorMessage();
 		
 		// Pcap Utiltities
 		static List<NetCaptureDeviceInfo> getAllPcapDevices();

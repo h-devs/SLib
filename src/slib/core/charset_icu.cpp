@@ -26,8 +26,9 @@
 
 #include "slib/core/charset.h"
 
-#include "slib/core/string.h"
 #include "slib/core/file.h"
+#include "slib/core/string.h"
+#include "slib/core/list.h"
 #include "slib/core/scoped.h"
 
 #include "unicode/ucnv.h"
@@ -155,7 +156,7 @@ namespace slib
 			{
 				if (!lenUtf16) {
 					return 0;
-				}				
+				}
 				if (!sizeOutputBuffer) {
 					return 0;
 				}
@@ -182,7 +183,7 @@ namespace slib
 			{
 				if (!sizeInput) {
 					return 0;
-				}				
+				}
 				if (!lenUtf16Buffer) {
 					return 0;
 				}

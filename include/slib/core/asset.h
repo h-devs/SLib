@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_ASSET
 #define CHECKHEADER_SLIB_CORE_ASSET
 
-#include "definition.h"
-
 #include "string.h"
 #include "memory.h"
 

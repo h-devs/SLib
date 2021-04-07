@@ -24,7 +24,6 @@
 
 #include "slib/ui/view.h"
 #include "slib/ui/resource.h"
-#include "slib/core/math.h"
 
 namespace slib
 {
@@ -47,6 +46,7 @@ namespace slib
 		return sl_null;
 	}
 	
+
 	SLIB_DEFINE_OBJECT(GestureDetector, Object)
 	
 	class GestureRecognizer : public Referable

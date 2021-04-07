@@ -23,13 +23,10 @@
 #ifndef CHECKHEADER_SLIB_UI_PLATFORM
 #define CHECKHEADER_SLIB_UI_PLATFORM
 
-#include "definition.h"
+#include "event.h"
 
-#include "../core/ref.h"
 #include "../core/function.h"
 #include "../graphics/platform.h"
-
-#include "event.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 #	include "../core/platform_windows.h"
@@ -43,6 +40,9 @@
 #endif
 #if defined(SLIB_UI_IS_GTK)
 #	include "gtk/gtk.h"
+#	include "../core/dl_linux_glib.h"
+#	include "dl_linux_gtk.h"
+#	include "dl_linux_gdk.h"
 #endif
 #if defined(SLIB_UI_IS_EFL)
 enum class EFL_ViewType
@@ -100,7 +100,7 @@ namespace slib
 
 		static void applyEventModifiers(UIEvent* ev);
 
-#elif defined(SLIB_UI_IS_MACOS)		
+#elif defined(SLIB_UI_IS_MACOS)
 #	if defined(__OBJC__)
 		static Ref<ViewInstance> createViewInstance(NSView* handle);
 		static void registerViewInstance(NSView* handle, ViewInstance* instance);
@@ -209,8 +209,13 @@ namespace slib
 		static sl_bool initializeGtk();
 		static void getGdkColor(const Color& color, GdkColor* outGdkColor);
 		static void getScreenLocationOfWidget(GtkWidget* widget, sl_ui_len* out_x = sl_null, sl_ui_len* out_y = sl_null);
+		static void setWidgetFont(GtkWidget* widget, const Ref<Font>& font);
 
 		static void applyEventModifiers(UIEvent* event, guint state);
+
+		static GtkMenuShell* getMenuHandle(const Ref<Menu>& menu);
+		static Ref<Menu> getMenu(GtkMenuShell* hMenu);
+		static sl_bool isPopupMenu(const Ref<Menu>& menu);
 
 #elif defined(SLIB_UI_IS_EFL)
 		static Ref<ViewInstance> createViewInstance(EFL_ViewType type, Evas_Object* handle, sl_bool flagFreeOnRelease = sl_true);
@@ -247,11 +252,12 @@ namespace slib
 #if defined(SLIB_UI_IS_WIN32)
 
 #define SLIB_UI_MESSAGE_BEGIN 0x7100
-#define SLIB_UI_MESSAGE_CLOSE SLIB_UI_MESSAGE_BEGIN
-#define SLIB_UI_MESSAGE_DISPATCH (SLIB_UI_MESSAGE_BEGIN+1)
-#define SLIB_UI_MESSAGE_DISPATCH_DELAYED (SLIB_UI_MESSAGE_BEGIN+2)
-#define SLIB_UI_MESSAGE_CUSTOM_MSGBOX (SLIB_UI_MESSAGE_BEGIN+3)
-#define SLIB_UI_MESSAGE_SYSTEM_TRAY_ICON (SLIB_UI_MESSAGE_BEGIN+4)
+#define SLIB_UI_MESSAGE_QUIT_LOOP SLIB_UI_MESSAGE_BEGIN
+#define SLIB_UI_MESSAGE_CLOSE (SLIB_UI_MESSAGE_BEGIN+1)
+#define SLIB_UI_MESSAGE_DISPATCH (SLIB_UI_MESSAGE_BEGIN+2)
+#define SLIB_UI_MESSAGE_DISPATCH_DELAYED (SLIB_UI_MESSAGE_BEGIN+3)
+#define SLIB_UI_MESSAGE_CUSTOM_MSGBOX (SLIB_UI_MESSAGE_BEGIN+4)
+#define SLIB_UI_MESSAGE_SYSTEM_TRAY_ICON (SLIB_UI_MESSAGE_BEGIN+5)
 
 #endif
 

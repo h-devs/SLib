@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_PIPE
 #define CHECKHEADER_SLIB_CORE_PIPE
 
-#include "definition.h"
-
 #include "io.h"
 #include "event.h"
 
@@ -34,7 +32,7 @@ typedef sl_reg sl_pipe;
 namespace slib
 {
 	
-	class SLIB_EXPORT Pipe : public Object, public IStream
+	class SLIB_EXPORT Pipe : public Stream
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -56,7 +54,7 @@ namespace slib
 
 		sl_int32 write32(const void* buf, sl_uint32 size) override;
 
-		void close();
+		void close() override;
 
 	protected:
 		static sl_bool _open(sl_pipe& hRead, sl_pipe& hWrite);

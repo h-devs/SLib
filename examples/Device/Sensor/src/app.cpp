@@ -1,7 +1,5 @@
 #include "app.h"
 
-SLIB_DEFINE_APPLICATION(ExampleSensorApp, MobileApp)
-
 ExampleSensorApp::ExampleSensorApp()
 {
 }

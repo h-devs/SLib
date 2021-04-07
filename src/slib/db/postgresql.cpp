@@ -26,9 +26,10 @@
 
 #include "slib/core/mio.h"
 #include "slib/core/math.h"
-#include "slib/core/log.h"
+#include "slib/core/parse.h"
 #include "slib/core/scoped.h"
 #include "slib/core/safe_static.h"
+#include "slib/core/log.h"
 
 extern "C"
 {
@@ -46,6 +47,7 @@ namespace slib
 	{
 		port = 0;
 	}
+
 
 	SLIB_DEFINE_OBJECT(PostgreSQL, Database)
 
@@ -139,9 +141,9 @@ namespace slib
 					return (sl_int32)(PQfnumber(m_result, name.getData()));
 				}
 
-				HashMap<String, Variant> getRow() override
+				VariantMap getRow() override
 				{
-					HashMap<String, Variant> ret;
+					VariantMap ret;
 					if (m_nColumnNames > 0) {
 						for (sl_uint32 index = 0; index < m_nColumnNames; index++) {
 							ret.put_NoLock(m_columnNames[index], _getValue(index));
@@ -219,21 +221,24 @@ namespace slib
 					if (params[i].isNull()) {
 						values[i] = sl_null;
 						lengths[i] = 0;
+						formats[i] = 0;
 					} else {
 						if (params[i].isMemory()) {
 							Memory mem = params[i].getMemory();
 							values[i] = (char*)(mem.getData());
 							lengths[i] = (int)(mem.getSize());
-						} if (params[i].isSz8()) {
+							formats[i] = 1; // Binary
+						} else if (params[i].isSz8()) {
 							values[i] = params[i].getSz8();
 							lengths[i] = (int)(Base::getStringLength(values[i]));
+							formats[i] = 0; // Text
 						} else {
 							strings[i] = params[i].getString();
 							values[i] = strings[i].getData();
 							lengths[i] = (int)(strings[i].getLength());
+							formats[i] = 0; // Text
 						}
 					}
-					formats[i] = 0;
 				}
 			}
 			
@@ -262,17 +267,8 @@ namespace slib
 					}
 				}
 
-				~StatementImpl()
-				{
-					if (m_name.isNotEmpty()) {
-						String sql = "DEALLOCATE " + m_name;
-						PGresult* res = PQexec(m_connection, sql.getData());
-						if (res) {
-							PQclear(res);
-						}
-					}
-				}
-				
+				~StatementImpl();
+
 			public:
 				sl_bool isLoggingErrors()
 				{
@@ -328,6 +324,7 @@ namespace slib
 			{
 			public:
 				PGconn* m_connection;
+				Queue<String> m_queueRemovingStatements;
 				
 			public:
 				DatabaseImpl()
@@ -438,10 +435,22 @@ namespace slib
 				Ref<DatabaseStatement> _prepareStatement(const StringParam& sql) override
 				{
 					ObjectLocker lock(this);
+					{
+						String name;
+						while (m_queueRemovingStatements.pop(&name)) {
+							String sql = "DEALLOCATE " + name;
+							PGresult* res = PQexec(m_connection, sql.getData());
+							if (res) {
+								PQclear(res);
+							}
+						}
+					}
 					Ref<StatementImpl> ret = new StatementImpl(this, m_connection, sql.toString());
 					if (ret.isNotNull()) {
 						if (ret->m_name.isNotEmpty()) {
 							return ret;
+						} else {
+							_logError(sql);
 						}
 					}
 					return sl_null;
@@ -516,9 +525,16 @@ namespace slib
 					}
 					return 0;
 				}
-								
+
 			};
-		
+
+			StatementImpl::~StatementImpl()
+			{
+				if (m_name.isNotEmpty()) {
+					((DatabaseImpl*)(m_db.get()))->m_queueRemovingStatements.push(m_name);
+				}
+			}
+
 		}
 	}
 

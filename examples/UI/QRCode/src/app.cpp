@@ -1,7 +1,5 @@
 #include "app.h"
 
-SLIB_DEFINE_APPLICATION(QRCodeExampleApp, MobileApp)
-
 QRCodeExampleApp::QRCodeExampleApp()
 {
 }
@@ -14,12 +12,12 @@ void QRCodeExampleApp::onStart()
 	getMainWindow()->setCenterScreen(sl_true);
 #endif
 	
-	Ref<HorizontalLinearView> linear1 = new HorizontalLinearView;
+	Ref<HorizontalLinearLayout> linear1 = new HorizontalLinearLayout;
 	linear1->setWidthFilling();
 	linear1->setHeightFilling();
 	linear1->setBackgroundColor(Color::Gray);
 	
-	Ref<LinearView> linear2 = new LinearView;
+	Ref<LinearLayout> linear2 = new LinearLayout;
 	linear2->setWidthFilling();
 	linear2->setHeightFilling();
 	linear1->addChild(linear2);
@@ -35,12 +33,12 @@ void QRCodeExampleApp::onStart()
 	
 	m_editEncoding = new TextArea;
 	m_editEncoding->setHintText("Input any text here to encode into QR Code");
-	m_editEncoding->setOnChange([this](EditView*, String* text) {
+	m_editEncoding->setOnChange([this](EditView*, String& text) {
 		ZXingGenerateParam param;
 		param.format = ZXingFormat::QR_CODE;
 		param.width = 512;
 		param.height = 512;
-		param.text = *text;
+		param.text = text;
 		m_imgEncoded->setSource(ZXing::generate(param));
 	});
 	m_editEncoding->setWidthFilling();
@@ -49,7 +47,7 @@ void QRCodeExampleApp::onStart()
 	m_editEncoding->setBackgroundColor(Color::White);
 	linear2->addChild(m_editEncoding);
 	
-	Ref<LinearView> linear3 = new LinearView;
+	Ref<LinearLayout> linear3 = new LinearLayout;
 	linear3->setWidthFilling();
 	linear3->setHeightFilling();
 	linear1->addChild(linear3);

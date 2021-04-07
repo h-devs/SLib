@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/device/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_ANDROID)
 
@@ -95,7 +95,7 @@ namespace slib
 				SLIB_JNI_STATIC_METHOD(addContact, "addContact", "(Landroid/app/Activity;Lslib/platform/android/device/Contact;)Z");
 			SLIB_JNI_END_CLASS
 
-			SLIB_STATIC_ZERO_INITIALIZED(Atomic<PhoneCallCallback>, g_callbackOnIncomingCall)
+			SLIB_GLOBAL_ZERO_INITIALIZED(Atomic<PhoneCallCallback>, g_callbackOnIncomingCall)
 
 			SLIB_JNI_BEGIN_CLASS_SECTION(JPhoneCall)
 				SLIB_JNI_NATIVE_IMPL(nativeOnIncomingCall, "nativeOnIncomingCall", "(Ljava/lang/String;Ljava/lang/String;)V", void, jstring callId, jstring phoneNumber)
@@ -104,7 +104,7 @@ namespace slib
 				}
 			SLIB_JNI_END_CLASS_SECTION
 
-			SLIB_STATIC_ZERO_INITIALIZED(Atomic<PhoneCallCallback>, g_callbackOnOutgoingCall)
+			SLIB_GLOBAL_ZERO_INITIALIZED(Atomic<PhoneCallCallback>, g_callbackOnOutgoingCall)
 
 			SLIB_JNI_BEGIN_CLASS_SECTION(JPhoneCall)
 				SLIB_JNI_NATIVE_IMPL(nativeOnOutgoingCall, "nativeOnOutgoingCall", "(Ljava/lang/String;Ljava/lang/String;)V", void, jstring callId, jstring phoneNumber)
@@ -113,7 +113,7 @@ namespace slib
 				}
 			SLIB_JNI_END_CLASS_SECTION
 
-			SLIB_STATIC_ZERO_INITIALIZED(Atomic<PhoneCallCallback>, g_callbackOnEndCall)
+			SLIB_GLOBAL_ZERO_INITIALIZED(Atomic<PhoneCallCallback>, g_callbackOnEndCall)
 
 			SLIB_JNI_BEGIN_CLASS_SECTION(JPhoneCall)
 				SLIB_JNI_NATIVE_IMPL(nativeOnEndCall, "nativeOnEndCall", "(Ljava/lang/String;Ljava/lang/String;)V", void, jstring callId, jstring phoneNumber)
@@ -330,7 +330,7 @@ namespace slib
 		return 0;
 	}
 
-	void Device::openUrl(const String& _url) {
+	void Device::openUrl(const StringParam& _url) {
 		jobject jactivity = Android::getCurrentActivity();
 		if (jactivity) {
 			JniLocal<jstring> jurl = Jni::getJniString(_url);

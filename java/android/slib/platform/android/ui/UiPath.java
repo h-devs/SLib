@@ -54,7 +54,7 @@ public class UiPath {
 	
 	public void setFillMode(int mode) {
 		path.setFillType(getFillType(mode));
-		invalidate();		
+		invalidate();
 	}
 	
 	public void moveTo(float x, float y) {

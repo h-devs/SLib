@@ -21,6 +21,7 @@
  */
 
 #include "slib/core/file.h"
+#include "slib/core/file_util.h"
 
 #include "slib/core/string_buffer.h"
 #include "slib/core/scoped.h"
@@ -28,9 +29,23 @@
 namespace slib
 {
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileInfo)
+
+	FileInfo::FileInfo(): size(0), allocSize(0)
+	{
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileOpenParam)
+
+	FileOpenParam::FileOpenParam()
+	{
+	}
+
+
 	SLIB_DEFINE_OBJECT(File, IO)
 
-	File::File(sl_file file): m_file(file)
+	File::File(sl_file file) : m_file(file)
 	{
 	}
 
@@ -39,9 +54,19 @@ namespace slib
 		close();
 	}
 
-	Ref<File> File::open(const StringParam& filePath, const FileMode& mode, const FilePermissions& permissions)
+	Ref<File> File::open(const StringParam& filePath, const FileOpenParam& param)
 	{
-		sl_file file = _open(filePath, mode, permissions);
+		return open(filePath, param.mode, param.attributes);
+	}
+
+
+	Ref<File> File::open(const StringParam& filePath, const FileMode& mode, const FileAttributes& _attrs)
+	{
+		if (_attrs & FileAttributes::NotExist) {
+			return sl_null;
+		}
+		FileAttributes attrs = _fixAttributes(_attrs);
+		sl_file file = _open(filePath, mode, attrs);
 		if (file != SLIB_FILE_INVALID_HANDLE) {
 			Ref<File> ret = new File(file);
 			if (mode & FileMode::SeekToEnd) {
@@ -54,12 +79,12 @@ namespace slib
 
 	Ref<File> File::open(const StringParam& filePath, const FileMode& mode)
 	{
-		return open(filePath, mode, FilePermissions::All);
+		return open(filePath, mode, 0);
 	}
 
-	Ref<File> File::openForRead(const StringParam& filePath, sl_bool flagShareRead)
+	Ref<File> File::openForRead(const StringParam& filePath)
 	{
-		return open(filePath, FileMode::Read, flagShareRead ? (FilePermissions::All | FilePermissions::ShareRead) : FilePermissions::All);
+		return open(filePath, FileMode::Read | FileMode::ShareRead | FileMode::ShareWrite);
 	}
 
 	Ref<File> File::openForWrite(const StringParam& filePath)
@@ -69,7 +94,7 @@ namespace slib
 
 	Ref<File> File::openForReadWrite(const StringParam& filePath)
 	{
-		return open(filePath, FileMode::ReadWrite);
+		return open(filePath, FileMode::ReadWrite | FileMode::NotTruncate);
 	}
 
 	Ref<File> File::openForAppend(const StringParam& filePath)
@@ -82,24 +107,19 @@ namespace slib
 		return open(filePath, FileMode::RandomAccess);
 	}
 
-	Ref<File> File::openForRandomRead(const StringParam& filePath, sl_bool flagShareRead)
+	Ref<File> File::openForRandomRead(const StringParam& filePath)
 	{
-		return open(filePath, FileMode::RandomRead, flagShareRead ? (FilePermissions::All | FilePermissions::ShareRead) : FilePermissions::All);
+		return open(filePath, FileMode::RandomRead | FileMode::ShareRead | FileMode::ShareWrite);
 	}
 
-	Ref<File> File::openDevice(const StringParam& path, sl_bool flagRead, sl_bool flagWrite)
+	Ref<File> File::openDevice(const StringParam& path, const FileMode& mode)
 	{
-		FileMode mode = FileMode::NotCreate | FileMode::NotTruncate | FileMode::HintRandomAccess;
-		FilePermissions perms = FilePermissions::None;
-		if (flagRead) {
-			mode |= FileMode::Read;
-			perms |= FilePermissions::ShareRead;
-		}
-		if (flagWrite) {
-			mode |= FileMode::Write;
-			perms |= FilePermissions::ShareWrite;
-		}
-		return open(path, mode, perms);
+		return open(path, mode | FileMode::NotCreate | FileMode::NotTruncate | FileMode::HintRandomAccess);
+	}
+	
+	Ref<File> File::openDeviceForRead(const StringParam& path)
+	{
+		return openDevice(path, FileMode::Read | FileMode::ShareRead | FileMode::ShareWrite);
 	}
 
 	void File::close()
@@ -120,36 +140,125 @@ namespace slib
 	{
 		return m_file;
 	}
-	
+
 	void File::setHandle(sl_file handle)
 	{
 		m_file = handle;
 	}
-	
+
 	void File::clearHandle()
 	{
 		m_file = SLIB_FILE_INVALID_HANDLE;
 	}
 
-	sl_uint64 File::getSize()
+	sl_bool File::getSize(sl_uint64& outSize)
 	{
-		return getSize(m_file);
+		return getSizeByHandle(m_file, outSize);
+	}
+
+	sl_uint64 File::getSizeByHandle(sl_file handle)
+	{
+		sl_uint64 size;
+		if (getSizeByHandle(handle, size)) {
+			return size;
+		}
+		return 0;
+	}
+
+	sl_uint64 File::getSize(const StringParam& path)
+	{
+		sl_uint64 size;
+		if (getSize(path, size)) {
+			return size;
+		}
+		return 0;
+	}
+
+	sl_bool File::getDiskSize(sl_uint64& outSize)
+	{
+		return getDiskSizeByHandle(m_file, outSize);
 	}
 
 	sl_uint64 File::getDiskSize()
 	{
-		return getDiskSize(m_file);
+		return getDiskSizeByHandle(m_file);
 	}
 
-	sl_uint64 File::getDiskSize(const StringParam& path)
+	sl_uint64 File::getDiskSizeByHandle(sl_file handle)
 	{
-		Ref<File> file = openDevice(path, sl_false, sl_false);
-		if (file.isNotNull()) {
-			return getDiskSize(file->m_file);
+		sl_uint64 size;
+		if (getDiskSizeByHandle(handle, size)) {
+			return size;
 		}
 		return 0;
 	}
-	
+
+	sl_bool File::getDiskSize(const StringParam& devicePath, sl_uint64& outSize)
+	{
+		Ref<File> file = openDevice(devicePath, 0);
+		if (file.isNotNull()) {
+			return getDiskSizeByHandle(file->m_file, outSize);
+		}
+		return sl_false;
+	}
+
+	sl_uint64 File::getDiskSize(const StringParam& devicePath)
+	{
+		sl_uint64 size;
+		if (getDiskSize(devicePath, size)) {
+			return size;
+		}
+		return 0;
+	}
+
+	FileAttributes File::getAttributes(const StringParam& filePath)
+	{
+		if (filePath.isEmpty()) {
+			return FileAttributes::NotExist;
+		}
+		FileAttributes attrs = _getAttributes(filePath);
+		if (!(attrs & FileAttributes::AllAccess)) {
+			attrs |= FileAttributes::NoAccess;
+		} else {
+			if (!(attrs & FileAttributes::WriteByAnyone)) {
+				attrs |= FileAttributes::ReadOnly;
+			}
+		}
+		return attrs;
+	}
+
+	FileAttributes File::_fixAttributes(const FileAttributes& _attrs)
+	{
+		FileAttributes attrs = _attrs;
+		if (attrs & FileAttributes::NoAccess) {
+			attrs &= ~(FileAttributes::AllAccess);
+		} else {
+			if (!(attrs & FileAttributes::AllAccess)) {
+				attrs |= FileAttributes::AllAccess;
+			}
+		}
+		if (attrs & FileAttributes::ReadOnly) {
+			attrs &= ~(FileAttributes::WriteByAnyone);
+		} else {
+			if (!(attrs & FileAttributes::ReadByAnyone)) {
+				attrs |= FileAttributes::ReadByAnyone;
+			}
+		}
+		if (!(attrs & 0x7ffff)) {
+			// For Win32
+			attrs |= FileAttributes::Normal;
+		}
+		return attrs;
+	}
+
+	sl_bool File::setAttributes(const StringParam& filePath, const FileAttributes& attrs)
+	{
+		if (attrs & FileAttributes::NotExist) {
+			return sl_false;
+		}
+		return _setAttributes(filePath, _fixAttributes(attrs));
+	}
+
 	sl_bool File::exists(const StringParam& filePath)
 	{
 		return (getAttributes(filePath) & FileAttributes::NotExist) == 0;
@@ -171,8 +280,42 @@ namespace slib
 		return (getAttributes(filePath) & FileAttributes::Hidden) != 0;
 	}
 
-	String File::getParentDirectoryPath(const String& pathName)
+	sl_bool File::setHidden(const StringParam& filePath, sl_bool flag)
 	{
+		FileAttributes attrs = getAttributes(filePath);
+		if (!(attrs & FileAttributes::NotExist)) {
+			if (flag) {
+				SLIB_SET_FLAG(attrs.value, FileAttributes::Hidden);
+			} else {
+				SLIB_RESET_FLAG(attrs.value, FileAttributes::Hidden);
+			}
+			return setAttributes(filePath, attrs);
+		}
+		return sl_false;
+	}
+
+	sl_bool File::isReadOnly(const StringParam& filePath)
+	{
+		return (getAttributes(filePath) & FileAttributes::ReadOnly) != 0;
+	}
+
+	sl_bool File::setReadOnly(const StringParam& filePath, sl_bool flag)
+	{
+		FileAttributes attrs = getAttributes(filePath);
+		if (!(attrs & FileAttributes::NotExist)) {
+			if (flag) {
+				SLIB_SET_FLAG(attrs.value, FileAttributes::ReadOnly);
+			} else {
+				SLIB_RESET_FLAG(attrs.value, FileAttributes::ReadOnly);
+			}
+			return setAttributes(filePath, attrs);
+		}
+		return sl_false;
+	}
+
+	String File::getParentDirectoryPath(const StringParam& _pathName)
+	{
+		StringData pathName(_pathName);
 		if (pathName.isEmpty()) {
 			return sl_null;
 		}
@@ -205,8 +348,9 @@ namespace slib
 		}
 	}
 
-	String File::getFileName(const String& pathName)
+	String File::getFileName(const StringParam& _pathName)
 	{
+		StringData pathName(_pathName);
 		if (pathName.isEmpty()) {
 			return sl_null;
 		}
@@ -232,8 +376,9 @@ namespace slib
 	}
 
 
-	String File::getFileExtension(const String& pathName)
+	String File::getFileExtension(const StringParam& _pathName)
 	{
+		StringData pathName(_pathName);
 		String fileName = getFileName(pathName);
 		if (fileName.isEmpty()) {
 			return sl_null;
@@ -246,8 +391,9 @@ namespace slib
 		}
 	}
 
-	String File::getFileNameOnly(const String& pathName)
+	String File::getFileNameOnly(const StringParam& _pathName)
 	{
+		StringData pathName(_pathName);
 		String fileName = getFileName(pathName);
 		if (fileName.isEmpty()) {
 			return sl_null;
@@ -260,13 +406,14 @@ namespace slib
 		}
 	}
 
-	String File::normalizeDirectoryPath(const String& _str)
+	String File::normalizeDirectoryPath(const StringParam& _str)
 	{
-		String str = _str;
+		StringData str(_str);
 		if (str.endsWith('\\') || str.endsWith('/')) {
-			str = str.substring(0, str.getLength() - 1);
+			return str.substring(0, str.getLength() - 1);
+		} else {
+			return str.toString(_str);
 		}
-		return str;
 	}
 	
 	Memory File::readAllBytes(sl_size maxSize)
@@ -456,7 +603,7 @@ namespace slib
 	sl_bool File::createDirectory(const StringParam& dirPath, sl_bool flagErrorOnCreateExistingDirectory)
 	{
 		FileAttributes attr = File::getAttributes(dirPath);
-		if (attr !=  FileAttributes::NotExist) {
+		if (!(attr & FileAttributes::NotExist)) {
 			if (attr & FileAttributes::Directory) {
 				if (flagErrorOnCreateExistingDirectory) {
 					return sl_false;
@@ -493,10 +640,10 @@ namespace slib
 		}
 	}
 
-	sl_bool File::deleteFile(const StringParam& filePath, sl_bool flagErrorOnDeleteNotExistingFile)
+	sl_bool File::remove(const StringParam& filePath, sl_bool flagErrorOnDeleteNotExistingFile)
 	{
 		FileAttributes attr = File::getAttributes(filePath);
-		if (attr ==  FileAttributes::NotExist) {
+		if (attr & FileAttributes::NotExist) {
 			if (flagErrorOnDeleteNotExistingFile) {
 				return sl_false;
 			} else {
@@ -504,9 +651,9 @@ namespace slib
 			}
 		}
 		if (attr & FileAttributes::Directory) {
-			_deleteDirectory(filePath);
+			deleteDirectory(filePath);
 		} else {
-			_deleteFile(filePath);
+			deleteFile(filePath);
 		}
 		return !(File::exists(filePath));
 	}
@@ -528,7 +675,7 @@ namespace slib
 					}
 				}
 			}
-			ret = ret && File::deleteFile(path);
+			ret = ret && File::deleteDirectory(path);
 			return ret;
 		} else {
 			return sl_false;
@@ -689,5 +836,15 @@ namespace slib
 		}
 		return ret.merge();
 	}
+
+#ifndef SLIB_PLATFORM_IS_WIN32
+	DisableWow64FsRedirectionScope::DisableWow64FsRedirectionScope()
+	{
+	}
+
+	DisableWow64FsRedirectionScope::~DisableWow64FsRedirectionScope()
+	{
+	}
+#endif
 
 }

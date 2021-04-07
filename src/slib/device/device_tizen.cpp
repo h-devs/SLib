@@ -20,11 +20,11 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/device/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_TIZEN)
 
-#include "slib/device/information.h"
+#include "slib/device/device.h"
 
 #include "slib/core/variant.h"
 #include "slib/core/platform_tizen.h"

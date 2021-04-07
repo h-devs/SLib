@@ -195,7 +195,7 @@ public class SMediaPlayer implements MediaPlayer.OnCompletionListener, MediaPlay
 				});
 				mSurface = new Surface(mTexture);
 				mPlayer.setSurface(mSurface);
-				mSurface.release();			
+				mSurface.release();
 				mFlagUpdatedVideo = false;
 				return false;
 			}

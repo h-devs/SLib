@@ -45,6 +45,7 @@
 #include "include/views/cef_browser_view.h"
 #include "include/wrapper/cef_helpers.h"
 #include "include/wrapper/cef_stream_resource_handler.h"
+#include "include/wrapper/cef_closure_task.h"
 
 #ifdef SLIB_UI_IS_MACOS
 
@@ -251,10 +252,7 @@ namespace slib
 				}
 				
 			public:
-				CefRefPtr<CefResourceHandler> GetResourceHandler(
-																 CefRefPtr<CefBrowser> browser,
-																 CefRefPtr<CefFrame> frame,
-																 CefRefPtr<CefRequest> request) override
+				CefRefPtr<CefResourceHandler> GetResourceHandler(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request) override
 				{
 					CefRefPtr<CefStreamReader> stream = CefStreamReader::CreateForData(m_content.getData(), m_content.getLength());
 					return new CefStreamResourceHandler("text/html", stream);
@@ -267,28 +265,45 @@ namespace slib
 			class ChromiumViewInstance : public BaseViewInstance, public IWebViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				CefRefPtr<CefBrowserHost> m_host;
 				CefRefPtr<CefBrowser> m_browser;
-				
+
 				sl_bool m_flagLoadOffline;
 				AtomicString m_title;
-				
+
 				sl_bool m_flagResizeAfterCreate;
 				sl_bool m_flagReloadAfterCreate;
-				
+
 			public:
 				ChromiumViewInstance();
-				
+
 				~ChromiumViewInstance();
-				
+
 			public:
 				Ref<ChromiumViewHelper> getHelper()
 				{
 					return CastRef<ChromiumViewHelper>(getView());
 				}
-				
+
+				void initialize(View* _view) override
+				{
+					ChromiumViewHelper* view = (ChromiumViewHelper*)_view;
+					CefWindowInfo windowInfo;
+#if defined(SLIB_UI_IS_WIN32)
+					RECT rc;
+					rc.left = 0;
+					rc.top = 0;
+					rc.right = (LONG)(view->getWidth());
+					rc.bottom = (LONG)(view->getHeight());
+					windowInfo.SetAsChild(getHandle(), rc);
+#elif defined(SLIB_UI_IS_MACOS)
+					windowInfo.SetAsChild((__bridge void*)(getHandle()), 0, 0, (int)(view->getWidth()), (int)(view->getHeight()));
+#endif
+					view->apply(this, windowInfo);
+				}
+
 				void refreshSize(WebView* view) override
 				{
 					CefBrowserHost* host = m_host.get();
@@ -299,13 +314,13 @@ namespace slib
 #endif
 #ifdef SLIB_UI_IS_MACOS
 						NSView* handle = (__bridge NSView*)(host->GetWindowHandle());
-						[handle setFrame:NSMakeRect(0, 0, (CGFloat)(view->getWidth()), (CGFloat)(view->getHeight()))];
+						[handle setFrame : NSMakeRect(0, 0, (CGFloat)(view->getWidth()), (CGFloat)(view->getHeight()))];
 #endif
 					} else {
 						m_flagResizeAfterCreate = sl_true;
 					}
 				}
-				
+
 				void load(WebView* view) override
 				{
 					ChromiumViewHelper* helper = static_cast<ChromiumViewHelper*>(view);
@@ -317,7 +332,7 @@ namespace slib
 						m_flagReloadAfterCreate = sl_true;
 					}
 				}
-				
+
 				sl_bool getURL(WebView* view, String& _out) override
 				{
 					CefBrowser* browser = m_browser.get();
@@ -327,13 +342,13 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				sl_bool getPageTitle(WebView* view, String& _out) override
 				{
 					_out = m_title;
 					return sl_true;
 				}
-				
+
 				void goBack(WebView* view) override
 				{
 					CefBrowser* browser = m_browser.get();
@@ -341,7 +356,7 @@ namespace slib
 						browser->GoBack();
 					}
 				}
-				
+
 				void goForward(WebView* view) override
 				{
 					CefBrowser* browser = m_browser.get();
@@ -349,7 +364,7 @@ namespace slib
 						browser->GoForward();
 					}
 				}
-				
+
 				void reload(WebView* view) override
 				{
 					CefBrowser* browser = m_browser.get();
@@ -357,7 +372,7 @@ namespace slib
 						browser->Reload();
 					}
 				}
-				
+
 				void runJavaScript(WebView* view, const String& script) override
 				{
 					CefBrowser* browser = m_browser.get();
@@ -366,10 +381,29 @@ namespace slib
 						frame->ExecuteJavaScript(GetCefString(script), frame->GetURL(), 0);
 					}
 				}
-				
-				void setCustomUserAgent(WebView* view, const String& agent) override
+
+				void setZoomLevel(WebView* view, float level) override
 				{
-					// not supported
+					CefBrowserHost* host = m_host.get();
+					if (host) {
+						host->SetZoomLevel(level);
+					}
+				}
+
+				void find(WebView* view, const StringParam& text, const FindOptions& options) override
+				{
+					CefBrowserHost* host = m_host.get();
+					if (host) {
+						host->Find(0, GetCefString(text), !(options & FindOptions::Backward), options & FindOptions::MatchCase, false);
+					}
+				}
+
+				void stopFinding(WebView* view) override
+				{
+					CefBrowserHost* host = m_host.get();
+					if (host) {
+						host->StopFinding(true);
+					}
 				}
 				
 #ifdef SLIB_UI_IS_WIN32
@@ -396,14 +430,14 @@ namespace slib
 				
 				void closeBrowsers()
 				{
-					CefBrowser* browser = m_browser.get();
-					if (browser) {
-						m_browser = sl_null;
-					}
 					CefBrowserHost* host = m_host.get();
 					if (host) {
 						host->CloseBrowser(sl_true);
 						m_host = sl_null;
+					}
+					CefBrowser* browser = m_browser.get();
+					if (browser) {
+						m_browser = sl_null;
 					}
 				}
 				
@@ -465,11 +499,11 @@ namespace slib
 			
 			SLIB_DEFINE_OBJECT(ChromiumViewInstance, BaseViewInstance)
 			
-			class ChromiumHandler : public CefClient, public CefDisplayHandler, public CefLifeSpanHandler, public CefLoadHandler, public CefRequestHandler
+			class ChromiumHandler : public CefClient, public CefDisplayHandler, public CefLifeSpanHandler, public CefLoadHandler, public CefRequestHandler, public CefKeyboardHandler
 			{
 			public:
-				StaticContext* m_context;
-				
+				StaticContext * m_context;
+
 			public:
 				Ref<ChromiumViewInstance> getInstance(CefRefPtr<CefBrowser> browser)
 				{
@@ -509,7 +543,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				CefRefPtr<CefDisplayHandler> GetDisplayHandler() override
 				{
 					return this;
@@ -529,6 +563,11 @@ namespace slib
 				{
 					return this;
 				}
+
+				CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() override
+				{
+					return this;
+				}
 				
 				// CefDisplayHandler
 				void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) override
@@ -541,18 +580,19 @@ namespace slib
 				
 				// CefLifeSpanHandler
 				bool OnBeforePopup(
-								   CefRefPtr<CefBrowser> browser,
-								   CefRefPtr<CefFrame> frame,
-								   const CefString& target_url,
-								   const CefString& target_frame_name,
-								   CefLifeSpanHandler::WindowOpenDisposition target_disposition,
-								   bool user_gesture,
-								   const CefPopupFeatures& popupFeatures,
-								   CefWindowInfo& windowInfo,
-								   CefRefPtr<CefClient>& client,
-								   CefBrowserSettings& settings,
-								   CefRefPtr<CefDictionaryValue>& extra_info,
-								   bool* no_javascript_access) override
+					CefRefPtr<CefBrowser> browser,
+					CefRefPtr<CefFrame> frame,
+					const CefString& target_url,
+					const CefString& target_frame_name,
+					CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+					bool user_gesture,
+					const CefPopupFeatures& popupFeatures,
+					CefWindowInfo& windowInfo,
+					CefRefPtr<CefClient>& client,
+					CefBrowserSettings& settings,
+					CefRefPtr<CefDictionaryValue>& extra_info,
+					bool* no_javascript_access
+				) override
 				{
 					return false;
 				}
@@ -602,13 +642,14 @@ namespace slib
 				
 				// CefRequestHandler
 				CefRefPtr<CefResourceRequestHandler> GetResourceRequestHandler(
-																			   CefRefPtr<CefBrowser> browser,
-																			   CefRefPtr<CefFrame> frame,
-																			   CefRefPtr<CefRequest> request,
-																			   bool is_navigation,
-																			   bool is_download,
-																			   const CefString& request_initiator,
-																			   bool& disable_default_handling) override
+					CefRefPtr<CefBrowser> browser,
+					CefRefPtr<CefFrame> frame,
+					CefRefPtr<CefRequest> request,
+					bool is_navigation,
+					bool is_download,
+					const CefString& request_initiator,
+					bool& disable_default_handling
+				) override
 				{
 					if (is_navigation) {
 						Ref<ChromiumViewInstance> instance = getInstance(browser);
@@ -638,7 +679,69 @@ namespace slib
 					}
 					return false;
 				}
-				
+
+				bool OnPreKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEvent& ev, CefEventHandle os_event, bool* is_keyboard_shortcut) override
+				{
+					Ref<ChromiumViewInstance> instance = getInstance(browser);
+					if (instance.isNull()) {
+						return false;
+					}
+					Ref<ChromiumView> view = CastRef<ChromiumView>(instance->getView());
+					if (view.isNull()) {
+						return false;
+					}
+					do {
+						Keycode keycode = UIEvent::getKeycodeFromWin32Keycode(ev.windows_key_code);
+						UIAction action;
+						if (ev.type == KEYEVENT_KEYDOWN || ev.type == KEYEVENT_RAWKEYDOWN) {
+							action = UIAction::KeyDown;
+						} else if (ev.type == KEYEVENT_KEYUP) {
+							action = UIAction::KeyUp;
+						} else {
+							break;
+						}
+						Ref<UIEvent> _ev = UIEvent::createKeyEvent(action, keycode, 0, Time::now());
+						if (_ev.isNotNull()) {
+							if (ev.modifiers & EVENTFLAG_ALT_DOWN) {
+								_ev->setAltKey();
+							}
+							if (ev.modifiers & EVENTFLAG_CONTROL_DOWN) {
+								_ev->setControlKey();
+							}
+							if (ev.modifiers & EVENTFLAG_SHIFT_DOWN) {
+								_ev->setShiftKey();
+							}
+							if (ev.modifiers & EVENTFLAG_COMMAND_DOWN) {
+								_ev->setCommandKey();
+							}
+							_ev->addFlag(UIEventFlags::DispatchToParent | UIEventFlags::NotDispatchToChildren);
+							instance->onKeyEvent(_ev.get());
+							if (_ev->isPreventedDefault()) {
+								return true;
+							}
+						}
+					} while (0);
+					if (ev.type == KEYEVENT_KEYDOWN || ev.type == KEYEVENT_RAWKEYDOWN) {
+						if (ev.modifiers & EVENTFLAG_ALT_DOWN) {
+							if (ev.windows_key_code == 0x25 /* VK_LEFT */) {
+								view->goBack();
+								return true;
+							} else if (ev.windows_key_code == 0x27 /* VK_RIGHT */) {
+								view->goForward();
+								return true;
+							}
+						}
+						if (ev.modifiers & EVENTFLAG_CONTROL_DOWN) {
+							if (ev.windows_key_code == 0xBB /* VK_OEM_PLUS */ || ev.windows_key_code == 0x6B /* VK_ADD */) {
+								view->zoomIn();
+							} else if (ev.windows_key_code == 0xBD /* VK_OEM_MINUS */ || ev.windows_key_code == 0x6D /* VK_SUBTRACT */) {
+								view->zoomOut();
+							}
+						}
+					}
+					return false;
+				}
+
 			private:
 				IMPLEMENT_REFCOUNTING(ChromiumHandler);
 			};
@@ -669,9 +772,7 @@ namespace slib
 			}
 			
 			
-			StaticContext::StaticContext() :
-			app(new ChromiumApp),
-			handler(new ChromiumHandler)
+			StaticContext::StaticContext(): app(new ChromiumApp), handler(new ChromiumHandler)
 			{
 				app->m_context = this;
 				handler->m_context = this;
@@ -681,8 +782,14 @@ namespace slib
 			{
 			}
 			
-			void CloseBrowsers()
+			static void CloseBrowsers()
 			{
+#ifndef SLIB_UI_IS_MACOS
+				if (!CefCurrentlyOn(TID_UI)) {
+					CefPostTask(TID_UI, base::Bind(&CloseBrowsers));
+					return;
+				}
+#endif
 				StaticContext* context = GetStaticContext();
 				if (!context) {
 					return;
@@ -702,12 +809,12 @@ namespace slib
 			}
 			
 #ifdef SLIB_UI_IS_MACOS
-			void ChromiumRunLoop()
+			static void ChromiumRunLoop()
 			{
 				CefRunMessageLoop();
 			}
 			
-			void QuitApp()
+			static void QuitApp()
 			{
 				StaticContext* context = GetStaticContext();
 				if (!context) {
@@ -727,7 +834,7 @@ namespace slib
 			}
 #endif
 			
-			void Startup(CefMainArgs& args, const ChromiumSettings& _settings)
+			static void Startup(CefMainArgs& args, const ChromiumSettings& _settings)
 			{
 				
 				printf("Starting Chromium Embeded Framework\n");
@@ -802,7 +909,7 @@ namespace slib
 				
 			}
 			
-			void Shutdown()
+			static void Shutdown()
 			{
 #ifndef SLIB_UI_IS_MACOS
 				StaticContext* context = GetStaticContext();
@@ -892,34 +999,17 @@ namespace slib
 		if (!context) {
 			return sl_null;
 		}
-#ifdef SLIB_PLATFORM_IS_WIN32
+#if defined(SLIB_PLATFORM_IS_WIN32)
 		Win32_UI_Shared* shared = Win32_UI_Shared::get();
 		if (!shared) {
 			return sl_null;
 		}
-		Ref<ChromiumViewInstance> ret = Win32_ViewInstance::create<ChromiumViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
-		if (ret.isNotNull()) {
-			CefWindowInfo windowInfo;
-			RECT rc;
-			rc.left = 0;
-			rc.top = 0;
-			rc.right = (LONG)(getWidth());
-			rc.bottom = (LONG)(getHeight());
-			windowInfo.SetAsChild(ret->getHandle(), rc);
-			(static_cast<ChromiumViewHelper*>(this))->apply(ret.get(), windowInfo);
-			return ret;
-		}
-#endif
-#ifdef SLIB_PLATFORM_IS_MACOS
-		Ref<ChromiumViewInstance> ret = macOS_ViewInstance::create<ChromiumViewInstance, SLIBViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			CefWindowInfo windowInfo;
-			windowInfo.SetAsChild((__bridge void*)(ret->getHandle()), 0, 0, (int)(getWidth()), (int)(getHeight()));
-			(static_cast<ChromiumViewHelper*>(this))->apply(ret.get(), windowInfo);
-			return ret;
-		}
-#endif
+		return Win32_ViewInstance::create<ChromiumViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
+#elif defined(SLIB_PLATFORM_IS_MACOS)
+		return macOS_ViewInstance::create<ChromiumViewInstance, SLIBViewHandle>(this, parent);
+#else
 		return sl_null;
+#endif
 	}
 	
 	Ptr<IWebViewInstance> ChromiumView::getWebViewInstance()
@@ -1046,7 +1136,7 @@ namespace slib
 			CefRefPtr<DeleteCookiesCallback> refWrapperCallback = new DeleteCookiesCallback;
 			DeleteCookiesCallback* wrapperCallback = refWrapperCallback.get();
 			if (wrapperCallback) {
-				wrapperCallback->callback = callback;				
+				wrapperCallback->callback = callback;
 				manager->DeleteCookies(GetCefString(url), GetCefString(name), refWrapperCallback);
 				return;
 			}

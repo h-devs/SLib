@@ -27,15 +27,25 @@
 
 #if defined(SLIB_RENDER_SUPPORT_OPENGL_GL)
 
+#if defined(SLIB_PLATFORM_IS_WIN32) || (defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP))
+
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
-#include <Windows.h>
-#include <gl/gl.h>
+#	include "slib/core/windows.h"
+#	include <gl/gl.h>
+#	include "gl/GL/glext.h"
 
-#include "gl/GL/glext.h"
+#	define PRIV_SLIB_RENDER_GL_ENTRY(TYPE, name, ...) \
+		TYPE(__stdcall* name)(__VA_ARGS__);
 
-#define PRIV_SLIB_RENDER_GL_ENTRY(TYPE, name, ...) \
-	TYPE(__stdcall* name)(__VA_ARGS__);
+#else
+
+#	include "slib/render/dl_linux_gl.h"
+
+#	define PRIV_SLIB_RENDER_GL_ENTRY(TYPE, name, ...) \
+		TYPE(*name)(__VA_ARGS__);
+
+#endif
 
 #define PRIV_SLIB_RENDER_GL_SUPPORT(name) \
 	sl_bool flagSupports##name; \

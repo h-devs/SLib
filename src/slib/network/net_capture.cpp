@@ -82,7 +82,7 @@ namespace slib
 		return sl_false;
 	}
 	
-	String NetCapture::getLastErrorMessage()
+	String NetCapture::getErrorMessage()
 	{
 		return sl_null;
 	}

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_ADAPTER
 #define CHECKHEADER_SLIB_UI_ADAPTER
 
-#include "definition.h"
-
 #include "view.h"
 
 namespace slib

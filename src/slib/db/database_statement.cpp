@@ -50,9 +50,9 @@ namespace slib
 		m_names = names.toList();
 	}
 
-	List< HashMap<String, Variant> > DatabaseStatement::getRecordsBy(const Variant* params, sl_uint32 nParams)
+	List<VariantMap> DatabaseStatement::getRecordsBy(const Variant* params, sl_uint32 nParams)
 	{
-		List< HashMap<String, Variant> > ret;
+		List<VariantMap> ret;
 		Ref<DatabaseCursor> cursor = queryBy(params, nParams);
 		if (cursor.isNotNull()) {
 			while (cursor->moveNext()) {
@@ -62,9 +62,8 @@ namespace slib
 		return ret;
 	}
 
-	HashMap<String, Variant> DatabaseStatement::getRecordBy(const Variant* params, sl_uint32 nParams)
+	VariantMap DatabaseStatement::getRecordBy(const Variant* params, sl_uint32 nParams)
 	{
-		HashMap<String, Variant> ret;
 		Ref<DatabaseCursor> cursor = queryBy(params, nParams);
 		if (cursor.isNotNull()) {
 			if (cursor->moveNext()) {

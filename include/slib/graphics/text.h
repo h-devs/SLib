@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_TEXT
 #define CHECKHEADER_SLIB_GRAPHICS_TEXT
 
-#include "definition.h"
-
 #include "constants.h"
 #include "canvas.h"
 
@@ -56,27 +54,26 @@ namespace slib
 		sl_text_pos length;
 		
 	public:
-		SLIB_INLINE constexpr TextRange() noexcept : location(SLIB_TEXT_RANGE_NOT_FOUND), length(0) {}
+		constexpr TextRange() noexcept : location(SLIB_TEXT_RANGE_NOT_FOUND), length(0) {}
 		
-		SLIB_INLINE constexpr TextRange(sl_null_t) noexcept : location(SLIB_TEXT_RANGE_NOT_FOUND), length(0) {}
+		constexpr TextRange(sl_null_t) noexcept : location(SLIB_TEXT_RANGE_NOT_FOUND), length(0) {}
 		
-		SLIB_INLINE constexpr TextRange(sl_text_pos _location, sl_text_pos _length) noexcept : location(_location), length(_length) {}
+		constexpr TextRange(sl_text_pos _location, sl_text_pos _length) noexcept : location(_location), length(_length) {}
 		
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(TextRange)
 		
 	public:
-		
-		SLIB_INLINE constexpr sl_bool operator==(const TextRange& other) const noexcept
+		constexpr sl_bool operator==(const TextRange& other) const noexcept
 		{
 			return location == other.location && length == other.length;
 		}
 		
-		SLIB_INLINE constexpr sl_bool operator!=(const TextRange& other) const noexcept
+		constexpr sl_bool operator!=(const TextRange& other) const noexcept
 		{
 			return location != other.location || length != other.length;
 		}
 		
-		SLIB_INLINE constexpr sl_bool isNotFound() const noexcept
+		constexpr sl_bool isNotFound() const noexcept
 		{
 			return location == SLIB_TEXT_RANGE_NOT_FOUND;
 		}
@@ -113,6 +110,7 @@ namespace slib
 	{
 	public:
 		Color color;
+		const ColorMatrix* colorMatrix;
 		
 		sl_real shadowOpacity;
 		sl_real shadowRadius;
@@ -337,7 +335,7 @@ namespace slib
 		~TextParagraph() noexcept;
 
 	public:
-		void addText(const StringParam& text, const Ref<TextStyle>& style, sl_bool flagEnabledHyperlinksInPlainText = sl_false) noexcept;
+		void addText(const StringParam& text, const Ref<TextStyle>& style, sl_bool flagEnabledHyperlinksInPlainText = sl_false, sl_bool flagMnemonic = sl_false) noexcept;
 		
 		void addHyperTextNodeGroup(const Ref<XmlNodeGroup>& group, const Ref<TextStyle>& style) noexcept;
 		
@@ -347,16 +345,18 @@ namespace slib
 
 		void layout(const TextParagraphLayoutParam& param) noexcept;
 
-		void draw(Canvas* canvas, sl_real x, sl_real y, const TextParagraphDrawParam& param) noexcept;
+		void draw(Canvas* canvas, sl_real left, sl_real right, sl_real y, const TextParagraphDrawParam& param) noexcept;
 		
-		Ref<TextItem> getTextItemAtPosition(sl_real x, sl_real y) noexcept;
+		Ref<TextItem> getTextItemAtPosition(sl_real x, sl_real y, sl_real left, sl_real right) noexcept;
 
-		sl_real getMaximumWidth() noexcept;
+		sl_real getContentWidth() noexcept;
 
-		sl_real getTotalHeight() noexcept;
+		sl_real getContentHeight() noexcept;
 		
+		Alignment getAlignment() noexcept;
+
 		sl_real getPositionLength() noexcept;
-		
+
 	public:
 		static const Color& getDefaultLinkColor();
 
@@ -369,9 +369,10 @@ namespace slib
 	protected:
 		CList< Ref<TextItem> > m_items;
 		CList< Ref<TextItem> > m_layoutItems;
-		sl_real m_maxWidth;
-		sl_real m_totalHeight;
+		sl_real m_contentWidth;
+		sl_real m_contentHeight;
 		sl_real m_positionLength;
+		Alignment m_align;
 
 	};
 	
@@ -381,6 +382,7 @@ namespace slib
 		Ref<Font> font;
 		String text;
 		sl_bool flagHyperText;
+		sl_bool flagMnemonic;
 		sl_real width;
 		MultiLineMode multiLineMode;
 		EllipsizeMode ellipsizeMode;
@@ -421,7 +423,7 @@ namespace slib
 
 		void draw(Canvas* canvas, const SimpleTextBoxDrawParam& param) const noexcept;
 
-		Ref<TextItem> getTextItemAtPosition(sl_real x, sl_real y) const noexcept;
+		Ref<TextItem> getTextItemAtPosition(sl_real x, sl_real y, const Rectangle& frame) const noexcept;
 		
 		sl_real getContentWidth() const noexcept;
 

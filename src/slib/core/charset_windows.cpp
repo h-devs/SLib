@@ -26,7 +26,7 @@
 
 #include "slib/core/charset.h"
 
-#include <windows.h>
+#include "slib/core/windows.h"
 
 namespace slib
 {
@@ -55,7 +55,7 @@ namespace slib
 					);
 					if (ret > 0) {
 						return (sl_size)ret;
-					}					
+					}
 				}
 				return 0;
 			}

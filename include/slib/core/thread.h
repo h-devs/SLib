@@ -23,11 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_THREAD
 #define CHECKHEADER_SLIB_CORE_THREAD
 
-#include "definition.h"
-
-#include "mutex.h"
-#include "event.h"
-#include "object.h"
 #include "function.h"
 #include "string.h"
 #include "hash_map.h"
@@ -36,6 +31,8 @@
 
 namespace slib
 {
+
+	class Event;
 	
 	enum class ThreadPriority
 	{
@@ -59,6 +56,10 @@ namespace slib
 		static Ref<Thread> create(const Function<void()>& callback);
 
 		static Ref<Thread> start(const Function<void()>& callback, sl_uint32 stackSize = SLIB_THREAD_DEFAULT_STACK_SIZE);
+
+		static List< Ref<Thread> > getAllThreads();
+
+		static void finishAllThreads();
 
 	public:
 		sl_bool start(sl_uint32 stackSize = SLIB_THREAD_DEFAULT_STACK_SIZE);
@@ -105,7 +106,7 @@ namespace slib
 
 		sl_bool isCurrentThread();
 
-		static Ref<Thread> getCurrent();
+		static Thread* getCurrent();
 
 		static sl_bool isStoppingCurrent();
 
@@ -143,6 +144,7 @@ namespace slib
 		static void _nativeSetCurrentThreadUniqueId(sl_uint64 n);
 		void _nativeStart(sl_uint32 stackSize);
 		void _nativeClose();
+		sl_bool _nativeCheckRunning();
 		void _nativeSetPriority();
 	
 	public:
@@ -151,7 +153,5 @@ namespace slib
 	};
 	
 }
-
-#define SLIB_SAFE_SLEEP(ms) { slib::Thread::sleep(ms); if (slib::Thread::isStoppingCurrent()) return; }
 
 #endif

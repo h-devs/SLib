@@ -22,6 +22,7 @@
 
 #include "slib/ui/list_view.h"
 
+#include "slib/ui/view_attributes.h"
 #include "slib/ui/core.h"
 
 #define MAX_ITEMS_PER_PAGE 500
@@ -125,6 +126,8 @@ namespace slib
 		m_heightsGoUpItems = m_heightsGoDownItems + MAX_ITEMS_PER_PAGE;
 		
 		_initStatus();
+
+		m_contentView = new priv::list_view::ContentView;
 	}
 
 	ListView::~ListView()
@@ -142,7 +145,6 @@ namespace slib
 	{
 		VerticalScrollView::init();
 
-		m_contentView = new priv::list_view::ContentView;
 		m_contentView->setListView(this);
 		setContentView(m_contentView, UIUpdateMode::Init);
 	}
@@ -456,7 +458,7 @@ namespace slib
 				view->setCreatingInstance(sl_true);
 			}
 #endif
-			View::LayoutAttributes* attrs = view->m_layoutAttrs.get();
+			ViewLayoutAttributes* attrs = view->m_layoutAttrs.get();
 			if (attrs) {
 				attrs->topMode = PositionMode::Free;
 				attrs->bottomMode = PositionMode::Free;
@@ -958,7 +960,7 @@ namespace slib
 		if (itemView.isNotNull()) {
 			itemView->setPressedState(sl_false, UIUpdateMode::None);
 			itemView->setHoverState(sl_false, UIUpdateMode::None);
-			Ref<LayoutAttributes>& layoutAttrs = itemView->m_layoutAttrs;
+			Ref<ViewLayoutAttributes>& layoutAttrs = itemView->m_layoutAttrs;
 			if (layoutAttrs.isNotNull()) {
 				layoutAttrs->flagInvalidLayoutInParent = sl_true;
 				SizeMode mode = itemView->getHeightMode();

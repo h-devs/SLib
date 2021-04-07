@@ -167,15 +167,7 @@ namespace slib
 	{
 	}
 
-	StringParam::StringParam(AtomicString&& s) noexcept: StringParam(String(Move(s)))
-	{
-	}
-
 	StringParam::StringParam(const AtomicString16& s) noexcept: StringParam(String16(s))
-	{
-	}
-
-	StringParam::StringParam(AtomicString16&& s) noexcept: StringParam(String16(Move(s)))
 	{
 	}
 
@@ -379,19 +371,9 @@ namespace slib
 		return *this = String(s);
 	}
 	
-	StringParam& StringParam::operator=(AtomicString&& s) noexcept
-	{
-		return *this = String(Move(s));
-	}
-	
 	StringParam& StringParam::operator=(const AtomicString16& s) noexcept
 	{
 		return *this = String16(s);
-	}
-	
-	StringParam& StringParam::operator=(AtomicString16&& s) noexcept
-	{
-		return *this = String16(Move(s));
 	}
 	
 	StringParam& StringParam::operator=(const StringView& str) noexcept
@@ -743,6 +725,15 @@ namespace slib
 	{
 	}
 
+	String StringData::toString(const StringParam& param)
+	{
+		if (string.isNotNull()) {
+			return string;
+		} else {
+			return param.toString();
+		}
+	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(StringData16)
 
@@ -786,6 +777,15 @@ namespace slib
 
 	StringData16::StringData16(const sl_char16* str, sl_size length) noexcept: StringView16(str, length)
 	{
+	}
+
+	String16 StringData16::toString16(const StringParam& param)
+	{
+		if (string.isNotNull()) {
+			return string;
+		} else {
+			return param.toString16();
+		}
 	}
 
 
@@ -860,6 +860,15 @@ namespace slib
 		}
 	}
 
+	String StringCstr::toString(const StringParam& param)
+	{
+		if (string.isNotNull()) {
+			return string;
+		} else {
+			return param.toString();
+		}
+	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(StringCstr16)
 
@@ -929,6 +938,15 @@ namespace slib
 					data = string.getData(*((sl_size*)&length));
 				}
 			}
+		}
+	}
+
+	String16 StringCstr16::toString16(const StringParam& param)
+	{
+		if (string.isNotNull()) {
+			return string;
+		} else {
+			return param.toString16();
 		}
 	}
 

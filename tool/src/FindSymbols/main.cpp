@@ -102,7 +102,7 @@ int main(int argc, const char * argv[])
 										}
 									}
 									symbols.put_NoLock(symbol, sl_true);
-								} while (0);								
+								} while (0);
 								symbolBefore = symbol;
 							}
 							startSymbol = -1;

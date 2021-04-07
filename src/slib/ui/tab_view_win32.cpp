@@ -20,11 +20,12 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 
 #include "slib/ui/tab_view.h"
+
 #include "slib/ui/core.h"
 
 #include "view_win32.h"
@@ -92,7 +93,7 @@ namespace slib
 					applyTabContents(instance, hWnd);
 				}
 
-				void applyTabContents(ViewInstance* viewInstance, HWND hWnd)
+				void applyTabContents(ViewInstance* instance, HWND hWnd)
 				{
 					UIRect rc = getClientBounds(hWnd);
 					sl_size sel = m_indexSelected;
@@ -104,7 +105,7 @@ namespace slib
 							if (i == sel) {
 								if (!(view->isInstance())) {
 									view->setVisible(sl_true, UIUpdateMode::None);
-									view->attachToNewInstance(viewInstance);
+									view->attachToNewInstance(instance);
 								} else {
 									view->setVisible(sl_true);
 								}
@@ -145,6 +146,14 @@ namespace slib
 				SLIB_DECLARE_OBJECT
 
 			public:
+				void initialize(View* _view) override
+				{
+					TabViewHelper* view = (TabViewHelper*)_view;
+					HWND handle = m_handle;
+
+					view->copyTabs(this, handle);
+				}
+
 				void refreshTabsCount(TabView* view) override
 				{
 					HWND handle = m_handle;
@@ -230,13 +239,7 @@ namespace slib
 	{
 		DWORD style = WS_CLIPCHILDREN;
 		DWORD styleEx = WS_EX_CONTROLPARENT;
-		Ref<TabViewInstance> ret = Win32_ViewInstance::create<TabViewInstance>(this, parent, L"SysTabControl32", sl_null, style, styleEx);
-		if (ret.isNotNull()) {
-			HWND handle = ret->getHandle();
-			(static_cast<TabViewHelper*>(this))->copyTabs(ret.get(), handle);
-			return ret;
-		}
-		return sl_null;
+		return Win32_ViewInstance::create<TabViewInstance>(this, parent, L"SysTabControl32", sl_null, style, styleEx);
 	}
 
 	Ptr<ITabViewInstance> TabView::getTabViewInstance()

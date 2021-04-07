@@ -22,25 +22,393 @@
 
 #include "slib/core/console.h"
 
+#if defined(SLIB_PLATFORM_IS_MOBILE)
+
 namespace slib
 {
 
-	void Console::println(const StringParam& s)
-	{
-		SLIB_STATIC_STRING(n, "\n")
-		print(s + n);
-	}
-
-#if defined(SLIB_PLATFORM_IS_MOBILE)
 	String Console::readLine()
 	{
 		return sl_null;
 	}
-	
+
 	sl_char16 Console::readChar(sl_bool flagEcho)
 	{
 		return 0;
 	}
+
+	sl_bool Console::readInt32(sl_int32* _out)
+	{
+		return sl_false;
+	}
+
+	sl_bool Console::readUint32(sl_uint32* _out)
+	{
+		return sl_false;
+	}
+
+	sl_bool Console::readInt64(sl_int64* _out)
+	{
+		return sl_false;
+	}
+
+	sl_bool Console::readUint64(sl_uint64* _out)
+	{
+		return sl_false;
+	}
+
+	sl_bool Console::readFloat(float* _out)
+	{
+		return sl_false;
+	}
+
+	sl_bool Console::readDouble(double* _out)
+	{
+		return sl_false;
+	}
+
+	String Console::readString()
+	{
+		return sl_null;
+	}
+
+}
+
+#else
+
+#include <stdio.h>
+
+#if defined(SLIB_PLATFORM_IS_WIN32)
+#	include <conio.h>
+#	define scanf scanf_s
+#else
+#	include <stdlib.h>
+#	include <termios.h>
 #endif
-	
+
+#include "slib/core/memory.h"
+#include "slib/core/base.h"
+
+namespace slib
+{
+
+	void Console::print(const StringParam& _s)
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		StringCstr16 s(_s);
+		if (s.isEmpty()) {
+			return;
+		}
+		Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
+		printf("%s", (char*)(mem.getData()));
+#else
+		StringCstr s(_s);
+		printf("%s", s.getData());
+#endif
+	}
+
+	void Console::println(const StringParam& _s)
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		StringCstr16 s(_s);
+		if (s.isEmpty()) {
+			printf("\n");
+			return;
+		}
+		Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
+		printf("%s\n", (char*)(mem.getData()));
+#else
+		StringCstr s(_s);
+		printf("%s\n", s.getData());
+#endif
+	}
+
+	String Console::readLine()
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		char line[1024];
+		char* l = gets_s(line, sizeof(line));
+		sl_size len = Base::getStringLength(l);
+		if (len) {
+			return Charsets::decode8(Charset::ANSI, line, len).trimLine();
+		}
+		return String::getEmpty();
+#else
+		String ret;
+		char* line = NULL;
+		size_t len = 0;
+		getline(&line, &len, stdin);
+		if (line) {
+			ret = StringView(line, Base::getStringLength(line, (sl_int32)len)).trimLine();
+			free(line);
+		}
+		return ret;
+#endif
+	}
+
+	sl_char16 Console::readChar(sl_bool flagPrintEcho)
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		if (flagPrintEcho) {
+			return (sl_char16)(_getche());
+		} else {
+			return (sl_char16)(_getch());
+		}
+#else
+		termios tOld, tNew;
+		tcgetattr(0, &tOld);
+		tNew = tOld;
+		tNew.c_lflag &= ~ICANON;
+		if (flagPrintEcho) {
+			tNew.c_lflag |= ECHO;
+		} else {
+			tNew.c_lflag &= ~ECHO;
+		}
+		tcsetattr(0, TCSANOW, &tNew);
+		sl_char16 ch = (sl_char16)(::getchar());
+		tcsetattr(0, TCSANOW, &tOld);
+		return ch;
+#endif
+	}
+
+	sl_bool Console::readInt32(sl_int32* _out)
+	{
+		int n = 0;
+		if (scanf("%d", &n) == 1) {
+			if (_out) {
+				*_out = (sl_int32)n;
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool Console::readUint32(sl_uint32* _out)
+	{
+		unsigned int n = 0;
+		if (scanf("%u", &n) == 1) {
+			if (_out) {
+				*_out = (sl_uint32)n;
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool Console::readInt64(sl_int64* _out)
+	{
+		sl_int64 n = 0;
+#ifdef SLIB_PLATFORM_IS_WIN32
+		if (scanf("%I64d", &n) == 1) {
+#else
+		if (scanf("%lld", &n) == 1) {
+#endif
+			if (_out) {
+				*_out = n;
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool Console::readUint64(sl_uint64* _out)
+	{
+		sl_uint64 n = 0;
+#ifdef SLIB_PLATFORM_IS_WIN32
+		if (scanf("%I64u", &n) == 1) {
+#else
+		if (scanf("%llu", &n) == 1) {
+#endif
+			if (_out) {
+				*_out = n;
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool Console::readFloat(float* _out)
+	{
+		float n = 0;
+		if (scanf("%f", &n) == 1) {
+			if (_out) {
+				*_out = n;
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool Console::readDouble(double* _out)
+	{
+		double n = 0;
+		if (scanf("%lf", &n) == 1) {
+			if (_out) {
+				*_out = n;
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	String Console::readString()
+	{
+		char sz[1024];
+		sz[0] = 0;
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		if (scanf("%s", sz, (unsigned int)(sizeof(sz))) == 1) {
+#else
+		if (scanf("%s", sz) == 1) {
+#endif
+			sl_size len = Base::getStringLength(sz, sizeof(sz));
+			if (len) {
+#if defined(SLIB_PLATFORM_IS_WIN32)
+				return Charsets::decode8(Charset::ANSI, sz, len).trimLine();
+#else
+				return String(sz, len);
+#endif
+			}
+			return String::getEmpty();
+		}
+		return sz;
+	}
+
+}
+
+#endif
+
+namespace slib
+{
+
+	sl_int32 Console::readInt32(sl_int32 def)
+	{
+		sl_int32 ret;
+		if (readInt32(&ret)) {
+			return ret;
+		} else {
+			return def;
+		}
+	}
+
+	sl_uint32 Console::readUint32(sl_uint32 def)
+	{
+		sl_uint32 ret;
+		if (readUint32(&ret)) {
+			return ret;
+		} else {
+			return def;
+		}
+	}
+
+	sl_int64 Console::readInt64(sl_int64 def)
+	{
+		sl_int64 ret;
+		if (readInt64(&ret)) {
+			return ret;
+		} else {
+			return def;
+		}
+	}
+
+	sl_uint64 Console::readUint64(sl_uint64 def)
+	{
+		sl_uint64 ret;
+		if (readUint64(&ret)) {
+			return ret;
+		} else {
+			return def;
+		}
+	}
+
+	sl_bool Console::readInt(sl_reg* _out)
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return readInt64(_out);
+#else
+		return readInt32(_out);
+#endif
+	}
+
+	sl_reg Console::readInt(sl_reg def)
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return readInt64(def);
+#else
+		return readInt32(def);
+#endif
+	}
+
+	sl_bool Console::readUint(sl_size* _out)
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return readUint64(_out);
+#else
+		return readUint32(_out);
+#endif
+	}
+
+	sl_size Console::readUint(sl_size def)
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return readUint64(def);
+#else
+		return readUint32(def);
+#endif
+	}
+
+	float Console::readFloat(float def)
+	{
+		float ret;
+		if (readFloat(&ret)) {
+			return ret;
+		} else {
+			return def;
+		}
+	}
+
+	double Console::readDouble(double def)
+	{
+		double ret;
+		if (readDouble(&ret)) {
+			return ret;
+		} else {
+			return def;
+		}
+	}
+
+}
+
+#if defined(SLIB_UI_IS_WIN32)
+#include "slib/core/windows.h"
+#endif
+
+namespace slib
+{
+
+#if defined(SLIB_UI_IS_WIN32)
+
+	sl_bool Console::open()
+	{
+		return AllocConsole() != 0;
+	}
+
+	sl_bool Console::close()
+	{
+		return FreeConsole() != 0;
+	}
+
+#else
+
+	sl_bool Console::open()
+	{
+		return sl_false;
+	}
+
+	sl_bool Console::close()
+	{
+		return sl_false;
+	}
+
+#endif
+
 }

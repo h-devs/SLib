@@ -23,6 +23,7 @@
 #include "slib/social/ebay.h"
 
 #include "slib/core/safe_static.h"
+#include "slib/core/stringify.h"
 
 namespace slib
 {
@@ -32,7 +33,7 @@ namespace slib
 		namespace ebay
 		{
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<Ebay>, g_instance)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Ebay>, g_instance)
 
 			static String GetSimpleXMLValue(const String& xml, const String& tagName)
 			{

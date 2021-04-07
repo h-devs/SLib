@@ -10,7 +10,6 @@
 		2639191121CC25CF008B335B /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2639191021CC25CE008B335B /* CoreMedia.framework */; };
 		2639191321CC25D5008B335B /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2639191221CC25D5008B335B /* CoreVideo.framework */; };
 		2639191521CC25DB008B335B /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2639191421CC25DB008B335B /* AVFoundation.framework */; };
-		2639191821CC2B58008B335B /* QRCodeScannerPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2639191621CC2B58008B335B /* QRCodeScannerPage.cpp */; };
 		264AF17D21B41323004E58CB /* app.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 264AF17B21B41323004E58CB /* app.cpp */; };
 		264AF19B21B41A77004E58CB /* MainMenu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 264AF19A21B41A77004E58CB /* MainMenu.cpp */; };
 		264AF1BB21B51167004E58CB /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264AF1BA21B51167004E58CB /* WebKit.framework */; };
@@ -43,8 +42,6 @@
 		2639191021CC25CE008B335B /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		2639191221CC25D5008B335B /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		2639191421CC25DB008B335B /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
-		2639191621CC2B58008B335B /* QRCodeScannerPage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = QRCodeScannerPage.cpp; sourceTree = "<group>"; };
-		2639191721CC2B58008B335B /* QRCodeScannerPage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QRCodeScannerPage.h; sourceTree = "<group>"; };
 		264AF17B21B41323004E58CB /* app.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = app.cpp; sourceTree = "<group>"; };
 		264AF17C21B41323004E58CB /* app.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = app.h; sourceTree = "<group>"; };
 		264AF19921B41A77004E58CB /* MainMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainMenu.h; sourceTree = "<group>"; };
@@ -143,8 +140,6 @@
 				267B9D6B225E5D7C0057DF2A /* CameraViewPage.h */,
 				26B92D6321D62565003F6F82 /* ControlScreenPage.cpp */,
 				26B92D6221D62565003F6F82 /* ControlScreenPage.h */,
-				2639191621CC2B58008B335B /* QRCodeScannerPage.cpp */,
-				2639191721CC2B58008B335B /* QRCodeScannerPage.h */,
 			);
 			name = cpp;
 			path = ../src/cpp;
@@ -296,7 +291,6 @@
 				26BADFD12219A70F0085B5AB /* strings.cpp in Sources */,
 				26BADFCD2219A70F0085B5AB /* menus.cpp in Sources */,
 				264AF19B21B41A77004E58CB /* MainMenu.cpp in Sources */,
-				2639191821CC2B58008B335B /* QRCodeScannerPage.cpp in Sources */,
 				264AF17D21B41323004E58CB /* app.cpp in Sources */,
 				26BADFCE2219A70F0085B5AB /* drawables.cpp in Sources */,
 				264AF1CD21B8F378004E58CB /* LaunchScreen.cpp in Sources */,
@@ -449,10 +443,7 @@
 				INFOPLIST_FILE = project/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(SLIB_PATH)/lib/iOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
-				OTHER_LDFLAGS = (
-					"-lslib",
-					"-lzxing",
-				);
+				OTHER_LDFLAGS = "-lslib";
 				PRODUCT_BUNDLE_IDENTIFIER = io.slib.SAppExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -471,10 +462,7 @@
 				INFOPLIST_FILE = project/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(SLIB_PATH)/lib/iOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
-				OTHER_LDFLAGS = (
-					"-lslib",
-					"-lzxing",
-				);
+				OTHER_LDFLAGS = "-lslib";
 				PRODUCT_BUNDLE_IDENTIFIER = io.slib.SAppExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

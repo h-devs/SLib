@@ -23,9 +23,10 @@
 #ifndef CHECKHEADER_SLIB_UI_SWITCH_VIEW
 #define CHECKHEADER_SLIB_UI_SWITCH_VIEW
 
-#include "definition.h"
-
 #include "view.h"
+#include "motion_tracker.h"
+
+#include "../core/string.h"
 
 namespace slib
 {

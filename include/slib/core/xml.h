@@ -36,10 +36,7 @@
  
 ************************************************************/
 
-#include "definition.h"
-
 #include "variant.h"
-#include "function.h"
 
 namespace slib
 {
@@ -524,6 +521,8 @@ namespace slib
 
 		// in
 		sl_bool flagLogError;
+		// in
+		String sourceFilePath;
 
 		// out
 		sl_bool flagError;

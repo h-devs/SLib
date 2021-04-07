@@ -20,12 +20,13 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_ANDROID)
 
 #include "view_android.h"
 
+#include "slib/ui/gesture.h"
 #include "slib/ui/scroll_view.h"
 #include "slib/math/transform2d.h"
 
@@ -195,14 +196,8 @@ namespace slib
 						if (!(view->isEnabled())) {
 							return 1;
 						}
-						if (view->isCapturingEvents()) {
+						if (view->isCapturingChildInstanceEvents((sl_ui_pos)x, (sl_ui_pos)y)) {
 							return 1;
-						}
-						Function<sl_bool(const UIPoint&)> hitTestCapture(view->getCapturingChildInstanceEvents());
-						if (hitTestCapture.isNotNull()) {
-							if (hitTestCapture(UIPoint((sl_ui_pos)x, (sl_ui_pos)y))) {
-								return 1;
-							}
 						}
 					}
 				}
@@ -279,7 +274,7 @@ namespace slib
 		}
 	}
 
-	sl_bool Android_ViewInstance::initialize(jobject jhandle)
+	sl_bool Android_ViewInstance::initWithHandle(jobject jhandle)
 	{
 		if (jhandle) {
 			JniLocal<jobject> jcontext = JView::getContext.callObject(sl_null, jhandle);
@@ -329,8 +324,8 @@ namespace slib
 			if (parent) {
 				jobject jparent = UIPlatform::getViewHandle(parent);
 				if (jparent) {
-					JView::addChild.call(sl_null, jparent, jhandle);            
-				}            
+					JView::addChild.call(sl_null, jparent, jhandle);
+				}
 			}
 			return sl_true;
 		}

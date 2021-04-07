@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,15 +20,12 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_IOS)
 
-#include "slib/ui/window.h"
+#include "window.h"
 
-#include "slib/ui/view.h"
-#include "slib/ui/screen.h"
-#include "slib/ui/core.h"
 #include "slib/ui/platform.h"
 #include "slib/ui/resource.h"
 
@@ -123,21 +120,9 @@ namespace slib
 					return sl_null;
 				}
 				
-				static Ref<WindowInstance> create(const WindowInstanceParam& param)
+				static Ref<WindowInstance> create(Window* window)
 				{
-					UIRect screenFrame;
-					Ref<Screen> _screen = param.screen;
-					if (_screen.isNotNull()) {
-						screenFrame = _screen->getRegion();
-					} else {
-						_screen = UI::getPrimaryScreen();
-						if (_screen.isNotNull()) {
-							screenFrame = _screen->getRegion();
-						} else {
-							screenFrame = UIRect::zero();
-						}
-					}
-					UIRect _rect = param.calculateRegion(screenFrame);
+					UIRect _rect = MakeWindowFrame(window);
 					CGRect rect;
 					CGFloat f = UIPlatform::getGlobalScaleFactor();
 					rect.origin.x = (CGFloat)(_rect.left) / f;
@@ -145,24 +130,39 @@ namespace slib
 					rect.size.width = (CGFloat)(_rect.getWidth()) / f;
 					rect.size.height = (CGFloat)(_rect.getHeight()) / f;
 					
-					UIWindow* window;
+					UIWindow* handle;
 					sl_bool flagMainWindow = sl_false;
 					static sl_bool flagFirstWindow = sl_true;
 					if (flagFirstWindow) {
-						window = UIPlatform::getMainWindow();
+						handle = UIPlatform::getMainWindow();
 						flagFirstWindow = sl_false;
 						flagMainWindow = sl_true;
 					} else {
-						window = [[UIWindow alloc] initWithFrame:rect];
+						handle = [[UIWindow alloc] initWithFrame:rect];
 					}
-					if (window != nil) {
+					if (handle != nil) {
+						Color backColor = window->getBackgroundColor();
+						if (backColor.isNotZero()) {
+							[handle setBackgroundColor:GraphicsPlatform::getUIColorFromColor(backColor)];
+						}
+						sl_real alpha = window->getAlpha();
+						if (alpha < 0.9999f) {
+							if (alpha < 0) {
+								alpha = 0;
+							}
+							handle.alpha = alpha;
+						}
+						if (window->isAlwaysOnTop()) {
+							handle.windowLevel = UIWindowLevelAlert + 1;
+						}
 #ifndef SLIB_PLATFORM_IS_IOS_CATALYST
-						if (!flagMainWindow) {
+						else if (!flagMainWindow) {
+							Ref<Screen> _screen = window->getScreen();
 							UIScreen* screen = UIPlatform::getScreenHandle(_screen.get());
 							if (screen != nil) {
-								window.screen = screen;
+								handle.screen = screen;
 							}
-							window.windowLevel = UIWindowLevelNormal + 1;
+							handle.windowLevel = UIWindowLevelNormal + 1;
 						}
 #endif
 						SLIBWindowRootViewController* controller = [[SLIBWindowRootViewController alloc] init];
@@ -173,8 +173,8 @@ namespace slib
 							if (view != nil) {
 								view.opaque = NO;
 								controller.view = view;
-								window.rootViewController = controller;
-								Ref<iOS_WindowInstance> ret = create(window);
+								handle.rootViewController = controller;
+								Ref<iOS_WindowInstance> ret = create(handle);
 								if (ret.isNotNull()) {
 									controller->m_window = ret;
 									ret->activate();
@@ -228,33 +228,6 @@ namespace slib
 					return m_viewContent;
 				}
 				
-				sl_bool isActive() override
-				{
-					UIView* view = m_window;
-					if (view != nil) {
-						if ([view isKindOfClass:[UIWindow class]]) {
-							UIWindow* window = (UIWindow*)view;
-							return [window isKeyWindow];
-						} else {
-							return [view isFirstResponder];
-						}
-					}
-					return sl_false;
-				}
-				
-				void activate() override
-				{
-					UIView* view = m_window;
-					if (view != nil) {
-						if ([view isKindOfClass:[UIWindow class]]) {
-							UIWindow* window = (UIWindow*)view;
-							[window makeKeyAndVisible];
-						} else {
-							[view becomeFirstResponder];
-						}
-					}
-				}
-				
 				UIRect getFrame() override
 				{
 					UIView* window = m_window;
@@ -294,55 +267,31 @@ namespace slib
 					}
 				}
 				
-				UIRect getClientFrame() override
+				sl_bool isActive() override
 				{
-					return getFrame();
-				}
-				
-				UISize getClientSize() override
-				{
-					UIView* window = m_window;
-					if (window != nil) {
-						if ([window isKindOfClass:[UIWindow class]]) {
-							UIViewController* controller = ((UIWindow*)window).rootViewController;
-							if (controller != nil && [controller isKindOfClass:[SLIBWindowRootViewController class]]) {
-								return ((SLIBWindowRootViewController*)controller)->m_sizeClientResizedByKeyboard;
-							}
+					UIView* view = m_window;
+					if (view != nil) {
+						if ([view isKindOfClass:[UIWindow class]]) {
+							UIWindow* window = (UIWindow*)view;
+							return [window isKeyWindow];
+						} else {
+							return [view isFirstResponder];
 						}
-						CGFloat f = UIPlatform::getGlobalScaleFactor();
-						CGRect rect = [window frame];
-						UISize ret;
-						ret.x = (sl_ui_pos)(rect.size.width * f);
-						ret.y = (sl_ui_pos)(rect.size.height * f);
-						return ret;
-					} else {
-						return UISize::zero();
-					}
-				}
-				
-				sl_bool setClientSize(const UISize& size) override
-				{
-					UIView* window = m_window;
-					if (window != nil) {
-						CGFloat f = UIPlatform::getGlobalScaleFactor();
-						CGRect frame = [window frame];
-						frame.size.width = (CGFloat)(size.x) / f;
-						frame.size.height = (CGFloat)(size.y) / f;
-						[window setFrame:frame];
-						if ([window isKindOfClass:[UIWindow class]]) {
-							UIViewController* controller = ((UIWindow*)window).rootViewController;
-							if (controller != nil && [controller isKindOfClass:[SLIBWindowRootViewController class]]) {
-								((SLIBWindowRootViewController*)controller)->m_sizeClient = size;
-								((SLIBWindowRootViewController*)controller)->m_sizeClientResizedByKeyboard = size;
-							}
-						}
-						return sl_true;
 					}
 					return sl_false;
 				}
 				
-				void setTitle(const String& title) override
+				void activate() override
 				{
+					UIView* view = m_window;
+					if (view != nil) {
+						if ([view isKindOfClass:[UIWindow class]]) {
+							UIWindow* window = (UIWindow*)view;
+							[window makeKeyAndVisible];
+						} else {
+							[view becomeFirstResponder];
+						}
+					}
 				}
 				
 				void setBackgroundColor(const Color& _color) override
@@ -397,102 +346,6 @@ namespace slib
 					}
 				}
 				
-				UIPointf convertCoordinateFromScreenToWindow(const UIPointf& ptScreen) override
-				{
-					UIView* view = m_window;
-					if (view != nil) {
-						CGFloat f = UIPlatform::getGlobalScaleFactor();
-						if ([view isKindOfClass:[UIWindow class]]) {
-							UIWindow* window = (UIWindow*)view;
-							CGPoint pt;
-							pt.x = (CGFloat)(ptScreen.x) / f;
-							pt.y = (CGFloat)(ptScreen.y) / f;
-							pt = [window convertPoint:pt fromWindow:nil];
-							UIPointf ret;
-							ret.x = (sl_ui_posf)(pt.x * f);
-							ret.y = (sl_ui_posf)(pt.y * f);
-							return ret;
-						} else {
-							UIWindow* window = [view window];
-							if (window != nil) {
-								CGPoint pt;
-								pt.x = (CGFloat)(ptScreen.x) / f;
-								pt.y = (CGFloat)(ptScreen.y) / f;
-								pt = [window convertPoint:pt fromWindow:nil];
-								pt = [window convertPoint:pt toView:view];
-								UIPointf ret;
-								ret.x = (sl_ui_posf)(pt.x * f);
-								ret.y = (sl_ui_posf)(pt.y * f);
-								return ret;
-							}
-						}
-					}
-					return ptScreen;
-				}
-				
-				UIPointf convertCoordinateFromWindowToScreen(const UIPointf& ptWindow) override
-				{
-					UIView* view = m_window;
-					if (view != nil) {
-						CGFloat f = UIPlatform::getGlobalScaleFactor();
-						if ([view isKindOfClass:[UIWindow class]]) {
-							UIWindow* window = (UIWindow*)view;
-							CGPoint pt;
-							pt.x = (CGFloat)(ptWindow.x) / f;
-							pt.y = (CGFloat)(ptWindow.y) / f;
-							pt = [window convertPoint:pt toWindow:nil];
-							UIPointf ret;
-							ret.x = (sl_ui_posf)(pt.x * f);
-							ret.y = (sl_ui_posf)(pt.y * f);
-							return ret;
-						} else {
-							UIWindow* window = [view window];
-							if (window != nil) {
-								CGPoint pt;
-								pt.x = (CGFloat)(ptWindow.x) / f;
-								pt.y = (CGFloat)(ptWindow.y) / f;
-								pt = [window convertPoint:pt fromView:view];
-								pt = [window convertPoint:pt toWindow:nil];
-								UIPointf ret;
-								ret.x = (sl_ui_posf)(pt.x * f);
-								ret.y = (sl_ui_posf)(pt.y * f);
-								return ret;
-							}
-						}
-					}
-					return ptWindow;
-				}
-				
-				UIPointf convertCoordinateFromScreenToClient(const UIPointf& ptScreen) override
-				{
-					return convertCoordinateFromScreenToWindow(ptScreen);
-				}
-				
-				UIPointf convertCoordinateFromClientToScreen(const UIPointf& ptClient) override
-				{
-					return convertCoordinateFromWindowToScreen(ptClient);
-				}
-				
-				UIPointf convertCoordinateFromWindowToClient(const UIPointf& ptWindow) override
-				{
-					return ptWindow;
-				}
-				
-				UIPointf convertCoordinateFromClientToWindow(const UIPointf& ptClient) override
-				{
-					return ptClient;
-				}
-				
-				UISize getWindowSizeFromClientSize(const UISize& sizeClient) override
-				{
-					return sizeClient;
-				}
-				
-				UISize getClientSizeFromWindowSize(const UISize& sizeWindow) override
-				{
-					return sizeWindow;
-				}
-				
 			};
 			
 			void ResetOrientation()
@@ -536,9 +389,9 @@ namespace slib
 	using namespace priv::platform;
 	using namespace priv::window;
 
-	Ref<WindowInstance> Window::createWindowInstance(const WindowInstanceParam& param)
+	Ref<WindowInstance> Window::createWindowInstance()
 	{
-		return iOS_WindowInstance::create(param);
+		return iOS_WindowInstance::create(this);
 	}
 	
 	Ref<Window> Window::getActiveWindow()

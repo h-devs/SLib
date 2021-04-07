@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_ANDROID)
 
@@ -73,7 +73,7 @@ namespace slib
 
 	Ref<XgPush> XgPush::getInstance()
 	{
-		SLIB_SAFE_STATIC(Ref<XgPush>, instance, new XgPush)
+		SLIB_SAFE_LOCAL_STATIC(Ref<XgPush>, instance, new XgPush)
 		return instance;
 	}
 

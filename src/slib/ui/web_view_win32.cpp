@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 
@@ -301,8 +301,16 @@ namespace slib
 			public:
 				void installExternal();
 
-			public:
+			public:				
 				sl_bool prepare(WebView* view);
+
+				void initialize(View* _view) override
+				{
+					WebView* view = (WebView*)_view;
+					
+					prepare(view);
+					load(view);
+				}
 
 				void refreshSize(WebView* view) override
 				{
@@ -438,10 +446,6 @@ namespace slib
 							doc2->Release();
 						}
 					}
-				}
-
-				void setCustomUserAgent(WebView* view, const String& agent) override
-				{
 				}
 
 				IHTMLDocument2* getDoc()
@@ -931,7 +935,7 @@ namespace slib
 
 			WebViewInstance::~WebViewInstance()
 			{
-				UI::dispatchToUiThread(Function<void()>::bind(&WebViewInstanceReleaser, m_handle, m_browser, m_control, m_oleClient));
+				UI::runOnUiThread(Function<void()>::bind(&WebViewInstanceReleaser, m_handle, m_browser, m_control, m_oleClient));
 			}
 
 			sl_bool WebViewInstance::prepare(WebView* view)
@@ -1041,13 +1045,7 @@ namespace slib
 		if (!shared) {
 			return sl_null;
 		}
-		Ref<WebViewInstance> ret = Win32_ViewInstance::create<WebViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
-		if (ret.isNotNull()) {
-			ret->prepare(this);
-			ret->load(this);
-			return ret;
-		}
-		return sl_null;
+		return Win32_ViewInstance::create<WebViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
 	}
 
 	Ptr<IWebViewInstance> WebView::getWebViewInstance()

@@ -426,7 +426,7 @@ namespace slib
 		char hash[32];
 		SHA256::hash(input, (sl_uint32)n, hash);
 		for (sl_uint32 i = 4; i < 32; i++) {
-			hash[i % 4] ^= hash[i];
+			hash[i & 3] ^= hash[i];
 		}
 		return MIO::readUint32LE(hash);
 	}

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GEO_GEOLOCATION
 #define CHECKHEADER_SLIB_GEO_GEOLOCATION
 
-#include "definition.h"
-
 #include "latlon.h"
 
 namespace slib
@@ -38,22 +36,22 @@ namespace slib
 		double altitude; // Unit: m
 	
 	public:
-		SLIB_INLINE constexpr GeoLocation()
+		constexpr GeoLocation()
 		 : latitude(0), longitude(0), altitude(0)
 		{}
 
-		SLIB_INLINE constexpr GeoLocation(double _latitude, double _longitude, double _altitude)
+		constexpr GeoLocation(double _latitude, double _longitude, double _altitude)
 		 : latitude(_latitude), longitude(_longitude), altitude(_altitude)
 		{}
 
-		SLIB_INLINE constexpr GeoLocation(const LatLon& latlon, double _altitude)
+		constexpr GeoLocation(const LatLon& latlon, double _altitude)
 		 : latitude(latlon.latitude), longitude(latlon.longitude), altitude(_altitude)
 		{}
 		
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(GeoLocation)
 
 	public:
-		SLIB_INLINE GeoLocation& operator=(const LatLon& other)
+		GeoLocation& operator=(const LatLon& other)
 		{
 			latitude = other.latitude;
 			longitude = other.longitude;

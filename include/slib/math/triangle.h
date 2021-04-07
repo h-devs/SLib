@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MATH_TRIANGLE
 #define CHECKHEADER_SLIB_MATH_TRIANGLE
 
-#include "definition.h"
-
 #include "point.h"
 #include "matrix3.h"
 
@@ -45,33 +43,53 @@ namespace slib
 		TriangleT() noexcept = default;
 
 		template <class O>
-		TriangleT(const TriangleT<O>& other) noexcept;
+		TriangleT(const TriangleT<O>& other) noexcept :
+			point1(other.point1), point2(other.point2), point3(other.point3)
+		{}
 
-		TriangleT(const PointT<T>& point1, const PointT<T>& point2, const PointT<T>& point3) noexcept;
+		TriangleT(const PointT<T>& _point1, const PointT<T>& _point2, const PointT<T>& _point3) noexcept :
+			point1(_point1), point2(_point2), point3(_point3)
+		{}
 
 	public:
-		static T getCross(const PointT<T>& point1, const PointT<T>& point2, const PointT<T>& point3) noexcept;
+		static T getCross(const PointT<T>& _point1, const PointT<T>& _point2, const PointT<T>& _point3) noexcept
+		{
+			return (_point1.x - _point2.x) * (_point2.y - _point3.y) - (_point2.x - _point3.x) * (_point1.y - _point2.y);
+		}
 
-		T getCross() const noexcept;
+		T getCross() const noexcept
+		{
+			return getCross(point1, point2, point3);
+		}
 
-		T getSize() const noexcept;
+		T getSize() const noexcept
+		{
+			return getCross(point1, point2, point3) / 2;
+		}
 
-		void transform(Matrix3T<T>& mat) noexcept;
+		void transform(Matrix3T<T>& mat) noexcept
+		{
+			point1 = mat.transformPosition(point1);
+			point2 = mat.transformPosition(point2);
+			point3 = mat.transformPosition(point3);
+		}
 
 	public:
 		template <class O>
-		TriangleT<T>& operator=(const TriangleT<O>& other) noexcept;
+		TriangleT<T>& operator=(const TriangleT<O>& other) noexcept
+		{
+			point1 = other.point1;
+			point2 = other.point2;
+			point3 = other.point3;
+			return *this;
+		}
 	
 	};
 	
-	extern template class TriangleT<float>;
-	extern template class TriangleT<double>;
 	typedef TriangleT<sl_real> Triangle;
 	typedef TriangleT<float> Trianglef;
 	typedef TriangleT<double> Trianglelf;
 
 }
-
-#include "detail/triangle.inc"
 
 #endif

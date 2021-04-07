@@ -25,13 +25,94 @@
 #ifdef SLIB_PLATFORM_IS_WIN32
 
 #include "slib/core/file.h"
+#include "slib/core/file_util.h"
 
-#include <windows.h>
+#include "slib/core/hash_map.h"
+#include "slib/core/dl_windows_kernel32.h"
+
+#include <winioctl.h>
 
 namespace slib
 {
 
-	sl_file File::_open(const StringParam& _filePath, const FileMode& mode, const FilePermissions& permisions)
+	namespace priv
+	{
+		namespace file
+		{
+
+			SLIB_INLINE static Time FileTimeToTime(const FILETIME& ft)
+			{
+				return Time::fromWindowsFileTime(*((sl_int64*)&ft));
+			}
+
+			SLIB_INLINE static void TimeToFileTime(Time time, FILETIME& ft)
+			{
+				*((sl_int64*)&ft) = time.toWindowsFileTime();
+			}
+
+			SLIB_INLINE static Time GetModifiedTime(HANDLE handle)
+			{
+				FILETIME ft;
+				BOOL bRet = GetFileTime(handle, NULL, NULL, &ft);
+				if (bRet) {
+					return FileTimeToTime(ft);
+				} else {
+					return Time::zero();
+				}
+			}
+
+			SLIB_INLINE static Time GetAccessedTime(HANDLE handle)
+			{
+				FILETIME ft;
+				BOOL bRet = GetFileTime(handle, NULL, &ft, NULL);
+				if (bRet) {
+					return FileTimeToTime(ft);
+				} else {
+					return Time::zero();
+				}
+			}
+
+			SLIB_INLINE static Time GetCreatedTime(HANDLE handle)
+			{
+				FILETIME ft;
+				BOOL bRet = GetFileTime(handle, &ft, NULL, NULL);
+				if (bRet) {
+					return FileTimeToTime(ft);
+				} else {
+					return Time::zero();
+				}
+			}
+
+			SLIB_INLINE static sl_bool SetModifiedTime(HANDLE handle, Time time)
+			{
+				FILETIME ft;
+				TimeToFileTime(time, ft);
+				BOOL bRet = SetFileTime(handle, NULL, NULL, &ft);
+				return bRet != 0;
+			}
+
+			SLIB_INLINE static sl_bool SetAccessedTime(HANDLE handle, Time time)
+			{
+				FILETIME ft;
+				TimeToFileTime(time, ft);
+				BOOL bRet = SetFileTime(handle, NULL, &ft, NULL);
+				return bRet != 0;
+			}
+
+			SLIB_INLINE static sl_bool SetCreatedTime(HANDLE handle, Time time)
+			{
+				FILETIME ft;
+				TimeToFileTime(time, ft);
+				BOOL bRet = SetFileTime(handle, &ft, NULL, NULL);
+				return bRet != 0;
+			}
+
+		}
+	}
+
+	using namespace priv::file;
+
+	sl_file File::_open(const StringParam& _filePath, const FileMode& mode, const FileAttributes& attrs)
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -41,23 +122,46 @@ namespace slib
 		DWORD dwShareMode = 0;
 		DWORD dwDesiredAccess = 0;
 		DWORD dwCreateDisposition = 0;
-		DWORD dwFlags = FILE_ATTRIBUTE_NORMAL;
-
-		if (permisions & FilePermissions::ShareRead) {
+		DWORD dwFlags = 0;
+		if (mode & FileMode::Write) {
+			if (!(mode & FileMode::NotCreate)) {
+				dwFlags = attrs & 0x7ffff;
+			}
+		}
+		if (mode & FileMode::ShareRead) {
 			dwShareMode |= FILE_SHARE_READ;
 		}
-		if (permisions & FilePermissions::ShareWrite) {
+		if (mode & FileMode::ShareWrite) {
 			dwShareMode |= FILE_SHARE_WRITE;
 		}
-		if (permisions & FilePermissions::ShareDelete) {
+		if (mode & FileMode::ShareDelete) {
 			dwShareMode |= FILE_SHARE_DELETE;
 		}
-
-		if (mode & FileMode::Write) {
-			dwDesiredAccess = GENERIC_WRITE;
-			if (mode & FileMode::Read) {
-				dwDesiredAccess |= GENERIC_READ;
+		if (mode & FileMode::Read) {
+			if (mode & FileMode::ReadData) {
+				dwDesiredAccess |= FILE_READ_DATA;
 			}
+			if (mode & FileMode::ReadAttrs) {
+				dwDesiredAccess |= FILE_READ_ATTRIBUTES | FILE_READ_EA;
+			}
+			dwDesiredAccess |= GENERIC_READ;
+		}
+		if (mode & FileMode::Write) {
+			if (mode & FileMode::WriteData) {
+				dwDesiredAccess |= FILE_WRITE_DATA;
+			}
+			if (mode & FileMode::WriteAttrs) {
+				dwDesiredAccess |= FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA;
+			}
+			dwDesiredAccess |= GENERIC_WRITE;
+			if (mode & FileMode::SeekToEnd) {
+				dwDesiredAccess |= FILE_APPEND_DATA;
+			}
+		}
+		if (mode & FileMode::Sync) {
+			dwDesiredAccess |= SYNCHRONIZE;
+		}
+		if (mode & FileMode::Write) {
 			if (mode & FileMode::NotCreate) {
 				if (mode & FileMode::NotTruncate) {
 					dwCreateDisposition = OPEN_EXISTING;
@@ -72,13 +176,15 @@ namespace slib
 				}
 			}
 		} else {
-			dwDesiredAccess = GENERIC_READ;
 			dwCreateDisposition = OPEN_EXISTING;
 		}
 		if (mode & FileMode::HintRandomAccess) {
 			dwFlags |= FILE_FLAG_RANDOM_ACCESS;
 		}
-		
+		if (mode & FileMode::Directory) {
+			dwFlags |= FILE_FLAG_BACKUP_SEMANTICS;
+		}
+
 		HANDLE handle = CreateFileW(
 			(LPCWSTR)(filePath.getData())
 			, dwDesiredAccess
@@ -87,7 +193,7 @@ namespace slib
 			, dwCreateDisposition
 			, dwFlags
 			, NULL
-			);
+		);
 		return (sl_file)handle;
 	}
 
@@ -101,31 +207,22 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_uint64 File::getPosition()
+	sl_bool File::getPosition(sl_uint64& outPos)
 	{
-		if (isOpened()) {
-			HANDLE handle = (HANDLE)m_file;
-			sl_int64 pos = 0;
-			DWORD ret = SetFilePointer(handle, 0, ((LONG*)&pos) + 1, FILE_CURRENT);
-			DWORD err = NOERROR;
-			if (ret == -1) {
-				err = GetLastError();
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
+			static LARGE_INTEGER zero = { 0 };
+			if (SetFilePointerEx(handle, zero, ((LARGE_INTEGER*)&outPos), FILE_CURRENT)) {
+				return sl_true;
 			}
-			if (err == NOERROR) {
-				*((DWORD*)&pos) = ret;
-				return pos;
-			} else {
-				return 0;
-			}
-		} else {
-			return 0;
 		}
+		return sl_false;
 	}
 
 	sl_bool File::seek(sl_int64 location, SeekPosition from)
 	{
-		if (isOpened()) {
-			HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
 			DWORD dwFrom;
 			if (from == SeekPosition::Current) {
 				dwFrom = FILE_CURRENT;
@@ -136,13 +233,30 @@ namespace slib
 			} else {
 				return sl_false;
 			}
-			DWORD ret = SetFilePointer(handle, *((LONG*)&location), ((LONG*)&location) + 1, dwFrom);
-			DWORD err = NOERROR;
-			if (ret == -1) {
-				err = GetLastError();
-			}
-			if (err == NOERROR) {
+			if (SetFilePointerEx(handle, *((LARGE_INTEGER*)&location), NULL, dwFrom)) {
 				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool File::isEnd(sl_bool& outFlag)
+	{
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
+			static LARGE_INTEGER zero = { 0 };
+			sl_uint64 cur;
+			if (SetFilePointerEx(handle, zero, ((LARGE_INTEGER*)&cur), FILE_CURRENT)) {
+				sl_uint64 end;
+				if (SetFilePointerEx(handle, zero, ((LARGE_INTEGER*)&end), FILE_END)) {
+					if (cur == end) {
+						outFlag = sl_true;
+					} else {
+						outFlag = sl_false;
+						SetFilePointerEx(handle, *((LARGE_INTEGER*)&cur), NULL, FILE_BEGIN);
+					}
+					return sl_true;
+				}
 			}
 		}
 		return sl_false;
@@ -150,12 +264,12 @@ namespace slib
 
 	sl_int32 File::read32(void* buf, sl_uint32 size)
 	{
-		if (isOpened()) {
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
 			if (size == 0) {
 				return 0;
 			}
 			sl_uint32 ret = 0;
-			HANDLE handle = (HANDLE)m_file;
 			if (ReadFile(handle, buf, size, (DWORD*)&ret, NULL)) {
 				if (ret > 0) {
 					return ret;
@@ -167,12 +281,12 @@ namespace slib
 
 	sl_int32 File::write32(const void* buf, sl_uint32 size)
 	{
-		if (isOpened()) {
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
 			if (size == 0) {
 				return 0;
 			}
 			sl_uint32 ret = 0;
-			HANDLE handle = (HANDLE)m_file;
 			if (WriteFile(handle, (LPVOID)buf, size, (DWORD*)&ret, NULL)) {
 				if (ret > 0) {
 					return ret;
@@ -184,56 +298,56 @@ namespace slib
 
 	sl_bool File::setSize(sl_uint64 size)
 	{
-		if (isOpened()) {
-			sl_int64 pos_orig = getPosition();
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
+			sl_int64 posOld = getPosition();
 			if (seek(size, SeekPosition::Begin)) {
-				HANDLE handle = (HANDLE)m_file;
 				BOOL bRet = SetEndOfFile(handle);
-				seek(pos_orig, SeekPosition::Begin);
+				seek(posOld, SeekPosition::Begin);
 				return bRet != 0;
 			}
 		}
 		return sl_false;
 	}
 
-	sl_uint64 File::getSize(sl_file fd)
+	sl_bool File::getSizeByHandle(sl_file fd, sl_uint64& outSize)
 	{
 		HANDLE handle = (HANDLE)fd;
 		if (handle != INVALID_HANDLE_VALUE) {
-			sl_uint64 ret = 0;
-			if (GetFileSizeEx(handle, (PLARGE_INTEGER)(&ret))) {
-				return ret;
-			} else {
-				int n = GetFileType(handle);
+			if (GetFileSizeEx(handle, (PLARGE_INTEGER)(&outSize))) {
+				return sl_true;
 			}
 		}
-		return 0;
+		return sl_false;
 	}
 
-	sl_uint64 File::getSize(const StringParam& _filePath)
+	sl_bool File::getSize(const StringParam& _filePath, sl_uint64& outSize)
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
-			return 0;
+			return sl_false;
 		}
 		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), 0, 0, NULL, OPEN_EXISTING, 0, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
-			return getSize((sl_file)handle);
-		} else {
-			return 0;
+			sl_bool bRet = getSizeByHandle((sl_file)handle, outSize);
+			CloseHandle(handle);
+			return bRet;
 		}
+		return sl_false;
 	}
 
-	sl_uint64 File::getDiskSize(sl_file fd)
+	sl_bool File::getDiskSizeByHandle(sl_file fd, sl_uint64& outSize)
 	{
 		HANDLE handle = (HANDLE)fd;
 		if (handle != INVALID_HANDLE_VALUE) {
 			sl_uint64 size = 0;
 			DWORD nOutput;
-			DeviceIoControl(handle, IOCTL_DISK_GET_LENGTH_INFO, NULL, 0, &size, sizeof(size), &nOutput, NULL);
-			return size;
+			if (DeviceIoControl(handle, IOCTL_DISK_GET_LENGTH_INFO, NULL, 0, &size, sizeof(size), &nOutput, NULL)) {
+				outSize = size;
+				return sl_true;
+			}
 		}
-		return 0;
+		return sl_false;
 	}
 
 	sl_bool File::lock()
@@ -262,60 +376,22 @@ namespace slib
 		return sl_false;
 	}
 
-	namespace priv
+	sl_bool File::flush()
 	{
-		namespace file
-		{
-
-			static Time getModifiedTime(HANDLE handle)
-			{
-				FILETIME ft;
-				BOOL bRet = GetFileTime(handle, NULL, NULL, &ft);
-				if (bRet) {
-					FILETIME lft;
-					FileTimeToLocalFileTime(&ft, &lft);
-					Time time(*((sl_int64*)&lft) / 10);
-					return time;
-				} else {
-					return Time::zero();
-				}
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
+			if (FlushFileBuffers(handle)) {
+				return sl_true;
 			}
-
-			static Time getAccessedTime(HANDLE handle)
-			{
-				FILETIME ft;
-				BOOL bRet = GetFileTime(handle, NULL, &ft, NULL);
-				if (bRet) {
-					FILETIME lft;
-					FileTimeToLocalFileTime(&ft, &lft);
-					Time time(*((sl_int64*)&lft) / 10);
-					return time;
-				} else {
-					return Time::zero();
-				}
-			}
-
-			static Time getCreatedTime(HANDLE handle)
-			{
-				FILETIME ft;
-				BOOL bRet = GetFileTime(handle, &ft, NULL, NULL);
-				if (bRet) {
-					FILETIME lft;
-					FileTimeToLocalFileTime(&ft, &lft);
-					Time time(*((sl_int64*)&lft) / 10);
-					return time;
-				} else {
-					return Time::zero();
-				}
-			}
-
 		}
+		return sl_false;
 	}
 
 	Time File::getModifiedTime()
 	{
-		if (isOpened()) {
-			return priv::file::getModifiedTime((HANDLE)m_file);
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
+			return GetModifiedTime(handle);
 		} else {
 			return Time::zero();
 		}
@@ -327,9 +403,10 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return Time::zero();
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, 0, NULL, OPEN_EXISTING,
+			FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
-			Time ret = priv::file::getModifiedTime(handle);
+			Time ret = GetModifiedTime(handle);
 			CloseHandle(handle);
 			return ret;
 		} else {
@@ -339,8 +416,9 @@ namespace slib
 
 	Time File::getAccessedTime()
 	{
-		if (isOpened()) {
-			return priv::file::getAccessedTime((HANDLE)m_file);
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
+			return GetAccessedTime(handle);
 		} else {
 			return Time::zero();
 		}
@@ -352,9 +430,10 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return Time::zero();
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, 0, NULL, OPEN_EXISTING,
+			FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
-			Time ret = priv::file::getAccessedTime(handle);
+			Time ret = GetAccessedTime(handle);
 			CloseHandle(handle);
 			return ret;
 		} else {
@@ -364,8 +443,9 @@ namespace slib
 
 	Time File::getCreatedTime()
 	{
-		if (isOpened()) {
-			return priv::file::getCreatedTime((HANDLE)m_file);
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
+			return GetCreatedTime(handle);
 		} else {
 			return Time::zero();
 		}
@@ -377,13 +457,23 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return Time::zero();
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
-			Time ret = priv::file::getCreatedTime(handle);
+			Time ret = GetCreatedTime(handle);
 			CloseHandle(handle);
 			return ret;
 		} else {
 			return Time::zero();
+		}
+	}
+
+	sl_bool File::setModifiedTime(Time time)
+	{
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
+			return SetModifiedTime(handle, time);
+		} else {
+			return sl_false;
 		}
 	}
 
@@ -393,15 +483,21 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
-			FILETIME lft;
-			FILETIME ft;
-			*((sl_int64*)&lft) = time.toInt() * 10;
-			LocalFileTimeToFileTime(&lft, &ft);
-			BOOL bRet = SetFileTime(handle, NULL, NULL, &ft);
+			sl_bool ret = SetModifiedTime(handle, time);
 			CloseHandle(handle);
-			return bRet != 0;
+			return ret;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool File::setAccessedTime(Time time)
+	{
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
+			return SetAccessedTime(handle, time);
 		} else {
 			return sl_false;
 		}
@@ -413,15 +509,21 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
-			FILETIME lft;
-			FILETIME ft;
-			*((sl_int64*)&lft) = time.toInt() * 10;
-			LocalFileTimeToFileTime(&lft, &ft);
-			BOOL bRet = SetFileTime(handle, NULL, &ft, NULL);
+			sl_bool ret = SetAccessedTime(handle, time);
 			CloseHandle(handle);
-			return bRet != 0;
+			return ret;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool File::setCreatedTime(Time time)
+	{
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
+			return SetCreatedTime(handle, time);
 		} else {
 			return sl_false;
 		}
@@ -433,57 +535,46 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
-			FILETIME lft;
-			FILETIME ft;
-			*((sl_int64*)&lft) = time.toInt() * 10;
-			LocalFileTimeToFileTime(&lft, &ft);
-			BOOL bRet = SetFileTime(handle, &ft, NULL, NULL);
+			sl_bool ret = SetCreatedTime(handle, time);
 			CloseHandle(handle);
-			return bRet != 0;
-		} else {
-			return sl_false;
-		}
-	}
-
-	FileAttributes File::getAttributes(const StringParam& _filePath)
-	{
-		StringCstr16 filePath(_filePath);
-		if (filePath.isEmpty()) {
-			return FileAttributes::NotExist;
-		}
-		DWORD attr = GetFileAttributesW((LPCWSTR)(filePath.getData()));
-		if (attr == -1) {
-			return FileAttributes::NotExist;
-		} else {
-			int ret = 0;
-			if (attr & FILE_ATTRIBUTE_DIRECTORY) {
-				ret |= FileAttributes::Directory;
-			}
-			if (attr & FILE_ATTRIBUTE_HIDDEN) {
-				ret |= FileAttributes::Hidden;
-			}
 			return ret;
+		} else {
+			return sl_false;
 		}
 	}
 
-	sl_bool File::setHidden(const StringParam& _filePath, sl_bool flagHidden)
+	FileAttributes File::getAttributes()
+	{
+		HANDLE handle = (HANDLE)m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
+			BY_HANDLE_FILE_INFORMATION info;
+			if (GetFileInformationByHandle(handle, &info)) {
+				return info.dwFileAttributes & 0x7ffff;
+			}
+		}
+		return FileAttributes::NotExist;
+	}
+
+	FileAttributes File::_getAttributes(const StringParam& _filePath)
+	{
+		StringCstr16 filePath(_filePath);
+		DWORD attr = GetFileAttributesW((LPCWSTR)(filePath.getData()));
+		if (attr == -1) {
+			return FileAttributes::NotExist;
+		} else {
+			return (int)(attr & 0x7ffff);
+		}
+	}
+
+	sl_bool File::_setAttributes(const StringParam& _filePath, const FileAttributes& attrs)
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		DWORD attr = GetFileAttributesW((LPCWSTR)(filePath.getData()));
-		if (attr == -1) {
-			return sl_false;
-		}
-		if (flagHidden) {
-			attr |= FILE_ATTRIBUTE_HIDDEN;
-		} else {
-			attr &= (~FILE_ATTRIBUTE_HIDDEN);
-		}
-		return SetFileAttributesW((LPCWSTR)(filePath.getData()), attr) != 0;
+		return SetFileAttributesW((LPCWSTR)(filePath.getData()), (DWORD)(attrs.value & 0x7ffff)) != 0;
 	}
 
 	List<String> File::getFiles(const StringParam& _filePath)
@@ -518,6 +609,44 @@ namespace slib
 		}
 	}
 
+	HashMap<String, FileInfo> File::getFileInfos(const StringParam& _filePath)
+	{
+		String filePath(_filePath.toString());
+		if (filePath.isEmpty()) {
+			return sl_null;
+		}
+		if (File::isDirectory(filePath)) {
+			filePath = normalizeDirectoryPath(filePath);
+		} else {
+			return sl_null;
+		}
+
+		String16 query = String16::create(filePath + "/*");
+		WIN32_FIND_DATAW fd;
+		HANDLE handle = FindFirstFileW((LPCWSTR)(query.getData()), &fd);
+		if (handle != INVALID_HANDLE_VALUE) {
+			HashMap<String, FileInfo> ret;
+			BOOL c = TRUE;
+			while (c) {
+				String str = String::create((sl_char16*)(fd.cFileName));
+				if (str != "." && str != "..") {
+					FileInfo info;
+					info.attributes = (int)fd.dwFileAttributes;
+					info.size = info.allocSize = SLIB_MAKE_QWORD4(fd.nFileSizeHigh, fd.nFileSizeLow);
+					info.createdAt = FileTimeToTime(fd.ftCreationTime);
+					info.modifiedAt = FileTimeToTime(fd.ftLastWriteTime);
+					info.accessedAt = FileTimeToTime(fd.ftLastAccessTime);
+					ret.add_NoLock(Move(str), info);
+				}
+				c = FindNextFileW(handle, &fd);
+			}
+			FindClose(handle);
+			return ret;
+		} else {
+			return sl_null;
+		}
+	}
+
 	sl_bool File::_createDirectory(const StringParam& _filePath)
 	{
 		StringCstr16 filePath(_filePath);
@@ -528,7 +657,7 @@ namespace slib
 		return ret != 0;
 	}
 
-	sl_bool File::_deleteFile(const StringParam& _filePath)
+	sl_bool File::deleteFile(const StringParam& _filePath)
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -538,7 +667,7 @@ namespace slib
 		return ret != 0;
 	}
 
-	sl_bool File::_deleteDirectory(const StringParam& _filePath)
+	sl_bool File::deleteDirectory(const StringParam& _filePath)
 	{
 		String filePath = _filePath.toString();
 		if (filePath.isEmpty()) {
@@ -549,7 +678,7 @@ namespace slib
 		return ret != 0;
 	}
 
-	sl_bool File::rename(const StringParam& _oldPath, const StringParam& _newPath)
+	sl_bool File::move(const StringParam& _oldPath, const StringParam& _newPath, sl_bool flagReplaceIfExists)
 	{
 		StringCstr16 oldPath(_oldPath);
 		if (oldPath.isEmpty()) {
@@ -559,7 +688,11 @@ namespace slib
 		if (newPath.isEmpty()) {
 			return sl_false;
 		}
-		BOOL ret = MoveFileExW((LPCWSTR)(oldPath.getData()), (LPCWSTR)(newPath.getData()), 0);
+		DWORD flags = 0;
+		if (flagReplaceIfExists) {
+			flags |= MOVEFILE_REPLACE_EXISTING;
+		}
+		BOOL ret = MoveFileExW((LPCWSTR)(oldPath.getData()), (LPCWSTR)(newPath.getData()), flags);
 		return ret != 0;
 	}
 
@@ -572,6 +705,23 @@ namespace slib
 			return String::create(buf);
 		}
 		return sl_null;
+	}
+
+
+	DisableWow64FsRedirectionScope::DisableWow64FsRedirectionScope()
+	{
+		auto func = kernel32::getApi_Wow64DisableWow64FsRedirection();
+		if (func) {
+			func(&m_pOldValue);
+		}
+	}
+
+	DisableWow64FsRedirectionScope::~DisableWow64FsRedirectionScope()
+	{
+		auto func = kernel32::getApi_Wow64RevertWow64FsRedirection();
+		if (func) {
+			func(m_pOldValue);
+		}
 	}
 
 }

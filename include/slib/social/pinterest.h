@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_SOCIAL_PINTEREST
 #define CHECKHEADER_SLIB_SOCIAL_PINTEREST
 
-#include "definition.h"
-
 #include "oauth.h"
 
 namespace slib

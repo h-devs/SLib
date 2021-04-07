@@ -67,14 +67,14 @@ namespace slib
 		GetSystemTime(&st);
 		sl_int64 n;
 		SystemTimeToFileTime(&st, (PFILETIME)&n);
-		m_time = n / 10 - SLIB_INT64(11644473600000000); // Convert 1601 Based (FILETIME mode) to 1970 Based (time_t mode)
+		setWindowsFileTime(n);
 	}
 	
 	sl_bool Time::_setToSystem() const noexcept
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		SYSTEMTIME st;
-		sl_int64 n = (m_time + SLIB_INT64(11644473600000000)) * 10;  // Convert 1970 Based (time_t mode) to 1601 Based (FILETIME mode)
+		sl_int64 n = toWindowsFileTime();
 		if (!(FileTimeToSystemTime((PFILETIME)&n, &st))) {
 			return sl_false;
 		}

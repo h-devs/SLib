@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_STUN
 #define CHECKHEADER_SLIB_NETWORK_STUN
 
-#include "definition.h"
-
 #include "socket_address.h"
 #include "async.h"
 

@@ -23,11 +23,10 @@
 #ifndef CHECKHEADER_SLIB_UI_RENDER_VIEW
 #define CHECKHEADER_SLIB_UI_RENDER_VIEW
 
-#include "definition.h"
-
 #include "view.h"
 
 #include "../render/engine.h"
+#include "../core/queue.h"
 
 namespace slib
 {
@@ -47,26 +46,42 @@ namespace slib
 		void init() override;
 		
 	public:
+		RenderEngineType getPreferredEngineType();
+
+		void setPreferredEngineType(RenderEngineType type);
+
+
 		RedrawMode getRedrawMode();
 		
 		void setRedrawMode(RedrawMode mode);
 		
+
 		sl_bool isDispatchingEventsToRenderingThread();
 		
 		void setDispatchingEventsToRenderingThread(sl_bool flag);
+
+
+		sl_bool isRenderEnabled();
+
+		void disableRendering();
 		
 		void requestRender();
 		
+
 		void invalidate(UIUpdateMode mode = UIUpdateMode::Redraw) override;
 		
 		void invalidate(const UIRect& rect, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 		
+
 		void renderViewContent(RenderEngine* engine);
-		
+
+
 		Size measureText(const String& text, const Ref<Font>& font, sl_bool flagMultiLine = sl_false) override;
 		
+
 		Ref<AnimationLoop> getAnimationLoop() override;
 		
+
 		sl_bool isDrawingThread() override;
 		
 		void dispatchToDrawingThread(const Function<void()>& callback, sl_uint32 delayMillis = 0) override;
@@ -75,6 +90,7 @@ namespace slib
 		
 		Ref<Dispatcher> getDispatcher() override;
 
+
 		sl_bool isDebugTextVisible();
 		
 		void setDebugTextVisible(sl_bool flagVisible);
@@ -82,9 +98,6 @@ namespace slib
 		sl_bool isDebugTextVisibleOnRelease();
 		
 		void setDebugTextVisibleOnRelease(sl_bool flagVisible);
-		
-	public:
-		SLIB_PROPERTY(RenderEngineType, PreferredEngineType)
 		
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(RenderView, CreateEngine, RenderEngine* engine)
@@ -134,6 +147,7 @@ namespace slib
 		void _dispatchSwipe(const Ref<GestureEvent>& ev);
 		
 	protected:
+		RenderEngineType m_preferredEngineType;
 		RedrawMode m_redrawMode;
 		sl_bool m_flagDispatchEventsToRenderingThread;
 		
@@ -145,7 +159,12 @@ namespace slib
 		sl_bool m_flagDebugTextVisibleOnRelease;
 		
 		Mutex m_lockRender;
-		
+
+		Ref<RenderDepthStencilState> m_stateCanvasDepthStencil;
+		Ref<RenderBlendState> m_stateCanvasBlend;
+		Ref<RenderRasterizerState> m_stateCanvasRasterizer;
+		Ref<RenderSamplerState> m_stateCanvasSampler;
+
 	};
 	
 	class SLIB_EXPORT IRenderViewInstance
@@ -155,6 +174,10 @@ namespace slib
 		
 		virtual void requestRender(RenderView* view) = 0;
 		
+		virtual sl_bool isRenderEnabled(RenderView* view);
+
+		virtual void disableRendering(RenderView* view);
+
 	};
 
 }

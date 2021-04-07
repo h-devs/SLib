@@ -20,13 +20,14 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_GTK)
 
 #include "view_gtk.h"
 
 #include "slib/ui/core.h"
+#include "slib/ui/window.h"
 #include "slib/math/transform2d.h"
 
 namespace slib
@@ -37,7 +38,6 @@ namespace slib
 	GTK_ViewInstance::GTK_ViewInstance()
 	{
 		m_handle = sl_null;
-		m_handleChildrenContainer = sl_null;
 		m_actionDrag = UIAction::MouseMove;
 	}
 	
@@ -50,7 +50,6 @@ namespace slib
 	{
 		g_object_ref_sink(handle);
 		m_handle = handle;
-		m_handleChildrenContainer = handle;
 		UIPlatform::registerViewInstance(handle, this);
 	}
 
@@ -64,25 +63,36 @@ namespace slib
 		if (!(view->isEnabled())) {
 			gtk_widget_set_sensitive(handle, sl_false);
 		}
-		
+
+		if (view->isUsingFont()) {
+			setFont(view, view->getFont());
+		}
+
 		if (GTK_IS_FIXED(handle) || GTK_IS_DRAWING_AREA(handle)) {
 			if (view->isDrawing()) {
 				gtk_widget_set_app_paintable(handle, sl_true);
 			}
+			installEventsWithDrawing();
+		} else {
 			installEvents();
 		}
 		
 		GtkWidget* parent = sl_null;
 		if (_parent) {
-			parent = ((GTK_ViewInstance*)_parent)->m_handleChildrenContainer;
+			parent = ((GTK_ViewInstance*)_parent)->m_handle;
 		}
 		m_frame = view->getFrameInInstance();
 		m_translation = Transform2::getTranslationFromMatrix(view->getFinalTransformInInstance());
-		if (parent && GTK_IS_FIXED(parent)) {
-			sl_ui_pos x = m_frame.left + m_translation.x;
-			sl_ui_pos y = m_frame.top + m_translation.y;
-			gtk_fixed_put((GtkFixed*)parent, handle, x, y);
+		if (parent) {
+			if (GTK_IS_FIXED(parent)) {
+				sl_ui_pos x = m_frame.left + m_translation.x;
+				sl_ui_pos y = m_frame.top + m_translation.y;
+				gtk_fixed_put((GtkFixed*)parent, handle, x, y);
+			} else if (GTK_IS_SCROLLED_WINDOW(parent)){
+				gtk_scrolled_window_add_with_viewport((GtkScrolledWindow*)parent, handle);
+			}
 		}
+
 		gtk_widget_set_size_request(handle, m_frame.getWidth(), m_frame.getHeight());
 
 		if (view->isVisible()) {
@@ -97,7 +107,6 @@ namespace slib
 			UIPlatform::removeViewInstance(handle);
 			g_object_unref(handle);
 			m_handle = sl_null;
-			m_handleChildrenContainer = sl_null;
 		}
 	}
 
@@ -106,11 +115,6 @@ namespace slib
 		return m_handle;
 	}
 	
-	void GTK_ViewInstance::setChildrenContainer(GtkWidget* widget)
-	{
-		m_handleChildrenContainer = widget;
-	}
-
 	sl_bool GTK_ViewInstance::isValid(View* view)
 	{
 		return sl_true;
@@ -122,6 +126,13 @@ namespace slib
 		if (handle) {
 			if (flag) {
 				gtk_widget_grab_focus(handle);
+			} else {
+				GtkWidget* parent = gtk_widget_get_toplevel(handle);
+				if (GTK_IS_WINDOW(parent)) {
+					if (gtk_window_get_focus((GtkWindow*)parent) == handle) {
+						gtk_window_set_focus((GtkWindow*)parent, sl_null);
+					}
+				}
 			}
 		}
 	}
@@ -258,7 +269,7 @@ namespace slib
 	{
 		GTK_ViewInstance* child = static_cast<GTK_ViewInstance*>(_child.get());
 		if (child) {
-			GtkWidget* handle = m_handleChildrenContainer;
+			GtkWidget* handle = m_handle;
 			if (handle) {
 				GtkWidget* handleChild = child->m_handle;
 				if (handleChild) {
@@ -284,7 +295,7 @@ namespace slib
 	{
 		GTK_ViewInstance* child = static_cast<GTK_ViewInstance*>(_child.get());
 		if (child) {
-			GtkWidget* handle = m_handleChildrenContainer;
+			GtkWidget* handle = m_handle;
 			if (handle) {
 				GtkWidget* handleChild = child->m_handle;
 				if (handleChild) {
@@ -306,68 +317,86 @@ namespace slib
 			}
 		}
 	}
-	
-	void GTK_ViewInstance::installEvents()
+
+	void GTK_ViewInstance::setFont(View* view, const Ref<Font>& font)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
-			g_signal_connect(handle, "expose_event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "motion-notify-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "button-press-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "button-release-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "enter-notify-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "leave-notify-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "key-press-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "key-release-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "scroll-event", G_CALLBACK(eventCallback), sl_null);
-			g_signal_connect(handle, "focus-in-event", G_CALLBACK(eventCallback), sl_null);
-			gtk_widget_set_events(handle,
-								  GDK_EXPOSURE_MASK |
-								  GDK_POINTER_MOTION_MASK | GDK_BUTTON_MOTION_MASK |
-								  GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK |
-								  GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK |
-								  GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK |
-								  GDK_SCROLL_MASK |
-								  GDK_FOCUS_CHANGE_MASK);
+			PangoFontDescription* desc = GraphicsPlatform::getPangoFont(font);
+			if (desc) {
+				gtk_widget_modify_font(handle, desc);
+			}
+		}
+	}
+
+	void GTK_ViewInstance::installEvents()
+	{
+		installEvents(getEventMask());
+	}
+
+	void GTK_ViewInstance::installEventsWithDrawing()
+	{
+		GtkWidget* handle = m_handle;
+		if (handle) {
+			g_signal_connect(handle, "expose_event", G_CALLBACK(eventCallback), handle);
+			installEvents(GDK_EXPOSURE_MASK | getEventMask());
+		}
+	}
+
+	void GTK_ViewInstance::installEvents(gint mask)
+	{
+		GtkWidget* handle = m_handle;
+		if (handle) {
+			GtkWidget* handleConnect = handle;
+			if (isWindowContent()) {
+				handleConnect = gtk_widget_get_parent(handle);
+				if (!handleConnect) {
+					return;
+				}
+			}
+			g_signal_connect(handleConnect, "motion-notify-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handleConnect, "button-press-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handleConnect, "button-release-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handleConnect, "enter-notify-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handleConnect, "leave-notify-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handleConnect, "key-press-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handleConnect, "key-release-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handleConnect, "scroll-event", G_CALLBACK(eventCallback), handle);
+			g_signal_connect(handleConnect, "focus-in-event", G_CALLBACK(eventCallback), handle);
+			gtk_widget_set_events(handleConnect, mask);
 		}
 	}
 	
-	gboolean GTK_ViewInstance::eventCallback(GtkWidget* widget, GdkEvent* event, gpointer user_data)
+	gboolean GTK_ViewInstance::eventCallback(GtkWidget*, GdkEvent* event, gpointer user_data)
 	{
-		Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::from(UIPlatform::getViewInstance(widget));
+		Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::from(UIPlatform::getViewInstance((GtkWidget*)user_data));
 		if (instance.isNotNull()) {
 			switch (event->type) {
 				case GDK_EXPOSE:
 					instance->onExposeEvent((GdkEventExpose*)event);
 					break;
 				case GDK_MOTION_NOTIFY:
-					instance->onMotionNotifyEvent((GdkEventMotion*)event);
-					break;
+					return instance->onMotionNotifyEvent((GdkEventMotion*)event);
 				case GDK_BUTTON_PRESS:
 				case GDK_2BUTTON_PRESS:
 				case GDK_BUTTON_RELEASE:
-					instance->onButtonEvent((GdkEventButton*)event);
-					break;
+					return instance->onButtonEvent((GdkEventButton*)event);
 				case GDK_ENTER_NOTIFY:
 				case GDK_LEAVE_NOTIFY:
-					instance->onCrossingEvent((GdkEventCrossing*)event);
-					break;
+					return instance->onCrossingEvent((GdkEventCrossing*)event);
 				case GDK_KEY_PRESS:
 				case GDK_KEY_RELEASE:
-					instance->onKeyEvent((GdkEventKey*)event);
-					break;
+					return instance->onKeyEvent((GdkEventKey*)event);
 				case GDK_SCROLL:
-					instance->onScrollEvent((GdkEventScroll*)event);
-					break;
+					return instance->onScrollEvent((GdkEventScroll*)event);
 				case GDK_FOCUS_CHANGE:
-					instance->onFocusEvent((GdkEventFocus*)event);
-					break;
+					return instance->onFocusEvent((GdkEventFocus*)event);
 			}
 		}
-		return sl_true;
+		return sl_false;
 	}
-	
-	gboolean GTK_ViewInstance::onExposeEvent(GdkEventExpose* event)
+
+	void GTK_ViewInstance::onExposeEvent(GdkEventExpose* event)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -389,7 +418,6 @@ namespace slib
 				}
 			}
 		}
-		return sl_true;
 	}
 	
 	gboolean GTK_ViewInstance::onMotionNotifyEvent(GdkEventMotion* gevent)
@@ -401,9 +429,8 @@ namespace slib
 			Ref<UIEvent> event = UIEvent::createMouseEvent(m_actionDrag, gevent->x, gevent->y, time);
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
-				event->addFlag(UIEventFlags::DispatchToParent);
 				onMouseEvent(event.get());
-				if (event->isPreventedDefault()) {
+				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
 					return sl_true;
 				}
 			}
@@ -463,9 +490,8 @@ namespace slib
 			Ref<UIEvent> event = UIEvent::createMouseEvent(action, x, y, time);
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
-				event->addFlag(UIEventFlags::DispatchToParent);
 				onMouseEvent(event.get());
-				if (event->isPreventedDefault()) {
+				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
 					return sl_true;
 				}
 			}
@@ -497,9 +523,8 @@ namespace slib
 			Ref<UIEvent> event = UIEvent::createMouseEvent(action, x, y, time);
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
-				event->addFlag(UIEventFlags::DispatchToParent);
 				onMouseEvent(event.get());
-				if (event->isPreventedDefault()) {
+				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
 					return sl_true;
 				}
 			}
@@ -523,11 +548,27 @@ namespace slib
 			Ref<UIEvent> event = UIEvent::createKeyEvent(action, key, gevent->keyval, time);
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
-				event->addFlag(UIEventFlags::DispatchToParent);
 				ViewInstance::onKeyEvent(event.get());
-				if (event->isPreventedDefault()) {
+				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
 					return sl_true;
 				}
+				if (isWindowContent()) {
+					Ref<View> view = getView();
+					if (view.isNotNull()) {
+						Ref<Window> window = view->getWindow();
+						if (window.isNotNull()) {
+							Ref<Menu> menu = window->getMenu();
+							if (menu.isNotNull()) {
+								if (menu->processShortcutKey(event->getKeycodeAndModifiers())) {
+									return sl_true;
+								}
+							}
+						}
+					}
+				}
+			}
+			if (key == Keycode::Up || key == Keycode::Down) {
+				return sl_true;
 			}
 		}
 		return sl_false;
@@ -571,7 +612,7 @@ namespace slib
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
 				onMouseWheelEvent(event.get());
-				if (event->isPreventedDefault()) {
+				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
 					return sl_true;
 				}
 			}
@@ -585,12 +626,18 @@ namespace slib
 		if (handle) {
 			if (gevent->in) {
 				onSetFocus();
+			} else {
+				onKillFocus();
 			}
 		}
 		return sl_false;
 	}
 	
-	
+	gint GTK_ViewInstance::getEventMask()
+	{
+		return SLIB_GTK_EVENT_MASK_DEFAULT;
+	}
+
 	Ref<ViewInstance> View::createGenericInstance(ViewInstance* _parent)
 	{
 		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
@@ -668,6 +715,35 @@ namespace slib
 			}
 		}
 		return sl_null;
+	}
+
+	void UIPlatform::getScreenLocationOfWidget(GtkWidget* widget, sl_ui_len* out_x, sl_ui_len* out_y)
+	{
+		sl_ui_len x = 0;
+		sl_ui_len y = 0;
+		GdkWindow* window = widget->window;
+		if (window) {
+			gint ox = 0;
+			gint oy = 0;
+			gdk_window_get_origin(window, &ox, &oy);
+			GtkAllocation allocation = widget->allocation;
+			x = ox + allocation.x;
+			y = oy + allocation.y;
+		}
+		if (out_x) {
+			*out_x = x;
+		}
+		if (out_y) {
+			*out_y = y;
+		}
+	}
+
+	void UIPlatform::setWidgetFont(GtkWidget* handle, const Ref<Font>& font)
+	{
+		PangoFontDescription* desc = GraphicsPlatform::getPangoFont(font);
+		if (desc) {
+			gtk_widget_modify_font(handle, desc);
+		}
 	}
 
 }

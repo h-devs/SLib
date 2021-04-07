@@ -23,11 +23,9 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_VIDEO_CODEC
 #define CHECKHEADER_SLIB_MEDIA_VIDEO_CODEC
 
-#include "definition.h"
-
 #include "video_frame.h"
 
-#include "../core/object.h"
+#include "../core/function.h"
 
 namespace slib
 {
@@ -66,13 +64,17 @@ namespace slib
 		~VideoDecoder();
 		
 	public:
-		virtual sl_bool decode(const void* input, const sl_uint32& inputSize, VideoFrame& output) = 0;
-		
+		virtual sl_bool decode(const void* input, sl_uint32 inputSize, VideoFrame* output, const Function<void(VideoFrame&)>& callback) = 0;
+
+		sl_bool decode(const void* input, sl_uint32 inputSize, VideoFrame& output);
+
+		sl_bool decode(const void* input, sl_uint32 inputSize, const Function<void(VideoFrame&)>& callback);
+
 	protected:
 		sl_uint32 m_nWidth;
 		sl_uint32 m_nHeight;
 		
-	};	
+	};
 }
 
 #endif

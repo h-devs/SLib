@@ -268,7 +268,7 @@ namespace DecodedBitStreamParser
 				result.append(GetMessage(bytes, 1, 77));
 				break;
 		}
-		return DecoderResult(std::move(bytes), TextDecoder::FromLatin1(result)).setEcLevel(std::to_wstring(mode)); // really???
+		return DecoderResult(std::move(bytes), TextDecoder::FromLatin1(result)).setEcLevel(std_to_wstring(mode)); // really???
 	}
 
 

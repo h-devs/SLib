@@ -26,7 +26,6 @@
 #include "slib/core/io.h"
 #include "slib/core/mio.h"
 #include "slib/core/scoped.h"
-
 #include "slib/core/compile_optimize.h"
 
 #define STACK_BUFFER_SIZE 4096
@@ -2149,7 +2148,7 @@ namespace slib
 	{
 		if (shift == 0) {
 			return copyFrom(a);
-		}	
+		}
 		sl_size nba = a.getMostSignificantBits();
 		if (nba <= shift) {
 			setZero();
@@ -2709,7 +2708,7 @@ namespace slib
 	}
 
 	/*
-	 				Miller–Rabin primality test
+	 				Miller-Rabin primality test
 	 
 	 	https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
 	 	https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf
@@ -2777,7 +2776,7 @@ namespace slib
 					if (!(priv::bigint::pow_montgomery(context.contextPowMontgomery, x, a, d, n))) {
 						RETURN_ERROR;
 					}
-					if (!(x.equals((sl_uint32)1)) && !(x.equals(n1))) { // x = 1 or x = n − 1 => probably prime
+					if (!(x.equals((sl_uint32)1)) && !(x.equals(n1))) { // x = 1 or x = n - 1 => probably prime
 						sl_bool flagPrime = sl_false;
 						sl_size k = r;
 						while (--k) {
@@ -2788,7 +2787,7 @@ namespace slib
 								RETURN_ERROR;
 							}
 							if (x.equals((sl_uint32)1)) {
-								// multiple of gcd((a^d mod n) − 1, n)
+								// multiple of gcd((a^d mod n) - 1, n)
 								return sl_false;
 							}
 							if (x.equals(n1)) {
@@ -3019,7 +3018,7 @@ namespace slib
 
 	BigInt BigInt::duplicate() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->duplicate();
 		}
@@ -3028,7 +3027,7 @@ namespace slib
 
 	BigInt BigInt::compact() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->duplicateCompact();
 		}
@@ -3037,7 +3036,7 @@ namespace slib
 
 	sl_size BigInt::getElementsCount() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->length;
 		}
@@ -3046,7 +3045,7 @@ namespace slib
 
 	sl_uint32* BigInt::getElements() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->elements;
 		}
@@ -3055,7 +3054,7 @@ namespace slib
 
 	sl_int32 BigInt::getSign() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->sign;
 		}
@@ -3064,7 +3063,7 @@ namespace slib
 
 	sl_bool BigInt::getBit(sl_uint32 pos) const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->getBit(pos);
 		}
@@ -3073,7 +3072,7 @@ namespace slib
 
 	sl_size BigInt::getMostSignificantElements() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->getMostSignificantElements();
 		}
@@ -3082,7 +3081,7 @@ namespace slib
 
 	sl_size BigInt::getLeastSignificantElements() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->getLeastSignificantElements();
 		}
@@ -3091,7 +3090,7 @@ namespace slib
 
 	sl_size BigInt::getMostSignificantBytes() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->getMostSignificantBytes();
 		}
@@ -3100,7 +3099,7 @@ namespace slib
 
 	sl_size BigInt::getLeastSignificantBytes() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->getLeastSignificantBytes();
 		}
@@ -3109,7 +3108,7 @@ namespace slib
 
 	sl_size BigInt::getMostSignificantBits() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->getMostSignificantBits();
 		}
@@ -3118,7 +3117,7 @@ namespace slib
 
 	sl_size BigInt::getLeastSignificantBits() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->getLeastSignificantBits();
 		}
@@ -3127,7 +3126,7 @@ namespace slib
 
 	sl_bool BigInt::isZero() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->isZero();
 		}
@@ -3136,7 +3135,7 @@ namespace slib
 
 	sl_bool BigInt::isNotZero() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->isNotZero();
 		}
@@ -3145,7 +3144,7 @@ namespace slib
 
 	sl_bool BigInt::getBytesLE(void* buf, sl_size n) const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->getBytesLE(buf, n);
 		}
@@ -3154,7 +3153,7 @@ namespace slib
 
 	Memory BigInt::getBytesLE() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->getBytesLE();
 		}
@@ -3163,7 +3162,7 @@ namespace slib
 
 	sl_bool BigInt::getBytesBE(void* buf, sl_size n) const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->getBytesBE(buf, n);
 		}
@@ -3172,7 +3171,7 @@ namespace slib
 
 	Memory BigInt::getBytesBE() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->getBytesBE();
 		}
@@ -3181,7 +3180,7 @@ namespace slib
 
 	String BigInt::toString(sl_uint32 radix) const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->toString(radix);
 		} else {
@@ -3196,8 +3195,8 @@ namespace slib
 
 	sl_bool BigInt::equals(const BigInt& other) const noexcept
 	{
-		CBigInt* a = ref._ptr;
-		CBigInt* b = other.ref._ptr;
+		CBigInt* a = ref.ptr;
+		CBigInt* b = other.ref.ptr;
 		if (a) {
 			if (b) {
 				return a->equals(*b);
@@ -3215,7 +3214,7 @@ namespace slib
 	
 	sl_bool BigInt::equals(sl_int32 v) const noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			return a->equals(v);
 		} else {
@@ -3225,7 +3224,7 @@ namespace slib
 	
 	sl_bool BigInt::equals(sl_uint32 v) const noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			return a->equals(v);
 		} else {
@@ -3235,7 +3234,7 @@ namespace slib
 	
 	sl_bool BigInt::equals(sl_int64 v) const noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			return a->equals(v);
 		} else {
@@ -3245,7 +3244,7 @@ namespace slib
 	
 	sl_bool BigInt::equals(sl_uint64 v) const noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			return a->equals(v);
 		} else {
@@ -3255,8 +3254,8 @@ namespace slib
 
 	sl_compare_result BigInt::compare(const BigInt& other) const noexcept
 	{
-		CBigInt* a = ref._ptr;
-		CBigInt* b = other.ref._ptr;
+		CBigInt* a = ref.ptr;
+		CBigInt* b = other.ref.ptr;
 		if (a) {
 			if (b) {
 				return a->compare(*b);
@@ -3274,7 +3273,7 @@ namespace slib
 
 	sl_compare_result BigInt::compare(sl_int32 v) const noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			return a->compare(v);
 		} else {
@@ -3290,7 +3289,7 @@ namespace slib
 
 	sl_compare_result BigInt::compare(sl_uint32 v) const noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			return a->compare(v);
 		} else {
@@ -3300,7 +3299,7 @@ namespace slib
 
 	sl_compare_result BigInt::compare(sl_int64 v) const noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			return a->compare(v);
 		} else {
@@ -3316,7 +3315,7 @@ namespace slib
 
 	sl_compare_result BigInt::compare(sl_uint64 v) const noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			return a->compare(v);
 		} else {
@@ -3326,8 +3325,8 @@ namespace slib
 
 	BigInt BigInt::add(const BigInt& A, const BigInt& B) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
-		CBigInt* b = B.ref._ptr;
+		CBigInt* a = A.ref.ptr;
+		CBigInt* b = B.ref.ptr;
 		if (b) {
 			if (a) {
 				CBigInt* r = new CBigInt;
@@ -3348,8 +3347,8 @@ namespace slib
 
 	sl_bool BigInt::add(const BigInt& other) noexcept
 	{
-		CBigInt* a = ref._ptr;
-		CBigInt* b = other.ref._ptr;
+		CBigInt* a = ref.ptr;
+		CBigInt* b = other.ref.ptr;
 		if (b) {
 			if (a) {
 				return a->add(*a, *b);
@@ -3368,7 +3367,7 @@ namespace slib
 
 	BigInt BigInt::add(const BigInt& A, sl_int32 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (v) {
 			if (a) {
 				CBigInt* r = new CBigInt;
@@ -3389,7 +3388,7 @@ namespace slib
 
 	sl_bool BigInt::add(sl_int32 v) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (v) {
 			if (a) {
 				return a->add(*a, v);
@@ -3408,7 +3407,7 @@ namespace slib
 
 	BigInt BigInt::add(const BigInt& A, sl_uint32 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (v) {
 			if (a) {
 				CBigInt* r = new CBigInt;
@@ -3429,7 +3428,7 @@ namespace slib
 
 	sl_bool BigInt::add(sl_uint32 v) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (v) {
 			if (a) {
 				return a->add(*a, v);
@@ -3448,7 +3447,7 @@ namespace slib
 
 	BigInt BigInt::add(const BigInt& A, sl_int64 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (v) {
 			if (a) {
 				CBigInt* r = new CBigInt;
@@ -3469,7 +3468,7 @@ namespace slib
 
 	sl_bool BigInt::add(sl_int64 v) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (v) {
 			if (a) {
 				return a->add(*a, v);
@@ -3488,7 +3487,7 @@ namespace slib
 
 	BigInt BigInt::add(const BigInt& A, sl_uint64 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (v) {
 			if (a) {
 				CBigInt* r = new CBigInt;
@@ -3509,7 +3508,7 @@ namespace slib
 
 	sl_bool BigInt::add(sl_uint64 v) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (v) {
 			if (a) {
 				return a->add(*a, v);
@@ -3533,8 +3532,8 @@ namespace slib
 
 	BigInt BigInt::sub(const BigInt& A, const BigInt& B) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
-		CBigInt* b = B.ref._ptr;
+		CBigInt* a = A.ref.ptr;
+		CBigInt* b = B.ref.ptr;
 		if (b) {
 			if (a) {
 				CBigInt* r = new CBigInt;
@@ -3559,8 +3558,8 @@ namespace slib
 
 	sl_bool BigInt::sub(const BigInt& other) noexcept
 	{
-		CBigInt* a = ref._ptr;
-		CBigInt* b = other.ref._ptr;
+		CBigInt* a = ref.ptr;
+		CBigInt* b = other.ref.ptr;
 		if (b) {
 			if (a) {
 				return a->sub(*a, *b);
@@ -3580,7 +3579,7 @@ namespace slib
 
 	BigInt BigInt::sub(const BigInt& A, sl_int32 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (v) {
 			if (a) {
 				CBigInt* r = new CBigInt;
@@ -3601,7 +3600,7 @@ namespace slib
 
 	sl_bool BigInt::sub(sl_int32 v) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (v) {
 			if (a) {
 				return a->sub(*a, v);
@@ -3620,7 +3619,7 @@ namespace slib
 
 	BigInt BigInt::sub(const BigInt& A, sl_uint32 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (v) {
 			if (a) {
 				CBigInt* r = new CBigInt;
@@ -3641,7 +3640,7 @@ namespace slib
 
 	sl_bool BigInt::sub(sl_uint32 v) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (v) {
 			if (a) {
 				return a->sub(*a, v);
@@ -3661,7 +3660,7 @@ namespace slib
 
 	BigInt BigInt::sub(const BigInt& A, sl_int64 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (v) {
 			if (a) {
 				CBigInt* r = new CBigInt;
@@ -3682,7 +3681,7 @@ namespace slib
 
 	sl_bool BigInt::sub(sl_int64 v) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (v) {
 			if (a) {
 				return a->sub(*a, v);
@@ -3701,7 +3700,7 @@ namespace slib
 
 	BigInt BigInt::sub(const BigInt& A, sl_uint64 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (v) {
 			if (a) {
 				CBigInt* r = new CBigInt;
@@ -3726,7 +3725,7 @@ namespace slib
 
 	sl_bool BigInt::sub(sl_uint64 v) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (v) {
 			if (a) {
 				return a->sub(*a, v);
@@ -3751,7 +3750,7 @@ namespace slib
 
 	void BigInt::makeNegative() const noexcept
 	{
-		CBigInt* o = ref._ptr;
+		CBigInt* o = ref.ptr;
 		if (o) {
 			o->makeNagative();
 		}
@@ -3766,9 +3765,9 @@ namespace slib
 
 	BigInt BigInt::mul(const BigInt& A, const BigInt& B) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (a) {
-			CBigInt* b = B.ref._ptr;
+			CBigInt* b = B.ref.ptr;
 			if (b) {
 				CBigInt* r = new CBigInt;
 				if (r) {
@@ -3784,8 +3783,8 @@ namespace slib
 
 	sl_bool BigInt::mul(const BigInt& other) noexcept
 	{
-		CBigInt* a = ref._ptr;
-		CBigInt* b = other.ref._ptr;
+		CBigInt* a = ref.ptr;
+		CBigInt* b = other.ref.ptr;
 		if (a) {
 			if (b) {
 				return a->mul(*a, *b);
@@ -3801,7 +3800,7 @@ namespace slib
 
 	BigInt BigInt::mul(const BigInt& A, sl_int32 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (a) {
 			if (v) {
 				CBigInt* r = new CBigInt;
@@ -3818,7 +3817,7 @@ namespace slib
 
 	sl_bool BigInt::mul(sl_int32 v) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			if (v) {
 				return a->mul(*a, v);
@@ -3834,7 +3833,7 @@ namespace slib
 
 	BigInt BigInt::mul(const BigInt& A, sl_uint32 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (a) {
 			if (v) {
 				CBigInt* r = new CBigInt;
@@ -3851,7 +3850,7 @@ namespace slib
 
 	sl_bool BigInt::mul(sl_uint32 v) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			if (v) {
 				return a->mul(*a, v);
@@ -3867,7 +3866,7 @@ namespace slib
 
 	BigInt BigInt::mul(const BigInt& A, sl_int64 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (a) {
 			if (v) {
 				CBigInt* r = new CBigInt;
@@ -3884,7 +3883,7 @@ namespace slib
 
 	sl_bool BigInt::mul(sl_int64 v) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			if (v) {
 				return a->mul(*a, v);
@@ -3900,7 +3899,7 @@ namespace slib
 
 	BigInt BigInt::mul(const BigInt& A, sl_uint64 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (a) {
 			if (v) {
 				CBigInt* r = new CBigInt;
@@ -3917,7 +3916,7 @@ namespace slib
 
 	sl_bool BigInt::mul(sl_uint64 v) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			if (v) {
 				return a->mul(*a, v);
@@ -3933,8 +3932,8 @@ namespace slib
 
 	BigInt BigInt::div(const BigInt& A, const BigInt& B, BigInt* remainder, sl_bool flagNonNegativeRemainder) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
-		CBigInt* b = B.ref._ptr;
+		CBigInt* a = A.ref.ptr;
+		CBigInt* b = B.ref.ptr;
 		if (b) {
 			if (a) {
 				CBigInt* q = new CBigInt;
@@ -3965,8 +3964,8 @@ namespace slib
 
 	sl_bool BigInt::div(const BigInt& other, BigInt* remainder, sl_bool flagNonNegativeRemainder) noexcept
 	{
-		CBigInt* a = ref._ptr;
-		CBigInt* b = other.ref._ptr;
+		CBigInt* a = ref.ptr;
+		CBigInt* b = other.ref.ptr;
 		if (b) {
 			if (a) {
 				if (remainder) {
@@ -3995,7 +3994,7 @@ namespace slib
 
 	BigInt BigInt::divInt32(const BigInt& A, sl_int32 v, sl_int32* remainder, sl_bool flagNonNegativeRemainder) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (v) {
 			if (a) {
 				CBigInt* q = new CBigInt;
@@ -4015,7 +4014,7 @@ namespace slib
 
 	sl_bool BigInt::divInt32(sl_int32 v, sl_int32* remainder, sl_bool flagNonNegativeRemainder) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (v) {
 			if (a) {
 				if (CBigInt::divInt32(*a, v, a, remainder, flagNonNegativeRemainder)) {
@@ -4033,7 +4032,7 @@ namespace slib
 
 	BigInt BigInt::divUint32(const BigInt& A, sl_uint32 v, sl_uint32* remainder) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (v) {
 			if (a) {
 				CBigInt* q = new CBigInt;
@@ -4053,7 +4052,7 @@ namespace slib
 
 	sl_bool BigInt::divUint32(sl_uint32 v, sl_uint32* remainder) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (v) {
 			if (a) {
 				if (CBigInt::divUint32(*a, v, a, remainder)) {
@@ -4071,7 +4070,7 @@ namespace slib
 
 	BigInt BigInt::divInt64(const BigInt& A, sl_int64 v, sl_int64* remainder, sl_bool flagNonNegativeRemainder) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (v) {
 			if (a) {
 				CBigInt* q = new CBigInt;
@@ -4091,7 +4090,7 @@ namespace slib
 
 	sl_bool BigInt::divInt64(sl_int64 v, sl_int64* remainder, sl_bool flagNonNegativeRemainder) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (v) {
 			if (a) {
 				if (CBigInt::divInt64(*a, v, a, remainder, flagNonNegativeRemainder)) {
@@ -4109,7 +4108,7 @@ namespace slib
 
 	BigInt BigInt::divUint64(const BigInt& A, sl_uint64 v, sl_uint64* remainder) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (v) {
 			if (a) {
 				CBigInt* q = new CBigInt;
@@ -4129,7 +4128,7 @@ namespace slib
 
 	sl_bool BigInt::divUint64(sl_uint64 v, sl_uint64* remainder) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (v) {
 			if (a) {
 				if (CBigInt::divUint64(*a, v, a, remainder)) {
@@ -4147,8 +4146,8 @@ namespace slib
 
 	BigInt BigInt::mod(const BigInt& A, const BigInt& B) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
-		CBigInt* b = B.ref._ptr;
+		CBigInt* a = A.ref.ptr;
+		CBigInt* b = B.ref.ptr;
 		if (b) {
 			if (a) {
 				CBigInt* r = new CBigInt;
@@ -4165,8 +4164,8 @@ namespace slib
 
 	BigInt BigInt::mod_NonNegativeRemainder(const BigInt& A, const BigInt& B) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
-		CBigInt* b = B.ref._ptr;
+		CBigInt* a = A.ref.ptr;
+		CBigInt* b = B.ref.ptr;
 		if (b) {
 			if (a) {
 				CBigInt* r = new CBigInt;
@@ -4183,8 +4182,8 @@ namespace slib
 	
 	sl_bool BigInt::mod(const BigInt& other) noexcept
 	{
-		CBigInt* a = ref._ptr;
-		CBigInt* b = other.ref._ptr;
+		CBigInt* a = ref.ptr;
+		CBigInt* b = other.ref.ptr;
 		if (b) {
 			if (a) {
 				return CBigInt::div(*a, *b, sl_null, a);
@@ -4197,8 +4196,8 @@ namespace slib
 
 	sl_bool BigInt::mod_NonNegativeRemainder(const BigInt& other) noexcept
 	{
-		CBigInt* a = ref._ptr;
-		CBigInt* b = other.ref._ptr;
+		CBigInt* a = ref.ptr;
+		CBigInt* b = other.ref.ptr;
 		if (b) {
 			if (a) {
 				return CBigInt::div(*a, *b, sl_null, a, sl_true);
@@ -4211,7 +4210,7 @@ namespace slib
 
 	sl_int32 BigInt::modInt32(const BigInt& A, sl_int32 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (a) {
 			sl_int32 r = 0;
 			if (CBigInt::divInt32(*a, v, sl_null, &r)) {
@@ -4223,7 +4222,7 @@ namespace slib
 
 	sl_int32 BigInt::modInt32_NonNegativeRemainder(const BigInt& A, sl_int32 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (a) {
 			sl_int32 r = 0;
 			if (CBigInt::divInt32(*a, v, sl_null, &r, sl_true)) {
@@ -4235,7 +4234,7 @@ namespace slib
 
 	sl_uint32 BigInt::modUint32(const BigInt& A, sl_uint32 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (a) {
 			sl_uint32 r = 0;
 			if (CBigInt::divUint32(*a, v, sl_null, &r)) {
@@ -4247,7 +4246,7 @@ namespace slib
 
 	sl_int64 BigInt::modInt64(const BigInt& A, sl_int64 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (a) {
 			sl_int64 r;
 			if (CBigInt::divInt64(*a, v, sl_null, &r)) {
@@ -4259,7 +4258,7 @@ namespace slib
 
 	sl_int64 BigInt::modInt64_NonNegativeRemainder(const BigInt& A, sl_int64 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (a) {
 			sl_int64 r;
 			if (CBigInt::divInt64(*a, v, sl_null, &r, sl_true)) {
@@ -4271,7 +4270,7 @@ namespace slib
 
 	sl_uint64 BigInt::modUint64(const BigInt& A, sl_uint64 v) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (a) {
 			sl_uint64 r;
 			if (CBigInt::divUint64(*a, v, sl_null, &r)) {
@@ -4283,7 +4282,7 @@ namespace slib
 
 	BigInt BigInt::shiftLeft(const BigInt& A, sl_size n) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (n) {
 			if (a) {
 				CBigInt* r = new CBigInt;
@@ -4302,7 +4301,7 @@ namespace slib
 
 	sl_bool BigInt::shiftLeft(sl_size n) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (n) {
 			if (a) {
 				return a->shiftLeft(*a, n);
@@ -4317,7 +4316,7 @@ namespace slib
 
 	BigInt BigInt::shiftRight(const BigInt& A, sl_size n) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (n) {
 			if (a) {
 				CBigInt* r = new CBigInt;
@@ -4336,7 +4335,7 @@ namespace slib
 
 	sl_bool BigInt::shiftRight(sl_size n) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (n) {
 			if (a) {
 				return a->shiftRight(*a, n);
@@ -4351,7 +4350,7 @@ namespace slib
 	
 	BigInt BigInt::abs() const noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			if (a->sign > 0) {
 				return *this;
@@ -4365,8 +4364,8 @@ namespace slib
 
 	BigInt BigInt::pow(const BigInt& A, const BigInt& E, const BigInt* pM) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
-		CBigInt* e = E.ref._ptr;
+		CBigInt* a = A.ref.ptr;
+		CBigInt* e = E.ref.ptr;
 		if (!e || e->isZero()) {
 			return fromInt32(1);
 		}
@@ -4374,7 +4373,7 @@ namespace slib
 			CBigInt* r = new CBigInt;
 			if (r) {
 				if (pM) {
-					if (r->pow(*a, *e, pM->ref._ptr)) {
+					if (r->pow(*a, *e, pM->ref.ptr)) {
 						return r;
 					}
 				} else {
@@ -4390,8 +4389,8 @@ namespace slib
 
 	sl_bool BigInt::pow(const BigInt& E, const BigInt* pM) noexcept
 	{
-		CBigInt* a = ref._ptr;
-		CBigInt* e = E.ref._ptr;
+		CBigInt* a = ref.ptr;
+		CBigInt* e = E.ref.ptr;
 		if (!e || e->isZero()) {
 			if (a) {
 				if (a->setValue(1)) {
@@ -4407,7 +4406,7 @@ namespace slib
 		} else {
 			if (a) {
 				if (pM) {
-					return a->pow(*a, *e, pM->ref._ptr);
+					return a->pow(*a, *e, pM->ref.ptr);
 				} else {
 					return a->pow(*a, *e, sl_null);
 				}
@@ -4420,7 +4419,7 @@ namespace slib
 
 	BigInt BigInt::pow(const BigInt& A, sl_uint32 E, const BigInt* pM) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
+		CBigInt* a = A.ref.ptr;
 		if (E) {
 			if (E == 1) {
 				return a;
@@ -4429,7 +4428,7 @@ namespace slib
 				CBigInt* r = new CBigInt;
 				if (r) {
 					if (pM) {
-						if (r->pow(*a, E, pM->ref._ptr)) {
+						if (r->pow(*a, E, pM->ref.ptr)) {
 							return r;
 						}
 					} else {
@@ -4458,14 +4457,14 @@ namespace slib
 
 	sl_bool BigInt::pow(sl_uint32 E, const BigInt* pM) noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (E) {
 			if (E == 1) {
 				return sl_true;
 			}
 			if (a) {
 				if (pM) {
-					return a->pow(*a, E, pM->ref._ptr);
+					return a->pow(*a, E, pM->ref.ptr);
 				} else {
 					return a->pow(*a, E, sl_null);
 				}
@@ -4498,9 +4497,9 @@ namespace slib
 
 	BigInt BigInt::pow_montgomery(const BigInt& A, const BigInt& E, const BigInt& M) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
-		CBigInt* e = E.ref._ptr;
-		CBigInt* m = M.ref._ptr;
+		CBigInt* a = A.ref.ptr;
+		CBigInt* e = E.ref.ptr;
+		CBigInt* m = M.ref.ptr;
 		if (!e || e->isZero()) {
 			return fromInt32(1);
 		} else {
@@ -4521,9 +4520,9 @@ namespace slib
 
 	sl_bool BigInt::pow_montgomery(const BigInt& E, const BigInt& M) noexcept
 	{
-		CBigInt* a = ref._ptr;
-		CBigInt* e = E.ref._ptr;
-		CBigInt* m = M.ref._ptr;
+		CBigInt* a = ref.ptr;
+		CBigInt* e = E.ref.ptr;
+		CBigInt* m = M.ref.ptr;
 		if (!e || e->isZero()) {
 			if (a) {
 				if (a->setValue(1)) {
@@ -4550,8 +4549,8 @@ namespace slib
 
 	BigInt BigInt::inverseMod(const BigInt& A, const BigInt& M) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
-		CBigInt* m = M.ref._ptr;
+		CBigInt* a = A.ref.ptr;
+		CBigInt* m = M.ref.ptr;
 		if (a) {
 			if (m) {
 				CBigInt* r = new CBigInt;
@@ -4568,8 +4567,8 @@ namespace slib
 
 	BigInt BigInt::gcd(const BigInt& A, const BigInt& B) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
-		CBigInt* b = B.ref._ptr;
+		CBigInt* a = A.ref.ptr;
+		CBigInt* b = B.ref.ptr;
 		if (a) {
 			if (b) {
 				CBigInt* r = new CBigInt;
@@ -4586,8 +4585,8 @@ namespace slib
 
 	BigInt BigInt::lcm(const BigInt& A, const BigInt& B) noexcept
 	{
-		CBigInt* a = A.ref._ptr;
-		CBigInt* b = B.ref._ptr;
+		CBigInt* a = A.ref.ptr;
+		CBigInt* b = B.ref.ptr;
 		if (a) {
 			if (b) {
 				CBigInt* r = new CBigInt;
@@ -4604,7 +4603,7 @@ namespace slib
 
 	sl_bool BigInt::isProbablePrime(sl_uint32 nChecks, sl_bool* pFlagError) const noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			return a->isProbablePrime(nChecks, pFlagError);
 		}
@@ -4637,7 +4636,7 @@ namespace slib
 	
 	sl_size BigInt::getHashCode() const noexcept
 	{
-		CBigInt* a = ref._ptr;
+		CBigInt* a = ref.ptr;
 		if (a) {
 			return a->getHashCode();
 		}

@@ -22,6 +22,7 @@
 
 #include "slib/network/icmp.h"
 
+#include "slib/network/tcpip.h"
 #include "slib/core/mio.h"
 
 namespace slib

@@ -45,7 +45,7 @@ namespace slib
 		
 		sl_bool checkBigEndianRuntime();
 		
-		static SLIB_INLINE sl_bool isLE()
+		static sl_bool isLE()
 		{
 #if defined(SLIB_ARCH_IS_LITTLE_ENDIAN)
 			return sl_true;
@@ -56,7 +56,7 @@ namespace slib
 #endif
 		}
 
-		static SLIB_INLINE sl_bool isBE()
+		static sl_bool isBE()
 		{
 #if defined(SLIB_ARCH_IS_LITTLE_ENDIAN)
 			return sl_false;
@@ -67,7 +67,7 @@ namespace slib
 #endif
 		}
 
-		static SLIB_INLINE sl_uint16 swap16(sl_uint16 v)
+		static sl_uint16 swap16(sl_uint16 v)
 		{
 			sl_uint8* b = (sl_uint8*)(&v);
 			sl_uint8 t = b[0];
@@ -76,7 +76,7 @@ namespace slib
 			return v;
 		}
 
-		static SLIB_INLINE sl_uint32 swap32(sl_uint32 v)
+		static sl_uint32 swap32(sl_uint32 v)
 		{
 			sl_uint8* b = (sl_uint8*)(&v);
 			for (int i = 0; i < 2; i++) {
@@ -87,7 +87,7 @@ namespace slib
 			return v;
 		}
 
-		static SLIB_INLINE sl_uint64 swap64(sl_uint64 v)
+		static sl_uint64 swap64(sl_uint64 v)
 		{
 			sl_uint8* b = (sl_uint8*)(&v);
 			for (int i = 0; i < 4; i++) {
@@ -99,7 +99,7 @@ namespace slib
 		}
 
 
-		static float SLIB_INLINE swapFloat(float v)
+		static float swapFloat(float v)
 		{
 			sl_uint8* b = (sl_uint8*)(&v);
 			for (int i = 0; i < 2; i++) {
@@ -110,7 +110,7 @@ namespace slib
 			return v;
 		}
 
-		static double SLIB_INLINE swapDouble(double v)
+		static double swapDouble(double v)
 		{
 			sl_uint8* b = (sl_uint8*)(&v);
 			for (int i = 0; i < 4; i++) {
@@ -123,7 +123,7 @@ namespace slib
 
 
 		// swap only if the system is little endian
-		static SLIB_INLINE sl_uint16 swap16LE(sl_uint16 v)
+		static sl_uint16 swap16LE(sl_uint16 v)
 		{
 			if (isLE()) {
 				return swap16(v);
@@ -132,7 +132,7 @@ namespace slib
 			}
 		}
 
-		static SLIB_INLINE sl_uint32 swap32LE(sl_uint32 v)
+		static sl_uint32 swap32LE(sl_uint32 v)
 		{
 			if (isLE()) {
 				return swap32(v);
@@ -141,7 +141,7 @@ namespace slib
 			}
 		}
 
-		static SLIB_INLINE sl_uint64 swap64LE(sl_uint64 v)
+		static sl_uint64 swap64LE(sl_uint64 v)
 		{
 			if (isLE()) {
 				return swap64(v);
@@ -150,7 +150,7 @@ namespace slib
 			}
 		}
 
-		static SLIB_INLINE float swapFloatLE(float v)
+		static float swapFloatLE(float v)
 		{
 			if (isLE()) {
 				return swapFloat(v);
@@ -159,7 +159,7 @@ namespace slib
 			}
 		}
 
-		static SLIB_INLINE double swapDoubleLE(double v)
+		static double swapDoubleLE(double v)
 		{
 			if (isLE()) {
 				return swapDouble(v);
@@ -169,7 +169,7 @@ namespace slib
 		}
 
 		// swap only if the system is big endian
-		static SLIB_INLINE sl_uint16 swap16BE(sl_uint16 v)
+		static sl_uint16 swap16BE(sl_uint16 v)
 		{
 			if (isLE()) {
 				return v;
@@ -178,7 +178,7 @@ namespace slib
 			}
 		}
 
-		static SLIB_INLINE sl_uint32 swap32BE(sl_uint32 v)
+		static sl_uint32 swap32BE(sl_uint32 v)
 		{
 			if (isLE()) {
 				return v;
@@ -187,7 +187,7 @@ namespace slib
 			}
 		}
 
-		static SLIB_INLINE sl_uint64 swap64BE(sl_uint64 v)
+		static sl_uint64 swap64BE(sl_uint64 v)
 		{
 			if (isLE()) {
 				return v;
@@ -196,7 +196,7 @@ namespace slib
 			}
 		}
 
-		static SLIB_INLINE float swapFloatBE(float v)
+		static float swapFloatBE(float v)
 		{
 			if (isLE()) {
 				return v;
@@ -205,7 +205,7 @@ namespace slib
 			}
 		}
 
-		static SLIB_INLINE double swapDoubleBE(double v)
+		static double swapDoubleBE(double v)
 		{
 			if (isLE()) {
 				return v;

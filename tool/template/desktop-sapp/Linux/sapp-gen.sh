@@ -1,0 +1,1 @@
+sapp gen $(dirname $0)/../src/sapp

@@ -23,22 +23,27 @@ echo New SLib App (Desktop): %APP_NAME%
 
 mkdir "%CURRENT_PATH%\src"
 xcopy /h /e "%SLIB_PATH%\tool\template\desktop-sapp\src" "%CURRENT_PATH%\src\"
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%CURRENT_PATH%\src\cpp\app.h" "%CURRENT_PATH%\src\cpp\app.h" SLIB_TEMPLATE_APP_NAME %APP_NAME%
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%CURRENT_PATH%\src\cpp\app.cpp" "%CURRENT_PATH%\src\cpp\app.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%CURRENT_PATH%\src\cpp\app.h" "%CURRENT_PATH%\src\cpp\app.h" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%CURRENT_PATH%\src\cpp\app.cpp" "%CURRENT_PATH%\src\cpp\app.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%
 rename "%CURRENT_PATH%\src\template_gen" gen
 
 mkdir "%CURRENT_PATH%\macOS"
 xcopy /h /e "%SLIB_PATH%\tool\template\desktop-sapp\macOS" "%CURRENT_PATH%\macOS\"
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%CURRENT_PATH%\macOS\Project.xcodeproj\project.pbxproj" "%CURRENT_PATH%\macOS\Project.xcodeproj\project.pbxproj" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%CURRENT_PATH%\macOS\Project.xcodeproj\project.pbxproj" "%CURRENT_PATH%\macOS\Project.xcodeproj\project.pbxproj" SLIB_TEMPLATE_APP_NAME %APP_NAME%
 rename "%CURRENT_PATH%\macOS\Project.xcodeproj" "%APP_NAME%.xcodeproj"
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%CURRENT_PATH%\macOS\project\Base.lproj\MainMenu.xib" "%CURRENT_PATH%\macOS\project\Base.lproj\MainMenu.xib" SLIB_TEMPLATE_APP_NAME %APP_NAME%
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%CURRENT_PATH%\macOS\project\main.mm" "%CURRENT_PATH%\macOS\project\main.mm" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%CURRENT_PATH%\macOS\project\Base.lproj\MainMenu.xib" "%CURRENT_PATH%\macOS\project\Base.lproj\MainMenu.xib" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%CURRENT_PATH%\macOS\project\main.mm" "%CURRENT_PATH%\macOS\project\main.mm" SLIB_TEMPLATE_APP_NAME %APP_NAME%
 
 mkdir "%CURRENT_PATH%\Win32"
 xcopy /h /e "%SLIB_PATH%\tool\template\desktop-sapp\Win32" "%CURRENT_PATH%\Win32\"
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%CURRENT_PATH%\Win32\SLIB_TEMPLATE_APP_NAME.sln" "%CURRENT_PATH%\Win32\SLIB_TEMPLATE_APP_NAME.sln" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%CURRENT_PATH%\Win32\SLIB_TEMPLATE_APP_NAME.sln" "%CURRENT_PATH%\Win32\SLIB_TEMPLATE_APP_NAME.sln" SLIB_TEMPLATE_APP_NAME %APP_NAME%
 rename "%CURRENT_PATH%\Win32\SLIB_TEMPLATE_APP_NAME.sln" "%APP_NAME%.sln"
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%CURRENT_PATH%\Win32\SLIB_TEMPLATE_APP_NAME.vcxproj" "%CURRENT_PATH%\Win32\SLIB_TEMPLATE_APP_NAME.vcxproj" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%CURRENT_PATH%\Win32\SLIB_TEMPLATE_APP_NAME.vcxproj" "%CURRENT_PATH%\Win32\SLIB_TEMPLATE_APP_NAME.vcxproj" SLIB_TEMPLATE_APP_NAME %APP_NAME%
 rename "%CURRENT_PATH%\Win32\SLIB_TEMPLATE_APP_NAME.vcxproj" "%APP_NAME%.vcxproj"
 rename "%CURRENT_PATH%\Win32\SLIB_TEMPLATE_APP_NAME.vcxproj.filters" %APP_NAME%.vcxproj.filters"
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%CURRENT_PATH%\Win32\main.cpp" "%CURRENT_PATH%\Win32\main.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%CURRENT_PATH%\Win32\main.cpp" "%CURRENT_PATH%\Win32\main.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+
+mkdir "%CURRENT_PATH%\Linux"
+xcopy /h /e "%SLIB_PATH%\tool\template\desktop-sapp\Linux" "%CURRENT_PATH%\Linux\"
+ReplaceTextInFile.exe "%CURRENT_PATH%\Linux\CMakeLists.txt" "%CURRENT_PATH%\Linux\CMakeLists.txt" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%CURRENT_PATH%\Linux\main.cpp" "%CURRENT_PATH%\Linux\main.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%

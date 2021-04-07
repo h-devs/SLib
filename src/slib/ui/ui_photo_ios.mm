@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_IOS)
 
@@ -87,7 +87,7 @@ namespace slib
 							flagSuccess = sl_true;
 						}
 					}
-				}		
+				}
 			};
 			
 			static void RunTakePhoto(TakePhoto& takePhoto, SLIBTakePhotoController* controller)

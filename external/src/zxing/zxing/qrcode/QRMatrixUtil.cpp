@@ -345,7 +345,7 @@ static void MakeTypeInfoBits(ErrorCorrectionLevel ecLevel, int maskPattern, BitA
 	bits.bitwiseXOR(maskBits);
 
 	if (bits.size() != 15) {  // Just in case.
-		throw std::logic_error("Should not happen but we got: " + std::to_string(bits.size()));
+		throw std::logic_error("Should not happen but we got: " + std_to_string(bits.size()));
 	}
 }
 
@@ -389,7 +389,7 @@ static void MakeVersionInfoBits(const Version& version, BitArray& bits)
 	bits.appendBits(bchCode, 12);
 
 	if (bits.size() != 18) {  // Just in case.
-		throw std::logic_error("Should not happen but we got: " + std::to_string(bits.size()));
+		throw std::logic_error("Should not happen but we got: " + std_to_string(bits.size()));
 	}
 }
 
@@ -455,7 +455,7 @@ static bool GetDataMaskBit(int maskPattern, int x, int y)
 		intermediate = ((temp % 3) + ((y + x) & 0x1)) & 0x1;
 		break;
 	default:
-		throw std::invalid_argument("Invalid mask pattern: " + std::to_string(maskPattern));
+		throw std::invalid_argument("Invalid mask pattern: " + std_to_string(maskPattern));
 	}
 	return intermediate == 0;
 }
@@ -507,7 +507,7 @@ static void EmbedDataBits(const BitArray& dataBits, int maskPattern, ByteMatrix&
 	}
 	// All bits should be consumed.
 	if (bitIndex != dataBits.size()) {
-		throw std::invalid_argument("Not all bits consumed: " + std::to_string(bitIndex) + '/' + std::to_string(dataBits.size()));
+		throw std::invalid_argument("Not all bits consumed: " + std_to_string(bitIndex) + '/' + std_to_string(dataBits.size()));
 	}
 }
 

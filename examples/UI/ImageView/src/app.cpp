@@ -22,8 +22,6 @@
 
 #include "app.h"
 
-SLIB_DEFINE_APPLICATION(ExampleImageViewApp, MobileApp)
-
 ExampleImageViewApp::ExampleImageViewApp()
 {
 }
@@ -41,7 +39,7 @@ void ExampleImageViewApp::onStart()
 	getContentView()->setBackgroundColor(Color::White);
 #endif
 	
-	Ref<LinearView> linear1 = new LinearView;
+	Ref<LinearLayout> linear1 = new LinearLayout;
 	linear1->setWidthFilling();
 	linear1->setHeightFilling();
 	
@@ -52,7 +50,7 @@ void ExampleImageViewApp::onStart()
 	image->setSource(Image::loadFromAsset("images/slib.png"));
 	linear1->addChild(image);
 	
-	Ref<HorizontalLinearView> linear2 = new HorizontalLinearView;
+	Ref<HorizontalLinearLayout> linear2 = new HorizontalLinearLayout;
 	linear2->setWidthWrapping();
 	linear2->setHeightWrapping();
 	linear2->setCenterHorizontal();
@@ -94,7 +92,7 @@ void ExampleImageViewApp::onStart()
 	}
 	linear1->addChild(linear2);
 
-	Ref<HorizontalLinearView> linear3 = new HorizontalLinearView;
+	Ref<HorizontalLinearLayout> linear3 = new HorizontalLinearLayout;
 	linear3->setWidthWrapping();
 	linear3->setHeightWrapping();
 	linear3->setCenterHorizontal();

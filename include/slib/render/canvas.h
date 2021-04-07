@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_RENDER_CANVAS
 #define CHECKHEADER_SLIB_RENDER_CANVAS
 
-#include "definition.h"
-
 #include "engine.h"
 
 #include "../graphics/canvas.h"
@@ -61,6 +59,7 @@ namespace slib
 	class RenderCanvasState : public Referable
 	{
 	public:
+		RenderEngineType engineType;
 		Matrix3 matrix;
 		sl_bool flagClipRect;
 		Rectangle clipRect;

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_SCREEN_CAPTURE
 #define CHECKHEADER_SLIB_UI_SCREEN_CAPTURE
 
-#include "definition.h"
-
 #include "../graphics/image.h"
 
 namespace slib

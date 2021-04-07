@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_MUTEX
 #define CHECKHEADER_SLIB_CORE_MUTEX
 
-#include "definition.h"
-
 #include "spin_lock.h"
 
 namespace slib

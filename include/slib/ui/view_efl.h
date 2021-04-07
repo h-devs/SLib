@@ -23,13 +23,13 @@
 #ifndef CHECKHEADER_SLIB_UI_VIEW_EFL
 #define CHECKHEADER_SLIB_UI_VIEW_EFL
 
-#include "slib/core/definition.h"
+#include "../core/definition.h"
 
 #if defined(SLIB_UI_IS_EFL)
 
-#include "slib/ui/view.h"
+#include "view.h"
 
-#include "slib/ui/platform.h"
+#include "platform.h"
 
 namespace slib
 {

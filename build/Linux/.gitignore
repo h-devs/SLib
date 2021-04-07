@@ -1,5 +1,6 @@
 build
 .kdev4
+*.user
 
 build-debug
 build-release

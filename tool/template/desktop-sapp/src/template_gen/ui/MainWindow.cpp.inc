@@ -11,20 +11,12 @@ namespace sapp
 			this->setClientHeight(300);
 			this->setCenterScreen(sl_true);
 
-			_linear1 = new slib::LinearView;
+			_linear1 = new slib::LinearLayout;
 			_linear1->setWidthWrapping(slib::UIUpdateMode::Init);
 			_linear1->setHeightWrapping(slib::UIUpdateMode::Init);
 			_linear1->setCenterHorizontal(slib::UIUpdateMode::Init);
 			_linear1->setCenterVertical(slib::UIUpdateMode::Init);
 			m_contentView->addChild(_linear1, slib::UIUpdateMode::Init);
-
-			_image1 = new slib::ImageView;
-			_image1->setWidth(150, slib::UIUpdateMode::Init);
-			_image1->setAlignParentLeft(slib::UIUpdateMode::Init);
-			_image1->setAutoAspectRatio(sl_true);
-			_image1->setAspectRatioMode(slib::AspectRatioMode::AdjustHeight, slib::UIUpdateMode::Init);
-			_image1->setSource(drawable::slib_icon::get(), slib::UIUpdateMode::Init);
-			_linear1->addChild(_image1, slib::UIUpdateMode::Init);
 
 			_label1 = new slib::LabelView;
 			_label1->setWidthWrapping(slib::UIUpdateMode::Init);

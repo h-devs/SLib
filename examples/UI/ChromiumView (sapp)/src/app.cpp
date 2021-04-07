@@ -24,8 +24,6 @@
 
 #include "main_window.h"
 
-SLIB_DEFINE_APPLICATION(ExampleChromiumViewApp, UIApp)
-
 ExampleChromiumViewApp::ExampleChromiumViewApp()
 {
 }

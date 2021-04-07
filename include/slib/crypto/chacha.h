@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_CHACHA
 #define CHECKHEADER_SLIB_CRYPTO_CHACHA
 
-#include "definition.h"
-
 #include "poly1305.h"
 
 /*
@@ -45,12 +43,29 @@ namespace slib
 	public:
 		ChaCha20_Core();
 		
+		ChaCha20_Core(const ChaCha20_Core& other);
+
 		~ChaCha20_Core();
 		
 	public:
-		// Recommended Key Size = 32 bytes (256 bits), lenKey = 16, 32 bytes
-		sl_bool setKey(const void* key, sl_uint32 lenKey);
-		
+		ChaCha20_Core & operator=(const ChaCha20_Core& other);
+
+	public:
+		// size: 16, 32, 48
+		sl_bool setKey(const void* key, sl_uint32 size);
+
+		// key: 32 bytes
+		void setKey(const void* key);
+
+		// key: 16 bytes
+		void setKey16(const void* key);
+
+		// key: 32 bytes
+		void setKey32(const void* key);
+
+		// key: 48 bytes
+		void setKey48(const void* key);
+
 		// output: 64 bytes
 		void generateBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, void* output) const;
 		
@@ -61,7 +76,12 @@ namespace slib
 		void decryptBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, const void* input, void* output) const;
 
 	protected:
-		sl_uint32 m_input[12];
+		void _copy(const ChaCha20_Core& other);
+
+	protected:
+		sl_uint32* m_constants;
+		sl_uint32 m_key[8];
+		sl_uint32 m_arrConstants[4];
 
 	};
 	
@@ -156,6 +176,43 @@ namespace slib
 		sl_size m_lenAAD;
 		sl_size m_lenInput;
 		
+	};
+
+	class SLIB_EXPORT ChaCha20FileEncryptor
+	{
+	public:
+		enum {
+			HeaderSize = 128
+		};
+
+	public:
+		ChaCha20FileEncryptor();
+
+		~ChaCha20FileEncryptor();
+
+	public:
+		// outHeader: `HeaderSize` bytes
+		void create(void* outHeader, const void* password, sl_uint32 lenPassword);
+		void create(void* outHeader, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCount);
+
+		// header: `HeaderSize` bytes
+		sl_bool open(const void* header, const void* password, sl_uint32 lenPassword);
+		sl_bool open(const void* header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCountLimit);
+
+		// header: `HeaderSize` bytes
+		static sl_bool checkPassword(const void* header, const void* password, sl_uint32 lenPassword);
+		static sl_bool checkPassword(const void* header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCountLimit);
+
+		// header: `HeaderSize` bytes
+		static sl_bool changePassword(void* header, const void* oldPassword, sl_uint32 lenOldPassword, const void* newPassword, sl_uint32 lenNewPassword);
+		static sl_bool changePassword(void* header, const void* oldPassword, sl_uint32 lenOldPassword, const void* newPassword, sl_uint32 lenNewPassword, sl_uint32 iterationBitsCountLimit);
+
+		void encrypt(sl_uint64 offset, const void* src, void* dst, sl_size size);
+		
+	protected:
+		ChaCha20_Core m_encrypt;
+		sl_uint32 m_iv[4];
+
 	};
 
 }

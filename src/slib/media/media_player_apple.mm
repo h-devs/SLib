@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/media/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_APPLE)
 
@@ -39,7 +39,7 @@ namespace slib
 		namespace media_player
 		{
 			class MediaPlayerImpl;
-		}	
+		}
 	}
 }
 

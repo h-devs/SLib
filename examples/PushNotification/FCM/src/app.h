@@ -28,7 +28,7 @@ using namespace slib;
 
 class ExampleFCMApp : public MobileApp
 {
-	SLIB_DECLARE_APPLICATION(ExampleFCMApp)
+	SLIB_APPLICATION(ExampleFCMApp)
 	
 public:
 	ExampleFCMApp();

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_DRAWER
 #define CHECKHEADER_SLIB_UI_DRAWER
 
-#include "definition.h"
-
 #include "view.h"
 #include "motion_tracker.h"
 

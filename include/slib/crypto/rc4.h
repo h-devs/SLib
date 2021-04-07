@@ -32,7 +32,7 @@
  https://en.wikipedia.org/wiki/RC4
  
  Stream Cipher
- 	Key Size: 40–2048 bits (5-256 bytes)
+ 	Key Size: 40-2048 bits (5-256 bytes)
  	State Size: 2064 bits (258 bytes)
 */
 

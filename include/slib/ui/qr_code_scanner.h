@@ -23,11 +23,7 @@
 #ifndef CHECKHEADER_SLIB_UI_QR_CODE_SCANNER
 #define CHECKHEADER_SLIB_UI_QR_CODE_SCANNER
 
-#include "definition.h"
-
 #include "camera_view.h"
-
-#include "../core/timer.h"
 
 namespace slib
 {
@@ -40,7 +36,7 @@ namespace slib
 		QRCodeScanner();
 		
 		~QRCodeScanner();
-
+		
 	public:
 		using CameraView::start;
 		

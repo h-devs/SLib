@@ -22,9 +22,10 @@
 
 #include "slib/media/codec_vpx.h"
 
-#include "slib/core/log.h"
-#include "slib/core/io.h"
+#include "slib/core/memory_reader.h"
+#include "slib/core/memory_output.h"
 #include "slib/core/scoped.h"
+#include "slib/core/log.h"
 
 #include "vpx/vp8cx.h"
 #include "vpx/vp8dx.h"
@@ -57,6 +58,8 @@ namespace slib
 		width = height = 192;
 	}
 
+
+	SLIB_DEFINE_OBJECT(VpxEncoder, VideoEncoder)
 
 	VpxEncoder::VpxEncoder()
 	{
@@ -190,8 +193,8 @@ namespace slib
 					if (m_nWidth == input.image.width && m_nHeight == input.image.height) {
 						
 						BitmapData dst;
-						dst.width = m_codec_image->w;
-						dst.height = m_codec_image->h;
+						dst.width = m_codec_image->d_w;
+						dst.height = m_codec_image->d_h;
 						dst.format = BitmapFormat::YUV_I420;
 						dst.data = m_codec_image->planes[0];
 						dst.pitch = m_codec_image->stride[0];
@@ -210,7 +213,7 @@ namespace slib
 						if (res == VPX_CODEC_OK) {
 							vpx_codec_iter_t iter = sl_null;
 							const vpx_codec_cx_pkt_t *pkt = sl_null;
-							MemoryWriter encodeWriter;
+							MemoryOutput encodeWriter;
 
 							while ((pkt = vpx_codec_get_cx_data(m_codec, &iter)) != sl_null) {
 								if (pkt->kind == VPX_CODEC_CX_FRAME_PKT) {
@@ -247,6 +250,9 @@ namespace slib
 
 		}
 	}
+
+
+	SLIB_DEFINE_OBJECT(VpxDecoder, VideoDecoder)
 
 	VpxDecoder::VpxDecoder()
 	{
@@ -302,7 +308,7 @@ namespace slib
 					if (codec_interface) {
 						vpx_codec_ctx_t* codec = new vpx_codec_ctx_t;
 						if (codec) {
-							if (!vpx_codec_dec_init(codec, codec_interface, NULL, 0)) {
+							if (!vpx_codec_dec_init(codec, codec_interface, sl_null, 0)) {
 								Ref<DecoderImpl> ret = new DecoderImpl;
 								if (ret.isNotNull()) {
 									ret->m_nWidth = param.width;
@@ -321,52 +327,62 @@ namespace slib
 					return sl_null;
 				}
 
-				SLIB_INLINE sl_int32 vpx_img_plane_width(const vpx_image_t *img, sl_int32 plane)
-				{
-					if (plane > 0 && img->x_chroma_shift > 0) {
-						return (img->d_w + 1) >> img->x_chroma_shift;
-					} else {
-						return img->d_w;
-					}
-				}
-
-				SLIB_INLINE sl_int32 vpx_img_plane_height(const vpx_image_t *img, sl_int32 plane)
-				{
-					if (plane > 0 && img->y_chroma_shift > 0) {
-						return (img->d_h + 1) >> img->y_chroma_shift;
-					} else {
-						return img->d_h;
-					}
-				}
-
-				sl_bool decode(const void* input, const sl_uint32& inputSize , VideoFrame& output)
+				sl_bool decode(const void* input, sl_uint32 inputSize , VideoFrame* output, const Function<void(VideoFrame&)>& callback) override
 				{
 					MemoryReader reader(input, inputSize);
-					sl_int64 pts = reader.readInt64();
-					SLIB_UNUSED(pts);
-					sl_int64 size = reader.readInt64();
 
-					if (!vpx_codec_decode(m_codec, (sl_uint8*)input + 16, (unsigned int)size, NULL, 0)) {
-						
-						vpx_codec_iter_t iter = NULL;
-						
-						vpx_image_t* image;
+					VideoFrame src;
+					sl_bool flagFoundFrame = sl_false;
 
-						while ((image = vpx_codec_get_frame(m_codec, &iter)) != NULL) {
-							
-							BitmapData src;
-							src.width = image->w;
-							src.height = image->h;
-							src.format = BitmapFormat::YUV_I420;
-							src.data = image->planes[0];
-							src.pitch = image->stride[0];
-							src.data1 = image->planes[1];
-							src.pitch1 = image->stride[1];
-							src.data2 = image->planes[2];
-							src.pitch2 = image->stride[2];
-							
-							output.image.copyPixelsFrom(src);				
+					for (;;) {
+
+						sl_int64 pts, size;
+						if (!(reader.readInt64(&pts))) {
+							break;
 						}
+						if (!(reader.readInt64(&size))) {
+							break;
+						}
+						sl_size offset = reader.getPosition();
+						if (offset + size > inputSize) {
+							break;
+						}
+						
+						vpx_codec_err_t res = vpx_codec_decode(m_codec, (sl_uint8*)input + offset, (unsigned int)size, sl_null, 0);
+
+						if (res == VPX_CODEC_OK) {
+							sl_bool bError = sl_false;
+							vpx_codec_iter_t iter = sl_null;
+							for (;;) {
+								vpx_image_t* image = vpx_codec_get_frame(m_codec, &iter);
+								if (!image) {
+									bError = sl_true;
+									break;
+								}
+								flagFoundFrame = sl_true;
+								src.image.width = image->d_w;
+								src.image.height = image->d_h;
+								src.image.format = BitmapFormat::YUV_I420;
+								src.image.data = image->planes[0];
+								src.image.pitch = image->stride[0];
+								src.image.data1 = image->planes[1];
+								src.image.pitch1 = image->stride[1];
+								src.image.data2 = image->planes[2];
+								src.image.pitch2 = image->stride[2];
+								callback(src);
+							}
+							if (bError) {
+								break;
+							}
+						} else {
+							break;
+						}
+					}
+					if (flagFoundFrame) {
+						if (output) {
+							output->image.copyPixelsFrom(src.image);
+						}
+						return sl_true;
 					}
 					return sl_false;
 				}

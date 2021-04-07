@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_ANDROID)
 
@@ -62,16 +62,14 @@ namespace slib
 			class SelectViewHelper : public SelectView
 			{
 			public:
-				void copyItems(jobject jview)
+				void refreshItems(jobject jview)
 				{
-					ListLocker<String> titles(m_titles);
-					sl_uint32 n = (sl_uint32)(titles.count);
+					sl_uint32 n = (sl_uint32)(getItemsCount());
 					JniLocal<jobjectArray> arr = Jni::newStringArray(n);
 					if (arr.isNotNull()) {
-						for (sl_uint32 i = 0; i < titles.count; i++) {
-							Jni::setStringArrayElement(arr, i, titles[i].getNotNull());
+						for (sl_uint32 i = 0; i < n; i++) {
+							Jni::setStringArrayElement(arr, i, getItemTitle(i));
 						}
-						titles.unlock();
 						JSelectView::applyList.call(sl_null, jview, arr.get());
 						Select(jview, m_indexSelected);
 					}
@@ -84,7 +82,20 @@ namespace slib
 				SLIB_DECLARE_OBJECT
 
 			public:
-				void select(SelectView* view, sl_uint32 index) override
+				void initialize(View* _view) override
+				{
+					SelectView* view = (SelectView*)_view;
+					jobject jhandle = getHandle();
+
+					JSelectView::setAlignment.callBoolean(sl_null, jhandle, view->getGravity().value);
+					JSelectView::setTextColor.callBoolean(sl_null, jhandle, view->getTextColor().getARGB());
+					JSelectView::setBorder.callBoolean(sl_null, jhandle, view->isBorder());
+					JSelectView::setBackgroundColor.callBoolean(sl_null, jhandle, view->getBackgroundColor().getARGB());
+					setFont(view, view->getFont());
+					refreshItems(view);
+				}
+				
+				void selectItem(SelectView* view, sl_uint32 index) override
 				{
 					jobject handle = m_handle.get();
 					if (handle) {
@@ -92,22 +103,12 @@ namespace slib
 					}
 				}
 
-				void refreshItemsCount(SelectView* view) override
-				{
-					refreshItemsContent(view);
-				}
-
-				void refreshItemsContent(SelectView* view) override
+				void refreshItems(SelectView* view) override
 				{
 					jobject handle = m_handle.get();
 					if (handle) {
-						(static_cast<SelectViewHelper*>(view))->copyItems(handle);
+						(static_cast<SelectViewHelper*>(view))->refreshItems(handle);
 					}
-				}
-
-				void setItemTitle(SelectView* view, sl_uint32 index, const String& title) override
-				{
-					refreshItemsContent(view);
 				}
 
 				void setGravity(SelectView* view, const Alignment& align) override
@@ -173,21 +174,8 @@ namespace slib
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* _parent)
 	{
 		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
-		if (parent) {
-			JniLocal<jobject> handle = JSelectView::create.callObject(sl_null, parent->getContext());
-			Ref<SelectViewInstance> ret = Android_ViewInstance::create<SelectViewInstance>(this, parent, handle.get());
-			if (ret.isNotNull()) {
-				jobject jhandle = ret->getHandle();
-				JSelectView::setAlignment.callBoolean(sl_null, jhandle, m_gravity.value);
-				JSelectView::setTextColor.callBoolean(sl_null, jhandle, m_textColor.getARGB());
-				JSelectView::setBorder.callBoolean(sl_null, jhandle, isBorder());
-				JSelectView::setBackgroundColor.callBoolean(sl_null, jhandle, getBackgroundColor().getARGB());
-				ret->setFont(this, getFont());
-				ret->refreshItemsContent(this);
-				return ret;
-			}
-		}
-		return sl_null;
+		JniLocal<jobject> handle = JSelectView::create.callObject(sl_null, parent->getContext());
+		return Android_ViewInstance::create<SelectViewInstance>(this, parent, handle.get());
 	}
 
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()

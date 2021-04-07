@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +24,14 @@
 
 #include "slib/core/string.h"
 
+#include "slib/core/string_cast.h"
 #include "slib/core/string_buffer.h"
+#include "slib/core/memory_traits.h"
 #include "slib/core/parse.h"
 #include "slib/core/math.h"
-#include "slib/core/time.h"
-#include "slib/core/variant.h"
 #include "slib/core/json.h"
-#include "slib/core/cast.h"
+#include "slib/core/locale.h"
+#include "slib/core/time_zone.h"
 
 namespace slib
 {
@@ -39,37 +40,6 @@ namespace slib
 	{
 		namespace string
 		{
-		
-			SLIB_INLINE static const void* FindMemory(const sl_char8* mem, sl_char8 pattern, sl_size count) noexcept
-			{
-				return Base::findMemory(mem, pattern, count);
-			}
-			
-			SLIB_INLINE static const void* FindMemory(const sl_char16* mem, sl_char16 pattern, sl_size count) noexcept
-			{
-				return Base::findMemory2((sl_uint16*)mem, pattern, count);
-			}
-		
-			SLIB_INLINE static const void* FindMemoryReverse(const sl_char8* mem, sl_char8 pattern, sl_size count) noexcept
-			{
-				return Base::findMemoryReverse(mem, pattern, count);
-			}
-		
-			SLIB_INLINE static const void* FindMemoryReverse(const sl_char16* mem, sl_char16 pattern, sl_size count) noexcept
-			{
-				return Base::findMemoryReverse2((sl_uint16*)mem, pattern, count);
-			}
-			
-			SLIB_INLINE static sl_compare_result CompareMemory(const sl_char8* mem1, const sl_char8* mem2, sl_size count) noexcept
-			{
-				return Base::compareMemory((sl_uint8*)mem1, (sl_uint8*)mem2, count);
-			}
-			
-			SLIB_INLINE static sl_compare_result CompareMemory(const sl_char16* mem1, const sl_char16* mem2, sl_size count) noexcept
-			{
-				return Base::compareMemory2((sl_uint16*)mem1, (sl_uint16*)mem2, count);
-			}
-			
 		
 			template <class CT>
 			SLIB_INLINE static sl_size CalcHash(const CT* buf, sl_size len) noexcept
@@ -453,7 +423,7 @@ namespace slib
 					if (len1 == 0) {
 						return sl_true;
 					}
-					return Base::equalsMemory(str1, str2, len1);
+					return MemoryTraits<sl_char8>::equals(str1, str2, len1);
 				} else {
 					return sl_false;
 				}
@@ -465,7 +435,7 @@ namespace slib
 					if (len1 == 0) {
 						return sl_true;
 					}
-					return Base::equalsMemory2((sl_uint16*)str1, (sl_uint16*)str2, len1);
+					return MemoryTraits<sl_char16>::equals(str1, str2, len1);
 				} else {
 					return sl_false;
 				}
@@ -683,7 +653,7 @@ namespace slib
 				}
 			}
 		}
-		return Base::equalsMemory(s1, s2, len);
+		return MemoryTraits<sl_char8>::equals(s1, s2, len);
 	}
 
 	sl_bool String::equals(const AtomicString& other) const noexcept
@@ -714,7 +684,7 @@ namespace slib
 				}
 			}
 		}
-		return Base::equalsMemory2((sl_uint16*)s1, (sl_uint16*)s2, len);
+		return MemoryTraits<sl_char16>::equals(s1, s2, len);
 	}
 
 	sl_bool String16::equals(const AtomicString16& other) const noexcept
@@ -1004,6 +974,9 @@ namespace slib
 
 	String String::substring(sl_reg start, sl_reg end) const noexcept
 	{
+		if (isNull()) {
+			return sl_null;
+		}
 		sl_reg count = getLength();
 		if (start < 0) {
 			start = 0;
@@ -1012,7 +985,7 @@ namespace slib
 			end = count;
 		}
 		if (start >= end) {
-			return sl_null;
+			return getEmpty();
 		}
 		if (start == 0 && end == count) {
 			return *this;
@@ -1022,6 +995,9 @@ namespace slib
 
 	String16 String16::substring(sl_reg start, sl_reg end) const noexcept
 	{
+		if (isNull()) {
+			return sl_null;
+		}
 		sl_reg count = getLength();
 		if (start < 0) {
 			start = 0;
@@ -1030,7 +1006,7 @@ namespace slib
 			end = count;
 		}
 		if (start >= end) {
-			return sl_null;
+			return getEmpty();
 		}
 		if (start == 0 && end == count) {
 			return *this;
@@ -1052,6 +1028,9 @@ namespace slib
 
 	StringView StringView::substring(sl_reg start, sl_reg end) const noexcept
 	{
+		if (isNull()) {
+			return sl_null;
+		}
 		sl_reg count = getLength();
 		if (start < 0) {
 			start = 0;
@@ -1060,13 +1039,16 @@ namespace slib
 			end = count;
 		}
 		if (start >= end) {
-			return sl_null;
+			return getEmpty();
 		}
 		return StringView(getData() + start, end - start);
 	}
 
 	StringView16 StringView16::substring(sl_reg start, sl_reg end) const noexcept
 	{
+		if (isNull()) {
+			return sl_null;
+		}
 		sl_reg count = getLength();
 		if (start < 0) {
 			start = 0;
@@ -1075,7 +1057,7 @@ namespace slib
 			end = count;
 		}
 		if (start >= end) {
-			return sl_null;
+			return getEmpty();
 		}
 		return StringView16(getData() + start, end - start);
 	}
@@ -1187,7 +1169,7 @@ namespace slib
 			template <class CT>
 			SLIB_INLINE static sl_reg IndexOfChar(const CT* str, sl_size len, CT ch, sl_reg _start) noexcept
 			{
-				if (len == 0) {
+				if (!len) {
 					return -1;
 				}
 				sl_size start;
@@ -1199,11 +1181,11 @@ namespace slib
 						return -1;
 					}
 				}
-				CT* pt = (CT*)(FindMemory(str + start, ch, len - start));
-				if (pt == sl_null) {
-					return -1;
-				} else {
+				CT* pt = MemoryTraits<CT>::find(str + start, len - start, ch);
+				if (pt) {
 					return (sl_reg)(pt - str);
+				} else {
+					return -1;
 				}
 			}
 		}
@@ -1249,14 +1231,11 @@ namespace slib
 			template <class CT>
 			SLIB_INLINE static sl_reg IndexOf(const CT* buf, sl_size count, const CT* bufPat, sl_size countPat, sl_reg _start) noexcept
 			{
-				if (countPat == 0) {
-					return 0;
-				}
-				if (countPat == 1) {
-					return IndexOfChar(buf, count, bufPat[0], _start);
-				}
 				if (count < countPat) {
 					return -1;
+				}
+				if (!countPat) {
+					return 0;
 				}
 				sl_size start;
 				if (_start < 0) {
@@ -1267,16 +1246,9 @@ namespace slib
 						return -1;
 					}
 				}
-				while (start <= count - countPat) {
-					const CT* pt = (const CT*)(FindMemory(buf + start, bufPat[0], count - start - countPat + 1));
-					if (pt == sl_null) {
-						return -1;
-					}
-					if (CompareMemory(pt + 1, bufPat + 1, countPat - 1) == 0) {
-						return (sl_reg)(pt - buf);
-					} else {
-						start = (sl_size)(pt - buf + 1);
-					}
+				CT* pt = MemoryTraits<CT>::find(buf + start, count - start, bufPat, countPat);
+				if (pt) {
+					return pt - buf;
 				}
 				return -1;
 			}
@@ -1325,21 +1297,15 @@ namespace slib
 		namespace string
 		{
 			template <class CT>
-			SLIB_INLINE static sl_reg LastIndexOfChar(const CT* str, sl_size len, CT ch, sl_reg _start) noexcept
+			SLIB_INLINE static sl_reg LastIndexOfChar(const CT* str, sl_size len, CT ch, sl_reg start) noexcept
 			{
-				if (len == 0) {
+				if (!len) {
 					return -1;
 				}
-				sl_size start;
-				if (_start < 0) {
-					start = len - 1;
-				} else {
-					start = _start;
-					if (start >= len) {
-						start = len - 1;
-					}
+				if (start >= 0 && (sl_size)start < len - 1) {
+					len = start + 1;
 				}
-				CT* pt = (CT*)(FindMemoryReverse(str, ch, start + 1));
+				CT* pt = MemoryTraits<CT>::findBackward(str, len, ch);
 				if (pt == sl_null) {
 					return -1;
 				} else {
@@ -1387,37 +1353,20 @@ namespace slib
 		namespace string
 		{
 			template <class CT>
-			SLIB_INLINE static sl_reg LastIndexOf(const CT* buf, sl_size count, const CT* bufPat, sl_size countPat, sl_reg _start) noexcept
+			SLIB_INLINE static sl_reg LastIndexOf(const CT* buf, sl_size count, const CT* bufPat, sl_size countPat, sl_reg start) noexcept
 			{
-				if (countPat == 0) {
-					return 0;
-				}
-				if (countPat == 1) {
-					return LastIndexOfChar(buf, count, bufPat[0], _start);
-				}
 				if (count < countPat) {
 					return -1;
 				}
-				sl_size s;
-				if (_start < 0) {
-					s = count - countPat + 1;
-				} else {
-					s = _start;
-					sl_size n = count - countPat + 1;
-					if (s > n) {
-						s = n;
-					}
+				if (!countPat) {
+					return count;
 				}
-				while (s > 0) {
-					const CT* pt = (const CT*)(FindMemoryReverse(buf, bufPat[0], s));
-					if (pt == sl_null) {
-						return -1;
-					}
-					if (CompareMemory(pt + 1, bufPat + 1, countPat - 1) == 0) {
-						return (sl_reg)(pt - buf);
-					} else {
-						s = (sl_size)(pt - buf);
-					}
+				if (start >= 0 && (sl_size)start < count - countPat) {
+					count = start + countPat;
+				}
+				CT* pt = MemoryTraits<CT>::findBackward(buf, count, bufPat, countPat);
+				if (pt) {
+					return pt - buf;
 				}
 				return -1;
 			}
@@ -1521,7 +1470,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory(getData(), str.getData(), count2);
+			return MemoryTraits<sl_char8>::equals(getData(), str.getData(), count2);
 		}
 	}
 
@@ -1536,7 +1485,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory2((sl_uint16*)(getData()), (sl_uint16*)(str.getData()), count2);
+			return MemoryTraits<sl_char16>::equals(getData(), str.getData(), count2);
 		}
 	}
 
@@ -1563,7 +1512,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory(getData(), str.getData(), count2);
+			return MemoryTraits<sl_char8>::equals(getData(), str.getData(), count2);
 		}
 	}
 
@@ -1578,7 +1527,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory2((sl_uint16*)(getData()), (sl_uint16*)(str.getData()), count2);
+			return MemoryTraits<sl_char16>::equals(getData(), str.getData(), count2);
 		}
 	}
 
@@ -1647,7 +1596,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory(getData() + count1 - count2, str.getData(), count2);
+			return MemoryTraits<sl_char8>::equals(getData() + count1 - count2, str.getData(), count2);
 		}
 	}
 
@@ -1662,7 +1611,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory2((sl_uint16*)(getData() + count1 - count2), (sl_uint16*)(str.getData()), count2);
+			return MemoryTraits<sl_char16>::equals(getData() + count1 - count2, str.getData(), count2);
 		}
 	}
 
@@ -1689,7 +1638,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory(getData() + count1 - count2, str.getData(), count2);
+			return MemoryTraits<sl_char8>::equals(getData() + count1 - count2, str.getData(), count2);
 		}
 	}
 
@@ -1704,7 +1653,7 @@ namespace slib
 		if (count1 < count2) {
 			return sl_false;
 		} else {
-			return Base::equalsMemory2((sl_uint16*)(getData() + count1 - count2), (sl_uint16*)(str.getData()), count2);
+			return MemoryTraits<sl_char16>::equals(getData() + count1 - count2, str.getData(), count2);
 		}
 	}
 
@@ -2042,7 +1991,43 @@ namespace slib
 	{
 		namespace string
 		{
-			
+
+			template <class ST, class CT>
+			SLIB_INLINE static ST ReplaceAll(const CT* buf, sl_reg count, CT pattern, CT replace) noexcept
+			{
+				if (count <= 0) {
+					return sl_null;
+				}
+				ST ret = ST::allocate(count);
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				CT* data = ret.getData();
+				if (replace) {
+					for (sl_reg i = 0; i < count; i++) {
+						if (buf[i] == pattern) {
+							data[i] = replace;
+						} else {
+							data[i] = buf[i];
+						}
+					}
+				} else {
+					sl_reg k = 0;
+					for (sl_reg i = 0; i < count; i++) {
+						CT ch = buf[i];
+						if (ch != pattern) {
+							data[k] = ch;
+							k++;
+						}
+					}
+					if (k != count) {
+						data[k] = 0;
+					}
+					ret.setLength(k);
+				}
+				return ret;
+			}
+
 			struct STRING_REPLACE_SUBSET
 			{
 				sl_reg start;
@@ -2055,7 +2040,7 @@ namespace slib
 				if (countPat == 0) {
 					return sl_null;
 				}
-				if (count == 0) {
+				if (count <= 0) {
 					return sl_null;
 				}
 				LinkedQueue<STRING_REPLACE_SUBSET> queue;
@@ -2080,11 +2065,13 @@ namespace slib
 				if (ret.isNotNull()) {
 					CT* out = ret.getData();
 					while (queue.pop_NoLock(&subset)) {
-						Base::copyMemory(out, buf + subset.start, subset.len*sizeof(CT));
+						MemoryTraits<CT>::copy(out, buf + subset.start, subset.len);
 						out += subset.len;
 						if (queue.isNotEmpty()) {
-							Base::copyMemory(out, bufReplace, countReplace*sizeof(CT));
-							out += countReplace;
+							if (countReplace) {
+								MemoryTraits<CT>::copy(out, bufReplace, countReplace);
+								out += countReplace;
+							}
 						}
 					}
 				}
@@ -2092,6 +2079,38 @@ namespace slib
 			}
 
 		}
+	}
+
+	String String::replaceAll(sl_char8 pattern, sl_char8 replacement) const noexcept
+	{
+		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern, replacement);
+	}
+
+	String16 String16::replaceAll(sl_char16 pattern, sl_char16 replacement) const noexcept
+	{
+		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern, replacement);
+	}
+
+	String Atomic<String>::replaceAll(sl_char8 pattern, sl_char8 replacement) const noexcept
+	{
+		String s(*this);
+		return s.replaceAll(pattern, replacement);
+	}
+
+	String16 Atomic<String16>::replaceAll(sl_char16 pattern, sl_char16 replacement) const noexcept
+	{
+		String16 s(*this);
+		return s.replaceAll(pattern, replacement);
+	}
+
+	String StringView::replaceAll(sl_char8 pattern, sl_char8 replacement) const noexcept
+	{
+		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern, replacement);
+	}
+
+	String16 StringView16::replaceAll(sl_char16 pattern, sl_char16 replacement) const noexcept
+	{
+		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern, replacement);
 	}
 
 	String String::replaceAll(const StringParam& _pattern, const StringParam& _replacement) const noexcept
@@ -2134,6 +2153,73 @@ namespace slib
 		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern.getData(), pattern.getLength(), replacement.getData(), replacement.getLength());
 	}
 
+	String String::removeAll(sl_char8 pattern) const noexcept
+	{
+		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern, 0);
+	}
+
+	String16 String16::removeAll(sl_char16 pattern) const noexcept
+	{
+		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern, 0);
+	}
+
+	String Atomic<String>::removeAll(sl_char8 pattern) const noexcept
+	{
+		String s(*this);
+		return s.removeAll(pattern);
+	}
+
+	String16 Atomic<String16>::removeAll(sl_char16 pattern) const noexcept
+	{
+		String16 s(*this);
+		return s.removeAll(pattern);
+	}
+
+	String StringView::removeAll(sl_char8 pattern) const noexcept
+	{
+		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern, 0);
+	}
+
+	String16 StringView16::removeAll(sl_char16 pattern) const noexcept
+	{
+		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern, 0);
+	}
+
+	String String::removeAll(const StringParam& _pattern) const noexcept
+	{
+		StringData pattern(_pattern);
+		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern.getData(), pattern.getLength(), sl_null, 0);
+	}
+
+	String16 String16::removeAll(const StringParam& _pattern) const noexcept
+	{
+		StringData16 pattern(_pattern);
+		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern.getData(), pattern.getLength(), sl_null, 0);
+	}
+
+	String Atomic<String>::removeAll(const StringParam& pattern) const noexcept
+	{
+		String s(*this);
+		return s.removeAll(pattern);
+	}
+
+	String16 Atomic<String16>::removeAll(const StringParam& pattern) const noexcept
+	{
+		String16 s(*this);
+		return s.removeAll(pattern);
+	}
+
+	String StringView::removeAll(const StringParam& _pattern) const noexcept
+	{
+		StringData pattern(_pattern);
+		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern.getData(), pattern.getLength(), sl_null, 0);
+	}
+
+	String16 StringView16::removeAll(const StringParam& _pattern) const noexcept
+	{
+		StringData16 pattern(_pattern);
+		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern.getData(), pattern.getLength(), sl_null, 0);
+	}
 
 	namespace priv
 	{
@@ -2143,22 +2229,25 @@ namespace slib
 			template <class ST, class CT>
 			SLIB_INLINE static ST Trim(const ST& str) noexcept
 			{
+				if (str.isNull()) {
+					return sl_null;
+				}
 				const CT* sz = str.getData();
 				sl_size n = str.getLength();
 				sl_size i = 0;
 				for (; i < n; i++) {
 					CT c = sz[i];
-					if (c != ' ' && c != '\t' && c != '\r' && c != '\n') {
+					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
 						break;
 					}
 				}
 				if (i >= n) {
-					return sl_null;
+					return ST::getEmpty();
 				}
 				sl_size j = n - 1;
 				for (; j >= i; j--) {
 					CT c = sz[j];
-					if (c != ' ' && c != '\t' && c != '\r' && c != '\n') {
+					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
 						break;
 					}
 				}
@@ -2168,17 +2257,20 @@ namespace slib
 			template <class ST, class CT>
 			SLIB_INLINE static ST TrimLeft(const ST& str) noexcept
 			{
+				if (str.isNull()) {
+					return sl_null;
+				}
 				const CT* sz = str.getData();
 				sl_size n = str.getLength();
 				sl_size i = 0;
 				for (; i < n; i++) {
 					CT c = sz[i];
-					if (c != ' ' && c != '\t' && c != '\r' && c != '\n') {
+					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
 						break;
 					}
 				}
 				if (i >= n) {
-					return sl_null;
+					return ST::getEmpty();
 				}
 				return str.substring(i);
 			}
@@ -2186,21 +2278,52 @@ namespace slib
 			template <class ST, class CT>
 			SLIB_INLINE static ST TrimRight(const ST& str) noexcept
 			{
+				if (str.isNull()) {
+					return sl_null;
+				}
 				const CT* sz = str.getData();
 				sl_size n = str.getLength();
 				sl_size j = n;
 				for (; j > 0; j--) {
 					CT c = sz[j-1];
-					if (c != ' ' && c != '\t' && c != '\r' && c != '\n') {
+					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
 						break;
 					}
 				}
 				if (j == 0) {
-					return sl_null;
+					return ST::getEmpty();
 				}
 				return str.substring(0, j);
 			}
-			
+
+			template <class ST, class CT>
+			SLIB_INLINE static ST TrimLine(const ST& str) noexcept
+			{
+				if (str.isNull()) {
+					return sl_null;
+				}
+				const CT* sz = str.getData();
+				sl_size n = str.getLength();
+				sl_size i = 0;
+				for (; i < n; i++) {
+					CT c = sz[i];
+					if (c != '\r' && c != '\n') {
+						break;
+					}
+				}
+				if (i >= n) {
+					return ST::getEmpty();
+				}
+				sl_size j = n - 1;
+				for (; j >= i; j--) {
+					CT c = sz[j];
+					if (c != '\r' && c != '\n') {
+						break;
+					}
+				}
+				return str.substring(i, j + 1);
+			}
+
 		}
 	}
 
@@ -2298,6 +2421,38 @@ namespace slib
 	StringView16 StringView16::trimRight() const noexcept
 	{
 		return priv::string::TrimRight<StringView16, sl_char16>(*this);
+	}
+
+	String String::trimLine() const noexcept
+	{
+		return priv::string::TrimLine<String, sl_char8>(*this);
+	}
+
+	String16 String16::trimLine() const noexcept
+	{
+		return priv::string::TrimLine<String16, sl_char16>(*this);
+	}
+
+	String Atomic<String>::trimLine() const noexcept
+	{
+		String s(*this);
+		return s.trimLine();
+	}
+
+	String16 Atomic<String16>::trimLine() const noexcept
+	{
+		String16 s(*this);
+		return s.trimLine();
+	}
+
+	StringView StringView::trimLine() const noexcept
+	{
+		return priv::string::TrimLine<StringView, sl_char8>(*this);
+	}
+
+	StringView16 StringView16::trimLine() const noexcept
+	{
+		return priv::string::TrimLine<StringView16, sl_char16>(*this);
 	}
 
 
@@ -3448,6 +3603,54 @@ namespace slib
 		return priv::string::ParseInt(radix, getData(), 0, n, _out) == (sl_reg)n;
 	}
 
+	sl_bool String::parseInt32(sl_int32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool String16::parseInt32(sl_int32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool Atomic<String>::parseInt32(sl_int32* _out) const noexcept
+	{
+		String s(*this);
+		return s.parseInt32(_out);
+	}
+
+	sl_bool Atomic<String16>::parseInt32(sl_int32* _out) const noexcept
+	{
+		String16 s(*this);
+		return s.parseInt32(_out);
+	}
+
+	sl_bool StringView::parseInt32(sl_int32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool StringView16::parseInt32(sl_int32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
 	sl_int32 String::parseInt32(sl_int32 radix, sl_int32 def) const noexcept
 	{
 		sl_int32 _out = 0;
@@ -3557,6 +3760,54 @@ namespace slib
 			return sl_false;
 		}
 		return priv::string::ParseUint(radix, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool String::parseUint32(sl_uint32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool String16::parseUint32(sl_uint32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool Atomic<String>::parseUint32(sl_uint32* _out) const noexcept
+	{
+		String s(*this);
+		return s.parseUint32(_out);
+	}
+
+	sl_bool Atomic<String16>::parseUint32(sl_uint32* _out) const noexcept
+	{
+		String16 s(*this);
+		return s.parseUint32(_out);
+	}
+
+	sl_bool StringView::parseUint32(sl_uint32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool StringView16::parseUint32(sl_uint32* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
 	}
 
 	sl_uint32 String::parseUint32(sl_int32 radix, sl_uint32 def) const noexcept
@@ -3670,6 +3921,54 @@ namespace slib
 		return priv::string::ParseInt(radix, getData(), 0, n, _out) == (sl_reg)n;
 	}
 
+	sl_bool String::parseInt64(sl_int64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool String16::parseInt64(sl_int64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool Atomic<String>::parseInt64(sl_int64* _out) const noexcept
+	{
+		String s(*this);
+		return s.parseInt64(_out);
+	}
+
+	sl_bool Atomic<String16>::parseInt64(sl_int64* _out) const noexcept
+	{
+		String16 s(*this);
+		return s.parseInt64(_out);
+	}
+
+	sl_bool StringView::parseInt64(sl_int64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool StringView16::parseInt64(sl_int64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseInt(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
 	sl_int64 String::parseInt64(sl_int32 radix, sl_int64 def) const noexcept
 	{
 		sl_int64 _out = 0;
@@ -3781,6 +4080,54 @@ namespace slib
 		return priv::string::ParseUint(radix, getData(), 0, n, _out) == (sl_reg)n;
 	}
 
+	sl_bool String::parseUint64(sl_uint64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool String16::parseUint64(sl_uint64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool Atomic<String>::parseUint64(sl_uint64* _out) const noexcept
+	{
+		String s(*this);
+		return s.parseUint64(_out);
+	}
+
+	sl_bool Atomic<String16>::parseUint64(sl_uint64* _out) const noexcept
+	{
+		String16 s(*this);
+		return s.parseUint64(_out);
+	}
+
+	sl_bool StringView::parseUint64(sl_uint64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
+	sl_bool StringView16::parseUint64(sl_uint64* _out) const noexcept
+	{
+		sl_size n = getLength();
+		if (n == 0) {
+			return sl_false;
+		}
+		return priv::string::ParseUint(10, getData(), 0, n, _out) == (sl_reg)n;
+	}
+
 	sl_uint64 String::parseUint64(sl_int32 radix, sl_uint64 def) const noexcept
 	{
 		sl_uint64 _out = 0;
@@ -3882,6 +4229,53 @@ namespace slib
 #endif
 	}
 
+	sl_bool String::parseInt(sl_reg* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseInt64(_out);
+#else
+		return parseInt32(_out);
+#endif
+	}
+
+	sl_bool String16::parseInt(sl_reg* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseInt64(_out);
+#else
+		return parseInt32(_out);
+#endif
+	}
+
+	sl_bool Atomic<String>::parseInt(sl_reg* _out) const noexcept
+	{
+		String s(*this);
+		return s.parseInt(_out);
+	}
+
+	sl_bool Atomic<String16>::parseInt(sl_reg* _out) const noexcept
+	{
+		String16 s(*this);
+		return s.parseInt(_out);
+	}
+
+	sl_bool StringView::parseInt(sl_reg* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseInt64(_out);
+#else
+		return parseInt32(_out);
+#endif
+	}
+
+	sl_bool StringView16::parseInt(sl_reg* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseInt64(_out);
+#else
+		return parseInt32(_out);
+#endif
+	}
 
 	sl_reg String::parseInt(sl_int32 radix, sl_reg def) const noexcept
 	{
@@ -3981,6 +4375,53 @@ namespace slib
 		return parseUint64(radix, _out);
 #else
 		return parseUint32(radix, _out);
+#endif
+	}
+	sl_bool String::parseSize(sl_size* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseUint64(_out);
+#else
+		return parseUint32(_out);
+#endif
+	}
+
+	sl_bool String16::parseSize(sl_size* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseUint64(_out);
+#else
+		return parseUint32(_out);
+#endif
+	}
+
+	sl_bool Atomic<String>::parseSize(sl_size* _out) const noexcept
+	{
+		String s(*this);
+		return s.parseSize(_out);
+	}
+
+	sl_bool Atomic<String16>::parseSize(sl_size* _out) const noexcept
+	{
+		String16 s(*this);
+		return s.parseSize(_out);
+	}
+
+	sl_bool StringView::parseSize(sl_size* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseUint64(_out);
+#else
+		return parseUint32(_out);
+#endif
+	}
+
+	sl_bool StringView16::parseSize(sl_size* _out) const noexcept
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return parseUint64(_out);
+#else
+		return parseUint32(_out);
 #endif
 	}
 
@@ -5743,27 +6184,31 @@ https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html
 		return String16::fromDouble(v);
 	}
 
-	
-	String Cast<Variant, String>::operator()(const Variant& var) const noexcept
-	{
-		return String::from(var);
-	}
 
-	String16 Cast<Variant, String16>::operator()(const Variant& var) const noexcept
+	const StringParam& Cast<StringParam, StringParam>::operator()(const StringParam& v) const noexcept
 	{
-		return String16::from(var);
-	}
-
-	String Cast<Json, String>::operator()(const Json& json) const noexcept
-	{
-		return json.getString();
+		return v;
 	}
 	
-	String16 Cast<Json, String16>::operator()(const Json& json) const noexcept
+	String Cast<StringParam, String>::operator()(const StringParam& v) const noexcept
 	{
-		return json.getString16();
+		return v.toString();
 	}
 
+	String16 Cast<StringParam, String16>::operator()(const StringParam& v) const noexcept
+	{
+		return v.toString16();
+	}
+
+	StringParam Cast<String, StringParam>::operator()(const String& v) const noexcept
+	{
+		return v;
+	}
+
+	StringParam Cast<String16, StringParam>::operator()(const String16& v) const noexcept
+	{
+		return v;
+	}
 
 #define DEFINE_STRING_OPERATOR_SUB2(STRING1, STRING2, RET, FUNC, OP, OP_STRING) \
 	RET FUNC(const STRING1& s1, const STRING2& s2) noexcept \

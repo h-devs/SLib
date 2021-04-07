@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GEO_GLOBE
 #define CHECKHEADER_SLIB_GEO_GLOBE
 
-#include "definition.h"
-
 #include "geo_location.h"
 
 #include "../math/vector3.h"

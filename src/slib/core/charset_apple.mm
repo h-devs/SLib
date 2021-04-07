@@ -27,6 +27,8 @@
 #include "slib/core/charset.h"
 
 #include "slib/core/string.h"
+#include "slib/core/base.h"
+#include "slib/core/memory.h"
 #include "slib/core/platform_apple.h"
 
 namespace slib

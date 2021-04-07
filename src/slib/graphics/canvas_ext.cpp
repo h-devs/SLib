@@ -23,6 +23,7 @@
 #include "slib/graphics/canvas.h"
 
 #include "slib/graphics/util.h"
+#include "slib/graphics/image.h"
 
 namespace slib
 {
@@ -62,11 +63,6 @@ namespace slib
 		}
 		if (font.isNotNull()) {
 			return font->measureText(text, flagMultiLine);
-		} else {
-			Ref<Font> _font = Font::getDefault();
-			if (_font.isNotNull()) {
-				return _font->measureText(text, flagMultiLine);
-			}
 		}
 		return Size::zero();
 	}
@@ -78,10 +74,7 @@ namespace slib
 		}
 		Ref<Font> font = param.font;
 		if (font.isNull()) {
-			font = Font::getDefault();
-			if (font.isNull()) {
-				return;
-			}
+			return;
 		}
 		if (!(param.flagMultiLine)) {
 			if (param.alignment == Alignment::TopLeft) {
@@ -322,6 +315,16 @@ namespace slib
 	Ref<Drawable> CanvasExt::createDrawableCacheForImage(const Ref<Image>& image)
 	{
 		return PlatformDrawable::create(image);
+	}
+
+	sl_bool CanvasExt::updateDrawableCacheForImage(Drawable* drawable, Image* image)
+	{
+		if (drawable->isBitmap()) {
+			Bitmap* bitmap = (Bitmap*)drawable;
+			bitmap->writePixels(0, 0, image->getWidth(), image->getHeight(), image->getColors(), image->getStride());
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 }

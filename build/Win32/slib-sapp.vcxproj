@@ -72,7 +72,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\Windows\</OutDir>
-    <IntDir>$(ProjectDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <IncludePath>$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\sapp;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)..\..\lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
     <TargetName>sapp</TargetName>
@@ -80,7 +80,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\Windows\</OutDir>
-    <IntDir>$(ProjectDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <IncludePath>$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\sapp;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)..\..\lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
     <TargetName>sapp</TargetName>
@@ -88,7 +88,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\Windows\</OutDir>
-    <IntDir>$(ProjectDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <IncludePath>$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\sapp;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)..\..\lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
     <TargetName>sapp</TargetName>
@@ -96,7 +96,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\Windows\</OutDir>
-    <IntDir>$(ProjectDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <IncludePath>$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\sapp;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)..\..\lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
     <TargetName>sapp</TargetName>
@@ -114,11 +114,14 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>slib.lib;libsapp.lib;zxing.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>slib.lib;libsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /y "$(ProjectDir)..\..\bin\Windows\sapp.exe" "$(ProjectDir)..\..\tool\bin\"</Command>
     </PostBuildEvent>
+    <Manifest>
+      <AdditionalManifestFiles>high_dpi.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -133,11 +136,14 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>slib.lib;libsapp.lib;zxing.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>slib.lib;libsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /y "$(ProjectDir)..\..\bin\Windows\sapp.exe" "$(ProjectDir)..\..\tool\bin\"</Command>
     </PostBuildEvent>
+    <Manifest>
+      <AdditionalManifestFiles>high_dpi.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -156,11 +162,14 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>slib.lib;libsapp.lib;zxing.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>slib.lib;libsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /y "$(ProjectDir)..\..\bin\Windows\sapp.exe" "$(ProjectDir)..\..\tool\bin\"</Command>
     </PostBuildEvent>
+    <Manifest>
+      <AdditionalManifestFiles>high_dpi.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -179,11 +188,14 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>slib.lib;libsapp.lib;zxing.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>slib.lib;libsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /y "$(ProjectDir)..\..\bin\Windows\sapp.exe" "$(ProjectDir)..\..\tool\bin\"</Command>
     </PostBuildEvent>
+    <Manifest>
+      <AdditionalManifestFiles>high_dpi.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

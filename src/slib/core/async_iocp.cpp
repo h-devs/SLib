@@ -25,7 +25,7 @@
 #if defined(ASYNC_USE_IOCP)
 
 #include "slib/core/async.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/dl_windows_kernel32.h"
 
 namespace slib
 {
@@ -50,7 +50,7 @@ namespace slib
 				BOOL fAlertable
 			)
 			{
-				::GetQueuedCompletionStatus(CompletionPort
+				GetQueuedCompletionStatus(CompletionPort
 					, &(lpCompletionPortEntries[0].dwNumberOfBytesTransferred)
 					, &(lpCompletionPortEntries[0].lpCompletionKey)
 					, &(lpCompletionPortEntries[0].lpOverlapped), dwMilliseconds);
@@ -69,14 +69,14 @@ namespace slib
 	
 	void* AsyncIoLoop::_native_createHandle()
 	{
-		HANDLE hCompletionPort = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, 1);
+		HANDLE hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, 1);
 		if (hCompletionPort) {
 			AsyncIoLoopHandle* handle = new AsyncIoLoopHandle;
 			if (handle) {
 				handle->hCompletionPort = hCompletionPort;
 				return handle;
 			}
-			::CloseHandle(hCompletionPort);
+			CloseHandle(hCompletionPort);
 		}
 		return sl_null;
 	}
@@ -84,7 +84,7 @@ namespace slib
 	void AsyncIoLoop::_native_closeHandle(void* _handle)
 	{
 		AsyncIoLoopHandle* handle = (AsyncIoLoopHandle*)_handle;
-		::CloseHandle(handle->hCompletionPort);
+		CloseHandle(handle->hCompletionPort);
 		delete handle;
 	}
 
@@ -92,7 +92,7 @@ namespace slib
 	{
 		AsyncIoLoopHandle* handle = (AsyncIoLoopHandle*)m_handle;
 
-		WINAPI_GetQueuedCompletionStatusEx fGetQueuedCompletionStatusEx = Windows::getAPI_GetQueuedCompletionStatusEx();
+		auto fGetQueuedCompletionStatusEx = kernel32::getApi_GetQueuedCompletionStatusEx();
 		if (!fGetQueuedCompletionStatusEx) {
 			fGetQueuedCompletionStatusEx = GetQueuedCompletionStatusExImpl;
 		}
@@ -132,15 +132,15 @@ namespace slib
 	void AsyncIoLoop::_native_wake()
 	{
 		AsyncIoLoopHandle* handle = (AsyncIoLoopHandle*)m_handle;
-		Base::resetMemory(&(handle->overlappedWake), 0, sizeof(OVERLAPPED));
-		::PostQueuedCompletionStatus(handle->hCompletionPort, 0, 0, &(handle->overlappedWake));
+		Base::zeroMemory(&(handle->overlappedWake), sizeof(OVERLAPPED));
+		PostQueuedCompletionStatus(handle->hCompletionPort, 0, 0, &(handle->overlappedWake));
 	}
 
 	sl_bool AsyncIoLoop::_native_attachInstance(AsyncIoInstance* instance, AsyncIoMode mode)
 	{
 		AsyncIoLoopHandle* handle = (AsyncIoLoopHandle*)m_handle;
 		HANDLE hObject = (HANDLE)(instance->getHandle());
-		HANDLE hPort = ::CreateIoCompletionPort(hObject, handle->hCompletionPort, (ULONG_PTR)instance, 0);
+		HANDLE hPort = CreateIoCompletionPort(hObject, handle->hCompletionPort, (ULONG_PTR)instance, 0);
 		if (hPort) {
 			instance->setMode(mode);
 			return sl_true;
@@ -151,7 +151,7 @@ namespace slib
 	void AsyncIoLoop::_native_detachInstance(AsyncIoInstance* instance)
 	{
 		HANDLE hObject = (HANDLE)(instance->getHandle());
-		::CancelIo(hObject);
+		CancelIo(hObject);
 	}
 
 }

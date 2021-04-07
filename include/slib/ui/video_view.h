@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_VIDEO_VIEW
 #define CHECKHEADER_SLIB_UI_VIDEO_VIEW
 
-#include "definition.h"
-
 #include "render_view.h"
 
 #include "slider.h"
@@ -34,6 +32,8 @@
 
 namespace slib
 {
+
+	class RenderCanvas;
 
 	class SLIB_EXPORT VideoView : public RenderView
 	{
@@ -100,12 +100,24 @@ namespace slib
 		sl_bool convertCoordinateToTexture(Point& pt);
 		
 	protected:
+		void dispatchFrame(RenderEngine* engine) override;
+
 		void onDraw(Canvas* canvas) override;
+
+		void onAttach() override;
 		
 	protected:
+		void _renderFrame(RenderCanvas* canvas);
+
+		void _drawFrame(Canvas* canvas);
+
 		Ref<VertexBuffer> _applyFrameRotationAndFlip(FlipMode frameFlip, RotationMode frameRotation, FlipMode userFlip, RotationMode userRotation);
 		
 		void _updateControls(UIUpdateMode mode);
+
+		void _setupPlayVideoTimer();
+
+		void _onTimerPlayVideo(Timer* timer);
 		
 		void _onSeek(Slider* slider, float value);
 				
@@ -119,7 +131,8 @@ namespace slib
 
 		AtomicRef<Texture> m_textureFrame;
 		sl_bool m_flagYUV;
-		
+		sl_bool m_flagAllowYUV;
+
 		Ref<RenderProgram2D_PositionTexture> m_programRGB;
 		Ref<RenderProgram2D_PositionTextureYUV> m_programYUV;
 		Ref<RenderProgram2D_PositionTextureOES> m_programOES;
@@ -132,6 +145,7 @@ namespace slib
 		Sizei m_sizeLastFrame;
 
 		MediaPlayerRenderVideoParam m_renderVideoParam;
+		Ref<Timer> m_timerPlayVideo;
 		
 		ScaleMode m_scaleMode;
 		Alignment m_gravity;

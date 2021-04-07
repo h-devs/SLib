@@ -59,6 +59,7 @@ namespace slib
 		sl_real leading;
 	};
 	
+	class Locale;
 	class FontAtlas;
 	
 	class SLIB_EXPORT Font : public Referable
@@ -71,15 +72,35 @@ namespace slib
 		~Font();
 
 	public:
-		static Ref<Font> getDefault();
-
 		static Ref<Font> create(const FontDesc& desc);
 
 		static Ref<Font> create(String familyName, sl_real size, sl_bool flagBold = sl_false, sl_bool flagItalic = sl_false, sl_bool flagUnderline = sl_false, sl_bool flagStrikeout = sl_false);
 	
+		static Ref<Font> getDefault();
+
+		static void setDefault(const Ref<Font>& font);
+
 		static sl_real getDefaultFontSize();
 
 		static void setDefaultFontSize(sl_real size);
+
+		static String getDefaultFontFamily();
+
+		static void setDefaultFontFamily(const String& fontFamily);
+
+		static String getDefaultFontFamilyForLocale(const Locale& locale);
+
+		static void setDefaultFontFamilyForLocale(const Locale& locale);
+
+		static List<String> getAllFamilyNames();
+
+		static sl_bool addFontResource(const void* data, sl_size size);
+
+		static sl_bool addFontResource(const Memory& mem);
+
+		static Ref<Referable> addFontResourceRef(const void* data, sl_size size);
+
+		static Ref<Referable> addFontResourceRef(const Memory& data);
 
 	public:
 		void getDesc(FontDesc& desc);
@@ -118,6 +139,8 @@ namespace slib
 		sl_bool _getFontMetrics_PO(FontMetrics& _out);
 
 		Size _measureText_PO(const StringParam& text);
+
+		static sl_bool _addFontResource(const void* data, sl_size size, Ref<Referable>* pRef);
 
 	protected:
 		FontDesc m_desc;

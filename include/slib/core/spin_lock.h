@@ -33,7 +33,7 @@ namespace slib
 	public:
 		constexpr SpinLock() noexcept: m_flagLock(0) {}
 
-		constexpr SpinLock(const SpinLock& other) noexcept: m_flagLock(0) {}
+		constexpr SpinLock(const SpinLock&) noexcept: m_flagLock(0) {}
 
 	public:
 		void lock() const noexcept;
@@ -91,13 +91,38 @@ namespace slib
 	class SLIB_EXPORT SpinLockPool
 	{
 	public:
-		static SpinLock* get(const void* ptr) noexcept;
+		static SpinLock* get(const void* ptr) noexcept
+		{
+			sl_size index = ((sl_size)(ptr)) % SLIB_SPINLOCK_POOL_SIZE;
+			return reinterpret_cast<SpinLock*>(m_locks + index);
+		}
 
 	private:
 		static sl_int32 m_locks[SLIB_SPINLOCK_POOL_SIZE];
 
 	};
 
+	extern template class SpinLockPool<-10>;
+	typedef SpinLockPool<-10> SpinLockPoolForBase;
+
+	extern template class SpinLockPool<-11>;
+	typedef SpinLockPool<-11> SpinLockPoolForWeakRef;
+
+	extern template class SpinLockPool<-12>;
+	typedef SpinLockPool<-12> SpinLockPoolForFunction;
+
+	extern template class SpinLockPool<-20>;
+	typedef SpinLockPool<-20> SpinLockPoolForList;
+	
+	extern template class SpinLockPool<-21>;
+	typedef SpinLockPool<-21> SpinLockPoolForMap;
+
+	extern template class SpinLockPool<-30>;
+	typedef SpinLockPool<-30> SpinLockPoolForVariant;
+
+	template <int CATEGORY>
+	sl_int32 SpinLockPool<CATEGORY>::m_locks[SLIB_SPINLOCK_POOL_SIZE] = { 0 };
+	
 }
 
 #define SLIB_STATIC_SPINLOCK(NAME) \
@@ -108,7 +133,5 @@ namespace slib
 	SLIB_STATIC_SPINLOCK(NAME) \
 	slib::SpinLocker _static_spinlocker_##NAME(&NAME);
 
-
-#include "detail/spin_lock.inc"
 
 #endif

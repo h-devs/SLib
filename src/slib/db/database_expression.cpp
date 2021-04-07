@@ -23,6 +23,7 @@
 #include "slib/db/expression.h"
 
 #include "slib/db/sql.h"
+#include "slib/core/parse_util.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -763,19 +764,19 @@ namespace slib
 
 	const DatabaseExpression& DatabaseExpression::parameter()
 	{
-		SLIB_SAFE_STATIC(DatabaseExpression, expr, new ParameterExpression)
+		SLIB_SAFE_LOCAL_STATIC(DatabaseExpression, expr, new ParameterExpression)
 		return expr;
 	}
 
 	const DatabaseExpression& DatabaseExpression::parameter(const String& name)
 	{
-		SLIB_SAFE_STATIC(DatabaseExpression, expr, new ParameterExpression(name))
+		SLIB_SAFE_LOCAL_STATIC(DatabaseExpression, expr, new ParameterExpression(name))
 		return expr;
 	}
 
 	const DatabaseExpression& DatabaseExpression::count()
 	{
-		SLIB_SAFE_STATIC(DatabaseExpression, expr, new CountAllExpression)
+		SLIB_SAFE_LOCAL_STATIC(DatabaseExpression, expr, new CountAllExpression)
 		return expr;
 	}
 

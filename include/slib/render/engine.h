@@ -23,11 +23,10 @@
 #ifndef CHECKHEADER_SLIB_RENDER_ENGINE
 #define CHECKHEADER_SLIB_RENDER_ENGINE
 
-#include "definition.h"
-
+#include "constants.h"
 #include "base.h"
-#include "vertex_buffer.h"
-#include "index_buffer.h"
+#include "state.h"
+#include "buffer.h"
 #include "texture.h"
 #include "program.h"
 
@@ -47,8 +46,8 @@ namespace slib
 		TriangleStrip = 1,
 		TriangleFan = 2,
 		Line = 3,
-		LineLoop = 4,
-		LineStrip = 5,
+		LineStrip = 4,
+		LineLoop = 5,
 		Point = 6
 	};
 	
@@ -59,6 +58,7 @@ namespace slib
 		sl_uint32 countElements;
 		Ref<VertexBuffer> vertexBuffer;
 		Ref<IndexBuffer> indexBuffer;
+		ListParam< Ref<VertexBuffer> > vertexBuffers;
 		
 	public:
 		Primitive();
@@ -72,7 +72,8 @@ namespace slib
 	public:
 		Ref<VertexBufferInstance> vertexBufferInstance;
 		Ref<IndexBufferInstance> indexBufferInstance;
-		
+		ListParam< Ref<VertexBufferInstance> > vertexBufferInstances;
+
 	public:
 		EnginePrimitive(const Primitive& primitive);
 		
@@ -95,62 +96,6 @@ namespace slib
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RenderClearParam)
 		
-	};
-	
-	enum class RenderBlendingOperation
-	{
-		Add = 0,
-		Subtract = 1,
-		ReverseSubtract = 2
-	};
-	
-	enum class RenderBlendingFactor
-	{
-		One = 0,
-		Zero = 1,
-		SrcAlpha = 2,
-		OneMinusSrcAlpha = 3,
-		DstAlpha = 4,
-		OneMinusDstAlpha = 5,
-		SrcColor = 6,
-		OneMinusSrcColor = 7,
-		DstColor = 8,
-		OneMinusDstColor = 9,
-		SrcAlphaSaturate = 10, // f = min(As, 1 - Ad)
-		Constant = 11,
-		OneMinusConstant = 12,
-		ConstantAlpha = 13,
-		OneMinusConstantAlpha = 14
-	};
-	
-	class SLIB_EXPORT RenderBlendingParam
-	{
-	public:
-		RenderBlendingOperation operation;
-		RenderBlendingOperation operationAlpha;
-		RenderBlendingFactor blendSrc;
-		RenderBlendingFactor blendSrcAlpha;
-		RenderBlendingFactor blendDst;
-		RenderBlendingFactor blendDstAlpha;
-		Vector4 blendConstant;
-		
-	public:
-		RenderBlendingParam();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RenderBlendingParam)
-		
-	};
-	
-	enum class RenderFunctionOperation
-	{
-		Never = 0,
-		Always = 1,
-		Equal = 2,
-		NotEqual = 3,
-		Less = 4,
-		LessEqual = 5,
-		Greater = 6,
-		GreaterEqual = 7,
 	};
 	
 	class SLIB_EXPORT RendererParam
@@ -191,7 +136,9 @@ namespace slib
 		virtual void requestRender() = 0;
 		
 	public:
-		SLIB_BOOLEAN_PROPERTY(RenderingContinuously)
+		sl_bool isRenderingContinuously();
+
+		void setRenderingContinuously(sl_bool flag);
 		
 	protected:
 		void initWithParam(const RendererParam& param);
@@ -199,6 +146,7 @@ namespace slib
 		void dispatchFrame(RenderEngine* engine);
 		
 	protected:
+		sl_bool m_flagRenderingContinuously;
 		Function<void(RenderEngine*)> m_onFrame;
 		
 	};
@@ -206,12 +154,33 @@ namespace slib
 	
 	enum class RenderEngineType
 	{
-		OpenGL = 0x01010001,
-		OpenGL_ES = 0x01020001,
-		D3D9 = 0x02010901,
-		D3D11 = 0x02010B01
+		Any = 0,
+
+		GL = 0x01010000,
+		OpenGL = 0x01010100,
+		OpenGL_ES = 0x01010200,
+
+		D3D = 0x02010000,
+		D3D8 = 0x02010800,
+		D3D9 = 0x02010900,
+		D3D10 = 0x02010A00,
+		D3D10_1 = 0x02010A01,
+		D3D11 = 0x02010B00,
+
+		MASK_GL = 0x0fff0000,
+		MASK_OpenGL = 0x0fffff00,
+		MASK_OpenGL_ES = 0x0fffff00,
+
+		MASK_D3D = 0x0fff0000,
+		MASK_D3D8 = 0x0fffff00,
+		MASK_D3D9 = 0x0fffff00,
+		MASK_D3D10 = 0x0fffff00,
+		MASK_D3D10_1 = 0x0fffffff,
+		MASK_D3D11 = 0x0fffff00
 	};
-	
+
+#define SLIB_RENDER_CHECK_ENGINE_TYPE(v, TYPE) ((((sl_uint32)(v)) & ((sl_uint32)(RenderEngineType::MASK_##TYPE))) == (sl_uint32)(RenderEngineType::TYPE))
+
 	class SLIB_EXPORT RenderEngine : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -225,13 +194,11 @@ namespace slib
 		sl_uint64 getUniqueId();
 		
 		virtual RenderEngineType getEngineType() = 0;
-		
-		sl_bool isOpenGL();
-		
-		sl_bool isOpenGL_ES();
-		
-		sl_bool isD3D();
-		
+
+		virtual sl_bool isShaderAvailable();
+
+		virtual sl_bool isInputLayoutAvailable();
+
 		sl_bool beginScene();
 		
 		void endScene();
@@ -246,18 +213,14 @@ namespace slib
 		
 		void clearDepth(float depth = 1.0f);
 		
-		void setDepthTest(sl_bool flagEnableDepthTest);
-		
-		void setDepthWriteEnabled(sl_bool flagEnableDepthWrite);
-		
-		void setDepthFunction(RenderFunctionOperation op);
-		
-		void setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW = sl_true);
-		
-		void setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param);
-		
-		void setBlending(sl_bool flagEnableBlending);
-		
+		void setDepthStencilState(const Ref<RenderDepthStencilState>& state);
+
+		void setRasterizerState(const Ref<RenderRasterizerState>& state);
+
+		void setBlendState(const Ref<RenderBlendState>& state);
+
+		void setSamplerState(sl_int32 samplerNo, const Ref<RenderSamplerState>& state);
+
 		sl_bool beginProgram(const Ref<RenderProgram>& program, RenderProgramState** ppState = sl_null /* RenderProgramState** */);
 		
 		void endProgram();
@@ -272,7 +235,9 @@ namespace slib
 		
 		void drawPrimitive(sl_uint32 countElements, const Ref<VertexBuffer>& vb, PrimitiveType type = PrimitiveType::Triangle);
 		
-		void applyTexture(const Ref<Texture>& texture, sl_reg sampler);
+		void applyTexture(const Ref<Texture>& texture, sl_int32 sampler);
+
+		void setInputLayout(RenderInputLayout* layout);
 		
 		Ref<TextureInstance> linkTexture(const Ref<Texture>& texture);
 		
@@ -392,17 +357,15 @@ namespace slib
 		virtual void _setViewport(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height) = 0;
 		
 		virtual void _clear(const RenderClearParam& param) = 0;
-		
-		virtual void _setDepthTest(sl_bool flagEnableDepthTest) = 0;
-		
-		virtual void _setDepthWriteEnabled(sl_bool flagEnableDepthWrite) = 0;
-		
-		virtual void _setDepthFunction(RenderFunctionOperation op) = 0;
-		
-		virtual void _setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW) = 0;
-		
-		virtual void _setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param) = 0;
-		
+
+		virtual void _setDepthStencilState(RenderDepthStencilState* state) = 0;
+
+		virtual void _setRasterizerState(RenderRasterizerState* state) = 0;
+
+		virtual void _setBlendState(RenderBlendState* state) = 0;
+
+		virtual void _setSamplerState(sl_int32 samplerNo, RenderSamplerState* state) = 0;
+
 		virtual sl_bool _beginProgram(RenderProgram* program, RenderProgramInstance* instance, RenderProgramState** ppState) = 0;
 		
 		virtual void _endProgram() = 0;
@@ -411,8 +374,10 @@ namespace slib
 		
 		virtual void _drawPrimitive(EnginePrimitive* primitive) = 0;
 		
-		virtual void _applyTexture(Texture* texture, TextureInstance* instance, sl_reg sampler) = 0;
-		
+		virtual void _applyTexture(Texture* texture, TextureInstance* instance, sl_int32 sampler) = 0;
+
+		virtual void _setInputLayout(RenderInputLayout* layout) = 0;
+
 		virtual void _setLineWidth(sl_real width) = 0;
 		
 	protected:
@@ -420,6 +385,8 @@ namespace slib
 		
 		sl_uint32 m_viewportWidth;
 		sl_uint32 m_viewportHeight;
+
+		Ref<Referable> m_canvasContext;
 		
 		// debug
 		sl_uint32 m_nCountDrawnElementsOnLastScene;
@@ -436,24 +403,26 @@ namespace slib
 		
 		AtomicRef<RenderProgram2D_Position> m_defaultRenderProgramForDrawLine2D;
 		AtomicRef<RenderProgram3D_Position> m_defaultRenderProgramForDrawLine3D;
-		
+
+		AtomicRef<RenderDepthStencilState> m_stateDepthStencilForDrawDebug;
+		AtomicRef<RenderSamplerState> m_stateSamplerForDrawDebug;
+
 	};
 	
 	template <class StateType>
 	class SLIB_EXPORT RenderProgramScope
 	{
 	public:
-		SLIB_INLINE RenderProgramScope():
-	 m_engine(sl_null), m_program(sl_null), m_state(sl_null)
+		RenderProgramScope(): m_engine(sl_null), m_program(sl_null), m_state(sl_null)
 		{};
 		
-		SLIB_INLINE ~RenderProgramScope()
+		~RenderProgramScope()
 		{
 			end();
 		}
 		
 	public:
-		SLIB_INLINE sl_bool begin(RenderEngine* engine, const Ref<RenderProgram>& program)
+		sl_bool begin(RenderEngine* engine, const Ref<RenderProgram>& program)
 		{
 			if (program.isNotNull()) {
 				if (engine->beginProgram(program, reinterpret_cast<RenderProgramState**>(&m_state))) {
@@ -465,12 +434,12 @@ namespace slib
 			return sl_false;
 		}
 		
-		SLIB_INLINE sl_bool begin(const Ref<RenderEngine>& engine, const Ref<RenderProgram>& program)
+		sl_bool begin(const Ref<RenderEngine>& engine, const Ref<RenderProgram>& program)
 		{
 			return begin(engine.get(), program);
 		}
 		
-		SLIB_INLINE void end()
+		void end()
 		{
 			if (m_engine) {
 				m_engine->endProgram();
@@ -478,12 +447,12 @@ namespace slib
 			}
 		}
 		
-		SLIB_INLINE StateType* operator->()
+		StateType* operator->()
 		{
 			return m_state;
 		}
 		
-		SLIB_INLINE StateType* getState()
+		StateType* getState()
 		{
 			return m_state;
 		}

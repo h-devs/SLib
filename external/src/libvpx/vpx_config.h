@@ -82,27 +82,13 @@
 
 #if ARCH_X86_64 || ARCH_X86
 #	define HAVE_MMX 1
-#   if ARCH_X86_64 || defined(__SSE__) || (defined(_M_IX86_FP) && (_M_IX86_FP >= 1)) || defined(__AVX__)
-#		define HAVE_SSE 1
-#	endif
-#   if ARCH_X86_64 || defined(__SSE2__) || (defined(_M_IX86_FP) && (_M_IX86_FP >= 2)) || defined(__AVX__)
-#		define HAVE_SSE2 1
-#	endif
-#   if defined(__SSE3__) || defined(__AVX__)
-#		define HAVE_SSE3 1
-#	endif
-#   if defined(__SSSE3__) || defined(__AVX__)
-#		define HAVE_SSSE3 1
-#	endif
-#   if defined(__SSE4_1__) || defined(__AVX__)
-#		define HAVE_SSE4_1 1
-#	endif
-#   if defined(__AVX__)
-#		define HAVE_AVX 1
-#	endif
-#   if defined(__AVX2__)
-#		define HAVE_AVX2 1
-#	endif
+#	define HAVE_SSE 1
+#	define HAVE_SSE2 1
+#	define HAVE_SSE3 1
+#	define HAVE_SSSE3 1
+#	define HAVE_SSE4_1 1
+#	define HAVE_AVX 1
+#	define HAVE_AVX2 1
 #endif
 
 #ifndef HAVE_NEON

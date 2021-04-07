@@ -23,7 +23,6 @@
 #include "slib/graphics/freetype.h"
 
 #include "slib/graphics/image.h"
-
 #include "slib/core/log.h"
 #include "slib/core/file.h"
 

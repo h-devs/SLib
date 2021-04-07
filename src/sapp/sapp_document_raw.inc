@@ -136,7 +136,7 @@ namespace slib
 			if (!(File::writeAllTextUTF8(pathHeader, contentHeader))) {
 				_logError(g_str_error_file_write_failed.arg(pathHeader));
 				return sl_false;
-			}			
+			}
 		}
 		
 		String pathCpp = targetPath + "/raws.cpp";

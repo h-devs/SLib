@@ -56,7 +56,7 @@ public class UiThread {
 			try {
 				method_Message_recycleUnchecked = Message.class.getDeclaredMethod("recycleUnchecked");
 			} catch (Exception e) {
-				method_Message_recycleUnchecked = Message.class.getDeclaredMethod("recycle");				
+				method_Message_recycleUnchecked = Message.class.getDeclaredMethod("recycle");
 			}
 			method_Message_recycleUnchecked.setAccessible(true);
 
@@ -126,7 +126,7 @@ public class UiThread {
 				try {
 					msg.getTarget().dispatchMessage(msg);
 				} catch (Exception e) {
-				}				
+				}
 				final long newIdent = Binder.clearCallingIdentity();
 				if (ident != newIdent) {
 					Logger.info("Thread identity changed from 0x" + Long.toHexString(ident) + " to 0x"

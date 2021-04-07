@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_GDI)
 
@@ -183,7 +183,7 @@ namespace slib
 			ret.top = (sl_real)(rc.Y);
 			ret.right = ret.left + (sl_real)(rc.Width);
 			ret.bottom = ret.top + (sl_real)(rc.Height);
-			return ret;		
+			return ret;
 		}
 		return Rectangle::zero();
 	}

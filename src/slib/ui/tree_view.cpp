@@ -22,6 +22,8 @@
 
 #include "slib/ui/tree_view.h"
 
+#include "slib/graphics/canvas.h"
+
 namespace slib
 {
 
@@ -108,7 +110,7 @@ namespace slib
 				
 			};
 
-		}	
+		}
 	}
 
 	using namespace priv::tree_view;

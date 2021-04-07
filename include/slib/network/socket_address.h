@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_SOCKET_ADDRESS
 #define CHECKHEADER_SLIB_NETWORK_SOCKET_ADDRESS
 
-#include "definition.h"
-
 #include "ip_address.h"
 
 #include "../core/string.h"
@@ -40,18 +38,27 @@ namespace slib
 		sl_uint16 port;
 		
 	public:
-		SocketAddress() noexcept;
+		SocketAddress() noexcept
+		: port(0)
+		{}
 		
-		SocketAddress(const SocketAddress& other) noexcept;
+		SocketAddress(const SocketAddress& other) noexcept = default;
 		
-		SocketAddress(sl_uint16 port) noexcept;
+		SocketAddress(sl_uint16 _port) noexcept
+		: port(_port)
+		{}
 		
-		SocketAddress(const IPAddress& ip, sl_uint16 port) noexcept;
+		SocketAddress(const IPAddress& _ip, sl_uint16 _port) noexcept
+		: ip(_ip), port(_port)
+		{}
 		
 		SocketAddress(const String& str) noexcept;
 		
 	public:
-		static const SocketAddress& none() noexcept;
+		static const SocketAddress& none() noexcept
+		{
+			return *(reinterpret_cast<SocketAddress const*>(&_none));
+		}
 		
 		void setNone() noexcept;
 		
@@ -97,7 +104,7 @@ namespace slib
 		static sl_bool parsePortRange(const String& str, sl_uint16* from = sl_null, sl_uint16* to = sl_null) noexcept;
 		
 	public:
-		SocketAddress& operator=(const SocketAddress& other) noexcept;
+		SocketAddress& operator=(const SocketAddress& other) noexcept = default;
 		
 		SocketAddress& operator=(const String& str) noexcept;
 		
@@ -147,7 +154,5 @@ namespace slib
 	};
 
 }
-
-#include "detail/socket_address.inc"
 
 #endif

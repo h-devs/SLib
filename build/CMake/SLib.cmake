@@ -24,15 +24,16 @@ if (CMAKE_SYSTEM_NAME STREQUAL Linux)
  set (SLIB_BIN_PATH "${SLIB_PATH}/bin/Linux/${CMAKE_SYSTEM_PROCESSOR}")
 endif ()
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -frtti")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -frtti -DSLIB_USE_OBJECT_TYPE_CONSTANTS")
 # generates no debug information
 if (CMAKE_BUILD_TYPE MATCHES Release)
  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g0")
  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g0")
 endif ()
 if (SLIB_ARM AND NOT SLIB_ARM64)
- set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon")
- set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpu=neon") 
+ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -marm -mfpu=neon")
+ set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -marm -mfpu=neon") 
+ set (CMAKE_ASM_FLAGS, "${CMAKE_ASM_FLAGS} -marm -mfpu=neon")
 endif ()
 
 if (ANDROID)
@@ -77,9 +78,10 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/charset_ext.cpp"
  "${SLIB_PATH}/src/slib/core/collection.cpp"
  "${SLIB_PATH}/src/slib/core/console.cpp"
- "${SLIB_PATH}/src/slib/core/console_unix.cpp"
  "${SLIB_PATH}/src/slib/core/content_type.cpp"
  "${SLIB_PATH}/src/slib/core/dispatch.cpp"
+ "${SLIB_PATH}/src/slib/core/dynamic_library.cpp"
+ "${SLIB_PATH}/src/slib/core/dynamic_library_unix.cpp"
  "${SLIB_PATH}/src/slib/core/event.cpp"
  "${SLIB_PATH}/src/slib/core/event_unix.cpp"
  "${SLIB_PATH}/src/slib/core/file.cpp"
@@ -108,7 +110,9 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/regex.cpp"
  "${SLIB_PATH}/src/slib/core/resource.cpp"
  "${SLIB_PATH}/src/slib/core/rw_lock.cpp"
+ "${SLIB_PATH}/src/slib/core/safe_static.cpp"
  "${SLIB_PATH}/src/slib/core/service.cpp"
+ "${SLIB_PATH}/src/slib/core/service_manager.cpp"
  "${SLIB_PATH}/src/slib/core/setting.cpp"
  "${SLIB_PATH}/src/slib/core/spin_lock.cpp"
  "${SLIB_PATH}/src/slib/core/string.cpp"
@@ -119,7 +123,6 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/system.cpp"
  "${SLIB_PATH}/src/slib/core/system_unix.cpp"
  "${SLIB_PATH}/src/slib/core/thread.cpp"
- "${SLIB_PATH}/src/slib/core/thread_pool.cpp"
  "${SLIB_PATH}/src/slib/core/thread_unix.cpp"
  "${SLIB_PATH}/src/slib/core/time.cpp"
  "${SLIB_PATH}/src/slib/core/time_unix.cpp"
@@ -150,29 +153,12 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/crypto/sha2.cpp"
  "${SLIB_PATH}/src/slib/crypto/tls.cpp"
 
- "${SLIB_PATH}/src/slib/math/bezier.cpp"
  "${SLIB_PATH}/src/slib/math/bigint.cpp"
- "${SLIB_PATH}/src/slib/math/box.cpp"
  "${SLIB_PATH}/src/slib/math/calculator.cpp"
+ "${SLIB_PATH}/src/slib/math/fft.cpp"
  "${SLIB_PATH}/src/slib/math/int128.cpp"
- "${SLIB_PATH}/src/slib/math/line.cpp"
- "${SLIB_PATH}/src/slib/math/line3.cpp"
- "${SLIB_PATH}/src/slib/math/line_segment.cpp"
- "${SLIB_PATH}/src/slib/math/matrix2.cpp"
- "${SLIB_PATH}/src/slib/math/matrix3.cpp"
- "${SLIB_PATH}/src/slib/math/matrix4.cpp"
- "${SLIB_PATH}/src/slib/math/plane.cpp"
- "${SLIB_PATH}/src/slib/math/quaternion.cpp"
- "${SLIB_PATH}/src/slib/math/rectangle.cpp"
- "${SLIB_PATH}/src/slib/math/sphere.cpp"
- "${SLIB_PATH}/src/slib/math/transform2d.cpp"
- "${SLIB_PATH}/src/slib/math/transform3d.cpp"
- "${SLIB_PATH}/src/slib/math/triangle.cpp"
- "${SLIB_PATH}/src/slib/math/triangle3.cpp"
- "${SLIB_PATH}/src/slib/math/vector2.cpp"
- "${SLIB_PATH}/src/slib/math/vector3.cpp"
- "${SLIB_PATH}/src/slib/math/vector4.cpp"
- "${SLIB_PATH}/src/slib/math/view_frustum.cpp"
+ "${SLIB_PATH}/src/slib/math/plot.cpp"
+ "${SLIB_PATH}/src/slib/math/plot_ui.cpp"
 
  "${SLIB_PATH}/src/slib/network/arp.cpp"
  "${SLIB_PATH}/src/slib/network/dns.cpp"
@@ -196,6 +182,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/network/socket_event.cpp"
  "${SLIB_PATH}/src/slib/network/socket_event_unix.cpp"
  "${SLIB_PATH}/src/slib/network/stun.cpp"
+ "${SLIB_PATH}/src/slib/network/tap.cpp"
  "${SLIB_PATH}/src/slib/network/tcpip.cpp"
  "${SLIB_PATH}/src/slib/network/url.cpp"
  "${SLIB_PATH}/src/slib/network/url_request.cpp"
@@ -240,37 +227,32 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/graphics/graphics_text.cpp"
  "${SLIB_PATH}/src/slib/graphics/graphics_util.cpp"
  "${SLIB_PATH}/src/slib/graphics/image.cpp"
+ "${SLIB_PATH}/src/slib/graphics/image_canvas.cpp"
  "${SLIB_PATH}/src/slib/graphics/image_jpeg.cpp"
  "${SLIB_PATH}/src/slib/graphics/image_png.cpp"
  "${SLIB_PATH}/src/slib/graphics/image_stb.cpp"
+ "${SLIB_PATH}/src/slib/graphics/jpeg.cpp"
  "${SLIB_PATH}/src/slib/graphics/pen.cpp"
  "${SLIB_PATH}/src/slib/graphics/yuv.cpp"
  "${SLIB_PATH}/src/slib/graphics/zxing.cpp"
 
- "${SLIB_PATH}/src/slib/render/index_buffer.cpp"
  "${SLIB_PATH}/src/slib/render/opengl_gl.cpp"
  "${SLIB_PATH}/src/slib/render/opengl_gles.cpp"
  "${SLIB_PATH}/src/slib/render/render_base.cpp"
+ "${SLIB_PATH}/src/slib/render/render_buffer.cpp"
  "${SLIB_PATH}/src/slib/render/render_canvas.cpp"
  "${SLIB_PATH}/src/slib/render/render_drawable.cpp"
  "${SLIB_PATH}/src/slib/render/render_engine.cpp"
  "${SLIB_PATH}/src/slib/render/render_program.cpp"
  "${SLIB_PATH}/src/slib/render/render_resource.cpp"
  "${SLIB_PATH}/src/slib/render/texture.cpp"
- "${SLIB_PATH}/src/slib/render/vertex_buffer.cpp"
  
  "${SLIB_PATH}/src/slib/media/audio_codec.cpp"
  "${SLIB_PATH}/src/slib/media/audio_data.cpp"
+ "${SLIB_PATH}/src/slib/media/audio_device.cpp"
  "${SLIB_PATH}/src/slib/media/audio_format.cpp"
- "${SLIB_PATH}/src/slib/media/audio_player.cpp"
- "${SLIB_PATH}/src/slib/media/audio_player_dsound.cpp"
- "${SLIB_PATH}/src/slib/media/audio_player_opensl_es.cpp"
- "${SLIB_PATH}/src/slib/media/audio_recorder.cpp"
- "${SLIB_PATH}/src/slib/media/audio_recorder_dsound.cpp"
- "${SLIB_PATH}/src/slib/media/audio_recorder_opensl_es.cpp"
  "${SLIB_PATH}/src/slib/media/audio_util.cpp"
  "${SLIB_PATH}/src/slib/media/camera.cpp"
- "${SLIB_PATH}/src/slib/media/camera_dshow.cpp"
  "${SLIB_PATH}/src/slib/media/codec_opus.cpp"
  "${SLIB_PATH}/src/slib/media/codec_vpx.cpp"
  "${SLIB_PATH}/src/slib/media/media_player.cpp"
@@ -289,7 +271,10 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/db/database_statement.cpp"
  "${SLIB_PATH}/src/slib/db/redis.cpp"
  "${SLIB_PATH}/src/slib/db/sqlite.cpp"
- 
+
+ "${SLIB_PATH}/src/slib/doc/pdf.cpp"
+ "${SLIB_PATH}/src/slib/doc/rar.cpp"
+
  "${SLIB_PATH}/src/slib/geo/earth.cpp"
  "${SLIB_PATH}/src/slib/geo/geo_line.cpp"
  "${SLIB_PATH}/src/slib/geo/geo_location.cpp"
@@ -332,6 +317,12 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/social/wechat.cpp"
  "${SLIB_PATH}/src/slib/social/wechat_sdk.cpp"
 
+ "${SLIB_PATH}/src/slib/storage/disk.cpp"
+ "${SLIB_PATH}/src/slib/storage/fuse.cpp"
+ "${SLIB_PATH}/src/slib/storage/file_system.cpp"
+ "${SLIB_PATH}/src/slib/storage/file_system_logger.cpp"
+ "${SLIB_PATH}/src/slib/storage/file_system_mirror.cpp"
+
  "${SLIB_PATH}/src/slib/ui/button.cpp"
  "${SLIB_PATH}/src/slib/ui/camera_view.cpp"
  "${SLIB_PATH}/src/slib/ui/clipboard.cpp"
@@ -339,6 +330,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/ui/check_box.cpp"
  "${SLIB_PATH}/src/slib/ui/chromium.cpp"
  "${SLIB_PATH}/src/slib/ui/collection_view.cpp"
+ "${SLIB_PATH}/src/slib/ui/combo_box.cpp"
  "${SLIB_PATH}/src/slib/ui/common_dialogs.cpp"
  "${SLIB_PATH}/src/slib/ui/cursor.cpp"
  "${SLIB_PATH}/src/slib/ui/date_picker.cpp"
@@ -346,13 +338,14 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/ui/edit_view.cpp"
  "${SLIB_PATH}/src/slib/ui/gesture.cpp"
  "${SLIB_PATH}/src/slib/ui/global_event_monitor.cpp"
- "${SLIB_PATH}/src/slib/ui/grid_view.cpp"
  "${SLIB_PATH}/src/slib/ui/image_view.cpp"
  "${SLIB_PATH}/src/slib/ui/image_view_url.cpp"
+ "${SLIB_PATH}/src/slib/ui/label_list.cpp"
  "${SLIB_PATH}/src/slib/ui/label_view.cpp"
  "${SLIB_PATH}/src/slib/ui/line_view.cpp"
- "${SLIB_PATH}/src/slib/ui/linear_view.cpp"
- "${SLIB_PATH}/src/slib/ui/list_report_view.cpp"
+ "${SLIB_PATH}/src/slib/ui/linear_layout.cpp"
+ "${SLIB_PATH}/src/slib/ui/list_box.cpp"
+ "${SLIB_PATH}/src/slib/ui/list_control.cpp"
  "${SLIB_PATH}/src/slib/ui/list_view.cpp"
  "${SLIB_PATH}/src/slib/ui/mobile_app.cpp"
  "${SLIB_PATH}/src/slib/ui/mobile_game.cpp"
@@ -368,10 +361,12 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/ui/scroll_view.cpp"
  "${SLIB_PATH}/src/slib/ui/select_view.cpp"
  "${SLIB_PATH}/src/slib/ui/slider.cpp"
- "${SLIB_PATH}/src/slib/ui/split_view.cpp"
+ "${SLIB_PATH}/src/slib/ui/split_layout.cpp"
  "${SLIB_PATH}/src/slib/ui/switch_view.cpp"
  "${SLIB_PATH}/src/slib/ui/tab_view.cpp"
+ "${SLIB_PATH}/src/slib/ui/table_layout.cpp"
  "${SLIB_PATH}/src/slib/ui/text_view.cpp"
+ "${SLIB_PATH}/src/slib/ui/tile_layout.cpp"
  "${SLIB_PATH}/src/slib/ui/toast.cpp"
  "${SLIB_PATH}/src/slib/ui/transition.cpp"
  "${SLIB_PATH}/src/slib/ui/tree_view.cpp"
@@ -388,6 +383,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/ui/ui_photo.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_platform.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_resource.cpp"
+ "${SLIB_PATH}/src/slib/ui/ui_sound.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_text.cpp"
  "${SLIB_PATH}/src/slib/ui/video_view.cpp"
  "${SLIB_PATH}/src/slib/ui/view.cpp"
@@ -416,8 +412,7 @@ if(ANDROID)
   "${SLIB_PATH}/src/slib/graphics/graphics_path_android.cpp"
   "${SLIB_PATH}/src/slib/graphics/pen_android.cpp"
 
-  "${SLIB_PATH}/src/slib/media/audio_player_android.cpp"
-  "${SLIB_PATH}/src/slib/media/audio_recorder_android.cpp"
+  "${SLIB_PATH}/src/slib/media/audio_device_android.cpp"
   "${SLIB_PATH}/src/slib/media/camera_android.cpp"
   "${SLIB_PATH}/src/slib/media/media_player_android.cpp"
 
@@ -451,30 +446,57 @@ if(ANDROID)
  )
 else ()
  set (SLIB_EXTRA_PLATFORM_FILES
+  "${SLIB_PATH}/src/slib/core/dl_linux_glib.cpp"
+  "${SLIB_PATH}/src/slib/core/dl_linux_rt.cpp"
+  "${SLIB_PATH}/src/slib/network/dl_linux_curl.cpp"
+  "${SLIB_PATH}/src/slib/graphics/dl_linux_cairo.cpp"
+  "${SLIB_PATH}/src/slib/render/dl_linux_gl.cpp"
+  "${SLIB_PATH}/src/slib/media/dl_linux_alsa.cpp"
+  "${SLIB_PATH}/src/slib/ui/dl_linux_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/dl_linux_gdk.cpp"
+  "${SLIB_PATH}/src/slib/ui/dl_linux_x11.cpp"
+
+  "${SLIB_PATH}/src/slib/network/tap_unix.cpp"
+
   "${SLIB_PATH}/src/slib/db/mysql.cpp"
   "${SLIB_PATH}/src/slib/db/postgresql.cpp"
 
   "${SLIB_PATH}/src/slib/graphics/bitmap_cairo.cpp"
   "${SLIB_PATH}/src/slib/graphics/canvas_cairo.cpp"
   "${SLIB_PATH}/src/slib/graphics/drawable_cairo.cpp"
-  "${SLIB_PATH}/src/slib/graphics/font_cairo.cpp"
+  "${SLIB_PATH}/src/slib/graphics/font_pango.cpp"
 
   "${SLIB_PATH}/src/slib/render/opengl_glx.cpp"
 
+  "${SLIB_PATH}/src/slib/media/audio_device_linux.cpp"
+  "${SLIB_PATH}/src/slib/media/camera_linux.cpp"
+  "${SLIB_PATH}/src/slib/media/media_player_linux.cpp"
+
   "${SLIB_PATH}/src/slib/device/device_linux.cpp"
 
+  "${SLIB_PATH}/src/slib/ui/button_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/check_box_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/clipboard_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/common_dialogs_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/combo_box_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/edit_view_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/list_control_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/radio_button_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/render_view_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/scroll_view_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/select_view_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/tab_view_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_core_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_event_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/ui_menu_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/view_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/web_view_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/window_gtk.cpp"
  )
 endif()
 
 if (SLIB_X86_64)
- SET_PROPERTY( SOURCE ${SLIB_PATH}/src/slib/crypto/crc32c.cpp PROPERTY COMPILE_FLAGS -mavx2 )
+ SET_PROPERTY( SOURCE ${SLIB_PATH}/src/slib/crypto/crc32c.cpp PROPERTY COMPILE_FLAGS -msse4.2 )
 endif()
 
 set (ZLIB_ROOT_DIR "${SLIB_PATH}/external/src/zlib")
@@ -606,10 +628,6 @@ set_target_properties (
  ARCHIVE_OUTPUT_DIRECTORY "${SLIB_LIB_PATH}"
 )
 
-include ("${CMAKE_CURRENT_LIST_DIR}/external/freetype.cmake")
-include ("${CMAKE_CURRENT_LIST_DIR}/external/sqlite.cmake")
-include ("${CMAKE_CURRENT_LIST_DIR}/external/yasm.cmake")
-include ("${CMAKE_CURRENT_LIST_DIR}/external/opus.cmake")
-include ("${CMAKE_CURRENT_LIST_DIR}/external/vpx.cmake")
-include ("${CMAKE_CURRENT_LIST_DIR}/external/zxing.cmake")
-include ("${CMAKE_CURRENT_LIST_DIR}/external/hiredis.cmake")
+if (CMAKE_SYSTEM_NAME STREQUAL Linux)
+ include("${CMAKE_CURRENT_LIST_DIR}/sapp.cmake")
+endif ()

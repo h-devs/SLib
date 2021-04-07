@@ -22,8 +22,6 @@
 
 #include "app.h"
 
-SLIB_DEFINE_APPLICATION(ExampleCameraViewApp, MobileApp)
-
 ExampleCameraViewApp::ExampleCameraViewApp()
 {
 }

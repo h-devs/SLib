@@ -18,6 +18,7 @@
 #include "oned/ODCode39Writer.h"
 #include "oned/ODWriterHelper.h"
 #include "ZXContainerAlgorithms.h"
+#include "ZXStrConvWorkaround.h"
 
 #include <array>
 
@@ -144,7 +145,7 @@ Code39Writer::encode(const std::wstring& contents, int width, int height) const
 			extendedContent = TryToConvertToExtendedMode(contents);
 			length = extendedContent.length();
 			if (length > 80) {
-				throw std::invalid_argument("Requested contents should be less than 80 digits long, but got " + std::to_string(length) + " (extended full ASCII mode)");
+				throw std::invalid_argument("Requested contents should be less than 80 digits long, but got " + std_to_string(length) + " (extended full ASCII mode)");
 			}
 			break;
 		}

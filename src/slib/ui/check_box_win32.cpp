@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 
@@ -44,6 +44,14 @@ namespace slib
 
 			CheckBoxInstance::~CheckBoxInstance()
 			{
+			}
+
+			void CheckBoxInstance::initialize(View* _view)
+			{
+				CheckBox* view = (CheckBox*)_view;
+				
+				ButtonInstance::initialize(view);
+				setChecked(view, view->isChecked());
 			}
 
 			sl_bool CheckBoxInstance::getChecked(CheckBox* view, sl_bool& _out)
@@ -95,13 +103,7 @@ namespace slib
 	Ref<ViewInstance> CheckBox::createNativeWidget(ViewInstance* parent)
 	{
 		UINT style = BS_AUTOCHECKBOX | WS_TABSTOP;
-		Ref<CheckBoxInstance> ret = Win32_ViewInstance::create<CheckBoxInstance>(this, parent, L"BUTTON", getText(), style, 0);
-		if (ret.isNotNull()) {
-			ret->setPadding(this, getPadding());
-			ret->setChecked(this, m_flagChecked);
-			return ret;
-		}
-		return sl_null;
+		return Win32_ViewInstance::create<CheckBoxInstance>(this, parent, L"BUTTON", getText(), style, 0);
 	}
 
 	Ptr<ICheckBoxInstance> CheckBox::getCheckBoxInstance()

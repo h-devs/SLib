@@ -7,7 +7,7 @@ namespace slib
 	namespace ui
 	{
 		SLIB_DECLARE_VIEW_LAYOUT_BEGIN(MenuPopup)
-			slib::Ref<slib::LinearView> container;
+			slib::Ref<slib::LinearLayout> container;
 		SLIB_DECLARE_VIEW_LAYOUT_END
 
 	}

@@ -37,6 +37,7 @@ Motion tracking algorithm based on least-squares linear regression.
 
 #include "definition.h"
 
+#include "../core/ref.h"
 #include "../core/time.h"
 
 #define SLIB_MOTION_TRACKER_HISTORY_SIZE 20

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,11 +24,11 @@
 
 #include "slib/core/json.h"
 
-#include "slib/core/list.h"
-#include "slib/core/map.h"
-
 #include "slib/core/file.h"
+#include "slib/core/parse_util.h"
 #include "slib/core/log.h"
+
+#include "slib/math/bigint.h"
 
 namespace slib
 {
@@ -59,38 +59,39 @@ namespace slib
 	{
 	}
 	
-	Json::Json(const Json& other) : Variant(other)
+	Json::Json(const Json& other): Variant(other)
 	{
 	}
 	
-	Json::Json(Json&& other) : Variant(Move(*(static_cast<Variant*>(&other))))
+	Json::Json(Json&& other): Variant(Move(other))
 	{
 	}
-	
-	Json::Json(const Variant& variant) : Variant(variant)
+
+	Json::Json(const Atomic<Json>& other)
+	{
+		other._retain_construct(this);
+	}
+
+	Json::Json(const Variant& other): Variant(other)
 	{
 	}
-	
-	Json::Json(const AtomicVariant& variant) : Variant(variant)
+
+	Json::Json(Variant&& other): Variant(Move(other))
 	{
 	}
-	
-	Json::Json(const std::initializer_list<JsonItem>& pairs): Variant(VariantHashMap(*(reinterpret_cast<const std::initializer_list< Pair<String, Variant> >*>(&pairs))))
+
+	Json::Json(const Atomic<Variant>& other): Variant(other)
 	{
 	}
-	
-	Json::Json(const std::initializer_list<Json>& elements): Variant(VariantList(*(reinterpret_cast<const std::initializer_list<Variant>*>(&elements))))
-	{
-	}
-	
+
 	Json::~Json()
 	{
 	}
 
-	Json::Json(sl_null_t) : Variant(sl_null)
+	Json::Json(sl_null_t): Variant(sl_null)
 	{
 	}
-	
+
 	Json::Json(signed char value): Variant(value)
 	{
 	}
@@ -146,19 +147,19 @@ namespace slib
 	Json::Json(const String& value): Variant(value)
 	{
 	}
-	
+
+	Json::Json(String&& value): Variant(Move(value))
+	{
+	}
+
 	Json::Json(const String16& value): Variant(value)
 	{
 	}
-	
-	Json::Json(const AtomicString& value): Variant(value)
+
+	Json::Json(String16&& value): Variant(Move(value))
 	{
 	}
-	
-	Json::Json(const AtomicString16& value): Variant(value)
-	{
-	}
-	
+
 	Json::Json(const sl_char8* sz8): Variant(sz8)
 	{
 	}
@@ -183,102 +184,88 @@ namespace slib
 	{
 	}
 	
-	Json::Json(const List<Variant>& list): Variant(list)
+	Json::Json(const JsonList& list): Variant(list)
 	{
 	}
-	
-	Json::Json(const AtomicList<Variant>& list): Variant(list)
+
+	Json::Json(JsonList&& list): Variant(Move(list))
 	{
 	}
-	
-	Json::Json(const Map<String, Variant>& map): Variant(map)
+
+	Json::Json(const JsonMap& map): Variant(map)
 	{
 	}
-	
-	Json::Json(const AtomicMap<String, Variant>& map): Variant(map)
+
+	Json::Json(JsonMap&& map): Variant(Move(map))
 	{
 	}
-	
-	Json::Json(const HashMap<String, Variant>& map): Variant(map)
+
+	Json::Json(const VariantList& list): Variant(list)
 	{
 	}
-	
-	Json::Json(const AtomicHashMap<String, Variant>& map): Variant(map)
+
+	Json::Json(VariantList&& list): Variant(Move(list))
 	{
 	}
-	
-	Json::Json(const List< Map<String, Variant> >& list): Variant(list)
+
+	Json::Json(const VariantMap& map): Variant(map)
 	{
 	}
-	
-	Json::Json(const AtomicList< Map<String, Variant> >& list): Variant(list)
+
+	Json::Json(VariantMap&& map): Variant(Move(map))
 	{
 	}
-	
-	Json::Json(const List< HashMap<String, Variant> >& list): Variant(list)
+
+	Json::Json(const std::initializer_list<JsonItem>& pairs): Variant(JsonMap(pairs))
 	{
 	}
-	
-	Json::Json(const AtomicList< HashMap<String, Variant> >& list): Variant(list)
-	{
-	}
-	
-	Json::Json(const JsonList& list): Variant(*(reinterpret_cast<VariantList const*>(&list)))
-	{
-	}
-	
-	Json::Json(const AtomicJsonList& list): Variant(*(reinterpret_cast<AtomicVariantList const*>(&list)))
-	{
-	}
-	
-	Json::Json(const JsonMap& map): Variant(*(reinterpret_cast<VariantHashMap const*>(&map)))
-	{
-	}
-	
-	Json::Json(const AtomicJsonMap& map): Variant(*(reinterpret_cast<AtomicVariantHashMap const*>(&map)))
-	{
-	}
-	
-	Json::Json(const JsonMapList& list): Variant(*(reinterpret_cast<VariantHashMapList const*>(&list)))
-	{
-	}
-	
-	Json::Json(const AtomicJsonMapList& list): Variant(*(reinterpret_cast<AtomicVariantHashMapList const*>(&list)))
+
+	Json::Json(const std::initializer_list<Json>& elements): Variant(JsonList(elements))
 	{
 	}
 
 	Json Json::createList()
 	{
-		return Variant::createList();
+		return JsonList::create();
 	}
 	
 	Json Json::createMap()
 	{
-		return Variant::createHashMap();
+		return JsonMap::create();
 	}
 
 	Json& Json::operator=(const Json& json)
 	{
-		*(static_cast<Variant*>(this)) = json;
+		_assign(json);
 		return *this;
 	}
 	
 	Json& Json::operator=(Json&& json)
 	{
-		*(static_cast<Variant*>(this)) = Move(*(static_cast<Variant*>(&json)));
+		_assignMove(json);
 		return *this;
 	}
-	
+
+	Json& Json::operator=(const Atomic<Json>& json)
+	{
+		return *this = Json(json);
+	}
+
 	Json& Json::operator=(const Variant& variant)
 	{
-		*(static_cast<Variant*>(this)) = variant;
+		_assign(variant);
 		return *this;
 	}
-	
-	Json& Json::operator=(const AtomicVariant& variant)
+
+	Json& Json::operator=(Variant&& variant)
 	{
-		*(static_cast<Variant*>(this)) = variant;
+		_assignMove(variant);
 		return *this;
+	}
+
+	Json& Json::operator=(const Atomic<Variant>& variant)
+	{
+		return *this = Variant(variant);
 	}
 	
 	Json& Json::operator=(sl_null_t)
@@ -296,7 +283,72 @@ namespace slib
 	{
 		return *this = Json(elements);
 	}
-	
+
+	Json Json::operator[](sl_size list_index) const
+	{
+		return getElement(list_index);
+	}
+
+	Json Json::operator[](const StringParam& key) const
+	{
+		return getItem(key);
+	}
+
+	Json Json::getElement_NoLock(sl_size index) const
+	{
+		return Variant::getElement_NoLock(index);
+	}
+
+	Json Json::getElement(sl_size index) const
+	{
+		return Variant::getElement(index);
+	}
+
+	sl_bool Json::setElement_NoLock(sl_uint64 index, const Json& value)
+	{
+		return Variant::setElement_NoLock(index, value);
+	}
+
+	sl_bool Json::setElement(sl_uint64 index, const Json& value)
+	{
+		return Variant::setElement(index, value);
+	}
+
+	sl_bool Json::addElement_NoLock(const Json& value)
+	{
+		return Variant::addElement_NoLock(value);
+	}
+
+	sl_bool Json::addElement(const Json& value)
+	{
+		return Variant::addElement(value);
+	}
+
+	Json Json::getItem_NoLock(const StringParam& key) const
+	{
+		return Variant::getItem_NoLock(key);
+	}
+
+	Json Json::getItem(const StringParam& key) const
+	{
+		return Variant::getItem(key);
+	}
+
+	sl_bool Json::putItem_NoLock(const StringParam& key, const Json& value)
+	{
+		return Variant::putItem_NoLock(key, value);
+	}
+
+	sl_bool Json::putItem(const StringParam& key, const Json& value)
+	{
+		return Variant::putItem(key, value);
+	}
+
+	String Json::toString() const
+	{
+		return Variant::toString();
+	}
+
 	namespace priv
 	{
 		namespace json
@@ -532,7 +584,7 @@ namespace slib
 								key = ST::from(ParseUtil::parseBackslashEscapes(StringParam(buf + pos, len - pos), &m, &f));
 							} else {
 								key = ST::from(ParseUtil::parseBackslashEscapes16(StringParam(buf + pos, len - pos), &m, &f));
-							}							
+							}
 							pos += m;
 							if (f) {
 								flagError = sl_true;
@@ -615,10 +667,10 @@ namespace slib
 						return sl_null;
 					}
 					if (str == strTrue) {
-						return Json::fromBoolean(sl_true);
+						return Json(sl_true);
 					}
 					if (str == strFalse) {
-						return Json::fromBoolean(sl_false);
+						return Json(sl_false);
 					}
 					sl_int64 vi64;
 					if (str.parseInt64(10, &vi64)) {
@@ -670,7 +722,7 @@ namespace slib
 				param.flagError = sl_true;
 				param.errorPosition = parser.pos;
 				param.errorMessage = parser.errorMessage;
-				param.errorLine = ParseUtil::countLineNumber(StringParam(buf, len), parser.pos, &(param.errorColumn));
+				param.errorLine = ParseUtil::countLineNumber(StringParam(buf, parser.pos), &(param.errorColumn));
 				
 				if (param.flagLogError) {
 					LogError("Json", param.getErrorText());
@@ -747,145 +799,12 @@ namespace slib
 	}
 
 
-	String Json::toString() const
-	{
-		return Variant::toString();
-	}
-
-	sl_bool Json::isJsonList() const
-	{
-		return isVariantList();
-	}
-	
-	JsonList Json::getJsonList() const
-	{
-		Ref<Referable> obj(getObject());
-		if (CList<Json>* p = CastInstance< CList<Json> >(obj._ptr)) {
-			return p;
-		}
-		return sl_null;
-	}
-	
-	void Json::setJsonList(const JsonList& list)
-	{
-		setVariantList(*(reinterpret_cast<VariantList const*>(&list)));
-	}
-	
-	sl_bool Json::isJsonMap() const
-	{
-		return isVariantHashMap();
-	}
-	
-	JsonMap Json::getJsonMap() const
-	{
-		Ref<Referable> obj(getObject());
-		if (CHashMap<String, Json>* p = CastInstance< CHashMap<String, Json> >(obj._ptr)) {
-			return p;
-		}
-		return sl_null;
-	}
-	
-	void Json::setJsonMap(const JsonMap& map)
-	{
-		setVariantHashMap(*(reinterpret_cast<VariantHashMap const*>(&map)));
-	}
-	
-	sl_bool Json::isJsonMapList() const
-	{
-		return isVariantHashMapList();
-	}
-	
-	JsonMapList Json::getJsonMapList() const
-	{
-		Ref<Referable> obj(getObject());
-		if (CList< HashMap<String, Json> >* p = CastInstance< CList< HashMap<String, Json> > >(obj._ptr)) {
-			return p;
-		}
-		return sl_null;
-	}
-	
-	void Json::setJsonMapList(const JsonMapList& list)
-	{
-		setVariantHashMapList(*(reinterpret_cast<VariantHashMapList const*>(&list)));
-	}
-
-	
-	Json Json::getElement(sl_size index) const
-	{
-		return Variant::getElement_NoLock(index);
-	}
-	
-	sl_bool Json::setElement(sl_size index, const Json& value)
-	{
-		return Variant::setElement_NoLock(index, value);
-	}
-	
-	sl_bool Json::addElement(const Json& value)
-	{
-		return Variant::addElement_NoLock(value);
-	}
-	
-	Json Json::getItem(const String& key) const
-	{
-		return Variant::getItem_NoLock(key);
-	}
-	
-	sl_bool Json::putItem(const String& key, const Json& value)
-	{
-		return Variant::putItem_NoLock(key, value);
-	}
-	
-	sl_bool Json::removeItem(const String& key)
-	{
-		return Variant::removeItem_NoLock(key);
-	}
-	
-	void Json::merge(const Json& other)
-	{
-		if (other.isNull()) {
-			return;
-		}
-		if (isNull()) {
-			*this = other;
-			return;
-		}
-		Ref<Referable> obj(getObject());
-		{
-			if (CHashMap<String, Json>* p = CastInstance< CHashMap<String, Json> >(obj._ptr)) {
-				Ref<Referable> objOther(other.getObject());
-				if (CHashMap<String, Json>* pOther = CastInstance< CHashMap<String, Json> >(objOther._ptr)) {
-					p->putAll_NoLock(*pOther);
-				}
-				return;
-			}
-		}
-		{
-			if (CList<Json>* p = CastInstance< CList<Json> >(obj._ptr)) {
-				Ref<Referable> objOther(other.getObject());
-				if (CList<Json>* pOther = CastInstance< CList<Json> >(objOther._ptr)) {
-					p->addAll_NoLock(pOther);
-				}
-				return;
-			}
-		}
-	}
-	
-	Json Json::operator[](sl_size list_index) const
-	{
-		return getElement(list_index);
-	}
-	
-	Json Json::operator[](const String& map_key) const
-	{
-		return getItem(map_key);
-	}
-	
-	
 	void FromJson(const Json& json, Json& _out)
 	{
-		if (json.isNotUndefined()) {
-			_out = json;
+		if (json.isUndefined()) {
+			return;
 		}
+		_out = json;
 	}
 	
 	void ToJson(Json& json, const Json& _in)
@@ -895,24 +814,13 @@ namespace slib
 
 	void FromJson(const Json& json, Variant& _out)
 	{
-		if (json.isNotUndefined()) {
-			_out = json;
+		if (json.isUndefined()) {
+			return;
 		}
+		_out = json;
 	}
 	
 	void ToJson(Json& json, const Variant& _in)
-	{
-		json = _in;
-	}
-	
-	void FromJson(const Json& json, AtomicVariant& _out)
-	{
-		if (json.isNotUndefined()) {
-			_out = json;
-		}
-	}
-		
-	void ToJson(Json& json, const AtomicVariant& _in)
 	{
 		json = _in;
 	}
@@ -1132,21 +1040,6 @@ namespace slib
 		json.setString(_in);
 	}
 	
-	void FromJson(const Json& json, AtomicString& _out)
-	{
-		_out = json.getString(_out);
-	}
-	
-	void FromJson(const Json& json, AtomicString& _out, const String& def)
-	{
-		_out = json.getString(def);
-	}
-	
-	void ToJson(Json& json, const AtomicString& _in)
-	{
-		json.setString(_in);
-	}
-	
 	void FromJson(const Json& json, String16& _out)
 	{
 		_out = json.getString16(_out);
@@ -1167,21 +1060,6 @@ namespace slib
 		json.setString(_in);
 	}
 	
-	void FromJson(const Json& json, AtomicString16& _out)
-	{
-		_out = json.getString16(_out);
-	}
-	
-	void FromJson(const Json& json, AtomicString16& _out, const String16& def)
-	{
-		_out = json.getString16(def);
-	}
-	
-	void ToJson(Json& json, const AtomicString16& _in)
-	{
-		json.setString(_in);
-	}
-	
 	void ToJson(Json& json, const sl_char8* _in)
 	{
 		json.setString(_in);
@@ -1194,10 +1072,36 @@ namespace slib
 	
 	void FromJson(const Json& json, StringParam& _out)
 	{
-		_out = json.getStringParam();
+		_out = json.getStringParam(_out);
 	}
 
 	void ToJson(Json& json, const StringParam& _in)
+	{
+		json.setString(_in);
+	}
+	
+	void FromJson(const Json& json, std::string& _out)
+	{
+		if (json.isUndefined()) {
+			return;
+		}
+		_out = json.getStdString();
+	}
+
+	void ToJson(Json& json, const std::string& _in)
+	{
+		json.setString(_in);
+	}
+
+	void FromJson(const Json& json, std::u16string& _out)
+	{
+		if (json.isUndefined()) {
+			return;
+		}
+		_out = json.getStdString16();
+	}
+
+	void ToJson(Json& json, const std::u16string& _in)
 	{
 		json.setString(_in);
 	}
@@ -1219,9 +1123,10 @@ namespace slib
 	
 	void FromJson(const Json& json, Memory& _out)
 	{
-		if (json.isNotUndefined()) {
-			_out = json.getString().parseHexString();
+		if (json.isUndefined()) {
+			return;
 		}
+		_out = json.getString().parseHexString();
 	}
 	
 	void ToJson(Json& json, const Memory& _in)
@@ -1231,9 +1136,10 @@ namespace slib
 	
 	void FromJson(const Json& json, BigInt& _out)
 	{
-		if (json.isNotUndefined()) {
-			_out = BigInt::fromHexString(json.getString());
+		if (json.isUndefined()) {
+			return;
 		}
+		_out = BigInt::fromHexString(json.getString());
 	}
 	
 	void ToJson(Json& json, const BigInt& _in)
@@ -1243,9 +1149,10 @@ namespace slib
 	
 	void FromJson(const Json& json, VariantList& _out)
 	{
-		if (json.isNotUndefined()) {
-			_out = json.getVariantList();
+		if (json.isUndefined()) {
+			return;
 		}
+		_out = json.getVariantList();
 	}
 	
 	void ToJson(Json& json, const VariantList& _in)
@@ -1253,119 +1160,30 @@ namespace slib
 		json.setVariantList(_in);
 	}
 	
-	void FromJson(const Json& json, AtomicVariantList& _out)
-	{
-		if (json.isNotUndefined()) {
-			_out = json.getVariantList();
-		}
-	}
-	
-	void ToJson(Json& json, const AtomicVariantList& _in)
-	{
-		json.setVariantList(_in);
-	}
-	
 	void FromJson(const Json& json, VariantMap& _out)
 	{
-		if (json.isNotUndefined()) {
-			_out = json.getVariantMap();
+		if (json.isUndefined()) {
+			return;
 		}
+		_out = json.getVariantMap();
 	}
 	
 	void ToJson(Json& json, const VariantMap& _in)
 	{
 		json.setVariantMap(_in);
 	}
-	
-	void FromJson(const Json& json, AtomicVariantMap& _out)
+
+	void ToJson(Json& json, const List<VariantMap>& _in)
 	{
-		if (json.isNotUndefined()) {
-			_out = json.getVariantMap();
-		}
-	}
-	
-	void ToJson(Json& json, const AtomicVariantMap& _in)
-	{
-		json.setVariantMap(_in);
-	}
-	
-	void FromJson(const Json& json, VariantHashMap& _out)
-	{
-		if (json.isNotUndefined()) {
-			_out = json.getVariantHashMap();
-		}
-	}
-	
-	void ToJson(Json& json, const VariantHashMap& _in)
-	{
-		json.setVariantHashMap(_in);
-	}
-	
-	void FromJson(const Json& json, AtomicVariantHashMap& _out)
-	{
-		if (json.isNotUndefined()) {
-			_out = json.getVariantHashMap();
-		}
-	}
-	
-	void ToJson(Json& json, const AtomicVariantHashMap& _in)
-	{
-		json.setVariantHashMap(_in);
-	}
-	
-	void FromJson(const Json& json, VariantMapList& _out)
-	{
-		if (json.isNotUndefined()) {
-			_out = json.getVariantMapList();
-		}
-	}
-	
-	void ToJson(Json& json, const VariantMapList& _in)
-	{
-		json.setVariantMapList(_in);
-	}
-	
-	void FromJson(const Json& json, AtomicVariantMapList& _out)
-	{
-		if (json.isNotUndefined()) {
-			_out = json.getVariantMapList();
-		}
-	}
-	
-	void ToJson(Json& json, const AtomicVariantMapList& _in)
-	{
-		json.setVariantMapList(_in);
+		json.Variant::set(_in);
 	}
 
-	void FromJson(const Json& json, VariantHashMapList& _out)
-	{
-		if (json.isNotUndefined()) {
-			_out = json.getVariantHashMapList();
-		}
-	}
-	
-	void ToJson(Json& json, const VariantHashMapList& _in)
-	{
-		json.setVariantHashMapList(_in);
-	}
-	
-	void FromJson(const Json& json, AtomicVariantHashMapList& _out)
-	{
-		if (json.isNotUndefined()) {
-			_out = json.getVariantHashMapList();
-		}
-	}
-	
-	void ToJson(Json& json, const AtomicVariantHashMapList& _in)
-	{
-		json.setVariantHashMapList(_in);
-	}
-	
 	void FromJson(const Json& json, JsonList& _out)
 	{
-		if (json.isNotUndefined()) {
-			_out = json.getJsonList();
+		if (json.isUndefined()) {
+			return;
 		}
+		_out = json.getJsonList();
 	}
 	
 	void ToJson(Json& json, const JsonList& _in)
@@ -1373,64 +1191,22 @@ namespace slib
 		json.setJsonList(_in);
 	}
 	
-	void FromJson(const Json& json, AtomicJsonList& _out)
-	{
-		if (json.isNotUndefined()) {
-			_out = json.getJsonList();
-		}
-	}
-	
-	void ToJson(Json& json, const AtomicJsonList& _in)
-	{
-		json.setJsonList(_in);
-	}
-	
 	void FromJson(const Json& json, JsonMap& _out)
 	{
-		if (json.isNotUndefined()) {
-			_out = json.getJsonMap();
+		if (json.isUndefined()) {
+			return;
 		}
+		_out = json.getJsonMap();
 	}
 	
 	void ToJson(Json& json, const JsonMap& _in)
 	{
 		json.setJsonMap(_in);
 	}
-	
-	void FromJson(const Json& json, AtomicJsonMap& _out)
+
+	void ToJson(Json& json, const List<JsonMap>& _in)
 	{
-		if (json.isNotUndefined()) {
-			_out = json.getJsonMap();
-		}
+		json.Variant::set(_in);
 	}
-	
-	void ToJson(Json& json, const AtomicJsonMap& _in)
-	{
-		json.setJsonMap(_in);
-	}
-	
-	void FromJson(const Json& json, JsonMapList& _out)
-	{
-		if (json.isNotUndefined()) {
-			_out = json.getJsonMapList();
-		}
-	}
-	
-	void ToJson(Json& json, const JsonMapList& _in)
-	{
-		json.setJsonMapList(_in);
-	}
-	
-	void FromJson(const Json& json, AtomicJsonMapList& _out)
-	{
-		if (json.isNotUndefined()) {
-			_out = json.getJsonMapList();
-		}
-	}
-	
-	void ToJson(Json& json, const AtomicJsonMapList& _in)
-	{
-		json.setJsonMapList(_in);
-	}
-	
+
 }

@@ -2,8 +2,6 @@
 
 #include "MainWindow.h"
 
-SLIB_DEFINE_APPLICATION(OAuthClientApp, UIApp)
-
 OAuthClientApp::OAuthClientApp()
 {
 }

@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/network/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
@@ -28,6 +28,7 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #include "slib/network/event.h"
+
 #include "slib/core/scoped.h"
 
 namespace slib

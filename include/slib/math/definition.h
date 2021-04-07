@@ -23,17 +23,13 @@
 #ifndef CHECKHEADER_SLIB_MATH_DEFINITION
 #define CHECKHEADER_SLIB_MATH_DEFINITION
 
+#ifdef SLIB_USE_OBJECT_TYPE_CONSTANTS
+#   ifndef PRIV_SLIB_INCLUDED_OBJECT_TYPES
+#       define PRIV_SLIB_INCLUDED_OBJECT_TYPES
+#       include "object_types.h"
+#   endif
+#endif
+
 #include "../core/definition.h"
-#include "../core/macro.h"
-
-#define SLIB_DEFINE_GEOMETRY_TYPE(TYPE) \
-	template class TYPE##T<float>; \
-	template class TYPE##T<double>;
-
-#define SLIB_DEFINE_GEOMETRY_TYPE_EX(TYPE) \
-	template class TYPE##T<float>; \
-	template class TYPE##T<double>; \
-	template class TYPE##T<sl_int32, float>; \
-	template class TYPE##T<sl_int64, double>;
 
 #endif

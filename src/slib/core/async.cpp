@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,15 +21,53 @@
  */
 
 #include "slib/core/async.h"
+#include "slib/core/async_stream.h"
+#include "slib/core/async_stream_simulator.h"
+#include "slib/core/async_stream_filter.h"
+#include "slib/core/async_reader.h"
+#include "slib/core/async_writer.h"
+#include "slib/core/async_file.h"
+#include "slib/core/async_copy.h"
+#include "slib/core/async_output.h"
 
+#include "slib/core/thread.h"
+#include "slib/core/dispatch_loop.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
 {
 
-/*************************************
-			AsyncIoLoop
-*************************************/
+	namespace priv
+	{
+		namespace async
+		{
+
+			static Ref<AsyncIoLoop> CreateDefaultAsyncIoLoop(sl_bool flagRelease = sl_false)
+			{
+				if (flagRelease) {
+					return sl_null;
+				}
+				return AsyncIoLoop::create();
+			}
+
+			static Ref<AsyncIoLoop> GetDefaultAsyncIoLoop(sl_bool flagRelease = sl_false)
+			{
+				SLIB_SAFE_LOCAL_STATIC(Ref<AsyncIoLoop>, ret, CreateDefaultAsyncIoLoop(flagRelease))
+				if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
+					return sl_null;
+				}
+				if (ret.isNotNull()) {
+					if (flagRelease) {
+						ret->release();
+					} else {
+						return ret;
+					}
+				}
+				return sl_null;
+			}
+
+		}
+	}
 
 	SLIB_DEFINE_OBJECT(AsyncIoLoop, Dispatcher)
 
@@ -47,19 +85,12 @@ namespace slib
 
 	Ref<AsyncIoLoop> AsyncIoLoop::getDefault()
 	{
-		SLIB_SAFE_STATIC(Ref<AsyncIoLoop>, ret, create())
-		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
-			return sl_null;
-		}
-		return ret;
+		return priv::async::GetDefaultAsyncIoLoop();
 	}
 
 	void AsyncIoLoop::releaseDefault()
 	{
-		Ref<AsyncIoLoop> loop = getDefault();
-		if (loop.isNotNull()) {
-			loop->release();
-		}
+		priv::async::GetDefaultAsyncIoLoop(sl_true);
 	}
 
 	Ref<AsyncIoLoop> AsyncIoLoop::create(sl_bool flagAutoStart)
@@ -224,9 +255,6 @@ namespace slib
 		}
 	}
 
-/*************************************
-		AsyncIoInstance
-**************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncIoInstance, Object)
 
@@ -261,12 +289,12 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_file AsyncIoInstance::getHandle()
+	sl_async_handle AsyncIoInstance::getHandle()
 	{
 		return m_handle;
 	}
 
-	void AsyncIoInstance::setHandle(sl_file handle)
+	void AsyncIoInstance::setHandle(sl_async_handle handle)
 	{
 		m_handle = handle;
 	}
@@ -321,9 +349,6 @@ namespace slib
 		onOrder();
 	}
 
-/*************************************
-		AsyncIoObject
-**************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncIoObject, Object)
 
@@ -363,16 +388,6 @@ namespace slib
 		}
 	}
 
-	Variant AsyncIoObject::getUserData()
-	{
-		return m_userData;
-	}
-
-	void AsyncIoObject::setUserData(const Variant& data)
-	{
-		m_userData = data;
-	}
-
 
 	void AsyncIoObject::setIoLoop(const Ref<AsyncIoLoop>& loop)
 	{
@@ -384,9 +399,6 @@ namespace slib
 		m_ioInstance = instance;
 	}
 
-/*************************************
-		AsyncStreamInstance
-**************************************/
 
 	SLIB_DEFINE_ROOT_OBJECT(AsyncStreamRequest)
 
@@ -531,9 +543,6 @@ namespace slib
 		return m_requestsWrite.getCount();
 	}
 
-/*************************************
-		AsyncStream
-**************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncStream, Object)
 
@@ -600,9 +609,6 @@ namespace slib
 		return write(mem.getData(), (sl_uint32)(size), callback, mem.ref.get());
 	}
 
-/*************************************
-		AsyncStreamBase
-**************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncStreamBase, AsyncStream)
 
@@ -728,9 +734,6 @@ namespace slib
 		return 0;
 	}
 
-/*************************************
-		AsyncStreamSimulator
-**************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncStreamSimulator, AsyncStream)
 
@@ -826,10 +829,6 @@ namespace slib
 	}
 
 
-/*************************************
-		AsyncReader
-**************************************/
-
 	SLIB_DEFINE_OBJECT(AsyncReader, AsyncStreamSimulator)
 	
 	AsyncReader::AsyncReader()
@@ -905,10 +904,6 @@ namespace slib
 	}
 
 
-/*************************************
-		AsyncWriter
-**************************************/
-
 	SLIB_DEFINE_OBJECT(AsyncWriter, AsyncStreamSimulator)
 	
 	AsyncWriter::AsyncWriter()
@@ -983,10 +978,6 @@ namespace slib
 		}
 	}
 
-
-/*************************************
-		AsyncFile
-**************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncFile, AsyncStreamSimulator)
 
@@ -1135,10 +1126,6 @@ namespace slib
 	}
 
 
-/*************************************
-		AsyncCopy
-**************************************/
-	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AsyncCopyParam)
 
 	AsyncCopyParam::AsyncCopyParam()
@@ -1454,10 +1441,6 @@ namespace slib
 	}
 
 
-/**********************************************
-		AsyncOutputBufferElement
-**********************************************/
-	
 	AsyncOutputBufferElement::AsyncOutputBufferElement()
 	{
 		m_sizeBody = 0;
@@ -1521,10 +1504,6 @@ namespace slib
 		return m_sizeBody;
 	}
 
-
-/**********************************************
-		AsyncOutputBuffer
-**********************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncOutputBuffer, Object)
 	
@@ -1604,13 +1583,17 @@ namespace slib
 	sl_bool AsyncOutputBuffer::copyFromFile(const String& path)
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
-		if (File::exists(path)) {
-			sl_uint64 size = File::getSize(path);
+		sl_uint64 size;
+		if (File::getSize(path, size)) {
 			if (size > 0) {
 				Ref<AsyncStream> file = AsyncFile::openIOCP(path, FileMode::Read);
 				if (file.isNotNull()) {
 					return copyFrom(file.get(), size);
+				} else {
+					return sl_false;
 				}
+			} else {
+				return sl_true;
 			}
 		}
 		return sl_false;
@@ -1621,16 +1604,17 @@ namespace slib
 
 	sl_bool AsyncOutputBuffer::copyFromFile(const String& path, const Ref<Dispatcher>& dispatcher)
 	{
-		if (!(File::exists(path))) {
-			return sl_false;
-		}
-		sl_uint64 size = File::getSize(path);
-		if (size > 0) {
-			Ref<AsyncFile> file = AsyncFile::openForRead(path, dispatcher);
-			if (file.isNotNull()) {
-				return copyFrom(file.get(), size);
+		sl_uint64 size;
+		if (File::getSize(path, size)) {
+			if (size > 0) {
+				Ref<AsyncFile> file = AsyncFile::openForRead(path, dispatcher);
+				if (file.isNotNull()) {
+					return copyFrom(file.get(), size);
+				} else {
+					return sl_false;
+				}
 			} else {
-				return sl_false;
+				return sl_true;
 			}
 		}
 		return sl_true;
@@ -1641,10 +1625,7 @@ namespace slib
 		return m_lengthOutput;
 	}
 
-/**********************************************
-				AsyncOutput
-**********************************************/
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AsyncOutputParam)
 	
 	AsyncOutputParam::AsyncOutputParam()
@@ -1805,10 +1786,6 @@ namespace slib
 		m_onEnd(this, sl_false);
 	}
 
-
-/**********************************************
-		AsyncStreamFilter
-**********************************************/
 
 	SLIB_DEFINE_OBJECT(AsyncStreamFilter, AsyncStream)
 

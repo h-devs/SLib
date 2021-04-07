@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_ANDROID)
 
@@ -105,7 +105,7 @@ namespace slib
 									Bitmap* pattern = detail->pattern.get();
 									if (pattern->isImage()) {
 										Ref<Bitmap> bitmap = Bitmap::create(((Image*)pattern));
-										if (bitmap.isNotNull()) {											
+										if (bitmap.isNotNull()) {
 											jobject jbitmap = GraphicsPlatform::getBitmapHandle(bitmap.get());
 											if (jbitmap) {
 												JBrush::pattern.set(jbrush, jbitmap);

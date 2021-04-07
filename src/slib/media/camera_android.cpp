@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/media/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_ANDROID)
 
@@ -317,7 +317,7 @@ namespace slib
 						CameraTakePictureResult result;
 						param.onComplete(result);
 						return;
-					}			
+					}
 					m_queueTakePictureRequests.push(param);
 					JCamera::takePicture.call(jcamera, (jint)((int)(param.flashMode)));
 				}

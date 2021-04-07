@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_SOCKET
 #define CHECKHEADER_SLIB_NETWORK_SOCKET
 
-#include "definition.h"
-
 #include "constants.h"
 #include "socket_address.h"
 #include "mac_address.h"
@@ -198,9 +196,9 @@ namespace slib
 		
 		sl_bool isIPv6() const;
 		
-		SocketError getLastError() const;
+		static SocketError getLastError();
 		
-		String getLastErrorMessage() const;
+		static String getLastErrorMessage();
 		
 		sl_bool shutdown(SocketShutdownMode shutMode);
 		
@@ -315,7 +313,6 @@ namespace slib
 	protected:
 		SocketType m_type;
 		sl_socket m_socket;
-		SocketError m_lastError;
 		
 	};
 

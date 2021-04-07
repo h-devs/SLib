@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,11 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_SERVICE
 #define CHECKHEADER_SLIB_CORE_SERVICE
 
-#include "definition.h"
-
 #include "app.h"
-#include "string.h"
-#include "thread.h"
 
 namespace slib
 {
@@ -51,9 +47,9 @@ namespace slib
 
 		virtual void onStopService() = 0;
 
-		void doRun() override;
+		sl_int32 doRun() override;
 	
-		void onRunApp() override;
+		sl_int32 onRunApp() override;
 
 		String getUniqueInstanceId() override;
 
@@ -63,16 +59,24 @@ namespace slib
 		virtual void dispatchStopService();
 
 	public:
-		void startService();
+		sl_bool startService();
 
-		void stopService();
+		sl_bool stopService();
 
 		void statusService();
 
-		void runService();
+		sl_int32 runService();
 	
 		static Ref<Service> getApp();
 	
+	private:
+		sl_bool _tryPlatformService();
+
+		void _runPlatformService();
+
+	protected:
+		sl_bool m_flagPlatformService;
+
 	};
 
 }

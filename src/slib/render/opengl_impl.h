@@ -35,12 +35,13 @@
 #define STACK_BUFFER_COUNT 128
 #define STACK_IMAGE_SIZE 16384
 
-#define MAX_SAMPLER_COUNT 32
-#define MIN_SAMPLER_COUNT 4
-
 #ifdef SLIB_PLATFORM_IS_TIZEN
 #include <Elementary_GL_Helpers.h>
 ELEMENTARY_GLVIEW_GLOBAL_DEFINE()
+#endif
+
+#ifdef SLIB_PLATFORM_IS_WIN32
+#define NEED_CHECK_ENTRY
 #endif
 
 namespace slib
@@ -213,10 +214,8 @@ namespace slib
 						return GL_CONSTANT_COLOR;
 					case RenderBlendingFactor::OneMinusConstant:
 						return GL_ONE_MINUS_CONSTANT_COLOR;
-					case RenderBlendingFactor::ConstantAlpha:
-						return GL_CONSTANT_ALPHA;
-					case RenderBlendingFactor::OneMinusConstantAlpha:
-						return GL_ONE_MINUS_CONSTANT_ALPHA;
+					default:
+						break;
 				}
 				return GL_ZERO;
 			}
@@ -224,10 +223,18 @@ namespace slib
 		}
 	}
 
-	void GL_BASE::setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param)
+	void GL_BASE::setBlending(const RenderBlendParam& param)
 	{
-		if (flagEnableBlending) {
+		if (param.flagBlending) {
 			GL_ENTRY(glEnable)(GL_BLEND);
+#ifdef NEED_CHECK_ENTRY
+			if (!GL_ENTRY(glBlendEquation)) {
+				GLenum fSrc = priv::gl::GetBlendingFactor(param.blendSrc);
+				GLenum fDst = priv::gl::GetBlendingFactor(param.blendDst);
+				GL_ENTRY(glBlendFunc)(fSrc, fDst);
+				return;
+			}
+#endif
 			GLenum op = priv::gl::GetBlendingOp(param.operation);
 			GLenum opAlpha = priv::gl::GetBlendingOp(param.operationAlpha);
 			if (op != opAlpha) {
@@ -250,18 +257,17 @@ namespace slib
 		}
 	}
 	
-	void GL_BASE::setBlending(sl_bool flagEnableBlending)
-	{
-		RenderBlendingParam param;
-		setBlending(flagEnableBlending, param);
-	}
-	
 	namespace priv
 	{
 		namespace gl
 		{
 			static sl_uint32 CreateShader(GLenum type, const String& source)
 			{
+#ifdef NEED_CHECK_ENTRY
+				if (!GL_ENTRY(glCreateShader)) {
+					return 0;
+				}
+#endif
 				GLuint shader = GL_ENTRY(glCreateShader)(type);
 				if (shader) {
 					if (source.isNotEmpty()) {
@@ -467,31 +473,33 @@ namespace slib
 	{
 		namespace gl
 		{
-			static void SetVertexArrayAttribute(sl_int32 attributeLocation, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize)
+			static void SetVertexArrayAttribute(sl_int32 attributeLocation, GLenum type, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize)
 			{
 				if (attributeLocation != -1) {
 					GL_ENTRY(glEnableVertexAttribArray)(attributeLocation);
-					GL_ENTRY(glVertexAttribPointer)(attributeLocation, countComponents, GL_FLOAT, flagDoNormalize ? GL_TRUE : GL_FALSE, strideBytes, data);
+					GL_ENTRY(glVertexAttribPointer)(attributeLocation, countComponents, type, flagDoNormalize ? GL_TRUE : GL_FALSE, strideBytes, data);
 				}
 			}
 		}
 	}
 	
-#define PRIV_DEFINE_SETVERTEXARRAY(t) \
+#define PRIV_DEFINE_SETVERTEXARRAY(t, TYPE) \
 	void GL_BASE::setVertex##t##ArrayAttributePtr(sl_int32 attributeLocation, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) \
 	{ \
-		priv::gl::SetVertexArrayAttribute(attributeLocation, data, countComponents, strideBytes, flagDoNormalize); \
+		priv::gl::SetVertexArrayAttribute(attributeLocation, TYPE, data, countComponents, strideBytes, flagDoNormalize); \
 	} \
 	void GL_BASE::setVertex##t##ArrayAttribute(sl_int32 attributeLocation, sl_size offsetValuesOnBuffer, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) \
 	{ \
-		priv::gl::SetVertexArrayAttribute(attributeLocation, (void*)offsetValuesOnBuffer, countComponents, strideBytes, flagDoNormalize); \
+		priv::gl::SetVertexArrayAttribute(attributeLocation, TYPE, (void*)offsetValuesOnBuffer, countComponents, strideBytes, flagDoNormalize); \
 	}
 	
-	PRIV_DEFINE_SETVERTEXARRAY(Float)
-	PRIV_DEFINE_SETVERTEXARRAY(Int8)
-	PRIV_DEFINE_SETVERTEXARRAY(Uint8)
-	PRIV_DEFINE_SETVERTEXARRAY(Int16)
-	PRIV_DEFINE_SETVERTEXARRAY(Uint16)
+	PRIV_DEFINE_SETVERTEXARRAY(Float, GL_FLOAT)
+	PRIV_DEFINE_SETVERTEXARRAY(Int8, GL_BYTE)
+	PRIV_DEFINE_SETVERTEXARRAY(Uint8, GL_UNSIGNED_BYTE)
+	PRIV_DEFINE_SETVERTEXARRAY(Int16, GL_SHORT)
+	PRIV_DEFINE_SETVERTEXARRAY(Uint16, GL_UNSIGNED_SHORT)
+	PRIV_DEFINE_SETVERTEXARRAY(Int32, GL_INT)
+	PRIV_DEFINE_SETVERTEXARRAY(Uint32, GL_UNSIGNED_INT)
 	
 	void GL_BASE::disableVertexArrayAttribute(sl_int32 attributeLocation)
 	{
@@ -767,17 +775,6 @@ namespace slib
 		}
 	}
 	
-	void GL_BASE::setUniformTextureSamplerArray(sl_int32 uniformLocation, const sl_reg* samplers, sl_uint32 n)
-	{
-		if (uniformLocation != -1) {
-			SLIB_SCOPED_BUFFER(GLint, 64, m, n);
-			for (sl_uint32 i = 0; i < n; i++) {
-				m[i] = (GLint)(samplers[i]);
-			}
-			GL_ENTRY(glUniform1iv)(uniformLocation, n, m);
-		}
-	}
-	
 	namespace priv
 	{
 		namespace gl
@@ -793,10 +790,10 @@ namespace slib
 						return GL_TRIANGLE_FAN;
 					case PrimitiveType::Line:
 						return GL_LINES;
-					case PrimitiveType::LineLoop:
-						return GL_LINE_LOOP;
 					case PrimitiveType::LineStrip:
 						return GL_LINE_STRIP;
+					case PrimitiveType::LineLoop:
+						return GL_LINE_LOOP;
 					case PrimitiveType::Point:
 						return GL_POINTS;
 				}
@@ -898,7 +895,7 @@ namespace slib
 		}
 		if (bitmap->isImage()) {
 			Ref<Image> image = Ref<Image>::from(bitmap);
-			return createTexture2D(w, h, image->getColors(), image->getStride());
+			return createTexture2D(w, h, image->getColorsAt(x, y), image->getStride());
 		} else {
 			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
 			BitmapData temp;
@@ -1021,6 +1018,11 @@ namespace slib
 	
 	void GL_BASE::setActiveSampler(sl_uint32 textureNo)
 	{
+#ifdef NEED_CHECK_ENTRY
+		if (!GL_ENTRY(glActiveTexture)) {
+			return;
+		}
+#endif
 		GL_ENTRY(glActiveTexture)(GL_TEXTURE0 + textureNo);
 	}
 	
@@ -1123,11 +1125,132 @@ namespace slib
 			GL_ENTRY(glDeleteTextures)(1, &t);
 		}
 	}
-	
-/*****************************************
- 			OpenGL Engine
-******************************************/
-	
+
+#ifdef PRIV_OPENGL_IMPL
+	void GL_BASE::drawPixels(const BitmapData& bitmapData)
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		sl_uint32 width = bitmapData.width;
+		sl_uint32 height = bitmapData.height;
+		if (bitmapData.format == BitmapFormat::RGBA && (bitmapData.pitch == 0 || bitmapData.pitch == (sl_int32)(width << 2))) {
+			GL_ENTRY(glDrawPixels)(width, height, GL_RGBA, GL_UNSIGNED_BYTE, bitmapData.data);
+		} else {
+			sl_uint32 size = width * height;
+			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, size << 2);
+			BitmapData temp;
+			temp.width = width;
+			temp.height = height;
+			temp.format = BitmapFormat::RGBA;
+			temp.data = glImage;
+			temp.pitch = width << 2;
+			temp.copyPixelsFrom(bitmapData);
+			GL_ENTRY(glDrawPixels)(width, height, GL_RGBA, GL_UNSIGNED_BYTE, glImage);
+		}
+#endif
+	}
+
+	void GL_BASE::drawPixels(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride)
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		if (width > 0 && height > 0 && pixels) {
+			BitmapData bitmapData(width, height, pixels, stride);
+			drawPixels(bitmapData);
+		}
+#endif
+	}
+
+	void GL_BASE::drawPixels(const Ref<Bitmap>& bitmap, sl_uint32 sx, sl_uint32 sy, sl_uint32 w, sl_uint32 h)
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		if (bitmap.isNull()) {
+			return;
+		}
+		if (w == 0 || h == 0) {
+			return;
+		}
+		sl_uint32 bw = bitmap->getWidth();
+		sl_uint32 bh = bitmap->getHeight();
+		if (bw == 0 || bh == 0) {
+			return;
+		}
+		if (sx >= bw) {
+			return;
+		}
+		if (sy >= bh) {
+			return;
+		}
+		if (sx + w > bw) {
+			return;
+		}
+		if (sy + h > bh) {
+			return;
+		}
+		if (bitmap->isImage()) {
+			Ref<Image> image = Ref<Image>::from(bitmap);
+			drawPixels(w, h, image->getColorsAt(sx, sy), image->getStride());
+		} else {
+			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
+			BitmapData temp;
+			temp.width = w;
+			temp.height = h;
+			temp.format = BitmapFormat::RGBA;
+			temp.data = glImage;
+			temp.pitch = w << 2;
+			if (bitmap->readPixels(sx, sy, temp)) {
+				drawPixels(temp);
+			}
+		}
+#endif
+	}
+
+	void GL_BASE::drawPixels(const Ref<Bitmap>& bitmap)
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		if (bitmap.isNull()) {
+			return;
+		}
+		sl_uint32 w = bitmap->getWidth();
+		sl_uint32 h = bitmap->getHeight();
+		if (w == 0) {
+			return;
+		}
+		if (h == 0) {
+			return;
+		}
+		if (bitmap->isImage()) {
+			Ref<Image> image = Ref<Image>::from(bitmap);
+			drawPixels(w, h, image->getColors(), image->getStride());
+		} else {
+			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
+			BitmapData temp;
+			temp.width = w;
+			temp.height = h;
+			temp.format = BitmapFormat::RGBA;
+			temp.data = glImage;
+			temp.pitch = w << 2;
+			if (bitmap->readPixels(0, 0, temp)) {
+				drawPixels(temp);
+			}
+		}
+#endif
+	}
+
+	void GL_BASE::setRasterPosition(float x, float y)
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		GL_ENTRY(glRasterPos2f)(x, y);
+#endif
+	}
+
+	void GL_BASE::setPixelZoom(float xf, float yf)
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		GL_ENTRY(glPixelZoom)(xf, yf);
+#endif
+	}
+#endif
+
+
 	class GL_ENGINE : public GLRenderEngine
 	{
 	public:
@@ -1144,6 +1267,9 @@ namespace slib
 		class GLRenderProgramInstance;
 		Ref<RenderProgram> m_currentProgram;
 		Ref<GLRenderProgramInstance> m_currentProgramInstance;
+
+		class GLRenderInputLayout;
+		Ref<GLRenderInputLayout> m_currentInputLayout;
 		
 		class GLVertexBufferInstance;
 		Ref<GLVertexBufferInstance> m_currentVertexBufferInstance;
@@ -1153,6 +1279,8 @@ namespace slib
 		
 		Ref<RenderProgram> m_currentProgramRendering;
 		Ref<GLRenderProgramInstance> m_currentProgramInstanceRendering;
+
+		Ref<RenderSamplerState> m_currentSamplerStates[8];
 		
 		class GLTextureInstance;
 		
@@ -1171,15 +1299,10 @@ namespace slib
 				instance.setNull();
 			}
 		};
-		GLSamplerState m_samplers[MAX_SAMPLER_COUNT];
-		sl_uint32 m_nSamplers;
-		sl_uint32 m_activeSampler;
 		
 	public:
 		GL_ENGINE()
 		{
-			m_nSamplers = 0;
-			m_activeSampler = -1;
 		}
 		
 		~GL_ENGINE()
@@ -1225,6 +1348,116 @@ namespace slib
 			return RenderEngineType::OpenGL;
 #endif
 		}
+
+		sl_bool isShaderAvailable() override
+		{
+			return GL_BASE::isShaderAvailable();
+		}
+
+
+		struct GLRenderInputLayoutItem
+		{
+			sl_int32 location;
+			GLenum type;
+			sl_uint32 offset;
+			sl_uint32 count;
+			sl_uint32 slot;
+		};
+
+		class GLRenderInputLayout : public RenderInputLayout
+		{
+		public:
+			List<GLRenderInputLayoutItem> m_items;
+			sl_uint32 m_stride;
+
+		public:
+			static Ref<GLRenderInputLayout> create(sl_uint32 program, const RenderInputLayoutParam& param)
+			{
+				if (!(param.strides.getCount())) {
+					return sl_null;
+				}
+				List<GLRenderInputLayoutItem> items;
+				ListElements<RenderInputLayoutItem> inputs(param.items);
+				for (sl_size i = 0; i < inputs.count; i++) {
+					RenderInputLayoutItem& input = inputs[i];
+					if (!(input.slot)) {
+						sl_bool flagValidType = sl_true;
+						GLRenderInputLayoutItem item;
+						switch (input.type) {
+						case RenderInputType::Float:
+							item.type = GL_FLOAT;
+							item.count = 1;
+							break;
+						case RenderInputType::Float2:
+							item.type = GL_FLOAT;
+							item.count = 2;
+							break;
+						case RenderInputType::Float3:
+							item.type = GL_FLOAT;
+							item.count = 3;
+							break;
+						case RenderInputType::Float4:
+							item.type = GL_FLOAT;
+							item.count = 4;
+							break;
+						case RenderInputType::UByte4:
+							item.type = GL_UNSIGNED_BYTE;
+							item.count = 4;
+							break;
+						case RenderInputType::Short2:
+							item.type = GL_SHORT;
+							item.count = 2;
+							break;
+						case RenderInputType::Short4:
+							item.type = GL_SHORT;
+							item.count = 4;
+							break;
+						default:
+							flagValidType = sl_false;
+							break;
+						}
+						if (flagValidType) {
+							sl_int32 location = GL_BASE::getAttributeLocation(program, input.name);
+							if (location >= 0) {
+								item.location = location;
+								item.offset = input.offset;
+								item.slot = input.slot;
+								items.add_NoLock(item);
+							}
+						}
+					}
+				}
+				if (items.isNotEmpty()) {
+					Ref<GLRenderInputLayout> ret = new GLRenderInputLayout;
+					if (ret.isNotNull()) {
+						ret->m_stride = param.strides[0];
+						ret->m_items = items;
+						return ret;
+					}
+				}
+				return sl_null;
+			}
+
+		public:
+			void load()
+			{
+				ListElements<GLRenderInputLayoutItem> items(m_items);
+				for (sl_size i = 0; i < items.count; i++) {
+					GLRenderInputLayoutItem& item = items[i];
+					priv::gl::SetVertexArrayAttribute(item.location, item.type, (void*)(sl_size)(item.offset), item.count, m_stride, sl_false);
+				}
+			}
+
+			void unload()
+			{
+				ListElements<GLRenderInputLayoutItem> items(m_items);
+				for (sl_size i = 0; i < items.count; i++) {
+					GLRenderInputLayoutItem& item = items[i];
+					GL_BASE::disableVertexArrayAttribute(item.location);
+				}
+			}
+
+		};
 		
 		class GLRenderProgramInstance : public RenderProgramInstance
 		{
@@ -1268,18 +1501,19 @@ namespace slib
 							if (ph) {
 								Ref<RenderProgramState> state = program->onCreate(engine);
 								if (state.isNotNull()) {
-									state->gl_program = ph;
-									state->gl_engine = engine;
-									if (program->onInit(engine, state.get())) {
-										Ref<GLRenderProgramInstance> ret = new GLRenderProgramInstance();
-										if (ret.isNotNull()) {
-											ret->program = ph;
-											ret->vertexShader = vs;
-											ret->fragmentShader = fs;
+									Ref<GLRenderProgramInstance> ret = new GLRenderProgramInstance();
+									if (ret.isNotNull()) {
+										ret->program = ph;
+										ret->vertexShader = vs;
+										ret->fragmentShader = fs;
+										ret->m_engine = engine;
+										state->setProgramInstance(ret.get());
+										if (program->onInit(engine, ret.get(), state.get())) {
 											ret->state = state;
 											ret->link(engine, program);
 											return ret;
 										}
+										return sl_null;
 									}
 								}
 								GL_BASE::deleteProgram(ph);
@@ -1303,11 +1537,98 @@ namespace slib
 				return glsl;
 			}
 			
-			Ref<RenderProgram> getProgram()
+		public:
+			Ref<RenderInputLayout> createInputLayout(const RenderInputLayoutParam& param) override
 			{
-				return Ref<RenderProgram>::from(getObject());
+				Ref<RenderEngine> engine = getEngine();
+				if (engine.isNotNull()) {
+					return Ref<RenderInputLayout>::from(GLRenderInputLayout::create(program, param));
+				}
+				return sl_null;
 			}
-			
+
+			sl_bool getUniformLocation(const char* name, RenderUniformLocation* outLocation) override
+			{
+				sl_int32 location = GL_BASE::getUniformLocation(program, name);
+				if (location >= 0) {
+					outLocation->location = location;
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			void setUniform(const RenderUniformLocation& l, RenderUniformType type, const void* data, sl_uint32 nItems) override
+			{
+				sl_int32 location = (sl_int32)(l.location);
+				if (location < 0) {
+					return;
+				}
+				switch (type) {
+				case RenderUniformType::Float:
+					if (nItems == 1) {
+						GL_BASE::setUniformFloatValue(location, *((float*)data));
+					} else {
+						GL_BASE::setUniformFloatArray(location, data, nItems);
+					}
+					break;
+				case RenderUniformType::Float2:
+					if (nItems == 1) {
+						GL_BASE::setUniformFloat2Value(location, *((Vector2*)data));
+					} else {
+						GL_BASE::setUniformFloat2Array(location, data, nItems);
+					}
+					break;
+				case RenderUniformType::Float3:
+					if (nItems == 1) {
+						GL_BASE::setUniformFloat3Value(location, *((Vector3*)data));
+					} else {
+						GL_BASE::setUniformFloat3Array(location, data, nItems);
+					}
+					break;
+				case RenderUniformType::Float4:
+					if (nItems == 1) {
+						GL_BASE::setUniformFloat4Value(location, *((Vector4*)data));
+					} else {
+						GL_BASE::setUniformFloat4Array(location, data, nItems);
+					}
+					break;
+				case RenderUniformType::Int:
+					if (nItems == 1) {
+						GL_BASE::setUniformIntValue(location, *((sl_int32*)data));
+					} else {
+						GL_BASE::setUniformIntArray(location, data, nItems);
+					}
+					break;
+				case RenderUniformType::Int2:
+					GL_BASE::setUniformInt2Array(location, data, nItems);
+					break;
+				case RenderUniformType::Int3:
+					GL_BASE::setUniformInt3Array(location, data, nItems);
+					break;
+				case RenderUniformType::Int4:
+					GL_BASE::setUniformInt4Array(location, data, nItems);
+					break;
+				case RenderUniformType::Matrix3:
+					if (nItems == 1) {
+						GL_BASE::setUniformMatrix3Value(location, *((Matrix3*)data));
+					} else {
+						GL_BASE::setUniformMatrix3Array(location, data, nItems);
+					}
+					break;
+				case RenderUniformType::Matrix4:
+					if (nItems == 1) {
+						GL_BASE::setUniformMatrix4Value(location, *((Matrix4*)data));
+					} else {
+						GL_BASE::setUniformMatrix4Array(location, data, nItems);
+					}
+					break;
+				case RenderUniformType::Sampler:
+					GL_BASE::setUniformTextureSampler(location, (sl_uint32)(*((sl_reg*)data)));
+				default:
+					break;
+				}
+			}
+
 		};
 		
 		Ref<RenderProgramInstance> _createProgramInstance(RenderProgram* program) override
@@ -1337,7 +1658,15 @@ namespace slib
 		public:
 			static Ref<GLVertexBufferInstance> create(GL_ENGINE* engine, VertexBuffer* buffer)
 			{
-				sl_uint32 handle = GL_BASE::createVertexBuffer(buffer->getBuffer(), buffer->getSize(), buffer->isStatic());
+				sl_uint32 size = buffer->getSize();
+				if (!size) {
+					return sl_null;
+				}
+				Memory content = buffer->getSource();
+				if (content.getSize() < size) {
+					return sl_null;
+				}
+				sl_uint32 handle = GL_BASE::createVertexBuffer(content.getData(), size, buffer->getFlags() & RenderObjectFlags::StaticDraw);
 				if (handle) {
 					Ref<GLVertexBufferInstance> ret = new GLVertexBufferInstance();
 					if (ret.isNotNull()) {
@@ -1353,7 +1682,11 @@ namespace slib
 			void onUpdate(RenderBaseObject* object) override
 			{
 				VertexBuffer* buffer = (VertexBuffer*)object;
-				GL_BASE::updateVertexBuffer(handle, m_updatedOffset, buffer->getBuffer() + m_updatedOffset, m_updatedSize);
+				Memory content = buffer->getSource();
+				if (content.getSize() < m_updatedOffset + m_updatedSize) {
+					return;
+				}
+				GL_BASE::updateVertexBuffer(handle, m_updatedOffset, (sl_uint8*)(content.getData()) + m_updatedOffset, m_updatedSize);
 			}
 			
 		};
@@ -1385,7 +1718,15 @@ namespace slib
 		public:
 			static Ref<GLIndexBufferInstance> create(GL_ENGINE* engine, IndexBuffer* buffer)
 			{
-				sl_uint32 handle = GL_BASE::createIndexBuffer(buffer->getBuffer(), buffer->getSize(), buffer->isStatic());
+				sl_uint32 size = buffer->getSize();
+				if (!size) {
+					return sl_null;
+				}
+				Memory content = buffer->getSource();
+				if (content.getSize() < size) {
+					return sl_null;
+				}
+				sl_uint32 handle = GL_BASE::createIndexBuffer(content.getData(), size, buffer->getFlags() & RenderObjectFlags::StaticDraw);
 				if (handle) {
 					Ref<GLIndexBufferInstance> ret = new GLIndexBufferInstance();
 					if (ret.isNotNull()) {
@@ -1401,7 +1742,11 @@ namespace slib
 			void onUpdate(RenderBaseObject* object) override
 			{
 				IndexBuffer* buffer = (IndexBuffer*)object;
-				GL_BASE::updateIndexBuffer(handle, m_updatedOffset, buffer->getBuffer() + m_updatedOffset, m_updatedSize);
+				Memory content = buffer->getSource();
+				if (content.getSize() < m_updatedOffset + m_updatedSize) {
+					return;
+				}
+				GL_BASE::updateIndexBuffer(handle, m_updatedOffset, (sl_uint8*)(content.getData()) + m_updatedOffset, m_updatedSize);
 			}
 			
 		};
@@ -1433,10 +1778,11 @@ namespace slib
 		public:
 			static Ref<GLTextureInstance> create(GL_ENGINE* engine, Texture* texture)
 			{
-				sl_uint32 handle = GL_BASE::createTexture2D(texture->getSource());;
-				if (texture->isFreeSourceOnUpdate()) {
-					texture->freeSource();
+				Ref<Bitmap> content = texture->getSource();
+				if (content.isNull()) {
+					return sl_null;
 				}
+				sl_uint32 handle = GL_BASE::createTexture2D(content);
 				if (handle) {
 					Ref<GLTextureInstance> ret = new GLTextureInstance();
 					if (ret.isNotNull()) {
@@ -1452,11 +1798,12 @@ namespace slib
 			void onUpdate(RenderBaseObject* object) override
 			{
 				Texture* texture = (Texture*)object;
-				GL_BASE::bindTexture2D(handle);
-				GL_BASE::updateTexture2D(m_updatedRegion.left, m_updatedRegion.top, m_updatedRegion.getWidth(), m_updatedRegion.getHeight(), texture->getSource(), m_updatedRegion.left, m_updatedRegion.top);
-				if (texture->isFreeSourceOnUpdate()) {
-					texture->freeSource();
+				Ref<Bitmap> content = texture->getSource();
+				if (content.isNull()) {
+					return;
 				}
+				GL_BASE::bindTexture2D(handle);
+				GL_BASE::updateTexture2D(m_updatedRegion.left, m_updatedRegion.top, m_updatedRegion.getWidth(), m_updatedRegion.getHeight(), content, m_updatedRegion.left, m_updatedRegion.top);
 			}
 			
 		};
@@ -1482,13 +1829,15 @@ namespace slib
 					if (m_flagDeleteOnRelease) {
 						engine->m_listDirtyTextureHandles.add(m_name);
 					}
-					Ref<Referable> object = m_linkedObject;
-					if (object.isNotNull()) {
-						engine->m_listDirtyObjects.add(object);
-					}
 				}
 			}
 			
+		public:
+			Ref<Bitmap> getSource() override
+			{
+				return sl_null;
+			}
+
 		};
 		
 		Ref<TextureInstance> _createTextureInstance(Texture* texture) override
@@ -1516,29 +1865,31 @@ namespace slib
 			GL_BASE::clear(param);
 		}
 		
-		void _setDepthTest(sl_bool flag) override
+		void _setDepthStencilState(RenderDepthStencilState* state) override
 		{
-			GL_BASE::setDepthTest(flag);
+			const RenderDepthStencilParam& param = state->getParam();
+			GL_BASE::setDepthTest(param.flagTestDepth);
+			GL_BASE::setDepthWriteEnabled(param.flagWriteDepth);
+			GL_BASE::setDepthFunction(param.depthFunction);
+		}
+
+		void _setRasterizerState(RenderRasterizerState* state) override
+		{
+			const RenderRasterizerParam& param = state->getParam();
+			GL_BASE::setCullFace(param.flagCull, param.flagCullCCW);
 		}
 		
-		void _setDepthWriteEnabled(sl_bool flagEnableDepthWrite) override
+		void _setBlendState(RenderBlendState* state) override
 		{
-			GL_BASE::setDepthWriteEnabled(flagEnableDepthWrite);
+			GL_BASE::setBlending(state->getParam());
 		}
-		
-		void _setDepthFunction(RenderFunctionOperation op) override
+
+		void _setSamplerState(sl_int32 samplerNo, RenderSamplerState* state) override
 		{
-			GL_BASE::setDepthFunction(op);
-		}
-		
-		void _setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW = sl_true) override
-		{
-			GL_BASE::setCullFace(flagEnableCull, flagCullCCW);
-		}
-		
-		void _setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param) override
-		{
-			GL_BASE::setBlending(flagEnableBlending, param);
+			if ((sl_uint32)samplerNo >= CountOfArray(m_currentSamplerStates)) {
+				return;
+			}
+			m_currentSamplerStates[samplerNo] = state;
 		}
 		
 		sl_bool _beginProgram(RenderProgram* program, RenderProgramInstance* _instance, RenderProgramState** ppState) override
@@ -1567,10 +1918,6 @@ namespace slib
 			m_currentProgramInstanceRendering.setNull();
 			m_currentVertexBufferInstance.setNull();
 			m_currentIndexBufferInstance.setNull();
-			for (sl_uint32 i = 0; i < m_nSamplers; i++) {
-				m_samplers[i].reset();
-			}
-			m_activeSampler = -1;
 		}
 		
 		void _drawPrimitive(EnginePrimitive* primitive) override
@@ -1583,11 +1930,14 @@ namespace slib
 			}
 			
 			GLVertexBufferInstance* vb = static_cast<GLVertexBufferInstance*>(primitive->vertexBufferInstance.get());
-			vb->_update(primitive->vertexBuffer.get());
+			if (!vb) {
+				return;
+			}
+			vb->doUpdate(primitive->vertexBuffer.get());
 			GLIndexBufferInstance* ib = sl_null;
 			if (primitive->indexBufferInstance.isNotNull()) {
 				ib = (GLIndexBufferInstance*)(primitive->indexBufferInstance.get());
-				ib->_update(primitive->indexBuffer.get());
+				ib->doUpdate(primitive->indexBuffer.get());
 			}
 			
 			sl_bool flagResetProgramState = sl_false;
@@ -1606,11 +1956,11 @@ namespace slib
 			
 			if (flagResetProgramState) {
 				if (m_currentProgramInstanceRendering.isNotNull()) {
-					m_currentProgramRendering->onPostRender(this, m_currentProgramInstanceRendering->state.get());
+					m_currentProgramRendering->onPostRender(this, m_currentProgramInstanceRendering.get(), m_currentProgramInstanceRendering->state.get());
 				}
 				m_currentProgramInstanceRendering = m_currentProgramInstance;
 				m_currentProgramRendering = m_currentProgram;
-				m_currentProgram->onPreRender(this, m_currentProgramInstance->state.get());
+				m_currentProgram->onPreRender(this, m_currentProgramInstance.get(), m_currentProgramInstance->state.get());
 			}
 			
 			if (ib) {
@@ -1620,101 +1970,53 @@ namespace slib
 			}
 		}
 		
-		void _initSamplersCount()
+		void _applyTexture(Texture* texture, TextureInstance* _instance, sl_int32 samplerNo) override
 		{
-			if (m_nSamplers == 0) {
-				GLint n = 0;
-				glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &n);
-				if (n > MAX_SAMPLER_COUNT) {
-					n = MAX_SAMPLER_COUNT;
-				}
-				if (n < MIN_SAMPLER_COUNT) {
-					n = MIN_SAMPLER_COUNT;
-				}
-				m_nSamplers = n;
-			}
-		}
-		
-		void _setActiveSampler(sl_uint32 sampler)
-		{
-			if (m_activeSampler != sampler) {
-				GL_BASE::setActiveSampler(sampler);
-				m_activeSampler = sampler;
-			}
-		}
-		
-		void _applyTexture(Texture* texture, TextureInstance* _instance, sl_reg _samplerNo) override
-		{
-			_initSamplersCount();
-			sl_uint32 samplerNo = (sl_uint32)(_samplerNo);
-			if (samplerNo >= m_nSamplers) {
-				return;
-			}
+			GL_BASE::setActiveSampler(samplerNo);
 			if (!texture) {
-				m_samplers[samplerNo].reset();
-				_setActiveSampler(samplerNo);
 				GL_BASE::unbindTexture2D();
 				return;
 			}
 			if (_instance) {
 				GLTextureInstance* instance = (GLTextureInstance*)_instance;
-				if (instance->_isUpdated()) {
-					_setActiveSampler(samplerNo);
-					instance->_update(texture);
+				if (instance->isUpdated()) {
+					instance->doUpdate(texture);
 				}
-				if (m_samplers[samplerNo].instance != instance) {
-					_setActiveSampler(samplerNo);
-					GL_BASE::bindTexture2D(instance->handle);
-					GL_BASE::setTexture2DFilterMode(texture->getMinFilter(), texture->getMagFilter());
-					GL_BASE::setTexture2DWrapMode(texture->getWrapX(), texture->getWrapY());
-					m_samplers[samplerNo].texture = texture;
-					m_samplers[samplerNo].instance = instance;
-					m_samplers[samplerNo].minFilter = texture->getMinFilter();
-					m_samplers[samplerNo].magFilter = texture->getMagFilter();
-					m_samplers[samplerNo].wrapX = texture->getWrapX();
-					m_samplers[samplerNo].wrapY = texture->getWrapY();
-				} else {
-					if (m_samplers[samplerNo].minFilter != texture->getMinFilter() || m_samplers[samplerNo].magFilter != texture->getMagFilter()) {
-						_setActiveSampler(samplerNo);
-						GL_BASE::setTexture2DFilterMode(texture->getMinFilter(), texture->getMagFilter());
-						m_samplers[samplerNo].minFilter = texture->getMinFilter();
-						m_samplers[samplerNo].magFilter = texture->getMagFilter();
-					}
-					if (m_samplers[samplerNo].wrapX != texture->getWrapX() || m_samplers[samplerNo].wrapY != texture->getWrapY()) {
-						_setActiveSampler(samplerNo);
-						GL_BASE::setTexture2DWrapMode(texture->getWrapX(), texture->getWrapY());
-						m_samplers[samplerNo].wrapX = texture->getWrapX();
-						m_samplers[samplerNo].wrapY = texture->getWrapY();
-					}
-				}
+				GL_BASE::bindTexture2D(instance->handle);
 			} else {
-				if (m_samplers[samplerNo].texture != texture) {
-					_setActiveSampler(samplerNo);
-					GLNamedTexture* named = static_cast<GLNamedTexture*>(texture);
-					GL_BASE::bindTexture(named->m_target, named->m_name);
-					GL_BASE::setTextureFilterMode(named->m_target, texture->getMinFilter(), texture->getMagFilter());
-					GL_BASE::setTextureWrapMode(named->m_target, texture->getWrapX(), texture->getWrapY());
-					m_samplers[samplerNo].texture = texture;
-					m_samplers[samplerNo].instance.setNull();
-					m_samplers[samplerNo].minFilter = texture->getMinFilter();
-					m_samplers[samplerNo].magFilter = texture->getMagFilter();
-					m_samplers[samplerNo].wrapX = texture->getWrapX();
-					m_samplers[samplerNo].wrapY = texture->getWrapY();
-				} else {
-					if (m_samplers[samplerNo].minFilter != texture->getMinFilter() || m_samplers[samplerNo].magFilter != texture->getMagFilter()) {
-						_setActiveSampler(samplerNo);
-						GL_BASE::setTexture2DFilterMode(texture->getMinFilter(), texture->getMagFilter());
-						m_samplers[samplerNo].minFilter = texture->getMinFilter();
-						m_samplers[samplerNo].magFilter = texture->getMagFilter();
-					}
-					if (m_samplers[samplerNo].wrapX != texture->getWrapX() || m_samplers[samplerNo].wrapY != texture->getWrapY()) {
-						_setActiveSampler(samplerNo);
-						GL_BASE::setTexture2DWrapMode(texture->getWrapX(), texture->getWrapY());
-						m_samplers[samplerNo].wrapX = texture->getWrapX();
-						m_samplers[samplerNo].wrapY = texture->getWrapY();
-					}
+				GLNamedTexture* named = static_cast<GLNamedTexture*>(texture);
+				GL_BASE::bindTexture(named->m_target, named->m_name);
+			}
+			const RenderSamplerParam* param = sl_null;
+			if ((sl_uint32)samplerNo < CountOfArray(m_currentSamplerStates)) {
+				RenderSamplerState* state = m_currentSamplerStates[samplerNo].get();
+				if (state) {
+					param = &(state->getParam());
 				}
 			}
+			if (param) {
+				GL_BASE::setTexture2DFilterMode(param->minFilter, param->magFilter);
+				GL_BASE::setTexture2DWrapMode(param->wrapX, param->wrapY);
+			} else {
+				GL_BASE::setTexture2DFilterMode(TextureFilterMode::Linear, TextureFilterMode::Linear);
+				GL_BASE::setTexture2DWrapMode(TextureWrapMode::Clamp, TextureWrapMode::Clamp);
+			}
+		}
+
+		void _setInputLayout(RenderInputLayout* _layout) override
+		{
+			GLRenderInputLayout* layout = (GLRenderInputLayout*)_layout;
+			if (m_currentInputLayout == layout) {
+				return;
+			}
+			Ref<GLRenderInputLayout> old = Move(m_currentInputLayout);
+			if (old.isNotNull()) {
+				old->unload();
+			}
+			if (layout) {
+				layout->load();
+			}
+			m_currentInputLayout = layout;
 		}
 		
 		void _setLineWidth(sl_real width) override
@@ -1722,214 +2024,9 @@ namespace slib
 			GL_BASE::setLineWidth(width);
 		}
 		
-/*************************************************
-			OpenGL entry points
-**************************************************/
-		
 		Ref<Texture> createTextureFromName(sl_uint32 target, sl_uint32 name, sl_bool flagDeleteOnRelease) override
 		{
 			return new GLNamedTexture(this, target, name, flagDeleteOnRelease);
-		}
-		
-		sl_int32 getAttributeLocation(sl_uint32 program, const char* name) override
-		{
-			return GL_BASE::getAttributeLocation(program, name);
-		}
-		
-		void setVertexFloatArrayAttributePtr(sl_int32 attributeLocation, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
-		{
-			GL_BASE::setVertexFloatArrayAttributePtr(attributeLocation, data, countComponents, strideBytes, flagDoNormalize);
-		}
-		
-		void setVertexFloatArrayAttribute(sl_int32 attributeLocation, sl_size offsetValuesOnBuffer, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
-		{
-			GL_BASE::setVertexFloatArrayAttribute(attributeLocation, offsetValuesOnBuffer, countComponents, strideBytes, flagDoNormalize);
-		}
-		
-		void setVertexInt8ArrayAttributePtr(sl_int32 attributeLocation, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
-		{
-			GL_BASE::setVertexInt8ArrayAttributePtr(attributeLocation, data, countComponents, strideBytes, flagDoNormalize);
-		}
-		
-		void setVertexInt8ArrayAttribute(sl_int32 attributeLocation, sl_size offsetValuesOnBuffer, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
-		{
-			GL_BASE::setVertexInt8ArrayAttribute(attributeLocation, offsetValuesOnBuffer, countComponents, strideBytes, flagDoNormalize);
-		}
-		
-		void setVertexUint8ArrayAttributePtr(sl_int32 attributeLocation, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
-		{
-			GL_BASE::setVertexUint8ArrayAttributePtr(attributeLocation, data, countComponents, strideBytes, flagDoNormalize);
-		}
-		
-		void setVertexUint8ArrayAttribute(sl_int32 attributeLocation, sl_size offsetValuesOnBuffer, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
-		{
-			GL_BASE::setVertexUint8ArrayAttribute(attributeLocation, offsetValuesOnBuffer, countComponents, strideBytes, flagDoNormalize);
-		}
-		
-		void setVertexInt16ArrayAttributePtr(sl_int32 attributeLocation, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
-		{
-			GL_BASE::setVertexInt16ArrayAttributePtr(attributeLocation, data, countComponents, strideBytes, flagDoNormalize);
-		}
-		
-		void setVertexInt16ArrayAttribute(sl_int32 attributeLocation, sl_size offsetValuesOnBuffer, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
-		{
-			GL_BASE::setVertexInt16ArrayAttribute(attributeLocation, offsetValuesOnBuffer, countComponents, strideBytes, flagDoNormalize);
-		}
-		
-		void setVertexUint16ArrayAttributePtr(sl_int32 attributeLocation, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
-		{
-			GL_BASE::setVertexUint16ArrayAttributePtr(attributeLocation, data, countComponents, strideBytes, flagDoNormalize);
-		}
-		
-		void setVertexUint16ArrayAttribute(sl_int32 attributeLocation, sl_size offsetValuesOnBuffer, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) override
-		{
-			GL_BASE::setVertexUint16ArrayAttribute(attributeLocation, offsetValuesOnBuffer, countComponents, strideBytes, flagDoNormalize);
-		}
-		
-		void disableVertexArrayAttribute(sl_int32 attributeLocation) override
-		{
-			GL_BASE::disableVertexArrayAttribute(attributeLocation);
-		}
-		
-		
-		sl_int32 getUniformLocation(sl_uint32 program, const char* name) override
-		{
-			return GL_BASE::getUniformLocation(program, name);
-		}
-		
-		void setUniformFloatValue(sl_int32 uniformLocation, float value) override
-		{
-			GL_BASE::setUniformFloatValue(uniformLocation, value);
-		}
-
-		void setUniformFloatArray(sl_int32 uniformLocation, const void* values, sl_uint32 count) override
-		{
-			GL_BASE::setUniformFloatArray(uniformLocation, values, count);
-		}
-		
-		void setUniformIntValue(sl_int32 uniformLocation, sl_int32 value) override
-		{
-			GL_BASE::setUniformIntValue(uniformLocation, value);
-		}
-		
-		void setUniformIntArray(sl_int32 uniformLocation, const void* values, sl_uint32 count) override
-		{
-			GL_BASE::setUniformIntArray(uniformLocation, values, count);
-		}
-		
-		void setUniformFloat2Value(sl_int32 uniformLocation, float v1, float v2) override
-		{
-			GL_BASE::setUniformFloat2Value(uniformLocation, v1, v2);
-		}
-		
-		void setUniformFloat2Value(sl_int32 uniformLocation, const Vector2& v) override
-		{
-			GL_BASE::setUniformFloat2Value(uniformLocation, v);
-		}
-		
-		void setUniformFloat2Array(sl_int32 uniformLocation, const void* values, sl_uint32 count) override
-		{
-			GL_BASE::setUniformFloat2Array(uniformLocation, values, count);
-		}
-		
-		void setUniformInt2Value(sl_int32 uniformLocation, sl_int32 v1, sl_int32 v2) override
-		{
-			GL_BASE::setUniformInt2Value(uniformLocation, v1, v2);
-		}
-		
-		void setUniformInt2Array(sl_int32 uniformLocation, const void* values, sl_uint32 count) override
-		{
-			GL_BASE::setUniformInt2Array(uniformLocation, values, count);
-		}
-		
-		void setUniformFloat3Value(sl_int32 uniformLocation, float v1, float v2, float v3) override
-		{
-			GL_BASE::setUniformFloat3Value(uniformLocation, v1, v2, v3);
-		}
-		
-		void setUniformFloat3Value(sl_int32 uniformLocation, const Vector3& v) override
-		{
-			GL_BASE::setUniformFloat3Value(uniformLocation, v);
-		}
-		
-		void setUniformFloat3Array(sl_int32 uniformLocation, const void* values, sl_uint32 count) override
-		{
-			GL_BASE::setUniformFloat3Array(uniformLocation, values, count);
-		}
-		
-		void setUniformInt3Value(sl_int32 uniformLocation, sl_int32 v1, sl_int32 v2, sl_int32 v3) override
-		{
-			GL_BASE::setUniformInt3Value(uniformLocation, v1, v2, v3);
-		}
-		
-		void setUniformInt3Array(sl_int32 uniformLocation, const void* values, sl_uint32 count) override
-		{
-			GL_BASE::setUniformInt3Array(uniformLocation, values, count);
-		}
-		
-		void setUniformFloat4Value(sl_int32 uniformLocation, float v1, float v2, float v3, float v4) override
-		{
-			GL_BASE::setUniformFloat4Value(uniformLocation, v1, v2, v3, v4);
-		}
-		
-		void setUniformFloat4Value(sl_int32 uniformLocation, const Vector4& v) override
-		{
-			GL_BASE::setUniformFloat4Value(uniformLocation, v);
-		}
-		
-		void setUniformFloat4Array(sl_int32 uniformLocation, const void* values, sl_uint32 count) override
-		{
-			GL_BASE::setUniformFloat4Array(uniformLocation, values, count);
-		}
-		
-		void setUniformInt4Value(sl_int32 uniformLocation, sl_int32 v1, sl_int32 v2, sl_int32 v3, sl_int32 v4) override
-		{
-			GL_BASE::setUniformInt4Value(uniformLocation, v1, v2, v3, v4);
-		}
-		
-		void setUniformInt4Array(sl_int32 uniformLocation, const void* values, sl_uint32 count) override
-		{
-			GL_BASE::setUniformInt4Array(uniformLocation, values, count);
-		}
-		
-		void setUniformMatrix2Value(sl_int32 uniformLocation, const Matrix2& value) override
-		{
-			GL_BASE::setUniformMatrix2Value(uniformLocation, value);
-		}
-		
-		void setUniformMatrix2Array(sl_int32 uniformLocation, const void* values, sl_uint32 count) override
-		{
-			GL_BASE::setUniformMatrix2Array(uniformLocation, values, count);
-		}
-		
-		void setUniformMatrix3Value(sl_int32 uniformLocation, const Matrix3& value) override
-		{
-			GL_BASE::setUniformMatrix3Value(uniformLocation, value);
-		}
-		
-		void setUniformMatrix3Array(sl_int32 uniformLocation, const void* values, sl_uint32 count) override
-		{
-			GL_BASE::setUniformMatrix3Array(uniformLocation, values, count);
-		}
-		
-		void setUniformMatrix4Value(sl_int32 uniformLocation, const Matrix4& value) override
-		{
-			GL_BASE::setUniformMatrix4Value(uniformLocation, value);
-		}
-		
-		void setUniformMatrix4Array(sl_int32 uniformLocation, const void* values, sl_uint32 count) override
-		{
-			GL_BASE::setUniformMatrix4Array(uniformLocation, values, count);
-		}
-		
-		void setUniformTextureSampler(sl_int32 uniformLocation, sl_uint32 samplerNo) override
-		{
-			GL_BASE::setUniformTextureSampler(uniformLocation, samplerNo);
-		}
-		
-		void setUniformTextureSamplerArray(sl_int32 uniformLocation, const sl_reg* values, sl_uint32 count) override
-		{
-			GL_BASE::setUniformTextureSamplerArray(uniformLocation, values, count);
 		}
 		
 	};

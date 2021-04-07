@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_DRAWABLE
 #define CHECKHEADER_SLIB_GRAPHICS_DRAWABLE
 
-#include "definition.h"
-
-#include "color.h"
 #include "pen.h"
 #include "brush.h"
 
@@ -34,6 +31,8 @@
 
 namespace slib
 {
+
+	class Memory;
 	
 	class SLIB_EXPORT DrawParam
 	{

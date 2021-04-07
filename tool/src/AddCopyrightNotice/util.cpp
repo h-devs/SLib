@@ -23,6 +23,7 @@
 #include "util.h"
 
 #include "slib/core/file.h"
+#include "slib/core/memory_buffer.h"
 
 using namespace slib;
 
@@ -66,7 +67,7 @@ void applyCopyrightNoticeToSourceFile(const String& pathFile, const String& copy
 		String _copyrightNotice;
 		char* content = (char*)(mem.getData()) + posEndCopyright;
 		sl_size lenContent = n - posEndCopyright;
-		if (Base::findMemory(content, '\r', lenContent) != sl_null || Base::findMemory(content, '\n', lenContent) == sl_null) {
+		if (Base::findMemory(content, lenContent, '\r') != sl_null || Base::findMemory(content, lenContent, '\n') == sl_null) {
 			if (copyrightNotice.indexOf('\r') < 0) {
 				_copyrightNotice = copyrightNotice.replaceAll("\n", "\r\n");
 				out.addStatic(_copyrightNotice.getData(), _copyrightNotice.getLength());

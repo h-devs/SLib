@@ -26,6 +26,7 @@
 
 #include "slib/core/global_unique_instance.h"
 
+#include "slib/core/base.h"
 #include "slib/core/file.h"
 #include "slib/core/system.h"
 
@@ -56,7 +57,7 @@ namespace slib
 				~GlobalUniqueInstanceImpl()
 				{
 					struct flock fl;
-					Base::resetMemory(&fl, 0, sizeof(fl));
+					Base::zeroMemory(&fl, sizeof(fl));
 					fl.l_start = 0;
 					fl.l_len = 0;
 					fl.l_type = F_UNLCK;
@@ -98,7 +99,7 @@ namespace slib
 		}
 		if (handle != -1) {
 			struct flock fl;
-			Base::resetMemory(&fl, 0, sizeof(fl));
+			Base::zeroMemory(&fl, sizeof(fl));
 			fl.l_start = 0;
 			fl.l_len = 0;
 			fl.l_type = F_WRLCK;

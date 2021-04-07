@@ -22,7 +22,7 @@
 
 #define NTDDI_VERSION NTDDI_WIN7
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 
@@ -33,6 +33,8 @@
 #include "slib/ui/platform.h"
 
 #include "ui_core_win32.h"
+
+#include <shellapi.h>
 
 namespace slib
 {
@@ -298,7 +300,7 @@ namespace slib
 								m_hIcon = nid.hIcon;
 							}
 						}
-					}					
+					}
 				}
 
 				void setToolTip_NI(const String& toolTip) override
@@ -353,11 +355,11 @@ namespace slib
 						action = UIAction::MiddleButtonDoubleClick;
 						break;
 					case WM_MOUSEMOVE:
-						if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
+						if (GetKeyState(VK_LBUTTON) & 0x8000) {
 							action = UIAction::LeftButtonDrag;
-						} else if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) {
+						} else if (GetKeyState(VK_RBUTTON) & 0x8000) {
 							action = UIAction::RightButtonDrag;
-						} else if (GetAsyncKeyState(VK_MBUTTON) & 0x8000) {
+						} else if (GetKeyState(VK_MBUTTON) & 0x8000) {
 							action = UIAction::MiddleButtonDrag;
 						} else {
 							action = UIAction::MouseMove;

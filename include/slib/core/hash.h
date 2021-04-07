@@ -182,21 +182,21 @@ namespace slib
 	class Hash<float>
 	{
 	public:
-		SLIB_INLINE sl_size operator()(float v) const noexcept { return Rehash32(*(reinterpret_cast<sl_uint32*>(&v))); }
+		sl_size operator()(float v) const noexcept { return Rehash32(*(reinterpret_cast<sl_uint32*>(&v))); }
 	};
 
 	template <>
 	class Hash<double>
 	{
 	public:
-		SLIB_INLINE sl_size operator()(double v) const noexcept { return Rehash64ToSize(*(reinterpret_cast<sl_uint64*>(&v))); }
+		sl_size operator()(double v) const noexcept { return Rehash64ToSize(*(reinterpret_cast<sl_uint64*>(&v))); }
 	};
 
 	template <class T>
 	class Hash<T const*, sl_false>
 	{
 	public:
-		SLIB_INLINE sl_size operator()(T const* v) const noexcept
+		sl_size operator()(T const* v) const noexcept
 		{
 #ifdef SLIB_ARCH_IS_64BIT
 			return Rehash64((sl_uint64)((const void*)v));
@@ -210,7 +210,7 @@ namespace slib
 	class Hash<T*, sl_false>
 	{
 	public:
-		SLIB_INLINE sl_size operator()(T* v) const noexcept
+		sl_size operator()(T* v) const noexcept
 		{
 #ifdef SLIB_ARCH_IS_64BIT
 			return Rehash64((sl_uint64)((const void*)v));
@@ -224,7 +224,7 @@ namespace slib
 	class Hash<T, sl_true>
 	{
 	public:
-		SLIB_INLINE sl_size operator()(T v) const noexcept
+		sl_size operator()(T v) const noexcept
 		{
 #ifdef SLIB_ARCH_IS_64BIT
 			return Rehash64((sl_uint64)((sl_int64)v));

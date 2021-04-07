@@ -25,13 +25,12 @@
 
 #include "definition.h"
 
-#include "../core/ref.h"
-#include "../core/memory.h"
-#include "../core/string.h"
 #include "../core/parse.h"
 
 namespace slib
 {
+
+	class Memory;
 
 /*
 	Notice:
@@ -371,7 +370,7 @@ namespace slib
 		*/
 		sl_bool gcd(const CBigInt& A, const CBigInt& B) noexcept;
 
-		sl_bool gcd(const CBigInt& B) noexcept;		
+		sl_bool gcd(const CBigInt& B) noexcept;
 		
 		/*
 		 	lcm - least common multiple

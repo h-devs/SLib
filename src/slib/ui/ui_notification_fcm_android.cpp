@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_ANDROID)
 
@@ -107,7 +107,7 @@ namespace slib
 
 	Ref<FCM> FCM::getInstance()
 	{
-		SLIB_SAFE_STATIC(Ref<FCM>, instance, new FCM)
+		SLIB_SAFE_LOCAL_STATIC(Ref<FCM>, instance, new FCM)
 		return instance;
 	}
 

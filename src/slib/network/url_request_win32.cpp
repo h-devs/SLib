@@ -20,20 +20,20 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/network/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
 #include "slib/network/url_request.h"
 
-#include "slib/core/platform_windows.h"
-
 #include "slib/network/url.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/scoped.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/async.h"
+#include "slib/core/async_file.h"
 #include "slib/core/system.h"
+
+#include "slib/core/windows.h"
 
 #include <winhttp.h>
 #pragma comment(lib, "winhttp.lib")
@@ -146,7 +146,7 @@ namespace slib
 								comps.lpszPassword[comps.dwPasswordLength] = 0;
 							}
 							sl_int32 connectionId = Base::interlockedIncrement32(&(lastConnectionId)) & 0x7FFFFFFF;
-							HINTERNET hConnect = WinHttpConnect(hInternet, comps.lpszHostName, comps.nPort, 0);					
+							HINTERNET hConnect = WinHttpConnect(hInternet, comps.lpszHostName, comps.nPort, 0);
 							if (hConnect) {
 								Ref<Connection> ret = new Connection(hConnect, connectionId, address, comps.nScheme == INTERNET_SCHEME_HTTPS);
 								if (ret.isNotNull()) {
@@ -204,7 +204,7 @@ namespace slib
 			public:
 				static Ref<Session> getSession()
 				{
-					SLIB_SAFE_STATIC(AtomicRef<Session>, session, new Session(callbackStatus))
+					SLIB_SAFE_LOCAL_STATIC(AtomicRef<Session>, session, new Session(callbackStatus))
 					if (SLIB_SAFE_STATIC_CHECK_FREED(session)) {
 						return sl_null;
 					}
@@ -475,7 +475,7 @@ namespace slib
 						return;
 					}
 					m_offsetReceiving += size;
-					if (m_sizeContentReceived + size >= m_sizeContentTotal) {				
+					if (m_sizeContentReceived + size >= m_sizeContentTotal) {
 						finishReceiving();
 						return;
 					}
@@ -574,7 +574,7 @@ namespace slib
 						return;
 					}
 					m_step = STEP_ERROR;
-					m_lastErrorMessage = errorMessage;
+					m_errorMessage = errorMessage;
 					onError();
 					clean();
 				}

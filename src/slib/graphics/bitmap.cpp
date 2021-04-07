@@ -35,10 +35,12 @@ namespace slib
 	{
 	}
 
+
 	SLIB_DEFINE_OBJECT(Bitmap, Drawable)
 
 	Bitmap::Bitmap()
 	{
+		m_flagInvalidatedCache = sl_true;
 	}
 
 	Bitmap::~Bitmap()
@@ -77,7 +79,7 @@ namespace slib
 
 	void Bitmap::update(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height)
 	{
-		m_drawableCached.setNull();
+		m_flagInvalidatedCache = sl_true;
 		{
 			Ref<BitmapCache> cache = m_renderingTextureCached;
 			if (cache.isNotNull()) {
@@ -88,12 +90,12 @@ namespace slib
 
 	void Bitmap::update()
 	{
-		m_drawableCached.setNull();
+		m_flagInvalidatedCache = sl_true;
 		{
 			Ref<BitmapCache> cache = m_renderingTextureCached;
 			if (cache.isNotNull()) {
 				cache->update(0, 0, getBitmapWidth(), getBitmapHeight());
-			}		
+			}
 		}
 	}
 

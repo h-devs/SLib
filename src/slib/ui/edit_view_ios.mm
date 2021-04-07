@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_IOS)
 
@@ -43,7 +43,7 @@ namespace slib
 }
 
 @interface SLIBEditViewHandle : UITextField<UITextFieldDelegate>
-{	
+{
 	@public slib::WeakRef<slib::priv::edit_view::EditViewInstance> m_viewInstance;
 }
 @end
@@ -172,6 +172,26 @@ namespace slib
 				UITextField* getHandle()
 				{
 					return (UITextField*)m_handle;
+				}
+				
+				void initialize(View* _view) override
+				{
+					UITextField* handle = getHandle();
+					EditView* view = (EditView*)_view;
+					
+					setHandleFont(handle, view->getFont());
+					[handle setText:(Apple::getNSStringFromString(view->getText()))];
+					[handle setTextAlignment:TranslateAlignment(view->getGravity())];
+					[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(view->getTextColor()))];
+					[handle setBorderStyle:(view->isBorder() ? UITextBorderStyleRoundedRect : UITextBorderStyleNone)];
+					[handle setBackgroundColor:(GraphicsPlatform::getUIColorFromColor(view->getBackgroundColor()))];
+					[handle setEnabled:(view->isReadOnly() ? NO : YES)];
+					[handle setSecureTextEntry:(view->isPassword() ? YES : NO)];
+					[handle setReturnKeyType:ConvertReturnKeyType(view->getReturnKeyType())];
+					[handle setKeyboardType:ConvertKeyboardType(view->getKeyboardType())];
+					[handle setAutocapitalizationType:ConvertAutoCapitalizationType(view->getAutoCaptializationType())];
+
+					applyHint(handle, view);
 				}
 				
 				sl_bool getText(EditView* view, String& _out) override
@@ -338,35 +358,13 @@ namespace slib
 					[handle setAttributedPlaceholder: attr];
 				}
 				
-				void apply(EditView* view)
-				{
-					UITextField* handle = getHandle();
-					if (handle == nil) {
-						return;
-					}
-					
-					setHandleFont(handle, view->getFont());
-					[handle setText:(Apple::getNSStringFromString(view->getText()))];
-					[handle setTextAlignment:TranslateAlignment(view->getGravity())];
-					[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(view->getTextColor()))];
-					[handle setBorderStyle:(view->isBorder() ? UITextBorderStyleRoundedRect : UITextBorderStyleNone)];
-					[handle setBackgroundColor:(GraphicsPlatform::getUIColorFromColor(view->getBackgroundColor()))];
-					[handle setEnabled:(view->isReadOnly() ? NO : YES)];
-					[handle setSecureTextEntry:(view->isPassword() ? YES : NO)];
-					[handle setReturnKeyType:ConvertReturnKeyType(view->getReturnKeyType())];
-					[handle setKeyboardType:ConvertKeyboardType(view->getKeyboardType())];
-					[handle setAutocapitalizationType:ConvertAutoCapitalizationType(view->getAutoCaptializationType())];
-
-					applyHint(handle, view);
-				}
-				
 				void onChange(UITextField* control)
 				{
 					Ref<EditView> view = CastRef<EditView>(getView());
 					if (view.isNotNull()) {
 						String text = Apple::getStringFromNSString([control text]);
 						String textNew = text;
-						view->dispatchChange(&textNew);
+						view->dispatchChange(textNew);
 						if (text != textNew) {
 							NSString* str = Apple::getNSStringFromString(textNew, @"");
 							[control setText:str];
@@ -394,6 +392,34 @@ namespace slib
 				SLIBTextAreaHandle* getHandle()
 				{
 					return (SLIBTextAreaHandle*)m_handle;
+				}
+				
+				void initialize(View* _view) override
+				{
+					SLIBTextAreaHandle* handle = getHandle();
+					TextArea* view = (TextArea*)_view;
+					
+					setHandleFont(handle, view->getFont());
+					[handle setScrollEnabled:YES];
+					[handle setShowsHorizontalScrollIndicator:view->isHorizontalScrollBarVisible() ? YES : NO];
+					[handle setShowsVerticalScrollIndicator:view->isVerticalScrollBarVisible() ? YES : NO];
+					[handle setText:(Apple::getNSStringFromString(view->getText()))];
+					[handle setTextAlignment:TranslateAlignment(view->getGravity())];
+					[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(view->getTextColor()))];
+					if (view->isBorder()) {
+						[handle.layer setBorderColor:([[UIColor grayColor] CGColor])];
+						[handle.layer setBorderWidth:1];
+					} else {
+						[handle.layer setBorderWidth:0];
+					}
+					[handle setBackgroundColor:(GraphicsPlatform::getUIColorFromColor(view->getBackgroundColor()))];
+					[handle setEditable:(view->isReadOnly() ? FALSE : TRUE)];
+					[handle setSelectable:TRUE];
+					[handle setReturnKeyType:ConvertReturnKeyType(view->getReturnKeyType())];
+					[handle setKeyboardType:ConvertKeyboardType(view->getKeyboardType())];
+					[handle setAutocapitalizationType:ConvertAutoCapitalizationType(view->getAutoCaptializationType())];
+					
+					applyHint(handle, view);
 				}
 				
 				sl_bool getText(EditView* view, String& _out) override
@@ -590,43 +616,13 @@ namespace slib
 					}
 				}
 				
-				void apply(TextArea* view)
-				{
-					SLIBTextAreaHandle* handle = getHandle();
-					if (handle == nil) {
-						return;
-					}
-					
-					setHandleFont(handle, view->getFont());
-					[handle setScrollEnabled:YES];
-					[handle setShowsHorizontalScrollIndicator:view->isHorizontalScrollBarVisible() ? YES : NO];
-					[handle setShowsVerticalScrollIndicator:view->isVerticalScrollBarVisible() ? YES : NO];
-					[handle setText:(Apple::getNSStringFromString(view->getText()))];
-					[handle setTextAlignment:TranslateAlignment(view->getGravity())];
-					[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(view->getTextColor()))];
-					if (view->isBorder()) {
-						[handle.layer setBorderColor:([[UIColor grayColor] CGColor])];
-						[handle.layer setBorderWidth:1];
-					} else {
-						[handle.layer setBorderWidth:0];
-					}
-					[handle setBackgroundColor:(GraphicsPlatform::getUIColorFromColor(view->getBackgroundColor()))];
-					[handle setEditable:(view->isReadOnly() ? FALSE : TRUE)];
-					[handle setSelectable:TRUE];
-					[handle setReturnKeyType:ConvertReturnKeyType(view->getReturnKeyType())];
-					[handle setKeyboardType:ConvertKeyboardType(view->getKeyboardType())];
-					[handle setAutocapitalizationType:ConvertAutoCapitalizationType(view->getAutoCaptializationType())];
-					
-					applyHint(handle, view);
-				}
-				
 				void onChange(SLIBTextAreaHandle* control)
 				{
 					Ref<TextArea> view = CastRef<TextArea>(getView());
 					if (view.isNotNull()) {
 						String text = Apple::getStringFromNSString([control text]);
 						String textNew = text;
-						view->dispatchChange(&textNew);
+						view->dispatchChange(textNew);
 						if (text != textNew) {
 							NSString* str = Apple::getNSStringFromString(textNew, @"");
 							[control setText:str];
@@ -656,12 +652,7 @@ namespace slib
 	
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<EditViewInstance> ret = iOS_ViewInstance::create<EditViewInstance, SLIBEditViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			ret->apply(this);
-			return ret;
-		}
-		return sl_null;
+		return iOS_ViewInstance::create<EditViewInstance, SLIBEditViewHandle>(this, parent);
 	}
 	
 	Ptr<IEditViewInstance> EditView::getEditViewInstance()
@@ -671,12 +662,7 @@ namespace slib
 	
 	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<TextAreaInstance> ret = iOS_ViewInstance::create<TextAreaInstance, SLIBTextAreaHandle>(this, parent);
-		if (ret.isNotNull()) {
-			ret->apply(this);
-			return ret;
-		}
-		return sl_null;
+		return iOS_ViewInstance::create<TextAreaInstance, SLIBTextAreaHandle>(this, parent);
 	}
 	
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()

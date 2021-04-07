@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,34 +23,40 @@
 #ifndef CHECKHEADER_SLIB_UI_VIEW
 #define CHECKHEADER_SLIB_UI_VIEW
 
-#include "definition.h"
-
-#include "constants.h"
 #include "event.h"
-#include "cursor.h"
 
-#include "../core/object.h"
-#include "../core/function.h"
+#include "../graphics/color.h"
 #include "../core/animation.h"
-#include "../core/time.h"
-
-#include "../graphics/canvas.h"
 
 namespace slib
 {
 
-	class Window;
-	class ViewInstance;
-	
 	class Timer;
 	class Dispatcher;
+	class Font;
+	class Pen;
+	class GraphicsPath;
+	class Drawable;
 	class Bitmap;
-	
+	class Canvas;
+	class Window;
 	class ViewPage;
 	class ScrollBar;
-	class MotionTracker;
+	class Cursor;
 	class GestureDetector;
 	class GestureEvent;
+
+	class ViewInstance;
+	class ViewCell;
+
+	class ViewLayoutAttributes;
+	class ViewPaddingAttributes;
+	class ViewTransformAttributes;
+	class ViewDrawAttributes;
+	class ViewScrollAttributes;
+	class ViewChildAttributes;
+	class ViewOtherAttributes;
+	class ViewEventAttributes;
 
 	class SLIB_EXPORT View : public Object
 	{
@@ -73,32 +79,41 @@ namespace slib
 		sl_bool isCreatingInstance();
 		
 		// set before attaching
-		void setCreatingInstance(sl_bool flag);
+		void setCreatingInstance(sl_bool flag = sl_true);
 		
 		sl_bool isCreatingChildInstances();
 		
 		// set before attaching
-		void setCreatingChildInstances(sl_bool flag);
-		
+		void setCreatingChildInstances(sl_bool flag = sl_true);
+
+		sl_bool isSupportedNativeWidget();
+
+		// set at constructor
+		void setSupportedNativeWidget(sl_bool flag = sl_true);
+
 		sl_bool isCreatingNativeWidget();
 		
 		// set before attaching
-		void setCreatingNativeWidget(sl_bool flag);
+		void setCreatingNativeWidget(sl_bool flag = sl_true);
 		
 		sl_bool isCreatingNativeLayer();
 		
 		// set before attaching
-		void setCreatingNativeLayer(sl_bool flag);
+		void setCreatingNativeLayer(sl_bool flag = sl_true);
 
 		sl_bool isCreatingLargeContent();
 		
 		// set before attaching
-		void setCreatingLargeContent(sl_bool flag);
+		void setCreatingLargeContent(sl_bool flag = sl_true);
 		
 		sl_bool isCreatingEmptyContent();
 		
 		// set before attaching
-		void setCreatingEmptyContent(sl_bool flag);
+		void setCreatingEmptyContent(sl_bool flag = sl_true);
+
+		sl_bool isDoubleBuffer();
+
+		void setDoubleBuffer(sl_bool flag = sl_true);
 		
 		UIAttachMode getAttachMode();
 		
@@ -147,7 +162,7 @@ namespace slib
 		
 		Ref<View> getTopmostViewAt(const UIPoint& point);
 		
-		Ref<View> getChildById(const String& _id);
+		Ref<View> findViewById(const String& _id);
 		
 		Ref<View> getRootView();
 		
@@ -249,28 +264,32 @@ namespace slib
 		
 		sl_bool isVisibleInInstance();
 		
-		void setVisible(sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setVisible(sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		sl_bool isEnabled();
 		
-		virtual void setEnabled(sl_bool flagEnabled, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setEnabled(sl_bool flagEnabled = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_bool isClipping();
 		
-		void setClipping(sl_bool flagClipping, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setClipping(sl_bool flagClipping = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_bool isDrawing();
 		
-		void setDrawing(sl_bool flagDrawing, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setDrawing(sl_bool flagDrawing = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		
+		sl_bool isRendering();
+		
+		void setRendering(sl_bool flagRendering = sl_true);
 		
 		sl_bool isSavingCanvasState();
 		
-		void setSavingCanvasState(sl_bool flag);
+		void setSavingCanvasState(sl_bool flag = sl_true);
 		
 		
 		sl_bool isHitTestable();
 		
-		void setHitTestable(sl_bool flag);
+		void setHitTestable(sl_bool flag = sl_true);
 		
 		// local coordinate
 		virtual sl_bool hitTest(sl_ui_pos x, sl_ui_pos y);
@@ -281,7 +300,7 @@ namespace slib
 		
 		sl_bool isFocusable();
 		
-		void setFocusable(sl_bool flagFocusable);
+		void setFocusable(sl_bool flagFocusable = sl_true);
 		
 		sl_bool isFocused();
 		
@@ -294,7 +313,7 @@ namespace slib
 		
 		sl_bool isPressedState();
 		
-		virtual void setPressedState(sl_bool flagState, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setPressedState(sl_bool flagState = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void cancelPressedState();
 		
@@ -302,7 +321,7 @@ namespace slib
 		
 		sl_bool isHoverState();
 		
-		virtual void setHoverState(sl_bool flagState, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setHoverState(sl_bool flagState = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void cancelHoverState();
 		
@@ -310,11 +329,7 @@ namespace slib
 		
 		sl_bool isLockScroll();
 		
-		virtual void setLockScroll(sl_bool flagLock);
-		
-		sl_bool isCapturingEvents();
-		
-		void setCapturingEvents(sl_bool flag);
+		virtual void setLockScroll(sl_bool flagLock = sl_true);
 		
 
 		Ref<Cursor> getCursor();
@@ -342,7 +357,7 @@ namespace slib
 
 		sl_bool isCustomLayout();
 		
-		void setCustomLayout(sl_bool flagCustom);
+		void setCustomLayout(sl_bool flagCustom = sl_true);
 		
 		const UIRect& getRequestedFrame();
 		
@@ -640,7 +655,7 @@ namespace slib
 		
 		sl_bool isUsingChildLayouts();
 		
-		void setUsingChildLayouts(sl_bool flag);
+		void setUsingChildLayouts(sl_bool flag = sl_true);
 		
 		
 		sl_bool getFinalTransform(Matrix3* _out);
@@ -829,12 +844,12 @@ namespace slib
 
 		sl_bool isUsingFont();
 		
-		void setUsingFont(sl_bool flag);
+		void setUsingFont(sl_bool flag = sl_true);
 		
 		
 		sl_bool isOpaque();
 		
-		virtual void setOpaque(sl_bool flagOpaque, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setOpaque(sl_bool flagOpaque = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_real getAlpha();
 		
@@ -1048,11 +1063,11 @@ namespace slib
 		
 		sl_bool isVerticalScrolling();
 
-		void setHorizontalScrolling(sl_bool flagHorizontal, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHorizontalScrolling(sl_bool flagHorizontal = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		void setVerticalScrolling(sl_bool flagVertical, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setVerticalScrolling(sl_bool flagVertical = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		virtual void setScrolling(sl_bool flagHorizontal, sl_bool flagVertical, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setScrolling(sl_bool flagHorizontal = sl_true, sl_bool flagVertical = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Ref<ScrollBar> getHorizontalScrollBar();
 		
@@ -1066,11 +1081,19 @@ namespace slib
 		
 		sl_bool isVerticalScrollBarVisible();
 		
-		virtual void setScrollBarsVisible(sl_bool flagHorizontal, sl_bool flagVertical, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setScrollBarsVisible(sl_bool flagHorizontal = sl_true, sl_bool flagVertical = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		void setHorizontalScrollBarVisible(sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHorizontalScrollBarVisible(sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		void setVerticalScrollBarVisible(sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setVerticalScrollBarVisible(sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isAutoHideScrollBar();
+
+		void setAutoHideScrollBar(sl_bool flag = sl_true);
+
+		sl_bool isCanvasScrolling();
+
+		void setCanvasScrolling(sl_bool flag = sl_true);
 
 		virtual Pointlf getScrollPosition();
 		
@@ -1080,7 +1103,7 @@ namespace slib
 		
 		virtual void scrollTo(sl_scroll_pos x, sl_scroll_pos y, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		void scrollTo(const Pointlf& position, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void scrollTo(const ScrollPoint& position, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void scrollToX(sl_scroll_pos x, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
@@ -1088,7 +1111,7 @@ namespace slib
 		
 		virtual void smoothScrollTo(sl_scroll_pos x, sl_scroll_pos y, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		void smoothScrollTo(const Pointlf& position, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void smoothScrollTo(const ScrollPoint& position, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void smoothScrollToX(sl_scroll_pos x, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
@@ -1130,7 +1153,7 @@ namespace slib
 		
 		sl_bool isPaging();
 		
-		void setPaging(sl_bool flagPaging);
+		void setPaging(sl_bool flagPaging = sl_true);
 		
 		sl_ui_len getPageWidth();
 		
@@ -1143,37 +1166,37 @@ namespace slib
 		
 		sl_bool isContentScrollingByMouse();
 		
-		void setContentScrollingByMouse(sl_bool flag);
+		void setContentScrollingByMouse(sl_bool flag = sl_true);
 		
 		sl_bool isContentScrollingByTouch();
 		
-		void setContentScrollingByTouch(sl_bool flag);
+		void setContentScrollingByTouch(sl_bool flag = sl_true);
 		
 		sl_bool isContentScrollingByMouseWheel();
 		
-		void setContentScrollingByMouseWheel(sl_bool flag);
+		void setContentScrollingByMouseWheel(sl_bool flag = sl_true);
 		
 		sl_bool isContentScrollingByKeyboard();
 		
-		void setContentScrollingByKeyboard(sl_bool flag);
+		void setContentScrollingByKeyboard(sl_bool flag = sl_true);
 		
 		sl_bool isSmoothContentScrolling();
 		
-		void setSmoothContentScrolling(sl_bool flag);
+		void setSmoothContentScrolling(sl_bool flag = sl_true);
 
 		
 		sl_bool isTouchMultipleChildren();
 		
-		void setTouchMultipleChildren(sl_bool flag);
+		void setTouchMultipleChildren(sl_bool flag = sl_true);
 		
 		sl_bool isPassingEventsToChildren();
 		
-		void setPassingEventsToChildren(sl_bool flag);
+		void setPassingEventsToChildren(sl_bool flag = sl_true);
 		
 		
 		sl_bool isOkCancelEnabled();
 		
-		void setOkCancelEnabled(sl_bool flag);
+		void setOkCancelEnabled(sl_bool flag = sl_true);
 		
 		void setOkOnClick();
 		
@@ -1199,19 +1222,32 @@ namespace slib
 		Ref<View> getPreviousTabStop();
 		
 		void setPreviousTabStop(const Ref<View>& view);
-		
+
+		char getMnemonicKey();
+
+		void setMnemonicKey(char ch);
+
+		void setMnemonicKeyFromText(const StringParam& text);
+
+		Ref<View> findViewByMnemonicKey(char ch);
+
+
 		sl_bool isKeepKeyboard();
 		
 		void setKeepKeyboard(sl_bool flag);
+
 		
+		sl_bool isDragSource();
 		
-		sl_bool isDraggable();
+		void setDragSource(sl_bool flag = sl_true);
 		
-		void setDraggable(sl_bool flag = sl_true);
+		sl_bool isDropTarget();
 		
-		sl_bool isDroppable();
+		void setDropTarget(sl_bool flag = sl_true);
 		
-		void setDroppable(sl_bool flag = sl_true);
+		sl_bool isDropFiles();
+		
+		void setDropFiles(sl_bool flag = sl_true);
 		
 		const DragItem& getDragItem();
 		
@@ -1223,11 +1259,27 @@ namespace slib
 		
 		void beginDragging(const DragItem& item, DragOperations operationMask = DragOperations::All);
 		
+
+		sl_bool isPlaySoundOnClick();
+
+		void setPlaySoundOnClick(sl_bool flag = sl_true);
+
+
+		sl_bool isClientEdge();
+
+		void setClientEdge(sl_bool flag = sl_true);
+
 		
+		sl_bool isCapturingEvents();
+		
+		void setCapturingEvents(sl_bool flag = sl_true);
+
 		Function<sl_bool(const UIPoint& pt)> getCapturingChildInstanceEvents();
 		
 		void setCapturingChildInstanceEvents(const Function<sl_bool(const UIPoint& pt)>& hitTestCapture);
 		
+		sl_bool isCapturingChildInstanceEvents(sl_ui_pos x, sl_ui_pos y);
+
 		
 		Ref<UIEvent> getCurrentEvent();
 		
@@ -1246,6 +1298,8 @@ namespace slib
 		void drawBorder(Canvas* canvas, const Ref<Pen>& pen);
 		
 		void drawChildren(Canvas* canvas, const Ref<View>* children, sl_size count);
+		
+		virtual void renderChildren(Canvas* canvas, const Ref<View>* children, sl_size count);
 		
 		void drawContent(Canvas* canvas);
 		
@@ -1301,6 +1355,8 @@ namespace slib
 		virtual void onDetachChild(View* child);
 		
 		virtual void onUpdateLayout();
+
+		virtual void onUpdateFont(const Ref<Font>& font);
 		
 		virtual void onChangePadding();
 		
@@ -1348,10 +1404,9 @@ namespace slib
 		sl_bool dispatchSetCursorToChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
 		void dispatchSetCursorToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints = sl_true);
 		
-		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, DragEvent, UIEvent* ev)
-		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, DropEvent, UIEvent* ev)
-		sl_bool dispatchDropEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
-		void dispatchDropEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints = sl_true);
+		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, DragDropEvent, UIEvent* ev)
+		sl_bool dispatchDragDropEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
+		void dispatchDragDropEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints = sl_true);
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, ChangeFocus, sl_bool flagFocused)
 
@@ -1370,6 +1425,11 @@ namespace slib
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Cancel, UIEvent* ev)
 		void dispatchCancel();
+
+		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Mnemonic, UIEvent* ev)
+
+	protected:
+		void updateLayoutByViewCell(ViewCell* cell);
 
 	private:
 		void _removeParent(View* parent = sl_null);
@@ -1438,9 +1498,9 @@ namespace slib
 		
 		void _refreshBorderPen(UIUpdateMode mode);
 		
-		void _setFontInvalidateChildren();
+		void _setFontInvalidateChildren(const Ref<Font>& font);
 		
-		void _setInstanceFont();
+		void _setInstanceFont(const Ref<Font>& font);
 		
 		void _setInstancePadding();
 		
@@ -1458,15 +1518,23 @@ namespace slib
 				
 		sl_bool _scrollTo(sl_scroll_pos x, sl_scroll_pos y, sl_bool flagPreprocess, sl_bool flagFinish, sl_bool flagAnimate);
 
+
+		Ref<View> _findViewByMnemonicKey(char ch);
+
+
+		void _processKeyEvents(UIEvent* ev);
+
 		void _processEventForStateAndClick(UIEvent* ev);
-		
+
 		void _processContentScrollingEvents(UIEvent* ev);
-		
+
 		void _startContentScrollingFlow(sl_bool flagSmoothTarget, const Pointlf& speedOrTarget);
 		
 		void _stopContentScrollingFlow();
 		
 		void _processContentScrollingFlow(Timer* timer);
+
+		void _processAutoHideScrollBar(UIEvent* ev);
 		
 		void _setInstancePaging();
 		
@@ -1480,23 +1548,29 @@ namespace slib
 		
 		sl_bool m_flagCreatingInstance : 1;
 		sl_bool m_flagCreatingChildInstances : 1;
+		sl_bool m_flagSupportedNativeWidget : 1;
 		sl_bool m_flagCreatingNativeWidget : 1;
 		sl_bool m_flagCreatingNativeLayer : 1;
 		sl_bool m_flagCreatingLargeContent: 1;
 		sl_bool m_flagCreatingEmptyContent: 1;
+		sl_bool m_flagDoubleBuffer: 1;
 		sl_bool m_flagUsingChildLayouts : 1;
 		sl_bool m_flagEnabled : 1;
 		sl_bool m_flagHitTestable : 1;
 		sl_bool m_flagFocusable : 1;
 		sl_bool m_flagClipping : 1;
 		sl_bool m_flagDrawing : 1;
+		sl_bool m_flagRendering : 1;
 		sl_bool m_flagSavingCanvasState : 1;
 		sl_bool m_flagOkCancelEnabled : 1;
 		sl_bool m_flagTabStopEnabled : 1;
 		sl_bool m_flagKeepKeyboard : 1;
-		sl_bool m_flagDraggable : 1;
-		sl_bool m_flagDroppable : 1;
-		
+		sl_bool m_flagDragSource : 1;
+		sl_bool m_flagDropTarget : 1;
+		sl_bool m_flagDropFiles : 1;
+		sl_bool m_flagPlaySoundOnClick : 1;
+		sl_bool m_flagClientEdge : 1;
+
 		sl_bool m_flagCurrentCreatingInstance : 1;
 		sl_bool m_flagInvalidLayout : 1;
 		sl_bool m_flagNeedApplyLayout : 1;
@@ -1505,8 +1579,8 @@ namespace slib
 		sl_bool m_flagHover : 1;
 		sl_bool m_flagLockScroll: 1;
 		sl_bool m_flagCaptureEvents: 1;
+		sl_bool m_flagClicking : 1;
 		
-		AtomicString m_id;
 		UIAttachMode m_attachMode;
 		Visibility m_visibility;
 
@@ -1517,349 +1591,38 @@ namespace slib
 		UIAction m_actionMouseDown;
 		AtomicRef<UIEvent> m_currentEvent;
 
-	protected:
-		class LayoutAttributes : public Referable
-		{
-		public:
-			sl_bool flagMarginLeftWeight : 1;
-			sl_bool flagMarginTopWeight : 1;
-			sl_bool flagMarginRightWeight : 1;
-			sl_bool flagMarginBottomWeight : 1;
-			sl_bool flagCustomLayout : 1;
-			
-			sl_bool flagInvalidLayoutInParent : 1;
-			sl_bool flagRequestedFrame : 1;
-
-			UIRect layoutFrame;
-			UIRect requestedFrame;
-
-			SizeMode widthMode;
-			SizeMode heightMode;
-			sl_real widthWeight;
-			sl_real heightWeight;
-			
-			PositionMode leftMode;
-			PositionMode topMode;
-			PositionMode rightMode;
-			PositionMode bottomMode;
-			AtomicWeakRef<View> leftReferingView;
-			AtomicWeakRef<View> topReferingView;
-			AtomicWeakRef<View> rightReferingView;
-			AtomicWeakRef<View> bottomReferingView;
-			
-			sl_ui_len minWidth;
-			sl_ui_len maxWidth;
-			sl_ui_len minHeight;
-			sl_ui_len maxHeight;
-			AspectRatioMode aspectRatioMode;
-			sl_real aspectRatio;
-			
-			sl_ui_pos marginLeft;
-			sl_ui_pos marginTop;
-			sl_ui_pos marginRight;
-			sl_ui_pos marginBottom;
-			sl_real marginLeftWeight;
-			sl_real marginTopWeight;
-			sl_real marginRightWeight;
-			sl_real marginBottomWeight;
-			
-		public:
-			LayoutAttributes();
-			
-			~LayoutAttributes();
-			
-			SLIB_DELETE_CLASS_DEFAULT_MEMBERS(LayoutAttributes)
-			
-		public:
-			void applyMarginWeightsX(sl_ui_pos parentWidth);
-			void applyMarginWeightsY(sl_ui_pos parentHeight);
-			void applyMarginWeights(sl_ui_pos parentWidth, sl_ui_pos parentHeight);
-
-		};
-		Ref<LayoutAttributes> m_layoutAttrs;
-		
+	protected:		
+		Ref<ViewLayoutAttributes> m_layoutAttrs;
 		void _initializeLayoutAttributes();
-		
-		class PaddingAttributes : public Referable
-		{
-		public:
-			sl_bool flagPaddingLeftWeight : 1;
-			sl_bool flagPaddingTopWeight : 1;
-			sl_bool flagPaddingRightWeight : 1;
-			sl_bool flagPaddingBottomWeight : 1;
-
-			sl_ui_pos paddingLeft;
-			sl_ui_pos paddingTop;
-			sl_ui_pos paddingRight;
-			sl_ui_pos paddingBottom;
-			sl_real paddingLeftWeight;
-			sl_real paddingTopWeight;
-			sl_real paddingRightWeight;
-			sl_real paddingBottomWeight;
-			
-		public:
-			PaddingAttributes();
-			
-			~PaddingAttributes();
-			
-			SLIB_DELETE_CLASS_DEFAULT_MEMBERS(PaddingAttributes)
-
-		public:
-			void applyPaddingWeightsX(sl_ui_pos width);
-			void applyPaddingWeightsY(sl_ui_pos height);
-			void applyPaddingWeights(sl_ui_pos width, sl_ui_pos height);
-			
-		};
-		Ref<PaddingAttributes> m_paddingAttrs;
-		
+				
+		Ref<ViewPaddingAttributes> m_paddingAttrs;		
 		void _initializePaddingAttributes();
 
-		class TransformAttributes : public Referable
-		{
-		public:
-			sl_bool flagTransformFinalInvalid : 1;
-			sl_bool flagTransformFinal : 1;
-			sl_bool flagInverseTransformFinalInvalid : 1;
-			sl_bool flagInverseTransformFinal : 1;
-			sl_bool flagTransform : 1;
-			sl_bool flagTransformCalcInvalid : 1;
-			sl_bool flagTransformCalc : 1;
-
-			Matrix3 transformFinal;
-			Matrix3 inverseTransformFinal;
-			Matrix3 transform;
-			Matrix3 transformCalc;
-			Vector2 translation;
-			Vector2 scale;
-			sl_real rotationAngle;
-			Vector2 anchorOffset;
-			
-			AtomicWeakRef<Animation> m_animationTransform;
-			AtomicWeakRef<Animation> m_animationTranslate;
-			AtomicWeakRef<Animation> m_animationScale;
-			AtomicWeakRef<Animation> m_animationRotate;
-			AtomicWeakRef<Animation> m_animationFrame;
-			AtomicWeakRef<Animation> m_animationAlpha;
-			AtomicWeakRef<Animation> m_animationBackgroundColor;
-
-		public:
-			TransformAttributes();
-			
-			~TransformAttributes();
-			
-			SLIB_DELETE_CLASS_DEFAULT_MEMBERS(TransformAttributes)
-
-		};
-		Ref<TransformAttributes> m_transformAttrs;
-		
+		Ref<ViewTransformAttributes> m_transformAttrs;
 		void _initializeTransformAttributes();
 		
-		class DrawAttributes : public Referable
-		{
-		public:
-			sl_bool flagUsingFont : 1;
-			sl_bool flagOpaque : 1;
-			sl_bool flagLayer : 1;
-			
-			sl_bool flagForcedDraw : 1;
-			sl_bool flagInvalidatedLayer : 1;
-			sl_bool flagInvalidatedWholeLayer : 1;
-
-			AtomicRef<Drawable> background;
-			AtomicRef<Drawable> backgroundPressed;
-			AtomicRef<Drawable> backgroundHover;
-			ScaleMode backgroundScaleMode;
-			Alignment backgroundAlignment;
-			
-			AtomicRef<Pen> penBorder;
-			PenStyle borderStyle;
-			sl_real borderWidth;
-			Color borderColor;
-			
-			BoundShape boundShape;
-			Size boundRadius;
-			AtomicRef<GraphicsPath> boundPath;
-			
-			BoundShape contentShape;
-			Size contentRadius;
-			AtomicRef<GraphicsPath> contentBoundPath;
-
-			AtomicRef<Font> font;
-			sl_real alpha;
-			
-			AtomicRef<Bitmap> bitmapLayer;
-			AtomicRef<Canvas> canvasLayer;
-			UIRect rectInvalidatedLayer;
-			
-			float shadowOpacity;
-			sl_ui_posf shadowRadius;
-			UIPointf shadowOffset;
-			Color shadowColor;
-			
-			LinkedList< Function<void()> > runAfterDrawCallbacks;
-			
-		public:
-			DrawAttributes();
-			
-			~DrawAttributes();
-			
-			SLIB_DELETE_CLASS_DEFAULT_MEMBERS(DrawAttributes)
-
-		};
-		Ref<DrawAttributes> m_drawAttrs;
-		
+		Ref<ViewDrawAttributes> m_drawAttrs;		
 		void _initializeDrawAttributes();
 
-		class ScrollAttributes : public Referable
-		{
-		public:
-			sl_bool flagHorz : 1;
-			sl_bool flagVert : 1;
-			sl_bool flagHorzScrollBarVisible : 1;
-			sl_bool flagVertScrollBarVisible : 1;
-			sl_bool flagPaging : 1;
-			sl_bool flagContentScrollingByMouse : 1;
-			sl_bool flagContentScrollingByTouch : 1;
-			sl_bool flagContentScrollingByMouseWheel : 1;
-			sl_bool flagContentScrollingByKeyboard : 1;
-			sl_bool flagSmoothContentScrolling : 1;
-			
-			sl_bool flagValidHorz : 1;
-			sl_bool flagValidVert : 1;
-			sl_bool flagInitHorzScrollBar : 1;
-			sl_bool flagInitVertScrollBar : 1;
-			sl_bool flagDownContent : 1;
-
-			AtomicRef<ScrollBar> horz;
-			AtomicRef<ScrollBar> vert;
-			sl_scroll_pos x;
-			sl_scroll_pos y;
-			sl_scroll_pos contentWidth;
-			sl_scroll_pos contentHeight;
-			sl_ui_len barWidth;
-			sl_ui_pos pageWidth;
-			sl_ui_pos pageHeight;
-			
-			Point mousePointDown;
-			Point mousePointBefore;
-			sl_uint64 touchPointerIdBefore;
-			MotionTracker motionTracker;
-			Ref<Timer> timerFlow;
-			Time timeFlowFrameBefore;
-			Point speedFlow;
-			sl_bool flagSmoothTarget;
-			sl_scroll_pos xSmoothTarget;
-			sl_scroll_pos ySmoothTarget;
-			
-		public:
-			ScrollAttributes();
-			
-			~ScrollAttributes();
-			
-			SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ScrollAttributes)
-
-		};
-		Ref<ScrollAttributes> m_scrollAttrs;
-		
+		Ref<ViewScrollAttributes> m_scrollAttrs;		
 		void _initializeScrollAttributes();
 		
-		class ChildAttributes : public Referable
-		{
-		public:
-			sl_bool flagTouchMultipleChildren : 1;
-			sl_bool flagPassEventToChildren : 1;
-			
-			sl_bool flagHasInstances : 1;
-			
-			AtomicList< Ref<View> > children;
-			AtomicList< Ref<View> > childrenCache;
-			
-			List< Ref<View> > childrenMultiTouch;
-			AtomicRef<View> childMouseMove;
-			AtomicRef<View> childMouseDown;
-			AtomicRef<View> childDragOver;
-			AtomicRef<View> childFocused;
-
-			AtomicFunction<sl_bool(const UIPoint& pt)> hitTestCapturingChildInstanceEvents;
-			
-		public:
-			ChildAttributes();
-			
-			~ChildAttributes();
-			
-			SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ChildAttributes)
-
-		};
-		Ref<ChildAttributes> m_childAttrs;
-
+		Ref<ViewChildAttributes> m_childAttrs;
 		void _initializeChildAttributes();
 
-		class OtherAttributes : public Referable
-		{
-		public:
-			AtomicWeakRef<View> viewNextTabStop;
-			AtomicWeakRef<View> viewPrevTabStop;
-			AtomicRef<Cursor> cursor;
-			AtomicRef<GestureDetector> gestureDetector;
-			AtomicPtr<DragItem> dragItem;
-			DragOperations dragOperationMask;
-			
-		public:
-			OtherAttributes();
-			
-			~OtherAttributes();
-			
-			SLIB_DELETE_CLASS_DEFAULT_MEMBERS(OtherAttributes)
-
-		};
-		Ref<OtherAttributes> m_otherAttrs;
-		
+		Ref<ViewOtherAttributes> m_otherAttrs;
 		void _initializeOtherAttributes();
 		
-		class EventAttributes : public Referable
-		{
-		public:
-			AtomicFunction<void(View*)> onAttach;
-			AtomicFunction<void(View*)> onDetach;
-			AtomicFunction<void(View*, Canvas*)> onDraw;
-			AtomicFunction<void(View*, Canvas*)> onPreDraw;
-			AtomicFunction<void(View*, Canvas*)> onPostDraw;
-			AtomicFunction<void(View*, Canvas*)> onDrawShadow;
-			AtomicFunction<void(View*, UIEvent*)> onMouseEvent;
-			AtomicFunction<void(View*, UIEvent*)> onTouchEvent;
-			AtomicFunction<void(View*, UIEvent*)> onKeyEvent;
-			AtomicFunction<void(View*, UIEvent*)> onMouseWheelEvent;
-			AtomicFunction<void(View*)> onClick;
-			AtomicFunction<void(View*, UIEvent*)> onClickEvent;
-			AtomicFunction<void(View*, UIEvent*)> onSetCursor;
-			AtomicFunction<void(View*, UIEvent*)> onDragEvent;
-			AtomicFunction<void(View*, UIEvent*)> onDropEvent;
-			AtomicFunction<void(View*, sl_bool flagFocused)> onChangeFocus;
-			AtomicFunction<void(View*, sl_ui_pos, sl_ui_pos)> onMove;
-			AtomicFunction<void(View*, sl_ui_len, sl_ui_len)> onResize;
-			AtomicFunction<void(View*, Visibility, Visibility)> onChangeVisibility;
-			AtomicFunction<void(View*, sl_scroll_pos, sl_scroll_pos)> onScroll;
-			AtomicFunction<void(View*, GestureEvent*)> onSwipe;
-			AtomicFunction<void(View*, UIEvent*)> onOK;
-			AtomicFunction<void(View*, UIEvent*)> onCancel;
-			
-		public:
-			EventAttributes();
-			
-			~EventAttributes();
-			
-		};
-		
-		Ref<EventAttributes> m_eventAttrs;
-		
+		Ref<ViewEventAttributes> m_eventAttrs;		
 		void _initializeEventAttributes();
 
 		friend class ViewInstance;
 		friend class Window;
-		friend class LinearView;
+		friend class RenderView;
+		friend class LinearLayout;
 		friend class ListView;
 		friend class CollectionView;
-		friend class GridView;
+		friend class TableLayout;
 
 	};
 
@@ -1886,6 +1649,8 @@ namespace slib
 		void setWindowContent(sl_bool flag);
 
 	public:
+		virtual void initialize(View* view);
+
 		virtual sl_bool isValid(View* view) = 0;
 		
 		virtual void setFocus(View* view, sl_bool flagFocus) = 0;
@@ -1917,7 +1682,7 @@ namespace slib
 		virtual void addChildInstance(View* view, const Ref<ViewInstance>& instance) = 0;
 		
 		virtual void removeChildInstance(View* view, const Ref<ViewInstance>& instance) = 0;
-		
+
 		virtual void bringToFront(View* view) = 0;
 		
 		// extended functions for view instances
@@ -1930,6 +1695,8 @@ namespace slib
 		virtual void setShadowColor(View* view, const Color& color);
 		
 		// extended functions for native widgets
+		virtual sl_bool isDrawingEnabled(View* view);
+
 		virtual void setBorder(View* view, sl_bool flag);
 		
 		virtual void setBackgroundColor(View* view, const Color& color);
@@ -1946,35 +1713,135 @@ namespace slib
 
 		virtual void setLockScroll(View* view, sl_bool flagLock);
 		
-		virtual void setDroppable(View* view, sl_bool flag);
+		virtual void setDropTarget(View* view, sl_bool flag);
 		
 	public:
 		void onDraw(Canvas* canvas);
 		
 		void onClick();
 		
-		void onKeyEvent(UIEvent* event);
+		void onKeyEvent(UIEvent* ev);
 		
-		void onMouseEvent(UIEvent* event);
+		void onMouseEvent(UIEvent* ev);
 		
-		void onTouchEvent(UIEvent* event);
+		void onTouchEvent(UIEvent* ev);
 		
-		void onMouseWheelEvent(UIEvent* event);
+		void onMouseWheelEvent(UIEvent* ev);
 		
-		void onSetCursor(UIEvent* event);
+		void onSetCursor(UIEvent* ev);
 		
-		void onDragEvent(UIEvent* event);
+		void onDragDropEvent(UIEvent* ev);
 
-		void onDropEvent(UIEvent* event);
-		
 		void onSetFocus();
-		
-		void onSwipe(GestureType ev);
+
+		void onKillFocus();
+
+		void onSwipe(GestureType type);
 		
 	protected:
 		AtomicWeakRef<View> m_view;
 		sl_bool m_flagNativeWidget;
 		sl_bool m_flagWindowContent;
+
+	};
+
+	class SLIB_EXPORT ViewCell : public Object
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		ViewCell();
+
+		~ViewCell();
+
+	public:
+		Ref<View> getView();
+
+		void setView(const Ref<View>& view);
+
+
+		UIRect getFrame();
+
+		void setFrame(const UIRect& frame);
+
+		sl_ui_len getWidth();
+
+		sl_ui_len getHeight();
+
+
+		sl_bool isEnabled();
+
+		void setEnabled(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isFocused();
+
+		void setFocused(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isPressedState();
+
+		void setPressedState(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isHoverState();
+
+		void setHoverState(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+
+		Ref<Font> getFont();
+
+		void setFont(const Ref<Font>& font);
+
+
+		void invalidate(UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void invalidate(const UIRect& frame, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+
+		void setCursor(const Ref<Cursor>& cursor);
+
+
+		Ref<Dispatcher> getDispatcher();
+
+		Ref<Timer> createTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms);
+
+		Ref<Timer> startTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms);
+		
+	protected:
+		void invalidatePressedState(UIEvent* ev);
+
+	public:
+		virtual void onDraw(Canvas* canvas);
+
+		virtual void onKeyEvent(UIEvent* ev);
+
+		virtual void onClickEvent(UIEvent* ev);
+
+		virtual void onMouseEvent(UIEvent* ev);
+
+		virtual void onTouchEvent(UIEvent* ev);
+
+		virtual void onMouseWheelEvent(UIEvent* ev);
+
+		virtual void onSetCursor(UIEvent* ev);
+
+		virtual void onMeasure(UISize& size, sl_bool flagHorizontalWrapping, sl_bool flagVerticalWrapping);
+
+	protected:
+		WeakRef<View> m_view;
+
+		sl_bool m_flagDefinedFrame : 1;
+		sl_bool m_flagDefinedEnabled : 1;
+		sl_bool m_flagDefinedFocused : 1;
+		sl_bool m_flagDefinedPressed : 1;
+		sl_bool m_flagDefinedHover : 1;
+
+		sl_bool m_flagEnabled : 1;
+		sl_bool m_flagFocused : 1;
+		sl_bool m_flagPressed : 1;
+		sl_bool m_flagHover : 1;
+
+		UIRect m_frame;
+
+		Ref<Font> m_font;
 
 	};
 

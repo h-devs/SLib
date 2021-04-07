@@ -66,7 +66,7 @@
  		Platform Definition
 **************************************/
 #ifndef SLIB_PLATFORM
-#	if defined(WINAPI_FAMILY)
+#	if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_PC_APP || WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP)
 #		define SLIB_PLATFORM			SLIB_PLATFORM_UWP
 #	elif defined(_WIN64)
 #		define SLIB_PLATFORM			SLIB_PLATFORM_WIN64

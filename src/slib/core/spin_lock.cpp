@@ -23,6 +23,7 @@
 #include "slib/core/spin_lock.h"
 
 #include "slib/core/system.h"
+#include "slib/core/swap.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 #define USE_CPP_ATOMIC
@@ -43,7 +44,7 @@ namespace slib
 			{
 #if defined(USE_CPP_ATOMIC)
 				std::atomic_flag* p = (std::atomic_flag*)(lock);
-				return p->test_and_set(std::memory_order_acquire);
+				return !(p->test_and_set(std::memory_order_acquire));
 #else
 				bool* p = (bool*)(lock);
 				// __atomic_test_and_set equals __atomic_exchange(p, true, mem_order)

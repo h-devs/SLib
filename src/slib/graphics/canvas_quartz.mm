@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_QUARTZ)
 
@@ -110,7 +110,7 @@ namespace slib
 					if (path.isNotNull()) {
 						CGPathRef handle = GraphicsPlatform::getGraphicsPath(path.get());
 						if (handle) {
-							_clipToPath(handle, path->getFillMode());				
+							_clipToPath(handle, path->getFillMode());
 						}
 					}
 				}
@@ -141,12 +141,8 @@ namespace slib
 					CGContextConcatCTM(m_graphics, t);
 				}
 				
-				void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& _pen) override
+				void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen) override
 				{
-					Ref<Pen> pen = _pen;
-					if (pen.isNull()) {
-						pen = Pen::getDefault();
-					}
 					if (pen.isNotNull()) {
 						CGContextBeginPath(m_graphics);
 						CGContextMoveToPoint(m_graphics, pt1.x, pt1.y);
@@ -156,14 +152,10 @@ namespace slib
 					}
 				}
 				
-				void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& _pen) override
+				void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) override
 				{
 					if (countPoints < 2) {
 						return;
-					}
-					Ref<Pen> pen = _pen;
-					if (pen.isNull()) {
-						pen = Pen::getDefault();
 					}
 					if (pen.isNotNull()) {
 						CGContextBeginPath(m_graphics);
@@ -185,7 +177,7 @@ namespace slib
 					}
 				}
 				
-				void drawRectangle(const Rectangle& _rect, const Ref<Pen>& _pen, const Ref<Brush>& brush) override
+				void drawRectangle(const Rectangle& _rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
 					CGRect rect;
 					rect.origin.x = _rect.left;
@@ -202,10 +194,6 @@ namespace slib
 							CGContextRestoreGState(m_graphics);
 						}
 					}
-					Ref<Pen> pen = _pen;
-					if (brush.isNull() && pen.isNull()) {
-						pen = Pen::getDefault();
-					}
 					if (pen.isNotNull()) {
 						_applyPen(pen.get());
 						CGContextStrokeRect(m_graphics, rect);
@@ -221,7 +209,7 @@ namespace slib
 					}
 				}
 				
-				void drawEllipse(const Rectangle& _rect, const Ref<Pen>& _pen, const Ref<Brush>& brush) override
+				void drawEllipse(const Rectangle& _rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
 					CGRect rect;
 					rect.origin.x = _rect.left;
@@ -239,10 +227,6 @@ namespace slib
 							_drawOtherBrush(brush.get());
 							CGContextRestoreGState(m_graphics);
 						}
-					}
-					Ref<Pen> pen = _pen;
-					if (brush.isNull() && pen.isNull()) {
-						pen = Pen::getDefault();
 					}
 					if (pen.isNotNull()) {
 						_applyPen(pen.get());
@@ -286,7 +270,7 @@ namespace slib
 					}
 				}
 				
-				void _drawPath(CGPathRef path, const Ref<Pen>& _pen, const Ref<Brush>& brush, FillMode fillMode)
+				void _drawPath(CGPathRef path, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode)
 				{
 					if (brush.isNotNull()) {
 						if (_applySolidBrush(brush.get())) {
@@ -317,10 +301,6 @@ namespace slib
 							_drawOtherBrush(brush.get());
 							CGContextRestoreGState(m_graphics);
 						}
-					}
-					Ref<Pen> pen = _pen;
-					if (brush.isNull() && pen.isNull()) {
-						pen = Pen::getDefault();
 					}
 					if (pen.isNotNull()) {
 						_applyPen(pen.get());
@@ -543,7 +523,7 @@ namespace slib
 				
 			};
 
-			SLIB_DEFINE_OBJECT(CanvasImpl, Canvas)
+			SLIB_DEFINE_OBJECT(CanvasImpl, CanvasExt)
 
 		}
 	}

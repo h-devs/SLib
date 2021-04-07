@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 
@@ -199,7 +199,7 @@ namespace slib
 		POINT pt;
 		GetCursorPos(&pt);
 		HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-		if (hMonitor) {			
+		if (hMonitor) {
 			MONITORINFOEXW info;
 			Base::zeroMemory(&info, sizeof(info));
 			info.cbSize = sizeof(info);

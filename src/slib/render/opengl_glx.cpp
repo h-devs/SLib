@@ -26,9 +26,16 @@
 
 #include "slib/render/engine.h"
 #include "slib/render/opengl.h"
+#include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
 
-#include "gl/GLX/glx.h"
+
+#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+#	include "slib/render/dl_linux_gl.h"
+#	include "slib/ui/dl_linux_x11.h"
+#else
+#	include "gl/GLX/glx.h"
+#endif
 
 namespace slib
 {
@@ -66,7 +73,7 @@ namespace slib
 					if (!xdisplay) {
 						return sl_null;
 					}
-					if (xwindow == None) {
+					if (xwindow == X_None) {
 						return sl_null;
 					}
 					
@@ -79,7 +86,7 @@ namespace slib
 						GLX_DEPTH_SIZE, param.nDepthBits,
 						GLX_STENCIL_SIZE, param.nStencilBits,
 						GLX_DOUBLEBUFFER,
-						None
+						0
 					};
 					
 					XVisualInfo* xvinfo = glXChooseVisual(xdisplay, 0, attrs);
@@ -151,7 +158,7 @@ namespace slib
 						}
 					}
 					
-					glXMakeCurrent(m_xdisplay, None, NULL);
+					glXMakeCurrent(m_xdisplay, X_None, NULL);
 				}
 
 				void runStep(RenderEngine* engine)

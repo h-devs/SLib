@@ -22,12 +22,16 @@
 
 #include "slib/ui/app.h"
 
+#include "slib/core/thread.h"
+#include "slib/core/dispatch_loop.h"
+#include "slib/core/async.h"
 #include "slib/network/url_request.h"
-
 #include "slib/ui/core.h"
 #include "slib/ui/window.h"
 #include "slib/ui/menu.h"
 #include "slib/ui/platform.h"
+
+#include "ui_core_common.h"
 
 namespace slib
 {
@@ -116,14 +120,16 @@ namespace slib
 	}
 #endif
 	
-	void UIApp::onRunApp()
+	sl_int32 UIApp::onRunApp()
 	{
 		UI::runApp();
+		return 0;
 	}
 
 #if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32)
-	void UIApp::onExistingInstance()
-	{		
+	sl_int32 UIApp::onExistingInstance()
+	{
+		return -1;
 	}
 #endif
 
@@ -157,6 +163,10 @@ namespace slib
 		if (app.isNotNull()) {
 			app->dispatchExit();
 		}
+		priv::ui_core::UIDispatcher::removeAllCallbacks();
+		DispatchLoop::releaseDefault();
+		AsyncIoLoop::releaseDefault();
+		Thread::finishAllThreads();
 	}
 	
 	SLIB_DEFINE_EVENT_HANDLER(UIApp, OpenUrl, const String& url, sl_bool& outFlagOpened)

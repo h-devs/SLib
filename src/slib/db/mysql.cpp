@@ -24,7 +24,12 @@
 
 #if defined(SLIB_DATABASE_SUPPORT_MYSQL)
 
+#ifdef SLIB_PLATFORM_IS_WIN32
+#include "slib/db/dl_libmysql.h"
+#else
 #include "libmariadb/mysql.h"
+#endif
+
 #include "libmariadb/errmsg.h"
 
 #include "slib/core/thread.h"
@@ -192,9 +197,9 @@ namespace slib
 					return m_mapColumnIndexes.getValue_NoLock(name.toString(), -1);
 				}
 
-				HashMap<String, Variant> getRow() override
+				VariantMap getRow() override
 				{
-					HashMap<String, Variant> ret;
+					VariantMap ret;
 					if (m_row && m_nColumnNames > 0) {
 						for (sl_uint32 index = 0; index < m_nColumnNames; index++) {
 							ret.put_NoLock(m_columnNames[index], _getValue(index));
@@ -323,9 +328,9 @@ namespace slib
 					return m_mapColumnIndexes.getValue_NoLock(name.toString(), -1);
 				}
 
-				HashMap<String, Variant> getRow() override
+				VariantMap getRow() override
 				{
-					HashMap<String, Variant> ret;
+					VariantMap ret;
 					if (m_nColumnNames > 0) {
 						for (sl_uint32 index = 0; index < m_nColumnNames; index++) {
 							ret.put_NoLock(m_columnNames[index], _getValue(index));
@@ -705,14 +710,14 @@ namespace slib
 						if (!(m_fds[index].isNull)) {
 							if (m_fds[index].isError) {
 								if (type == MYSQL_TYPE_STRING) {
-									return Time(_getStringEx(index));
+									return Time::fromString(_getStringEx(index));
 								}
 							} else {
 								switch (type) {
 								case MYSQL_TYPE_DATETIME:
 									return fromMySQLTime(m_fds[index].time);
 								case MYSQL_TYPE_STRING:
-									return Time(String::fromUtf8(m_fds[index].buf, m_fds[index].length));
+									return Time::fromString(String::fromUtf8(m_fds[index].buf, m_fds[index].length));
 								default:
 									break;
 								}
@@ -795,6 +800,12 @@ namespace slib
 						if (0 == mysql_stmt_prepare(statement, m_sql.getData(), (sl_uint32)(m_sql.getLength()))) {
 							m_statement = statement;
 							return sl_true;
+						}
+						Ref<Database> db = getDatabase();
+						if (db.isNotNull()) {
+							if (db->isLoggingErrors()) {
+								LogError((char*)(getObjectType()), "Error: %s SQL: %s", mysql_stmt_error(statement), m_sql);
+							}
 						}
 						mysql_stmt_close(statement);
 					}
@@ -1065,7 +1076,7 @@ namespace slib
 			public:
 				DatabaseImpl()
 				{
-					m_mysql = sl_null;					
+					m_mysql = sl_null;
 				}
 
 				~DatabaseImpl()
@@ -1282,7 +1293,7 @@ namespace slib
 
 	void MySQL::initThread()
 	{
-		SLIB_SAFE_STATIC(LibraryInitializer, lib)
+		SLIB_SAFE_LOCAL_STATIC(LibraryInitializer, lib)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(lib)) {
 			return;
 		}

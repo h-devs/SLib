@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_EFL)
 
@@ -75,7 +75,7 @@ namespace slib
 						::system_info_get_platform_int("http://tizen.org/feature/screen.height", &(ret->m_height));
 #endif
 						return ret;
-					}			
+					}
 					return sl_null;
 				}
 
@@ -162,7 +162,7 @@ namespace slib
 
 	Ref<Screen> UI::getPrimaryScreen()
 	{
-		SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<Screen>, ret)
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Screen>, ret)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
 			return sl_null;
 		}
@@ -187,8 +187,9 @@ namespace slib
 		return ret;
 	}
 
-	void UI::openUrl(const String& url)
+	void UI::openUrl(const StringParam& _url)
 	{
+		StringCstr url(_url);
 		app_control_h app_control;
 		if (0 == ::app_control_create(&app_control)) {
 			::app_control_set_operation(app_control, APP_CONTROL_OPERATION_DEFAULT);

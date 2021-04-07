@@ -23,12 +23,9 @@
 #ifndef CHECKHEADER_SLIB_UI_CORE
 #define CHECKHEADER_SLIB_UI_CORE
 
-#include "definition.h"
-
 #include "event.h"
 
 #include "../core/string.h"
-#include "../core/thread.h"
 #include "../core/function.h"
 #include "../core/dispatch.h"
 
@@ -41,10 +38,15 @@ namespace slib
 	class Menu;
 	class UIApp;
 	class Font;
+	class Locale;
 
 	class SLIB_EXPORT UI
 	{
 	public:
+		static Ref<Font> getDefaultFont();
+
+		static void setDefaultFont(const Ref<Font>& font);
+		
 		static sl_real getDefaultFontSize();
 		
 		static void setDefaultFontSize(sl_real fontSize);
@@ -52,10 +54,9 @@ namespace slib
 		static String getDefaultFontFamily();
 		
 		static void setDefaultFontFamily(const String& fontFamily);
-		
-		static Ref<Font> getDefaultFont();
 
-		static void setDefaultFont(const Ref<Font>& font);
+		static void setDefaultFontFamilyForLocale(const Locale& locale);
+		
 
 		static sl_ui_len getDefaultScrollBarWidth();
 		
@@ -164,7 +165,6 @@ namespace slib
 		
 
 		// HID related functions (Platform Specific)
-#if defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_MACOS)
 		static sl_bool checkKeyPressed(Keycode key);
 
 		static sl_bool checkScrollLockOn();
@@ -175,15 +175,16 @@ namespace slib
 		
 		static sl_bool checkRightButtonPressed();
 
-		static sl_bool checkMiddleButtonPressed();				
-#endif
+		static sl_bool checkMiddleButtonPressed();
 		
-#if defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_GTK)
 		static sl_bool checkCapsLockOn();
 		
 		static UIPoint getCursorPos();
-#endif
-		
+
+		static void sendKeyEvent(UIAction action, Keycode key);
+
+		static void sendMouseEvent(UIAction action, sl_ui_pos x, sl_ui_pos y, sl_bool flagAbsolutePos = sl_true);
+
 		// UI Thread
 		static sl_bool isUiThread();
 		
@@ -205,10 +206,20 @@ namespace slib
 		static void runApp();
 		
 		static void quitApp();
+
+		static sl_bool isRunningApp();
+
+		static sl_bool isQuitingApp();
 		
 		
-		static void openUrl(const String& url);
-		
+		static void openUrl(const StringParam& url);
+
+		static void openFile(const StringParam& path);
+
+		static void openDirectory(const StringParam& path);
+
+		static void openDirectoryAndSelectFile(const StringParam& path);
+
 		static void dismissKeyboard();
 		
 		static UIKeyboardAdjustMode getKeyboardAdjustMode();

@@ -151,7 +151,7 @@ static Mode DecodeAsciiSegment(BitSource& bits, std::string& result, std::string
 				if (value < 10) { // pad with '0' for single digit values
 					result.push_back('0');
 				}
-				result.append(std::to_string(value));
+				result.append(std_to_string(value));
 			}
 			else if (oneByte >= 242) {  // Not to be used in ASCII encodation
 									// ... but work around encoders that end with 254, latch back to ASCII

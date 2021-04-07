@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/device/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
@@ -117,14 +117,14 @@ namespace slib
 		ret.x = (int)(GetSystemMetrics(SM_CXSCREEN));
 		ret.y = (int)(GetSystemMetrics(SM_CYSCREEN));
 		return ret;
-	}	
+	}
 
-	void Device::openUrl(const String& url)
+	void Device::openUrl(const StringParam& url)
 	{
-		Windows::ShellExecuteParam param;
+		ShellExecuteParam param;
 		param.operation = "open";
 		param.path = url;
-		Windows::shellExecute(param);
+		Windows::shell(param);
 	}
 
 }

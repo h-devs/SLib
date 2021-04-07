@@ -60,7 +60,7 @@ public class Network {
 									String s = inetAddress.getHostAddress();
 									int indexScope = s.indexOf('%');
 									if (indexScope > 0) {
-										s = s.substring(0, indexScope);										
+										s = s.substring(0, indexScope);
 									}
 									s += "/" + p;
 									addr6.add(s);
@@ -73,7 +73,7 @@ public class Network {
 					if (macAddr != null) {
 						StringBuilder sb = new StringBuilder();
 						for (int i = 0; i < macAddr.length; i++) {
-							sb.append(String.format("%02X%s", macAddr[i], (i < macAddr.length - 1) ? "-" : ""));		
+							sb.append(String.format("%02X%s", macAddr[i], (i < macAddr.length - 1) ? "-" : ""));
 						}
 						device.macAddress = sb.toString();
 					} else {

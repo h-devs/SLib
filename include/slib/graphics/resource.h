@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_RESOURCE
 #define CHECKHEADER_SLIB_GRAPHICS_RESOURCE
 
-#include "definition.h"
-
 #include "image.h"
 #include "color.h"
 
@@ -48,6 +46,53 @@ namespace slib
 		
 	};
 	
+	namespace priv
+	{
+		namespace graphics_resource
+		{
+			
+			class ImageEntry
+			{
+			public:
+				sl_bool flagValid;
+
+				sl_uint32 width;
+				sl_uint32 height;
+
+				const sl_uint8* source_bytes;
+				sl_uint32 source_size;
+
+				sl_int32 lock;
+				void* image;
+				sl_bool flag_load;
+
+			public:
+				Ref<Image> getImage();
+
+				Ref<Image> getMatchingImage(sl_uint32 width, sl_uint32 height);
+
+			};
+			
+			class FreeImageContext
+			{
+			public:
+				FreeImageContext(ImageEntry* entries);
+
+				~FreeImageContext();
+
+			private:
+				ImageEntry* m_entries;
+
+			};
+			
+			Ref<Image> GetImage(ImageEntry* entries, sl_uint32 requiredWidth, sl_uint32 requiredHeight);
+			
+			List< Ref<Image> > GetImages(ImageEntry* entries);
+			
+			Ref<Drawable> GetDrawable(ImageEntry* entries, sl_uint32 width, sl_uint32 height);
+			
+		}
+	}
 }
 
 #define SLIB_DECLARE_COLOR_RESOURCE(NAME) \
@@ -146,7 +191,7 @@ namespace slib
 			return slib::priv::graphics_resource::GetDrawable(entries, WIDTH, HEIGHT); \
 		} \
 		slib::Ref<slib::Drawable> get() { \
-			SLIB_SAFE_STATIC(slib::Ref<slib::Drawable>, value, slib::priv::graphics_resource::GetDrawable(entries, WIDTH, HEIGHT)); \
+			SLIB_SAFE_LOCAL_STATIC(slib::Ref<slib::Drawable>, value, slib::priv::graphics_resource::GetDrawable(entries, WIDTH, HEIGHT)); \
 			if (SLIB_SAFE_STATIC_CHECK_FREED(value)) { \
 				return sl_null; \
 			} \
@@ -164,7 +209,7 @@ namespace slib
 
 #define SLIB_DEFINE_NINEPIECES_RESOURCE(NAME, LEFT_WIDTH, RIGHT_WIDTH, TOP_HEIGHT, BOTTOM_HEIGHT, TOP_LEFT, TOP, TOP_RIGHT, LEFT, CENTER, RIGHT, BOTTOM_LEFT, BOTTOM, BOTTOM_RIGHT) \
 	namespace NAME { \
-		SLIB_STATIC_ZERO_INITIALIZED(slib::AtomicRef<slib::Drawable>, value) \
+		SLIB_GLOBAL_ZERO_INITIALIZED(slib::AtomicRef<slib::Drawable>, value) \
 		slib::Ref<slib::Drawable> get() { \
 			if (SLIB_SAFE_STATIC_CHECK_FREED(value)) { \
 				return sl_null; \
@@ -184,7 +229,7 @@ namespace slib
 
 #define SLIB_DEFINE_NINEPATCH_RESOURCE(NAME, DST_LEFT_WIDTH, DST_RIGHT_WIDTH, DST_TOP_HEIGHT, DST_BOTTOM_HEIGHT, SRC, SRC_LEFT_WIDTH, SRC_RIGHT_WIDTH, SRC_TOP_HEIGHT, SRC_BOTTOM_HEIGHT) \
 	namespace NAME { \
-		SLIB_STATIC_ZERO_INITIALIZED(slib::AtomicRef<slib::Drawable>, value) \
+		SLIB_GLOBAL_ZERO_INITIALIZED(slib::AtomicRef<slib::Drawable>, value) \
 		slib::Ref<slib::Drawable> get() { \
 			if (SLIB_SAFE_STATIC_CHECK_FREED(value)) { \
 				return sl_null; \
@@ -205,6 +250,5 @@ namespace slib
 #define SLIB_DEFINE_DRAWABLE_RESOURCE_MAP_ITEM(NAME) SLIB_DEFINE_LOCALIZED_RESOURCE_MAP_ITEM(NAME)
 #define SLIB_DEFINE_DRAWABLE_RESOURCE_MAP_END SLIB_DEFINE_LOCALIZED_RESOURCE_MAP_END(slib::Ref<slib::Drawable>, sl_null)
 
-#include "detail/resource.inc"
 
 #endif

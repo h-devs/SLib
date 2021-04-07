@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,16 @@
 #ifndef CHECKHEADER_SLIB_UI_EVENT
 #define CHECKHEADER_SLIB_UI_EVENT
 
-#include "definition.h"
-
 #include "constants.h"
-#include "gesture.h"
 
-#include "../core/string.h"
 #include "../core/time.h"
-#include "../math/point.h"
-#include "../math/size.h"
 #include "../math/matrix3.h"
 
 namespace slib
 {
 
-	class Window;
-	class View;
+	class DragItem;
+	class DragContext;
 
 	class SLIB_EXPORT TouchPoint
 	{
@@ -160,58 +154,6 @@ namespace slib
 	KeycodeAndModifiers operator|(int modifiers, Keycode keycode);
 
 
-	class Drawable;
-
-	class SLIB_EXPORT DragItem
-	{
-	public:
-		DragItem();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DragItem)
-		
-	public:
-		const String& getText() const;
-		
-		void setText(const String& text);
-		
-		const UIRect& getFrame() const;
-		
-		void setFrame(const UIRect& frame);
-		
-		void setDraggingSize(sl_ui_pos width, sl_ui_pos height);
-		
-		const Ref<Drawable>& getDraggingImage() const;
-		
-		void setDraggingImage(const Ref<Drawable>& image);
-		
-	protected:
-		String m_text;
-		UIRect m_frame;
-		Ref<Drawable> m_image;
-		
-	};
-
-	class SLIB_EXPORT DragContext
-	{
-	public:
-		Ref<View> view;
-		DragItem item;
-		DragOperations operationMask;
-		DragOperations operation;
-		sl_uint64 sn;
-
-	public:
-		DragContext();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DragContext)
-		
-	public:
-		sl_bool isAlive() const;
-		
-		void release();
-		
-	};
-
 
 	class SLIB_EXPORT UIEvent : public Referable
 	{
@@ -221,14 +163,18 @@ namespace slib
 		UIEvent();
 		
 		UIEvent(UIAction action, const Time& time);
-		
+
+		UIEvent(UIAction action, const UIEventFlags& flags, const Time& time);
+
 		~UIEvent();
 		
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(UIEvent)
 		
 	public:
-		static Ref<UIEvent> createUnknown(const Time& time);
+		static Ref<UIEvent> createUnknown(const UIEventFlags& flags, const Time& time);
 		
+		static Ref<UIEvent> createUnknown(const Time& time);
+
 		static Ref<UIEvent> createKeyEvent(UIAction action, Keycode keycode, sl_uint32 systemKeycode, const Time& time);
 		
 		static Ref<UIEvent> createMouseEvent(UIAction action, sl_ui_posf x, sl_ui_posf y, const Time& time);
@@ -349,10 +295,6 @@ namespace slib
 		
 		void setDragOperation(const DragOperations& op);
 		
-		sl_uint64 getDragId() const;
-		
-		void setDragId(sl_uint64 _id);
-		
 		// modifiers
 		void setShiftKey();
 		
@@ -416,17 +358,25 @@ namespace slib
 		sl_bool isPassedToNext();
 		
 		void setPassedToNext(sl_bool flag);
+
+		sl_bool isInternal();
+
+		void setInternal(sl_bool flag);
 		
 		virtual Ref<UIEvent> duplicate() const;
 		
 		static sl_uint32 getSystemKeycode(Keycode key);
 		
 		static Keycode getKeycodeFromSystemKeycode(sl_uint32 systemKeycode);
+
+		static Keycode getKeycodeFromWin32Keycode(sl_uint32 win32Keycode);
 		
 		static String getKeyName(Keycode key, sl_bool flagShort = sl_false);
 		
 		static Keycode getKeycodeFromName(const String& keyName);
-		
+
+		static sl_char8 getCharFromKeycode(Keycode key, sl_bool flagUpper);
+
 		static DragContext& getCurrentDragContext();
 		
 	protected:

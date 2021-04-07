@@ -484,7 +484,10 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = "$(SLIB_PATH)/lib/macOS/$(CONFIGURATION)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SLIB_PATH)/lib/macOS/$(CONFIGURATION)",
+					"$(SLIB_PATH)/external/lib/macOS",
+				);
 				OTHER_LDFLAGS = (
 					"-lslib",
 					"-lcef_dll_wrapper",
@@ -507,7 +510,10 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = "$(SLIB_PATH)/lib/macOS/$(CONFIGURATION)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SLIB_PATH)/lib/macOS/$(CONFIGURATION)",
+					"$(SLIB_PATH)/external/lib/macOS",
+				);
 				OTHER_LDFLAGS = (
 					"-lslib",
 					"-lcef_dll_wrapper",

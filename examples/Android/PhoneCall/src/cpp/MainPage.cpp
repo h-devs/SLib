@@ -164,16 +164,16 @@ void MainPage::stopRecording()
 	btnPlay->setVisible(sl_true);
 	btnPlay->setOnClick([this](View*) {
 		if (m_player.isNull()) {
-			AudioPlayerBufferParam param;
+			AudioPlayerParam param;
 			param.samplesPerSecond = SAMPLE_PER_SECOND;
-			param.onPlayAudio = [this](AudioPlayerBuffer* buffer, sl_uint32 nSamples) {
-				if (buffer->getSamplesCountInQueue()) {
+			param.onPlayAudio = [this](AudioPlayer* player, sl_uint32 nSamples) {
+				if (player->getSamplesCountInQueue()) {
 					m_nSamplesPlayed += nSamples;
 				} else {
 					btnStop->dispatchClick();
 				}
 			};
-			m_player = AudioPlayerBuffer::create(param);
+			m_player = AudioPlayer::create(param);
 		}
 		btnPlay->setVisibility(Visibility::Gone);
 		btnStop->setVisibility(Visibility::Visible);

@@ -25,6 +25,8 @@
 #include "slib/render/canvas.h"
 #include "slib/graphics/zxing.h"
 #include "slib/graphics/yuv.h"
+#include "slib/core/timer.h"
+#include "slib/core/stringify.h"
 
 namespace slib
 {
@@ -78,14 +80,15 @@ namespace slib
 	QRCodeScanner::QRCodeScanner()
 	{
 		m_flagUpdateCameraFrame = sl_false;
-		setScaleMode(ScaleMode::Cover);
 		m_programScanBar = new Program_ScanBar;
+		
+		setScaleMode(ScaleMode::Cover, UIUpdateMode::Init);
 	}
 	
 	QRCodeScanner::~QRCodeScanner()
 	{
 	}
-
+	
 	void QRCodeScanner::start(const CameraParam& param)
 	{
 		CameraView::start(param);

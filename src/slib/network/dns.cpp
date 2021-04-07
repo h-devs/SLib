@@ -238,7 +238,7 @@ namespace slib
 					now++;
 					if (now + lenLabel > size) {
 						return 0;
-					}				
+					}
 					if (lenName) {
 						name[lenName] = '.';
 						lenName++;
@@ -533,9 +533,6 @@ namespace slib
 		return ret;
 	}
 
-/*************************************************************
-					DnsPacket
-*************************************************************/
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DnsPacket)
 	
@@ -713,9 +710,6 @@ namespace slib
 		
 	}
 
-/*************************************************************
-				DnsClient
-*************************************************************/
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DnsClientParam)
 	
@@ -779,10 +773,7 @@ namespace slib
 		m_onAnswer(this, serverAddress, packet);
 	}
 
-/*************************************************************
-					DnsServer
-*************************************************************/
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DnsResolveHostParam)
 	
 	DnsResolveHostParam::DnsResolveHostParam()

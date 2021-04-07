@@ -73,9 +73,9 @@ namespace slib
 		static void activate(sl_bool flagIgnoreOtherApps = sl_true);
 		
 	protected:
-		void onRunApp() override;
+		sl_int32 onRunApp() override;
 		
-		void onExistingInstance() override;
+		sl_int32 onExistingInstance() override;
 		
 	protected:
 		void processUniqueInstanceApp(const String& uniqueId, sl_bool flagRun);

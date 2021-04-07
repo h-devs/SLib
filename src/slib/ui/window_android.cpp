@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +20,13 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_ANDROID)
 
-#include "slib/ui/window.h"
+#include "window.h"
 
-#include "slib/ui/view.h"
-#include "slib/ui/platform.h"
+#include "view_android.h"
 
 namespace slib
 {
@@ -64,14 +63,10 @@ namespace slib
 				SLIB_JNI_METHOD(activate, "activate", "()V");
 				SLIB_JNI_METHOD(getFrame, "getFrame", "()Landroid/graphics/Rect;");
 				SLIB_JNI_METHOD(setFrame, "setFrame", "(IIII)V");
-				SLIB_JNI_METHOD(getSize, "getSize", "()Landroid/graphics/Point;");
-				SLIB_JNI_METHOD(setSize, "setSize", "(II)V");
 				SLIB_JNI_METHOD(setBackgroundColor, "setWindowBackgroundColor", "(I)V");
 				SLIB_JNI_METHOD(setVisible, "setVisible", "(Z)V");
 				SLIB_JNI_METHOD(setAlwaysOnTop, "setAlwaysOnTop", "(Z)V");
 				SLIB_JNI_METHOD(setAlpha, "setWindowAlpha", "(F)V");
-				SLIB_JNI_METHOD(convertCoordinateFromScreenToWindow, "convertCoordinateFromScreenToWindow", "(II)Landroid/graphics/Point;");
-				SLIB_JNI_METHOD(convertCoordinateFromWindowToScreen, "convertCoordinateFromWindowToScreen", "(II)Landroid/graphics/Point;");
 
 				SLIB_JNI_NATIVE(onResize, "nativeOnResize", "(JII)V", OnResize);
 				SLIB_JNI_NATIVE(onClose, "nativeOnClose", "(J)Z", OnClose);
@@ -118,9 +113,9 @@ namespace slib
 					return sl_null;
 				}
 
-				static jobject createHandle(const WindowInstanceParam& param)
+				static jobject createHandle(Window* window)
 				{
-					jobject jactivity = (jobject)(param.activity);
+					jobject jactivity = (jobject)(window->getActivity());
 					if (!jactivity) {
 						jactivity = Android::getCurrentActivity();
 						if (!jactivity) {
@@ -128,9 +123,23 @@ namespace slib
 						}
 					}
 					jobject jwindow = JWindow::create.callObject(sl_null, jactivity
-						, param.flagFullScreen, param.flagCenterScreen
-						, (int)(param.location.x), (int)(param.location.y), (int)(param.size.x), (int)(param.size.y));
-					return jwindow;
+						, window->isFullScreen(), window->isCenterScreen()
+						, (int)(window->getLeft()), (int)(window->getTop()), (int)(window->getWidth()), (int)(window->getHeight()));
+					if (jwindow) {
+						if (!(window->isDefaultBackgroundColor())) {
+							Color color = window->getBackgroundColor();
+							JWindow::setBackgroundColor.call(jwindow, color.getARGB());
+						}
+						sl_real alpha = window->getAlpha();
+						if (alpha <= 0.9999f) {
+							JWindow::setAlpha.call(jwindow, (jfloat)alpha);
+						}
+						if (window->isAlwaysOnTop()) {
+							JWindow::setAlwaysOnTop.call(jwindow, 1);
+						}
+						return jwindow;
+					}
+					return sl_null;
 				}
 
 				void close() override
@@ -158,25 +167,6 @@ namespace slib
 				Ref<ViewInstance> getContentView() override
 				{
 					return m_viewContent;
-				}
-
-				sl_bool isActive() override
-				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
-					if (jwindow) {
-						return JWindow::isActive.callBoolean(jwindow);
-					}
-					return sl_false;
-				}
-				
-				void activate() override
-				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
-					if (jwindow) {
-						JWindow::activate.call(jwindow);
-					}
 				}
 
 				UIRect getFrame() override
@@ -207,40 +197,23 @@ namespace slib
 					}
 				}
 
-				UIRect getClientFrame() override
-				{
-					return getFrame();
-				}
-
-				UISize getClientSize() override
+				sl_bool isActive() override
 				{
 					JniGlobal<jobject> _jwindow(m_window);
 					jobject jwindow = _jwindow;
 					if (jwindow) {
-						JniLocal<jobject> size = JWindow::getSize.callObject(jwindow);
-						if (size.isNotNull()) {
-							UISize ret;
-							ret.x = (sl_ui_pos)(JPoint::x.get(size));
-							ret.y = (sl_ui_pos)(JPoint::y.get(size));
-							return ret;
-						}
-					}
-					return UISize::zero();
-				}
-
-				sl_bool setClientSize(const UISize& size) override
-				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
-					if (jwindow) {
-						JWindow::setSize.call(jwindow, (int)(size.x), (int)(size.y));
-						return sl_true;
+						return JWindow::isActive.callBoolean(jwindow);
 					}
 					return sl_false;
 				}
-
-				void setTitle(const String& title) override
+				
+				void activate() override
 				{
+					JniGlobal<jobject> _jwindow(m_window);
+					jobject jwindow = _jwindow;
+					if (jwindow) {
+						JWindow::activate.call(jwindow);
+					}
 				}
 
 				void setBackgroundColor(const Color& color) override
@@ -279,68 +252,6 @@ namespace slib
 					}
 				}
 
-				UIPointf convertCoordinateFromScreenToWindow(const UIPointf& ptScreen) override
-				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
-					if (jwindow) {
-						JniLocal<jobject> jpt = JWindow::convertCoordinateFromScreenToWindow.callObject(jwindow, 0, 0);
-						if (jpt.isNotNull()) {
-							UIPointf ret;
-							ret.x = ptScreen.x + (sl_ui_posf)(JPoint::x.get(jpt));
-							ret.y = ptScreen.y + (sl_ui_posf)(JPoint::y.get(jpt));
-							return ret;
-						}
-					}
-					return ptScreen;
-				}
-
-				UIPointf convertCoordinateFromWindowToScreen(const UIPointf& ptWindow) override
-				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
-					if (jwindow) {
-						JniLocal<jobject> jpt = JWindow::convertCoordinateFromWindowToScreen.callObject(jwindow, 0, 0);
-						if (jpt.isNotNull()) {
-							UIPointf ret;
-							ret.x = ptWindow.x + (sl_ui_posf)(JPoint::x.get(jpt));
-							ret.y = ptWindow.y + (sl_ui_posf)(JPoint::y.get(jpt));
-							return ret;
-						}
-					}
-					return ptWindow;
-				}
-
-				UIPointf convertCoordinateFromScreenToClient(const UIPointf& ptScreen) override
-				{
-					return convertCoordinateFromScreenToWindow(ptScreen);
-				}
-
-				UIPointf convertCoordinateFromClientToScreen(const UIPointf& ptClient) override
-				{
-					return convertCoordinateFromWindowToScreen(ptClient);
-				}
-
-				UIPointf convertCoordinateFromWindowToClient(const UIPointf& ptWindow) override
-				{
-					return ptWindow;
-				}
-
-				UIPointf convertCoordinateFromClientToWindow(const UIPointf& ptClient) override
-				{
-					return ptClient;
-				}
-
-				UISize getWindowSizeFromClientSize(const UISize& size) override
-				{
-					return size;
-				}
-
-				UISize getClientSizeFromWindowSize(const UISize& size) override
-				{
-					return size;
-				}
-
 			};
 
 			SLIB_INLINE static Ref<Android_WindowInstance> GetWindowInstance(jlong instance)
@@ -370,9 +281,9 @@ namespace slib
 
 	using namespace priv::window;
 
-	Ref<WindowInstance> Window::createWindowInstance(const WindowInstanceParam& param)
+	Ref<WindowInstance> Window::createWindowInstance()
 	{
-		JniLocal<jobject> jwindow = Android_WindowInstance::createHandle(param);
+		JniLocal<jobject> jwindow = Android_WindowInstance::createHandle(this);
 		if (jwindow.isNotNull()) {
 			return Android_WindowInstance::create(jwindow);
 		}

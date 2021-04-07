@@ -32,7 +32,7 @@ namespace slib
 		namespace paypal
 		{
 
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<PayPal>, g_instance)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<PayPal>, g_instance)
 
 			static PayPalOrderStatus ParseOrderStatus(const String& strStatus)
 			{

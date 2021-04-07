@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_CODEC_VPX
 #define CHECKHEADER_SLIB_MEDIA_CODEC_VPX
 
-#include "definition.h"
-
 #include "video_codec.h"
 
 namespace slib
@@ -51,7 +49,7 @@ namespace slib
 		sl_uint32 height;
 		sl_uint32 framesPerSecond;
 		sl_uint32 keyFrameInterval;
-		sl_uint32 bitrate;
+		sl_uint32 bitrate; // kbps
 		sl_uint32 threadsCount;
 		sl_uint32 cpuUsage;
 		VpxBitrateMode bitrateMode;
@@ -79,6 +77,8 @@ namespace slib
 	
 	class SLIB_EXPORT VpxEncoder : public VideoEncoder
 	{
+		SLIB_DECLARE_OBJECT
+
 	public:
 		VpxEncoder();
 		
@@ -91,6 +91,8 @@ namespace slib
 	
 	class SLIB_EXPORT VpxDecoder : public VideoDecoder
 	{
+		SLIB_DECLARE_OBJECT
+
 	public:
 		VpxDecoder();
 		
@@ -99,7 +101,7 @@ namespace slib
 	public:
 		static Ref<VpxDecoder> create(const VpxDecoderParam& param);
 		
-	};	
+	};
 }
 
 #endif

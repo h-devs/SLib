@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/macro.h"
+#include "../core/flags.h"
 
 namespace slib
 {
@@ -67,36 +67,28 @@ namespace slib
 		Alternate = 1
 	};
 
-	class SLIB_EXPORT Alignment
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(Alignment, value)
-		
-		enum
-		{
-			HorizontalMask = 3,
-			VerticalMask = 12,
+	SLIB_DEFINE_FLAGS(Alignment, {
+		HorizontalMask = 3,
+		VerticalMask = 12,
 
-			Center = 0,
-			Left = 1,
-			Right = 2,
+		Center = 0,
+		Left = 1,
+		Right = 2,
 
-			Middle = 0,
-			Top = 4,
-			Bottom = 8,
+		Middle = 0,
+		Top = 4,
+		Bottom = 8,
 
-			MiddleCenter = 0,
-			MiddleLeft = 1,
-			MiddleRight = 2,
-			TopCenter = 4,
-			TopLeft = 5,
-			TopRight = 6,
-			BottomCenter = 8,
-			BottomLeft = 9,
-			BottomRight = 10
-		};
-	};
+		MiddleCenter = 0,
+		MiddleLeft = 1,
+		MiddleRight = 2,
+		TopCenter = 4,
+		TopLeft = 5,
+		TopRight = 6,
+		BottomCenter = 8,
+		BottomLeft = 9,
+		BottomRight = 10
+	})
 
 	enum class ImageFileType
 	{

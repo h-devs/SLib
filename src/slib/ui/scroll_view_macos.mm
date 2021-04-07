@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_MACOS)
 
@@ -40,7 +40,7 @@ namespace slib
 }
 
 @interface SLIBScrollViewHandle : NSScrollView
-{	
+{
 	@public slib::WeakRef<slib::priv::scroll_view::ScrollViewInstance> m_viewInstance;
 }
 @end
@@ -68,6 +68,19 @@ namespace slib
 				NSScrollView* getHandle()
 				{
 					return (NSScrollView*)m_handle;
+				}
+				
+				void initialize(View* _view) override
+				{
+					ScrollView* view = (ScrollView*)_view;
+					NSScrollView* handle = getHandle();
+
+					[handle setHasHorizontalScroller:(view->isHorizontalScrollBarVisible() ? YES : NO)];
+					[handle setHasVerticalScroller:(view->isVerticalScrollBarVisible() ? YES : NO)];
+					[handle setBorderType:(view->isBorder() ? NSBezelBorder : NSNoBorder)];
+					_setBackgroundColor(handle, view->getBackgroundColor());
+					applyContent(view, handle, view->getContentView());
+					_scrollTo(handle, view->getScrollX(), view->getScrollY(), sl_false);
 				}
 				
 				void refreshContentSize(ScrollView* view) override
@@ -187,20 +200,6 @@ namespace slib
 					}
 				}
 				
-				void apply(ScrollView* view)
-				{
-					NSScrollView* handle = getHandle();
-					if (handle == nil) {
-						return;
-					}
-					[handle setHasHorizontalScroller:(view->isHorizontalScrollBarVisible() ? YES : NO)];
-					[handle setHasVerticalScroller:(view->isVerticalScrollBarVisible() ? YES : NO)];
-					[handle setBorderType:(view->isBorder() ? NSBezelBorder : NSNoBorder)];
-					_setBackgroundColor(handle, view->getBackgroundColor());
-					applyContent(view, handle, view->getContentView());
-					_scrollTo(handle, view->getScrollX(), view->getScrollY(), sl_false);
-				}
-				
 				void onScroll(NSScrollView* sv)
 				{
 					NSClipView* clip = [sv contentView];
@@ -224,12 +223,7 @@ namespace slib
 
 	Ref<ViewInstance> ScrollView::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<ScrollViewInstance> ret = macOS_ViewInstance::create<ScrollViewInstance, SLIBScrollViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			ret->apply(this);
-			return ret;
-		}
-		return sl_null;
+		return macOS_ViewInstance::create<ScrollViewInstance, SLIBScrollViewHandle>(this, parent);
 	}
 	
 	Ptr<IScrollViewInstance> ScrollView::getScrollViewInstance()

@@ -23,14 +23,12 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_FREETYPE
 #define CHECKHEADER_SLIB_GRAPHICS_FREETYPE
 
-#include "definition.h"
+#include "color.h"
 
 #include "../core/object.h"
 #include "../core/memory.h"
 #include "../core/string.h"
 #include "../math/size.h"
-
-#include "color.h"
 
 struct FT_LibraryRec_;
 struct FT_FaceRec_;

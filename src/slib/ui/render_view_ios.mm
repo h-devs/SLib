@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_IOS) && !defined(SLIB_PLATFORM_IS_IOS_CATALYST)
 
@@ -28,6 +28,7 @@
 
 #include "slib/render/opengl.h"
 #include "slib/ui/mobile_app.h"
+#include "slib/core/time_counter.h"
 
 #include "view_ios.h"
 
@@ -99,6 +100,15 @@ namespace slib
 				{
 					return (SLIBGLViewHandle*)m_handle;
 				}
+
+				void initialize(View* _view) override
+				{
+					RenderView* view = (RenderView*)_view;
+					SLIBGLViewHandle* handle = getHandle();
+					
+					[handle initialize];
+					handle->m_flagRenderingContinuously = view->getRedrawMode() == RedrawMode::Continuously;
+				}
 				
 				void setRedrawMode(RenderView* view, RedrawMode mode) override
 				{
@@ -127,14 +137,7 @@ namespace slib
 
 	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<RenderViewInstance> ret = iOS_ViewInstance::create<RenderViewInstance, SLIBGLViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			SLIBGLViewHandle* handle = ret->getHandle();
-			[handle initialize];
-			handle->m_flagRenderingContinuously = m_redrawMode == RedrawMode::Continuously;
-			return ret;
-		}
-		return sl_null;
+		return iOS_ViewInstance::create<RenderViewInstance, SLIBGLViewHandle>(this, parent);
 	}
 	
 	Ptr<IRenderViewInstance> RenderView::getRenderViewInstance()

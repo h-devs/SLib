@@ -114,7 +114,7 @@ public class UiBitmap {
 					UiBitmap ret = new UiBitmap();
 					ret.bitmap = bitmap;
 					returnTempStorage(buf);
-					return ret;						
+					return ret;
 				}
 				bitmap.recycle();
 			}
@@ -154,7 +154,7 @@ public class UiBitmap {
 	
 	public void read(int x, int y, int width, int height, int[] out, int stride) {
 		try {
-			bitmap.getPixels(out, 0, stride, x, y, width, height);			
+			bitmap.getPixels(out, 0, stride, x, y, width, height);
 		} catch (Throwable e) {
 			Logger.exception(e);
 		}
@@ -162,7 +162,7 @@ public class UiBitmap {
 	
 	public void write(int x, int y, int width, int height, int[] in, int stride) {
 		try {
-			bitmap.setPixels(in, 0, stride, x, y, width, height);			
+			bitmap.setPixels(in, 0, stride, x, y, width, height);
 		} catch (Throwable e) {
 			Logger.exception(e);
 		}
@@ -196,7 +196,7 @@ public class UiBitmap {
 			if (alpha < 255 || cm != null || iblur >= 1) {
 				Paint paint = new Paint();
 				if (alpha < 255) {
-					paint.setAlpha(alpha);				
+					paint.setAlpha(alpha);
 				}
 				if (cm != null) {
 					ColorMatrixColorFilter cf = new ColorMatrixColorFilter(cm);
@@ -272,7 +272,7 @@ public class UiBitmap {
 			if (alpha < 255 || cm != null || blur > 0.5f) {
 				Paint paint = new Paint();
 				if (alpha < 255) {
-					paint.setAlpha(alpha);			
+					paint.setAlpha(alpha);
 				}
 				if (cm != null) {
 					ColorMatrixColorFilter cf = new ColorMatrixColorFilter(cm);

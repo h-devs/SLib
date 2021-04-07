@@ -23,58 +23,43 @@
 #ifndef CHECKHEADER_SLIB_CORE_REGEX
 #define CHECKHEADER_SLIB_CORE_REGEX
 
-#include "definition.h"
-
-#include "object.h"
+#include "ref.h"
 #include "string.h"
+#include "flags.h"
 
 namespace slib
 {
 
-	class RegExFlags
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(RegExFlags, value)
-		
-		enum {
-			Default = 0,
-			Icase = 0x0001,
-			Nosubs = 0x0002,
-			Optimize = 0x0004,
-			Collate = 0x0008,
-			ECMAScript = 0x0010,
-			Basic = 0x0020,
-			Extended = 0x0040,
-			Awk = 0x0080,
-			Grep = 0x0100,
-			Egrep = 0x0200
-		};
-	};
+	SLIB_DEFINE_FLAGS(RegExFlags, {
+		Default = 0,
+		Icase = 0x0001,
+		Nosubs = 0x0002,
+		Optimize = 0x0004,
+		Collate = 0x0008,
+		ECMAScript = 0x0010,
+		Basic = 0x0020,
+		Extended = 0x0040,
+		Awk = 0x0080,
+		Grep = 0x0100,
+		Egrep = 0x0200
+	})
+
+	SLIB_DEFINE_FLAGS(RegExMatchFlags, {
+		Default = 0,
+		NotBol = 0x0001,
+		NotEol = 0x0002,
+		NotBow = 0x0004,
+		NotEow = 0x0008,
+		Any = 0x0010,
+		NotNull = 0x0020,
+		Continuous = 0x0040,
+		PrevAvail = 0x0080,
+		FormatSed = 0x0100,
+		FormatNoCopy = 0x0200,
+		FormatFirstOnly = 0x0400
+	})
 	
-	class RegExMatchFlags
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(RegExMatchFlags, value)
-		
-		enum {
-			Default = 0,
-			NotBol = 0x0001,
-			NotEol = 0x0002,
-			NotBow = 0x0004,
-			NotEow = 0x0008,
-			Any = 0x0010,
-			NotNull = 0x0020,
-			Continuous = 0x0040,
-			PrevAvail = 0x0080,
-			FormatSed = 0x0100,
-			FormatNoCopy = 0x0200,
-			FormatFirstOnly = 0x0400
-		};
-	};
-	
-	class CRegEx : public Object
+	class CRegEx : public Referable
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -89,7 +74,7 @@ namespace slib
 		static Ref<CRegEx> create(const String& pattern, const RegExFlags& flags) noexcept;
 
 	public:
-		sl_bool match(const String& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
+		sl_bool match(const StringParam& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
 		
 	private:
 		static Ref<CRegEx> _create(const String& pattern, int flags) noexcept;
@@ -112,7 +97,7 @@ namespace slib
 		Atomic(const String& pattern, const RegExFlags& flags) noexcept;
 		
 	public:
-		sl_bool match(const String& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
+		sl_bool match(const StringParam& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
 
 	private:
 		AtomicRef<CRegEx> ref;
@@ -132,10 +117,10 @@ namespace slib
 		RegEx(const String& pattern, const RegExFlags& flags) noexcept;
 				
 	public:
-		sl_bool match(const String& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
+		sl_bool match(const StringParam& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
 		
 	public:
-		static sl_bool matchEmail(const String& str) noexcept;
+		static sl_bool matchEmail(const StringParam& str) noexcept;
 
 	private:
 		Ref<CRegEx> ref;

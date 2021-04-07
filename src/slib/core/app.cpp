@@ -26,13 +26,12 @@
 #include "slib/core/system.h"
 #include "slib/core/process.h"
 #include "slib/core/file.h"
-#include "slib/core/safe_static.h"
 #include "slib/core/string_buffer.h"
+#include "slib/core/global_unique_instance.h"
+#include "slib/core/safe_static.h"
 #include "slib/core/log.h"
 
-#ifdef SLIB_PLATFORM_IS_WIN32
-#include <windows.h>
-#endif
+#include "slib/core/windows.h"
 
 namespace slib
 {
@@ -42,7 +41,7 @@ namespace slib
 		namespace app
 		{
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicWeakRef<Application>, g_app)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicWeakRef<Application>, g_app)
 
 			typedef HashMap<String, String> EnvironmentList;
 			
@@ -60,7 +59,11 @@ namespace slib
 					List<String> args = app->getArguments();
 					String* s = args.getData();
 					sl_uint32 n = (sl_uint32)(args.getCount());
-					Process::exec(app->getExecutablePath(), s, n);
+					if (n) {
+						Process::exec(app->getExecutablePath(), s + 1, n - 1);
+					} else {
+						Process::exec(app->getExecutablePath(), s, n);
+					}
 				}
 			}
 #endif
@@ -112,64 +115,66 @@ namespace slib
 		return m_arguments;
 	}
 
-	String Application::getCommand(sl_uint32 index)
-	{
-		return m_arguments.getValueAt(index);
-	}
-
-	void Application::run(const String& commandLine)
+	sl_int32 Application::run(const String& commandLine)
 	{
 		m_commandLine = commandLine;
 		m_arguments = breakCommandLine(commandLine);
-		doRun();
+		return _doRun();
 	}
 
-	void Application::run(int argc, const char* argv[])
+	sl_int32 Application::run(int argc, const char* argv[])
 	{
 		List<String> list;
 		for (int i = 0; i < argc; i++) {
+#ifdef SLIB_PLATFORM_IS_WIN32
+			list.add(String::decode(Charset::ANSI, argv[i], Base::getStringLength(argv[i])));
+#else
 			list.add(argv[i]);
+#endif
 		}
 		m_arguments = list;
 		m_commandLine = buildCommandLine(list.getData(), list.getCount());
-		doRun();
+		return _doRun();
 	}
 
-	void Application::run()
+	sl_int32 Application::run()
 	{
 #ifdef SLIB_PLATFORM_IS_WIN32
 		String commandLine = String::create(GetCommandLineW());
 		m_commandLine = commandLine;
 		m_arguments = breakCommandLine(commandLine);
 #endif
-		doRun();
+		return _doRun();
 	}
 
-	void Application::doRun()
+	sl_int32 Application::_doRun()
 	{
 		Application::setApp(this);
-		
 		m_executablePath = Application::getApplicationPath();
-		
+		return doRun();
+	}
+
+	sl_int32 Application::doRun()
+	{
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 		String instanceId = getUniqueInstanceId();
 		if (instanceId.isNotEmpty()) {
 			m_uniqueInstance = GlobalUniqueInstance::create(instanceId);
 			if (m_uniqueInstance.isNull()) {
-				onExistingInstance();
-				return;
+				return onExistingInstance();
 			}
 		}
 		
 		if (isCrashRecoverySupport()) {
 			System::setCrashHandler(CrashHandler);
 		}
-		
 #endif
 		
-		onRunApp();
+		sl_int32 iRet = onRunApp();
 		
 		dispatchQuitApp();
+
+		return iRet;
 		
 	}
 
@@ -185,9 +190,10 @@ namespace slib
 	{
 	}
 
-	void Application::onExistingInstance()
+	sl_int32 Application::onExistingInstance()
 	{
 		LogError("APP", "%s is ALREADY RUNNING", getUniqueInstanceId());
+		return -1;
 	}
 
 	sl_bool Application::isUniqueInstanceRunning()
@@ -310,149 +316,244 @@ Microsoft Specific
 	* If an odd number of backslashes is followed by a double quotation mark, one backslash is placed in the argv array for every pair of backslashes, and the double quotation mark is "escaped" by the remaining backslash, causing a literal double quotation mark (") to be placed in argv.
 ***************************************************************************************/
 
-	List<String> Application::breakCommandLine(const String& commandLine)
+	namespace priv
 	{
-		List<String> ret;
-		sl_char8* sz = commandLine.getData();
-		sl_size len = commandLine.getLength();
-		StringBuffer sb;
-		sl_size start = 0;
-		sl_size pos = 0;
-		sl_bool flagQuote = sl_false;
-		while (pos < len) {
-			sl_char8 ch = sz[pos];
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-			if (ch == '\"') {
-				sl_size k = pos - 1;
-				while (k > 0) {
-					if (sz[k] != '\\') {
-						break;
-					}
-					k--;
-				}
-				sl_size n = pos - 1 - k;
-				sl_size m = n / 2;
-				sb.addStatic(sz + start, k + 1 + m - start);
-				if (n % 2) {
-					start = pos;
-					pos++;
-					continue;
-				} else {
-					start = pos + 1;
-				}
-			}
-#else
-			if (ch == '\\') {
-				if (pos > start) {
-					sb.addStatic(sz + start, pos - start);
-				}
-				start = pos + 1;
-				pos++;
-				if (pos < len) {
-					pos++;
-					continue;
-				} else {
-					break;
-				}
-			}
-#endif
+		namespace app
+		{
 
-			if (flagQuote) {
-				if (ch == '\"') {
-					flagQuote = sl_false;
-					if (pos > start) {
-						sb.addStatic(sz + start, pos - start);
+			List<String> BreakCommandLine(const String& commandLine, sl_bool flagWin32)
+			{
+				List<String> ret;
+				sl_char8* sz = commandLine.getData();
+				sl_size len = commandLine.getLength();
+				StringBuffer sb;
+				sl_size start = 0;
+				sl_size pos = 0;
+				sl_bool flagQuote = sl_false;
+				while (pos < len) {
+					sl_char8 ch = sz[pos];
+					if (flagWin32) {
+						if (ch == '\"') {
+							sl_size k = pos - 1;
+							while (k > 0) {
+								if (sz[k] != '\\') {
+									break;
+								}
+								k--;
+							}
+							sl_size n = pos - 1 - k;
+							sl_size m = n / 2;
+							sb.addStatic(sz + start, k + 1 + m - start);
+							if (n % 2) {
+								start = pos;
+								pos++;
+								continue;
+							} else {
+								start = pos + 1;
+							}
+						}
+					} else {
+						if (ch == '\\') {
+							if (pos > start) {
+								sb.addStatic(sz + start, pos - start);
+							}
+							start = pos + 1;
+							pos++;
+							if (pos < len) {
+								pos++;
+								continue;
+							} else {
+								break;
+							}
+						}
 					}
-					start = pos + 1;
+					if (flagQuote) {
+						if (ch == '\"') {
+							flagQuote = sl_false;
+							if (pos > start) {
+								sb.addStatic(sz + start, pos - start);
+							}
+							start = pos + 1;
+						}
+					} else {
+						if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+							if (pos > start) {
+								sb.addStatic(sz + start, pos - start);
+							}
+							start = pos + 1;
+							String s = sb.merge();
+							if (s.isNotEmpty()) {
+								ret.add(s);
+							}
+							sb.clear();
+						} else if (ch == '\"') {
+							flagQuote = sl_true;
+							if (pos > start) {
+								sb.addStatic(sz + start, pos - start);
+							}
+							start = pos + 1;
+						}
+					}
+					pos++;
 				}
-			} else {
-				if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+				if (!flagQuote) {
 					if (pos > start) {
 						sb.addStatic(sz + start, pos - start);
 					}
-					start = pos + 1;
 					String s = sb.merge();
 					if (s.isNotEmpty()) {
 						ret.add(s);
 					}
-					sb.clear();
-				} else if (ch == '\"') {
-					flagQuote = sl_true;
-					if (pos > start) {
-						sb.addStatic(sz + start, pos - start);
+				}
+				return ret;
+			}
+
+		}
+	}
+
+	List<String> Application::breakCommandLine(const String& commandLine)
+	{
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		return priv::app::BreakCommandLine(commandLine, sl_true);
+#else
+		return priv::app::BreakCommandLine(commandLine, sl_false);
+#endif
+	}
+
+	List<String> Application::breakCommandLine_Win32(const String& commandLine)
+	{
+		return priv::app::BreakCommandLine(commandLine, sl_true);
+	}
+
+	List<String> Application::breakCommandLine_Unix(const String& commandLine)
+	{
+		return priv::app::BreakCommandLine(commandLine, sl_false);
+	}
+
+	String Application::makeSafeArgument(const String& s)
+	{
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		return makeSafeArgument_Win32(s);
+#else
+		return makeSafeArgument_Unix(s);
+#endif
+	}
+
+	String Application::makeSafeArgument_Win32(const String& s)
+	{
+		if (s.contains(" ") || s.contains("\t") || s.contains("\r") || s.contains("\n") || s.contains("\"")) {
+			StringBuffer buf;
+			buf.addStatic("\"");
+			ListElements<String> items(s.split("\""));
+			for (sl_size k = 0; k < items.count; k++) {
+				String t = items[k];
+				buf.add(t);
+				sl_char8* sz = t.getData();
+				sl_size len = t.getLength();
+				sl_size p = 0;
+				for (; p < len; p++) {
+					if (sz[len - 1 - p] != '\\') {
+						break;
 					}
-					start = pos + 1;
+				}
+				buf.add(String('\\', p));
+				if (k < items.count - 1) {
+					buf.addStatic("\\\"");
 				}
 			}
-			pos++;
+			buf.addStatic("\"");
+			return buf.merge();
 		}
-		if (!flagQuote) {
-			if (pos > start) {
-				sb.addStatic(sz + start, pos - start);
-			}
-			String s = sb.merge();
-			if (s.isNotEmpty()) {
-				ret.add(s);
-			}
+		if (s.isNotEmpty()) {
+			return s;
+		} else {
+			SLIB_RETURN_STRING("\"\"");
 		}
-		return ret;
+	}
+
+	String Application::makeSafeArgument_Unix(const String& s)
+	{
+		if (s.contains(" ") || s.contains("\t") || s.contains("\r") || s.contains("\n") || s.contains("\"") || s.contains("\\")) {
+			String t = s
+				.replaceAll("\\", "\\\\")
+				.replaceAll("\"", "\\\"");
+			return String::join("\"", Move(t), "\"");
+		}
+		if (s.isNotEmpty()) {
+			return s;
+		} else {
+			SLIB_RETURN_STRING("\"\"");
+		}
 	}
 
 	String Application::buildCommandLine(const String* argv, sl_size argc)
 	{
-		StringBuffer commandLine;
+		StringBuffer buf;
 		for (sl_size i = 0; i < argc; i++) {
-			String s = argv[i];
 			if (i > 0) {
-				commandLine.add(" ");
+				buf.addStatic(" ");
 			}
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-			if (s.contains(" ") || s.contains("\t") || s.contains("\r") || s.contains("\n") || s.contains("\"")) {
-				commandLine.addStatic("\"");
-				ListElements<String> items(s.split("\""));
-				for (sl_size k = 0; k < items.count; k++) {
-					String t = items[k];
-					commandLine.add(t);
-					sl_char8* sz = t.getData();
-					sl_size len = t.getLength();
-					sl_size p = 0;
-					for (; p < len; p++) {
-						if (sz[len-1-p] != '\\') {
-							break;
-						}
-					}
-					commandLine.add(String('\\', p));
-					if (k < items.count - 1) {
-						commandLine.addStatic("\\\"");
-					}
-				}
-				commandLine.addStatic("\"");
-			} else {
-				if (s.isEmpty()) {
-					commandLine.addStatic("\"\"");
-				} else {
-					commandLine.add(s);
-				}
-			}
-#else
-			if (s.contains(" ") || s.contains("\t") || s.contains("\r") || s.contains("\n") || s.contains("\"") || s.contains("\\")) {
-				s = s.replaceAll("\\", "\\\\");
-				s = s.replaceAll("\"", "\\\"");
-				commandLine.addStatic("\"");
-				commandLine.add(s);
-				commandLine.addStatic("\"");
-			} else {
-				if (s.isEmpty()) {
-					commandLine.addStatic("\"\"");
-				} else {
-					commandLine.add(s);
-				}
-			}
-#endif
+			buf.add(makeSafeArgument(argv[i]));
 		}
-		return commandLine.merge();
+		return buf.merge();
 	}
 
+	String Application::buildCommandLine_Win32(const String* argv, sl_size argc)
+	{
+		StringBuffer buf;
+		for (sl_size i = 0; i < argc; i++) {
+			if (i > 0) {
+				buf.addStatic(" ");
+			}
+			buf.add(makeSafeArgument_Win32(argv[i]));
+		}
+		return buf.merge();
+	}
+
+	String Application::buildCommandLine_Unix(const String* argv, sl_size argc)
+	{
+		StringBuffer buf;
+		for (sl_size i = 0; i < argc; i++) {
+			if (i > 0) {
+				buf.addStatic(" ");
+			}
+			buf.add(makeSafeArgument_Unix(argv[i]));
+		}
+		return buf.merge();
+	}
+
+	String Application::buildCommandLine(const String& pathExecutable, const String* argv, sl_size argc)
+	{
+		StringBuffer buf;
+		buf.add(makeSafeArgument(pathExecutable));
+		for (sl_size i = 0; i < argc; i++) {
+			buf.addStatic(" ");
+			buf.add(makeSafeArgument(argv[i]));
+		}
+		return buf.merge();
+	}
+
+	String Application::buildCommandLine_Win32(const String& pathExecutable, const String* argv, sl_size argc)
+	{
+		StringBuffer buf;
+		buf.add(makeSafeArgument_Win32(pathExecutable));
+		for (sl_size i = 0; i < argc; i++) {
+			buf.addStatic(" ");
+			buf.add(makeSafeArgument_Win32(argv[i]));
+		}
+		return buf.merge();
+	}
+
+	String Application::buildCommandLine_Unix(const String& pathExecutable, const String* argv, sl_size argc)
+	{
+		StringBuffer buf;
+		buf.add(makeSafeArgument_Unix(pathExecutable));
+		for (sl_size i = 0; i < argc; i++) {
+			buf.addStatic(" ");
+			buf.add(makeSafeArgument_Unix(argv[i]));
+		}
+		return buf.merge();
+	}
 
 #if !defined(SLIB_UI_IS_ANDROID)
 	sl_bool Application::checkPermissions(const AppPermissions& permissions)

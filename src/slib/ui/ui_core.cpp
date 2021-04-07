@@ -28,6 +28,8 @@
 #include "slib/ui/common_dialogs.h"
 #include "slib/graphics/font.h"
 #include "slib/device/device.h"
+#include "slib/network/url.h"
+#include "slib/core/file.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -43,21 +45,22 @@ namespace slib
 			public:
 				sl_real fontSize;
 				AtomicString fontFamily;
-				AtomicRef<Font> font;
+				
+				SpinLock lockFont;
+				Ref<Font> font;
+
 				sl_ui_len scrollBarWidth;
 				
 			public:
 				DefaultContext()
 				{
 #if defined(SLIB_PLATFORM_IS_DESKTOP)
-					scrollBarWidth = 12;
 					fontSize = 12;
+					scrollBarWidth = 12;
 #else
-					scrollBarWidth = SLIB_MIN(UI::getScreenWidth(), UI::getScreenHeight()) / 60;
 					fontSize = (sl_real)(SLIB_MIN(UI::getScreenWidth(), UI::getScreenHeight()) / 40);
+					scrollBarWidth = SLIB_MIN(UI::getScreenWidth(), UI::getScreenHeight()) / 60;
 #endif
-					fontFamily = "Arial";
-					font = Font::create(fontFamily, fontSize);
 				}
 			};
 			
@@ -98,14 +101,15 @@ namespace slib
 				}
 			};
 			
+			static sl_bool g_flagRunningApp = sl_false;
 			static sl_int32 g_nLevelRunLoop = 0;
-			static sl_bool g_flagQuitApp = 0;
+			static sl_bool g_flagQuitApp = sl_false;
 			
 			static void QuitLoop()
 			{
-				if (g_nLevelRunLoop > 0) {
+				if (g_nLevelRunLoop) {
 					UIPlatform::quitLoop();
-				} else {
+				} else if (g_flagRunningApp) {
 					UIPlatform::quitApp();
 				}
 			}
@@ -119,7 +123,7 @@ namespace slib
 				QuitLoop();
 			}
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicList<ScreenOrientation>, g_listAvailableScreenOrientations)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicList<ScreenOrientation>, g_listAvailableScreenOrientations)
 
 			UIKeyboardAdjustMode g_keyboardAdjustMode = UIKeyboardAdjustMode::Pan;
 			
@@ -128,7 +132,7 @@ namespace slib
 #endif
 			
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<View>, g_currentDraggingView)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<View>, g_currentDraggingView)
 			DragOperations g_currentDraggingOperationMask;
 		
 		}
@@ -145,58 +149,7 @@ namespace slib
 	Screen::~Screen()
 	{
 	}
-	
-	sl_real UI::getDefaultFontSize()
-	{
-		DefaultContext* def = getDefaultContext();
-		if (!def) {
-			return 0;
-		}
-		return def->fontSize;
-	}
 
-	void UI::setDefaultFontSize(sl_real fontSize)
-	{
-		DefaultContext* def = getDefaultContext();
-		if (!def) {
-			return;
-		}
-		def->fontSize = fontSize;
-		Ref<Font> font = def->font;
-		if (font.isNull() || font->getSize() != fontSize) {
-			FontDesc desc;
-			font->getDesc(desc);
-			desc.size = fontSize;
-			font = Font::create(desc);
-			def->font = font;
-		}
-	}
-
-	String UI::getDefaultFontFamily()
-	{
-		DefaultContext* def = getDefaultContext();
-		if (!def) {
-			return sl_null;
-		}
-		return def->fontFamily;
-	}
-
-	void UI::setDefaultFontFamily(const String& fontFamily)
-	{
-		DefaultContext* def = getDefaultContext();
-		if (!def) {
-			return;
-		}
-		def->fontFamily = fontFamily;
-		Ref<Font> font = def->font;
-		if (font.isNull() || font->getFamilyName() != fontFamily) {
-			FontDesc desc;
-			font->getDesc(desc);
-			desc.familyName = fontFamily;
-			font = Font::create(desc);
-			def->font = font;
-		}
-	}
 
 	Ref<Font> UI::getDefaultFont()
 	{
@@ -204,7 +157,21 @@ namespace slib
 		if (!def) {
 			return sl_null;
 		}
-		return def->font;
+		if (def->font.isNotNull()) {
+			SpinLocker lock(&def->lockFont);
+			return def->font;
+		} else {
+			FontDesc desc;
+			desc.familyName = def->fontFamily;
+			desc.size = def->fontSize;
+			Ref<Font> font = Font::create(desc);
+			if (font.isNotNull()) {
+				SpinLocker lock(&def->lockFont);
+				def->font = font;
+				return font;
+			}
+		}
+		return sl_null;
 	}
 
 	void UI::setDefaultFont(const Ref<Font>& font)
@@ -216,9 +183,98 @@ namespace slib
 		if (font.isNotNull()) {
 			def->fontFamily = font->getFamilyName();
 			def->fontSize = font->getSize();
+			SpinLocker lock(&(def->lockFont));
 			def->font = font;
+		} else {
+			FontDesc desc;
+			desc.familyName = def->fontFamily;
+			desc.size = def->fontSize;
+			Ref<Font> font = Font::create(desc);
+			if (font.isNotNull()) {
+				SpinLocker lock(&def->lockFont);
+				def->font = font;
+			}
 		}
 	}
+
+	sl_real UI::getDefaultFontSize()
+	{
+		DefaultContext* def = getDefaultContext();
+		if (def) {
+			return def->fontSize;
+		}
+		return 0;
+	}
+
+	void UI::setDefaultFontSize(sl_real fontSize)
+	{
+		DefaultContext* def = getDefaultContext();
+		if (!def) {
+			return;
+		}
+
+		if (fontSize < 0) {
+			fontSize = 0;
+		}
+		fontSize = SLIB_FONT_SIZE_PRECISION_APPLY(fontSize);
+		if (def->fontSize == fontSize) {
+			return;
+		}
+		def->fontSize = fontSize;
+
+		SpinLocker lock(&(def->lockFont));
+		if (def->font.isNotNull()) {
+			FontDesc desc;
+			def->font->getDesc(desc);
+			desc.size = fontSize;
+			Ref<Font> fontNew = Font::create(desc);
+			if (fontNew.isNotNull()) {
+				def->font = fontNew;
+			}
+		}
+	}
+
+	String UI::getDefaultFontFamily()
+	{
+		DefaultContext* def = getDefaultContext();
+		if (def) {
+			String name = def->fontFamily;
+			if (name.isNotEmpty()) {
+				return name;
+			}
+		}
+		return Font::getDefaultFontFamily();
+	}
+
+	void UI::setDefaultFontFamily(const String& fontFamily)
+	{
+		DefaultContext* def = getDefaultContext();
+		if (!def) {
+			return;
+		}
+
+		if (def->fontFamily == fontFamily) {
+			return;
+		}
+		def->fontFamily = fontFamily;
+
+		SpinLocker lock(&(def->lockFont));
+		if (def->font.isNotNull()) {
+			FontDesc desc;
+			def->font->getDesc(desc);
+			desc.familyName = fontFamily;
+			Ref<Font> fontNew = Font::create(desc);
+			if (fontNew.isNotNull()) {
+				def->font = fontNew;
+			}
+		}
+	}
+
+	void UI::setDefaultFontFamilyForLocale(const Locale& locale)
+	{
+		UI::setDefaultFontFamily(Font::getDefaultFontFamilyForLocale(locale));
+	}
+
 
 	sl_ui_len UI::getDefaultScrollBarWidth()
 	{
@@ -588,7 +644,7 @@ namespace slib
 		alert.show();
 	}
 	
-#if !defined(SLIB_UI_IS_MACOS)
+#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_GTK)
 	void UI::dispatchToUiThreadUrgently(const Function<void()>& callback, sl_uint32 delayMillis)
 	{
 		dispatchToUiThread(callback, delayMillis);
@@ -621,6 +677,9 @@ namespace slib
 
 	void UI::runLoop()
 	{
+		if (g_flagQuitApp) {
+			return;
+		}
 		if (!(UI::isUiThread())) {
 			return;
 		}
@@ -643,7 +702,14 @@ namespace slib
 
 	void UI::runApp()
 	{
+		if (g_flagQuitApp) {
+			return;
+		}
+		g_flagRunningApp = sl_true;
 		UIPlatform::runApp();
+	#if !defined(SLIB_PLATFORM_IS_ANDROID)
+		g_flagRunningApp = sl_false;
+	#endif
 	}
 
 	void UI::quitApp()
@@ -655,11 +721,42 @@ namespace slib
 		}
 	}
 	
-	void UI::openUrl(const String& url)
+	sl_bool UI::isRunningApp()
+	{
+		return g_flagRunningApp;
+	}
+
+	sl_bool UI::isQuitingApp()
+	{
+		return g_flagQuitApp;
+	}
+
+	void UI::openUrl(const StringParam& url)
 	{
 		Device::openUrl(url);
 	}
-	
+
+	void UI::openFile(const StringParam& path)
+	{
+		UI::openUrl(Url::toFileUri(path));
+	}
+
+	void UI::openDirectory(const StringParam& path)
+	{
+		String uri = Url::toFileUri(path);
+		if (!(uri.endsWith('/'))) {
+			uri += "/";
+		}
+		UI::openUrl(uri);
+	}
+
+#if !defined(SLIB_UI_IS_WIN32)
+	void UI::openDirectoryAndSelectFile(const StringParam& path)
+	{
+		openDirectory(File::getParentDirectoryPath(path));
+	}
+#endif
+
 #if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_ANDROID)
 	void UI::dismissKeyboard()
 	{
@@ -670,7 +767,6 @@ namespace slib
 	{
 		return g_keyboardAdjustMode;
 	}
-	
 	
 	void UI::setKeyboardAdjustMode(UIKeyboardAdjustMode mode)
 	{

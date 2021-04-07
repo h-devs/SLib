@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_SRC_UI_VIEW_MACOS
 #define CHECKHEADER_SLIB_SRC_UI_VIEW_MACOS
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_MACOS)
 
@@ -80,6 +80,10 @@
 		} \
 		[super keyUp:theEvent]; \
 	}
+
+#define MACOS_VIEW_DEFINE_ON_CHILD_VIEW \
+	MACOS_VIEW_DEFINE_ON_KEY \
+	MACOS_VIEW_DEFINE_ON_FOCUS
 
 #endif
 

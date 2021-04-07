@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -35,18 +35,6 @@ namespace slib
 	{
 	}
 	
-	sl_int32 GLRenderEngine::getAttributeLocation(sl_uint32 program, const String& _name)
-	{
-		String name(_name);
-		return getAttributeLocation(program, name.getData());
-	}
-	
-	sl_int32 GLRenderEngine::getUniformLocation(sl_uint32 program, const String& _name)
-	{
-		String name(_name);
-		return getUniformLocation(program, name.getData());
-	}
-
 }
 
 #if defined(SLIB_RENDER_SUPPORT_OPENGL_GL)
@@ -62,7 +50,9 @@ namespace slib
 #define GL_ENTRY(x) PRIV_GL_ENTRY(x)
 #include "opengl_impl.h"
 
-#	if defined (SLIB_PLATFORM_IS_WIN32)
+#if defined(SLIB_PLATFORM_IS_WIN32) || (defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP))
+
+#include "slib/core/dynamic_library.h"
 
 namespace slib
 {
@@ -76,6 +66,22 @@ namespace slib
 
 			static sl_bool g_flagLoadedEntryPoints = sl_false;
 
+#if defined(SLIB_PLATFORM_IS_WIN32)
+			static void* GetFunctionAddress(const char* name)
+			{
+				return wglGetProcAddress(name);
+			}
+#else
+			static void* GetFunctionAddress(const char* name)
+			{
+				auto func = glx::getApi_glXGetProcAddress();
+				if (func) {
+					return func((GLubyte*)name);
+				}
+				return sl_null;
+			}
+#endif
+
 		}
 	}
 
@@ -83,47 +89,48 @@ namespace slib
 	
 #undef PRIV_SLIB_RENDER_GL_ENTRY
 #define PRIV_SLIB_RENDER_GL_ENTRY(TYPE, name, ...) \
-	if (hDll) { \
-		proc = ::GetProcAddress(hDll, #name); \
+	if (dl) { \
+		proc = DynamicLibrary::getFunctionAddress(dl, #name); \
 	} else { \
-		proc = wglGetProcAddress(#name); \
-		if (proc == 0) { \
-			proc = ::GetProcAddress(hDllCommon, #name); \
+		proc = GetFunctionAddress(#name); \
+		if (!proc) { \
+			if (dlCommon) { \
+				proc = DynamicLibrary::getFunctionAddress(dlCommon, #name); \
+			} \
 		} \
 	} \
-	if (proc == 0) { \
+	if (!proc) { \
 		flagSupport = sl_false; \
 	} \
-	*((FARPROC*)(&(g_entries.name))) = proc;
+	*((void**)(&(g_entries.name))) = proc;
 	
 #undef PRIV_SLIB_RENDER_GL_SUPPORT
 #define PRIV_SLIB_RENDER_GL_SUPPORT(name) \
 	g_entries.flagSupports##name = flagSupport; \
 	flagSupport = sl_true;
 	
-	void GL::loadEntries(const StringParam& _pathDll, sl_bool flagReload)
+	void GL::loadEntries(const StringParam& pathDll, sl_bool flagReload)
 	{
-		StringCstr16 pathDll(_pathDll);
 		if (!flagReload) {
 			if (g_flagLoadedEntryPoints) {
 				return;
 			}
 		}
-		HMODULE hDll;
+		void* dl;
 		if (pathDll.isEmpty()) {
-			hDll = NULL;
+			dl = sl_null;
 		} else {
-			hDll = ::LoadLibraryW((LPCWSTR)(pathDll.getData()));
-			if (!hDll) {
-				//LogError("GLES", "Failed to load OpenGL dll - %s", pathDll);
+			dl = DynamicLibrary::loadLibrary(pathDll);
+			if (!dl) {
 				return;
 			}
 		}
-		HMODULE hDllCommon = ::LoadLibraryW(L"opengl32.dll");
-		if (hDllCommon == NULL) {
-			return;
-		}
-		FARPROC proc;
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		void* dlCommon = DynamicLibrary::loadLibrary(L"opengl32.dll");
+#else
+		void* dlCommon = DynamicLibrary::loadLibrary(L"libGL.so.1");
+#endif
+		void* proc;
 		sl_bool flagSupport = sl_true;
 		PRIV_SLIB_RENDER_GL_ENTRIES
 		g_flagLoadedEntryPoints = sl_true;
@@ -138,9 +145,14 @@ namespace slib
 	{
 		return g_flagLoadedEntryPoints;
 	}
+
+	sl_bool GL::isShaderAvailable()
+	{
+		return g_flagLoadedEntryPoints && g_entries.flagSupportsVersion_2_0;
+	}
 }
 
-#	else
+#else
 
 namespace slib
 {
@@ -156,9 +168,14 @@ namespace slib
 	{
 		return sl_true;
 	}
+
+	sl_bool GL::isShaderAvailable()
+	{
+		return sl_true;
+	}
 }
 
-#	endif
+#endif
 
 #else
 
@@ -178,6 +195,11 @@ namespace slib
 	}
 	
 	sl_bool GL::isAvailable()
+	{
+		return sl_false;
+	}
+
+	sl_bool GL::isShaderAvailable()
 	{
 		return sl_false;
 	}

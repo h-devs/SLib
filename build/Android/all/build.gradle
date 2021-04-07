@@ -14,7 +14,6 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    compileOnly project(':external')
     compileOnly project(':external_ShortcutBadger')
     compileOnly project(':slib')
     compileOnly project(':slib_fcm')
@@ -28,7 +27,6 @@ dependencies {
 tasks.all { task ->
     if (task.name == "assembleDebug" || task.name == "assembleRelease") {
         task.dependsOn(project(":slib").getTasksByName(task.name, true)[0])
-        task.dependsOn(project(":external").getTasksByName(task.name, true)[0])
         task.dependsOn(project(":external_ShortcutBadger").getTasksByName(task.name, true)[0])
         task.dependsOn(project(":slib_fcm").getTasksByName(task.name, true)[0])
         task.dependsOn(project(":slib_call").getTasksByName(task.name, true)[0])

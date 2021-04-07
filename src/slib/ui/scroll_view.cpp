@@ -21,10 +21,14 @@
  */
 
 #include "slib/ui/scroll_view.h"
+
+#include "slib/ui/view_attributes.h"
 #include "slib/ui/core.h"
 
-#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_IOS) || defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_ANDROID)
-#	define HAS_NATIVE_WIDGET_IMPL
+#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_IOS) || defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_ANDROID) || defined(SLIB_UI_IS_GTK)
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
 #endif
 
 namespace slib
@@ -34,9 +38,9 @@ namespace slib
 	
 	ScrollView::ScrollView()
 	{
-#ifdef HAS_NATIVE_WIDGET_IMPL
-		setCreatingNativeWidget(sl_true);
-#endif
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+
 		setSavingCanvasState(sl_false);
 
 		setClipping(sl_true, UIUpdateMode::Init);
@@ -100,7 +104,7 @@ namespace slib
 			SLIB_VIEW_RUN_ON_UI_THREAD(func, _width, _height, mode)
 		}
 		_initializeScrollAttributes();
-		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
+		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNull()) {
 			return;
 		}
@@ -197,7 +201,7 @@ namespace slib
 		}
 	}
 	
-#if !defined(HAS_NATIVE_WIDGET_IMPL)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> ScrollView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;

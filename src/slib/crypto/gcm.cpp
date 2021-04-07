@@ -22,6 +22,8 @@
 
 #include "slib/crypto/gcm.h"
 
+#include "slib/core/base.h"
+
 namespace slib
 {
 

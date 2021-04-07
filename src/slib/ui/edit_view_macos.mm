@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_MACOS)
 
@@ -41,13 +41,13 @@ namespace slib
 }
 
 @interface SLIBEditViewHandle : NSTextField<NSTextFieldDelegate>
-{	
+{
 	@public slib::WeakRef<slib::priv::edit_view::EditViewInstance> m_viewInstance;
 }
 @end
 
 @interface SLIBTextAreaHandle_TextView : NSTextView
-{	
+{
 	@public slib::WeakRef<slib::priv::edit_view::TextAreaInstance> m_viewInstance;
 	@public NSAttributedString* m_placeholderString;
 	@public slib::Alignment m_placeholderVerticalAlignment;
@@ -55,7 +55,7 @@ namespace slib
 @end
 
 @interface SLIBTextAreaHandle : NSScrollView<NSTextViewDelegate>
-{	
+{
 	@public slib::WeakRef<slib::priv::edit_view::TextAreaInstance> m_viewInstance;
 	@public SLIBTextAreaHandle_TextView* m_textView;
 }
@@ -111,6 +111,33 @@ namespace slib
 				Ref<EditView> getView()
 				{
 					return CastRef<EditView>(macOS_ViewInstance::getView());
+				}
+				
+				void initialize(View* _view) override
+				{
+					NSTextField* handle = getHandle();
+					EditView* view = (EditView*)_view;
+					
+					if (view->isPassword()) {
+						handle.cell = [[NSSecureTextFieldCell alloc] init];
+					} else {
+						handle.cell = [[NSTextFieldCell alloc] init];
+					}
+					if (!(view->isEnabled())) {
+						handle.enabled = NO;
+					}
+					
+					setHandleFont(handle, view->getFont());
+					[handle setStringValue:(Apple::getNSStringFromString(view->getText(), @""))];
+					[handle setAlignment:TranslateAlignment(view->getGravity())];
+					[handle setTextColor:(GraphicsPlatform::getNSColorFromColor(view->getTextColor()))];
+					[handle setBordered: (view->isBorder() ? YES : NO)];
+					[handle setBezeled: (view->isBorder() ? YES : NO)];
+					[handle setEditable:(view->isReadOnly()? NO : YES)];
+					[handle setBackgroundColor:(GraphicsPlatform::getNSColorFromColor(view->getBackgroundColor()))];
+					[handle setSelectable:YES];
+
+					applyHint(handle, view);
 				}
 				
 				sl_bool getText(EditView* view, String& _out) override
@@ -189,7 +216,7 @@ namespace slib
 								return;
 							}
 						}
-						apply(view);
+						initialize(view);
 					}
 				}
 				
@@ -248,42 +275,13 @@ namespace slib
 					[[handle cell] setPlaceholderAttributedString:str];
 				}
 				
-				void apply(EditView* view)
-				{
-					NSTextField* handle = getHandle();
-					if (handle == nil) {
-						return;
-					}
-					
-					if (view->isPassword()) {
-						handle.cell = [[NSSecureTextFieldCell alloc] init];
-					} else {
-						handle.cell = [[NSTextFieldCell alloc] init];
-					}
-					if (!(view->isEnabled())) {
-						handle.enabled = NO;
-					}
-					
-					setHandleFont(handle, view->getFont());
-					[handle setStringValue:(Apple::getNSStringFromString(view->getText(), @""))];
-					[handle setAlignment:TranslateAlignment(view->getGravity())];
-					[handle setTextColor:(GraphicsPlatform::getNSColorFromColor(view->getTextColor()))];
-					[handle setBordered: (view->isBorder() ? YES : NO)];
-					[handle setBezeled: (view->isBorder() ? YES : NO)];
-					[handle setEditable:(view->isReadOnly()? NO : YES)];
-					[handle setBackgroundColor:(GraphicsPlatform::getNSColorFromColor(view->getBackgroundColor()))];
-					[handle setSelectable:YES];
-
-					applyHint(handle, view);
-				}
-				
 				void onChange(NSTextField* control)
 				{
 					Ref<EditView> view = getView();
 					if (view.isNotNull()) {
 						String text = Apple::getStringFromNSString([control stringValue]);
 						String textNew = text;
-						view->dispatchChange(&textNew);
+						view->dispatchChange(textNew);
 						if (text != textNew) {
 							NSString* str = Apple::getNSStringFromString(textNew, @"");
 							[control setStringValue:str];
@@ -310,6 +308,34 @@ namespace slib
 					return CastRef<TextArea>(macOS_ViewInstance::getView());
 				}
 				
+				void initialize(View* _view) override
+				{
+					SLIBTextAreaHandle* handle = getHandle();
+					EditView* view = (EditView*)_view;
+
+					[handle setHasHorizontalScroller:(view->isHorizontalScrollBarVisible()?YES:NO)];
+					[handle setHasVerticalScroller:(view->isVerticalScrollBarVisible()?YES:NO)];
+					
+					SLIBTextAreaHandle_TextView* tv = handle->m_textView;
+					
+					[[tv textContainer] setWidthTracksTextView:(view->getMultiLine() == MultiLineMode::WordWrap || view->getMultiLine() == MultiLineMode::BreakWord) ? YES : NO];
+					[[tv textContainer] setContainerSize:NSMakeSize(FLT_MAX, FLT_MAX)];
+					
+					updateFont(tv, view->getFont(), sl_false);
+					
+					[handle setBorderType:(view->isBorder() ? NSBezelBorder : NSNoBorder)];
+					[tv setString:Apple::getNSStringFromString(view->getText(), @"")];
+					[tv setAlignment:TranslateAlignment(view->getGravity())];
+					[tv setTextColor:(GraphicsPlatform::getNSColorFromColor(view->getTextColor()))];
+					[tv setEditable:(view->isReadOnly() ? NO : YES)];
+					[tv setBackgroundColor:(GraphicsPlatform::getNSColorFromColor(view->getBackgroundColor()))];
+					[tv setSelectable:YES];
+					
+					tv->m_viewInstance = this;
+
+					applyHint(handle, view);
+				}
+			
 				sl_bool getText(EditView* view, String& _out) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -477,43 +503,13 @@ namespace slib
 					}
 				}
 				
-				void apply(EditView* view)
-				{
-					SLIBTextAreaHandle* handle = getHandle();
-					if (handle == nil) {
-						return;
-					}
-
-					[handle setHasHorizontalScroller:(view->isHorizontalScrollBarVisible()?YES:NO)];
-					[handle setHasVerticalScroller:(view->isVerticalScrollBarVisible()?YES:NO)];
-					
-					SLIBTextAreaHandle_TextView* tv = handle->m_textView;
-					
-					[[tv textContainer] setWidthTracksTextView:(view->getMultiLine() == MultiLineMode::WordWrap || view->getMultiLine() == MultiLineMode::BreakWord) ? YES : NO];
-					[[tv textContainer] setContainerSize:NSMakeSize(FLT_MAX, FLT_MAX)];
-					
-					updateFont(tv, view->getFont(), sl_false);
-					
-					[handle setBorderType:(view->isBorder() ? NSBezelBorder : NSNoBorder)];
-					[tv setString:Apple::getNSStringFromString(view->getText(), @"")];
-					[tv setAlignment:TranslateAlignment(view->getGravity())];
-					[tv setTextColor:(GraphicsPlatform::getNSColorFromColor(view->getTextColor()))];
-					[tv setEditable:(view->isReadOnly() ? NO : YES)];
-					[tv setBackgroundColor:(GraphicsPlatform::getNSColorFromColor(view->getBackgroundColor()))];
-					[tv setSelectable:YES];
-					
-					tv->m_viewInstance = this;
-
-					applyHint(handle, view);
-				}
-			
 				void onChange(SLIBTextAreaHandle* control)
 				{
 					Ref<TextArea> view = getView();
 					if (view.isNotNull()) {
 						String text = Apple::getStringFromNSString([control->m_textView string]);
 						String textNew = text;
-						view->dispatchChange(&textNew);
+						view->dispatchChange(textNew);
 						if (text != textNew) {
 							NSString* str = Apple::getNSStringFromString(textNew, @"");
 							[control->m_textView setString:str];
@@ -532,12 +528,7 @@ namespace slib
 
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<EditViewInstance> ret = macOS_ViewInstance::create<EditViewInstance, SLIBEditViewHandle>(this, parent);
-		if (ret.isNotNull()) {
-			ret->apply(this);
-			return ret;
-		}
-		return sl_null;
+		return macOS_ViewInstance::create<EditViewInstance, SLIBEditViewHandle>(this, parent);
 	}
 	
 	Ptr<IEditViewInstance> EditView::getEditViewInstance()
@@ -547,12 +538,7 @@ namespace slib
 	
 	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<TextAreaInstance> ret = macOS_ViewInstance::create<TextAreaInstance, SLIBTextAreaHandle>(this, parent);
-		if (ret.isNotNull()) {
-			ret->apply(this);
-			return ret;
-		}
-		return sl_null;
+		return macOS_ViewInstance::create<TextAreaInstance, SLIBTextAreaHandle>(this, parent);
 	}
 	
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()
@@ -567,8 +553,7 @@ using namespace slib::priv::edit_view;
 
 @implementation SLIBEditViewHandle
 
-MACOS_VIEW_DEFINE_ON_FOCUS
-MACOS_VIEW_DEFINE_ON_KEY
+MACOS_VIEW_DEFINE_ON_CHILD_VIEW
 
 -(id)initWithFrame:(NSRect)frame
 {

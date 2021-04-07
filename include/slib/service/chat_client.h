@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_SERVICE_CHAT_CLIENT
 #define CHECKHEADER_SLIB_SERVICE_CHAT_CLIENT
 
-#include "definition.h"
-
 #include "chat.h"
 
 #include "../ui/chat_view.h"

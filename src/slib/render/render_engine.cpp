@@ -57,20 +57,6 @@ namespace slib
 	}
 	
 	
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RenderBlendingParam)
-	
-	RenderBlendingParam::RenderBlendingParam()
-	{
-		operation = RenderBlendingOperation::Add;
-		operationAlpha = RenderBlendingOperation::Add;
-		blendDst = RenderBlendingFactor::OneMinusSrcAlpha;
-		blendDstAlpha = RenderBlendingFactor::OneMinusSrcAlpha;
-		blendSrc = RenderBlendingFactor::SrcAlpha;
-		blendSrcAlpha = RenderBlendingFactor::One;
-		blendConstant = Vector4::zero();
-	}
-	
-	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RendererParam)
 	
 	RendererParam::RendererParam()
@@ -90,13 +76,23 @@ namespace slib
 	
 	Renderer::Renderer()
 	{
-		setRenderingContinuously(sl_false);
+		m_flagRenderingContinuously = sl_false;
 	}
 	
 	Renderer::~Renderer()
 	{
 	}
 	
+	sl_bool Renderer::isRenderingContinuously()
+	{
+		return m_flagRenderingContinuously;
+	}
+
+	void Renderer::setRenderingContinuously(sl_bool flag)
+	{
+		m_flagRenderingContinuously = flag;
+	}
+
 	void Renderer::initWithParam(const RendererParam& param)
 	{
 		m_onFrame = param.onFrame;
@@ -106,8 +102,8 @@ namespace slib
 	{
 		m_onFrame(engine);
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(RenderEngine, Object)
 	
 	RenderEngine::RenderEngine()
@@ -131,24 +127,16 @@ namespace slib
 		return m_uniqueId;
 	}
 	
-	sl_bool RenderEngine::isOpenGL()
+	sl_bool RenderEngine::isShaderAvailable()
 	{
-		RenderEngineType type = getEngineType();
-		return type == RenderEngineType::OpenGL;
+		return sl_true;
 	}
-	
-	sl_bool RenderEngine::isOpenGL_ES()
+
+	sl_bool RenderEngine::isInputLayoutAvailable()
 	{
-		RenderEngineType type = getEngineType();
-		return type == RenderEngineType::OpenGL_ES;
+		return sl_true;
 	}
-	
-	sl_bool RenderEngine::isD3D()
-	{
-		RenderEngineType type = getEngineType();
-		return type == RenderEngineType::D3D9 || type == RenderEngineType::D3D11;
-	}
-	
+
 	sl_bool RenderEngine::beginScene()
 	{
 		m_nCountDrawnElementsOnLastScene = 0;
@@ -200,38 +188,35 @@ namespace slib
 		param.depth = depth;
 		_clear(param);
 	}
-	
-	void RenderEngine::setDepthTest(sl_bool flagEnableDepthTest)
+
+	void RenderEngine::setDepthStencilState(const Ref<RenderDepthStencilState>& state)
 	{
-		_setDepthTest(flagEnableDepthTest);
+		if (state.isNotNull()) {
+			_setDepthStencilState(state.get());
+		}
 	}
-	
-	void RenderEngine::setDepthWriteEnabled(sl_bool flagEnableDepthWrite)
+
+	void RenderEngine::setRasterizerState(const Ref<RenderRasterizerState>& state)
 	{
-		_setDepthWriteEnabled(flagEnableDepthWrite);
+		if (state.isNotNull()) {
+			_setRasterizerState(state.get());
+		}
 	}
-	
-	void RenderEngine::setDepthFunction(RenderFunctionOperation op)
+
+	void RenderEngine::setBlendState(const Ref<RenderBlendState>& state)
 	{
-		_setDepthFunction(op);
+		if (state.isNotNull()) {
+			_setBlendState(state.get());
+		}
 	}
-	
-	void RenderEngine::setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW)
+
+	void RenderEngine::setSamplerState(sl_int32 samplerNo, const Ref<RenderSamplerState>& state)
 	{
-		_setCullFace(flagEnableCull, flagCullCCW);
+		if (state.isNotNull()) {
+			_setSamplerState(samplerNo, state.get());
+		}
 	}
-	
-	void RenderEngine::setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param)
-	{
-		_setBlending(flagEnableBlending, param);
-	}
-	
-	void RenderEngine::setBlending(sl_bool flagEnableBlending)
-	{
-		RenderBlendingParam param;
-		_setBlending(flagEnableBlending, param);
-	}
-	
+
 	sl_bool RenderEngine::beginProgram(const Ref<RenderProgram>& program, RenderProgramState** ppState)
 	{
 		if (program.isNotNull()) {
@@ -257,9 +242,22 @@ namespace slib
 	{
 		if (primitive->countElements > 0 && primitive->vertexBuffer.isNotNull()) {
 			EnginePrimitive ep(*primitive);
-			ep.vertexBufferInstance = linkVertexBuffer(primitive->vertexBuffer);
-			if (ep.vertexBufferInstance.isNull()) {
-				return;
+			if (primitive->vertexBuffers.isNotNull()) {
+				ListElements< Ref<VertexBuffer> > list(primitive->vertexBuffers);
+				for (sl_size i = 0; i < list.count; i++) {
+					Ref<VertexBufferInstance> instance = linkVertexBuffer(list[i]);
+					if (instance.isNull()) {
+						return;
+					}
+					if (!(ep.vertexBufferInstances.add(Move(instance)))) {
+						return;
+					}
+				}
+			} else {
+				ep.vertexBufferInstance = linkVertexBuffer(primitive->vertexBuffer);
+				if (ep.vertexBufferInstance.isNull()) {
+					return;
+				}
 			}
 			if (primitive->indexBuffer.isNotNull()) {
 				ep.indexBufferInstance = linkIndexBuffer(primitive->indexBuffer);
@@ -299,7 +297,7 @@ namespace slib
 		drawPrimitive(&p);
 	}
 	
-	void RenderEngine::applyTexture(const Ref<Texture>& _texture, sl_reg sampler)
+	void RenderEngine::applyTexture(const Ref<Texture>& _texture, sl_int32 sampler)
 	{
 		Texture* texture = _texture.get();
 		if (texture) {
@@ -317,7 +315,12 @@ namespace slib
 			_applyTexture(sl_null, sl_null, sampler);
 		}
 	}
-	
+
+	void RenderEngine::setInputLayout(RenderInputLayout* layout)
+	{
+		_setInputLayout(layout);
+	}
+
 	Ref<TextureInstance> RenderEngine::linkTexture(const Ref<Texture>& texture)
 	{
 		if (texture.isNotNull()) {
@@ -613,20 +616,28 @@ namespace slib
 		}
 		return ret;
 	}
-	
-	void RenderEngine::drawLines(LineSegment* lines, sl_uint32 n, const Color4f& color)
+
+	void RenderEngine::drawLines(const Ref<RenderProgram2D_Position>& program, LineSegment* lines, sl_uint32 n, const Color4f& color)
 	{
+		if (program.isNull()) {
+			return;
+		}
 		if (n) {
 			Ref<VertexBuffer> vb = VertexBuffer::create(lines, sizeof(LineSegment)*n);
 			if (vb.isNotNull()) {
 				RenderProgramScope<RenderProgramState2D_Position> scope;
-				if (scope.begin(this, getDefaultRenderProgramForDrawLine2D())) {
+				if (scope.begin(this, program)) {
 					scope->setTransform(Matrix3::identity());
 					scope->setColor(color);
 					drawPrimitive(n * 2, vb, PrimitiveType::Line);
 				}
 			}
 		}
+	}
+
+	void RenderEngine::drawLines(LineSegment* lines, sl_uint32 n, const Color4f& color)
+	{
+		drawLines(getDefaultRenderProgramForDrawLine2D(), lines, n, color);
 	}
 	
 	Ref<RenderProgram2D_Position> RenderEngine::getDefaultRenderProgramForDrawLine2D()
@@ -638,20 +649,25 @@ namespace slib
 		}
 		return ret;
 	}
-	
-	void RenderEngine::drawLines(Line3* lines, sl_uint32 n, const Color4f& color)
+
+	void RenderEngine::drawLines(const Ref<RenderProgram3D_Position>& program, Line3* lines, sl_uint32 n, const Color4f& color)
 	{
 		if (n) {
 			Ref<VertexBuffer> vb = VertexBuffer::create(lines, sizeof(Line3)*n);
 			if (vb.isNotNull()) {
 				RenderProgramScope<RenderProgramState3D_Position> scope;
-				if (scope.begin(this, getDefaultRenderProgramForDrawLine3D())) {
+				if (scope.begin(this, program)) {
 					scope->setTransform(Matrix4::identity());
 					scope->setColor(color);
 					drawPrimitive(n * 2, vb, PrimitiveType::Line);
 				}
 			}
 		}
+	}
+
+	void RenderEngine::drawLines(Line3* lines, sl_uint32 n, const Color4f& color)
+	{
+		drawLines(getDefaultRenderProgramForDrawLine3D(), lines, n, color);
 	}
 	
 	Ref<RenderProgram3D_Position> RenderEngine::getDefaultRenderProgramForDrawLine3D()
@@ -695,7 +711,27 @@ namespace slib
 				return;
 			}
 		}
-		setDepthTest(sl_false);
+
+		{
+			Ref<RenderDepthStencilState> state = m_stateDepthStencilForDrawDebug;
+			if (state.isNull()) {
+				RenderDepthStencilParam param;
+				param.flagTestDepth = sl_false;
+				state = RenderDepthStencilState::create(param);
+				m_stateDepthStencilForDrawDebug = state;
+			}
+			setDepthStencilState(state);
+		}
+		{
+			Ref<RenderSamplerState> state = m_stateSamplerForDrawDebug;
+			if (state.isNull()) {
+				RenderSamplerParam param;
+				state = RenderSamplerState::create(param);
+				m_stateSamplerForDrawDebug = state;
+			}
+			setSamplerState(0, state);
+		}
+
 		String text;
 		text = "FPS:";
 		double duration = (now - m_timeLastDebugText).getMillisecondsCountf();

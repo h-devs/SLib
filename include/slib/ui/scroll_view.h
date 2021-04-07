@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_SCROLL_VIEW
 #define CHECKHEADER_SLIB_UI_SCROLL_VIEW
 
-#include "definition.h"
-
 #include "view.h"
 
 namespace slib

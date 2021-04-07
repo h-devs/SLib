@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_SCROLL_BAR
 #define CHECKHEADER_SLIB_UI_SCROLL_BAR
 
-#include "definition.h"
-
 #include "view.h"
 
 namespace slib
@@ -143,7 +141,7 @@ namespace slib
 	protected:
 		void changeValue(sl_scroll_pos value);
 		
-		void _setHoverThumb(sl_bool flag);
+		void _setHoverThumb(sl_bool flag, UIUpdateMode mode);
 		
 	protected:
 		LayoutOrientation m_orientation;

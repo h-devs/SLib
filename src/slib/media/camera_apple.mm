@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/media/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_APPLE)
 
@@ -35,6 +35,8 @@
 #import <CoreMedia/CoreMedia.h>
 
 #define TAG "Camera"
+#define LOG_ERROR(...) LogError(TAG, ##__VA_ARGS__)
+#define LOG_NSERROR(...) LogNSError(__VA_ARGS__)
 
 namespace slib
 {
@@ -73,6 +75,11 @@ namespace slib
 	
 		namespace camera
 		{
+			
+			static void LogNSError(const String& error, NSError* err)
+			{
+				LOG_ERROR("%s: [%s]", error, Apple::getStringFromNSString([err localizedDescription]));
+			}
 			
 			class GlobalContext
 			{
@@ -127,24 +134,14 @@ namespace slib
 				}
 				
 			public:
-				static void logError(String error) {
-					Log(TAG, error);
-				}
-				
-				static void logError(String error, NSError* err) {
-					Log(TAG, "%s: [%s]", error, [err localizedDescription]);
-				}
-				
 				static Ref<CameraImpl> _create(const CameraParam& param)
 				{
-					Ref<CameraImpl> ret;
-					
 					SLIBCameraCallback* callback = [[SLIBCameraCallback alloc] init];
 					
 					AVCaptureDevice* device = _selectDevice(param.deviceId);
 					if (device == nil) {
-						logError("Camera is not found: " + param.deviceId);
-						return ret;
+						LOG_ERROR("Camera is not found: %s", param.deviceId);
+						return sl_null;
 					}
 #if defined(SLIB_PLATFORM_IS_IOS)
 					if ([device lockForConfiguration:nil]) {
@@ -156,14 +153,14 @@ namespace slib
 					NSError* error;
 					AVCaptureDeviceInput* input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
 					if (input == nil) {
-						logError("Failed to create AVCaptureDeviceInput", error);
-						return ret;
+						LOG_NSERROR("Failed to create AVCaptureDeviceInput", error);
+						return sl_null;
 					}
 					
 					AVCaptureSession *session = [[AVCaptureSession alloc] init];
 					if (!([session canAddInput:input])) {
-						logError("Can not add input to session");
-						return ret;
+						LOG_ERROR("Can not add input to session");
+						return sl_null;
 					}
 					[session addInput:input];
 					
@@ -201,9 +198,12 @@ namespace slib
 						[session setSessionPreset:preset];
 					}
 					
-					ret = new CameraImpl();
+					Ref<CameraImpl> ret = new CameraImpl();
+					
 					if (ret.isNotNull()) {
+						
 						callback->m_camera = ret;
+						
 						ret->m_callback = callback;
 						ret->m_device = device;
 						ret->m_session = session;
@@ -219,8 +219,11 @@ namespace slib
 						if (param.flagAutoStart) {
 							ret->start();
 						}
+						
+						return ret;
 					}
-					return ret;
+					
+					return sl_null;
 				}
 				
 				struct CameraPresetInfo
@@ -264,7 +267,7 @@ namespace slib
 							}
 						}
 					}
-					return 	AVCaptureSessionPresetPhoto;
+					return AVCaptureSessionPresetPhoto;
 				}
 				
 				static AVCaptureDevice* _selectDevice(String deviceId)
@@ -298,7 +301,7 @@ namespace slib
 						}
 					}
 #endif
-					return NULL;
+					return nil;
 				}
 				
 				void release() override
@@ -723,7 +726,7 @@ previewPhotoSampleBuffer:(CMSampleBufferRef)previewPhotoSampleBuffer
 				error:(NSError *)error
 {
 	if (error != nil) {
-		NSLog(@"%@", error.localizedDescription);
+		LOG_NSERROR("Failed to capture", error);
 	}
 	Ref<CameraImpl> camera(m_camera);
 	if (camera.isNotNull()) {
@@ -744,7 +747,7 @@ didFinishProcessingPhoto:(AVCapturePhoto *)photo
 		return;
 	}
 	if (error != nil) {
-		NSLog(@"%@", error.localizedDescription);
+		LOG_NSERROR("Failed to capture", error);
 	}
 	Ref<CameraImpl> camera(m_camera);
 	if (camera.isNotNull()) {

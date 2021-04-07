@@ -113,9 +113,6 @@ namespace slib
 
 	sl_bool SAppLayoutButtonAttributes::isNotRequiredNative()
 	{
-		if (textColor.flagDefined) {
-			return sl_true;
-		}
 		if (icon.flagDefined) {
 			return sl_true;
 		}
@@ -123,9 +120,6 @@ namespace slib
 			return sl_true;
 		}
 		if (iconHeight.flagDefined) {
-			return sl_true;
-		}
-		if (gravity.flagDefined) {
 			return sl_true;
 		}
 		if (iconAlign.flagDefined) {
@@ -195,18 +189,6 @@ namespace slib
 
 	sl_bool SAppLayoutSelectAttributes::isNotRequiredNative()
 	{
-		if (leftIcon.flagDefined) {
-			return sl_true;
-		}
-		if (rightIcon.flagDefined) {
-			return sl_true;
-		}
-		if (iconWidth.flagDefined) {
-			return sl_true;
-		}
-		if (iconHeight.flagDefined) {
-			return sl_true;
-		}
 		return sl_false;
 	}
 
@@ -269,6 +251,11 @@ namespace slib
 		if (iconHeight.flagDefined) {
 			return sl_true;
 		}
+		return sl_false;
+	}
+
+	sl_bool SAppLayoutComboBoxAttributes::isNotRequiredNative()
+	{
 		return sl_false;
 	}
 
@@ -396,6 +383,14 @@ namespace slib
 				prefix = "select";
 				pN = &nAutoIncreaseNameSelect;
 				break;
+			case SAppLayoutItemType::SelectSwitch:
+				prefix = "selectSwitch";
+				pN = &nAutoIncreaseNameSelectSwitch;
+				break;
+			case SAppLayoutItemType::ComboBox:
+				prefix = "comboBox";
+				pN = &nAutoIncreaseNameComboBox;
+				break;
 			case SAppLayoutItemType::Scroll:
 				prefix = "scroll";
 				pN = &nAutoIncreaseNameScroll;
@@ -412,13 +407,13 @@ namespace slib
 				prefix = "collection";
 				pN = &nAutoIncreaseNameCollection;
 				break;
-			case SAppLayoutItemType::Grid:
-				prefix = "grid";
-				pN = &nAutoIncreaseNameGrid;
+			case SAppLayoutItemType::Table:
+				prefix = "table";
+				pN = &nAutoIncreaseNameTable;
 				break;
-			case SAppLayoutItemType::ListReport:
-				prefix = "listReport";
-				pN = &nAutoIncreaseNameListReport;
+			case SAppLayoutItemType::ListControl:
+				prefix = "listControl";
+				pN = &nAutoIncreaseNameListControl;
 				break;
 			case SAppLayoutItemType::Render:
 				prefix = "render";
@@ -476,10 +471,6 @@ namespace slib
 				prefix = "camera";
 				pN = &nAutoIncreaseNameCamera;
 				break;
-			case SAppLayoutItemType::QRCodeScanner:
-				prefix = "qrCodeScanner";
-				pN = &nAutoIncreaseNameQRCodeScanner;
-				break;
 			case SAppLayoutItemType::Drawer:
 				prefix = "drawer";
 				pN = &nAutoIncreaseNameDrawer;
@@ -490,7 +481,19 @@ namespace slib
 				break;
 			case SAppLayoutItemType::Refresh:
 				prefix = "refresh";
-				pN = &nAutoIncreaseNameChat;
+				pN = &nAutoIncreaseNameRefresh;
+				break;
+			case SAppLayoutItemType::ListBox:
+				prefix = "listBox";
+				pN = &nAutoIncreaseNameListBox;
+				break;
+			case SAppLayoutItemType::LabelList:
+				prefix = "labelList";
+				pN = &nAutoIncreaseNameLabelList;
+				break;
+			case SAppLayoutItemType::TileLayout:
+				prefix = "tileLayout";
+				pN = &nAutoIncreaseNameTileLayout;
 				break;
 			default:
 				return String::null();
@@ -535,6 +538,10 @@ namespace slib
 			type = SAppLayoutItemType::Image;
 		} else if (strType == "select") {
 			type = SAppLayoutItemType::Select;
+		} else if (strType == "selectswitch" || strType == "select-switch") {
+			type = SAppLayoutItemType::SelectSwitch;
+		} else if (strType == "combobox" || strType == "combo-box") {
+			type = SAppLayoutItemType::ComboBox;
 		} else if (strType == "scroll" || strType == "hscroll" || strType == "vscroll") {
 			type = SAppLayoutItemType::Scroll;
 		} else if (strType == "linear" || strType == "hlinear" || strType == "vlinear") {
@@ -543,10 +550,10 @@ namespace slib
 			type = SAppLayoutItemType::List;
 		} else if (strType == "collection") {
 			type = SAppLayoutItemType::Collection;
-		} else if (strType == "grid") {
-			type = SAppLayoutItemType::Grid;
-		} else if (strType == "listreport" || strType == "list-report") {
-			type = SAppLayoutItemType::ListReport;
+		} else if (strType == "table") {
+			type = SAppLayoutItemType::Table;
+		} else if (strType == "listcontrol" || strType == "list-control") {
+			type = SAppLayoutItemType::ListControl;
 		} else if (strType == "render") {
 			type = SAppLayoutItemType::Render;
 		} else if (strType == "tab") {
@@ -555,7 +562,7 @@ namespace slib
 			type = SAppLayoutItemType::Tree;
 		} else if (strType == "web") {
 			type = SAppLayoutItemType::Web;
-		} else if (strType == "split") {
+		} else if (strType == "split" || strType == "hsplit" || strType == "vsplit") {
 			type = SAppLayoutItemType::Split;
 		} else if (strType == "progress") {
 			type = SAppLayoutItemType::Progress;
@@ -575,14 +582,18 @@ namespace slib
 			type = SAppLayoutItemType::Video;
 		} else if (strType == "camera") {
 			type = SAppLayoutItemType::Camera;
-		} else if (strType == "qrcodescanner" || strType == "qr-code-scanner") {
-			type = SAppLayoutItemType::QRCodeScanner;
 		} else if (strType == "drawer") {
 			type = SAppLayoutItemType::Drawer;
 		} else if (strType == "chat") {
 			type = SAppLayoutItemType::Chat;
 		} else if (strType == "refresh") {
 			type = SAppLayoutItemType::Refresh;
+		} else if (strType == "listbox" || strType == "list-box") {
+			type = SAppLayoutItemType::ListBox;
+		} else if (strType == "labellist" || strType == "label-list") {
+			type = SAppLayoutItemType::LabelList;
+		} else if (strType == "tile") {
+			type = SAppLayoutItemType::TileLayout;
 		}
 		return type;
 	}
@@ -649,7 +660,7 @@ namespace slib
 		m_refer = this;
 	}
 
-	void SAppLayoutSimulationWindow::open(SAppDocument* doc, SAppLayoutResource* layout)
+	sl_bool SAppLayoutSimulationWindow::open(SAppDocument* doc, SAppLayoutResource* layout)
 	{
 		m_document = doc;
 		m_layoutResource = layout;
@@ -674,6 +685,18 @@ namespace slib
 		viewContent = doc->_simulateLayoutCreateOrLayoutView(this, layout, sl_null, sl_null, sl_false);
 		setInitialized();
 		if (viewContent.isNotNull()) {
+			if (layout->initialFocus.isNotEmpty()) {
+				if (layout->layoutType == SAppLayoutType::Window || layout->layoutType == SAppLayoutType::Page) {
+					Ref<View> view = getViewByName(layout->initialFocus);
+					if (view.isNotNull()) {
+						if (layout->layoutType == SAppLayoutType::Window) {
+							setInitialFocus(view);
+						} else {
+							((ViewPage*)(viewContent.get()))->setInitialFocus(view);
+						}
+					}
+				}
+			}
 			if (layout->layoutType != SAppLayoutType::Window) {
 				if (viewContent->getBackgroundColor().isZero()) {
 					viewContent->setBackgroundColor(Color::White, UIUpdateMode::Init);
@@ -684,7 +707,9 @@ namespace slib
 			doc->_simulateLayoutCreateOrLayoutView(this, layout, sl_null, sl_null, sl_true);
 			create();
 			doc->_registerLayoutSimulationWindow(this);
+			return sl_true;
 		}
+		return sl_false;
 	}
 
 	void SAppLayoutSimulationWindow::dispatchResize(sl_ui_len width, sl_ui_len height)

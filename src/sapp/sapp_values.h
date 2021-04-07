@@ -217,6 +217,22 @@ namespace slib
 		
 	};
 
+	class SAppChar8Value
+	{
+	public:
+		sl_bool flagDefined;
+		sl_char8 value;
+		
+	public:
+		SAppChar8Value();
+		
+	public:
+		String getAccessString();
+		
+		sl_bool parse(const String& str);
+		
+	};
+
 	class SAppVector2Value
 	{
 	public:

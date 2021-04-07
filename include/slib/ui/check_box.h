@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_CHECK_BOX
 #define CHECKHEADER_SLIB_UI_CHECK_BOX
 
-#include "definition.h"
-
 #include "button.h"
 
 namespace slib
@@ -38,14 +36,14 @@ namespace slib
 		
 	public:
 		CheckBox();
-		
-		CheckBox(sl_uint32 nCategories, ButtonCategory* categories);
-		
+				
 		~CheckBox();
 
 	public:
 		sl_bool isChecked();
 		
+		sl_bool isCheckedInstance();
+
 		virtual void setChecked(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 	public:
@@ -55,6 +53,8 @@ namespace slib
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 		
 		virtual Ptr<ICheckBoxInstance> getCheckBoxInstance();
+
+		Ref<ButtonCell> createButtonCell() override;
 		
 	public:
 		void dispatchClickEvent(UIEvent* ev) override;
@@ -71,6 +71,19 @@ namespace slib
 		
 		virtual void setChecked(CheckBox* view, sl_bool flag) = 0;
 		
+	};
+
+	class SLIB_EXPORT CheckBoxCell : public ButtonCell
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		CheckBoxCell();
+
+		CheckBoxCell(const Array<ButtonCategory>& categories);
+
+		~CheckBoxCell();
+
 	};
 
 }

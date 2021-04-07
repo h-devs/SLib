@@ -1,28 +1,33 @@
 [submodule "external/bin/FacebookSDK"]
 	path = external/bin/FacebookSDK
-	url = https://github.com/SLIBIO/SLibExternalBin_FacebookSDK.git
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_FacebookSDK.git
 [submodule "external/bin/OpenSSL"]
 	path = external/bin/OpenSSL
-	url = https://github.com/SLIBIO/SLibExternalBin_OpenSSL.git
-	branch = master
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_OpenSSL.git
 [submodule "external/bin/FFmpeg"]
 	path = external/bin/FFmpeg
-	url = https://github.com/SLIBIO/SLibExternalBin_FFmpeg.git
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_FFmpeg.git
 [submodule "external/bin/libmysqlclient"]
 	path = external/bin/libmysqlclient
-	url = https://github.com/SLIBIO/SLibExternalBin_libmysqlclient.git
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_libmysqlclient.git
 [submodule "external/bin/libcef"]
 	path = external/bin/libcef
-	url = https://github.com/SLIBIO/SLibExternalBin_libcef.git
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_libcef.git
 [submodule "external/bin/XgPush"]
 	path = external/bin/XgPush
-	url = https://github.com/SLIBIO/SLibExternalBin_XgPush
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_XgPush
 [submodule "external/bin/WeChat"]
 	path = external/bin/WeChat
-	url = https://github.com/SLIBIO/SLibExternalBin_WeChat.git
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_WeChat.git
 [submodule "external/bin/Firebase"]
 	path = external/bin/Firebase
-	url = https://github.com/SLIBIO/SLibExternalBin_Firebase
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_Firebase
 [submodule "external/bin/Alipay"]
 	path = external/bin/Alipay
-	url = https://github.com/SLIBIO/SLibExternalBin_Alipay.git
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_Alipay.git
+[submodule "external/bin/libpq"]
+	path = external/bin/libpq
+	url = http://git.slib.io/SLIBIO/SLibExternalBin_libpq.git
+[submodule "external/lib"]
+	path = external/lib
+	url = http://git.slib.io/SLIBIO/SLibExternalLib.git

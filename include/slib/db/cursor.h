@@ -52,7 +52,7 @@ namespace slib
 		virtual sl_int32 getColumnIndex(const StringParam& name) = 0;
 	
 
-		virtual HashMap<String, Variant> getRow() = 0;
+		virtual VariantMap getRow() = 0;
 	
 
 		virtual Variant getValue(sl_uint32 index);

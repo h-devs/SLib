@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -22,151 +22,162 @@
 
 #include "slib/ui/label_view.h"
 
-#include "slib/graphics/util.h"
+#include "slib/ui/cursor.h"
 #include "slib/ui/core.h"
+#include "slib/graphics/util.h"
 
 namespace slib
 {
+
 	SLIB_DEFINE_OBJECT(LabelView, View)
-	
+
 	LabelView::LabelView()
 	{
 		setSavingCanvasState(sl_false);
-		
 		setUsingFont(sl_true);
 		
-		m_flagHyperText = sl_false;
-		m_textAlignment = Alignment::Left;
-		m_textColor = Color::Black;
-		m_multiLineMode = MultiLineMode::Single;
-		m_ellipsizeMode = EllipsizeMode::None;
-		m_linesCount = 0;
-		m_flagEnabledHyperlinksInPlainText = sl_false;
-		m_linkColor = Color::Zero;
-		
 		setPadding(1, 1, 1, 1, UIUpdateMode::Init);
+		
+		m_cell = new LabelViewCell;
 	}
-	
+
 	LabelView::~LabelView()
 	{
 	}
-	
+
+	void LabelView::init()
+	{
+		View::init();
+		
+		m_cell->setView(this);
+		m_cell->onClickLink = SLIB_FUNCTION_WEAKREF(LabelView, dispatchClickLink, this);
+	}
+
 	String LabelView::getText()
 	{
-		return m_text;
+		return m_cell->text;
 	}
-	
+
 	sl_bool LabelView::isHyperText()
 	{
-		return m_flagHyperText;
+		return m_cell->flagHyperText;
 	}
-	
+
 	void LabelView::setText(const String& text, UIUpdateMode mode)
 	{
-		m_text = text;
-		m_flagHyperText = sl_false;
+		m_cell->text = text;
+		if (m_cell->flagMnemonic) {
+			setMnemonicKeyFromText(text);
+		}
+		m_cell->flagHyperText = sl_false;
 		invalidateLayoutOfWrappingControl(mode);
 	}
-	
+
 	void LabelView::setHyperText(const String& text, UIUpdateMode mode)
 	{
-		m_text = text;
-		m_flagHyperText = sl_true;
+		m_cell->text = text;
+		m_cell->flagHyperText = sl_true;
 		invalidateLayoutOfWrappingControl(mode);
 	}
-	
-	Color LabelView::getTextColor()
-	{
-		return m_textColor;
-	}
-	
-	void LabelView::setTextColor(const Color& color, UIUpdateMode mode)
-	{
-		m_textColor = color;
-		invalidate(mode);
-	}
-	
-	Alignment LabelView::getGravity()
-	{
-		return m_textAlignment;
-	}
-	
-	void LabelView::setGravity(const Alignment& align, UIUpdateMode mode)
-	{
-		m_textAlignment = align;
-		invalidate(mode);
-	}
-	
+
 	MultiLineMode LabelView::getMultiLine()
 	{
-		return m_multiLineMode;
+		return m_cell->multiLineMode;
 	}
-	
+
 	void LabelView::setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode)
 	{
-		m_multiLineMode = multiLineMode;
+		m_cell->multiLineMode = multiLineMode;
 		invalidateLayoutOfWrappingControl(updateMode);
 	}
-	
-	EllipsizeMode LabelView::getEllipsize()
-	{
-		return m_ellipsizeMode;
-	}
-	
-	void LabelView::setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode)
-	{
-		m_ellipsizeMode = ellipsizeMode;
-		invalidate(updateMode);
-	}
-	
+
 	sl_uint32 LabelView::getLinesCount()
 	{
-		return m_linesCount;
+		return m_cell->linesCount;
 	}
-	
+
 	void LabelView::setLinesCount(sl_uint32 nLines, UIUpdateMode updateMode)
 	{
-		m_linesCount = nLines;
+		m_cell->linesCount = nLines;
 		invalidateLayoutOfWrappingControl(updateMode);
+	}
+
+	sl_bool LabelView::isMnemonic()
+	{
+		return m_cell->flagMnemonic;
+	}
+
+	void LabelView::setMnemonic(sl_bool flag)
+	{
+		m_cell->flagMnemonic = flag;
+	}
+
+	Color LabelView::getTextColor()
+	{
+		return m_cell->textColor;
+	}
+
+	void LabelView::setTextColor(const Color& color, UIUpdateMode updateMode)
+	{
+		m_cell->textColor = color;
+		invalidate(updateMode);
+	}
+
+	Alignment LabelView::getGravity()
+	{
+		return m_cell->gravity;
+	}
+
+	void LabelView::setGravity(const Alignment& align, UIUpdateMode updateMode)
+	{
+		m_cell->gravity = align;
+		invalidate(updateMode);
+	}
+
+	EllipsizeMode LabelView::getEllipsize()
+	{
+		return m_cell->ellipsizeMode;
+	}
+
+	void LabelView::setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode)
+	{
+		m_cell->ellipsizeMode = ellipsizeMode;
+		invalidate(updateMode);
 	}
 
 	sl_bool LabelView::isDetectingHyperlinksInPlainText()
 	{
-		return m_flagEnabledHyperlinksInPlainText;
+		return m_cell->flagEnabledHyperlinksInPlainText;
 	}
 
-	void LabelView::setDetectingHyperlinksInPlainText(sl_bool flag, UIUpdateMode mode)
+	void LabelView::setDetectingHyperlinksInPlainText(sl_bool flag, UIUpdateMode updateMode)
 	{
-		m_flagEnabledHyperlinksInPlainText = flag;
-		invalidate(mode);
+		m_cell->flagEnabledHyperlinksInPlainText = flag;
+		invalidate(updateMode);
 	}
 
 	Color LabelView::getLinkColor()
 	{
-		if (m_linkColor.isNotZero()) {
-			return m_linkColor;
+		Color color = m_cell->linkColor;
+		if (color.isNotZero()) {
+			return color;
 		}
 		return TextParagraph::getDefaultLinkColor();
 	}
 
-	void LabelView::setLinkColor(const Color& color, UIUpdateMode mode)
+	void LabelView::setLinkColor(const Color& color, UIUpdateMode updateMode)
 	{
-		m_linkColor = color;
-		invalidate(mode);
+		m_cell->linkColor = color;
+		invalidate(updateMode);
 	}
-	
+
 	UISize LabelView::measureSize()
 	{
-		_updateTextBox(getWidth());
-		sl_ui_len width = (sl_ui_len)(m_textBox.getContentWidth());
-		sl_ui_len height = (sl_ui_len)(m_textBox.getContentHeight());
-		width += getPaddingLeft() + getPaddingRight();
-		height += getPaddingTop() + getPaddingBottom();
-		return UISize(width, height);
+		return m_cell->measureSize();
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(LabelView, ClickLink, const String& href, UIEvent* ev)
-	
+
 	void LabelView::dispatchClickLink(const String& href, UIEvent *ev)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(ClickLink, href, ev)
@@ -175,76 +186,171 @@ namespace slib
 		}
 		UI::openUrl(href);
 	}
-	
-	void LabelView::_updateTextBox(sl_ui_len width)
+
+	void LabelView::onDraw(Canvas* canvas)
 	{
-		sl_ui_len widthText;
-		sl_ui_pos paddingWidth = getPaddingLeft() + getPaddingRight();
-		if (isWidthWrapping()) {
-			if (isMaximumWidthDefined()) {
-				widthText = getMaximumWidth() - paddingWidth;
+		if (isLayer() || getCurrentBackground().isNotNull()) {
+			m_cell->shadowOpacity = 0;
+		} else {
+			sl_real shadowOpacity = (sl_real)(getShadowOpacity());
+			m_cell->shadowOpacity = shadowOpacity;
+			if (shadowOpacity > 0) {
+				m_cell->shadowRadius = getShadowRadius();
+				m_cell->shadowColor = getShadowColor();
+				m_cell->shadowOffset = getShadowOffset();
+			}
+		}
+		prepareLabelViewCellLayout(m_cell.get());
+		m_cell->onDraw(canvas);
+	}
+	
+	void LabelView::onClickEvent(UIEvent* ev)
+	{
+		m_cell->onClickEvent(ev);
+	}
+	
+	void LabelView::onSetCursor(UIEvent* ev)
+	{
+		m_cell->onSetCursor(ev);
+	}
+
+	void LabelView::onUpdateLayout()
+	{
+		prepareLabelViewCellLayout(m_cell.get());
+		updateLayoutByViewCell(m_cell.get());
+	}
+
+	void LabelView::prepareLabelViewCellLayout(LabelViewCell* cell)
+	{
+		cell->flagWrapping = isWidthWrapping();
+		if (isMaximumWidthDefined()) {
+			sl_ui_len width = getMaximumWidth() - getPaddingLeft() - getPaddingRight();
+			if (width < 1) {
+				width = 1;
+			}
+			cell->maxWidth = width;
+		} else {
+			cell->maxWidth = 0;
+		}
+	}
+
+
+	SLIB_DEFINE_OBJECT(LabelViewCell, ViewCell)
+
+	LabelViewCell::LabelViewCell()
+	{
+		flagHyperText = sl_false;
+		flagMnemonic = sl_true;
+		multiLineMode = MultiLineMode::Single;
+		linesCount = 0;
+
+		textColor = Color::Black;
+		gravity = Alignment::Left;
+		ellipsizeMode = EllipsizeMode::None;
+		flagEnabledHyperlinksInPlainText = sl_false;
+		linkColor = Color::Zero;
+
+		shadowOpacity = 0;
+		shadowRadius = 3;
+		shadowOffset.x = 0;
+		shadowOffset.y = 0;
+		shadowColor = Color::Black;
+
+		flagWrapping = sl_false;
+		maxWidth = 0;
+	}
+
+	LabelViewCell::~LabelViewCell()
+	{
+	}
+
+	UISize LabelViewCell::measureSize()
+	{
+		_updateTextBox(getWidth());
+		sl_ui_len width = (sl_ui_len)(m_textBox.getContentWidth());
+		sl_ui_len height = (sl_ui_len)(m_textBox.getContentHeight());
+		return UISize(width, height);
+	}
+
+	void LabelViewCell::_updateTextBox(sl_ui_len width)
+	{
+		_updateTextBox(flagWrapping, width, 0, gravity);
+	}
+
+	void LabelViewCell::_updateTextBox(sl_bool flagWrapping, sl_ui_len width, sl_ui_len padding, const Alignment& align)
+	{
+		if (flagWrapping) {
+			if (maxWidth) {
+				width = maxWidth - padding;
+				if (width < 1) {
+					width = 0;
+				}
 			} else {
-				widthText = 0;
+				width = 0;
 			}
 		} else {
-			widthText = width - paddingWidth;
-			if (widthText < 1) {
-				return;
+			width -= padding;
+			if (width < 1) {
+				width = 1;
 			}
 		}
 		SimpleTextBoxParam param;
 		param.font = getFont();
-		param.text = m_text;
-		param.flagHyperText = m_flagHyperText;
-		param.width = (sl_real)widthText;
-		param.multiLineMode = m_multiLineMode;
-		param.ellipsizeMode = m_ellipsizeMode;
-		param.linesCount = m_linesCount;
-		param.align = m_textAlignment;
-		param.flagEnabledHyperlinksInPlainText = m_flagEnabledHyperlinksInPlainText;
+		param.text = text;
+		param.flagHyperText = flagHyperText;
+		param.flagMnemonic = flagMnemonic;
+		param.width = (sl_real)width;
+		param.multiLineMode = multiLineMode;
+		param.linesCount = linesCount;
+		param.align = align;
+		param.ellipsizeMode = ellipsizeMode;
+		param.flagEnabledHyperlinksInPlainText = flagEnabledHyperlinksInPlainText;
 		m_textBox.update(param);
 	}
-	
-	void LabelView::onDraw(Canvas* canvas)
+
+	void LabelViewCell::onDraw(Canvas* canvas)
 	{
-		UIRect bounds = getBoundsInnerPadding();
+		UIRect bounds = getFrame();
 		if (bounds.getWidth() < 1 || bounds.getHeight() < 1) {
 			return;
 		}
-		_updateTextBox(getWidth());
+		_updateTextBox(bounds.getWidth());
 		SimpleTextBoxDrawParam param;
 		param.frame = bounds;
-		param.color = m_textColor;
-		sl_real shadowOpacity = getShadowOpacity();
-		if (shadowOpacity > 0 && !(isLayer()) && getCurrentBackground().isNull()) {
+		param.color = textColor;
+		if (shadowOpacity > 0) {
 			param.shadowOpacity = shadowOpacity;
-			param.shadowRadius = (sl_real)(getShadowRadius());
-			param.shadowColor = getShadowColor();
-			param.shadowOffset = getShadowOffset();
+			param.shadowRadius = shadowRadius;
+			param.shadowColor = shadowColor;
+			param.shadowOffset = shadowOffset;
 		}
 		param.lineThickness = UI::dpToPixel(1);
 		if (param.lineThickness < 1) {
 			param.lineThickness = 1;
 		}
+		param.linkColor = linkColor;
+		if (param.linkColor.isZero()) {
+			param.linkColor = TextParagraph::getDefaultLinkColor();
+		}
 		m_textBox.draw(canvas, param);
 	}
-	
-	void LabelView::onClickEvent(UIEvent* ev)
+
+	void LabelViewCell::onClickEvent(UIEvent* ev)
 	{
-		Ref<TextItem> item = m_textBox.getTextItemAtPosition(ev->getX(), ev->getY());
+		Ref<TextItem> item = m_textBox.getTextItemAtPosition(ev->getX(), ev->getY(), getFrame());
 		if (item.isNotNull()) {
 			Ref<TextStyle> style = item->getStyle();
 			if (style.isNotNull()) {
 				if (style->flagLink) {
-					dispatchClickLink(style->href, ev);
+					onClickLink(style->href, ev);
 				}
 			}
 		}
 	}
-	
-	void LabelView::onSetCursor(UIEvent* ev)
+
+	void LabelViewCell::onSetCursor(UIEvent* ev)
 	{
-		Ref<TextItem> item = m_textBox.getTextItemAtPosition(ev->getX(), ev->getY());
+		Ref<TextItem> item = m_textBox.getTextItemAtPosition(ev->getX(), ev->getY(), getFrame());
 		if (item.isNotNull()) {
 			Ref<TextStyle> style = item->getStyle();
 			if (style.isNotNull()) {
@@ -257,23 +363,18 @@ namespace slib
 		setCursor(Cursor::getArrow());
 	}
 
-	void LabelView::onUpdateLayout()
+	void LabelViewCell::onMeasure(UISize& size, sl_bool flagHorizontalWrapping, sl_bool flagVerticalWrapping)
 	{
-		sl_bool flagHorizontal = isWidthWrapping();
-		sl_bool flagVertical = isHeightWrapping();
-		
-		if (!flagVertical && !flagHorizontal) {
+		if (!flagVerticalWrapping && !flagHorizontalWrapping) {
 			return;
 		}
-		_updateTextBox(getLayoutWidth());
-		if (flagHorizontal) {
-			sl_ui_len width = (sl_ui_len)(m_textBox.getContentWidth());
-			setLayoutWidth(width + getPaddingLeft() + getPaddingRight());
+		_updateTextBox(size.x);
+		if (flagHorizontalWrapping) {
+			size.x = (sl_ui_len)(m_textBox.getContentWidth());
 		}
-		if (flagVertical) {
-			sl_ui_len height = (sl_ui_len)(m_textBox.getContentHeight());
-			setLayoutHeight(height + getPaddingTop() + getPaddingBottom());
-		}		
+		if (flagVerticalWrapping) {
+			size.y = (sl_ui_len)(m_textBox.getContentHeight());
+		}
 	}
-	
+
 }

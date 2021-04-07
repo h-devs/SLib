@@ -27,7 +27,6 @@
 
 #include "../core/compare.h"
 #include "../core/hash.h"
-#include "../core/string.h"
 #include "../core/parse.h"
 
 namespace slib
@@ -40,29 +39,36 @@ namespace slib
 		sl_uint64 low;
 	
 	public:
-		SLIB_INLINE constexpr Uint128() noexcept: high(0), low(0) {}
+		constexpr Uint128() noexcept: high(0), low(0) {}
 
-		SLIB_INLINE constexpr Uint128(const Uint128& other) noexcept: high(other.high), low(other.low) {}
+		constexpr Uint128(const Uint128& other) noexcept: high(other.high), low(other.low) {}
 
-		SLIB_INLINE constexpr Uint128(sl_uint64 num) noexcept: high(0), low(num) {}
+		constexpr Uint128(sl_uint64 num) noexcept: high(0), low(num) {}
 
 	private:
 		static const sl_uint64 _zero[2];
 	
 	public:
-		static const Uint128& zero() noexcept;
+		static const Uint128& zero() noexcept
+		{
+			return *((Uint128*)((void*)_zero));
+		}
 
-		SLIB_INLINE constexpr sl_bool isZero() const noexcept
+		constexpr sl_bool isZero() const noexcept
 		{
 			return high == 0 && low == 0;
 		}
 
-		SLIB_INLINE constexpr sl_bool isNotZero() const noexcept
+		constexpr sl_bool isNotZero() const noexcept
 		{
 			return high != 0 || low != 0;
 		}
 
-		void setZero() noexcept;
+		void setZero() noexcept
+		{
+			high = 0;
+			low = 0;
+		}
 	
 		sl_compare_result compare(const Uint128& other) const noexcept;
 		
@@ -89,11 +95,20 @@ namespace slib
 		void makeBitwiseNot() noexcept;
 	
 	public:
-		Uint128& operator=(const Uint128& other) noexcept;
+		Uint128& operator=(const Uint128& other) noexcept
+		{
+			low = other.low;
+			high = other.high;
+			return *this;
+		}
 
-		Uint128& operator=(sl_uint64 num) noexcept;
+		Uint128& operator=(sl_uint64 num) noexcept
+		{
+			high = 0;
+			low = num;
+			return *this;
+		}
 	
-
 		sl_bool operator==(const Uint128& other) const noexcept;
 
 		sl_bool operator==(sl_uint64 num) const noexcept;
@@ -310,8 +325,6 @@ namespace slib
 	};
 
 }
-
-#include "detail/int128.inc"
 
 #endif
 

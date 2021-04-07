@@ -23,8 +23,7 @@
 #include "slib/ui/view_page_navigation.h"
 
 #include "slib/ui/view_page.h"
-#include "slib/ui/render_view.h"
-
+#include "slib/ui/gesture.h"
 #include "slib/core/scoped.h"
 
 #if defined(SLIB_UI_IS_ANDROID)
@@ -37,7 +36,7 @@ namespace slib
 	SLIB_DEFINE_OBJECT(ViewPageNavigationController, ViewGroup)
 
 	ViewPageNavigationController::ViewPageNavigationController()
-	{		
+	{
 		setCreatingInstance(sl_true);
 		
 		m_flagSwipeNavigation = sl_false;
@@ -82,7 +81,6 @@ namespace slib
 
 	void ViewPageNavigationController::_onFinishAnimation(const Ref<View>& view, UIPageAction action)
 	{
-		dispatchEndPageAnimation(view.get(), action);
 		switch (action) {
 			case UIPageAction::Pause:
 			case UIPageAction::Pop:
@@ -96,6 +94,7 @@ namespace slib
 				break;
 		}
 		setEnabled(sl_true);
+		dispatchEndPageAnimation(view.get(), action);
 		Base::interlockedDecrement(&m_countActiveTransitionAnimations);
 	}
 
@@ -473,7 +472,7 @@ namespace slib
 		sl_bool flagRender = sl_false;
 		Ref<View> t = view;
 		while (1) {
-			if (IsInstanceOf<RenderView>(t)) {
+			if (t->isRendering()) {
 				flagRender = sl_true;
 				break;
 			}

@@ -136,7 +136,9 @@ int main(int argc, const char * argv[])
 			param.onCloseWindow = [pathConfig](Window* window, UIEvent* ev) {
 				UI::quitApp();
 			};
-			doc->simulateLayoutInWindow(layoutName, param);
+			if (!(doc->simulateLayoutInWindow(layoutName, param))) {
+				return -1;
+			}
 			UIApp::activate();
 			UI::runApp();
 		} else {

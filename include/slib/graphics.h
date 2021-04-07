@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 #include "graphics/constants.h"
 
 #include "graphics/color.h"
+#include "graphics/color_parse.h"
 #include "graphics/yuv.h"
 #include "graphics/bitmap_format.h"
 #include "graphics/bitmap_data.h"

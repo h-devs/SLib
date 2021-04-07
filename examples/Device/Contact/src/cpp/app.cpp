@@ -2,8 +2,6 @@
 
 #include "MainPage.h"
 
-SLIB_DEFINE_APPLICATION(ExampleContactApp, MobileApp)
-
 ExampleContactApp::ExampleContactApp()
 {
 }

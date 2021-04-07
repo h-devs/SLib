@@ -23,13 +23,13 @@
 #ifndef CHECKHEADER_SLIB_UI_VIEW_MACOS
 #define CHECKHEADER_SLIB_UI_VIEW_MACOS
 
-#include "slib/core/definition.h"
+#include "../core/definition.h"
 
 #if defined(SLIB_UI_IS_MACOS)
 
-#include "slib/ui/view.h"
+#include "view.h"
 
-#include "slib/ui/platform.h"
+#include "platform.h"
 
 namespace slib
 {
@@ -50,7 +50,7 @@ namespace slib
 			if (handle != nil) {
 				Ref<T> ret = new T;
 				if (ret.isNotNull()) {
-					ret->initialize(handle);
+					ret->initWithHandle(handle);
 					return ret;
 				}
 			}
@@ -63,7 +63,7 @@ namespace slib
 			if (handle != nil) {
 				Ref<T> ret = new T;
 				if (ret.isNotNull()) {
-					ret->initialize(handle, parent, view);
+					ret->initWithHandle(handle, parent, view);
 					return ret;
 				}
 			}
@@ -95,9 +95,9 @@ namespace slib
 		}
 		
 	public:
-		void initialize(NSView* handle);
+		void initWithHandle(NSView* handle);
 		
-		void initialize(NSView* handle, NSView* parent, View* view);
+		void initWithHandle(NSView* handle, NSView* parent, View* view);
 		
 		NSView* getHandle();
 		
@@ -143,7 +143,7 @@ namespace slib
 		
 		void setShadowColor(View* view, const Color& color) override;
 		
-		void setDroppable(View* view, sl_bool flag) override;
+		void setDropTarget(View* view, sl_bool flag) override;
 		
 	public:
 		static NSRect getViewFrameAndTransform(const UIRect& frame, const Matrix3& transform, sl_real& rotation);

@@ -73,28 +73,28 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
-    <IntDir>build\intermediate\$(Platform)-$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
-    <IntDir>build\intermediate\$(Platform)-$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
-    <IntDir>build\intermediate\$(Platform)-$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
-    <IntDir>build\intermediate\$(Platform)-$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

@@ -20,13 +20,14 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_QUARTZ)
 
 #include "slib/graphics/bitmap.h"
 
 #include "slib/graphics/platform.h"
+#include "slib/core/memory.h"
 
 namespace slib
 {
@@ -69,7 +70,7 @@ namespace slib
 						
 						if (mem.isNotNull()) {
 							
-							Base::resetMemory(mem.getData(), 0, mem.getSize());
+							Base::zeroMemory(mem.getData(), mem.getSize());
 							
 							CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 							

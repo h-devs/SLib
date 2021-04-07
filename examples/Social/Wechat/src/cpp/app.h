@@ -9,7 +9,7 @@ using namespace sapp;
 
 class ExampleWechatApp : public MobileApp
 {
-	SLIB_DECLARE_APPLICATION(ExampleWechatApp)
+	SLIB_APPLICATION(ExampleWechatApp)
 public:
 	ExampleWechatApp();
 	

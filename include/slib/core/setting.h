@@ -23,18 +23,13 @@
 #ifndef CHECKHEADER_SLIB_CORE_SETTING
 #define CHECKHEADER_SLIB_CORE_SETTING
 
-#include "definition.h"
-
-#include "hash_map.h"
 #include "variant.h"
 
 namespace slib
 {
 	
-	class SLIB_EXPORT IniSetting : public Object
+	class SLIB_EXPORT IniSetting
 	{
-		SLIB_DECLARE_OBJECT
-
 	public:
 		IniSetting();
 

@@ -25,7 +25,7 @@
 namespace slib
 {
 	
-	SLIB_DEFINE_OBJECT(GlobalUniqueInstance, Object)
+	SLIB_DEFINE_ROOT_OBJECT(GlobalUniqueInstance)
 	
 	GlobalUniqueInstance::GlobalUniqueInstance()
 	{

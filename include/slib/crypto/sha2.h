@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_SHA2
 #define CHECKHEADER_SLIB_CRYPTO_SHA2
 
-#include "definition.h"
-
 #include "hash.h"
 
 /*

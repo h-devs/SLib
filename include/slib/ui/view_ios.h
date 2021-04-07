@@ -23,13 +23,13 @@
 #ifndef CHECKHEADER_SLIB_UI_VIEW_IOS
 #define CHECKHEADER_SLIB_UI_VIEW_IOS
 
-#include "slib/core/definition.h"
+#include "../core/definition.h"
 
 #if defined(SLIB_UI_IS_IOS)
 
-#include "slib/ui/view.h"
+#include "view.h"
 
-#include "slib/ui/platform.h"
+#include "platform.h"
 
 namespace slib
 {
@@ -50,7 +50,7 @@ namespace slib
 			if (handle != nil) {
 				Ref<T> ret = new T;
 				if (ret.isNotNull()) {
-					ret->initialize(handle);
+					ret->initWithHandle(handle);
 					return ret;
 				}
 			}
@@ -63,7 +63,7 @@ namespace slib
 			if (handle != nil) {
 				Ref<T> ret = new T;
 				if (ret.isNotNull()) {
-					ret->initialize(handle, parent, view);
+					ret->initWithHandle(handle, parent, view);
 					return ret;
 				}
 			}
@@ -93,9 +93,9 @@ namespace slib
 		}
 
 	public:
-		void initialize(UIView* handle);
+		void initWithHandle(UIView* handle);
 		
-		void initialize(UIView* handle, UIView* parent, View* view);
+		void initWithHandle(UIView* handle, UIView* parent, View* view);
 		
 		UIView* getHandle();
 		

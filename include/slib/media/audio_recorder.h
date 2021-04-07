@@ -23,18 +23,17 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_AUDIO_RECORDER
 #define CHECKHEADER_SLIB_MEDIA_AUDIO_RECORDER
 
-#include "definition.h"
-
 #include "audio_data.h"
 
-#include "../core/object.h"
-#include "../core/event.h"
 #include "../core/loop_queue.h"
 #include "../core/string.h"
 #include "../core/function.h"
 
 namespace slib
 {
+
+	class Event;
+
 	class SLIB_EXPORT AudioRecorderInfo
 	{
 	public:
@@ -89,21 +88,35 @@ namespace slib
 		static List<AudioRecorderInfo> getRecordersList();
 		
 	public:
-		virtual void release() = 0;
+		void release();
 		
-		virtual sl_bool isOpened() = 0;
+		sl_bool isOpened();
 		
-		virtual void start() = 0;
+		sl_bool start();
 		
-		virtual void stop() = 0;
+		void stop();
 		
-		virtual sl_bool isRunning() = 0;
+		sl_bool isRunning();
+
+		float getVolume();
+
+		void setVolume(float volume);
+
+		sl_bool isMute();
+
+		void setMute(sl_bool flag);
 		
-	public:
 		const AudioRecorderParam& getParam();
 		
 		sl_bool read(const AudioData& audio);
 		
+	protected:
+		virtual void _release() = 0;
+
+		virtual sl_bool _start() = 0;
+
+		virtual void _stop() = 0;
+
 	protected:
 		void _init(const AudioRecorderParam& param);
 		
@@ -113,11 +126,16 @@ namespace slib
 		
 	protected:
 		AudioRecorderParam m_param;
-		
+
+		sl_bool m_flagRunning;
+		sl_bool m_flagOpened;
+		sl_uint32 m_volume;
+		sl_bool m_flagMute;
+
 		LoopQueue<sl_int16> m_queue;
 		AtomicArray<sl_int16> m_processData;
 		
-	};	
+	};
 }
 
 #endif

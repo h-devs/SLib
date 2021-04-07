@@ -22,8 +22,8 @@ if "%APP_NAME%"=="" goto :eof
 echo New SLib Desktop App (Win32): %APP_NAME%
 xcopy /q /h "%SLIB_PATH%\tool\template\Win32\.gitignore" "%CURRENT_PATH%"
 copy "%SLIB_PATH%\tool\template\Win32\SLIB_TEMPLATE_APP_NAME.vcxproj.filters" "%CURRENT_PATH%\%APP_NAME%.vcxproj.filters"
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%SLIB_PATH%\tool\template\Win32\SLIB_TEMPLATE_APP_NAME.sln" "%CURRENT_PATH%\%APP_NAME%.sln" SLIB_TEMPLATE_APP_NAME %APP_NAME%
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%SLIB_PATH%\tool\template\Win32\SLIB_TEMPLATE_APP_NAME.vcxproj" "%CURRENT_PATH%\%APP_NAME%.vcxproj" SLIB_TEMPLATE_APP_NAME %APP_NAME%
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%SLIB_PATH%\tool\template\Win32\main.cpp" "%CURRENT_PATH%\main.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%SLIB_PATH%\tool\template\desktop\app.h" "%CURRENT_PATH%\app.h" SLIB_TEMPLATE_APP_NAME %APP_NAME%
-"%SLIB_PATH%\bin\Windows\ReplaceTextInFile.exe" "%SLIB_PATH%\tool\template\desktop\app.cpp" "%CURRENT_PATH%\app.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%SLIB_PATH%\tool\template\Win32\SLIB_TEMPLATE_APP_NAME.sln" "%CURRENT_PATH%\%APP_NAME%.sln" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%SLIB_PATH%\tool\template\Win32\SLIB_TEMPLATE_APP_NAME.vcxproj" "%CURRENT_PATH%\%APP_NAME%.vcxproj" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%SLIB_PATH%\tool\template\Win32\main.cpp" "%CURRENT_PATH%\main.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%SLIB_PATH%\tool\template\desktop\app.h" "%CURRENT_PATH%\app.h" SLIB_TEMPLATE_APP_NAME %APP_NAME%
+ReplaceTextInFile.exe "%SLIB_PATH%\tool\template\desktop\app.cpp" "%CURRENT_PATH%\app.cpp" SLIB_TEMPLATE_APP_NAME %APP_NAME%

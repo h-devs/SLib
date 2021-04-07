@@ -23,7 +23,6 @@
 #include "slib/ui/motion_tracker.h"
 
 #include "slib/ui/event.h"
-#include "slib/core/math.h"
 
 #define MOVEMENT_ZERO_MOVEMENT 5
 	

@@ -22,6 +22,7 @@
 
 #include "slib/ui/image_view.h"
 
+#include "slib/graphics/canvas.h"
 #include "slib/core/timer.h"
 
 namespace slib
@@ -29,7 +30,7 @@ namespace slib
 	SLIB_DEFINE_OBJECT(ImageView, View)
 	
 	ImageView::ImageView()
-	{		
+	{
 		setSavingCanvasState(sl_false);
 		
 		m_scaleMode = ScaleMode::Stretch;

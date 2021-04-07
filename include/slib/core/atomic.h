@@ -23,12 +23,10 @@
 #ifndef CHECKHEADER_SLIB_CORE_ATOMIC
 #define CHECKHEADER_SLIB_CORE_ATOMIC
 
-#include "definition.h"
-
-#include "cpp.h"
 #include "spin_lock.h"
 #include "compare.h"
 #include "hash.h"
+#include "new_helper.h"
 
 namespace slib
 {
@@ -37,21 +35,97 @@ namespace slib
 	class SLIB_EXPORT Atomic
 	{
 	public:
-		Atomic();
+		Atomic()
+		{
+			new ((T*)m_value) T();
+		}
 
-		Atomic(const T& value);
+		Atomic(const T& value)
+		{
+			new ((T*)m_value) T(value);
+		}
 
-		Atomic(T&& value);
+		Atomic(T&& value)
+		{
+			new ((T*)m_value) T(Move(value));
+		}
+
+		Atomic(const Atomic<T>& value)
+		{
+			value._retain_construct(m_value);
+		}
+
+		~Atomic()
+		{
+			((T*)m_value)->~T();
+		}
 
 	public:
-		Atomic<T>& operator=(const T& other);
+		Atomic<T>& operator=(const T& other)
+		{
+			_assign_copy(&other);
+			return *this;
+		}
 
-		Atomic<T>& operator=(T&& other);
+		Atomic<T>& operator=(T&& other)
+		{
+			_assign_move(&other);
+			return *this;
+		}
 
-		operator T() const;
+		Atomic<T>& operator=(const Atomic<T>& _other)
+		{
+			SLIB_ALIGN(8) char other[sizeof(T)];
+			_other._retain_construct(other);
+			_assign_move(other);
+			((T*)other)->~T();
+			return *this;
+		}
+
+		operator T() const
+		{
+			T value;
+			_retain_assign(&value);
+			return value;
+		}
+
+	public:
+		void _retain_construct(void* other) const
+		{
+			m_lock.lock();
+			new ((T*)other) T(*((T*)m_value));
+			m_lock.unlock();
+		}
+
+		void _retain_assign(void* other) const
+		{
+			m_lock.lock();
+			*((T*)other) = *((T*)m_value);
+			m_lock.unlock();
+		}
+
+		void _assign_copy(const void* other)
+		{
+			SLIB_ALIGN(8) char old[sizeof(T)];
+			m_lock.lock();
+			new ((T*)old) T(Move(*((T*)m_value)));
+			*((T*)m_value) = *((T*)other);
+			m_lock.unlock();
+			((T*)old)->~T();
+		}
+
+		void _assign_move(void* other)
+		{
+			SLIB_ALIGN(8) char old[sizeof(T)];
+			m_lock.lock();
+			new ((T*)old) T(Move(*((T*)m_value)));
+			*((T*)m_value) = Move(*((T*)other));
+			m_lock.unlock();
+			((T*)old)->~T();
+		}
 
 	protected:
-		T m_value;
+		char m_value[sizeof(T)];
 		SpinLock m_lock;
 
 	};
@@ -68,7 +142,7 @@ namespace slib
 	public:
 		sl_int32 operator=(sl_int32 value);
 
-		operator sl_int32 () const;
+		operator sl_int32() const;
 
 	public:
 		sl_int32 increase();
@@ -93,19 +167,12 @@ namespace slib
 	template <class T>
 	struct RemoveAtomic< Atomic<T> > { typedef T Type; };
 	
-	template <class T>
-	struct PropertyTypeHelper< Atomic<T> >
-	{
-		typedef typename PropertyTypeHelper<T>::ArgType ArgType;
-		typedef typename RemoveConstReference< typename PropertyTypeHelper<T>::RetType >::Type RetType;
-	};
-	
 	
 	template <class T>
 	class Compare< Atomic<T>, Atomic<T> >
 	{
 	public:
-		SLIB_INLINE sl_compare_result operator()(const T& a, const T& b) const noexcept
+		sl_compare_result operator()(const T& a, const T& b) const noexcept
 		{
 			return Compare<T>()(a, b);
 		}
@@ -115,7 +182,7 @@ namespace slib
 	class Equals< Atomic<T>, Atomic<T> >
 	{
 	public:
-		SLIB_INLINE sl_bool operator()(const T& a, const T& b) const noexcept
+		sl_bool operator()(const T& a, const T& b) const noexcept
 		{
 			return Equals<T>()(a, b);
 		}
@@ -125,14 +192,12 @@ namespace slib
 	class Hash< Atomic<T>, sl_false >
 	{
 	public:
-		SLIB_INLINE sl_size operator()(const T& a) const noexcept
+		sl_size operator()(const T& a) const noexcept
 		{
 			return Hash<T>()(a);
 		}
 	};
 	
 }
-
-#include "detail/atomic.inc"
 
 #endif

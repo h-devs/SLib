@@ -9,7 +9,7 @@ using namespace sapp;
 
 class ExampleAlipayApp : public MobileApp
 {
-	SLIB_DECLARE_APPLICATION(ExampleAlipayApp)
+	SLIB_APPLICATION(ExampleAlipayApp)
 public:
 	ExampleAlipayApp();
 	

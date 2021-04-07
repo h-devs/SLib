@@ -86,12 +86,12 @@ namespace slib
 			DEFINE_LANGUAGE_CASE(gl, "Galician")
 			DEFINE_LANGUAGE_CASE(ka, "Georgian")
 			DEFINE_LANGUAGE_CASE(de, "German")
-			DEFINE_LANGUAGE_CASE(el, "Greek (modern)")
+			DEFINE_LANGUAGE_CASE(el, "Greek (modern)")
 			DEFINE_LANGUAGE_CASE(gn, "Guaraní")
 			DEFINE_LANGUAGE_CASE(gu, "Gujarati")
 			DEFINE_LANGUAGE_CASE(ht, "Haitian")
 			DEFINE_LANGUAGE_CASE(ha, "Hausa")
-			DEFINE_LANGUAGE_CASE(he, "Hebrew (modern)")
+			DEFINE_LANGUAGE_CASE(he, "Hebrew (modern)")
 			DEFINE_LANGUAGE_CASE(hz, "Herero")
 			DEFINE_LANGUAGE_CASE(hi, "Hindi")
 			DEFINE_LANGUAGE_CASE(ho, "Hiri Motu")
@@ -137,7 +137,7 @@ namespace slib
 			DEFINE_LANGUAGE_CASE(ms, "Malay")
 			DEFINE_LANGUAGE_CASE(ml, "Malayalam")
 			DEFINE_LANGUAGE_CASE(mt, "Maltese")
-			DEFINE_LANGUAGE_CASE(mi, "Māori")
+			DEFINE_LANGUAGE_CASE(mi, "Maori")
 			DEFINE_LANGUAGE_CASE(mr, "Marathi")
 			DEFINE_LANGUAGE_CASE(mh, "Marshallese")
 			DEFINE_LANGUAGE_CASE(mn, "Mongolian")
@@ -158,7 +158,7 @@ namespace slib
 			DEFINE_LANGUAGE_CASE(or_, "Oriya")
 			DEFINE_LANGUAGE_CASE(os, "Ossetian")
 			DEFINE_LANGUAGE_CASE(pa, "Panjabi")
-			DEFINE_LANGUAGE_CASE(pi, "Pāli")
+			DEFINE_LANGUAGE_CASE(pi, "Pali")
 			DEFINE_LANGUAGE_CASE(fa, "Persian")
 			DEFINE_LANGUAGE_CASE(pl, "Polish")
 			DEFINE_LANGUAGE_CASE(ps, "Pashto")
@@ -906,7 +906,7 @@ namespace slib
 			Locale g_localeCurrent = Locale::Unknown;
 			Locale g_localeLastCurrent = Locale::Unknown;
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicFunction<void()>, g_callback_onChangeCurrent)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callback_onChangeCurrent)
 			
 		}
 	}
@@ -975,13 +975,13 @@ namespace slib
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
-#include "slib/core/platform_windows.h"
+#include "slib/core/dl_windows_kernel32.h"
 
 namespace slib
 {
 	Locale Locale::_getCurrent()
 	{
-		WINAPI_GetUserDefaultLocaleName api = Windows::getAPI_GetUserDefaultLocaleName();
+		auto api = kernel32::getApi_GetUserDefaultLocaleName();
 		if (api) {
 			WCHAR s[LOCALE_NAME_MAX_LENGTH];
 			s[0] = 0;

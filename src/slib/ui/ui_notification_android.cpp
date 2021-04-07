@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_ANDROID)
 
@@ -103,7 +103,7 @@ namespace slib
 							sl_uint32 id = message.id;
 							if (message.identifier.isNotEmpty()) {
 								message.identifier.parseUint32(10, &id);
-							}							
+							}
 							JUserNotificationMessage::id.set(jmsg.get(), (jint)id);
 
 							if (message.title.isNotEmpty()) {
@@ -163,14 +163,14 @@ namespace slib
 							ret->m_id = id;
 
 							return ret;
-						}						
+						}
 					}
 					return sl_null;
 				}
 
 			public:
 				void cancelPending() override
-				{					
+				{
 				}
 
 				void removeFromDeliveredList() override

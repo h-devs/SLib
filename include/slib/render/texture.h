@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_RENDER_TEXTURE
 #define CHECKHEADER_SLIB_RENDER_TEXTURE
 
-#include "definition.h"
-
 #include "base.h"
 
 #include "../graphics/bitmap.h"
@@ -32,13 +30,7 @@
 namespace slib
 {
 
-	enum class TextureFilterMode
-	{
-		Point,
-		Linear
-	};
-	
-	typedef TileMode TextureWrapMode;
+	class Texture;
 	
 	class SLIB_EXPORT TextureInstance : public RenderBaseObjectInstance
 	{
@@ -50,7 +42,7 @@ namespace slib
 		~TextureInstance();
 		
 	public:
-		virtual void notifyUpdated(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
+		virtual void notifyUpdated(Texture* texture, sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
 		
 	protected:
 		Rectanglei m_updatedRegion;
@@ -62,8 +54,8 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 		
 	protected:
-		Texture();
-		
+		Texture(sl_uint32 width, sl_uint32 height);
+
 		~Texture();
 		
 	public:
@@ -84,16 +76,14 @@ namespace slib
 		static Ref<Texture> getBitmapRenderingCache(const Ref<Bitmap>& source);
 		
 	public:
-		Ref<Bitmap> getSource();
-		
-		sl_bool setSource(const Ref<Bitmap>& source);
-		
-		void freeSource();
-		
 		sl_uint32 getWidth();
-		
+
+		void setWidth(sl_uint32 width);
+
 		sl_uint32 getHeight();
-		
+
+		void setHeight(sl_uint32 height);
+
 		void update(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
 		
 		void update();
@@ -101,21 +91,53 @@ namespace slib
 		Ref<TextureInstance> getInstance(RenderEngine* engine);
 		
 	public:
-		SLIB_PROPERTY(TextureFilterMode, MinFilter)
-		SLIB_PROPERTY(TextureFilterMode, MagFilter)
-		SLIB_PROPERTY(TextureWrapMode, WrapX)
-		SLIB_PROPERTY(TextureWrapMode, WrapY)
-		SLIB_BOOLEAN_PROPERTY(FreeSourceOnUpdate)
-		
+		virtual Ref<Bitmap> getSource() = 0;
+
 	protected:
-		AtomicRef<Bitmap> m_source;
-		AtomicWeakRef<Bitmap> m_sourceWeak;
 		sl_uint32 m_width;
 		sl_uint32 m_height;
-		
+
 	};
-	
-	class EngineTexture : public Texture
+
+	class SLIB_EXPORT BitmapTexture : public Texture
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		BitmapTexture(const Ref<Bitmap>& bitmap);
+
+		BitmapTexture(const Ref<Bitmap>& bitmap, sl_uint32 width, sl_uint32 height);
+
+		~BitmapTexture();
+
+	public:
+		Ref<Bitmap> getSource() override;
+
+	protected:
+		Ref<Bitmap> m_source;
+
+	};
+
+	class SLIB_EXPORT WeakBitmapTexture : public Texture
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		WeakBitmapTexture(const Ref<Bitmap>& bitmap);
+
+		WeakBitmapTexture(const Ref<Bitmap>& bitmap, sl_uint32 width, sl_uint32 height);
+
+		~WeakBitmapTexture();
+
+	public:
+		Ref<Bitmap> getSource() override;
+
+	protected:
+		WeakRef<Bitmap> m_source;
+
+	};
+
+	class SLIB_EXPORT EngineTexture : public Texture
 	{
 		SLIB_DECLARE_OBJECT
 		
@@ -123,18 +145,6 @@ namespace slib
 		EngineTexture();
 		
 		~EngineTexture();
-		
-	public:
-		Ref<Referable> getLinkedObject();
-		
-		void setLinkedObject(const Ref<Referable>& object);
-		
-		void setWidth(sl_uint32 width);
-		
-		void setHeight(sl_uint32 height);
-		
-	protected:
-		AtomicRef<Referable> m_linkedObject;
 		
 	};
 

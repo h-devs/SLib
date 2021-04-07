@@ -26,6 +26,7 @@
 #include "slib/core/log.h"
 #include "slib/core/event.h"
 #include "slib/core/file.h"
+#include "slib/core/system.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 #	include <winsock2.h>
@@ -39,6 +40,9 @@
 #		include <linux/if.h>
 #		include <linux/if_packet.h>
 #		include <sys/ioctl.h>
+#		ifndef SO_REUSEPORT
+#			define SO_REUSEPORT 15
+#		endif
 #	else
 #		include <netinet/tcp.h>
 #	endif
@@ -173,7 +177,6 @@ namespace slib
 	{
 		m_socket = SLIB_SOCKET_INVALID_HANDLE;
 		m_type = SocketType::None;
-		m_lastError = SocketError::None;
 	}
 
 	Socket::~Socket()
@@ -319,7 +322,6 @@ namespace slib
 			m_socket = SLIB_SOCKET_INVALID_HANDLE;
 		}
 		m_type = SocketType::None;
-		m_lastError = SocketError::None;
 	}
 
 	sl_bool Socket::isOpened() const
@@ -392,14 +394,14 @@ namespace slib
 		return isIPv6(m_type);
 	}
 
-	SocketError Socket::getLastError() const
+	SocketError Socket::getLastError()
 	{
-		return m_lastError;
+		return (SocketError)(System::getLastError());
 	}
 
-	String Socket::getLastErrorMessage() const
+	String Socket::getLastErrorMessage()
 	{
-		return getErrorMessage(m_lastError);
+		return getErrorMessage(getLastError());
 	}
 
 	sl_bool Socket::shutdown(SocketShutdownMode mode)
@@ -498,7 +500,7 @@ namespace slib
 				return sl_false;
 			}
 			sockaddr_storage addr;
-			Base::resetMemory(&addr, 0, sizeof(addr));
+			Base::zeroMemory(&addr, sizeof(addr));
 			int len = sizeof(addr);
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 			sl_socket client = (sl_socket)(::accept((SOCKET)(m_socket), (sockaddr*)&addr, &len));
@@ -667,7 +669,7 @@ namespace slib
 				return -1;
 			}
 			sockaddr_storage addr;
-			Base::resetMemory(&addr, 0, sizeof(addr));
+			Base::zeroMemory(&addr, sizeof(addr));
 			int lenAddr = sizeof(addr);
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 			sl_int32 ret = ::recvfrom((SOCKET)(m_socket), (char*)buf, size, 0, (sockaddr*)&addr, &lenAddr);
@@ -750,7 +752,7 @@ namespace slib
 				return -1;
 			}
 			sockaddr_ll addr;
-			Base::resetMemory(&addr, 0, sizeof(addr));
+			Base::zeroMemory(&addr, sizeof(addr));
 			int lenAddr = sizeof(addr);
 			sl_int32 ret = (sl_int32)(::recvfrom((SOCKET)(m_socket), (char*)buf, size, 0, (sockaddr*)&addr, (socklen_t*)&lenAddr));
 			if (ret >= 0) {
@@ -1078,7 +1080,7 @@ namespace slib
 
 	SocketError Socket::_setError(SocketError code)
 	{
-		m_lastError = code;
+		System::setLastError((sl_uint32)code);
 		return code;
 	}
 

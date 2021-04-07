@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_IOS)
 
@@ -59,10 +59,10 @@ namespace slib
 			
 			CGFloat g_fGlobalScaleFactor = 0;
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicFunction<void(NSDictionary*)>, g_callbackDidFinishLaunching);
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicFunction<void(NSData*, NSError*)>, g_callbackDidRegisterForRemoteNotifications);
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicFunction<void(NSDictionary*)>, g_callbackDidReceiveRemoteNotification);
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicList< Function<BOOL(NSURL*, NSDictionary*)> >, g_callbackOpenURL);
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSDictionary*)>, g_callbackDidFinishLaunching);
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSData*, NSError*)>, g_callbackDidRegisterForRemoteNotifications);
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSDictionary*)>, g_callbackDidReceiveRemoteNotification);
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicList< Function<BOOL(NSURL*, NSDictionary*)> >, g_callbackOpenURL);
 
 			class ScreenImpl : public Screen
 			{
@@ -241,7 +241,7 @@ namespace slib
 	}
 	
 	void UIPlatform::runApp()
-	{		
+	{
 		char* args[] = {sl_null};
 		@autoreleasepool {
 			UIApplicationMain(0, args, nil, NSStringFromClass([SLIBAppDelegate class]));

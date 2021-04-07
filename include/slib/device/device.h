@@ -23,12 +23,9 @@
 #ifndef CHECKHEADER_SLIB_DEVICE_DEVICE
 #define CHECKHEADER_SLIB_DEVICE_DEVICE
 
-#include "definition.h"
-
 #include "constants.h"
 
 #include "../core/string.h"
-#include "../core/list.h"
 #include "../core/function.h"
 #include "../math/size.h"
 #include "../media/constants.h"
@@ -110,7 +107,7 @@ namespace slib
 		static sl_uint32 getScreenHeight();
 		
 		
-		static void openUrl(const String& url);
+		static void openUrl(const StringParam& url);
 
 
 		static void openDial(const String& phoneNumber);

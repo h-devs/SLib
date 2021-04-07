@@ -32,7 +32,7 @@ namespace slib
 	{
 		namespace linkedin
 		{
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<LinkedIn>, g_instance)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<LinkedIn>, g_instance)
 		}
 	}
 	

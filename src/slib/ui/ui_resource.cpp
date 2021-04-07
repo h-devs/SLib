@@ -370,6 +370,10 @@ namespace slib
 		m_sp = sp;
 	}
 	
+	void UILayoutResource::onInit()
+	{
+	}
+	
 	// avoid recursively layouting
 	void UILayoutResource::_layoutViews_safe(sl_ui_len width, sl_ui_len height)
 	{
@@ -393,7 +397,11 @@ namespace slib
 	
 	void UILayoutResource::setInitialized()
 	{
+		if (m_flagInitialized) {
+			return;
+		}
 		m_flagInitialized = sl_true;
+		onInit();
 	}
 	
 	SLIB_DEFINE_OBJECT(WindowLayout, Window)
@@ -402,19 +410,14 @@ namespace slib
 	{
 		m_contentWidth = 0;
 		m_contentHeight = 0;
-	}
-	
-	WindowLayout::~WindowLayout()
-	{
-	}
-
-	void WindowLayout::init()
-	{
-		Window::init();
 
 		Ref<View> view = Window::getContentView();
 		m_contentViewRef = view;
 		m_contentView = view.get();
+	}
+	
+	WindowLayout::~WindowLayout()
+	{
 	}
 
 	UISize WindowLayout::getContentSize()

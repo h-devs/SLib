@@ -26,7 +26,6 @@
 #include "slib/graphics/bitmap.h"
 #include "slib/graphics/image.h"
 #include "slib/graphics/util.h"
-
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -405,7 +404,7 @@ namespace slib
 
 	Ref<Drawable> EmptyDrawable::get()
 	{
-		SLIB_SAFE_STATIC(Ref<Drawable>, ret, new EmptyDrawable)
+		SLIB_SAFE_LOCAL_STATIC(Ref<Drawable>, ret, new EmptyDrawable)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
 			return new EmptyDrawable;
 		}

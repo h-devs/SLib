@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -101,7 +101,7 @@ namespace slib
 		for (sl_size i = 0; i < devices.count; i++) {
 			if (devices[i].displayName == name) {
 				if(pInfo) {
-					*pInfo = devices[i];				
+					*pInfo = devices[i];
 				}
 				return sl_true;
 			}
@@ -117,12 +117,11 @@ namespace slib
 #include <winsock2.h>
 #include <ws2ipdef.h>
 #include <ws2tcpip.h>
-#include <iphlpapi.h>
 #include <netioapi.h>
 
 #include "slib/core/platform_windows.h"
+#include "slib/network/dl_windows_iphlpapi.h"
 
-#pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
 
 namespace slib
@@ -157,19 +156,23 @@ namespace slib
 
 		MIB_IPADDRTABLE* iptable = 0;
 		ulOutBufLen = 0;
-		if (GetIpAddrTable(iptable, &ulOutBufLen, TRUE) == ERROR_INSUFFICIENT_BUFFER) {
+
+		auto funcGetIpAddrTable = iphlpapi::getApi_GetIpAddrTable();
+		auto funcGetAdaptersAddresses = iphlpapi::getApi_GetAdaptersAddresses();
+
+		if (funcGetIpAddrTable(iptable, &ulOutBufLen, TRUE) == ERROR_INSUFFICIENT_BUFFER) {
 			iptable = (MIB_IPADDRTABLE*)(Base::createMemory(ulOutBufLen));
 		}
 		if (iptable) {
-			if (GetIpAddrTable(iptable, &ulOutBufLen, TRUE) == NO_ERROR) {
+			if (funcGetIpAddrTable(iptable, &ulOutBufLen, TRUE) == NO_ERROR) {
 				IP_ADAPTER_ADDRESSES* pinfo = 0;
 				ulOutBufLen = 0;
-				if (GetAdaptersAddresses(AF_UNSPEC, 0, NULL, pinfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW)
+				if (funcGetAdaptersAddresses(AF_UNSPEC, 0, NULL, pinfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW)
 				{
 					pinfo = (IP_ADAPTER_ADDRESSES*)(Base::createMemory(ulOutBufLen));
 				}
 				if (pinfo) {
-					if (GetAdaptersAddresses(AF_UNSPEC, 0, NULL, pinfo, &ulOutBufLen) == NO_ERROR)
+					if (funcGetAdaptersAddresses(AF_UNSPEC, 0, NULL, pinfo, &ulOutBufLen) == NO_ERROR)
 					{
 						IP_ADAPTER_ADDRESSES* adapter = pinfo;
 						while (adapter) {
@@ -233,7 +236,7 @@ namespace slib
 {
 
 	namespace priv
-	{		
+	{
 		namespace network_os
 		{
 
@@ -408,19 +411,32 @@ namespace slib
 	sl_uint32 Network::getInterfaceIndexFromName(const String& name)
 	{
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-		Socket::initializeSocket();
+		auto func = iphlpapi::getApi_if_nametoindex();
+		if (func) {
+			Socket::initializeSocket();
+			return func(name.getData());
+		}
+		return 0;
+#else
+		return if_nametoindex(name.getData());
 #endif
-		sl_uint32 n = if_nametoindex(name.getData());
-		return n;
 	}
 
 	String Network::getInterfaceNameFromIndex(sl_uint32 index)
 	{
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-		Socket::initializeSocket();
-#endif
 		char buf[256];
-		char* s = if_indextoname(index, buf);
+		char* s;
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		auto func = iphlpapi::getApi_if_indextoname();
+		if (func) {
+			Socket::initializeSocket();
+			s = func(index, buf);
+		} else {
+			return sl_null;
+		}
+#else
+		s = if_indextoname(index, buf);
+#endif
 		if (s) {
 			return String(s);
 		} else {

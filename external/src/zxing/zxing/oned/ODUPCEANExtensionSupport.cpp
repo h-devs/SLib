@@ -131,7 +131,7 @@ namespace UPCEANExtension5Support
 			currency = "";
 			break;
 		}
-		int rawAmount = std::stoi(raw.substr(1));
+		int rawAmount = std_stoi(raw.substr(1));
 		std::stringstream buf;
 		buf << currency << std::fixed << std::setprecision(2) << (float(rawAmount) / 100);
 		return buf.str();
@@ -199,7 +199,7 @@ namespace UPCEANExtension2Support
 			return notFound;
 		}
 
-		if (std::stoi(resultString) % 4 != lgPatternFound) {
+		if (std_stoi(resultString) % 4 != lgPatternFound) {
 			return notFound;
 		}
 
@@ -220,7 +220,7 @@ namespace UPCEANExtension2Support
 
 		Result result(TextDecoder::FromLatin1(resultString), ByteArray(), { ResultPoint(x1, y), ResultPoint(x2, y) }, BarcodeFormat::UPC_EAN_EXTENSION);
 		if (resultString.length() == 2) {
-			result.metadata().put(ResultMetadata::ISSUE_NUMBER, std::stoi(resultString));
+			result.metadata().put(ResultMetadata::ISSUE_NUMBER, std_stoi(resultString));
 		}
 		return result;
 	}

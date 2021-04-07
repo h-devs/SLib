@@ -46,7 +46,7 @@
 		Ref<UrlRequest> request = new UrlRequest;
 		if (request.isNotNull()) {
 			request->_init(param, url);
-			request->m_lastErrorMessage = "Failed to create request";
+			request->m_errorMessage = "Failed to create request";
 			request->onError();
 			return request;
 		}

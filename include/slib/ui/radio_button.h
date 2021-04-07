@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_UI_RADIO_BUTTON
 #define CHECKHEADER_SLIB_UI_RADIO_BUTTON
 
-#include "definition.h"
-
 #include "check_box.h"
 
 namespace slib
@@ -35,34 +33,47 @@ namespace slib
 	class SLIB_EXPORT RadioButton : public CheckBox
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		RadioButton();
-		
-		RadioButton(sl_uint32 nCategories, ButtonCategory* categories);
 
 		~RadioButton();
-		
+
 	public:
 		Ref<RadioGroup> getGroup();
-		
+
 		String getValue();
-		
+
 		void setValue(const String& value);
-		
+
 		void setChecked(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
-		
+
 		void dispatchClickEvent(UIEvent* ev) override;
+
+		Ref<ButtonCell> createButtonCell() override;
 
 	public:
 		AtomicWeakRef<RadioGroup> m_group;
 		AtomicString m_value;
-		
+
 		friend class RadioGroup;
-		
+
+	};
+
+	class SLIB_EXPORT RadioButtonCell : public CheckBoxCell
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		RadioButtonCell();
+
+		RadioButtonCell(const Array<ButtonCategory>& categories);
+
+		~RadioButtonCell();
+
 	};
 
 	class SLIB_EXPORT RadioGroup : public Object

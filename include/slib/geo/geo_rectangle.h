@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_GEO_GEORECTANGLE
 #define CHECKHEADER_SLIB_GEO_GEORECTANGLE
 
-#include "definition.h"
-
 #include "latlon.h"
 
 namespace slib

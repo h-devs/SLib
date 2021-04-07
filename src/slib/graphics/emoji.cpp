@@ -89,7 +89,7 @@ namespace slib
 						String16& str = list[i];
 						sl_size lenStr = str.getLength();
 						if (lenStr <= len && lenStr > ret) {
-							if (Base::equalsMemory2((sl_uint16*)(str.getData()), (sl_uint16*)sz, lenStr)) {
+							if (Base::equalsMemory(str.getData(), sz, lenStr << 1)) {
 								ret = lenStr;
 							}
 						}

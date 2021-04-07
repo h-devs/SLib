@@ -23,11 +23,10 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_AUDIO_DATA
 #define CHECKHEADER_SLIB_MEDIA_AUDIO_DATA
 
-#include "definition.h"
-
 #include "audio_format.h"
 
 #include "../core/ref.h"
+#include "../core/default_members.h"
 
 namespace slib
 {
@@ -77,7 +76,7 @@ namespace slib
 		
 		void copySamplesFrom(const AudioData& other) const;
 		
-	};	
+	};
 }
 
 #endif

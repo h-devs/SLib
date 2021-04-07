@@ -33,9 +33,11 @@
 #include "ui.h"
 #include "media.h"
 #include "device.h"
+#include "storage.h"
 #include "db.h"
 #include "service.h"
 
+#include "doc.h"
 #include "geo.h"
 #include "social.h"
 

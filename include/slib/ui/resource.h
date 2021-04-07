@@ -23,15 +23,13 @@
 #ifndef CHECKHEADER_SLIB_UI_RESOURCE
 #define CHECKHEADER_SLIB_UI_RESOURCE
 
-#include "definition.h"
-
-#include "../core/resource.h"
-
 #include "menu.h"
 #include "event.h"
 #include "view.h"
 #include "window.h"
 #include "mobile_app.h"
+
+#include "../core/resource.h"
 
 namespace slib
 {
@@ -136,7 +134,7 @@ namespace slib
 	
 #define SLIB_DEFINE_MENU_BEGIN(NAME, ...) \
 	const NAME* NAME::get() { \
-		SLIB_SAFE_STATIC(NAME, ret); \
+		SLIB_SAFE_LOCAL_STATIC(NAME, ret); \
 		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) { \
 			return sl_null; \
 		} \
@@ -165,7 +163,6 @@ namespace slib
 #define SLIB_DECLARE_UILAYOUT_BEGIN(NAME, BASE_CLASS) \
 	class NAME : public BASE_CLASS \
 	{ \
-		SLIB_DECLARE_OBJECT \
 	public: \
 		NAME(); \
 	protected: \
@@ -178,7 +175,6 @@ namespace slib
 	};
 	
 #define SLIB_DEFINE_UILAYOUT(NAME, BASE_CLASS) \
-	SLIB_DEFINE_OBJECT(NAME, BASE_CLASS) \
 	NAME::NAME() {} \
 	void NAME::init() \
 	{ \
@@ -207,6 +203,8 @@ namespace slib
 		
 	protected:
 		virtual void layoutViews(sl_ui_len width, sl_ui_len height) = 0;
+
+		virtual void onInit();
 		
 	protected:
 		void _layoutViews_safe(sl_ui_len width, sl_ui_len height);
@@ -244,9 +242,6 @@ namespace slib
 		WindowLayout();
 		
 		~WindowLayout();
-
-	protected:
-		void init() override;
 
 	public:
 		UISize getContentSize();
@@ -330,16 +325,18 @@ namespace slib
 	class TextArea;
 	class ImageView;
 	class SelectView;
+	class SelectSwitch;
+	class ComboBox;
 	class ScrollView;
-	class LinearView;
+	class LinearLayout;
 	class ListView;
-	class ListReportView;
+	class ListControl;
 	class RenderView;
 	class TabView;
 	class TreeView;
 	class WebView;
 	class ChromiumView;
-	class SplitView;
+	class SplitLayout;
 	class ProgressBar;
 	class Slider;
 	class SwitchView;
@@ -353,8 +350,11 @@ namespace slib
 	class Drawer;
 	class RefreshView;
 	class CollectionView;
-	class GridView;
+	class TableLayout;
 	class ChatView;
+	class ListBox;
+	class LabelList;
+	class TileLayout;
 
 }
 

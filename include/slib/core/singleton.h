@@ -34,7 +34,7 @@ public: \
 	slib::Ref<TYPE> TYPE::getInstance() \
 	{ \
 		SLIB_TRY_CONVERT_TYPE(TYPE*, Referable*) \
-		SLIB_SAFE_STATIC(slib::Ref<TYPE>, instance, new TYPE(__VA_ARGS__)); \
+		SLIB_SAFE_LOCAL_STATIC(slib::Ref<TYPE>, instance, new TYPE(__VA_ARGS__)); \
 		if (SLIB_SAFE_STATIC_CHECK_FREED(instance)) { \
 			return sl_null; \
 		} \
@@ -45,7 +45,7 @@ public: \
 	slib::Ref<TYPE> TYPE::getInstance() \
 	{ \
 		SLIB_TRY_CONVERT_TYPE(TYPE*, Referable*) \
-		SLIB_SAFE_STATIC(slib::Ref<TYPE>, instance, Init<TYPE>(__VA_ARGS__)); \
+		SLIB_SAFE_LOCAL_STATIC(slib::Ref<TYPE>, instance, Init<TYPE>(__VA_ARGS__)); \
 		if (SLIB_SAFE_STATIC_CHECK_FREED(instance)) { \
 			return sl_null; \
 		} \

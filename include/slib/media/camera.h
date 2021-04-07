@@ -23,12 +23,11 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_CAMERA
 #define CHECKHEADER_SLIB_MEDIA_CAMERA
 
-#include "definition.h"
-
 #include "video_capture.h"
 
 #include "../graphics/image.h"
 #include "../core/function.h"
+#include "../core/queue.h"
 
 namespace slib
 {

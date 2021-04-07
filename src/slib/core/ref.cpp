@@ -22,6 +22,9 @@
 
 #include "slib/core/ref.h"
 
+#include "slib/core/base.h"
+#include "slib/core/string_buffer.h"
+
 #define PRIV_SIGNATURE 0x15181289
 
 namespace slib
@@ -41,18 +44,15 @@ namespace slib
 		}
 	}
 
-	Referable::Referable() noexcept
-	 : m_nRefCount(0), m_weak(sl_null)
+	Referable::Referable() noexcept: m_nRefCount(0), m_weak(sl_null)
 	{
 	}
 
-	Referable::Referable(const Referable& other) noexcept
-	 : m_nRefCount(0), m_weak(sl_null)
+	Referable::Referable(const Referable& other) noexcept: m_nRefCount(0), m_weak(sl_null)
 	{
 	}
 	
-	Referable::Referable(Referable&& other) noexcept
-	 : m_nRefCount(0), m_weak(sl_null)
+	Referable::Referable(Referable&& other) noexcept: m_nRefCount(0), m_weak(sl_null)
 	{
 	}
 
@@ -116,11 +116,20 @@ namespace slib
 	{
 		return sl_false;
 	}
-	
+
+	String Referable::toString()
+	{
+		return String::join("<ref:0x", String::fromPointerValue(this), ">");
+	}
+
+	sl_bool Referable::toJsonString(StringBuffer& buf)
+	{
+		return buf.addStatic("{}");
+	}
+
 	sl_bool Referable::_isWeakRef() const noexcept
 	{
-		static CWeakRef weak;
-		return *((sl_size*)(void*)this) == *((sl_size*)(void*)&weak);
+		return getObjectType() == CWeakRef::ObjectType();
 	}
 
 	CWeakRef* Referable::_getWeakObject() noexcept

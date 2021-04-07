@@ -91,7 +91,7 @@ namespace slib
 		
 		List< Ref<SAppLayoutResource> > getLayouts();
 		
-		void simulateLayoutInWindow(const String& layoutName, const SAppSimulateLayoutParam& param);
+		sl_bool simulateLayoutInWindow(const String& layoutName, const SAppSimulateLayoutParam& param);
 		
 		Locale getCurrentSimulatorLocale();
 		
@@ -184,7 +184,7 @@ namespace slib
 		sl_bool _generateLayoutsCpp(const String& targetPath);
 		sl_bool _generateLayoutsCpp_Layout(const String& targetPath, SAppLayoutResource* layout);
 		sl_bool _generateLayoutsCpp_Item(SAppLayoutResource* layout, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, StringBuffer& sbDeclare, StringBuffer& sbDefineInit, StringBuffer& sbDefineLayout, const String& addStatement);
-		void _simulateLayoutInWindow(SAppLayoutResource* layout, const SAppSimulateLayoutParam& param);
+		sl_bool _simulateLayoutInWindow(SAppLayoutResource* layout, const SAppSimulateLayoutParam& param);
 		void _registerLayoutSimulationWindow(const Ref<SAppLayoutSimulationWindow>& window);
 		void _removeLayoutSimulationWindow(const Ref<SAppLayoutSimulationWindow>& window);
 		Ref<View> _simulateLayoutCreateOrLayoutView(SAppLayoutSimulator* simulator, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, View* parentView, sl_bool flagOnLayout);
@@ -228,12 +228,14 @@ namespace slib
 		sl_bool _processLayoutResourceControl_TextArea(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Image(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Select(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_SelectSwitch(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_ComboBox(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Scroll(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Linear(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_List(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Collection(LayoutControlProcessParams* params);
-		sl_bool _processLayoutResourceControl_Grid(LayoutControlProcessParams* params);
-		sl_bool _processLayoutResourceControl_ListReport(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_Table(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_ListControl(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Render(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Tab(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Tree(LayoutControlProcessParams* params);
@@ -248,10 +250,12 @@ namespace slib
 		sl_bool _processLayoutResourceControl_Navigation(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Video(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Camera(LayoutControlProcessParams* params);
-		sl_bool _processLayoutResourceControl_QRCodeScanner(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Drawer(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Chat(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Refresh(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_ListBox(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_LabelList(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_TileLayout(LayoutControlProcessParams* params);
 
 	private:
 		sl_bool m_flagOpened;

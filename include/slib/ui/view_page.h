@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_VIEW_PAGE
 #define CHECKHEADER_SLIB_VIEW_PAGE
 
-#include "definition.h"
-
 #include "view_page_navigation.h"
 
 namespace slib
@@ -66,6 +64,8 @@ namespace slib
 		void goToHomePage(const Ref<View>& pageOther, const Transition& transition);
 		
 		void goToHomePage(const Ref<View>& pageOther);
+
+		Ref<Window> createNavigationWindow();
 		
 		
 		void popup(const Ref<View>& parent, const Transition& transition, sl_bool flagFillParentBackground = sl_true);
@@ -87,6 +87,11 @@ namespace slib
 		static Color getDefaultPopupBackgroundColor();
 		
 		static void setDefaultPopupBackgroundColor(const Color& color);
+
+		
+		Ref<View> getInitialFocus();
+
+		void setInitialFocus(const Ref<View>& view);
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ViewPage, Open)
@@ -136,6 +141,8 @@ namespace slib
 		Color m_popupBackgroundColor;
 
 		sl_reg m_countActiveTransitionAnimations;
+
+		AtomicRef<View> m_viewInitialFocus;
 		
 		friend class ViewPageNavigationController;
 		

@@ -23,9 +23,9 @@
 #ifndef CHECKHEADER_SLIB_UI_TOAST
 #define CHECKHEADER_SLIB_UI_TOAST
 
-#include "definition.h"
-
 #include "view.h"
+
+#include "../core/string.h"
 
 namespace slib
 {

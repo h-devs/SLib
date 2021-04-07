@@ -54,7 +54,7 @@ namespace slib
 				SLIB_JNI_STATIC_METHOD(openSystemOverlaySetting, "openSystemOverlaySetting", "(Landroid/app/Activity;)V");
 			SLIB_JNI_END_CLASS
 
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicFunction<void()>, g_callbackOnGrantPermission);
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callbackOnGrantPermission);
 
 			SLIB_JNI_BEGIN_CLASS_SECTION(JApplication)
 				SLIB_JNI_NATIVE_IMPL(nativeOnCallbackGrantPermissions, "nativeOnCallbackGrantPermissions", "()V", void)
@@ -64,7 +64,7 @@ namespace slib
 				}
 			SLIB_JNI_END_CLASS_SECTION
 
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicFunction<void()>, g_callbackOnRequestRole);
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callbackOnRequestRole);
 
 			SLIB_JNI_BEGIN_CLASS_SECTION(JApplication)
 				SLIB_JNI_NATIVE_IMPL(nativeOnCallbackRequestRole, "nativeOnCallbackRequestRole", "()V", void)
@@ -74,7 +74,7 @@ namespace slib
 				}
 			SLIB_JNI_END_CLASS_SECTION
 
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicFunction<void()>, g_callbackOnSetDefaultCallingApp);
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callbackOnSetDefaultCallingApp);
 
 			SLIB_JNI_BEGIN_CLASS_SECTION(JApplication)
 				SLIB_JNI_NATIVE_IMPL(nativeOnCallbackSetDefaultCallingApp, "nativeOnCallbackSetDefaultCallingApp", "()V", void)

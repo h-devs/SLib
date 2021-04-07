@@ -1,0 +1,6 @@
+#define android_getCpuFamily vpx_android_getCpuFamily
+#define android_getCpuFeatures vpx_android_getCpuFeatures
+#define android_getCpuCount vpx_android_getCpuCount
+#define android_setCpu vpx_android_setCpu
+#define android_getCpuIdArm vpx_android_getCpuIdArm
+#define android_setCpuArm vpx_android_setCpuArm

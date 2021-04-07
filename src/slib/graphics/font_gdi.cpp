@@ -20,13 +20,14 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_GDI)
 
 #include "slib/graphics/font.h"
 
 #include "slib/graphics/platform.h"
+#include "slib/core/hash_map.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -222,6 +223,36 @@ namespace slib
 
 			};
 
+			int CALLBACK EnumFontFamilyNamesProc(
+				const LOGFONT* plf,
+				const TEXTMETRIC *lpntme,
+				DWORD FontType,
+				LPARAM lParam
+			)
+			{
+				ENUMLOGFONTEXW& elf = *((ENUMLOGFONTEXW*)plf);
+				HashMap<String, sl_bool>& map = *((HashMap<String, sl_bool>*)lParam);
+				map.put_NoLock(String::create(elf.elfLogFont.lfFaceName), sl_true);
+				return TRUE;
+			}
+
+			class FontResourceRef : public Referable
+			{
+			public:
+				HANDLE m_handle;
+
+			public:
+				FontResourceRef(HANDLE handle) : m_handle(handle)
+				{
+				}
+
+				~FontResourceRef()
+				{
+					RemoveFontMemResourceEx(m_handle);
+				}
+
+			};
+
 		}
 	}
 
@@ -259,10 +290,11 @@ namespace slib
 		Size ret(0, 0);
 		if (fs->graphics) {
 			StringData16 text(_text);
-			Gdiplus::StringFormat format(Gdiplus::StringFormatFlagsNoWrap | Gdiplus::StringFormatFlagsNoClip | Gdiplus::StringFormatFlagsNoFitBlackBox);
+			Gdiplus::StringFormat format(Gdiplus::StringFormat::GenericTypographic());
+			format.SetFormatFlags(format.GetFormatFlags() | Gdiplus::StringFormatFlagsMeasureTrailingSpaces);
 			Gdiplus::RectF bound;
 			Gdiplus::PointF origin(0, 0);
-			Gdiplus::Status result = fs->graphics->MeasureString((WCHAR*)(text.getData()), (INT)(text.getLength()), handle, origin, Gdiplus::StringFormat::GenericTypographic(), &bound);
+			Gdiplus::Status result = fs->graphics->MeasureString((WCHAR*)(text.getData()), (INT)(text.getLength()), handle, origin, &format, &bound);
 			if (result == Gdiplus::Ok) {
 				ret.x = bound.Width;
 				ret.y = bound.Height;
@@ -288,6 +320,40 @@ namespace slib
 			return font->getGDI();
 		}
 		return NULL;
+	}
+
+	List<String> Font::getAllFamilyNames()
+	{
+		HDC hDC = GetDC(NULL);
+		if (hDC) {
+			HashMap<String, sl_bool> map;
+			LOGFONTW lf;
+			Base::zeroMemory(&lf, sizeof(lf));
+			lf.lfCharSet = DEFAULT_CHARSET;
+			EnumFontFamiliesExW(hDC, &lf, EnumFontFamilyNamesProc, (LPARAM)&map, 0);
+			ReleaseDC(NULL, hDC);
+			return map.getAllKeys();
+		}
+		return sl_null;
+	}
+
+	sl_bool Font::_addFontResource(const void* data, sl_size size, Ref<Referable>* pRef)
+	{
+		DWORD nFonts = 0;
+		HANDLE handle = AddFontMemResourceEx((PVOID)data, (DWORD)size, NULL, &nFonts);
+		if (handle) {
+			if (pRef) {
+				Ref<Referable> ref = new FontResourceRef(handle);
+				if (ref.isNotNull()) {
+					*pRef = Move(ref);
+					return sl_true;
+				}
+				RemoveFontMemResourceEx(handle);
+			} else {
+				return sl_true;
+			}
+		}
+		return sl_false;
 	}
 
 }

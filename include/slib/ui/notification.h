@@ -26,6 +26,7 @@
 #include "definition.h"
 
 #include "../core/function.h"
+#include "../core/flags.h"
 #include "../service/push_notification.h"
 #include "../graphics/image.h"
 
@@ -114,24 +115,17 @@ namespace slib
 		
 	};
 
-	class UserNotificationAuthorizationOptions
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(UserNotificationAuthorizationOptions, value)
-		
-		// same as UNAuthorizationOptions
-		enum {
-			Badge = 1,
-			Sound = (1<<1),
-			Alert = (1<<2),
-			CarPlay = (1<<3),
-			CriticalAlert = (1<<4),
-			ProvidesAppNotificationSettings = (1<<5),
-			Provisional = (1<<6),
-			Announcement = (1<<7)
-		};
-	};
+	// same as UNAuthorizationOptions
+	SLIB_DEFINE_FLAGS(UserNotificationAuthorizationOptions, {
+		Badge = 1,
+		Sound = (1<<1),
+		Alert = (1<<2),
+		CarPlay = (1<<3),
+		CriticalAlert = (1<<4),
+		ProvidesAppNotificationSettings = (1<<5),
+		Provisional = (1<<6),
+		Announcement = (1<<7)
+	})
 
 	class SLIB_EXPORT UserNotification : public Object
 	{

@@ -34,9 +34,9 @@
 #include "network/async.h"
 #include "network/io.h"
 #include "network/event.h"
-#include "network/capture.h"
 
 #include "network/tcpip.h"
+#include "network/tcpip_fragment.h"
 #include "network/dns.h"
 #include "network/icmp.h"
 #include "network/nat.h"
@@ -48,5 +48,8 @@
 #include "network/curl.h"
 #include "network/http.h"
 #include "network/stun.h"
+
+#include "network/capture.h"
+#include "network/tap.h"
 
 #endif

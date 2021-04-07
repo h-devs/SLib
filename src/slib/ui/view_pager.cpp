@@ -50,11 +50,6 @@ namespace slib
 	{
 	}
 	
-	void ViewPager::init()
-	{
-		ViewGroup::init();
-	}
-	
 	void ViewPager::setAdapter(const Ref<ViewAdapter>& adapter, UIUpdateMode mode)
 	{
 		m_adapter = adapter;

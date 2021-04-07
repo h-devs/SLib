@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
  */
 
 #include "slib/ui/event.h"
+#include "slib/ui/drag.h"
 
 #include "slib/ui/core.h"
 #include "slib/ui/view.h"
@@ -39,6 +40,10 @@ namespace slib
 	}
 
 	TouchPoint::TouchPoint(const UIPointf& _point) : point(_point), pressure(0), phase(TouchPhase::Move), pointerId(0)
+	{
+	}
+
+	TouchPoint::TouchPoint(const UIPointf& _point, sl_real _pressure) : point(_point), pressure(_pressure), phase(TouchPhase::Move), pointerId(0)
 	{
 	}
 
@@ -217,6 +222,12 @@ sl_bool UIEvent::is##NAME##Key() const \
 	{
 	}
 
+	void DragItem::clear()
+	{
+		m_text.setNull();
+		m_files.setNull();
+	}
+
 	const String& DragItem::getText() const
 	{
 		return m_text;
@@ -225,6 +236,16 @@ sl_bool UIEvent::is##NAME##Key() const \
 	void DragItem::setText(const String& text)
 	{
 		m_text = text;
+	}
+
+	const List<String>& DragItem::getFiles() const
+	{
+		return m_files;
+	}
+
+	void DragItem::setFiles(const List<String>& files)
+	{
+		m_files = files;
 	}
 
 	const UIRect& DragItem::getFrame() const
@@ -255,7 +276,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DragContext)
 
-	DragContext::DragContext(): operation(0), operationMask(DragOperations::All), sn(0)
+	DragContext::DragContext(): operation(0), operationMask(DragOperations::All)
 	{
 	}
 
@@ -268,6 +289,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 	{
 		view.setNull();
 	}
+
 
 	SLIB_DEFINE_ROOT_OBJECT(UIEvent)
 
@@ -451,8 +473,17 @@ sl_bool UIEvent::is##NAME##Key() const \
 	{
 	}
 
+	UIEvent::UIEvent(UIAction action, const UIEventFlags& flags, const Time& time) : m_flags(flags), m_action(action), m_time(time)
+	{
+	}
+
 	UIEvent::~UIEvent()
 	{
+	}
+
+	Ref<UIEvent> UIEvent::createUnknown(const UIEventFlags& flags, const Time& time)
+	{
+		return new UIEvent(UIAction::Unknown, flags, time);
 	}
 
 	Ref<UIEvent> UIEvent::createUnknown(const Time& time)
@@ -813,7 +844,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 		if (IsInstanceOf<DragEvent>(this)) {
 			return ((DragEvent*)this)->m_context.item;
 		}
-		static DragItem item;
+		SLIB_SAFE_LOCAL_STATIC(DragItem, item);
 		return item;
 	}
 
@@ -851,21 +882,6 @@ sl_bool UIEvent::is##NAME##Key() const \
 	{
 		if (IsInstanceOf<DragEvent>(this)) {
 			((DragEvent*)this)->m_context.operation = op;
-		}
-	}
-
-	sl_uint64 UIEvent::getDragId() const
-	{
-		if (IsInstanceOf<DragEvent>(this)) {
-			return ((DragEvent*)this)->m_context.sn;
-		}
-		return 0;
-	}
-
-	void UIEvent::setDragId(sl_uint64 _id)
-	{
-		if (IsInstanceOf<DragEvent>(this)) {
-			((DragEvent*)this)->m_context.sn = _id;
 		}
 	}
 
@@ -945,7 +961,21 @@ sl_bool UIEvent::is##NAME##Key() const \
 			SLIB_RESET_FLAG(m_flags, UIEventFlags::PassToNext);
 		}
 	}
-	
+
+	sl_bool UIEvent::isInternal()
+	{
+		return SLIB_CHECK_FLAG(m_flags, UIEventFlags::Internal);
+	}
+
+	void UIEvent::setInternal(sl_bool flag)
+	{
+		if (flag) {
+			SLIB_SET_FLAG(m_flags, UIEventFlags::Internal);
+		} else {
+			SLIB_RESET_FLAG(m_flags, UIEventFlags::Internal);
+		}
+	}
+
 	Ref<UIEvent> UIEvent::duplicate() const
 	{
 		Ref<UIEvent> ret = new UIEvent(m_action, m_time);
@@ -1143,6 +1173,8 @@ sl_bool UIEvent::is##NAME##Key() const \
 					PRIV_MAP_KEY(NumLock)
 					PRIV_MAP_KEY(ContextMenu)
 
+					PRIV_MAP_KEY(Chinese)
+					PRIV_MAP_KEY(Korean)
 				}
 				
 				String get(Keycode code, sl_bool flagShort)
@@ -1194,9 +1226,271 @@ sl_bool UIEvent::is##NAME##Key() const \
 		return Keycode::Unknown;
 	}
 
+#define KEYCODE_CHAR_MAPPING(CODE, ch) \
+	case Keycode::CODE: \
+		return ch;
+#define KEYCODE_CHAR_MAPPING2(CODE, chLower, chUpper) \
+	case Keycode::CODE: \
+		if (flagUpper) { \
+			return chUpper; \
+		} else { \
+			return chLower; \
+		}
+
+	sl_char8 UIEvent::getCharFromKeycode(Keycode code, sl_bool flagUpper)
+	{
+		switch (code) {
+			KEYCODE_CHAR_MAPPING(Tab, '\t')
+			KEYCODE_CHAR_MAPPING(Enter, '\n')
+			KEYCODE_CHAR_MAPPING(Space, ' ')
+			KEYCODE_CHAR_MAPPING2(Grave, '`', '~')
+			KEYCODE_CHAR_MAPPING2(Equal, '=', '+')
+			KEYCODE_CHAR_MAPPING2(Semicolon, ';', ':')
+			KEYCODE_CHAR_MAPPING2(Backslash, '\\', '|')
+			KEYCODE_CHAR_MAPPING2(LeftBaracket, '[', '{')
+			KEYCODE_CHAR_MAPPING2(RightBaracket, ']', '}')
+			KEYCODE_CHAR_MAPPING2(Quote, '\'', '"')
+			KEYCODE_CHAR_MAPPING2(Comma, ',', '<')
+			KEYCODE_CHAR_MAPPING2(Minus, '-', '_')
+			KEYCODE_CHAR_MAPPING2(Period, '.', '>')
+			KEYCODE_CHAR_MAPPING2(Divide, '/', '?')
+			KEYCODE_CHAR_MAPPING2(Num0, '0', ')')
+			KEYCODE_CHAR_MAPPING2(Num1, '1', '!')
+			KEYCODE_CHAR_MAPPING2(Num2, '2', '@')
+			KEYCODE_CHAR_MAPPING2(Num3, '3', '#')
+			KEYCODE_CHAR_MAPPING2(Num4, '4', '$')
+			KEYCODE_CHAR_MAPPING2(Num5, '5', '%')
+			KEYCODE_CHAR_MAPPING2(Num6, '6', '^')
+			KEYCODE_CHAR_MAPPING2(Num7, '7', '&')
+			KEYCODE_CHAR_MAPPING2(Num8, '8', '*')
+			KEYCODE_CHAR_MAPPING2(Num9, '9', '(')
+			KEYCODE_CHAR_MAPPING2(A, 'a', 'A')
+			KEYCODE_CHAR_MAPPING2(B, 'b', 'B')
+			KEYCODE_CHAR_MAPPING2(C, 'c', 'C')
+			KEYCODE_CHAR_MAPPING2(D, 'd', 'D')
+			KEYCODE_CHAR_MAPPING2(E, 'e', 'E')
+			KEYCODE_CHAR_MAPPING2(F, 'f', 'F')
+			KEYCODE_CHAR_MAPPING2(G, 'g', 'G')
+			KEYCODE_CHAR_MAPPING2(H, 'h', 'H')
+			KEYCODE_CHAR_MAPPING2(I, 'i', 'I')
+			KEYCODE_CHAR_MAPPING2(J, 'j', 'J')
+			KEYCODE_CHAR_MAPPING2(K, 'k', 'K')
+			KEYCODE_CHAR_MAPPING2(L, 'l', 'L')
+			KEYCODE_CHAR_MAPPING2(M, 'm', 'M')
+			KEYCODE_CHAR_MAPPING2(N, 'n', 'N')
+			KEYCODE_CHAR_MAPPING2(O, 'o', 'O')
+			KEYCODE_CHAR_MAPPING2(P, 'p', 'P')
+			KEYCODE_CHAR_MAPPING2(Q, 'q', 'Q')
+			KEYCODE_CHAR_MAPPING2(R, 'r', 'R')
+			KEYCODE_CHAR_MAPPING2(S, 's', 'S')
+			KEYCODE_CHAR_MAPPING2(T, 't', 'T')
+			KEYCODE_CHAR_MAPPING2(U, 'u', 'U')
+			KEYCODE_CHAR_MAPPING2(V, 'v', 'V')
+			KEYCODE_CHAR_MAPPING2(W, 'w', 'W')
+			KEYCODE_CHAR_MAPPING2(X, 'x', 'X')
+			KEYCODE_CHAR_MAPPING2(Y, 'y', 'Y')
+			KEYCODE_CHAR_MAPPING2(Z, 'z', 'Z')
+			KEYCODE_CHAR_MAPPING(Numpad0, '0')
+			KEYCODE_CHAR_MAPPING(Numpad1, '1')
+			KEYCODE_CHAR_MAPPING(Numpad2, '2')
+			KEYCODE_CHAR_MAPPING(Numpad3, '3')
+			KEYCODE_CHAR_MAPPING(Numpad4, '4')
+			KEYCODE_CHAR_MAPPING(Numpad5, '5')
+			KEYCODE_CHAR_MAPPING(Numpad6, '6')
+			KEYCODE_CHAR_MAPPING(Numpad7, '7')
+			KEYCODE_CHAR_MAPPING(Numpad8, '8')
+			KEYCODE_CHAR_MAPPING(Numpad9, '9')
+			KEYCODE_CHAR_MAPPING(NumpadDivide, '/')
+			KEYCODE_CHAR_MAPPING(NumpadMultiply, '*')
+			KEYCODE_CHAR_MAPPING(NumpadMinus, '-')
+			KEYCODE_CHAR_MAPPING(NumpadPlus, '+')
+			KEYCODE_CHAR_MAPPING(NumpadEnter, '\n')
+			KEYCODE_CHAR_MAPPING(NumpadDecimal, '.')
+			default:
+				break;
+		}
+		return 0;
+	}
+
+#define KEYCODE_WIN32_MAPPING(keycode, win) case win: return Keycode::keycode;
+	Keycode UIEvent::getKeycodeFromWin32Keycode(sl_uint32 code)
+	{
+		switch (code) {
+			KEYCODE_WIN32_MAPPING(Tab, 0x09) // VK_TAB
+			KEYCODE_WIN32_MAPPING(Enter, 0x0D); // VK_RETURN
+			KEYCODE_WIN32_MAPPING(Escape, 0x1B); // VK_ESCAPE
+			KEYCODE_WIN32_MAPPING(Space, 0x20); // VK_SPACE
+			KEYCODE_WIN32_MAPPING(Grave, 0xC0); // VK_OEM_3
+			KEYCODE_WIN32_MAPPING(Equal, 0xBB); // VK_OEM_PLUS
+			KEYCODE_WIN32_MAPPING(Semicolon, 0xBA); // VK_OEM_1
+			KEYCODE_WIN32_MAPPING(Backslash, 0xDC); // VK_OEM_5
+			KEYCODE_WIN32_MAPPING(LeftBaracket, 0xDB); // VK_OEM_4
+			KEYCODE_WIN32_MAPPING(RightBaracket, 0xDD); // VK_OEM_6
+			KEYCODE_WIN32_MAPPING(Quote, 0xDE); // VK_OEM_7
+			KEYCODE_WIN32_MAPPING(Comma, 0xBC); // VK_OEM_COMMA
+			KEYCODE_WIN32_MAPPING(Minus, 0xBD); // VK_OEM_MINUS
+			KEYCODE_WIN32_MAPPING(Period, 0xBE); // VK_OEM_PERIOD
+			KEYCODE_WIN32_MAPPING(Divide, 0xBF); // VK_OEM_2
+			KEYCODE_WIN32_MAPPING(Num0, '0');
+			KEYCODE_WIN32_MAPPING(Num1, '1');
+			KEYCODE_WIN32_MAPPING(Num2, '2');
+			KEYCODE_WIN32_MAPPING(Num3, '3');
+			KEYCODE_WIN32_MAPPING(Num4, '4');
+			KEYCODE_WIN32_MAPPING(Num5, '5');
+			KEYCODE_WIN32_MAPPING(Num6, '6');
+			KEYCODE_WIN32_MAPPING(Num7, '7');
+			KEYCODE_WIN32_MAPPING(Num8, '8');
+			KEYCODE_WIN32_MAPPING(Num9, '9');
+			KEYCODE_WIN32_MAPPING(A, 'A');
+			KEYCODE_WIN32_MAPPING(B, 'B');
+			KEYCODE_WIN32_MAPPING(C, 'C');
+			KEYCODE_WIN32_MAPPING(D, 'D');
+			KEYCODE_WIN32_MAPPING(E, 'E');
+			KEYCODE_WIN32_MAPPING(F, 'F');
+			KEYCODE_WIN32_MAPPING(G, 'G');
+			KEYCODE_WIN32_MAPPING(H, 'H');
+			KEYCODE_WIN32_MAPPING(I, 'I');
+			KEYCODE_WIN32_MAPPING(J, 'J');
+			KEYCODE_WIN32_MAPPING(K, 'K');
+			KEYCODE_WIN32_MAPPING(L, 'L');
+			KEYCODE_WIN32_MAPPING(M, 'M');
+			KEYCODE_WIN32_MAPPING(N, 'N');
+			KEYCODE_WIN32_MAPPING(O, 'O');
+			KEYCODE_WIN32_MAPPING(P, 'P');
+			KEYCODE_WIN32_MAPPING(Q, 'Q');
+			KEYCODE_WIN32_MAPPING(R, 'R');
+			KEYCODE_WIN32_MAPPING(S, 'S');
+			KEYCODE_WIN32_MAPPING(T, 'T');
+			KEYCODE_WIN32_MAPPING(U, 'U');
+			KEYCODE_WIN32_MAPPING(V, 'V');
+			KEYCODE_WIN32_MAPPING(W, 'W');
+			KEYCODE_WIN32_MAPPING(X, 'X');
+			KEYCODE_WIN32_MAPPING(Y, 'Y');
+			KEYCODE_WIN32_MAPPING(Z, 'Z');
+			KEYCODE_WIN32_MAPPING(Numpad0, 0x60); // VK_NUMPAD0
+			KEYCODE_WIN32_MAPPING(Numpad1, 0x61);
+			KEYCODE_WIN32_MAPPING(Numpad2, 0x62);
+			KEYCODE_WIN32_MAPPING(Numpad3, 0x63);
+			KEYCODE_WIN32_MAPPING(Numpad4, 0x64);
+			KEYCODE_WIN32_MAPPING(Numpad5, 0x65);
+			KEYCODE_WIN32_MAPPING(Numpad6, 0x66);
+			KEYCODE_WIN32_MAPPING(Numpad7, 0x67);
+			KEYCODE_WIN32_MAPPING(Numpad8, 0x68);
+			KEYCODE_WIN32_MAPPING(Numpad9, 0x69);
+			KEYCODE_WIN32_MAPPING(NumpadDivide, 0x6F); // VK_DIVIDE
+			KEYCODE_WIN32_MAPPING(NumpadMultiply, 0x6A); // VK_MULTIPLY
+			KEYCODE_WIN32_MAPPING(NumpadMinus, 0x6D); // VK_SUBTRACT
+			KEYCODE_WIN32_MAPPING(NumpadPlus, 0x6B); // VK_ADD
+			KEYCODE_WIN32_MAPPING(NumpadDecimal, 0x6E); // VK_DECIMAL
+			KEYCODE_WIN32_MAPPING(F1, 0x70); // VK_F1
+			KEYCODE_WIN32_MAPPING(F2, 0x71);
+			KEYCODE_WIN32_MAPPING(F3, 0x72);
+			KEYCODE_WIN32_MAPPING(F4, 0x73);
+			KEYCODE_WIN32_MAPPING(F5, 0x74);
+			KEYCODE_WIN32_MAPPING(F6, 0x75);
+			KEYCODE_WIN32_MAPPING(F7, 0x76);
+			KEYCODE_WIN32_MAPPING(F8, 0x77);
+			KEYCODE_WIN32_MAPPING(F9, 0x78);
+			KEYCODE_WIN32_MAPPING(F10, 0x79);
+			KEYCODE_WIN32_MAPPING(F11, 0x7A);
+			KEYCODE_WIN32_MAPPING(F12, 0x7B);
+			KEYCODE_WIN32_MAPPING(Backspace, 0x08); // VK_BACK
+			KEYCODE_WIN32_MAPPING(PageUp, 0x21); // VK_PRIOR
+			KEYCODE_WIN32_MAPPING(PageDown, 0x22); // VK_NEXT
+			KEYCODE_WIN32_MAPPING(Home, 0x24); // VK_HOME
+			KEYCODE_WIN32_MAPPING(End, 0x23); // VK_END
+			KEYCODE_WIN32_MAPPING(Left, 0x25); // VK_LEFT
+			KEYCODE_WIN32_MAPPING(Up, 0x26); // VK_UP
+			KEYCODE_WIN32_MAPPING(Right, 0x27); // VK_RIGHT
+			KEYCODE_WIN32_MAPPING(Down, 0x28); // VK_DOWN
+			KEYCODE_WIN32_MAPPING(PrintScreen, 0x2C); // VK_SNAPSHOT
+			KEYCODE_WIN32_MAPPING(Insert, 0x2D); // VK_INSERT
+			KEYCODE_WIN32_MAPPING(Delete, 0x2E); // VK_DELETE
+			KEYCODE_WIN32_MAPPING(Sleep, 0x5F); // VK_SLEEP
+			KEYCODE_WIN32_MAPPING(Pause, 0x13); // VK_PAUSE
+			KEYCODE_WIN32_MAPPING(VolumeMute, 0xAD); // VK_VOLUME_MUTE
+			KEYCODE_WIN32_MAPPING(VolumeDown, 0xAE); // VK_VOLUME_DOWN
+			KEYCODE_WIN32_MAPPING(VolumeUp, 0xAF); // VK_VOLUME_UP
+			KEYCODE_WIN32_MAPPING(MediaPrev, 0xB1); // VK_MEDIA_PREV_TRACK
+			KEYCODE_WIN32_MAPPING(MediaNext, 0xB0); // VK_MEDIA_NEXT_TRACK
+			KEYCODE_WIN32_MAPPING(MediaPause, 0xB3); // VK_MEDIA_PLAY_PAUSE
+			KEYCODE_WIN32_MAPPING(MediaStop, 0xB2); // VK_MEDIA_STOP
+			KEYCODE_WIN32_MAPPING(LeftShift, 0xA0); // VK_LSHIFT
+			KEYCODE_WIN32_MAPPING(RightShift, 0xA1); // VK_RSHIFT
+			KEYCODE_WIN32_MAPPING(LeftControl, 0xA2); // VK_LCONTROL
+			KEYCODE_WIN32_MAPPING(RightControl, 0xA3); // VK_RCONTROL
+			KEYCODE_WIN32_MAPPING(LeftAlt, 0xA4); // VK_LMENU
+			KEYCODE_WIN32_MAPPING(RightAlt, 0xA5); // VK_RMENU
+			KEYCODE_WIN32_MAPPING(LeftWin, 0x5B); // VK_LWIN
+			KEYCODE_WIN32_MAPPING(RightWin, 0x5C); // VK_RWIN
+			KEYCODE_WIN32_MAPPING(CapsLock, 0x14); // VK_CAPITAL
+			KEYCODE_WIN32_MAPPING(ScrollLock, 0x91); // VK_SCROLL
+			KEYCODE_WIN32_MAPPING(NumLock, 0x90); // VK_NUMLOCK
+			KEYCODE_WIN32_MAPPING(ContextMenu, 0x5D); // VK_APPS
+			KEYCODE_WIN32_MAPPING(Chinese, 0x19); // VK_HANJA
+			KEYCODE_WIN32_MAPPING(Korean, 0x15); // VK_HANGUL
+		default:
+			return Keycode::Unknown;
+		}
+	}
+
 	DragContext& UIEvent::getCurrentDragContext()
 	{
 		return g_currentDragContext;
 	}
+
+#if !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_MACOS)
+	sl_bool UI::checkKeyPressed(Keycode key)
+	{
+		return sl_false;
+	}
+
+	sl_bool UI::checkScrollLockOn()
+	{
+		return sl_false;
+	}
+
+	sl_bool UI::checkNumLockOn()
+	{
+		return sl_false;
+	}
+
+	sl_bool UI::checkLeftButtonPressed()
+	{
+		return sl_false;
+	}
+
+	sl_bool UI::checkRightButtonPressed()
+	{
+		return sl_false;
+	}
+
+	sl_bool UI::checkMiddleButtonPressed()
+	{
+		return sl_false;
+	}
+#endif
+
+#if !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_GTK)
+	sl_bool UI::checkCapsLockOn()
+	{
+		return sl_false;
+	}
+
+	UIPoint UI::getCursorPos()
+	{
+		return UIPoint(0, 0);
+	}
+#endif
+
+#if !defined(SLIB_UI_IS_WIN32)
+	void UI::sendKeyEvent(UIAction action, Keycode key)
+	{
+	}
+
+	void UI::sendMouseEvent(UIAction action, sl_ui_pos x, sl_ui_pos y, sl_bool flagAbsolutePos)
+	{
+	}
+#endif
 
 }

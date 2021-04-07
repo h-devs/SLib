@@ -74,36 +74,28 @@ namespace slib
 	void UrlRequestParam::setRequestBody(const Variant& varBody)
 	{
 		if (varBody.isNotNull()) {
-			if (varBody.isObject()) {
-				Ref<Referable> obj = varBody.getObject();
-				if (obj.isNotNull()) {
-					if (CMap<String, Variant>* map = CastInstance< CMap<String, Variant> >(obj.get())) {
-						if (ContentTypeHelper::equalsContentTypeExceptParams(requestHeaders.getValue(HttpHeader::ContentType), ContentType::Json)) {
-							requestBody = varBody.toJsonString().toMemory();
-						} else {
-							setFormData(Map<String, Variant>(map));
-						}
-					} else if (CHashMap<String, Variant>* hashMap = CastInstance< CHashMap<String, Variant> >(obj.get())) {
-						if (ContentTypeHelper::equalsContentTypeExceptParams(requestHeaders.getValue(HttpHeader::ContentType), ContentType::Json)) {
-							requestBody = varBody.toJsonString().toMemory();
-						} else {
-							setFormData(HashMap<String, Variant>(hashMap));
-						}
-					} else if (IsInstanceOf< CList<Variant> >(obj.get()) || IsInstanceOf< CList< HashMap<String, Json> > >(obj.get()) || IsInstanceOf< CList< Map<String, Json> > >(obj.get())) {
-						requestBody = varBody.toJsonString().toMemory();
-					} else if (XmlDocument* xml = CastInstance<XmlDocument>(obj.get())) {
-						requestBody = xml->toString().toMemory();
-					} else if (CMemory* mem = CastInstance<CMemory>(obj.get())) {
-						requestBody = mem;
-					} else {
-						requestBody = varBody.getString().toMemory();
-					}
-				} else {
-					requestBody.setNull();
+			if (varBody.isRef()) {
+				if (varBody.isMemory()) {
+					requestBody = varBody.getMemory();
+					return;
 				}
-			} else {
-				requestBody = varBody.getString().toMemory();
+				if (varBody.isVariantMap()) {
+					if (!(ContentTypeHelper::equalsContentTypeExceptParams(requestHeaders.getValue(HttpHeader::ContentType), ContentType::Json))) {
+						setFormData(varBody.getVariantMap());
+						return;
+					}
+				}
+				if (varBody.isCollection() || varBody.isObject()) {
+					requestBody = varBody.toJsonString().toMemory();
+					return;
+				}
+				Ref<Referable> ref = varBody.getRef();
+				if (XmlDocument* xml = CastInstance<XmlDocument>(ref.get())) {
+					requestBody = xml->toString().toMemory();
+					return;
+				}
 			}
+			requestBody = varBody.getString().toMemory();
 		} else {
 			requestBody.setNull();
 		}
@@ -119,7 +111,7 @@ namespace slib
 		requestHeaders.add_NoLock(header, value);
 	}
 
-	void UrlRequestParam::setMultipartFormData(const HashMap<String, Variant>& params)
+	void UrlRequestParam::setMultipartFormData(const VariantMap& params)
 	{
 		for (;;) {
 			char memBoundary[32];
@@ -148,7 +140,7 @@ namespace slib
 			sl_uint32 g_default_timeout = 60000;
 			sl_bool g_default_allowInsecureConnection = sl_false;
 			
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<Dispatcher>, g_default_dispatcher)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Dispatcher>, g_default_dispatcher)
 			
 		}
 	}

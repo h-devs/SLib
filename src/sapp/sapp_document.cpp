@@ -29,6 +29,7 @@
 #include "slib/core/resource.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/scoped.h"
+#include "slib/graphics/color_parse.h"
 #include "slib/ui.h"
 
 #define TAG "SApp"
@@ -112,6 +113,7 @@ namespace slib
 			SLIB_STATIC_STRING(g_str_error_resource_menu_name_invalid, "Menu Resource: Invalid name attribute value: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_menu_name_redefined, "Menu Resource: name is redefined: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_menu_title_refer_invalid, "Menu Resource: title should be valid string value or string resource: %s")
+			SLIB_STATIC_STRING(g_str_error_resource_menu_checked_invalid, "Menu Resource: Invalid checked attribute value: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_menu_icon_invalid, "Menu Resource: Invalid icon image resource: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_menu_platform_invalid, "Menu Resource: Invalid platform attribute value: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_menu_shortcutKey_invalid, "Menu Resource: Invalid shortcutKey attribute value: %s")
@@ -427,19 +429,22 @@ namespace slib
 		
 	}
 
-	void SAppDocument::simulateLayoutInWindow(const String& layoutName, const SAppSimulateLayoutParam& param)
+	sl_bool SAppDocument::simulateLayoutInWindow(const String& layoutName, const SAppSimulateLayoutParam& param)
 	{
 		ObjectLocker lock(this);
 		
 		if (!m_flagOpened) {
-			return;
+			return sl_false;
 		}
 
 		Ref<SAppLayoutResource> layout = m_layouts.getValue(layoutName, Ref<SAppLayoutResource>::null());
 		if (layout.isNotNull()) {
-			_simulateLayoutInWindow(layout.get(), param);
+			if (_simulateLayoutInWindow(layout.get(), param)) {
+				return sl_true;
+			}
 		}
 		
+		return sl_false;
 	}
 	
 	Locale SAppDocument::getCurrentSimulatorLocale()
@@ -698,6 +703,7 @@ namespace slib
 		param.flagSupportCpp11String = sl_true;
 		param.setCreatingOnlyElementsAndTexts();
 		String16 textXML = File::readAllText16(filePath);
+		param.sourceFilePath = filePath;
 		Ref<XmlDocument> xml = Xml::parseXml(textXML, param);
 		if (param.flagError) {
 			_logError(filePath, param.errorLine, param.errorColumn, param.errorMessage);
@@ -807,7 +813,7 @@ namespace slib
 				_logError(g_str_error_file_write_failed.arg(pathHeader));
 				return sl_false;
 			}
-		}		
+		}
 		return sl_true;
 	}
 	

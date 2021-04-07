@@ -23,13 +23,13 @@
 #ifndef CHECKHEADER_SLIB_UI_VIEW_WIN32
 #define CHECKHEADER_SLIB_UI_VIEW_WIN32
 
-#include "slib/core/definition.h"
+#include "../core/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 
-#include "slib/ui/view.h"
+#include "view.h"
 
-#include "slib/ui/platform.h"
+#include "platform.h"
 
 namespace slib
 {
@@ -52,7 +52,7 @@ namespace slib
 			if (hWnd) {
 				Ref<T> ret = new T;
 				if (ret.isNotNull()) {
-					ret->initialize(hWnd, flagDestroyOnRelease);
+					ret->initWithHandle(hWnd, flagDestroyOnRelease);
 					return ret;
 				} else {
 					if (flagDestroyOnRelease) {
@@ -76,7 +76,7 @@ namespace slib
 			if (handle) {
 				Ref<T> ret = new T;
 				if (ret.isNotNull()) {
-					ret->initialize(handle, view, text, frame, transform);
+					ret->initWithHandle(handle, view, text, frame, transform);
 					return ret;
 				}
 				DestroyWindow(handle);
@@ -89,9 +89,9 @@ namespace slib
 			const UIRect& rect, const Matrix3& transform,
 			int style, int styleEx, int styleRemove);
 
-		void initialize(HWND hWnd, sl_bool flagDestroyOnRelease);
+		void initWithHandle(HWND hWnd, sl_bool flagDestroyOnRelease);
 
-		void initialize(HWND hWnd, View* view, const String16& text, const UIRect& rect, const Matrix3& transform);
+		void initWithHandle(HWND hWnd, View* view, const String16& text, const UIRect& rect, const Matrix3& transform);
 
 		HWND getHandle();
 
@@ -149,6 +149,8 @@ namespace slib
 
 		void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical) override;
 
+		void setDropTarget(View* view, sl_bool flag) override;
+
 	public:
 		void setText(const StringParam& text);
 
@@ -187,6 +189,7 @@ namespace slib
 		Ref<Font> m_font;
 
 		Ref<Win32_LayeredViewContext> m_layered;
+		IUnknown* m_dropTarget;
 
 	};
 

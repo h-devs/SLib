@@ -23,11 +23,11 @@
 #include "slib/network/url_request.h"
 
 #include "slib/network/url.h"
-#include "slib/core/json.h"
-#include "slib/core/thread_pool.h"
-#include "slib/core/safe_static.h"
 #include "slib/core/event.h"
 #include "slib/core/system.h"
+#include "slib/core/thread_pool.h"
+#include "slib/core/json.h"
+#include "slib/core/safe_static.h"
 
 namespace slib
 {
@@ -97,7 +97,7 @@ namespace slib
 		return m_requestBody.getSize();
 	}
 	
-	HashMap<String, Variant> UrlRequest::getParameters()
+	VariantMap UrlRequest::getParameters()
 	{
 		return m_parameters;
 	}
@@ -260,9 +260,9 @@ namespace slib
 		return m_flagError;
 	}
 
-	String UrlRequest::getLastErrorMessage()
+	String UrlRequest::getErrorMessage()
 	{
-		return m_lastErrorMessage;
+		return m_errorMessage;
 	}
 	
 	sl_bool UrlRequest::isClosed()

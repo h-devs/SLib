@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_HMAC
 #define CHECKHEADER_SLIB_CRYPTO_HMAC
 
-#include "definition.h"
+#include "sha2.h"
 
 /*
 	HMAC: Keyed-Hashing for Message Authentication (RFC-2104)
@@ -36,7 +36,12 @@ namespace slib
 	class SLIB_EXPORT HMAC
 	{
 	public:
-		static void execute(const void* _key, sl_size lenKey, const void* message, sl_size lenMessage, void* output)
+		enum {
+			HashSize = HASH::HashSize
+		};
+
+	public:
+		void start(const void* _key, sl_size lenKey)
 		{
 			sl_size i;
 			const sl_uint8* key = (const sl_uint8*)_key;
@@ -56,27 +61,49 @@ namespace slib
 				}
 				key = keyLocal;
 			}
+
 			// hash(o_key_pad | hash(i_key_pad | message)), i_key_pad = key xor [0x36 * BlockSize], o_key_pad = key xor [0x5c * BlockSize]
-			HASH hash;
-			hash.start();
-			sl_uint8 key_pad[HASH::BlockSize];
+			m_hash.start();
 			for (i = 0; i < HASH::BlockSize; i++) {
-				key_pad[i] = key[i] ^ 0x36;
+				m_keyPad[i] = key[i] ^ 0x36;
 			}
-			hash.update(key_pad, HASH::BlockSize);
-			hash.update(message, lenMessage);
-			hash.finish(output);
-			
-			hash.start();
+			m_hash.update(m_keyPad, HASH::BlockSize);
 			for (i = 0; i < HASH::BlockSize; i++) {
-				key_pad[i] = key[i] ^ 0x5c;
+				m_keyPad[i] = key[i] ^ 0x5c;
 			}
-			hash.update(key_pad, HASH::BlockSize);
-			hash.update(output, HASH::HashSize);
-			hash.finish(output);
 		}
-		
+
+		void update(const void* input, sl_size n)
+		{
+			m_hash.update(input, n);
+		}
+
+		// output: length of HASH size
+		void finish(void* output)
+		{
+			m_hash.finish(output);
+			m_hash.start();
+			m_hash.update(m_keyPad, HASH::BlockSize);
+			m_hash.update(output, HASH::HashSize);
+			m_hash.finish(output);
+		}
+
+		// output: length of HASH size
+		static void execute(const void* key, sl_size lenKey, const void* message, sl_size lenMessage, void* output)
+		{
+			HMAC<HASH> hmac;
+			hmac.start(key, lenKey);
+			hmac.update(message, lenMessage);
+			hmac.finish(output);
+		}
+
+	private:
+		HASH m_hash;
+		sl_uint8 m_keyPad[HASH::BlockSize];
+
 	};
+	
+	typedef HMAC<SHA256> HMAC_SHA256;
 
 }
 

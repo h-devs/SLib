@@ -29,6 +29,8 @@
 #include "slib/core/file.h"
 #include "slib/core/variant.h"
 
+#include "slib/core/dl_linux_rt.h"
+
 #include <string.h>
 #include <time.h>
 #include <assert.h>
@@ -37,8 +39,13 @@
 #include <sched.h>
 #include <signal.h>
 #include <pwd.h>
+#include <stdlib.h>
 
 #include <sys/time.h>
+
+#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+#	include "slib/core/dl_linux_rt.h"
+#endif
 
 #define PRIV_PATH_MAX 1024
 
@@ -167,9 +174,20 @@ namespace slib
 		sched_yield();
 	}
 	
+	sl_int32 System::execute(const StringParam& _command)
+	{
+		StringCstr command(_command);
+		return (sl_int32)(system(command.getData()));
+	}
+
 	sl_uint32 System::getLastError()
 	{
 		return errno;
+	}
+
+	void System::setLastError(sl_uint32 errorCode)
+	{
+		errno = (int)errorCode;
 	}
 	
 	String System::formatErrorCode(sl_uint32 errorCode)

@@ -23,11 +23,8 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_BITMAP
 #define CHECKHEADER_SLIB_GRAPHICS_BITMAP
 
-#include "definition.h"
-
 #include "color.h"
 #include "bitmap_data.h"
-
 #include "drawable.h"
 #include "canvas.h"
 
@@ -116,6 +113,7 @@ namespace slib
 		sl_bool resetPixels(const Color& color);
 
 	protected:
+		sl_bool m_flagInvalidatedCache;
 		AtomicRef<Drawable> m_drawableCached;
 		AtomicRef<BitmapCache> m_renderingTextureCached;
 

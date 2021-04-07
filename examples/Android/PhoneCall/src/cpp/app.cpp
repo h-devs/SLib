@@ -2,8 +2,6 @@
 
 #include "MainPage.h"
 
-SLIB_DEFINE_APPLICATION(PhoneCallApp, MobileApp)
-
 PhoneCallApp::PhoneCallApp()
 {
 }

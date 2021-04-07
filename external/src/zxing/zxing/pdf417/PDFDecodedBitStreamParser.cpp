@@ -572,7 +572,7 @@ DecodeStatus DecodeMacroBlock(const std::vector<int>& codewords, int codeIndex, 
 		return status;
 	}
 
-	resultMetadata.setSegmentIndex(std::stoi(strBuf));
+	resultMetadata.setSegmentIndex(std_stoi(strBuf));
 
 	std::string fileId;
 	codeIndex = TextCompaction(codewords, codeIndex, fileId);
@@ -609,25 +609,25 @@ DecodeStatus DecodeMacroBlock(const std::vector<int>& codewords, int codeIndex, 
 					case MACRO_PDF417_OPTIONAL_FIELD_SEGMENT_COUNT: {
 						std::string segmentCount;
 						status = NumericCompaction(codewords, codeIndex + 1, segmentCount, codeIndex);
-						resultMetadata.setSegmentCount(std::stoi(segmentCount));
+						resultMetadata.setSegmentCount(std_stoi(segmentCount));
 						break;
 					}
 					case MACRO_PDF417_OPTIONAL_FIELD_TIME_STAMP: {
 						std::string timestamp;
 						status = NumericCompaction(codewords, codeIndex + 1, timestamp, codeIndex);
-						resultMetadata.setTimestamp(std::stoll(timestamp));
+						resultMetadata.setTimestamp(std_stoll(timestamp));
 						break;
 					}
 					case MACRO_PDF417_OPTIONAL_FIELD_CHECKSUM: {
 						std::string checksum;
 						status = NumericCompaction(codewords, codeIndex + 1, checksum, codeIndex);
-						resultMetadata.setChecksum(std::stoi(checksum));
+						resultMetadata.setChecksum(std_stoi(checksum));
 						break;
 					}
 					case MACRO_PDF417_OPTIONAL_FIELD_FILE_SIZE: {
 						std::string fileSize;
 						status = NumericCompaction(codewords, codeIndex + 1, fileSize, codeIndex);
-						resultMetadata.setFileSize(std::stoll(fileSize));
+						resultMetadata.setFileSize(std_stoll(fileSize));
 						break;
 					}
 					default: {
@@ -745,7 +745,7 @@ DecodedBitStreamParser::Decode(const std::vector<int>& codewords, int ecLevel)
 		return status;
 
 	return DecoderResult(ByteArray(), std::move(resultString))
-		.setEcLevel(std::to_wstring(ecLevel))
+		.setEcLevel(std_to_wstring(ecLevel))
 		.setExtra(resultMetadata);
 }
 

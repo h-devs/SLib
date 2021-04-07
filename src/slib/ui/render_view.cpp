@@ -23,8 +23,16 @@
 #include "slib/ui/render_view.h"
 
 #include "slib/render/canvas.h"
+#include "slib/math/transform2d.h"
+#include "slib/ui/gesture.h"
 #include "slib/core/thread.h"
 #include "slib/core/dispatch.h"
+
+#if defined(SLIB_UI)
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
+#endif
 
 namespace slib
 {
@@ -38,12 +46,12 @@ namespace slib
 			{
 			public:
 				WeakRef<RenderView> m_view;
-				
+
 			public:
 				AnimationLoopImpl(RenderView* view) : m_view(view)
 				{
 				}
-				
+
 			public:
 				void _wake() override
 				{
@@ -52,7 +60,7 @@ namespace slib
 						view->requestRender();
 					}
 				}
-				
+
 				void runStep()
 				{
 					sl_int32 n = _runStep();
@@ -60,14 +68,14 @@ namespace slib
 						_wake();
 					}
 				}
-				
+
 			};
 
 			class DispatcherImpl : public Dispatcher
 			{
 			public:
 				WeakRef<RenderView> m_view;
-				
+
 			public:
 				sl_bool dispatch(const Function<void()>& callback, sl_uint64 delay_ms) override
 				{
@@ -89,20 +97,46 @@ namespace slib
 	SLIB_DEFINE_OBJECT(RenderView, ViewGroup)
 
 	RenderView::RenderView()
-	{		
-		setCreatingNativeWidget(sl_true);
+	{
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		
 		setCreatingChildInstances(sl_false);
-		
-		setPreferredEngineType(RenderEngineType::OpenGL_ES);
-		
+		setRendering(sl_true);
+
+#ifdef SLIB_PLATFORM_IS_DESKTOP
+		m_preferredEngineType = RenderEngineType::OpenGL;
+#else
+		m_preferredEngineType = RenderEngineType::OpenGL_ES;
+#endif
+
 		m_redrawMode = RedrawMode::Continuously;
 		m_flagDispatchEventsToRenderingThread = sl_false;
-		
+
 		m_lastRenderingThreadId = 0;
-		
+
 		m_flagDebugTextVisible = sl_false;
 		m_flagDebugTextVisibleOnRelease = sl_false;
-		
+
+		{
+			RenderDepthStencilParam param;
+			param.flagTestDepth = sl_false;
+			m_stateCanvasDepthStencil = RenderDepthStencilState::create(param);
+		}
+		{
+			RenderBlendParam param;
+			param.flagBlending = sl_true;
+			m_stateCanvasBlend = RenderBlendState::create(param);
+		}
+		{
+			RenderRasterizerParam param;
+			m_stateCanvasRasterizer = RenderRasterizerState::create(param);
+		}
+		{
+			RenderSamplerParam param;
+			m_stateCanvasSampler = RenderSamplerState::create(param);
+		}
+
 		setBackgroundColor(Color::Black, UIUpdateMode::Init);
 	}
 
@@ -113,8 +147,18 @@ namespace slib
 	void RenderView::init()
 	{
 		ViewGroup::init();
-		
+
 		m_animationLoop = new priv::render_view::AnimationLoopImpl(this);
+	}
+
+	RenderEngineType RenderView::getPreferredEngineType()
+	{
+		return m_preferredEngineType;
+	}
+
+	void RenderView::setPreferredEngineType(RenderEngineType type)
+	{
+		m_preferredEngineType = type;
 	}
 
 	RedrawMode RenderView::getRedrawMode()
@@ -126,7 +170,7 @@ namespace slib
 	{
 		m_redrawMode = mode;
 		Ptr<IRenderViewInstance> instance = getRenderViewInstance();
-		if (instance.isNotNull()) {
+		if (instance.isNotNull() && instance->isRenderEnabled(this)) {
 			instance->setRedrawMode(this, mode);
 		}
 	}
@@ -141,32 +185,63 @@ namespace slib
 		m_flagDispatchEventsToRenderingThread = flag;
 	}
 
-	void RenderView::requestRender()
+	sl_bool RenderView::isRenderEnabled()
 	{
 		Ptr<IRenderViewInstance> instance = getRenderViewInstance();
 		if (instance.isNotNull()) {
+			return instance->isRenderEnabled(this);
+		}
+		return sl_false;
+	}
+
+	void RenderView::disableRendering()
+	{
+		Ptr<IRenderViewInstance> instance = getRenderViewInstance();
+		if (instance.isNotNull()) {
+			instance->disableRendering(this);
+		}
+	}
+
+	void RenderView::requestRender()
+	{
+		Ptr<IRenderViewInstance> instance = getRenderViewInstance();
+		if (instance.isNotNull() && instance->isRenderEnabled(this)) {
 			instance->requestRender(this);
+		} else {
+			ViewGroup::invalidate();
 		}
 	}
 
 	void RenderView::invalidate(UIUpdateMode mode)
 	{
 		if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
-			requestRender();
+			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
+			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
+				instance->requestRender(this);
+			} else {
+				ViewGroup::invalidate(mode);
+			}
 		}
 	}
 
 	void RenderView::invalidate(const UIRect& rect, UIUpdateMode mode)
 	{
 		if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
-			requestRender();
+			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
+			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
+				instance->requestRender(this);
+			} else {
+				ViewGroup::invalidate(rect, mode);
+			}
 		}
 	}
 
 	void RenderView::renderViewContent(RenderEngine* engine)
 	{
-		engine->setDepthTest(sl_false);
-		engine->setBlending(sl_true);
+		engine->setDepthStencilState(m_stateCanvasDepthStencil);
+		engine->setBlendState(m_stateCanvasBlend);
+		engine->setRasterizerState(m_stateCanvasRasterizer);
+		engine->setSamplerState(0, m_stateCanvasSampler);
 		Ref<RenderCanvas> canvas = RenderCanvas::create(engine, (sl_real)(getWidth()), (sl_real)(getHeight()));
 		if (canvas.isNotNull()) {
 			dispatchDraw(canvas.get());
@@ -192,10 +267,16 @@ namespace slib
 
 	sl_bool RenderView::isDrawingThread()
 	{
-		if (isNativeWidget()) {
+		Ptr<IRenderViewInstance> instance = getRenderViewInstance();
+		if (instance.isNotNull() && instance->isRenderEnabled(this)) {
 			return Thread::getCurrentThreadUniqueId() == m_lastRenderingThreadId;
 		} else {
-			return ViewGroup::isDrawingThread();
+			Ref<View> parent = getParent();
+			if (parent.isNotNull()) {
+				return parent->isDrawingThread();
+			} else {
+				return Thread::getCurrentThreadUniqueId() == m_lastRenderingThreadId;
+			}
 		}
 	}
 
@@ -206,16 +287,21 @@ namespace slib
 			return;
 		}
 		m_queuePostedCallbacks.push(callback);
-		if (isNativeWidget()) {
+		Ptr<IRenderViewInstance> instance = getRenderViewInstance();
+		if (instance.isNotNull() && instance->isRenderEnabled(this)) {
 			requestRender();
 		} else {
-			ViewGroup::dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), RenderView, _processPostedCallbacks, this), 0);
+			Ref<View> parent = getParent();
+			if (parent.isNotNull()) {
+				parent->dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), RenderView, _processPostedCallbacks, this));
+			}
 		}
 	}
 
 	void RenderView::runOnDrawingThread(const Function<void()>& callback)
 	{
-		if (isNativeWidget()) {
+		Ptr<IRenderViewInstance> instance = getRenderViewInstance();
+		if (instance.isNotNull() && instance->isRenderEnabled(this)) {
 			if (Thread::getCurrentThreadUniqueId() == m_lastRenderingThreadId) {
 				callback();
 			} else {
@@ -223,7 +309,7 @@ namespace slib
 				requestRender();
 			}
 		} else {
-			dispatchToDrawingThread(callback);
+			ViewGroup::runOnDrawingThread(callback);
 		}
 	}
 
@@ -267,7 +353,8 @@ namespace slib
 
 	void RenderView::onDrawBackground(Canvas* canvas)
 	{
-		if (isNativeWidget()) {
+		Ptr<IRenderViewInstance> instance = getRenderViewInstance();
+		if (instance.isNotNull() && instance->isRenderEnabled(this)) {
 			Ref<Drawable> background = getCurrentBackground();
 			if (background.isNotNull()) {
 				if (!(background->isColor())) {
@@ -280,14 +367,14 @@ namespace slib
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(RenderView, CreateEngine, RenderEngine* engine)
-	
+
 	void RenderView::dispatchCreateEngine(RenderEngine* engine)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(CreateEngine, engine)
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(RenderView, Frame, RenderEngine* engine)
-	
+
 	void RenderView::onFrame(RenderEngine* engine)
 	{
 		renderViewContent(engine);
@@ -296,21 +383,21 @@ namespace slib
 	void RenderView::dispatchFrame(RenderEngine* engine)
 	{
 		MutexLocker lock(&m_lockRender);
-		
+
 		if (!engine) {
 			return;
 		}
-		
+
 		m_lastRenderingThreadId = Thread::getCurrentThreadUniqueId();
-		
+
 		if (m_animationLoop.isNotNull()) {
 			priv::render_view::AnimationLoopImpl* l = static_cast<priv::render_view::AnimationLoopImpl*>(m_animationLoop.get());
 			l->runStep();
 		}
 		_processPostedCallbacksNoLock();
-		
+
 		engine->beginScene();
-		
+
 		// clear
 		{
 			do {
@@ -325,9 +412,9 @@ namespace slib
 				engine->clearDepth();
 			} while (0);
 		}
-		
+
 		SLIB_INVOKE_EVENT_HANDLER(Frame, engine)
-		
+
 		if (m_flagDebugTextVisible) {
 #if defined(SLIB_DEBUG)
 			engine->drawDebugText();
@@ -337,9 +424,9 @@ namespace slib
 			}
 #endif
 		}
-		
+
 		engine->endScene();
-		
+
 	}
 
 	void RenderView::dispatchDraw(Canvas* canvas)
@@ -352,7 +439,8 @@ namespace slib
 	void RenderView::dispatchMouseEvent(UIEvent* ev)
 	{
 		if (m_flagDispatchEventsToRenderingThread) {
-			if (isNativeWidget()) {
+			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
+			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
 				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), RenderView, _dispatchMouseEvent, this, ev->duplicate()));
 				requestRender();
 				return;
@@ -364,7 +452,8 @@ namespace slib
 	void RenderView::dispatchTouchEvent(UIEvent* ev)
 	{
 		if (m_flagDispatchEventsToRenderingThread) {
-			if (isNativeWidget()) {
+			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
+			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
 				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), RenderView, _dispatchTouchEvent, this, ev->duplicate()));
 				requestRender();
 				return;
@@ -376,7 +465,8 @@ namespace slib
 	void RenderView::dispatchMouseWheelEvent(UIEvent* ev)
 	{
 		if (m_flagDispatchEventsToRenderingThread) {
-			if (isNativeWidget()) {
+			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
+			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
 				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), RenderView, _dispatchMouseWheelEvent, this, ev->duplicate()));
 				requestRender();
 				return;
@@ -388,7 +478,8 @@ namespace slib
 	void RenderView::dispatchKeyEvent(UIEvent* ev)
 	{
 		if (m_flagDispatchEventsToRenderingThread) {
-			if (isNativeWidget()) {
+			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
+			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
 				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), RenderView, _dispatchKeyEvent, this, ev->duplicate()));
 				requestRender();
 				return;
@@ -400,7 +491,8 @@ namespace slib
 	void RenderView::dispatchSetCursor(UIEvent* ev)
 	{
 		if (m_flagDispatchEventsToRenderingThread) {
-			if (isNativeWidget()) {
+			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
+			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
 				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), RenderView, _dispatchSetCursor, this, ev->duplicate()));
 				requestRender();
 				return;
@@ -412,7 +504,8 @@ namespace slib
 	void RenderView::dispatchSwipe(GestureEvent* ev)
 	{
 		if (m_flagDispatchEventsToRenderingThread) {
-			if (isNativeWidget()) {
+			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
+			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
 				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), RenderView, _dispatchSwipe, this, ev->duplicate()));
 				requestRender();
 				return;
@@ -467,16 +560,25 @@ namespace slib
 		ViewGroup::dispatchSwipe(ev.get());
 	}
 
-#if !defined(SLIB_UI)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;
 	}
-	
+
 	Ptr<IRenderViewInstance> RenderView::getRenderViewInstance()
 	{
 		return sl_null;
 	}
 #endif
+
+	sl_bool IRenderViewInstance::isRenderEnabled(RenderView* view)
+	{
+		return sl_true;
+	}
+
+	void IRenderViewInstance::disableRendering(RenderView* view)
+	{
+	}
 
 }

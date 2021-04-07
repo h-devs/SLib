@@ -212,7 +212,7 @@ public class Sensor {
 			try {
 				if (mSensorManager.registerListener(listener, mSensorAccelerometer, SensorManager.SENSOR_DELAY_GAME)) {
 					flagStarted = true;
-					return true;				
+					return true;
 				}
 			} catch (Exception e) {
 				Logger.exception(e);
@@ -224,7 +224,7 @@ public class Sensor {
 		{
 			if (flagStarted) {
 				try {
-					mSensorManager.unregisterListener(listener, mSensorAccelerometer);					
+					mSensorManager.unregisterListener(listener, mSensorAccelerometer);
 				} catch (Exception e) {
 					Logger.exception(e);
 				}

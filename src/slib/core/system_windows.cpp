@@ -27,10 +27,13 @@
 #include "slib/core/system.h"
 
 #include "slib/core/platform_windows.h"
+#include "slib/core/dl_windows_kernel32.h"
+#include "slib/core/dl_windows_wininet.h"
 
 #include <assert.h>
 #include <signal.h>
 #include <float.h>
+#include <stdlib.h>
 
 #pragma warning(disable: 4091)
 #include <shlobj.h>
@@ -86,6 +89,9 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		sl_char16 sz[PRIV_PATH_MAX] = {0};
 		sl_int32 n = GetTempPathW(PRIV_PATH_MAX - 1, (LPWSTR)sz);
+		if (sz[n - 1] == '\\') {
+			n--;
+		}
 		return String::create(sz, n);
 #else
 		SLIB_STATIC_STRING(temp, "/temp");
@@ -158,10 +164,10 @@ namespace slib
 	sl_uint64 System::getTickCount64()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
-		WINAPI_GetTickCount64 func = Windows::getAPI_GetTickCount64();
+		auto func = kernel32::getApi_GetTickCount64();
 		if (func) {
 			return (sl_uint64)(func());
-		}		
+		}
 		static sl_uint32 tickOld = 0;
 		static sl_uint32 tickHigh = 0;
 		SLIB_STATIC_SPINLOCKER(lock)
@@ -190,9 +196,20 @@ namespace slib
 #endif
 	}
 
+	sl_int32 System::execute(const StringParam& _command)
+	{
+		StringCstr16 command(_command);
+		return (sl_int32)(_wsystem((WCHAR*)(command.getData())));
+	}
+
 	sl_uint32 System::getLastError()
 	{
 		return (sl_uint32)(GetLastError());
+	}
+
+	void System::setLastError(sl_uint32 errorCode)
+	{
+		SetLastError((DWORD)errorCode);
 	}
 
 	String System::formatErrorCode(sl_uint32 errorCode)
@@ -202,7 +219,7 @@ namespace slib
 			LPWSTR buf = sl_null;
 			DWORD size = FormatMessageW(
 				FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_HMODULE,
-				Windows::loadLibrary_wininet(),
+				(HMODULE)(wininet::getLibrary()),
 				errorCode,
 				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 				(LPWSTR)&buf, 0,

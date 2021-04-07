@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_ARP
 #define CHECKHEADER_SLIB_NETWORK_ARP
 
-#include "definition.h"
-
 #include "ethernet.h"
 #include "mac_address.h"
 #include "ip_address.h"

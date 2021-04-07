@@ -31,7 +31,7 @@ namespace slib
 	{
 		namespace preference
 		{
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicString, g_appKey)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_appKey)
 		}
 	}
 

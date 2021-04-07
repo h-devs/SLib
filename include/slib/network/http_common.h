@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_HTTP_COMMON
 #define CHECKHEADER_SLIB_NETWORK_HTTP_COMMON
 
-#include "definition.h"
-
 /****************************************************************************
 	
 				Hypertext Transfer Protocol -- HTTP/1.1
@@ -50,14 +48,17 @@
 
 #include "url.h"
 
-#include "../core/string.h"
 #include "../core/time.h"
 #include "../core/content_type.h"
 #include "../core/hash_map.h"
-#include "../core/nullable.h"
+#include "../core/string_buffer.h"
+#include "../core/string_cast.h"
+#include "../core/variant_def.h"
 
 namespace slib
 {
+
+	class MemoryBuffer;
 	
 	typedef HashMap<String, String, HashIgnoreCaseString, CompareIgnoreCaseString> HttpHeaderMap;
 	typedef HashMap<String, String, HashIgnoreCaseString, CompareIgnoreCaseString> HttpHeaderValueMap;
@@ -131,7 +132,10 @@ namespace slib
 #ifdef DELETE
 #undef DELETE
 #endif
-	
+#ifdef TRACE
+#undef TRACE
+#endif
+
 	enum class HttpMethod
 	{
 		Unknown = 0,
@@ -215,7 +219,29 @@ namespace slib
 		static String mergeValues(const List<String>& list, sl_char8 delimiter=',');
 
 		template <class MAP>
-		static String mergeValueMap(const MAP& map, sl_char8 delimiter=',');
+		static String mergeValueMap(const MAP& map, sl_char8 delimiter=',')
+		{
+			MutexLocker lock(map.getLocker());
+			StringBuffer sb;
+			for (auto& item: map) {
+				if (item.key.isNotEmpty()) {
+					if (sb.getLength() > 0) {
+						sb.addStatic(&delimiter, 1);
+						sb.addStatic(" ");
+					}
+					String key = Cast<typename MAP::KEY_TYPE, String>()(item.key);
+					String value = Cast<typename MAP::VALUE_TYPE, String>()(item.value);
+					if (value.isNull()) {
+						sb.add(makeSafeValue(key));
+					} else {
+						sb.add(makeSafeValue(key));
+						sb.addStatic("=");
+						sb.add(makeSafeValue(value));
+					}
+				}
+			}
+			return sb.merge();
+		}
 
 	};
 	
@@ -438,7 +464,11 @@ namespace slib
 		HashMap<String, String> getRequestCookies() const;
 		
 		template <class MAP>
-		void setRequestCookies(const MAP& map);
+		void setRequestCookies(const MAP& cookies)
+		{
+			String value = HttpHeaderHelper::mergeValueMap(cookies, ';');
+			setRequestHeader(HttpHeader::Cookie, value);
+		}
 		
 		String getRequestCookie(const String& cookie) const;
 		
@@ -504,14 +534,42 @@ namespace slib
 		sl_reg parseRequestPacket(const void* packet, sl_size size);
 		
 		template <class MAP>
-		static String buildQuery(const MAP& map);
+		static String buildQuery(const MAP& params)
+		{
+			StringBuffer sb;
+			sl_bool flagFirst = sl_true;
+			for (auto& pair : params) {
+				if (!flagFirst) {
+					sb.addStatic("&");
+				}
+				flagFirst = sl_false;
+				sb.add(Cast<typename MAP::KEY_TYPE, String>()(pair.key));
+				sb.addStatic("=");
+				sb.add(Url::encodePercent(Cast<typename MAP::VALUE_TYPE, String>()(pair.value)));
+			}
+			return sb.merge();
+		}
 		
 		template <class MAP>
-		static String buildFormUrlEncoded(const MAP& map);
+		static String buildFormUrlEncoded(const MAP& params)
+		{
+			StringBuffer sb;
+			sl_bool flagFirst = sl_true;
+			for (auto& pair : params) {
+				if (!flagFirst) {
+					sb.addStatic("&");
+				}
+				flagFirst = sl_false;
+				sb.add(Cast<typename MAP::KEY_TYPE, String>()(pair.key));
+				sb.addStatic("=");
+				sb.add(Url::encodeForm(Cast<typename MAP::VALUE_TYPE, String>()(pair.value)));
+			}
+			return sb.merge();
+		}
 		
-		static sl_bool buildMultipartFormData(MemoryBuffer& output, const String& boundary, HashMap<String, Variant>& parameters);
+		static sl_bool buildMultipartFormData(MemoryBuffer& output, const String& boundary, VariantMap& parameters);
 		
-		static Memory buildMultipartFormData(const String& boundary, const HashMap<String, Variant>& parameters);
+		static Memory buildMultipartFormData(const String& boundary, const VariantMap& parameters);
 		
 	protected:
 		HttpMethod m_method;
@@ -660,7 +718,20 @@ namespace slib
 		void setResponseRedirect(const String& location, HttpStatus status = HttpStatus::Found);
 		
 		template <class MAP>
-		void setResponseRedirect(const String& location, const MAP& queryParams, HttpStatus status = HttpStatus::Found);
+		void setResponseRedirect(const String& location, const MAP& queryParams, HttpStatus status = HttpStatus::Found)
+		{
+			String url = location;
+			String query = HttpRequest::buildQuery(queryParams);
+			if (query.isNotEmpty()) {
+				if (url.indexOf('?') >= 0) {
+					url += "&";
+				} else {
+					url += "?";
+				}
+				url += query;
+			}
+			setResponseRedirect(url, status);
+		}
 
 		
 		Memory makeResponsePacket() const;
@@ -683,8 +754,6 @@ namespace slib
 	};
 	
 }
-
-#include "detail/http.inc"
 
 #endif
 

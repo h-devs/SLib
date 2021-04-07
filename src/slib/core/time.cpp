@@ -21,7 +21,12 @@
  */
 
 #include "slib/core/time.h"
+#include "slib/core/time_counter.h"
+#include "slib/core/time_keeper.h"
+#include "slib/core/time_zone.h"
+#include "slib/core/time_parse.h"
 
+#include "slib/core/locale.h"
 #include "slib/core/variant.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/safe_static.h"
@@ -39,108 +44,6 @@
 
 namespace slib
 {
-	
-	SLIB_DEFINE_OBJECT(CTimeZone, Object)
-	
-	CTimeZone::CTimeZone() noexcept
-	{
-	}
-	
-	CTimeZone::~CTimeZone() noexcept
-	{
-	}
-
-	sl_int64 CTimeZone::getOffset()
-	{
-		return getOffset(Time::now());
-	}
-	
-	
-	SLIB_DEFINE_OBJECT(GenericTimeZone, CTimeZone)
-	
-	GenericTimeZone::GenericTimeZone(sl_int64 offset)
-	{
-		m_offset = offset;
-	}
-	
-	GenericTimeZone::~GenericTimeZone()
-	{
-	}
-	
-	sl_int64 GenericTimeZone::getOffset(const Time& time)
-	{
-		return m_offset;
-	}
-	
-	namespace priv
-	{
-		namespace time
-		{
-			SLIB_STATIC_ZERO_INITIALIZED(TimeZone, g_local)
-		}
-	}
-	
-	const TimeZone& TimeZone::Local = priv::time::g_local;
-
-	const TimeZone& TimeZone::UTC() noexcept
-	{
-		SLIB_SAFE_STATIC(TimeZone, utc, TimeZone::create(0));
-		return utc;
-	}
-	
-	TimeZone TimeZone::create(sl_int64 offset) noexcept
-	{
-		return new GenericTimeZone(offset);
-	}
-
-	sl_bool TimeZone::isLocal() const noexcept
-	{
-		return isNull();
-	}
-	
-	sl_bool TimeZone::isUTC() const noexcept
-	{
-		return ref._ptr == UTC().ref._ptr;
-	}
-	
-	sl_int64 TimeZone::getOffset() const
-	{
-		return getOffset(Time::now());
-	}
-	
-	sl_int64 TimeZone::getOffset(const Time &time) const
-	{
-		Ref<CTimeZone> obj = ref;
-		if (obj.isNotNull()) {
-			if (isUTC()) {
-				return 0;
-			}
-			return obj->getOffset();
-		}
-		return time.getLocalTimeOffset();
-	}
-	
-	
-	sl_bool Atomic<TimeZone>::isLocal() const noexcept
-	{
-		return isNull();
-	}
-	
-	sl_bool Atomic<TimeZone>::isUTC() const noexcept
-	{
-		return ref._ptr == TimeZone::UTC().ref._ptr;
-	}
-	
-	sl_int64 Atomic<TimeZone>::getOffset() const
-	{
-		return getOffset(Time::now());
-	}
-	
-	sl_int64 Atomic<TimeZone>::getOffset(const Time &time) const
-	{
-		return TimeZone(*this).getOffset(time);
-	}
-	
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TimeComponents)
 	
@@ -172,16 +75,6 @@ namespace slib
 	Time::Time(const TimeComponents& comps, const TimeZone& zone) noexcept
 	{
 		set(comps, zone);
-	}
-
-	Time::Time(const StringParam& str) noexcept
-	{
-		setString(str, TimeZone::Local);
-	}
-
-	Time::Time(const StringParam& str, const TimeZone& zone) noexcept
-	{
-		setString(str, zone);
 	}
 
 	Time Time::now() noexcept
@@ -312,6 +205,22 @@ namespace slib
 	Time Time::fromUnixTimef(double time) noexcept
 	{
 		return (sl_int64)(time * TIME_SECOND);
+	}
+
+	sl_int64 Time::toWindowsFileTime() const noexcept
+	{
+		return (m_time + SLIB_INT64(11644473600000000)) * 10;
+	}
+
+	Time& Time::setWindowsFileTime(sl_int64 time) noexcept
+	{
+		m_time = time / 10 - SLIB_INT64(11644473600000000);
+		return *this;
+	}
+
+	Time Time::fromWindowsFileTime(sl_int64 time) noexcept
+	{
+		return time / 10 - SLIB_INT64(11644473600000000);
 	}
 
 	Time& Time::add(sl_int64 time) noexcept
@@ -569,7 +478,7 @@ namespace slib
 			constexpr static sl_uint32 GetHour12(sl_uint32 hour)
 			{
 				return hour % 12 ? hour % 12 : 12;
-			}				
+			}
 		}
 	}
 
@@ -598,10 +507,20 @@ namespace slib
 	{
 		return format(TimeFormat::AM_PM, zone, locale);
 	}
-	
+
+	String Time::getAM_PM(const TimeZone& zone) const noexcept
+	{
+		return format(TimeFormat::AM_PM, zone);
+	}
+
 	String Time::getAM_PM(const Locale& locale) const noexcept
 	{
 		return format(TimeFormat::AM_PM, locale);
+	}
+
+	String Time::getAM_PM() const noexcept
+	{
+		return format(TimeFormat::AM_PM);
 	}
 
 	sl_int32 Time::getMinute(const TimeZone& zone) const noexcept
@@ -1116,35 +1035,69 @@ namespace slib
 		sl_int32 day = getDayOfWeek(zone);
 		return getWeekdayText(day, TimeTextType::Short, locale);
 	}
-	
+
+	String Time::getWeekdayShort(const TimeZone& zone) const noexcept
+	{
+		sl_int32 day = getDayOfWeek(zone);
+		return getWeekdayText(day, TimeTextType::Short, Locale::Unknown);
+	}
+
 	String Time::getWeekdayShort(const Locale& locale) const noexcept
 	{
 		sl_int32 day = getDayOfWeek();
 		return getWeekdayText(day, TimeTextType::Short, locale);
 	}
-	
+
+	String Time::getWeekdayShort() const noexcept
+	{
+		sl_int32 day = getDayOfWeek();
+		return getWeekdayText(day, TimeTextType::Short, Locale::Unknown);
+	}
+
 	String Time::getWeekdayLong(const TimeZone& zone, const Locale& locale) const noexcept
 	{
 		sl_int32 day = getDayOfWeek(zone);
 		return getWeekdayText(day, TimeTextType::Long, locale);
 	}
-	
+
+	String Time::getWeekdayLong(const TimeZone& zone) const noexcept
+	{
+		sl_int32 day = getDayOfWeek(zone);
+		return getWeekdayText(day, TimeTextType::Long, Locale::Unknown);
+	}
+
 	String Time::getWeekdayLong(const Locale& locale) const noexcept
 	{
 		sl_int32 day = getDayOfWeek();
 		return getWeekdayText(day, TimeTextType::Long, locale);
 	}
-	
+
+	String Time::getWeekdayLong() const noexcept
+	{
+		sl_int32 day = getDayOfWeek();
+		return getWeekdayText(day, TimeTextType::Long, Locale::Unknown);
+	}
+
 	String Time::getWeekday(const TimeZone& zone, const Locale& locale) const noexcept
 	{
 		return getWeekdayLong(zone, locale);
 	}
-	
+
+	String Time::getWeekday(const TimeZone& zone) const noexcept
+	{
+		return getWeekdayLong(zone);
+	}
+
 	String Time::getWeekday(const Locale& locale) const noexcept
 	{
 		return getWeekdayLong(locale);
 	}
-	
+
+	String Time::getWeekday() const noexcept
+	{
+		return getWeekdayLong();
+	}
+
 	String Time::getAM_Text(const Locale& _locale) noexcept
 	{
 		Locale locale = _locale;
@@ -1494,7 +1447,12 @@ namespace slib
 			}
 		}
 	}
-	
+
+	String Time::getPeriodString(const Time& minUnit, const Time& maxUnit) const noexcept
+	{
+		return getPeriodString(minUnit, maxUnit, Locale::Unknown);
+	}
+
 	namespace priv
 	{
 		namespace time
@@ -1570,7 +1528,12 @@ namespace slib
 			}
 		}
 	}
-	
+
+	String Time::getDiffString(const Time& timeFrom, const Time& minUnit, const Time& maxUnit) const noexcept
+	{
+		return getDiffString(timeFrom, minUnit, maxUnit, Locale::Unknown);
+	}
+
 	String Time::format(const TimeComponents& d, TimeFormat fmt, const Locale& _locale) noexcept
 	{
 		Locale locale = _locale;
@@ -1943,22 +1906,51 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
+	String Time::format(const TimeComponents& d, TimeFormat fmt) noexcept
+	{
+		return format(d, fmt, Locale::Unknown);
+	}
+
 	String Time::format(TimeFormat fmt, const TimeZone& zone, const Locale& locale) const noexcept
 	{
 		TimeComponents comps;
 		get(comps, zone);
 		return format(comps, fmt, locale);
 	}
-	
+
+	String Time::format(TimeFormat fmt, const TimeZone& zone) const noexcept
+	{
+		TimeComponents comps;
+		get(comps, zone);
+		return format(comps, fmt);
+	}
+
 	String Time::format(TimeFormat fmt, const Locale& locale) const noexcept
 	{
 		return format(fmt, TimeZone::Local, locale);
 	}
 
+	String Time::format(TimeFormat fmt) const noexcept
+	{
+		return format(fmt, TimeZone::Local);
+	}
+
 	String Time::format(const StringParam& fmt, const Locale& locale) const noexcept
 	{
 		return String::format(locale, fmt, *this);
+	}
+
+	String Time::format(const StringParam& fmt) const noexcept
+	{
+		return String::format(fmt, *this);
+	}
+
+	Time Time::fromString(const StringParam& str, const TimeZone& zone) noexcept
+	{
+		Time ret;
+		ret.setString(str, zone);
+		return ret;
 	}
 
 	sl_bool Time::setString(const StringParam& str, const TimeZone& zone) noexcept
@@ -1969,184 +1961,6 @@ namespace slib
 			setZero();
 			return sl_false;
 		}
-	}
-	
-	namespace priv
-	{
-		namespace time
-		{
-
-			template <class CT>
-			static sl_reg ParseComponents(TimeComponents* comps, const CT* sz, sl_size i, sl_size n) noexcept
-			{
-				if (i >= n) {
-					return SLIB_PARSE_ERROR;
-				}
-				sl_int32 YMDHMS[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-				sl_size index = 0;
-				sl_size posParsed = i;
-				while (i < n && index < 8) {
-					if (sz[i] == 0) {
-						break;
-					}
-					do {
-						CT ch = sz[i];
-						if (SLIB_CHAR_IS_SPACE_TAB(ch)) {
-							i++;
-						} else {
-							break;
-						}
-					} while (i < n);
-					if (i >= n) {
-						break;
-					}
-					sl_int32 value = 0;
-					sl_bool flagNumber = sl_false;
-					do {
-						CT ch = sz[i];
-						if (SLIB_CHAR_IS_DIGIT(ch)) {
-							value = value * 10 + (ch - '0');
-							flagNumber = sl_true;
-							i++;
-						} else {
-							break;
-						}
-					} while (i < n);
-					if (!flagNumber) {
-						break;
-					}
-					posParsed = i;
-					
-					YMDHMS[index] = value;
-					index++;
-					
-					if (i >= n) {
-						break;
-					}
-					do {
-						CT ch = sz[i];
-						if (SLIB_CHAR_IS_SPACE_TAB(ch)) {
-							i++;
-						} else {
-							break;
-						}
-					} while (i < n);
-					
-					posParsed = i;
-
-					if (index >= 8) {
-						break;
-					}
-					
-					if (i < n) {
-						CT ch = sz[i];
-						if (!SLIB_CHAR_IS_DIGIT(ch)) {
-							if (ch == '/' || ch == '-') {
-								if (index >= 3) {
-									break;
-								}
-							} else if (ch == 'T') {
-								if (index > 3) {
-									break;
-								} else {
-									index = 3;
-								}
-							} else if (ch == ':') {
-								if (index == 1) {
-									index = 4;
-									YMDHMS[3] = YMDHMS[0];
-									YMDHMS[0] = 0;
-								} else if (index < 4) {
-									break;
-								} else if (index >= 6) {
-									break;
-								}
-							} else if (ch == '.') {
-								if (index < 6) {
-									break;
-								}
-							} else {
-								break;
-							}
-							i++;
-						}
-					} else {
-						break;
-					}
-				}
-				if (index > 0) {
-					if (comps) {
-						Base::zeroMemory(comps, sizeof(TimeComponents));
-						comps->year = YMDHMS[0];
-						comps->month = YMDHMS[1];
-						comps->day = YMDHMS[2];
-						comps->hour = YMDHMS[3];
-						comps->minute = YMDHMS[4];
-						comps->second = YMDHMS[5];
-						comps->milliseconds = YMDHMS[6];
-						comps->microseconds = YMDHMS[7];
-					}
-					return posParsed;
-				}
-				return SLIB_PARSE_ERROR;
-			}
-
-			template <class CT>
-			SLIB_INLINE static sl_reg Parse(Time* _out, const TimeZone& zone, const CT* sz, sl_size i, sl_size n) noexcept
-			{
-				TimeComponents comps;
-				sl_reg ret = ParseComponents(&comps, sz, i, n);
-				if (ret != SLIB_PARSE_ERROR) {
-					if (_out) {
-						_out->set(comps, zone);
-					}
-				}
-				return ret;
-			}
-
-		}
-	}
-
-	template <>
-	sl_reg Parser<TimeComponents, sl_char8>::parse(TimeComponents* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::time::ParseComponents(_out, sz, posBegin, posEnd);
-	}
-	
-	template <>
-	sl_reg Parser<TimeComponents, sl_char16>::parse(TimeComponents* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::time::ParseComponents(_out, sz, posBegin, posEnd);
-	}
-
-	template <>
-	sl_reg Parser<Time, sl_char8>::parse(Time* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::time::Parse(_out, TimeZone::Local, sz, posBegin, posEnd);
-	}
-
-	template <>
-	sl_reg Parser<Time, sl_char16>::parse(Time* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::time::Parse(_out, TimeZone::Local, sz, posBegin, posEnd);
-	}
-
-	template <>
-	sl_reg Parser2<Time, sl_char8, TimeZone>::parse(Time* _out, const TimeZone& zone, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::time::Parse(_out, zone, sz, posBegin, posEnd);
-	}
-	
-	template <>
-	sl_reg Parser2<Time, sl_char16, TimeZone>::parse(Time* _out, const TimeZone& zone, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::time::Parse(_out, zone, sz, posBegin, posEnd);
-	}
-
-	Time& Time::operator=(const StringParam& time) noexcept
-	{
-		setString(time);
-		return *this;
 	}
 
 
@@ -2378,6 +2192,281 @@ namespace slib
 	sl_bool TimeKeeper::isPaused() const noexcept
 	{
 		return m_flagStarted && !m_flagRunning;
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CTimeZone)
+
+	CTimeZone::CTimeZone() noexcept
+	{
+	}
+
+	CTimeZone::~CTimeZone() noexcept
+	{
+	}
+
+	sl_int64 CTimeZone::getOffset()
+	{
+		return getOffset(Time::now());
+	}
+
+
+	SLIB_DEFINE_OBJECT(GenericTimeZone, CTimeZone)
+
+	GenericTimeZone::GenericTimeZone(sl_int64 offset)
+	{
+		m_offset = offset;
+	}
+
+	GenericTimeZone::~GenericTimeZone()
+	{
+	}
+
+	sl_int64 GenericTimeZone::getOffset(const Time& time)
+	{
+		return m_offset;
+	}
+
+	namespace priv
+	{
+		namespace time
+		{
+			static const char g_local[sizeof(TimeZone)] = { 0 };
+		}
+	}
+	const TimeZone& TimeZone::Local = *((const TimeZone*)priv::time::g_local);
+	const TimeZone& Time::LocalZone = *((const TimeZone*)priv::time::g_local);
+
+	const TimeZone& TimeZone::UTC() noexcept
+	{
+		SLIB_SAFE_LOCAL_STATIC(TimeZone, utc, TimeZone::create(0));
+		return utc;
+	}
+
+	TimeZone TimeZone::create(sl_int64 offset) noexcept
+	{
+		return new GenericTimeZone(offset);
+	}
+
+	sl_bool TimeZone::isLocal() const noexcept
+	{
+		return isNull();
+	}
+
+	sl_bool TimeZone::isUTC() const noexcept
+	{
+		return ref.ptr == UTC().ref.ptr;
+	}
+
+	sl_int64 TimeZone::getOffset() const
+	{
+		return getOffset(Time::now());
+	}
+
+	sl_int64 TimeZone::getOffset(const Time &time) const
+	{
+		Ref<CTimeZone> obj = ref;
+		if (obj.isNotNull()) {
+			if (isUTC()) {
+				return 0;
+			}
+			return obj->getOffset();
+		}
+		return time.getLocalTimeOffset();
+	}
+
+
+	sl_bool Atomic<TimeZone>::isLocal() const noexcept
+	{
+		return isNull();
+	}
+
+	sl_bool Atomic<TimeZone>::isUTC() const noexcept
+	{
+		return ref._ptr == TimeZone::UTC().ref.ptr;
+	}
+
+	sl_int64 Atomic<TimeZone>::getOffset() const
+	{
+		return getOffset(Time::now());
+	}
+
+	sl_int64 Atomic<TimeZone>::getOffset(const Time &time) const
+	{
+		return TimeZone(*this).getOffset(time);
+	}
+
+
+	namespace priv
+	{
+		namespace time
+		{
+
+			template <class CT>
+			static sl_reg ParseComponents(TimeComponents* comps, const CT* sz, sl_size i, sl_size n) noexcept
+			{
+				if (i >= n) {
+					return SLIB_PARSE_ERROR;
+				}
+				sl_int32 YMDHMS[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+				sl_size index = 0;
+				sl_size posParsed = i;
+				while (i < n && index < 8) {
+					if (sz[i] == 0) {
+						break;
+					}
+					do {
+						CT ch = sz[i];
+						if (SLIB_CHAR_IS_SPACE_TAB(ch)) {
+							i++;
+						} else {
+							break;
+						}
+					} while (i < n);
+					if (i >= n) {
+						break;
+					}
+					sl_int32 value = 0;
+					sl_bool flagNumber = sl_false;
+					do {
+						CT ch = sz[i];
+						if (SLIB_CHAR_IS_DIGIT(ch)) {
+							value = value * 10 + (ch - '0');
+							flagNumber = sl_true;
+							i++;
+						} else {
+							break;
+						}
+					} while (i < n);
+					if (!flagNumber) {
+						break;
+					}
+					posParsed = i;
+
+					YMDHMS[index] = value;
+					index++;
+
+					if (i >= n) {
+						break;
+					}
+					do {
+						CT ch = sz[i];
+						if (SLIB_CHAR_IS_SPACE_TAB(ch)) {
+							i++;
+						} else {
+							break;
+						}
+					} while (i < n);
+
+					posParsed = i;
+
+					if (index >= 8) {
+						break;
+					}
+
+					if (i < n) {
+						CT ch = sz[i];
+						if (!SLIB_CHAR_IS_DIGIT(ch)) {
+							if (ch == '/' || ch == '-') {
+								if (index >= 3) {
+									break;
+								}
+							} else if (ch == 'T') {
+								if (index > 3) {
+									break;
+								} else {
+									index = 3;
+								}
+							} else if (ch == ':') {
+								if (index == 1) {
+									index = 4;
+									YMDHMS[3] = YMDHMS[0];
+									YMDHMS[0] = 0;
+								} else if (index < 4) {
+									break;
+								} else if (index >= 6) {
+									break;
+								}
+							} else if (ch == '.') {
+								if (index < 6) {
+									break;
+								}
+							} else {
+								break;
+							}
+							i++;
+						}
+					} else {
+						break;
+					}
+				}
+				if (index > 0) {
+					if (comps) {
+						Base::zeroMemory(comps, sizeof(TimeComponents));
+						comps->year = YMDHMS[0];
+						comps->month = YMDHMS[1];
+						comps->day = YMDHMS[2];
+						comps->hour = YMDHMS[3];
+						comps->minute = YMDHMS[4];
+						comps->second = YMDHMS[5];
+						comps->milliseconds = YMDHMS[6];
+						comps->microseconds = YMDHMS[7];
+					}
+					return posParsed;
+				}
+				return SLIB_PARSE_ERROR;
+			}
+
+			template <class CT>
+			SLIB_INLINE static sl_reg Parse(Time* _out, const TimeZone& zone, const CT* sz, sl_size i, sl_size n) noexcept
+			{
+				TimeComponents comps;
+				sl_reg ret = ParseComponents(&comps, sz, i, n);
+				if (ret != SLIB_PARSE_ERROR) {
+					if (_out) {
+						_out->set(comps, zone);
+					}
+				}
+				return ret;
+			}
+
+		}
+	}
+
+	template <>
+	sl_reg Parser<TimeComponents, sl_char8>::parse(TimeComponents* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
+	{
+		return priv::time::ParseComponents(_out, sz, posBegin, posEnd);
+	}
+
+	template <>
+	sl_reg Parser<TimeComponents, sl_char16>::parse(TimeComponents* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
+	{
+		return priv::time::ParseComponents(_out, sz, posBegin, posEnd);
+	}
+
+	template <>
+	sl_reg Parser<Time, sl_char8>::parse(Time* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
+	{
+		return priv::time::Parse(_out, TimeZone::Local, sz, posBegin, posEnd);
+	}
+
+	template <>
+	sl_reg Parser<Time, sl_char16>::parse(Time* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
+	{
+		return priv::time::Parse(_out, TimeZone::Local, sz, posBegin, posEnd);
+	}
+
+	template <>
+	sl_reg Parser2<Time, sl_char8, TimeZone>::parse(Time* _out, const TimeZone& zone, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
+	{
+		return priv::time::Parse(_out, zone, sz, posBegin, posEnd);
+	}
+
+	template <>
+	sl_reg Parser2<Time, sl_char16, TimeZone>::parse(Time* _out, const TimeZone& zone, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
+	{
+		return priv::time::Parse(_out, zone, sz, posBegin, posEnd);
 	}
 
 }

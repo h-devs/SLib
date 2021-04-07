@@ -29,15 +29,12 @@
 #include "slib/core/log.h"
 #include "slib/core/scoped.h"
 #include "slib/core/safe_static.h"
-#include "slib/crypto/sha2.h"
 #include "slib/crypto/chacha.h"
 
 #define TAG "SQLiteDatabase"
 
-#define ENCRYPTION_PREFIX_SIZE 80
-
 namespace slib
-{	
+{
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SQLiteParam)
 
@@ -122,9 +119,9 @@ namespace slib
 					return m_mapColumnIndexes.getValue_NoLock(name.toString(), -1);
 				}
 
-				HashMap<String, Variant> getRow() override
+				VariantMap getRow() override
 				{
-					HashMap<String, Variant> ret;
+					VariantMap ret;
 					if (m_nColumnNames > 0) {
 						for (sl_uint32 index = 0; index < m_nColumnNames; index++) {
 							ret.put_NoLock(m_columnNames[index], _getValue(index));
@@ -459,8 +456,7 @@ namespace slib
 			public:
 				DatabaseImpl* db;
 				const sqlite3_io_methods* ioOriginal;
-				ChaCha20_Core encrypt;
-				sl_uint32 encryptIV[4];
+				ChaCha20FileEncryptor encryptor;
 			};
 		
 			struct EncryptionCustomFile
@@ -476,7 +472,7 @@ namespace slib
 				EncryptionVfs m_vfs;
 				sqlite3_vfs* m_vfsOriginal;
 				int m_vfsFileCustomOffset;
-				char m_encryptionKey[32];
+				String m_encryptionKey;
 
 			public:
 				DatabaseImpl()
@@ -514,7 +510,7 @@ namespace slib
 					
 					int iResult;
 					if (param.encryptionKey.isNotEmpty()) {
-						SHA256::hash(param.encryptionKey, m_encryptionKey);
+						m_encryptionKey = param.encryptionKey;
 						sqlite3_vfs* vfsDefault = sqlite3_vfs_find(0);
 						Base::copyMemory(&m_vfs, vfsDefault, sizeof(sqlite3_vfs));
 						m_vfs.db = this;
@@ -523,7 +519,7 @@ namespace slib
 						m_vfsFileCustomOffset = ((m_vfs.szOsFile - 1) | 15) + 1;
 						m_vfs.szOsFile = m_vfsFileCustomOffset + sizeof(EncryptionCustomFile);
 						m_vfsOriginal = vfsDefault;
-						SLIB_SAFE_STATIC(Mutex, mutex)
+						SLIB_SAFE_LOCAL_STATIC(Mutex, mutex)
 						MutexLocker lock(&mutex);
 						sqlite3_vfs_register(&m_vfs, 0);
 						iResult = sqlite3_open_v2(param.path.getData(), &db, flags, m_vfs.zName);
@@ -558,58 +554,24 @@ namespace slib
 						custom->io.xFileSize = &xFileSizeEncryption;
 						sqlite3_int64 size = 0;
 						(file->pMethods->xFileSize)(file, &size);
+						sl_uint8 header[ChaCha20FileEncryptor::HeaderSize];
 						if (!size) {
-							(vfs->xRandomness)(vfs, 4, (char*)(custom->io.encryptIV));
-							(vfs->xRandomness)(vfs, 4, (char*)(custom->io.encryptIV + 1));
-							(vfs->xRandomness)(vfs, 4, (char*)(custom->io.encryptIV + 2));
-							(vfs->xRandomness)(vfs, 4, (char*)(custom->io.encryptIV + 3));
-							char header[ENCRYPTION_PREFIX_SIZE];
-							MIO::writeUint32LE(header, custom->io.encryptIV[0]);
-							MIO::writeUint32LE(header + 4, custom->io.encryptIV[1]);
-							MIO::writeUint32LE(header + 8, custom->io.encryptIV[2]);
-							MIO::writeUint32LE(header + 12, custom->io.encryptIV[3]);
-							(vfs->xRandomness)(vfs, 32, header + 16);
-							char check[48];
-							Base::copyMemory(check, header, 16);
-							Base::copyMemory(check + 16, m_encryptionKey, 32);
-							char h[32];
-							SHA256::hash(check, 48, h);
-							Base::copyMemory(header + 48, h, 32);
-							iRet = (file->pMethods->xWrite)(file, header, ENCRYPTION_PREFIX_SIZE, 0);
+							custom->io.encryptor.create(header, m_encryptionKey.getData(), (sl_uint32)(m_encryptionKey.getLength()));
+							iRet = (file->pMethods->xWrite)(file, header, sizeof(header), 0);
 							if (iRet != SQLITE_OK) {
 								file->pMethods = sl_null;
 								return iRet;
 							}
-							char key[32];
-							for (int i = 0; i < 32; i++) {
-								key[i] = header[16 + i] ^ m_encryptionKey[i];
-							}
-							custom->io.encrypt.setKey(key, 32);
 						} else {
-							char header[ENCRYPTION_PREFIX_SIZE];
-							iRet = (file->pMethods->xRead)(file, header, ENCRYPTION_PREFIX_SIZE, 0);
+							iRet = (file->pMethods->xRead)(file, header, sizeof(header), 0);
 							if (iRet != SQLITE_OK) {
 								file->pMethods = sl_null;
 								return iRet;
 							}
-							char check[48];
-							Base::copyMemory(check, header, 16);
-							Base::copyMemory(check + 16, m_encryptionKey, 32);
-							char h[32];
-							SHA256::hash(check, 48, h);
-							if (!(Base::equalsMemory(h, header + 48, 32))) {
+							if (!(custom->io.encryptor.open(header, m_encryptionKey.getData(), (sl_uint32)(m_encryptionKey.getLength())))) {
 								file->pMethods = sl_null;
 								return SQLITE_AUTH;
 							}
-							custom->io.encryptIV[0] = MIO::readUint32LE(header);
-							custom->io.encryptIV[1] = MIO::readUint32LE(header + 4);
-							custom->io.encryptIV[2] = MIO::readUint32LE(header + 8);
-							custom->io.encryptIV[3] = MIO::readUint32LE(header + 12);
-							char key[32];
-							for (int i = 0; i < 32; i++) {
-								key[i] = header[16 + i] ^ m_encryptionKey[i];
-							}
-							custom->io.encrypt.setKey(key, 32);
 						}
 						file->pMethods = &(custom->io);
 					}
@@ -619,9 +581,9 @@ namespace slib
 				static int xReadEncryption(sqlite3_file* file, void* buf, int iAmt, sqlite3_int64 iOfst)
 				{
 					EncryptionIo* io = (EncryptionIo*)(file->pMethods);
-					int iRet = (io->ioOriginal->xRead)(file, buf, iAmt, iOfst + ENCRYPTION_PREFIX_SIZE);
+					int iRet = (io->ioOriginal->xRead)(file, buf, iAmt, iOfst + ChaCha20FileEncryptor::HeaderSize);
 					if (iRet == SQLITE_OK && iAmt > 0) {
-						io->db->encrypt(io, iOfst, buf, iAmt);
+						io->encryptor.encrypt(iOfst, buf, buf, iAmt);
 					}
 					return iRet;
 				}
@@ -643,8 +605,8 @@ namespace slib
 								size = 1024;
 							}
 							Base::copyMemory(t, b, (sl_size)size);
-							io->db->encrypt(io, o, t, size);
-							int iRet = (io->ioOriginal->xWrite)(file, t, size, o + ENCRYPTION_PREFIX_SIZE);
+							io->encryptor.encrypt(o, t, t, size);
+							int iRet = (io->ioOriginal->xWrite)(file, t, size, o + ChaCha20FileEncryptor::HeaderSize);
 							if (iRet != SQLITE_OK) {
 								return iRet;
 							}
@@ -659,7 +621,7 @@ namespace slib
 				static int xTruncateEncryption(sqlite3_file* file, sqlite3_int64 size)
 				{
 					EncryptionIo* io = (EncryptionIo*)(file->pMethods);
-					return (io->ioOriginal->xTruncate)(file, size + ENCRYPTION_PREFIX_SIZE);
+					return (io->ioOriginal->xTruncate)(file, size + ChaCha20FileEncryptor::HeaderSize);
 				}
 				
 				static int xFileSizeEncryption(sqlite3_file* file, sqlite3_int64 *pSize)
@@ -667,46 +629,13 @@ namespace slib
 					EncryptionIo* io = (EncryptionIo*)(file->pMethods);
 					int iResult = (io->ioOriginal->xFileSize)(file, pSize);
 					if (iResult == SQLITE_OK) {
-						if (*pSize > ENCRYPTION_PREFIX_SIZE) {
-							*pSize -= ENCRYPTION_PREFIX_SIZE;
+						if (*pSize > ChaCha20FileEncryptor::HeaderSize) {
+							*pSize -= ChaCha20FileEncryptor::HeaderSize;
 						} else {
 							*pSize = 0;
 						}
 					}
 					return iResult;
-				}
-				
-				void encrypt(EncryptionIo* io, sqlite3_int64 iOfst, void* buf, int size)
-				{
-					if (iOfst < 0) {
-						return;
-					}
-					if (size < 1) {
-						return;
-					}
-					sl_uint64 offset = (sl_uint64)iOfst;
-					sl_uint64 block = offset >> 6;
-					sl_uint32 pos = (sl_uint32)(offset & 63);
-					sl_uint64 offsetEnd = (sl_uint64)(iOfst + size);
-					sl_uint64 blockEnd = offsetEnd >> 6;
-					sl_uint32 posEnd = (sl_uint32)(offsetEnd & 63);
-					char* b = (char*)buf;
-					char h[64];
-					for (; block <= blockEnd; block++) {
-						io->encrypt.generateBlock(io->encryptIV[0], io->encryptIV[1], io->encryptIV[2] + ((sl_uint32)(block >> 32)), io->encryptIV[3] + ((sl_uint32)block), h);
-						sl_uint32 e;
-						if (block == blockEnd) {
-							e = posEnd;
-						} else {
-							e = 64;
-						}
-						sl_uint32 n = e - pos;
-						for (sl_uint32 i = 0; i < n; i++) {
-							b[i] ^= h[pos + i];
-						}
-						b += n;
-						pos = 0;
-					}
 				}
 				
 				sl_int64 _execute(const StringParam& _sql) override
@@ -731,6 +660,8 @@ namespace slib
 							return ret;
 						}
 						sqlite3_finalize(statement);
+					} else {
+						_logError(sql);
 					}
 					return ret;
 				}

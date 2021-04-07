@@ -61,6 +61,18 @@
     <Filter Include="src\service">
       <UniqueIdentifier>{f8d3e2b1-d55d-440d-b9b8-01fe4590e459}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\storage">
+      <UniqueIdentifier>{f83a293e-1e90-4a25-8b4c-104dbf1be2b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\doc">
+      <UniqueIdentifier>{7958e742-6b8f-4898-9cee-27aeb54c9a8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\dev">
+      <UniqueIdentifier>{d9e0e024-e389-4c28-a77b-711d7e4e6df3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="inc">
+      <UniqueIdentifier>{ee59f2d4-03fa-45eb-9fd2-80029c13eb53}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\slib\core\async_config.h">
@@ -92,6 +104,63 @@
     </ClInclude>
     <ClInclude Include="..\..\src\slib\ui\view_win32.h">
       <Filter>src\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\core.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\crypto.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\db.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\dev.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\device.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\doc.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\geo.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\graphics.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\math.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\media.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\network.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\render.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\resource.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\service.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\slib.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\social.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\storage.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\ui.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\slib\render\d3d_impl.h">
+      <Filter>src\render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -167,9 +236,6 @@
     <ClCompile Include="..\..\src\slib\core\math.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\thread_pool.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\platform_windows.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -223,66 +289,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\block_cipher.cpp">
       <Filter>src\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\vector2.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\vector3.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\vector4.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\matrix2.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\matrix3.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\matrix4.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\quaternion.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\line.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\line_segment.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\line3.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\rectangle.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\plane.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\bezier.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\box.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\sphere.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\transform2d.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\transform3d.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\triangle.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\triangle3.cpp">
-      <Filter>src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\math\view_frustum.cpp">
-      <Filter>src\math</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\xml.cpp">
       <Filter>src\core</Filter>
@@ -431,40 +437,10 @@
     <ClCompile Include="..\..\src\slib\media\audio_format.cpp">
       <Filter>src\media</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_player.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_player_dsound.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_player_opensl_es.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_player_win32.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_recorder.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_recorder_dsound.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_recorder_opensl_es.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\audio_recorder_win32.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\media\audio_util.cpp">
       <Filter>src\media</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\media\camera.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\camera_dshow.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\camera_win32.cpp">
       <Filter>src\media</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\media\codec_opus.cpp">
@@ -551,9 +527,6 @@
     <ClCompile Include="..\..\src\slib\network\url_request_win32.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\render\index_buffer.cpp">
-      <Filter>src\render</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\render\opengl_egl.cpp">
       <Filter>src\render</Filter>
     </ClCompile>
@@ -585,9 +558,6 @@
       <Filter>src\render</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\render\texture.cpp">
-      <Filter>src\render</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\render\vertex_buffer.cpp">
       <Filter>src\render</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\button.cpp">
@@ -632,13 +602,13 @@
     <ClCompile Include="..\..\src\slib\ui\label_view.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\linear_view.cpp">
+    <ClCompile Include="..\..\src\slib\ui\linear_layout.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\list_report_view.cpp">
+    <ClCompile Include="..\..\src\slib\ui\list_control.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\list_report_view_win32.cpp">
+    <ClCompile Include="..\..\src\slib\ui\list_control_win32.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\list_view.cpp">
@@ -689,7 +659,7 @@
     <ClCompile Include="..\..\src\slib\ui\slider.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\split_view.cpp">
+    <ClCompile Include="..\..\src\slib\ui\split_layout.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\tab_view.cpp">
@@ -1250,9 +1220,6 @@
     <ClCompile Include="..\..\src\slib\core\time_windows.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\console_windows.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\console.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -1292,7 +1259,10 @@
     <ClCompile Include="..\..\src\slib\core\charset_windows.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\grid_view.cpp">
+    <ClCompile Include="..\..\src\slib\ui\table_layout.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\tile_layout.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\social\oauth_server.cpp">
@@ -1387,6 +1357,180 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\service\captcha.cpp">
       <Filter>src\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\list_box.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\label_list.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\disk.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\disk_win32.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\ui_sound.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\ui_sound_win32.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\dynamic_library.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\dl_windows_kernel32.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\dynamic_library_windows.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\dl_windows_user32.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\dl_windows_wininet.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\dl_windows_bcrypt.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\graphics\dl_windows_gdiplus.cpp">
+      <Filter>src\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\media\dl_windows_winmm.cpp">
+      <Filter>src\media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\doc\rar.cpp">
+      <Filter>src\doc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\doc\pdf.cpp">
+      <Filter>src\doc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\dl_windows_iphlpapi.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\safe_static.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\combo_box.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\combo_box_win32.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\dev\pe.cpp">
+      <Filter>src\dev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\dev\protect.cpp">
+      <Filter>src\dev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\dev\hook.cpp">
+      <Filter>src\dev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\dev\module.cpp">
+      <Filter>src\dev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\dev\vtable.cpp">
+      <Filter>src\dev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\service_manager.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\service_manager_win32.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\service_win32.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\media\audio_device.cpp">
+      <Filter>src\media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\media\audio_device_win32.cpp">
+      <Filter>src\media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\media\camera_win32.cpp">
+      <Filter>src\media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\dokany.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\file_system_logger.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\dokany_install.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\file_system.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\file_system_mirror.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\graphics\jpeg.cpp">
+      <Filter>src\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\d3d.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\d3d9.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\d3d10.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\d3d10_1.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\d3d11.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\dl_windows_d3d.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\fuse.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\render_buffer.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\d3d8.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\db\dl_libmysql.cpp">
+      <Filter>src\db</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\db\mysql_data.cpp">
+      <Filter>src\db</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\dev\pe_utils.cpp">
+      <Filter>src\dev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\audio_view.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\math\fft.cpp">
+      <Filter>src\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\math\plot.cpp">
+      <Filter>src\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\math\plot_ui.cpp">
+      <Filter>src\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\graphics\image_canvas.cpp">
+      <Filter>src\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\tap.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\tap_install_win32.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\tap_win32.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\platform_windows_setup.cpp">
+      <Filter>src\core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

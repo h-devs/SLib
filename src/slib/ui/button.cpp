@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -22,25 +22,34 @@
 
 #include "slib/ui/button.h"
 
+#include "slib/ui/view_attributes.h"
 #include "slib/ui/core.h"
 #include "slib/graphics/util.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/new_helper.h"
 
+#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_GTK)
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
+#endif
+
+#define BUTTON_TEXT_DEFAULT_COLOR Color(0, 100, 200)
+
 namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ButtonCategoryProperties)
-	
+
 	ButtonCategoryProperties::ButtonCategoryProperties()
 	{
 		textColor = Color::zero();
 		flagFilter = sl_false;
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ButtonCategory)
-	
+
 	ButtonCategory::ButtonCategory()
 	{
 	}
@@ -59,6 +68,24 @@ namespace slib
 				0.2f, 0.3f, 0.4f, 0
 			};
 			const ColorMatrix& g_colorMatrix_hover = *((const ColorMatrix*)((void*)g_colorMatrix_hover_buf));
+
+			const sl_real g_colorMatrix_focused_buf[20] = {
+				0.5f, 0, 0, 0,
+				0, 0.5f, 0, 0,
+				0, 0, 0.5f, 0,
+				0, 0, 0, 1,
+				0.2f, 0.3f, 0.6f, 0
+			};
+			const ColorMatrix& g_colorMatrix_focused = *((const ColorMatrix*)((void*)g_colorMatrix_focused_buf));
+
+			const sl_real g_colorMatrix_focused_hover_buf[20] = {
+				0.5f, 0, 0, 0,
+				0, 0.5f, 0, 0,
+				0, 0, 0.5f, 0,
+				0, 0, 0, 1,
+				0.2f, 0.4f, 0.6f, 0
+			};
+			const ColorMatrix& g_colorMatrix_focused_hover = *((const ColorMatrix*)((void*)g_colorMatrix_focused_hover_buf));
 
 			const sl_real g_colorMatrix_pressed_buf[20] = {
 				0.5f, 0, 0, 0,
@@ -83,101 +110,60 @@ namespace slib
 			{
 			public:
 				ButtonCategory categories[2];
-				
+				Array<ButtonCategory> arrCategories;
+
 			public:
 				Categories()
 				{
-					categories[1].properties[(int)(ButtonState::Normal)].border = Pen::create(PenStyle::Solid, 3, Color(0, 100, 250));
+					categories[1].properties[(int)(ButtonState::Default)].border = Pen::create(PenStyle::Solid, 3, Color(0, 100, 250));
+					arrCategories = Array<ButtonCategory>::createStatic(categories, 2);
 				}
-				
+
 			public:
-				static ButtonCategory* getCategories()
+				static Array<ButtonCategory> getInitialCategories()
 				{
-					SLIB_SAFE_STATIC(Categories, ret)
-					if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
+					SLIB_SAFE_LOCAL_STATIC(Categories, s)
+					if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
 						return sl_null;
 					}
-					return ret.categories;
+					return s.arrCategories;
 				}
 			};
-			
+
 		}
 	}
-	
+
 
 	SLIB_DEFINE_OBJECT(Button, View)
 
-	Button::Button() : Button(2)
+	Button::Button()
 	{
-	}
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 
-	Button::Button(sl_uint32 nCategories, ButtonCategory* categories)
-	{
-#if !defined(SLIB_PLATFORM_IS_MOBILE)
-		setFocusable(sl_true);
-#endif
-		m_flagMultiLine = sl_false;
-		m_flagDefaultButton = sl_false;
-		
-		m_state = ButtonState::Normal;
-		m_category = 0;
-		
-		m_iconSize.x = 0;
-		m_iconSize.y = 0;
-		m_gravity = Alignment::MiddleCenter;
-		m_iconAlignment = Alignment::MiddleCenter;
-		m_textAlignment = Alignment::MiddleCenter;
-		m_flagTextBeforeIcon = sl_false;
-		m_layoutOrientation = LayoutOrientation::Horizontal;
-		
-		m_iconMarginLeft = 1;
-		m_iconMarginTop = 1;
-		m_iconMarginRight = 1;
-		m_iconMarginBottom = 1;
-		
-		m_textMarginLeft = 1;
-		m_textMarginTop = 1;
-		m_textMarginRight = 1;
-		m_textMarginBottom = 1;
-		
-		setPadding(1, 1, 1, 1, UIUpdateMode::Init);
-		
-		m_flagUseDefaultColorFilter = sl_true;
-
-		if (nCategories == 0) {
-			nCategories = 1;
-		}
-		m_nCategories = nCategories;
-		m_categories = NewHelper<ButtonCategory>::create(nCategories);
-		if (!categories) {
-			categories = priv::button::Categories::getCategories();
-			if (nCategories > 2) {
-				nCategories = 2;
-			}
-			if (!categories) {
-				nCategories = 1;
-			}
-		}
-		if (categories) {
-			for (sl_uint32 i = 0; i < nCategories; i++) {
-				m_categories[i] = categories[i];
-			}
-		}
-		
+		setSavingCanvasState(sl_false);
 		setUsingFont(sl_true);
-		
-		m_textColorDefault = Color(0, 100, 200);
-		
+		setFocusable(sl_true);
+
+		setPadding(1, 1, 1, 1, UIUpdateMode::Init);
+
+		m_flagDefaultButton = sl_false;
 	}
 
 	Button::~Button()
 	{
-		NewHelper<ButtonCategory>::free(m_categories, m_nCategories);
 	}
-	
+
 	String Button::getText()
 	{
 		return m_text;
+	}
+
+	sl_bool Button::isHyperText()
+	{
+		if (m_cell.isNotNull()) {
+			return m_cell->flagHyperText;
+		}
+		return sl_false;
 	}
 
 	void Button::setText(const String& text, UIUpdateMode mode)
@@ -185,15 +171,144 @@ namespace slib
 		Ptr<IButtonInstance> instance = getButtonInstance();
 		if (instance.isNotNull()) {
 			SLIB_VIEW_RUN_ON_UI_THREAD(&Button::setText, text, mode)
-			m_text = text;
+		} else {
+			if (isMnemonic()) {
+				setMnemonicKeyFromText(text);
+			}
+		}
+		m_text = text;
+		if (m_cell.isNotNull()) {
+			m_cell->flagHyperText = sl_false;
+			m_cell->text = text;
+		}
+		if (instance.isNotNull()) {
 			instance->setText(this, text);
 			if (!SLIB_UI_UPDATE_MODE_IS_UPDATE_LAYOUT(mode)) {
 				return;
 			}
-		} else {
-			m_text = text;
 		}
 		invalidateLayoutOfWrappingControl(mode);
+	}
+
+	void Button::setHyperText(const String& text, UIUpdateMode mode)
+	{
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->text = text;
+			m_cell->flagHyperText = sl_true;
+			invalidateLayoutOfWrappingControl(mode);
+		}
+	}
+
+	MultiLineMode Button::getMultiLine()
+	{
+		if (m_cell.isNotNull()) {
+			return m_cell->multiLineMode;
+		}
+		return MultiLineMode::Single;
+	}
+
+	void Button::setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode)
+	{
+		if (multiLineMode != MultiLineMode::Single) {
+			_initCell();
+		}
+		if (m_cell.isNotNull()) {
+			m_cell->multiLineMode = multiLineMode;
+			invalidateLayoutOfWrappingControl(updateMode);
+		}
+	}
+
+	sl_uint32 Button::getLinesCount()
+	{
+		if (m_cell.isNotNull()) {
+			return m_cell->linesCount;
+		}
+		return 1;
+	}
+
+	void Button::setLinesCount(sl_uint32 nLines, UIUpdateMode updateMode)
+	{
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->linesCount = nLines;
+			invalidateLayoutOfWrappingControl(updateMode);
+		}
+	}
+
+	sl_bool Button::isMnemonic()
+	{
+		if (m_cell.isNotNull()) {
+			return m_cell->flagMnemonic;
+		}
+		return sl_true;
+	}
+
+	void Button::setMnemonic(sl_bool flag)
+	{
+		if (!flag) {
+			_initCell();
+		}
+		if (m_cell.isNotNull()) {
+			m_cell->flagMnemonic = flag;
+		}
+	}
+
+	Color Button::getTextColor()
+	{
+		if (m_cell.isNotNull()) {
+			return m_cell->textColor;
+		}
+		return BUTTON_TEXT_DEFAULT_COLOR;
+	}
+
+	void Button::setTextColor(const Color& color, UIUpdateMode updateMode)
+	{
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->textColor = color;
+			invalidate(updateMode);
+		}
+	}
+
+	Alignment Button::getGravity()
+	{
+		_initCell();
+		if (m_cell.isNotNull()) {
+			return m_cell->gravity;
+		}
+		return Alignment::MiddleCenter;
+	}
+
+	void Button::setGravity(const Alignment& gravity, UIUpdateMode updateMode)
+	{
+		if (gravity != Alignment::MiddleCenter) {
+			_initCell();
+		}
+		if (m_cell.isNotNull()) {
+			m_cell->gravity = gravity;
+			invalidate(updateMode);
+		}
+	}
+
+	EllipsizeMode Button::getEllipsize()
+	{
+		_initCell();
+		if (m_cell.isNotNull()) {
+			return m_cell->ellipsizeMode;
+		}
+		return EllipsizeMode::None;
+	}
+
+	void Button::setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode)
+	{
+		if (ellipsizeMode != EllipsizeMode::None) {
+			_initCell();
+		}
+		if (m_cell.isNotNull()) {
+			m_cell->ellipsizeMode = ellipsizeMode;
+			invalidate(updateMode);
+		}
 	}
 
 	sl_bool Button::isDefaultButton()
@@ -208,10 +323,8 @@ namespace slib
 			SLIB_VIEW_RUN_ON_UI_THREAD(&Button::setDefaultButton, flag, mode)
 		}
 		m_flagDefaultButton = flag;
-		if (flag) {
-			setCurrentCategory(1, UIUpdateMode::None);
-		} else {
-			setCurrentCategory(0, UIUpdateMode::None);
+		if (m_cell.isNotNull()) {
+			m_cell->category = flag ? 1 : 0;
 		}
 		if (instance.isNotNull()) {
 			instance->setDefaultButton(this, flag);
@@ -220,49 +333,78 @@ namespace slib
 		}
 	}
 
+	void Button::setCategories(const Array<ButtonCategory>& categories)
+	{
+		m_categories = categories;
+	}
+
 	sl_uint32 Button::getCategoriesCount()
 	{
-		return m_nCategories;
+		if (m_cell.isNotNull()) {
+			return (sl_uint32)(m_cell->categories.getCount());
+		}
+		return 2;
 	}
 
 	ButtonState Button::getButtonState()
 	{
-		return m_state;
+		if (m_cell.isNotNull()) {
+			return m_cell->state;
+		}
+		return ButtonState::Normal;
+	}
+
+	sl_bool Button::isUsingFocusedState()
+	{
+		if (m_cell.isNotNull()) {
+			return m_cell->flagUseFocusedState;
+		}
+		return sl_false;
+	}
+
+	void Button::setUsingFocusedState(sl_bool flag)
+	{
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->flagUseFocusedState = flag;
+		}
 	}
 
 	sl_uint32 Button::getCurrentCategory()
 	{
-		return m_category;
+		if (m_cell.isNotNull()) {
+			return m_cell->category;
+		}
+		return 0;
 	}
 
 	void Button::setCurrentCategory(sl_uint32 n, UIUpdateMode mode)
 	{
-		if (n < m_nCategories) {
-			m_category = n;
+		_initCell();
+		if (m_cell.isNotNull()) {
+			if (n >= m_cell->categories.getCount()) {
+				return;
+			}
+			m_cell->category = n;
 			invalidate(mode);
 		}
 	}
 
-	sl_bool Button::isMultiLine()
-	{
-		return m_flagMultiLine;
-	}
-
-	void Button::setMultiLine(sl_bool flag, UIUpdateMode mode)
-	{
-		m_flagMultiLine = flag;
-		invalidateLayoutOfWrappingControl(mode);
-	}
-
 	const UISize& Button::getIconSize()
 	{
-		return m_iconSize;
+		if (m_cell.isNotNull()) {
+			return m_cell->iconSize;
+		}
+		return UISize::zero();
 	}
 
 	void Button::setIconSize(const UISize& size, UIUpdateMode mode)
 	{
-		m_iconSize = size;
-		invalidateLayoutOfWrappingControl(mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->iconSize = size;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	void Button::setIconSize(sl_ui_len width, sl_ui_len height, UIUpdateMode mode)
@@ -277,86 +419,133 @@ namespace slib
 
 	sl_ui_len Button::getIconWidth()
 	{
-		return m_iconSize.x;
+		if (m_cell.isNotNull()) {
+			return m_cell->iconSize.x;
+		}
+		return 0;
 	}
 
 	void Button::setIconWidth(sl_ui_len width, UIUpdateMode mode)
 	{
-		setIconSize(UISize(width, m_iconSize.y), mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->iconSize.x = width;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	sl_ui_len Button::getIconHeight()
 	{
-		return m_iconSize.y;
+		if (m_cell.isNotNull()) {
+			return m_cell->iconSize.y;
+		}
+		return 0;
 	}
 
 	void Button::setIconHeight(sl_ui_len height, UIUpdateMode mode)
 	{
-		setIconSize(UISize(m_iconSize.x, height), mode);
-	}
-
-	Alignment Button::getGravity()
-	{
-		return m_gravity;
-	}
-
-	void Button::setGravity(const Alignment& align, UIUpdateMode mode)
-	{
-		m_gravity = align;
-		invalidate(mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->iconSize.y = height;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	Alignment Button::getIconAlignment()
 	{
-		return m_iconAlignment;
+		if (m_cell.isNotNull()) {
+			return m_cell->iconAlignment;
+		}
+		return Alignment::MiddleCenter;
 	}
 
 	void Button::setIconAlignment(const Alignment& align, UIUpdateMode mode)
 	{
-		m_iconAlignment = align;
-		invalidateLayoutOfWrappingControl(mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->iconAlignment = align;
+			invalidate(mode);
+		}
 	}
 
 	Alignment Button::getTextAlignment()
 	{
-		return m_textAlignment;
+		if (m_cell.isNotNull()) {
+			return m_cell->textAlignment;
+		}
+		return Alignment::MiddleCenter;
 	}
 
 	void Button::setTextAlignment(const Alignment& align, UIUpdateMode mode)
 	{
-		m_textAlignment = align;
-		invalidateLayoutOfWrappingControl(mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->textAlignment = align;
+			invalidate(mode);
+		}
 	}
 
 	sl_bool Button::isTextBeforeIcon()
 	{
-		return m_flagTextBeforeIcon;
+		if (m_cell.isNotNull()) {
+			return m_cell->flagTextBeforeIcon;
+		}
+		return sl_false;
 	}
 
 	void Button::setTextBeforeIcon(sl_bool flag, UIUpdateMode mode)
 	{
-		m_flagTextBeforeIcon = flag;
-		invalidateLayoutOfWrappingControl(mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->flagTextBeforeIcon = flag;
+			invalidate(mode);
+		}
+	}
+
+	sl_bool Button::isExtendTextFrame()
+	{
+		if (m_cell.isNotNull()) {
+			return m_cell->flagExtendTextFrame;
+		}
+		return sl_false;
+	}
+
+	void Button::setExtendTextFrame(sl_bool flag, UIUpdateMode mode)
+	{
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->flagExtendTextFrame = flag;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	LayoutOrientation Button::getLayoutOrientation()
 	{
-		return m_layoutOrientation;
+		if (m_cell.isNotNull()) {
+			return m_cell->layoutOrientation;
+		}
+		return LayoutOrientation::Horizontal;
 	}
 
 	void Button::setLayoutOrientation(LayoutOrientation orientation, UIUpdateMode mode)
 	{
-		m_layoutOrientation = orientation;
-		invalidateLayoutOfWrappingControl(mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->layoutOrientation = orientation;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	void Button::setIconMargin(sl_ui_pos left, sl_ui_pos top, sl_ui_pos right, sl_ui_pos bottom, UIUpdateMode mode)
 	{
-		m_iconMarginLeft = left;
-		m_iconMarginTop = top;
-		m_iconMarginRight = right;
-		m_iconMarginBottom = bottom;
-		invalidateLayoutOfWrappingControl(mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->iconMarginLeft = left;
+			m_cell->iconMarginTop = top;
+			m_cell->iconMarginRight = right;
+			m_cell->iconMarginBottom = bottom;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	void Button::setIconMargin(sl_ui_pos margin, UIUpdateMode mode)
@@ -366,51 +555,86 @@ namespace slib
 
 	sl_ui_pos Button::getIconMarginLeft()
 	{
-		return m_iconMarginLeft;
+		_initCell();
+		if (m_cell.isNotNull()) {
+			return m_cell->iconMarginLeft;
+		}
+		return 0;
 	}
 
 	void Button::setIconMarginLeft(sl_ui_pos margin, UIUpdateMode mode)
 	{
-		setIconMargin(margin, m_iconMarginTop, m_iconMarginRight, m_iconMarginBottom, mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->iconMarginLeft = margin;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	sl_ui_pos Button::getIconMarginTop()
 	{
-		return m_iconMarginTop;
+		_initCell();
+		if (m_cell.isNotNull()) {
+			return m_cell->iconMarginTop;
+		}
+		return 0;
 	}
 
 	void Button::setIconMarginTop(sl_ui_pos margin, UIUpdateMode mode)
 	{
-		setIconMargin(m_iconMarginLeft, margin, m_iconMarginRight, m_iconMarginBottom, mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->iconMarginTop = margin;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	sl_ui_pos Button::getIconMarginRight()
 	{
-		return m_iconMarginRight;
+		_initCell();
+		if (m_cell.isNotNull()) {
+			return m_cell->iconMarginRight;
+		}
+		return 0;
 	}
 
 	void Button::setIconMarginRight(sl_ui_pos margin, UIUpdateMode mode)
 	{
-		setIconMargin(m_iconMarginLeft, m_iconMarginTop, margin, m_iconMarginBottom, mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->iconMarginRight = margin;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	sl_ui_pos Button::getIconMarginBottom()
 	{
-		return m_iconMarginBottom;
+		_initCell();
+		if (m_cell.isNotNull()) {
+			return m_cell->iconMarginBottom;
+		}
+		return 0;
 	}
 
 	void Button::setIconMarginBottom(sl_ui_pos margin, UIUpdateMode mode)
 	{
-		setIconMargin(m_iconMarginLeft, m_iconMarginTop, m_iconMarginRight, margin, mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->iconMarginBottom = margin;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	void Button::setTextMargin(sl_ui_pos left, sl_ui_pos top, sl_ui_pos right, sl_ui_pos bottom, UIUpdateMode mode)
 	{
-		m_textMarginLeft = left;
-		m_textMarginTop = top;
-		m_textMarginRight = right;
-		m_textMarginBottom = bottom;
-		invalidateLayoutOfWrappingControl(mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->textMarginLeft = left;
+			m_cell->textMarginTop = top;
+			m_cell->textMarginRight = right;
+			m_cell->textMarginBottom = bottom;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	void Button::setTextMargin(sl_ui_pos margin, UIUpdateMode mode)
@@ -420,132 +644,160 @@ namespace slib
 
 	sl_ui_pos Button::getTextMarginLeft()
 	{
-		return m_textMarginLeft;
+		_initCell();
+		if (m_cell.isNotNull()) {
+			return m_cell->textMarginLeft;
+		}
+		return 0;
 	}
 
 	void Button::setTextMarginLeft(sl_ui_pos margin, UIUpdateMode mode)
 	{
-		setTextMargin(margin, m_textMarginTop, m_textMarginRight, m_textMarginBottom, mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->textMarginLeft = margin;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	sl_ui_pos Button::getTextMarginTop()
 	{
-		return m_textMarginTop;
+		_initCell();
+		if (m_cell.isNotNull()) {
+			return m_cell->textMarginTop;
+		}
+		return 0;
 	}
 
 	void Button::setTextMarginTop(sl_ui_pos margin, UIUpdateMode mode)
 	{
-		setTextMargin(m_textMarginLeft, margin, m_textMarginRight, m_textMarginBottom, mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->textMarginTop = margin;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	sl_ui_pos Button::getTextMarginRight()
 	{
-		return m_textMarginRight;
+		_initCell();
+		if (m_cell.isNotNull()) {
+			return m_cell->textMarginRight;
+		}
+		return 0;
 	}
 
 	void Button::setTextMarginRight(sl_ui_pos margin, UIUpdateMode mode)
 	{
-		setTextMargin(m_textMarginLeft, m_textMarginTop, margin, m_textMarginBottom, mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->textMarginRight = margin;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	sl_ui_pos Button::getTextMarginBottom()
 	{
-		return m_textMarginBottom;
+		_initCell();
+		if (m_cell.isNotNull()) {
+			return m_cell->textMarginBottom;
+		}
+		return 0;
 	}
 
 	void Button::setTextMarginBottom(sl_ui_pos margin, UIUpdateMode mode)
 	{
-		setTextMargin(m_textMarginLeft, m_textMarginTop, m_textMarginRight, margin, mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->textMarginBottom = margin;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	Color Button::getTextColor(ButtonState state, sl_uint32 category)
 	{
-		if (category < m_nCategories && (int)state < (int)(ButtonState::Count)) {
-			return m_categories[category].properties[(int)state].textColor;
-		} else {
-			return Color::zero();
+		_initCell();
+		if (m_cell.isNotNull()) {
+			if (category < m_cell->categories.getCount() && (int)state < (int)(ButtonState::Count)) {
+				return m_cell->categories[category].properties[(int)state].textColor;
+			}
 		}
+		return Color::zero();
 	}
 
 	void Button::setTextColor(const Color& color, ButtonState state, sl_uint32 category, UIUpdateMode mode)
 	{
-		if (category < m_nCategories) {
-			if ((int)state < (int)(ButtonState::Count)) {
-				m_categories[category].properties[(int)state].textColor = color;
-			} else {
-				for (int i = 0; i < (int)(ButtonState::Count); i++) {
-					m_categories[category].properties[i].textColor = color;
+		_initCell();
+		if (m_cell.isNotNull()) {
+			if (category < m_cell->categories.getCount()) {
+				if ((int)state < (int)(ButtonState::Count)) {
+					m_cell->categories[category].properties[(int)state].textColor = color;
+					invalidate(mode);
 				}
 			}
-			invalidate(mode);
 		}
-	}
-
-	Color Button::getTextColor()
-	{
-		return m_textColorDefault;
-	}
-
-	void Button::setTextColor(const Color& color, UIUpdateMode mode)
-	{
-		m_textColorDefault = color;
-		invalidate(mode);
 	}
 
 	Ref<Drawable> Button::getIcon(ButtonState state, sl_uint32 category)
 	{
-		if (category < m_nCategories && (int)state < (int)(ButtonState::Count)) {
-			return m_categories[category].properties[(int)state].icon;
-		} else {
-			return sl_null;
+		if (m_cell.isNotNull()) {
+			if (category < m_cell->categories.getCount() && (int)state < (int)(ButtonState::Count)) {
+				return m_cell->categories[category].properties[(int)state].icon;
+			}
 		}
+		return sl_null;
 	}
 
 	void Button::setIcon(const Ref<Drawable>& icon, ButtonState state, sl_uint32 category, UIUpdateMode mode)
 	{
-		if (category < m_nCategories) {
-			if ((int)state < (int)(ButtonState::Count)) {
-				m_categories[category].properties[(int)state].icon = icon;
-			} else {
-				for (int i = 0; i < (int)(ButtonState::Count); i++) {
-					m_categories[category].properties[i].icon = icon;
+		_initCell();
+		if (m_cell.isNotNull()) {
+			if (category < m_cell->categories.getCount()) {
+				if ((int)state < (int)(ButtonState::Count)) {
+					m_cell->categories[category].properties[(int)state].icon = icon;
+					invalidateLayoutOfWrappingControl(mode);
 				}
 			}
-			invalidateLayoutOfWrappingControl(mode);
 		}
 	}
 
 	Ref<Drawable> Button::getIcon()
 	{
-		return m_iconDefault;
+		if (m_cell.isNotNull()) {
+			return m_cell->iconDefault;
+		}
+		return sl_null;
 	}
 
 	void Button::setIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
-		m_iconDefault = icon;
-		invalidateLayoutOfWrappingControl(mode);
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->iconDefault = icon;
+			invalidateLayoutOfWrappingControl(mode);
+		}
 	}
 
 	Ref<Drawable> Button::getBackground(ButtonState state, sl_uint32 category)
 	{
-		if (category < m_nCategories && (int)state < (int)(ButtonState::Count)) {
-			return m_categories[category].properties[(int)state].background;
-		} else {
-			return sl_null;
+		if (m_cell.isNotNull()) {
+			if (category < m_cell->categories.getCount() && (int)state < (int)(ButtonState::Count)) {
+				return m_cell->categories[category].properties[(int)state].background;
+			}
 		}
+		return sl_null;
 	}
 
 	void Button::setBackground(const Ref<Drawable>& background, ButtonState state, sl_uint32 category, UIUpdateMode mode)
 	{
-		if (category < m_nCategories) {
-			if ((int)state < (int)(ButtonState::Count)) {
-				m_categories[category].properties[(int)state].background = background;
-			} else {
-				for (int i = 0; i < (int)(ButtonState::Count); i++) {
-					m_categories[category].properties[i].background = background;
+		_initCell();
+		if (m_cell.isNotNull()) {
+			if (category < m_cell->categories.getCount()) {
+				if ((int)state < (int)(ButtonState::Count)) {
+					m_cell->categories[category].properties[(int)state].background = background;
+					invalidate(mode);
 				}
 			}
-			invalidate(mode);
 		}
 	}
 
@@ -554,60 +806,37 @@ namespace slib
 		setBackground(Drawable::createColorDrawable(color), state, category, mode);
 	}
 
-	Ref<Drawable> Button::getBackground()
-	{
-		return View::getBackground();
-	}
-
-	void Button::setBackground(const Ref<Drawable>& background, UIUpdateMode mode)
-	{
-		View::setBackground(background, mode);
-	}
-
 	Ref<Pen> Button::getBorder(ButtonState state, sl_uint32 category)
 	{
-		if (category < m_nCategories && (int)state < (int)(ButtonState::Count)) {
-			return m_categories[category].properties[(int)state].border;
-		} else {
-			return sl_null;
+		if (m_cell.isNotNull()) {
+			if (category < m_cell->categories.getCount() && (int)state < (int)(ButtonState::Count)) {
+				return m_cell->categories[category].properties[(int)state].border;
+			}
 		}
+		return sl_null;
 	}
 
 	void Button::setBorder(const Ref<Pen>& pen, ButtonState state, sl_uint32 category, UIUpdateMode mode)
 	{
-		if (category < m_nCategories) {
-			if ((int)state < (int)(ButtonState::Count)) {
-				m_categories[category].properties[(int)state].border = pen;
-			} else {
-				for (int i = 0; i < (int)(ButtonState::Count); i++) {
-					m_categories[category].properties[i].border = pen;
+		_initCell();
+		if (m_cell.isNotNull()) {
+			if (category < m_cell->categories.getCount()) {
+				if ((int)state < (int)(ButtonState::Count)) {
+					m_cell->categories[category].properties[(int)state].border = pen;
+					invalidate(mode);
 				}
 			}
-			invalidate(mode);
 		}
-	}
-
-	Ref<Pen> Button::getBorder()
-	{
-		return View::getBorder();
-	}
-
-	void Button::setBorder(const Ref<Pen>& pen, UIUpdateMode mode)
-	{
-		View::setBorder(pen, mode);
-	}
-
-	void Button::setBorder(sl_bool flagBorder, UIUpdateMode mode)
-	{
-		View::setBorder(flagBorder, mode);
 	}
 
 	ColorMatrix* Button::getColorFilter(ButtonState state, sl_uint32 category)
 	{
-		if (category < m_nCategories && (int)state < (int)(ButtonState::Count)) {
-			ButtonCategoryProperties& props = m_categories[category].properties[(int)state];
-			if (props.flagFilter) {
-				return &(props.filter);
+		if (m_cell.isNotNull()) {
+			if (category < m_cell->categories.getCount() && (int)state < (int)(ButtonState::Count)) {
+				ButtonCategoryProperties& props = m_cell->categories[category].properties[(int)state];
+				if (props.flagFilter) {
+					return &(props.filter);
+				}
 			}
 		}
 		return sl_null;
@@ -615,39 +844,32 @@ namespace slib
 	
 	void Button::setColorFilter(ColorMatrix* filter, ButtonState state, sl_uint32 category, UIUpdateMode mode)
 	{
-		setUsingDefaultColorFilter(sl_false, UIUpdateMode::None);
-		if (category < m_nCategories) {
-			if ((int)state < (int)(ButtonState::Count)) {
-				ButtonCategoryProperties& props = m_categories[category].properties[(int)state];
-				if (filter) {
-					props.flagFilter = sl_true;
-					props.filter = *filter;
-				} else {
-					props.flagFilter = sl_false;
-				}
-			} else {
-				for (int i = 0; i < (int)(ButtonState::Count); i++) {
-					ButtonCategoryProperties& props = m_categories[category].properties[i];
+		_initCell();
+		if (m_cell.isNotNull()) {
+			if (category < m_cell->categories.getCount()) {
+				if ((int)state < (int)(ButtonState::Count)) {
+					m_cell->flagUseDefaultColorFilter = sl_false;
+					ButtonCategoryProperties& props = m_cell->categories[category].properties[(int)state];
 					if (filter) {
 						props.flagFilter = sl_true;
 						props.filter = *filter;
 					} else {
 						props.flagFilter = sl_false;
 					}
+					invalidate(mode);
 				}
 			}
-			invalidate(mode);
 		}
 	}
 	
 	ColorMatrix* Button::getColorFilter()
 	{
-		return getColorFilter(ButtonState::Normal);
+		return getColorFilter(ButtonState::Default);
 	}
 	
 	void Button::setColorFilter(ColorMatrix* filter, UIUpdateMode mode)
 	{
-		setColorFilter(filter, ButtonState::Normal, 0, mode);
+		setColorFilter(filter, ButtonState::Default, 0, mode);
 	}
 	
 	void Button::setColorOverlay(const Color& color, ButtonState state, sl_uint32 category, UIUpdateMode mode)
@@ -668,112 +890,163 @@ namespace slib
 	
 	sl_bool Button::isUsingDefaultColorFilter()
 	{
-		return m_flagUseDefaultColorFilter;
+		if (m_cell.isNotNull()) {
+			return m_cell->flagUseDefaultColorFilter;
+		}
+		return sl_true;
 	}
 
 	void Button::setUsingDefaultColorFilter(sl_bool flag, UIUpdateMode mode)
 	{
-		m_flagUseDefaultColorFilter = flag;
-		invalidate(mode);
-	}
-
-	void Button::setEnabled(sl_bool flagEnabled, UIUpdateMode mode)
-	{
-		if (isEnabled() != flagEnabled) {
-			View::setEnabled(flagEnabled, UIUpdateMode::None);
-			_invalidateButtonState();
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->flagUseDefaultColorFilter = flag;
 			invalidate(mode);
 		}
 	}
 
-	void Button::setPressedState(sl_bool flagState, UIUpdateMode mode)
+	Ref<Drawable> Button::getCurrentBackground()
 	{
-		if (isPressedState() != flagState) {
-			View::setPressedState(flagState, UIUpdateMode::None);
-			_invalidateButtonState();
-			invalidate(mode);
-		}
-	}
-
-	void Button::setHoverState(sl_bool flagState, UIUpdateMode mode)
-	{
-		if (isHoverState() != flagState) {
-			View::setHoverState(flagState, UIUpdateMode::None);
-			_invalidateButtonState();
-			invalidate(mode);
-		}
-	}
-
-	void Button::onDraw(Canvas* canvas)
-	{
-		ButtonCategoryProperties& params = m_categories[m_category].properties[(int)m_state];
-		Color textColor = params.textColor;
-		{
-			const ColorMatrix* cm = getCurrentColorFilter(textColor.isZero() && m_flagUseDefaultColorFilter);
-			if (textColor.isZero()) {
-				textColor = m_textColorDefault;
+		if (m_cell.isNotNull()) {
+			Ref<Drawable> background = m_cell->getCurrentBackground();
+			if (background.isNotNull()) {
+				return background;
 			}
-			if (cm) {
-				textColor = cm->transformColor(textColor);
-			}
-		}
-		Ref<Drawable> icon = params.icon;
-		{
-			const ColorMatrix* cm = getCurrentColorFilter(icon.isNull() && m_flagUseDefaultColorFilter);
-			if (icon.isNull()) {
-				icon = m_iconDefault;
-			}
-			if (icon.isNotNull() && cm) {
-				icon = icon->filter(*cm);
-			}
-		}
-		drawButtonContent(canvas, icon, m_text, textColor);
-	}
-
-	void Button::onDrawBackground(Canvas* canvas)
-	{
-		ButtonCategoryProperties& params = m_categories[m_category].properties[(int)m_state];
-		Ref<Drawable> background = params.background;
-		sl_bool flagUseDefaultColorFilter = m_flagUseDefaultColorFilter;
-		if (background.isNull()) {
-			Ref<DrawAttributes>& attrs = m_drawAttrs;
+			sl_bool flagUseDefaultColorFilter = m_cell->flagUseDefaultColorFilter;
+			Ref<ViewDrawAttributes>& attrs = m_drawAttrs;
 			if (attrs.isNotNull()) {
-				switch (m_state) {
-					case ButtonState::Hover:
-						background = attrs->backgroundHover;
-						break;
-					case ButtonState::Pressed:
-						background = attrs->backgroundPressed;
-						break;
-					default:
-						break;
+				switch (m_cell->state) {
+				case ButtonState::Hover:
+					background = attrs->backgroundHover;
+					break;
+				case ButtonState::Pressed:
+					background = attrs->backgroundPressed;
+					break;
+				default:
+					break;
 				}
 				if (background.isNull()) {
 					background = attrs->background;
 				} else {
 					flagUseDefaultColorFilter = sl_false;
 				}
+				if (background.isNotNull()) {
+					const ColorMatrix* cm = m_cell->getCurrentColorFilter(flagUseDefaultColorFilter);
+					if (cm) {
+						background = background->filter(*cm);
+					}
+				}
+				return background;
+			}
+		}
+		return sl_null;
+	}
+
+	Ref<Pen> Button::getCurrentBorder()
+	{
+		if (m_cell.isNotNull()) {
+			Ref<Pen> pen = m_cell->getCurrentBorder();
+			if (pen.isNotNull()) {
+				return pen;
+			}
+		}
+		return getBorder();
+	}
+
+	void Button::setEnabled(sl_bool flagEnabled, UIUpdateMode mode)
+	{
+		if (m_cell.isNotNull()) {
+			if (isEnabled() != flagEnabled) {
+				View::setEnabled(flagEnabled, UIUpdateMode::None);
+				m_cell->invalidateButtonState();
+				invalidate(mode);
 			}
 		} else {
-			flagUseDefaultColorFilter = sl_false;
+			View::setEnabled(flagEnabled, mode);
 		}
-		if (background.isNotNull()) {
-			const ColorMatrix* cm = getCurrentColorFilter(flagUseDefaultColorFilter);
-			if (cm) {
-				background = background->filter(*cm);
+	}
+
+	void Button::setPressedState(sl_bool flagState, UIUpdateMode mode)
+	{
+		if (m_cell.isNotNull()) {
+			if (isPressedState() != flagState) {
+				View::setPressedState(flagState, UIUpdateMode::None);
+				m_cell->invalidateButtonState();
+				invalidate(mode);
 			}
+		} else {
+			View::setPressedState(flagState, mode);
+		}
+	}
+
+	void Button::setHoverState(sl_bool flagState, UIUpdateMode mode)
+	{
+		if (m_cell.isNotNull()) {
+			if (isHoverState() != flagState) {
+				View::setHoverState(flagState, UIUpdateMode::None);
+				m_cell->invalidateButtonState();
+				invalidate(mode);
+			}
+		} else {
+			View::setHoverState(flagState, mode);
+		}
+	}
+
+	void Button::prepareButtonCellLayout(ButtonCell* cell)
+	{
+		cell->flagWrapping = isWidthWrapping();
+		if (isMaximumWidthDefined()) {
+			sl_ui_len width = getMaximumWidth() - getPaddingLeft() - getPaddingRight();
+			if (width < 1) {
+				width = 1;
+			}
+			cell->maxWidth = width;
+		} else {
+			cell->maxWidth = 0;
+		}
+	}
+
+	void Button::dispatchDraw(Canvas* canvas)
+	{
+		_initCell();
+		ButtonCell* cell = m_cell.get();
+		if (cell) {
+			if (isLayer() || getCurrentBackground().isNotNull()) {
+				cell->shadowOpacity = 0;
+			} else {
+				sl_real shadowOpacity = (sl_real)(getShadowOpacity());
+				cell->shadowOpacity = shadowOpacity;
+				if (shadowOpacity > 0) {
+					cell->shadowRadius = getShadowRadius();
+					cell->shadowColor = getShadowColor();
+					cell->shadowOffset = getShadowOffset();
+				}
+			}
+			prepareButtonCellLayout(cell);
+		}
+		View::dispatchDraw(canvas);
+	}
+
+	void Button::onDraw(Canvas* canvas)
+	{
+		if (m_cell.isNotNull()) {
+			m_cell->onDrawContent(canvas);
+		}
+	}
+
+	void Button::onDrawBackground(Canvas* canvas)
+	{
+		Ref<Drawable> background = getCurrentBackground();
+		if (background.isNotNull()) {
 			drawBackground(canvas, background);
 		}
 	}
 
 	void Button::onDrawBorder(Canvas* canvas)
 	{
-		ButtonCategoryProperties& params = m_categories[m_category].properties[(int)m_state];
-		Ref<Pen> pen = params.border;
-		if (pen.isNotNull()) {
-			drawBorder(canvas, pen);
-		} else {
-			View::onDrawBorder(canvas);
+		Ref<Pen> border = getCurrentBorder();
+		if (border.isNotNull()) {
+			drawBorder(canvas, border);
 		}
 	}
 	
@@ -782,66 +1055,279 @@ namespace slib
 		if (drawLayerShadow(canvas)) {
 			return;
 		}
-		if (getCurrentButtonBackground().isNotNull()) {
+		if (getCurrentBackground().isNotNull()) {
 			drawBoundShadow(canvas);
-		}
-	}
-
-	void Button::onUpdateLayout()
-	{
-		sl_bool flagHorizontal = isWidthWrapping();
-		sl_bool flagVertical = isHeightWrapping();
-		
-		if (!flagVertical && !flagHorizontal) {
-			return;
-		}
-		
-		Ptr<IButtonInstance> instance = getButtonInstance();
-		if (instance.isNotNull()) {
-			UISize size;
-			if (instance->measureSize(this, size)) {
-				if (flagHorizontal) {
-					setLayoutWidth(size.x);
-				}
-				if (flagVertical) {
-					setLayoutHeight(size.y);
-				}
-				return;
-			}
-		}
-		UISize size = measureLayoutContentSize(flagHorizontal ? 0 : getLayoutWidth(), flagVertical ? 0 : getLayoutHeight());
-		if (getChildrenCount()) {
-			UISize sizeLayout = measureLayoutWrappingSize(flagHorizontal, flagVertical);
-			if (sizeLayout.x > size.x) {
-				size.x = sizeLayout.x;
-			}
-			if (sizeLayout.y > size.y) {
-				size.y = sizeLayout.y;
-			}
-		}
-		if (flagHorizontal) {
-			setLayoutWidth(size.x + getPaddingLeft() + getPaddingRight());
-		}
-		if (flagVertical) {
-			setLayoutHeight(size.y + getPaddingTop() + getPaddingBottom());
 		}
 	}
 
 	void Button::onKeyEvent(UIEvent* ev)
 	{
-		if (ev->getAction() == UIAction::KeyDown) {
-			if (ev->getKeycode() == Keycode::Enter) {
-				dispatchClick();
-				ev->preventDefault();
-			}
+		switch (ev->getKeycode()) {
+			case Keycode::Enter:
+			case Keycode::NumpadEnter:
+#if !defined(SLIB_PLATFORM_IS_WIN32)
+				if (isNativeWidget()) {
+					return;
+				}
+#endif
+				break;
+			case Keycode::Space:
+				if (isNativeWidget()) {
+					return;
+				}
+				break;
+			default:
+				break;
+		}
+		if (m_cell.isNotNull()) {
+			m_cell->onKeyEvent(ev);
 		}
 	}
 
-	UISize Button::measureContentSize(sl_ui_len widthFrame, sl_ui_len heightFrame)
+	void Button::onMnemonic(UIEvent* ev)
+	{
+		setFocus();
+		sl_bool flag = ev->isInternal();
+		ev->setInternal(sl_true);
+		dispatchClickEvent(ev);
+		ev->setInternal(flag);
+		ev->stopPropagation();
+		ev->preventDefault();
+	}
+
+	void Button::onChangeFocus(sl_bool flagFocused)
+	{
+		if (m_cell.isNotNull()) {
+			m_cell->setFocused(flagFocused);
+			m_cell->invalidateButtonState();
+			invalidate();
+		}
+	}
+
+	void Button::onUpdateLayout()
+	{
+		sl_bool flagHorizontalWrapping = isWidthWrapping();
+		sl_bool flagVerticalWrapping = isHeightWrapping();
+
+		if (!flagHorizontalWrapping && !flagVerticalWrapping) {
+			return;
+		}
+
+		Ptr<IButtonInstance> instance = getButtonInstance();
+		if (instance.isNotNull()) {
+			UISize size;
+			if (instance->measureSize(this, size)) {
+				if (flagHorizontalWrapping) {
+					setLayoutWidth(size.x);
+				}
+				if (flagVerticalWrapping) {
+					setLayoutHeight(size.y);
+				}
+				return;
+			}
+		}
+
+		if (m_cell.isNull()) {
+			if (isCreatingNativeWidget()) {
+				SimpleTextBox box;
+				SimpleTextBoxParam param;
+				param.font = getFont();
+				param.text = m_text;
+				param.multiLineMode = MultiLineMode::Single;
+				param.flagMnemonic = sl_true;
+				box.update(param);
+				if (flagHorizontalWrapping) {
+					setLayoutWidth((sl_ui_len)(box.getContentWidth()));
+				}
+				if (flagVerticalWrapping) {
+					setLayoutHeight((sl_ui_len)(box.getContentHeight()));
+				}
+				return;
+			} else {
+				_initCell();
+			}
+		}
+		ButtonCell* cell = m_cell.get();
+		if (cell) {
+			prepareButtonCellLayout(cell);
+			updateLayoutByViewCell(cell);
+		}
+	}
+
+	Ref<ButtonCell> Button::createButtonCell()
+	{
+		if (m_categories.isNotNull()) {
+			return new ButtonCell(m_categories);
+		} else {
+			return new ButtonCell();
+		}
+	}
+
+	void Button::_initCell()
+	{
+		if (m_cell.isNotNull()) {
+			return;
+		}
+		ObjectLocker lock(this);
+		if (m_cell.isNotNull()) {
+			return;
+		}
+		Ref<ButtonCell> cell = createButtonCell();
+		if (cell.isNotNull()) {
+			cell->setView(this);
+			cell->text = m_text;
+			cell->category = m_flagDefaultButton ? 1 : 0;
+			cell->onClick = SLIB_FUNCTION_WEAKREF(View, dispatchClickEvent, this);
+			m_cell = cell;
+		}
+	}
+
+
+#if !HAS_NATIVE_WIDGET_IMPL
+	Ref<ViewInstance> Button::createNativeWidget(ViewInstance* parent)
+	{
+		return sl_null;
+	}
+	
+	Ptr<IButtonInstance> Button::getButtonInstance()
+	{
+		return sl_null;
+	}
+#endif
+
+
+	SLIB_DEFINE_OBJECT(ButtonCell, LabelViewCell)
+
+	ButtonCell::ButtonCell(): ButtonCell(priv::button::Categories::getInitialCategories().duplicate())
+	{
+	}
+
+	ButtonCell::ButtonCell(const Array<ButtonCategory>& _categories)
+	{
+		categories = _categories;
+
+		textColor = BUTTON_TEXT_DEFAULT_COLOR;
+		gravity = Alignment::MiddleCenter;
+
+		state = ButtonState::Normal;
+		category = 0;
+		flagUseFocusedState = sl_false;
+
+		iconSize.x = 0;
+		iconSize.y = 0;
+		iconAlignment = Alignment::MiddleCenter;
+		textAlignment = Alignment::MiddleCenter;
+		flagTextBeforeIcon = sl_false;
+		flagExtendTextFrame = sl_false;
+		layoutOrientation = LayoutOrientation::Horizontal;
+
+		iconMarginLeft = 1;
+		iconMarginTop = 1;
+		iconMarginRight = 1;
+		iconMarginBottom = 1;
+
+		textMarginLeft = 1;
+		textMarginTop = 1;
+		textMarginRight = 1;
+		textMarginBottom = 1;
+
+		flagUseDefaultColorFilter = sl_true;
+
+	}
+	
+	ButtonCell::~ButtonCell()
+	{
+	}
+
+	void ButtonCell::invalidateButtonState()
+	{
+		if (isEnabled()) {
+			if (isPressedState()) {
+				state = ButtonState::Pressed;
+			} else if (isHoverState()) {
+				state = ButtonState::Hover;
+				if (flagUseFocusedState) {
+					if (isFocused()) {
+						state = ButtonState::FocusedHover;
+					}
+				}
+			} else {
+				state = ButtonState::Normal;
+				if (flagUseFocusedState) {
+					if (isFocused()) {
+						state = ButtonState::Focused;
+					}
+				}
+			}
+		} else {
+			state = ButtonState::Disabled;
+		}
+	}
+
+	Ref<Drawable> ButtonCell::getCurrentBackground()
+	{
+		ButtonCategoryProperties& params = categories[category].properties[(int)state];
+		Ref<Drawable> background = params.background;
+		sl_bool flagUseDefaultColorFilter = this->flagUseDefaultColorFilter;
+		if (background.isNull()) {
+			ButtonCategoryProperties& paramsDefault = categories[category].properties[(int)(ButtonState::Default)];
+			background = paramsDefault.background;
+		} else {
+			flagUseDefaultColorFilter = sl_false;
+		}
+		if (background.isNotNull()) {
+			const ColorMatrix* cm = getCurrentColorFilter(flagUseDefaultColorFilter);
+			if (cm) {
+				background = background->filter(*cm);
+			}
+		}
+		return background;
+	}
+
+	Ref<Pen> ButtonCell::getCurrentBorder()
+	{
+		ButtonCategoryProperties& params = categories[category].properties[(int)state];
+		Ref<Pen> pen = params.border;
+		if (pen.isNotNull()) {
+			return pen;
+		}
+		ButtonCategoryProperties& paramsDefault = categories[category].properties[(int)(ButtonState::Default)];
+		return paramsDefault.border;
+	}
+
+	const ColorMatrix* ButtonCell::getCurrentColorFilter(sl_bool flagUseDefaultFilter)
+	{
+		ButtonCategoryProperties& params = categories[category].properties[(int)state];
+		if (params.flagFilter) {
+			return &(params.filter);
+		}
+		ButtonCategoryProperties& paramsDefault = categories[category].properties[(int)(ButtonState::Default)];
+		if (paramsDefault.flagFilter) {
+			return &(paramsDefault.filter);
+		}
+		if (flagUseDefaultFilter) {
+			switch (state) {
+			case ButtonState::Hover:
+				return &(priv::button::g_colorMatrix_hover);
+			case ButtonState::Focused:
+				return &(priv::button::g_colorMatrix_focused);
+			case ButtonState::FocusedHover:
+				return &(priv::button::g_colorMatrix_focused_hover);
+			case ButtonState::Pressed:
+				return &(priv::button::g_colorMatrix_pressed);
+			case ButtonState::Disabled:
+				return &(priv::button::g_colorMatrix_disabled);
+			default:
+				break;
+			}
+		}
+		return sl_null;
+	}
+
+	UISize ButtonCell::measureContentSize(sl_ui_len widthFrame, sl_ui_len heightFrame)
 	{
 		UISize size;
-		UIRect rcIcon, rcText;
-		layoutIconAndText(widthFrame, heightFrame, size, rcIcon, rcText);
+		layoutIconAndText(widthFrame, heightFrame, size, sl_null, sl_null);
 		if (size.x < 0) {
 			size.x = 0;
 		}
@@ -851,37 +1337,26 @@ namespace slib
 		return size;
 	}
 
-	UISize Button::measureLayoutContentSize(sl_ui_len widthFrame, sl_ui_len heightFrame)
+	void ButtonCell::layoutIconAndText(sl_ui_len widthFrame, sl_ui_len heightFrame, UISize& sizeContent, UIRect* pOutFrameIcon, UIRect* pOutFrameText)
 	{
-		return measureContentSize(widthFrame, heightFrame);
-	}
-	
-	void Button::layoutIconAndText(sl_ui_len widthFrame, sl_ui_len heightFrame, UISize& sizeContent, UIRect& frameIcon, UIRect& frameText)
-	{
-		sl_ui_pos widthText = 0;
-		sl_ui_pos heightText = 0;
-		sl_ui_pos widthIcon = 0;
-		sl_ui_pos heightIcon = 0;
-		String text = m_text;
-		Ref<Font> font;
-		if (text.isNotEmpty()) {
-			font = getFont();
-			if (font.isNotNull()) {
-				UISize sizeText = measureText(text, font, m_flagMultiLine);
-				widthText = sizeText.x + m_textMarginLeft + m_textMarginRight;
-				if (widthText < 0) {
-					widthText = 0;
-				}
-				heightText = sizeText.y + m_textMarginTop + m_textMarginBottom;
-				if (heightText < 0) {
-					heightText = 0;
-				}
-			}
+		sl_uint32 nCategories = (sl_uint32)(categories.getCount());
+		ButtonCategory* categories = this->categories.getData();
+
+		sl_bool flagUseText = text.isNotEmpty();
+
+		sl_ui_pos widthIcon = iconSize.x;
+		sl_ui_pos heightIcon = iconSize.y;
+		if (widthIcon < 0) {
+			widthIcon = 0;
 		}
-		sl_bool flagUseIcon = m_iconDefault.isNotNull() || m_iconSize.x > 0 || m_iconSize.y > 0;
+		if (heightIcon < 0) {
+			heightIcon = 0;
+		}
+
+		sl_bool flagUseIcon = iconDefault.isNotNull() || widthIcon > 0 || heightIcon > 0;
 		if (!flagUseIcon) {
-			for (sl_uint32 i = 0; i < m_nCategories; i++) {
-				ButtonCategory& category = m_categories[i];
+			for (sl_uint32 i = 0; i < nCategories; i++) {
+				ButtonCategory& category = categories[i];
 				for (sl_uint32 j = 0; j < (sl_uint32)(ButtonState::Count); j++) {
 					if (category.properties[j].icon.isNotNull()) {
 						flagUseIcon = sl_true;
@@ -889,60 +1364,109 @@ namespace slib
 				}
 			}
 		}
+
 		if (flagUseIcon) {
-			widthIcon = m_iconSize.x;
-			heightIcon = m_iconSize.y;
-			sl_ui_len marginWidth = m_iconMarginLeft + m_iconMarginRight;
-			sl_ui_len marginHeight = m_iconMarginTop + m_iconMarginBottom;
 			if (widthIcon <= 0) {
-				if (heightIcon <= 0) {
-					if (text.isNotEmpty()) {
-						sl_ui_len defaultHeight = heightText;
-						if (defaultHeight <= 0) {
-							if (font.isNotNull()) {
-								defaultHeight = (sl_ui_len)(font->getFontHeight());
-							} else {
-								defaultHeight = 20;
-							}
-						}
-						defaultHeight = (sl_ui_len)(defaultHeight * 0.9f);
-						widthIcon = defaultHeight;
-						heightIcon = defaultHeight;
-					} else {
-						if (widthFrame <= 0) {
-							if (heightFrame <= 0) {
-								font = getFont();
-								if (font.isNotNull()) {
-									widthIcon = (sl_ui_len)(font->getFontHeight());
-								} else {
-									widthIcon = 20;
-								}
-								heightIcon = widthIcon;
-							} else {
-								widthIcon = heightFrame;
-								heightIcon = heightFrame;
-							}
-						} else {
-							if (heightFrame <= 0) {
-								widthIcon = widthFrame;
-								heightIcon = widthFrame;
-							} else {
-								widthIcon = widthFrame;
-								heightIcon = heightFrame;
-							}
-						}
-					}
-					widthIcon -= marginWidth;
-					heightIcon -= marginHeight;
-					widthIcon = Math::min(widthIcon, heightIcon);
-					heightIcon = widthIcon;
-				} else {
+				if (heightIcon > 0) {
 					widthIcon = heightIcon;
 				}
 			} else {
 				if (heightIcon <= 0) {
 					heightIcon = widthIcon;
 				}
+			}
+		}
+
+		sl_ui_pos widthText = 0;
+		sl_ui_pos heightText = 0;
+		if (flagUseText) {
+			sl_ui_len widthTextLayout = widthFrame;
+			sl_bool flagWrapping = sl_false;
+			if (widthFrame <= 0) {
+				flagWrapping = sl_true;
+				widthFrame = 0;
+			}
+			if (flagWrapping && maxWidth) {
+				flagWrapping = sl_false;
+				widthTextLayout = maxWidth;
+			}
+			if (!flagWrapping && flagUseIcon && layoutOrientation == LayoutOrientation::Horizontal) {
+				if (widthIcon <= 0) {
+					Ref<Font> font = getFont();
+					if (font.isNotNull()) {
+						widthIcon = (sl_ui_len)(font->getFontHeight());
+					} else {
+						widthIcon = 20;
+					}
+					heightIcon = widthIcon;
+				}
+				widthTextLayout -= widthIcon + iconMarginLeft + iconMarginRight;
+			}
+			if (!flagWrapping) {
+				if (widthTextLayout < 1) {
+					widthTextLayout = 1;
+				}
+			}
+			_updateTextBox(flagWrapping, widthTextLayout, textMarginLeft + textMarginRight, textAlignment);
+			if (flagWrapping || !flagExtendTextFrame) {
+				widthText = (sl_ui_len)(m_textBox.getContentWidth()) + textMarginLeft + textMarginRight;
+			} else {
+				widthText = widthTextLayout;
+			}
+			if (widthText < 0) {
+				widthText = 0;
+			}
+			heightText = (sl_ui_len)(m_textBox.getContentHeight()) + textMarginTop + textMarginBottom;
+			if (heightText < 0) {
+				heightText = 0;
+			}
+		}
+
+		if (flagUseIcon) {
+			sl_ui_len marginWidth = iconMarginLeft + iconMarginRight;
+			sl_ui_len marginHeight = iconMarginTop + iconMarginBottom;
+			if (widthIcon <= 0 && heightIcon <= 0) {
+				if (flagUseText) {
+					sl_ui_len defaultHeight = heightText;
+					if (defaultHeight <= 0) {
+						Ref<Font> font = getFont();
+						if (font.isNotNull()) {
+							defaultHeight = (sl_ui_len)(font->getFontHeight());
+						} else {
+							defaultHeight = 20;
+						}
+					}
+					defaultHeight = (sl_ui_len)(defaultHeight * 0.9f);
+					widthIcon = defaultHeight;
+					heightIcon = defaultHeight;
+				} else {
+					if (widthFrame <= 0) {
+						if (heightFrame <= 0) {
+							Ref<Font> font = getFont();
+							if (font.isNotNull()) {
+								widthIcon = (sl_ui_len)(font->getFontHeight());
+							} else {
+								widthIcon = 20;
+							}
+							heightIcon = widthIcon;
+						} else {
+							widthIcon = heightFrame;
+							heightIcon = heightFrame;
+						}
+					} else {
+						if (heightFrame <= 0) {
+							widthIcon = widthFrame;
+							heightIcon = widthFrame;
+						} else {
+							widthIcon = widthFrame;
+							heightIcon = heightFrame;
+						}
+					}
+				}
+				widthIcon -= marginWidth;
+				heightIcon -= marginHeight;
+				widthIcon = Math::min(widthIcon, heightIcon);
+				heightIcon = widthIcon;
 			}
 			widthIcon += marginWidth;
 			if (widthIcon < 0) {
@@ -954,259 +1478,261 @@ namespace slib
 			}
 		}
 
-		Alignment alignIcon = m_iconAlignment;
-		Alignment horzIcon = alignIcon & Alignment::HorizontalMask;
-		Alignment vertIcon = alignIcon & Alignment::VerticalMask;
-		
-		Alignment alignText = m_textAlignment;
-		Alignment horzText = alignText & Alignment::HorizontalMask;
-		Alignment vertText = alignText & Alignment::VerticalMask;
-		
-		sl_ui_pos xIcon = 0;
-		sl_ui_pos yIcon = 0;
-		
-		sl_ui_pos xText = 0;
-		sl_ui_pos yText = 0;
-		
 		sl_ui_pos widthContent = 0;
 		sl_ui_pos heightContent = 0;
-		
-		if (m_layoutOrientation == LayoutOrientation::Horizontal) {
-			
-			if (horzIcon != horzText) {
-				widthContent = widthFrame;
-				if (widthContent > 0) {
-					if (m_flagTextBeforeIcon) {
-						xText = (sl_ui_pos)(GraphicsUtil::calculateAlignX(0, (sl_real)widthContent, (sl_real)widthText, alignText));
-						if (horzText == Alignment::Right) {
-							xIcon = (sl_ui_pos)(GraphicsUtil::calculateAlignX(0, (sl_real)xText, (sl_real)widthIcon, alignIcon));
-						} else {
-							xIcon = (sl_ui_pos)(GraphicsUtil::calculateAlignX((sl_real)(xText + widthText), (sl_real)widthContent, (sl_real)widthIcon, alignIcon));
-						}
-					} else {
-						xIcon = (sl_ui_pos)(GraphicsUtil::calculateAlignX(0, (sl_real)widthContent, (sl_real)widthIcon, alignIcon));
-						if (horzIcon == Alignment::Right) {
-							xText = (sl_ui_pos)(GraphicsUtil::calculateAlignX(0, (sl_real)xIcon, (sl_real)widthText, alignText));
-						} else {
-							xText = (sl_ui_pos)(GraphicsUtil::calculateAlignX((sl_real)(xIcon + widthIcon), (sl_real)widthContent, (sl_real)widthText, alignText));
-						}
-					}
-				}
-			} else {
-				widthContent = widthIcon + widthText;
-				if (m_flagTextBeforeIcon) {
-					xText = 0;
-					xIcon = widthText;
-				} else {
-					xIcon = 0;
-					xText = widthIcon;
-				}
-			}
-			
-			if (vertIcon != vertText) {
-				heightContent = heightFrame;
-			} else {
-				heightContent = SLIB_MAX(heightIcon, heightText);
-			}
-			if (heightContent >= 0) {
-				yIcon = (sl_ui_pos)(GraphicsUtil::calculateAlignY(0, (sl_real)heightContent, (sl_real)heightIcon, alignIcon));
-				yText = (sl_ui_pos)(GraphicsUtil::calculateAlignY(0, (sl_real)heightContent, (sl_real)heightText, alignText));
-			}
-			
+		if (layoutOrientation == LayoutOrientation::Horizontal) {
+			widthContent = widthIcon + widthText;
+			heightContent = Math::max(heightIcon, heightText);
 		} else {
-			if (horzIcon != horzText) {
-				widthContent = widthFrame;
-			} else {
-				widthContent = SLIB_MAX(widthIcon, widthText);
-			}
-			if (widthContent >= 0) {
-				xIcon = (sl_ui_pos)(GraphicsUtil::calculateAlignX(0, (sl_real)widthContent, (sl_real)widthIcon, alignIcon));
-				xText = (sl_ui_pos)(GraphicsUtil::calculateAlignX(0, (sl_real)widthContent, (sl_real)widthText, alignText));
-			}
-			
-			if (vertIcon != vertText) {
-				heightContent = heightFrame;
-				if (heightContent > 0) {
-					if (m_flagTextBeforeIcon) {
-						yText = (sl_ui_pos)(GraphicsUtil::calculateAlignY(0, (sl_real)heightContent, (sl_real)heightText, alignText));
-						if (vertText == Alignment::Bottom) {
-							yIcon = (sl_ui_pos)(GraphicsUtil::calculateAlignY(0, (sl_real)yText, (sl_real)heightIcon, alignIcon));
-						} else {
-							yIcon = (sl_ui_pos)(GraphicsUtil::calculateAlignY((sl_real)(yText + heightText), (sl_real)heightContent, (sl_real)heightIcon, alignIcon));
-						}
-					} else {
-						yIcon = (sl_ui_pos)(GraphicsUtil::calculateAlignY(0, (sl_real)heightContent, (sl_real)heightIcon, alignIcon));
-						if (vertIcon == Alignment::Bottom) {
-							yText = (sl_ui_pos)(GraphicsUtil::calculateAlignY(0, (sl_real)yIcon, (sl_real)heightText, alignText));
-						} else {
-							yText = (sl_ui_pos)(GraphicsUtil::calculateAlignY((sl_real)(yIcon + heightIcon), (sl_real)heightContent, (sl_real)heightText, alignText));
-						}
-					}
-				}
-			} else {
-				heightContent = heightIcon + heightText;
-				if (m_flagTextBeforeIcon) {
-					yText = 0;
-					yIcon = heightText;
-				} else {
-					yIcon = 0;
-					yText = heightIcon;
-				}
-			}
-			
+			widthContent = Math::max(widthIcon, widthText);
+			heightContent = heightIcon + heightText;
 		}
-		
 		if (widthContent < 0) {
 			widthContent = 0;
 		}
 		if (heightContent < 0) {
 			heightContent = 0;
 		}
+
+		if (widthFrame <= 0 || !flagExtendTextFrame) {
+			widthFrame = widthContent;
+		}
+		if (heightFrame <= 0 || !flagExtendTextFrame) {
+			heightFrame = heightContent;
+		}
+
+		if (pOutFrameIcon || pOutFrameText) {
+			UIRect rcIconExtend;
+			UIRect rcTextExtend;
+			if (layoutOrientation == LayoutOrientation::Horizontal) {
+				rcIconExtend.top = 0;
+				rcIconExtend.bottom = heightFrame;
+				rcTextExtend.top = 0;
+				rcTextExtend.bottom = heightFrame;
+				if (flagTextBeforeIcon) {
+					rcIconExtend.left = widthFrame - widthIcon;
+					rcIconExtend.right = widthFrame;
+					rcTextExtend.left = 0;
+					rcTextExtend.right = rcIconExtend.left;
+				} else {
+					rcIconExtend.left = 0;
+					rcIconExtend.right = widthIcon;
+					rcTextExtend.left = rcIconExtend.right;
+					rcTextExtend.right = widthFrame;
+				}
+			} else {
+				rcIconExtend.left = 0;
+				rcIconExtend.right = widthFrame;
+				rcTextExtend.left = 0;
+				rcTextExtend.right = widthFrame;
+				if (flagTextBeforeIcon) {
+					rcIconExtend.top = heightFrame - heightIcon;
+					rcIconExtend.bottom = heightFrame;
+					rcTextExtend.top = 0;
+					rcTextExtend.bottom = rcIconExtend.top;
+				} else {
+					rcIconExtend.top = 0;
+					rcIconExtend.bottom = heightIcon;
+					rcTextExtend.top = rcIconExtend.bottom;
+					rcTextExtend.bottom = heightFrame;
+				}
+			}
+
+			if (pOutFrameIcon) {
+				UIRect& frameIcon = *pOutFrameIcon;
+				frameIcon.setLeftTop(GraphicsUtil::calculateAlignPosition(rcIconExtend, (sl_real)widthIcon, (sl_real)heightIcon, iconAlignment));
+				frameIcon.right = frameIcon.left + widthIcon - iconMarginRight;
+				frameIcon.bottom = frameIcon.top + heightIcon - iconMarginBottom;
+				frameIcon.left += iconMarginLeft;
+				frameIcon.top += iconMarginTop;
+				frameIcon.fixSizeError();
+			}
+			if (pOutFrameText) {
+				UIRect& frameText = *pOutFrameText;
+				frameText.setLeftTop(GraphicsUtil::calculateAlignPosition(rcTextExtend, (sl_real)widthText, (sl_real)heightText, textAlignment));
+				frameText.right = frameText.left + widthText - textMarginRight;
+				frameText.bottom = frameText.top + heightText - textMarginBottom;
+				frameText.left += textMarginLeft;
+				frameText.top += textMarginTop;
+				frameText.fixSizeError();
+			}
+		}
+
 		sizeContent.x = widthContent;
 		sizeContent.y = heightContent;
-		
-		frameIcon.left = xIcon + m_iconMarginLeft;
-		frameIcon.top = yIcon + m_iconMarginTop;
-		frameIcon.right = xIcon + widthIcon - m_iconMarginRight;
-		frameIcon.bottom = yIcon + heightIcon - m_iconMarginBottom;
-		frameIcon.fixSizeError();
-		
-		frameText.left = xText + m_textMarginLeft;
-		frameText.top = yText + m_textMarginTop;
-		frameText.right = xText + widthText - m_textMarginRight;
-		frameText.bottom = yText + heightText - m_textMarginBottom;
-		frameText.fixSizeError();
-		
+
 	}
 
-	void Button::drawButtonContent(Canvas* canvas, const Ref<Drawable>& icon, const String& text, const Color& textColor)
+	void ButtonCell::onDraw(Canvas* canvas)
 	{
-		if (text.isEmpty() && icon.isNull()) {
+		UIRect frame = getFrame();
+		Ref<Drawable> background = getCurrentBackground();
+		if (background.isNotNull()) {
+			canvas->draw(frame, background);
+		}
+		onDrawContent(canvas);
+		Ref<Pen> border = getCurrentBorder();
+		if (border.isNotNull()) {
+			sl_bool flagAntiAlias = canvas->isAntiAlias();
+			canvas->setAntiAlias(sl_false);
+			canvas->drawRectangle(frame, border);
+			canvas->setAntiAlias(flagAntiAlias);
+		}
+	}
+
+	void ButtonCell::onDrawContent(Canvas* canvas)
+	{
+		ButtonCategoryProperties& params = categories[category].properties[(int)state];
+		ButtonCategoryProperties& paramsDefault = categories[category].properties[(int)(ButtonState::Default)];
+
+		sl_bool flagText = text.isNotEmpty();
+
+		Color textColor = params.textColor;
+		const ColorMatrix* cm = sl_null;
+		if (flagText) {
+			cm = getCurrentColorFilter(textColor.isZero() && flagUseDefaultColorFilter);
+			if (textColor.isZero()) {
+				textColor = paramsDefault.textColor;
+				if (textColor.isZero()) {
+					textColor = this->textColor;
+				}
+			}
+		}
+		Ref<Drawable> icon = params.icon;
+		{
+			const ColorMatrix* cm = getCurrentColorFilter(icon.isNull() && flagUseDefaultColorFilter);
+			if (icon.isNull()) {
+				icon = paramsDefault.icon;
+				if (icon.isNull()) {
+					icon = iconDefault;
+				}
+			}
+			if (icon.isNotNull() && cm) {
+				icon = icon->filter(*cm);
+			}
+		}
+
+		if (!flagText && icon.isNull()) {
 			return;
 		}
 
-		UIRect bound = getBoundsInnerPadding();
+		UIRect bound = getFrame();
 		sl_ui_pos widthFrame = bound.getWidth();
 		sl_ui_pos heightFrame = bound.getHeight();
 		if (widthFrame <= 0 || heightFrame <= 0) {
 			return;
 		}
-		
-		UISize sizeContent;
+
 		UIRect rcIcon, rcText;
-		layoutIconAndText(widthFrame, heightFrame, sizeContent, rcIcon, rcText);
-		UIPoint pt = GraphicsUtil::calculateAlignPosition(bound, (sl_real)(sizeContent.x), (sl_real)(sizeContent.y), m_gravity);
+		UISize sizeContent;
+		layoutIconAndText(widthFrame, heightFrame, sizeContent, &rcIcon, &rcText);
+		UIPoint pt = GraphicsUtil::calculateAlignPosition(bound, (sl_real)(sizeContent.x), (sl_real)(sizeContent.y), gravity);
+
 		if (icon.isNotNull() && rcIcon.getWidth() > 0 && rcIcon.getHeight() > 0) {
 			rcIcon.left += pt.x;
 			rcIcon.top += pt.y;
 			rcIcon.right += pt.x;
 			rcIcon.bottom += pt.y;
-			if (m_iconSize.x > 0 && m_iconSize.y > 0) {
+			if (iconSize.x > 0 && iconSize.y > 0) {
 				canvas->draw(rcIcon, icon);
 			} else {
 				canvas->draw(rcIcon, icon, ScaleMode::Contain, Alignment::MiddleCenter);
 			}
 		}
-		if (text.isNotEmpty() && rcText.getWidth() > 0 && rcText.getHeight() > 0) {
-			DrawTextParam param;
-			param.text = text;
-			param.font = getFont();
-			param.x = (sl_real)(rcText.left + pt.x);
-			param.y = (sl_real)(rcText.top + pt.y);
-			param.width = (sl_real)(rcText.getWidth());
-			param.height = (sl_real)(rcText.getHeight());
+
+		if (flagText && rcText.getWidth() > 0 && rcText.getHeight() > 0) {
+			rcText.left += pt.x;
+			rcText.top += pt.y;
+			rcText.right += pt.x;
+			rcText.bottom += pt.y;
+			SimpleTextBoxDrawParam param;
+			param.frame = rcText;
 			param.color = textColor;
-			param.alignment = m_textAlignment;
-			param.flagMultiLine = m_flagMultiLine;
-			sl_real shadowOpacity = getShadowOpacity();
-			if (shadowOpacity > 0 && !(isLayer()) && getCurrentButtonBackground().isNull()) {
+			if (shadowOpacity > 0) {
 				param.shadowOpacity = shadowOpacity;
-				param.shadowRadius = (sl_real)(getShadowRadius());
-				param.shadowColor = getShadowColor();
-				param.shadowOffset = getShadowOffset();
+				param.shadowRadius = (sl_real)shadowRadius;
+				param.shadowColor = shadowColor;
+				param.shadowOffset = shadowOffset;
 			}
-			canvas->drawText(param);
+			param.lineThickness = UI::dpToPixel(1);
+			if (param.lineThickness < 1) {
+				param.lineThickness = 1;
+			}
+			param.linkColor = linkColor;
+			if (param.linkColor.isZero()) {
+				param.linkColor = TextParagraph::getDefaultLinkColor();
+			}
+			param.colorMatrix = cm;
+			m_textBox.draw(canvas, param);
 		}
 	}
-	
-	const ColorMatrix* Button::getCurrentColorFilter(sl_bool flagUseDefaultFilter)
+
+	void ButtonCell::onKeyEvent(UIEvent* ev)
 	{
-		ButtonCategoryProperties& params = m_categories[m_category].properties[(int)m_state];
-		if (params.flagFilter) {
-			return &(params.filter);
-		}
-		if (flagUseDefaultFilter) {
-			switch (m_state) {
-				case ButtonState::Hover:
-					return &(priv::button::g_colorMatrix_hover);
-				case ButtonState::Pressed:
-					return &(priv::button::g_colorMatrix_pressed);
-				case ButtonState::Disabled:
-					return &(priv::button::g_colorMatrix_disabled);
-				default:
-					break;
-			}
-		} else if (m_state != ButtonState::Normal) {
-			ButtonCategoryProperties& paramsDefault = m_categories[m_category].properties[(int)(ButtonState::Normal)];
-			if (paramsDefault.flagFilter) {
-				return &(paramsDefault.filter);
-			}
-		}
-		return sl_null;
-	}
-	
-	Ref<Drawable> Button::getCurrentButtonBackground()
-	{
-		ButtonCategoryProperties& params = m_categories[m_category].properties[(int)m_state];
-		if (params.background.isNotNull()) {
-			return params.background;
-		}
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNull()) {
-			return sl_null;
-		}
-		switch (m_state) {
-			case ButtonState::Hover:
-				if (attrs->backgroundHover.isNotNull()) {
-					return attrs->backgroundHover;
+		switch (ev->getKeycode()) {
+			case Keycode::Enter:
+			case Keycode::NumpadEnter:
+				if (ev->getAction() == UIAction::KeyDown) {
+					onClick(ev);
+					ev->preventDefault();
+					ev->stopPropagation();
 				}
 				break;
-			case ButtonState::Pressed:
-				if (attrs->backgroundPressed.isNotNull()) {
-					return attrs->backgroundPressed;
+			case Keycode::Space:
+				switch (ev->getAction()) {
+				case UIAction::KeyDown:
+					state = ButtonState::Pressed;
+					invalidate();
+					ev->preventDefault();
+					ev->stopPropagation();
+					break;
+				case UIAction::KeyUp:
+					if (state == ButtonState::Pressed) {
+						invalidateButtonState();
+						invalidate();
+						onClick(ev);
+						ev->preventDefault();
+						ev->stopPropagation();
+					}
+					break;
+				default:
+					break;
 				}
 				break;
 			default:
 				break;
 		}
-		return attrs->background;
 	}
 
-	void Button::_invalidateButtonState()
+	void ButtonCell::onMeasure(UISize& size, sl_bool flagHorizontalWrapping, sl_bool flagVerticalWrapping)
 	{
-		if (isEnabled()) {
-			if (isPressedState()) {
-				m_state = ButtonState::Pressed;
-			} else if (isHoverState()) {
-				m_state = ButtonState::Hover;
-			} else {
-				m_state = ButtonState::Normal;
+		sl_ui_len width = 0;
+		sl_ui_len height = 0;
+		if (!flagHorizontalWrapping) {
+			width = size.x;
+			if (width < 1) {
+				if (flagVerticalWrapping) {
+					size.y = 0;
+				}
+				return;
 			}
-		} else {
-			m_state = ButtonState::Disabled;
+		}
+		if (!flagVerticalWrapping) {
+			height = size.y;
+			if (height < 1) {
+				if (flagHorizontalWrapping) {
+					size.x = 0;
+				}
+				return;
+			}
+		}
+		UISize sizeContent = measureContentSize(width, height);
+		if (flagHorizontalWrapping) {
+			size.x = sizeContent.x;
+		}
+		if (flagVerticalWrapping) {
+			size.y = sizeContent.y;
 		}
 	}
 
-#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32)
-	Ref<ViewInstance> Button::createNativeWidget(ViewInstance* parent)
-	{
-		return sl_null;
-	}
-	
-	Ptr<IButtonInstance> Button::getButtonInstance()
-	{
-		return sl_null;
-	}
-#endif
-	
 }

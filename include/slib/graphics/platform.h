@@ -23,18 +23,16 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_PLATFORM
 #define CHECKHEADER_SLIB_GRAPHICS_PLATFORM
 
-#include "definition.h"
-
 #include "color.h"
 #include "canvas.h"
 #include "bitmap.h"
 
-#include "../core/ref.h"
 #include "../math/matrix3.h"
 #include "../math/matrix4.h"
 
 #if defined(SLIB_GRAPHICS_IS_GDI) || defined(SLIB_PLATFORM_IS_WIN32)
 #	include "../core/platform_windows.h"
+#	include "dl_windows_gdiplus.h"
 #endif
 #if defined(SLIB_GRAPHICS_IS_QUARTZ) || defined(SLIB_PLATFORM_IS_APPLE)
 #	include "../core/platform_apple.h"
@@ -57,6 +55,10 @@
 #		include "cairo/cairo.h"
 #		include "pango/pangocairo.h"
 #	endif
+#	if	defined(SLIB_PLATFORM_IS_LINUX)
+#		include "../core/dl_linux_glib.h"
+#		include "dl_linux_cairo.h"
+#	endif
 #endif
 
 namespace slib
@@ -68,6 +70,7 @@ namespace slib
 #if defined(SLIB_GRAPHICS_IS_GDI)
 
 		static void startGdiplus();
+		static void shutdownGdiplus();
 
 		static Gdiplus::Brush* getBrushHandle(Brush* brush);
 		static Gdiplus::Pen* getPenHandle(Pen* pen);
@@ -124,7 +127,7 @@ namespace slib
 
 #elif defined(SLIB_GRAPHICS_IS_CAIRO)
 
-		static PangoFontDescription* getCairoFont(Font* font);
+		static PangoFontDescription* getPangoFont(Font* font);
 
 		static Ref<Canvas> createCanvas(CanvasType type, cairo_t* graphics, sl_uint32 width, sl_uint32 height);
 		static cairo_t* getCanvasHandle(Canvas* canvas);

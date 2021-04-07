@@ -20,14 +20,15 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_GTK)
 
-#include "slib/ui/core.h"
 #include "slib/ui/common_dialogs.h"
-#include "slib/core/file.h"
 
+#include "slib/core/file.h"
+#include "slib/network/url.h"
+#include "slib/ui/core.h"
 #include "slib/ui/platform.h"
 
 namespace slib
@@ -151,7 +152,7 @@ namespace slib
 
 	DialogResult FileDialog::_run()
 	{
-		const char* szTitle;
+		const char* szTitle = "";
 		if (title.isNotEmpty()) {
 			szTitle = title.getData();
 		}
@@ -201,13 +202,13 @@ namespace slib
 		
 		if (selectedPath.isNotEmpty()) {
 			if (type != FileDialogType::SaveFile || File::isDirectory(selectedPath)) {
-				gtk_file_chooser_set_uri(chooser, selectedPath.getData());
+				String uri = Url::toFileUri(selectedPath);
+				gtk_file_chooser_set_uri(chooser, uri.getData());
 			} else {
-				String selectedDir;
 				String selectedFile;
 				sl_reg indexSlash = selectedPath.indexOf('/');
 				if (indexSlash >= 0) {
-					selectedDir = selectedPath.substring(0, indexSlash);
+					String selectedDir = Url::toFileUri(selectedPath.substring(0, indexSlash));
 					selectedFile = selectedPath.substring(indexSlash + 1);
 					gtk_file_chooser_set_current_folder_uri(chooser, selectedDir.getData());
 				} else {
@@ -241,13 +242,22 @@ namespace slib
 		if (response == GTK_RESPONSE_ACCEPT) {
 			gchar* path = gtk_file_chooser_get_uri(chooser);
 			if (path) {
-				selectedPath = path;
+				selectedPath = Url::getPathFromFileUri(path);
 				g_free(path);
+				if (type == FileDialogType::SaveFile) {
+					if (defaultFileExt.isNotEmpty()) {
+						String ext = File::getFileExtension(selectedPath);
+						if (ext.isEmpty()) {
+							selectedPath += ".";
+							selectedPath += defaultFileExt;
+						}
+					}
+				}
 				GSList* list = gtk_file_chooser_get_uris(chooser);
 				if (list) {
 					GSList* item = list;
 					do {
-						selectedPaths.add(String((char*)(item->data)));
+						selectedPaths.add(Url::getPathFromFileUri((char*)(item->data)));
 						g_free(item->data);
 						item = item->next;
 					} while (item);

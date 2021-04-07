@@ -23,11 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CORE_RESOURCE
 #define CHECKHEADER_SLIB_CORE_RESOURCE
 
-#include "definition.h"
-
 #include "locale.h"
 #include "hash_map.h"
-#include "string.h"
 #include "memory.h"
 #include "safe_static.h"
 

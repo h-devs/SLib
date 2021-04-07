@@ -25,7 +25,11 @@
 #include "slib/core/file.h"
 #include "slib/core/system.h"
 
-#include "curl/curl.h"
+#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+#	include "slib/network/dl_linux_curl.h"
+#else
+#	include "curl/curl.h"
+#endif
 
 #include <stdlib.h>
 
@@ -68,6 +72,11 @@ namespace slib
 				
 			public:
 				static Ref<CurlRequestImpl> create(const UrlRequestParam& param, const String& url) {
+#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+					if (!(curl::getApi_curl_easy_init())) {
+						return sl_null;
+					}
+#endif
 					Ref<CurlRequestImpl> ret = new CurlRequestImpl;
 					if (ret.isNotNull()) {
 						ret->_init(param, url);
@@ -190,6 +199,8 @@ namespace slib
 						curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, requestBody.getSize());
 					} else {
 						if (requestBody.isNotNull()) {
+							curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+							curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)requestBody.getSize());
 							curl_easy_setopt(curl, CURLOPT_READFUNCTION, CurlRequestImpl::callbackRead);
 							curl_easy_setopt(curl, CURLOPT_READDATA, (void*)this);
 						}
@@ -212,7 +223,7 @@ namespace slib
 						onComplete();
 					} else {
 						String strError = String::create(curl_easy_strerror(err));
-						m_lastErrorMessage = strError;
+						m_errorMessage = strError;
 						onError();
 					}
 					

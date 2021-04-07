@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_GTK)
 
@@ -41,6 +41,7 @@ namespace slib
 		{
 
 			pthread_t g_threadMain = 0;
+			sl_bool g_flagRunningAppLoop = sl_false;
 
 			class ScreenImpl : public Screen
 			{
@@ -95,19 +96,24 @@ namespace slib
 				}
 				
 			};
-			
-			static gboolean DispatchCallback(gpointer user_data)
-			{
-				UIDispatcher::processCallbacks();
-				return sl_false;
-			}
 
-			static gboolean DelayedDispatchCallback(gpointer user_data)
+			static gboolean DispatchUrgentlyCallback(gpointer user_data)
 			{
 				Callable<void()>* callable = reinterpret_cast<Callable<void()>*>(user_data);
 				callable->invoke();
-				callable->decreaseReference();
 				return sl_false;
+			}
+
+			static void DispatchUrgentlyDestroy(gpointer user_data)
+			{
+				Callable<void()>* callable = reinterpret_cast<Callable<void()>*>(user_data);
+				callable->decreaseReference();
+			}
+
+			static void EventHandler(GdkEvent* event, gpointer data)
+			{
+				UIDispatcher::processCallbacks();
+				gtk_main_do_event(event);
 			}
 
 		}
@@ -117,12 +123,18 @@ namespace slib
 	
 	sl_bool UIPlatform::initializeGtk()
 	{
-		return gtk_init_check(NULL, NULL);
+		g_thread_init(NULL);
+		gdk_threads_init();
+		if (gtk_init_check(sl_null, sl_null)) {
+			gdk_event_handler_set(EventHandler, sl_null, sl_null);
+			return sl_true;
+		}
+		return sl_false;
 	}
 	
 	Ref<Screen> UI::getPrimaryScreen()
 	{
-		SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<Screen>, ret)
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Screen>, ret)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
 			return sl_null;
 		}
@@ -163,22 +175,38 @@ namespace slib
 
 	sl_bool UI::isUiThread()
 	{
-		return g_threadMain == ::pthread_self();
+		return g_threadMain == pthread_self();
 	}
-	
+
 	void UI::dispatchToUiThread(const Function<void()>& callback, sl_uint32 delayMillis)
 	{
 		if (callback.isNull()) {
 			return;
 		}
-		if (delayMillis == 0) {
-			if (UIDispatcher::addCallback(callback)) {
-				g_idle_add(DispatchCallback, sl_null);
-			}
+		if (delayMillis || !(UI::isUiThread())) {
+			dispatchToUiThreadUrgently([callback]() {
+				dispatchToUiThread(callback);
+			}, delayMillis);
+			return;
+		}
+		UIDispatcher::addCallback(callback);
+		GdkEvent event;
+		Base::zeroMemory(&event, sizeof(event));
+		event.type = GDK_NOTHING;
+		gdk_event_put(&event);
+	}
+
+	void UI::dispatchToUiThreadUrgently(const Function<void()>& callback, sl_uint32 delayMillis)
+	{
+		if (callback.isNull()) {
+			return;
+		}
+		Callable<void()>* callable = callback.ref.get();
+		callable->increaseReference();
+		if (delayMillis) {
+			g_timeout_add_full(G_PRIORITY_DEFAULT, delayMillis, DispatchUrgentlyCallback, callable, DispatchUrgentlyDestroy);
 		} else {
-			Callable<void()>* callable = callback.ref.get();
-			callable->increaseReference();
-			g_timeout_add(delayMillis, DelayedDispatchCallback, callable);
+			g_idle_add_full(G_PRIORITY_DEFAULT, DispatchUrgentlyCallback, callable, DispatchUrgentlyDestroy);
 		}
 	}
 
@@ -194,50 +222,36 @@ namespace slib
 
 	void UIPlatform::runApp()
 	{
-		g_threadMain = ::pthread_self();
+		g_threadMain = pthread_self();
 
 		UIPlatform::initializeGtk();
 		
 		UIApp::dispatchStartToApp();
 
-		gtk_main();
+		if (!(UI::isQuitingApp())) {
+			g_flagRunningAppLoop = sl_true;
+			gtk_main();
+			g_flagRunningAppLoop = sl_false;
+		}
 		
 		UIApp::dispatchExitToApp();
 	}
 
 	void UIPlatform::quitApp()
 	{
-		gtk_main_quit();
+		if (g_flagRunningAppLoop) {
+			gtk_main_quit();
+		}
 	}
 
 	void UIPlatform::getGdkColor(const Color& color, GdkColor* _out)
 	{
+		_out->pixel = 0;
 		_out->red = (guint16)(color.r) * 257;
 		_out->green = (guint16)(color.g) * 257;
 		_out->blue = (guint16)(color.b) * 257;
 	}
 
-	void UIPlatform::getScreenLocationOfWidget(GtkWidget* widget, sl_ui_len* out_x, sl_ui_len* out_y)
-	{
-		sl_ui_len x = 0;
-		sl_ui_len y = 0;
-		GdkWindow* window = widget->window;
-		if (window) {
-			gint ox = 0;
-			gint oy = 0;
-			gdk_window_get_origin(window, &ox, &oy);
-			GtkAllocation allocation = widget->allocation;
-			x = ox + allocation.x;
-			y = oy + allocation.y;
-		}
-		if (out_x) {
-			*out_x = x;
-		}
-		if (out_y) {
-			*out_y = y;
-		}
-	}
-	
 }
 
 #endif

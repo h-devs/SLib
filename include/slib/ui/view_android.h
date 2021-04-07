@@ -23,13 +23,13 @@
 #ifndef CHECKHEADER_SLIB_UI_VIEW_ANDROID
 #define CHECKHEADER_SLIB_UI_VIEW_ANDROID
 
-#include "slib/core/definition.h"
+#include "../core/definition.h"
 
 #if defined(SLIB_UI_IS_ANDROID)
 
-#include "slib/ui/view.h"
+#include "view.h"
 
-#include "slib/ui/platform.h"
+#include "platform.h"
 
 namespace slib
 {
@@ -50,7 +50,7 @@ namespace slib
 			if (jhandle) {
 				Ref<T> ret = new T();
 				if (ret.isNotNull()) {
-					if (ret->initialize(jhandle)) {
+					if (ret->initWithHandle(jhandle)) {
 						return ret;
 					}
 				}
@@ -70,7 +70,7 @@ namespace slib
 			return sl_null;
 		}
 
-		sl_bool initialize(jobject jhandle);
+		sl_bool initWithHandle(jobject jhandle);
 
 		sl_bool applyProperties(View* view, ViewInstance* parent);
 

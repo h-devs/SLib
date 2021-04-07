@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_MAP
 #define CHECKHEADER_SLIB_CORE_MAP
 
-#include "definition.h"
-
 #include "object.h"
-#include "map_common.h"
 #include "node_position.h"
 #include "pair.h"
 #include "red_black_tree.h"
@@ -69,28 +66,36 @@ namespace slib
 #endif
 		
 		template <class KEY, class... VALUE_ARGS>
-		MapNode(KEY&& _key, VALUE_ARGS&&... value_args) noexcept;
+		MapNode(KEY&& _key, VALUE_ARGS&&... value_args) noexcept: key(Forward<KEY>(_key)), value(Forward<VALUE_ARGS>(value_args)...),
+		parent(sl_null), left(sl_null), right(sl_null), flagRed(sl_false) {}
 		
 	public:
-		MapNode* getNext() const noexcept;
+		MapNode* getNext() const noexcept
+		{
+			return reinterpret_cast<MapNode<KT, VT>*>(priv::rb_tree::Helper::getNext(const_cast<RedBlackTreeNode*>(reinterpret_cast<RedBlackTreeNode const*>(this))));
+		}
 		
-		MapNode* getPrevious() const noexcept;
+		MapNode* getPrevious() const noexcept
+		{
+			return reinterpret_cast<MapNode<KT, VT>*>(priv::rb_tree::Helper::getPrevious(const_cast<RedBlackTreeNode*>(reinterpret_cast<RedBlackTreeNode const*>(this))));
+		}
 		
 	};
 	
-	namespace priv
+	class SLIB_EXPORT CMapBase : public Referable, public Lockable
 	{
-		namespace map
-		{
-			extern const char g_classID[];
-		}
-	}
-	
+		SLIB_DECLARE_OBJECT
+
+	public:
+		CMapBase();
+
+		~CMapBase();
+
+	};
+
 	template < class KT, class VT, class KEY_COMPARE = Compare<KT> >
-	class SLIB_EXPORT CMap : public Object
+	class SLIB_EXPORT CMap : public CMapBase
 	{
-		SLIB_TEMPLATE_OBJECT(Object, priv::map::g_classID)
-		
 	public:
 		typedef KT KEY_TYPE;
 		typedef VT VALUE_TYPE;
@@ -103,206 +108,741 @@ namespace slib
 		KEY_COMPARE m_compare;
 		
 	public:
-		CMap() noexcept;
+		CMap() noexcept: m_root(sl_null), m_count(0) {}
 
-		CMap(const KEY_COMPARE& compare) noexcept;
+		CMap(const KEY_COMPARE& compare) noexcept: m_root(sl_null), m_count(0), m_compare(compare) {}
 		
-		~CMap() noexcept;
+		~CMap() noexcept
+		{
+			NODE* root = m_root;
+			if (root) {
+				RedBlackTree::freeNodes(root);
+				m_root = sl_null;
+				m_count = 0;
+			}
+		}
 		
 	public:
 		CMap(const CMap& other) = delete;
 		
 		CMap& operator=(const CMap& other) = delete;
 		
-		CMap(CMap&& other) noexcept;
+		CMap(CMap&& other) noexcept: m_root(other.m_root), m_count(other.m_count), m_compare(Move(other.m_compare))
+		{
+			other.m_root = sl_null;
+			other.m_count = 0;
+		}
 		
-		CMap& operator=(CMap&& other) noexcept;
+		CMap& operator=(CMap&& other) noexcept
+		{
+			NODE* root = m_root;
+			if (root) {
+				RedBlackTree::freeNodes(root);
+			}
+			m_root = other.m_root;
+			m_count = other.m_count;
+			m_compare = Move(other.m_compare);
+			other.m_root = sl_null;
+			other.m_count = 0;
+			return *this;
+		}
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
-		CMap(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept;
+		CMap(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: m_compare(compare)
+		{
+			m_root = sl_null;
+			m_count = 0;
+			const Pair<KT, VT>* data = l.begin();
+			for (sl_size i = 0; i < l.size(); i++) {
+				RedBlackTree::add(&m_root, m_count, data[i].first, compare, data[i].second);
+			}
+		}
 #endif
 		
 	public:
-		sl_size getCount() const noexcept;
-		
-		sl_bool isEmpty() const noexcept;
-		
-		sl_bool isNotEmpty() const noexcept;
-		
-		NODE* getFirstNode() const noexcept;
-		
-		NODE* getLastNode() const noexcept;
-		
-		NODE* find_NoLock(const KT& key) const noexcept;
-		
-		sl_bool find(const KT& key) const noexcept;
-		
-		/* unsynchronized function */
-		sl_bool getEqualRange(const KT& key, NODE** pStart = sl_null, NODE** pEnd = sl_null) const noexcept;
-		
-		/* unsynchronized function */
-		void getNearest(const KT& key, NODE** pLessEqual = sl_null, NODE** pGreaterEqual = sl_null) const noexcept;
-		
-		/* unsynchronized function */
-		NODE* getLowerBound(const KT& key) const noexcept;
-		
-		/* unsynchronized function */
-		NODE* getUpperBound(const KT& key) const noexcept;
-		
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		NODE* findKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
-		
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool findKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
-		
-		/* unsynchronized function */
-		VT* getItemPointer(const KT& key) const noexcept;
-		
-		/* unsynchronized function */
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		VT* getItemPointerByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
-		
-		sl_bool get_NoLock(const KT& key, VT* _out = sl_null) const noexcept;
-		
-		sl_bool get(const KT& key, VT* _out = sl_null) const noexcept;
-		
-		sl_bool get_NoLock(const KT& key, Nullable<VT>* _out) const noexcept;
-		
-		sl_bool get(const KT& key, Nullable<VT>* _out) const noexcept;
-		
-		VT getValue_NoLock(const KT& key) const noexcept;
-		
-		VT getValue(const KT& key) const noexcept;
-		
-		VT getValue_NoLock(const KT& key, const VT& def) const noexcept;
-		
-		VT getValue(const KT& key, const VT& def) const noexcept;
-		
-		List<VT> getValues_NoLock(const KT& key) const noexcept;
-		
-		List<VT> getValues(const KT& key) const noexcept;
-		
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		List<VT> getValuesByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
-		
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		List<VT> getValuesByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
-		
-		template <class KEY, class VALUE>
-		NODE* put_NoLock(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept;
-		
-		template <class KEY, class VALUE>
-		sl_bool put(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept;
-		
-		template <class KEY, class VALUE>
-		NODE* replace_NoLock(const KEY& key, VALUE&& value) noexcept;
-		
-		template <class KEY, class VALUE>
-		sl_bool replace(const KEY& key, VALUE&& value) noexcept;
-		
-		template <class KEY, class... VALUE_ARGS>
-		NODE* add_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept;
-		
-		template <class KEY, class... VALUE_ARGS>
-		sl_bool add(KEY&& key, VALUE_ARGS&&... value_args) noexcept;
-		
-		template <class KEY, class... VALUE_ARGS>
-		MapEmplaceReturn<NODE> emplace_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept;
-		
-		template <class KEY, class... VALUE_ARGS>
-		sl_bool emplace(KEY&& key, VALUE_ARGS&&... value_args) noexcept;
-		
-		template <class MAP>
-		sl_bool putAll_NoLock(const MAP& other) noexcept;
-		
-		template <class MAP>
-		sl_bool putAll(const MAP& other) noexcept;
-		
-		template <class MAP>
-		void replaceAll_NoLock(const MAP& other) noexcept;
-		
-		template <class MAP>
-		void replaceAll(const MAP& other) noexcept;
-		
-		template <class MAP>
-		sl_bool addAll_NoLock(const MAP& other) noexcept;
-		
-		template <class MAP>
-		sl_bool addAll(const MAP& other) noexcept;
-		
-		template <class MAP>
-		sl_bool emplaceAll_NoLock(const MAP& other) noexcept;
-		
-		template <class MAP>
-		sl_bool emplaceAll(const MAP& other) noexcept;
-		
-		/* unsynchronized function */
-		void removeAt(NODE* node) noexcept;
-		
-		/* unsynchronized function */
-		sl_size removeAt(NODE* node, sl_size count) noexcept;
-		
-		/* unsynchronized function */
-		sl_size removeRange(NODE* first, NODE* last) noexcept;
-		
-		sl_bool remove_NoLock(const KT& key, VT* outValue = sl_null) noexcept;
-		
-		sl_bool remove(const KT& key, VT* outValue = sl_null) noexcept;
-		
-		sl_size removeItems_NoLock(const KT& key) noexcept;
-		
-		sl_size removeItems(const KT& key) noexcept;
-		
-		List<VT> removeItemsAndReturnValues_NoLock(const KT& key) noexcept;
-		
-		List<VT> removeItemsAndReturnValues(const KT& key) noexcept;
-		
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool removeKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept;
-		
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool removeKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept;
-		
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_size removeItemsByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept;
-		
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_size removeItemsByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept;
-		
-		sl_size removeAll_NoLock() noexcept;
-		
-		sl_size removeAll() noexcept;
-		
-		sl_bool copyFrom_NoLock(const CMap& other) noexcept;
+		sl_size getCount() const noexcept
+		{
+			return m_count;
+		}
 
-		sl_bool copyFrom(const CMap& other) noexcept;
+		sl_bool isEmpty() const noexcept
+		{
+			return m_count == 0;
+		}
 		
-		CMap* duplicate_NoLock() const noexcept;
+		sl_bool isNotEmpty() const noexcept
+		{
+			return m_count != 0;
+		}
 		
-		CMap* duplicate() const noexcept;
+		NODE* getFirstNode() const noexcept
+		{
+			return RedBlackTree::getFirstNode(m_root);
+		}
 		
-		List<KT> getAllKeys_NoLock() const noexcept;
+		NODE* getLastNode() const noexcept
+		{
+			return RedBlackTree::getLastNode(m_root);
+		}
 		
-		List<KT> getAllKeys() const noexcept;
+		NODE* find_NoLock(const KT& key) const noexcept
+		{
+			return RedBlackTree::find(m_root, key, m_compare);
+		}
 		
-		List<VT> getAllValues_NoLock() const noexcept;
+		sl_bool find(const KT& key) const noexcept
+		{
+			ObjectLocker lock(this);
+			return RedBlackTree::find(m_root, key, m_compare) != sl_null;
+		}
 		
-		List<VT> getAllValues() const noexcept;
+		/* unsynchronized function */
+		sl_bool getEqualRange(const KT& key, NODE** pStart = sl_null, NODE** pEnd = sl_null) const noexcept
+		{
+			return RedBlackTree::getEqualRange(m_root, key, m_compare, pStart, pEnd);
+		}
 		
-		List< Pair<KT, VT> > toList_NoLock() const noexcept;
+		/* unsynchronized function */
+		void getNearest(const KT& key, NODE** pLessEqual = sl_null, NODE** pGreaterEqual = sl_null) const noexcept
+		{
+			RedBlackTree::getNearest(m_root, key, m_compare, pLessEqual, pGreaterEqual);
+		}
 		
-		List< Pair<KT, VT> > toList() const noexcept;
+		/* unsynchronized function */
+		NODE* getLowerBound(const KT& key) const noexcept
+		{
+			return RedBlackTree::getLowerBound(m_root, key, m_compare);
+		}
 		
+		/* unsynchronized function */
+		NODE* getUpperBound(const KT& key) const noexcept
+		{
+			return RedBlackTree::getUpperBound(m_root, key, m_compare);
+		}
+		
+		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
+		NODE* findKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			return RedBlackTree::findKeyAndValue(m_root, key, m_compare, value, value_equals);
+		}
+		
+		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
+		sl_bool findKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			ObjectLocker lock(this);
+			return RedBlackTree::findKeyAndValue(m_root, key, m_compare, value, value_equals) != sl_null;
+		}
+		
+		/* unsynchronized function */
+		VT* getItemPointer(const KT& key) const noexcept
+		{
+			NODE* node = RedBlackTree::find(m_root, key, m_compare);
+			if (node) {
+				return &(node->value);
+			}
+			return sl_null;
+		}
+		
+		/* unsynchronized function */
+		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
+		VT* getItemPointerByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			NODE* node = RedBlackTree::findKeyAndValue(m_root, key, m_compare, value, value_equals);
+			if (node) {
+				return &(node->value);
+			}
+			return sl_null;
+		}
+		
+		sl_bool get_NoLock(const KT& key, VT* _out = sl_null) const noexcept
+		{
+			NODE* node = RedBlackTree::find(m_root, key, m_compare);
+			if (node) {
+				if (_out) {
+					*_out = node->value;
+				}
+				return sl_true;
+			}
+			return sl_false;
+		}
+		
+		sl_bool get(const KT& key, VT* _out = sl_null) const noexcept
+		{
+			ObjectLocker lock(this);
+			NODE* node = RedBlackTree::find(m_root, key, m_compare);
+			if (node) {
+				if (_out) {
+					*_out = node->value;
+				}
+				return sl_true;
+			}
+			return sl_false;
+		}
+		
+		sl_bool get_NoLock(const KT& key, Nullable<VT>* _out) const noexcept
+		{
+			NODE* node = RedBlackTree::find(m_root, key, m_compare);
+			if (node) {
+				if (_out) {
+					*_out = node->value;
+				}
+				return sl_true;
+			} else {
+				if (_out) {
+					_out->setNull();
+				}
+				return sl_false;
+			}
+		}
+		
+		sl_bool get(const KT& key, Nullable<VT>* _out) const noexcept
+		{
+			ObjectLocker lock(this);
+			NODE* node = RedBlackTree::find(m_root, key, m_compare);
+			if (node) {
+				if (_out) {
+					*_out = node->value;
+				}
+				return sl_true;
+			} else {
+				if (_out) {
+					_out->setNull();
+				}
+				return sl_false;
+			}
+		}
+		
+		VT getValue_NoLock(const KT& key) const noexcept
+		{
+			NODE* node = RedBlackTree::find(m_root, key, m_compare);
+			if (node) {
+				return node->value;
+			} else {
+				return VT();
+			}
+		}
+		
+		VT getValue(const KT& key) const noexcept
+		{
+			ObjectLocker lock(this);
+			NODE* node = RedBlackTree::find(m_root, key, m_compare);
+			if (node) {
+				return node->value;
+			} else {
+				return VT();
+			}
+		}
+		
+		VT getValue_NoLock(const KT& key, const VT& def) const noexcept
+		{
+			NODE* node = RedBlackTree::find(m_root, key, m_compare);
+			if (node) {
+				return node->value;
+			} else {
+				return def;
+			}
+		}
+		
+		VT getValue(const KT& key, const VT& def) const noexcept
+		{
+			ObjectLocker lock(this);
+			NODE* node = RedBlackTree::find(m_root, key, m_compare);
+			if (node) {
+				return node->value;
+			} else {
+				return def;
+			}
+		}
+		
+		List<VT> getValues_NoLock(const KT& key) const noexcept
+		{
+			List<VT> list;
+			RedBlackTree::getValues(list, m_root, key, m_compare);
+			return list;
+		}
+
+		List<VT> getValues(const KT& key) const noexcept
+		{
+			ObjectLocker lock(this);
+			List<VT> list;
+			RedBlackTree::getValues(list, m_root, key, m_compare);
+			return list;
+		}
+		
+		template <class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
+		List<VT> getValuesByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			List<VT> list;
+			RedBlackTree::getValuesByKeyAndValue(list, m_root, key, m_compare, value, value_equals);
+			return list;
+		}
+		
+		template <class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
+		List<VT> getValuesByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			ObjectLocker lock(this);
+			List<VT> list;
+			RedBlackTree::getValuesByKeyAndValue(list, m_root, key, m_compare, value, value_equals);
+			return list;
+		}
+
+		template <class KEY, class VALUE>
+		NODE* put_NoLock(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
+		{
+			return RedBlackTree::put(&m_root, m_count, Forward<KEY>(key), m_compare, Forward<VALUE>(value), isInsertion);
+		}
+
+		template <class KEY, class VALUE>
+		sl_bool put(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
+		{
+			ObjectLocker lock(this);
+			return RedBlackTree::put(&m_root, m_count, Forward<KEY>(key), m_compare, Forward<VALUE>(value), isInsertion) != sl_null;
+		}
+		
+		template <class KEY, class VALUE>
+		NODE* replace_NoLock(const KEY& key, VALUE&& value) noexcept
+		{
+			return RedBlackTree::replace(m_root, key, m_compare, Forward<VALUE>(value));
+		}
+		
+		template <class KEY, class VALUE>
+		sl_bool replace(const KEY& key, VALUE&& value) noexcept
+		{
+			ObjectLocker lock(this);
+			return RedBlackTree::replace(m_root, key, m_compare, Forward<VALUE>(value)) != sl_null;
+		}
+		
+		template <class KEY, class... VALUE_ARGS>
+		NODE* add_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			return RedBlackTree::add(&m_root, m_count, Forward<KEY>(key), m_compare, Forward<VALUE_ARGS>(value_args)...);
+		}
+		
+		template <class KEY, class... VALUE_ARGS>
+		sl_bool add(KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			ObjectLocker lock(this);
+			return RedBlackTree::add(&m_root, m_count, Forward<KEY>(key), m_compare, Forward<VALUE_ARGS>(value_args)...) != sl_null;
+		}
+		
+		template <class KEY, class... VALUE_ARGS>
+		MapEmplaceReturn<NODE> emplace_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			return RedBlackTree::emplace(&m_root, m_count, Forward<KEY>(key), m_compare, Forward<VALUE_ARGS>(value_args)...);
+		}
+		
+		template <class KEY, class... VALUE_ARGS>
+		sl_bool emplace(KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			ObjectLocker lock(this);
+			return RedBlackTree::emplace(&m_root, m_count, Forward<KEY>(key), m_compare, Forward<VALUE_ARGS>(value_args)...);
+		}
+		
+		template <class MAP>
+		sl_bool putAll_NoLock(const MAP& other) noexcept
+		{
+			typename MAP::EnumHelper helper(other);
+			auto node = helper.node;
+			if (!node) {
+				return sl_true;
+			}
+			if (reinterpret_cast<void*>(RedBlackTree::getFirstNode(m_root)) == reinterpret_cast<void*>(node)) {
+				return sl_true;
+			}
+			while (node) {
+				if (!(RedBlackTree::put(&m_root, m_count, node->key, m_compare, node->value, sl_null))) {
+					return sl_false;
+				}
+				node = node->getNext();
+			}
+			return sl_true;
+		}
+		
+		template <class MAP>
+		sl_bool putAll(const MAP& other) noexcept
+		{
+			typename MAP::EnumLockHelper helper(other);
+			auto node = helper.node;
+			if (!node) {
+				return sl_true;
+			}
+			if (reinterpret_cast<void*>(RedBlackTree::getFirstNode(m_root)) == reinterpret_cast<void*>(node)) {
+				return sl_true;
+			}
+			MultipleMutexLocker lock(getLocker(), helper.mutex);
+			while (node) {
+				if (!(RedBlackTree::put(&m_root, m_count, node->key, m_compare, node->value, sl_null))) {
+					return sl_false;
+				}
+				node = node->getNext();
+			}
+			return sl_true;
+		}
+		
+		template <class MAP>
+		void replaceAll_NoLock(const MAP& other) noexcept
+		{
+			typename MAP::EnumHelper helper(other);
+			auto node = helper.node;
+			if (!node) {
+				return;
+			}
+			if (reinterpret_cast<void*>(RedBlackTree::getFirstNode(m_root)) == reinterpret_cast<void*>(node)) {
+				return;
+			}
+			while (node) {
+				RedBlackTree::replace(m_root, node->key, m_compare, node->value);
+				node = node->getNext();
+			}
+		}
+		
+		template <class MAP>
+		void replaceAll(const MAP& other) noexcept
+		{
+			typename MAP::EnumLockHelper helper(other);
+			auto node = helper.node;
+			if (!node) {
+				return;
+			}
+			if (reinterpret_cast<void*>(RedBlackTree::getFirstNode(m_root)) == reinterpret_cast<void*>(node)) {
+				return;
+			}
+			MultipleMutexLocker lock(getLocker(), helper.mutex);
+			while (node) {
+				RedBlackTree::replace(m_root, node->key, m_compare, node->value);
+				node = node->getNext();
+			}
+		}
+		
+		template <class MAP>
+		sl_bool addAll_NoLock(const MAP& other) noexcept
+		{
+			typename MAP::EnumHelper helper(other);
+			auto node = helper.node;
+			if (!node) {
+				return sl_true;
+			}
+			if (reinterpret_cast<void*>(RedBlackTree::getFirstNode(m_root)) == reinterpret_cast<void*>(node)) {
+				return sl_false;
+			}
+			while (node) {
+				if (!(RedBlackTree::add(&m_root, m_count, node->key, m_compare, node->value))) {
+					return sl_false;
+				}
+				node = node->getNext();
+			}
+			return sl_true;
+		}
+		
+		template <class MAP>
+		sl_bool addAll(const MAP& other) noexcept
+		{
+			typename MAP::EnumLockHelper helper(other);
+			auto node = helper.node;
+			if (!node) {
+				return sl_true;
+			}
+			if (reinterpret_cast<void*>(RedBlackTree::getFirstNode(m_root)) == reinterpret_cast<void*>(node)) {
+				return sl_false;
+			}
+			MultipleMutexLocker lock(getLocker(), helper.mutex);
+			while (node) {
+				if (!(RedBlackTree::add(&m_root, m_count, node->key, m_compare, node->value))) {
+					return sl_false;
+				}
+				node = node->getNext();
+			}
+			return sl_true;
+		}
+		
+		template <class MAP>
+		sl_bool emplaceAll_NoLock(const MAP& other) noexcept
+		{
+			typename MAP::EnumHelper helper(other);
+			auto node = helper.node;
+			if (!node) {
+				return sl_true;
+			}
+			if (reinterpret_cast<void*>(RedBlackTree::getFirstNode(m_root)) == reinterpret_cast<void*>(node)) {
+				return sl_true;
+			}
+			while (node) {
+				MapEmplaceReturn<NODE> ret = RedBlackTree::emplace(&m_root, m_count, node->key, m_compare, node->value);
+				if (!(ret.node)) {
+					return sl_false;
+				}
+				node = node->getNext();
+			}
+			return sl_true;
+		}
+		
+		template <class MAP>
+		sl_bool emplaceAll(const MAP& other) noexcept
+		{
+			typename MAP::EnumLockHelper helper(other);
+			auto node = helper.node;
+			if (!node) {
+				return sl_true;
+			}
+			if (reinterpret_cast<void*>(RedBlackTree::getFirstNode(m_root)) == reinterpret_cast<void*>(node)) {
+				return sl_true;
+			}
+			MultipleMutexLocker lock(getLocker(), helper.mutex);
+			while (node) {
+				MapEmplaceReturn<NODE> ret = RedBlackTree::emplace(&m_root, m_count, node->key, m_compare, node->value);
+				if (!(ret.node)) {
+					return sl_false;
+				}
+				node = node->getNext();
+			}
+			return sl_true;
+		}
+		
+		/* unsynchronized function */
+		void removeAt(NODE* node) noexcept
+		{
+			RedBlackTree::removeNode(&m_root, m_count, node);
+		}
+		
+		/* unsynchronized function */
+		sl_size removeAt(NODE* node, sl_size count) noexcept
+		{
+			return RedBlackTree::removeNodes(&m_root, m_count, node, count);
+		}
+		
+		/* unsynchronized function */
+		sl_size removeRange(NODE* first, NODE* last) noexcept
+		{
+			return RedBlackTree::removeRange(&m_root, m_count, first, last);
+		}
+
+		sl_bool remove_NoLock(const KT& key, VT* outValue = sl_null) noexcept
+		{
+			return RedBlackTree::remove(&m_root, m_count, key, m_compare, outValue);
+		}
+
+		sl_bool remove(const KT& key, VT* outValue = sl_null) noexcept
+		{
+			ObjectLocker lock(this);
+			return RedBlackTree::remove(&m_root, m_count, key, m_compare, outValue);
+		}
+		
+		sl_size removeItems_NoLock(const KT& key) noexcept
+		{
+			return RedBlackTree::removeItems(&m_root, m_count, key, m_compare);
+		}
+
+		sl_size removeItems(const KT& key) noexcept
+		{
+			ObjectLocker lock(this);
+			return RedBlackTree::removeItems(&m_root, m_count, key, m_compare);
+		}
+		
+		List<VT> removeItemsAndReturnValues_NoLock(const KT& key) noexcept
+		{
+			List<VT> list;
+			RedBlackTree::removeItemsAndReturnValues(list, &m_root, m_count, key, m_compare);
+			return list;
+		}
+		
+		List<VT> removeItemsAndReturnValues(const KT& key) noexcept
+		{
+			ObjectLocker lock(this);
+			List<VT> list;
+			RedBlackTree::removeItemsAndReturnValues(list, &m_root, m_count, key, m_compare);
+			return list;
+		}
+		
+		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
+		sl_bool removeKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
+		{
+			return RedBlackTree::removeKeyAndValue(&m_root, m_count, key, m_compare, value, value_equals);
+		}
+		
+		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
+		sl_bool removeKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
+		{
+			ObjectLocker lock(this);
+			return RedBlackTree::removeKeyAndValue(&m_root, m_count, key, m_compare, value, value_equals);
+		}
+		
+		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
+		sl_size removeItemsByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
+		{
+			return RedBlackTree::removeItemsByKeyAndValue(&m_root, m_count, key, m_compare, value, value_equals);
+		}
+		
+		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
+		sl_size removeItemsByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
+		{
+			ObjectLocker lock(this);
+			return RedBlackTree::removeItemsByKeyAndValue(&m_root, m_count, key, m_compare, value, value_equals);
+		}
+		
+		sl_size removeAll_NoLock() noexcept
+		{
+			NODE* root = m_root;
+			sl_size count = m_count;
+			if (root) {
+				RedBlackTree::freeNodes(root);
+				m_root = sl_null;
+			}
+			m_count = 0;
+			return count;
+		}
+
+		sl_size removeAll() noexcept
+		{
+			NODE* root;
+			sl_size count;
+			{
+				ObjectLocker lock(this);
+				root = m_root;
+				count = m_count;
+				m_root = sl_null;
+				m_count = 0;
+			}
+			if (root) {
+				RedBlackTree::freeNodes(root);
+			}
+			return count;
+		}
+		
+		sl_bool copyFrom_NoLock(const CMap& other) noexcept
+		{
+			if (this == &other) {
+				return sl_true;
+			}
+			NODE* root = m_root;
+			if (root) {
+				RedBlackTree::freeNodes(root);
+			}
+			root = other.m_root;
+			if (root) {
+				root = RedBlackTree::duplicateNode(root);
+				if (root) {
+					m_root = root;
+					m_count = other.m_count;
+					return sl_true;
+				} else {
+					m_root = sl_null;
+					m_count = 0;
+					return sl_false;
+				}
+			} else {
+				m_root = sl_null;
+				m_count = 0;
+				return sl_true;
+			}
+		}
+		
+		sl_bool copyFrom(const CMap& other) noexcept
+		{
+			if (this == &other) {
+				return sl_true;
+			}
+			MultipleObjectsLocker lock(this, &other);
+			return copyFrom_NoLock(other);
+		}
+		
+		CMap* duplicate_NoLock() const noexcept
+		{
+			NODE* root = m_root;
+			if (root) {
+				NODE* other = RedBlackTree::duplicateNode(root);
+				if (other) {
+					CMap* ret = new CMap;
+					if (ret) {
+						ret->m_root = other;
+						ret->m_count = m_count;
+						return ret;
+					} else {
+						RedBlackTree::freeNodes(other);
+					}
+				}
+			}
+			return sl_null;
+		}
+
+		CMap* duplicate() const noexcept
+		{
+			ObjectLocker lock(this);
+			return duplicate_NoLock();
+		}
+		
+		List<KT> getAllKeys_NoLock() const noexcept
+		{
+			List<KT> ret;
+			NODE* node = RedBlackTree::getFirstNode(m_root);
+			while (node) {
+				ret.add_NoLock(node->key);
+				node = node->getNext();
+			}
+			return ret;
+		}
+
+		List<KT> getAllKeys() const noexcept
+		{
+			ObjectLocker lock(this);
+			return getAllKeys_NoLock();
+		}
+		
+		List<VT> getAllValues_NoLock() const noexcept
+		{
+			List<VT> ret;
+			NODE* node = RedBlackTree::getFirstNode(m_root);
+			while (node) {
+				ret.add_NoLock(node->value);
+				node = node->getNext();
+			}
+			return ret;
+		}
+
+		List<VT> getAllValues() const noexcept
+		{
+			ObjectLocker lock(this);
+			return getAllValues_NoLock();
+		}
+		
+		List< Pair<KT, VT> > toList_NoLock() const noexcept
+		{
+			List< Pair<KT, VT> > ret;
+			NODE* node = RedBlackTree::getFirstNode(m_root);
+			while (node) {
+				ret.add_NoLock(Pair<KT, VT>(node->key, node->value));
+				node = node->getNext();
+			}
+			return ret;
+		}
+
+		List< Pair<KT, VT> > toList() const noexcept
+		{
+			ObjectLocker lock(this);
+			return toList_NoLock();
+		}
+
+		Ref<Object> toObject() noexcept;
+
 		// range-based for loop
-		POSITION begin() const noexcept;
-		
-		POSITION end() const noexcept;
-		
+		POSITION begin() const noexcept
+		{
+			return RedBlackTree::getFirstNode(m_root);
+		}
+
+		POSITION end() const noexcept
+		{
+			return sl_null;
+		}
+
 	public:
 		class EnumLockHelper
 		{
 		public:
-			EnumLockHelper(const CMap& map) noexcept;
+			EnumLockHelper(const CMap& map) noexcept
+			{
+				node = map.getFirstNode();
+				mutex = map.getLocker();
+			}
 		public:
 			NODE* node;
 			Mutex* mutex;
@@ -311,7 +851,10 @@ namespace slib
 		class EnumHelper
 		{
 		public:
-			EnumHelper(const CMap& map) noexcept;
+			EnumHelper(const CMap& map) noexcept
+			{
+				node = map.getFirstNode();
+			}
 		public:
 			NODE* node;
 		};
@@ -335,210 +878,869 @@ namespace slib
 		
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Map(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept;
+		Map(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: ref(new CMAP(l, compare)) {}
 #endif
 		
 	public:
-		static Map create() noexcept;
+		static Map create() noexcept
+		{
+			return new CMAP();
+		}
 		
-		static Map create(const KEY_COMPARE& compare) noexcept;
-		
+		static Map create(const KEY_COMPARE& compare) noexcept
+		{
+			return new CMAP(compare);
+		}
+
+		static Map create(Object* object);
+
 #ifdef SLIB_SUPPORT_STD_TYPES
-		static Map create(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& key_compare = KEY_COMPARE()) noexcept;
+		static Map create(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
+		{
+			return new CMAP(l, compare);
+		}
 #endif
 		
 		template <class KEY, class VALUE, class OTHER_COMPARE>
-		static const Map& from(const Map<KEY, VALUE, OTHER_COMPARE>& other) noexcept;
+		static const Map& from(const Map<KEY, VALUE, OTHER_COMPARE>& other) noexcept
+		{
+			return *(reinterpret_cast<Map const*>(&other));
+		}
 		
-		void initialize() noexcept;
+		void initialize() noexcept
+		{
+			ref = new CMAP();
+		}
 		
-		void initialize(const KEY_COMPARE& compare) noexcept;
+		void initialize(const KEY_COMPARE& compare) noexcept
+		{
+			ref = new CMAP(compare);
+		}
 
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Map& operator=(const std::initializer_list< Pair<KT, VT> >& l) noexcept;
+		Map& operator=(const std::initializer_list< Pair<KT, VT> >& l) noexcept
+		{
+			ref = new CMAP(l);
+			return *this;
+		}
 #endif
 		
-		VT operator[](const KT& key) const noexcept;
+		VT operator[](const KT& key) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getValue(key);
+			} else {
+				return VT();
+			}
+		}
 		
-		sl_size getCount() const noexcept;
+		sl_size getCount() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getCount();
+			}
+			return 0;
+		}
 		
-		sl_bool isEmpty() const noexcept;
+		sl_bool isEmpty() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return (obj->getCount()) == 0;
+			}
+			return sl_true;
+		}
+
+		sl_bool isNotEmpty() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return (obj->getCount()) > 0;
+			}
+			return sl_false;
+		}
 		
-		sl_bool isNotEmpty() const noexcept;
+		NODE* getFirstNode() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getFirstNode();
+			}
+			return sl_null;
+		}
 		
-		NODE* getFirstNode() const noexcept;
+		NODE* getLastNode() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getLastNode();
+			}
+			return sl_null;
+		}
 		
-		NODE* getLastNode() const noexcept;
+		NODE* find_NoLock(const KT& key) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->find_NoLock(key);
+			}
+			return sl_null;
+		}
 		
-		NODE* find_NoLock(const KT& key) const noexcept;
-		
-		sl_bool find(const KT& key) const noexcept;
+		sl_bool find(const KT& key) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->find(key);
+			}
+			return sl_false;
+		}
 		
 		/* unsynchronized function */
-		sl_bool getEqualRange(const KT& key, NODE** pStart = sl_null, NODE** pEnd = sl_null) const noexcept;
+		sl_bool getEqualRange(const KT& key, NODE** pStart = sl_null, NODE** pEnd = sl_null) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getEqualRange(key, pStart, pEnd);
+			}
+			return sl_false;
+		}
 		
 		/* unsynchronized function */
-		void getNearest(const KT& key, NODE** pLessEqual = sl_null, NODE** pGreaterEqual = sl_null) const noexcept;
+		void getNearest(const KT& key, NODE** pLessEqual = sl_null, NODE** pGreaterEqual = sl_null) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				obj->getNearest(key, pLessEqual, pGreaterEqual);
+			} else {
+				if (pLessEqual) {
+					*pLessEqual = sl_null;
+				}
+				if (pGreaterEqual) {
+					*pGreaterEqual = sl_null;
+				}
+			}
+		}
 		
 		/* unsynchronized function */
-		NODE* getLowerBound(const KT& key) const noexcept;
+		NODE* getLowerBound(const KT& key) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getLowerBound(key);
+			}
+			return sl_null;
+		}
 		
 		/* unsynchronized function */
-		NODE* getUpperBound(const KT& key) const noexcept;
+		NODE* getUpperBound(const KT& key) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getUpperBound(key);
+			}
+			return sl_null;
+		}
 
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		NODE* findKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
+		NODE* findKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->findKeyAndValue_NoLock(key, value, value_equals);
+			}
+			return sl_null;
+		}
 		
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool findKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
+		sl_bool findKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->findKeyAndValue(key, value, value_equals);
+			}
+			return sl_false;
+		}
 		
 		/* unsynchronized function */
-		VT* getItemPointer(const KT& key) const noexcept;
+		VT* getItemPointer(const KT& key) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getItemPointer(key);
+			}
+			return sl_null;
+		}
 		
 		/* unsynchronized function */
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		VT* getItemPointerByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
+		VT* getItemPointerByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getItemPointerByKeyAndValue(key, value, value_equals);
+			}
+			return sl_null;
+		}
 		
-		sl_bool get_NoLock(const KT& key, VT* _out = sl_null) const noexcept;
+		sl_bool get_NoLock(const KT& key, VT* _out = sl_null) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->get_NoLock(key, _out);
+			}
+			return sl_false;
+		}
 		
-		sl_bool get(const KT& key, VT* _out = sl_null) const noexcept;
+		sl_bool get(const KT& key, VT* _out = sl_null) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->get(key, _out);
+			}
+			return sl_false;
+		}
 		
-		sl_bool get_NoLock(const KT& key, Nullable<VT>* _out) const noexcept;
+		sl_bool get_NoLock(const KT& key, Nullable<VT>* _out) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->get_NoLock(key, _out);
+			}
+			return sl_false;
+		}
 		
-		sl_bool get(const KT& key, Nullable<VT>* _out) const noexcept;
-		
-		VT getValue_NoLock(const KT& key) const noexcept;
-		
-		VT getValue(const KT& key) const noexcept;
-		
-		VT getValue_NoLock(const KT& key, const VT& def) const noexcept;
-		
-		VT getValue(const KT& key, const VT& def) const noexcept;
-		
-		List<VT> getValues_NoLock(const KT& key) const noexcept;
-		
-		List<VT> getValues(const KT& key) const noexcept;
+		sl_bool get(const KT& key, Nullable<VT>* _out) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->get(key, _out);
+			}
+			return sl_false;
+		}
+
+		VT getValue_NoLock(const KT& key) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getValue_NoLock(key);
+			} else {
+				return VT();
+			}
+		}
+
+		VT getValue(const KT& key) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getValue(key);
+			} else {
+				return VT();
+			}
+		}
+
+		VT getValue_NoLock(const KT& key, const VT& def) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getValue_NoLock(key, def);
+			} else {
+				return def;
+			}
+		}
+
+		VT getValue(const KT& key, const VT& def) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getValue(key, def);
+			} else {
+				return def;
+			}
+		}
+
+		List<VT> getValues_NoLock(const KT& key) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getValues_NoLock(key);
+			}
+			return sl_null;
+		}
+
+		List<VT> getValues(const KT& key) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getValues(key);
+			}
+			return sl_null;
+		}
 		
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		List<VT> getValuesByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
+		List<VT> getValuesByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getValuesByKeyAndValue_NoLock(key, value, value_equals);
+			}
+			return sl_null;
+		}
 		
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		List<VT> getValuesByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
+		List<VT> getValuesByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getValuesByKeyAndValue(key, value, value_equals);
+			}
+			return sl_null;
+		}
 		
 		template <class KEY, class VALUE>
-		NODE* put_NoLock(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept;
+		NODE* put_NoLock(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->put_NoLock(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
+			} else {
+				obj = new CMAP;
+				if (obj) {
+					ref = obj;
+					if (isInsertion) {
+						*isInsertion = sl_true;
+					}
+					return obj->add_NoLock(Forward<KEY>(key), Forward<VALUE>(value));
+				}
+			}
+			return sl_null;
+		}
 		
 		template <class KEY, class VALUE>
-		sl_bool put(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept;
+		sl_bool put(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(this));
+				obj = ref.ptr;
+				if (obj) {
+					lock.unlock();
+					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
+				}
+				obj = new CMAP;
+				if (obj) {
+					ref = obj;
+					lock.unlock();
+					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
+				}
+			}
+			return sl_false;
+		}
 		
 		template <class KEY, class VALUE>
-		NODE* replace_NoLock(const KEY& key, VALUE&& value) const noexcept;
+		NODE* replace_NoLock(const KEY& key, VALUE&& value) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->replace_NoLock(key, Forward<VALUE>(value));
+			}
+			return sl_null;
+		}
 		
 		template <class KEY, class VALUE>
-		sl_bool replace(const KEY& key, VALUE&& value) const noexcept;
+		sl_bool replace(const KEY& key, VALUE&& value) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->replace(key, Forward<VALUE>(value));
+			}
+			return sl_false;
+		}
 		
 		template <class KEY, class... VALUE_ARGS>
-		NODE* add_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept;
+		NODE* add_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+			} else {
+				obj = new CMAP;
+				if (obj) {
+					ref = obj;
+					return obj->add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+			}
+			return sl_null;
+		}
 		
 		template <class KEY, class... VALUE_ARGS>
-		sl_bool add(KEY&& key, VALUE_ARGS&&... value_args) noexcept;
+		sl_bool add(KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(this));
+				obj = ref.ptr;
+				if (obj) {
+					lock.unlock();
+					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+				obj = new CMAP;
+				if (obj) {
+					ref = obj;
+					lock.unlock();
+					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+			}
+			return sl_false;
+		}
 		
 		template <class KEY, class... VALUE_ARGS>
-		MapEmplaceReturn<NODE> emplace_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept;
+		MapEmplaceReturn< NODE > emplace_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->emplace_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+			} else {
+				obj = new CMAP;
+				if (obj) {
+					ref = obj;
+					NODE* node = obj->add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+					if (node) {
+						return MapEmplaceReturn<NODE>(sl_true, node);
+					} else {
+						return sl_null;
+					}
+				}
+			}
+			return sl_null;
+		}
 		
 		template <class KEY, class... VALUE_ARGS>
-		sl_bool emplace(KEY&& key, VALUE_ARGS&&... value_args) noexcept;
+		sl_bool emplace(KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(this));
+				obj = ref.ptr;
+				if (obj) {
+					lock.unlock();
+					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+				obj = new CMAP;
+				if (obj) {
+					ref = obj;
+					lock.unlock();
+					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+			}
+			return sl_false;
+		}
 		
 		template <class MAP>
-		sl_bool putAll_NoLock(const MAP& other) noexcept;
+		sl_bool putAll_NoLock(const MAP& other) noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->putAll_NoLock(other);
+			} else {
+				obj = new CMAP;
+				if (obj) {
+					ref = obj;
+					return obj->putAll_NoLock(other);
+				}
+			}
+			return sl_false;
+		}
 		
 		template <class MAP>
-		sl_bool putAll(const MAP& other) noexcept;
+		sl_bool putAll(const MAP& other) noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->putAll(other);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(this));
+				obj = ref.ptr;
+				if (obj) {
+					lock.unlock();
+					return obj->putAll(other);
+				}
+				obj = new CMAP;
+				if (obj) {
+					ref = obj;
+					lock.unlock();
+					return obj->putAll(other);
+				}
+			}
+			return sl_false;
+		}
 		
 		template <class MAP>
-		void replaceAll_NoLock(const MAP& other) const noexcept;
+		void replaceAll_NoLock(const MAP& other) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				obj->replaceAll_NoLock(other);
+			}
+		}
 		
 		template <class MAP>
-		void replaceAll(const MAP& other) const noexcept;
+		void replaceAll(const MAP& other) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				obj->replaceAll(other);
+			}
+		}
 		
 		template <class MAP>
-		sl_bool addAll_NoLock(const MAP& other) noexcept;
+		sl_bool addAll_NoLock(const MAP& other) noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->addAll_NoLock(other);
+			} else {
+				obj = new CMAP;
+				if (obj) {
+					ref = obj;
+					return obj->addAll_NoLock(other);
+				}
+			}
+			return sl_false;
+		}
 		
 		template <class MAP>
-		sl_bool addAll(const MAP& other) noexcept;
+		sl_bool addAll(const MAP& other) noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->addAll(other);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(this));
+				obj = ref.ptr;
+				if (obj) {
+					lock.unlock();
+					return obj->addAll(other);
+				}
+				obj = new CMAP;
+				if (obj) {
+					ref = obj;
+					lock.unlock();
+					return obj->addAll(other);
+				}
+			}
+			return sl_false;
+		}
 		
 		template <class MAP>
-		sl_bool emplaceAll_NoLock(const MAP& other) noexcept;
+		sl_bool emplaceAll_NoLock(const MAP& other) noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->emplaceAll_NoLock(other);
+			} else {
+				obj = new CMAP;
+				if (obj) {
+					ref = obj;
+					return obj->emplaceAll_NoLock(other);
+				}
+			}
+			return sl_false;
+		}
 		
 		template <class MAP>
-		sl_bool emplaceAll(const MAP& other) noexcept;
+		sl_bool emplaceAll(const MAP& other) noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				obj->emplaceAll(other);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(this));
+				obj = ref.ptr;
+				if (obj) {
+					lock.unlock();
+					return obj->emplaceAll(other);
+				}
+				obj = new CMAP;
+				if (obj) {
+					ref = obj;
+					lock.unlock();
+					return obj->emplaceAll(other);
+				}
+			}
+			return sl_false;
+		}
 		
 		/* unsynchronized function */
-		void removeAt(NODE* node) const noexcept;
+		void removeAt(NODE* node) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				obj->removeAt(node);
+			}
+		}
 		
 		/* unsynchronized function */
-		sl_size removeAt(NODE* node, sl_size count) const noexcept;
+		sl_size removeAt(NODE* node, sl_size count) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->removeAt(node, count);
+			}
+			return 0;
+		}
 		
 		/* unsynchronized function */
-		sl_size removeRange(NODE* first, NODE* last) const noexcept;
+		sl_size removeRange(NODE* first, NODE* last) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->removeRange(first, last);
+			}
+			return 0;
+		}
 		
-		sl_bool remove_NoLock(const KT& key, VT* outValue = sl_null) const noexcept;
+		sl_bool remove_NoLock(const KT& key, VT* outValue = sl_null) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->remove_NoLock(key, outValue);
+			}
+			return sl_false;
+		}
+
+		sl_bool remove(const KT& key, VT* outValue = sl_null) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->remove(key, outValue);
+			}
+			return sl_false;
+		}
+
+		sl_size removeItems_NoLock(const KT& key) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->removeItems_NoLock(key);
+			}
+			return 0;
+		}
+
+		sl_size removeItems(const KT& key) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->removeItems(key);
+			}
+			return 0;
+		}
 		
-		sl_bool remove(const KT& key, VT* outValue = sl_null) const noexcept;
+		List<VT> removeItemsAndReturnValues_NoLock(const KT& key) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->removeItemsAndReturnValues_NoLock(key);
+			}
+			return sl_null;
+		}
 		
-		sl_size removeItems_NoLock(const KT& key) const noexcept;
-		
-		sl_size removeItems(const KT& key) const noexcept;
-		
-		List<VT> removeItemsAndReturnValues_NoLock(const KT& key) const noexcept;
-		
-		List<VT> removeItemsAndReturnValues(const KT& key) const noexcept;
+		List<VT> removeItemsAndReturnValues(const KT& key) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->removeItemsAndReturnValues(key);
+			}
+			return sl_null;
+		}
 		
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool removeKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
+		sl_bool removeKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->removeKeyAndValue_NoLock(key, value, value_equals);
+			}
+			return sl_false;
+		}
 		
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool removeKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
+		sl_bool removeKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->removeKeyAndValue(key, value, value_equals);
+			}
+			return sl_false;
+		}
 		
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_size removeItemsByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
+		sl_size removeItemsByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->removeItemsByKeyAndValue_NoLock(key, value, value_equals);
+			}
+			return 0;
+		}
 		
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_size removeItemsByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
+		sl_size removeItemsByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->removeItemsByKeyAndValue(key, value, value_equals);
+			}
+			return 0;
+		}
 		
-		sl_size removeAll_NoLock() const noexcept;
+		sl_size removeAll_NoLock() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->removeAll_NoLock();
+			}
+			return 0;
+		}
+
+		sl_size removeAll() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->removeAll();
+			}
+			return 0;
+		}
 		
-		sl_size removeAll() const noexcept;
-		
-		Map duplicate_NoLock() const noexcept;
-		
-		Map duplicate() const noexcept;
-		
-		List<KT> getAllKeys_NoLock() const noexcept;
-		
-		List<KT> getAllKeys() const noexcept;
-		
-		List<VT> getAllValues_NoLock() const noexcept;
-		
-		List<VT> getAllValues() const noexcept;
-		
-		List< Pair<KT, VT> > toList_NoLock() const noexcept;
-		
-		List< Pair<KT, VT> > toList() const noexcept;
-		
+		Map duplicate_NoLock() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->duplicate_NoLock();
+			}
+			return sl_null;
+		}
+
+		Map duplicate() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->duplicate();
+			}
+			return sl_null;
+		}
+
+		List<KT> getAllKeys_NoLock() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getAllKeys_NoLock();
+			}
+			return sl_null;
+		}
+
+		List<KT> getAllKeys() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getAllKeys();
+			}
+			return sl_null;
+		}
+
+		List<VT> getAllValues_NoLock() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getAllValues_NoLock();
+			}
+			return sl_null;
+		}
+
+		List<VT> getAllValues() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getAllValues();
+			}
+			return sl_null;
+		}
+
+		List< Pair<KT, VT> > toList_NoLock() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->toList_NoLock();
+			}
+			return sl_null;
+		}
+
+		List< Pair<KT, VT> > toList() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->toList();
+			}
+			return sl_null;
+		}
+
+		Ref<Object> toObject() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->toObject();
+			}
+			return sl_null;
+		}
+
+		const Mutex* getLocker() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getLocker();
+			}
+			return sl_null;
+		}
+
 		// range-based for loop
-		POSITION begin() const noexcept;
+		POSITION begin() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->getFirstNode();
+			}
+			return sl_null;
+		}
 		
-		POSITION end() const noexcept;
-		
-		const Mutex* getLocker() const noexcept;
-		
+		POSITION end() const noexcept
+		{
+			return sl_null;
+		}
+
 	public:
 		class EnumLockHelper
 		{
 		public:
-			EnumLockHelper(const Map& map) noexcept;
+			EnumLockHelper(const Map& map) noexcept
+			{
+				CMAP* obj = map.ref.ptr;
+				if (obj) {
+					node = obj->getFirstNode();
+					mutex = obj->getLocker();
+				} else {
+					node = sl_null;
+					mutex = sl_null;
+				}
+			}
 		public:
 			NODE* node;
 			Mutex* mutex;
@@ -547,7 +1749,10 @@ namespace slib
 		class EnumHelper
 		{
 		public:
-			EnumHelper(const Map& map) noexcept;
+			EnumHelper(const Map& map) noexcept
+			{
+				node = map.getFirstNode();
+			}
 		public:
 			NODE* node;
 		};
@@ -570,104 +1775,436 @@ namespace slib
 		
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Atomic(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept;
+		Atomic(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: ref(new CMAP(l, compare)) {}
 #endif
 		
 	public:
 		template <class KEY, class VALUE, class OTHER_COMPARE>
-		static const Atomic& from(const Atomic< Map<KEY, VALUE, OTHER_COMPARE> >& other) noexcept;
+		static const Atomic& from(const Atomic< Map<KEY, VALUE, OTHER_COMPARE> >& other) noexcept
+		{
+			return *(reinterpret_cast<Atomic const*>(&other));
+		}
 		
-		void initialize() noexcept;
+		void initialize() noexcept
+		{
+			ref = new CMAP;
+		}
 		
-		void initialize(const KEY_COMPARE& compare) noexcept;
+		void initialize(const KEY_COMPARE& compare) noexcept
+		{
+			ref = new CMAP;
+		}
 
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Atomic< Map<KT, VT, KEY_COMPARE> >& operator=(const std::initializer_list< Pair<KT, VT> >& l) noexcept;
+		Atomic< Map<KT, VT, KEY_COMPARE> >& operator=(const std::initializer_list< Pair<KT, VT> >& l) noexcept
+		{
+			ref = new CMAP(l);
+			return *this;
+		}
 #endif
 		
-		VT operator[](const KT& key) const noexcept;
+		VT operator[](const KT& key) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->getValue(key);
+			} else {
+				return VT();
+			}
+		}
 		
-		sl_size getCount() const noexcept;
-		
-		sl_bool isEmpty() const noexcept;
-		
-		sl_bool isNotEmpty() const noexcept;
-		
-		sl_bool find(const KT& key) const noexcept;
-		
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool findKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
-		
-		sl_bool get(const KT& key, VT* _out = sl_null) const noexcept;
-		
-		sl_bool get(const KT& key, Nullable<VT>* _out) const noexcept;
+		sl_size getCount() const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->getCount();
+			}
+			return 0;
+		}
 
-		VT getValue(const KT& key) const noexcept;
-		
-		VT getValue(const KT& key, const VT& def) const noexcept;
-		
-		List<VT> getValues(const KT& key) const noexcept;
+		sl_bool isEmpty() const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return (obj->getCount()) == 0;
+			}
+			return sl_true;
+		}
+
+		sl_bool isNotEmpty() const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return (obj->getCount()) > 0;
+			}
+			return sl_false;
+		}
+
+		sl_bool find(const KT& key) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->find(key);
+			}
+			return sl_false;
+		}
 		
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		List<VT> getValuesByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
+		sl_bool findKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->findKeyAndValue(key, value, value_equals);
+			}
+			return sl_false;
+		}
+		
+		sl_bool get(const KT& key, VT* _out = sl_null) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->get(key, _out);
+			}
+			return sl_false;
+		}
+		
+		sl_bool get(const KT& key, Nullable<VT>* _out) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->get(key, _out);
+			}
+			return sl_false;
+		}
+
+		VT getValue(const KT& key) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->getValue(key);
+			} else {
+				return VT();
+			}
+		}
+
+		VT getValue(const KT& key, const VT& def) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->getValue(key, def);
+			}
+			return def;
+		}
+
+		List<VT> getValues(const KT& key) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->getValues(key);
+			}
+			return sl_null;
+		}
+		
+		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
+		List<VT> getValuesByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->getValuesByKeyAndValue(key, value, value_equals);
+			}
+			return sl_null;
+		}
 		
 		template <class KEY, class VALUE>
-		sl_bool put(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept;
+		sl_bool put(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(this));
+				obj = ref;
+				if (obj.isNotNull()) {
+					lock.unlock();
+					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
+				}
+				obj = new CMAP;
+				if (obj.isNotNull()) {
+					ref = obj;
+					lock.unlock();
+					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
+				}
+			}
+			return sl_false;
+		}
 		
 		template <class KEY, class VALUE>
-		sl_bool replace(const KEY& key, VALUE&& value) const noexcept;
+		sl_bool replace(const KEY& key, VALUE&& value) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->replace(key, Forward<VALUE>(value));
+			}
+			return sl_false;
+		}
 		
 		template <class KEY, class... VALUE_ARGS>
-		sl_bool add(KEY&& key, VALUE_ARGS&&... value_args) noexcept;
-		
+		sl_bool add(KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(this));
+				obj = ref;
+				if (obj.isNotNull()) {
+					lock.unlock();
+					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+				obj = new CMAP;
+				if (obj.isNotNull()) {
+					ref = obj;
+					lock.unlock();
+					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+			}
+			return sl_false;
+		}
+
 		template <class KEY, class... VALUE_ARGS>
-		sl_bool emplace(KEY&& key, VALUE_ARGS&&... value_args) noexcept;
+		sl_bool emplace(KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(this));
+				obj = ref;
+				if (obj.isNotNull()) {
+					lock.unlock();
+					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+				obj = new CMAP;
+				if (obj.isNotNull()) {
+					ref = obj;
+					lock.unlock();
+					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+			}
+			return sl_false;
+		}
 		
 		template <class MAP>
-		sl_bool putAll(const MAP& other) noexcept;
+		sl_bool putAll(const MAP& other) noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->putAll(other);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(this));
+				obj = ref;
+				if (obj.isNotNull()) {
+					lock.unlock();
+					return obj->putAll(other);
+				}
+				obj = new CMAP;
+				if (obj.isNotNull()) {
+					ref = obj;
+					lock.unlock();
+					return obj->putAll(other);
+				}
+			}
+			return sl_false;
+		}
 		
 		template <class MAP>
-		void replaceAll(const MAP& other) const noexcept;
+		void replaceAll(const MAP& other) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				obj->replaceAll(other);
+			}
+		}
 		
 		template <class MAP>
-		sl_bool addAll(const MAP& other) noexcept;
+		sl_bool addAll(const MAP& other) noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->addAll(other);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(this));
+				obj = ref;
+				if (obj.isNotNull()) {
+					lock.unlock();
+					return obj->addAll(other);
+				}
+				obj = new CMAP;
+				if (obj.isNotNull()) {
+					ref = obj;
+					lock.unlock();
+					return obj->addAll(other);
+				}
+			}
+			return sl_false;
+		}
 		
 		template <class MAP>
-		sl_bool emplaceAll(const MAP& other) noexcept;
+		sl_bool emplaceAll(const MAP& other) noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->emplaceAll(other);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(this));
+				obj = ref;
+				if (obj.isNotNull()) {
+					lock.unlock();
+					return obj->emplaceAll(other);
+				}
+				obj = new CMAP;
+				if (obj.isNotNull()) {
+					ref = obj;
+					lock.unlock();
+					return obj->emplaceAll(other);
+				}
+			}
+			return sl_false;
+		}
 		
-		sl_bool remove(const KT& key, VT* outValue = sl_null) const noexcept;
+		sl_bool remove(const KT& key, VT* outValue = sl_null) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->remove(key, outValue);
+			}
+			return sl_false;
+		}
 		
-		sl_size removeItems(const KT& key) const noexcept;
+		sl_size removeItems(const KT& key) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->removeItems(key);
+			}
+			return 0;
+		}
 		
-		List<VT> removeItemsAndReturnValues(const KT& key) const noexcept;
+		List<VT> removeItemsAndReturnValues(const KT& key) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->removeItemsAndReturnValues(key);
+			}
+			return sl_null;
+		}
 		
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool removeKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
+		sl_bool removeKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->removeKeyAndValue(key, value, value_equals);
+			}
+			return sl_false;
+		}
 		
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_size removeItemsByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept;
+		sl_size removeItemsByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->removeItemsByKeyAndValue(key, value, value_equals);
+			}
+			return 0;
+		}
 		
-		sl_size removeAll() const noexcept;
-		
-		Map<KT, VT, KEY_COMPARE> duplicate() const noexcept;
-		
-		List<KT> getAllKeys() const noexcept;
-		
-		List<VT> getAllValues() const noexcept;
-		
-		List< Pair<KT, VT> > toList() const noexcept;
-		
+		sl_size removeAll() const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->removeAll();
+			}
+			return 0;
+		}
+
+		Map<KT, VT, KEY_COMPARE> duplicate() const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->duplicate();
+			}
+			return sl_null;
+		}
+
+		List<KT> getAllKeys() const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->getAllKeys();
+			}
+			return sl_null;
+		}
+
+		List<VT> getAllValues() const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->getAllValues();
+			}
+			return sl_null;
+		}
+
+		List< Pair<KT, VT> > toList() const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->toList();
+			}
+			return sl_null;
+		}
+
+		Ref<Object> toObject() const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return obj->toObject();
+			}
+			return sl_null;
+		}
+
 		// range-based for loop
-		POSITION begin() const noexcept;
+		POSITION begin() const noexcept
+		{
+			Ref<CMAP> obj(ref);
+			if (obj.isNotNull()) {
+				return POSITION(obj->getFirstNode(), obj.ptr);
+			}
+			return sl_null;
+		}
 		
-		POSITION end() const noexcept;
-		
+		POSITION end() const noexcept
+		{
+			return sl_null;
+		}
+
 	public:
 		class EnumLockHelper
 		{
 		public:
-			EnumLockHelper(const Map<KT, VT, KEY_COMPARE>& map) noexcept;
+			EnumLockHelper(const Map<KT, VT, KEY_COMPARE>& map) noexcept
+			{
+				CMAP* obj = map.ref.ptr;
+				if (obj) {
+					node = obj->getFirstNode();
+					mutex = obj->getLocker();
+					ref = obj;
+				} else {
+					node = sl_null;
+					mutex = sl_null;
+				}
+			}
 		public:
 			NODE* node;
 			Mutex* mutex;
@@ -677,7 +2214,8 @@ namespace slib
 		class EnumHelper
 		{
 		public:
-			EnumHelper(const Map<KT, VT, KEY_COMPARE>& map) noexcept;
+			EnumHelper(const Map<KT, VT, KEY_COMPARE>& map) noexcept: node(map.getFirstNode()), ref(map.ref) {}
+
 		public:
 			NODE* node;
 			Ref<Referable> ref;
@@ -686,11 +2224,5 @@ namespace slib
 	};
 	
 }
-
-#include "detail/map.inc"
-
-#ifdef SLIB_SUPPORT_STD_TYPES
-#include "detail/map_std.inc"
-#endif
 
 #endif

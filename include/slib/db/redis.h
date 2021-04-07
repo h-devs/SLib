@@ -25,7 +25,6 @@
 
 #include "definition.h"
 
-#include "../core/object.h"
 #include "../core/variant.h"
 
 namespace slib
@@ -112,18 +111,18 @@ namespace slib
 		sl_bool isLoggingErrors();
 		
 		void setLoggingErrors(sl_bool flag);
-		
-		String getLastError();
-		
+
+		String getErrorMessage();
+
 	protected:
 		void processError(const String& error);
-		
-		void clearError();
-		
+
+		void clearErrorMessage();
+
 	protected:
 		sl_bool m_flagLogErrors;
-		AtomicString m_lastError;
-		
+		AtomicString m_errorMessage;
+
 	};
 
 }

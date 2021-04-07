@@ -56,15 +56,9 @@ namespace slib
 		
 		static void setDepthFunction(RenderFunctionOperation op);
 		
-		
 		static void setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW = sl_true);
 		
-		
-		static void setBlending(sl_bool flagEnableBlending, const RenderBlendingParam& param);
-		
-		static void setBlending(sl_bool flagEnableBlending);
-		
-		/* objects are represented as unsigned integers (zero means null object) */
+		static void setBlending(const RenderBlendParam& param);
 		
 		// draw
 		static void drawPrimitives(PrimitiveType type, sl_uint32 countVertices, sl_uint32 startIndex = 0);
@@ -184,6 +178,14 @@ namespace slib
 		
 		static void setVertexUint16ArrayAttribute(sl_int32 attributeLocation, sl_size offsetValuesOnBuffer, sl_uint32 countComponents, sl_uint32 strideBytes = 0, sl_bool flagDoNormalize = sl_false);
 		
+		static void setVertexInt32ArrayAttributePtr(sl_int32 attributeLocation, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes = 0, sl_bool flagDoNormalize = sl_false);
+		
+		static void setVertexInt32ArrayAttribute(sl_int32 attributeLocation, sl_size offsetValuesOnBuffer, sl_uint32 countComponents, sl_uint32 strideBytes = 0, sl_bool flagDoNormalize = sl_false);
+		
+		static void setVertexUint32ArrayAttributePtr(sl_int32 attributeLocation, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes = 0, sl_bool flagDoNormalize = sl_false);
+		
+		static void setVertexUint32ArrayAttribute(sl_int32 attributeLocation, sl_size offsetValuesOnBuffer, sl_uint32 countComponents, sl_uint32 strideBytes = 0, sl_bool flagDoNormalize = sl_false);
+		
 		static void disableVertexArrayAttribute(sl_int32 attributeLocation);
 		
 		// uniform
@@ -242,10 +244,24 @@ namespace slib
 		
 		static void setUniformTextureSampler(sl_int32 uniformLocation, sl_uint32 samplerNo);
 		
-		static void setUniformTextureSamplerArray(sl_int32 uniformLocation, const sl_reg* values, sl_uint32 count);
-		
+#ifdef PRIV_SLIB_RENDER_ENTRIES_CLASS_GL
+		static void drawPixels(const BitmapData& bitmapData);
+
+		static void drawPixels(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride = 0);
+
+		static void drawPixels(const Ref<Bitmap>& bitmap, sl_uint32 sx, sl_uint32 sy, sl_uint32 width, sl_uint32 height);
+
+		static void drawPixels(const Ref<Bitmap>& bitmap);
+
+		static void setRasterPosition(float x, float y);
+
+		static void setPixelZoom(float xf, float yf);
+#endif
+
 	public:
 		static sl_bool isAvailable();
+
+		static sl_bool isShaderAvailable();
 		
 		static void loadEntries(const StringParam& pathDll, sl_bool flagReload = sl_true);
 		

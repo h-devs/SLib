@@ -23,89 +23,115 @@
 #ifndef CHECKHEADER_SLIB_CORE_FILE
 #define CHECKHEADER_SLIB_CORE_FILE
 
-#include "definition.h"
-
-#include "list.h"
 #include "io.h"
+#include "flags.h"
 
 typedef sl_reg sl_file;
 #define SLIB_FILE_INVALID_HANDLE ((sl_file)(-1))
 
 namespace slib
 {
+
+	template <class T> class List;
+	template <class KT, class VT, class HASH, class KEY_COMPARE> class HashMap;
 	
-	class FileMode
+	SLIB_DEFINE_FLAGS(FileMode, {
+
+		Read = 1,
+		Write = 2,
+		Sync = 4,
+		Directory = 8,
+
+		ReadData = 0x10,
+		WriteData = 0x20,
+		ReadAttrs = 0x40,
+		WriteAttrs = 0x80,
+
+		NotCreate = 0x100,
+		NotTruncate = 0x200,
+		SeekToEnd = 0x1000,
+		HintRandomAccess = 0x2000,
+
+		ReadWrite = Read | Write,
+		Append = Write | NotTruncate | SeekToEnd,
+		RandomAccess = Read | Write | NotTruncate | HintRandomAccess,
+		RandomRead = Read | HintRandomAccess,
+
+		ShareRead = 0x10000,
+		ShareWrite = 0x20000,
+		ShareReadWrite = ShareRead | ShareWrite,
+		ShareDelete = 0x40000,
+		ShareAll = ShareRead | ShareWrite | ShareDelete
+
+	})
+
+	// Equals to WinNT File Attributes
+	SLIB_DEFINE_FLAGS(FileAttributes, {
+	
+		Default = 0,
+		ReadOnly = 0x1,
+		Hidden = 0x2,
+		System = 0x4,
+		Directory = 0x10,
+		Archive = 0x20,
+		Device = 0x40,
+		Normal = 0x80,
+		Temporary = 0x100,
+		SparseFile = 0x200,
+		ReparsePoint = 0x400,
+		Compressed = 0x800,
+		Offline = 0x1000,
+		NotContentIndexed = 0x2000,
+		Encrypted = 0x4000,
+		Virtual = 0x10000,
+
+		ReadByOthers = 0x00100000,
+		WriteByOthers = 0x00200000,
+		ExecuteByOthers = 0x00400000,
+		ReadByGroup = 0x00800000,
+		WriteByGroup = 0x01000000,
+		ExecuteByGroup = 0x02000000,
+		ReadByUser = 0x04000000,
+		WriteByUser = 0x08000000,
+		ExecuteByUser = 0x10000000,
+		ReadByAnyone = ReadByUser | ReadByGroup | ReadByOthers,
+		WriteByAnyone = WriteByUser | WriteByGroup | WriteByOthers,
+		ExecuteByAnyone = ExecuteByUser | ExecuteByGroup | ExecuteByOthers,
+		AllAccess = ReadByAnyone | WriteByAnyone | ExecuteByAnyone,
+		NoAccess = 0x20000000,
+
+		NotExist = 0x80000000
+		
+	})
+
+	class SLIB_EXPORT FileInfo
 	{
 	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(FileMode, value)
-		
-		enum {
-			Read = 1,
-			Write = 2,
+		FileAttributes attributes;
+		sl_uint64 size;
+		sl_uint64 allocSize;
+		Time createdAt;
+		Time modifiedAt;
+		Time accessedAt;
 
-			NotCreate = 0x00001000,
-			NotTruncate = 0x00002000,
-			SeekToEnd = 0x10000000,
-			HintRandomAccess = 0x20000000,
+	public:
+		FileInfo();
 
-			ReadWrite = Read | Write,
-			Append = Write | NotTruncate | SeekToEnd,
-			RandomAccess = Read | Write | NotTruncate | HintRandomAccess,
-			RandomRead = Read | HintRandomAccess
-		};
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileInfo)
+
 	};
 
-	class FileAttributes
+	class SLIB_EXPORT FileOpenParam
 	{
 	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(FileAttributes, value)
+		FileMode mode;
+		FileAttributes attributes;
 
-		enum {
-			Default = 0,
-			Directory = 1,
-			Hidden = 2,
-			NotExist = 0x8000
-		};
-	};
-	
-	class FilePermissions
-	{
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(FilePermissions, value)
-		
-		enum {
-			ReadByOthers = 0x0001,
-			WriteByOthers = 0x0002,
-			ExecuteByOthers = 0x0004,
-			Others = ReadByOthers | WriteByOthers | ExecuteByOthers,
+	public:
+		FileOpenParam();
 
-			ReadByGroup = 0x0008,
-			WriteByGroup = 0x0010,
-			ExecuteByGroup = 0x0020,
-			Group = ReadByGroup | WriteByGroup | ExecuteByGroup,
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileOpenParam)
 
-			ReadByUser = 0x0040,
-			WriteByUser = 0x0080,
-			ExecuteByUser = 0x0100,
-			User = ReadByUser | WriteByUser | ExecuteByUser,
-
-			Read = ReadByUser | ReadByGroup | ReadByOthers,
-			Write = WriteByUser | WriteByGroup | WriteByOthers,
-			Execute = ExecuteByUser | ExecuteByGroup | ExecuteByOthers,
-
-			None = 0,
-			All = Read | Write | Execute,
-	
-			ShareRead = 0x1000,
-			ShareWrite = 0x2000,
-			ShareReadWrite = ShareRead | ShareWrite,
-			ShareDelete = 0x4000,
-			ShareAll = ShareRead | ShareWrite | ShareDelete
-
-		};
-	
 	};
 	
 	class SLIB_EXPORT File : public IO
@@ -121,11 +147,13 @@ namespace slib
 		~File();
 	
 	public:
-		static Ref<File> open(const StringParam& filePath, const FileMode& mode, const FilePermissions& permissions);
+		static Ref<File> open(const StringParam& filePath, const FileOpenParam& param);
+
+		static Ref<File> open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs);
 
 		static Ref<File> open(const StringParam& filePath, const FileMode& mode);
 	
-		static Ref<File> openForRead(const StringParam& filePath, sl_bool flagShareRead = sl_true);
+		static Ref<File> openForRead(const StringParam& filePath);
 
 		static Ref<File> openForWrite(const StringParam& filePath);
 
@@ -135,7 +163,7 @@ namespace slib
 
 		static Ref<File> openForRandomAccess(const StringParam& filePath);
 	
-		static Ref<File> openForRandomRead(const StringParam& filePath, sl_bool flagShareRead = sl_true);
+		static Ref<File> openForRandomRead(const StringParam& filePath);
 
 		/*
 			Physical Disks and Volumes
@@ -147,7 +175,9 @@ namespace slib
 		 		"/dev/disk0"  (macOS)
 		 		"/dev/sda1"   (Linux)
 		*/
-		static Ref<File> openDevice(const StringParam& path, sl_bool flagRead, sl_bool flagWrite);
+		static Ref<File> openDevice(const StringParam& path, const FileMode& mode);
+
+		static Ref<File> openDeviceForRead(const StringParam& path);
 
 	public:
 		void close() override;
@@ -160,11 +190,16 @@ namespace slib
 		
 		void clearHandle();
 
-		sl_uint64 getPosition() override;
+		using IO::getPosition;
+		sl_bool getPosition(sl_uint64& outPos) override;
 
-		sl_uint64 getSize() override;
+		using IO::getSize;
+		sl_bool getSize(sl_uint64& outSize) override;
 		
 		sl_bool seek(sl_int64 offset, SeekPosition from) override;
+
+		using IO::isEnd;
+		sl_bool isEnd(sl_bool& outFlag) override;
 	
 
 		sl_int32 read32(void* buf, sl_uint32 size) override;
@@ -176,19 +211,31 @@ namespace slib
 		sl_bool setSize(sl_uint64 size) override;
 
 		
-		static sl_uint64 getSize(sl_file fd);
+		static sl_bool getSizeByHandle(sl_file fd, sl_uint64& outSize);
+
+		static sl_uint64 getSizeByHandle(sl_file fd);
+		
+		static sl_bool getSize(const StringParam& path, sl_uint64& outSize);
 		
 		static sl_uint64 getSize(const StringParam& path);
-		
-		static sl_uint64 getDiskSize(sl_file fd);
-		
-		static sl_uint64 getDiskSize(const StringParam& path);
-		
+
+		static sl_bool getDiskSizeByHandle(sl_file fd, sl_uint64& outSize);
+
+		static sl_uint64 getDiskSizeByHandle(sl_file fd);
+
+		static sl_bool getDiskSize(const StringParam& devicePath, sl_uint64& outSize);
+
+		static sl_uint64 getDiskSize(const StringParam& devicePath);
+
 		
 		sl_bool lock();
 
 		sl_bool unlock();
+
+		sl_bool flush();
 	
+		sl_bool getDiskSize(sl_uint64& outSize);
+
 		sl_uint64 getDiskSize();
 
 		
@@ -204,14 +251,24 @@ namespace slib
 
 		static Time getCreatedTime(const StringParam& filePath);
 
+		sl_bool setModifiedTime(Time time);
+
+		sl_bool setAccessedTime(Time time);
+
+		sl_bool setCreatedTime(Time time);
+
 		static sl_bool setModifiedTime(const StringParam& filePath, Time time);
 
 		static sl_bool setAccessedTime(const StringParam& filePath, Time time);
 
 		static sl_bool setCreatedTime(const StringParam& filePath, Time time);
-	
+
+
+		FileAttributes getAttributes();
 
 		static FileAttributes getAttributes(const StringParam& filePath);
+
+		static sl_bool setAttributes(const StringParam& filePath, const FileAttributes& attrs);
 
 		static sl_bool exists(const StringParam& filePath);
 	
@@ -222,23 +279,33 @@ namespace slib
 		static sl_bool isHidden(const StringParam& filePath);
 	
 		static sl_bool setHidden(const StringParam& filePath, sl_bool flagHidden = sl_true);
-	
+
+		static sl_bool isReadOnly(const StringParam& filePath);
+
+		static sl_bool setReadOnly(const StringParam& filePath, sl_bool flagReadOnly = sl_true);
+
 
 		static sl_bool createDirectory(const StringParam& dirPath, sl_bool flagErrorOnCreateExistingDirectory = sl_false);
 
 		static sl_bool createDirectories(const StringParam& dirPath);
 
-		static sl_bool deleteFile(const StringParam& filePath, sl_bool flagErrorOnDeleteNotExistingFile = sl_false);
-	
+		static sl_bool deleteFile(const StringParam& filePath);
+
+		static sl_bool deleteDirectory(const StringParam& filePath);
+
+		static sl_bool remove(const StringParam& filePath, sl_bool flagErrorOnNotExisting = sl_false);
+
 
 		// Deletes the directory and its sub-directories and files
 		static sl_bool deleteDirectoryRecursively(const StringParam& dirPath);
 
-		// Changes the path of file or directory. Don't replace the existing file.
-		static sl_bool rename(const StringParam& filePathOriginal, const StringParam& filePathNew);
+		// Changes the path of file or directory
+		static sl_bool move(const StringParam& filePathOriginal, const StringParam& filePathNew, sl_bool flagReplaceIfExists = sl_false);
 	
 
 		static List<String> getFiles(const StringParam& dirPath);
+
+		static HashMap< String, FileInfo, Hash<String>, Compare<String> > getFileInfos(const StringParam& dirPath);
 	
 		static List<String> getAllDescendantFiles(const StringParam& dirPath);
 	
@@ -284,15 +351,15 @@ namespace slib
 		static sl_bool appendAllTextUTF16BE(const StringParam& path, const StringParam& text);
 
 	
-		static String getParentDirectoryPath(const String& path);
+		static String getParentDirectoryPath(const StringParam& path);
 
-		static String getFileName(const String& path);
+		static String getFileName(const StringParam& path);
 
-		static String getFileExtension(const String& path);
+		static String getFileExtension(const StringParam& path);
 
-		static String getFileNameOnly(const String& path);
+		static String getFileNameOnly(const StringParam& path);
 
-		static String normalizeDirectoryPath(const String& path);
+		static String normalizeDirectoryPath(const StringParam& path);
 	
 
 		// converts any invalid characters (0~0x1f, 0x7f~0x9f, :*?"<>|\/) into "_"
@@ -310,37 +377,20 @@ namespace slib
 		static String getRealPath(const StringParam& filePath);
 
 	private:
-		static sl_file _open(const StringParam& filePath, const FileMode& mode, const FilePermissions& permissions);
+		static sl_file _open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs);
 
 		static sl_bool _close(sl_file file);
 
+		static FileAttributes _fixAttributes(const FileAttributes& attrs);
+
+		static FileAttributes _getAttributes(const StringParam& filePath);
+
+		static sl_bool _setAttributes(const StringParam& filePath, const FileAttributes& attrs);
+
 		static sl_bool _createDirectory(const StringParam& dirPath);
 
-		static sl_bool _deleteFile(const StringParam& dirPath);
-
-		static sl_bool _deleteDirectory(const StringParam& dirPath);
-
 	};
 	
-	// FilePathSegments is not thread-safe
-	class SLIB_EXPORT FilePathSegments
-	{
-	public:
-		sl_uint32 parentLevel;
-		List<String> segments;
-	
-	public:
-		FilePathSegments();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FilePathSegments)
-
-	public:
-		void parsePath(const String& path);
-
-		String buildPath();
-	
-	};
-
 }
 
 #endif

@@ -49,7 +49,7 @@ struct DecodedValue
 };
 
 /**
-* @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
+* @author Pablo Orduï¿½a, University of Deusto (pablo.orduna@deusto.es)
 * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
 */
 struct DecodedChar : public DecodedValue
@@ -65,7 +65,7 @@ struct DecodedChar : public DecodedValue
 };
 
 /**
-* @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
+* @author Pablo Orduï¿½a, University of Deusto (pablo.orduna@deusto.es)
 * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
 */
 struct DecodedInformation : public DecodedValue
@@ -81,7 +81,7 @@ struct DecodedInformation : public DecodedValue
 };
 
 /**
-* @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
+* @author Pablo Orduï¿½a, University of Deusto (pablo.orduna@deusto.es)
 * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
 */
 struct DecodedNumeric : public DecodedValue
@@ -477,11 +477,11 @@ ParseNumericBlock(const BitArray& bits, ParsingState& state, std::string& buffer
 			}
 		}
 
-		buffer.append(std::to_string(numeric.firstDigit));
+		buffer.append(std_to_string(numeric.firstDigit));
 		if (numeric.isSecondDigitFNC1()) {
 			return DecodedInformation(state.position, buffer);
 		}
-		buffer.append(std::to_string(numeric.secondDigit));
+		buffer.append(std_to_string(numeric.secondDigit));
 	}
 
 	if (IsNumericToAlphaNumericLatch(bits, state.position)) {
@@ -555,7 +555,7 @@ GenericAppIdDecoder::DecodeAllCodes(const BitArray& bits, int pos, std::string& 
 			}
 			result += parsedFields;
 			if (info.isRemaining()) {
-				remaining = std::to_string(info.remainingValue);
+				remaining = std_to_string(info.remainingValue);
 			}
 			else {
 				remaining.clear();

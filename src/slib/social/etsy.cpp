@@ -32,7 +32,7 @@ namespace slib
 	{
 		namespace etsy
 		{
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicRef<Etsy>, g_instance)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Etsy>, g_instance)
 		}
 	}
 	

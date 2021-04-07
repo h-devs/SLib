@@ -143,7 +143,7 @@ namespace slib
 	}
 
 	UserNotification::~UserNotification()
-	{		
+	{
 	}
 
 #if defined(SLIB_PLATFORM_IS_APPLE) || defined(SLIB_PLATFORM_IS_ANDROID)

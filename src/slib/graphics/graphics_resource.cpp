@@ -180,7 +180,7 @@ namespace slib
 			}
 
 
-			class ImageDrawable : public Drawable
+			class ImageResourceDrawable : public Drawable
 			{
 				SLIB_DECLARE_OBJECT
 				
@@ -190,7 +190,7 @@ namespace slib
 				sl_uint32 m_height;
 
 			public:
-				ImageDrawable(ImageEntry* entries, sl_uint32 width, sl_uint32 height)
+				ImageResourceDrawable(ImageEntry* entries, sl_uint32 width, sl_uint32 height)
 				{
 					m_entries = entries;
 					m_width = width;
@@ -253,10 +253,10 @@ namespace slib
 				
 			};
 
-			SLIB_DEFINE_OBJECT(ImageDrawable, Drawable)
+			SLIB_DEFINE_OBJECT(ImageResourceDrawable, Drawable)
 
 
-			class SimpleImageDrawable : public Drawable
+			class SimpleImageResourceDrawable : public Drawable
 			{
 				SLIB_DECLARE_OBJECT
 				
@@ -266,7 +266,7 @@ namespace slib
 				sl_uint32 m_height;
 				
 			public:
-				SimpleImageDrawable(ImageEntry* entry, sl_uint32 width, sl_uint32 height)
+				SimpleImageResourceDrawable(ImageEntry* entry, sl_uint32 width, sl_uint32 height)
 				{
 					m_entry = entry;
 					m_width = width;
@@ -327,15 +327,15 @@ namespace slib
 				
 			};
 
-			SLIB_DEFINE_OBJECT(SimpleImageDrawable, Drawable)
+			SLIB_DEFINE_OBJECT(SimpleImageResourceDrawable, Drawable)
 
 			Ref<Drawable> GetDrawable(ImageEntry* entries, sl_uint32 width, sl_uint32 height)
 			{
 				if (entries->flagValid) {
 					if (!(entries[1].flagValid)) {
-						return new SimpleImageDrawable(entries, width, height);
+						return new SimpleImageResourceDrawable(entries, width, height);
 					} else {
-						return new ImageDrawable(entries, width, height);
+						return new ImageResourceDrawable(entries, width, height);
 					}
 				}
 				return sl_null;

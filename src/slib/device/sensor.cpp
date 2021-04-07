@@ -40,10 +40,11 @@ namespace slib
 		flagAutoStart = sl_true;
 	}
 
+
 	SLIB_DEFINE_OBJECT(Sensor, Object)
 
 	Sensor::Sensor()
-	{	
+	{
 		m_flagValidLocation = sl_false;
 		m_flagValidCompassDeclination = sl_false;
 		m_flagValidAccerometer = sl_false;

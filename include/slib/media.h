@@ -25,8 +25,7 @@
 
 #include "media/audio_format.h"
 #include "media/audio_data.h"
-#include "media/audio_player.h"
-#include "media/audio_recorder.h"
+#include "media/audio_device.h"
 #include "media/audio_util.h"
 
 #include "media/video_frame.h"
@@ -37,9 +36,6 @@
 #include "media/audio_codec.h"
 #include "media/video_codec.h"
 
-#include "media/opensl_es.h"
-#include "media/dsound.h"
-#include "media/dshow.h"
 #include "media/ffmpeg.h"
 
 #include "media/codec_opus.h"

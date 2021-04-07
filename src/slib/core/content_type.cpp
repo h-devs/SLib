@@ -145,7 +145,7 @@ namespace slib
 
 	String ContentTypeHelper::getFromFileExtension(const String& fileExt)
 	{
-		SLIB_SAFE_STATIC(priv::content_type::Mapping, t)
+		SLIB_SAFE_LOCAL_STATIC(priv::content_type::Mapping, t)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(t)) {
 			return String::null();
 		}

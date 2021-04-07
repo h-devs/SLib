@@ -24,8 +24,6 @@
 
 #include "config.h"
 
-SLIB_DEFINE_APPLICATION(ExampleFCMApp, MobileApp)
-
 ExampleFCMApp::ExampleFCMApp()
 {
 }
@@ -147,7 +145,7 @@ void ExampleFCMApp::initUI()
 	
 	getMainWindow()->setBackgroundColor(Color::White);
 	
-	Ref<LinearView> linear = new LinearView;
+	Ref<LinearLayout> linear = new LinearLayout;
 	linear->setWidthFilling();
 	linear->setMargin(UI::getSafeAreaInsets());
 	linear->setHeightWrapping();

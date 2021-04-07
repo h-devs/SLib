@@ -20,13 +20,13 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_CAIRO)
 
 #include "slib/graphics/bitmap.h"
-#include "slib/graphics/image.h"
 
+#include "slib/graphics/image.h"
 #include "slib/graphics/platform.h"
 
 namespace slib

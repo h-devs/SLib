@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,11 +23,10 @@
 #ifndef CHECKHEADER_SLIB_RENDER_PROGRAM
 #define CHECKHEADER_SLIB_RENDER_PROGRAM
 
-#include "definition.h"
-
+#include "constants.h"
 #include "base.h"
-#include "texture.h"
 
+#include "../core/list.h"
 #include "../math/matrix4.h"
 #include "../graphics/color.h"
 
@@ -36,13 +35,93 @@ namespace slib
 
 	class Primitive;
 	class RenderEngine;
-	class GLRenderEngine;
+	class RenderProgram;
+	class RenderProgramInstance;
+	class Texture;
+	class Memory;
+
+	enum class RenderProgramStateKind
+	{
+		None = 0,
+		Uniform = 1,
+		Input = 2
+	};
+
+	struct RenderInputDesc
+	{
+		RenderInputType type;
+		sl_uint32 offset;
+		RenderInputSemanticName semanticName;
+		sl_uint32 semanticIndex;
+		sl_uint32 slot;
+	};
+
+	struct RenderUniformLocation
+	{
+		RenderShaderType shader;
+		sl_int32 location;
+		sl_int32 registerNo;
+		sl_uint32 bufferNo;
+	};
+
+	class SLIB_EXPORT RenderProgramStateItem
+	{
+	public:
+		const char* name;
+		RenderProgramStateKind kind;
+
+		RenderUniformLocation uniform;
+		RenderInputDesc input;
+
+	public:
+		// None
+		RenderProgramStateItem();
+
+		// Uniform
+		RenderProgramStateItem(const char* name);
+		RenderProgramStateItem(const char* name, RenderShaderType type, sl_int32 registerNo, sl_uint32 bufferNo = 0);
+
+		// Input
+		RenderProgramStateItem(const char* name, RenderInputType type, sl_uint32 offset, RenderInputSemanticName semanticName = RenderInputSemanticName::Undefined, sl_uint32 semanticIndex = 0, sl_uint32 slot = 0);
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RenderProgramStateItem)
+
+	};
+
+	struct RenderInputLayoutItem : RenderInputDesc
+	{
+		const char* name;
+	};
+
+	class SLIB_EXPORT RenderInputLayoutParam
+	{
+	public:
+		ListParam<sl_uint32> strides; // per slot
+		ListParam<RenderInputLayoutItem> items;
+
+	public:
+		RenderInputLayoutParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RenderInputLayoutParam)
+
+	};
+
+
+	class SLIB_EXPORT RenderInputLayout : public Referable
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		RenderInputLayout();
+
+		~RenderInputLayout();
+
+	};
+
 
 	class SLIB_EXPORT RenderProgramState : public Referable
 	{
-	public:
-		GLRenderEngine* gl_engine;
-		sl_uint32 gl_program;
+		SLIB_DECLARE_OBJECT
 
 	public:
 		RenderProgramState();
@@ -52,39 +131,54 @@ namespace slib
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(RenderProgramState)
 		
 	public:
-		void setUniformFloatValue(sl_int32 uniformLocation, float value);
-		
-		void setUniformFloatArray(sl_int32 uniformLocation, const float* arr, sl_uint32 n);
-		
-		void setUniformIntValue(sl_int32 uniformLocation, sl_int32 value);
-		
-		void setUniformIntArray(sl_int32 uniformLocation, const sl_int32* value, sl_uint32 n);
-		
-		void setUniformFloat2Value(sl_int32 uniformLocation, const Vector2& value);
-		
-		void setUniformFloat2Array(sl_int32 uniformLocation, const Vector2* arr, sl_uint32 n);
-		
-		void setUniformFloat3Value(sl_int32 uniformLocation, const Vector3& value);
-		
-		void setUniformFloat3Array(sl_int32 uniformLocation, const Vector3* arr, sl_uint32 n);
-		
-		void setUniformFloat4Value(sl_int32 uniformLocation, const Vector4& value);
-		
-		void setUniformFloat4Array(sl_int32 uniformLocation, const Vector4* arr, sl_uint32 n);
-		
-		void setUniformMatrix3Value(sl_int32 uniformLocation, const Matrix3& value);
-		
-		void setUniformMatrix3Array(sl_int32 uniformLocation, const Matrix3* arr, sl_uint32 n);
-		
-		void setUniformMatrix4Value(sl_int32 uniformLocation, const Matrix4& value);
-		
-		void setUniformMatrix4Array(sl_int32 uniformLocation, const Matrix4* arr, sl_uint32 n);
-		
-		void setUniformTexture(sl_int32 uniformLocation, const Ref<Texture>& texture, sl_reg sampler = 0);
-		
-		void setUniformTextureArray(sl_int32 uniformLocation, const Ref<Texture>* textures, const sl_reg* samplers, sl_uint32 n);
-		
+		RenderProgramInstance* getProgramInstance();
+
+		void setProgramInstance(RenderProgramInstance* instance);
+
+		RenderInputLayout* getInputLayout();
+
+		void updateInputLayout(RenderProgram* program, sl_bool forceUpdate = sl_false);
+
+		sl_bool getUniformLocation(const char* name, RenderUniformLocation* outLocation);
+
+		void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 nItems);
+
+		void setFloatValue(const RenderUniformLocation& location, float value);
+
+		void setFloatArray(const RenderUniformLocation& location, const float* arr, sl_uint32 n);
+
+		void setIntValue(const RenderUniformLocation& location, sl_int32 value);
+
+		void setIntArray(const RenderUniformLocation& location, const sl_int32* value, sl_uint32 n);
+
+		void setFloat2Value(const RenderUniformLocation& location, const Vector2& value);
+
+		void setFloat2Array(const RenderUniformLocation& location, const Vector2* arr, sl_uint32 n);
+
+		void setFloat3Value(const RenderUniformLocation& location, const Vector3& value);
+
+		void setFloat3Array(const RenderUniformLocation& location, const Vector3* arr, sl_uint32 n);
+
+		void setFloat4Value(const RenderUniformLocation& location, const Vector4& value);
+
+		void setFloat4Array(const RenderUniformLocation& location, const Vector4* arr, sl_uint32 n);
+
+		void setMatrix3Value(const RenderUniformLocation& location, const Matrix3& value);
+
+		void setMatrix3Array(const RenderUniformLocation& location, const Matrix3* arr, sl_uint32 n);
+
+		void setMatrix4Value(const RenderUniformLocation& location, const Matrix4& value);
+
+		void setMatrix4Array(const RenderUniformLocation& location, const Matrix4* arr, sl_uint32 n);
+
+		void setTextureValue(const RenderUniformLocation& location, const Ref<Texture>& texture);
+
+	protected:
+		RenderProgramInstance* m_programInstance;
+		Ref<RenderInputLayout> m_inputLayout;
+
 	};
+
 
 	class SLIB_EXPORT RenderProgramInstance : public RenderBaseObjectInstance
 	{
@@ -95,7 +189,15 @@ namespace slib
 		
 		~RenderProgramInstance();
 		
+	public:
+		virtual Ref<RenderInputLayout> createInputLayout(const RenderInputLayoutParam& param) = 0;
+
+		virtual sl_bool getUniformLocation(const char* name, RenderUniformLocation* outLocation) = 0;
+
+		virtual void setUniform(const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 nItems) = 0;
+
 	};
+
 
 	class SLIB_EXPORT RenderProgram : public RenderBaseObject
 	{
@@ -109,152 +211,149 @@ namespace slib
 	public:
 		virtual Ref<RenderProgramState> onCreate(RenderEngine* engine) = 0;
 		
-		virtual sl_bool onInit(RenderEngine* engine, RenderProgramState* state);
+		virtual sl_bool onInit(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state);
 		
-		virtual sl_bool onPreRender(RenderEngine* engine, RenderProgramState* state);
+		virtual sl_bool onPreRender(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state);
 		
-		virtual void onPostRender(RenderEngine* engine, RenderProgramState* state);
+		virtual void onPostRender(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state);
+
+		virtual sl_bool getInputLayoutParam(RenderProgramState* state, RenderInputLayoutParam& param);
+		
 
 		virtual String getGLSLVertexShader(RenderEngine* engine);
 		
 		virtual String getGLSLFragmentShader(RenderEngine* engine);
 
-		
+		virtual String getHLSLVertexShader(RenderEngine* engine);
+
+		virtual Memory getHLSLCompiledVertexShader(RenderEngine* engine);
+
+		virtual String getHLSLPixelShader(RenderEngine* engine);
+
+		virtual Memory getHLSLCompiledPixelShader(RenderEngine* engine);
+
+		virtual String getAssemblyVertexShader(RenderEngine* engine);
+
+		virtual Memory getAssembledVertexShader(RenderEngine* engine);
+
+		virtual String getAssemblyPixelShader(RenderEngine* engine);
+
+		virtual Memory getAssembledPixelShader(RenderEngine* engine);
+
+		virtual sl_uint32 getVertexShaderConstantBuffersCount();
+
+		virtual sl_uint32 getVertexShaderConstantBufferSize(sl_uint32 bufferNo);
+
+		virtual sl_uint32 getPixelShaderConstantBuffersCount();
+
+		virtual sl_uint32 getPixelShaderConstantBufferSize(sl_uint32 bufferNo);
+
+
 		Ref<RenderProgramInstance> getInstance(RenderEngine* engine);
-		
+
 	};
 
-	namespace priv
-	{
-		namespace render_program
-		{
 
-			struct RenderProgramStateItem
-			{
-				const char* gl_name;
-				sl_int32 gl_location;
-				sl_uint32 type; // 1: Uniform, 2: Attribute
-				sl_uint32 attrType; // 0: Float, 1: Int8, 2: Uint8, 3: Int16, 4: Uint16
-				sl_uint32 attrOffset;
-				sl_uint32 attrCount;
-			};
-		
-#define PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, GL_NAME, TYPE, ATTR_TYPE, ATTR_OFFSET, ATTR_COUNT) \
-			struct T_##NAME { \
-				const char* gl_name; \
-				sl_int32 gl_location; \
-				sl_int32 type; \
-				sl_uint32 attrType; \
-				sl_uint32 attrOffset; \
-				sl_uint32 attrCount; \
-				SLIB_INLINE T_##NAME() : gl_name(GL_NAME), gl_location(-1), type(TYPE), attrType(ATTR_TYPE), attrOffset(ATTR_OFFSET), attrCount(ATTR_COUNT) {} \
-			} NAME;
-
-			class RenderProgramStateTemplate : public RenderProgramState
-			{
-			public:
-				sl_int32 _indexFirstAttribute;
-				sl_int32 _indexLastAttribute;
-				sl_uint32 _sizeVertexData;
-				RenderProgramStateItem items[1];
-			};
-
-		}
-	}
-
-#define SLIB_RENDER_PROGRAM_STATE_BEGIN(TYPE, VERTEX_TYPE) \
-	class SLIB_EXPORT TYPE : public slib::RenderProgramState \
+#define SLIB_RENDER_INPUT_ITEM(NAME, ...) \
+	class T_##NAME : public slib::RenderProgramStateItem \
 	{ \
 	public: \
-		sl_int32 _indexFirstAttribute; \
-		sl_int32 _indexLastAttribute; \
-		sl_uint32 _sizeVertexData; \
+		T_##NAME() : RenderProgramStateItem(__VA_ARGS__) {} \
+	} NAME;
+
+#define SLIB_RENDER_PROGRAM_STATE_BEGIN(TYPE, VERTEX_TYPE) \
+	class TYPE : public slib::RenderProgramState \
+	{ \
+	public: \
+		sl_uint32 vertexSize; \
+		List<RenderInputLayoutItem> inputLayout; \
 		typedef VERTEX_TYPE VertexType; \
-		SLIB_INLINE TYPE() : _indexFirstAttribute(-1), _indexLastAttribute(-1), _sizeVertexData(sizeof(VertexType)) {}
+		TYPE() : vertexSize(sizeof(VertexType)) {}
 
 #define SLIB_RENDER_PROGRAM_STATE_END \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(LAST_ITEM, sl_null, 0, 0, 0, 0) \
-};
+		SLIB_RENDER_INPUT_ITEM(_endOfInputs) \
+	};
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_INT(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(sl_int32 value) { if (NAME.gl_location >= 0) setUniformIntValue(NAME.gl_location, value); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_INT(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(sl_int32 value) { if (NAME.uniform.location >= 0) setIntValue(NAME.uniform, value); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_INT_ARRAY(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(const sl_int32* values, sl_uint32 count) { if (NAME.gl_location >= 0) setUniformIntArray(NAME.gl_location, values, count); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_INT_ARRAY(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(const sl_int32* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setIntArray(NAME.uniform, values, count); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(float value) { if (NAME.gl_location >= 0) setUniformFloatValue(NAME.gl_location, value); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(float value) { if (NAME.uniform.location >= 0) setFloatValue(NAME.uniform, value); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT_ARRAY(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(const float* values, sl_uint32 count) { if (NAME.gl_location >= 0) setUniformFloatArray(NAME.gl_location, values, count); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT_ARRAY(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(const float* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setFloatArray(NAME.uniform, values, count); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR2(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(const slib::Vector2& value) { if (NAME.gl_location >= 0) setUniformFloat2Value(NAME.gl_location, value); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR2(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(const slib::Vector2& value) { if (NAME.uniform.location >= 0) setFloat2Value(NAME.uniform, value); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR2_ARRAY(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(const slib::Vector2* values, sl_uint32 count) { if (NAME.gl_location >= 0) setUniformFloat2Array(NAME.gl_location, values, count); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR2_ARRAY(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(const slib::Vector2* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setFloat2Array(NAME.uniform, values, count); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(const slib::Vector3& value) { if (NAME.gl_location >= 0) setUniformFloat3Value(NAME.gl_location, value); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(const slib::Vector3& value) { if (NAME.uniform.location >= 0) setFloat3Value(NAME.uniform, value); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3_ARRAY(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(const slib::Vector3* values, sl_uint32 count) { if (NAME.gl_location >= 0) setUniformFloat3Array(NAME.gl_location, values, count); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3_ARRAY(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(const slib::Vector3* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setFloat3Array(NAME.uniform, values, count); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(const slib::Vector4& value) { if (NAME.gl_location >= 0) setUniformFloat4Value(NAME.gl_location, value); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(const slib::Vector4& value) { if (NAME.uniform.location >= 0) setFloat4Value(NAME.uniform, value); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(const slib::Vector4* values, sl_uint32 count) { if (NAME.gl_location >= 0) setUniformFloat4Array(NAME.gl_location, values, count); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(const slib::Vector4* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setFloat4Array(NAME.uniform, values, count); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(const slib::Matrix3& value) { if (NAME.gl_location >= 0) setUniformMatrix3Value(NAME.gl_location, value); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(const slib::Matrix3& value) { if (NAME.uniform.location >= 0) setMatrix3Value(NAME.uniform, value); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3_ARRAY(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(const slib::Matrix3* values, sl_uint32 count) { if (NAME.gl_location >= 0) setUniformMatrix3Array(NAME.gl_location, values, count); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3_ARRAY(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(const slib::Matrix3* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setMatrix3Array(NAME.uniform, values, count); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(const slib::Matrix4& value) { if (NAME.gl_location >= 0) setUniformMatrix4Value(NAME.gl_location, value); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(const slib::Matrix4& value) { if (NAME.uniform.location >= 0) setMatrix4Value(NAME.uniform, value); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4_ARRAY(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(const slib::Matrix4* values, sl_uint32 count) { if (NAME.gl_location >= 0) setUniformMatrix4Array(NAME.gl_location, values, count); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4_ARRAY(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(const slib::Matrix4* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setMatrix4Array(NAME.uniform, values, count); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(const Ref<slib::Texture>& texture) { if (NAME.gl_location >= 0) setUniformTexture(NAME.gl_location, texture); }
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(NAME, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+	void set##NAME(const Ref<slib::Texture>& texture) { if (NAME.uniform.location >= 0) setTextureValue(NAME.uniform, texture); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE_ARRAY(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(NAME, #GL_NAME, 1, 0, 0, 0) \
-	SLIB_INLINE void set##NAME(const Ref<slib::Texture>* textures, sl_uint32 count) { if (NAME.gl_location >= 0) setUniformTextureArray(NAME.gl_location, textures, count); }
+#define SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT(MEMBER, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(SHADER_NAME, #SHADER_NAME, RenderInputType::Float, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), ##__VA_ARGS__)
 
-#define SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(MEMBER, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(GL_NAME, #GL_NAME, 2, 0, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), sizeof(((VertexType*)0)->MEMBER) / sizeof(float))
+#define SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(MEMBER, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(SHADER_NAME, #SHADER_NAME, RenderInputType::Float2, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), ##__VA_ARGS__)
 
-#define SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_INT8(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(GL_NAME, #GL_NAME, 2, 1, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), sizeof(((VertexType*)0)->MEMBER))
+#define SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(MEMBER, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(SHADER_NAME, #SHADER_NAME, RenderInputType::Float3, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), ##__VA_ARGS__)
 
-#define SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_UINT8(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(GL_NAME, #GL_NAME, 2, 2, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), sizeof(((VertexType*)0)->MEMBER))
+#define SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT4(MEMBER, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(SHADER_NAME, #SHADER_NAME, RenderInputType::Float4, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), ##__VA_ARGS__)
 
-#define SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_INT16(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(GL_NAME, #GL_NAME, 2, 3, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), sizeof(((VertexType*)0)->MEMBER)/2)
+#define SLIB_RENDER_PROGRAM_STATE_INPUT_UBYTE4(MEMBER, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(SHADER_NAME, #SHADER_NAME, RenderInputType::UByte4, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), ##__VA_ARGS__)
 
-#define SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_UINT16(NAME, GL_NAME) \
-	PRIV_SLIB_RENDERPROGRAM_STATE_ITEM(GL_NAME, #GL_NAME, 2, 4, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), sizeof(((VertexType*)0)->MEMBER)/2)
+#define SLIB_RENDER_PROGRAM_STATE_INPUT_SHORT2(MEMBER, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(SHADER_NAME, #SHADER_NAME, RenderInputType::Short2, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), ##__VA_ARGS__)
 
+#define SLIB_RENDER_PROGRAM_STATE_INPUT_SHORT4(MEMBER, SHADER_NAME, ...) \
+	SLIB_RENDER_INPUT_ITEM(SHADER_NAME, #SHADER_NAME, RenderInputType::Short4, (sl_uint32)(sl_size)(&(((VertexType*)0)->MEMBER)), ##__VA_ARGS__)
 
 	namespace priv
 	{
@@ -264,11 +363,9 @@ namespace slib
 			class SLIB_EXPORT RenderProgramTemplate : public RenderProgram
 			{
 			public:
-				sl_bool onInit(RenderEngine* engine, RenderProgramState* state) override;
-				
-				sl_bool onPreRender(RenderEngine* engine, RenderProgramState* state) override;
-				
-				void onPostRender(RenderEngine* engine, RenderProgramState* state) override;
+				sl_bool onInit(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state) override;
+
+				sl_bool getInputLayoutParam(RenderProgramState* state, RenderInputLayoutParam& param) override;
 
 			};
 
@@ -287,9 +384,6 @@ namespace slib
 		
 	};
 
-#define SLIB_RENDER_GL_SET_VERTEX_FLOAT_ARRAY_ATTRIBUTE(engine, location, VertexData, member) \
-	engine->setVertexFloatArrayAttribute(location, (sl_uint32)(sl_size)(&(((VertexData*)0)->member)), sizeof(((VertexData*)0)->member) / sizeof(float), sizeof(VertexData));
-
 
 	struct RenderVertex2D_PositionTexture
 	{
@@ -298,13 +392,13 @@ namespace slib
 	};
 
 	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState2D_PositionTexture, RenderVertex2D_PositionTexture)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(TextureTransform, u_TextureTransform)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(TextureTransform, u_TextureTransform, RenderShaderType::Vertex, 3)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
 
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(position, a_Position)
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(texCoord, a_TexCoord)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord, RenderInputSemanticName::TexCoord)
 	SLIB_RENDER_PROGRAM_STATE_END
 
 	class SLIB_EXPORT RenderProgram2D_PositionTexture : public RenderProgramT<RenderProgramState2D_PositionTexture>
@@ -313,7 +407,15 @@ namespace slib
 		String getGLSLVertexShader(RenderEngine* engine) override;
 		
 		String getGLSLFragmentShader(RenderEngine* engine) override;
-		
+
+		String getHLSLVertexShader(RenderEngine* engine) override;
+
+		String getHLSLPixelShader(RenderEngine* engine) override;
+
+		String getAssemblyVertexShader(RenderEngine* engine) override;
+
+		String getAssemblyPixelShader(RenderEngine* engine) override;
+
 	};
 
 	class SLIB_EXPORT RenderProgram2D_PositionTextureYUV : public RenderProgram2D_PositionTexture
@@ -321,6 +423,8 @@ namespace slib
 	public:
 		String getGLSLFragmentShader(RenderEngine* engine) override;
 		
+		String getHLSLPixelShader(RenderEngine* engine) override;
+
 	};
 
 	class SLIB_EXPORT RenderProgram2D_PositionTextureOES : public RenderProgram2D_PositionTexture
@@ -338,11 +442,11 @@ namespace slib
 	};
 
 	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState2D_PositionColor, RenderVertex2D_PositionColor)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Vertex, 3)
 
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(position, a_Position)
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(color, a_Color)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT4(color, a_Color, RenderInputSemanticName::Color)
 	SLIB_RENDER_PROGRAM_STATE_END
 
 	class SLIB_EXPORT RenderProgram2D_PositionColor : public RenderProgramT<RenderProgramState2D_PositionColor>
@@ -351,7 +455,15 @@ namespace slib
 		String getGLSLVertexShader(RenderEngine* engine) override;
 		
 		String getGLSLFragmentShader(RenderEngine* engine) override;
-		
+
+		String getHLSLVertexShader(RenderEngine* engine) override;
+
+		String getHLSLPixelShader(RenderEngine* engine) override;
+
+		String getAssemblyVertexShader(RenderEngine* engine) override;
+
+		String getAssemblyPixelShader(RenderEngine* engine) override;
+
 	};
 
 
@@ -361,10 +473,10 @@ namespace slib
 	};
 
 	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState2D_Position, RenderVertex2D_Position)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
 
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(position, a_Position)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
 	SLIB_RENDER_PROGRAM_STATE_END
 
 	class SLIB_EXPORT RenderProgram2D_Position : public RenderProgramT<RenderProgramState2D_Position>
@@ -374,6 +486,14 @@ namespace slib
 		
 		String getGLSLFragmentShader(RenderEngine* engine) override;
 		
+		String getHLSLVertexShader(RenderEngine* engine) override;
+
+		String getHLSLPixelShader(RenderEngine* engine) override;
+
+		String getAssemblyVertexShader(RenderEngine* engine) override;
+
+		String getAssemblyPixelShader(RenderEngine* engine) override;
+
 	};
 
 
@@ -392,9 +512,9 @@ namespace slib
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(AmbientColor, u_AmbientColor)
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(Alpha, u_Alpha)
 
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(position, a_Position)
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(normal, a_Normal)
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(color, a_Color)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(normal, a_Normal)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT4(color, a_Color)
 	SLIB_RENDER_PROGRAM_STATE_END
 
 	class SLIB_EXPORT RenderProgram3D_PositionNormalColor : public RenderProgramT<RenderProgramState3D_PositionNormalColor>
@@ -417,8 +537,8 @@ namespace slib
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color)
 
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(position, a_Position)
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(color, a_Color)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT4(color, a_Color)
 	SLIB_RENDER_PROGRAM_STATE_END
 
 	class SLIB_EXPORT RenderProgram3D_PositionColor : public RenderProgramT<RenderProgramState3D_PositionColor>
@@ -447,9 +567,9 @@ namespace slib
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(Alpha, u_Alpha)
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture)
 
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(position, a_Position)
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(normal, a_Normal)
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(texCoord, a_TexCoord)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(normal, a_Normal)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord)
 	SLIB_RENDER_PROGRAM_STATE_END
 
 	class SLIB_EXPORT RenderProgram3D_PositionNormalTexture : public RenderProgramT<RenderProgramState3D_PositionNormalTexture>
@@ -473,8 +593,8 @@ namespace slib
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DiffuseColor, u_Color)
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture)
 
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(position, a_Position)
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(texCoord, a_TexCoord)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord)
 	SLIB_RENDER_PROGRAM_STATE_END
 
 	class SLIB_EXPORT RenderProgram3D_PositionTexture : public RenderProgramT<RenderProgramState3D_PositionTexture>
@@ -501,8 +621,8 @@ namespace slib
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(AmbientColor, u_AmbientColor)
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(Alpha, u_Alpha)
 
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(position, a_Position)
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(normal, a_Normal)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(normal, a_Normal)
 	SLIB_RENDER_PROGRAM_STATE_END
 
 	class SLIB_EXPORT RenderProgram3D_PositionNormal : public RenderProgramT<RenderProgramState3D_PositionNormal>
@@ -524,7 +644,7 @@ namespace slib
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color)
 
-		SLIB_RENDER_PROGRAM_STATE_ATTRIBUTE_FLOAT(position, a_Position)
+		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
 	SLIB_RENDER_PROGRAM_STATE_END
 
 	class SLIB_EXPORT RenderProgram3D_Position : public RenderProgramT<RenderProgramState3D_Position>

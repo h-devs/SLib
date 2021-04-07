@@ -23,35 +23,38 @@
 #include "slib/ui/video_view.h"
 
 #include "slib/render/canvas.h"
+#include "slib/render/opengl.h"
 #include "slib/graphics/image.h"
 #include "slib/graphics/util.h"
+#include "slib/core/timer.h"
 
 namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(VideoView, RenderView)
-	
+
 	VideoView::VideoView()
-	{		
+	{
 		setSavingCanvasState(sl_false);
-		
+
 		setBackgroundColor(Color::Black, UIUpdateMode::Init);
-		
+
 		setRedrawMode(RedrawMode::WhenDirty);
 		setDebugTextVisible(sl_false);
-		
+
 		m_flagRepeat = sl_true;
 		m_rotation = RotationMode::Rotate0;
 		m_flip = FlipMode::None;
-		
+
 		m_flagYUV = sl_false;
+		m_flagAllowYUV = sl_true;
 		m_rotationFrame = RotationMode::Rotate0;
 		m_flipFrame = FlipMode::None;
 
 		m_programRGB = new RenderProgram2D_PositionTexture;
 		m_programYUV = new RenderProgram2D_PositionTextureYUV;
 		m_programOES = new RenderProgram2D_PositionTextureOES;
-				
+
 		m_flipFrameApplied = FlipMode::None;
 		m_rotationFrameApplied = RotationMode::Rotate0;
 		m_flipApplied = FlipMode::None;
@@ -61,12 +64,21 @@ namespace slib
 
 		m_scaleMode = ScaleMode::Stretch;
 		m_gravity = Alignment::MiddleCenter;
-		
+
 		m_flagControlsVisible = sl_false;
 	}
-	
+
 	VideoView::~VideoView()
 	{
+		Ref<MediaPlayer> player = m_mediaPlayer;
+		if (player.isNotNull()) {
+			if (player->isAutoRelease()) {
+				player->release();
+			}
+		}
+		if (m_timerPlayVideo.isNotNull()) {
+			m_timerPlayVideo->stopAndWait();
+		}
 	}
 
 	void VideoView::init()
@@ -75,12 +87,12 @@ namespace slib
 
 		m_renderVideoParam.onUpdateFrame = SLIB_FUNCTION_WEAKREF(VideoView, updateCurrentFrame, this);
 	}
-	
+
 	Ref<MediaPlayer> VideoView::getMediaPlayer()
 	{
 		return m_mediaPlayer;
 	}
-	
+
 	void VideoView::setMediaPlayer(const Ref<MediaPlayer>& player)
 	{
 		m_mediaPlayer = player;
@@ -89,8 +101,9 @@ namespace slib
 		} else {
 			setRedrawMode(RedrawMode::WhenDirty);
 		}
+		_setupPlayVideoTimer();
 	}
-	
+
 	void VideoView::openUrl(const String& url, const MediaPlayerFlags& _flags)
 	{
 		MediaPlayerFlags flags = _flags | MediaPlayerFlags::NotSelfAlive;
@@ -102,7 +115,7 @@ namespace slib
 			setMediaPlayer(player);
 		}
 	}
-	
+
 	void VideoView::openFile(const String& filePath, const MediaPlayerFlags& _flags)
 	{
 		MediaPlayerFlags flags = _flags | MediaPlayerFlags::NotSelfAlive;
@@ -114,7 +127,7 @@ namespace slib
 			setMediaPlayer(player);
 		}
 	}
-	
+
 	void VideoView::openAsset(const String& fileName, const MediaPlayerFlags& _flags)
 	{
 		MediaPlayerFlags flags = _flags | MediaPlayerFlags::NotSelfAlive;
@@ -126,7 +139,7 @@ namespace slib
 			setMediaPlayer(player);
 		}
 	}
-	
+
 	void VideoView::setSource(const String& source, const MediaPlayerFlags& flags)
 	{
 		if (source.isNotEmpty()) {
@@ -139,12 +152,12 @@ namespace slib
 			}
 		}
 	}
-	
+
 	sl_bool VideoView::isRepeat()
 	{
 		return m_flagRepeat;
 	}
-	
+
 	void VideoView::setRepeat(sl_bool flagRepeat)
 	{
 		m_flagRepeat = flagRepeat;
@@ -153,56 +166,56 @@ namespace slib
 			player->setAutoRepeat(flagRepeat);
 		}
 	}
-	
+
 	RotationMode VideoView::getRotation()
 	{
 		return m_rotation;
 	}
-	
+
 	void VideoView::setRotation(const RotationMode& rotation, UIUpdateMode mode)
 	{
 		m_rotation = rotation;
 		invalidate(mode);
 	}
-	
+
 	FlipMode VideoView::getFlip()
 	{
 		return m_flip;
 	}
-	
+
 	void VideoView::setFlip(const FlipMode& flip, UIUpdateMode mode)
 	{
 		m_flip = flip;
 		invalidate(mode);
 	}
-	
+
 	ScaleMode VideoView::getScaleMode()
 	{
 		return m_scaleMode;
 	}
-	
+
 	void VideoView::setScaleMode(ScaleMode scaleMode, UIUpdateMode mode)
 	{
 		m_scaleMode = scaleMode;
 		invalidate(mode);
 	}
-	
+
 	Alignment VideoView::getGravity()
 	{
 		return m_gravity;
 	}
-	
+
 	void VideoView::setGravity(const Alignment& align, UIUpdateMode mode)
 	{
 		m_gravity = align;
 		invalidate(mode);
 	}
-	
+
 	sl_bool VideoView::isControlsVisible()
 	{
 		return m_flagControlsVisible;
 	}
-	
+
 	void VideoView::setControlsVisible(sl_bool flag, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -224,7 +237,7 @@ namespace slib
 			m_sliderSeek->setVisible(flag, mode);
 		}
 	}
-	
+
 	void VideoView::updateCurrentFrame(VideoFrame& frame)
 	{
 		ColorSpace colorSpace = BitmapFormats::getColorSpace(frame.image.format);
@@ -243,28 +256,32 @@ namespace slib
 		if (texture.isNotNull()) {
 			Ref<Image> image = Ref<Image>::from(texture->getSource());
 			BitmapData bitmapData(image->getWidth(), image->getHeight(), image->getColors());
-			if (BitmapFormats::getColorSpace(frame.image.format) == ColorSpace::YUV) {
+
+			sl_bool flagUseYUV = sl_false;
+			if (m_flagAllowYUV) {
+				flagUseYUV = BitmapFormats::getColorSpace(frame.image.format) == ColorSpace::YUV;
+			}
+			m_flagYUV = flagUseYUV;
+			if (flagUseYUV) {
 				bitmapData.format = BitmapFormat::YUVA;
-				m_flagYUV = sl_true;
-			} else {
-				m_flagYUV = sl_false;
 			}
 			m_rotationFrame = frame.rotation;
 			m_flipFrame = frame.flip;
 			bitmapData.copyPixelsFrom(frame.image);
 			texture->update();
+			image->update();
 			m_textureFrame = texture;
 			m_sizeLastFrame.x = frame.image.width;
 			m_sizeLastFrame.y = frame.image.height;
 		}
 		requestRender();
 	}
-	
+
 	Sizei VideoView::getLastFrameSize()
 	{
 		return m_sizeLastFrame;
 	}
-	
+
 	sl_bool VideoView::convertCoordinateToTexture(Point& pt)
 	{
 		sl_int32 sw = m_sizeLastFrame.x;
@@ -298,67 +315,123 @@ namespace slib
 		pt.y = y;
 		return sl_true;
 	}
+
+	void VideoView::dispatchFrame(RenderEngine* engine)
+	{
+		if (engine->isShaderAvailable()) {
+			m_flagAllowYUV = sl_true;
+			RenderView::dispatchFrame(engine);
+		} else {
+			m_flagAllowYUV = sl_false;
+			disableRendering();
+			_setupPlayVideoTimer();
+		}
+	}
 	
 	void VideoView::onDraw(Canvas* _canvas)
 	{
 		_updateControls(UIUpdateMode::None);
-		Rectangle rectBounds = getBoundsInnerPadding();
-		if (rectBounds.getWidth() < SLIB_EPSILON || rectBounds.getHeight() < SLIB_EPSILON) {
-			return;
-		}
 		RenderCanvas* canvas = CastInstance<RenderCanvas>(_canvas);
 		if (canvas) {
-			Ref<RenderEngine> engine = canvas->getEngine();
-			if (engine.isNotNull()) {
-				Ref<MediaPlayer> mediaPlayer = m_mediaPlayer;
-				if (mediaPlayer.isNotNull()) {
-					m_renderVideoParam.glEngine = CastRef<GLRenderEngine>(engine);
-					mediaPlayer->renderVideo(m_renderVideoParam);
-				}
-				Ref<Texture> texture;
-				Matrix3 textureMatrix;
-				Ref<RenderProgram2D_PositionTexture> program;
-				if (m_renderVideoParam.glTextureOES.isNotNull()) {
-					texture = m_renderVideoParam.glTextureOES;
-					textureMatrix = m_renderVideoParam.glTextureTransformOES;
-					program = m_programOES;
-					m_sizeLastFrame.x = texture->getWidth();
-					m_sizeLastFrame.y = texture->getHeight();
-				} else {
-					texture = m_textureFrame;
-					textureMatrix = Matrix3::identity();
-					if (m_flagYUV) {
-						program = m_programYUV;
-					} else {
-						program = m_programRGB;
-					}
-				}
-				Ref<VertexBuffer> vb = _applyFrameRotationAndFlip(m_flipFrame, m_rotationFrame, m_flip, m_rotation);
-				if (vb.isNotNull() && texture.isNotNull() && program.isNotNull()) {
-					sl_real sw = (sl_real)(texture->getWidth());
-					sl_real sh = (sl_real)(texture->getHeight());
-					if (m_rotationFrameApplied == RotationMode::Rotate90 || m_rotationFrameApplied == RotationMode::Rotate270) {
-						Swap(sw, sh);
-					}
-					if (m_rotationApplied == RotationMode::Rotate90 || m_rotationApplied == RotationMode::Rotate270) {
-						Swap(sw, sh);
-					}
-					Rectangle rectDraw;
-					if (!(GraphicsUtil::calculateAlignRectangle(rectDraw, rectBounds, sw, sh, m_scaleMode, m_gravity))) {
-						return;
-					}
-					Matrix3 mat = canvas->getTransformMatrixForRectangle(rectDraw);
-					RenderProgramScope<RenderProgramState2D_PositionTexture> scope;
-					if (scope.begin(engine.get(), program)) {
-						scope->setTransform(mat);
-						scope->setTexture(texture);
-						scope->setTextureTransform(textureMatrix);
-						scope->setColor(Color4f(1, 1, 1, canvas->getAlpha()));
-						engine->drawPrimitive(4, vb, PrimitiveType::TriangleStrip);
-					}
-				}
+			_renderFrame(canvas);
+		} else {
+			m_flagAllowYUV = sl_false;
+			_drawFrame(_canvas);
+		}
+	}
+
+	void VideoView::onAttach()
+	{
+		_setupPlayVideoTimer();
+	}
+
+	void VideoView::_renderFrame(RenderCanvas* canvas)
+	{
+		Ref<RenderEngine> engine = canvas->getEngine();
+		if (engine.isNull()) {
+			return;
+		}
+		UIRect rectBoundsi = getBoundsInnerPadding();
+		if (!(rectBoundsi.isValidSize())) {
+			return;
+		}
+		Rectangle rectBounds = rectBoundsi;
+		Ref<MediaPlayer> mediaPlayer = m_mediaPlayer;
+		if (mediaPlayer.isNotNull()) {
+			m_renderVideoParam.glEngine = CastRef<GLRenderEngine>(engine);
+			mediaPlayer->renderVideo(m_renderVideoParam);
+		}
+		Ref<Texture> texture;
+		Matrix3 textureMatrix;
+		Ref<RenderProgram2D_PositionTexture> program;
+		if (m_renderVideoParam.glTextureOES.isNotNull()) {
+			texture = m_renderVideoParam.glTextureOES;
+			textureMatrix = m_renderVideoParam.glTextureTransformOES;
+			program = m_programOES;
+			m_sizeLastFrame.x = texture->getWidth();
+			m_sizeLastFrame.y = texture->getHeight();
+		} else {
+			texture = m_textureFrame;
+			textureMatrix = Matrix3::identity();
+			if (m_flagYUV) {
+				program = m_programYUV;
+			} else {
+				program = m_programRGB;
 			}
 		}
+		Ref<VertexBuffer> vb = _applyFrameRotationAndFlip(m_flipFrame, m_rotationFrame, m_flip, m_rotation);
+		if (vb.isNotNull() && texture.isNotNull() && program.isNotNull()) {
+			sl_real sw = (sl_real)(texture->getWidth());
+			sl_real sh = (sl_real)(texture->getHeight());
+			if (m_rotationFrameApplied == RotationMode::Rotate90 || m_rotationFrameApplied == RotationMode::Rotate270) {
+				Swap(sw, sh);
+			}
+			if (m_rotationApplied == RotationMode::Rotate90 || m_rotationApplied == RotationMode::Rotate270) {
+				Swap(sw, sh);
+			}
+			Rectangle rectDraw;
+			if (!(GraphicsUtil::calculateAlignRectangle(rectDraw, rectBounds, sw, sh, m_scaleMode, m_gravity))) {
+				return;
+			}
+			Matrix3 mat = canvas->getTransformMatrixForRectangle(rectDraw);
+			RenderProgramScope<RenderProgramState2D_PositionTexture> scope;
+			if (scope.begin(engine.get(), program)) {
+				scope->setTransform(mat);
+				scope->setTexture(texture);
+				scope->setTextureTransform(textureMatrix);
+				scope->setColor(Color4f(1, 1, 1, canvas->getAlpha()));
+				engine->drawPrimitive(4, vb, PrimitiveType::TriangleStrip);
+			}
+		}
+	}
+
+	void VideoView::_drawFrame(Canvas* canvas)
+	{
+		UIRect rectBoundsi = getBoundsInnerPadding();
+		if (!(rectBoundsi.isValidSize())) {
+			return;
+		}
+		Rectangle rectBounds = rectBoundsi;
+		Ref<Texture> texture = m_textureFrame;
+		if (texture.isNull()) {
+			return;
+		}
+		sl_uint32 tw = texture->getWidth();
+		sl_uint32 th = texture->getHeight();
+		if (!tw || !th) {
+			return;
+		}
+		Ref<Bitmap> bitmap = texture->getSource();
+		if (bitmap.isNull()) {
+			return;
+		}
+		sl_real sw = (sl_real)(tw);
+		sl_real sh = (sl_real)(th);
+		Rectangle rectDraw;
+		if (!(GraphicsUtil::calculateAlignRectangle(rectDraw, rectBounds, sw, sh, m_scaleMode, m_gravity))) {
+			return;
+		}
+		canvas->draw(rectDraw, bitmap);
 	}
 	
 	Ref<VertexBuffer> VideoView::_applyFrameRotationAndFlip(FlipMode frameFlip, RotationMode frameRotation, FlipMode userFlip, RotationMode userRotation)
@@ -475,7 +548,30 @@ namespace slib
 			}
 		}
 	}
-	
+
+	void VideoView::_setupPlayVideoTimer()
+	{
+		ObjectLocker lock(this);
+		if (!(isInstance())) {
+			return;
+		}
+		if (m_mediaPlayer.isNotNull() && !(isRenderEnabled())) {
+			if (m_timerPlayVideo.isNull()) {
+				m_timerPlayVideo = Timer::start(SLIB_FUNCTION_WEAKREF(VideoView, _onTimerPlayVideo, this), 30);
+			}
+		} else {
+			m_timerPlayVideo.setNull();
+		}
+	}
+
+	void VideoView::_onTimerPlayVideo(Timer* timer)
+	{
+		Ref<MediaPlayer> mediaPlayer = m_mediaPlayer;
+		if (mediaPlayer.isNotNull()) {
+			mediaPlayer->renderVideo(m_renderVideoParam);
+		}
+	}
+
 	void VideoView::_onSeek(Slider* slider, float value)
 	{
 		Ref<MediaPlayer> player = m_mediaPlayer;

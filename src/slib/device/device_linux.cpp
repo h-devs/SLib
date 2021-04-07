@@ -20,15 +20,18 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/device/definition.h"
 
 #if defined(SLIB_UI_IS_GTK)
 
 #include "slib/device/device.h"
 
 #include "slib/core/variant.h"
+#include "slib/ui/core.h"
 
 #include "gtk/gtk.h"
+#include "slib/ui/dl_linux_gtk.h"
+#include "slib/ui/dl_linux_gdk.h"
 
 #include <sys/utsname.h>
 
@@ -79,8 +82,16 @@ namespace slib
 		return Sizei::zero();
 	}
 	
-	void Device::openUrl(const String& url)
+	void Device::openUrl(const StringParam& _url)
 	{
+		if (!(UI::isUiThread())) {
+			String url = _url.toString();
+			UI::dispatchToUiThread([url]() {
+				Device::openUrl(url);
+			});
+			return;
+		}
+		StringCstr url(_url);
 		GError* error = NULL;
 		gtk_show_uri(NULL, url.getData(), GDK_CURRENT_TIME, &error);
 	}

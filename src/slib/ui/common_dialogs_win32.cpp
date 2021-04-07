@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 
@@ -35,6 +35,7 @@
 
 #pragma warning(disable: 4091)
 #include <shlobj.h>
+#include <commdlg.h>
 
 namespace slib
 {

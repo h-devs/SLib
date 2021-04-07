@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,19 +20,26 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 
 #include "view_win32.h"
 
-#include "slib/ui/core.h"
 #include "slib/ui/window.h"
-#include "slib/ui/select_view.h"
-#include "slib/core/safe_static.h"
+#include "slib/ui/core.h"
+#include "slib/ui/drag.h"
 #include "slib/math/transform2d.h"
+#include "slib/core/win32_com.h"
+#include "slib/core/safe_static.h"
+#include "slib/core/dl_windows_user32.h"
 
 #include <commctrl.h>
+#include <shellapi.h>
+
+#ifdef max
+#undef max
+#endif
 
 namespace slib
 {
@@ -41,6 +48,11 @@ namespace slib
 	{
 		namespace view
 		{
+
+			sl_bool g_flagDuringPaint = sl_false;
+			
+			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Bitmap>, g_bitmapDoubleBuffer)
+			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Canvas>, g_canvasDoubleBuffer)
 
 			Color GetDefaultBackColor()
 			{
@@ -122,31 +134,27 @@ namespace slib
 			sl_bool CaptureChildInstanceEvents(View* view, UINT uMsg)
 			{
 				Ref<View> parent = view->getParent();
-				while (parent.isNotNull()) {
-					Function<sl_bool(const UIPoint&)> hitTestCapture(parent->getCapturingChildInstanceEvents());
-					if (parent->isCapturingEvents() || hitTestCapture.isNotNull()) {
-						if (CaptureChildInstanceEvents(parent.get(), uMsg)) {
-							return sl_true;
-						}
-						Ref<ViewInstance> _instance = parent->getViewInstance();
-						if (_instance.isNotNull()) {
-							Win32_ViewInstance* instance = (Win32_ViewInstance*)(_instance.get());
-							HWND hWnd = instance->getHandle();
-							if (hWnd) {
-								DWORD lParam = GetMessagePos();
-								POINT pt;
-								pt.x = (short)(lParam & 0xffff);
-								pt.y = (short)((lParam >> 16) & 0xffff);
-								ScreenToClient(hWnd, &pt);
-								if (parent->isCapturingEvents() || hitTestCapture(UIPoint((sl_ui_pos)(pt.x), (sl_ui_pos)(pt.y)))) {
-									LPARAM lParam = POINTTOPOINTS(pt);
-									instance->processWindowMessage(uMsg, 0, lParam);
-									return sl_true;
-								}
+				if (parent.isNotNull()) {
+					if (CaptureChildInstanceEvents(parent.get(), uMsg)) {
+						return sl_true;
+					}
+					Ref<ViewInstance> _instance = parent->getViewInstance();
+					if (_instance.isNotNull()) {
+						Win32_ViewInstance* instance = (Win32_ViewInstance*)(_instance.get());
+						HWND hWnd = instance->getHandle();
+						if (hWnd) {
+							DWORD lParam = GetMessagePos();
+							POINT pt;
+							pt.x = (short)(lParam & 0xffff);
+							pt.y = (short)((lParam >> 16) & 0xffff);
+							ScreenToClient(hWnd, &pt);
+							if (parent->isCapturingChildInstanceEvents((sl_ui_pos)(pt.x), (sl_ui_pos)(pt.y))) {
+								LPARAM lParam = POINTTOPOINTS(pt);
+								instance->processWindowMessage(uMsg, 0, lParam);
+								return sl_true;
 							}
 						}
 					}
-					parent = parent->getParent();
 				}
 				return sl_false;
 			}
@@ -155,33 +163,334 @@ namespace slib
 			{
 				UINT uMsg = msg.message;
 				switch (uMsg) {
-				case WM_LBUTTONDOWN:
-				case WM_LBUTTONDBLCLK:
-				case WM_RBUTTONDOWN:
-				case WM_RBUTTONDBLCLK:
-				case WM_MBUTTONDOWN:
-				case WM_MBUTTONDBLCLK:
-				case WM_MOUSEMOVE:
-					break;
-				case WM_NCLBUTTONDOWN:
-					uMsg = WM_LBUTTONDOWN;
-					break;
-				case WM_NCRBUTTONDOWN:
-					uMsg = WM_RBUTTONDOWN;
-					break;
-				case WM_NCMBUTTONDOWN:
-					uMsg = WM_MBUTTONDOWN;
-					break;
-				case WM_NCMOUSEMOVE:
-					uMsg = WM_MOUSEMOVE;
-					break;
-				default:
-					return sl_false;
+					case WM_LBUTTONDOWN:
+					case WM_LBUTTONDBLCLK:
+					case WM_RBUTTONDOWN:
+					case WM_RBUTTONDBLCLK:
+					case WM_MBUTTONDOWN:
+					case WM_MBUTTONDBLCLK:
+					case WM_MOUSEMOVE:
+						break;
+					case WM_NCLBUTTONDOWN:
+						uMsg = WM_LBUTTONDOWN;
+						break;
+					case WM_NCRBUTTONDOWN:
+						uMsg = WM_RBUTTONDOWN;
+						break;
+					case WM_NCMBUTTONDOWN:
+						uMsg = WM_MBUTTONDOWN;
+						break;
+					case WM_NCMOUSEMOVE:
+						uMsg = WM_MOUSEMOVE;
+						break;
+					default:
+						return sl_false;
 				}
 				return CaptureChildInstanceEvents(view, uMsg);
 			}
 
-			sl_bool g_flagDuringPaint = sl_false;
+			static DWORD ToDropEffect(int op)
+			{
+				DWORD ret = 0;
+				if (op & DragOperations::Copy) {
+					ret |= DROPEFFECT_COPY;
+				}
+				if (op & DragOperations::Link) {
+					ret |= DROPEFFECT_LINK;
+				}
+				if (op & DragOperations::Move) {
+					ret |= DROPEFFECT_MOVE;
+				}
+				if (op & DragOperations::Scroll) {
+					ret |= DROPEFFECT_SCROLL;
+				}
+				return ret;
+			}
+
+			static int FromDropEffect(DWORD dwEffect)
+			{
+				int ret = 0;
+				if (dwEffect & DROPEFFECT_COPY) {
+					ret |= DragOperations::Copy;
+				}
+				if (dwEffect & DROPEFFECT_LINK) {
+					ret |= DragOperations::Link;
+				}
+				if (dwEffect & DROPEFFECT_MOVE) {
+					ret |= DragOperations::Move;
+				}
+				if (dwEffect & DROPEFFECT_SCROLL) {
+					ret |= DragOperations::Scroll;
+				}
+				return ret;
+			}
+
+			class ViewDropTarget : public IDropTarget
+			{
+			private:
+				ULONG m_nRef;
+				WeakRef<Win32_ViewInstance> m_instance;
+
+				DragContext m_context;
+				POINTL m_ptLast;
+
+			public:
+				ViewDropTarget(Win32_ViewInstance* instance): m_instance(instance)
+				{
+					m_nRef = 0;
+				}
+
+			public:
+				ULONG STDMETHODCALLTYPE AddRef() override
+				{
+					return ++m_nRef;
+				}
+
+				ULONG STDMETHODCALLTYPE Release() override
+				{
+					ULONG nRef = --m_nRef;
+					if (!nRef) {
+						delete this;
+					}
+					return nRef;
+				}
+
+				HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) override
+				{
+					if (!ppvObject) {
+						return E_POINTER;
+					}
+					if (riid == __uuidof(IDropTarget) || riid == __uuidof(IUnknown)) {
+						*ppvObject = this;
+						AddRef();
+						return S_OK;
+					}
+					return E_NOINTERFACE;
+				}
+
+				HRESULT STDMETHODCALLTYPE DragEnter(
+					IDataObject *pDataObj,
+					DWORD grfKeyState,
+					POINTL pt,
+					DWORD *pdwEffect
+				) override
+				{
+					if (!pdwEffect) {
+						return E_INVALIDARG;
+					}
+					if (setData(pDataObj)) {
+						m_context.operationMask = FromDropEffect(*pdwEffect);
+						m_ptLast = pt;
+						*pdwEffect = onEvent(UIAction::DragEnter);
+						return S_OK;
+					}
+					return E_UNEXPECTED;
+				}
+
+				HRESULT STDMETHODCALLTYPE DragOver(
+					DWORD grfKeyState,
+					POINTL pt,
+					DWORD *pdwEffect
+				) override
+				{
+					if (!pdwEffect) {
+						return E_INVALIDARG;
+					}
+					m_ptLast = pt;
+					*pdwEffect = onEvent(UIAction::DragOver);
+					return S_OK;
+				}
+
+				HRESULT STDMETHODCALLTYPE DragLeave() override
+				{
+					onEvent(UIAction::DragLeave);
+					return S_OK;
+				}
+
+				HRESULT STDMETHODCALLTYPE Drop(
+					IDataObject *pDataObj,
+					DWORD grfKeyState,
+					POINTL pt,
+					DWORD *pdwEffect
+				) override
+				{
+					if (setData(pDataObj)) {
+						m_context.operationMask = FromDropEffect(*pdwEffect);
+						m_ptLast = pt;
+						*pdwEffect = onEvent(UIAction::Drop);
+						return S_OK;
+					}
+					return E_UNEXPECTED;
+				}
+
+			private:
+				DWORD onEvent(UIAction action)
+				{
+					Ref<Win32_ViewInstance> instance = m_instance;
+					if (instance.isNotNull()) {
+						POINT pt;
+						pt.x = m_ptLast.x;
+						pt.y = m_ptLast.y;
+						ScreenToClient(instance->getHandle(), &pt);
+						Ref<UIEvent> ev = UIEvent::createDragEvent(action, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), m_context, Time::now());
+						if (ev.isNotNull()) {
+							instance->onDragDropEvent(ev.get());
+							return ToDropEffect(ev->getDragOperation());
+						}
+					}
+					return DROPEFFECT_NONE;
+				}
+
+				sl_bool setData(IDataObject* data)
+				{
+					m_context.item.clear();
+					if (setFiles(data)) {
+						return sl_true;
+					}
+					if (setText(data)) {
+						return sl_true;
+					}
+					return sl_false;
+				}
+
+				sl_bool setFiles(IDataObject* data)
+				{
+					FORMATETC fmt = { 0 };
+					fmt.cfFormat = CF_HDROP;
+					fmt.dwAspect = DVASPECT_CONTENT;
+					fmt.lindex = -1;
+					fmt.tymed = TYMED_HGLOBAL;
+
+					STGMEDIUM medium = { 0 };
+					medium.tymed = TYMED_HGLOBAL;
+
+					HRESULT hr = data->GetData(&fmt, &medium);
+					if (hr != S_OK) {
+						return sl_false;
+					}
+
+					sl_bool flagValid = sl_false;
+					if (medium.hGlobal) {
+						HDROP handle = (HDROP)(medium.hGlobal);
+						List<String> files;
+						UINT nFiles = DragQueryFileW(handle, 0xFFFFFFFF, NULL, 0);
+						for (UINT i = 0; i < nFiles; i++) {
+							WCHAR sz[512];
+							UINT len = DragQueryFileW(handle, i, sz, 512);
+							files.add_NoLock(String::from(sz, len));
+						}
+						m_context.item.setFiles(Move(files));
+						flagValid = sl_true;
+					}
+
+					ReleaseStgMedium(&medium);
+
+					return flagValid;
+				}
+
+				sl_bool setText(IDataObject* data)
+				{
+					FORMATETC fmt = { 0 };
+					fmt.cfFormat = CF_UNICODETEXT;
+					fmt.dwAspect = DVASPECT_CONTENT;
+					fmt.lindex = -1;
+					fmt.tymed = TYMED_HGLOBAL;
+
+					STGMEDIUM medium = { 0 };
+					medium.tymed = TYMED_HGLOBAL;
+
+					HRESULT hr = data->GetData(&fmt, &medium);
+					if (hr != S_OK) {
+						return sl_false;
+					}
+
+					sl_bool flagValid = sl_false;
+					if (medium.hGlobal) {
+						LPVOID pData = GlobalLock(medium.hGlobal);
+						if (pData) {
+							sl_char16* sz = (sl_char16*)pData;
+							sl_size size = (sl_size)(GlobalSize(medium.hGlobal));
+							sl_size len = size >> 1;
+							String text = String::fromUtf16(sz, Base::getStringLength2(sz, len));
+							m_context.item.setText(text);
+							flagValid = sl_true;
+							GlobalUnlock(medium.hGlobal);
+						}
+					}
+
+					ReleaseStgMedium(&medium);
+
+					return flagValid;
+				}
+
+			};
+
+			class ViewDropSource : public IDropSource
+			{
+			private:
+				ULONG m_nRef;
+				DragContext* m_context;
+
+			public:
+				ViewDropSource(DragContext* context) : m_context(context)
+				{
+					m_nRef = 0;
+				}
+
+			public:
+				ULONG STDMETHODCALLTYPE AddRef() override
+				{
+					return ++m_nRef;
+				}
+
+				ULONG STDMETHODCALLTYPE Release() override
+				{
+					ULONG nRef = --m_nRef;
+					if (!nRef) {
+						delete this;
+					}
+					return nRef;
+				}
+
+				HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) override
+				{
+					if (!ppvObject) {
+						return E_POINTER;
+					}
+					if (riid == __uuidof(IDropSource) || riid == __uuidof(IUnknown)) {
+						*ppvObject = this;
+						AddRef();
+						return S_OK;
+					}
+					return E_NOINTERFACE;
+				}
+
+				HRESULT STDMETHODCALLTYPE QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState) override
+				{
+					if (fEscapePressed) {
+						return DRAGDROP_S_CANCEL;
+					}
+					if (!(grfKeyState & MK_LBUTTON)) {
+						return DRAGDROP_S_DROP;
+					}
+					return S_OK;
+				}
+
+				HRESULT STDMETHODCALLTYPE GiveFeedback(DWORD dwEffect) override
+				{
+					Ref<View>& view = m_context->view;
+					if (view.isNotNull()) {
+						POINT pt;
+						GetCursorPos(&pt);
+						Ref<UIEvent> ev = UIEvent::createDragEvent(UIAction::Drag, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), *m_context, Time::now());
+						if (ev.isNotNull()) {
+							view->dispatchDragDropEvent(ev.get());
+						}
+					}
+					return DRAGDROP_S_USEDEFAULTCURSORS;
+				}
+
+			};
 
 		}
 	}
@@ -207,6 +516,9 @@ namespace slib
 				PostMessageW(m_handle, SLIB_UI_MESSAGE_CLOSE, 0, 0);
 			}
 		}
+		if (m_dropTarget) {
+			m_dropTarget->Release();
+		}
 	}
 
 	HWND Win32_ViewInstance::createHandle(
@@ -225,10 +537,14 @@ namespace slib
 			if (view->isVisible()) {
 				style |= WS_VISIBLE;
 			}
-			if (view->isCreatingNativeWidget()) {
-				if (view->isBorder()) {
+			if (view->isBorder()) {
+				if (view->isClientEdge()) {
+					styleEx |= WS_EX_CLIENTEDGE;
+				} else {
 					style |= WS_BORDER;
 				}
+			}
+			if (view->isCreatingNativeWidget()) {
 				if (view->isHorizontalScrollBarVisible()) {
 					style |= WS_HSCROLL;
 				}
@@ -271,16 +587,16 @@ namespace slib
 		return NULL;
 	}
 
-	void Win32_ViewInstance::initialize(HWND hWnd, sl_bool flagDestroyOnRelease)
+	void Win32_ViewInstance::initWithHandle(HWND hWnd, sl_bool flagDestroyOnRelease)
 	{
 		m_handle = hWnd;
 		m_flagDestroyOnRelease = flagDestroyOnRelease;
 		UIPlatform::registerViewInstance(hWnd, this);
 	}
 
-	void Win32_ViewInstance::initialize(HWND hWnd, View* view, const String16& text, const UIRect& frame, const Matrix3& transform)
+	void Win32_ViewInstance::initWithHandle(HWND hWnd, View* view, const String16& text, const UIRect& frame, const Matrix3& transform)
 	{
-		initialize(hWnd, sl_true);
+		initWithHandle(hWnd, sl_true);
 		m_text = text;
 		m_frame = frame;
 		m_translation = Transform2::getTranslationFromMatrix(transform);
@@ -526,18 +842,43 @@ namespace slib
 
 	void Win32_ViewInstance::setBorder(View* view, sl_bool flag)
 	{
-		Windows::setWindowStyle(m_handle, WS_BORDER, flag);
+		if (view->isClientEdge()) {
+			Windows::setWindowExStyle(m_handle, WS_EX_CLIENTEDGE, flag);
+			Windows::setWindowStyle(m_handle, WS_BORDER, sl_false);
+		} else {
+			Windows::setWindowExStyle(m_handle, WS_EX_CLIENTEDGE, sl_false);
+			Windows::setWindowStyle(m_handle, WS_BORDER, flag);
+		}
 	}
 
 	void Win32_ViewInstance::setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical)
 	{
 		HWND handle = m_handle;
 		if (handle) {
-			WINAPI_ShowScrollBar func = Windows::getAPI_ShowScrollBar();
+			auto func = user32::getApi_ShowScrollBar();
 			if (func) {
 				func(handle, SB_HORZ, flagHorizontal);
 				func(handle, SB_VERT, flagVertical);
 			}
+		}
+	}
+
+	void Win32_ViewInstance::setDropTarget(View* view, sl_bool flag)
+	{
+		HWND handle = m_handle;
+		if (handle) {
+			if (m_dropTarget) {
+				return;
+			}
+			ViewDropTarget* target = new ViewDropTarget(this);
+			m_dropTarget = target;
+			RegisterDragDrop(handle, target);
+		} else {
+			if (!m_dropTarget) {
+				return;
+			}
+			RevokeDragDrop(handle);
+			m_dropTarget = sl_null;
 		}
 	}
 
@@ -582,9 +923,46 @@ namespace slib
 			return;
 		}
 
-		static Ref<Bitmap> bitmap;
-		static Ref<Canvas> canvasBitmap;
 		UIRect rc = canvas->getInvalidatedRect();
+
+		sl_bool flagOpaque = sl_false;
+		Color colorBack;
+		if (view->isOpaque()) {
+			flagOpaque = sl_true;
+		} else {
+			Color colorView = view->getBackgroundColor();
+			if (colorView.a == 255) {
+				flagOpaque = sl_true;
+			} else {
+				if (m_flagWindowContent) {
+					Ref<Window> window = view->getWindow();
+					if (window.isNotNull()) {
+						colorBack = window->getBackgroundColor();
+						if (colorBack.a == 255) {
+							flagOpaque = sl_true;
+						}
+					}
+				}
+			}
+			if (!flagOpaque) {
+				Color c = GetDefaultBackColor();
+				c.blend_PA_NPA(colorBack);
+				colorBack = c;
+			}
+		}
+		
+		if (!(view->isDoubleBuffer())) {
+			if (!flagOpaque) {
+				if (colorBack.isNotZero()) {
+					canvas->fillRectangle(rc, colorBack);
+				} else {
+					canvas->fillRectangle(rc, Color::White);
+				}
+			}
+			view->dispatchDraw(canvas);
+			return;
+		}
+
 		UISize size = rc.getSize();
 		if (size.x < 1) {
 			return;
@@ -602,49 +980,42 @@ namespace slib
 
 		sl_uint32 widthBitmap = (sl_uint32)(size.x);
 		sl_uint32 heightBitmap = (sl_uint32)(size.y);
-		if (bitmap.isNull() || canvasBitmap.isNull() || bitmap->getWidth() < widthBitmap || bitmap->getHeight() < heightBitmap) {
-			bitmap = Bitmap::create(widthBitmap, heightBitmap);
-			if (bitmap.isNull()) {
+		sl_uint32 widthOldBitmap = 0;
+		sl_uint32 heightOldBitmap = 0;
+
+		Ref<Bitmap>& bitmapBuffer = g_bitmapDoubleBuffer;
+		Ref<Canvas>& canvasBuffer = g_canvasDoubleBuffer;
+		if (bitmapBuffer.isNotNull()) {
+			widthOldBitmap = bitmapBuffer->getWidth();
+			heightOldBitmap = bitmapBuffer->getHeight();
+		}
+		if (bitmapBuffer.isNull() || canvasBuffer.isNull() || widthOldBitmap < widthBitmap || heightOldBitmap < heightBitmap) {
+			Ref<Bitmap> bitmapNew = Bitmap::create(Math::max(widthOldBitmap, widthBitmap), Math::max(heightOldBitmap, heightBitmap));
+			if (bitmapNew.isNull()) {
 				return;
 			}
-			canvasBitmap = bitmap->getCanvas();
-			if (canvasBitmap.isNull()) {
+			bitmapBuffer = bitmapNew;
+			canvasBuffer = bitmapBuffer->getCanvas();
+			if (canvasBuffer.isNull()) {
 				return;
 			}
-			canvasBitmap->setAntiAlias(sl_false);
+			canvasBuffer->setAntiAlias(sl_false);
 		}
 
-		Color colorBack(0);		
-		do {
-			if (view->isOpaque()) {
-				break;
+		if (!flagOpaque) {
+			if (colorBack.isNotZero()) {
+				bitmapBuffer->resetPixels(0, 0, widthBitmap, heightBitmap, colorBack);
+			} else {
+				bitmapBuffer->resetPixels(0, 0, widthBitmap, 1, Color::White);
 			}
-			if (m_flagWindowContent) {
-				Ref<Window> window = view->getWindow();
-				if (window.isNull()) {
-					return;
-				}
-				colorBack = window->getBackgroundColor();
-				if (colorBack.a == 255) {
-					break;
-				}
-			}
-			Color c = GetDefaultBackColor();
-			c.blend_PA_NPA(colorBack);
-			colorBack = c;
-		} while (0);
-		rc.setSize(size);
-		if (colorBack.isNotZero()) {
-			bitmap->resetPixels(0, 0, widthBitmap, heightBitmap, colorBack);
-		} else {
-			bitmap->resetPixels(0, 0, widthBitmap, 1, Color::White);
 		}
-		canvasBitmap->setInvalidatedRect(rc);
-		CanvasStateScope scope(canvasBitmap.get());
-		canvasBitmap->translate(-(sl_real)(rc.left), -(sl_real)(rc.top));
-		view->dispatchDraw(canvasBitmap.get());
-		canvasBitmap->translate((sl_real)(rc.left), (sl_real)(rc.top));
-		canvas->draw(rc, bitmap, Rectangle(0, 0, (sl_real)(size.x), (sl_real)(size.y)));
+		rc.setSize(size);
+		canvasBuffer->setInvalidatedRect(rc);
+		CanvasStateScope scope(canvasBuffer.get());
+		canvasBuffer->translate(-(sl_real)(rc.left), -(sl_real)(rc.top));
+		view->dispatchDraw(canvasBuffer.get());
+		canvasBuffer->translate((sl_real)(rc.left), (sl_real)(rc.top));
+		canvas->draw(rc, bitmapBuffer, Rectangle(0, 0, (sl_real)(size.x), (sl_real)(size.y)));
 	}
 
 	void Win32_ViewInstance::onPaint()
@@ -659,10 +1030,10 @@ namespace slib
 			return;
 		}
 		if (ps.rcPaint.right > ps.rcPaint.left && ps.rcPaint.bottom > ps.rcPaint.top) {
+			RECT rectClient;
+			GetClientRect(hWnd, &rectClient);
 			Gdiplus::Graphics graphics(hDC);
-			RECT rect;
-			GetClientRect(hWnd, &rect);
-			Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, &graphics, rect.right, rect.bottom, sl_false);
+			Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, &graphics, rectClient.right, rectClient.bottom, sl_false);
 			if (canvas.isNotNull()) {
 				canvas->setAntiAlias(sl_false);
 				canvas->setInvalidatedRect(Rectangle((sl_real)(ps.rcPaint.left), (sl_real)(ps.rcPaint.top), (sl_real)(ps.rcPaint.right), (sl_real)(ps.rcPaint.bottom)));
@@ -852,7 +1223,9 @@ namespace slib
 		}
 		switch (msg) {
 			case WM_ERASEBKGND:
-				return TRUE;
+				{
+					return TRUE;
+				}
 
 			case WM_PAINT:
 				{
@@ -861,9 +1234,49 @@ namespace slib
 				}
 			case WM_LBUTTONDOWN:
 				{
+					DragContext& dragContext = UIEvent::getCurrentDragContext();
+					dragContext.release();
+
 					sl_bool flag = onEventMouse(UIAction::LeftButtonDown, wParam, lParam);
-					m_actionMouseCapture = UIAction::LeftButtonDown;
-					SetCapture(hWnd);
+
+					Ref<View>& viewDrag = dragContext.view;
+					if (viewDrag.isNotNull()) {
+						GenericDataObject* data = new GenericDataObject;
+						if (data) {
+							data->AddRef();
+							data->setText(dragContext.item.getText());
+							ViewDropSource* source = new ViewDropSource(&dragContext);
+							if (source) {
+								source->AddRef();
+								{
+									POINT pt;
+									GetCursorPos(&pt);
+									Ref<UIEvent> ev = UIEvent::createDragEvent(UIAction::DragStart, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), dragContext, Time::now());
+									if (ev.isNotNull()) {
+										viewDrag->dispatchDragDropEvent(ev.get());
+									}
+								}
+								DWORD dwEffect = 0;
+								HRESULT hr = DoDragDrop(data, source, ToDropEffect(dragContext.operationMask), &dwEffect);
+								{
+									viewDrag->cancelPressedState();
+									viewDrag->cancelHoverState();
+									dragContext.operation = FromDropEffect(dwEffect);
+									POINT pt;
+									GetCursorPos(&pt);
+									Ref<UIEvent> ev = UIEvent::createDragEvent(UIAction::DragEnd, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), dragContext, Time::now());
+									if (ev.isNotNull()) {
+										viewDrag->dispatchDragDropEvent(ev.get());
+									}
+								}
+								source->Release();
+							}
+							data->Release();
+						}
+					} else {
+						m_actionMouseCapture = UIAction::LeftButtonDown;
+						SetCapture(hWnd);
+					}
 					if (flag) {
 						return 0;
 					}
@@ -1021,6 +1434,11 @@ namespace slib
 					onSetFocus();
 					break;
 				}
+			case WM_KILLFOCUS:
+				{
+					onKillFocus();
+					break;
+				}
 			case WM_SETCURSOR:
 				{
 					if (onEventSetCursor()) {
@@ -1038,7 +1456,7 @@ namespace slib
 		if (!hWnd) {
 			return 0;
 		}
-		switch (msg) {		
+		switch (msg) {
 		case WM_LBUTTONDOWN:
 			if (onEventMouse(UIAction::LeftButtonDown, wParam, lParam)) {
 				return 0;

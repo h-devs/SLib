@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -66,7 +66,7 @@ namespace slib
 	{
 	}
 	
-	void TextureInstance::notifyUpdated(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height)
+	void TextureInstance::notifyUpdated(Texture* texture, sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height)
 	{
 		ObjectLocker lock(this);
 		if (m_flagUpdated) {
@@ -80,17 +80,13 @@ namespace slib
 		}
 	}
 	
+
 	SLIB_DEFINE_OBJECT(Texture, RenderBaseObject)
 	
-	Texture::Texture()
+	Texture::Texture(sl_uint32 width, sl_uint32 height)
 	{
-		setMinFilter(TextureFilterMode::Linear);
-		setMagFilter(TextureFilterMode::Linear);
-		setWrapX(TextureWrapMode::Clamp);
-		setWrapY(TextureWrapMode::Clamp);
-		setFreeSourceOnUpdate(sl_false);
-		m_width = 0;
-		m_height = 0;
+		m_width = width;
+		m_height = height;
 	}
 	
 	Texture::~Texture()
@@ -104,13 +100,7 @@ namespace slib
 			if (width > 0) {
 				sl_uint32 height = source->getHeight();
 				if (height > 0) {
-					Ref<Texture> ret = new Texture;
-					if (ret.isNotNull()) {
-						ret->m_source = source;
-						ret->m_width = width;
-						ret->m_height = height;
-						return ret;
-					}
+					return new BitmapTexture(source, width, height);
 				}
 			}
 		}
@@ -165,11 +155,8 @@ namespace slib
 					if (cache.isNotNull()) {
 						return ((TextureBitmapCache*)(cache.get()))->texture;
 					}
-					Ref<Texture> ret = new Texture;
+					Ref<Texture> ret = new WeakBitmapTexture(tb, width, height);
 					if (ret.isNotNull()) {
-						ret->m_sourceWeak = tb;
-						ret->m_width = width;
-						ret->m_height = height;
 						Ref<TextureBitmapCache> tc = new TextureBitmapCache;
 						if (tc.isNotNull()) {
 							tc->texture = ret;
@@ -183,43 +170,26 @@ namespace slib
 		return sl_null;
 	}
 	
-	Ref<Bitmap> Texture::getSource()
-	{
-		Ref<Bitmap> source = m_source;
-		if (source.isNotNull()) {
-			return source;
-		}
-		return m_sourceWeak;
-	}
-	
-	sl_bool Texture::setSource(const Ref<Bitmap>& source)
-	{
-		if (source.isNull()) {
-			return sl_false;
-		}
-		if (source->getWidth() < m_width || source->getHeight() < m_height) {
-			return sl_false;
-		}
-		m_source = source;
-		update();
-		return sl_true;
-	}
-	
-	void Texture::freeSource()
-	{
-		m_source.setNull();
-	}
-	
 	sl_uint32 Texture::getWidth()
 	{
 		return m_width;
+	}
+
+	void Texture::setWidth(sl_uint32 width)
+	{
+		m_width = width;
 	}
 	
 	sl_uint32 Texture::getHeight()
 	{
 		return m_height;
 	}
-	
+
+	void Texture::setHeight(sl_uint32 height)
+	{
+		m_height = height;
+	}
+
 	void Texture::update(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height)
 	{
 		if (x >= m_width) {
@@ -234,11 +204,9 @@ namespace slib
 		if (height > m_height - y) {
 			height = m_height - y;
 		}
-		for (int i = 0; i < SLIB_MAX_RENDER_ENGINE_COUNT_PER_OBJECT; i++) {
-			Ref<RenderBaseObjectInstance> instance = m_instances[i];
-			if (instance.isNotNull()) {
-				((TextureInstance*)(instance.get()))->notifyUpdated(x, y, width, height);
-			}
+		Ref<RenderBaseObjectInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			((TextureInstance*)(instance.get()))->notifyUpdated(this, x, y, width, height);
 		}
 	}
 	
@@ -252,35 +220,59 @@ namespace slib
 		return Ref<TextureInstance>::from(RenderBaseObject::getInstance(engine));
 	}
 	
-	
+
+	SLIB_DEFINE_OBJECT(BitmapTexture, Texture)
+
+	BitmapTexture::BitmapTexture(const Ref<Bitmap>& bitmap)
+		: Texture(bitmap->getWidth(), bitmap->getHeight()), m_source(bitmap)
+	{
+	}
+
+	BitmapTexture::BitmapTexture(const Ref<Bitmap>& bitmap, sl_uint32 width, sl_uint32 height)
+		: Texture(width, height), m_source(bitmap)
+	{
+	}
+
+	BitmapTexture::~BitmapTexture()
+	{
+	}
+
+	Ref<Bitmap> BitmapTexture::getSource()
+	{
+		return m_source;
+	}
+
+
+	SLIB_DEFINE_OBJECT(WeakBitmapTexture, Texture)
+
+	WeakBitmapTexture::WeakBitmapTexture(const Ref<Bitmap>& bitmap)
+		: Texture(bitmap->getWidth(), bitmap->getHeight()), m_source(bitmap)
+	{
+	}
+
+	WeakBitmapTexture::WeakBitmapTexture(const Ref<Bitmap>& bitmap, sl_uint32 width, sl_uint32 height)
+		: Texture(width, height), m_source(bitmap)
+	{
+	}
+
+	WeakBitmapTexture::~WeakBitmapTexture()
+	{
+	}
+
+	Ref<Bitmap> WeakBitmapTexture::getSource()
+	{
+		return m_source;
+	}
+
+
 	SLIB_DEFINE_OBJECT(EngineTexture, Texture)
 	
-	EngineTexture::EngineTexture()
+	EngineTexture::EngineTexture() : Texture(0, 0)
 	{
 	}
 	
 	EngineTexture::~EngineTexture()
 	{
-	}
-	
-	Ref<Referable> EngineTexture::getLinkedObject()
-	{
-		return m_linkedObject;
-	}
-	
-	void EngineTexture::setLinkedObject(const Ref<Referable>& object)
-	{
-		m_linkedObject = object;
-	}
-	
-	void EngineTexture::setWidth(sl_uint32 width)
-	{
-		m_width = width;
-	}
-	
-	void EngineTexture::setHeight(sl_uint32 height)
-	{
-		m_height = height;
 	}
 	
 }

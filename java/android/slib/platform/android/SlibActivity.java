@@ -38,7 +38,6 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -141,10 +140,12 @@ public class SlibActivity extends Activity {
 					if (latestInsets == null) {
 						latestInsets = new Rect();
 					}
-					latestInsets.left = insets.getSystemWindowInsetLeft();
-					latestInsets.top = insets.getSystemWindowInsetTop();
-					latestInsets.right = insets.getSystemWindowInsetRight();
-					latestInsets.bottom = insets.getSystemWindowInsetBottom();
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+						latestInsets.left = insets.getSystemWindowInsetLeft();
+						latestInsets.top = insets.getSystemWindowInsetTop();
+						latestInsets.right = insets.getSystemWindowInsetRight();
+						latestInsets.bottom = insets.getSystemWindowInsetBottom();
+					}
 					Android.onChangeWindowInsets(SlibActivity.this);
 					return insets;
 				}
@@ -309,7 +310,7 @@ public class SlibActivity extends Activity {
 	}
 
 	@Override
-	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 		if (requestCode == REQUEST_PERMISSIONS) {
 			try {
 				Application.onRequestPermissionsResult(this);

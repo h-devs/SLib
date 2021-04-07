@@ -243,7 +243,10 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
 				HEADER_SEARCH_PATHS = "$(SLIB_PATH)/include";
-				LIBRARY_SEARCH_PATHS = "$(SLIB_PATH)/lib/macOS/$(CONFIGURATION)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SLIB_PATH)/lib/macOS/$(CONFIGURATION)",
+					"$(SLIB_PATH)/external/lib/macOS",
+				);
 				OTHER_LDFLAGS = (
 					"-lslib",
 					"-lhiredis",
@@ -257,7 +260,10 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
 				HEADER_SEARCH_PATHS = "$(SLIB_PATH)/include";
-				LIBRARY_SEARCH_PATHS = "$(SLIB_PATH)/lib/macOS/$(CONFIGURATION)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SLIB_PATH)/lib/macOS/$(CONFIGURATION)",
+					"$(SLIB_PATH)/external/lib/macOS",
+				);
 				OTHER_LDFLAGS = (
 					"-lslib",
 					"-lhiredis",

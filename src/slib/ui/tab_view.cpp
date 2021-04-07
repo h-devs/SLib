@@ -23,12 +23,15 @@
 #include "slib/ui/tab_view.h"
 
 #include "slib/ui/core.h"
+#include "slib/graphics/canvas.h"
 #include "slib/graphics/util.h"
 
 #define MAX_TABS_COUNT 100
 
-#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32)
-#	define HAS_NATIVE_WIDGET_IMPL
+#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_GTK)
+#	define HAS_NATIVE_WIDGET_IMPL 1
+#else
+#	define HAS_NATIVE_WIDGET_IMPL 0
 #endif
 
 namespace slib
@@ -44,10 +47,10 @@ namespace slib
 	SLIB_DEFINE_OBJECT(TabView, ViewGroup)
 
 	TabView::TabView()
-	{		
-#ifdef HAS_NATIVE_WIDGET_IMPL
-		setCreatingNativeWidget(sl_true);
-#endif
+	{
+		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
+
 		setUsingChildLayouts(sl_false);
 		setUsingFont(sl_true);
 		setSavingCanvasState(sl_false);
@@ -195,7 +198,7 @@ namespace slib
 						view->setVisible(sl_true, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
 					} else {
 						view->setVisible(sl_false, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
-					}				
+					}
 					view->setAttachMode(UIAttachMode::NotAttachInNativeWidget);
 					view->setFrame(getTabContentRegion(), SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::UpdateLayout);
 					addChild(view, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::UpdateLayout);
@@ -836,7 +839,7 @@ namespace slib
 	}
 	
 	
-#if !defined(HAS_NATIVE_WIDGET_IMPL)
+#if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> TabView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;

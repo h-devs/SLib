@@ -23,15 +23,15 @@
 #ifndef CHECKHEADER_SLIB_CORE_APP
 #define CHECKHEADER_SLIB_CORE_APP
 
-#include "definition.h"
-
 #include "object.h"
 #include "string.h"
 #include "function.h"
-#include "global_unique_instance.h"
+#include "flags.h"
 
 namespace slib
 {
+
+	class GlobalUniqueInstance;
 
 	enum class AppType
 	{
@@ -39,50 +39,45 @@ namespace slib
 		Service = 1
 	};
 	
-	class AppPermissions
-	{
-	public:
-		int value;
-		SLIB_MEMBERS_OF_FLAGS(AppPermissions, value)
+	SLIB_DEFINE_FLAGS(AppPermissions, {
+
+		Camera = 1,
+			
+		RecordAudio = (1<<1),
+			
+		WriteExternalStorage = (1<<2),
+		ReadExternalStorage = (1<<3),
+			
+		ReadPhoneState = (1<<4),
+		ReadPhoneNumbers = (1<<5),
+		CallPhone = (1<<6),
+		AnswerPhoneCalls = (1<<7),
+		AddVoiceMail = (1<<8),
+		UseSip = (1<<9),
+			
+		SendSMS = (1<<10),
+		ReceiveSMS = (1<<11),
+		ReadSMS = (1<<12),
+		ReceiveWapPush = (1<<13),
+		ReceiveMMS = (1<<14),
+			
+		ReadContacts = (1<<15),
+		WriteContacts = (1<<16),
+		GetAccounts = (1<<17),
+
+		AccessFineLocation = (1<<18),
+		AccessCoarseLocation = (1<<19),
+
+		ReadCalendar = (1<<20),
+		WriteCalendar = (1<<21),
+			
+		ReadCallLog = (1<<22),
+		WriteCallLog = (1<<23),
+		ProcessOutgoingCalls = (1<<24),
+			
+		BodySensors = (1<<25)
 		
-		enum {
-			Camera = 1,
-			
-			RecordAudio = (1<<1),
-			
-			WriteExternalStorage = (1<<2),
-			ReadExternalStorage = (1<<3),
-			
-			ReadPhoneState = (1<<4),
-			ReadPhoneNumbers = (1<<5),
-			CallPhone = (1<<6),
-			AnswerPhoneCalls = (1<<7),
-			AddVoiceMail = (1<<8),
-			UseSip = (1<<9),
-			
-			SendSMS = (1<<10),
-			ReceiveSMS = (1<<11),
-			ReadSMS = (1<<12),
-			ReceiveWapPush = (1<<13),
-			ReceiveMMS = (1<<14),
-			
-			ReadContacts = (1<<15),
-			WriteContacts = (1<<16),
-			GetAccounts = (1<<17),
-
-			AccessFineLocation = (1<<18),
-			AccessCoarseLocation = (1<<19),
-
-			ReadCalendar = (1<<20),
-			WriteCalendar = (1<<21),
-			
-			ReadCallLog = (1<<22),
-			WriteCallLog = (1<<23),
-			ProcessOutgoingCalls = (1<<24),
-			
-			BodySensors = (1<<25)
-		};
-	};
+	})
 
 	enum class AppRole
 	{
@@ -114,13 +109,14 @@ namespace slib
 
 		List<String> getArguments();
 	
-		String getCommand(sl_uint32 index = 0);
+		// returns exit code
+		sl_int32 run(const String& commandLine);
 
-		void run(const String& commandLine);
-
-		void run(int argc, const char * argv[]);
+		// returns exit code
+		sl_int32 run(int argc, const char * argv[]);
 	
-		void run();
+		// returns exit code
+		sl_int32 run();
 	
 		void dispatchQuitApp();
 
@@ -135,13 +131,16 @@ namespace slib
 		void setCrashRecoverySupport(sl_bool flagSupport);
 	
 	protected:
-		virtual void doRun();
+		// returns exit code
+		virtual sl_int32 doRun();
 	
-		virtual void onRunApp() = 0;
+		// returns exit code
+		virtual sl_int32 onRunApp() = 0;
 
 		virtual void onQuitApp();
 		
-		virtual void onExistingInstance();
+		// returns exit code
+		virtual sl_int32 onExistingInstance();
 	
 	public:
 		static Ref<Application> getApp();
@@ -167,8 +166,28 @@ namespace slib
 
 		static List<String> breakCommandLine(const String& commandLine);
 
+		static List<String> breakCommandLine_Win32(const String& commandLine);
+
+		static List<String> breakCommandLine_Unix(const String& commandLine);
+
+		static String makeSafeArgument(const String& arg);
+
+		static String makeSafeArgument_Win32(const String& arg);
+
+		static String makeSafeArgument_Unix(const String& arg);
+
 		static String buildCommandLine(const String* argv, sl_size argc);
-		
+
+		static String buildCommandLine_Win32(const String* argv, sl_size argc);
+
+		static String buildCommandLine_Unix(const String* argv, sl_size argc);
+
+		static String buildCommandLine(const String& pathExecutable, const String* argv, sl_size argc);
+
+		static String buildCommandLine_Win32(const String& pathExecutable, const String* argv, sl_size argc);
+
+		static String buildCommandLine_Unix(const String& pathExecutable, const String* argv, sl_size argc);
+
 	public:
 		static sl_bool checkPermissions(const AppPermissions& permissions);
 
@@ -193,6 +212,9 @@ namespace slib
 		static void openSystemOverlaySetting();
 
 	protected:
+		sl_int32 _doRun();
+
+	protected:
 		String m_executablePath;
 		String m_commandLine;
 		List<String> m_arguments;
@@ -206,44 +228,37 @@ namespace slib
 	
 }
 
-
-#define SLIB_DECLARE_APPLICATION(CLASS) \
-	SLIB_DECLARE_OBJECT \
+#define SLIB_APPLICATION(CLASS) \
 public: \
-	static void main(const slib::String& commandLine); \
-	static void main(int argc, const char * argv[]); \
-	static void main(int argc, char** argv); \
-	static void main(); \
-	static slib::Ref<CLASS> getApp();
-
-
-#define SLIB_DEFINE_APPLICATION(CLASS, BASE) \
-	SLIB_DEFINE_OBJECT(CLASS, BASE) \
-	void CLASS::main(const slib::String& commandLine) { \
+	static int main(const slib::String& commandLine) { \
 		slib::Ref<CLASS> app = new CLASS; \
 		if (app.isNotNull()) { \
-			app->run(commandLine); \
+			return (int)(app->run(commandLine)); \
 		} \
+		return -1; \
 	} \
-	void CLASS::main(int argc, const char * argv[]) { \
+	static int main(int argc, const char * argv[]) { \
 		slib::Ref<CLASS> app = new CLASS; \
 		if (app.isNotNull()) { \
-			app->run(argc, argv); \
+			return (int)(app->run(argc, argv)); \
 		} \
+		return -1; \
 	} \
-	void CLASS::main(int argc, char** argv) { \
+	static int main(int argc, char** argv) { \
 		slib::Ref<CLASS> app = new CLASS; \
 		if (app.isNotNull()) { \
-			app->run(argc, (const char**)argv); \
+			return (int)(app->run(argc, (const char**)argv)); \
 		} \
+		return -1; \
 	} \
-	void CLASS::main() { \
+	static int main() { \
 		slib::Ref<CLASS> app = new CLASS; \
 		if (app.isNotNull()) { \
-			app->run(); \
+			return (int)(app->run()); \
 		} \
+		return -1; \
 	} \
-	slib::Ref<CLASS> CLASS::getApp() { \
+	static slib::Ref<CLASS> getApp() { \
 		return slib::CastRef<CLASS>(slib::Application::getApp()); \
 	}
 

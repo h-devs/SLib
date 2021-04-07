@@ -25,14 +25,44 @@
 #include "slib/core/string.h"
 #include "slib/core/hash_map.h"
 #include "slib/core/variant.h"
+#include "slib/core/string_buffer.h"
+#include "slib/core/parse_util.h"
 
 namespace slib
 {
 
+	Lockable::Lockable() noexcept
+	{
+	}
+
+	Lockable::~Lockable() noexcept
+	{
+	}
+
+	Mutex* Lockable::getLocker() const noexcept
+	{
+		return const_cast<Mutex*>(&m_locker);
+	}
+
+	void Lockable::lock() const noexcept
+	{
+		m_locker.lock();
+	}
+
+	void Lockable::unlock() const noexcept
+	{
+		m_locker.unlock();
+	}
+
+	sl_bool Lockable::tryLock() const noexcept
+	{
+		return m_locker.tryLock();
+	}
+
+
 	SLIB_DEFINE_ROOT_OBJECT(Object)
 	
-	Object::Object() noexcept
-	 : m_properties(sl_null)
+	Object::Object() noexcept: m_properties(sl_null)
 	{
 	}
 
@@ -43,39 +73,19 @@ namespace slib
 		}
 	}
 
-	Mutex* Object::getLocker() const noexcept
+	Variant Object::getProperty(const StringParam& name) const
 	{
-		return const_cast<Mutex*>(&m_locker);
-	}
-
-	void Object::lock() const noexcept
-	{
-		m_locker.lock();
-	}
-
-	void Object::unlock() const noexcept
-	{
-		m_locker.unlock();
-	}
-
-	sl_bool Object::tryLock() const noexcept
-	{
-		return m_locker.tryLock();
-	}
-	
-	Variant Object::getProperty(const String& name) noexcept
-	{
-		SpinLocker lock(m_locker.getSpinLock());
+		ObjectLocker lock(this);
 		if (m_properties) {
 			CHashMap<String, Variant>* map = static_cast<CHashMap<String, Variant>*>(m_properties);
-			return map->getValue_NoLock(name);
+			return map->getValue_NoLock(name.toString());
 		}
-		return Variant::null();
+		return Variant();
 	}
 	
-	void Object::setProperty(const String& name, const Variant& value) noexcept
+	sl_bool Object::setProperty(const StringParam& name, const Variant& value)
 	{
-		SpinLocker lock(m_locker.getSpinLock());
+		ObjectLocker lock(this);
 		CHashMap<String, Variant>* map;
 		if (m_properties) {
 			map = static_cast<CHashMap<String, Variant>*>(m_properties);
@@ -84,18 +94,115 @@ namespace slib
 			if (map) {
 				m_properties = map;
 			} else {
-				return;
+				return sl_false;
 			}
 		}
-		map->put_NoLock(name, value);
+		return map->put_NoLock(name.toString(), value) != sl_null;
 	}
 	
-	void Object::clearProperty(const String& name) noexcept
+	sl_bool Object::clearProperty(const StringParam& name)
 	{
-		SpinLocker lock(m_locker.getSpinLock());
+		ObjectLocker lock(this);
 		if (m_properties) {
 			CHashMap<String, Variant>* map = static_cast<CHashMap<String, Variant>*>(m_properties);
-			map->remove_NoLock(name);
+			return map->remove_NoLock(name.toString());
+		}
+		return sl_false;
+	}
+	
+	sl_bool Object::enumerateProperties(const Function<sl_bool(const StringParam& name, const Variant& value)>& callback) const
+	{
+		ObjectLocker lock(this);
+		if (m_properties) {
+			CHashMap<String, Variant>* map = static_cast<CHashMap<String, Variant>*>(m_properties);
+			auto node = map->getFirstNode();
+			while (node) {
+				if (callback(node->key, node->value)) {
+					node = node->getNext();
+				} else {
+					return sl_false;
+				}
+			}
+		}
+		return sl_true;
+	}
+
+	List<String> Object::getPropertyNames() const
+	{
+		List<String> ret;
+		enumerateProperties([&ret](const StringParam& name, const Variant& value) {
+			ret.add_NoLock(name.toString());
+			return sl_true;
+		});
+		return ret;
+	}
+
+	sl_bool Object::toJsonString(StringBuffer& buf)
+	{
+		ObjectLocker lock(this);
+		if (m_properties) {
+			CHashMap<String, Variant>* map = static_cast<CHashMap<String, Variant>*>(m_properties);
+			if (!(buf.addStatic("{"))) {
+				return sl_false;
+			}
+			sl_bool flagFirst = sl_true;
+			auto node = map->getFirstNode();
+			while (node) {
+				Variant& v = node->value;
+				if (v.isNotUndefined()) {
+					if (!flagFirst) {
+						if (!(buf.addStatic(", "))) {
+							return sl_false;
+						}
+					}
+					if (!(buf.add(ParseUtil::applyBackslashEscapes(node->key)))) {
+						return sl_false;
+					}
+					if (!(buf.addStatic(": "))) {
+						return sl_false;
+					}
+					if (!(v.toJsonString(buf))) {
+						return sl_false;
+					}
+					flagFirst = sl_false;
+				}
+				node = node->getNext();
+			}
+			if (!(buf.addStatic("}"))) {
+				return sl_false;
+			}
+			return sl_true;
+		} else {
+			if (!(buf.addStatic("{"))) {
+				return sl_false;
+			}
+			sl_bool flagFirst = sl_true;
+			if (!(enumerateProperties([&buf, &flagFirst](const StringParam& name, const Variant& v) {
+				if (v.isNotUndefined()) {
+					if (!flagFirst) {
+						if (!(buf.addStatic(", "))) {
+							return sl_false;
+						}
+					}
+					if (!(buf.add(ParseUtil::applyBackslashEscapes(name)))) {
+						return sl_false;
+					}
+					if (!(buf.addStatic(": "))) {
+						return sl_false;
+					}
+					if (!(v.toJsonString(buf))) {
+						return sl_false;
+					}
+					flagFirst = sl_false;
+				}
+				return sl_true;
+			}))) {
+				return sl_false;
+			}
+			if (!(buf.addStatic("}"))) {
+				return sl_false;
+			}
+			return sl_true;
 		}
 	}
 
@@ -104,8 +211,7 @@ namespace slib
 	{
 	}
 
-	ObjectLocker::ObjectLocker(const Object* object) noexcept
-	 : MutexLocker(object ? object->getLocker(): sl_null)
+	ObjectLocker::ObjectLocker(const Lockable* object) noexcept: MutexLocker(object ? object->getLocker(): sl_null)
 	{
 	}
 
@@ -113,7 +219,7 @@ namespace slib
 	{
 	}
 
-	void ObjectLocker::lock(const Object* object) noexcept
+	void ObjectLocker::lock(const Lockable* object) noexcept
 	{
 		if (object) {
 			MutexLocker::lock(object->getLocker());
@@ -125,13 +231,11 @@ namespace slib
 	{
 	}
 	
-	MultipleObjectsLocker::MultipleObjectsLocker(const Object* object) noexcept
-	 : MultipleMutexLocker(object ? object->getLocker(): sl_null)
+	MultipleObjectsLocker::MultipleObjectsLocker(const Lockable* object) noexcept: MultipleMutexLocker(object ? object->getLocker(): sl_null)
 	{
 	}
 	
-	MultipleObjectsLocker::MultipleObjectsLocker(const Object* object1, const Object* object2) noexcept
-	 : MultipleMutexLocker(object1 ? object1->getLocker() : sl_null, object2 ? object2->getLocker() : sl_null)
+	MultipleObjectsLocker::MultipleObjectsLocker(const Lockable* object1, const Lockable* object2) noexcept: MultipleMutexLocker(object1 ? object1->getLocker() : sl_null, object2 ? object2->getLocker() : sl_null)
 	{
 	}
 	
@@ -139,14 +243,14 @@ namespace slib
 	{
 	}
 	
-	void MultipleObjectsLocker::lock(const Object* object) noexcept
+	void MultipleObjectsLocker::lock(const Lockable* object) noexcept
 	{
 		if (object) {
 			MultipleMutexLocker::lock(object->getLocker());
 		}
 	}
 	
-	void MultipleObjectsLocker::lock(const Object* object1, const Object* object2) noexcept
+	void MultipleObjectsLocker::lock(const Lockable* object1, const Lockable* object2) noexcept
 	{
 		if (object1) {
 			if (object2) {

@@ -23,8 +23,9 @@
 #include "slib/core/xml.h"
 
 #include "slib/core/file.h"
-#include "slib/core/log.h"
 #include "slib/core/string_buffer.h"
+#include "slib/core/parse_util.h"
+#include "slib/core/log.h"
 
 namespace slib
 {
@@ -1338,13 +1339,13 @@ namespace slib
 		m_comment = String::from(comment);
 	}
 
-	
+
 	SLIB_DEFINE_OBJECT(XmlWhiteSpace, XmlNode)
 
 	XmlWhiteSpace::XmlWhiteSpace() : XmlNode(XmlNodeType::WhiteSpace)
 	{
 	}
-	
+
 	XmlWhiteSpace::~XmlWhiteSpace()
 	{
 	}
@@ -1460,7 +1461,6 @@ namespace slib
 			class XmlParser
 			{
 			public:
-				String sourceFilePath;
 				const CT* buf;
 				sl_size len;
 				sl_size pos;
@@ -1479,6 +1479,7 @@ namespace slib
 			public:
 				XmlParser();
 				
+			public:
 				void escapeWhiteSpaces();
 				
 				void calcLineNumber();
@@ -1507,7 +1508,7 @@ namespace slib
 				
 				void parseXml();
 				
-				static Ref<XmlDocument> parseXml(const StringParam& sourceFilePath, const CT* buf, sl_size len, XmlParseParam& param);
+				static Ref<XmlDocument> parseXml(const CT* buf, sl_size len, XmlParseParam& param);
 				
 			};
 
@@ -1662,7 +1663,7 @@ namespace slib
 							REPORT_ERROR(g_strError_memory_lack)
 						}
 						calcLineNumber();
-						node->setSourceFilePath(sourceFilePath);
+						node->setSourceFilePath(param.sourceFilePath);
 						node->setStartPositionInSource(posStart);
 						node->setEndPositionInSource(posEnd);
 						node->setLineNumberInSource(lineNumber);
@@ -1800,7 +1801,7 @@ namespace slib
 									if (comment.isNull()) {
 										REPORT_ERROR(g_strError_memory_lack)
 									}
-									comment->setSourceFilePath(sourceFilePath);
+									comment->setSourceFilePath(param.sourceFilePath);
 									comment->setStartPositionInSource(startComment);
 									comment->setEndPositionInSource(pos + 3);
 									comment->setLineNumberInSource(startLine);
@@ -1848,7 +1849,7 @@ namespace slib
 								if (text.isNull()) {
 									REPORT_ERROR(g_strError_memory_lack)
 								}
-								text->setSourceFilePath(sourceFilePath);
+								text->setSourceFilePath(param.sourceFilePath);
 								text->setStartPositionInSource(startCDATA);
 								text->setEndPositionInSource(pos + 3);
 								text->setLineNumberInSource(startLine);
@@ -1910,7 +1911,7 @@ namespace slib
 								if (PI.isNull()) {
 									REPORT_ERROR(g_strError_memory_lack)
 								}
-								PI->setSourceFilePath(sourceFilePath);
+								PI->setSourceFilePath(param.sourceFilePath);
 								PI->setStartPositionInSource(startPI);
 								PI->setEndPositionInSource(pos + 2);
 								PI->setLineNumberInSource(startLine);
@@ -2181,7 +2182,7 @@ namespace slib
 					pos++;
 				}
 				
-				element->setSourceFilePath(sourceFilePath);
+				element->setSourceFilePath(param.sourceFilePath);
 				element->setStartPositionInSource(posNameStart);
 				element->setLineNumberInSource(startLine);
 				element->setColumnNumberInSource(startColumn);
@@ -2315,7 +2316,7 @@ namespace slib
 							if (node.isNull()) {
 								REPORT_ERROR(g_strError_memory_lack)
 							}
-							node->setSourceFilePath(sourceFilePath);
+							node->setSourceFilePath(param.sourceFilePath);
 							node->setStartPositionInSource(startText);
 							node->setEndPositionInSource(pos);
 							node->setLineNumberInSource(startLine);
@@ -2403,12 +2404,11 @@ namespace slib
 			}
 
 			template <class ST, class CT, class BT>
-			Ref<XmlDocument> XmlParser<ST, CT, BT>::parseXml(const StringParam& sourceFilePath, const CT* buf, sl_size len, XmlParseParam& param)
+			Ref<XmlDocument> XmlParser<ST, CT, BT>::parseXml(const CT* buf, sl_size len, XmlParseParam& param)
 			{
 				param.flagError = sl_false;
 				
 				XmlParser<ST, CT, BT> parser;
-				parser.sourceFilePath = sourceFilePath.toString();
 				parser.buf = buf;
 				parser.len = len;
 				
@@ -2436,7 +2436,7 @@ namespace slib
 				param.flagError = sl_true;
 				param.errorPosition = parser.pos;
 				param.errorMessage = parser.errorMessage;
-				param.errorLine = ParseUtil::countLineNumber(StringParam(buf, len), parser.pos, &(param.errorColumn));
+				param.errorLine = ParseUtil::countLineNumber(StringParam(buf, parser.pos), &(param.errorColumn));
 				
 				if (param.flagLogError) {
 					LogError("Xml", param.getErrorText());
@@ -2451,7 +2451,7 @@ namespace slib
 
 	Ref<XmlDocument> Xml::parseXml(const sl_char8* sz, sl_size len, XmlParseParam& param)
 	{
-		return priv::xml::XmlParser<String, sl_char8, StringBuffer>::parseXml(String::null(), sz, len, param);
+		return priv::xml::XmlParser<String, sl_char8, StringBuffer>::parseXml(sz, len, param);
 	}
 
 	Ref<XmlDocument> Xml::parseXml(const sl_char8* sz, sl_size len)
@@ -2462,7 +2462,7 @@ namespace slib
 
 	Ref<XmlDocument> Xml::parseXml(const sl_char16* sz, sl_size len, XmlParseParam& param)
 	{
-		return priv::xml::XmlParser<String16, sl_char16, StringBuffer16>::parseXml(String::null(), sz, len, param);
+		return priv::xml::XmlParser<String16, sl_char16, StringBuffer16>::parseXml(sz, len, param);
 	}
 
 	Ref<XmlDocument> Xml::parseXml(const sl_char16* sz, sl_size len)
@@ -2478,10 +2478,10 @@ namespace slib
 		}
 		if (_xml.is16()) {
 			StringData16 xml(_xml);
-			return priv::xml::XmlParser<String16, sl_char16, StringBuffer16>::parseXml(String::null(), xml.getData(), xml.getLength(), param);
+			return priv::xml::XmlParser<String16, sl_char16, StringBuffer16>::parseXml(xml.getData(), xml.getLength(), param);
 		} else {
 			StringData xml(_xml);
-			return priv::xml::XmlParser<String, sl_char8, StringBuffer>::parseXml(String::null(), xml.getData(), xml.getLength(), param);
+			return priv::xml::XmlParser<String, sl_char8, StringBuffer>::parseXml(xml.getData(), xml.getLength(), param);
 		}
 	}
 
@@ -2494,7 +2494,10 @@ namespace slib
 	Ref<XmlDocument> Xml::parseXmlFromTextFile(const StringParam& filePath, XmlParseParam& param)
 	{
 		String16 xml = File::readAllText16(filePath);
-		return priv::xml::XmlParser<String16, sl_char16, StringBuffer16>::parseXml(filePath, xml.getData(), xml.getLength(), param);
+		if (param.sourceFilePath.isNull()) {
+			param.sourceFilePath = filePath.toString();
+		}
+		return priv::xml::XmlParser<String16, sl_char16, StringBuffer16>::parseXml(xml.getData(), xml.getLength(), param);
 	}
 
 	Ref<XmlDocument> Xml::parseXmlFromTextFile(const StringParam& filePath)

@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
@@ -34,6 +34,16 @@
 namespace slib
 {
 
+	namespace priv
+	{
+		namespace graphics_platform_win32
+		{
+			ULONG_PTR g_tokenGdiplus = 0;
+		}
+	}
+
+	using namespace priv::graphics_platform_win32;
+
 	void GraphicsPlatform::startGdiplus()
 	{
 		static sl_bool flagStarted = sl_false;
@@ -45,9 +55,13 @@ namespace slib
 			return;
 		}
 		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-		ULONG_PTR gdiplusToken;
-		GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+		GdiplusStartup(&g_tokenGdiplus, &gdiplusStartupInput, NULL);
 		flagStarted = sl_true;
+	}
+
+	void GraphicsPlatform::shutdownGdiplus()
+	{
+		Gdiplus::GdiplusShutdown(g_tokenGdiplus);
 	}
 
 	COLORREF GraphicsPlatform::getColorRef(const Color& color)
@@ -124,7 +138,7 @@ namespace slib
 			sl_uint32 maskWidth = BitmapData::calculatePitchAlign4(width, 1);
 			sl_uint32 size = maskWidth * height;
 			SLIB_SCOPED_BUFFER(sl_uint8, 4096, bits, size);
-			Base::resetMemory(bits, 0xFF, size);
+			Base::resetMemory(bits, size, 0xFF);
 			HBITMAP mask = CreateBitmap(width, height, 1, 1, bits);
 			if (mask) {
 				ICONINFO info;

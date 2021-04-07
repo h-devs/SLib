@@ -26,12 +26,17 @@
 #include "definition.h"
 
 #include "../core/object.h"
-#include "../core/list.h"
-
-#define SLIB_MAX_RENDER_ENGINE_COUNT_PER_OBJECT 4
+#include "../core/flags.h"
 
 namespace slib
 {
+
+	SLIB_DEFINE_FLAGS(RenderObjectFlags, {
+		StaticDraw = 1, // OpenGL
+
+		CpuAccessRead = 0x10000,
+		CpuAccessWrite = 0x20000
+	})
 
 	class RenderEngine;
 	class RenderBaseObject;
@@ -46,31 +51,25 @@ namespace slib
 		~RenderBaseObjectInstance();
 		
 	public:
-		void link(const Ref<RenderEngine>& engine, const Ref<RenderBaseObject>& object);
-		
-		Ref<RenderBaseObject> getObject();
+		void link(RenderEngine* engine, RenderBaseObject* object);
 		
 		Ref<RenderEngine> getEngine();
-		
+
 	protected:
 		virtual void onUpdate(RenderBaseObject* object);
-		
+
 	public:
-		// should be called by only engine internally
-		void _update(RenderBaseObject* object);
-		
-		sl_bool _isUpdated();
+		void doUpdate(RenderBaseObject* object);
+
+		sl_bool isUpdated();
 		
 	protected:
-		AtomicWeakRef<RenderBaseObject> m_object;
-		AtomicWeakRef<RenderEngine> m_engine;
-		
+		WeakRef<RenderEngine> m_engine;
 		sl_bool m_flagUpdated;
 		
 		friend class RenderBaseObject;
-		
 	};
-	
+
 	class SLIB_EXPORT RenderBaseObject : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -81,17 +80,17 @@ namespace slib
 		~RenderBaseObject();
 		
 	public:
-		void addInstance(const Ref<RenderBaseObjectInstance>& instance);
-		
-		void removeInstance(const Ref<RenderBaseObjectInstance>& instance);
-		
-		void removeAllInstances();
-		
 		Ref<RenderBaseObjectInstance> getInstance(RenderEngine* engine);
-		
+
+		RenderObjectFlags getFlags();
+
+		void setFlags(const RenderObjectFlags& flags);
+
 	protected:
-		AtomicRef<RenderBaseObjectInstance> m_instances[SLIB_MAX_RENDER_ENGINE_COUNT_PER_OBJECT];
-		
+		AtomicRef<RenderBaseObjectInstance> m_instance;
+		RenderObjectFlags m_flags;
+
+		friend class RenderBaseObjectInstance;
 	};
 
 }

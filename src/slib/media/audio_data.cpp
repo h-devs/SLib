@@ -23,6 +23,7 @@
 #include "slib/media/audio_data.h"
 
 #include "slib/media/audio_util.h"
+#include "slib/core/base.h"
 #include "slib/core/endian.h"
 
 namespace slib
@@ -213,7 +214,7 @@ namespace slib
 			};
 
 			template <class IN_PROC, class IN_TYPE, class OUT_PROC, class OUT_TYPE>
-			void CopySamples_Step2(sl_size count, AudioFormat format_in, sl_uint8* data_in, sl_uint8* data_in1, AudioFormat format_out, sl_uint8* data_out, sl_uint8* data_out1)
+			static void CopySamples_Step2(sl_size count, AudioFormat format_in, sl_uint8* data_in, sl_uint8* data_in1, AudioFormat format_out, sl_uint8* data_out, sl_uint8* data_out1)
 			{
 				IN_TYPE _in;
 				IN_TYPE _in1;
@@ -312,7 +313,7 @@ namespace slib
 
 
 			template<class IN_PROC, class IN_TYPE>
-			void CopySamples_Step1(sl_size count, AudioFormat format_in, sl_uint8* data_in, sl_uint8* data_in1, AudioFormat format_out, sl_uint8* data_out, sl_uint8* data_out1)
+			static void CopySamples_Step1(sl_size count, AudioFormat format_in, sl_uint8* data_in, sl_uint8* data_in1, AudioFormat format_out, sl_uint8* data_out, sl_uint8* data_out1)
 			{
 				switch (AudioFormatHelper::getSampleType(format_out)) {
 					case AudioSampleType::Int8:
@@ -364,7 +365,7 @@ namespace slib
 			}
 
 
-			void CopySamples(sl_size count, AudioFormat format_in, sl_uint8* data_in, sl_uint8* data_in1, AudioFormat format_out, sl_uint8* data_out, sl_uint8* data_out1)
+			static void CopySamples(sl_size count, AudioFormat format_in, sl_uint8* data_in, sl_uint8* data_in1, AudioFormat format_out, sl_uint8* data_out, sl_uint8* data_out1)
 			{
 				switch (AudioFormatHelper::getSampleType(format_in)) {
 					case AudioSampleType::Int8:
@@ -436,16 +437,16 @@ namespace slib
 			return;
 		}
 		
-		sl_uint8* data_in = (sl_uint8*)data;
-		sl_uint8* data_in1 = (sl_uint8*)data1;
-		if (AudioFormatHelper::isNonInterleaved(format) && !data_in1) {
-			data_in1 = data_in + getSizeForChannel();
+		sl_uint8* data_out = (sl_uint8*)data;
+		sl_uint8* data_out1 = (sl_uint8*)data1;
+		if (AudioFormatHelper::isNonInterleaved(format) && !data_out1) {
+			data_out1 = data_out + getSizeForChannel();
 		}
 		
-		sl_uint8* data_out = (sl_uint8*)(other.data);
-		sl_uint8* data_out1 = (sl_uint8*)(other.data1);
-		if (AudioFormatHelper::isNonInterleaved(other.format) && !data_out1) {
-			data_out1 = data_out + other.getSizeForChannel();
+		sl_uint8* data_in = (sl_uint8*)(other.data);
+		sl_uint8* data_in1 = (sl_uint8*)(other.data1);
+		if (AudioFormatHelper::isNonInterleaved(other.format) && !data_in1) {
+			data_in1 = data_in + other.getSizeForChannel();
 		}
 		
 		if (format == other.format) {
@@ -460,7 +461,7 @@ namespace slib
 			return;
 		}
 		
-		priv::audio_data::CopySamples(countSamples, format, data_in, data_in1, other.format, data_out, data_out1);
+		priv::audio_data::CopySamples(countSamples, other.format, data_in, data_in1, format, data_out, data_out1);
 	}
 
 	void AudioData::copySamplesFrom(const AudioData& other) const

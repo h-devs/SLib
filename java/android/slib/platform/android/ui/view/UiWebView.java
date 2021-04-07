@@ -107,7 +107,7 @@ public class UiWebView extends WebView implements IView {
 			if (view instanceof WebView) {
 				WebView wv = (WebView)view;
 				return wv.getUrl();
-			}	
+			}
 		} catch (Exception e) {
 			Logger.exception(e);
 		}
@@ -119,7 +119,7 @@ public class UiWebView extends WebView implements IView {
 			if (view instanceof WebView) {
 				WebView wv = (WebView)view;
 				return wv.getTitle();
-			}	
+			}
 		} catch (Exception e) {
 			Logger.exception(e);
 		}

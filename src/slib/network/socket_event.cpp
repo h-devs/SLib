@@ -21,10 +21,12 @@
  */
 
 #include "slib/network/event.h"
+
 #include "slib/core/thread.h"
 
 namespace slib
 {
+
 	SLIB_DEFINE_OBJECT(SocketEvent, Event)
 	
 	SocketEvent::SocketEvent()

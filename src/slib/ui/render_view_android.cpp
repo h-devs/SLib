@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_ANDROID)
 
@@ -65,6 +65,14 @@ namespace slib
 				Ref<RenderEngine> m_renderEngine;
 
 			public:
+				void initialize(View* _view) override
+				{
+					RenderView* view = (RenderView*)_view;
+					jobject jhandle = getHandle();
+					
+					JGLView::setRenderMode.callBoolean(sl_null, jhandle, view->getRedrawMode());
+				}
+			
 				void setRedrawMode(RenderView* view, RedrawMode mode) override
 				{
 					jobject handle = m_handle.get();
@@ -132,16 +140,8 @@ namespace slib
 	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* _parent)
 	{
 		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
-		if (parent) {
-			JniLocal<jobject> handle = JGLView::create.callObject(sl_null, parent->getContext());
-			Ref<RenderViewInstance> ret = Android_ViewInstance::create<RenderViewInstance>(this, parent, handle.get());
-			if (ret.isNotNull()) {
-				jobject jhandle = ret->getHandle();
-				JGLView::setRenderMode.callBoolean(sl_null, jhandle, m_redrawMode);
-				return ret;
-			}
-		}
-		return sl_null;
+		JniLocal<jobject> handle = JGLView::create.callObject(sl_null, parent->getContext());
+		return Android_ViewInstance::create<RenderViewInstance>(this, parent, handle.get());
 	}
 
 	Ptr<IRenderViewInstance> RenderView::getRenderViewInstance()

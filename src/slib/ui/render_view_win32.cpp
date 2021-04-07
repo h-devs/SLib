@@ -20,13 +20,14 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 
 #include "slib/ui/render_view.h"
 
 #include "slib/render/opengl.h"
+#include "slib/render/d3d.h"
 
 #include "view_win32.h"
 
@@ -54,10 +55,7 @@ namespace slib
 
 				~RenderViewInstance()
 				{
-					Ref<Renderer> renderer = m_renderer;
-					if (renderer.isNotNull()) {
-						renderer->release();
-					}
+					release();
 				}
 
 			public:
@@ -77,6 +75,21 @@ namespace slib
 					}
 				}
 
+				sl_bool isRenderEnabled(RenderView* view) override
+				{
+					return m_renderer.isNotNull();
+				}
+
+				void disableRendering(RenderView* view) override
+				{
+					release();
+				}
+
+				sl_bool isDrawingEnabled(View* view) override
+				{
+					return m_renderer.isNull();
+				}
+
 				void setRenderer(const Ref<Renderer>& renderer, RedrawMode redrawMode)
 				{
 					m_renderer = renderer;
@@ -88,14 +101,14 @@ namespace slib
 				LRESULT processWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
 				{
 					if (msg == WM_PAINT) {
-						PAINTSTRUCT ps;
-						BeginPaint(m_handle, &ps);
-						EndPaint(m_handle, &ps);
 						Ref<Renderer> renderer = m_renderer;
 						if (renderer.isNotNull()) {
+							PAINTSTRUCT ps;
+							BeginPaint(m_handle, &ps);
+							EndPaint(m_handle, &ps);
 							renderer->requestRender();
+							return 0;
 						}
-						return 0;
 					} else if (msg == WM_ERASEBKGND) {
 						return TRUE;
 					}
@@ -113,6 +126,17 @@ namespace slib
 						m_pLastEngine = engine;
 					}
 				}
+
+				void release()
+				{
+					ObjectLocker lock(this);
+					Ref<Renderer> renderer = m_renderer;
+					if (renderer.isNotNull()) {
+						renderer->release();
+						m_renderer.setNull();
+					}
+				}
+
 			};
 
 			SLIB_DEFINE_OBJECT(RenderViewInstance, Win32_ViewInstance)
@@ -131,28 +155,35 @@ namespace slib
 		Ref<RenderViewInstance> ret = Win32_ViewInstance::create<RenderViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
 		if (ret.isNotNull()) {
 			RenderEngineType engineType = getPreferredEngineType();
-			if (engineType == RenderEngineType::OpenGL_ES) {
-				EGL::loadEntries();
-				GLES::loadEntries();
-				if (!(EGL::isAvailable() && GLES::isAvailable())) {
-					engineType = RenderEngineType::OpenGL;
+			if (SLIB_RENDER_CHECK_ENGINE_TYPE(engineType, GL)) {
+				if (SLIB_RENDER_CHECK_ENGINE_TYPE(engineType, OpenGL_ES)) {
+					EGL::loadEntries();
+					GLES::loadEntries();
+					if (!(EGL::isAvailable() && GLES::isAvailable())) {
+						engineType = RenderEngineType::OpenGL;
+					}
 				}
-			} else if (engineType == RenderEngineType::OpenGL) {
-			} else {
-				engineType = RenderEngineType::OpenGL;
-			}
-			if (engineType == RenderEngineType::OpenGL_ES) {
+				if (SLIB_RENDER_CHECK_ENGINE_TYPE(engineType, OpenGL_ES)) {
+					RendererParam rp;
+					rp.onFrame = SLIB_FUNCTION_WEAKREF(RenderViewInstance, onFrame, ret);
+					Ref<Renderer> renderer = EGL::createRenderer((void*)(ret->getHandle()), rp);
+					if (renderer.isNotNull()) {
+						ret->setRenderer(renderer, m_redrawMode);
+						return ret;
+					}
+				} else {
+					RendererParam rp;
+					rp.onFrame = SLIB_FUNCTION_WEAKREF(RenderViewInstance, onFrame, ret);
+					Ref<Renderer> renderer = WGL::createRenderer((void*)(ret->getHandle()), rp);
+					if (renderer.isNotNull()) {
+						ret->setRenderer(renderer, m_redrawMode);
+						return ret;
+					}
+				}
+			} else if (SLIB_RENDER_CHECK_ENGINE_TYPE(engineType, D3D)) {
 				RendererParam rp;
 				rp.onFrame = SLIB_FUNCTION_WEAKREF(RenderViewInstance, onFrame, ret);
-				Ref<Renderer> renderer = EGL::createRenderer((void*)(ret->getHandle()), rp);
-				if (renderer.isNotNull()) {
-					ret->setRenderer(renderer, m_redrawMode);
-					return ret;
-				}
-			} else if (engineType == RenderEngineType::OpenGL) {
-				RendererParam rp;
-				rp.onFrame = SLIB_FUNCTION_WEAKREF(RenderViewInstance, onFrame, ret);
-				Ref<Renderer> renderer = WGL::createRenderer((void*)(ret->getHandle()), rp);
+				Ref<Renderer> renderer = Direct3D::createRenderer(engineType, (void*)(ret->getHandle()), rp);
 				if (renderer.isNotNull()) {
 					ret->setRenderer(renderer, m_redrawMode);
 					return ret;

@@ -22,8 +22,6 @@
 
 #include "app.h"
 
-SLIB_DEFINE_APPLICATION(ExampleChromiumViewApp, MobileApp)
-
 ExampleChromiumViewApp::ExampleChromiumViewApp()
 {
 }
@@ -48,13 +46,13 @@ void ExampleChromiumViewApp::onStart()
 
 	m_webView->loadURL("https://bing.com");
 
-	Ref<LinearView> linear = new LinearView;
+	Ref<LinearLayout> linear = new LinearLayout;
 	linear->setBackgroundColor(Color::White);
 	linear->setWidthFilling();
 	linear->setHeightFilling();
 	linear->addChild(m_webView);
 	
-	Ref<LinearView> linear2 = new HorizontalLinearView;
+	Ref<LinearLayout> linear2 = new HorizontalLinearLayout;
 	linear2->setPadding((sl_ui_pos)fontSize/2);
 	linear2->setWidthWrapping();
 	linear2->setHeightWrapping();

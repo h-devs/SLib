@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_IOS)
 
@@ -71,10 +71,10 @@ namespace slib
 
 	Ref<FCM> FCM::getInstance()
 	{
-		SLIB_SAFE_STATIC(Mutex, lock)
+		SLIB_SAFE_LOCAL_STATIC(Mutex, lock)
 		MutexLocker locker(&lock);
 		
-		SLIB_STATIC_ZERO_INITIALIZED(Ref<FCM>, instance);
+		SLIB_LOCAL_STATIC_ZERO_INITIALIZED(Ref<FCM>, instance);
 		if (instance.isNotNull()) {
 			return instance;
 		}

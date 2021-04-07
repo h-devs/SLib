@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_MACOS)
 
@@ -47,7 +47,7 @@ namespace slib
 		namespace ui_core
 		{
 		
-			SLIB_STATIC_ZERO_INITIALIZED(AtomicFunction<void(NSNotification*)>, g_callbackDidFinishLaunching);
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSNotification*)>, g_callbackDidFinishLaunching);
 
 			class ScreenImpl : public Screen
 			{
@@ -320,29 +320,24 @@ namespace slib
 						if ([NSApp sendAction:NSSelectorFromString(@"cut:") to:nil from:NSApp]) {
 							return (NSEvent*)nil;
 						}
-					}
-					else if ([key isEqualToString:@"c"]) {
+					} else if ([key isEqualToString:@"c"]) {
 						if ([NSApp sendAction:NSSelectorFromString(@"copy:") to:nil from:NSApp]) {
 							return (NSEvent*)nil;
 						}
-					}
-					else if ([key isEqualToString:@"v"]) {
+					} else if ([key isEqualToString:@"v"]) {
 						if ([NSApp sendAction:NSSelectorFromString(@"paste:") to:nil from:NSApp]) {
 							return (NSEvent*)nil;
 						}
-					}
-					else if ([key isEqualToString:@"z"]) {
+					} else if ([key isEqualToString:@"z"]) {
 						if ([NSApp sendAction:NSSelectorFromString(@"undo:") to:nil from:NSApp]) {
 							return (NSEvent*)nil;
 						}
-					}
-					else if ([key isEqualToString:@"a"]) {
+					} else if ([key isEqualToString:@"a"]) {
 						if ([NSApp sendAction:NSSelectorFromString(@"selectAll:") to:nil from:NSApp]) {
 							return (NSEvent*)nil;
 						}
 					}
-				}
-				else if (modifiers == (NSCommandKeyMask | NSShiftKeyMask)) {
+				} else if (modifiers == (NSCommandKeyMask | NSShiftKeyMask)) {
 					if ([key isEqualToString:@"Z"]) {
 						if ([NSApp sendAction:NSSelectorFromString(@"redo:") to:nil from:NSApp]) {
 							return (NSEvent*)nil;
@@ -387,11 +382,11 @@ namespace slib
 		g_callbackDidFinishLaunching.add(callback);
 	}
 
-	void UIApp::onExistingInstance()
+	sl_int32 UIApp::onExistingInstance()
 	{
 		String uid = getUniqueInstanceId();
 		if (uid.isEmpty()) {
-			return;
+			return -1;
 		}
 		NSArray* arr = [NSRunningApplication runningApplicationsWithBundleIdentifier:[[NSBundle mainBundle] bundleIdentifier]];
 		if (arr.count > 0) {
@@ -401,8 +396,10 @@ namespace slib
 			} else {
 				[[NSWorkspace sharedWorkspace] launchApplication:app.bundleURL.path];
 			}
+			return 0;
 		} else {
 			NSLog(@"Running application is not found! bundleId=%@", [[NSBundle mainBundle] bundleIdentifier]);
+			return -1;
 		}
 	}
 

@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#include "slib/graphics/definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_ANDROID)
 
@@ -134,7 +134,7 @@ namespace slib
 	Size Font::_measureText_PO(const StringParam& text)
 	{
 		jobject font = GraphicsPlatform::getNativeFont(this);
-		if (font) {	
+		if (font) {
 			JniLocal<jstring> jtext = Jni::getJniString(text);
 			JniLocal<jobject> size = JFont::measureText.callObject(font, jtext.get());
 			Size ret;

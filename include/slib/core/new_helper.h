@@ -23,9 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_NEW_HELPER
 #define CHECKHEADER_SLIB_CORE_NEW_HELPER
 
-#include "definition.h"
-
-#include "base.h"
 #include "array_traits.h"
 
 #include <new>
@@ -37,7 +34,7 @@ namespace slib
 	class NewHelper
 	{
 	public:
-		SLIB_INLINE static T* create() noexcept
+		static T* create() noexcept
 		{
 			T* data = (T*)(Base::createMemory(sizeof(T)));
 			if (data) {
@@ -46,7 +43,7 @@ namespace slib
 			return data;
 		}
 
-		SLIB_INLINE static T* create(sl_size count) noexcept
+		static T* create(sl_size count) noexcept
 		{
 			T* data = (T*)(Base::createMemory(sizeof(T)*count));
 			if (data) {
@@ -56,7 +53,7 @@ namespace slib
 		}
 
 		template <class TYPE>
-		SLIB_INLINE static T* create(const TYPE* other, sl_size count) noexcept
+		static T* create(const TYPE* other, sl_size count) noexcept
 		{
 			T* data = (T*)(Base::createMemory(sizeof(T)*count));
 			if (data) {
@@ -65,7 +62,7 @@ namespace slib
 			return data;
 		}
 
-		SLIB_INLINE static void free(T* data) noexcept
+		static void free(T* data) noexcept
 		{
 			if (data) {
 				data->~T();
@@ -73,7 +70,7 @@ namespace slib
 			}
 		}
 
-		SLIB_INLINE static void free(T* data, sl_size count) noexcept
+		static void free(T* data, sl_size count) noexcept
 		{
 			if (data) {
 				ArrayTraits<T>::free(data, count);

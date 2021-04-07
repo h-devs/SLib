@@ -23,7 +23,7 @@
 #include "slib/ui/line_view.h"
 
 #include "slib/ui/core.h"
-
+#include "slib/graphics/canvas.h"
 #include "slib/core/safe_static.h"
 
 namespace slib

@@ -58,7 +58,9 @@ Result::Result(DecoderResult&& decodeResult, std::vector<ResultPoint>&& resultPo
 void
 Result::addResultPoints(const std::vector<ResultPoint>& points)
 {
-	_resultPoints.insert(resultPoints().end(), points.begin(), points.end());
+	for (auto& pt : points) {
+		_resultPoints.push_back(pt);
+	}
 }
 
 } // ZXing
