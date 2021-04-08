@@ -146,17 +146,17 @@ typedef char32_t			sl_char32;
 #define SLIB_INT64_MIN		SLIB_INT64(-0x8000000000000000)
 
 #ifdef SLIB_ARCH_IS_64BIT
-#define SLIB_SIZE_MAX		SLIB_UINT64_MAX
-#define SLIB_SIZE_TEST_SIGN_BIT SLIB_UINT64(0x8000000000000000)
-#define SLIB_SIZE_MASK_NO_SIGN_BITS SLIB_UINT64(0x7FFFFFFFFFFFFFFF)
-#define SLIB_REG_MAX		SLIB_INT64_MAX
-#define SLIB_REG_MIN		SLIB_INT64_MIN
+#   define SLIB_SIZE_MAX		SLIB_UINT64_MAX
+#   define SLIB_SIZE_TEST_SIGN_BIT SLIB_UINT64(0x8000000000000000)
+#   define SLIB_SIZE_MASK_NO_SIGN_BITS SLIB_UINT64(0x7FFFFFFFFFFFFFFF)
+#   define SLIB_REG_MAX		SLIB_INT64_MAX
+#   define SLIB_REG_MIN		SLIB_INT64_MIN
 #else
-#define SLIB_SIZE_MAX		SLIB_UINT32_MAX
-#define SLIB_SIZE_TEST_SIGN_BIT 0x80000000
-#define SLIB_SIZE_MASK_NO_SIGN_BITS 0x7FFFFFFF
-#define SLIB_REG_MAX		SLIB_INT32_MAX
-#define SLIB_REG_MIN		SLIB_INT32_MIN
+#   define SLIB_SIZE_MAX		SLIB_UINT32_MAX
+#   define SLIB_SIZE_TEST_SIGN_BIT 0x80000000
+#   define SLIB_SIZE_MASK_NO_SIGN_BITS 0x7FFFFFFF
+#   define SLIB_REG_MAX		SLIB_INT32_MAX
+#   define SLIB_REG_MIN		SLIB_INT32_MIN
 #endif
 
 #define SLIB_UNUSED(x) (void)x;
@@ -196,6 +196,16 @@ typedef char32_t			sl_char32;
 #define SLIB_MAKE_QWORD(A,B,C,D,E,F,G,H)	((((sl_uint64)SLIB_MAKE_DWORD(A,B,C,D)) << 32) | SLIB_MAKE_DWORD(E,F,G,H))
 #define SLIB_MAKE_QWORD2(A,B,C,D)			((((sl_uint64)SLIB_MAKE_DWORD2(A,B)) << 32) | SLIB_MAKE_DWORD2(C,D))
 #define SLIB_MAKE_QWORD4(A,B)				((((sl_uint64)(sl_uint32)(A)) << 32) | (sl_uint32)(B))
+
+#if defined(__GNUC__)
+#   define SLIB_EXPECT(x, c) __builtin_expect(x, c)
+#   define SLIB_LIKELY(x) __builtin_expect(!!(x), 1)
+#   define SLIB_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#else
+#   define SLIB_EXPECT(x, c) (x)
+#   define SLIB_LIKELY(v) (v)
+#   define SLIB_UNLIKELY(v) (v)
+#endif
 
 /************************************************************************/
 /* Operating System Related Difinitions                                 */
