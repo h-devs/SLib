@@ -35,8 +35,13 @@ namespace slib
 	class SLIB_EXPORT Uint128
 	{
 	public:
+#ifdef SLIB_ARCH_IS_LITTLE_ENDIAN
+		sl_uint64 low;
+		sl_uint64 high;
+#else
 		sl_uint64 high;
 		sl_uint64 low;
+#endif
 	
 	public:
 		constexpr Uint128() noexcept: high(0), low(0) {}
@@ -273,11 +278,11 @@ namespace slib
 		// 16 bytes
 		void setBytesLE(const void* buf) noexcept;
 	
-		static Uint128 fromString(const String& str, sl_uint32 radix = 10) noexcept;
+		static Uint128 fromString(const StringParam& str, sl_uint32 radix = 10) noexcept;
 
 		String toString(sl_uint32 radix = 10) const noexcept;
 	
-		static Uint128 fromHexString(const String& str) noexcept;
+		static Uint128 fromHexString(const StringParam& str) noexcept;
 
 		String toHexString() const noexcept;
 

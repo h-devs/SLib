@@ -774,9 +774,9 @@ namespace slib
 		high = MIO::readUint64LE(buf + 8);
 	}
 
-	Uint128 Uint128::fromString(const String& str, sl_uint32 radix) noexcept
+	Uint128 Uint128::fromString(const StringParam& str, sl_uint32 radix) noexcept
 	{
-		Uint128 ret(0);
+		Uint128 ret;
 		if (ret.parse(str, radix)) {
 			return ret;
 		}
@@ -831,7 +831,7 @@ namespace slib
 		}
 	}
 
-	Uint128 Uint128::fromHexString(const String& str) noexcept
+	Uint128 Uint128::fromHexString(const StringParam& str) noexcept
 	{
 		return fromString(str, 16);
 	}
