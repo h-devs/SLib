@@ -108,16 +108,27 @@ namespace slib
 		String getCommandLine();
 
 		List<String> getArguments();
-	
-		// returns exit code
-		sl_int32 run(const String& commandLine);
+
+		sl_bool isInitialized();
+
+		void setInitialized(sl_bool flag);
+
+		void initialize(const String& commandLine);
+
+		void initialize(int argc, const char * argv[]);
+
+		void initialize();
 
 		// returns exit code
-		sl_int32 run(int argc, const char * argv[]);
-	
-		// returns exit code
-		sl_int32 run();
-	
+		template <class... ARGS>
+		sl_int32 run(ARGS&&... args)
+		{
+			if (!m_flagInitialized) {
+				initialize(Forward<ARGS>(args)...);
+			}
+			return doRun();
+		}
+
 		void dispatchQuitApp();
 
 		sl_bool isUniqueInstanceRunning();
@@ -212,9 +223,11 @@ namespace slib
 		static void openSystemOverlaySetting();
 
 	protected:
-		sl_int32 _doRun();
+		void _initApp();
 
 	protected:
+		sl_bool m_flagInitialized;
+
 		String m_executablePath;
 		String m_commandLine;
 		List<String> m_arguments;
@@ -230,31 +243,11 @@ namespace slib
 
 #define SLIB_APPLICATION(CLASS) \
 public: \
-	static int main(const slib::String& commandLine) { \
+	template <class... ARGS> \
+	static int main(ARGS&&... args) { \
 		slib::Ref<CLASS> app = new CLASS; \
 		if (app.isNotNull()) { \
-			return (int)(app->run(commandLine)); \
-		} \
-		return -1; \
-	} \
-	static int main(int argc, const char * argv[]) { \
-		slib::Ref<CLASS> app = new CLASS; \
-		if (app.isNotNull()) { \
-			return (int)(app->run(argc, argv)); \
-		} \
-		return -1; \
-	} \
-	static int main(int argc, char** argv) { \
-		slib::Ref<CLASS> app = new CLASS; \
-		if (app.isNotNull()) { \
-			return (int)(app->run(argc, (const char**)argv)); \
-		} \
-		return -1; \
-	} \
-	static int main() { \
-		slib::Ref<CLASS> app = new CLASS; \
-		if (app.isNotNull()) { \
-			return (int)(app->run()); \
+			return (int)(app->run(Forward<ARGS>(args)...)); \
 		} \
 		return -1; \
 	} \

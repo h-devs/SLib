@@ -41,7 +41,7 @@ namespace slib
 		namespace app
 		{
 			
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicWeakRef<Application>, g_app)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicWeakRef<Application>, g_weakref_app)
 
 			typedef HashMap<String, String> EnvironmentList;
 			
@@ -77,6 +77,7 @@ namespace slib
 
 	Application::Application()
 	{
+		m_flagInitialized = sl_false;
 		m_flagCrashRecoverySupport = sl_false;
 	}
 
@@ -86,18 +87,18 @@ namespace slib
 
 	Ref<Application> Application::getApp()
 	{
-		if (SLIB_SAFE_STATIC_CHECK_FREED(g_app)) {
+		if (SLIB_SAFE_STATIC_CHECK_FREED(g_weakref_app)) {
 			return sl_null;
 		}
-		return g_app;
+		return g_weakref_app;
 	}
 
 	void Application::setApp(Application* app)
 	{
-		if (SLIB_SAFE_STATIC_CHECK_FREED(g_app)) {
+		if (SLIB_SAFE_STATIC_CHECK_FREED(g_weakref_app)) {
 			return;
 		}
-		g_app = app;
+		g_weakref_app = app;
 	}
 
 	String Application::getExecutablePath()
@@ -115,14 +116,24 @@ namespace slib
 		return m_arguments;
 	}
 
-	sl_int32 Application::run(const String& commandLine)
+	sl_bool Application::isInitialized()
+	{
+		return m_flagInitialized;
+	}
+
+	void Application::setInitialized(sl_bool flag)
+	{
+		m_flagInitialized = flag;
+	}
+
+	void Application::initialize(const String& commandLine)
 	{
 		m_commandLine = commandLine;
 		m_arguments = breakCommandLine(commandLine);
-		return _doRun();
+		_initApp();
 	}
 
-	sl_int32 Application::run(int argc, const char* argv[])
+	void Application::initialize(int argc, const char* argv[])
 	{
 		List<String> list;
 		for (int i = 0; i < argc; i++) {
@@ -132,26 +143,24 @@ namespace slib
 			list.add(argv[i]);
 #endif
 		}
-		m_arguments = list;
-		m_commandLine = buildCommandLine(list.getData(), list.getCount());
-		return _doRun();
+		_initApp();
 	}
 
-	sl_int32 Application::run()
+	void Application::initialize()
 	{
 #ifdef SLIB_PLATFORM_IS_WIN32
 		String commandLine = String::create(GetCommandLineW());
 		m_commandLine = commandLine;
 		m_arguments = breakCommandLine(commandLine);
 #endif
-		return _doRun();
+		_initApp();
 	}
 
-	sl_int32 Application::_doRun()
+	void Application::_initApp()
 	{
 		Application::setApp(this);
 		m_executablePath = Application::getApplicationPath();
-		return doRun();
+		m_flagInitialized = sl_true;
 	}
 
 	sl_int32 Application::doRun()
