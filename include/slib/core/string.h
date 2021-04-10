@@ -72,14 +72,25 @@ namespace slib
 	typedef Atomic<String> AtomicString;
 	typedef Atomic<String16> AtomicString16;
 
+
 	template <class CharType>
 	struct StringTypeFromCharType;
 	
 	template <>
-	struct StringTypeFromCharType<sl_char16> { typedef String16 Type; };
+	struct StringTypeFromCharType<sl_char8> { typedef String Type; };
 	
 	template <>
-	struct StringTypeFromCharType<sl_char8> { typedef String Type; };
+	struct StringTypeFromCharType<sl_char16> { typedef String16 Type; };
+	
+	
+	template <class CharType>
+	struct StringViewTypeFromCharType;
+	
+	template <>
+	struct StringViewTypeFromCharType<sl_char8> { typedef StringView Type; };
+	
+	template <>
+	struct StringViewTypeFromCharType<sl_char16> { typedef StringView16 Type; };
 	
 	
 	template <class StringType>
@@ -97,6 +108,13 @@ namespace slib
 	template <>
 	struct CharTypeFromStringType< Atomic<String16> > { typedef sl_char16 Type; };
 	
+	template <>
+	struct CharTypeFromStringType<StringView> { typedef sl_char8 Type; };
+
+	template <>
+	struct CharTypeFromStringType<StringView16> { typedef sl_char16 Type; };
+
+
 	namespace priv
 	{
 		namespace string
