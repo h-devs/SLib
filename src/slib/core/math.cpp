@@ -61,6 +61,36 @@ namespace slib
 		return ::pow(x, y);
 	}
 
+	sl_uint64 Math::pow10i(sl_uint32 exponent) noexcept
+	{
+		static sl_uint64 p[] = {
+			SLIB_POW10_0,
+			SLIB_POW10_1,
+			SLIB_POW10_2,
+			SLIB_POW10_3,
+			SLIB_POW10_4,
+			SLIB_POW10_5,
+			SLIB_POW10_6,
+			SLIB_POW10_7,
+			SLIB_POW10_8,
+			SLIB_POW10_9,
+			SLIB_POW10_10,
+			SLIB_POW10_11,
+			SLIB_POW10_12,
+			SLIB_POW10_13,
+			SLIB_POW10_14,
+			SLIB_POW10_15,
+			SLIB_POW10_16,
+			SLIB_POW10_17,
+			SLIB_POW10_18,
+			SLIB_POW10_19
+		};
+		if (exponent < sizeof(p)) {
+			return p[exponent];
+		}
+		return 0;
+	}
+
 	float Math::sqrt(float f) noexcept
 	{
 		return ::sqrtf(f);
@@ -179,6 +209,95 @@ namespace slib
 	double Math::log10(double f) noexcept
 	{
 		return ::log10(f);
+	}
+
+	sl_uint32 Math::log10i(sl_uint32 n) noexcept
+	{
+		if (n >= SLIB_POW10_5) {
+			if (n >= SLIB_POW10_7) {
+				if (n >= SLIB_POW10_8) {
+					if (n >= SLIB_POW10_9) {
+						return 9;
+					} else {
+						return 8;
+					}
+				} else {
+					return 7;
+				}
+			} else {
+				if (n >= SLIB_POW10_6) {
+					return 6;
+				} else {
+					return 5;
+				}
+			}
+		} else {
+			if (n >= SLIB_POW10_3) {
+				if (n >= SLIB_POW10_4) {
+					return 4;
+				} else {
+					return 3;
+				}
+			} else {
+				if (n >= SLIB_POW10_2) {
+					return 2;
+				} else {
+					if (n >= SLIB_POW10_1) {
+						return 1;
+					} else {
+						return 0;
+					}
+				}
+			}
+		}
+	}
+
+	sl_uint32 Math::log10i(sl_uint64 n) noexcept
+	{
+		if (n < SLIB_POW10_10) {
+			if (n >> 32) {
+				return 9;
+			} else {
+				return log10i((sl_uint32)n);
+			}
+		}
+		if (n >= SLIB_POW10_15) {
+			if (n >= SLIB_POW10_17) {
+				if (n >= SLIB_POW10_18) {
+					if (n >= SLIB_POW10_19) {
+						return 19;
+					} else {
+						return 18;
+					}
+				} else {
+					return 17;
+				}
+			} else {
+				if (n >= SLIB_POW10_16) {
+					return 16;
+				} else {
+					return 15;
+				}
+			}
+		} else {
+			if (n >= SLIB_POW10_13) {
+				if (n >= SLIB_POW10_14) {
+					return 14;
+				} else {
+					return 13;
+				}
+			} else {
+				if (n >= SLIB_POW10_12) {
+					return 12;
+				} else {
+					if (n >= SLIB_POW10_11) {
+						return 11;
+					} else {
+						return 10;
+					}
+				}
+			}
+		}
 	}
 
 	float Math::log2(float f) noexcept
@@ -611,94 +730,125 @@ namespace slib
 
 	sl_uint32 Math::getMostSignificantBits(sl_uint32 n) noexcept
 	{
-		sl_uint32 ret = 0;
-		while (n) {
-			ret++;
-			n >>= 1;
-		}
-		return ret;
+		return getMostSignificantBits32(n);
 	}
 	
 	sl_uint32 Math::getMostSignificantBits32(sl_uint32 n) noexcept
 	{
 		sl_uint32 ret = 0;
-		while (n) {
-			ret++;
-			n >>= 1;
+		sl_uint32 h = n >> 16;
+		if (h) {
+			ret += 16;
+			n = h;
+		} else {
+			n = (sl_uint16)n;
+		}
+		h = n >> 8;
+		if (h) {
+			ret += 8;
+			n = h;
+		} else {
+			n = (sl_uint8)n;
+		}
+		h = n >> 4;
+		if (h) {
+			ret += 4;
+			n = h;
+		} else {
+			n = n & 15;
+		}
+		h = n >> 2;
+		if (h) {
+			ret += 2;
+			n = h;
+		} else {
+			n = n & 3;
+		}
+		if (n & 2) {
+			ret += 2;
+		} else {
+			ret += n;
 		}
 		return ret;
 	}
 
 	sl_uint32 Math::getMostSignificantBits(sl_uint64 n) noexcept
 	{
-		sl_uint32 ret = 0;
-		while (n) {
-			ret++;
-			n >>= 1;
-		}
-		return ret;
+		return getMostSignificantBits64(n);
 	}
 	
 	sl_uint32 Math::getMostSignificantBits64(sl_uint64 n) noexcept
 	{
-		sl_uint32 ret = 0;
-		while (n) {
-			ret++;
-			n >>= 1;
+		sl_uint32 h = SLIB_GET_DWORD1(n);
+		if (h) {
+			return getMostSignificantBits32(h) + 32;
+		} else {
+			return getMostSignificantBits32(SLIB_GET_DWORD0(n));
 		}
-		return ret;
 	}
 
 	sl_uint32 Math::getLeastSignificantBits(sl_uint32 n) noexcept
 	{
-		if (n == 0) {
-			return 0;
-		}
-		sl_uint32 ret = 0;
-		while ((n & 1) == 0) {
-			ret++;
-			n >>= 1;
-		}
-		return ret;
+		return getLeastSignificantBits32(n);
 	}
 	
 	sl_uint32 Math::getLeastSignificantBits32(sl_uint32 n) noexcept
 	{
-		if (n == 0) {
-			return 0;
+		if (!n) {
+			return 32;
 		}
 		sl_uint32 ret = 0;
-		while ((n & 1) == 0) {
-			ret++;
-			n >>= 1;
+		sl_uint32 l = (sl_uint16)n;
+		if (l) {
+			n = l;
+		} else {
+			ret += 16;
+			n >>= 16;
+		}
+		l = (sl_uint8)n;
+		if (l) {
+			n = l;
+		} else {
+			ret += 8;
+			n >>= 8;
+		}
+		l = n & 15;
+		if (l) {
+			n = l;
+		} else {
+			ret += 4;
+			n >>= 4;
+		}
+		l = n & 3;
+		if (l) {
+			n = l;
+		} else {
+			ret += 2;
+			n >>= 2;
+		}
+		if (!(n & 1)) {
+			if (n & 2) {
+				ret += 1;
+			} else {
+				ret += 2;
+			}
 		}
 		return ret;
 	}
 
 	sl_uint32 Math::getLeastSignificantBits(sl_uint64 n) noexcept
 	{
-		if (n == 0) {
-			return 0;
-		}
-		sl_uint32 ret = 0;
-		while ((n & 1) == 0) {
-			ret++;
-			n >>= 1;
-		}
-		return ret;
+		return getLeastSignificantBits64(n);
 	}
 	
 	sl_uint32 Math::getLeastSignificantBits64(sl_uint64 n) noexcept
 	{
-		if (n == 0) {
-			return 0;
+		sl_uint32 l = SLIB_GET_DWORD0(n);
+		if (l) {
+			return getLeastSignificantBits32(l);
+		} else {
+			return getLeastSignificantBits32(SLIB_GET_DWORD1(n)) + 32;
 		}
-		sl_uint32 ret = 0;
-		while ((n & 1) == 0) {
-			ret++;
-			n >>= 1;
-		}
-		return ret;
 	}
 	
 	void Math::mul32(sl_uint32 a, sl_uint32 b, sl_uint32& o_high, sl_uint32& o_low) noexcept
@@ -736,5 +886,77 @@ namespace slib
 #endif
 	}
 
-}
+	sl_bool Math::div128_64(sl_uint64& high, sl_uint64& low, sl_uint64 divisor, sl_uint64& remainder) noexcept
+	{
+		if (!SLIB_GET_DWORD1(divisor)) {
+			sl_uint32 r;
+			if (div128_32(high, low, (sl_uint32)divisor, r)) {
+				remainder = r;
+				return sl_true;
+			} else {
+				return sl_false;
+			}
+		}
+		if (!high) {
+			remainder = low % divisor;
+			low /= divisor;
+			return sl_true;
+		}
+		sl_uint64 remainder_h = high % divisor;
+		high /= divisor;
+		sl_uint64 remainder_l = low;
+		low = 0;
+		while (remainder_h) {
+			sl_uint32 t = Math::getMostSignificantBits(remainder_h);
+			sl_uint32 rt = 64 - t;
+			sl_uint64 q = remainder_h << rt;
+			sl_uint64 r = q;
+			q /= divisor;
+			if (q) {
+				r %= divisor;
+			} else {
+				q = 1;
+				r = r - (divisor - r);
+				rt++;
+				t--;
+			}
+			q <<= t;
+			low += q;
+			if (low < q) {
+				high++;
+			}
+			if (rt >= 64) {
+				remainder_h = 0;
+			} else {
+				remainder_h = r >> rt;
+			}
+			r <<= t;
+			remainder_l += r;
+			if (remainder_l < r) {
+				remainder_h++;
+			}
+		}
+		remainder = remainder_l % divisor;
+		sl_uint64 q = remainder_l / divisor;
+		low += q;
+		if (low < q) {
+			high++;
+		}
+		return sl_true;
+	}
 
+	sl_bool Math::div128_32(sl_uint64& high, sl_uint64& low, sl_uint32 divisor, sl_uint32& remainder) noexcept
+	{
+		if (!divisor) {
+			return sl_false;
+		}
+		sl_uint64 r = SLIB_MAKE_QWORD4(high % divisor, SLIB_GET_DWORD1(low));
+		high /= divisor;
+		sl_uint32 qlh = (sl_uint32)(r / divisor);
+		r = SLIB_MAKE_QWORD4(r % divisor, SLIB_GET_DWORD0(low));
+		low = SLIB_MAKE_QWORD4(qlh, r / divisor);
+		remainder = r % divisor;
+		return sl_true;
+	}
+
+}

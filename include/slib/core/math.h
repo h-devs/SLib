@@ -36,6 +36,27 @@
 #define SLIB_EPSILON			1.192092896e-10f
 #define SLIB_EPSILON_LONG		1.192092896e-20
 
+#define SLIB_POW10_0 1
+#define SLIB_POW10_1 10
+#define SLIB_POW10_2 100
+#define SLIB_POW10_3 1000
+#define SLIB_POW10_4 10000
+#define SLIB_POW10_5 100000
+#define SLIB_POW10_6 1000000
+#define SLIB_POW10_7 10000000
+#define SLIB_POW10_8 100000000
+#define SLIB_POW10_9 1000000000
+#define SLIB_POW10_10 SLIB_UINT64(10000000000)
+#define SLIB_POW10_11 SLIB_UINT64(100000000000)
+#define SLIB_POW10_12 SLIB_UINT64(1000000000000)
+#define SLIB_POW10_13 SLIB_UINT64(10000000000000)
+#define SLIB_POW10_14 SLIB_UINT64(100000000000000)
+#define SLIB_POW10_15 SLIB_UINT64(1000000000000000)
+#define SLIB_POW10_16 SLIB_UINT64(10000000000000000)
+#define SLIB_POW10_17 SLIB_UINT64(100000000000000000)
+#define SLIB_POW10_18 SLIB_UINT64(1000000000000000000)
+#define SLIB_POW10_19 SLIB_UINT64(10000000000000000000)
+
 #undef max
 #undef min
 
@@ -102,6 +123,30 @@ namespace slib
 
 		static double pow(double x, double y) noexcept;
 
+		static sl_uint64 pow10i(sl_uint32 exponent) noexcept;
+
+		template <class T>
+		static void pow10iT(T& _out, sl_uint32 exponent) noexcept
+		{
+			if (exponent < 20) {
+				_out = pow10i(exponent);
+				return;
+			}
+			_out = pow10i(exponent & 15);
+			sl_uint64 p16 = pow10i(16);
+			_out *= p16;
+			exponent >>= 5;
+			if (!exponent) {
+				return;
+			}
+			T p = p16;
+			do {
+				p = p * p;
+				_out *= p;
+				exponent >>= 1;
+			} while (exponent);
+		}
+
 		constexpr static float square(float x) noexcept
 		{
 			return x * x;
@@ -165,6 +210,27 @@ namespace slib
 		static float log10(float f) noexcept;
 
 		static double log10(double f) noexcept;
+
+		static sl_uint32 log10i(sl_uint32 n) noexcept;
+
+		static sl_uint32 log10i(sl_uint64 n) noexcept;
+
+		template <class T>
+		static sl_uint32 log10iT(const T& v) noexcept
+		{
+			if (v <= SLIB_UINT64_MAX) {
+				return log10i((sl_uint64)v);
+			}
+			T p = SLIB_POW10_16;
+			T p2 = p * p;
+			sl_uint32 n = 16;
+			for (p2 > p && v >= p2) {
+				p = p2;
+				p2 = p * p;
+				n *= 2;
+			}
+			return n + log10iT(v / p);
+		}
 	
 		static float exp(float f) noexcept;
 
@@ -440,6 +506,10 @@ namespace slib
 
 		static void mul64(sl_uint64 a, sl_uint64 b, sl_uint64& o_high, sl_uint64& o_low) noexcept;
 		
+		static sl_bool div128_64(sl_uint64& high, sl_uint64& low, sl_uint64 divisor, sl_uint64& remainder) noexcept;
+
+		static sl_bool div128_32(sl_uint64& high, sl_uint64& low, sl_uint32 divisor, sl_uint32& remainder) noexcept;
+
 	};
 
 }
