@@ -35,8 +35,8 @@
 #	define SLIB_INLINE		__forceinline
 #	define SLIB_THREAD_OLD	__declspec(thread)
 #	define SLIB_THREAD		thread_local
-#	define SLIB_INT64(v)	(v##i64)
-#	define SLIB_UINT64(v)	(v##ui64)
+#	define SLIB_INT64(v)	v##i64
+#	define SLIB_UINT64(v)	v##ui64
 typedef __int64				sl_int64;
 typedef unsigned __int64	sl_uint64;
 typedef size_t				sl_size_t;
@@ -57,8 +57,8 @@ typedef size_t				sl_size_t;
 
 #	define SLIB_STDCALL		__attribute__((stdcall))
 #	define SLIB_INLINE		inline __attribute__((always_inline))
-#	define SLIB_INT64(v)	(v##LL)
-#	define SLIB_UINT64(v)	(v##ULL)
+#	define SLIB_INT64(v)	v##LL
+#	define SLIB_UINT64(v)	v##ULL
 #	define SLIB_THREAD_OLD	__thread
 #	define SLIB_THREAD		thread_local
 typedef long long			sl_int64;
