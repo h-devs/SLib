@@ -53,6 +53,7 @@
 #include "core/ptr.h"
 #include "core/ptrx.h"
 #include "core/pointer.h"
+#include "core/shared_ptr.h"
 #include "core/object.h"
 #include "core/property.h"
 #include "core/function.h"
@@ -157,6 +158,7 @@
 
 #include "core/regex.h"
 #include "core/json.h"
+#include "core/bson.h"
 #include "core/xml.h"
 
 #include "core/platform_type.h"

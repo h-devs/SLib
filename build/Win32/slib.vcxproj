@@ -144,6 +144,7 @@
     <ClCompile Include="..\..\src\slib\core\async_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\atomic.cpp" />
     <ClCompile Include="..\..\src\slib\core\base.cpp" />
+    <ClCompile Include="..\..\src\slib\core\bson.cpp" />
     <ClCompile Include="..\..\src\slib\core\charset.cpp" />
     <ClCompile Include="..\..\src\slib\core\charset_ext.cpp" />
     <ClCompile Include="..\..\src\slib\core\charset_windows.cpp" />
@@ -299,6 +300,7 @@
     <ClCompile Include="..\..\src\slib\graphics\zxing.cpp" />
     <ClCompile Include="..\..\src\slib\math\bigint.cpp" />
     <ClCompile Include="..\..\src\slib\math\calculator.cpp" />
+    <ClCompile Include="..\..\src\slib\math\decimal128.cpp" />
     <ClCompile Include="..\..\src\slib\math\fft.cpp" />
     <ClCompile Include="..\..\src\slib\math\int128.cpp" />
     <ClCompile Include="..\..\src\slib\math\plot.cpp" />

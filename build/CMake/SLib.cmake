@@ -74,6 +74,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/async_epoll.cpp"
  "${SLIB_PATH}/src/slib/core/atomic.cpp"
  "${SLIB_PATH}/src/slib/core/base.cpp"
+ "${SLIB_PATH}/src/slib/core/bson.cpp"
  "${SLIB_PATH}/src/slib/core/charset.cpp"
  "${SLIB_PATH}/src/slib/core/charset_ext.cpp"
  "${SLIB_PATH}/src/slib/core/collection.cpp"
@@ -155,6 +156,7 @@ set (SLIB_CORE_FILES
 
  "${SLIB_PATH}/src/slib/math/bigint.cpp"
  "${SLIB_PATH}/src/slib/math/calculator.cpp"
+ "${SLIB_PATH}/src/slib/math/decimal128.cpp"
  "${SLIB_PATH}/src/slib/math/fft.cpp"
  "${SLIB_PATH}/src/slib/math/int128.cpp"
  "${SLIB_PATH}/src/slib/math/plot.cpp"

@@ -1532,5 +1532,11 @@
     <ClCompile Include="..\..\src\slib\core\platform_windows_setup.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\bson.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\math\decimal128.cpp">
+      <Filter>src\math</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
