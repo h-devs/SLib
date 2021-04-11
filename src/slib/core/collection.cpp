@@ -181,7 +181,8 @@ namespace slib
 			};
 			
 			const ConstStruct g_null = {0, 0, 0};
-			
+			const void* g_shared_null = 0;
+
 		}
 	}
 }

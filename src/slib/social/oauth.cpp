@@ -119,7 +119,7 @@ namespace slib
 		m_consumerKey = param.consumerKey;
 		m_consumerSecret = param.consumerSecret;
 		if (param.accessToken.isValid()) {
-			m_accessToken = MakeShared<OAuth1_AccessToken>(param.accessToken);
+			m_accessToken = Ptr<OAuth1_AccessToken>::create(param.accessToken);
 		}
 		
 		m_requestTokenMethod = param.requestTokenMethod;
@@ -143,7 +143,7 @@ namespace slib
 	void OAuth1::setAccessToken(const OAuth1_AccessToken& accessToken)
 	{
 		if (accessToken.isValid()) {
-			m_accessToken = MakeShared<OAuth1_AccessToken>(accessToken);
+			m_accessToken = Ptr<OAuth1_AccessToken>::create(accessToken);
 		} else {
 			m_accessToken.setNull();
 		}
@@ -153,7 +153,7 @@ namespace slib
 	void OAuth1::setAccessToken(const String& token, const String& secret)
 	{
 		if (token.isNotEmpty() && secret.isNotEmpty()) {
-			m_accessToken = MakeShared<OAuth1_AccessToken>(token, secret);
+			m_accessToken = Ptr<OAuth1_AccessToken>::create(token, secret);
 		} else {
 			m_accessToken.setNull();
 		}
@@ -420,7 +420,7 @@ namespace slib
 		if (value.isNotNull()) {
 			OAuth1_AccessToken accessToken;
 			FromJson(value, accessToken);
-			m_accessToken = MakeShared<OAuth1_AccessToken>(accessToken);
+			m_accessToken = Ptr<OAuth1_AccessToken>::create(accessToken);
 		}
 	}
 	
@@ -603,7 +603,7 @@ namespace slib
 		m_clientId = param.clientId;
 		m_clientSecret = param.clientSecret;
 		if (param.accessToken.isValid()) {
-			m_accessToken = MakeShared<OAuthAccessToken>(param.accessToken);
+			m_accessToken = Ptr<OAuthAccessToken>::create(param.accessToken);
 		}
 		
 		m_authorizeUrl = param.authorizeUrl;
@@ -632,7 +632,7 @@ namespace slib
 	void OAuth2::setAccessToken(const OAuthAccessToken& accessToken)
 	{
 		if (accessToken.isValid()) {
-			m_accessToken = MakeShared<OAuthAccessToken>(accessToken);
+			m_accessToken = Ptr<OAuthAccessToken>::create(accessToken);
 		} else {
 			m_accessToken.setNull();
 		}
@@ -642,7 +642,7 @@ namespace slib
 	void OAuth2::setAccessToken(const String& accessToken)
 	{
 		if (accessToken.isNotEmpty()) {
-			m_accessToken = MakeShared<OAuthAccessToken>(accessToken);
+			m_accessToken = Ptr<OAuthAccessToken>::create(accessToken);
 		} else {
 			m_accessToken.setNull();
 		}
@@ -962,7 +962,7 @@ namespace slib
 		if (value.isNotNull()) {
 			OAuthAccessToken accessToken;
 			FromJson(value, accessToken);
-			m_accessToken = MakeShared<OAuthAccessToken>(accessToken);
+			m_accessToken = Ptr<OAuthAccessToken>::create(accessToken);
 		}
 	}
 

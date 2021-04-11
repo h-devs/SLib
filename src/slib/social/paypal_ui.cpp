@@ -36,7 +36,7 @@ namespace slib
 					param.onComplete(r);
 					return;
 				}
-				m_accessToken = MakeShared<OAuthAccessToken>(result.accessToken);
+				m_accessToken = Ptr<OAuthAccessToken>::create(result.accessToken);
 				checkout(param);
 			});
 			return;

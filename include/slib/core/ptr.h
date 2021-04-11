@@ -29,12 +29,96 @@
 
 namespace slib
 {
+	
 	namespace priv
 	{
 		namespace ptr
 		{
+
 			struct ConstStruct;
 			extern const ConstStruct g_null;
+			
+			template <class... TYPES>
+			static const Ref<Referable>& GetRef(const Ref<TYPES...>& ref) noexcept
+			{
+				return Ref<Referable>::from(ref);
+			}
+
+			template <class... TYPES>
+			static Ref<Referable>&& GetRef(Ref<TYPES...>&& ref) noexcept
+			{
+				return Move(Ref<Referable>::from(ref));
+			}
+
+			template <class O>
+			static const AtomicRef<Referable>& GetRef(const AtomicRef<O>& ref) noexcept
+			{
+				return AtomicRef<Referable>::from(ref);
+			}
+
+			template <class O>
+			static const Ref<Referable>& GetRef(const WeakRef<O>& weak) noexcept
+			{
+				return Ref<Referable>::from(weak._weak);
+			}
+
+			template <class O>
+			static Ref<Referable>&& GetRef(WeakRef<O>&& weak) noexcept
+			{
+				return Move(Ref<Referable>::from(weak._weak));
+			}
+
+			template <class O>
+			static const AtomicRef<Referable>& GetRef(const AtomicWeakRef<O>& weak) noexcept
+			{
+				return AtomicRef<Referable>::from(weak._weak);
+			}
+
+			template <class T>
+			class ManagedPtrContainer : public Referable
+			{
+			public:
+				T* ptr;
+				
+			public:
+				ManagedPtrContainer(T* _ptr): ptr(_ptr) {}
+				
+				~ManagedPtrContainer()
+				{
+					delete ptr;
+				}
+
+			};
+
+			template <class T, class DELETER>
+			class ManagedPtrContainerWithDeleter : public Referable
+			{
+			public:
+				T* ptr;
+				DELETER deleter;
+				
+			public:
+				ManagedPtrContainerWithDeleter(T* _ptr, const DELETER& _deleter): ptr(_ptr), deleter(_deleter) {}
+
+				~ManagedPtrContainerWithDeleter()
+				{
+					deleter(ptr);
+				}
+				
+			};
+			
+			template <class T>
+			class ManagedObjectContainer : public Referable
+			{
+			public:
+				T object;
+				
+			public:
+				template <class... ARGS>
+				ManagedObjectContainer(ARGS&&... args): object(Forward<ARGS>(args)...) {}
+				
+			};
+			
 		}
 	}
 
@@ -52,8 +136,7 @@ namespace slib
 		Ref<Referable> ref;
 	
 	public:
-		Ptr() noexcept : ptr(sl_null)
-	 	{}
+		Ptr() noexcept: ptr(sl_null) {}
 
 		Ptr(Ptr<T>&& other) noexcept
 		{
@@ -61,8 +144,7 @@ namespace slib
 			_move_init(&other);
 		}
 	
-		Ptr(const Ptr<T>& other) noexcept : ptr(other.ptr), ref(other.ref)
-		{}
+		Ptr(const Ptr<T>& other) noexcept: ptr(other.ptr), ref(other.ref) {}
 
 		template <class O>
 		Ptr(Ptr<O>&& other) noexcept
@@ -85,22 +167,18 @@ namespace slib
 			ptr = other._retain(ref);
 		}
 
-		Ptr(sl_null_t) noexcept	: ptr(sl_null)
-		{}
+		Ptr(sl_null_t) noexcept: ptr(sl_null) {}
 
-		Ptr(T* pointer) noexcept : ptr(pointer)
-		{}
+		Ptr(T* pointer) noexcept: ptr(pointer) {}
 
 		template <class O>
-		Ptr(const Ref<O>& reference) noexcept
-		: ptr(reference.ptr), ref(reference)
+		Ptr(const Ref<O>& reference) noexcept: ptr(reference.ptr), ref(reference)
 		{
 			SLIB_TRY_CONVERT_TYPE(O*, T*)
 		}
 
 		template <class O>
-		Ptr(const AtomicRef<O>& reference) noexcept
-		: ref(reference)
+		Ptr(const AtomicRef<O>& reference) noexcept: ref(reference)
 		{
 			SLIB_TRY_CONVERT_TYPE(O*, T*)
 			ptr = ref.ptr;
@@ -146,9 +224,7 @@ namespace slib
 		Ptr(const Pointer<TYPES...>& other) noexcept;
 
 		template <class REF>
-		Ptr(T* pointer, REF&& r) noexcept: ptr(pointer), ref(_getRef(Forward<REF>(r)))
-		{
-		}
+		Ptr(T* pointer, REF&& r) noexcept: ptr(pointer), ref(priv::ptr::GetRef(Forward<REF>(r))) {}
 
 		~Ptr()
 		{
@@ -156,6 +232,40 @@ namespace slib
 		}
 
 	public:
+		static Ptr<T> createManaged(T* _ptr)
+		{
+			if (_ptr) {
+				Ref<Referable> ref = new priv::ptr::ManagedPtrContainer<T>(_ptr);
+				if (ref.isNotNull()) {
+					return Ptr<T>(_ptr, ref);
+				}
+			}
+			return sl_null;
+		}
+		
+		template <class Deleter>
+		static Ptr<T> createManaged(T* _ptr, const Deleter& deleter)
+		{
+			if (_ptr) {
+				Ref<Referable> ref = new priv::ptr::ManagedPtrContainerWithDeleter<T, Deleter>(_ptr, deleter);
+				if (ref.isNotNull()) {
+					return Ptr<T>(_ptr, ref);
+				}
+			}
+			return sl_null;
+		}
+
+		template <class... Args>
+		static Ptr<T> create(Args&&... args)
+		{
+			Ref< priv::ptr::ManagedObjectContainer<T> > ptr = new priv::ptr::ManagedObjectContainer<T>(Forward<Args>(args)...);
+			if (ptr.isNotNull()) {
+				return Ptr<T>(&(ptr->object), ptr);
+			} else {
+				return sl_null;
+			}
+		}
+
 		static const Ptr<T>& null() noexcept
 		{
 			return *(reinterpret_cast<Ptr<T> const*>(&(priv::ptr::g_null)));
@@ -163,7 +273,7 @@ namespace slib
 	
 		sl_bool isNull() const noexcept
 		{
-			return ptr == sl_null;
+			return !ptr;
 		}
 
 		sl_bool isNotNull() const noexcept
@@ -348,7 +458,7 @@ namespace slib
 		template <class REF>
 		void set(T* pointer, REF&& r) noexcept
 		{
-			ref = _getRef(Forward<REF>(r));
+			ref = priv::ptr::GetRef(Forward<REF>(r));
 			if (ref.isNotNull()) {
 				ptr = pointer;
 			} else {
@@ -458,42 +568,6 @@ namespace slib
 			}
 		}
 
-		template <class... TYPES>
-		static const Ref<Referable>& _getRef(const Ref<TYPES...>& ref) noexcept
-		{
-			return Ref<Referable>::from(ref);
-		}
-
-		template <class... TYPES>
-		static Ref<Referable>&& _getRef(Ref<TYPES...>&& ref) noexcept
-		{
-			return Move(Ref<Referable>::from(ref));
-		}
-
-		template <class O>
-		static const AtomicRef<Referable>& _getRef(const AtomicRef<O>& ref) noexcept
-		{
-			return AtomicRef<Referable>::from(ref);
-		}
-
-		template <class O>
-		static const Ref<Referable>& _getRef(const WeakRef<O>& weak) noexcept
-		{
-			return Ref<Referable>::from(weak._weak);
-		}
-
-		template <class O>
-		static Ref<Referable>&& _getRef(WeakRef<O>&& weak) noexcept
-		{
-			return Move(Ref<Referable>::from(weak._weak));
-		}
-
-		template <class O>
-		static const AtomicRef<Referable>& _getRef(const AtomicWeakRef<O>& weak) noexcept
-		{
-			return AtomicRef<Referable>::from(weak._weak);
-		}
-
 	};
 	
 	
@@ -505,9 +579,7 @@ namespace slib
 		Ref<Referable> _ref;
 	
 	public:
-		Atomic() noexcept
-		: _ptr(sl_null)
-		{}
+		Atomic() noexcept: _ptr(sl_null) {}
 
 		Atomic(const AtomicPtr<T>& other) noexcept
 		{
@@ -530,17 +602,14 @@ namespace slib
 		}
 	
 		template <class O>
-		Atomic(const Ptr<O>& other) noexcept
-		: _ptr(other.ptr), _ref(other.ref)
+		Atomic(const Ptr<O>& other) noexcept: _ptr(other.ptr), _ref(other.ref)
 		{
 			SLIB_TRY_CONVERT_TYPE(O*, T*)
 		}
 
-		Atomic(sl_null_t) noexcept	: _ptr(sl_null)
-		{}
+		Atomic(sl_null_t) noexcept: _ptr(sl_null) {}
 
-		Atomic(T* pointer) noexcept	: _ptr(pointer)
-		{}
+		Atomic(T* pointer) noexcept: _ptr(pointer) {}
 
 		template <class O>
 		Atomic(const Ref<O>& reference) noexcept : _ptr(reference.ptr), _ref(reference)
@@ -595,9 +664,7 @@ namespace slib
 		Atomic(const Pointer<TYPES...>& other) noexcept;
 
 		template <class REF>
-		Atomic(T* pointer, REF&& r) noexcept
-		{
-		}
+		Atomic(T* pointer, REF&& r) noexcept: _ptr(pointer), _ref(priv::ptr::GetRef(Forward<REF>(r))) {}
 
 		~Atomic()
 		{
@@ -733,7 +800,7 @@ namespace slib
 		template <class REF>
 		void set(T* pointer, REF&& r) noexcept
 		{
-			_replace(pointer, Ptr<T>::_getRef(Forward<REF>(r)));
+			_replace(pointer, priv::ptr::GetRef(Forward<REF>(r)));
 		}
 
 	public:
@@ -957,99 +1024,6 @@ namespace slib
 
 	};
 	
-	namespace priv
-	{
-		namespace ptr
-		{
-
-			template <class T>
-			class SharedPtrContainer : public Referable
-			{
-			public:
-				T* ptr;
-				
-			public:
-				SharedPtrContainer(T* _ptr) : ptr(_ptr)
-				{
-				}
-				
-				~SharedPtrContainer()
-				{
-					delete ptr;
-				}
-			};
-
-			template <class T, class DELETER>
-			class SharedPtrContainerWithDeleter : public Referable
-			{
-			public:
-				T* ptr;
-				DELETER deleter;
-				
-			public:
-				SharedPtrContainerWithDeleter(T* _ptr, const DELETER& _deleter): ptr(_ptr), deleter(_deleter)
-				{
-				}
-
-				~SharedPtrContainerWithDeleter()
-				{
-					deleter(ptr);
-				}
-				
-			};
-			
-			template <class T>
-			class SharedPtrObjectContainer : public Referable
-			{
-			public:
-				T object;
-				
-			public:
-				template <class... ARGS>
-				SharedPtrObjectContainer(ARGS&&... args): object(Forward<ARGS>(args)...)
-				{
-				}
-				
-			};
-			
-		}
-	}
-
-	template <class T>
-	Ptr<T> SharedPtr(T* _ptr)
-	{
-		if (_ptr) {
-			Ref<Referable> ref = new priv::ptr::SharedPtrContainer<T>(_ptr);
-			if (ref.isNotNull()) {
-				return Ptr<T>(_ptr, ref);
-			}
-		}
-		return sl_null;
-	}
-	
-	template <class T, class Deleter>
-	Ptr<T> SharedPtr(T* _ptr, const Deleter& deleter)
-	{
-		if (_ptr) {
-			Ref<Referable> ref = new priv::ptr::SharedPtrContainerWithDeleter<T, Deleter>(_ptr, deleter);
-			if (ref.isNotNull()) {
-				return Ptr<T>(_ptr, ref);
-			}
-		}
-		return sl_null;
-	}
-
-	template <class T, class... Args>
-	Ptr<T> MakeShared(Args&&... args)
-	{
-		Ref< priv::ptr::SharedPtrObjectContainer<T> > ptr = new priv::ptr::SharedPtrObjectContainer<T>(Forward<Args>(args)...);
-		if (ptr.isNotNull()) {
-			return Ptr<T>(&(ptr->object), ptr);
-		} else {
-			return sl_null;
-		}
-	}
-
 }
 
 #endif

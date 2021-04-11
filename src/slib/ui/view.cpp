@@ -7697,7 +7697,7 @@ namespace slib
 		_initializeOtherAttributes();
 		Ref<ViewOtherAttributes>& attrs = m_otherAttrs;
 		if (attrs.isNotNull()) {
-			attrs->dragItem = MakeShared<DragItem>(item);
+			attrs->dragItem = Ptr<DragItem>::create(item);
 			m_flagDragSource = sl_true;
 		}
 	}
