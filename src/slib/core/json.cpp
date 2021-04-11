@@ -183,7 +183,19 @@ namespace slib
 	Json::Json(const Time& value): Variant(value)
 	{
 	}
-	
+
+	Json::Json(const Decimal128& value): Variant(value)
+	{
+	}
+
+	Json::Json(const SharedPtr<Decimal128>& value) : Variant(value)
+	{
+	}
+
+	Json::Json(SharedPtr<Decimal128>&& value) : Variant(value)
+	{
+	}
+
 	Json::Json(const JsonList& list): Variant(list)
 	{
 	}
@@ -1120,7 +1132,32 @@ namespace slib
 	{
 		json.setTime(_in);
 	}
-	
+
+	void FromJson(const Json& json, Decimal128& _out)
+	{
+		json.Variant::get(_out);
+	}
+
+	void FromJson(const Json& json, Decimal128& _out, const Decimal128& def)
+	{
+		json.Variant::get(_out, def);
+	}
+
+	void FromJson(const Json& json, SharedPtr<Decimal128>& _out)
+	{
+		json.Variant::get(_out);
+	}
+
+	void ToJson(Json& json, const Decimal128& _in)
+	{
+		json.setDecimal128(_in);
+	}
+
+	void ToJson(Json& json, const SharedPtr<Decimal128>& _in)
+	{
+		json.setDecimal128(_in);
+	}
+
 	void FromJson(const Json& json, Memory& _out)
 	{
 		if (json.isUndefined()) {

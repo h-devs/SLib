@@ -341,6 +341,12 @@ namespace slib
 	void FromJson(const Json& json, Time& _out, const Time& def);
 	void ToJson(Json& json, const Time& _in);
 	
+	void FromJson(const Json& json, Decimal128& _out);
+	void FromJson(const Json& json, Decimal128& _out, const Decimal128& def);
+	void FromJson(const Json& json, SharedPtr<Decimal128>& _out);
+	void ToJson(Json& json, const Decimal128& _in);
+	void ToJson(Json& json, const SharedPtr<Decimal128>& _in);
+	
 	void FromJson(const Json& json, Memory& _out);
 	void ToJson(Json& json, const Memory& _in);
 	

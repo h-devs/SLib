@@ -25,11 +25,14 @@
 
 #include "string.h"
 #include "time.h"
+#include "shared_ptr.h"
 #include "memory.h"
 #include "hash_map.h"
 #include "promise.h"
 #include "string_cast.h"
 #include "variant_def.h"
+
+#include "../math/decimal128.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 #include <string>
@@ -54,6 +57,7 @@ namespace slib
 		Sz16 = 11,
 		Time = 12,
 		Pointer = 13,
+		Decimal128 = 30,
 		Referable = 100,
 		Weak = 101,
 		Object = 110,
@@ -140,6 +144,7 @@ namespace slib
 			const StringContainer16* _m_string16;
 			const sl_char8* _m_sz8;
 			const sl_char16* _m_sz16;
+			SharedPtr<Decimal128> _m_decimal128;
 			Referable* _m_ref;
 			CWeakRef* _m_wref;
 			Collection* _m_collection;
@@ -242,6 +247,10 @@ namespace slib
 				_value = 0;
 			}
 		}
+
+		Variant(const Decimal128& decimal) noexcept;
+		Variant(const SharedPtr<Decimal128>& decimal) noexcept;
+		Variant(SharedPtr<Decimal128>&& decimal) noexcept;
 
 		template <class T>
 		Variant(const Ref<T>& ref) noexcept
@@ -505,6 +514,15 @@ namespace slib
 		void setPointer(const void* ptr) noexcept;
 
 
+		SharedPtr<Decimal128> getDecimal128() const noexcept;
+
+		void setDecimal128(const Decimal128& decimal) noexcept;
+
+		void setDecimal128(const SharedPtr<Decimal128>& decimal) noexcept;
+
+		void setDecimal128(SharedPtr<Decimal128>&& decimal) noexcept;
+
+
 		sl_bool isRef() const noexcept;
 
 		Ref<Referable> getRef() const noexcept;
@@ -732,6 +750,10 @@ namespace slib
 				get(_out.value);
 			}
 		}
+
+		void get(SharedPtr<Decimal128>& _out) const noexcept;
+		void get(Decimal128& _out) const noexcept;
+		void get(Decimal128& _out, const Decimal128& def) const noexcept;
 
 		template <class T>
 		void get(Ref<T>& _out) const noexcept

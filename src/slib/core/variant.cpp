@@ -86,6 +86,9 @@ namespace slib
 					case VariantType::String16:
 						REF_VAR(String16, value).String16::~String16();
 						break;
+					case VariantType::Decimal128:
+						REF_VAR(SharedPtr<Decimal128>, value).SharedPtr<Decimal128>::~SharedPtr();
+						break;
 					default:
 						if (IsReferable(type)) {
 							REF_VAR(Ref<Referable>, value).Ref<Referable>::~Ref();
@@ -1179,6 +1182,39 @@ namespace slib
 		REF_VAR(Time, _value) = value;
 	}
 
+	Variant::Variant(const Decimal128& decimal) noexcept
+	{
+		new (PTR_VAR(SharedPtr<Decimal128>, _value)) SharedPtr<Decimal128>(decimal);
+		if (_value) {
+			_type = VariantType::Decimal128;
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
+	Variant::Variant(const SharedPtr<Decimal128>& decimal) noexcept
+	{
+		if (decimal.isNotNull()) {
+			_type = VariantType::Decimal128;
+			new (PTR_VAR(SharedPtr<Decimal128>, _value)) SharedPtr<Decimal128>(decimal);
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
+	Variant::Variant(SharedPtr<Decimal128>&& decimal) noexcept
+	{
+		if (decimal.isNotNull()) {
+			_type = VariantType::Decimal128;
+			new (PTR_VAR(SharedPtr<Decimal128>, _value)) SharedPtr<Decimal128>(Move(decimal));
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
 	Variant::Variant(const VariantList& list) noexcept
 	{
 		_constructorRef(&list, VariantType::List);
@@ -1843,6 +1879,8 @@ namespace slib
 				return String::create(REF_VAR(sl_char16 const* const, _value));
 			case VariantType::Pointer:
 				return "#" + String::fromPointerValue(REF_VAR(void const* const, _value));
+			case VariantType::Decimal128:
+				return REF_VAR(Decimal128*, _value)->toString();
 			case VariantType::Null:
 				if (_value) {
 					return sl_null;
@@ -1896,6 +1934,8 @@ namespace slib
 				return String16::create(REF_VAR(sl_char16 const* const, _value));
 			case VariantType::Pointer:
 				return "#" + String16::fromPointerValue(REF_VAR(void const* const, _value));
+			case VariantType::Decimal128:
+				return String16::create(REF_VAR(Decimal128*, _value)->toString());
 			default:
 				if (isMemory()) {
 					CMemory* mem = REF_VAR(CMemory*, _value);
@@ -2176,6 +2216,34 @@ namespace slib
 		} else {
 			setNull();
 		}
+	}
+
+	SharedPtr<Decimal128> Variant::getDecimal128() const noexcept
+	{
+		if (_type == VariantType::Decimal128) {
+			return REF_VAR(SharedPtr<Decimal128>, _value);
+		} else {
+			Decimal128 decimal;
+			if (decimal.parse(getString())) {
+				return decimal;
+			}
+		}
+		return sl_null;
+	}
+
+	void Variant::setDecimal128(const Decimal128& decimal) noexcept
+	{
+		set(decimal);
+	}
+
+	void Variant::setDecimal128(const SharedPtr<Decimal128>& decimal) noexcept
+	{
+		set(decimal);
+	}
+
+	void Variant::setDecimal128(SharedPtr<Decimal128>&& decimal) noexcept
+	{
+		set(Move(decimal));
 	}
 
 	sl_bool Variant::isRef() const noexcept
@@ -3248,6 +3316,31 @@ namespace slib
 	void Variant::get(Time& _out, const Time& def) const noexcept
 	{
 		_out = getTime(def);
+	}
+
+	void Variant::get(SharedPtr<Decimal128>& _out) const noexcept
+	{
+		_out = getDecimal128();
+	}
+
+	void Variant::get(Decimal128& _out) const noexcept
+	{
+		SharedPtr<Decimal128> p = getDecimal128();
+		if (p.isNotNull()) {
+			_out = *p;
+		} else {
+			_out.setNaN();
+		}
+	}
+
+	void Variant::get(Decimal128& _out, const Decimal128& def) const noexcept
+	{
+		SharedPtr<Decimal128> p = getDecimal128();
+		if (p.isNotNull()) {
+			_out = *p;
+		} else {
+			_out = def;
+		}
 	}
 
 	void Variant::get(VariantList& _out) const noexcept

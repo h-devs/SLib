@@ -146,6 +146,10 @@ namespace slib
 		template <class T>
 		Json(const Nullable<T>& value): Variant(value) {}
 		
+		Json(const Decimal128& decimal);
+		Json(const SharedPtr<Decimal128>& decimal);
+		Json(SharedPtr<Decimal128>&& decimal);
+
 		Json(const JsonList& list);
 
 		Json(JsonList&& list);
