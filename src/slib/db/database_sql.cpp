@@ -220,7 +220,7 @@ namespace slib
 	{
 	}
 
-	DatabaseQuerySource::DatabaseQuerySource(const String& _name, const DatabaseQuery& _query): name(_name), query(MakeShared<DatabaseQuery>(_query))
+	DatabaseQuerySource::DatabaseQuerySource(const String& _name, const DatabaseQuery& _query): name(_name), query(Ptr<DatabaseQuery>::create(_query))
 	{
 	}
 
