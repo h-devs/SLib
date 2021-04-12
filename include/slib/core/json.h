@@ -42,8 +42,6 @@ namespace slib
 
 	typedef Pair<String, Json> JsonItem;
 	
-	class BigInt;
-	
 	class SLIB_EXPORT JsonParseParam
 	{
 	public:
@@ -143,13 +141,6 @@ namespace slib
 		
 		Json(const Time& value);
 		
-		template <class T>
-		Json(const Nullable<T>& value): Variant(value) {}
-		
-		Json(const Decimal128& decimal);
-		Json(const SharedPtr<Decimal128>& decimal);
-		Json(SharedPtr<Decimal128>&& decimal);
-
 		Json(const JsonList& list);
 
 		Json(JsonList&& list);

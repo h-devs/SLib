@@ -32,8 +32,6 @@
 #include "string_cast.h"
 #include "variant_def.h"
 
-#include "../math/decimal128.h"
-
 #ifdef SLIB_SUPPORT_STD_TYPES
 #include <string>
 #endif
@@ -57,15 +55,15 @@ namespace slib
 		Sz16 = 11,
 		Time = 12,
 		Pointer = 13,
-		Decimal128 = 30,
-		Referable = 100,
-		Weak = 101,
-		Object = 110,
-		Collection = 111,
-		Map = 120,
-		List = 121,
-		Memory = 122,
-		Promise = 123
+		SharedPtr = 100,
+		Referable = 1000,
+		Weak = Referable + 1,
+		Object = Referable + 2,
+		Collection = Referable + 3,
+		Map = Referable + 4,
+		List = Referable + 5,
+		Memory = Referable + 6,
+		Promise = Referable + 7
 	};
 	
 	namespace priv
@@ -144,7 +142,7 @@ namespace slib
 			const StringContainer16* _m_string16;
 			const sl_char8* _m_sz8;
 			const sl_char16* _m_sz16;
-			SharedPtr<Decimal128> _m_decimal128;
+			CSharedPtrBase* _m_sharedPtr;
 			Referable* _m_ref;
 			CWeakRef* _m_wref;
 			Collection* _m_collection;
@@ -238,19 +236,16 @@ namespace slib
 		}
 
 		template <class T>
-		Variant(const Nullable<T>& value) noexcept
+		Variant(const SharedPtr<T>& ptr) noexcept
 		{
-			if (value.isNotNull()) {
-				new (this) Variant(value.value);
-			} else {
-				_type = VariantType::Null;
-				_value = 0;
-			}
+			_constructorSharedPtr(&ptr, VariantType::SharedPtr);
 		}
 
-		Variant(const Decimal128& decimal) noexcept;
-		Variant(const SharedPtr<Decimal128>& decimal) noexcept;
-		Variant(SharedPtr<Decimal128>&& decimal) noexcept;
+		template <class T>
+		Variant(SharedPtr<T>&& ptr) noexcept
+		{
+			_constructorMoveSharedPtr(&ptr, VariantType::SharedPtr);
+		}
 
 		template <class T>
 		Variant(const Ref<T>& ref) noexcept
@@ -314,6 +309,17 @@ namespace slib
 
 		template <class T>
 		Variant(const Promise<T>& promise) noexcept: Variant(Promise<Variant>::from(promise)) {}
+
+		template <class T>
+		Variant(const Nullable<T>& value) noexcept
+		{
+			if (value.isNotNull()) {
+				new (this) Variant(value.value);
+			} else {
+				_type = VariantType::Null;
+				_value = 0;
+			}
+		}
 
 		template <class T>
 		Variant(const Atomic<T>& t) noexcept: Variant(T(t)) {}
@@ -514,13 +520,15 @@ namespace slib
 		void setPointer(const void* ptr) noexcept;
 
 
-		SharedPtr<Decimal128> getDecimal128() const noexcept;
+		sl_bool isSharedPtr() const noexcept;
 
-		void setDecimal128(const Decimal128& decimal) noexcept;
+		SharedPtr<void> getSharedPtr() const noexcept;
 
-		void setDecimal128(const SharedPtr<Decimal128>& decimal) noexcept;
-
-		void setDecimal128(SharedPtr<Decimal128>&& decimal) noexcept;
+		template <class T>
+		void setSharedPtr(T&& t) noexcept
+		{
+			_setSharedPtr(Forward<T>(t), VariantType::SharedPtr);
+		}
 
 
 		sl_bool isRef() const noexcept;
@@ -741,19 +749,10 @@ namespace slib
 		void get(Time& _out, const Time& def) const noexcept;
 
 		template <class T>
-		void get(Nullable<T>& _out) const noexcept
+		void get(SharedPtr<T>& _out) const noexcept
 		{
-			if (isUndefined()) {
-				_out->setNull();
-			} else {
-				_out.flagNull = sl_false;
-				get(_out.value);
-			}
+			_out = SharedPtr<T>::from(getSharedPtr());
 		}
-
-		void get(SharedPtr<Decimal128>& _out) const noexcept;
-		void get(Decimal128& _out) const noexcept;
-		void get(Decimal128& _out, const Decimal128& def) const noexcept;
 
 		template <class T>
 		void get(Ref<T>& _out) const noexcept
@@ -803,6 +802,17 @@ namespace slib
 		void get(Promise<Variant>& _out) const noexcept;
 
 		template <class T>
+		void get(Nullable<T>& _out) const noexcept
+		{
+			if (isUndefined()) {
+				_out->setNull();
+			} else {
+				_out.flagNull = sl_false;
+				get(_out.value);
+			}
+		}
+
+		template <class T>
 		void get(Atomic<T>& _out) const noexcept
 		{
 			T t;
@@ -815,6 +825,14 @@ namespace slib
 
 		void _assignMove(Variant& other) noexcept;
 
+		void _constructorSharedPtr(const void* ptr, VariantType type) noexcept;
+
+		void _constructorMoveSharedPtr(void* ptr, VariantType type) noexcept;
+
+		void _assignSharedPtr(const void* ptr, VariantType type) noexcept;
+
+		void _assignMoveSharedPtr(void* ptr, VariantType type) noexcept;
+
 		void _constructorRef(const void* ptr, VariantType type) noexcept;
 
 		void _constructorMoveRef(void* ptr, VariantType type) noexcept;
@@ -825,25 +843,52 @@ namespace slib
 
 		static void _free(VariantType type, sl_uint64 value) noexcept;
 
-		template <class T, class OTHER>
-		void _setRef(OTHER* ref, VariantType type) noexcept
+		template <class T>
+		void _setSharedPtr(const SharedPtr<T>& ptr, VariantType type) noexcept
 		{
-			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
+			_assignSharedPtr(&ptr, type);
+		}
+
+		template <class T>
+		void _setSharedPtr(SharedPtr<T>&& ptr, VariantType type) noexcept
+		{
+			_assignMoveSharedPtr(&ptr, type);
+		}
+
+		template <class T>
+		void _setRef(T* ref, VariantType type) noexcept
+		{
 			_assignRef(&ref, type);
 		}
 
-		template <class T, class OTHER>
-		void _setRef(const Ref<OTHER>& ref, VariantType type) noexcept
+		template <class T>
+		void _setRef(const Ref<T>& ref, VariantType type) noexcept
 		{
-			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 			_assignRef(&ref, type);
 		}
 
-		template <class T, class OTHER>
-		void _setRef(Ref<OTHER>&& ref, VariantType type) noexcept
+		template <class T>
+		void _setRef(Ref<T>&& ref, VariantType type) noexcept
 		{
-			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 			_assignMoveRef(&ref, type);
+		}
+
+		template <class T>
+		void _setRef(const AtomicRef<T>& ref, VariantType type) noexcept
+		{
+			_setRef(Ref<T>(ref), type);
+		}
+
+		template <class T>
+		void _setRef(const WeakRef<T>& ref, VariantType type) noexcept
+		{
+			_setRef(Ref<T>(ref), type);
+		}
+
+		template <class T>
+		void _setRef(const AtomicWeakRef<T>& ref, VariantType type) noexcept
+		{
+			_setRef(Ref<T>(ref), type);
 		}
 
 	};

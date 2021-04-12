@@ -340,21 +340,12 @@ namespace slib
 	void FromJson(const Json& json, Time& _out);
 	void FromJson(const Json& json, Time& _out, const Time& def);
 	void ToJson(Json& json, const Time& _in);
-	
-	void FromJson(const Json& json, Decimal128& _out);
-	void FromJson(const Json& json, Decimal128& _out, const Decimal128& def);
-	void FromJson(const Json& json, SharedPtr<Decimal128>& _out);
-	void ToJson(Json& json, const Decimal128& _in);
-	void ToJson(Json& json, const SharedPtr<Decimal128>& _in);
-	
+
 	void FromJson(const Json& json, Memory& _out);
 	void ToJson(Json& json, const Memory& _in);
-	
-	void FromJson(const Json& json, BigInt& _out);
-	void ToJson(Json& json, const BigInt& _in);
-	
+
 	template <class T>
-	static void FromJson(const Json& json, Nullable<T>& _out)
+	static void FromJson(const Json& json, SharedPtr<T>& _out)
 	{
 		if (json.isUndefined()) {
 			return;
@@ -362,18 +353,18 @@ namespace slib
 		if (json.isNull()) {
 			_out.setNull();
 		} else {
-			_out.flagNull = sl_false;
-			FromJson(json, _out.value);
+			_out = SharedPtr<T>::create();
+			FromJson(json, *(_out.get()));
 		}
 	}
 
 	template <class T>
-	static void ToJson(Json& json, const Nullable<T>& _in)
+	static void ToJson(Json& json, const SharedPtr<T>& _in)
 	{
 		if (_in.isNull()) {
 			json.setNull();
 		} else {
-			ToJson(json, _in.value);
+			ToJson(json, *(_in.get()));
 		}
 	}
 
@@ -526,6 +517,30 @@ namespace slib
 		json = Move(map);
 	}
 #endif
+
+	template <class T>
+	static void FromJson(const Json& json, Nullable<T>& _out)
+	{
+		if (json.isUndefined()) {
+			return;
+		}
+		if (json.isNull()) {
+			_out.setNull();
+		} else {
+			_out.flagNull = sl_false;
+			FromJson(json, _out.value);
+		}
+	}
+
+	template <class T>
+	static void ToJson(Json& json, const Nullable<T>& _in)
+	{
+		if (_in.isNull()) {
+			json.setNull();
+		} else {
+			ToJson(json, _in.value);
+		}
+	}
 
 	template <class T>
 	static void FromJson(const Json& json, Atomic<T>& _out)

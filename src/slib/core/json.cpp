@@ -28,8 +28,6 @@
 #include "slib/core/parse_util.h"
 #include "slib/core/log.h"
 
-#include "slib/math/bigint.h"
-
 namespace slib
 {
 	
@@ -181,18 +179,6 @@ namespace slib
 	}
 
 	Json::Json(const Time& value): Variant(value)
-	{
-	}
-
-	Json::Json(const Decimal128& value): Variant(value)
-	{
-	}
-
-	Json::Json(const SharedPtr<Decimal128>& value) : Variant(value)
-	{
-	}
-
-	Json::Json(SharedPtr<Decimal128>&& value) : Variant(value)
 	{
 	}
 
@@ -1133,31 +1119,6 @@ namespace slib
 		json.setTime(_in);
 	}
 
-	void FromJson(const Json& json, Decimal128& _out)
-	{
-		json.Variant::get(_out);
-	}
-
-	void FromJson(const Json& json, Decimal128& _out, const Decimal128& def)
-	{
-		json.Variant::get(_out, def);
-	}
-
-	void FromJson(const Json& json, SharedPtr<Decimal128>& _out)
-	{
-		json.Variant::get(_out);
-	}
-
-	void ToJson(Json& json, const Decimal128& _in)
-	{
-		json.setDecimal128(_in);
-	}
-
-	void ToJson(Json& json, const SharedPtr<Decimal128>& _in)
-	{
-		json.setDecimal128(_in);
-	}
-
 	void FromJson(const Json& json, Memory& _out)
 	{
 		if (json.isUndefined()) {
@@ -1169,19 +1130,6 @@ namespace slib
 	void ToJson(Json& json, const Memory& _in)
 	{
 		json.setString(String::makeHexString(_in));
-	}
-	
-	void FromJson(const Json& json, BigInt& _out)
-	{
-		if (json.isUndefined()) {
-			return;
-		}
-		_out = BigInt::fromHexString(json.getString());
-	}
-	
-	void ToJson(Json& json, const BigInt& _in)
-	{
-		json.setString(_in.toHexString());
 	}
 	
 	void FromJson(const Json& json, VariantList& _out)
