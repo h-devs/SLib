@@ -32,13 +32,9 @@ namespace slib
 	class SLIB_EXPORT ScopedPtr
 	{
 	public:
-		ScopedPtr() : ptr(sl_null)
-		{
-		}
+		ScopedPtr(): ptr(sl_null) {}
 
-		ScopedPtr(T* _ptr) : ptr(_ptr)
-		{
-		}
+		ScopedPtr(T* _ptr): ptr(_ptr) {}
 
 		~ScopedPtr()
 		{
@@ -81,9 +77,7 @@ namespace slib
 	class SLIB_EXPORT ScopedPtrNew : public ScopedPtr<T>
 	{
 	public:
-		ScopedPtrNew(): ScopedPtr<T>(new T)
-		{
-		}
+		ScopedPtrNew(): ScopedPtr<T>(new T) {}
 
 	public:
 		T& operator*()
@@ -102,13 +96,9 @@ namespace slib
 	class SLIB_EXPORT ScopedArray
 	{
 	public:
-		ScopedArray() : data(sl_null), count(0)
-		{
-		}
+		ScopedArray(): data(sl_null), count(0) {}
 
-		ScopedArray(T* _data, sl_size _count): data(_data), count(_count)
-		{
-		}
+		ScopedArray(T* _data, sl_size _count): data(_data), count(_count) {}
 
 		ScopedArray(sl_size _count)
 		{

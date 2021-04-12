@@ -223,7 +223,7 @@ namespace slib
 	public:
 		String name;
 		DatabaseIdentifier table;
-		Ptr<DatabaseQuery> query;
+		SharedPtr<DatabaseQuery> query;
 		DatabaseExpression expression;
 		
 	public:

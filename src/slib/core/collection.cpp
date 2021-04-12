@@ -165,6 +165,7 @@ namespace slib
 
 
 #include "slib/core/ptr.h"
+#include "slib/core/shared_ptr.h"
 
 namespace slib
 {
@@ -177,14 +178,32 @@ namespace slib
 			{
 				void* ptr;
 				void* ref;
-				sl_int32 lock;
 			};
 			
-			const ConstStruct g_null = {0, 0, 0};
-			const void* g_shared_null = 0;
+			const ConstStruct g_null = {0, 0};
+			void* const g_shared_null = 0;
 
 		}
 	}
+
+	CSharedPtrBase::~CSharedPtrBase()
+	{
+	}
+
+	sl_reg CSharedPtrBase::increaseReference() noexcept
+	{
+		return Base::interlockedIncrement(&refCount);
+	}
+
+	sl_reg CSharedPtrBase::decreaseReference() noexcept
+	{
+		sl_reg nRef = Base::interlockedDecrement(&refCount);
+		if (nRef == 0) {
+			delete this;
+		}
+		return nRef;
+	}
+
 }
 
 

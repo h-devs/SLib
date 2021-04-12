@@ -756,14 +756,14 @@ namespace slib
 			if (defaultRoute.isNotNull()) {
 				route = defaultRoute.get();
 			} else {
-				defaultRoute = Ptr<HttpServerRoute>::create();
+				defaultRoute = SharedPtr<HttpServerRoute>::create();
 				route = defaultRoute.get();
 			}
 		} else if (name == "**") {
 			if (ellipsisRoute.isNotNull()) {
 				route = ellipsisRoute.get();
 			} else {
-				ellipsisRoute = Ptr<HttpServerRoute>::create();
+				ellipsisRoute = SharedPtr<HttpServerRoute>::create();
 				route = ellipsisRoute.get();
 			}
 		} else {

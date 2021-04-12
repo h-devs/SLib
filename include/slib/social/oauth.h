@@ -239,7 +239,7 @@ namespace slib
 		~OAuth1();
 		
 	public:
-		Ptr<OAuth1_AccessToken> getAccessToken();
+		SharedPtr<OAuth1_AccessToken> getAccessToken();
 		
 		void setAccessToken(const OAuth1_AccessToken& accessToken);
 		
@@ -285,7 +285,7 @@ namespace slib
 		String m_consumerKey;
 		String m_consumerSecret;
 		
-		AtomicPtr<OAuth1_AccessToken> m_accessToken;
+		AtomicSharedPtr<OAuth1_AccessToken> m_accessToken;
 
 		HttpMethod m_requestTokenMethod;
 		String m_requestTokenUrl;
@@ -511,7 +511,7 @@ namespace slib
 		~OAuth2();
 		
 	public:
-		Ptr<OAuthAccessToken> getAccessToken();
+		SharedPtr<OAuthAccessToken> getAccessToken();
 		
 		void setAccessToken(const OAuthAccessToken& accessToken);
 		
@@ -593,7 +593,7 @@ namespace slib
 		String m_clientSecret;
 		String m_preferenceName;
 		
-		AtomicPtr<OAuthAccessToken> m_accessToken;
+		AtomicSharedPtr<OAuthAccessToken> m_accessToken;
 
 		String m_authorizeUrl;
 		String m_accessTokenUrl;

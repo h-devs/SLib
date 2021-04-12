@@ -158,7 +158,6 @@
 
 #include "core/regex.h"
 #include "core/json.h"
-#include "core/bson.h"
 #include "core/xml.h"
 
 #include "core/platform_type.h"

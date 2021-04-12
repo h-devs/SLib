@@ -34,13 +34,9 @@ namespace slib
 	{
 		namespace ref
 		{
-			struct ConstStruct
-			{
-				void* ptr;
-				sl_int32 lock;
-			};
 
-			const ConstStruct g_null = {0, 0};
+			void* const g_null = sl_null;
+			
 		}
 	}
 
