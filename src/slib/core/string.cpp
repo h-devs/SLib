@@ -50,17 +50,17 @@ namespace slib
 		namespace string
 		{
 			
-			const ConstContainer g_null = {sl_null, 0};
+			StringContainer* const g_null = sl_null;
 
 			const sl_char8 g_empty_buf[] = {0, 0};
 			const StringContainer g_empty_container = {const_cast<sl_char8*>(g_empty_buf), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1};
-			const ConstContainer g_empty = {const_cast<StringContainer*>(&g_empty_container), 0};
+			StringContainer* const g_empty = const_cast<StringContainer*>(&g_empty_container);
 
-			const ConstContainer16 g_null16 = {sl_null, 0};
+			StringContainer16* const g_null16 = sl_null;
 			
 			const sl_char16 g_empty_buf16[] = {0, 0};
 			const StringContainer16 g_empty_container16 = {const_cast<sl_char16*>(g_empty_buf16), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1};
-			const ConstContainer16 g_empty16 = {const_cast<StringContainer16*>(&g_empty_container16), 0};
+			StringContainer16* const g_empty16 = const_cast<StringContainer16*>(&g_empty_container16);
 			
 			
 			class Container_std : public StringContainer
@@ -123,7 +123,7 @@ namespace slib
 			SLIB_INLINE static StringContainer* alloc(sl_size len) noexcept
 			{
 				if (len == 0) {
-					return priv::string::g_empty.container;
+					return priv::string::g_empty;
 				}
 				sl_char8* buf = (sl_char8*)(Base::createMemory(sizeof(StringContainer) + len + 1));
 				if (buf) {
@@ -142,7 +142,7 @@ namespace slib
 			SLIB_INLINE static StringContainer16* alloc16(sl_size len) noexcept
 			{
 				if (len == 0) {
-					return priv::string::g_empty16.container;
+					return priv::string::g_empty16;
 				}
 				sl_char8* buf = (sl_char8*)(Base::createMemory(sizeof(StringContainer) + ((len + 1) << 1)));
 				if (buf) {
@@ -161,7 +161,7 @@ namespace slib
 			SLIB_INLINE static StringContainer* alloc_static(const sl_char8* sz, sl_size len) noexcept
 			{
 				if (len == 0) {
-					return priv::string::g_empty.container;
+					return priv::string::g_empty;
 				}
 				StringContainer* container = (StringContainer*)(Base::createMemory(sizeof(StringContainer)));
 				if (container) {
@@ -178,7 +178,7 @@ namespace slib
 			SLIB_INLINE static StringContainer16* alloc16_static(const sl_char16* sz, sl_size len) noexcept
 			{
 				if (len == 0) {
-					return priv::string::g_empty16.container;
+					return priv::string::g_empty16;
 				}
 				StringContainer16* container = (StringContainer16*)(Base::createMemory(sizeof(StringContainer16)));
 				if (container) {
@@ -197,7 +197,7 @@ namespace slib
 			{
 				sl_size len = (sl_size)(str.length());
 				if (len == 0) {
-					return priv::string::g_empty.container;
+					return priv::string::g_empty;
 				}
 				if (len < 40) {
 					StringContainer* container = priv::string::alloc(len);
@@ -225,7 +225,7 @@ namespace slib
 			{
 				sl_size len = (sl_size)(str.length());
 				if (len == 0) {
-					return priv::string::g_empty16.container;
+					return priv::string::g_empty16;
 				}
 				if (len < 20) {
 					StringContainer16* container = priv::string::alloc16(len);
@@ -251,7 +251,7 @@ namespace slib
 			SLIB_INLINE static StringContainer* alloc_ref(const Ref<Referable>& obj, const sl_char8* sz, sl_size len) noexcept
 			{
 				if (len == 0) {
-					return priv::string::g_empty.container;
+					return priv::string::g_empty;
 				}
 				priv::string::Container_ref* container = (priv::string::Container_ref*)(Base::createMemory(sizeof(priv::string::Container_ref)));
 				if (container) {
@@ -269,7 +269,7 @@ namespace slib
 			SLIB_INLINE static StringContainer16* alloc16_ref(const Ref<Referable>& obj, const sl_char16* sz, sl_size len) noexcept
 			{
 				if (len == 0) {
-					return priv::string::g_empty16.container;
+					return priv::string::g_empty16;
 				}
 				priv::string::Container16_ref* container = (priv::string::Container16_ref*)(Base::createMemory(sizeof(priv::string::Container16_ref)));
 				if (container) {
@@ -1578,29 +1578,29 @@ namespace slib
 
 	void String::setEmpty() noexcept
 	{
-		if (m_container != priv::string::g_empty.container) {
-			_replaceContainer(priv::string::g_empty.container);
+		if (m_container != priv::string::g_empty) {
+			_replaceContainer(priv::string::g_empty);
 		}
 	}
 
 	void String16::setEmpty() noexcept
 	{
-		if (m_container != priv::string::g_empty16.container) {
-			_replaceContainer(priv::string::g_empty16.container);
+		if (m_container != priv::string::g_empty16) {
+			_replaceContainer(priv::string::g_empty16);
 		}
 	}
 
 	void Atomic<String>::setEmpty() noexcept
 	{
-		if (m_container != priv::string::g_empty.container) {
-			_replaceContainer(priv::string::g_empty.container);
+		if (m_container != priv::string::g_empty) {
+			_replaceContainer(priv::string::g_empty);
 		}
 	}
 
 	void Atomic<String16>::setEmpty() noexcept
 	{
-		if (m_container != priv::string::g_empty16.container) {
-			_replaceContainer(priv::string::g_empty16.container);
+		if (m_container != priv::string::g_empty16) {
+			_replaceContainer(priv::string::g_empty16);
 		}
 	}
 

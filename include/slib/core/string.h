@@ -119,23 +119,12 @@ namespace slib
 	{
 		namespace string
 		{
-			struct ConstContainer
-			{
-				StringContainer* container;
-				sl_int32 lock;
-			};
 
-			extern const ConstContainer g_null;
-			extern const ConstContainer g_empty;
+			extern StringContainer* const g_null;
+			extern StringContainer* const g_empty;
 			
-			struct ConstContainer16
-			{
-				StringContainer16* container;
-				sl_int32 lock;
-			};
-
-			extern const ConstContainer16 g_null16;
-			extern const ConstContainer16 g_empty16;
+			extern StringContainer16* const g_null16;
+			extern StringContainer16* const g_empty16;
 
 			extern const char* g_conv_radixPatternUpper;
 			extern const char* g_conv_radixPatternLower;

@@ -1236,22 +1236,6 @@ namespace slib
 
 	public:
 		/**
-		 * @return null string.
-		 */
-		static const AtomicString16& null() noexcept
-		{
-			return *(reinterpret_cast<AtomicString16 const*>(&(priv::string::g_null16)));
-		}
-		
-		/**
-		 * @return empty string.
-		 */
-		static const AtomicString16& getEmpty() noexcept
-		{
-			return *(reinterpret_cast<AtomicString16 const*>(&(priv::string::g_empty16)));
-		}
-		
-		/**
 		 * @return `true` if this string is null.
 		 */
 		sl_bool isNull() const noexcept

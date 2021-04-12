@@ -3256,7 +3256,7 @@ namespace slib
 						}
 					}
 				}
-				return StringTypeFromCharType<CT>::Type(buf + pos, MAX_NUMBER_STR_LEN - pos);
+				return typename StringTypeFromCharType<CT>::Type(buf + pos, MAX_NUMBER_STR_LEN - pos);
 			}
 			
 			template <class IT, class CT>
@@ -3316,7 +3316,7 @@ namespace slib
 					}
 				}
 				
-				return StringTypeFromCharType<CT>::Type(buf + pos, MAX_NUMBER_STR_LEN - pos);
+				return typename StringTypeFromCharType<CT>::Type(buf + pos, MAX_NUMBER_STR_LEN - pos);
 			}
 
 			template <class FT, class CT>
@@ -3372,7 +3372,7 @@ namespace slib
 							buf[pos++] = '0';
 						}
 					}
-					return StringTypeFromCharType<CT>::Type(buf, pos);
+					return typename StringTypeFromCharType<CT>::Type(buf, pos);
 				}
 				
 				CT* str = buf;
@@ -3512,7 +3512,7 @@ namespace slib
 					}
 				}
 				
-				return StringTypeFromCharType<CT>::Type(buf, str - buf);
+				return typename StringTypeFromCharType<CT>::Type(buf, str - buf);
 			}
 
 			template <class CT>
