@@ -74,7 +74,6 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/async_epoll.cpp"
  "${SLIB_PATH}/src/slib/core/atomic.cpp"
  "${SLIB_PATH}/src/slib/core/base.cpp"
- "${SLIB_PATH}/src/slib/core/bson.cpp"
  "${SLIB_PATH}/src/slib/core/charset.cpp"
  "${SLIB_PATH}/src/slib/core/charset_ext.cpp"
  "${SLIB_PATH}/src/slib/core/collection.cpp"
@@ -320,10 +319,6 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/social/wechat_sdk.cpp"
 
  "${SLIB_PATH}/src/slib/storage/disk.cpp"
- "${SLIB_PATH}/src/slib/storage/fuse.cpp"
- "${SLIB_PATH}/src/slib/storage/file_system.cpp"
- "${SLIB_PATH}/src/slib/storage/file_system_logger.cpp"
- "${SLIB_PATH}/src/slib/storage/file_system_mirror.cpp"
 
  "${SLIB_PATH}/src/slib/ui/button.cpp"
  "${SLIB_PATH}/src/slib/ui/camera_view.cpp"
@@ -475,7 +470,12 @@ else ()
   "${SLIB_PATH}/src/slib/media/media_player_linux.cpp"
 
   "${SLIB_PATH}/src/slib/device/device_linux.cpp"
-
+  
+  "${SLIB_PATH}/src/slib/storage/fuse.cpp"
+  "${SLIB_PATH}/src/slib/storage/file_system.cpp"
+  "${SLIB_PATH}/src/slib/storage/file_system_logger.cpp"
+  "${SLIB_PATH}/src/slib/storage/file_system_mirror.cpp"
+ 
   "${SLIB_PATH}/src/slib/ui/button_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/check_box_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/clipboard_gtk.cpp"
