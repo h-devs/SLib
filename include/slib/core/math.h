@@ -224,7 +224,7 @@ namespace slib
 			T p = SLIB_POW10_16;
 			T p2 = p * p;
 			sl_uint32 n = 16;
-			for (p2 > p && v >= p2) {
+			while (p2 > p && v >= p2) {
 				p = p2;
 				p2 = p * p;
 				n *= 2;
