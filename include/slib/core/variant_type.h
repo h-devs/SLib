@@ -20,43 +20,39 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_COLLECTION
-#define CHECKHEADER_SLIB_CORE_COLLECTION
-
-#include "ref.h"
+#ifndef CHECKHEADER_SLIB_CORE_VARIANT_TYPE
+#define CHECKHEADER_SLIB_CORE_VARIANT_TYPE
 
 namespace slib
 {
 
-	class Variant;
-
-	class SLIB_EXPORT Collection : public Referable
+	enum class VariantType
 	{
-		SLIB_DECLARE_OBJECT
-
-	public:
-		Collection();
-
-		~Collection();
-
-	public:
-		virtual sl_uint64 getElementsCount();
-
-		virtual Variant getElement(sl_uint64 index);
-
-		virtual sl_bool setElement(sl_uint64 index, const Variant& item);
-
-		virtual sl_bool addElement(const Variant& item);
-
-	public:
-		String toString() override;
-
-		sl_bool toJsonString(StringBuffer& buf) override;
-
-		sl_bool toJsonBinary(MemoryBuffer& buf) override;
-
+		Null = 0,
+		Int32 = 1,
+		Uint32 = 2,
+		Int64 = 3,
+		Uint64 = 4,
+		Float = 5,
+		Double = 6,
+		Boolean = 7,
+		String8 = 8,
+		String16 = 9,
+		Sz8 = 10,
+		Sz16 = 11,
+		Time = 12,
+		Pointer = 13,
+		SharedPtr = 50,
+		Referable = 100,
+		Weak = Referable + 1,
+		Object = Referable + 2,
+		Collection = Referable + 3,
+		Map = Referable + 4,
+		List = Referable + 5,
+		Memory = Referable + 6,
+		Promise = Referable + 7
 	};
-	
+
 }
 
 #endif

@@ -182,6 +182,14 @@ namespace slib
 	{
 	}
 
+	Json::Json(const Memory& value): Variant(value)
+	{
+	}
+
+	Json::Json(Memory&& value): Variant(Move(value))
+	{
+	}
+
 	Json::Json(const JsonList& list): Variant(list)
 	{
 	}
@@ -1124,12 +1132,12 @@ namespace slib
 		if (json.isUndefined()) {
 			return;
 		}
-		_out = json.getString().parseHexString();
+		_out = json.getMemory();
 	}
 	
 	void ToJson(Json& json, const Memory& _in)
 	{
-		json.setString(String::makeHexString(_in));
+		json.setMemory(_in);
 	}
 	
 	void FromJson(const Json& json, VariantList& _out)

@@ -65,6 +65,8 @@ namespace slib
 	public:
 		sl_bool toJsonString(StringBuffer& buf) override;
 
+		sl_bool toJsonBinary(MemoryBuffer& buf) override;
+
 	public:
 		Object& operator=(const Object& other) = delete;
 		

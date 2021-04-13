@@ -31,6 +31,7 @@
 #include "promise.h"
 #include "string_cast.h"
 #include "variant_def.h"
+#include "variant_type.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 #include <string>
@@ -39,33 +40,6 @@
 namespace slib
 {
 
-	enum class VariantType
-	{
-		Null = 0,
-		Int32 = 1,
-		Uint32 = 2,
-		Int64 = 3,
-		Uint64 = 4,
-		Float = 5,
-		Double = 6,
-		Boolean = 7,
-		String8 = 8,
-		String16 = 9,
-		Sz8 = 10,
-		Sz16 = 11,
-		Time = 12,
-		Pointer = 13,
-		SharedPtr = 100,
-		Referable = 1000,
-		Weak = Referable + 1,
-		Object = Referable + 2,
-		Collection = Referable + 3,
-		Map = Referable + 4,
-		List = Referable + 5,
-		Memory = Referable + 6,
-		Promise = Referable + 7
-	};
-	
 	namespace priv
 	{
 		namespace variant
@@ -686,6 +660,12 @@ namespace slib
 	
 		String toJsonString() const;
 		
+		Memory serialize() const;
+
+		sl_size deserialize(const void* data, sl_size size);
+
+		sl_size deserialize(const Memory& mem);
+
 		
 		sl_compare_result compare(const Variant& other) const noexcept;
 		

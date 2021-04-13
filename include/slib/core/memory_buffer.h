@@ -53,13 +53,15 @@ namespace slib
 		{
 			return addStatic(buf, N - 1);
 		}
+
+		sl_bool pop(MemoryData& data);
 	
 		void link(MemoryBuffer& buf);
 	
 		void clear();
 	
 		Memory merge() const;
-	
+
 	protected:
 		LinkedQueue<MemoryData> m_queue;
 		sl_size m_size;

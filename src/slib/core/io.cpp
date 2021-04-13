@@ -29,11 +29,13 @@
 #include "slib/core/buffered_writer.h"
 #include "slib/core/buffered_seekable_reader.h"
 #include "slib/core/io_util.h"
+#include "slib/core/serialize_io.h"
 
 #include "slib/core/mio.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/thread.h"
 #include "slib/core/scoped.h"
+#include "slib/core/variable_length_integer.h"
 #include "slib/math/bigint.h"
 
 namespace slib
@@ -96,7 +98,7 @@ namespace slib
 	sl_reg IReader::readFully(void* _buf, sl_size size)
 	{
 		char* buf = (char*)_buf;
-		if (size == 0) {
+		if (!size) {
 			return 0;
 		}
 		sl_size nRead = 0;
@@ -114,7 +116,7 @@ namespace slib
 			if (Thread::isStoppingCurrent()) {
 				return nRead;
 			}
-			if (m == 0) {
+			if (!m) {
 				Thread::sleep(1);
 				if (Thread::isStoppingCurrent()) {
 					return nRead;
@@ -126,7 +128,7 @@ namespace slib
 
 	sl_bool IReader::readInt8(sl_int8* output)
 	{
-		if (read32(output, 1) == 1) {
+		if (readFully(output, 1) == 1) {
 			return sl_true;
 		} else {
 			return sl_false;
@@ -145,7 +147,7 @@ namespace slib
 
 	sl_bool IReader::readUint8(sl_uint8* output)
 	{
-		if (read32(output, 1) == 1) {
+		if (readFully(output, 1) == 1) {
 			return sl_true;
 		} else {
 			return sl_false;
@@ -372,29 +374,21 @@ namespace slib
 
 	sl_bool IReader::readUint32CVLI(sl_uint32* output)
 	{
-		sl_uint32 v = 0;
-		int m = 0;
-		while (1) {
-			sl_uint8 n = 0;
-			if (readFully(&n, 1) == 1) {
-				v += (((sl_uint32)(n & 127)) << m);
-				m += 7;
-				if ((n & 128) == 0) {
-					break;
-				}
-			} else {
-				return sl_false;
+		sl_uint32 v;
+		if (CVLI::deserialize(this, v)) {
+			if (output) {
+				*output = v;
 			}
+			return sl_true;
 		}
-		*output = v;
-		return sl_true;
+		return sl_false;
 	}
 
 	sl_uint32 IReader::readUint32CVLI(sl_uint32 def)
 	{
-		sl_uint32 ret;
-		if (readUint32CVLI(&ret)) {
-			return ret;
+		sl_uint32 v;
+		if (CVLI::deserialize(this, v)) {
+			return v;
 		} else {
 			return def;
 		}
@@ -402,14 +396,21 @@ namespace slib
 
 	sl_bool IReader::readInt32CVLI(sl_int32* output)
 	{
-		return readUint32CVLI((sl_uint32*)output);
+		sl_int32 v;
+		if (CVLI::deserializeSigned(this, v)) {
+			if (output) {
+				*output = v;
+			}
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 	sl_int32 IReader::readInt32CVLI(sl_int32 def)
 	{
-		sl_int32 ret;
-		if (readInt32CVLI(&ret)) {
-			return ret;
+		sl_int32 v;
+		if (CVLI::deserializeSigned(this, v)) {
+			return v;
 		} else {
 			return def;
 		}
@@ -417,29 +418,21 @@ namespace slib
 
 	sl_bool IReader::readUint64CVLI(sl_uint64* output)
 	{
-		sl_uint64 v = 0;
-		int m = 0;
-		while (1) {
-			sl_uint8 n = 0;
-			if (readFully(&n, 1) == 1) {
-				v += (((sl_uint64)(n & 127)) << m);
-				m += 7;
-				if ((n & 128) == 0) {
-					break;
-				}
-			} else {
-				return sl_false;
+		sl_uint64 v;
+		if (CVLI::deserialize(this, v)) {
+			if (output) {
+				*output = v;
 			}
+			return sl_true;
 		}
-		*output = v;
-		return sl_true;
+		return sl_false;
 	}
 
 	sl_uint64 IReader::readUint64CVLI(sl_uint64 def)
 	{
-		sl_uint64 ret;
-		if (readUint64CVLI(&ret)) {
-			return ret;
+		sl_uint64 v;
+		if (CVLI::deserialize(this, v)) {
+			return v;
 		} else {
 			return def;
 		}
@@ -447,14 +440,21 @@ namespace slib
 
 	sl_bool IReader::readInt64CVLI(sl_int64* output)
 	{
-		return readUint64CVLI((sl_uint64*)output);
+		sl_int64 v;
+		if (CVLI::deserializeSigned(this, v)) {
+			if (output) {
+				*output = v;
+			}
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 	sl_int64 IReader::readInt64CVLI(sl_int64 def)
 	{
-		sl_int64 ret;
-		if (readInt64CVLI(&ret)) {
-			return ret;
+		sl_int64 v;
+		if (CVLI::deserializeSigned(this, v)) {
+			return v;
 		} else {
 			return def;
 		}
@@ -997,7 +997,7 @@ namespace slib
 	sl_reg IWriter::writeFully(const void* _buf, sl_size size)
 	{
 		char* buf = (char*)_buf;
-		if (size == 0) {
+		if (!size) {
 			return 0;
 		}
 		sl_size nWrite = 0;
@@ -1015,7 +1015,7 @@ namespace slib
 			if (Thread::isStoppingCurrent()) {
 				return nWrite;
 			}
-			if (m == 0) {
+			if (!m) {
 				Thread::sleep(1);
 				if (Thread::isStoppingCurrent()) {
 					return nWrite;
@@ -1027,12 +1027,12 @@ namespace slib
 
 	sl_bool IWriter::writeInt8(sl_int8 value)
 	{
-		return write32(&value, 1) == 1;
+		return writeFully(&value, 1) == 1;
 	}
 
 	sl_bool IWriter::writeUint8(sl_uint8 value)
 	{
-		return write32(&value, 1) == 1;
+		return writeFully(&value, 1) == 1;
 	}
 
 	sl_bool IWriter::writeInt16(sl_int16 value, EndianType endian)
@@ -1102,48 +1102,22 @@ namespace slib
 
 	sl_bool IWriter::writeUint32CVLI(sl_uint32 value)
 	{
-		sl_bool flagContinue = sl_true;
-		do {
-			sl_uint8 n = ((sl_uint8)value) & 127;
-			value = value >> 7;
-			if (value != 0) {
-				n |= 128;
-			} else {
-				flagContinue = sl_false;
-			}
-			if (writeFully(&n, 1) != 1) {
-				return sl_false;
-			}
-		} while (flagContinue);
-		return sl_true;
+		return CVLI::serialize(this, value);
 	}
 
 	sl_bool IWriter::writeInt32CVLI(sl_int32 value)
 	{
-		return writeUint32CVLI((sl_uint32)value);
+		return CVLI::serializeSigned(this, value);
 	}
 
 	sl_bool IWriter::writeUint64CVLI(sl_uint64 value)
 	{
-		sl_bool flagContinue = sl_true;
-		do {
-			sl_uint8 n = ((sl_uint8)value) & 127;
-			value = value >> 7;
-			if (value != 0) {
-				n |= 128;
-			} else {
-				flagContinue = sl_false;
-			}
-			if (writeFully(&n, 1) != 1) {
-				return sl_false;
-			}
-		} while (flagContinue);
-		return sl_true;
+		return CVLI::serialize(this, value);
 	}
 
 	sl_bool IWriter::writeInt64CVLI(sl_int64 value)
 	{
-		return writeUint64CVLI((sl_uint64)value);
+		return CVLI::serializeSigned(this, value);
 	}
 
 	sl_bool IWriter::writeSizeCVLI(sl_size value)
@@ -4017,6 +3991,142 @@ namespace slib
 		} else {
 			return m_pos;
 		}
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SerializeBuffer)
+
+	SerializeBuffer::SerializeBuffer(const void* buf, sl_size size) noexcept
+	{
+		current = begin = (sl_uint8*)buf;
+		end = begin + size;
+	}
+
+	sl_bool SerializeBuffer::read(sl_uint8& _out) noexcept
+	{
+		if (current < end) {
+			_out = *(current++);
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool SerializeBuffer::write(sl_uint8 value) noexcept
+	{
+		if (current < end) {
+			*(current++) = value;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_size SerializeBuffer::read(void* buf, sl_size size) noexcept
+	{
+		if (size && current < end) {
+			if (current + size > end) {
+				size = end - current;
+			}
+			Base::copyMemory(buf, current, size);
+			current += size;
+			return size;
+		}
+		return 0;
+	}
+
+	sl_size SerializeBuffer::write(const void* buf, sl_size size) noexcept
+	{
+		if (size && current < end) {
+			if (current + size > end) {
+				size = end - current;
+			}
+			Base::copyMemory(current, buf, size);
+			current += size;
+			return size;
+		}
+		return 0;
+	}
+
+
+	sl_bool SerializeByte(IWriter* writer, sl_uint8 value) noexcept
+	{
+		return writer->writeUint8(value);
+	}
+
+	sl_bool SerializeByte(MemoryBuffer* buf, sl_uint8 value) noexcept
+	{
+		return buf->add(Memory::create(&value, 1));
+	}
+
+	sl_bool SerializeByte(SerializeBuffer* buf, sl_uint8 value) noexcept
+	{
+		return buf->write(value);
+	}
+
+	sl_bool SerializeRaw(IWriter* writer, const void* data, sl_size size) noexcept
+	{
+		return writer->writeFully(data, size) == size;
+	}
+
+	sl_bool SerializeRaw(MemoryBuffer* buf, const void* data, sl_size size) noexcept
+	{
+		return buf->add(Memory::create(data, size));
+	}
+
+	sl_bool SerializeRaw(SerializeBuffer* buf, const void* data, sl_size size) noexcept
+	{
+		return buf->write(data, size) == size;
+	}
+
+	sl_bool SerializeRaw(IWriter* writer, const MemoryData& mem) noexcept
+	{
+		return writer->writeFully(mem.data, mem.size) == mem.size;
+	}
+
+	sl_bool SerializeRaw(MemoryBuffer* buf, const MemoryData& mem) noexcept
+	{
+		return buf->add(mem);
+	}
+
+	sl_bool SerializeRaw(SerializeBuffer* buf, const MemoryData& mem) noexcept
+	{
+		return buf->write(mem.data, mem.size) == mem.size;
+	}
+
+	sl_bool SerializeStatic(IWriter* writer, const void* data, sl_size size) noexcept
+	{
+		return writer->writeFully(data, size) == size;
+	}
+
+	sl_bool SerializeStatic(MemoryBuffer* buf, const void* data, sl_size size) noexcept
+	{
+		return buf->addStatic(data, size);
+	}
+
+	sl_bool SerializeStatic(SerializeBuffer* buf, const void* data, sl_size size) noexcept
+	{
+		return buf->write(data, size) == size;
+	}
+
+	sl_bool DeserializeByte(IReader* reader, sl_uint8& value) noexcept
+	{
+		return reader->readUint8(&value);
+	}
+
+	sl_bool DeserializeByte(SerializeBuffer* buf, sl_uint8& _out) noexcept
+	{
+		return buf->read(_out);
+	}
+
+	sl_bool DeserializeRaw(IReader* reader, void* data, sl_size size) noexcept
+	{
+		return reader->readFully(data, size) == size;
+	}
+
+	sl_bool DeserializeRaw(SerializeBuffer* buf, void* data, sl_size size) noexcept
+	{
+		return buf->read(data, size) == size;
 	}
 
 }

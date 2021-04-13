@@ -20,43 +20,39 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_COLLECTION
-#define CHECKHEADER_SLIB_CORE_COLLECTION
+#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_BUFFER
+#define CHECKHEADER_SLIB_CORE_SERIALIZE_BUFFER
 
-#include "ref.h"
+#include "definition.h"
+
+#include "default_members.h"
 
 namespace slib
 {
 
-	class Variant;
-
-	class SLIB_EXPORT Collection : public Referable
+	class SLIB_EXPORT SerializeBuffer
 	{
-		SLIB_DECLARE_OBJECT
+	public:
+		sl_uint8* current;
+		sl_uint8* begin;
+		sl_uint8* end;
 
 	public:
-		Collection();
+		SerializeBuffer(const void* buf, sl_size size) noexcept;
 
-		~Collection();
-
-	public:
-		virtual sl_uint64 getElementsCount();
-
-		virtual Variant getElement(sl_uint64 index);
-
-		virtual sl_bool setElement(sl_uint64 index, const Variant& item);
-
-		virtual sl_bool addElement(const Variant& item);
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SerializeBuffer)
 
 	public:
-		String toString() override;
+		sl_bool read(sl_uint8& _out) noexcept;
 
-		sl_bool toJsonString(StringBuffer& buf) override;
+		sl_bool write(sl_uint8 value) noexcept;
 
-		sl_bool toJsonBinary(MemoryBuffer& buf) override;
+		sl_size read(void* buf, sl_size size) noexcept;
+
+		sl_size write(const void* buf, sl_size size) noexcept;
 
 	};
-	
+
 }
 
 #endif

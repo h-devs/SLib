@@ -23,6 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_JSON_CONV
 #define CHECKHEADER_SLIB_CORE_JSON_CONV
 
+#include "list_helper.h"
+#include "map_helper.h"
+
 namespace slib
 {
 	
@@ -65,104 +68,6 @@ namespace slib
 					json.setInt64((sl_int64)_in);
 				}
 			};
-
-			template <class LIST>
-			class ListHelper
-			{
-			public:
-				static void clear(LIST& list)
-				{
-					list.setNull();
-				}
-
-				static sl_bool create(LIST& list, sl_size n)
-				{
-					list = LIST::create(n);
-					return list.isNotNull();
-				}
-
-				static typename LIST::ELEMENT_TYPE* getData(LIST& list)
-				{
-					return list.getData();
-				}
-
-			};
-
-			template <class MAP>
-			class MapHelper
-			{
-			public:
-				static void clear(MAP& map)
-				{
-					map.setNull();
-				}
-
-				template <class... ARGS>
-				static void add(MAP& map, ARGS&&... args)
-				{
-					map.add_NoLock(Forward<ARGS>(args)...);
-				}
-
-			};
-
-#ifdef SLIB_SUPPORT_STD_TYPES
-			template <class T, class ALLOC>
-			class ListHelper< std::vector<T, ALLOC> >
-			{
-			public:
-				static void clear(std::vector<T, ALLOC>& list)
-				{
-					list.clear();
-				}
-				
-				static sl_bool create(std::vector<T, ALLOC>& list, sl_size n)
-				{
-					list.resize(n);
-					return list.size() == n;
-				}
-
-				static T* getData(std::vector<T, ALLOC>& list)
-				{
-					return list.data();
-				}
-
-			};
-
-
-			template <class KT, class... TYPES>
-			class MapHelper< std::map<KT, TYPES...> >
-			{
-			public:
-				static void clear(std::map<KT, TYPES...>& map)
-				{
-					map.clear();
-				}
-
-				template <class... ARGS>
-				static void add(std::map<KT, TYPES...>& map, ARGS&&... args)
-				{
-					map.emplace(Forward<ARGS>(args)...);
-				}
-
-			};
-
-			template <class KT, class... TYPES>
-			class MapHelper< std::unordered_map<KT, TYPES...> >
-			{
-			public:
-				static void clear(std::unordered_map<KT, TYPES...>& map)
-				{
-					map.clear();
-				}
-
-				template <class... ARGS>
-				static void add(std::unordered_map<KT, TYPES...>& map, ARGS&&... args)
-				{
-					map.emplace(Forward<ARGS>(args)...);
-				}
-
-			};
-#endif
 
 			template <class LIST>
 			static void GetListFromJson(LIST& _out, const Json& json)

@@ -20,43 +20,53 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_COLLECTION
-#define CHECKHEADER_SLIB_CORE_COLLECTION
+#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_MEMORY
+#define CHECKHEADER_SLIB_CORE_SERIALIZE_MEMORY
 
-#include "ref.h"
+#include "serialize_primitive.h"
+#include "variable_length_integer.h"
+#include "memory.h"
 
 namespace slib
 {
 
-	class Variant;
-
-	class SLIB_EXPORT Collection : public Referable
+	template <class OUTPUT>
+	static sl_bool Serialize(OUTPUT* output, const Memory& _in)
 	{
-		SLIB_DECLARE_OBJECT
+		sl_size size = _in.getSize();
+		if (!(CVLI::serialize(output, size))) {
+			return sl_false;
+		}
+		if (size) {
+			return SerializeRaw(output, _in.getData(), size);
+		} else {
+			return sl_true;
+		}
+	}
 
-	public:
-		Collection();
+	template <class INPUT>
+	static sl_bool Deserialize(INPUT* input, Memory& _out)
+	{
+		sl_size size;
+		if (!(CVLI::deserialize(input, size))) {
+			return sl_false;
+		}
+		if (size) {
+			Memory ret = Memory::create(size);
+			if (ret.isNull()) {
+				return sl_false;
+			}
+			if (DeserializeRaw(input, ret.getData(), size)) {
+				_out = Move(ret);
+				return sl_true;
+			}
+			return sl_false;
+		} else {
+			_out.setNull();
+			return sl_true;
+		}
+	}
 
-		~Collection();
-
-	public:
-		virtual sl_uint64 getElementsCount();
-
-		virtual Variant getElement(sl_uint64 index);
-
-		virtual sl_bool setElement(sl_uint64 index, const Variant& item);
-
-		virtual sl_bool addElement(const Variant& item);
-
-	public:
-		String toString() override;
-
-		sl_bool toJsonString(StringBuffer& buf) override;
-
-		sl_bool toJsonBinary(MemoryBuffer& buf) override;
-
-	};
-	
 }
 
 #endif

@@ -90,6 +90,23 @@ namespace slib
 			return sl_true;
 		}
 
+		sl_bool toJsonBinary(MemoryBuffer& buf) override
+		{
+			ListLocker<T> list(*m_list);
+			if (!(SerializeByte(&buf, (sl_uint8)(VariantType::Collection)))) {
+				return sl_false;
+			}
+			if (!(CVLI::serialize(&buf, list.count))) {
+				return sl_false;
+			}
+			for (sl_size i = 0; i < list.count; i++) {
+				if (!(Serialize(&buf, Variant(list[i])))) {
+					return sl_false;
+				}
+			}
+			return sl_true;
+		}
+
 	protected:
 		Ref< CList<T> > m_list;
 

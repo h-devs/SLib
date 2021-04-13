@@ -125,6 +125,7 @@
 #include "core/io_util.h"
 #include "core/bit_reader.h"
 #include "core/bit_writer.h"
+#include "core/serialize.h"
 
 #include "core/async.h"
 #include "core/async_stream.h"

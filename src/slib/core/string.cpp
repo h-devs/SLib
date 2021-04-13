@@ -69,13 +69,9 @@ namespace slib
 				std::string str;
 				
 			public:
-				Container_std(const std::string& _str): str(_str)
-				{
-				}
+				Container_std(const std::string& _str): str(_str) {}
 				
-				Container_std(std::string&& _str): str(Move(_str))
-				{
-				}
+				Container_std(std::string&& _str): str(Move(_str)) {}
 				
 			};
 			
@@ -85,9 +81,7 @@ namespace slib
 				Ref<Referable> obj;
 				
 			public:
-				Container_ref(const Ref<Referable>& _obj): obj(_obj)
-				{
-				}
+				Container_ref(const Ref<Referable>& _obj): obj(_obj) {}
 				
 			};
 			
@@ -97,13 +91,9 @@ namespace slib
 				std::u16string str;
 				
 			public:
-				Container16_std(const std::u16string& _str): str(_str)
-				{
-				}
+				Container16_std(const std::u16string& _str): str(_str) {}
 				
-				Container16_std(std::u16string&& _str): str(Move(_str))
-				{
-				}
+				Container16_std(std::u16string&& _str): str(Move(_str)) {}
 				
 			};
 			
@@ -113,16 +103,14 @@ namespace slib
 				Ref<Referable> obj;
 				
 			public:
-				Container16_ref(const Ref<Referable>& _obj): obj(_obj)
-				{
-				}
+				Container16_ref(const Ref<Referable>& _obj): obj(_obj) {}
 				
 			};
 
 			
 			SLIB_INLINE static StringContainer* alloc(sl_size len) noexcept
 			{
-				if (len == 0) {
+				if (!len) {
 					return priv::string::g_empty;
 				}
 				sl_char8* buf = (sl_char8*)(Base::createMemory(sizeof(StringContainer) + len + 1));
@@ -141,7 +129,7 @@ namespace slib
 			
 			SLIB_INLINE static StringContainer16* alloc16(sl_size len) noexcept
 			{
-				if (len == 0) {
+				if (!len) {
 					return priv::string::g_empty16;
 				}
 				sl_char8* buf = (sl_char8*)(Base::createMemory(sizeof(StringContainer) + ((len + 1) << 1)));
@@ -160,7 +148,7 @@ namespace slib
 			
 			SLIB_INLINE static StringContainer* alloc_static(const sl_char8* sz, sl_size len) noexcept
 			{
-				if (len == 0) {
+				if (!len) {
 					return priv::string::g_empty;
 				}
 				StringContainer* container = (StringContainer*)(Base::createMemory(sizeof(StringContainer)));
@@ -177,7 +165,7 @@ namespace slib
 			
 			SLIB_INLINE static StringContainer16* alloc16_static(const sl_char16* sz, sl_size len) noexcept
 			{
-				if (len == 0) {
+				if (!len) {
 					return priv::string::g_empty16;
 				}
 				StringContainer16* container = (StringContainer16*)(Base::createMemory(sizeof(StringContainer16)));
@@ -196,7 +184,7 @@ namespace slib
 			SLIB_INLINE static StringContainer* alloc_std(T&& str) noexcept
 			{
 				sl_size len = (sl_size)(str.length());
-				if (len == 0) {
+				if (!len) {
 					return priv::string::g_empty;
 				}
 				if (len < 40) {
@@ -224,7 +212,7 @@ namespace slib
 			SLIB_INLINE static StringContainer16* alloc16_std(T&& str) noexcept
 			{
 				sl_size len = (sl_size)(str.length());
-				if (len == 0) {
+				if (!len) {
 					return priv::string::g_empty16;
 				}
 				if (len < 20) {
@@ -250,7 +238,7 @@ namespace slib
 			
 			SLIB_INLINE static StringContainer* alloc_ref(const Ref<Referable>& obj, const sl_char8* sz, sl_size len) noexcept
 			{
-				if (len == 0) {
+				if (!len) {
 					return priv::string::g_empty;
 				}
 				priv::string::Container_ref* container = (priv::string::Container_ref*)(Base::createMemory(sizeof(priv::string::Container_ref)));
@@ -268,7 +256,7 @@ namespace slib
 			
 			SLIB_INLINE static StringContainer16* alloc16_ref(const Ref<Referable>& obj, const sl_char16* sz, sl_size len) noexcept
 			{
-				if (len == 0) {
+				if (!len) {
 					return priv::string::g_empty16;
 				}
 				priv::string::Container16_ref* container = (priv::string::Container16_ref*)(Base::createMemory(sizeof(priv::string::Container16_ref)));
@@ -614,7 +602,7 @@ namespace slib
 	{
 		if (ref > 0) {
 			sl_reg nRef = Base::interlockedDecrement(&ref);
-			if (nRef == 0) {
+			if (!nRef) {
 				if (type == STRING_CONTAINER_TYPE_STD) {
 					priv::string::Container_std* container = static_cast<priv::string::Container_std*>(this);
 					container->priv::string::Container_std::~Container_std();
@@ -633,7 +621,7 @@ namespace slib
 	{
 		if (ref > 0) {
 			sl_reg nRef = Base::interlockedDecrement(&ref);
-			if (nRef == 0) {
+			if (!nRef) {
 				if (type == STRING_CONTAINER_TYPE_STD) {
 					priv::string::Container16_std* container = static_cast<priv::string::Container16_std*>(this);
 					container->priv::string::Container16_std::~Container16_std();
@@ -1135,10 +1123,10 @@ namespace slib
 		}
 		sl_char8* s = (sl_char8*)(mem.getData());
 		sl_size n = mem.getSize();
-		if (n == 0) {
+		if (!n) {
 			return String::getEmpty();
 		}
-		if (s[n-1] == 0) {
+		if (!(s[n-1])) {
 			n--;
 		}
 		return fromRef(mem.ref, s, n);
@@ -1151,10 +1139,10 @@ namespace slib
 		}
 		sl_char16* s = (sl_char16*)(mem.getData());
 		sl_size n = mem.getSize() >> 1;
-		if (n == 0) {
+		if (!n) {
 			return String16::getEmpty();
 		}
-		if (s[n-1] == 0) {
+		if (!(s[n-1])) {
 			n--;
 		}
 		return fromRef(mem.ref, s, n);
@@ -1235,7 +1223,7 @@ namespace slib
 		if (!len) {
 			return getEmpty();
 		}
-		if (((((sl_reg)(_utf16)) & 1) == 0) && Endian::isBE()) {
+		if (!(((sl_reg)(_utf16)) & 1) && Endian::isBE()) {
 			return String16((sl_char16*)_utf16, len);
 		}
 		String16 str = allocate(len);
@@ -1290,7 +1278,7 @@ namespace slib
 		if (!len) {
 			return getEmpty();
 		}
-		if ((((sl_reg)(_utf16)) & 1) == 0 && Endian::isLE()) {
+		if (!(((sl_reg)(_utf16)) & 1) && Endian::isLE()) {
 			return String16((sl_char16*)_utf16, len);
 		}
 		String16 str = allocate(len);
@@ -1318,7 +1306,7 @@ namespace slib
 		if (!buf) {
 			return sl_null;
 		}
-		if (size == 0) {
+		if (!size) {
 			return getEmpty();
 		}
 		if (size >= 2) {
@@ -1348,7 +1336,7 @@ namespace slib
 		if (!buf) {
 			return sl_null;
 		}
-		if (size == 0) {
+		if (!size) {
 			return getEmpty();
 		}
 		if (size >= 2) {
@@ -1528,13 +1516,13 @@ namespace slib
 	sl_bool Atomic<String>::isEmpty() const noexcept
 	{
 		String s(*this);
-		return s.getLength() == 0;
+		return !(s.getLength());
 	}
 
 	sl_bool Atomic<String16>::isEmpty() const noexcept
 	{
 		String16 s(*this);
-		return s.getLength() == 0;
+		return !(s.getLength());
 	}
 
 

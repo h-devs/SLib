@@ -32,9 +32,6 @@
 #ifdef SLIB_SUPPORT_STD_TYPES
 #include <initializer_list>
 #include <string>
-#include <vector>
-#include <map>
-#include <unordered_map>
 #endif
 
 namespace slib
@@ -140,7 +137,11 @@ namespace slib
 #endif
 		
 		Json(const Time& value);
-		
+
+		Json(const Memory& value);
+
+		Json(Memory&& mem);
+
 		Json(const JsonList& list);
 
 		Json(JsonList&& list);
@@ -350,7 +351,6 @@ namespace slib
 }
 
 #include "json_conv.h"
-
 
 #define SLIB_JSON \
 public: \

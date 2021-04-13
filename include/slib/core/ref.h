@@ -174,6 +174,7 @@ namespace slib
 
 	class String;
 	class StringBuffer;
+	class MemoryBuffer;
 
 	class SLIB_EXPORT Referable
 	{
@@ -211,6 +212,8 @@ namespace slib
 		virtual String toString();
 
 		virtual sl_bool toJsonString(StringBuffer& buf);
+
+		virtual sl_bool toJsonBinary(MemoryBuffer& buf);
 
 	private:
 		void _clearWeak() noexcept;

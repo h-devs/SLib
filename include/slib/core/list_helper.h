@@ -20,43 +20,65 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_COLLECTION
-#define CHECKHEADER_SLIB_CORE_COLLECTION
+#ifndef CHECKHEADER_SLIB_CORE_LIST_HELPER
+#define CHECKHEADER_SLIB_CORE_LIST_HELPER
 
-#include "ref.h"
+#include "list.h"
+
+#ifdef SLIB_SUPPORT_STD_TYPES
+#include <vector>
+#endif
 
 namespace slib
 {
 
-	class Variant;
-
-	class SLIB_EXPORT Collection : public Referable
+	template <class LIST>
+	class ListHelper
 	{
-		SLIB_DECLARE_OBJECT
-
 	public:
-		Collection();
+		static void clear(LIST& list)
+		{
+			list.setNull();
+		}
 
-		~Collection();
+		static sl_bool create(LIST& list, sl_size n)
+		{
+			list = LIST::create(n);
+			return list.isNotNull();
+		}
 
-	public:
-		virtual sl_uint64 getElementsCount();
-
-		virtual Variant getElement(sl_uint64 index);
-
-		virtual sl_bool setElement(sl_uint64 index, const Variant& item);
-
-		virtual sl_bool addElement(const Variant& item);
-
-	public:
-		String toString() override;
-
-		sl_bool toJsonString(StringBuffer& buf) override;
-
-		sl_bool toJsonBinary(MemoryBuffer& buf) override;
+		static typename LIST::ELEMENT_TYPE* getData(LIST& list)
+		{
+			return list.getData();
+		}
 
 	};
-	
+
+
+#ifdef SLIB_SUPPORT_STD_TYPES
+	template <class T, class ALLOC>
+	class ListHelper< std::vector<T, ALLOC> >
+	{
+	public:
+		static void clear(std::vector<T, ALLOC>& list)
+		{
+			list.clear();
+		}
+		
+		static sl_bool create(std::vector<T, ALLOC>& list, sl_size n)
+		{
+			list.resize(n);
+			return list.size() == n;
+		}
+
+		static T* getData(std::vector<T, ALLOC>& list)
+		{
+			return list.data();
+		}
+
+	};
+#endif
+
 }
 
 #endif

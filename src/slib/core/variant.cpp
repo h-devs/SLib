@@ -29,6 +29,7 @@
 #include "slib/core/math.h"
 #include "slib/core/list_collection.h"
 #include "slib/core/map_object.h"
+#include "slib/core/serialize.h"
 
 #define PTR_VAR(TYPE, x) ((TYPE*)((void*)(&(x))))
 #define REF_VAR(TYPE, x) (*PTR_VAR(TYPE, x))
@@ -2699,7 +2700,11 @@ namespace slib
 
 	Memory Variant::getMemory() const noexcept
 	{
-		return GetObjectT<CMemory, Memory, VariantType::Memory>(*this);
+		if (isString()) {
+			return getString().parseHexString();
+		} else {
+			return GetObjectT<CMemory, Memory, VariantType::Memory>(*this);
+		}
 	}
 
 	void Variant::setMemory(const Memory& mem) noexcept
@@ -2961,6 +2966,26 @@ namespace slib
 				break;
 		}
 		SLIB_RETURN_STRING("null")
+	}
+
+	Memory Variant::serialize() const
+	{
+		MemoryBuffer buf;
+		if (Serialize(&buf, *this)) {
+			return buf.merge();
+		}
+		return sl_null;
+	}
+
+	sl_size Variant::deserialize(const void* data, sl_size size)
+	{
+		SerializeBuffer buf(data, size);
+		return Deserialize(&buf, *this);
+	}
+
+	sl_size Variant::deserialize(const Memory& mem)
+	{
+		return deserialize(mem.getData(), mem.getSize());
 	}
 
 	sl_compare_result Variant::compare(const Variant& v2) const noexcept

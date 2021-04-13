@@ -20,43 +20,16 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_COLLECTION
-#define CHECKHEADER_SLIB_CORE_COLLECTION
+#ifndef CHECKHEADER_SLIB_CORE_TEMPLATE_IO
+#define CHECKHEADER_SLIB_CORE_TEMPLATE_IO
 
-#include "ref.h"
+#include "definition.h"
 
 namespace slib
 {
-
-	class Variant;
-
-	class SLIB_EXPORT Collection : public Referable
-	{
-		SLIB_DECLARE_OBJECT
-
-	public:
-		Collection();
-
-		~Collection();
-
-	public:
-		virtual sl_uint64 getElementsCount();
-
-		virtual Variant getElement(sl_uint64 index);
-
-		virtual sl_bool setElement(sl_uint64 index, const Variant& item);
-
-		virtual sl_bool addElement(const Variant& item);
-
-	public:
-		String toString() override;
-
-		sl_bool toJsonString(StringBuffer& buf) override;
-
-		sl_bool toJsonBinary(MemoryBuffer& buf) override;
-
-	};
 	
+
+
 }
 
 #endif

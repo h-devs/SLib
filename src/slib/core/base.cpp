@@ -527,7 +527,7 @@ namespace slib
 			return 0;
 		}
 #if SLIB_WCHAR_SIZE == 4
-		return wcsnlen((wchar_t*)sz, count);
+		return wcslen((wchar_t*)sz);
 #else
 		const sl_char32* begin = sz;
 		while (*(sz++)) {}
@@ -614,7 +614,7 @@ namespace slib
 	sl_bool Base::equalsString4(const sl_char32* s1, const sl_char32* s2) noexcept
 	{
 #if SLIB_WCHAR_SIZE == 4
-		return !(wcsncmp((wchar_t*)s1, (wchar_t*)s2, count));
+		return !(wcscmp((wchar_t*)s1, (wchar_t*)s2));
 #else
 		for (;;) {
 			sl_char32 c = *(s1++);
@@ -731,7 +731,7 @@ namespace slib
 #ifdef SLIB_COMPILER_IS_VC
 		return !(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
 #else
-		return !(wcsncasecmp((wchar_t*)s1, (wchar_t*)s2, count));
+		return !(wcscasecmp((wchar_t*)s1, (wchar_t*)s2));
 #endif
 #else
 		for (;;) {
@@ -840,7 +840,7 @@ namespace slib
 	sl_compare_result Base::compareString4(const sl_char32* s1, const sl_char32* s2) noexcept
 	{
 #if SLIB_WCHAR_SIZE == 4
-		return (sl_compare_result)(wcscmp((wchar_t*)s1, (wchar_t*)s2, count));
+		return (sl_compare_result)(wcscmp((wchar_t*)s1, (wchar_t*)s2));
 #else
 		for (;;) {
 			sl_char32 c1 = *(s1++);

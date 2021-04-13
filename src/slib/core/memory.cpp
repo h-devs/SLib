@@ -23,6 +23,11 @@
 #include "slib/core/memory.h"
 #include "slib/core/memory_buffer.h"
 #include "slib/core/memory_queue.h"
+#include "slib/core/string.h"
+#include "slib/core/string_buffer.h"
+#include "slib/core/parse_util.h"
+#include "slib/core/serialize_memory.h"
+#include "slib/core/variant_type.h"
 
 namespace slib
 {
@@ -291,6 +296,33 @@ namespace slib
 	CMemory* CMemory::duplicate() const noexcept
 	{
 		return create(m_data, m_size);
+	}
+
+	String CMemory::toString()
+	{
+		return String::makeHexString(getData(), getSize());
+	}
+
+	sl_bool CMemory::toJsonString(StringBuffer& buf)
+	{
+		if (!(buf.addStatic("\""))) {
+			return sl_false;
+		}
+		if (!(buf.add(String::makeHexString(getData(), getSize())))) {
+			return sl_false;
+		}
+		if (!(buf.addStatic("\""))) {
+			return sl_false;
+		}
+		return sl_true;
+	}
+
+	sl_bool CMemory::toJsonBinary(MemoryBuffer& buf)
+	{
+		if (!(SerializeByte(&buf, (sl_uint8)(VariantType::Memory)))) {
+			return sl_false;
+		}
+		return Serialize(&buf, Memory(this));
 	}
 
 
@@ -715,6 +747,11 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool MemoryBuffer::pop(MemoryData& data)
+	{
+		return m_queue.popFront_NoLock(&data);
+	}
+
 	void MemoryBuffer::link(MemoryBuffer& buf)
 	{
 		m_size += buf.m_size;
@@ -728,7 +765,6 @@ namespace slib
 		m_size = 0;
 	}
 
-	
 	Memory MemoryBuffer::merge() const
 	{
 		if (m_queue.getCount() == 0) {

@@ -27,6 +27,7 @@
 #include "slib/core/variant.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/parse_util.h"
+#include "slib/core/serialize.h"
 
 namespace slib
 {
@@ -202,6 +203,40 @@ namespace slib
 			if (!(buf.addStatic("}"))) {
 				return sl_false;
 			}
+			return sl_true;
+		}
+	}
+
+	sl_bool Object::toJsonBinary(MemoryBuffer& buf)
+	{
+		if (!(SerializeByte(&buf, (sl_uint8)(VariantType::Object)))) {
+			return sl_false;
+		}
+		ObjectLocker lock(this);
+		if (m_properties) {
+			HashMap<String, Variant>& map = *((HashMap<String, Variant>*)(void*)(&m_properties));
+			return Serialize(&buf, map);
+		} else {
+			MemoryBuffer queue;
+			sl_size count = 0;
+			if (!(enumerateProperties([&queue, &count](const StringParam& name, const Variant& v) {
+				if (v.isNotUndefined()) {
+					if (!(Serialize(&queue, name))) {
+						return sl_false;
+					}
+					if (!(Serialize(&queue, v))) {
+						return sl_false;
+					}
+					count++;
+				}
+				return sl_true;
+			}))) {
+				return sl_false;
+			}
+			if (!(CVLI::serialize(&buf, count))) {
+				return sl_false;
+			}
+			buf.link(queue);
 			return sl_true;
 		}
 	}

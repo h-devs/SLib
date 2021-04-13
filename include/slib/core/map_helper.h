@@ -20,43 +20,75 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_COLLECTION
-#define CHECKHEADER_SLIB_CORE_COLLECTION
+#ifndef CHECKHEADER_SLIB_CORE_MAP_HELPER
+#define CHECKHEADER_SLIB_CORE_MAP_HELPER
 
-#include "ref.h"
+#include "map.h"
+#include "hash_map.h"
+
+#ifdef SLIB_SUPPORT_STD_TYPES
+#include <map>
+#include <unordered_map>
+#endif
 
 namespace slib
 {
 
-	class Variant;
-
-	class SLIB_EXPORT Collection : public Referable
+	template <class MAP>
+	class MapHelper
 	{
-		SLIB_DECLARE_OBJECT
-
 	public:
-		Collection();
+		static void clear(MAP& map)
+		{
+			map.setNull();
+		}
 
-		~Collection();
-
-	public:
-		virtual sl_uint64 getElementsCount();
-
-		virtual Variant getElement(sl_uint64 index);
-
-		virtual sl_bool setElement(sl_uint64 index, const Variant& item);
-
-		virtual sl_bool addElement(const Variant& item);
-
-	public:
-		String toString() override;
-
-		sl_bool toJsonString(StringBuffer& buf) override;
-
-		sl_bool toJsonBinary(MemoryBuffer& buf) override;
+		template <class... ARGS>
+		static sl_bool add(MAP& map, ARGS&&... args)
+		{
+			return map.add_NoLock(Forward<ARGS>(args)...) != sl_null;
+		}
 
 	};
-	
+
+#ifdef SLIB_SUPPORT_STD_TYPES
+	template <class KT, class... TYPES>
+	class MapHelper< std::map<KT, TYPES...> >
+	{
+	public:
+		static void clear(std::map<KT, TYPES...>& map)
+		{
+			map.clear();
+		}
+
+		template <class... ARGS>
+		static sl_bool add(std::map<KT, TYPES...>& map, ARGS&&... args)
+		{
+			map.emplace(Forward<ARGS>(args)...);
+			return sl_true;
+		}
+
+	};
+
+	template <class KT, class... TYPES>
+	class MapHelper< std::unordered_map<KT, TYPES...> >
+	{
+	public:
+		static void clear(std::unordered_map<KT, TYPES...>& map)
+		{
+			map.clear();
+		}
+
+		template <class... ARGS>
+		static sl_bool add(std::unordered_map<KT, TYPES...>& map, ARGS&&... args)
+		{
+			map.emplace(Forward<ARGS>(args)...);
+			return sl_true;
+		}
+
+	};
+#endif
+
 }
 
 #endif

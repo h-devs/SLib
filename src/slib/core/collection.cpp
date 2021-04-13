@@ -29,6 +29,7 @@
 #include "slib/core/linked_object.h"
 #include "slib/core/loop_queue.h"
 #include "slib/core/string_buffer.h"
+#include "slib/core/serialize.h"
 
 namespace slib
 {
@@ -91,6 +92,23 @@ namespace slib
 		}
 		if (!(buf.addStatic("]"))) {
 			return sl_false;
+		}
+		return sl_true;
+	}
+
+	sl_bool Collection::toJsonBinary(MemoryBuffer& buf)
+	{
+		if (!(SerializeByte(&buf, (sl_uint8)(VariantType::Collection)))) {
+			return sl_false;
+		}
+		sl_uint64 n = getElementsCount();
+		if (!(CVLI::serialize(&buf, n))) {
+			return sl_false;
+		}
+		for (sl_uint64 i = 0; i < n; i++) {
+			if (!(Serialize(&buf, getElement(i)))) {
+				return sl_false;
+			}
 		}
 		return sl_true;
 	}

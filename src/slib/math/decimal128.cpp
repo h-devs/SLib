@@ -128,36 +128,28 @@ namespace slib
 			static sl_uint32 CopyString(T* dst, const char* src) noexcept
 			{
 				const char* begin = src;
-				for (;;) {
-					char c = *(src++);
-					*(dst++) = c;
-					if (!c) {
-						break;
-					}
-				}
+				while ((*(dst++) = *(src++))) {}
 				return (sl_uint32)(src - begin);
 			}
 
 			template <class T>
-			static sl_compare_result EqualsStringIgnoreCase(const T* s1, sl_size count, const char* s2) noexcept
+			static sl_compare_result EqualsStringIgnoreCase(const T* s1, sl_size limit, const char* s2) noexcept
 			{
-				if (count > 512) {
-					count = 512;
+				if (limit > 512) {
+					limit = 512;
 				}
-				const char* s2e = s2 + count;
-				while (s2 < s2e) {
-					T c1 = *(s1++);
-					char c2 = *(s2++);
-					c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
-					c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+				const char* end = s2 + limit;
+				while (s2 < end) {
+					T c1 = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
+					char c2 = SLIB_CHAR_LOWER_TO_UPPER(*(s2++));
 					if (c1 != c2) {
 						return sl_false;
 					}
 					if (!c1) {
-						return sl_true;
+						break;
 					}
 				}
-				return !(*s2);
+				return sl_false;
 			}
 
 			// Referenced from Mongodb's BSON implementation

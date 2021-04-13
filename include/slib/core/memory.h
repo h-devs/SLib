@@ -106,7 +106,14 @@ namespace slib
 		sl_size copy(sl_size offsetTarget, const CMemory* source, sl_size offsetSource = 0, sl_size size = SLIB_SIZE_MAX) const noexcept;
 
 		CMemory* duplicate() const noexcept;
-		
+
+	public:
+		String toString() override;
+
+		sl_bool toJsonString(StringBuffer& buf) override;
+
+		sl_bool toJsonBinary(MemoryBuffer& buf) override;
+
 	protected:
 		void* m_data;
 		sl_size m_size;
