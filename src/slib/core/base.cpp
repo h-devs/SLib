@@ -403,166 +403,225 @@ namespace slib
 		return MemoryTraitsFind<sl_uint64>::findBackward((sl_uint64*)m, size, (sl_uint64*)pattern, nPattern);
 	}
 
-#define STRING_LENGTH_LIMIT 0x1000000
-
-	sl_size Base::copyString(sl_char8* dst, const sl_char8* src, sl_reg count) noexcept
+	sl_size Base::copyString(sl_char8* dst, const sl_char8* src) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
 		const sl_char8* begin = src;
+		while ((*(dst++) = *(src++))) {}
+		return src - begin;
+	}
+
+	sl_size Base::copyString(sl_char8* dst, const sl_char8* src, sl_size count) noexcept
+	{
+		if (!count) {
+			return 0;
+		}
 		const sl_char8* end = src + count;
-		while (src < end) {
-			sl_char8 c = *(src++);
-			*(dst++) = c;
-			if (!c) {
-				break;
-			}
+		if (src < end) {
+			const sl_char8* begin = src;
+			while ((*(dst++) = *(src++)) && src < end) {}
+			return src - begin;
+		} else {
+			return copyString(dst, src);
 		}
-		return src - begin;
 	}
 
-	sl_size Base::copyString2(sl_char16* dst, const sl_char16* src, sl_reg count) noexcept
+	sl_size Base::copyString2(sl_char16* dst, const sl_char16* src) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
 		const sl_char16* begin = src;
-		const sl_char16* end = src + count;
-		while (src < end) {
-			sl_char16 c = *(src++);
-			*(dst++) = c;
-			if (!c) {
-				break;
-			}
-		}
+		while ((*(dst++) = *(src++))) {}
 		return src - begin;
 	}
 
-	sl_size Base::copyString4(sl_char32* dst, const sl_char32* src, sl_reg count) noexcept
+	sl_size Base::copyString2(sl_char16* dst, const sl_char16* src, sl_size count) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
+		if (!count) {
+			return 0;
 		}
+		const sl_char16* end = src + count;
+		if (src < end) {
+			const sl_char16* begin = src;
+			while ((*(dst++) = *(src++)) && src < end) {}
+			return src - begin;
+		} else {
+			return copyString2(dst, src);
+		}
+	}
+
+	sl_size Base::copyString4(sl_char32* dst, const sl_char32* src) noexcept
+	{
 		const sl_char32* begin = src;
-		const sl_char32* end = src + count;
-		while (src < end) {
-			sl_char32 c = *(src++);
-			*(dst++) = c;
-			if (!c) {
-				break;
-			}
-		}
+		while ((*(dst++) = *(src++))) {}
 		return src - begin;
 	}
 
-	sl_size Base::getStringLength(const sl_char8* sz, sl_reg count) noexcept
+	sl_size Base::copyString4(sl_char32* dst, const sl_char32* src, sl_size count) noexcept
+	{
+		if (!count) {
+			return 0;
+		}
+		const sl_char32* end = src + count;
+		if (src < end) {
+			const sl_char32* begin = src;
+			while ((*(dst++) = *(src++)) && src < end) {}
+			return src - begin;
+		} else {
+			return copyString4(dst, src);
+		}
+	}
+
+	sl_size Base::getStringLength(const sl_char8* sz) noexcept
 	{
 		if (!sz) {
 			return 0;
 		}
-		if (!count) {
+		return strlen(sz);
+	}
+
+	sl_size Base::getStringLength(const sl_char8* sz, sl_size count) noexcept
+	{
+		if (!sz) {
 			return 0;
-		}
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
 		}
 		return strnlen(sz, count);
 	}
 
-	sl_size Base::getStringLength2(const sl_char16* sz, sl_reg count) noexcept
+	sl_size Base::getStringLength2(const sl_char16* sz) noexcept
 	{
 		if (!sz) {
 			return 0;
 		}
-		if (!count) {
+#if SLIB_WCHAR_SIZE == 2
+		return wcslen((wchar_t*)sz);
+#else
+		const sl_char16* begin = sz;
+		while (*(sz++)) {}
+		return sz - begin;
+#endif
+	}
+
+	sl_size Base::getStringLength2(const sl_char16* sz, sl_size count) noexcept
+	{
+		if (!sz) {
 			return 0;
-		}
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
 		}
 #if SLIB_WCHAR_SIZE == 2
 		return wcsnlen((wchar_t*)sz, count);
 #else
-		for (sl_reg i = 0; i < count; i++) {
-			if (!(sz[i])) {
-				return i;
-			}
+		if (!count) {
+			return 0;
 		}
-		return count;
+		const sl_char16* end = sz + count;
+		if (sz < end) {
+			const sl_char16* begin = sz;
+			while (*(sz++) && sz < end) {}
+			return sz - begin;
+		} else {
+			return getStringLength2(sz);
+		}
 #endif
 	}
 
-	sl_size Base::getStringLength4(const sl_char32* sz, sl_reg count) noexcept
+	sl_size Base::getStringLength4(const sl_char32* sz) noexcept
 	{
 		if (!sz) {
 			return 0;
 		}
-		if (!count) {
+#if SLIB_WCHAR_SIZE == 4
+		return wcsnlen((wchar_t*)sz, count);
+#else
+		const sl_char32* begin = sz;
+		while (*(sz++)) {}
+		return sz - begin;
+#endif
+	}
+
+	sl_size Base::getStringLength4(const sl_char32* sz, sl_size count) noexcept
+	{
+		if (!sz) {
 			return 0;
-		}
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
 		}
 #if SLIB_WCHAR_SIZE == 4
 		return wcsnlen((wchar_t*)sz, count);
 #else
-		for (sl_reg i = 0; i < count; i++) {
-			if (!(sz[i])) {
-				return i;
-			}
+		if (!count) {
+			return 0;
 		}
-		return count;
+		const sl_char32* end = sz + count;
+		if (sz < end) {
+			const sl_char32* begin = sz;
+			while (*(sz++) && sz < end) {}
+			return sz - begin;
+		} else {
+			return getStringLength4(sz);
+		}
 #endif
 	}
 
-	sl_bool Base::equalsString(const sl_char8* s1, const sl_char8* s2, sl_reg count) noexcept
+	sl_bool Base::equalsString(const sl_char8* s1, const sl_char8* s2) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
+		return !(strcmp(s1, s2));
+	}
+
+	sl_bool Base::equalsString(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept
+	{
 		return !(strncmp(s1, s2, count));
 	}
 
-	sl_bool Base::equalsString2(const sl_char16* s1, const sl_char16* s2, sl_reg count) noexcept
+	sl_bool Base::equalsString2(const sl_char16* s1, const sl_char16* s2) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
+#if SLIB_WCHAR_SIZE == 2
+		return !(wcscmp((wchar_t*)s1, (wchar_t*)s2));
+#else
+		for (;;) {
+			sl_char16 c = *(s1++);
+			if (c != *(s2++)) {
+				return sl_false;
+			}
+			if (!c) {
+				break;
+			}
 		}
+		return sl_true;
+#endif
+	}
+
+	sl_bool Base::equalsString2(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept
+	{
 #if SLIB_WCHAR_SIZE == 2
 		return !(wcsncmp((wchar_t*)s1, (wchar_t*)s2, count));
 #else
-		const sl_char16* s1e = s1 + count;
-		while (s1 < s1e) {
-			sl_char16 c1 = *(s1++);
-			sl_char16 c2 = *(s2++);
-			if (c1 != c2) {
-				return sl_false;
-			}
-			if (!c1) {
-				break;
-			}
+		if (!count) {
+			return sl_true;
 		}
-		return sl_true;
+		const sl_char16* end = s1 + count;
+		if (s1 < end) {
+			do {
+				sl_char16 c = *(s1++);
+				if (c != *(s2++)) {
+					return sl_false;
+				}
+				if (!c) {
+					break;
+				}
+			} while (s1 < end);
+			return sl_true;
+		} else {
+			return equalsString2(s1, s2);
+		}
 #endif
 	}
 
-	sl_bool Base::equalsString4(const sl_char32* s1, const sl_char32* s2, sl_reg count) noexcept
+	sl_bool Base::equalsString4(const sl_char32* s1, const sl_char32* s2) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
 #if SLIB_WCHAR_SIZE == 4
 		return !(wcsncmp((wchar_t*)s1, (wchar_t*)s2, count));
 #else
-		const sl_char32* s1e = s1 + count;
-		while (s1 < s1e) {
-			sl_char32 c1 = *(s1++);
-			sl_char32 c2 = *(s2++);
-			if (c1 != c2) {
+		for (;;) {
+			sl_char32 c = *(s1++);
+			if (c != *(s2++)) {
 				return sl_false;
 			}
-			if (!c1) {
+			if (!c) {
 				break;
 			}
 		}
@@ -570,11 +629,43 @@ namespace slib
 #endif
 	}
 
-	sl_bool Base::equalsStringIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_reg count) noexcept
+	sl_bool Base::equalsString4(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
+#if SLIB_WCHAR_SIZE == 4
+		return !(wcsncmp((wchar_t*)s1, (wchar_t*)s2, count));
+#else
+		if (!count) {
+			return sl_true;
 		}
+		const sl_char32* end = s1 + count;
+		if (s1 < end) {
+			do {
+				sl_char32 c = *(s1++);
+				if (c != *(s2++)) {
+					return sl_false;
+				}
+				if (!c) {
+					break;
+				}
+			} while (s1 < end);
+			return sl_true;
+		} else {
+			return equalsString4(s1, s2);
+		}
+#endif
+	}
+
+	sl_bool Base::equalsStringIgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept
+	{
+#ifdef SLIB_COMPILER_IS_VC
+		return !(_stricmp(s1, s2));
+#else
+		return !(strcasecmp(s1, s2));
+#endif
+	}
+
+	sl_bool Base::equalsStringIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept
+	{
 #ifdef SLIB_COMPILER_IS_VC
 		return !(_strnicmp(s1, s2, count));
 #else
@@ -582,11 +673,30 @@ namespace slib
 #endif
 	}
 
-	sl_bool Base::equalsStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2, sl_reg count) noexcept
+	sl_bool Base::equalsStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
+#if SLIB_WCHAR_SIZE == 2
+#ifdef SLIB_COMPILER_IS_VC
+		return !(_wcsicmp((wchar_t*)s1, (wchar_t*)s2));
+#else
+		return !(wcscasecmp((wchar_t*)s1, (wchar_t*)s2));
+#endif
+#else
+		for (;;) {
+			sl_char16 c = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
+			if (c != SLIB_CHAR_LOWER_TO_UPPER(*(s2++))) {
+				return sl_false;
+			}
+			if (!c) {
+				break;
+			}
 		}
+		return sl_true;
+#endif
+	}
+
+	sl_bool Base::equalsStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept
+	{
 #if SLIB_WCHAR_SIZE == 2
 #ifdef SLIB_COMPILER_IS_VC
 		return !(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
@@ -594,28 +704,29 @@ namespace slib
 		return !(wcsncasecmp((wchar_t*)s1, (wchar_t*)s2, count));
 #endif
 #else
-		const sl_char16* s1e = s1 + count;
-		while (s1 < s1e) {
-			sl_char16 c1 = *(s1++);
-			sl_char16 c2 = *(s2++);
-			c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
-			c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
-			if (c1 != c2) {
-				return sl_false;
-			}
-			if (!c1) {
-				break;
-			}
+		if (!count) {
+			return sl_true;
 		}
-		return sl_true;
+		const sl_char16* end = s1 + count;
+		if (s1 < end) {
+			do {
+				sl_char16 c = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
+				if (c != SLIB_CHAR_LOWER_TO_UPPER(*(s2++))) {
+					return sl_false;
+				}
+				if (!c) {
+					break;
+				}
+			} while (s1 < end);
+			return sl_true;
+		} else {
+			return equalsStringIgnoreCase2(s1, s2);
+		}
 #endif
 	}
 
-	sl_bool Base::equalsStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2, sl_reg count) noexcept
+	sl_bool Base::equalsStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
 #if SLIB_WCHAR_SIZE == 4
 #ifdef SLIB_COMPILER_IS_VC
 		return !(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
@@ -623,16 +734,12 @@ namespace slib
 		return !(wcsncasecmp((wchar_t*)s1, (wchar_t*)s2, count));
 #endif
 #else
-		const sl_char32* s1e = s1 + count;
-		while (s1 < s1e) {
-			sl_char32 c1 = *(s1++);
-			sl_char32 c2 = *(s2++);
-			c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
-			c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
-			if (c1 != c2) {
+		for (;;) {
+			sl_char32 c = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
+			if (c != SLIB_CHAR_LOWER_TO_UPPER(*(s2++))) {
 				return sl_false;
 			}
-			if (!c1) {
+			if (!c) {
 				break;
 			}
 		}
@@ -640,24 +747,52 @@ namespace slib
 #endif
 	}
 
-	sl_compare_result Base::compareString(const sl_char8* s1, const sl_char8* s2, sl_reg count) noexcept
+	sl_bool Base::equalsStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
+#if SLIB_WCHAR_SIZE == 4
+#ifdef SLIB_COMPILER_IS_VC
+		return !(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+#else
+		return !(wcsncasecmp((wchar_t*)s1, (wchar_t*)s2, count));
+#endif
+#else
+		if (!count) {
+			return sl_true;
 		}
+		const sl_char32* end = s1 + count;
+		if (s1 < end) {
+			do {
+				sl_char32 c = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
+				if (c != SLIB_CHAR_LOWER_TO_UPPER(*(s2++))) {
+					return sl_false;
+				}
+				if (!c) {
+					break;
+				}
+			} while (s1 < end);
+			return sl_true;
+		} else {
+			return equalsStringIgnoreCase4(s1, s2);
+		}
+#endif
+	}
+
+	sl_compare_result Base::compareString(const sl_char8* s1, const sl_char8* s2) noexcept
+	{
+		return (sl_compare_result)(strcmp(s1, s2));
+	}
+
+	sl_compare_result Base::compareString(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept
+	{
 		return (sl_compare_result)(strncmp(s1, s2, count));
 	}
 
-	sl_compare_result Base::compareString2(const sl_char16* s1, const sl_char16* s2, sl_reg count) noexcept
+	sl_compare_result Base::compareString2(const sl_char16* s1, const sl_char16* s2) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
 #if SLIB_WCHAR_SIZE == 2
-		return (sl_compare_result)(wcsncmp((wchar_t*)s1, (wchar_t*)s2, count));
+		return (sl_compare_result)(wcscmp((wchar_t*)s1, (wchar_t*)s2));
 #else
-		const sl_char16* s1e = s1 + count;
-		while (s1 < s1e) {
+		for (;;) {
 			sl_char16 c1 = *(s1++);
 			sl_char16 c2 = *(s2++);
 			if (c1 < c2) {
@@ -673,16 +808,41 @@ namespace slib
 #endif
 	}
 
-	sl_compare_result Base::compareString4(const sl_char32* s1, const sl_char32* s2, sl_reg count) noexcept
+	sl_compare_result Base::compareString2(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
-#if SLIB_WCHAR_SIZE == 4
+#if SLIB_WCHAR_SIZE == 2
 		return (sl_compare_result)(wcsncmp((wchar_t*)s1, (wchar_t*)s2, count));
 #else
-		const sl_char32* s1e = s1 + count;
-		while (s1 < s1e) {
+		if (!count) {
+			return 0;
+		}
+		const sl_char16* end = s1 + count;
+		if (s1 < end) {
+			do {
+				sl_char16 c1 = *(s1++);
+				sl_char16 c2 = *(s2++);
+				if (c1 < c2) {
+					return -1;
+				} else if (c1 > c2) {
+					return 1;
+				}
+				if (!c1) {
+					break;
+				}
+			} while (s1 < end);
+			return 0;
+		} else {
+			return compareString2(s1, s2);
+		}
+#endif
+	}
+
+	sl_compare_result Base::compareString4(const sl_char32* s1, const sl_char32* s2) noexcept
+	{
+#if SLIB_WCHAR_SIZE == 4
+		return (sl_compare_result)(wcscmp((wchar_t*)s1, (wchar_t*)s2, count));
+#else
+		for (;;) {
 			sl_char32 c1 = *(s1++);
 			sl_char32 c2 = *(s2++);
 			if (c1 < c2) {
@@ -698,11 +858,46 @@ namespace slib
 #endif
 	}
 
-	sl_compare_result Base::compareStringIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_reg count) noexcept
+	sl_compare_result Base::compareString4(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
+#if SLIB_WCHAR_SIZE == 4
+		return (sl_compare_result)(wcsncmp((wchar_t*)s1, (wchar_t*)s2, count));
+#else
+		if (!count) {
+			return 0;
 		}
+		const sl_char32* end = s1 + count;
+		if (s1 < end) {
+			do {
+				sl_char32 c1 = *(s1++);
+				sl_char32 c2 = *(s2++);
+				if (c1 < c2) {
+					return -1;
+				} else if (c1 > c2) {
+					return 1;
+				}
+				if (!c1) {
+					break;
+				}
+			} while (s1 < end);
+			return 0;
+		} else {
+			return compareString4(s1, s2);
+		}
+#endif
+	}
+
+	sl_compare_result Base::compareStringIgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept
+	{
+#ifdef SLIB_COMPILER_IS_VC
+		return (sl_compare_result)(_stricmp(s1, s2));
+#else
+		return (sl_compare_result)(strcasecmp(s1, s2));
+#endif
+	}
+
+	sl_compare_result Base::compareStringIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept
+	{
 #ifdef SLIB_COMPILER_IS_VC
 		return (sl_compare_result)(_strnicmp(s1, s2, count));
 #else
@@ -710,24 +905,18 @@ namespace slib
 #endif
 	}
 
-	sl_compare_result Base::compareStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2, sl_reg count) noexcept
+	sl_compare_result Base::compareStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
 #if SLIB_WCHAR_SIZE == 2
 #ifdef SLIB_COMPILER_IS_VC
-		return (sl_compare_result)(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+		return (sl_compare_result)(_wcsicmp((wchar_t*)s1, (wchar_t*)s2));
 #else
-		return (sl_compare_result)(wcsncasecmp((wchar_t*)s1, (wchar_t*)s2, count));
+		return (sl_compare_result)(wcscasecmp((wchar_t*)s1, (wchar_t*)s2));
 #endif
 #else
-		const sl_char16* s1e = s1 + count;
-		while (s1 < s1e) {
-			sl_char16 c1 = *(s1++);
-			sl_char16 c2 = *(s2++);
-			c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
-			c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+		for (;;) {
+			sl_char16 c1 = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
+			sl_char16 c2 = SLIB_CHAR_LOWER_TO_UPPER(*(s2++));
 			if (c1 < c2) {
 				return -1;
 			} else if (c1 > c2) {
@@ -741,24 +930,51 @@ namespace slib
 #endif
 	}
 
-	sl_compare_result Base::compareStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2, sl_reg count) noexcept
+	sl_compare_result Base::compareStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept
 	{
-		if (count < 0) {
-			count = STRING_LENGTH_LIMIT;
-		}
-#if SLIB_WCHAR_SIZE == 4
+#if SLIB_WCHAR_SIZE == 2
 #ifdef SLIB_COMPILER_IS_VC
 		return (sl_compare_result)(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
 #else
 		return (sl_compare_result)(wcsncasecmp((wchar_t*)s1, (wchar_t*)s2, count));
 #endif
 #else
-		const sl_char32* s1e = s1 + count;
-		while (s1 < s1e) {
-			sl_char32 c1 = *(s1++);
-			sl_char32 c2 = *(s2++);
-			c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
-			c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+		if (!count) {
+			return 0;
+	}
+		const sl_char16* end = s1 + count;
+		if (s1 < end) {
+			do {
+				sl_char16 c1 = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
+				sl_char16 c2 = SLIB_CHAR_LOWER_TO_UPPER(*(s2++));
+				if (c1 < c2) {
+					return -1;
+				} else if (c1 > c2) {
+					return 1;
+				}
+				if (!c1) {
+					break;
+				}
+			} while (s1 < end);
+			return 0;
+		} else {
+			return compareStringIgnoreCase2(s1, s2);
+		}
+#endif
+	}
+
+	sl_compare_result Base::compareStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2) noexcept
+	{
+#if SLIB_WCHAR_SIZE == 4
+#ifdef SLIB_COMPILER_IS_VC
+		return (sl_compare_result)(_wcsicmp((wchar_t*)s1, (wchar_t*)s2));
+#else
+		return (sl_compare_result)(wcscasecmp((wchar_t*)s1, (wchar_t*)s2));
+#endif
+#else
+		for (;;) {
+			sl_char32 c1 = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
+			sl_char32 c2 = SLIB_CHAR_LOWER_TO_UPPER(*(s2++));
 			if (c1 < c2) {
 				return -1;
 			} else if (c1 > c2) {
@@ -769,6 +985,39 @@ namespace slib
 			}
 		}
 		return 0;
+#endif
+	}
+
+	sl_compare_result Base::compareStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept
+	{
+#if SLIB_WCHAR_SIZE == 4
+#ifdef SLIB_COMPILER_IS_VC
+		return (sl_compare_result)(_wcsnicmp((wchar_t*)s1, (wchar_t*)s2, count));
+#else
+		return (sl_compare_result)(wcsncasecmp((wchar_t*)s1, (wchar_t*)s2, count));
+#endif
+#else
+		if (!count) {
+			return 0;
+		}
+		const sl_char32* end = s1 + count;
+		if (s1 < end) {
+			do {
+				sl_char32 c1 = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
+				sl_char32 c2 = SLIB_CHAR_LOWER_TO_UPPER(*(s2++));
+				if (c1 < c2) {
+					return -1;
+				} else if (c1 > c2) {
+					return 1;
+				}
+				if (!c1) {
+					break;
+				}
+			} while (s1 < end);
+			return 0;
+		} else {
+			return compareStringIgnoreCase4(s1, s2);
+		}
 #endif
 	}
 
