@@ -93,12 +93,12 @@ namespace slib
 		/**
 		 * Copies the null-terminated character sequence pointed by `str`.
 		 */
-		String(const char* str) noexcept;
+		String(const sl_char8* str) noexcept;
 
 		/**
 		 * Copies the first `length` characters from the array of characters pointed by `str`
 		 */
-		String(const char* str, sl_reg length) noexcept;
+		String(const sl_char8* str, sl_reg length) noexcept;
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 		/**
