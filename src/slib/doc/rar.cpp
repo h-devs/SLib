@@ -116,7 +116,7 @@ namespace slib
 		if (!(readerBlock->readUint32(&headerCRC))) {
 			return sl_false;
 		}
-		if (!(readerBlock->readUint32CVLI(&headerSize))) {
+		if (!(readerBlock->readCVLI32(&headerSize))) {
 			return sl_false;
 		}
 		if (!headerSize) {
@@ -127,7 +127,7 @@ namespace slib
 		}
 		MemoryReader readerHeader(rawHeader);
 		sl_uint32 _type;
-		if (!(readerHeader.readUint32CVLI(&_type))) {
+		if (!(readerHeader.readCVLI32(&_type))) {
 			return sl_false;
 		}
 		if (_type < (sl_uint32)(RarBlockType5::Min)) {
@@ -137,18 +137,18 @@ namespace slib
 			return sl_false;
 		}
 		type = (RarBlockType5)_type;
-		if (!(readerHeader.readInt32CVLI(&(flags.value)))) {
+		if (!(readerHeader.readCVLI32((sl_uint32*)&(flags.value)))) {
 			return sl_false;
 		}
 		if (flags & RarBlockFlags5::ExtraArea) {
-			if (!(readerHeader.readUint64CVLI(&extraAreaSize))) {
+			if (!(readerHeader.readCVLI64(&extraAreaSize))) {
 				return sl_false;
 			}
 		} else {
 			extraAreaSize = 0;
 		}
 		if (flags & RarBlockFlags5::DataArea) {
-			if (!(readerHeader.readUint64CVLI(&dataSize))) {
+			if (!(readerHeader.readCVLI64(&dataSize))) {
 				return sl_false;
 			}
 		} else {
@@ -169,13 +169,13 @@ namespace slib
 
 	sl_bool RarExtraArea5::read(MemoryReader& reader)
 	{
-		if (!(reader.readUint32CVLI(&size))) {
+		if (!(reader.readCVLI32(&size))) {
 			return sl_false;
 		}
 		sl_size pos = reader.getPosition();
 		sl_size end = pos + size;
 		sl_uint32 _type;
-		if (!(reader.readUint32CVLI(&_type))) {
+		if (!(reader.readCVLI32(&_type))) {
 			return sl_false;
 		}
 		type = (RarExtraType5)_type;
@@ -229,11 +229,11 @@ namespace slib
 		if (!(reader.seek(header.customHeaderPosition, SeekPosition::Begin))) {
 			return sl_false;
 		}
-		if (!(reader.readInt32CVLI(&(flags.value)))) {
+		if (!(reader.readCVLI32((sl_uint32*)&(flags.value)))) {
 			return sl_false;
 		}
 		if (flags & RarArchiveFlags5::VolumeNumber) {
-			if (!(reader.readUint64CVLI(&volumeNumber))) {
+			if (!(reader.readCVLI64(&volumeNumber))) {
 				return sl_false;
 			}
 		}
@@ -255,10 +255,10 @@ namespace slib
 		if (!(reader.seek(header.customHeaderPosition, SeekPosition::Begin))) {
 			return sl_false;
 		}
-		if (!(reader.readUint32CVLI(&version))) {
+		if (!(reader.readCVLI32(&version))) {
 			return sl_false;
 		}
-		if (!(reader.readInt32CVLI(&(flags.value)))) {
+		if (!(reader.readCVLI32((sl_uint32*)&(flags.value)))) {
 			return sl_false;
 		}
 		if (!(reader.readUint8(&countKDF))) {
@@ -413,13 +413,13 @@ namespace slib
 
 	sl_bool RarFileBlock5::readHeader(MemoryReader& reader, sl_bool flagReadName)
 	{
-		if (!(reader.readInt32CVLI(&(flags.value)))) {
+		if (!(reader.readCVLI32((sl_uint32*)&(flags.value)))) {
 			return sl_false;
 		}
-		if (!(reader.readUint64CVLI(&fileSize))) {
+		if (!(reader.readCVLI64(&fileSize))) {
 			return sl_false;
 		}
-		if (!(reader.readUint64CVLI(&attributes))) {
+		if (!(reader.readCVLI64(&attributes))) {
 			return sl_false;
 		}
 		if (flags & RarFileFlags5::Time) {
@@ -433,17 +433,17 @@ namespace slib
 			}
 		}
 		sl_uint32 _compression;
-		if (!(reader.readUint32CVLI(&_compression))) {
+		if (!(reader.readCVLI32(&_compression))) {
 			return sl_false;
 		}
 		compression.setValue(_compression);
 		sl_uint32 _hostOS;
-		if (!(reader.readUint32CVLI(&_hostOS))) {
+		if (!(reader.readCVLI32(&_hostOS))) {
 			return sl_false;
 		}
 		hostOS = (RarHostOS5)_hostOS;
 		sl_uint32 lenName;
-		if (!(reader.readUint32CVLI(&lenName))) {
+		if (!(reader.readCVLI32(&lenName))) {
 			return sl_false;
 		}
 		if (lenName) {
@@ -489,10 +489,10 @@ namespace slib
 	sl_bool RarFileEncryptionRecord5::read(const void* data, sl_size size)
 	{
 		MemoryReader reader(data, size);
-		if (!(reader.readUint32CVLI(&version))) {
+		if (!(reader.readCVLI32(&version))) {
 			return sl_false;
 		}
-		if (!(reader.readInt32CVLI(&(flags.value)))) {
+		if (!(reader.readCVLI32((sl_uint32*)&(flags.value)))) {
 			return sl_false;
 		}
 		if (!(reader.readUint8(&countKDF))) {

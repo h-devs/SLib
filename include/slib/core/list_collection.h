@@ -26,6 +26,8 @@
 #include "variant.h"
 #include "string_buffer.h"
 
+#include "serialize/variant.h"
+
 namespace slib
 {
 

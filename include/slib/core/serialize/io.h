@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_IO
 #define CHECKHEADER_SLIB_CORE_SERIALIZE_IO
 
-#include "serialize_buffer.h"
+#include "buffer.h"
 
 namespace slib
 {

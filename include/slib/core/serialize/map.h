@@ -23,9 +23,10 @@
 #ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_MAP
 #define CHECKHEADER_SLIB_CORE_SERIALIZE_MAP
 
-#include "serialize_primitive.h"
+#include "primitive.h"
 #include "variable_length_integer.h"
-#include "map_helper.h"
+
+#include "../map_helper.h"
 
 namespace slib
 {

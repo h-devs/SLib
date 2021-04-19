@@ -23,11 +23,12 @@
 #include "slib/core/memory.h"
 #include "slib/core/memory_buffer.h"
 #include "slib/core/memory_queue.h"
+
 #include "slib/core/string.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/parse_util.h"
-#include "slib/core/serialize_memory.h"
 #include "slib/core/variant_type.h"
+#include "slib/core/serialize/memory.h"
 
 namespace slib
 {

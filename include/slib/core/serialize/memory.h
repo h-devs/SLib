@@ -23,9 +23,10 @@
 #ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_MEMORY
 #define CHECKHEADER_SLIB_CORE_SERIALIZE_MEMORY
 
-#include "serialize_primitive.h"
+#include "primitive.h"
 #include "variable_length_integer.h"
-#include "memory.h"
+
+#include "../memory.h"
 
 namespace slib
 {

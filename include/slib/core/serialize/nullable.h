@@ -20,21 +20,45 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE
-#define CHECKHEADER_SLIB_CORE_SERIALIZE
+#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_NULLABLE
+#define CHECKHEADER_SLIB_CORE_SERIALIZE_NULLABLE
 
-#include "serialize/primitive.h"
-#include "serialize/variable_length_integer.h"
-#include "serialize/string.h"
-#include "serialize/time.h"
-#include "serialize/memory.h"
-#include "serialize/list.h"
-#include "serialize/map.h"
-#include "serialize/variant.h"
-#include "serialize/nullable.h"
-#include "serialize/atomic.h"
-#include "serialize/ref.h"
-#include "serialize/generic.h"
-#include "serialize/macro.h"
+#include "primitive.h"
+
+#include "../nullable.h"
+
+namespace slib
+{
+
+	template <class OUTPUT, class T>
+	static sl_bool Serialize(OUTPUT* output, const Nullable<T>& _in)
+	{
+		if (_in.isNull()) {
+			return SerializeStatic(output, "", 1);
+		} else {
+			if (!(SerializeStatic(output, "\x01", 1))) {
+				return sl_false;
+			}
+			return Serialize(output, _in.value);
+		}
+	}
+
+	template <class INPUT, class T>
+	static sl_size Deserialize(INPUT* input, Nullable<T>& _out)
+	{
+		sl_uint8 f;
+		if (!(DeserializeByte(input, f))) {
+			return sl_false;
+		}
+		if (f) {
+			_out.flagNull = sl_false;
+			return Deserialize(input, _out.value);
+		} else {
+			_out.setNull();
+			return sl_true;
+		}
+	}
+
+}
 
 #endif

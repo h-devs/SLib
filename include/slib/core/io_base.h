@@ -99,30 +99,18 @@ namespace slib
 		double readDouble(double def = 0, EndianType endian = Endian::Little);
 
 		//  CVLI (Chain Variable Length Integer)
-		sl_bool readUint32CVLI(sl_uint32* output);
+		sl_bool readCVLI32(sl_uint32* output);
 
-		sl_uint32 readUint32CVLI(sl_uint32 def = 0);
+		sl_uint32 readCVLI32(sl_uint32 def = 0);
 
-		sl_bool readInt32CVLI(sl_int32* output);
-
-		sl_int32 readInt32CVLI(sl_int32 def = 0);
-	
 		//  CVLI (Chain Variable Length Integer)
-		sl_bool readUint64CVLI(sl_uint64* output);
+		sl_bool readCVLI64(sl_uint64* output);
 	
-		sl_uint64 readUint64CVLI(sl_uint64 def = 0);
+		sl_uint64 readCVLI64(sl_uint64 def = 0);
 
-		sl_bool readInt64CVLI(sl_int64* output);
+		sl_bool readCVLI(sl_size* output);
 
-		sl_int64 readInt64CVLI(sl_int64 def = 0);
-
-		sl_bool readSizeCVLI(sl_size* output);
-
-		sl_size readSizeCVLI(sl_size def = 0);
-
-		sl_bool readIntCVLI(sl_reg* output);
-
-		sl_reg readIntCVLI(sl_reg def = 0);
+		sl_size readCVLI(sl_size def = 0);
 
 		Memory readToMemory(sl_size size);
 	
@@ -201,17 +189,11 @@ namespace slib
 		sl_bool writeDouble(double value, EndianType endian = Endian::Little);
 	
 		//  CVLI (Chain Variable Length Integer)
-		sl_bool writeUint32CVLI(sl_uint32 value);
+		sl_bool writeCVLI32(sl_uint32 value);
 
-		sl_bool writeInt32CVLI(sl_int32 value);
-	
-		sl_bool writeUint64CVLI(sl_uint64 value);
+		sl_bool writeCVLI64(sl_uint64 value);
 
-		sl_bool writeInt64CVLI(sl_int64 value);
-
-		sl_bool writeSizeCVLI(sl_size value);
-
-		sl_bool writeIntCVLI(sl_reg value);
+		sl_bool writeCVLI(sl_size value);
 
 		sl_size writeFromMemory(const Memory& mem);
 

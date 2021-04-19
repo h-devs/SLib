@@ -20,21 +20,49 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE
-#define CHECKHEADER_SLIB_CORE_SERIALIZE
+#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_SHARED_PTR
+#define CHECKHEADER_SLIB_CORE_SERIALIZE_SHARED_PTR
 
-#include "serialize/primitive.h"
-#include "serialize/variable_length_integer.h"
-#include "serialize/string.h"
-#include "serialize/time.h"
-#include "serialize/memory.h"
-#include "serialize/list.h"
-#include "serialize/map.h"
-#include "serialize/variant.h"
-#include "serialize/nullable.h"
-#include "serialize/atomic.h"
-#include "serialize/ref.h"
-#include "serialize/generic.h"
-#include "serialize/macro.h"
+#include "primitive.h"
+
+#include "../shared_ptr.h"
+
+namespace slib
+{
+
+	template <class OUTPUT, class T>
+	static sl_bool Serialize(OUTPUT* output, const SharedPtr<T>& _in)
+	{
+		if (_in.isNull()) {
+			return SerializeStatic(output, "", 1);
+		} else {
+			if (!(SerializeStatic(output, "\x01", 1))) {
+				return sl_false;
+			}
+			return Serialize(output, *(_in.get()));
+		}
+	}
+
+	template <class INPUT, class T>
+	static sl_size Deserialize(INPUT* input, SharedPtr<T>& _out)
+	{
+		sl_uint8 f;
+		if (!(DeserializeByte(input, f))) {
+			return sl_false;
+		}
+		if (f) {
+			_out = SharedPtr<T>::create();
+			if (_out.isNotNull()) {
+				return Deserialize(input, *(_out.get()));
+			} else {
+				return sl_false;
+			}
+		} else {
+			_out.setNull();
+			return sl_true;
+		}
+	}
+
+}
 
 #endif

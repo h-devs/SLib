@@ -23,8 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_PRIMITIVE
 #define CHECKHEADER_SLIB_CORE_SERIALIZE_PRIMITIVE
 
-#include "serialize_io.h"
-#include "mio.h"
+#include "io.h"
+
+#include "../mio.h"
 
 namespace slib
 {

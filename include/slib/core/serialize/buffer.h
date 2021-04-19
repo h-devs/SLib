@@ -20,21 +20,37 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE
-#define CHECKHEADER_SLIB_CORE_SERIALIZE
+#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_BUFFER
+#define CHECKHEADER_SLIB_CORE_SERIALIZE_BUFFER
 
-#include "serialize/primitive.h"
-#include "serialize/variable_length_integer.h"
-#include "serialize/string.h"
-#include "serialize/time.h"
-#include "serialize/memory.h"
-#include "serialize/list.h"
-#include "serialize/map.h"
-#include "serialize/variant.h"
-#include "serialize/nullable.h"
-#include "serialize/atomic.h"
-#include "serialize/ref.h"
-#include "serialize/generic.h"
-#include "serialize/macro.h"
+#include "../default_members.h"
+
+namespace slib
+{
+
+	class SLIB_EXPORT SerializeBuffer
+	{
+	public:
+		sl_uint8* current;
+		sl_uint8* begin;
+		sl_uint8* end;
+
+	public:
+		SerializeBuffer(const void* buf, sl_size size) noexcept;
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SerializeBuffer)
+
+	public:
+		sl_bool read(sl_uint8& _out) noexcept;
+
+		sl_bool write(sl_uint8 value) noexcept;
+
+		sl_size read(void* buf, sl_size size) noexcept;
+
+		sl_size write(const void* buf, sl_size size) noexcept;
+
+	};
+
+}
 
 #endif

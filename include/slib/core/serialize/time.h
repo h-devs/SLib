@@ -20,21 +20,35 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE
-#define CHECKHEADER_SLIB_CORE_SERIALIZE
+#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_TIME
+#define CHECKHEADER_SLIB_CORE_SERIALIZE_TIME
 
-#include "serialize/primitive.h"
-#include "serialize/variable_length_integer.h"
-#include "serialize/string.h"
-#include "serialize/time.h"
-#include "serialize/memory.h"
-#include "serialize/list.h"
-#include "serialize/map.h"
-#include "serialize/variant.h"
-#include "serialize/nullable.h"
-#include "serialize/atomic.h"
-#include "serialize/ref.h"
-#include "serialize/generic.h"
-#include "serialize/macro.h"
+#include "primitive.h"
+
+#include "../time.h"
+
+namespace slib
+{
+
+	template <class OUTPUT>
+	static sl_bool Serialize(OUTPUT* output, const Time& _in)
+	{
+		sl_uint8 buf[8];
+		MIO::writeInt64LE(buf, _in.toInt());
+		return SerializeRaw(output, buf, 8);
+	}
+
+	template <class INPUT>
+	static sl_bool Deserialize(INPUT* input, Time& _out)
+	{
+		sl_uint8 buf[8];
+		if (DeserializeRaw(input, buf, 8)) {
+			_out = MIO::readInt64LE(buf);
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+}
 
 #endif

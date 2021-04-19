@@ -23,9 +23,10 @@
 #ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_STRING
 #define CHECKHEADER_SLIB_CORE_SERIALIZE_STRING
 
-#include "serialize_primitive.h"
+#include "primitive.h"
 #include "variable_length_integer.h"
-#include "string.h"
+
+#include "../string.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 #include <string>
@@ -35,17 +36,22 @@ namespace slib
 {
 
 	template <class OUTPUT>
-	static sl_bool Serialize(OUTPUT* output, const String& _in)
+	static sl_bool SerializeString(OUTPUT* output, const sl_char8* str, sl_size len)
 	{
-		sl_size len = _in.getLength();
 		if (!(CVLI::serialize(output, len))) {
 			return sl_false;
 		}
 		if (len) {
-			return SerializeRaw(output, _in.getData(), len);
+			return SerializeRaw(output, str, len);
 		} else {
 			return sl_true;
 		}
+	}
+
+	template <class OUTPUT>
+	static sl_bool Serialize(OUTPUT* output, const String& _in)
+	{
+		return SerializeString(output, _in.getData(), _in.getLength());
 	}
 
 	template <class INPUT>
@@ -71,25 +77,10 @@ namespace slib
 		}
 	}
 
-	template <class OUTPUT, class STRING>
-	static sl_bool SerializeString(OUTPUT* output, const STRING& _in)
-	{
-		if (_in.isNotEmpty()) {
-			String s = String::from(_in);
-			if (s.isNotNull()) {
-				return Serialize(output, s);
-			} else {
-				return sl_false;
-			}
-		} else {
-			return Serialize(output, String::null());
-		}
-	}
-
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const String16& _in)
 	{
-		return SerializeString(output, _in);
+		return Serialize(output, String::from(_in));
 	}
 
 	template <class INPUT>
@@ -112,38 +103,38 @@ namespace slib
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const StringView& _in)
 	{
-		return SerializeString(output, _in);
+		return SerializeString(output, _in.getData(), _in.getLength());
 	}
 
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const StringView16& _in)
 	{
-		return SerializeString(output, _in);
+		return Serialize(output, String::from(_in));
 	}
 
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const sl_char8* _in)
 	{
-		return SerializeString(output, _in);
+		return Serialize(output, StringView(_in));
 	}
 
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const sl_char16* _in)
 	{
-		return SerializeString(output, _in);
+		return Serialize(output, String::from(_in));
 	}
 
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const StringParam& _in)
 	{
-		return SerializeString(output, _in);
+		return Serialize(output, _in.toString());
 	}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const std::string& _in)
 	{
-		return SerializeString(output, _in);
+		return Serialize(output, String::from(_in));
 	}
 
 	template <class INPUT>
@@ -166,7 +157,7 @@ namespace slib
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const std::u16string& _in)
 	{
-		return SerializeString(output, _in);
+		return Serialize(output, String::from(_in));
 	}
 
 	template <class INPUT>

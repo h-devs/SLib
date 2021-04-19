@@ -29,14 +29,15 @@
 #include "slib/core/buffered_writer.h"
 #include "slib/core/buffered_seekable_reader.h"
 #include "slib/core/io_util.h"
-#include "slib/core/serialize_io.h"
 
 #include "slib/core/mio.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/thread.h"
 #include "slib/core/scoped.h"
-#include "slib/core/variable_length_integer.h"
 #include "slib/math/bigint.h"
+
+#include "slib/core/serialize/io.h"
+#include "slib/core/serialize/variable_length_integer.h"
 
 namespace slib
 {
@@ -372,7 +373,7 @@ namespace slib
 		}
 	}
 
-	sl_bool IReader::readUint32CVLI(sl_uint32* output)
+	sl_bool IReader::readCVLI32(sl_uint32* output)
 	{
 		sl_uint32 v;
 		if (CVLI::deserialize(this, v)) {
@@ -384,7 +385,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_uint32 IReader::readUint32CVLI(sl_uint32 def)
+	sl_uint32 IReader::readCVLI32(sl_uint32 def)
 	{
 		sl_uint32 v;
 		if (CVLI::deserialize(this, v)) {
@@ -394,29 +395,7 @@ namespace slib
 		}
 	}
 
-	sl_bool IReader::readInt32CVLI(sl_int32* output)
-	{
-		sl_int32 v;
-		if (CVLI::deserializeSigned(this, v)) {
-			if (output) {
-				*output = v;
-			}
-			return sl_true;
-		}
-		return sl_false;
-	}
-
-	sl_int32 IReader::readInt32CVLI(sl_int32 def)
-	{
-		sl_int32 v;
-		if (CVLI::deserializeSigned(this, v)) {
-			return v;
-		} else {
-			return def;
-		}
-	}
-
-	sl_bool IReader::readUint64CVLI(sl_uint64* output)
+	sl_bool IReader::readCVLI64(sl_uint64* output)
 	{
 		sl_uint64 v;
 		if (CVLI::deserialize(this, v)) {
@@ -428,7 +407,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_uint64 IReader::readUint64CVLI(sl_uint64 def)
+	sl_uint64 IReader::readCVLI64(sl_uint64 def)
 	{
 		sl_uint64 v;
 		if (CVLI::deserialize(this, v)) {
@@ -438,61 +417,21 @@ namespace slib
 		}
 	}
 
-	sl_bool IReader::readInt64CVLI(sl_int64* output)
-	{
-		sl_int64 v;
-		if (CVLI::deserializeSigned(this, v)) {
-			if (output) {
-				*output = v;
-			}
-			return sl_true;
-		}
-		return sl_false;
-	}
-
-	sl_int64 IReader::readInt64CVLI(sl_int64 def)
-	{
-		sl_int64 v;
-		if (CVLI::deserializeSigned(this, v)) {
-			return v;
-		} else {
-			return def;
-		}
-	}
-
-	sl_bool IReader::readSizeCVLI(sl_size* output)
+	sl_bool IReader::readCVLI(sl_size* output)
 	{
 #ifdef SLIB_ARCH_IS_64BIT
-		return readUint64CVLI(output);
+		return readCVLI64(output);
 #else
-		return readUint32CVLI(output);
+		return readCVLI32(output);
 #endif
 	}
 
-	sl_size IReader::readSizeCVLI(sl_size def)
+	sl_size IReader::readCVLI(sl_size def)
 	{
 #ifdef SLIB_ARCH_IS_64BIT
-		return readUint64CVLI(def);
+		return readCVLI64(def);
 #else
-		return readUint32CVLI(def);
-#endif
-	}
-
-	sl_bool IReader::readIntCVLI(sl_reg* output)
-	{
-#ifdef SLIB_ARCH_IS_64BIT
-		return readInt64CVLI(output);
-#else
-		return readInt32CVLI(output);
-#endif
-	}
-
-	sl_reg IReader::readIntCVLI(sl_reg def)
-	{
-#ifdef SLIB_ARCH_IS_64BIT
-		return readInt64CVLI(def);
-#else
-		return readInt32CVLI(def);
+		return readCVLI32(def);
 #endif
 	}
 
@@ -513,7 +452,7 @@ namespace slib
 	sl_bool IReader::readSectionData(void* mem, sl_size& size)
 	{
 		sl_size sizeBuf = size;
-		if (readSizeCVLI(&size)) {
+		if (readCVLI(&size)) {
 			if (size <= sizeBuf) {
 				if (readFully(mem, size) == (sl_reg)size) {
 					return sl_true;
@@ -528,7 +467,7 @@ namespace slib
 	sl_bool IReader::readSection(Memory* mem, sl_size maxSize)
 	{
 		sl_size size;
-		if (readSizeCVLI(&size)) {
+		if (readCVLI(&size)) {
 			if (size > maxSize) {
 				return sl_false;
 			}
@@ -1100,41 +1039,22 @@ namespace slib
 		return writeFully(&value, 8) == 8;
 	}
 
-	sl_bool IWriter::writeUint32CVLI(sl_uint32 value)
+	sl_bool IWriter::writeCVLI32(sl_uint32 value)
 	{
 		return CVLI::serialize(this, value);
 	}
 
-	sl_bool IWriter::writeInt32CVLI(sl_int32 value)
-	{
-		return CVLI::serializeSigned(this, value);
-	}
-
-	sl_bool IWriter::writeUint64CVLI(sl_uint64 value)
+	sl_bool IWriter::writeCVLI64(sl_uint64 value)
 	{
 		return CVLI::serialize(this, value);
 	}
 
-	sl_bool IWriter::writeInt64CVLI(sl_int64 value)
-	{
-		return CVLI::serializeSigned(this, value);
-	}
-
-	sl_bool IWriter::writeSizeCVLI(sl_size value)
+	sl_bool IWriter::writeCVLI(sl_size value)
 	{
 #ifdef SLIB_ARCH_IS_64BIT
-		return writeUint64CVLI(value);
+		return writeCVLI64(value);
 #else
-		return writeUint32CVLI(value);
-#endif
-	}
-
-	sl_bool IWriter::writeIntCVLI(sl_reg value)
-	{
-#ifdef SLIB_ARCH_IS_64BIT
-		return writeInt64CVLI(value);
-#else
-		return writeInt32CVLI(value);
+		return writeCVLI32(value);
 #endif
 	}
 
@@ -1145,7 +1065,7 @@ namespace slib
 
 	sl_bool IWriter::writeSection(const void* mem, sl_size size)
 	{
-		if (writeSizeCVLI(size)) {
+		if (writeCVLI(size)) {
 			if (writeFully(mem, size) == (sl_reg)size) {
 				return sl_true;
 			}

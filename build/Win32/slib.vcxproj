@@ -32,6 +32,7 @@
     <ClInclude Include="..\..\include\slib\network.h" />
     <ClInclude Include="..\..\include\slib\render.h" />
     <ClInclude Include="..\..\include\slib\resource.h" />
+    <ClInclude Include="..\..\include\slib\serialize.h" />
     <ClInclude Include="..\..\include\slib\service.h" />
     <ClInclude Include="..\..\include\slib\slib.h" />
     <ClInclude Include="..\..\include\slib\social.h" />

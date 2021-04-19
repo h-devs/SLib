@@ -162,6 +162,9 @@
     <ClInclude Include="..\..\src\slib\render\d3d_impl.h">
       <Filter>src\render</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\slib\serialize.h">
+      <Filter>inc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\slib\core\io.cpp">

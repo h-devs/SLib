@@ -20,33 +20,65 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_TIME
-#define CHECKHEADER_SLIB_CORE_SERIALIZE_TIME
+#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_VARIABLE_LENGTH_INTEGER
+#define CHECKHEADER_SLIB_CORE_SERIALIZE_VARIABLE_LENGTH_INTEGER
 
-#include "serialize_primitive.h"
-#include "time.h"
+#include "../io.h"
 
 namespace slib
 {
 
-	template <class OUTPUT>
-	static sl_bool Serialize(OUTPUT* output, const Time& _in)
+	// Chain Variable Length Integer
+	class CVLI
 	{
-		sl_uint8 buf[8];
-		MIO::writeInt64LE(buf, _in.toInt());
-		return SerializeRaw(output, buf, 8);
-	}
-
-	template <class INPUT>
-	static sl_bool Deserialize(INPUT* input, Time& _out)
-	{
-		sl_uint8 buf[8];
-		if (DeserializeRaw(input, buf, 8)) {
-			_out = MIO::readInt64LE(buf);
-			return sl_true;
+	public:
+		// returns the size of bytes written, or zero on error
+		template <class OUTPUT, class T>
+		static sl_uint32 serialize(OUTPUT* output, T value)
+		{
+			sl_bool flagContinue = sl_true;
+			sl_uint32 count = 0;
+			do {
+				sl_uint8 n = ((sl_uint8)value) & 127;
+				value >>= 7;
+				if (value) {
+					n |= 128;
+				} else {
+					flagContinue = sl_false;
+				}
+				if (SerializeByte(output, (sl_uint8)n)) {
+					count++;
+				} else {
+					return 0;
+				}
+			} while (flagContinue);
+			return count;
 		}
-		return sl_false;
-	}
+		
+		// returns the size of bytes read, or zero on error
+		template <class INPUT, class T>
+		static sl_uint32 deserialize(INPUT* input, T& value)
+		{
+			value = 0;
+			sl_uint32 count = 0;
+			sl_uint32 m = 0;
+			for (;;) {
+				sl_uint8 n;
+				if (DeserializeByte(input, n)) {
+					value += (((T)(n & 127)) << m);
+					m += 7;
+					count++;
+					if (!(n & 128)) {
+						return count;
+					}
+				} else {
+					break;
+				}
+			}
+			return 0;
+		}
+
+	};
 
 }
 

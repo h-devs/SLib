@@ -23,9 +23,10 @@
 #ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_LIST
 #define CHECKHEADER_SLIB_CORE_SERIALIZE_LIST
 
-#include "serialize_primitive.h"
+#include "primitive.h"
 #include "variable_length_integer.h"
-#include "list_helper.h"
+
+#include "../list_helper.h"
 
 namespace slib
 {

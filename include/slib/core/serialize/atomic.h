@@ -20,38 +20,31 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_BUFFER
-#define CHECKHEADER_SLIB_CORE_SERIALIZE_BUFFER
+#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_ATOMIC
+#define CHECKHEADER_SLIB_CORE_SERIALIZE_ATOMIC
 
-#include "definition.h"
-
-#include "default_members.h"
+#include "../atomic.h"
 
 namespace slib
 {
 
-	class SLIB_EXPORT SerializeBuffer
+	template <class OUTPUT, class T>
+	static sl_bool Serialize(OUTPUT* output, const Atomic<T>& _in)
 	{
-	public:
-		sl_uint8* current;
-		sl_uint8* begin;
-		sl_uint8* end;
+		return Serialize(output, T(_in));
+	}
 
-	public:
-		SerializeBuffer(const void* buf, sl_size size) noexcept;
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SerializeBuffer)
-
-	public:
-		sl_bool read(sl_uint8& _out) noexcept;
-
-		sl_bool write(sl_uint8 value) noexcept;
-
-		sl_size read(void* buf, sl_size size) noexcept;
-
-		sl_size write(const void* buf, sl_size size) noexcept;
-
-	};
+	template <class INPUT, class T>
+	static sl_size Deserialize(INPUT* input, Atomic<T>& _out)
+	{
+		T t;
+		if (Deserialize(input, t)) {
+			_out = Move(t);
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
 
 }
 

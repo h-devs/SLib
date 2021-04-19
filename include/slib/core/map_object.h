@@ -28,6 +28,8 @@
 #include "string_buffer.h"
 #include "parse_util.h"
 
+#include "serialize/variant.h"
+
 namespace slib
 {
 
