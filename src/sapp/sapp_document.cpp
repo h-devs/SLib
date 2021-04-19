@@ -20,17 +20,12 @@
  *   THE SOFTWARE.
  */
 
-#include "sapp_document.h"
+#include "slib/ui.h"
 
+#include "sapp_document.h"
 #include "sapp_util.h"
 
-#include "slib/core/file.h"
-#include "slib/core/log.h"
-#include "slib/core/resource.h"
-#include "slib/core/string_buffer.h"
-#include "slib/core/scoped.h"
 #include "slib/graphics/color_parse.h"
-#include "slib/ui.h"
 
 #define TAG "SApp"
 

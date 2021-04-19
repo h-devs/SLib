@@ -46,7 +46,7 @@ namespace slib
 	template <class OUTPUT, class T>
 	static sl_bool Serialize(OUTPUT* output, const WeakRef<T>& _in)
 	{
-		Serialize(output, Ref<T>(_in));
+		return Serialize(output, Ref<T>(_in));
 	}
 
 	template <class INPUT, class T>
