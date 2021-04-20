@@ -26,7 +26,7 @@
 #include <crc32c/crc32c.h>
 #endif  // HAVE_CRC32C
 #if HAVE_SNAPPY
-#include <snappy.h>
+#include "snappy/snappy.h"
 #endif  // HAVE_SNAPPY
 
 #include <cassert>

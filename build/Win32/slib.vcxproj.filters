@@ -79,6 +79,9 @@
     <Filter Include="external\lmdb">
       <UniqueIdentifier>{5dcbd18f-cb7c-4037-aada-584299d0d776}</UniqueIdentifier>
     </Filter>
+    <Filter Include="external\snappy">
+      <UniqueIdentifier>{f5fcda81-8f4e-4350-bc74-9813103ef8f8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\slib\core\async_config.h">
@@ -1552,6 +1555,12 @@
     </ClCompile>
     <ClCompile Include="..\..\external\src\lmdb\midl.c">
       <Filter>external\lmdb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\snappy\snappy.cc">
+      <Filter>external\snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\snappy\snappy-sinksource.cc">
+      <Filter>external\snappy</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

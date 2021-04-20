@@ -124,6 +124,13 @@
     <ClCompile Include="..\..\external\src\lmdb\midl.c" />
     <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji.cpp" />
     <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji_png.cpp" />
+    <ClCompile Include="..\..\external\src\snappy\snappy-sinksource.cc" />
+    <ClCompile Include="..\..\external\src\snappy\snappy.cc">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/wd4267 /wd4244 /wd4018 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/wd4267 /wd4244 /wd4018 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/wd4267 /wd4244 /wd4018 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/wd4267 /wd4244 /wd4018 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="..\..\external\src\zlib\adler32.c" />
     <ClCompile Include="..\..\external\src\zlib\compress.c" />
     <ClCompile Include="..\..\external\src\zlib\crc32.c" />
