@@ -82,6 +82,9 @@
     <Filter Include="external\snappy">
       <UniqueIdentifier>{f5fcda81-8f4e-4350-bc74-9813103ef8f8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="external\zstd">
+      <UniqueIdentifier>{92030ff6-e888-44ee-81e5-b124b22f3216}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\slib\core\async_config.h">
@@ -1561,6 +1564,9 @@
     </ClCompile>
     <ClCompile Include="..\..\external\src\snappy\snappy-sinksource.cc">
       <Filter>external\snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\zstd\zstd_unity.c">
+      <Filter>external\zstd</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

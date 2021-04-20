@@ -146,6 +146,7 @@
     <ClCompile Include="..\..\external\src\zlib\trees.c" />
     <ClCompile Include="..\..\external\src\zlib\uncompr.c" />
     <ClCompile Include="..\..\external\src\zlib\zutil.c" />
+    <ClCompile Include="..\..\external\src\zstd\zstd_unity.c" />
     <ClCompile Include="..\..\src\res\gen\colors.cpp" />
     <ClCompile Include="..\..\src\res\gen\drawables.cpp" />
     <ClCompile Include="..\..\src\res\gen\layouts.cpp" />

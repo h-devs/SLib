@@ -613,6 +613,12 @@ set (
  "${SNAPPY_ROOT_DIR}/snappy-sinksource.cc"
 )
 
+set (ZSTD_ROOT_DIR "${SLIB_PATH}/external/src/zstd")
+set (
+ ZSTD_FILES
+ "${ZSTD_ROOT_DIR}/zstd_unity.c"
+)
+
 set (LMDB_ROOT_DIR "${SLIB_PATH}/external/src/lmdb")
 set (
  LMDB_FILES
@@ -643,6 +649,7 @@ add_library (
  ${LIBPNG_FILES}
  ${LIBJPEG_FILES}
  ${SNAPPY_FILES}
+ ${ZSTD_FILES}
  ${LMDB_FILES}
  ${LEVELDB_FILES}
  ${NOTO_EMOJI_FILES}
