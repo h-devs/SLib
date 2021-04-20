@@ -613,6 +613,13 @@ set (
  "${NOTO_EMOJI_ROOT_DIR}/noto_emoji_png.cpp"
 )
 
+set (LMDB_ROOT_DIR "${SLIB_PATH}/external/src/lmdb")
+set (
+ LMDB_FILES
+ "${LMDB_ROOT_DIR}/mdb.c"
+ "${LMDB_ROOT_DIR}/midl.c"
+)
+
 set (LEVELDB_ROOT_DIR "${SLIB_PATH}/external/src/leveldb")
 set (
  LEVELDB_FILES
@@ -629,6 +636,7 @@ add_library (
  ${LIBPNG_FILES}
  ${LIBJPEG_FILES}
  ${NOTO_EMOJI_FILES}
+ ${LMDB_FILES}
  ${LEVELDB_FILES}
 )
 set_target_properties (

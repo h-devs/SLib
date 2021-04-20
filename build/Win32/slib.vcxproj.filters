@@ -76,6 +76,9 @@
     <Filter Include="external\leveldb">
       <UniqueIdentifier>{82658171-cd14-4eea-bf1d-5f99bbf925cc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="external\lmdb">
+      <UniqueIdentifier>{5dcbd18f-cb7c-4037-aada-584299d0d776}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\slib\core\async_config.h">
@@ -1543,6 +1546,12 @@
     </ClCompile>
     <ClCompile Include="..\..\external\src\leveldb\leveldb_unity.cc">
       <Filter>external\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\lmdb\mdb.c">
+      <Filter>external\lmdb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\lmdb\midl.c">
+      <Filter>external\lmdb</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -115,6 +115,13 @@
     <ClCompile Include="..\..\external\src\libpng\pngwrite.c" />
     <ClCompile Include="..\..\external\src\libpng\pngwtran.c" />
     <ClCompile Include="..\..\external\src\libpng\pngwutil.c" />
+    <ClCompile Include="..\..\external\src\lmdb\mdb.c">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\lmdb\midl.c" />
     <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji.cpp" />
     <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji_png.cpp" />
     <ClCompile Include="..\..\external\src\zlib\adler32.c" />
