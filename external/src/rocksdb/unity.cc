@@ -1,3 +1,8 @@
+#define SNAPPY
+#define ZLIB
+#define LZ4
+#define ZSTD
+
 #ifdef OS_WIN
 #define _WIN32_WINNT _WIN32_WINNT_VISTA
 #endif

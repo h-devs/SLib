@@ -29,11 +29,11 @@
 #include "util/string_util.h"
 
 #ifdef SNAPPY
-#include <snappy.h>
+#include "snappy/snappy.h"
 #endif
 
 #ifdef ZLIB
-#include <zlib.h>
+#include "zlib/zlib.h"
 #endif
 
 #ifdef BZIP2
@@ -41,14 +41,14 @@
 #endif
 
 #if defined(LZ4)
-#include <lz4.h>
-#include <lz4hc.h>
+#include "lz4/lz4.h"
+#include "lz4/lz4hc.h"
 #endif
 
 #if defined(ZSTD)
-#include <zstd.h>
+#include "zstd/zstd.h"
 #if ZSTD_VERSION_NUMBER >= 10103  // v1.1.3+
-#include <zdict.h>
+#include "zstd/zdict.h"
 #endif  // ZSTD_VERSION_NUMBER >= 10103
 namespace ROCKSDB_NAMESPACE {
 // Need this for the context allocation override

@@ -123,6 +123,7 @@
     </ClCompile>
     <ClCompile Include="..\..\external\src\lmdb\midl.c" />
     <ClCompile Include="..\..\external\src\lz4\lz4.c" />
+    <ClCompile Include="..\..\external\src\lz4\lz4hc.c" />
     <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji.cpp" />
     <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji_png.cpp" />
     <ClCompile Include="..\..\external\src\snappy\snappy-sinksource.cc" />

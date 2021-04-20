@@ -1574,5 +1574,8 @@
     <ClCompile Include="..\..\external\src\lz4\lz4.c">
       <Filter>external\lz4</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\external\src\lz4\lz4hc.c">
+      <Filter>external\lz4</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

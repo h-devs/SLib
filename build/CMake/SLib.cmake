@@ -623,6 +623,7 @@ set (LZ4_ROOT_DIR "${SLIB_PATH}/external/src/lz4")
 set (
  LZ4_FILES
  "${LZ4_ROOT_DIR}/lz4.c"
+ "${LZ4_ROOT_DIR}/lz4hc.c"
 )
 
 set (LMDB_ROOT_DIR "${SLIB_PATH}/external/src/lmdb")
