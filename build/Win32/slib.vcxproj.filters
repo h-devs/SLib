@@ -73,6 +73,9 @@
     <Filter Include="inc">
       <UniqueIdentifier>{ee59f2d4-03fa-45eb-9fd2-80029c13eb53}</UniqueIdentifier>
     </Filter>
+    <Filter Include="external\leveldb">
+      <UniqueIdentifier>{82658171-cd14-4eea-bf1d-5f99bbf925cc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\slib\core\async_config.h">
@@ -1537,6 +1540,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\math\decimal128.cpp">
       <Filter>src\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\leveldb\leveldb_unity.cc">
+      <Filter>external\leveldb</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

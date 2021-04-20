@@ -613,6 +613,12 @@ set (
  "${NOTO_EMOJI_ROOT_DIR}/noto_emoji_png.cpp"
 )
 
+set (LEVELDB_ROOT_DIR "${SLIB_PATH}/external/src/leveldb")
+set (
+ LEVELDB_FILES
+ "${LEVELDB_ROOT_DIR}/leveldb_unity.cc"
+)
+
 add_library (
  slib STATIC
  ${SLIB_CORE_FILES}
@@ -623,6 +629,7 @@ add_library (
  ${LIBPNG_FILES}
  ${LIBJPEG_FILES}
  ${NOTO_EMOJI_FILES}
+ ${LEVELDB_FILES}
 )
 set_target_properties (
  slib

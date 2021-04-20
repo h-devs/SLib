@@ -51,6 +51,7 @@
     <ClInclude Include="..\..\src\slib\ui\view_win32.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\external\src\leveldb\leveldb_unity.cc" />
     <ClCompile Include="..\..\external\src\libjpeg\jaricom.c" />
     <ClCompile Include="..\..\external\src\libjpeg\jcapimin.c" />
     <ClCompile Include="..\..\external\src\libjpeg\jcapistd.c" />
