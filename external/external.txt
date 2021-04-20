@@ -1,6 +1,6 @@
 zlib 1.2.11
-libjpeg 9c
-libpng 1.6.34
+libjpeg 9d
+libpng 1.6.37
 zstd 1.4.9
 lz4 1.9.3
 snappy 1.1.8

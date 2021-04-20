@@ -123,7 +123,7 @@ namespace slib
 		jerr.pub.error_exit = _slib_image_jpeg_error_exit;
 
 		unsigned char* buf = sl_null;
-		unsigned long size = 0;
+		size_t size = 0;
 
 		jpeg_create_compress(&cinfo);
 

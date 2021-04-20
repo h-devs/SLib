@@ -18,6 +18,7 @@
  * and USE_MAC_MEMMGR.
  */
 
+#pragma once
 
 /* Short forms of external names for systems with brain-damaged linkers. */
 
