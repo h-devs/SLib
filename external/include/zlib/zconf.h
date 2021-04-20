@@ -8,7 +8,7 @@
 #ifndef ZCONF_H
 #define ZCONF_H
 
-#include "zlib_slib.h"
+#define Z_PREFIX
 
 /*
  * If you *really* need a unique prefix for all types and library functions,

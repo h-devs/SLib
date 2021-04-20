@@ -504,21 +504,7 @@ endif()
 set (ZLIB_ROOT_DIR "${SLIB_PATH}/external/src/zlib")
 set (
  ZLIB_FILES
- "${ZLIB_ROOT_DIR}/adler32.c"
- "${ZLIB_ROOT_DIR}/compress.c"
- "${ZLIB_ROOT_DIR}/crc32.c"
- "${ZLIB_ROOT_DIR}/deflate.c"
- "${ZLIB_ROOT_DIR}/gzclose.c"
- "${ZLIB_ROOT_DIR}/gzlib.c"
- "${ZLIB_ROOT_DIR}/gzread.c"
- "${ZLIB_ROOT_DIR}/gzwrite.c"
- "${ZLIB_ROOT_DIR}/infback.c"
- "${ZLIB_ROOT_DIR}/inffast.c"
- "${ZLIB_ROOT_DIR}/inflate.c"
- "${ZLIB_ROOT_DIR}/inftrees.c"
- "${ZLIB_ROOT_DIR}/trees.c"
- "${ZLIB_ROOT_DIR}/uncompr.c"
- "${ZLIB_ROOT_DIR}/zutil.c"
+ "${ZLIB_ROOT_DIR}/zlib_unity.c"
 )
 
 set (LIBPNG_ROOT_DIR "${SLIB_PATH}/external/src/libpng")

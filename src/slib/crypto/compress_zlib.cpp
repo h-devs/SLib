@@ -333,7 +333,7 @@ namespace slib
 			if (size < n) {
 				n = (sl_uint32)size;
 			}
-			adler = (sl_uint32)(::slib_z_adler32(adler, (Bytef*)data, n));
+			adler = (sl_uint32)(::z_adler32(adler, (Bytef*)data, n));
 			size -= n;
 			data += n;
 		}
@@ -363,7 +363,7 @@ namespace slib
 			if (size < n) {
 				n = (sl_uint32)size;
 			}
-			crc = (sl_uint32)(::slib_z_crc32(crc, (Bytef*)data, n));
+			crc = (sl_uint32)(::z_crc32(crc, (Bytef*)data, n));
 			size -= n;
 			data += n;
 		}

@@ -923,51 +923,6 @@
     <ClCompile Include="..\..\src\slib\social\ebay.cpp">
       <Filter>src\social</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\adler32.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\compress.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\crc32.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\deflate.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\gzclose.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\gzlib.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\gzread.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\gzwrite.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\infback.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\inffast.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\inflate.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\inftrees.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\trees.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\uncompr.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\zutil.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\external\src\libpng\png.c">
       <Filter>external\libpng</Filter>
     </ClCompile>
@@ -1576,6 +1531,9 @@
     </ClCompile>
     <ClCompile Include="..\..\external\src\lz4\lz4hc.c">
       <Filter>external\lz4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\zlib\zlib_unity.c">
+      <Filter>external\zlib</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
