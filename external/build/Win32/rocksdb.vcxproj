@@ -114,7 +114,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <OmitDefaultLibName>true</OmitDefaultLibName>
-      <AdditionalOptions>/wd4127 /wd4800 /wd4996 /wd4351 /wd4100 /wd4204 /wd4324 /wd4244 /wd4389 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/wd4127 /wd4800 /wd4996 /wd4351 /wd4100 /wd4204 /wd4324 /wd4244 /wd4389 /wd4121 %(AdditionalOptions)</AdditionalOptions>
       <FunctionLevelLinking>false</FunctionLevelLinking>
     </ClCompile>
     <Link>
@@ -141,7 +141,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <OmitDefaultLibName>true</OmitDefaultLibName>
-      <AdditionalOptions>/wd4127 /wd4800 /wd4996 /wd4351 /wd4100 /wd4204 /wd4324 /wd4244 /wd4389 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/wd4127 /wd4800 /wd4996 /wd4351 /wd4100 /wd4204 /wd4324 /wd4244 /wd4389 /wd4121 %(AdditionalOptions)</AdditionalOptions>
       <FunctionLevelLinking>false</FunctionLevelLinking>
     </ClCompile>
     <Link>
@@ -169,7 +169,7 @@
       <MinimalRebuild>true</MinimalRebuild>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <OmitDefaultLibName>true</OmitDefaultLibName>
-      <AdditionalOptions>/wd4127 /wd4800 /wd4996 /wd4351 /wd4100 /wd4204 /wd4324 /wd4244 /wd4389 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/wd4127 /wd4800 /wd4996 /wd4351 /wd4100 /wd4204 /wd4324 /wd4244 /wd4389 /wd4121 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -198,7 +198,7 @@
       <MinimalRebuild>true</MinimalRebuild>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <OmitDefaultLibName>true</OmitDefaultLibName>
-      <AdditionalOptions>/wd4127 /wd4800 /wd4996 /wd4351 /wd4100 /wd4204 /wd4324 /wd4244 /wd4389 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/wd4127 /wd4800 /wd4996 /wd4351 /wd4100 /wd4204 /wd4324 /wd4244 /wd4389 /wd4121 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
