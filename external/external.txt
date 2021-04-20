@@ -1,6 +1,8 @@
 zlib 1.2.11
 libjpeg 9c
 libpng 1.6.34
+zstd 1.4.9
+lz4 1.9.3
 snappy 1.1.8
 lmdb 0.9.28
 leveldb 1.23

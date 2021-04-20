@@ -85,6 +85,9 @@
     <Filter Include="external\zstd">
       <UniqueIdentifier>{92030ff6-e888-44ee-81e5-b124b22f3216}</UniqueIdentifier>
     </Filter>
+    <Filter Include="external\lz4">
+      <UniqueIdentifier>{bd5525f1-6adb-438e-9324-3783d604dd90}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\slib\core\async_config.h">
@@ -1567,6 +1570,9 @@
     </ClCompile>
     <ClCompile Include="..\..\external\src\zstd\zstd_unity.c">
       <Filter>external\zstd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\lz4\lz4.c">
+      <Filter>external\lz4</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -619,6 +619,12 @@ set (
  "${ZSTD_ROOT_DIR}/zstd_unity.c"
 )
 
+set (LZ4_ROOT_DIR "${SLIB_PATH}/external/src/lz4")
+set (
+ LZ4_FILES
+ "${LZ4_ROOT_DIR}/lz4.c"
+)
+
 set (LMDB_ROOT_DIR "${SLIB_PATH}/external/src/lmdb")
 set (
  LMDB_FILES
@@ -650,6 +656,7 @@ add_library (
  ${LIBJPEG_FILES}
  ${SNAPPY_FILES}
  ${ZSTD_FILES}
+ ${LZ4_FILES}
  ${LMDB_FILES}
  ${LEVELDB_FILES}
  ${NOTO_EMOJI_FILES}
