@@ -104,6 +104,17 @@ namespace slib
 		
 	})
 
+	SLIB_DEFINE_FLAGS(FileOperationFlags, {
+		Default = 0,
+
+		Recursive = 0x1,
+		NotReplace = 0x2,
+
+		ErrorOnExisting = 0x10000,
+		ErrorOnNotExisting = 0x20000,
+		AbortOnError = 0x40000
+	})
+
 	class SLIB_EXPORT FileInfo
 	{
 	public:
@@ -285,7 +296,7 @@ namespace slib
 		static sl_bool setReadOnly(const StringParam& filePath, sl_bool flagReadOnly = sl_true);
 
 
-		static sl_bool createDirectory(const StringParam& dirPath, sl_bool flagErrorOnCreateExistingDirectory = sl_false);
+		static sl_bool createDirectory(const StringParam& dirPath, const FileOperationFlags& flags = FileOperationFlags::Default);
 
 		static sl_bool createDirectories(const StringParam& dirPath);
 
@@ -293,14 +304,13 @@ namespace slib
 
 		static sl_bool deleteDirectory(const StringParam& filePath);
 
-		static sl_bool remove(const StringParam& filePath, sl_bool flagErrorOnNotExisting = sl_false);
+		static sl_bool remove(const StringParam& path, const FileOperationFlags& flags = FileOperationFlags::Default);
 
+		static sl_bool copyFile(const StringParam& pathSource, const StringParam& pathTarget, const FileOperationFlags& flags = FileOperationFlags::Default);
 
-		// Deletes the directory and its sub-directories and files
-		static sl_bool deleteDirectoryRecursively(const StringParam& dirPath);
+		static sl_bool copy(const StringParam& pathSource, const StringParam& pathTarget, const FileOperationFlags& flags = FileOperationFlags::Default);
 
-		// Changes the path of file or directory
-		static sl_bool move(const StringParam& filePathOriginal, const StringParam& filePathNew, sl_bool flagReplaceIfExists = sl_false);
+		static sl_bool move(const StringParam& pathOriginal, const StringParam& filePathNew, const FileOperationFlags& flags = FileOperationFlags::Default);
 	
 
 		static List<String> getFiles(const StringParam& dirPath);
@@ -360,6 +370,8 @@ namespace slib
 		static String getFileNameOnly(const StringParam& path);
 
 		static String normalizeDirectoryPath(const StringParam& path);
+
+		static String joinPath(const StringParam& path1, const StringParam& path2);
 	
 
 		// converts any invalid characters (0~0x1f, 0x7f~0x9f, :*?"<>|\/) into "_"
@@ -388,6 +400,10 @@ namespace slib
 		static sl_bool _setAttributes(const StringParam& filePath, const FileAttributes& attrs);
 
 		static sl_bool _createDirectory(const StringParam& dirPath);
+
+		static sl_bool _copyFile(const StringParam& pathSource, const StringParam& pathTarget);
+
+		static sl_bool _move(const StringParam& pathOriginal, const StringParam& filePathNew);
 
 	};
 	

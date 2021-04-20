@@ -678,7 +678,21 @@ namespace slib
 		return ret != 0;
 	}
 
-	sl_bool File::move(const StringParam& _oldPath, const StringParam& _newPath, sl_bool flagReplaceIfExists)
+	sl_bool File::_copyFile(const StringParam& _pathSrc, const StringParam& _pathDst)
+	{
+		StringCstr16 pathSrc(_pathSrc);
+		if (pathSrc.isEmpty()) {
+			return sl_false;
+		}
+		StringCstr16 pathDst(_pathDst);
+		if (pathDst.isEmpty()) {
+			return sl_false;
+		}
+		BOOL ret = CopyFileW((LPCWSTR)(pathSrc.getData()), (LPCWSTR)(pathDst.getData()), FALSE);
+		return ret != 0;
+	}
+
+	sl_bool File::_move(const StringParam& _oldPath, const StringParam& _newPath)
 	{
 		StringCstr16 oldPath(_oldPath);
 		if (oldPath.isEmpty()) {
@@ -688,11 +702,7 @@ namespace slib
 		if (newPath.isEmpty()) {
 			return sl_false;
 		}
-		DWORD flags = 0;
-		if (flagReplaceIfExists) {
-			flags |= MOVEFILE_REPLACE_EXISTING;
-		}
-		BOOL ret = MoveFileExW((LPCWSTR)(oldPath.getData()), (LPCWSTR)(newPath.getData()), flags);
+		BOOL ret = MoveFileExW((LPCWSTR)(oldPath.getData()), (LPCWSTR)(newPath.getData()), MOVEFILE_REPLACE_EXISTING);
 		return ret != 0;
 	}
 

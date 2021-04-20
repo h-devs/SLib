@@ -45,6 +45,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#if defined(__APPLE__) || defined(__FreeBSD__)
+#	include <copyfile.h>
+#else
+#	include <sys/sendfile.h>
+#endif
+
 #if defined(SLIB_PLATFORM_IS_LINUX)
 	typedef off64_t _off_t;
 	#define _lseek lseek64
@@ -656,7 +662,87 @@ namespace slib
 		return 0 == rmdir(dirPath.getData());
 	}
 
-	sl_bool File::move(const StringParam& _oldPath, const StringParam& _newPath, sl_bool flagReplaceIfExisting)
+	sl_bool File::_copyFile(const StringParam& _pathSrc, const StringParam& _pathDst)
+	{
+		StringCstr pathSrc(_pathSrc);
+		if (pathSrc.isEmpty()) {
+			return sl_false;
+		}
+		StringCstr pathDst(_pathDst);
+		if (pathDst.isEmpty()) {
+			return sl_false;
+		}
+#if defined(__APPLE__) || defined(__FreeBSD__)
+		return copyfile(pathSrc.getData(), pathDst.getData(), sl_null, COPYFILE_ALL) == 0;
+#else
+		sl_bool bRet = sl_false;
+		int handleSrc = ::open(pathSrc.getData(), O_RDONLY);
+		if (handleSrc != -1) {
+			int handleDst = ::open(pathDst.getData(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+			if (handleDst != -1) {
+				int iRet;
+				struct stat statSrc;
+				while ((iRet = fstat(handleSrc, &statSrc)) < 0 && errno == EINTR);
+				if (!iRet) {
+					bRet = sl_true;
+					sl_int64 size = statSrc.st_size;
+					while (size > 0) {
+						ssize_t sent = sendfile(handleDst, handleSrc, sl_null, size > 0x7ffff000 ? 0x7ffff000 : (size_t)size);
+						if (sent < 0) {
+							if (errno != EINVAL && errno != ENOSYS) {
+								bRet = sl_false;
+							}
+							break;
+						} else {
+							size -= sent;
+						}
+					}
+					if (bRet && size) {
+#define BUF_SIZE 0x40000
+						Memory memBuf = Memory::create(BUF_SIZE);
+						if (memBuf.isNull()) {
+							bRet = sl_false;
+						} else {
+							char* buf = (char*)(memBuf.getData());
+							while (size > 0) {
+								ssize_t nRead = ::read(handleSrc, buf, size > BUF_SIZE ? BUF_SIZE : (size_t)size);
+								if (nRead < 0) {
+									if (errno != EINTR) {
+										bRet = sl_false;
+										break;
+									}
+								} else {
+									char* p = buf;
+									while (nRead > 0) {
+										ssize_t nWrite = ::write(handleDst, p, nRead);
+										if (nWrite < 0) {
+											if (errno != EINTR) {
+												break;
+											}
+										} else {
+											nRead -= nWrite;
+											p += nWrite;
+										}
+									}
+									if (nRead) {
+										bRet = sl_false;
+										break;
+									}
+								}
+							}
+						}
+#undef BUF_SIZE
+					}
+				}
+				::close(handleDst);
+			}
+			::close(handleSrc);
+		}
+		return bRet;
+#endif
+	}
+
+	sl_bool File::_move(const StringParam& _oldPath, const StringParam& _newPath)
 	{
 		StringCstr oldPath(_oldPath);
 		if (oldPath.isEmpty()) {
@@ -666,14 +752,7 @@ namespace slib
 		if (newPath.isEmpty()) {
 			return sl_false;
 		}
-		sl_char8* szNewPath = newPath.getData();
-		if (flagReplaceIfExisting) {
-			struct stat st;
-			if (0 == stat(szNewPath, &st)) {
-				::remove(szNewPath);
-			}
-		}
-		return 0 == ::rename(oldPath.getData(), szNewPath);
+		return 0 == ::rename(oldPath.getData(), newPath.getData());
 	}
 
 	sl_bool File::setNonBlocking(int fd, sl_bool flagEnable)

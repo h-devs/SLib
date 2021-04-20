@@ -415,7 +415,17 @@ namespace slib
 			return str.toString(_str);
 		}
 	}
-	
+
+	String File::joinPath(const StringParam& path1, const StringParam& path2)
+	{
+		StringData str(path1);
+		if (str.endsWith('\\') || str.endsWith('/')) {
+			return *((StringView*)&str) + path2;
+		} else {
+			return String::join(str, "/", path2);
+		}
+	}
+
 	Memory File::readAllBytes(sl_size maxSize)
 	{
 		return IO::readAllBytes(maxSize);
@@ -600,12 +610,12 @@ namespace slib
 		return ret;
 	}
 
-	sl_bool File::createDirectory(const StringParam& dirPath, sl_bool flagErrorOnCreateExistingDirectory)
+	sl_bool File::createDirectory(const StringParam& dirPath, const FileOperationFlags& flags)
 	{
 		FileAttributes attr = File::getAttributes(dirPath);
 		if (!(attr & FileAttributes::NotExist)) {
 			if (attr & FileAttributes::Directory) {
-				if (flagErrorOnCreateExistingDirectory) {
+				if (flags & FileOperationFlags::ErrorOnExisting) {
 					return sl_false;
 				} else {
 					return sl_true;
@@ -614,8 +624,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		_createDirectory(dirPath);
-		return File::isDirectory(dirPath);
+		return _createDirectory(dirPath);
 	}
 
 	sl_bool File::createDirectories(const StringParam& dirPath)
@@ -640,45 +649,110 @@ namespace slib
 		}
 	}
 
-	sl_bool File::remove(const StringParam& filePath, sl_bool flagErrorOnDeleteNotExistingFile)
+	sl_bool File::remove(const StringParam& path, const FileOperationFlags& flags)
 	{
-		FileAttributes attr = File::getAttributes(filePath);
+		FileAttributes attr = File::getAttributes(path);
 		if (attr & FileAttributes::NotExist) {
-			if (flagErrorOnDeleteNotExistingFile) {
+			if (flags & FileOperationFlags::ErrorOnNotExisting) {
 				return sl_false;
 			} else {
 				return sl_true;
 			}
 		}
 		if (attr & FileAttributes::Directory) {
-			deleteDirectory(filePath);
+			if (flags & FileOperationFlags::Recursive) {
+				sl_bool ret = sl_true;
+				ListElements<String> list(File::getFiles(path));
+				for (sl_size i = 0; i < list.count; i++) {
+					ret = ret && File::remove(File::joinPath(path, list[i]), flags);
+					if (!ret) {
+						if (flags & FileOperationFlags::AbortOnError) {
+							return sl_false;
+						}
+					}
+				}
+				ret = ret && File::deleteDirectory(path);
+				return ret;
+			} else {
+				return File::deleteDirectory(path);
+			}
 		} else {
-			deleteFile(filePath);
+			return File::deleteFile(path);
 		}
-		return !(File::exists(filePath));
 	}
 
-	sl_bool File::deleteDirectoryRecursively(const StringParam& _dirPath)
+	sl_bool File::copyFile(const StringParam& pathSource, const StringParam& pathTarget, const FileOperationFlags& flags)
 	{
-		String dirPath = _dirPath.toString();
-		if (File::isDirectory(dirPath)) {
-			String path = dirPath + "/";
-			ListElements<String> list(File::getFiles(dirPath));
+		if (flags & FileOperationFlags::NotReplace) {
+			FileAttributes attr = File::getAttributes(pathTarget);
+			if (attr & FileAttributes::NotExist) {
+				return _copyFile(pathSource, pathTarget);
+			} else {
+				if (flags & FileOperationFlags::ErrorOnExisting) {
+					return sl_false;
+				} else {
+					return sl_true;
+				}
+			}
+		} else {
+			return _copyFile(pathSource, pathTarget);
+		}
+	}
+
+	sl_bool File::copy(const StringParam& pathSource, const StringParam& pathTarget, const FileOperationFlags& flags)
+	{
+		FileAttributes attr = File::getAttributes(pathSource);
+		if (attr & FileAttributes::NotExist) {
+			return sl_false;
+		}
+		if (attr & FileAttributes::Directory) {
+			if (!(File::createDirectory(pathTarget))) {
+				return sl_false;
+			}
 			sl_bool ret = sl_true;
+			ListElements<String> list(File::getFiles(pathSource));
 			for (sl_size i = 0; i < list.count; i++) {
-				String sub = path + list[i];
-				if (File::exists(sub)) {
-					if (File::isDirectory(sub)) {
-						ret = ret && File::deleteDirectoryRecursively(sub);
-					} else {
-						ret = ret && File::deleteFile(sub);
+				if (flags & FileOperationFlags::Recursive) {
+					ret = ret && File::copy(joinPath(pathSource, list[i]), joinPath(pathTarget, list[i]), flags);
+				} else {
+					ret = ret && File::copyFile(joinPath(pathSource, list[i]), joinPath(pathTarget, list[i]), flags);
+				}
+				if (!ret) {
+					if (flags & FileOperationFlags::AbortOnError) {
+						return sl_false;
 					}
 				}
 			}
-			ret = ret && File::deleteDirectory(path);
 			return ret;
 		} else {
-			return sl_false;
+			if (File::isDirectory(pathTarget)) {
+				return File::copyFile(pathSource, joinPath(pathTarget, getFileName(pathSource)), flags);
+			} else {
+				return File::copyFile(pathSource, pathTarget, flags);
+			}
+		}
+	}
+
+	sl_bool File::move(const StringParam& pathOriginal, const StringParam& filePathNew, const FileOperationFlags& flags)
+	{
+		if (flags & FileOperationFlags::NotReplace) {
+			FileAttributes attr = File::getAttributes(filePathNew);
+			if (attr & FileAttributes::NotExist) {
+				return _move(pathOriginal, filePathNew);
+			} else {
+				if (flags & FileOperationFlags::ErrorOnExisting) {
+					return sl_false;
+				} else {
+					return sl_true;
+				}
+			}
+		} else {
+#ifdef SLIB_PLATFORM_IS_UNIX
+			if (File::exists(filePathNew)) {
+				File::remove(filePathNew);
+			}
+#endif
+			return _move(pathOriginal, filePathNew);
 		}
 	}
 
