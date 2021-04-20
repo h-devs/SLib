@@ -14,6 +14,13 @@
 #ifndef PNGLCONF_H
 #define PNGLCONF_H
 
+#if defined(_MSC_VER)
+#pragma optimize("t", on)
+#pragma warning(disable: 4996)
+#elif defined(__GNUC__)
+#pragma GCC optimize ("O3")
+#endif
+
 /*******  Custom configurations by SLib   *******/
 #if defined(__arm__) || defined(__arm) || defined(ARM) || defined(_ARM_) || defined(__ARM__) || defined(_M_ARM)
 #define PNG_ARM_NEON_API_SUPPORTED

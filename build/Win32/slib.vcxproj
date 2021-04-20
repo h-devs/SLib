@@ -98,23 +98,7 @@
     <ClCompile Include="..\..\external\src\libjpeg\jquant1.c" />
     <ClCompile Include="..\..\external\src\libjpeg\jquant2.c" />
     <ClCompile Include="..\..\external\src\libjpeg\jutils.c" />
-    <ClCompile Include="..\..\external\src\libpng\intel\filter_sse2_intrinsics.c" />
-    <ClCompile Include="..\..\external\src\libpng\intel\intel_init.c" />
-    <ClCompile Include="..\..\external\src\libpng\png.c" />
-    <ClCompile Include="..\..\external\src\libpng\pngerror.c" />
-    <ClCompile Include="..\..\external\src\libpng\pngget.c" />
-    <ClCompile Include="..\..\external\src\libpng\pngmem.c" />
-    <ClCompile Include="..\..\external\src\libpng\pngpread.c" />
-    <ClCompile Include="..\..\external\src\libpng\pngread.c" />
-    <ClCompile Include="..\..\external\src\libpng\pngrio.c" />
-    <ClCompile Include="..\..\external\src\libpng\pngrtran.c" />
-    <ClCompile Include="..\..\external\src\libpng\pngrutil.c" />
-    <ClCompile Include="..\..\external\src\libpng\pngset.c" />
-    <ClCompile Include="..\..\external\src\libpng\pngtrans.c" />
-    <ClCompile Include="..\..\external\src\libpng\pngwio.c" />
-    <ClCompile Include="..\..\external\src\libpng\pngwrite.c" />
-    <ClCompile Include="..\..\external\src\libpng\pngwtran.c" />
-    <ClCompile Include="..\..\external\src\libpng\pngwutil.c" />
+    <ClCompile Include="..\..\external\src\libpng\libpng_unity.c" />
     <ClCompile Include="..\..\external\src\lmdb\mdb.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>

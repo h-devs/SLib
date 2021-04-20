@@ -510,36 +510,8 @@ set (
 set (LIBPNG_ROOT_DIR "${SLIB_PATH}/external/src/libpng")
 set (
  LIBPNG_FILES
- "${LIBPNG_ROOT_DIR}/png.c"
- "${LIBPNG_ROOT_DIR}/pngerror.c"
- "${LIBPNG_ROOT_DIR}/pngget.c"
- "${LIBPNG_ROOT_DIR}/pngmem.c"
- "${LIBPNG_ROOT_DIR}/pngpread.c"
- "${LIBPNG_ROOT_DIR}/pngread.c"
- "${LIBPNG_ROOT_DIR}/pngrio.c"
- "${LIBPNG_ROOT_DIR}/pngrtran.c"
- "${LIBPNG_ROOT_DIR}/pngrutil.c"
- "${LIBPNG_ROOT_DIR}/pngset.c"
- "${LIBPNG_ROOT_DIR}/pngtrans.c"
- "${LIBPNG_ROOT_DIR}/pngwio.c"
- "${LIBPNG_ROOT_DIR}/pngwrite.c"
- "${LIBPNG_ROOT_DIR}/pngwtran.c"
- "${LIBPNG_ROOT_DIR}/pngwutil.c"
+ "${LIBPNG_ROOT_DIR}/libpng_unity.c"
 )
-if (SLIB_ARM)
- list (
-  APPEND LIBPNG_FILES
-  "${LIBPNG_ROOT_DIR}/arm/arm_init.c"
-  "${LIBPNG_ROOT_DIR}/arm/filter_neon_intrinsics.c"
- )
-endif ()
-if (SLIB_X86)
- list (
-  APPEND LIBPNG_FILES
-  "${LIBPNG_ROOT_DIR}/intel/intel_init.c"
-  "${LIBPNG_ROOT_DIR}/intel/filter_sse2_intrinsics.c"
- )
-endif ()
 
 set (LIBJPEG_ROOT_DIR "${SLIB_PATH}/external/src/libjpeg")
 set (

@@ -1,18 +1,15 @@
 
 /* intel_init.c - SSE2 optimized filter functions
  *
+ * Copyright (c) 2018 Cosmin Truta
  * Copyright (c) 2016-2017 Glenn Randers-Pehrson
  * Written by Mike Klein and Matt Sarett, Google, Inc.
  * Derived from arm/arm_init.c
- *
- * Last changed in libpng 1.6.29 [March 16, 2017]
  *
  * This code is released under the libpng license.
  * For conditions of distribution and use, see the disclaimer
  * and license in png.h
  */
-
-#if defined(__amd64__) || defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64) || defined(i386) || defined(__i386) || defined(__i386__) || defined(_X86_) || defined(_M_IX86) || defined(EMSCRIPTEN)
 
 #include "../pngpriv.h"
 
@@ -53,5 +50,3 @@ png_init_filter_functions_sse2(png_structp pp, unsigned int bpp)
 
 #endif /* PNG_INTEL_SSE_IMPLEMENTATION > 0 */
 #endif /* PNG_READ_SUPPORTED */
-
-#endif

@@ -923,57 +923,6 @@
     <ClCompile Include="..\..\src\slib\social\ebay.cpp">
       <Filter>src\social</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\png.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\pngerror.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\pngget.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\pngmem.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\pngpread.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\pngread.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\pngrio.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\pngrtran.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\pngrutil.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\pngset.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\pngtrans.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\pngwio.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\pngwrite.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\pngwtran.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\pngwutil.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\intel\filter_sse2_intrinsics.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\intel\intel_init.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\external\src\libjpeg\jaricom.c">
       <Filter>external\libjpeg</Filter>
     </ClCompile>
@@ -1534,6 +1483,9 @@
     </ClCompile>
     <ClCompile Include="..\..\external\src\zlib\zlib_unity.c">
       <Filter>external\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\libpng\libpng_unity.c">
+      <Filter>external\libpng</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
