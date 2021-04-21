@@ -3,8 +3,30 @@
 #define LZ4
 #define ZSTD
 
-#ifdef OS_WIN
+#if defined(_WIN64) || defined(_WIN32)
+#define OS_WIN
+#define NOMINMAX
 #define _WIN32_WINNT _WIN32_WINNT_VISTA
+
+#pragma warning(disable: 4127)
+#pragma warning(disable: 4800)
+#pragma warning(disable: 4996)
+#pragma warning(disable: 4351)
+#pragma warning(disable: 4100)
+#pragma warning(disable: 4204)
+#pragma warning(disable: 4324)
+#pragma warning(disable: 4244)
+#pragma warning(disable: 4389)
+#pragma warning(disable: 4121)
+#endif
+#if defined(__APPLE__) && defined(__MACH__)
+#define OS_MACOSX
+#define ROCKSDB_PLATFORM_POSIX
+#endif
+#if defined(__linux__)
+#define OS_LINUX
+#define ROCKSDB_PLATFORM_POSIX
+#define ROCKSDB_LIB_IO_POSIX
 #endif
 
 #include "cache/cache.cc"
