@@ -22,6 +22,7 @@
 #if defined(__APPLE__) && defined(__MACH__)
 #define OS_MACOSX
 #define ROCKSDB_PLATFORM_POSIX
+#define ROCKSDB_LIB_IO_POSIX
 #endif
 #if defined(__linux__)
 #define OS_LINUX

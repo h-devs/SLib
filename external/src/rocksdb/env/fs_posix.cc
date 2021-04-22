@@ -508,7 +508,7 @@ class PosixFileSystem : public FileSystem {
         break;
       }
     }
-    uint64_t size;
+    uint64_t size = 0;
     if (status.ok()) {
       IOOptions opts;
       status = GetFileSize(fname, opts, &size, nullptr);

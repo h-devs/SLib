@@ -355,84 +355,6 @@
 		26E1ADB623688B7E002BF6B8 /* jwt_openssl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26E1ADB523688B7E002BF6B8 /* jwt_openssl.cpp */; };
 		26E1B858222841AC007C222E /* pinterest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26E1B857222841AB007C222E /* pinterest.cpp */; };
 		26E1B85C22291D54007C222E /* ebay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26E1B85B22291D53007C222E /* ebay.cpp */; };
-		26E1B85D222A8250007C222E /* adler32.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605065820CF8E6E00032B2C /* adler32.c */; settings = {COMPILER_FLAGS = "-Os"; }; };
-		26E1B85E222A8250007C222E /* compress.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605065C20CF8E6E00032B2C /* compress.c */; };
-		26E1B85F222A8250007C222E /* crc32.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605065720CF8E6E00032B2C /* crc32.c */; };
-		26E1B860222A8250007C222E /* deflate.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605065F20CF8E6F00032B2C /* deflate.c */; };
-		26E1B861222A8250007C222E /* gzclose.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605065520CF8E6E00032B2C /* gzclose.c */; };
-		26E1B862222A8250007C222E /* gzlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605065D20CF8E6E00032B2C /* gzlib.c */; };
-		26E1B863222A8250007C222E /* gzread.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605065E20CF8E6F00032B2C /* gzread.c */; };
-		26E1B864222A8250007C222E /* gzwrite.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605065B20CF8E6E00032B2C /* gzwrite.c */; };
-		26E1B865222A8250007C222E /* infback.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605065620CF8E6E00032B2C /* infback.c */; };
-		26E1B866222A8250007C222E /* inffast.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605066320CF8E6F00032B2C /* inffast.c */; };
-		26E1B867222A8250007C222E /* inflate.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605065920CF8E6E00032B2C /* inflate.c */; };
-		26E1B868222A8250007C222E /* inftrees.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605066220CF8E6F00032B2C /* inftrees.c */; };
-		26E1B869222A8250007C222E /* trees.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605065A20CF8E6E00032B2C /* trees.c */; };
-		26E1B86A222A8250007C222E /* uncompr.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605066120CF8E6F00032B2C /* uncompr.c */; };
-		26E1B86B222A8250007C222E /* zutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605066020CF8E6F00032B2C /* zutil.c */; };
-		26E1B86C222ABA51007C222E /* png.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605067820CFAF9700032B2C /* png.c */; };
-		26E1B86D222ABA51007C222E /* pngerror.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605067320CFAF9700032B2C /* pngerror.c */; };
-		26E1B86E222ABA51007C222E /* pngget.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605067C20CFAF9800032B2C /* pngget.c */; };
-		26E1B86F222ABA51007C222E /* pngmem.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605068120CFAF9800032B2C /* pngmem.c */; };
-		26E1B870222ABA51007C222E /* pngpread.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605067420CFAF9700032B2C /* pngpread.c */; };
-		26E1B871222ABA51007C222E /* pngread.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605067520CFAF9700032B2C /* pngread.c */; };
-		26E1B872222ABA51007C222E /* pngrio.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605067620CFAF9700032B2C /* pngrio.c */; };
-		26E1B873222ABA51007C222E /* pngrtran.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605067920CFAF9700032B2C /* pngrtran.c */; };
-		26E1B874222ABA51007C222E /* pngrutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605067D20CFAF9800032B2C /* pngrutil.c */; };
-		26E1B875222ABA51007C222E /* pngset.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605067F20CFAF9800032B2C /* pngset.c */; };
-		26E1B876222ABA51007C222E /* pngtrans.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605067E20CFAF9800032B2C /* pngtrans.c */; };
-		26E1B877222ABA51007C222E /* pngwio.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605068020CFAF9800032B2C /* pngwio.c */; };
-		26E1B878222ABA51007C222E /* pngwrite.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605067B20CFAF9800032B2C /* pngwrite.c */; };
-		26E1B879222ABA51007C222E /* pngwtran.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605067720CFAF9700032B2C /* pngwtran.c */; };
-		26E1B87A222ABA51007C222E /* pngwutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605067A20CFAF9700032B2C /* pngwutil.c */; };
-		26E1B87B222ABA55007C222E /* filter_sse2_intrinsics.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605069320CFAFA700032B2C /* filter_sse2_intrinsics.c */; };
-		26E1B87C222ABA55007C222E /* intel_init.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605069220CFAFA700032B2C /* intel_init.c */; };
-		26E1B87D222ABAB2007C222E /* jaricom.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506BC20CFB01600032B2C /* jaricom.c */; };
-		26E1B87E222ABAB2007C222E /* jcapimin.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506A320CFB01400032B2C /* jcapimin.c */; };
-		26E1B87F222ABAB2007C222E /* jcapistd.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506B020CFB01500032B2C /* jcapistd.c */; };
-		26E1B880222ABAB2007C222E /* jcarith.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506B120CFB01500032B2C /* jcarith.c */; };
-		26E1B881222ABAB2007C222E /* jccoefct.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605069E20CFB01400032B2C /* jccoefct.c */; };
-		26E1B882222ABAB2007C222E /* jccolor.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605069D20CFB01400032B2C /* jccolor.c */; };
-		26E1B883222ABAB2007C222E /* jcdctmgr.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506B920CFB01600032B2C /* jcdctmgr.c */; };
-		26E1B884222ABAB2007C222E /* jchuff.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506A120CFB01400032B2C /* jchuff.c */; };
-		26E1B885222ABAB2007C222E /* jcinit.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506BD20CFB01600032B2C /* jcinit.c */; };
-		26E1B886222ABAB2007C222E /* jcmainct.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506BF20CFB01600032B2C /* jcmainct.c */; };
-		26E1B887222ABAB2007C222E /* jcmarker.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506BE20CFB01600032B2C /* jcmarker.c */; };
-		26E1B888222ABAB2007C222E /* jcmaster.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605069720CFB01300032B2C /* jcmaster.c */; };
-		26E1B889222ABAB2007C222E /* jcomapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506AC20CFB01500032B2C /* jcomapi.c */; };
-		26E1B88A222ABAB2007C222E /* jcparam.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506A420CFB01400032B2C /* jcparam.c */; };
-		26E1B88B222ABAB2007C222E /* jcprepct.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506AD20CFB01500032B2C /* jcprepct.c */; };
-		26E1B88C222ABAB2007C222E /* jcsample.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506BA20CFB01600032B2C /* jcsample.c */; };
-		26E1B88D222ABAB2007C222E /* jctrans.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506A520CFB01400032B2C /* jctrans.c */; };
-		26E1B88E222ABAB2007C222E /* jdapimin.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506A820CFB01400032B2C /* jdapimin.c */; };
-		26E1B88F222ABAB2007C222E /* jdapistd.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605069920CFB01300032B2C /* jdapistd.c */; };
-		26E1B890222ABAB2007C222E /* jdarith.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605069F20CFB01400032B2C /* jdarith.c */; };
-		26E1B891222ABAB2007C222E /* jdatadst.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506B220CFB01500032B2C /* jdatadst.c */; };
-		26E1B892222ABAB2007C222E /* jdatasrc.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506B820CFB01600032B2C /* jdatasrc.c */; };
-		26E1B893222ABAB2007C222E /* jdcoefct.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506B320CFB01500032B2C /* jdcoefct.c */; };
-		26E1B894222ABAB2007C222E /* jdcolor.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506A020CFB01400032B2C /* jdcolor.c */; };
-		26E1B895222ABAB2007C222E /* jddctmgr.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506A920CFB01400032B2C /* jddctmgr.c */; };
-		26E1B896222ABAB2007C222E /* jdhuff.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506B620CFB01500032B2C /* jdhuff.c */; };
-		26E1B897222ABAB2007C222E /* jdinput.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506B720CFB01600032B2C /* jdinput.c */; };
-		26E1B898222ABAB2007C222E /* jdmainct.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506C220CFB01600032B2C /* jdmainct.c */; };
-		26E1B899222ABAB2007C222E /* jdmarker.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506AE20CFB01500032B2C /* jdmarker.c */; };
-		26E1B89A222ABAB2007C222E /* jdmaster.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605069B20CFB01300032B2C /* jdmaster.c */; };
-		26E1B89B222ABAB2007C222E /* jdmerge.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605069A20CFB01300032B2C /* jdmerge.c */; };
-		26E1B89C222ABAB2007C222E /* jdpostct.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506AA20CFB01400032B2C /* jdpostct.c */; };
-		26E1B89D222ABAB2007C222E /* jdsample.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605069620CFB01300032B2C /* jdsample.c */; };
-		26E1B89E222ABAB2007C222E /* jdtrans.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506A220CFB01400032B2C /* jdtrans.c */; };
-		26E1B89F222ABAB2007C222E /* jerror.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506B420CFB01500032B2C /* jerror.c */; };
-		26E1B8A0222ABAB2007C222E /* jfdctflt.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506C020CFB01600032B2C /* jfdctflt.c */; };
-		26E1B8A1222ABAB2007C222E /* jfdctfst.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506A620CFB01400032B2C /* jfdctfst.c */; };
-		26E1B8A2222ABAB2007C222E /* jfdctint.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506AB20CFB01500032B2C /* jfdctint.c */; };
-		26E1B8A3222ABAB2007C222E /* jidctflt.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506C120CFB01600032B2C /* jidctflt.c */; };
-		26E1B8A4222ABAB2007C222E /* jidctfst.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605069820CFB01300032B2C /* jidctfst.c */; };
-		26E1B8A5222ABAB2007C222E /* jidctint.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506BB20CFB01600032B2C /* jidctint.c */; };
-		26E1B8A6222ABAB2007C222E /* jmemnobs.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506B520CFB01500032B2C /* jmemnobs.c */; };
-		26E1B8A7222ABAB2007C222E /* jmemmgr.c in Sources */ = {isa = PBXBuildFile; fileRef = 26050B2220CFBD6B00032B2C /* jmemmgr.c */; };
-		26E1B8A8222ABAB2007C222E /* jquant1.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506AF20CFB01500032B2C /* jquant1.c */; };
-		26E1B8A9222ABAB2007C222E /* jquant2.c in Sources */ = {isa = PBXBuildFile; fileRef = 2605069C20CFB01400032B2C /* jquant2.c */; };
-		26E1B8AA222ABAB2007C222E /* jutils.c in Sources */ = {isa = PBXBuildFile; fileRef = 260506A720CFB01400032B2C /* jutils.c */; };
 		26E44AE92321832000A88D93 /* collection_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2650D3912320694C00B0CF2C /* collection_view.cpp */; };
 		26E9133C25948C54008A35D2 /* jpeg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26E9133B25948C54008A35D2 /* jpeg.cpp */; };
 		26EA2061239A90E2008218D7 /* ui_notification_fcm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26EA2060239A90E2008218D7 /* ui_notification_fcm.cpp */; };
@@ -454,6 +376,19 @@
 		26FE7D8D25A2F1B900B787F0 /* plot_ui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8B25A2F1B800B787F0 /* plot_ui.cpp */; };
 		26FE7D8E25A2F1B900B787F0 /* plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8C25A2F1B800B787F0 /* plot.cpp */; };
 		26FE7D9025A2F1CB00B787F0 /* image_canvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8F25A2F1CB00B787F0 /* image_canvas.cpp */; };
+		D7BF609C26311E1700E0B3DD /* decimal128.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7BF609B26311E1700E0B3DD /* decimal128.cpp */; };
+		D7BF60AA26311E8B00E0B3DD /* zlib_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60A926311E8B00E0B3DD /* zlib_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		D7BF60B826311EA200E0B3DD /* libpng_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60B726311EA200E0B3DD /* libpng_unity.c */; };
+		D7BF60C726311EBF00E0B3DD /* libjpeg_unity1.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60C526311EBF00E0B3DD /* libjpeg_unity1.c */; };
+		D7BF60C826311EBF00E0B3DD /* libjpeg_unity2.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60C626311EBF00E0B3DD /* libjpeg_unity2.c */; };
+		D7BF60D126311EE700E0B3DD /* zstd_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60D026311EE700E0B3DD /* zstd_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		D7BF60DB26311F0700E0B3DD /* lz4.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60D926311F0700E0B3DD /* lz4.c */; };
+		D7BF60DC26311F0700E0B3DD /* lz4hc.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60DA26311F0700E0B3DD /* lz4hc.c */; };
+		D7BF60E626311F3600E0B3DD /* snappy.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60E426311F3600E0B3DD /* snappy.cc */; settings = {COMPILER_FLAGS = "-w"; }; };
+		D7BF60E726311F3600E0B3DD /* snappy-sinksource.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60E526311F3600E0B3DD /* snappy-sinksource.cc */; settings = {COMPILER_FLAGS = "-w"; }; };
+		D7BF60F126311F7600E0B3DD /* mdb.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60EF26311F7600E0B3DD /* mdb.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		D7BF60F226311F7600E0B3DD /* midl.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60F026311F7600E0B3DD /* midl.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		D7BF60FB26311FB700E0B3DD /* leveldb_unity.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60FA26311FB700E0B3DD /* leveldb_unity.cc */; settings = {COMPILER_FLAGS = "-w"; }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -519,84 +454,6 @@
 
 /* Begin PBXFileReference section */
 		260272E51C81877F0079E2F2 /* asset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asset.cpp; sourceTree = "<group>"; };
-		2605065520CF8E6E00032B2C /* gzclose.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gzclose.c; path = ../../external/src/zlib/gzclose.c; sourceTree = "<group>"; };
-		2605065620CF8E6E00032B2C /* infback.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = infback.c; path = ../../external/src/zlib/infback.c; sourceTree = "<group>"; };
-		2605065720CF8E6E00032B2C /* crc32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = crc32.c; path = ../../external/src/zlib/crc32.c; sourceTree = "<group>"; };
-		2605065820CF8E6E00032B2C /* adler32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = adler32.c; path = ../../external/src/zlib/adler32.c; sourceTree = "<group>"; };
-		2605065920CF8E6E00032B2C /* inflate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = inflate.c; path = ../../external/src/zlib/inflate.c; sourceTree = "<group>"; };
-		2605065A20CF8E6E00032B2C /* trees.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = trees.c; path = ../../external/src/zlib/trees.c; sourceTree = "<group>"; };
-		2605065B20CF8E6E00032B2C /* gzwrite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gzwrite.c; path = ../../external/src/zlib/gzwrite.c; sourceTree = "<group>"; };
-		2605065C20CF8E6E00032B2C /* compress.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = compress.c; path = ../../external/src/zlib/compress.c; sourceTree = "<group>"; };
-		2605065D20CF8E6E00032B2C /* gzlib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gzlib.c; path = ../../external/src/zlib/gzlib.c; sourceTree = "<group>"; };
-		2605065E20CF8E6F00032B2C /* gzread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gzread.c; path = ../../external/src/zlib/gzread.c; sourceTree = "<group>"; };
-		2605065F20CF8E6F00032B2C /* deflate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = deflate.c; path = ../../external/src/zlib/deflate.c; sourceTree = "<group>"; };
-		2605066020CF8E6F00032B2C /* zutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zutil.c; path = ../../external/src/zlib/zutil.c; sourceTree = "<group>"; };
-		2605066120CF8E6F00032B2C /* uncompr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = uncompr.c; path = ../../external/src/zlib/uncompr.c; sourceTree = "<group>"; };
-		2605066220CF8E6F00032B2C /* inftrees.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = inftrees.c; path = ../../external/src/zlib/inftrees.c; sourceTree = "<group>"; };
-		2605066320CF8E6F00032B2C /* inffast.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = inffast.c; path = ../../external/src/zlib/inffast.c; sourceTree = "<group>"; };
-		2605067320CFAF9700032B2C /* pngerror.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngerror.c; path = ../../external/src/libpng/pngerror.c; sourceTree = "<group>"; };
-		2605067420CFAF9700032B2C /* pngpread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngpread.c; path = ../../external/src/libpng/pngpread.c; sourceTree = "<group>"; };
-		2605067520CFAF9700032B2C /* pngread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngread.c; path = ../../external/src/libpng/pngread.c; sourceTree = "<group>"; };
-		2605067620CFAF9700032B2C /* pngrio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngrio.c; path = ../../external/src/libpng/pngrio.c; sourceTree = "<group>"; };
-		2605067720CFAF9700032B2C /* pngwtran.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngwtran.c; path = ../../external/src/libpng/pngwtran.c; sourceTree = "<group>"; };
-		2605067820CFAF9700032B2C /* png.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = png.c; path = ../../external/src/libpng/png.c; sourceTree = "<group>"; };
-		2605067920CFAF9700032B2C /* pngrtran.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngrtran.c; path = ../../external/src/libpng/pngrtran.c; sourceTree = "<group>"; };
-		2605067A20CFAF9700032B2C /* pngwutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngwutil.c; path = ../../external/src/libpng/pngwutil.c; sourceTree = "<group>"; };
-		2605067B20CFAF9800032B2C /* pngwrite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngwrite.c; path = ../../external/src/libpng/pngwrite.c; sourceTree = "<group>"; };
-		2605067C20CFAF9800032B2C /* pngget.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngget.c; path = ../../external/src/libpng/pngget.c; sourceTree = "<group>"; };
-		2605067D20CFAF9800032B2C /* pngrutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngrutil.c; path = ../../external/src/libpng/pngrutil.c; sourceTree = "<group>"; };
-		2605067E20CFAF9800032B2C /* pngtrans.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngtrans.c; path = ../../external/src/libpng/pngtrans.c; sourceTree = "<group>"; };
-		2605067F20CFAF9800032B2C /* pngset.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngset.c; path = ../../external/src/libpng/pngset.c; sourceTree = "<group>"; };
-		2605068020CFAF9800032B2C /* pngwio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngwio.c; path = ../../external/src/libpng/pngwio.c; sourceTree = "<group>"; };
-		2605068120CFAF9800032B2C /* pngmem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngmem.c; path = ../../external/src/libpng/pngmem.c; sourceTree = "<group>"; };
-		2605069220CFAFA700032B2C /* intel_init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = intel_init.c; path = ../../external/src/libpng/intel/intel_init.c; sourceTree = "<group>"; };
-		2605069320CFAFA700032B2C /* filter_sse2_intrinsics.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = filter_sse2_intrinsics.c; path = ../../external/src/libpng/intel/filter_sse2_intrinsics.c; sourceTree = "<group>"; };
-		2605069620CFB01300032B2C /* jdsample.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdsample.c; path = ../../external/src/libjpeg/jdsample.c; sourceTree = "<group>"; };
-		2605069720CFB01300032B2C /* jcmaster.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcmaster.c; path = ../../external/src/libjpeg/jcmaster.c; sourceTree = "<group>"; };
-		2605069820CFB01300032B2C /* jidctfst.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jidctfst.c; path = ../../external/src/libjpeg/jidctfst.c; sourceTree = "<group>"; };
-		2605069920CFB01300032B2C /* jdapistd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdapistd.c; path = ../../external/src/libjpeg/jdapistd.c; sourceTree = "<group>"; };
-		2605069A20CFB01300032B2C /* jdmerge.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdmerge.c; path = ../../external/src/libjpeg/jdmerge.c; sourceTree = "<group>"; };
-		2605069B20CFB01300032B2C /* jdmaster.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdmaster.c; path = ../../external/src/libjpeg/jdmaster.c; sourceTree = "<group>"; };
-		2605069C20CFB01400032B2C /* jquant2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jquant2.c; path = ../../external/src/libjpeg/jquant2.c; sourceTree = "<group>"; };
-		2605069D20CFB01400032B2C /* jccolor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jccolor.c; path = ../../external/src/libjpeg/jccolor.c; sourceTree = "<group>"; };
-		2605069E20CFB01400032B2C /* jccoefct.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jccoefct.c; path = ../../external/src/libjpeg/jccoefct.c; sourceTree = "<group>"; };
-		2605069F20CFB01400032B2C /* jdarith.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdarith.c; path = ../../external/src/libjpeg/jdarith.c; sourceTree = "<group>"; };
-		260506A020CFB01400032B2C /* jdcolor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdcolor.c; path = ../../external/src/libjpeg/jdcolor.c; sourceTree = "<group>"; };
-		260506A120CFB01400032B2C /* jchuff.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jchuff.c; path = ../../external/src/libjpeg/jchuff.c; sourceTree = "<group>"; };
-		260506A220CFB01400032B2C /* jdtrans.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdtrans.c; path = ../../external/src/libjpeg/jdtrans.c; sourceTree = "<group>"; };
-		260506A320CFB01400032B2C /* jcapimin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcapimin.c; path = ../../external/src/libjpeg/jcapimin.c; sourceTree = "<group>"; };
-		260506A420CFB01400032B2C /* jcparam.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcparam.c; path = ../../external/src/libjpeg/jcparam.c; sourceTree = "<group>"; };
-		260506A520CFB01400032B2C /* jctrans.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jctrans.c; path = ../../external/src/libjpeg/jctrans.c; sourceTree = "<group>"; };
-		260506A620CFB01400032B2C /* jfdctfst.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jfdctfst.c; path = ../../external/src/libjpeg/jfdctfst.c; sourceTree = "<group>"; };
-		260506A720CFB01400032B2C /* jutils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jutils.c; path = ../../external/src/libjpeg/jutils.c; sourceTree = "<group>"; };
-		260506A820CFB01400032B2C /* jdapimin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdapimin.c; path = ../../external/src/libjpeg/jdapimin.c; sourceTree = "<group>"; };
-		260506A920CFB01400032B2C /* jddctmgr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jddctmgr.c; path = ../../external/src/libjpeg/jddctmgr.c; sourceTree = "<group>"; };
-		260506AA20CFB01400032B2C /* jdpostct.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdpostct.c; path = ../../external/src/libjpeg/jdpostct.c; sourceTree = "<group>"; };
-		260506AB20CFB01500032B2C /* jfdctint.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jfdctint.c; path = ../../external/src/libjpeg/jfdctint.c; sourceTree = "<group>"; };
-		260506AC20CFB01500032B2C /* jcomapi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcomapi.c; path = ../../external/src/libjpeg/jcomapi.c; sourceTree = "<group>"; };
-		260506AD20CFB01500032B2C /* jcprepct.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcprepct.c; path = ../../external/src/libjpeg/jcprepct.c; sourceTree = "<group>"; };
-		260506AE20CFB01500032B2C /* jdmarker.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdmarker.c; path = ../../external/src/libjpeg/jdmarker.c; sourceTree = "<group>"; };
-		260506AF20CFB01500032B2C /* jquant1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jquant1.c; path = ../../external/src/libjpeg/jquant1.c; sourceTree = "<group>"; };
-		260506B020CFB01500032B2C /* jcapistd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcapistd.c; path = ../../external/src/libjpeg/jcapistd.c; sourceTree = "<group>"; };
-		260506B120CFB01500032B2C /* jcarith.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcarith.c; path = ../../external/src/libjpeg/jcarith.c; sourceTree = "<group>"; };
-		260506B220CFB01500032B2C /* jdatadst.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdatadst.c; path = ../../external/src/libjpeg/jdatadst.c; sourceTree = "<group>"; };
-		260506B320CFB01500032B2C /* jdcoefct.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdcoefct.c; path = ../../external/src/libjpeg/jdcoefct.c; sourceTree = "<group>"; };
-		260506B420CFB01500032B2C /* jerror.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jerror.c; path = ../../external/src/libjpeg/jerror.c; sourceTree = "<group>"; };
-		260506B520CFB01500032B2C /* jmemnobs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jmemnobs.c; path = ../../external/src/libjpeg/jmemnobs.c; sourceTree = "<group>"; };
-		260506B620CFB01500032B2C /* jdhuff.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdhuff.c; path = ../../external/src/libjpeg/jdhuff.c; sourceTree = "<group>"; };
-		260506B720CFB01600032B2C /* jdinput.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdinput.c; path = ../../external/src/libjpeg/jdinput.c; sourceTree = "<group>"; };
-		260506B820CFB01600032B2C /* jdatasrc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdatasrc.c; path = ../../external/src/libjpeg/jdatasrc.c; sourceTree = "<group>"; };
-		260506B920CFB01600032B2C /* jcdctmgr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcdctmgr.c; path = ../../external/src/libjpeg/jcdctmgr.c; sourceTree = "<group>"; };
-		260506BA20CFB01600032B2C /* jcsample.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcsample.c; path = ../../external/src/libjpeg/jcsample.c; sourceTree = "<group>"; };
-		260506BB20CFB01600032B2C /* jidctint.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jidctint.c; path = ../../external/src/libjpeg/jidctint.c; sourceTree = "<group>"; };
-		260506BC20CFB01600032B2C /* jaricom.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jaricom.c; path = ../../external/src/libjpeg/jaricom.c; sourceTree = "<group>"; };
-		260506BD20CFB01600032B2C /* jcinit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcinit.c; path = ../../external/src/libjpeg/jcinit.c; sourceTree = "<group>"; };
-		260506BE20CFB01600032B2C /* jcmarker.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcmarker.c; path = ../../external/src/libjpeg/jcmarker.c; sourceTree = "<group>"; };
-		260506BF20CFB01600032B2C /* jcmainct.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcmainct.c; path = ../../external/src/libjpeg/jcmainct.c; sourceTree = "<group>"; };
-		260506C020CFB01600032B2C /* jfdctflt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jfdctflt.c; path = ../../external/src/libjpeg/jfdctflt.c; sourceTree = "<group>"; };
-		260506C120CFB01600032B2C /* jidctflt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jidctflt.c; path = ../../external/src/libjpeg/jidctflt.c; sourceTree = "<group>"; };
-		260506C220CFB01600032B2C /* jdmainct.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdmainct.c; path = ../../external/src/libjpeg/jdmainct.c; sourceTree = "<group>"; };
-		26050B2220CFBD6B00032B2C /* jmemmgr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jmemmgr.c; path = ../../external/src/libjpeg/jmemmgr.c; sourceTree = "<group>"; };
 		26072FFD20D97B66004EB272 /* url_request_curl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = url_request_curl.cpp; sourceTree = "<group>"; };
 		2607300220D985BF004EB272 /* url_request_common.inc */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; path = url_request_common.inc; sourceTree = "<group>"; };
 		2607300D20DCE367004EB272 /* rw_lock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rw_lock.cpp; sourceTree = "<group>"; };
@@ -989,6 +846,19 @@
 		A2DE1D861B383BA600A74698 /* pipe.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pipe.cpp; sourceTree = "<group>"; };
 		A2DE1D8A1B383BB000A74698 /* system_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system_unix.cpp; sourceTree = "<group>"; };
 		A2DE1D8E1B383BC100A74698 /* event_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = event_unix.cpp; sourceTree = "<group>"; };
+		D7BF609B26311E1700E0B3DD /* decimal128.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = decimal128.cpp; sourceTree = "<group>"; };
+		D7BF60A926311E8B00E0B3DD /* zlib_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zlib_unity.c; path = ../../external/src/zlib/zlib_unity.c; sourceTree = "<group>"; };
+		D7BF60B726311EA200E0B3DD /* libpng_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libpng_unity.c; path = ../../external/src/libpng/libpng_unity.c; sourceTree = "<group>"; };
+		D7BF60C526311EBF00E0B3DD /* libjpeg_unity1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libjpeg_unity1.c; path = ../../external/src/libjpeg/libjpeg_unity1.c; sourceTree = "<group>"; };
+		D7BF60C626311EBF00E0B3DD /* libjpeg_unity2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libjpeg_unity2.c; path = ../../external/src/libjpeg/libjpeg_unity2.c; sourceTree = "<group>"; };
+		D7BF60D026311EE700E0B3DD /* zstd_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zstd_unity.c; path = ../../external/src/zstd/zstd_unity.c; sourceTree = "<group>"; };
+		D7BF60D926311F0700E0B3DD /* lz4.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lz4.c; path = ../../external/src/lz4/lz4.c; sourceTree = "<group>"; };
+		D7BF60DA26311F0700E0B3DD /* lz4hc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lz4hc.c; path = ../../external/src/lz4/lz4hc.c; sourceTree = "<group>"; };
+		D7BF60E426311F3600E0B3DD /* snappy.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = snappy.cc; path = ../../external/src/snappy/snappy.cc; sourceTree = "<group>"; };
+		D7BF60E526311F3600E0B3DD /* snappy-sinksource.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "snappy-sinksource.cc"; path = "../../external/src/snappy/snappy-sinksource.cc"; sourceTree = "<group>"; };
+		D7BF60EF26311F7600E0B3DD /* mdb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mdb.c; path = ../../external/src/lmdb/mdb.c; sourceTree = "<group>"; };
+		D7BF60F026311F7600E0B3DD /* midl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = midl.c; path = ../../external/src/lmdb/midl.c; sourceTree = "<group>"; };
+		D7BF60FA26311FB700E0B3DD /* leveldb_unity.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = leveldb_unity.cc; path = ../../external/src/leveldb/leveldb_unity.cc; sourceTree = "<group>"; };
 		E17DADEE1E0C9A10006161F6 /* motion_tracker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = motion_tracker.cpp; sourceTree = "<group>"; };
 		E17DADF01E0C9A1E006161F6 /* gesture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gesture.cpp; sourceTree = "<group>"; };
 		E1B34E9E1E0A90C0006217F4 /* picker_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = picker_view.cpp; sourceTree = "<group>"; };
@@ -1074,52 +944,8 @@
 		2605065220CF880B00032B2C /* libjpeg */ = {
 			isa = PBXGroup;
 			children = (
-				260506BC20CFB01600032B2C /* jaricom.c */,
-				260506A320CFB01400032B2C /* jcapimin.c */,
-				260506B020CFB01500032B2C /* jcapistd.c */,
-				260506B120CFB01500032B2C /* jcarith.c */,
-				2605069E20CFB01400032B2C /* jccoefct.c */,
-				2605069D20CFB01400032B2C /* jccolor.c */,
-				260506B920CFB01600032B2C /* jcdctmgr.c */,
-				260506A120CFB01400032B2C /* jchuff.c */,
-				260506BD20CFB01600032B2C /* jcinit.c */,
-				260506BF20CFB01600032B2C /* jcmainct.c */,
-				260506BE20CFB01600032B2C /* jcmarker.c */,
-				2605069720CFB01300032B2C /* jcmaster.c */,
-				260506AC20CFB01500032B2C /* jcomapi.c */,
-				260506A420CFB01400032B2C /* jcparam.c */,
-				260506AD20CFB01500032B2C /* jcprepct.c */,
-				260506BA20CFB01600032B2C /* jcsample.c */,
-				260506A520CFB01400032B2C /* jctrans.c */,
-				260506A820CFB01400032B2C /* jdapimin.c */,
-				2605069920CFB01300032B2C /* jdapistd.c */,
-				2605069F20CFB01400032B2C /* jdarith.c */,
-				260506B220CFB01500032B2C /* jdatadst.c */,
-				260506B820CFB01600032B2C /* jdatasrc.c */,
-				260506B320CFB01500032B2C /* jdcoefct.c */,
-				260506A020CFB01400032B2C /* jdcolor.c */,
-				260506A920CFB01400032B2C /* jddctmgr.c */,
-				260506B620CFB01500032B2C /* jdhuff.c */,
-				260506B720CFB01600032B2C /* jdinput.c */,
-				260506C220CFB01600032B2C /* jdmainct.c */,
-				260506AE20CFB01500032B2C /* jdmarker.c */,
-				2605069B20CFB01300032B2C /* jdmaster.c */,
-				2605069A20CFB01300032B2C /* jdmerge.c */,
-				260506AA20CFB01400032B2C /* jdpostct.c */,
-				2605069620CFB01300032B2C /* jdsample.c */,
-				260506A220CFB01400032B2C /* jdtrans.c */,
-				260506B420CFB01500032B2C /* jerror.c */,
-				260506C020CFB01600032B2C /* jfdctflt.c */,
-				260506A620CFB01400032B2C /* jfdctfst.c */,
-				260506AB20CFB01500032B2C /* jfdctint.c */,
-				260506C120CFB01600032B2C /* jidctflt.c */,
-				2605069820CFB01300032B2C /* jidctfst.c */,
-				260506BB20CFB01600032B2C /* jidctint.c */,
-				260506B520CFB01500032B2C /* jmemnobs.c */,
-				26050B2220CFBD6B00032B2C /* jmemmgr.c */,
-				260506AF20CFB01500032B2C /* jquant1.c */,
-				2605069C20CFB01400032B2C /* jquant2.c */,
-				260506A720CFB01400032B2C /* jutils.c */,
+				D7BF60C526311EBF00E0B3DD /* libjpeg_unity1.c */,
+				D7BF60C626311EBF00E0B3DD /* libjpeg_unity2.c */,
 			);
 			name = libjpeg;
 			sourceTree = "<group>";
@@ -1127,22 +953,7 @@
 		2605065320CF8E0300032B2C /* libpng */ = {
 			isa = PBXGroup;
 			children = (
-				2605069120CFAF9A00032B2C /* intel */,
-				2605067820CFAF9700032B2C /* png.c */,
-				2605067320CFAF9700032B2C /* pngerror.c */,
-				2605067C20CFAF9800032B2C /* pngget.c */,
-				2605068120CFAF9800032B2C /* pngmem.c */,
-				2605067420CFAF9700032B2C /* pngpread.c */,
-				2605067520CFAF9700032B2C /* pngread.c */,
-				2605067620CFAF9700032B2C /* pngrio.c */,
-				2605067920CFAF9700032B2C /* pngrtran.c */,
-				2605067D20CFAF9800032B2C /* pngrutil.c */,
-				2605067F20CFAF9800032B2C /* pngset.c */,
-				2605067E20CFAF9800032B2C /* pngtrans.c */,
-				2605068020CFAF9800032B2C /* pngwio.c */,
-				2605067B20CFAF9800032B2C /* pngwrite.c */,
-				2605067720CFAF9700032B2C /* pngwtran.c */,
-				2605067A20CFAF9700032B2C /* pngwutil.c */,
+				D7BF60B726311EA200E0B3DD /* libpng_unity.c */,
 			);
 			name = libpng;
 			sourceTree = "<group>";
@@ -1150,32 +961,9 @@
 		2605065420CF8E4800032B2C /* zlib */ = {
 			isa = PBXGroup;
 			children = (
-				2605065820CF8E6E00032B2C /* adler32.c */,
-				2605065C20CF8E6E00032B2C /* compress.c */,
-				2605065720CF8E6E00032B2C /* crc32.c */,
-				2605065F20CF8E6F00032B2C /* deflate.c */,
-				2605065520CF8E6E00032B2C /* gzclose.c */,
-				2605065D20CF8E6E00032B2C /* gzlib.c */,
-				2605065E20CF8E6F00032B2C /* gzread.c */,
-				2605065B20CF8E6E00032B2C /* gzwrite.c */,
-				2605065620CF8E6E00032B2C /* infback.c */,
-				2605066320CF8E6F00032B2C /* inffast.c */,
-				2605065920CF8E6E00032B2C /* inflate.c */,
-				2605066220CF8E6F00032B2C /* inftrees.c */,
-				2605065A20CF8E6E00032B2C /* trees.c */,
-				2605066120CF8E6F00032B2C /* uncompr.c */,
-				2605066020CF8E6F00032B2C /* zutil.c */,
+				D7BF60A926311E8B00E0B3DD /* zlib_unity.c */,
 			);
 			name = zlib;
-			sourceTree = "<group>";
-		};
-		2605069120CFAF9A00032B2C /* intel */ = {
-			isa = PBXGroup;
-			children = (
-				2605069320CFAFA700032B2C /* filter_sse2_intrinsics.c */,
-				2605069220CFAFA700032B2C /* intel_init.c */,
-			);
-			name = intel;
 			sourceTree = "<group>";
 		};
 		260B73F2220D7DC600858EEA /* social */ = {
@@ -1213,6 +1001,11 @@
 			isa = PBXGroup;
 			children = (
 				2605065420CF8E4800032B2C /* zlib */,
+				D7BF60CF26311EC900E0B3DD /* zstd */,
+				D7BF60E326311F2200E0B3DD /* snappy */,
+				D7BF60D826311EF200E0B3DD /* lz4 */,
+				D7BF60F926311F7A00E0B3DD /* leveldb */,
+				D7BF60EE26311F5B00E0B3DD /* lmdb */,
 				2605065320CF8E0300032B2C /* libpng */,
 				2605065220CF880B00032B2C /* libjpeg */,
 				262D59A62325878500F85780 /* noto_emoji */,
@@ -1787,12 +1580,56 @@
 			children = (
 				266DD49E1C1193DB00D47AB0 /* bigint.cpp */,
 				26A39D8820EFBCBB004707C9 /* calculator.cpp */,
+				D7BF609B26311E1700E0B3DD /* decimal128.cpp */,
 				26FE7D8925A2F1B300B787F0 /* fft.cpp */,
 				266DD4A01C1193DB00D47AB0 /* int128.cpp */,
 				26FE7D8C25A2F1B800B787F0 /* plot.cpp */,
 				26FE7D8B25A2F1B800B787F0 /* plot_ui.cpp */,
 			);
 			path = math;
+			sourceTree = "<group>";
+		};
+		D7BF60CF26311EC900E0B3DD /* zstd */ = {
+			isa = PBXGroup;
+			children = (
+				D7BF60D026311EE700E0B3DD /* zstd_unity.c */,
+			);
+			name = zstd;
+			sourceTree = "<group>";
+		};
+		D7BF60D826311EF200E0B3DD /* lz4 */ = {
+			isa = PBXGroup;
+			children = (
+				D7BF60D926311F0700E0B3DD /* lz4.c */,
+				D7BF60DA26311F0700E0B3DD /* lz4hc.c */,
+			);
+			name = lz4;
+			sourceTree = "<group>";
+		};
+		D7BF60E326311F2200E0B3DD /* snappy */ = {
+			isa = PBXGroup;
+			children = (
+				D7BF60E526311F3600E0B3DD /* snappy-sinksource.cc */,
+				D7BF60E426311F3600E0B3DD /* snappy.cc */,
+			);
+			name = snappy;
+			sourceTree = "<group>";
+		};
+		D7BF60EE26311F5B00E0B3DD /* lmdb */ = {
+			isa = PBXGroup;
+			children = (
+				D7BF60EF26311F7600E0B3DD /* mdb.c */,
+				D7BF60F026311F7600E0B3DD /* midl.c */,
+			);
+			name = lmdb;
+			sourceTree = "<group>";
+		};
+		D7BF60F926311F7A00E0B3DD /* leveldb */ = {
+			isa = PBXGroup;
+			children = (
+				D7BF60FA26311FB700E0B3DD /* leveldb_unity.cc */,
+			);
+			name = leveldb;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1928,7 +1765,7 @@
 			isa = PBXProject;
 			attributes = {
 				DefaultBuildSystemTypeForWorkspace = Original;
-				LastUpgradeCheck = 1110;
+				LastUpgradeCheck = 1220;
 				ORGANIZATIONNAME = SLIBIO;
 				TargetAttributes = {
 					262D59932324E3D000F85780 = {
@@ -2041,8 +1878,6 @@
 				26AFC5FF22B1773F0034C634 /* asm_x64.cpp in Sources */,
 				26D9D98F1E964675005F7BD3 /* video_capture.cpp in Sources */,
 				26D9D9551E964659005F7BD3 /* database_statement.cpp in Sources */,
-				26E1B891222ABAB2007C222E /* jdatadst.c in Sources */,
-				26E1B872222ABA51007C222E /* pngrio.c in Sources */,
 				26D9D9AE1E964683005F7BD3 /* render_drawable.cpp in Sources */,
 				26D9D9991E96467B005F7BD3 /* mac_address.cpp in Sources */,
 				26D9D8F81E9645CE005F7BD3 /* service.cpp in Sources */,
@@ -2050,7 +1885,6 @@
 				26D9D9EF1E96468D005F7BD3 /* window.cpp in Sources */,
 				26AFC5FD22B05B580034C634 /* crc32c.cpp in Sources */,
 				26D9D9A01E96467B005F7BD3 /* network_os.cpp in Sources */,
-				26E1B88E222ABAB2007C222E /* jdapimin.c in Sources */,
 				26DA4B39223980B500706393 /* media_player_ffmpeg.cpp in Sources */,
 				26FADD30215676D50057F7EA /* stun.cpp in Sources */,
 				265A93542304298C00B155A2 /* global_unique_instance_unix.cpp in Sources */,
@@ -2061,14 +1895,10 @@
 				26E1ADB623688B7E002BF6B8 /* jwt_openssl.cpp in Sources */,
 				26D9D9E81E96468D005F7BD3 /* ui_resource.cpp in Sources */,
 				26D9D8FA1E9645CE005F7BD3 /* compress_zlib.cpp in Sources */,
-				26E1B875222ABA51007C222E /* pngset.c in Sources */,
 				26D9D9C51E96468D005F7BD3 /* list_control_macos.mm in Sources */,
-				26E1B887222ABAB2007C222E /* jcmarker.c in Sources */,
 				26D9D8FB1E9645CE005F7BD3 /* atomic.cpp in Sources */,
 				263D478B2386E1BD00DAC43F /* chat_client.cpp in Sources */,
 				26D9D9AF1E964683005F7BD3 /* render_engine.cpp in Sources */,
-				26E1B866222A8250007C222E /* inffast.c in Sources */,
-				26E1B86F222ABA51007C222E /* pngmem.c in Sources */,
 				26D9D8FC1E9645CE005F7BD3 /* preference.cpp in Sources */,
 				26D9D8FD1E9645CE005F7BD3 /* animation.cpp in Sources */,
 				26D9D95E1E964662005F7BD3 /* geo_rectangle.cpp in Sources */,
@@ -2087,16 +1917,11 @@
 				267A25EF2553E1B0008C7757 /* dynamic_library_unix.cpp in Sources */,
 				26BAE00E221C90020085B5AB /* etsy_ui.cpp in Sources */,
 				26D9D9AB1E964683005F7BD3 /* opengl_gles.cpp in Sources */,
-				26E1B868222A8250007C222E /* inftrees.c in Sources */,
 				26D9D99F1E96467B005F7BD3 /* network_io.cpp in Sources */,
 				26D9D9001E9645CE005F7BD3 /* bigint.cpp in Sources */,
-				26E1B8A9222ABAB2007C222E /* jquant2.c in Sources */,
-				26E1B8A7222ABAB2007C222E /* jmemmgr.c in Sources */,
 				26D9D9A81E96467B005F7BD3 /* url_request_apple.mm in Sources */,
 				26D9D9011E9645CE005F7BD3 /* event_unix.cpp in Sources */,
 				26D9D9781E96466A005F7BD3 /* image.cpp in Sources */,
-				26E1B879222ABA51007C222E /* pngwtran.c in Sources */,
-				26E1B864222A8250007C222E /* gzwrite.c in Sources */,
 				265A93522304298600B155A2 /* global_unique_instance.cpp in Sources */,
 				26EA207123A2BF75008218D7 /* database_sql.cpp in Sources */,
 				26C1B63F20D51D1D00E36539 /* font.cpp in Sources */,
@@ -2107,9 +1932,7 @@
 				260B73F5220D7DF600858EEA /* facebook.cpp in Sources */,
 				26A3DA96228B698A0031CBDA /* ecc.cpp in Sources */,
 				26D9D9051E9645CE005F7BD3 /* timer.cpp in Sources */,
-				26E1B8A0222ABAB2007C222E /* jfdctflt.c in Sources */,
 				265EA93B2550D48C0098721F /* file_system_mirror.cpp in Sources */,
-				26E1B876222ABA51007C222E /* pngtrans.c in Sources */,
 				26FE7D8E25A2F1B900B787F0 /* plot.cpp in Sources */,
 				26FE7D8A25A2F1B300B787F0 /* fft.cpp in Sources */,
 				26D9D98B1E964675005F7BD3 /* codec_vpx.cpp in Sources */,
@@ -2117,58 +1940,44 @@
 				26C1B62C20D4305100E36539 /* bitmap.cpp in Sources */,
 				2671F99321E07F8200B39842 /* drawer.cpp in Sources */,
 				26D9D9CF1E96468D005F7BD3 /* render_view_macos.mm in Sources */,
-				26E1B892222ABAB2007C222E /* jdatasrc.c in Sources */,
 				26D9D9CA1E96468D005F7BD3 /* picker_view.cpp in Sources */,
 				26D9D9071E9645CE005F7BD3 /* thread_apple.mm in Sources */,
 				26D9D9081E9645CE005F7BD3 /* async.cpp in Sources */,
-				26E1B87B222ABA55007C222E /* filter_sse2_intrinsics.c in Sources */,
-				26E1B860222A8250007C222E /* deflate.c in Sources */,
 				267B9D69225D14640057DF2A /* instagram.cpp in Sources */,
-				26E1B886222ABAB2007C222E /* jcmainct.c in Sources */,
-				26E1B871222ABA51007C222E /* pngread.c in Sources */,
 				26C795C02215F9C70053C5A1 /* strings.cpp in Sources */,
 				26D9D9871E964675005F7BD3 /* camera.cpp in Sources */,
-				26E1B86D222ABA51007C222E /* pngerror.c in Sources */,
 				26D9D9D11E96468D005F7BD3 /* scroll_view.cpp in Sources */,
 				26B748C423696FEF002C1AA4 /* oauth_server_openssl.cpp in Sources */,
 				26987D1B23BA9B6F00872C1D /* string_op.cpp in Sources */,
-				26E1B85E222A8250007C222E /* compress.c in Sources */,
 				26C795BE2215F9C70053C5A1 /* colors.cpp in Sources */,
-				26E1B86E222ABA51007C222E /* pngget.c in Sources */,
 				26D9D95D1E964662005F7BD3 /* geo_location.cpp in Sources */,
 				26D9D90A1E9645CE005F7BD3 /* time.cpp in Sources */,
 				26D9D9C71E96468D005F7BD3 /* mobile_app.cpp in Sources */,
 				26F53F7F22DB4F6D0031D485 /* date_picker_macos.mm in Sources */,
 				2628EAE921C410ED00D8CD00 /* jwt.cpp in Sources */,
 				2628EED921C4259900D8CD00 /* zxing.cpp in Sources */,
-				26E1B86A222A8250007C222E /* uncompr.c in Sources */,
 				26D9D9A61E96467B005F7BD3 /* url.cpp in Sources */,
 				26D9D9571E964659005F7BD3 /* mysql.cpp in Sources */,
 				26D9D9771E96466A005F7BD3 /* image_stb.cpp in Sources */,
 				26C1B64120D51D1D00E36539 /* font_atlas.cpp in Sources */,
 				26D9D9C01E96468D005F7BD3 /* image_view.cpp in Sources */,
 				26D9D9E11E96468D005F7BD3 /* ui_core_common.cpp in Sources */,
-				26E1B85D222A8250007C222E /* adler32.c in Sources */,
 				26D9D9B71E96468D005F7BD3 /* check_box.cpp in Sources */,
 				26D9D9861E964675005F7BD3 /* audio_util.cpp in Sources */,
 				26D9D9A21E96467B005F7BD3 /* socket_address.cpp in Sources */,
 				26D9D9C11E96468D005F7BD3 /* label_view.cpp in Sources */,
 				26A3DA8E228A08D40031CBDA /* chacha.cpp in Sources */,
-				26E1B884222ABAB2007C222E /* jchuff.c in Sources */,
-				26E1B883222ABAB2007C222E /* jcdctmgr.c in Sources */,
 				267A25ED2553DA7C008C7757 /* fuse.cpp in Sources */,
-				26E1B865222A8250007C222E /* infback.c in Sources */,
 				26D9D90C1E9645CE005F7BD3 /* spin_lock.cpp in Sources */,
 				26D9D95B1E964662005F7BD3 /* earth.cpp in Sources */,
 				26BAE01C2220552F0085B5AB /* facebook_ui.cpp in Sources */,
 				26D9D9D01E96468D005F7BD3 /* scroll_bar.cpp in Sources */,
-				26E1B888222ABAB2007C222E /* jcmaster.c in Sources */,
 				26D9D90D1E9645CE005F7BD3 /* charset.cpp in Sources */,
-				26E1B878222ABA51007C222E /* pngwrite.c in Sources */,
 				26D9D9CC1E96468D005F7BD3 /* radio_button.cpp in Sources */,
 				260B73F6220D7DF600858EEA /* oauth.cpp in Sources */,
 				26D9D9CD1E96468D005F7BD3 /* radio_button_macos.mm in Sources */,
 				26D9D90E1E9645CE005F7BD3 /* string.cpp in Sources */,
+				D7BF60D126311EE700E0B3DD /* zstd_unity.c in Sources */,
 				26E44AE92321832000A88D93 /* collection_view.cpp in Sources */,
 				265A936A2304832300B155A2 /* console.cpp in Sources */,
 				26D9D9741E96466A005F7BD3 /* graphics_util.cpp in Sources */,
@@ -2177,18 +1986,16 @@
 				262D59AA232587AF00F85780 /* noto_emoji_png.cpp in Sources */,
 				26FD9030235DE31600574068 /* charset_ext.cpp in Sources */,
 				26D9D9E41E96468D005F7BD3 /* ui_event_macos.mm in Sources */,
+				D7BF60B826311EA200E0B3DD /* libpng_unity.c in Sources */,
 				26D9D98D1E964675005F7BD3 /* media_player.cpp in Sources */,
-				26E1B877222ABA51007C222E /* pngwio.c in Sources */,
 				2639194421CD2510008B335B /* redis.cpp in Sources */,
 				26D9D9D51E96468D005F7BD3 /* slider.cpp in Sources */,
-				26E1B89D222ABAB2007C222E /* jdsample.c in Sources */,
+				D7BF60E626311F3600E0B3DD /* snappy.cc in Sources */,
 				26D9D9651E964669005F7BD3 /* brush.cpp in Sources */,
 				26C795A5221565C70053C5A1 /* url_request_param.cpp in Sources */,
 				26D9D9101E9645CE005F7BD3 /* math.cpp in Sources */,
-				26E1B897222ABAB2007C222E /* jdinput.c in Sources */,
 				26D9D9561E964659005F7BD3 /* database.cpp in Sources */,
 				26D9D9D81E96468D005F7BD3 /* tab_view_macos.mm in Sources */,
-				26E1B87D222ABAB2007C222E /* jaricom.c in Sources */,
 				26539FB8237821C10064340D /* system_tray_icon.cpp in Sources */,
 				26BAE04322267D060085B5AB /* tls.cpp in Sources */,
 				26A3DA92228AFDDE0031CBDA /* poly1305.cpp in Sources */,
@@ -2202,7 +2009,6 @@
 				26D9D9791E96466A005F7BD3 /* pen.cpp in Sources */,
 				26D9D96E1E96466A005F7BD3 /* font_freetype.cpp in Sources */,
 				26D9D9A31E96467B005F7BD3 /* socket_event.cpp in Sources */,
-				26E1B869222A8250007C222E /* trees.c in Sources */,
 				26D9D9131E9645CE005F7BD3 /* log.cpp in Sources */,
 				26BB17D421F4C7F40089C7EC /* view_page_navigation.cpp in Sources */,
 				26539FB32374BC0E0064340D /* push_notification.cpp in Sources */,
@@ -2214,8 +2020,6 @@
 				26BAE024222183400085B5AB /* linkedin.cpp in Sources */,
 				2607300E20DCE368004EB272 /* rw_lock.cpp in Sources */,
 				26D9D9CE1E96468D005F7BD3 /* render_view.cpp in Sources */,
-				26E1B8A4222ABAB2007C222E /* jidctfst.c in Sources */,
-				26E1B86B222A8250007C222E /* zutil.c in Sources */,
 				26D9D9541E964659005F7BD3 /* database_cursor.cpp in Sources */,
 				269E31AD2255F53B005CD0ED /* paypal_ui.cpp in Sources */,
 				2628EACC21C1059800D8CD00 /* web_view_apple.mm in Sources */,
@@ -2223,9 +2027,7 @@
 				265EA93A2550D48C0098721F /* file_system_logger.cpp in Sources */,
 				26D9D9E31E96468D005F7BD3 /* ui_event.cpp in Sources */,
 				26D9D9161E9645CE005F7BD3 /* async_kqueue.cpp in Sources */,
-				26E1B898222ABAB2007C222E /* jdmainct.c in Sources */,
 				26C7959F22154CB80053C5A1 /* clipboard.cpp in Sources */,
-				26E1B881222ABAB2007C222E /* jccoefct.c in Sources */,
 				26D9D9E51E96468D005F7BD3 /* ui_menu.cpp in Sources */,
 				26D9D9171E9645CE005F7BD3 /* collection.cpp in Sources */,
 				26D9D99A1E96467B005F7BD3 /* nat.cpp in Sources */,
@@ -2233,15 +2035,16 @@
 				265A937923051C2E00B155A2 /* drawable_quartz.mm in Sources */,
 				26D9D9191E9645CE005F7BD3 /* java.cpp in Sources */,
 				26781C1D2350F6A4002FCA2F /* brush_quartz.mm in Sources */,
+				D7BF60DB26311F0700E0B3DD /* lz4.c in Sources */,
 				26D9D9E21E96468D005F7BD3 /* ui_core_macos.mm in Sources */,
 				2698A54E226A383500662528 /* refresh_view.cpp in Sources */,
+				D7BF60FB26311FB700E0B3DD /* leveldb_unity.cc in Sources */,
 				26D9D97C1E964675005F7BD3 /* audio_data.cpp in Sources */,
 				2647C96A25023EE1005560C7 /* disk.cpp in Sources */,
 				26D9D9F41E968240005F7BD3 /* http_io.cpp in Sources */,
 				2644BD0C2364BE43001B9842 /* oauth_server.cpp in Sources */,
 				26D9D91A1E9645CE005F7BD3 /* setting.cpp in Sources */,
 				26F0B25F259571660084E18D /* combo_box_macos.mm in Sources */,
-				26E1B86C222ABA51007C222E /* png.c in Sources */,
 				26A39D8920EFBCBB004707C9 /* calculator.cpp in Sources */,
 				263D477F2386AE2F00DAC43F /* chat.cpp in Sources */,
 				26539F972374B9090064340D /* ginger.cpp in Sources */,
@@ -2251,23 +2054,18 @@
 				26D9D9911E964675005F7BD3 /* video_frame.cpp in Sources */,
 				26ACB3F82209872C0093FF3F /* device_id_macos.mm in Sources */,
 				26635CA322670708005E4BA6 /* ui_photo.cpp in Sources */,
-				26E1B880222ABAB2007C222E /* jcarith.c in Sources */,
 				26D9D9B21E964683005F7BD3 /* texture.cpp in Sources */,
 				26D9D91C1E9645CE005F7BD3 /* pipe_unix.cpp in Sources */,
 				26D9D9751E96466A005F7BD3 /* image_jpeg.cpp in Sources */,
 				26D9D9D41E96468D005F7BD3 /* select_view_macos.mm in Sources */,
 				26D9D9B01E964683005F7BD3 /* render_program.cpp in Sources */,
 				260B73FA220D872F00858EEA /* twitter.cpp in Sources */,
-				26E1B8AA222ABAB2007C222E /* jutils.c in Sources */,
-				26E1B89C222ABAB2007C222E /* jdpostct.c in Sources */,
 				26D9D9E61E96468D005F7BD3 /* ui_menu_macos.mm in Sources */,
 				26D9D91E1E9645CE005F7BD3 /* resource.cpp in Sources */,
 				26D9D9DD1E96468D005F7BD3 /* ui_animation_apple.mm in Sources */,
-				26E1B87A222ABA51007C222E /* pngwutil.c in Sources */,
 				26F53FA022E29A000031D485 /* line_view.cpp in Sources */,
 				26D9D91F1E9645CE005F7BD3 /* ref.cpp in Sources */,
 				26BB17EB2200E20B0089C7EC /* switch_view.cpp in Sources */,
-				26E1B89E222ABAB2007C222E /* jdtrans.c in Sources */,
 				267464A32317189000DE8715 /* chromium_macos.mm in Sources */,
 				26C795BB2215F9C70053C5A1 /* layouts.cpp in Sources */,
 				26D9D9201E9645CE005F7BD3 /* preference_apple.mm in Sources */,
@@ -2279,8 +2077,8 @@
 				26987D1323B3F7E300872C1D /* alipay_sdk.cpp in Sources */,
 				26D9D9951E96467B005F7BD3 /* http_common.cpp in Sources */,
 				26D9D9BF1E96468D005F7BD3 /* gesture.cpp in Sources */,
-				26E1B8A6222ABAB2007C222E /* jmemnobs.c in Sources */,
 				26A304BD230B1D2B00852FC9 /* global_event_monitor.cpp in Sources */,
+				D7BF60E726311F3600E0B3DD /* snappy-sinksource.cc in Sources */,
 				26D9D99E1E96467B005F7BD3 /* network_async_unix.cpp in Sources */,
 				26D9D9241E9645CE005F7BD3 /* sha1.cpp in Sources */,
 				26D9D9901E964675005F7BD3 /* video_codec.cpp in Sources */,
@@ -2290,36 +2088,29 @@
 				26D9D9DB1E96468D005F7BD3 /* tree_view.cpp in Sources */,
 				26D9D9261E9645CE005F7BD3 /* file.cpp in Sources */,
 				26EA2061239A90E2008218D7 /* ui_notification_fcm.cpp in Sources */,
-				26E1B890222ABAB2007C222E /* jdarith.c in Sources */,
 				26D9D9DA1E96468D005F7BD3 /* transition.cpp in Sources */,
-				26E1B862222A8250007C222E /* gzlib.c in Sources */,
-				26E1B8A2222ABAB2007C222E /* jfdctint.c in Sources */,
 				26D9D9C31E96468D005F7BD3 /* linear_layout.cpp in Sources */,
-				26E1B895222ABAB2007C222E /* jddctmgr.c in Sources */,
 				26446D66249377BE00430AC5 /* list_box.cpp in Sources */,
 				26D9D97E1E964675005F7BD3 /* audio_device.cpp in Sources */,
 				26D9D9B41E96468D005F7BD3 /* button.cpp in Sources */,
 				2614723623944E6D00F7CD0C /* wechat.cpp in Sources */,
 				2628EACE21C157A800D8CD00 /* regex.cpp in Sources */,
+				D7BF60AA26311E8B00E0B3DD /* zlib_unity.c in Sources */,
 				26D9D9681E96466A005F7BD3 /* color.cpp in Sources */,
 				26D9D9981E96467B005F7BD3 /* ip_address.cpp in Sources */,
 				262D59A12324EB3D00F85780 /* emoji_png.cpp in Sources */,
-				26E1B867222A8250007C222E /* inflate.c in Sources */,
+				D7BF60DC26311F0700E0B3DD /* lz4hc.c in Sources */,
 				26805B6723533D4300D8817C /* string_param.cpp in Sources */,
 				265A937523051C1B00B155A2 /* bitmap_quartz.mm in Sources */,
 				26D9D9761E96466A005F7BD3 /* image_png.cpp in Sources */,
 				26D9D9281E9645CE005F7BD3 /* hash.cpp in Sources */,
-				26E1B893222ABAB2007C222E /* jdcoefct.c in Sources */,
 				26D9D9D21E96468D005F7BD3 /* scroll_view_macos.mm in Sources */,
 				26BAE0312223CEC70085B5AB /* openssl.cpp in Sources */,
 				26D9D9691E96466A005F7BD3 /* drawable.cpp in Sources */,
 				26D9D92A1E9645CE005F7BD3 /* platform_apple.mm in Sources */,
 				26D9D9D71E96468D005F7BD3 /* tab_view.cpp in Sources */,
-				26E1B882222ABAB2007C222E /* jccolor.c in Sources */,
-				26E1B874222ABA51007C222E /* pngrutil.c in Sources */,
 				26F53F7E22DB4F6D0031D485 /* date_picker.cpp in Sources */,
 				26D9D92C1E9645CE005F7BD3 /* int128.cpp in Sources */,
-				26E1B861222A8250007C222E /* gzclose.c in Sources */,
 				26D9D9BB1E96468D005F7BD3 /* cursor.cpp in Sources */,
 				26D9D95F1E964662005F7BD3 /* globe.cpp in Sources */,
 				26D9D9C81E96468D005F7BD3 /* mobile_game.cpp in Sources */,
@@ -2341,27 +2132,18 @@
 				26539FAD2374BA2B0064340D /* ui_notification_xgpush.cpp in Sources */,
 				261782C8251C9E1200C2AAC0 /* service_manager.cpp in Sources */,
 				26D9D9601E964662005F7BD3 /* latlon.cpp in Sources */,
-				26E1B873222ABA51007C222E /* pngrtran.c in Sources */,
 				26F5C77A237AEF44009F3EEF /* contact.cpp in Sources */,
 				26FE7D9025A2F1CB00B787F0 /* image_canvas.cpp in Sources */,
 				26D9D9E71E96468D005F7BD3 /* ui_platform.cpp in Sources */,
 				26D9D9C91E96468D005F7BD3 /* motion_tracker.cpp in Sources */,
 				26C795BF2215F9C70053C5A1 /* raws.cpp in Sources */,
-				26E1B896222ABAB2007C222E /* jdhuff.c in Sources */,
 				26D9D9B51E96468D005F7BD3 /* button_macos.mm in Sources */,
 				26987D1123B3F7E300872C1D /* alipay.cpp in Sources */,
 				26D9D9DE1E96468D005F7BD3 /* ui_app.cpp in Sources */,
-				26E1B88F222ABAB2007C222E /* jdapistd.c in Sources */,
-				26E1B8A5222ABAB2007C222E /* jidctint.c in Sources */,
-				26E1B88D222ABAB2007C222E /* jctrans.c in Sources */,
 				26BAE0332223E3BC0085B5AB /* http_openssl.cpp in Sources */,
-				26E1B894222ABAB2007C222E /* jdcolor.c in Sources */,
 				26D9D9301E9645CE005F7BD3 /* parse.cpp in Sources */,
 				26BAE02A2223A07D0085B5AB /* linkedin_ui.cpp in Sources */,
-				26E1B885222ABAB2007C222E /* jcinit.c in Sources */,
 				26D9D9311E9645CE005F7BD3 /* asset.cpp in Sources */,
-				26E1B88B222ABAB2007C222E /* jcprepct.c in Sources */,
-				26E1B889222ABAB2007C222E /* jcomapi.c in Sources */,
 				26D9D9A51E96467B005F7BD3 /* tcpip.cpp in Sources */,
 				26D9D9EB1E96468D005F7BD3 /* view_macos.mm in Sources */,
 				265A937823051C2B00B155A2 /* drawable_ext.cpp in Sources */,
@@ -2373,20 +2155,15 @@
 				2647C96D25023F22005560C7 /* safe_static.cpp in Sources */,
 				26B92D6621D770F0003F6F82 /* device.cpp in Sources */,
 				26C795A3221562E70053C5A1 /* image_view_url.cpp in Sources */,
-				26E1B89A222ABAB2007C222E /* jdmaster.c in Sources */,
-				26E1B87E222ABAB2007C222E /* jcapimin.c in Sources */,
 				26D9D9351E9645CE005F7BD3 /* rsa.cpp in Sources */,
 				26D9D9361E9645CE005F7BD3 /* content_type.cpp in Sources */,
 				26D9D99C1E96467B005F7BD3 /* net_capture_pcap.cpp in Sources */,
-				26E1B88A222ABAB2007C222E /* jcparam.c in Sources */,
-				26E1B8A1222ABAB2007C222E /* jfdctfst.c in Sources */,
 				26F5C77E237EEDFD009F3EEF /* ui_notification_apple.mm in Sources */,
 				26D9D9881E964675005F7BD3 /* camera_apple.mm in Sources */,
 				26C1B64020D51D1D00E36539 /* font_quartz.mm in Sources */,
 				26D9D9391E9645CE005F7BD3 /* aes.cpp in Sources */,
 				26C795A122154CBE0053C5A1 /* clipboard_macos.mm in Sources */,
 				26366D43235E53DA00B97807 /* charset_apple.mm in Sources */,
-				26E1B87C222ABA55007C222E /* intel_init.c in Sources */,
 				26F2F8D91EC2E0EB0074C29E /* red_black_tree.cpp in Sources */,
 				265A937723051C2500B155A2 /* canvas_quartz.mm in Sources */,
 				26539F9B2374B9090064340D /* web_service.cpp in Sources */,
@@ -2395,16 +2172,16 @@
 				26D9D9ED1E96468D005F7BD3 /* web_view.cpp in Sources */,
 				26D9D9D61E96468D005F7BD3 /* split_layout.cpp in Sources */,
 				26D9D93D1E9645CE005F7BD3 /* gcm.cpp in Sources */,
+				D7BF60C726311EBF00E0B3DD /* libjpeg_unity1.c in Sources */,
 				26D9D9DC1E96468D005F7BD3 /* ui_animation.cpp in Sources */,
 				26E9133C25948C54008A35D2 /* jpeg.cpp in Sources */,
 				26D9D93E1E9645CE005F7BD3 /* memory.cpp in Sources */,
 				26E1B85C22291D54007C222E /* ebay.cpp in Sources */,
 				263D47872386B13D00DAC43F /* chat_view.cpp in Sources */,
-				26E1B89B222ABAB2007C222E /* jdmerge.c in Sources */,
-				26E1B899222ABAB2007C222E /* jdmarker.c in Sources */,
 				26987D1923B5CF8900872C1D /* string_view.cpp in Sources */,
 				26D9D9BA1E96468D005F7BD3 /* common_dialogs_macos.mm in Sources */,
 				26BB17D221F4C6970089C7EC /* view_pager.cpp in Sources */,
+				D7BF60F226311F7600E0B3DD /* midl.c in Sources */,
 				26B92D4921D33E6E003F6F82 /* des.cpp in Sources */,
 				26D9D99B1E96467B005F7BD3 /* net_capture.cpp in Sources */,
 				265A937323051C1000B155A2 /* render_canvas.cpp in Sources */,
@@ -2414,13 +2191,12 @@
 				26A3DA8A2289ED9C0031CBDA /* rc4.cpp in Sources */,
 				26D9D9581E964659005F7BD3 /* sqlite.cpp in Sources */,
 				26D9D9DF1E96468D005F7BD3 /* ui_core.cpp in Sources */,
-				26E1B8A8222ABAB2007C222E /* jquant1.c in Sources */,
 				265A937623051C2300B155A2 /* canvas_ext.cpp in Sources */,
 				26D9D9E91E96468D005F7BD3 /* video_view.cpp in Sources */,
 				26D9D9721E96466A005F7BD3 /* graphics_resource.cpp in Sources */,
 				26D9D9BE1E96468D005F7BD3 /* edit_view_macos.mm in Sources */,
-				26E1B89F222ABAB2007C222E /* jerror.c in Sources */,
 				26D9D95C1E964662005F7BD3 /* geo_line.cpp in Sources */,
+				D7BF609C26311E1700E0B3DD /* decimal128.cpp in Sources */,
 				26D9D9C61E96468D005F7BD3 /* list_view.cpp in Sources */,
 				262D59A9232587AF00F85780 /* noto_emoji.cpp in Sources */,
 				26C1B63520D4FF5200E36539 /* canvas.cpp in Sources */,
@@ -2431,32 +2207,28 @@
 				26D9D9811E964675005F7BD3 /* audio_device_macos.mm in Sources */,
 				26D9D9431E9645CE005F7BD3 /* file_unix.cpp in Sources */,
 				26D9D9451E9645CE005F7BD3 /* object.cpp in Sources */,
-				26E1B88C222ABAB2007C222E /* jcsample.c in Sources */,
 				26D9D9461E9645CE005F7BD3 /* app.cpp in Sources */,
 				265A934E230428CD00B155A2 /* process.cpp in Sources */,
 				265A93462301E42700B155A2 /* screen_capture.cpp in Sources */,
 				26D9D9961E96467B005F7BD3 /* http_server.cpp in Sources */,
 				26D9D9A11E96467B005F7BD3 /* socket.cpp in Sources */,
 				26F607B323ABE0C600DCE0C3 /* postgresql.cpp in Sources */,
+				D7BF60F126311F7600E0B3DD /* mdb.c in Sources */,
 				26D9D94A1E9645CE005F7BD3 /* system.cpp in Sources */,
 				261180E62563BCA10082AA0A /* render_buffer.cpp in Sources */,
 				262D599F2324E9A500F85780 /* emoji.cpp in Sources */,
 				26D9D9CB1E96468D005F7BD3 /* progress_bar.cpp in Sources */,
 				267206282497433C006E6347 /* label_list.cpp in Sources */,
-				26E1B870222ABA51007C222E /* pngpread.c in Sources */,
 				26805B6923533D6B00D8817C /* string_buffer.cpp in Sources */,
-				26E1B87F222ABAB2007C222E /* jcapistd.c in Sources */,
 				26072FFE20D97B66004EB272 /* url_request_curl.cpp in Sources */,
-				26E1B863222A8250007C222E /* gzread.c in Sources */,
 				26D9D97D1E964675005F7BD3 /* audio_format.cpp in Sources */,
 				26D9D94B1E9645CE005F7BD3 /* io.cpp in Sources */,
 				263051D1225CA21700A6609E /* pinterest_ui.cpp in Sources */,
 				26D9D94C1E9645CE005F7BD3 /* locale.cpp in Sources */,
-				26E1B85F222A8250007C222E /* crc32.c in Sources */,
 				263916EC21C8F462008B335B /* qr_code_scanner.cpp in Sources */,
-				26E1B8A3222ABAB2007C222E /* jidctflt.c in Sources */,
 				26BAE01E222062D20085B5AB /* facebook_sdk.cpp in Sources */,
 				265A934A2301E43000B155A2 /* screen_capture_macos.mm in Sources */,
+				D7BF60C826311EBF00E0B3DD /* libjpeg_unity2.c in Sources */,
 				26D9D9B61E96468D005F7BD3 /* camera_view.cpp in Sources */,
 				26D9D9B91E96468D005F7BD3 /* common_dialogs.cpp in Sources */,
 				26D9D94D1E9645CE005F7BD3 /* dispatch.cpp in Sources */,
@@ -2595,7 +2367,6 @@
 				INFOPLIST_FILE = "$(SRCROOT)/../../tool/src/sapp/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../lib/macOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = (
@@ -2628,7 +2399,6 @@
 				INFOPLIST_FILE = "$(SRCROOT)/../../tool/src/sapp/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../lib/macOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = (
 					"-lsapp",
@@ -2756,7 +2526,6 @@
 					"$(PROJECT_DIR)/../../include",
 					"$(PROJECT_DIR)/../../external/include",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_MODULE_NAME = slib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2781,7 +2550,6 @@
 					"$(PROJECT_DIR)/../../include",
 					"$(PROJECT_DIR)/../../external/include",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_MODULE_NAME = slib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2812,6 +2580,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -2835,7 +2604,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -2865,6 +2634,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -2883,7 +2653,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LLVM_LTO = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 			};
