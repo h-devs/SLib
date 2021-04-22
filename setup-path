@@ -18,6 +18,14 @@ else
  echo "" >> ~/.bash_profile
  echo "source ~/.SLib.io/setup_bash" >> ~/.bash_profile
 fi
+if [[ `cat ~/.zprofile` == *"source ~/.SLib.io/setup_bash"* ]]; then
+ echo "Setup Shell was already registered in ~/.zprofile"
+else
+ echo "Registering Setup Shell into ~/.zprofile"
+ echo "" >> ~/.zprofile
+ echo "source ~/.SLib.io/setup_bash" >> ~/.zprofile
+fi
+
 
 if [[ `uname` == 'Linux' ]]; then
  
@@ -43,6 +51,7 @@ if [[ `uname` == 'Darwin' ]]; then
  defaults write com.apple.dt.Xcode IDESourceTreeDisplayNames -dict-add SLIB_PATH "SLIB_PATH"
  
  echo "Registering launchd environment variable"
+ mkdir -p ~/Library/LaunchAgents
  echo "<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE plist PUBLIC '-//Apple//DTD PLIST 1.0//EN' 'http://www.apple.com/DTDs/PropertyList-1.0.dtd'>
  <plist version="1.0">

@@ -663,6 +663,8 @@
 			compilerSpec = com.apple.compilers.proxy.script;
 			filePatterns = "*.asm";
 			fileType = pattern.proxy;
+			inputFiles = (
+			);
 			isEditable = 1;
 			outputFiles = (
 				"$(DERIVED_FILE_DIR)/${arch}/${INPUT_FILE_NAME}.o",
@@ -2982,7 +2984,7 @@
 		A27731191A1655640002E735 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1110;
+				LastUpgradeCheck = 1220;
 				ORGANIZATIONNAME = slib;
 			};
 			buildConfigurationList = A277311C1A1655640002E735 /* Build configuration list for PBXProject "External" */;
@@ -3747,10 +3749,8 @@
 					emms.asm,
 				);
 				LLVM_LTO = YES;
-				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				USE_HEADERMAP = NO;
 			};
 			name = Debug;
 		};
@@ -3799,10 +3799,8 @@
 					emms.asm,
 				);
 				LLVM_LTO = YES;
-				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				USE_HEADERMAP = NO;
 			};
 			name = Release;
 		};
@@ -3819,10 +3817,8 @@
 				GCC_WARN_UNUSED_VARIABLE = NO;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../../external/src/zxing/zxing";
 				LLVM_LTO = YES;
-				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				USE_HEADERMAP = NO;
 			};
 			name = Debug;
 		};
@@ -3839,10 +3835,8 @@
 				GCC_WARN_UNUSED_VARIABLE = NO;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../../external/src/zxing/zxing";
 				LLVM_LTO = YES;
-				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				USE_HEADERMAP = NO;
 			};
 			name = Release;
 		};
@@ -3857,10 +3851,8 @@
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				GCC_WARN_UNUSED_FUNCTION = NO;
 				LLVM_LTO = YES;
-				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				USE_HEADERMAP = NO;
 			};
 			name = Debug;
 		};
@@ -3875,10 +3867,8 @@
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				GCC_WARN_UNUSED_FUNCTION = NO;
 				LLVM_LTO = YES;
-				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				USE_HEADERMAP = NO;
 			};
 			name = Release;
 		};
@@ -3893,10 +3883,8 @@
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../../external/src/freetype/include";
 				LLVM_LTO = YES;
-				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				USE_HEADERMAP = NO;
 			};
 			name = Debug;
 		};
@@ -3911,10 +3899,8 @@
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../../external/src/freetype/include";
 				LLVM_LTO = YES;
-				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				USE_HEADERMAP = NO;
 			};
 			name = Release;
 		};
@@ -3929,10 +3915,9 @@
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				LLVM_LTO = YES;
-				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "-DHAVE_GETHOSTUUID=0";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				USE_HEADERMAP = NO;
 				WARNING_CFLAGS = "-Wno-ambiguous-macro";
 			};
 			name = Debug;
@@ -3948,10 +3933,9 @@
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				LLVM_LTO = YES;
-				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "-DHAVE_GETHOSTUUID=0";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				USE_HEADERMAP = NO;
 				WARNING_CFLAGS = "-Wno-ambiguous-macro";
 			};
 			name = Release;
@@ -3982,11 +3966,9 @@
 				"INCLUDED_SOURCE_FILE_NAMES[arch=armv7]" = "arm/*";
 				"INCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = "x86/*";
 				LLVM_LTO = YES;
-				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "-DHAVE_CONFIG_H";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				USE_HEADERMAP = NO;
 			};
 			name = Debug;
 		};
@@ -4016,11 +3998,9 @@
 				"INCLUDED_SOURCE_FILE_NAMES[arch=armv7]" = "arm/*";
 				"INCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = "x86/*";
 				LLVM_LTO = YES;
-				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "-DHAVE_CONFIG_H";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				USE_HEADERMAP = NO;
 			};
 			name = Release;
 		};
@@ -4047,14 +4027,15 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				EXCLUDED_ARCHS = "armv7 i386";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -4070,10 +4051,11 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				USE_HEADERMAP = NO;
 			};
 			name = Debug;
 		};
@@ -4100,14 +4082,15 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				EXCLUDED_ARCHS = "armv7 i386";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -4116,10 +4099,11 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
-				VALIDATE_PRODUCT = YES;
+				USE_HEADERMAP = NO;
 			};
 			name = Release;
 		};
