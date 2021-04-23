@@ -47,7 +47,7 @@ namespace slib
 				{
 					PangoFontDescription* font = pango_font_description_new();
 					if (font) {
-						StringCstsr familyName(desc.familyName);
+						StringCstr familyName(desc.familyName);
 						pango_font_description_set_family(font, familyName.getData());
 						if (desc.flagBold) {
 							pango_font_description_set_weight(font, PANGO_WEIGHT_BOLD);
