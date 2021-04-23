@@ -41,9 +41,9 @@ extern "C"
 namespace slib
 {
 	
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PostgreSqlParam)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PostgreSQL_Param)
 
-	PostgreSqlParam::PostgreSqlParam()
+	PostgreSQL_Param::PostgreSQL_Param()
 	{
 		port = 0;
 	}
@@ -340,7 +340,7 @@ namespace slib
 				}
 				
 			public:
-				static Ref<DatabaseImpl> connect(PostgreSqlParam& param)
+				static Ref<DatabaseImpl> connect(PostgreSQL_Param& param)
 				{
 					String port = String::fromUint32(param.port);
 					StringCstr host = param.host;
@@ -544,7 +544,7 @@ namespace slib
 
 	using namespace priv::postgresql;
 
-	Ref<PostgreSQL> PostgreSQL::connect(PostgreSqlParam& param)
+	Ref<PostgreSQL> PostgreSQL::connect(PostgreSQL_Param& param)
 	{
 		return DatabaseImpl::connect(param);
 	}

@@ -30,17 +30,17 @@
 namespace slib
 {
 
-	class SLIB_EXPORT RedisDatabase : public KeyValueStore
+	class SLIB_EXPORT Redis : public KeyValueStore
 	{
 		SLIB_DECLARE_OBJECT
 
 	protected:
-		RedisDatabase();
+		Redis();
 
-		~RedisDatabase();
+		~Redis();
 
 	public:
-		static Ref<RedisDatabase> connect(const StringParam& ip, sl_uint16 port);
+		static Ref<Redis> connect(const StringParam& ip, sl_uint16 port);
 		
 	public:
 		using KeyValueStore::get;

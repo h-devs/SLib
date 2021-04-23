@@ -4,7 +4,7 @@ using namespace slib;
 
 int main(int argc, const char * argv[])
 {
-	Ref<RedisDatabase> db = RedisDatabase::connect("172.20.31.200", 6379);
+	Ref<Redis> db = Redis::connect("172.20.31.200", 6379);
 	if (db.isNull()) {
 		Println("Cannot connect to the database!");
 		return -1;

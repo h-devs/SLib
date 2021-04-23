@@ -43,19 +43,21 @@ namespace slib
 		
 	};
 
-	class SLIB_EXPORT SQLiteDatabase : public Database
+	class SLIB_EXPORT SQLite : public Database
 	{
 		SLIB_DECLARE_OBJECT
 
 	protected:
-		SQLiteDatabase();
+		SQLite();
 
-		~SQLiteDatabase();
+		~SQLite();
 
 	public:
-		static Ref<SQLiteDatabase> open(const SQLiteParam& param);
+		typedef SQLiteParam Param;
 
-		static Ref<SQLiteDatabase> open(const String& filePath);
+		static Ref<SQLite> open(const SQLiteParam& param);
+
+		static Ref<SQLite> open(const StringParam& filePath);
 		
 	};
 

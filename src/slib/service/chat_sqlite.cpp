@@ -51,7 +51,7 @@ namespace slib
 			class DatabaseImpl : public ChatClientDatabase
 			{
 			public:
-				Ref<SQLiteDatabase> m_db;
+				Ref<SQLite> m_db;
 				
 				HashMap< String, Ref<Room> > m_mapRooms;
 				HashMap<String, sl_uint64> m_mapSenderIdAndIndex;
@@ -70,7 +70,7 @@ namespace slib
 						SQLiteParam param;
 						param.path = dbPath;
 						param.encryptionKey = encryptionKey;
-						Ref<SQLiteDatabase> db = SQLiteDatabase::open(param);
+						Ref<SQLite> db = SQLite::open(param);
 						if (db.isNotNull()) {
 							ret->m_db = db;
 							if (ret->initialize()) {

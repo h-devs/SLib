@@ -31,7 +31,7 @@
 #include "slib/core/safe_static.h"
 #include "slib/crypto/chacha.h"
 
-#define TAG "SQLiteDatabase"
+#define TAG "SQLite"
 
 namespace slib
 {
@@ -44,14 +44,14 @@ namespace slib
 		flagReadonly = sl_false;
 	}
 
-	SLIB_DEFINE_OBJECT(SQLiteDatabase, Database)
+	SLIB_DEFINE_OBJECT(SQLite, Database)
 
-	SQLiteDatabase::SQLiteDatabase()
+	SQLite::SQLite()
 	{
 		m_dialect = DatabaseDialect::SQLite;
 	}
 
-	SQLiteDatabase::~SQLiteDatabase()
+	SQLite::~SQLite()
 	{
 	}
 
@@ -464,7 +464,7 @@ namespace slib
 				EncryptionIo io;
 			};
 		
-			class DatabaseImpl : public SQLiteDatabase
+			class DatabaseImpl : public SQLite
 			{
 			public:
 				sqlite3* m_db;
@@ -719,15 +719,15 @@ namespace slib
 		}
 	}
 
-	Ref<SQLiteDatabase> SQLiteDatabase::open(const SQLiteParam& param)
+	Ref<SQLite> SQLite::open(const SQLiteParam& param)
 	{
 		return priv::sqlite::DatabaseImpl::open(param);
 	}
 
-	Ref<SQLiteDatabase> SQLiteDatabase::open(const String& path)
+	Ref<SQLite> SQLite::open(const StringParam& path)
 	{
 		SQLiteParam param;
-		param.path = path;
+		param.path = path.toString();
 		return priv::sqlite::DatabaseImpl::open(param);
 	}
 

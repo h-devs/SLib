@@ -38,7 +38,7 @@ namespace slib
 		namespace redis
 		{
 
-			class DatabaseImpl : public RedisDatabase
+			class DatabaseImpl : public Redis
 			{
 			public:
 				redisContext* m_context;
@@ -277,18 +277,18 @@ namespace slib
 		}
 	}
 	
-	SLIB_DEFINE_OBJECT(RedisDatabase, KeyValueStore)
+	SLIB_DEFINE_OBJECT(Redis, KeyValueStore)
 
-	RedisDatabase::RedisDatabase()
+	Redis::Redis()
 	{
 		m_flagLogErrors = sl_false;
 	}
 
-	RedisDatabase::~RedisDatabase()
+	Redis::~Redis()
 	{
 	}
 	
-	sl_bool RedisDatabase::get(const void* key, sl_size sizeKey, MemoryData* pOutValue)
+	sl_bool Redis::get(const void* key, sl_size sizeKey, MemoryData* pOutValue)
 	{
 		Variant var = get(StringView((sl_char8*)key, sizeKey));
 		if (var.isNotUndefined()) {
@@ -312,7 +312,7 @@ namespace slib
 		}
 	}
 
-	sl_int64 RedisDatabase::incr(const StringParam& key, sl_int64 def)
+	sl_int64 Redis::incr(const StringParam& key, sl_int64 def)
 	{
 		sl_int64 val;
 		if (incr(key, &val)) {
@@ -321,7 +321,7 @@ namespace slib
 		return def;
 	}
 
-	sl_int64 RedisDatabase::decr(const StringParam& key, sl_int64 def)
+	sl_int64 Redis::decr(const StringParam& key, sl_int64 def)
 	{
 		sl_int64 val;
 		if (decr(key, &val)) {
@@ -330,7 +330,7 @@ namespace slib
 		return def;
 	}
 
-	sl_int64 RedisDatabase::incrby(const StringParam& key, sl_int64 n, sl_int64 def)
+	sl_int64 Redis::incrby(const StringParam& key, sl_int64 n, sl_int64 def)
 	{
 		sl_int64 val;
 		if (incrby(key, n, &val)) {
@@ -339,7 +339,7 @@ namespace slib
 		return def;
 	}
 	
-	sl_int64 RedisDatabase::decrby(const StringParam& key, sl_int64 n, sl_int64 def)
+	sl_int64 Redis::decrby(const StringParam& key, sl_int64 n, sl_int64 def)
 	{
 		sl_int64 val;
 		if (decrby(key, n, &val)) {
@@ -348,7 +348,7 @@ namespace slib
 		return def;
 	}
 
-	sl_int64 RedisDatabase::llen(const StringParam& key)
+	sl_int64 Redis::llen(const StringParam& key)
 	{
 		sl_int64 val;
 		if (llen(key, &val)) {
@@ -357,22 +357,22 @@ namespace slib
 		return 0;
 	}
 	
-	sl_bool RedisDatabase::isLoggingErrors()
+	sl_bool Redis::isLoggingErrors()
 	{
 		return m_flagLogErrors;
 	}
 	
-	void RedisDatabase::setLoggingErrors(sl_bool flag)
+	void Redis::setLoggingErrors(sl_bool flag)
 	{
 		m_flagLogErrors = flag;
 	}
 
-	String RedisDatabase::getErrorMessage()
+	String Redis::getErrorMessage()
 	{
 		return m_errorMessage;
 	}
 	
-	void RedisDatabase::processError(const String& error)
+	void Redis::processError(const String& error)
 	{
 		m_errorMessage = error;
 		if (m_flagLogErrors) {
@@ -380,12 +380,12 @@ namespace slib
 		}
 	}
 
-	void RedisDatabase::clearErrorMessage()
+	void Redis::clearErrorMessage()
 	{
 		m_errorMessage.setNull();
 	}
 
-	Ref<RedisDatabase> RedisDatabase::connect(const StringParam& ip, sl_uint16 port)
+	Ref<Redis> Redis::connect(const StringParam& ip, sl_uint16 port)
 	{
 		return priv::redis::DatabaseImpl::connect(ip, port);
 	}
