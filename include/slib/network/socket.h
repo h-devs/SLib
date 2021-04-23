@@ -226,7 +226,7 @@ namespace slib
 		
 		sl_bool setNonBlockingMode(sl_bool flagEnable);
 		
-		sl_bool setPromiscuousMode(const String& deviceName, sl_bool flagEnable);
+		sl_bool setPromiscuousMode(const StringParam& deviceName, sl_bool flagEnable);
 		
 		sl_bool getLocalAddress(SocketAddress& _out);
 		
@@ -276,7 +276,7 @@ namespace slib
 		
 		sl_bool getOption_IncludeIpHeader() const;
 		
-		sl_bool setOption_bindToDevice(const String& ifname);
+		sl_bool setOption_bindToDevice(const StringParam& ifname);
 		
 		/****** multicast ******/
 		// interface address may be null

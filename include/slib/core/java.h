@@ -63,7 +63,7 @@ namespace slib
 		static JniClass getClass(const String& className);
 		static void registerClass(const String& className, jclass cls);
 		static void unregisterClass(const String& className);
-		static JniClass findClass(const char* className);
+		static JniClass findClass(const StringParam& className);
 
 		// object
 		static sl_bool isSameObject(jobject ref1, jobject ref2);

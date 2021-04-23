@@ -48,11 +48,23 @@ namespace slib
 		}
 	}
 
+	sl_bool Serialize(MemoryBuffer* output, const String& _in);
+
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const String& _in)
 	{
-		return SerializeString(output, _in.getData(), _in.getLength());
+		sl_size len = _in.getLength();
+		if (!(CVLI::serialize(output, len))) {
+			return sl_false;
+		}
+		if (len) {
+			return SerializeRaw(output, _in.getData(), len);
+		} else {
+			return sl_true;
+		}
 	}
+
+	sl_bool Deserialize(DeserializeBuffer* input, String& _out);
 
 	template <class INPUT>
 	static sl_bool Deserialize(INPUT* input, String& _out)

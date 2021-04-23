@@ -312,7 +312,7 @@ namespace slib
 									len = SLIB_MAKE_WORD(extServerName[3], extServerName[4]);
 									if (len + 5 <= size) {
 										const char* serverName = (const char *)(extServerName + 5);
-										Ref<KeyStore>* pKeyStore = context->m_keyStores.getItemPointer(String(serverName, len));
+										Ref<KeyStore>* pKeyStore = context->m_keyStores.getItemPointer(StringView(serverName, len));
 										if (pKeyStore) {
 											(*pKeyStore)->apply(ssl);
 										}
@@ -320,8 +320,9 @@ namespace slib
 								}
 							}
 						} else {
-							if (context->m_serverName.isNotEmpty()) {
-								SSL_set_tlsext_host_name(ssl, context->m_serverName.getData());
+							StringCstr serverName(context->m_serverName);
+							if (serverName.isNotEmpty()) {
+								SSL_set_tlsext_host_name(ssl, serverName.getData());
 							}
 						}
 					}

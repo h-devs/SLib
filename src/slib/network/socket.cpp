@@ -793,10 +793,10 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Socket::setPromiscuousMode(const String& _deviceName, sl_bool flagEnable)
+	sl_bool Socket::setPromiscuousMode(const StringParam& _deviceName, sl_bool flagEnable)
 	{
 		if (isOpened()) {
-			String deviceName = _deviceName;
+			StringCstr deviceName = _deviceName;
 			if (deviceName.isNotEmpty()) {
 				if (priv::socket::setPromiscuousMode((SOCKET)(m_socket), deviceName.getData(), flagEnable)) {
 					return sl_true;
@@ -1030,9 +1030,10 @@ namespace slib
 		return getOption(IPPROTO_IP, IP_HDRINCL) != 0;
 	}
 
-	sl_bool Socket::setOption_bindToDevice(const String& ifname)
+	sl_bool Socket::setOption_bindToDevice(const StringParam& _ifname)
 	{
 #if defined(SLIB_PLATFORM_IS_LINUX)
+		StringCstr ifname(_ifname);
 		return setOption(SOL_SOCKET, SO_BINDTODEVICE, ifname.getData(), ifname.getLength());
 #else
 		return sl_false;

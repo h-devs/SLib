@@ -36,45 +36,31 @@
 namespace slib
 {
 
+	sl_bool SerializeJsonBinary(MemoryBuffer* output, Referable* ref);
+
 	template <class OUTPUT>
-	sl_bool Serialize(OUTPUT* output, const Variant& _in)
+	static sl_bool SerializeJsonBinary(OUTPUT* output, Referable* ref)
 	{
+		MemoryBuffer buf;
+		if (ref->toJsonBinary(buf)) {
+			return SerializeRaw(output, buf);
+		}
+		return sl_false;
+	}
+
+	sl_size SerializeVariantPrimitive(const Variant& var, void* buf, sl_size size);
+
+	sl_size SerializeVariant(const Variant& var, void* buf, sl_size size, Memory* pOutMemoryIfInsufficient);
+
+	template <class OUTPUT>
+	static sl_bool Serialize(OUTPUT* output, const Variant& _in)
+	{
+		sl_uint8 buf[16];
+		sl_size nWritten = SerializeVariantPrimitive(_in, buf, sizeof(buf));
+		if (nWritten) {
+			return SerializeRaw(output, buf, nWritten);
+		}
 		switch (_in._type) {
-			case VariantType::Int32:
-				if (!(SerializeByte(output, (sl_uint8)(_in._type)))) {
-					return sl_false;
-				}
-				return Serialize(output, *((sl_int32*)(void*)&(_in._value)));
-			case VariantType::Uint32:
-				if (!(SerializeByte(output, (sl_uint8)(_in._type)))) {
-					return sl_false;
-				}
-				return Serialize(output, *((sl_uint32*)(void*)&(_in._value)));
-			case VariantType::Int64:
-				if (!(SerializeByte(output, (sl_uint8)(_in._type)))) {
-					return sl_false;
-				}
-				return Serialize(output, *((sl_int64*)(void*)&(_in._value)));
-			case VariantType::Uint64:
-				if (!(SerializeByte(output, (sl_uint8)(_in._type)))) {
-					return sl_false;
-				}
-				return Serialize(output, *((sl_uint64*)(void*)&(_in._value)));
-			case VariantType::Float:
-				if (!(SerializeByte(output, (sl_uint8)(_in._type)))) {
-					return sl_false;
-				}
-				return Serialize(output, *((float*)(void*)&(_in._value)));
-			case VariantType::Double:
-				if (!(SerializeByte(output, (sl_uint8)(_in._type)))) {
-					return sl_false;
-				}
-				return Serialize(output, *((double*)(void*)&(_in._value)));
-			case VariantType::Boolean:
-				if (!(SerializeByte(output, (sl_uint8)(_in._type)))) {
-					return sl_false;
-				}
-				return Serialize(output, *((bool*)(void*)&(_in._value)));
 			case VariantType::String8:
 			case VariantType::String16:
 			case VariantType::Sz8:
@@ -83,11 +69,6 @@ namespace slib
 					return sl_false;
 				}
 				return Serialize(output, _in.getString());
-			case VariantType::Time:
-				if (!(SerializeByte(output, (sl_uint8)(_in._type)))) {
-					return sl_false;
-				}
-				return Serialize(output, *((Time*)(void*)&(_in._value)));
 			case VariantType::Memory:
 				if (!(SerializeByte(output, (sl_uint8)(_in._type)))) {
 					return sl_false;
@@ -107,16 +88,7 @@ namespace slib
 				if (_in.isRef()) {
 					Ref<Referable> ref = _in.getRef();
 					if (ref.isNotNull()) {
-						MemoryBuffer buf;
-						if (ref->toJsonBinary(buf)) {
-							MemoryData data;
-							while (buf.pop(data)) {
-								if (!(SerializeRaw(output, data))) {
-									return sl_false;
-								}
-							}
-							return sl_true;
-						}
+						return SerializeJsonBinary(output, ref.get());
 					}
 				}
 				break;
@@ -125,91 +97,69 @@ namespace slib
 	}
 
 	template <class INPUT>
-	sl_size Deserialize(INPUT* input, Variant& _out)
+	static sl_bool DeserializeVariantPrimitive(Variant& _out, VariantType type, INPUT* input)
+	{
+		switch (type) {
+			case VariantType::Int32:
+			case VariantType::Uint32:
+			case VariantType::Float:
+				{
+					sl_uint8 buf[4];
+					if (DeserializeRaw(input, buf, 4)) {
+						*((sl_uint32*)(void*)&(_out._value)) = MIO::readUint32LE(buf);
+						break;
+					}
+					return sl_false;
+				}
+			case VariantType::Int64:
+			case VariantType::Uint64:
+			case VariantType::Double:
+			case VariantType::Time:
+				{
+					sl_uint8 buf[8];
+					if (DeserializeRaw(input, buf, 4)) {
+						*((sl_uint64*)(void*)&(_out._value)) = MIO::readUint64LE(buf);
+						break;
+					}
+					return sl_false;
+				}
+			case VariantType::Boolean:
+				{
+					sl_uint8 v;
+					if (DeserializeByte(input, v)) {
+						*((bool*)(void*)&(_out._value)) = v ? true : false;
+						break;
+					}
+					return sl_false;
+				}
+				break;
+			case VariantType::Null:
+				_out.setNull();
+				return sl_true;
+			default:
+				return sl_false;
+		}
+		_out._type = type;
+		return sl_true;
+	}
+
+	template <class INPUT>
+	static sl_bool Deserialize(INPUT* input, Variant& _out)
 	{
 		sl_uint8 v;
 		if (!(DeserializeByte(input, v))) {
 			return sl_false;
 		}
 		VariantType type = (VariantType)v;
+		if (DeserializeVariantPrimitive(_out, type, input)) {
+			return sl_true;
+		}
 		switch (type) {
-			case VariantType::Int32:
-				{
-					sl_int32 value;
-					if (Deserialize(input, value)) {
-						_out.setInt32(value);
-						return sl_true;
-					}
-					return sl_false;
-				}
-			case VariantType::Uint32:
-				{
-					sl_uint32 value;
-					if (Deserialize(input, value)) {
-						_out.setUint32(value);
-						return sl_true;
-					}
-					return sl_false;
-				}
-			case VariantType::Int64:
-				{
-					sl_int64 value;
-					if (Deserialize(input, value)) {
-						_out.setInt64(value);
-						return sl_true;
-					}
-					return sl_false;
-				}
-			case VariantType::Uint64:
-				{
-					sl_uint64 value;
-					if (Deserialize(input, value)) {
-						_out.setUint64(value);
-						return sl_true;
-					}
-					return sl_false;
-				}
-			case VariantType::Float:
-				{
-					float value;
-					if (Deserialize(input, value)) {
-						_out.setFloat(value);
-						return sl_true;
-					}
-					return sl_false;
-				}
-			case VariantType::Double:
-				{
-					double value;
-					if (Deserialize(input, value)) {
-						_out.setDouble(value);
-						return sl_true;
-					}
-					return sl_false;
-				}
-			case VariantType::Boolean:
-				{
-					bool value;
-					if (Deserialize(input, value)) {
-						_out.setBoolean(value);
-						return sl_true;
-					}
-					return sl_false;
-				}
 			case VariantType::String8:
 				{
 					String value;
 					if (Deserialize(input, value)) {
-						_out.setString(value);
-						return sl_true;
-					}
-					return sl_false;
-				}
-			case VariantType::Time:
-				{
-					Time value;
-					if (Deserialize(input, value)) {
-						_out.setTime(value);
+						_out.setString(Move(value));
 						return sl_true;
 					}
 					return sl_false;
@@ -218,7 +168,7 @@ namespace slib
 				{
 					Memory value;
 					if (Deserialize(input, value)) {
-						_out.setMemory(value);
+						_out.setMemory(Move(value));
 						return sl_true;
 					}
 					return sl_false;
@@ -227,7 +177,7 @@ namespace slib
 				{
 					VariantList value;
 					if (Deserialize(input, value)) {
-						_out.setVariantList(value);
+						_out.setVariantList(Move(value));
 						return sl_true;
 					}
 					return sl_false;
@@ -236,7 +186,7 @@ namespace slib
 				{
 					VariantMap value;
 					if (Deserialize(input, value)) {
-						_out.setVariantMap(value);
+						_out.setVariantMap(Move(value));
 						return sl_true;
 					}
 					return sl_false;
@@ -256,7 +206,7 @@ namespace slib
 	}
 
 	template <class INPUT, class T>
-	static sl_size Deserialize(INPUT* input, Json& _out)
+	static sl_bool Deserialize(INPUT* input, Json& _out)
 	{
 		return Deserialize(input, *((Variant*)(void*)&_out));
 	}

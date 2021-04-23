@@ -365,11 +365,15 @@ namespace slib
 
 		sl_bool isInt32() const noexcept;
 
+		sl_bool getInt32(sl_int32* _out) const noexcept;
+
 		sl_int32 getInt32(sl_int32 def = 0) const noexcept;
 
 		void setInt32(sl_int32 value) noexcept;
 
 		sl_bool isUint32() const noexcept;
+
+		sl_bool getUint32(sl_uint32* _out) const noexcept;
 
 		sl_uint32 getUint32(sl_uint32 def = 0) const noexcept;
 
@@ -377,11 +381,15 @@ namespace slib
 
 		sl_bool isInt64() const noexcept;
 
+		sl_bool getInt64(sl_int64* _out) const noexcept;
+
 		sl_int64 getInt64(sl_int64 def = 0) const noexcept;
 
 		void setInt64(sl_int64 value) noexcept;
 
 		sl_bool isUint64() const noexcept;
+
+		sl_bool getUint64(sl_uint64* _out) const noexcept;
 
 		sl_uint64 getUint64(sl_uint64 def = 0) const noexcept;
 
@@ -395,11 +403,15 @@ namespace slib
 
 		sl_bool isFloat() const noexcept;
 
+		sl_bool getFloat(float* _out) const noexcept;
+
 		float getFloat(float def = 0) const noexcept;
 
 		void setFloat(float value) noexcept;
 
 		sl_bool isDouble() const noexcept;
+
+		sl_bool getDouble(double* _out) const noexcept;
 
 		double getDouble(double def = 0) const noexcept;
 
@@ -659,12 +671,20 @@ namespace slib
 		sl_bool toJsonString(StringBuffer& buf) const;
 	
 		String toJsonString() const;
-		
+
 		Memory serialize() const;
+
+		sl_bool serialize(MemoryBuffer* buf) const;
 
 		sl_size deserialize(const void* data, sl_size size);
 
+		sl_size deserialize(const MemoryData& data);
+
+		sl_size deserialize(MemoryData&& data);
+
 		sl_size deserialize(const Memory& mem);
+
+		sl_size deserialize(Memory&& mem);
 
 		
 		sl_compare_result compare(const Variant& other) const noexcept;

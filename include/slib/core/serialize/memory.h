@@ -26,10 +26,13 @@
 #include "primitive.h"
 #include "variable_length_integer.h"
 
-#include "../memory.h"
+#include "../memory_buffer.h"
 
 namespace slib
 {
+
+	sl_bool Serialize(MemoryBuffer* output, CMemory* _in);
+	sl_bool Serialize(MemoryBuffer* output, const Memory& _in);
 
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const Memory& _in)
@@ -44,6 +47,8 @@ namespace slib
 			return sl_true;
 		}
 	}
+
+	sl_bool Deserialize(DeserializeBuffer* input, Memory& _out);
 
 	template <class INPUT>
 	static sl_bool Deserialize(INPUT* input, Memory& _out)
@@ -66,6 +71,18 @@ namespace slib
 			_out.setNull();
 			return sl_true;
 		}
+	}
+
+	template <class OUTPUT>
+	static sl_bool SerializeRaw(OUTPUT* output, MemoryBuffer& buf)
+	{
+		MemoryData data;
+		while (buf.pop(data)) {
+			if (!(SerializeRaw(output, Move(data)))) {
+				return sl_false;
+			}
+		}
+		return sl_true;
 	}
 
 }

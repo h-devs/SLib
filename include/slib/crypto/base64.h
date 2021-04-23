@@ -39,15 +39,15 @@ namespace slib
 				
 		static String encodeUrl(const Memory& mem, sl_char8 padding = 0);
 
-		static String encode(const String& str, sl_char8 padding = '=');
+		static String encode(const StringParam& str, sl_char8 padding = '=');
 
-		static String encodeUrl(const String& str, sl_char8 padding = 0);
+		static String encodeUrl(const StringParam& str, sl_char8 padding = 0);
 		
 		static sl_size getDecodeOutputSize(sl_size lenBase64);
 		
-		static sl_size decode(const String& base64, void* output, sl_char8 padding = '=');
+		static sl_size decode(const StringParam& base64, void* output, sl_char8 padding = '=');
 
-		static Memory decode(const String& base64, sl_char8 padding = '=');
+		static Memory decode(const StringParam& base64, sl_char8 padding = '=');
 		
 	};
 

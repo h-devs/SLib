@@ -91,7 +91,7 @@ namespace slib
 		}
 	}
 
-	sl_size Jwt::_decode(const String& token, String& signature) noexcept
+	sl_size Jwt::_decode(const StringView& token, String& signature) noexcept
 	{
 		sl_reg pos1 = token.indexOf('.');
 		if (pos1 < 0) {
@@ -134,7 +134,7 @@ namespace slib
 		return pos2;
 	}
 
-	sl_bool Jwt::decode(const Memory& secret, const String& token) noexcept
+	sl_bool Jwt::decode(const Memory& secret, const StringView& token) noexcept
 	{
 		String signature;
 		sl_size n = _decode(token, signature);

@@ -230,9 +230,9 @@ namespace slib
 		
 		
 		String toString() const noexcept;
-		
+
 		String16 toString16() const noexcept;
-		
+
 		Variant toVariant() const noexcept;
 		
 	public:
@@ -332,6 +332,8 @@ namespace slib
 		String string;
 		
 	public:
+		StringCstr() noexcept;
+
 		StringCstr(const StringParam& param) noexcept;
 		
 		StringCstr(const sl_char8* data) noexcept;
@@ -344,6 +346,16 @@ namespace slib
 		
 		StringCstr(const StringView& str) noexcept;
 
+		StringCstr(const sl_char16* data) noexcept;
+
+		StringCstr(const sl_char16* data, sl_size length) noexcept;
+
+		StringCstr(const String16& str) noexcept;
+
+		StringCstr(const AtomicString16& str) noexcept;
+
+		StringCstr(const StringView16& str) noexcept;
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StringCstr)
 		
 	public:
@@ -355,6 +367,14 @@ namespace slib
 
 		String toString(const StringParam& param);
 
+		template <class T>
+		StringCstr& operator=(T&& t)
+		{
+			this->~StringCstr();
+			new (this) StringCstr(Forward<T>(t));
+			return *this;
+		}
+
 	};
 
 	class SLIB_EXPORT StringCstr16 : public StringView16
@@ -363,6 +383,8 @@ namespace slib
 		String16 string;
 		
 	public:
+		StringCstr16() noexcept;
+
 		StringCstr16(const StringParam& param) noexcept;
 		
 		StringCstr16(const sl_char16* data) noexcept;
@@ -375,6 +397,16 @@ namespace slib
 		
 		StringCstr16(const StringView16& str) noexcept;
 
+		StringCstr16(const sl_char8* data) noexcept;
+
+		StringCstr16(const sl_char8* data, sl_size length) noexcept;
+
+		StringCstr16(const String& str) noexcept;
+
+		StringCstr16(const AtomicString& str) noexcept;
+
+		StringCstr16(const StringView& str) noexcept;
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StringCstr16)
 		
 	public:
@@ -385,6 +417,14 @@ namespace slib
 		}
 
 		String16 toString16(const StringParam& param);
+
+		template <class T>
+		StringCstr16& operator=(T&& t)
+		{
+			this->~StringCstr16();
+			new (this) StringCstr16(Forward<T>(t));
+			return *this;
+		}
 
 	};
 

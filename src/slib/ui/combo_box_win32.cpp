@@ -102,7 +102,7 @@ namespace slib
 						}
 						sl_uint32 n = view->getItemsCount();
 						for (sl_uint32 i = 0; i < n; i++) {
-							String16 s = String16::from(view->getItemTitle(i));
+							StringCstr16 s = view->getItemTitle(i);
 							SendMessageW(handle, CB_ADDSTRING, 0, (LPARAM)(s.getData()));
 						}
 						sl_int32 indexSelected = view->getSelectedIndex();
@@ -126,7 +126,7 @@ namespace slib
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						String16 s = String16::from(title);
+						StringCstr16 s = title;
 						SendMessageW(handle, CB_INSERTSTRING, (WPARAM)index, (LPARAM)(s.getData()));
 					}
 				}
@@ -143,7 +143,7 @@ namespace slib
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						String16 s = String16::from(title);
+						StringCstr16 s = title;
 						SendMessageW(handle, CB_DELETESTRING, (WPARAM)index, 0);
 						SendMessageW(handle, CB_INSERTSTRING, (WPARAM)index, (LPARAM)(s.getData()));
 					}

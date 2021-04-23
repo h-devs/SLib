@@ -178,7 +178,7 @@ namespace slib
 					}
 				}
 				
-				void runJavaScript(WebView* view, const String& script) override
+				void runJavaScript(WebView* view, const StringParam& script) override
 				{
 					WKWebView* handle = getHandle();
 					if (handle != nil) {

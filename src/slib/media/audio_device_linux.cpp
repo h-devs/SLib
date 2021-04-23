@@ -256,7 +256,7 @@ namespace slib
 						return sl_null;
 					}
 
-					String deviceId = param.deviceId;
+					StringCstr deviceId = param.deviceId;
 					if (deviceId.isEmpty()) {
 						deviceId = g_strDefaultDeviceId;
 					}
@@ -393,13 +393,13 @@ namespace slib
 				}
 				
 			public:
-				static Ref<AudioPlayerImpl> create(const String& _deviceId, const AudioPlayerParam& param)
+				static Ref<AudioPlayerImpl> create(const StringParam& _deviceId, const AudioPlayerParam& param)
 				{
 					if (param.channelsCount != 1 && param.channelsCount != 2) {
 						return sl_null;
 					}
 
-					String deviceId = _deviceId;
+					StringCstr deviceId = _deviceId;
 					if (deviceId.isEmpty()) {
 						deviceId = g_strDefaultDeviceId;
 					}

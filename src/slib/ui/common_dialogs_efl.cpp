@@ -51,34 +51,34 @@ namespace slib
 			{
 				AlertDialogContainer* container = reinterpret_cast<AlertDialogContainer*>(data);
 				container->result = DialogResult::Ok;
-				::elm_popup_dismiss(container->popup);
+				elm_popup_dismiss(container->popup);
 			}
 
 			static void alert_dialog_yes_cb(void *data, Evas_Object *obj, void *event_info)
 			{
 				AlertDialogContainer* container = reinterpret_cast<AlertDialogContainer*>(data);
 				container->result = DialogResult::Yes;
-				::elm_popup_dismiss(container->popup);
+				elm_popup_dismiss(container->popup);
 			}
 
 			static void alert_dialog_cancel_cb(void *data, Evas_Object *obj, void *event_info)
 			{
 				AlertDialogContainer* container = reinterpret_cast<AlertDialogContainer*>(data);
 				container->result = DialogResult::Cancel;
-				::elm_popup_dismiss(container->popup);
+				elm_popup_dismiss(container->popup);
 			}
 
 			static void alert_dialog_no_cb(void *data, Evas_Object *obj, void *event_info)
 			{
 				AlertDialogContainer* container = reinterpret_cast<AlertDialogContainer*>(data);
 				container->result = DialogResult::No;
-				::elm_popup_dismiss(container->popup);
+				elm_popup_dismiss(container->popup);
 			}
 			
 			static void alert_dialog_dismissed_cb(void *data, Evas_Object *obj, void *event_info)
 			{
 				AlertDialogContainer* container = reinterpret_cast<AlertDialogContainer*>(data);
-				::evas_object_del(container->popup);
+				evas_object_del(container->popup);
 				switch (container->result) {
 					case DialogResult::Ok:
 						container->alert->_onResult(DialogResult::Ok);
@@ -136,7 +136,7 @@ namespace slib
 			return sl_false;
 		}
 
-		Evas_Object* popup = ::elm_popup_add(win);
+		Evas_Object* popup = elm_popup_add(win);
 		if (!popup) {
 			return sl_false;
 		}
@@ -149,76 +149,78 @@ namespace slib
 		container->alert = this;
 		container->result = DialogResult::Cancel;
 
-		::evas_object_layer_set(popup, EVAS_LAYER_MAX);
-		::elm_popup_align_set(popup, ELM_NOTIFY_ALIGN_FILL, 1.0);
-		::evas_object_size_hint_weight_set(popup, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+		evas_object_layer_set(popup, EVAS_LAYER_MAX);
+		elm_popup_align_set(popup, ELM_NOTIFY_ALIGN_FILL, 1.0);
+		evas_object_size_hint_weight_set(popup, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 
-		::elm_object_part_text_set(popup, "title,text", caption.getData());
-		::elm_object_text_set(popup, text.getData());
+		StringCstr _caption(caption);
+		elm_object_part_text_set(popup, "title,text", _caption.getData());
+		StringCstr _text(text);
+		elm_object_text_set(popup, _text.getData());
 
-		String titleOk = this->titleOk;
+		StringCstr titleOk = this->titleOk;
 		if (titleOk.isEmpty()) {
 			titleOk = "OK";
 		}
-		String titleCancel = this->titleCancel;
+		StringCstr titleCancel = this->titleCancel;
 		if (titleCancel.isEmpty()) {
 			titleCancel = "Cancel";
 		}
-		String titleYes = this->titleYes;
+		StringCstr titleYes = this->titleYes;
 		if (titleYes.isEmpty()) {
 			titleYes = "Yes";
 		}
-		String titleNo = this->titleNo;
+		StringCstr titleNo = this->titleNo;
 		if (titleNo.isEmpty()) {
 			titleNo = "No";
 		}
 		
 		if (buttons == AlertDialogButtons::OkCancel) {
-			Evas_Object* button1 = ::elm_button_add(popup);
-			::elm_object_text_set(button1, titleOk.getData());
-			::evas_object_smart_callback_add(button1, "clicked", alert_dialog_ok_cb, container);
-			::elm_object_part_content_set(popup, "button1", button1);
-			Evas_Object* button2 = ::elm_button_add(popup);
-			::elm_object_text_set(button2, titleCancel.getData());
-			::evas_object_smart_callback_add(button2, "clicked", alert_dialog_cancel_cb, container);
-			::elm_object_part_content_set(popup, "button2", button2);
-			::eext_object_event_callback_add(popup, EEXT_CALLBACK_BACK, alert_dialog_cancel_cb, container);
-			::evas_object_smart_callback_add(popup, "block,clicked", alert_dialog_cancel_cb, container);
+			Evas_Object* button1 = elm_button_add(popup);
+			elm_object_text_set(button1, titleOk.getData());
+			evas_object_smart_callback_add(button1, "clicked", alert_dialog_ok_cb, container);
+			elm_object_part_content_set(popup, "button1", button1);
+			Evas_Object* button2 = elm_button_add(popup);
+			elm_object_text_set(button2, titleCancel.getData());
+			evas_object_smart_callback_add(button2, "clicked", alert_dialog_cancel_cb, container);
+			elm_object_part_content_set(popup, "button2", button2);
+			eext_object_event_callback_add(popup, EEXT_CALLBACK_BACK, alert_dialog_cancel_cb, container);
+			evas_object_smart_callback_add(popup, "block,clicked", alert_dialog_cancel_cb, container);
 		} else if (buttons == AlertDialogButtons::YesNo) {
-			Evas_Object* button1 = ::elm_button_add(popup);
-			::elm_object_text_set(button1, titleYes.getData());
-			::evas_object_smart_callback_add(button1, "clicked", alert_dialog_yes_cb, container);
-			::elm_object_part_content_set(popup, "button1", button1);
-			Evas_Object* button2 = ::elm_button_add(popup);
-			::elm_object_text_set(button2, titleNo.getData());
-			::evas_object_smart_callback_add(button2, "clicked", alert_dialog_no_cb, container);
-			::elm_object_part_content_set(popup, "button2", button2);
+			Evas_Object* button1 = elm_button_add(popup);
+			elm_object_text_set(button1, titleYes.getData());
+			evas_object_smart_callback_add(button1, "clicked", alert_dialog_yes_cb, container);
+			elm_object_part_content_set(popup, "button1", button1);
+			Evas_Object* button2 = elm_button_add(popup);
+			elm_object_text_set(button2, titleNo.getData());
+			evas_object_smart_callback_add(button2, "clicked", alert_dialog_no_cb, container);
+			elm_object_part_content_set(popup, "button2", button2);
 		} else if (buttons == AlertDialogButtons::YesNoCancel) {
-			Evas_Object* button1 = ::elm_button_add(popup);
-			::elm_object_text_set(button1, titleYes.getData());
-			::evas_object_smart_callback_add(button1, "clicked", alert_dialog_yes_cb, container);
-			::elm_object_part_content_set(popup, "button1", button1);
-			Evas_Object* button2 = ::elm_button_add(popup);
-			::elm_object_text_set(button2, titleNo.getData());
-			::evas_object_smart_callback_add(button2, "clicked", alert_dialog_no_cb, container);
-			::elm_object_part_content_set(popup, "button2", button2);
-			Evas_Object* button3 = ::elm_button_add(popup);
-			::elm_object_text_set(button3, titleCancel.getData());
-			::evas_object_smart_callback_add(button3, "clicked", alert_dialog_cancel_cb, container);
-			::elm_object_part_content_set(popup, "button3", button3);
-			::eext_object_event_callback_add(popup, EEXT_CALLBACK_BACK, alert_dialog_cancel_cb, container);
-			::evas_object_smart_callback_add(popup, "block,clicked", alert_dialog_cancel_cb, container);
+			Evas_Object* button1 = elm_button_add(popup);
+			elm_object_text_set(button1, titleYes.getData());
+			evas_object_smart_callback_add(button1, "clicked", alert_dialog_yes_cb, container);
+			elm_object_part_content_set(popup, "button1", button1);
+			Evas_Object* button2 = elm_button_add(popup);
+			elm_object_text_set(button2, titleNo.getData());
+			evas_object_smart_callback_add(button2, "clicked", alert_dialog_no_cb, container);
+			elm_object_part_content_set(popup, "button2", button2);
+			Evas_Object* button3 = elm_button_add(popup);
+			elm_object_text_set(button3, titleCancel.getData());
+			evas_object_smart_callback_add(button3, "clicked", alert_dialog_cancel_cb, container);
+			elm_object_part_content_set(popup, "button3", button3);
+			eext_object_event_callback_add(popup, EEXT_CALLBACK_BACK, alert_dialog_cancel_cb, container);
+			evas_object_smart_callback_add(popup, "block,clicked", alert_dialog_cancel_cb, container);
 		} else {
-			Evas_Object* button1 = ::elm_button_add(popup);
-			::elm_object_text_set(button1, titleOk.getData());
-			::evas_object_smart_callback_add(button1, "clicked", alert_dialog_ok_cb, container);
-			::elm_object_part_content_set(popup, "button1", button1);
-			::eext_object_event_callback_add(popup, EEXT_CALLBACK_BACK, alert_dialog_ok_cb, container);
-			::evas_object_smart_callback_add(popup, "block,clicked", alert_dialog_ok_cb, container);
+			Evas_Object* button1 = elm_button_add(popup);
+			elm_object_text_set(button1, titleOk.getData());
+			evas_object_smart_callback_add(button1, "clicked", alert_dialog_ok_cb, container);
+			elm_object_part_content_set(popup, "button1", button1);
+			eext_object_event_callback_add(popup, EEXT_CALLBACK_BACK, alert_dialog_ok_cb, container);
+			evas_object_smart_callback_add(popup, "block,clicked", alert_dialog_ok_cb, container);
 		}
 		
-		::evas_object_smart_callback_add(popup, "dismissed", alert_dialog_dismissed_cb, &container);
-		::evas_object_show(popup);
+		evas_object_smart_callback_add(popup, "dismissed", alert_dialog_dismissed_cb, &container);
+		evas_object_show(popup);
 
 		return sl_true;
 

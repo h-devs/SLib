@@ -52,13 +52,15 @@ namespace slib
 			{
 				StringCstr pathExecutable(_pathExecutable);
 				char* exe = pathExecutable.getData();
-				char* args[1024];
+				char* args[64];
+				StringCstr _args[60];
 				args[0] = exe;
-				if (nArguments > 1020) {
-					nArguments = 1020;
+				if (nArguments > 60) {
+					nArguments = 60;
 				}
 				for (sl_size i = 0; i < nArguments; i++) {
-					args[i+1] = strArguments[i].getData();
+					_args[i] = strArguments[i];
+					args[i+1] = _args[i].getData();
 				}
 				args[nArguments+1] = 0;
 				

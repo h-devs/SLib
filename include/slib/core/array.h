@@ -41,7 +41,7 @@ namespace slib
 	public:
 		T* data;
 		sl_size count;
-		Ref<Referable> refer;
+		Ref<Referable> ref;
 
 	public:
 		T& operator[](sl_reg index) const noexcept
@@ -77,7 +77,7 @@ namespace slib
 	protected:
 		T* m_data;
 		sl_size m_count;
-		Ref<Referable> m_refer;
+		Ref<Referable> m_ref;
 		sl_bool m_flagStatic;
 
 	public:
@@ -118,7 +118,7 @@ namespace slib
 			m_count = 0;
 		}
 
-		CArray(const T* data, sl_size count, Referable* refer) noexcept : m_refer(refer)
+		CArray(const T* data, sl_size count, Referable* ref) noexcept : m_ref(ref)
 		{
 			m_data = const_cast<T*>(data);
 			m_count = count;
@@ -143,7 +143,7 @@ namespace slib
 	public:
 		CArray(const CArray& other) = delete;
 		
-		CArray(CArray&& other) noexcept: m_refer(Move(other.m_refer))
+		CArray(CArray&& other) noexcept: m_ref(Move(other.m_ref))
 		{
 			m_flagStatic = other.m_flagStatic;
 			m_data = other.m_data;
@@ -170,7 +170,7 @@ namespace slib
 			other.m_flagStatic = sl_true;
 			other.m_data = sl_null;
 			other.m_count = 0;
-			m_refer = Move(other.m_refer);
+			m_ref = Move(other.m_ref);
 			return *this;
 		}
 
@@ -204,10 +204,10 @@ namespace slib
 			return sl_null;
 		}
 
-		static CArray<T>* createStatic(const T* data, sl_size count, Referable* refer = sl_null) noexcept
+		static CArray<T>* createStatic(const T* data, sl_size count, Referable* ref = sl_null) noexcept
 		{
 			if (data && count) {
-				return new CArray<T>(data, count, refer);
+				return new CArray<T>(data, count, ref);
 			}
 			return sl_null;
 		}
@@ -235,9 +235,9 @@ namespace slib
 			return m_flagStatic;
 		}
 
-		const Ref<Referable>& getRefer() const noexcept
+		const Ref<Referable>& getRef() const noexcept
 		{
-			return m_refer;
+			return m_ref;
 		}
 
 	public:
@@ -308,7 +308,7 @@ namespace slib
 						return (CArray<T>*)this;
 					}
 					if (m_flagStatic) {
-						return createStatic(m_data + start, count, m_refer.ptr);
+						return createStatic(m_data + start, count, m_ref.ptr);
 					} else {
 						return createStatic(m_data + start, count, (Referable*)this);
 					}
@@ -534,7 +534,7 @@ namespace slib
 		template <class VALUE>
 		Array(const VALUE* data, sl_size count) noexcept: ref(CArray<T>::create(data, count)) {}
 
-		Array(const T* data, sl_size count, Referable* refer) noexcept: ref(CArray<T>::createStatic(data, count, refer)) {}
+		Array(const T* data, sl_size count, Referable* ref) noexcept: ref(CArray<T>::createStatic(data, count, ref)) {}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Array(const std::initializer_list<T>& l) noexcept: ref(CArray<T>::create(l.begin(), l.size())) {}
@@ -552,9 +552,9 @@ namespace slib
 			return CArray<T>::create(data, count);
 		}
 
-		static Array<T> createStatic(const T* data, sl_size count, Referable* refer = sl_null) noexcept
+		static Array<T> createStatic(const T* data, sl_size count, Referable* ref = sl_null) noexcept
 		{
-			return CArray<T>::createStatic(data, count, refer);
+			return CArray<T>::createStatic(data, count, ref);
 		}
 
 		static Array<T> create(Collection* collection);
@@ -771,15 +771,15 @@ namespace slib
 				data.data = obj->getData();
 				data.count = obj->getCount();
 				if (obj->isStatic()) {
-					data.refer = obj->getRefer();
+					data.ref = obj->getRef();
 				} else {
-					data.refer = obj;
+					data.ref = obj;
 				}
 				return sl_true;
 			} else {
 				data.data = sl_null;
 				data.count = 0;
-				data.refer.setNull();
+				data.ref.setNull();
 				return sl_false;
 			}
 		}
@@ -852,7 +852,7 @@ namespace slib
 		SLIB_ATOMIC_REF_WRAPPER(CArray<T>)
 		
 	public:	
-		Atomic(const T* data, sl_size count, Referable* refer, sl_bool flagStatic = sl_true) noexcept: ref(CArray<T>::create(data, count, refer, flagStatic)) {}
+		Atomic(const T* data, sl_size count, Referable* ref, sl_bool flagStatic = sl_true) noexcept: ref(CArray<T>::create(data, count, ref, flagStatic)) {}
 		
 		Atomic(sl_size count) noexcept: ref(CArray<T>::create(count)) {}
 		

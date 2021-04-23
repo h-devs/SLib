@@ -84,7 +84,7 @@ namespace slib
 			SLIB_INLINE static void* LoadSymbolWithSuffix(void* handle, const char* symbol, const String& suffix)
 			{
 				if (suffix.isNotEmpty()) {
-					String s = symbol + suffix;
+					StringCstr s(symbol + suffix);
 					void* ret = dlsym(handle, s.getData());
 					if (ret) {
 						return ret;
@@ -123,15 +123,15 @@ namespace slib
 							}
 						}
 						pathDll = LIB_PATH + ("/" + pathDll);
-					}
-					hDll = dlopen(pathDll.getData(), RTLD_LAZY);
-					if (hDll) {
-						SLIB_ucnv_open = (TYPE_ucnv_open)(LoadSymbolWithSuffix(hDll, "ucnv_open", suffix));
-						SLIB_ucnv_close = (TYPE_ucnv_close)(LoadSymbolWithSuffix(hDll, "ucnv_close", suffix));
-						SLIB_ucnv_fromUChars = (TYPE_ucnv_fromUChars)(LoadSymbolWithSuffix(hDll, "ucnv_fromUChars", suffix));
-						SLIB_ucnv_toUChars = (TYPE_ucnv_toUChars)(LoadSymbolWithSuffix(hDll, "ucnv_toUChars", suffix));
-						SLIB_ucnv_countAvailable = (TYPE_ucnv_countAvailable)(LoadSymbolWithSuffix(hDll, "ucnv_countAvailable", suffix));
-						SLIB_ucnv_getAvailableName = (TYPE_ucnv_getAvailableName)(LoadSymbolWithSuffix(hDll, "ucnv_getAvailableName", suffix));
+						hDll = dlopen(pathDll.getData(), RTLD_LAZY);
+						if (hDll) {
+							SLIB_ucnv_open = (TYPE_ucnv_open)(LoadSymbolWithSuffix(hDll, "ucnv_open", suffix));
+							SLIB_ucnv_close = (TYPE_ucnv_close)(LoadSymbolWithSuffix(hDll, "ucnv_close", suffix));
+							SLIB_ucnv_fromUChars = (TYPE_ucnv_fromUChars)(LoadSymbolWithSuffix(hDll, "ucnv_fromUChars", suffix));
+							SLIB_ucnv_toUChars = (TYPE_ucnv_toUChars)(LoadSymbolWithSuffix(hDll, "ucnv_toUChars", suffix));
+							SLIB_ucnv_countAvailable = (TYPE_ucnv_countAvailable)(LoadSymbolWithSuffix(hDll, "ucnv_countAvailable", suffix));
+							SLIB_ucnv_getAvailableName = (TYPE_ucnv_getAvailableName)(LoadSymbolWithSuffix(hDll, "ucnv_getAvailableName", suffix));
+						}
 					}
 					flagLoaded = sl_true;
 				}

@@ -163,7 +163,7 @@ namespace slib
 			const sl_char32* data32;
 		};
 		sl_size length;
-		Ref<Referable> refer;
+		Ref<Referable> ref;
 		String string8;
 		String16 string16;
 

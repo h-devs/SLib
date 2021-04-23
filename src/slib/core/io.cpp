@@ -1901,7 +1901,7 @@ namespace slib
 		if (data.isNotNull()) {
 			m_buf = data.getData();
 			m_size = data.getSize();
-			m_flagResizable = !(data.isStatic());
+			m_flagResizable = data.isResizable();
 			m_data = data;
 		} else {
 			m_buf = sl_null;
@@ -2856,14 +2856,11 @@ namespace slib
 		if (!n) {
 			return sl_true;
 		}
-		MemoryData mem;
-		mem.data = m_buffer.getData();
-		mem.size = n;
-		mem.refer = Move(m_buffer.ref);
+		MemoryData mem(m_buffer.getData(), n, Move(m_buffer.ref));
 		if (m_queue.add(mem)) {
 			return sl_true;
 		}
-		m_buffer.ref = Move(Ref< CList<sl_uint8> >::from(mem.refer));
+		m_buffer.ref = Move(Ref< CList<sl_uint8> >::from(mem.ref));
 		return sl_false;
 	}
 
@@ -3969,6 +3966,54 @@ namespace slib
 	}
 
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DeserializeBuffer)
+
+	DeserializeBuffer::DeserializeBuffer(const void* buf, sl_size size) noexcept
+	{
+		current = begin = (sl_uint8*)buf;
+		end = begin + size;
+	}
+
+	DeserializeBuffer::DeserializeBuffer(const MemoryData& data) noexcept: DeserializeBuffer(data.data, data.size, data.ref)
+	{
+	}
+
+	DeserializeBuffer::DeserializeBuffer(MemoryData&& data) noexcept: DeserializeBuffer(data.data, data.size, Move(data.ref))
+	{
+	}
+
+	DeserializeBuffer::DeserializeBuffer(const Memory& mem) noexcept: DeserializeBuffer(mem.getData(), mem.getSize(), Move(mem.getRef()))
+	{
+	}
+
+	DeserializeBuffer::DeserializeBuffer(Memory&& mem) noexcept : DeserializeBuffer(MemoryData(Move(mem)))
+	{
+	}
+
+	sl_bool DeserializeBuffer::read(sl_uint8& _out) noexcept
+	{
+		if (current < end) {
+			_out = *(current++);
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+	
+	sl_size DeserializeBuffer::read(void* buf, sl_size size) noexcept
+	{
+		if (size && current < end) {
+			if (current + size > end) {
+				size = end - current;
+			}
+			Base::copyMemory(buf, current, size);
+			current += size;
+			return size;
+		}
+		return 0;
+	}
+
+
 	sl_bool SerializeByte(IWriter* writer, sl_uint8 value) noexcept
 	{
 		return writer->writeUint8(value);
@@ -3999,19 +4044,24 @@ namespace slib
 		return buf->write(data, size) == size;
 	}
 
-	sl_bool SerializeRaw(IWriter* writer, const MemoryData& mem) noexcept
+	sl_bool SerializeRaw(IWriter* writer, const MemoryData& data) noexcept
 	{
-		return writer->writeFully(mem.data, mem.size) == mem.size;
+		return writer->writeFully(data.data, data.size) == data.size;
 	}
 
-	sl_bool SerializeRaw(MemoryBuffer* buf, const MemoryData& mem) noexcept
+	sl_bool SerializeRaw(MemoryBuffer* buf, const MemoryData& data) noexcept
 	{
-		return buf->add(mem);
+		return buf->add(data);
 	}
 
-	sl_bool SerializeRaw(SerializeBuffer* buf, const MemoryData& mem) noexcept
+	sl_bool SerializeRaw(MemoryBuffer* buf, MemoryData&& data) noexcept
 	{
-		return buf->write(mem.data, mem.size) == mem.size;
+		return buf->add(Move(data));
+	}
+
+	sl_bool SerializeRaw(SerializeBuffer* buf, const MemoryData& data) noexcept
+	{
+		return buf->write(data.data, data.size) == data.size;
 	}
 
 	sl_bool SerializeStatic(IWriter* writer, const void* data, sl_size size) noexcept
@@ -4039,12 +4089,22 @@ namespace slib
 		return buf->read(_out);
 	}
 
+	sl_bool DeserializeByte(DeserializeBuffer* buf, sl_uint8& _out) noexcept
+	{
+		return buf->read(_out);
+	}
+
 	sl_bool DeserializeRaw(IReader* reader, void* data, sl_size size) noexcept
 	{
 		return reader->readFully(data, size) == size;
 	}
 
 	sl_bool DeserializeRaw(SerializeBuffer* buf, void* data, sl_size size) noexcept
+	{
+		return buf->read(data, size) == size;
+	}
+
+	sl_bool DeserializeRaw(DeserializeBuffer* buf, void* data, sl_size size) noexcept
 	{
 		return buf->read(data, size) == size;
 	}

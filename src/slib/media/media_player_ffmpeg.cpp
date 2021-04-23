@@ -120,7 +120,7 @@ namespace slib
 					}
 					Ref<FFmpegPlayer> ret = new FFmpegPlayer;
 					if (ret.isNotNull()) {
-						ret->m_url = url;
+						ret->m_url = url.toNullTerminated();
 						ret->m_flagVideo = param.flagVideo;
 						ret->_init(param);
 						ret->m_threadInit = Thread::start(Function<void()>::bind(&onRunInit, ToWeakRef(ret)));

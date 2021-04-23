@@ -35,7 +35,7 @@ namespace slib
 	}
 
 	template <class INPUT, class T>
-	static sl_size Deserialize(INPUT* input, Atomic<T>& _out)
+	static sl_bool Deserialize(INPUT* input, Atomic<T>& _out)
 	{
 		T t;
 		if (Deserialize(input, t)) {

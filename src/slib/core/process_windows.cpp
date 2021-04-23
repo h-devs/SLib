@@ -55,7 +55,7 @@ namespace slib
 			static sl_bool Execute(const StringParam& _pathExecutable, const String* cmds, sl_uint32 nCmds, PROCESS_INFORMATION* pi, STARTUPINFOW* si, sl_bool flagInheritHandles)
 			{
 				StringCstr16 pathExecutable(_pathExecutable);
-				String16 cmd;
+				StringCstr16 cmd;
 				{
 					StringBuffer16 sb;
 					sb.addStatic(SLIB_UNICODE("\""));
@@ -327,13 +327,15 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		StringCstr pathExecutable(_pathExecutable);
 		char* exe = pathExecutable.getData();
-		char* args[1024];
+		char* args[64];
+		StringCstr _args[60];
 		args[0] = exe;
-		if (nArguments > 1020) {
-			nArguments = 1020;
+		if (nArguments > 60) {
+			nArguments = 60;
 		}
 		for (sl_size i = 0; i < nArguments; i++) {
-			args[i + 1] = strArguments[i].getData();
+			_args[i] = strArguments[i];
+			args[i + 1] = _args[i].getData();
 		}
 		args[nArguments + 1] = 0;
 		_execvp(exe, args);

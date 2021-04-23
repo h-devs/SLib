@@ -591,7 +591,7 @@ namespace slib
 			return sl_null;
 		}
 		List<String> ret;
-		String dirPath = filePath;
+		StringCstr dirPath(filePath);
 		DIR* dir = opendir(dirPath.getData());
 		if (dir) {
 			dirent* ent;
@@ -615,13 +615,13 @@ namespace slib
 			return sl_null;
 		}
 		HashMap<String, FileInfo> ret;
-		String dirPath = filePath;
+		StringCstr dirPath(filePath);
 		DIR* dir = opendir(dirPath.getData());
 		if (dir) {
 			dirent* ent;
 			while ((ent = readdir(dir))) {
 				FileInfo info;
-				filePath = dirPath + "/" + String::fromUtf8(ent->d_name);
+				filePath = String::join(dirPath, "/", String::fromUtf8(ent->d_name));
 				info.attributes = File::getAttributes(filePath);
 				info.size = info.allocSize = File::getSize(filePath);
 				info.createdAt = File::getCreatedTime(filePath);
@@ -658,7 +658,7 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		String dirPath = normalizeDirectoryPath(filePath);
+		StringCstr dirPath(normalizeDirectoryPath(filePath));
 		return 0 == rmdir(dirPath.getData());
 	}
 

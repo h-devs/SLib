@@ -29,7 +29,6 @@
 #include "slib/core/app.h"
 #include "slib/core/thread.h"
 #include "slib/core/time_counter.h"
-#include "slib/core/scoped.h"
 #include "slib/core/windows.h"
 
 #pragma comment(lib, "advapi32.lib")
@@ -273,12 +272,18 @@ namespace slib
 						bRet = ControlService(service, SERVICE_CONTROL_CONTINUE, &statusReturned);
 					} else if (state == SERVICE_STOPPED) {
 						if (argc) {
-							SLIB_SCOPED_BUFFER(LPCWSTR, 32, args, argc + 1);
 							StringCstr16 argName = name;
+							LPCWSTR args[64];
+							StringCstr16 _args[60];
+							if (argc > 60) {
+								argc = 60;
+							}
 							args[0] = (LPCWSTR)(argName.getData());
 							for (sl_size i = 0; i < argc; i++) {
-								args[i + 1] = (LPCWSTR)(argv[i].getData());
+								_args[i] = argv[i];
+								args[i + 1] = (LPCWSTR)(_args[i].getData());
 							}
+							args[argc + 1] = 0;
 							bRet = StartServiceW(service, (DWORD)(argc + 1), args);
 						} else {
 							bRet = StartServiceW(service, 0, NULL);

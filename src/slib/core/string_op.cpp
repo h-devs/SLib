@@ -972,48 +972,6 @@ namespace slib
 	}
 
 
-	String String::substring(sl_reg start, sl_reg end) const noexcept
-	{
-		if (isNull()) {
-			return sl_null;
-		}
-		sl_reg count = getLength();
-		if (start < 0) {
-			start = 0;
-		}
-		if (end < 0 || end > count) {
-			end = count;
-		}
-		if (start >= end) {
-			return getEmpty();
-		}
-		if (start == 0 && end == count) {
-			return *this;
-		}
-		return String(getData() + start, end - start);
-	}
-
-	String16 String16::substring(sl_reg start, sl_reg end) const noexcept
-	{
-		if (isNull()) {
-			return sl_null;
-		}
-		sl_reg count = getLength();
-		if (start < 0) {
-			start = 0;
-		}
-		if (end < 0 || end > count) {
-			end = count;
-		}
-		if (start >= end) {
-			return getEmpty();
-		}
-		if (start == 0 && end == count) {
-			return *this;
-		}
-		return String16(getData() + start, end - start);
-	}
-
 	String Atomic<String>::substring(sl_reg start, sl_reg end) const noexcept
 	{
 		String s(*this);

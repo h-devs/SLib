@@ -67,7 +67,7 @@ namespace slib
 					for (sl_uint32 i = 0; i < items.count; i++) {
 						GtkWidget* child = gtk_notebook_get_nth_page(handle, i);
 						if (child){
-							String label = items[i].label;
+							StringCstr label = items[i].label;
 							gtk_notebook_set_tab_label_text (handle, child, label.getData());
 							setTabContentView(handle, i, items[i].contentView);
 						}
@@ -157,12 +157,13 @@ namespace slib
 				{
 				}
 				
-				void setTabLabel(TabView* view, sl_uint32 index, const String& text) override
+				void setTabLabel(TabView* view, sl_uint32 index, const String& _text) override
 				{
 					GtkNotebook* handle = getHandle();
 					if (handle) {
 						GtkWidget* page = gtk_notebook_get_nth_page(handle, index);
 						if (page) {
+							StringCstr text(_text);
 							gtk_notebook_set_tab_label_text(handle, page, text.getData());
 						}
 					}

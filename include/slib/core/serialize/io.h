@@ -42,6 +42,7 @@ namespace slib
 
 	sl_bool SerializeRaw(IWriter* writer, const MemoryData& data) noexcept;
 	sl_bool SerializeRaw(MemoryBuffer* buf, const MemoryData& data) noexcept;
+	sl_bool SerializeRaw(MemoryBuffer* buf, MemoryData&& data) noexcept;
 	sl_bool SerializeRaw(SerializeBuffer* buf, const MemoryData& data) noexcept;
 
 	sl_bool SerializeStatic(IWriter* writer, const void* data, sl_size size) noexcept;
@@ -50,9 +51,11 @@ namespace slib
 
 	sl_bool DeserializeByte(IReader* reader, sl_uint8& _out) noexcept;
 	sl_bool DeserializeByte(SerializeBuffer* buf, sl_uint8& _out) noexcept;
+	sl_bool DeserializeByte(DeserializeBuffer* buf, sl_uint8& _out) noexcept;
 
 	sl_bool DeserializeRaw(IReader* reader, void* data, sl_size size) noexcept;
 	sl_bool DeserializeRaw(SerializeBuffer* buf, void* data, sl_size size) noexcept;
+	sl_bool DeserializeRaw(DeserializeBuffer* buf, void* data, sl_size size) noexcept;
 
 }
 

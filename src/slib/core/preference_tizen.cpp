@@ -34,21 +34,23 @@
 namespace slib
 {
 
-	void Preference::setValue(const String& key, const Json& value)
+	void Preference::setValue(const StringParam& _key, const Json& value)
 	{
+		StringCstr key(_key);
 		if (key.isEmpty()) {
 			return;
 		}
 		if (value.isNotNull()) {
-			String json = value.toJsonString();
+			StringCstr json(value.toJsonString());
 			::preference_set_string(key.getData(), json.getData());
 		} else {
 			::preference_remove(key.getData());
 		}
 	}
 
-	Json Preference::getValue(const String& key)
+	Json Preference::getValue(const StringParam& _key)
 	{
+		StringCstr key(_key);
 		if (key.isEmpty()) {
 			return sl_null;
 		}

@@ -134,7 +134,7 @@ namespace slib
 					connection_set_proxy_address_changed_cb(connection, UrlRequest_Impl::callbackProxyChanged, (void*)this);
 #endif
 					
-					String url = m_url;
+					StringCstr url = m_url;
 					curl_easy_setopt(curl, CURLOPT_URL, url.getData());
 					
 					curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -184,7 +184,7 @@ namespace slib
 					if(m_requestHeaders.isNotEmpty())
 					{
 						for (auto& pair : m_requestHeaders) {
-							String s = pair.key + ": " + pair.value;
+							String s = String::join(pair.key, ": ", pair.value);
 							headerChunk = curl_slist_append(headerChunk, s.getData());
 						}
 					}

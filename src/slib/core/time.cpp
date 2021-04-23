@@ -1299,8 +1299,9 @@ namespace slib
 		return posBegin + 29;
 	}
 	
-	sl_bool Time::parseHttpDate(const String& date) noexcept
+	sl_bool Time::parseHttpDate(const StringParam& _date) noexcept
 	{
+		StringData date(_date);
 		sl_size len = date.getLength();
 		if (len != 29) {
 			return sl_false;

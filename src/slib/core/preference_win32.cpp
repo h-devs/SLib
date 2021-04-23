@@ -32,7 +32,7 @@
 namespace slib
 {
 
-	void Preference::setValue(const String& key, const Json& value)
+	void Preference::setValue(const StringParam& key, const Json& value)
 	{
 		if (key.isEmpty()) {
 			return;
@@ -48,7 +48,7 @@ namespace slib
 		}
 	}
 
-	Json Preference::getValue(const String& key)
+	Json Preference::getValue(const StringParam& key)
 	{
 		if (key.isEmpty()) {
 			return sl_null;

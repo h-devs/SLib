@@ -84,7 +84,7 @@ namespace slib
 							name = "\\Device\\NPF_" + name;
 						}
 		#endif
-						name8 = name;
+						name8 = name.toNullTerminated();
 						szName = name8.getData();
 					}
 

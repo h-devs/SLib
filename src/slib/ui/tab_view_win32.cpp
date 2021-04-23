@@ -76,7 +76,7 @@ namespace slib
 						TCITEMW tci;
 						Base::zeroMemory(&tci, sizeof(tci));
 						tci.mask = TCIF_TEXT;
-						String16 label = String16::from(items[i].label);
+						StringCstr16 label = items[i].label;
 						tci.pszText = (LPWSTR)(label.getData());
 						SendMessageW(hWnd, TCM_SETITEMW, (WPARAM)i, (LPARAM)&tci);
 					}
@@ -177,7 +177,7 @@ namespace slib
 						TCITEMW tci;
 						Base::zeroMemory(&tci, sizeof(tci));
 						tci.mask = TCIF_TEXT;
-						String16 text = String16::from(_text);
+						StringCstr16 text = _text;
 						tci.pszText = (LPWSTR)(text.getData());
 						SendMessageW(handle, TCM_SETITEMW, (WPARAM)index, (LPARAM)(&tci));
 					}

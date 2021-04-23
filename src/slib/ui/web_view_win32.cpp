@@ -338,14 +338,14 @@ namespace slib
 								doc2->Release();
 							}
 						} else {
-							String16 url = String16::from(helper->m_urlOrigin);
+							StringCstr16 url = helper->m_urlOrigin;
 							if (url.isNotEmpty()) {
 								VARIANT varURL;
 								VariantInit(&varURL);
 								varURL.vt = VT_BSTR;
 								varURL.bstrVal = (BSTR)(url.getData());
 								if (helper->m_customUserAgent.isNotEmpty()) {
-									String16 headers = String16::from("User-Agent: " + helper->m_customUserAgent);
+									StringCstr16 headers = "User-Agent: " + helper->m_customUserAgent;
 									VARIANT varHeaders;
 									varHeaders.vt = VT_BSTR;
 									varHeaders.bstrVal = (BSTR)(headers.getData());
@@ -422,9 +422,9 @@ namespace slib
 					}
 				}
 
-				void runJavaScript(WebView* view, const String& _script) override
+				void runJavaScript(WebView* view, const StringParam& _script) override
 				{
-					String16 script = String16::from(_script);
+					StringCstr16 script = _script;
 					if (script.isNotEmpty()) {
 						IHTMLDocument2* doc2 = getDoc();
 						if (doc2) {

@@ -68,17 +68,17 @@ namespace slib
 	public:
 		String encode(const Memory& secret) const noexcept;
 		
-		sl_bool decode(const Memory& secret, const String& token) noexcept;
+		sl_bool decode(const Memory& secret, const StringView& token) noexcept;
 		
 		String generateSignature(const Memory& secret, const void* data, sl_size size) const noexcept;
 		
 		String encode_OpenSSL(const Ref<OpenSSL_Key>& key) const noexcept;
 		
-		sl_bool decode_OpenSSL(const Ref<OpenSSL_Key>& key, const String& token) noexcept;
+		sl_bool decode_OpenSSL(const Ref<OpenSSL_Key>& key, const StringView& token) noexcept;
 		
 		String generateSignature_OpenSSL(const Ref<OpenSSL_Key>& key, const void* data, sl_size size) const noexcept;
 		
-		sl_bool verifySignature_OpenSSL(const Ref<OpenSSL_Key>& key, const String& signature, const void* data, sl_size size) const noexcept;
+		sl_bool verifySignature_OpenSSL(const Ref<OpenSSL_Key>& key, const StringParam& signature, const void* data, sl_size size) const noexcept;
 		
 		// header
 	public:
@@ -115,7 +115,7 @@ namespace slib
 		void setId(const String& value) noexcept;
 
 	private:		
-		sl_size _decode(const String& token, String& signature) noexcept;
+		sl_size _decode(const StringView& token, String& signature) noexcept;
 		
 	};
 

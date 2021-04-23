@@ -45,6 +45,7 @@
 #include "core/scoped.h"
 #include "core/safe_static.h"
 #include "core/singleton.h"
+#include "core/stringify.h"
 
 #include "core/atomic.h"
 #include "core/tuple.h"

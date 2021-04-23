@@ -38,9 +38,9 @@ namespace slib
 	public:
 		void initialize();
 
-		sl_bool parseFromUtf8TextFile(const String& filePath);
+		sl_bool parseFromUtf8TextFile(const StringParam& filePath);
 
-		sl_bool parseFromText(const String& text);
+		sl_bool parseFromText(const StringParam& text);
 
 		Variant getValue(const String& name);
 
@@ -52,7 +52,7 @@ namespace slib
 	class SLIB_EXPORT SettingUtil
 	{
 	public:
-		static sl_bool parseUint32Range(const String& str, sl_uint32* from = sl_null, sl_uint32* to = sl_null);
+		static sl_bool parseUint32Range(const StringView& str, sl_uint32* from = sl_null, sl_uint32* to = sl_null);
 	
 	};
 

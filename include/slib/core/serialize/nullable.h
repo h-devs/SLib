@@ -44,7 +44,7 @@ namespace slib
 	}
 
 	template <class INPUT, class T>
-	static sl_size Deserialize(INPUT* input, Nullable<T>& _out)
+	static sl_bool Deserialize(INPUT* input, Nullable<T>& _out)
 	{
 		sl_uint8 f;
 		if (!(DeserializeByte(input, f))) {

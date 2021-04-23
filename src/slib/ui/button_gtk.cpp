@@ -57,14 +57,15 @@ namespace slib
 				g_signal_connect(handle, "clicked", G_CALLBACK(onClicked), handle);
 			}
 
-			void ButtonInstance::setText(Button* view, const String& text)
+			void ButtonInstance::setText(Button* view, const String& _text)
 			{
 				GtkButton* handle = (GtkButton*)m_handle;
 				if (handle) {
 					if (view->isMnemonic()) {
-						String _text = text.replaceAll('&', '_');
-						gtk_button_set_label(handle, _text.getData());
+						StringCstr text = _text.replaceAll('&', '_');
+						gtk_button_set_label(handle, text.getData());
 					} else {
+						StringCstr text = _text;
 						gtk_button_set_label(handle, text.getData());
 					}
 				}

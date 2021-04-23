@@ -69,15 +69,15 @@ namespace slib
 		~CRegEx() noexcept;
 		
 	public:
-		static Ref<CRegEx> create(const String& pattern) noexcept;
+		static Ref<CRegEx> create(const StringParam& pattern) noexcept;
 		
-		static Ref<CRegEx> create(const String& pattern, const RegExFlags& flags) noexcept;
+		static Ref<CRegEx> create(const StringParam& pattern, const RegExFlags& flags) noexcept;
 
 	public:
 		sl_bool match(const StringParam& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
 		
 	private:
-		static Ref<CRegEx> _create(const String& pattern, int flags) noexcept;
+		static Ref<CRegEx> _create(const StringParam& pattern, int flags) noexcept;
 		
 	private:
 		void* m_obj;
@@ -92,9 +92,9 @@ namespace slib
 	public:
 		SLIB_ATOMIC_REF_WRAPPER(CRegEx)
 		
-		Atomic(const String& pattern) noexcept;
+		Atomic(const StringParam& pattern) noexcept;
 		
-		Atomic(const String& pattern, const RegExFlags& flags) noexcept;
+		Atomic(const StringParam& pattern, const RegExFlags& flags) noexcept;
 		
 	public:
 		sl_bool match(const StringParam& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
@@ -112,9 +112,9 @@ namespace slib
 	public:
 		SLIB_REF_WRAPPER(RegEx, CRegEx)
 		
-		RegEx(const String& pattern) noexcept;
+		RegEx(const StringParam& pattern) noexcept;
 
-		RegEx(const String& pattern, const RegExFlags& flags) noexcept;
+		RegEx(const StringParam& pattern, const RegExFlags& flags) noexcept;
 				
 	public:
 		sl_bool match(const StringParam& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;

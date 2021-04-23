@@ -77,7 +77,7 @@ namespace slib
 				void setText(const String& text) override
 				{
 					MenuItem::setText(text);
-					String _text = text.replaceAll('&', '_');
+					StringCstr _text = text.replaceAll('&', '_');
 					gtk_menu_item_set_label(m_handle, _text.getData());
 				}
 
@@ -303,7 +303,7 @@ namespace slib
 
 			Ref<MenuItemImpl> MenuItemImpl::create(MenuImpl* parent, sl_uint32 index, const MenuItemParam& param)
 			{
-				String text = param.text.replaceAll('&', '_');
+				StringCstr text = param.text.replaceAll('&', '_');
 				GtkWidget* widget;
 				if (param.flagCheckable) {
 					widget = gtk_check_menu_item_new_with_mnemonic(text.getData());

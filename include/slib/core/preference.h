@@ -31,20 +31,20 @@ namespace slib
 	class SLIB_EXPORT Preference
 	{
 	public:
-		static void setValue(const String& key, const Json& value);
+		static void setValue(const StringParam& key, const Json& value);
 		
-		static void removeValue(const String& key);
+		static void removeValue(const StringParam& key);
 		
-		static Json getValue(const String& key);
+		static Json getValue(const StringParam& key);
 
 		template <class T>
-		static void getValue(const String& key, T& _out)
+		static void getValue(const StringParam& key, T& _out)
 		{
 			getValue(key).get(_out);
 		}
 		
 		template <class T>
-		static void getValue(const String& key, T& _out, const T& _def)
+		static void getValue(const StringParam& key, T& _out, const T& _def)
 		{
 			getValue(key).get(_out, _def);
 		}

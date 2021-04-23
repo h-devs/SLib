@@ -51,6 +51,43 @@ namespace slib
 
 	};
 
+	class MemoryData;
+	class Memory;
+
+	class SLIB_EXPORT DeserializeBuffer
+	{
+	public:
+		sl_uint8 * current;
+		sl_uint8* begin;
+		sl_uint8* end;
+		Ref<Referable> ref;
+
+	public:
+		DeserializeBuffer(const void* buf, sl_size size) noexcept;
+		
+		template <class REF>
+		DeserializeBuffer(const void* buf, sl_size size, REF&& _ref) noexcept: ref(Forward<REF>(_ref))
+		{
+			current = begin = (sl_uint8*)buf;
+			end = begin + size;
+		}
+
+		DeserializeBuffer(const MemoryData& data) noexcept;
+
+		DeserializeBuffer(MemoryData&& data) noexcept;
+
+		DeserializeBuffer(const Memory& mem) noexcept;
+
+		DeserializeBuffer(Memory&& mem) noexcept;
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DeserializeBuffer)
+
+	public:
+		sl_bool read(sl_uint8& _out) noexcept;
+
+		sl_size read(void* buf, sl_size size) noexcept;
+
+	};
 }
 
 #endif

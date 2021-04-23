@@ -186,7 +186,7 @@ namespace slib
 					}
 				}
 
-				void runJavaScript(WebView* view, const String& script) override
+				void runJavaScript(WebView* view, const StringParam& script) override
 				{
 					jobject handle = m_handle.get();
 					if (handle) {

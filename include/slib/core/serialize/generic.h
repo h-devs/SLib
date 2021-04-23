@@ -89,7 +89,7 @@ namespace slib
 	}
 
 	template <class INPUT, class T>
-	static sl_size Deserialize(INPUT* input, T& _out)
+	static sl_bool Deserialize(INPUT* input, T& _out)
 	{
 		return priv::serialize_helper::DoSerializeHelper<T>::deserialize(input, _out);
 	}
