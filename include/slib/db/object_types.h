@@ -52,7 +52,18 @@ namespace slib
 			MySQL,
 			PostgreSQL,
 			RedisDatabase,
-			SQLiteDatabase
+			SQLiteDatabase,
+			KeyValueStore,
+			KeyValueWriter,
+			KeyValueIO,
+			KeyValueTransation,
+			KeyValueCursor,
+			LMDB,
+			LevelDB,
+			RocksDB,
+			ObjectStorage,
+			DocumentStore,
+			MongoDB
 		};
 
 	}

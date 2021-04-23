@@ -1093,10 +1093,10 @@ namespace slib
 
 					if (mysql) {
 
-						String host = param.host;
-						String user = param.user;
-						String password = param.password;
-						String db = param.db;
+						StringCstr host = param.host;
+						StringCstr user = param.user;
+						StringCstr password = param.password;
+						StringCstr db = param.db;
 
 						unsigned long flags = 0;
 						if (param.flagMultipleStatements) {

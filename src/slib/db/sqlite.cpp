@@ -507,6 +507,8 @@ namespace slib
 					} else {
 						flags = param.flagReadonly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE;
 					}
+
+					StringCstr path(param.path);
 					
 					int iResult;
 					if (param.encryptionKey.isNotEmpty()) {
@@ -522,10 +524,10 @@ namespace slib
 						SLIB_SAFE_LOCAL_STATIC(Mutex, mutex)
 						MutexLocker lock(&mutex);
 						sqlite3_vfs_register(&m_vfs, 0);
-						iResult = sqlite3_open_v2(param.path.getData(), &db, flags, m_vfs.zName);
+						iResult = sqlite3_open_v2(path.getData(), &db, flags, m_vfs.zName);
 						sqlite3_vfs_unregister(&m_vfs);
 					} else {
-						iResult = sqlite3_open_v2(param.path.getData(), &db, flags, sl_null);
+						iResult = sqlite3_open_v2(path.getData(), &db, flags, sl_null);
 					}
 					if (SQLITE_OK == iResult) {
 						m_db = db;

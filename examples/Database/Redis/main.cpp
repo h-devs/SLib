@@ -11,7 +11,7 @@ int main(int argc, const char * argv[])
 	}
 	db->setLoggingErrors(sl_true);
 	
-	Println("PING: %s", db->execute("PING").getString());
+	Println("PING: %s", db->execute("PING"));
 
 	Println("SET: %s", db->set("foo", "hello world"));
 	
@@ -20,7 +20,7 @@ int main(int argc, const char * argv[])
 	Println("INCR counter: %s", db->incr("counter"));
 	Println("INCR counter: %s", db->incr("counter"));
 	
-	Println("DEL: %s", db->del("mylist"));
+	Println("DEL: %s", db->remove("mylist"));
 	for (int j = 0; j < 10; j++) {
 		db->lpush("mylist", String::format("element-%d", j));
 	}

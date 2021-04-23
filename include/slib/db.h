@@ -33,6 +33,7 @@
 #include "db/mysql.h"
 #include "db/postgresql.h"
 
+#include "db/key_value_store.h"
 #include "db/redis.h"
 
 #endif

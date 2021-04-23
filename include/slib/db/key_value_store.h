@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,316 +20,119 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DB_DATABASE
-#define CHECKHEADER_SLIB_DB_DATABASE
+#ifndef CHECKHEADER_SLIB_DB_KEY_VALUE_STORE
+#define CHECKHEADER_SLIB_DB_KEY_VALUE_STORE
 
-#include "sql.h"
-#include "cursor.h"
-#include "statement.h"
+#include "definition.h"
+
+#include "../core/object.h"
 
 namespace slib
 {
-	
-	class SLIB_EXPORT Database : public Object
+
+	class KeyValueStore;
+	class MemoryData;
+
+	class SLIB_EXPORT KeyValueWriter : public Object
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		Database();
+		KeyValueWriter();
 
-		~Database();
+		~KeyValueWriter();
 
 	public:
-		Ref<DatabaseStatement> prepareStatement(const StringParam& sql);
-		
-		Ref<DatabaseStatement> prepareStatement(const SqlBuilder& builder);
-		
-		sl_int64 executeBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
-		template <class T>
-		sl_int64 executeBy(const SqlBuilder& builder, const T& _params)
-		{
-			DatabaseParametersLocker<T> params(_params, builder.parameters);
-			return executeBy(builder.toString(), params.data, params.count);
-		}
+		virtual sl_bool set(const void* key, sl_size sizeKey, const void* value, sl_size sizeValue);
 
-		sl_int64 execute(const StringParam& sql);
-		
-		template <class... ARGS>
-		sl_int64 execute(const StringParam& sql, ARGS&&... args)
-		{
-			VariantEx params[] = {Forward<ARGS>(args)...};
-			return executeBy(sql, params, sizeof...(args));
-		}
-		
-		Ref<DatabaseCursor> queryBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
-		template <class T>
-		Ref<DatabaseCursor> queryBy(const SqlBuilder& builder, const T& _params)
-		{
-			DatabaseParametersLocker<T> params(_params, builder.parameters);
-			return queryBy(builder.toString(), params.data, params.count);
-		}
+		virtual sl_bool remove(const void* key, sl_size sizeKey);
 
-		Ref<DatabaseCursor> query(const StringParam& sql);
-		
-		template <class... ARGS>
-		Ref<DatabaseCursor> query(const StringParam& sql, ARGS&&... args)
-		{
-			VariantEx params[] = {Forward<ARGS>(args)...};
-			return queryBy(sql, params, sizeof...(args));
-		}
-		
-		List<VariantMap> getRecordsBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
-		template <class T>
-		List<VariantMap> getRecordsBy(const SqlBuilder& builder, const T& _params)
-		{
-			DatabaseParametersLocker<T> params(_params, builder.parameters);
-			return getRecordsBy(builder.toString(), params.data, params.count);
-		}
+		virtual sl_bool set(const StringParam& key, const Variant& value);
 
-		List<VariantMap> getRecords(const StringParam& sql);
-		
-		template <class... ARGS>
-		List<VariantMap> getRecords(const StringParam& sql, ARGS&&... args)
-		{
-			VariantEx params[] = {Forward<ARGS>(args)...};
-			return getRecordsBy(sql, params, sizeof...(args));
-		}
-		
-		VariantMap getRecordBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
-		template <class T>
-		VariantMap getRecordBy(const SqlBuilder& builder, const T& _params)
-		{
-			DatabaseParametersLocker<T> params(_params, builder.parameters);
-			return getRecordBy(builder.toString(), params.data, params.count);
-		}
+		virtual sl_bool remove(const StringParam& key);
 
-		VariantMap getRecord(const StringParam& sql);
-		
-		template <class... ARGS>
-		VariantMap getRecord(const StringParam& sql, ARGS&&... args)
-		{
-			VariantEx params[] = {Forward<ARGS>(args)...};
-			return getRecordBy(sql, params, sizeof...(args));
-		}
-		
-		Variant getValueBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
-		template <class T>
-		Variant getValueBy(const SqlBuilder& builder, const T& _params)
-		{
-			DatabaseParametersLocker<T> params(_params, builder.parameters);
-			return getValueBy(builder.toString(), params.data, params.count);
-		}
-		
-		Variant getValue(const StringParam& sql);
-		
-		template <class... ARGS>
-		Variant getValue(const StringParam& sql, ARGS&&... args)
-		{
-			VariantEx params[] = {Forward<ARGS>(args)...};
-			return getValueBy(sql, params, sizeof...(args));
-		}
+	};
 
-		sl_bool isLoggingSQL();
-		
-		void setLoggingSQL(sl_bool flag);
-		
-		sl_bool isLoggingErrors();
-		
-		void setLoggingErrors(sl_bool flag);
-		
-		
-		DatabaseDialect getDialect();
-		
-		
-		virtual String getErrorMessage() = 0;
-		
-		virtual sl_bool isDatabaseExisting(const StringParam& name) = 0;
-		
-		virtual List<String> getDatabases() = 0;
+	class SLIB_EXPORT KeyValueIO : public KeyValueWriter
+	{
+		SLIB_DECLARE_OBJECT
 
-		virtual sl_bool isTableExisting(const StringParam& name) = 0;
-		
-		virtual List<String> getTables() = 0;
-		
-		virtual sl_uint64 getLastInsertRowId() = 0;
-		
-		
-		sl_bool createTable(const DatabaseCreateTableParam& param);
+	public:
+		KeyValueIO();
 
-		sl_bool createTable(const DatabaseIdentifier& table, const ListParam<DatabaseColumnDefinition>& columns, DatabaseFlags flags = 0);
+		~KeyValueIO();
 
-		sl_bool dropTable(const DatabaseIdentifier& table, DatabaseFlags flags = 0);
+	public:
+		virtual sl_bool get(const void* key, sl_size sizeKey, MemoryData* pOutValue = sl_null);
 
-		sl_bool createIndex(const DatabaseCreateIndexParam& param);
+		// returns the required size when `sizeValue` is zero
+		virtual sl_reg get(const void* key, sl_size sizeKey, void* value, sl_size sizeValue);
 
-		sl_bool createIndex(const DatabaseIdentifier& index, const String& table, const ListParam<DatabaseIndexColumn>& columns, DatabaseFlags flags = 0);
-		
-		sl_bool dropIndex(const DatabaseIdentifier& index, const String& table, DatabaseFlags flags = 0);
-		
-		
-		Ref<DatabaseStatement> prepareInsert(const DatabaseIdentifier& table, const ListParam<String>& columns);
-		
-		template <class MAP>
-		sl_int64 insert(const DatabaseIdentifier& table, const MAP& map)
-		{
-			List<String> names;
-			List<Variant> values;
-			for (auto& pair : map) {
-				names.add_NoLock(pair.key);
-				values.add_NoLock(pair.value);
-			}
-			Ref<DatabaseStatement> stmt = prepareInsert(table, names);
-			if (stmt.isNotNull()) {
-				return stmt->executeBy(values.getData(), (sl_uint32)(values.getCount()));
-			}
-			return -1;
-		}
+		virtual Variant get(const StringParam& key);
 
-		Ref<DatabaseStatement> prepareUpdate(const DatabaseIdentifier& table, const ListParam<String>& columns, const DatabaseExpression& where);
-		
-		template <class MAP, class... ARGS>
-		sl_int64 update(const DatabaseIdentifier& table, const MAP& map, const DatabaseExpression& where, ARGS&&... args)
-		{
-			List<String> names;
-			List<Variant> values;
-			for (auto& pair : map) {
-				names.add_NoLock(pair.key);
-				values.add_NoLock(pair.value);
-			}
-			VariantEx params[] = {Forward<ARGS>(args)...};
-			sl_size nParams = (sl_size)(sizeof...(args));
-			for (sl_size i = 0; i < nParams; i++) {
-				values.add_NoLock(params[i]);
-			}
-			Ref<DatabaseStatement> stmt = prepareUpdate(table, names, where);
-			if (stmt.isNotNull()) {
-				return stmt->executeBy(values.getData(), (sl_uint32)(values.getCount()));
-			}
-			return -1;
-		}
-		
-		Ref<DatabaseStatement> prepareDelete(const DatabaseIdentifier& table, const DatabaseExpression& where);
-		
-		template <class... ARGS>
-		sl_int64 deleteRecords(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
-		{
-			VariantEx params[] = {Forward<ARGS>(args)...};
-			Ref<DatabaseStatement> stmt = prepareDelete(table, where);
-			if (stmt.isNotNull()) {
-				return stmt->executeBy(params, sizeof...(args));
-			}
-			return -1;
-		}
+	};
 
-		Ref<DatabaseStatement> prepareQuery(const DatabaseSelectParam& query);
+	class SLIB_EXPORT KeyValueTransation : public KeyValueWriter
+	{
+		SLIB_DECLARE_OBJECT
 
-		Ref<DatabaseStatement> prepareQuery(const DatabaseIdentifier& table, const DatabaseExpression& where);
+	public:
+		KeyValueTransation();
 
-		List<VariantMap> findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where);
+		~KeyValueTransation();
 
-		template <class... ARGS>
-		List<VariantMap> findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
-		{
-			VariantEx params[] = {Forward<ARGS>(args)...};
-			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
-			if (stmt.isNotNull()) {
-				return stmt->getRecordsBy(params, sizeof...(args));
-			}
-			return sl_null;
-		}
+	public:
+		void commit();
 
-		template <class T>
-		List<VariantMap> findRecordsBy(const DatabaseIdentifier& table, const DatabaseExpression& where, const T& params)
-		{
-			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
-			if (stmt.isNotNull()) {
-				return stmt->getRecordsBy(params);
-			}
-			return sl_null;
-		}
+		void discard();
 
-		VariantMap findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where);
+	public:
+		virtual sl_bool _commit() = 0;
 
-		template <class... ARGS>
-		VariantMap findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
-		{
-			VariantEx params[] = {Forward<ARGS>(args)...};
-			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
-			if (stmt.isNotNull()) {
-				return stmt->getRecordBy(params, sizeof...(args));
-			}
-			return sl_null;
-		}
-		
-		template <class T>
-		VariantMap findRecordBy(const DatabaseIdentifier& table, const DatabaseExpression& where, const T& params)
-		{
-			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
-			if (stmt.isNotNull()) {
-				return stmt->getRecordBy(params);
-			}
-			return sl_null;
-		}
-
-		Variant findValue(const DatabaseIdentifier& table, const DatabaseExpression& where);
-
-		template <class... ARGS>
-		Variant findValue(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
-		{
-			VariantEx params[] = {Forward<ARGS>(args)...};
-			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
-			if (stmt.isNotNull()) {
-				return stmt->getValueBy(params, sizeof...(args));
-			}
-			return sl_null;
-		}
-		
-		template <class T>
-		Variant findValueBy(const DatabaseIdentifier& table, const DatabaseExpression& where, const T& params)
-		{
-			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
-			if (stmt.isNotNull()) {
-				return stmt->getValueBy(params);
-			}
-			return sl_null;
-		}
-		
-		sl_bool startTransaction();
-		
-		sl_bool commitTransaction();
-		
-		sl_bool rollbackTransaction();
+		virtual sl_bool _discard() = 0;
 
 	protected:
-		virtual Ref<DatabaseStatement> _prepareStatement(const StringParam& sql) = 0;
-		
-		virtual sl_int64 _executeBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
-		virtual sl_int64 _execute(const StringParam& sql);
-		
-		virtual Ref<DatabaseCursor> _queryBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
-		virtual Ref<DatabaseCursor> _query(const StringParam& sql);
-		
-		void _logSQL(const StringParam& sql);
-		
-		void _logSQL(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
-		void _logError(const StringParam& sql);
-		
-		void _logError(const StringParam& sql, const Variant* params, sl_uint32 nParams);
+		sl_bool m_flagClosed;
 
-	protected:
-		sl_bool m_flagLogSQL;
-		sl_bool m_flagLogErrors;
-		
-		DatabaseDialect m_dialect;
-		
+	};
+
+	class SLIB_EXPORT KeyValueCursor : public Object
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		KeyValueCursor();
+
+		~KeyValueCursor();
+
+	public:
+		virtual String getKey() = 0;
+
+		virtual sl_bool getValue(MemoryData* pOutValue);
+
+		// returns the required size when `sizeValue` is zero
+		virtual sl_reg getValue(void* value, sl_size sizeValue);
+
+		virtual Variant getValue();
+
+		virtual sl_bool moveNext() = 0;
+
+	};
+
+	class SLIB_EXPORT KeyValueStore : public KeyValueIO
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		KeyValueStore();
+
+		~KeyValueStore();
+
+	public:
+		virtual Ref<KeyValueTransation> createTransation() = 0;
+
+		virtual Ref<KeyValueCursor> iterate(const StringParam& from) = 0;
+
 	};
 
 }
