@@ -13,7 +13,7 @@ int main(int argc, const char * argv[])
 	
 	Println("PING: %s", db->execute("PING"));
 
-	Println("SET: %s", db->set("foo", "hello world"));
+	Println("SET: %s", db->put("foo", "hello world"));
 	
 	Println("GET foo: %s", db->get("foo"));
 	

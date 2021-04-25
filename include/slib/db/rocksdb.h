@@ -20,52 +20,48 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_DB_OBJECT_TYPES
-#define CHECKHEADER_SLIB_DB_OBJECT_TYPES
+#ifndef CHECKHEADER_SLIB_DB_ROCKSDB
+#define CHECKHEADER_SLIB_DB_ROCKSDB
 
-#include "../object_types.h"
+#include "key_value_store.h"
+
+#include "../core/string.h"
 
 namespace slib
 {
-	namespace object_types
+
+	class RocksDB_Param
 	{
+	public:
+		String path;
 
-		enum {
-			Package_Db = packages::Db,
-			Database,
-			DatabaseStatement,
-			DatabaseCursor,
-			CDatabaseExpression,
-			ValueExpression,
-			IdentifierExpression,
-			IdentifierExpression2,
-			RawExpression,
-			ParameterExpression,
-			CountAllExpression,
-			BinaryOpExpression,
-			CustomBinaryOpExpression,
-			UnaryOpExpression,
-			CustomUnaryOpExpression,
-			FunctionExpression,
-			SetExpression,
-			ConcatExpression,
-			MySQL,
-			PostgreSQL,
-			Redis,
-			SQLite,
-			KeyValueStore,
-			KeyValueWriteBatch,
-			KeyValueIterator,
-			KeyValueSnapshot,
-			LMDB,
-			LevelDB,
-			RocksDB,
-			ObjectStorage,
-			DocumentStore,
-			MongoDB
-		};
+		sl_bool flagCreateIfMissing;
 
-	}
+	public:
+		RocksDB_Param();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RocksDB_Param)
+
+	};
+
+	class SLIB_EXPORT RocksDB : public KeyValueStore
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		RocksDB();
+
+		~RocksDB();
+
+	public:
+		typedef RocksDB_Param Param;
+
+		static Ref<RocksDB> open(const RocksDB_Param& param);
+
+		static Ref<RocksDB> open(const StringParam& path);
+
+	};
+
 }
 
 #endif

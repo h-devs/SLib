@@ -1358,5 +1358,14 @@
     <ClCompile Include="..\..\src\slib\db\key_value_store.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\db\leveldb.cpp">
+      <Filter>src\db</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\db\lmdb.cpp">
+      <Filter>src\db</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\db\rocksdb.cpp">
+      <Filter>src\db</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

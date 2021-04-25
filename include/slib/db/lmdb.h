@@ -20,52 +20,49 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_DB_OBJECT_TYPES
-#define CHECKHEADER_SLIB_DB_OBJECT_TYPES
+#ifndef CHECKHEADER_SLIB_DB_LMDB
+#define CHECKHEADER_SLIB_DB_LMDB
 
-#include "../object_types.h"
+#include "key_value_store.h"
+
+#include "../core/string.h"
 
 namespace slib
 {
-	namespace object_types
+
+	class LMDB_Param
 	{
+	public:
+		String path;
 
-		enum {
-			Package_Db = packages::Db,
-			Database,
-			DatabaseStatement,
-			DatabaseCursor,
-			CDatabaseExpression,
-			ValueExpression,
-			IdentifierExpression,
-			IdentifierExpression2,
-			RawExpression,
-			ParameterExpression,
-			CountAllExpression,
-			BinaryOpExpression,
-			CustomBinaryOpExpression,
-			UnaryOpExpression,
-			CustomUnaryOpExpression,
-			FunctionExpression,
-			SetExpression,
-			ConcatExpression,
-			MySQL,
-			PostgreSQL,
-			Redis,
-			SQLite,
-			KeyValueStore,
-			KeyValueWriteBatch,
-			KeyValueIterator,
-			KeyValueSnapshot,
-			LMDB,
-			LevelDB,
-			RocksDB,
-			ObjectStorage,
-			DocumentStore,
-			MongoDB
-		};
+		sl_bool flagCreateIfMissing;
+		sl_uint32 mode; // The UNIX permissions to set on created files and semaphores
 
-	}
+	public:
+		LMDB_Param();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LMDB_Param)
+
+	};
+
+	class SLIB_EXPORT LMDB : public KeyValueStore
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		LMDB();
+
+		~LMDB();
+
+	public:
+		typedef LMDB_Param Param;
+
+		static Ref<LMDB> open(const LMDB_Param& param);
+
+		static Ref<LMDB> open(const StringParam& path);
+
+	};
+
 }
 
 #endif

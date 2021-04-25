@@ -364,10 +364,10 @@ class WindowsEnv : public Env {
  public:
   WindowsEnv();
   ~WindowsEnv() override {
-    static const char msg[] =
-        "WindowsEnv singleton destroyed. Unsupported behavior!\n";
-    std::fwrite(msg, 1, sizeof(msg), stderr);
-    std::abort();
+   // static const char msg[] =
+   //     "WindowsEnv singleton destroyed. Unsupported behavior!\n";
+   // std::fwrite(msg, 1, sizeof(msg), stderr);
+   // std::abort();
   }
 
   Status NewSequentialFile(const std::string& filename,

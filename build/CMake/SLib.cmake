@@ -270,8 +270,10 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/db/database_expression.cpp"
  "${SLIB_PATH}/src/slib/db/database_sql.cpp"
  "${SLIB_PATH}/src/slib/db/database_statement.cpp"
- "${SLIB_PATH}/src/slib/db/redis.cpp"
  "${SLIB_PATH}/src/slib/db/sqlite.cpp"
+ "${SLIB_PATH}/src/slib/db/redis.cpp"
+ "${SLIB_PATH}/src/slib/db/leveldb.cpp"
+ "${SLIB_PATH}/src/slib/db/lmdb.cpp"
 
  "${SLIB_PATH}/src/slib/doc/pdf.cpp"
  "${SLIB_PATH}/src/slib/doc/rar.cpp"
@@ -457,6 +459,7 @@ else ()
 
   "${SLIB_PATH}/src/slib/db/mysql.cpp"
   "${SLIB_PATH}/src/slib/db/postgresql.cpp"
+  "${SLIB_PATH}/src/slib/db/rocksdb.cpp"
 
   "${SLIB_PATH}/src/slib/graphics/bitmap_cairo.cpp"
   "${SLIB_PATH}/src/slib/graphics/canvas_cairo.cpp"

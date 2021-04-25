@@ -126,7 +126,7 @@ namespace slib
 					return _processReply(reply);
 				}
 
-				sl_bool set(const StringParam& _key, const Variant& value) override
+				sl_bool put(const StringParam& _key, const Variant& value) override
 				{
 					StringCstr key(_key);
 					StringCstr str = value.getString();
@@ -143,12 +143,17 @@ namespace slib
 					return _processCheckReply(reply, 1);
 				}
 
-				Ref<KeyValueTransation> createTransation() override
+				Ref<KeyValueWriteBatch> createWriteBatch() override
 				{
 					return sl_null;
 				}
 				
-				Ref<KeyValueCursor> iterate(const StringParam& from) override
+				Ref<KeyValueIterator> createIterator() override
+				{
+					return sl_null;
+				}
+
+				Ref<KeyValueSnapshot> createSnapshot() override
 				{
 					return sl_null;
 				}

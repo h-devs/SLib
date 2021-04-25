@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,23 +20,48 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DB_HEADER
-#define CHECKHEADER_SLIB_DB_HEADER
+#ifndef CHECKHEADER_SLIB_DB_LEVELDB
+#define CHECKHEADER_SLIB_DB_LEVELDB
 
-#include "db/constants.h"
+#include "key_value_store.h"
 
-#include "db/expression.h"
-#include "db/sql.h"
+#include "../core/string.h"
 
-#include "db/database.h"
-#include "db/sqlite.h"
-#include "db/mysql.h"
-#include "db/postgresql.h"
+namespace slib
+{
 
-#include "db/key_value_store.h"
-#include "db/redis.h"
-#include "db/leveldb.h"
-#include "db/rocksdb.h"
-#include "db/lmdb.h"
+	class LevelDB_Param
+	{
+	public:
+		String path;
+
+		sl_bool flagCreateIfMissing;
+
+	public:
+		LevelDB_Param();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LevelDB_Param)
+
+	};
+
+	class SLIB_EXPORT LevelDB : public KeyValueStore
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		LevelDB();
+
+		~LevelDB();
+
+	public:
+		typedef LevelDB_Param Param;
+
+		static Ref<LevelDB> open(const LevelDB_Param& param);
+
+		static Ref<LevelDB> open(const StringParam& path);
+		
+	};
+
+}
 
 #endif

@@ -50,7 +50,7 @@ namespace slib
 
 	sl_size SerializeVariantPrimitive(const Variant& var, void* buf, sl_size size);
 
-	sl_size SerializeVariant(const Variant& var, void* buf, sl_size size, Memory* pOutMemoryIfInsufficient);
+	sl_size SerializeVariant(const Variant& var, void* buf, sl_size size, Memory* pOutMemoryIfInsufficient, const void* prefix = sl_null, sl_size sizePrefix = 0);
 
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const Variant& _in)

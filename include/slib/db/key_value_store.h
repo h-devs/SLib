@@ -31,36 +31,15 @@ namespace slib
 {
 
 	class KeyValueStore;
+	class KeyValueIterator;
 	class MemoryData;
 
-	class SLIB_EXPORT KeyValueWriter : public Object
+	class SLIB_EXPORT KeyValueReader
 	{
-		SLIB_DECLARE_OBJECT
-
 	public:
-		KeyValueWriter();
+		KeyValueReader();
 
-		~KeyValueWriter();
-
-	public:
-		virtual sl_bool set(const void* key, sl_size sizeKey, const void* value, sl_size sizeValue);
-
-		virtual sl_bool remove(const void* key, sl_size sizeKey);
-
-		virtual sl_bool set(const StringParam& key, const Variant& value);
-
-		virtual sl_bool remove(const StringParam& key);
-
-	};
-
-	class SLIB_EXPORT KeyValueIO : public KeyValueWriter
-	{
-		SLIB_DECLARE_OBJECT
-
-	public:
-		KeyValueIO();
-
-		~KeyValueIO();
+		~KeyValueReader();
 
 	public:
 		virtual sl_bool get(const void* key, sl_size sizeKey, MemoryData* pOutValue = sl_null);
@@ -70,43 +49,79 @@ namespace slib
 
 		virtual Variant get(const StringParam& key);
 
+		virtual Ref<KeyValueIterator> createIterator() = 0;
+
 	};
 
-	class SLIB_EXPORT KeyValueTransation : public KeyValueWriter
+	class SLIB_EXPORT KeyValueWriter
+	{
+	public:
+		KeyValueWriter();
+
+		~KeyValueWriter();
+
+	public:
+		virtual sl_bool put(const void* key, sl_size sizeKey, const void* value, sl_size sizeValue);
+
+		virtual sl_bool put(const StringParam& key, const Variant& value);
+
+		virtual sl_bool remove(const void* key, sl_size sizeKey);
+
+		virtual sl_bool remove(const StringParam& key);
+
+	};
+
+	class SLIB_EXPORT KeyValueWriteBatch : public Object, public KeyValueWriter
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		KeyValueTransation();
+		KeyValueWriteBatch();
 
-		~KeyValueTransation();
+		~KeyValueWriteBatch();
 
 	public:
-		void commit();
+		sl_bool commit();
 
 		void discard();
 
 	public:
 		virtual sl_bool _commit() = 0;
 
-		virtual sl_bool _discard() = 0;
+		virtual void _discard() = 0;
 
 	protected:
 		sl_bool m_flagClosed;
 
 	};
 
-	class SLIB_EXPORT KeyValueCursor : public Object
+	class SLIB_EXPORT KeyValueSnapshot : public Referable, public KeyValueReader
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		KeyValueCursor();
+		KeyValueSnapshot();
 
-		~KeyValueCursor();
+		~KeyValueSnapshot();
+
+	};
+
+	class SLIB_EXPORT KeyValueIterator : public Referable
+	{
+		SLIB_DECLARE_OBJECT
 
 	public:
-		virtual String getKey() = 0;
+		KeyValueIterator();
+
+		~KeyValueIterator();
+
+	public:
+		virtual sl_bool getKey(MemoryData* pOutKey);
+
+		// returns the required size when `sizeValue` is zero
+		virtual sl_reg getKey(void* value, sl_size sizeValue);
+
+		virtual String getKey();
 
 		virtual sl_bool getValue(MemoryData* pOutValue);
 
@@ -115,11 +130,21 @@ namespace slib
 
 		virtual Variant getValue();
 
+		virtual sl_bool moveFirst() = 0;
+
+		virtual sl_bool moveLast() = 0;
+
+		virtual sl_bool movePrevious() = 0;
+
 		virtual sl_bool moveNext() = 0;
+
+		virtual sl_bool seek(const void* key, sl_size sizeKey);
+
+		virtual sl_bool seek(const StringParam& key);
 
 	};
 
-	class SLIB_EXPORT KeyValueStore : public KeyValueIO
+	class SLIB_EXPORT KeyValueStore : public Object, public KeyValueReader, public KeyValueWriter
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -129,9 +154,17 @@ namespace slib
 		~KeyValueStore();
 
 	public:
-		virtual Ref<KeyValueTransation> createTransation() = 0;
+		virtual Ref<KeyValueWriteBatch> createWriteBatch() = 0;
 
-		virtual Ref<KeyValueCursor> iterate(const StringParam& from) = 0;
+		virtual Ref<KeyValueSnapshot> createSnapshot() = 0;
+
+		virtual sl_bool compact(const void* from, sl_size sizeFrom, const void* end, sl_size sizeEnd);
+
+		sl_bool compact();
+
+		sl_bool compactFrom(const void* from, sl_size sizeFrom);
+
+		sl_bool compactTo(const void* end, sl_size sizeEnd);
 
 	};
 

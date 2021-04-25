@@ -38,8 +38,9 @@ namespace slib
 				if (value.size) {
 					sl_char8* buf = (sl_char8*)(value.data);
 					if (*buf) {
-						if (value.ref.isNotNull()) {
-							return String::fromRef(value.ref.get(), buf, value.size);
+						Referable* ref = value.ref.get();
+						if (ref) {
+							return String::fromRef(ref, buf, value.size);
 						} else {
 							return String(buf, value.size);
 						}
@@ -48,7 +49,7 @@ namespace slib
 							value.size--;
 							value.data = buf + 1;
 							Variant ret;
-							ret.deserialize(value);
+							ret.deserialize(Move(value));
 							return ret;
 						} else {
 							return String::getEmpty();
@@ -64,94 +65,33 @@ namespace slib
 
 	using namespace priv::kvs;
 
-	SLIB_DEFINE_OBJECT(KeyValueWriter, Object)
 
-	KeyValueWriter::KeyValueWriter()
+	KeyValueReader::KeyValueReader()
 	{
 	}
 
-	KeyValueWriter::~KeyValueWriter()
+	KeyValueReader::~KeyValueReader()
 	{
 	}
 
-	sl_bool KeyValueWriter::set(const void* key, sl_size sizeKey, const void* value, sl_size sizeValue)
+	sl_bool KeyValueReader::get(const void* key, sl_size sizeKey, MemoryData* pOutValue)
 	{
-		return set(StringView((sl_char8*)key, sizeKey), StringView((sl_char8*)value, sizeValue));
-	}
-
-	sl_bool KeyValueWriter::remove(const void* key, sl_size sizeKey)
-	{
-		return remove(StringView((sl_char8*)key, sizeKey));
-	}
-
-	sl_bool KeyValueWriter::set(const StringParam& _key, const Variant& value)
-	{
-		if (value.isUndefined()) {
-			return remove(_key);
-		} else if (value.isNull()) {
-			StringData key(_key);
-			return set(key.getUnsafeData(), key.getLength(), sl_null, 0);
-		} else if (value.isString()) {
-			StringData key(_key);
-			String str = value.getString();
-			if (str.isNotEmpty()) {
-				return set(key.getUnsafeData(), key.getLength(), str.getData(), str.getLength());
-			} else {
-				return set(key.getUnsafeData(), key.getLength(), "", 1);
-			}
-		} else {
-			sl_uint8 buf[1024];
-			Memory mem;
-			sl_size nWrite = SerializeVariant(value, buf, sizeof(buf), &mem);
-			if (nWrite) {
-				StringData key(_key);
-				void* p = buf;
-				if (mem.isNotNull()) {
-					p = mem.getData();
-				}
-				return set(key.getUnsafeData(), key.getLength(), p, nWrite);
-			}
+		if (!pOutValue) {
+			return get(key, sizeKey, sl_null, 0) >= 0;
 		}
-		return sl_false;
-	}
-
-	sl_bool KeyValueWriter::remove(const StringParam& _key)
-	{
-		StringData key(_key);
-		return remove(key.getUnsafeData(), key.getLength());
-	}
-
-
-	SLIB_DEFINE_OBJECT(KeyValueIO, KeyValueWriter)
-
-	KeyValueIO::KeyValueIO()
-	{
-	}
-
-	KeyValueIO::~KeyValueIO()
-	{
-	}
-
-	sl_bool KeyValueIO::get(const void* key, sl_size sizeKey, MemoryData* pOutValue)
-	{
-		sl_reg n = get(key, sizeKey, sl_null, 0);
+		sl_reg n = get(key, sizeKey, pOutValue->data, pOutValue->size);
 		if (n < 0) {
 			return sl_false;
 		}
-		if (!pOutValue) {
+		if ((sl_size)n <= pOutValue->size) {
+			pOutValue->size = n;
 			return sl_true;
 		}
-		if (!n) {
-			pOutValue->size = 0;
-			return sl_true;
+		Memory mem = Memory::create(n);
+		if (mem.isNull()) {
+			return sl_false;
 		}
-		if (pOutValue->size < (sl_size)n) {
-			Memory mem = Memory::create(n);
-			if (mem.isNull()) {
-				return sl_false;
-			}
-			*pOutValue = Move(mem);
-		}
+		*pOutValue = Move(mem);
 		n = get(key, sizeKey, pOutValue->data, n);
 		if (n >= 0) {
 			pOutValue->size = n;
@@ -161,27 +101,21 @@ namespace slib
 		}
 	}
 
-	sl_reg KeyValueIO::get(const void* key, sl_size sizeKey, void* value, sl_size sizeValue)
+	sl_reg KeyValueReader::get(const void* key, sl_size sizeKey, void* value, sl_size sizeValue)
 	{
 		MemoryData data;
 		if (get(key, sizeKey, &data)) {
-			if (sizeValue) {
-				if (data.size) {
-					sl_size n = SLIB_MIN(sizeValue, data.size);
-					Base::copyMemory(value, data.data, n);
-					return n;
-				} else {
-					return 0;
-				}
-			} else {
-				return data.size;
+			sl_size n = SLIB_MIN(sizeValue, data.size);
+			if (n) {
+				Base::copyMemory(value, data.data, n);
 			}
+			return data.size;
 		} else {
 			return -1;
 		}
 	}
 
-	Variant KeyValueIO::get(const StringParam& _key)
+	Variant KeyValueReader::get(const StringParam& _key)
 	{
 		StringData key(_key);
 		MemoryData value;
@@ -193,27 +127,87 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_OBJECT(KeyValueTransation, KeyValueWriter)
-
-	KeyValueTransation::KeyValueTransation(): m_flagClosed(sl_false)
+	KeyValueWriter::KeyValueWriter()
 	{
 	}
 
-	KeyValueTransation::~KeyValueTransation()
+	KeyValueWriter::~KeyValueWriter()
 	{
 	}
 
-	void KeyValueTransation::commit()
+	sl_bool KeyValueWriter::put(const void* key, sl_size sizeKey, const void* value, sl_size sizeValue)
+	{
+		return put(StringView((sl_char8*)key, sizeKey), StringView((sl_char8*)value, sizeValue));
+	}
+
+	sl_bool KeyValueWriter::put(const StringParam& _key, const Variant& value)
+	{
+		if (value.isUndefined()) {
+			return remove(_key);
+		} else if (value.isNull()) {
+			StringData key(_key);
+			return put(key.getUnsafeData(), key.getLength(), sl_null, 0);
+		} else if (value.isString()) {
+			StringData key(_key);
+			String str = value.getString();
+			if (str.isNotEmpty()) {
+				return put(key.getUnsafeData(), key.getLength(), str.getData(), str.getLength());
+			} else {
+				return put(key.getUnsafeData(), key.getLength(), "", 1);
+			}
+		} else {
+			sl_uint8 buf[1024];
+			Memory mem;
+			sl_size nWrite = SerializeVariant(value, buf, sizeof(buf), &mem, "", 1);
+			if (nWrite) {
+				StringData key(_key);
+				void* p = buf;
+				if (mem.isNotNull()) {
+					p = mem.getData();
+				}
+				return put(key.getUnsafeData(), key.getLength(), p, nWrite);
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool KeyValueWriter::remove(const void* key, sl_size sizeKey)
+	{
+		return remove(StringView((sl_char8*)key, sizeKey));
+	}
+
+	sl_bool KeyValueWriter::remove(const StringParam& _key)
+	{
+		StringData key(_key);
+		return remove(key.getUnsafeData(), key.getLength());
+	}
+
+
+	SLIB_DEFINE_OBJECT(KeyValueWriteBatch, Object)
+
+	KeyValueWriteBatch::KeyValueWriteBatch(): m_flagClosed(sl_false)
+	{
+	}
+
+	KeyValueWriteBatch::~KeyValueWriteBatch()
+	{
+	}
+
+	sl_bool KeyValueWriteBatch::commit()
 	{
 		ObjectLocker lock(this);
 		if (m_flagClosed) {
-			return;
+			return sl_false;
 		}
-		m_flagClosed = sl_true;
-		_commit();
+		if (_commit()) {
+			m_flagClosed = sl_true;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
 	}
 
-	void KeyValueTransation::discard()
+	void KeyValueWriteBatch::discard()
 	{
 		ObjectLocker lock(this);
 		if (m_flagClosed) {
@@ -224,36 +218,96 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_OBJECT(KeyValueCursor, Object)
+	SLIB_DEFINE_ROOT_OBJECT(KeyValueSnapshot)
 
-	KeyValueCursor::KeyValueCursor()
+	KeyValueSnapshot::KeyValueSnapshot()
 	{
 	}
 
-	KeyValueCursor::~KeyValueCursor()
+	KeyValueSnapshot::~KeyValueSnapshot()
 	{
 	}
 
-	sl_bool KeyValueCursor::getValue(MemoryData* pOutValue)
+
+	SLIB_DEFINE_OBJECT(KeyValueIterator, Object)
+
+	KeyValueIterator::KeyValueIterator()
 	{
-		sl_reg n = getValue(sl_null, 0);
+	}
+
+	KeyValueIterator::~KeyValueIterator()
+	{
+	}
+
+	sl_bool KeyValueIterator::getKey(MemoryData* pOutValue)
+	{
+		if (!pOutValue) {
+			return getKey(sl_null, 0) >= 0;
+		}
+		sl_reg n = getKey(pOutValue->data, pOutValue->size);
 		if (n < 0) {
 			return sl_false;
 		}
-		if (!pOutValue) {
+		if ((sl_size)n <= pOutValue->size) {
+			pOutValue->size = n;
 			return sl_true;
 		}
-		if (!n) {
-			pOutValue->size = 0;
-			return sl_true;
+		Memory mem = Memory::create(n);
+		if (mem.isNull()) {
+			return sl_false;
 		}
-		if (pOutValue->size < (sl_size)n) {
-			Memory mem = Memory::create(n);
-			if (mem.isNull()) {
-				return sl_false;
+		*pOutValue = Move(mem);
+		n = getKey(pOutValue->data, n);
+		if (n >= 0) {
+			pOutValue->size = n;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_reg KeyValueIterator::getKey(void* value, sl_size sizeValue)
+	{
+		MemoryData data;
+		if (getKey(&data)) {
+			sl_size n = SLIB_MIN(sizeValue, data.size);
+			if (n) {
+				Base::copyMemory(value, data.data, n);
 			}
-			*pOutValue = Move(mem);
+			return data.size;
+		} else {
+			return -1;
 		}
+	}
+
+	String KeyValueIterator::getKey()
+	{
+		MemoryData value;
+		if (getKey(&value)) {
+			return String::fromRef(value.ref.get(), (sl_char8*)(value.data), value.size);
+		} else {
+			return sl_null;
+		}
+	}
+
+	sl_bool KeyValueIterator::getValue(MemoryData* pOutValue)
+	{
+		if (!pOutValue) {
+			return getValue(sl_null, 0) >= 0;
+		}
+		sl_reg n = getValue(pOutValue->data, pOutValue->size);
+		if (n < 0) {
+			return sl_false;
+		}
+		if ((sl_size)n <= pOutValue->size) {
+			pOutValue->size = n;
+			return sl_true;
+		}
+		Memory mem = Memory::create(n);
+		if (mem.isNull()) {
+			return sl_false;
+		}
+		*pOutValue = Move(mem);
 		n = getValue(pOutValue->data, n);
 		if (n >= 0) {
 			pOutValue->size = n;
@@ -263,27 +317,21 @@ namespace slib
 		}
 	}
 
-	sl_reg KeyValueCursor::getValue(void* value, sl_size sizeValue)
+	sl_reg KeyValueIterator::getValue(void* value, sl_size sizeValue)
 	{
 		MemoryData data;
 		if (getValue(&data)) {
-			if (sizeValue) {
-				if (data.size) {
-					sl_size n = SLIB_MIN(sizeValue, data.size);
-					Base::copyMemory(value, data.data, n);
-					return n;
-				} else {
-					return 0;
-				}
-			} else {
-				return data.size;
+			sl_size n = SLIB_MIN(sizeValue, data.size);
+			if (n) {
+				Base::copyMemory(value, data.data, n);
 			}
+			return data.size;
 		} else {
 			return -1;
 		}
 	}
 
-	Variant KeyValueCursor::getValue()
+	Variant KeyValueIterator::getValue()
 	{
 		MemoryData value;
 		if (getValue(&value)) {
@@ -293,8 +341,19 @@ namespace slib
 		}
 	}
 
+	sl_bool KeyValueIterator::seek(const void* key, sl_size sizeKey)
+	{
+		return seek(StringView((sl_char8*)key, sizeKey));
+	}
 
-	SLIB_DEFINE_OBJECT(KeyValueStore, KeyValueIO)
+	sl_bool KeyValueIterator::seek(const StringParam& _key)
+	{
+		StringData key(_key);
+		return seek(key.getUnsafeData(), key.getLength());
+	}
+
+
+	SLIB_DEFINE_OBJECT(KeyValueStore, Object)
 
 	KeyValueStore::KeyValueStore()
 	{
@@ -302,6 +361,26 @@ namespace slib
 
 	KeyValueStore::~KeyValueStore()
 	{
+	}
+
+	sl_bool KeyValueStore::compact(const void* from, sl_size sizeFrom, const void* end, sl_size sizeEnd)
+	{
+		return sl_false;
+	}
+
+	sl_bool KeyValueStore::compact()
+	{
+		return compact(sl_null, 0, sl_null, 0);
+	}
+
+	sl_bool KeyValueStore::compactFrom(const void* from, sl_size sizeFrom)
+	{
+		return compact(from, sizeFrom, sl_null, 0);
+	}
+
+	sl_bool KeyValueStore::compactTo(const void* end, sl_size sizeEnd)
+	{
+		return compact(sl_null, 0, end, sizeEnd);
 	}
 
 }

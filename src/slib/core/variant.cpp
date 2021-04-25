@@ -3217,15 +3217,19 @@ namespace slib
 		} else { \
 			return 0; \
 		} \
-	} \
-	SIZE = REQ_SIZE;
+	}
 
-	sl_size SerializeVariant(const Variant& var, void* _buf, sl_size size, Memory* pOutMemoryIfInsufficient)
+	sl_size SerializeVariant(const Variant& var, void* _buf, sl_size size, Memory* pOutMemoryIfInsufficient, const void* prefix, sl_size sizePrefix)
 	{
 		sl_uint8* buf = (sl_uint8*)_buf;
-		sl_size nWritten = SerializeVariantPrimitive(var, buf, size);
-		if (nWritten) {
-			return nWritten;
+		if (size > sizePrefix) {
+			sl_size nWritten = SerializeVariantPrimitive(var, buf + sizePrefix, size - sizePrefix);
+			if (nWritten) {
+				if (sizePrefix) {
+					Base::copyMemory(buf, prefix, sizePrefix);
+				}
+				return sizePrefix + nWritten;
+			}
 		}
 		switch (var._type) {
 			case VariantType::String8:
@@ -3235,23 +3239,34 @@ namespace slib
 				{
 					String str = var.getString();
 					sl_size n = str.getLength();
-					SERIALIZE_PREPARE_MEMORY(buf, size, n + 1, pOutMemoryIfInsufficient)
-					*buf = (sl_uint8)(VariantType::String8);
-					Base::copyMemory(buf + 1, str.getData(), n);
-					return 1 + n;
+					SERIALIZE_PREPARE_MEMORY(buf, size, sizePrefix + 1 + n, pOutMemoryIfInsufficient)
+					if (sizePrefix) {
+						Base::copyMemory(buf, prefix, sizePrefix);
+					}
+					buf[sizePrefix] = (sl_uint8)(VariantType::String8);
+					Base::copyMemory(buf + sizePrefix + 1, str.getData(), n);
+					return sizePrefix + 1 + n;
 				}
 			case VariantType::Memory:
 				{
 					Memory& m = *((Memory*)(void*)&(var._value));
 					sl_size n = m.getSize();
-					SERIALIZE_PREPARE_MEMORY(buf, size, n + 1, pOutMemoryIfInsufficient)
-					*buf = (sl_uint8)(VariantType::Memory);
-					Base::copyMemory(buf + 1, m.getData(), n);
-					return 1 + n;
+					SERIALIZE_PREPARE_MEMORY(buf, size, sizePrefix + 1 + n, pOutMemoryIfInsufficient)
+					if (sizePrefix) {
+						Base::copyMemory(buf, prefix, sizePrefix);
+					}
+					buf[sizePrefix] = (sl_uint8)(VariantType::Memory);
+					Base::copyMemory(buf + sizePrefix + 1, m.getData(), n);
+					return sizePrefix + 1 + n;
 				}
 			default:
 				if (IsReferable(var._type)) {
 					MemoryBuffer mb;
+					if (sizePrefix) {
+						if (!(mb.addStatic(prefix, sizePrefix))) {
+							return 0;
+						}
+					}
 					if (Serialize(&mb, var)) {
 						Memory mem = mb.merge();
 						sl_size n = mem.getSize();
@@ -3261,7 +3276,7 @@ namespace slib
 								return n;
 							} else {
 								if (pOutMemoryIfInsufficient) {
-									*pOutMemoryIfInsufficient = mem;
+									*pOutMemoryIfInsufficient = Move(mem);
 									return n;
 								}
 							}
