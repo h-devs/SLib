@@ -1367,5 +1367,8 @@
     <ClCompile Include="..\..\src\slib\db\rocksdb.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\db\object_storage.cpp">
+      <Filter>src\db</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

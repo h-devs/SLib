@@ -25,15 +25,15 @@
 
 #include "db/constants.h"
 
+#include "db/database.h"
 #include "db/expression.h"
 #include "db/sql.h"
-
-#include "db/database.h"
 #include "db/sqlite.h"
 #include "db/mysql.h"
 #include "db/postgresql.h"
 
 #include "db/key_value_store.h"
+#include "db/object_storage.h"
 #include "db/redis.h"
 #include "db/leveldb.h"
 #include "db/rocksdb.h"
