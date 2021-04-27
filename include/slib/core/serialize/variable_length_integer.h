@@ -46,7 +46,7 @@ namespace slib
 				} else {
 					flagContinue = sl_false;
 				}
-				if (SerializeByte(output, (sl_uint8)n)) {
+				if (SerializeByte(output, n)) {
 					count++;
 				} else {
 					return 0;
@@ -54,7 +54,30 @@ namespace slib
 			} while (flagContinue);
 			return count;
 		}
-		
+
+		template <class T>
+		static sl_uint32 serialize(sl_uint8* output, T value)
+		{
+			if (value < 128) {
+				*output = (sl_uint8)value;
+				return 1;
+			}
+			sl_uint8* start = output;
+			*(output++) = (((sl_uint8)value) & 127) | 128;
+			value >>= 7;
+			for (;;) {
+				sl_uint8 n = ((sl_uint8)value) & 127;
+				value >>= 7;
+				if (value) {
+					*(output++) = n | 128;
+				} else {
+					*(output++) = n;
+					break;
+				}
+			}
+			return (sl_uint32)(output - start);
+		}
+
 		// returns the size of bytes read, or zero on error
 		template <class INPUT, class T>
 		static sl_uint32 deserialize(INPUT* input, T& value)
@@ -62,17 +85,13 @@ namespace slib
 			value = 0;
 			sl_uint32 count = 0;
 			sl_uint32 m = 0;
-			for (;;) {
-				sl_uint8 n;
-				if (DeserializeByte(input, n)) {
-					value += (((T)(n & 127)) << m);
-					m += 7;
-					count++;
-					if (!(n & 128)) {
-						return count;
-					}
-				} else {
-					break;
+			sl_uint8 n;
+			while (DeserializeByte(input, n)) {
+				value += (((T)(n & 127)) << m);
+				m += 7;
+				count++;
+				if (!(n & 128)) {
+					return count;
 				}
 			}
 			return 0;

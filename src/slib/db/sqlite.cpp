@@ -512,7 +512,7 @@ namespace slib
 					
 					int iResult;
 					if (param.encryptionKey.isNotEmpty()) {
-						m_encryptionKey = param.encryptionKey;
+						m_encryptionKey = param.encryptionKey.toString();
 						sqlite3_vfs* vfsDefault = sqlite3_vfs_find(0);
 						Base::copyMemory(&m_vfs, vfsDefault, sizeof(sqlite3_vfs));
 						m_vfs.db = this;

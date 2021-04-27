@@ -49,7 +49,11 @@ namespace slib
 
 		virtual Variant get(const StringParam& key);
 
-		virtual Ref<KeyValueIterator> createIterator() = 0;
+		virtual Ref<KeyValueIterator> getIterator() = 0;
+
+	public:
+		static Variant deserialize(const MemoryData& data);
+		static Variant deserialize(MemoryData&& data);
 
 	};
 
@@ -65,9 +69,9 @@ namespace slib
 
 		virtual sl_bool put(const StringParam& key, const Variant& value);
 
-		virtual sl_bool remove(const void* key, sl_size sizeKey);
+		virtual sl_bool remove(const void* key, sl_size sizeKey) = 0;
 
-		virtual sl_bool remove(const StringParam& key);
+		sl_bool remove(const StringParam& key);
 
 	};
 
@@ -106,7 +110,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT KeyValueIterator : public Referable
+	class SLIB_EXPORT KeyValueIterator : public CPropertyIterator
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -121,14 +125,14 @@ namespace slib
 		// returns the required size when `sizeValue` is zero
 		virtual sl_reg getKey(void* value, sl_size sizeValue);
 
-		virtual String getKey();
+		String getKey() override;
 
 		virtual sl_bool getValue(MemoryData* pOutValue);
 
 		// returns the required size when `sizeValue` is zero
 		virtual sl_reg getValue(void* value, sl_size sizeValue);
 
-		virtual Variant getValue();
+		Variant getValue() override;
 
 		virtual sl_bool moveFirst() = 0;
 
@@ -136,11 +140,17 @@ namespace slib
 
 		virtual sl_bool movePrevious() = 0;
 
-		virtual sl_bool moveNext() = 0;
+		virtual sl_bool seek(const void* key, sl_size sizeKey) = 0;
 
-		virtual sl_bool seek(const void* key, sl_size sizeKey);
+		sl_bool seek(const String& key) override;
+		
+		sl_bool seek(const StringParam& key);
 
-		virtual sl_bool seek(const StringParam& key);
+		template <class T>
+		sl_bool seek(const T& key)
+		{
+			return seek(StringParam(key));
+		}
 
 	};
 
@@ -156,7 +166,7 @@ namespace slib
 	public:
 		virtual Ref<KeyValueWriteBatch> createWriteBatch() = 0;
 
-		virtual Ref<KeyValueSnapshot> createSnapshot() = 0;
+		virtual Ref<KeyValueSnapshot> getSnapshot() = 0;
 
 		virtual sl_bool compact(const void* from, sl_size sizeFrom, const void* end, sl_size sizeEnd);
 

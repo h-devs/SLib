@@ -516,6 +516,13 @@ namespace slib
 			_setSharedPtr(Forward<T>(t), VariantType::SharedPtr);
 		}
 
+		template <class T>
+		static Variant fromSharedPtr(T&& t) noexcept
+		{
+			Variant ret;
+			ret._initSharedPtr(Forward<T>(t), VariantType::Collection);
+			return ret;
+		}
 
 		sl_bool isRef() const noexcept;
 
@@ -531,6 +538,14 @@ namespace slib
 		void setRef(T&& t) noexcept
 		{
 			_setRef(Forward<T>(t), VariantType::Referable);
+		}
+
+		template <class T>
+		static Variant fromRef(T&& t) noexcept
+		{
+			Variant ret;
+			ret._initRef(Forward<T>(t), VariantType::Referable);
+			return ret;
 		}
 
 		sl_object_type getObjectType() const noexcept;
@@ -550,6 +565,22 @@ namespace slib
 			_assignMoveRef(&weak, VariantType::Weak);
 		}
 
+		template <class T>
+		Variant fromWeak(const WeakRef<T>& weak) noexcept
+		{
+			Variant ret;
+			ret._initRef(&weak, VariantType::Weak);
+			return ret;
+		}
+
+		template <class T>
+		Variant fromWeak(WeakRef<T>&& weak) noexcept
+		{
+			Variant ret;
+			ret._initRef(&weak, VariantType::Weak);
+			return ret;
+		}
+
 
 		sl_bool isCollection() const noexcept;
 
@@ -559,6 +590,14 @@ namespace slib
 		void setCollection(T&& t) noexcept
 		{
 			_setRef(Forward<T>(t), VariantType::Collection);
+		}
+
+		template <class T>
+		static Variant fromCollection(T&& t) noexcept
+		{
+			Variant ret;
+			ret._initRef(Forward<T>(t), VariantType::Collection);
+			return ret;
 		}
 
 		sl_bool isVariantList() const noexcept;
@@ -602,6 +641,14 @@ namespace slib
 			_setRef(Forward<T>(t), VariantType::Object);
 		}
 
+		template <class T>
+		static Variant fromObject(T&& t) noexcept
+		{
+			Variant ret;
+			ret._initRef(Forward<T>(t), VariantType::Object);
+			return ret;
+		}
+
 		sl_bool isVariantMap() const noexcept;
 
 		VariantMap getVariantMap() const noexcept;
@@ -630,13 +677,7 @@ namespace slib
 
 		sl_bool removeItem(const StringParam& key);
 
-		sl_bool enumerateItems_NoLock(const Function<sl_bool(const StringParam& name, const Variant& value)>& callback);
-
-		sl_bool enumerateItems(const Function<sl_bool(const StringParam& name, const Variant& value)>& callback);
-
-		List<String> getItemKeys_NoLock() const;
-
-		List<String> getItemKeys() const;
+		PropertyIterator getItemIterator() const;
 
 
 		sl_bool isMemory() const noexcept;
@@ -844,6 +885,18 @@ namespace slib
 		static void _free(VariantType type, sl_uint64 value) noexcept;
 
 		template <class T>
+		void _initSharedPtr(const SharedPtr<T>& ptr, VariantType type) noexcept
+		{
+			_constructorSharedPtr(&ptr, type);
+		}
+
+		template <class T>
+		void _initSharedPtr(SharedPtr<T>&& ptr, VariantType type) noexcept
+		{
+			_constructorMoveSharedPtr(&ptr, type);
+		}
+
+		template <class T>
 		void _setSharedPtr(const SharedPtr<T>& ptr, VariantType type) noexcept
 		{
 			_assignSharedPtr(&ptr, type);
@@ -853,6 +906,42 @@ namespace slib
 		void _setSharedPtr(SharedPtr<T>&& ptr, VariantType type) noexcept
 		{
 			_assignMoveSharedPtr(&ptr, type);
+		}
+
+		template <class T>
+		void _initRef(T* ref, VariantType type) noexcept
+		{
+			_constructorRef(&ref, type);
+		}
+
+		template <class T>
+		void _initRef(const Ref<T>& ref, VariantType type) noexcept
+		{
+			_constructorRef(&ref, type);
+		}
+
+		template <class T>
+		void _initRef(Ref<T>&& ref, VariantType type) noexcept
+		{
+			_constructorMoveRef(&ref, type);
+		}
+
+		template <class T>
+		void _initRef(const AtomicRef<T>& ref, VariantType type) noexcept
+		{
+			_initRef(Ref<T>(ref), type);
+		}
+
+		template <class T>
+		void _initRef(const WeakRef<T>& ref, VariantType type) noexcept
+		{
+			_initRef(Ref<T>(ref), type);
+		}
+
+		template <class T>
+		void _initRef(const AtomicWeakRef<T>& ref, VariantType type) noexcept
+		{
+			_initRef(Ref<T>(ref), type);
 		}
 
 		template <class T>
@@ -1076,12 +1165,12 @@ namespace slib
 			void BuildMapFromObject(MAP& map, Object* object)
 			{
 				if (object) {
-					object->enumerateProperties([&map](const StringParam& name, const Variant& value) {
+					PropertyIterator iterator = object->getPropertyIterator();
+					while (iterator.moveNext()) {
 						typename MAP::VALUE_TYPE v;
-						value.get(v);
-						map.add_NoLock(Cast<StringParam, typename MAP::KEY_TYPE>()(name), Move(v));
-						return sl_true;
-					});
+						iterator.getValue().get(v);
+						map.add_NoLock(Cast<String, typename MAP::KEY_TYPE>()(iterator.getKey()), Move(v));
+					}
 				}
 			}
 

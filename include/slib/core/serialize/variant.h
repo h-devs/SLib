@@ -117,7 +117,7 @@ namespace slib
 			case VariantType::Time:
 				{
 					sl_uint8 buf[8];
-					if (DeserializeRaw(input, buf, 4)) {
+					if (DeserializeRaw(input, buf, 8)) {
 						*((sl_uint64*)(void*)&(_out._value)) = MIO::readUint64LE(buf);
 						break;
 					}

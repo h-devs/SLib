@@ -25,6 +25,8 @@
 #include "slib/core/variant.h"
 #include "slib/core/serialize.h"
 
+#define VALUE_BUFFER_SIZE 1024
+
 namespace slib
 {
 
@@ -33,23 +35,23 @@ namespace slib
 		namespace kvs
 		{
 
-			static Variant GetValue(MemoryData& value)
+			static Variant DeserializeValue(MemoryData&& mem)
 			{
-				if (value.size) {
-					sl_char8* buf = (sl_char8*)(value.data);
+				if (mem.size) {
+					sl_char8* buf = (sl_char8*)(mem.data);
 					if (*buf) {
-						Referable* ref = value.ref.get();
+						Referable* ref = mem.ref.get();
 						if (ref) {
-							return String::fromRef(ref, buf, value.size);
+							return String::fromRef(ref, buf, mem.size);
 						} else {
-							return String(buf, value.size);
+							return String(buf, mem.size);
 						}
 					} else {
-						if (value.size > 1) {
-							value.size--;
-							value.data = buf + 1;
+						if (mem.size > 1) {
+							mem.size--;
+							mem.data = buf + 1;
 							Variant ret;
-							ret.deserialize(Move(value));
+							ret.deserialize(Move(mem));
 							return ret;
 						} else {
 							return String::getEmpty();
@@ -103,13 +105,14 @@ namespace slib
 
 	sl_reg KeyValueReader::get(const void* key, sl_size sizeKey, void* value, sl_size sizeValue)
 	{
-		MemoryData data;
-		if (get(key, sizeKey, &data)) {
-			sl_size n = SLIB_MIN(sizeValue, data.size);
+		char buf[VALUE_BUFFER_SIZE];
+		MemoryData mem(buf, sizeof(buf));
+		if (get(key, sizeKey, &mem)) {
+			sl_size n = SLIB_MIN(sizeValue, mem.size);
 			if (n) {
-				Base::copyMemory(value, data.data, n);
+				Base::copyMemory(value, mem.data, n);
 			}
-			return data.size;
+			return mem.size;
 		} else {
 			return -1;
 		}
@@ -118,12 +121,23 @@ namespace slib
 	Variant KeyValueReader::get(const StringParam& _key)
 	{
 		StringData key(_key);
-		MemoryData value;
-		if (get(key.getUnsafeData(), key.getLength(), &value)) {
-			return GetValue(value);
+		char buf[VALUE_BUFFER_SIZE];
+		MemoryData mem(buf, sizeof(buf));
+		if (get(key.getUnsafeData(), key.getLength(), &mem)) {
+			return DeserializeValue(Move(mem));
 		} else {
 			return Variant();
 		}
+	}
+
+	Variant KeyValueReader::deserialize(const MemoryData& data)
+	{
+		return DeserializeValue(MemoryData(data));
+	}
+
+	Variant KeyValueReader::deserialize(MemoryData&& data)
+	{
+		return DeserializeValue(Move(data));
 	}
 
 
@@ -169,11 +183,6 @@ namespace slib
 			}
 		}
 		return sl_false;
-	}
-
-	sl_bool KeyValueWriter::remove(const void* key, sl_size sizeKey)
-	{
-		return remove(StringView((sl_char8*)key, sizeKey));
 	}
 
 	sl_bool KeyValueWriter::remove(const StringParam& _key)
@@ -229,7 +238,7 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_OBJECT(KeyValueIterator, Object)
+	SLIB_DEFINE_OBJECT(KeyValueIterator, CPropertyIterator)
 
 	KeyValueIterator::KeyValueIterator()
 	{
@@ -268,13 +277,14 @@ namespace slib
 
 	sl_reg KeyValueIterator::getKey(void* value, sl_size sizeValue)
 	{
-		MemoryData data;
-		if (getKey(&data)) {
-			sl_size n = SLIB_MIN(sizeValue, data.size);
+		char buf[VALUE_BUFFER_SIZE];
+		MemoryData mem(buf, sizeof(buf));
+		if (getKey(&mem)) {
+			sl_size n = SLIB_MIN(sizeValue, mem.size);
 			if (n) {
-				Base::copyMemory(value, data.data, n);
+				Base::copyMemory(value, mem.data, n);
 			}
-			return data.size;
+			return mem.size;
 		} else {
 			return -1;
 		}
@@ -282,9 +292,15 @@ namespace slib
 
 	String KeyValueIterator::getKey()
 	{
-		MemoryData value;
-		if (getKey(&value)) {
-			return String::fromRef(value.ref.get(), (sl_char8*)(value.data), value.size);
+		char buf[VALUE_BUFFER_SIZE];
+		MemoryData mem(buf, sizeof(buf));
+		if (getKey(&mem)) {
+			Referable* ref = mem.ref.get();
+			if (ref) {
+				return String::fromRef(ref, (sl_char8*)(mem.data), mem.size);
+			} else {
+				return String((sl_char8*)(mem.data), mem.size);
+			}
 		} else {
 			return sl_null;
 		}
@@ -319,13 +335,14 @@ namespace slib
 
 	sl_reg KeyValueIterator::getValue(void* value, sl_size sizeValue)
 	{
-		MemoryData data;
-		if (getValue(&data)) {
-			sl_size n = SLIB_MIN(sizeValue, data.size);
+		char buf[VALUE_BUFFER_SIZE];
+		MemoryData mem(buf, sizeof(buf));
+		if (getValue(&mem)) {
+			sl_size n = SLIB_MIN(sizeValue, mem.size);
 			if (n) {
-				Base::copyMemory(value, data.data, n);
+				Base::copyMemory(value, mem.data, n);
 			}
-			return data.size;
+			return mem.size;
 		} else {
 			return -1;
 		}
@@ -333,17 +350,18 @@ namespace slib
 
 	Variant KeyValueIterator::getValue()
 	{
-		MemoryData value;
-		if (getValue(&value)) {
-			return GetValue(value);
+		char buf[VALUE_BUFFER_SIZE];
+		MemoryData mem(buf, sizeof(buf));
+		if (getValue(&mem)) {
+			return DeserializeValue(Move(mem));
 		} else {
 			return Variant();
 		}
 	}
 
-	sl_bool KeyValueIterator::seek(const void* key, sl_size sizeKey)
+	sl_bool KeyValueIterator::seek(const String& key)
 	{
-		return seek(StringView((sl_char8*)key, sizeKey));
+		return seek(key.getData(), key.getLength());
 	}
 
 	sl_bool KeyValueIterator::seek(const StringParam& _key)

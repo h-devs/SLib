@@ -23,6 +23,7 @@
 #include "slib/core/collection.h"
 
 #include "slib/core/variant.h"
+#include "slib/core/iterator.h"
 #include "slib/core/linked_list.h"
 #include "slib/core/queue.h"
 #include "slib/core/queue_channel.h"
@@ -111,6 +112,17 @@ namespace slib
 			}
 		}
 		return sl_true;
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CIteratorBase)
+
+	CIteratorBase::CIteratorBase()
+	{
+	}
+
+	CIteratorBase::~CIteratorBase()
+	{
 	}
 
 

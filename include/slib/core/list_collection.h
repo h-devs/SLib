@@ -54,12 +54,16 @@ namespace slib
 		{
 			CList<T>* list = m_list.get();
 			ObjectLocker lock(list);
-			T* p = list->getPointerAt((sl_size)index);
-			if (p) {
-				item.get(*p);
-				return sl_true;
+			if (item.isNotUndefined()) {
+				T* p = list->getPointerAt((sl_size)index);
+				if (p) {
+					item.get(*p);
+					return sl_true;
+				}
+				return sl_false;
+			} else {
+				return list->removeAt_NoLock(index);
 			}
-			return sl_false;
 		}
 
 		sl_bool addElement(const Variant& item) override

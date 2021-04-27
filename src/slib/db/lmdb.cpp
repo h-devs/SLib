@@ -86,9 +86,9 @@ namespace slib
 			public:
 				Ref<KeyValueWriteBatch> createWriteBatch() override;
 
-				Ref<KeyValueIterator> createIterator() override;
+				Ref<KeyValueIterator> getIterator() override;
 
-				Ref<KeyValueSnapshot> createSnapshot() override;
+				Ref<KeyValueSnapshot> getSnapshot() override;
 
 				sl_bool get(const void* key, sl_size sizeKey, MemoryData* value) override
 				{
@@ -316,7 +316,7 @@ namespace slib
 
 			};
 
-			Ref<KeyValueIterator> LMDBImpl::createIterator()
+			Ref<KeyValueIterator> LMDBImpl::getIterator()
 			{
 				MDB_txn* txn = sl_null;
 				int iResult = mdb_txn_begin(m_env, sl_null, MDB_RDONLY, &txn);
@@ -371,7 +371,7 @@ namespace slib
 					return sl_false;
 				}
 
-				Ref<KeyValueIterator> createIterator() override
+				Ref<KeyValueIterator> getIterator() override
 				{
 					MDB_cursor* cursor = sl_null;
 					int iResult = mdb_cursor_open(m_txn, m_dbi, &cursor);
@@ -387,7 +387,7 @@ namespace slib
 
 			};
 
-			Ref<KeyValueSnapshot> LMDBImpl::createSnapshot()
+			Ref<KeyValueSnapshot> LMDBImpl::getSnapshot()
 			{
 				MDB_txn* txn = sl_null;
 				int iResult = mdb_txn_begin(m_env, sl_null, 0, &txn);

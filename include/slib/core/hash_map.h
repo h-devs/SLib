@@ -267,6 +267,18 @@ namespace slib
 			NODE* entry = _getEntry(key);
 			return RedBlackTree::findKeyAndValue(entry, key, m_compare, value, value_equals) != sl_null;
 		}
+
+		/* added for compatibility with `Map` */
+		NODE* getLowerBound(const KT& key) const noexcept
+		{
+			return sl_null;
+		}
+
+		/* added for compatibility with `Map` */
+		NODE* getUpperBound(const KT& key) const noexcept
+		{
+			return sl_null;
+		}
 		
 		/* unsynchronized function */
 		VT* getItemPointer(const KT& key) const noexcept

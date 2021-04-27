@@ -69,7 +69,7 @@ public: \
 #	define SLIB_DEFINE_OBJECT(CLASS, BASE) SLIB_DEFINE_OBJECT_BY_VARIABLE_TYPE(CLASS, BASE)
 #endif
 
-#define SLIB_REF_WRAPPER_NO_OP(WRAPPER, ...) \
+#define SLIB_REF_WRAPPER_NO_ATOMIC_NO_OP(WRAPPER, ...) \
 public: \
 	static sl_object_type ObjectType() noexcept { return __VA_ARGS__::ObjectType(); } \
 	WRAPPER() noexcept {} \
@@ -79,10 +79,6 @@ public: \
 	WRAPPER(WRAPPER& other) noexcept : ref(other.ref) {} \
 	WRAPPER(const WRAPPER&& other) noexcept : ref(Move(other.ref)) {} \
 	WRAPPER(WRAPPER&& other) noexcept : ref(Move(other.ref)) {} \
-	WRAPPER(const Atomic<WRAPPER>& other) noexcept : ref(*(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))) {} \
-	WRAPPER(Atomic<WRAPPER>& other) noexcept : ref(*(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))) {} \
-	WRAPPER(const Atomic<WRAPPER>&& other) noexcept : ref(Move(*(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other)))) {} \
-	WRAPPER(Atomic<WRAPPER>&& other) noexcept : ref(Move(*(reinterpret_cast<AtomicRef<__VA_ARGS__>*>(&other)))) {} \
 	static const WRAPPER& null() noexcept { return *(reinterpret_cast<WRAPPER const*>(&(priv::ref::g_null))); } \
 	sl_bool isNull() const noexcept { return ref.isNull(); } \
 	sl_bool isNotNull() const noexcept { return ref.isNotNull(); } \
@@ -92,19 +88,34 @@ public: \
 	WRAPPER& operator=(const WRAPPER& other) noexcept { ref = other.ref; return *this; } \
 	WRAPPER& operator=(WRAPPER& other) noexcept { ref = other.ref; return *this; } \
 	WRAPPER& operator=(const WRAPPER&& other) noexcept { ref = Move(other.ref); return *this; } \
-	WRAPPER& operator=(WRAPPER&& other) noexcept { ref = Move(other.ref); return *this; } \
+	WRAPPER& operator=(WRAPPER&& other) noexcept { ref = Move(other.ref); return *this; }
+
+#define SLIB_REF_WRAPPER_NO_OP(WRAPPER, ...) \
+public: \
+	SLIB_REF_WRAPPER_NO_ATOMIC_NO_OP(WRAPPER, __VA_ARGS__) \
+	WRAPPER(const Atomic<WRAPPER>& other) noexcept : ref(*(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))) {} \
+	WRAPPER(Atomic<WRAPPER>& other) noexcept : ref(*(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))) {} \
+	WRAPPER(const Atomic<WRAPPER>&& other) noexcept : ref(Move(*(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other)))) {} \
+	WRAPPER(Atomic<WRAPPER>&& other) noexcept : ref(Move(*(reinterpret_cast<AtomicRef<__VA_ARGS__>*>(&other)))) {} \
 	WRAPPER& operator=(const Atomic<WRAPPER>& other) noexcept { ref = *(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other)); return *this; } \
 	WRAPPER& operator=(Atomic<WRAPPER>& other) noexcept { ref = *(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other)); return *this; } \
 	WRAPPER& operator=(const Atomic<WRAPPER>&& other) noexcept { ref = Move(*(reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))); return *this; } \
 	WRAPPER& operator=(Atomic<WRAPPER>&& other) noexcept { ref = Move(*(reinterpret_cast<AtomicRef<__VA_ARGS__>*>(&other))); return *this; }
 
+#define SLIB_REF_WRAPPER_NO_ATOMIC_OP(WRAPPER, ...) \
+	sl_bool operator==(const WRAPPER& other) const noexcept { return ref.ptr == other.ref.ptr; } \
+	sl_bool operator!=(const WRAPPER& other) const noexcept { return ref.ptr != other.ref.ptr; } \
+	explicit operator sl_bool() const noexcept { return ref.ptr != sl_null; }
+
+#define SLIB_REF_WRAPPER_NO_ATOMIC(WRAPPER, ...) \
+	SLIB_REF_WRAPPER_NO_ATOMIC_NO_OP(WRAPPER, __VA_ARGS__) \
+	SLIB_REF_WRAPPER_NO_ATOMIC_OP(WRAPPER, __VA_ARGS__)
+
 #define SLIB_REF_WRAPPER(WRAPPER, ...) \
 	SLIB_REF_WRAPPER_NO_OP(WRAPPER, __VA_ARGS__) \
-	sl_bool operator==(const WRAPPER& other) const noexcept { return ref.ptr == other.ref.ptr; } \
+	SLIB_REF_WRAPPER_NO_ATOMIC_OP(WRAPPER, __VA_ARGS__) \
 	sl_bool operator==(const Atomic<WRAPPER>& other) const noexcept { return ref.ptr == (reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))->_ptr; } \
-	sl_bool operator!=(const WRAPPER& other) const noexcept { return ref.ptr != other.ref.ptr; } \
-	sl_bool operator!=(const Atomic<WRAPPER>& other) const noexcept { return ref.ptr != (reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))->_ptr; } \
-	explicit operator sl_bool() const noexcept { return ref.ptr != sl_null; }
+	sl_bool operator!=(const Atomic<WRAPPER>& other) const noexcept { return ref.ptr != (reinterpret_cast<const AtomicRef<__VA_ARGS__>*>(&other))->_ptr; }
 
 #define SLIB_ATOMIC_REF_WRAPPER_NO_OP(...) \
 public: \

@@ -135,9 +135,9 @@ namespace slib
 					return _processCheckReply(reply, "OK");
 				}
 
-				sl_bool remove(const StringParam& _key) override
+				sl_bool remove(const void* _key, sl_size sizeKey) override
 				{
-					StringCstr key(_key);
+					StringCstr key((sl_char8*)_key, sizeKey);
 					ObjectLocker lock(this);
 					redisReply* reply = (redisReply*)(redisCommand(m_context, "DEL %s", key.getData()));
 					return _processCheckReply(reply, 1);
@@ -148,12 +148,12 @@ namespace slib
 					return sl_null;
 				}
 				
-				Ref<KeyValueIterator> createIterator() override
+				Ref<KeyValueIterator> getIterator() override
 				{
 					return sl_null;
 				}
 
-				Ref<KeyValueSnapshot> createSnapshot() override
+				Ref<KeyValueSnapshot> getSnapshot() override
 				{
 					return sl_null;
 				}

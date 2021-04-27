@@ -33,7 +33,7 @@ namespace slib
 	class LMDB_Param
 	{
 	public:
-		String path;
+		StringParam path;
 
 		sl_bool flagCreateIfMissing;
 		sl_uint32 mode; // The UNIX permissions to set on created files and semaphores

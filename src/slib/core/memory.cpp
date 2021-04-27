@@ -867,7 +867,11 @@ namespace slib
 		}
 		if (size) {
 			if (input->current + size <= input->end) {
-				_out = Memory::createStatic(input->current, size, input->ref);
+				if (input->ref.isNotNull()) {
+					_out = Memory::createStatic(input->current, size, input->ref);
+				} else {
+					_out = Memory::create(input->current, size);
+				}
 				if (_out.isNotNull()) {
 					input->current += size;
 					return sl_true;
@@ -888,7 +892,11 @@ namespace slib
 		}
 		if (size) {
 			if (input->current + size <= input->end) {
-				_out = String::fromRef(input->ref, (sl_char8*)(input->current), size);
+				if (input->ref.isNotNull()) {
+					_out = String::fromRef(input->ref, (sl_char8*)(input->current), size);
+				} else {
+					_out = String((sl_char8*)(input->current), size);
+				}
 				if (_out.isNotNull()) {
 					input->current += size;
 					return sl_true;

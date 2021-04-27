@@ -20,65 +20,98 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_OBJECT
-#define CHECKHEADER_SLIB_CORE_OBJECT
+#ifndef CHECKHEADER_SLIB_CORE_ITERATOR
+#define CHECKHEADER_SLIB_CORE_ITERATOR
 
-#include "iterator.h"
-#include "lockable.h"
+#include "ref.h"
 
 namespace slib
 {
 
-	class StringParam;
-	class Variant;
-
-	template <class T>
-	class Function;
-
-	template <class T>
-	class List;
-
-	typedef CIterator<String, Variant> CPropertyIterator;
-	typedef Iterator<String, Variant> PropertyIterator;
-
-	class SLIB_EXPORT Object : public Referable, public Lockable
+	class SLIB_EXPORT CIteratorBase : public Referable
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		Object() noexcept;
-		
-		Object(const Object& other) = delete;
-		
-		Object(Object&& other) = delete;
+		CIteratorBase();
 
-		~Object() noexcept;
-
-	public:
-		virtual Variant getProperty(const StringParam& name);
-
-		virtual sl_bool setProperty(const StringParam& name, const Variant& value);
-
-		virtual sl_bool clearProperty(const StringParam& name);
-
-		virtual PropertyIterator getPropertyIterator();
-
-	public:
-		sl_bool toJsonString(StringBuffer& buf) override;
-
-		sl_bool toJsonBinary(MemoryBuffer& buf) override;
-
-	public:
-		Object& operator=(const Object& other) = delete;
-		
-		Object& operator=(Object&& other) = delete;
-	
-	private:
-		void* m_properties;
+		~CIteratorBase();
 
 	};
 	
+	template <class KT, class VT>
+	class SLIB_EXPORT CIterator : public CIteratorBase
+	{
+	public:
+		typedef KT KEY_TYPE;
+		typedef VT VALUE_TYPE;
+
+	public:
+		virtual KT getKey() = 0;
+
+		virtual VT getValue() = 0;
+
+		virtual sl_bool moveNext() = 0;
+
+		virtual sl_bool seek(const KT& key) = 0;
+
+	};
+
+	template <class KT, class VT>
+	class SLIB_EXPORT Iterator
+	{
+	public:
+		typedef CIterator<KT, VT> CITERATOR;
+		typedef KT KEY_TYPE;
+		typedef VT VALUE_TYPE;
+	
+	public:
+		Ref<CITERATOR> ref;
+		SLIB_REF_WRAPPER_NO_ATOMIC(Iterator, CITERATOR)
+
+	public:
+		KT getKey() const
+		{
+			CITERATOR* c = ref.ptr;
+			if (c) {
+				return c->getKey();
+			} else {
+				return KT();
+			}
+		}
+
+		VT getValue() const
+		{
+			CITERATOR* c = ref.ptr;
+			if (c) {
+				return c->getValue();
+			} else {
+				return VT();
+			}
+		}
+
+		sl_bool moveNext() const
+		{
+			CITERATOR* c = ref.ptr;
+			if (c) {
+				return c->moveNext();
+			} else {
+				return sl_false;
+			}
+		}
+
+		sl_bool seek(const KT& key) const
+		{
+			CITERATOR* c = ref.ptr;
+			if (c) {
+				return c->seek(key);
+			} else {
+				return sl_false;
+			}
+		}
+
+	};
+
 }
 
 #endif
-

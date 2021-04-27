@@ -145,45 +145,16 @@ namespace slib
 		}
 		
 	public:
-		StringParam& operator=(StringParam&& other) noexcept;
-		
 		StringParam& operator=(const StringParam& other) noexcept;
+		StringParam& operator=(StringParam&& other) noexcept;
 
-		StringParam& operator=(sl_null_t) noexcept;
-		
-		StringParam& operator=(const String& value) noexcept;
-		
-		StringParam& operator=(String&& value) noexcept;
-		
-		StringParam& operator=(const String16& value) noexcept;
-		
-		StringParam& operator=(String16&& value) noexcept;
-
-		StringParam& operator=(const AtomicString& value) noexcept;
-		
-		StringParam& operator=(const AtomicString16& value) noexcept;
-		
-		StringParam& operator=(const StringView& value) noexcept;
-		
-		StringParam& operator=(const StringView16& value) noexcept;
-		
-		StringParam& operator=(const char* sz) noexcept;
-		
-		StringParam& operator=(const wchar_t* sz) noexcept;
-		
-		StringParam& operator=(const char16_t* sz) noexcept;
-		
-		StringParam& operator=(const char32_t* sz) noexcept;
-		
-#ifdef SLIB_SUPPORT_STD_TYPES
-		StringParam& operator=(const std::string& str) noexcept;
-
-		StringParam& operator=(const std::wstring& str) noexcept;
-		
-		StringParam& operator=(const std::u16string& str) noexcept;
-		
-		StringParam& operator=(const std::u32string& str) noexcept;
-#endif
+		template <class T>
+		StringParam& operator=(T&& other) noexcept
+		{
+			_free();
+			new (this) StringParam(Forward<T>(other));
+			return *this;
+		}
 		
 	public:
 		void setUndefined() noexcept;
@@ -245,9 +216,6 @@ namespace slib
 	public:
 		void _free() noexcept;
 		
-		void _assign(const sl_char8* str, sl_reg length) noexcept;
-		void _assign(const sl_char16* str, sl_reg length) noexcept;
-
 		friend class StringData;
 		friend class StringData16;
 		friend class StringCstr;
@@ -298,7 +266,15 @@ namespace slib
 		}
 
 		String toString(const StringParam& param);
-		
+
+		template <class T>
+		StringData& operator=(T&& t)
+		{
+			this->~StringData();
+			new (this) StringData(Forward<T>(t));
+			return *this;
+		}
+
 	};
 
 	class SLIB_EXPORT StringData16 : public StringView16
@@ -323,6 +299,14 @@ namespace slib
 		}
 
 		String16 toString16(const StringParam& param);
+
+		template <class T>
+		StringData16& operator=(T&& t)
+		{
+			this->~StringData16();
+			new (this) StringData16(Forward<T>(t));
+			return *this;
+		}
 
 	};
 	

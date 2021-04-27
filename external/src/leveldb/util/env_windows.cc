@@ -368,6 +368,13 @@ class WindowsEnv : public Env {
    //     "WindowsEnv singleton destroyed. Unsupported behavior!\n";
    // std::fwrite(msg, 1, sizeof(msg), stderr);
    // std::abort();
+	if (started_background_thread_) {
+		finishing_background_thread_ = true;
+		background_work_cv_.Signal();
+		while (!finished_background_thread_) {
+			Sleep(1);
+		}
+	}
   }
 
   Status NewSequentialFile(const std::string& filename,
@@ -673,6 +680,8 @@ class WindowsEnv : public Env {
   port::Mutex background_work_mutex_;
   port::CondVar background_work_cv_ GUARDED_BY(background_work_mutex_);
   bool started_background_thread_ GUARDED_BY(background_work_mutex_);
+  bool finishing_background_thread_;
+  bool finished_background_thread_;
 
   std::queue<BackgroundWorkItem> background_work_queue_
       GUARDED_BY(background_work_mutex_);
@@ -686,6 +695,8 @@ int MaxMmaps() { return g_mmap_limit; }
 WindowsEnv::WindowsEnv()
     : background_work_cv_(&background_work_mutex_),
       started_background_thread_(false),
+      finishing_background_thread_(false),
+      finished_background_thread_(false),
       mmap_limiter_(MaxMmaps()) {}
 
 void WindowsEnv::Schedule(
@@ -712,13 +723,25 @@ void WindowsEnv::Schedule(
 void WindowsEnv::BackgroundThreadMain() {
   while (true) {
     background_work_mutex_.Lock();
+	
+	if (finishing_background_thread_) {
+		background_work_mutex_.Unlock();
+		break;
+	}
 
     // Wait until there is work to be done.
     while (background_work_queue_.empty()) {
       background_work_cv_.Wait();
-    }
+	  if (finishing_background_thread_) {
+		  break;
+	  }
+	}
+	if (finishing_background_thread_) {
+		background_work_mutex_.Unlock();
+		break;
+	}
 
-    assert(!background_work_queue_.empty());
+   assert(!background_work_queue_.empty());
     auto background_work_function = background_work_queue_.front().function;
     void* background_work_arg = background_work_queue_.front().arg;
     background_work_queue_.pop();
@@ -726,6 +749,9 @@ void WindowsEnv::BackgroundThreadMain() {
     background_work_mutex_.Unlock();
     background_work_function(background_work_arg);
   }
+
+  finished_background_thread_ = true;
+
 }
 
 // Wraps an Env instance whose destructor is never created.

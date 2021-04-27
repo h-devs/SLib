@@ -123,9 +123,9 @@ namespace slib
 			public:
 				Ref<KeyValueWriteBatch> createWriteBatch() override;
 
-				Ref<KeyValueIterator> createIterator() override;
+				Ref<KeyValueIterator> getIterator() override;
 
-				Ref<KeyValueSnapshot> createSnapshot() override;
+				Ref<KeyValueSnapshot> getSnapshot() override;
 
 				sl_bool get(const void* key, sl_size sizeKey, MemoryData* value) override
 				{
@@ -310,7 +310,7 @@ namespace slib
 
 			};
 
-			Ref<KeyValueIterator> RocksDBImpl::createIterator()
+			Ref<KeyValueIterator> RocksDBImpl::getIterator()
 			{
 				rocksdb::Iterator* iterator = m_db->NewIterator(m_optionsRead);
 				if (iterator) {
@@ -354,7 +354,7 @@ namespace slib
 					return sl_false;
 				}
 
-				Ref<KeyValueIterator> createIterator() override
+				Ref<KeyValueIterator> getIterator() override
 				{
 					rocksdb::Iterator* iterator = m_db->NewIterator(m_optionsRead);
 					if (iterator) {
@@ -369,7 +369,7 @@ namespace slib
 
 			};
 
-			Ref<KeyValueSnapshot> RocksDBImpl::createSnapshot()
+			Ref<KeyValueSnapshot> RocksDBImpl::getSnapshot()
 			{
 				const rocksdb::Snapshot* snapshot = m_db->GetSnapshot();
 				if (snapshot) {

@@ -130,12 +130,13 @@ namespace slib
 				} else {
 					Ref<Object> src = json.getObject();
 					if (src.isNotNull()) {
-						src->enumerateProperties([&_out](const StringParam& name, const Variant& value) {
+						PropertyIterator iterator = src->getPropertyIterator();
+						while (iterator.moveNext()) {
 							typename MAP::VALUE_TYPE v;
+							Variant value = iterator.getValue();
 							FromJson(*(static_cast<const Json*>(&value)), v);
-							MapHelper<MAP>::add(_out, Cast<StringParam, typename MAP::KEY_TYPE>()(name), Move(v));
-							return sl_true;
-						});
+							MapHelper<MAP>::add(_out, Cast<String, typename MAP::KEY_TYPE>()(iterator.getKey()), Move(v));
+						}
 					}
 				}
 			}

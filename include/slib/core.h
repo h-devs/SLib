@@ -87,6 +87,8 @@
 #include "core/list_collection.h"
 #include "core/map.h"
 #include "core/hash_map.h"
+#include "core/iterator.h"
+#include "core/map_iterator.h"
 #include "core/map_object.h"
 #include "core/hash_table.h"
 #include "core/linked_list.h"

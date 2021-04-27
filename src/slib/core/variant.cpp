@@ -123,7 +123,7 @@ namespace slib
 			SLIB_INLINE static OT GetObjectT(const Variant& v)
 			{
 				if (v._type == type) {
-					return REF_VAR(OT, v._type);
+					return REF_VAR(OT, v._value);
 				}
 				if (v._type == VariantType::Weak) {
 					Ref<Referable> ref(REF_VAR(WeakRef<Referable> const, v._value));
@@ -131,8 +131,8 @@ namespace slib
 						return REF_VAR(OT, ref);
 					}
 				} else if (IsReferable(v._type)) {
-					if (IsInstanceOf<T>(REF_VAR(Referable*, v._type))) {
-						return REF_VAR(OT, v._type);
+					if (IsInstanceOf<T>(REF_VAR(Referable*, v._value))) {
+						return REF_VAR(OT, v._value);
 					}
 				}
 				return OT();
@@ -2570,7 +2570,11 @@ namespace slib
 	sl_bool Variant::setElement_NoLock(sl_uint64 index, const Variant& value)
 	{
 		if (_type == VariantType::List) {
-			return REF_VAR(VariantList, _value).setAt_NoLock((sl_size)index, value);
+			if (value.isNotUndefined()) {
+				return REF_VAR(VariantList, _value).setAt_NoLock((sl_size)index, value);
+			} else {
+				return REF_VAR(VariantList, _value).removeAt_NoLock((sl_size)index);
+			}
 		} else {
 			Ref<Collection> collection(GET_COLLECTION(*this));
 			if (collection.isNotNull()) {
@@ -2583,7 +2587,11 @@ namespace slib
 	sl_bool Variant::setElement(sl_uint64 index, const Variant& value)
 	{
 		if (_type == VariantType::List) {
-			return REF_VAR(VariantList, _value).setAt((sl_size)index, value);
+			if (value.isNotUndefined()) {
+				return REF_VAR(VariantList, _value).setAt((sl_size)index, value);
+			} else {
+				return REF_VAR(VariantList, _value).removeAt((sl_size)index);
+			}
 		} else {
 			Ref<Collection> collection(GET_COLLECTION(*this));
 			if (collection.isNotNull()) {
@@ -2812,70 +2820,15 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Variant::enumerateItems_NoLock(const Function<sl_bool(const StringParam& name, const Variant& value)>& callback)
+	PropertyIterator Variant::getItemIterator() const
 	{
 		if (_type == VariantType::Map) {
 			VariantMap& map = REF_VAR(VariantMap, _value);
-			auto node = map.getFirstNode();
-			while (node) {
-				if (!(callback(node->key, node->value))) {
-					return sl_false;
-				}
-				node = node->getNext();
-			}
-			return sl_true;
+			return new MapIterator< CHashMap<String, Variant> >(map.ref);
 		} else {
 			Ref<Object> object(GET_OBJECT(*this));
 			if (object.isNotNull()) {
-				return object->enumerateProperties(callback);
-			}
-		}
-		return sl_false;
-	}
-
-	sl_bool Variant::enumerateItems(const Function<sl_bool(const StringParam& name, const Variant& value)>& callback)
-	{
-		if (_type == VariantType::Map) {
-			VariantMap& map = REF_VAR(VariantMap, _value);
-			MutexLocker lock(map.getLocker());
-			auto node = map.getFirstNode();
-			while (node) {
-				if (!(callback(node->key, node->value))) {
-					return sl_false;
-				}
-				node = node->getNext();
-			}
-			return sl_true;
-		} else {
-			Ref<Object> object(GET_OBJECT(*this));
-			if (object.isNotNull()) {
-				return object->enumerateProperties(callback);
-			}
-		}
-		return sl_false;
-	}
-
-	List<String> Variant::getItemKeys_NoLock() const
-	{
-		if (_type == VariantType::Map) {
-			return REF_VAR(VariantMap, _value).getAllKeys_NoLock();
-		} else {
-			Ref<Object> object(GET_OBJECT(*this));
-			if (object.isNotNull()) {
-				return object->getPropertyNames();
-			}
-		}
-		return sl_null;
-	}
-
-	List<String> Variant::getItemKeys() const
-	{
-		if (_type == VariantType::Map) {
-			return REF_VAR(VariantMap, _value).getAllKeys();
-		} else {
-			Ref<Object> object(GET_OBJECT(*this));
-			if (object.isNotNull()) {
-				return object->getPropertyNames();
+				return object->getPropertyIterator();
 			}
 		}
 		return sl_null;
@@ -2946,10 +2899,10 @@ namespace slib
 				Ref<Object> src(getObject());
 				if (src.isNotNull()) {
 					MutexLocker lock(dst.getLocker());
-					src->enumerateProperties([&dst](const StringParam& name, const Variant& value) {
-						dst.put_NoLock(name.toString(), value);
-						return sl_true;
-					});
+					PropertyIterator iterator = src->getPropertyIterator();
+					while (iterator.moveNext()) {
+						dst.put_NoLock(iterator.getKey(), iterator.getValue());
+					}
 				}
 			}
 		} else if (_type == VariantType::List) {
@@ -2982,10 +2935,10 @@ namespace slib
 				} else {
 					Ref<Object> src(getObject());
 					if (src.isNotNull()) {
-						src->enumerateProperties([&dst](const StringParam& name, const Variant& value) {
-							dst->setProperty(name, value);
-							return sl_true;
-						});
+						PropertyIterator iterator = src->getPropertyIterator();
+						while (iterator.moveNext()) {
+							dst->setProperty(iterator.getKey(), iterator.getValue());
+						}
 					}
 				}
 			} else if (IsInstanceOf<Collection>(ref)) {
@@ -3239,25 +3192,31 @@ namespace slib
 				{
 					String str = var.getString();
 					sl_size n = str.getLength();
-					SERIALIZE_PREPARE_MEMORY(buf, size, sizePrefix + 1 + n, pOutMemoryIfInsufficient)
+					sl_size nReq = sizePrefix + 11 + n;
+					SERIALIZE_PREPARE_MEMORY(buf, size, nReq, pOutMemoryIfInsufficient)
 					if (sizePrefix) {
 						Base::copyMemory(buf, prefix, sizePrefix);
 					}
 					buf[sizePrefix] = (sl_uint8)(VariantType::String8);
-					Base::copyMemory(buf + sizePrefix + 1, str.getData(), n);
-					return sizePrefix + 1 + n;
+					sl_size l = sizePrefix + 1;
+					l += CVLI::serialize(buf + l, n);
+					Base::copyMemory(buf + l, str.getData(), n);
+					return l + n;
 				}
 			case VariantType::Memory:
 				{
 					Memory& m = *((Memory*)(void*)&(var._value));
 					sl_size n = m.getSize();
-					SERIALIZE_PREPARE_MEMORY(buf, size, sizePrefix + 1 + n, pOutMemoryIfInsufficient)
+					sl_size nReq = sizePrefix + 11 + n;
+					SERIALIZE_PREPARE_MEMORY(buf, size, nReq, pOutMemoryIfInsufficient)
 					if (sizePrefix) {
 						Base::copyMemory(buf, prefix, sizePrefix);
 					}
 					buf[sizePrefix] = (sl_uint8)(VariantType::Memory);
-					Base::copyMemory(buf + sizePrefix + 1, m.getData(), n);
-					return sizePrefix + 1 + n;
+					sl_size l = sizePrefix + 1;
+					l += CVLI::serialize(buf + l, n);
+					Base::copyMemory(buf + l, m.getData(), n);
+					return l + n;
 				}
 			default:
 				if (IsReferable(var._type)) {

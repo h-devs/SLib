@@ -65,7 +65,7 @@ namespace slib
 			const ConstContainer g_undefined = {sl_null, 0};
 			const ConstContainer g_null = {sl_null, 1};
 		
-			SLIB_INLINE static void copy_param(StringParam& dst, const StringParam& src) noexcept
+			SLIB_INLINE static void CopyParam(StringParam& dst, const StringParam& src) noexcept
 			{
 				dst._value = src._value;
 				dst._length = src._length;
@@ -111,7 +111,7 @@ namespace slib
 	
 	StringParam::StringParam(const StringParam& other) noexcept
 	{
-		copy_param(*this, other);
+		CopyParam(*this, other);
 	}
 	
 	StringParam::~StringParam() noexcept
@@ -291,188 +291,21 @@ namespace slib
 	{
 	}
 
-	StringParam& StringParam::operator=(StringParam&& other) noexcept
-	{
-		if (this != &other) {
-			_free();
-			_value = other._value;
-			_length = other._length;
-			other._value = sl_null;
-			other._length = 0;
-		}
-		return *this;
-	}
-
 	StringParam& StringParam::operator=(const StringParam& other) noexcept
 	{
-		if (this != &other) {
-			_free();
-			copy_param(*this, other);
-		}
+		_free();
+		CopyParam(*this, other);
 		return *this;
 	}
 
-	StringParam& StringParam::operator=(sl_null_t) noexcept
-	{
-		setNull();
-		return *this;
-	}
-	
-	StringParam& StringParam::operator=(const String& value) noexcept
-	{
-		if (value.isNotNull()) {
-			_free();
-			_length = STRING_TYPE_STRING8_NOREF;
-			_value = STRING_CONTAINER(value);
-		} else {
-			setNull();
-		}
-		return *this;
-	}
-	
-	StringParam& StringParam::operator=(String&& value) noexcept
-	{
-		if (value.isNotNull()) {
-			_free();
-			_length = STRING_TYPE_STRING8_REF;
-			new STRING_PTR(*this) String(Move(value));
-		} else {
-			setNull();
-		}
-		return *this;
-	}
-	
-	StringParam& StringParam::operator=(const String16& value) noexcept
-	{
-		if (value.isNotNull()) {
-			_free();
-			_length = STRING_TYPE_STRING16_NOREF;
-			_value = STRING_CONTAINER16(value);
-		} else {
-			setNull();
-		}
-		return *this;
-	}
-	
-	StringParam& StringParam::operator=(String16&& value) noexcept
-	{
-		if (value.isNotNull()) {
-			_free();
-			_length = STRING_TYPE_STRING16_REF;
-			new STRING16_PTR(*this) String16(Move(value));
-		} else {
-			setNull();
-		}
-		return *this;
-	}
-	
-	StringParam& StringParam::operator=(const AtomicString& s) noexcept
-	{
-		return *this = String(s);
-	}
-	
-	StringParam& StringParam::operator=(const AtomicString16& s) noexcept
-	{
-		return *this = String16(s);
-	}
-	
-	StringParam& StringParam::operator=(const StringView& str) noexcept
-	{
-		_assign(str.getUnsafeData(), str.getUnsafeLength());
-		return *this;
-	}
-
-	StringParam& StringParam::operator=(const StringView16& str) noexcept
-	{
-		_assign(str.getUnsafeData(), str.getUnsafeLength());
-		return *this;
-	}
-
-	StringParam& StringParam::operator=(const char* value) noexcept
-	{
-		if (value) {
-			_free();
-			_value = (void*)value;
-			_length = STRING_TYPE_SZ8;
-		} else {
-			setNull();
-		}
-		return *this;
-	}
-	
-	StringParam& StringParam::operator=(const wchar_t* value) noexcept
-	{
-		if (sizeof(wchar_t) == 2) {
-			return *this = (char16_t*)value;
-		} else {
-			return *this = String::create(value);
-		}
-	}
-
-	StringParam& StringParam::operator=(const char16_t* value) noexcept
-	{
-		if (value) {
-			_free();
-			_value = (void*)value;
-			_length = STRING_TYPE_SZ16;
-		} else {
-			setNull();
-		}
-		return *this;
-	}
-
-	StringParam& StringParam::operator=(const char32_t* value) noexcept
-	{
-		return *this = String::create(value);
-	}
-
-	void StringParam::_assign(const sl_char8* str, sl_reg length) noexcept
+	StringParam& StringParam::operator=(StringParam&& other) noexcept
 	{
 		_free();
-		_value = (void*)str;
-		if (length < 0) {
-			_length = STRING_TYPE_SZ8;
-		} else {
-			_length = GET_LENGTH(length);
-		}
-	}
-
-	void StringParam::_assign(const sl_char16* str, sl_reg length) noexcept
-	{
-		_free();
-		_value = (void*)str;
-		if (length < 0) {
-			_length = STRING_TYPE_SZ16;
-		} else {
-			_length = STRING_TYPE_STR16_PREFIX | GET_LENGTH(length);
-		}
-	}
-
-	StringParam& StringParam::operator=(const std::string& str) noexcept
-	{
-		_assign(str.c_str(), str.length());
+		_value = other._value;
+		_length = other._length;
+		other._value = sl_null;
+		other._length = 0;
 		return *this;
-	}
-
-	StringParam& StringParam::operator=(const std::wstring& str) noexcept
-	{
-		if (sizeof(wchar_t) == 2) {
-			_assign((sl_char16*)(str.c_str()), str.length());
-			return *this;
-		} else {
-			return *this = String::create(str);
-		}
-	}
-
-	StringParam& StringParam::operator=(const std::u16string& str) noexcept
-	{
-		_assign((sl_char16*)(str.c_str()), str.length());
-		return *this;
-	}
-
-	StringParam& StringParam::operator=(const std::u32string& str) noexcept
-	{
-		return *this = String::create(str);
 	}
 
 	void StringParam::setUndefined() noexcept
@@ -837,8 +670,18 @@ namespace slib
 	{
 	}
 
-	StringCstr::StringCstr(const sl_char8* str, sl_size length) noexcept: StringView(str, length)
+	StringCstr::StringCstr(const sl_char8* str, sl_size _length) noexcept: StringView(str, _length)
 	{
+		if (str) {
+			if (_length > 0) {
+				if (str[_length]) {
+					new (&string) String(str, _length);
+					data = string.getData(*((sl_size*)&length));
+				}
+			} else if (!_length) {
+				data = (sl_char8*)"";
+			}
+		}
 	}
 
 	StringCstr::StringCstr(const String& str) noexcept
@@ -857,9 +700,11 @@ namespace slib
 		if (data) {
 			if (length > 0) {
 				if (data[length]) {
-					string = String::create(data, length);
+					new (&string) String(data, length);
 					data = string.getData(*((sl_size*)&length));
 				}
+			} else if (!length) {
+				data = (sl_char8*)"";
 			}
 		}
 	}
@@ -950,8 +795,18 @@ namespace slib
 	{
 	}
 
-	StringCstr16::StringCstr16(const sl_char16* str, sl_size length) noexcept: StringView16(str, length)
+	StringCstr16::StringCstr16(const sl_char16* str, sl_size _length) noexcept: StringView16(str, _length)
 	{
+		if (str) {
+			if (_length > 0) {
+				if (str[_length]) {
+					new (&string) String16(str, _length);
+					data = string.getData(*((sl_size*)&length));
+				}
+			} else if (!_length) {
+				data = (sl_char16*)u"";
+			}
+		}
 	}
 
 	StringCstr16::StringCstr16(const String16& str) noexcept
@@ -973,6 +828,8 @@ namespace slib
 					string = String16::create(data, length);
 					data = string.getData(*((sl_size*)&length));
 				}
+			} else if (!length) {
+				data = (sl_char16*)u"";
 			}
 		}
 	}

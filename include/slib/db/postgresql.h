@@ -37,11 +37,11 @@ namespace slib
 	class SLIB_EXPORT PostgreSQL_Param
 	{
 	public:
-		String host;
+		StringParam host;
 		sl_uint16 port;
-		String user;
-		String password;
-		String db;
+		StringParam user;
+		StringParam password;
+		StringParam db;
 		
 		// Output
 		String error;

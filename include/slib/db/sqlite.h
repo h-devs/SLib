@@ -31,10 +31,10 @@ namespace slib
 	class SLIB_EXPORT SQLiteParam
 	{
 	public:
-		String path;
+		StringParam path;
 		sl_bool flagCreate;
 		sl_bool flagReadonly;
-		String encryptionKey;
+		StringParam encryptionKey;
 		
 	public:
 		SQLiteParam();

@@ -33,7 +33,7 @@ namespace slib
 	class RocksDB_Param
 	{
 	public:
-		String path;
+		StringParam path;
 
 		sl_bool flagCreateIfMissing;
 
