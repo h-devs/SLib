@@ -33,7 +33,7 @@ namespace slib
 	class LevelDB_Param
 	{
 	public:
-		String path;
+		StringParam path;
 
 		sl_bool flagCreateIfMissing;
 
@@ -60,6 +60,8 @@ namespace slib
 
 		static Ref<LevelDB> open(const StringParam& path);
 		
+		static void freeDefaultEnvironment();
+
 	};
 
 }

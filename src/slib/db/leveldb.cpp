@@ -146,9 +146,9 @@ namespace slib
 			public:
 				Ref<KeyValueWriteBatch> createWriteBatch() override;
 
-				Ref<KeyValueIterator> createIterator() override;
+				Ref<KeyValueIterator> getIterator() override;
 
-				Ref<KeyValueSnapshot> createSnapshot() override;
+				Ref<KeyValueSnapshot> getSnapshot() override;
 
 				sl_bool get(const void* key, sl_size sizeKey, MemoryData* value) override
 				{
@@ -333,7 +333,7 @@ namespace slib
 
 			};
 
-			Ref<KeyValueIterator> LevelDBImpl::createIterator()
+			Ref<KeyValueIterator> LevelDBImpl::getIterator()
 			{
 				leveldb::Iterator* iterator = m_db->NewIterator(m_optionsRead);
 				if (iterator) {
@@ -377,7 +377,7 @@ namespace slib
 					return sl_false;
 				}
 
-				Ref<KeyValueIterator> createIterator() override
+				Ref<KeyValueIterator> getIterator() override
 				{
 					leveldb::Iterator* iterator = m_db->NewIterator(m_optionsRead);
 					if (iterator) {
@@ -392,7 +392,7 @@ namespace slib
 
 			};
 
-			Ref<KeyValueSnapshot> LevelDBImpl::createSnapshot()
+			Ref<KeyValueSnapshot> LevelDBImpl::getSnapshot()
 			{
 				const leveldb::Snapshot* snapshot = m_db->GetSnapshot();
 				if (snapshot) {
@@ -439,6 +439,14 @@ namespace slib
 		LevelDB_Param param;
 		param.path = path.toString();
 		return open(param);
+	}
+
+	void LevelDB::freeDefaultEnvironment()
+	{
+		Ref<DefaultEnvironmentManager>* p = GetDefaultEnironmentManager();
+		if (p) {
+			p->setNull();
+		}
 	}
 
 }
