@@ -4,14 +4,29 @@ using namespace slib;
 
 int main(int argc, const char * argv[])
 {
-	if (argc != 4) {
-		Println("Usage: CopyFileList [Source Directory] [Target Directory] [List File]");
+	sl_bool flagMove = sl_false;
+	sl_bool flagError = sl_false;
+	if (argc == 5) {
+		if (StringView(argv[1]) == "--move") {
+			flagMove = sl_true;
+		} else {
+			flagError = sl_true;
+		}
+	} else if (argc == 4) {
+		if (StringView(argv[1]) == "--move") {
+			flagError = sl_true;
+		}
+	} else {
+		flagError = sl_true;
+	}
+	if (flagError) {
+		Println("Usage: CopyFileList [--move] <SourceDir> <TargetDir> <FileList>");
 		return -1;
 	}
 
-	String pathSrc = argv[1];
-	String pathDst = argv[2];
-	String pathList = argv[3];
+	String pathSrc = flagMove ? argv[2] : argv[1];
+	String pathDst = flagMove ? argv[3] : argv[2];
+	String pathList = flagMove ? argv[4] : argv[3];
 
 	if (!(File::isDirectory(pathSrc))) {
 		Println("Source Directory is invalid: %s", pathSrc);
@@ -43,10 +58,18 @@ int main(int argc, const char * argv[])
 			if (File::exists(pathSrcFile)) {
 				String pathDstFile = File::joinPath(pathDst, item);
 				File::createDirectories(File::getParentDirectoryPath(pathDstFile));
-				if (File::copyFile(pathSrcFile, pathDstFile)) {
-					Println("Copied: %s", item);
+				if (flagMove) {
+					if (File::move(pathSrcFile, pathDstFile)) {
+						Println("Moved: %s", item);
+					} else {
+						Println("Failed to move: %s", item);
+					}
 				} else {
-					Println("Failed to copy: %s", item);
+					if (File::copyFile(pathSrcFile, pathDstFile)) {
+						Println("Copied: %s", item);
+					} else {
+						Println("Failed to copy: %s", item);
+					}
 				}
 			} else {
 				Println("File not found: %s", item);
