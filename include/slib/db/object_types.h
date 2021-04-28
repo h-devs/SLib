@@ -60,7 +60,8 @@ namespace slib
 			LMDB,
 			LevelDB,
 			RocksDB,
-			ObjectStorage,
+			StorageObject,
+			ObjectStorageManager,
 			DocumentStore,
 			MongoDB
 		};

@@ -110,6 +110,24 @@ namespace slib
 			}
 		}
 
+		template <class... TYPES>
+		static const Iterator& from(const Iterator<TYPES...>& other) noexcept
+		{
+			return *(reinterpret_cast<Iterator const*>(&other));
+		}
+
+		template <class... TYPES>
+		static Iterator& from(Iterator<TYPES...>& other) noexcept
+		{
+			return *(reinterpret_cast<Iterator*>(&other));
+		}
+
+		template <class... TYPES>
+		static Iterator&& from(Iterator<TYPES...>&& other) noexcept
+		{
+			return static_cast<Iterator&&>(*(reinterpret_cast<Iterator*>(&other)));
+		}
+
 	};
 
 }

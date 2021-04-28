@@ -97,10 +97,15 @@ namespace slib
 				return 0;
 			}
 
-			class ObjectStorageImpl : public ObjectStorage
+			class StorageObjectImpl;
+
+			class ObjectStorageManagerImpl : public ObjectStorageManager
 			{
 			public:
-				static Ref<ObjectStorageImpl> open(const ObjectStorageParam& param)
+				Ref<KeyValueStore> m_store;
+
+			public:
+				static Ref<ObjectStorageManagerImpl> open(const ObjectStorageParam& param)
 				{
 					Ref<KeyValueStore> store = param.store;
 					if (store.isNull()) {
@@ -111,7 +116,7 @@ namespace slib
 							return sl_null;
 						}
 					}
-					Ref<ObjectStorageImpl> ret = new ObjectStorageImpl;
+					Ref<ObjectStorageManagerImpl> ret = new ObjectStorageManagerImpl;
 					if (ret.isNotNull()) {
 						ret->m_store = Move(store);
 						return ret;
@@ -120,37 +125,17 @@ namespace slib
 				}
 
 			public:
-				Variant createObject(const StringParam& key) override
+				Ref<KeyValueStore> getStore() override
 				{
-					return createObjectItem(0, key);
+					return m_store;
 				}
 
-				Variant createObject(const Variant& _parent, const StringParam& key) override;
-
-				Variant getItem(const StringParam& key) override
-				{
-					return getItem(0, key);
-				}
-
-				sl_bool putItem(const StringParam& key, const Variant& value) override
-				{
-					return putItem(0, key, value);
-				}
-
-				sl_bool removeItem(const StringParam& key) override
-				{
-					return removeItem(0, key);
-				}
-
-				PropertyIterator getItemIterator() override
-				{
-					return getItemIterator(0);
-				}
-
+				Ref<StorageObject> createRootObject() override;
+				
 			public:
-				Variant createObjectItem(sl_uint64 prefix, const StringParam& key);
+				Ref<StorageObject> createObject(sl_uint64 prefix, const StringParam& key);
 
-				Variant getItem(sl_uint64 prefix, const StringParam& key);
+				ObjectStorage getItem(sl_uint64 prefix, const StringParam& key);
 
 				sl_bool putItem(sl_uint64 prefix, const StringParam& _key, const Variant& value)
 				{
@@ -185,7 +170,7 @@ namespace slib
 					return bRet;
 				}
 
-				PropertyIterator getItemIterator(sl_uint64 prefix);
+				Iterator<String, ObjectStorage> getItemIterator(sl_uint64 prefix);
 
 				sl_uint64 getObjectPrefix(sl_uint8* key, sl_uint32 nKey)
 				{
@@ -296,52 +281,54 @@ namespace slib
 
 			};
 
-			class StorageObject : public Object
+			class StorageObjectImpl : public StorageObject
 			{
 			public:
-				Ref<ObjectStorageImpl> m_storage;
+				Ref<ObjectStorageManagerImpl> m_manager;
 				sl_uint64 m_prefix;
 
 			public:
-				StorageObject(ObjectStorageImpl* storage, sl_uint64 prefix): m_storage(storage), m_prefix(prefix) {}
+				StorageObjectImpl(ObjectStorageManagerImpl* manager, sl_uint64 prefix): m_manager(manager), m_prefix(prefix) {}
 
 			public:
-				Variant getProperty(const StringParam& name) override
+				Ref<ObjectStorageManager> getManager() override
 				{
-					return m_storage->getItem(m_prefix, name);
+					return m_manager;
 				}
 
-				sl_bool setProperty(const StringParam& name, const Variant& value) override
+				Ref<StorageObject> createObject(const StringParam& key) override
 				{
-					return m_storage->putItem(m_prefix, name, value);
+					return m_manager->createObject(m_prefix, key);
 				}
 
-				sl_bool clearProperty(const StringParam& name) override
+				ObjectStorage getItem(const StringParam& key) override
 				{
-					return m_storage->removeItem(m_prefix, name);
+					return m_manager->getItem(m_prefix, key);
 				}
 
-				PropertyIterator getPropertyIterator() override
+				sl_bool putItem(const StringParam& key, const Variant& value) override
 				{
-					return m_storage->getItemIterator(m_prefix);
+					return m_manager->putItem(m_prefix, key, value);
+				}
+
+				sl_bool removeItem(const StringParam& key) override
+				{
+					return m_manager->removeItem(m_prefix, key);
+				}
+
+				Iterator<String, ObjectStorage> getItemIterator() override
+				{
+					return m_manager->getItemIterator(m_prefix);
 				}
 
 			};
 
-			Variant ObjectStorageImpl::createObject(const Variant& _parent, const StringParam& key)
+			Ref<StorageObject> ObjectStorageManagerImpl::createRootObject()
 			{
-				if (_parent.isNull()) {
-					return createObjectItem(0, key);
-				}
-				Ref<Object> refParent = _parent.getObject();
-				if (refParent.isNotNull()) {
-					StorageObject* parent = (StorageObject*)(refParent.get());
-					return createObjectItem(parent->m_prefix, key);
-				}
-				return Variant();
+				return new StorageObjectImpl(this, 0);
 			}
 
-			Variant ObjectStorageImpl::createObjectItem(sl_uint64 prefixParent, const StringParam& _key)
+			Ref<StorageObject> ObjectStorageManagerImpl::createObject(sl_uint64 prefixParent, const StringParam& _key)
 			{
 				sl_uint8 key[KEY_BUFFER_SIZE];
 				sl_uint32 nKey = PrepareKey(key, prefixParent, _key);
@@ -350,7 +337,7 @@ namespace slib
 					ObjectLocker lock(this);
 					sl_uint64 prefixSub = getObjectPrefix(key, nKey);
 					if (prefixSub) {
-						return Variant::fromObject(new StorageObject(this, prefixSub));
+						return new StorageObjectImpl(this, prefixSub);
 					}
 					Ref<KeyValueWriteBatch> batch = m_store->createWriteBatch();
 					if (batch.isNotNull()) {
@@ -363,21 +350,21 @@ namespace slib
 							sl_uint32 size = 2 + CVLI::serialize(buf + 2, prefixNew);
 							if (batch->put(key, nKey, buf, size)) {
 								if (batch->commit()) {
-									return Variant::fromObject(new StorageObject(this, prefixNew));
+									return new StorageObjectImpl(this, prefixNew);
 								}
 							}
 						}
 					}
 				}
-				return Variant();
+				return sl_null;
 			}
 
-			Variant ObjectStorageImpl::getItem(sl_uint64 prefix, const StringParam& _key)
+			ObjectStorage ObjectStorageManagerImpl::getItem(sl_uint64 prefix, const StringParam& _key)
 			{
 				sl_uint8 key[KEY_BUFFER_SIZE];
 				sl_uint32 nKey = PrepareKey(key, prefix, _key);
 				if (!nKey) {
-					return Variant();
+					return ObjectStorage();
 				}
 				Variant value = m_store->get(StringView((char*)key, nKey));
 				if (value.isNotUndefined()) {
@@ -386,15 +373,15 @@ namespace slib
 				AppendObjectKeySuffix(key, nKey);
 				sl_uint64 prefixSub = getObjectPrefix(key, nKey);
 				if (prefixSub) {
-					return Variant::fromObject(new StorageObject(this, prefixSub));
+					return new StorageObjectImpl(this, prefixSub);
 				}
-				return Variant();
+				return ObjectStorage();
 			}
 
-			class StorageItemIterator : public CPropertyIterator
+			class StorageItemIterator : public CIterator<String, ObjectStorage>
 			{
 			public:
-				Ref<ObjectStorageImpl> m_storage;
+				Ref<ObjectStorageManagerImpl> m_manager;
 				Ref<KeyValueIterator> m_kvIterator;
 				
 				sl_bool m_flagFirstMove;
@@ -403,7 +390,7 @@ namespace slib
 				String m_key;
 
 			public:
-				StorageItemIterator(ObjectStorageImpl* storage, sl_uint64 prefix, Ref<KeyValueIterator>&& iterator): m_storage(storage), m_kvIterator(Move(iterator)), m_flagFirstMove(sl_true)
+				StorageItemIterator(ObjectStorageManagerImpl* manager, sl_uint64 prefix, Ref<KeyValueIterator>&& iterator): m_manager(manager), m_kvIterator(Move(iterator)), m_flagFirstMove(sl_true)
 				{
 					m_nPrefix = PrepareKey(m_prefix, prefix);
 				}
@@ -414,19 +401,19 @@ namespace slib
 					return m_key;
 				}
 
-				Variant getValue() override
+				ObjectStorage getValue() override
 				{
 					char buf[VALUE_BUFFER_SIZE];
 					MemoryData mem(buf, sizeof(buf));
 					if (m_kvIterator->getValue(&mem)) {
 						sl_uint64 prefix = DeserializeObjectPrefix(mem.data, mem.size);
 						if (prefix) {
-							return Variant::fromObject(new StorageObject(m_storage.get(), prefix));
+							return new StorageObjectImpl(m_manager.get(), prefix);
 						} else {
 							return KeyValueReader::deserialize(Move(mem));
 						}
 					} else {
-						return Variant();
+						return ObjectStorage();
 					}
 				}
 
@@ -487,7 +474,7 @@ namespace slib
 
 			};
 
-			PropertyIterator ObjectStorageImpl::getItemIterator(sl_uint64 prefix)
+			Iterator<String, ObjectStorage> ObjectStorageManagerImpl::getItemIterator(sl_uint64 prefix)
 			{
 				Ref<KeyValueIterator> iterator = m_store->getIterator();
 				if (iterator.isNotNull()) {
@@ -502,6 +489,48 @@ namespace slib
 	using namespace priv::object_storage;
 
 
+	SLIB_DEFINE_OBJECT(StorageObject, Object)
+
+	StorageObject::StorageObject()
+	{
+	}
+
+	StorageObject::~StorageObject()
+	{
+	}
+
+	Variant StorageObject::getProperty(const StringParam& name)
+	{
+		return getItem(name);
+	}
+
+	sl_bool StorageObject::setProperty(const StringParam& name, const Variant& value)
+	{
+		return putItem(name, value);
+	}
+
+	sl_bool StorageObject::clearProperty(const StringParam& name)
+	{
+		return removeItem(name);
+	}
+
+	PropertyIterator StorageObject::getPropertyIterator()
+	{
+		return PropertyIterator::from(getItemIterator());
+	}
+
+
+	SLIB_DEFINE_OBJECT(ObjectStorageManager, Object)
+
+	ObjectStorageManager::ObjectStorageManager()
+	{
+	}
+
+	ObjectStorageManager::~ObjectStorageManager()
+	{
+	}
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ObjectStorageParam)
 
 	ObjectStorageParam::ObjectStorageParam()
@@ -509,54 +538,397 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_OBJECT(ObjectStorage, Object)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ObjectStorage)
 
-	ObjectStorage::ObjectStorage()
+	ObjectStorage::ObjectStorage() noexcept
 	{
 	}
 
-	ObjectStorage::~ObjectStorage()
+	ObjectStorage::ObjectStorage(sl_null_t) noexcept: value(sl_null)
 	{
 	}
 
-	KeyValueStore* ObjectStorage::getStore() noexcept
+	ObjectStorage::ObjectStorage(StorageObject* object) noexcept: value(Variant::fromObject(object))
 	{
-		return m_store.get();
 	}
 
-	Json ObjectStorage::toJson()
+	ObjectStorage::ObjectStorage(const Ref<StorageObject>& object) noexcept: value(Variant::fromObject(object))
 	{
-		Json ret;
-		ret.setObject(this);
-		return ret;
 	}
 
-	Variant ObjectStorage::getProperty(const StringParam& name)
+	ObjectStorage::ObjectStorage(Ref<StorageObject>&& object) noexcept: value(Variant::fromObject(Move(object)))
+	{
+	}
+
+	Variant::Variant(const ObjectStorage& t) noexcept: Variant(t.value)
+	{
+	}
+
+	Variant::Variant(ObjectStorage&& t) noexcept: Variant(Move(t.value))
+	{
+	}
+
+	Json::Json(const ObjectStorage& t) noexcept: Json(t.value)
+	{
+	}
+
+	Json::Json(ObjectStorage&& t) noexcept: Json(Move(t.value))
+	{
+	}
+
+	Ref<ObjectStorageManager> ObjectStorage::getManager() const
+	{
+		Ref<StorageObject> object = getStorageObject();
+		if (object.isNotNull()) {
+			return object->getManager();
+		}
+		return sl_null;
+	}
+
+	ObjectStorage ObjectStorage::createObject(const StringParam& key) const
+	{
+		Ref<StorageObject> object = getStorageObject();
+		if (object.isNotNull()) {
+			return object->createObject(key);
+		}
+		return ObjectStorage();
+	}
+
+	sl_bool ObjectStorage::isStorageObject() const noexcept
+	{
+		if (value._type == VariantType::Referable || value._type == VariantType::Object) {
+			Ref<Referable>& ref = *((Ref<Referable>*)(void*)&(value._value));
+			return IsInstanceOf<StorageObject>(ref);
+		}
+		return sl_false;
+	}
+
+	Ref<StorageObject> ObjectStorage::getStorageObject() const noexcept
+	{
+		if (value._type == VariantType::Referable || value._type == VariantType::Object) {
+			Ref<Referable>& ref = *((Ref<Referable>*)(void*)&(value._value));
+			return CastRef<StorageObject>(ref);
+		}
+		return sl_null;
+	}
+
+	ObjectStorage ObjectStorage::getItem(const StringParam& key) const
+	{
+		Ref<StorageObject> object = getStorageObject();
+		if (object.isNotNull()) {
+			return object->getItem(key);
+		} else {
+			return value.getItem(key);
+		}
+	}
+
+	sl_bool ObjectStorage::putItem(const StringParam& key, const Variant& value) const
+	{
+		Ref<StorageObject> object = getStorageObject();
+		if (object.isNotNull()) {
+			return object->putItem(key, value);
+		}
+		return sl_false;
+	}
+
+	sl_bool ObjectStorage::removeItem(const StringParam& key) const
+	{
+		Ref<StorageObject> object = getStorageObject();
+		if (object.isNotNull()) {
+			return object->removeItem(key);
+		}
+		return sl_false;
+	}
+
+	Iterator<String, ObjectStorage> ObjectStorage::getItemIterator() const
+	{
+		Ref<StorageObject> object = getStorageObject();
+		if (object.isNotNull()) {
+			return object->getItemIterator();
+		}
+		return sl_null;
+	}
+
+	sl_bool ObjectStorage::isUndefined() const noexcept
+	{
+		return value.isUndefined();
+	}
+
+	sl_bool ObjectStorage::isNotUndefined() const noexcept
+	{
+		return value.isNotUndefined();
+	}
+
+	sl_bool ObjectStorage::isNull() const noexcept
+	{
+		return value.isNull();
+	}
+
+	sl_bool ObjectStorage::isNotNull() const noexcept
+	{
+		return value.isNotNull();
+	}
+
+	sl_bool ObjectStorage::isInt32() const noexcept
+	{
+		return value.isInt32();
+	}
+
+	sl_bool ObjectStorage::getInt32(sl_int32* _out) const noexcept
+	{
+		return value.getInt32(_out);
+	}
+
+	sl_int32 ObjectStorage::getInt32(sl_int32 def) const noexcept
+	{
+		return value.getInt32(def);
+	}
+
+	sl_bool ObjectStorage::isUint32() const noexcept
+	{
+		return value.getUint32();
+	}
+
+	sl_bool ObjectStorage::getUint32(sl_uint32* _out) const noexcept
+	{
+		return value.getUint32(_out);
+	}
+
+	sl_uint32 ObjectStorage::getUint32(sl_uint32 def) const noexcept
+	{
+		return value.getUint32(def);
+	}
+
+	sl_bool ObjectStorage::isInt64() const noexcept
+	{
+		return value.isInt64();
+	}
+
+	sl_bool ObjectStorage::getInt64(sl_int64* _out) const noexcept
+	{
+		return value.getInt64(_out);
+	}
+
+	sl_int64 ObjectStorage::getInt64(sl_int64 def) const noexcept
+	{
+		return value.getInt64(def);
+	}
+
+	sl_bool ObjectStorage::isUint64() const noexcept
+	{
+		return value.isUint64();
+	}
+
+	sl_bool ObjectStorage::getUint64(sl_uint64* _out) const noexcept
+	{
+		return value.getUint64(_out);
+	}
+
+	sl_uint64 ObjectStorage::getUint64(sl_uint64 def) const noexcept
+	{
+		return value.getUint64(def);
+	}
+
+	sl_bool ObjectStorage::isInteger() const noexcept
+	{
+		return value.isInteger();
+	}
+
+	sl_bool ObjectStorage::isSignedInteger() const noexcept
+	{
+		return value.isSignedInteger();
+	}
+
+	sl_bool ObjectStorage::isUnsignedInteger() const noexcept
+	{
+		return value.isUnsignedInteger();
+	}
+
+	sl_bool ObjectStorage::isFloat() const noexcept
+	{
+		return value.isFloat();
+	}
+
+	sl_bool ObjectStorage::getFloat(float* _out) const noexcept
+	{
+		return value.getFloat(_out);
+	}
+
+	float ObjectStorage::getFloat(float def) const noexcept
+	{
+		return value.getFloat(def);
+	}
+
+	sl_bool ObjectStorage::isDouble() const noexcept
+	{
+		return value.isDouble();
+	}
+
+	sl_bool ObjectStorage::getDouble(double* _out) const noexcept
+	{
+		return value.getDouble(_out);
+	}
+
+	double ObjectStorage::getDouble(double def) const noexcept
+	{
+		return value.getDouble(def);
+	}
+
+	sl_bool ObjectStorage::isNumber() const noexcept
+	{
+		return value.isNumber();
+	}
+
+	sl_bool ObjectStorage::isBoolean() const noexcept
+	{
+		return value.isBoolean();
+	}
+
+	sl_bool ObjectStorage::isTrue() const noexcept
+	{
+		return value.isTrue();
+	}
+
+	sl_bool ObjectStorage::isFalse() const noexcept
+	{
+		return value.isFalse();
+	}
+
+	sl_bool ObjectStorage::getBoolean(sl_bool def) const noexcept
+	{
+		return value.getBoolean(def);
+	}
+
+	sl_bool ObjectStorage::isString() const noexcept
+	{
+		return value.isString();
+	}
+
+	String ObjectStorage::getString(const String& def) const noexcept
+	{
+		return value.getString(def);
+	}
+
+	String ObjectStorage::getString() const noexcept
+	{
+		return value.getString();
+	}
+
+	String16 ObjectStorage::getString16(const String16& def) const noexcept
+	{
+		return value.getString16(def);
+	}
+
+	String16 ObjectStorage::getString16() const noexcept
+	{
+		return value.getString16();
+	}
+
+	sl_bool ObjectStorage::isTime() const noexcept
+	{
+		return value.isTime();
+	}
+
+	Time ObjectStorage::getTime(const Time& def) const noexcept
+	{
+		return value.getTime(def);
+	}
+
+	Time ObjectStorage::getTime() const noexcept
+	{
+		return value.getTime();
+	}
+
+	sl_bool ObjectStorage::isCollection() const noexcept
+	{
+		return value.isCollection();
+	}
+
+	Ref<Collection> ObjectStorage::getCollection() const noexcept
+	{
+		return value.getCollection();
+	}
+
+	sl_bool ObjectStorage::isVariantList() const noexcept
+	{
+		return value.isVariantList();
+	}
+
+	VariantList ObjectStorage::getVariantList() const noexcept
+	{
+		return value.getVariantList();
+	}
+
+	sl_bool ObjectStorage::isJsonList() const noexcept
+	{
+		return value.isJsonList();
+	}
+
+	JsonList ObjectStorage::getJsonList() const noexcept
+	{
+		return value.getJsonList();
+	}
+
+	sl_bool ObjectStorage::isObject() const noexcept
+	{
+		return value.isObject();
+	}
+
+	Ref<Object> ObjectStorage::getObject() const noexcept
+	{
+		return value.getObject();
+	}
+
+	sl_bool ObjectStorage::isVariantMap() const noexcept
+	{
+		return value.isVariantMap();
+	}
+
+	VariantMap ObjectStorage::getVariantMap() const noexcept
+	{
+		return value.getVariantMap();
+	}
+
+	sl_bool ObjectStorage::isJsonMap() const noexcept
+	{
+		return value.isJsonMap();
+	}
+
+	JsonMap ObjectStorage::getJsonMap() const noexcept
+	{
+		return value.getJsonMap();
+	}
+
+	sl_bool ObjectStorage::isMemory() const noexcept
+	{
+		return value.isMemory();
+	}
+
+	Memory ObjectStorage::getMemory() const noexcept
+	{
+		return value.getMemory();
+	}
+
+	ObjectStorage ObjectStorage::operator[](const StringParam& name) noexcept
 	{
 		return getItem(name);
 	}
 
-	sl_bool ObjectStorage::setProperty(const StringParam& name, const Variant& value)
+	Variant ObjectStorage::operator[](sl_size index) noexcept
 	{
-		return putItem(name, value);
+		return value.getElement(index);
 	}
 
-	sl_bool ObjectStorage::clearProperty(const StringParam& name)
+	ObjectStorage ObjectStorage::open(const ObjectStorageParam& param)
 	{
-		return removeItem(name);
+		Ref<ObjectStorageManagerImpl> manager = ObjectStorageManagerImpl::open(param);
+		if (manager.isNotNull()) {
+			return manager->createRootObject();
+		}
+		return sl_null;
 	}
 
-	PropertyIterator ObjectStorage::getPropertyIterator()
-	{
-		return getItemIterator();
-	}
-
-	Ref<ObjectStorage> ObjectStorage::open(const ObjectStorageParam& param)
-	{
-		return Ref<ObjectStorage>::from(ObjectStorageImpl::open(param));
-	}
-
-	Ref<ObjectStorage> ObjectStorage::open(const StringParam& path)
+	ObjectStorage ObjectStorage::open(const StringParam& path)
 	{
 		ObjectStorageParam param;
 		param.path = path;

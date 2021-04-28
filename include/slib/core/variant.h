@@ -98,6 +98,7 @@ namespace slib
 		}
 	}
 
+	class ObjectStorage;
 
 	class SLIB_EXPORT Variant
 	{
@@ -297,6 +298,9 @@ namespace slib
 
 		template <class T>
 		Variant(const Atomic<T>& t) noexcept: Variant(T(t)) {}
+
+		Variant(const ObjectStorage& t) noexcept;
+		Variant(ObjectStorage&& t) noexcept;
 
 	public:
 		Variant& operator=(const Variant& other) noexcept;
@@ -622,14 +626,16 @@ namespace slib
 
 		Variant getElement(sl_uint64 index) const;
 
-		sl_bool setElement_NoLock(sl_uint64 index, const Variant& value);
+		sl_bool setElement_NoLock(sl_uint64 index, const Variant& value) const;
 
-		sl_bool setElement(sl_uint64 index, const Variant& value);
+		sl_bool setElement(sl_uint64 index, const Variant& value) const;
 
+		sl_bool addElement_NoLock(const Variant& value) const;
 		sl_bool addElement_NoLock(const Variant& value);
 
+		sl_bool addElement(const Variant& value) const;
 		sl_bool addElement(const Variant& value);
-	
+
 
 		sl_bool isObject() const noexcept;
 
@@ -669,13 +675,15 @@ namespace slib
 
 		Variant getItem(const StringParam& key) const;
 
+		sl_bool putItem_NoLock(const StringParam& key, const Variant& value) const;
 		sl_bool putItem_NoLock(const StringParam& key, const Variant& value);
 
+		sl_bool putItem(const StringParam& key, const Variant& value) const;
 		sl_bool putItem(const StringParam& key, const Variant& value);
 
-		sl_bool removeItem_NoLock(const StringParam& key);
+		sl_bool removeItem_NoLock(const StringParam& key) const;
 
-		sl_bool removeItem(const StringParam& key);
+		sl_bool removeItem(const StringParam& key) const;
 
 		PropertyIterator getItemIterator() const;
 
