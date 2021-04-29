@@ -528,6 +528,7 @@ set (SNAPPY_ROOT_DIR "${SLIB_PATH}/external/src/snappy")
 set (
  SNAPPY_FILES
  "${SNAPPY_ROOT_DIR}/snappy.cc"
+ "${SNAPPY_ROOT_DIR}/snappy-c.cc"
  "${SNAPPY_ROOT_DIR}/snappy-sinksource.cc"
 )
 

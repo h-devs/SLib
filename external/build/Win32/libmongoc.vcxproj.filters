@@ -1,0 +1,466 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{09f86a62-c379-4633-a641-c666cc880dce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\bson">
+      <UniqueIdentifier>{facdcebf-e605-41d4-959a-cc02af60a71b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\jsonsl">
+      <UniqueIdentifier>{a01fbe66-880c-4885-ae93-92c8a5e05246}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common">
+      <UniqueIdentifier>{140c2227-c4b1-4649-9085-a247b1c32db2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\kms-message">
+      <UniqueIdentifier>{5051396c-0aa1-4c97-9334-4fb7ae885ac5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mongoc">
+      <UniqueIdentifier>{4f28a4fe-b7ba-41ff-a8de-cf8e872b2276}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-iter.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-json.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-keys.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-md5.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-memory.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-oid.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-reader.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-string.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-timegm.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-utf8.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-value.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-version-functions.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-writer.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bcon.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-atomic.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-clock.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-context.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-decimal128.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-error.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-iso8601.c">
+      <Filter>src\bson</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\jsonsl\jsonsl.c">
+      <Filter>src\jsonsl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\common\common-b64.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\common\common-md5.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\common\common-thread.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\hexlify.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_b64.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_caller_identity_request.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_crypto_apple.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_crypto_libcrypto.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_crypto_none.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_crypto_windows.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_decrypt_request.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_encrypt_request.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_kv_list.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_message.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_port.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_request.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_request_opt.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_request_str.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_response.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_response_parser.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\kms-message\sort.c">
+      <Filter>src\kms-message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-array.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-async.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-async-cmd.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-buffer.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-bulk-operation.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-change-stream.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-client.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-client-pool.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-client-session.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-client-side-encryption.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cluster.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cluster-aws.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cluster-cyrus.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cluster-sasl.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cluster-sspi.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cmd.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-collection.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-compression.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-counters.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-crypt.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-crypto.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-crypto-cng.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-crypto-common-crypto.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-crypto-openssl.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-array.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-change-stream.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-cmd.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-cmd-deprecated.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-find.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-find-cmd.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-find-opquery.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-legacy.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cyrus.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-database.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-error.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-find-and-modify.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-gridfs.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-gridfs-bucket.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-gridfs-bucket-file.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-gridfs-file.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-gridfs-file-list.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-gridfs-file-page.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-handshake.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-host-list.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-http.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-index.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-init.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-interrupt.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-libressl.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-linux-distro-scanner.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-list.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-log.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-matcher.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-matcher-op.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-memcmp.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-ocsp-cache.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-openssl.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-opts.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-opts-helpers.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-queue.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-rand-cng.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-rand-common-crypto.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-rand-openssl.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-read-concern.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-read-prefs.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-rpc.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-sasl.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-scram.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-secure-channel.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-secure-transport.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-server-description.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-server-monitor.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-server-stream.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-set.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-socket.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-ssl.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-sspi.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-buffered.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-file.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-gridfs.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-gridfs-download.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-gridfs-upload.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-socket.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-tls.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-tls-libressl.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-tls-openssl.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-tls-openssl-bio.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-tls-secure-channel.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-tls-secure-transport.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-topology.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-topology-background-monitoring.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-topology-description.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-topology-description-apm.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-topology-scanner.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-uri.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-util.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-version-functions.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-write-command.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-write-command-legacy.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-write-concern.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-aggregate.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-apm.c">
+      <Filter>src\mongoc</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -16,6 +16,7 @@ zxing-cpp 1.0.2
 hiredis 0.14.0
 libcef 76.1.10
 rocksdb 6.16.4
+libmongoc 1.17.5
 
 # Header-File Library
 stb_image 2.19
