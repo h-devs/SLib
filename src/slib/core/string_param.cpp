@@ -526,7 +526,7 @@ namespace slib
 					break;
 				case STRING_TYPE_STRING16_REF:
 				case STRING_TYPE_STRING16_NOREF:
-					string = String::create(STRING16_REF(param));
+					new (&string) String(String::create(STRING16_REF(param)));
 					data = string.getData(*((sl_size*)&length));
 					break;
 				case STRING_TYPE_SZ8:
@@ -534,12 +534,12 @@ namespace slib
 					length = -1;
 					break;
 				case STRING_TYPE_SZ16:
-					string = String::create((sl_char16*)(param._value));
+					new (&string) String(String::create((sl_char16*)(param._value)));
 					data = string.getData(*((sl_size*)&length));
 					break;
 				default:
 					if (IS_STR16(param._length)) {
-						string = String::create((sl_char16*)(param._value), GET_LENGTH(param._length));
+						new (&string) String(String::create((sl_char16*)(param._value), GET_LENGTH(param._length)));
 						data = string.getData(*((sl_size*)&length));
 					} else {
 						data = (sl_char8*)(param._value);
@@ -555,6 +555,23 @@ namespace slib
 	}
 
 	StringData::StringData(const sl_char8* str, sl_size length) noexcept: StringView(str, length)
+	{
+	}
+
+	StringData::StringData(const String& str) noexcept: StringView(str)
+	{
+	}
+
+	StringData::StringData(String&& str) noexcept: string(Move(str))
+	{
+		data = string.getData(*((sl_size*)&length));
+	}
+
+	StringData::StringData(const AtomicString& str) noexcept: StringData(String(str))
+	{
+	}
+
+	StringData::StringData(const StringView& str) noexcept: StringView(str)
 	{
 	}
 
@@ -580,11 +597,11 @@ namespace slib
 					break;
 				case STRING_TYPE_STRING8_REF:
 				case STRING_TYPE_STRING8_NOREF:
-					string = String16::create(STRING_REF(param));
+					new (&string) String16(String16::create(STRING_REF(param)));
 					data = string.getData(*((sl_size*)&length));
 					break;
 				case STRING_TYPE_SZ8:
-					string = String16::create((sl_char8*)(param._value));
+					new (&string) String16(String16::create((sl_char8*)(param._value)));
 					data = string.getData(*((sl_size*)&length));
 					break;
 				case STRING_TYPE_SZ16:
@@ -596,7 +613,7 @@ namespace slib
 						data = (sl_char16*)(param._value);
 						length = GET_LENGTH(param._length);
 					} else {
-						string = String16::create((sl_char8*)(param._value), param._length);
+						new (&string) String16(String16::create((sl_char8*)(param._value), param._length));
 						data = string.getData(*((sl_size*)&length));
 					}
 					break;
@@ -609,6 +626,23 @@ namespace slib
 	}
 
 	StringData16::StringData16(const sl_char16* str, sl_size length) noexcept: StringView16(str, length)
+	{
+	}
+
+	StringData16::StringData16(const String16& str) noexcept: StringView16(str)
+	{
+	}
+
+	StringData16::StringData16(String16&& str) noexcept: string(Move(str))
+	{
+		data = string.getData(*((sl_size*)&length));
+	}
+
+	StringData16::StringData16(const AtomicString16& str) noexcept: StringData16(String16(str))
+	{
+	}
+
+	StringData16::StringData16(const StringView16& str) noexcept: StringView16(str)
 	{
 	}
 
@@ -689,6 +723,11 @@ namespace slib
 		if (str.isNotNull()) {
 			data = str.getNullTerminatedData(*((sl_size*)&length), string);
 		}
+	}
+
+	StringCstr::StringCstr(String&& str) noexcept: string(Move(str))
+	{
+		data = string.getNullTerminatedData(*((sl_size*)&length), string);
 	}
 
 	StringCstr::StringCstr(const AtomicString& str) noexcept: StringCstr(String(str))
@@ -813,6 +852,13 @@ namespace slib
 	{
 		if (str.isNotNull()) {
 			data = str.getNullTerminatedData(*((sl_size*)&length), string);
+		}
+	}
+
+	StringCstr16::StringCstr16(String16&& str) noexcept: string(Move(str))
+	{
+		if (string.isNotNull()) {
+			data = string.getNullTerminatedData(*((sl_size*)&length), string);
 		}
 	}
 

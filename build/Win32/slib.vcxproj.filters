@@ -1373,5 +1373,11 @@
     <ClCompile Include="..\..\external\src\snappy\snappy-c.cc">
       <Filter>external\snappy</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\db\document_store.cpp">
+      <Filter>src\db</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\db\mongodb.cpp">
+      <Filter>src\db</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

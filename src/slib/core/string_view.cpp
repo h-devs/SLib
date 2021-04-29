@@ -51,7 +51,7 @@ namespace slib
 	StringView::StringView(const String& value) noexcept
 	{
 		if (value.isNotNull()) {
-			value.getData(*((sl_size*)&length));
+			data = value.getData(*((sl_size*)&length));
 		} else {
 			data = sl_null;
 			length = 0;
@@ -61,7 +61,7 @@ namespace slib
 	StringView16::StringView16(const String16& value) noexcept
 	{
 		if (value.isNotNull()) {
-			value.getData(*((sl_size*)&length));
+			data = value.getData(*((sl_size*)&length));
 		} else {
 			data = sl_null;
 			length = 0;
@@ -167,7 +167,7 @@ namespace slib
 	StringView& StringView::operator=(const String& value) noexcept
 	{
 		if (value.isNotNull()) {
-			value.getData(*((sl_size*)&length));
+			data = value.getData(*((sl_size*)&length));
 		} else {
 			data = sl_null;
 			length = 0;
@@ -178,7 +178,7 @@ namespace slib
 	StringView16& StringView16::operator=(const String16& value) noexcept
 	{
 		if (value.isNotNull()) {
-			value.getData(*((sl_size*)&length));
+			data = value.getData(*((sl_size*)&length));
 		} else {
 			data = sl_null;
 			length = 0;

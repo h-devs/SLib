@@ -34,7 +34,7 @@
 		Supports 34 decimal digits of precision, a max value of approximately 10^6145, and min value of approximately -10^6145.
 
 	Clamping:
-		Clamping happens when a value’s exponent is too large for the destination format. This works by adding zeros to the coefficient to reduce the exponent to the largest usable value. An overflow occurs if the number of digits required is more than allowed in the destination format.
+		Clamping happens when a valueï¿½s exponent is too large for the destination format. This works by adding zeros to the coefficient to reduce the exponent to the largest usable value. An overflow occurs if the number of digits required is more than allowed in the destination format.
 
 	Binary Integer Decimal (BID):
 		Uses this binary encoding for the coefficient as specified in IEEE 754-2008 section 3.5.2 using method 2 "binary encoding" rather than method 1 "decimal encoding".
@@ -44,6 +44,8 @@
 
 namespace slib
 {
+
+	class Json;
 
 	class SLIB_EXPORT Decimal128
 	{
@@ -127,7 +129,7 @@ namespace slib
 		sl_size getHashCode() const noexcept;
 
 	public:
-		Decimal128 & operator=(const Decimal128& other) noexcept
+		Decimal128& operator=(const Decimal128& other) noexcept
 		{
 			low = other.low;
 			high = other.high;
@@ -181,6 +183,10 @@ namespace slib
 		static Decimal128 fromString(const StringParam& str) noexcept;
 
 		String toString() const noexcept;
+
+		sl_bool fromJson(const Json& json) noexcept;
+
+		Json toJson() const noexcept;
 
 
 		template <class ST>

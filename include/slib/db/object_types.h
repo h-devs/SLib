@@ -63,6 +63,9 @@ namespace slib
 			StorageObject,
 			ObjectStorageManager,
 			DocumentStore,
+			DocumentDatabase,
+			DocumentCollection,
+			DocumentCursor,
 			MongoDB
 		};
 

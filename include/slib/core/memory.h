@@ -30,6 +30,9 @@ namespace slib
 {
 
 	class Memory;
+	class String;
+	class String16;
+	class Json;
 
 	class SLIB_EXPORT MemoryData
 	{
@@ -112,11 +115,6 @@ namespace slib
 
 	};
 
-	class Memory;
-
-	class String;
-	class String16;
-	
 	template <>
 	class SLIB_EXPORT Atomic<Memory>
 	{
@@ -191,6 +189,8 @@ namespace slib
 
 		static Memory createFromString16(const String16& str) noexcept;
 		static Memory createFromString16(String16&& str) noexcept;
+
+		static Memory createFromExtendedJson(const Json& json, sl_uint32* pOutSubType = sl_null);
 
 	public:
 		void* getData() const noexcept;

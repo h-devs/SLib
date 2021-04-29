@@ -67,6 +67,7 @@
 #include "core/memory_buffer.h"
 #include "core/memory_queue.h"
 #include "core/memory_traits.h"
+#include "core/object_id.h"
 #include "core/variant.h"
 
 #include "core/time.h"

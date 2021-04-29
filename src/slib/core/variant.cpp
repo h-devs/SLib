@@ -30,6 +30,7 @@
 #include "slib/core/list_collection.h"
 #include "slib/core/map_object.h"
 #include "slib/core/serialize.h"
+#include "slib/core/time_parse.h"
 
 #define PTR_VAR(TYPE, x) ((TYPE*)((void*)(&(x))))
 #define REF_VAR(TYPE, x) (*PTR_VAR(TYPE, x))
@@ -50,21 +51,43 @@ namespace slib
 		
 			char g_variantPromise_ClassID[1];
 
-			const ConstContainer g_undefined = {0, VariantType::Null, 0};
-			const ConstContainer g_null = {1, VariantType::Null, 0};
+			const ConstContainer g_undefined = {0, 0, VariantType::Null, 0};
+			const ConstContainer g_null = {1, 0, VariantType::Null, 0};
 
-			SLIB_INLINE static sl_bool IsSharedPtr(VariantType type)
+			SLIB_INLINE static void CopyBytes16(void* _dst, const void* _src)
+			{
+				sl_uint64* dst = (sl_uint64*)_dst;
+				const sl_uint64* src = (const sl_uint64*)_src;
+				*(dst++) = *(src++);
+				*dst = *src;
+			}
+
+			SLIB_INLINE static void CopyBytes12(void* dst, const void* src)
+			{
+				*((sl_uint64*)dst) = *((const sl_uint64*)src);
+				*((sl_uint32*)dst + 2) = *((const sl_uint32*)src + 2);
+			}
+
+			SLIB_INLINE static void ZeroBytes12(void* dst)
+			{
+				*((sl_uint64*)dst) = 0;
+				*((sl_uint32*)dst + 2) = 0;
+			}
+
+			SLIB_INLINE static sl_bool IsSharedPtr(sl_uint8 type)
 			{
 				return type >= VariantType::SharedPtr && type < VariantType::Referable;
 			}
 
-			SLIB_INLINE static sl_bool IsReferable(VariantType type)
+			SLIB_INLINE static sl_bool IsReferable(sl_uint8 type)
 			{
 				return type >= VariantType::Referable;
 			}
 
-			SLIB_INLINE static void Copy(VariantType src_type, sl_uint64 src_value, sl_uint64& dst_value) noexcept
+			SLIB_INLINE static void Copy(sl_uint8 src_type, const sl_uint64* _src_value, sl_uint64* _dst_value) noexcept
 			{
+				sl_uint64& dst_value = *_dst_value;
+				const sl_uint64& src_value = *_src_value;
 				switch (src_type) {
 					case VariantType::String8:
 						new PTR_VAR(String, dst_value) String(REF_VAR(String, src_value));
@@ -72,9 +95,16 @@ namespace slib
 					case VariantType::String16:
 						new PTR_VAR(String16, dst_value) String16(REF_VAR(String16, src_value));
 						break;
+					case VariantType::ObjectId:
+						CopyBytes12(_dst_value, _src_value);
+						break;
 					default:
-						if (IsReferable(src_type)) {
-							new PTR_VAR(Ref<Referable>, dst_value) Ref<Referable>(REF_VAR(Ref<Referable>, src_value));
+						if (src_type >= VariantType::SharedPtr) {
+							if (src_type >= VariantType::Referable) {
+								new PTR_VAR(Ref<Referable>, dst_value) Ref<Referable>(REF_VAR(Ref<Referable>, src_value));
+							} else {
+								new PTR_VAR(SharedPtr<void>, dst_value) SharedPtr<void>(REF_VAR(SharedPtr<void>, src_value));
+							}
 						} else {
 							dst_value = src_value;
 						}
@@ -82,7 +112,7 @@ namespace slib
 				}
 			}
 
-			SLIB_INLINE static void Free(VariantType type, sl_uint64 value) noexcept
+			SLIB_INLINE static void Free(sl_uint8 type, sl_uint64 value) noexcept
 			{
 				switch (type)
 				{
@@ -93,16 +123,18 @@ namespace slib
 						REF_VAR(String16, value).String16::~String16();
 						break;
 					default:
-						if (type >= VariantType::Referable) {
-							REF_VAR(Ref<Referable>, value).Ref<Referable>::~Ref();
-						} else if (type >= VariantType::SharedPtr) {
-							REF_VAR(SharedPtr<void>, value).SharedPtr<void>::~SharedPtr();
+						if (type >= VariantType::SharedPtr) {
+							if (type >= VariantType::Referable) {
+								REF_VAR(Ref<Referable>, value).Ref<Referable>::~Ref();
+							} else {
+								REF_VAR(SharedPtr<void>, value).SharedPtr<void>::~SharedPtr();
+							}
 						}
 						break;
 				}
 			}
 
-			template <class T, VariantType type>
+			template <class T, sl_uint8 type>
 			SLIB_INLINE static sl_bool IsObject(const Variant& v)
 			{
 				if (v._type == type) {
@@ -119,7 +151,7 @@ namespace slib
 				return sl_false;
 			}
 
-			template <class T, class OT, VariantType type>
+			template <class T, class OT, sl_uint8 type>
 			SLIB_INLINE static OT GetObjectT(const Variant& v)
 			{
 				if (v._type == type) {
@@ -762,7 +794,7 @@ namespace slib
 			template <class T>
 			SLIB_INLINE static sl_bool EqualsVariant(const T* v1, const Variant& v2) noexcept
 			{
-				VariantType type = v2._type;
+				sl_uint8 type = v2._type;
 				switch (type) {
 				case VariantType::Int32:
 					return EqualsElement(v1, PTR_VAR(sl_int32 const, v2._value));
@@ -878,7 +910,7 @@ namespace slib
 			template <class T>
 			SLIB_INLINE static sl_compare_result CompareString(const T* v1, const Variant& v2) noexcept
 			{
-				VariantType type = v2._type;
+				sl_uint8 type = v2._type;
 				switch (type) {
 				case VariantType::String8:
 					return CompareElement(v1, PTR_VAR(String const, v2._value));
@@ -904,7 +936,7 @@ namespace slib
 		if (this != &other) {
 			Free(_type, _value);
 			_type = other._type;
-			Copy(_type, other._value, _value);
+			Copy(_type, &(other._value), &_value);
 		}
 	}
 
@@ -912,13 +944,12 @@ namespace slib
 	{
 		if (this != &other) {
 			Free(_type, _value);
-			_type = other._type;
-			_value = other._value;
+			CopyBytes16(this, &other);
 			other._type = VariantType::Null;
 		}
 	}
 
-	void Variant::_constructorSharedPtr(const void* ptr, VariantType type) noexcept
+	void Variant::_constructorSharedPtr(const void* ptr, sl_uint8 type) noexcept
 	{
 		const SharedPtr<void>& ref = *reinterpret_cast<SharedPtr<void> const*>(ptr);
 		if (ref.isNotNull()) {
@@ -930,7 +961,7 @@ namespace slib
 		}
 	}
 
-	void Variant::_constructorMoveSharedPtr(void* ptr, VariantType type) noexcept
+	void Variant::_constructorMoveSharedPtr(void* ptr, sl_uint8 type) noexcept
 	{
 		SharedPtr<void>& ref = *reinterpret_cast<SharedPtr<void>*>(ptr);
 		if (ref.isNotNull()) {
@@ -942,19 +973,19 @@ namespace slib
 		}
 	}
 
-	void Variant::_assignSharedPtr(const void* ptr, VariantType type) noexcept
+	void Variant::_assignSharedPtr(const void* ptr, sl_uint8 type) noexcept
 	{
 		Free(_type, _value);
 		_constructorSharedPtr(ptr, type);
 	}
 
-	void Variant::_assignMoveSharedPtr(void* ptr, VariantType type) noexcept
+	void Variant::_assignMoveSharedPtr(void* ptr, sl_uint8 type) noexcept
 	{
 		Free(_type, _value);
 		_constructorMoveSharedPtr(ptr, type);
 	}
 
-	void Variant::_constructorRef(const void* ptr, VariantType type) noexcept
+	void Variant::_constructorRef(const void* ptr, sl_uint8 type) noexcept
 	{
 		const Ref<Referable>& ref = *reinterpret_cast<Ref<Referable> const*>(ptr);
 		if (ref.isNotNull()) {
@@ -966,7 +997,7 @@ namespace slib
 		}
 	}
 
-	void Variant::_constructorMoveRef(void* ptr, VariantType type) noexcept
+	void Variant::_constructorMoveRef(void* ptr, sl_uint8 type) noexcept
 	{
 		Ref<Referable>& ref = *reinterpret_cast<Ref<Referable>*>(ptr);
 		if (ref.isNotNull()) {
@@ -978,19 +1009,19 @@ namespace slib
 		}
 	}
 
-	void Variant::_assignRef(const void* ptr, VariantType type) noexcept
+	void Variant::_assignRef(const void* ptr, sl_uint8 type) noexcept
 	{
 		Free(_type, _value);
 		_constructorRef(ptr, type);
 	}
 
-	void Variant::_assignMoveRef(void* ptr, VariantType type) noexcept
+	void Variant::_assignMoveRef(void* ptr, sl_uint8 type) noexcept
 	{
 		Free(_type, _value);
 		_constructorMoveRef(ptr, type);
 	}
 
-	void Variant::_free(VariantType type, sl_uint64 value) noexcept
+	void Variant::_free(sl_uint8 type, sl_uint64 value) noexcept
 	{
 		Free(type, value);
 	}
@@ -998,13 +1029,12 @@ namespace slib
 	Variant::Variant(const Variant& other) noexcept
 	{
 		_type = other._type;
-		Copy(_type, other._value, _value);
+		Copy(_type, &(other._value), &_value);
 	}
 
 	Variant::Variant(Variant&& other) noexcept
 	{
-		_type = other._type;
-		_value = other._value;
+		CopyBytes16(this, &other);
 		other._type = VariantType::Null;
 	}
 
@@ -1016,13 +1046,12 @@ namespace slib
 	Variant::Variant(const Json& other) noexcept
 	{
 		_type = other._type;
-		Copy(_type, other._value, _value);
+		Copy(_type, &(other._value), &_value);
 	}
 
 	Variant::Variant(Json&& other) noexcept
 	{
-		_type = other._type;
-		_value = other._value;
+		CopyBytes16(this, &other);
 		other._type = VariantType::Null;
 	}
 
@@ -1222,7 +1251,18 @@ namespace slib
 		_type = VariantType::Time;
 		REF_VAR(Time, _value) = value;
 	}
-	
+
+	Variant::Variant(const ObjectId& _id) noexcept
+	{
+		_type = VariantType::ObjectId;
+		CopyBytes12(&_value, _id.data);
+	}
+
+	Variant::Variant(const Decimal128& value) noexcept
+	{
+		_initSharedPtr(SharedPtr<Decimal128>::create(value), VariantType::Decimal128);
+	}
+
 	Variant::Variant(const VariantList& list) noexcept
 	{
 		_constructorRef(&list, VariantType::List);
@@ -1923,6 +1963,46 @@ namespace slib
 		REF_VAR(double, _value) = value;
 	}
 
+	sl_bool Variant::isNaN() const noexcept
+	{
+		if (_type == VariantType::Float) {
+			return Math::isNaN(REF_VAR(float, _value));
+		} else if (_type == VariantType::Double) {
+			return Math::isNaN(REF_VAR(double, _value));
+		}
+		return sl_false;
+	}
+
+	sl_bool Variant::isInfinite() const noexcept
+	{
+		if (_type == VariantType::Float) {
+			return Math::isInfinite(REF_VAR(float, _value));
+		} else if (_type == VariantType::Double) {
+			return Math::isInfinite(REF_VAR(double, _value));
+		}
+		return sl_false;
+	}
+
+	sl_bool Variant::isPositiveInfinite() const noexcept
+	{
+		if (_type == VariantType::Float) {
+			return Math::isPositiveInfinite(REF_VAR(float, _value));
+		} else if (_type == VariantType::Double) {
+			return Math::isPositiveInfinite(REF_VAR(double, _value));
+		}
+		return sl_false;
+	}
+
+	sl_bool Variant::isNegativeInfinite() const noexcept
+	{
+		if (_type == VariantType::Float) {
+			return Math::isNegativeInfinite(REF_VAR(float, _value));
+		} else if (_type == VariantType::Double) {
+			return Math::isNegativeInfinite(REF_VAR(double, _value));
+		}
+		return sl_false;
+	}
+
 	sl_bool Variant::isNumber() const noexcept
 	{
 		return isInteger() || _type == VariantType::Float || _type == VariantType::Double;
@@ -2079,6 +2159,10 @@ namespace slib
 				return String::create(REF_VAR(sl_char16 const* const, _value));
 			case VariantType::Pointer:
 				return "#" + String::fromPointerValue(REF_VAR(void const* const, _value));
+			case VariantType::ObjectId:
+				return REF_VAR(ObjectId, _value).toString();
+			case VariantType::Decimal128:
+				return REF_VAR(SharedPtr<Decimal128>, _value)->toString();
 			case VariantType::Null:
 				if (_value) {
 					return sl_null;
@@ -2132,6 +2216,10 @@ namespace slib
 				return String16::create(REF_VAR(sl_char16 const* const, _value));
 			case VariantType::Pointer:
 				return "#" + String16::fromPointerValue(REF_VAR(void const* const, _value));
+			case VariantType::ObjectId:
+				return String16::create(REF_VAR(ObjectId, _value).toString());
+			case VariantType::Decimal128:
+				return String16::create(REF_VAR(SharedPtr<Decimal128>, _value)->toString());
 			default:
 				if (isMemory()) {
 					CMemory* mem = REF_VAR(CMemory*, _value);
@@ -2343,6 +2431,78 @@ namespace slib
 		return _type == VariantType::Time;
 	}
 
+	sl_bool Variant::getTime(Time* _out) const noexcept
+	{
+		switch (_type) {
+		case VariantType::Int32:
+			if (_out) {
+				*_out = Time::fromUnixTime(REF_VAR(sl_int32 const, _value));
+			}
+			return sl_true;
+		case VariantType::Uint32:
+			if (_out) {
+				*_out = Time::fromUnixTime(REF_VAR(sl_uint32 const, _value));
+			}
+			return sl_true;
+		case VariantType::Int64:
+			if (_out) {
+				*_out = Time::fromUnixTime(REF_VAR(sl_int64 const, _value));
+			}
+			return sl_true;
+		case VariantType::Uint64:
+			if (_out) {
+				*_out = Time::fromUnixTime(REF_VAR(sl_uint64 const, _value));
+			}
+			return sl_true;
+		case VariantType::Float:
+			if (_out) {
+				*_out = Time::fromUnixTimef(REF_VAR(float const, _value));
+			}
+			return sl_true;
+		case VariantType::Double:
+			if (_out) {
+				*_out = Time::fromUnixTimef(REF_VAR(double const, _value));
+			}
+			return sl_true;
+		case VariantType::Time:
+			if (_out) {
+				*_out = REF_VAR(Time const, _value);
+			}
+			return sl_true;
+		case VariantType::String8:
+			if (_out) {
+				return _out->parse(REF_VAR(String const, _value));
+			} else {
+				Time t;
+				return t.parse(REF_VAR(String const, _value));
+			}
+		case VariantType::String16:
+			if (_out) {
+				return _out->parse(REF_VAR(String16 const, _value));
+			} else {
+				Time t;
+				return t.parse(REF_VAR(String16 const, _value));
+			}
+		case VariantType::Sz8:
+			if (_out) {
+				return _out->parse(StringParam(REF_VAR(sl_char8 const* const, _value), -1));
+			} else {
+				Time t;
+				return t.parse(StringParam(REF_VAR(sl_char8 const* const, _value), -1));
+			}
+		case VariantType::Sz16:
+			if (_out) {
+				return _out->parse(StringParam(REF_VAR(sl_char16 const* const, _value), -1));
+			} else {
+				Time t;
+				return t.parse(StringParam(REF_VAR(sl_char16 const* const, _value), -1));
+			}
+		default:
+			break;
+		}
+		return sl_false;
+	}
+
 	Time Variant::getTime(const Time& def) const noexcept
 	{
 		switch (_type) {
@@ -2388,12 +2548,12 @@ namespace slib
 
 	sl_bool Variant::isPointer() const noexcept
 	{
-		return _type == VariantType::Pointer || _type == VariantType::Sz8 || _type == VariantType::Sz16 || IsReferable(_type);
+		return _type == VariantType::Pointer || _type == VariantType::Sz8 || _type == VariantType::Sz16 || _type >= VariantType::SharedPtr;
 	}
 
 	void* Variant::getPointer(const void* def) const noexcept
 	{
-		if (_type == VariantType::Pointer || _type == VariantType::Sz8 || _type == VariantType::Sz16 || IsReferable(_type)) {
+		if (_type == VariantType::Pointer || _type == VariantType::Sz8 || _type == VariantType::Sz16 || _type >= VariantType::SharedPtr) {
 			return REF_VAR(void* const, _value);
 		}
 		return (void*)def;
@@ -2410,6 +2570,49 @@ namespace slib
 		}
 	}
 
+	sl_bool Variant::isObjectId() const noexcept
+	{
+		return _type == VariantType::ObjectId;
+	}
+
+	ObjectId Variant::getObjectId() const noexcept
+	{
+		if (_type == VariantType::ObjectId) {
+			return REF_VAR(ObjectId, _value);
+		} else if (isString()) {
+			return ObjectId(getString());
+		}
+		return sl_null;
+	}
+
+	sl_bool Variant::getObjectId(ObjectId* _out) const noexcept
+	{
+		if (_type == VariantType::ObjectId) {
+			if (_out) {
+				*_out = REF_VAR(ObjectId, _value);
+			}
+			return sl_true;
+		} else if (isString()) {
+			if (_out) {
+				if (_out->parse(getString())) {
+					return sl_true;
+				}
+				return sl_false;
+			} else {
+				ObjectId ret;
+				return ret.parse(getString());
+			}
+		}
+		return sl_null;
+	}
+
+	void Variant::setObjectId(const ObjectId& _id) noexcept
+	{
+		Free(_type, _value);
+		_type = VariantType::ObjectId;
+		CopyBytes12(&_value, _id.data);
+	}
+
 	sl_bool Variant::isSharedPtr() const noexcept
 	{
 		return IsSharedPtr(_type);
@@ -2421,6 +2624,44 @@ namespace slib
 			return REF_VAR(SharedPtr<void> const, _value);
 		}
 		return sl_null;
+	}
+
+	sl_bool Variant::isDecimal128() const noexcept
+	{
+		return _type == VariantType::Decimal128;
+	}
+
+	Decimal128 Variant::getDecimal128() const noexcept
+	{
+		if (_type == VariantType::Decimal128) {
+			return *(REF_VAR(SharedPtr<Decimal128> const, _value).get());
+		} else if (isString()) {
+			return Decimal128::fromString(getString());
+		}
+		return Decimal128::zero();
+	}
+
+	sl_bool Variant::getDecimal128(Decimal128* _out) const noexcept
+	{
+		if (_type == VariantType::Decimal128) {
+			if (_out) {
+				*_out = *(REF_VAR(SharedPtr<Decimal128> const, _value).get());
+			}
+			return sl_true;
+		} else if (isString()) {
+			if (_out) {
+				return _out->parse(getString());
+			} else {
+				Decimal128 v;
+				return v.parse(getString());
+			}
+		}
+		return sl_false;
+	}
+
+	void Variant::setDecimal128(const Decimal128& _id) noexcept
+	{
+		_setSharedPtr(SharedPtr<Decimal128>::create(_id), VariantType::Decimal128);
 	}
 
 	sl_bool Variant::isRef() const noexcept
@@ -2907,11 +3148,14 @@ namespace slib
 
 	Memory Variant::getMemory() const noexcept
 	{
-		if (isString()) {
-			return getString().parseHexString();
-		} else {
+		if (_type == VariantType::Memory) {
+			return REF_VAR(Memory, _value);
+		} else if (isString()) {
+			return getString().toMemory();
+		} else if (isRef()) {
 			return GetObjectT<CMemory, Memory, VariantType::Memory>(*this);
 		}
+		return sl_null;
 	}
 
 	void Variant::setMemory(const Memory& mem) noexcept
@@ -3045,7 +3289,12 @@ namespace slib
 			case VariantType::Sz16:
 			case VariantType::Time:
 			case VariantType::Pointer:
+			case VariantType::ObjectId:
+			case VariantType::Memory:
+			case VariantType::Decimal128:
 				return getString();
+			case VariantType::SharedPtr:
+				return String::join("<shared-ptr:", String::fromPointerValue(REF_VAR(void*, _value)), ">");
 			case VariantType::Weak:
 				{
 					Ref<Referable> ref(getRef());
@@ -3163,6 +3412,10 @@ namespace slib
 			case VariantType::String16:
 			case VariantType::Sz16:
 				return String::create(ParseUtil::applyBackslashEscapes16(getString16()));
+			case VariantType::ObjectId:
+				return REF_VAR(ObjectId, _value).toJson().toJsonString();
+			case VariantType::Decimal128:
+				return REF_VAR(SharedPtr<Decimal128>, _value)->toJson().toJsonString();
 			default:
 				if (IsReferable(_type)) {
 					StringBuffer buf;
@@ -3203,6 +3456,20 @@ namespace slib
 				MIO::writeUint64LE(buf + 1, *((sl_uint64*)(void*)&(var._value)));
 				size = 9;
 				break;
+			case VariantType::ObjectId:
+				if (size < 13) {
+					return 0;
+				}
+				Base::copyMemory(buf + 1, &(var._value), 12);
+				size = 13;
+				break;
+			case VariantType::Decimal128:
+				if (size < 17) {
+					return 0;
+				}
+				Base::copyMemory(buf + 1, REF_VAR(SharedPtr<Decimal128>, var._value).get(), 16);
+				size = 17;
+				break;
 			case VariantType::Boolean:
 				if (size < 2) {
 					return 0;
@@ -3219,7 +3486,7 @@ namespace slib
 			default:
 				return 0;
 		}
-		buf[0] = (sl_uint8)(var._type);
+		buf[0] = var._type;
 		return size;
 	}
 
@@ -3263,7 +3530,7 @@ namespace slib
 					if (sizePrefix) {
 						Base::copyMemory(buf, prefix, sizePrefix);
 					}
-					buf[sizePrefix] = (sl_uint8)(VariantType::String8);
+					buf[sizePrefix] = VariantType::String8;
 					sl_size l = sizePrefix + 1;
 					l += CVLI::serialize(buf + l, n);
 					Base::copyMemory(buf + l, str.getData(), n);
@@ -3278,7 +3545,7 @@ namespace slib
 					if (sizePrefix) {
 						Base::copyMemory(buf, prefix, sizePrefix);
 					}
-					buf[sizePrefix] = (sl_uint8)(VariantType::Memory);
+					buf[sizePrefix] = VariantType::Memory;
 					sl_size l = sizePrefix + 1;
 					l += CVLI::serialize(buf + l, n);
 					Base::copyMemory(buf + l, m.getData(), n);
@@ -3378,7 +3645,7 @@ namespace slib
 	sl_compare_result Variant::compare(const Variant& v2) const noexcept
 	{
 		const Variant& v1 = *this;
-		VariantType type = v1._type;
+		sl_uint8 type = v1._type;
 		if (type == v2._type) {
 			switch (type) {
 				case VariantType::Null:
@@ -3403,10 +3670,15 @@ namespace slib
 				case VariantType::String16:
 					return REF_VAR(String16 const, v1._value).compare(REF_VAR(String16 const, v2._value));
 				case VariantType::Pointer:
-				case VariantType::Object:
 					return ComparePrimitiveValues(REF_VAR(sl_size const, v1._value), REF_VAR(sl_size const, v2._value));
+				case VariantType::ObjectId:
+					return REF_VAR(ObjectId const, v1._value).compare(REF_VAR(ObjectId const, v2._value));
 				default:
-					return ComparePrimitiveValues(v1._value, v2._value);
+					if (type >= VariantType::SharedPtr) {
+						return ComparePrimitiveValues(REF_VAR(sl_size const, v1._value), REF_VAR(sl_size const, v2._value));
+					} else {
+						return ComparePrimitiveValues(v1._value, v2._value);
+					}
 			}
 		} else {
 			switch (type) {
@@ -3428,7 +3700,7 @@ namespace slib
 	sl_bool Variant::equals(const Variant& v2) const noexcept
 	{
 		const Variant& v1 = *this;
-		VariantType type = v1._type;
+		sl_uint8 type = v1._type;
 		if (type == v2._type) {
 			switch (type) {
 				case VariantType::Null:
@@ -3451,10 +3723,14 @@ namespace slib
 				case VariantType::String16:
 					return REF_VAR(String16 const, v1._value) == REF_VAR(String16 const, v2._value);
 				case VariantType::Pointer:
-				case VariantType::Object:
-					return REF_VAR(void const* const, v1._value) == REF_VAR(void const* const, v2._value);
+				case VariantType::ObjectId:
+					return REF_VAR(ObjectId const, v1._value).equals(REF_VAR(ObjectId const, v2._value));
 				default:
-					return v1._value == v2._value;
+					if (type >= VariantType::SharedPtr) {
+						return REF_VAR(void const* const, v1._value) == REF_VAR(void const* const, v2._value);
+					} else {
+						return v1._value == v2._value;
+					}
 			}
 		} else {
 			switch (type) {
@@ -3487,7 +3763,7 @@ namespace slib
 
 	sl_size Variant::getHashCode() const noexcept
 	{
-		VariantType type = _type;
+		sl_uint8 type = _type;
 		switch (type) {
 			case VariantType::Null:
 				return 0;
@@ -3789,6 +4065,125 @@ namespace slib
 	String16 Cast<Variant, String16>::operator()(const Variant& var) const noexcept
 	{
 		return String16::from(var);
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ObjectId)
+
+	ObjectId::ObjectId() noexcept
+	{
+	}
+
+	ObjectId::ObjectId(sl_null_t) noexcept
+	{
+		ZeroBytes12(data);
+	}
+
+	ObjectId::ObjectId(const StringParam& _id) noexcept
+	{
+		if (!(parse(_id))) {
+			ZeroBytes12(data);
+		}
+	}
+
+	ObjectId::ObjectId(const sl_uint8* _id) noexcept
+	{
+		Base::copyMemory(data, _id, 12);
+	}
+
+	sl_bool ObjectId::operator==(const ObjectId& other) const noexcept
+	{
+		return Base::equalsMemory(data, other.data, 12);
+	}
+
+	sl_bool ObjectId::operator!=(const ObjectId& other) const noexcept
+	{
+		return !(Base::equalsMemory(data, other.data, 12));
+	}
+
+	sl_bool ObjectId::operator>=(const ObjectId& other) const noexcept
+	{
+		return Base::compareMemory(data, other.data, 12) >= 0;
+	}
+
+	sl_bool ObjectId::operator>(const ObjectId& other) const noexcept
+	{
+		return Base::compareMemory(data, other.data, 12) > 0;
+	}
+
+	sl_bool ObjectId::operator<=(const ObjectId& other) const noexcept
+	{
+		return Base::compareMemory(data, other.data, 12) <= 0;
+	}
+
+	sl_bool ObjectId::operator<(const ObjectId& other) const noexcept
+	{
+		return Base::compareMemory(data, other.data, 12) < 0;
+	}
+
+	ObjectId ObjectId::generate() noexcept
+	{
+		static sl_uint64 random = 0;
+		if (!random) {
+			Math::randomMemory(&random, sizeof(random));
+		}
+		static sl_reg counter = 0;
+		sl_reg n = Base::interlockedIncrement((sl_reg*)&counter);
+		ObjectId ret;
+		MIO::writeUint32BE(ret.data, (sl_uint32)(Time::now().toUnixTime()));
+		MIO::writeUint64BE(ret.data + 4, random + n);
+		return ret;
+	}
+
+	String ObjectId::toString() const noexcept
+	{
+		return String::makeHexString(data, 12);
+	}
+
+	sl_bool ObjectId::parse(const StringParam& _str) noexcept
+	{
+		if (_str.is16()) {
+			StringData16 str(_str);
+			if (str.getLength() == 24) {
+				return str.parseHexString(data);
+			}
+		} else {
+			StringData str(_str);
+			if (str.getLength() == 24) {
+				return str.parseHexString(data);
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool ObjectId::equals(const ObjectId& other) const noexcept
+	{
+		return Base::equalsMemory(data, other.data, 12);
+	}
+
+	sl_compare_result ObjectId::compare(const ObjectId& other) const noexcept
+	{
+		return Base::compareMemory(data, other.data, 12);
+	}
+
+	sl_size ObjectId::getHashCode() const noexcept
+	{
+		return Rehash64ToSize(*(sl_uint64*)data ^ *(sl_uint32*)(data + 8));
+	}
+
+	sl_compare_result Compare<ObjectId>::operator()(const ObjectId& a, const ObjectId& b) const noexcept
+	{
+		return a.compare(b);
+	}
+
+	sl_bool Equals<ObjectId>::operator()(const ObjectId& a, const ObjectId& b) const noexcept
+	{
+		return a.equals(b);
+	}
+
+	sl_size Hash<ObjectId>::operator()(const ObjectId& a) const noexcept
+	{
+		return a.getHashCode();
 	}
 
 }

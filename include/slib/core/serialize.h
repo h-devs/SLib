@@ -34,6 +34,7 @@
 #include "serialize/nullable.h"
 #include "serialize/atomic.h"
 #include "serialize/ref.h"
+#include "serialize/object_id.h"
 #include "serialize/generic.h"
 #include "serialize/macro.h"
 

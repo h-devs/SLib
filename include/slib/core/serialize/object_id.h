@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,26 +20,28 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DB_HEADER
-#define CHECKHEADER_SLIB_DB_HEADER
+#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_OBJECT_ID
+#define CHECKHEADER_SLIB_CORE_SERIALIZE_OBJECT_ID
 
-#include "db/constants.h"
+#include "primitive.h"
 
-#include "db/database.h"
-#include "db/expression.h"
-#include "db/sql.h"
-#include "db/sqlite.h"
-#include "db/mysql.h"
-#include "db/postgresql.h"
+#include "../object_id.h"
 
-#include "db/key_value_store.h"
-#include "db/object_storage.h"
-#include "db/redis.h"
-#include "db/leveldb.h"
-#include "db/rocksdb.h"
-#include "db/lmdb.h"
+namespace slib
+{
 
-#include "db/document_store.h"
-#include "db/mongodb.h"
+	template <class OUTPUT>
+	static sl_bool Serialize(OUTPUT* output, const ObjectId& _in)
+	{
+		return SerializeRaw(output, _in.data, 12);
+	}
+
+	template <class INPUT>
+	static sl_bool Deserialize(INPUT* input, ObjectId& _out)
+	{
+		return DeserializeRaw(input, _out.data, 12);
+	}
+
+}
 
 #endif

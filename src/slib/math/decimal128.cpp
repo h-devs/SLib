@@ -855,7 +855,6 @@ namespace slib
 		return SLIB_PARSE_ERROR;
 	}
 
-
 	sl_compare_result Compare<Decimal128>::operator()(const Decimal128& a, const Decimal128& b) const noexcept
 	{
 		return a.compare(b);

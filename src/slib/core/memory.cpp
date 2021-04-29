@@ -27,9 +27,11 @@
 #include "slib/core/string.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/parse_util.h"
-#include "slib/core/variant_type.h"
+#include "slib/core/json.h"
 #include "slib/core/serialize/memory.h"
 #include "slib/core/serialize/string.h"
+
+#include "slib/crypto/base64.h"
 
 namespace slib
 {
@@ -371,21 +373,20 @@ namespace slib
 
 	String CMemory::toString()
 	{
-		return String::makeHexString(data, size);
+		return getString();
 	}
 
 	sl_bool CMemory::toJsonString(StringBuffer& buf)
 	{
-		if (!(buf.addStatic("\""))) {
-			return sl_false;
-		}
-		if (!(buf.add(String::makeHexString(data, size)))) {
-			return sl_false;
-		}
-		if (!(buf.addStatic("\""))) {
-			return sl_false;
-		}
-		return sl_true;
+		Json binary;
+		SLIB_STATIC_STRING(strBase64, "base64")
+		binary.putItem_NoLock(strBase64, Base64::encode(data, size));
+		SLIB_STATIC_STRING(strSubType, "subType")
+		binary.putItem_NoLock(strSubType, "00");
+		Json json;
+		SLIB_STATIC_STRING(strBinary, "$binary")
+		json.putItem_NoLock(strBinary, binary);
+		return buf.add(json.toJsonString());
 	}
 
 	sl_bool CMemory::toJsonBinary(MemoryBuffer& buf)
@@ -565,6 +566,27 @@ namespace slib
 		} else {
 			return sl_null;
 		}
+	}
+
+	Memory Memory::createFromExtendedJson(const Json& json, sl_uint32* pOutSubType)
+	{
+		SLIB_STATIC_STRING(strBinary, "$binary")
+		Json binary = json.getItem(strBinary);
+		if (!(binary.isJsonMap())) {
+			return sl_null;
+		}
+		if (pOutSubType) {
+			SLIB_STATIC_STRING(strSubType, "subType")
+			if (!(binary.getItem(strSubType).getString().parseUint32(16, pOutSubType))) {
+				return sl_null;
+			}
+		}
+		SLIB_STATIC_STRING(strBase64, "base64")
+		String base64 = binary.getItem(strBase64).getString();
+		if (base64.isNotEmpty()) {
+			return Base64::decode(base64);
+		}
+		return sl_null;
 	}
 
 	void* Memory::getData() const noexcept

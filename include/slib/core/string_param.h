@@ -252,10 +252,20 @@ namespace slib
 	public:
 		StringData(const StringParam& param) noexcept;
 		
+		StringData(StringParam&& param) = delete;
+
 		StringData(const sl_char8* data) noexcept;
 		
 		StringData(const sl_char8* data, sl_size length) noexcept;
-		
+
+		StringData(const String& str) noexcept;
+
+		StringData(String&& str) noexcept;
+
+		StringData(const AtomicString& str) noexcept;
+
+		StringData(const StringView& str) noexcept;
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StringData)
 		
 	public:
@@ -284,11 +294,21 @@ namespace slib
 		
 	public:
 		StringData16(const StringParam& param) noexcept;
-		
+
+		StringData16(StringParam&& param) = delete;
+
 		StringData16(const sl_char16* data) noexcept;
 		
 		StringData16(const sl_char16* data, sl_size length) noexcept;
-		
+
+		StringData16(const String16& str) noexcept;
+
+		StringData16(String16&& str) noexcept;
+
+		StringData16(const AtomicString16& str) noexcept;
+
+		StringData16(const StringView16& str) noexcept;
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StringData16)
 		
 	public:
@@ -319,13 +339,17 @@ namespace slib
 		StringCstr() noexcept;
 
 		StringCstr(const StringParam& param) noexcept;
-		
+
+		StringCstr(StringParam&& param) = delete;
+
 		StringCstr(const sl_char8* data) noexcept;
 		
 		StringCstr(const sl_char8* data, sl_size length) noexcept;
 		
 		StringCstr(const String& str) noexcept;
-		
+
+		StringCstr(String&& str) noexcept;
+
 		StringCstr(const AtomicString& str) noexcept;
 		
 		StringCstr(const StringView& str) noexcept;
@@ -370,13 +394,17 @@ namespace slib
 		StringCstr16() noexcept;
 
 		StringCstr16(const StringParam& param) noexcept;
-		
+
+		StringCstr16(StringParam&& param) = delete;
+
 		StringCstr16(const sl_char16* data) noexcept;
 		
 		StringCstr16(const sl_char16* data, sl_size length) noexcept;
 		
 		StringCstr16(const String16& str) noexcept;
-		
+
+		StringCstr16(String16&& str) noexcept;
+
 		StringCstr16(const AtomicString16& str) noexcept;
 		
 		StringCstr16(const StringView16& str) noexcept;

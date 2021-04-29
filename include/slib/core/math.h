@@ -255,13 +255,33 @@ namespace slib
 
 		// check "Not a Number"  such as (sqrt(-1.0))
 		static sl_bool isNaN(double f) noexcept;
-	
+
 		// check "Infinite"  such as (1.0 / 0.0)
 		static sl_bool isInfinite(float f) noexcept;
 
 		// check "Infinite"  such as (1.0 / 0.0)
 		static sl_bool isInfinite(double f) noexcept;
-	
+
+		static sl_bool isPositiveInfinite(float f) noexcept;
+
+		static sl_bool isPositiveInfinite(double f) noexcept;
+
+		static sl_bool isNegativeInfinite(float f) noexcept;
+
+		static sl_bool isNegativeInfinite(double f) noexcept;
+
+		static void getNaN(float& f) noexcept;
+
+		static void getNaN(double& f) noexcept;
+
+		static void getPositiveInfinite(float& f) noexcept;
+
+		static void getPositiveInfinite(double& f) noexcept;
+
+		static void getNegativeInfinite(float& f) noexcept;
+
+		static void getNegativeInfinite(double& f) noexcept;
+
 
 		constexpr static float saturate(float f) noexcept
 		{

@@ -37,7 +37,7 @@ namespace slib
 	public:
 		ListCollection(const List<T>& list): m_list(list.ref) {}
 
-		ListCollection(CList<T>* list) : m_list(list) {}
+		ListCollection(CList<T>* list): m_list(list) {}
 
 	public:
 		sl_uint64 getElementsCount() override
@@ -62,7 +62,7 @@ namespace slib
 				}
 				return sl_false;
 			} else {
-				return list->removeAt_NoLock(index);
+				return list->removeAt_NoLock((sl_size)index);
 			}
 		}
 

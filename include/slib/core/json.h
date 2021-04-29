@@ -142,6 +142,10 @@ namespace slib
 
 		Json(Memory&& mem);
 
+		Json(const ObjectId& value);
+
+		Json(const Decimal128& value);
+
 		Json(const JsonList& list);
 
 		Json(JsonList&& list);
@@ -308,27 +312,6 @@ namespace slib
 		String toString() const;
 		
 	};
-	
-
-	SLIB_INLINE JsonItem operator<<=(const String& str, const Json& v)
-	{
-		return JsonItem(str, v);
-	}
-
-	SLIB_INLINE JsonItem operator<<=(const String& str, Json&& v)
-	{
-		return JsonItem(str, Move(v));
-	}
-
-	SLIB_INLINE JsonItem operator>>=(const String& str, const Json& v)
-	{
-		return JsonItem(str, v);
-	}
-
-	SLIB_INLINE JsonItem operator>>=(const String& str, Json&& v)
-	{
-		return JsonItem(str, Move(v));
-	}
 
 }
 

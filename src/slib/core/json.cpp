@@ -190,6 +190,14 @@ namespace slib
 	{
 	}
 
+	Json::Json(const ObjectId& value): Variant(value)
+	{
+	}
+
+	Json::Json(const Decimal128& value): Variant(value)
+	{
+	}
+
 	Json::Json(const JsonList& list): Variant(list)
 	{
 	}
@@ -359,6 +367,59 @@ namespace slib
 	{
 		namespace json
 		{
+
+			// https://github.com/mongodb/specifications/blob/master/source/extended-json.rst
+			static Variant ParseExtendedJson(const JsonMap& map)
+			{
+				ObjectId oid;
+				if (oid.fromJson(map)) {
+					return oid;
+				}
+				SLIB_STATIC_STRING(strNumberInt, "$numberInt")
+				sl_int32 n32;
+				if (map.getValue(strNumberInt).getInt32(&n32)) {
+					return n32;
+				}
+				SLIB_STATIC_STRING(strNumberLong, "$numberLong")
+				sl_int64 n64;
+				if (map.getValue(strNumberLong).getInt64(&n64)) {
+					return n64;
+				}
+				SLIB_STATIC_STRING(strNumberDouble, "$numberDouble")
+				double nDouble;
+				if (map.getValue(strNumberDouble).getDouble(&nDouble)) {
+					return nDouble;
+				}
+				SLIB_STATIC_STRING(strNumberDecimal, "$numberDecimal")
+				Decimal128 nDecimal;
+				if (map.getValue(strNumberDecimal).getDecimal128(&nDecimal)) {
+					return nDecimal;
+				}
+				SLIB_STATIC_STRING(strNumberDate, "$date")
+				Time nTime;
+				Variant nTimeValue = map.getValue(strNumberDate);
+				if (nTimeValue.getTime(&nTime)) {
+					return nTime;
+				}
+				nTimeValue = nTimeValue.getItem(strNumberLong);
+				if (nTimeValue.isInteger()) {
+					return Time::withMilliseconds(nTimeValue.getInt64());
+				}
+				SLIB_STATIC_STRING(strUndefined, "$undefined")
+				if (map.getValue(strUndefined).isTrue()) {
+					return Variant();
+				}
+				sl_uint32 subType = 0;
+				Memory mem = Memory::createFromExtendedJson(map, &subType);
+				if (mem.isNotNull()) {
+					if (subType) {
+						return map;
+					} else {
+						return mem;
+					}
+				}
+				return map;
+			}
 			
 			template <class ST, class CT>
 			class Parser
@@ -551,6 +612,7 @@ namespace slib
 					}
 					JsonMap map = JsonMap::create();
 					sl_bool flagFirst = sl_true;
+					sl_bool flagFoundExtendedJsonField = sl_false;
 					while (pos < len) {
 						escapeSpaceAndComments();
 						if (pos == len) {
@@ -561,7 +623,11 @@ namespace slib
 						CT ch = buf[pos];
 						if (ch == '}') {
 							pos++;
-							return map;
+							if (flagFoundExtendedJsonField) {
+								return ParseExtendedJson(map);
+							} else {
+								return map;
+							}
 						}
 						if (!flagFirst) {
 							if (ch == ',') {
@@ -582,7 +648,11 @@ namespace slib
 						ch = buf[pos];
 						if (ch == '}') {
 							pos++;
-							return map;
+							if (flagFoundExtendedJsonField) {
+								return ParseExtendedJson(map);
+							} else {
+								return map;
+							}
 						} else if (ch == '"' || ch == '\'') {
 							sl_size m = 0;
 							sl_bool f = sl_false;
@@ -590,6 +660,9 @@ namespace slib
 								key = ST::from(ParseUtil::parseBackslashEscapes(StringParam(buf + pos, len - pos), &m, &f));
 							} else {
 								key = ST::from(ParseUtil::parseBackslashEscapes16(StringParam(buf + pos, len - pos), &m, &f));
+							}
+							if (key.startsWith('$')) {
+								flagFoundExtendedJsonField = sl_true;
 							}
 							pos += m;
 							if (f) {
@@ -1132,7 +1205,7 @@ namespace slib
 		if (json.isUndefined()) {
 			return;
 		}
-		_out = json.getMemory();
+		_out = Memory::createFromExtendedJson(json);
 	}
 	
 	void ToJson(Json& json, const Memory& _in)
@@ -1200,6 +1273,55 @@ namespace slib
 	void ToJson(Json& json, const List<JsonMap>& _in)
 	{
 		json.Variant::set(_in);
+	}
+
+
+	Json ObjectId::toJson() const noexcept
+	{
+		JsonMap ret;
+		SLIB_STATIC_STRING(oid, "$oid");
+		if (ret.put_NoLock(oid, toString())) {
+			return ret;
+		}
+		return sl_null;
+	}
+
+	sl_bool ObjectId::fromJson(const Json& json) noexcept
+	{
+		if (json.isString()) {
+			return parse(json.getStringParam());
+		} else if (json.isMemory()) {
+			Memory mem = json.getMemory();
+			if (mem.getSize() == 12) {
+				Base::copyMemory(data, mem.getData(), 12);
+				return sl_true;
+			}
+		} else {
+			SLIB_STATIC_STRING(oid, "$oid");
+			return parse(json.getItem(oid).getString());
+		}
+		return sl_false;
+	}
+
+	Json Decimal128::toJson() const noexcept
+	{
+		JsonMap ret;
+		SLIB_STATIC_STRING(numberDecimal, "$numberDecimal");
+		if (ret.put_NoLock(numberDecimal, toString())) {
+			return ret;
+		}
+		return sl_null;
+	}
+
+	sl_bool Decimal128::fromJson(const Json& json) noexcept
+	{
+		if (json.isString()) {
+			return parse(json.getStringParam());
+		} else {
+			SLIB_STATIC_STRING(numberDecimal, "$numberDecimal");
+			return parse(json.getItem(numberDecimal).getString());
+		}
+		return sl_false;
 	}
 
 }

@@ -23,35 +23,64 @@
 #ifndef CHECKHEADER_SLIB_CORE_VARIANT_TYPE
 #define CHECKHEADER_SLIB_CORE_VARIANT_TYPE
 
+#include "definition.h"
+
 namespace slib
 {
 
-	enum class VariantType
+	class VariantType
 	{
-		Null = 0,
-		Int32 = 1,
-		Uint32 = 2,
-		Int64 = 3,
-		Uint64 = 4,
-		Float = 5,
-		Double = 6,
-		Boolean = 7,
-		String8 = 8,
-		String16 = 9,
-		Sz8 = 10,
-		Sz16 = 11,
-		Time = 12,
-		Pointer = 13,
-		SharedPtr = 50,
-		Referable = 100,
-		Weak = Referable + 1,
-		Object = Referable + 2,
-		Collection = Referable + 3,
-		Map = Referable + 4,
-		List = Referable + 5,
-		Memory = Referable + 6,
-		Promise = Referable + 7
+	public:
+		enum Types : sl_uint8
+		{
+			Null = 0,
+			Int32 = 1,
+			Uint32 = 2,
+			Int64 = 3,
+			Uint64 = 4,
+			Float = 5,
+			Double = 6,
+			Boolean = 7,
+			String8 = 8,
+			String16 = 9,
+			Sz8 = 10,
+			Sz16 = 11,
+			Time = 12,
+			Pointer = 13,
+			ObjectId = 14,
+			SharedPtr = 50,
+			Decimal128 = 51,
+			Referable = 100,
+			Weak = Referable + 1,
+			Object = Referable + 2,
+			Collection = Referable + 3,
+			Map = Referable + 4,
+			List = Referable + 5,
+			Memory = Referable + 6,
+			Promise = Referable + 7
+		};
+
 	};
+
+	constexpr static sl_bool operator==(sl_uint8 v1, VariantType::Types v2)
+	{
+		return v1 == (sl_uint8)v2;
+	}
+
+	constexpr static sl_bool operator==(VariantType::Types v2, sl_uint8 v1)
+	{
+		return v1 == (sl_uint8)v2;
+	}
+
+	constexpr static sl_bool operator!=(sl_uint8 v1, VariantType::Types v2)
+	{
+		return v1 != (sl_uint8)v2;
+	}
+
+	constexpr static sl_bool operator!=(VariantType::Types v2, sl_uint8 v1)
+	{
+		return v1 != (sl_uint8)v2;
+	}
 
 }
 

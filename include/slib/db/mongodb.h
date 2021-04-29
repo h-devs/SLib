@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,26 +20,56 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DB_HEADER
-#define CHECKHEADER_SLIB_DB_HEADER
+#ifndef CHECKHEADER_SLIB_DB_MONGODB
+#define CHECKHEADER_SLIB_DB_MONGODB
 
-#include "db/constants.h"
+#include "document_store.h"
 
-#include "db/database.h"
-#include "db/expression.h"
-#include "db/sql.h"
-#include "db/sqlite.h"
-#include "db/mysql.h"
-#include "db/postgresql.h"
+#include "../core/string.h"
 
-#include "db/key_value_store.h"
-#include "db/object_storage.h"
-#include "db/redis.h"
-#include "db/leveldb.h"
-#include "db/rocksdb.h"
-#include "db/lmdb.h"
+namespace slib
+{
 
-#include "db/document_store.h"
-#include "db/mongodb.h"
+	class MongoDB_Param
+	{
+	public:
+		StringParam connectionString;
+
+	public:
+		MongoDB_Param();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MongoDB_Param)
+
+	};
+
+	class MongoDB : public DocumentStore
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		MongoDB();
+
+		~MongoDB();
+
+	public:
+		typedef MongoDB_Param Param;
+
+		static Ref<MongoDB> connect(const MongoDB_Param& param);
+
+		static Ref<MongoDB> connect(const StringParam& connectionString);
+
+		static Ref<DocumentDatabase> connectDatabase(const MongoDB_Param& param);
+
+		static Ref<DocumentDatabase> connectDatabase(const StringParam& connectionString);
+
+		static Ref<DocumentCollection> connectCollection(const MongoDB_Param& param, const StringParam& collectionName);
+
+		static Ref<DocumentCollection> connectCollection(const StringParam& connectionString, const StringParam& collectionName);
+
+		static void freeEnvironment();
+
+	};
+
+}
 
 #endif

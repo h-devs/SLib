@@ -29,6 +29,8 @@
 #include "memory.h"
 #include "list.h"
 #include "map.h"
+#include "object_id.h"
+#include "decimal128.h"
 
 #include "../variant.h"
 #include "../memory_buffer.h"
@@ -55,7 +57,7 @@ namespace slib
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const Variant& _in)
 	{
-		sl_uint8 buf[16];
+		sl_uint8 buf[32];
 		sl_size nWritten = SerializeVariantPrimitive(_in, buf, sizeof(buf));
 		if (nWritten) {
 			return SerializeRaw(output, buf, nWritten);
@@ -97,8 +99,9 @@ namespace slib
 	}
 
 	template <class INPUT>
-	static sl_bool DeserializeVariantPrimitive(Variant& _out, VariantType type, INPUT* input)
+	static sl_bool DeserializeVariantPrimitive(Variant& _out, sl_uint8 type, INPUT* input)
 	{
+		_out.setNull();
 		switch (type) {
 			case VariantType::Int32:
 			case VariantType::Uint32:
@@ -133,6 +136,26 @@ namespace slib
 					return sl_false;
 				}
 				break;
+			case VariantType::ObjectId:
+				{
+					ObjectId objectId;
+					if (Deserialize(input, objectId)) {
+						_out.setObjectId(objectId);
+						return sl_true;
+					}
+					return sl_false;
+				}
+				break;
+			case VariantType::Decimal128:
+				{
+					Decimal128 dec;
+					if (Deserialize(input, dec)) {
+						_out.setDecimal128(dec);
+						return sl_true;
+					}
+					return sl_false;
+				}
+				break;
 			case VariantType::Null:
 				_out.setNull();
 				return sl_true;
@@ -146,11 +169,10 @@ namespace slib
 	template <class INPUT>
 	static sl_bool Deserialize(INPUT* input, Variant& _out)
 	{
-		sl_uint8 v;
-		if (!(DeserializeByte(input, v))) {
+		sl_uint8 type;
+		if (!(DeserializeByte(input, type))) {
 			return sl_false;
 		}
-		VariantType type = (VariantType)v;
 		if (DeserializeVariantPrimitive(_out, type, input)) {
 			return sl_true;
 		}

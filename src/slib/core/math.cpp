@@ -414,7 +414,56 @@ namespace slib
 
 #endif
 
-	
+	sl_bool Math::isPositiveInfinite(float f) noexcept
+	{
+		return isInfinite(f) && f > 0;
+	}
+
+	sl_bool Math::isPositiveInfinite(double f) noexcept
+	{
+		return isInfinite(f) && f > 0;
+	}
+
+	sl_bool Math::isNegativeInfinite(float f) noexcept
+	{
+		return isInfinite(f) && f < 0;
+	}
+
+	sl_bool Math::isNegativeInfinite(double f) noexcept
+	{
+		return isInfinite(f) && f < 0;
+	}
+
+	void Math::getNaN(float& f) noexcept
+	{
+		f = NAN;
+	}
+
+	void Math::getNaN(double& f) noexcept
+	{
+		f = NAN;
+	}
+
+	void Math::getPositiveInfinite(float& f) noexcept
+	{
+		f = INFINITY;
+	}
+
+	void Math::getPositiveInfinite(double& f) noexcept
+	{
+		f = INFINITY;
+	}
+
+	void Math::getNegativeInfinite(float& f) noexcept
+	{
+		f = -INFINITY;
+	}
+
+	void Math::getNegativeInfinite(double& f) noexcept
+	{
+		f = -INFINITY;
+	}
+
 	namespace priv
 	{
 		namespace math

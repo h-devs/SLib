@@ -2899,6 +2899,26 @@ namespace slib
 				return i;
 			}
 
+			template <class T>
+			static sl_compare_result EqualsStringIgnoreCase(const T* s1, sl_size limit, const char* s2) noexcept
+			{
+				if (limit > 512) {
+					limit = 512;
+				}
+				const char* end = s2 + limit;
+				while (s2 < end) {
+					T c1 = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
+					char c2 = SLIB_CHAR_LOWER_TO_UPPER(*(s2++));
+					if (c1 != c2) {
+						return sl_false;
+					}
+					if (!c1) {
+						break;
+					}
+				}
+				return sl_false;
+			}
+
 			template <class FT, class CT>
 			SLIB_INLINE static sl_reg ParseFloat(const CT* sz, sl_size i, sl_size n, FT* _out) noexcept
 			{
@@ -2919,7 +2939,7 @@ namespace slib
 						break;
 					}
 				}
-				
+
 				FT v = 0;
 				sl_uint32 vi = 0;
 				sl_bool flagMulInt = sl_true;
@@ -2942,6 +2962,33 @@ namespace slib
 					}
 				}
 				if (bEmpty) {
+					if (i + 3 <= n) {
+						if (EqualsStringIgnoreCase(sz + i, 3, "nan")) {
+							i += 3;
+							if (i >= n || ((sl_uint32)(sz[i]) < 128 && !SLIB_CHAR_IS_ALNUM(sz[i]))) {
+								if (_out) {
+									Math::getNaN(*_out);
+								}
+								return i;
+							}
+						}
+						if (EqualsStringIgnoreCase(sz + i, 3, "inf")) {
+							i += 3;
+							if (EqualsStringIgnoreCase(sz + i, 5, "inity")) {
+								i += 5;
+							}
+							if (i >= n || ((sl_uint32)(sz[i]) < 128 && !SLIB_CHAR_IS_ALNUM(sz[i]))) {
+								if (_out) {
+									if (bMinus) {
+										Math::getNegativeInfinite(*_out);
+									} else {
+										Math::getPositiveInfinite(*_out);
+									}
+								}
+								return i;
+							}
+						}
+					}
 					return SLIB_PARSE_ERROR; // integral number is required
 				}
 				if (flagMulInt) {
@@ -3287,11 +3334,15 @@ namespace slib
 					static CT s[] = {'N', 'a', 'N', 0};
 					return StringTypeFromCharType<CT>::Type::fromStatic(s);
 				}
-				if (Math::isInfinite(value)) {
+				if (Math::isPositiveInfinite(value)) {
 					static CT s[] = {'I', 'n', 'f', 'i', 'n', 'i', 't', 'y', 0};
 					return StringTypeFromCharType<CT>::Type::fromStatic(s);
 				}
-				
+				if (Math::isNegativeInfinite(value)) {
+					static CT s[] = { '-', 'I', 'n', 'f', 'i', 'n', 'i', 't', 'y', 0 };
+					return StringTypeFromCharType<CT>::Type::fromStatic(s);
+				}
+
 				if (minWidthIntegral > MAX_PRECISION) {
 					minWidthIntegral = MAX_PRECISION;
 				}
