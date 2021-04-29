@@ -42,6 +42,10 @@
 
 #define SLIB_DECIMAL128_MAX_DIGITS 34
 
+#ifdef negativeInfinity
+#undef negativeInfinity
+#endif
+
 namespace slib
 {
 

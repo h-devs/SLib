@@ -971,6 +971,153 @@
 		267465FF23172F5E00DE8715 /* cef_library_loader_mac.mm in Sources */ = {isa = PBXBuildFile; fileRef = 267465FD23172F5E00DE8715 /* cef_library_loader_mac.mm */; };
 		2691F82E2503049C00E747F4 /* pitch_sse.c in Sources */ = {isa = PBXBuildFile; fileRef = 2691F82D2503049C00E747F4 /* pitch_sse.c */; };
 		2691F8302503054200E747F4 /* vq_sse2.c in Sources */ = {isa = PBXBuildFile; fileRef = 2691F82F2503054200E747F4 /* vq_sse2.c */; };
+		D72A0738263B4D7900BCD333 /* mongoc-crypto-openssl.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06D0263B4D6300BCD333 /* mongoc-crypto-openssl.c */; };
+		D72A0739263B4D7900BCD333 /* mongoc-ssl.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06D1263B4D6300BCD333 /* mongoc-ssl.c */; };
+		D72A073A263B4D7900BCD333 /* mongoc-client-pool.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06D2263B4D6400BCD333 /* mongoc-client-pool.c */; };
+		D72A073B263B4D7900BCD333 /* mongoc-gridfs-file.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06D3263B4D6400BCD333 /* mongoc-gridfs-file.c */; };
+		D72A073C263B4D7900BCD333 /* mongoc-apm.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06D4263B4D6400BCD333 /* mongoc-apm.c */; };
+		D72A073D263B4D7900BCD333 /* mongoc-openssl.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06D5263B4D6400BCD333 /* mongoc-openssl.c */; };
+		D72A073E263B4D7900BCD333 /* mongoc-rand-cng.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06D6263B4D6500BCD333 /* mongoc-rand-cng.c */; };
+		D72A073F263B4D7900BCD333 /* mongoc-counters.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06D7263B4D6500BCD333 /* mongoc-counters.c */; };
+		D72A0740263B4D7900BCD333 /* mongoc-stream-gridfs-upload.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06D8263B4D6500BCD333 /* mongoc-stream-gridfs-upload.c */; };
+		D72A0741263B4D7900BCD333 /* mongoc-find-and-modify.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06D9263B4D6500BCD333 /* mongoc-find-and-modify.c */; };
+		D72A0742263B4D7900BCD333 /* mongoc-async.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06DA263B4D6600BCD333 /* mongoc-async.c */; };
+		D72A0743263B4D7900BCD333 /* mongoc-list.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06DB263B4D6600BCD333 /* mongoc-list.c */; };
+		D72A0744263B4D7900BCD333 /* mongoc-sspi.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06DC263B4D6600BCD333 /* mongoc-sspi.c */; };
+		D72A0745263B4D7900BCD333 /* mongoc-topology-scanner.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06DD263B4D6600BCD333 /* mongoc-topology-scanner.c */; };
+		D72A0746263B4D7900BCD333 /* mongoc-scram.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06DE263B4D6600BCD333 /* mongoc-scram.c */; };
+		D72A0747263B4D7900BCD333 /* mongoc-set.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06DF263B4D6700BCD333 /* mongoc-set.c */; };
+		D72A0748263B4D7900BCD333 /* mongoc-stream-gridfs.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06E0263B4D6700BCD333 /* mongoc-stream-gridfs.c */; };
+		D72A0749263B4D7900BCD333 /* mongoc-database.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06E1263B4D6700BCD333 /* mongoc-database.c */; };
+		D72A074A263B4D7900BCD333 /* mongoc-async-cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06E2263B4D6700BCD333 /* mongoc-async-cmd.c */; };
+		D72A074B263B4D7900BCD333 /* mongoc-cluster-aws.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06E3263B4D6700BCD333 /* mongoc-cluster-aws.c */; };
+		D72A074C263B4D7900BCD333 /* mongoc-cursor-change-stream.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06E4263B4D6800BCD333 /* mongoc-cursor-change-stream.c */; };
+		D72A074D263B4D7900BCD333 /* mongoc-cyrus.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06E5263B4D6800BCD333 /* mongoc-cyrus.c */; };
+		D72A074E263B4D7900BCD333 /* mongoc-memcmp.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06E6263B4D6800BCD333 /* mongoc-memcmp.c */; };
+		D72A074F263B4D7900BCD333 /* mongoc-cluster-cyrus.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06E7263B4D6800BCD333 /* mongoc-cluster-cyrus.c */; };
+		D72A0750263B4D7900BCD333 /* mongoc-cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06E8263B4D6800BCD333 /* mongoc-cmd.c */; };
+		D72A0751263B4D7900BCD333 /* mongoc-util.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06E9263B4D6900BCD333 /* mongoc-util.c */; };
+		D72A0752263B4D7900BCD333 /* mongoc-rand-common-crypto.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06EA263B4D6900BCD333 /* mongoc-rand-common-crypto.c */; };
+		D72A0753263B4D7900BCD333 /* mongoc-stream-tls.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06EB263B4D6900BCD333 /* mongoc-stream-tls.c */; };
+		D72A0754263B4D7900BCD333 /* mongoc-queue.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06EC263B4D6900BCD333 /* mongoc-queue.c */; };
+		D72A0755263B4D7A00BCD333 /* mongoc-cursor-legacy.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06ED263B4D6900BCD333 /* mongoc-cursor-legacy.c */; };
+		D72A0756263B4D7A00BCD333 /* mongoc-opts.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06EE263B4D6A00BCD333 /* mongoc-opts.c */; };
+		D72A0757263B4D7A00BCD333 /* mongoc-gridfs.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06EF263B4D6A00BCD333 /* mongoc-gridfs.c */; };
+		D72A0758263B4D7A00BCD333 /* mongoc-rpc.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06F0263B4D6A00BCD333 /* mongoc-rpc.c */; };
+		D72A0759263B4D7A00BCD333 /* mongoc-crypto-cng.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06F1263B4D6A00BCD333 /* mongoc-crypto-cng.c */; };
+		D72A075A263B4D7A00BCD333 /* mongoc-stream.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06F2263B4D6A00BCD333 /* mongoc-stream.c */; };
+		D72A075B263B4D7A00BCD333 /* mongoc-client-side-encryption.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06F3263B4D6B00BCD333 /* mongoc-client-side-encryption.c */; };
+		D72A075C263B4D7A00BCD333 /* mongoc-matcher-op.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06F4263B4D6B00BCD333 /* mongoc-matcher-op.c */; };
+		D72A075D263B4D7A00BCD333 /* mongoc-gridfs-file-list.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06F5263B4D6B00BCD333 /* mongoc-gridfs-file-list.c */; };
+		D72A075E263B4D7A00BCD333 /* mongoc-rand-openssl.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06F6263B4D6B00BCD333 /* mongoc-rand-openssl.c */; };
+		D72A075F263B4D7A00BCD333 /* mongoc-log.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06F7263B4D6B00BCD333 /* mongoc-log.c */; };
+		D72A0760263B4D7A00BCD333 /* mongoc-topology.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06F8263B4D6B00BCD333 /* mongoc-topology.c */; };
+		D72A0761263B4D7A00BCD333 /* mongoc-crypto-common-crypto.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06F9263B4D6C00BCD333 /* mongoc-crypto-common-crypto.c */; };
+		D72A0762263B4D7A00BCD333 /* mongoc-stream-tls-openssl.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06FA263B4D6C00BCD333 /* mongoc-stream-tls-openssl.c */; };
+		D72A0763263B4D7A00BCD333 /* mongoc-cursor.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06FB263B4D6C00BCD333 /* mongoc-cursor.c */; };
+		D72A0764263B4D7A00BCD333 /* mongoc-bulk-operation.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06FC263B4D6C00BCD333 /* mongoc-bulk-operation.c */; };
+		D72A0765263B4D7A00BCD333 /* mongoc-read-prefs.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06FD263B4D6C00BCD333 /* mongoc-read-prefs.c */; };
+		D72A0766263B4D7A00BCD333 /* mongoc-cursor-find-cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06FE263B4D6D00BCD333 /* mongoc-cursor-find-cmd.c */; };
+		D72A0767263B4D7A00BCD333 /* mongoc-init.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A06FF263B4D6D00BCD333 /* mongoc-init.c */; };
+		D72A0768263B4D7A00BCD333 /* mongoc-stream-tls-openssl-bio.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0700263B4D6D00BCD333 /* mongoc-stream-tls-openssl-bio.c */; };
+		D72A0769263B4D7A00BCD333 /* mongoc-error.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0701263B4D6D00BCD333 /* mongoc-error.c */; };
+		D72A076A263B4D7A00BCD333 /* mongoc-version-functions.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0702263B4D6D00BCD333 /* mongoc-version-functions.c */; };
+		D72A076B263B4D7A00BCD333 /* mongoc-http.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0703263B4D6E00BCD333 /* mongoc-http.c */; };
+		D72A076C263B4D7A00BCD333 /* mongoc-stream-buffered.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0704263B4D6E00BCD333 /* mongoc-stream-buffered.c */; };
+		D72A076D263B4D7A00BCD333 /* mongoc-server-stream.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0705263B4D6E00BCD333 /* mongoc-server-stream.c */; };
+		D72A076E263B4D7A00BCD333 /* mongoc-topology-description-apm.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0706263B4D6E00BCD333 /* mongoc-topology-description-apm.c */; };
+		D72A076F263B4D7A00BCD333 /* mongoc-write-command-legacy.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0707263B4D6E00BCD333 /* mongoc-write-command-legacy.c */; };
+		D72A0770263B4D7A00BCD333 /* mongoc-stream-tls-secure-channel.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0708263B4D6F00BCD333 /* mongoc-stream-tls-secure-channel.c */; };
+		D72A0771263B4D7A00BCD333 /* mongoc-client.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0709263B4D6F00BCD333 /* mongoc-client.c */; };
+		D72A0772263B4D7A00BCD333 /* mongoc-aggregate.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A070A263B4D6F00BCD333 /* mongoc-aggregate.c */; };
+		D72A0773263B4D7A00BCD333 /* mongoc-stream-tls-secure-transport.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A070B263B4D6F00BCD333 /* mongoc-stream-tls-secure-transport.c */; };
+		D72A0774263B4D7A00BCD333 /* mongoc-array.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A070C263B4D6F00BCD333 /* mongoc-array.c */; };
+		D72A0775263B4D7A00BCD333 /* mongoc-cluster-sasl.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A070D263B4D7000BCD333 /* mongoc-cluster-sasl.c */; };
+		D72A0776263B4D7A00BCD333 /* mongoc-secure-channel.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A070E263B4D7000BCD333 /* mongoc-secure-channel.c */; };
+		D72A0777263B4D7A00BCD333 /* mongoc-topology-background-monitoring.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A070F263B4D7000BCD333 /* mongoc-topology-background-monitoring.c */; };
+		D72A0778263B4D7A00BCD333 /* mongoc-linux-distro-scanner.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0710263B4D7000BCD333 /* mongoc-linux-distro-scanner.c */; };
+		D72A0779263B4D7A00BCD333 /* mongoc-stream-tls-libressl.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0711263B4D7000BCD333 /* mongoc-stream-tls-libressl.c */; };
+		D72A077A263B4D7A00BCD333 /* mongoc-host-list.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0712263B4D7100BCD333 /* mongoc-host-list.c */; };
+		D72A077B263B4D7A00BCD333 /* mongoc-collection.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0713263B4D7100BCD333 /* mongoc-collection.c */; };
+		D72A077C263B4D7A00BCD333 /* mongoc-crypto.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0714263B4D7100BCD333 /* mongoc-crypto.c */; };
+		D72A077D263B4D7A00BCD333 /* mongoc-topology-description.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0715263B4D7100BCD333 /* mongoc-topology-description.c */; };
+		D72A077E263B4D7A00BCD333 /* mongoc-matcher.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0716263B4D7100BCD333 /* mongoc-matcher.c */; };
+		D72A077F263B4D7A00BCD333 /* mongoc-gridfs-file-page.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0717263B4D7100BCD333 /* mongoc-gridfs-file-page.c */; };
+		D72A0780263B4D7A00BCD333 /* mongoc-stream-socket.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0718263B4D7200BCD333 /* mongoc-stream-socket.c */; };
+		D72A0781263B4D7A00BCD333 /* mongoc-socket.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0719263B4D7200BCD333 /* mongoc-socket.c */; };
+		D72A0782263B4D7A00BCD333 /* mongoc-secure-transport.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A071A263B4D7200BCD333 /* mongoc-secure-transport.c */; };
+		D72A0783263B4D7A00BCD333 /* mongoc-write-command.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A071B263B4D7200BCD333 /* mongoc-write-command.c */; };
+		D72A0784263B4D7A00BCD333 /* mongoc-write-concern.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A071C263B4D7300BCD333 /* mongoc-write-concern.c */; };
+		D72A0785263B4D7A00BCD333 /* mongoc-cursor-find-opquery.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A071D263B4D7300BCD333 /* mongoc-cursor-find-opquery.c */; };
+		D72A0786263B4D7A00BCD333 /* mongoc-ocsp-cache.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A071E263B4D7300BCD333 /* mongoc-ocsp-cache.c */; };
+		D72A0787263B4D7A00BCD333 /* mongoc-libressl.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A071F263B4D7300BCD333 /* mongoc-libressl.c */; };
+		D72A0788263B4D7A00BCD333 /* mongoc-cluster.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0720263B4D7300BCD333 /* mongoc-cluster.c */; };
+		D72A0789263B4D7A00BCD333 /* mongoc-stream-file.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0721263B4D7400BCD333 /* mongoc-stream-file.c */; };
+		D72A078A263B4D7B00BCD333 /* mongoc-gridfs-bucket.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0722263B4D7400BCD333 /* mongoc-gridfs-bucket.c */; };
+		D72A078B263B4D7B00BCD333 /* mongoc-sasl.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0723263B4D7400BCD333 /* mongoc-sasl.c */; };
+		D72A078C263B4D7B00BCD333 /* mongoc-opts-helpers.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0724263B4D7400BCD333 /* mongoc-opts-helpers.c */; };
+		D72A078D263B4D7B00BCD333 /* mongoc-compression.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0725263B4D7400BCD333 /* mongoc-compression.c */; };
+		D72A078E263B4D7B00BCD333 /* mongoc-cursor-cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0726263B4D7500BCD333 /* mongoc-cursor-cmd.c */; };
+		D72A078F263B4D7B00BCD333 /* mongoc-client-session.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0727263B4D7500BCD333 /* mongoc-client-session.c */; };
+		D72A0790263B4D7B00BCD333 /* mongoc-uri.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0728263B4D7500BCD333 /* mongoc-uri.c */; };
+		D72A0791263B4D7B00BCD333 /* mongoc-change-stream.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0729263B4D7500BCD333 /* mongoc-change-stream.c */; };
+		D72A0792263B4D7B00BCD333 /* mongoc-read-concern.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A072A263B4D7600BCD333 /* mongoc-read-concern.c */; };
+		D72A0793263B4D7B00BCD333 /* mongoc-handshake.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A072B263B4D7600BCD333 /* mongoc-handshake.c */; };
+		D72A0794263B4D7B00BCD333 /* mongoc-interrupt.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A072C263B4D7600BCD333 /* mongoc-interrupt.c */; };
+		D72A0795263B4D7B00BCD333 /* mongoc-crypt.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A072D263B4D7600BCD333 /* mongoc-crypt.c */; };
+		D72A0796263B4D7B00BCD333 /* mongoc-cursor-array.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A072E263B4D7700BCD333 /* mongoc-cursor-array.c */; };
+		D72A0797263B4D7B00BCD333 /* mongoc-server-description.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A072F263B4D7700BCD333 /* mongoc-server-description.c */; };
+		D72A0798263B4D7B00BCD333 /* mongoc-server-monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0730263B4D7700BCD333 /* mongoc-server-monitor.c */; };
+		D72A0799263B4D7B00BCD333 /* mongoc-buffer.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0731263B4D7800BCD333 /* mongoc-buffer.c */; };
+		D72A079A263B4D7B00BCD333 /* mongoc-stream-gridfs-download.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0732263B4D7800BCD333 /* mongoc-stream-gridfs-download.c */; };
+		D72A079B263B4D7B00BCD333 /* mongoc-gridfs-bucket-file.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0733263B4D7800BCD333 /* mongoc-gridfs-bucket-file.c */; };
+		D72A079C263B4D7B00BCD333 /* mongoc-cursor-cmd-deprecated.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0734263B4D7800BCD333 /* mongoc-cursor-cmd-deprecated.c */; };
+		D72A079D263B4D7B00BCD333 /* mongoc-cluster-sspi.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0735263B4D7800BCD333 /* mongoc-cluster-sspi.c */; };
+		D72A079E263B4D7B00BCD333 /* mongoc-index.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0736263B4D7900BCD333 /* mongoc-index.c */; };
+		D72A079F263B4D7B00BCD333 /* mongoc-cursor-find.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A0737263B4D7900BCD333 /* mongoc-cursor-find.c */; };
+		D72A07BD263B4D8A00BCD333 /* kms_response_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07AB263B4D8800BCD333 /* kms_response_parser.c */; };
+		D72A07BE263B4D8A00BCD333 /* kms_encrypt_request.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07AC263B4D8800BCD333 /* kms_encrypt_request.c */; };
+		D72A07BF263B4D8A00BCD333 /* kms_request_opt.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07AD263B4D8800BCD333 /* kms_request_opt.c */; };
+		D72A07C0263B4D8A00BCD333 /* sort.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07AE263B4D8800BCD333 /* sort.c */; };
+		D72A07C1263B4D8A00BCD333 /* kms_crypto_windows.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07AF263B4D8900BCD333 /* kms_crypto_windows.c */; };
+		D72A07C2263B4D8A00BCD333 /* kms_response.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07B0263B4D8900BCD333 /* kms_response.c */; };
+		D72A07C3263B4D8A00BCD333 /* hexlify.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07B1263B4D8900BCD333 /* hexlify.c */; };
+		D72A07C4263B4D8A00BCD333 /* kms_crypto_apple.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07B2263B4D8900BCD333 /* kms_crypto_apple.c */; };
+		D72A07C5263B4D8B00BCD333 /* kms_request_str.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07B3263B4D8900BCD333 /* kms_request_str.c */; };
+		D72A07C6263B4D8B00BCD333 /* kms_port.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07B4263B4D8900BCD333 /* kms_port.c */; };
+		D72A07C7263B4D8B00BCD333 /* kms_caller_identity_request.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07B5263B4D8900BCD333 /* kms_caller_identity_request.c */; };
+		D72A07C8263B4D8B00BCD333 /* kms_kv_list.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07B6263B4D8A00BCD333 /* kms_kv_list.c */; };
+		D72A07C9263B4D8B00BCD333 /* kms_crypto_libcrypto.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07B7263B4D8A00BCD333 /* kms_crypto_libcrypto.c */; };
+		D72A07CA263B4D8B00BCD333 /* kms_request.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07B8263B4D8A00BCD333 /* kms_request.c */; };
+		D72A07CB263B4D8B00BCD333 /* kms_decrypt_request.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07B9263B4D8A00BCD333 /* kms_decrypt_request.c */; };
+		D72A07CC263B4D8B00BCD333 /* kms_b64.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07BA263B4D8A00BCD333 /* kms_b64.c */; };
+		D72A07CD263B4D8B00BCD333 /* kms_crypto_none.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07BB263B4D8A00BCD333 /* kms_crypto_none.c */; };
+		D72A07CE263B4D8B00BCD333 /* kms_message.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07BC263B4D8A00BCD333 /* kms_message.c */; };
+		D72A07EF263B4DAB00BCD333 /* bson-string.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07DA263B4DA800BCD333 /* bson-string.c */; };
+		D72A07F0263B4DAB00BCD333 /* bson-timegm.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07DB263B4DA800BCD333 /* bson-timegm.c */; };
+		D72A07F1263B4DAB00BCD333 /* bson.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07DC263B4DA800BCD333 /* bson.c */; };
+		D72A07F2263B4DAB00BCD333 /* bson-decimal128.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07DD263B4DA800BCD333 /* bson-decimal128.c */; };
+		D72A07F3263B4DAB00BCD333 /* bson-atomic.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07DE263B4DA900BCD333 /* bson-atomic.c */; };
+		D72A07F4263B4DAB00BCD333 /* bson-writer.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07DF263B4DA900BCD333 /* bson-writer.c */; };
+		D72A07F5263B4DAB00BCD333 /* bson-oid.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07E0263B4DA900BCD333 /* bson-oid.c */; };
+		D72A07F6263B4DAB00BCD333 /* bson-iter.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07E1263B4DA900BCD333 /* bson-iter.c */; };
+		D72A07F7263B4DAB00BCD333 /* bson-clock.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07E2263B4DA900BCD333 /* bson-clock.c */; };
+		D72A07F8263B4DAB00BCD333 /* bson-memory.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07E3263B4DA900BCD333 /* bson-memory.c */; };
+		D72A07F9263B4DAB00BCD333 /* bson-json.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07E4263B4DA900BCD333 /* bson-json.c */; };
+		D72A07FA263B4DAB00BCD333 /* bcon.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07E5263B4DA900BCD333 /* bcon.c */; };
+		D72A07FB263B4DAB00BCD333 /* bson-iso8601.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07E6263B4DAA00BCD333 /* bson-iso8601.c */; };
+		D72A07FC263B4DAB00BCD333 /* bson-error.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07E7263B4DAA00BCD333 /* bson-error.c */; };
+		D72A07FD263B4DAB00BCD333 /* bson-utf8.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07E8263B4DAA00BCD333 /* bson-utf8.c */; };
+		D72A07FE263B4DAB00BCD333 /* bson-reader.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07E9263B4DAA00BCD333 /* bson-reader.c */; };
+		D72A07FF263B4DAB00BCD333 /* bson-version-functions.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07EA263B4DAA00BCD333 /* bson-version-functions.c */; };
+		D72A0800263B4DAB00BCD333 /* bson-value.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07EB263B4DAA00BCD333 /* bson-value.c */; };
+		D72A0801263B4DAB00BCD333 /* bson-keys.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07EC263B4DAA00BCD333 /* bson-keys.c */; };
+		D72A0802263B4DAB00BCD333 /* bson-md5.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07ED263B4DAB00BCD333 /* bson-md5.c */; };
+		D72A0803263B4DAB00BCD333 /* bson-context.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A07EE263B4DAB00BCD333 /* bson-context.c */; };
+		D72A0810263B4DCC00BCD333 /* jsonsl.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A080F263B4DCC00BCD333 /* jsonsl.c */; };
+		D72A0820263B4DE500BCD333 /* common-md5.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A081D263B4DE500BCD333 /* common-md5.c */; };
+		D72A0821263B4DE500BCD333 /* common-thread.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A081E263B4DE500BCD333 /* common-thread.c */; };
+		D72A0822263B4DE500BCD333 /* common-b64.c in Sources */ = {isa = PBXBuildFile; fileRef = D72A081F263B4DE500BCD333 /* common-b64.c */; };
 		D7BF6166263125CA00E0B3DD /* unity.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7BF6165263125CA00E0B3DD /* unity.cc */; };
 		D7ECA0F4263172D300D366A8 /* armcpu.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA0F0263172D300D366A8 /* armcpu.c */; };
 		D7ECA0F5263172D300D366A8 /* arm_celt_map.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA0F1263172D300D366A8 /* arm_celt_map.c */; };
@@ -2053,6 +2200,154 @@
 		26D15C471E93A966003BD61A /* libsqlite3.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libsqlite3.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		26D15C511E93A97C003BD61A /* libopus.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libopus.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		26D15C5B1E93A9B4003BD61A /* libvpx.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libvpx.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		D72A06AA263B4CDD00BCD333 /* libmongoc.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libmongoc.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		D72A06D0263B4D6300BCD333 /* mongoc-crypto-openssl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-crypto-openssl.c"; path = "../../src/libmongoc/mongoc/mongoc-crypto-openssl.c"; sourceTree = "<group>"; };
+		D72A06D1263B4D6300BCD333 /* mongoc-ssl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-ssl.c"; path = "../../src/libmongoc/mongoc/mongoc-ssl.c"; sourceTree = "<group>"; };
+		D72A06D2263B4D6400BCD333 /* mongoc-client-pool.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-client-pool.c"; path = "../../src/libmongoc/mongoc/mongoc-client-pool.c"; sourceTree = "<group>"; };
+		D72A06D3263B4D6400BCD333 /* mongoc-gridfs-file.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-gridfs-file.c"; path = "../../src/libmongoc/mongoc/mongoc-gridfs-file.c"; sourceTree = "<group>"; };
+		D72A06D4263B4D6400BCD333 /* mongoc-apm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-apm.c"; path = "../../src/libmongoc/mongoc/mongoc-apm.c"; sourceTree = "<group>"; };
+		D72A06D5263B4D6400BCD333 /* mongoc-openssl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-openssl.c"; path = "../../src/libmongoc/mongoc/mongoc-openssl.c"; sourceTree = "<group>"; };
+		D72A06D6263B4D6500BCD333 /* mongoc-rand-cng.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-rand-cng.c"; path = "../../src/libmongoc/mongoc/mongoc-rand-cng.c"; sourceTree = "<group>"; };
+		D72A06D7263B4D6500BCD333 /* mongoc-counters.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-counters.c"; path = "../../src/libmongoc/mongoc/mongoc-counters.c"; sourceTree = "<group>"; };
+		D72A06D8263B4D6500BCD333 /* mongoc-stream-gridfs-upload.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-stream-gridfs-upload.c"; path = "../../src/libmongoc/mongoc/mongoc-stream-gridfs-upload.c"; sourceTree = "<group>"; };
+		D72A06D9263B4D6500BCD333 /* mongoc-find-and-modify.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-find-and-modify.c"; path = "../../src/libmongoc/mongoc/mongoc-find-and-modify.c"; sourceTree = "<group>"; };
+		D72A06DA263B4D6600BCD333 /* mongoc-async.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-async.c"; path = "../../src/libmongoc/mongoc/mongoc-async.c"; sourceTree = "<group>"; };
+		D72A06DB263B4D6600BCD333 /* mongoc-list.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-list.c"; path = "../../src/libmongoc/mongoc/mongoc-list.c"; sourceTree = "<group>"; };
+		D72A06DC263B4D6600BCD333 /* mongoc-sspi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-sspi.c"; path = "../../src/libmongoc/mongoc/mongoc-sspi.c"; sourceTree = "<group>"; };
+		D72A06DD263B4D6600BCD333 /* mongoc-topology-scanner.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-topology-scanner.c"; path = "../../src/libmongoc/mongoc/mongoc-topology-scanner.c"; sourceTree = "<group>"; };
+		D72A06DE263B4D6600BCD333 /* mongoc-scram.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-scram.c"; path = "../../src/libmongoc/mongoc/mongoc-scram.c"; sourceTree = "<group>"; };
+		D72A06DF263B4D6700BCD333 /* mongoc-set.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-set.c"; path = "../../src/libmongoc/mongoc/mongoc-set.c"; sourceTree = "<group>"; };
+		D72A06E0263B4D6700BCD333 /* mongoc-stream-gridfs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-stream-gridfs.c"; path = "../../src/libmongoc/mongoc/mongoc-stream-gridfs.c"; sourceTree = "<group>"; };
+		D72A06E1263B4D6700BCD333 /* mongoc-database.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-database.c"; path = "../../src/libmongoc/mongoc/mongoc-database.c"; sourceTree = "<group>"; };
+		D72A06E2263B4D6700BCD333 /* mongoc-async-cmd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-async-cmd.c"; path = "../../src/libmongoc/mongoc/mongoc-async-cmd.c"; sourceTree = "<group>"; };
+		D72A06E3263B4D6700BCD333 /* mongoc-cluster-aws.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cluster-aws.c"; path = "../../src/libmongoc/mongoc/mongoc-cluster-aws.c"; sourceTree = "<group>"; };
+		D72A06E4263B4D6800BCD333 /* mongoc-cursor-change-stream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cursor-change-stream.c"; path = "../../src/libmongoc/mongoc/mongoc-cursor-change-stream.c"; sourceTree = "<group>"; };
+		D72A06E5263B4D6800BCD333 /* mongoc-cyrus.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cyrus.c"; path = "../../src/libmongoc/mongoc/mongoc-cyrus.c"; sourceTree = "<group>"; };
+		D72A06E6263B4D6800BCD333 /* mongoc-memcmp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-memcmp.c"; path = "../../src/libmongoc/mongoc/mongoc-memcmp.c"; sourceTree = "<group>"; };
+		D72A06E7263B4D6800BCD333 /* mongoc-cluster-cyrus.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cluster-cyrus.c"; path = "../../src/libmongoc/mongoc/mongoc-cluster-cyrus.c"; sourceTree = "<group>"; };
+		D72A06E8263B4D6800BCD333 /* mongoc-cmd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cmd.c"; path = "../../src/libmongoc/mongoc/mongoc-cmd.c"; sourceTree = "<group>"; };
+		D72A06E9263B4D6900BCD333 /* mongoc-util.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-util.c"; path = "../../src/libmongoc/mongoc/mongoc-util.c"; sourceTree = "<group>"; };
+		D72A06EA263B4D6900BCD333 /* mongoc-rand-common-crypto.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-rand-common-crypto.c"; path = "../../src/libmongoc/mongoc/mongoc-rand-common-crypto.c"; sourceTree = "<group>"; };
+		D72A06EB263B4D6900BCD333 /* mongoc-stream-tls.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-stream-tls.c"; path = "../../src/libmongoc/mongoc/mongoc-stream-tls.c"; sourceTree = "<group>"; };
+		D72A06EC263B4D6900BCD333 /* mongoc-queue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-queue.c"; path = "../../src/libmongoc/mongoc/mongoc-queue.c"; sourceTree = "<group>"; };
+		D72A06ED263B4D6900BCD333 /* mongoc-cursor-legacy.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cursor-legacy.c"; path = "../../src/libmongoc/mongoc/mongoc-cursor-legacy.c"; sourceTree = "<group>"; };
+		D72A06EE263B4D6A00BCD333 /* mongoc-opts.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-opts.c"; path = "../../src/libmongoc/mongoc/mongoc-opts.c"; sourceTree = "<group>"; };
+		D72A06EF263B4D6A00BCD333 /* mongoc-gridfs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-gridfs.c"; path = "../../src/libmongoc/mongoc/mongoc-gridfs.c"; sourceTree = "<group>"; };
+		D72A06F0263B4D6A00BCD333 /* mongoc-rpc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-rpc.c"; path = "../../src/libmongoc/mongoc/mongoc-rpc.c"; sourceTree = "<group>"; };
+		D72A06F1263B4D6A00BCD333 /* mongoc-crypto-cng.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-crypto-cng.c"; path = "../../src/libmongoc/mongoc/mongoc-crypto-cng.c"; sourceTree = "<group>"; };
+		D72A06F2263B4D6A00BCD333 /* mongoc-stream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-stream.c"; path = "../../src/libmongoc/mongoc/mongoc-stream.c"; sourceTree = "<group>"; };
+		D72A06F3263B4D6B00BCD333 /* mongoc-client-side-encryption.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-client-side-encryption.c"; path = "../../src/libmongoc/mongoc/mongoc-client-side-encryption.c"; sourceTree = "<group>"; };
+		D72A06F4263B4D6B00BCD333 /* mongoc-matcher-op.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-matcher-op.c"; path = "../../src/libmongoc/mongoc/mongoc-matcher-op.c"; sourceTree = "<group>"; };
+		D72A06F5263B4D6B00BCD333 /* mongoc-gridfs-file-list.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-gridfs-file-list.c"; path = "../../src/libmongoc/mongoc/mongoc-gridfs-file-list.c"; sourceTree = "<group>"; };
+		D72A06F6263B4D6B00BCD333 /* mongoc-rand-openssl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-rand-openssl.c"; path = "../../src/libmongoc/mongoc/mongoc-rand-openssl.c"; sourceTree = "<group>"; };
+		D72A06F7263B4D6B00BCD333 /* mongoc-log.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-log.c"; path = "../../src/libmongoc/mongoc/mongoc-log.c"; sourceTree = "<group>"; };
+		D72A06F8263B4D6B00BCD333 /* mongoc-topology.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-topology.c"; path = "../../src/libmongoc/mongoc/mongoc-topology.c"; sourceTree = "<group>"; };
+		D72A06F9263B4D6C00BCD333 /* mongoc-crypto-common-crypto.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-crypto-common-crypto.c"; path = "../../src/libmongoc/mongoc/mongoc-crypto-common-crypto.c"; sourceTree = "<group>"; };
+		D72A06FA263B4D6C00BCD333 /* mongoc-stream-tls-openssl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-stream-tls-openssl.c"; path = "../../src/libmongoc/mongoc/mongoc-stream-tls-openssl.c"; sourceTree = "<group>"; };
+		D72A06FB263B4D6C00BCD333 /* mongoc-cursor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cursor.c"; path = "../../src/libmongoc/mongoc/mongoc-cursor.c"; sourceTree = "<group>"; };
+		D72A06FC263B4D6C00BCD333 /* mongoc-bulk-operation.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-bulk-operation.c"; path = "../../src/libmongoc/mongoc/mongoc-bulk-operation.c"; sourceTree = "<group>"; };
+		D72A06FD263B4D6C00BCD333 /* mongoc-read-prefs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-read-prefs.c"; path = "../../src/libmongoc/mongoc/mongoc-read-prefs.c"; sourceTree = "<group>"; };
+		D72A06FE263B4D6D00BCD333 /* mongoc-cursor-find-cmd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cursor-find-cmd.c"; path = "../../src/libmongoc/mongoc/mongoc-cursor-find-cmd.c"; sourceTree = "<group>"; };
+		D72A06FF263B4D6D00BCD333 /* mongoc-init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-init.c"; path = "../../src/libmongoc/mongoc/mongoc-init.c"; sourceTree = "<group>"; };
+		D72A0700263B4D6D00BCD333 /* mongoc-stream-tls-openssl-bio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-stream-tls-openssl-bio.c"; path = "../../src/libmongoc/mongoc/mongoc-stream-tls-openssl-bio.c"; sourceTree = "<group>"; };
+		D72A0701263B4D6D00BCD333 /* mongoc-error.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-error.c"; path = "../../src/libmongoc/mongoc/mongoc-error.c"; sourceTree = "<group>"; };
+		D72A0702263B4D6D00BCD333 /* mongoc-version-functions.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-version-functions.c"; path = "../../src/libmongoc/mongoc/mongoc-version-functions.c"; sourceTree = "<group>"; };
+		D72A0703263B4D6E00BCD333 /* mongoc-http.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-http.c"; path = "../../src/libmongoc/mongoc/mongoc-http.c"; sourceTree = "<group>"; };
+		D72A0704263B4D6E00BCD333 /* mongoc-stream-buffered.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-stream-buffered.c"; path = "../../src/libmongoc/mongoc/mongoc-stream-buffered.c"; sourceTree = "<group>"; };
+		D72A0705263B4D6E00BCD333 /* mongoc-server-stream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-server-stream.c"; path = "../../src/libmongoc/mongoc/mongoc-server-stream.c"; sourceTree = "<group>"; };
+		D72A0706263B4D6E00BCD333 /* mongoc-topology-description-apm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-topology-description-apm.c"; path = "../../src/libmongoc/mongoc/mongoc-topology-description-apm.c"; sourceTree = "<group>"; };
+		D72A0707263B4D6E00BCD333 /* mongoc-write-command-legacy.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-write-command-legacy.c"; path = "../../src/libmongoc/mongoc/mongoc-write-command-legacy.c"; sourceTree = "<group>"; };
+		D72A0708263B4D6F00BCD333 /* mongoc-stream-tls-secure-channel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-stream-tls-secure-channel.c"; path = "../../src/libmongoc/mongoc/mongoc-stream-tls-secure-channel.c"; sourceTree = "<group>"; };
+		D72A0709263B4D6F00BCD333 /* mongoc-client.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-client.c"; path = "../../src/libmongoc/mongoc/mongoc-client.c"; sourceTree = "<group>"; };
+		D72A070A263B4D6F00BCD333 /* mongoc-aggregate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-aggregate.c"; path = "../../src/libmongoc/mongoc/mongoc-aggregate.c"; sourceTree = "<group>"; };
+		D72A070B263B4D6F00BCD333 /* mongoc-stream-tls-secure-transport.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-stream-tls-secure-transport.c"; path = "../../src/libmongoc/mongoc/mongoc-stream-tls-secure-transport.c"; sourceTree = "<group>"; };
+		D72A070C263B4D6F00BCD333 /* mongoc-array.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-array.c"; path = "../../src/libmongoc/mongoc/mongoc-array.c"; sourceTree = "<group>"; };
+		D72A070D263B4D7000BCD333 /* mongoc-cluster-sasl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cluster-sasl.c"; path = "../../src/libmongoc/mongoc/mongoc-cluster-sasl.c"; sourceTree = "<group>"; };
+		D72A070E263B4D7000BCD333 /* mongoc-secure-channel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-secure-channel.c"; path = "../../src/libmongoc/mongoc/mongoc-secure-channel.c"; sourceTree = "<group>"; };
+		D72A070F263B4D7000BCD333 /* mongoc-topology-background-monitoring.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-topology-background-monitoring.c"; path = "../../src/libmongoc/mongoc/mongoc-topology-background-monitoring.c"; sourceTree = "<group>"; };
+		D72A0710263B4D7000BCD333 /* mongoc-linux-distro-scanner.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-linux-distro-scanner.c"; path = "../../src/libmongoc/mongoc/mongoc-linux-distro-scanner.c"; sourceTree = "<group>"; };
+		D72A0711263B4D7000BCD333 /* mongoc-stream-tls-libressl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-stream-tls-libressl.c"; path = "../../src/libmongoc/mongoc/mongoc-stream-tls-libressl.c"; sourceTree = "<group>"; };
+		D72A0712263B4D7100BCD333 /* mongoc-host-list.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-host-list.c"; path = "../../src/libmongoc/mongoc/mongoc-host-list.c"; sourceTree = "<group>"; };
+		D72A0713263B4D7100BCD333 /* mongoc-collection.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-collection.c"; path = "../../src/libmongoc/mongoc/mongoc-collection.c"; sourceTree = "<group>"; };
+		D72A0714263B4D7100BCD333 /* mongoc-crypto.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-crypto.c"; path = "../../src/libmongoc/mongoc/mongoc-crypto.c"; sourceTree = "<group>"; };
+		D72A0715263B4D7100BCD333 /* mongoc-topology-description.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-topology-description.c"; path = "../../src/libmongoc/mongoc/mongoc-topology-description.c"; sourceTree = "<group>"; };
+		D72A0716263B4D7100BCD333 /* mongoc-matcher.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-matcher.c"; path = "../../src/libmongoc/mongoc/mongoc-matcher.c"; sourceTree = "<group>"; };
+		D72A0717263B4D7100BCD333 /* mongoc-gridfs-file-page.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-gridfs-file-page.c"; path = "../../src/libmongoc/mongoc/mongoc-gridfs-file-page.c"; sourceTree = "<group>"; };
+		D72A0718263B4D7200BCD333 /* mongoc-stream-socket.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-stream-socket.c"; path = "../../src/libmongoc/mongoc/mongoc-stream-socket.c"; sourceTree = "<group>"; };
+		D72A0719263B4D7200BCD333 /* mongoc-socket.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-socket.c"; path = "../../src/libmongoc/mongoc/mongoc-socket.c"; sourceTree = "<group>"; };
+		D72A071A263B4D7200BCD333 /* mongoc-secure-transport.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-secure-transport.c"; path = "../../src/libmongoc/mongoc/mongoc-secure-transport.c"; sourceTree = "<group>"; };
+		D72A071B263B4D7200BCD333 /* mongoc-write-command.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-write-command.c"; path = "../../src/libmongoc/mongoc/mongoc-write-command.c"; sourceTree = "<group>"; };
+		D72A071C263B4D7300BCD333 /* mongoc-write-concern.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-write-concern.c"; path = "../../src/libmongoc/mongoc/mongoc-write-concern.c"; sourceTree = "<group>"; };
+		D72A071D263B4D7300BCD333 /* mongoc-cursor-find-opquery.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cursor-find-opquery.c"; path = "../../src/libmongoc/mongoc/mongoc-cursor-find-opquery.c"; sourceTree = "<group>"; };
+		D72A071E263B4D7300BCD333 /* mongoc-ocsp-cache.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-ocsp-cache.c"; path = "../../src/libmongoc/mongoc/mongoc-ocsp-cache.c"; sourceTree = "<group>"; };
+		D72A071F263B4D7300BCD333 /* mongoc-libressl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-libressl.c"; path = "../../src/libmongoc/mongoc/mongoc-libressl.c"; sourceTree = "<group>"; };
+		D72A0720263B4D7300BCD333 /* mongoc-cluster.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cluster.c"; path = "../../src/libmongoc/mongoc/mongoc-cluster.c"; sourceTree = "<group>"; };
+		D72A0721263B4D7400BCD333 /* mongoc-stream-file.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-stream-file.c"; path = "../../src/libmongoc/mongoc/mongoc-stream-file.c"; sourceTree = "<group>"; };
+		D72A0722263B4D7400BCD333 /* mongoc-gridfs-bucket.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-gridfs-bucket.c"; path = "../../src/libmongoc/mongoc/mongoc-gridfs-bucket.c"; sourceTree = "<group>"; };
+		D72A0723263B4D7400BCD333 /* mongoc-sasl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-sasl.c"; path = "../../src/libmongoc/mongoc/mongoc-sasl.c"; sourceTree = "<group>"; };
+		D72A0724263B4D7400BCD333 /* mongoc-opts-helpers.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-opts-helpers.c"; path = "../../src/libmongoc/mongoc/mongoc-opts-helpers.c"; sourceTree = "<group>"; };
+		D72A0725263B4D7400BCD333 /* mongoc-compression.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-compression.c"; path = "../../src/libmongoc/mongoc/mongoc-compression.c"; sourceTree = "<group>"; };
+		D72A0726263B4D7500BCD333 /* mongoc-cursor-cmd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cursor-cmd.c"; path = "../../src/libmongoc/mongoc/mongoc-cursor-cmd.c"; sourceTree = "<group>"; };
+		D72A0727263B4D7500BCD333 /* mongoc-client-session.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-client-session.c"; path = "../../src/libmongoc/mongoc/mongoc-client-session.c"; sourceTree = "<group>"; };
+		D72A0728263B4D7500BCD333 /* mongoc-uri.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-uri.c"; path = "../../src/libmongoc/mongoc/mongoc-uri.c"; sourceTree = "<group>"; };
+		D72A0729263B4D7500BCD333 /* mongoc-change-stream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-change-stream.c"; path = "../../src/libmongoc/mongoc/mongoc-change-stream.c"; sourceTree = "<group>"; };
+		D72A072A263B4D7600BCD333 /* mongoc-read-concern.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-read-concern.c"; path = "../../src/libmongoc/mongoc/mongoc-read-concern.c"; sourceTree = "<group>"; };
+		D72A072B263B4D7600BCD333 /* mongoc-handshake.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-handshake.c"; path = "../../src/libmongoc/mongoc/mongoc-handshake.c"; sourceTree = "<group>"; };
+		D72A072C263B4D7600BCD333 /* mongoc-interrupt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-interrupt.c"; path = "../../src/libmongoc/mongoc/mongoc-interrupt.c"; sourceTree = "<group>"; };
+		D72A072D263B4D7600BCD333 /* mongoc-crypt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-crypt.c"; path = "../../src/libmongoc/mongoc/mongoc-crypt.c"; sourceTree = "<group>"; };
+		D72A072E263B4D7700BCD333 /* mongoc-cursor-array.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cursor-array.c"; path = "../../src/libmongoc/mongoc/mongoc-cursor-array.c"; sourceTree = "<group>"; };
+		D72A072F263B4D7700BCD333 /* mongoc-server-description.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-server-description.c"; path = "../../src/libmongoc/mongoc/mongoc-server-description.c"; sourceTree = "<group>"; };
+		D72A0730263B4D7700BCD333 /* mongoc-server-monitor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-server-monitor.c"; path = "../../src/libmongoc/mongoc/mongoc-server-monitor.c"; sourceTree = "<group>"; };
+		D72A0731263B4D7800BCD333 /* mongoc-buffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-buffer.c"; path = "../../src/libmongoc/mongoc/mongoc-buffer.c"; sourceTree = "<group>"; };
+		D72A0732263B4D7800BCD333 /* mongoc-stream-gridfs-download.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-stream-gridfs-download.c"; path = "../../src/libmongoc/mongoc/mongoc-stream-gridfs-download.c"; sourceTree = "<group>"; };
+		D72A0733263B4D7800BCD333 /* mongoc-gridfs-bucket-file.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-gridfs-bucket-file.c"; path = "../../src/libmongoc/mongoc/mongoc-gridfs-bucket-file.c"; sourceTree = "<group>"; };
+		D72A0734263B4D7800BCD333 /* mongoc-cursor-cmd-deprecated.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cursor-cmd-deprecated.c"; path = "../../src/libmongoc/mongoc/mongoc-cursor-cmd-deprecated.c"; sourceTree = "<group>"; };
+		D72A0735263B4D7800BCD333 /* mongoc-cluster-sspi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cluster-sspi.c"; path = "../../src/libmongoc/mongoc/mongoc-cluster-sspi.c"; sourceTree = "<group>"; };
+		D72A0736263B4D7900BCD333 /* mongoc-index.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-index.c"; path = "../../src/libmongoc/mongoc/mongoc-index.c"; sourceTree = "<group>"; };
+		D72A0737263B4D7900BCD333 /* mongoc-cursor-find.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mongoc-cursor-find.c"; path = "../../src/libmongoc/mongoc/mongoc-cursor-find.c"; sourceTree = "<group>"; };
+		D72A07AB263B4D8800BCD333 /* kms_response_parser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_response_parser.c; path = "../../src/libmongoc/kms-message/kms_response_parser.c"; sourceTree = "<group>"; };
+		D72A07AC263B4D8800BCD333 /* kms_encrypt_request.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_encrypt_request.c; path = "../../src/libmongoc/kms-message/kms_encrypt_request.c"; sourceTree = "<group>"; };
+		D72A07AD263B4D8800BCD333 /* kms_request_opt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_request_opt.c; path = "../../src/libmongoc/kms-message/kms_request_opt.c"; sourceTree = "<group>"; };
+		D72A07AE263B4D8800BCD333 /* sort.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sort.c; path = "../../src/libmongoc/kms-message/sort.c"; sourceTree = "<group>"; };
+		D72A07AF263B4D8900BCD333 /* kms_crypto_windows.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_crypto_windows.c; path = "../../src/libmongoc/kms-message/kms_crypto_windows.c"; sourceTree = "<group>"; };
+		D72A07B0263B4D8900BCD333 /* kms_response.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_response.c; path = "../../src/libmongoc/kms-message/kms_response.c"; sourceTree = "<group>"; };
+		D72A07B1263B4D8900BCD333 /* hexlify.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = hexlify.c; path = "../../src/libmongoc/kms-message/hexlify.c"; sourceTree = "<group>"; };
+		D72A07B2263B4D8900BCD333 /* kms_crypto_apple.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_crypto_apple.c; path = "../../src/libmongoc/kms-message/kms_crypto_apple.c"; sourceTree = "<group>"; };
+		D72A07B3263B4D8900BCD333 /* kms_request_str.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_request_str.c; path = "../../src/libmongoc/kms-message/kms_request_str.c"; sourceTree = "<group>"; };
+		D72A07B4263B4D8900BCD333 /* kms_port.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_port.c; path = "../../src/libmongoc/kms-message/kms_port.c"; sourceTree = "<group>"; };
+		D72A07B5263B4D8900BCD333 /* kms_caller_identity_request.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_caller_identity_request.c; path = "../../src/libmongoc/kms-message/kms_caller_identity_request.c"; sourceTree = "<group>"; };
+		D72A07B6263B4D8A00BCD333 /* kms_kv_list.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_kv_list.c; path = "../../src/libmongoc/kms-message/kms_kv_list.c"; sourceTree = "<group>"; };
+		D72A07B7263B4D8A00BCD333 /* kms_crypto_libcrypto.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_crypto_libcrypto.c; path = "../../src/libmongoc/kms-message/kms_crypto_libcrypto.c"; sourceTree = "<group>"; };
+		D72A07B8263B4D8A00BCD333 /* kms_request.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_request.c; path = "../../src/libmongoc/kms-message/kms_request.c"; sourceTree = "<group>"; };
+		D72A07B9263B4D8A00BCD333 /* kms_decrypt_request.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_decrypt_request.c; path = "../../src/libmongoc/kms-message/kms_decrypt_request.c"; sourceTree = "<group>"; };
+		D72A07BA263B4D8A00BCD333 /* kms_b64.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_b64.c; path = "../../src/libmongoc/kms-message/kms_b64.c"; sourceTree = "<group>"; };
+		D72A07BB263B4D8A00BCD333 /* kms_crypto_none.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_crypto_none.c; path = "../../src/libmongoc/kms-message/kms_crypto_none.c"; sourceTree = "<group>"; };
+		D72A07BC263B4D8A00BCD333 /* kms_message.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kms_message.c; path = "../../src/libmongoc/kms-message/kms_message.c"; sourceTree = "<group>"; };
+		D72A07DA263B4DA800BCD333 /* bson-string.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-string.c"; path = "../../src/libmongoc/bson/bson-string.c"; sourceTree = "<group>"; };
+		D72A07DB263B4DA800BCD333 /* bson-timegm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-timegm.c"; path = "../../src/libmongoc/bson/bson-timegm.c"; sourceTree = "<group>"; };
+		D72A07DC263B4DA800BCD333 /* bson.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = bson.c; path = ../../src/libmongoc/bson/bson.c; sourceTree = "<group>"; };
+		D72A07DD263B4DA800BCD333 /* bson-decimal128.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-decimal128.c"; path = "../../src/libmongoc/bson/bson-decimal128.c"; sourceTree = "<group>"; };
+		D72A07DE263B4DA900BCD333 /* bson-atomic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-atomic.c"; path = "../../src/libmongoc/bson/bson-atomic.c"; sourceTree = "<group>"; };
+		D72A07DF263B4DA900BCD333 /* bson-writer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-writer.c"; path = "../../src/libmongoc/bson/bson-writer.c"; sourceTree = "<group>"; };
+		D72A07E0263B4DA900BCD333 /* bson-oid.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-oid.c"; path = "../../src/libmongoc/bson/bson-oid.c"; sourceTree = "<group>"; };
+		D72A07E1263B4DA900BCD333 /* bson-iter.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-iter.c"; path = "../../src/libmongoc/bson/bson-iter.c"; sourceTree = "<group>"; };
+		D72A07E2263B4DA900BCD333 /* bson-clock.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-clock.c"; path = "../../src/libmongoc/bson/bson-clock.c"; sourceTree = "<group>"; };
+		D72A07E3263B4DA900BCD333 /* bson-memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-memory.c"; path = "../../src/libmongoc/bson/bson-memory.c"; sourceTree = "<group>"; };
+		D72A07E4263B4DA900BCD333 /* bson-json.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-json.c"; path = "../../src/libmongoc/bson/bson-json.c"; sourceTree = "<group>"; };
+		D72A07E5263B4DA900BCD333 /* bcon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = bcon.c; path = ../../src/libmongoc/bson/bcon.c; sourceTree = "<group>"; };
+		D72A07E6263B4DAA00BCD333 /* bson-iso8601.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-iso8601.c"; path = "../../src/libmongoc/bson/bson-iso8601.c"; sourceTree = "<group>"; };
+		D72A07E7263B4DAA00BCD333 /* bson-error.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-error.c"; path = "../../src/libmongoc/bson/bson-error.c"; sourceTree = "<group>"; };
+		D72A07E8263B4DAA00BCD333 /* bson-utf8.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-utf8.c"; path = "../../src/libmongoc/bson/bson-utf8.c"; sourceTree = "<group>"; };
+		D72A07E9263B4DAA00BCD333 /* bson-reader.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-reader.c"; path = "../../src/libmongoc/bson/bson-reader.c"; sourceTree = "<group>"; };
+		D72A07EA263B4DAA00BCD333 /* bson-version-functions.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-version-functions.c"; path = "../../src/libmongoc/bson/bson-version-functions.c"; sourceTree = "<group>"; };
+		D72A07EB263B4DAA00BCD333 /* bson-value.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-value.c"; path = "../../src/libmongoc/bson/bson-value.c"; sourceTree = "<group>"; };
+		D72A07EC263B4DAA00BCD333 /* bson-keys.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-keys.c"; path = "../../src/libmongoc/bson/bson-keys.c"; sourceTree = "<group>"; };
+		D72A07ED263B4DAB00BCD333 /* bson-md5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-md5.c"; path = "../../src/libmongoc/bson/bson-md5.c"; sourceTree = "<group>"; };
+		D72A07EE263B4DAB00BCD333 /* bson-context.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "bson-context.c"; path = "../../src/libmongoc/bson/bson-context.c"; sourceTree = "<group>"; };
+		D72A080F263B4DCC00BCD333 /* jsonsl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jsonsl.c; path = ../../src/libmongoc/jsonsl/jsonsl.c; sourceTree = "<group>"; };
+		D72A081D263B4DE500BCD333 /* common-md5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "common-md5.c"; path = "../../src/libmongoc/common/common-md5.c"; sourceTree = "<group>"; };
+		D72A081E263B4DE500BCD333 /* common-thread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "common-thread.c"; path = "../../src/libmongoc/common/common-thread.c"; sourceTree = "<group>"; };
+		D72A081F263B4DE500BCD333 /* common-b64.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "common-b64.c"; path = "../../src/libmongoc/common/common-b64.c"; sourceTree = "<group>"; };
 		D7BF6145263124F800E0B3DD /* librocksdb.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = librocksdb.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7BF6165263125CA00E0B3DD /* unity.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = unity.cc; path = ../../src/rocksdb/unity.cc; sourceTree = "<group>"; };
 		D7ECA0F0263172D300D366A8 /* armcpu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = armcpu.c; path = ../../src/opus/celt/arm/armcpu.c; sourceTree = "<group>"; };
@@ -2185,6 +2480,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		26D15C561E93A9B4003BD61A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D72A06A5263B4CDD00BCD333 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -3253,6 +3555,7 @@
 				267464B023171F9900DE8715 /* libcef */,
 				2639193021CD23BB008B335B /* hiredis */,
 				D7BF6164263125AE00E0B3DD /* rocksdb */,
+				D72A06C1263B4D0100BCD333 /* libmongoc */,
 				2605032320CBDD3900032B2C /* yasm */,
 			);
 			name = external;
@@ -3862,8 +4165,195 @@
 				2639192F21CD2389008B335B /* libhiredis.a */,
 				267464AF23171F2500DE8715 /* libcef_dll_wrapper.a */,
 				D7BF6145263124F800E0B3DD /* librocksdb.a */,
+				D72A06AA263B4CDD00BCD333 /* libmongoc.a */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		D72A06C1263B4D0100BCD333 /* libmongoc */ = {
+			isa = PBXGroup;
+			children = (
+				D72A081C263B4DD600BCD333 /* common */,
+				D72A06CE263B4D4500BCD333 /* bson */,
+				D72A06CF263B4D4B00BCD333 /* kms-message */,
+				D72A06CD263B4D3C00BCD333 /* mongoc */,
+				D72A080F263B4DCC00BCD333 /* jsonsl.c */,
+			);
+			name = libmongoc;
+			sourceTree = "<group>";
+		};
+		D72A06CD263B4D3C00BCD333 /* mongoc */ = {
+			isa = PBXGroup;
+			children = (
+				D72A070A263B4D6F00BCD333 /* mongoc-aggregate.c */,
+				D72A06D4263B4D6400BCD333 /* mongoc-apm.c */,
+				D72A070C263B4D6F00BCD333 /* mongoc-array.c */,
+				D72A06E2263B4D6700BCD333 /* mongoc-async-cmd.c */,
+				D72A06DA263B4D6600BCD333 /* mongoc-async.c */,
+				D72A0731263B4D7800BCD333 /* mongoc-buffer.c */,
+				D72A06FC263B4D6C00BCD333 /* mongoc-bulk-operation.c */,
+				D72A0729263B4D7500BCD333 /* mongoc-change-stream.c */,
+				D72A06D2263B4D6400BCD333 /* mongoc-client-pool.c */,
+				D72A0727263B4D7500BCD333 /* mongoc-client-session.c */,
+				D72A06F3263B4D6B00BCD333 /* mongoc-client-side-encryption.c */,
+				D72A0709263B4D6F00BCD333 /* mongoc-client.c */,
+				D72A06E3263B4D6700BCD333 /* mongoc-cluster-aws.c */,
+				D72A06E7263B4D6800BCD333 /* mongoc-cluster-cyrus.c */,
+				D72A070D263B4D7000BCD333 /* mongoc-cluster-sasl.c */,
+				D72A0735263B4D7800BCD333 /* mongoc-cluster-sspi.c */,
+				D72A0720263B4D7300BCD333 /* mongoc-cluster.c */,
+				D72A06E8263B4D6800BCD333 /* mongoc-cmd.c */,
+				D72A0713263B4D7100BCD333 /* mongoc-collection.c */,
+				D72A0725263B4D7400BCD333 /* mongoc-compression.c */,
+				D72A06D7263B4D6500BCD333 /* mongoc-counters.c */,
+				D72A072D263B4D7600BCD333 /* mongoc-crypt.c */,
+				D72A06F1263B4D6A00BCD333 /* mongoc-crypto-cng.c */,
+				D72A06F9263B4D6C00BCD333 /* mongoc-crypto-common-crypto.c */,
+				D72A06D0263B4D6300BCD333 /* mongoc-crypto-openssl.c */,
+				D72A0714263B4D7100BCD333 /* mongoc-crypto.c */,
+				D72A072E263B4D7700BCD333 /* mongoc-cursor-array.c */,
+				D72A06E4263B4D6800BCD333 /* mongoc-cursor-change-stream.c */,
+				D72A0734263B4D7800BCD333 /* mongoc-cursor-cmd-deprecated.c */,
+				D72A0726263B4D7500BCD333 /* mongoc-cursor-cmd.c */,
+				D72A06FE263B4D6D00BCD333 /* mongoc-cursor-find-cmd.c */,
+				D72A071D263B4D7300BCD333 /* mongoc-cursor-find-opquery.c */,
+				D72A0737263B4D7900BCD333 /* mongoc-cursor-find.c */,
+				D72A06ED263B4D6900BCD333 /* mongoc-cursor-legacy.c */,
+				D72A06FB263B4D6C00BCD333 /* mongoc-cursor.c */,
+				D72A06E5263B4D6800BCD333 /* mongoc-cyrus.c */,
+				D72A06E1263B4D6700BCD333 /* mongoc-database.c */,
+				D72A0701263B4D6D00BCD333 /* mongoc-error.c */,
+				D72A06D9263B4D6500BCD333 /* mongoc-find-and-modify.c */,
+				D72A0733263B4D7800BCD333 /* mongoc-gridfs-bucket-file.c */,
+				D72A0722263B4D7400BCD333 /* mongoc-gridfs-bucket.c */,
+				D72A06F5263B4D6B00BCD333 /* mongoc-gridfs-file-list.c */,
+				D72A0717263B4D7100BCD333 /* mongoc-gridfs-file-page.c */,
+				D72A06D3263B4D6400BCD333 /* mongoc-gridfs-file.c */,
+				D72A06EF263B4D6A00BCD333 /* mongoc-gridfs.c */,
+				D72A072B263B4D7600BCD333 /* mongoc-handshake.c */,
+				D72A0712263B4D7100BCD333 /* mongoc-host-list.c */,
+				D72A0703263B4D6E00BCD333 /* mongoc-http.c */,
+				D72A0736263B4D7900BCD333 /* mongoc-index.c */,
+				D72A06FF263B4D6D00BCD333 /* mongoc-init.c */,
+				D72A072C263B4D7600BCD333 /* mongoc-interrupt.c */,
+				D72A071F263B4D7300BCD333 /* mongoc-libressl.c */,
+				D72A0710263B4D7000BCD333 /* mongoc-linux-distro-scanner.c */,
+				D72A06DB263B4D6600BCD333 /* mongoc-list.c */,
+				D72A06F7263B4D6B00BCD333 /* mongoc-log.c */,
+				D72A06F4263B4D6B00BCD333 /* mongoc-matcher-op.c */,
+				D72A0716263B4D7100BCD333 /* mongoc-matcher.c */,
+				D72A06E6263B4D6800BCD333 /* mongoc-memcmp.c */,
+				D72A071E263B4D7300BCD333 /* mongoc-ocsp-cache.c */,
+				D72A06D5263B4D6400BCD333 /* mongoc-openssl.c */,
+				D72A0724263B4D7400BCD333 /* mongoc-opts-helpers.c */,
+				D72A06EE263B4D6A00BCD333 /* mongoc-opts.c */,
+				D72A06EC263B4D6900BCD333 /* mongoc-queue.c */,
+				D72A06D6263B4D6500BCD333 /* mongoc-rand-cng.c */,
+				D72A06EA263B4D6900BCD333 /* mongoc-rand-common-crypto.c */,
+				D72A06F6263B4D6B00BCD333 /* mongoc-rand-openssl.c */,
+				D72A072A263B4D7600BCD333 /* mongoc-read-concern.c */,
+				D72A06FD263B4D6C00BCD333 /* mongoc-read-prefs.c */,
+				D72A06F0263B4D6A00BCD333 /* mongoc-rpc.c */,
+				D72A0723263B4D7400BCD333 /* mongoc-sasl.c */,
+				D72A06DE263B4D6600BCD333 /* mongoc-scram.c */,
+				D72A070E263B4D7000BCD333 /* mongoc-secure-channel.c */,
+				D72A071A263B4D7200BCD333 /* mongoc-secure-transport.c */,
+				D72A072F263B4D7700BCD333 /* mongoc-server-description.c */,
+				D72A0730263B4D7700BCD333 /* mongoc-server-monitor.c */,
+				D72A0705263B4D6E00BCD333 /* mongoc-server-stream.c */,
+				D72A06DF263B4D6700BCD333 /* mongoc-set.c */,
+				D72A0719263B4D7200BCD333 /* mongoc-socket.c */,
+				D72A06D1263B4D6300BCD333 /* mongoc-ssl.c */,
+				D72A06DC263B4D6600BCD333 /* mongoc-sspi.c */,
+				D72A0704263B4D6E00BCD333 /* mongoc-stream-buffered.c */,
+				D72A0721263B4D7400BCD333 /* mongoc-stream-file.c */,
+				D72A0732263B4D7800BCD333 /* mongoc-stream-gridfs-download.c */,
+				D72A06D8263B4D6500BCD333 /* mongoc-stream-gridfs-upload.c */,
+				D72A06E0263B4D6700BCD333 /* mongoc-stream-gridfs.c */,
+				D72A0718263B4D7200BCD333 /* mongoc-stream-socket.c */,
+				D72A0711263B4D7000BCD333 /* mongoc-stream-tls-libressl.c */,
+				D72A0700263B4D6D00BCD333 /* mongoc-stream-tls-openssl-bio.c */,
+				D72A06FA263B4D6C00BCD333 /* mongoc-stream-tls-openssl.c */,
+				D72A0708263B4D6F00BCD333 /* mongoc-stream-tls-secure-channel.c */,
+				D72A070B263B4D6F00BCD333 /* mongoc-stream-tls-secure-transport.c */,
+				D72A06EB263B4D6900BCD333 /* mongoc-stream-tls.c */,
+				D72A06F2263B4D6A00BCD333 /* mongoc-stream.c */,
+				D72A070F263B4D7000BCD333 /* mongoc-topology-background-monitoring.c */,
+				D72A0706263B4D6E00BCD333 /* mongoc-topology-description-apm.c */,
+				D72A0715263B4D7100BCD333 /* mongoc-topology-description.c */,
+				D72A06DD263B4D6600BCD333 /* mongoc-topology-scanner.c */,
+				D72A06F8263B4D6B00BCD333 /* mongoc-topology.c */,
+				D72A0728263B4D7500BCD333 /* mongoc-uri.c */,
+				D72A06E9263B4D6900BCD333 /* mongoc-util.c */,
+				D72A0702263B4D6D00BCD333 /* mongoc-version-functions.c */,
+				D72A0707263B4D6E00BCD333 /* mongoc-write-command-legacy.c */,
+				D72A071B263B4D7200BCD333 /* mongoc-write-command.c */,
+				D72A071C263B4D7300BCD333 /* mongoc-write-concern.c */,
+			);
+			name = mongoc;
+			sourceTree = "<group>";
+		};
+		D72A06CE263B4D4500BCD333 /* bson */ = {
+			isa = PBXGroup;
+			children = (
+				D72A07E5263B4DA900BCD333 /* bcon.c */,
+				D72A07DE263B4DA900BCD333 /* bson-atomic.c */,
+				D72A07E2263B4DA900BCD333 /* bson-clock.c */,
+				D72A07EE263B4DAB00BCD333 /* bson-context.c */,
+				D72A07DD263B4DA800BCD333 /* bson-decimal128.c */,
+				D72A07E7263B4DAA00BCD333 /* bson-error.c */,
+				D72A07E6263B4DAA00BCD333 /* bson-iso8601.c */,
+				D72A07E1263B4DA900BCD333 /* bson-iter.c */,
+				D72A07E4263B4DA900BCD333 /* bson-json.c */,
+				D72A07EC263B4DAA00BCD333 /* bson-keys.c */,
+				D72A07ED263B4DAB00BCD333 /* bson-md5.c */,
+				D72A07E3263B4DA900BCD333 /* bson-memory.c */,
+				D72A07E0263B4DA900BCD333 /* bson-oid.c */,
+				D72A07E9263B4DAA00BCD333 /* bson-reader.c */,
+				D72A07DA263B4DA800BCD333 /* bson-string.c */,
+				D72A07DB263B4DA800BCD333 /* bson-timegm.c */,
+				D72A07E8263B4DAA00BCD333 /* bson-utf8.c */,
+				D72A07EB263B4DAA00BCD333 /* bson-value.c */,
+				D72A07EA263B4DAA00BCD333 /* bson-version-functions.c */,
+				D72A07DF263B4DA900BCD333 /* bson-writer.c */,
+				D72A07DC263B4DA800BCD333 /* bson.c */,
+			);
+			name = bson;
+			sourceTree = "<group>";
+		};
+		D72A06CF263B4D4B00BCD333 /* kms-message */ = {
+			isa = PBXGroup;
+			children = (
+				D72A07B1263B4D8900BCD333 /* hexlify.c */,
+				D72A07BA263B4D8A00BCD333 /* kms_b64.c */,
+				D72A07B5263B4D8900BCD333 /* kms_caller_identity_request.c */,
+				D72A07B2263B4D8900BCD333 /* kms_crypto_apple.c */,
+				D72A07B7263B4D8A00BCD333 /* kms_crypto_libcrypto.c */,
+				D72A07BB263B4D8A00BCD333 /* kms_crypto_none.c */,
+				D72A07AF263B4D8900BCD333 /* kms_crypto_windows.c */,
+				D72A07B9263B4D8A00BCD333 /* kms_decrypt_request.c */,
+				D72A07AC263B4D8800BCD333 /* kms_encrypt_request.c */,
+				D72A07B6263B4D8A00BCD333 /* kms_kv_list.c */,
+				D72A07BC263B4D8A00BCD333 /* kms_message.c */,
+				D72A07B4263B4D8900BCD333 /* kms_port.c */,
+				D72A07AD263B4D8800BCD333 /* kms_request_opt.c */,
+				D72A07B3263B4D8900BCD333 /* kms_request_str.c */,
+				D72A07B8263B4D8A00BCD333 /* kms_request.c */,
+				D72A07AB263B4D8800BCD333 /* kms_response_parser.c */,
+				D72A07B0263B4D8900BCD333 /* kms_response.c */,
+				D72A07AE263B4D8800BCD333 /* sort.c */,
+			);
+			name = "kms-message";
+			sourceTree = "<group>";
+		};
+		D72A081C263B4DD600BCD333 /* common */ = {
+			isa = PBXGroup;
+			children = (
+				D72A081F263B4DE500BCD333 /* common-b64.c */,
+				D72A081D263B4DE500BCD333 /* common-md5.c */,
+				D72A081E263B4DE500BCD333 /* common-thread.c */,
+			);
+			name = common;
 			sourceTree = "<group>";
 		};
 		D7BF6164263125AE00E0B3DD /* rocksdb */ = {
@@ -4246,6 +4736,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D72A06A6263B4CDD00BCD333 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D7BF6141263124F800E0B3DD /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -4410,6 +4907,23 @@
 			productReference = 26D15C5B1E93A9B4003BD61A /* libvpx.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		D72A06A2263B4CDD00BCD333 /* libmongoc */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D72A06A7263B4CDD00BCD333 /* Build configuration list for PBXNativeTarget "libmongoc" */;
+			buildPhases = (
+				D72A06A3263B4CDD00BCD333 /* Sources */,
+				D72A06A5263B4CDD00BCD333 /* Frameworks */,
+				D72A06A6263B4CDD00BCD333 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = libmongoc;
+			productName = Slib;
+			productReference = D72A06AA263B4CDD00BCD333 /* libmongoc.a */;
+			productType = "com.apple.product-type.library.static";
+		};
 		D7BF613D263124F800E0B3DD /* rocksdb */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D7BF6142263124F800E0B3DD /* Build configuration list for PBXNativeTarget "rocksdb" */;
@@ -4465,6 +4979,7 @@
 				267464A723171F2500DE8715 /* cef_dll_wrapper */,
 				2639191921CD2389008B335B /* hiredis */,
 				D7BF613D263124F800E0B3DD /* rocksdb */,
+				D72A06A2263B4CDD00BCD333 /* libmongoc */,
 			);
 		};
 /* End PBXProject section */
@@ -5408,6 +5923,160 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D72A06A3263B4CDD00BCD333 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D72A0745263B4D7900BCD333 /* mongoc-topology-scanner.c in Sources */,
+				D72A07BE263B4D8A00BCD333 /* kms_encrypt_request.c in Sources */,
+				D72A07F8263B4DAB00BCD333 /* bson-memory.c in Sources */,
+				D72A079F263B4D7B00BCD333 /* mongoc-cursor-find.c in Sources */,
+				D72A0768263B4D7A00BCD333 /* mongoc-stream-tls-openssl-bio.c in Sources */,
+				D72A0740263B4D7900BCD333 /* mongoc-stream-gridfs-upload.c in Sources */,
+				D72A0820263B4DE500BCD333 /* common-md5.c in Sources */,
+				D72A079B263B4D7B00BCD333 /* mongoc-gridfs-bucket-file.c in Sources */,
+				D72A0767263B4D7A00BCD333 /* mongoc-init.c in Sources */,
+				D72A0748263B4D7900BCD333 /* mongoc-stream-gridfs.c in Sources */,
+				D72A0771263B4D7A00BCD333 /* mongoc-client.c in Sources */,
+				D72A07CE263B4D8B00BCD333 /* kms_message.c in Sources */,
+				D72A078E263B4D7B00BCD333 /* mongoc-cursor-cmd.c in Sources */,
+				D72A0795263B4D7B00BCD333 /* mongoc-crypt.c in Sources */,
+				D72A0783263B4D7A00BCD333 /* mongoc-write-command.c in Sources */,
+				D72A0791263B4D7B00BCD333 /* mongoc-change-stream.c in Sources */,
+				D72A0770263B4D7A00BCD333 /* mongoc-stream-tls-secure-channel.c in Sources */,
+				D72A0741263B4D7900BCD333 /* mongoc-find-and-modify.c in Sources */,
+				D72A07BF263B4D8A00BCD333 /* kms_request_opt.c in Sources */,
+				D72A07C3263B4D8A00BCD333 /* hexlify.c in Sources */,
+				D72A074F263B4D7900BCD333 /* mongoc-cluster-cyrus.c in Sources */,
+				D72A07C9263B4D8B00BCD333 /* kms_crypto_libcrypto.c in Sources */,
+				D72A07F5263B4DAB00BCD333 /* bson-oid.c in Sources */,
+				D72A07EF263B4DAB00BCD333 /* bson-string.c in Sources */,
+				D72A0769263B4D7A00BCD333 /* mongoc-error.c in Sources */,
+				D72A07F3263B4DAB00BCD333 /* bson-atomic.c in Sources */,
+				D72A0800263B4DAB00BCD333 /* bson-value.c in Sources */,
+				D72A07BD263B4D8A00BCD333 /* kms_response_parser.c in Sources */,
+				D72A0765263B4D7A00BCD333 /* mongoc-read-prefs.c in Sources */,
+				D72A07F0263B4DAB00BCD333 /* bson-timegm.c in Sources */,
+				D72A07F4263B4DAB00BCD333 /* bson-writer.c in Sources */,
+				D72A0764263B4D7A00BCD333 /* mongoc-bulk-operation.c in Sources */,
+				D72A074C263B4D7900BCD333 /* mongoc-cursor-change-stream.c in Sources */,
+				D72A07FF263B4DAB00BCD333 /* bson-version-functions.c in Sources */,
+				D72A07FD263B4DAB00BCD333 /* bson-utf8.c in Sources */,
+				D72A0743263B4D7900BCD333 /* mongoc-list.c in Sources */,
+				D72A0821263B4DE500BCD333 /* common-thread.c in Sources */,
+				D72A07C1263B4D8A00BCD333 /* kms_crypto_windows.c in Sources */,
+				D72A078F263B4D7B00BCD333 /* mongoc-client-session.c in Sources */,
+				D72A0738263B4D7900BCD333 /* mongoc-crypto-openssl.c in Sources */,
+				D72A075E263B4D7A00BCD333 /* mongoc-rand-openssl.c in Sources */,
+				D72A07CA263B4D8B00BCD333 /* kms_request.c in Sources */,
+				D72A0762263B4D7A00BCD333 /* mongoc-stream-tls-openssl.c in Sources */,
+				D72A0781263B4D7A00BCD333 /* mongoc-socket.c in Sources */,
+				D72A0785263B4D7A00BCD333 /* mongoc-cursor-find-opquery.c in Sources */,
+				D72A0789263B4D7A00BCD333 /* mongoc-stream-file.c in Sources */,
+				D72A0754263B4D7900BCD333 /* mongoc-queue.c in Sources */,
+				D72A076A263B4D7A00BCD333 /* mongoc-version-functions.c in Sources */,
+				D72A0751263B4D7900BCD333 /* mongoc-util.c in Sources */,
+				D72A076B263B4D7A00BCD333 /* mongoc-http.c in Sources */,
+				D72A0750263B4D7900BCD333 /* mongoc-cmd.c in Sources */,
+				D72A0766263B4D7A00BCD333 /* mongoc-cursor-find-cmd.c in Sources */,
+				D72A07CC263B4D8B00BCD333 /* kms_b64.c in Sources */,
+				D72A073D263B4D7900BCD333 /* mongoc-openssl.c in Sources */,
+				D72A0780263B4D7A00BCD333 /* mongoc-stream-socket.c in Sources */,
+				D72A07C8263B4D8B00BCD333 /* kms_kv_list.c in Sources */,
+				D72A0774263B4D7A00BCD333 /* mongoc-array.c in Sources */,
+				D72A0798263B4D7B00BCD333 /* mongoc-server-monitor.c in Sources */,
+				D72A0749263B4D7900BCD333 /* mongoc-database.c in Sources */,
+				D72A073E263B4D7900BCD333 /* mongoc-rand-cng.c in Sources */,
+				D72A0746263B4D7900BCD333 /* mongoc-scram.c in Sources */,
+				D72A0757263B4D7A00BCD333 /* mongoc-gridfs.c in Sources */,
+				D72A079D263B4D7B00BCD333 /* mongoc-cluster-sspi.c in Sources */,
+				D72A07C4263B4D8A00BCD333 /* kms_crypto_apple.c in Sources */,
+				D72A0790263B4D7B00BCD333 /* mongoc-uri.c in Sources */,
+				D72A0756263B4D7A00BCD333 /* mongoc-opts.c in Sources */,
+				D72A07C6263B4D8B00BCD333 /* kms_port.c in Sources */,
+				D72A07FC263B4DAB00BCD333 /* bson-error.c in Sources */,
+				D72A0822263B4DE500BCD333 /* common-b64.c in Sources */,
+				D72A0810263B4DCC00BCD333 /* jsonsl.c in Sources */,
+				D72A077E263B4D7A00BCD333 /* mongoc-matcher.c in Sources */,
+				D72A073B263B4D7900BCD333 /* mongoc-gridfs-file.c in Sources */,
+				D72A0747263B4D7900BCD333 /* mongoc-set.c in Sources */,
+				D72A0793263B4D7B00BCD333 /* mongoc-handshake.c in Sources */,
+				D72A074D263B4D7900BCD333 /* mongoc-cyrus.c in Sources */,
+				D72A0799263B4D7B00BCD333 /* mongoc-buffer.c in Sources */,
+				D72A0739263B4D7900BCD333 /* mongoc-ssl.c in Sources */,
+				D72A0801263B4DAB00BCD333 /* bson-keys.c in Sources */,
+				D72A076E263B4D7A00BCD333 /* mongoc-topology-description-apm.c in Sources */,
+				D72A0758263B4D7A00BCD333 /* mongoc-rpc.c in Sources */,
+				D72A073F263B4D7900BCD333 /* mongoc-counters.c in Sources */,
+				D72A0782263B4D7A00BCD333 /* mongoc-secure-transport.c in Sources */,
+				D72A0777263B4D7A00BCD333 /* mongoc-topology-background-monitoring.c in Sources */,
+				D72A07F6263B4DAB00BCD333 /* bson-iter.c in Sources */,
+				D72A07F7263B4DAB00BCD333 /* bson-clock.c in Sources */,
+				D72A077D263B4D7A00BCD333 /* mongoc-topology-description.c in Sources */,
+				D72A07C7263B4D8B00BCD333 /* kms_caller_identity_request.c in Sources */,
+				D72A074E263B4D7900BCD333 /* mongoc-memcmp.c in Sources */,
+				D72A0755263B4D7A00BCD333 /* mongoc-cursor-legacy.c in Sources */,
+				D72A07CD263B4D8B00BCD333 /* kms_crypto_none.c in Sources */,
+				D72A07F1263B4DAB00BCD333 /* bson.c in Sources */,
+				D72A077B263B4D7A00BCD333 /* mongoc-collection.c in Sources */,
+				D72A0802263B4DAB00BCD333 /* bson-md5.c in Sources */,
+				D72A07C0263B4D8A00BCD333 /* sort.c in Sources */,
+				D72A079E263B4D7B00BCD333 /* mongoc-index.c in Sources */,
+				D72A075B263B4D7A00BCD333 /* mongoc-client-side-encryption.c in Sources */,
+				D72A0773263B4D7A00BCD333 /* mongoc-stream-tls-secure-transport.c in Sources */,
+				D72A0787263B4D7A00BCD333 /* mongoc-libressl.c in Sources */,
+				D72A0796263B4D7B00BCD333 /* mongoc-cursor-array.c in Sources */,
+				D72A075C263B4D7A00BCD333 /* mongoc-matcher-op.c in Sources */,
+				D72A079C263B4D7B00BCD333 /* mongoc-cursor-cmd-deprecated.c in Sources */,
+				D72A0803263B4DAB00BCD333 /* bson-context.c in Sources */,
+				D72A073C263B4D7900BCD333 /* mongoc-apm.c in Sources */,
+				D72A079A263B4D7B00BCD333 /* mongoc-stream-gridfs-download.c in Sources */,
+				D72A076F263B4D7A00BCD333 /* mongoc-write-command-legacy.c in Sources */,
+				D72A078C263B4D7B00BCD333 /* mongoc-opts-helpers.c in Sources */,
+				D72A074B263B4D7900BCD333 /* mongoc-cluster-aws.c in Sources */,
+				D72A0792263B4D7B00BCD333 /* mongoc-read-concern.c in Sources */,
+				D72A0744263B4D7900BCD333 /* mongoc-sspi.c in Sources */,
+				D72A078A263B4D7B00BCD333 /* mongoc-gridfs-bucket.c in Sources */,
+				D72A0775263B4D7A00BCD333 /* mongoc-cluster-sasl.c in Sources */,
+				D72A0797263B4D7B00BCD333 /* mongoc-server-description.c in Sources */,
+				D72A07FA263B4DAB00BCD333 /* bcon.c in Sources */,
+				D72A07FE263B4DAB00BCD333 /* bson-reader.c in Sources */,
+				D72A0794263B4D7B00BCD333 /* mongoc-interrupt.c in Sources */,
+				D72A074A263B4D7900BCD333 /* mongoc-async-cmd.c in Sources */,
+				D72A075A263B4D7A00BCD333 /* mongoc-stream.c in Sources */,
+				D72A0779263B4D7A00BCD333 /* mongoc-stream-tls-libressl.c in Sources */,
+				D72A077A263B4D7A00BCD333 /* mongoc-host-list.c in Sources */,
+				D72A076C263B4D7A00BCD333 /* mongoc-stream-buffered.c in Sources */,
+				D72A07C2263B4D8A00BCD333 /* kms_response.c in Sources */,
+				D72A077F263B4D7A00BCD333 /* mongoc-gridfs-file-page.c in Sources */,
+				D72A078B263B4D7B00BCD333 /* mongoc-sasl.c in Sources */,
+				D72A0753263B4D7900BCD333 /* mongoc-stream-tls.c in Sources */,
+				D72A0778263B4D7A00BCD333 /* mongoc-linux-distro-scanner.c in Sources */,
+				D72A0759263B4D7A00BCD333 /* mongoc-crypto-cng.c in Sources */,
+				D72A07CB263B4D8B00BCD333 /* kms_decrypt_request.c in Sources */,
+				D72A0752263B4D7900BCD333 /* mongoc-rand-common-crypto.c in Sources */,
+				D72A077C263B4D7A00BCD333 /* mongoc-crypto.c in Sources */,
+				D72A0760263B4D7A00BCD333 /* mongoc-topology.c in Sources */,
+				D72A07FB263B4DAB00BCD333 /* bson-iso8601.c in Sources */,
+				D72A0786263B4D7A00BCD333 /* mongoc-ocsp-cache.c in Sources */,
+				D72A0761263B4D7A00BCD333 /* mongoc-crypto-common-crypto.c in Sources */,
+				D72A07C5263B4D8B00BCD333 /* kms_request_str.c in Sources */,
+				D72A078D263B4D7B00BCD333 /* mongoc-compression.c in Sources */,
+				D72A0788263B4D7A00BCD333 /* mongoc-cluster.c in Sources */,
+				D72A0784263B4D7A00BCD333 /* mongoc-write-concern.c in Sources */,
+				D72A075D263B4D7A00BCD333 /* mongoc-gridfs-file-list.c in Sources */,
+				D72A0742263B4D7900BCD333 /* mongoc-async.c in Sources */,
+				D72A07F9263B4DAB00BCD333 /* bson-json.c in Sources */,
+				D72A073A263B4D7900BCD333 /* mongoc-client-pool.c in Sources */,
+				D72A0772263B4D7A00BCD333 /* mongoc-aggregate.c in Sources */,
+				D72A0763263B4D7A00BCD333 /* mongoc-cursor.c in Sources */,
+				D72A0776263B4D7A00BCD333 /* mongoc-secure-channel.c in Sources */,
+				D72A075F263B4D7A00BCD333 /* mongoc-log.c in Sources */,
+				D72A076D263B4D7A00BCD333 /* mongoc-server-stream.c in Sources */,
+				D72A07F2263B4DAB00BCD333 /* bson-decimal128.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D7BF613E263124F800E0B3DD /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -5942,6 +6611,67 @@
 			};
 			name = Release;
 		};
+		D72A06A8263B4CDD00BCD333 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_COMMA = NO;
+				CLANG_WARN_UNREACHABLE_CODE = NO;
+				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/../../lib/macOS";
+				EXECUTABLE_PREFIX = lib;
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_OPTIMIZATION_LEVEL = z;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../../../external/include",
+					"$(PROJECT_DIR)/../../../external/include/bson",
+					"$(PROJECT_DIR)/../../../external/include/mongoc",
+					"$(PROJECT_DIR)/../../../external/src/libmongoc",
+					"$(PROJECT_DIR)/../../../external/src/libmongoc/common",
+				);
+				LLVM_LTO = YES;
+				OTHER_CFLAGS = (
+					"-DBSON_COMPILATION",
+					"-DMONGOC_COMPILATION",
+					"-DKMS_MSG_STATIC",
+				);
+				PRODUCT_MODULE_NAME = slib;
+				PRODUCT_NAME = mongoc;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Debug;
+		};
+		D72A06A9263B4CDD00BCD333 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_COMMA = NO;
+				CLANG_WARN_UNREACHABLE_CODE = NO;
+				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/../../lib/macOS";
+				EXECUTABLE_PREFIX = lib;
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_OPTIMIZATION_LEVEL = z;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../../../external/include",
+					"$(PROJECT_DIR)/../../../external/include/bson",
+					"$(PROJECT_DIR)/../../../external/include/mongoc",
+					"$(PROJECT_DIR)/../../../external/src/libmongoc",
+					"$(PROJECT_DIR)/../../../external/src/libmongoc/common",
+				);
+				OTHER_CFLAGS = (
+					"-DBSON_COMPILATION",
+					"-DMONGOC_COMPILATION",
+					"-DKMS_MSG_STATIC",
+				);
+				PRODUCT_MODULE_NAME = slib;
+				PRODUCT_NAME = mongoc;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Release;
+		};
 		D7BF6143263124F800E0B3DD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -6076,6 +6806,15 @@
 			buildConfigurations = (
 				28CE36611A0FEDC700AB513C /* Debug */,
 				28CE36621A0FEDC700AB513C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D72A06A7263B4CDD00BCD333 /* Build configuration list for PBXNativeTarget "libmongoc" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D72A06A8263B4CDD00BCD333 /* Debug */,
+				D72A06A9263B4CDD00BCD333 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

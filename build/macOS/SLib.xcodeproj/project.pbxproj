@@ -376,6 +376,15 @@
 		26FE7D8D25A2F1B900B787F0 /* plot_ui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8B25A2F1B800B787F0 /* plot_ui.cpp */; };
 		26FE7D8E25A2F1B900B787F0 /* plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8C25A2F1B800B787F0 /* plot.cpp */; };
 		26FE7D9025A2F1CB00B787F0 /* image_canvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8F25A2F1CB00B787F0 /* image_canvas.cpp */; };
+		D72A0871263B503300BCD333 /* rocksdb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0870263B503300BCD333 /* rocksdb.cpp */; };
+		D72A0879263B503E00BCD333 /* object_storage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0878263B503E00BCD333 /* object_storage.cpp */; };
+		D72A0881263B504600BCD333 /* mysql_data.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0880263B504600BCD333 /* mysql_data.cpp */; };
+		D72A0889263B504D00BCD333 /* mongodb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0888263B504D00BCD333 /* mongodb.cpp */; };
+		D72A0894263B506000BCD333 /* document_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0890263B505F00BCD333 /* document_store.cpp */; };
+		D72A0895263B506000BCD333 /* lmdb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0891263B505F00BCD333 /* lmdb.cpp */; };
+		D72A0896263B506000BCD333 /* key_value_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0892263B505F00BCD333 /* key_value_store.cpp */; };
+		D72A0897263B506000BCD333 /* leveldb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0893263B505F00BCD333 /* leveldb.cpp */; };
+		D72A08A9263B523900BCD333 /* snappy-c.cc in Sources */ = {isa = PBXBuildFile; fileRef = D72A08A8263B523900BCD333 /* snappy-c.cc */; };
 		D7BF609C26311E1700E0B3DD /* decimal128.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7BF609B26311E1700E0B3DD /* decimal128.cpp */; };
 		D7BF60AA26311E8B00E0B3DD /* zlib_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60A926311E8B00E0B3DD /* zlib_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7BF60B826311EA200E0B3DD /* libpng_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60B726311EA200E0B3DD /* libpng_unity.c */; };
@@ -846,6 +855,15 @@
 		A2DE1D861B383BA600A74698 /* pipe.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pipe.cpp; sourceTree = "<group>"; };
 		A2DE1D8A1B383BB000A74698 /* system_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system_unix.cpp; sourceTree = "<group>"; };
 		A2DE1D8E1B383BC100A74698 /* event_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = event_unix.cpp; sourceTree = "<group>"; };
+		D72A0870263B503300BCD333 /* rocksdb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rocksdb.cpp; sourceTree = "<group>"; };
+		D72A0878263B503E00BCD333 /* object_storage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = object_storage.cpp; sourceTree = "<group>"; };
+		D72A0880263B504600BCD333 /* mysql_data.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mysql_data.cpp; sourceTree = "<group>"; };
+		D72A0888263B504D00BCD333 /* mongodb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mongodb.cpp; sourceTree = "<group>"; };
+		D72A0890263B505F00BCD333 /* document_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = document_store.cpp; sourceTree = "<group>"; };
+		D72A0891263B505F00BCD333 /* lmdb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lmdb.cpp; sourceTree = "<group>"; };
+		D72A0892263B505F00BCD333 /* key_value_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = key_value_store.cpp; sourceTree = "<group>"; };
+		D72A0893263B505F00BCD333 /* leveldb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = leveldb.cpp; sourceTree = "<group>"; };
+		D72A08A8263B523900BCD333 /* snappy-c.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "snappy-c.cc"; path = "../../external/src/snappy/snappy-c.cc"; sourceTree = "<group>"; };
 		D7BF609B26311E1700E0B3DD /* decimal128.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = decimal128.cpp; sourceTree = "<group>"; };
 		D7BF60A926311E8B00E0B3DD /* zlib_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zlib_unity.c; path = ../../external/src/zlib/zlib_unity.c; sourceTree = "<group>"; };
 		D7BF60B726311EA200E0B3DD /* libpng_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libpng_unity.c; path = ../../external/src/libpng/libpng_unity.c; sourceTree = "<group>"; };
@@ -1562,14 +1580,22 @@
 		A25F2FC71B03A33700854DAF /* db */ = {
 			isa = PBXGroup;
 			children = (
+				265EBF211C23041600AD81D9 /* database.cpp */,
 				265EBF1F1C23041600AD81D9 /* database_cursor.cpp */,
 				26EA207023A2BF75008218D7 /* database_expression.cpp */,
 				26EA206F23A2BF75008218D7 /* database_sql.cpp */,
 				265EBF201C23041600AD81D9 /* database_statement.cpp */,
-				265EBF211C23041600AD81D9 /* database.cpp */,
+				D72A0890263B505F00BCD333 /* document_store.cpp */,
+				D72A0892263B505F00BCD333 /* key_value_store.cpp */,
+				D72A0893263B505F00BCD333 /* leveldb.cpp */,
+				D72A0891263B505F00BCD333 /* lmdb.cpp */,
+				D72A0888263B504D00BCD333 /* mongodb.cpp */,
 				265EBF221C23041600AD81D9 /* mysql.cpp */,
+				D72A0880263B504600BCD333 /* mysql_data.cpp */,
+				D72A0878263B503E00BCD333 /* object_storage.cpp */,
 				26F607B223ABE0C600DCE0C3 /* postgresql.cpp */,
 				2639194321CD2510008B335B /* redis.cpp */,
+				D72A0870263B503300BCD333 /* rocksdb.cpp */,
 				265EBF231C23041600AD81D9 /* sqlite.cpp */,
 			);
 			path = db;
@@ -1611,6 +1637,7 @@
 			children = (
 				D7BF60E526311F3600E0B3DD /* snappy-sinksource.cc */,
 				D7BF60E426311F3600E0B3DD /* snappy.cc */,
+				D72A08A8263B523900BCD333 /* snappy-c.cc */,
 			);
 			name = snappy;
 			sourceTree = "<group>";
@@ -1909,6 +1936,7 @@
 				26D9D9941E96467B005F7BD3 /* ethernet.cpp in Sources */,
 				269E31A92255F431005CD0ED /* paypal.cpp in Sources */,
 				26987D2123BBE05D00872C1D /* captcha.cpp in Sources */,
+				D72A0879263B503E00BCD333 /* object_storage.cpp in Sources */,
 				26C1B64220D51D1D00E36539 /* graphics_path.cpp in Sources */,
 				26D9D8FE1E9645CE005F7BD3 /* base.cpp in Sources */,
 				269308662368DE7E00C9C7F9 /* openssl_crypto.cpp in Sources */,
@@ -1943,7 +1971,9 @@
 				26D9D9CA1E96468D005F7BD3 /* picker_view.cpp in Sources */,
 				26D9D9071E9645CE005F7BD3 /* thread_apple.mm in Sources */,
 				26D9D9081E9645CE005F7BD3 /* async.cpp in Sources */,
+				D72A0871263B503300BCD333 /* rocksdb.cpp in Sources */,
 				267B9D69225D14640057DF2A /* instagram.cpp in Sources */,
+				D72A0895263B506000BCD333 /* lmdb.cpp in Sources */,
 				26C795C02215F9C70053C5A1 /* strings.cpp in Sources */,
 				26D9D9871E964675005F7BD3 /* camera.cpp in Sources */,
 				26D9D9D11E96468D005F7BD3 /* scroll_view.cpp in Sources */,
@@ -1951,6 +1981,7 @@
 				26987D1B23BA9B6F00872C1D /* string_op.cpp in Sources */,
 				26C795BE2215F9C70053C5A1 /* colors.cpp in Sources */,
 				26D9D95D1E964662005F7BD3 /* geo_location.cpp in Sources */,
+				D72A0881263B504600BCD333 /* mysql_data.cpp in Sources */,
 				26D9D90A1E9645CE005F7BD3 /* time.cpp in Sources */,
 				26D9D9C71E96468D005F7BD3 /* mobile_app.cpp in Sources */,
 				26F53F7F22DB4F6D0031D485 /* date_picker_macos.mm in Sources */,
@@ -1960,6 +1991,7 @@
 				26D9D9571E964659005F7BD3 /* mysql.cpp in Sources */,
 				26D9D9771E96466A005F7BD3 /* image_stb.cpp in Sources */,
 				26C1B64120D51D1D00E36539 /* font_atlas.cpp in Sources */,
+				D72A0897263B506000BCD333 /* leveldb.cpp in Sources */,
 				26D9D9C01E96468D005F7BD3 /* image_view.cpp in Sources */,
 				26D9D9E11E96468D005F7BD3 /* ui_core_common.cpp in Sources */,
 				26D9D9B71E96468D005F7BD3 /* check_box.cpp in Sources */,
@@ -2046,6 +2078,7 @@
 				26D9D91A1E9645CE005F7BD3 /* setting.cpp in Sources */,
 				26F0B25F259571660084E18D /* combo_box_macos.mm in Sources */,
 				26A39D8920EFBCBB004707C9 /* calculator.cpp in Sources */,
+				D72A08A9263B523900BCD333 /* snappy-c.cc in Sources */,
 				263D477F2386AE2F00DAC43F /* chat.cpp in Sources */,
 				26539F972374B9090064340D /* ginger.cpp in Sources */,
 				26539FB02374BA310064340D /* ui_notification.cpp in Sources */,
@@ -2144,6 +2177,7 @@
 				26D9D9301E9645CE005F7BD3 /* parse.cpp in Sources */,
 				26BAE02A2223A07D0085B5AB /* linkedin_ui.cpp in Sources */,
 				26D9D9311E9645CE005F7BD3 /* asset.cpp in Sources */,
+				D72A0896263B506000BCD333 /* key_value_store.cpp in Sources */,
 				26D9D9A51E96467B005F7BD3 /* tcpip.cpp in Sources */,
 				26D9D9EB1E96468D005F7BD3 /* view_macos.mm in Sources */,
 				265A937823051C2B00B155A2 /* drawable_ext.cpp in Sources */,
@@ -2162,6 +2196,7 @@
 				26D9D9881E964675005F7BD3 /* camera_apple.mm in Sources */,
 				26C1B64020D51D1D00E36539 /* font_quartz.mm in Sources */,
 				26D9D9391E9645CE005F7BD3 /* aes.cpp in Sources */,
+				D72A0889263B504D00BCD333 /* mongodb.cpp in Sources */,
 				26C795A122154CBE0053C5A1 /* clipboard_macos.mm in Sources */,
 				26366D43235E53DA00B97807 /* charset_apple.mm in Sources */,
 				26F2F8D91EC2E0EB0074C29E /* red_black_tree.cpp in Sources */,
@@ -2173,6 +2208,7 @@
 				26D9D9D61E96468D005F7BD3 /* split_layout.cpp in Sources */,
 				26D9D93D1E9645CE005F7BD3 /* gcm.cpp in Sources */,
 				D7BF60C726311EBF00E0B3DD /* libjpeg_unity1.c in Sources */,
+				D72A0894263B506000BCD333 /* document_store.cpp in Sources */,
 				26D9D9DC1E96468D005F7BD3 /* ui_animation.cpp in Sources */,
 				26E9133C25948C54008A35D2 /* jpeg.cpp in Sources */,
 				26D9D93E1E9645CE005F7BD3 /* memory.cpp in Sources */,
