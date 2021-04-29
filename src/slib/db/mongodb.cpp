@@ -290,6 +290,8 @@ namespace slib
 							}
 							break;
 						}
+					default:
+						break;
 				}
 				const bson_value_t* value = bson_iter_value(iter);
 				if (!value) {
@@ -493,7 +495,7 @@ namespace slib
 				{
 					MutexLocker lock(getClientLocker());
 					bson_error_t error;
-					char** names = mongoc_database_get_collection_names(m_db, &error);
+					char** names = mongoc_database_get_collection_names_with_opts(m_db, sl_null, &error);
 					if (names) {
 						List<String> ret;
 						for (sl_size i = 0; names[i]; i++) {

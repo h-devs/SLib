@@ -69,10 +69,10 @@
 /*
  * Define to 1 if you have clock_gettime() available.
  */
-#if defined(_POSIX_TIMERS) && _POSIX_TIMERS > 0 && defined(CLOCK_MONOTONIC)
-#define BSON_HAVE_CLOCK_GETTIME 1
-#else
+#ifdef _WIN32
 #define BSON_HAVE_CLOCK_GETTIME 0
+#else
+#define BSON_HAVE_CLOCK_GETTIME 1
 #endif
 #if BSON_HAVE_CLOCK_GETTIME != 1
 # undef BSON_HAVE_CLOCK_GETTIME
@@ -122,11 +122,7 @@
 /*
  * Define to 1 if you have reallocf available on your platform.
  */
-#ifdef _WIN32
 #define BSON_HAVE_REALLOCF 0
-#else
-#define BSON_HAVE_REALLOCF 1
-#endif
 #if BSON_HAVE_REALLOCF != 1
 # undef BSON_HAVE_REALLOCF
 #endif

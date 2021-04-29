@@ -42,17 +42,9 @@ namespace slib
 	{
 		namespace variant
 		{
-			
-			char g_variantMap_ClassID[1];
-			char g_variantHashMap_ClassID[1];
-			char g_variantList_ClassID[1];
-			char g_variantMapList_ClassID[1];
-			char g_variantHashMapList_ClassID[1];
-		
-			char g_variantPromise_ClassID[1];
 
-			const ConstContainer g_undefined = {0, 0, VariantType::Null, 0};
-			const ConstContainer g_null = {1, 0, VariantType::Null, 0};
+			const ConstContainer g_undefined = {0, {0}, VariantType::Null, 0};
+			const ConstContainer g_null = {1, {0}, VariantType::Null, 0};
 
 			SLIB_INLINE static void CopyBytes16(void* _dst, const void* _src)
 			{
@@ -2603,7 +2595,7 @@ namespace slib
 				return ret.parse(getString());
 			}
 		}
-		return sl_null;
+		return sl_false;
 	}
 
 	void Variant::setObjectId(const ObjectId& _id) noexcept

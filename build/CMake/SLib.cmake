@@ -270,8 +270,10 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/db/database_expression.cpp"
  "${SLIB_PATH}/src/slib/db/database_sql.cpp"
  "${SLIB_PATH}/src/slib/db/database_statement.cpp"
+ "${SLIB_PATH}/src/slib/db/document_store.cpp"
  "${SLIB_PATH}/src/slib/db/leveldb.cpp"
  "${SLIB_PATH}/src/slib/db/lmdb.cpp"
+ "${SLIB_PATH}/src/slib/db/key_value_store.cpp"
  "${SLIB_PATH}/src/slib/db/object_storage.cpp"
  "${SLIB_PATH}/src/slib/db/redis.cpp"
  "${SLIB_PATH}/src/slib/db/sqlite.cpp"
@@ -458,7 +460,9 @@ else ()
 
   "${SLIB_PATH}/src/slib/network/tap_unix.cpp"
 
+  "${SLIB_PATH}/src/slib/db/mongodb.cpp"
   "${SLIB_PATH}/src/slib/db/mysql.cpp"
+  "${SLIB_PATH}/src/slib/db/mysql_data.cpp"
   "${SLIB_PATH}/src/slib/db/postgresql.cpp"
   "${SLIB_PATH}/src/slib/db/rocksdb.cpp"
 
