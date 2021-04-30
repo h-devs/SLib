@@ -30,9 +30,9 @@
 #define KEY_LENGTH_MAX 1024
 #define KEY_BUFFER_SIZE (KEY_LENGTH_MAX + 16)
 #define VALUE_BUFFER_SIZE 1024
-#define OBJECT_PREFIX_BUFFER_SIZE 128
-#define REMOVE_BATCH_SIZE 1024
-#define KEY_NAME_STORAGE_OBJECT_LAST_PREFIX "storage_object_last_prefix"
+#define DICTIONARY_BUFFER_SIZE 128
+#define DICTIONARY_REMOVE_BATCH_SIZE 1024
+#define KEY_NAME_LAST_DICTIONARY_ID "last_dictionary_id"
 
 namespace slib
 {
@@ -42,12 +42,12 @@ namespace slib
 		namespace object_storage
 		{
 
-			static sl_uint32 PrepareKey(sl_uint8* _out, sl_uint64 prefix)
+			static sl_uint32 PrepareKey(sl_uint8* _out, sl_uint64 parentId, sl_bool flagDictionary)
 			{
-				return CVLI::serialize(_out, prefix);
+				return CVLI::serialize(_out, (parentId << 1) | (flagDictionary ? 1 : 0));
 			}
 
-			static sl_uint32 PrepareKey(sl_uint8* _out, sl_uint64 prefix, const StringParam& _key)
+			static sl_uint32 PrepareKey(sl_uint8* _out, sl_uint64 parentId, sl_bool flagDictionary, const StringParam& _key)
 			{
 				StringData key(_key);
 				sl_size len = key.getLength();
@@ -57,47 +57,24 @@ namespace slib
 				if (len > KEY_LENGTH_MAX) {
 					return 0;
 				}
-				sl_uint32 nPrefix = CVLI::serialize(_out, prefix);
+				sl_uint32 nPrefix = PrepareKey(_out, parentId, flagDictionary);
 				Base::copyMemory(_out + nPrefix, key.getData(), len);
 				return nPrefix + (sl_uint32)len;
 			}
 
-			static void AppendObjectKeySuffix(sl_uint8* _out, sl_uint32& n)
+			static sl_uint64 DeserializeDictionaryId(const void* data, sl_size size)
 			{
-				_out[n] = 0;
-				_out[n + 1] = 1;
-				n += 2;
-			}
-
-			static sl_bool RemoveObjectKeySuffix(const sl_uint8* _in, sl_uint32& n)
-			{
-				if (n >= 3) {
-					if (!(_in[n - 2]) && _in[n - 1] == 1) {
-						n -= 2;
-						return sl_true;
+				if (size) {
+					sl_uint64 dictionaryId = 0;
+					SerializeBuffer buf(data, size);
+					if (CVLI::deserialize(&buf, dictionaryId)) {
+						return dictionaryId;
 					}
-				}
-				return sl_false;
-			}
-
-			sl_uint64 DeserializeObjectPrefix(const void* _data, sl_size size)
-			{
-				if (size < 3) {
-					return 0;
-				}
-				sl_uint8* data = (sl_uint8*)_data;
-				if (*data || data[1] != (sl_uint8)255) {
-					return 0;
-				}
-				sl_uint64 prefix = 0;
-				SerializeBuffer sb(data + 2, size - 2);
-				if (CVLI::deserialize(&sb, prefix)) {
-					return prefix;
 				}
 				return 0;
 			}
 
-			class StorageObjectImpl;
+			class DictionaryImpl;
 
 			class ObjectStorageManagerImpl : public ObjectStorageManager
 			{
@@ -130,76 +107,97 @@ namespace slib
 					return m_store;
 				}
 
-				Ref<StorageObject> createRootObject() override;
+				Ref<StorageDictionary> getRootDictionary() override;
 				
 			public:
-				Ref<StorageObject> createObject(sl_uint64 prefix, const StringParam& key);
+				Ref<StorageDictionary> createDictionary(sl_uint64 parentId, const StringParam& key);
 
-				ObjectStorage getItem(sl_uint64 prefix, const StringParam& key);
+				Ref<StorageDictionary> getDictionary(sl_uint64 parentId, const StringParam& key);
 
-				sl_bool putItem(sl_uint64 prefix, const StringParam& _key, const Variant& value)
+				sl_bool removeDictionary(sl_uint64 parentId, const StringParam& _key)
 				{
 					sl_uint8 key[KEY_BUFFER_SIZE];
-					sl_uint32 nKey = PrepareKey(key, prefix, _key);
+					sl_uint32 nKey = PrepareKey(key, parentId, sl_true, _key);
 					if (!nKey) {
 						return sl_false;
 					}
-					return m_store->put(StringView((char*)key, nKey), value);
-				}
-
-				sl_bool removeItem(sl_uint64 prefix, const StringParam& _key)
-				{
-					sl_uint8 key[KEY_BUFFER_SIZE];
-					sl_uint32 nKey = PrepareKey(key, prefix, _key);
-					if (!nKey) {
-						return sl_false;
-					}
-					sl_bool bRet = sl_false;
-					if (m_store->remove(StringView((char*)key, nKey))) {
-						bRet = sl_true;
-					}
-					AppendObjectKeySuffix(key, nKey);
-					sl_uint64 prefixSub = getObjectPrefix(key, nKey);
-					if (prefixSub) {
-						if (removeObject(prefixSub)) {
-							if (m_store->remove(StringView((char*)key, nKey))) {
-								return sl_true;
+					sl_uint64 childId = getDictionaryId(key, nKey);
+					if (childId) {
+						if (removeChildDictionaries(childId)) {
+							if (removeChildItems(childId)) {
+								if (m_store->remove(StringView((char*)key, nKey))) {
+									return sl_true;
+								}
 							}
 						}
 					}
-					return bRet;
+					return sl_false;
 				}
 
-				Iterator<String, ObjectStorage> getItemIterator(sl_uint64 prefix);
+				Iterator<String, ObjectStorage> getDictionaryIterator(sl_uint64 parentId);
 
-				sl_uint64 getObjectPrefix(sl_uint8* key, sl_uint32 nKey)
+				Variant getItem(sl_uint64 parentId, const StringParam& _key)
 				{
-					char buf[OBJECT_PREFIX_BUFFER_SIZE];
+					sl_uint8 key[KEY_BUFFER_SIZE];
+					sl_uint32 nKey = PrepareKey(key, parentId, sl_false, _key);
+					if (nKey) {
+						return m_store->get(StringView((char*)key, nKey));
+					} else {
+						return Variant();
+					}
+				}
+
+				sl_bool putItem(sl_uint64 parentId, const StringParam& _key, const Variant& value)
+				{
+					sl_uint8 key[KEY_BUFFER_SIZE];
+					sl_uint32 nKey = PrepareKey(key, parentId, sl_false, _key);
+					if (nKey) {
+						return m_store->put(StringView((char*)key, nKey), value);
+					} else {
+						return sl_false;
+					}
+				}
+
+				sl_bool removeItem(sl_uint64 parentId, const StringParam& _key)
+				{
+					sl_uint8 key[KEY_BUFFER_SIZE];
+					sl_uint32 nKey = PrepareKey(key, parentId, sl_false, _key);
+					if (nKey) {
+						return m_store->remove(StringView((char*)key, nKey));
+					} else {
+						return sl_false;
+					}
+				}
+
+				PropertyIterator getItemIterator(sl_uint64 parentId);
+
+				sl_uint64 getDictionaryId(sl_uint8* key, sl_uint32 nKey)
+				{
+					char buf[DICTIONARY_BUFFER_SIZE];
 					sl_reg n = m_store->get(key, nKey, buf, sizeof(buf));
 					if (n > 0) {
-						return DeserializeObjectPrefix(buf, n);
+						return DeserializeDictionaryId(buf, n);
 					}
 					return 0;
 				}
 
-				sl_bool removeObject(sl_uint64 prefix)
+				sl_bool removeChildDictionaries(sl_uint64 parentId)
 				{
 					sl_uint8 key[KEY_BUFFER_SIZE];
-					sl_uint32 nKey = PrepareKey(key, prefix);
-					sl_uint8 subKey[KEY_BUFFER_SIZE];
+					sl_uint32 nKey = PrepareKey(key, parentId, sl_true);
 					for (;;) {
-						Ref<KeyValueIterator> iterator = m_store->getIterator();
-						if (iterator.isNull()) {
-							return sl_false;
-						}
-						if (!(iterator->seek(key, nKey))) {
-							break;
-						}
-						sl_size nRemoved = 0;
-						List< Pair<Memory, sl_uint64> > listObject;
+						List<Memory> listKeys;
+						List<sl_uint64> listIds;
 						{
-							Ref<KeyValueWriteBatch> batch;
+							Ref<KeyValueIterator> iterator = m_store->getIterator();
+							if (iterator.isNull()) {
+								return sl_false;
+							}
+							if (!(iterator->seek(key, nKey))) {
+								break;
+							}
 							do {
+								sl_uint8 subKey[KEY_BUFFER_SIZE];
 								sl_reg n = iterator->getKey(subKey, sizeof(subKey));
 								if (n <= (sl_reg)nKey) {
 									break;
@@ -207,64 +205,50 @@ namespace slib
 								if (!(Base::equalsMemory(key, subKey, nKey))) {
 									break;
 								}
-								sl_bool flagRemoveObject = sl_false;
-								sl_uint32 nSubKey = (sl_uint32)n;
-								if (RemoveObjectKeySuffix(subKey, nSubKey)) {
-									char value[OBJECT_PREFIX_BUFFER_SIZE];
-									sl_reg nValue = iterator->getValue(value, sizeof(value));
-									if (nValue > 0) {
-										sl_uint64 prefix = DeserializeObjectPrefix(value, nValue);
-										if (prefix) {
-											Memory memKey = Memory::create(subKey, n);
-											if (memKey.isNull()) {
-												return sl_false;
-											}
-											if (listObject.add_NoLock(Pair<Memory, sl_uint64>(Move(memKey), prefix))) {
-												flagRemoveObject = sl_true;
-											} else {
-												return sl_false;
-											}
-										}
-									}
+								Memory memKey = Memory::create(subKey, n);
+								if (memKey.isNull()) {
+									return sl_false;
 								}
-								if (!flagRemoveObject) {
-									if (batch.isNull()) {
-										batch  = m_store->createWriteBatch();
-										if (batch.isNull()) {
+								if (!(listKeys.add_NoLock(Move(memKey)))) {
+									return sl_false;
+								}
+								char value[DICTIONARY_BUFFER_SIZE];
+								sl_reg nValue = iterator->getValue(value, sizeof(value));
+								if (nValue >= 0) {
+									sl_uint64 childId = DeserializeDictionaryId(value, nValue);
+									if (childId) {
+										if (!(listIds.add_NoLock(childId))) {
 											return sl_false;
 										}
 									}
-									if (!(batch->remove(subKey, n))) {
-										return sl_false;
-									}
 								}
-								nRemoved++;
-								if (nRemoved > REMOVE_BATCH_SIZE) {
+								if (listKeys.getCount() >= DICTIONARY_REMOVE_BATCH_SIZE) {
 									break;
 								}
 							} while (iterator->moveNext());
-							if (batch.isNotNull()) {
-								if (!(batch->commit())) {
-									return sl_false;
-								}
-							}
 						}
-						sl_size nObjects = listObject.getCount();
-						Pair<Memory, sl_uint64>* objects = listObject.getData();
 						{
-							for (sl_size i = 0; i < nObjects; i++) {
-								if (!(removeObject(objects[i].second))) {
+							ListElements<sl_uint64> ids(listIds);
+							for (sl_size i = 0; i < ids.count; i++) {
+								if (!(removeChildDictionaries(ids[i]))) {
+									return sl_false;
+								}
+								if (!(removeChildItems(ids[i]))) {
 									return sl_false;
 								}
 							}
 						}
-						if (nObjects) {
+						{
+							ListElements<Memory> keys(listKeys);
+							if (!(keys.count)) {
+								break;
+							}
 							Ref<KeyValueWriteBatch> batch = m_store->createWriteBatch();
 							if (batch.isNull()) {
 								return sl_false;
 							}
-							for (sl_size i = 0; i < nObjects; i++) {
-								if (!(batch->remove(objects[i].first.getData(), objects[i].first.getSize()))) {
+							for (sl_size i = 0; i < keys.count; i++) {
+								if (!(batch->remove(keys[i].getData(), keys[i].getSize()))) {
 									return sl_false;
 								}
 							}
@@ -272,8 +256,62 @@ namespace slib
 								return sl_false;
 							}
 						}
-						if (!nRemoved) {
-							break;
+					}
+					return sl_true;
+				}
+
+				sl_bool removeChildItems(sl_uint64 parentId)
+				{
+					sl_uint8 key[KEY_BUFFER_SIZE];
+					sl_uint32 nKey = PrepareKey(key, parentId, sl_false);
+					for (;;) {
+						List<Memory> listItems;
+						{
+							Ref<KeyValueIterator> iterator = m_store->getIterator();
+							if (iterator.isNull()) {
+								return sl_false;
+							}
+							if (!(iterator->seek(key, nKey))) {
+								break;
+							}
+							do {
+								sl_uint8 subKey[KEY_BUFFER_SIZE];
+								sl_reg n = iterator->getKey(subKey, sizeof(subKey));
+								if (n <= (sl_reg)nKey) {
+									break;
+								}
+								if (!(Base::equalsMemory(key, subKey, nKey))) {
+									break;
+								}
+								Memory memKey = Memory::create(subKey, n);
+								if (memKey.isNull()) {
+									return sl_false;
+								}
+								if (!(listItems.add_NoLock(Move(memKey)))) {
+									return sl_false;
+								}
+								if (listItems.getCount() >= DICTIONARY_REMOVE_BATCH_SIZE) {
+									break;
+								}
+							} while (iterator->moveNext());
+						}
+						{
+							ListElements<Memory> items(listItems);
+							if (!(items.count)) {
+								break;
+							}
+							Ref<KeyValueWriteBatch> batch = m_store->createWriteBatch();
+							if (batch.isNull()) {
+								return sl_false;
+							}
+							for (sl_size i = 0; i < items.count; i++) {
+								if (!(batch->remove(items[i].getData(), items[i].getSize()))) {
+									return sl_false;
+								}
+							}
+							if (!(batch->commit())) {
+								return sl_false;
+							}
 						}
 					}
 					return sl_true;
@@ -281,14 +319,14 @@ namespace slib
 
 			};
 
-			class StorageObjectImpl : public StorageObject
+			class DictionaryImpl : public StorageDictionary
 			{
 			public:
 				Ref<ObjectStorageManagerImpl> m_manager;
-				sl_uint64 m_prefix;
+				sl_uint64 m_id;
 
 			public:
-				StorageObjectImpl(ObjectStorageManagerImpl* manager, sl_uint64 prefix): m_manager(manager), m_prefix(prefix) {}
+				DictionaryImpl(ObjectStorageManagerImpl* manager, sl_uint64 _id): m_manager(manager), m_id(_id) {}
 
 			public:
 				Ref<ObjectStorageManager> getManager() override
@@ -296,61 +334,73 @@ namespace slib
 					return m_manager;
 				}
 
-				Ref<StorageObject> createObject(const StringParam& key) override
+				Ref<StorageDictionary> createDictionary(const StringParam& key) override
 				{
-					return m_manager->createObject(m_prefix, key);
+					return m_manager->createDictionary(m_id, key);
 				}
 
-				ObjectStorage getItem(const StringParam& key) override
+				Ref<StorageDictionary> getDictionary(const StringParam& key) override
 				{
-					return m_manager->getItem(m_prefix, key);
+					return m_manager->getDictionary(m_id, key);
+				}
+
+				sl_bool removeDictionary(const StringParam& key) override
+				{
+					return m_manager->removeDictionary(m_id, key);
+				}
+
+				Iterator<String, ObjectStorage> getDictionaryIterator() override
+				{
+					return m_manager->getDictionaryIterator(m_id);
+				}
+
+				Variant getItem(const StringParam& key) override
+				{
+					return m_manager->getItem(m_id, key);
 				}
 
 				sl_bool putItem(const StringParam& key, const Variant& value) override
 				{
-					return m_manager->putItem(m_prefix, key, value);
+					return m_manager->putItem(m_id, key, value);
 				}
 
 				sl_bool removeItem(const StringParam& key) override
 				{
-					return m_manager->removeItem(m_prefix, key);
+					return m_manager->removeItem(m_id, key);
 				}
 
-				Iterator<String, ObjectStorage> getItemIterator() override
+				PropertyIterator getItemIterator() override
 				{
-					return m_manager->getItemIterator(m_prefix);
+					return m_manager->getItemIterator(m_id);
 				}
 
 			};
 
-			Ref<StorageObject> ObjectStorageManagerImpl::createRootObject()
+			Ref<StorageDictionary> ObjectStorageManagerImpl::getRootDictionary()
 			{
-				return new StorageObjectImpl(this, 0);
+				return new DictionaryImpl(this, 0);
 			}
 
-			Ref<StorageObject> ObjectStorageManagerImpl::createObject(sl_uint64 prefixParent, const StringParam& _key)
+			Ref<StorageDictionary> ObjectStorageManagerImpl::createDictionary(sl_uint64 parentId, const StringParam& _key)
 			{
 				sl_uint8 key[KEY_BUFFER_SIZE];
-				sl_uint32 nKey = PrepareKey(key, prefixParent, _key);
+				sl_uint32 nKey = PrepareKey(key, parentId, sl_true, _key);
 				if (nKey) {
-					AppendObjectKeySuffix(key, nKey);
 					ObjectLocker lock(this);
-					sl_uint64 prefixSub = getObjectPrefix(key, nKey);
-					if (prefixSub) {
-						return new StorageObjectImpl(this, prefixSub);
+					sl_uint64 childId = getDictionaryId(key, nKey);
+					if (childId) {
+						return new DictionaryImpl(this, childId);
 					}
 					Ref<KeyValueWriteBatch> batch = m_store->createWriteBatch();
 					if (batch.isNotNull()) {
-						sl_uint64 prefixNew = m_store->get(StringParam::literal(KEY_NAME_STORAGE_OBJECT_LAST_PREFIX)).getUint64();
-						prefixNew++;
-						if (batch->put(StringParam::literal(KEY_NAME_STORAGE_OBJECT_LAST_PREFIX), prefixNew)) {
-							sl_uint8 buf[OBJECT_PREFIX_BUFFER_SIZE];
-							buf[0] = 0;
-							buf[1] = 255;
-							sl_uint32 size = 2 + CVLI::serialize(buf + 2, prefixNew);
+						sl_uint64 newId = m_store->get(StringParam::literal(KEY_NAME_LAST_DICTIONARY_ID)).getUint64();
+						newId++;
+						if (batch->put(StringParam::literal(KEY_NAME_LAST_DICTIONARY_ID), newId)) {
+							sl_uint8 buf[DICTIONARY_BUFFER_SIZE];
+							sl_uint32 size = CVLI::serialize(buf, newId);
 							if (batch->put(key, nKey, buf, size)) {
 								if (batch->commit()) {
-									return new StorageObjectImpl(this, prefixNew);
+									return new DictionaryImpl(this, newId);
 								}
 							}
 						}
@@ -359,62 +409,41 @@ namespace slib
 				return sl_null;
 			}
 
-			ObjectStorage ObjectStorageManagerImpl::getItem(sl_uint64 prefix, const StringParam& _key)
+			Ref<StorageDictionary> ObjectStorageManagerImpl::getDictionary(sl_uint64 parentId, const StringParam& _key)
 			{
 				sl_uint8 key[KEY_BUFFER_SIZE];
-				sl_uint32 nKey = PrepareKey(key, prefix, _key);
-				if (!nKey) {
-					return ObjectStorage();
+				sl_uint32 nKey = PrepareKey(key, parentId, sl_true, _key);
+				if (nKey) {
+					sl_uint64 childId = getDictionaryId(key, nKey);
+					if (childId) {
+						return new DictionaryImpl(this, childId);
+					}
 				}
-				Variant value = m_store->get(StringView((char*)key, nKey));
-				if (value.isNotUndefined()) {
-					return value;
-				}
-				AppendObjectKeySuffix(key, nKey);
-				sl_uint64 prefixSub = getObjectPrefix(key, nKey);
-				if (prefixSub) {
-					return new StorageObjectImpl(this, prefixSub);
-				}
-				return ObjectStorage();
+				return sl_null;
 			}
 
-			class StorageItemIterator : public CIterator<String, ObjectStorage>
+			template <class T>
+			class BaseIterator : public CIterator<String, T>
 			{
 			public:
 				Ref<ObjectStorageManagerImpl> m_manager;
 				Ref<KeyValueIterator> m_kvIterator;
-				
+
 				sl_bool m_flagFirstMove;
 				sl_uint8 m_prefix[KEY_BUFFER_SIZE];
 				sl_uint32 m_nPrefix;
 				String m_key;
 
 			public:
-				StorageItemIterator(ObjectStorageManagerImpl* manager, sl_uint64 prefix, Ref<KeyValueIterator>&& iterator): m_manager(manager), m_kvIterator(Move(iterator)), m_flagFirstMove(sl_true)
+				BaseIterator(ObjectStorageManagerImpl* manager, sl_uint64 parentId, sl_bool flagDictionary, Ref<KeyValueIterator>&& iterator): m_manager(manager), m_kvIterator(Move(iterator)), m_flagFirstMove(sl_true)
 				{
-					m_nPrefix = PrepareKey(m_prefix, prefix);
+					m_nPrefix = PrepareKey(m_prefix, parentId, flagDictionary);
 				}
 
 			public:
 				String getKey() override
 				{
 					return m_key;
-				}
-
-				ObjectStorage getValue() override
-				{
-					char buf[VALUE_BUFFER_SIZE];
-					MemoryData mem(buf, sizeof(buf));
-					if (m_kvIterator->getValue(&mem)) {
-						sl_uint64 prefix = DeserializeObjectPrefix(mem.data, mem.size);
-						if (prefix) {
-							return new StorageObjectImpl(m_manager.get(), prefix);
-						} else {
-							return KeyValueReader::deserialize(Move(mem));
-						}
-					} else {
-						return ObjectStorage();
-					}
 				}
 
 				sl_bool moveNext() override
@@ -460,7 +489,6 @@ namespace slib
 					sl_reg n = m_kvIterator->getKey(k, sizeof(k));
 					if (n > 0) {
 						sl_uint32 nKey = (sl_uint32)n;
-						RemoveObjectKeySuffix(k, nKey);
 						if (nKey > m_nPrefix) {
 							if (Base::equalsMemory(k, m_prefix, m_nPrefix)) {
 								m_key = String((sl_char8*)k + m_nPrefix, nKey - m_nPrefix);
@@ -474,11 +502,60 @@ namespace slib
 
 			};
 
-			Iterator<String, ObjectStorage> ObjectStorageManagerImpl::getItemIterator(sl_uint64 prefix)
+			class DictionaryIterator : public BaseIterator<ObjectStorage>
+			{
+			public:
+				DictionaryIterator(ObjectStorageManagerImpl* manager, sl_uint64 parentId, Ref<KeyValueIterator>&& iterator): BaseIterator(manager, parentId, sl_true, Move(iterator)) {}
+
+			public:
+				ObjectStorage getValue() override
+				{
+					char buf[VALUE_BUFFER_SIZE];
+					sl_reg n = m_kvIterator->getValue(buf, sizeof(buf));
+					if (n > 0) {
+						sl_uint64 childId = DeserializeDictionaryId(buf, n);
+						if (childId) {
+							return new DictionaryImpl(m_manager.get(), childId);
+						}
+					}
+					return ObjectStorage();
+				}
+
+			};
+
+			Iterator<String, ObjectStorage> ObjectStorageManagerImpl::getDictionaryIterator(sl_uint64 parentId)
 			{
 				Ref<KeyValueIterator> iterator = m_store->getIterator();
 				if (iterator.isNotNull()) {
-					return new StorageItemIterator(this, prefix, Move(iterator));
+					return new DictionaryIterator(this, parentId, Move(iterator));
+				}
+				return sl_null;
+			}
+
+			class ItemIterator : public BaseIterator<Variant>
+			{
+			public:
+				ItemIterator(ObjectStorageManagerImpl* manager, sl_uint64 parentId, Ref<KeyValueIterator>&& iterator): BaseIterator(manager, parentId, sl_false, Move(iterator)) {}
+
+			public:
+				Variant getValue() override
+				{
+					char buf[VALUE_BUFFER_SIZE];
+					MemoryData mem(buf, sizeof(buf));
+					if (m_kvIterator->getValue(&mem)) {
+						return KeyValueReader::deserialize(Move(mem));
+					} else {
+						return Variant();
+					}
+				}
+
+			};
+
+			PropertyIterator ObjectStorageManagerImpl::getItemIterator(sl_uint64 parentId)
+			{
+				Ref<KeyValueIterator> iterator = m_store->getIterator();
+				if (iterator.isNotNull()) {
+					return new ItemIterator(this, parentId, Move(iterator));
 				}
 				return sl_null;
 			}
@@ -489,34 +566,14 @@ namespace slib
 	using namespace priv::object_storage;
 
 
-	SLIB_DEFINE_OBJECT(StorageObject, Object)
+	SLIB_DEFINE_ROOT_OBJECT(StorageDictionary)
 
-	StorageObject::StorageObject()
+	StorageDictionary::StorageDictionary()
 	{
 	}
 
-	StorageObject::~StorageObject()
+	StorageDictionary::~StorageDictionary()
 	{
-	}
-
-	Variant StorageObject::getProperty(const StringParam& name)
-	{
-		return getItem(name);
-	}
-
-	sl_bool StorageObject::setProperty(const StringParam& name, const Variant& value)
-	{
-		return putItem(name, value);
-	}
-
-	sl_bool StorageObject::clearProperty(const StringParam& name)
-	{
-		return removeItem(name);
-	}
-
-	PropertyIterator StorageObject::getPropertyIterator()
-	{
-		return PropertyIterator::from(getItemIterator());
 	}
 
 
@@ -548,15 +605,15 @@ namespace slib
 	{
 	}
 
-	ObjectStorage::ObjectStorage(StorageObject* object) noexcept: value(Variant::fromObject(object))
+	ObjectStorage::ObjectStorage(StorageDictionary* object) noexcept: value(Variant::fromObject(object))
 	{
 	}
 
-	ObjectStorage::ObjectStorage(const Ref<StorageObject>& object) noexcept: value(Variant::fromObject(object))
+	ObjectStorage::ObjectStorage(const Ref<StorageDictionary>& object) noexcept: value(Variant::fromObject(object))
 	{
 	}
 
-	ObjectStorage::ObjectStorage(Ref<StorageObject>&& object) noexcept: value(Variant::fromObject(Move(object)))
+	ObjectStorage::ObjectStorage(Ref<StorageDictionary>&& object) noexcept: value(Variant::fromObject(Move(object)))
 	{
 	}
 
@@ -578,45 +635,66 @@ namespace slib
 
 	Ref<ObjectStorageManager> ObjectStorage::getManager() const
 	{
-		Ref<StorageObject> object = getStorageObject();
-		if (object.isNotNull()) {
-			return object->getManager();
+		Ref<StorageDictionary> dictionary = getDictionary();
+		if (dictionary.isNotNull()) {
+			return dictionary->getManager();
 		}
 		return sl_null;
 	}
 
-	ObjectStorage ObjectStorage::createObject(const StringParam& key) const
+	sl_bool ObjectStorage::isDictionary() const noexcept
 	{
-		Ref<StorageObject> object = getStorageObject();
-		if (object.isNotNull()) {
-			return object->createObject(key);
-		}
-		return ObjectStorage();
+		return IsInstanceOf<StorageDictionary>(value.getRef());
 	}
 
-	sl_bool ObjectStorage::isStorageObject() const noexcept
+	Ref<StorageDictionary> ObjectStorage::getDictionary() const noexcept
 	{
-		if (value._type == VariantType::Referable || value._type == VariantType::Object) {
-			Ref<Referable>& ref = *((Ref<Referable>*)(void*)&(value._value));
-			return IsInstanceOf<StorageObject>(ref);
+		return CastRef<StorageDictionary>(value.getRef());
+	}
+
+	ObjectStorage ObjectStorage::createDictionary(const StringParam& key) const
+	{
+		Ref<StorageDictionary> dictionary = getDictionary();
+		if (dictionary.isNotNull()) {
+			return dictionary->createDictionary(key);
+		} else {
+			return ObjectStorage();
+		}
+	}
+
+	ObjectStorage ObjectStorage::getDictionary(const StringParam& key) const
+	{
+		Ref<StorageDictionary> dictionary = getDictionary();
+		if (dictionary.isNotNull()) {
+			return dictionary->getDictionary(key);
+		} else {
+			return ObjectStorage();
+		}
+	}
+
+	sl_bool ObjectStorage::removeDictionary(const StringParam& key) const
+	{
+		Ref<StorageDictionary> dictionary = getDictionary();
+		if (dictionary.isNotNull()) {
+			return dictionary->removeDictionary(key);
 		}
 		return sl_false;
 	}
 
-	Ref<StorageObject> ObjectStorage::getStorageObject() const noexcept
+	Iterator<String, ObjectStorage> ObjectStorage::getDictionaryIterator() const
 	{
-		if (value._type == VariantType::Referable || value._type == VariantType::Object) {
-			Ref<Referable>& ref = *((Ref<Referable>*)(void*)&(value._value));
-			return CastRef<StorageObject>(ref);
+		Ref<StorageDictionary> dictionary = getDictionary();
+		if (dictionary.isNotNull()) {
+			return dictionary->getDictionaryIterator();
 		}
 		return sl_null;
 	}
 
-	ObjectStorage ObjectStorage::getItem(const StringParam& key) const
+	Variant ObjectStorage::getItem(const StringParam& key) const
 	{
-		Ref<StorageObject> object = getStorageObject();
-		if (object.isNotNull()) {
-			return object->getItem(key);
+		Ref<StorageDictionary> dictionary = getDictionary();
+		if (dictionary.isNotNull()) {
+			return dictionary->getItem(key);
 		} else {
 			return value.getItem(key);
 		}
@@ -624,27 +702,27 @@ namespace slib
 
 	sl_bool ObjectStorage::putItem(const StringParam& key, const Variant& value) const
 	{
-		Ref<StorageObject> object = getStorageObject();
-		if (object.isNotNull()) {
-			return object->putItem(key, value);
+		Ref<StorageDictionary> dictionary = getDictionary();
+		if (dictionary.isNotNull()) {
+			return dictionary->putItem(key, value);
 		}
 		return sl_false;
 	}
 
 	sl_bool ObjectStorage::removeItem(const StringParam& key) const
 	{
-		Ref<StorageObject> object = getStorageObject();
-		if (object.isNotNull()) {
-			return object->removeItem(key);
+		Ref<StorageDictionary> dictionary = getDictionary();
+		if (dictionary.isNotNull()) {
+			return dictionary->removeItem(key);
 		}
 		return sl_false;
 	}
 
-	Iterator<String, ObjectStorage> ObjectStorage::getItemIterator() const
+	PropertyIterator ObjectStorage::getItemIterator() const
 	{
-		Ref<StorageObject> object = getStorageObject();
-		if (object.isNotNull()) {
-			return object->getItemIterator();
+		Ref<StorageDictionary> dictionary = getDictionary();
+		if (dictionary.isNotNull()) {
+			return dictionary->getItemIterator();
 		}
 		return sl_null;
 	}
@@ -911,7 +989,16 @@ namespace slib
 
 	ObjectStorage ObjectStorage::operator[](const StringParam& name) noexcept
 	{
-		return getItem(name);
+		Ref<StorageDictionary> dictionary = getDictionary();
+		if (dictionary.isNotNull()) {
+			Ref<StorageDictionary> ret = dictionary->getDictionary(name);
+			if (ret.isNotNull()) {
+				return ret;
+			}
+			return dictionary->getItem(name);
+		} else {
+			return value.getItem(name);
+		}
 	}
 
 	Variant ObjectStorage::operator[](sl_size index) noexcept
@@ -923,7 +1010,7 @@ namespace slib
 	{
 		Ref<ObjectStorageManagerImpl> manager = ObjectStorageManagerImpl::open(param);
 		if (manager.isNotNull()) {
-			return manager->createRootObject();
+			return manager->getRootDictionary();
 		}
 		return sl_null;
 	}

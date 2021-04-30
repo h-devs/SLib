@@ -30,7 +30,7 @@
 namespace slib
 {
 
-	class StorageObject;
+	class StorageDictionary;
 	class ObjectStorageManager;
 	class KeyValueStore;
 
@@ -54,11 +54,11 @@ namespace slib
 
 		ObjectStorage(sl_null_t) noexcept;
 
-		ObjectStorage(StorageObject* object) noexcept;
-		ObjectStorage(const Ref<StorageObject>& object) noexcept;
-		ObjectStorage(Ref<StorageObject>&& object) noexcept;
+		ObjectStorage(StorageDictionary* dictionary) noexcept;
+		ObjectStorage(const Ref<StorageDictionary>& dictionary) noexcept;
+		ObjectStorage(Ref<StorageDictionary>&& dictionary) noexcept;
 		template <class T>
-		ObjectStorage(T* object) noexcept: ObjectStorage((StorageObject*)object) {}
+		ObjectStorage(T* dictionary) noexcept: ObjectStorage((StorageDictionary*)dictionary) {}
 
 		template <class T>
 		ObjectStorage(T&& _value) noexcept: value(_value) {}
@@ -68,19 +68,25 @@ namespace slib
 	public:
 		Ref<ObjectStorageManager> getManager() const;
 
-		ObjectStorage createObject(const StringParam& key) const;
+		sl_bool isDictionary() const noexcept;
 
-		sl_bool isStorageObject() const noexcept;
+		Ref<StorageDictionary> getDictionary() const noexcept;
 
-		Ref<StorageObject> getStorageObject() const noexcept;
+		ObjectStorage createDictionary(const StringParam& key) const;
 
-		ObjectStorage getItem(const StringParam& key) const;
+		ObjectStorage getDictionary(const StringParam& key) const;
+
+		sl_bool removeDictionary(const StringParam& key) const;
+
+		Iterator<String, ObjectStorage> getDictionaryIterator() const;
+
+		Variant getItem(const StringParam& key) const;
 
 		sl_bool putItem(const StringParam& key, const Variant& value) const;
 
 		sl_bool removeItem(const StringParam& key) const;
 
-		Iterator<String, ObjectStorage> getItemIterator() const;
+		PropertyIterator getItemIterator() const;
 
 	public:
 		static const ObjectStorage& undefined() noexcept
@@ -226,36 +232,33 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT StorageObject : public Object
+	class SLIB_EXPORT StorageDictionary : public Referable
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		StorageObject();
+		StorageDictionary();
 
-		~StorageObject();
+		~StorageDictionary();
 
 	public:
 		virtual Ref<ObjectStorageManager> getManager() = 0;
 
-		virtual Ref<StorageObject> createObject(const StringParam& key) = 0;
+		virtual Ref<StorageDictionary> createDictionary(const StringParam& key) = 0;
 
-		virtual ObjectStorage getItem(const StringParam& key) = 0;
+		virtual Ref<StorageDictionary> getDictionary(const StringParam& key) = 0;
+
+		virtual sl_bool removeDictionary(const StringParam& key) = 0;
+
+		virtual Iterator<String, ObjectStorage> getDictionaryIterator() = 0;
+
+		virtual Variant getItem(const StringParam& key) = 0;
 
 		virtual sl_bool putItem(const StringParam& key, const Variant& value) = 0;
 
 		virtual sl_bool removeItem(const StringParam& key) = 0;
 
-		virtual Iterator<String, ObjectStorage> getItemIterator() = 0;
-
-	public:
-		Variant getProperty(const StringParam& name) override;
-
-		sl_bool setProperty(const StringParam& name, const Variant& value) override;
-
-		sl_bool clearProperty(const StringParam& name) override;
-
-		PropertyIterator getPropertyIterator() override;
+		virtual PropertyIterator getItemIterator() = 0;
 
 	};
 
@@ -270,8 +273,8 @@ namespace slib
 
 	public:
 		virtual Ref<KeyValueStore> getStore() = 0;
-
-		virtual Ref<StorageObject> createRootObject() = 0;
+		
+		virtual Ref<StorageDictionary> getRootDictionary() = 0;
 
 	};
 
