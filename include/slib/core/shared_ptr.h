@@ -119,13 +119,13 @@ namespace slib
 			};
 
 			template <class T>
-			struct ValueType
+			struct SharedPtrValueType
 			{
 				typedef T Type;
 			};
 			
 			template <>
-			struct ValueType<void>
+			struct SharedPtrValueType<void>
 			{
 				typedef int Type;
 			};
@@ -137,7 +137,7 @@ namespace slib
 	class SLIB_EXPORT SharedPtr
 	{
 		typedef CSharedPtr<T> Container;
-		typedef typename priv::ptr::ValueType<T>::Type ValueType;
+		typedef typename priv::ptr::SharedPtrValueType<T>::Type ValueType;
 
 	public:
 		SharedPtr() noexcept: container(sl_null) {}
@@ -396,7 +396,7 @@ namespace slib
 	class SLIB_EXPORT Atomic< SharedPtr<T> >
 	{
 		typedef CSharedPtr<T> Container;
-		typedef typename priv::ptr::ValueType<T>::Type ValueType;
+		typedef typename priv::ptr::SharedPtrValueType<T>::Type ValueType;
 
 	public:
 		Atomic() noexcept : _container(sl_null) {}
