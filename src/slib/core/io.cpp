@@ -2263,6 +2263,33 @@ namespace slib
 		return m_size;
 	}
 
+	sl_size MemoryReader::getRemainedSize()
+	{
+		if (m_size > m_offset) {
+			return m_size - m_offset;
+		} else {
+			return 0;
+		}
+	}
+
+	sl_reg MemoryReader::skip(sl_size size)
+	{
+		if (!size) {
+			return 0;
+		}
+		if (m_offset >= m_size) {
+			return -1;
+		}
+		sl_size limit = m_size - m_offset;
+		if (size > limit) {
+			size = limit;
+		}
+		if (size > 0) {
+			m_offset += size;
+		}
+		return size;
+	}
+
 	sl_uint8* MemoryReader::getBuffer()
 	{
 		return (sl_uint8*)m_buf;

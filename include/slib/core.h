@@ -55,6 +55,7 @@
 #include "core/ptrx.h"
 #include "core/pointer.h"
 #include "core/shared_ptr.h"
+#include "core/unique_ptr.h"
 #include "core/object.h"
 #include "core/property.h"
 #include "core/function.h"

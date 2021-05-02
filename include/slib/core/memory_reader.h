@@ -57,6 +57,10 @@ namespace slib
 
 		sl_size getSize();
 
+		sl_size getRemainedSize();
+
+		sl_reg skip(sl_size size);
+
 		sl_uint8* getBuffer();
 		
 		sl_int64 find(const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_int64 endPosition = -1);
