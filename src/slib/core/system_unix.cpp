@@ -161,6 +161,11 @@ namespace slib
 	}
 #endif
 
+	sl_uint64 System::getHighResolutionTickCount()
+	{
+		return (sl_uint64)(getTickCount64());
+	}
+
 	void System::sleep(sl_uint32 milliseconds)
 	{
 		struct timespec req;

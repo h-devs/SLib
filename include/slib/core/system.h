@@ -64,6 +64,8 @@ namespace slib
 		
 		static sl_uint64 getTickCount64();
 	
+		static sl_uint64 getHighResolutionTickCount();
+	
 		static void sleep(sl_uint32 millis);
 
 		static void yield();
