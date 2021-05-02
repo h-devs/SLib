@@ -1379,5 +1379,8 @@
     <ClCompile Include="..\..\src\slib\db\mongodb.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\pseudo_tcp.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
