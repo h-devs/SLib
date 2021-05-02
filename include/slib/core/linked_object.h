@@ -203,7 +203,7 @@ namespace slib
 				_insertBefore(objectWhere, objectNew);
 				return sl_true;
 			} else {
-				return pushFront_NoLock(objectNew);
+				return pushBack_NoLock(objectNew);
 			}
 		}
 		
@@ -214,7 +214,7 @@ namespace slib
 				_insertAfter(objectWhere, objectNew);
 				return sl_true;
 			} else {
-				return pushBack_NoLock(objectNew);
+				return pushFront_NoLock(objectNew);
 			}
 		}
 
