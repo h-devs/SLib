@@ -90,7 +90,7 @@ namespace slib
 			Log(TAG, "STARING %s", appName);
 
 			String appPath = System::getApplicationPath();
-			Process::run(appPath, sl_null, 0);
+			Ref<Process> process = Process::run(appPath, sl_null, 0);
 
 			for (int i = 0; i < WAIT_SECONDS*10; i++) {
 				if (GlobalUniqueInstance::exists(appName + START_ID)) {
@@ -98,6 +98,9 @@ namespace slib
 					return sl_true;
 				}
 				System::sleep(100);
+				if (!(process->isAlive())) {
+					break;
+				}
 			}
 			LogError(TAG, "%s IS NOT STARTED", appName);
 		} else {
