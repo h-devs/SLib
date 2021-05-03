@@ -55,7 +55,7 @@ namespace slib
 		return open(pathExecutable, arguments.data, (sl_uint32)(arguments.count));
 	}
 
-	sl_bool Process::run(const StringParam& pathExecutable, const ListParam<String>& _arguments)
+	Ref<Process> Process::run(const StringParam& pathExecutable, const ListParam<String>& _arguments)
 	{
 		ListLocker<String> arguments(_arguments);
 		return run(pathExecutable, arguments.data, (sl_uint32)(arguments.count));
