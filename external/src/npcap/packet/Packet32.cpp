@@ -148,7 +148,7 @@ LONG PacketDumpRegistryKey(PCHAR KeyName, PCHAR FileName);
 //
 // Current packet.dll version. It can be retrieved directly or through the PacketGetVersion() function.
 //
-char PacketLibraryVersion[64]; 
+char PacketLibraryVersion[64] = "1.8.1"; 
 
 //
 // Current driver version. It can be retrieved directly or through the PacketGetVersion() function.
@@ -763,7 +763,7 @@ static PCHAR NpcapFormatAdapterName(LPCSTR AdapterName, LPCSTR prefix, const siz
 		return NULL;
 	}
 
-	strcpy_s(outstr, outstr_len, prefix);
+	strcpy(outstr, prefix);
 
 	for (size_t i = 0, j = prefix_len; j < outstr_len - 1; i++, j++)
 	{
@@ -788,6 +788,87 @@ NPF_DECLARE_FORMAT_NAME(Npf2Npcap, NPF_DRIVER_COMPLETE_DEVICE_PREFIX)
 static PCHAR NpcapTranslateMemory_Npcap2Npf(LPCSTR pStr, int iBufSize)
 {
 	return NpcapReplaceMemory(pStr, iBufSize, NPF_DEVICE_NAMES_PREFIX, "NPF_");
+}
+
+void InitNpcap()
+{
+
+	TRACE_ENTER();
+
+	BOOLEAN Status = TRUE;
+	PADAPTER_INFO NewAdInfo;
+
+	// Create the mutex that will protect the adapter information list
+	g_AdaptersInfoMutex = CreateMutex(NULL, FALSE, NULL);
+
+#ifdef LOAD_OPTIONAL_LIBRARIES
+	// Create the mutex that will protect the PacketLoadLibrariesDynamically() function		
+	g_DynamicLibrariesMutex = CreateMutex(NULL, FALSE, NULL);
+#endif
+
+	
+	//if (GetModuleFileName(GetModuleHandleW(NULL), DllFileName, sizeof(DllFileName) / sizeof(DllFileName[0])) > 0)
+	//{
+	//	PacketGetFileVersion(DllFileName, PacketLibraryVersion, sizeof(PacketLibraryVersion));
+	//}
+	//
+	// Retrieve NPF.sys version information from the file
+	//
+	// XXX We want to replace this with a constant. We leave it out for the moment
+	// TODO fixme. Those hardcoded strings are terrible...
+	PacketGetFileVersion(TEXT("drivers\\") TEXT(NPF_DRIVER_NAME) TEXT(".sys"), PacketDriverVersion, sizeof(PacketDriverVersion));
+	strcpy_s(PacketDriverName, 64, NPF_DRIVER_NAME);
+
+	// Get the name for "Npcap Loopback Adapter"
+	NpcapGetLoopbackInterfaceName();
+
+
+	TRACE_EXIT();
+	
+}
+
+void FreeNpcap()
+{
+	TRACE_ENTER();
+
+	BOOLEAN Status = TRUE;
+	PADAPTER_INFO NewAdInfo;
+	TCHAR DllFileName[MAX_PATH];
+
+	CloseHandle(g_AdaptersInfoMutex);
+
+	while (g_AdaptersInfoList != NULL)
+	{
+		PNPF_IF_ADDRESS_ITEM pCursor, pNext;
+
+		NewAdInfo = g_AdaptersInfoList->Next;
+
+		pCursor = g_AdaptersInfoList->pNetworkAddresses;
+
+		while (pCursor != NULL)
+		{
+			pNext = pCursor->Next;
+			HeapFree(GetProcessHeap(), 0, pCursor);
+			pCursor = pNext;
+		}
+
+		HeapFree(GetProcessHeap(), 0, g_AdaptersInfoList);
+
+		g_AdaptersInfoList = NewAdInfo;
+	}
+
+	// NpcapHelper De-Initialization.
+	NpcapStopHelper();
+
+#ifdef WPCAP_OEM_UNLOAD_H 
+	if (g_WoemLeaveDllH)
+	{
+		g_WoemLeaveDllH();
+	}
+#endif // WPCAP_OEM_UNLOAD_H
+
+	TRACE_EXIT();
+
 }
 
 /*! 

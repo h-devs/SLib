@@ -27,6 +27,9 @@
     <ClInclude Include="..\..\src\npcap\packet\strsafe.h">
       <Filter>src\packet</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\npcap\npcap_files.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\npcap\packet\netcfgapi.cpp">
@@ -94,6 +97,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\npcap\libpcap\optimize.c">
       <Filter>src\libpcap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\npcap\npcap_files.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

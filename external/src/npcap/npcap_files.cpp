@@ -1,53 +1,58 @@
-#include "tap_files.h"
+#include "npcap_files.h"
 
-namespace tap
+namespace npcap
 {
 	namespace files
 	{
 
-		static unsigned char _tap_inf_x64[] = {
-#include "x64/tap0901_inf.txt"
+		static unsigned char _npcap_inf_x64[] = {
+#include "x64/npcap_inf.txt"
 		};
-		unsigned char* tap_inf_compressed_data64 = _tap_inf_x64;
-		unsigned long tap_inf_compressed_size64 = sizeof(_tap_inf_x64);
+		unsigned char* npcap_inf_compressed_data64 = _npcap_inf_x64;
+		unsigned long npcap_inf_compressed_size64 = sizeof(_npcap_inf_x64);
 
-		static unsigned char _tap_sys_x64[] = {
-#include "x64/tap0901_sys.txt"
+		static unsigned char _npcap_sys_x64[] = {
+#include "x64/npcap_sys.txt"
 		};
-		unsigned char* tap_sys_compressed_data64 = _tap_sys_x64;
-		unsigned long tap_sys_compressed_size64 = sizeof(_tap_sys_x64);
+		unsigned char* npcap_sys_compressed_data64 = _npcap_sys_x64;
+		unsigned long npcap_sys_compressed_size64 = sizeof(_npcap_sys_x64);
 
-		static unsigned char _tap_cat_x64[] = {
-#include "x64/tap0901_cat.txt"
+		static unsigned char _npcap_cat_x64[] = {
+#include "x64/npcap_cat.txt"
 		};
-		unsigned char* tap_cat_compressed_data64 = _tap_cat_x64;
-		unsigned long tap_cat_compressed_size64 = sizeof(_tap_cat_x64);
+		unsigned char* npcap_cat_compressed_data64 = _npcap_cat_x64;
+		unsigned long npcap_cat_compressed_size64 = sizeof(_npcap_cat_x64);
 
-
-#ifndef _WIN64
-		static unsigned char _tap_inf_x86[] = {
-#include "x86/tap0901_inf.txt"
+		static unsigned char _npfinstall_exe_x64[] = {
+#include "x64/npfinstall_exe.txt"
 		};
-		unsigned char* tap_inf_compressed_data86 = _tap_inf_x86;
-		unsigned long tap_inf_compressed_size86 = sizeof(_tap_inf_x86);
-
-		static unsigned char _tap_sys_x86[] = {
-#include "x86/tap0901_sys.txt"
-		};
-		unsigned char* tap_sys_compressed_data86 = _tap_sys_x86;
-		unsigned long tap_sys_compressed_size86 = sizeof(_tap_sys_x86);
-
-		static unsigned char _tap_cat_x86[] = {
-#include "x86/tap0901_cat.txt"
-		};
-		unsigned char* tap_cat_compressed_data86 = _tap_cat_x86;
-		unsigned long tap_cat_compressed_size86 = sizeof(_tap_cat_x86);
+		unsigned char* npfinstall_exe_compressed_data64 = _npfinstall_exe_x64;
+		unsigned long npfinstall_exe_compressed_size64 = sizeof(_npfinstall_exe_x64);
 		
-		static unsigned char _tapinstall_exe[] = {
-#include "x64/tapinstall_exe.txt"
+#ifndef _WIN64
+		static unsigned char _npcap_inf_x86[] = {
+#include "x86/npcap_inf.txt"
 		};
-		unsigned char* tapinstall_exe_compressed_data = _tapinstall_exe;
-		unsigned long tapinstall_exe_compressed_size = sizeof(_tapinstall_exe);
+		unsigned char* npcap_inf_compressed_data86 = _npcap_inf_x86;
+		unsigned long npcap_inf_compressed_size86 = sizeof(_npcap_inf_x86);
+
+		static unsigned char _npcap_sys_x86[] = {
+#include "x86/npcap_sys.txt"
+		};
+		unsigned char* npcap_sys_compressed_data86 = _npcap_sys_x86;
+		unsigned long npcap_sys_compressed_size86 = sizeof(_npcap_sys_x86);
+
+		static unsigned char _npcap_cat_x86[] = {
+#include "x86/npcap_cat.txt"
+		};
+		unsigned char* npcap_cat_compressed_data86 = _npcap_cat_x86;
+		unsigned long npcap_cat_compressed_size86 = sizeof(_npcap_cat_x86);
+
+		static unsigned char _npfinstall_exe_x86[] = {
+#include "x86/npfinstall_exe.txt"
+		};
+		unsigned char* npfinstall_exe_compressed_data86 = _npfinstall_exe_x86;
+		unsigned long npfinstall_exe_compressed_size86 = sizeof(_npfinstall_exe_x86);
 #endif
 
 	}

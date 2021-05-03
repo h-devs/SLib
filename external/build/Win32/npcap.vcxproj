@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\npcap\npcap_files.h" />
     <ClInclude Include="..\..\src\npcap\packet\debug.h" />
     <ClInclude Include="..\..\src\npcap\packet\netcfgapi.h" />
     <ClInclude Include="..\..\src\npcap\packet\Packet32-Int.h" />
@@ -44,6 +45,7 @@
     <ClCompile Include="..\..\src\npcap\libpcap\sf-pcap.c" />
     <ClCompile Include="..\..\src\npcap\libpcap\sf-pcapng.c" />
     <ClCompile Include="..\..\src\npcap\libpcap\win_asprintf.c" />
+    <ClCompile Include="..\..\src\npcap\npcap_files.cpp" />
     <ClCompile Include="..\..\src\npcap\packet\AdInfo.cpp" />
     <ClCompile Include="..\..\src\npcap\packet\netcfgapi.cpp" />
     <ClCompile Include="..\..\src\npcap\packet\Packet32.cpp" />
