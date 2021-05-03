@@ -39,7 +39,7 @@
 #if defined(SLIB_PLATFORM_IS_WIN32)
 #if !USE_WINPCAP
 #define USE_STATIC_NPCAP
-#include "npcap/pcap/pcap.h"
+#include "pcap/pcap.h"
 #else
 #include "winpcap/pcap/pcap.h"
 #endif
@@ -107,25 +107,20 @@ namespace slib
 			public:
 				static Ref<PcapImpl> create(const PcapParam& param)
 				{
-					String name = param.deviceName;
-					String name8;
-					const char* szName;
-					if (name.isEmpty()) {
-						szName = "any";
-					} else {
+					StringCstr name = param.deviceName;
 #if defined(SLIB_PLATFORM_IS_WIN32)
-						if (name.startsWith('{')) {
-							name = "\\Device\\NPF_" + name;
-						}
+					if (name.startsWith('{')) {
+						name = "\\Device\\NPF_" + param.name;
+					}
 #endif
-						name8 = name.toNullTerminated();
-						szName = name8.getData();
+					if (name.isEmpty()) {
+						name = "any";
 					}
 
 					char errBuf[PCAP_ERRBUF_SIZE] = { 0 };
 				
 #if USE_WINPCAP
-					pcap_t* handle = pcap_open_live(szName, MAX_PACKET_SIZE, param.flagPromiscuous, param.timeoutRead, errBuf);
+					pcap_t* handle = pcap_open_live(name.getData(), MAX_PACKET_SIZE, param.flagPromiscuous, param.timeoutRead, errBuf);
 					if (handle) {
 						if (pcap_setbuff(handle, param.sizeBuffer) == 0) {
 							Ref<PcapImpl> ret = new PcapImpl;
@@ -151,7 +146,7 @@ namespace slib
 						LogError(TAG, errBuf);
 					}
 #else
-					pcap_t* handle = pcap_create(szName, errBuf);
+					pcap_t* handle = pcap_create(name.getData(), errBuf);
 					if (handle) {
 						if (pcap_set_snaplen(handle, MAX_PACKET_SIZE) == 0) {
 							if (pcap_set_buffer_size(handle, param.sizeBuffer) == 0) {
@@ -413,7 +408,7 @@ namespace slib
 					return NetworkLinkDeviceType::Raw;
 				}
 
-				sl_bool sendPacket(const void* buf, sl_uint32 size) override
+				sl_bool sendPacket(const void*, sl_uint32) override
 				{
 					return sl_false;
 				}

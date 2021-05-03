@@ -83,7 +83,7 @@ namespace slib
 	
 	void NetCapture::_initWithParam(const NetCaptureParam& param)
 	{
-		m_deviceName = param.deviceName;
+		m_deviceName = param.deviceName.toString();
 		m_onCapturePacket = param.onCapturePacket;
 		m_onError = param.onError;
 	}
@@ -136,7 +136,7 @@ namespace slib
 				{
 					
 					sl_uint32 iface = 0;
-					String deviceName = param.deviceName;
+					StringCstr deviceName = param.deviceName;
 					if (deviceName.isNotEmpty()) {
 						iface = Network::getInterfaceIndexFromName(deviceName);
 						if (iface == 0) {
@@ -301,18 +301,6 @@ namespace slib
 				
 			};
 
-		}
-	}
-			
-	Ref<NetCapture> NetCapture::createRawPacket(const NetCaptureParam& param)
-	{
-		return priv::net_capture::RawPacketCapture::create(param);
-	}
-	
-	namespace priv
-	{
-		namespace net_capture
-		{
 
 			class RawIPv4Capture : public NetCapture
 			{
@@ -535,10 +523,18 @@ namespace slib
 
 		}
 	}
-	
+
+	using namespace priv::net_capture;
+
+
+	Ref<NetCapture> NetCapture::createRawPacket(const NetCaptureParam& param)
+	{
+		return RawPacketCapture::create(param);
+	}
+
 	Ref<NetCapture> NetCapture::createRawIPv4(const NetCaptureParam& param)
 	{
-		return priv::net_capture::RawIPv4Capture::create(param);
+		return RawIPv4Capture::create(param);
 	}
 	
 	

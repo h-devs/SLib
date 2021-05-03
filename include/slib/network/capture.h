@@ -52,7 +52,7 @@ namespace slib
 	class SLIB_EXPORT NetCaptureParam
 	{
 	public:
-		String deviceName; // <null> or <empty string> for any devices
+		StringParam deviceName; // <null> or <empty string> for any devices
 		
 		sl_bool flagPromiscuous; // ignored for "any devices" mode
 		NetworkLinkDeviceType preferedLinkDeviceType; // NetworkLinkDeviceType, used in Packet Socket mode. now supported Ethernet and Raw
