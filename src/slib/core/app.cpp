@@ -143,6 +143,8 @@ namespace slib
 			list.add(argv[i]);
 #endif
 		}
+		m_commandLine = buildCommandLine(list.getData(), argc);
+		m_arguments = Move(list);
 		_initApp();
 	}
 
