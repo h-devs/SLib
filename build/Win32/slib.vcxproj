@@ -296,7 +296,8 @@
     <ClCompile Include="..\..\src\slib\network\network_io.cpp" />
     <ClCompile Include="..\..\src\slib\network\network_os.cpp" />
     <ClCompile Include="..\..\src\slib\network\net_capture.cpp" />
-    <ClCompile Include="..\..\src\slib\network\net_capture_pcap.cpp" />
+    <ClCompile Include="..\..\src\slib\network\npcap_install_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\network\pcap.cpp" />
     <ClCompile Include="..\..\src\slib\network\pseudo_tcp.cpp" />
     <ClCompile Include="..\..\src\slib\network\socket.cpp" />
     <ClCompile Include="..\..\src\slib\network\socket_address.cpp" />

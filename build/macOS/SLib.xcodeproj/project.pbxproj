@@ -270,7 +270,7 @@
 		26D9D9991E96467B005F7BD3 /* mac_address.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4C61C11940A00D47AB0 /* mac_address.cpp */; };
 		26D9D99A1E96467B005F7BD3 /* nat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4C71C11940A00D47AB0 /* nat.cpp */; };
 		26D9D99B1E96467B005F7BD3 /* net_capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4C81C11940A00D47AB0 /* net_capture.cpp */; };
-		26D9D99C1E96467B005F7BD3 /* net_capture_pcap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4C91C11940A00D47AB0 /* net_capture_pcap.cpp */; };
+		26D9D99C1E96467B005F7BD3 /* pcap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4C91C11940A00D47AB0 /* pcap.cpp */; };
 		26D9D99D1E96467B005F7BD3 /* network_async.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4CB1C11940A00D47AB0 /* network_async.cpp */; };
 		26D9D99E1E96467B005F7BD3 /* network_async_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4CD1C11940A00D47AB0 /* network_async_unix.cpp */; };
 		26D9D99F1E96467B005F7BD3 /* network_io.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4CF1C11940A00D47AB0 /* network_io.cpp */; };
@@ -629,7 +629,7 @@
 		266DD4C61C11940A00D47AB0 /* mac_address.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mac_address.cpp; sourceTree = "<group>"; };
 		266DD4C71C11940A00D47AB0 /* nat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = nat.cpp; sourceTree = "<group>"; };
 		266DD4C81C11940A00D47AB0 /* net_capture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = net_capture.cpp; sourceTree = "<group>"; };
-		266DD4C91C11940A00D47AB0 /* net_capture_pcap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = net_capture_pcap.cpp; sourceTree = "<group>"; };
+		266DD4C91C11940A00D47AB0 /* pcap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pcap.cpp; sourceTree = "<group>"; };
 		266DD4CB1C11940A00D47AB0 /* network_async.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = network_async.cpp; sourceTree = "<group>"; };
 		266DD4CC1C11940A00D47AB0 /* network_async.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = network_async.h; sourceTree = "<group>"; };
 		266DD4CD1C11940A00D47AB0 /* network_async_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = network_async_unix.cpp; sourceTree = "<group>"; };
@@ -1189,7 +1189,7 @@
 				266DD4C61C11940A00D47AB0 /* mac_address.cpp */,
 				266DD4C71C11940A00D47AB0 /* nat.cpp */,
 				266DD4C81C11940A00D47AB0 /* net_capture.cpp */,
-				266DD4C91C11940A00D47AB0 /* net_capture_pcap.cpp */,
+				266DD4C91C11940A00D47AB0 /* pcap.cpp */,
 				266DD4CB1C11940A00D47AB0 /* network_async.cpp */,
 				266DD4CC1C11940A00D47AB0 /* network_async.h */,
 				266DD4CD1C11940A00D47AB0 /* network_async_unix.cpp */,
@@ -2191,7 +2191,7 @@
 				26C795A3221562E70053C5A1 /* image_view_url.cpp in Sources */,
 				26D9D9351E9645CE005F7BD3 /* rsa.cpp in Sources */,
 				26D9D9361E9645CE005F7BD3 /* content_type.cpp in Sources */,
-				26D9D99C1E96467B005F7BD3 /* net_capture_pcap.cpp in Sources */,
+				26D9D99C1E96467B005F7BD3 /* pcap.cpp in Sources */,
 				26F5C77E237EEDFD009F3EEF /* ui_notification_apple.mm in Sources */,
 				26D9D9881E964675005F7BD3 /* camera_apple.mm in Sources */,
 				26C1B64020D51D1D00E36539 /* font_quartz.mm in Sources */,

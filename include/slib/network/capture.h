@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -22,15 +22,6 @@
 
 #ifndef CHECKHEADER_SLIB_NETWORK_CAPTURE
 #define CHECKHEADER_SLIB_NETWORK_CAPTURE
-
-/*****************************************************************
-	
-	NetCapture is based on 
-	
-		libpcap (unix) and winpcap (win32)
-		, raw sockets, packet sockets (linux)
-		
-*****************************************************************/
 
 #include "constants.h"
 #include "ip_address.h"
@@ -56,23 +47,6 @@ namespace slib
 		
 	};
 	
-	class SLIB_EXPORT NetCaptureDeviceInfo
-	{
-	public:
-		String name;
-		String description;
-		sl_bool flagLoopback;
-		
-		List<IPv4Address> ipv4Addresses;
-		List<IPv6Address> ipv6Addresses;
-		
-	public:
-		NetCaptureDeviceInfo();
-		
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(NetCaptureDeviceInfo)
-		
-	};
-	
 	class NetCapture;
 	
 	class SLIB_EXPORT NetCaptureParam
@@ -80,17 +54,14 @@ namespace slib
 	public:
 		String deviceName; // <null> or <empty string> for any devices
 		
-		sl_bool flagPromiscuous; // ignored for "any devices" mode, used in pcap
-		sl_uint32 timeoutRead; // read timeout, in milliseconds, used in pcap
-		sl_bool flagImmediate; // immediate mode, used in pcap
-		sl_uint32 sizeBuffer; // buffer size, used in pcap
-		
+		sl_bool flagPromiscuous; // ignored for "any devices" mode
 		NetworkLinkDeviceType preferedLinkDeviceType; // NetworkLinkDeviceType, used in Packet Socket mode. now supported Ethernet and Raw
 		
 		sl_bool flagAutoStart; // default: true
 		
 		Function<void(NetCapture*, NetCapturePacket&)> onCapturePacket;
-		
+		Function<void(NetCapture*)> onError;
+
 	public:
 		NetCaptureParam();
 		
@@ -108,9 +79,6 @@ namespace slib
 		~NetCapture();
 		
 	public:
-		// libpcap capturing engine
-		static Ref<NetCapture> createPcap(const NetCaptureParam& param);
-		
 		// linux packet datagram socket
 		static Ref<NetCapture> createRawPacket(const NetCaptureParam& param);
 		
@@ -132,23 +100,24 @@ namespace slib
 		virtual sl_bool sendPacket(const void* buf, sl_uint32 size) = 0;
 		
 		virtual String getErrorMessage();
-		
-		// Pcap Utiltities
-		static List<NetCaptureDeviceInfo> getAllPcapDevices();
-		
-		static sl_bool findPcapDevice(const String& name, NetCaptureDeviceInfo& _out);
+
+	public:
+		const String& getDeviceName();
 		
 	protected:
 		void _initWithParam(const NetCaptureParam& param);
 		
 		void _onCapturePacket(NetCapturePacket& packet);
-		
+
+		void _onError();
+
 	protected:
+		String m_deviceName;
 		Function<void(NetCapture*, NetCapturePacket&)> m_onCapturePacket;
-		
+		Function<void(NetCapture*)> m_onError;
+
 	};
-	
-	
+
 	enum class LinuxCookedPacketType
 	{
 		Host = 0,

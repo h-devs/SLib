@@ -518,9 +518,6 @@
     <ClCompile Include="..\..\src\slib\network\net_capture.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\net_capture_pcap.cpp">
-      <Filter>src\network</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\network\socket.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
@@ -1380,6 +1377,12 @@
       <Filter>src\db</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\network\pseudo_tcp.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\pcap.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\npcap_install_win32.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
   </ItemGroup>

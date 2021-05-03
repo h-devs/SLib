@@ -54,7 +54,8 @@ namespace slib
 			NetCapture,
 			NatTable,
 			IPv4Fragmentation,
-			Tap
+			Tap,
+			Pcap
 		};
 
 	}
