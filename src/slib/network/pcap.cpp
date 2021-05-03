@@ -54,6 +54,7 @@
 void InitNpcap();
 void FreeNpcap();
 #endif
+#define NPCAP_DRIVER_NAME "NPCAP"
 
 namespace slib
 {
@@ -110,7 +111,7 @@ namespace slib
 					StringCstr name = param.deviceName;
 #if defined(SLIB_PLATFORM_IS_WIN32)
 					if (name.startsWith('{')) {
-						name = "\\Device\\NPF_" + param.name;
+						name = "\\Device\\NPF_" + (StringView&)name;
 					}
 #endif
 					if (name.isEmpty()) {
@@ -566,9 +567,18 @@ namespace slib
 	ServiceState Npcap::getDriverState()
 	{
 #ifdef SLIB_PLATFORM_IS_WIN32
-		return ServiceManager::getState("NPCAP");
+		return ServiceManager::getState(NPCAP_DRIVER_NAME);
 #else
 		return ServiceState::None;
+#endif
+	}
+
+	sl_bool Npcap::startDriver()
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		return ServiceManager::start(NPCAP_DRIVER_NAME);
+#else
+		return sl_false;
 #endif
 	}
 	
@@ -614,6 +624,11 @@ namespace slib
 	ServiceState Npcap::getDriverState()
 	{
 		return ServiceState::None;
+	}
+
+	sl_bool Npcap::startDriver()
+	{
+		return sl_false;
 	}
 
 	sl_bool Npcap::install()

@@ -53,6 +53,10 @@ namespace slib
 					return sl_false;
 				}
 
+				if (ServiceManager::start(DRIVER_NAME)) {
+					return sl_true;
+				}
+
 				String path = System::getTempDirectory() + "\\slib_npcap";
 				File::createDirectory(path);
 				if (!(File::isDirectory(path))) {

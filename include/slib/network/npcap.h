@@ -34,6 +34,8 @@ namespace slib
 	{
 	public:
 		static ServiceState getDriverState();
+		
+		static sl_bool startDriver();
 
 		static sl_bool install();
 
