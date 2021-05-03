@@ -79,9 +79,9 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool Process::run(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments)
+	Ref<Process> Process::run(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments)
 	{
-		return sl_false;
+		return sl_null;
 	}
 	
 	void Process::runAsAdmin(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments)
