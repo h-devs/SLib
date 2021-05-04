@@ -25,8 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/object.h"
-#include "../core/string.h"
+#include "../core/json.h"
 
 namespace slib
 {
@@ -89,6 +88,33 @@ namespace slib
 
 		virtual sl_int64 remove(const Json& filter) = 0;
 
+	public:
+		template <class... ARGS>
+		Json getFirstDocument(ARGS&&... args)
+		{
+			Ref<DocumentCursor> cursor = find(Forward<ARGS>(args)...);
+			if (cursor.isNotNull()) {
+				if (cursor->moveNext()) {
+					return cursor->getDocument();
+				}
+			}
+			return sl_null;
+		}
+
+		template <class... ARGS>
+		JsonList getDocuments(ARGS&&... args)
+		{
+			Ref<DocumentCursor> cursor = find(Forward<ARGS>(args)...);
+			if (cursor.isNotNull()) {
+				JsonList list;
+				if (cursor->moveNext()) {
+					list.add_NoLock(cursor->getDocument());
+				}
+				return list;
+			}
+			return sl_null;
+		}
+
 	};
 
 	class SLIB_EXPORT DocumentDatabase : public Object
@@ -110,6 +136,27 @@ namespace slib
 		virtual sl_bool dropCollection(const StringParam& name) = 0;
 
 		virtual List<String> getCollectionNames() = 0;
+
+	public:
+		template <class... ARGS>
+		Json getFirstDocument(const StringParam& collectionName, ARGS&&... args)
+		{
+			Ref<DocumentCollection> collection = getCollection(collectionName);
+			if (collection.isNotNull()) {
+				return collection->getFirstDocument(Forward<ARGS>(args)...);
+			}
+			return sl_null;
+		}
+
+		template <class... ARGS>
+		JsonList getDocuments(const StringParam& collectionName, ARGS&&... args)
+		{
+			Ref<DocumentCollection> collection = getCollection(collectionName);
+			if (collection.isNotNull()) {
+				return collection->getDocuments(Forward<ARGS>(args)...);
+			}
+			return sl_null;
+		}
 
 	};
 

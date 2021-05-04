@@ -22,7 +22,6 @@
 
 #include "slib/db/mongodb.h"
 
-#include "slib/core/json.h"
 #include "slib/core/safe_static.h"
 
 #define BSON_STATIC
