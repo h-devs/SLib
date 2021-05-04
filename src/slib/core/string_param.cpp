@@ -435,6 +435,36 @@ namespace slib
 		}
 	}
 
+	String StringParam::newString() const noexcept
+	{
+		if (!_value) {
+			return sl_null;
+		}
+		switch (_length) {
+			case STRING_TYPE_STRING8_REF:
+			case STRING_TYPE_STRING8_NOREF:
+				return STRING_REF(*this).duplicate();
+			default:
+				break;
+		}
+		return toString();
+	}
+
+	String16 StringParam::newString16() const noexcept
+	{
+		if (!_value) {
+			return sl_null;
+		}
+		switch (_length) {
+			case STRING_TYPE_STRING16_REF:
+			case STRING_TYPE_STRING16_NOREF:
+				return STRING16_REF(*this).duplicate();
+			default:
+				break;
+		}
+		return toString16();
+	}
+
 	Variant StringParam::toVariant() const noexcept
 	{
 		if (!_value) {

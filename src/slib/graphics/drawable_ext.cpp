@@ -89,7 +89,7 @@ namespace slib
 	}
 	
 	
-	Ref<Drawable> PlatformDrawable::loadFromFile(const String& filePath)
+	Ref<Drawable> PlatformDrawable::loadFromFile(const StringParam& filePath)
 	{
 		Memory mem = File::readAllBytes(filePath);
 		if (mem.isNotNull()) {
@@ -98,7 +98,7 @@ namespace slib
 		return sl_null;
 	}
 	
-	Ref<Drawable> PlatformDrawable::loadFromAsset(const String& path)
+	Ref<Drawable> PlatformDrawable::loadFromAsset(const StringParam& path)
 	{
 		Memory mem = Assets::readAllBytes(path);
 		if (mem.isNotNull()) {

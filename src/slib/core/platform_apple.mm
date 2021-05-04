@@ -154,8 +154,9 @@ namespace slib
 		return str;
 	}
 
-	String Apple::getAssetFilePath(const String &path)
+	String Apple::getAssetFilePath(const StringParam& _path)
 	{
+		StringData path(_path);
 		String fileExt = File::getFileExtension(path);
 		String fileName = File::getFileNameOnly(path);
 		String dirPath = File::getParentDirectoryPath(path);
@@ -250,13 +251,13 @@ namespace slib
 		return getStringFromNSString(path);
 	}
 
-	String Apple::getSystemLocalizedString(const String& key)
+	String Apple::getSystemLocalizedString(const StringParam& key)
 	{
 		return getStringFromNSString(getSystemLocalizedNSString(getNSStringFromString(key)));
 	}
 	
 #if defined(SLIB_PLATFORM_IS_MACOS)
-	void Apple::setBundleLoginItemEnabled(const String& path, sl_bool flagEnabled)
+	void Apple::setBundleLoginItemEnabled(const StringParam& path, sl_bool flagEnabled)
 	{
 		if (path.isEmpty()) {
 			return;

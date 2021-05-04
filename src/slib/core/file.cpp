@@ -756,9 +756,9 @@ namespace slib
 		}
 	}
 
-	String File::makeSafeFileName(const String& fileName)
+	String File::makeSafeFileName(const StringParam& fileName)
 	{
-		String ret = fileName.duplicate();
+		String ret = fileName.newString();
 		if (ret.isEmpty()) {
 			return ret;
 		}
@@ -789,9 +789,9 @@ namespace slib
 		return ret;
 	}
 
-	String File::makeSafeFilePath(const String& filePath)
+	String File::makeSafeFilePath(const StringParam& filePath)
 	{
-		String ret = filePath.duplicate();
+		String ret = filePath.newString();
 		if (ret.isEmpty()) {
 			return ret;
 		}

@@ -180,23 +180,23 @@ namespace slib
 
 		static ImageFileType getFileType(const void* mem, sl_size size);
 
-		static ImageFileType getFileType(Memory mem);
+		static ImageFileType getFileType(const Memory& mem);
 
 		static Ref<Image> loadFromMemory(const void* mem, sl_size size);
 
-		static Ref<Image> loadFromMemory(Memory mem);
+		static Ref<Image> loadFromMemory(const Memory& mem);
 
-		static Ref<Image> loadFromFile(const String& filePath);
+		static Ref<Image> loadFromFile(const StringParam& filePath);
 
-		static Ref<Image> loadFromAsset(const String& path);
+		static Ref<Image> loadFromAsset(const StringParam& path);
 		
 		static Ref<AnimationDrawable> loadAnimationFromMemory(const void* mem, sl_size size);
 		
-		static Ref<AnimationDrawable> loadAnimationFromMemory(Memory mem);
+		static Ref<AnimationDrawable> loadAnimationFromMemory(const Memory& mem);
 		
-		static Ref<AnimationDrawable> loadAnimationFromFile(const String& filePath);
+		static Ref<AnimationDrawable> loadAnimationFromFile(const StringParam& filePath);
 		
-		static Ref<AnimationDrawable> loadAnimationFromAsset(const String& path);
+		static Ref<AnimationDrawable> loadAnimationFromAsset(const StringParam& path);
 		
 		
 		static Ref<Image> loadSTB(const void* content, sl_size size);
@@ -210,9 +210,9 @@ namespace slib
 
 		Memory savePNG();
 
-		static sl_bool savePNG(const String& filePath, const Ref<Image>& image);
+		static sl_bool savePNG(const StringParam& filePath, const Ref<Image>& image);
 
-		sl_bool savePNG(const String& filePath);
+		sl_bool savePNG(const StringParam& filePath);
 		
 
 		static Ref<Image> loadJPEG(const void* content, sl_size size);
@@ -221,9 +221,9 @@ namespace slib
 
 		Memory saveJPEG(float quality = 0.5f);
 
-		static sl_bool saveJPEG(const String& filePath, const Ref<Image>& image, float quality = 0.5f);
+		static sl_bool saveJPEG(const StringParam& filePath, const Ref<Image>& image, float quality = 0.5f);
 
-		sl_bool saveJPEG(const String& filePath, float quality = 0.5f);
+		sl_bool saveJPEG(const StringParam& filePath, float quality = 0.5f);
 
 		
 		Ref<Drawable> getCustomDrawable();

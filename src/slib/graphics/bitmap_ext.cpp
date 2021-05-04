@@ -59,7 +59,7 @@ namespace slib
 		return sl_null;
 	}
 	
-	Ref<Bitmap> Bitmap::loadFromFile(const String& filePath)
+	Ref<Bitmap> Bitmap::loadFromFile(const StringParam& filePath)
 	{
 		Memory mem = File::readAllBytes(filePath);
 		if (mem.isNotNull()) {
@@ -68,7 +68,7 @@ namespace slib
 		return sl_null;
 	}
 	
-	Ref<Bitmap> Bitmap::loadFromAsset(const String& path)
+	Ref<Bitmap> Bitmap::loadFromAsset(const StringParam& path)
 	{
 		Memory mem = Assets::readAllBytes(path);
 		if (mem.isNotNull()) {
@@ -85,7 +85,7 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<Image> Image::loadFromAsset(const String& path)
+	Ref<Image> Image::loadFromAsset(const StringParam& path)
 	{
 		Memory mem = Assets::readAllBytes(path);
 		if (mem.isNotNull()) {

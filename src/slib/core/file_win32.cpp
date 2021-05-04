@@ -45,7 +45,7 @@ namespace slib
 				return Time::fromWindowsFileTime(*((sl_int64*)&ft));
 			}
 
-			SLIB_INLINE static void TimeToFileTime(Time time, FILETIME& ft)
+			SLIB_INLINE static void TimeToFileTime(const Time& time, FILETIME& ft)
 			{
 				*((sl_int64*)&ft) = time.toWindowsFileTime();
 			}
@@ -83,7 +83,7 @@ namespace slib
 				}
 			}
 
-			SLIB_INLINE static sl_bool SetModifiedTime(HANDLE handle, Time time)
+			SLIB_INLINE static sl_bool SetModifiedTime(HANDLE handle, const Time& time)
 			{
 				FILETIME ft;
 				TimeToFileTime(time, ft);
@@ -91,7 +91,7 @@ namespace slib
 				return bRet != 0;
 			}
 
-			SLIB_INLINE static sl_bool SetAccessedTime(HANDLE handle, Time time)
+			SLIB_INLINE static sl_bool SetAccessedTime(HANDLE handle, const Time& time)
 			{
 				FILETIME ft;
 				TimeToFileTime(time, ft);
@@ -99,7 +99,7 @@ namespace slib
 				return bRet != 0;
 			}
 
-			SLIB_INLINE static sl_bool SetCreatedTime(HANDLE handle, Time time)
+			SLIB_INLINE static sl_bool SetCreatedTime(HANDLE handle, const Time& time)
 			{
 				FILETIME ft;
 				TimeToFileTime(time, ft);
@@ -467,7 +467,7 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setModifiedTime(Time time)
+	sl_bool File::setModifiedTime(const Time& time)
 	{
 		HANDLE handle = (HANDLE)m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
@@ -477,7 +477,7 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setModifiedTime(const StringParam& _filePath, Time time)
+	sl_bool File::setModifiedTime(const StringParam& _filePath, const Time& time)
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -493,7 +493,7 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setAccessedTime(Time time)
+	sl_bool File::setAccessedTime(const Time& time)
 	{
 		HANDLE handle = (HANDLE)m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
@@ -503,7 +503,7 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setAccessedTime(const StringParam& _filePath, Time time)
+	sl_bool File::setAccessedTime(const StringParam& _filePath, const Time& time)
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -519,7 +519,7 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setCreatedTime(Time time)
+	sl_bool File::setCreatedTime(const Time& time)
 	{
 		HANDLE handle = (HANDLE)m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
@@ -529,7 +529,7 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setCreatedTime(const StringParam& _filePath, Time time)
+	sl_bool File::setCreatedTime(const StringParam& _filePath, const Time& time)
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {

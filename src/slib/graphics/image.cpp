@@ -1803,7 +1803,7 @@ namespace slib
 		return ImageFileType::Unknown;
 	}
 
-	ImageFileType Image::getFileType(Memory mem)
+	ImageFileType Image::getFileType(const Memory& mem)
 	{
 		return getFileType(mem.getData(), mem.getSize());
 	}
@@ -1820,12 +1820,12 @@ namespace slib
 		return loadSTB(mem, size);
 	}
 
-	Ref<Image> Image::loadFromMemory(Memory mem)
+	Ref<Image> Image::loadFromMemory(const Memory& mem)
 	{
 		return loadFromMemory(mem.getData(), mem.getSize());
 	}
 
-	Ref<Image> Image::loadFromFile(const String& filePath)
+	Ref<Image> Image::loadFromFile(const StringParam& filePath)
 	{
 		Memory mem = File::readAllBytes(filePath);
 		if (mem.isNotNull()) {
@@ -1843,12 +1843,12 @@ namespace slib
 		return sl_null;
 	}
 	
-	Ref<AnimationDrawable> Image::loadAnimationFromMemory(Memory mem)
+	Ref<AnimationDrawable> Image::loadAnimationFromMemory(const Memory& mem)
 	{
 		return loadAnimationFromMemory(mem.getData(), mem.getSize());
 	}
 	
-	Ref<AnimationDrawable> Image::loadAnimationFromFile(const String& filePath)
+	Ref<AnimationDrawable> Image::loadAnimationFromFile(const StringParam& filePath)
 	{
 		Memory mem = File::readAllBytes(filePath);
 		if (mem.isNotNull()) {
@@ -1857,7 +1857,7 @@ namespace slib
 		return sl_null;
 	}
 	
-	Ref<AnimationDrawable> Image::loadAnimationFromAsset(const String& path)
+	Ref<AnimationDrawable> Image::loadAnimationFromAsset(const StringParam& path)
 	{
 		Memory mem = Assets::readAllBytes(path);
 		if (mem.isNotNull()) {

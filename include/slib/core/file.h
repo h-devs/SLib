@@ -262,17 +262,17 @@ namespace slib
 
 		static Time getCreatedTime(const StringParam& filePath);
 
-		sl_bool setModifiedTime(Time time);
+		sl_bool setModifiedTime(const Time& time);
 
-		sl_bool setAccessedTime(Time time);
+		sl_bool setAccessedTime(const Time& time);
 
-		sl_bool setCreatedTime(Time time);
+		sl_bool setCreatedTime(const Time& time);
 
-		static sl_bool setModifiedTime(const StringParam& filePath, Time time);
+		static sl_bool setModifiedTime(const StringParam& filePath, const Time& time);
 
-		static sl_bool setAccessedTime(const StringParam& filePath, Time time);
+		static sl_bool setAccessedTime(const StringParam& filePath, const Time& time);
 
-		static sl_bool setCreatedTime(const StringParam& filePath, Time time);
+		static sl_bool setCreatedTime(const StringParam& filePath, const Time& time);
 
 
 		FileAttributes getAttributes();
@@ -375,10 +375,10 @@ namespace slib
 	
 
 		// converts any invalid characters (0~0x1f, 0x7f~0x9f, :*?"<>|\/) into "_"
-		static String makeSafeFileName(const String& fileName);
+		static String makeSafeFileName(const StringParam& fileName);
 	
 		// converts any invalid characters (0~0x1f, 0x7f~0x9f, :*?"<>|) into "_"
-		static String makeSafeFilePath(const String& filePath);
+		static String makeSafeFilePath(const StringParam& filePath);
 	
 		static String findParentPathContainingFile(const String& basePath, const String& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX);
 	

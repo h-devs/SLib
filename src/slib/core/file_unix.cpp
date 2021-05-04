@@ -479,7 +479,7 @@ namespace slib
 		namespace file
 		{
 			
-			static sl_bool setAccessedAndModifiedTime(const StringParam& _filePath, Time timeAccess, Time timeModify)
+			static sl_bool setAccessedAndModifiedTime(const StringParam& _filePath, const Time& timeAccess, const Time& timeModify)
 			{
 				StringCstr filePath(_filePath);
 				if (filePath.isEmpty()) {
@@ -496,39 +496,39 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setModifiedTime(Time time)
+	sl_bool File::setModifiedTime(const Time& time)
 	{
 		// not supported
 		return sl_false;
 	}
 
-	sl_bool File::setAccessedTime(Time time)
+	sl_bool File::setAccessedTime(const Time& time)
 	{
 		// not supported
 		return sl_false;
 	}
 
-	sl_bool File::setCreatedTime(Time time)
+	sl_bool File::setCreatedTime(const Time& time)
 	{
 		// not supported
 		return sl_false;
 	}
 
-	sl_bool File::setModifiedTime(const StringParam& _filePath, Time time)
+	sl_bool File::setModifiedTime(const StringParam& _filePath, const Time& time)
 	{
 		StringCstr filePath(_filePath);
 		Time timeAccess = getAccessedTime(filePath);
 		return priv::file::setAccessedAndModifiedTime(filePath, timeAccess, time);
 	}
 
-	sl_bool File::setAccessedTime(const StringParam& _filePath, Time time)
+	sl_bool File::setAccessedTime(const StringParam& _filePath, const Time& time)
 	{
 		StringCstr filePath(_filePath);
 		Time timeModify = getModifiedTime(filePath);
 		return priv::file::setAccessedAndModifiedTime(filePath, time, timeModify);
 	}
 
-	sl_bool File::setCreatedTime(const StringParam& filePath, Time time)
+	sl_bool File::setCreatedTime(const StringParam& filePath, const Time& time)
 	{
 		// not supported
 		return sl_false;

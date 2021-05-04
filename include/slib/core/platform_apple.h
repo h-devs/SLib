@@ -68,7 +68,7 @@ namespace slib
 		
 #endif
 
-		static String getAssetFilePath(const String& path);
+		static String getAssetFilePath(const StringParam& path);
 
 		static String getSystemVersion();
 
@@ -78,10 +78,10 @@ namespace slib
 
 		static String getMainBundlePath();
 		
-		static String getSystemLocalizedString(const String& key);
+		static String getSystemLocalizedString(const StringParam& key);
 	
 #ifdef SLIB_PLATFORM_IS_MACOS
-		static void setBundleLoginItemEnabled(const String& path, sl_bool flagEnabled);
+		static void setBundleLoginItemEnabled(const StringParam& path, sl_bool flagEnabled);
 #endif
 
 	};

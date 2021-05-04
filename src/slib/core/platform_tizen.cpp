@@ -34,7 +34,7 @@
 namespace slib
 {
 
-	String Tizen::getAssetFilePath(const String& path)
+	String Tizen::getAssetFilePath(const StringParam& path)
 	{
 		char* root = ::app_get_resource_path();
 		String s = String::format("%s/%s", root, path);

@@ -203,6 +203,10 @@ namespace slib
 		String toString() const noexcept;
 
 		String16 toString16() const noexcept;
+		
+		String newString() const noexcept;
+
+		String16 newString16() const noexcept;
 
 		Variant toVariant() const noexcept;
 		

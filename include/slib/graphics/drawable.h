@@ -186,9 +186,9 @@ namespace slib
 
 		static Ref<Drawable> loadFromMemory(const Memory& mem);
 
-		static Ref<Drawable> loadFromFile(const String& filePath);
+		static Ref<Drawable> loadFromFile(const StringParam& filePath);
 
-		static Ref<Drawable> loadFromAsset(const String& path);
+		static Ref<Drawable> loadFromAsset(const StringParam& path);
 
 	};
 	

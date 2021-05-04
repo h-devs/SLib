@@ -36,7 +36,7 @@ namespace slib
 	class SLIB_EXPORT Tizen
 	{
 	public:
-		static String getAssetFilePath(const String& path);
+		static String getAssetFilePath(const StringParam& path);
 
 	};
 

@@ -34,10 +34,10 @@ namespace slib
 	public:
 		static sl_bool isBasedOnFileSystem();
 
-		static String getFilePath(const String& path);
+		static String getFilePath(const StringParam& path);
 	
 
-		static Memory readAllBytes(const String& path);
+		static Memory readAllBytes(const StringParam& path);
 	
 	};
 

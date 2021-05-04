@@ -47,7 +47,7 @@ namespace slib
 		return ret;
 	}
 	
-	CGImageRef GraphicsPlatform::loadCGImageFromApp(const String& name)
+	CGImageRef GraphicsPlatform::loadCGImageFromApp(const StringParam& name)
 	{
 		CGImageRef ret;
 		NSImage* image = [NSImage imageNamed:(Apple::getNSStringFromString(name))];
@@ -139,7 +139,7 @@ namespace slib
 		return ret;
 	}
 
-	CGImageRef GraphicsPlatform::loadCGImageFromApp(const String& name)
+	CGImageRef GraphicsPlatform::loadCGImageFromApp(const StringParam& name)
 	{
 		CGImageRef ret;
 		UIImage* image = [UIImage imageNamed:(Apple::getNSStringFromString(name))];

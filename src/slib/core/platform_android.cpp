@@ -85,7 +85,7 @@ namespace slib
 		}
 	}
 
-	jobject Android::openAssetFile(const String& path)
+	jobject Android::openAssetFile(const StringParam& path)
 	{
 		jobject jactivity = Android::getCurrentActivity();
 		if (jactivity) {
@@ -96,7 +96,7 @@ namespace slib
 		}
 	}
 
-	Memory Android::readAllBytesFromAsset(const String& path)
+	Memory Android::readAllBytesFromAsset(const StringParam& path)
 	{
 		JniLocal<jobject> is = Android::openAssetFile(path);
 		if (is.isNotNull()) {
@@ -136,7 +136,7 @@ namespace slib
 		}
 	}
 
-	void Android::sendFile(const String& filePath, const String& mimeType, const String& chooserTitle)
+	void Android::sendFile(const StringParam& filePath, const StringParam& mimeType, const StringParam& chooserTitle)
 	{
 		jobject jactivity = Android::getCurrentActivity();
 		if (jactivity) {
