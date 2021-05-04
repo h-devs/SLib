@@ -37,7 +37,6 @@
 
 #include "network/tcpip.h"
 #include "network/tcpip_fragment.h"
-#include "network/pseudo_tcp.h"
 #include "network/dns.h"
 #include "network/icmp.h"
 #include "network/nat.h"
@@ -54,5 +53,7 @@
 #include "network/pcap.h"
 #include "network/npcap.h"
 #include "network/tap.h"
+
+#include "network/pseudo_tcp.h"
 
 #endif

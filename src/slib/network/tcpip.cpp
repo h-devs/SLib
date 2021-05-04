@@ -315,8 +315,6 @@ namespace slib
 	}
 	
 	
-	SLIB_DEFINE_OBJECT(IPv4Fragmentation, Object)
-	
 	IPv4Fragmentation::IPv4Fragmentation()
 	{
 	}
@@ -362,7 +360,7 @@ namespace slib
 		id.identification = ip->getIdentification();
 		id.protocol = ip->getProtocol();
 		
-		ObjectLocker lock(this);
+		ObjectLocker lock(&m_packets);
 		
 		Ref<IPv4FragmentedPacket> packet;
 		if (offset == 0) {

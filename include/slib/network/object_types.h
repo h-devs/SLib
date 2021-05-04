@@ -53,7 +53,6 @@ namespace slib
 			StunServer,
 			NetCapture,
 			NatTable,
-			IPv4Fragmentation,
 			Tap,
 			Pcap
 		};
