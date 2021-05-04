@@ -227,7 +227,7 @@ namespace slib
 		return Serialize(output, *((Variant*)(void*)&_in));
 	}
 
-	template <class INPUT, class T>
+	template <class INPUT>
 	static sl_bool Deserialize(INPUT* input, Json& _out)
 	{
 		return Deserialize(input, *((Variant*)(void*)&_out));
