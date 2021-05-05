@@ -53,7 +53,6 @@ namespace slib
 				Function<void(Connection* connection)> onUpdate;
 
 				Memory dataSend;
-				MemoryOutput dataReceive;
 				sl_bool flagError;
 				sl_bool flagEnd;
 
@@ -62,6 +61,7 @@ namespace slib
 				Function<void(sl_uint8* packet, sl_uint32 size)> m_callbackSendPacket;
 
 				sl_uint32 m_offsetWrite;
+				MemoryOutput m_dataReceive;
 				sl_uint8 m_bufReceiveHeader[4];
 
 				sl_uint32 m_timeStart;
@@ -99,7 +99,7 @@ namespace slib
 						if (!n) {
 							return;
 						}
-						sl_uint32 m = (sl_uint32)(dataReceive.getSize());
+						sl_uint32 m = (sl_uint32)(m_dataReceive.getSize());
 						if (m < 4) {
 							sl_uint32 k = 4 - m;
 							if (k > (sl_uint32)n) {
@@ -107,7 +107,7 @@ namespace slib
 							}
 							Base::copyMemory(m_bufReceiveHeader + m, buf, k);
 						}
-						if (!(dataReceive.write(buf, n))) {
+						if (!(m_dataReceive.write(buf, n))) {
 							flagError = sl_true;
 							onUpdate(this);
 							return;
@@ -173,15 +173,25 @@ namespace slib
 					return sl_false;
 				}
 
+				Memory getReceivedData()
+				{
+					Memory mem = m_dataReceive.getData();
+					sl_size n = mem.getSize();
+					if (n > 4) {
+						return mem.sub(4, MIO::readUint32LE(m_bufReceiveHeader));
+					}
+					return sl_null;
+				}
+
 				sl_bool isReadComplete()
 				{
-					sl_size m = dataReceive.getSize();
+					sl_size m = m_dataReceive.getSize();
 					return m >= 4 && m >= 4 + MIO::readUint32LE(m_bufReceiveHeader);
 				}
 
 				sl_bool isReadCompleteOver()
 				{
-					sl_size m = dataReceive.getSize();
+					sl_size m = m_dataReceive.getSize();
 					return m > 4 && m > 4 + MIO::readUint32LE(m_bufReceiveHeader);
 				}
 
@@ -263,7 +273,7 @@ namespace slib
 						connection->tcp.send("", 1);
 					});
 					endSendingConnection(conversationNo, connection);
-					Memory mem = connection->dataReceive.getData();
+					Memory mem = connection->getReceivedData();
 					callbackResponse((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()));
 				}
 			}
@@ -333,7 +343,7 @@ namespace slib
 			if (connection->isReadComplete()) {
 				if (connection->dataSend.isNull()) {
 					MemoryOutput output;
-					Memory mem = connection->dataReceive.getData();
+					Memory mem = connection->getReceivedData();
 					callbackMessage((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()), &output);
 					mem = output.getData();
 					if (!(connection->setSendingData(mem.getData(), mem.getSize()))) {
