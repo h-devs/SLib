@@ -124,22 +124,25 @@ namespace slib
 					if (dataSend.isNull()) {
 						return;
 					}
-					sl_uint32 total = (sl_uint32)(dataSend.getSize());
-					if (m_offsetWrite >= total) {
-						return;
-					}
-					sl_int32 n = tcp.send((sl_uint8*)(dataSend.getData()) + m_offsetWrite, total - m_offsetWrite);
-					if (n < 0) {
-						flagError = sl_true;
-						onUpdate(this);
-						return;
-					}
-					if (!n) {
-						return;
-					}
-					m_offsetWrite += n;
-					if (isWriteComplete()) {
-						onUpdate(this);
+					for (;;) {
+						sl_uint32 total = (sl_uint32)(dataSend.getSize());
+						if (m_offsetWrite >= total) {
+							return;
+						}
+						sl_int32 n = tcp.send((sl_uint8*)(dataSend.getData()) + m_offsetWrite, total - m_offsetWrite);
+						if (n < 0) {
+							flagError = sl_true;
+							onUpdate(this);
+							return;
+						}
+						if (!n) {
+							return;
+						}
+						m_offsetWrite += n;
+						if (isWriteComplete()) {
+							onUpdate(this);
+							return;
+						}
 					}
 				}
 
