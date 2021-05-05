@@ -249,7 +249,7 @@ namespace slib
 				}
 				
 				void _run()
-				{					
+				{
 					int result = pcap_loop(m_handle, -1, &_handler, (u_char*)this);
 					if (result == -1) {
 						Ref<PcapImpl> thiz = this; // Protection for releasing during callback
