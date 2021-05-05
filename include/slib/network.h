@@ -55,5 +55,6 @@
 #include "network/tap.h"
 
 #include "network/pseudo_tcp.h"
+#include "network/pseudo_tcp_message.h"
 
 #endif

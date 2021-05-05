@@ -1385,5 +1385,8 @@
     <ClCompile Include="..\..\src\slib\network\npcap_install_win32.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\pseudo_tcp_message.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
