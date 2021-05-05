@@ -119,10 +119,14 @@ namespace slib
 							return;
 						}
 					case VariantType::Int64:
+					case VariantType::Uint64:
 						bson_append_int64(bson, key.getData(), (int)(key.getLength()), REF_VAR(sl_int64, json._value));
 						return;
 					case VariantType::Double:
 						bson_append_double(bson, key.getData(), (int)(key.getLength()), REF_VAR(double, json._value));
+						return;
+					case VariantType::Float:
+						bson_append_double(bson, key.getData(), (int)(key.getLength()), REF_VAR(float, json._value));
 						return;
 					case VariantType::Time:
 						bson_append_date_time(bson, key.getData(), (int)(key.getLength()), REF_VAR(Time, json._value).getMillisecondsCount());
