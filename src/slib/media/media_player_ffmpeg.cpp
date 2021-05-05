@@ -535,7 +535,7 @@ namespace slib
 								if (duration < 0.02) {
 									duration = 0.02;
 								}
-								double dt = m_timeCounterVideo.getTime().getSecondsCountf();
+								double dt = m_timeCounterVideo.getElapsedMilliseconds() / 1000.0;
 								m_timeCounterVideo.reset();
 								if (dt < duration) {
 									Thread::sleep((sl_uint32)((duration - dt) * 1000));

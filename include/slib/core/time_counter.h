@@ -23,7 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CORE_TIME_COUNTER
 #define CHECKHEADER_SLIB_CORE_TIME_COUNTER
 
-#include "time.h"
+#include "definition.h"
+#include "default_members.h"
 
 namespace slib
 {
@@ -36,25 +37,18 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TimeCounter)
 
 	public:
-		Time getTime() const noexcept;
-
-		Time getTime(const Time& current) const noexcept;
+		static sl_uint64 now() noexcept;
 
 		sl_uint64 getElapsedMilliseconds() const noexcept;
 
-		sl_uint64 getElapsedMilliseconds(const Time& current) const noexcept;
+		sl_uint64 getElapsedMilliseconds(sl_uint64 now) const noexcept;
 
 		void reset() noexcept;
 
-		void reset(const Time& current) noexcept;
-
-		void update() noexcept;
-
-		void update(const Time& current) noexcept;
+		void reset(sl_uint64 now) noexcept;
 
 	protected:
-		Time m_timeLast;
-		Time m_timeElapsed;
+		sl_uint64 m_timeStart;
 
 	};
 

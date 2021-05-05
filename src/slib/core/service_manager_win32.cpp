@@ -296,7 +296,6 @@ namespace slib
 						}
 					}
 					Thread::sleep(10);
-					timer.update();
 					if (timeoutMilliseconds >= 0) {
 						if (timer.getElapsedMilliseconds() > (sl_uint32)timeoutMilliseconds) {
 							return sl_false;
@@ -335,7 +334,6 @@ namespace slib
 						}
 					}
 					Thread::sleep(10);
-					timer.update();
 					if (timeoutMilliseconds >= 0) {
 						if (timer.getElapsedMilliseconds() > (sl_uint32)timeoutMilliseconds) {
 							return sl_false;
@@ -377,7 +375,6 @@ namespace slib
 						}
 					}
 					Thread::sleep(10);
-					timer.update();
 					if (timeoutMilliseconds >= 0) {
 						if (timer.getElapsedMilliseconds() > (sl_uint32)timeoutMilliseconds) {
 							return sl_false;

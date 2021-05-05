@@ -27,6 +27,7 @@
 #include "slib/core/time_parse.h"
 
 #include "slib/core/locale.h"
+#include "slib/core/system.h"
 #include "slib/core/variant.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/safe_static.h"
@@ -1972,80 +1973,59 @@ namespace slib
 		reset();
 	}
 
-	Time TimeCounter::getTime() const noexcept
+	sl_uint64 TimeCounter::now() noexcept
 	{
-		return getTime(Time::now());
-	}
-
-	Time TimeCounter::getTime(const Time& current) const noexcept
-	{
-		Time last = m_timeLast;
-		if (current > last) {
-			return current - last + m_timeElapsed;
-		} else {
-			return m_timeElapsed;
-		}
+		return System::getHighResolutionTickCount();
 	}
 
 	sl_uint64 TimeCounter::getElapsedMilliseconds() const noexcept
 	{
-		return getTime().getMillisecondsCount();
+		return getElapsedMilliseconds(now());
 	}
 
-	sl_uint64 TimeCounter::getElapsedMilliseconds(const Time& current) const noexcept
+	sl_uint64 TimeCounter::getElapsedMilliseconds(sl_uint64 current) const noexcept
 	{
-		return getTime(current).getMillisecondsCount();
+		return current - m_timeStart;
 	}
 
 	void TimeCounter::reset() noexcept
 	{
-		reset(Time::now());
+		reset(now());
 	}
 
-	void TimeCounter::reset(const Time& current) noexcept
+	void TimeCounter::reset(sl_uint64 current) noexcept
 	{
-		m_timeLast = current;
-		m_timeElapsed.setZero();
-	}
-
-	void TimeCounter::update() noexcept
-	{
-		update(Time::now());
-	}
-
-	void TimeCounter::update(const Time& current) noexcept
-	{
-		Time last = m_timeLast;
-		if (current > last) {
-			m_timeElapsed += (current - last);
-		}
-		m_timeLast = current;
+		m_timeStart = current;
 	}
 
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TimeKeeper)
 
-	TimeKeeper::TimeKeeper() noexcept
-	 : m_flagStarted(sl_false), m_flagRunning(sl_false), m_timeLast(0), m_timeElapsed(0)
+	TimeKeeper::TimeKeeper() noexcept: m_flagStarted(sl_false), m_flagRunning(sl_false), m_timeLast(0), m_timeElapsed(0)
 	{
+	}
+
+	sl_uint64 TimeKeeper::now() noexcept
+	{
+		return System::getHighResolutionTickCount();
 	}
 
 	void TimeKeeper::start() noexcept
 	{
-		startAndSetTime(Time::zero(), Time::now());
+		startAndSetTime(0, now());
 	}
 
-	void TimeKeeper::start(const Time& current) noexcept
+	void TimeKeeper::start(sl_uint64 current) noexcept
 	{
-		startAndSetTime(Time::zero(), current);
+		startAndSetTime(0, current);
 	}
 
-	void TimeKeeper::startAndSetTime(const Time& init) noexcept
+	void TimeKeeper::startAndSetTime(sl_uint64 init) noexcept
 	{
-		startAndSetTime(init, Time::now());
+		startAndSetTime(init, now());
 	}
 
-	void TimeKeeper::startAndSetTime(const Time& init, const Time& current) noexcept
+	void TimeKeeper::startAndSetTime(sl_uint64 init, sl_uint64 current) noexcept
 	{
 		SpinLocker lock(&m_lock);
 		if (m_flagStarted) {
@@ -2059,20 +2039,20 @@ namespace slib
 
 	void TimeKeeper::restart() noexcept
 	{
-		restartAndSetTime(Time::zero(), Time::now());
+		restartAndSetTime(0, now());
 	}
 
-	void TimeKeeper::restart(const Time& current) noexcept
+	void TimeKeeper::restart(sl_uint64 current) noexcept
 	{
-		restartAndSetTime(Time::zero(), current);
+		restartAndSetTime(0, current);
 	}
 
-	void TimeKeeper::restartAndSetTime(const Time& init) noexcept
+	void TimeKeeper::restartAndSetTime(sl_uint64 init) noexcept
 	{
-		restartAndSetTime(init, Time::now());
+		restartAndSetTime(init, now());
 	}
 
-	void TimeKeeper::restartAndSetTime(const Time& init, const Time& current) noexcept
+	void TimeKeeper::restartAndSetTime(sl_uint64 init, sl_uint64 current) noexcept
 	{
 		SpinLocker lock(&m_lock);
 		m_timeLast = current;
@@ -2088,10 +2068,10 @@ namespace slib
 
 	void TimeKeeper::resume() noexcept
 	{
-		resume(Time::now());
+		resume(now());
 	}
 
-	void TimeKeeper::resume(const Time& current) noexcept
+	void TimeKeeper::resume(sl_uint64 current) noexcept
 	{
 		SpinLocker lock(&m_lock);
 		if (m_flagStarted) {
@@ -2104,10 +2084,10 @@ namespace slib
 
 	void TimeKeeper::pause() noexcept
 	{
-		pause(Time::now());
+		pause(now());
 	}
 
-	void TimeKeeper::pause(const Time& current) noexcept
+	void TimeKeeper::pause(sl_uint64 current) noexcept
 	{
 		SpinLocker lock(&m_lock);
 		if (m_flagStarted) {
@@ -2120,16 +2100,16 @@ namespace slib
 		}
 	}
 
-	Time TimeKeeper::getTime() const noexcept
+	sl_uint64 TimeKeeper::getTime() const noexcept
 	{
-		return getTime(Time::now());
+		return getTime(now());
 	}
 
-	Time TimeKeeper::getTime(const Time& current) const noexcept
+	sl_uint64 TimeKeeper::getTime(sl_uint64 current) const noexcept
 	{
 		SpinLocker lock(&m_lock);
 		if (!m_flagStarted) {
-			return Time::zero();
+			return 0;
 		}
 		if (!m_flagRunning) {
 			return m_timeElapsed;
@@ -2137,12 +2117,12 @@ namespace slib
 		return m_timeElapsed + (current - m_timeLast);
 	}
 
-	void TimeKeeper::setTime(const Time& time) noexcept
+	void TimeKeeper::setTime(sl_uint64 time) noexcept
 	{
-		setTime(time, Time::now());
+		setTime(time, now());
 	}
 
-	void TimeKeeper::setTime(const Time& time, const Time& current) noexcept
+	void TimeKeeper::setTime(sl_uint64 time, sl_uint64 current) noexcept
 	{
 		SpinLocker lock(&m_lock);
 		if (m_flagStarted) {
@@ -2153,15 +2133,15 @@ namespace slib
 
 	void TimeKeeper::update() noexcept
 	{
-		update(Time::now());
+		update(now());
 	}
 
-	void TimeKeeper::update(const Time& current) noexcept
+	void TimeKeeper::update(sl_uint64 current) noexcept
 	{
 		SpinLocker lock(&m_lock);
 		if (m_flagStarted) {
 			if (m_flagRunning) {
-				sl_int64 add = (current - m_timeLast).toInt();
+				sl_int64 add = current - m_timeLast;
 				if (add > 0) {
 					m_timeElapsed += add;
 				}
