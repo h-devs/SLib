@@ -230,11 +230,6 @@ namespace slib
 		m_timeout = timeout;
 	}
 
-	void PseudoTcpMessage::setOnReceiveMessage(const Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callback)
-	{
-		m_onReceiveMessage = callback;
-	}
-
 	void PseudoTcpMessage::sendMessage(const void* data, sl_uint32 size, const Function<void(sl_uint8* data, sl_int32 size)>& callbackResponse, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout)
 	{
 		if (!(data && size && size <= MESSAGE_SIZE_MAX)) {
@@ -303,7 +298,7 @@ namespace slib
 		}
 	}
 
-	void PseudoTcpMessage::notifyPacketForListeningMessage(const String& host, const void* data, sl_uint32 size, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket)
+	void PseudoTcpMessage::notifyPacketForListeningMessage(const String& host, const void* data, sl_uint32 size, const Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket)
 	{
 		if (size < 4) {
 			return;
@@ -322,7 +317,7 @@ namespace slib
 			return;
 		}
 		WeakRef<PseudoTcpMessage> thiz = this;
-		auto callbackUpdate = [this, thiz, address](Connection* connection) {
+		auto callbackUpdate = [this, thiz, address, callbackMessage](Connection* connection) {
 			if (connection->flagEnd) {
 				return;
 			}
@@ -339,7 +334,7 @@ namespace slib
 				if (connection->dataSend.isNull()) {
 					MemoryOutput output;
 					Memory mem = connection->dataReceive.getData();
-					m_onReceiveMessage((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()), &output);
+					callbackMessage((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()), &output);
 					mem = output.getData();
 					if (!(connection->setSendingData(mem.getData(), mem.getSize()))) {
 						endListeningConnection(address, connection);

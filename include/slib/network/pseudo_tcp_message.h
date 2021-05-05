@@ -76,14 +76,12 @@ namespace slib
 
 		void setTimeout(sl_uint32 timeout);
 
-		void setOnReceiveMessage(const Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callback);
-
 	public:
 		void sendMessage(const void* data, sl_uint32 size, const Function<void(sl_uint8* data, sl_int32 size)>& callbackResponse, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout = 0);
 
 		void notifyPacketForSendingMessage(const void* data, sl_uint32 size);
 
-		void notifyPacketForListeningMessage(const String& host, const void* data, sl_uint32 size, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket);
+		void notifyPacketForListeningMessage(const String& host, const void* data, sl_uint32 size, const Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket);
 
 	protected:
 		typedef priv::pt_msg::Address Address;
@@ -102,7 +100,6 @@ namespace slib
 		void endListeningConnection(const Address& address, Connection* connection);
 
 	protected:
-		Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)> m_onReceiveMessage;
 		sl_uint32 m_timeout;
 
 		sl_uint32 m_conversationNoLastSent;
