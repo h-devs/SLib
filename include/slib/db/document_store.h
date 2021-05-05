@@ -107,7 +107,7 @@ namespace slib
 			Ref<DocumentCursor> cursor = find(Forward<ARGS>(args)...);
 			if (cursor.isNotNull()) {
 				JsonList list;
-				if (cursor->moveNext()) {
+				while (cursor->moveNext()) {
 					list.add_NoLock(cursor->getDocument());
 				}
 				return list;
