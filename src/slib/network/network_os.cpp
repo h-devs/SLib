@@ -100,7 +100,7 @@ namespace slib
 		StringData name(_name);
 		ListElements<NetworkInterfaceInfo> devices(Network::findAllInterfaces());
 		for (sl_size i = 0; i < devices.count; i++) {
-			if (devices[i].displayName == name) {
+			if (devices[i].name == name || devices[i].displayName == name) {
 				if(pInfo) {
 					*pInfo = devices[i];
 				}

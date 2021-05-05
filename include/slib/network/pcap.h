@@ -25,6 +25,9 @@
 
 #include "capture.h"
 
+#include "ip_address.h"
+#include "mac_address.h"
+
 namespace slib
 {
 

@@ -24,11 +24,11 @@
 #define CHECKHEADER_SLIB_NETWORK_CAPTURE
 
 #include "constants.h"
-#include "ip_address.h"
 
 #include "../core/object.h"
 #include "../core/time.h"
 #include "../core/function.h"
+#include "../core/string.h"
 
 namespace slib
 {

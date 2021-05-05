@@ -109,11 +109,6 @@ namespace slib
 				static Ref<PcapImpl> create(const PcapParam& param)
 				{
 					StringCstr name = param.deviceName;
-#if defined(SLIB_PLATFORM_IS_WIN32)
-					if (name.startsWith('{')) {
-						name = "\\Device\\NPF_" + (StringView&)name;
-					}
-#endif
 					if (name.isEmpty()) {
 						name = "any";
 					}
@@ -331,15 +326,15 @@ namespace slib
 				while (addr) {
 					if (addr->addr) {
 						switch (addr->addr->sa_family) {
-						case AF_INET:
-							sa.setSystemSocketAddress(addr->addr);
-							addrs4.add_NoLock(sa.ip.getIPv4());
-							break;
-						case AF_INET6:
-							sa.setSystemSocketAddress(addr->addr);
-							addrs6.add_NoLock(sa.ip.getIPv6());
-							break;
-						}
+							case AF_INET:
+								sa.setSystemSocketAddress(addr->addr);
+								addrs4.add_NoLock(sa.ip.getIPv4());
+								break;
+							case AF_INET6:
+								sa.setSystemSocketAddress(addr->addr);
+								addrs6.add_NoLock(sa.ip.getIPv6());
+								break;
+							}
 					}
 					addr = addr->next;
 				}
