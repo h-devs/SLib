@@ -143,7 +143,7 @@ namespace slib
 					}
 				}
 
-				void onTcpClosed(PseudoTcp*, PseudoTcpError error) override
+				void onTcpClosed(PseudoTcp*, PseudoTcpError) override
 				{
 					flagError = sl_true;
 					onUpdate(this);
@@ -362,6 +362,10 @@ namespace slib
 		connection = new Connection(conversationNo, callbackUpdate, callbackSendPacket, m_timeout);
 		if (connection.isNotNull()) {
 			m_mapListen.put(address, connection);
+			Packet packet;
+			packet.connection = connection;
+			packet.content = Memory::create(data, size);
+			m_queuePackets.pushBack(packet);
 			m_threadProcess->wake();
 		}
 	}
