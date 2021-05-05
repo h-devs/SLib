@@ -113,6 +113,59 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool IPv4Address::isSpecial() const noexcept
+	{
+		if (!a || a == 10 || a == 127) {
+			// 0.0.0.0-0.255.255.255		Software (Current network)
+			// 10.0.0.0-10.255.255.255		Private
+			// 127.0.0.0-127.255.255.255	Loopback
+			return sl_true;
+		}
+		sl_uint32 n = getInt();
+		if ((n & 0xFFC00000) == 0x64400000) {
+			// 100.64.0.0/10 (100.64.0.0-100.127.255.255)
+			// Private (Shared address space for communications between a service provider and its subscribers when using a carrier-grade NAT)
+			return sl_true;
+		}
+		sl_uint32 n16 = n >> 16;
+		if (n16 == 0xA9FE) {
+			// 169.254.0.0-169.254.255.255	Link-Local
+			return sl_true;
+		}
+		if ((n & 0xFFF00000) == 0xAC100000) {
+			// 172.16.0.0/12 (172.16.0.0-172.31.255.255)	Private
+			return sl_true;
+		}
+		sl_uint32 n24 = n >> 8;
+		if (n24 == 0xC00000 || n24 == 0xC00002 || n24 == 0xC05863) {
+			// 192.0.0.0-192.0.0.255		Private (IETF Protocol Assignments)
+			// 192.0.2.0-192.0.2.255		Documentation (Assigned as TEST-NET-1, documentation and examples)
+			// 192.88.99.0-192.88.99.255	Reserved
+			return sl_true;
+		}
+		if (n16 == 0xC0A8) {
+			// 192.168.0.0-192.168.255.255	Private
+			return sl_true;
+		}
+		if ((n & 0xFFFE0000) == 0xC6120000) {
+			// 198.18.0.0/15 (198.18.0.0-198.19.255.255)
+			// Private (Used for benchmark testing of inter-network communications between two separate subnets)
+			return sl_true;
+		}
+		if (n24 == 0xC63364 || n24 == 0xCB0071) {
+			// 198.51.100.0-198.51.100.255	Documentation (Assigned as TEST-NET-2, documentation and examples)
+			// 203.0.113.0-203.0.113.255	Documentation (Assigned as TEST-NET-3, documentation and examples)
+			return sl_true;
+		}
+		if (a >= 224) {
+			// 224.0.0.0-239.255.255.255	Multicast
+			// 240.0.0.0-255.255.255.254	Reserved
+			// 255.255.255.255				Broadcast
+			return sl_true;
+		}
+		return sl_false;
+	}
+
 	sl_compare_result IPv4Address::compare(const IPv4Address& other) const noexcept
 	{
 		sl_uint32 p1 = getInt();

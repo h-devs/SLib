@@ -112,6 +112,8 @@ namespace slib
 		sl_bool isHost() const noexcept;
 		
 		sl_bool isPrivate() const noexcept;
+
+		sl_bool isSpecial() const noexcept;
 		
 		sl_compare_result compare(const IPv4Address& other) const noexcept;
 		
