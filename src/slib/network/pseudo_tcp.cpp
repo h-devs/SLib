@@ -40,7 +40,12 @@
 #define LOG_LEVEL_NONE 0
 #define LOG_LEVEL_NORMAL 1
 #define LOG_LEVEL_VERBOSE 2
+
+#ifdef SLIB_DEBUG
 #define LOG_LEVEL LOG_LEVEL_NORMAL
+#else
+#define LOG_LEVEL LOG_LEVEL_NONE
+#endif
 
 #define PSEUDO_KEEPALIVE 0
 
