@@ -99,6 +99,75 @@ namespace slib
 	{
 	}
 
+	sl_int64 DocumentDatabase::getDocumentsCount(const StringParam& collectionName, const Json& filter)
+	{
+		Ref<DocumentCollection> collection = getCollection(collectionName);
+		if (collection.isNotNull()) {
+			return collection->getDocumentsCount(filter);
+		}
+		return -1;
+	}
+
+	sl_int64 DocumentDatabase::getDocumentsCount(const StringParam& collectionName)
+	{
+		return getDocumentsCount(collectionName, sl_null);
+	}
+
+	Ref<DocumentCursor> DocumentDatabase::find(const StringParam& collectionName, const Json& filter, const Json& options)
+	{
+		Ref<DocumentCollection> collection = getCollection(collectionName);
+		if (collection.isNotNull()) {
+			return collection->find(filter, options);
+		}
+		return sl_null;
+	}
+
+	Ref<DocumentCursor> DocumentDatabase::find(const StringParam& collectionName, const Json& filter)
+	{
+		return find(collectionName, sl_null, sl_null);
+	}
+
+	Ref<DocumentCursor> DocumentDatabase::find(const StringParam& collectionName)
+	{
+		return find(collectionName, sl_null, sl_null);
+	}
+
+	sl_bool DocumentDatabase::insert(const StringParam& collectionName, const Json& document)
+	{
+		Ref<DocumentCollection> collection = getCollection(collectionName);
+		if (collection.isNotNull()) {
+			return collection->insert(document);
+		}
+		return sl_false;
+	}
+
+	sl_bool DocumentDatabase::replace(const StringParam& collectionName, const Json& selector, const Json& document, sl_bool flagUpsert)
+	{
+		Ref<DocumentCollection> collection = getCollection(collectionName);
+		if (collection.isNotNull()) {
+			return collection->replace(selector, document, flagUpsert);
+		}
+		return sl_false;
+	}
+
+	sl_int64 DocumentDatabase::update(const StringParam& collectionName, const Json& selector, const Json& update)
+	{
+		Ref<DocumentCollection> collection = getCollection(collectionName);
+		if (collection.isNotNull()) {
+			return collection->update(selector, update);
+		}
+		return -1;
+	}
+
+	sl_int64 DocumentDatabase::remove(const StringParam& collectionName, const Json& filter)
+	{
+		Ref<DocumentCollection> collection = getCollection(collectionName);
+		if (collection.isNotNull()) {
+			return collection->remove(filter);
+		}
+		return -1;
+	}
+
 
 	SLIB_DEFINE_OBJECT(DocumentStore, Object)
 

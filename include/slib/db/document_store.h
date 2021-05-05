@@ -138,6 +138,24 @@ namespace slib
 		virtual List<String> getCollectionNames() = 0;
 
 	public:
+		sl_int64 getDocumentsCount(const StringParam& collectionName, const Json& filter);
+
+		sl_int64 getDocumentsCount(const StringParam& collectionName);
+
+		Ref<DocumentCursor> find(const StringParam& collectionName, const Json& filter, const Json& options);
+
+		Ref<DocumentCursor> find(const StringParam& collectionName, const Json& filter);
+
+		Ref<DocumentCursor> find(const StringParam& collectionName);
+
+		sl_bool insert(const StringParam& collectionName, const Json& document);
+
+		sl_bool replace(const StringParam& collectionName, const Json& selector, const Json& document, sl_bool flagUpsert = sl_false);
+
+		sl_int64 update(const StringParam& collectionName, const Json& selector, const Json& update);
+
+		sl_int64 remove(const StringParam& collectionName, const Json& filter);
+
 		template <class... ARGS>
 		Json getFirstDocument(const StringParam& collectionName, ARGS&&... args)
 		{
