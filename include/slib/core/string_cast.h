@@ -221,6 +221,26 @@ namespace slib
 #endif
 	
 	
+	template <class T>
+	class Cast<T, String>
+	{
+	public:
+		String operator()(const T& v) const
+		{
+			return v.toString();
+		}
+	};
+	
+	template <>
+	class Cast<String, String>
+	{
+	public:
+		const String& operator()(const String& v) const
+		{
+			return v;
+		}
+	};
+	
 	template <>
 	class Cast<signed char, String>
 	{
