@@ -340,7 +340,7 @@ namespace slib
 
 	void System::registerApplicationRunAtStartup(const String& path)
 	{
-		String name = File::getFileNameOnly(path) + "_" + String::fromUint64(Time::now().toInt());
+		String name = File::getFileNameOnly(path);
 		Windows::setApplicationRunAtStartup(name, path, sl_true);
 	}
 
