@@ -162,6 +162,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/math/plot_ui.cpp"
 
  "${SLIB_PATH}/src/slib/network/arp.cpp"
+ "${SLIB_PATH}/src/slib/network/dbip.cpp"
  "${SLIB_PATH}/src/slib/network/dns.cpp"
  "${SLIB_PATH}/src/slib/network/ethernet.cpp"
  "${SLIB_PATH}/src/slib/network/http_common.cpp"

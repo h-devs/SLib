@@ -58,4 +58,6 @@
 #include "network/pseudo_tcp.h"
 #include "network/pseudo_tcp_message.h"
 
+#include "network/dbip.h"
+
 #endif
