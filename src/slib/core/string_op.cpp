@@ -2827,7 +2827,7 @@ namespace slib
 			const sl_uint8* g_conv_radixInversePatternSmall = g_conv_radix_inverse_pattern_small;
 			
 			template <class IT, class CT>
-			SLIB_INLINE static sl_reg ParseInt(sl_int32 radix, const CT* sz, sl_size i, sl_size n, IT* _out) noexcept
+			static sl_reg ParseInt(sl_int32 radix, const CT* sz, sl_size i, sl_size n, IT* _out) noexcept
 			{
 				if (i >= n) {
 					return SLIB_PARSE_ERROR;
@@ -2871,7 +2871,7 @@ namespace slib
 			}
 			
 			template <class IT, class CT>
-			SLIB_INLINE static sl_reg ParseUint(sl_int32 radix, const CT* sz, sl_size i, sl_size n, IT* _out) noexcept
+			static sl_reg ParseUint(sl_int32 radix, const CT* sz, sl_size i, sl_size n, IT* _out) noexcept
 			{
 				if (i >= n) {
 					return SLIB_PARSE_ERROR;
@@ -2920,7 +2920,7 @@ namespace slib
 			}
 
 			template <class FT, class CT>
-			SLIB_INLINE static sl_reg ParseFloat(const CT* sz, sl_size i, sl_size n, FT* _out) noexcept
+			static sl_reg ParseFloat(const CT* sz, sl_size i, sl_size n, FT* _out) noexcept
 			{
 				if (i >= n) {
 					return SLIB_PARSE_ERROR; // input string is empty
@@ -3055,7 +3055,7 @@ namespace slib
 			}
 
 			template <class CT>
-			SLIB_INLINE static sl_reg ParseBoolean(const CT* sz, sl_size i, sl_size n, sl_bool* _out) noexcept
+			static sl_reg ParseBoolean(const CT* sz, sl_size i, sl_size n, sl_bool* _out) noexcept
 			{
 				if (i >= n) {
 					return SLIB_PARSE_ERROR;
@@ -3141,7 +3141,7 @@ namespace slib
 			}
 
 			template <class CT>
-			SLIB_INLINE static sl_reg ParseHexString(const CT* sz, sl_size i, sl_size n, void* _out) noexcept
+			static sl_reg ParseHexString(const CT* sz, sl_size i, sl_size n, void* _out) noexcept
 			{
 				if (i >= n || (n & 1)) {
 					return SLIB_PARSE_ERROR;
@@ -3180,7 +3180,7 @@ namespace slib
 			}
 
 			template <class IT, class CT>
-			SLIB_INLINE static typename StringTypeFromCharType<CT>::Type FromInt(IT _value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase, CT chGroup = sl_false, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false, sl_bool flagEncloseNagtive = sl_false) noexcept
+			static typename StringTypeFromCharType<CT>::Type FromInt(IT _value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase, CT chGroup = sl_false, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false, sl_bool flagEncloseNagtive = sl_false) noexcept
 			{
 				if (radix < 2 || radix > 64) {
 					return sl_null;
@@ -3265,7 +3265,7 @@ namespace slib
 			}
 			
 			template <class IT, class CT>
-			SLIB_INLINE static typename StringTypeFromCharType<CT>::Type FromUint(IT value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase, CT chGroup = 0, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false) noexcept
+			static typename StringTypeFromCharType<CT>::Type FromUint(IT value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase, CT chGroup = 0, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false) noexcept
 			{
 				if (radix < 2 || radix > 64) {
 					return sl_null;
@@ -3325,7 +3325,7 @@ namespace slib
 			}
 
 			template <class FT, class CT>
-			SLIB_INLINE static typename StringTypeFromCharType<CT>::Type FromFloat(FT value, sl_int32 precision, sl_bool flagZeroPadding, sl_int32 minWidthIntegral, CT chConv = 'g', CT chGroup = 0, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false, sl_bool flagEncloseNagtive = sl_false) noexcept
+			static typename StringTypeFromCharType<CT>::Type FromFloat(FT value, sl_int32 precision, sl_bool flagZeroPadding, sl_int32 minWidthIntegral, CT chConv = 'g', CT chGroup = 0, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false, sl_bool flagEncloseNagtive = sl_false) noexcept
 			{
 				
 				CT buf[MAX_NUMBER_STR_LEN];
@@ -3466,12 +3466,14 @@ namespace slib
 					}
 					if (weight > 0 && !(Math::isInfinite(weight))) {
 						sl_int32 digit = (sl_int32)(value / weight);
-						value -= (digit * weight);
-						if (digit >= 0 && digit <= 9) {
-							*(str++) = (CT)('0' + digit);
-						} else {
-							*(str++) = '#';
+						if (digit < 0) {
+							digit = 0;
 						}
+						if (digit > 9) {
+							digit = 9;
+						}
+						*(str++) = (CT)('0' + digit);
+						value -= (digit * weight);
 					}
 					if (chGroup) {
 						if (nInt > 0 && nInt % 3 == 0) {
@@ -3525,7 +3527,7 @@ namespace slib
 			}
 
 			template <class CT>
-			SLIB_INLINE static typename StringTypeFromCharType<CT>::Type MakeHexString(const void* buf, sl_size size, sl_bool flagUseLowerChar) noexcept
+			static typename StringTypeFromCharType<CT>::Type MakeHexString(const void* buf, sl_size size, sl_bool flagUseLowerChar) noexcept
 			{
 				if (!buf || size <= 0) {
 					return sl_null;
