@@ -197,4 +197,60 @@ namespace slib
 		return sl_null;
 	}
 
+
+	SLIB_DEFINE_OBJECT(DocumentStorePool, Object)
+
+	DocumentStorePool::DocumentStorePool()
+	{
+	}
+
+	DocumentStorePool::~DocumentStorePool()
+	{
+	}
+
+	Ref<DocumentDatabase> DocumentStorePool::getDatabase(const StringParam& name)
+	{
+		Ref<DocumentStore> store = getStore();
+		if (store.isNotNull()) {
+			return store->getDatabase(name);
+		}
+		return sl_null;
+	}
+
+	Ref<DocumentDatabase> DocumentStorePool::getDefaultDatabase()
+	{
+		Ref<DocumentStore> store = getStore();
+		if (store.isNotNull()) {
+			return store->getDefaultDatabase();
+		}
+		return sl_null;
+	}
+
+	List<String> DocumentStorePool::getDatabaseNames()
+	{
+		Ref<DocumentStore> store = getStore();
+		if (store.isNotNull()) {
+			return store->getDatabaseNames();
+		}
+		return sl_null;
+	}
+
+	Ref<DocumentCollection> DocumentStorePool::getCollection(const StringParam& dbName, const StringParam& collectionName)
+	{
+		Ref<DocumentStore> store = getStore();
+		if (store.isNotNull()) {
+			return store->getCollection(dbName, collectionName);
+		}
+		return sl_null;
+	}
+
+	Ref<DocumentCollection> DocumentStorePool::getCollection(const StringParam& collectionName)
+	{
+		Ref<DocumentStore> store = getStore();
+		if (store.isNotNull()) {
+			return store->getCollection(collectionName);
+		}
+		return sl_null;
+	}
+
 }

@@ -54,6 +54,10 @@ namespace slib
 	public:
 		typedef MongoDB_Param Param;
 
+		static Ref<DocumentStorePool> createPool(const MongoDB_Param& param);
+
+		static Ref<DocumentStorePool> createPool(const StringParam& connectionString);
+
 		static Ref<MongoDB> connect(const MongoDB_Param& param);
 
 		static Ref<MongoDB> connect(const StringParam& connectionString);

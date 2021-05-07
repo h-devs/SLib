@@ -204,6 +204,30 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT DocumentStorePool : public Object
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		DocumentStorePool();
+
+		~DocumentStorePool();
+
+	public:
+		virtual Ref<DocumentStore> getStore() = 0;
+
+		Ref<DocumentDatabase> getDatabase(const StringParam& name);
+
+		Ref<DocumentDatabase> getDefaultDatabase();
+
+		List<String> getDatabaseNames();
+
+		Ref<DocumentCollection> getCollection(const StringParam& dbName, const StringParam& collectionName);
+
+		Ref<DocumentCollection> getCollection(const StringParam& collectionName);
+
+	};
+
 }
 
 #endif

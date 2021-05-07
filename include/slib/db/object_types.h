@@ -66,7 +66,8 @@ namespace slib
 			DocumentDatabase,
 			DocumentCollection,
 			DocumentCursor,
-			MongoDB
+			MongoDB,
+			DocumentStorePool
 		};
 
 	}

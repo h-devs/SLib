@@ -344,11 +344,32 @@ namespace slib
 
 			SLIB_SAFE_STATIC_GETTER(Ref<MongoDBEnv>, GetEnv, new MongoDBEnv)
 
+			class PoolImpl : public DocumentStorePool
+			{
+			public:
+				mongoc_client_pool_t * m_pool;
+
+			public:
+				PoolImpl()
+				{
+				}
+
+				~PoolImpl()
+				{
+					mongoc_client_pool_destroy(m_pool);
+				}
+
+			public:
+				Ref<DocumentStore> getStore() override;
+
+			};
+
 			class MongoDBImpl : public MongoDB
 			{
 			public:
 				Ref<MongoDBEnv> m_env;
 				mongoc_client_t* m_client;
+				Ref<PoolImpl> m_pool;
 
 			public:
 				MongoDBImpl()
@@ -357,10 +378,40 @@ namespace slib
 
 				~MongoDBImpl()
 				{
-					mongoc_client_destroy(m_client);
+					if (m_pool.isNotNull()) {
+						mongoc_client_pool_push(m_pool->m_pool, m_client);
+					} else {
+						mongoc_client_destroy(m_client);
+					}
 				}
 
 			public:
+				static Ref<DocumentStorePool> createPool(const MongoDB_Param& param)
+				{
+					Ref<MongoDBEnv>* env = GetEnv();
+					if (!env) {
+						return sl_null;
+					}
+					if (env->isNull()) {
+						return sl_null;
+					}
+					StringCstr connectionString(param.connectionString);
+					mongoc_uri_t *uri = mongoc_uri_new(connectionString.getData());
+					if (!uri) {
+						return sl_null;
+					}
+					mongoc_client_pool_t* pool = mongoc_client_pool_new(uri);
+					if (pool) {
+						Ref<PoolImpl> ret = new PoolImpl;
+						if (ret.isNotNull()) {
+							ret->m_pool = pool;
+							return ret;
+						}
+						mongoc_client_pool_destroy(pool);
+					}
+					return sl_null;
+				}
+
 				static Ref<MongoDBImpl> connect(const MongoDB_Param& param)
 				{
 					Ref<MongoDBEnv>* env = GetEnv();
@@ -442,6 +493,21 @@ namespace slib
 
 			};
 
+			Ref<DocumentStore> PoolImpl::getStore()
+			{
+				mongoc_client_t* client = mongoc_client_pool_pop(m_pool);
+				if (client) {
+					Ref<MongoDBImpl> ret = new MongoDBImpl;
+					if (ret.isNotNull()) {
+						ret->m_pool = this;
+						ret->m_client = client;
+						return Ref<DocumentStore>::from(ret);
+					}
+					mongoc_client_pool_push(m_pool, client);
+				}
+				return sl_null;
+			}
+			
 			class DatabaseImpl : public DocumentDatabase
 			{
 			public:
@@ -782,6 +848,18 @@ namespace slib
 
 	MongoDB::~MongoDB()
 	{
+	}
+
+	Ref<DocumentStorePool> MongoDB::createPool(const MongoDB_Param& param)
+	{
+		return MongoDBImpl::createPool(param);
+	}
+
+	Ref<DocumentStorePool> MongoDB::createPool(const StringParam& connectionString)
+	{
+		MongoDB_Param param;
+		param.connectionString = connectionString;
+		return createPool(param);
 	}
 
 	Ref<MongoDB> MongoDB::connect(const MongoDB_Param& param)
