@@ -40,7 +40,7 @@ namespace slib
 	{
 		namespace screen_capture
 		{
-			
+		
 			class Helper
 			{
 			public:
@@ -83,7 +83,7 @@ namespace slib
 			
 			SLIB_SAFE_STATIC_GETTER(Helper, GetHelper)
 			
-			Ref<Image> TakeScreenshot(Helper* helper, NSScreen* screen)
+			static Ref<Image> TakeScreenshot(Helper* helper, NSScreen* screen)
 			{
 				NSRect rectScreen = [screen frame];
 				CGImageRef cgImage = CGWindowListCreateImage(rectScreen, kCGWindowListOptionOnScreenOnly, kCGNullWindowID, kCGWindowImageDefault);
@@ -94,7 +94,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+		
 		}
 	}
 	
@@ -120,7 +120,7 @@ namespace slib
 		return TakeScreenshot(helper, [NSScreen mainScreen]);
 	}
 
-	List< Ref<Image> >  ScreenCapture::takeScreenshotsFromAllMonitors()
+	List< Ref<Image> > ScreenCapture::takeScreenshotsFromAllMonitors()
 	{
 		Helper* helper = GetHelper();
 		if (!helper) {
