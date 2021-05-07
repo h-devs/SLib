@@ -29,6 +29,7 @@
 #include "slib/core/app.h"
 #include "slib/core/thread.h"
 #include "slib/core/time_counter.h"
+#include "slib/core/memory.h"
 #include "slib/core/windows.h"
 
 #pragma comment(lib, "advapi32.lib")
@@ -380,6 +381,21 @@ namespace slib
 							return sl_false;
 						}
 					}
+				}
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool ServiceManager::setStartType(const StringParam& serviceName, ServiceStartType type)
+	{
+		WSManager manager(GENERIC_READ | GENERIC_WRITE | SC_MANAGER_CONNECT);
+		if (manager) {
+			StringCstr16 name = serviceName;
+			WSService service(manager, name, SERVICE_CHANGE_CONFIG);
+			if (service) {
+				if (ChangeServiceConfigW(service, SERVICE_NO_CHANGE, FromServiceStartType(type), SERVICE_NO_CHANGE, NULL, NULL, NULL, NULL, NULL, NULL, NULL)) {
+					return sl_true;
 				}
 			}
 		}

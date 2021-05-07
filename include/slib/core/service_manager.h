@@ -116,6 +116,8 @@ namespace slib
 
 		static sl_bool pause(const StringParam& serviceName, sl_int32 timeout = -1);
 
+		static sl_bool setStartType(const StringParam& serviceName, ServiceStartType type);
+
 	};
 	
 }

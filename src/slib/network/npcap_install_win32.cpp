@@ -54,6 +54,7 @@ namespace slib
 				}
 
 				if (ServiceManager::start(DRIVER_NAME)) {
+					ServiceManager::setStartType(DRIVER_NAME, ServiceStartType::Auto);
 					return sl_true;
 				}
 
@@ -116,6 +117,7 @@ namespace slib
 						sl_reg n = stream->readFully(buf, sizeof(buf) - 1);
 						if (n > 0) {
 							if (StringView(buf).contains("successfully installed")) {
+								ServiceManager::setStartType(DRIVER_NAME, ServiceStartType::Auto);
 								return sl_true;
 							}
 						}
