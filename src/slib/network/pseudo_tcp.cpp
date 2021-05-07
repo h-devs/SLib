@@ -1095,7 +1095,11 @@ namespace slib
 		while (sl_true) {
 			sl_uint32 seq = seg.seq;
 			sl_uint8 flags = (seg.bCtrl ? FLAG_CTL : 0);
-			PseudoTcpWriteResult wres = buildPacket(seq, flags, seg.seq - m_snd_una, nTransmit);
+
+			if (seq < m_snd_una) {
+				break;
+			}
+			PseudoTcpWriteResult wres = buildPacket(seq, flags, seq - m_snd_una, nTransmit);
 
 			if (wres == PseudoTcpWriteResult::Success) {
 				break;
