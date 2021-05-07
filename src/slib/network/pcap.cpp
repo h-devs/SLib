@@ -298,6 +298,9 @@ namespace slib
 			{
 				_out.name = String::fromUtf8(dev->name);
 				_out.description = String::fromUtf8(dev->description);
+				if (_out.description.isEmpty()) {
+					_out.description = _out.name;
+				}
 
 				_out.flagLoopback = dev->flags & PCAP_IF_LOOPBACK;
 				_out.flagUp = dev->flags & PCAP_IF_UP;
@@ -435,9 +438,17 @@ namespace slib
 									Ref<PcapImpl> pcap = PcapImpl::create(param);
 									if (pcap.isNotNull()) {
 										m_devices.add_NoLock(Move(pcap));
-										SLIB_LOG(TAG, "Added device to any capture: %s (%s)", param.deviceName, dev->description);
+										if (dev->description && dev->description[0]) {
+											SLIB_LOG(TAG, "Added device to any capture: %s (%s)", param.deviceName, dev->description);
+										} else {
+											SLIB_LOG(TAG, "Added device to any capture: %s", param.deviceName);
+										}
 									} else {
-										SLIB_LOG(TAG, "Failed to add device to any capture: %s (%s)", param.deviceName, dev->description);
+										if (dev->description && dev->description[0]) {
+											SLIB_LOG(TAG, "Failed to add device to any capture: %s (%s)", param.deviceName);
+										} else {
+											SLIB_LOG(TAG, "Failed to add device to any capture: %s (%s)", param.deviceName, dev->description);
+										}
 									}
 								}
 							}

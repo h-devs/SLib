@@ -717,6 +717,11 @@ namespace slib
 		return sl_null;
 	}
 
+	String File::getOwnerName(const StringParam& filePath)
+	{
+		return sl_null;
+	}
+
 
 	DisableWow64FsRedirectionScope::DisableWow64FsRedirectionScope()
 	{

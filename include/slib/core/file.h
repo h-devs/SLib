@@ -387,6 +387,8 @@ namespace slib
 #endif
 		
 		static String getRealPath(const StringParam& filePath);
+		
+		static String getOwnerName(const StringParam& filePath);
 
 	private:
 		static sl_file _open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs);

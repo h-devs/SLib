@@ -44,6 +44,7 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <pwd.h>
 #include <errno.h>
 #if defined(__APPLE__) || defined(__FreeBSD__)
 #	include <copyfile.h>
@@ -780,6 +781,21 @@ namespace slib
 		char path[4096];
 		path[0] = 0;
 		return realpath(filePath.getData(), path);
+	}
+
+	String File::getOwnerName(const StringParam& _filePath)
+	{
+		StringCstr filePath(_filePath);
+		if (filePath.isNotEmpty()) {
+			struct stat st;
+			if (0 == stat(filePath.getData(), &st)) {
+				passwd* pw = getpwuid(st.st_uid);
+				if (pw) {
+					return pw->pw_name;
+				}
+			}
+		}
+		return sl_null;
 	}
 
 }

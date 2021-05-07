@@ -698,6 +698,7 @@ namespace slib
 		if (len) {
 			sl_size bytes_read = 0;
 			sl_bool result = m_sbuf.readOffset(buffer.get() + HEADER_SIZE, len, offset, &bytes_read);
+			SLIB_UNUSED(result);
 			SLIB_ASSERT(result);
 			SLIB_ASSERT(static_cast<sl_uint32>(bytes_read) == len);
 		}
@@ -1384,6 +1385,7 @@ namespace slib
 		// Determine the proper size of the buffer.
 		new_size <<= scale_factor;
 		sl_bool result = m_rbuf.setCapacity(new_size);
+		SLIB_UNUSED(result);
 
 		// Make sure the new buffer is large enough to contain data in the old buffer. This should always be sl_true because this method is called either before connection is established or when peers are exchanging connect messages.
 		SLIB_ASSERT(result);

@@ -385,6 +385,12 @@
 		D72A0896263B506000BCD333 /* key_value_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0892263B505F00BCD333 /* key_value_store.cpp */; };
 		D72A0897263B506000BCD333 /* leveldb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0893263B505F00BCD333 /* leveldb.cpp */; };
 		D72A08A9263B523900BCD333 /* snappy-c.cc in Sources */ = {isa = PBXBuildFile; fileRef = D72A08A8263B523900BCD333 /* snappy-c.cc */; };
+		D7B1C86D26453B1A00E60145 /* dbip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7B1C86C26453B1A00E60145 /* dbip.cpp */; };
+		D7B1C87926453EC200E60145 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264AF11B21AEE6BE004E58CB /* Cocoa.framework */; };
+		D7B1C89626453F0100E60145 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7B1C89526453F0100E60145 /* main.cpp */; };
+		D7B1C8C22645432A00E60145 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264AF16E21B3FFE8004E58CB /* CoreImage.framework */; };
+		D7B1C8F5264547B200E60145 /* pseudo_tcp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7B1C8F3264547B200E60145 /* pseudo_tcp.cpp */; };
+		D7B1C8F6264547B200E60145 /* pseudo_tcp_message.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7B1C8F4264547B200E60145 /* pseudo_tcp_message.cpp */; };
 		D7BF609C26311E1700E0B3DD /* decimal128.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7BF609B26311E1700E0B3DD /* decimal128.cpp */; };
 		D7BF60AA26311E8B00E0B3DD /* zlib_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60A926311E8B00E0B3DD /* zlib_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7BF60B826311EA200E0B3DD /* libpng_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60B726311EA200E0B3DD /* libpng_unity.c */; };
@@ -451,6 +457,15 @@
 			runOnlyForDeploymentPostprocessing = 1;
 		};
 		264AF10E21AED095004E58CB /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		D7B1C87A26453EC200E60145 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -864,6 +879,11 @@
 		D72A0892263B505F00BCD333 /* key_value_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = key_value_store.cpp; sourceTree = "<group>"; };
 		D72A0893263B505F00BCD333 /* leveldb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = leveldb.cpp; sourceTree = "<group>"; };
 		D72A08A8263B523900BCD333 /* snappy-c.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "snappy-c.cc"; path = "../../external/src/snappy/snappy-c.cc"; sourceTree = "<group>"; };
+		D7B1C86C26453B1A00E60145 /* dbip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dbip.cpp; sourceTree = "<group>"; };
+		D7B1C87E26453EC200E60145 /* GenerateAppIcons */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenerateAppIcons; sourceTree = BUILT_PRODUCTS_DIR; };
+		D7B1C89526453F0100E60145 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../../tool/src/GenerateAppIcons/main.cpp; sourceTree = "<group>"; };
+		D7B1C8F3264547B200E60145 /* pseudo_tcp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pseudo_tcp.cpp; sourceTree = "<group>"; };
+		D7B1C8F4264547B200E60145 /* pseudo_tcp_message.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pseudo_tcp_message.cpp; sourceTree = "<group>"; };
 		D7BF609B26311E1700E0B3DD /* decimal128.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = decimal128.cpp; sourceTree = "<group>"; };
 		D7BF60A926311E8B00E0B3DD /* zlib_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zlib_unity.c; path = ../../external/src/zlib/zlib_unity.c; sourceTree = "<group>"; };
 		D7BF60B726311EA200E0B3DD /* libpng_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libpng_unity.c; path = ../../external/src/libpng/libpng_unity.c; sourceTree = "<group>"; };
@@ -935,6 +955,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D7B1C87826453EC200E60145 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D7B1C87926453EC200E60145 /* Cocoa.framework in Frameworks */,
+				D7B1C8C22645432A00E60145 /* CoreImage.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1076,6 +1105,7 @@
 				264AF10821AECFA4004E58CB /* AddCopyrightNotice */,
 				262ED4DD228DD34C0029F409 /* GenerateEllipticCurvePow2 */,
 				262D59912324E3A900F85780 /* GenerateEmojiList */,
+				D7B1C89426453EED00E60145 /* GenerateAppIcons */,
 			);
 			name = tool;
 			sourceTree = "<group>";
@@ -1178,6 +1208,7 @@
 			isa = PBXGroup;
 			children = (
 				26694BF81C9B2CBC0047E67C /* arp.cpp */,
+				D7B1C86C26453B1A00E60145 /* dbip.cpp */,
 				266DD4BE1C11940A00D47AB0 /* dns.cpp */,
 				266DD4BF1C11940A00D47AB0 /* ethernet.cpp */,
 				266DD4C11C11940A00D47AB0 /* http_common.cpp */,
@@ -1195,6 +1226,8 @@
 				266DD4CF1C11940A00D47AB0 /* network_io.cpp */,
 				266DD4D01C11940A00D47AB0 /* network_os.cpp */,
 				266DD4C91C11940A00D47AB0 /* pcap.cpp */,
+				D7B1C8F3264547B200E60145 /* pseudo_tcp.cpp */,
+				D7B1C8F4264547B200E60145 /* pseudo_tcp_message.cpp */,
 				266DD4D21C11940A00D47AB0 /* socket.cpp */,
 				266DD4D31C11940A00D47AB0 /* socket_address.cpp */,
 				266DD4D41C11940A00D47AB0 /* socket_event.cpp */,
@@ -1426,6 +1459,7 @@
 				263918D921CBA047008B335B /* sapp.app */,
 				262ED4D6228DD3340029F409 /* GenerateEllipticCurvePow2G */,
 				262D599C2324E3D000F85780 /* GenerateEmojiList */,
+				D7B1C87E26453EC200E60145 /* GenerateAppIcons */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1615,6 +1649,14 @@
 			path = math;
 			sourceTree = "<group>";
 		};
+		D7B1C89426453EED00E60145 /* GenerateAppIcons */ = {
+			isa = PBXGroup;
+			children = (
+				D7B1C89526453F0100E60145 /* main.cpp */,
+			);
+			path = GenerateAppIcons;
+			sourceTree = "<group>";
+		};
 		D7BF60CF26311EC900E0B3DD /* zstd */ = {
 			isa = PBXGroup;
 			children = (
@@ -1785,6 +1827,23 @@
 			productReference = 26D9D9531E9645CE005F7BD3 /* libslib.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		D7B1C87526453EC200E60145 /* GenerateAppIcons */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D7B1C87B26453EC200E60145 /* Build configuration list for PBXNativeTarget "GenerateAppIcons" */;
+			buildPhases = (
+				D7B1C87626453EC200E60145 /* Sources */,
+				D7B1C87826453EC200E60145 /* Frameworks */,
+				D7B1C87A26453EC200E60145 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GenerateAppIcons;
+			productName = GenerateEllipticCurvePow2G;
+			productReference = D7B1C87E26453EC200E60145 /* GenerateAppIcons */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -1814,6 +1873,9 @@
 						CreatedOnToolsVersion = 10.0;
 						ProvisioningStyle = Automatic;
 					};
+					D7B1C87526453EC200E60145 = {
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
 			buildConfigurationList = 28CE364D1A0FEDC600AB513C /* Build configuration list for PBXProject "SLib" */;
@@ -1835,6 +1897,7 @@
 				264AF10F21AED095004E58CB /* AddCopyrightNotice */,
 				262ED4D5228DD3340029F409 /* GenerateEllipticCurvePow2G */,
 				262D59932324E3D000F85780 /* GenerateEmojiList */,
+				D7B1C87526453EC200E60145 /* GenerateAppIcons */,
 			);
 		};
 /* End PBXProject section */
@@ -1907,6 +1970,7 @@
 				26D9D9551E964659005F7BD3 /* database_statement.cpp in Sources */,
 				26D9D9AE1E964683005F7BD3 /* render_drawable.cpp in Sources */,
 				26D9D9991E96467B005F7BD3 /* mac_address.cpp in Sources */,
+				D7B1C8F5264547B200E60145 /* pseudo_tcp.cpp in Sources */,
 				26D9D8F81E9645CE005F7BD3 /* service.cpp in Sources */,
 				265A9362230478F700B155A2 /* time_unix.cpp in Sources */,
 				26D9D9EF1E96468D005F7BD3 /* window.cpp in Sources */,
@@ -2150,6 +2214,7 @@
 				26987D1223B3F7E300872C1D /* alipay_openssl.cpp in Sources */,
 				26D9D92D1E9645CE005F7BD3 /* system_apple.mm in Sources */,
 				26D9D9F01E96468D005F7BD3 /* window_macos.mm in Sources */,
+				D7B1C86D26453B1A00E60145 /* dbip.cpp in Sources */,
 				26D9D9B11E964683005F7BD3 /* render_resource.cpp in Sources */,
 				26D9D9BD1E96468D005F7BD3 /* edit_view.cpp in Sources */,
 				26D9D99D1E96467B005F7BD3 /* network_async.cpp in Sources */,
@@ -2212,6 +2277,7 @@
 				26D9D9DC1E96468D005F7BD3 /* ui_animation.cpp in Sources */,
 				26E9133C25948C54008A35D2 /* jpeg.cpp in Sources */,
 				26D9D93E1E9645CE005F7BD3 /* memory.cpp in Sources */,
+				D7B1C8F6264547B200E60145 /* pseudo_tcp_message.cpp in Sources */,
 				26E1B85C22291D54007C222E /* ebay.cpp in Sources */,
 				263D47872386B13D00DAC43F /* chat_view.cpp in Sources */,
 				26987D1923B5CF8900872C1D /* string_view.cpp in Sources */,
@@ -2268,6 +2334,14 @@
 				26D9D9B61E96468D005F7BD3 /* camera_view.cpp in Sources */,
 				26D9D9B91E96468D005F7BD3 /* common_dialogs.cpp in Sources */,
 				26D9D94D1E9645CE005F7BD3 /* dispatch.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D7B1C87626453EC200E60145 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D7B1C89626453F0100E60145 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2405,6 +2479,7 @@
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../lib/macOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lsapp",
 					"-lslib",
@@ -2436,6 +2511,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../lib/macOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lsapp",
 					"-lslib",
@@ -2695,6 +2771,51 @@
 			};
 			name = Release;
 		};
+		D7B1C87C26453EC200E60145 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/../../bin/macOS";
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../include";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../lib/macOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = "-lslib";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		D7B1C87D26453EC200E60145 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/../../bin/macOS";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../include";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../lib/macOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = "-lslib";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2757,6 +2878,15 @@
 			buildConfigurations = (
 				28CE36611A0FEDC700AB513C /* Debug */,
 				28CE36621A0FEDC700AB513C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D7B1C87B26453EC200E60145 /* Build configuration list for PBXNativeTarget "GenerateAppIcons" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D7B1C87C26453EC200E60145 /* Debug */,
+				D7B1C87D26453EC200E60145 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
