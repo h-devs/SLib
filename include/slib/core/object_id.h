@@ -26,6 +26,7 @@
 #include "compare.h"
 #include "hash.h"
 #include "default_members.h"
+#include "string.h"
 
 namespace slib
 {
