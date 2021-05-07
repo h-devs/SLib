@@ -44,6 +44,30 @@ namespace slib
 		namespace mongodb
 		{
 
+			typedef HashMap<String, sl_bool> ExtendedKeyMap;
+			static ExtendedKeyMap GetExtendedKeys()
+			{
+				SLIB_SAFE_LOCAL_STATIC(ExtendedKeyMap, ret, ExtendedKeyMap::create());
+				if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
+					return sl_null;
+				}
+				if (ret.isEmpty()) {
+					MutexLocker lock(ret.getLocker());
+					ret.put_NoLock("$binary", sl_true);
+					ret.put_NoLock("$date", sl_true);
+					ret.put_NoLock("$numberDecimal", sl_true);
+					ret.put_NoLock("$numberDouble", sl_true);
+					ret.put_NoLock("$numberLong", sl_true);
+					ret.put_NoLock("$numberInt", sl_true);
+					ret.put_NoLock("$maxKey", sl_true);
+					ret.put_NoLock("$minKey", sl_true);
+					ret.put_NoLock("$oid", sl_true);
+					ret.put_NoLock("$regularExpression", sl_true);
+					ret.put_NoLock("$timestamp", sl_true);
+				}
+				return ret;
+			}
+
 			static void AppendJsonToBson(bson_t* bson, const StringData& key, const Json& _json);
 
 			static void AppendBsonDocumentContent(bson_t* bson, const Json& json)
@@ -170,28 +194,26 @@ namespace slib
 					return;
 				}
 				if (json.isObject()) {
-					if (json.getElementsCount() <= 2) {
-						sl_bool flagExtendedKey = sl_false;
-						{
-							PropertyIterator iterator = json.getItemIterator();
-							while (iterator.moveNext()) {
-								if (iterator.getKey().startsWith('$')) {
-									flagExtendedKey = sl_true;
-									break;
-								}
+					sl_bool flagExtendedKey = sl_false;
+					{
+						PropertyIterator iterator = json.getItemIterator();
+						// only check one item
+						if (iterator.moveNext()) {
+							if (GetExtendedKeys().find(iterator.getKey())) {
+								flagExtendedKey = sl_true;
 							}
 						}
-						if (flagExtendedKey) {
-							JsonMap map;
-							map.put_NoLock(key, json);
-							String strJson = Json(map).toJsonString();
-							bson_t child;
-							bson_error_t error;
-							if (bson_init_from_json(&child, strJson.getData(), strJson.getLength(), &error)) {
-								bson_concat(bson, &child);
-								bson_destroy(&child);
-								return;
-							}
+					}
+					if (flagExtendedKey) {
+						JsonMap map;
+						map.put_NoLock(key, json);
+						String strJson = Json(map).toJsonString();
+						bson_t child;
+						bson_error_t error;
+						if (bson_init_from_json(&child, strJson.getData(), strJson.getLength(), &error)) {
+							bson_concat(bson, &child);
+							bson_destroy(&child);
+							return;
 						}
 					}
 					bson_t child;
@@ -204,10 +226,20 @@ namespace slib
 
 			static bson_t* GetBsonFromJson(const Json& json)
 			{
-				bson_t* bson = bson_new();
-				if (bson) {
-					AppendBsonDocumentContent(bson, json);
-					return bson;
+				if (json.isString()) {
+					StringParam param = json.getStringParam();
+					StringCstr str(param);
+					sl_size len = str.getLength();
+					if (len) {
+						bson_error_t error;
+						return bson_new_from_json((uint8_t*)(str.getData()), len, &error);
+					}
+				} else {
+					bson_t* bson = bson_new();
+					if (bson) {
+						AppendBsonDocumentContent(bson, json);
+						return bson;
+					}
 				}
 				return sl_null;
 			}
