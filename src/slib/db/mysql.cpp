@@ -42,14 +42,15 @@
 namespace slib
 {
 	
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MySqlParam)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MySQL_Param)
 
-	MySqlParam::MySqlParam()
+	MySQL_Param::MySQL_Param()
 	{
 		port = 0;
 		flagAutoReconnect = sl_true;
 		flagMultipleStatements = sl_true;
 	}
+
 
 	SLIB_DEFINE_OBJECT(MySQL, Database)
 
@@ -1085,7 +1086,7 @@ namespace slib
 				}
 
 			public:
-				static Ref<DatabaseImpl> connect(MySqlParam& param)
+				static Ref<DatabaseImpl> connect(MySQL_Param& param)
 				{
 					initThread();
 
@@ -1093,10 +1094,10 @@ namespace slib
 
 					if (mysql) {
 
-						String host = param.host;
-						String user = param.user;
-						String password = param.password;
-						String db = param.db;
+						StringCstr host = param.host;
+						StringCstr user = param.user;
+						StringCstr password = param.password;
+						StringCstr db = param.db;
 
 						unsigned long flags = 0;
 						if (param.flagMultipleStatements) {
@@ -1320,7 +1321,7 @@ namespace slib
 		}
 	}
 
-	Ref<MySQL> MySQL::connect(MySqlParam& param)
+	Ref<MySQL> MySQL::connect(MySQL_Param& param)
 	{
 		return DatabaseImpl::connect(param);
 	}

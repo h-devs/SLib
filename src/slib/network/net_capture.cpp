@@ -45,24 +45,13 @@ namespace slib
 	}
 	
 	
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(NetCaptureDeviceInfo)
-	
-	NetCaptureDeviceInfo::NetCaptureDeviceInfo(): flagLoopback(sl_false)
-	{
-	}
-	
-	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(NetCaptureParam)
 	
 	NetCaptureParam::NetCaptureParam()
 	{
-		flagPromiscuous = sl_false;
-		timeoutRead = 0; // no timeout specified
-		flagImmediate = sl_true;
-		sizeBuffer = 0x200000; // 2MB (16Mb)
-		
 		preferedLinkDeviceType = NetworkLinkDeviceType::Ethernet;
-		
+		flagPromiscuous = sl_false;
+
 		flagAutoStart = sl_true;
 	}
 	
@@ -86,17 +75,29 @@ namespace slib
 	{
 		return sl_null;
 	}
+
+	const String& NetCapture::getDeviceName()
+	{
+		return m_deviceName;
+	}
 	
 	void NetCapture::_initWithParam(const NetCaptureParam& param)
 	{
+		m_deviceName = param.deviceName.toString();
 		m_onCapturePacket = param.onCapturePacket;
+		m_onError = param.onError;
 	}
 	
 	void NetCapture::_onCapturePacket(NetCapturePacket& packet)
 	{
 		m_onCapturePacket(this, packet);
 	}
-	
+
+	void NetCapture::_onError()
+	{
+		m_onError(this);
+	}
+
 	namespace priv
 	{
 		namespace net_capture
@@ -135,7 +136,7 @@ namespace slib
 				{
 					
 					sl_uint32 iface = 0;
-					String deviceName = param.deviceName;
+					StringCstr deviceName = param.deviceName;
 					if (deviceName.isNotEmpty()) {
 						iface = Network::getInterfaceIndexFromName(deviceName);
 						if (iface == 0) {
@@ -300,18 +301,6 @@ namespace slib
 				
 			};
 
-		}
-	}
-			
-	Ref<NetCapture> NetCapture::createRawPacket(const NetCaptureParam& param)
-	{
-		return priv::net_capture::RawPacketCapture::create(param);
-	}
-	
-	namespace priv
-	{
-		namespace net_capture
-		{
 
 			class RawIPv4Capture : public NetCapture
 			{
@@ -534,10 +523,18 @@ namespace slib
 
 		}
 	}
-	
+
+	using namespace priv::net_capture;
+
+
+	Ref<NetCapture> NetCapture::createRawPacket(const NetCaptureParam& param)
+	{
+		return RawPacketCapture::create(param);
+	}
+
 	Ref<NetCapture> NetCapture::createRawIPv4(const NetCaptureParam& param)
 	{
-		return priv::net_capture::RawIPv4Capture::create(param);
+		return RawIPv4Capture::create(param);
 	}
 	
 	

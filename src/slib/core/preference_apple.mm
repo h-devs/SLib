@@ -34,7 +34,7 @@
 namespace slib
 {
 
-	void Preference::setValue(const String& key, const Json& value)
+	void Preference::setValue(const StringParam& key, const Json& value)
 	{
 		if (key.isEmpty()) {
 			return;
@@ -51,7 +51,7 @@ namespace slib
 		[defaults synchronize];
 	}
 
-	Json Preference::getValue(const String& key)
+	Json Preference::getValue(const StringParam& key)
 	{
 		if (key.isNotEmpty()) {
 			NSString* _key = Apple::getNSStringFromString(key);

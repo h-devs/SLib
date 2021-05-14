@@ -23,8 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CORE_TIME_KEEPER
 #define CHECKHEADER_SLIB_CORE_TIME_KEEPER
 
-#include "time.h"
 #include "spin_lock.h"
+#include "default_members.h"
 
 namespace slib
 {
@@ -37,43 +37,45 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TimeKeeper)
 
 	public:
+		static sl_uint64 now() noexcept;
+
 		void start() noexcept;
 
-		void start(const Time& current) noexcept;
+		void start(sl_uint64 current) noexcept;
 
-		void startAndSetTime(const Time& initialTimeValue) noexcept;
+		void startAndSetTime(sl_uint64 initialTimeValue) noexcept;
 
-		void startAndSetTime(const Time& initialTimeValue, const Time& current) noexcept;
+		void startAndSetTime(sl_uint64 initialTimeValue, sl_uint64 current) noexcept;
 
 		void restart() noexcept;
 
-		void restart(const Time& current) noexcept;
+		void restart(sl_uint64 current) noexcept;
 
-		void restartAndSetTime(const Time& initialTimeValue) noexcept;
+		void restartAndSetTime(sl_uint64 initialTimeValue) noexcept;
 
-		void restartAndSetTime(const Time& initialTimeValue, const Time& current) noexcept;
+		void restartAndSetTime(sl_uint64 initialTimeValue, sl_uint64 current) noexcept;
 
 		void stop() noexcept;
 
 		void resume() noexcept;
 
-		void resume(const Time& current) noexcept;
+		void resume(sl_uint64 current) noexcept;
 
 		void pause() noexcept;
 
-		void pause(const Time& current) noexcept;
+		void pause(sl_uint64 current) noexcept;
 
-		Time getTime() const noexcept;
+		sl_uint64 getTime() const noexcept;
 
-		Time getTime(const Time& current) const noexcept;
+		sl_uint64 getTime(sl_uint64 current) const noexcept;
 
-		void setTime(const Time& time) noexcept;
+		void setTime(sl_uint64 time) noexcept;
 
-		void setTime(const Time& time, const Time& current) noexcept;
+		void setTime(sl_uint64 time, sl_uint64 current) noexcept;
 
 		void update() noexcept;
 
-		void update(const Time& current) noexcept;
+		void update(sl_uint64 current) noexcept;
 
 		sl_bool isStarted() const noexcept;
 
@@ -88,8 +90,8 @@ namespace slib
 	protected:
 		sl_bool m_flagStarted;
 		sl_bool m_flagRunning;
-		Time m_timeLast;
-		Time m_timeElapsed;
+		sl_uint64 m_timeLast;
+		sl_uint64 m_timeElapsed;
 		SpinLock m_lock;
 
 	};

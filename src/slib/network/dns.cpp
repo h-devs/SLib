@@ -804,8 +804,8 @@ namespace slib
 
 	void DnsServerParam::parse(const Json& conf)
 	{
-		portDns = (sl_uint16)conf.getItem("dns_port").getUint32(SLIB_NETWORK_DNS_PORT);
-		portEncryption = (sl_uint16)conf.getItem("secure_port").getUint32(0);
+		portDns = (sl_uint16)(conf.getItem("dns_port").getUint32(SLIB_NETWORK_DNS_PORT));
+		portEncryption = (sl_uint16)(conf.getItem("secure_port").getUint32());
 		encryptionKey = conf.getItem("secure_key").getString();
 
 		flagProxy = conf.getItem("is_proxy").getBoolean(sl_false);

@@ -142,11 +142,11 @@ namespace slib
 				dlog_print(DLOG_INFO, tag.getData(), " ");
 			}
 #elif defined(SLIB_PLATFORM_IS_WIN32)
-			String16 s = GetLineString16(_tag, _content);
+			StringCstr16 s(GetLineString16(_tag, _content));
 			OutputDebugStringW((LPCWSTR)(s.getData()));
 			Console::print(s);
 #else
-			String s = GetLineString(_tag, _content);
+			StringCstr s(GetLineString(_tag, _content));
 			printf("%s", s.getData());
 #endif
 		}
@@ -168,7 +168,7 @@ namespace slib
 				dlog_print(DLOG_ERROR, tag.getData(), " ");
 			}
 #elif defined(SLIB_PLATFORM_IS_WIN32)
-			String16 s = GetLineString16(_tag, _content);
+			StringCstr16 s(GetLineString16(_tag, _content));
 			OutputDebugStringW((LPCWSTR)(s.getData()));
 			HWND hWnd = GetConsoleWindow();
 			if (hWnd) {
@@ -176,7 +176,7 @@ namespace slib
 				fprintf(stderr, "%s", (char*)(mem.getData()));
 			}
 #else
-			String s = GetLineString(_tag, _content);
+			StringCstr s(GetLineString(_tag, _content));
 			fprintf(stderr, "%s", s.getData());
 #endif
 		}

@@ -410,7 +410,7 @@ namespace slib
 				}
 				return itemNew;
 			} else {
-				return pushFront_NoLock(Forward<ARGS>(args)...);
+				return pushBack_NoLock(Forward<ARGS>(args)...);
 			}
 		}
 
@@ -425,17 +425,21 @@ namespace slib
 				}
 				return itemNew;
 			} else {
-				return pushBack_NoLock(Forward<ARGS>(args)...);
+				return pushFront_NoLock(Forward<ARGS>(args)...);
 			}
 		}
 
 
-		/* unsynchronized function */
-		void removeAt(Link<T>* item) noexcept
+		/* unsynchronized function.*/
+		Link<T>* removeAt(Link<T>* item) noexcept
 		{
 			if (item) {
+				Link<T>* next = item->next;
 				_removeItem(item);
 				_freeItem(item);
+				return next;
+			} else {
+				return sl_null;
 			}
 		}
 

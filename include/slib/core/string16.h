@@ -158,7 +158,7 @@ namespace slib
 		 * Creates a string pointing the `str` as the content, without copying the data.
 		 * `ref` should be used to keep the alive of the string content.
 		 */
-		static String16 fromRef(const Ref<Referable>& ref, const sl_char16* str, sl_reg len = -1) noexcept;
+		static String16 fromRef(Referable* ref, const sl_char16* str, sl_size len) noexcept;
 		
 		/**
 		 * Creates a string pointing the `mem` as the UTF-16 content, without copying the data.
@@ -384,6 +384,8 @@ namespace slib
 			}
 		}
 		
+		sl_char16* getNullTerminatedData(sl_size& outLength, String16& outStringConverted) const noexcept;
+
 		/**
 		 * @return string length.
 		 */
@@ -526,16 +528,16 @@ namespace slib
 		 * @return duplicated string.
 		 */
 		String16 duplicate() const noexcept;
-		
+
+		/**
+		* @return null terminated string.
+		*/
+		String16 toNullTerminated() const noexcept;
+
 		/**
 		 * @return memory containing string content.
 		 */
 		Memory toMemory() const noexcept;
-		
-		/**
-		 * @return memory containing string content, without creating new heap memory.
-		 */
-		Memory toStaticMemory() const noexcept;
 		
 		/**
 		 * Fills Utf8 characters to the provided buffer
@@ -1235,22 +1237,6 @@ namespace slib
 #endif
 
 	public:
-		/**
-		 * @return null string.
-		 */
-		static const AtomicString16& null() noexcept
-		{
-			return *(reinterpret_cast<AtomicString16 const*>(&(priv::string::g_null16)));
-		}
-		
-		/**
-		 * @return empty string.
-		 */
-		static const AtomicString16& getEmpty() noexcept
-		{
-			return *(reinterpret_cast<AtomicString16 const*>(&(priv::string::g_empty16)));
-		}
-		
 		/**
 		 * @return `true` if this string is null.
 		 */

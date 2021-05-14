@@ -81,6 +81,33 @@ namespace slib
 		return N;
 	}
 	
+	
+	template <class IT>
+	struct UnsignedTypeFromSignedType;
+	template <>
+	struct UnsignedTypeFromSignedType<int> { typedef unsigned int Type; };
+	template <>
+	struct UnsignedTypeFromSignedType<short> { typedef unsigned short Type; };
+	template <>
+	struct UnsignedTypeFromSignedType<signed char> { typedef unsigned char Type; };
+	template <>
+	struct UnsignedTypeFromSignedType<long> { typedef unsigned long Type; };
+	template <>
+	struct UnsignedTypeFromSignedType<sl_int64> { typedef sl_uint64 Type; };
+
+	template <class UT>
+	struct SignedTypeFromUnsignedType;
+	template <>
+	struct SignedTypeFromUnsignedType<unsigned int> { typedef int Type; };
+	template <>
+	struct SignedTypeFromUnsignedType<unsigned short> { typedef short Type; };
+	template <>
+	struct SignedTypeFromUnsignedType<unsigned char> { typedef signed char Type; };
+	template <>
+	struct SignedTypeFromUnsignedType<unsigned long> { typedef long Type; };
+	template <>
+	struct SignedTypeFromUnsignedType<sl_uint64> { typedef sl_uint64 Type; };
+
 }
 
 #endif

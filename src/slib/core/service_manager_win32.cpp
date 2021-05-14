@@ -29,7 +29,7 @@
 #include "slib/core/app.h"
 #include "slib/core/thread.h"
 #include "slib/core/time_counter.h"
-#include "slib/core/scoped.h"
+#include "slib/core/memory.h"
 #include "slib/core/windows.h"
 
 #pragma comment(lib, "advapi32.lib")
@@ -273,12 +273,18 @@ namespace slib
 						bRet = ControlService(service, SERVICE_CONTROL_CONTINUE, &statusReturned);
 					} else if (state == SERVICE_STOPPED) {
 						if (argc) {
-							SLIB_SCOPED_BUFFER(LPCWSTR, 32, args, argc + 1);
 							StringCstr16 argName = name;
+							LPCWSTR args[64];
+							StringCstr16 _args[60];
+							if (argc > 60) {
+								argc = 60;
+							}
 							args[0] = (LPCWSTR)(argName.getData());
 							for (sl_size i = 0; i < argc; i++) {
-								args[i + 1] = (LPCWSTR)(argv[i].getData());
+								_args[i] = argv[i];
+								args[i + 1] = (LPCWSTR)(_args[i].getData());
 							}
+							args[argc + 1] = 0;
 							bRet = StartServiceW(service, (DWORD)(argc + 1), args);
 						} else {
 							bRet = StartServiceW(service, 0, NULL);
@@ -291,7 +297,6 @@ namespace slib
 						}
 					}
 					Thread::sleep(10);
-					timer.update();
 					if (timeoutMilliseconds >= 0) {
 						if (timer.getElapsedMilliseconds() > (sl_uint32)timeoutMilliseconds) {
 							return sl_false;
@@ -330,7 +335,6 @@ namespace slib
 						}
 					}
 					Thread::sleep(10);
-					timer.update();
 					if (timeoutMilliseconds >= 0) {
 						if (timer.getElapsedMilliseconds() > (sl_uint32)timeoutMilliseconds) {
 							return sl_false;
@@ -372,12 +376,26 @@ namespace slib
 						}
 					}
 					Thread::sleep(10);
-					timer.update();
 					if (timeoutMilliseconds >= 0) {
 						if (timer.getElapsedMilliseconds() > (sl_uint32)timeoutMilliseconds) {
 							return sl_false;
 						}
 					}
+				}
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool ServiceManager::setStartType(const StringParam& serviceName, ServiceStartType type)
+	{
+		WSManager manager(GENERIC_READ | GENERIC_WRITE | SC_MANAGER_CONNECT);
+		if (manager) {
+			StringCstr16 name = serviceName;
+			WSService service(manager, name, SERVICE_CHANGE_CONFIG);
+			if (service) {
+				if (ChangeServiceConfigW(service, SERVICE_NO_CHANGE, FromServiceStartType(type), SERVICE_NO_CHANGE, NULL, NULL, NULL, NULL, NULL, NULL, NULL)) {
+					return sl_true;
 				}
 			}
 		}

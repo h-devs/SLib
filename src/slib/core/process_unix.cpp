@@ -28,6 +28,7 @@
 
 #include "slib/core/file.h"
 #include "slib/core/list.h"
+#include "slib/core/system.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -52,13 +53,15 @@ namespace slib
 			{
 				StringCstr pathExecutable(_pathExecutable);
 				char* exe = pathExecutable.getData();
-				char* args[1024];
+				char* args[64];
+				StringCstr _args[60];
 				args[0] = exe;
-				if (nArguments > 1020) {
-					nArguments = 1020;
+				if (nArguments > 60) {
+					nArguments = 60;
 				}
 				for (sl_size i = 0; i < nArguments; i++) {
-					args[i+1] = strArguments[i].getData();
+					_args[i] = strArguments[i];
+					args[i+1] = _args[i].getData();
 				}
 				args[nArguments+1] = 0;
 				
@@ -147,11 +150,11 @@ namespace slib
 			
 			class ProcessImpl : public Process
 			{
-			private:
+			public:
 				pid_t m_pid;
 				Ref<ProcessStream> m_stream;
 				
-			protected:
+			public:
 				ProcessImpl()
 				{
 					m_pid = -1;
@@ -168,7 +171,7 @@ namespace slib
 					if (pipe(hStdin) == 0) {
 						if (pipe(hStdout) == 0) {
 							pid_t pid = fork();
-							if (pid == 0) {
+							if (!pid) {
 								// child process
 								::close(hStdin[1]); // WRITE
 								::close(hStdout[0]); // READ
@@ -182,15 +185,19 @@ namespace slib
 								return sl_null;
 							} else if (pid > 0) {
 								// parent process
-								::close(hStdin[0]); // READ
-								::close(hStdout[1]); // WRITE
 								Ref<ProcessImpl> ret = new ProcessImpl;
-								ret->m_pid = pid;
-								Ref<ProcessStream> stream = new ProcessStream;
-								stream->m_hRead = hStdout[0];
-								stream->m_hWrite = hStdin[1];
-								ret->m_stream = stream;
-								return ret;
+								if (ret.isNotNull()) {
+									ret->m_pid = pid;
+									Ref<ProcessStream> stream = new ProcessStream;
+									if (stream.isNotNull()) {
+										::close(hStdin[0]); // READ
+										::close(hStdout[1]); // WRITE
+										stream->m_hRead = hStdout[0];
+										stream->m_hWrite = hStdin[1];
+										ret->m_stream = stream;
+										return ret;
+									}
+								}
 							}
 							::close(hStdout[0]);
 							::close(hStdout[1]);
@@ -237,7 +244,7 @@ namespace slib
 						lock.unlock();
 						for (;;) {
 							int status = 0;
-							int ret = waitpid(pid, &status, WNOHANG | WUNTRACED | WCONTINUED);
+							int ret = waitpid(pid, &status, WUNTRACED | WCONTINUED);
 							if (ret == -1) {
 								m_stream->close();
 								::kill(pid, SIGKILL);
@@ -259,12 +266,20 @@ namespace slib
 									}
 									break;
 								}
+								System::sleep(1);
 							}
 						}
 						m_stream->close();
 					}
 				}
-				
+
+				sl_bool isAlive() override
+				{
+					pid_t pid = m_pid;
+					int status;
+					return waitpid(pid, &status, WNOHANG) != -1;
+				}
+
 				Ref<Stream> getStream() override
 				{
 					return Ref<Stream>::from(m_stream);
@@ -292,38 +307,38 @@ namespace slib
 #endif
 	
 #if !defined(SLIB_PLATFORM_IS_MOBILE) && !defined(SLIB_PLATFORM_IS_MACOS)
-	sl_bool Process::run(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
+	Ref<Process> Process::run(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
 	{
 		pid_t pid = fork();
-		if (pid < 0) {
-			return sl_false;
-		} else {
-			if (pid == 0) {
-				// Child process
-				// Daemonize
-				setsid();
-				
-				close(0);
-				close(1);
-				close(2);
-				int handle = ::open("/dev/null", O_RDWR);
-				if (handle >= 0) {
-					if (handle) {
-						dup2(handle, 0);
-					}
-					dup2(handle, 1);
-					dup2(handle, 2);
+		if (!pid) {
+			// Child process
+			// Daemonize
+			setsid();
+
+			close(0);
+			close(1);
+			close(2);
+			int handle = ::open("/dev/null", O_RDWR);
+			if (handle >= 0) {
+				if (handle) {
+					dup2(handle, 0);
 				}
-				
-				signal(SIGHUP, SIG_IGN);
-				
-				Exec(pathExecutable, strArguments, nArguments);
-				return sl_false;
-			} else {
-				// Parent process
-				return sl_true;
+				dup2(handle, 1);
+				dup2(handle, 2);
+			}
+
+			signal(SIGHUP, SIG_IGN);
+
+			Exec(pathExecutable, strArguments, nArguments);
+		} else if (pid > 0) {
+			// Parent process
+			Ref<ProcessImpl> ret = new ProcessImpl;
+			if (ret.isNotNull()) {
+				ret->m_pid = pid;
+				return ret;
 			}
 		}
+		return sl_null;
 	}
 
 	void Process::runAsAdmin(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)

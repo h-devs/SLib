@@ -52,6 +52,7 @@ namespace slib
 				if (!(Process::isAdmin())) {
 					return sl_false;
 				}
+
 				String path = System::getTempDirectory() + "\\slib_tap";
 				File::createDirectory(path);
 				if (!(File::isDirectory(path))) {

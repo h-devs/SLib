@@ -146,21 +146,21 @@ namespace slib
 		setSize(size, size);
 	}
 
-	Size FreeType::getStringExtent(const sl_char16* sz, sl_uint32 len)
+	Size FreeType::getStringExtent(const StringParam& _text)
 	{
-		ObjectLocker lock(this);
-		Size ret;
-		if (len == 0) {
-			ret.x = 0;
-			ret.y = 0;
-			return ret;
+		StringData16 text(_text);
+		sl_uint32 nChars = (sl_uint32)text.getLength();
+		if (!nChars) {
+			return Size(0, 0);
 		}
+		const sl_char16* chars = text.getData();
 
-		const sl_char16* chars = sz;
-		sl_uint32 nChars = len;
+		ObjectLocker lock(this);
+
 		FT_Error err;
 		sl_uint32 sizeX = 0;
 		sl_uint32 sizeY = 0;
+
 		for (sl_uint32 iChar = 0; iChar < nChars; iChar++) {
 			sl_char16 ch = chars[iChar];
 			FT_UInt glyph_index = FT_Get_Char_Index(m_face, ch);
@@ -176,37 +176,32 @@ namespace slib
 				}
 			}
 		}
-		ret.x = (sl_real)sizeX;
-		ret.y = (sl_real)sizeY;
-		return ret;
+		return Size((sl_real)sizeX, (sl_real)sizeY);
 	}
 
-	Size FreeType::getStringExtent(const String16& text)
+	void FreeType::drawString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& _text, const Color& color)
 	{
-		return getStringExtent(text.getData(), (sl_uint32)(text.getLength()));
-	}
-
-	void FreeType::drawString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const sl_char16* sz, sl_uint32 len, const Color& color)
-	{
-		ObjectLocker lock(this);
-		if (len == 0) {
-			return;
-		}
 		if (imageOutput.isNull()) {
 			return;
 		}
-		
 		sl_int32 widthImage = imageOutput->getWidth();
 		sl_int32 heightImage = imageOutput->getHeight();
 		if (widthImage <= 0 || heightImage <= 0) {
 			return;
 		}
 
-		const sl_char16* chars = sz;
-		sl_uint32 nChars = len;
+		StringData16 text(_text);
+		sl_uint32 nChars = (sl_uint32)(text.getLength());
+		if (!nChars) {
+			return;
+		}
+		const sl_char16* chars = text.getData();
 
+		ObjectLocker lock(this);
+		
 		FT_Error err;
 		FT_GlyphSlot slot = m_face->glyph;
+
 		for (sl_uint32 iChar = 0; iChar < nChars; iChar++) {
 			sl_char16 ch = chars[iChar];
 			err = FT_Load_Char(m_face, ch, FT_LOAD_RENDER);
@@ -288,68 +283,49 @@ namespace slib
 			}
 		}
 	}
-
-	void FreeType::drawString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const String16& text, const Color& color)
+	
+	void FreeType::strokeString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& _text, const Color& color, sl_uint32 lineWidth)
 	{
-		return drawString(imageOutput, x, y, text.getData(), (sl_uint32)(text.getLength()), color);
+		StringData16 text(_text);
+		_strokeString(imageOutput, x, y, text.getData(), (sl_uint32)(text.getLength()), sl_false, sl_false, lineWidth, color);
 	}
 
-	void FreeType::strokeString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const sl_char16* sz, sl_uint32 len, const Color& color, sl_uint32 lineWidth)
+	void FreeType::strokeStringInside(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& _text, const Color& color, sl_uint32 lineWidth)
 	{
-		_strokeString(imageOutput, x, y, sz, len, sl_false, sl_false, lineWidth, color);
+		StringData16 text(_text);
+		_strokeString(imageOutput, x, y, text.getData(), (sl_uint32)(text.getLength()), sl_true, sl_false, lineWidth, color);
 	}
 
-	void FreeType::strokeString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const String16& text, const Color& color, sl_uint32 lineWidth)
+	void FreeType::strokeStringOutside(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& _text, const Color& color, sl_uint32 lineWidth)
 	{
-		return strokeString(imageOutput, x, y, text.getData(), (sl_uint32)(text.getLength()), color, lineWidth);
+		StringData16 text(_text);
+		_strokeString(imageOutput, x, y, text.getData(), (sl_uint32)(text.getLength()), sl_true, sl_true, lineWidth, color);
 	}
 
-	void FreeType::strokeStringInside(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const sl_char16* sz, sl_uint32 len, const Color& color, sl_uint32 lineWidth)
-	{
-		_strokeString(imageOutput, x, y, sz, len, sl_true, sl_false, lineWidth, color);
-	}
-
-	void FreeType::strokeStringInside(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const String16& text, const Color& color, sl_uint32 lineWidth)
-	{
-		return strokeStringInside(imageOutput, x, y, text.getData(), (sl_uint32)(text.getLength()), color, lineWidth);
-	}
-
-	void FreeType::strokeStringOutside(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const sl_char16* sz, sl_uint32 len, const Color& color, sl_uint32 lineWidth)
-	{
-		_strokeString(imageOutput, x, y, sz, len, sl_true, sl_true, lineWidth, color);
-	}
-
-	void FreeType::strokeStringOutside(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const String16& text, const Color& color, sl_uint32 lineWidth)
-	{
-		return strokeString(imageOutput, x, y, text.getData(), (sl_uint32)(text.getLength()), color, lineWidth);
-	}
-
-	void FreeType::_strokeString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const sl_char16* sz, sl_uint32 len
+	void FreeType::_strokeString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const sl_char16* chars, sl_uint32 nChars
 		, sl_bool flagBorder, sl_bool flagOutside, sl_uint32 radius, const Color& color)
 	{
-		ObjectLocker lock(this);
-		if (len == 0) {
-			return;
-		}
 		if (imageOutput.isNull()) {
 			return;
 		}
-
 		sl_int32 widthImage = imageOutput->getWidth();
 		sl_int32 heightImage = imageOutput->getHeight();
 		if (widthImage <= 0 || heightImage <= 0) {
 			return;
 		}
 
+		if (!nChars) {
+			return;
+		}
+
+		ObjectLocker lock(this);
+		
 		FT_Stroker stroker = NULL;
 		FT_Stroker_New(m_library, &stroker);
 		if (stroker == NULL) {
 			return;
 		}
 		FT_Stroker_Set(stroker, radius * 64, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
-
-		const sl_char16* chars = sz;
-		sl_uint32 nChars = len;
 
 		FT_Error err;
 		for (sl_uint32 iChar = 0; iChar < nChars; iChar++) {

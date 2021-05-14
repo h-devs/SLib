@@ -43,7 +43,7 @@ namespace slib
 		}
 	}
 
-	void Preference::setValue(const String& key, const Json& value)
+	void Preference::setValue(const StringParam& key, const Json& value)
 	{
 		jobject jactivity = Android::getCurrentActivity();
 		if (jactivity) {
@@ -58,7 +58,7 @@ namespace slib
 		}
 	}
 
-	Json Preference::getValue(const String& key)
+	Json Preference::getValue(const StringParam& key)
 	{
 		jobject jactivity = Android::getCurrentActivity();
 		if (jactivity) {

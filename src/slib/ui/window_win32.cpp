@@ -188,7 +188,7 @@ namespace slib
 
 					UIRect frameWindow = MakeWindowFrame(window);
 
-					String16 title = String16::from(window->getTitle());
+					StringCstr16 title = window->getTitle();
 
 					HWND hWnd = CreateWindowExW(
 						styleEx, // ex-style

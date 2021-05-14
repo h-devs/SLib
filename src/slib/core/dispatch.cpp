@@ -211,7 +211,6 @@ namespace slib
 
 	sl_int32 DispatchLoop::_getTimeout()
 	{
-		m_timeCounter.update();
 		sl_int32 t1 = _getTimeout_TimeTasks();
 		sl_int32 t2 = _getTimeout_Timer();
 		if (m_queueTasks.isNotEmpty()) {

@@ -89,10 +89,10 @@ namespace slib
 			File::createDirectory(pathRoot);
 		}
 		String path = pathRoot + "/" + name;
-		
-		int handle = open(path.getData(), O_RDWR | O_CREAT | O_EXCL, 0644);
+		StringCstr _path(path);
+		int handle = open(_path.getData(), O_RDWR | O_CREAT | O_EXCL, 0644);
 		if (handle == -1) {
-			handle = open(path.getData(), O_RDWR);
+			handle = open(_path.getData(), O_RDWR);
 			if (handle == -1) {
 				return sl_null;
 			}
@@ -109,7 +109,7 @@ namespace slib
 				Ref<GlobalUniqueInstanceImpl> instance = new GlobalUniqueInstanceImpl;
 				if (instance.isNotNull()) {
 					instance->handle = handle;
-					instance->path = path;
+					instance->path = Move(path);
 					return instance;
 				}
 			}

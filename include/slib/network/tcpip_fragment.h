@@ -57,10 +57,8 @@ namespace slib
 		
 	};
 
-	class SLIB_EXPORT IPv4Fragmentation : public Object
+	class SLIB_EXPORT IPv4Fragmentation
 	{
-		SLIB_DECLARE_OBJECT
-		
 	public:
 		IPv4Fragmentation();
 		

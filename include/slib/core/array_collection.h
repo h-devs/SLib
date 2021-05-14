@@ -26,6 +26,8 @@
 #include "variant.h"
 #include "string_buffer.h"
 
+#include "serialize/variant.h"
+
 namespace slib
 {
 
@@ -82,6 +84,24 @@ namespace slib
 			}
 			if (!(buf.addStatic("]"))) {
 				return sl_false;
+			}
+			return sl_true;
+		}
+
+		sl_bool toJsonBinary(MemoryBuffer& buf) override
+		{
+			if (!(SerializeByte(&buf, (sl_uint8)(VariantType::Collection)))) {
+				return sl_false;
+			}
+			sl_size n = m_array->getCount();
+			if (!(CVLI::serialize(&buf, n))) {
+				return sl_false;
+			}
+			T* data = m_array->getData();
+			for (sl_size i = 0; i < n; i++) {
+				if (!(Serialize(&buf, Variant(data[i])))) {
+					return sl_false;
+				}
 			}
 			return sl_true;
 		}

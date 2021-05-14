@@ -53,9 +53,9 @@ namespace slib
 
 		static Ref<Process> open(const StringParam& pathExecutable, const ListParam<String>& arguments);
 
-		static sl_bool run(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments);
+		static Ref<Process> run(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments);
 
-		static sl_bool run(const StringParam& pathExecutable, const ListParam<String>& arguments);
+		static Ref<Process> run(const StringParam& pathExecutable, const ListParam<String>& arguments);
 
 		static void runAsAdmin(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments);
 		
@@ -76,6 +76,8 @@ namespace slib
 		virtual void kill() = 0;
 
 		virtual void wait() = 0;
+
+		virtual sl_bool isAlive() = 0;
 		
 		virtual Ref<Stream> getStream() = 0;
 		

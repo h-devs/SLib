@@ -40,7 +40,7 @@ namespace slib
 		m_mapValues.removeAll();
 	}
 
-	sl_bool IniSetting::parseFromUtf8TextFile(const String& filePath)
+	sl_bool IniSetting::parseFromUtf8TextFile(const StringParam& filePath)
 	{
 		if (File::exists(filePath)) {
 			String text = File::readAllText(filePath);
@@ -50,8 +50,9 @@ namespace slib
 		}
 	}
 
-	sl_bool IniSetting::parseFromText(const String& text)
+	sl_bool IniSetting::parseFromText(const StringParam& _text)
 	{
+		StringData text(_text);
 		sl_size len = text.getLength();
 		const sl_char8* buf = text.getData();
 		sl_reg indexAssign = -1;
@@ -98,7 +99,7 @@ namespace slib
 	}
 
 
-	sl_bool SettingUtil::parseUint32Range(const String& str, sl_uint32* _from, sl_uint32* _to)
+	sl_bool SettingUtil::parseUint32Range(const StringView& str, sl_uint32* _from, sl_uint32* _to)
 	{
 		sl_uint32 from;
 		sl_uint32 to;

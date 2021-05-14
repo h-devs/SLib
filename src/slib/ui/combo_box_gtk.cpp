@@ -135,12 +135,13 @@ namespace slib
 					return sl_false;
 				}
 
-				void setText(ComboBox* view, const String& text) override
+				void setText(ComboBox* view, const String& _text) override
 				{
 					GtkComboBox* handle = (GtkComboBox*)m_handle;
 					if (handle) {
 						GtkEntry* entry = getEntry(handle);
 						if(entry){
+							StringCstr text(_text);
 							gtk_entry_set_text(entry, text.getData());
 						}
 					}

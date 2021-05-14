@@ -396,12 +396,12 @@ namespace slib
 		}
 
 		sbCpp.add(String::format(
+								 "#include <slib/ui.h>%n%n"
 								 "#include \"layouts.h\"%n%n"
 								 "#include \"strings.h\"%n"
 								 "#include \"colors.h\"%n"
 								 "#include \"drawables.h\"%n"
 								 "#include \"menus.h\"%n%n"
-								 "#include <slib/ui.h>%n%n"
 								 , m_conf.generate_cpp_namespace));
 		
 		{

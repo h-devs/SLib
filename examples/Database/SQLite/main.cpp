@@ -6,7 +6,7 @@ int main(int argc, const char * argv[])
 {
 	SQLiteParam param;
 	param.path = System::getHomeDirectory() + "/test.sqlite";
-	Ref<SQLiteDatabase> db = SQLiteDatabase::open(param);
+	Ref<SQLite> db = SQLite::open(param);
 	if (db.isNull()) {
 		Println("Cannot connect to database file.");
 		return 1;

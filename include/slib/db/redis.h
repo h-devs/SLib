@@ -23,89 +23,66 @@
 #ifndef CHECKHEADER_SLIB_DB_REDIS
 #define CHECKHEADER_SLIB_DB_REDIS
 
-#include "definition.h"
+#include "key_value_store.h"
 
-#include "../core/variant.h"
+#include "../core/string.h"
 
 namespace slib
 {
 
-	class SLIB_EXPORT RedisDatabase : public Object
+	class SLIB_EXPORT Redis : public KeyValueStore
 	{
 		SLIB_DECLARE_OBJECT
 
 	protected:
-		RedisDatabase();
+		Redis();
 
-		~RedisDatabase();
+		~Redis();
 
 	public:
-		static Ref<RedisDatabase> connect(const String& ip, sl_uint16 port);
+		static Ref<Redis> connect(const StringParam& ip, sl_uint16 port);
 		
 	public:
-		virtual sl_bool execute(const String& command, Variant* pValue) = 0;
+		using KeyValueStore::get;
+		sl_bool get(const void* key, sl_size sizeKey, MemoryData* pOutValue = sl_null) override;
 		
-		Variant execute(const String& key);
+		virtual Variant execute(const StringParam& command) = 0;
 
-		virtual sl_bool set(const String& key, const Variant& value) = 0;
+		virtual sl_bool incr(const StringParam& key, sl_int64* pValue) = 0;
 		
-		virtual sl_bool get(const String& key, String* pValue) = 0;
-		
-		String get(const String& key);
-		
-		String get(const String& key, const String& def);
+		sl_int64 incr(const StringParam& key, sl_int64 def = 0);
 
-		virtual sl_bool del(const String& key) = 0;
+		virtual sl_bool decr(const StringParam& key, sl_int64* pValue) = 0;
 		
-		virtual sl_bool incr(const String& key, sl_int64* pValue) = 0;
-		
-		sl_int64 incr(const String& key, sl_int64 def = 0);
+		sl_int64 decr(const StringParam& key, sl_int64 def = 0);
 
-		virtual sl_bool decr(const String& key, sl_int64* pValue) = 0;
+		virtual sl_bool incrby(const StringParam& key, sl_int64 n, sl_int64* pValue) = 0;
 		
-		sl_int64 decr(const String& key, sl_int64 def = 0);
+		sl_int64 incrby(const StringParam& key, sl_int64 n, sl_int64 def = 0);
+		
+		virtual sl_bool decrby(const StringParam& key, sl_int64 n, sl_int64* pValue) = 0;
+		
+		sl_int64 decrby(const StringParam& key, sl_int64 n, sl_int64 def = 0);
+		
+		virtual sl_bool llen(const StringParam& key, sl_int64* pValue) = 0;
+		
+		sl_int64 llen(const StringParam& key);
+		
+		virtual sl_int64 lpush(const StringParam& key, const Variant& value) = 0;
 
-		virtual sl_bool incrby(const String& key, sl_int64 n, sl_int64* pValue) = 0;
-		
-		sl_int64 incrby(const String& key, sl_int64 n, sl_int64 def = 0);
-		
-		virtual sl_bool decrby(const String& key, sl_int64 n, sl_int64* pValue) = 0;
-		
-		sl_int64 decrby(const String& key, sl_int64 n, sl_int64 def = 0);
-		
-		virtual sl_bool llen(const String& key, sl_int64* pValue) = 0;
-		
-		sl_int64 llen(const String& key);
-		
-		virtual sl_int64 lpush(const String& key, const Variant& value) = 0;
+		virtual sl_int64 rpush(const StringParam& key, const Variant& value) = 0;
 
-		virtual sl_int64 rpush(const String& key, const Variant& value) = 0;
+		virtual Variant lindex(const StringParam& key, sl_int64 index) = 0;
+		
+		virtual sl_bool lset(const StringParam& key, sl_int64 index, const Variant& value) = 0;
 
-		virtual sl_bool lindex(const String& key, sl_int64 index, String* pValue) = 0;
+		virtual sl_bool ltrm(const StringParam& key, sl_int64 start, sl_int64 stop) = 0;
 		
-		String lindex(const String& key, sl_int64 index);
+		virtual Variant lpop(const StringParam& key) = 0;
 		
-		String lindex(const String& key, sl_int64 index, const String& def);
-
-		virtual sl_bool lset(const String& key, sl_int64 index, const Variant& value) = 0;
-
-		virtual sl_bool ltrm(const String& key, sl_int64 start, sl_int64 stop) = 0;
-
-		virtual sl_bool lpop(const String& key, String* pValue) = 0;
+		virtual Variant rpop(const StringParam& key) = 0;
 		
-		String lpop(const String& key);
-		
-		String lpop(const String& key, const String& def);
-
-		virtual sl_bool rpop(const String& key, String* pValue) = 0;
-		
-		String rpop(const String& key);
-		
-		String rpop(const String& key, const String& def);
-		
-		virtual sl_bool lrange(const String& key, sl_int64 start, sl_int64 stop, VariantList* pValue) = 0;
-		
-		VariantList lrange(const String& key, sl_int64 start = 0, sl_int64 stop = -1);
+		virtual List<Variant> lrange(const StringParam& key, sl_int64 start = 0, sl_int64 stop = -1);
 		
 	public:
 		sl_bool isLoggingErrors();

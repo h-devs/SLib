@@ -170,6 +170,16 @@ namespace slib
 		sl_size m_len;
 		
 	};
+
+
+	template <class CharType>
+	struct StringBufferTypeFromCharType;
+	
+	template <>
+	struct StringBufferTypeFromCharType<sl_char8> { typedef StringBuffer Type; };
+	
+	template <>
+	struct StringBufferTypeFromCharType<sl_char16> { typedef StringBuffer16 Type; };
 	
 }
 

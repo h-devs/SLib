@@ -61,7 +61,7 @@ namespace slib
 
 		void reload();
 		
-		void runJavaScript(const String& script);
+		void runJavaScript(const StringParam& script);
 		
 		
 		String getErrorMessage();
@@ -130,7 +130,7 @@ namespace slib
 
 		virtual void reload(WebView* view) = 0;
 		
-		virtual void runJavaScript(WebView* view, const String& script) = 0;
+		virtual void runJavaScript(WebView* view, const StringParam& script) = 0;
 		
 
 		virtual void setCustomUserAgent(WebView* view, const String& agent);

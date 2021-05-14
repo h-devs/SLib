@@ -36,6 +36,9 @@
 #include "slib/core/scoped.h"
 #include "slib/math/bigint.h"
 
+#include "slib/core/serialize/io.h"
+#include "slib/core/serialize/variable_length_integer.h"
+
 namespace slib
 {
 	
@@ -96,7 +99,7 @@ namespace slib
 	sl_reg IReader::readFully(void* _buf, sl_size size)
 	{
 		char* buf = (char*)_buf;
-		if (size == 0) {
+		if (!size) {
 			return 0;
 		}
 		sl_size nRead = 0;
@@ -114,7 +117,7 @@ namespace slib
 			if (Thread::isStoppingCurrent()) {
 				return nRead;
 			}
-			if (m == 0) {
+			if (!m) {
 				Thread::sleep(1);
 				if (Thread::isStoppingCurrent()) {
 					return nRead;
@@ -126,7 +129,7 @@ namespace slib
 
 	sl_bool IReader::readInt8(sl_int8* output)
 	{
-		if (read32(output, 1) == 1) {
+		if (readFully(output, 1) == 1) {
 			return sl_true;
 		} else {
 			return sl_false;
@@ -145,7 +148,7 @@ namespace slib
 
 	sl_bool IReader::readUint8(sl_uint8* output)
 	{
-		if (read32(output, 1) == 1) {
+		if (readFully(output, 1) == 1) {
 			return sl_true;
 		} else {
 			return sl_false;
@@ -370,129 +373,65 @@ namespace slib
 		}
 	}
 
-	sl_bool IReader::readUint32CVLI(sl_uint32* output)
+	sl_bool IReader::readCVLI32(sl_uint32* output)
 	{
-		sl_uint32 v = 0;
-		int m = 0;
-		while (1) {
-			sl_uint8 n = 0;
-			if (readFully(&n, 1) == 1) {
-				v += (((sl_uint32)(n & 127)) << m);
-				m += 7;
-				if ((n & 128) == 0) {
-					break;
-				}
-			} else {
-				return sl_false;
+		sl_uint32 v;
+		if (CVLI::deserialize(this, v)) {
+			if (output) {
+				*output = v;
 			}
+			return sl_true;
 		}
-		*output = v;
-		return sl_true;
+		return sl_false;
 	}
 
-	sl_uint32 IReader::readUint32CVLI(sl_uint32 def)
+	sl_uint32 IReader::readCVLI32(sl_uint32 def)
 	{
-		sl_uint32 ret;
-		if (readUint32CVLI(&ret)) {
-			return ret;
+		sl_uint32 v;
+		if (CVLI::deserialize(this, v)) {
+			return v;
 		} else {
 			return def;
 		}
 	}
 
-	sl_bool IReader::readInt32CVLI(sl_int32* output)
+	sl_bool IReader::readCVLI64(sl_uint64* output)
 	{
-		return readUint32CVLI((sl_uint32*)output);
-	}
-
-	sl_int32 IReader::readInt32CVLI(sl_int32 def)
-	{
-		sl_int32 ret;
-		if (readInt32CVLI(&ret)) {
-			return ret;
-		} else {
-			return def;
-		}
-	}
-
-	sl_bool IReader::readUint64CVLI(sl_uint64* output)
-	{
-		sl_uint64 v = 0;
-		int m = 0;
-		while (1) {
-			sl_uint8 n = 0;
-			if (readFully(&n, 1) == 1) {
-				v += (((sl_uint64)(n & 127)) << m);
-				m += 7;
-				if ((n & 128) == 0) {
-					break;
-				}
-			} else {
-				return sl_false;
+		sl_uint64 v;
+		if (CVLI::deserialize(this, v)) {
+			if (output) {
+				*output = v;
 			}
+			return sl_true;
 		}
-		*output = v;
-		return sl_true;
+		return sl_false;
 	}
 
-	sl_uint64 IReader::readUint64CVLI(sl_uint64 def)
+	sl_uint64 IReader::readCVLI64(sl_uint64 def)
 	{
-		sl_uint64 ret;
-		if (readUint64CVLI(&ret)) {
-			return ret;
+		sl_uint64 v;
+		if (CVLI::deserialize(this, v)) {
+			return v;
 		} else {
 			return def;
 		}
 	}
 
-	sl_bool IReader::readInt64CVLI(sl_int64* output)
-	{
-		return readUint64CVLI((sl_uint64*)output);
-	}
-
-	sl_int64 IReader::readInt64CVLI(sl_int64 def)
-	{
-		sl_int64 ret;
-		if (readInt64CVLI(&ret)) {
-			return ret;
-		} else {
-			return def;
-		}
-	}
-
-	sl_bool IReader::readSizeCVLI(sl_size* output)
+	sl_bool IReader::readCVLI(sl_size* output)
 	{
 #ifdef SLIB_ARCH_IS_64BIT
-		return readUint64CVLI(output);
+		return readCVLI64(output);
 #else
-		return readUint32CVLI(output);
+		return readCVLI32(output);
 #endif
 	}
 
-	sl_size IReader::readSizeCVLI(sl_size def)
+	sl_size IReader::readCVLI(sl_size def)
 	{
 #ifdef SLIB_ARCH_IS_64BIT
-		return readUint64CVLI(def);
+		return readCVLI64(def);
 #else
-		return readUint32CVLI(def);
-#endif
-	}
-
-	sl_bool IReader::readIntCVLI(sl_reg* output)
-	{
-#ifdef SLIB_ARCH_IS_64BIT
-		return readInt64CVLI(output);
-#else
-		return readInt32CVLI(output);
-#endif
-	}
-
-	sl_reg IReader::readIntCVLI(sl_reg def)
-	{
-#ifdef SLIB_ARCH_IS_64BIT
-		return readInt64CVLI(def);
-#else
-		return readInt32CVLI(def);
+		return readCVLI32(def);
 #endif
 	}
 
@@ -513,7 +452,7 @@ namespace slib
 	sl_bool IReader::readSectionData(void* mem, sl_size& size)
 	{
 		sl_size sizeBuf = size;
-		if (readSizeCVLI(&size)) {
+		if (readCVLI(&size)) {
 			if (size <= sizeBuf) {
 				if (readFully(mem, size) == (sl_reg)size) {
 					return sl_true;
@@ -528,7 +467,7 @@ namespace slib
 	sl_bool IReader::readSection(Memory* mem, sl_size maxSize)
 	{
 		sl_size size;
-		if (readSizeCVLI(&size)) {
+		if (readCVLI(&size)) {
 			if (size > maxSize) {
 				return sl_false;
 			}
@@ -997,7 +936,7 @@ namespace slib
 	sl_reg IWriter::writeFully(const void* _buf, sl_size size)
 	{
 		char* buf = (char*)_buf;
-		if (size == 0) {
+		if (!size) {
 			return 0;
 		}
 		sl_size nWrite = 0;
@@ -1015,7 +954,7 @@ namespace slib
 			if (Thread::isStoppingCurrent()) {
 				return nWrite;
 			}
-			if (m == 0) {
+			if (!m) {
 				Thread::sleep(1);
 				if (Thread::isStoppingCurrent()) {
 					return nWrite;
@@ -1027,12 +966,12 @@ namespace slib
 
 	sl_bool IWriter::writeInt8(sl_int8 value)
 	{
-		return write32(&value, 1) == 1;
+		return writeFully(&value, 1) == 1;
 	}
 
 	sl_bool IWriter::writeUint8(sl_uint8 value)
 	{
-		return write32(&value, 1) == 1;
+		return writeFully(&value, 1) == 1;
 	}
 
 	sl_bool IWriter::writeInt16(sl_int16 value, EndianType endian)
@@ -1100,67 +1039,22 @@ namespace slib
 		return writeFully(&value, 8) == 8;
 	}
 
-	sl_bool IWriter::writeUint32CVLI(sl_uint32 value)
+	sl_bool IWriter::writeCVLI32(sl_uint32 value)
 	{
-		sl_bool flagContinue = sl_true;
-		do {
-			sl_uint8 n = ((sl_uint8)value) & 127;
-			value = value >> 7;
-			if (value != 0) {
-				n |= 128;
-			} else {
-				flagContinue = sl_false;
-			}
-			if (writeFully(&n, 1) != 1) {
-				return sl_false;
-			}
-		} while (flagContinue);
-		return sl_true;
+		return CVLI::serialize(this, value);
 	}
 
-	sl_bool IWriter::writeInt32CVLI(sl_int32 value)
+	sl_bool IWriter::writeCVLI64(sl_uint64 value)
 	{
-		return writeUint32CVLI((sl_uint32)value);
+		return CVLI::serialize(this, value);
 	}
 
-	sl_bool IWriter::writeUint64CVLI(sl_uint64 value)
-	{
-		sl_bool flagContinue = sl_true;
-		do {
-			sl_uint8 n = ((sl_uint8)value) & 127;
-			value = value >> 7;
-			if (value != 0) {
-				n |= 128;
-			} else {
-				flagContinue = sl_false;
-			}
-			if (writeFully(&n, 1) != 1) {
-				return sl_false;
-			}
-		} while (flagContinue);
-		return sl_true;
-	}
-
-	sl_bool IWriter::writeInt64CVLI(sl_int64 value)
-	{
-		return writeUint64CVLI((sl_uint64)value);
-	}
-
-	sl_bool IWriter::writeSizeCVLI(sl_size value)
+	sl_bool IWriter::writeCVLI(sl_size value)
 	{
 #ifdef SLIB_ARCH_IS_64BIT
-		return writeUint64CVLI(value);
+		return writeCVLI64(value);
 #else
-		return writeUint32CVLI(value);
-#endif
-	}
-
-	sl_bool IWriter::writeIntCVLI(sl_reg value)
-	{
-#ifdef SLIB_ARCH_IS_64BIT
-		return writeInt64CVLI(value);
-#else
-		return writeInt32CVLI(value);
+		return writeCVLI32(value);
 #endif
 	}
 
@@ -1171,7 +1065,7 @@ namespace slib
 
 	sl_bool IWriter::writeSection(const void* mem, sl_size size)
 	{
-		if (writeSizeCVLI(size)) {
+		if (writeCVLI(size)) {
 			if (writeFully(mem, size) == (sl_reg)size) {
 				return sl_true;
 			}
@@ -2007,7 +1901,7 @@ namespace slib
 		if (data.isNotNull()) {
 			m_buf = data.getData();
 			m_size = data.getSize();
-			m_flagResizable = !(data.isStatic());
+			m_flagResizable = data.isResizable();
 			m_data = data;
 		} else {
 			m_buf = sl_null;
@@ -2367,6 +2261,33 @@ namespace slib
 	sl_size MemoryReader::getSize()
 	{
 		return m_size;
+	}
+
+	sl_size MemoryReader::getRemainedSize()
+	{
+		if (m_size > m_offset) {
+			return m_size - m_offset;
+		} else {
+			return 0;
+		}
+	}
+
+	sl_reg MemoryReader::skip(sl_size size)
+	{
+		if (!size) {
+			return 0;
+		}
+		if (m_offset >= m_size) {
+			return -1;
+		}
+		sl_size limit = m_size - m_offset;
+		if (size > limit) {
+			size = limit;
+		}
+		if (size > 0) {
+			m_offset += size;
+		}
+		return size;
 	}
 
 	sl_uint8* MemoryReader::getBuffer()
@@ -2962,14 +2883,11 @@ namespace slib
 		if (!n) {
 			return sl_true;
 		}
-		MemoryData mem;
-		mem.data = m_buffer.getData();
-		mem.size = n;
-		mem.refer = Move(m_buffer.ref);
+		MemoryData mem(m_buffer.getData(), n, Move(m_buffer.ref));
 		if (m_queue.add(mem)) {
 			return sl_true;
 		}
-		m_buffer.ref = Move(Ref< CList<sl_uint8> >::from(mem.refer));
+		m_buffer.ref = Move(Ref< CList<sl_uint8> >::from(mem.ref));
 		return sl_false;
 	}
 
@@ -4017,6 +3935,205 @@ namespace slib
 		} else {
 			return m_pos;
 		}
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SerializeBuffer)
+
+	SerializeBuffer::SerializeBuffer(const void* buf, sl_size size) noexcept
+	{
+		current = begin = (sl_uint8*)buf;
+		end = begin + size;
+	}
+
+	sl_bool SerializeBuffer::read(sl_uint8& _out) noexcept
+	{
+		if (current < end) {
+			_out = *(current++);
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool SerializeBuffer::write(sl_uint8 value) noexcept
+	{
+		if (current < end) {
+			*(current++) = value;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_size SerializeBuffer::read(void* buf, sl_size size) noexcept
+	{
+		if (size && current < end) {
+			if (current + size > end) {
+				size = end - current;
+			}
+			Base::copyMemory(buf, current, size);
+			current += size;
+			return size;
+		}
+		return 0;
+	}
+
+	sl_size SerializeBuffer::write(const void* buf, sl_size size) noexcept
+	{
+		if (size && current < end) {
+			if (current + size > end) {
+				size = end - current;
+			}
+			Base::copyMemory(current, buf, size);
+			current += size;
+			return size;
+		}
+		return 0;
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DeserializeBuffer)
+
+	DeserializeBuffer::DeserializeBuffer(const void* buf, sl_size size) noexcept
+	{
+		current = begin = (sl_uint8*)buf;
+		end = begin + size;
+	}
+
+	DeserializeBuffer::DeserializeBuffer(const MemoryData& data) noexcept: DeserializeBuffer(data.data, data.size, data.ref)
+	{
+	}
+
+	DeserializeBuffer::DeserializeBuffer(MemoryData&& data) noexcept: DeserializeBuffer(data.data, data.size, Move(data.ref))
+	{
+	}
+
+	DeserializeBuffer::DeserializeBuffer(const Memory& mem) noexcept: DeserializeBuffer(mem.getData(), mem.getSize(), Move(mem.getRef()))
+	{
+	}
+
+	DeserializeBuffer::DeserializeBuffer(Memory&& mem) noexcept : DeserializeBuffer(MemoryData(Move(mem)))
+	{
+	}
+
+	sl_bool DeserializeBuffer::read(sl_uint8& _out) noexcept
+	{
+		if (current < end) {
+			_out = *(current++);
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+	
+	sl_size DeserializeBuffer::read(void* buf, sl_size size) noexcept
+	{
+		if (size && current < end) {
+			if (current + size > end) {
+				size = end - current;
+			}
+			Base::copyMemory(buf, current, size);
+			current += size;
+			return size;
+		}
+		return 0;
+	}
+
+
+	sl_bool SerializeByte(IWriter* writer, sl_uint8 value) noexcept
+	{
+		return writer->writeUint8(value);
+	}
+
+	sl_bool SerializeByte(MemoryBuffer* buf, sl_uint8 value) noexcept
+	{
+		return buf->add(Memory::create(&value, 1));
+	}
+
+	sl_bool SerializeByte(SerializeBuffer* buf, sl_uint8 value) noexcept
+	{
+		return buf->write(value);
+	}
+
+	sl_bool SerializeRaw(IWriter* writer, const void* data, sl_size size) noexcept
+	{
+		return writer->writeFully(data, size) == size;
+	}
+
+	sl_bool SerializeRaw(MemoryBuffer* buf, const void* data, sl_size size) noexcept
+	{
+		return buf->add(Memory::create(data, size));
+	}
+
+	sl_bool SerializeRaw(SerializeBuffer* buf, const void* data, sl_size size) noexcept
+	{
+		return buf->write(data, size) == size;
+	}
+
+	sl_bool SerializeRaw(IWriter* writer, const MemoryData& data) noexcept
+	{
+		return writer->writeFully(data.data, data.size) == data.size;
+	}
+
+	sl_bool SerializeRaw(MemoryBuffer* buf, const MemoryData& data) noexcept
+	{
+		return buf->add(data);
+	}
+
+	sl_bool SerializeRaw(MemoryBuffer* buf, MemoryData&& data) noexcept
+	{
+		return buf->add(Move(data));
+	}
+
+	sl_bool SerializeRaw(SerializeBuffer* buf, const MemoryData& data) noexcept
+	{
+		return buf->write(data.data, data.size) == data.size;
+	}
+
+	sl_bool SerializeStatic(IWriter* writer, const void* data, sl_size size) noexcept
+	{
+		return writer->writeFully(data, size) == size;
+	}
+
+	sl_bool SerializeStatic(MemoryBuffer* buf, const void* data, sl_size size) noexcept
+	{
+		return buf->addStatic(data, size);
+	}
+
+	sl_bool SerializeStatic(SerializeBuffer* buf, const void* data, sl_size size) noexcept
+	{
+		return buf->write(data, size) == size;
+	}
+
+	sl_bool DeserializeByte(IReader* reader, sl_uint8& value) noexcept
+	{
+		return reader->readUint8(&value);
+	}
+
+	sl_bool DeserializeByte(SerializeBuffer* buf, sl_uint8& _out) noexcept
+	{
+		return buf->read(_out);
+	}
+
+	sl_bool DeserializeByte(DeserializeBuffer* buf, sl_uint8& _out) noexcept
+	{
+		return buf->read(_out);
+	}
+
+	sl_bool DeserializeRaw(IReader* reader, void* data, sl_size size) noexcept
+	{
+		return reader->readFully(data, size) == size;
+	}
+
+	sl_bool DeserializeRaw(SerializeBuffer* buf, void* data, sl_size size) noexcept
+	{
+		return buf->read(data, size) == size;
+	}
+
+	sl_bool DeserializeRaw(DeserializeBuffer* buf, void* data, sl_size size) noexcept
+	{
+		return buf->read(data, size) == size;
 	}
 
 }

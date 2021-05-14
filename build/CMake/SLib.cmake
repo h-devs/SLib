@@ -155,12 +155,14 @@ set (SLIB_CORE_FILES
 
  "${SLIB_PATH}/src/slib/math/bigint.cpp"
  "${SLIB_PATH}/src/slib/math/calculator.cpp"
+ "${SLIB_PATH}/src/slib/math/decimal128.cpp"
  "${SLIB_PATH}/src/slib/math/fft.cpp"
  "${SLIB_PATH}/src/slib/math/int128.cpp"
  "${SLIB_PATH}/src/slib/math/plot.cpp"
  "${SLIB_PATH}/src/slib/math/plot_ui.cpp"
 
  "${SLIB_PATH}/src/slib/network/arp.cpp"
+ "${SLIB_PATH}/src/slib/network/dbip.cpp"
  "${SLIB_PATH}/src/slib/network/dns.cpp"
  "${SLIB_PATH}/src/slib/network/ethernet.cpp"
  "${SLIB_PATH}/src/slib/network/http_common.cpp"
@@ -172,11 +174,13 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/network/mac_address.cpp"
  "${SLIB_PATH}/src/slib/network/nat.cpp"
  "${SLIB_PATH}/src/slib/network/net_capture.cpp"
- "${SLIB_PATH}/src/slib/network/net_capture_pcap.cpp"
  "${SLIB_PATH}/src/slib/network/network_async.cpp"
  "${SLIB_PATH}/src/slib/network/network_async_unix.cpp"
  "${SLIB_PATH}/src/slib/network/network_io.cpp"
  "${SLIB_PATH}/src/slib/network/network_os.cpp"
+ "${SLIB_PATH}/src/slib/network/pcap.cpp"
+ "${SLIB_PATH}/src/slib/network/pseudo_tcp.cpp"
+ "${SLIB_PATH}/src/slib/network/pseudo_tcp_message.cpp"
  "${SLIB_PATH}/src/slib/network/socket.cpp"
  "${SLIB_PATH}/src/slib/network/socket_address.cpp"
  "${SLIB_PATH}/src/slib/network/socket_event.cpp"
@@ -269,6 +273,11 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/db/database_expression.cpp"
  "${SLIB_PATH}/src/slib/db/database_sql.cpp"
  "${SLIB_PATH}/src/slib/db/database_statement.cpp"
+ "${SLIB_PATH}/src/slib/db/document_store.cpp"
+ "${SLIB_PATH}/src/slib/db/leveldb.cpp"
+ "${SLIB_PATH}/src/slib/db/lmdb.cpp"
+ "${SLIB_PATH}/src/slib/db/key_value_store.cpp"
+ "${SLIB_PATH}/src/slib/db/object_storage.cpp"
  "${SLIB_PATH}/src/slib/db/redis.cpp"
  "${SLIB_PATH}/src/slib/db/sqlite.cpp"
 
@@ -318,10 +327,6 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/social/wechat_sdk.cpp"
 
  "${SLIB_PATH}/src/slib/storage/disk.cpp"
- "${SLIB_PATH}/src/slib/storage/fuse.cpp"
- "${SLIB_PATH}/src/slib/storage/file_system.cpp"
- "${SLIB_PATH}/src/slib/storage/file_system_logger.cpp"
- "${SLIB_PATH}/src/slib/storage/file_system_mirror.cpp"
 
  "${SLIB_PATH}/src/slib/ui/button.cpp"
  "${SLIB_PATH}/src/slib/ui/camera_view.cpp"
@@ -458,8 +463,11 @@ else ()
 
   "${SLIB_PATH}/src/slib/network/tap_unix.cpp"
 
+  "${SLIB_PATH}/src/slib/db/mongodb.cpp"
   "${SLIB_PATH}/src/slib/db/mysql.cpp"
+  "${SLIB_PATH}/src/slib/db/mysql_data.cpp"
   "${SLIB_PATH}/src/slib/db/postgresql.cpp"
+  "${SLIB_PATH}/src/slib/db/rocksdb.cpp"
 
   "${SLIB_PATH}/src/slib/graphics/bitmap_cairo.cpp"
   "${SLIB_PATH}/src/slib/graphics/canvas_cairo.cpp"
@@ -473,7 +481,12 @@ else ()
   "${SLIB_PATH}/src/slib/media/media_player_linux.cpp"
 
   "${SLIB_PATH}/src/slib/device/device_linux.cpp"
-
+  
+  "${SLIB_PATH}/src/slib/storage/fuse.cpp"
+  "${SLIB_PATH}/src/slib/storage/file_system.cpp"
+  "${SLIB_PATH}/src/slib/storage/file_system_logger.cpp"
+  "${SLIB_PATH}/src/slib/storage/file_system_mirror.cpp"
+ 
   "${SLIB_PATH}/src/slib/ui/button_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/check_box_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/clipboard_gtk.cpp"
@@ -502,106 +515,54 @@ endif()
 set (ZLIB_ROOT_DIR "${SLIB_PATH}/external/src/zlib")
 set (
  ZLIB_FILES
- "${ZLIB_ROOT_DIR}/adler32.c"
- "${ZLIB_ROOT_DIR}/compress.c"
- "${ZLIB_ROOT_DIR}/crc32.c"
- "${ZLIB_ROOT_DIR}/deflate.c"
- "${ZLIB_ROOT_DIR}/gzclose.c"
- "${ZLIB_ROOT_DIR}/gzlib.c"
- "${ZLIB_ROOT_DIR}/gzread.c"
- "${ZLIB_ROOT_DIR}/gzwrite.c"
- "${ZLIB_ROOT_DIR}/infback.c"
- "${ZLIB_ROOT_DIR}/inffast.c"
- "${ZLIB_ROOT_DIR}/inflate.c"
- "${ZLIB_ROOT_DIR}/inftrees.c"
- "${ZLIB_ROOT_DIR}/trees.c"
- "${ZLIB_ROOT_DIR}/uncompr.c"
- "${ZLIB_ROOT_DIR}/zutil.c"
+ "${ZLIB_ROOT_DIR}/zlib_unity.c"
 )
 
 set (LIBPNG_ROOT_DIR "${SLIB_PATH}/external/src/libpng")
 set (
  LIBPNG_FILES
- "${LIBPNG_ROOT_DIR}/png.c"
- "${LIBPNG_ROOT_DIR}/pngerror.c"
- "${LIBPNG_ROOT_DIR}/pngget.c"
- "${LIBPNG_ROOT_DIR}/pngmem.c"
- "${LIBPNG_ROOT_DIR}/pngpread.c"
- "${LIBPNG_ROOT_DIR}/pngread.c"
- "${LIBPNG_ROOT_DIR}/pngrio.c"
- "${LIBPNG_ROOT_DIR}/pngrtran.c"
- "${LIBPNG_ROOT_DIR}/pngrutil.c"
- "${LIBPNG_ROOT_DIR}/pngset.c"
- "${LIBPNG_ROOT_DIR}/pngtrans.c"
- "${LIBPNG_ROOT_DIR}/pngwio.c"
- "${LIBPNG_ROOT_DIR}/pngwrite.c"
- "${LIBPNG_ROOT_DIR}/pngwtran.c"
- "${LIBPNG_ROOT_DIR}/pngwutil.c"
+ "${LIBPNG_ROOT_DIR}/libpng_unity.c"
 )
-if (SLIB_ARM)
- list (
-  APPEND LIBPNG_FILES
-  "${LIBPNG_ROOT_DIR}/arm/arm_init.c"
-  "${LIBPNG_ROOT_DIR}/arm/filter_neon_intrinsics.c"
- )
-endif ()
-if (SLIB_X86)
- list (
-  APPEND LIBPNG_FILES
-  "${LIBPNG_ROOT_DIR}/intel/intel_init.c"
-  "${LIBPNG_ROOT_DIR}/intel/filter_sse2_intrinsics.c"
- )
-endif ()
 
 set (LIBJPEG_ROOT_DIR "${SLIB_PATH}/external/src/libjpeg")
 set (
  LIBJPEG_FILES
- "${LIBJPEG_ROOT_DIR}/jaricom.c"
- "${LIBJPEG_ROOT_DIR}/jcapimin.c"
- "${LIBJPEG_ROOT_DIR}/jcapistd.c"
- "${LIBJPEG_ROOT_DIR}/jcarith.c"
- "${LIBJPEG_ROOT_DIR}/jccoefct.c"
- "${LIBJPEG_ROOT_DIR}/jccolor.c"
- "${LIBJPEG_ROOT_DIR}/jcdctmgr.c"
- "${LIBJPEG_ROOT_DIR}/jchuff.c"
- "${LIBJPEG_ROOT_DIR}/jcinit.c"
- "${LIBJPEG_ROOT_DIR}/jcmainct.c"
- "${LIBJPEG_ROOT_DIR}/jcmarker.c"
- "${LIBJPEG_ROOT_DIR}/jcmaster.c"
- "${LIBJPEG_ROOT_DIR}/jcomapi.c"
- "${LIBJPEG_ROOT_DIR}/jcparam.c"
- "${LIBJPEG_ROOT_DIR}/jcprepct.c"
- "${LIBJPEG_ROOT_DIR}/jcsample.c"
- "${LIBJPEG_ROOT_DIR}/jctrans.c"
- "${LIBJPEG_ROOT_DIR}/jdapimin.c"
- "${LIBJPEG_ROOT_DIR}/jdapistd.c"
- "${LIBJPEG_ROOT_DIR}/jdarith.c"
- "${LIBJPEG_ROOT_DIR}/jdatadst.c"
- "${LIBJPEG_ROOT_DIR}/jdatasrc.c"
- "${LIBJPEG_ROOT_DIR}/jdcoefct.c"
- "${LIBJPEG_ROOT_DIR}/jdcolor.c"
- "${LIBJPEG_ROOT_DIR}/jddctmgr.c"
- "${LIBJPEG_ROOT_DIR}/jdhuff.c"
- "${LIBJPEG_ROOT_DIR}/jdinput.c"
- "${LIBJPEG_ROOT_DIR}/jdmainct.c"
- "${LIBJPEG_ROOT_DIR}/jdmarker.c"
- "${LIBJPEG_ROOT_DIR}/jdmaster.c"
- "${LIBJPEG_ROOT_DIR}/jdmerge.c"
- "${LIBJPEG_ROOT_DIR}/jdpostct.c"
- "${LIBJPEG_ROOT_DIR}/jdsample.c"
- "${LIBJPEG_ROOT_DIR}/jdtrans.c"
- "${LIBJPEG_ROOT_DIR}/jerror.c"
- "${LIBJPEG_ROOT_DIR}/jfdctflt.c"
- "${LIBJPEG_ROOT_DIR}/jfdctfst.c"
- "${LIBJPEG_ROOT_DIR}/jfdctint.c"
- "${LIBJPEG_ROOT_DIR}/jidctflt.c"
- "${LIBJPEG_ROOT_DIR}/jidctfst.c"
- "${LIBJPEG_ROOT_DIR}/jidctint.c"
- "${LIBJPEG_ROOT_DIR}/jmemmgr.c"
- "${LIBJPEG_ROOT_DIR}/jmemnobs.c"
- "${LIBJPEG_ROOT_DIR}/jquant1.c"
- "${LIBJPEG_ROOT_DIR}/jquant2.c"
- "${LIBJPEG_ROOT_DIR}/jutils.c"
+ "${LIBJPEG_ROOT_DIR}/libjpeg_unity1.c"
+ "${LIBJPEG_ROOT_DIR}/libjpeg_unity2.c"
+)
+
+set (SNAPPY_ROOT_DIR "${SLIB_PATH}/external/src/snappy")
+set (
+ SNAPPY_FILES
+ "${SNAPPY_ROOT_DIR}/snappy.cc"
+ "${SNAPPY_ROOT_DIR}/snappy-c.cc"
+ "${SNAPPY_ROOT_DIR}/snappy-sinksource.cc"
+)
+
+set (ZSTD_ROOT_DIR "${SLIB_PATH}/external/src/zstd")
+set (
+ ZSTD_FILES
+ "${ZSTD_ROOT_DIR}/zstd_unity.c"
+)
+
+set (LZ4_ROOT_DIR "${SLIB_PATH}/external/src/lz4")
+set (
+ LZ4_FILES
+ "${LZ4_ROOT_DIR}/lz4.c"
+ "${LZ4_ROOT_DIR}/lz4hc.c"
+)
+
+set (LMDB_ROOT_DIR "${SLIB_PATH}/external/src/lmdb")
+set (
+ LMDB_FILES
+ "${LMDB_ROOT_DIR}/mdb.c"
+ "${LMDB_ROOT_DIR}/midl.c"
+)
+
+set (LEVELDB_ROOT_DIR "${SLIB_PATH}/external/src/leveldb")
+set (
+ LEVELDB_FILES
+ "${LEVELDB_ROOT_DIR}/leveldb_unity.cc"
 )
 
 set (NOTO_EMOJI_ROOT_DIR "${SLIB_PATH}/external/src/noto_emoji")
@@ -620,6 +581,11 @@ add_library (
  ${ZLIB_FILES}
  ${LIBPNG_FILES}
  ${LIBJPEG_FILES}
+ ${SNAPPY_FILES}
+ ${ZSTD_FILES}
+ ${LZ4_FILES}
+ ${LMDB_FILES}
+ ${LEVELDB_FILES}
  ${NOTO_EMOJI_FILES}
 )
 set_target_properties (

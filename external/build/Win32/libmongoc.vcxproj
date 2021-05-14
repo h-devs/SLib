@@ -1,0 +1,354 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\libmongoc\bson\bcon.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-atomic.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-clock.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-context.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-decimal128.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-error.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-iso8601.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-iter.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-json.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-keys.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-md5.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-memory.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-oid.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-reader.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-string.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-timegm.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-utf8.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-value.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-version-functions.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson-writer.c" />
+    <ClCompile Include="..\..\src\libmongoc\bson\bson.c" />
+    <ClCompile Include="..\..\src\libmongoc\common\common-b64.c" />
+    <ClCompile Include="..\..\src\libmongoc\common\common-md5.c" />
+    <ClCompile Include="..\..\src\libmongoc\common\common-thread.c" />
+    <ClCompile Include="..\..\src\libmongoc\jsonsl\jsonsl.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\hexlify.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_b64.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_caller_identity_request.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_crypto_apple.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_crypto_libcrypto.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_crypto_none.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_crypto_windows.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_decrypt_request.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_encrypt_request.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_kv_list.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_message.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_port.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_request.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_request_opt.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_request_str.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_response.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\kms_response_parser.c" />
+    <ClCompile Include="..\..\src\libmongoc\kms-message\sort.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-aggregate.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-apm.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-array.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-async-cmd.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-async.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-buffer.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-bulk-operation.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-change-stream.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-client-pool.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-client-session.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-client-side-encryption.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-client.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cluster-aws.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cluster-cyrus.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cluster-sasl.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cluster-sspi.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cluster.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cmd.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-collection.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-compression.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-counters.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-crypt.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-crypto-cng.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-crypto-common-crypto.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-crypto-openssl.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-crypto.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-array.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-change-stream.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-cmd-deprecated.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-cmd.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-find-cmd.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-find-opquery.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-find.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor-legacy.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cursor.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-cyrus.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-database.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-error.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-find-and-modify.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-gridfs-bucket-file.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-gridfs-bucket.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-gridfs-file-list.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-gridfs-file-page.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-gridfs-file.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-gridfs.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-handshake.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-host-list.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-http.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-index.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-init.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-interrupt.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-libressl.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-linux-distro-scanner.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-list.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-log.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-matcher-op.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-matcher.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-memcmp.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-ocsp-cache.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-openssl.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-opts-helpers.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-opts.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-queue.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-rand-cng.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-rand-common-crypto.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-rand-openssl.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-read-concern.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-read-prefs.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-rpc.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-sasl.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-scram.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-secure-channel.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-secure-transport.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-server-description.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-server-monitor.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-server-stream.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-set.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-socket.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-ssl.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-sspi.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-buffered.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-file.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-gridfs-download.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-gridfs-upload.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-gridfs.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-socket.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-tls-libressl.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-tls-openssl-bio.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-tls-openssl.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-tls-secure-channel.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-tls-secure-transport.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream-tls.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-stream.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-topology-background-monitoring.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-topology-description-apm.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-topology-description.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-topology-scanner.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-topology.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-uri.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-util.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-version-functions.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-write-command-legacy.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-write-command.c" />
+    <ClCompile Include="..\..\src\libmongoc\mongoc\mongoc-write-concern.c" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DD9B73C9-13C6-4B70-AE67-36B0F8E1D3E6}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>slib</RootNamespace>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
+    <TargetName>mongoc</TargetName>
+    <IncludePath>$(ProjectDir)..\..\..\external\include;$(ProjectDir)..\..\..\external\include\bson;$(ProjectDir)..\..\..\external\include\mongoc;$(ProjectDir)..\..\..\external\src\libmongoc;$(ProjectDir)..\..\..\external\src\libmongoc\common;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
+    <TargetName>mongoc</TargetName>
+    <IncludePath>$(ProjectDir)..\..\..\external\include;$(ProjectDir)..\..\..\external\include\bson;$(ProjectDir)..\..\..\external\include\mongoc;$(ProjectDir)..\..\..\external\src\libmongoc;$(ProjectDir)..\..\..\external\src\libmongoc\common;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
+    <TargetName>mongoc</TargetName>
+    <IncludePath>$(ProjectDir)..\..\..\external\include;$(ProjectDir)..\..\..\external\include\bson;$(ProjectDir)..\..\..\external\include\mongoc;$(ProjectDir)..\..\..\external\src\libmongoc;$(ProjectDir)..\..\..\external\src\libmongoc\common;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
+    <TargetName>mongoc</TargetName>
+    <IncludePath>$(ProjectDir)..\..\..\external\include;$(ProjectDir)..\..\..\external\include\bson;$(ProjectDir)..\..\..\external\include\mongoc;$(ProjectDir)..\..\..\external\src\libmongoc;$(ProjectDir)..\..\..\external\src\libmongoc\common;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MinSpace</Optimization>
+      <PreprocessorDefinitions>WIN32;_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <AdditionalOptions>-DBSON_COMPILATION -DMONGOC_COMPILATION -DKMS_MSG_STATIC %(AdditionalOptions)</AdditionalOptions>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MinSpace</Optimization>
+      <PreprocessorDefinitions>WIN32;_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <AdditionalOptions>-DBSON_COMPILATION -DMONGOC_COMPILATION -DKMS_MSG_STATIC %(AdditionalOptions)</AdditionalOptions>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MinSpace</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PreprocessorDefinitions>WIN32;_LIB;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <AdditionalOptions>-DBSON_COMPILATION -DMONGOC_COMPILATION -DKMS_MSG_STATIC %(AdditionalOptions)</AdditionalOptions>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MinSpace</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PreprocessorDefinitions>WIN32;_LIB;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <AdditionalOptions>-DBSON_COMPILATION -DMONGOC_COMPILATION -DKMS_MSG_STATIC %(AdditionalOptions)</AdditionalOptions>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

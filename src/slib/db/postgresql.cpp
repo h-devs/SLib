@@ -41,9 +41,9 @@ extern "C"
 namespace slib
 {
 	
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PostgreSqlParam)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PostgreSQL_Param)
 
-	PostgreSqlParam::PostgreSqlParam()
+	PostgreSQL_Param::PostgreSQL_Param()
 	{
 		port = 0;
 	}
@@ -254,11 +254,11 @@ namespace slib
 				{
 					m_db = db;
 					m_connection = connection;
-					m_sql = sql;
+					m_sql = sql.toNullTerminated();
 					char t[16];
 					Math::randomMemory(t, 16);
 					String name = "slib_temp_stmt_" + String::makeHexString(t, 16);
-					PGresult* res = PQprepare(connection, name.getData(), sql.getData(), 0, sl_null);
+					PGresult* res = PQprepare(connection, name.getData(), m_sql.getData(), 0, sl_null);
 					if (res) {
 						if (PQresultStatus(res) == PGRES_COMMAND_OK) {
 							m_name = name;
@@ -340,10 +340,14 @@ namespace slib
 				}
 				
 			public:
-				static Ref<DatabaseImpl> connect(PostgreSqlParam& param)
+				static Ref<DatabaseImpl> connect(PostgreSQL_Param& param)
 				{
 					String port = String::fromUint32(param.port);
-					PGconn* conn = PQsetdbLogin(param.host.getData(), param.port ? port.getData() : sl_null, sl_null, sl_null, param.db.getData(), param.user.getData(), param.password.getData());
+					StringCstr host = param.host;
+					StringCstr db = param.db;
+					StringCstr user = param.user;
+					StringCstr password = param.password;
+					PGconn* conn = PQsetdbLogin(host.getData(), param.port ? port.getData() : sl_null, sl_null, sl_null, db.getData(), user.getData(), password.getData());
 					if (PQstatus(conn) != CONNECTION_OK) {
 						char* err = PQerrorMessage(conn);
 						LogError(TAG, "Connection to database failed: %s", err);
@@ -438,8 +442,8 @@ namespace slib
 					{
 						String name;
 						while (m_queueRemovingStatements.pop(&name)) {
-							String sql = "DEALLOCATE " + name;
-							PGresult* res = PQexec(m_connection, sql.getData());
+							String sqlDeallocate = "DEALLOCATE " + name;
+							PGresult* res = PQexec(m_connection, sqlDeallocate.getData());
 							if (res) {
 								PQclear(res);
 							}
@@ -540,7 +544,7 @@ namespace slib
 
 	using namespace priv::postgresql;
 
-	Ref<PostgreSQL> PostgreSQL::connect(PostgreSqlParam& param)
+	Ref<PostgreSQL> PostgreSQL::connect(PostgreSQL_Param& param)
 	{
 		return DatabaseImpl::connect(param);
 	}

@@ -50,9 +50,9 @@ namespace slib
 		static void finishActivity(jobject activity);
 	
 
-		static jobject openAssetFile(const String& path);
+		static jobject openAssetFile(const StringParam& path);
 
-		static Memory readAllBytesFromAsset(const String& path);
+		static Memory readAllBytesFromAsset(const StringParam& path);
 
 
 		static void showKeyboard();
@@ -60,7 +60,7 @@ namespace slib
 		static void dismissKeyboard();
 
 
-		static void sendFile(const String& filePath, const String& mimeType, const String& chooserTitle = String::null());
+		static void sendFile(const StringParam& filePath, const StringParam& mimeType, const StringParam& chooserTitle = sl_null);
 	
 	};
 

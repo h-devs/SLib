@@ -52,47 +52,47 @@ namespace slib
 					return;
 				}
 				AlertDialog* alert = (AlertDialog*)lParam;
-				String16 caption = String16::from(alert->caption);
+				StringCstr16 caption = alert->caption;
 				SetWindowTextW(hWndMsg, (LPCWSTR)(caption.getData()));
 
 				switch (alert->buttons) {
 				case AlertDialogButtons::Ok:
 					if (alert->titleOk.isNotNull()) {
-						String16 titleOk = String16::from(alert->titleOk);
+						StringCstr16 titleOk = alert->titleOk;
 						SetDlgItemTextW(hWndMsg, 2, (LPCWSTR)(titleOk.getData()));
 					}
 					break;
 				case AlertDialogButtons::OkCancel:
 					if (alert->titleOk.isNotNull()) {
-						String16 titleOk = String16::from(alert->titleOk);
+						StringCstr16 titleOk = alert->titleOk;
 						SetDlgItemTextW(hWndMsg, 1, (LPCWSTR)(titleOk.getData()));
 					}
 					if (alert->titleCancel.isNotNull()) {
-						String16 titleCancel = String16::from(alert->titleCancel);
+						StringCstr16 titleCancel = alert->titleCancel;
 						SetDlgItemTextW(hWndMsg, 2, (LPCWSTR)(titleCancel.getData()));
 					}
 					break;
 				case AlertDialogButtons::YesNo:
 					if (alert->titleYes.isNotNull()) {
-						String16 titleYes = String16::from(alert->titleYes);
+						StringCstr16 titleYes = alert->titleYes;
 						SetDlgItemTextW(hWndMsg, 6, (LPCWSTR)(titleYes.getData()));
 					}
 					if (alert->titleNo.isNotNull()) {
-						String16 titleNo = String16::from(alert->titleNo);
+						StringCstr16 titleNo = alert->titleNo;
 						SetDlgItemTextW(hWndMsg, 7, (LPCWSTR)(titleNo.getData()));
 					}
 					break;
 				case AlertDialogButtons::YesNoCancel:
 					if (alert->titleYes.isNotNull()) {
-						String16 titleYes = String16::from(alert->titleYes);
+						StringCstr16 titleYes = alert->titleYes;
 						SetDlgItemTextW(hWndMsg, 6, (LPCWSTR)(titleYes.getData()));
 					}
 					if (alert->titleNo.isNotNull()) {
-						String16 titleNo = String16::from(alert->titleNo);
+						StringCstr16 titleNo = alert->titleNo;
 						SetDlgItemTextW(hWndMsg, 7, (LPCWSTR)(titleNo.getData()));
 					}
 					if (alert->titleCancel.isNotNull()) {
-						String16 titleCancel = String16::from(alert->titleCancel);
+						StringCstr16 titleCancel = alert->titleCancel;
 						SetDlgItemTextW(hWndMsg, 2, (LPCWSTR)(titleCancel.getData()));
 					}
 					break;
@@ -150,13 +150,13 @@ namespace slib
 
 		int result;
 
-		String16 text = String16::from(this->text);
+		StringCstr16 text = this->text;
 		Win32_UI_Shared* shared = Win32_UI_Shared::get();
 		if (shared) {
 			PostMessageW(shared->hWndMessage, SLIB_UI_MESSAGE_CUSTOM_MSGBOX, 0, (LPARAM)(this));
 			result = MessageBoxW(hWndParent, (LPCWSTR)(text.getData()), L"CustomizedMsgBox", style);
 		} else {
-			String16 caption = String16::from(this->caption);
+			StringCstr16 caption = this->caption;
 			result = MessageBoxW(hWndParent, (LPCWSTR)(text.getData()), (LPCWSTR)(caption.getData()), style);
 		}
 
@@ -228,7 +228,7 @@ namespace slib
 				BROWSEINFOW bi;
 				Base::zeroMemory(&bi, sizeof(bi));
 				bi.hwndOwner = hWndParent;
-				String16 _title = String16::from(title);
+				StringCstr16 _title = title;
 				if (_title.isEmpty()) {
 					bi.lpszTitle = L"Browse for folder...";
 				} else {
@@ -236,9 +236,9 @@ namespace slib
 				}
 				bi.ulFlags = BIF_NEWDIALOGSTYLE;
 				bi.lpfn = priv::file_dialog::BrowseDirCallback;
-				String16 initialDir;
+				StringCstr16 initialDir;
 				if (File::isDirectory(selectedPath)) {
-					initialDir = String16::from(selectedPath);
+					initialDir = selectedPath;
 				}
 				if (initialDir.isNotEmpty()) {
 					bi.lParam = (LPARAM)(initialDir.getData());
@@ -264,7 +264,7 @@ namespace slib
 			ofn.lStructSize = sizeof(ofn);
 			ofn.hwndOwner = hWndParent;
 
-			String16 _defaultFileExt = String16::from(defaultFileExt);
+			StringCstr16 _defaultFileExt = defaultFileExt;
 			ofn.lpstrDefExt = (LPCWSTR)(_defaultFileExt.getData());
 
 			sl_size lenSzFilters = 0;
@@ -309,7 +309,7 @@ namespace slib
 			ofn.nMaxFile = sizeof(szFile) / sizeof(WCHAR);
 			szFile[0] = 0;
 			
-			String16 initialDir;
+			StringCstr16 initialDir;
 			String16 fileName;
 			if (File::isDirectory(selectedPath)) {
 				initialDir = String16::from(selectedPath);
@@ -331,7 +331,7 @@ namespace slib
 				Base::copyMemory(szFile, fileName.getData(), 2 * n + 2);
 			}
 
-			String16 _title = String16::from(title);
+			StringCstr16 _title = title;
 			if (_title.isNotEmpty()) {
 				ofn.lpstrTitle = (LPCWSTR)(_title.getData());
 			}

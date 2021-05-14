@@ -98,12 +98,14 @@ namespace slib
 		if (iRet == Z_OK) {
 			Base::zeroMemory(GZIP_HEADER, sizeof(gz_header));
 			m_gzipFileName = param.fileName;
-			if (m_gzipFileName.isNotEmpty()) {
-				GZIP_HEADER->name = (Bytef*)(m_gzipFileName.getData());
+			StringCstr fileName(m_gzipFileName);
+			if (fileName.isNotEmpty()) {
+				GZIP_HEADER->name = (Bytef*)(fileName.getData());
 			}
 			m_gzipComment = param.comment;
-			if (m_gzipComment.isNotEmpty()) {
-				GZIP_HEADER->comment = (Bytef*)(m_gzipComment.getData());
+			StringCstr comment(m_gzipComment);
+			if (comment.isNotEmpty()) {
+				GZIP_HEADER->comment = (Bytef*)(comment.getData());
 			}
 			GZIP_HEADER->os = 255;
 			iRet = deflateSetHeader(STREAM, GZIP_HEADER);
@@ -333,7 +335,7 @@ namespace slib
 			if (size < n) {
 				n = (sl_uint32)size;
 			}
-			adler = (sl_uint32)(::slib_z_adler32(adler, (Bytef*)data, n));
+			adler = (sl_uint32)(::z_adler32(adler, (Bytef*)data, n));
 			size -= n;
 			data += n;
 		}
@@ -363,7 +365,7 @@ namespace slib
 			if (size < n) {
 				n = (sl_uint32)size;
 			}
-			crc = (sl_uint32)(::slib_z_crc32(crc, (Bytef*)data, n));
+			crc = (sl_uint32)(::z_crc32(crc, (Bytef*)data, n));
 			size -= n;
 			data += n;
 		}

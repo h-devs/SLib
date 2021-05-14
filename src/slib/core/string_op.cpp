@@ -972,48 +972,6 @@ namespace slib
 	}
 
 
-	String String::substring(sl_reg start, sl_reg end) const noexcept
-	{
-		if (isNull()) {
-			return sl_null;
-		}
-		sl_reg count = getLength();
-		if (start < 0) {
-			start = 0;
-		}
-		if (end < 0 || end > count) {
-			end = count;
-		}
-		if (start >= end) {
-			return getEmpty();
-		}
-		if (start == 0 && end == count) {
-			return *this;
-		}
-		return String(getData() + start, end - start);
-	}
-
-	String16 String16::substring(sl_reg start, sl_reg end) const noexcept
-	{
-		if (isNull()) {
-			return sl_null;
-		}
-		sl_reg count = getLength();
-		if (start < 0) {
-			start = 0;
-		}
-		if (end < 0 || end > count) {
-			end = count;
-		}
-		if (start >= end) {
-			return getEmpty();
-		}
-		if (start == 0 && end == count) {
-			return *this;
-		}
-		return String16(getData() + start, end - start);
-	}
-
 	String Atomic<String>::substring(sl_reg start, sl_reg end) const noexcept
 	{
 		String s(*this);
@@ -1992,13 +1950,13 @@ namespace slib
 		namespace string
 		{
 
-			template <class ST, class CT>
-			SLIB_INLINE static ST ReplaceAll(const CT* buf, sl_reg count, CT pattern, CT replace) noexcept
+			template <class CT>
+			SLIB_INLINE static typename StringTypeFromCharType<CT>::Type ReplaceAll(const CT* buf, sl_reg count, CT pattern, CT replace) noexcept
 			{
 				if (count <= 0) {
 					return sl_null;
 				}
-				ST ret = ST::allocate(count);
+				auto ret = StringTypeFromCharType<CT>::Type::allocate(count);
 				if (ret.isNull()) {
 					return sl_null;
 				}
@@ -2034,8 +1992,8 @@ namespace slib
 				sl_reg len;
 			};
 			
-			template <class ST, class CT>
-			SLIB_INLINE static ST ReplaceAll(const CT* buf, sl_reg count, const CT* pattern, sl_reg countPat, const CT* bufReplace, sl_reg countReplace) noexcept
+			template <class CT>
+			SLIB_INLINE static typename StringTypeFromCharType<CT>::Type ReplaceAll(const CT* buf, sl_reg count, const CT* pattern, sl_reg countPat, const CT* bufReplace, sl_reg countReplace) noexcept
 			{
 				if (countPat == 0) {
 					return sl_null;
@@ -2061,7 +2019,7 @@ namespace slib
 					start = index + countPat;
 				}
 				
-				ST ret = ST::allocate(size);
+				auto ret = StringTypeFromCharType<CT>::Type::allocate(size);
 				if (ret.isNotNull()) {
 					CT* out = ret.getData();
 					while (queue.pop_NoLock(&subset)) {
@@ -2083,12 +2041,12 @@ namespace slib
 
 	String String::replaceAll(sl_char8 pattern, sl_char8 replacement) const noexcept
 	{
-		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern, replacement);
+		return priv::string::ReplaceAll(getData(), getLength(), pattern, replacement);
 	}
 
 	String16 String16::replaceAll(sl_char16 pattern, sl_char16 replacement) const noexcept
 	{
-		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern, replacement);
+		return priv::string::ReplaceAll(getData(), getLength(), pattern, replacement);
 	}
 
 	String Atomic<String>::replaceAll(sl_char8 pattern, sl_char8 replacement) const noexcept
@@ -2105,26 +2063,26 @@ namespace slib
 
 	String StringView::replaceAll(sl_char8 pattern, sl_char8 replacement) const noexcept
 	{
-		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern, replacement);
+		return priv::string::ReplaceAll(getData(), getLength(), pattern, replacement);
 	}
 
 	String16 StringView16::replaceAll(sl_char16 pattern, sl_char16 replacement) const noexcept
 	{
-		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern, replacement);
+		return priv::string::ReplaceAll(getData(), getLength(), pattern, replacement);
 	}
 
 	String String::replaceAll(const StringParam& _pattern, const StringParam& _replacement) const noexcept
 	{
 		StringData pattern(_pattern);
 		StringData replacement(_replacement);
-		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern.getData(), pattern.getLength(), replacement.getData(), replacement.getLength());
+		return priv::string::ReplaceAll(getData(), getLength(), pattern.getData(), pattern.getLength(), replacement.getData(), replacement.getLength());
 	}
 
 	String16 String16::replaceAll(const StringParam& _pattern, const StringParam& _replacement) const noexcept
 	{
 		StringData16 pattern(_pattern);
 		StringData16 replacement(_replacement);
-		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern.getData(), pattern.getLength(), replacement.getData(), replacement.getLength());
+		return priv::string::ReplaceAll(getData(), getLength(), pattern.getData(), pattern.getLength(), replacement.getData(), replacement.getLength());
 	}
 
 	String Atomic<String>::replaceAll(const StringParam& pattern, const StringParam& replacement) const noexcept
@@ -2143,24 +2101,24 @@ namespace slib
 	{
 		StringData pattern(_pattern);
 		StringData replacement(_replacement);
-		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern.getData(), pattern.getLength(), replacement.getData(), replacement.getLength());
+		return priv::string::ReplaceAll(getData(), getLength(), pattern.getData(), pattern.getLength(), replacement.getData(), replacement.getLength());
 	}
 
 	String16 StringView16::replaceAll(const StringParam& _pattern, const StringParam& _replacement) const noexcept
 	{
 		StringData16 pattern(_pattern);
 		StringData16 replacement(_replacement);
-		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern.getData(), pattern.getLength(), replacement.getData(), replacement.getLength());
+		return priv::string::ReplaceAll(getData(), getLength(), pattern.getData(), pattern.getLength(), replacement.getData(), replacement.getLength());
 	}
 
 	String String::removeAll(sl_char8 pattern) const noexcept
 	{
-		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern, 0);
+		return priv::string::ReplaceAll(getData(), getLength(), pattern, (sl_char8)0);
 	}
 
 	String16 String16::removeAll(sl_char16 pattern) const noexcept
 	{
-		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern, 0);
+		return priv::string::ReplaceAll(getData(), getLength(), pattern, (sl_char16)0);
 	}
 
 	String Atomic<String>::removeAll(sl_char8 pattern) const noexcept
@@ -2177,24 +2135,24 @@ namespace slib
 
 	String StringView::removeAll(sl_char8 pattern) const noexcept
 	{
-		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern, 0);
+		return priv::string::ReplaceAll(getData(), getLength(), pattern, (sl_char8)0);
 	}
 
 	String16 StringView16::removeAll(sl_char16 pattern) const noexcept
 	{
-		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern, 0);
+		return priv::string::ReplaceAll(getData(), getLength(), pattern, (sl_char16)0);
 	}
 
 	String String::removeAll(const StringParam& _pattern) const noexcept
 	{
 		StringData pattern(_pattern);
-		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern.getData(), pattern.getLength(), sl_null, 0);
+		return priv::string::ReplaceAll(getData(), getLength(), pattern.getData(), pattern.getLength(), (sl_char8*)sl_null, 0);
 	}
 
 	String16 String16::removeAll(const StringParam& _pattern) const noexcept
 	{
 		StringData16 pattern(_pattern);
-		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern.getData(), pattern.getLength(), sl_null, 0);
+		return priv::string::ReplaceAll(getData(), getLength(), pattern.getData(), pattern.getLength(), (sl_char16*)sl_null, 0);
 	}
 
 	String Atomic<String>::removeAll(const StringParam& pattern) const noexcept
@@ -2212,13 +2170,13 @@ namespace slib
 	String StringView::removeAll(const StringParam& _pattern) const noexcept
 	{
 		StringData pattern(_pattern);
-		return priv::string::ReplaceAll<String, sl_char8>(getData(), getLength(), pattern.getData(), pattern.getLength(), sl_null, 0);
+		return priv::string::ReplaceAll(getData(), getLength(), pattern.getData(), pattern.getLength(), (sl_char8*)sl_null, 0);
 	}
 
 	String16 StringView16::removeAll(const StringParam& _pattern) const noexcept
 	{
 		StringData16 pattern(_pattern);
-		return priv::string::ReplaceAll<String16, sl_char16>(getData(), getLength(), pattern.getData(), pattern.getLength(), sl_null, 0);
+		return priv::string::ReplaceAll(getData(), getLength(), pattern.getData(), pattern.getLength(), (sl_char16*)sl_null, 0);
 	}
 
 	namespace priv
@@ -2226,17 +2184,17 @@ namespace slib
 		namespace string
 		{
 			
-			template <class ST, class CT>
+			template <class ST>
 			SLIB_INLINE static ST Trim(const ST& str) noexcept
 			{
 				if (str.isNull()) {
 					return sl_null;
 				}
-				const CT* sz = str.getData();
+				auto sz = str.getData();
 				sl_size n = str.getLength();
 				sl_size i = 0;
 				for (; i < n; i++) {
-					CT c = sz[i];
+					auto c = sz[i];
 					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
 						break;
 					}
@@ -2246,7 +2204,7 @@ namespace slib
 				}
 				sl_size j = n - 1;
 				for (; j >= i; j--) {
-					CT c = sz[j];
+					auto c = sz[j];
 					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
 						break;
 					}
@@ -2254,17 +2212,17 @@ namespace slib
 				return str.substring(i, j + 1);
 			}
 
-			template <class ST, class CT>
+			template <class ST>
 			SLIB_INLINE static ST TrimLeft(const ST& str) noexcept
 			{
 				if (str.isNull()) {
 					return sl_null;
 				}
-				const CT* sz = str.getData();
+				auto sz = str.getData();
 				sl_size n = str.getLength();
 				sl_size i = 0;
 				for (; i < n; i++) {
-					CT c = sz[i];
+					auto c = sz[i];
 					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
 						break;
 					}
@@ -2275,17 +2233,17 @@ namespace slib
 				return str.substring(i);
 			}
 			
-			template <class ST, class CT>
+			template <class ST>
 			SLIB_INLINE static ST TrimRight(const ST& str) noexcept
 			{
 				if (str.isNull()) {
 					return sl_null;
 				}
-				const CT* sz = str.getData();
+				auto sz = str.getData();
 				sl_size n = str.getLength();
 				sl_size j = n;
 				for (; j > 0; j--) {
-					CT c = sz[j-1];
+					auto c = sz[j-1];
 					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
 						break;
 					}
@@ -2296,17 +2254,17 @@ namespace slib
 				return str.substring(0, j);
 			}
 
-			template <class ST, class CT>
+			template <class ST>
 			SLIB_INLINE static ST TrimLine(const ST& str) noexcept
 			{
 				if (str.isNull()) {
 					return sl_null;
 				}
-				const CT* sz = str.getData();
+				auto sz = str.getData();
 				sl_size n = str.getLength();
 				sl_size i = 0;
 				for (; i < n; i++) {
-					CT c = sz[i];
+					auto c = sz[i];
 					if (c != '\r' && c != '\n') {
 						break;
 					}
@@ -2316,7 +2274,7 @@ namespace slib
 				}
 				sl_size j = n - 1;
 				for (; j >= i; j--) {
-					CT c = sz[j];
+					auto c = sz[j];
 					if (c != '\r' && c != '\n') {
 						break;
 					}
@@ -2329,12 +2287,12 @@ namespace slib
 
 	String String::trim() const noexcept
 	{
-		return priv::string::Trim<String, sl_char8>(*this);
+		return priv::string::Trim(*this);
 	}
 
 	String16 String16::trim() const noexcept
 	{
-		return priv::string::Trim<String16, sl_char16>(*this);
+		return priv::string::Trim(*this);
 	}
 
 	String Atomic<String>::trim() const noexcept
@@ -2351,22 +2309,22 @@ namespace slib
 
 	StringView StringView::trim() const noexcept
 	{
-		return priv::string::Trim<StringView, sl_char8>(*this);
+		return priv::string::Trim(*this);
 	}
 
 	StringView16 StringView16::trim() const noexcept
 	{
-		return priv::string::Trim<StringView16, sl_char16>(*this);
+		return priv::string::Trim(*this);
 	}
 
 	String String::trimLeft() const noexcept
 	{
-		return priv::string::TrimLeft<String, sl_char8>(*this);
+		return priv::string::TrimLeft(*this);
 	}
 
 	String16 String16::trimLeft() const noexcept
 	{
-		return priv::string::TrimLeft<String16, sl_char16>(*this);
+		return priv::string::TrimLeft(*this);
 	}
 
 	String Atomic<String>::trimLeft() const noexcept
@@ -2383,22 +2341,22 @@ namespace slib
 
 	StringView StringView::trimLeft() const noexcept
 	{
-		return priv::string::TrimLeft<StringView, sl_char8>(*this);
+		return priv::string::TrimLeft(*this);
 	}
 
 	StringView16 StringView16::trimLeft() const noexcept
 	{
-		return priv::string::TrimLeft<StringView16, sl_char16>(*this);
+		return priv::string::TrimLeft(*this);
 	}
 
 	String String::trimRight() const noexcept
 	{
-		return priv::string::TrimRight<String, sl_char8>(*this);
+		return priv::string::TrimRight(*this);
 	}
 
 	String16 String16::trimRight() const noexcept
 	{
-		return priv::string::TrimRight<String16, sl_char16>(*this);
+		return priv::string::TrimRight(*this);
 	}
 
 	String Atomic<String>::trimRight() const noexcept
@@ -2415,22 +2373,22 @@ namespace slib
 
 	StringView StringView::trimRight() const noexcept
 	{
-		return priv::string::TrimRight<StringView, sl_char8>(*this);
+		return priv::string::TrimRight(*this);
 	}
 
 	StringView16 StringView16::trimRight() const noexcept
 	{
-		return priv::string::TrimRight<StringView16, sl_char16>(*this);
+		return priv::string::TrimRight(*this);
 	}
 
 	String String::trimLine() const noexcept
 	{
-		return priv::string::TrimLine<String, sl_char8>(*this);
+		return priv::string::TrimLine(*this);
 	}
 
 	String16 String16::trimLine() const noexcept
 	{
-		return priv::string::TrimLine<String16, sl_char16>(*this);
+		return priv::string::TrimLine(*this);
 	}
 
 	String Atomic<String>::trimLine() const noexcept
@@ -2447,12 +2405,12 @@ namespace slib
 
 	StringView StringView::trimLine() const noexcept
 	{
-		return priv::string::TrimLine<StringView, sl_char8>(*this);
+		return priv::string::TrimLine(*this);
 	}
 
 	StringView16 StringView16::trimLine() const noexcept
 	{
-		return priv::string::TrimLine<StringView16, sl_char16>(*this);
+		return priv::string::TrimLine(*this);
 	}
 
 
@@ -2460,8 +2418,8 @@ namespace slib
 	{
 		namespace string
 		{
-			template <class ST, class CT>
-			static List<ST> Split(const CT* buf, sl_size count, const CT* pattern, sl_size countPattern) noexcept
+			template <class ST>
+			static List<ST> Split(typename CharTypeFromStringType<ST>::Type const* buf, sl_size count, typename CharTypeFromStringType<ST>::Type const* pattern, sl_size countPattern) noexcept
 			{
 				if (countPattern == 0) {
 					return sl_null;
@@ -2489,13 +2447,13 @@ namespace slib
 	List<String> String::split(const StringParam& _pattern) const noexcept
 	{
 		StringData pattern(_pattern);
-		return priv::string::Split<String, sl_char8>(getData(), getLength(), pattern.getData(), pattern.getLength());
+		return priv::string::Split<String>(getData(), getLength(), pattern.getData(), pattern.getLength());
 	}
 
 	List<String16> String16::split(const StringParam& _pattern) const noexcept
 	{
 		StringData16 pattern(_pattern);
-		return priv::string::Split<String16, sl_char16>(getData(), getLength(), pattern.getData(), pattern.getLength());
+		return priv::string::Split<String16>(getData(), getLength(), pattern.getData(), pattern.getLength());
 	}
 
 	List<String> Atomic<String>::split(const StringParam& pattern) const noexcept
@@ -2513,13 +2471,13 @@ namespace slib
 	List<StringView> StringView::split(const StringParam& _pattern) const noexcept
 	{
 		StringData pattern(_pattern);
-		return priv::string::Split<StringView, sl_char8>(getData(), getLength(), pattern.getData(), pattern.getLength());
+		return priv::string::Split<StringView>(getData(), getLength(), pattern.getData(), pattern.getLength());
 	}
 
 	List<StringView16> StringView16::split(const StringParam& _pattern) const noexcept
 	{
 		StringData16 pattern(_pattern);
-		return priv::string::Split<StringView16, sl_char16>(getData(), getLength(), pattern.getData(), pattern.getLength());
+		return priv::string::Split<StringView16>(getData(), getLength(), pattern.getData(), pattern.getLength());
 	}
 
 
@@ -2869,7 +2827,7 @@ namespace slib
 			const sl_uint8* g_conv_radixInversePatternSmall = g_conv_radix_inverse_pattern_small;
 			
 			template <class IT, class CT>
-			SLIB_INLINE static sl_reg ParseInt(sl_int32 radix, const CT* sz, sl_size i, sl_size n, IT* _out) noexcept
+			static sl_reg ParseInt(sl_int32 radix, const CT* sz, sl_size i, sl_size n, IT* _out) noexcept
 			{
 				if (i >= n) {
 					return SLIB_PARSE_ERROR;
@@ -2913,7 +2871,7 @@ namespace slib
 			}
 			
 			template <class IT, class CT>
-			SLIB_INLINE static sl_reg ParseUint(sl_int32 radix, const CT* sz, sl_size i, sl_size n, IT* _out) noexcept
+			static sl_reg ParseUint(sl_int32 radix, const CT* sz, sl_size i, sl_size n, IT* _out) noexcept
 			{
 				if (i >= n) {
 					return SLIB_PARSE_ERROR;
@@ -2941,8 +2899,28 @@ namespace slib
 				return i;
 			}
 
+			template <class T>
+			static sl_compare_result EqualsStringIgnoreCase(const T* s1, sl_size limit, const char* s2) noexcept
+			{
+				if (limit > 512) {
+					limit = 512;
+				}
+				const char* end = s2 + limit;
+				while (s2 < end) {
+					T c1 = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
+					char c2 = SLIB_CHAR_LOWER_TO_UPPER(*(s2++));
+					if (c1 != c2) {
+						return sl_false;
+					}
+					if (!c1) {
+						break;
+					}
+				}
+				return sl_false;
+			}
+
 			template <class FT, class CT>
-			SLIB_INLINE static sl_reg ParseFloat(const CT* sz, sl_size i, sl_size n, FT* _out) noexcept
+			static sl_reg ParseFloat(const CT* sz, sl_size i, sl_size n, FT* _out) noexcept
 			{
 				if (i >= n) {
 					return SLIB_PARSE_ERROR; // input string is empty
@@ -2961,7 +2939,7 @@ namespace slib
 						break;
 					}
 				}
-				
+
 				FT v = 0;
 				sl_uint32 vi = 0;
 				sl_bool flagMulInt = sl_true;
@@ -2984,6 +2962,33 @@ namespace slib
 					}
 				}
 				if (bEmpty) {
+					if (i + 3 <= n) {
+						if (EqualsStringIgnoreCase(sz + i, 3, "nan")) {
+							i += 3;
+							if (i >= n || ((sl_uint32)(sz[i]) < 128 && !SLIB_CHAR_IS_ALNUM(sz[i]))) {
+								if (_out) {
+									Math::getNaN(*_out);
+								}
+								return i;
+							}
+						}
+						if (EqualsStringIgnoreCase(sz + i, 3, "inf")) {
+							i += 3;
+							if (EqualsStringIgnoreCase(sz + i, 5, "inity")) {
+								i += 5;
+							}
+							if (i >= n || ((sl_uint32)(sz[i]) < 128 && !SLIB_CHAR_IS_ALNUM(sz[i]))) {
+								if (_out) {
+									if (bMinus) {
+										Math::getNegativeInfinite(*_out);
+									} else {
+										Math::getPositiveInfinite(*_out);
+									}
+								}
+								return i;
+							}
+						}
+					}
 					return SLIB_PARSE_ERROR; // integral number is required
 				}
 				if (flagMulInt) {
@@ -3050,7 +3055,7 @@ namespace slib
 			}
 
 			template <class CT>
-			SLIB_INLINE static sl_reg ParseBoolean(const CT* sz, sl_size i, sl_size n, sl_bool* _out) noexcept
+			static sl_reg ParseBoolean(const CT* sz, sl_size i, sl_size n, sl_bool* _out) noexcept
 			{
 				if (i >= n) {
 					return SLIB_PARSE_ERROR;
@@ -3136,7 +3141,7 @@ namespace slib
 			}
 
 			template <class CT>
-			SLIB_INLINE static sl_reg ParseHexString(const CT* sz, sl_size i, sl_size n, void* _out) noexcept
+			static sl_reg ParseHexString(const CT* sz, sl_size i, sl_size n, void* _out) noexcept
 			{
 				if (i >= n || (n & 1)) {
 					return SLIB_PARSE_ERROR;
@@ -3174,8 +3179,8 @@ namespace slib
 				return i;
 			}
 
-			template <class IT, class UT, class ST, class CT>
-			SLIB_INLINE static ST FromInt(IT _value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase, CT chGroup = sl_false, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false, sl_bool flagEncloseNagtive = sl_false) noexcept
+			template <class IT, class CT>
+			static typename StringTypeFromCharType<CT>::Type FromInt(IT _value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase, CT chGroup = sl_false, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false, sl_bool flagEncloseNagtive = sl_false) noexcept
 			{
 				if (radix < 2 || radix > 64) {
 					return sl_null;
@@ -3192,7 +3197,7 @@ namespace slib
 				}
 				
 				sl_bool flagMinus = sl_false;
-				UT value;
+				typename UnsignedTypeFromSignedType<IT>::Type value;
 				if (_value < 0) {
 					value = -_value;
 					flagMinus = sl_true;
@@ -3256,11 +3261,11 @@ namespace slib
 						}
 					}
 				}
-				return ST(buf + pos, MAX_NUMBER_STR_LEN - pos);
+				return typename StringTypeFromCharType<CT>::Type(buf + pos, MAX_NUMBER_STR_LEN - pos);
 			}
 			
-			template <class IT, class ST, class CT>
-			SLIB_INLINE static ST FromUint(IT value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase, CT chGroup = 0, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false) noexcept
+			template <class IT, class CT>
+			static typename StringTypeFromCharType<CT>::Type FromUint(IT value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase, CT chGroup = 0, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false) noexcept
 			{
 				if (radix < 2 || radix > 64) {
 					return sl_null;
@@ -3316,24 +3321,28 @@ namespace slib
 					}
 				}
 				
-				return ST(buf + pos, MAX_NUMBER_STR_LEN - pos);
+				return typename StringTypeFromCharType<CT>::Type(buf + pos, MAX_NUMBER_STR_LEN - pos);
 			}
 
-			template <class FT, class ST, class CT>
-			SLIB_INLINE static ST FromFloat(FT value, sl_int32 precision, sl_bool flagZeroPadding, sl_int32 minWidthIntegral, CT chConv = 'g', CT chGroup = 0, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false, sl_bool flagEncloseNagtive = sl_false) noexcept
+			template <class FT, class CT>
+			static typename StringTypeFromCharType<CT>::Type FromFloat(FT value, sl_int32 precision, sl_bool flagZeroPadding, sl_int32 minWidthIntegral, CT chConv = 'g', CT chGroup = 0, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false, sl_bool flagEncloseNagtive = sl_false) noexcept
 			{
 				
 				CT buf[MAX_NUMBER_STR_LEN];
 				
 				if (Math::isNaN(value)) {
 					static CT s[] = {'N', 'a', 'N', 0};
-					return ST::fromStatic(s);
+					return StringTypeFromCharType<CT>::Type::fromStatic(s);
 				}
-				if (Math::isInfinite(value)) {
+				if (Math::isPositiveInfinite(value)) {
 					static CT s[] = {'I', 'n', 'f', 'i', 'n', 'i', 't', 'y', 0};
-					return ST::fromStatic(s);
+					return StringTypeFromCharType<CT>::Type::fromStatic(s);
 				}
-				
+				if (Math::isNegativeInfinite(value)) {
+					static CT s[] = { '-', 'I', 'n', 'f', 'i', 'n', 'i', 't', 'y', 0 };
+					return StringTypeFromCharType<CT>::Type::fromStatic(s);
+				}
+
 				if (minWidthIntegral > MAX_PRECISION) {
 					minWidthIntegral = MAX_PRECISION;
 				}
@@ -3372,7 +3381,7 @@ namespace slib
 							buf[pos++] = '0';
 						}
 					}
-					return ST(buf, pos);
+					return typename StringTypeFromCharType<CT>::Type(buf, pos);
 				}
 				
 				CT* str = buf;
@@ -3457,12 +3466,14 @@ namespace slib
 					}
 					if (weight > 0 && !(Math::isInfinite(weight))) {
 						sl_int32 digit = (sl_int32)(value / weight);
-						value -= (digit * weight);
-						if (digit >= 0 && digit <= 9) {
-							*(str++) = (CT)('0' + digit);
-						} else {
-							*(str++) = '#';
+						if (digit < 0) {
+							digit = 0;
 						}
+						if (digit > 9) {
+							digit = 9;
+						}
+						*(str++) = (CT)('0' + digit);
+						value -= (digit * weight);
 					}
 					if (chGroup) {
 						if (nInt > 0 && nInt % 3 == 0) {
@@ -3512,16 +3523,16 @@ namespace slib
 					}
 				}
 				
-				return ST(buf, str - buf);
+				return typename StringTypeFromCharType<CT>::Type(buf, str - buf);
 			}
 
-			template <class ST, class CT>
-			SLIB_INLINE static ST MakeHexString(const void* buf, sl_size size, sl_bool flagUseLowerChar) noexcept
+			template <class CT>
+			static typename StringTypeFromCharType<CT>::Type MakeHexString(const void* buf, sl_size size, sl_bool flagUseLowerChar) noexcept
 			{
 				if (!buf || size <= 0) {
 					return sl_null;
 				}
-				ST str = ST::allocate(size * 2);
+				auto str = StringTypeFromCharType<CT>::Type::allocate(size * 2);
 				if (str.isEmpty()) {
 					return str;
 				}
@@ -4940,42 +4951,42 @@ namespace slib
 
 	String String::fromInt32(sl_int32 value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase) noexcept
 	{
-		return priv::string::FromInt<sl_int32, sl_uint32, String, sl_char8>(value, radix, minWidth, flagUpperCase);
+		return priv::string::FromInt<sl_int32, sl_char8>(value, radix, minWidth, flagUpperCase);
 	}
 
 	String16 String16::fromInt32(sl_int32 value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase) noexcept
 	{
-		return priv::string::FromInt<sl_int32, sl_uint32, String16, sl_char16>(value, radix, minWidth, flagUpperCase);
+		return priv::string::FromInt<sl_int32, sl_char16>(value, radix, minWidth, flagUpperCase);
 	}
 
 	String String::fromUint32(sl_uint32 value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase) noexcept
 	{
-		return priv::string::FromUint<sl_uint32, String, sl_char8>(value, radix, minWidth, flagUpperCase);
+		return priv::string::FromUint<sl_uint32, sl_char8>(value, radix, minWidth, flagUpperCase);
 	}
 
 	String16 String16::fromUint32(sl_uint32 value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase) noexcept
 	{
-		return priv::string::FromUint<sl_uint32, String16, sl_char16>(value, radix, minWidth, flagUpperCase);
+		return priv::string::FromUint<sl_uint32, sl_char16>(value, radix, minWidth, flagUpperCase);
 	}
 
 	String String::fromInt64(sl_int64 value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase) noexcept
 	{
-		return priv::string::FromInt<sl_int64, sl_uint64, String, sl_char8>(value, radix, minWidth, flagUpperCase);
+		return priv::string::FromInt<sl_int64, sl_char8>(value, radix, minWidth, flagUpperCase);
 	}
 
 	String16 String16::fromInt64(sl_int64 value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase) noexcept
 	{
-		return priv::string::FromInt<sl_int64, sl_uint64, String16, sl_char16>(value, radix, minWidth, flagUpperCase);
+		return priv::string::FromInt<sl_int64, sl_char16>(value, radix, minWidth, flagUpperCase);
 	}
 
 	String String::fromUint64(sl_uint64 value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase) noexcept
 	{
-		return priv::string::FromUint<sl_uint64, String, sl_char8>(value, radix, minWidth, flagUpperCase);
+		return priv::string::FromUint<sl_uint64, sl_char8>(value, radix, minWidth, flagUpperCase);
 	}
 
 	String16 String16::fromUint64(sl_uint64 value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase) noexcept
 	{
-		return priv::string::FromUint<sl_uint64, String16, sl_char16>(value, radix, minWidth, flagUpperCase);
+		return priv::string::FromUint<sl_uint64, sl_char16>(value, radix, minWidth, flagUpperCase);
 	}
 
 	String String::fromInt(sl_reg value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase) noexcept
@@ -5016,22 +5027,22 @@ namespace slib
 
 	String String::fromDouble(double value, sl_int32 precision, sl_bool flagZeroPadding, sl_uint32 minWidthIntegral) noexcept
 	{
-		return priv::string::FromFloat<double, String, sl_char8>(value, precision, flagZeroPadding, minWidthIntegral);
+		return priv::string::FromFloat<double, sl_char8>(value, precision, flagZeroPadding, minWidthIntegral);
 	}
 
 	String String::fromFloat(float value, sl_int32 precision, sl_bool flagZeroPadding, sl_uint32 minWidthIntegral) noexcept
 	{
-		return priv::string::FromFloat<float, String, sl_char8>(value, precision, flagZeroPadding, minWidthIntegral);
+		return priv::string::FromFloat<float, sl_char8>(value, precision, flagZeroPadding, minWidthIntegral);
 	}
 
 	String16 String16::fromDouble(double value, sl_int32 precision, sl_bool flagZeroPadding, sl_uint32 minWidthIntegral) noexcept
 	{
-		return priv::string::FromFloat<double, String16, sl_char16>(value, precision, flagZeroPadding, minWidthIntegral);
+		return priv::string::FromFloat<double, sl_char16>(value, precision, flagZeroPadding, minWidthIntegral);
 	}
 
 	String16 String16::fromFloat(float value, sl_int32 precision, sl_bool flagZeroPadding, sl_uint32 minWidthIntegral) noexcept
 	{
-		return priv::string::FromFloat<float, String16, sl_char16>(value, precision, flagZeroPadding, minWidthIntegral);
+		return priv::string::FromFloat<float, sl_char16>(value, precision, flagZeroPadding, minWidthIntegral);
 	}
 
 	String String::fromPointerValue(const void* pointer) noexcept
@@ -5073,12 +5084,12 @@ namespace slib
 	
 	String String::makeHexString(const void* buf, sl_size size, sl_bool flagUseLowerChar) noexcept
 	{
-		return priv::string::MakeHexString<String, sl_char8>(buf, size, flagUseLowerChar);
+		return priv::string::MakeHexString<sl_char8>(buf, size, flagUseLowerChar);
 	}
 
 	String16 String16::makeHexString(const void* buf, sl_size size, sl_bool flagUseLowerChar) noexcept
 	{
-		return priv::string::MakeHexString<String16, sl_char16>(buf, size, flagUseLowerChar);
+		return priv::string::MakeHexString<sl_char16>(buf, size, flagUseLowerChar);
 	}
 
 	String String::makeHexString(const Memory& mem, sl_bool flagUseLowerChar) noexcept
@@ -5272,9 +5283,10 @@ https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html
 		namespace string
 		{
 			
-			template <class ST, class CT, class BT>
-			static ST Format(const Locale& locale, const CT* format, sl_size len, const Variant* params, sl_size _nParams) noexcept
+			template <class CT>
+			static typename StringTypeFromCharType<CT>::Type Format(const Locale& locale, const CT* format, sl_size len, const Variant* params, sl_size _nParams) noexcept
 			{
+				typedef typename StringTypeFromCharType<CT>::Type ST;
 				if (len == 0) {
 					return ST::getEmpty();
 				}
@@ -5282,7 +5294,7 @@ https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html
 				if (nParams == 0) {
 					return ST(format, len);
 				}
-				BT sb;
+				typename StringBufferTypeFromCharType<CT>::Type sb;
 				sl_size pos = 0;
 				sl_size posText = 0;
 				sl_uint32 indexArgLast = 0;
@@ -5667,13 +5679,13 @@ https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html
 											}
 											ST content;
 											if (arg.isUint32()) {
-												content = priv::string::FromUint<sl_uint32, ST, CT>(arg.getUint32(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive);
+												content = priv::string::FromUint<sl_uint32, CT>(arg.getUint32(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive);
 											} else if (arg.isInt32()) {
-												content = priv::string::FromInt<sl_int32, sl_uint32, ST, CT>(arg.getInt32(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
+												content = priv::string::FromInt<sl_int32, CT>(arg.getInt32(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
 											} else if (arg.isUint64()) {
-												content = priv::string::FromUint<sl_uint64, ST, CT>(arg.getUint64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive);
+												content = priv::string::FromUint<sl_uint64, CT>(arg.getUint64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive);
 											} else {
-												content = priv::string::FromInt<sl_int64, sl_uint64, ST, CT>(arg.getInt64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
+												content = priv::string::FromInt<sl_int64, CT>(arg.getInt64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
 											}
 											lenContent = content.getLength();
 											if (lenContent < minWidth) {
@@ -5705,9 +5717,9 @@ https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html
 											}
 											ST content;
 											if (arg.isFloat()) {
-												content = priv::string::FromFloat<float, ST, CT>(arg.getFloat(), _precision, flagZeroPadded, 1, ch, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
+												content = priv::string::FromFloat<float, CT>(arg.getFloat(), _precision, flagZeroPadded, 1, ch, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
 											} else {
-												content = priv::string::FromFloat<double, ST, CT>(arg.getDouble(), _precision, flagZeroPadded, 1, ch, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
+												content = priv::string::FromFloat<double, CT>(arg.getDouble(), _precision, flagZeroPadded, 1, ch, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
 											}
 											lenContent = content.getLength();
 											if (lenContent < minWidth) {
@@ -5767,53 +5779,53 @@ https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html
 	String String::formatBy(const StringParam& _format, const Variant *params, sl_size nParams) noexcept
 	{
 		StringData format(_format);
-		return priv::string::Format<String, sl_char8, StringBuffer>(Locale::Unknown, format.getData(), format.getLength(), params, nParams);
+		return priv::string::Format(Locale::Unknown, format.getData(), format.getLength(), params, nParams);
 	}
 
 	String16 String16::formatBy(const StringParam& _format, const Variant *params, sl_size nParams) noexcept
 	{
 		StringData16 format(_format);
-		return priv::string::Format<String16, sl_char16, StringBuffer16>(Locale::Unknown, format.getData(), format.getLength(), params, nParams);
+		return priv::string::Format(Locale::Unknown, format.getData(), format.getLength(), params, nParams);
 	}
 
 	String String::formatBy(const StringParam& _format, const ListParam<Variant>& _params) noexcept
 	{
 		StringData format(_format);
 		ListLocker<Variant> params(_params);
-		return priv::string::Format<String, sl_char8, StringBuffer>(Locale::Unknown, format.getData(), format.getLength(), params.data, params.count);
+		return priv::string::Format(Locale::Unknown, format.getData(), format.getLength(), params.data, params.count);
 	}
 
 	String16 String16::formatBy(const StringParam& _format, const ListParam<Variant>& _params) noexcept
 	{
 		StringData16 format(_format);
 		ListLocker<Variant> params(_params);
-		return priv::string::Format<String16, sl_char16, StringBuffer16>(Locale::Unknown, format.getData(), format.getLength(), params.data, params.count);
+		return priv::string::Format(Locale::Unknown, format.getData(), format.getLength(), params.data, params.count);
 	}
 
 	String String::formatBy(const Locale& locale, const StringParam& _format, const Variant *params, sl_size nParams) noexcept
 	{
 		StringData format(_format);
-		return priv::string::Format<String, sl_char8, StringBuffer>(locale, format.getData(), format.getLength(), params, nParams);
+		return priv::string::Format(locale, format.getData(), format.getLength(), params, nParams);
 	}
 	
 	String16 String16::formatBy(const Locale& locale, const StringParam& _format, const Variant *params, sl_size nParams) noexcept
 	{
 		StringData16 format(_format);
-		return priv::string::Format<String16, sl_char16, StringBuffer16>(locale, format.getData(), format.getLength(), params, nParams);
+		return priv::string::Format(locale, format.getData(), format.getLength(), params, nParams);
 	}
 	
 	String String::formatBy(const Locale& locale, const StringParam& _format, const ListParam<Variant>& _params) noexcept
 	{
 		StringData format(_format);
 		ListLocker<Variant> params(_params);
-		return priv::string::Format<String, sl_char8, StringBuffer>(locale, format.getData(), format.getLength(), params.data, params.count);
+		return priv::string::Format(locale, format.getData(), format.getLength(), params.data, params.count);
 	}
 	
 	String16 String16::formatBy(const Locale& locale, const StringParam& _format, const ListParam<Variant>& _params) noexcept
 	{
 		StringData16 format(_format);
 		ListLocker<Variant> params(_params);
-		return priv::string::Format<String16, sl_char16, StringBuffer16>(locale, format.getData(), format.getLength(), params.data, params.count);
+		return priv::string::Format(locale, format.getData(), format.getLength(), params.data, params.count);
 	}
 	
 	String String::format(const StringParam& strFormat) noexcept

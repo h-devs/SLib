@@ -47,7 +47,7 @@ namespace slib
 		}
 	}
 
-	sl_bool Jwt::decode_OpenSSL(const Ref<OpenSSL_Key>& publicKey, const String& token) noexcept
+	sl_bool Jwt::decode_OpenSSL(const Ref<OpenSSL_Key>& publicKey, const StringView& token) noexcept
 	{
 		String signature;
 		sl_size n = _decode(token, signature);
@@ -100,7 +100,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool Jwt::verifySignature_OpenSSL(const Ref<OpenSSL_Key>& key, const String& signature, const void* data, sl_size size) const noexcept
+	sl_bool Jwt::verifySignature_OpenSSL(const Ref<OpenSSL_Key>& key, const StringParam& signature, const void* data, sl_size size) const noexcept
 	{
 		if (key.isNull()) {
 			return sl_false;

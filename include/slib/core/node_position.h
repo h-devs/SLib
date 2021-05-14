@@ -32,21 +32,13 @@ namespace slib
 	class SLIB_EXPORT NodePosition
 	{
 	public:
-		constexpr NodePosition() noexcept
-		 : node(sl_null)
-		 {}
+		constexpr NodePosition() noexcept: node(sl_null) {}
 		
-		constexpr NodePosition(sl_null_t) noexcept
-		 : node(sl_null)
-		 {}
+		constexpr NodePosition(sl_null_t) noexcept: node(sl_null) {}
 		
-		constexpr NodePosition(NODE* other) noexcept
-		 : node(other)
-		 {}
+		constexpr NodePosition(NODE* other) noexcept: node(other) {}
 		
-		constexpr NodePosition(const NodePosition& other) noexcept
-		 : node(other.node)
-		 {}
+		constexpr NodePosition(const NodePosition& other) noexcept: node(other.node) {}
 		
 	public:
 		NodePosition& operator=(const NodePosition& other) noexcept
@@ -106,25 +98,15 @@ namespace slib
 	class SLIB_EXPORT NodePositionWithRef
 	{
 	public:
-		constexpr NodePositionWithRef() noexcept
-		 : node(sl_null)
-		 {}
+		constexpr NodePositionWithRef() noexcept: node(sl_null) {}
 		
-		constexpr NodePositionWithRef(sl_null_t) noexcept
-		 : node(sl_null)
-		 {}
+		constexpr NodePositionWithRef(sl_null_t) noexcept: node(sl_null) {}
 		
-		constexpr NodePositionWithRef(NODE* _node) noexcept
-		 : node(_node)
-		 {}
+		constexpr NodePositionWithRef(NODE* _node) noexcept: node(_node) {}
 		
-		constexpr NodePositionWithRef(NODE* _node, Referable* _ref) noexcept
-		 : node(_node), ref(_ref)
-		 {}
+		constexpr NodePositionWithRef(NODE* _node, Referable* _ref) noexcept: node(_node), ref(_ref) {}
 		
-		constexpr NodePositionWithRef(const NodePositionWithRef& other) noexcept
-		 : node(other.node), ref(other.ref)
-		 {}
+		constexpr NodePositionWithRef(const NodePositionWithRef& other) noexcept: node(other.node), ref(other.ref) {}
 		
 	public:
 		NodePositionWithRef& operator=(const NodePositionWithRef& other) noexcept

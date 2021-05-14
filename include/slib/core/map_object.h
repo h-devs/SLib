@@ -24,9 +24,12 @@
 #define CHECKHEADER_SLIB_CORE_MAP_OBJECT
 
 #include "variant.h"
+#include "map_iterator.h"
 #include "string_cast.h"
 #include "string_buffer.h"
 #include "parse_util.h"
+
+#include "serialize/variant.h"
 
 namespace slib
 {
@@ -38,7 +41,7 @@ namespace slib
 		MapObject(CMAP* map) : m_map(map) {}
 
 	public:
-		Variant getProperty(const StringParam& name) const override
+		Variant getProperty(const StringParam& name) override
 		{
 			return m_map->getValue(Cast<StringParam, typename CMAP::KEY_TYPE>()(name));
 		}
@@ -55,18 +58,9 @@ namespace slib
 			return m_map->remove(Cast<StringParam, typename CMAP::KEY_TYPE>()(name));
 		}
 
-		sl_bool enumerateProperties(const Function<sl_bool(const StringParam& name, const Variant& value)>& callback) const override
+		PropertyIterator getPropertyIterator() override
 		{
-			ObjectLocker lock(m_map);
-			auto node = m_map->getFirstNode();
-			while (node) {
-				if (callback(Cast<typename CMAP::KEY_TYPE, StringParam>()(node->key), node->value)) {
-					node = node->getNext();
-				} else {
-					return sl_false;
-				}
-			}
-			return sl_true;
+			return new MapIterator<CMAP, String, Variant>(m_map);
 		}
 
 		String toString() override
@@ -109,6 +103,32 @@ namespace slib
 			}
 			if (!(buf.addStatic("}"))) {
 				return sl_false;
+			}
+			return sl_true;
+		}
+
+		sl_bool toJsonBinary(MemoryBuffer& buf) override
+		{
+			ObjectLocker lock(m_map);
+			if (!(SerializeByte(&buf, (sl_uint8)(VariantType::Object)))) {
+				return sl_false;
+			}
+			sl_size n = m_map->getCount();
+			if (!(CVLI::serialize(&buf, n))) {
+				return sl_false;
+			}
+			auto node = m_map->getFirstNode();
+			while (node) {
+				Variant v(node->value);
+				if (v.isNotUndefined()) {
+					if (!(Serialize(&buf, Cast<typename CMAP::KEY_TYPE, String>()(node->key)))) {
+						return sl_false;
+					}
+					if (!(Serialize(&buf, v))) {
+						return sl_false;
+					}
+				}
+				node = node->getNext();
 			}
 			return sl_true;
 		}

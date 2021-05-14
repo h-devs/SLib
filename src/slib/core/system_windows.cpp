@@ -182,6 +182,24 @@ namespace slib
 #endif
 	}
 
+	sl_uint64 System::getHighResolutionTickCount()
+	{
+		static LARGE_INTEGER freq;
+		static sl_bool flagInitQPC = sl_true;
+		static sl_bool flagEnabledQPC = sl_false;
+		if (flagInitQPC) {
+			flagEnabledQPC = (sl_bool)(QueryPerformanceFrequency(&freq));
+			flagInitQPC = sl_false;
+		}
+		if (flagEnabledQPC) {
+			LARGE_INTEGER ticks;
+			if (QueryPerformanceCounter(&ticks)) {
+				return (sl_uint64)(ticks.QuadPart) * SLIB_UINT64(1000) / (sl_uint64)(freq.QuadPart);
+			}
+		}
+		return getTickCount64();
+	}
+
 	void System::sleep(sl_uint32 milliseconds)
 	{
 		Sleep(milliseconds);
@@ -322,7 +340,7 @@ namespace slib
 
 	void System::registerApplicationRunAtStartup(const String& path)
 	{
-		String name = File::getFileNameOnly(path) + "_" + String::fromUint64(Time::now().toInt());
+		String name = File::getFileNameOnly(path);
 		Windows::setApplicationRunAtStartup(name, path, sl_true);
 	}
 

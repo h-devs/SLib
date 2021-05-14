@@ -160,16 +160,14 @@ namespace slib
 				void pushStyle(Evas_Object* handle)
 				{
 					Ref<Font> font = getFont();
-					const char* fontName;
-					String strFontName;
+					String fontName;
 					const char* fontWeight;
 					const char* fontStyle;
 					const char* underline;
 					const char* strikethrough;
 					sl_int32 fontSize;
 					if (font.isNotNull()) {
-						strFontName = font->getFamilyName();
-						fontName = strFontName.getData();
+						fontName = font->getFamilyName();
 						if (font->isBold()) {
 							fontWeight = "Bold";
 						} else {
@@ -223,7 +221,7 @@ namespace slib
 
 				void applyText(Evas_Object* handle)
 				{
-					String text = m_text;
+					StringCstr text = m_text;
 					if (text.isEmpty()) {
 						elm_entry_entry_set(handle, "");
 						return;
@@ -239,21 +237,19 @@ namespace slib
 
 				void applyPlaceholder(Evas_Object* handle)
 				{
-					String text = m_hintText;
+					StringCstr text = m_hintText;
 					if (text.isEmpty()) {
 						elm_object_part_text_set(handle, "guide", "");
 						return;
 					}
 
 					Ref<Font> font = getHintFont();
-					const char* fontName;
-					String strFontName;
+					String fontName;
 					const char* fontWeight;
 					const char* fontStyle;
 					sl_int32 fontSize;
 					if (font.isNotNull()) {
-						strFontName = font->getFamilyName();
-						fontName = strFontName.getData();
+						fontName = font->getFamilyName();
 						if (font->isBold()) {
 							fontWeight = "Bold";
 						} else {
@@ -465,7 +461,8 @@ namespace slib
 							if (textNew.isEmpty()) {
 								elm_entry_entry_set(obj, "");
 							} else {
-								char* t = elm_entry_utf8_to_markup(textNew.getData());
+								StringCstr _text(textNew);
+								char* t = elm_entry_utf8_to_markup(_text.getData());
 								if (t) {
 									elm_entry_entry_set(obj, t);
 									free(t);

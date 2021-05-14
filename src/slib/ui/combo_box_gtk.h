@@ -42,7 +42,7 @@ namespace slib
 				}
 				sl_uint32 n = view->getItemsCount();
 				for (sl_uint32 i = 0; i < n; i++) {
-					String s = view->getItemTitle(i);
+					StringCstr s = view->getItemTitle(i);
 					gtk_combo_box_append_text(handle, (const gchar*)(s.getData()));
 				}
 				sl_int32 indexSelected = view->getSelectedIndex();
@@ -53,8 +53,9 @@ namespace slib
 				}
 			}
 			
-			static void InsertItem(GtkComboBox* handle, sl_int32 index, const String& title)
+			static void InsertItem(GtkComboBox* handle, sl_int32 index, const String& _title)
 			{
+				StringCstr title(_title);
 				gtk_combo_box_insert_text(handle, index, title.getData());
 			}
 
@@ -63,7 +64,7 @@ namespace slib
 				gtk_combo_box_remove_text(handle, index);
 			}
 
-			static void SetItemTitle(GtkComboBox* handle, sl_int32 index, const String& title)
+			static void SetItemTitle(GtkComboBox* handle, sl_int32 index, const String& _title)
 			{
 				GtkTreeModel* model = gtk_combo_box_get_model(handle);
 				GtkTreePath* path = gtk_tree_path_new_from_indices(index);
@@ -71,6 +72,7 @@ namespace slib
 					GtkTreeIter iter;
 					gtk_tree_model_get_iter(model, &iter, path);
 					gtk_tree_path_free(path);
+					StringCstr title(_title);
 					gtk_list_store_set((GtkListStore*)model, &iter, 0, title.getData(), -1);
 				}
 			}

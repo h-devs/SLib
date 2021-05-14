@@ -21,5 +21,5 @@ target_include_directories (
 )
 target_compile_options (
  ${TARGET_NAME}
- PRIVATE -Wno-all
+ PRIVATE -Wno-all -g0
 )

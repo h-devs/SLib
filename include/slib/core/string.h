@@ -72,14 +72,25 @@ namespace slib
 	typedef Atomic<String> AtomicString;
 	typedef Atomic<String16> AtomicString16;
 
+
 	template <class CharType>
 	struct StringTypeFromCharType;
 	
 	template <>
-	struct StringTypeFromCharType<sl_char16> { typedef String16 Type; };
+	struct StringTypeFromCharType<sl_char8> { typedef String Type; };
 	
 	template <>
-	struct StringTypeFromCharType<sl_char8> { typedef String Type; };
+	struct StringTypeFromCharType<sl_char16> { typedef String16 Type; };
+	
+	
+	template <class CharType>
+	struct StringViewTypeFromCharType;
+	
+	template <>
+	struct StringViewTypeFromCharType<sl_char8> { typedef StringView Type; };
+	
+	template <>
+	struct StringViewTypeFromCharType<sl_char16> { typedef StringView16 Type; };
 	
 	
 	template <class StringType>
@@ -97,27 +108,23 @@ namespace slib
 	template <>
 	struct CharTypeFromStringType< Atomic<String16> > { typedef sl_char16 Type; };
 	
+	template <>
+	struct CharTypeFromStringType<StringView> { typedef sl_char8 Type; };
+
+	template <>
+	struct CharTypeFromStringType<StringView16> { typedef sl_char16 Type; };
+
+
 	namespace priv
 	{
 		namespace string
 		{
-			struct ConstContainer
-			{
-				StringContainer* container;
-				sl_int32 lock;
-			};
 
-			extern const ConstContainer g_null;
-			extern const ConstContainer g_empty;
+			extern StringContainer* const g_null;
+			extern StringContainer* const g_empty;
 			
-			struct ConstContainer16
-			{
-				StringContainer16* container;
-				sl_int32 lock;
-			};
-
-			extern const ConstContainer16 g_null16;
-			extern const ConstContainer16 g_empty16;
+			extern StringContainer16* const g_null16;
+			extern StringContainer16* const g_empty16;
 
 			extern const char* g_conv_radixPatternUpper;
 			extern const char* g_conv_radixPatternLower;
@@ -156,7 +163,7 @@ namespace slib
 			const sl_char32* data32;
 		};
 		sl_size length;
-		Ref<Referable> refer;
+		Ref<Referable> ref;
 		String string8;
 		String16 string16;
 

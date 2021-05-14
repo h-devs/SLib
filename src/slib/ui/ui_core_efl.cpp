@@ -71,8 +71,8 @@ namespace slib
 						ret->m_width = 0;
 						ret->m_height = 0;
 #if defined(SLIB_PLATFORM_IS_TIZEN)
-						::system_info_get_platform_int("http://tizen.org/feature/screen.width", &(ret->m_width));
-						::system_info_get_platform_int("http://tizen.org/feature/screen.height", &(ret->m_height));
+						system_info_get_platform_int("http://tizen.org/feature/screen.width", &(ret->m_width));
+						system_info_get_platform_int("http://tizen.org/feature/screen.height", &(ret->m_height));
 #endif
 						return ret;
 					}
@@ -86,7 +86,7 @@ namespace slib
 
 					Evas_Object* win = UIPlatform::getMainWindow();
 					if (win) {
-						rotation = ::elm_win_rotation_get(win);
+						rotation = elm_win_rotation_get(win);
 					}
 
 					List<ScreenOrientation> orientations = UI::getAvailableScreenOrientations();
@@ -130,7 +130,7 @@ namespace slib
 			static bool CreateCallback(void* data)
 			{
 				Log("App", "Create");
-				::elm_config_accel_preference_set("opengl");
+				elm_config_accel_preference_set("opengl");
 				UIApp::dispatchStartToApp();
 				MobileApp::dispatchCreateActivityToApp();
 				return true;
@@ -191,12 +191,12 @@ namespace slib
 	{
 		StringCstr url(_url);
 		app_control_h app_control;
-		if (0 == ::app_control_create(&app_control)) {
-			::app_control_set_operation(app_control, APP_CONTROL_OPERATION_DEFAULT);
-			::app_control_set_app_id(app_control, "com.samsung.browser");
-			::app_control_set_uri(app_control, url.getData());
-			::app_control_send_launch_request(app_control, NULL, NULL);
-			::app_control_destroy(app_control);
+		if (0 == app_control_create(&app_control)) {
+			app_control_set_operation(app_control, APP_CONTROL_OPERATION_DEFAULT);
+			app_control_set_app_id(app_control, "com.samsung.browser");
+			app_control_set_uri(app_control, url.getData());
+			app_control_send_launch_request(app_control, NULL, NULL);
+			app_control_destroy(app_control);
 		}
 	}
 
@@ -212,12 +212,12 @@ namespace slib
 		}
 		if (delayMillis == 0) {
 			if (UIDispatcher::addCallback(callback)) {
-				::ecore_main_loop_thread_safe_call_async(DispatchCallback, sl_null);
+				ecore_main_loop_thread_safe_call_async(DispatchCallback, sl_null);
 			}
 		} else {
 			Callable<void()>* callable = callback.ref.get();
 			callable->increaseReference();
-			::ecore_timer_loop_add((double)delayMillis / 1000.0, DelayedDispatchCallback, callable);
+			ecore_timer_loop_add((double)delayMillis / 1000.0, DelayedDispatchCallback, callable);
 		}
 	}
 
@@ -225,14 +225,14 @@ namespace slib
 	{
 		sl_int32 loopLevel = Base::interlockedIncrement32(&g_nLevelMainLoop);
 		while (loopLevel == g_nLevelMainLoop) {
-			::ecore_main_loop_iterate();
+			ecore_main_loop_iterate();
 		}
 	}
 
 	void UIPlatform::quitLoop()
 	{
 		Base::interlockedDecrement(&g_nLevelMainLoop);
-		::ecore_main_loop_thread_safe_call_async(QuitCallback, sl_null);
+		ecore_main_loop_thread_safe_call_async(QuitCallback, sl_null);
 	}
 
 	void UIPlatform::runApp()
@@ -257,13 +257,13 @@ namespace slib
 		event_callback.pause = PauseCallback;
 		event_callback.terminate = TerminateCallback;
 
-		::ui_app_main(n, p, &event_callback, sl_null);
+		ui_app_main(n, p, &event_callback, sl_null);
 
 	}
 
 	void UIPlatform::quitApp()
 	{
-		::ui_app_exit();
+		ui_app_exit();
 	}
 
 }

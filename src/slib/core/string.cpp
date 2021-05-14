@@ -42,7 +42,8 @@ namespace slib
 	{
 		STRING_CONTAINER_TYPE_NORMAL = 0,
 		STRING_CONTAINER_TYPE_STD = 10,
-		STRING_CONTAINER_TYPE_REF = 11
+		STRING_CONTAINER_TYPE_REF = 11,
+		STRING_CONTAINER_TYPE_SUB = 12
 	};
 
 	namespace priv
@@ -50,17 +51,17 @@ namespace slib
 		namespace string
 		{
 			
-			const ConstContainer g_null = {sl_null, 0};
+			StringContainer* const g_null = sl_null;
 
 			const sl_char8 g_empty_buf[] = {0, 0};
 			const StringContainer g_empty_container = {const_cast<sl_char8*>(g_empty_buf), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1};
-			const ConstContainer g_empty = {const_cast<StringContainer*>(&g_empty_container), 0};
+			StringContainer* const g_empty = const_cast<StringContainer*>(&g_empty_container);
 
-			const ConstContainer16 g_null16 = {sl_null, 0};
+			StringContainer16* const g_null16 = sl_null;
 			
 			const sl_char16 g_empty_buf16[] = {0, 0};
 			const StringContainer16 g_empty_container16 = {const_cast<sl_char16*>(g_empty_buf16), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1};
-			const ConstContainer16 g_empty16 = {const_cast<StringContainer16*>(&g_empty_container16), 0};
+			StringContainer16* const g_empty16 = const_cast<StringContainer16*>(&g_empty_container16);
 			
 			
 			class Container_std : public StringContainer
@@ -69,13 +70,9 @@ namespace slib
 				std::string str;
 				
 			public:
-				Container_std(const std::string& _str): str(_str)
-				{
-				}
+				Container_std(const std::string& _str): str(_str) {}
 				
-				Container_std(std::string&& _str): str(Move(_str))
-				{
-				}
+				Container_std(std::string&& _str): str(Move(_str)) {}
 				
 			};
 			
@@ -85,25 +82,29 @@ namespace slib
 				Ref<Referable> obj;
 				
 			public:
-				Container_ref(const Ref<Referable>& _obj): obj(_obj)
-				{
-				}
+				Container_ref(Referable* _obj): obj(_obj) {}
 				
 			};
-			
+
+			class Container_sub : public StringContainer
+			{
+			public:
+				String str;
+
+			public:
+				Container_sub(const String& _str): str(_str) {}
+
+			};
+
 			class Container16_std : public StringContainer16
 			{
 			public:
 				std::u16string str;
 				
 			public:
-				Container16_std(const std::u16string& _str): str(_str)
-				{
-				}
+				Container16_std(const std::u16string& _str): str(_str) {}
 				
-				Container16_std(std::u16string&& _str): str(Move(_str))
-				{
-				}
+				Container16_std(std::u16string&& _str): str(Move(_str)) {}
 				
 			};
 			
@@ -113,17 +114,25 @@ namespace slib
 				Ref<Referable> obj;
 				
 			public:
-				Container16_ref(const Ref<Referable>& _obj): obj(_obj)
-				{
-				}
+				Container16_ref(Referable* _obj): obj(_obj) {}
 				
+			};
+
+			class Container16_sub : public StringContainer16
+			{
+			public:
+				String16 str;
+
+			public:
+				Container16_sub(const String16& _str) : str(_str) {}
+
 			};
 
 			
 			SLIB_INLINE static StringContainer* alloc(sl_size len) noexcept
 			{
-				if (len == 0) {
-					return priv::string::g_empty.container;
+				if (!len) {
+					return priv::string::g_empty;
 				}
 				sl_char8* buf = (sl_char8*)(Base::createMemory(sizeof(StringContainer) + len + 1));
 				if (buf) {
@@ -141,8 +150,8 @@ namespace slib
 			
 			SLIB_INLINE static StringContainer16* alloc16(sl_size len) noexcept
 			{
-				if (len == 0) {
-					return priv::string::g_empty16.container;
+				if (!len) {
+					return priv::string::g_empty16;
 				}
 				sl_char8* buf = (sl_char8*)(Base::createMemory(sizeof(StringContainer) + ((len + 1) << 1)));
 				if (buf) {
@@ -160,8 +169,8 @@ namespace slib
 			
 			SLIB_INLINE static StringContainer* alloc_static(const sl_char8* sz, sl_size len) noexcept
 			{
-				if (len == 0) {
-					return priv::string::g_empty.container;
+				if (!len) {
+					return priv::string::g_empty;
 				}
 				StringContainer* container = (StringContainer*)(Base::createMemory(sizeof(StringContainer)));
 				if (container) {
@@ -177,8 +186,8 @@ namespace slib
 			
 			SLIB_INLINE static StringContainer16* alloc16_static(const sl_char16* sz, sl_size len) noexcept
 			{
-				if (len == 0) {
-					return priv::string::g_empty16.container;
+				if (!len) {
+					return priv::string::g_empty16;
 				}
 				StringContainer16* container = (StringContainer16*)(Base::createMemory(sizeof(StringContainer16)));
 				if (container) {
@@ -196,8 +205,8 @@ namespace slib
 			SLIB_INLINE static StringContainer* alloc_std(T&& str) noexcept
 			{
 				sl_size len = (sl_size)(str.length());
-				if (len == 0) {
-					return priv::string::g_empty.container;
+				if (!len) {
+					return priv::string::g_empty;
 				}
 				if (len < 40) {
 					StringContainer* container = priv::string::alloc(len);
@@ -224,8 +233,8 @@ namespace slib
 			SLIB_INLINE static StringContainer16* alloc16_std(T&& str) noexcept
 			{
 				sl_size len = (sl_size)(str.length());
-				if (len == 0) {
-					return priv::string::g_empty16.container;
+				if (!len) {
+					return priv::string::g_empty16;
 				}
 				if (len < 20) {
 					StringContainer16* container = priv::string::alloc16(len);
@@ -248,10 +257,10 @@ namespace slib
 				return sl_null;
 			}
 			
-			SLIB_INLINE static StringContainer* alloc_ref(const Ref<Referable>& obj, const sl_char8* sz, sl_size len) noexcept
+			SLIB_INLINE static StringContainer* alloc_ref(Referable* obj, const sl_char8* sz, sl_size len) noexcept
 			{
-				if (len == 0) {
-					return priv::string::g_empty.container;
+				if (!len) {
+					return priv::string::g_empty;
 				}
 				priv::string::Container_ref* container = (priv::string::Container_ref*)(Base::createMemory(sizeof(priv::string::Container_ref)));
 				if (container) {
@@ -266,10 +275,10 @@ namespace slib
 				return sl_null;
 			}
 			
-			SLIB_INLINE static StringContainer16* alloc16_ref(const Ref<Referable>& obj, const sl_char16* sz, sl_size len) noexcept
+			SLIB_INLINE static StringContainer16* alloc16_ref(Referable* obj, const sl_char16* sz, sl_size len) noexcept
 			{
-				if (len == 0) {
-					return priv::string::g_empty16.container;
+				if (!len) {
+					return priv::string::g_empty16;
 				}
 				priv::string::Container16_ref* container = (priv::string::Container16_ref*)(Base::createMemory(sizeof(priv::string::Container16_ref)));
 				if (container) {
@@ -283,7 +292,43 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
+			SLIB_INLINE static StringContainer* alloc_sub(const String& str, const sl_char8* sz, sl_size len) noexcept
+			{
+				if (!len) {
+					return priv::string::g_empty;
+				}
+				priv::string::Container_sub* container = (priv::string::Container_sub*)(Base::createMemory(sizeof(priv::string::Container_sub)));
+				if (container) {
+					new (container) priv::string::Container_sub(str);
+					container->sz = (sl_char8*)(sz);
+					container->len = len;
+					container->hash = 0;
+					container->type = STRING_CONTAINER_TYPE_SUB;
+					container->ref = 1;
+					return container;
+				}
+				return sl_null;
+			}
+
+			SLIB_INLINE static StringContainer16* alloc16_sub(const String16& str, const sl_char16* sz, sl_size len) noexcept
+			{
+				if (!len) {
+					return priv::string::g_empty16;
+				}
+				priv::string::Container16_sub* container = (priv::string::Container16_sub*)(Base::createMemory(sizeof(priv::string::Container16_sub)));
+				if (container) {
+					new (container) priv::string::Container16_sub(str);
+					container->sz = (sl_char16*)(sz);
+					container->len = len;
+					container->hash = 0;
+					container->type = STRING_CONTAINER_TYPE_SUB;
+					container->ref = 1;
+					return container;
+				}
+				return sl_null;
+			}
+
 			SLIB_INLINE static StringContainer* create(sl_char8 ch, sl_size nRepeatCount) noexcept
 			{
 				StringContainer* container = priv::string::alloc(nRepeatCount);
@@ -614,13 +659,16 @@ namespace slib
 	{
 		if (ref > 0) {
 			sl_reg nRef = Base::interlockedDecrement(&ref);
-			if (nRef == 0) {
+			if (!nRef) {
 				if (type == STRING_CONTAINER_TYPE_STD) {
 					priv::string::Container_std* container = static_cast<priv::string::Container_std*>(this);
 					container->priv::string::Container_std::~Container_std();
 				} else if (type == STRING_CONTAINER_TYPE_REF) {
 					priv::string::Container_ref* container = static_cast<priv::string::Container_ref*>(this);
 					container->priv::string::Container_ref::~Container_ref();
+				} else if (type == STRING_CONTAINER_TYPE_SUB) {
+					priv::string::Container_sub* container = static_cast<priv::string::Container_sub*>(this);
+					container->priv::string::Container_sub::~Container_sub();
 				}
 				Base::freeMemory(this);
 			}
@@ -633,13 +681,16 @@ namespace slib
 	{
 		if (ref > 0) {
 			sl_reg nRef = Base::interlockedDecrement(&ref);
-			if (nRef == 0) {
+			if (!nRef) {
 				if (type == STRING_CONTAINER_TYPE_STD) {
 					priv::string::Container16_std* container = static_cast<priv::string::Container16_std*>(this);
 					container->priv::string::Container16_std::~Container16_std();
 				} else if (type == STRING_CONTAINER_TYPE_REF) {
 					priv::string::Container16_ref* container = static_cast<priv::string::Container16_ref*>(this);
 					container->priv::string::Container16_ref::~Container16_ref();
+				} else if (type == STRING_CONTAINER_TYPE_SUB) {
+					priv::string::Container16_sub* container = static_cast<priv::string::Container16_sub*>(this);
+					container->priv::string::Container16_sub::~Container16_sub();
 				}
 				Base::freeMemory(this);
 			}
@@ -1106,60 +1157,40 @@ namespace slib
 		return sl_null;
 	}
 	
-	String String::fromRef(const Ref<Referable>& ref, const sl_char8* str, sl_reg len) noexcept
+	String String::fromRef(Referable* ref, const sl_char8* str, sl_size len) noexcept
 	{
 		if (str) {
-			if (len < 0) {
-				len = Base::getStringLength(str);
-			}
 			return priv::string::alloc_ref(ref, str, len);
 		}
 		return sl_null;
 	}
 	
-	String16 String16::fromRef(const Ref<Referable>& ref, const sl_char16* str, sl_reg len) noexcept
+	String16 String16::fromRef(Referable* ref, const sl_char16* str, sl_size len) noexcept
 	{
 		if (str) {
-			if (len < 0) {
-				len = Base::getStringLength2(str);
-			}
 			return priv::string::alloc16_ref(ref, str, len);
 		}
 		return sl_null;
 	}
 
-	String String::fromMemory(const Memory& mem) noexcept
+	String String::fromMemory(const Memory& _mem) noexcept
 	{
-		if (mem.isNull()) {
-			return String::null();
+		CMemory* mem = _mem.ref.get();
+		if (mem) {
+			return mem->getString();
 		}
-		sl_char8* s = (sl_char8*)(mem.getData());
-		sl_size n = mem.getSize();
-		if (n == 0) {
-			return String::getEmpty();
-		}
-		if (s[n-1] == 0) {
-			n--;
-		}
-		return fromRef(mem.ref, s, n);
+		return sl_null;
 	}
-	
-	String16 String16::fromMemory(const Memory& mem) noexcept
+
+	String16 String16::fromMemory(const Memory& _mem) noexcept
 	{
-		if (mem.isNull()) {
-			return String16::null();
+		CMemory* mem = _mem.ref.get();
+		if (mem) {
+			return mem->getString16();
 		}
-		sl_char16* s = (sl_char16*)(mem.getData());
-		sl_size n = mem.getSize() >> 1;
-		if (n == 0) {
-			return String16::getEmpty();
-		}
-		if (s[n-1] == 0) {
-			n--;
-		}
-		return fromRef(mem.ref, s, n);
+		return sl_null;
 	}
-	
+
 	String String::fromUtf8(const void* utf8, sl_reg len) noexcept
 	{
 		return create((const sl_char8*)utf8, len);
@@ -1235,7 +1266,7 @@ namespace slib
 		if (!len) {
 			return getEmpty();
 		}
-		if (((((sl_reg)(_utf16)) & 1) == 0) && Endian::isBE()) {
+		if (!(((sl_reg)(_utf16)) & 1) && Endian::isBE()) {
 			return String16((sl_char16*)_utf16, len);
 		}
 		String16 str = allocate(len);
@@ -1290,7 +1321,7 @@ namespace slib
 		if (!len) {
 			return getEmpty();
 		}
-		if ((((sl_reg)(_utf16)) & 1) == 0 && Endian::isLE()) {
+		if (!(((sl_reg)(_utf16)) & 1) && Endian::isLE()) {
 			return String16((sl_char16*)_utf16, len);
 		}
 		String16 str = allocate(len);
@@ -1318,7 +1349,7 @@ namespace slib
 		if (!buf) {
 			return sl_null;
 		}
-		if (size == 0) {
+		if (!size) {
 			return getEmpty();
 		}
 		if (size >= 2) {
@@ -1348,7 +1379,7 @@ namespace slib
 		if (!buf) {
 			return sl_null;
 		}
-		if (size == 0) {
+		if (!size) {
 			return getEmpty();
 		}
 		if (size >= 2) {
@@ -1528,13 +1559,13 @@ namespace slib
 	sl_bool Atomic<String>::isEmpty() const noexcept
 	{
 		String s(*this);
-		return s.getLength() == 0;
+		return !(s.getLength());
 	}
 
 	sl_bool Atomic<String16>::isEmpty() const noexcept
 	{
 		String16 s(*this);
-		return s.getLength() == 0;
+		return !(s.getLength());
 	}
 
 
@@ -1578,29 +1609,29 @@ namespace slib
 
 	void String::setEmpty() noexcept
 	{
-		if (m_container != priv::string::g_empty.container) {
-			_replaceContainer(priv::string::g_empty.container);
+		if (m_container != priv::string::g_empty) {
+			_replaceContainer(priv::string::g_empty);
 		}
 	}
 
 	void String16::setEmpty() noexcept
 	{
-		if (m_container != priv::string::g_empty16.container) {
-			_replaceContainer(priv::string::g_empty16.container);
+		if (m_container != priv::string::g_empty16) {
+			_replaceContainer(priv::string::g_empty16);
 		}
 	}
 
 	void Atomic<String>::setEmpty() noexcept
 	{
-		if (m_container != priv::string::g_empty.container) {
-			_replaceContainer(priv::string::g_empty.container);
+		if (m_container != priv::string::g_empty) {
+			_replaceContainer(priv::string::g_empty);
 		}
 	}
 
 	void Atomic<String16>::setEmpty() noexcept
 	{
-		if (m_container != priv::string::g_empty16.container) {
-			_replaceContainer(priv::string::g_empty16.container);
+		if (m_container != priv::string::g_empty16) {
+			_replaceContainer(priv::string::g_empty16);
 		}
 	}
 
@@ -1631,6 +1662,50 @@ namespace slib
 			m_container->len = len;
 		}
 	}
+
+
+	sl_char8* String::getNullTerminatedData(sl_size& outLength, String& outStringConverted) const noexcept
+	{
+		StringContainer* container = m_container;
+		if (container) {
+			if (container->type == STRING_CONTAINER_TYPE_NORMAL || container->type == STRING_CONTAINER_TYPE_STD) {
+				outLength = container->len;
+				return container->sz;
+			}
+			if (container->sz[container->len]) {
+				outStringConverted = String(container->sz, container->len);
+				outLength = container->len;
+				return outStringConverted.getData();
+			} else {
+				outLength = container->len;
+				return container->sz;
+			}
+		}
+		outLength = 0;
+		return (sl_char8*)((void*)(""));
+	}
+
+	sl_char16* String16::getNullTerminatedData(sl_size& outLength, String16& outStringConverted) const noexcept
+	{
+		StringContainer16* container = m_container;
+		if (container) {
+			if (container->type == STRING_CONTAINER_TYPE_NORMAL || container->type == STRING_CONTAINER_TYPE_STD) {
+				outLength = container->len;
+				return container->sz;
+			}
+			if (container->sz[container->len]) {
+				outStringConverted = String16(container->sz, container->len);
+				outLength = container->len;
+				return outStringConverted.getData();
+			} else {
+				outLength = container->len;
+				return container->sz;
+			}
+		}
+		outLength = 0;
+		return (sl_char16*)((void*)(u""));
+	}
+
 
 	void String::setHashCode(sl_size hash) noexcept
 	{
@@ -2144,16 +2219,50 @@ namespace slib
 
 	String String::duplicate() const noexcept
 	{
-		if (isNotNull()) {
-			return String(getData(), getLength());
+		StringContainer* container = m_container;
+		if (container) {
+			return String(container->sz, container->len);
 		}
 		return sl_null;
 	}
 
 	String16 String16::duplicate() const noexcept
 	{
-		if (isNotNull()) {
-			return String16(getData(), getLength());
+		StringContainer16* container = m_container;
+		if (container) {
+			return String16(container->sz, container->len);
+		}
+		return sl_null;
+	}
+
+	String String::toNullTerminated() const noexcept
+	{
+		StringContainer* container = m_container;
+		if (container) {
+			if (container->type == STRING_CONTAINER_TYPE_NORMAL || container->type == STRING_CONTAINER_TYPE_STD) {
+				return *this;
+			}
+			if (container->sz[container->len]) {
+				return String(container->sz, container->len);
+			} else {
+				return *this;
+			}
+		}
+		return sl_null;
+	}
+
+	String16 String16::toNullTerminated() const noexcept
+	{
+		StringContainer16* container = m_container;
+		if (container) {
+			if (container->type == STRING_CONTAINER_TYPE_NORMAL || container->type == STRING_CONTAINER_TYPE_STD) {
+				return *this;
+			}
+			if (container->sz[container->len]) {
+				return String16(container->sz, container->len);
+			} else {
+				return *this;
+			}
 		}
 		return sl_null;
 	}
@@ -2172,22 +2281,38 @@ namespace slib
 
 	Memory String::toMemory() const noexcept
 	{
-		return Memory::create(getData(), getLength()*sizeof(sl_char8));
-	}
-
-	Memory String::toStaticMemory() const noexcept
-	{
-		return Memory::createStatic(getData(), getLength()*sizeof(sl_char8));
+		StringContainer* container = m_container;
+		if (container) {
+			if (container->type == STRING_CONTAINER_TYPE_REF) {
+				priv::string::Container_ref* c = static_cast<priv::string::Container_ref*>(container);
+				if (IsInstanceOf<CMemory>(c->obj)) {
+					CMemory* mem = (CMemory*)(c->obj.ptr);
+					if (mem->data == container->sz && mem->size == container->len) {
+						return mem;
+					}
+				}
+			}
+			return Memory::createFromString(*this);
+		}
+		return sl_null;
 	}
 
 	Memory String16::toMemory() const noexcept
 	{
-		return Memory::create(getData(), getLength()*sizeof(sl_char16));
-	}
-
-	Memory String16::toStaticMemory() const noexcept
-	{
-		return Memory::createStatic(getData(), getLength()*sizeof(sl_char16));
+		StringContainer16* container = m_container;
+		if (container) {
+			if (container->type == STRING_CONTAINER_TYPE_REF) {
+				priv::string::Container16_ref* c = static_cast<priv::string::Container16_ref*>(container);
+				if (IsInstanceOf<CMemory>(c->obj)) {
+					CMemory* mem = (CMemory*)(c->obj.ptr);
+					if (mem->data == container->sz && mem->size == (container->len << 1)) {
+						return mem;
+					}
+				}
+			}
+			return Memory::createFromString16(*this);
+		}
+		return sl_null;
 	}
 
 	Memory Atomic<String>::toMemory() const noexcept
@@ -2220,7 +2345,7 @@ namespace slib
 			return sl_true;
 		}
 		Memory mem = toUtf16();
-		output.refer = mem.ref;
+		output.ref = Move(mem.ref);
 		if (mem.isNotNull()) {
 			output.data16 = (const sl_char16*)(mem.getData());
 			output.length = mem.getSize() / 2 - 1;
@@ -2372,6 +2497,58 @@ namespace slib
 	{
 		String s(*this);
 		return s.toUtf32();
+	}
+
+	String String::substring(sl_reg start, sl_reg end) const noexcept
+	{
+		if (isNull()) {
+			return sl_null;
+		}
+		sl_reg count = getLength();
+		if (start < 0) {
+			start = 0;
+		}
+		if (end < 0 || end > count) {
+			end = count;
+		}
+		if (start >= end) {
+			return getEmpty();
+		}
+		if (start == 0 && end == count) {
+			return *this;
+		}
+		count = end - start;
+		if (count <= 32) {
+			return String(getData() + start, count);
+		} else {
+			return priv::string::alloc_sub(*this, getData() + start, count);
+		}
+	}
+
+	String16 String16::substring(sl_reg start, sl_reg end) const noexcept
+	{
+		if (isNull()) {
+			return sl_null;
+		}
+		sl_reg count = getLength();
+		if (start < 0) {
+			start = 0;
+		}
+		if (end < 0 || end > count) {
+			end = count;
+		}
+		if (start >= end) {
+			return getEmpty();
+		}
+		if (start == 0 && end == count) {
+			return *this;
+		}
+		count = end - start;
+		if (count <= 32) {
+			return String16(getData() + start, count);
+		} else {
+			return priv::string::alloc16_sub(*this, getData() + start, count);
+		}
 	}
 
 }

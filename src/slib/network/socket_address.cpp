@@ -22,6 +22,7 @@
 
 #include "slib/network/socket_address.h"
 
+#include "slib/network/json_conv.h"
 #include "slib/core/setting.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
@@ -322,4 +323,55 @@ namespace slib
 		return a.getHashCode();
 	}
 	
+
+	void FromJson(const Json& json, MacAddress& _out)
+	{
+		_out.setString(json.getString());
+	}
+
+	void ToJson(Json& json, const MacAddress& _in)
+	{
+		json = _in.toString();
+	}
+
+	void FromJson(const Json& json, IPv4Address& _out)
+	{
+		_out.setString(json.getString());
+	}
+
+	void ToJson(Json& json, const IPv4Address& _in)
+	{
+		json = _in.toString();
+	}
+
+	void FromJson(const Json& json, IPv6Address& _out)
+	{
+		_out.setString(json.getString());
+	}
+
+	void ToJson(Json& json, const IPv6Address& _in)
+	{
+		json = _in.toString();
+	}
+
+	void FromJson(const Json& json, IPAddress& _out)
+	{
+		_out.setString(json.getString());
+	}
+
+	void ToJson(Json& json, const IPAddress& _in)
+	{
+		json = _in.toString();
+	}
+
+	void FromJson(const Json& json, SocketAddress& _out)
+	{
+		_out.setString(json.getString());
+	}
+	
+	void ToJson(Json& json, const SocketAddress& _in)
+	{
+		json = _in.toString();
+	}
+
 }

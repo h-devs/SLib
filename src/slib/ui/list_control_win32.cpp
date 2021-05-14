@@ -93,7 +93,7 @@ namespace slib
 					ListLocker<ListControlColumn> columns(m_columns);
 					for (sl_size i = 0; i < columns.count; i++) {
 						ListControlColumn& column = columns[i];
-						String16 title = String16::from(column.title);
+						StringCstr16 title = column.title;
 						lvc.pszText = (LPWSTR)(title.getData());
 						int width = (int)(column.width);
 						if (width < 0) {
@@ -153,7 +153,7 @@ namespace slib
 						LVCOLUMNW lvc;
 						Base::zeroMemory(&lvc, sizeof(lvc));
 						lvc.mask = LVCF_TEXT;
-						String16 text = String16::from(_text);
+						StringCstr16 text = _text;
 						lvc.pszText = (LPWSTR)(text.getData());
 						SendMessageW(handle, LVM_SETCOLUMNW, (WPARAM)iCol, (LPARAM)(&lvc));
 					}

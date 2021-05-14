@@ -31,7 +31,7 @@
 #include "slib/core/safe_static.h"
 #include "slib/crypto/chacha.h"
 
-#define TAG "SQLiteDatabase"
+#define TAG "SQLite"
 
 namespace slib
 {
@@ -44,14 +44,14 @@ namespace slib
 		flagReadonly = sl_false;
 	}
 
-	SLIB_DEFINE_OBJECT(SQLiteDatabase, Database)
+	SLIB_DEFINE_OBJECT(SQLite, Database)
 
-	SQLiteDatabase::SQLiteDatabase()
+	SQLite::SQLite()
 	{
 		m_dialect = DatabaseDialect::SQLite;
 	}
 
-	SQLiteDatabase::~SQLiteDatabase()
+	SQLite::~SQLite()
 	{
 	}
 
@@ -464,7 +464,7 @@ namespace slib
 				EncryptionIo io;
 			};
 		
-			class DatabaseImpl : public SQLiteDatabase
+			class DatabaseImpl : public SQLite
 			{
 			public:
 				sqlite3* m_db;
@@ -507,10 +507,12 @@ namespace slib
 					} else {
 						flags = param.flagReadonly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE;
 					}
+
+					StringCstr path(param.path);
 					
 					int iResult;
 					if (param.encryptionKey.isNotEmpty()) {
-						m_encryptionKey = param.encryptionKey;
+						m_encryptionKey = param.encryptionKey.toString();
 						sqlite3_vfs* vfsDefault = sqlite3_vfs_find(0);
 						Base::copyMemory(&m_vfs, vfsDefault, sizeof(sqlite3_vfs));
 						m_vfs.db = this;
@@ -522,10 +524,10 @@ namespace slib
 						SLIB_SAFE_LOCAL_STATIC(Mutex, mutex)
 						MutexLocker lock(&mutex);
 						sqlite3_vfs_register(&m_vfs, 0);
-						iResult = sqlite3_open_v2(param.path.getData(), &db, flags, m_vfs.zName);
+						iResult = sqlite3_open_v2(path.getData(), &db, flags, m_vfs.zName);
 						sqlite3_vfs_unregister(&m_vfs);
 					} else {
-						iResult = sqlite3_open_v2(param.path.getData(), &db, flags, sl_null);
+						iResult = sqlite3_open_v2(path.getData(), &db, flags, sl_null);
 					}
 					if (SQLITE_OK == iResult) {
 						m_db = db;
@@ -717,15 +719,15 @@ namespace slib
 		}
 	}
 
-	Ref<SQLiteDatabase> SQLiteDatabase::open(const SQLiteParam& param)
+	Ref<SQLite> SQLite::open(const SQLiteParam& param)
 	{
 		return priv::sqlite::DatabaseImpl::open(param);
 	}
 
-	Ref<SQLiteDatabase> SQLiteDatabase::open(const String& path)
+	Ref<SQLite> SQLite::open(const StringParam& path)
 	{
 		SQLiteParam param;
-		param.path = path;
+		param.path = path.toString();
 		return priv::sqlite::DatabaseImpl::open(param);
 	}
 

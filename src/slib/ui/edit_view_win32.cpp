@@ -149,7 +149,7 @@ namespace slib
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						String16 s = String16::from(text);
+						StringCstr16 s = text;
 						SendMessageW(handle, 0x1501 /*EM_SETCUEBANNER*/, FALSE, (LPARAM)(LPCWSTR)(s.getData()));
 					}
 				}

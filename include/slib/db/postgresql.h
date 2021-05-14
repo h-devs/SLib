@@ -34,22 +34,22 @@
 namespace slib
 {
 	
-	class SLIB_EXPORT PostgreSqlParam
+	class SLIB_EXPORT PostgreSQL_Param
 	{
 	public:
-		String host;
+		StringParam host;
 		sl_uint16 port;
-		String user;
-		String password;
-		String db;
+		StringParam user;
+		StringParam password;
+		StringParam db;
 		
 		// Output
 		String error;
 
 	public:
-		PostgreSqlParam();
+		PostgreSQL_Param();
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PostgreSqlParam)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PostgreSQL_Param)
 
 	};
 
@@ -63,9 +63,9 @@ namespace slib
 		~PostgreSQL();
 	
 	public:
-		typedef PostgreSqlParam Param;
+		typedef PostgreSQL_Param Param;
 		
-		static Ref<PostgreSQL> connect(PostgreSqlParam& param);
+		static Ref<PostgreSQL> connect(PostgreSQL_Param& param);
 	
 	};
 

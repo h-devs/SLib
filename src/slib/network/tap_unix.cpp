@@ -37,6 +37,7 @@
 #include <sys/ioctl.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
+#include <arpa/inet.h>
 
 namespace slib
 {
@@ -162,13 +163,49 @@ namespace slib
 					return -1;
 				}
 
-				sl_bool setIpAddress(const StringParam& ip, const StringParam& mask) override
+				sl_bool setIpAddress(const StringParam& _ip, const StringParam& _mask) override
 				{
-					sl_int32 iRet = System::execute(String::join("netsh interface ip set address \"", m_interfaceName, "\" static ", ip, " ", mask));
-					if (!iRet) {
-						return sl_true;
+
+					StringCstr ip(_ip);
+					StringCstr mask(_mask);
+
+					sl_bool bRet = sl_false;
+
+					int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+					if (fd >= 0) {
+
+						ifreq req;
+						Base::zeroMemory(&req, sizeof(req));
+						Base::copyString(req.ifr_name, m_interfaceName.getData(), IFNAMSIZ);
+
+						req.ifr_addr.sa_family = AF_INET;
+						inet_pton(AF_INET, ip.getData(), &(((sockaddr_in*)&(req.ifr_addr))->sin_addr));
+
+						if(ioctl(fd, SIOCSIFADDR, &req) != -1) {
+
+							if (((sockaddr_in*)&(req.ifr_addr))->sin_addr.s_addr) {
+								if (mask.isNotEmpty()) {
+
+									inet_pton(AF_INET, mask.getData(), &(((sockaddr_in*)&(req.ifr_addr))->sin_addr));
+
+									if(ioctl(fd, SIOCSIFNETMASK, &req) != -1) {
+
+										if(ioctl(fd, SIOCGIFFLAGS, &req) != -1) {
+											req.ifr_flags |= (IFF_UP | IFF_RUNNING);
+											if(ioctl(fd, SIOCSIFFLAGS, &req) != -1) {
+												bRet = sl_true;
+											}
+										}
+
+									}
+								}
+							}
+						}
+
+						::close(fd);
 					}
-					return sl_false;
+
+					return bRet;
 				}
 
 			};

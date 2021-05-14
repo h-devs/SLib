@@ -56,7 +56,7 @@ namespace slib
 					GtkEntry* handle = (GtkEntry*)m_handle;
 
 					GTK_WIDGET_SET_FLAGS(handle, GTK_CAN_FOCUS);
-					String text = view->getText();
+					StringCstr text = view->getText();
 					if (text.isNotEmpty()) {
 						gtk_entry_set_text(handle, text.getData());
 					}
@@ -80,10 +80,11 @@ namespace slib
 					return sl_false;
 				}
 
-				void setText(EditView* view, const String& text) override
+				void setText(EditView* view, const String& _text) override
 				{
 					GtkEntry* handle = (GtkEntry*)m_handle;
 					if (handle) {
+						StringCstr text(_text);
 						gtk_entry_set_text(handle, text.getData());
 					}
 				}
@@ -177,7 +178,8 @@ namespace slib
 						String textNew = text;
 						view->dispatchChange(textNew);
 						if (text != textNew) {
-							gtk_entry_set_text(handle, textNew.getData());
+							StringCstr _text(textNew);
+							gtk_entry_set_text(handle, _text.getData());
 						}
 					}
 				}

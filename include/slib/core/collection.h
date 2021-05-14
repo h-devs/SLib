@@ -53,6 +53,8 @@ namespace slib
 
 		sl_bool toJsonString(StringBuffer& buf) override;
 
+		sl_bool toJsonBinary(MemoryBuffer& buf) override;
+
 	};
 	
 }

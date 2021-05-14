@@ -23,12 +23,14 @@
 #include "slib/core/collection.h"
 
 #include "slib/core/variant.h"
+#include "slib/core/iterator.h"
 #include "slib/core/linked_list.h"
 #include "slib/core/queue.h"
 #include "slib/core/queue_channel.h"
 #include "slib/core/linked_object.h"
 #include "slib/core/loop_queue.h"
 #include "slib/core/string_buffer.h"
+#include "slib/core/serialize.h"
 
 namespace slib
 {
@@ -93,6 +95,34 @@ namespace slib
 			return sl_false;
 		}
 		return sl_true;
+	}
+
+	sl_bool Collection::toJsonBinary(MemoryBuffer& buf)
+	{
+		if (!(SerializeByte(&buf, (sl_uint8)(VariantType::Collection)))) {
+			return sl_false;
+		}
+		sl_uint64 n = getElementsCount();
+		if (!(CVLI::serialize(&buf, n))) {
+			return sl_false;
+		}
+		for (sl_uint64 i = 0; i < n; i++) {
+			if (!(Serialize(&buf, getElement(i)))) {
+				return sl_false;
+			}
+		}
+		return sl_true;
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CIteratorBase)
+
+	CIteratorBase::CIteratorBase()
+	{
+	}
+
+	CIteratorBase::~CIteratorBase()
+	{
 	}
 
 
@@ -165,6 +195,7 @@ namespace slib
 
 
 #include "slib/core/ptr.h"
+#include "slib/core/shared_ptr.h"
 
 namespace slib
 {
@@ -177,13 +208,32 @@ namespace slib
 			{
 				void* ptr;
 				void* ref;
-				sl_int32 lock;
 			};
 			
-			const ConstStruct g_null = {0, 0, 0};
-			
+			const ConstStruct g_null = {0, 0};
+			void* const g_shared_null = 0;
+
 		}
 	}
+
+	CSharedPtrBase::~CSharedPtrBase()
+	{
+	}
+
+	sl_reg CSharedPtrBase::increaseReference() noexcept
+	{
+		return Base::interlockedIncrement(&refCount);
+	}
+
+	sl_reg CSharedPtrBase::decreaseReference() noexcept
+	{
+		sl_reg nRef = Base::interlockedDecrement(&refCount);
+		if (nRef == 0) {
+			delete this;
+		}
+		return nRef;
+	}
+
 }
 
 

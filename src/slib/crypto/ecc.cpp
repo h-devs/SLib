@@ -142,8 +142,9 @@ namespace slib
 		return sl_false;
 	}
 	
-	sl_bool ECPoint::parseUncompressedFormatString(const String& str)
+	sl_bool ECPoint::parseUncompressedFormatString(const StringParam& _str)
 	{
+		StringData str(_str);
 		return parseUncompressedFormatString(str.getData(), str.getLength());
 	}
 

@@ -590,7 +590,7 @@ namespace slib
 		
 		static sl_reg parseHttpDate(Time* _output, const sl_char8* buf, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
 		
-		sl_bool parseHttpDate(const String& date) noexcept;
+		sl_bool parseHttpDate(const StringParam& date) noexcept;
 		
 		
 		String toString(const TimeZone& zone = Time::LocalZone) const noexcept;

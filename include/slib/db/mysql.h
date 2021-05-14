@@ -34,14 +34,14 @@
 namespace slib
 {
 	
-	class SLIB_EXPORT MySqlParam
+	class SLIB_EXPORT MySQL_Param
 	{
 	public:
-		String host;
+		StringParam host;
 		sl_uint16 port;
-		String user;
-		String password;
-		String db;
+		StringParam user;
+		StringParam password;
+		StringParam db;
 
 		sl_bool flagAutoReconnect;
 		sl_bool flagMultipleStatements;
@@ -50,9 +50,9 @@ namespace slib
 		String error;
 
 	public:
-		MySqlParam();
+		MySQL_Param();
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MySqlParam)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MySQL_Param)
 
 	};
 
@@ -66,7 +66,7 @@ namespace slib
 		~MySQL();
 	
 	public:
-		typedef MySqlParam Param;
+		typedef MySQL_Param Param;
 		static Ref<MySQL> connect(Param& param);
 	
 	public:

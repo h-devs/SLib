@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_OBJECT
 #define CHECKHEADER_SLIB_CORE_OBJECT
 
-#include "ref.h"
+#include "iterator.h"
 #include "lockable.h"
 
 namespace slib
@@ -37,6 +37,9 @@ namespace slib
 
 	template <class T>
 	class List;
+
+	typedef CIterator<String, Variant> CPropertyIterator;
+	typedef Iterator<String, Variant> PropertyIterator;
 
 	class SLIB_EXPORT Object : public Referable, public Lockable
 	{
@@ -52,18 +55,18 @@ namespace slib
 		~Object() noexcept;
 
 	public:
-		virtual Variant getProperty(const StringParam& name) const;
+		virtual Variant getProperty(const StringParam& name);
 
 		virtual sl_bool setProperty(const StringParam& name, const Variant& value);
 
 		virtual sl_bool clearProperty(const StringParam& name);
 
-		virtual sl_bool enumerateProperties(const Function<sl_bool(const StringParam& name, const Variant& value)>& callback) const;
-
-		virtual List<String> getPropertyNames() const;
+		virtual PropertyIterator getPropertyIterator();
 
 	public:
 		sl_bool toJsonString(StringBuffer& buf) override;
+
+		sl_bool toJsonBinary(MemoryBuffer& buf) override;
 
 	public:
 		Object& operator=(const Object& other) = delete;

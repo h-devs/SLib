@@ -233,7 +233,7 @@ namespace slib
 		}
 		
 		if (!(param.flagIgnoreExistingAccessToken)) {
-			Ptr<OAuth1_AccessToken> accessToken = m_accessToken;
+			SharedPtr<OAuth1_AccessToken> accessToken = m_accessToken;
 			if (accessToken.isNotNull()) {
 				if (accessToken->isValid()) {
 					OAuth1_LoginResult result;
@@ -369,7 +369,7 @@ namespace slib
 		}
 		
 		if (!(param.flagIgnoreExistingAccessToken)) {
-			Ptr<OAuthAccessToken> accessToken = m_accessToken;
+			SharedPtr<OAuthAccessToken> accessToken = m_accessToken;
 			if (accessToken.isNotNull()) {
 				if (accessToken->isValid(scopes)) {
 					OAuthLoginResult result;

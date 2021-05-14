@@ -45,6 +45,7 @@
 #include "core/scoped.h"
 #include "core/safe_static.h"
 #include "core/singleton.h"
+#include "core/stringify.h"
 
 #include "core/atomic.h"
 #include "core/tuple.h"
@@ -53,6 +54,8 @@
 #include "core/ptr.h"
 #include "core/ptrx.h"
 #include "core/pointer.h"
+#include "core/shared_ptr.h"
+#include "core/unique_ptr.h"
 #include "core/object.h"
 #include "core/property.h"
 #include "core/function.h"
@@ -65,6 +68,7 @@
 #include "core/memory_buffer.h"
 #include "core/memory_queue.h"
 #include "core/memory_traits.h"
+#include "core/object_id.h"
 #include "core/variant.h"
 
 #include "core/time.h"
@@ -85,6 +89,8 @@
 #include "core/list_collection.h"
 #include "core/map.h"
 #include "core/hash_map.h"
+#include "core/iterator.h"
+#include "core/map_iterator.h"
 #include "core/map_object.h"
 #include "core/hash_table.h"
 #include "core/linked_list.h"
@@ -124,6 +130,7 @@
 #include "core/io_util.h"
 #include "core/bit_reader.h"
 #include "core/bit_writer.h"
+#include "core/serialize.h"
 
 #include "core/async.h"
 #include "core/async_stream.h"

@@ -26,6 +26,8 @@
 #include "variant.h"
 #include "string_buffer.h"
 
+#include "serialize/variant.h"
+
 namespace slib
 {
 
@@ -35,7 +37,7 @@ namespace slib
 	public:
 		ListCollection(const List<T>& list): m_list(list.ref) {}
 
-		ListCollection(CList<T>* list) : m_list(list) {}
+		ListCollection(CList<T>* list): m_list(list) {}
 
 	public:
 		sl_uint64 getElementsCount() override
@@ -52,12 +54,16 @@ namespace slib
 		{
 			CList<T>* list = m_list.get();
 			ObjectLocker lock(list);
-			T* p = list->getPointerAt((sl_size)index);
-			if (p) {
-				item.get(*p);
-				return sl_true;
+			if (item.isNotUndefined()) {
+				T* p = list->getPointerAt((sl_size)index);
+				if (p) {
+					item.get(*p);
+					return sl_true;
+				}
+				return sl_false;
+			} else {
+				return list->removeAt_NoLock((sl_size)index);
 			}
-			return sl_false;
 		}
 
 		sl_bool addElement(const Variant& item) override
@@ -86,6 +92,23 @@ namespace slib
 			}
 			if (!(buf.addStatic("]"))) {
 				return sl_false;
+			}
+			return sl_true;
+		}
+
+		sl_bool toJsonBinary(MemoryBuffer& buf) override
+		{
+			ListLocker<T> list(*m_list);
+			if (!(SerializeByte(&buf, (sl_uint8)(VariantType::Collection)))) {
+				return sl_false;
+			}
+			if (!(CVLI::serialize(&buf, list.count))) {
+				return sl_false;
+			}
+			for (sl_size i = 0; i < list.count; i++) {
+				if (!(Serialize(&buf, Variant(list[i])))) {
+					return sl_false;
+				}
 			}
 			return sl_true;
 		}

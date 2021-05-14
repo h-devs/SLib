@@ -124,23 +124,25 @@ namespace slib
 		return Encode(BASE64_CHARS_URL, buf, size, padding);
 	}
 
-	String Base64::encode(const Memory &mem, sl_char8 padding)
+	String Base64::encode(const Memory& mem, sl_char8 padding)
 	{
 		return Encode(BASE64_CHARS, mem.getData(), mem.getSize(), padding);
 	}
 
-	String Base64::encodeUrl(const Memory &mem, sl_char8 padding)
+	String Base64::encodeUrl(const Memory& mem, sl_char8 padding)
 	{
 		return Encode(BASE64_CHARS_URL, mem.getData(), mem.getSize(), padding);
 	}
 
-	String Base64::encode(const String& str, sl_char8 padding)
+	String Base64::encode(const StringParam& _str, sl_char8 padding)
 	{
+		StringData str(_str);
 		return Encode(BASE64_CHARS, str.getData(), str.getLength(), padding);
 	}
 
-	String Base64::encodeUrl(const String& str, sl_char8 padding)
+	String Base64::encodeUrl(const StringParam& _str, sl_char8 padding)
 	{
+		StringData str(_str);
 		return Encode(BASE64_CHARS_URL, str.getData(), str.getLength(), padding);
 	}
 	
@@ -155,8 +157,9 @@ namespace slib
 		return size;
 	}
 
-	sl_size Base64::decode(const String& str, void* buf, sl_char8 padding)
+	sl_size Base64::decode(const StringParam& _str, void* buf, sl_char8 padding)
 	{
+		StringData str(_str);
 		sl_uint8* output = (sl_uint8*)buf;
 		sl_size len = str.getLength();
 		const sl_char8* input = str.getData();
@@ -209,8 +212,9 @@ namespace slib
 		return indexOutput;
 	}
 
-	Memory Base64::decode(const String& base64, sl_char8 padding)
+	Memory Base64::decode(const StringParam& _base64, sl_char8 padding)
 	{
+		StringData base64(_base64);
 		sl_size size = getDecodeOutputSize(base64.getLength());
 		Memory mem = Memory::create(size);
 		if (mem.isNull()) {

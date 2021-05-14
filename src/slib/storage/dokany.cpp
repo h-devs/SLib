@@ -880,7 +880,7 @@ namespace slib
 
 					FileSystemHostParam& param = m_param;
 
-					String16 mountPoint = String16::from(param.mountPoint);
+					StringCstr16 mountPoint = param.mountPoint;
 
 					DOKAN_OPTIONS options;
 					Base::zeroMemory(&options, sizeof(options));

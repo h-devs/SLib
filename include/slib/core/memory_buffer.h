@@ -43,7 +43,15 @@ namespace slib
 		sl_size getSize() const;
 
 		sl_bool add(const MemoryData& mem);
-	
+
+		sl_bool add(MemoryData&& mem);
+
+		template <class REF>
+		sl_bool add(const void* buf, sl_size size, REF&& ref)
+		{
+			return add(MemoryData(buf, size, Forward<REF>(ref)));
+		}
+
 		sl_bool add(const Memory& mem);
 
 		sl_bool addStatic(const void* buf, sl_size size);
@@ -53,13 +61,15 @@ namespace slib
 		{
 			return addStatic(buf, N - 1);
 		}
+
+		sl_bool pop(MemoryData& data);
 	
 		void link(MemoryBuffer& buf);
 	
 		void clear();
 	
 		Memory merge() const;
-	
+
 	protected:
 		LinkedQueue<MemoryData> m_queue;
 		sl_size m_size;

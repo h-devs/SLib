@@ -123,7 +123,7 @@ namespace slib
 		jerr.pub.error_exit = _slib_image_jpeg_error_exit;
 
 		unsigned char* buf = sl_null;
-		unsigned long size = 0;
+		size_t size = 0;
 
 		jpeg_create_compress(&cinfo);
 
@@ -197,7 +197,7 @@ namespace slib
 		return saveJPEG(this, quality);
 	}
 
-	sl_bool Image::saveJPEG(const String& filePath, const Ref<Image>& image, float quality)
+	sl_bool Image::saveJPEG(const StringParam& filePath, const Ref<Image>& image, float quality)
 	{
 		if (image.isNull()) {
 			return sl_false;
@@ -217,7 +217,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Image::saveJPEG(const String& filePath, float quality)
+	sl_bool Image::saveJPEG(const StringParam& filePath, float quality)
 	{
 		return saveJPEG(filePath, this, quality);
 	}

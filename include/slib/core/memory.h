@@ -30,16 +30,28 @@ namespace slib
 {
 
 	class Memory;
+	class String;
+	class String16;
+	class Json;
 
 	class SLIB_EXPORT MemoryData
 	{
 	public:
 		void* data;
 		sl_size size;
-		Ref<Referable> refer;
+		Ref<Referable> ref;
 
 	public:
 		MemoryData() noexcept;
+
+		MemoryData(const void* _data, sl_size _size) noexcept;
+
+		template <class REF>
+		MemoryData(const void* _data, sl_size _size, REF&& _ref) noexcept: data((void*)_data), size(_size), ref(Forward<REF>(_ref)) {}
+
+		MemoryData(const Memory& memory) noexcept;
+
+		MemoryData(Memory&& memory) noexcept;
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MemoryData)
 
@@ -54,10 +66,12 @@ namespace slib
 	{
 		SLIB_DECLARE_OBJECT
 
-	private:
-		CMemory() noexcept;
+	public:
+		void* data;
+		sl_size size;
 
-		CMemory(const void* data, sl_size size, Referable* refer, sl_bool flagStatic) noexcept;
+	public:
+		CMemory(const void* data, sl_size size) noexcept;
 
 		~CMemory() noexcept;
 
@@ -71,52 +85,36 @@ namespace slib
 		CMemory& operator=(CMemory&& other) = delete;
 
 	public:
-		static CMemory* create(const void* data, sl_size size, Referable* refer, sl_bool flagStatic) noexcept;
+		virtual sl_bool isResizable() noexcept;
 
-		static CMemory* create(sl_size size) noexcept;
+		virtual sl_bool setSize(sl_size size) noexcept;
 
-		static CMemory* create(const void* data, sl_size size) noexcept;
+		virtual Referable* getRef() noexcept;
 
-		static CMemory* createResizable(sl_size size) noexcept;
+		virtual String getString() noexcept;
 
-		static CMemory* createResizable(const void* data, sl_size size) noexcept;
-
-		static CMemory* createNoCopy(const void* data, sl_size size) noexcept;
-
-		static CMemory* createStatic(const void* data, sl_size size, Referable* refer = sl_null) noexcept;
-	
-	public:
-		void* getData() const noexcept;
-
-		sl_size getSize() const noexcept;
-
-		sl_bool setSize(sl_size size) noexcept;
-
-		sl_bool isStatic() const noexcept;
-
-		const Ref<Referable>& getRefer() const noexcept;
+		virtual String16 getString16() noexcept;
 
 	public:
-		CMemory* sub(sl_size offset, sl_size size = SLIB_SIZE_MAX) const noexcept;
+		String toString() override;
 
-		sl_size read(sl_size offsetSource, sl_size size, void* dst) const noexcept;
+		sl_bool toJsonString(StringBuffer& buf) override;
 
-		sl_size write(sl_size offsetTarget, sl_size size, const void* src) const noexcept;
+		sl_bool toJsonBinary(MemoryBuffer& buf) override;
 
-		sl_size copy(sl_size offsetTarget, const CMemory* source, sl_size offsetSource = 0, sl_size size = SLIB_SIZE_MAX) const noexcept;
+	public:
+		CMemory* sub(sl_size offset, sl_size size = SLIB_SIZE_MAX) noexcept;
 
-		CMemory* duplicate() const noexcept;
-		
-	protected:
-		void* m_data;
-		sl_size m_size;
-		Ref<Referable> m_refer;
-		sl_bool m_flagStatic;
+		sl_size read(sl_size offsetSource, sl_size size, void* dst) noexcept;
+
+		sl_size write(sl_size offsetTarget, sl_size size, const void* src) noexcept;
+
+		sl_size copy(sl_size offsetTarget, const CMemory* source, sl_size offsetSource = 0, sl_size size = SLIB_SIZE_MAX) noexcept;
+
+		CMemory* duplicate() noexcept;
 
 	};
-	
-	class Memory;
-	
+
 	template <>
 	class SLIB_EXPORT Atomic<Memory>
 	{
@@ -142,11 +140,11 @@ namespace slib
 		sl_bool getData(MemoryData& data) const noexcept;
 
 		sl_compare_result compare(const Memory& other) const noexcept;
-		
+
 		sl_bool equals(const Memory& other) const noexcept;
-		
+
 		sl_size getHashCode() const noexcept;
-		
+
 	};
 	
 	class SLIB_EXPORT Memory
@@ -156,8 +154,6 @@ namespace slib
 		SLIB_REF_WRAPPER(Memory, CMemory)
 
 	public:
-		static Memory create(const void* buf, sl_size size, Referable* refer, sl_bool flagStatic) noexcept;
-
 		static Memory create(sl_size count) noexcept;
 
 		static Memory create(const void* buf, sl_size size) noexcept;
@@ -168,7 +164,33 @@ namespace slib
 
 		static Memory createNoCopy(const void* buf, sl_size size) noexcept;
 
-		static Memory createStatic(const void* buf, sl_size size, Referable* refer = sl_null) noexcept;
+		static Memory createStatic(const void* buf, sl_size size) noexcept;
+
+		template <class T>
+		static Memory createStatic(const void* buf, sl_size size, T* ref) noexcept
+		{
+			return _createStatic(buf, size, ref);
+		}
+
+		template <class T>
+		static Memory createStatic(const void* buf, sl_size size, const Ref<T>& ref) noexcept
+		{
+			return _createStatic(buf, size, ref.get());
+		}
+
+		template <class T>
+		static Memory createStatic(const void* buf, sl_size size, Ref<T>&& ref) noexcept
+		{
+			return _createStaticMove(buf, size, &ref);
+		}
+
+		static Memory createFromString(const String& str) noexcept;
+		static Memory createFromString(String&& str) noexcept;
+
+		static Memory createFromString16(const String16& str) noexcept;
+		static Memory createFromString16(String16&& str) noexcept;
+
+		static Memory createFromExtendedJson(const Json& json, sl_uint32* pOutSubType = sl_null);
 
 	public:
 		void* getData() const noexcept;
@@ -177,9 +199,9 @@ namespace slib
 
 		sl_bool setSize(sl_size size) noexcept;
 
-		sl_bool isStatic() const noexcept;
+		Referable* getRef() const noexcept;
 
-		const Ref<Referable>& getRefer() const noexcept;
+		sl_bool isResizable() const noexcept;
 
 	public:
 		Memory sub(sl_size offset, sl_size size = SLIB_SIZE_MAX) const noexcept;
@@ -201,7 +223,11 @@ namespace slib
 		sl_bool equals(const Memory& other) const noexcept;
 		
 		sl_size getHashCode() const noexcept;
-		
+
+	private:
+		static Memory _createStatic(const void* buf, sl_size size, Referable* ref) noexcept;
+		static Memory _createStaticMove(const void* buf, sl_size size, void* pRef) noexcept;
+
 	};
 	
 	typedef Atomic<Memory> AtomicMemory;
@@ -242,7 +268,6 @@ namespace slib
 	public:
 		sl_size operator()(const Memory& a) const noexcept;
 	};
-	
 	
 }
 

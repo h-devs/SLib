@@ -145,45 +145,16 @@ namespace slib
 		}
 		
 	public:
-		StringParam& operator=(StringParam&& other) noexcept;
-		
 		StringParam& operator=(const StringParam& other) noexcept;
+		StringParam& operator=(StringParam&& other) noexcept;
 
-		StringParam& operator=(sl_null_t) noexcept;
-		
-		StringParam& operator=(const String& value) noexcept;
-		
-		StringParam& operator=(String&& value) noexcept;
-		
-		StringParam& operator=(const String16& value) noexcept;
-		
-		StringParam& operator=(String16&& value) noexcept;
-
-		StringParam& operator=(const AtomicString& value) noexcept;
-		
-		StringParam& operator=(const AtomicString16& value) noexcept;
-		
-		StringParam& operator=(const StringView& value) noexcept;
-		
-		StringParam& operator=(const StringView16& value) noexcept;
-		
-		StringParam& operator=(const char* sz) noexcept;
-		
-		StringParam& operator=(const wchar_t* sz) noexcept;
-		
-		StringParam& operator=(const char16_t* sz) noexcept;
-		
-		StringParam& operator=(const char32_t* sz) noexcept;
-		
-#ifdef SLIB_SUPPORT_STD_TYPES
-		StringParam& operator=(const std::string& str) noexcept;
-
-		StringParam& operator=(const std::wstring& str) noexcept;
-		
-		StringParam& operator=(const std::u16string& str) noexcept;
-		
-		StringParam& operator=(const std::u32string& str) noexcept;
-#endif
+		template <class T>
+		StringParam& operator=(T&& other) noexcept
+		{
+			_free();
+			new (this) StringParam(Forward<T>(other));
+			return *this;
+		}
 		
 	public:
 		void setUndefined() noexcept;
@@ -230,9 +201,13 @@ namespace slib
 		
 		
 		String toString() const noexcept;
-		
+
 		String16 toString16() const noexcept;
 		
+		String newString() const noexcept;
+
+		String16 newString16() const noexcept;
+
 		Variant toVariant() const noexcept;
 		
 	public:
@@ -245,9 +220,6 @@ namespace slib
 	public:
 		void _free() noexcept;
 		
-		void _assign(const sl_char8* str, sl_reg length) noexcept;
-		void _assign(const sl_char16* str, sl_reg length) noexcept;
-
 		friend class StringData;
 		friend class StringData16;
 		friend class StringCstr;
@@ -284,10 +256,20 @@ namespace slib
 	public:
 		StringData(const StringParam& param) noexcept;
 		
+		StringData(StringParam&& param) = delete;
+
 		StringData(const sl_char8* data) noexcept;
 		
 		StringData(const sl_char8* data, sl_size length) noexcept;
-		
+
+		StringData(const String& str) noexcept;
+
+		StringData(String&& str) noexcept;
+
+		StringData(const AtomicString& str) noexcept;
+
+		StringData(const StringView& str) noexcept;
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StringData)
 		
 	public:
@@ -298,7 +280,15 @@ namespace slib
 		}
 
 		String toString(const StringParam& param);
-		
+
+		template <class T>
+		StringData& operator=(T&& t)
+		{
+			this->~StringData();
+			new (this) StringData(Forward<T>(t));
+			return *this;
+		}
+
 	};
 
 	class SLIB_EXPORT StringData16 : public StringView16
@@ -308,11 +298,21 @@ namespace slib
 		
 	public:
 		StringData16(const StringParam& param) noexcept;
-		
+
+		StringData16(StringParam&& param) = delete;
+
 		StringData16(const sl_char16* data) noexcept;
 		
 		StringData16(const sl_char16* data, sl_size length) noexcept;
-		
+
+		StringData16(const String16& str) noexcept;
+
+		StringData16(String16&& str) noexcept;
+
+		StringData16(const AtomicString16& str) noexcept;
+
+		StringData16(const StringView16& str) noexcept;
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StringData16)
 		
 	public:
@@ -324,6 +324,14 @@ namespace slib
 
 		String16 toString16(const StringParam& param);
 
+		template <class T>
+		StringData16& operator=(T&& t)
+		{
+			this->~StringData16();
+			new (this) StringData16(Forward<T>(t));
+			return *this;
+		}
+
 	};
 	
 	class SLIB_EXPORT StringCstr : public StringView
@@ -332,17 +340,33 @@ namespace slib
 		String string;
 		
 	public:
+		StringCstr() noexcept;
+
 		StringCstr(const StringParam& param) noexcept;
-		
+
+		StringCstr(StringParam&& param) = delete;
+
 		StringCstr(const sl_char8* data) noexcept;
 		
 		StringCstr(const sl_char8* data, sl_size length) noexcept;
 		
 		StringCstr(const String& str) noexcept;
-		
+
+		StringCstr(String&& str) noexcept;
+
 		StringCstr(const AtomicString& str) noexcept;
 		
 		StringCstr(const StringView& str) noexcept;
+
+		StringCstr(const sl_char16* data) noexcept;
+
+		StringCstr(const sl_char16* data, sl_size length) noexcept;
+
+		StringCstr(const String16& str) noexcept;
+
+		StringCstr(const AtomicString16& str) noexcept;
+
+		StringCstr(const StringView16& str) noexcept;
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StringCstr)
 		
@@ -355,6 +379,14 @@ namespace slib
 
 		String toString(const StringParam& param);
 
+		template <class T>
+		StringCstr& operator=(T&& t)
+		{
+			this->~StringCstr();
+			new (this) StringCstr(Forward<T>(t));
+			return *this;
+		}
+
 	};
 
 	class SLIB_EXPORT StringCstr16 : public StringView16
@@ -363,17 +395,33 @@ namespace slib
 		String16 string;
 		
 	public:
+		StringCstr16() noexcept;
+
 		StringCstr16(const StringParam& param) noexcept;
-		
+
+		StringCstr16(StringParam&& param) = delete;
+
 		StringCstr16(const sl_char16* data) noexcept;
 		
 		StringCstr16(const sl_char16* data, sl_size length) noexcept;
 		
 		StringCstr16(const String16& str) noexcept;
-		
+
+		StringCstr16(String16&& str) noexcept;
+
 		StringCstr16(const AtomicString16& str) noexcept;
 		
 		StringCstr16(const StringView16& str) noexcept;
+
+		StringCstr16(const sl_char8* data) noexcept;
+
+		StringCstr16(const sl_char8* data, sl_size length) noexcept;
+
+		StringCstr16(const String& str) noexcept;
+
+		StringCstr16(const AtomicString& str) noexcept;
+
+		StringCstr16(const StringView& str) noexcept;
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StringCstr16)
 		
@@ -385,6 +433,14 @@ namespace slib
 		}
 
 		String16 toString16(const StringParam& param);
+
+		template <class T>
+		StringCstr16& operator=(T&& t)
+		{
+			this->~StringCstr16();
+			new (this) StringCstr16(Forward<T>(t));
+			return *this;
+		}
 
 	};
 

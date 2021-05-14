@@ -40,12 +40,12 @@ namespace slib
 		return sl_false;
 	}
 
-	String Assets::getFilePath(const String& path)
+	String Assets::getFilePath(const StringParam& path)
 	{
 		return sl_null;
 	}
 
-	Memory Assets::readAllBytes(const String& path)
+	Memory Assets::readAllBytes(const StringParam& path)
 	{
 		return Android::readAllBytesFromAsset(path);
 	}
@@ -64,39 +64,38 @@ namespace slib
 
 #	if defined(SLIB_PLATFORM_IS_APPLE)
 
-	String Assets::getFilePath(const String& path)
+	String Assets::getFilePath(const StringParam& path)
 	{
 		return Apple::getAssetFilePath(path);
 	}
 
 #	elif defined(SLIB_PLATFORM_IS_TIZEN)
 
-	String Assets::getFilePath(const String& path)
+	String Assets::getFilePath(const StringParam& path)
 	{
 		return Tizen::getAssetFilePath(path);
 	}
 
 #	else
 
-	String Assets::getFilePath(const String& path)
+	String Assets::getFilePath(const StringParam& path)
 	{
 		String s = File::makeSafeFilePath(path);
 		if (s.isNotEmpty()) {
-			return Application::getApplicationDirectory() + "/" + s;
+			return String::join(Application::getApplicationDirectory(), "/", s);
 		}
 		return sl_null;
 	}
 
 #	endif
 
-	Memory Assets::readAllBytes(const String& path)
+	Memory Assets::readAllBytes(const StringParam& path)
 	{
-		Memory ret;
 		String s = Assets::getFilePath(path);
 		if (s.isNotEmpty()) {
-			ret = File::readAllBytes(s);
+			return File::readAllBytes(s);
 		}
-		return ret;
+		return sl_null;
 	}
 }
 

@@ -20,10 +20,9 @@
  *   THE SOFTWARE.
  */
 
-#include "sapp.h"
-
 #include "slib/ui.h"
 
+#include "sapp.h"
 
 namespace slib
 {

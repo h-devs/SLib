@@ -54,7 +54,7 @@ namespace slib
 						SendMessageW(handle, CB_RESETCONTENT, 0, 0);
 						sl_uint32 n = view->getItemsCount();
 						for (sl_uint32 i = 0; i < n; i++) {
-							String16 s = String16::from(view->getItemTitle(i));
+							StringCstr16 s = view->getItemTitle(i);
 							SendMessageW(handle, CB_ADDSTRING, 0, (LPARAM)(s.getData()));
 						}
 						sl_uint32 indexSelected = view->getSelectedIndex();
@@ -66,12 +66,12 @@ namespace slib
 					}
 				}
 
-				void insertItem(SelectView* view, sl_uint32 index, const String& title) override
+				void insertItem(SelectView* view, sl_uint32 index, const String& _title) override
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						String16 s = String16::from(title);
-						SendMessageW(handle, CB_INSERTSTRING, (WPARAM)index, (LPARAM)(s.getData()));
+						StringCstr16 title = _title;
+						SendMessageW(handle, CB_INSERTSTRING, (WPARAM)index, (LPARAM)(title.getData()));
 					}
 				}
 
@@ -83,13 +83,13 @@ namespace slib
 					}
 				}
 
-				void setItemTitle(SelectView* view, sl_uint32 index, const String& title) override
+				void setItemTitle(SelectView* view, sl_uint32 index, const String& _title) override
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						String16 s = String16::from(title);
+						StringCstr16 title = _title;
 						SendMessageW(handle, CB_DELETESTRING, (WPARAM)index, 0);
-						SendMessageW(handle, CB_INSERTSTRING, (WPARAM)index, (LPARAM)(s.getData()));
+						SendMessageW(handle, CB_INSERTSTRING, (WPARAM)index, (LPARAM)(title.getData()));
 					}
 				}
 

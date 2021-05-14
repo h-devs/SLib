@@ -39,7 +39,7 @@ namespace slib
 
 	public:
 		AppType getAppType() override;
-	
+
 	protected:
 		virtual String getServiceName() = 0;
 

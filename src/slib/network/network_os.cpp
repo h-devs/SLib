@@ -95,11 +95,12 @@ namespace slib
 	}
 
 
-	sl_bool Network::findInterface(const String& name, NetworkInterfaceInfo* pInfo)
+	sl_bool Network::findInterface(const StringParam& _name, NetworkInterfaceInfo* pInfo)
 	{
+		StringData name(_name);
 		ListElements<NetworkInterfaceInfo> devices(Network::findAllInterfaces());
 		for (sl_size i = 0; i < devices.count; i++) {
-			if (devices[i].displayName == name) {
+			if (devices[i].name == name || devices[i].displayName == name) {
 				if(pInfo) {
 					*pInfo = devices[i];
 				}
@@ -408,8 +409,9 @@ namespace slib
 namespace slib
 {
 
-	sl_uint32 Network::getInterfaceIndexFromName(const String& name)
+	sl_uint32 Network::getInterfaceIndexFromName(const StringParam& _name)
 	{
+		StringCstr name(_name);
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 		auto func = iphlpapi::getApi_if_nametoindex();
 		if (func) {
@@ -444,10 +446,11 @@ namespace slib
 		}
 	}
 
-	List<IPAddress> Network::getIPAddressesFromHostName(const String& hostName)
+	List<IPAddress> Network::getIPAddressesFromHostName(const StringParam& _hostName)
 	{
 		Socket::initializeSocket();
 
+		StringCstr hostName(_hostName);
 		List<IPAddress> ret;
 
 		addrinfo *addrs = sl_null;
@@ -474,7 +477,7 @@ namespace slib
 		return ret;
 	}
 
-	IPAddress Network::getIPAddressFromHostName(const String& hostName)
+	IPAddress Network::getIPAddressFromHostName(const StringParam& hostName)
 	{
 		ListElements<IPAddress> list(getIPAddressesFromHostName(hostName));
 		sl_size i;
@@ -491,7 +494,7 @@ namespace slib
 		return IPAddress::none();
 	}
 
-	IPv4Address Network::getIPv4AddressFromHostName(const String& hostName)
+	IPv4Address Network::getIPv4AddressFromHostName(const StringParam& hostName)
 	{
 		ListElements<IPAddress> list(getIPAddressesFromHostName(hostName));
 		for (sl_size i = 0; i < list.count; i++) {
@@ -502,7 +505,7 @@ namespace slib
 		return IPv4Address::zero();
 	}
 
-	IPv6Address Network::getIPv6AddressFromHostName(const String& hostName)
+	IPv6Address Network::getIPv6AddressFromHostName(const StringParam& hostName)
 	{
 		ListElements<IPAddress> list(getIPAddressesFromHostName(hostName));
 		for (sl_size i = 0; i < list.count; i++) {

@@ -93,30 +93,48 @@ namespace slib
 		static sl_uint32* findMemoryBackward4(const void* m, sl_size count, const void* pattern, sl_size nPattern) noexcept;
 		static sl_uint64* findMemoryBackward8(const void* m, sl_size count, const void* pattern, sl_size nPattern) noexcept;
 
-		static sl_size copyString(sl_char8* dst, const sl_char8* src, sl_reg count = -1) noexcept;
-		static sl_size copyString2(sl_char16* dst, const sl_char16* src, sl_reg count = -1) noexcept;
-		static sl_size copyString4(sl_char32* dst, const sl_char32* src, sl_reg count = -1) noexcept;
+		static sl_size copyString(sl_char8* dst, const sl_char8* src) noexcept;
+		static sl_size copyString(sl_char8* dst, const sl_char8* src, sl_size count) noexcept;
+		static sl_size copyString2(sl_char16* dst, const sl_char16* src) noexcept;
+		static sl_size copyString2(sl_char16* dst, const sl_char16* src, sl_size count) noexcept;
+		static sl_size copyString4(sl_char32* dst, const sl_char32* src) noexcept;
+		static sl_size copyString4(sl_char32* dst, const sl_char32* src, sl_size count) noexcept;
 
-		static sl_size getStringLength(const sl_char8* src, sl_reg count = -1) noexcept;
-		static sl_size getStringLength2(const sl_char16* src, sl_reg count = -1) noexcept;
-		static sl_size getStringLength4(const sl_char32* src, sl_reg count = -1) noexcept;
+		static sl_size getStringLength(const sl_char8* src) noexcept;
+		static sl_size getStringLength(const sl_char8* src, sl_size count) noexcept;
+		static sl_size getStringLength2(const sl_char16* src) noexcept;
+		static sl_size getStringLength2(const sl_char16* src, sl_size count) noexcept;
+		static sl_size getStringLength4(const sl_char32* src) noexcept;
+		static sl_size getStringLength4(const sl_char32* src, sl_size count) noexcept;
 
-		static sl_bool equalsString(const sl_char8* s1, const sl_char8* s2, sl_reg count = -1) noexcept;
-		static sl_bool equalsString2(const sl_char16* s1, const sl_char16* s2, sl_reg count = -1) noexcept;
-		static sl_bool equalsString4(const sl_char32* s1, const sl_char32* s2, sl_reg count = -1) noexcept;
+		static sl_bool equalsString(const sl_char8* s1, const sl_char8* s2) noexcept;
+		static sl_bool equalsString(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept;
+		static sl_bool equalsString2(const sl_char16* s1, const sl_char16* s2) noexcept;
+		static sl_bool equalsString2(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept;
+		static sl_bool equalsString4(const sl_char32* s1, const sl_char32* s2) noexcept;
+		static sl_bool equalsString4(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept;
 
-		static sl_bool equalsStringIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_reg count = -1) noexcept;
-		static sl_bool equalsStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2, sl_reg count = -1) noexcept;
-		static sl_bool equalsStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2, sl_reg count = -1) noexcept;
+		static sl_bool equalsStringIgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept;
+		static sl_bool equalsStringIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept;
+		static sl_bool equalsStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2) noexcept;
+		static sl_bool equalsStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept;
+		static sl_bool equalsStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2) noexcept;
+		static sl_bool equalsStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept;
 
-		static sl_compare_result compareString(const sl_char8* s1, const sl_char8* s2, sl_reg count = -1) noexcept;
-		static sl_compare_result compareString2(const sl_char16* s1, const sl_char16* s2, sl_reg count = -1) noexcept;
-		static sl_compare_result compareString4(const sl_char32* s1, const sl_char32* s2, sl_reg count = -1) noexcept;
+		static sl_compare_result compareString(const sl_char8* s1, const sl_char8* s2) noexcept;
+		static sl_compare_result compareString(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept;
+		static sl_compare_result compareString2(const sl_char16* s1, const sl_char16* s2) noexcept;
+		static sl_compare_result compareString2(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept;
+		static sl_compare_result compareString4(const sl_char32* s1, const sl_char32* s2) noexcept;
+		static sl_compare_result compareString4(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept;
 
-		static sl_compare_result compareStringIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_reg count = -1) noexcept;
-		static sl_compare_result compareStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2, sl_reg count = -1) noexcept;
-		static sl_compare_result compareStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2, sl_reg count = -1) noexcept;
-		
+		static sl_compare_result compareStringIgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept;
+		static sl_compare_result compareStringIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept;
+		static sl_compare_result compareStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2) noexcept;
+		static sl_compare_result compareStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept;
+		static sl_compare_result compareStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2) noexcept;
+		static sl_compare_result compareStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept;
+
 		// Interlocked Functions (Synchronization of Atom Operations)
 		static sl_int32 interlockedIncrement32(sl_int32* pValue) noexcept;
 		static sl_int32 interlockedDecrement32(sl_int32* pValue) noexcept;

@@ -696,13 +696,14 @@ namespace slib
 		}
 	}
 
-	JniClass Jni::findClass(const char* className)
+	JniClass Jni::findClass(const StringParam& _className)
 	{
+		StringCstr className(_className);
 		JNIEnv *env = getCurrent();
 		if (env) {
-			JniLocal<jclass> cls = env->FindClass(className);
+			JniLocal<jclass> cls = env->FindClass(className.getData());
 			if (Jni::checkException()) {
-				logJniError(String("Exception occurred while finding class: ") + className);
+				logJniError(String::join("Exception occurred while finding class: ", className));
 				Jni::printException();
 				Jni::clearException();
 			} else {
@@ -724,7 +725,7 @@ namespace slib
 		if (shared->classes.get(className, &ret)) {
 			return ret;
 		}
-		ret = Jni::findClass(className.getData());
+		ret = Jni::findClass(className);
 		if (ret.isNotNull()) {
 			Jni::registerClass(className, ret);
 			return ret;

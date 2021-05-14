@@ -37,7 +37,7 @@ namespace slib
 
 	using namespace priv::preference;
 	
-	void Preference::removeValue(const String& key)
+	void Preference::removeValue(const StringParam& key)
 	{
 		setValue(key, sl_null);
 	}

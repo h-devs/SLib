@@ -28,6 +28,7 @@
 #include "network/mac_address.h"
 #include "network/ip_address.h"
 #include "network/socket_address.h"
+#include "network/json_conv.h"
 
 #include "network/os.h"
 #include "network/socket.h"
@@ -50,6 +51,13 @@
 #include "network/stun.h"
 
 #include "network/capture.h"
+#include "network/pcap.h"
+#include "network/npcap.h"
 #include "network/tap.h"
+
+#include "network/pseudo_tcp.h"
+#include "network/pseudo_tcp_message.h"
+
+#include "network/dbip.h"
 
 #endif

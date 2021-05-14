@@ -120,7 +120,7 @@ namespace slib
 					}
 					Ref<FFmpegPlayer> ret = new FFmpegPlayer;
 					if (ret.isNotNull()) {
-						ret->m_url = url;
+						ret->m_url = url.toNullTerminated();
 						ret->m_flagVideo = param.flagVideo;
 						ret->_init(param);
 						ret->m_threadInit = Thread::start(Function<void()>::bind(&onRunInit, ToWeakRef(ret)));
@@ -535,7 +535,7 @@ namespace slib
 								if (duration < 0.02) {
 									duration = 0.02;
 								}
-								double dt = m_timeCounterVideo.getTime().getSecondsCountf();
+								double dt = m_timeCounterVideo.getElapsedMilliseconds() / 1000.0;
 								m_timeCounterVideo.reset();
 								if (dt < duration) {
 									Thread::sleep((sl_uint32)((duration - dt) * 1000));

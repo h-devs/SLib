@@ -123,7 +123,7 @@ namespace slib
 								SLIB_STATIC_STRING16(s, "/")
 								outPath = s;
 							}
-							String16 address = urlBuffer.getData();
+							String16 address = urlBuffer.duplicate();
 							{
 								ObjectLocker lock(&connectionPool);
 								Link< Ref<Connection> >* link = connectionPool.getBack();
@@ -228,7 +228,7 @@ namespace slib
 									}
 								}
 								sl_int32 taskId = Base::interlockedIncrement32(&(session->lastTaskId)) & 0x7FFFFFFF;
-								String16 verb = String16::from(HttpMethodHelper::toString(param.method));
+								StringCstr16 verb = HttpMethodHelper::toString(param.method);
 								DWORD flags = WINHTTP_FLAG_REFRESH;
 								if (connection->flagHttps) {
 									flags |= WINHTTP_FLAG_SECURE;

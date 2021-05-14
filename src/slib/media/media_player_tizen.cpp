@@ -74,11 +74,14 @@ namespace slib
 					}
 
 					if (param.url.isNotEmpty()) {
-						errorCode = ::player_set_uri(player, param.url.getData());
+						StringCstr url(param.url);
+						errorCode = ::player_set_uri(player, url.getData());
 					} else if (param.filePath.isNotEmpty()) {
-						errorCode = ::player_set_uri(player, param.filePath.getData());
+						StringCstr filePath(param.filePath);
+						errorCode = ::player_set_uri(player, filePath.getData());
 					} else if (param.assetFileName.isNotEmpty()) {
-						errorCode = ::player_set_uri(player, Tizen::getAssetFilePath(param.assetFileName).getData());
+						StringCstr filePath(Tizen::getAssetFilePath(param.assetFileName));
+						errorCode = ::player_set_uri(player, filePath.getData());
 					}
 
 					if (PLAYER_ERROR_NONE == errorCode) {

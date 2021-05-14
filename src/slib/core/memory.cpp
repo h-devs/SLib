@@ -24,8 +24,224 @@
 #include "slib/core/memory_buffer.h"
 #include "slib/core/memory_queue.h"
 
+#include "slib/core/string.h"
+#include "slib/core/string_buffer.h"
+#include "slib/core/parse_util.h"
+#include "slib/core/json.h"
+#include "slib/core/serialize/memory.h"
+#include "slib/core/serialize/string.h"
+
+#include "slib/crypto/base64.h"
+
 namespace slib
 {
+
+	namespace priv
+	{
+		namespace memory
+		{
+
+			static CMemory* Create(sl_size size) noexcept
+			{
+				if (size) {
+					sl_uint8* mem = new sl_uint8[sizeof(CMemory) + size];
+					if (mem) {
+						CMemory* ret = (CMemory*)mem;
+						new (ret) CMemory(mem + sizeof(CMemory), size);
+						return ret;
+					}
+				}
+				return sl_null;
+			}
+
+			static CMemory* Create(const void* data, sl_size size) noexcept
+			{
+				CMemory* ret = Create(size);
+				if (ret) {
+					if (data) {
+						Base::copyMemory(ret->data, data, size);
+					}
+					return ret;
+				}
+				return sl_null;
+			}
+
+			class ResizableMemory : public CMemory
+			{
+			public:
+				ResizableMemory(const void* _data, sl_size _size) noexcept: CMemory(_data, _size) {}
+
+				~ResizableMemory() noexcept
+				{
+					if (data) {
+						Base::freeMemory(data);
+					}
+				}
+
+			public:
+				sl_bool isResizable() noexcept override
+				{
+					return sl_true;
+				}
+
+				sl_bool setSize(sl_size sizeNew) noexcept override
+				{
+					void* p = data;
+					if (p) {
+						if (sizeNew) {
+							p = Base::reallocMemory(p, sizeNew);
+							if (p) {
+								data = p;
+								size = sizeNew;
+								return sl_true;
+							}
+						} else {
+							Base::freeMemory(p);
+							data = sl_null;
+							size = 0;
+							return sl_true;
+						}
+					}
+					return sl_false;
+				}
+
+			};
+
+			static CMemory* CreateResizable(sl_size size) noexcept
+			{
+				if (size) {
+					void* mem = Base::createMemory(size);
+					if (mem) {
+						CMemory* ret = new ResizableMemory(mem, size);
+						if (ret) {
+							return ret;
+						}
+						Base::freeMemory(mem);
+					}
+				}
+				return sl_null;
+			}
+
+			static CMemory* CreateResizable(const void* data, sl_size size) noexcept
+			{
+				CMemory* ret = CreateResizable(size);
+				if (ret) {
+					if (data) {
+						Base::copyMemory(ret->data, data, size);
+					}
+					return ret;
+				}
+				return sl_null;
+			}
+
+			class HeapMemory : public CMemory
+			{
+			public:
+				HeapMemory(const void* _data, sl_size _size) noexcept: CMemory(_data, _size) {}
+
+				~HeapMemory() noexcept
+				{
+					Base::freeMemory(data);
+				}
+
+			};
+
+			static CMemory* CreateNoCopy(const void* data, sl_size size) noexcept
+			{
+				if (data && size) {
+					CMemory* ret = new HeapMemory((void*)data, size);
+					if (ret) {
+						return ret;
+					}
+				}
+				return sl_null;
+			}
+
+			class StaticMemory : public CMemory
+			{
+			public:
+				StaticMemory(const void* _data, sl_size _size) noexcept: CMemory(_data, _size) {}
+
+			public:
+				Referable * getRef() noexcept override
+				{
+					return sl_null;
+				}
+				
+			};
+
+			static CMemory* CreateStatic(const void* data, sl_size size) noexcept
+			{
+				if (data && size) {
+					return new StaticMemory(data, size);
+				}
+				return sl_null;
+			}
+
+			class MemoryWithRef : public CMemory
+			{
+			public:
+				Ref<Referable> ref;
+
+			public:
+				template <class REF>
+				MemoryWithRef(const void* _data, sl_size _size, REF&& _ref) noexcept: CMemory(_data, _size), ref(Forward<REF>(_ref)) {}
+
+			public:
+				Referable* getRef() noexcept override
+				{
+					return ref.get();
+				}
+
+			};
+
+			template <class REF>
+			static CMemory* CreateStatic(const void* data, sl_size size, REF&& ref) noexcept
+			{
+				if (data && size) {
+					return new MemoryWithRef(data, size, Forward<REF>(ref));
+				}
+				return sl_null;
+			}
+
+			class MemoryWithString : public CMemory
+			{
+			public:
+				String str;
+
+			public:
+				template <class STRING>
+				MemoryWithString(const void* _data, sl_size _size, STRING&& _str) noexcept : CMemory(_data, _size), str(Forward<STRING>(_str)) {}
+
+			public:
+				String getString() noexcept override
+				{
+					return str;
+				}
+
+			};
+
+			class MemoryWithString16 : public CMemory
+			{
+			public:
+				String16 str;
+
+			public:
+				template <class STRING>
+				MemoryWithString16(const void* _data, sl_size _size, STRING&& _str) noexcept : CMemory(_data, _size), str(Forward<STRING>(_str)) {}
+
+			public:
+				String16 getString16() noexcept override
+				{
+					return str;
+				}
+
+			};
+
+		}
+	}
+
+	using namespace priv::memory;
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MemoryData)
 
@@ -33,14 +249,49 @@ namespace slib
 	{
 	}
 
+	MemoryData::MemoryData(const void* _data, sl_size _size) noexcept: data((void*)_data), size(_size)
+	{
+	}
+
+	MemoryData::MemoryData(const Memory& memory) noexcept
+	{
+		CMemory* p = memory.ref.get();
+		if (p) {
+			data = p->data;
+			size = p->size;
+			new (&ref) Ref<Referable>(p->getRef());
+		} else {
+			data = sl_null;
+			size = 0;
+		}
+	}
+
+	MemoryData::MemoryData(Memory&& memory) noexcept
+	{
+		CMemory* p = memory.ref.get();
+		if (p) {
+			data = p->data;
+			size = p->size;
+			Referable* r = p->getRef();
+			if (r == p) {
+				new (&ref) Ref<Referable>(Move(memory.ref));
+			} else {
+				new (&ref) Ref<Referable>(p->getRef());
+			}
+		} else {
+			data = sl_null;
+			size = 0;
+		}
+	}
+
 	Memory MemoryData::getMemory() const noexcept
 	{
-		if (CMemory* mem = CastInstance<CMemory>(refer.ptr)) {
-			if (mem->getData() == data && mem->getSize() == size) {
+		if (CMemory* mem = CastInstance<CMemory>(ref.ptr)) {
+			if (mem->data == data && mem->size == size) {
 				return mem;
 			}
 		}
-		return Memory::createStatic(data, size, refer.ptr);
+		return Memory::createStatic(data, size, ref.ptr);
 	}
 
 	Memory MemoryData::sub(sl_size offset, sl_size sizeSub) const noexcept
@@ -55,285 +306,294 @@ namespace slib
 		if (sizeSub == size) {
 			return getMemory();
 		}
-		return Memory::createStatic((sl_uint8*)data + offset, sizeSub, refer.ptr);
+		return Memory::createStatic((sl_uint8*)data + offset, sizeSub, ref.ptr);
 	}
 
 
 	SLIB_DEFINE_ROOT_OBJECT(CMemory)
 
-	CMemory::CMemory() noexcept
+	CMemory::CMemory(const void* _data, sl_size _size) noexcept: data((void*)_data), size(_size)
 	{
-	}
-
-	CMemory::CMemory(const void* data, sl_size size, Referable* refer, sl_bool flagStatic) noexcept: m_refer(refer)
-	{
-		m_data = (void*)(data);
-		m_size = size;
-		m_flagStatic = flagStatic;
 	}
 
 	CMemory::~CMemory() noexcept
 	{
-		if (!m_flagStatic) {
-			void* data = m_data;
-			if (data) {
-				Base::freeMemory((void*)data);
-			}
-		}
 	}
 
-	CMemory* CMemory::create(const void* data, sl_size size, Referable* refer, sl_bool flagStatic) noexcept
+	sl_bool CMemory::isResizable() noexcept
 	{
-		if (data && size) {
-			return new CMemory(data, size, refer, flagStatic);
-		}
-		return sl_null;
-	}
-
-	CMemory* CMemory::create(sl_size size) noexcept
-	{
-		if (size) {
-			sl_uint8* mem = new sl_uint8[sizeof(CMemory) + size];
-			if (mem) {
-				CMemory* ret = (CMemory*)mem;
-				new (ret) CMemory();
-				ret->m_data = mem + sizeof(CMemory);
-				ret->m_size = size;
-				ret->m_flagStatic = sl_true;
-				return ret;
-			}
-		}
-		return sl_null;
-	}
-
-	CMemory* CMemory::create(const void* data, sl_size size) noexcept
-	{
-		CMemory* ret = create(size);
-		if (ret) {
-			Base::copyMemory(ret->m_data, data, size);
-			return ret;
-		}
-		return sl_null;
-	}
-
-	CMemory* CMemory::createResizable(sl_size size) noexcept
-	{
-		if (size) {
-			void* mem = Base::createMemory(size);
-			if (mem) {
-				CMemory* ret = new CMemory;
-				if (ret) {
-					ret->m_data = mem;
-					ret->m_size = size;
-					ret->m_flagStatic = sl_false;
-					return ret;
-				}
-				Base::freeMemory(mem);
-			}
-		}
-		return sl_null;
-	}
-
-	CMemory* CMemory::createResizable(const void* data, sl_size size) noexcept
-	{
-		CMemory* ret = createResizable(size);
-		if (ret) {
-			Base::copyMemory(ret->m_data, data, size);
-			return ret;
-		}
-		return sl_null;
-	}
-
-	CMemory* CMemory::createNoCopy(const void* data, sl_size size) noexcept
-	{
-		if (data && size) {
-			CMemory* ret = new CMemory;
-			if (ret) {
-				ret->m_data = (void*)data;
-				ret->m_size = size;
-				ret->m_flagStatic = sl_false;
-				return ret;
-			}
-		}
-		return sl_null;
-	}
-
-	CMemory* CMemory::createStatic(const void* data, sl_size size, Referable* refer) noexcept
-	{
-		if (data && size) {
-			return new CMemory(data, size, refer, sl_true);
-		}
-		return sl_null;
-	}
-
-	void* CMemory::getData() const noexcept
-	{
-		return m_data;
-	}
-
-	sl_size CMemory::getSize() const noexcept
-	{
-		return m_size;
+		return sl_false;
 	}
 
 	sl_bool CMemory::setSize(sl_size size) noexcept
 	{
-		if (!m_flagStatic) {
-			void* data = m_data;
-			if (data) {
-				if (size) {
-					data = Base::reallocMemory(data, size);
-					if (data) {
-						m_data = data;
-						m_size = size;
-						return sl_true;
-					}
-				} else {
-					Base::freeMemory(data);
-					m_data = sl_null;
-					m_size = 0;
-					m_refer.setNull();
-					m_flagStatic = sl_true;
-					return sl_true;
-				}
-			}
-		}
 		return sl_false;
 	}
 
-	sl_bool CMemory::isStatic() const noexcept
+	Referable* CMemory::getRef() noexcept
 	{
-		return m_flagStatic;
+		return this;
 	}
 
-	const Ref<Referable>& CMemory::getRefer() const noexcept
+	String CMemory::getString() noexcept
 	{
-		return m_refer;
+		sl_size len = size;
+		if (len) {
+			sl_char8* str = (sl_char8*)data;
+			if (!(str[len - 1])) {
+				len--;
+			}
+			Referable* ref = getRef();
+			if (ref) {
+				return String::fromRef(ref, str, len);
+			} else {
+				return String::fromStatic(str, len);
+			}
+		}
+		return sl_null;
 	}
 
-	CMemory* CMemory::sub(sl_size offset, sl_size size) const noexcept
+	String16 CMemory::getString16() noexcept
 	{
-		sl_size sizeParent = m_size;
+		sl_size len = size >> 1;
+		if (len) {
+			sl_char16* str = (sl_char16*)data;
+			if (!(str[len - 1])) {
+				len--;
+			}
+			Referable* ref = getRef();
+			if (ref) {
+				return String16::fromRef(ref, str, len);
+			} else {
+				return String16::fromStatic(str, len);
+			}
+		}
+		return sl_null;
+	}
+
+	String CMemory::toString()
+	{
+		return getString();
+	}
+
+	sl_bool CMemory::toJsonString(StringBuffer& buf)
+	{
+		Json binary;
+		SLIB_STATIC_STRING(strBase64, "base64")
+		binary.putItem_NoLock(strBase64, Base64::encode(data, size));
+		SLIB_STATIC_STRING(strSubType, "subType")
+		binary.putItem_NoLock(strSubType, "00");
+		Json json;
+		SLIB_STATIC_STRING(strBinary, "$binary")
+		json.putItem_NoLock(strBinary, binary);
+		return buf.add(json.toJsonString());
+	}
+
+	sl_bool CMemory::toJsonBinary(MemoryBuffer& buf)
+	{
+		if (!(SerializeByte(&buf, (sl_uint8)(VariantType::Memory)))) {
+			return sl_false;
+		}
+		return Serialize(&buf, this);
+	}
+
+	CMemory* CMemory::sub(sl_size offset, sl_size sizeSub) noexcept
+	{
+		sl_size sizeParent = size;
 		if (offset < sizeParent) {
 			sl_size limit = sizeParent - offset;
-			if (size > limit) {
-				size = limit;
-			}
-			if (sizeParent == size) {
-				return (CMemory*)this;
-			}
-			if (size) {
-				Referable* refer = m_refer.ptr;
-				if (refer) {
-					return createStatic((sl_uint8*)m_data + offset, size, refer);
+			if (sizeSub > limit) {
+				sizeSub = limit;
+			}			
+			if (sizeSub) {
+				if (sizeParent == sizeSub) {
+					return this;
 				} else {
-					return createStatic((sl_uint8*)m_data + offset, size, (Referable*)this);
+					return CreateStatic((sl_uint8*)data + offset, sizeSub, getRef());
 				}
 			}
 		}
 		return sl_null;
 	}
 
-	sl_size CMemory::read(sl_size offsetSource, sl_size size, void* dst) const noexcept
+	sl_size CMemory::read(sl_size offsetSource, sl_size sizeRead, void* dst) noexcept
 	{
-		sl_uint8* pSrc = (sl_uint8*)m_data;
+		sl_uint8* pSrc = (sl_uint8*)data;
 		sl_uint8* pDst = (sl_uint8*)dst;
 		if (pDst && pSrc) {
-			sl_size sizeSrc = m_size;
+			sl_size sizeSrc = size;
 			if (offsetSource < sizeSrc) {
 				sl_size n = sizeSrc - offsetSource;
-				if (size > n) {
-					size = n;
+				if (sizeRead > n) {
+					sizeRead = n;
 				}
-				Base::copyMemory(pDst, pSrc + offsetSource, size);
-				return size;
+				if (sizeRead) {
+					Base::copyMemory(pDst, pSrc + offsetSource, sizeRead);
+					return sizeRead;
+				}
 			}
 		}
 		return 0;
 	}
 
-	sl_size CMemory::write(sl_size offsetTarget, sl_size size, const void* src) const noexcept
+	sl_size CMemory::write(sl_size offsetTarget, sl_size sizeWrite, const void* src) noexcept
 	{
-		sl_uint8* pDst = (sl_uint8*)m_data;
+		sl_uint8* pDst = (sl_uint8*)data;
 		sl_uint8* pSrc = (sl_uint8*)src;
-		if (pSrc && pDst) {
-			sl_size sizeTarget = m_size;
+		if (pSrc && pDst && sizeWrite) {
+			sl_size sizeTarget = size;
 			if (offsetTarget < sizeTarget) {
 				sl_size n = sizeTarget - offsetTarget;
-				if (size > n) {
-					size = n;
+				if (sizeWrite > n) {
+					sizeWrite = n;
 				}
-				Base::copyMemory(pDst + offsetTarget, pSrc, size);
-				return size;
+				if (sizeWrite) {
+					Base::copyMemory(pDst + offsetTarget, pSrc, sizeWrite);
+					return sizeWrite;
+				}
 			}
 		}
 		return 0;
 	}
 
-	sl_size CMemory::copy(sl_size offsetTarget, const CMemory* source, sl_size offsetSource, sl_size size) const noexcept
+	sl_size CMemory::copy(sl_size offsetTarget, const CMemory* source, sl_size offsetSource, sl_size sizeCopy) noexcept
 	{
 		if (source) {
-			sl_uint8* pSrc = (sl_uint8*)(source->getData());
+			sl_uint8* pSrc = (sl_uint8*)(source->data);
 			if (pSrc) {
-				sl_size sizeSrc = source->getSize();
+				sl_size sizeSrc = source->size;
 				if (offsetSource < sizeSrc) {
 					sl_size n = sizeSrc - offsetSource;
-					if (size > n) {
-						size = n;
+					if (sizeCopy > n) {
+						sizeCopy = n;
 					}
-					return write(offsetSource, size, pSrc + offsetSource);
+					return write(offsetSource, sizeCopy, pSrc + offsetSource);
 				}
 			}
 		}
 		return 0;
 	}
 
-	CMemory* CMemory::duplicate() const noexcept
+	CMemory* CMemory::duplicate() noexcept
 	{
-		return create(m_data, m_size);
+		return Create(data, size);
 	}
 
-
-	Memory Memory::create(const void* buf, sl_size size, Referable* refer, sl_bool flagStatic) noexcept
-	{
-		return CMemory::create(buf, size, refer, flagStatic);
-	}
 
 	Memory Memory::create(sl_size size) noexcept
 	{
-		return CMemory::create(size);
+		return Create(size);
 	}
 
 	Memory Memory::create(const void* buf, sl_size size) noexcept
 	{
-		return CMemory::create(buf, size);
+		return Create(buf, size);
 	}
 
 	Memory Memory::createResizable(sl_size size) noexcept
 	{
-		return CMemory::createResizable(size);
+		return CreateResizable(size);
 	}
 
 	Memory Memory::createResizable(const void* buf, sl_size size) noexcept
 	{
-		return CMemory::createResizable(buf, size);
+		return CreateResizable(buf, size);
 	}
 
 	Memory Memory::createNoCopy(const void* buf, sl_size size) noexcept
 	{
-		return CMemory::createNoCopy(buf, size);
+		return CreateNoCopy(buf, size);
 	}
 
-	Memory Memory::createStatic(const void* buf, sl_size size, Referable* refer) noexcept
+	Memory Memory::createStatic(const void* buf, sl_size size) noexcept
 	{
-		return CMemory::createStatic(buf, size, refer);
+		return CreateStatic(buf, size);
+	}
+
+	Memory Memory::_createStatic(const void* buf, sl_size size, Referable* ref) noexcept
+	{
+		if (ref) {
+			return CreateStatic(buf, size, ref);
+		} else {
+			return CreateStatic(buf, size);
+		}
+	}
+
+	Memory Memory::_createStaticMove(const void* buf, sl_size size, void* pRef) noexcept
+	{
+		return CreateStatic(buf, size, Move(*((Ref<Referable>*)pRef)));
+	}
+
+	Memory Memory::createFromString(const String& str) noexcept
+	{
+		sl_char8* data = str.getData();
+		sl_size size = str.getLength();
+		if (data && size) {
+			return new MemoryWithString(data, size, str);
+		} else {
+			return sl_null;
+		}
+	}
+
+	Memory Memory::createFromString(String&& str) noexcept
+	{
+		sl_char8* data = str.getData();
+		sl_size size = str.getLength();
+		if (data && size) {
+			return new MemoryWithString(data, size, Move(str));
+		} else {
+			return sl_null;
+		}
+	}
+
+	Memory Memory::createFromString16(const String16& str) noexcept
+	{
+		sl_char16* data = str.getData();
+		sl_size size = str.getLength() << 1;
+		if (data && size) {
+			return new MemoryWithString16(data, size, str);
+		} else {
+			return sl_null;
+		}
+	}
+
+	Memory Memory::createFromString16(String16&& str) noexcept
+	{
+		sl_char16* data = str.getData();
+		sl_size size = str.getLength() << 1;
+		if (data && size) {
+			return new MemoryWithString16(data, size, Move(str));
+		} else {
+			return sl_null;
+		}
+	}
+
+	Memory Memory::createFromExtendedJson(const Json& json, sl_uint32* pOutSubType)
+	{
+		SLIB_STATIC_STRING(strBinary, "$binary")
+		Json binary = json.getItem(strBinary);
+		if (!(binary.isJsonMap())) {
+			return sl_null;
+		}
+		if (pOutSubType) {
+			SLIB_STATIC_STRING(strSubType, "subType")
+			if (!(binary.getItem(strSubType).getString().parseUint32(16, pOutSubType))) {
+				return sl_null;
+			}
+		}
+		SLIB_STATIC_STRING(strBase64, "base64")
+		String base64 = binary.getItem(strBase64).getString();
+		if (base64.isNotEmpty()) {
+			return Base64::decode(base64);
+		}
+		return sl_null;
 	}
 
 	void* Memory::getData() const noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
-			return obj->getData();
+			return obj->data;
 		}
 		return sl_null;
 	}
@@ -342,7 +602,7 @@ namespace slib
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
-			return obj->getSize();
+			return obj->size;
 		}
 		return 0;
 	}
@@ -359,7 +619,7 @@ namespace slib
 			}
 		} else {
 			if (size) {
-				ref = CMemory::create(size);
+				ref = CreateResizable(size);
 				return ref.isNotNull();
 			} else {
 				return sl_true;
@@ -367,22 +627,22 @@ namespace slib
 		}
 	}
 
-	sl_bool Memory::isStatic() const noexcept
+	Referable* Memory::getRef() const noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
-			return obj->isStatic();
+			return obj->getRef();
 		}
-		return sl_false;
+		return sl_null;
 	}
 
-	const Ref<Referable>& Memory::getRefer() const noexcept
+	sl_bool Memory::isResizable() const noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
-			return obj->getRefer();
+			return obj->isResizable();
 		}
-		return Ref<Referable>::null();
+		return sl_false;
 	}
 
 	Memory Memory::sub(sl_size offset, sl_size size) const noexcept
@@ -439,21 +699,18 @@ namespace slib
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
-			data.data = obj->getData();
-			data.size = obj->getSize();
-			data.refer = obj->getRefer();
-			if (data.refer.isNull()) {
-				data.refer = obj;
-			}
+			data.data = obj->data;
+			data.size = obj->size;
+			data.ref = obj->getRef();
 			return sl_true;
 		} else {
 			data.data = sl_null;
 			data.size = 0;
-			data.refer.setNull();
+			data.ref.setNull();
 			return sl_false;
 		}
 	}
-	
+
 	sl_compare_result Memory::compare(const Memory& other) const noexcept
 	{
 		sl_size size1 = getSize();
@@ -512,7 +769,7 @@ namespace slib
 	{
 		Ref<CMemory> obj(ref);
 		if (obj.isNotNull()) {
-			return obj->getSize();
+			return obj->size;
 		}
 		return 0;
 	}
@@ -595,7 +852,85 @@ namespace slib
 		return mem.getHashCode();
 	}
 	
-	
+
+	sl_bool Serialize(MemoryBuffer* output, CMemory* mem)
+	{
+		sl_size size = mem->size;
+		if (!(CVLI::serialize(output, size))) {
+			return sl_false;
+		}
+		if (size) {
+			return output->add(mem->data, size, mem->getRef());
+		} else {
+			return sl_true;
+		}
+	}
+
+	sl_bool Serialize(MemoryBuffer* output, const Memory& _in)
+	{
+		CMemory* mem = _in.ref.get();
+		if (mem) {
+			return Serialize(output, mem);
+		} else {
+			return SerializeStatic(output, "", 1);
+		}
+	}
+
+	sl_bool Serialize(MemoryBuffer* output, const String& _in)
+	{
+		return Serialize(output, _in.toMemory());
+	}
+
+	sl_bool Deserialize(DeserializeBuffer* input, Memory& _out)
+	{
+		sl_size size;
+		if (!(CVLI::deserialize(input, size))) {
+			return sl_false;
+		}
+		if (size) {
+			if (input->current + size <= input->end) {
+				if (input->ref.isNotNull()) {
+					_out = Memory::createStatic(input->current, size, input->ref);
+				} else {
+					_out = Memory::create(input->current, size);
+				}
+				if (_out.isNotNull()) {
+					input->current += size;
+					return sl_true;
+				}
+			}
+			return sl_false;
+		} else {
+			_out.setNull();
+			return sl_true;
+		}
+	}
+
+	sl_bool Deserialize(DeserializeBuffer* input, String& _out)
+	{
+		sl_size size;
+		if (!(CVLI::deserialize(input, size))) {
+			return sl_false;
+		}
+		if (size) {
+			if (input->current + size <= input->end) {
+				if (input->ref.isNotNull()) {
+					_out = String::fromRef(input->ref, (sl_char8*)(input->current), size);
+				} else {
+					_out = String((sl_char8*)(input->current), size);
+				}
+				if (_out.isNotNull()) {
+					input->current += size;
+					return sl_true;
+				}
+			}
+			return sl_false;
+		} else {
+			_out.setNull();
+			return sl_true;
+		}
+	}
+
 	sl_bool operator==(const Memory& a, const Memory& b) noexcept
 	{
 		return a.equals(b);
@@ -664,9 +999,8 @@ namespace slib
 
 	SLIB_DEFINE_ROOT_OBJECT(MemoryBuffer)
 
-	MemoryBuffer::MemoryBuffer()
+	MemoryBuffer::MemoryBuffer(): m_size(0)
 	{
-		m_size = 0;
 	}
 
 	MemoryBuffer::~MemoryBuffer()
@@ -680,7 +1014,7 @@ namespace slib
 
 	sl_bool MemoryBuffer::add(const MemoryData& mem)
 	{
-		if (mem.size == 0) {
+		if (!(mem.size)) {
 			return sl_true;
 		}
 		if (mem.data) {
@@ -691,7 +1025,21 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
+	sl_bool MemoryBuffer::add(MemoryData&& mem)
+	{
+		if (!(mem.size)) {
+			return sl_true;
+		}
+		if (mem.data) {
+			if (m_queue.push_NoLock(Move(mem))) {
+				m_size += mem.size;
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
 	sl_bool MemoryBuffer::add(const Memory& mem)
 	{
 		MemoryData data;
@@ -700,19 +1048,21 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_bool MemoryBuffer::addStatic(const void* buf, sl_size size)
 	{
-		if (size == 0) {
+		if (!size) {
 			return sl_true;
 		}
 		if (buf) {
-			MemoryData data;
-			data.data = (void*)buf;
-			data.size = size;
-			return add(data);
+			return add(MemoryData(buf, size));
 		}
 		return sl_false;
+	}
+
+	sl_bool MemoryBuffer::pop(MemoryData& data)
+	{
+		return m_queue.popFront_NoLock(&data);
 	}
 
 	void MemoryBuffer::link(MemoryBuffer& buf)
@@ -728,7 +1078,6 @@ namespace slib
 		m_size = 0;
 	}
 
-	
 	Memory MemoryBuffer::merge() const
 	{
 		if (m_queue.getCount() == 0) {
@@ -777,7 +1126,7 @@ namespace slib
 	
 	sl_bool MemoryQueue::add_NoLock(const MemoryData& mem)
 	{
-		if (mem.size == 0) {
+		if (!(mem.size)) {
 			return sl_true;
 		}
 		if (mem.data) {
@@ -791,7 +1140,7 @@ namespace slib
 	
 	sl_bool MemoryQueue::add(const MemoryData& mem)
 	{
-		if (mem.size == 0) {
+		if (!(mem.size)) {
 			return sl_true;
 		}
 		if (mem.data) {
@@ -824,7 +1173,7 @@ namespace slib
 	
 	sl_bool MemoryQueue::addStatic_NoLock(const void* buf, sl_size size)
 	{
-		if (size == 0) {
+		if (!size) {
 			return sl_true;
 		}
 		if (buf) {
@@ -838,7 +1187,7 @@ namespace slib
 	
 	sl_bool MemoryQueue::addStatic(const void* buf, sl_size size)
 	{
-		if (size == 0) {
+		if (!size) {
 			return sl_true;
 		}
 		if (buf) {
@@ -882,7 +1231,7 @@ namespace slib
 	
 	sl_bool MemoryQueue::pop_NoLock(MemoryData& data)
 	{
-		MemoryData mem = m_memCurrent;
+		MemoryData mem = Move(m_memCurrent);
 		if (mem.size > 0) {
 			sl_size pos = m_posCurrent;
 			m_memCurrent.size = 0;
@@ -890,7 +1239,7 @@ namespace slib
 			if (pos < mem.size) {
 				data.data = (sl_uint8*)(mem.data) + pos;
 				data.size = mem.size - pos;
-				data.refer = mem.refer;
+				data.ref = Move(mem.ref);
 				m_size -= data.size;
 				return sl_true;
 			}

@@ -93,12 +93,12 @@ namespace slib
 		/**
 		 * Copies the null-terminated character sequence pointed by `str`.
 		 */
-		String(const char* str) noexcept;
+		String(const sl_char8* str) noexcept;
 
 		/**
 		 * Copies the first `length` characters from the array of characters pointed by `str`
 		 */
-		String(const char* str, sl_reg length) noexcept;
+		String(const sl_char8* str, sl_reg length) noexcept;
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 		/**
@@ -156,7 +156,7 @@ namespace slib
 		 * Creates a string pointing the `str` as the content, without copying the data.
 		 * `ref` should be used to keep the alive of the string content.
 		 */
-		static String fromRef(const Ref<Referable>& ref, const sl_char8* str, sl_reg len = -1) noexcept;
+		static String fromRef(Referable* ref, const sl_char8* str, sl_size len) noexcept;
 		
 		/**
 		 * Creates a string pointing the `mem` as the UTF-8 content, without copying the data.
@@ -367,6 +367,7 @@ namespace slib
 				return (sl_char8*)((void*)(""));
 			}
 		}
+
 		/**
 		 * @return string content and length.
 		 */
@@ -380,7 +381,12 @@ namespace slib
 				return (sl_char8*)((void*)(""));
 			}
 		}
-		
+
+		/**
+		 * @return null terminated string content and length
+		 */
+		sl_char8* getNullTerminatedData(sl_size& outLength, String& outStringConverted) const noexcept;
+
 		/**
 		 * @return string length.
 		 */
@@ -523,16 +529,16 @@ namespace slib
 		 * @return duplicated string.
 		 */
 		String duplicate() const noexcept;
-		
+
+		/**
+		* @return null terminated string.
+		*/
+		String toNullTerminated() const noexcept;
+
 		/**
 		 * @return memory containing string content.
 		 */
 		Memory toMemory() const noexcept;
-		
-		/**
-		 * @return memory containing string content, without creating new heap memory.
-		 */
-		Memory toStaticMemory() const noexcept;
 		
 		/**
 		 * Fills Utf16 characters to the provided buffer
@@ -1246,22 +1252,6 @@ namespace slib
 #endif
 
 	public:
-		/**
-		 * @return null string.
-		 */
-		static const AtomicString& null() noexcept
-		{
-			return *(reinterpret_cast<AtomicString const*>(&(priv::string::g_null)));
-		}
-		
-		/**
-		 * @return empty string.
-		 */
-		static const AtomicString& getEmpty() noexcept
-		{
-			return *(reinterpret_cast<AtomicString const*>(&(priv::string::g_empty)));
-		}
-		
 		/**
 		 * @return `true` if this string is null.
 		 */

@@ -451,7 +451,7 @@ namespace slib
 
 	sl_int32 UIApp::onExistingInstance()
 	{
-		String16 appId = String16::from(getUniqueInstanceId());
+		StringCstr16 appId = getUniqueInstanceId();
 		if (appId.isEmpty()) {
 			return -1;
 		}
@@ -493,10 +493,10 @@ namespace slib
 			wc.lpfnWndProc = MessageWindowProc;
 			wc.lpszClassName = PRIV_SLIB_UI_MESSAGE_WINDOW_CLASS_NAME;
 			m_wndClassForMessage = RegisterClassW(&wc);
-			String16 appId;
+			StringCstr16 appId;
 			Ref<UIApp> app = UIApp::getApp();
 			if (app.isNotNull()) {
-				appId = String16::from(app->getUniqueInstanceId());
+				appId = app->getUniqueInstanceId();
 			}
 			hWndMessage = CreateWindowExW(0, (LPCWSTR)((LONG_PTR)m_wndClassForMessage), (LPCWSTR)(appId.getData()), 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hInstance, 0);
 		}

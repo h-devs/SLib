@@ -173,7 +173,7 @@ namespace slib
 						gtk_window_set_opacity(handle, alpha);
 					}
 					
-					String title = window->getTitle();
+					StringCstr title = window->getTitle();
 					gtk_window_set_title(handle, title.getData());
 
 					Ref<GTK_WindowInstance> ret = create(handle);
@@ -335,11 +335,12 @@ namespace slib
 					}
 				}
 
-				void setTitle(const String& title) override
+				void setTitle(const String& _title) override
 				{
 					if (!m_flagClosed) {
 						GtkWindow* window = m_window;
 						if (window) {
+							StringCstr title(_title);
 							gtk_window_set_title(window, title.getData());
 						}
 					}

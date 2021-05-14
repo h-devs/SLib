@@ -390,7 +390,7 @@ namespace slib
 				MemoryData m;
 				m.data = audioIn.data;
 				m.size = sizeTotal;
-				m.refer = audioIn.ref;
+				m.ref = audioIn.ref;
 				m_buffer.add(m);
 			} else {
 				m_buffer.add(Memory::create(audioIn.data, sizeTotal));

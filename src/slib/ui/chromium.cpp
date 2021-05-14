@@ -373,7 +373,7 @@ namespace slib
 					}
 				}
 
-				void runJavaScript(WebView* view, const String& script) override
+				void runJavaScript(WebView* view, const StringParam& script) override
 				{
 					CefBrowser* browser = m_browser.get();
 					if (browser) {
@@ -882,7 +882,7 @@ namespace slib
 #ifdef SLIB_UI_IS_MACOS
 				{
 					String exe = File::getFileNameOnly(Apple::getStringFromNSString([[NSBundle mainBundle] executablePath]));
-					String path = Apple::getMainBundlePath() + "/Contents/Frameworks/" + exe;
+					String path = String::join(Apple::getMainBundlePath(), "/Contents/Frameworks/", exe);
 					if (File::exists(path + " Helper.app")) {
 						path += " Helper.app";
 						exe += " Helper";

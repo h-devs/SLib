@@ -63,8 +63,9 @@ namespace slib
 		delete ((std::regex*)m_obj);
 	}
 	
-	Ref<CRegEx> CRegEx::_create(const String& pattern, int _flags) noexcept
+	Ref<CRegEx> CRegEx::_create(const StringParam& _pattern, int _flags) noexcept
 	{
+		StringData pattern(_pattern);
 		std::regex* obj = (std::regex*)(Base::createMemory(sizeof(std::regex)));
 		if (obj) {
 			int flags = 0;
@@ -118,12 +119,12 @@ namespace slib
 		return sl_null;
 	}
 	
-	Ref<CRegEx> CRegEx::create(const String& pattern) noexcept
+	Ref<CRegEx> CRegEx::create(const StringParam& pattern) noexcept
 	{
 		return _create(pattern, 0);
 	}
 	
-	Ref<CRegEx> CRegEx::create(const String& pattern, const RegExFlags& flags) noexcept
+	Ref<CRegEx> CRegEx::create(const StringParam& pattern, const RegExFlags& flags) noexcept
 	{
 		return _create(pattern, flags);
 	}
@@ -174,11 +175,11 @@ namespace slib
 		return std::regex_match(start, end, *obj, (std::regex_constants::match_flag_type)flags);
 	}
 	
-	RegEx::RegEx(const String& pattern) noexcept: ref(CRegEx::create(pattern))
+	RegEx::RegEx(const StringParam& pattern) noexcept: ref(CRegEx::create(pattern))
 	{
 	}
 
-	RegEx::RegEx(const String& pattern, const RegExFlags& flags) noexcept: ref(CRegEx::create(pattern, flags))
+	RegEx::RegEx(const StringParam& pattern, const RegExFlags& flags) noexcept: ref(CRegEx::create(pattern, flags))
 	{
 	}
 	
@@ -190,11 +191,11 @@ namespace slib
 		return sl_false;
 	}
 	
-	Atomic<RegEx>::Atomic(const String& pattern) noexcept: ref(CRegEx::create(pattern, 0))
+	Atomic<RegEx>::Atomic(const StringParam& pattern) noexcept: ref(CRegEx::create(pattern, 0))
 	{
 	}
 	
-	Atomic<RegEx>::Atomic(const String& pattern, const RegExFlags& flags) noexcept: ref(CRegEx::create(pattern, flags))
+	Atomic<RegEx>::Atomic(const StringParam& pattern, const RegExFlags& flags) noexcept: ref(CRegEx::create(pattern, flags))
 	{
 	}
 	

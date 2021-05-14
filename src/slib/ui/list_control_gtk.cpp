@@ -97,13 +97,13 @@ namespace slib
 					ListLocker<ListControlColumn> columns(m_columns);
 					for (sl_size i = 0; i < columns.count; i++) {
 						ListControlColumn& column = columns[i];
-						String title = column.title;
 						int width = (int)(column.width);
 						if (width < 0) {
 							width = 0;
 						}
 						GtkTreeViewColumn *treecolumn = gtk_tree_view_get_column(handle, i);
 						if(treecolumn){
+							StringCstr title = column.title;
 							gtk_tree_view_column_set_title(treecolumn, title.getData());
 							gtk_tree_view_column_set_fixed_width(treecolumn, width);
 							gtk_tree_view_column_set_alignment(treecolumn, TranslateAlignment(column.align));
@@ -213,7 +213,8 @@ namespace slib
 			{
 				ListControlHelper* helper = GetModelView(model);
 				g_value_init(value, G_TYPE_STRING);
-				g_value_set_string(value, (gchar*)(helper->getItemText(iter->stamp, column).getData()));
+				StringCstr str(helper->getItemText(iter->stamp, column));
+				g_value_set_string(value, (gchar*)(str.getData()));
 			}
 
 			static gint list_control_model_get_n_columns(GtkTreeModel* model)
@@ -342,12 +343,13 @@ namespace slib
 					}
 				}
 				
-				void setHeaderText(ListControl* view, sl_uint32 iCol, const String& text) override
+				void setHeaderText(ListControl* view, sl_uint32 iCol, const String& _text) override
 				{
 					GtkTreeView* handle = getHandle();
 					if (handle) {
 						GtkTreeViewColumn* column = gtk_tree_view_get_column(handle, iCol);
 						if (column) {
+							StringCstr text(_text);
 							gtk_tree_view_column_set_title(column, text.getData());
 						}
 					}

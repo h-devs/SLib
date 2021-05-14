@@ -161,6 +161,11 @@ namespace slib
 	}
 #endif
 
+	sl_uint64 System::getHighResolutionTickCount()
+	{
+		return (sl_uint64)(getTickCount64());
+	}
+
 	void System::sleep(sl_uint32 milliseconds)
 	{
 		struct timespec req;
@@ -176,8 +181,12 @@ namespace slib
 	
 	sl_int32 System::execute(const StringParam& _command)
 	{
-		StringCstr command(_command);
-		return (sl_int32)(system(command.getData()));
+#if defined(SLIB_PLATFORM_IS_IOS)
+        return -1;
+#else
+        StringCstr command(_command);
+        return (sl_int32)(system(command.getData()));
+#endif
 	}
 
 	sl_uint32 System::getLastError()

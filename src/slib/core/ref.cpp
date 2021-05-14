@@ -24,6 +24,7 @@
 
 #include "slib/core/base.h"
 #include "slib/core/string_buffer.h"
+#include "slib/core/memory_buffer.h"
 
 #define PRIV_SIGNATURE 0x15181289
 
@@ -34,13 +35,9 @@ namespace slib
 	{
 		namespace ref
 		{
-			struct ConstStruct
-			{
-				void* ptr;
-				sl_int32 lock;
-			};
 
-			const ConstStruct g_null = {0, 0};
+			void* const g_null = sl_null;
+			
 		}
 	}
 
@@ -125,6 +122,11 @@ namespace slib
 	sl_bool Referable::toJsonString(StringBuffer& buf)
 	{
 		return buf.addStatic("{}");
+	}
+
+	sl_bool Referable::toJsonBinary(MemoryBuffer& buf)
+	{
+		return buf.addStatic("", 1);
 	}
 
 	sl_bool Referable::_isWeakRef() const noexcept

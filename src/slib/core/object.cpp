@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,10 @@
 #include "slib/core/string.h"
 #include "slib/core/hash_map.h"
 #include "slib/core/variant.h"
+#include "slib/core/map_iterator.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/parse_util.h"
+#include "slib/core/serialize.h"
 
 namespace slib
 {
@@ -73,7 +75,7 @@ namespace slib
 		}
 	}
 
-	Variant Object::getProperty(const StringParam& name) const
+	Variant Object::getProperty(const StringParam& name)
 	{
 		ObjectLocker lock(this);
 		if (m_properties) {
@@ -110,31 +112,14 @@ namespace slib
 		return sl_false;
 	}
 	
-	sl_bool Object::enumerateProperties(const Function<sl_bool(const StringParam& name, const Variant& value)>& callback) const
+	PropertyIterator Object::getPropertyIterator()
 	{
 		ObjectLocker lock(this);
 		if (m_properties) {
 			CHashMap<String, Variant>* map = static_cast<CHashMap<String, Variant>*>(m_properties);
-			auto node = map->getFirstNode();
-			while (node) {
-				if (callback(node->key, node->value)) {
-					node = node->getNext();
-				} else {
-					return sl_false;
-				}
-			}
+			return new MapIterator< CHashMap<String, Variant> >(map);
 		}
-		return sl_true;
-	}
-
-	List<String> Object::getPropertyNames() const
-	{
-		List<String> ret;
-		enumerateProperties([&ret](const StringParam& name, const Variant& value) {
-			ret.add_NoLock(name.toString());
-			return sl_true;
-		});
-		return ret;
+		return sl_null;
 	}
 
 	sl_bool Object::toJsonString(StringBuffer& buf)
@@ -150,7 +135,9 @@ namespace slib
 			while (node) {
 				Variant& v = node->value;
 				if (v.isNotUndefined()) {
-					if (!flagFirst) {
+					if (flagFirst) {
+						flagFirst = sl_false;
+					} else {
 						if (!(buf.addStatic(", "))) {
 							return sl_false;
 						}
@@ -164,7 +151,6 @@ namespace slib
 					if (!(v.toJsonString(buf))) {
 						return sl_false;
 					}
-					flagFirst = sl_false;
 				}
 				node = node->getNext();
 			}
@@ -173,17 +159,22 @@ namespace slib
 			}
 			return sl_true;
 		} else {
+			PropertyIterator iterator = getPropertyIterator();
 			if (!(buf.addStatic("{"))) {
 				return sl_false;
 			}
 			sl_bool flagFirst = sl_true;
-			if (!(enumerateProperties([&buf, &flagFirst](const StringParam& name, const Variant& v) {
+			while (iterator.moveNext()) {
+				Variant v = iterator.getValue();
 				if (v.isNotUndefined()) {
-					if (!flagFirst) {
+					if (flagFirst) {
+						flagFirst = sl_false;
+					} else {
 						if (!(buf.addStatic(", "))) {
 							return sl_false;
 						}
 					}
+					String name = iterator.getKey();
 					if (!(buf.add(ParseUtil::applyBackslashEscapes(name)))) {
 						return sl_false;
 					}
@@ -193,15 +184,45 @@ namespace slib
 					if (!(v.toJsonString(buf))) {
 						return sl_false;
 					}
-					flagFirst = sl_false;
 				}
-				return sl_true;
-			}))) {
-				return sl_false;
 			}
 			if (!(buf.addStatic("}"))) {
 				return sl_false;
 			}
+			return sl_true;
+		}
+	}
+
+	sl_bool Object::toJsonBinary(MemoryBuffer& buf)
+	{
+		if (!(SerializeByte(&buf, (sl_uint8)(VariantType::Object)))) {
+			return sl_false;
+		}
+		ObjectLocker lock(this);
+		if (m_properties) {
+			HashMap<String, Variant>& map = *((HashMap<String, Variant>*)(void*)(&m_properties));
+			return Serialize(&buf, map);
+		} else {
+			PropertyIterator iterator = getPropertyIterator();
+			MemoryBuffer queue;
+			sl_size count = 0;
+			while (iterator.moveNext()) {
+				Variant v = iterator.getValue();
+				if (v.isNotUndefined()) {
+					String name = iterator.getKey();
+					if (!(Serialize(&queue, name))) {
+						return sl_false;
+					}
+					if (!(Serialize(&queue, v))) {
+						return sl_false;
+					}
+					count++;
+				}
+			}
+			if (!(CVLI::serialize(&buf, count))) {
+				return sl_false;
+			}
+			buf.link(queue);
 			return sl_true;
 		}
 	}

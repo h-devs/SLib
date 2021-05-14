@@ -25,9 +25,10 @@
 
 #include "core/math.h"
 
+#include "math/complex.h"
 #include "math/bigint.h"
 #include "math/int128.h"
-#include "math/complex.h"
+#include "math/decimal128.h"
 
 #include "math/vector.h"
 #include "math/vector2.h"

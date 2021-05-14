@@ -164,7 +164,8 @@ namespace slib
 					st.st_size = info.size;
 					TO_UNIX_TIME(st, info)
 
-					filler(buf, item.key.getData(), &st, 0);
+					StringCstr key(item.key);
+					filler(buf, key.getData(), &st, 0);
 				}
 
 				return 0;
@@ -498,10 +499,10 @@ namespace slib
 						fsName = info.fileSystemName;
 					}
 
-					args.add(fsName.getData());
-					args.add(StringCstr("-f").getData());	// always use foreground mode
+					args.add_NoLock(fsName.getData());
+					args.add_NoLock((char*)"-f");	// always use foreground mode
 					if (m_param.flags & FileSystemHostFlags::DebugMode) {
-						args.add(StringCstr("-d").getData());
+						args.add_NoLock((char*)"-d");
 					} else if (m_param.flags & FileSystemHostFlags::UseStdErr) {
 						// TODO
 					}
@@ -514,7 +515,8 @@ namespace slib
 					if (m_param.flags & FileSystemHostFlags::MountAsNetworkDrive) {
 						// TODO
 					}
-					args.add(m_param.mountPoint.getData());
+					StringCstr mountPoint(m_param.mountPoint);
+					args.add(mountPoint.getData());
 
 					fuse_operations* fuse_op = GetFuseOperations();
 

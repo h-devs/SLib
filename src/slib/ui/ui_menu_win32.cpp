@@ -283,7 +283,7 @@ namespace slib
 				if (mii.hbmpUnchecked || mii.hbmpChecked) {
 					mii.fMask |= MIIM_CHECKMARKS;
 				}
-				String16 text = String16::from(makeText(param.text, param.shortcutKey, param.secondShortcutKey));
+				StringCstr16 text = makeText(param.text, param.shortcutKey, param.secondShortcutKey);
 				mii.dwTypeData = (LPWSTR)(text.getData());
 				if (InsertMenuItemW(parent->m_hMenu, index, TRUE, &mii)) {
 					Ref<MenuItemImpl> ret = new MenuItemImpl;
@@ -351,7 +351,7 @@ namespace slib
 			{
 				MENU_ITEM_SET_PROLOG;
 				mii.fMask = MIIM_STRING;
-				String16 text = String16::from(makeText(m_text, m_shortcutKey, m_secondShortcutKey));
+				StringCstr16 text = makeText(m_text, m_shortcutKey, m_secondShortcutKey);
 				mii.dwTypeData = (LPWSTR)(text.getData());
 				SetMenuItemInfoW(hMenu, index, TRUE, &mii);
 			}

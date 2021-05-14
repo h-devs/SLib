@@ -55,7 +55,7 @@ namespace slib
 			static sl_bool Execute(const StringParam& _pathExecutable, const String* cmds, sl_uint32 nCmds, PROCESS_INFORMATION* pi, STARTUPINFOW* si, sl_bool flagInheritHandles)
 			{
 				StringCstr16 pathExecutable(_pathExecutable);
-				String16 cmd;
+				StringCstr16 cmd;
 				{
 					StringBuffer16 sb;
 					sb.addStatic(SLIB_UNICODE("\""));
@@ -158,11 +158,11 @@ namespace slib
 
 			class ProcessImpl : public Process
 			{
-			private:
+			public:
 				HANDLE m_hProcess;
 				Ref<ProcessStream> m_stream;
 
-			protected:
+			public:
 				ProcessImpl()
 				{
 					m_hProcess = INVALID_HANDLE_VALUE;
@@ -257,6 +257,20 @@ namespace slib
 					}
 				}
 
+				sl_bool isAlive() override
+				{
+					ObjectLocker lock(this);
+					if (m_hProcess != INVALID_HANDLE_VALUE) {
+						DWORD code = 0;
+						if (GetExitCodeProcess(m_hProcess, &code)) {
+							if (code == STILL_ACTIVE) {
+								return sl_true;
+							}
+						}
+					}
+					return sl_false;
+				}
+
 				Ref<Stream> getStream() override
 				{
 					return Ref<Stream>::from(m_stream);
@@ -290,7 +304,7 @@ namespace slib
 		return Ref<Process>::from(ProcessImpl::create(pathExecutable, arguments, nArguments));
 	}
 
-	sl_bool Process::run(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
+	Ref<Process> Process::run(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
 	{
 		PROCESS_INFORMATION pi;
 		ZeroMemory(&pi, sizeof(pi));
@@ -301,11 +315,15 @@ namespace slib
 		si.cb = sizeof(si);
 
 		if (Execute(pathExecutable, strArguments, nArguments, &pi, &si, sl_false)) {
-			CloseHandle(pi.hProcess);
 			CloseHandle(pi.hThread);
-			return sl_true;
+			Ref<ProcessImpl> ret = new ProcessImpl;
+			if (ret.isNotNull()) {
+				ret->m_hProcess = pi.hProcess;
+				return ret;
+			}
+			CloseHandle(pi.hProcess);
 		}
-		return sl_false;
+		return sl_null;
 	}
 
 	void Process::runAsAdmin(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
@@ -327,13 +345,15 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		StringCstr pathExecutable(_pathExecutable);
 		char* exe = pathExecutable.getData();
-		char* args[1024];
+		char* args[64];
+		StringCstr _args[60];
 		args[0] = exe;
-		if (nArguments > 1020) {
-			nArguments = 1020;
+		if (nArguments > 60) {
+			nArguments = 60;
 		}
 		for (sl_size i = 0; i < nArguments; i++) {
-			args[i + 1] = strArguments[i].getData();
+			_args[i] = strArguments[i];
+			args[i + 1] = _args[i].getData();
 		}
 		args[nArguments + 1] = 0;
 		_execvp(exe, args);

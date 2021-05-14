@@ -25,11 +25,16 @@
 
 #include "string.h"
 #include "time.h"
+#include "shared_ptr.h"
 #include "memory.h"
 #include "hash_map.h"
 #include "promise.h"
 #include "string_cast.h"
+#include "object_id.h"
 #include "variant_def.h"
+#include "variant_type.h"
+
+#include "../math/decimal128.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 #include <string>
@@ -38,32 +43,6 @@
 namespace slib
 {
 
-	enum class VariantType
-	{
-		Null = 0,
-		Int32 = 1,
-		Uint32 = 2,
-		Int64 = 3,
-		Uint64 = 4,
-		Float = 5,
-		Double = 6,
-		Boolean = 7,
-		String8 = 8,
-		String16 = 9,
-		Sz8 = 10,
-		Sz16 = 11,
-		Time = 12,
-		Pointer = 13,
-		Referable = 100,
-		Weak = 101,
-		Object = 110,
-		Collection = 111,
-		Map = 120,
-		List = 121,
-		Memory = 122,
-		Promise = 123
-	};
-	
 	namespace priv
 	{
 		namespace variant
@@ -72,7 +51,8 @@ namespace slib
 			struct ConstContainer
 			{
 				sl_uint64 value;
-				VariantType type;
+				sl_uint8 value2[7];
+				sl_uint8 type;
 				sl_int32 lock;
 			};
 
@@ -122,6 +102,7 @@ namespace slib
 		}
 	}
 
+	class ObjectStorage;
 
 	class SLIB_EXPORT Variant
 	{
@@ -140,18 +121,20 @@ namespace slib
 			const StringContainer16* _m_string16;
 			const sl_char8* _m_sz8;
 			const sl_char16* _m_sz16;
+			CSharedPtrBase* _m_sharedPtr;
 			Referable* _m_ref;
 			CWeakRef* _m_wref;
 			Collection* _m_collection;
 			CPromise<Variant>* _m_promise;
 			CMemory* _m_mem;
 		};
-		VariantType _type;
+		sl_uint8 _value2[7];
+		sl_uint8 _type;
 
 	public:
-		constexpr Variant() noexcept : _value(0), _type(VariantType::Null) {}
+		Variant() noexcept : _value(0), _type(VariantType::Null) {}
 
-		constexpr Variant(sl_null_t) noexcept : _value(1), _type(VariantType::Null) {}
+		Variant(sl_null_t) noexcept : _value(1), _type(VariantType::Null) {}
 
 		Variant(const Variant& other) noexcept;
 
@@ -232,16 +215,21 @@ namespace slib
 			}
 		}
 
+		Variant(const ObjectId& _id) noexcept;
+
 		template <class T>
-		Variant(const Nullable<T>& value) noexcept
+		Variant(const SharedPtr<T>& ptr) noexcept
 		{
-			if (value.isNotNull()) {
-				new (this) Variant(value.value);
-			} else {
-				_type = VariantType::Null;
-				_value = 0;
-			}
+			_constructorSharedPtr(&ptr, VariantType::SharedPtr);
 		}
+
+		template <class T>
+		Variant(SharedPtr<T>&& ptr) noexcept
+		{
+			_constructorMoveSharedPtr(&ptr, VariantType::SharedPtr);
+		}
+
+		Variant(const Decimal128& value) noexcept;
 
 		template <class T>
 		Variant(const Ref<T>& ref) noexcept
@@ -307,7 +295,21 @@ namespace slib
 		Variant(const Promise<T>& promise) noexcept: Variant(Promise<Variant>::from(promise)) {}
 
 		template <class T>
+		Variant(const Nullable<T>& value) noexcept
+		{
+			if (value.isNotNull()) {
+				new (this) Variant(value.value);
+			} else {
+				_type = VariantType::Null;
+				_value = 0;
+			}
+		}
+
+		template <class T>
 		Variant(const Atomic<T>& t) noexcept: Variant(T(t)) {}
+
+		Variant(const ObjectStorage& t) noexcept;
+		Variant(ObjectStorage&& t) noexcept;
 
 	public:
 		Variant& operator=(const Variant& other) noexcept;
@@ -345,7 +347,7 @@ namespace slib
 		}
 
 	public:
-		VariantType getType() const noexcept
+		sl_uint8 getType() const noexcept
 		{
 			return _type;
 		}
@@ -354,7 +356,7 @@ namespace slib
 
 		sl_bool isUndefined() const noexcept
 		{
-			return _type == VariantType::Null && _value == 0;
+			return _type == VariantType::Null && !_value;
 		}
 
 		sl_bool isNotUndefined() const noexcept
@@ -376,11 +378,15 @@ namespace slib
 
 		sl_bool isInt32() const noexcept;
 
+		sl_bool getInt32(sl_int32* _out) const noexcept;
+
 		sl_int32 getInt32(sl_int32 def = 0) const noexcept;
 
 		void setInt32(sl_int32 value) noexcept;
 
 		sl_bool isUint32() const noexcept;
+
+		sl_bool getUint32(sl_uint32* _out) const noexcept;
 
 		sl_uint32 getUint32(sl_uint32 def = 0) const noexcept;
 
@@ -388,11 +394,15 @@ namespace slib
 
 		sl_bool isInt64() const noexcept;
 
+		sl_bool getInt64(sl_int64* _out) const noexcept;
+
 		sl_int64 getInt64(sl_int64 def = 0) const noexcept;
 
 		void setInt64(sl_int64 value) noexcept;
 
 		sl_bool isUint64() const noexcept;
+
+		sl_bool getUint64(sl_uint64* _out) const noexcept;
 
 		sl_uint64 getUint64(sl_uint64 def = 0) const noexcept;
 
@@ -406,15 +416,27 @@ namespace slib
 
 		sl_bool isFloat() const noexcept;
 
+		sl_bool getFloat(float* _out) const noexcept;
+
 		float getFloat(float def = 0) const noexcept;
 
 		void setFloat(float value) noexcept;
 
 		sl_bool isDouble() const noexcept;
 
+		sl_bool getDouble(double* _out) const noexcept;
+
 		double getDouble(double def = 0) const noexcept;
 
 		void setDouble(double value) noexcept;
+
+		sl_bool isNaN() const noexcept;
+
+		sl_bool isInfinite() const noexcept;
+
+		sl_bool isPositiveInfinite() const noexcept;
+
+		sl_bool isNegativeInfinite() const noexcept;
 
 		sl_bool isNumber() const noexcept;
 
@@ -491,6 +513,8 @@ namespace slib
 
 		sl_bool isTime() const noexcept;
 
+		sl_bool getTime(Time* _out) const noexcept;
+
 		Time getTime(const Time& def) const noexcept;
 
 		Time getTime() const noexcept;
@@ -503,6 +527,42 @@ namespace slib
 		void* getPointer(const void* def = sl_null) const noexcept;
 
 		void setPointer(const void* ptr) noexcept;
+
+
+		sl_bool isObjectId() const noexcept;
+
+		ObjectId getObjectId() const noexcept;
+
+		sl_bool getObjectId(ObjectId* _out) const noexcept;
+
+		void setObjectId(const ObjectId& _id) noexcept;
+
+
+		sl_bool isSharedPtr() const noexcept;
+
+		SharedPtr<void> getSharedPtr() const noexcept;
+
+		template <class T>
+		void setSharedPtr(T&& t) noexcept
+		{
+			_setSharedPtr(Forward<T>(t), VariantType::SharedPtr);
+		}
+
+		template <class T>
+		static Variant fromSharedPtr(T&& t) noexcept
+		{
+			Variant ret;
+			ret._initSharedPtr(Forward<T>(t), VariantType::Collection);
+			return ret;
+		}
+
+		sl_bool isDecimal128() const noexcept;
+
+		Decimal128 getDecimal128() const noexcept;
+
+		sl_bool getDecimal128(Decimal128* _out) const noexcept;
+
+		void setDecimal128(const Decimal128& _id) noexcept;
 
 
 		sl_bool isRef() const noexcept;
@@ -519,6 +579,14 @@ namespace slib
 		void setRef(T&& t) noexcept
 		{
 			_setRef(Forward<T>(t), VariantType::Referable);
+		}
+
+		template <class T>
+		static Variant fromRef(T&& t) noexcept
+		{
+			Variant ret;
+			ret._initRef(Forward<T>(t), VariantType::Referable);
+			return ret;
 		}
 
 		sl_object_type getObjectType() const noexcept;
@@ -538,6 +606,22 @@ namespace slib
 			_assignMoveRef(&weak, VariantType::Weak);
 		}
 
+		template <class T>
+		Variant fromWeak(const WeakRef<T>& weak) noexcept
+		{
+			Variant ret;
+			ret._initRef(&weak, VariantType::Weak);
+			return ret;
+		}
+
+		template <class T>
+		Variant fromWeak(WeakRef<T>&& weak) noexcept
+		{
+			Variant ret;
+			ret._initRef(&weak, VariantType::Weak);
+			return ret;
+		}
+
 
 		sl_bool isCollection() const noexcept;
 
@@ -547,6 +631,14 @@ namespace slib
 		void setCollection(T&& t) noexcept
 		{
 			_setRef(Forward<T>(t), VariantType::Collection);
+		}
+
+		template <class T>
+		static Variant fromCollection(T&& t) noexcept
+		{
+			Variant ret;
+			ret._initRef(Forward<T>(t), VariantType::Collection);
+			return ret;
 		}
 
 		sl_bool isVariantList() const noexcept;
@@ -571,14 +663,16 @@ namespace slib
 
 		Variant getElement(sl_uint64 index) const;
 
-		sl_bool setElement_NoLock(sl_uint64 index, const Variant& value);
+		sl_bool setElement_NoLock(sl_uint64 index, const Variant& value) const;
 
-		sl_bool setElement(sl_uint64 index, const Variant& value);
+		sl_bool setElement(sl_uint64 index, const Variant& value) const;
 
+		sl_bool addElement_NoLock(const Variant& value) const;
 		sl_bool addElement_NoLock(const Variant& value);
 
+		sl_bool addElement(const Variant& value) const;
 		sl_bool addElement(const Variant& value);
-	
+
 
 		sl_bool isObject() const noexcept;
 
@@ -588,6 +682,14 @@ namespace slib
 		void setObject(T&& t) noexcept
 		{
 			_setRef(Forward<T>(t), VariantType::Object);
+		}
+
+		template <class T>
+		static Variant fromObject(T&& t) noexcept
+		{
+			Variant ret;
+			ret._initRef(Forward<T>(t), VariantType::Object);
+			return ret;
 		}
 
 		sl_bool isVariantMap() const noexcept;
@@ -610,21 +712,17 @@ namespace slib
 
 		Variant getItem(const StringParam& key) const;
 
+		sl_bool putItem_NoLock(const StringParam& key, const Variant& value) const;
 		sl_bool putItem_NoLock(const StringParam& key, const Variant& value);
 
+		sl_bool putItem(const StringParam& key, const Variant& value) const;
 		sl_bool putItem(const StringParam& key, const Variant& value);
 
-		sl_bool removeItem_NoLock(const StringParam& key);
+		sl_bool removeItem_NoLock(const StringParam& key) const;
 
-		sl_bool removeItem(const StringParam& key);
+		sl_bool removeItem(const StringParam& key) const;
 
-		sl_bool enumerateItems_NoLock(const Function<sl_bool(const StringParam& name, const Variant& value)>& callback);
-
-		sl_bool enumerateItems(const Function<sl_bool(const StringParam& name, const Variant& value)>& callback);
-
-		List<String> getItemKeys_NoLock() const;
-
-		List<String> getItemKeys() const;
+		PropertyIterator getItemIterator() const;
 
 
 		sl_bool isMemory() const noexcept;
@@ -659,7 +757,21 @@ namespace slib
 		sl_bool toJsonString(StringBuffer& buf) const;
 	
 		String toJsonString() const;
-		
+
+		Memory serialize() const;
+
+		sl_bool serialize(MemoryBuffer* buf) const;
+
+		sl_size deserialize(const void* data, sl_size size);
+
+		sl_size deserialize(const MemoryData& data);
+
+		sl_size deserialize(MemoryData&& data);
+
+		sl_size deserialize(const Memory& mem);
+
+		sl_size deserialize(Memory&& mem);
+
 		
 		sl_compare_result compare(const Variant& other) const noexcept;
 		
@@ -723,14 +835,9 @@ namespace slib
 		void get(Time& _out, const Time& def) const noexcept;
 
 		template <class T>
-		void get(Nullable<T>& _out) const noexcept
+		void get(SharedPtr<T>& _out) const noexcept
 		{
-			if (isUndefined()) {
-				_out->setNull();
-			} else {
-				_out.flagNull = sl_false;
-				get(_out.value);
-			}
+			_out = SharedPtr<T>::from(getSharedPtr());
 		}
 
 		template <class T>
@@ -781,6 +888,17 @@ namespace slib
 		void get(Promise<Variant>& _out) const noexcept;
 
 		template <class T>
+		void get(Nullable<T>& _out) const noexcept
+		{
+			if (isUndefined()) {
+				_out->setNull();
+			} else {
+				_out.flagNull = sl_false;
+				get(_out.value);
+			}
+		}
+
+		template <class T>
 		void get(Atomic<T>& _out) const noexcept
 		{
 			T t;
@@ -793,35 +911,118 @@ namespace slib
 
 		void _assignMove(Variant& other) noexcept;
 
-		void _constructorRef(const void* ptr, VariantType type) noexcept;
+		void _constructorSharedPtr(const void* ptr, sl_uint8 type) noexcept;
 
-		void _constructorMoveRef(void* ptr, VariantType type) noexcept;
+		void _constructorMoveSharedPtr(void* ptr, sl_uint8 type) noexcept;
 
-		void _assignRef(const void* ptr, VariantType type) noexcept;
+		void _assignSharedPtr(const void* ptr, sl_uint8 type) noexcept;
 
-		void _assignMoveRef(void* ptr, VariantType type) noexcept;
+		void _assignMoveSharedPtr(void* ptr, sl_uint8 type) noexcept;
 
-		static void _free(VariantType type, sl_uint64 value) noexcept;
+		void _constructorRef(const void* ptr, sl_uint8 type) noexcept;
 
-		template <class T, class OTHER>
-		void _setRef(OTHER* ref, VariantType type) noexcept
+		void _constructorMoveRef(void* ptr, sl_uint8 type) noexcept;
+
+		void _assignRef(const void* ptr, sl_uint8 type) noexcept;
+
+		void _assignMoveRef(void* ptr, sl_uint8 type) noexcept;
+
+		static void _free(sl_uint8 type, sl_uint64 value) noexcept;
+
+		template <class T>
+		void _initSharedPtr(const SharedPtr<T>& ptr, sl_uint8 type) noexcept
 		{
-			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
+			_constructorSharedPtr(&ptr, type);
+		}
+
+		template <class T>
+		void _initSharedPtr(SharedPtr<T>&& ptr, sl_uint8 type) noexcept
+		{
+			_constructorMoveSharedPtr(&ptr, type);
+		}
+
+		template <class T>
+		void _setSharedPtr(const SharedPtr<T>& ptr, sl_uint8 type) noexcept
+		{
+			_assignSharedPtr(&ptr, type);
+		}
+
+		template <class T>
+		void _setSharedPtr(SharedPtr<T>&& ptr, sl_uint8 type) noexcept
+		{
+			_assignMoveSharedPtr(&ptr, type);
+		}
+
+		template <class T>
+		void _initRef(T* ref, sl_uint8 type) noexcept
+		{
+			_constructorRef(&ref, type);
+		}
+
+		template <class T>
+		void _initRef(const Ref<T>& ref, sl_uint8 type) noexcept
+		{
+			_constructorRef(&ref, type);
+		}
+
+		template <class T>
+		void _initRef(Ref<T>&& ref, sl_uint8 type) noexcept
+		{
+			_constructorMoveRef(&ref, type);
+		}
+
+		template <class T>
+		void _initRef(const AtomicRef<T>& ref, sl_uint8 type) noexcept
+		{
+			_initRef(Ref<T>(ref), type);
+		}
+
+		template <class T>
+		void _initRef(const WeakRef<T>& ref, sl_uint8 type) noexcept
+		{
+			_initRef(Ref<T>(ref), type);
+		}
+
+		template <class T>
+		void _initRef(const AtomicWeakRef<T>& ref, sl_uint8 type) noexcept
+		{
+			_initRef(Ref<T>(ref), type);
+		}
+
+		template <class T>
+		void _setRef(T* ref, sl_uint8 type) noexcept
+		{
 			_assignRef(&ref, type);
 		}
 
-		template <class T, class OTHER>
-		void _setRef(const Ref<OTHER>& ref, VariantType type) noexcept
+		template <class T>
+		void _setRef(const Ref<T>& ref, sl_uint8 type) noexcept
 		{
-			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 			_assignRef(&ref, type);
 		}
 
-		template <class T, class OTHER>
-		void _setRef(Ref<OTHER>&& ref, VariantType type) noexcept
+		template <class T>
+		void _setRef(Ref<T>&& ref, sl_uint8 type) noexcept
 		{
-			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 			_assignMoveRef(&ref, type);
+		}
+
+		template <class T>
+		void _setRef(const AtomicRef<T>& ref, sl_uint8 type) noexcept
+		{
+			_setRef(Ref<T>(ref), type);
+		}
+
+		template <class T>
+		void _setRef(const WeakRef<T>& ref, sl_uint8 type) noexcept
+		{
+			_setRef(Ref<T>(ref), type);
+		}
+
+		template <class T>
+		void _setRef(const AtomicWeakRef<T>& ref, sl_uint8 type) noexcept
+		{
+			_setRef(Ref<T>(ref), type);
 		}
 
 	};
@@ -857,7 +1058,7 @@ namespace slib
 	class VariantEx : public Variant
 	{
 	public:
-		constexpr VariantEx() noexcept {}
+		VariantEx() noexcept {}
 
 		~VariantEx() noexcept {}
 
@@ -1009,12 +1210,12 @@ namespace slib
 			void BuildMapFromObject(MAP& map, Object* object)
 			{
 				if (object) {
-					object->enumerateProperties([&map](const StringParam& name, const Variant& value) {
+					PropertyIterator iterator = object->getPropertyIterator();
+					while (iterator.moveNext()) {
 						typename MAP::VALUE_TYPE v;
-						value.get(v);
-						map.add_NoLock(Cast<StringParam, typename MAP::KEY_TYPE>()(name), Move(v));
-						return sl_true;
-					});
+						iterator.getValue().get(v);
+						map.add_NoLock(Cast<String, typename MAP::KEY_TYPE>()(iterator.getKey()), Move(v));
+					}
 				}
 			}
 

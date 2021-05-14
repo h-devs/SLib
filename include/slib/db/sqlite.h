@@ -31,10 +31,10 @@ namespace slib
 	class SLIB_EXPORT SQLiteParam
 	{
 	public:
-		String path;
+		StringParam path;
 		sl_bool flagCreate;
 		sl_bool flagReadonly;
-		String encryptionKey;
+		StringParam encryptionKey;
 		
 	public:
 		SQLiteParam();
@@ -43,19 +43,21 @@ namespace slib
 		
 	};
 
-	class SLIB_EXPORT SQLiteDatabase : public Database
+	class SLIB_EXPORT SQLite : public Database
 	{
 		SLIB_DECLARE_OBJECT
 
 	protected:
-		SQLiteDatabase();
+		SQLite();
 
-		~SQLiteDatabase();
+		~SQLite();
 
 	public:
-		static Ref<SQLiteDatabase> open(const SQLiteParam& param);
+		typedef SQLiteParam Param;
 
-		static Ref<SQLiteDatabase> open(const String& filePath);
+		static Ref<SQLite> open(const SQLiteParam& param);
+
+		static Ref<SQLite> open(const StringParam& filePath);
 		
 	};
 

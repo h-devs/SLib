@@ -36,6 +36,7 @@ namespace slib
 	{
 		namespace process
 		{
+        
 			static String FixArgument(const String& arg)
 			{
 				String s = arg;
@@ -65,14 +66,55 @@ namespace slib
 					commandLine.add(FixArgument(arguments[i]));
 				}
 				return commandLine.merge();
-
 			}
+
+			class TaskProcessImpl : public Process
+			{
+			public:
+				NSTask* m_task;
+				
+			public:
+				void terminate() override
+				{
+					[m_task terminate];
+					m_status = ProcessStatus::Terminated;
+				}
+
+				void kill() override
+				{
+					terminate();
+				}
+
+				void wait() override
+				{
+					[m_task waitUntilExit];
+					int status = [m_task terminationStatus];
+					if (!status) {
+						m_status = ProcessStatus::Exited;
+					} else {
+						m_status = ProcessStatus::Unknown;
+					}
+
+				}
+
+				sl_bool isAlive() override
+				{
+					return [m_task isRunning];
+				}
+				
+				Ref<Stream> getStream() override
+				{
+					return sl_null;
+				}
+				
+			};
+        
 		}
 	}
 
 	using namespace priv::process;
 
-	sl_bool Process::run(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
+	Ref<Process> Process::run(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
 	{
 		@try {
 			NSMutableArray* arguments = [NSMutableArray array];
@@ -81,14 +123,18 @@ namespace slib
 			}
 			NSTask* task = [NSTask launchedTaskWithLaunchPath:(Apple::getNSStringFromString(pathExecutable)) arguments:arguments];
 			if (task != nil) {
-				return sl_true;
+				Ref<TaskProcessImpl> ret = new TaskProcessImpl;
+				if (ret.isNotNull()) {
+					ret->m_task = task;
+					return ret;
+				}
 			}
 		} @catch (NSException* e) {
 #ifdef SLIB_DEBUG
 			NSLog(@"Error at run process: %@\n%@", Apple::getNSStringFromString(pathExecutable), e.debugDescription);
 #endif
 		}
-		return sl_false;
+		return sl_null;
 	}
 
 	void Process::runAsAdmin(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)

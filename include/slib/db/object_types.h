@@ -51,8 +51,23 @@ namespace slib
 			ConcatExpression,
 			MySQL,
 			PostgreSQL,
-			RedisDatabase,
-			SQLiteDatabase
+			Redis,
+			SQLite,
+			KeyValueStore,
+			KeyValueWriteBatch,
+			KeyValueIterator,
+			KeyValueSnapshot,
+			LMDB,
+			LevelDB,
+			RocksDB,
+			StorageDictionary,
+			ObjectStorageManager,
+			DocumentStore,
+			DocumentDatabase,
+			DocumentCollection,
+			DocumentCursor,
+			MongoDB,
+			DocumentStorePool
 		};
 
 	}

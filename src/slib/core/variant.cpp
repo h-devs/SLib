@@ -29,6 +29,8 @@
 #include "slib/core/math.h"
 #include "slib/core/list_collection.h"
 #include "slib/core/map_object.h"
+#include "slib/core/serialize.h"
+#include "slib/core/time_parse.h"
 
 #define PTR_VAR(TYPE, x) ((TYPE*)((void*)(&(x))))
 #define REF_VAR(TYPE, x) (*PTR_VAR(TYPE, x))
@@ -40,25 +42,44 @@ namespace slib
 	{
 		namespace variant
 		{
-			
-			char g_variantMap_ClassID[1];
-			char g_variantHashMap_ClassID[1];
-			char g_variantList_ClassID[1];
-			char g_variantMapList_ClassID[1];
-			char g_variantHashMapList_ClassID[1];
-		
-			char g_variantPromise_ClassID[1];
 
-			const ConstContainer g_undefined = {0, VariantType::Null, 0};
-			const ConstContainer g_null = {1, VariantType::Null, 0};
+			const ConstContainer g_undefined = {0, {0}, VariantType::Null, 0};
+			const ConstContainer g_null = {1, {0}, VariantType::Null, 0};
 
-			SLIB_INLINE static sl_bool IsReferable(VariantType type)
+			SLIB_INLINE static void CopyBytes16(void* _dst, const void* _src)
+			{
+				sl_uint64* dst = (sl_uint64*)_dst;
+				const sl_uint64* src = (const sl_uint64*)_src;
+				*(dst++) = *(src++);
+				*dst = *src;
+			}
+
+			SLIB_INLINE static void CopyBytes12(void* dst, const void* src)
+			{
+				*((sl_uint64*)dst) = *((const sl_uint64*)src);
+				*((sl_uint32*)dst + 2) = *((const sl_uint32*)src + 2);
+			}
+
+			SLIB_INLINE static void ZeroBytes12(void* dst)
+			{
+				*((sl_uint64*)dst) = 0;
+				*((sl_uint32*)dst + 2) = 0;
+			}
+
+			SLIB_INLINE static sl_bool IsSharedPtr(sl_uint8 type)
+			{
+				return type >= VariantType::SharedPtr && type < VariantType::Referable;
+			}
+
+			SLIB_INLINE static sl_bool IsReferable(sl_uint8 type)
 			{
 				return type >= VariantType::Referable;
 			}
 
-			SLIB_INLINE static void Copy(VariantType src_type, sl_uint64 src_value, sl_uint64& dst_value) noexcept
+			SLIB_INLINE static void Copy(sl_uint8 src_type, const sl_uint64* _src_value, sl_uint64* _dst_value) noexcept
 			{
+				sl_uint64& dst_value = *_dst_value;
+				const sl_uint64& src_value = *_src_value;
 				switch (src_type) {
 					case VariantType::String8:
 						new PTR_VAR(String, dst_value) String(REF_VAR(String, src_value));
@@ -66,9 +87,16 @@ namespace slib
 					case VariantType::String16:
 						new PTR_VAR(String16, dst_value) String16(REF_VAR(String16, src_value));
 						break;
+					case VariantType::ObjectId:
+						CopyBytes12(_dst_value, _src_value);
+						break;
 					default:
-						if (IsReferable(src_type)) {
-							new PTR_VAR(Ref<Referable>, dst_value) Ref<Referable>(REF_VAR(Ref<Referable>, src_value));
+						if (src_type >= VariantType::SharedPtr) {
+							if (src_type >= VariantType::Referable) {
+								new PTR_VAR(Ref<Referable>, dst_value) Ref<Referable>(REF_VAR(Ref<Referable>, src_value));
+							} else {
+								new PTR_VAR(SharedPtr<void>, dst_value) SharedPtr<void>(REF_VAR(SharedPtr<void>, src_value));
+							}
 						} else {
 							dst_value = src_value;
 						}
@@ -76,7 +104,7 @@ namespace slib
 				}
 			}
 
-			SLIB_INLINE static void Free(VariantType type, sl_uint64 value) noexcept
+			SLIB_INLINE static void Free(sl_uint8 type, sl_uint64 value) noexcept
 			{
 				switch (type)
 				{
@@ -87,14 +115,18 @@ namespace slib
 						REF_VAR(String16, value).String16::~String16();
 						break;
 					default:
-						if (IsReferable(type)) {
-							REF_VAR(Ref<Referable>, value).Ref<Referable>::~Ref();
+						if (type >= VariantType::SharedPtr) {
+							if (type >= VariantType::Referable) {
+								REF_VAR(Ref<Referable>, value).Ref<Referable>::~Ref();
+							} else {
+								REF_VAR(SharedPtr<void>, value).SharedPtr<void>::~SharedPtr();
+							}
 						}
 						break;
 				}
 			}
 
-			template <class T, VariantType type>
+			template <class T, sl_uint8 type>
 			SLIB_INLINE static sl_bool IsObject(const Variant& v)
 			{
 				if (v._type == type) {
@@ -111,11 +143,11 @@ namespace slib
 				return sl_false;
 			}
 
-			template <class T, class OT, VariantType type>
+			template <class T, class OT, sl_uint8 type>
 			SLIB_INLINE static OT GetObjectT(const Variant& v)
 			{
 				if (v._type == type) {
-					return REF_VAR(OT, v._type);
+					return REF_VAR(OT, v._value);
 				}
 				if (v._type == VariantType::Weak) {
 					Ref<Referable> ref(REF_VAR(WeakRef<Referable> const, v._value));
@@ -123,8 +155,8 @@ namespace slib
 						return REF_VAR(OT, ref);
 					}
 				} else if (IsReferable(v._type)) {
-					if (IsInstanceOf<T>(REF_VAR(Referable*, v._type))) {
-						return REF_VAR(OT, v._type);
+					if (IsInstanceOf<T>(REF_VAR(Referable*, v._value))) {
+						return REF_VAR(OT, v._value);
 					}
 				}
 				return OT();
@@ -754,7 +786,7 @@ namespace slib
 			template <class T>
 			SLIB_INLINE static sl_bool EqualsVariant(const T* v1, const Variant& v2) noexcept
 			{
-				VariantType type = v2._type;
+				sl_uint8 type = v2._type;
 				switch (type) {
 				case VariantType::Int32:
 					return EqualsElement(v1, PTR_VAR(sl_int32 const, v2._value));
@@ -870,7 +902,7 @@ namespace slib
 			template <class T>
 			SLIB_INLINE static sl_compare_result CompareString(const T* v1, const Variant& v2) noexcept
 			{
-				VariantType type = v2._type;
+				sl_uint8 type = v2._type;
 				switch (type) {
 				case VariantType::String8:
 					return CompareElement(v1, PTR_VAR(String const, v2._value));
@@ -896,7 +928,7 @@ namespace slib
 		if (this != &other) {
 			Free(_type, _value);
 			_type = other._type;
-			Copy(_type, other._value, _value);
+			Copy(_type, &(other._value), &_value);
 		}
 	}
 
@@ -904,13 +936,48 @@ namespace slib
 	{
 		if (this != &other) {
 			Free(_type, _value);
-			_type = other._type;
-			_value = other._value;
+			CopyBytes16(this, &other);
 			other._type = VariantType::Null;
 		}
 	}
 
-	void Variant::_constructorRef(const void* ptr, VariantType type) noexcept
+	void Variant::_constructorSharedPtr(const void* ptr, sl_uint8 type) noexcept
+	{
+		const SharedPtr<void>& ref = *reinterpret_cast<SharedPtr<void> const*>(ptr);
+		if (ref.isNotNull()) {
+			_type = type;
+			new (reinterpret_cast<SharedPtr<void>*>(&_value)) SharedPtr<void>(ref);
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
+	void Variant::_constructorMoveSharedPtr(void* ptr, sl_uint8 type) noexcept
+	{
+		SharedPtr<void>& ref = *reinterpret_cast<SharedPtr<void>*>(ptr);
+		if (ref.isNotNull()) {
+			_type = type;
+			new (reinterpret_cast<SharedPtr<void>*>(&_value)) SharedPtr<void>(Move(ref));
+		} else {
+			_type = VariantType::Null;
+			_value = 1;
+		}
+	}
+
+	void Variant::_assignSharedPtr(const void* ptr, sl_uint8 type) noexcept
+	{
+		Free(_type, _value);
+		_constructorSharedPtr(ptr, type);
+	}
+
+	void Variant::_assignMoveSharedPtr(void* ptr, sl_uint8 type) noexcept
+	{
+		Free(_type, _value);
+		_constructorMoveSharedPtr(ptr, type);
+	}
+
+	void Variant::_constructorRef(const void* ptr, sl_uint8 type) noexcept
 	{
 		const Ref<Referable>& ref = *reinterpret_cast<Ref<Referable> const*>(ptr);
 		if (ref.isNotNull()) {
@@ -922,7 +989,7 @@ namespace slib
 		}
 	}
 
-	void Variant::_constructorMoveRef(void* ptr, VariantType type) noexcept
+	void Variant::_constructorMoveRef(void* ptr, sl_uint8 type) noexcept
 	{
 		Ref<Referable>& ref = *reinterpret_cast<Ref<Referable>*>(ptr);
 		if (ref.isNotNull()) {
@@ -934,19 +1001,19 @@ namespace slib
 		}
 	}
 
-	void Variant::_assignRef(const void* ptr, VariantType type) noexcept
+	void Variant::_assignRef(const void* ptr, sl_uint8 type) noexcept
 	{
 		Free(_type, _value);
 		_constructorRef(ptr, type);
 	}
 
-	void Variant::_assignMoveRef(void* ptr, VariantType type) noexcept
+	void Variant::_assignMoveRef(void* ptr, sl_uint8 type) noexcept
 	{
 		Free(_type, _value);
 		_constructorMoveRef(ptr, type);
 	}
 
-	void Variant::_free(VariantType type, sl_uint64 value) noexcept
+	void Variant::_free(sl_uint8 type, sl_uint64 value) noexcept
 	{
 		Free(type, value);
 	}
@@ -954,13 +1021,12 @@ namespace slib
 	Variant::Variant(const Variant& other) noexcept
 	{
 		_type = other._type;
-		Copy(_type, other._value, _value);
+		Copy(_type, &(other._value), &_value);
 	}
 
 	Variant::Variant(Variant&& other) noexcept
 	{
-		_type = other._type;
-		_value = other._value;
+		CopyBytes16(this, &other);
 		other._type = VariantType::Null;
 	}
 
@@ -972,13 +1038,12 @@ namespace slib
 	Variant::Variant(const Json& other) noexcept
 	{
 		_type = other._type;
-		Copy(_type, other._value, _value);
+		Copy(_type, &(other._value), &_value);
 	}
 
 	Variant::Variant(Json&& other) noexcept
 	{
-		_type = other._type;
-		_value = other._value;
+		CopyBytes16(this, &other);
 		other._type = VariantType::Null;
 	}
 
@@ -1179,6 +1244,17 @@ namespace slib
 		REF_VAR(Time, _value) = value;
 	}
 
+	Variant::Variant(const ObjectId& _id) noexcept
+	{
+		_type = VariantType::ObjectId;
+		CopyBytes12(&_value, _id.data);
+	}
+
+	Variant::Variant(const Decimal128& value) noexcept
+	{
+		_initSharedPtr(SharedPtr<Decimal128>::create(value), VariantType::Decimal128);
+	}
+
 	Variant::Variant(const VariantList& list) noexcept
 	{
 		_constructorRef(&list, VariantType::List);
@@ -1307,53 +1383,87 @@ namespace slib
 		return _type == VariantType::Int32;
 	}
 
-	sl_int32 Variant::getInt32(sl_int32 def) const noexcept
+	sl_bool Variant::getInt32(sl_int32* _out) const noexcept
 	{
 		switch (_type) {
 			case VariantType::Int32:
-				return (sl_int32)(REF_VAR(sl_int32 const, _value));
+				if (_out) {
+					*_out = (sl_int32)(REF_VAR(sl_int32 const, _value));
+				}
+				return sl_true;
 			case VariantType::Uint32:
-				return (sl_int32)(REF_VAR(sl_uint32 const, _value));
+				if (_out) {
+					*_out = (sl_int32)(REF_VAR(sl_uint32 const, _value));
+				}
+				return sl_true;
 			case VariantType::Int64:
-				return (sl_int32)(REF_VAR(sl_int64 const, _value));
+				if (_out) {
+					*_out = (sl_int32)(REF_VAR(sl_int64 const, _value));
+				}
+				return sl_true;
 			case VariantType::Uint64:
-				return (sl_int32)(REF_VAR(sl_uint64 const, _value));
+				if (_out) {
+					*_out = (sl_int32)(REF_VAR(sl_uint64 const, _value));
+				}
+				return sl_true;
 			case VariantType::Float:
-				return (sl_int32)(REF_VAR(float const, _value));
+				if (_out) {
+					*_out = (sl_int32)(REF_VAR(float const, _value));
+				}
+				return sl_true;
 			case VariantType::Double:
-				return (sl_int32)(REF_VAR(double const, _value));
+				if (_out) {
+					*_out = (sl_int32)(REF_VAR(double const, _value));
+				}
+				return sl_true;
 			case VariantType::Boolean:
-				return (REF_VAR(sl_bool const, _value)) ? 1 : 0;
+				if (_out) {
+					*_out = (REF_VAR(sl_bool const, _value)) ? 1 : 0;
+				}
+				return sl_true;
 			case VariantType::String8:
-				return REF_VAR(String const, _value).parseInt32(10, def);
+				return REF_VAR(String const, _value).parseInt32(_out);
 			case VariantType::String16:
-				return REF_VAR(String16 const, _value).parseInt32(10, def);
+				return REF_VAR(String16 const, _value).parseInt32(_out);
 			case VariantType::Pointer:
-				return (sl_int32)(REF_VAR(const sl_size, _value));
+				if (_out) {
+					*_out = (sl_int32)(REF_VAR(const sl_size, _value));
+				}
+				return sl_true;
 			case VariantType::Sz8:
 				{
-					sl_int32 ret;
 					const sl_char8* str = REF_VAR(sl_char8 const* const , _value);
-					sl_reg pos = String::parseInt32(10, &ret, str);
+					sl_reg pos = String::parseInt32(10, _out, str);
 					if (pos != SLIB_PARSE_ERROR && str[pos] == 0) {
-						return ret;
+						return sl_true;
 					}
 				}
 				break;
 			case VariantType::Sz16:
 				{
-					sl_int32 ret;
 					const sl_char16* str = REF_VAR(sl_char16 const* const , _value);
-					sl_reg pos = String16::parseInt32(10, &ret, str);
+					sl_reg pos = String16::parseInt32(10, _out, str);
 					if (pos != SLIB_PARSE_ERROR && str[pos] == 0) {
-						return ret;
+						return sl_true;
 					}
 				}
 				break;
 			case VariantType::Time:
-				return (sl_int32)(REF_VAR(Time const, _value).toUnixTime());
+				if (_out) {
+					*_out = (sl_int32)(REF_VAR(Time const, _value).toUnixTime());
+				}
+				return sl_true;
 			default:
 				break;
+		}
+		return sl_false;
+	}
+
+	sl_int32 Variant::getInt32(sl_int32 def) const noexcept
+	{
+		sl_int32 ret;
+		if (getInt32(&ret)) {
+			return ret;
 		}
 		return def;
 	}
@@ -1370,53 +1480,87 @@ namespace slib
 		return _type == VariantType::Uint32;
 	}
 
-	sl_uint32 Variant::getUint32(sl_uint32 def) const noexcept
+	sl_bool Variant::getUint32(sl_uint32* _out) const noexcept
 	{
 		switch (_type) {
 			case VariantType::Int32:
-				return (sl_uint32)(REF_VAR(sl_int32 const, _value));
+				if (_out) {
+					*_out = (sl_uint32)(REF_VAR(sl_int32 const, _value));
+				}
+				return sl_true;
 			case VariantType::Uint32:
-				return (sl_uint32)(REF_VAR(sl_uint32 const, _value));
+				if (_out) {
+					*_out = (sl_uint32)(REF_VAR(sl_uint32 const, _value));
+				}
+				return sl_true;
 			case VariantType::Int64:
-				return (sl_uint32)(REF_VAR(sl_int64 const, _value));
+				if (_out) {
+					*_out = (sl_uint32)(REF_VAR(sl_int64 const, _value));
+				}
+				return sl_true;
 			case VariantType::Uint64:
-				return (sl_uint32)(REF_VAR(sl_uint64 const, _value));
+				if (_out) {
+					*_out = (sl_uint32)(REF_VAR(sl_uint64 const, _value));
+				}
+				return sl_true;
 			case VariantType::Float:
-				return (sl_uint32)(REF_VAR(float const, _value));
+				if (_out) {
+					*_out = (sl_uint32)(REF_VAR(float const, _value));
+				}
+				return sl_true;
 			case VariantType::Double:
-				return (sl_uint32)(REF_VAR(double const, _value));
+				if (_out) {
+					*_out = (sl_uint32)(REF_VAR(double const, _value));
+				}
+				return sl_true;
 			case VariantType::Boolean:
-				return (REF_VAR(sl_bool const, _value)) ? 1 : 0;
+				if (_out) {
+					*_out = (REF_VAR(sl_bool const, _value)) ? 1 : 0;
+				}
+				return sl_true;
 			case VariantType::String8:
-				return REF_VAR(String const, _value).parseUint32(10, def);
+				return REF_VAR(String const, _value).parseUint32(_out);
 			case VariantType::String16:
-				return REF_VAR(String16 const, _value).parseUint32(10, def);
+				return REF_VAR(String16 const, _value).parseUint32(_out);
 			case VariantType::Pointer:
-				return (sl_uint32)(REF_VAR(sl_size const, _value));
+				if (_out) {
+					*_out = (sl_uint32)(REF_VAR(sl_size const, _value));
+				}
+				return sl_true;
 			case VariantType::Sz8:
 				{
-					sl_uint32 ret;
 					const sl_char8* str = REF_VAR(sl_char8 const* const, _value);
-					sl_reg pos = String::parseUint32(10, &ret, str);
+					sl_reg pos = String::parseUint32(10, _out, str);
 					if (pos != SLIB_PARSE_ERROR && str[pos] == 0) {
-						return ret;
+						return sl_true;
 					}
 				}
 				break;
 			case VariantType::Sz16:
 				{
-					sl_uint32 ret;
 					const sl_char16* str = REF_VAR(sl_char16 const* const, _value);
-					sl_reg pos = String16::parseUint32(10, &ret, str);
+					sl_reg pos = String16::parseUint32(10, _out, str);
 					if (pos != SLIB_PARSE_ERROR && str[pos] == 0) {
-						return ret;
+						return sl_true;
 					}
 				}
 				break;
 			case VariantType::Time:
-				return (sl_uint32)(REF_VAR(Time const, _value).toUnixTime());
+				if (_out) {
+					*_out = (sl_uint32)(REF_VAR(Time const, _value).toUnixTime());
+				}
+				return sl_true;
 			default:
 				break;
+		}
+		return sl_false;
+	}
+
+	sl_uint32 Variant::getUint32(sl_uint32 def) const noexcept
+	{
+		sl_uint32 ret;
+		if (getUint32(&ret)) {
+			return ret;
 		}
 		return def;
 	}
@@ -1433,53 +1577,87 @@ namespace slib
 		return _type == VariantType::Int64;
 	}
 
-	sl_int64 Variant::getInt64(sl_int64 def) const noexcept
+	sl_bool Variant::getInt64(sl_int64* _out) const noexcept
 	{
 		switch (_type) {
 			case VariantType::Int32:
-				return (sl_int64)(REF_VAR(sl_int32 const, _value));
+				if (_out) {
+					*_out = (sl_int64)(REF_VAR(sl_int32 const, _value));
+				}
+				return sl_true;
 			case VariantType::Uint32:
-				return (sl_int64)(REF_VAR(sl_uint32 const, _value));
+				if (_out) {
+					*_out = (sl_int64)(REF_VAR(sl_uint32 const, _value));
+				}
+				return sl_true;
 			case VariantType::Int64:
-				return (sl_int64)(REF_VAR(sl_int64 const, _value));
+				if (_out) {
+					*_out = (sl_int64)(REF_VAR(sl_int64 const, _value));
+				}
+				return sl_true;
 			case VariantType::Uint64:
-				return (sl_int64)(REF_VAR(sl_uint64 const, _value));
+				if (_out) {
+					*_out = (sl_int64)(REF_VAR(sl_uint64 const, _value));
+				}
+				return sl_true;
 			case VariantType::Float:
-				return (sl_int64)(REF_VAR(float const, _value));
+				if (_out) {
+					*_out = (sl_int64)(REF_VAR(float const, _value));
+				}
+				return sl_true;
 			case VariantType::Double:
-				return (sl_int64)(REF_VAR(double const, _value));
+				if (_out) {
+					*_out = (sl_int64)(REF_VAR(double const, _value));
+				}
+				return sl_true;
 			case VariantType::Boolean:
-				return (REF_VAR(sl_bool const, _value)) ? 1 : 0;
+				if (_out) {
+					*_out = (REF_VAR(sl_bool const, _value)) ? 1 : 0;
+				}
+				return sl_true;
 			case VariantType::String8:
-				return (REF_VAR(String const, _value)).parseInt64(10, def);
+				return (REF_VAR(String const, _value)).parseInt64(_out);
 			case VariantType::String16:
-				return (REF_VAR(String16 const, _value)).parseInt64(10, def);
+				return (REF_VAR(String16 const, _value)).parseInt64(_out);
 			case VariantType::Pointer:
-				return (sl_int64)(REF_VAR(sl_size const, _value));
+				if (_out) {
+					*_out = (sl_int64)(REF_VAR(sl_size const, _value));
+				}
+				return sl_true;
 			case VariantType::Sz8:
 				{
-					sl_int64 ret;
 					const sl_char8* str = REF_VAR(sl_char8 const* const, _value);
-					sl_reg pos = String::parseInt64(10, &ret, str);
+					sl_reg pos = String::parseInt64(10, _out, str);
 					if (pos != SLIB_PARSE_ERROR && str[pos] == 0) {
-						return ret;
+						return sl_true;
 					}
 				}
 				break;
 			case VariantType::Sz16:
 				{
-					sl_int64 ret;
 					const sl_char16* str = REF_VAR(sl_char16 const* const, _value);
-					sl_reg pos = String16::parseInt64(10, &ret, str);
+					sl_reg pos = String16::parseInt64(10, _out, str);
 					if (pos != SLIB_PARSE_ERROR && str[pos] == 0) {
-						return ret;
+						return sl_true;
 					}
 				}
 				break;
 			case VariantType::Time:
-				return REF_VAR(Time const, _value).toUnixTime();
+				if (_out) {
+					*_out = REF_VAR(Time const, _value).toUnixTime();
+				}
+				return sl_true;
 			default:
 				break;
+		}
+		return sl_false;
+	}
+
+	sl_int64 Variant::getInt64(sl_int64 def) const noexcept
+	{
+		sl_int64 ret;
+		if (getInt64(&ret)) {
+			return ret;
 		}
 		return def;
 	}
@@ -1496,53 +1674,87 @@ namespace slib
 		return _type == VariantType::Uint64;
 	}
 
-	sl_uint64 Variant::getUint64(sl_uint64 def) const noexcept
+	sl_bool Variant::getUint64(sl_uint64* _out) const noexcept
 	{
 		switch (_type) {
 			case VariantType::Int32:
-				return (sl_uint64)(REF_VAR(sl_int32 const, _value));
+				if (_out) {
+					*_out = (sl_uint64)(REF_VAR(sl_int32 const, _value));
+				}
+				return sl_true;
 			case VariantType::Uint32:
-				return (sl_uint64)(REF_VAR(sl_uint32 const, _value));
+				if (_out) {
+					*_out = (sl_uint64)(REF_VAR(sl_uint32 const, _value));
+				}
+				return sl_true;
 			case VariantType::Int64:
-				return (sl_uint64)(REF_VAR(sl_int64 const, _value));
+				if (_out) {
+					*_out = (sl_uint64)(REF_VAR(sl_int64 const, _value));
+				}
+				return sl_true;
 			case VariantType::Uint64:
-				return (sl_uint64)(REF_VAR(sl_uint64 const, _value));
+				if (_out) {
+					*_out = (sl_uint64)(REF_VAR(sl_uint64 const, _value));
+				}
+				return sl_true;
 			case VariantType::Float:
-				return (sl_uint64)(REF_VAR(float const, _value));
+				if (_out) {
+					*_out = (sl_uint64)(REF_VAR(float const, _value));
+				}
+				return sl_true;
 			case VariantType::Double:
-				return (sl_uint64)(REF_VAR(double const, _value));
+				if (_out) {
+					*_out = (sl_uint64)(REF_VAR(double const, _value));
+				}
+				return sl_true;
 			case VariantType::Boolean:
-				return (REF_VAR(sl_bool const, _value)) ? 1 : 0;
+				if (_out) {
+					*_out = (REF_VAR(sl_bool const, _value)) ? 1 : 0;
+				}
+				return sl_true;
 			case VariantType::String8:
-				return (REF_VAR(String const, _value)).parseUint64(10, def);
+				return (REF_VAR(String const, _value)).parseUint64(_out);
 			case VariantType::String16:
-				return (REF_VAR(String16 const, _value)).parseUint64(10, def);
+				return (REF_VAR(String16 const, _value)).parseUint64(_out);
 			case VariantType::Pointer:
-				return (sl_uint64)(REF_VAR(sl_size const, _value));
+				if (_out) {
+					*_out = (sl_uint64)(REF_VAR(sl_size const, _value));
+				}
+				return sl_true;
 			case VariantType::Sz8:
 				{
-					sl_uint64 ret;
 					const sl_char8* str = REF_VAR(sl_char8 const* const, _value);
-					sl_reg pos = String::parseUint64(10, &ret, str);
+					sl_reg pos = String::parseUint64(10, _out, str);
 					if (pos != SLIB_PARSE_ERROR && str[pos] == 0) {
-						return ret;
+						return sl_true;
 					}
 				}
 				break;
 			case VariantType::Sz16:
 				{
-					sl_uint64 ret;
 					const sl_char16* str = REF_VAR(sl_char16 const* const, _value);
-					sl_reg pos = String16::parseUint64(10, &ret, str);
+					sl_reg pos = String16::parseUint64(10, _out, str);
 					if (pos != SLIB_PARSE_ERROR && str[pos] == 0) {
-						return ret;
+						return sl_true;
 					}
 				}
 				break;
 			case VariantType::Time:
-				return REF_VAR(Time const, _value).toUnixTime();
+				if (_out) {
+					*_out = REF_VAR(Time const, _value).toUnixTime();
+				}
+				return sl_true;
 			default:
 				break;
+		}
+		return sl_false;
+	}
+
+	sl_uint64 Variant::getUint64(sl_uint64 def) const noexcept
+	{
+		sl_uint64 ret;
+		if (getUint64(&ret)) {
+			return ret;
 		}
 		return def;
 	}
@@ -1574,49 +1786,77 @@ namespace slib
 		return _type == VariantType::Float;
 	}
 
-	float Variant::getFloat(float def) const noexcept
+	sl_bool Variant::getFloat(float* _out) const noexcept
 	{
 		switch (_type) {
 			case VariantType::Int32:
-				return (float)(REF_VAR(sl_int32 const, _value));
+				if (_out) {
+					*_out = (float)(REF_VAR(sl_int32 const, _value));
+				}
+				return sl_true;
 			case VariantType::Uint32:
-				return (float)(REF_VAR(sl_uint32 const, _value));
+				if (_out) {
+					*_out = (float)(REF_VAR(sl_uint32 const, _value));
+				}
+				return sl_true;
 			case VariantType::Int64:
-				return (float)(REF_VAR(sl_int64 const, _value));
+				if (_out) {
+					*_out = (float)(REF_VAR(sl_int64 const, _value));
+				}
+				return sl_true;
 			case VariantType::Uint64:
-				return (float)(REF_VAR(sl_uint64 const, _value));
+				if (_out) {
+					*_out = (float)(REF_VAR(sl_uint64 const, _value));
+				}
+				return sl_true;
 			case VariantType::Float:
-				return (float)(REF_VAR(float const, _value));
+				if (_out) {
+					*_out = (float)(REF_VAR(float const, _value));
+				}
+				return sl_true;
 			case VariantType::Double:
-				return (float)(REF_VAR(double const, _value));
+				if (_out) {
+					*_out = (float)(REF_VAR(double const, _value));
+				}
+				return sl_true;
 			case VariantType::String8:
-				return (REF_VAR(String const, _value)).parseFloat(def);
+				return (REF_VAR(String const, _value)).parseFloat(_out);
 			case VariantType::String16:
-				return (REF_VAR(String16 const, _value)).parseFloat(def);
+				return (REF_VAR(String16 const, _value)).parseFloat(_out);
 			case VariantType::Sz8:
 				{
-					float ret;
 					const sl_char8* str = REF_VAR(sl_char8 const* const, _value);
-					sl_reg pos = String::parseFloat(&ret, str);
+					sl_reg pos = String::parseFloat(_out, str);
 					if (pos != SLIB_PARSE_ERROR && str[pos] == 0) {
-						return ret;
+						return sl_true;
 					}
 				}
 				break;
 			case VariantType::Sz16:
 				{
-					float ret;
 					const sl_char16* str = REF_VAR(sl_char16 const* const, _value);
-					sl_reg pos = String16::parseFloat(&ret, str);
+					sl_reg pos = String16::parseFloat(_out, str);
 					if (pos != SLIB_PARSE_ERROR && str[pos] == 0) {
-						return ret;
+						return sl_true;
 					}
 				}
 				break;
 			case VariantType::Time:
-				return (float)(REF_VAR(Time const, _value).toUnixTimef());
+				if (_out) {
+					*_out = (float)(REF_VAR(Time const, _value).toUnixTimef());
+				}
+				return sl_true;
 			default:
 				break;
+		}
+		return sl_false;
+	}
+
+	float Variant::getFloat(float def) const noexcept
+	{
+		float ret;
+		if (getFloat(&ret)) {
+			return ret;
 		}
 		return def;
 	}
@@ -1633,49 +1873,77 @@ namespace slib
 		return _type == VariantType::Double;
 	}
 
-	double Variant::getDouble(double def) const noexcept
+	sl_bool Variant::getDouble(double* _out) const noexcept
 	{
 		switch (_type) {
 			case VariantType::Int32:
-				return (double)(REF_VAR(sl_int32 const, _value));
+				if (_out) {
+					*_out = (double)(REF_VAR(sl_int32 const, _value));
+				}
+				return sl_true;
 			case VariantType::Uint32:
-				return (double)(REF_VAR(sl_uint32 const, _value));
+				if (_out) {
+					*_out = (double)(REF_VAR(sl_uint32 const, _value));
+				}
+				return sl_true;
 			case VariantType::Int64:
-				return (double)(REF_VAR(sl_int64 const, _value));
+				if (_out) {
+					*_out = (double)(REF_VAR(sl_int64 const, _value));
+				}
+				return sl_true;
 			case VariantType::Uint64:
-				return (double)(REF_VAR(sl_uint64 const, _value));
+				if (_out) {
+					*_out = (double)(REF_VAR(sl_uint64 const, _value));
+				}
+				return sl_true;
 			case VariantType::Float:
-				return (double)(REF_VAR(float const, _value));
+				if (_out) {
+					*_out = (double)(REF_VAR(float const, _value));
+				}
+				return sl_true;
 			case VariantType::Double:
-				return (double)(REF_VAR(double const, _value));
+				if (_out) {
+					*_out = (double)(REF_VAR(double const, _value));
+				}
+				return sl_true;
 			case VariantType::String8:
-				return (REF_VAR(String const, _value)).parseDouble(def);
+				return (REF_VAR(String const, _value)).parseDouble(_out);
 			case VariantType::String16:
-				return (REF_VAR(String16 const, _value)).parseDouble(def);
+				return (REF_VAR(String16 const, _value)).parseDouble(_out);
 			case VariantType::Sz8:
 				{
-					double ret;
 					const sl_char8* str = REF_VAR(sl_char8 const* const, _value);
-					sl_reg pos = String::parseDouble(&ret, str);
+					sl_reg pos = String::parseDouble(_out, str);
 					if (pos != SLIB_PARSE_ERROR && str[pos] == 0) {
-						return ret;
+						return sl_true;
 					}
 				}
 				break;
 			case VariantType::Sz16:
 				{
-					double ret;
 					const sl_char16* str = REF_VAR(sl_char16 const* const, _value);
-					sl_reg pos = String16::parseDouble(&ret, str);
+					sl_reg pos = String16::parseDouble(_out, str);
 					if (pos != SLIB_PARSE_ERROR && str[pos] == 0) {
-						return ret;
+						return sl_true;
 					}
 				}
 				break;
 			case VariantType::Time:
-				return REF_VAR(Time const, _value).toUnixTimef();
+				if (_out) {
+					*_out = REF_VAR(Time const, _value).toUnixTimef();
+				}
+				return sl_true;
 			default:
 				break;
+		}
+		return sl_false;
+	}
+
+	double Variant::getDouble(double def) const noexcept
+	{
+		double ret;
+		if (getDouble(&ret)) {
+			return ret;
 		}
 		return def;
 	}
@@ -1685,6 +1953,46 @@ namespace slib
 		Free(_type, _value);
 		_type = VariantType::Double;
 		REF_VAR(double, _value) = value;
+	}
+
+	sl_bool Variant::isNaN() const noexcept
+	{
+		if (_type == VariantType::Float) {
+			return Math::isNaN(REF_VAR(float, _value));
+		} else if (_type == VariantType::Double) {
+			return Math::isNaN(REF_VAR(double, _value));
+		}
+		return sl_false;
+	}
+
+	sl_bool Variant::isInfinite() const noexcept
+	{
+		if (_type == VariantType::Float) {
+			return Math::isInfinite(REF_VAR(float, _value));
+		} else if (_type == VariantType::Double) {
+			return Math::isInfinite(REF_VAR(double, _value));
+		}
+		return sl_false;
+	}
+
+	sl_bool Variant::isPositiveInfinite() const noexcept
+	{
+		if (_type == VariantType::Float) {
+			return Math::isPositiveInfinite(REF_VAR(float, _value));
+		} else if (_type == VariantType::Double) {
+			return Math::isPositiveInfinite(REF_VAR(double, _value));
+		}
+		return sl_false;
+	}
+
+	sl_bool Variant::isNegativeInfinite() const noexcept
+	{
+		if (_type == VariantType::Float) {
+			return Math::isNegativeInfinite(REF_VAR(float, _value));
+		} else if (_type == VariantType::Double) {
+			return Math::isNegativeInfinite(REF_VAR(double, _value));
+		}
+		return sl_false;
 	}
 
 	sl_bool Variant::isNumber() const noexcept
@@ -1843,6 +2151,10 @@ namespace slib
 				return String::create(REF_VAR(sl_char16 const* const, _value));
 			case VariantType::Pointer:
 				return "#" + String::fromPointerValue(REF_VAR(void const* const, _value));
+			case VariantType::ObjectId:
+				return REF_VAR(ObjectId, _value).toString();
+			case VariantType::Decimal128:
+				return REF_VAR(SharedPtr<Decimal128>, _value)->toString();
 			case VariantType::Null:
 				if (_value) {
 					return sl_null;
@@ -1851,7 +2163,7 @@ namespace slib
 			default:
 				if (isMemory()) {
 					CMemory* mem = REF_VAR(CMemory*, _value);
-					return String::fromUtf8(mem->getData(), mem->getSize());
+					return mem->getString();
 				}
 				break;
 		}
@@ -1896,10 +2208,14 @@ namespace slib
 				return String16::create(REF_VAR(sl_char16 const* const, _value));
 			case VariantType::Pointer:
 				return "#" + String16::fromPointerValue(REF_VAR(void const* const, _value));
+			case VariantType::ObjectId:
+				return String16::create(REF_VAR(ObjectId, _value).toString());
+			case VariantType::Decimal128:
+				return String16::create(REF_VAR(SharedPtr<Decimal128>, _value)->toString());
 			default:
 				if (isMemory()) {
 					CMemory* mem = REF_VAR(CMemory*, _value);
-					return String16::fromUtf8(mem->getData(), mem->getSize());
+					return String16::fromUtf8(mem->data, mem->size);
 				}
 				break;
 		}
@@ -1920,8 +2236,6 @@ namespace slib
 				} else {
 					return "false";
 				}
-			case VariantType::String8:
-				return REF_VAR(String const, _value).getData();
 			case VariantType::Sz8:
 				return REF_VAR(sl_char8 const* const, _value);
 			default:
@@ -1941,8 +2255,6 @@ namespace slib
 					static const sl_char16 _s[] = {'f', 'a', 'l', 's', 'e', 0};
 					return _s;
 				}
-			case VariantType::String16:
-				return REF_VAR(String16 const, _value).getData();
 			case VariantType::Sz16:
 				return REF_VAR(sl_char16 const* const, _value);
 			default:
@@ -2111,6 +2423,78 @@ namespace slib
 		return _type == VariantType::Time;
 	}
 
+	sl_bool Variant::getTime(Time* _out) const noexcept
+	{
+		switch (_type) {
+		case VariantType::Int32:
+			if (_out) {
+				*_out = Time::fromUnixTime(REF_VAR(sl_int32 const, _value));
+			}
+			return sl_true;
+		case VariantType::Uint32:
+			if (_out) {
+				*_out = Time::fromUnixTime(REF_VAR(sl_uint32 const, _value));
+			}
+			return sl_true;
+		case VariantType::Int64:
+			if (_out) {
+				*_out = Time::fromUnixTime(REF_VAR(sl_int64 const, _value));
+			}
+			return sl_true;
+		case VariantType::Uint64:
+			if (_out) {
+				*_out = Time::fromUnixTime(REF_VAR(sl_uint64 const, _value));
+			}
+			return sl_true;
+		case VariantType::Float:
+			if (_out) {
+				*_out = Time::fromUnixTimef(REF_VAR(float const, _value));
+			}
+			return sl_true;
+		case VariantType::Double:
+			if (_out) {
+				*_out = Time::fromUnixTimef(REF_VAR(double const, _value));
+			}
+			return sl_true;
+		case VariantType::Time:
+			if (_out) {
+				*_out = REF_VAR(Time const, _value);
+			}
+			return sl_true;
+		case VariantType::String8:
+			if (_out) {
+				return _out->parse(REF_VAR(String const, _value));
+			} else {
+				Time t;
+				return t.parse(REF_VAR(String const, _value));
+			}
+		case VariantType::String16:
+			if (_out) {
+				return _out->parse(REF_VAR(String16 const, _value));
+			} else {
+				Time t;
+				return t.parse(REF_VAR(String16 const, _value));
+			}
+		case VariantType::Sz8:
+			if (_out) {
+				return _out->parse(StringParam(REF_VAR(sl_char8 const* const, _value), -1));
+			} else {
+				Time t;
+				return t.parse(StringParam(REF_VAR(sl_char8 const* const, _value), -1));
+			}
+		case VariantType::Sz16:
+			if (_out) {
+				return _out->parse(StringParam(REF_VAR(sl_char16 const* const, _value), -1));
+			} else {
+				Time t;
+				return t.parse(StringParam(REF_VAR(sl_char16 const* const, _value), -1));
+			}
+		default:
+			break;
+		}
+		return sl_false;
+	}
+
 	Time Variant::getTime(const Time& def) const noexcept
 	{
 		switch (_type) {
@@ -2156,12 +2540,12 @@ namespace slib
 
 	sl_bool Variant::isPointer() const noexcept
 	{
-		return _type == VariantType::Pointer || _type == VariantType::Sz8 || _type == VariantType::Sz16 || IsReferable(_type);
+		return _type == VariantType::Pointer || _type == VariantType::Sz8 || _type == VariantType::Sz16 || _type >= VariantType::SharedPtr;
 	}
 
 	void* Variant::getPointer(const void* def) const noexcept
 	{
-		if (_type == VariantType::Pointer || _type == VariantType::Sz8 || _type == VariantType::Sz16 || IsReferable(_type)) {
+		if (_type == VariantType::Pointer || _type == VariantType::Sz8 || _type == VariantType::Sz16 || _type >= VariantType::SharedPtr) {
 			return REF_VAR(void* const, _value);
 		}
 		return (void*)def;
@@ -2176,6 +2560,100 @@ namespace slib
 		} else {
 			setNull();
 		}
+	}
+
+	sl_bool Variant::isObjectId() const noexcept
+	{
+		return _type == VariantType::ObjectId;
+	}
+
+	ObjectId Variant::getObjectId() const noexcept
+	{
+		if (_type == VariantType::ObjectId) {
+			return REF_VAR(ObjectId, _value);
+		} else if (isString()) {
+			return ObjectId(getString());
+		}
+		return sl_null;
+	}
+
+	sl_bool Variant::getObjectId(ObjectId* _out) const noexcept
+	{
+		if (_type == VariantType::ObjectId) {
+			if (_out) {
+				*_out = REF_VAR(ObjectId, _value);
+			}
+			return sl_true;
+		} else if (isString()) {
+			if (_out) {
+				if (_out->parse(getString())) {
+					return sl_true;
+				}
+				return sl_false;
+			} else {
+				ObjectId ret;
+				return ret.parse(getString());
+			}
+		}
+		return sl_false;
+	}
+
+	void Variant::setObjectId(const ObjectId& _id) noexcept
+	{
+		Free(_type, _value);
+		_type = VariantType::ObjectId;
+		CopyBytes12(&_value, _id.data);
+	}
+
+	sl_bool Variant::isSharedPtr() const noexcept
+	{
+		return IsSharedPtr(_type);
+	}
+
+	SharedPtr<void> Variant::getSharedPtr() const noexcept
+	{
+		if (IsSharedPtr(_type)) {
+			return REF_VAR(SharedPtr<void> const, _value);
+		}
+		return sl_null;
+	}
+
+	sl_bool Variant::isDecimal128() const noexcept
+	{
+		return _type == VariantType::Decimal128;
+	}
+
+	Decimal128 Variant::getDecimal128() const noexcept
+	{
+		if (_type == VariantType::Decimal128) {
+			return *(REF_VAR(SharedPtr<Decimal128> const, _value).get());
+		} else if (isString()) {
+			return Decimal128::fromString(getString());
+		}
+		return Decimal128::zero();
+	}
+
+	sl_bool Variant::getDecimal128(Decimal128* _out) const noexcept
+	{
+		if (_type == VariantType::Decimal128) {
+			if (_out) {
+				*_out = *(REF_VAR(SharedPtr<Decimal128> const, _value).get());
+			}
+			return sl_true;
+		} else if (isString()) {
+			if (_out) {
+				return _out->parse(getString());
+			} else {
+				Decimal128 v;
+				return v.parse(getString());
+			}
+		}
+		return sl_false;
+	}
+
+	void Variant::setDecimal128(const Decimal128& _id) noexcept
+	{
+		_setSharedPtr(SharedPtr<Decimal128>::create(_id), VariantType::Decimal128);
 	}
 
 	sl_bool Variant::isRef() const noexcept
@@ -2322,10 +2800,14 @@ namespace slib
 		return Variant();
 	}
 
-	sl_bool Variant::setElement_NoLock(sl_uint64 index, const Variant& value)
+	sl_bool Variant::setElement_NoLock(sl_uint64 index, const Variant& value) const
 	{
 		if (_type == VariantType::List) {
-			return REF_VAR(VariantList, _value).setAt_NoLock((sl_size)index, value);
+			if (value.isNotUndefined()) {
+				return REF_VAR(VariantList, _value).setAt_NoLock((sl_size)index, value);
+			} else {
+				return REF_VAR(VariantList, _value).removeAt_NoLock((sl_size)index);
+			}
 		} else {
 			Ref<Collection> collection(GET_COLLECTION(*this));
 			if (collection.isNotNull()) {
@@ -2335,14 +2817,33 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Variant::setElement(sl_uint64 index, const Variant& value)
+	sl_bool Variant::setElement(sl_uint64 index, const Variant& value) const
 	{
 		if (_type == VariantType::List) {
-			return REF_VAR(VariantList, _value).setAt((sl_size)index, value);
+			if (value.isNotUndefined()) {
+				return REF_VAR(VariantList, _value).setAt((sl_size)index, value);
+			} else {
+				return REF_VAR(VariantList, _value).removeAt((sl_size)index);
+			}
 		} else {
 			Ref<Collection> collection(GET_COLLECTION(*this));
 			if (collection.isNotNull()) {
 				return collection->setElement(index, value);
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool Variant::addElement_NoLock(const Variant& value) const
+	{
+		if (isNotNull()) {
+			if (_type == VariantType::List) {
+				return REF_VAR(VariantList, _value).add_NoLock(value);
+			} else {
+				Ref<Collection> collection(GET_COLLECTION(*this));
+				if (collection.isNotNull()) {
+					return collection->addElement(value);
+				}
 			}
 		}
 		return sl_false;
@@ -2364,6 +2865,21 @@ namespace slib
 			if (list.isNotNull()) {
 				setVariantList(list);
 				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool Variant::addElement(const Variant& value) const
+	{
+		if (isNotNull()) {
+			if (_type == VariantType::List) {
+				return REF_VAR(VariantList, _value).add(value);
+			} else {
+				Ref<Collection> collection(GET_COLLECTION(*this));
+				if (collection.isNotNull()) {
+					return collection->addElement(value);
+				}
 			}
 		}
 		return sl_false;
@@ -2489,6 +3005,24 @@ namespace slib
 		return Variant();
 	}
 
+	sl_bool Variant::putItem_NoLock(const StringParam& key, const Variant& value) const
+	{
+		if (value.isUndefined()) {
+			return removeItem_NoLock(key);
+		}
+		if (isNotNull()) {
+			if (_type == VariantType::Map) {
+				return REF_VAR(VariantMap, _value).put_NoLock(key.toString(), value) != sl_null;
+			} else {
+				Ref<Object> object(GET_OBJECT(*this));
+				if (object.isNotNull()) {
+					return object->setProperty(key, value);
+				}
+			}
+		}
+		return sl_false;
+	}
+
 	sl_bool Variant::putItem_NoLock(const StringParam& key, const Variant& value)
 	{
 		if (value.isUndefined()) {
@@ -2509,6 +3043,24 @@ namespace slib
 				if (map.put_NoLock(key.toString(), value)) {
 					setVariantMap(map);
 					return sl_true;
+				}
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool Variant::putItem(const StringParam& key, const Variant& value) const
+	{
+		if (value.isUndefined()) {
+			return removeItem(key);
+		}
+		if (isNotNull()) {
+			if (_type == VariantType::Map) {
+				return REF_VAR(VariantMap, _value).put(key.toString(), value);
+			} else {
+				Ref<Object> object(GET_OBJECT(*this));
+				if (object.isNotNull()) {
+					return object->setProperty(key, value);
 				}
 			}
 		}
@@ -2541,7 +3093,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Variant::removeItem_NoLock(const StringParam& key)
+	sl_bool Variant::removeItem_NoLock(const StringParam& key) const
 	{
 		if (_type == VariantType::Map) {
 			return REF_VAR(VariantMap, _value).remove_NoLock(key.toString());
@@ -2554,7 +3106,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Variant::removeItem(const StringParam& key)
+	sl_bool Variant::removeItem(const StringParam& key) const
 	{
 		if (_type == VariantType::Map) {
 			return REF_VAR(VariantMap, _value).remove(key.toString());
@@ -2567,70 +3119,15 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Variant::enumerateItems_NoLock(const Function<sl_bool(const StringParam& name, const Variant& value)>& callback)
+	PropertyIterator Variant::getItemIterator() const
 	{
 		if (_type == VariantType::Map) {
 			VariantMap& map = REF_VAR(VariantMap, _value);
-			auto node = map.getFirstNode();
-			while (node) {
-				if (!(callback(node->key, node->value))) {
-					return sl_false;
-				}
-				node = node->getNext();
-			}
-			return sl_true;
+			return new MapIterator< CHashMap<String, Variant> >(map.ref);
 		} else {
 			Ref<Object> object(GET_OBJECT(*this));
 			if (object.isNotNull()) {
-				return object->enumerateProperties(callback);
-			}
-		}
-		return sl_false;
-	}
-
-	sl_bool Variant::enumerateItems(const Function<sl_bool(const StringParam& name, const Variant& value)>& callback)
-	{
-		if (_type == VariantType::Map) {
-			VariantMap& map = REF_VAR(VariantMap, _value);
-			MutexLocker lock(map.getLocker());
-			auto node = map.getFirstNode();
-			while (node) {
-				if (!(callback(node->key, node->value))) {
-					return sl_false;
-				}
-				node = node->getNext();
-			}
-			return sl_true;
-		} else {
-			Ref<Object> object(GET_OBJECT(*this));
-			if (object.isNotNull()) {
-				return object->enumerateProperties(callback);
-			}
-		}
-		return sl_false;
-	}
-
-	List<String> Variant::getItemKeys_NoLock() const
-	{
-		if (_type == VariantType::Map) {
-			return REF_VAR(VariantMap, _value).getAllKeys_NoLock();
-		} else {
-			Ref<Object> object(GET_OBJECT(*this));
-			if (object.isNotNull()) {
-				return object->getPropertyNames();
-			}
-		}
-		return sl_null;
-	}
-
-	List<String> Variant::getItemKeys() const
-	{
-		if (_type == VariantType::Map) {
-			return REF_VAR(VariantMap, _value).getAllKeys();
-		} else {
-			Ref<Object> object(GET_OBJECT(*this));
-			if (object.isNotNull()) {
-				return object->getPropertyNames();
+				return object->getPropertyIterator();
 			}
 		}
 		return sl_null;
@@ -2643,7 +3140,14 @@ namespace slib
 
 	Memory Variant::getMemory() const noexcept
 	{
-		return GetObjectT<CMemory, Memory, VariantType::Memory>(*this);
+		if (_type == VariantType::Memory) {
+			return REF_VAR(Memory, _value);
+		} else if (isString()) {
+			return getString().toMemory();
+		} else if (isRef()) {
+			return GetObjectT<CMemory, Memory, VariantType::Memory>(*this);
+		}
+		return sl_null;
 	}
 
 	void Variant::setMemory(const Memory& mem) noexcept
@@ -2697,10 +3201,10 @@ namespace slib
 				Ref<Object> src(getObject());
 				if (src.isNotNull()) {
 					MutexLocker lock(dst.getLocker());
-					src->enumerateProperties([&dst](const StringParam& name, const Variant& value) {
-						dst.put_NoLock(name.toString(), value);
-						return sl_true;
-					});
+					PropertyIterator iterator = src->getPropertyIterator();
+					while (iterator.moveNext()) {
+						dst.put_NoLock(iterator.getKey(), iterator.getValue());
+					}
 				}
 			}
 		} else if (_type == VariantType::List) {
@@ -2733,10 +3237,10 @@ namespace slib
 				} else {
 					Ref<Object> src(getObject());
 					if (src.isNotNull()) {
-						src->enumerateProperties([&dst](const StringParam& name, const Variant& value) {
-							dst->setProperty(name, value);
-							return sl_true;
-						});
+						PropertyIterator iterator = src->getPropertyIterator();
+						while (iterator.moveNext()) {
+							dst->setProperty(iterator.getKey(), iterator.getValue());
+						}
 					}
 				}
 			} else if (IsInstanceOf<Collection>(ref)) {
@@ -2777,7 +3281,12 @@ namespace slib
 			case VariantType::Sz16:
 			case VariantType::Time:
 			case VariantType::Pointer:
+			case VariantType::ObjectId:
+			case VariantType::Memory:
+			case VariantType::Decimal128:
 				return getString();
+			case VariantType::SharedPtr:
+				return String::join("<shared-ptr:", String::fromPointerValue(REF_VAR(void*, _value)), ">");
 			case VariantType::Weak:
 				{
 					Ref<Referable> ref(getRef());
@@ -2895,6 +3404,10 @@ namespace slib
 			case VariantType::String16:
 			case VariantType::Sz16:
 				return String::create(ParseUtil::applyBackslashEscapes16(getString16()));
+			case VariantType::ObjectId:
+				return REF_VAR(ObjectId, _value).toJson().toJsonString();
+			case VariantType::Decimal128:
+				return REF_VAR(SharedPtr<Decimal128>, _value)->toJson().toJsonString();
 			default:
 				if (IsReferable(_type)) {
 					StringBuffer buf;
@@ -2907,10 +3420,224 @@ namespace slib
 		SLIB_RETURN_STRING("null")
 	}
 
+	sl_bool SerializeJsonBinary(MemoryBuffer* output, Referable* ref)
+	{
+		return ref->toJsonBinary(*output);
+	}
+
+	sl_size SerializeVariantPrimitive(const Variant& var, void* _buf, sl_size size)
+	{
+		sl_uint8* buf = (sl_uint8*)_buf;
+		switch (var._type) {
+			case VariantType::Int32:
+			case VariantType::Uint32:
+			case VariantType::Float:
+				if (size < 5) {
+					return 0;
+				}
+				MIO::writeUint32LE(buf + 1, *((sl_uint32*)(void*)&(var._value)));
+				size = 5;
+				break;
+			case VariantType::Int64:
+			case VariantType::Uint64:
+			case VariantType::Double:
+			case VariantType::Time:
+				if (size < 9) {
+					return 0;
+				}
+				MIO::writeUint64LE(buf + 1, *((sl_uint64*)(void*)&(var._value)));
+				size = 9;
+				break;
+			case VariantType::ObjectId:
+				if (size < 13) {
+					return 0;
+				}
+				Base::copyMemory(buf + 1, &(var._value), 12);
+				size = 13;
+				break;
+			case VariantType::Decimal128:
+				if (size < 17) {
+					return 0;
+				}
+				Base::copyMemory(buf + 1, REF_VAR(SharedPtr<Decimal128>, var._value).get(), 16);
+				size = 17;
+				break;
+			case VariantType::Boolean:
+				if (size < 2) {
+					return 0;
+				}
+				buf[1] = *((bool*)(void*)&(var._value)) ? 1 : 0;
+				size = 2;
+				break;
+			case VariantType::Null:
+				if (size < 1) {
+					return 0;
+				}
+				size = 1;
+				break;
+			default:
+				return 0;
+		}
+		buf[0] = var._type;
+		return size;
+	}
+
+#define SERIALIZE_PREPARE_MEMORY(BUF, SIZE, REQ_SIZE, PMEM) \
+	if (SIZE < REQ_SIZE) { \
+		if (PMEM) { \
+			Memory mem = Memory::create(REQ_SIZE); \
+			if (mem.isNotNull()) { \
+				BUF = (sl_uint8*)(mem.getData()); \
+				*PMEM = Move(mem); \
+			} else { \
+				return 0; \
+			} \
+		} else { \
+			return 0; \
+		} \
+	}
+
+	sl_size SerializeVariant(const Variant& var, void* _buf, sl_size size, Memory* pOutMemoryIfInsufficient, const void* prefix, sl_size sizePrefix)
+	{
+		sl_uint8* buf = (sl_uint8*)_buf;
+		if (size > sizePrefix) {
+			sl_size nWritten = SerializeVariantPrimitive(var, buf + sizePrefix, size - sizePrefix);
+			if (nWritten) {
+				if (sizePrefix) {
+					Base::copyMemory(buf, prefix, sizePrefix);
+				}
+				return sizePrefix + nWritten;
+			}
+		}
+		switch (var._type) {
+			case VariantType::String8:
+			case VariantType::String16:
+			case VariantType::Sz8:
+			case VariantType::Sz16:
+				{
+					String str = var.getString();
+					sl_size n = str.getLength();
+					sl_size nReq = sizePrefix + 11 + n;
+					SERIALIZE_PREPARE_MEMORY(buf, size, nReq, pOutMemoryIfInsufficient)
+					if (sizePrefix) {
+						Base::copyMemory(buf, prefix, sizePrefix);
+					}
+					buf[sizePrefix] = VariantType::String8;
+					sl_size l = sizePrefix + 1;
+					l += CVLI::serialize(buf + l, n);
+					Base::copyMemory(buf + l, str.getData(), n);
+					return l + n;
+				}
+			case VariantType::Memory:
+				{
+					Memory& m = *((Memory*)(void*)&(var._value));
+					sl_size n = m.getSize();
+					sl_size nReq = sizePrefix + 11 + n;
+					SERIALIZE_PREPARE_MEMORY(buf, size, nReq, pOutMemoryIfInsufficient)
+					if (sizePrefix) {
+						Base::copyMemory(buf, prefix, sizePrefix);
+					}
+					buf[sizePrefix] = VariantType::Memory;
+					sl_size l = sizePrefix + 1;
+					l += CVLI::serialize(buf + l, n);
+					Base::copyMemory(buf + l, m.getData(), n);
+					return l + n;
+				}
+			default:
+				if (IsReferable(var._type)) {
+					MemoryBuffer mb;
+					if (sizePrefix) {
+						if (!(mb.addStatic(prefix, sizePrefix))) {
+							return 0;
+						}
+					}
+					if (Serialize(&mb, var)) {
+						Memory mem = mb.merge();
+						sl_size n = mem.getSize();
+						if (n) {
+							if (size >= n) {
+								Base::copyMemory(buf, mem.getData(), n);
+								return n;
+							} else {
+								if (pOutMemoryIfInsufficient) {
+									*pOutMemoryIfInsufficient = Move(mem);
+									return n;
+								}
+							}
+						}
+					}
+				}
+				break;
+		}
+		return 0;
+	}
+
+	Memory Variant::serialize() const
+	{
+		Memory mem;
+		SerializeVariant(*this, sl_null, 0, &mem);
+		return mem;
+	}
+
+	sl_bool Variant::serialize(MemoryBuffer* buf) const
+	{
+		return Serialize(buf, *this);
+	}
+
+	sl_size Variant::deserialize(const void* data, sl_size size)
+	{
+		SerializeBuffer buf(data, size);
+		if (Deserialize(&buf, *this)) {
+			return buf.current - buf.begin;
+		} else {
+			return 0;
+		}
+	}
+
+	sl_size Variant::deserialize(const MemoryData& mem)
+	{
+		DeserializeBuffer buf(mem);
+		if (Deserialize(&buf, *this)) {
+			return buf.current - buf.begin;
+		} else {
+			return 0;
+		}
+	}
+
+	sl_size Variant::deserialize(MemoryData&& mem)
+	{
+		DeserializeBuffer buf(Move(mem));
+		if (Deserialize(&buf, *this)) {
+			return buf.current - buf.begin;
+		} else {
+			return 0;
+		}
+	}
+
+	sl_size Variant::deserialize(const Memory& mem)
+	{
+		DeserializeBuffer buf(mem);
+		if (Deserialize(&buf, *this)) {
+			return buf.current - buf.begin;
+		} else {
+			return 0;
+		}
+	}
+
+	sl_size Variant::deserialize(Memory&& mem)
+	{
+		DeserializeBuffer buf(Move(mem));
+		if (Deserialize(&buf, *this)) {
+			return buf.current - buf.begin;
+		} else {
+			return 0;
+		}
+	}
+
 	sl_compare_result Variant::compare(const Variant& v2) const noexcept
 	{
 		const Variant& v1 = *this;
-		VariantType type = v1._type;
+		sl_uint8 type = v1._type;
 		if (type == v2._type) {
 			switch (type) {
 				case VariantType::Null:
@@ -2935,10 +3662,15 @@ namespace slib
 				case VariantType::String16:
 					return REF_VAR(String16 const, v1._value).compare(REF_VAR(String16 const, v2._value));
 				case VariantType::Pointer:
-				case VariantType::Object:
 					return ComparePrimitiveValues(REF_VAR(sl_size const, v1._value), REF_VAR(sl_size const, v2._value));
+				case VariantType::ObjectId:
+					return REF_VAR(ObjectId const, v1._value).compare(REF_VAR(ObjectId const, v2._value));
 				default:
-					return ComparePrimitiveValues(v1._value, v2._value);
+					if (type >= VariantType::SharedPtr) {
+						return ComparePrimitiveValues(REF_VAR(sl_size const, v1._value), REF_VAR(sl_size const, v2._value));
+					} else {
+						return ComparePrimitiveValues(v1._value, v2._value);
+					}
 			}
 		} else {
 			switch (type) {
@@ -2960,7 +3692,7 @@ namespace slib
 	sl_bool Variant::equals(const Variant& v2) const noexcept
 	{
 		const Variant& v1 = *this;
-		VariantType type = v1._type;
+		sl_uint8 type = v1._type;
 		if (type == v2._type) {
 			switch (type) {
 				case VariantType::Null:
@@ -2983,10 +3715,14 @@ namespace slib
 				case VariantType::String16:
 					return REF_VAR(String16 const, v1._value) == REF_VAR(String16 const, v2._value);
 				case VariantType::Pointer:
-				case VariantType::Object:
-					return REF_VAR(void const* const, v1._value) == REF_VAR(void const* const, v2._value);
+				case VariantType::ObjectId:
+					return REF_VAR(ObjectId const, v1._value).equals(REF_VAR(ObjectId const, v2._value));
 				default:
-					return v1._value == v2._value;
+					if (type >= VariantType::SharedPtr) {
+						return REF_VAR(void const* const, v1._value) == REF_VAR(void const* const, v2._value);
+					} else {
+						return v1._value == v2._value;
+					}
 			}
 		} else {
 			switch (type) {
@@ -3019,7 +3755,7 @@ namespace slib
 
 	sl_size Variant::getHashCode() const noexcept
 	{
-		VariantType type = _type;
+		sl_uint8 type = _type;
 		switch (type) {
 			case VariantType::Null:
 				return 0;
@@ -3321,6 +4057,125 @@ namespace slib
 	String16 Cast<Variant, String16>::operator()(const Variant& var) const noexcept
 	{
 		return String16::from(var);
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ObjectId)
+
+	ObjectId::ObjectId() noexcept
+	{
+	}
+
+	ObjectId::ObjectId(sl_null_t) noexcept
+	{
+		ZeroBytes12(data);
+	}
+
+	ObjectId::ObjectId(const StringParam& _id) noexcept
+	{
+		if (!(parse(_id))) {
+			ZeroBytes12(data);
+		}
+	}
+
+	ObjectId::ObjectId(const sl_uint8* _id) noexcept
+	{
+		Base::copyMemory(data, _id, 12);
+	}
+
+	sl_bool ObjectId::operator==(const ObjectId& other) const noexcept
+	{
+		return Base::equalsMemory(data, other.data, 12);
+	}
+
+	sl_bool ObjectId::operator!=(const ObjectId& other) const noexcept
+	{
+		return !(Base::equalsMemory(data, other.data, 12));
+	}
+
+	sl_bool ObjectId::operator>=(const ObjectId& other) const noexcept
+	{
+		return Base::compareMemory(data, other.data, 12) >= 0;
+	}
+
+	sl_bool ObjectId::operator>(const ObjectId& other) const noexcept
+	{
+		return Base::compareMemory(data, other.data, 12) > 0;
+	}
+
+	sl_bool ObjectId::operator<=(const ObjectId& other) const noexcept
+	{
+		return Base::compareMemory(data, other.data, 12) <= 0;
+	}
+
+	sl_bool ObjectId::operator<(const ObjectId& other) const noexcept
+	{
+		return Base::compareMemory(data, other.data, 12) < 0;
+	}
+
+	ObjectId ObjectId::generate() noexcept
+	{
+		static sl_uint64 random = 0;
+		if (!random) {
+			Math::randomMemory(&random, sizeof(random));
+		}
+		static sl_reg counter = 0;
+		sl_reg n = Base::interlockedIncrement((sl_reg*)&counter);
+		ObjectId ret;
+		MIO::writeUint32BE(ret.data, (sl_uint32)(Time::now().toUnixTime()));
+		MIO::writeUint64BE(ret.data + 4, random + n);
+		return ret;
+	}
+
+	String ObjectId::toString() const noexcept
+	{
+		return String::makeHexString(data, 12);
+	}
+
+	sl_bool ObjectId::parse(const StringParam& _str) noexcept
+	{
+		if (_str.is16()) {
+			StringData16 str(_str);
+			if (str.getLength() == 24) {
+				return str.parseHexString(data);
+			}
+		} else {
+			StringData str(_str);
+			if (str.getLength() == 24) {
+				return str.parseHexString(data);
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool ObjectId::equals(const ObjectId& other) const noexcept
+	{
+		return Base::equalsMemory(data, other.data, 12);
+	}
+
+	sl_compare_result ObjectId::compare(const ObjectId& other) const noexcept
+	{
+		return Base::compareMemory(data, other.data, 12);
+	}
+
+	sl_size ObjectId::getHashCode() const noexcept
+	{
+		return Rehash64ToSize(*(sl_uint64*)data ^ *(sl_uint32*)(data + 8));
+	}
+
+	sl_compare_result Compare<ObjectId>::operator()(const ObjectId& a, const ObjectId& b) const noexcept
+	{
+		return a.compare(b);
+	}
+
+	sl_bool Equals<ObjectId>::operator()(const ObjectId& a, const ObjectId& b) const noexcept
+	{
+		return a.equals(b);
+	}
+
+	sl_size Hash<ObjectId>::operator()(const ObjectId& a) const noexcept
+	{
+		return a.getHashCode();
 	}
 
 }

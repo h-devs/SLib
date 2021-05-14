@@ -61,7 +61,7 @@ namespace slib
 			str = String((char*)buf, n);
 			return buf + n;
 		} else {
-			return sl_false;
+			return sl_null;
 		}
 	}
 

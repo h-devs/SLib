@@ -139,7 +139,7 @@ namespace slib
 		}
 	}
 
-	void WebView::runJavaScript(const String& script)
+	void WebView::runJavaScript(const StringParam& script)
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
 		if (instance.isNotNull()) {

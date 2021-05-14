@@ -1,20 +1,18 @@
 
 /* arm_init.c - NEON optimised filter functions
  *
+ * Copyright (c) 2018 Cosmin Truta
  * Copyright (c) 2014,2016 Glenn Randers-Pehrson
  * Written by Mans Rullgard, 2011.
- * Last changed in libpng 1.6.22 [May 26, 2016]
  *
  * This code is released under the libpng license.
  * For conditions of distribution and use, see the disclaimer
  * and license in png.h
  */
+
 /* Below, after checking __linux__, various non-C90 POSIX 1003.1 functions are
  * called.
  */
-
-#if defined(__arm64__) || defined(__arm64) || defined(__aarch64__) || defined(__arm__) || defined(__arm) || defined(ARM) || defined(_ARM_) || defined(__ARM__) || defined(_M_ARM)
-
 #define _POSIX_SOURCE 1
 
 #include "../pngpriv.h"
@@ -22,7 +20,6 @@
 #ifdef PNG_READ_SUPPORTED
 
 #if PNG_ARM_NEON_OPT > 0
-
 #ifdef PNG_ARM_NEON_CHECK_SUPPORTED /* Do run-time checks */
 /* WARNING: it is strongly recommended that you do not build libpng with
  * run-time checks for CPU features if at all possible.  In the case of the ARM
@@ -38,7 +35,7 @@
  */
 #ifndef PNG_ARM_NEON_FILE
 #  ifdef __linux__
-#     define PNG_ARM_NEON_FILE "../contrib/arm-neon/linux.c"
+#     define PNG_ARM_NEON_FILE "contrib/arm-neon/linux.c"
 #  endif
 #endif
 
@@ -137,5 +134,3 @@ png_init_filter_functions_neon(png_structp pp, unsigned int bpp)
 }
 #endif /* PNG_ARM_NEON_OPT > 0 */
 #endif /* READ */
-
-#endif
