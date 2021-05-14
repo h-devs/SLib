@@ -28,6 +28,8 @@
 #include "slib/core/scoped.h"
 #include "slib/core/compile_optimize.h"
 
+#include "slib/math/json_conv.h"
+
 #define STACK_BUFFER_SIZE 4096
 
 /*
@@ -5562,4 +5564,15 @@ namespace slib
 		return a.getHashCode();
 	}
 	
+
+	void FromJson(const Json& json, BigInt& _out)
+	{
+		_out = BigInt::fromHexString(json.getString());
+	}
+
+	void ToJson(Json& json, const BigInt& _in)
+	{
+		json = _in.toHexString();
+	}
+
 }

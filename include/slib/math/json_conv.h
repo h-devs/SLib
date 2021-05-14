@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,48 +20,19 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_MATH_HEADER
-#define CHECKHEADER_SLIB_MATH_HEADER
+#ifndef CHECKHEADER_SLIB_MATH_JSON_CONV
+#define CHECKHEADER_SLIB_MATH_JSON_CONV
 
-#include "math/complex.h"
-#include "math/bigint.h"
-#include "math/int128.h"
-#include "math/decimal128.h"
+#include "bigint.h"
 
-#include "math/vector.h"
-#include "math/vector2.h"
-#include "math/vector3.h"
-#include "math/vector4.h"
+#include "../core/json.h"
 
-#include "math/matrix.h"
-#include "math/matrix2.h"
-#include "math/matrix3.h"
-#include "math/matrix4.h"
+namespace slib
+{
 
-#include "math/point.h"
-#include "math/size.h"
-#include "math/rectangle.h"
-#include "math/line.h"
-#include "math/line_segment.h"
-#include "math/triangle.h"
-#include "math/transform2d.h"
+	void FromJson(const Json& json, BigInt& _out);
+	void ToJson(Json& json, const BigInt& _in);
 
-#include "math/quaternion.h"
-#include "math/line3.h"
-#include "math/plane.h"
-#include "math/triangle3.h"
-#include "math/sphere.h"
-#include "math/box.h"
-#include "math/view_frustum.h"
-#include "math/transform3d.h"
-
-#include "math/bezier.h"
-#include "math/fft.h"
-
-#include "math/calculator.h"
-
-#include "math/plot.h"
-
-#include "math/json_conv.h"
+}
 
 #endif
