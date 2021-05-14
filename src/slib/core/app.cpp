@@ -148,6 +148,11 @@ namespace slib
 		_initApp();
 	}
 
+	void Application::initialize(int argc, char** argv)
+	{
+		initialize(argc, (const char**)argv);
+	}
+
 	void Application::initialize()
 	{
 #ifdef SLIB_PLATFORM_IS_WIN32

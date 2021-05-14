@@ -115,7 +115,9 @@ namespace slib
 
 		void initialize(const String& commandLine);
 
-		void initialize(int argc, const char * argv[]);
+		void initialize(int argc, const char* argv[]);
+
+		void initialize(int argc, char** argv);
 
 		void initialize();
 
