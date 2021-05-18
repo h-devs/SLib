@@ -26,11 +26,12 @@
 #include "definition.h"
 
 #include "../core/string.h"
+#include "../core/function.h"
 
 namespace slib
 {
 
-	class Disk
+	class SLIB_EXPORT Disk
 	{
 	public:
 		static String getSerialNumber(sl_uint32 diskNo);
@@ -40,6 +41,25 @@ namespace slib
 		static sl_uint64 getTotalSize(const StringParam& path);
 
 		static sl_uint64 getFreeSize(const StringParam& path);
+
+
+		// returns the list of volume path
+		static List<String> getVolumes();
+
+		static List<String> getRemovableVolumes();
+
+
+		static void addMediaArrivalListener(const Function<void(const String& path)>& callback);
+
+		static void removeMediaArrivalListener(const Function<void(const String& path)>& callback);
+
+		static void removeAllMediaArrivalListeners();
+
+		static void addMediaRemovalListener(const Function<void(const String& path)>& callback);
+
+		static void removeMediaRemovalListener(const Function<void(const String& path)>& callback);
+
+		static void removeAllMediaRemovalListeners();
 
 	};
 

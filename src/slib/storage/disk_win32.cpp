@@ -26,10 +26,19 @@
 
 #include "slib/storage/disk.h"
 
-#include "slib/core/platform_windows.h"
+#include "slib/core/thread.h"
 #include "slib/core/scoped.h"
+#include "slib/core/safe_static.h"
+#include "slib/core/platform_windows.h"
+#include "slib/core/win32_message_loop.h"
 
 #include <winioctl.h>
+#include <setupapi.h>
+#include <devguid.h>
+#include <cfgmgr32.h>
+#include <dbt.h>
+
+#pragma comment(lib, "setupapi.lib")
 
 namespace slib
 {
@@ -83,6 +92,94 @@ namespace slib
 #else
 				return String::fromUtf8(sn, Base::getStringLength(sn, n));
 #endif
+			}
+
+			static char GetFirstDriveFromMask(ULONG mask)
+			{
+				char i;
+				for (i = 0; i < 26; ++i) {
+					if (mask & 0x1) {
+						break;
+					}
+					mask >>= 1;
+				}
+				return i + 'A';
+			}
+
+			class DeviceChangeMonitor
+			{
+			public:
+				Mutex m_lock;
+				Ref<Win32MessageLoop> m_loop;
+				AtomicFunction<void(const String&)> m_callbackArrival;
+				AtomicFunction<void(const String&)> m_callbackRemoval;
+
+			public:
+				DeviceChangeMonitor()
+				{
+				}
+
+				~DeviceChangeMonitor()
+				{
+				}
+
+			public:
+				sl_bool onMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT& result)
+				{
+					if (uMsg == WM_DEVICECHANGE) {
+						if (wParam == DBT_DEVICEARRIVAL) {
+							DEV_BROADCAST_HDR* hdr = (DEV_BROADCAST_HDR*)lParam;
+							if (hdr->dbch_devicetype == DBT_DEVTYP_VOLUME) {
+								DEV_BROADCAST_VOLUME* vol = (DEV_BROADCAST_VOLUME*)lParam;
+								if (vol->dbcv_flags & DBTF_MEDIA) {
+									String path;
+									if (vol->dbcv_unitmask) {
+										char _path[] = "C:\\";
+										_path[0] = GetFirstDriveFromMask(vol->dbcv_unitmask);
+									}
+									m_callbackArrival(path);
+								}
+							}
+						} else if (wParam == DBT_DEVICEREMOVECOMPLETE) {
+								DEV_BROADCAST_HDR* hdr = (DEV_BROADCAST_HDR*)lParam;
+							if (hdr->dbch_devicetype == DBT_DEVTYP_VOLUME) {
+								DEV_BROADCAST_VOLUME* vol = (DEV_BROADCAST_VOLUME*)lParam;
+								if (vol->dbcv_flags & DBTF_MEDIA) {
+									String path;
+									if (vol->dbcv_unitmask) {
+										char _path[] = "C:\\";
+										_path[0] = GetFirstDriveFromMask(vol->dbcv_unitmask);
+									}
+									m_callbackRemoval(path);
+								}
+							}
+						}
+						return sl_true;
+					}
+					return sl_false;
+				}
+
+				void updateCallback()
+				{
+					MutexLocker locker(&m_lock);
+					if (m_callbackArrival.isNull() && m_callbackRemoval.isNull()) {
+						m_loop.setNull();
+					} else {
+						if (m_loop.isNull()) {
+							m_loop = Win32MessageLoop::create("SLibDeviceChangeMonitor", SLIB_FUNCTION_MEMBER(DeviceChangeMonitor, onMessage, this));
+						}
+					}
+				}
+
+			};
+
+			DeviceChangeMonitor* GetMonitor()
+			{
+				SLIB_SAFE_LOCAL_STATIC(DeviceChangeMonitor, ret);
+				if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
+					return sl_null;
+				}
+				return &ret;
 			}
 
 		}
@@ -151,6 +248,107 @@ namespace slib
 			return sl_true;
 		}
 		return sl_false;
+	}
+
+	List<String> Disk::getVolumes()
+	{
+		WCHAR volumeName[MAX_PATH];
+		HANDLE hFind = FindFirstVolumeW(volumeName, (DWORD)(CountOfArray(volumeName)));
+		if (hFind == INVALID_HANDLE_VALUE) {
+			return sl_null;
+		}
+		List<String> ret;
+		for (;;) {
+			ret.add_NoLock(String::from(volumeName));
+			if (!(FindNextVolumeW(hFind, volumeName, (DWORD)(CountOfArray(volumeName))))) {
+				break;
+			}
+		}
+		FindVolumeClose(hFind);
+		return ret;
+	}
+
+	List<String> Disk::getRemovableVolumes()
+	{
+		HDEVINFO hDevInfo = SetupDiGetClassDevsW(&GUID_DEVCLASS_DISKDRIVE, NULL, NULL, DIGCF_PRESENT);
+		if (hDevInfo == INVALID_HANDLE_VALUE) {
+			return sl_null;
+		}
+
+		SP_DEVINFO_DATA devInfo;
+		Base::zeroMemory(&devInfo, sizeof(devInfo));
+		devInfo.cbSize = sizeof(devInfo);
+
+		List<String> ret;
+		DWORD index = 0;
+
+		while (SetupDiEnumDeviceInfo(hDevInfo, index, &devInfo)) {
+			DWORD type, value, size;
+			if (SetupDiGetDeviceRegistryPropertyW(hDevInfo, &devInfo, SPDRP_REMOVAL_POLICY, &type, (PBYTE)&value, sizeof(value), &size)) {
+				if (value == CM_REMOVAL_POLICY_EXPECT_SURPRISE_REMOVAL || value == CM_REMOVAL_POLICY_EXPECT_ORDERLY_REMOVAL) {
+					ret.add_NoLock("\\\\?\\Volume" + Windows::getStringFromGUID(devInfo.ClassGuid) + "\\");
+				}
+			}
+			index++;
+		}
+		SetupDiDestroyDeviceInfoList(hDevInfo);
+		
+		return ret;
+
+	}
+
+	void Disk::addMediaArrivalListener(const Function<void(const String& path)>& callback)
+	{
+		DeviceChangeMonitor* monitor = GetMonitor();
+		if (monitor) {
+			monitor->m_callbackArrival.addIfNotExist(callback);
+			monitor->updateCallback();
+		}
+	}
+
+	void Disk::removeMediaArrivalListener(const Function<void(const String& path)>& callback)
+	{
+		DeviceChangeMonitor* monitor = GetMonitor();
+		if (monitor) {
+			monitor->m_callbackArrival.remove(callback);
+			monitor->updateCallback();
+		}
+	}
+
+	void Disk::removeAllMediaArrivalListeners()
+	{
+		DeviceChangeMonitor* monitor = GetMonitor();
+		if (monitor) {
+			monitor->m_callbackArrival.setNull();
+			monitor->updateCallback();
+		}
+	}
+
+	void Disk::addMediaRemovalListener(const Function<void(const String& path)>& callback)
+	{
+		DeviceChangeMonitor* monitor = GetMonitor();
+		if (monitor) {
+			monitor->m_callbackRemoval.addIfNotExist(callback);
+			monitor->updateCallback();
+		}
+	}
+	
+	void Disk::removeMediaRemovalListener(const Function<void(const String& path)>& callback)
+	{
+		DeviceChangeMonitor* monitor = GetMonitor();
+		if (monitor) {
+			monitor->m_callbackRemoval.remove(callback);
+			monitor->updateCallback();
+		}
+	}
+
+	void Disk::removeAllMediaRemovalListeners()
+	{
+		DeviceChangeMonitor* monitor = GetMonitor();
+		if (monitor) {
+			monitor->m_callbackRemoval.setNull();
+			monitor->updateCallback();
+		}
 	}
 
 }
