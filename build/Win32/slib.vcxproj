@@ -161,6 +161,7 @@
     <ClCompile Include="..\..\src\slib\core\variant.cpp" />
     <ClCompile Include="..\..\src\slib\core\win32_com.cpp" />
     <ClCompile Include="..\..\src\slib\core\service_manager.cpp" />
+    <ClCompile Include="..\..\src\slib\core\win32_message_loop.cpp" />
     <ClCompile Include="..\..\src\slib\core\xml.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\aes.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\base64.cpp" />

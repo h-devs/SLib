@@ -1391,5 +1391,8 @@
     <ClCompile Include="..\..\src\slib\network\dbip.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\win32_message_loop.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

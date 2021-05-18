@@ -47,7 +47,7 @@ namespace slib
 
 	using namespace priv::thread;
 
-	Thread::Thread() : m_eventWake(Event::create(sl_true)), m_eventExit(Event::create(sl_false))
+	Thread::Thread(): m_eventWake(Event::create(sl_true)), m_eventExit(Event::create(sl_false))
 	{
 		m_flagRunning = sl_false;
 		m_flagRequestStop = sl_false;

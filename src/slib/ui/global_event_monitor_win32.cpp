@@ -26,6 +26,7 @@
 
 #include "slib/ui/global_event_monitor.h"
 
+#include "slib/core/win32_message_loop.h"
 #include "slib/core/thread.h"
 #include "slib/core/safe_static.h"
 #include "slib/ui/platform.h"
@@ -170,47 +171,13 @@ namespace slib
 				}
 			}
 
-			static LRESULT CALLBACK RawInputWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+			static sl_bool CALLBACK ProcessMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT& result)
 			{
-				switch (uMsg) {
-				case WM_INPUT:
+				if (uMsg == WM_INPUT) {
 					ProcessRawInput(wParam, lParam);
-					return 0;
-				case WM_USER + 1:
-					PostQuitMessage(0);
-					break;
+					return sl_true;
 				}
-				return DefWindowProcW(hWnd, uMsg, wParam, lParam);
-			}
-
-			static HWND g_hWnd = NULL;
-
-			static void RunMonitor()
-			{
-				HINSTANCE hInstance = GetModuleHandleW(NULL);
-				LPCWSTR szClassName = L"SLibGlobalEventMonitor";
-
-				WNDCLASSEXW wc;
-				Base::zeroMemory(&wc, sizeof(wc));
-				wc.cbSize = sizeof(wc);
-				wc.lpszClassName = szClassName;
-				wc.lpfnWndProc = RawInputWindowProc;
-				wc.hInstance = hInstance;
-				RegisterClassExW(&wc);
-				g_hWnd = CreateWindowW(szClassName, L"", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, 0, 0);
-				if (!g_hWnd) {
-					return;
-				}
-
-				MSG msg;
-				while (GetMessageW(&msg, NULL, 0, 0)) {
-					DispatchMessageW(&msg);
-				}
-
-				CloseWindow(g_hWnd);
-				UnregisterClassW(szClassName, hInstance);
-
-				g_hWnd = NULL;
+				return sl_false;
 			}
 
 #define USAGE_MOUSE 2
@@ -221,7 +188,7 @@ namespace slib
 			public:
 				sl_bool flagInstalledKeyboard;
 				sl_bool flagInstalledMouse;
-				Ref<Thread> thread;
+				Ref<Win32MessageLoop> loop;
 
 			public:
 				Monitor()
@@ -232,22 +199,9 @@ namespace slib
 
 				~Monitor()
 				{
-					quitThread();
 				}
 
 			public:
-				void quitThread()
-				{
-					if (thread.isNotNull()) {
-						HWND hWnd = g_hWnd;
-						if (hWnd) {
-							PostMessageW(hWnd, WM_USER + 1, 0, 0);
-						}
-						thread->finishAndWait();
-						thread.setNull();
-					}
-				}
-
 				sl_bool update(sl_uint32 mask)
 				{
 					if (!mask) {
@@ -259,32 +213,30 @@ namespace slib
 							UnregisterDevice(USAGE_MOUSE);
 							flagInstalledMouse = sl_false;
 						}
-						quitThread();
+						loop.setNull();
 						return sl_true;
+					}
+					if (loop.isNull()) {
+						loop = Win32MessageLoop::create(SLIB_UNICODE("SLibGlobalEventMonitor"), &ProcessMessage);
+						if (loop.isNull()) {
+							flagInstalledKeyboard = sl_false;
+							flagInstalledMouse = sl_false;
+							return sl_false;
+						}
 					}
 					HWND hWnd;
 					for (;;) {
-						hWnd = g_hWnd;
+						hWnd = loop->getWindowHandle();
 						if (hWnd) {
 							break;
 						}
-						if (thread.isNull()) {
-							thread = Thread::start(&RunMonitor);
-							if (thread.isNull()) {
-								flagInstalledKeyboard = sl_false;
-								flagInstalledMouse = sl_false;
-								return sl_false;
-							}
-						} else {
-							if (thread->isRunning()) {
-								Sleep(10);
-							} else {
-								flagInstalledKeyboard = sl_false;
-								flagInstalledMouse = sl_false;
-								thread.setNull();
-								return sl_false;
-							}
+						if (!(loop->isRunning())) {
+							loop.setNull();
+							flagInstalledKeyboard = sl_false;
+							flagInstalledMouse = sl_false;
+							return sl_false;
 						}
+						Thread::sleep(10);
 					}
 					if (mask & GlobalEventMonitorHelper::MASK_KEYBOARD) {
 						if (!flagInstalledKeyboard) {
