@@ -147,7 +147,18 @@ namespace slib
 		return ret;
 	}
 
-	sl_bool Storage::isUsbVolume(const StringParam& path)
+	String Storage::getVolumePath(const StringParam& _name)
+	{
+		StringCstr16 name(_name);
+		WCHAR path[MAX_PATH];
+		DWORD nWritten = 0;
+		if (GetVolumePathNamesForVolumeNameW((LPCWSTR)(name.getData()), path, (DWORD)(CountOfArray(path)), &nWritten)) {
+			return String::from(path);
+		}
+		return sl_null;
+	}
+
+	sl_bool Storage::getVolumeDescription(const StringParam& path, StorageVolumeDescription& _out)
 	{
 		HANDLE hDevice = Windows::createDeviceHandle(path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE);
 		if (hDevice == INVALID_HANDLE_VALUE) {
@@ -164,10 +175,30 @@ namespace slib
 		DWORD dwWritten = 0;
 		sl_bool bRet = sl_false;
 		if (DeviceIoControl(hDevice, IOCTL_STORAGE_QUERY_PROPERTY, &query, sizeof(query), &desc, sizeof(desc), &dwWritten, NULL)) {
-			bRet = desc.RemovableMedia && desc.BusType == BusTypeUsb;
+			bRet = sl_true;
+			_out.flagRemovable = desc.RemovableMedia;
+			_out.busType = (StorageBusType)(desc.BusType);
 		}
 		CloseHandle(hDevice);
 		return bRet;
+	}
+
+	sl_bool Storage::isRemovableVolume(const StringParam& path)
+	{
+		StorageVolumeDescription desc;
+		if (getVolumeDescription(path, desc)) {
+			return desc.flagRemovable;
+		}
+		return sl_false;
+	}
+
+	sl_bool Storage::isUsbVolume(const StringParam& path)
+	{
+		StorageVolumeDescription desc;
+		if (getVolumeDescription(path, desc)) {
+			return desc.busType == StorageBusType::Usb;
+		}
+		return sl_false;
 	}
 
 	void Storage::addOnVolumeArrival(const VolumeArrivalCallback& callback)

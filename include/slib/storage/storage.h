@@ -31,16 +31,59 @@
 namespace slib
 {
 
+	// equivalent to Win32's `STORAGE_BUS_TYPE`
+	enum class StorageBusType
+	{
+		Unknown = 0,
+		Scsi,
+		Atapi,
+		Ata,
+		IEEE1394,
+		Ssa,
+		Fibre,
+		Usb,
+		RAID,
+		iScsi,
+		Sas,
+		Sata,
+		Sd,
+		Mmc,
+		Virtual,
+		FileBackedVirtual,
+		Max
+	};
+
+	class SLIB_EXPORT StorageVolumeDescription
+	{
+	public:
+		sl_bool flagRemovable;
+		StorageBusType busType;
+
+	public:
+		StorageVolumeDescription();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StorageVolumeDescription)
+
+	};
+
 	typedef Function<void(const String& path)> VolumeArrivalCallback;
 	typedef Function<void(const String& path)> VolumeRemovalCallback;
+
 
 	class SLIB_EXPORT Storage
 	{
 	public:
-		// returns the list of volume path
+		// returns the list of volume device path
 		static List<String> getAllVolumes();
 
+		static String getVolumePath(const StringParam& devicePath);
+
+		static sl_bool getVolumeDescription(const StringParam& path, StorageVolumeDescription& _out);
+
+		static sl_bool isRemovableVolume(const StringParam& path);
+
 		static sl_bool isUsbVolume(const StringParam& path);
+
 
 		static void addOnVolumeArrival(const VolumeArrivalCallback& callback);
 

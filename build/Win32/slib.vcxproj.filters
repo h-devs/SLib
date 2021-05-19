@@ -1397,5 +1397,8 @@
     <ClCompile Include="..\..\src\slib\storage\storage_volume_win32.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\storage.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
