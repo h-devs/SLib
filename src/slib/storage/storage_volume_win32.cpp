@@ -31,12 +31,7 @@
 #include "slib/core/safe_static.h"
 
 #include <dbt.h>
-#include <setupapi.h>
-#include <devguid.h>
-#include <cfgmgr32.h>
-
-#pragma comment(lib, "setupapi.lib")
-
+#include <winioctl.h>
 
 namespace slib
 {
@@ -152,33 +147,27 @@ namespace slib
 		return ret;
 	}
 
-	List<String> Storage::getRemovableVolumes()
+	sl_bool Storage::isUsbVolume(const StringParam& path)
 	{
-		HDEVINFO hDevInfo = SetupDiGetClassDevsW(&GUID_DEVCLASS_DISKDRIVE, NULL, NULL, DIGCF_PRESENT);
-		if (hDevInfo == INVALID_HANDLE_VALUE) {
-			return sl_null;
+		HANDLE hDevice = Windows::createDeviceHandle(path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE);
+		if (hDevice == INVALID_HANDLE_VALUE) {
+			return sl_false;
 		}
 
-		SP_DEVINFO_DATA devInfo;
-		Base::zeroMemory(&devInfo, sizeof(devInfo));
-		devInfo.cbSize = sizeof(devInfo);
+		STORAGE_PROPERTY_QUERY query;
+		Base::zeroMemory(&query, sizeof(query));
+		query.PropertyId = StorageDeviceProperty;
+		query.QueryType = PropertyStandardQuery;
 
-		List<String> ret;
-		DWORD index = 0;
-
-		while (SetupDiEnumDeviceInfo(hDevInfo, index, &devInfo)) {
-			DWORD type, value, size;
-			if (SetupDiGetDeviceRegistryPropertyW(hDevInfo, &devInfo, SPDRP_REMOVAL_POLICY, &type, (PBYTE)&value, sizeof(value), &size)) {
-				if (value == CM_REMOVAL_POLICY_EXPECT_SURPRISE_REMOVAL || value == CM_REMOVAL_POLICY_EXPECT_ORDERLY_REMOVAL) {
-					ret.add_NoLock("\\\\?\\Volume" + Windows::getStringFromGUID(devInfo.ClassGuid) + "\\");
-				}
-			}
-			index++;
+		STORAGE_DEVICE_DESCRIPTOR desc = { 0 };
+		desc.Size = sizeof(desc);
+		DWORD dwWritten = 0;
+		sl_bool bRet = sl_false;
+		if (DeviceIoControl(hDevice, IOCTL_STORAGE_QUERY_PROPERTY, &query, sizeof(query), &desc, sizeof(desc), &dwWritten, NULL)) {
+			bRet = desc.RemovableMedia && desc.BusType == BusTypeUsb;
 		}
-		SetupDiDestroyDeviceInfoList(hDevInfo);
-
-		return ret;
-
+		CloseHandle(hDevice);
+		return bRet;
 	}
 
 	void Storage::addOnVolumeArrival(const VolumeArrivalCallback& callback)

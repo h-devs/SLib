@@ -40,7 +40,7 @@ namespace slib
 		// returns the list of volume path
 		static List<String> getAllVolumes();
 
-		static List<String> getRemovableVolumes();
+		static sl_bool isUsbVolume(const StringParam& path);
 
 		static void addOnVolumeArrival(const VolumeArrivalCallback& callback);
 
