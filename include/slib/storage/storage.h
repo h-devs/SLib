@@ -20,19 +20,26 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_STORAGE_HEADER
-#define CHECKHEADER_SLIB_STORAGE_HEADER
+#ifndef CHECKHEADER_SLIB_STORAGE_STORAGE
+#define CHECKHEADER_SLIB_STORAGE_STORAGE
 
-#include "storage/storage.h"
-#include "storage/disk.h"
+#include "definition.h"
 
-#include "storage/file_system.h"
-#include "storage/file_system_logger.h"
-#include "storage/file_system_mirror.h"
+#include "../core/string.h"
 
-#include "storage/fuse.h"
-#include "storage/dokany.h"
+namespace slib
+{
 
-#include "storage/ntfs.h"
+	class SLIB_EXPORT Storage
+	{
+	public:
+		// returns the list of volume path
+		static List<String> getAllVolumes();
+
+		static List<String> getRemovableVolumes();
+
+	};
+
+}
 
 #endif
