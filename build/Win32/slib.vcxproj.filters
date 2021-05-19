@@ -1394,5 +1394,8 @@
     <ClCompile Include="..\..\src\slib\core\win32_message_loop.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\storage_volume_win32.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

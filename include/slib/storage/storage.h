@@ -26,9 +26,13 @@
 #include "definition.h"
 
 #include "../core/string.h"
+#include "../core/function.h"
 
 namespace slib
 {
+
+	typedef Function<void(const String& path)> VolumeArrivalCallback;
+	typedef Function<void(const String& path)> VolumeRemovalCallback;
 
 	class SLIB_EXPORT Storage
 	{
@@ -37,6 +41,18 @@ namespace slib
 		static List<String> getAllVolumes();
 
 		static List<String> getRemovableVolumes();
+
+		static void addOnVolumeArrival(const VolumeArrivalCallback& callback);
+
+		static void removeOnVolumeArrival(const VolumeArrivalCallback& callback);
+
+		static void setOnVolumeArrival(const VolumeArrivalCallback& callback);
+
+		static void addOnVolumeRemoval(const VolumeRemovalCallback& callback);
+
+		static void removeOnVolumeRemoval(const VolumeRemovalCallback& callback);
+
+		static void setOnVolumeRemoval(const VolumeRemovalCallback& callback);
 
 	};
 
