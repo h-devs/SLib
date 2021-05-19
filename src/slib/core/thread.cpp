@@ -498,8 +498,11 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool ThreadPool::dispatch(const Function<void()>& callback, sl_uint64 delay_ms)
+	sl_bool ThreadPool::dispatch(const Function<void()>& callback, sl_uint64 delayMillis)
 	{
+		if (delayMillis) {
+			return setTimeoutByDefaultDispatchLoop(callback, delayMillis);
+		}
 		return addTask(callback);
 	}
 

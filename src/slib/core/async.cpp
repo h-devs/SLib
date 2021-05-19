@@ -170,8 +170,11 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool AsyncIoLoop::dispatch(const Function<void()>& callback, sl_uint64 delay_ms)
+	sl_bool AsyncIoLoop::dispatch(const Function<void()>& callback, sl_uint64 delayMillis)
 	{
+		if (delayMillis) {
+			return setTimeoutByDefaultDispatchLoop(callback, delayMillis);
+		}
 		return addTask(callback);
 	}
 

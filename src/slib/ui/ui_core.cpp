@@ -91,12 +91,12 @@ namespace slib
 			class DispatcherImpl : public Dispatcher
 			{
 			public:
-				sl_bool dispatch(const Function<void()>& callback, sl_uint64 delay_ms) override
+				sl_bool dispatch(const Function<void()>& callback, sl_uint64 delayMillis) override
 				{
-					if (delay_ms > 0x7fffffff) {
-						delay_ms = 0x7fffffff;
+					if (delayMillis > 0x7fffffff) {
+						delayMillis = 0x7fffffff;
 					}
-					UI::dispatchToUiThread(callback, (sl_uint32)delay_ms);
+					UI::dispatchToUiThread(callback, (sl_uint32)delayMillis);
 					return sl_true;
 				}
 			};
