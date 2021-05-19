@@ -654,6 +654,28 @@ namespace slib
 		return String::from(path, nLen);
 	}
 
+	HANDLE Windows::createDeviceHandle(const StringParam& _path, DWORD dwDesiredAccess, DWORD dwShareMode)
+	{
+		StringCstr16 path(_path);
+		sl_char16 tmpDosName[] = SLIB_UNICODE("\\\\.\\A:");
+		if (!(path.startsWith(SLIB_UNICODE("\\\\.\\")))) {
+			sl_char16* s = path.getData();
+			if (path.getLength() >= 2 && SLIB_CHAR_IS_ALPHA(s[0]) && s[1] == ':') {
+				tmpDosName[4] = SLIB_CHAR_LOWER_TO_UPPER(s[0]);
+				path = tmpDosName;
+			} else {
+				if (path.startsWith(SLIB_UNICODE("\\\\?\\Volume{")) && path.endsWith('\\')) {
+					// we need to remove trailing back-slash
+					sl_reg index = path.indexOf('}');
+					if (index >= 0) {
+						path = String16(path.substring(0, index + 1));
+					}
+				}
+			}
+		}
+		return CreateFileW((LPCWSTR)(path.getData()), dwDesiredAccess, dwShareMode, NULL, OPEN_EXISTING, 0, NULL);
+	}
+
 	sl_bool Windows::isWindowVisible(HWND hWnd)
 	{
 		if (!(IsWindow(hWnd))) {

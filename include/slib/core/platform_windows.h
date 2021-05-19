@@ -166,6 +166,8 @@ namespace slib
 
 		static String getSystemWow64Directory();
 
+		static HANDLE createDeviceHandle(const StringParam& path, DWORD dwDesiredAccess, DWORD dwShareMode);
+
 
 		static sl_bool installDriver(const StringParam& pathToInf, const StringParam& hardwareId, sl_bool* pOutRebootRequired = sl_null);
 		

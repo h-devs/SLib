@@ -52,6 +52,8 @@ namespace slib
 		SeekToEnd = 0x1000,
 		HintRandomAccess = 0x2000,
 
+		Device = 0x8000,
+
 		ReadWrite = Read | Write,
 		Append = Write | NotTruncate | SeekToEnd,
 		RandomAccess = Read | Write | NotTruncate | HintRandomAccess,
@@ -182,6 +184,8 @@ namespace slib
 				"\\\\.\\PhysicalDrive0"  (Win32)
 				"\\\\.\\CdRom0"
 				"\\\\.\\A:"
+				"C:\\"
+				"\\\\?\\Volume{...}\\"
 		 
 		 		"/dev/disk0"  (macOS)
 		 		"/dev/sda1"   (Linux)
