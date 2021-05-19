@@ -44,7 +44,7 @@ namespace slib
 				void onChange(Win32_ViewInstance* instance, HWND handle)
 				{
 					String textOld = m_text;
-					String text = Windows::getWindowText(handle);
+					String text = UIPlatform::getWindowText(handle);
 					String textNew = text;
 					dispatchChange(textNew);
 					if (text != textNew) {
@@ -66,7 +66,7 @@ namespace slib
 				} else if (align == Alignment::Right) {
 					style = ES_RIGHT;
 				}
-				Windows::removeAndAddWindowStyle(handle, ES_RIGHT | ES_CENTER, style);
+				UIPlatform::removeAndAddWindowStyle(handle, ES_RIGHT | ES_CENTER, style);
 			}
 			
 			class EditViewInstance : public Win32_ViewInstance, public IEditViewInstance
@@ -112,7 +112,7 @@ namespace slib
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						_out = Windows::getWindowText(handle);
+						_out = UIPlatform::getWindowText(handle);
 						return sl_true;
 					}
 					return sl_false;
@@ -185,7 +185,7 @@ namespace slib
 
 				void setMultiLine(EditView* view, MultiLineMode mode) override
 				{
-					Windows::setWindowStyle(m_handle, ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN, mode != MultiLineMode::Single);
+					UIPlatform::setWindowStyle(m_handle, ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN, mode != MultiLineMode::Single);
 				}
 
 				sl_ui_len measureHeight(EditView* view) override
@@ -319,7 +319,7 @@ namespace slib
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						_out = Windows::getWindowText(handle);
+						_out = UIPlatform::getWindowText(handle);
 						return sl_true;
 					}
 					return sl_false;

@@ -43,11 +43,11 @@ namespace slib
 			public:
 				void onChange(HWND handle)
 				{
-					String text = Windows::getWindowText(handle);
+					String text = UIPlatform::getWindowText(handle);
 					String textNew = text;
 					dispatchChange(textNew);
 					if (text != textNew) {
-						Windows::setWindowText(handle, textNew);
+						UIPlatform::setWindowText(handle, textNew);
 					}
 				}
 				
@@ -161,7 +161,7 @@ namespace slib
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						_out = Windows::getWindowText(handle);
+						_out = UIPlatform::getWindowText(handle);
 						return sl_true;
 					}
 					return sl_false;

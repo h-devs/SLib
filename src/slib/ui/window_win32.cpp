@@ -303,7 +303,7 @@ namespace slib
 				{
 					HWND hWnd = m_handle;
 					if (hWnd) {
-						Windows::setWindowText(hWnd, title);
+						UIPlatform::setWindowText(hWnd, title);
 					}
 				}
 
@@ -442,7 +442,7 @@ namespace slib
 					if (m_flagBorderless || m_flagFullscreen) {
 						return;
 					}
-					Windows::setWindowStyle(m_handle, WS_MINIMIZEBOX, flag);
+					UIPlatform::setWindowStyle(m_handle, WS_MINIMIZEBOX, flag);
 				}
 
 				void setMaximizeButtonEnabled(sl_bool flag) override
@@ -450,7 +450,7 @@ namespace slib
 					if (m_flagBorderless || m_flagFullscreen) {
 						return;
 					}
-					Windows::setWindowStyle(m_handle, WS_MAXIMIZEBOX, flag);
+					UIPlatform::setWindowStyle(m_handle, WS_MAXIMIZEBOX, flag);
 				}
 
 				void setResizable(sl_bool flag) override
@@ -459,7 +459,7 @@ namespace slib
 					if (m_flagBorderless || m_flagFullscreen) {
 						return;
 					}
-					Windows::setWindowStyle(m_handle, WS_THICKFRAME, flag);
+					UIPlatform::setWindowStyle(m_handle, WS_THICKFRAME, flag);
 				}
 
 				void setLayered(sl_bool flag) override
@@ -470,7 +470,7 @@ namespace slib
 							return;
 						}
 						m_flagLayered = flag;
-						Windows::setWindowExStyle(hWnd, WS_EX_LAYERED, flag);
+						UIPlatform::setWindowExStyle(hWnd, WS_EX_LAYERED, flag);
 						Ref<ViewInstance> instance = m_viewContent;
 						if (instance.isNotNull()) {
 							((Win32_ViewInstance*)(instance.get()))->setLayered(flag);
@@ -490,7 +490,7 @@ namespace slib
 							return;
 						}
 						m_alpha = a;
-						Windows::setWindowExStyle(hWnd, WS_EX_LAYERED, m_alpha < 255);
+						UIPlatform::setWindowExStyle(hWnd, WS_EX_LAYERED, m_alpha < 255);
 						SetLayeredWindowAttributes(hWnd, 0, m_alpha, LWA_ALPHA);
 						RedrawWindow(hWnd,
 							NULL,
@@ -501,7 +501,7 @@ namespace slib
 
 				void setTransparent(sl_bool flag) override
 				{
-					Windows::setWindowExStyle(m_handle, WS_EX_TRANSPARENT, flag);
+					UIPlatform::setWindowExStyle(m_handle, WS_EX_TRANSPARENT, flag);
 				}
 
 				sl_bool getClientInsets(UIEdgeInsets& _out) override
@@ -530,7 +530,7 @@ namespace slib
 				{
 					HWND hWnd = m_handle;
 					if (hWnd) {
-						HWND hWndParent = Windows::getOwnerWindow(hWnd);
+						HWND hWndParent = GetWindow(hWnd, GW_OWNER);
 						sl_bool flagEnableParent = sl_false;
 						if (hWndParent) {
 							if (hWndParent != GetDesktopWindow() && IsWindowEnabled(hWndParent)) {

@@ -843,11 +843,11 @@ namespace slib
 	void Win32_ViewInstance::setBorder(View* view, sl_bool flag)
 	{
 		if (view->isClientEdge()) {
-			Windows::setWindowExStyle(m_handle, WS_EX_CLIENTEDGE, flag);
-			Windows::setWindowStyle(m_handle, WS_BORDER, sl_false);
+			UIPlatform::setWindowExStyle(m_handle, WS_EX_CLIENTEDGE, flag);
+			UIPlatform::setWindowStyle(m_handle, WS_BORDER, sl_false);
 		} else {
-			Windows::setWindowExStyle(m_handle, WS_EX_CLIENTEDGE, sl_false);
-			Windows::setWindowStyle(m_handle, WS_BORDER, flag);
+			UIPlatform::setWindowExStyle(m_handle, WS_EX_CLIENTEDGE, sl_false);
+			UIPlatform::setWindowStyle(m_handle, WS_BORDER, flag);
 		}
 	}
 
@@ -887,7 +887,7 @@ namespace slib
 		HWND handle = m_handle;
 		if (handle) {
 			String16 text = _text.toString16();
-			Windows::setWindowText(handle, text);
+			UIPlatform::setWindowText(handle, text);
 			m_text = Move(text);
 		}
 	}

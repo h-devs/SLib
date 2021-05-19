@@ -100,6 +100,21 @@ namespace slib
 
 		static void applyEventModifiers(UIEvent* ev);
 
+		static sl_bool isWindowVisible(HWND hWnd);
+		static String getWindowText(HWND hWnd);
+		static String16 getWindowText16(HWND hWnd);
+		static void setWindowText(HWND hWnd, const StringParam& text);
+
+		static void setWindowStyle(HWND hWnd, LONG flags, sl_bool flagAddOrRemove);
+		static void removeAndAddWindowStyle(HWND hWnd, LONG flagsRemove, LONG flagsAdd);
+		static void setWindowExStyle(HWND hWnd, LONG flags, sl_bool flagAddOrRemove);
+		static void removeAndAddWindowExStyle(HWND hWnd, LONG flagsRemove, LONG flagsAdd);
+
+		static sl_bool processWindowHorizontalScrollEvents(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, sl_uint32 nLine, sl_uint32 nWheel);
+		static sl_bool processWindowVerticalScrollEvents(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, sl_uint32 nLine, sl_uint32 nWheel);
+		static void setWindowHorizontalScrollParam(HWND hWnd, sl_int32 nMin, sl_int32 nMax, sl_int32 nPage);
+		static void setWindowVerticalScrollParam(HWND hWnd, sl_int32 nMin, sl_int32 nMax, sl_int32 nPage);
+
 #elif defined(SLIB_UI_IS_MACOS)
 #	if defined(__OBJC__)
 		static Ref<ViewInstance> createViewInstance(NSView* handle);

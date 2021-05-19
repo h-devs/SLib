@@ -74,7 +74,7 @@ namespace slib
 
 			void ButtonInstance::setDefaultButton(Button* view, sl_bool flag)
 			{
-				Windows::setWindowStyle(m_handle, BS_DEFPUSHBUTTON, flag);
+				UIPlatform::setWindowStyle(m_handle, BS_DEFPUSHBUTTON, flag);
 			}
 
 			sl_bool ButtonInstance::measureSize(Button* view, UISize& _out)
