@@ -37,6 +37,26 @@ namespace slib
 
 	class Thread;
 
+	class SLIB_EXPORT Win32MessageLoopParam
+	{
+	public:
+		StringParam name;
+		Function<void(HWND)> onCreateWindow;
+		Function<sl_bool(UINT, WPARAM, LPARAM, LRESULT&)> onMessage;
+		sl_bool flagAutoStart;
+
+		UINT classStyle;
+		UINT windowStyle;
+		UINT extendedWindowStyle;
+		HWND hWndParent;
+
+	public:
+		Win32MessageLoopParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Win32MessageLoopParam)
+
+	};
+
 	class SLIB_EXPORT Win32MessageLoop : public Dispatcher
 	{
 	protected:
@@ -45,18 +65,20 @@ namespace slib
 		~Win32MessageLoop();
 	
 	public:
-		static Ref<Win32MessageLoop> create(const StringParam& name, const Function<sl_bool(UINT, WPARAM, LPARAM, LRESULT&)>& handler, sl_bool flagAutoStart = sl_true);
+		static Ref<Win32MessageLoop> create(const Win32MessageLoopParam& param);
 
 	public:
-		void release();
-
 		void start();
+
+		void stop();
 
 		sl_bool isRunning();
 
-		sl_bool dispatch(const Function<void()>& task, sl_uint64 delay_ms = 0) override;
+		sl_bool dispatch(const Function<void()>& task, sl_uint64 delayMillis = 0) override;
 
 	public:
+		void setOnCreateWindow(const Function<void(HWND)>& callback);
+
 		HWND getWindowHandle();
 
 	public:
@@ -65,9 +87,17 @@ namespace slib
 	protected:
 		void _run();
 
+		sl_bool _processTasks();
+
 	public:
 		String16 m_name;
-		Function<sl_bool(UINT, WPARAM, LPARAM, LRESULT&)> m_handler;
+		AtomicFunction<void(HWND)> m_onCreateWindow;
+		Function<sl_bool(UINT, WPARAM, LPARAM, LRESULT&)> m_onMessage;
+
+		UINT m_styleClass;
+		UINT m_styleWindow;
+		UINT m_styleWindowEx;
+		HWND m_hWndParent;
 
 		HWND m_hWnd;
 		sl_bool m_flagRunning;

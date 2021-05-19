@@ -53,6 +53,20 @@ namespace slib
 
 	using namespace priv::win32_msg_loop;
 
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Win32MessageLoopParam)
+
+	Win32MessageLoopParam::Win32MessageLoopParam()
+	{
+		flagAutoStart = sl_true;
+
+		classStyle = 0;
+		windowStyle = 0;
+		extendedWindowStyle = 0;
+		hWndParent = HWND_MESSAGE;
+	}
+
+
 	Win32MessageLoop::Win32MessageLoop()
 	{
 		m_hWnd = sl_null;
@@ -61,50 +75,71 @@ namespace slib
 
 	Win32MessageLoop::~Win32MessageLoop()
 	{
-		release();
+		stop();
 	}
 
-	Ref<Win32MessageLoop> Win32MessageLoop::create(const StringParam& _name, const Function<sl_bool(UINT, WPARAM, LPARAM, LRESULT&)>& handler, sl_bool flagAutoStart)
+	Ref<Win32MessageLoop> Win32MessageLoop::create(const Win32MessageLoopParam& param)
 	{
-		String16 name = _name.toString16();
+		String16 name = param.name.toString16();
 		if (name.isEmpty()) {
 			return sl_null;
 		}
-		Ref<Win32MessageLoop> ret = new Win32MessageLoop;
+
+		Ref<Win32MessageLoop> ret = new Win32MessageLoop;		
 		if (ret.isNotNull()) {
+
 			ret->m_name = name;
-			ret->m_handler = handler;
-			if (flagAutoStart) {
+			ret->m_onCreateWindow = param.onCreateWindow;
+			ret->m_onMessage = param.onMessage;
+
+			ret->m_styleClass = param.classStyle;
+			ret->m_styleWindow = param.windowStyle;
+			ret->m_styleWindowEx = param.extendedWindowStyle;
+			ret->m_hWndParent = param.hWndParent;
+
+			if (param.flagAutoStart) {
 				ret->start();
 			}
+
 			return ret;
 		}
-		return sl_null;
-	}
 
-	void Win32MessageLoop::release()
-	{
-		ObjectLocker lock(this);
-		HWND hWnd = m_hWnd;
-		if (hWnd) {
-			PostMessageW(hWnd, WM_QUIT, 0, 0);
-		}
-		if (m_thread.isNotNull()) {
-			m_thread->finish();
-			lock.unlock();
-			m_thread->finishAndWait();
-		}
+		return sl_null;
 	}
 
 	void Win32MessageLoop::start()
 	{
 		ObjectLocker lock(this);
+		if (m_flagRunning) {
+			return;
+		}
+		m_flagRunning = sl_true;
+		m_thread = Thread::start(SLIB_FUNCTION_MEMBER(Win32MessageLoop, _run, this));
 		if (m_thread.isNull()) {
-			m_thread = Thread::start(SLIB_FUNCTION_MEMBER(Win32MessageLoop, _run, this));
-			if (m_thread.isNotNull()) {
-				m_flagRunning = sl_true;
+			m_flagRunning = sl_false;
+		}
+	}
+
+	void Win32MessageLoop::stop()
+	{
+		ObjectLocker lock(this);
+		if (!m_flagRunning) {
+			return;
+		}
+		HWND hWnd = m_hWnd;
+		if (hWnd) {
+			PostMessageW(hWnd, WM_QUIT, 0, 0);
+			m_hWnd = sl_null;
+		}
+		m_tasks.removeAll();
+		Thread* thread = m_thread.get();
+		if (thread) {
+			m_thread.setNull();
+			if (thread->isRunning()) {
+				thread->finishAndWait();
 			}
 		}
+		m_flagRunning = sl_false;
 	}
 
 	sl_bool Win32MessageLoop::isRunning()
@@ -112,29 +147,24 @@ namespace slib
 		return m_flagRunning;
 	}
 
-	sl_bool Win32MessageLoop::dispatch(const Function<void()>& task, sl_uint64 delay_ms)
+	sl_bool Win32MessageLoop::dispatch(const Function<void()>& task, sl_uint64 delayMillis)
 	{
-		HWND hWnd = m_hWnd;
-		if (!hWnd) {
-			return sl_false;
+		if (delayMillis) {
+			return setTimeoutByDefaultDispatchLoop(task, delayMillis);
 		}
-		if (delay_ms) {
-			WeakRef<Win32MessageLoop> thiz = this;
-			return Dispatch::setTimeout([this, thiz, task]() {
-				Ref<Win32MessageLoop> ref = thiz;
-				if (ref.isNull()) {
-					return;
-				}
-				dispatch(task);
-			}, delay_ms);
-		} else {
-			if (m_tasks.push(task)) {
-				if (PostMessageW(hWnd, WM_COMMAND, 0, 0)) {
-					return sl_true;
-				}
+		if (m_tasks.push(task)) {
+			HWND hWnd = m_hWnd;
+			if (hWnd) {
+				PostMessageW(hWnd, WM_COMMAND, 0, 0);
 			}
-			return sl_false;
+			return sl_true;
 		}
+		return sl_false;
+	}
+
+	void Win32MessageLoop::setOnCreateWindow(const Function<void(HWND)>& callback)
+	{
+		m_onCreateWindow = callback;
 	}
 
 	HWND Win32MessageLoop::getWindowHandle()
@@ -148,18 +178,13 @@ namespace slib
 		if (!hWnd) {
 			return sl_false;
 		}
-		if (uMsg == WM_COMMAND) {
-			Function<void()> task;
-			sl_size n = m_tasks.getCount();
-			for (sl_size i = 0; i < n; i++) {
-				if (m_tasks.pop(&task)) {
-					task();
-				} else {
-					break;
-				}
-			}
+		if (!m_flagRunning) {
+			return sl_false;
 		}
-		return m_handler(uMsg, wParam, lParam, result);
+		if (m_onMessage.isNotNull()) {
+			return m_onMessage(uMsg, wParam, lParam, result);
+		}
+		return sl_false;
 	}
 
 	void Win32MessageLoop::_run()
@@ -169,22 +194,32 @@ namespace slib
 		WNDCLASSEXW wc;
 		Base::zeroMemory(&wc, sizeof(wc));
 		wc.cbSize = sizeof(wc);
+		wc.style = m_styleClass;
 		wc.lpszClassName = (LPCWSTR)(m_name.getData());
 		wc.lpfnWndProc = LoopWindowProc;
 		wc.hInstance = hInstance;
 
 		ATOM atom = RegisterClassExW(&wc);
 		if (atom) {
-			HWND hWnd = CreateWindowW((LPCWSTR)atom, L"", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, 0, 0);
+			HWND hWnd = CreateWindowExW(m_styleWindowEx,(LPCWSTR)atom, L"", m_styleWindow, 0, 0, 0, 0, m_hWndParent, 0, 0, 0);
 			if (hWnd) {
 				ObjectLocker lock(this);
 				if (Thread::isNotStoppingCurrent()) {
 					SetWindowLongPtrW(hWnd, GWLP_USERDATA, (LONG_PTR)(this));
 					m_hWnd = hWnd;
 					lock.unlock();
-					MSG msg;
-					while (GetMessageW(&msg, NULL, 0, 0)) {
-						DispatchMessageW(&msg);
+					m_onCreateWindow(hWnd);
+					if (_processTasks()) {
+						MSG msg;
+						while (GetMessageW(&msg, NULL, 0, 0)) {
+							if (msg.message == WM_COMMAND) {
+								if (!(_processTasks())) {
+									break;
+								}
+							} else {
+								DispatchMessageW(&msg);
+							}
+						}
 					}
 					m_hWnd = sl_null;
 				}
@@ -193,6 +228,34 @@ namespace slib
 			UnregisterClassW((LPCWSTR)atom, wc.hInstance);
 		}
 		m_flagRunning = sl_false;
+	}
+
+	sl_bool Win32MessageLoop::_processTasks()
+	{
+		Function<void()> task;
+		for (;;) {
+			sl_size n = m_tasks.getCount();
+			if (!n) {
+				break;
+			}
+			for (sl_size i = 0; i < n; i++) {
+				if (m_tasks.pop(&task)) {
+					task();
+				} else {
+					break;
+				}
+			}
+			MSG msg;
+			if (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
+				if (msg.message == WM_QUIT) {
+					return sl_false;
+				}
+				if (msg.message != WM_COMMAND) {
+					DispatchMessageW(&msg);
+				}
+			}
+		}
+		return sl_true;
 	}
 
 }
