@@ -40,8 +40,20 @@ namespace slib
 	Dispatcher::~Dispatcher()
 	{
 	}
-	
-	
+
+	sl_bool Dispatcher::setTimeoutByDefaultDispatchLoop(const Function<void()>& task, sl_uint64 delayMillis)
+	{
+		WeakRef<Dispatcher> thiz = this;
+		return Dispatch::setTimeout([this, thiz, task]() {
+			Ref<Dispatcher> ref = thiz;
+			if (ref.isNull()) {
+				return;
+			}
+			dispatch(task);
+		}, delayMillis);
+	}
+
+
 	sl_bool Dispatch::dispatch(const Ref<Dispatcher>& dispatcher, const Function<void()>& task)
 	{
 		if (dispatcher.isNotNull()) {
@@ -55,30 +67,30 @@ namespace slib
 		return Dispatch::dispatch(DispatchLoop::getDefault(), task);
 	}
 
-	sl_bool Dispatch::setTimeout(const Ref<Dispatcher>& dispatcher, const Function<void()>& task, sl_uint64 delay_ms)
+	sl_bool Dispatch::setTimeout(const Ref<Dispatcher>& dispatcher, const Function<void()>& task, sl_uint64 delayMillis)
 	{
 		if (dispatcher.isNotNull()) {
-			return dispatcher->dispatch(task, delay_ms);
+			return dispatcher->dispatch(task, delayMillis);
 		}
 		return sl_false;
 	}
 
-	sl_bool Dispatch::setTimeout(const Function<void()>& task, sl_uint64 delay_ms)
+	sl_bool Dispatch::setTimeout(const Function<void()>& task, sl_uint64 delayMillis)
 	{
-		return Dispatch::setTimeout(DispatchLoop::getDefault(), task, delay_ms);
+		return Dispatch::setTimeout(DispatchLoop::getDefault(), task, delayMillis);
 	}
 
-	Ref<Timer> Dispatch::setInterval(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms)
+	Ref<Timer> Dispatch::setInterval(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 intervalMillis)
 	{
 		if (loop.isNotNull()) {
-			return Timer::startWithLoop(loop, task, interval_ms);
+			return Timer::startWithLoop(loop, task, intervalMillis);
 		}
 		return sl_null;
 	}
 
-	Ref<Timer> Dispatch::setInterval(const Function<void(Timer*)>& task, sl_uint64 interval_ms)
+	Ref<Timer> Dispatch::setInterval(const Function<void(Timer*)>& task, sl_uint64 intervalMillis)
 	{
-		return Dispatch::setInterval(DispatchLoop::getDefault(), task, interval_ms);
+		return Dispatch::setInterval(DispatchLoop::getDefault(), task, intervalMillis);
 	}
 
 
@@ -227,12 +239,12 @@ namespace slib
 		}
 	}
 
-	sl_bool DispatchLoop::dispatch(const Function<void()>& task, sl_uint64 delay_ms)
+	sl_bool DispatchLoop::dispatch(const Function<void()>& task, sl_uint64 delayMillis)
 	{
 		if (task.isNull()) {
 			return sl_false;
 		}
-		if (delay_ms == 0) {
+		if (!delayMillis) {
 			if (m_queueTasks.push(task)) {
 				_wake();
 				return sl_true;
@@ -240,7 +252,7 @@ namespace slib
 		} else {
 			MutexLocker lock(&m_lockTimeTasks);
 			TimeTask tt;
-			tt.time = getElapsedMilliseconds() + delay_ms;
+			tt.time = getElapsedMilliseconds() + delayMillis;
 			tt.task = task;
 			if (m_timeTasks.add(tt.time, tt)) {
 				_wake();

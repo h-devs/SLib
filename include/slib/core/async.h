@@ -81,7 +81,7 @@ namespace slib
 
 		void requestOrder(AsyncIoInstance* instance);
 
-		sl_bool dispatch(const Function<void()>& callback, sl_uint64 delay_ms) override;
+		sl_bool dispatch(const Function<void()>& callback, sl_uint64 delayMillis = 0) override;
 
 	protected:
 		sl_bool m_flagInit;

@@ -57,7 +57,7 @@ namespace slib
 
 		sl_bool isRunning();
 
-		sl_bool dispatch(const Function<void()>& task, sl_uint64 delay_ms = 0) override;
+		sl_bool dispatch(const Function<void()>& task, sl_uint64 delayMillis = 0) override;
 
 		sl_bool addTimer(const Ref<Timer>& timer);
 		

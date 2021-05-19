@@ -41,7 +41,10 @@ namespace slib
 		~Dispatcher();
 
 	public:
-		virtual sl_bool dispatch(const Function<void()>& callback, sl_uint64 delay_ms = 0) = 0;
+		virtual sl_bool dispatch(const Function<void()>& callback, sl_uint64 delayMillis = 0) = 0;
+
+	protected:
+		sl_bool setTimeoutByDefaultDispatchLoop(const Function<void()>& callback, sl_uint64 delayMillis);
 
 	};
 	
@@ -54,13 +57,13 @@ namespace slib
 		
 		static sl_bool dispatch(const Function<void()>& task);
 		
-		static sl_bool setTimeout(const Ref<Dispatcher>& dispatcher, const Function<void()>& task, sl_uint64 delay_ms);
+		static sl_bool setTimeout(const Ref<Dispatcher>& dispatcher, const Function<void()>& task, sl_uint64 delayMillis);
 		
-		static sl_bool setTimeout(const Function<void()>& task, sl_uint64 delay_ms);
+		static sl_bool setTimeout(const Function<void()>& task, sl_uint64 delayMillis);
 		
-		static Ref<Timer> setInterval(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms);
+		static Ref<Timer> setInterval(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 intervalMillis);
 		
-		static Ref<Timer> setInterval(const Function<void(Timer*)>& task, sl_uint64 interval_ms);
+		static Ref<Timer> setInterval(const Function<void(Timer*)>& task, sl_uint64 intervalMillis);
 		
 	};
 	
