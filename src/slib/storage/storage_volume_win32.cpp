@@ -27,11 +27,18 @@
 #include "slib/storage/storage.h"
 
 #include "slib/core/win32_message_loop.h"
+#include "slib/core/service_manager.h"
 #include "slib/core/platform_windows.h"
 #include "slib/core/safe_static.h"
+#include "slib/core/scoped.h"
 
 #include <dbt.h>
 #include <winioctl.h>
+#include <setupapi.h>
+#include <devguid.h>
+#include <cfgmgr32.h>
+
+#pragma comment(lib, "setupapi.lib")
 
 namespace slib
 {
@@ -124,6 +131,11 @@ namespace slib
 
 			SLIB_SAFE_STATIC_GETTER(DeviceChangeMonitor, GetMonitor)
 
+			static sl_bool SetUsbMassStorageEnabled(sl_bool flag)
+			{
+				return ServiceManager::setStartType(L"usbstor", flag ? ServiceStartType::Manual : ServiceStartType::Disabled);
+			}
+			
 		}
 	}
 
@@ -170,7 +182,8 @@ namespace slib
 		query.PropertyId = StorageDeviceProperty;
 		query.QueryType = PropertyStandardQuery;
 
-		STORAGE_DEVICE_DESCRIPTOR desc = { 0 };
+		STORAGE_DEVICE_DESCRIPTOR desc;
+		Base::zeroMemory(&desc, sizeof(desc));
 		desc.Size = sizeof(desc);
 		DWORD dwWritten = 0;
 		sl_bool bRet = sl_false;
@@ -199,6 +212,115 @@ namespace slib
 			return desc.busType == StorageBusType::Usb;
 		}
 		return sl_false;
+	}
+	
+	sl_bool Storage::isCdromVolume(const StringParam& path)
+	{
+		HANDLE hDevice = Windows::createDeviceHandle(path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE);
+		if (hDevice == INVALID_HANDLE_VALUE) {
+			return sl_false;
+		}
+
+		sl_bool bRet = sl_false;
+
+		STORAGE_DEVICE_NUMBER sdn;
+		DWORD dwWritten = 0;
+		if (DeviceIoControl(hDevice, IOCTL_STORAGE_GET_DEVICE_NUMBER, NULL, 0, &sdn, sizeof(sdn), &dwWritten, NULL)) {
+			bRet = sdn.DeviceType == FILE_DEVICE_CD_ROM;
+		}
+		CloseHandle(hDevice);
+
+		return bRet;
+	}
+
+	sl_bool Storage::removeDevice(const StringParam& volumePath)
+	{
+		HANDLE hDevice = Windows::createDeviceHandle(volumePath, 0, FILE_SHARE_READ | FILE_SHARE_WRITE);
+		if (hDevice == INVALID_HANDLE_VALUE) {
+			return sl_false;
+		}
+
+		STORAGE_DEVICE_NUMBER sdn;
+		{
+			DWORD dwWritten = 0;
+			if (!(DeviceIoControl(hDevice, IOCTL_STORAGE_GET_DEVICE_NUMBER, NULL, 0, &sdn, sizeof(sdn), &dwWritten, NULL))) {
+				CloseHandle(hDevice);
+				return sl_false;
+			}
+		}
+		CloseHandle(hDevice);
+
+		const GUID* guid;
+		if (sdn.DeviceType == FILE_DEVICE_CD_ROM) {
+			guid = &GUID_DEVINTERFACE_CDROM;
+		} else {
+			guid = &GUID_DEVINTERFACE_DISK;
+		}
+
+		HDEVINFO hDevInfo = SetupDiGetClassDevsW(guid, NULL, NULL, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+		if (hDevInfo == INVALID_HANDLE_VALUE) {
+			return sl_false;
+		}
+
+		SP_DEVICE_INTERFACE_DATA interfaceData;
+		Base::zeroMemory(&interfaceData, sizeof(interfaceData));
+		interfaceData.cbSize = sizeof(interfaceData);
+
+		BOOL bRet = sl_false;
+		DWORD index = 0;
+		while (SetupDiEnumDeviceInterfaces(hDevInfo, NULL, guid, index, &interfaceData)) {
+			DWORD dwSizeDetail = 0;
+			SetupDiGetDeviceInterfaceDetailW(hDevInfo, &interfaceData, NULL, 0, &dwSizeDetail, NULL);
+			if (dwSizeDetail) {
+				SLIB_SCOPED_BUFFER(sl_uint8, 1024, _detail, dwSizeDetail)
+				SP_DEVICE_INTERFACE_DETAIL_DATA* detail = (SP_DEVICE_INTERFACE_DETAIL_DATA*)_detail;
+				Base::zeroMemory(detail, dwSizeDetail);
+				detail->cbSize = sizeof(*detail);
+				SP_DEVINFO_DATA infoData;
+				Base::zeroMemory(&infoData, sizeof(infoData));
+				infoData.cbSize = sizeof(infoData);
+				if (SetupDiGetDeviceInterfaceDetailW(hDevInfo, &interfaceData, detail, dwSizeDetail, &dwSizeDetail, &infoData)) {
+					hDevice = CreateFileW(detail->DevicePath, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL);
+					if (hDevice != INVALID_HANDLE_VALUE) {
+						STORAGE_DEVICE_NUMBER sdnOther;
+						DWORD dwBytesReturned = 0;
+						DWORD dwWritten = 0;
+						if (DeviceIoControl(hDevice, IOCTL_STORAGE_GET_DEVICE_NUMBER, NULL, 0, &sdnOther, sizeof(sdnOther), &dwWritten, NULL)) {
+							CloseHandle(hDevice);
+							if (sdn.DeviceNumber == sdnOther.DeviceNumber) {
+								DEVINST hDevInstParent = 0;
+								// get drives's parent, e.g. the USB bridge, the SATA port, an IDE channel with two drives!
+								if (CM_Get_Parent(&hDevInstParent, infoData.DevInst, 0) == CR_SUCCESS) {
+									PNP_VETO_TYPE vetoType = PNP_VetoTypeUnknown;
+									WCHAR vetoName[MAX_PATH];
+									vetoName[0] = 0;
+									if (CM_Request_Device_EjectW(hDevInstParent, &vetoType, vetoName, MAX_PATH, 0) == CR_SUCCESS) {
+										bRet = vetoType == PNP_VetoTypeUnknown;
+									}
+								}
+								break;
+							}
+						} else {
+							CloseHandle(hDevice);
+						}
+					}
+				}
+			}
+			index++;
+		}
+		SetupDiDestroyDeviceInfoList(hDevInfo);
+
+		return bRet;
+	}
+
+	sl_bool Storage::disableUsbMassStorage()
+	{
+		return SetUsbMassStorageEnabled(sl_false);
+	}
+
+	sl_bool Storage::enableUsbMassStorage()
+	{
+		return SetUsbMassStorageEnabled(sl_true);
 	}
 
 	void Storage::addOnVolumeArrival(const VolumeArrivalCallback& callback)

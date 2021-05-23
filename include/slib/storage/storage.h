@@ -84,6 +84,14 @@ namespace slib
 
 		static sl_bool isUsbVolume(const StringParam& path);
 
+		static sl_bool isCdromVolume(const StringParam& path);
+
+		static sl_bool removeDevice(const StringParam& volumPath);
+
+		static sl_bool disableUsbMassStorage();
+
+		static sl_bool enableUsbMassStorage();
+
 
 		static void addOnVolumeArrival(const VolumeArrivalCallback& callback);
 
