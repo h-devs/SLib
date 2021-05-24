@@ -28,7 +28,7 @@
 #include "slib/core/memory_buffer.h"
 #include "slib/core/parse.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {

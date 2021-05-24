@@ -24,7 +24,7 @@
 
 #include "slib/ui/view_page.h"
 #include "slib/ui/gesture.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_counter.h"
 
 #if defined(SLIB_UI_IS_ANDROID)
 #	include "slib/core/platform_android.h"

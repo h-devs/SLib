@@ -23,7 +23,7 @@
 #include "slib/network/url.h"
 
 #include "slib/core/string_buffer.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #include "slib/network/http_common.h"
 

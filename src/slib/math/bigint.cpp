@@ -25,7 +25,7 @@
 #include "slib/core/math.h"
 #include "slib/core/io.h"
 #include "slib/core/mio.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/compile_optimize.h"
 
 #include "slib/math/json_conv.h"

@@ -26,7 +26,7 @@
 
 #include "slib/graphics/platform.h"
 
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/safe_static.h"
 
 #pragma comment(lib, "gdiplus.lib")

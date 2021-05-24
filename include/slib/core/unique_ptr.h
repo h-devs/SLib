@@ -28,59 +28,12 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ptr
-		{
-			
-			template <class T>
-			class UniqueHelper
-			{
-			public:
-				typedef T* PointerType;
-				typedef T ValueType;
-
-				static void free(T* t)
-				{
-					delete t;
-				}
-			};
-
-			template <class T>
-			class UniqueHelper<T[]>
-			{
-			public:
-				typedef T* PointerType;
-				typedef T ValueType;
-
-				static void free(T* t)
-				{
-					delete[] t;
-				}
-			};
-			
-			template <>
-			class UniqueHelper<void>
-			{
-			public:
-				typedef void* PointerType;
-				typedef int ValueType;
-
-				static void free(void* t)
-				{
-					delete[] (char*)t;
-				}
-			};
-
-		}
-	}
-
 	template <class T>
 	class SLIB_EXPORT UniquePtr
 	{
 	public:
-		typedef typename priv::ptr::UniqueHelper<T>::PointerType PointerType;
-		typedef typename priv::ptr::UniqueHelper<T>::ValueType ValueType;
+		typedef T* PointerType;
+		typedef T ValueType;
 
 	public:
 		PointerType ptr;
@@ -99,7 +52,7 @@ namespace slib
 			ptr = other.release();
 		}
 
-		~UniquePtr()
+		~UniquePtr() noexcept
 		{
 			_free();
 		}
@@ -135,12 +88,17 @@ namespace slib
 			return ptr;
 		}
 
-		ValueType& operator[](sl_size index) const noexcept
+	public:
+		sl_bool isNull() const noexcept
 		{
-			return ptr[index];
+			return !ptr;
 		}
 
-	public:
+		sl_bool isNotNull() const noexcept
+		{
+			return ptr != null;
+		}
+
 		PointerType get() const noexcept
 		{
 			return ptr;
@@ -153,22 +111,124 @@ namespace slib
 			return ret;
 		}
 
-		void reset()
+		void reset() noexcept
 		{
 			_free();
 			ptr = sl_null;
 		}
 
-		void reset(PointerType _ptr)
+		void reset(PointerType _ptr) noexcept
 		{
 			_free();
 			ptr = _ptr;
 		}
 
 	private:
-		void _free()
+		void _free() noexcept
 		{
-			priv::ptr::UniqueHelper<T>::free(ptr);
+			if (ptr) {
+				delete ptr;
+			}
+		}
+
+	};
+	
+	template <class T>
+	class SLIB_EXPORT UniquePtr<T[]>
+	{
+	public:
+		typedef T* PointerType;
+		typedef T ValueType;
+
+	public:
+		PointerType ptr;
+
+	public:
+		constexpr UniquePtr() noexcept: ptr(sl_null) {}
+
+		constexpr UniquePtr(sl_null_t) noexcept: ptr(sl_null) {}
+
+		explicit UniquePtr(PointerType _ptr) noexcept: ptr(_ptr) {}
+
+		UniquePtr(const UniquePtr&) = delete;
+
+		UniquePtr(UniquePtr&& other) noexcept
+		{
+			ptr = other.release();
+		}
+
+		~UniquePtr() noexcept
+		{
+			_free();
+		}
+
+	public:
+		UniquePtr& operator=(sl_null_t)
+		{
+			reset();
+			return *this;
+		}
+
+		UniquePtr& operator=(const UniquePtr&) = delete;
+
+		UniquePtr& operator=(UniquePtr&& other) noexcept
+		{
+			_free();
+			ptr = other.release();
+			return *this;
+		}
+
+		explicit operator bool() const noexcept
+		{
+			return ptr != sl_null;
+		}
+
+		ValueType& operator[](sl_size index) const noexcept
+		{
+			return ptr[index];
+		}
+
+	public:
+		sl_bool isNull() const noexcept
+		{
+			return !ptr;
+		}
+
+		sl_bool isNotNull() const noexcept
+		{
+			return ptr != null;
+		}
+
+		PointerType get() const noexcept
+		{
+			return ptr;
+		}
+
+		PointerType release() noexcept
+		{
+			PointerType ret = ptr;
+			ptr = sl_null;
+			return ret;
+		}
+
+		void reset() noexcept
+		{
+			_free();
+			ptr = sl_null;
+		}
+
+		void reset(PointerType _ptr) noexcept
+		{
+			_free();
+			ptr = _ptr;
+		}
+
+	private:
+		void _free() noexcept
+		{
+			if (ptr) {
+				delete[] ptr;
+			}
 		}
 
 	};

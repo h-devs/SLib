@@ -28,7 +28,7 @@
 
 #include "slib/core/pipe.h"
 #include "slib/core/thread.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #include <unistd.h>
 #include <poll.h>

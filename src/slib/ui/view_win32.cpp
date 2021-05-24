@@ -30,7 +30,7 @@
 #include "slib/ui/core.h"
 #include "slib/ui/drag.h"
 #include "slib/math/transform2d.h"
-#include "slib/core/win32_com.h"
+#include "slib/core/win32/com.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/dl_windows_user32.h"
 
@@ -1241,7 +1241,7 @@ namespace slib
 
 					Ref<View>& viewDrag = dragContext.view;
 					if (viewDrag.isNotNull()) {
-						GenericDataObject* data = new GenericDataObject;
+						win32::GenericDataObject* data = new win32::GenericDataObject;
 						if (data) {
 							data->AddRef();
 							data->setText(dragContext.item.getText());

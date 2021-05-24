@@ -23,7 +23,7 @@
 #include "slib/crypto/openssl.h"
 
 #include "slib/crypto/sha2.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #include "openssl/aes.h"
 #include "openssl/rand.h"

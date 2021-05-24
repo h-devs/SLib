@@ -24,7 +24,7 @@
 #include "slib/core/file_util.h"
 
 #include "slib/core/string_buffer.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {

@@ -35,7 +35,7 @@
 #include "slib/core/queue.h"
 #include "slib/core/file.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #include <commctrl.h>
 #include <shobjidl.h>

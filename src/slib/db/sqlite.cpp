@@ -27,7 +27,7 @@
 #include "slib/db/sql.h"
 #include "slib/core/file.h"
 #include "slib/core/log.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/safe_static.h"
 #include "slib/crypto/chacha.h"
 

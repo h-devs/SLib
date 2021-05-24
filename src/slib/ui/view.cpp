@@ -39,7 +39,7 @@
 #include "slib/graphics/util.h"
 #include "slib/render/canvas.h"
 #include "slib/core/timer.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #include "ui_animation.h"
 

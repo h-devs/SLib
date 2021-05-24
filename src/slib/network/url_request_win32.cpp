@@ -28,7 +28,7 @@
 
 #include "slib/network/url.h"
 #include "slib/core/string_buffer.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/async_file.h"
 #include "slib/core/system.h"

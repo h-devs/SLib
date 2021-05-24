@@ -29,7 +29,7 @@
 #include "slib/core/file.h"
 #include "slib/core/string.h"
 #include "slib/core/list.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #include "unicode/ucnv.h"
 

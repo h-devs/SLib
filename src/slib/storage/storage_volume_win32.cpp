@@ -26,11 +26,11 @@
 
 #include "slib/storage/storage.h"
 
-#include "slib/core/win32_message_loop.h"
 #include "slib/core/service_manager.h"
 #include "slib/core/platform_windows.h"
+#include "slib/core/win32/message_loop.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #include <dbt.h>
 #include <winioctl.h>
@@ -64,7 +64,7 @@ namespace slib
 			{
 			public:
 				Mutex m_lock;
-				Ref<Win32MessageLoop> m_loop;
+				Ref<win32::MessageLoop> m_loop;
 				Atomic<VolumeArrivalCallback> m_callbackArrival;
 				Atomic<VolumeRemovalCallback> m_callbackRemoval;
 
@@ -118,11 +118,11 @@ namespace slib
 						m_loop.setNull();
 					} else {
 						if (m_loop.isNull()) {
-							Win32MessageLoopParam param;
+							win32::MessageLoopParam param;
 							param.name = SLIB_UNICODE("SLibDeviceChangeMonitor");
 							param.onMessage = SLIB_FUNCTION_MEMBER(DeviceChangeMonitor, onMessage, this);
 							param.hWndParent = NULL;
-							m_loop = Win32MessageLoop::create(param);
+							m_loop = win32::MessageLoop::create(param);
 						}
 					}
 				}

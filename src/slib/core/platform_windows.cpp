@@ -26,7 +26,7 @@
 
 #include "slib/core/platform_windows.h"
 
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/variant.h"
 #include "slib/core/endian.h"
 #include "slib/core/dl_windows_kernel32.h"

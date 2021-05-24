@@ -28,7 +28,7 @@
 #include "../core/string.h"
 #include "../core/memory.h"
 #include "../core/mio.h"
-#include "../core/scoped.h"
+#include "../core/scoped_buffer.h"
 
 namespace slib
 {

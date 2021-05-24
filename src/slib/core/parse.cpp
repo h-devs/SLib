@@ -24,7 +24,7 @@
 #include "slib/core/parse_util.h"
 
 #include "slib/core/list.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/math.h"
 
 namespace slib

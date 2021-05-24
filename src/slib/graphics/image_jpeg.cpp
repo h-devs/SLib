@@ -23,7 +23,7 @@
 #include "slib/graphics/image.h"
 
 #include "slib/core/file.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #include <stdio.h>
 #include <setjmp.h>

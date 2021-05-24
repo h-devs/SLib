@@ -33,7 +33,7 @@
 #include "libmariadb/errmsg.h"
 
 #include "slib/core/thread.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/log.h"
 #include "slib/core/safe_static.h"
 

@@ -26,8 +26,8 @@
 
 #include "slib/ui/global_event_monitor.h"
 
-#include "slib/core/win32_message_loop.h"
 #include "slib/core/thread.h"
+#include "slib/core/win32/message_loop.h"
 #include "slib/core/safe_static.h"
 #include "slib/ui/platform.h"
 
@@ -191,7 +191,7 @@ namespace slib
 			public:
 				sl_bool flagInstalledKeyboard;
 				sl_bool flagInstalledMouse;
-				Ref<Win32MessageLoop> loop;
+				Ref<win32::MessageLoop> loop;
 
 			public:
 				Monitor()
@@ -208,11 +208,11 @@ namespace slib
 				sl_bool update(sl_uint32 mask)
 				{
 					if (loop.isNull()) {
-						Win32MessageLoopParam param;
+						win32::MessageLoopParam param;
 						param.name = SLIB_UNICODE("SLibGlobalEventMonitor");
 						param.onMessage = &ProcessMessage;
 						param.flagAutoStart = sl_false;
-						loop = Win32MessageLoop::create(param);
+						loop = win32::MessageLoop::create(param);
 						if (loop.isNull()) {
 							return sl_false;
 						}

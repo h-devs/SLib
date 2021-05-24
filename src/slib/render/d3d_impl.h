@@ -26,7 +26,7 @@
 
 #include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/log.h"
 #include "slib/core/platform_windows.h"
 

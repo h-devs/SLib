@@ -30,7 +30,7 @@
 #include "slib/core/thread.h"
 #include "slib/core/log.h"
 #include "slib/core/endian.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #include "slib/media/dl_linux_alsa.h"
 

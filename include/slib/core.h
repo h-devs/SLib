@@ -42,7 +42,6 @@
 #include "core/cast.h"
 #include "core/convert.h"
 #include "core/nullable.h"
-#include "core/scoped.h"
 #include "core/safe_static.h"
 #include "core/singleton.h"
 #include "core/stringify.h"
@@ -56,6 +55,7 @@
 #include "core/pointer.h"
 #include "core/shared_ptr.h"
 #include "core/unique_ptr.h"
+#include "core/scoped_buffer.h"
 #include "core/object.h"
 #include "core/property.h"
 #include "core/function.h"
@@ -104,6 +104,7 @@
 #include "core/math.h"
 #include "core/interpolation.h"
 #include "core/animation.h"
+#include "core/scoped_counter.h"
 
 #include "core/system.h"
 #include "core/spin_lock.h"

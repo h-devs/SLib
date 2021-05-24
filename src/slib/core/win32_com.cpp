@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ namespace slib
 	}
 }
 
-#include "slib/core/win32_com.h"
+#include "slib/core/win32/com.h"
 
 namespace slib
 {
@@ -209,192 +209,197 @@ namespace slib
 
 	using namespace priv::win32_com;
 
-	Memory Win32_COM::readAllBytesFromStream(IStream* stream)
+	namespace win32
 	{
-		Memory ret;
-		HRESULT hr;
 
-		STATSTG stat;
-		Base::zeroMemory(&stat, sizeof(stat));
-		hr = stream->Stat(&stat, STATFLAG_NONAME);
-		if (hr == S_OK) {
-			LARGE_INTEGER n;
-			n.QuadPart = 0;
-			stream->Seek(n, STREAM_SEEK_SET, NULL);
-			ULONG size = (ULONG)(stat.cbSize.QuadPart);
-			if (size > 0) {
-				ret = Memory::create(size);
-				if (ret.isNotNull()) {
-					ULONG nRead = 0;
-					hr = stream->Read(ret.getData(), size, &nRead);
-					if (hr == S_OK && nRead == size) {
-						return ret;
+		Memory COM::readAllBytesFromStream(IStream* stream)
+		{
+			Memory ret;
+			HRESULT hr;
+
+			STATSTG stat;
+			Base::zeroMemory(&stat, sizeof(stat));
+			hr = stream->Stat(&stat, STATFLAG_NONAME);
+			if (hr == S_OK) {
+				LARGE_INTEGER n;
+				n.QuadPart = 0;
+				stream->Seek(n, STREAM_SEEK_SET, NULL);
+				ULONG size = (ULONG)(stat.cbSize.QuadPart);
+				if (size > 0) {
+					ret = Memory::create(size);
+					if (ret.isNotNull()) {
+						ULONG nRead = 0;
+						hr = stream->Read(ret.getData(), size, &nRead);
+						if (hr == S_OK && nRead == size) {
+							return ret;
+						}
 					}
+					ret.setNull();
 				}
-				ret.setNull();
 			}
+			return ret;
 		}
-		return ret;
-	}
 
 
-	GenericDataObject::GenericDataObject()
-	{
-		m_nRef = 0;
-	}
-
-	GenericDataObject::~GenericDataObject()
-	{
-	}
-
-	ULONG STDMETHODCALLTYPE GenericDataObject::AddRef()
-	{
-		return ++m_nRef;
-	}
-
-	ULONG STDMETHODCALLTYPE GenericDataObject::Release()
-	{
-		ULONG nRef = --m_nRef;
-		if (!nRef) {
-			delete this;
+		GenericDataObject::GenericDataObject()
+		{
+			m_nRef = 0;
 		}
-		return nRef;
-	}
 
-	HRESULT STDMETHODCALLTYPE GenericDataObject::QueryInterface(REFIID riid, void **ppvObject)
-	{
-		if (!ppvObject) {
-			return E_POINTER;
+		GenericDataObject::~GenericDataObject()
+		{
 		}
-		if (riid == __uuidof(IDataObject) || riid == __uuidof(IUnknown)) {
-			*ppvObject = this;
-			AddRef();
-			return S_OK;
-		}
-		return E_NOINTERFACE;
-	}
 
-	HRESULT STDMETHODCALLTYPE GenericDataObject::GetData(FORMATETC *pFormatEtcIn, STGMEDIUM *pMedium)
-	{
-		if (!pFormatEtcIn || !pMedium) {
-			return E_INVALIDARG;
+		ULONG STDMETHODCALLTYPE GenericDataObject::AddRef()
+		{
+			return ++m_nRef;
 		}
-		pMedium->hGlobal = NULL;
-		ListElements< Ref<GenericDataElement> > list(m_mediums);
-		for (sl_size i = 0; i < list.count; i++) {
-			if ((pFormatEtcIn->tymed & list[i]->format.tymed) &&
-				pFormatEtcIn->dwAspect == list[i]->format.dwAspect &&
-				pFormatEtcIn->cfFormat == list[i]->format.cfFormat
-				) {
-				CopyMedium(pMedium, &(list[i]->medium), &(list[i]->format));
+
+		ULONG STDMETHODCALLTYPE GenericDataObject::Release()
+		{
+			ULONG nRef = --m_nRef;
+			if (!nRef) {
+				delete this;
+			}
+			return nRef;
+		}
+
+		HRESULT STDMETHODCALLTYPE GenericDataObject::QueryInterface(REFIID riid, void **ppvObject)
+		{
+			if (!ppvObject) {
+				return E_POINTER;
+			}
+			if (riid == __uuidof(IDataObject) || riid == __uuidof(IUnknown)) {
+				*ppvObject = this;
+				AddRef();
 				return S_OK;
 			}
+			return E_NOINTERFACE;
 		}
-		return DV_E_FORMATETC;
-	}
 
-	HRESULT STDMETHODCALLTYPE GenericDataObject::GetDataHere(FORMATETC *pFormatEtc, STGMEDIUM *pMedium)
-	{
-		return E_NOTIMPL;
-	}
-
-	HRESULT STDMETHODCALLTYPE GenericDataObject::QueryGetData(FORMATETC *pFormatEtc)
-	{
-		if (!pFormatEtc) {
-			return E_INVALIDARG;
-		}
-		ListElements< Ref<GenericDataElement> > list(m_mediums);
-		HRESULT hr = E_UNEXPECTED;
-		for (sl_size i = 0; i < list.count; i++) {
-			if (pFormatEtc->dwAspect & list[i]->format.dwAspect) {
-				if (pFormatEtc->tymed & list[i]->format.tymed) {
-					if (pFormatEtc->cfFormat == list[i]->format.cfFormat) {
-						return S_OK;
-					} else {
-						hr = DV_E_CLIPFORMAT;
-					}
-				} else {
-					hr = DV_E_TYMED;
+		HRESULT STDMETHODCALLTYPE GenericDataObject::GetData(FORMATETC *pFormatEtcIn, STGMEDIUM *pMedium)
+		{
+			if (!pFormatEtcIn || !pMedium) {
+				return E_INVALIDARG;
+			}
+			pMedium->hGlobal = NULL;
+			ListElements< Ref<GenericDataElement> > list(m_mediums);
+			for (sl_size i = 0; i < list.count; i++) {
+				if ((pFormatEtcIn->tymed & list[i]->format.tymed) &&
+					pFormatEtcIn->dwAspect == list[i]->format.dwAspect &&
+					pFormatEtcIn->cfFormat == list[i]->format.cfFormat
+					) {
+					CopyMedium(pMedium, &(list[i]->medium), &(list[i]->format));
+					return S_OK;
 				}
-			} else {
-				hr = DV_E_DVASPECT;
 			}
-		}
-		return hr;
-	}
-
-	HRESULT STDMETHODCALLTYPE GenericDataObject::GetCanonicalFormatEtc(FORMATETC *pFormatEctIn, FORMATETC *pFormatEtcOut)
-	{
-		return DATA_S_SAMEFORMATETC;
-	}
-
-	HRESULT STDMETHODCALLTYPE GenericDataObject::SetData(FORMATETC *pFormatEtc, STGMEDIUM *pMedium, BOOL fRelease)
-	{
-		return E_NOTIMPL;
-	}
-
-	HRESULT STDMETHODCALLTYPE GenericDataObject::EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC **ppEnumFormatEtc)
-	{
-		if (!ppEnumFormatEtc) {
-			return E_POINTER;
+			return DV_E_FORMATETC;
 		}
 
-		*ppEnumFormatEtc = NULL;
-		switch (dwDirection) {
-		case DATADIR_GET:
-			*ppEnumFormatEtc = new CEnumFormatEtc(m_mediums);
-			if (!(*ppEnumFormatEtc)) {
-				return E_OUTOFMEMORY;
-			}
-			(*ppEnumFormatEtc)->AddRef();
-			break;
-		case DATADIR_SET:
-		default:
+		HRESULT STDMETHODCALLTYPE GenericDataObject::GetDataHere(FORMATETC *pFormatEtc, STGMEDIUM *pMedium)
+		{
 			return E_NOTIMPL;
 		}
-		return S_OK;
-	}
 
-	HRESULT STDMETHODCALLTYPE GenericDataObject::DAdvise(FORMATETC *pformatetc, DWORD advf, IAdviseSink *pAdvSink, DWORD *pdwConnection)
-	{
-		return OLE_E_ADVISENOTSUPPORTED;
-	}
-
-	HRESULT STDMETHODCALLTYPE GenericDataObject::DUnadvise(DWORD dwConnection)
-	{
-		return E_NOTIMPL;
-	}
-
-	HRESULT STDMETHODCALLTYPE GenericDataObject::EnumDAdvise(IEnumSTATDATA **ppenumAdvise)
-	{
-		return OLE_E_ADVISENOTSUPPORTED;
-	}
-
-	void GenericDataObject::setText(const StringParam& _text)
-	{
-		StringData16 text(_text);
-
-		FORMATETC fmt = { 0 };
-		fmt.cfFormat = CF_UNICODETEXT;
-		fmt.dwAspect = DVASPECT_CONTENT;
-		fmt.lindex = -1;
-		fmt.tymed = TYMED_HGLOBAL;
-
-		STGMEDIUM medium = { 0 };
-		medium.tymed = TYMED_HGLOBAL;
-
-		sl_size len = text.getLength();
-		sl_size size = (len + 1) << 1;
-		medium.hGlobal = GlobalAlloc(GMEM_MOVEABLE, (SIZE_T)size);
-		sl_char16* pMem = (sl_char16*)GlobalLock(medium.hGlobal);
-		Base::copyMemory(pMem, text.getData(), size);
-		pMem[len] = 0;
-		GlobalUnlock(medium.hGlobal);
-
-		Ref<GenericDataElement> element = new GenericDataElement(fmt, medium);
-		if (element.isNotNull()) {
-			m_mediums.add_NoLock(Move(element));
+		HRESULT STDMETHODCALLTYPE GenericDataObject::QueryGetData(FORMATETC *pFormatEtc)
+		{
+			if (!pFormatEtc) {
+				return E_INVALIDARG;
+			}
+			ListElements< Ref<GenericDataElement> > list(m_mediums);
+			HRESULT hr = E_UNEXPECTED;
+			for (sl_size i = 0; i < list.count; i++) {
+				if (pFormatEtc->dwAspect & list[i]->format.dwAspect) {
+					if (pFormatEtc->tymed & list[i]->format.tymed) {
+						if (pFormatEtc->cfFormat == list[i]->format.cfFormat) {
+							return S_OK;
+						} else {
+							hr = DV_E_CLIPFORMAT;
+						}
+					} else {
+						hr = DV_E_TYMED;
+					}
+				} else {
+					hr = DV_E_DVASPECT;
+				}
+			}
+			return hr;
 		}
+
+		HRESULT STDMETHODCALLTYPE GenericDataObject::GetCanonicalFormatEtc(FORMATETC *pFormatEctIn, FORMATETC *pFormatEtcOut)
+		{
+			return DATA_S_SAMEFORMATETC;
+		}
+
+		HRESULT STDMETHODCALLTYPE GenericDataObject::SetData(FORMATETC *pFormatEtc, STGMEDIUM *pMedium, BOOL fRelease)
+		{
+			return E_NOTIMPL;
+		}
+
+		HRESULT STDMETHODCALLTYPE GenericDataObject::EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC **ppEnumFormatEtc)
+		{
+			if (!ppEnumFormatEtc) {
+				return E_POINTER;
+			}
+
+			*ppEnumFormatEtc = NULL;
+			switch (dwDirection) {
+			case DATADIR_GET:
+				*ppEnumFormatEtc = new CEnumFormatEtc(m_mediums);
+				if (!(*ppEnumFormatEtc)) {
+					return E_OUTOFMEMORY;
+				}
+				(*ppEnumFormatEtc)->AddRef();
+				break;
+			case DATADIR_SET:
+			default:
+				return E_NOTIMPL;
+			}
+			return S_OK;
+		}
+
+		HRESULT STDMETHODCALLTYPE GenericDataObject::DAdvise(FORMATETC *pformatetc, DWORD advf, IAdviseSink *pAdvSink, DWORD *pdwConnection)
+		{
+			return OLE_E_ADVISENOTSUPPORTED;
+		}
+
+		HRESULT STDMETHODCALLTYPE GenericDataObject::DUnadvise(DWORD dwConnection)
+		{
+			return E_NOTIMPL;
+		}
+
+		HRESULT STDMETHODCALLTYPE GenericDataObject::EnumDAdvise(IEnumSTATDATA **ppenumAdvise)
+		{
+			return OLE_E_ADVISENOTSUPPORTED;
+		}
+
+		void GenericDataObject::setText(const StringParam& _text)
+		{
+			StringData16 text(_text);
+
+			FORMATETC fmt = { 0 };
+			fmt.cfFormat = CF_UNICODETEXT;
+			fmt.dwAspect = DVASPECT_CONTENT;
+			fmt.lindex = -1;
+			fmt.tymed = TYMED_HGLOBAL;
+
+			STGMEDIUM medium = { 0 };
+			medium.tymed = TYMED_HGLOBAL;
+
+			sl_size len = text.getLength();
+			sl_size size = (len + 1) << 1;
+			medium.hGlobal = GlobalAlloc(GMEM_MOVEABLE, (SIZE_T)size);
+			sl_char16* pMem = (sl_char16*)GlobalLock(medium.hGlobal);
+			Base::copyMemory(pMem, text.getData(), size);
+			pMem[len] = 0;
+			GlobalUnlock(medium.hGlobal);
+
+			Ref<GenericDataElement> element = new GenericDataElement(fmt, medium);
+			if (element.isNotNull()) {
+				m_mediums.add_NoLock(Move(element));
+			}
+		}
+
 	}
 
 }

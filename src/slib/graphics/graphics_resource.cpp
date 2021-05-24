@@ -23,7 +23,7 @@
 #include "slib/graphics/resource.h"
 
 #include "slib/graphics/util.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {
