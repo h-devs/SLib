@@ -698,7 +698,7 @@ namespace slib
 		return changePassword(header, oldPassword, lenOldPassword, newPassword, lenNewPassword, FILE_ENCRYPT_ITERATION_OPEN_DEFAULT);
 	}
 
-	void ChaCha20FileEncryptor::encrypt(sl_uint64 offset, const void* _src, void* _dst, sl_size size)
+	void ChaCha20FileEncryptor::encrypt(sl_uint64 offset, const void* _src, void* _dst, sl_size size) const
 	{
 		if (!size) {
 			return;

@@ -207,7 +207,7 @@ namespace slib
 		static sl_bool changePassword(void* header, const void* oldPassword, sl_uint32 lenOldPassword, const void* newPassword, sl_uint32 lenNewPassword);
 		static sl_bool changePassword(void* header, const void* oldPassword, sl_uint32 lenOldPassword, const void* newPassword, sl_uint32 lenNewPassword, sl_uint32 iterationBitsCountLimit);
 
-		void encrypt(sl_uint64 offset, const void* src, void* dst, sl_size size);
+		void encrypt(sl_uint64 offset, const void* src, void* dst, sl_size size) const;
 		
 	protected:
 		ChaCha20_Core m_encrypt;
