@@ -20,10 +20,16 @@
  *   THE SOFTWARE.
  */
 
+#define SLIB_SUPPORT_STD_TYPES
+
 #include "slib/db/leveldb.h"
 
 #include "slib/core/memory.h"
+#include "slib/core/math.h"
+#include "slib/core/file.h"
+#include "slib/core/unique_ptr.h"
 #include "slib/core/safe_static.h"
+#include "slib/crypto/chacha.h"
 
 #include "leveldb/db.h"
 #include "leveldb/write_batch.h"
@@ -91,10 +97,285 @@ namespace slib
 
 			SLIB_SAFE_STATIC_GETTER(Ref<DefaultEnvironmentManager>, GetDefaultEnironmentManager, new DefaultEnvironmentManager)
 
+			class EncryptionSequentialFile : public leveldb::SequentialFile
+			{
+			public:
+				UniquePtr<leveldb::SequentialFile> m_base;
+				ChaCha20_IO m_enc;
+				sl_uint64 m_offset;
+
+			public:
+				EncryptionSequentialFile(leveldb::SequentialFile* base, const ChaCha20_IO& enc): m_base(base), m_enc(enc), m_offset(0) {}
+
+			public:
+				sl_bool init()
+				{
+					char bufHeader[ChaCha20_IO::IvSize];
+					leveldb::Slice slice;
+					if ((m_base->Read(sizeof(bufHeader), &slice, bufHeader)).ok()) {
+						if (slice.size() == sizeof(bufHeader)) {
+							m_enc.setIV(slice.data());
+							return sl_true;
+						}
+					}
+					return sl_false;
+				}
+
+				leveldb::Status Read(size_t n, leveldb::Slice* result, char* scratch) override
+				{
+					leveldb::Status status = m_base->Read(n, result, scratch);
+					if (status.ok()) {
+						const char* data = result->data();
+						sl_size size = result->size();
+						m_enc.encrypt(m_offset, data, scratch, size);
+						m_offset += size;
+						if (data != scratch) {
+							*result = leveldb::Slice(scratch, size);
+						}
+					}
+					return status;
+				}
+
+				leveldb::Status Skip(uint64_t n) override
+				{
+					leveldb::Status status = m_base->Skip(n);
+					if (status.ok()) {
+						m_offset += n;
+					}
+					return status;
+				}
+			};
+
+			class EncryptionRandomAccessFile : public leveldb::RandomAccessFile
+			{
+			public:
+				UniquePtr<leveldb::RandomAccessFile> m_base;
+				ChaCha20_IO m_enc;
+
+			public:
+				EncryptionRandomAccessFile(leveldb::RandomAccessFile* base, const ChaCha20_IO& enc): m_base(base), m_enc(enc) {}
+
+			public:
+				sl_bool init()
+				{
+					char bufHeader[ChaCha20_IO::IvSize];
+					leveldb::Slice slice;
+					if ((m_base->Read(0, sizeof(bufHeader), &slice, bufHeader)).ok()) {
+						if (slice.size() == sizeof(bufHeader)) {
+							m_enc.setIV(slice.data());
+							return sl_true;
+						}
+					}
+					return sl_false;
+				}
+
+				leveldb::Status Read(uint64_t offset, size_t n, leveldb::Slice* result, char* scratch) const override
+				{
+					leveldb::Status status = m_base->Read(ChaCha20_IO::IvSize + offset, n, result, scratch);
+					if (status.ok()) {
+						const char* data = result->data();
+						sl_size size = result->size();
+						m_enc.encrypt(offset, data, scratch, size);
+						if (data != scratch) {
+							*result = leveldb::Slice(scratch, size);
+						}
+					}
+					return status;
+				}
+
+			};
+
+			class EncryptionWritableFile : public leveldb::WritableFile
+			{
+			public:
+				UniquePtr<leveldb::WritableFile> m_base;
+				ChaCha20_IO m_enc;
+				sl_uint64 m_offset;
+
+			public:
+				EncryptionWritableFile(leveldb::WritableFile* base, const ChaCha20_IO& enc) : m_base(base), m_enc(enc), m_offset(0) {}
+
+			public:
+				sl_bool init()
+				{
+					char iv[ChaCha20_IO::IvSize];
+					Math::randomMemory(iv, sizeof(iv));
+					m_enc.setIV(iv);
+					return m_base->Append(leveldb::Slice(iv, sizeof(iv))).ok();
+				}
+
+				void init(const void* iv, sl_uint64 size)
+				{
+					m_enc.setIV(iv);
+					m_offset = size - ChaCha20_IO::IvSize;
+				}
+
+				leveldb::Status Append(const leveldb::Slice& slice) override
+				{
+					char buf[1024];
+					sl_size size = slice.size();
+					sl_size pos = 0;
+					const char* data = slice.data();
+					while (pos < size) {
+						sl_size n = size - pos;
+						if (n > sizeof(buf)) {
+							n = sizeof(buf);
+						}
+						m_enc.encrypt(m_offset, data + pos, buf, n);
+						leveldb::Status status = m_base->Append(leveldb::Slice(buf, n));
+						if (status.ok()) {
+							pos += n;
+							m_offset += n;
+						} else {
+							return status;
+						}
+					}
+					return leveldb::Status::OK();
+				}
+
+				leveldb::Status Close() override
+				{
+					return m_base->Close();
+				}
+
+				leveldb::Status Flush() override
+				{
+					return m_base->Flush();
+				}
+				
+				leveldb::Status Sync() override
+				{
+					return m_base->Sync();
+				}
+
+			};
+
+			class EncryptionEnv : public leveldb::EnvWrapper
+			{
+			private:
+				ChaCha20_FileEncryptor m_enc;
+
+			public:
+				EncryptionEnv(const ChaCha20_FileEncryptor& enc): EnvWrapper(leveldb::Env::Default()), m_enc(enc) {}
+
+			public:
+				leveldb::Status NewSequentialFile(const std::string& fname, leveldb::SequentialFile** result) override
+				{
+					leveldb::Status status = target()->NewSequentialFile(fname, result);
+					if (status.ok()) {
+						EncryptionSequentialFile* file = new EncryptionSequentialFile(*result, m_enc);
+						if (file->init()) {
+							*result = file;
+						} else {
+							delete file;
+							return status_FailedToReadIV();
+						}
+					}
+					return status;
+				}
+
+				leveldb::Status NewRandomAccessFile(const std::string& fname, leveldb::RandomAccessFile** result) override
+				{
+					leveldb::Status status = target()->NewRandomAccessFile(fname, result);
+					if (status.ok()) {
+						EncryptionRandomAccessFile* file = new EncryptionRandomAccessFile(*result, m_enc);
+						if (file->init()) {
+							*result = file;
+						} else {
+							delete file;
+							return status_FailedToReadIV();
+						}
+					}
+					return status;
+				}
+
+				leveldb::Status NewWritableFile(const std::string& fname, leveldb::WritableFile** result) override
+				{
+					leveldb::Status status = target()->NewWritableFile(fname, result);
+					if (status.ok()) {
+						EncryptionWritableFile* file = new EncryptionWritableFile(*result, m_enc);
+						if (file->init()) {
+							*result = file;
+						} else {
+							delete file;
+							return status_FailedToWriteIV();
+						}
+					}
+					return status;
+				}
+
+				leveldb::Status NewAppendableFile(const std::string& fname, leveldb::WritableFile** result) override
+				{
+					leveldb::Env* env = target();
+
+					uint64_t size = 0;
+					env->GetFileSize(fname, &size);
+					if (!size) {
+						return NewWritableFile(fname, result);
+					}
+
+					char iv[ChaCha20_IO::IvSize];
+					{
+						if (size < sizeof(iv)) {
+							return status_FailedToReadIV();
+						}
+						leveldb::SequentialFile* reader;
+						leveldb::Status status = env->NewSequentialFile(fname, &reader);
+						if (!(status.ok())) {
+							return status;
+						}
+						leveldb::Slice slice;
+						status = reader->Read(sizeof(iv), &slice, iv);
+						if (!(status.ok()) || slice.size() != sizeof(iv)) {
+							delete reader;
+							return status_FailedToReadIV();
+						}
+						const char* data = slice.data();
+						if (iv != data) {
+							Base::copyMemory(iv, data, sizeof(iv));
+						}
+						delete reader;
+					}
+					leveldb::Status status = env->NewAppendableFile(fname, result);
+					if (status.ok()) {
+						EncryptionWritableFile* file = new EncryptionWritableFile(*result, m_enc);
+						file->init(iv, size);
+						*result = file;
+					}
+					return status;
+				}
+
+				leveldb::Status GetFileSize(const std::string& fname, uint64_t* file_size) override
+				{
+					leveldb::Status status = target()->GetFileSize(fname, file_size);
+					if (status.ok()) {
+						if (*file_size >= ChaCha20_FileEncryptor::HeaderSize) {
+							*file_size -= ChaCha20_FileEncryptor::HeaderSize;
+						} else {
+							*file_size = 0;
+							return leveldb::Status::Corruption("Too small encryption header");
+						}
+					}
+					return status;
+				}
+
+				leveldb::Status status_FailedToReadIV()
+				{
+					return leveldb::Status::Corruption("Failed to read IV");
+				}
+
+				leveldb::Status status_FailedToWriteIV()
+				{
+					return leveldb::Status::Corruption("Failed to write IV");
+				}
+
+			};
+
 			class LevelDBImpl : public LevelDB
 			{
 			public:
 				leveldb::DB* m_db;
+				EncryptionEnv* m_encryptionEnv;
 
 				leveldb::ReadOptions m_optionsRead;
 				leveldb::WriteOptions m_optionsWrite;
@@ -102,17 +383,20 @@ namespace slib
 				Ref<DefaultEnvironmentManager> m_defaultEnvironemtManager;
 
 			public:
-				LevelDBImpl()
+				LevelDBImpl(): m_encryptionEnv(sl_null)
 				{
 				}
 
 				~LevelDBImpl()
 				{
 					delete m_db;
+					if (m_encryptionEnv) {
+						delete m_encryptionEnv;
+					}
 				}
 
 			public:
-				static Ref<LevelDBImpl> open(const LevelDB_Param& param)
+				static Ref<LevelDBImpl> open(LevelDB_Param& param)
 				{
 					Ref<DefaultEnvironmentManager>* p = GetDefaultEnironmentManager();
 					if (!p) {
@@ -121,24 +405,91 @@ namespace slib
 
 					StringCstr path(param.path);
 					if (path.isEmpty()) {
+						SLIB_STATIC_STRING(error, "Empty path")
+						param.errorText = error;
 						return sl_null;
 					}
 
 					leveldb::Options options;
 					options.create_if_missing = (bool)(param.flagCreateIfMissing);
 
+					EncryptionEnv* encryptionEnv = sl_null;
+					if (param.encryptionKey.isNotNull()) {
+						ChaCha20_FileEncryptor enc;
+						do {
+							StringCstr encryptionKey(param.encryptionKey);
+							SLIB_STATIC_STRING(filenameENC, "ENC")
+							String pathENC = File::joinPath(path, filenameENC);
+							Ref<File> file = File::openForRead(pathENC);
+							if (file.isNotNull()) {
+								char header[ChaCha20_FileEncryptor::HeaderSize];
+								if (file->readFully(header, sizeof(header)) == sizeof(header)) {
+									if (enc.open(header, encryptionKey.getData(), encryptionKey.getLength())) {
+										break;
+									} else {
+										SLIB_STATIC_STRING(error, "Invalid encryption key")
+										param.errorText = error;
+										return sl_null;
+									}
+								}
+								SLIB_STATIC_STRING(error, "Failed to read encryption header")
+								param.errorText = error;
+								return sl_null;
+							}
+							do {
+								SLIB_STATIC_STRING(filenameCURRENT, "CURRENT")
+								if (!(File::isFile(File::joinPath(path, filenameCURRENT)))) {
+									if (param.flagCreateIfMissing) {
+										if (!(File::isDirectory(path))) {
+											File::createDirectories(path);
+										}
+										file = File::openForWrite(pathENC);
+										if (file.isNotNull()) {
+											break;
+										}
+									}
+								}
+								SLIB_STATIC_STRING(error, "Failed to open ENC file")
+								param.errorText = error;
+								return sl_null;
+							} while (0);
+
+							char header[ChaCha20_FileEncryptor::HeaderSize];
+							enc.create(header, encryptionKey.getData(), encryptionKey.getLength());
+							if (!(file->writeFully(header, sizeof(header)) == sizeof(header))) {
+								SLIB_STATIC_STRING(error, "Failed to write encryption header")
+								param.errorText = error;
+								return sl_null;
+							}
+						} while (0);
+						encryptionEnv = new EncryptionEnv(enc);
+						if (!encryptionEnv) {
+							SLIB_STATIC_STRING(error, "Failed to allocate encryption environment")
+							param.errorText = error;
+							return sl_null;
+						}
+						options.env = encryptionEnv;
+					}
+
 					leveldb::DB* db = sl_null;
 					leveldb::Status status = leveldb::DB::Open(options, path.getData(), &db);
-					if (db) {
-						if (status.ok()) {
-							Ref<LevelDBImpl> ret = new LevelDBImpl;
-							if (ret.isNotNull()) {
-								ret->m_db = db;
-								ret->m_defaultEnvironemtManager = *p;
-								return ret;
-							}
+					if (status.ok()) {
+						Ref<LevelDBImpl> ret = new LevelDBImpl;
+						if (ret.isNotNull()) {
+							ret->m_db = db;
+							ret->m_encryptionEnv = encryptionEnv;
+							ret->m_defaultEnvironemtManager = *p;
+							return ret;
+						} else {
+							SLIB_STATIC_STRING(error, "Failed to allocate database object")
+							param.errorText = error;
 						}
+					} else {
+						param.errorText = status.ToString();
 						delete db;
+					}
+					if (encryptionEnv) {
+						delete encryptionEnv;
 					}
 					return sl_null;
 				}
@@ -429,7 +780,7 @@ namespace slib
 	{
 	}
 
-	Ref<LevelDB> LevelDB::open(const LevelDB_Param& param)
+	Ref<LevelDB> LevelDB::open(LevelDB_Param& param)
 	{
 		return Ref<LevelDB>::from(LevelDBImpl::open(param));
 	}

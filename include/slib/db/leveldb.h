@@ -34,8 +34,12 @@ namespace slib
 	{
 	public:
 		StringParam path;
+		StringParam encryptionKey;
 
 		sl_bool flagCreateIfMissing;
+
+		// output
+		String errorText;
 
 	public:
 		LevelDB_Param();
@@ -56,7 +60,7 @@ namespace slib
 	public:
 		typedef LevelDB_Param Param;
 
-		static Ref<LevelDB> open(const LevelDB_Param& param);
+		static Ref<LevelDB> open(LevelDB_Param& param);
 
 		static Ref<LevelDB> open(const StringParam& path);
 		
