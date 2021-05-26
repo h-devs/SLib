@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -113,11 +113,10 @@ namespace slib
 
 	namespace priv
 	{
-		
 		namespace chacha
 		{
 			
-			static void salsa20_wordtobyte(
+			static void Salsa20WordToByte(
 				sl_uint8* output, // 64
 				const sl_uint32* constants, // 4
 				const sl_uint32* key, // 8
@@ -129,7 +128,7 @@ namespace slib
 				SERIALIZE_OUTPUT(output, state, constants, key, nonce)
 			}
 			
-			static void salsa20_wordtobyte(
+			static void Salsa20WordToByte(
 				const sl_uint8* data, // 64
 				sl_uint8* output, // 64
 				const sl_uint32* constants, // 4
@@ -143,38 +142,10 @@ namespace slib
 			}
 			
 		}
-		
 	}
+
+	using namespace priv::chacha;
 	
-	ChaCha20_Core::ChaCha20_Core()
-	{
-	}
-
-	ChaCha20_Core::ChaCha20_Core(const ChaCha20_Core& other)
-	{
-		_copy(other);
-	}
-	
-	ChaCha20_Core::~ChaCha20_Core()
-	{
-	}
-
-	ChaCha20_Core& ChaCha20_Core::operator=(const ChaCha20_Core& other)
-	{
-		_copy(other);
-		return *this;
-	}
-
-	void ChaCha20_Core::_copy(const ChaCha20_Core& other)
-	{
-		Base::copyMemory(m_key, other.m_key, sizeof(m_key));
-		if (other.m_constants == other.m_arrConstants) {
-			Base::copyMemory(m_arrConstants, other.m_arrConstants, sizeof(m_arrConstants));
-			m_constants = m_arrConstants;
-		} else {
-			m_constants = other.m_constants;
-		}
-	}
 
 	sl_bool ChaCha20_Core::setKey(const void* _key, sl_uint32 n)
 	{
@@ -199,73 +170,123 @@ namespace slib
 
 	void ChaCha20_Core::setKey16(const void* _key)
 	{
-		static sl_uint32 constants[4] = {
+		static sl_uint32 _constants[4] = {
 			U8TO32_LITTLE('e', 'x', 'p', 'a'),
 			U8TO32_LITTLE('n', 'd', ' ', '1'),
 			U8TO32_LITTLE('6', '-', 'b', 'y'),
 			U8TO32_LITTLE('t', 'e', ' ', 'k')
 		};
-		m_constants = constants;
-		const sl_uint8* key = (const sl_uint8*)_key;
-		sl_uint32* k = m_key;
+		Base::copyMemory(constants, _constants, sizeof(constants));
+		const sl_uint8* m = (const sl_uint8*)_key;
 		for (sl_uint32 i = 0; i < 4; i++) {
-			k[i + 4] = k[i] = U8TO32_LITTLE(*key, key[1], key[2], key[3]);
-			key += 4;
+			key[i + 4] = key[i] = U8TO32_LITTLE(*m, m[1], m[2], m[3]);
+			m += 4;
 		}
 	}
 
 	void ChaCha20_Core::setKey32(const void* _key)
 	{
-		static sl_uint32 constants[4] = {
+		static sl_uint32 _constants[4] = {
 			U8TO32_LITTLE('e', 'x', 'p', 'a'),
 			U8TO32_LITTLE('n', 'd', ' ', '3'),
 			U8TO32_LITTLE('2', '-', 'b', 'y'),
 			U8TO32_LITTLE('t', 'e', ' ', 'k')
 		};
-		m_constants = constants;
-		const sl_uint8* key = (const sl_uint8*)_key;
-		sl_uint32* k = m_key;
+		Base::copyMemory(constants, _constants, sizeof(constants));
+		const sl_uint8* m = (const sl_uint8*)_key;
 		for (sl_uint32 i = 0; i < 8; i++) {
-			k[i] = U8TO32_LITTLE(*key, key[1], key[2], key[3]);
-			key += 4;
+			key[i] = U8TO32_LITTLE(*m, m[1], m[2], m[3]);
+			m += 4;
 		}
 	}
 
 	void ChaCha20_Core::setKey48(const void* _key)
 	{
-		const sl_uint8* key = (const sl_uint8*)_key;
-		{
-			sl_uint32* k = m_arrConstants;
-			for (sl_uint32 i = 0; i < 4; i++) {
-				k[i] = U8TO32_LITTLE(*key, key[1], key[2], key[3]);
-				key += 4;
-			}
-			m_constants = m_arrConstants;
+		sl_uint32 i;
+		const sl_uint8* m = (const sl_uint8*)_key;
+		for (i = 0; i < 4; i++) {
+			constants[i] = U8TO32_LITTLE(*m, m[1], m[2], m[3]);
+			m += 4;
 		}
-		{
-			sl_uint32* k = m_key;
-			for (sl_uint32 i = 0; i < 8; i++) {
-				k[i] = U8TO32_LITTLE(*key, key[1], key[2], key[3]);
-				key += 4;
-			}
+		for (i = 0; i < 8; i++) {
+			key[i] = U8TO32_LITTLE(*m, m[1], m[2], m[3]);
+			m += 4;
 		}
 	}
 	
 	void ChaCha20_Core::generateBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, void* output) const
 	{
-		priv::chacha::salsa20_wordtobyte((sl_uint8*)output, m_constants, m_key, nonce0, nonce1, nonce2, nonce3);
+		Salsa20WordToByte((sl_uint8*)output, constants, key, nonce0, nonce1, nonce2, nonce3);
 	}
 	
 	void ChaCha20_Core::encryptBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, const void* input, void* output) const
 	{
-		priv::chacha::salsa20_wordtobyte((const sl_uint8*)input, (sl_uint8*)output, m_constants, m_key, nonce0, nonce1, nonce2, nonce3);
+		Salsa20WordToByte((const sl_uint8*)input, (sl_uint8*)output, constants, key, nonce0, nonce1, nonce2, nonce3);
 	}
 	
 	void ChaCha20_Core::decryptBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, const void* input, void* output) const
 	{
-		priv::chacha::salsa20_wordtobyte((const sl_uint8*)input, (sl_uint8*)output, m_constants, m_key, nonce0, nonce1, nonce2, nonce3);
+		Salsa20WordToByte((const sl_uint8*)input, (sl_uint8*)output, constants, key, nonce0, nonce1, nonce2, nonce3);
 	}
 	
+
+	void ChaCha20_IO::encrypt(sl_uint64 offset, const void* _src, void* _dst, sl_size size) const
+	{
+		if (!size) {
+			return;
+		}
+		sl_uint8* src = (sl_uint8*)_src;
+		sl_uint8* dst = (sl_uint8*)_dst;
+		sl_uint64 block = offset >> 6;
+		sl_uint64 offsetEnd = (sl_uint64)(offset + size);
+		sl_uint64 blockEnd = offsetEnd >> 6;
+		sl_bool flagFirstBlock = sl_true;
+		char h[64];
+		for (; block <= blockEnd; block++) {
+			generateBlock(iv[0], iv[1], iv[2] ^ ((sl_uint32)(block >> 32)), iv[3] ^ ((sl_uint32)block), h);
+			sl_uint32 n;
+			if (block == blockEnd) {
+				n = (sl_uint32)(offsetEnd & 63);
+			}
+			else {
+				n = 64;
+			}
+			if (flagFirstBlock) {
+				flagFirstBlock = sl_false;
+				sl_uint32 s = offset & 63;
+				n -= s;
+				for (sl_uint32 i = 0; i < n; i++) {
+					dst[i] = src[i] ^ h[s + i];
+				}
+			}
+			else {
+				for (sl_uint32 i = 0; i < n; i++) {
+					dst[i] = src[i] ^ h[i];
+				}
+			}
+			src += n;
+			dst += n;
+		}
+	}
+
+	void ChaCha20_IO::getIV(void* bytes16) const
+	{
+		sl_uint8* bytes = (sl_uint8*)bytes16;
+		MIO::writeUint32LE(bytes, iv[0]);
+		MIO::writeUint32LE(bytes + 4, iv[1]);
+		MIO::writeUint32LE(bytes + 8, iv[2]);
+		MIO::writeUint32LE(bytes + 12, iv[3]);
+	}
+
+	void ChaCha20_IO::setIV(const void* bytes16)
+	{
+		const sl_uint8* bytes = (const sl_uint8*)bytes16;
+		iv[0] = MIO::readUint32LE(bytes);
+		iv[1] = MIO::readUint32LE(bytes + 4);
+		iv[2] = MIO::readUint32LE(bytes + 8);
+		iv[3] = MIO::readUint32LE(bytes + 12);
+	}
+
 	
 	ChaCha20::ChaCha20(): m_pos(0), m_flagCounter32(sl_false)
 	{
@@ -328,7 +349,7 @@ namespace slib
 		sl_uint32 pos = m_pos;
 		for (sl_size k = 0; k < len; k++) {
 			if (!pos) {
-				priv::chacha::salsa20_wordtobyte(y, m_constants, m_key, m_nonce[0], m_nonce[1], m_nonce[2], m_nonce[3]);
+				Salsa20WordToByte(y, constants, key, m_nonce[0], m_nonce[1], m_nonce[2], m_nonce[3]);
 				m_nonce[0]++;
 				if (!m_flagCounter32) {
 					if (!m_nonce[0]) {
@@ -492,7 +513,7 @@ namespace slib
 	
 
 /*
-	ChaCha20FileEncryptor Header Format
+	ChaCha20_FileEncryptor Header Format
 
 	Check Pattern = PBKDF(SHA256(password))
 	Main Encryption Key = PBKDF(password) ^ Xor Pattern
@@ -515,17 +536,9 @@ namespace slib
 #define FILE_ENCRYPT_ITERATION_CREATE_DEFAULT 13
 #define FILE_ENCRYPT_ITERATION_OPEN_DEFAULT 20
 
-	ChaCha20FileEncryptor::ChaCha20FileEncryptor()
-	{
-	}
-
-	ChaCha20FileEncryptor::~ChaCha20FileEncryptor()
-	{
-	}
-
 	namespace priv
 	{
-		namespace chacha
+		namespace chacha_file_enc
 		{
 
 			static sl_uint32 GetMainIteration(sl_uint32 code, sl_uint32 len)
@@ -552,13 +565,13 @@ namespace slib
 				return GetCheckIteration(code, len);
 			}
 
-			static sl_bool CheckPassword(const void* _header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCountLimit, sl_uint32& nIterationBitsCount)
+			static sl_bool CheckPassword(const void* _header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit, sl_uint32& nIterationBitsCount)
 			{
 				sl_uint8* header = (sl_uint8*)_header;
 				sl_uint8 h[32];
 				PBKDF2_HMAC_SHA256::generateKey(header + 48, 12, header, 12, CHECK_LEN_HASH_ITERATION, h, 4);
 				sl_uint32 code = MIO::readUint32LE(header + 12) ^ MIO::readUint32LE(h);
-				sl_uint32 iter = priv::chacha::GetCheckIteration(code, nIterationBitsCount);
+				sl_uint32 iter = GetCheckIteration(code, nIterationBitsCount);
 				if (nIterationBitsCount > iterationBitsCountLimit) {
 					return sl_false;
 				}
@@ -568,14 +581,14 @@ namespace slib
 				return Base::equalsMemory(c, header + 16, 32);
 			}
 
-			static sl_bool CheckPassword(const void* header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCountLimit)
+			static sl_bool CheckPassword(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit)
 			{
 				sl_uint32 nIterationBitsCount;
 				return CheckPassword(header, password, lenPassword, iterationBitsCountLimit, nIterationBitsCount);
 			}
 
 			// key: 48 Bytes
-			static sl_bool GetEncryptionKey(sl_uint8* key, const void* _header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCountLimit, sl_uint32& iteration)
+			static sl_bool GetEncryptionKey(sl_uint8* key, const void* _header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit, sl_uint32& iteration)
 			{
 				sl_uint8* header = (sl_uint8*)_header;
 				sl_uint32 nIterationBitsCount;
@@ -583,7 +596,7 @@ namespace slib
 					return sl_false;
 				}
 				sl_uint32 code = MIO::readUint32LE(header + 60);
-				iteration = priv::chacha::GetMainIteration(code, nIterationBitsCount);
+				iteration = GetMainIteration(code, nIterationBitsCount);
 				PBKDF2_HMAC_SHA256::generateKey(password, lenPassword, header + 48, 12, iteration, key, 48);
 				for (sl_uint32 i = 0; i < 48; i++) {
 					key[i] ^= header[80 + i];
@@ -592,7 +605,7 @@ namespace slib
 			}
 
 			// key: 48 Bytes
-			static sl_bool GetEncryptionKey(sl_uint8* key, const void* header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCountLimit)
+			static sl_bool GetEncryptionKey(sl_uint8* key, const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit)
 			{
 				sl_uint32 iteration;
 				return GetEncryptionKey(key, header, password, lenPassword, iterationBitsCountLimit, iteration);
@@ -601,7 +614,9 @@ namespace slib
 		}
 	}
 
-	void ChaCha20FileEncryptor::create(void* _header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCount)
+	using namespace priv::chacha_file_enc;
+
+	void ChaCha20_FileEncryptor::create(void* _header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCount)
 	{
 		sl_uint8* header = (sl_uint8*)_header;
 		Math::randomMemory(header, HeaderSize);
@@ -615,7 +630,7 @@ namespace slib
 		{
 			sl_uint8 h[32];
 			sl_uint32 code = MIO::readUint32LE(header + 12);
-			sl_uint32 iter = priv::chacha::GenerateCheckIteration(code, iterationBitsCount);
+			sl_uint32 iter = GenerateCheckIteration(code, iterationBitsCount);
 			PBKDF2_HMAC_SHA256::generateKey(header + 48, 12, header, 12, CHECK_LEN_HASH_ITERATION, h, 4);
 			MIO::writeUint32LE(header + 12, code ^ MIO::readUint32LE(h));
 			SHA256::hash(password, lenPassword, h);
@@ -623,61 +638,55 @@ namespace slib
 		}
 		{
 			sl_uint32 code = MIO::readUint32LE(header + 60);
-			sl_uint32 iter = priv::chacha::GetMainIteration(code, iterationBitsCount);
+			sl_uint32 iter = GetMainIteration(code, iterationBitsCount);
 			sl_uint8 key[48];
 			PBKDF2_HMAC_SHA256::generateKey(password, lenPassword, header + 48, 12, iter, key, 48);
 			for (sl_uint32 i = 0; i < 48; i++) {
 				key[i] ^= header[80 + i];
 			}
-			m_encrypt.setKey48(key);
-			m_iv[0] = MIO::readUint32LE(header + 64);
-			m_iv[1] = MIO::readUint32LE(header + 68);
-			m_iv[2] = MIO::readUint32LE(header + 72);
-			m_iv[3] = MIO::readUint32LE(header + 76);
+			setKey48(key);
+			setIV(header + 64);
 		}
 	}
 
-	void ChaCha20FileEncryptor::create(void* header, const void* password, sl_uint32 lenPassword)
+	void ChaCha20_FileEncryptor::create(void* header, const void* password, sl_size lenPassword)
 	{
 		create(header, password, lenPassword, FILE_ENCRYPT_ITERATION_CREATE_DEFAULT);
 	}
 
-	sl_bool ChaCha20FileEncryptor::open(const void* _header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCountLimit)
+	sl_bool ChaCha20_FileEncryptor::open(const void* _header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit)
 	{
 		sl_uint8* header = (sl_uint8*)_header;
 		sl_uint8 key[48];
-		if (priv::chacha::GetEncryptionKey(key, header, password, lenPassword, iterationBitsCountLimit)) {			
-			m_encrypt.setKey48(key);
-			m_iv[0] = MIO::readUint32LE(header + 64);
-			m_iv[1] = MIO::readUint32LE(header + 68);
-			m_iv[2] = MIO::readUint32LE(header + 72);
-			m_iv[3] = MIO::readUint32LE(header + 76);
+		if (GetEncryptionKey(key, header, password, lenPassword, iterationBitsCountLimit)) {			
+			setKey48(key);
+			setIV(header + 64);
 			return sl_true;
 		}
 		return sl_false;
 	}
 
-	sl_bool ChaCha20FileEncryptor::open(const void* header, const void* password, sl_uint32 lenPassword)
+	sl_bool ChaCha20_FileEncryptor::open(const void* header, const void* password, sl_size lenPassword)
 	{
 		return open(header, password, lenPassword, FILE_ENCRYPT_ITERATION_OPEN_DEFAULT);
 	}
 
-	sl_bool ChaCha20FileEncryptor::checkPassword(const void* header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCountLimit)
+	sl_bool ChaCha20_FileEncryptor::checkPassword(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit)
 	{
-		return priv::chacha::CheckPassword(header, password, lenPassword, iterationBitsCountLimit);
+		return CheckPassword(header, password, lenPassword, iterationBitsCountLimit);
 	}
 
-	sl_bool ChaCha20FileEncryptor::checkPassword(const void* header, const void* password, sl_uint32 lenPassword)
+	sl_bool ChaCha20_FileEncryptor::checkPassword(const void* header, const void* password, sl_size lenPassword)
 	{
 		return checkPassword(header, password, lenPassword, FILE_ENCRYPT_ITERATION_OPEN_DEFAULT);
 	}
 
-	sl_bool ChaCha20FileEncryptor::changePassword(void* _header, const void* oldPassword, sl_uint32 lenOldPassword, const void* newPassword, sl_uint32 lenNewPassword, sl_uint32 iterationBitsCountLimit)
+	sl_bool ChaCha20_FileEncryptor::changePassword(void* _header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword, sl_uint32 iterationBitsCountLimit)
 	{
 		sl_uint8* header = (sl_uint8*)_header;
 		sl_uint8 key[48];
 		sl_uint32 iteration = 0;
-		if (priv::chacha::GetEncryptionKey(key, header, oldPassword, lenOldPassword, iterationBitsCountLimit, iteration)) {
+		if (GetEncryptionKey(key, header, oldPassword, lenOldPassword, iterationBitsCountLimit, iteration)) {
 			sl_uint8 t[48];
 			PBKDF2_HMAC_SHA256::generateKey(newPassword, lenNewPassword, header + 48, 12, iteration, t, 48);
 			for (sl_uint32 i = 0; i < 48; i++) {
@@ -685,7 +694,7 @@ namespace slib
 			}
 			PBKDF2_HMAC_SHA256::generateKey(header + 48, 12, header, 12, CHECK_LEN_HASH_ITERATION, t, 4);
 			sl_uint32 code = MIO::readUint32LE(header + 12) ^ MIO::readUint32LE(t);
-			sl_uint32 checkIteration = priv::chacha::GetCheckIteration(code);
+			sl_uint32 checkIteration = GetCheckIteration(code);
 			SHA256::hash(newPassword, lenNewPassword, t);
 			PBKDF2_HMAC_SHA256::generateKey(t, 32, header, 12, checkIteration, header + 16, 32);
 			return sl_true;
@@ -693,46 +702,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool ChaCha20FileEncryptor::changePassword(void* header, const void* oldPassword, sl_uint32 lenOldPassword, const void* newPassword, sl_uint32 lenNewPassword)
+	sl_bool ChaCha20_FileEncryptor::changePassword(void* header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword)
 	{
 		return changePassword(header, oldPassword, lenOldPassword, newPassword, lenNewPassword, FILE_ENCRYPT_ITERATION_OPEN_DEFAULT);
-	}
-
-	void ChaCha20FileEncryptor::encrypt(sl_uint64 offset, const void* _src, void* _dst, sl_size size) const
-	{
-		if (!size) {
-			return;
-		}
-		sl_uint8* src = (sl_uint8*)_src;
-		sl_uint8* dst = (sl_uint8*)_dst;
-		sl_uint64 block = offset >> 6;
-		sl_uint64 offsetEnd = (sl_uint64)(offset + size);
-		sl_uint64 blockEnd = offsetEnd >> 6;
-		sl_bool flagFirstBlock = sl_true;
-		char h[64];
-		for (; block <= blockEnd; block++) {
-			m_encrypt.generateBlock(m_iv[0], m_iv[1], m_iv[2] ^ ((sl_uint32)(block >> 32)), m_iv[3] ^ ((sl_uint32)block), h);
-			sl_uint32 n;
-			if (block == blockEnd) {
-				n = (sl_uint32)(offsetEnd & 63);
-			} else {
-				n = 64;
-			}
-			if (flagFirstBlock) {
-				flagFirstBlock = sl_false;
-				sl_uint32 s = offset & 63;
-				n -= s;
-				for (sl_uint32 i = 0; i < n; i++) {
-					dst[i] = src[i] ^ h[s + i];
-				}
-			} else {
-				for (sl_uint32 i = 0; i < n; i++) {
-					dst[i] = src[i] ^ h[i];
-				}
-			}
-			src += n;
-			dst += n;
-		}
 	}
 
 }
