@@ -19,6 +19,8 @@ int main(int argc, const char * argv[])
 		}
 		batch->commit();
 	}
-	Println("%s", db->get("152234"));
+	for (sl_uint32 k = 1001; k < 1100; k++) {
+		Println("%s", db->get(String::fromUint32(k)));
+	}
 	return 0;
 }
