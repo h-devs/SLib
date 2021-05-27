@@ -299,6 +299,7 @@
     <ClCompile Include="..\..\src\slib\network\network_os.cpp" />
     <ClCompile Include="..\..\src\slib\network\net_capture.cpp" />
     <ClCompile Include="..\..\src\slib\network\npcap_install_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\network\p2p.cpp" />
     <ClCompile Include="..\..\src\slib\network\pcap.cpp" />
     <ClCompile Include="..\..\src\slib\network\pseudo_tcp.cpp" />
     <ClCompile Include="..\..\src\slib\network\pseudo_tcp_message.cpp" />

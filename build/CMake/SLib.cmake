@@ -178,6 +178,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/network/network_async_unix.cpp"
  "${SLIB_PATH}/src/slib/network/network_io.cpp"
  "${SLIB_PATH}/src/slib/network/network_os.cpp"
+ "${SLIB_PATH}/src/slib/network/p2p.cpp"
  "${SLIB_PATH}/src/slib/network/pcap.cpp"
  "${SLIB_PATH}/src/slib/network/pseudo_tcp.cpp"
  "${SLIB_PATH}/src/slib/network/pseudo_tcp_message.cpp"

@@ -20,45 +20,44 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_NETWORK_OBJECT_TYPES
-#define CHECKHEADER_SLIB_NETWORK_OBJECT_TYPES
+#ifndef CHECKHEADER_SLIB_NETWORK_P2P
+#define CHECKHEADER_SLIB_NETWORK_P2P
 
-#include "../object_types.h"
+#include "socket_address.h"
+
+#include "../core/object.h"
+#include "../core/bytes.h"
 
 namespace slib
 {
-	namespace object_types
+
+	typedef Bytes<32> P2PNodeId;
+
+	class SLIB_EXPORT P2PSocketParam
 	{
+	public:
 
-		enum {
-			Package_Network = packages::Network,
-			Socket,
-			SocketEvent,
-			AsyncTcpSocket,
-			AsyncTcpSocketInstance,
-			AsyncTcpServer,
-			AsyncTcpServerInstance,
-			AsyncUdpSocket,
-			AsyncUdpSocketInstance,
-			TcpStream,
-			UrlRequest,
-			HttpServer,
-			HttpServerContext,
-			HttpServerConnection,
-			HttpServerConnectionProvider,
-			HttpUploadFile,
-			HttpContentReader,
-			DnsClient,
-			DnsServer,
-			StunServer,
-			NetCapture,
-			NatTable,
-			P2PSocket,
-			Tap,
-			Pcap
-		};
+	public:
+		P2PSocketParam();
 
-	}
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(P2PSocketParam)
+
+	};
+
+	class P2PSocket : public Object
+	{
+		SLIB_DECLARE_OBJECT
+
+	protected:
+		P2PSocket();
+
+		~P2PSocket();
+
+	public:
+		static Ref<P2PSocket> open(const P2PSocketParam& param);
+
+	};
+
 }
 
 #endif

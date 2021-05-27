@@ -20,45 +20,33 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_NETWORK_OBJECT_TYPES
-#define CHECKHEADER_SLIB_NETWORK_OBJECT_TYPES
-
-#include "../object_types.h"
+#include "slib/network/p2p.h"
 
 namespace slib
 {
-	namespace object_types
+
+	namespace priv
 	{
+		namespace p2p
+		{
 
-		enum {
-			Package_Network = packages::Network,
-			Socket,
-			SocketEvent,
-			AsyncTcpSocket,
-			AsyncTcpSocketInstance,
-			AsyncTcpServer,
-			AsyncTcpServerInstance,
-			AsyncUdpSocket,
-			AsyncUdpSocketInstance,
-			TcpStream,
-			UrlRequest,
-			HttpServer,
-			HttpServerContext,
-			HttpServerConnection,
-			HttpServerConnectionProvider,
-			HttpUploadFile,
-			HttpContentReader,
-			DnsClient,
-			DnsServer,
-			StunServer,
-			NetCapture,
-			NatTable,
-			P2PSocket,
-			Tap,
-			Pcap
-		};
 
+		}
 	}
-}
 
-#endif
+	using namespace priv::p2p;
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(P2PSocketParam)
+
+	P2PSocketParam::P2PSocketParam()
+	{
+	}
+
+
+	SLIB_DEFINE_OBJECT(P2PSocket, Object)
+
+	P2PSocket::P2PSocket()
+	{
+	}
+
+}
