@@ -30,6 +30,19 @@
 namespace slib
 {
 
+	template <class OUTPUT, sl_size N>
+	static sl_bool Serialize(OUTPUT* output, const Bytes<N>& _in)
+	{
+		return SerializeRaw(output, _in.data, N);
+	}
+
+	template <class INPUT, sl_size N>
+	static sl_bool Deserialize(INPUT* input, Bytes<N>& _out)
+	{
+		return DeserializeRaw(input, _out.data, N);
+	}
+
+
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const ObjectId& _in)
 	{

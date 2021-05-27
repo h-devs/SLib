@@ -4060,8 +4060,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ObjectId)
-
 	ObjectId::ObjectId() noexcept
 	{
 	}
@@ -4078,39 +4076,8 @@ namespace slib
 		}
 	}
 
-	ObjectId::ObjectId(const sl_uint8* _id) noexcept
+	ObjectId::ObjectId(const sl_uint8* _id) noexcept: Bytes(_id)
 	{
-		Base::copyMemory(data, _id, 12);
-	}
-
-	sl_bool ObjectId::operator==(const ObjectId& other) const noexcept
-	{
-		return Base::equalsMemory(data, other.data, 12);
-	}
-
-	sl_bool ObjectId::operator!=(const ObjectId& other) const noexcept
-	{
-		return !(Base::equalsMemory(data, other.data, 12));
-	}
-
-	sl_bool ObjectId::operator>=(const ObjectId& other) const noexcept
-	{
-		return Base::compareMemory(data, other.data, 12) >= 0;
-	}
-
-	sl_bool ObjectId::operator>(const ObjectId& other) const noexcept
-	{
-		return Base::compareMemory(data, other.data, 12) > 0;
-	}
-
-	sl_bool ObjectId::operator<=(const ObjectId& other) const noexcept
-	{
-		return Base::compareMemory(data, other.data, 12) <= 0;
-	}
-
-	sl_bool ObjectId::operator<(const ObjectId& other) const noexcept
-	{
-		return Base::compareMemory(data, other.data, 12) < 0;
 	}
 
 	ObjectId ObjectId::generate() noexcept
@@ -4129,33 +4096,12 @@ namespace slib
 
 	String ObjectId::toString() const noexcept
 	{
-		return String::makeHexString(data, 12);
+		return Bytes::toString();
 	}
 
-	sl_bool ObjectId::parse(const StringParam& _str) noexcept
+	sl_bool ObjectId::parse(const StringParam& str) noexcept
 	{
-		if (_str.is16()) {
-			StringData16 str(_str);
-			if (str.getLength() == 24) {
-				return str.parseHexString(data);
-			}
-		} else {
-			StringData str(_str);
-			if (str.getLength() == 24) {
-				return str.parseHexString(data);
-			}
-		}
-		return sl_false;
-	}
-
-	sl_bool ObjectId::equals(const ObjectId& other) const noexcept
-	{
-		return Base::equalsMemory(data, other.data, 12);
-	}
-
-	sl_compare_result ObjectId::compare(const ObjectId& other) const noexcept
-	{
-		return Base::compareMemory(data, other.data, 12);
+		return Bytes::parse(str);
 	}
 
 	sl_size ObjectId::getHashCode() const noexcept

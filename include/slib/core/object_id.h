@@ -23,19 +23,13 @@
 #ifndef CHECKHEADER_SLIB_CORE_OBJECT_ID
 #define CHECKHEADER_SLIB_CORE_OBJECT_ID
 
-#include "compare.h"
-#include "hash.h"
-#include "default_members.h"
-#include "string.h"
+#include "bytes.h"
 
 namespace slib
 {
 
-	class SLIB_EXPORT ObjectId
+	class SLIB_EXPORT ObjectId : public Bytes<12>
 	{
-	public:
-		sl_uint8 data[12];
-
 	public:
 		ObjectId() noexcept;
 
@@ -44,21 +38,6 @@ namespace slib
 		ObjectId(const StringParam& _id) noexcept;
 
 		ObjectId(const sl_uint8* other) noexcept;
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ObjectId)
-
-	public:
-		sl_bool operator==(const ObjectId& other) const noexcept;
-
-		sl_bool operator!=(const ObjectId& other) const noexcept;
-
-		sl_bool operator>=(const ObjectId& other) const noexcept;
-
-		sl_bool operator>(const ObjectId& other) const noexcept;
-
-		sl_bool operator<=(const ObjectId& other) const noexcept;
-
-		sl_bool operator<(const ObjectId& other) const noexcept;
 
 	public:
 		static ObjectId generate() noexcept;
@@ -70,10 +49,6 @@ namespace slib
 		Json toJson() const noexcept;
 
 		sl_bool fromJson(const Json& json) noexcept;
-
-		sl_bool equals(const ObjectId& other) const noexcept;
-
-		sl_compare_result compare(const ObjectId& other) const noexcept;
 
 		sl_size getHashCode() const noexcept;
 

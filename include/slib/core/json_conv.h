@@ -161,6 +161,29 @@ namespace slib
 		}
 	}
 
+
+	template <sl_size N>
+	Json Bytes<N>::toJson() const noexcept
+	{
+		return toString();
+	}
+
+	template <sl_size N>
+	sl_bool Bytes<N>::fromJson(const Json& json) noexcept
+	{
+		if (json.isString()) {
+			return parse(json.getStringParam());
+		} else if (json.isMemory()) {
+			Memory mem = json.getMemory();
+			if (mem.getSize() == N) {
+				Base::copyMemory(data, mem.getData(), N);
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+
 	void FromJson(const Json& json, Json& _out);
 	void ToJson(Json& json, const Json& _in);
 
