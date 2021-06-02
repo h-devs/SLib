@@ -30,13 +30,38 @@
 namespace slib
 {
 	
+	template <class TYPE, sl_bool isClass = __is_class(TYPE)>
+	class DefaultInterpolation
+	{
+	};
+
+	template <class TYPE>
+	class DefaultInterpolation<TYPE, sl_true>
+	{
+	public:
+		static TYPE interpolate(const TYPE& a, const TYPE& b, float factor)
+		{
+			return a.lerp(b, factor);
+		}
+	};
+
+	template <class TYPE>
+	class DefaultInterpolation<TYPE, sl_false>
+	{
+	public:
+		static TYPE interpolate(const TYPE& a, const TYPE& b, float factor)
+		{
+			return (TYPE)(SLIB_LERP(a, b, factor));
+		}
+	};
+
 	template <class TYPE>
 	class SLIB_EXPORT Interpolation
 	{
 	public:
 		static TYPE interpolate(const TYPE& a, const TYPE& b, float factor)
 		{
-			return (TYPE)(SLIB_LERP(a, b, factor));
+			return DefaultInterpolation<TYPE>::interpolate(a, b, factor);
 		}
 
 	};

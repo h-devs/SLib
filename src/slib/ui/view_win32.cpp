@@ -32,7 +32,7 @@
 #include "slib/math/transform2d.h"
 #include "slib/core/win32/com.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/dl_windows_user32.h"
+#include "slib/core/dl/win32/user32.h"
 
 #include <commctrl.h>
 #include <shellapi.h>

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -36,22 +36,16 @@ namespace slib
 		double altitude; // Unit: m
 	
 	public:
-		constexpr GeoLocation()
-		 : latitude(0), longitude(0), altitude(0)
-		{}
+		constexpr GeoLocation(): latitude(0), longitude(0), altitude(0) {}
 
-		constexpr GeoLocation(double _latitude, double _longitude, double _altitude)
-		 : latitude(_latitude), longitude(_longitude), altitude(_altitude)
-		{}
+		constexpr GeoLocation(double _latitude, double _longitude, double _altitude): latitude(_latitude), longitude(_longitude), altitude(_altitude) {}
 
-		constexpr GeoLocation(const LatLon& latlon, double _altitude)
-		 : latitude(latlon.latitude), longitude(latlon.longitude), altitude(_altitude)
-		{}
+		constexpr GeoLocation(const LatLon& latlon, double _altitude): latitude(latlon.latitude), longitude(latlon.longitude), altitude(_altitude) {}
 		
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(GeoLocation)
 
 	public:
-		GeoLocation& operator=(const LatLon& other)
+		GeoLocation& operator=(const LatLon& other) noexcept
 		{
 			latitude = other.latitude;
 			longitude = other.longitude;
@@ -59,31 +53,25 @@ namespace slib
 			return *this;
 		}
 
-		sl_bool operator==(const GeoLocation& other) const;
+		sl_bool equals(const GeoLocation& other) const noexcept;
 
-		sl_bool operator!=(const GeoLocation& other) const;
+		sl_bool isAlmostEqual(const GeoLocation& other) const noexcept;
 	
 	public:
-		LatLon& getLatLon();
+		LatLon& getLatLon() noexcept;
 
-		const LatLon& getLatLon() const;
+		const LatLon& getLatLon() const noexcept;
 
-		void setLatLon(const LatLon& v);
+		void setLatLon(const LatLon& v) noexcept;
 
-		void setLatLon(double latitude, double longitude);
+		void setLatLon(double latitude, double longitude) noexcept;
 	
-		void normalize();
+		void normalize() noexcept;
 	
-		GeoLocation lerp(const GeoLocation& target, float factor) const;
+		GeoLocation lerp(const GeoLocation& target, float factor) const noexcept;
 
 	};
 	
-	template <>
-	SLIB_INLINE GeoLocation Interpolation<GeoLocation>::interpolate(const GeoLocation& a, const GeoLocation& b, float factor)
-	{
-		return a.lerp(b, factor);
-	}
-
 }
 
 #endif

@@ -122,7 +122,7 @@ namespace slib
 	class ConsoleLogger : public Logger
 	{
 	public:
-		SLIB_INLINE ConsoleLogger() {}
+		ConsoleLogger() {}
 
 	public:
 		void log(const StringParam& _tag, const StringParam& _content) override

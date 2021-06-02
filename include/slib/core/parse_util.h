@@ -24,7 +24,6 @@
 #define CHECKHEADER_SLIB_CORE_PARSE_UTIL
 
 #include "string.h"
-#include "parse.h"
 
 namespace slib
 {

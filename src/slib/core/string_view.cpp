@@ -238,35 +238,4 @@ namespace slib
 		return length;
 	}
 
-
-	sl_compare_result Compare<StringView>::operator()(const StringView& a, const StringView& b) const noexcept
-	{
-		return a.compare(b);
-	}
-
-	sl_compare_result Compare<StringView16>::operator()(const StringView16& a, const StringView16& b) const noexcept
-	{
-		return a.compare(b);
-	}
-
-	sl_bool Equals<StringView>::operator()(const StringView& a, const StringView& b) const noexcept
-	{
-		return a.equals(b);
-	}
-
-	sl_bool Equals<StringView16>::operator()(const StringView16& a, const StringView16& b) const noexcept
-	{
-		return a.equals(b);
-	}
-
-	sl_size Hash<StringView>::operator()(const StringView& a) const noexcept
-	{
-		return a.getHashCode();
-	}
-
-	sl_size Hash<StringView16>::operator()(const StringView16& a) const noexcept
-	{
-		return a.getHashCode();
-	}
-
 }

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 #include "definition.h"
 
 #include "default_members.h"
+#include "common_members.h"
 
 /*******************************************************
  Time contains an integral value holding the number of
@@ -36,9 +37,6 @@
 namespace slib
 {
 	
-	class String;
-	class String16;
-	class StringParam;
 	class Locale;
 	class Time;
 	class TimeZone;
@@ -119,6 +117,9 @@ namespace slib
 	public:
 		void clearTime() noexcept;
 		
+	public:
+		SLIB_DECLARE_CLASS_PARSE_MEMBERS(TimeComponents)
+
 	};
 	
 	class SLIB_EXPORT Time
@@ -283,36 +284,6 @@ namespace slib
 			return *this;
 		}
 
-
-		sl_bool operator==(const Time& other) const noexcept
-		{
-			return m_time == other.m_time;
-		}
-
-		sl_bool operator<=(const Time& other) const noexcept
-		{
-			return m_time <= other.m_time;
-		}
-
-		sl_bool operator>=(const Time& other) const noexcept
-		{
-			return m_time >= other.m_time;
-		}
-
-		sl_bool operator!=(const Time& other) const noexcept
-		{
-			return m_time != other.m_time;
-		}
-
-		sl_bool operator<(const Time& other) const noexcept
-		{
-			return m_time < other.m_time;
-		}
-
-		sl_bool operator>(const Time& other) const noexcept
-		{
-			return m_time > other.m_time;
-		}
 
 		Time operator+(sl_int64 time) const noexcept
 		{
@@ -629,24 +600,14 @@ namespace slib
 		
 		static Time fromString(const StringParam& str, const TimeZone& zone = Time::LocalZone) noexcept;
 
-		sl_bool setString(const StringParam& str, const TimeZone& zone = Time::LocalZone) noexcept;
-		
-		
-		template <class ST>
-		static sl_bool parse(const ST& str, TimeComponents* _out) noexcept;
-		
-		template <class ST>
-		static sl_bool parse(const ST& str, Time* _out) noexcept;
+	public:
+		SLIB_DECLARE_CLASS_COMPARE_HASH_MEMBERS(Time)
+		SLIB_DECLARE_CLASS_PARSE_MEMBERS(Time)
+		SLIB_DECLARE_CLASS_PARSE2_MEMBERS(Time, const TimeZone&, zone)
 
-		template <class ST>
-		sl_bool parse(const ST& str) noexcept;
-		
-		template <class ST>
-		static sl_bool parse(const ST& str, const TimeZone& zone, Time* _out) noexcept;
-		
-		template <class ST>
-		sl_bool parse(const ST& str, const TimeZone& zone) noexcept;
-		
+		sl_bool equals(sl_int64 other) const noexcept;		
+		sl_compare_result compare(sl_int64 other) const noexcept;
+
 		/* platform functions */
 	protected:
 		sl_bool _get(TimeComponents& output, sl_bool flagUTC) const noexcept;

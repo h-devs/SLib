@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,6 @@
  */
 
 #include "slib/graphics/color.h"
-#include "slib/graphics/color_parse.h"
 
 #include "slib/core/variant.h"
 #include "slib/core/safe_static.h"
@@ -193,6 +192,21 @@ namespace slib
 	void Color::multiplyBlue(float f) noexcept
 	{
 		b = (sl_uint8)(Math::clamp0_255((sl_int32)(b * f)));
+	}
+
+	sl_bool Color::equals(const Color& other) const noexcept
+	{
+		return r == other.r && g == other.g && b == other.b && a == other.a;
+	}
+
+	sl_compare_result Color::compare(const Color& other) const noexcept
+	{
+		return ComparePrimitiveValues(getARGB(), other.getARGB());
+	}
+
+	sl_size Color::getHashCode() const noexcept
+	{
+		return Rehash32(getARGB());
 	}
 
 	String Color::toString() const noexcept
@@ -382,7 +396,7 @@ namespace slib
 			SLIB_SAFE_STATIC_GETTER(NameMap, GetNameMap)
 
 			template <class CT>
-			SLIB_INLINE static sl_reg Parse(Color* _out, const CT* sz, sl_size pos, sl_size len) noexcept
+			static sl_reg Parse(Color* _out, const CT* sz, sl_size pos, sl_size len) noexcept
 			{
 				if (pos >= len) {
 					return SLIB_PARSE_ERROR;
@@ -552,17 +566,7 @@ namespace slib
 		}
 	}
 
-	template <>
-	sl_reg Parser<Color, sl_char8>::parse(Color* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::color::Parse(_out, sz, posBegin, posEnd);
-	}
-
-	template <>
-	sl_reg Parser<Color, sl_char16>::parse(Color* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::color::Parse(_out, sz, posBegin, posEnd);
-	}
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(Color, priv::color::Parse)
 
 
 	Color4f ColorMatrix::transformColor(const Color4f& src) const noexcept

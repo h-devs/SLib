@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 #include "slib/crypto/sha2.h"
 
 #include "slib/core/string_buffer.h"
+#include "slib/core/math.h"
 #include "slib/core/safe_static.h"
 
 #include "ecc_secp256k1.inc"
@@ -127,9 +128,9 @@ namespace slib
 			if (sz[0] == '0' && sz[1] == '4') {
 				sl_size m = (n - 2) >> 1;
 				if (!(m & 1)) {
-					BigInt _x = BigInt::fromHexString(sz + 2, m);
+					BigInt _x = BigInt::fromHexString(StringView(sz + 2, m));
 					if (_x.isNotNull()) {
-						BigInt _y = BigInt::fromHexString(sz + (2 + m), m);
+						BigInt _y = BigInt::fromHexString(StringView(sz + (2 + m), m));
 						if (_y.isNotNull()) {
 							x = Move(_x);
 							y = Move(_y);
@@ -250,6 +251,16 @@ namespace slib
 	ECPublicKey::ECPublicKey()
 	{
 	}
+
+	sl_bool ECPublicKey::isNull() const
+	{
+		return Q.x.isNull();
+	}
+
+	sl_bool ECPublicKey::equals(const ECPublicKey& other) const
+	{
+		return Q.x == other.Q.x;
+	}
 	
 	sl_bool ECPublicKey::checkValid(const EllipticCurve& curve) const
 	{
@@ -272,7 +283,20 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
+	sl_bool ECPublicKey::verifySignature(const EllipticCurve& curve, const void* hash, sl_size size, const void* _signature, sl_size sizeSignature) const
+	{
+		const sl_uint8* signature = (const sl_uint8*)_signature;
+		if (sizeSignature & 1) {
+			return sl_false;
+		}
+		sizeSignature >>= 1;
+		ECDSA_Signature sig;
+		sig.r = BigInt::fromBytesBE(signature, sizeSignature);
+		sig.s = BigInt::fromBytesBE(signature + sizeSignature, sizeSignature);
+		return ECDSA::verify(curve, *this, hash, size, sig);
+	}
+
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPrivateKey)
 	
@@ -299,7 +323,24 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPublicKey_secp256k1)
+
+	ECPublicKey_secp256k1::ECPublicKey_secp256k1()
+	{
+	}
+
+	sl_bool ECPublicKey_secp256k1::checkValid() const
+	{
+		return ECPublicKey::checkValid(EllipticCurve::secp256k1());
+	}
+
+	sl_bool ECPublicKey_secp256k1::verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const
+	{
+		return ECPublicKey::verifySignature(EllipticCurve::secp256k1(), hash, size, signature, sizeSignature);
+	}
+
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECDSA_Signature)
 	

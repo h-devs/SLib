@@ -30,7 +30,6 @@ namespace slib
 {
 
 	class StringParam;
-	class Variant;
 
 	template <class T>
 	class Function;

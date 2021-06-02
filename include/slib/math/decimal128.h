@@ -25,9 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/compare.h"
-#include "../core/hash.h"
-#include "../core/parse.h"
+#include "../core/common_members.h"
 
 /*
 	IEEE 754-2008 128-bit decimal floating point (Decimal128):
@@ -49,8 +47,6 @@
 namespace slib
 {
 
-	class Json;
-
 	class SLIB_EXPORT Decimal128
 	{
 	public:
@@ -63,11 +59,11 @@ namespace slib
 #endif
 
 	public:
-		constexpr Decimal128() noexcept: high(0), low(0) {}
+		constexpr Decimal128(): high(0), low(0) {}
 
-		constexpr Decimal128(const Decimal128& other) noexcept: high(other.high), low(other.low) {}
+		constexpr Decimal128(const Decimal128& other): high(other.high), low(other.low) {}
 		
-		constexpr Decimal128(sl_uint64 _high, sl_uint64 _low) noexcept : high(_high), low(_low) {}
+		constexpr Decimal128(sl_uint64 _high, sl_uint64 _low): high(_high), low(_low) {}
 
 	private:
 		static const sl_uint64 _zero[2];
@@ -84,12 +80,12 @@ namespace slib
 
 		static const Decimal128& NaN() noexcept;
 
-		constexpr sl_bool isZero() const noexcept
+		constexpr sl_bool isZero() const
 		{
 			return high == 0 && low == 0;
 		}
 
-		constexpr sl_bool isNotZero() const noexcept
+		constexpr sl_bool isNotZero() const
 		{
 			return high != 0 || low != 0;
 		}
@@ -100,12 +96,12 @@ namespace slib
 			low = 0;
 		}
 
-		constexpr sl_bool isPositive() const noexcept
+		constexpr sl_bool isPositive() const
 		{
 			return !((sl_bool)(high >> 63));
 		}
 
-		constexpr sl_bool isNegative() const noexcept
+		constexpr sl_bool isNegative() const
 		{
 			return (sl_bool)(high >> 63);
 		}
@@ -126,32 +122,31 @@ namespace slib
 
 		void setNaN() noexcept;
 
-		sl_compare_result compare(const Decimal128& other) const noexcept;
+	public:
+		// 16 bytes
+		void getBytesBE(void* buf) noexcept;
 
-		sl_bool equals(const Decimal128& other) const noexcept;
+		// 16 bytes
+		void setBytesBE(const void* buf) noexcept;
 
-		sl_size getHashCode() const noexcept;
+		// 16 bytes
+		void getBytesLE(void* buf) noexcept;
+
+		// 16 bytes
+		void setBytesLE(const void* buf) noexcept;
+
+		static Decimal128 fromString(const StringParam& str) noexcept;
 
 	public:
-		Decimal128& operator=(const Decimal128& other) noexcept
+		SLIB_DECLARE_CLASS_COMMON_MEMBERS(Decimal128)
+
+	public:
+		Decimal128 & operator=(const Decimal128& other) noexcept
 		{
 			low = other.low;
 			high = other.high;
 			return *this;
 		}
-
-		sl_bool operator==(const Decimal128& other) const noexcept;
-
-		sl_bool operator!=(const Decimal128& other) const noexcept;
-
-		sl_bool operator>=(const Decimal128& other) const noexcept;
-
-		sl_bool operator<=(const Decimal128& other) const noexcept;
-
-		sl_bool operator>(const Decimal128& other) const noexcept;
-
-		sl_bool operator<(const Decimal128& other) const noexcept;
-
 
 		Decimal128 operator+(const Decimal128& other) const noexcept;
 
@@ -171,68 +166,6 @@ namespace slib
 
 		Decimal128 operator-() const noexcept;
 
-	public:
-		// 16 bytes
-		void getBytesBE(void* buf) noexcept;
-
-		// 16 bytes
-		void setBytesBE(const void* buf) noexcept;
-
-		// 16 bytes
-		void getBytesLE(void* buf) noexcept;
-
-		// 16 bytes
-		void setBytesLE(const void* buf) noexcept;
-
-		static Decimal128 fromString(const StringParam& str) noexcept;
-
-		String toString() const noexcept;
-
-		sl_bool fromJson(const Json& json) noexcept;
-
-		Json toJson() const noexcept;
-
-
-		template <class ST>
-		static sl_bool parse(const ST& str, Decimal128* _out) noexcept
-		{
-			return Parse(str, _out);
-		}
-
-		template <class ST>
-		sl_bool parse(const ST& str) noexcept
-		{
-			return Parse(str, this);
-		}
-
-	};
-
-	template <>
-	sl_reg Parser<Decimal128, sl_char8>::parse(Decimal128* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept;
-
-	template <>
-	sl_reg Parser<Decimal128, sl_char16>::parse(Decimal128* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept;
-
-
-	template <>
-	class Compare<Decimal128>
-	{
-	public:
-		sl_compare_result operator()(const Decimal128& a, const Decimal128& b) const noexcept;
-	};
-
-	template <>
-	class Equals<Decimal128>
-	{
-	public:
-		sl_bool operator()(const Decimal128& a, const Decimal128& b) const noexcept;
-	};
-
-	template <>
-	class Hash<Decimal128>
-	{
-	public:
-		sl_size operator()(const Decimal128& a) const noexcept;
 	};
 
 }

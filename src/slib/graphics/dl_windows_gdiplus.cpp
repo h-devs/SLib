@@ -22,7 +22,7 @@
 
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "slib/graphics/dl_windows_gdiplus.h"
+#include "slib/graphics/dl/win32/gdiplus.h"
 
 extern "C"
 {

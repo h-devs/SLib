@@ -45,7 +45,7 @@ namespace slib
 			new ((T*)m_value) T(value);
 		}
 
-		Atomic(T&& value)
+		Atomic(T&& value) noexcept
 		{
 			new ((T*)m_value) T(Move(value));
 		}
@@ -135,23 +135,23 @@ namespace slib
 	class SLIB_EXPORT Atomic<sl_int32>
 	{
 	public:
-		Atomic();
+		Atomic() noexcept;
 
-		Atomic(sl_int32 value);
-
-	public:
-		sl_int32 operator=(sl_int32 value);
-
-		operator sl_int32() const;
+		Atomic(sl_int32 value) noexcept;
 
 	public:
-		sl_int32 increase();
+		sl_int32 operator=(sl_int32 value) noexcept;
 
-		sl_int32 decrease();
+		operator sl_int32() const noexcept;
 
-		sl_int32 add(sl_int32 other);
+	public:
+		sl_int32 increase() noexcept;
 
-		sl_bool waitZero(sl_int32 timeout = -1);
+		sl_int32 decrease() noexcept;
+
+		sl_int32 add(sl_int32 other) noexcept;
+
+		sl_bool waitZero(sl_int32 timeout = -1) noexcept;
 
 	private:
 		volatile sl_int32 m_value;
@@ -172,7 +172,7 @@ namespace slib
 	class Compare< Atomic<T>, Atomic<T> >
 	{
 	public:
-		sl_compare_result operator()(const T& a, const T& b) const noexcept
+		sl_compare_result operator()(const T& a, const T& b) const
 		{
 			return Compare<T>()(a, b);
 		}
@@ -182,17 +182,17 @@ namespace slib
 	class Equals< Atomic<T>, Atomic<T> >
 	{
 	public:
-		sl_bool operator()(const T& a, const T& b) const noexcept
+		sl_bool operator()(const T& a, const T& b) const
 		{
 			return Equals<T>()(a, b);
 		}
 	};
 	
 	template <class T>
-	class Hash< Atomic<T>, sl_false >
+	class Hash< Atomic<T> >
 	{
 	public:
-		sl_size operator()(const T& a) const noexcept
+		sl_size operator()(const T& a) const
 		{
 			return Hash<T>()(a);
 		}

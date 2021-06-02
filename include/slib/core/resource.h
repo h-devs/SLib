@@ -26,6 +26,7 @@
 #include "locale.h"
 #include "hash_map.h"
 #include "memory.h"
+#include "string.h"
 #include "safe_static.h"
 
 namespace slib

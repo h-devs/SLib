@@ -34,7 +34,6 @@ namespace slib
 {
 
 	class UserNotification;
-	class Json;
 
 	class SLIB_EXPORT UserNotificationAttachment
 	{

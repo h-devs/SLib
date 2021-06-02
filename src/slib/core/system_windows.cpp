@@ -27,8 +27,8 @@
 #include "slib/core/system.h"
 
 #include "slib/core/platform_windows.h"
-#include "slib/core/dl_windows_kernel32.h"
-#include "slib/core/dl_windows_wininet.h"
+#include "slib/core/dl/win32/kernel32.h"
+#include "slib/core/dl/win32/wininet.h"
 
 #include <assert.h>
 #include <signal.h>

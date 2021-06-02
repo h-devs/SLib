@@ -93,7 +93,7 @@ namespace slib
 			WeakRef<Timer> timer;
 
 		public:
-			sl_bool operator==(const TimerTask& other) const;
+			sl_bool operator==(const TimerTask& other) const noexcept;
 		};
 		LinkedQueue<TimerTask> m_queueTimers;
 		Mutex m_lockTimer;

@@ -26,11 +26,10 @@
 #include "definition.h"
 
 #include "../math/vector4.h"
+#include "../core/common_members.h"
 
 namespace slib
 {
-
-	class String;
 	
 	typedef Vector3f Color3f;
 	typedef Vector4f Color4f;
@@ -192,38 +191,29 @@ namespace slib
 		};
 	
 	public:
-		constexpr Color() noexcept:
-		 r(0), g(0), b(0), a(0)
-		{}
+		constexpr Color(): r(0), g(0), b(0), a(0) {}
 
-		constexpr Color(const Color& other) noexcept:
-		 r(other.r), g(other.g), b(other.b), a(other.a)
-		{}
+		constexpr Color(const Color& other): r(other.r), g(other.g), b(other.b), a(other.a) {}
 
-		constexpr Color(sl_uint32 _r, sl_uint32 _g, sl_uint32 _b, sl_uint32 _a = 255) noexcept:
-		 r(_r), g(_g), b(_b), a(_a)
-		{}
+		constexpr Color(sl_uint32 _r, sl_uint32 _g, sl_uint32 _b, sl_uint32 _a = 255): r(_r), g(_g), b(_b), a(_a) {}
 
-		constexpr Color(sl_uint32 argb) noexcept:
+		constexpr Color(sl_uint32 argb):
 		 r((sl_uint8)((argb >> 16) & 0xFF)),
 		 g((sl_uint8)((argb >> 8) & 0xFF)),
 		 b((sl_uint8)(argb & 0xFF)),
-		 a((sl_uint8)((argb >> 24) & 0xFF))
-		{}
+		 a((sl_uint8)((argb >> 24) & 0xFF)) {}
 
-		constexpr Color(const Color3f& v) noexcept:
+		constexpr Color(const Color3f& v):
 		 r((sl_uint8)(Math::clamp0_255((sl_int32)(v.x * 255)))),
 		 g((sl_uint8)(Math::clamp0_255((sl_int32)(v.y * 255)))),
 		 b((sl_uint8)(Math::clamp0_255((sl_int32)(v.z * 255)))),
-		 a(255)
-		{}
+		 a(255) {}
 
-		constexpr Color(const Color4f& v) noexcept:
+		constexpr Color(const Color4f& v):
 		 r((sl_uint8)(Math::clamp0_255((sl_int32)(v.x * 255)))),
 		 g((sl_uint8)(Math::clamp0_255((sl_int32)(v.y * 255)))),
 		 b((sl_uint8)(Math::clamp0_255((sl_int32)(v.z * 255)))),
-		 a((sl_uint8)(Math::clamp0_255((sl_int32)(v.w * 255))))
-		{}
+		 a((sl_uint8)(Math::clamp0_255((sl_int32)(v.w * 255)))) {}
 	
 	public:
 		static const Color& zero() noexcept
@@ -231,12 +221,12 @@ namespace slib
 			return *(reinterpret_cast<Color const*>(&_zero));
 		}
 
-		constexpr sl_bool isZero() const noexcept
+		constexpr sl_bool isZero() const
 		{
 			return r == 0 && g == 0 && b == 0 && a == 0;
 		}
 
-		constexpr sl_bool isNotZero() const noexcept
+		constexpr sl_bool isNotZero() const
 		{
 			return r != 0 || g != 0 || b != 0 || a != 0;
 		}
@@ -249,28 +239,28 @@ namespace slib
 			a = 0;
 		}
 	
-		constexpr float getBlueF() const noexcept
+		constexpr float getBlueF() const
 		{
 			return (float)(b) / 255.0f;
 		}
 
 		void setBlueF(float v) noexcept;
 
-		constexpr float getGreenF() const noexcept
+		constexpr float getGreenF() const
 		{
 			return (float)(g) / 255.0f;
 		}
 
 		void setGreenF(float v) noexcept;
 
-		constexpr float getRedF() const noexcept
+		constexpr float getRedF() const
 		{
 			return (float)(r) / 255.0f;
 		}
 
 		void setRedF(float v) noexcept;
 
-		constexpr float getAlphaF() const noexcept
+		constexpr float getAlphaF() const
 		{
 			return (float)(a) / 255.0f;
 		}
@@ -285,7 +275,7 @@ namespace slib
 			a = _a;
 		}
 	
-		constexpr sl_uint32 getARGB() const noexcept
+		constexpr sl_uint32 getARGB() const
 		{
 			return ((sl_uint32)(a) << 24) | ((sl_uint32)(r) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(b));
 		}
@@ -298,7 +288,7 @@ namespace slib
 			a = (sl_uint8)((v >> 24) & 0xFF);
 		}
 
-		constexpr sl_uint32 getABGR() const noexcept
+		constexpr sl_uint32 getABGR() const
 		{
 			return ((sl_uint32)(a) << 24) | ((sl_uint32)(b) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(r));
 		}
@@ -311,7 +301,7 @@ namespace slib
 			a = (sl_uint8)((v >> 24) & 0xFF);
 		}
 
-		constexpr sl_uint32 getRGB() const noexcept
+		constexpr sl_uint32 getRGB() const
 		{
 			return ((sl_uint32)(r) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(b));
 		}
@@ -330,7 +320,7 @@ namespace slib
 			r = (sl_uint8)((v >> 16) & 0xFF);
 		}
 	
-		constexpr sl_uint32 getBGR() const noexcept
+		constexpr sl_uint32 getBGR() const
 		{
 			return ((sl_uint32)(b) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(r));
 		}
@@ -380,16 +370,9 @@ namespace slib
 		void multiplyGreen(float f) noexcept;
 		
 		void multiplyBlue(float f) noexcept;
-
-
-		String toString() const noexcept;
-
-
-		template <class ST>
-		static sl_bool parse(const ST& str, Color* _out) noexcept;
-
-		template <class ST>
-		sl_bool parse(const ST& str) noexcept;
+	
+	public:
+		SLIB_DECLARE_CLASS_COMMON_MEMBERS(Color)
 
 	public:
 		Color& operator=(const Color& other) noexcept
@@ -401,22 +384,12 @@ namespace slib
 			return *this;
 		}
 
-		constexpr sl_bool operator==(const Color& other) const noexcept
-		{
-			return r == other.r && g == other.g && b == other.b && a == other.a;
-		}
-
-		constexpr sl_bool operator!=(const Color& other) const noexcept
-		{
-			return r != other.r || g != other.g || b != other.b || a != other.a;
-		}
-
-		constexpr operator Color3f() const noexcept
+		constexpr operator Color3f() const
 		{
 			return Color3f((sl_real)(r) / 255, (sl_real)(g) / 255, (sl_real)(b) / 255);
 		}
 
-		constexpr operator Color4f() const noexcept
+		constexpr operator Color4f() const
 		{
 			return Color4f((sl_real)(r) / 255, (sl_real)(g) / 255, (sl_real)(b) / 255, (sl_real)(a) / 255);
 		}

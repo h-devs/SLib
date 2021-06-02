@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 #include "ip_address.h"
 
-#include "../core/string.h"
 #include "../core/parse.h"
 
 namespace slib
@@ -38,21 +37,15 @@ namespace slib
 		sl_uint16 port;
 		
 	public:
-		SocketAddress() noexcept
-		: port(0)
-		{}
+		SocketAddress() noexcept: port(0) {}
 		
-		SocketAddress(const SocketAddress& other) noexcept = default;
+		SocketAddress(const SocketAddress& other) = default;
 		
-		SocketAddress(sl_uint16 _port) noexcept
-		: port(_port)
-		{}
+		SocketAddress(sl_uint16 _port) noexcept: port(_port) {}
 		
-		SocketAddress(const IPAddress& _ip, sl_uint16 _port) noexcept
-		: ip(_ip), port(_port)
-		{}
+		SocketAddress(const IPAddress& _ip, sl_uint16 _port) noexcept: ip(_ip), port(_port) {}
 		
-		SocketAddress(const String& str) noexcept;
+		SocketAddress(const StringParam& str) noexcept;
 		
 	public:
 		static const SocketAddress& none() noexcept
@@ -66,51 +59,29 @@ namespace slib
 		
 		sl_bool isInvalid() const noexcept;
 		
-		sl_compare_result compare(const SocketAddress& other) const noexcept;
-		
-		sl_size getHashCode() const noexcept;
-		
-		/*
-		 Address Format
-			IPv4 - a.b.c.d:port
-			Ipv6 - [s0:s1:s2:s3:s4:s5:s6:s7]:port
-		 */
-		String toString() const noexcept;
-		
-		sl_bool setString(const String& str) noexcept;
-		
 		sl_uint32 getSystemSocketAddress(void* addr) noexcept;
 		
 		sl_bool setSystemSocketAddress(const void* addr, sl_uint32 size = 0) noexcept;
 		
 		// HostName:port
-		sl_bool setHostAddress(const String& address) noexcept;
-		
-		
-		template <class ST>
-		static sl_bool parse(const ST& str, SocketAddress* _out) noexcept
-		{
-			return Parse(str, _out);
-		}
-		
-		template <class ST>
-		sl_bool parse(const ST& str) noexcept
-		{
-			return Parse(str, this);
-		}
-		
+		sl_bool setHostAddress(const StringParam& address) noexcept;		
+
+	public:
+		/*
+		 Address Format
+			IPv4 - a.b.c.d:port
+			Ipv6 - [s0:s1:s2:s3:s4:s5:s6:s7]:port
+		 */
+		SLIB_DECLARE_CLASS_COMMON_MEMBERS(SocketAddress)
+
 		static sl_bool parseIPv4Range(const String& str, IPv4Address* from = sl_null, IPv4Address* to = sl_null) noexcept;
 		
 		static sl_bool parsePortRange(const String& str, sl_uint16* from = sl_null, sl_uint16* to = sl_null) noexcept;
 		
 	public:
-		SocketAddress& operator=(const SocketAddress& other) noexcept = default;
+		SocketAddress& operator=(const SocketAddress& other) = default;
 		
 		SocketAddress& operator=(const String& str) noexcept;
-		
-		sl_bool operator==(const SocketAddress& other) const noexcept;
-		
-		sl_bool operator!=(const SocketAddress& other) const noexcept;
 		
 	private:
 		struct _socket_address
@@ -124,33 +95,6 @@ namespace slib
 		
 		static const _socket_address _none;
 		
-	};
-	
-	template <>
-	sl_reg Parser<SocketAddress, sl_char8>::parse(SocketAddress* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept;
-	
-	template <>
-	sl_reg Parser<SocketAddress, sl_char16>::parse(SocketAddress* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept;
-	
-	template <>
-	class Compare<SocketAddress>
-	{
-	public:
-		sl_compare_result operator()(const SocketAddress& a, const SocketAddress& b) const noexcept;
-	};
-	
-	template <>
-	class Equals<SocketAddress>
-	{
-	public:
-		sl_bool operator()(const SocketAddress& a, const SocketAddress& b) const noexcept;
-	};
-	
-	template <>
-	class Hash<SocketAddress>
-	{
-	public:
-		sl_size operator()(const SocketAddress& a) const noexcept;
 	};
 
 }

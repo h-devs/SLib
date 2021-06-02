@@ -38,7 +38,7 @@ namespace slib
 	class SLIB_EXPORT CSharedPtrBase
 	{
 	public:
-		constexpr CSharedPtrBase() noexcept: refCount(1) {}
+		constexpr CSharedPtrBase(): refCount(1) {}
 
 		virtual ~CSharedPtrBase();
 
@@ -71,7 +71,7 @@ namespace slib
 			class SharedPtrContainer : public CSharedPtr<T>
 			{
 			public:
-				SharedPtrContainer(T* _ptr)
+				SharedPtrContainer(T* _ptr) noexcept
 				{
 					this->ptr = _ptr;
 				}
@@ -91,7 +91,7 @@ namespace slib
 
 			public:
 				template <class DELETER>
-				SharedPtrContainerWithDeleter(T* _ptr, DELETER&& _deleter): deleter(Forward<DELETER>(_deleter))
+				SharedPtrContainerWithDeleter(T* _ptr, DELETER&& _deleter) noexcept: deleter(Forward<DELETER>(_deleter))
 				{
 					this->ptr = _ptr;
 				}
@@ -111,7 +111,7 @@ namespace slib
 
 			public:
 				template <class... ARGS>
-				SharedObjectContainer(ARGS&&... args): object(Forward<ARGS>(args)...)
+				SharedObjectContainer(ARGS&&... args) noexcept: object(Forward<ARGS>(args)...)
 				{
 					this->ptr = &object;
 				}
@@ -140,7 +140,7 @@ namespace slib
 		typedef typename priv::ptr::SharedPtrValueType<T>::Type ValueType;
 
 	public:
-		SharedPtr() noexcept: container(sl_null) {}
+		constexpr SharedPtr(): container(sl_null) {}
 
 		SharedPtr(SharedPtr&& other) noexcept
 		{
@@ -180,7 +180,7 @@ namespace slib
 			container = reinterpret_cast<Container*>(other._retain());
 		}
 
-		SharedPtr(sl_null_t) noexcept: container(sl_null) {}
+		constexpr SharedPtr(sl_null_t): container(sl_null) {}
 
 		SharedPtr(const T* ptr) noexcept
 		{
@@ -228,12 +228,12 @@ namespace slib
 			return *(reinterpret_cast<SharedPtr const*>(&(priv::ptr::g_shared_null)));
 		}
 	
-		sl_bool isNull() const noexcept
+		constexpr sl_bool isNull() const
 		{
 			return !container;
 		}
 
-		sl_bool isNotNull() const noexcept
+		constexpr sl_bool isNotNull() const
 		{
 			return container != sl_null;
 		}
@@ -243,7 +243,7 @@ namespace slib
 			_replace(sl_null);
 		}
 
-		T* get() const& noexcept
+		constexpr T* get() const&
 		{
 			if (container) {
 				return container->ptr;
@@ -330,45 +330,48 @@ namespace slib
 			return *this;
 		}
 
-		template <class OTHER>
-		sl_bool operator==(const SharedPtr<OTHER>& other) const noexcept
-		{
-			return (const void*)(get()) == (const void*)(other.get());
-		}
-
-		template <class OTHER>
-		sl_bool operator==(const AtomicSharedPtr<OTHER>& other) const noexcept
-		{
-			return *this == SharedPtr(other);
-		}
-
-		template <class OTHER>
-		sl_bool operator!=(const SharedPtr<OTHER>& other) const noexcept
-		{
-			return (const void*)(get()) != (const void*)(other.get());
-		}
-
-		template <class OTHER>
-		sl_bool operator!=(const AtomicSharedPtr<OTHER>& other) const noexcept
-		{
-			return *this != SharedPtr(other);
-		}
-
 		ValueType& operator*() const noexcept
 		{
 			return *reinterpret_cast<ValueType*>(container->ptr);
 		}
 
-		T* operator->() const noexcept
+		constexpr T* operator->() const
 		{
 			return container->ptr;
 		}
 
-		explicit operator sl_bool() const noexcept
+		constexpr explicit operator sl_bool() const
 		{
 			return container != sl_null;
 		}
+
+	public:
+		template <class OTHER>
+		constexpr sl_bool equals(const SharedPtr<OTHER>& other) const
+		{
+			return (const void*)(container) == (const void*)(other.container);
+		}
+
+		template <class OTHER>
+		constexpr sl_bool equals(const AtomicSharedPtr<OTHER>& other) const
+		{
+			return (const void*)(container) == (const void*)(other._container);
+		}
+
+		template <class OTHER>
+		constexpr sl_compare_result compare(const SharedPtr<OTHER>& other) const
+		{
+			return ComparePrimitiveValues((const void*)(container), (const void*)(other.container));
+		}
+
+		template <class OTHER>
+		constexpr sl_compare_result compare(const AtomicSharedPtr<OTHER>& other) const
+		{
+			return ComparePrimitiveValues((const void*)(container), (const void*)(other._container));
+		}
 		
+		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR
+
 	private:
 		void _replace(Container* other) noexcept
 		{
@@ -388,7 +391,7 @@ namespace slib
 		}
 
 	public:
-		Container * container;
+		Container* container;
 
 	};
 
@@ -399,7 +402,7 @@ namespace slib
 		typedef typename priv::ptr::SharedPtrValueType<T>::Type ValueType;
 
 	public:
-		Atomic() noexcept : _container(sl_null) {}
+		constexpr Atomic(): _container(sl_null) {}
 
 		Atomic(const Atomic& other) noexcept
 		{
@@ -429,7 +432,7 @@ namespace slib
 			_container = o;
 		}
 
-		Atomic(sl_null_t) noexcept: _container(sl_null) {}
+		constexpr Atomic(sl_null_t): _container(sl_null) {}
 
 		Atomic(const T* ptr) noexcept
 		{
@@ -463,12 +466,12 @@ namespace slib
 		}
 
 	public:
-		sl_bool isNull() const noexcept
+		constexpr sl_bool isNull() const
 		{
 			return !_container;
 		}
 
-		sl_bool isNotNull() const noexcept
+		constexpr sl_bool isNotNull() const
 		{
 			return _container != sl_null;
 		}
@@ -540,30 +543,6 @@ namespace slib
 			return *this;
 		}
 
-		template <class OTHER>
-		sl_bool operator==(const AtomicSharedPtr<OTHER>& other) const noexcept
-		{
-			return SharedPtr<T>(*this) == SharedPtr<OTHER>(other);
-		}
-
-		template <class OTHER>
-		sl_bool operator==(const SharedPtr<OTHER>& other) const noexcept
-		{
-			return SharedPtr<T>(*this) == other;
-		}
-
-		template <class OTHER>
-		sl_bool operator!=(const AtomicSharedPtr<OTHER>& other) const noexcept
-		{
-			return SharedPtr<T>(*this) != SharedPtr<OTHER>(other);
-		}
-
-		template <class OTHER>
-		sl_bool operator!=(const SharedPtr<OTHER>& other) const noexcept
-		{
-			return SharedPtr<T>(*this) != other;
-		}
-
 		SharedPtr<T> operator*() const noexcept
 		{
 			return *this;
@@ -573,6 +552,33 @@ namespace slib
 		{
 			return _container != sl_null;
 		}
+
+	public:
+		template <class OTHER>
+		constexpr sl_bool equals(const SharedPtr<OTHER>& other) const
+		{
+			return (const void*)(_container) == (const void*)(other.container);
+		}
+
+		template <class OTHER>
+		constexpr sl_bool equals(const AtomicSharedPtr<OTHER>& other) const
+		{
+			return (const void*)(_container) == (const void*)(other._container);
+		}
+
+		template <class OTHER>
+		constexpr sl_compare_result compare(const SharedPtr<OTHER>& other) const
+		{
+			return ComparePrimitiveValues((const void*)(_container), (const void*)(other.container));
+		}
+
+		template <class OTHER>
+		constexpr sl_compare_result compare(const AtomicSharedPtr<OTHER>& other) const
+		{
+			return ComparePrimitiveValues((const void*)(_container), (const void*)(other._container));
+		}
+
+		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR
 
 	public:
 		Container* _retain() const noexcept

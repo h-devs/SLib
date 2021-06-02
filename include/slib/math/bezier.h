@@ -56,27 +56,23 @@ namespace slib
 		CubicBezierCurveT() = default;
 
 		template <class O>
-		CubicBezierCurveT(const CubicBezierCurveT<O>& other) noexcept
-			:x0((T)(other.x0)), y0((T)(other.y0)),
-			x1((T)(other.x1)), y1((T)(other.y1)),
-			x2((T)(other.x2)), y2((T)(other.y2)),
-			x3((T)(other.x3)), y3((T)(other.y3))
-		{
-		}
+		constexpr CubicBezierCurveT(const CubicBezierCurveT<O>& other):
+		 x0((T)(other.x0)), y0((T)(other.y0)),
+		 x1((T)(other.x1)), y1((T)(other.y1)),
+		 x2((T)(other.x2)), y2((T)(other.y2)),
+		 x3((T)(other.x3)), y3((T)(other.y3)) {}
 
-		CubicBezierCurveT(T _x0, T _y0, T _x1, T _y1, T _x2, T _y2, T _x3, T _y3) noexcept
-			:x0(_x0), y0(_y0),
-			x1(_x1), y1(_y1),
-			x2(_x2), y2(_y2),
-			x3(_x3), y3(_y3)
-		{}
+		constexpr CubicBezierCurveT(T _x0, T _y0, T _x1, T _y1, T _x2, T _y2, T _x3, T _y3):
+		 x0(_x0), y0(_y0),
+		 x1(_x1), y1(_y1),
+		 x2(_x2), y2(_y2),
+		 x3(_x3), y3(_y3) {}
 
-		CubicBezierCurveT(const PointT<T>& P0, const PointT<T>& P1, const PointT<T>& P2, const PointT<T>& P3) noexcept
-			:x0(P0.x), y0(P0.y),
-			x1(P1.x), y1(P1.y),
-			x2(P2.x), y2(P2.y),
-			x3(P3.x), y3(P3.y)
-		{}
+		constexpr CubicBezierCurveT(const PointT<T>& P0, const PointT<T>& P1, const PointT<T>& P2, const PointT<T>& P3):
+		 x0(P0.x), y0(P0.y),
+		 x1(P1.x), y1(P1.y),
+		 x2(P2.x), y2(P2.y),
+		 x3(P3.x), y3(P3.y) {}
 
 	public:
 		void getPoint(T t, T& x, T& y) const noexcept

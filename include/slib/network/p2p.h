@@ -27,6 +27,7 @@
 
 #include "../core/object.h"
 #include "../core/bytes.h"
+#include "../crypto/ecc.h"
 
 namespace slib
 {
@@ -36,6 +37,7 @@ namespace slib
 	class SLIB_EXPORT P2PSocketParam
 	{
 	public:
+
 
 	public:
 		P2PSocketParam();

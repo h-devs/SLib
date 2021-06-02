@@ -29,7 +29,7 @@
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/variant.h"
 #include "slib/core/endian.h"
-#include "slib/core/dl_windows_kernel32.h"
+#include "slib/core/dl/win32/kernel32.h"
 
 #include <crtdbg.h>
 #include <shellapi.h>

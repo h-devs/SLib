@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/compare.h"
-#include "../core/hash.h"
-#include "../core/parse.h"
+#include "../core/common_members.h"
 #include "../core/math.h"
 
 #define SLIB_UINT128_MAX_LOG10I 38
@@ -47,13 +45,13 @@ namespace slib
 #endif
 	
 	public:
-		constexpr Uint128() noexcept: high(0), low(0) {}
+		constexpr Uint128(): high(0), low(0) {}
 
-		constexpr Uint128(const Uint128& other) noexcept: high(other.high), low(other.low) {}
+		constexpr Uint128(const Uint128& other): high(other.high), low(other.low) {}
 
-		constexpr Uint128(sl_uint64 _high, sl_uint64 _low) noexcept : high(_high), low(_low) {}
+		constexpr Uint128(sl_uint64 _high, sl_uint64 _low): high(_high), low(_low) {}
 
-		constexpr Uint128(sl_uint64 num) noexcept: high(0), low(num) {}
+		constexpr Uint128(sl_uint64 num): high(0), low(num) {}
 
 	private:
 		static const sl_uint64 _zero[2];
@@ -64,12 +62,12 @@ namespace slib
 			return *((Uint128*)((void*)_zero));
 		}
 
-		constexpr sl_bool isZero() const noexcept
+		constexpr sl_bool isZero() const
 		{
 			return high == 0 && low == 0;
 		}
 
-		constexpr sl_bool isNotZero() const noexcept
+		constexpr sl_bool isNotZero() const
 		{
 			return high != 0 || low != 0;
 		}
@@ -80,12 +78,23 @@ namespace slib
 			low = 0;
 		}
 	
-		sl_compare_result compare(const Uint128& other) const noexcept;
-		
-		sl_bool equals(const Uint128& other) const noexcept;
-		
-		sl_size getHashCode() const noexcept;
+		sl_uint32 getMostSignificantBits() const noexcept;
 
+		sl_uint32 getLeastSignificantBits() const noexcept;
+
+		// 16 bytes
+		void getBytesBE(void* buf) noexcept;
+
+		// 16 bytes
+		void setBytesBE(const void* buf) noexcept;
+
+		// 16 bytes
+		void getBytesLE(void* buf) noexcept;
+
+		// 16 bytes
+		void setBytesLE(const void* buf) noexcept;
+
+	public:
 		static Uint128 mul64(sl_uint64 a, sl_uint64 b) noexcept;
 
 		static sl_bool div(const Uint128& a, const Uint128& b, Uint128* quotient = sl_null, Uint128* remainder = sl_null) noexcept;
@@ -135,47 +144,11 @@ namespace slib
 			return *this;
 		}
 
-		operator sl_uint64() const noexcept
+		constexpr operator sl_uint64() const
 		{
 			return low;
 		}
-	
-		sl_bool operator==(const Uint128& other) const noexcept;
 
-		sl_bool operator==(sl_uint64 num) const noexcept;
-
-		friend sl_bool operator==(sl_uint64 num, const Uint128& v) noexcept;
-
-		sl_bool operator!=(const Uint128& other) const noexcept;
-
-		sl_bool operator!=(sl_uint64 num) const noexcept;
-
-		friend sl_bool operator!=(sl_uint64 num, const Uint128& v) noexcept;
-
-		sl_bool operator>=(const Uint128& other) const noexcept;
-
-		sl_bool operator>=(sl_uint64 num) const noexcept;
-
-		friend sl_bool operator>=(sl_uint64 num, const Uint128& v) noexcept;
-	
-		sl_bool operator<=(const Uint128& other) const noexcept;
-
-		sl_bool operator<=(sl_uint64 num) const noexcept;
-
-		friend sl_bool operator<=(sl_uint64 num, const Uint128& v) noexcept;
-
-		sl_bool operator>(const Uint128& other) const noexcept;
-
-		sl_bool operator>(sl_uint64 num) const noexcept;
-
-		friend sl_bool operator>(sl_uint64 num, const Uint128& v) noexcept;
-
-		sl_bool operator<(const Uint128& other) const noexcept;
-
-		sl_bool operator<(sl_uint64 num) const noexcept;
-
-		friend sl_bool operator<(sl_uint64 num, const Uint128& v) noexcept;
-	
 
 		Uint128 operator+(const Uint128& other) const noexcept;
 
@@ -296,22 +269,6 @@ namespace slib
 		Uint128 operator~() const noexcept;
 	
 	public:
-		sl_uint32 getMostSignificantBits() const noexcept;
-
-		sl_uint32 getLeastSignificantBits() const noexcept;
-
-		// 16 bytes
-		void getBytesBE(void* buf) noexcept;
-
-		// 16 bytes
-		void setBytesBE(const void* buf) noexcept;
-
-		// 16 bytes
-		void getBytesLE(void* buf) noexcept;
-	
-		// 16 bytes
-		void setBytesLE(const void* buf) noexcept;
-	
 		static Uint128 fromString(const StringParam& str, sl_uint32 radix = 10) noexcept;
 
 		String toString(sl_uint32 radix = 10) const noexcept;
@@ -320,49 +277,23 @@ namespace slib
 
 		String toHexString() const noexcept;
 
-
-		template <class ST>
-		static sl_bool parse(const ST& str, Uint128* _out, sl_uint32 radix = 10) noexcept
-		{
-			return ParseInt(str, _out, radix);
-		}
-
-		template <class ST>
-		sl_bool parse(const ST& str, sl_uint32 radix = 10) noexcept
-		{
-			return ParseInt(str, this, radix);
-		}
-	
-	};
-	
-	template <>
-	sl_reg IntParser<Uint128, sl_char8>::parse(Uint128* _out, sl_uint32 radix, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept;
-	
-	template <>
-	sl_reg IntParser<Uint128, sl_char16>::parse(Uint128* _out, sl_uint32 radix, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept;
-	
-	
-	template <>
-	class Compare<Uint128>
-	{
 	public:
-		sl_compare_result operator()(const Uint128& a, const Uint128& b) const noexcept;
-	};
-	
-	template <>
-	class Equals<Uint128>
-	{
-	public:
-		sl_bool operator()(const Uint128& a, const Uint128& b) const noexcept;
-	};
-	
-	template <>
-	class Hash<Uint128>
-	{
-	public:
-		sl_size operator()(const Uint128& a) const noexcept;
-	};
+		SLIB_DECLARE_CLASS_COMPARE_HASH_MEMBERS(Uint128)
+		SLIB_DECLARE_CLASS_PARSE_INT_MEMBERS(Uint128)
+		SLIB_DECLARE_CLASS_JSON_SERIALIZE_MEMBERS
 
+		sl_bool equals(sl_uint64 num) const noexcept;
+		sl_compare_result compare(sl_uint64 num) const noexcept;
+
+		friend sl_bool operator==(sl_uint64 num, const Uint128& v) noexcept;
+		friend sl_bool operator!=(sl_uint64 num, const Uint128& v) noexcept;
+		friend sl_bool operator>=(sl_uint64 num, const Uint128& v) noexcept;
+		friend sl_bool operator<=(sl_uint64 num, const Uint128& v) noexcept;
+		friend sl_bool operator>(sl_uint64 num, const Uint128& v) noexcept;
+		friend sl_bool operator<(sl_uint64 num, const Uint128& v) noexcept;
+
+	};
+	
 	template <>
 	void Math::pow10iT<Uint128>(Uint128& _out, sl_uint32 exponent) noexcept;
 	

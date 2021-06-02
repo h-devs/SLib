@@ -68,9 +68,9 @@ namespace slib
 		};
 		
 	public:
-		constexpr StringParam() noexcept : _value(sl_null), _length(0) {}
+		constexpr StringParam(): _value(sl_null), _length(0) {}
 		
-		constexpr StringParam(sl_null_t) noexcept : _value(sl_null), _length(1) {}
+		constexpr StringParam(sl_null_t): _value(sl_null), _length(1) {}
 		
 		StringParam(StringParam&& other) noexcept;
 		
@@ -159,24 +159,24 @@ namespace slib
 	public:
 		void setUndefined() noexcept;
 		
-		sl_bool isUndefined() const noexcept
+		constexpr sl_bool isUndefined() const
 		{
 			return (!_value) && (!_length);
 		}
 		
-		sl_bool isNotUndefined() const noexcept
+		constexpr sl_bool isNotUndefined() const
 		{
 			return _value || _length;
 		}
 		
 		void setNull() noexcept;
 		
-		sl_bool isNull() const noexcept
+		constexpr sl_bool isNull() const
 		{
 			return !_value;
 		}
 		
-		sl_bool isNotNull() const noexcept
+		constexpr sl_bool isNotNull() const
 		{
 			return _value != 0;
 		}
@@ -226,27 +226,6 @@ namespace slib
 		friend class StringCstr16;
 	};
 	
-	template <>
-	class Compare<StringParam>
-	{
-	public:
-		sl_compare_result operator()(const StringParam& a, const StringParam& b) const noexcept;
-	};
-	
-	template <>
-	class Equals<StringParam>
-	{
-	public:
-		sl_bool operator()(const StringParam& a, const StringParam& b) const noexcept;
-	};
-	
-	template <>
-	class Hash<StringParam>
-	{
-	public:
-		sl_size operator()(const StringParam& a) const noexcept;
-	};
-
 
 	class SLIB_EXPORT StringData : public StringView
 	{

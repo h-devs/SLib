@@ -157,10 +157,11 @@ sl_bool UIEvent::is##NAME##Key() const \
 		return sb.merge();
 	}
 
-	sl_bool KeycodeAndModifiers::parse(const String& str)
+	sl_bool KeycodeAndModifiers::parse(const StringParam& _str)
 	{
+		StringData str(_str);
 		KeycodeAndModifiers km;
-		ListElements<String> list(str.split("+"));
+		ListElements<StringView> list(str.split("+"));
 		for (sl_size i = 0; i < list.count; i++) {
 			if (km.getKeycode() != Keycode::Unknown) {
 				return sl_false;

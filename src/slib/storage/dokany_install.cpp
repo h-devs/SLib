@@ -220,29 +220,6 @@ namespace slib
 
 			static sl_bool RegisterCatalog(/*sl_bool flagDokany = sl_true*/)
 			{
-				// Correct way of catalog installation using SignTool
-				//   signtool catdb dokan1.cat
-
-				// Correct way of catalog installation using WinTrust API:
-				// 
-				//#include <SoftPub.h>
-				////#include <mscat.h>
-				//#include "dl_windows_wintrust.h"
-				// 
-				// HCATADMIN catAdmin;
-				// GUID catRootGuid = DRIVER_ACTION_VERIFY;
-				// if (!(CryptCATAdminAcquireContext(&catAdmin, &catRootGuid, NULL))) {
-				// 	return sl_false;
-				// }
-				// HCATINFO catInfo = CryptCATAdminAddCatalog(catAdmin, 
-				//		L"C:\\Windows\\System32\\DRVSTORE\\dokan_E30037CFB60886C502594F6D325117CE8637F427\\dokan1.cat", L"dokan1.cat", NULL);
-				// if (catInfo == NULL) {
-				// 	CryptCATAdminReleaseContext(catAdmin, NULL);
-				// 	return sl_false;
-				// }
-				// CryptCATAdminReleaseCatalogContext(catAdmin, catInfo, NULL);
-				// CryptCATAdminReleaseContext(catAdmin, NULL);
-
 				Memory data = Zlib::decompress(::dokany::files::dokan1_cat_compressed_data, ::dokany::files::dokan1_cat_compressed_size);
 				String path = GetCatalogPath();
 				if (File::writeAllBytes(path, data) != data.getSize()) {

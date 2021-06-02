@@ -25,7 +25,6 @@
 
 #include "definition.h"
 
-#include "../core/compare.h"
 #include "../core/math.h"
 
 namespace slib
@@ -48,19 +47,19 @@ namespace slib
 		sl_bool flagNegative;
 
 	public:
-		Decimal()
+		Decimal() noexcept
 		{
 			flagNegative = sl_false;
 			type = DecimalValueType::Normal;
 		}
 		
 	public:
-		sl_bool isZero() const
+		constexpr sl_bool isZero() const
 		{
 			return type == DecimalValueType::Normal && significand == SIGNIFICAND_TYPE(0);
 		}
 
-		void setZero()
+		void setZero() noexcept
 		{
 			type = DecimalValueType::Normal;
 			significand = 0;
@@ -68,7 +67,7 @@ namespace slib
 			flagNegative = sl_false;
 		}
 
-		sl_compare_result compare(const Decimal& other, sl_int32 log10OfMax) const
+		sl_compare_result compare(const Decimal& other, sl_int32 log10OfMax) const noexcept
 		{
 			if (type == DecimalValueType::NaN) {
 				if (other.type == DecimalValueType::NaN) {
@@ -113,7 +112,7 @@ namespace slib
 			}
 		}
 
-		void add(const Decimal& a, const Decimal& b, sl_int32 log10OfMax)
+		void add(const Decimal& a, const Decimal& b, sl_int32 log10OfMax) noexcept
 		{
 			if (a.type == DecimalValueType::NaN || b.type == DecimalValueType::NaN) {
 				type = DecimalValueType::NaN;
@@ -144,7 +143,7 @@ namespace slib
 			}
 		}
 
-		void multiply(const Decimal& a, const Decimal& b, sl_int32 log10OfMax)
+		void multiply(const Decimal& a, const Decimal& b, sl_int32 log10OfMax) noexcept
 		{
 			if (a.type == DecimalValueType::NaN || b.type == DecimalValueType::NaN) {
 				type = DecimalValueType::NaN;
@@ -184,7 +183,7 @@ namespace slib
 			}
 		}
 
-		void divide(const Decimal& a, const Decimal& b, sl_int32 log10OfMax)
+		void divide(const Decimal& a, const Decimal& b, sl_int32 log10OfMax) noexcept
 		{
 			if (a.type == DecimalValueType::NaN || b.type == DecimalValueType::NaN) {
 				type = DecimalValueType::NaN;
@@ -230,7 +229,7 @@ namespace slib
 		}
 
 	private:
-		sl_compare_result _compareAbs(const Decimal& other, sl_int32 log10OfMax) const
+		sl_compare_result _compareAbs(const Decimal& other, sl_int32 log10OfMax) const noexcept
 		{
 			if (type == DecimalValueType::Infinity) {
 				if (other.type == DecimalValueType::Infinity) {
@@ -275,7 +274,7 @@ namespace slib
 			}
 		}
 
-		void _addAbs(sl_bool flagSubtract, const Decimal& _a, const Decimal& _b, sl_int32 log10OfMax)
+		void _addAbs(sl_bool flagSubtract, const Decimal& _a, const Decimal& _b, sl_int32 log10OfMax) noexcept
 		{
 			if (_a.type == DecimalValueType::Infinity) {
 				type = DecimalValueType::Infinity;
@@ -372,17 +371,17 @@ namespace slib
 			}
 		}
 
-		void _addAbs(const Decimal& a, const Decimal& b, sl_int32 log10OfMax)
+		void _addAbs(const Decimal& a, const Decimal& b, sl_int32 log10OfMax) noexcept
 		{
 			_addAbs(sl_false, a, b, log10OfMax);
 		}
 	
-		void _subtractAbs(const Decimal& a, const Decimal& b, sl_int32 log10OfMax)
+		void _subtractAbs(const Decimal& a, const Decimal& b, sl_int32 log10OfMax) noexcept
 		{
 			_addAbs(sl_true, a, b, log10OfMax);
 		}
 
-		void _addSignificand(sl_bool flagSubtract, const SIGNIFICAND_TYPE& a, const SIGNIFICAND_TYPE& b)
+		void _addSignificand(sl_bool flagSubtract, const SIGNIFICAND_TYPE& a, const SIGNIFICAND_TYPE& b) noexcept
 		{
 			if (flagSubtract) {
 				if (a >= b) {

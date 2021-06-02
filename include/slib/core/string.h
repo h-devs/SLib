@@ -52,10 +52,7 @@ namespace slib
 	class Memory;
 	class MemoryData;
 	class Locale;
-	class Variant;
-	class Json;
 	class Time;
-	class Referable;
 
 	template <class T> class List;
 	template <class T> class ListParam;

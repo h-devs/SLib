@@ -22,4 +22,4 @@
 
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "slib/network/dl_linux_curl.h"
+#include "slib/network/dl/linux/curl.h"

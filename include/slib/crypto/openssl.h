@@ -96,6 +96,20 @@ namespace slib
 		evp_pkey_st* m_key;
 		
 	};
+
+	class SLIB_EXPORT OpenSSL_ECPublicKey_secp256k1 : public ECPublicKey_secp256k1
+	{
+	public:
+		OpenSSL_ECPublicKey_secp256k1();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OpenSSL_ECPublicKey_secp256k1)
+
+	public:
+		sl_bool checkValid() const;
+		
+		sl_bool verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const;
+		
+	};
 	
 	class SLIB_EXPORT OpenSSL_Context : public TlsContext
 	{

@@ -21,7 +21,6 @@
  */
 
 #include "slib/core/ref.h"
-
 #include "slib/core/base.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/memory_buffer.h"
@@ -162,12 +161,12 @@ namespace slib
 		delete this;
 	}
 	
-	Referable& Referable::operator=(const Referable& other)
+	Referable& Referable::operator=(const Referable& other) noexcept
 	{
 		return *this;
 	}
 	
-	Referable& Referable::operator=(Referable&& other)
+	Referable& Referable::operator=(Referable&& other) noexcept
 	{
 		return *this;
 	}
@@ -180,7 +179,7 @@ namespace slib
 		m_object = sl_null;
 	}
 
-	CWeakRef::~CWeakRef() noexcept
+	CWeakRef::~CWeakRef()
 	{
 	}
 

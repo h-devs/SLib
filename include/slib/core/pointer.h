@@ -43,9 +43,7 @@ namespace slib
 	class Pointer;
 	
 	template <class T>
-	class PointerxT
-	{
-	};
+	class PointerxT {};
 
 	template <class T1, class T2, class... TYPES>
 	using Pointerx = Pointer< PointerxT<T1>, T2, TYPES... >;
@@ -59,34 +57,36 @@ namespace slib
 		T* ptr;
 
 	public:
-		constexpr Pointer() noexcept: ptr(sl_null) {}
+		constexpr Pointer(): ptr(sl_null) {}
 
-		constexpr Pointer(sl_null_t) noexcept: ptr(sl_null) {}
+		constexpr Pointer(sl_null_t): ptr(sl_null) {}
+
+		constexpr Pointer(T* other): ptr(other) {}
 
 	public:
-		operator T*() const noexcept
+		constexpr operator T*() const
 		{
 			return ptr;
 		}
 		
-		T& operator*() const noexcept
+		constexpr T& operator*() const
 		{
 			return *ptr;
 		}
 
-		T* operator->() const noexcept
+		constexpr T* operator->() const
 		{
 			return ptr;
 		}
 
-		explicit operator sl_bool() const noexcept
+		constexpr explicit operator sl_bool() const
 		{
 			return ptr != sl_null;
 		}
 
 	private:
 		template <class OTHER>
-		void _init(const OTHER& p)
+		void _init(const OTHER& p) noexcept
 		{
 			ptr = p;
 		}
@@ -101,7 +101,7 @@ namespace slib
 	{
 	public:
 		template <class FROM>
-		static T* cast(const FROM& from)
+		static T* cast(const FROM& from) noexcept
 		{
 			return from;
 		}
@@ -112,7 +112,7 @@ namespace slib
 	{
 	public:
 		template <class FROM>
-		static T* cast(const FROM& from)
+		static T* cast(const FROM& from) noexcept
 		{
 			return sl_null;
 		}
@@ -125,7 +125,7 @@ namespace slib
 		typedef T FirstType;
 
 		template <class TO, class FROM>
-		static void init(TO*& to, const FROM& from)
+		static void init(TO*& to, const FROM& from) noexcept
 		{
 			to = from;
 		}
@@ -138,7 +138,7 @@ namespace slib
 		typedef T FirstType;
 
 		template <class TO, class FROM>
-		static void init(TO*& to, const FROM& from)
+		static void init(TO*& to, const FROM& from) noexcept
 		{
 			to = PointerxCastHelper<TO, IsConvertible<FROM, TO*>::value>::cast(from);
 		}
@@ -157,26 +157,26 @@ namespace slib
 		T2* ptr2;
 
 	public:
-		constexpr Pointer() noexcept: ptr(sl_null), ptr2(sl_null) {}
+		constexpr Pointer(): ptr(sl_null), ptr2(sl_null) {}
 
-		constexpr Pointer(sl_null_t) noexcept: ptr(sl_null), ptr2(sl_null) {}
+		constexpr Pointer(sl_null_t): ptr(sl_null), ptr2(sl_null) {}
 
-		Pointer(T1* v1, T2* v2) noexcept: ptr(v1), ptr2(v2) {}
+		constexpr Pointer(T1* v1, T2* v2): ptr(v1), ptr2(v2) {}
 
 	public:
-		operator T1*() const noexcept
+		constexpr operator T1*() const
 		{
 			return ptr;
 		}
 
-		operator T2*() const noexcept
+		constexpr operator T2*() const
 		{
 			return ptr2;
 		}
 
 	private:
 		template <class OTHER>
-		void _init(const OTHER& p)
+		void _init(const OTHER& p) noexcept
 		{
 			Helper::init(ptr, p);
 			Helper::init(ptr2, p);
@@ -198,31 +198,31 @@ namespace slib
 		T3* ptr3;
 
 	public:
-		constexpr Pointer() noexcept: ptr(sl_null), ptr2(sl_null), ptr3(sl_null) {}
+		constexpr Pointer(): ptr(sl_null), ptr2(sl_null), ptr3(sl_null) {}
 
-		constexpr Pointer(sl_null_t) noexcept: ptr(sl_null), ptr2(sl_null), ptr3(sl_null) {}
+		constexpr Pointer(sl_null_t): ptr(sl_null), ptr2(sl_null), ptr3(sl_null) {}
 
-		Pointer(T1* v1, T2* v2, T3* v3) noexcept: ptr(v1), ptr2(v2), ptr3(v3) {}
+		constexpr Pointer(T1* v1, T2* v2, T3* v3): ptr(v1), ptr2(v2), ptr3(v3) {}
 
 	public:
-		operator T1*() const noexcept
+		constexpr operator T1*() const
 		{
 			return ptr;
 		}
 
-		operator T2*() const noexcept
+		constexpr operator T2*() const
 		{
 			return ptr2;
 		}
 
-		operator T3*() const noexcept
+		constexpr operator T3*() const
 		{
 			return ptr3;
 		}
 
 	private:
 		template <class OTHER>
-		void _init(const OTHER& p)
+		void _init(const OTHER& p) noexcept
 		{
 			Helper::init(ptr, p);
 			Helper::init(ptr2, p);
@@ -246,36 +246,36 @@ namespace slib
 		T4* ptr4;
 
 	public:
-		constexpr Pointer() noexcept: ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+		constexpr Pointer(): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
-		constexpr Pointer(sl_null_t) noexcept: ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+		constexpr Pointer(sl_null_t): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
-		Pointer(T1* v1, T2* v2, T3* v3, T4* v4) noexcept: ptr(v1), ptr2(v2), ptr3(v3), ptr4(v4) {}
+		constexpr Pointer(T1* v1, T2* v2, T3* v3, T4* v4): ptr(v1), ptr2(v2), ptr3(v3), ptr4(v4) {}
 
 	public:
-		operator T1*() const noexcept
+		constexpr operator T1*() const
 		{
 			return ptr;
 		}
 
-		operator T2*() const noexcept
+		constexpr operator T2*() const
 		{
 			return ptr2;
 		}
 
-		operator T3*() const noexcept
+		constexpr operator T3*() const
 		{
 			return ptr3;
 		}
 
-		operator T4*() const noexcept
+		constexpr operator T4*() const
 		{
 			return ptr4;
 		}
 
 	private:
 		template <class OTHER>
-		void _init(const OTHER& p)
+		void _init(const OTHER& p) noexcept
 		{
 			Helper::init(ptr, p);
 			Helper::init(ptr2, p);

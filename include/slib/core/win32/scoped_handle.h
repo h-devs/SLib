@@ -63,13 +63,13 @@ namespace slib
 			return *this;
 		}
 
-		explicit operator HANDLE() const
+		constexpr explicit operator HANDLE() const
 		{
 			return handle;
 		}
 
 	public:
-		void close()
+		void close() noexcept
 		{
 			HANDLE h = handle;
 			if (h != INVALID_HANDLE_VALUE) {

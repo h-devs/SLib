@@ -29,41 +29,41 @@
 namespace slib
 {
 
-	Atomic<sl_int32>::Atomic()
+	Atomic<sl_int32>::Atomic() noexcept
 	{
 	}
 
-	Atomic<sl_int32>::Atomic(sl_int32 value): m_value(value)
+	Atomic<sl_int32>::Atomic(sl_int32 value) noexcept: m_value(value)
 	{
 	}
 
-	sl_int32 Atomic<sl_int32>::operator=(sl_int32 value)
+	sl_int32 Atomic<sl_int32>::operator=(sl_int32 value) noexcept
 	{
 		m_value = value;
 		return m_value;
 	}
 
-	Atomic<sl_int32>::operator sl_int32() const
+	Atomic<sl_int32>::operator sl_int32() const noexcept
 	{
 		return m_value;
 	}
 
-	sl_int32 Atomic<sl_int32>::increase()
+	sl_int32 Atomic<sl_int32>::increase() noexcept
 	{
 		return Base::interlockedIncrement32((sl_int32*)&m_value);
 	}
 
-	sl_int32 Atomic<sl_int32>::decrease()
+	sl_int32 Atomic<sl_int32>::decrease() noexcept
 	{
 		return Base::interlockedDecrement32((sl_int32*)&m_value);
 	}
 
-	sl_int32 Atomic<sl_int32>::add(sl_int32 other)
+	sl_int32 Atomic<sl_int32>::add(sl_int32 other) noexcept
 	{
 		return Base::interlockedAdd32((sl_int32*)&m_value, other);
 	}
 
-	sl_bool Atomic<sl_int32>::waitZero(sl_int32 timeout)
+	sl_bool Atomic<sl_int32>::waitZero(sl_int32 timeout) noexcept
 	{
 		TimeCounter t;
 		sl_uint32 count = 0;

@@ -110,8 +110,6 @@ namespace slib
 
 	typedef sl_bool(*WINDOWS_DEBUG_ALLOC_HOOK)(void* ptr, sl_size size, sl_uint32 requestNumber);
 	
-	class Variant;
-
 	class SLIB_EXPORT Windows
 	{
 	public:

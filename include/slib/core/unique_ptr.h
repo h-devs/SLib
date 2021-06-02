@@ -39,11 +39,11 @@ namespace slib
 		PointerType ptr;
 
 	public:
-		constexpr UniquePtr() noexcept: ptr(sl_null) {}
+		constexpr UniquePtr(): ptr(sl_null) {}
 
-		constexpr UniquePtr(sl_null_t) noexcept: ptr(sl_null) {}
+		constexpr UniquePtr(sl_null_t): ptr(sl_null) {}
 
-		explicit UniquePtr(PointerType _ptr) noexcept: ptr(_ptr) {}
+		constexpr explicit UniquePtr(PointerType _ptr): ptr(_ptr) {}
 
 		UniquePtr(const UniquePtr&) = delete;
 
@@ -52,13 +52,13 @@ namespace slib
 			ptr = other.release();
 		}
 
-		~UniquePtr() noexcept
+		~UniquePtr()
 		{
 			_free();
 		}
 
 	public:
-		UniquePtr& operator=(sl_null_t)
+		UniquePtr& operator=(sl_null_t) noexcept
 		{
 			reset();
 			return *this;
@@ -73,7 +73,7 @@ namespace slib
 			return *this;
 		}
 
-		explicit operator bool() const noexcept
+		constexpr explicit operator bool() const
 		{
 			return ptr != sl_null;
 		}
@@ -83,23 +83,23 @@ namespace slib
 			return *((ValueType*)(void*)ptr);
 		}
 
-		PointerType operator->() const noexcept
+		constexpr PointerType operator->() const
 		{
 			return ptr;
 		}
 
 	public:
-		sl_bool isNull() const noexcept
+		constexpr sl_bool isNull() const
 		{
 			return !ptr;
 		}
 
-		sl_bool isNotNull() const noexcept
+		constexpr sl_bool isNotNull() const
 		{
 			return ptr != null;
 		}
 
-		PointerType get() const noexcept
+		constexpr PointerType get() const
 		{
 			return ptr;
 		}
@@ -144,11 +144,11 @@ namespace slib
 		PointerType ptr;
 
 	public:
-		constexpr UniquePtr() noexcept: ptr(sl_null) {}
+		constexpr UniquePtr(): ptr(sl_null) {}
 
-		constexpr UniquePtr(sl_null_t) noexcept: ptr(sl_null) {}
+		constexpr UniquePtr(sl_null_t): ptr(sl_null) {}
 
-		explicit UniquePtr(PointerType _ptr) noexcept: ptr(_ptr) {}
+		constexpr explicit UniquePtr(PointerType _ptr): ptr(_ptr) {}
 
 		UniquePtr(const UniquePtr&) = delete;
 
@@ -157,13 +157,13 @@ namespace slib
 			ptr = other.release();
 		}
 
-		~UniquePtr() noexcept
+		~UniquePtr()
 		{
 			_free();
 		}
 
 	public:
-		UniquePtr& operator=(sl_null_t)
+		UniquePtr& operator=(sl_null_t) noexcept
 		{
 			reset();
 			return *this;
@@ -178,7 +178,7 @@ namespace slib
 			return *this;
 		}
 
-		explicit operator bool() const noexcept
+		constexpr explicit operator bool() const
 		{
 			return ptr != sl_null;
 		}
@@ -189,17 +189,17 @@ namespace slib
 		}
 
 	public:
-		sl_bool isNull() const noexcept
+		constexpr sl_bool isNull() const
 		{
 			return !ptr;
 		}
 
-		sl_bool isNotNull() const noexcept
+		constexpr sl_bool isNotNull() const
 		{
 			return ptr != null;
 		}
 
-		PointerType get() const noexcept
+		constexpr PointerType get() const
 		{
 			return ptr;
 		}

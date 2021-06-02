@@ -41,7 +41,7 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(ComplexT)
 
-		ComplexT() noexcept = default;
+		ComplexT() = default;
 
 		template <class O>
 		constexpr ComplexT(const ComplexT<O>& other) noexcept: real((T)(other.real)), imag((T)(other.imag)) {}
@@ -51,12 +51,12 @@ namespace slib
 		constexpr ComplexT(const T& _real) noexcept: real(_real), imag(0) {}
 
 	public:
-		ComplexT conjugate() const noexcept
+		constexpr ComplexT conjugate() const
 		{
 			return ComplexT(real, -imag);
 		}
 
-		ComplexT reciprocal() const noexcept
+		constexpr ComplexT reciprocal() const
 		{
 			T t = real * real + imag * imag;
 			return ComplexT(real / t, -imag / t);
@@ -67,7 +67,7 @@ namespace slib
 			return Math::sqrt(real * real + imag * imag);
 		}
 
-		T abs2() const noexcept
+		constexpr T abs2() const
 		{
 			return real * real + imag * imag;
 		}

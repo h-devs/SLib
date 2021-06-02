@@ -40,7 +40,7 @@
 
 #else
 
-#	include "slib/render/dl_linux_gl.h"
+#	include "slib/render/dl/linux/gl.h"
 
 #	define PRIV_SLIB_RENDER_GL_ENTRY(TYPE, name, ...) \
 		TYPE(*name)(__VA_ARGS__);
@@ -49,7 +49,7 @@
 
 #define PRIV_SLIB_RENDER_GL_SUPPORT(name) \
 	sl_bool flagSupports##name; \
-	SLIB_INLINE sl_bool isSupported##name() \
+	sl_bool isSupported##name() \
 	{ \
 		return flagSupports##name; \
 	}

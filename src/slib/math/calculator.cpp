@@ -34,25 +34,25 @@ namespace slib
 		{
 			
 			template <class CT>
-			SLIB_INLINE sl_reg ParseNumber(sl_int32& result, const CT* sz, sl_size posBegin, sl_size posEnd) noexcept
+			SLIB_INLINE static sl_reg ParseNumber(sl_int32& result, const CT* sz, sl_size posBegin, sl_size posEnd) noexcept
 			{
 				return StringTypeFromCharType<CT>::Type::parseInt32(10, &result, sz, posBegin, posEnd);
 			}
 			
 			template <class CT>
-			SLIB_INLINE sl_reg ParseNumber(sl_int64& result, const CT* sz, sl_size posBegin, sl_size posEnd) noexcept
+			SLIB_INLINE static sl_reg ParseNumber(sl_int64& result, const CT* sz, sl_size posBegin, sl_size posEnd) noexcept
 			{
 				return StringTypeFromCharType<CT>::Type::parseInt64(10, &result, sz, posBegin, posEnd);
 			}
 			
 			template <class CT>
-			SLIB_INLINE sl_reg ParseNumber(float& result, const CT* sz, sl_size posBegin, sl_size posEnd) noexcept
+			SLIB_INLINE static sl_reg ParseNumber(float& result, const CT* sz, sl_size posBegin, sl_size posEnd) noexcept
 			{
 				return StringTypeFromCharType<CT>::Type::parseFloat(&result, sz, posBegin, posEnd);
 			}
 			
 			template <class CT>
-			SLIB_INLINE sl_reg ParseNumber(double& result, const CT* sz, sl_size posBegin, sl_size posEnd) noexcept
+			SLIB_INLINE static sl_reg ParseNumber(double& result, const CT* sz, sl_size posBegin, sl_size posEnd) noexcept
 			{
 				return StringTypeFromCharType<CT>::Type::parseDouble(&result, sz, posBegin, posEnd);
 			}

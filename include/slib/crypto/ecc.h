@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,8 @@
 #include "definition.h"
 
 #include "../math/bigint.h"
-#include "../core/math.h"
 #include "../core/list.h"
+#include "../core/default_members.h"
 
 /*
  		Elliptic-curve cryptography
@@ -112,11 +112,26 @@ namespace slib
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPublicKey)
 		
-	public:		
+	public:
+		sl_bool isNull() const;
+
+		sl_bool equals(const ECPublicKey& other) const;
+
 		sl_bool checkValid(const EllipticCurve& curve) const;
-		
+
+		sl_bool verifySignature(const EllipticCurve& curve, const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const;
+
+		Memory toMemory() const;
+
+		sl_bool fromMemory(const void* data, sl_size size);
+
+		sl_bool fromMemory(const Memory& mem);
+
+	public:
+
+
 	};
-	
+
 	class SLIB_EXPORT ECPrivateKey : public ECPublicKey
 	{
 	public:
@@ -131,7 +146,21 @@ namespace slib
 		sl_bool generate(const EllipticCurve& curve);
 		
 	};
-	
+
+	class SLIB_EXPORT ECPublicKey_secp256k1 : public ECPublicKey
+	{
+	public:
+		ECPublicKey_secp256k1();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPublicKey_secp256k1)
+
+	public:
+		sl_bool checkValid() const;
+
+		sl_bool verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const;
+
+	};
+
 	class SLIB_EXPORT ECDSA_Signature
 	{
 	public:

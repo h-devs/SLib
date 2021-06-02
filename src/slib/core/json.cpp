@@ -27,6 +27,8 @@
 #include "slib/core/file.h"
 #include "slib/core/parse_util.h"
 #include "slib/core/log.h"
+#include "slib/math/decimal128.h"
+#include "slib/math/json/decimal128.h"
 
 namespace slib
 {
@@ -191,10 +193,6 @@ namespace slib
 	}
 
 	Json::Json(const ObjectId& value): Variant(value)
-	{
-	}
-
-	Json::Json(const Decimal128& value): Variant(value)
 	{
 	}
 
@@ -372,7 +370,7 @@ namespace slib
 			static Variant ParseExtendedJson(const JsonMap& map)
 			{
 				ObjectId oid;
-				if (oid.fromJson(map)) {
+				if (oid.setJson(map)) {
 					return oid;
 				}
 				SLIB_STATIC_STRING(strNumberInt, "$numberInt")
@@ -391,9 +389,9 @@ namespace slib
 					return nDouble;
 				}
 				SLIB_STATIC_STRING(strNumberDecimal, "$numberDecimal")
-				Decimal128 nDecimal;
-				if (map.getValue(strNumberDecimal).getDecimal128(&nDecimal)) {
-					return nDecimal;
+				String strDecimal = map.getValue(strNumberDecimal).getString();
+				if (strDecimal.isNotNull()) {
+					return Decimal128::fromString(strDecimal);
 				}
 				SLIB_STATIC_STRING(strNumberDate, "$date")
 				Time nTime;
@@ -1286,7 +1284,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool ObjectId::fromJson(const Json& json) noexcept
+	sl_bool ObjectId::setJson(const Json& json) noexcept
 	{
 		if (json.isString()) {
 			return parse(json.getStringParam());
@@ -1299,27 +1297,6 @@ namespace slib
 		} else {
 			SLIB_STATIC_STRING(oid, "$oid");
 			return parse(json.getItem(oid).getString());
-		}
-		return sl_false;
-	}
-
-	Json Decimal128::toJson() const noexcept
-	{
-		JsonMap ret;
-		SLIB_STATIC_STRING(numberDecimal, "$numberDecimal");
-		if (ret.put_NoLock(numberDecimal, toString())) {
-			return ret;
-		}
-		return sl_null;
-	}
-
-	sl_bool Decimal128::fromJson(const Json& json) noexcept
-	{
-		if (json.isString()) {
-			return parse(json.getStringParam());
-		} else {
-			SLIB_STATIC_STRING(numberDecimal, "$numberDecimal");
-			return parse(json.getItem(numberDecimal).getString());
 		}
 		return sl_false;
 	}

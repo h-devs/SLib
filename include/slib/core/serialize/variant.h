@@ -29,8 +29,7 @@
 #include "memory.h"
 #include "list.h"
 #include "map.h"
-#include "object_id.h"
-#include "decimal128.h"
+#include "bytes.h"
 
 #include "../variant.h"
 #include "../memory_buffer.h"
@@ -146,16 +145,6 @@ namespace slib
 					return sl_false;
 				}
 				break;
-			case VariantType::Decimal128:
-				{
-					Decimal128 dec;
-					if (Deserialize(input, dec)) {
-						_out.setDecimal128(dec);
-						return sl_true;
-					}
-					return sl_false;
-				}
-				break;
 			case VariantType::Null:
 				_out.setNull();
 				return sl_true;
@@ -217,20 +206,6 @@ namespace slib
 				break;
 		}
 		return sl_false;
-	}
-
-	class Json;
-
-	template <class OUTPUT>
-	static sl_bool Serialize(OUTPUT* output, const Json& _in)
-	{
-		return Serialize(output, *((Variant*)(void*)&_in));
-	}
-
-	template <class INPUT>
-	static sl_bool Deserialize(INPUT* input, Json& _out)
-	{
-		return Deserialize(input, *((Variant*)(void*)&_out));
 	}
 
 }

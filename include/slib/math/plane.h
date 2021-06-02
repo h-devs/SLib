@@ -44,16 +44,12 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(PlaneT)
 		
-		PlaneT() noexcept = default;
+		PlaneT() = default;
 
 		template <class O>
-		constexpr PlaneT(const PlaneT<O>& other)
-		 : a((T)(other.a)), b((T)(other.b)), c((T)(other.c)), d((T)(other.d))
-		 {}
+		constexpr PlaneT(const PlaneT<O>& other): a((T)(other.a)), b((T)(other.b)), c((T)(other.c)), d((T)(other.d)) {}
 
-		constexpr PlaneT(T _a, T _b, T _c, T _d)
-		 : a(_a), b(_b), c(_c), d(_d)
-		 {}
+		constexpr PlaneT(T _a, T _b, T _c, T _d): a(_a), b(_b), c(_c), d(_d) {}
 
 		PlaneT(const Vector3T<T>& point, const Vector3T<T>& normal) noexcept
 		{
@@ -61,7 +57,7 @@ namespace slib
 		}
 
 	public:
-		Vector3T<T> getNormal() const noexcept
+		constexpr Vector3T<T> getNormal() const
 		{
 			return { a, b, c };
 		}

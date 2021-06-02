@@ -25,8 +25,6 @@
 #include "sapp_document.h"
 #include "sapp_util.h"
 
-#include "slib/graphics/color_parse.h"
-
 #define TAG "SApp"
 
 namespace slib

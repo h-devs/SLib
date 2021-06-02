@@ -57,15 +57,15 @@ namespace slib
 		StringContainer16* m_container;
 		
 	private:
-		constexpr String16(StringContainer16* container) noexcept : m_container(container) {}
+		constexpr String16(StringContainer16* container): m_container(container) {}
 
 	public:
 		
 		/**
 		 * Initializes as a null string.
 		 */
-		constexpr String16() noexcept : m_container(sl_null) {}
-		constexpr String16(sl_null_t) noexcept : m_container(sl_null) {}
+		constexpr String16(): m_container(sl_null) {}
+		constexpr String16(sl_null_t): m_container(sl_null) {}
 		
 		/**
 		 * Constructors
@@ -83,7 +83,7 @@ namespace slib
 		/**
 		 * Destructor
 		 */
-		~String16() noexcept;
+		~String16();
 		
 	public:
 		
@@ -310,7 +310,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is null.
 		 */
-		sl_bool isNull() const noexcept
+		constexpr sl_bool isNull() const
 		{
 			return !m_container;
 		}
@@ -318,7 +318,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is not null.
 		 */
-		sl_bool isNotNull() const noexcept
+		constexpr sl_bool isNotNull() const
 		{
 			return m_container != sl_null;
 		}
@@ -326,7 +326,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is empty.
 		 */
-		sl_bool isEmpty() const noexcept
+		constexpr sl_bool isEmpty() const
 		{
 			if (m_container) {
 				return !(m_container->len);
@@ -338,7 +338,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is not empty.
 		 */
-		sl_bool isNotEmpty() const noexcept
+		constexpr sl_bool isNotEmpty() const
 		{
 			if (m_container) {
 				return (m_container->len != 0);
@@ -389,7 +389,7 @@ namespace slib
 		/**
 		 * @return string length.
 		 */
-		sl_size getLength() const noexcept
+		constexpr sl_size getLength() const
 		{
 			if (m_container) {
 				return m_container->len;
@@ -1190,8 +1190,8 @@ namespace slib
 		/**
 		 * Initialize as a null string.
 		 */
-		constexpr Atomic() noexcept : m_container(sl_null) {}
-		constexpr Atomic(sl_null_t) noexcept : m_container(sl_null) {}
+		constexpr Atomic(): m_container(sl_null) {}
+		constexpr Atomic(sl_null_t): m_container(sl_null) {}
 		
 		/**
 		 * Constructors
@@ -1209,7 +1209,7 @@ namespace slib
 		/**
 		 * Destructor
 		 */
-		~Atomic() noexcept;
+		~Atomic();
 		
 	public:
 		/**
@@ -1240,7 +1240,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is null.
 		 */
-		sl_bool isNull() const noexcept
+		constexpr sl_bool isNull() const
 		{
 			return !m_container;
 		}
@@ -1248,7 +1248,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is not null.
 		 */
-		sl_bool isNotNull() const noexcept
+		constexpr sl_bool isNotNull() const
 		{
 			return m_container != sl_null;
 		}
@@ -1741,46 +1741,6 @@ namespace slib
 		friend class String16;
 	};
 	
-	template <>
-	class Compare<String16>
-	{
-	public:
-		sl_compare_result operator()(const String16& a, const String16& b) const noexcept;
-	};
-	
-	template <>
-	class Equals<String16>
-	{
-	public:
-		sl_bool operator()(const String16& a, const String16& b) const noexcept;
-	};
-	
-	template <>
-	class Hash<String16>
-	{
-	public:
-		sl_size operator()(const String16& a) const noexcept;
-	};
-	
-	class CompareIgnoreCaseString16
-	{
-	public:
-		sl_compare_result operator()(const String16& a, const String16& b) const noexcept;
-	};
-	
-	class EqualsIgnoreCaseString16
-	{
-	public:
-		sl_bool operator()(const String16& a, const String16& b) const noexcept;
-	};
-	
-	class HashIgnoreCaseString16
-	{
-	public:
-		sl_size operator()(const String16& v) const noexcept;
-		
-	};
-
 }
 
 /// @}

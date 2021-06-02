@@ -125,7 +125,7 @@ namespace slib
 #endif
 
 			
-			SLIB_INLINE sl_size Copy8(const void* input, sl_size lenInput, void* output, sl_reg lenOutputBuffer) noexcept
+			static sl_size Copy8(const void* input, sl_size lenInput, void* output, sl_reg lenOutputBuffer) noexcept
 			{
 				sl_size n;
 				if (lenOutputBuffer < 0) {
@@ -142,7 +142,7 @@ namespace slib
 				return n;
 			}
 
-			SLIB_INLINE sl_size Copy16(const void* input, sl_size lenInput, void* output, sl_reg lenOutputBuffer) noexcept
+			static sl_size Copy16(const void* input, sl_size lenInput, void* output, sl_reg lenOutputBuffer) noexcept
 			{
 				sl_size n;
 				if (lenOutputBuffer < 0) {
@@ -159,7 +159,7 @@ namespace slib
 				return n;
 			}
 			
-			SLIB_INLINE sl_size Swap16(const void* input, sl_size lenInput, void* output, sl_reg lenOutputBuffer) noexcept
+			static sl_size Swap16(const void* input, sl_size lenInput, void* output, sl_reg lenOutputBuffer) noexcept
 			{
 				sl_size n;
 				if (lenOutputBuffer < 0) {
@@ -184,7 +184,7 @@ namespace slib
 				return n;
 			}
 			
-			SLIB_INLINE static sl_uint32 ToWindowsCodepage(Charset charset) noexcept
+			static sl_uint32 ToWindowsCodepage(Charset charset) noexcept
 			{
 				return ((sl_uint32)charset) & 0xffff;
 			}

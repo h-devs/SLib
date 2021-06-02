@@ -105,7 +105,7 @@ namespace slib
 				DWORD Error)
 
 
-			static SLIB_INLINE String NormalizePath(LPCWSTR szPath)
+			SLIB_INLINE static String NormalizePath(LPCWSTR szPath)
 			{
 				return String::from(szPath).replaceAll('\\', '/');
 			}

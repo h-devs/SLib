@@ -27,6 +27,8 @@
 #include "socket_address.h"
 #include "mac_address.h"
 
+#include "../core/ref.h"
+
 typedef int sl_socket;
 #define SLIB_SOCKET_INVALID_HANDLE (-1)
 

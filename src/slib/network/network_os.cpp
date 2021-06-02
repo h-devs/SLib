@@ -121,7 +121,7 @@ namespace slib
 #include <netioapi.h>
 
 #include "slib/core/platform_windows.h"
-#include "slib/network/dl_windows_iphlpapi.h"
+#include "slib/network/dl/win32/iphlpapi.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -132,7 +132,7 @@ namespace slib
 	class Compare<MIB_IPADDRROW, IPv4Address>
 	{
 	public:
-		SLIB_INLINE sl_compare_result operator()(const MIB_IPADDRROW& a, const IPv4Address& b) const
+		sl_compare_result operator()(const MIB_IPADDRROW& a, const IPv4Address& b) const
 		{
 			return Compare<sl_uint32>()(a.dwAddr, Endian::swap32LE(b.getInt()));
 		}

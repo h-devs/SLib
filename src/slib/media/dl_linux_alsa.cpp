@@ -22,4 +22,4 @@
 
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "slib/media/dl_linux_alsa.h"
+#include "slib/media/dl/linux/alsa.h"

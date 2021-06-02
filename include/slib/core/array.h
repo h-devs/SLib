@@ -474,12 +474,12 @@ namespace slib
 		}
 
 
-		ArrayPosition(ArrayPosition&& other) noexcept = default;
+		ArrayPosition(ArrayPosition&& other) = default;
 
 	public:
-		ArrayPosition& operator=(const ArrayPosition& other) noexcept = default;
+		ArrayPosition& operator=(const ArrayPosition& other) = default;
 		
-		ArrayPosition& operator=(ArrayPosition&& other) noexcept = default;
+		ArrayPosition& operator=(ArrayPosition&& other) = default;
 		
 		T& operator*() const noexcept
 		{

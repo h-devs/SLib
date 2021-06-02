@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -28,30 +28,27 @@
 namespace slib
 {
 
-	template <class T, sl_bool isEnum=__is_enum(T)>
-	class Hash;
-	
-	SLIB_INLINE constexpr sl_uint8 Rehash8(sl_uint8 x) noexcept
+	constexpr sl_uint8 Rehash8(sl_uint8 x)
 	{
 		return x ^ (x >> 4) ^ (x >> 7);
 	}
-	
-	SLIB_INLINE constexpr sl_uint16 Rehash16(sl_uint16 x) noexcept
+
+	constexpr sl_uint16 Rehash16(sl_uint16 x)
 	{
 		return x ^ (x >> 4) ^ (x >> 7) ^ (x >> 12);
 	}
 
-	SLIB_INLINE constexpr sl_uint32 Rehash32(sl_uint32 x) noexcept
+	constexpr sl_uint32 Rehash32(sl_uint32 x)
 	{
 		return x ^ (x >> 4) ^ (x >> 7) ^ (x >> 12) ^ (x >> 16) ^ (x >> 19) ^ (x >> 20) ^ (x >> 24) ^ (x >> 27);
 	}
-	
-	SLIB_INLINE constexpr sl_uint64 Rehash64(sl_uint64 x) noexcept
+
+	constexpr sl_uint64 Rehash64(sl_uint64 x)
 	{
 		return x ^ (x >> 4) ^ (x >> 7) ^ (x >> 12) ^ (x >> 16) ^ (x >> 19) ^ (x >> 20) ^ (x >> 24) ^ (x >> 27) ^ (x >> 31) ^ (x >> 36) ^ (x >> 40) ^ (x >> 45) ^ (x >> 49) ^ (x >> 52) ^ (x >> 57) ^ (x >> 60);
 	}
-	
-	SLIB_INLINE constexpr sl_size Rehash(sl_size x) noexcept
+
+	constexpr sl_size Rehash(sl_size x)
 	{
 #ifdef SLIB_ARCH_IS_64BIT
 		return Rehash64(x);
@@ -59,13 +56,13 @@ namespace slib
 		return Rehash32(x);
 #endif
 	}
-	
-	SLIB_INLINE constexpr sl_uint32 Rehash64To32(sl_uint64 x) noexcept
+
+	constexpr sl_uint32 Rehash64To32(sl_uint64 x)
 	{
 		return Rehash32((sl_uint32)(x >> 32) ^ (sl_uint32)x);
 	}
-	
-	SLIB_INLINE constexpr sl_size Rehash64ToSize(sl_uint64 x) noexcept
+
+	constexpr sl_size Rehash64ToSize(sl_uint64 x)
 	{
 #ifdef SLIB_ARCH_IS_64BIT
 		return Rehash64(x);
@@ -73,168 +70,155 @@ namespace slib
 		return Rehash64To32(x);
 #endif
 	}
-	
+
+	constexpr sl_size HashPrimitiveValue(signed char value)
+	{
+		return Rehash8(value);
+	}
+
+	constexpr sl_size HashPrimitiveValue(unsigned char value)
+	{
+		return Rehash8(value);
+	}
+
+	constexpr sl_size HashPrimitiveValue(wchar_t value)
+	{
+		return Rehash32(value);
+	}
+
+	constexpr sl_size HashPrimitiveValue(char16_t value)
+	{
+		return Rehash16(value);
+	}
+
+	constexpr sl_size HashPrimitiveValue(char32_t value)
+	{
+		return Rehash32(value);
+	}
+
+	constexpr sl_size HashPrimitiveValue(short value)
+	{
+		return Rehash16(value);
+	}
+
+	constexpr sl_size HashPrimitiveValue(unsigned short value)
+	{
+		return Rehash16(value);
+	}
+
+	constexpr sl_size HashPrimitiveValue(int value)
+	{
+		return Rehash32(value);
+	}
+
+	constexpr sl_size HashPrimitiveValue(unsigned int value)
+	{
+		return Rehash32(value);
+	}
+
+	constexpr sl_size HashPrimitiveValue(long value)
+	{
+		return Rehash32((sl_uint32)value);
+	}
+
+	constexpr sl_size HashPrimitiveValue(unsigned long value)
+	{
+		return Rehash32((sl_uint32)value);
+	}
+
+	constexpr sl_size HashPrimitiveValue(sl_int64 value)
+	{
+		return Rehash64ToSize(value);
+	}
+
+	constexpr sl_size HashPrimitiveValue(sl_uint64 value)
+	{
+		return Rehash64ToSize(value);
+	}
+
+	constexpr sl_size HashPrimitiveValue(float value)
+	{
+		return Rehash32(*(reinterpret_cast<sl_uint32*>(&value)));
+	}
+
+	constexpr sl_size HashPrimitiveValue(double value)
+	{
+		return Rehash64ToSize(*(reinterpret_cast<sl_uint64*>(&value)));
+	}
+
+	template <class T>
+	constexpr sl_size HashPrimitiveValue(const T* v)
+	{
+#ifdef SLIB_ARCH_IS_64BIT
+		return Rehash64((sl_uint64)((const void*)v));
+#else
+		return Rehash32((sl_uint32)((const void*)v));
+#endif
+	}
+
 	sl_uint32 HashBytes32(const void* buf, sl_size n) noexcept;
-	
+
 	sl_uint64 HashBytes64(const void* buf, sl_size n) noexcept;
-	
+
 	sl_size HashBytes(const void* buf, sl_size n) noexcept;
 
-	template <>
-	class Hash<char>
-	{
-	public:
-		constexpr sl_size operator()(char v) const noexcept { return Rehash8(v); }
-	};
+	template <class T, sl_bool isClass = __is_class(T), sl_bool isEnum = __is_enum(T)>
+	class DefaultHasher {};
 
-	template <>
-	class Hash<signed char>
+	template <class T>
+	class DefaultHasher<T, sl_true, sl_false>
 	{
 	public:
-		constexpr sl_size operator()(signed char v) const noexcept { return Rehash8(v); }
-	};
-
-	template <>
-	class Hash<unsigned char>
-	{
-	public:
-		constexpr sl_size operator()(unsigned char v) const noexcept { return Rehash8(v); }
-	};
-
-	template <>
-	class Hash<wchar_t>
-	{
-	public:
-		constexpr sl_size operator()(wchar_t v) const noexcept { return Rehash32(v); }
-	};
-	
-	template <>
-	class Hash<char16_t>
-	{
-	public:
-		constexpr sl_size operator()(char16_t v) const noexcept { return Rehash16(v); }
-	};
-	
-	template <>
-	class Hash<char32_t>
-	{
-	public:
-		constexpr sl_size operator()(char32_t v) const noexcept { return Rehash32(v); }
-	};
-
-	template <>
-	class Hash<short>
-	{
-	public:
-		constexpr sl_size operator()(short v) const noexcept { return Rehash16(v); }
-	};
-
-	template <>
-	class Hash<unsigned short>
-	{
-	public:
-		constexpr sl_size operator()(unsigned short v) const noexcept { return Rehash16(v); }
-	};
-
-	template <>
-	class Hash<int>
-	{
-	public:
-		constexpr sl_size operator()(int v) const noexcept { return Rehash32(v); }
-	};
-
-	template <>
-	class Hash<unsigned int>
-	{
-	public:
-		constexpr sl_size operator()(unsigned int v) const noexcept { return Rehash32(v); }
-	};
-
-	template <>
-	class Hash<long>
-	{
-	public:
-		constexpr sl_size operator()(long v) const noexcept { return Rehash32((sl_uint32)v); }
-	};
-
-	template <>
-	class Hash<unsigned long>
-	{
-	public:
-		constexpr sl_size operator()(unsigned long v) const noexcept { return Rehash32((sl_uint32)v); }
-	};
-
-	template <>
-	class Hash<sl_int64>
-	{
-	public:
-		constexpr sl_size operator()(sl_int64 v) const noexcept { return Rehash64ToSize(v); }
-	};
-
-	template <>
-	class Hash<sl_uint64>
-	{
-	public:
-		constexpr sl_size operator()(sl_uint64 v) const noexcept { return Rehash64ToSize(v); }
-	};
-
-	template <>
-	class Hash<float>
-	{
-	public:
-		sl_size operator()(float v) const noexcept { return Rehash32(*(reinterpret_cast<sl_uint32*>(&v))); }
-	};
-
-	template <>
-	class Hash<double>
-	{
-	public:
-		sl_size operator()(double v) const noexcept { return Rehash64ToSize(*(reinterpret_cast<sl_uint64*>(&v))); }
+		static sl_size hash(const T& a) noexcept
+		{
+			return a.getHashCode();
+		}
 	};
 
 	template <class T>
-	class Hash<T const*, sl_false>
+	class DefaultHasher<T, sl_false, sl_true>
 	{
 	public:
-		sl_size operator()(T const* v) const noexcept
+		static constexpr sl_size hash(T a)
 		{
 #ifdef SLIB_ARCH_IS_64BIT
-			return Rehash64((sl_uint64)((const void*)v));
+			return Rehash64((sl_uint64)((sl_int64)a));
 #else
-			return Rehash32((sl_uint32)((const void*)v));
+			return Rehash32((sl_uint32)((sl_int32)a));
 #endif
 		}
 	};
 
 	template <class T>
-	class Hash<T*, sl_false>
+	class DefaultHasher<T, sl_false, sl_false>
 	{
 	public:
-		sl_size operator()(T* v) const noexcept
+		static constexpr sl_size hash(T a)
 		{
-#ifdef SLIB_ARCH_IS_64BIT
-			return Rehash64((sl_uint64)((const void*)v));
-#else
-			return Rehash32((sl_uint32)((const void*)v));
-#endif
+			return HashPrimitiveValue(a);
 		}
 	};
 
 	template <class T>
-	class Hash<T, sl_true>
+	class Hash
 	{
 	public:
-		sl_size operator()(T v) const noexcept
+		sl_size operator()(const T& v) const noexcept
 		{
-#ifdef SLIB_ARCH_IS_64BIT
-			return Rehash64((sl_uint64)((sl_int64)v));
-#else
-			return Rehash32((sl_uint32)((sl_int32)v));
-#endif
+			return DefaultHasher<T>::hash(v);
 		}
-		
 	};
-	
+
+	template <class T>
+	class HashIgnoreCase
+	{
+	public:
+		sl_size operator()(const T& v) const noexcept
+		{
+			return v.getHashCodeIgnoreCase();
+		}
+	};
+
 }
 
 #endif

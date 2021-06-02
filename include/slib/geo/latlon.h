@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 #include "definition.h"
 
-#include "../core/interpolation.h"
 #include "../core/default_members.h"
 
 namespace slib
@@ -45,29 +44,23 @@ namespace slib
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(LatLon)
 
 	public:
-		sl_bool operator==(const LatLon& other) const;
+		sl_bool equals(const LatLon& other) const noexcept;
 
-		sl_bool operator!=(const LatLon& other) const;
-
+		sl_bool isAlmostEqual(const LatLon& other) const noexcept;
+	
 	public:
-		static LatLon getCenter(const LatLon* list, sl_size count);
+		static LatLon getCenter(const LatLon* list, sl_size count) noexcept;
 
-		static double normalizeLatitude(double latitude);
+		static double normalizeLatitude(double latitude) noexcept;
 
-		static double normalizeLongitude(double longitude);
+		static double normalizeLongitude(double longitude) noexcept;
 
-		void normalize();
+		void normalize() noexcept;
 
-		LatLon lerp(const LatLon& target, float factor) const;
+		LatLon lerp(const LatLon& target, float factor) const noexcept;
 
 	};
 	
-	template <>
-	SLIB_INLINE LatLon Interpolation<LatLon>::interpolate(const LatLon& a, const LatLon& b, float factor)
-	{
-		return a.lerp(b, factor);
-	}
-
 }
 
 #endif

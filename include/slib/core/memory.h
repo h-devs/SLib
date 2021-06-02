@@ -32,7 +32,8 @@ namespace slib
 	class Memory;
 	class String;
 	class String16;
-	class Json;
+	class MemoryBuffer;
+	class DeserializeBuffer;
 
 	class SLIB_EXPORT MemoryData
 	{
@@ -113,6 +114,8 @@ namespace slib
 
 		CMemory* duplicate() noexcept;
 
+		sl_bool serialize(MemoryBuffer* output) noexcept;
+
 	};
 
 	template <>
@@ -120,7 +123,7 @@ namespace slib
 	{
 	public:
 		AtomicRef<CMemory> ref;
-		SLIB_ATOMIC_REF_WRAPPER(CMemory)
+		SLIB_ATOMIC_REF_WRAPPER_NO_OP(CMemory)
 
 	public:
 		sl_size getSize() const noexcept;
@@ -138,12 +141,9 @@ namespace slib
 		Memory duplicate() const noexcept;
 
 		sl_bool getData(MemoryData& data) const noexcept;
-
-		sl_compare_result compare(const Memory& other) const noexcept;
-
-		sl_bool equals(const Memory& other) const noexcept;
-
-		sl_size getHashCode() const noexcept;
+		
+	public:
+		SLIB_DECLARE_CLASS_COMPARE_HASH_MEMBERS_NO_OP(Memory)
 
 	};
 	
@@ -151,7 +151,7 @@ namespace slib
 	{
 	public:
 		Ref<CMemory> ref;
-		SLIB_REF_WRAPPER(Memory, CMemory)
+		SLIB_REF_WRAPPER_NO_OP(Memory, CMemory)
 
 	public:
 		static Memory create(sl_size count) noexcept;
@@ -218,11 +218,12 @@ namespace slib
 
 		sl_bool getData(MemoryData& data) const noexcept;
 		
-		sl_compare_result compare(const Memory& other) const noexcept;
+	public:
+		SLIB_DECLARE_CLASS_COMPARE_HASH_MEMBERS_NO_OP(Memory)
+		SLIB_DECLARE_CLASS_SERIALIZE_MEMBERS
 
-		sl_bool equals(const Memory& other) const noexcept;
-		
-		sl_size getHashCode() const noexcept;
+		sl_bool serialize(MemoryBuffer* output) const;
+		sl_bool deserialize(DeserializeBuffer* input);
 
 	private:
 		static Memory _createStatic(const void* buf, sl_size size, Referable* ref) noexcept;
@@ -232,42 +233,8 @@ namespace slib
 	
 	typedef Atomic<Memory> AtomicMemory;
 	
-	
-	sl_bool operator==(const Memory& a, const Memory& b) noexcept;
-	
-	sl_bool operator!=(const Memory& a, const Memory& b) noexcept;
-	
-	sl_bool operator>=(const Memory& a, const Memory& b) noexcept;
-	
-	sl_bool operator>(const Memory& a, const Memory& b) noexcept;
-	
-	sl_bool operator<=(const Memory& a, const Memory& b) noexcept;
-	
-	sl_bool operator<(const Memory& a, const Memory& b) noexcept;
-	
+	SLIB_DECLARE_DEFAULT_COMPARE_OPERATORS(Memory)
 	Memory operator+(const Memory& a, const Memory& b) noexcept;
-	
-	
-	template <>
-	class Compare<Memory>
-	{
-	public:
-		sl_compare_result operator()(const Memory& a, const Memory& b) const noexcept;
-	};
-	
-	template <>
-	class Equals<Memory>
-	{
-	public:
-		sl_bool operator()(const Memory& a, const Memory& b) const noexcept;
-	};
-	
-	template <>
-	class Hash<Memory>
-	{
-	public:
-		sl_size operator()(const Memory& a) const noexcept;
-	};
 	
 }
 

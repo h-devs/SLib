@@ -36,19 +36,15 @@ namespace slib
 		NODE* node;
 		
 	public:
-		constexpr MapEmplaceReturn(sl_bool _isSuccess, NODE* _node) noexcept
-		 : isSuccess(_isSuccess), node(_node)
-		 {}
+		constexpr MapEmplaceReturn(sl_bool _isSuccess, NODE* _node): isSuccess(_isSuccess), node(_node) {}
 		
-		constexpr MapEmplaceReturn(sl_null_t) noexcept
-		 : isSuccess(sl_false), node(sl_null)
-		 {}
+		constexpr MapEmplaceReturn(sl_null_t) noexcept: isSuccess(sl_false), node(sl_null) {}
 
-		constexpr MapEmplaceReturn(const MapEmplaceReturn& other) noexcept = default;
+		constexpr MapEmplaceReturn(const MapEmplaceReturn& other) = default;
 		
-		MapEmplaceReturn& operator=(const MapEmplaceReturn& other) noexcept = default;
+		MapEmplaceReturn& operator=(const MapEmplaceReturn& other) = default;
 		
-		constexpr operator sl_bool() const noexcept
+		constexpr operator sl_bool() const
 		{
 			return isSuccess;
 		}

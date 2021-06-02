@@ -184,7 +184,7 @@ namespace slib
 	}
 
 
-	sl_compare_result IcmpEchoAddress::compare(const IcmpEchoAddress& other) const
+	sl_compare_result IcmpEchoAddress::compare(const IcmpEchoAddress& other) const noexcept
 	{
 		sl_compare_result c = ip.compare(other.ip);
 		if (c == 0) {
@@ -193,34 +193,14 @@ namespace slib
 		return c;
 	}
 
-	sl_size IcmpEchoAddress::getHashCode() const
+	sl_bool IcmpEchoAddress::equals(const IcmpEchoAddress& other) const noexcept
+	{
+		return ip.equals(other.ip) && identifier == other.identifier && sequenceNumber == other.sequenceNumber;
+	}
+
+	sl_size IcmpEchoAddress::getHashCode() const noexcept
 	{
 		return Rehash64ToSize(SLIB_MAKE_QWORD4(SLIB_MAKE_DWORD2(identifier, sequenceNumber), ip.getInt()));
-	}
-
-	sl_bool IcmpEchoAddress::operator==(const IcmpEchoAddress& other) const
-	{
-		return ip == other.ip && identifier == other.identifier && sequenceNumber == other.sequenceNumber;
-	}
-
-	sl_bool IcmpEchoAddress::operator!=(const IcmpEchoAddress& other) const
-	{
-		return !(*this == other);
-	}
-
-	sl_compare_result Compare<IcmpEchoAddress>::operator()(const IcmpEchoAddress& a, const IcmpEchoAddress& b) const
-	{
-		return a.compare(b);
-	}
-
-	sl_bool Equals<IcmpEchoAddress>::operator()(const IcmpEchoAddress& a, const IcmpEchoAddress& b) const
-	{
-		return a == b;
-	}
-
-	sl_size Hash<IcmpEchoAddress>::operator()(const IcmpEchoAddress& a) const
-	{
-		return a.getHashCode();
 	}
 
 }

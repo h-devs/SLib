@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -28,13 +28,7 @@
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/compile_optimize.h"
 
-#include "slib/math/json_conv.h"
-
 #define STACK_BUFFER_SIZE 4096
-
-/*
-	CBigInt
-*/
 
 #define CBIGINT_INT32(o, v) \
 	CBigInt o; \
@@ -84,7 +78,7 @@ namespace slib
 		namespace bigint
 		{
 			
-			SLIB_INLINE static sl_compare_result compare(const sl_uint32* a, const sl_uint32* b, sl_size n) noexcept
+			SLIB_INLINE static sl_compare_result Compare(const sl_uint32* a, const sl_uint32* b, sl_size n) noexcept
 			{
 				for (sl_size i = n; i > 0; i--) {
 					if (a[i - 1] > b[i - 1]) {
@@ -98,7 +92,7 @@ namespace slib
 			}
 			
 			// returns 0, 1 (overflow)
-			SLIB_INLINE static sl_uint32 add(sl_uint32* c, const sl_uint32* a, const sl_uint32* b, sl_size n, sl_uint32 _of) noexcept
+			SLIB_INLINE static sl_uint32 Add(sl_uint32* c, const sl_uint32* a, const sl_uint32* b, sl_size n, sl_uint32 _of) noexcept
 			{
 				sl_uint32 of = _of;
 				for (sl_size i = 0; i < n; i++) {
@@ -113,7 +107,7 @@ namespace slib
 			}
 			
 			// returns 0, 1 (overflow)
-			SLIB_INLINE static sl_uint32 add_uint32(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 b) noexcept
+			SLIB_INLINE static sl_uint32 Add_uint32(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 b) noexcept
 			{
 				sl_uint32 of = b;
 				if (c == a) {
@@ -133,7 +127,7 @@ namespace slib
 			}
 			
 			// returns 0, 1 (overflow)
-			SLIB_INLINE static sl_uint32 sub(sl_uint32* c, const sl_uint32* a, const sl_uint32* b, sl_size n, sl_uint32 _of) noexcept
+			SLIB_INLINE static sl_uint32 Sub(sl_uint32* c, const sl_uint32* a, const sl_uint32* b, sl_size n, sl_uint32 _of) noexcept
 			{
 				sl_uint32 of = _of;
 				for (sl_size i = 0; i < n; i++) {
@@ -149,7 +143,7 @@ namespace slib
 			}
 			
 			// returns 0, 1 (overflow)
-			SLIB_INLINE static sl_uint32 sub_uint32(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 b) noexcept
+			SLIB_INLINE static sl_uint32 Sub_uint32(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 b) noexcept
 			{
 				sl_uint32 of = b;
 				if (c == a) {
@@ -173,7 +167,7 @@ namespace slib
 			}
 			
 			// returns overflow
-			SLIB_INLINE static sl_uint32 mul_uint32(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 b, sl_uint32 o) noexcept
+			SLIB_INLINE static sl_uint32 Mul_uint32(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 b, sl_uint32 o) noexcept
 			{
 				sl_uint32 of = o;
 				for (sl_size i = 0; i < n; i++) {
@@ -188,7 +182,7 @@ namespace slib
 			
 			
 			// c = c + a * b
-			SLIB_INLINE static sl_uint32 muladd_uint32(sl_uint32* c, const sl_uint32* s, sl_size m, const sl_uint32* a, sl_size n, sl_uint32 b, sl_uint32 o) noexcept
+			SLIB_INLINE static sl_uint32 MulAdd_uint32(sl_uint32* c, const sl_uint32* s, sl_size m, const sl_uint32* a, sl_size n, sl_uint32 b, sl_uint32 o) noexcept
 			{
 				n = Math::min(m, n);
 				sl_uint32 of = o;
@@ -219,7 +213,7 @@ namespace slib
 			
 			
 			// returns remainder
-			SLIB_INLINE static sl_uint32 div_uint32(sl_uint32* q, const sl_uint32* a, sl_size n, sl_uint32 b, sl_uint32 o) noexcept
+			SLIB_INLINE static sl_uint32 Div_uint32(sl_uint32* q, const sl_uint32* a, sl_size n, sl_uint32 b, sl_uint32 o) noexcept
 			{
 				sl_size j = n - 1;
 				if (q) {
@@ -245,7 +239,7 @@ namespace slib
 			
 			// shift 0~31 bits
 			// returns overflow
-			SLIB_INLINE static sl_uint32 shiftLeft(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 shift, sl_uint32 valueRight) noexcept
+			SLIB_INLINE static sl_uint32 ShiftLeft(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 shift, sl_uint32 valueRight) noexcept
 			{
 				sl_uint32 rs = 32 - shift;
 				sl_uint32 of = valueRight >> rs;
@@ -259,7 +253,7 @@ namespace slib
 			
 			// shift 0~31 bits
 			// returns overflow
-			SLIB_INLINE static sl_uint32 shiftRight(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 shift, sl_uint32 valueLeft) noexcept
+			SLIB_INLINE static sl_uint32 ShiftRight(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 shift, sl_uint32 valueLeft) noexcept
 			{
 				sl_uint32 rs = 32 - shift;
 				sl_uint32 of = valueLeft << rs;
@@ -271,7 +265,7 @@ namespace slib
 				return of;
 			}
 			
-			SLIB_INLINE static sl_size mse(const sl_uint32* a, sl_size n) noexcept
+			SLIB_INLINE static sl_size Mse(const sl_uint32* a, sl_size n) noexcept
 			{
 				for (sl_size ni = n; ni > 0; ni--) {
 					if (a[ni - 1] != 0) {
@@ -281,7 +275,7 @@ namespace slib
 				return 0;
 			}
 			
-			SLIB_INLINE static sl_size lse(const sl_uint32* a, sl_size n) noexcept
+			SLIB_INLINE static sl_size Lse(const sl_uint32* a, sl_size n) noexcept
 			{
 				for (sl_size ni = 0; ni < n; ni++) {
 					if (a[ni] != 0) {
@@ -291,7 +285,7 @@ namespace slib
 				return 0;
 			}
 			
-			SLIB_INLINE static sl_size msbytes(const sl_uint32* a, sl_size n) noexcept
+			SLIB_INLINE static sl_size MsBytes(const sl_uint32* a, sl_size n) noexcept
 			{
 				for (sl_size ni = n; ni > 0; ni--) {
 					sl_uint32 e = a[ni - 1];
@@ -307,7 +301,7 @@ namespace slib
 				return 0;
 			}
 			
-			SLIB_INLINE static sl_size lsbytes(const sl_uint32* a, sl_size n) noexcept
+			SLIB_INLINE static sl_size LsBytes(const sl_uint32* a, sl_size n) noexcept
 			{
 				for (sl_size ni = 0; ni < n; ni++) {
 					sl_uint32 e = a[ni];
@@ -323,7 +317,7 @@ namespace slib
 				return 0;
 			}
 			
-			SLIB_INLINE static sl_size msbits(const sl_uint32* a, sl_size n) noexcept
+			SLIB_INLINE static sl_size MsBits(const sl_uint32* a, sl_size n) noexcept
 			{
 				for (sl_size ni = n; ni > 0; ni--) {
 					sl_uint32 e = a[ni - 1];
@@ -339,7 +333,7 @@ namespace slib
 				return 0;
 			}
 			
-			SLIB_INLINE static sl_size lsbits(const sl_uint32* a, sl_size n) noexcept
+			SLIB_INLINE static sl_size LsBits(const sl_uint32* a, sl_size n) noexcept
 			{
 				for (sl_size ni = 0; ni < n; ni++) {
 					sl_uint32 e = a[ni];
@@ -430,7 +424,7 @@ namespace slib
 	sl_size CBigInt::getMostSignificantElements() const noexcept
 	{
 		if (elements) {
-			return priv::bigint::mse(elements, length);
+			return priv::bigint::Mse(elements, length);
 		}
 		return 0;
 	}
@@ -438,7 +432,7 @@ namespace slib
 	sl_size CBigInt::getLeastSignificantElements() const noexcept
 	{
 		if (elements) {
-			return priv::bigint::lse(elements, length);
+			return priv::bigint::Lse(elements, length);
 		}
 		return 0;
 	}
@@ -446,7 +440,7 @@ namespace slib
 	sl_size CBigInt::getMostSignificantBytes() const noexcept
 	{
 		if (elements) {
-			return priv::bigint::msbytes(elements, length);
+			return priv::bigint::MsBytes(elements, length);
 		}
 		return 0;
 	}
@@ -454,7 +448,7 @@ namespace slib
 	sl_size CBigInt::getLeastSignificantBytes() const noexcept
 	{
 		if (elements) {
-			return priv::bigint::lsbytes(elements, length);
+			return priv::bigint::LsBytes(elements, length);
 		}
 		return 0;
 	}
@@ -462,7 +456,7 @@ namespace slib
 	sl_size CBigInt::getMostSignificantBits() const noexcept
 	{
 		if (elements) {
-			return priv::bigint::msbits(elements, length);
+			return priv::bigint::MsBits(elements, length);
 		}
 		return 0;
 	}
@@ -470,7 +464,7 @@ namespace slib
 	sl_size CBigInt::getLeastSignificantBits() const noexcept
 	{
 		if (elements) {
-			return priv::bigint::lsbits(elements, length);
+			return priv::bigint::LsBits(elements, length);
 		}
 		return 0;
 	}
@@ -961,137 +955,6 @@ namespace slib
 		return 0;
 	}
 
-	namespace priv
-	{
-		namespace bigint
-		{
-			template <class CT>
-			SLIB_INLINE static sl_reg ParseString(CBigInt* _out, const CT* sz, sl_size posBegin, sl_size len, sl_uint32 radix) noexcept
-			{
-				if (radix < 2 || radix > 64) {
-					return SLIB_PARSE_ERROR;;
-				}
-				sl_int32 sign;
-				sl_size pos = posBegin;
-				if (pos < len && sz[pos] == '-') {
-					pos++;
-					sign = -1;
-				} else {
-					sign = 1;
-				}
-				for (; pos < len; pos++) {
-					sl_int32 c = (sl_uint32)(sz[pos]);
-					if (c != '\t' && c != ' ') {
-						break;
-					}
-				}
-				sl_size end = pos;
-				const sl_uint8* pattern = radix <= 36 ? priv::string::g_conv_radixInversePatternSmall : priv::string::g_conv_radixInversePatternBig;
-				for (; end < len; end++) {
-					sl_uint32 c = (sl_uint8)(sz[end]);
-					sl_uint32 v = c < 128 ? pattern[c] : 255;
-					if (v >= radix) {
-						break;
-					}
-				}
-				if (end <= pos) {
-					return SLIB_PARSE_ERROR;
-				}
-				if (!_out) {
-					return end;
-				}
-				_out->sign = sign;
-				if (radix == 16) {
-					_out->setZero();
-					sl_size nh = end - pos;
-					sl_size ne = ((nh << 2) + 31) >> 5;
-					if (!(_out->growLength(ne))) {
-						return SLIB_PARSE_ERROR;
-					}
-					sl_uint32* elements = _out->elements;
-					sl_size ih = nh - 1;
-					for (; pos < end; pos++) {
-						sl_uint32 c = (sl_uint8)(sz[pos]);
-						sl_uint32 v = c < 128 ? pattern[c] : 255;
-						if (v >= radix) {
-							break;
-						}
-						sl_size ie = ih >> 3;
-						sl_uint32 ib = (sl_uint32)((ih << 2) & 31);
-						elements[ie] |= (v << ib);
-						ih--;
-					}
-					return pos;
-				} else {
-					sl_size nb = (sl_size)(Math::ceil(Math::log2((double)radix) * len));
-					sl_size ne = (nb + 31) >> 5;
-					SLIB_SCOPED_BUFFER(sl_uint32, STACK_BUFFER_SIZE, a, ne);
-					if (!a) {
-						return SLIB_PARSE_ERROR;
-					}
-					sl_size n = 0;
-					for (; pos < end; pos++) {
-						sl_uint32 c = (sl_uint8)(sz[pos]);
-						sl_uint32 v = c < 128 ? pattern[c] : 255;
-						if (v >= radix) {
-							break;
-						}
-						sl_uint32 o = priv::bigint::mul_uint32(a, a, n, radix, v);
-						if (o) {
-							a[n] = o;
-							n++;
-						}
-					}
-					if (!(_out->setValueFromElements(a, n))) {
-						return SLIB_PARSE_ERROR;
-					}
-					return pos;
-				}
-			}
-		}
-	}
-
-	template <>
-	sl_reg IntParser<CBigInt, sl_char8>::parse(CBigInt* _out, sl_uint32 radix, const sl_char8 *sz, sl_size posBegin, sl_size len) noexcept
-	{
-		return priv::bigint::ParseString(_out, sz, posBegin, len, radix);
-	}
-
-	template <>
-	sl_reg IntParser<CBigInt, sl_char16>::parse(CBigInt* _out, sl_uint32 radix, const sl_char16 *sz, sl_size posBegin, sl_size len) noexcept
-	{
-		return priv::bigint::ParseString(_out, sz, posBegin, len, radix);
-	}
-	
-	CBigInt* CBigInt::fromString(sl_uint32 radix, const sl_char8* sz, sl_size len) noexcept
-	{
-		if (sz && len) {
-			CBigInt* ret = new CBigInt;
-			if (ret) {
-				if (priv::bigint::ParseString(ret, sz, 0, len, radix) == len) {
-					return ret;
-				}
-				delete ret;
-			}
-		}
-		return sl_null;
-	}
-	
-	CBigInt* CBigInt::fromString(sl_uint32 radix, const String& str) noexcept
-	{
-		return fromString(radix, str.getData(), str.getLength());
-	}
-	
-	CBigInt* CBigInt::fromString(const sl_char8* sz, sl_size len) noexcept
-	{
-		return fromString(10, sz, len);
-	}
-	
-	CBigInt* CBigInt::fromString(const String& str) noexcept
-	{
-		return fromString(10, str.getData(), str.getLength());
-	}
-	
 	String CBigInt::toString(sl_uint32 radix) const noexcept
 	{
 		if (radix < 2 || radix > 64) {
@@ -1146,8 +1009,8 @@ namespace slib
 			Base::copyMemory(a, elements, ne * 4);
 			sl_size l = 0;
 			for (; ne > 0;) {
-				sl_uint32 v = priv::bigint::div_uint32(a, a, ne, radix, 0);
-				ne = priv::bigint::mse(a, ne);
+				sl_uint32 v = priv::bigint::Div_uint32(a, a, ne, radix, 0);
+				ne = priv::bigint::Mse(a, ne);
 				if (v < radix) {
 					*s = priv::string::g_conv_radixPatternUpper[v];
 				} else {
@@ -1163,16 +1026,6 @@ namespace slib
 			}
 			return String(s + 1, l);
 		}
-	}
-	
-	CBigInt* CBigInt::fromHexString(const sl_char8* sz, sl_size len) noexcept
-	{
-		return fromString(16, sz, len);
-	}
-
-	CBigInt* CBigInt::fromHexString(const String& str) noexcept
-	{
-		return fromString(16, str);
 	}
 	
 	String CBigInt::toHexString() const noexcept
@@ -1379,7 +1232,7 @@ namespace slib
 		} else if (na < nb) {
 			return -1;
 		}
-		return priv::bigint::compare(a.elements, b.elements, na);
+		return priv::bigint::Compare(a.elements, b.elements, na);
 	}
 
 	sl_compare_result CBigInt::compare(const CBigInt& other) const noexcept
@@ -1409,7 +1262,7 @@ namespace slib
 		} else if (na < nb) {
 			return -a.sign;
 		}
-		return priv::bigint::compare(a.elements, b.elements, na) * a.sign;
+		return priv::bigint::Compare(a.elements, b.elements, na) * a.sign;
 	}
 
 	sl_compare_result CBigInt::compare(sl_int32 v) const noexcept
@@ -1481,9 +1334,9 @@ namespace slib
 		const CBigInt& p = *_p;
 		const CBigInt& q = *_q;
 		if (growLength(nq)) {
-			sl_uint32 of = priv::bigint::add(elements, q.elements, p.elements, np, 0);
+			sl_uint32 of = priv::bigint::Add(elements, q.elements, p.elements, np, 0);
 			if (of) {
-				of = priv::bigint::add_uint32(elements + np, q.elements + np, nq - np, of);
+				of = priv::bigint::Add_uint32(elements + np, q.elements + np, nq - np, of);
 				if (of) {
 					if (growLength(nq + 1)) {
 						elements[nq] = of;
@@ -1609,9 +1462,9 @@ namespace slib
 				return sl_false;
 			}
 		}
-		sl_uint32 of = priv::bigint::sub(elements, a.elements, b.elements, nb, 0);
+		sl_uint32 of = priv::bigint::Sub(elements, a.elements, b.elements, nb, 0);
 		if (of) {
-			of = priv::bigint::sub_uint32(elements + nb, a.elements + nb, na - nb, of);
+			of = priv::bigint::Sub_uint32(elements + nb, a.elements + nb, na - nb, of);
 			if (of) {
 				return sl_false;
 			}
@@ -1775,7 +1628,7 @@ namespace slib
 		if (!out) {
 			return sl_false;
 		}
-		sl_uint32 o = priv::bigint::mul_uint32(out, a.elements, na, b, 0);
+		sl_uint32 o = priv::bigint::Mul_uint32(out, a.elements, na, b, 0);
 		if (o == 0) {
 			n = na;
 		} else {
@@ -1880,7 +1733,7 @@ namespace slib
 			for (sl_uint32 i = 1; i <= n; i++) {
 				tb[i] = _tmem + ((i - 1) * (nb + 1));
 				tl[i] = (nbb + i + 31) >> 5;
-				sl_uint32 o = priv::bigint::shiftLeft(tb[i], b.elements, nb, i, 0);
+				sl_uint32 o = priv::bigint::ShiftLeft(tb[i], b.elements, nb, i, 0);
 				if (o) {
 					tb[i][nb] = o;
 				}
@@ -1900,15 +1753,15 @@ namespace slib
 			sl_size se = shift >> 5;
 			sl_size sb = shift & 31;
 			sl_size nbs = nbb + shift;
-			if (nbs < nbr || (nbs == nbr && priv::bigint::compare(rem + se, tb[sb], tl[sb]) >= 0)) {
-				if (priv::bigint::sub(rem + se, rem + se, tb[sb], tl[sb], 0)) {
+			if (nbs < nbr || (nbs == nbr && priv::bigint::Compare(rem + se, tb[sb], tl[sb]) >= 0)) {
+				if (priv::bigint::Sub(rem + se, rem + se, tb[sb], tl[sb], 0)) {
 					rem[se + tl[sb]] = 0;
 				}
 				q[se] |= (1 << sb);
 				if (nq == 0) {
 					nq = se + 1;
 				}
-				nbr = priv::bigint::msbits(rem, se + tl[sb]);
+				nbr = priv::bigint::MsBits(rem, se + tl[sb]);
 			}
 			shift--;
 		}
@@ -1952,7 +1805,7 @@ namespace slib
 		} else {
 			q = sl_null;
 		}
-		sl_uint32 r = priv::bigint::div_uint32(q, a.elements, na, b, 0);
+		sl_uint32 r = priv::bigint::Div_uint32(q, a.elements, na, b, 0);
 		if (remainder) {
 			*remainder = r;
 		}
@@ -2135,7 +1988,7 @@ namespace slib
 				}
 			}
 			if (sb > 0) {
-				priv::bigint::shiftLeft(elements, elements, nt, sb, 0);
+				priv::bigint::ShiftLeft(elements, elements, nt, sb, 0);
 			}
 			for (sl_size i = nt; i < nd; i++) {
 				elements[i] = 0;
@@ -2181,7 +2034,7 @@ namespace slib
 				} else {
 					l = 0;
 				}
-				priv::bigint::shiftRight(elements, elements, nt, sb, l);
+				priv::bigint::ShiftRight(elements, elements, nt, sb, l);
 			}
 			for (sl_size i = nt; i < nd; i++) {
 				elements[i] = 0;
@@ -2325,8 +2178,8 @@ namespace slib
 					// T = (T + cB*B + cM*M) / 2^(32*nM)
 					sl_uint32 cB = i < A.length ? A.elements[i] : 0;
 					sl_uint32 cM = (out[0] + cB * B.elements[0]) * MI;
-					priv::bigint::muladd_uint32(out, out, nOut, B.elements, nB, cB, 0);
-					priv::bigint::muladd_uint32(out, out, nOut, M.elements, nM, cM, 0);
+					priv::bigint::MulAdd_uint32(out, out, nOut, B.elements, nB, cB, 0);
+					priv::bigint::MulAdd_uint32(out, out, nOut, M.elements, nM, cM, 0);
 					*out = cB;
 					nOut--;
 					out++;
@@ -2918,10 +2771,6 @@ namespace slib
 		return 0;
 	}
 
-	
-/*
-	BigInt
-*/
 
 	BigInt::BigInt(sl_int32 n) noexcept : ref(CBigInt::fromInt32(n))
 	{
@@ -2983,34 +2832,18 @@ namespace slib
 		return CBigInt::fromBytesBE(mem.getData(), mem.getSize());
 	}
 
-	BigInt BigInt::fromString(sl_uint32 radix, const sl_char8* sz, sl_size len) noexcept
+	BigInt BigInt::fromString(const StringParam& str, sl_uint32 radix) noexcept
 	{
-		return CBigInt::fromString(radix, sz, len);
-	}
-
-	BigInt BigInt::fromString(sl_uint32 radix, const String& str) noexcept
-	{
-		return CBigInt::fromString(radix, str);
-	}
-
-	BigInt BigInt::fromString(const sl_char8* sz, sl_size len) noexcept
-	{
-		return CBigInt::fromString(sz, len);
+		BigInt n;
+		if (n.parse(str, radix)) {
+			return n;
+		}
+		return sl_null;
 	}
 	
-	BigInt BigInt::fromString(const String& str) noexcept
+	BigInt BigInt::fromHexString(const StringParam& str) noexcept
 	{
-		return CBigInt::fromString(str);
-	}
-
-	BigInt BigInt::fromHexString(const sl_char8* sz, sl_size len) noexcept
-	{
-		return CBigInt::fromHexString(sz, len);
-	}
-	
-	BigInt BigInt::fromHexString(const String& str) noexcept
-	{
-		return CBigInt::fromHexString(str);
+		return fromString(str, 16);
 	}
 
 	CBigInt& BigInt::instance() const noexcept
@@ -4644,6 +4477,103 @@ namespace slib
 		}
 		return 0;
 	}
+
+	namespace priv
+	{
+		namespace bigint
+		{
+			template <class CT>
+			static sl_reg Parse(BigInt* _out, sl_uint32 radix, const CT* sz, sl_size posBegin, sl_size len) noexcept
+			{
+				if (radix < 2 || radix > 64) {
+					return SLIB_PARSE_ERROR;;
+				}
+				sl_int32 sign;
+				sl_size pos = posBegin;
+				if (pos < len && sz[pos] == '-') {
+					pos++;
+					sign = -1;
+				} else {
+					sign = 1;
+				}
+				for (; pos < len; pos++) {
+					sl_int32 c = (sl_uint32)(sz[pos]);
+					if (c != '\t' && c != ' ') {
+						break;
+					}
+				}
+				sl_size end = pos;
+				const sl_uint8* pattern = radix <= 36 ? priv::string::g_conv_radixInversePatternSmall : priv::string::g_conv_radixInversePatternBig;
+				for (; end < len; end++) {
+					sl_uint32 c = (sl_uint8)(sz[end]);
+					sl_uint32 v = c < 128 ? pattern[c] : 255;
+					if (v >= radix) {
+						break;
+					}
+				}
+				if (end <= pos) {
+					return SLIB_PARSE_ERROR;
+				}
+				if (!_out) {
+					return end;
+				}
+				CBigInt* output = new CBigInt;
+				if (!output) {
+					return SLIB_PARSE_ERROR;
+				}
+				_out->ref = output;
+				output->sign = sign;
+				if (radix == 16) {
+					output->setZero();
+					sl_size nh = end - pos;
+					sl_size ne = ((nh << 2) + 31) >> 5;
+					if (!(output->growLength(ne))) {
+						return SLIB_PARSE_ERROR;
+					}
+					sl_uint32* elements = output->elements;
+					sl_size ih = nh - 1;
+					for (; pos < end; pos++) {
+						sl_uint32 c = (sl_uint8)(sz[pos]);
+						sl_uint32 v = c < 128 ? pattern[c] : 255;
+						if (v >= radix) {
+							break;
+						}
+						sl_size ie = ih >> 3;
+						sl_uint32 ib = (sl_uint32)((ih << 2) & 31);
+						elements[ie] |= (v << ib);
+						ih--;
+					}
+					return pos;
+				} else {
+					sl_size nb = (sl_size)(Math::ceil(Math::log2((double)radix) * len));
+					sl_size ne = (nb + 31) >> 5;
+					SLIB_SCOPED_BUFFER(sl_uint32, STACK_BUFFER_SIZE, a, ne);
+					if (!a) {
+						return SLIB_PARSE_ERROR;
+					}
+					sl_size n = 0;
+					for (; pos < end; pos++) {
+						sl_uint32 c = (sl_uint8)(sz[pos]);
+						sl_uint32 v = c < 128 ? pattern[c] : 255;
+						if (v >= radix) {
+							break;
+						}
+						sl_uint32 o = priv::bigint::Mul_uint32(a, a, n, radix, v);
+						if (o) {
+							a[n] = o;
+							n++;
+						}
+					}
+					if (!(output->setValueFromElements(a, n))) {
+						return SLIB_PARSE_ERROR;
+					}
+					return pos;
+				}
+			}
+		}
+	}
+
+	SLIB_DEFINE_CLASS_PARSE_INT_MEMBERS(BigInt, priv::bigint::Parse)
 	
 	BigInt& BigInt::operator=(sl_int32 n) noexcept
 	{
@@ -5546,33 +5476,6 @@ namespace slib
 	BigInt operator>>(const BigInt& a, sl_size n) noexcept
 	{
 		return BigInt::shiftRight(a, n);
-	}
-
-	
-	sl_compare_result Compare<BigInt>::operator()(const BigInt& a, const BigInt& b) const noexcept
-	{
-		return a.compare(b);
-	}
-	
-	sl_bool Equals<BigInt>::operator()(const BigInt& a, const BigInt& b) const noexcept
-	{
-		return a.equals(b);
-	}
-
-	sl_size Hash<BigInt>::operator()(const BigInt& a) const noexcept
-	{
-		return a.getHashCode();
-	}
-	
-
-	void FromJson(const Json& json, BigInt& _out)
-	{
-		_out = BigInt::fromHexString(json.getString());
-	}
-
-	void ToJson(Json& json, const BigInt& _in)
-	{
-		json = _in.toHexString();
 	}
 
 }

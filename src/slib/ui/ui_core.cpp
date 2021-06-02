@@ -72,9 +72,7 @@ namespace slib
 				Function<void()> m_callback;
 				
 			public:
-				SLIB_INLINE UICallback(const Function<void()>& callback) noexcept
-				 : m_callback(callback)
-				{}
+				UICallback(const Function<void()>& callback) noexcept: m_callback(callback) {}
 				
 			public:
 				void invoke() noexcept override

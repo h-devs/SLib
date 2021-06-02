@@ -23,6 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_NULLABLE
 #define CHECKHEADER_SLIB_CORE_NULLABLE
 
+#include "compare.h"
 #include "hash.h"
 
 namespace slib
@@ -41,17 +42,18 @@ namespace slib
 		Nullable(sl_null_t): flagNull(sl_true), value() {}
 		
 		template <class OTHER>
-		Nullable(const Nullable<OTHER>& other) : flagNull(other.flagNull), value(other.value) {}
+		Nullable(const Nullable<OTHER>& other): flagNull(other.flagNull), value(other.value) {}
 		
 		template <class... ARGS>
-		Nullable(ARGS... args) : flagNull(sl_false), value(Forward<ARGS...>(args...)) {}
+		Nullable(ARGS... args): flagNull(sl_false), value(Forward<ARGS...>(args...)) {}
 
-		constexpr operator T const&() const noexcept
+	public:
+		constexpr operator T const&() const
 		{
 			return value;
 		}
 
-		operator T&() noexcept
+		constexpr operator T&()
 		{
 			return value;
 		}
@@ -93,12 +95,13 @@ namespace slib
 			return *this;
 		}
 		
-		constexpr sl_bool isNull() const noexcept
+	public:
+		constexpr sl_bool isNull() const
 		{
 			return flagNull;
 		}
 		
-		constexpr sl_bool isNotNull() const noexcept
+		constexpr sl_bool isNotNull() const
 		{
 			return !flagNull;
 		}
@@ -109,93 +112,86 @@ namespace slib
 			value = T();
 		}
 
-		constexpr T const& get() const noexcept
+		constexpr T const& get() const
 		{
 			return value;
 		}
 		
-		T& get() noexcept
+		constexpr T& get()
 		{
 			return value;
 		}
 		
-		sl_bool operator==(const Nullable<T>& other) const
+	public:
+		sl_compare_result compare(const Nullable& other) const
 		{
-			if (flagNull == other.flagNull) {
-				if (flagNull) {
-					return sl_true;
+			if (flagNull) {
+				if (other.flagNull) {
+					return 0;
 				} else {
-					return value == other.value;
+					return -1;
 				}
 			} else {
-				return sl_false;
-			}
-		}
-		
-		sl_bool operator!=(const Nullable<T>& other) const
-		{
-			if (flagNull == other.flagNull) {
-				if (flagNull) {
-					return sl_false;
+				if (other.flagNull) {
+					return 1;
 				} else {
-					return value != other.value;
+					return Compare<T>()(value, other.value);
 				}
-			} else {
-				return sl_true;
-			}
-		}
-		
-		sl_bool operator>(const Nullable<T>& other) const
-		{
-			if (flagNull == other.flagNull) {
-				if (flagNull) {
-					return sl_false;
-				} else {
-					return value > other.value;
-				}
-			} else {
-				return other.flagNull;
 			}
 		}
 
-		sl_bool operator>=(const Nullable<T>& other) const
-		{
-			if (other.flagNull) {
-				return sl_true;
-			} else {
-				if (flagNull) {
-					return sl_false;
-				} else {
-					return value >= other.value;
-				}
-			}
-		}
-		
-		sl_bool operator<(const Nullable<T>& other) const
-		{
-			if (flagNull == other.flagNull) {
-				if (flagNull) {
-					return sl_false;
-				} else {
-					return value < other.value;
-				}
-			} else {
-				return flagNull;
-			}
-		}
-		
-		sl_bool operator<=(const Nullable<T>& other) const
+		sl_compare_result compare(const T& other) const
 		{
 			if (flagNull) {
-				return sl_true;
+				return -1;
+			} else {
+				return Compare<T>()(value, other.value);
+			}
+		}
+
+		sl_compare_result compare(sl_null_t) const
+		{
+			return flagNull ? 0 : 1;
+		}
+
+		sl_bool equals(const Nullable& other) const
+		{
+			if (flagNull) {
+				return other.flagNull;
 			} else {
 				if (other.flagNull) {
 					return sl_false;
 				} else {
-					return value <= other.value;
+					return Equals<T>()(value, other.value);
 				}
 			}
 		}
+
+		sl_bool equals(const T& other) const
+		{
+			if (flagNull) {
+				return sl_false;
+			} else {
+				return Equals<T>()(value, other.value);
+			}
+		}
+
+		sl_bool equals(sl_null_t) const
+		{
+			return flagNull;
+		}
+
+		sl_size getHashCode() const
+		{
+			if (flagNull) {
+				return 0;
+			} else {
+				return Hash<T>()(value);
+			}
+		}
+	
+	public:		
+		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
 		
 	public:
 		T value;
@@ -203,21 +199,6 @@ namespace slib
 		
 	};
 	
-	template <class T>
-	class Hash< Nullable<T>, sl_false >
-	{
-	public:
-		sl_size operator()(const Nullable<T>& v) const
-		{
-			if (v.flagNull) {
-				return 0;
-			} else {
-				return Hash<T>()(v.value);
-			}
-		}
-		
-	};
-
 }
 
 #endif

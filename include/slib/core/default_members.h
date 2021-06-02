@@ -47,10 +47,10 @@
 
 #define SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(CLASS) \
 	public: \
-		CLASS(CLASS const& other) noexcept = default; \
-		CLASS(CLASS&& other) noexcept = default; \
-		CLASS& operator=(CLASS const& other) noexcept = default; \
-		CLASS& operator=(CLASS&& other) noexcept = default;
+		CLASS(CLASS const& other) = default; \
+		CLASS(CLASS&& other) = default; \
+		CLASS& operator=(CLASS const& other) = default; \
+		CLASS& operator=(CLASS&& other) = default;
 
 #define SLIB_DELETE_CLASS_DEFAULT_MEMBERS(CLASS) \
 	public: \

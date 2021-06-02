@@ -27,12 +27,14 @@
 
 namespace slib
 {
-	
-	SLIB_ALIGN(8) const sl_uint8 IPv4Address::_zero[4] = {0, 0, 0, 0};
 
-	IPv4Address::IPv4Address(const String& address) noexcept
+	SLIB_ALIGN(8) const sl_uint8 IPv4Address::_zero[4] = { 0, 0, 0, 0 };
+
+	IPv4Address::IPv4Address(const StringParam& address) noexcept
 	{
-		setString(address);
+		if (!(parse(address))) {
+			setZero();
+		}
 	}
 
 	void IPv4Address::setElements(sl_uint8 _a, sl_uint8 _b, sl_uint8 _c, sl_uint8 _d) noexcept
@@ -166,34 +168,6 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_compare_result IPv4Address::compare(const IPv4Address& other) const noexcept
-	{
-		sl_uint32 p1 = getInt();
-		sl_uint32 p2 = other.getInt();
-		return ComparePrimitiveValues(p1, p2);
-	}
-
-	sl_size IPv4Address::getHashCode() const noexcept
-	{
-		return Rehash32(getInt());
-	}
-
-	String IPv4Address::toString() const noexcept
-	{
-		String ret = String::fromUint32(a) + "." + String::fromUint32(b) + "." + String::fromUint32(c) + "." + String::fromUint32(d);
-		return ret;
-	}
-
-	sl_bool IPv4Address::setString(const String& str) noexcept
-	{
-		if (parse(str)) {
-			return sl_true;
-		} else {
-			setZero();
-			return sl_false;
-		}
-	}
-
 	void IPv4Address::makeNetworkMask(sl_uint32 networkPrefixLength) noexcept
 	{
 		int p = networkPrefixLength;
@@ -230,10 +204,33 @@ namespace slib
 		return 32 - Math::getLeastSignificantBits(t);
 	}
 
-	sl_bool IPv4Address::setHostName(const String& hostName) noexcept
+	sl_bool IPv4Address::setHostName(const StringParam& hostName) noexcept
 	{
 		*this = Network::getIPv4AddressFromHostName(hostName);
 		return isNotZero();
+	}
+
+	String IPv4Address::toString() const noexcept
+	{
+		sl_char8 buf[16];
+		sl_char8* p = buf;
+		const sl_uint8* v = &a;
+		for (int i = 0; i < 4; i++) {
+			if (i > 0) {
+				*(p++) = '.';
+			}
+			sl_uint8 n = v[i];
+			if (n >= 100) {
+				*(p++) = '0' + (n / 100);
+				n %= 100;
+			}
+			if (n >= 10) {
+				*(p++) = '0' + (n / 10);
+				n %= 10;
+			}
+			*(p++) = '0' + n;
+		}
+		return String(buf, p - buf);
 	}
 
 	namespace priv
@@ -241,7 +238,7 @@ namespace slib
 		namespace ipv4address
 		{
 			template <class CT>
-			SLIB_INLINE static sl_reg parse(IPv4Address* obj, const CT* sz, sl_size i, sl_size n) noexcept
+			SLIB_INLINE static sl_reg Parse(IPv4Address* obj, const CT* sz, sl_size i, sl_size n) noexcept
 			{
 				if (i >= n) {
 					return SLIB_PARSE_ERROR;
@@ -284,58 +281,14 @@ namespace slib
 		}
 	}
 
-	template <>
-	sl_reg Parser<IPv4Address, sl_char8>::parse(IPv4Address* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::ipv4address::parse(_out, sz, posBegin, posEnd);
-	}
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(IPv4Address, priv::ipv4address::Parse)
 
-	template <>
-	sl_reg Parser<IPv4Address, sl_char16>::parse(IPv4Address* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
+	IPv4Address& IPv4Address::operator=(const StringParam& address) noexcept
 	{
-		return priv::ipv4address::parse(_out, sz, posBegin, posEnd);
-	}
-
-
-	IPv4Address& IPv4Address::operator=(const String& address) noexcept
-	{
-		setString(address);
+		if (!(parse(address))) {
+			setZero();
+		}
 		return *this;
-	}
-
-	sl_bool IPv4Address::operator>=(const IPv4Address& other) const noexcept
-	{
-		return getInt() >= other.getInt();
-	}
-
-	sl_bool IPv4Address::operator>(const IPv4Address& other) const noexcept
-	{
-		return getInt() > other.getInt();
-	}
-
-	sl_bool IPv4Address::operator<=(const IPv4Address& other) const noexcept
-	{
-		return getInt() <= other.getInt();
-	}
-
-	sl_bool IPv4Address::operator<(const IPv4Address& other) const noexcept
-	{
-		return getInt() < other.getInt();
-	}
-
-	sl_compare_result Compare<IPv4Address>::operator()(const IPv4Address& a, const IPv4Address& b) const noexcept
-	{
-		return a.compare(b);
-	}
-
-	sl_bool Equals<IPv4Address>::operator()(const IPv4Address& a, const IPv4Address& b) const noexcept
-	{
-		return a == b;
-	}
-
-	sl_size Hash<IPv4Address>::operator()(const IPv4Address& a) const noexcept
-	{
-		return a.getHashCode();
 	}
 
 
@@ -351,22 +304,20 @@ namespace slib
 		networkPrefixLength = mask.getNetworkPrefixLengthFromMask();
 	}
 
-	sl_compare_result Compare<IPv4AddressInfo>::operator()(const IPv4AddressInfo& a, const IPv4AddressInfo& b) const noexcept
+	sl_compare_result IPv4AddressInfo::compare(const IPv4AddressInfo& b) const noexcept
 	{
-		return a.address.compare(b.address);
+		return address.compare(b.address);
 	}
 
-	sl_bool Equals<IPv4AddressInfo>::operator()(const IPv4AddressInfo& a, const IPv4AddressInfo& b) const noexcept
+	sl_bool IPv4AddressInfo::equals(const IPv4AddressInfo& b) const noexcept
 	{
-		return a.address == b.address;
+		return address.equals(b.address);
 	}
 
 
 	SLIB_ALIGN(8) const sl_uint8 IPv6Address::_zero[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	SLIB_ALIGN(8) const sl_uint8 IPv6Address::_loopback[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
 	SLIB_ALIGN(8) const sl_uint8 IPv6Address::_loopback_linkLocal[16] = { 0xFE, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
-
-	IPv6Address::IPv6Address(const IPv6Address& other) noexcept = default;
 
 	IPv6Address::IPv6Address(const sl_uint16* s) noexcept
 	{
@@ -386,9 +337,11 @@ namespace slib
 		Base::copyMemory(m, b, 16);
 	}
 
-	IPv6Address::IPv6Address(const String& address) noexcept
+	IPv6Address::IPv6Address(const StringParam& address) noexcept
 	{
-		setString(address);
+		if (!(parse(address))) {
+			setZero();
+		}
 	}
 
 	IPv6Address::IPv6Address(const IPv4Address& ip) noexcept
@@ -398,27 +351,31 @@ namespace slib
 
 	sl_uint16 IPv6Address::getElement(int index) const noexcept
 	{
-		return (sl_uint16)((((sl_uint32)m[index * 2]) << 8) | ((sl_uint32)m[index * 2 + 1]));
+		int k = index << 1;
+		return SLIB_MAKE_WORD(m[k], m[k + 1]);
 	}
 
 	void IPv6Address::setElement(int index, sl_uint16 s) noexcept
 	{
-		m[index * 2] = (sl_uint8)(s >> 8);
-		m[index * 2 + 1] = (sl_uint8)(s);
+		int k = index << 1;
+		m[k] = (sl_uint8)(s >> 8);
+		m[k + 1] = (sl_uint8)(s);
 	}
 
 	void IPv6Address::getElements(sl_uint16* s) const noexcept
 	{
 		for (int i = 0; i < 8; i++) {
-			s[i] = (sl_uint16)((((sl_uint32)m[i * 2]) << 8) | ((sl_uint32)m[i * 2 + 1]));
+			int k = i << 1;
+			s[i] = SLIB_MAKE_WORD(m[k], m[k + 1]);
 		}
 	}
 
 	void IPv6Address::setElements(const sl_uint16* s) noexcept
 	{
 		for (int i = 0; i < 8; i++) {
-			m[i * 2] = (sl_uint8)(s[i] >> 8);
-			m[i * 2 + 1] = (sl_uint8)(s[i]);
+			int k = i << 1;
+			m[k] = (sl_uint8)(s[i] >> 8);
+			m[k + 1] = (sl_uint8)(s[i]);
 		}
 	}
 
@@ -496,9 +453,20 @@ namespace slib
 		return m[0] == 0 && m[1] == 0 && m[2] == 0 && m[3] == 0 && m[4] == 0 && m[5] == 0 && m[6] == 0 && m[7] == 0 && m[8] == 0 && m[9] == 0 && m[10] == 255 && m[11] == 255;
 	}
 
+	sl_bool IPv6Address::setHostName(const StringParam& hostName) noexcept
+	{
+		*this = Network::getIPv6AddressFromHostName(hostName);
+		return isNotZero();
+	}
+
 	sl_compare_result IPv6Address::compare(const IPv6Address& other) const noexcept
 	{
 		return Base::compareMemory(m, other.m, 16);
+	}
+
+	sl_bool IPv6Address::equals(const IPv6Address& other) const noexcept
+	{
+		return Base::equalsMemory(m, other.m, 16);
 	}
 
 	sl_size IPv6Address::getHashCode() const noexcept
@@ -508,30 +476,20 @@ namespace slib
 
 	String IPv6Address::toString() const noexcept
 	{
-		String ret;
+		sl_char8 buf[40];
+		sl_char8* p = buf;
+		const char* hex = "0123456789abcdef";
 		for (int i = 0; i < 8; i++) {
 			if (i > 0) {
-				ret += ":";
+				*(p++) = ':';
 			}
-			ret += String::fromUint32(getElement(i), 16, 4);
+			sl_uint16 n = getElement(i);
+			*(p++) = hex[n >> 12];
+			*(p++) = hex[(n >> 8) & 15];
+			*(p++) = hex[(n >> 4) & 15];
+			*(p++) = hex[n & 15];
 		}
-		return ret;
-	}
-
-	sl_bool IPv6Address::setString(const String& str) noexcept
-	{
-		if (parse(str)) {
-			return sl_true;
-		} else {
-			setZero();
-			return sl_false;
-		}
-	}
-
-	sl_bool IPv6Address::setHostName(const String& hostName) noexcept
-	{
-		*this = Network::getIPv6AddressFromHostName(hostName);
-		return isNotZero();
+		return String(buf, p - buf);
 	}
 
 	namespace priv
@@ -539,7 +497,7 @@ namespace slib
 		namespace ipv6address
 		{
 			template <class CT>
-			SLIB_INLINE static sl_reg parse(IPv6Address* obj, const CT* sz, sl_size i, sl_size n) noexcept
+			SLIB_INLINE static sl_reg Parse(IPv6Address* obj, const CT* sz, sl_size i, sl_size n) noexcept
 			{
 				if (i >= n) {
 					return SLIB_PARSE_ERROR;
@@ -634,75 +592,18 @@ namespace slib
 		}
 	}
 
-	template <>
-	sl_reg Parser<IPv6Address, sl_char8>::parse(IPv6Address* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::ipv6address::parse(_out, sz, posBegin, posEnd);
-	}
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(IPv6Address, priv::ipv6address::Parse)
 
-	template <>
-	sl_reg Parser<IPv6Address, sl_char16>::parse(IPv6Address* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
+	IPv6Address& IPv6Address::operator=(const StringParam& address) noexcept
 	{
-		return priv::ipv6address::parse(_out, sz, posBegin, posEnd);
-	}
-
-	IPv6Address& IPv6Address::operator=(const IPv6Address& other) noexcept = default;
-
-	IPv6Address& IPv6Address::operator=(const String& address) noexcept
-	{
-		setString(address);
+		if (!(parse(address))) {
+			setZero();
+		}
 		return *this;
-	}
-
-	sl_bool IPv6Address::operator==(const IPv6Address& other) const noexcept
-	{
-		return Base::compareMemory(m, other.m, 16) == 0;
-	}
-
-	sl_bool IPv6Address::operator!=(const IPv6Address& other) const noexcept
-	{
-		return Base::compareMemory(m, other.m, 16) != 0;
-	}
-
-	sl_bool IPv6Address::operator<=(const IPv6Address& other) const noexcept
-	{
-		return Base::compareMemory(m, other.m, 16) <= 0;
-	}
-
-	sl_bool IPv6Address::operator<(const IPv6Address& other) const noexcept
-	{
-		return Base::compareMemory(m, other.m, 16) < 0;
-	}
-
-	sl_bool IPv6Address::operator>=(const IPv6Address& other) const noexcept
-	{
-		return Base::compareMemory(m, other.m, 16) >= 0;
-	}
-
-	sl_bool IPv6Address::operator>(const IPv6Address& other) const noexcept
-	{
-		return Base::compareMemory(m, other.m, 16) > 0;
-	}
-
-	sl_compare_result Compare<IPv6Address>::operator()(const IPv6Address& a, const IPv6Address& b) const noexcept
-	{
-		return a.compare(b);
-	}
-
-	sl_bool Equals<IPv6Address>::operator()(const IPv6Address& a, const IPv6Address& b) const noexcept
-	{
-		return a == b;
-	}
-
-	sl_size Hash<IPv6Address>::operator()(const IPv6Address& a) const noexcept
-	{
-		return a.getHashCode();
 	}
 
 
 	const IPAddress::_ipaddress IPAddress::_none = { IPAddressType::None, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
-
-	IPAddress::IPAddress(const IPAddress& other) noexcept = default;
 
 	IPAddress::IPAddress(const IPv4Address& other) noexcept
 	{
@@ -714,9 +615,11 @@ namespace slib
 		setIPv6(other);
 	}
 
-	IPAddress::IPAddress(const String& address) noexcept
+	IPAddress::IPAddress(const StringParam& address) noexcept
 	{
-		setString(address);
+		if (!(parse(address))) {
+			type = IPAddressType::None;
+		}
 	}
 
 	sl_bool IPAddress::isIPv4() const noexcept
@@ -751,6 +654,12 @@ namespace slib
 		*(reinterpret_cast<IPv6Address*>(m)) = addr;
 	}
 
+	sl_bool IPAddress::setHostName(const StringParam& hostName) noexcept
+	{
+		*this = Network::getIPAddressFromHostName(hostName);
+		return isNotNone();
+	}
+
 	sl_compare_result IPAddress::compare(const IPAddress& other) const noexcept
 	{
 		if (type < other.type) {
@@ -768,6 +677,22 @@ namespace slib
 				return (reinterpret_cast<IPv6Address const*>(m))->compare(*(reinterpret_cast<IPv6Address const*>(other.m)));
 		}
 		return 0;
+	}
+
+	sl_bool IPAddress::equals(const IPAddress& other) const noexcept
+	{
+		if (type != other.type) {
+			return sl_false;
+		}
+		switch (type) {
+			case IPAddressType::None:
+				return sl_true;
+			case IPAddressType::IPv4:
+				return (reinterpret_cast<IPv4Address const*>(m))->equals(*(reinterpret_cast<IPv4Address const*>(other.m)));
+			case IPAddressType::IPv6:
+				return (reinterpret_cast<IPv6Address const*>(m))->equals(*(reinterpret_cast<IPv6Address const*>(other.m)));
+		}
+		return sl_false;
 	}
 
 	sl_size IPAddress::getHashCode() const noexcept
@@ -795,35 +720,19 @@ namespace slib
 		}
 	}
 
-	sl_bool IPAddress::setString(const String& str) noexcept
-	{
-		if (parse(str)) {
-			return sl_true;
-		} else {
-			setNone();
-			return sl_false;
-		}
-	}
-
-	sl_bool IPAddress::setHostName(const String& hostName) noexcept
-	{
-		*this = Network::getIPAddressFromHostName(hostName);
-		return isNotNone();
-	}
-
 	namespace priv
 	{
 		namespace ipaddress
 		{
 			template <class CT>
-			SLIB_INLINE static sl_reg parse(IPAddress* obj, const CT* sz, sl_size posStart, sl_size posEnd) noexcept
+			SLIB_INLINE static sl_reg Parse(IPAddress* obj, const CT* sz, sl_size posStart, sl_size posEnd) noexcept
 			{
 				if (posStart >= posEnd) {
 					return SLIB_PARSE_ERROR;
 				}
 				sl_reg index;
 				IPv4Address a4;
-				index = Parser<IPv4Address, CT>::parse(&a4, sz, posStart, posEnd);
+				index = IPv4Address::parse(&a4, sz, posStart, posEnd);
 				if (index != SLIB_PARSE_ERROR) {
 					if (obj) {
 						*obj = a4;
@@ -831,7 +740,7 @@ namespace slib
 					return index;
 				}
 				IPv6Address a6;
-				index = Parser<IPv6Address, CT>::parse(&a6, sz, posStart, posEnd);
+				index = IPv6Address::parse(&a6, sz, posStart, posEnd);
 				if (index != SLIB_PARSE_ERROR) {
 					if (obj) {
 						*obj = a6;
@@ -843,19 +752,7 @@ namespace slib
 		}
 	}
 
-	template <>
-	sl_reg Parser<IPAddress, sl_char8>::parse(IPAddress* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::ipaddress::parse(_out, sz, posBegin, posEnd);
-	}
-
-	template <>
-	sl_reg Parser<IPAddress, sl_char16>::parse(IPAddress* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::ipaddress::parse(_out, sz, posBegin, posEnd);
-	}
-
-	IPAddress& IPAddress::operator=(const IPAddress& other) noexcept = default;
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(IPAddress, priv::ipaddress::Parse)
 
 	IPAddress& IPAddress::operator=(const IPv4Address& other) noexcept
 	{
@@ -871,46 +768,12 @@ namespace slib
 		return *this;
 	}
 
-	IPAddress& IPAddress::operator=(const String& address) noexcept
+	IPAddress& IPAddress::operator=(const StringParam& address) noexcept
 	{
-		setString(address);
+		if (!(parse(address))) {
+			setNone();
+		}
 		return *this;
-	}
-
-	sl_bool IPAddress::operator==(const IPAddress& other) const noexcept
-	{
-		if (type != other.type) {
-			return sl_false;
-		}
-		switch (type) {
-			case IPAddressType::None:
-				return sl_true;
-			case IPAddressType::IPv4:
-				return (*(reinterpret_cast<IPv4Address const*>(m)) == *(reinterpret_cast<IPv4Address const*>(other.m)));
-			case IPAddressType::IPv6:
-				return (*(reinterpret_cast<IPv6Address const*>(m)) == *(reinterpret_cast<IPv6Address const*>(other.m)));
-		}
-		return sl_false;
-	}
-
-	sl_bool IPAddress::operator!=(const IPAddress& other) const noexcept
-	{
-		return !(*this == other);
-	}
-
-	sl_compare_result Compare<IPAddress>::operator()(const IPAddress& a, const IPAddress& b) const noexcept
-	{
-		return a.compare(b);
-	}
-
-	sl_bool Equals<IPAddress>::operator()(const IPAddress& a, const IPAddress& b) const noexcept
-	{
-		return a == b;
-	}
-
-	sl_size Hash<IPAddress>::operator()(const IPAddress& a) const noexcept
-	{
-		return a.getHashCode();
 	}
 
 }

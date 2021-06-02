@@ -25,13 +25,9 @@
 
 #include "base.h"
 #include "string.h"
-#include "compare.h"
-#include "hash.h"
 
 namespace slib
 {
-
-	class Json;
 
 	template <sl_size N>
 	class SLIB_EXPORT Bytes
@@ -75,6 +71,22 @@ namespace slib
 			Base::zeroMemory(data, N);
 		}
 
+	public:
+		sl_bool equals(const Bytes& other) const noexcept
+		{
+			return Base::equalsMemory(data, other.data, N);
+		}
+
+		sl_compare_result compare(const Bytes& other) const noexcept
+		{
+			return Base::compareMemory(data, other.data, N);
+		}
+
+		sl_size getHashCode() const noexcept
+		{
+			return HashBytes(data, N);
+		}
+
 		String toString() const noexcept
 		{
 			return String::makeHexString(data, N);
@@ -96,93 +108,46 @@ namespace slib
 			return sl_false;
 		}
 
-		sl_bool equals(const Bytes& other) const noexcept
-		{
-			return Base::equalsMemory(data, other.data, N);
-		}
-
-		sl_compare_result compare(const Bytes& other) const noexcept
-		{
-			return Base::compareMemory(data, other.data, N);
-		}
-
-		sl_size getHashCode() const noexcept
-		{
-			return HashBytes(data, N);
-		}
-
-		Json toJson() const noexcept;
-
-		sl_bool fromJson(const Json& json) noexcept;
-
-	};
-
-
-	template <sl_size N>
-	class Compare< Bytes<N> >
-	{
 	public:
-		sl_compare_result operator()(const Bytes<N> &a, const Bytes<N> &b) const noexcept
-		{
-			return a.compare(b);
-		}
-	};
+		SLIB_DECLARE_CLASS_JSON_SERIALIZE_MEMBERS
 
-	template <sl_size N>
-	class Equals< Bytes<N> >
-	{
-	public:
-		sl_bool operator()(const Bytes<N> &a, const Bytes<N> &b) const noexcept
-		{
-			return a.equals(b);
-		}
-	};
-
-	template <sl_size N>
-	class Hash< Bytes<N> >
-	{
-	public:
-		sl_size operator()(const Bytes<N> &a) const noexcept
-		{
-			return a.getHashCode();
-		}
 	};
 
 
 	template <sl_size N>
 	SLIB_INLINE static sl_bool operator==(const Bytes<N>& a, const Bytes<N>& b) noexcept
 	{
-		return Base::equalsMemory(a.data, b.data, 12);
+		return Base::equalsMemory(a.data, b.data, N);
 	}
 
 	template <sl_size N>
 	SLIB_INLINE static sl_bool operator!=(const Bytes<N>& a, const Bytes<N>& b) noexcept
 	{
-		return !(Base::equalsMemory(a.data, b.data, 12));
+		return !(Base::equalsMemory(a.data, b.data, N));
 	}
 
 	template <sl_size N>
 	SLIB_INLINE static sl_bool operator>=(const Bytes<N>& a, const Bytes<N>& b) noexcept
 	{
-		return Base::compareMemory(a.data, b.data, 12) >= 0;
+		return Base::compareMemory(a.data, b.data, N) >= 0;
 	}
 
 	template <sl_size N>
 	SLIB_INLINE static sl_bool operator>(const Bytes<N>& a, const Bytes<N>& b) noexcept
 	{
-		return Base::compareMemory(a.data, b.data, 12) > 0;
+		return Base::compareMemory(a.data, b.data, N) > 0;
 	}
 
 	template <sl_size N>
 	SLIB_INLINE static sl_bool operator<=(const Bytes<N>& a, const Bytes<N>& b) noexcept
 	{
-		return Base::compareMemory(a.data, b.data, 12) <= 0;
+		return Base::compareMemory(a.data, b.data, N) <= 0;
 	}
 
 	template <sl_size N>
 	SLIB_INLINE static sl_bool operator<(const Bytes<N>& a, const Bytes<N>& b) noexcept
 	{
-		return Base::compareMemory(a.data, b.data, 12) < 0;
+		return Base::compareMemory(a.data, b.data, N) < 0;
 	}
 
 }

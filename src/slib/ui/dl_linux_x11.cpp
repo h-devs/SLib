@@ -22,5 +22,5 @@
 
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "slib/ui/dl_linux_x11.h"
+#include "slib/ui/dl/linux/x11.h"
 

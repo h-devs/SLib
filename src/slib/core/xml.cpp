@@ -2666,7 +2666,7 @@ namespace slib
 		namespace xml
 		{
 			template <class CT>
-			SLIB_INLINE sl_bool CheckName(const CT* sz, sl_size len)
+			SLIB_INLINE static sl_bool CheckName(const CT* sz, sl_size len)
 			{
 				if (len == 0) {
 					return sl_false;

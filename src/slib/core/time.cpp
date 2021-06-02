@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 #include "slib/core/time_counter.h"
 #include "slib/core/time_keeper.h"
 #include "slib/core/time_zone.h"
-#include "slib/core/time_parse.h"
 
 #include "slib/core/locale.h"
 #include "slib/core/system.h"
@@ -1951,20 +1950,189 @@ namespace slib
 	Time Time::fromString(const StringParam& str, const TimeZone& zone) noexcept
 	{
 		Time ret;
-		ret.setString(str, zone);
-		return ret;
+		if (ret.parse(str, zone)) {
+			return ret;
+		}
+		return 0;
 	}
 
-	sl_bool Time::setString(const StringParam& str, const TimeZone& zone) noexcept
+	sl_bool Time::equals(const Time& other) const noexcept
 	{
-		if (parse(str, zone)) {
-			return sl_true;
-		} else {
-			setZero();
-			return sl_false;
+		return m_time == other.m_time;
+	}
+
+	sl_bool Time::equals(sl_int64 other) const noexcept
+	{
+		return m_time == other;
+	}
+
+	sl_compare_result Time::compare(const Time& other) const noexcept
+	{
+		return ComparePrimitiveValues(m_time, other.m_time);
+	}
+
+	sl_compare_result Time::compare(sl_int64 other) const noexcept
+	{
+		return ComparePrimitiveValues(m_time, other);
+	}
+
+	sl_size Time::getHashCode() const noexcept
+	{
+		return Rehash64ToSize(m_time);
+	}
+
+	namespace priv
+	{
+		namespace time
+		{
+
+			template <class CT>
+			static sl_reg ParseComponents(TimeComponents* comps, const CT* sz, sl_size i, sl_size n) noexcept
+			{
+				if (i >= n) {
+					return SLIB_PARSE_ERROR;
+				}
+				sl_int32 YMDHMS[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+				sl_size index = 0;
+				sl_size posParsed = i;
+				while (i < n && index < 8) {
+					if (sz[i] == 0) {
+						break;
+					}
+					do {
+						CT ch = sz[i];
+						if (SLIB_CHAR_IS_SPACE_TAB(ch)) {
+							i++;
+						} else {
+							break;
+						}
+					} while (i < n);
+					if (i >= n) {
+						break;
+					}
+					sl_int32 value = 0;
+					sl_bool flagNumber = sl_false;
+					do {
+						CT ch = sz[i];
+						if (SLIB_CHAR_IS_DIGIT(ch)) {
+							value = value * 10 + (ch - '0');
+							flagNumber = sl_true;
+							i++;
+						} else {
+							break;
+						}
+					} while (i < n);
+					if (!flagNumber) {
+						break;
+					}
+					posParsed = i;
+
+					YMDHMS[index] = value;
+					index++;
+
+					if (i >= n) {
+						break;
+					}
+					do {
+						CT ch = sz[i];
+						if (SLIB_CHAR_IS_SPACE_TAB(ch)) {
+							i++;
+						} else {
+							break;
+						}
+					} while (i < n);
+
+					posParsed = i;
+
+					if (index >= 8) {
+						break;
+					}
+
+					if (i < n) {
+						CT ch = sz[i];
+						if (!SLIB_CHAR_IS_DIGIT(ch)) {
+							if (ch == '/' || ch == '-') {
+								if (index >= 3) {
+									break;
+								}
+							} else if (ch == 'T') {
+								if (index > 3) {
+									break;
+								} else {
+									index = 3;
+								}
+							} else if (ch == ':') {
+								if (index == 1) {
+									index = 4;
+									YMDHMS[3] = YMDHMS[0];
+									YMDHMS[0] = 0;
+								} else if (index < 4) {
+									break;
+								} else if (index >= 6) {
+									break;
+								}
+							} else if (ch == '.') {
+								if (index < 6) {
+									break;
+								}
+							} else {
+								break;
+							}
+							i++;
+						}
+					} else {
+						break;
+					}
+				}
+				if (index > 0) {
+					if (comps) {
+						Base::zeroMemory(comps, sizeof(TimeComponents));
+						comps->year = YMDHMS[0];
+						comps->month = YMDHMS[1];
+						comps->day = YMDHMS[2];
+						comps->hour = YMDHMS[3];
+						comps->minute = YMDHMS[4];
+						comps->second = YMDHMS[5];
+						comps->milliseconds = YMDHMS[6];
+						comps->microseconds = YMDHMS[7];
+					}
+					return posParsed;
+				}
+				return SLIB_PARSE_ERROR;
+			}
+
+			template <class CT>
+			SLIB_INLINE static sl_reg Parse(Time* _out, const TimeZone& zone, const CT* sz, sl_size i, sl_size n) noexcept
+			{
+				TimeComponents comps;
+				sl_reg ret = ParseComponents(&comps, sz, i, n);
+				if (ret != SLIB_PARSE_ERROR) {
+					if (_out) {
+						_out->set(comps, zone);
+					}
+				}
+				return ret;
+			}
+
+			template <class CT>
+			SLIB_INLINE static sl_reg Parse(Time* _out, const CT* sz, sl_size i, sl_size n) noexcept
+			{
+				TimeComponents comps;
+				sl_reg ret = ParseComponents(&comps, sz, i, n);
+				if (ret != SLIB_PARSE_ERROR) {
+					if (_out) {
+						_out->set(comps);
+					}
+				}
+				return ret;
+			}
+
 		}
 	}
 
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(TimeComponents, priv::time::ParseComponents)
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(Time, priv::time::Parse)
+	SLIB_DEFINE_CLASS_PARSE2_MEMBERS(Time, const TimeZone&, zone, priv::time::Parse)
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TimeCounter)
 	
@@ -2275,179 +2443,6 @@ namespace slib
 	sl_int64 Atomic<TimeZone>::getOffset(const Time &time) const
 	{
 		return TimeZone(*this).getOffset(time);
-	}
-
-
-	namespace priv
-	{
-		namespace time
-		{
-
-			template <class CT>
-			static sl_reg ParseComponents(TimeComponents* comps, const CT* sz, sl_size i, sl_size n) noexcept
-			{
-				if (i >= n) {
-					return SLIB_PARSE_ERROR;
-				}
-				sl_int32 YMDHMS[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-				sl_size index = 0;
-				sl_size posParsed = i;
-				while (i < n && index < 8) {
-					if (sz[i] == 0) {
-						break;
-					}
-					do {
-						CT ch = sz[i];
-						if (SLIB_CHAR_IS_SPACE_TAB(ch)) {
-							i++;
-						} else {
-							break;
-						}
-					} while (i < n);
-					if (i >= n) {
-						break;
-					}
-					sl_int32 value = 0;
-					sl_bool flagNumber = sl_false;
-					do {
-						CT ch = sz[i];
-						if (SLIB_CHAR_IS_DIGIT(ch)) {
-							value = value * 10 + (ch - '0');
-							flagNumber = sl_true;
-							i++;
-						} else {
-							break;
-						}
-					} while (i < n);
-					if (!flagNumber) {
-						break;
-					}
-					posParsed = i;
-
-					YMDHMS[index] = value;
-					index++;
-
-					if (i >= n) {
-						break;
-					}
-					do {
-						CT ch = sz[i];
-						if (SLIB_CHAR_IS_SPACE_TAB(ch)) {
-							i++;
-						} else {
-							break;
-						}
-					} while (i < n);
-
-					posParsed = i;
-
-					if (index >= 8) {
-						break;
-					}
-
-					if (i < n) {
-						CT ch = sz[i];
-						if (!SLIB_CHAR_IS_DIGIT(ch)) {
-							if (ch == '/' || ch == '-') {
-								if (index >= 3) {
-									break;
-								}
-							} else if (ch == 'T') {
-								if (index > 3) {
-									break;
-								} else {
-									index = 3;
-								}
-							} else if (ch == ':') {
-								if (index == 1) {
-									index = 4;
-									YMDHMS[3] = YMDHMS[0];
-									YMDHMS[0] = 0;
-								} else if (index < 4) {
-									break;
-								} else if (index >= 6) {
-									break;
-								}
-							} else if (ch == '.') {
-								if (index < 6) {
-									break;
-								}
-							} else {
-								break;
-							}
-							i++;
-						}
-					} else {
-						break;
-					}
-				}
-				if (index > 0) {
-					if (comps) {
-						Base::zeroMemory(comps, sizeof(TimeComponents));
-						comps->year = YMDHMS[0];
-						comps->month = YMDHMS[1];
-						comps->day = YMDHMS[2];
-						comps->hour = YMDHMS[3];
-						comps->minute = YMDHMS[4];
-						comps->second = YMDHMS[5];
-						comps->milliseconds = YMDHMS[6];
-						comps->microseconds = YMDHMS[7];
-					}
-					return posParsed;
-				}
-				return SLIB_PARSE_ERROR;
-			}
-
-			template <class CT>
-			SLIB_INLINE static sl_reg Parse(Time* _out, const TimeZone& zone, const CT* sz, sl_size i, sl_size n) noexcept
-			{
-				TimeComponents comps;
-				sl_reg ret = ParseComponents(&comps, sz, i, n);
-				if (ret != SLIB_PARSE_ERROR) {
-					if (_out) {
-						_out->set(comps, zone);
-					}
-				}
-				return ret;
-			}
-
-		}
-	}
-
-	template <>
-	sl_reg Parser<TimeComponents, sl_char8>::parse(TimeComponents* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::time::ParseComponents(_out, sz, posBegin, posEnd);
-	}
-
-	template <>
-	sl_reg Parser<TimeComponents, sl_char16>::parse(TimeComponents* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::time::ParseComponents(_out, sz, posBegin, posEnd);
-	}
-
-	template <>
-	sl_reg Parser<Time, sl_char8>::parse(Time* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::time::Parse(_out, TimeZone::Local, sz, posBegin, posEnd);
-	}
-
-	template <>
-	sl_reg Parser<Time, sl_char16>::parse(Time* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::time::Parse(_out, TimeZone::Local, sz, posBegin, posEnd);
-	}
-
-	template <>
-	sl_reg Parser2<Time, sl_char8, TimeZone>::parse(Time* _out, const TimeZone& zone, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::time::Parse(_out, zone, sz, posBegin, posEnd);
-	}
-
-	template <>
-	sl_reg Parser2<Time, sl_char16, TimeZone>::parse(Time* _out, const TimeZone& zone, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::time::Parse(_out, zone, sz, posBegin, posEnd);
 	}
 
 }

@@ -22,7 +22,7 @@
 
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "slib/render/dl_windows_d3d.h"
+#include "slib/render/dl/win32/d3d.h"
 
 
 namespace slib

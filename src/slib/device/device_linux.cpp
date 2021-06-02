@@ -30,8 +30,8 @@
 #include "slib/ui/core.h"
 
 #include "gtk/gtk.h"
-#include "slib/ui/dl_linux_gtk.h"
-#include "slib/ui/dl_linux_gdk.h"
+#include "slib/ui/dl/linux/gtk.h"
+#include "slib/ui/dl/linux/gdk.h"
 
 #include <sys/utsname.h>
 

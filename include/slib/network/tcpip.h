@@ -878,29 +878,10 @@ public:
 		NetworkInternetProtocol protocol;
 
 	public:
-		sl_bool operator==(const IPv4PacketIdentifier& other) const;
-
-	public:
-		sl_size getHashCode() const;
+		SLIB_DECLARE_CLASS_COMPARE_HASH_MEMBERS(IPv4PacketIdentifier)
 		
 	};
 
-	template <>
-	class Compare<IPv4PacketIdentifier>
-	{
-	public:
-		sl_compare_result operator()(const IPv4PacketIdentifier& a, const IPv4PacketIdentifier& b) const;
-		
-	};
-
-	template <>
-	class Hash<IPv4PacketIdentifier>
-	{
-	public:
-		sl_size operator()(const IPv4PacketIdentifier& v) const;
-		
-	};
-	
 }
 
 #endif

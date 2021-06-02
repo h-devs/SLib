@@ -42,37 +42,13 @@ namespace slib
 	public:
 		static ObjectId generate() noexcept;
 
+	public:
+		sl_size getHashCode() const noexcept;
 		String toString() const noexcept;
-
 		sl_bool parse(const StringParam& str) noexcept;
 
-		Json toJson() const noexcept;
+		SLIB_DECLARE_CLASS_JSON_MEMBERS
 
-		sl_bool fromJson(const Json& json) noexcept;
-
-		sl_size getHashCode() const noexcept;
-
-	};
-
-	template <>
-	class Compare<ObjectId>
-	{
-	public:
-		sl_compare_result operator()(const ObjectId &a, const ObjectId &b) const noexcept;
-	};
-
-	template <>
-	class Equals<ObjectId>
-	{
-	public:
-		sl_bool operator()(const ObjectId &a, const ObjectId &b) const noexcept;
-	};
-
-	template <>
-	class Hash<ObjectId>
-	{
-	public:
-		sl_size operator()(const ObjectId &a) const noexcept;
 	};
 
 }

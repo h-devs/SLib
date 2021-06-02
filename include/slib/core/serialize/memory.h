@@ -31,27 +31,22 @@
 namespace slib
 {
 
-	sl_bool Serialize(MemoryBuffer* output, CMemory* _in);
-	sl_bool Serialize(MemoryBuffer* output, const Memory& _in);
-
 	template <class OUTPUT>
-	static sl_bool Serialize(OUTPUT* output, const Memory& _in)
+	sl_bool Memory::serialize(OUTPUT* output) const
 	{
-		sl_size size = _in.getSize();
+		sl_size size = getSize();
 		if (!(CVLI::serialize(output, size))) {
 			return sl_false;
 		}
 		if (size) {
-			return SerializeRaw(output, _in.getData(), size);
+			return SerializeRaw(output, getData(), size);
 		} else {
 			return sl_true;
 		}
 	}
 
-	sl_bool Deserialize(DeserializeBuffer* input, Memory& _out);
-
 	template <class INPUT>
-	static sl_bool Deserialize(INPUT* input, Memory& _out)
+	sl_bool Memory::deserialize(INPUT* input)
 	{
 		sl_size size;
 		if (!(CVLI::deserialize(input, size))) {
@@ -63,12 +58,12 @@ namespace slib
 				return sl_false;
 			}
 			if (DeserializeRaw(input, ret.getData(), size)) {
-				_out = Move(ret);
+				*this = Move(ret);
 				return sl_true;
 			}
 			return sl_false;
 		} else {
-			_out.setNull();
+			setNull();
 			return sl_true;
 		}
 	}

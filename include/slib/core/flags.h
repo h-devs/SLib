@@ -31,7 +31,7 @@
 	public: \
 		int value; \
 		SLIB_MEMBERS_OF_PRIMITIVE_WRAPPER(CLASS, int, value) \
-		constexpr CLASS() : value(0) {} \
+		constexpr CLASS(): value(0) {} \
 		CLASS& operator|=(int _value) { value |= _value; return *this; } \
 		CLASS& operator&=(int _value) { value &= _value; return *this; } \
 	public: \

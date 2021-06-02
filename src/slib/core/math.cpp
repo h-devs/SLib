@@ -36,7 +36,7 @@
 #endif
 
 #if defined(_WIN32)
-#include <slib/core/dl_windows_bcrypt.h>
+#include <slib/core/dl/win32/bcrypt.h>
 #include <wincrypt.h>
 #endif
 

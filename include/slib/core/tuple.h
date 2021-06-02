@@ -32,16 +32,7 @@ namespace slib
 	class Tuple;
 	
 	template <>
-	class Tuple<>
-	{
-	public:
-		Tuple(const Tuple& other) = default;
-
-		Tuple(Tuple&& other) = default;
-
-		Tuple() = default;
-
-	};
+	class Tuple<> {};
 	
 	template <class T1>
 	class Tuple<T1>
@@ -55,9 +46,7 @@ namespace slib
 		Tuple(Tuple&& other) = default;
 
 		template <class O1>
-		Tuple(O1&& _m1):
-		 m1(Forward<O1>(_m1))
-		{}
+		Tuple(O1&& _m1): m1(Forward<O1>(_m1)) {}
 
 	};
 	
@@ -74,10 +63,7 @@ namespace slib
 		Tuple(Tuple&& other) = default;
 
 		template <class O1, class O2>
-		Tuple(O1&& _m1, O2&& _m2):
-		 m1(Forward<O1>(_m1)),
-		 m2(Forward<O2>(_m2))
-		{}
+		Tuple(O1&& _m1, O2&& _m2): m1(Forward<O1>(_m1)), m2(Forward<O2>(_m2)) {}
 
 	};
 	
@@ -98,8 +84,7 @@ namespace slib
 		Tuple(O1&& _m1, O2&& _m2, O3&& _m3):
 		 m1(Forward<O1>(_m1)),
 		 m2(Forward<O2>(_m2)),
-		 m3(Forward<O3>(_m3))
-		{}
+		 m3(Forward<O3>(_m3)) {}
 
 	};
 	
@@ -122,8 +107,7 @@ namespace slib
 		 m1(Forward<O1>(_m1)),
 		 m2(Forward<O2>(_m2)),
 		 m3(Forward<O3>(_m3)),
-		 m4(Forward<O4>(_m4))
-		{}
+		 m4(Forward<O4>(_m4)) {}
 
 	};
 	
@@ -148,8 +132,7 @@ namespace slib
 		 m2(Forward<O2>(_m2)),
 		 m3(Forward<O3>(_m3)),
 		 m4(Forward<O4>(_m4)),
-		 m5(Forward<O5>(_m5))
-		{}
+		 m5(Forward<O5>(_m5)) {}
 	
 	};
 	
@@ -176,8 +159,7 @@ namespace slib
 		 m3(Forward<O3>(_m3)),
 		 m4(Forward<O4>(_m4)),
 		 m5(Forward<O5>(_m5)),
-		 m6(Forward<O6>(_m6))
-		{}
+		 m6(Forward<O6>(_m6)) {}
 	
 	};
 	
@@ -206,8 +188,7 @@ namespace slib
 		 m4(Forward<O4>(_m4)),
 		 m5(Forward<O5>(_m5)),
 		 m6(Forward<O6>(_m6)),
-		 m7(Forward<O7>(_m7))
-		{}
+		 m7(Forward<O7>(_m7)) {}
 
 	};
 	
@@ -238,8 +219,7 @@ namespace slib
 		 m5(Forward<O5>(_m5)),
 		 m6(Forward<O6>(_m6)),
 		 m7(Forward<O7>(_m7)),
-		 m8(Forward<O8>(_m8))
-		{}
+		 m8(Forward<O8>(_m8)) {}
 
 	};
 	
@@ -272,8 +252,7 @@ namespace slib
 		 m6(Forward<O6>(_m6)),
 		 m7(Forward<O7>(_m7)),
 		 m8(Forward<O8>(_m8)),
-		 m9(Forward<O9>(_m9))
-		{}
+		 m9(Forward<O9>(_m9)) {}
 
 	};
 	
@@ -308,8 +287,7 @@ namespace slib
 		 m7(Forward<O7>(_m7)),
 		 m8(Forward<O8>(_m8)),
 		 m9(Forward<O9>(_m9)),
-		 m10(Forward<O10>(_m10))
-		{}
+		 m10(Forward<O10>(_m10)) {}
 
 	};
 

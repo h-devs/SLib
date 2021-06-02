@@ -29,8 +29,6 @@ namespace slib
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(GeoRectangle)
 
-	GeoRectangle::GeoRectangle() = default;
-
 	GeoRectangle::GeoRectangle(const LatLon& pt1, const LatLon& pt2)
 	{
 		bottomLeft.latitude = Math::min(pt1.latitude, pt2.latitude);

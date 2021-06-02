@@ -30,7 +30,6 @@
 #include "slib/core/list_collection.h"
 #include "slib/core/map_object.h"
 #include "slib/core/serialize.h"
-#include "slib/core/time_parse.h"
 
 #define PTR_VAR(TYPE, x) ((TYPE*)((void*)(&(x))))
 #define REF_VAR(TYPE, x) (*PTR_VAR(TYPE, x))
@@ -1250,11 +1249,6 @@ namespace slib
 		CopyBytes12(&_value, _id.data);
 	}
 
-	Variant::Variant(const Decimal128& value) noexcept
-	{
-		_initSharedPtr(SharedPtr<Decimal128>::create(value), VariantType::Decimal128);
-	}
-
 	Variant::Variant(const VariantList& list) noexcept
 	{
 		_constructorRef(&list, VariantType::List);
@@ -2153,8 +2147,6 @@ namespace slib
 				return "#" + String::fromPointerValue(REF_VAR(void const* const, _value));
 			case VariantType::ObjectId:
 				return REF_VAR(ObjectId, _value).toString();
-			case VariantType::Decimal128:
-				return REF_VAR(SharedPtr<Decimal128>, _value)->toString();
 			case VariantType::Null:
 				if (_value) {
 					return sl_null;
@@ -2210,8 +2202,6 @@ namespace slib
 				return "#" + String16::fromPointerValue(REF_VAR(void const* const, _value));
 			case VariantType::ObjectId:
 				return String16::create(REF_VAR(ObjectId, _value).toString());
-			case VariantType::Decimal128:
-				return String16::create(REF_VAR(SharedPtr<Decimal128>, _value)->toString());
 			default:
 				if (isMemory()) {
 					CMemory* mem = REF_VAR(CMemory*, _value);
@@ -2616,44 +2606,6 @@ namespace slib
 			return REF_VAR(SharedPtr<void> const, _value);
 		}
 		return sl_null;
-	}
-
-	sl_bool Variant::isDecimal128() const noexcept
-	{
-		return _type == VariantType::Decimal128;
-	}
-
-	Decimal128 Variant::getDecimal128() const noexcept
-	{
-		if (_type == VariantType::Decimal128) {
-			return *(REF_VAR(SharedPtr<Decimal128> const, _value).get());
-		} else if (isString()) {
-			return Decimal128::fromString(getString());
-		}
-		return Decimal128::zero();
-	}
-
-	sl_bool Variant::getDecimal128(Decimal128* _out) const noexcept
-	{
-		if (_type == VariantType::Decimal128) {
-			if (_out) {
-				*_out = *(REF_VAR(SharedPtr<Decimal128> const, _value).get());
-			}
-			return sl_true;
-		} else if (isString()) {
-			if (_out) {
-				return _out->parse(getString());
-			} else {
-				Decimal128 v;
-				return v.parse(getString());
-			}
-		}
-		return sl_false;
-	}
-
-	void Variant::setDecimal128(const Decimal128& _id) noexcept
-	{
-		_setSharedPtr(SharedPtr<Decimal128>::create(_id), VariantType::Decimal128);
 	}
 
 	sl_bool Variant::isRef() const noexcept
@@ -3283,8 +3235,6 @@ namespace slib
 			case VariantType::Pointer:
 			case VariantType::ObjectId:
 			case VariantType::Memory:
-			case VariantType::Decimal128:
-				return getString();
 			case VariantType::SharedPtr:
 				return String::join("<shared-ptr:", String::fromPointerValue(REF_VAR(void*, _value)), ">");
 			case VariantType::Weak:
@@ -3406,8 +3356,6 @@ namespace slib
 				return String::create(ParseUtil::applyBackslashEscapes16(getString16()));
 			case VariantType::ObjectId:
 				return REF_VAR(ObjectId, _value).toJson().toJsonString();
-			case VariantType::Decimal128:
-				return REF_VAR(SharedPtr<Decimal128>, _value)->toJson().toJsonString();
 			default:
 				if (IsReferable(_type)) {
 					StringBuffer buf;
@@ -3454,13 +3402,6 @@ namespace slib
 				}
 				Base::copyMemory(buf + 1, &(var._value), 12);
 				size = 13;
-				break;
-			case VariantType::Decimal128:
-				if (size < 17) {
-					return 0;
-				}
-				Base::copyMemory(buf + 1, REF_VAR(SharedPtr<Decimal128>, var._value).get(), 16);
-				size = 17;
 				break;
 			case VariantType::Boolean:
 				if (size < 2) {
@@ -4017,33 +3958,9 @@ namespace slib
 	}
 	
 
-	sl_bool operator==(const Variant& v1, const Variant& v2) noexcept
-	{
-		return v1.equals(v2);
-	}
-
-	sl_bool operator!=(const Variant& v1, const Variant& v2) noexcept
-	{
-		return !(v1.equals(v2));
-	}
+	SLIB_DEFINE_DEFAULT_COMPARE_OPERATORS(Variant)
 
 	
-	sl_compare_result Compare<Variant>::operator()(const Variant& a, const Variant& b) const noexcept
-	{
-		return a.compare(b);
-	}
-	
-	sl_bool Equals<Variant>::operator()(const Variant& a, const Variant& b) const noexcept
-	{
-		return a.equals(b);
-	}
-	
-	sl_size Hash<Variant>::operator()(const Variant& a) const noexcept
-	{
-		return a.getHashCode();
-	}
-
-
 	const Variant& Cast<Variant, Variant>::operator()(const Variant& var) const noexcept
 	{
 		return var;
@@ -4094,6 +4011,11 @@ namespace slib
 		return ret;
 	}
 
+	sl_size ObjectId::getHashCode() const noexcept
+	{
+		return Rehash64ToSize(*(sl_uint64*)data ^ *(sl_uint32*)(data + 8));
+	}
+
 	String ObjectId::toString() const noexcept
 	{
 		return Bytes::toString();
@@ -4102,26 +4024,6 @@ namespace slib
 	sl_bool ObjectId::parse(const StringParam& str) noexcept
 	{
 		return Bytes::parse(str);
-	}
-
-	sl_size ObjectId::getHashCode() const noexcept
-	{
-		return Rehash64ToSize(*(sl_uint64*)data ^ *(sl_uint32*)(data + 8));
-	}
-
-	sl_compare_result Compare<ObjectId>::operator()(const ObjectId& a, const ObjectId& b) const noexcept
-	{
-		return a.compare(b);
-	}
-
-	sl_bool Equals<ObjectId>::operator()(const ObjectId& a, const ObjectId& b) const noexcept
-	{
-		return a.equals(b);
-	}
-
-	sl_size Hash<ObjectId>::operator()(const ObjectId& a) const noexcept
-	{
-		return a.getHashCode();
 	}
 
 }

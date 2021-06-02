@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,254 @@
 #include "slib/core/locale.h"
 
 #include "slib/core/list.h"
+#include "slib/core/string.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
 {
+
+	namespace priv
+	{
+		namespace locale
+		{
+			
+			sl_uint64 g_localeUnknown = 0;
+
+			Locale g_localeCurrent = Locale::Unknown;
+			Locale g_localeLastCurrent = Locale::Unknown;
+
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callback_onChangeCurrent)
+
+			template <class T>
+			static sl_reg Parse(Locale* _out, const T* sz, sl_size i, sl_size n)
+			{
+				if (i + 1 >= n) {
+					return SLIB_PARSE_ERROR;
+				}
+
+				if (SLIB_CHAR_IS_ALPHA_UPPER(sz[i]) && SLIB_CHAR_IS_ALPHA_UPPER(sz[i + 1])) {
+					if (_out) {
+						*_out = Locale(Language::Unknown, LanguageScript::Unknown, Locale::getCountryFromCode(sz));
+					}
+					return i + 2;
+				}
+
+				if (!(SLIB_CHAR_IS_ALPHA_LOWER(sz[i]) && SLIB_CHAR_IS_ALPHA_LOWER(sz[i + 1]))) {
+					return SLIB_PARSE_ERROR;
+				}
+
+				Language language = Locale::getLanguageFromCode(sz + i);
+				LanguageScript script = LanguageScript::Unknown;
+				Country country = Country::Unknown;
+
+				i += 2;
+				if (i < n) {
+					if ((sz[i] == '-' || sz[i] == '_')) {
+						i++;
+						if (i + 1 >= n) {
+							return SLIB_PARSE_ERROR;
+						}
+						if (!(SLIB_CHAR_IS_ALPHA_UPPER(sz[i]))) {
+							return SLIB_PARSE_ERROR;
+						}
+						if (SLIB_CHAR_IS_ALPHA_UPPER(sz[i + 1])) {
+							country = Locale::getCountryFromCode(sz + i);
+							i += 2;
+						} else {
+							if (i + 3 >= n) {
+								return SLIB_PARSE_ERROR;
+							}
+							if (!(SLIB_CHAR_IS_ALPHA_LOWER(sz[i + 1]) && SLIB_CHAR_IS_ALPHA_LOWER(sz[i + 2]) && SLIB_CHAR_IS_ALPHA_LOWER(sz[i + 3]))) {
+								return SLIB_PARSE_ERROR;
+							}
+							script = Locale::getScriptFromCode(sz + i);
+							i += 4;
+							if (i < n && (sz[i] == '-' || sz[i] == '_')) {
+								i++;
+								if (i + 1 >= n) {
+									return SLIB_PARSE_ERROR;
+								}
+								if (!(SLIB_CHAR_IS_ALPHA_UPPER(sz[i]) && SLIB_CHAR_IS_ALPHA_UPPER(sz[i + 1]))) {
+									return SLIB_PARSE_ERROR;
+								}
+								country = Locale::getCountryFromCode(sz + i);
+								i += 2;
+							}
+						}
+					}
+				}
+				if (_out) {
+					if (script == LanguageScript::Unknown) {
+						*_out = Locale(language, country);
+					} else {
+						*_out = Locale(language, script, country);
+					}
+				}
+				return i;
+			}
+
+		}
+	}
+
+	using namespace priv::locale;
+
+	const Locale& Locale::Unknown = *((Locale*)&g_localeUnknown);
+
+	Locale::Locale(Language language): value((sl_uint32)(language))
+	{
+	}
+
+	Locale::Locale(Language language, Country country)
+	{
+		if (language == Language::Chinese) {
+			LanguageScript script = LanguageScript::Unknown;
+			if (country == Country::China) {
+				script = LanguageScript::ChineseSimplified;
+			} else if (country == Country::Taiwan || country == Country::HongKong || country == Country::Macao) {
+				script = LanguageScript::ChineseTraditional;
+			}
+			value = SLIB_LOCALE(language, script, country);
+		} else {
+			value = SLIB_LOCALE(language, LanguageScript::Unknown, country);
+		}
+	}
+
+	Locale::Locale(Language language, LanguageScript script, Country country): value(SLIB_LOCALE(language, script, country))
+	{
+	}
+
+	Locale::Locale(const String& name)
+	{
+		if (!(parse(name))) {
+			value = Locale::Unknown;
+		}
+	}
+
+	sl_bool Locale::isValid() const
+	{
+		Language lang = getLanguage();
+		Country country = getCountry();
+		if (lang != Language::Unknown && isValidLanguageCode(lang)) {
+			if (country == Country::Unknown || isValidCountryCode(country)) {
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool Locale::isInvalid() const
+	{
+		return !(isValid());
+	}
+
+	Language Locale::getLanguage() const
+	{
+		return (Language)(SLIB_GET_WORD0(value));
+	}
+
+	void Locale::setLanguage(const Language& language)
+	{
+		value = SLIB_LOCALE(language, getScript(), getCountry());
+	}
+
+	String Locale::getLanguageCode() const
+	{
+		return getLanguageCode(getLanguage());
+	}
+
+	String Locale::getLanguageName() const
+	{
+		return getLanguageName(getLanguage());
+	}
+
+	LanguageScript Locale::getScript() const
+	{
+		return (LanguageScript)(SLIB_GET_DWORD1(value));
+	}
+
+	void Locale::setScript(const LanguageScript& script)
+	{
+		value = SLIB_LOCALE(getLanguage(), script, getCountry());
+	}
+
+	String Locale::getScriptCode() const
+	{
+		return getScriptCode(getScript());
+	}
+
+	Country Locale::getCountry() const
+	{
+		return (Country)(SLIB_GET_WORD1(value));
+	}
+
+	void Locale::setCountry(const Country& country)
+	{
+		value = SLIB_LOCALE(getLanguage(), getScript(), country);
+	}
+
+	String Locale::getCountryCode() const
+	{
+		return getCountryCode(getCountry());
+	}
+
+	String Locale::getCountryName() const
+	{
+		return getCountryName(getCountry());
+	}
+
+	String Locale::getCountryLongName() const
+	{
+		return getCountryLongName(getCountry());
+	}
+
+	String Locale::toString(sl_char8 delimiter) const
+	{
+		sl_char8 sz[11];
+		Language lang = getLanguage();
+		if (lang != Language::Unknown) {
+			getLanguageCode(lang, sz);
+			LanguageScript script = getScript();
+			if (script != LanguageScript::Unknown) {
+				sz[2] = delimiter;
+				getScriptCode(script, sz + 3);
+				Country country = getCountry();
+				if (country != Country::Unknown) {
+					sz[7] = delimiter;
+					getCountryCode(country, sz + 8);
+					sz[10] = 0;
+					return sz;
+				} else {
+					sz[7] = 0;
+					return sz;
+				}
+			} else {
+				Country country = getCountry();
+				if (country != Country::Unknown) {
+					sz[2] = delimiter;
+					getCountryCode(country, sz + 3);
+					sz[5] = 0;
+					return sz;
+				} else {
+					sz[2] = 0;
+					return sz;
+				}
+				return sz;
+			}
+		} else {
+			Country country = getCountry();
+			if (country != Country::Unknown) {
+				sz[0] = 'e';
+				sz[1] = 'n';
+				sz[2] = delimiter;
+				getCountryCode(country, sz + 3);
+				sz[5] = 0;
+				return sz;
+			}
+		}
+		return sl_null;
+	}
+
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(Locale, Parse)
 
 #define DEFINE_LANGUAGE_CASE(LANG, NAME) \
 	case Language::LANG: SLIB_RETURN_STRING(NAME);
@@ -253,7 +497,7 @@ namespace slib
 		sz[0] = SLIB_GET_BYTE0((int)language);
 		sz[1] = SLIB_GET_BYTE1((int)language);
 	}
-	
+
 	String Locale::getLanguageCode(Language language)
 	{
 		char sz[3];
@@ -644,275 +888,6 @@ namespace slib
 		return getCountryName(country).isNotNull();
 	}
 
-	Locale::Locale(Language language)
-	 : value((sl_uint32)(language))
-	{
-	}
-
-	Locale::Locale(Language language, Country country)
-	{
-		if (language == Language::Chinese) {
-			LanguageScript script = LanguageScript::Unknown;
-			if (country == Country::China) {
-				script = LanguageScript::ChineseSimplified;
-			} else if (country == Country::Taiwan || country == Country::HongKong || country == Country::Macao) {
-				script = LanguageScript::ChineseTraditional;
-			}
-			value = SLIB_LOCALE(language, script, country);
-		} else {
-			value = SLIB_LOCALE(language, LanguageScript::Unknown, country);
-		}
-	}
-
-	Locale::Locale(Language language, LanguageScript script, Country country)
-	 : value(SLIB_LOCALE(language, script, country))
-	{
-	}
-
-	Locale::Locale(const String& name)
-	{
-		if (!(parse(name))) {
-			value = Locale::Unknown;
-		}
-	}
-	
-	namespace priv
-	{
-		namespace locale
-		{
-			sl_uint64 g_localeUnknown = 0;
-		}
-	}
-	
-	const Locale& Locale::Unknown = *((Locale*)&(priv::locale::g_localeUnknown));
-
-	sl_bool Locale::isValid() const
-	{
-		Language lang = getLanguage();
-		Country country = getCountry();
-		if (lang != Language::Unknown && isValidLanguageCode(lang)) {
-			if (country == Country::Unknown || isValidCountryCode(country)) {
-				return sl_true;
-			}
-		}
-		return sl_false;
-	}
-	
-	sl_bool Locale::isInvalid() const
-	{
-		return !(isValid());
-	}
-
-	Language Locale::getLanguage() const
-	{
-		return (Language)(SLIB_GET_WORD0(value));
-	}
-
-	void Locale::setLanguage(const Language& language)
-	{
-		value = SLIB_LOCALE(language, getScript(), getCountry());
-	}
-	
-	String Locale::getLanguageCode() const
-	{
-		return getLanguageCode(getLanguage());
-	}
-
-	String Locale::getLanguageName() const
-	{
-		return getLanguageName(getLanguage());
-	}
-
-	LanguageScript Locale::getScript() const
-	{
-		return (LanguageScript)(SLIB_GET_DWORD1(value));
-	}
-	
-	void Locale::setScript(const LanguageScript& script)
-	{
-		value = SLIB_LOCALE(getLanguage(), script, getCountry());
-	}
-
-	String Locale::getScriptCode() const
-	{
-		return getScriptCode(getScript());
-	}
-	
-	Country Locale::getCountry() const
-	{
-		return (Country)(SLIB_GET_WORD1(value));
-	}
-
-	void Locale::setCountry(const Country& country)
-	{
-		value = SLIB_LOCALE(getLanguage(), getScript(), country);
-	}
-	
-	String Locale::getCountryCode() const
-	{
-		return getCountryCode(getCountry());
-	}
-
-	String Locale::getCountryName() const
-	{
-		return getCountryName(getCountry());
-	}
-
-	String Locale::getCountryLongName() const
-	{
-		return getCountryLongName(getCountry());
-	}
-
-	String Locale::toString(sl_char8 delimiter) const
-	{
-		sl_char8 sz[11];
-		Language lang = getLanguage();
-		if (lang != Language::Unknown) {
-			getLanguageCode(lang, sz);
-			LanguageScript script = getScript();
-			if (script != LanguageScript::Unknown) {
-				sz[2] = delimiter;
-				getScriptCode(script, sz + 3);
-				Country country = getCountry();
-				if (country != Country::Unknown) {
-					sz[7] = delimiter;
-					getCountryCode(country, sz + 8);
-					sz[10] = 0;
-					return sz;
-				} else {
-					sz[7] = 0;
-					return sz;
-				}
-			} else {
-				Country country = getCountry();
-				if (country != Country::Unknown) {
-					sz[2] = delimiter;
-					getCountryCode(country, sz + 3);
-					sz[5] = 0;
-					return sz;
-				} else {
-					sz[2] = 0;
-					return sz;
-				}
-				return sz;
-			}
-		} else {
-			Country country = getCountry();
-			if (country != Country::Unknown) {
-				sz[0] = 'e';
-				sz[1] = 'n';
-				sz[2] = delimiter;
-				getCountryCode(country, sz + 3);
-				sz[5] = 0;
-				return sz;
-			}
-		}
-		return sl_null;
-	}
-	
-	namespace priv
-	{
-		namespace locale
-		{
-			
-			template <class T>
-			SLIB_INLINE static sl_reg parse(Locale* _out, const T* sz, sl_size i, sl_size n)
-			{
-				if (i + 1 >= n) {
-					return SLIB_PARSE_ERROR;
-				}
-				
-				if (SLIB_CHAR_IS_ALPHA_UPPER(sz[i]) && SLIB_CHAR_IS_ALPHA_UPPER(sz[i+1])) {
-					if (_out) {
-						*_out = Locale(Language::Unknown, LanguageScript::Unknown, Locale::getCountryFromCode(sz));
-					}
-					return i + 2;
-				}
-				
-				if (!(SLIB_CHAR_IS_ALPHA_LOWER(sz[i]) && SLIB_CHAR_IS_ALPHA_LOWER(sz[i+1]))) {
-					return SLIB_PARSE_ERROR;
-				}
-				
-				Language language = Locale::getLanguageFromCode(sz + i);
-				LanguageScript script = LanguageScript::Unknown;
-				Country country = Country::Unknown;
-				
-				i += 2;
-				if (i < n) {
-					if ((sz[i] == '-' || sz[i] == '_')) {
-						i++;
-						if (i + 1 >= n) {
-							return SLIB_PARSE_ERROR;
-						}
-						if (!(SLIB_CHAR_IS_ALPHA_UPPER(sz[i]))) {
-							return SLIB_PARSE_ERROR;
-						}
-						if (SLIB_CHAR_IS_ALPHA_UPPER(sz[i+1])) {
-							country = Locale::getCountryFromCode(sz + i);
-							i += 2;
-						} else {
-							if (i + 3 >= n) {
-								return SLIB_PARSE_ERROR;
-							}
-							if (!(SLIB_CHAR_IS_ALPHA_LOWER(sz[i+1]) && SLIB_CHAR_IS_ALPHA_LOWER(sz[i+2]) && SLIB_CHAR_IS_ALPHA_LOWER(sz[i+3]))) {
-								return SLIB_PARSE_ERROR;
-							}
-							script = Locale::getScriptFromCode(sz + i);
-							i += 4;
-							if (i < n && (sz[i] == '-' || sz[i] == '_')) {
-								i++;
-								if (i + 1 >= n) {
-									return SLIB_PARSE_ERROR;
-								}
-								if (!(SLIB_CHAR_IS_ALPHA_UPPER(sz[i]) && SLIB_CHAR_IS_ALPHA_UPPER(sz[i+1]))) {
-									return SLIB_PARSE_ERROR;
-								}
-								country = Locale::getCountryFromCode(sz + i);
-								i += 2;
-							}
-						}
-					}
-				}
-				if (_out) {
-					if (script == LanguageScript::Unknown) {
-						*_out = Locale(language, country);
-					} else {
-						*_out = Locale(language, script, country);
-					}
-				}
-				return i;
-			}
-			
-		}
-	}
-	
-	template <>
-	sl_reg Parser<Locale, sl_char8>::parse(Locale* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::locale::parse(_out, sz, posBegin, posEnd);
-	}
-	
-	template <>
-	sl_reg Parser<Locale, sl_char16>::parse(Locale* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::locale::parse(_out, sz, posBegin, posEnd);
-	}
-	
-	namespace priv
-	{
-		namespace locale
-		{
-			
-			Locale g_localeCurrent = Locale::Unknown;
-			Locale g_localeLastCurrent = Locale::Unknown;
-			
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callback_onChangeCurrent)
-			
-		}
-	}
-
-	using namespace priv::locale;
-	
 	Locale Locale::getCurrent()
 	{
 		Locale locale = g_localeCurrent;
@@ -975,7 +950,7 @@ namespace slib
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
-#include "slib/core/dl_windows_kernel32.h"
+#include "slib/core/dl/win32/kernel32.h"
 
 namespace slib
 {

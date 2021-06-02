@@ -44,12 +44,12 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(VectorT)
 		
-		VectorT() noexcept = default;
+		VectorT() = default;
 
 		template <class O, class FO>
-		constexpr VectorT(const VectorT<3, O, FO>& other) noexcept: x((T)(other.x)), y((T)(other.y)), z((T)(other.z)) {}
+		constexpr VectorT(const VectorT<3, O, FO>& other): x((T)(other.x)), y((T)(other.y)), z((T)(other.z)) {}
 	
-		constexpr VectorT(T _x, T _y, T _z) noexcept: x(_x), y(_y), z(_z) {}
+		constexpr VectorT(T _x, T _y, T _z): x(_x), y(_y), z(_z) {}
 		
 		template <class O>
 		VectorT(const O* arr) noexcept
@@ -86,12 +86,12 @@ namespace slib
 			return {v.x, v.y, 0};
 		}
 
-		T dot(const VectorT& other) const noexcept
+		constexpr T dot(const VectorT& other) const
 		{
 			return x * other.x + y * other.y + z * other.z;
 		}
 
-		VectorT cross(const VectorT& other) const noexcept
+		constexpr VectorT cross(const VectorT& other) const
 		{
 			T _x = y*other.z - z*other.y;
 			T _y = z*other.x - x*other.z;
@@ -159,22 +159,22 @@ namespace slib
 			return Math::arccos(getCosBetween(other));
 		}
 
-		VectorT lerp(const VectorT& target, float factor) const noexcept
+		constexpr VectorT lerp(const VectorT& target, float factor) const
 		{
 			return {(T)SLIB_LERP(x, target.x, factor), (T)SLIB_LERP(y, target.y, factor), (T)SLIB_LERP(z, target.z, factor)};
 		}
 	
-		VectorT divideReverse(T f) const noexcept
+		constexpr VectorT divideReverse(T f) const
 		{
 			return {f / x, f / y, f / z};
 		}
 
-		sl_bool equals(const VectorT& other) const noexcept
+		constexpr sl_bool equals(const VectorT& other) const
 		{
 			return x == other.x && y == other.y && z == other.z;
 		}
 
-		sl_bool isAlmostEqual(const VectorT& other) const noexcept
+		constexpr sl_bool isAlmostEqual(const VectorT& other) const
 		{
 			return Math::isAlmostZero(x - other.x) && Math::isAlmostZero(y - other.y) && Math::isAlmostZero(z - other.z);
 		}
@@ -189,7 +189,7 @@ namespace slib
 			return *this;
 		}
 
-		VectorT operator+(const VectorT& other) const noexcept
+		constexpr VectorT operator+(const VectorT& other) const
 		{
 			return {x + other.x, y + other.y, z + other.z};
 		}
@@ -202,7 +202,7 @@ namespace slib
 			return *this;
 		}
 
-		VectorT operator-(const VectorT& other) const noexcept
+		constexpr VectorT operator-(const VectorT& other) const
 		{
 			return {x - other.x, y - other.y, z - other.z};
 		}
@@ -215,7 +215,7 @@ namespace slib
 			return *this;
 		}
 
-		VectorT operator*(T f) const noexcept
+		constexpr VectorT operator*(T f) const
 		{
 			return {x * f, y * f, z * f};
 		}
@@ -228,7 +228,7 @@ namespace slib
 			return *this;
 		}
 
-		VectorT operator*(const VectorT& other) const noexcept
+		constexpr VectorT operator*(const VectorT& other) const
 		{
 			return {x * other.x, y * other.y, z * other.z};
 		}
@@ -241,7 +241,7 @@ namespace slib
 			return *this;
 		}
 
-		VectorT operator/(T f) const noexcept
+		constexpr VectorT operator/(T f) const
 		{
 			return {x / f, y / f, z / f};
 		}
@@ -254,7 +254,7 @@ namespace slib
 			return *this;
 		}
 
-		VectorT operator/(const VectorT& other) const noexcept
+		constexpr VectorT operator/(const VectorT& other) const
 		{
 			return {x / other.x, y / other.y, z / other.z};
 		}
@@ -267,19 +267,9 @@ namespace slib
 			return *this;
 		}
 
-		VectorT operator-() const noexcept
+		constexpr VectorT operator-() const noexcept
 		{
 			return {-x, -y, -z};
-		}
-
-		sl_bool operator==(const VectorT& other) const noexcept
-		{
-			return x == other.x && y == other.y && z == other.z;
-		}
-
-		sl_bool operator!=(const VectorT& other) const noexcept
-		{
-			return x != other.x || y != other.y || z != other.z;
 		}
 
 	};

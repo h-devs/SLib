@@ -32,7 +32,7 @@
 #include "slib/core/endian.h"
 #include "slib/core/scoped_buffer.h"
 
-#include "slib/media/dl_linux_alsa.h"
+#include "slib/media/dl/linux/alsa.h"
 
 #define TAG "Audio"
 #define LOG_ERROR(...) LogError(TAG, ##__VA_ARGS__)

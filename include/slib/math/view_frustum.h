@@ -43,12 +43,10 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(ViewFrustumT)
 		
-		ViewFrustumT() noexcept = default;
+		ViewFrustumT() = default;
 
 		template <class O>
-		ViewFrustumT(const ViewFrustumT<O>& other) noexcept :
-			MVP(other.MVP)
-		{}
+		constepxr ViewFrustumT(const ViewFrustumT<O>& other): MVP(other.MVP) {}
 
 	public:
 		static const ViewFrustumT<T>& fromMVP(const Matrix4T<T>& MVP) noexcept

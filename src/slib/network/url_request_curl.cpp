@@ -26,7 +26,7 @@
 #include "slib/core/system.h"
 
 #if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
-#	include "slib/network/dl_linux_curl.h"
+#	include "slib/network/dl/linux/curl.h"
 #else
 #	include "curl/curl.h"
 #endif

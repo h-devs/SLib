@@ -333,7 +333,7 @@ namespace slib
 		return timeout;
 	}
 
-	sl_bool DispatchLoop::TimerTask::operator==(const DispatchLoop::TimerTask& other) const
+	sl_bool DispatchLoop::TimerTask::operator==(const DispatchLoop::TimerTask& other) const noexcept
 	{
 		return timer == other.timer;
 	}

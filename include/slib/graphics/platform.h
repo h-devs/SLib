@@ -32,7 +32,7 @@
 
 #if defined(SLIB_GRAPHICS_IS_GDI) || defined(SLIB_PLATFORM_IS_WIN32)
 #	include "../core/platform_windows.h"
-#	include "dl_windows_gdiplus.h"
+#	include "dl/win32/gdiplus.h"
 #endif
 #if defined(SLIB_GRAPHICS_IS_QUARTZ) || defined(SLIB_PLATFORM_IS_APPLE)
 #	include "../core/platform_apple.h"
@@ -56,8 +56,8 @@
 #		include "pango/pangocairo.h"
 #	endif
 #	if	defined(SLIB_PLATFORM_IS_LINUX)
-#		include "../core/dl_linux_glib.h"
-#		include "dl_linux_cairo.h"
+#		include "../core/dl/linux/glib.h"
+#		include "dl/linux/cairo.h"
 #	endif
 #endif
 

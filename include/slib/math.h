@@ -62,6 +62,7 @@
 
 #include "math/plot.h"
 
-#include "math/json_conv.h"
+#include "math/json.h"
+#include "math/serialize.h"
 
 #endif

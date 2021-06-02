@@ -22,7 +22,7 @@
 
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "slib/graphics/dl_linux_cairo.h"
+#include "slib/graphics/dl/linux/cairo.h"
 
 namespace slib
 {

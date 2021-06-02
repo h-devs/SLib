@@ -418,7 +418,32 @@ namespace slib
 	{
 		AES_decrypt((unsigned char*)src, (unsigned char*)dst, (AES_KEY*)m_keyDec);
 	}
-	
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OpenSSL_ECPublicKey_secp256k1)
+
+	OpenSSL_ECPublicKey_secp256k1::OpenSSL_ECPublicKey_secp256k1()
+	{
+	}
+
+	sl_bool OpenSSL_ECPublicKey_secp256k1::checkValid() const
+	{
+		return OpenSSL::check_ECKey_secp256k1(*this);
+	}
+
+	sl_bool OpenSSL_ECPublicKey_secp256k1::verifySignature(const void* hash, sl_size size, const void* _signature, sl_size sizeSignature) const
+	{
+		const sl_uint8* signature = (const sl_uint8*)_signature;
+		if (sizeSignature & 1) {
+			return sl_false;
+		}
+		sizeSignature >>= 1;
+		ECDSA_Signature sig;
+		sig.r = BigInt::fromBytesBE(signature, sizeSignature);
+		sig.s = BigInt::fromBytesBE(signature + sizeSignature, sizeSignature);
+		return OpenSSL::verify_ECDSA_secp256k1(*this, hash, size, sig);
+	}
+
 
 	SLIB_DEFINE_OBJECT(OpenSSL_Key, Object)
 	

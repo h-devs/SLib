@@ -22,7 +22,7 @@
 
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "slib/ui/dl_linux_gtk.h"
+#include "slib/ui/dl/linux/gtk.h"
 
 namespace slib
 {

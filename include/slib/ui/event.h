@@ -65,17 +65,6 @@ namespace slib
 
 	};
 
-	template<>
-	class Hash<Keycode>
-	{
-	public:
-		constexpr sl_size operator()(const Keycode& code) const
-		{
-			return Rehash32((sl_uint32)code);
-		}
-		
-	};
-
 	class SLIB_EXPORT KeycodeAndModifiers
 	{
 	public:
@@ -138,7 +127,7 @@ namespace slib
 
 		String toString() const;
 		
-		sl_bool parse(const String& str);
+		sl_bool parse(const StringParam& str);
 		
 	public:
 		KeycodeAndModifiers& operator|=(int modifiers);

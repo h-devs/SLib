@@ -26,9 +26,7 @@
 #include "sapp_util.h"
 
 #include "slib/core/variant.h"
-#include "slib/core/time_parse.h"
 #include "slib/math/calculator.h"
-#include "slib/graphics/color_parse.h"
 #include "slib/ui/radio_button.h"
 
 namespace slib
@@ -1280,7 +1278,7 @@ namespace slib
 			return sl_true;
 		} else {
 			Color c;
-			if (Color::parse(str, &c)) {
+			if (c.parse(str)) {
 				color = c;
 				flagDefined = sl_true;
 				return sl_true;

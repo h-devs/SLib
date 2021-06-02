@@ -33,23 +33,23 @@
 		using Ptr<T>::ref; \
 		using Ptr<T>::lockRef; \
 		template <class... OTHERS> \
-		Ptr(const Ptr<OTHERS...>& v) noexcept : Ptr<T>(v) { _init(v); } \
+		Ptr(const Ptr<OTHERS...>& v) noexcept: Ptr<T>(v) { _init(v); } \
 		template <class... OTHER> \
-		Ptr(Ptr<OTHER...>&& v) noexcept : Ptr<T>(Move(v)) { _init(v); } \
+		Ptr(Ptr<OTHER...>&& v) noexcept: Ptr<T>(Move(v)) { _init(v); } \
 		template <class OTHER> \
-		Ptr(const AtomicPtr<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {} \
+		Ptr(const AtomicPtr<OTHER>& v) noexcept: Ptr(Ptr<OTHER>(v)) {} \
 		template <class... OTHERS> \
-		Ptr(const Ref<OTHERS...>& v) noexcept : Ptr<T>(v) { _init(v); } \
+		Ptr(const Ref<OTHERS...>& v) noexcept: Ptr<T>(v) { _init(v); } \
 		template <class OTHER> \
-		Ptr(const AtomicRef<OTHER>& v) noexcept : Ptr(Ref<OTHER>(v)) {} \
+		Ptr(const AtomicRef<OTHER>& v) noexcept: Ptr(Ref<OTHER>(v)) {} \
 		template <class OTHER> \
-		Ptr(const WeakRef<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {} \
+		Ptr(const WeakRef<OTHER>& v) noexcept: Ptr(Ptr<OTHER>(v)) {} \
 		template <class OTHER> \
-		Ptr(const AtomicWeakRef<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {} \
+		Ptr(const AtomicWeakRef<OTHER>& v) noexcept: Ptr(Ptr<OTHER>(v)) {} \
 		template <class OTHER> \
-		Ptr(OTHER* v) noexcept : Ptr<T>(v) { _init(v); } \
+		Ptr(OTHER* v) noexcept: Ptr<T>(v) { _init(v); } \
 		template <class... OTHERS> \
-		Ptr(const Pointer<OTHERS...>& v) noexcept : Ptr<T>(v) { _init(v); } \
+		Ptr(const Pointer<OTHERS...>& v) noexcept: Ptr<T>(v) { _init(v); } \
 		static const Ptr null() noexcept { return sl_null; } \
 		void setNull() noexcept { Ptr<T>::setNull(); _init(sl_null); } \
 		template <class... OTHERS> \
@@ -88,8 +88,8 @@
 		PtrLocker(const Ptr<OTHERS...>& ptr) noexcept: m_ptr(ptr.lock()) {} \
 	public: \
 		void unlock() noexcept { m_ptr.setNull(); } \
-		sl_bool isNull() noexcept { return m_ptr.isNull(); } \
-		sl_bool isNotNull() noexcept { return m_ptr.isNotNull(); }
+		constexpr sl_bool isNull() { return m_ptr.isNull(); } \
+		constexpr sl_bool isNotNull() { return m_ptr.isNotNull(); }
 
 namespace slib
 {
@@ -110,39 +110,39 @@ namespace slib
 		using Ptr<T>::ref;
 		using Ptr<T>::lockRef;
 
-		constexpr Ptr() noexcept {}
+		constexpr Ptr() {}
 
-		constexpr Ptr(sl_null_t) noexcept {}
-
-		template <class... OTHERS>
-		Ptr(const Ptr<OTHERS...>& v) noexcept : Ptr<T>(_cast(v), v.ref) {}
+		constexpr Ptr(sl_null_t) {}
 
 		template <class... OTHERS>
-		Ptr(Ptr<OTHERS...>&& v) noexcept : Ptr<T>(_cast(v), Move(v.ref)) {}
-
-		template <class OTHER>
-		Ptr(const AtomicPtr<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {}
+		Ptr(const Ptr<OTHERS...>& v) noexcept: Ptr<T>(_cast(v), v.ref) {}
 
 		template <class... OTHERS>
-		Ptr(const Ref<OTHERS...>& v) noexcept : Ptr<T>(_cast(v), v) {}
+		Ptr(Ptr<OTHERS...>&& v) noexcept: Ptr<T>(_cast(v), Move(v.ref)) {}
 
 		template <class OTHER>
-		Ptr(const AtomicRef<OTHER>& v) noexcept : Ptr(Ref<OTHER>(v)) {}
-
-		template <class OTHER>
-		Ptr(const WeakRef<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {}
-
-		template <class OTHER>
-		Ptr(const AtomicWeakRef<OTHER>& v) noexcept : Ptr(Ptr<OTHER>(v)) {}
-
-		template <class OTHER>
-		Ptr(OTHER* v) noexcept : Ptr<T>(_cast(v)) {}
+		Ptr(const AtomicPtr<OTHER>& v) noexcept: Ptr(Ptr<OTHER>(v)) {}
 
 		template <class... OTHERS>
-		Ptr(const Pointer<OTHERS...>& v) noexcept : Ptr<T>(_cast(v)) {}
+		Ptr(const Ref<OTHERS...>& v) noexcept: Ptr<T>(_cast(v), v) {}
+
+		template <class OTHER>
+		Ptr(const AtomicRef<OTHER>& v) noexcept: Ptr(Ref<OTHER>(v)) {}
+
+		template <class OTHER>
+		Ptr(const WeakRef<OTHER>& v) noexcept: Ptr(Ptr<OTHER>(v)) {}
+
+		template <class OTHER>
+		Ptr(const AtomicWeakRef<OTHER>& v) noexcept: Ptr(Ptr<OTHER>(v)) {}
+
+		template <class OTHER>
+		constexpr Ptr(OTHER* v): Ptr<T>(_cast(v)) {}
+
+		template <class... OTHERS>
+		Ptr(const Pointer<OTHERS...>& v) noexcept: Ptr<T>(_cast(v)) {}
 
 		template <class REF>
-		Ptr(T* v1, REF&& r) noexcept : Ptr<T>(v1, Forward<REF>(r)) {}
+		Ptr(T* v1, REF&& r) noexcept: Ptr<T>(v1, Forward<REF>(r)) {}
 
 	public:
 		static const Ptr& null() noexcept
@@ -237,7 +237,7 @@ namespace slib
 			return *this;
 		}
 
-		operator T*() const noexcept
+		constexpr operator T*() const
 		{
 			return ptr;
 		}
@@ -272,22 +272,22 @@ namespace slib
 		T2 * ptr2;
 
 	public:
-		constexpr Ptr() noexcept : ptr2(sl_null) {}
+		constexpr Ptr() : ptr2(sl_null) {}
 
-		constexpr Ptr(sl_null_t) noexcept : ptr2(sl_null) {}
+		constexpr Ptr(sl_null_t) : ptr2(sl_null) {}
 
-		Ptr(T1* v1, T2* v2) noexcept : Ptr<T>(v1), ptr2(v2) {}
+		constexpr Ptr(T1* v1, T2* v2) : Ptr<T>(v1), ptr2(v2) {}
 
 		template <class REF>
 		Ptr(T1* v1, T2* v2, REF&& r) noexcept : Ptr<T>(v1, Forward<REF>(r)), ptr2(v2) {}
 
 	public:
-		operator T1*() const noexcept
+		constexpr operator T1*() const
 		{
 			return ptr;
 		}
 
-		operator T2*() const noexcept
+		constexpr operator T2*() const
 		{
 			return ptr2;
 		}
@@ -317,7 +317,7 @@ namespace slib
 
 	private:
 		template <class OTHER>
-		void _init(const OTHER& p)
+		void _init(const OTHER& p) noexcept
 		{
 			Helper::init(ptr2, p);
 		}
@@ -337,27 +337,27 @@ namespace slib
 		T3* ptr3;
 
 	public:
-		constexpr Ptr() noexcept : ptr2(sl_null), ptr3(sl_null) {}
+		constexpr Ptr(): ptr2(sl_null), ptr3(sl_null) {}
 
-		constexpr Ptr(sl_null_t) noexcept : ptr2(sl_null), ptr3(sl_null) {}
+		constexpr Ptr(sl_null_t): ptr2(sl_null), ptr3(sl_null) {}
 
-		Ptr(T1* v1, T2* v2, T3* v3) noexcept : Ptr<T>(v1), ptr2(v2), ptr3(v3) {}
+		constexpr Ptr(T1* v1, T2* v2, T3* v3): Ptr<T>(v1), ptr2(v2), ptr3(v3) {}
 
 		template <class REF>
 		Ptr(T1* v1, T2* v2, T3* v3, REF&& r) noexcept : Ptr<T>(v1, Forward<REF>(r)), ptr2(v2), ptr3(v3) {}
 
 	public:
-		operator T1*() const noexcept
+		constexpr operator T1*() const
 		{
 			return ptr;
 		}
 
-		operator T2*() const noexcept
+		constexpr operator T2*() const
 		{
 			return ptr2;
 		}
 
-		operator T3*() const noexcept
+		constexpr operator T3*() const
 		{
 			return ptr3;
 		}
@@ -389,7 +389,7 @@ namespace slib
 
 	private:
 		template <class OTHER>
-		void _init(const OTHER& p)
+		void _init(const OTHER& p) noexcept
 		{
 			Helper::init(ptr2, p);
 			Helper::init(ptr3, p);
@@ -411,32 +411,32 @@ namespace slib
 		T4* ptr4;
 
 	public:
-		constexpr Ptr() noexcept : ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+		constexpr Ptr(): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
-		constexpr Ptr(sl_null_t) noexcept : ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+		constexpr Ptr(sl_null_t): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
-		Ptr(T1* v1, T2* v2, T3* v3, T4* v4) noexcept : Ptr<T>(v1), ptr2(v2), ptr3(v3), ptr4(v4) {}
+		constexpr Ptr(T1* v1, T2* v2, T3* v3, T4* v4): Ptr<T>(v1), ptr2(v2), ptr3(v3), ptr4(v4) {}
 
 		template <class REF>
 		Ptr(T1* v1, T2* v2, T3* v3, T4* v4, REF&& r) noexcept : Ptr<T>(v1, Forward<REF>(r)), ptr2(v2), ptr3(v3), ptr4(v4) {}
 
 	public:
-		operator T1*() const noexcept
+		constexpr operator T1*() const
 		{
 			return ptr;
 		}
 
-		operator T2*() const noexcept
+		constexpr operator T2*() const
 		{
 			return ptr2;
 		}
 
-		operator T3*() const noexcept
+		constexpr operator T3*() const
 		{
 			return ptr3;
 		}
 
-		operator T4*() const noexcept
+		constexpr operator T4*() const
 		{
 			return ptr4;
 		}
@@ -470,7 +470,7 @@ namespace slib
 
 	private:
 		template <class OTHER>
-		void _init(const OTHER& p)
+		void _init(const OTHER& p) noexcept
 		{
 			Helper::init(ptr2, p);
 			Helper::init(ptr3, p);
@@ -489,12 +489,12 @@ namespace slib
 		PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(T, T2)
 		
 	public:
-		operator T1*() const noexcept
+		constexpr operator T1*() const
 		{
 			return m_ptr.ptr;
 		}
 
-		operator T2*() const noexcept
+		constexpr operator T2*() const
 		{
 			return m_ptr.ptr2;
 		}
@@ -510,17 +510,17 @@ namespace slib
 		PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(T, T2, T3)
 
 	public:
-		operator T1*() const noexcept
+		constexpr operator T1*() const
 		{
 			return m_ptr.ptr;
 		}
 
-		operator T2*() const noexcept
+		constexpr operator T2*() const
 		{
 			return m_ptr.ptr2;
 		}
 
-		operator T3*() const noexcept
+		constexpr operator T3*() const
 		{
 			return m_ptr.ptr3;
 		}
@@ -536,22 +536,22 @@ namespace slib
 		PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(T, T2, T3, T4)
 
 	public:
-		operator T1*() const noexcept
+		constexpr operator T1*() const
 		{
 			return m_ptr.ptr;
 		}
 
-		operator T2*() const noexcept
+		constexpr operator T2*() const
 		{
 			return m_ptr.ptr2;
 		}
 
-		operator T3*() const noexcept
+		constexpr operator T3*() const
 		{
 			return m_ptr.ptr3;
 		}
 		
-		operator T4*() const noexcept
+		constexpr operator T4*() const
 		{
 			return m_ptr.ptr4;
 		}
@@ -560,31 +560,19 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Ptr<T>::Ptr(const Ptr<T1, T2, TYPES...>& other) noexcept
-	: ref(other.ref), ptr(other)
-	{
-	}
+	Ptr<T>::Ptr(const Ptr<T1, T2, TYPES...>& other) noexcept: ref(other.ref), ptr(other) {}
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Ptr<T>::Ptr(Ptr<T1, T2, TYPES...>&& other) noexcept
-	: ref(Move(other.ref)), ptr(other)
-	{
-	}
+	Ptr<T>::Ptr(Ptr<T1, T2, TYPES...>&& other) noexcept: ref(Move(other.ref)), ptr(other) {}
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Ptr<T>::Ptr(const Ref<T1, T2, TYPES...>& other) noexcept
-	: ref(other), ptr(other)
-	{
-	}
+	Ptr<T>::Ptr(const Ref<T1, T2, TYPES...>& other) noexcept: ref(other), ptr(other) {}
 
 	template <class T>
 	template <class... TYPES>
-	Ptr<T>::Ptr(const Pointer<TYPES...>& other) noexcept
-	: ptr(other)
-	{
-	}
+	Ptr<T>::Ptr(const Pointer<TYPES...>& other) noexcept: ptr(other) {}
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
@@ -621,31 +609,19 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Atomic< Ptr<T> >::Atomic(const Ptr<T1, T2, TYPES...>& other) noexcept
-	: _ptr(other), _ref(other.ref)
-	{
-	}
+	Atomic< Ptr<T> >::Atomic(const Ptr<T1, T2, TYPES...>& other) noexcept: _ptr(other), _ref(other.ref) {}
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Atomic< Ptr<T> >::Atomic(Ptr<T1, T2, TYPES...>&& other) noexcept
-	: _ptr(other), _ref(Move(other.ref))
-	{
-	}
+	Atomic< Ptr<T> >::Atomic(Ptr<T1, T2, TYPES...>&& other) noexcept: _ptr(other), _ref(Move(other.ref)) {}
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Atomic< Ptr<T> >::Atomic(const Ref<T1, T2, TYPES...>& other) noexcept
-	: _ptr(other), _ref(other)
-	{
-	}
+	Atomic< Ptr<T> >::Atomic(const Ref<T1, T2, TYPES...>& other) noexcept: _ptr(other), _ref(other) {}
 
 	template <class T>
 	template <class... TYPES>
-	Atomic< Ptr<T> >::Atomic(const Pointer<TYPES...>& other) noexcept
-	: _ptr(other)
-	{
-	}
+	Atomic< Ptr<T> >::Atomic(const Pointer<TYPES...>& other) noexcept: _ptr(other) {}
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
