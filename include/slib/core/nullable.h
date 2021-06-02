@@ -33,13 +33,13 @@ namespace slib
 	class Nullable
 	{
 	public:
-		Nullable(): flagNull(sl_true), value() {}
+		Nullable(): flagNull(sl_true) {}
 		
 		Nullable(const Nullable& other): flagNull(other.flagNull), value(other.value) {}
 		
 		Nullable(Nullable&& other): flagNull(Move(other.flagNull)), value(Move(other.value)) {}
 		
-		Nullable(sl_null_t): flagNull(sl_true), value() {}
+		Nullable(sl_null_t): flagNull(sl_true) {}
 		
 		template <class OTHER>
 		Nullable(const Nullable<OTHER>& other): flagNull(other.flagNull), value(other.value) {}
@@ -48,12 +48,12 @@ namespace slib
 		Nullable(ARGS... args): flagNull(sl_false), value(Forward<ARGS...>(args...)) {}
 
 	public:
-		constexpr operator T const&() const
+		operator T const&() const noexcept
 		{
 			return value;
 		}
 
-		constexpr operator T&()
+		operator T&() noexcept
 		{
 			return value;
 		}
@@ -112,18 +112,18 @@ namespace slib
 			value = T();
 		}
 
-		constexpr T const& get() const
+		T const& get() const noexcept
 		{
 			return value;
 		}
 		
-		constexpr T& get()
+		T& get() noexcept
 		{
 			return value;
 		}
 		
 	public:
-		sl_compare_result compare(const Nullable& other) const
+		sl_compare_result compare(const Nullable& other) const noexcept
 		{
 			if (flagNull) {
 				if (other.flagNull) {
@@ -140,7 +140,7 @@ namespace slib
 			}
 		}
 
-		sl_compare_result compare(const T& other) const
+		sl_compare_result compare(const T& other) const noexcept
 		{
 			if (flagNull) {
 				return -1;
@@ -149,12 +149,12 @@ namespace slib
 			}
 		}
 
-		sl_compare_result compare(sl_null_t) const
+		constexpr sl_compare_result compare(sl_null_t) const
 		{
 			return flagNull ? 0 : 1;
 		}
 
-		sl_bool equals(const Nullable& other) const
+		sl_bool equals(const Nullable& other) const noexcept
 		{
 			if (flagNull) {
 				return other.flagNull;
@@ -167,7 +167,7 @@ namespace slib
 			}
 		}
 
-		sl_bool equals(const T& other) const
+		sl_bool equals(const T& other) const noexcept
 		{
 			if (flagNull) {
 				return sl_false;
@@ -176,12 +176,12 @@ namespace slib
 			}
 		}
 
-		sl_bool equals(sl_null_t) const
+		constexpr sl_bool equals(sl_null_t) const
 		{
 			return flagNull;
 		}
 
-		sl_size getHashCode() const
+		sl_size getHashCode() const noexcept
 		{
 			if (flagNull) {
 				return 0;

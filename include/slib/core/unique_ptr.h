@@ -96,7 +96,7 @@ namespace slib
 
 		constexpr sl_bool isNotNull() const
 		{
-			return ptr != null;
+			return ptr != sl_null;
 		}
 
 		constexpr PointerType get() const
@@ -196,7 +196,7 @@ namespace slib
 
 		constexpr sl_bool isNotNull() const
 		{
-			return ptr != null;
+			return ptr != sl_null;
 		}
 
 		constexpr PointerType get() const

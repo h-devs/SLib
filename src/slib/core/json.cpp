@@ -27,8 +27,6 @@
 #include "slib/core/file.h"
 #include "slib/core/parse_util.h"
 #include "slib/core/log.h"
-#include "slib/math/decimal128.h"
-#include "slib/math/json/decimal128.h"
 
 namespace slib
 {
@@ -387,11 +385,6 @@ namespace slib
 				double nDouble;
 				if (map.getValue(strNumberDouble).getDouble(&nDouble)) {
 					return nDouble;
-				}
-				SLIB_STATIC_STRING(strNumberDecimal, "$numberDecimal")
-				String strDecimal = map.getValue(strNumberDecimal).getString();
-				if (strDecimal.isNotNull()) {
-					return Decimal128::fromString(strDecimal);
 				}
 				SLIB_STATIC_STRING(strNumberDate, "$date")
 				Time nTime;
