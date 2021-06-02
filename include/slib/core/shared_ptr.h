@@ -245,11 +245,7 @@ namespace slib
 
 		constexpr T* get() const&
 		{
-			if (container) {
-				return container->ptr;
-			} else {
-				return sl_null;
-			}
+			return container ? container->ptr : sl_null;
 		}
 
 		template <class OTHER>

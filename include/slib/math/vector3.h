@@ -93,10 +93,7 @@ namespace slib
 
 		constexpr VectorT cross(const VectorT& other) const
 		{
-			T _x = y*other.z - z*other.y;
-			T _y = z*other.x - x*other.z;
-			T _z = x*other.y - y*other.x;
-			return {_x, _y, _z};
+			return { y * other.z - z * other.y, z * other.x - x * other.z, x * other.y - y * other.x };
 		}
 
 		T getLength2p() const noexcept

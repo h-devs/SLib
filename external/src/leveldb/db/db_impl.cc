@@ -355,7 +355,7 @@ Status DBImpl::Recover(VersionEdit* edit, bool* save_manifest) {
   }
   if (!expected.empty()) {
     char buf[50];
-    std::snprintf(buf, sizeof(buf), "%d missing files; e.g.",
+    snprintf(buf, sizeof(buf), "%d missing files; e.g.",
                   static_cast<int>(expected.size()));
     return Status::Corruption(buf, TableFileName(dbname_, *(expected.begin())));
   }
@@ -1401,14 +1401,14 @@ bool DBImpl::GetProperty(const Slice& property, std::string* value) {
       return false;
     } else {
       char buf[100];
-      std::snprintf(buf, sizeof(buf), "%d",
+      snprintf(buf, sizeof(buf), "%d",
                     versions_->NumLevelFiles(static_cast<int>(level)));
       *value = buf;
       return true;
     }
   } else if (in == "stats") {
     char buf[200];
-    std::snprintf(buf, sizeof(buf),
+    snprintf(buf, sizeof(buf),
                   "                               Compactions\n"
                   "Level  Files Size(MB) Time(sec) Read(MB) Write(MB)\n"
                   "--------------------------------------------------\n");
@@ -1416,7 +1416,7 @@ bool DBImpl::GetProperty(const Slice& property, std::string* value) {
     for (int level = 0; level < config::kNumLevels; level++) {
       int files = versions_->NumLevelFiles(level);
       if (stats_[level].micros > 0 || files > 0) {
-        std::snprintf(buf, sizeof(buf), "%3d %8d %8.0f %9.0f %8.0f %9.0f\n",
+        snprintf(buf, sizeof(buf), "%3d %8d %8.0f %9.0f %8.0f %9.0f\n",
                       level, files, versions_->NumLevelBytes(level) / 1048576.0,
                       stats_[level].micros / 1e6,
                       stats_[level].bytes_read / 1048576.0,
@@ -1437,7 +1437,7 @@ bool DBImpl::GetProperty(const Slice& property, std::string* value) {
       total_usage += imm_->ApproximateMemoryUsage();
     }
     char buf[50];
-    std::snprintf(buf, sizeof(buf), "%llu",
+    snprintf(buf, sizeof(buf), "%llu",
                   static_cast<unsigned long long>(total_usage));
     value->append(buf);
     return true;

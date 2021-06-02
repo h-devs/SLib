@@ -223,12 +223,12 @@ namespace slib
 
 		constexpr sl_bool isZero() const
 		{
-			return r == 0 && g == 0 && b == 0 && a == 0;
+			return !(getARGB());
 		}
 
 		constexpr sl_bool isNotZero() const
 		{
-			return r != 0 || g != 0 || b != 0 || a != 0;
+			return getARGB() != 0;
 		}
 
 		void setZero() noexcept

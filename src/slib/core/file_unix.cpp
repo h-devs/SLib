@@ -48,7 +48,7 @@
 #include <errno.h>
 #if defined(__APPLE__) || defined(__FreeBSD__)
 #	include <copyfile.h>
-#else
+#elif !defined(SLIB_PLATFORM_IS_ANDROID)
 #	include <sys/sendfile.h>
 #endif
 
@@ -685,8 +685,11 @@ namespace slib
 				struct stat statSrc;
 				while ((iRet = fstat(handleSrc, &statSrc)) < 0 && errno == EINTR);
 				if (!iRet) {
-					bRet = sl_true;
 					sl_int64 size = statSrc.st_size;
+#ifdef SLIB_PLATFORM_IS_ANDROID
+					if (size) {
+#else
+					bRet = sl_true;
 					while (size > 0) {
 						ssize_t sent = sendfile(handleDst, handleSrc, sl_null, size > 0x7ffff000 ? 0x7ffff000 : (size_t)size);
 						if (sent < 0) {
@@ -699,6 +702,7 @@ namespace slib
 						}
 					}
 					if (bRet && size) {
+#endif
 #define BUF_SIZE 0x40000
 						Memory memBuf = Memory::create(BUF_SIZE);
 						if (memBuf.isNull()) {

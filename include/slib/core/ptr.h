@@ -1000,17 +1000,17 @@ namespace slib
 			m_ptr.setNull();
 		}
 	
-		constexpr T* get()
+		constexpr T* get() const
 		{
 			return m_ptr.ptr;
 		}
 
-		constexpr sl_bool isNull()
+		constexpr sl_bool isNull() const
 		{
 			return m_ptr.isNull();
 		}
 	
-		constexpr sl_bool isNotNull()
+		constexpr sl_bool isNotNull() const
 		{
 			return m_ptr.isNotNull();
 		}
@@ -1030,7 +1030,7 @@ namespace slib
 			return m_ptr.ptr;
 		}
 
-		constexpr explicit operator sl_bool() const noexcept
+		constexpr explicit operator sl_bool() const
 		{
 			return m_ptr.ptr;
 		}

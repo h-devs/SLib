@@ -56,7 +56,7 @@ namespace slib
 			return ComplexT(real, -imag);
 		}
 
-		constexpr ComplexT reciprocal() const
+		ComplexT reciprocal() const noexcept
 		{
 			T t = real * real + imag * imag;
 			return ComplexT(real / t, -imag / t);

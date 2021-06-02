@@ -90,7 +90,7 @@ namespace slib
 		
 		constexpr sl_bool isZero() const
 		{
-			return getInt() == 0;
+			return !(getInt());
 		}
 		
 		constexpr sl_bool isNotZero() const

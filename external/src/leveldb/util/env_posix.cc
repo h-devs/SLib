@@ -675,7 +675,7 @@ class PosixEnv : public Env {
       *result = env;
     } else {
       char buf[100];
-      std::snprintf(buf, sizeof(buf), "/tmp/leveldbtest-%d",
+      snprintf(buf, sizeof(buf), "/tmp/leveldbtest-%d",
                     static_cast<int>(::geteuid()));
       *result = buf;
     }

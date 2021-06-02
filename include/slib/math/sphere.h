@@ -48,7 +48,7 @@ namespace slib
 		constexpr SphereT(T xc, T yc, T zc, T _radius): center(xc, yc, zc), radius(_radius) {}
 
 	public:
-		constexpr sl_bool containsPoint(const Vector3T<T>& point) const
+		sl_bool containsPoint(const Vector3T<T>& point) const noexcept
 		{
 			T dx = point.x - center.x;
 			T dy = point.y - center.y;

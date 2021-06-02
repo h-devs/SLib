@@ -88,8 +88,8 @@
 		PtrLocker(const Ptr<OTHERS...>& ptr) noexcept: m_ptr(ptr.lock()) {} \
 	public: \
 		void unlock() noexcept { m_ptr.setNull(); } \
-		constexpr sl_bool isNull() { return m_ptr.isNull(); } \
-		constexpr sl_bool isNotNull() { return m_ptr.isNotNull(); }
+		constexpr sl_bool isNull() const { return m_ptr.isNull(); } \
+		constexpr sl_bool isNotNull() const { return m_ptr.isNotNull(); }
 
 namespace slib
 {

@@ -30,8 +30,6 @@ namespace slib
 
 	sl_bool GeoLocation::equals(const GeoLocation& other) const noexcept
 	{
-		std::is_class<GeoLocation>::value;
-
 		return latitude == other.latitude && longitude == other.longitude && altitude == other.altitude;
 	}
 

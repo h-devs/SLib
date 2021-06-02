@@ -136,12 +136,12 @@ namespace slib
 		return Rehash64ToSize(value);
 	}
 
-	constexpr sl_size HashPrimitiveValue(float value)
+	SLIB_INLINE static sl_size HashPrimitiveValue(float value) noexcept
 	{
 		return Rehash32(*(reinterpret_cast<sl_uint32*>(&value)));
 	}
 
-	constexpr sl_size HashPrimitiveValue(double value)
+	SLIB_INLINE static sl_size HashPrimitiveValue(double value) noexcept
 	{
 		return Rehash64ToSize(*(reinterpret_cast<sl_uint64*>(&value)));
 	}
@@ -179,7 +179,7 @@ namespace slib
 	class DefaultHasher<T, sl_false, sl_true>
 	{
 	public:
-		static constexpr sl_size hash(T a)
+		static sl_size hash(T a) noexcept
 		{
 #ifdef SLIB_ARCH_IS_64BIT
 			return Rehash64((sl_uint64)((sl_int64)a));
@@ -193,7 +193,7 @@ namespace slib
 	class DefaultHasher<T, sl_false, sl_false>
 	{
 	public:
-		static constexpr sl_size hash(T a)
+		static sl_size hash(T a) noexcept
 		{
 			return HashPrimitiveValue(a);
 		}

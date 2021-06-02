@@ -1028,7 +1028,7 @@ namespace slib
 			} else {
 				sl_uint32 nOffset = seg.seq - m_rcv_nxt;
 
-				if (!m_rbuf.writeOffset(seg.data, seg.len, nOffset, NULL)) {
+				if (!m_rbuf.writeOffset(seg.data, seg.len, nOffset, sl_null)) {
 					// Ignore incoming packets outside of the receive window.
 					return sl_false;
 				}

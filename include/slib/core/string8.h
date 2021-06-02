@@ -326,11 +326,7 @@ namespace slib
 		 */
 		constexpr sl_bool isEmpty() const
 		{
-			if (m_container) {
-				return !(m_container->len);
-			} else {
-				return sl_true;
-			}
+			return m_container ? !(m_container->len) : sl_true;
 		}
 		
 		/**
@@ -338,11 +334,7 @@ namespace slib
 		 */
 		constexpr sl_bool isNotEmpty() const
 		{
-			if (m_container) {
-				return (m_container->len != 0);
-			} else {
-				return sl_false;
-			}
+			return m_container ? (m_container->len != 0) : sl_false;
 		}
 		
 		/**
@@ -392,11 +384,7 @@ namespace slib
 		 */
 		constexpr sl_size getLength() const
 		{
-			if (m_container) {
-				return m_container->len;
-			} else {
-				return 0;
-			}
+			return m_container ? m_container->len : 0;
 		}
 		
 		/**
