@@ -48,26 +48,24 @@ namespace slib
 		BigInt y;
 		
 	public:
-		ECPoint();
+		ECPoint() noexcept;
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPoint)
 		
 	public:
-		sl_bool isO() const;
+		sl_bool isO() const noexcept;
 
-		Memory toUncompressedFormat(const EllipticCurve& curve) const;
+		Memory toUncompressedFormat(const EllipticCurve& curve) const noexcept;
 		
-		Memory toUncompressedFormat(sl_size nBytesPerComponent = 0) const;
+		Memory toUncompressedFormat(sl_size nBytesPerComponent = 0) const noexcept;
 		
-		sl_bool parseUncompressedFormat(const void* buf, sl_size n);
+		sl_bool parseUncompressedFormat(const void* buf, sl_size n) noexcept;
 		
-		String toUncompressedFormatString(const EllipticCurve& curve) const;
+		String toUncompressedFormatString(const EllipticCurve& curve) const noexcept;
 		
-		String toUncompressedFormatString(sl_size nBytesPerComponent = 0) const;
+		String toUncompressedFormatString(sl_size nBytesPerComponent = 0) const noexcept;
 		
-		sl_bool parseUncompressedFormatString(const sl_char8* sz, sl_size n);
-		
-		sl_bool parseUncompressedFormatString(const StringParam& str);
+		sl_bool parseUncompressedFormatString(const StringParam& str) noexcept;
 
 	};
 	
@@ -84,21 +82,21 @@ namespace slib
 		List<ECPoint> pow2g;
 		
 	public:
-		EllipticCurve();
+		EllipticCurve() noexcept;
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(EllipticCurve)
 		
 	public:
-		static const EllipticCurve& secp256k1();
+		static const EllipticCurve& secp256k1() noexcept;
 		
 	public:
-		ECPoint addPoint(const ECPoint& p1, const ECPoint& p2) const;
+		ECPoint addPoint(const ECPoint& p1, const ECPoint& p2) const noexcept;
 		
-		ECPoint doublePoint(const ECPoint& pt) const;
+		ECPoint doublePoint(const ECPoint& pt) const noexcept;
 		
-		ECPoint multiplyPoint(const ECPoint& pt, const BigInt& k) const;
+		ECPoint multiplyPoint(const ECPoint& pt, const BigInt& k) const noexcept;
 		
-		ECPoint multiplyG(const BigInt& k) const;
+		ECPoint multiplyG(const BigInt& k) const noexcept;
 		
 	};
 	
@@ -108,27 +106,18 @@ namespace slib
 		ECPoint Q; // Q = dG
 
 	public:
-		ECPublicKey();
+		ECPublicKey() noexcept;
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPublicKey)
 		
 	public:
-		sl_bool isNull() const;
+		sl_bool isNull() const noexcept;
 
-		sl_bool equals(const ECPublicKey& other) const;
+		sl_bool equals(const ECPublicKey& other) const noexcept;
 
-		sl_bool checkValid(const EllipticCurve& curve) const;
+		sl_bool checkValid(const EllipticCurve& curve) const noexcept;
 
-		sl_bool verifySignature(const EllipticCurve& curve, const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const;
-
-		Memory toMemory() const;
-
-		sl_bool fromMemory(const void* data, sl_size size);
-
-		sl_bool fromMemory(const Memory& mem);
-
-	public:
-
+		sl_bool verifySignature(const EllipticCurve& curve, const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept;
 
 	};
 

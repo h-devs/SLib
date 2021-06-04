@@ -35,21 +35,21 @@ namespace slib
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPoint)
 	
-	ECPoint::ECPoint()
+	ECPoint::ECPoint() noexcept
 	{
 	}
 	
-	sl_bool ECPoint::isO() const
+	sl_bool ECPoint::isO() const noexcept
 	{
 		return y.isZero();
 	}
 	
-	Memory ECPoint::toUncompressedFormat(const EllipticCurve& curve) const
+	Memory ECPoint::toUncompressedFormat(const EllipticCurve& curve) const noexcept
 	{
 		return toUncompressedFormat(curve.n.getMostSignificantBytes());
 	}
 	
-	Memory ECPoint::toUncompressedFormat(sl_size nBytesPerComponent) const
+	Memory ECPoint::toUncompressedFormat(sl_size nBytesPerComponent) const noexcept
 	{
 		if (isO()) {
 			sl_uint8 c = 0;
@@ -71,7 +71,7 @@ namespace slib
 		return sl_null;
 	}
 	
-	sl_bool ECPoint::parseUncompressedFormat(const void* _buf, sl_size size)
+	sl_bool ECPoint::parseUncompressedFormat(const void* _buf, sl_size size) noexcept
 	{
 		const sl_uint8* buf = (const sl_uint8*)_buf;
 		if (size) {
@@ -94,12 +94,12 @@ namespace slib
 		return sl_false;
 	}
 	
-	String ECPoint::toUncompressedFormatString(const EllipticCurve& curve) const
+	String ECPoint::toUncompressedFormatString(const EllipticCurve& curve) const noexcept
 	{
 		return toUncompressedFormatString(curve.n.getMostSignificantBytes());
 	}
 	
-	String ECPoint::toUncompressedFormatString(sl_size nBytesPerComponent) const
+	String ECPoint::toUncompressedFormatString(sl_size nBytesPerComponent) const noexcept
 	{
 		if (isO()) {
 			SLIB_RETURN_STRING("00");
@@ -122,41 +122,55 @@ namespace slib
 		return sl_null;
 	}
 	
-	sl_bool ECPoint::parseUncompressedFormatString(const sl_char8* sz, sl_size n)
+	namespace priv
 	{
-		if (n && !(n & 1)) {
-			if (sz[0] == '0' && sz[1] == '4') {
-				sl_size m = (n - 2) >> 1;
-				if (!(m & 1)) {
-					BigInt _x = BigInt::fromHexString(StringView(sz + 2, m));
-					if (_x.isNotNull()) {
-						BigInt _y = BigInt::fromHexString(StringView(sz + (2 + m), m));
-						if (_y.isNotNull()) {
-							x = Move(_x);
-							y = Move(_y);
-							return sl_true;
+		namespace ecc_point
+		{
+
+			template <class CT>
+			sl_bool ParseUncompressedFormatString(ECPoint* pt, const CT* sz, sl_size n) noexcept
+			{
+				if (n && !(n & 1)) {
+					if (sz[0] == '0' && sz[1] == '4') {
+						sl_size m = (n - 2) >> 1;
+						if (!(m & 1)) {
+							BigInt _x = BigInt::fromHexString(typename StringViewTypeFromCharType<CT>::Type(sz + 2, m));
+							if (_x.isNotNull()) {
+								BigInt _y = BigInt::fromHexString(typename StringViewTypeFromCharType<CT>::Type(sz + (2 + m), m));
+								if (_y.isNotNull()) {
+									pt->x = Move(_x);
+									pt->y = Move(_y);
+									return sl_true;
+								}
+							}
 						}
 					}
 				}
+				return sl_false;
 			}
+
 		}
-		return sl_false;
 	}
 	
-	sl_bool ECPoint::parseUncompressedFormatString(const StringParam& _str)
+	sl_bool ECPoint::parseUncompressedFormatString(const StringParam& _str) noexcept
 	{
-		StringData str(_str);
-		return parseUncompressedFormatString(str.getData(), str.getLength());
+		if (_str.is16()) {
+			StringData16 str(_str);
+			return priv::ecc_point::ParseUncompressedFormatString(this, str.getData(), str.getLength());
+		} else {
+			StringData str(_str);
+			return priv::ecc_point::ParseUncompressedFormatString(this, str.getData(), str.getLength());
+		}
 	}
 
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EllipticCurve)
 
-	EllipticCurve::EllipticCurve(): h(1)
+	EllipticCurve::EllipticCurve() noexcept: h(1)
 	{
 	}
 	
-	ECPoint EllipticCurve::addPoint(const ECPoint& p1, const ECPoint& p2) const
+	ECPoint EllipticCurve::addPoint(const ECPoint& p1, const ECPoint& p2) const noexcept
 	{
 		if (p1.isO()) {
 			return p2;
@@ -178,7 +192,7 @@ namespace slib
 		}
 	}
 	
-	ECPoint EllipticCurve::doublePoint(const ECPoint& pt) const
+	ECPoint EllipticCurve::doublePoint(const ECPoint& pt) const noexcept
 	{
 		if (pt.isO()) {
 			return pt;
@@ -191,7 +205,7 @@ namespace slib
 		return ret;
 	}
 	
-	ECPoint EllipticCurve::multiplyPoint(const ECPoint& pt, const BigInt& _k) const
+	ECPoint EllipticCurve::multiplyPoint(const ECPoint& pt, const BigInt& _k) const noexcept
 	{
 		CBigInt* k = _k.ref.get();
 		if (!k) {
@@ -215,7 +229,7 @@ namespace slib
 		return ret;
 	}
 	
-	ECPoint EllipticCurve::multiplyG(const BigInt& _k) const
+	ECPoint EllipticCurve::multiplyG(const BigInt& _k) const noexcept
 	{
 		if (pow2g.isNull()) {
 			return multiplyPoint(G, _k);
@@ -248,21 +262,21 @@ namespace slib
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPublicKey)
 	
-	ECPublicKey::ECPublicKey()
+	ECPublicKey::ECPublicKey() noexcept
 	{
 	}
 
-	sl_bool ECPublicKey::isNull() const
+	sl_bool ECPublicKey::isNull() const noexcept
 	{
 		return Q.x.isNull();
 	}
 
-	sl_bool ECPublicKey::equals(const ECPublicKey& other) const
+	sl_bool ECPublicKey::equals(const ECPublicKey& other) const noexcept
 	{
 		return Q.x == other.Q.x;
 	}
 	
-	sl_bool ECPublicKey::checkValid(const EllipticCurve& curve) const
+	sl_bool ECPublicKey::checkValid(const EllipticCurve& curve) const noexcept
 	{
 		if (Q.isO()) {
 			return sl_false;
@@ -284,7 +298,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool ECPublicKey::verifySignature(const EllipticCurve& curve, const void* hash, sl_size size, const void* _signature, sl_size sizeSignature) const
+	sl_bool ECPublicKey::verifySignature(const EllipticCurve& curve, const void* hash, sl_size size, const void* _signature, sl_size sizeSignature) const noexcept
 	{
 		const sl_uint8* signature = (const sl_uint8*)_signature;
 		if (sizeSignature & 1) {
