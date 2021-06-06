@@ -273,9 +273,14 @@ namespace slib
 
 	sl_bool ECPublicKey::equals(const ECPublicKey& other) const noexcept
 	{
-		return Q.x == other.Q.x;
+		return Q.x.equals(other.Q.x);
 	}
-	
+
+	sl_compare_result ECPublicKey::compare(const ECPublicKey& other) const noexcept
+	{
+		return Q.x.compare(other.Q.x);
+	}
+
 	sl_bool ECPublicKey::checkValid(const EllipticCurve& curve) const noexcept
 	{
 		if (Q.isO()) {
@@ -314,11 +319,11 @@ namespace slib
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPrivateKey)
 	
-	ECPrivateKey::ECPrivateKey()
+	ECPrivateKey::ECPrivateKey() noexcept
 	{
 	}
 	
-	sl_bool ECPrivateKey::generate(const EllipticCurve& curve)
+	sl_bool ECPrivateKey::generate(const EllipticCurve& curve) noexcept
 	{
 		if (curve.n < 3) {
 			return sl_false;
@@ -341,19 +346,26 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPublicKey_secp256k1)
 
-	ECPublicKey_secp256k1::ECPublicKey_secp256k1()
+	ECPublicKey_secp256k1::ECPublicKey_secp256k1() noexcept
 	{
 	}
 
-	sl_bool ECPublicKey_secp256k1::checkValid() const
+	sl_bool ECPublicKey_secp256k1::checkValid() const noexcept
 	{
 		return ECPublicKey::checkValid(EllipticCurve::secp256k1());
 	}
 
-	sl_bool ECPublicKey_secp256k1::verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const
+	sl_bool ECPublicKey_secp256k1::verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept
 	{
 		return ECPublicKey::verifySignature(EllipticCurve::secp256k1(), hash, size, signature, sizeSignature);
 	}
+
+	String ECPublicKey_secp256k1::toString() const noexcept
+	{
+		return Q.toUncompressedFormatString();
+	}
+
+
 
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECDSA_Signature)

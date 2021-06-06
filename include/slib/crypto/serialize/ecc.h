@@ -20,50 +20,26 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CRYPTO_HEADER
-#define CHECKHEADER_SLIB_CRYPTO_HEADER
+#ifndef CHECKHEADER_SLIB_CRYPTO_SERIALIZE_ECC
+#define CHECKHEADER_SLIB_CRYPTO_SERIALIZE_ECC
 
-// Hash, Checksum
-#include "crypto/hash.h"
-#include "crypto/md5.h"
-#include "crypto/sha1.h"
-#include "crypto/sha2.h"
-#include "crypto/crc32c.h"
+#include "../ecc.h"
 
-// Block Cipher
-#include "crypto/block_cipher.h"
-#include "crypto/aes.h"
-#include "crypto/blowfish.h"
-#include "crypto/des.h"
-#include "crypto/gcm.h"
+#include "../../core/serialize/primitive.h"
 
-// Stream Cipher
-#include "crypto/rc4.h"
-#include "crypto/chacha.h"
+namespace slib
+{
 
-// Message authentication code
-#include "crypto/hmac.h"
-#include "crypto/poly1305.h"
+	template <class OUTPUT>
+	SLIB_INLINE sl_bool ECPublicKey_secp256k1::serialize(OUTPUT* output) const
+	{
+	}
 
-// Public-key cryptosystems
-#include "crypto/rsa.h"
-#include "crypto/ecc.h"
+	template <class INPUT>
+	SLIB_INLINE sl_bool ECPublicKey_secp256k1::deserialize(INPUT* input)
+	{
+	}
 
-// Key Derivation Function
-#include "crypto/pbkdf.h"
-
-// Transport Protocol
-#include "crypto/tls.h"
-
-// Other
-#include "crypto/base64.h"
-#include "crypto/jwt.h"
-
-// Third-party
-#include "crypto/zlib.h"
-#include "crypto/openssl.h"
-
-#include "crypto/json.h"
-#include "crypto/serialize.h"
+}
 
 #endif

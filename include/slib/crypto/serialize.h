@@ -20,50 +20,9 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CRYPTO_HEADER
-#define CHECKHEADER_SLIB_CRYPTO_HEADER
+#ifndef CHECKHEADER_SLIB_CRYPTO_SERIALIZE
+#define CHECKHEADER_SLIB_CRYPTO_SERIALIZE
 
-// Hash, Checksum
-#include "crypto/hash.h"
-#include "crypto/md5.h"
-#include "crypto/sha1.h"
-#include "crypto/sha2.h"
-#include "crypto/crc32c.h"
-
-// Block Cipher
-#include "crypto/block_cipher.h"
-#include "crypto/aes.h"
-#include "crypto/blowfish.h"
-#include "crypto/des.h"
-#include "crypto/gcm.h"
-
-// Stream Cipher
-#include "crypto/rc4.h"
-#include "crypto/chacha.h"
-
-// Message authentication code
-#include "crypto/hmac.h"
-#include "crypto/poly1305.h"
-
-// Public-key cryptosystems
-#include "crypto/rsa.h"
-#include "crypto/ecc.h"
-
-// Key Derivation Function
-#include "crypto/pbkdf.h"
-
-// Transport Protocol
-#include "crypto/tls.h"
-
-// Other
-#include "crypto/base64.h"
-#include "crypto/jwt.h"
-
-// Third-party
-#include "crypto/zlib.h"
-#include "crypto/openssl.h"
-
-#include "crypto/json.h"
-#include "crypto/serialize.h"
+#include "serialize/ecc.h"
 
 #endif

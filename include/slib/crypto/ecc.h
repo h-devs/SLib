@@ -109,12 +109,16 @@ namespace slib
 		ECPublicKey() noexcept;
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPublicKey)
-		
+		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
+
 	public:
 		sl_bool isNull() const noexcept;
 
 		sl_bool equals(const ECPublicKey& other) const noexcept;
 
+		sl_compare_result compare(const ECPublicKey& other) const noexcept;
+
+	public:
 		sl_bool checkValid(const EllipticCurve& curve) const noexcept;
 
 		sl_bool verifySignature(const EllipticCurve& curve, const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept;
@@ -127,26 +131,28 @@ namespace slib
 		BigInt d;
 		
 	public:
-		ECPrivateKey();
+		ECPrivateKey() noexcept;
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPrivateKey)
 		
 	public:
-		sl_bool generate(const EllipticCurve& curve);
+		sl_bool generate(const EllipticCurve& curve) noexcept;
 		
 	};
 
 	class SLIB_EXPORT ECPublicKey_secp256k1 : public ECPublicKey
 	{
 	public:
-		ECPublicKey_secp256k1();
+		ECPublicKey_secp256k1() noexcept;
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPublicKey_secp256k1)
+		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
+		SLIB_DECLARE_CLASS_JSON_SERIALIZE_MEMBERS
 
 	public:
-		sl_bool checkValid() const;
+		sl_bool checkValid() const noexcept;
 
-		sl_bool verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const;
+		sl_bool verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept;
 
 	};
 
