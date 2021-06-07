@@ -103,6 +103,7 @@ namespace slib
 		OpenSSL_ECPublicKey_secp256k1();
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OpenSSL_ECPublicKey_secp256k1)
+		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
 
 	public:
 		sl_bool checkValid() const;

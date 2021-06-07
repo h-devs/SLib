@@ -30,14 +30,52 @@
 namespace slib
 {
 
-	SLIB_INLINE Json ECPublicKey_secp256k1::toJson() const noexcept
+	SLIB_INLINE Json ECPoint::toJson() const noexcept
 	{
-		return toString();
+		Json ret;
+		ret.putItem_NoLock("x", x.toJson());
+		ret.putItem_NoLock("y", y.toJson());
+		return ret;
 	}
 
-	SLIB_INLINE sl_bool ECPublicKey_secp256k1::setJson(const Json& json) noexcept
+	SLIB_INLINE sl_bool ECPoint::setJson(const Json& json) noexcept
 	{
-		return parse(json.getStringParam());
+		if (json.isUndefined()) {
+			return sl_false;
+		}
+		x.setJson(json.getItem("x"));
+		y.setJson(json.getItem("y"));
+		return sl_true;
+	}
+
+
+	SLIB_INLINE Json ECPublicKey::toJson() const noexcept
+	{
+		return Q.toJson();
+	}
+
+	SLIB_INLINE sl_bool ECPublicKey::setJson(const Json& json) noexcept
+	{
+		return Q.setJson(json);
+	}
+
+
+	SLIB_INLINE Json ECPrivateKey::toJson() const noexcept
+	{
+		Json ret;
+		ret.putItem_NoLock("Q", Q.toJson());
+		ret.putItem_NoLock("d", d.toJson());
+		return ret;
+	}
+
+	SLIB_INLINE sl_bool ECPrivateKey::setJson(const Json& json) noexcept
+	{
+		if (json.isUndefined()) {
+			return sl_false;
+		}
+		Q.setJson(json.getItem("Q"));
+		d.setJson(json.getItem("d"));
+		return sl_true;
 	}
 
 }

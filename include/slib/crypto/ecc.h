@@ -27,6 +27,7 @@
 
 #include "../math/bigint.h"
 #include "../core/list.h"
+#include "../core/bytes.h"
 #include "../core/default_members.h"
 
 /*
@@ -51,6 +52,7 @@ namespace slib
 		ECPoint() noexcept;
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPoint)
+		SLIB_DECLARE_CLASS_JSON_SERIALIZE_MEMBERS
 		
 	public:
 		sl_bool isO() const noexcept;
@@ -60,12 +62,8 @@ namespace slib
 		Memory toUncompressedFormat(sl_size nBytesPerComponent = 0) const noexcept;
 		
 		sl_bool parseUncompressedFormat(const void* buf, sl_size n) noexcept;
-		
-		String toUncompressedFormatString(const EllipticCurve& curve) const noexcept;
-		
-		String toUncompressedFormatString(sl_size nBytesPerComponent = 0) const noexcept;
-		
-		sl_bool parseUncompressedFormatString(const StringParam& str) noexcept;
+
+		sl_bool parseUncompressedFormat(const Memory& mem) noexcept;
 
 	};
 	
@@ -109,6 +107,7 @@ namespace slib
 		ECPublicKey() noexcept;
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPublicKey)
+		SLIB_DECLARE_CLASS_JSON_SERIALIZE_MEMBERS
 		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
 
 	public:
@@ -134,9 +133,12 @@ namespace slib
 		ECPrivateKey() noexcept;
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPrivateKey)
-		
+		SLIB_DECLARE_CLASS_JSON_SERIALIZE_MEMBERS
+
 	public:
 		sl_bool generate(const EllipticCurve& curve) noexcept;
+
+		Memory generateSignature(const EllipticCurve& curve, const void* hash, sl_size size) const noexcept;
 		
 	};
 
@@ -147,12 +149,42 @@ namespace slib
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPublicKey_secp256k1)
 		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
-		SLIB_DECLARE_CLASS_JSON_SERIALIZE_MEMBERS
 
 	public:
 		sl_bool checkValid() const noexcept;
 
 		sl_bool verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept;
+
+		Bytes<32> toId() const noexcept;
+
+	};
+
+	class SLIB_EXPORT ECPrivateKey_secp256k1 : public ECPrivateKey
+	{
+	public:
+		ECPrivateKey_secp256k1() noexcept;
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPrivateKey_secp256k1)
+
+	public:
+		const ECPublicKey_secp256k1& toPublicKey() const noexcept
+		{
+			return *((const ECPublicKey_secp256k1*)(const ECPublicKey*)this);
+		}
+
+		ECPublicKey_secp256k1& toPublicKey() noexcept
+		{
+			return *((ECPublicKey_secp256k1*)(ECPublicKey*)this);
+		}
+
+	public:
+		Memory generateSignature(const void* hash, sl_size size) const noexcept;
+
+		sl_bool checkValid() const noexcept;
+
+		sl_bool verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept;
+
+		Bytes<32> toId() const noexcept;
 
 	};
 
@@ -163,7 +195,7 @@ namespace slib
 		BigInt s;
 		
 	public:
-		ECDSA_Signature();
+		ECDSA_Signature() noexcept;
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECDSA_Signature)
 		
@@ -174,18 +206,18 @@ namespace slib
 	{
 	public:
 		// z < curve.n
-		static ECDSA_Signature sign(const EllipticCurve& curve, const ECPrivateKey& key, const BigInt& z, BigInt* k = sl_null);
+		static ECDSA_Signature sign(const EllipticCurve& curve, const ECPrivateKey& key, const BigInt& z, BigInt* k = sl_null) noexcept;
 		
-		static ECDSA_Signature sign(const EllipticCurve& curve, const ECPrivateKey& key, const void* hash, sl_size sizeHash, BigInt* k = sl_null);
+		static ECDSA_Signature sign(const EllipticCurve& curve, const ECPrivateKey& key, const void* hash, sl_size sizeHash, BigInt* k = sl_null) noexcept;
 
-		static ECDSA_Signature sign_SHA256(const EllipticCurve& curve, const ECPrivateKey& key, const void* data, sl_size size, BigInt* k = sl_null);
+		static ECDSA_Signature sign_SHA256(const EllipticCurve& curve, const ECPrivateKey& key, const void* data, sl_size size, BigInt* k = sl_null) noexcept;
 
 		// z < curve.n
-		static sl_bool verify(const EllipticCurve& curve, const ECPublicKey& key, const BigInt& z, const ECDSA_Signature& signature);
+		static sl_bool verify(const EllipticCurve& curve, const ECPublicKey& key, const BigInt& z, const ECDSA_Signature& signature) noexcept;
 		
-		static sl_bool verify(const EllipticCurve& curve, const ECPublicKey& key, const void* hash, sl_size sizeHash, const ECDSA_Signature& signature);
+		static sl_bool verify(const EllipticCurve& curve, const ECPublicKey& key, const void* hash, sl_size sizeHash, const ECDSA_Signature& signature) noexcept;
 
-		static sl_bool verify_SHA256(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature);
+		static sl_bool verify_SHA256(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature) noexcept;
 
 	};
 	
@@ -193,7 +225,7 @@ namespace slib
 	class SLIB_EXPORT ECDH
 	{
 	public:
-		static BigInt getSharedKey(const EllipticCurve& curve, const ECPrivateKey& keyLocal, const ECPublicKey& keyRemote);
+		static BigInt getSharedKey(const EllipticCurve& curve, const ECPrivateKey& keyLocal, const ECPublicKey& keyRemote) noexcept;
 		
 	};
 	

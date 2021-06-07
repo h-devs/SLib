@@ -31,13 +31,32 @@ namespace slib
 {
 
 	template <class OUTPUT>
+	SLIB_INLINE sl_bool ECPoint::serialize(OUTPUT* output) const
+	{
+		return toUncompressedFormat().serialize(output);
+	}
+
+	template <class INPUT>
+	SLIB_INLINE sl_bool ECPoint::deserialize(INPUT* input)
+	{
+		Memory mem;
+		if (mem.deserialize(input)) {
+			return parseUncompressedFormat(mem);
+		}
+		return sl_false;
+	}
+
+
+	template <class OUTPUT>
 	SLIB_INLINE sl_bool ECPublicKey_secp256k1::serialize(OUTPUT* output) const
 	{
+		return Q.serialize(output);
 	}
 
 	template <class INPUT>
 	SLIB_INLINE sl_bool ECPublicKey_secp256k1::deserialize(INPUT* input)
 	{
+		return Q.deserialize(input);
 	}
 
 }

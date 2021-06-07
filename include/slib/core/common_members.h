@@ -46,8 +46,8 @@
 	SLIB_DECLARE_CLASS_HASH_MEMBERS
 
 #define SLIB_DECLARE_CLASS_JSON_MEMBERS \
-	Json toJson() const noexcept; \
-	sl_bool setJson(const Json& json) noexcept;
+	slib::Json toJson() const noexcept; \
+	sl_bool setJson(const slib::Json& json) noexcept;
 
 #define SLIB_DECLARE_CLASS_SERIALIZE_MEMBERS \
 	template <class OUTPUT> sl_bool serialize(OUTPUT* output) const; \
@@ -58,7 +58,7 @@
 	SLIB_DECLARE_CLASS_SERIALIZE_MEMBERS
 
 #define SLIB_DECLARE_CLASS_STRING_MEMBERS(CLASS) \
-	String toString() const noexcept; \
+	slib::String toString() const noexcept; \
 	SLIB_DECLARE_CLASS_PARSE_MEMBERS(CLASS)
 
 #define SLIB_DECLARE_CLASS_COMMON_MEMBERS(CLASS) \
