@@ -26,6 +26,7 @@
 #include "service/web.h"
 #include "service/ginger.h"
 #include "service/captcha.h"
+#include "service/keygen.h"
 
 #include "service/push_notification.h"
 #include "service/fcm.h"

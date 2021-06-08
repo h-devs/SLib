@@ -1403,5 +1403,8 @@
     <ClCompile Include="..\..\src\slib\db\dl_win32_libmysql.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\service\keygen.cpp">
+      <Filter>src\service</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

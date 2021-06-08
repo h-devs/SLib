@@ -298,6 +298,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/service/chat_sqlite.cpp"
  "${SLIB_PATH}/src/slib/service/fcm_service.cpp"
  "${SLIB_PATH}/src/slib/service/ginger.cpp"
+ "${SLIB_PATH}/src/slib/service/keygen.cpp"
  "${SLIB_PATH}/src/slib/service/push_notification.cpp"
  "${SLIB_PATH}/src/slib/service/web_service.cpp"
  "${SLIB_PATH}/src/slib/service/xgpush_service.cpp"

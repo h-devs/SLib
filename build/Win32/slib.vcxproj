@@ -342,6 +342,7 @@
     <ClCompile Include="..\..\src\slib\service\chat_sqlite.cpp" />
     <ClCompile Include="..\..\src\slib\service\fcm_service.cpp" />
     <ClCompile Include="..\..\src\slib\service\ginger.cpp" />
+    <ClCompile Include="..\..\src\slib\service\keygen.cpp" />
     <ClCompile Include="..\..\src\slib\service\push_notification.cpp" />
     <ClCompile Include="..\..\src\slib\service\web_service.cpp" />
     <ClCompile Include="..\..\src\slib\service\xgpush_service.cpp" />
