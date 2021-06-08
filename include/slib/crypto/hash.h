@@ -37,7 +37,7 @@ namespace slib
 	class SLIB_EXPORT CryptoHash
 	{
 	public:
-		void execute(const void* input, sl_size n, void* output)
+		void execute(const void* input, sl_size n, void* output) noexcept
 		{
 			CLASS& h = *((CLASS*)this);
 			h.start();
@@ -45,7 +45,7 @@ namespace slib
 			h.finish(output);
 		}
 		
-		static void hash(const void* input, sl_size n, void* output)
+		static void hash(const void* input, sl_size n, void* output) noexcept
 		{
 			CLASS h;
 			h.start();
@@ -53,38 +53,38 @@ namespace slib
 			h.finish(output);
 		}
 		
-		static void hash(const String& s, void* output)
+		static void hash(const StringData& s, void* output) noexcept
 		{
 			hash(s.getData(), s.getLength(), output);
 		}
 		
-		static void hash(const Memory& data, void* output)
+		static void hash(const Memory& data, void* output) noexcept
 		{
 			hash(data.getData(), data.getSize(), output);
 		}
 		
-		static Memory hash(const void* input, sl_size n)
+		static Memory hash(const void* input, sl_size n) noexcept
 		{
 			char v[CLASS::HashSize];
 			hash(input, n, v);
 			return Memory::create(v, CLASS::HashSize);
 		}
 		
-		static Memory hash(const String& s)
+		static Memory hash(const StringData& s) noexcept
 		{
 			char v[CLASS::HashSize];
 			hash(s.getData(), s.getLength(), v);
 			return Memory::create(v, CLASS::HashSize);
 		}
 		
-		static Memory hash(const Memory& data)
+		static Memory hash(const Memory& data) noexcept
 		{
 			char v[CLASS::HashSize];
 			hash(data.getData(), data.getSize(), v);
 			return Memory::create(v, CLASS::HashSize);
 		}
 		
-		void applyMask_MGF1(const void* seed, sl_uint32 sizeSeed, void* _target, sl_uint32 sizeTarget)
+		void applyMask_MGF1(const void* seed, sl_uint32 sizeSeed, void* _target, sl_uint32 sizeTarget) noexcept
 		{
 			CLASS* thiz = ((CLASS*)this);
 			sl_uint32 n = CLASS::HashSize;

@@ -46,19 +46,19 @@ namespace slib
 			class SLIB_EXPORT SHA256Base
 			{
 			public:
-				SHA256Base();
+				SHA256Base() noexcept;
 
 				~SHA256Base();
 
 			public:
-				void update(const void* input, sl_size n);
+				void update(const void* input, sl_size n) noexcept;
 			
 			protected:
-				void _start();
+				void _start() noexcept;
 
-				void _finish();
+				void _finish() noexcept;
 
-				void _updateSection(const sl_uint8* input);
+				void _updateSection(const sl_uint8* input) noexcept;
 			
 			protected:
 				sl_size sizeTotalInput;
@@ -70,19 +70,19 @@ namespace slib
 			class SLIB_EXPORT SHA512Base
 			{
 			public:
-				SHA512Base();
+				SHA512Base() noexcept;
 
 				~SHA512Base();
 			
 			public:
-				void update(const void* input, sl_size n);
+				void update(const void* input, sl_size n) noexcept;
 			
 			protected:
-				void _start();
+				void _start() noexcept;
 
-				void _finish();
+				void _finish() noexcept;
 
-				void _updateSection(const sl_uint8* input);
+				void _updateSection(const sl_uint8* input) noexcept;
 			
 			protected:
 				sl_size sizeTotalInput;
@@ -104,14 +104,14 @@ namespace slib
 		};
 		
 	public:
-		SHA224();
+		SHA224() noexcept;
 
 		~SHA224();
 
 	public:
-		void start();
+		void start() noexcept;
 
-		void finish(void* output);
+		void finish(void* output) noexcept;
 
 	};
 	
@@ -124,17 +124,17 @@ namespace slib
 		};
 		
 	public:
-		SHA256();
+		SHA256() noexcept;
 
 		~SHA256();
 
 	public:
-		void start();
+		void start() noexcept;
 
-		void finish(void* output);
+		void finish(void* output) noexcept;
 
 	public:
-		static sl_uint32 make32bitChecksum(const void* input, sl_size n);
+		static sl_uint32 make32bitChecksum(const void* input, sl_size n) noexcept;
 
 	};
 	
@@ -147,14 +147,14 @@ namespace slib
 		};
 		
 	public:
-		SHA384();
+		SHA384() noexcept;
 
 		~SHA384();
 
 	public:
-		void start();
+		void start() noexcept;
 
-		void finish(void* output);
+		void finish(void* output) noexcept;
 
 	};
 	
@@ -167,14 +167,14 @@ namespace slib
 		};
 		
 	public:
-		SHA512();
+		SHA512() noexcept;
 
 		~SHA512();
 
 	public:
-		void start();
+		void start() noexcept;
 
-		void finish(void* output);
+		void finish(void* output) noexcept;
 
 	};
 
