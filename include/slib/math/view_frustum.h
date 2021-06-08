@@ -46,7 +46,7 @@ namespace slib
 		ViewFrustumT() = default;
 
 		template <class O>
-		constepxr ViewFrustumT(const ViewFrustumT<O>& other): MVP(other.MVP) {}
+		constexpr ViewFrustumT(const ViewFrustumT<O>& other): MVP(other.MVP) {}
 
 	public:
 		static const ViewFrustumT<T>& fromMVP(const Matrix4T<T>& MVP) noexcept
