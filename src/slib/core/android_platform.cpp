@@ -24,10 +24,10 @@
 
 #ifdef SLIB_PLATFORM_IS_ANDROID
 
-#include "slib/core/platform_android.h"
-
+#include "slib/core/platform.h"
 #include "slib/core/memory_output.h"
 #include "slib/core/safe_static.h"
+#include "slib/core/java/input_stream.h"
 
 namespace slib
 {
@@ -105,7 +105,7 @@ namespace slib
 			if (arr.isNotNull()) {
 				MemoryOutput writer;
 				while (1) {
-					sl_int32 n = Jni::readFromInputStream(is, arr);
+					sl_int32 n = java::InputStream::readStream(is, arr);
 					if (n > 0) {
 						Jni::getByteArrayRegion(arr, 0, n, buf);
 						writer.write(buf, n);
@@ -113,7 +113,7 @@ namespace slib
 						break;
 					}
 				}
-				Jni::closeInputStream(is);
+				java::InputStream::closeStream(is);
 				return writer.getData();
 			}
 		}

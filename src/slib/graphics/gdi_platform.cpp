@@ -22,7 +22,7 @@
 
 #include "slib/graphics/definition.h"
 
-#if defined(SLIB_PLATFORM_IS_WIN32)
+#if defined(SLIB_GRAPHICS_IS_GDI)
 
 #include "slib/graphics/platform.h"
 

@@ -26,7 +26,7 @@
 #include "slib/ui/core.h"
 
 #if defined(SLIB_UI_IS_ANDROID)
-#	include "slib/core/platform_android.h"
+#	include "slib/core/platform.h"
 #endif
 
 namespace slib

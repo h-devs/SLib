@@ -262,7 +262,7 @@ Edit `CMakeLists.txt` in your app module as following.
 Edit the main cpp file (for example, `native-lib.cpp`), and insert the following code snippet.
 
 ```
-#include <slib/core/platform_android.h>
+#include <slib/core/platform.h>
 
 JNIEXPORT jint JNI_OnLoad(JavaVM* jvm, void* reserved)
 {

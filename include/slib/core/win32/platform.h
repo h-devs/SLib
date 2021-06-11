@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,19 +20,19 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_PLATFORM_WINDOWS
-#define CHECKHEADER_SLIB_CORE_PLATFORM_WINDOWS
+#ifndef CHECKHEADER_SLIB_CORE_WIN32_PLATFORM
+#define CHECKHEADER_SLIB_CORE_WIN32_PLATFORM
 
-#include "definition.h"
+#include "../definition.h"
 
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
+#if defined(SLIB_PLATFORM_IS_WIN32)
 
-#include "windows.h"
+#include "../windows.h"
 
-#include "string.h"
-#include "list.h"
-#include "time.h"
-#include "event.h"
+#include "../string.h"
+#include "../list.h"
+#include "../time.h"
+#include "../event.h"
 
 namespace slib
 {
@@ -110,7 +110,7 @@ namespace slib
 
 	typedef sl_bool(*WINDOWS_DEBUG_ALLOC_HOOK)(void* ptr, sl_size size, sl_uint32 requestNumber);
 	
-	class SLIB_EXPORT Windows
+	class SLIB_EXPORT Win32
 	{
 	public:
 		static String getStringFromGUID(const GUID& guid);
@@ -165,11 +165,6 @@ namespace slib
 		static String getSystemWow64Directory();
 
 		static HANDLE createDeviceHandle(const StringParam& path, DWORD dwDesiredAccess, DWORD dwShareMode);
-
-
-		static sl_bool installDriver(const StringParam& pathToInf, const StringParam& hardwareId, sl_bool* pOutRebootRequired = sl_null);
-		
-		static sl_bool uninstallDriver(const StringParam& hardwareIds, sl_bool* pOutRebootRequired = sl_null);
 
 
 		static sl_bool isWindowVisible(HWND hWnd);

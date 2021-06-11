@@ -29,7 +29,7 @@
 
 #include "slib/core/hash_map.h"
 #include "slib/core/dl/win32/kernel32.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 
 #include <winioctl.h>
 
@@ -154,7 +154,7 @@ namespace slib
 		}
 
 		if (mode & FileMode::Device) {
-			return (sl_file)(Windows::createDeviceHandle(_filePath, dwDesiredAccess, dwShareMode));
+			return (sl_file)(Win32::createDeviceHandle(_filePath, dwDesiredAccess, dwShareMode));
 		}
 
 		DWORD dwCreateDisposition = 0;

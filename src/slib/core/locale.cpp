@@ -977,7 +977,7 @@ namespace slib
 
 #elif defined(SLIB_PLATFORM_IS_ANDROID)
 
-#include "slib/core/platform_android.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {

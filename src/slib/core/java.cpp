@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,17 @@
 
 #include "slib/core/java.h"
 #include "slib/core/hash_map.h"
-#include "slib/core/log.h"
 #include "slib/core/safe_static.h"
+
+#ifdef SLIB_PLATFORM_IS_ANDROID
+#include "slib/core/android/log.h"
+#define LOG(...) android::Log("JNI", ##__VA_ARGS__)
+#define LOG_ERROR(...) android::LogError("JNI", ##__VA_ARGS__)
+#else
+#include "slib/core/log.h"
+#define LOG(...) Log("JNI", ##__VA_ARGS__)
+#define LOG_ERROR(...) LogError("JNI", ##__VA_ARGS__)
+#endif
 
 #define JNIVERSION JNI_VERSION_1_4
 
@@ -38,12 +47,6 @@ namespace slib
 	{
 		namespace java
 		{
-
-			static void logJniError(const String& text)
-			{
-				LogError("SLIB_JNI", text);
-			}
-
 
 			JavaVM* g_jvmShared = sl_null;
 			SLIB_THREAD JNIEnv* g_envCurrent = sl_null;
@@ -63,13 +66,6 @@ namespace slib
 			};
 
 			SLIB_SAFE_STATIC_GETTER(SharedContext, getSharedContext)
-
-
-			SLIB_JNI_BEGIN_CLASS(JInputStream, "java/io/InputStream")
-				SLIB_JNI_METHOD(read, "read", "([B)I");
-				SLIB_JNI_METHOD(close, "close", "()V");
-			SLIB_JNI_END_CLASS
-
 
 			JClass::JClass(const char* name)
 			{
@@ -534,11 +530,11 @@ namespace slib
 				for (sl_size i = 0; i < list.count; i++) {
 					JClass* obj = list[i];
 #if defined(JNI_LOG_INIT_LOAD)
-					Log("LOADING JAVA CLASS", obj->name);
+					LOG("LOADING JAVA CLASS", obj->name);
 #endif
 					obj->cls = Jni::getClass(obj->name);
 					if (obj->cls.isNull()) {
-						Log("LOADING JAVA CLASS FAILED", obj->name);
+						LOG_ERROR("LOADING JAVA CLASS FAILED", obj->name);
 					}
 				}
 			}
@@ -552,12 +548,12 @@ namespace slib
 					JniClass cls = obj->gcls->cls;
 					if (cls.isNotNull()) {
 #if defined(JNI_LOG_INIT_LOAD)
-						Log("LOADING JAVA FIELD", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
+						LOG("LOADING JAVA FIELD", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
 #endif
 						obj->cls = cls;
 						obj->id = cls.getFieldID(obj->name, obj->sig);
 						if (obj->id == sl_null) {
-							Log("LOADING JAVA FIELD FAILED", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
+							LOG_ERROR("LOADING JAVA FIELD FAILED", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
 						}
 					}
 				}
@@ -570,12 +566,12 @@ namespace slib
 					JniClass cls = obj->gcls->cls;
 					if (cls.isNotNull()) {
 #if defined(JNI_LOG_INIT_LOAD)
-						Log("LOADING JAVA STATIC FIELD", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
+						LOG("LOADING JAVA STATIC FIELD", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
 #endif
 						obj->cls = cls;
 						obj->id = cls.getStaticFieldID(obj->name, obj->sig);
 						if (obj->id == sl_null) {
-							Log("LOADING JAVA STATIC FIELD FAILED", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
+							LOG_ERROR("LOADING JAVA STATIC FIELD FAILED", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
 						}
 					}
 				}
@@ -588,12 +584,12 @@ namespace slib
 					JniClass cls = obj->gcls->cls;
 					if (cls.isNotNull()) {
 #if defined(JNI_LOG_INIT_LOAD)
-						Log("LOADING JAVA METHOD", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
+						LOG("LOADING JAVA METHOD", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
 #endif
 						obj->cls = cls;
 						obj->id = cls.getMethodID(obj->name, obj->sig);
 						if (obj->id == sl_null) {
-							Log("LOADING JAVA METHOD FAILED", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
+							LOG_ERROR("LOADING JAVA METHOD FAILED", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
 						}
 					}
 				}
@@ -606,12 +602,12 @@ namespace slib
 					JniClass cls = obj->gcls->cls;
 					if (cls.isNotNull()) {
 #if defined(JNI_LOG_INIT_LOAD)
-						Log("LOADING JAVA STATIC METHOD", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
+						LOG("LOADING JAVA STATIC METHOD", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
 #endif
 						obj->cls = cls;
 						obj->id = cls.getStaticMethodID(obj->name, obj->sig);
 						if (obj->id == sl_null) {
-							Log("LOADING JAVA STATIC METHOD FAILED", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
+							LOG_ERROR("LOADING JAVA STATIC METHOD FAILED", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
 						}
 					}
 				}
@@ -624,10 +620,10 @@ namespace slib
 					JniClass cls = obj->gcls->cls;
 					if (cls.isNotNull()) {
 #if defined(JNI_LOG_INIT_LOAD)
-						Log("REGISTERING JAVA NATIVE", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
+						LOG("REGISTERING JAVA NATIVE", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
 #endif
 						if (!cls.registerNative(obj->name, obj->sig, obj->fn)) {
-							Log("REGISTERING JAVA NATIVE FAILED", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
+							LOG_ERROR("REGISTERING JAVA NATIVE FAILED", "%s::%s %s", String(obj->gcls->name), obj->name, obj->sig);
 						}
 					}
 				}
@@ -675,7 +671,7 @@ namespace slib
 				jint res = jvm->AttachCurrentThread((void**)&env, sl_null);
 #endif
 				if ((res < 0) || !env) {
-					logJniError("Failed to attach thread");
+					LOG_ERROR("Failed to attach thread");
 				}
 				Jni::setCurrent(env);
 			}
@@ -703,7 +699,7 @@ namespace slib
 		if (env) {
 			JniLocal<jclass> cls = env->FindClass(className.getData());
 			if (Jni::checkException()) {
-				logJniError(String::join("Exception occurred while finding class: ", className));
+				LOG_ERROR("Exception occurred while finding class: %s", className);
 				Jni::printException();
 				Jni::clearException();
 			} else {
@@ -1059,34 +1055,6 @@ namespace slib
 		}
 	}
 
-	sl_int32 Jni::readFromInputStream(jobject stream, jbyteArray array)
-	{
-		if (stream && array) {
-			sl_int32 n = JInputStream::read.callInt(stream, array);
-			if (n < 0) {
-				n = 0;
-			}
-			if (Jni::checkException()) {
-				n = -1;
-				Jni::printException();
-				Jni::clearException();
-			}
-			return n;
-		}
-		return -1;
-	}
-
-	void Jni::closeInputStream(jobject stream)
-	{
-		if (stream) {
-			JInputStream::close.call(stream);
-			if (Jni::checkException()) {
-				Jni::printException();
-				Jni::clearException();
-			}
-		}
-	}
-
 
 	SLIB_DEFINE_ROOT_OBJECT(CJniGlobalBase)
 
@@ -1233,7 +1201,7 @@ namespace slib
 					ret = env->Call##NAME##MethodV(_this, method, args); \
 				} \
 			} else { \
-				logJniError(String("Failed to get method id - ") + name + " " + sig); \
+				LOG_ERROR("Failed to get method id: %s (%s) ", name, sig); \
 			} \
 		} \
 		va_end(args); \
@@ -1267,7 +1235,7 @@ namespace slib
 				ret = env->CallStatic##NAME##MethodV(cls, method, args); \
 			} \
 		} else { \
-			logJniError(String("Failed to get static method id - ") + name + " " + sig); \
+			LOG_ERROR("Failed to get static method id: %s (%s)", name, sig); \
 		} \
 		va_end(args); \
 		return ret; \
@@ -1312,7 +1280,7 @@ namespace slib
 				ret = env->NewObjectV(cls, method, args);
 			}
 		} else {
-			logJniError(String("Failed to get constructor id - <init> ") + sig);
+			LOG_ERROR("Failed to get constructor id: <init> (%s)", sig);
 		}
 		va_end(args);
 		return ret;
@@ -1348,7 +1316,7 @@ namespace slib
 					env->CallVoidMethodV(_this, method, args);
 				}
 			} else {
-				logJniError(String("Failed to get method id - ") + name + " " + sig);
+				LOG_ERROR("Failed to get method id: %s (%s)", name, sig);
 			}
 		}
 		va_end(args);
@@ -1380,7 +1348,7 @@ namespace slib
 				env->CallStaticVoidMethodV(cls, method, args);
 			}
 		} else {
-			logJniError(String("Failed to get static method id - ") + name + " " + sig);
+			LOG_ERROR("Failed to get static method id: %s (%s)", name, sig);
 		}
 		va_end(args);
 	}
@@ -1419,7 +1387,7 @@ namespace slib
 					}
 				}
 			} else {
-				logJniError(String("Failed to get method id - ") + name + " " + sig);
+				LOG_ERROR("Failed to get method id: %s (%s)", name, sig);
 			}
 		}
 		va_end(args);
@@ -1461,7 +1429,7 @@ namespace slib
 				}
 			}
 		} else {
-			logJniError(String("Failed to get static method id - ") + name + " " + sig);
+			LOG_ERROR("Failed to get static method id: %s (%s)", name, sig);
 		}
 		va_end(args);
 		return ret;
@@ -1488,7 +1456,7 @@ namespace slib
 					return env->Get##NAME##Field(_this, field); \
 				} \
 			} else { \
-				logJniError(String("Failed to get field id - ") + name + " " + sig); \
+				LOG_ERROR("Failed to get field id: %s (%s)", name, sig); \
 			} \
 		} \
 		return 0; \
@@ -1514,7 +1482,7 @@ namespace slib
 				return env->GetStatic##NAME##Field(cls, field); \
 			} \
 		} else { \
-			logJniError(String("Failed to get static field id - ") + name + " " + sig); \
+			LOG_ERROR("Failed to get static field id: %s (%s)", name, sig); \
 		} \
 		return 0; \
 	} \
@@ -1537,7 +1505,7 @@ namespace slib
 					env->Set##NAME##Field(_this, field, value); \
 				} \
 			} else { \
-				logJniError(String("Failed to get field id - ") + name + " " + sig); \
+				LOG_ERROR("Failed to get field id: %s (%s)", name, sig); \
 			} \
 		} \
 	} \
@@ -1561,7 +1529,7 @@ namespace slib
 				env->SetStatic##NAME##Field(cls, field, value); \
 			} \
 		} else { \
-			logJniError(String("Failed to get static field id - ") + name + " " + sig); \
+			LOG_ERROR("Failed to get static field id: %s (%s)", name, sig); \
 		} \
 	}
 

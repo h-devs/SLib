@@ -27,7 +27,7 @@
 #include "slib/storage/disk.h"
 
 #include "slib/core/scoped_buffer.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 
 #include <winioctl.h>
 

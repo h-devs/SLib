@@ -28,7 +28,7 @@
 #include "slib/core/variant.h"
 #include "slib/core/safe_static.h"
 
-#include "slib/core/platform_apple.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {

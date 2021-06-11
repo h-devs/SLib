@@ -28,7 +28,7 @@
 
 #include "slib/ui/mobile_app.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/platform_tizen.h"
+#include "slib/core/platform.h"
 
 #include "view_efl.h"
 

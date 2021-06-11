@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,9 @@
 
 #include "slib/core/definition.h"
 
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
+#if defined(SLIB_PLATFORM_IS_WIN32)
 
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/variant.h"
@@ -40,7 +40,7 @@
 namespace slib
 {
 
-	String Windows::getStringFromGUID(const GUID& guid)
+	String Win32::getStringFromGUID(const GUID& guid)
 	{
 		WCHAR sz[40] = { 0 };
 		if (StringFromGUID2(guid, sz, 40) < 40) {
@@ -49,7 +49,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool Windows::getGUIDFromString(const String& _str, GUID* pguid)
+	sl_bool Win32::getGUIDFromString(const String& _str, GUID* pguid)
 	{
 		StringCstr16 str(_str);
 		CLSID clsid;
@@ -63,7 +63,7 @@ namespace slib
 		return sl_false;
 	}
 
-	HGLOBAL Windows::createGlobalData(const void* data, sl_size size)
+	HGLOBAL Win32::createGlobalData(const void* data, sl_size size)
 	{
 		HGLOBAL handle = GlobalAlloc(GMEM_MOVEABLE, size);
 		if (handle) {
@@ -76,7 +76,7 @@ namespace slib
 		return handle;
 	}
 
-	void Windows::setDebugFlags()
+	void Win32::setDebugFlags()
 	{
 #ifdef SLIB_DEBUG
 		int flag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
@@ -91,16 +91,18 @@ namespace slib
 	{
 		namespace platform
 		{
+
 			WINDOWS_DEBUG_ALLOC_HOOK g_debugAllocHook;
 
 			int DebugAllocHook(int allocType, void* userData, size_t size, int blockType, long requestNumber, const unsigned char* filename, int lineNumber)
 			{
 				return g_debugAllocHook(userData, (sl_size)size, (sl_uint32)requestNumber);
 			}
+
 		}
 	}
 
-	void Windows::setDebugAllocHook(WINDOWS_DEBUG_ALLOC_HOOK hook)
+	void Win32::setDebugAllocHook(WINDOWS_DEBUG_ALLOC_HOOK hook)
 	{
 #ifdef SLIB_DEBUG
 		priv::platform::g_debugAllocHook = hook;
@@ -108,7 +110,7 @@ namespace slib
 #endif
 	}
 
-	sl_bool Windows::getRegistryValue(HKEY hKeyParent, const StringParam& _path, const StringParam& _name, Variant* out)
+	sl_bool Win32::getRegistryValue(HKEY hKeyParent, const StringParam& _path, const StringParam& _name, Variant* out)
 	{
 		if (!hKeyParent) {
 			return sl_false;
@@ -207,7 +209,7 @@ namespace slib
 		return flagSuccess;
 	}
 
-	sl_bool Windows::setRegistryValue(HKEY hKeyParent, const StringParam& _path, const StringParam& _name, const Variant& value)
+	sl_bool Win32::setRegistryValue(HKEY hKeyParent, const StringParam& _path, const StringParam& _name, const Variant& value)
 	{
 		if (!hKeyParent) {
 			return sl_false;
@@ -266,7 +268,7 @@ namespace slib
 		return flagSuccess;
 	}
 
-	void Windows::setApplicationRunAtStartup(const StringParam& _appName, const StringParam& _path, sl_bool flagRegister)
+	void Win32::setApplicationRunAtStartup(const StringParam& _appName, const StringParam& _path, sl_bool flagRegister)
 	{
 		StringCstr16 appName(_appName);
 		StringCstr16 path(_path);
@@ -401,12 +403,12 @@ namespace slib
 		}
 	}
 
-	WindowsVersion Windows::getVersion()
+	WindowsVersion Win32::getVersion()
 	{
 		return priv::platform::GetWindowsVersion();
 	}
 
-	sl_bool Windows::is64BitSystem()
+	sl_bool Win32::is64BitSystem()
 	{
 #ifdef SLIB_PLATFORM_IS_WIN64
 		return sl_true;
@@ -426,7 +428,7 @@ namespace slib
 #endif
 	}
 
-	WindowsDllVersion Windows::getDllVersion(const StringParam& _pathDll)
+	WindowsDllVersion Win32::getDllVersion(const StringParam& _pathDll)
 	{
 		StringCstr16 pathDll(_pathDll);
 		WindowsDllVersion ret;
@@ -452,7 +454,7 @@ namespace slib
 		return ret;
 	}
 
-	sl_bool Windows::isCurrentProcessInAdminGroup()
+	sl_bool Win32::isCurrentProcessInAdminGroup()
 	{
 		BOOL flagResult = FALSE;
 		HANDLE hToken;
@@ -491,7 +493,7 @@ namespace slib
 		return flagResult != FALSE;
 	}
 
-	sl_bool Windows::isCurrentProcessRunAsAdmin()
+	sl_bool Win32::isCurrentProcessRunAsAdmin()
 	{
 		BOOL flagResult = FALSE;
 		SID_IDENTIFIER_AUTHORITY siAuthority = SECURITY_NT_AUTHORITY;
@@ -513,7 +515,7 @@ namespace slib
 		nShow = SW_NORMAL;
 	}
 
-	sl_bool Windows::shell(const ShellExecuteParam& param)
+	sl_bool Win32::shell(const ShellExecuteParam& param)
 	{
 		SHELLEXECUTEINFOW sei;
 		Base::zeroMemory(&sei, sizeof(sei));
@@ -551,7 +553,7 @@ namespace slib
 		flagOpenDesktop = sl_false;
 	}
 
-	sl_bool Windows::shell(const ShellOpenFolderAndSelectItemsParam& param)
+	sl_bool Win32::shell(const ShellOpenFolderAndSelectItemsParam& param)
 	{
 		sl_bool bRet = sl_false;
 
@@ -599,7 +601,7 @@ namespace slib
 	}
 
 
-	sl_bool Windows::getSYSTEMTIME(const Time& time, sl_bool flagUTC, SYSTEMTIME* _out)
+	sl_bool Win32::getSYSTEMTIME(const Time& time, sl_bool flagUTC, SYSTEMTIME* _out)
 	{
 		SYSTEMTIME& st = *_out;
 		sl_int64 n = (time.toInt() + SLIB_INT64(11644473600000000)) * 10;  // Convert 1970 Based (time_t mode) to 1601 Based (FILETIME mode)
@@ -619,7 +621,7 @@ namespace slib
 		return sl_true;
 	}
 
-	Time Windows::getTime(const SYSTEMTIME* _in, sl_bool flagUTC)
+	Time Win32::getTime(const SYSTEMTIME* _in, sl_bool flagUTC)
 	{
 		const SYSTEMTIME& st = *_in;
 		sl_int64 n = 0;
@@ -633,28 +635,28 @@ namespace slib
 		return n / 10 - SLIB_INT64(11644473600000000);  // Convert 1601 Based (FILETIME mode) to 1970 Based (time_t mode)
 	}
 
-	String Windows::getWindowsDirectory()
+	String Win32::getWindowsDirectory()
 	{
 		WCHAR path[MAX_PATH];
 		UINT nLen = GetWindowsDirectoryW(path, MAX_PATH);
 		return String::from(path, nLen);
 	}
 
-	String Windows::getSystemDirectory()
+	String Win32::getSystemDirectory()
 	{
 		WCHAR path[MAX_PATH];
 		UINT nLen = GetSystemDirectoryW(path, MAX_PATH);
 		return String::from(path, nLen);
 	}
 
-	String Windows::getSystemWow64Directory()
+	String Win32::getSystemWow64Directory()
 	{
 		WCHAR path[MAX_PATH];
 		UINT nLen = GetSystemWow64DirectoryW(path, MAX_PATH);
 		return String::from(path, nLen);
 	}
 
-	HANDLE Windows::createDeviceHandle(const StringParam& _path, DWORD dwDesiredAccess, DWORD dwShareMode)
+	HANDLE Win32::createDeviceHandle(const StringParam& _path, DWORD dwDesiredAccess, DWORD dwShareMode)
 	{
 		StringCstr16 path(_path);
 		sl_char16 tmpDosName[] = SLIB_UNICODE("\\\\.\\A:");
@@ -676,7 +678,7 @@ namespace slib
 		return CreateFileW((LPCWSTR)(path.getData()), dwDesiredAccess, dwShareMode, NULL, OPEN_EXISTING, 0, NULL);
 	}
 
-	sl_bool Windows::isWindowVisible(HWND hWnd)
+	sl_bool Win32::isWindowVisible(HWND hWnd)
 	{
 		if (!(IsWindow(hWnd))) {
 			return sl_false;

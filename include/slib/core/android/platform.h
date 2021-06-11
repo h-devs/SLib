@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,24 +20,48 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_PLATFORM_TIZEN
-#define CHECKHEADER_SLIB_CORE_PLATFORM_TIZEN
+#ifndef CHECKHEADER_SLIB_CORE_ANDROID_PLATFORM
+#define CHECKHEADER_SLIB_CORE_ANDROID_PLATFORM
 
-#include "definition.h"
+#include "../definition.h"
 
-#ifdef SLIB_PLATFORM_IS_TIZEN
+#ifdef SLIB_PLATFORM_IS_ANDROID
 
-#include "string.h"
+#include "../java.h"
 
 namespace slib
 {
-
-	// specific functions for Tizen
-	class SLIB_EXPORT Tizen
+	
+	class SLIB_EXPORT Android
 	{
 	public:
-		static String getAssetFilePath(const StringParam& path);
+		static void initialize(JavaVM* jvm);
+		
+		static sl_uint32 getSdkVersion();
 
+
+		static jobject getCurrentActivity();
+
+		static void setCurrentActivity(jobject activity);
+	
+
+		static void finishActivity();
+
+		static void finishActivity(jobject activity);
+	
+
+		static jobject openAssetFile(const StringParam& path);
+
+		static Memory readAllBytesFromAsset(const StringParam& path);
+
+
+		static void showKeyboard();
+	
+		static void dismissKeyboard();
+
+
+		static void sendFile(const StringParam& filePath, const StringParam& mimeType, const StringParam& chooserTitle = sl_null);
+	
 	};
 
 }

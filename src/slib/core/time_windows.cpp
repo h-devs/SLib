@@ -26,7 +26,7 @@
 
 #include "slib/core/time.h"
 
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {
@@ -34,7 +34,7 @@ namespace slib
 	sl_bool Time::_get(TimeComponents& output, sl_bool flagUTC) const noexcept
 	{
 		SYSTEMTIME st;
-		if (!(Windows::getSYSTEMTIME(*this, flagUTC, &st))) {
+		if (!(Win32::getSYSTEMTIME(*this, flagUTC, &st))) {
 			return sl_false;
 		}
 		output.year = st.wYear;
@@ -58,7 +58,7 @@ namespace slib
 		st.wMinute = (WORD)minute;
 		st.wSecond = (WORD)second;
 		st.wMilliseconds = 0;
-		return Windows::getTime(&st, flagUTC).toInt();
+		return Win32::getTime(&st, flagUTC).toInt();
 	}
 
 	void Time::_setNow() noexcept

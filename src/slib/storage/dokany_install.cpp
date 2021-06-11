@@ -28,7 +28,7 @@
 #include "slib/core/file_util.h"
 #include "slib/core/process.h"
 #include "slib/core/dynamic_library.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 #include "slib/core/log.h"
 
 #include "slib/crypto/zlib.h"
@@ -50,7 +50,7 @@ namespace slib
 				static sl_bool flagFirst = sl_true;
 				static sl_bool flagDokany = sl_false;
 				if (flagFirst) {
-					flagDokany = Windows::getVersion() >= WindowsVersion::Windows7_SP1;
+					flagDokany = Win32::getVersion() >= WindowsVersion::Windows7_SP1;
 					flagFirst = sl_false;
 				}
 				return flagDokany;
@@ -68,23 +68,23 @@ namespace slib
 			static String GetDriverPath(sl_bool flagDokany)
 			{
 				if (flagDokany) {
-					return Windows::getSystemDirectory() + "\\drivers\\dokan1.sys";
+					return Win32::getSystemDirectory() + "\\drivers\\dokan1.sys";
 				} else {
-					return Windows::getSystemDirectory() + "\\drivers\\dokan.sys";
+					return Win32::getSystemDirectory() + "\\drivers\\dokan.sys";
 				}
 			}
 
 			static String GetCatalogPath(/*sl_bool flagDokany = sl_true*/)
 			{
-				return Windows::getSystemDirectory() + "\\catroot\\{F750E6C3-38EE-11D1-85E5-00C04FC295EE}\\dokan1.cat";
+				return Win32::getSystemDirectory() + "\\catroot\\{F750E6C3-38EE-11D1-85E5-00C04FC295EE}\\dokan1.cat";
 			}
 
 			static String GetLibraryPath(sl_bool flagDokany)
 			{
 				if (flagDokany) {
-					return Windows::getSystemDirectory() + "\\dokan1.dll";
+					return Win32::getSystemDirectory() + "\\dokan1.dll";
 				} else {
-					return Windows::getSystemDirectory() + "\\dokan.dll";
+					return Win32::getSystemDirectory() + "\\dokan.dll";
 				}
 			}
 
@@ -145,7 +145,7 @@ namespace slib
 				data = Zlib::decompress(::dokany::files::dokan_mounter_compressed_data, ::dokany::files::dokan_mounter_compressed_size);
 #else
 				DisableWow64FsRedirectionScope scopeDisableWow64;
-				if (Windows::is64BitSystem()) {
+				if (Win32::is64BitSystem()) {
 					data = Zlib::decompress(::dokany::files::dokan_mounter_compressed_data64, ::dokany::files::dokan_mounter_compressed_size64);
 				} else {
 					data = Zlib::decompress(::dokany::files::dokan_mounter_compressed_data, ::dokany::files::dokan_mounter_compressed_size);
@@ -154,7 +154,7 @@ namespace slib
 				if (data.isNull()) {
 					return sl_false;
 				}
-				String path = Windows::getSystemDirectory() + "\\dokan_mounter.exe";
+				String path = Win32::getSystemDirectory() + "\\dokan_mounter.exe";
 				if (File::writeAllBytes(path, data) != data.getSize()) {
 					return sl_false;
 				}
@@ -244,7 +244,7 @@ namespace slib
 				}
 #else
 				DisableWow64FsRedirectionScope scopeDisableWow64;
-				if (Windows::is64BitSystem()) {
+				if (Win32::is64BitSystem()) {
 					if (flagDokany) {
 						data = Zlib::decompress(::dokany::files::dokan1_sys_compressed_data64, ::dokany::files::dokan1_sys_compressed_size64);
 					} else {

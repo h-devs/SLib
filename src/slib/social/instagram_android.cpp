@@ -27,7 +27,7 @@
 #include "slib/social/instagram.h"
 
 #include "slib/ui/photo.h"
-#include "slib/core/platform_android.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {

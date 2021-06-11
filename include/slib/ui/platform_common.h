@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,28 +20,35 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#ifndef CHECKHEADER_SLIB_UI_PLATFORM_COMMON
+#define CHECKHEADER_SLIB_UI_PLATFORM_COMMON
 
-#if defined(SLIB_PLATFORM_IS_TIZEN)
-
-#include "slib/core/platform_tizen.h"
-
-#include "slib/core/variant.h"
-
-#include <app_common.h>
-#include <stdlib.h>
+#include "../graphics/platform.h"
 
 namespace slib
 {
 
-	String Tizen::getAssetFilePath(const StringParam& path)
-	{
-		char* root = ::app_get_resource_path();
-		String s = String::format("%s/%s", root, path);
-		::free(root);
-		return s;
-	}
-
+	class ViewInstance;
+	class View;
+	class WindowInstance;
+	class Window;
+	
 }
+
+#define PRIV_SLIB_DECLARE_UI_PLATFORM_COMMON_MEMBERS \
+	public: \
+		static void runLoop(sl_uint32 level); \
+		static void quitLoop(); \
+		static void runApp(); \
+		static void quitApp(); \
+	private: \
+		static Ref<ViewInstance> _getViewInstance(const void* handle); \
+		static void _registerViewInstance(const void* handle, ViewInstance* instance); \
+		static void _removeViewInstance(const void* handle); \
+		static Ref<WindowInstance> _getWindowInstance(const void* handle); \
+		static void _registerWindowInstance(const void* handle, WindowInstance* instance); \
+		static void _removeWindowInstance(const void* handle); \
+		static List< Ref<WindowInstance> > _getAllWindowInstances();
+
 
 #endif

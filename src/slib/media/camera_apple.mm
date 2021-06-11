@@ -30,7 +30,7 @@
 #include "slib/core/log.h"
 #include "slib/core/safe_static.h"
 
-#include "slib/core/platform_apple.h"
+#include "slib/core/platform.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <CoreMedia/CoreMedia.h>

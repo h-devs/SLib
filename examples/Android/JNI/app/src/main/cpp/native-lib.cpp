@@ -1,7 +1,7 @@
 #include <jni.h>
 
 #include <slib/core.h>
-#include <slib/core/platform_android.h>
+#include <slib/core/platform.h>
 
 using namespace slib;
 

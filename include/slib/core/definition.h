@@ -67,7 +67,7 @@ typedef __SIZE_TYPE__		sl_size_t;
 
 #	define SLIB_ALIGN(n)	__attribute__((aligned(n)))
 
-#	if __GNUC__ >= 4
+#	if __GNUC__ >= 4 && defined(SLIB_COMPILE_AS_SHARED_LIBRARY)
 #		define SLIB_EXPORT			__attribute__((visibility("default")))
 #		define SLIB_VISIBLE_LOCAL	__attribute__((visibility("hidden")))
 #	else

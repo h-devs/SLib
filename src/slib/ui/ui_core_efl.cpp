@@ -35,7 +35,7 @@
 #include "slib/core/safe_static.h"
 #include "slib/core/scoped_buffer.h"
 
-#include "slib/core/platform_tizen.h"
+#include "slib/core/platform.h"
 
 #include <app.h>
 #include <Ecore.h>

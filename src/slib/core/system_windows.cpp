@@ -26,7 +26,7 @@
 
 #include "slib/core/system.h"
 
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 #include "slib/core/dl/win32/kernel32.h"
 #include "slib/core/dl/win32/wininet.h"
 
@@ -39,7 +39,7 @@
 #include <shlobj.h>
 
 #if defined(SLIB_PLATFORM_IS_UWP)
-using namespace Windows::Storage;
+using namespace Win32::Storage;
 using namespace Platform;
 #endif
 
@@ -325,7 +325,7 @@ namespace slib
 
 	void System::setDebugFlags()
 	{
-		Windows::setDebugFlags();
+		Win32::setDebugFlags();
 	}
 
 	namespace priv
@@ -341,7 +341,7 @@ namespace slib
 	void System::registerApplicationRunAtStartup(const String& path)
 	{
 		String name = File::getFileNameOnly(path);
-		Windows::setApplicationRunAtStartup(name, path, sl_true);
+		Win32::setApplicationRunAtStartup(name, path, sl_true);
 	}
 
 	void System::registerApplicationRunAtStartup()
@@ -351,7 +351,7 @@ namespace slib
 
 	void System::unregisterApplicationRunAtStartup(const String& path)
 	{
-		Windows::setApplicationRunAtStartup(sl_null, path, sl_false);
+		Win32::setApplicationRunAtStartup(sl_null, path, sl_false);
 	}
 
 	void System::unregisterApplicationRunAtStartup()

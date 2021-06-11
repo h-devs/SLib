@@ -27,7 +27,7 @@
 #include "slib/core/preference.h"
 
 #include "slib/core/json.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {
@@ -42,9 +42,9 @@ namespace slib
 			return;
 		}
 		if (value.isNotNull()) {
-			Windows::setRegistryValue(HKEY_CURRENT_USER, "Software\\" + appName, key, value.toJsonString());
+			Win32::setRegistryValue(HKEY_CURRENT_USER, "Software\\" + appName, key, value.toJsonString());
 		} else {
-			Windows::setRegistryValue(HKEY_CURRENT_USER, "Software\\" + appName, key, sl_null);
+			Win32::setRegistryValue(HKEY_CURRENT_USER, "Software\\" + appName, key, sl_null);
 		}
 	}
 
@@ -58,7 +58,7 @@ namespace slib
 			return sl_null;
 		}
 		Variant v;
-		if (Windows::getRegistryValue(HKEY_CURRENT_USER, "Software\\" + appName, key, &v)) {
+		if (Win32::getRegistryValue(HKEY_CURRENT_USER, "Software\\" + appName, key, &v)) {
 			String s = v.getString();
 			if (s.isNotEmpty()) {
 				return Json::parseJson(s);

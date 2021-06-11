@@ -38,7 +38,7 @@
 #include <string>
 
 #ifdef SLIB_PLATFORM_IS_WINDOWS
-#	include "slib/core/platform_windows.h"
+#	include "slib/core/platform.h"
 #endif
 
 #if defined(SLIB_ARCH_IS_32BIT)

@@ -28,7 +28,7 @@
 
 #include "slib/core/thread.h"
 #include "slib/core/log.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 
 #include <initguid.h>
 #include <mmsystem.h>
@@ -274,7 +274,7 @@ namespace slib
 					DeviceProperty prop;
 					if (lpGUID) {
 						prop.guid = *lpGUID;
-						prop.szGuid = Windows::getStringFromGUID(*lpGUID);
+						prop.szGuid = Win32::getStringFromGUID(*lpGUID);
 						prop.name = String::create(lpszDrvName);
 						prop.description = String::create(lpszDesc);
 						list.add_NoLock(prop);
@@ -419,7 +419,7 @@ namespace slib
 					DeviceProperty prop;
 					if (lpGUID) {
 						prop.guid = *lpGUID;
-						prop.szGuid = Windows::getStringFromGUID(*lpGUID);
+						prop.szGuid = Win32::getStringFromGUID(*lpGUID);
 						prop.name = String::create(lpszDrvName);
 						prop.description = String::create(lpszDesc);
 						list.add_NoLock(prop);

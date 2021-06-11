@@ -27,7 +27,7 @@
 #include "slib/core/system.h"
 
 #include "slib/core/file.h"
-#include "slib/core/platform_android.h"
+#include "slib/core/platform.h"
 
 #include <string.h>
 #include <stdio.h>

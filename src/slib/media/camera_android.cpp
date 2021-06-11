@@ -27,7 +27,7 @@
 #include "slib/media/camera.h"
 
 #include "slib/core/hash_map.h"
-#include "slib/core/platform_android.h"
+#include "slib/core/platform.h"
 #include "slib/core/safe_static.h"
 
 namespace slib

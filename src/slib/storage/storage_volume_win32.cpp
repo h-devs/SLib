@@ -27,7 +27,7 @@
 #include "slib/storage/storage.h"
 
 #include "slib/core/service_manager.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 #include "slib/core/win32/message_loop.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/scoped_buffer.h"
@@ -172,7 +172,7 @@ namespace slib
 
 	sl_bool Storage::getVolumeDescription(const StringParam& path, StorageVolumeDescription& _out)
 	{
-		HANDLE hDevice = Windows::createDeviceHandle(path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE);
+		HANDLE hDevice = Win32::createDeviceHandle(path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE);
 		if (hDevice == INVALID_HANDLE_VALUE) {
 			return sl_false;
 		}
@@ -216,7 +216,7 @@ namespace slib
 	
 	sl_bool Storage::isCdromVolume(const StringParam& path)
 	{
-		HANDLE hDevice = Windows::createDeviceHandle(path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE);
+		HANDLE hDevice = Win32::createDeviceHandle(path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE);
 		if (hDevice == INVALID_HANDLE_VALUE) {
 			return sl_false;
 		}
@@ -235,7 +235,7 @@ namespace slib
 
 	sl_bool Storage::removeDevice(const StringParam& volumePath)
 	{
-		HANDLE hDevice = Windows::createDeviceHandle(volumePath, 0, FILE_SHARE_READ | FILE_SHARE_WRITE);
+		HANDLE hDevice = Win32::createDeviceHandle(volumePath, 0, FILE_SHARE_READ | FILE_SHARE_WRITE);
 		if (hDevice == INVALID_HANDLE_VALUE) {
 			return sl_false;
 		}

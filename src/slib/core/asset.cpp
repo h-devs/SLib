@@ -26,9 +26,9 @@
 #include "slib/core/system.h"
 #include "slib/core/app.h"
 
-#include "slib/core/platform_apple.h"
-#include "slib/core/platform_android.h"
-#include "slib/core/platform_tizen.h"
+#include "slib/core/platform.h"
+#include "slib/core/platform.h"
+#include "slib/core/platform.h"
 
 
 #if defined(SLIB_PLATFORM_IS_ANDROID)

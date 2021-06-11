@@ -26,7 +26,7 @@
 
 #include "slib/device/device.h"
 
-#include "slib/core/platform_apple.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {

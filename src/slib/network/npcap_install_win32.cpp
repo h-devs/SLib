@@ -29,7 +29,7 @@
 #include "slib/core/process.h"
 #include "slib/core/file_util.h"
 #include "slib/core/system.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 #include "slib/crypto/zlib.h"
 
 #include "npcap/npcap_files.h"
@@ -74,7 +74,7 @@ namespace slib
 				unsigned char* npfinstall_exe_compressed_data = ::npcap::files::npfinstall_exe_compressed_data64;
 				unsigned long npfinstall_exe_compressed_size = ::npcap::files::npfinstall_exe_compressed_size64;
 #else
-				sl_bool flag64Bit = Windows::is64BitSystem();
+				sl_bool flag64Bit = Win32::is64BitSystem();
 				unsigned char* npcap_inf_compressed_data = flag64Bit ? ::npcap::files::npcap_inf_compressed_data64 : ::npcap::files::npcap_inf_compressed_data86;
 				unsigned long npcap_inf_compressed_size = flag64Bit ? ::npcap::files::npcap_inf_compressed_size64 : ::npcap::files::npcap_inf_compressed_size86;
 				unsigned char* npcap_sys_compressed_data = flag64Bit ? ::npcap::files::npcap_sys_compressed_data64 : ::npcap::files::npcap_sys_compressed_data86;
@@ -145,7 +145,7 @@ namespace slib
 				unsigned char* npfinstall_exe_compressed_data = ::npcap::files::npfinstall_exe_compressed_data64;
 				unsigned long npfinstall_exe_compressed_size = ::npcap::files::npfinstall_exe_compressed_size64;
 #else
-				sl_bool flag64Bit = Windows::is64BitSystem();
+				sl_bool flag64Bit = Win32::is64BitSystem();
 				unsigned char* npfinstall_exe_compressed_data = flag64Bit ? ::npcap::files::npfinstall_exe_compressed_data64 : ::npcap::files::npfinstall_exe_compressed_data86;
 				unsigned long npfinstall_exe_compressed_size = flag64Bit ? ::npcap::files::npfinstall_exe_compressed_size64 : ::npcap::files::npfinstall_exe_compressed_size86;
 #endif

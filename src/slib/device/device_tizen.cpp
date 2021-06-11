@@ -27,7 +27,7 @@
 #include "slib/device/device.h"
 
 #include "slib/core/variant.h"
-#include "slib/core/platform_tizen.h"
+#include "slib/core/platform.h"
 
 #include <system_info.h>
 #include <stdlib.h>

@@ -91,6 +91,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/hash.cpp"
  "${SLIB_PATH}/src/slib/core/io.cpp"
  "${SLIB_PATH}/src/slib/core/java.cpp"
+ "${SLIB_PATH}/src/slib/core/java_input_stream.cpp"
  "${SLIB_PATH}/src/slib/core/json.cpp"
  "${SLIB_PATH}/src/slib/core/list.cpp"
  "${SLIB_PATH}/src/slib/core/locale.cpp"
@@ -196,9 +197,10 @@ set (SLIB_CORE_FILES
 )
 if(ANDROID)
  set (SLIB_CORE_PLATFORM_FILES
+  "${SLIB_PATH}/src/slib/core/android_log.cpp"
+  "${SLIB_PATH}/src/slib/core/android_platform.cpp"
   "${SLIB_PATH}/src/slib/core/app_android.cpp"
   "${SLIB_PATH}/src/slib/core/charset_android.cpp"
-  "${SLIB_PATH}/src/slib/core/platform_android.cpp"
   "${SLIB_PATH}/src/slib/core/preference_android.cpp"
   "${SLIB_PATH}/src/slib/core/system_android.cpp"
   "${SLIB_PATH}/src/slib/network/url_request_android.cpp"

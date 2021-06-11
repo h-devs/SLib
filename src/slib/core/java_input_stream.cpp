@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,52 +20,65 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_PLATFORM_ANDROID
-#define CHECKHEADER_SLIB_CORE_PLATFORM_ANDROID
+#include "slib/core/definition.h"
 
-#include "definition.h"
+#ifdef SLIB_PLATFORM_USE_JNI
 
-#ifdef SLIB_PLATFORM_IS_ANDROID
+#include "slib/core/java/input_stream.h"
 
-#include "java.h"
+#include "slib/core/java.h"
 
 namespace slib
 {
-	
-	class SLIB_EXPORT Android
+
+	namespace priv
 	{
-	public:
-		static void initialize(JavaVM* jvm);
-		
-		static sl_uint32 getSdkVersion();
+		namespace java_input_stream
+		{
 
+			SLIB_JNI_BEGIN_CLASS(JInputStream, "java/io/InputStream")
+				SLIB_JNI_METHOD(read, "read", "([B)I");
+				SLIB_JNI_METHOD(close, "close", "()V");
+			SLIB_JNI_END_CLASS
 
-		static jobject getCurrentActivity();
+		}
+	}
 
-		static void setCurrentActivity(jobject activity);
-	
+	using namespace priv::java_input_stream;
 
-		static void finishActivity();
+	namespace java
+	{
 
-		static void finishActivity(jobject activity);
-	
+		sl_int32 InputStream::readStream(jobject stream, jbyteArray array)
+		{
+			if (stream && array) {
+				sl_int32 n = JInputStream::read.callInt(stream, array);
+				if (n < 0) {
+					n = 0;
+				}
+				if (Jni::checkException()) {
+					n = -1;
+					Jni::printException();
+					Jni::clearException();
+				}
+				return n;
+			}
+			return -1;
+		}
 
-		static jobject openAssetFile(const StringParam& path);
+		void InputStream::closeStream(jobject stream)
+		{
+			if (stream) {
+				JInputStream::close.call(stream);
+				if (Jni::checkException()) {
+					Jni::printException();
+					Jni::clearException();
+				}
+			}
+		}
 
-		static Memory readAllBytesFromAsset(const StringParam& path);
-
-
-		static void showKeyboard();
-	
-		static void dismissKeyboard();
-
-
-		static void sendFile(const StringParam& filePath, const StringParam& mimeType, const StringParam& chooserTitle = sl_null);
-	
-	};
+	}
 
 }
-
-#endif
 
 #endif

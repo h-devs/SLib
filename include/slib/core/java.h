@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -152,10 +152,6 @@ namespace slib
 		static void clearException();
 		static void printException();
 
-		// input stream
-		static sl_int32 readFromInputStream(jobject stream, jbyteArray array);
-		static void closeInputStream(jobject stream);
-	
 	};
 
 

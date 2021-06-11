@@ -56,7 +56,7 @@ namespace slib
 					if (handle) {
 						SYSTEMTIME st;
 						if (GDT_VALID == SendMessageW(handle, DTM_GETSYSTEMTIME, 0, (LPARAM)&st)) {
-							_out = Windows::getTime(&st, sl_false);
+							_out = Win32::getTime(&st, sl_false);
 							return sl_true;
 						}
 					}
@@ -68,7 +68,7 @@ namespace slib
 					HWND handle = m_handle;
 					if (handle) {
 						SYSTEMTIME st;
-						Windows::getSYSTEMTIME(time, sl_false, &st);
+						Win32::getSYSTEMTIME(time, sl_false, &st);
 						SendMessageW(handle, DTM_SETSYSTEMTIME, GDT_VALID, (LPARAM)&st);
 					}
 				}

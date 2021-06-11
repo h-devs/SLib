@@ -31,7 +31,7 @@
 #include "slib/core/windows.h"
 #include <stdio.h>
 #elif defined(SLIB_PLATFORM_IS_ANDROID)
-#include <android/log.h>
+#include "slib/core/android/log.h"
 #elif defined(SLIB_PLATFORM_IS_TIZEN)
 #include <dlog.h>
 #else
@@ -128,10 +128,8 @@ namespace slib
 		void log(const StringParam& _tag, const StringParam& _content) override
 		{
 #if defined(SLIB_PLATFORM_IS_ANDROID)
-			StringCstr tag(_tag);
-			StringCstr content(_content);
 			ObjectLocker lock(this);
-			__android_log_print(ANDROID_LOG_INFO, tag.getData(), "%s", content.getData());
+			android::Log(_tag, _content);
 #elif defined(SLIB_PLATFORM_IS_TIZEN)
 			StringCstr tag(_tag);
 			StringCstr content(_content);
@@ -154,10 +152,8 @@ namespace slib
 		void logError(const StringParam& _tag, const StringParam& _content) override
 		{
 #if defined(SLIB_PLATFORM_IS_ANDROID)
-			StringCstr tag(_tag);
-			StringCstr content(_content);
 			ObjectLocker lock(this);
-			__android_log_print(ANDROID_LOG_ERROR, tag.getData(), "%s", content.getData());
+			android::LogError(_tag, _content);
 #elif defined(SLIB_PLATFORM_IS_TIZEN)
 			StringCstr tag(_tag);
 			StringCstr content(_content);

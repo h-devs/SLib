@@ -402,7 +402,7 @@ namespace slib
 		ShellOpenFolderAndSelectItemsParam param;
 		param.path = dir;
 		param.items.add(path);
-		Windows::shell(param);
+		Win32::shell(param);
 	}
 
 	void UI::setBadgeNumber(sl_uint32 num)
@@ -452,7 +452,7 @@ namespace slib
 
 	sl_bool UIPlatform::isWindowVisible(HWND hWnd)
 	{
-		return Windows::isWindowVisible(hWnd);
+		return Win32::isWindowVisible(hWnd);
 	}
 
 	String UIPlatform::getWindowText(HWND hWnd)

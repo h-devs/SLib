@@ -120,7 +120,7 @@ namespace slib
 #include <ws2tcpip.h>
 #include <netioapi.h>
 
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 #include "slib/network/dl/win32/iphlpapi.h"
 
 #pragma comment(lib, "ws2_32.lib")
@@ -190,7 +190,7 @@ namespace slib
 									IPv4AddressInfo a4;
 									a4.address = sa.ip.getIPv4();
 									sl_uint32 networkPrefixLength = 0;
-									if (Windows::getVersion() >= WindowsVersion::Vista) {
+									if (Win32::getVersion() >= WindowsVersion::Vista) {
 										networkPrefixLength = ((IP_ADAPTER_UNICAST_ADDRESS_LH*)pip)->OnLinkPrefixLength;
 									} else {
 										sl_size indexTable = 0;
@@ -231,7 +231,7 @@ namespace slib
 
 #elif defined(SLIB_PLATFORM_IS_ANDROID)
 
-#include "slib/core/platform_android.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {

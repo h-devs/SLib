@@ -28,7 +28,7 @@
 #include "slib/render/opengl.h"
 
 #include "slib/core/hash_map.h"
-#include "slib/core/platform_android.h"
+#include "slib/core/platform.h"
 #include "slib/core/safe_static.h"
 
 #include <GLES2/gl2.h>

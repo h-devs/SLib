@@ -29,7 +29,7 @@
 #include "slib/core/function.h"
 #include "slib/core/safe_static.h"
 
-#include "slib/core/platform_android.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {

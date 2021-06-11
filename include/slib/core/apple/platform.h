@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,15 +20,15 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_PLATFORM_APPLE
-#define CHECKHEADER_SLIB_CORE_PLATFORM_APPLE
+#ifndef CHECKHEADER_SLIB_CORE_APPLE_PLATFORM
+#define CHECKHEADER_SLIB_CORE_APPLE_PLATFORM
 
-#include "definition.h"
+#include "../definition.h"
 
 #ifdef SLIB_PLATFORM_IS_APPLE
 
-#include "string.h"
-#include "time.h"
+#include "../string.h"
+#include "../time.h"
 
 #ifdef __OBJC__
 #import <Foundation/Foundation.h>

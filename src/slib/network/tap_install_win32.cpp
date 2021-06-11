@@ -29,7 +29,8 @@
 #include "slib/core/process.h"
 #include "slib/core/file_util.h"
 #include "slib/core/system.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
+#include "slib/core/win32/setup.h"
 #include "slib/crypto/zlib.h"
 
 #include "tap/tap_files.h"
@@ -67,7 +68,7 @@ namespace slib
 				unsigned char* tap_cat_compressed_data = ::tap::files::tap_cat_compressed_data64;
 				unsigned long tap_cat_compressed_size = ::tap::files::tap_cat_compressed_size64;
 #else
-				sl_bool flag64Bit = Windows::is64BitSystem();
+				sl_bool flag64Bit = Win32::is64BitSystem();
 				unsigned char* tap_inf_compressed_data = flag64Bit ? ::tap::files::tap_inf_compressed_data64 : ::tap::files::tap_inf_compressed_data86;
 				unsigned long tap_inf_compressed_size = flag64Bit ? ::tap::files::tap_inf_compressed_size64 : ::tap::files::tap_inf_compressed_size86;
 				unsigned char* tap_sys_compressed_data = flag64Bit ? ::tap::files::tap_sys_compressed_data64 : ::tap::files::tap_sys_compressed_data86;
@@ -118,7 +119,7 @@ namespace slib
 					return sl_false;
 				}
 #endif
-				return Windows::installDriver(path + "\\tap0901.inf", DRIVER_NAME);
+				return win32::Setup::installDriver(path + "\\tap0901.inf", DRIVER_NAME);
 			}
 
 			static sl_bool UninstallDriver()
@@ -130,7 +131,7 @@ namespace slib
 					return sl_false;
 				}
 #ifndef SLIB_PLATFORM_IS_WIN64
-				if (Windows::is64BitSystem()) {
+				if (Win32::is64BitSystem()) {
 					String path = System::getTempDirectory() + "\\slib_tap";
 					File::createDirectory(path);
 					if (!(File::isDirectory(path))) {
@@ -157,7 +158,7 @@ namespace slib
 					return sl_false;
 				}
 #endif
-				return Windows::uninstallDriver(DRIVER_NAME);
+				return win32::Setup::uninstallDriver(DRIVER_NAME);
 			}
 
 		}

@@ -27,7 +27,7 @@
 #include "slib/media/media_player.h"
 
 #include "slib/core/endian.h"
-#include "slib/core/platform_apple.h"
+#include "slib/core/platform.h"
 
 #import <AVFoundation/AVFoundation.h>
 

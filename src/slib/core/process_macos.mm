@@ -28,7 +28,7 @@
 
 #include "slib/core/app.h"
 #include "slib/core/string_buffer.h"
-#include "slib/core/platform_apple.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {

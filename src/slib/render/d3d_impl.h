@@ -28,7 +28,7 @@
 #include "slib/core/thread.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/log.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 
 #include "slib/render/dl/win32/d3d.h"
 
@@ -309,7 +309,7 @@ namespace slib
 				void runStep(RenderEngine* engine)
 				{
 					if (m_hWnd) {
-						if (!(Windows::isWindowVisible(m_hWnd))) {
+						if (!(Win32::isWindowVisible(m_hWnd))) {
 							return;
 						}
 					}
