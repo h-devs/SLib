@@ -518,12 +518,12 @@ namespace slib
 				for (sl_size i = 0; i < list.count; i++) {
 					JClass* obj = list[i];
 #if defined(JNI_LOG_INIT_LOAD)
-					LOG("LOADING JAVA CLASS", obj->name);
+					LOG("LOADING JAVA CLASS: %s", obj->name);
 #endif
 					obj->cls = Jni::getClass(obj->name, obj->flagOptional);
 					if (obj->cls.isNull()) {
 						if (!(obj->flagOptional)) {
-							LOG_ERROR("LOADING JAVA CLASS FAILED", obj->name);
+							LOG_ERROR("LOADING JAVA CLASS FAILED: %s", obj->name);
 						}
 					}
 				}
@@ -538,13 +538,13 @@ namespace slib
 					JniClass cls = obj->gcls->cls;
 					if (cls.isNotNull()) {
 #if defined(JNI_LOG_INIT_LOAD)
-						LOG("LOADING JAVA FIELD", "%s::%s %s", obj->gcls->name, obj->name, obj->sig);
+						LOG("LOADING JAVA FIELD: %s::%s (%s)", obj->gcls->name, obj->name, obj->sig);
 #endif
 						obj->cls = cls;
 						obj->id = cls.getFieldID(obj->name, obj->sig, obj->flagOptional);
 						if (!(obj->id)) {
 							if (!(obj->flagOptional)) {
-								LOG_ERROR("LOADING JAVA FIELD FAILED", "%s::%s %s", obj->gcls->name, obj->name, obj->sig);
+								LOG_ERROR("LOADING JAVA FIELD FAILED: %s::%s (%s)", obj->gcls->name, obj->name, obj->sig);
 							}
 						}
 					}
@@ -558,13 +558,13 @@ namespace slib
 					JniClass cls = obj->gcls->cls;
 					if (cls.isNotNull()) {
 #if defined(JNI_LOG_INIT_LOAD)
-						LOG("LOADING JAVA STATIC FIELD", "%s::%s %s", obj->gcls->name, obj->name, obj->sig);
+						LOG("LOADING JAVA STATIC FIELD: %s::%s (%s)", obj->gcls->name, obj->name, obj->sig);
 #endif
 						obj->cls = cls;
 						obj->id = cls.getStaticFieldID(obj->name, obj->sig, obj->flagOptional);
 						if (!(obj->id)) {
 							if (!(obj->flagOptional)) {
-								LOG_ERROR("LOADING JAVA STATIC FIELD FAILED", "%s::%s %s", obj->gcls->name, obj->name, obj->sig);
+								LOG_ERROR("LOADING JAVA STATIC FIELD FAILED: %s::%s (%s)", obj->gcls->name, obj->name, obj->sig);
 							}
 						}
 					}
@@ -578,13 +578,13 @@ namespace slib
 					JniClass cls = obj->gcls->cls;
 					if (cls.isNotNull()) {
 #if defined(JNI_LOG_INIT_LOAD)
-						LOG("LOADING JAVA METHOD", "%s::%s %s", obj->gcls->name, obj->name, obj->sig);
+						LOG("LOADING JAVA METHOD: %s::%s (%s)", obj->gcls->name, obj->name, obj->sig);
 #endif
 						obj->cls = cls;
 						obj->id = cls.getMethodID(obj->name, obj->sig, obj->flagOptional);
 						if (!(obj->id)) {
 							if (!(obj->flagOptional)) {
-								LOG_ERROR("LOADING JAVA METHOD FAILED", "%s::%s %s", obj->gcls->name, obj->name, obj->sig);
+								LOG_ERROR("LOADING JAVA METHOD FAILED: %s::%s (%s)", obj->gcls->name, obj->name, obj->sig);
 							}
 						}
 					}
@@ -598,13 +598,13 @@ namespace slib
 					JniClass cls = obj->gcls->cls;
 					if (cls.isNotNull()) {
 #if defined(JNI_LOG_INIT_LOAD)
-						LOG("LOADING JAVA STATIC METHOD", "%s::%s %s", obj->gcls->name, obj->name, obj->sig);
+						LOG("LOADING JAVA STATIC METHOD: %s::%s (%s)", obj->gcls->name, obj->name, obj->sig);
 #endif
 						obj->cls = cls;
 						obj->id = cls.getStaticMethodID(obj->name, obj->sig, obj->flagOptional);
 						if (!(obj->id)) {
 							if (!(obj->flagOptional)) {
-								LOG_ERROR("LOADING JAVA STATIC METHOD FAILED", "%s::%s %s", obj->gcls->name, obj->name, obj->sig);
+								LOG_ERROR("LOADING JAVA STATIC METHOD FAILED: %s::%s (%s)", obj->gcls->name, obj->name, obj->sig);
 							}
 						}
 					}
@@ -618,10 +618,10 @@ namespace slib
 					JniClass cls = obj->gcls->cls;
 					if (cls.isNotNull()) {
 #if defined(JNI_LOG_INIT_LOAD)
-						LOG("REGISTERING JAVA NATIVE", "%s::%s %s", obj->gcls->name, obj->name, obj->sig);
+						LOG("REGISTERING JAVA NATIVE: %s::%s (%s)", obj->gcls->name, obj->name, obj->sig);
 #endif
 						if (!cls.registerNative(obj->name, obj->sig, obj->fn)) {
-							LOG_ERROR("REGISTERING JAVA NATIVE FAILED", "%s::%s %s", obj->gcls->name, obj->name, obj->sig);
+							LOG_ERROR("REGISTERING JAVA NATIVE FAILED: %s::%s (%s)", obj->gcls->name, obj->name, obj->sig);
 						}
 					}
 				}
