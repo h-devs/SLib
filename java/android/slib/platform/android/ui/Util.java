@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,12 +23,16 @@
 package slib.platform.android.ui;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.Gravity;
@@ -36,14 +40,86 @@ import android.view.Surface;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 
+import java.io.File;
 import java.lang.reflect.Field;
 
 import me.leolin.shortcutbadger.ShortcutBadger;
 import slib.platform.android.Logger;
 import slib.platform.android.SlibActivity;
+import slib.platform.android.helper.FileHelper;
 
 public class Util {
+
+	public static void showKeyboard(final Activity activity) {
+		if (!(UiThread.isUiThread())) {
+			activity.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					showKeyboard(activity);
+				}
+			});
+			return;
+		}
+		try {
+			InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+			if (imm != null) {
+				View view = activity.getCurrentFocus();
+				if (view != null) {
+					imm.showSoftInput(view, 0);
+				}
+			}
+		} catch (Exception e) {
+			Logger.exception(e);
+		}
+	}
+
+	public static void dismissKeyboard(final Activity activity) {
+		if (!(UiThread.isUiThread())) {
+			activity.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					dismissKeyboard(activity);
+				}
+			});
+			return;
+		}
+		try {
+			InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+			if (imm != null) {
+				View view = activity.getCurrentFocus();
+				if (view != null) {
+					imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+				} else {
+					imm.hideSoftInputFromWindow(activity.getWindow().getDecorView().getWindowToken(), 0);
+				}
+			}
+		} catch (Exception e) {
+			Logger.exception(e);
+		}
+	}
+
+	public static final int KEYBOARD_ADJUST_PAN = 1;
+	public static final int KEYBOARD_ADJUST_RESIZE = 2;
+
+	public static void setKeyboardAdjustMode(final Activity activity, int mode) {
+		try {
+			switch (mode) {
+				case KEYBOARD_ADJUST_PAN:
+					activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+					break;
+				case KEYBOARD_ADJUST_RESIZE:
+					activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+					break;
+				default:
+					activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
+					break;
+			}
+		} catch (Exception e) {
+			Logger.exception(e);
+		}
+	}
 
 	public static Display getDefaultDisplay(Activity activity) {
 		return activity.getWindowManager().getDefaultDisplay();
@@ -296,6 +372,37 @@ public class Util {
 		} catch (Exception e) {
 			Logger.exception(e);
 		}
+	}
+
+	public static void sendFile(final Activity activity, final String filePath, final String mimeType, final String titleChooser) {
+		activity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Intent intent = new Intent(Intent.ACTION_SEND);
+					intent.setType(mimeType);
+					File file = new File(filePath);
+					Uri uri = FileHelper.getUriForFile(activity, file);
+					if (uri == null) {
+						Logger.error("File exposed beyond app: " + filePath);
+						return;
+					}
+					intent.putExtra(Intent.EXTRA_STREAM, uri);
+					intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+					String title = titleChooser;
+					if (title == null || title.length() == 0) {
+						title = "Send";
+					}
+					activity.startActivity(Intent.createChooser(intent, title));
+				} catch (Exception e) {
+					Logger.exception(e);
+				}
+			}
+		});
+	}
+
+	public static String getPicturesDirectory() {
+		return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath();
 	}
 
 }

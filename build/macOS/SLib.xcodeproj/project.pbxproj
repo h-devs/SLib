@@ -186,7 +186,6 @@
 		26D9D9161E9645CE005F7BD3 /* async_kqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2FA11B03A33700854DAF /* async_kqueue.cpp */; };
 		26D9D9171E9645CE005F7BD3 /* collection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2626C12E1E15AA55004E150C /* collection.cpp */; };
 		26D9D9181E9645CE005F7BD3 /* json.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2FAB1B03A33700854DAF /* json.cpp */; };
-		26D9D9191E9645CE005F7BD3 /* java.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A2DE1D7E1B383B7900A74698 /* java.cpp */; };
 		26D9D91A1E9645CE005F7BD3 /* setting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2FB61B03A33700854DAF /* setting.cpp */; };
 		26D9D91C1E9645CE005F7BD3 /* pipe_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A2DE1D841B383BA600A74698 /* pipe_unix.cpp */; };
 		26D9D91E1E9645CE005F7BD3 /* resource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26D3A1A31C85894A00FB8DBD /* resource.cpp */; };
@@ -865,7 +864,6 @@
 		A25F2FBD1B03A33700854DAF /* thread_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = thread_apple.mm; sourceTree = "<group>"; };
 		A25F2FC01B03A33700854DAF /* time.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = time.cpp; sourceTree = "<group>"; };
 		A25F2FC11B03A33700854DAF /* variant.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = variant.cpp; sourceTree = "<group>"; };
-		A2DE1D7E1B383B7900A74698 /* java.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = java.cpp; sourceTree = "<group>"; };
 		A2DE1D841B383BA600A74698 /* pipe_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pipe_unix.cpp; sourceTree = "<group>"; };
 		A2DE1D861B383BA600A74698 /* pipe.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pipe.cpp; sourceTree = "<group>"; };
 		A2DE1D8A1B383BB000A74698 /* system_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system_unix.cpp; sourceTree = "<group>"; };
@@ -1533,7 +1531,6 @@
 				265A93532304298B00B155A2 /* global_unique_instance_unix.cpp */,
 				A21C166A1BA74E8F006B1FA1 /* hash.cpp */,
 				A25F2FAA1B03A33700854DAF /* io.cpp */,
-				A2DE1D7E1B383B7900A74698 /* java.cpp */,
 				A25F2FAB1B03A33700854DAF /* json.cpp */,
 				2620412C1C88AE3B00AF48F2 /* list.cpp */,
 				26D3A1A51C85940700FB8DBD /* locale.cpp */,
@@ -2129,7 +2126,6 @@
 				26D9D99A1E96467B005F7BD3 /* nat.cpp in Sources */,
 				26D9D9181E9645CE005F7BD3 /* json.cpp in Sources */,
 				265A937923051C2E00B155A2 /* drawable_quartz.mm in Sources */,
-				26D9D9191E9645CE005F7BD3 /* java.cpp in Sources */,
 				26781C1D2350F6A4002FCA2F /* brush_quartz.mm in Sources */,
 				D7BF60DB26311F0700E0B3DD /* lz4.c in Sources */,
 				26D9D9E21E96468D005F7BD3 /* ui_core_macos.mm in Sources */,

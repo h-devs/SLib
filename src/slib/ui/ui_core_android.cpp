@@ -61,6 +61,9 @@ namespace slib
 			SLIB_JNI_END_CLASS
 
 			SLIB_JNI_BEGIN_CLASS(JUtil, "slib/platform/android/ui/Util")
+				SLIB_JNI_STATIC_METHOD(showKeyboard, "showKeyboard", "(Landroid/app/Activity;)V")
+				SLIB_JNI_STATIC_METHOD(dismissKeyboard, "dismissKeyboard", "(Landroid/app/Activity;)V")
+				SLIB_JNI_STATIC_METHOD(setKeyboardAdjustMode, "setKeyboardAdjustMode", "(Landroid/app/Activity;I)V");
 				SLIB_JNI_STATIC_METHOD(getDefaultDisplay, "getDefaultDisplay", "(Landroid/app/Activity;)Landroid/view/Display;");
 				SLIB_JNI_STATIC_METHOD(getDisplaySize, "getDisplaySize", "(Landroid/view/Display;)Landroid/graphics/Point;");
 				SLIB_JNI_STATIC_METHOD(getScreenOrientation, "getScreenOrientation", "(Landroid/app/Activity;)I");
@@ -69,6 +72,7 @@ namespace slib
 				SLIB_JNI_STATIC_METHOD(getStatusBarHeight, "getStatusBarHeight", "(Landroid/app/Activity;)I");
 				SLIB_JNI_STATIC_METHOD(setStatusBarStyle, "setStatusBarStyle", "(Landroid/app/Activity;I)V");
 				SLIB_JNI_STATIC_METHOD(setBadgeNumber, "setBadgeNumber", "(Landroid/app/Activity;I)V");
+				SLIB_JNI_STATIC_METHOD(sendFile, "sendFile", "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V")
 			SLIB_JNI_END_CLASS
 
 			void DispatchCallback(JNIEnv* env, jobject _this);
@@ -95,8 +99,6 @@ namespace slib
 			void OnOpenUrl(JNIEnv* env, jobject _this, jobject activity, jstring url);
 
 			SLIB_JNI_BEGIN_CLASS(JAndroid, "slib/platform/android/Android")
-				SLIB_JNI_STATIC_METHOD(setKeyboardAdjustMode, "setKeyboardAdjustMode", "(Landroid/app/Activity;I)V");
-
 				SLIB_JNI_NATIVE(onCreateActivity, "nativeOnCreateActivity", "(Landroid/app/Activity;)V", OnCreateActivity);
 				SLIB_JNI_NATIVE(onDestroyActivity, "nativeOnDestroyActivity", "(Landroid/app/Activity;)V", OnDestroyActivity);
 				SLIB_JNI_NATIVE(onResumeActivity, "nativeOnResumeActivity", "(Landroid/app/Activity;)V", OnResumeActivity);
@@ -216,7 +218,7 @@ namespace slib
 			{
 				jobject jactivity = Android::getCurrentActivity();
 				if (jactivity) {
-					JAndroid::setKeyboardAdjustMode.call(sl_null, jactivity, (jint)mode);
+					JUtil::setKeyboardAdjustMode.call(sl_null, jactivity, (jint)mode);
 				}
 			}
 
@@ -301,11 +303,22 @@ namespace slib
 		}
 	}
 
+	void UI::showKeyboard()
+	{
+		jobject jactivity = Android::getCurrentActivity();
+		if (jactivity) {
+			JUtil::showKeyboard.call(sl_null, jactivity);
+		}
+	}
+
 	void UI::dismissKeyboard()
 	{
-		Android::dismissKeyboard();
+		jobject jactivity = Android::getCurrentActivity();
+		if (jactivity) {
+			JUtil::dismissKeyboard.call(sl_null, jactivity);
+		}
 	}
-	
+
 	UIEdgeInsets UI::getSafeAreaInsets()
 	{
 		jobject jactivity = Android::getCurrentActivity();
@@ -367,6 +380,17 @@ namespace slib
 
 	void UIPlatform::quitApp()
 	{
+	}
+
+	void UIPlatform::sendFile(const StringParam& filePath, const StringParam& mimeType, const StringParam& chooserTitle)
+	{
+		jobject jactivity = Android::getCurrentActivity();
+		if (jactivity) {
+			JniLocal<jstring> jfilePath = Jni::getJniString(filePath);
+			JniLocal<jstring> jmimeType = Jni::getJniString(mimeType);
+			JniLocal<jstring> jchooserTitle = Jni::getJniString(chooserTitle);
+			return JUtil::sendFile.call(sl_null, jactivity, jfilePath.value, jmimeType.value, jchooserTitle.value);
+		}
 	}
 
 }

@@ -20,40 +20,62 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_ANDROID_PLATFORM
-#define CHECKHEADER_SLIB_CORE_ANDROID_PLATFORM
+#include "slib/core/definition.h"
 
-#include "../definition.h"
+#ifdef SLIB_PLATFORM_USE_JNI
 
-#ifdef SLIB_PLATFORM_IS_ANDROID
+#include "slib/core/java/locale.h"
 
-#include "../java.h"
-
-#include "version.h"
+#include "slib/core/java.h"
 
 namespace slib
 {
 	
-	class SLIB_EXPORT Android
+	namespace priv
 	{
-	public:
-		static void initialize(JavaVM* jvm) noexcept;
+		namespace java_locale
+		{
 
-		static AndroidSdkVersion getSdkVersion() noexcept;
+			SLIB_JNI_BEGIN_CLASS(JLocale, "java/util/Locale")
+				SLIB_JNI_STATIC_METHOD(getDefault, "getDefault", "()Ljava/util/Locale;");
+				SLIB_JNI_METHOD(getLanguage, "getLanguage", "()Ljava/lang/String;");
+				SLIB_JNI_METHOD(getCountry, "getCountry", "()Ljava/lang/String;");
+				SLIB_JNI_METHOD_OPTIONAL(getScript, "getScript", "()Ljava/lang/String;");
+			SLIB_JNI_END_CLASS
 
-		static String getSystemRelease() noexcept;
+		}
+	}
 
-		static String getDeviceName() noexcept;
-		
+	using namespace priv::java_locale;
 
-		static jobject getCurrentActivity() noexcept;
+	namespace java
+	{
 
-		static void setCurrentActivity(jobject activity) noexcept;
-		
-	};
+		jobject Locale::getDefault() noexcept
+		{
+			return JLocale::getDefault.callObject(sl_null);
+		}
+	
+		String Locale::getLanguage(jobject thiz) noexcept
+		{
+			return JLocale::getLanguage.callString(thiz);
+		}
+
+		String Locale::getCountry(jobject thiz) noexcept
+		{
+			return JLocale::getCountry.callString(thiz);
+		}
+
+		String Locale::getScript(jobject thiz) noexcept
+		{
+			if (JLocale::getScript.id) {
+				return JLocale::getScript.callString(thiz);
+			}
+			return sl_null;
+		}
+
+	}
 
 }
-
-#endif
 
 #endif

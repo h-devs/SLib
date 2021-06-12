@@ -31,15 +31,18 @@
 
 namespace slib
 {
+
+	class Memory;
+
 	namespace java
 	{
 
 		class SLIB_EXPORT InputStream
 		{
 		public:
-			static sl_int32 readStream(jobject stream, jbyteArray array);
-			
-			static void closeStream(jobject stream);
+			static sl_int32 readStream(jobject stream, jbyteArray array) noexcept;			
+			static void closeStream(jobject stream) noexcept;
+			static Memory readAllBytes(jobject stream) noexcept;
 
 		};
 

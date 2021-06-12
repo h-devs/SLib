@@ -20,37 +20,34 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_ANDROID_PLATFORM
-#define CHECKHEADER_SLIB_CORE_ANDROID_PLATFORM
+#ifndef CHECKHEADER_SLIB_CORE_JAVA_LOCALE
+#define CHECKHEADER_SLIB_CORE_JAVA_LOCALE
 
 #include "../definition.h"
 
-#ifdef SLIB_PLATFORM_IS_ANDROID
+#if defined(SLIB_PLATFORM_USE_JNI)
 
-#include "../java.h"
+#include <jni.h>
 
-#include "version.h"
+#include "../string.h"
 
 namespace slib
 {
-	
-	class SLIB_EXPORT Android
+	namespace java
 	{
-	public:
-		static void initialize(JavaVM* jvm) noexcept;
 
-		static AndroidSdkVersion getSdkVersion() noexcept;
+		class SLIB_EXPORT Locale
+		{
+		public:
+			static jobject getDefault() noexcept;
+			
+			static String getLanguage(jobject thiz) noexcept;
+			static String getCountry(jobject thiz) noexcept;
+			static String getScript(jobject thiz) noexcept;
 
-		static String getSystemRelease() noexcept;
+		};
 
-		static String getDeviceName() noexcept;
-		
-
-		static jobject getCurrentActivity() noexcept;
-
-		static void setCurrentActivity(jobject activity) noexcept;
-		
-	};
+	}
 
 }
 

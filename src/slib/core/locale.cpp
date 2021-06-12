@@ -977,24 +977,25 @@ namespace slib
 
 #elif defined(SLIB_PLATFORM_IS_ANDROID)
 
-#include "slib/core/platform.h"
+#include "slib/core/java/locale.h"
+#include "slib/core/android/platform.h"
 
 namespace slib
 {
-	
-	namespace priv
-	{
-		namespace locale
-		{
-			SLIB_JNI_BEGIN_CLASS(JAndroid, "slib/platform/android/Android")
-				SLIB_JNI_STATIC_METHOD(getCurrentLocale, "getCurrentLocale", "()Ljava/lang/String;");
-			SLIB_JNI_END_CLASS
-		}
-	}
-
 	Locale Locale::_getCurrent()
 	{
-		return Locale(priv::locale::JAndroid::getCurrentLocale.callString(sl_null));
+		JniLocal<jobject> locale(java::Locale::getDefault());
+		if (locale.isNotNull()) {
+			String script = java::Locale::getScript(locale.value);
+			String lang = java::Locale::getLanguage(locale.value);
+			String country = java::Locale::getCountry(locale.value);
+			if (script.isNotEmpty()) {
+				return String::join(lang, "_", script, "_", country);
+			} else {
+				return String::join(lang, "_", country);
+			}
+		}
+		return Locale::Unknown;
 	}
 }
 
@@ -1015,7 +1016,7 @@ namespace slib
 		if (index > 0) {
 			locale = locale.substring(0, index);
 		}
-		return Locale(locale);
+		return locale;
 	}
 }
 

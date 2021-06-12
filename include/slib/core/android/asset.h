@@ -20,37 +20,34 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_ANDROID_PLATFORM
-#define CHECKHEADER_SLIB_CORE_ANDROID_PLATFORM
+#ifndef CHECKHEADER_SLIB_CORE_ANDROID_ASSET
+#define CHECKHEADER_SLIB_CORE_ANDROID_ASSET
 
 #include "../definition.h"
 
 #ifdef SLIB_PLATFORM_IS_ANDROID
 
-#include "../java.h"
+#include <jni.h>
 
-#include "version.h"
+#include "../string.h"
 
 namespace slib
 {
+
+	class Memory;
 	
-	class SLIB_EXPORT Android
+	namespace android
 	{
-	public:
-		static void initialize(JavaVM* jvm) noexcept;
 
-		static AndroidSdkVersion getSdkVersion() noexcept;
+		class SLIB_EXPORT Assets
+		{
+		public:
+			static jobject open(const StringParam& path) noexcept;
+			static Memory readAllBytes(const StringParam& path) noexcept;
 
-		static String getSystemRelease() noexcept;
+		};
 
-		static String getDeviceName() noexcept;
-		
-
-		static jobject getCurrentActivity() noexcept;
-
-		static void setCurrentActivity(jobject activity) noexcept;
-		
-	};
+	}
 
 }
 

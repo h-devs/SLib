@@ -24,10 +24,8 @@
 
 #ifdef SLIB_PLATFORM_IS_ANDROID
 
-#include "slib/core/platform.h"
-#include "slib/core/memory_output.h"
+#include "slib/core/android/platform.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/java/input_stream.h"
 
 namespace slib
 {
@@ -37,114 +35,70 @@ namespace slib
 		namespace android
 		{
 
-			SLIB_JNI_BEGIN_CLASS(JAndroid, "slib/platform/android/Android")
-				SLIB_JNI_STATIC_METHOD(getSdkVersion, "getSdkVersion", "()I")
-				SLIB_JNI_STATIC_METHOD(finishActivity, "finishActivity", "(Landroid/app/Activity;)V")
-				SLIB_JNI_STATIC_METHOD(openAsset, "openAsset", "(Landroid/app/Activity;Ljava/lang/String;)Ljava/io/InputStream;")
-				SLIB_JNI_STATIC_METHOD(showKeyboard, "showKeyboard", "(Landroid/app/Activity;)V")
-				SLIB_JNI_STATIC_METHOD(dismissKeyboard, "dismissKeyboard", "(Landroid/app/Activity;)V")
-				SLIB_JNI_STATIC_METHOD(sendFile, "sendFile", "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V")
-			SLIB_JNI_END_CLASS
-
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicJniGlobal<jobject>, g_activityCurrent);
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strSystemRelease);
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strDeviceName);
 
 		}
 	}
 
 	using namespace priv::android;
 
-	void Android::initialize(JavaVM* jvm)
+	void Android::initialize(JavaVM* jvm) noexcept
 	{
 		Jni::initialize(jvm);
 	}
 
-	sl_uint32 Android::getSdkVersion()
+	AndroidSdkVersion Android::getSdkVersion() noexcept
 	{
-		return (sl_uint32)(JAndroid::getSdkVersion.callInt(sl_null));
+		static AndroidSdkVersion version = AndroidSdkVersion::CUR_DEVELOPMENT;
+		if (version == AndroidSdkVersion::CUR_DEVELOPMENT) {
+			JniClass cls = Jni::getClass("android/os/Build/VERSION");
+			if (cls.isNotNull()) {
+				version = (AndroidSdkVersion)(cls.getStaticIntField("SDK_INT"));
+			}
+		}
+		return version;
+	}
+	
+	String Android::getSystemRelease() noexcept
+	{
+		if (g_strSystemRelease.isNull()) {
+			JniClass cls = Jni::getClass("android/os/Build/VERSION");
+			if (cls.isNotNull()) {
+				String release = cls.getStaticStringField("RELEASE");
+				g_strSystemRelease = release;
+				return release;
+			}
+		}
+		return g_strSystemRelease;
 	}
 
-	jobject Android::getCurrentActivity()
+	String Android::getDeviceName() noexcept
+	{
+		if (g_strDeviceName.isNull()) {
+			JniClass cls = Jni::getClass("android/os/Build");
+			if (cls.isNotNull()) {
+				String manufacturer = cls.getStaticStringField("MANUFACTURER");
+				String model = cls.getStaticStringField("MODEL");
+				if (!(model.startsWith(manufacturer))) {
+					model = String::join(manufacturer, " ", model);
+				}
+				g_strDeviceName = model;
+				return model;
+			}
+		}
+		return g_strDeviceName;
+	}
+
+	jobject Android::getCurrentActivity() noexcept
 	{
 		return g_activityCurrent.get();
 	}
 
-	void Android::setCurrentActivity(jobject activity)
+	void Android::setCurrentActivity(jobject activity) noexcept
 	{
 		g_activityCurrent = activity;
-	}
-
-	void Android::finishActivity()
-	{
-		Android::finishActivity(Android::getCurrentActivity());
-	}
-
-	void Android::finishActivity(jobject jactivity)
-	{
-		if (jactivity) {
-			JAndroid::finishActivity.call(sl_null, jactivity);
-		}
-	}
-
-	jobject Android::openAssetFile(const StringParam& path)
-	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JniLocal<jstring> jpath = Jni::getJniString(path);
-			return JAndroid::openAsset.callObject(sl_null, jactivity, jpath.value);
-		} else {
-			return sl_null;
-		}
-	}
-
-	Memory Android::readAllBytesFromAsset(const StringParam& path)
-	{
-		JniLocal<jobject> is = Android::openAssetFile(path);
-		if (is.isNotNull()) {
-			JniLocal<jbyteArray> arr = Jni::newByteArray(512);
-			jbyte buf[512];
-			if (arr.isNotNull()) {
-				MemoryOutput writer;
-				while (1) {
-					sl_int32 n = java::InputStream::readStream(is, arr);
-					if (n > 0) {
-						Jni::getByteArrayRegion(arr, 0, n, buf);
-						writer.write(buf, n);
-					} else {
-						break;
-					}
-				}
-				java::InputStream::closeStream(is);
-				return writer.getData();
-			}
-		}
-		return sl_null;
-	}
-
-	void Android::showKeyboard()
-	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JAndroid::showKeyboard.call(sl_null, jactivity);
-		}
-	}
-
-	void Android::dismissKeyboard()
-	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JAndroid::dismissKeyboard.call(sl_null, jactivity);
-		}
-	}
-
-	void Android::sendFile(const StringParam& filePath, const StringParam& mimeType, const StringParam& chooserTitle)
-	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JniLocal<jstring> jfilePath = Jni::getJniString(filePath);
-			JniLocal<jstring> jmimeType = Jni::getJniString(mimeType);
-			JniLocal<jstring> jchooserTitle = Jni::getJniString(chooserTitle);
-			return JAndroid::sendFile.call(sl_null, jactivity, jfilePath.value, jmimeType.value, jchooserTitle.value);
-		}
 	}
 
 }

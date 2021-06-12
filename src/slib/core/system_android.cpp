@@ -41,9 +41,10 @@ namespace slib
 	{
 		namespace system
 		{
-			SLIB_JNI_BEGIN_CLASS(JAndroid, "slib/platform/android/Android")
-				SLIB_JNI_STATIC_METHOD(getDeviceNameOnSettings, "getDeviceNameOnSettings", "(Landroid/app/Activity;)Ljava/lang/String;")
+
+			SLIB_JNI_BEGIN_CLASS(JBuild, "android/os/Build")
 			SLIB_JNI_END_CLASS
+
 		}
 	}
 
@@ -82,11 +83,26 @@ namespace slib
 	
 	String System::getComputerName()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return JAndroid::getDeviceNameOnSettings.callString(sl_null, jactivity);
+		if (Android::getSdkVersion() >= AndroidSdkVersion::JELLY_BEAN_MR1) {
+			jobject jactivity = Android::getCurrentActivity();
+			if (jactivity) {
+				JniClass clsActivity = Jni::getClass("android/app/Activity");
+				if (clsActivity.isNotNull()) {
+					JniLocal<jobject> resolver = clsActivity.callObjectMethod("getContentResolver", "()Landroid/content/ContentResolver;", jactivity);
+					if (resolver.isNotNull()) {
+						JniClass clsGlobal = Jni::getClass("android/provider/Settings/Global");
+						if (clsGlobal.isNotNull()) {
+							JniLocal<jstring> strDeviceName = Jni::getJniString("device_name");
+							String name = clsGlobal.callStaticStringMethod("getString", "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;", resolver.value, strDeviceName.value);
+							if (name.isNotEmpty()) {
+								return name;
+							}
+						}
+					}
+				}
+			}
 		}
-		return sl_null;
+		return Android::getDeviceName();
 	}
 	
 	String System::getUserName()

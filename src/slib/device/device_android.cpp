@@ -63,8 +63,6 @@ namespace slib
 				SLIB_JNI_STATIC_METHOD(getSimSlotsCount, "getSimSlotsCount", "(Landroid/app/Activity;)I");
 				SLIB_JNI_STATIC_METHOD(getPhoneNumber, "getPhoneNumber", "(Landroid/app/Activity;I)Ljava/lang/String;");
 				SLIB_JNI_STATIC_METHOD(getDeviceId, "getDeviceId", "(Landroid/app/Activity;)Ljava/lang/String;");
-				SLIB_JNI_STATIC_METHOD(getDeviceOSVersion, "getDeviceOSVersion", "()Ljava/lang/String;");
-				SLIB_JNI_STATIC_METHOD(getDeviceName, "getDeviceName", "()Ljava/lang/String;");
 				SLIB_JNI_STATIC_METHOD(getScreenSize, "getScreenSize", "(Landroid/app/Activity;)Landroid/graphics/Point;");
 				SLIB_JNI_STATIC_METHOD(getScreenPPI, "getScreenPPI", "(Landroid/app/Activity;)I");
 
@@ -284,26 +282,17 @@ namespace slib
 
 	String Device::getDeviceName()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return JDevice::getDeviceName.callString(sl_null);
-		}
-		return sl_null;
+		return Android::getDeviceName();
 	}
 
 	String Device::getSystemVersion()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return JDevice::getDeviceOSVersion.callString(sl_null);
-		}
-		return sl_null;
+		return Android::getSystemRelease();
 	}
 
 	String Device::getSystemName()
 	{
-		String osVersion = getSystemVersion();
-		return "Android " + osVersion;
+		return "Android " + Android::getSystemRelease();
 	}
 
 	Sizei Device::getScreenSize()

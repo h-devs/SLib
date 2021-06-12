@@ -27,7 +27,7 @@
 #include "slib/social/instagram.h"
 
 #include "slib/ui/photo.h"
-#include "slib/core/platform.h"
+#include "slib/ui/platform.h"
 
 namespace slib
 {
@@ -35,7 +35,7 @@ namespace slib
 	void Instagram::openInstagramAppSharingFile(const Memory& data)
 	{
 		PhotoKit::saveImageWithFileContent(data, [](const String& localIdentifier) {
-			Android::sendFile(localIdentifier, "image/*", "Share to");
+			UIPlatform::sendFile(localIdentifier, "image/*", "Share to");
 		});
 	}
 

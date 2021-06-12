@@ -32,7 +32,6 @@ import slib.platform.android.ui.view.UiScrollView;
 import slib.platform.android.ui.view.UiView;
 import slib.platform.android.ui.view.UiWebView;
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -522,10 +521,10 @@ public class UiWindow extends FrameLayout implements IView, ViewTreeObserver.OnG
 			float x = ev.getX() + locationOfWindow[0];
 			float y = ev.getY() + locationOfWindow[1];
 			if (x < locationOfFoucsView[0] || x > locationOfFoucsView[0] + view.getWidth() || y < locationOfFoucsView[1] || y > locationOfFoucsView[1] + view.getHeight()) {
-				Android.dismissKeyboard(activity);
+				Util.dismissKeyboard(activity);
 			}
 		} else {
-			Android.dismissKeyboard(activity);
+			Util.dismissKeyboard(activity);
 		}
 	}
 

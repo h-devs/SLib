@@ -69,7 +69,6 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/animation.cpp"
  "${SLIB_PATH}/src/slib/core/app.cpp"
  "${SLIB_PATH}/src/slib/core/asm_x64.cpp"
- "${SLIB_PATH}/src/slib/core/asset.cpp"
  "${SLIB_PATH}/src/slib/core/async.cpp"
  "${SLIB_PATH}/src/slib/core/async_epoll.cpp"
  "${SLIB_PATH}/src/slib/core/atomic.cpp"
@@ -90,8 +89,6 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/global_unique_instance_unix.cpp"
  "${SLIB_PATH}/src/slib/core/hash.cpp"
  "${SLIB_PATH}/src/slib/core/io.cpp"
- "${SLIB_PATH}/src/slib/core/java.cpp"
- "${SLIB_PATH}/src/slib/core/java_input_stream.cpp"
  "${SLIB_PATH}/src/slib/core/json.cpp"
  "${SLIB_PATH}/src/slib/core/list.cpp"
  "${SLIB_PATH}/src/slib/core/locale.cpp"
@@ -197,9 +194,8 @@ set (SLIB_CORE_FILES
 )
 if(ANDROID)
  set (SLIB_CORE_PLATFORM_FILES
-  "${SLIB_PATH}/src/slib/core/android_log.cpp"
-  "${SLIB_PATH}/src/slib/core/android_platform.cpp"
   "${SLIB_PATH}/src/slib/core/app_android.cpp"
+  "${SLIB_PATH}/src/slib/core/asset_android.cpp"
   "${SLIB_PATH}/src/slib/core/charset_android.cpp"
   "${SLIB_PATH}/src/slib/core/preference_android.cpp"
   "${SLIB_PATH}/src/slib/core/system_android.cpp"
@@ -207,6 +203,7 @@ if(ANDROID)
  )
 else ()
  set (SLIB_CORE_PLATFORM_FILES
+  "${SLIB_PATH}/src/slib/core/asset.cpp"
   "${SLIB_PATH}/src/slib/core/charset_icu.cpp"
   "${SLIB_PATH}/src/slib/core/preference_linux.cpp"
   "${SLIB_PATH}/src/slib/core/wrap_memcpy.cpp"
@@ -512,6 +509,26 @@ else ()
  )
 endif()
 
+if(ANDROID)
+ set (SLIB_JAVA_FILES
+  "${SLIB_PATH}/src/slib/core/java.cpp"
+  "${SLIB_PATH}/src/slib/core/java_input_stream.cpp"
+  "${SLIB_PATH}/src/slib/core/java_locale.cpp"
+ )
+else()
+ set (SLIB_JAVA_FILES "")
+endif()
+
+if(ANDROID)
+ set (SLIB_ANDROID_FILES
+  "${SLIB_PATH}/src/slib/core/android_activity.cpp"
+  "${SLIB_PATH}/src/slib/core/android_log.cpp"
+  "${SLIB_PATH}/src/slib/core/android_platform.cpp"
+ )
+else()
+ set (SLIB_JAVA_FILES "")
+endif()
+
 if (SLIB_X86_64)
  SET_PROPERTY( SOURCE ${SLIB_PATH}/src/slib/crypto/crc32c.cpp PROPERTY COMPILE_FLAGS -msse4.2 )
 endif()
@@ -582,6 +599,8 @@ add_library (
  ${SLIB_CORE_PLATFORM_FILES}
  ${SLIB_EXTRA_FILES}
  ${SLIB_EXTRA_PLATFORM_FILES}
+ ${SLIB_JAVA_FILES}
+ ${SLIB_ANDROID_FILES}
  ${ZLIB_FILES}
  ${LIBPNG_FILES}
  ${LIBJPEG_FILES}

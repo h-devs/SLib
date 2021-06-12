@@ -116,7 +116,6 @@
     <ClCompile Include="..\..\src\slib\core\global_unique_instance_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\hash.cpp" />
     <ClCompile Include="..\..\src\slib\core\io.cpp" />
-    <ClCompile Include="..\..\src\slib\core\java_input_stream.cpp" />
     <ClCompile Include="..\..\src\slib\core\json.cpp" />
     <ClCompile Include="..\..\src\slib\core\list.cpp" />
     <ClCompile Include="..\..\src\slib\core\locale.cpp" />
@@ -128,7 +127,6 @@
     <ClCompile Include="..\..\src\slib\core\parse.cpp" />
     <ClCompile Include="..\..\src\slib\core\pipe.cpp" />
     <ClCompile Include="..\..\src\slib\core\pipe_windows.cpp" />
-    <ClCompile Include="..\..\src\slib\core\java.cpp" />
     <ClCompile Include="..\..\src\slib\core\win32_platform.cpp" />
     <ClCompile Include="..\..\src\slib\core\win32_setup.cpp" />
     <ClCompile Include="..\..\src\slib\core\preference.cpp" />

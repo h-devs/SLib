@@ -27,6 +27,7 @@
 #include "slib/core/java/input_stream.h"
 
 #include "slib/core/java.h"
+#include "slib/core/memory_output.h"
 
 namespace slib
 {
@@ -49,32 +50,58 @@ namespace slib
 	namespace java
 	{
 
-		sl_int32 InputStream::readStream(jobject stream, jbyteArray array)
+		sl_int32 InputStream::readStream(jobject stream, jbyteArray array) noexcept
 		{
+			JniPreserveExceptionScope scope;
 			if (stream && array) {
 				sl_int32 n = JInputStream::read.callInt(stream, array);
 				if (n < 0) {
 					n = 0;
 				}
-				if (Jni::checkException()) {
+				if (Jni::checkExceptionAndPrintClear()) {
 					n = -1;
-					Jni::printException();
-					Jni::clearException();
 				}
 				return n;
 			}
 			return -1;
 		}
 
-		void InputStream::closeStream(jobject stream)
+		void InputStream::closeStream(jobject stream) noexcept
 		{
 			if (stream) {
 				JInputStream::close.call(stream);
-				if (Jni::checkException()) {
-					Jni::printException();
-					Jni::clearException();
+			}
+		}
+
+		Memory InputStream::readAllBytes(jobject stream) noexcept
+		{
+			JniPreserveExceptionScope scope;
+			if (stream) {
+				JniLocal<jbyteArray> arr = Jni::newByteArray(512);
+				if (Jni::checkExceptionAndPrintClear()) {
+					return sl_null;
+				}
+				jbyte buf[512];
+				if (arr.isNotNull()) {
+					MemoryOutput writer;
+					while (1) {
+						sl_int32 n = JInputStream::read.callInt(stream, arr.value);
+						if (Jni::checkExceptionAndPrintClear()) {
+							break;
+						}
+						if (n > 0) {
+							Jni::getByteArrayRegion(arr.value, 0, n, buf);
+							writer.write(buf, n);
+						} else {
+							break;
+						}
+					}
+					JInputStream::close.call(stream);
+					Jni::checkExceptionAndPrintClear();
+					return writer.getData();
 				}
 			}
+			return sl_null;
 		}
 
 	}

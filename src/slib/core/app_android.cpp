@@ -142,7 +142,7 @@ namespace slib
 
 	sl_bool Application::isDefaultCallingApp()
 	{
-		if (Android::getSdkVersion() >= 29) {
+		if (Android::getSdkVersion() >= AndroidSdkVersion::Q) {
 			return isRoleHeld(AppRole::Dialer);
 		}
 		jobject jactivity = Android::getCurrentActivity();
@@ -154,7 +154,7 @@ namespace slib
 
 	void Application::setDefaultCallingApp(const Function<void()>& callback)
 	{
-		if (Android::getSdkVersion() >= 29) {
+		if (Android::getSdkVersion() >= AndroidSdkVersion::Q) {
 			requestRole(AppRole::Dialer, callback);
 			return;
 		}

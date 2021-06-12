@@ -245,9 +245,6 @@
     <ClCompile Include="..\..\src\slib\core\pipe.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\java.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\content_type.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -1405,9 +1402,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\gdi_platform.cpp">
       <Filter>src\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\java_input_stream.cpp">
-      <Filter>src\core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

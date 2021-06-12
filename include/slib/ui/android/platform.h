@@ -50,6 +50,8 @@ namespace slib
 		static void removeWindowInstance(jobject window);
 		static jobject getWindowHandle(WindowInstance* instance);
 
+		static void sendFile(const StringParam& filePath, const StringParam& mimeType, const StringParam& chooserTitle = sl_null);
+
 	};
 
 }
