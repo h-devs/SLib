@@ -938,16 +938,15 @@ namespace slib
 					Ref<Window> window = view->getWindow();
 					if (window.isNotNull()) {
 						colorBack = window->getBackgroundColor();
-						if (colorBack.a == 255) {
-							flagOpaque = sl_true;
-						}
 					}
 				}
 			}
 			if (!flagOpaque) {
-				Color c = GetDefaultBackColor();
-				c.blend_PA_NPA(colorBack);
-				colorBack = c;
+				if (colorBack.a < 255) {
+					Color c = GetDefaultBackColor();
+					c.blend_PA_NPA(colorBack);
+					colorBack = c;
+				}
 			}
 		}
 		
