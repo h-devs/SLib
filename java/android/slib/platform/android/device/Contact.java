@@ -31,7 +31,7 @@ import android.provider.ContactsContract;
 import java.util.ArrayList;
 import java.util.Vector;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 
 public class Contact {
 

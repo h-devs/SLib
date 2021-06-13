@@ -31,7 +31,7 @@ import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 
 public class WebViewFileChooser implements FileChooserListener {
 

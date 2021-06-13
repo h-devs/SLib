@@ -46,7 +46,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.SlibActivity;
 import slib.platform.android.ui.helper.WebViewFileChooser;
 

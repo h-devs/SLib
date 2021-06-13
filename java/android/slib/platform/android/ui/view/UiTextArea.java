@@ -27,7 +27,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ViewParent;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 
 public class UiTextArea extends UiEditView {
 

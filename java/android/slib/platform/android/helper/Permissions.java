@@ -22,17 +22,15 @@
 
 package slib.platform.android.helper;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Process;
 
-import java.security.Permission;
 import java.util.Vector;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 
 public class Permissions {
 

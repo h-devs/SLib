@@ -24,7 +24,7 @@ package slib.platform.android.ui;
 
 import java.util.HashMap;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
 import android.graphics.PointF;

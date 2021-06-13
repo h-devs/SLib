@@ -26,7 +26,6 @@ import android.app.Activity;
 
 public class Android {
 
-
 	public static void onCreateActivity(Activity activity)
 	{
 		nativeOnCreateActivity(activity);

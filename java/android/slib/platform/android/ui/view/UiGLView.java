@@ -29,10 +29,10 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.opengles.GL10;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.SlibActivity;
 import slib.platform.android.ui.UiThread;
-import android.annotation.SuppressLint;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;

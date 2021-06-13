@@ -29,7 +29,7 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Rect;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 
 public class Graphics {
 

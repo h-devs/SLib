@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,42 +20,27 @@
  *   THE SOFTWARE.
  */
 
-package slib.platform.android;
+package slib.android;
 
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+import android.content.Context;
+import android.os.Build;
+import android.provider.Settings;
 
-import slib.android.Logger;
+public class System {
 
-/**
- * Created by strongman on 12/29/16.
- */
-
-public class Preference {
-
-    public static void setValue(SlibActivity activity, String key, String value) {
-        try {
-            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(activity);
-            SharedPreferences.Editor editor = sp.edit();
-            if (value != null) {
-	            editor.putString(key, value);
-            } else {
-            	editor.remove(key);
+    public static String getDeviceNameOnSettings(Context context) {
+        String str = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            try {
+                str = Settings.Global.getString(context.getContentResolver(), "device_name");
+            } catch (Exception e) {
+                Logger.exception(e);
             }
-            editor.commit();
-        } catch (Exception e) {
-            Logger.exception(e);
         }
-    }
-
-    public static String getValue(SlibActivity activity, String key) {
-        try {
-            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(activity);
-            return sp.getString(key, null);
-        } catch (Exception e) {
-            Logger.exception(e);
+        if (str != null && str.length() > 0) {
+            return str;
         }
-        return null;
+        return Device.getDeviceName();
     }
 
 }

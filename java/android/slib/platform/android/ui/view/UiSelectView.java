@@ -36,7 +36,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.ui.UiFont;
 import slib.platform.android.ui.Util;
 

@@ -53,7 +53,7 @@ namespace slib
 	{
 		static AndroidSdkVersion version = AndroidSdkVersion::CUR_DEVELOPMENT;
 		if (version == AndroidSdkVersion::CUR_DEVELOPMENT) {
-			JniClass cls = Jni::getClass("android/os/Build/VERSION");
+			JniClass cls = Jni::getClass("android/os/Build$VERSION");
 			if (cls.isNotNull()) {
 				version = (AndroidSdkVersion)(cls.getStaticIntField("SDK_INT"));
 			}
@@ -64,7 +64,7 @@ namespace slib
 	String Android::getSystemRelease() noexcept
 	{
 		if (g_strSystemRelease.isNull()) {
-			JniClass cls = Jni::getClass("android/os/Build/VERSION");
+			JniClass cls = Jni::getClass("android/os/Build$VERSION");
 			if (cls.isNotNull()) {
 				String release = cls.getStaticStringField("RELEASE");
 				g_strSystemRelease = release;
@@ -74,6 +74,7 @@ namespace slib
 		return g_strSystemRelease;
 	}
 
+	// From Java code: slib.android.Device.getDeviceName
 	String Android::getDeviceName() noexcept
 	{
 		if (g_strDeviceName.isNull()) {

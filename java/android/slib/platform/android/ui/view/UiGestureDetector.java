@@ -22,13 +22,12 @@
 
 package slib.platform.android.ui.view;
 
-import android.app.Activity;
 import android.content.Context;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 
 public class UiGestureDetector extends SimpleOnGestureListener {
 

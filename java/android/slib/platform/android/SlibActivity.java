@@ -25,8 +25,8 @@ package slib.platform.android;
 import java.util.HashMap;
 import java.util.Vector;
 
+import slib.android.Logger;
 import slib.platform.android.app.Application;
-import slib.platform.android.device.Device;
 import slib.platform.android.ui.UiThread;
 import slib.platform.android.ui.window.UiWindow;
 

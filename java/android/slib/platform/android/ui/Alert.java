@@ -30,7 +30,7 @@ import android.text.method.LinkMovementMethod;
 import android.util.TypedValue;
 import android.widget.TextView;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.SlibActivity;
 
 public class Alert {

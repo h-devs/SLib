@@ -32,7 +32,7 @@ import android.view.Surface;
 import java.nio.ByteBuffer;
 import java.util.Vector;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.SlibActivity;
 import slib.platform.android.helper.Permissions;
 

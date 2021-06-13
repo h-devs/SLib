@@ -29,7 +29,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.view.MotionEvent;
 import android.view.View;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.ui.UiThread;
 
 public class UiRefreshView extends SwipeRefreshLayout implements IView {

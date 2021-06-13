@@ -5,7 +5,7 @@ import android.os.Build;
 import android.telecom.Call;
 import android.telecom.InCallService;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.device.PhoneCall;
 
 @TargetApi(Build.VERSION_CODES.M)

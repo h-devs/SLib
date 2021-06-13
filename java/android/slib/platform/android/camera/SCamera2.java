@@ -49,7 +49,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Vector;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 
 @TargetApi(Build.VERSION_CODES.M)
 public class SCamera2 extends SCamera {

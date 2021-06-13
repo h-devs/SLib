@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,30 +20,20 @@
  *   THE SOFTWARE.
  */
 
-package slib.platform.android;
+package slib.android;
 
-import android.util.Log;
+import android.os.Build;
 
-public class Logger {
+public class Device {
 
-	public static void exception(Throwable e) {
-		Log.e("EXCEPTION", e.getMessage(), e);
-	}
-	
-	public static void warning(String warning) {
-		Log.w("WARNING", warning);
-	}
-	
-	public static void info(String info) {
-		Log.i("INFO", info);
-	}
+    public static String getDeviceName() {
+        String manufacturer = Build.MANUFACTURER;
+        String model = Build.MODEL;
+        if (model.startsWith(manufacturer)) {
+            return model;
+        } else {
+            return manufacturer + " " + model;
+        }
+    }
 
-	public static void debug(String info) {
-		Log.d("DEBUG", info);
-	}
-
-	public static void error(String error) {
-		Log.e("ERROR", error);
-	}
-	
 }

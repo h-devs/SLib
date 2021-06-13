@@ -24,7 +24,7 @@ package slib.platform.android.ui;
 
 import java.util.Vector;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.SlibActivity;
 
 import android.app.Activity;

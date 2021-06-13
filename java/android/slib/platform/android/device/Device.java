@@ -40,7 +40,7 @@ import android.util.DisplayMetrics;
 import java.io.File;
 import java.util.UUID;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.helper.FileHelper;
 import slib.platform.android.ui.UiThread;
 

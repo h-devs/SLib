@@ -28,7 +28,7 @@ import android.content.res.AssetManager;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.view.Surface;
-import slib.platform.android.Logger;
+import slib.android.Logger;
 
 public class SMediaPlayer implements MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener {
 

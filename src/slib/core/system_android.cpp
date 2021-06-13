@@ -81,6 +81,7 @@ namespace slib
 		return dir;
 	}
 	
+	// From Java code: slib.android.System.getDeviceNameOnSettings
 	String System::getComputerName()
 	{
 		if (Android::getSdkVersion() >= AndroidSdkVersion::JELLY_BEAN_MR1) {
@@ -90,7 +91,7 @@ namespace slib
 				if (clsActivity.isNotNull()) {
 					JniLocal<jobject> resolver = clsActivity.callObjectMethod("getContentResolver", "()Landroid/content/ContentResolver;", jactivity);
 					if (resolver.isNotNull()) {
-						JniClass clsGlobal = Jni::getClass("android/provider/Settings/Global");
+						JniClass clsGlobal = Jni::getClass("android/provider/Settings$Global");
 						if (clsGlobal.isNotNull()) {
 							JniLocal<jstring> strDeviceName = Jni::getJniString("device_name");
 							String name = clsGlobal.callStaticStringMethod("getString", "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;", resolver.value, strDeviceName.value);

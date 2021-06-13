@@ -29,7 +29,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.MessageQueue;
-import slib.platform.android.Logger;
+import slib.android.Logger;
 
 public class UiThread {
 

@@ -22,7 +22,7 @@
 
 package slib.platform.android.device;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;

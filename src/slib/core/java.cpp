@@ -620,7 +620,7 @@ namespace slib
 #if defined(JNI_LOG_INIT_LOAD)
 						LOG("REGISTERING JAVA NATIVE: %s::%s (%s)", obj->gcls->name, obj->name, obj->sig);
 #endif
-						if (!cls.registerNative(obj->name, obj->sig, obj->fn)) {
+						if (!(cls.registerNative(obj->name, obj->sig, obj->fn))) {
 							LOG_ERROR("REGISTERING JAVA NATIVE FAILED: %s::%s (%s)", obj->gcls->name, obj->name, obj->sig);
 						}
 					}

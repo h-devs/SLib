@@ -29,8 +29,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.HorizontalScrollView;
 
-import slib.platform.android.Logger;
-import slib.platform.android.ui.window.UiWindow;
+import slib.android.Logger;
 
 public class UiHorizontalScrollView extends HorizontalScrollView implements IView {
 

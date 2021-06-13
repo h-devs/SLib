@@ -22,8 +22,7 @@
 
 package slib.platform.android.ui.window;
 
-import slib.platform.android.Android;
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.SlibActivity;
 import slib.platform.android.ui.Util;
 import slib.platform.android.ui.view.IView;

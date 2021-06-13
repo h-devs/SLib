@@ -46,7 +46,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 
 import me.leolin.shortcutbadger.ShortcutBadger;
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.SlibActivity;
 import slib.platform.android.helper.FileHelper;
 

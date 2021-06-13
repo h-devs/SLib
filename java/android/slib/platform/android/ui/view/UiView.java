@@ -22,7 +22,7 @@
 
 package slib.platform.android.ui.view;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.ui.Graphics;
 import slib.platform.android.ui.UiThread;
 import slib.platform.android.ui.window.UiWindow;

@@ -28,8 +28,7 @@ import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ScrollView;
-import slib.platform.android.Logger;
-import slib.platform.android.ui.window.UiWindow;
+import slib.android.Logger;
 
 public class UiScrollView extends ScrollView implements IView {
 

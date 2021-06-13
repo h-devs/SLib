@@ -31,6 +31,7 @@ android {
 
     sourceSets {
         main.java.srcDirs += '../../../java/android'
+        main.java.srcDirs += '../../../java/common'
     }
 
     externalNativeBuild {

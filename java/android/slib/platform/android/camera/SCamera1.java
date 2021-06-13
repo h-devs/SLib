@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.SlibActivity;
 
 public class SCamera1 extends SCamera implements Camera.PreviewCallback, Camera.PictureCallback, Camera.ErrorCallback {

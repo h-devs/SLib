@@ -27,7 +27,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 
 public class Clipboard {
 

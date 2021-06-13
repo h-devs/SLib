@@ -23,7 +23,7 @@
 package slib.platform.android.ui.view;
 
 import io.slib.R;
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.ui.UiFont;
 import slib.platform.android.ui.Util;
 

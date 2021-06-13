@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,42 +20,30 @@
  *   THE SOFTWARE.
  */
 
-package slib.platform.android;
+package slib.android;
 
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+import android.util.Log;
 
-import slib.android.Logger;
+public class Logger {
 
-/**
- * Created by strongman on 12/29/16.
- */
+	public static void exception(Throwable e) {
+		Log.e("EXCEPTION", e.getMessage(), e);
+	}
+	
+	public static void warning(String warning) {
+		Log.w("WARNING", warning);
+	}
+	
+	public static void info(String info) {
+		Log.i("INFO", info);
+	}
 
-public class Preference {
+	public static void debug(String info) {
+		Log.d("DEBUG", info);
+	}
 
-    public static void setValue(SlibActivity activity, String key, String value) {
-        try {
-            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(activity);
-            SharedPreferences.Editor editor = sp.edit();
-            if (value != null) {
-	            editor.putString(key, value);
-            } else {
-            	editor.remove(key);
-            }
-            editor.commit();
-        } catch (Exception e) {
-            Logger.exception(e);
-        }
-    }
-
-    public static String getValue(SlibActivity activity, String key) {
-        try {
-            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(activity);
-            return sp.getString(key, null);
-        } catch (Exception e) {
-            Logger.exception(e);
-        }
-        return null;
-    }
-
+	public static void error(String error) {
+		Log.e("ERROR", error);
+	}
+	
 }

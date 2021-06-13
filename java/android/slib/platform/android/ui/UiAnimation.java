@@ -27,7 +27,7 @@ import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.animation.TimeInterpolator;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 import slib.platform.android.ui.view.IView;
 
 public class UiAnimation {

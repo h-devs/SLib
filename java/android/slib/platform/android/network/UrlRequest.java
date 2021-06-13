@@ -40,7 +40,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 
 public class UrlRequest {
 
