@@ -239,17 +239,13 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool ECPublicKey::verifySignature(const EllipticCurve& curve, const void* hash, sl_size size, const void* _signature, sl_size sizeSignature) const noexcept
+	sl_bool ECPublicKey::verifySignature(const EllipticCurve& curve, const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept
 	{
-		const sl_uint8* signature = (const sl_uint8*)_signature;
-		if (sizeSignature & 1) {
-			return sl_false;
-		}
-		sizeSignature >>= 1;
 		ECDSA_Signature sig;
-		sig.r = BigInt::fromBytesBE(signature, sizeSignature);
-		sig.s = BigInt::fromBytesBE(signature + sizeSignature, sizeSignature);
-		return ECDSA::verify(curve, *this, hash, size, sig);
+		if (sig.deserialize(signature, sizeSignature)) {
+			return ECDSA::verify(curve, *this, hash, size, sig);
+		}
+		return sl_false;
 	}
 
 	
@@ -281,18 +277,7 @@ namespace slib
 
 	Memory ECPrivateKey::generateSignature(const EllipticCurve& curve, const void* hash, sl_size size) const noexcept
 	{
-		ECDSA_Signature sig = ECDSA::sign(curve, *this, hash, size);
-		sl_size n1 = sig.r.getMostSignificantBytes();
-		sl_size n2 = sig.s.getMostSignificantBytes();
-		sl_size n = Math::max(n1, n2);
-		Memory ret = Memory::create(n << 1);
-		if (ret.isNotNull()) {
-			sl_uint8* signature = (sl_uint8*)(ret.getData());
-			sig.r.getBytesBE(signature, n);
-			sig.s.getBytesBE(signature + n, n);
-			return ret;
-		}
-		return sl_null;
+		return ECDSA::sign(curve, *this, hash, size).serialize();		
 	}
 
 
@@ -326,6 +311,11 @@ namespace slib
 	{
 	}
 
+	sl_bool ECPrivateKey_secp256k1::generate() noexcept
+	{
+		return ECPrivateKey::generate(EllipticCurve::secp256k1());
+	}
+
 	Memory ECPrivateKey_secp256k1::generateSignature(const void* hash, sl_size size) const noexcept
 	{
 		return ECPrivateKey::generateSignature(EllipticCurve::secp256k1(), hash, size);
@@ -354,7 +344,39 @@ namespace slib
 	ECDSA_Signature::ECDSA_Signature() noexcept
 	{
 	}
-	
+
+	Memory ECDSA_Signature::serialize() const noexcept
+	{
+		sl_size n1 = r.getMostSignificantBytes();
+		sl_size n2 = s.getMostSignificantBytes();
+		sl_size n = Math::max(n1, n2);
+		Memory ret = Memory::create(n << 1);
+		if (ret.isNotNull()) {
+			sl_uint8* signature = (sl_uint8*)(ret.getData());
+			r.getBytesBE(signature, n);
+			s.getBytesBE(signature + n, n);
+			return ret;
+		}
+		return sl_null;
+	}
+
+	sl_bool ECDSA_Signature::deserialize(const void* buf, sl_size size)
+	{
+		const sl_uint8* signature = (const sl_uint8*)buf;
+		if (size & 1) {
+			return sl_false;
+		}
+		size >>= 1;
+		r = BigInt::fromBytesBE(signature, size);
+		s = BigInt::fromBytesBE(signature + size, size);
+		return sl_true;
+	}
+
+	sl_bool ECDSA_Signature::deserialize(const Memory& mem) noexcept
+	{
+		return deserialize(mem.getData(), mem.getSize());
+	}
+
 	namespace priv
 	{
 		namespace ecdsa
@@ -433,10 +455,7 @@ namespace slib
 			}
 			break;
 		}
-		ECDSA_Signature ret;
-		ret.r = r;
-		ret.s = s;
-		return ret;
+		return ECDSA_Signature(Move(r), Move(s));
 	}
 	
 	ECDSA_Signature ECDSA::sign(const EllipticCurve& curve, const ECPrivateKey& key, const void* hash, sl_size size, BigInt* k) noexcept

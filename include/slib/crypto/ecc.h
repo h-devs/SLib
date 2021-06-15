@@ -178,6 +178,8 @@ namespace slib
 		}
 
 	public:
+		sl_bool generate() noexcept;
+
 		Memory generateSignature(const void* hash, sl_size size) const noexcept;
 
 		sl_bool checkValid() const noexcept;
@@ -196,9 +198,19 @@ namespace slib
 		
 	public:
 		ECDSA_Signature() noexcept;
+
+		template <class R, class S>
+		ECDSA_Signature(R&& _r, S&& _s) noexcept: r(Forward<R>(_r)), s(Forward<S>(_s)) {}
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECDSA_Signature)
-		
+		SLIB_DECLARE_CLASS_JSON_SERIALIZE_MEMBERS
+	
+	public:
+		Memory serialize() const noexcept;
+
+		sl_bool deserialize(const void* buf, sl_size size);
+		sl_bool deserialize(const Memory& mem) noexcept;
+
 	};
 	
 	// Elliptic Curve Digital Signature Algorithm
