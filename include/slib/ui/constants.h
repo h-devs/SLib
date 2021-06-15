@@ -322,8 +322,7 @@ namespace slib
 	class DialogResult
 	{
 	public:
-		int value;
-		SLIB_MEMBERS_OF_PRIMITIVE_WRAPPER(DialogResult, int, value)
+		SLIB_DEFINE_PRIMITIVE_WRAPPER_MEMBERS(DialogResult, int, value)
 
 	public:
 		enum {

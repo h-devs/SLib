@@ -26,11 +26,12 @@
 #include "common_members.h"
 #include "hash.h"
 
-#define SLIB_MEMBERS_OF_PRIMITIVE_WRAPPER(CLASS, TYPE, VALUE) \
+#define SLIB_DEFINE_PRIMITIVE_WRAPPER_MEMBERS(CLASS, TYPE, VALUE) \
 public: \
+	TYPE VALUE; \
 	constexpr CLASS(TYPE _value): VALUE(_value) {} \
 	constexpr CLASS(const CLASS& other): VALUE(other.VALUE) {} \
-	constexpr operator TYPE() const { return VALUE; } \
+	constexpr explicit operator TYPE() const { return VALUE; } \
 	CLASS& operator=(const CLASS& other) noexcept { VALUE = other.VALUE; return *this; } \
 	CLASS& operator=(TYPE _value) noexcept { VALUE = _value; return *this; } \
 	constexpr sl_bool equals(const CLASS& other) const { return VALUE == other.VALUE; } \

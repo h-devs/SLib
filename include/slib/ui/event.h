@@ -68,8 +68,7 @@ namespace slib
 	class SLIB_EXPORT KeycodeAndModifiers
 	{
 	public:
-		int value;
-		SLIB_MEMBERS_OF_PRIMITIVE_WRAPPER(KeycodeAndModifiers, int, value)
+		SLIB_DEFINE_PRIMITIVE_WRAPPER_MEMBERS(KeycodeAndModifiers, int, value)
 		
 	public:
 		constexpr KeycodeAndModifiers() : value(0) {}

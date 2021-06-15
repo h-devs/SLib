@@ -750,8 +750,7 @@ namespace slib
 	class Locale
 	{
 	public:
-		sl_uint64 value;
-		SLIB_MEMBERS_OF_PRIMITIVE_WRAPPER(Locale, sl_uint64, value)
+		SLIB_DEFINE_PRIMITIVE_WRAPPER_MEMBERS(Locale, sl_uint64, value)
 	
 		enum : sl_uint64 {
 			ar = SLIB_LOCALE(Language::Arabic, LanguageScript::Unknown, Country::Unknown),
