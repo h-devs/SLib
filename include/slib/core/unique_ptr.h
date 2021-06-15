@@ -28,211 +28,107 @@
 namespace slib
 {
 
+#define SLIB_DEFINE_UNIQUE_PTR_MEMBERS_NO_ASSIGN(CLASS, POINTER_TYPE, POINTER_NAME, POINTER_NULL, FREE_POINTER) \
+public: \
+	POINTER_TYPE POINTER_NAME; \
+	constexpr CLASS(): POINTER_NAME(POINTER_NULL) {} \
+	constexpr CLASS(sl_null_t): POINTER_NAME(POINTER_NULL) {} \
+	CLASS(const CLASS&) = delete; \
+	CLASS(CLASS&& other) noexcept \
+	{ \
+		POINTER_NAME = other.POINTER_NAME; \
+		other.POINTER_NAME = POINTER_NULL; \
+	} \
+	~CLASS() \
+	{ \
+		if (POINTER_NAME != POINTER_NULL) { \
+			FREE_POINTER (POINTER_NAME); \
+		} \
+	} \
+	CLASS& operator=(const CLASS&) = delete; \
+	CLASS& operator=(CLASS&& other) noexcept \
+	{ \
+		if (POINTER_NAME != POINTER_NULL) { \
+			FREE_POINTER (POINTER_NAME); \
+		} \
+		POINTER_NAME = other.POINTER_NAME; \
+		other.POINTER_NAME = sl_null; \
+		return *this; \
+	} \
+	CLASS& operator=(sl_null_t) noexcept \
+	{ \
+		if (POINTER_NAME != POINTER_NULL) { \
+			FREE_POINTER (POINTER_NAME); \
+			POINTER_NAME = POINTER_NULL; \
+		} \
+		return *this; \
+	} \
+	constexpr explicit operator bool() const \
+	{ \
+		return POINTER_NAME != sl_null; \
+	} \
+	constexpr explicit operator POINTER_TYPE() const& \
+	{ \
+		return POINTER_NAME; \
+	} \
+	operator POINTER_TYPE() && = delete; \
+	constexpr POINTER_TYPE operator->() const& \
+	{ \
+		return POINTER_NAME; \
+	} \
+	POINTER_TYPE operator->() && = delete; \
+	constexpr sl_bool isNull() const \
+	{ \
+		return !POINTER_NAME; \
+	} \
+	constexpr sl_bool isNotNull() const \
+	{ \
+		return POINTER_NAME != sl_null; \
+	} \
+	void setNull() noexcept \
+	{ \
+		if (POINTER_NAME != POINTER_NULL) { \
+			FREE_POINTER (POINTER_NAME); \
+			POINTER_NAME = POINTER_NULL; \
+		} \
+	} \
+	constexpr POINTER_TYPE get() const& \
+	{ \
+		return POINTER_NAME; \
+	} \
+	POINTER_TYPE get() && = delete;
+
+#define SLIB_DEFINE_UNIQUE_PTR_MEMBERS(CLASS, POINTER_TYPE, POINTER_NAME, POINTER_NULL, FREE_POINTER) \
+	SLIB_DEFINE_UNIQUE_PTR_MEMBERS_NO_ASSIGN(CLASS, POINTER_TYPE, POINTER_NAME, POINTER_NULL, FREE_POINTER) \
+	constexpr explicit CLASS(POINTER_TYPE other): POINTER_NAME(other) {} \
+	explicit CLASS& operator=(POINTER_TYPE other) noexcept \
+	{ \
+		if (POINTER_NAME != POINTER_NULL) { \
+			FREE_POINTER (POINTER_NAME); \
+		} \
+		POINTER_NAME = other; \
+		return *this; \
+	}
+
 	template <class T>
 	class SLIB_EXPORT UniquePtr
 	{
-	public:
-		typedef T* PointerType;
-		typedef T ValueType;
+		SLIB_DEFINE_UNIQUE_PTR_MEMBERS(UniquePtr, T*, ptr, sl_null, delete)
 
 	public:
-		PointerType ptr;
-
-	public:
-		constexpr UniquePtr(): ptr(sl_null) {}
-
-		constexpr UniquePtr(sl_null_t): ptr(sl_null) {}
-
-		constexpr explicit UniquePtr(PointerType _ptr): ptr(_ptr) {}
-
-		UniquePtr(const UniquePtr&) = delete;
-
-		UniquePtr(UniquePtr&& other) noexcept
-		{
-			ptr = other.release();
-		}
-
-		~UniquePtr()
-		{
-			_free();
-		}
-
-	public:
-		UniquePtr& operator=(sl_null_t) noexcept
-		{
-			reset();
-			return *this;
-		}
-
-		UniquePtr& operator=(const UniquePtr&) = delete;
-
-		UniquePtr& operator=(UniquePtr&& other) noexcept
-		{
-			_free();
-			ptr = other.release();
-			return *this;
-		}
-
-		constexpr explicit operator bool() const
-		{
-			return ptr != sl_null;
-		}
-
-		ValueType& operator*() const noexcept
+		T& operator*() const noexcept
 		{
 			return *((ValueType*)(void*)ptr);
 		}
 
-		constexpr PointerType operator->() const
-		{
-			return ptr;
-		}
-
-	public:
-		constexpr sl_bool isNull() const
-		{
-			return !ptr;
-		}
-
-		constexpr sl_bool isNotNull() const
-		{
-			return ptr != sl_null;
-		}
-
-		constexpr PointerType get() const
-		{
-			return ptr;
-		}
-
-		PointerType release() noexcept
-		{
-			PointerType ret = ptr;
-			ptr = sl_null;
-			return ret;
-		}
-
-		void reset() noexcept
-		{
-			_free();
-			ptr = sl_null;
-		}
-
-		void reset(PointerType _ptr) noexcept
-		{
-			_free();
-			ptr = _ptr;
-		}
-
-	private:
-		void _free() noexcept
-		{
-			if (ptr) {
-				delete ptr;
-			}
-		}
-
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT UniquePtr<T[]>
 	{
-	public:
-		typedef T* PointerType;
-		typedef T ValueType;
-
-	public:
-		PointerType ptr;
-
-	public:
-		constexpr UniquePtr(): ptr(sl_null) {}
-
-		constexpr UniquePtr(sl_null_t): ptr(sl_null) {}
-
-		constexpr explicit UniquePtr(PointerType _ptr): ptr(_ptr) {}
-
-		UniquePtr(const UniquePtr&) = delete;
-
-		UniquePtr(UniquePtr&& other) noexcept
-		{
-			ptr = other.release();
-		}
-
-		~UniquePtr()
-		{
-			_free();
-		}
-
-	public:
-		UniquePtr& operator=(sl_null_t) noexcept
-		{
-			reset();
-			return *this;
-		}
-
-		UniquePtr& operator=(const UniquePtr&) = delete;
-
-		UniquePtr& operator=(UniquePtr&& other) noexcept
-		{
-			_free();
-			ptr = other.release();
-			return *this;
-		}
-
-		constexpr explicit operator bool() const
-		{
-			return ptr != sl_null;
-		}
-
-		ValueType& operator[](sl_size index) const noexcept
-		{
-			return ptr[index];
-		}
-
-	public:
-		constexpr sl_bool isNull() const
-		{
-			return !ptr;
-		}
-
-		constexpr sl_bool isNotNull() const
-		{
-			return ptr != sl_null;
-		}
-
-		constexpr PointerType get() const
-		{
-			return ptr;
-		}
-
-		PointerType release() noexcept
-		{
-			PointerType ret = ptr;
-			ptr = sl_null;
-			return ret;
-		}
-
-		void reset() noexcept
-		{
-			_free();
-			ptr = sl_null;
-		}
-
-		void reset(PointerType _ptr) noexcept
-		{
-			_free();
-			ptr = _ptr;
-		}
-
-	private:
-		void _free() noexcept
-		{
-			if (ptr) {
-				delete[] ptr;
-			}
-		}
-
+		SLIB_DEFINE_UNIQUE_PTR_MEMBERS(UniquePtr, T*, ptr, sl_null, delete[])
 	};
-	
+
 }
 
 #endif

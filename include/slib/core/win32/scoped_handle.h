@@ -28,62 +28,16 @@
 #ifdef SLIB_PLATFORM_IS_WIN32
 
 #include "../windows.h"
+#include "../unique_ptr.h"
 
 namespace slib
 {
-		
+	
 	class SLIB_EXPORT ScopedHandle
 	{
-	public:
-		HANDLE handle;
-
-	public:
-		constexpr ScopedHandle(HANDLE _handle): handle(_handle) {}
-
-		ScopedHandle(const ScopedHandle&) = delete;
-
-		ScopedHandle(ScopedHandle&& other) noexcept
-		{
-			handle = other.handle;
-			other.handle = INVALID_HANDLE_VALUE;
-		}
-		
-		~ScopedHandle()
-		{
-			close();
-		}
-
-	public:
-		ScopedHandle& operator=(const ScopedHandle&) = delete;
-
-		ScopedHandle& operator=(ScopedHandle&& other) noexcept
-		{
-			handle = other.handle;
-			other.handle = INVALID_HANDLE_VALUE;
-			return *this;
-		}
-
-		constexpr explicit operator HANDLE() const
-		{
-			return handle;
-		}
-
-	public:
-		void close() noexcept
-		{
-			HANDLE h = handle;
-			if (h != INVALID_HANDLE_VALUE) {
-				::CloseHandle(h);
-				handle = INVALID_HANDLE_VALUE;
-			}
-		}
-
-		constexpr HANDLE get() const
-		{
-			return handle;
-		}
-
+		SLIB_DEFINE_UNIQUE_PTR_MEMBERS(ScopedHandle, HANDLE, handle, INVALID_HANDLE_VALUE, ::CloseHandle)
 	};
+	
 }
 
 #endif
