@@ -48,15 +48,51 @@ namespace slib
 
 
 	template <class OUTPUT>
-	SLIB_INLINE sl_bool ECPublicKey_secp256k1::serialize(OUTPUT* output) const
+	SLIB_INLINE sl_bool ECPublicKey::serialize(OUTPUT* output) const
 	{
 		return Q.serialize(output);
 	}
 
 	template <class INPUT>
-	SLIB_INLINE sl_bool ECPublicKey_secp256k1::deserialize(INPUT* input)
+	SLIB_INLINE sl_bool ECPublicKey::deserialize(INPUT* input)
 	{
 		return Q.deserialize(input);
+	}
+
+
+	template <class OUTPUT>
+	SLIB_INLINE sl_bool ECPrivateKey::serialize(OUTPUT* output) const
+	{
+		if (!(Q.serialize(output))) {
+			return sl_false;
+		}
+		return d.serialize(output);
+	}
+
+	template <class INPUT>
+	SLIB_INLINE sl_bool ECPrivateKey::deserialize(INPUT* input)
+	{
+		if (!(Q.deserialize(input))) {
+			return sl_false;
+		}
+		return d.deserialize(input);
+	}
+
+
+	template <class OUTPUT>
+	SLIB_INLINE sl_bool ECDSA_Signature::serialize(OUTPUT* output) const
+	{
+		return serialize().serialize(output);
+	}
+
+	template <class INPUT>
+	SLIB_INLINE sl_bool ECDSA_Signature::deserialize(INPUT* input)
+	{
+		Memory mem;
+		if (!(mem.deserialize(input))) {
+			return sl_false;
+		}
+		return deserialize(mem);
 	}
 
 }

@@ -78,6 +78,25 @@ namespace slib
 		return sl_true;
 	}
 
+
+	SLIB_INLINE Json ECDSA_Signature::toJson() const noexcept
+	{
+		Json ret;
+		ret.putItem_NoLock("r", r.toJson());
+		ret.putItem_NoLock("s", s.toJson());
+		return ret;
+	}
+
+	SLIB_INLINE sl_bool ECDSA_Signature::setJson(const Json& json) noexcept
+	{
+		if (json.isUndefined()) {
+			return sl_false;
+		}
+		r.setJson(json.getItem("r"));
+		s.setJson(json.getItem("s"));
+		return sl_true;
+	}
+
 }
 
 #endif
