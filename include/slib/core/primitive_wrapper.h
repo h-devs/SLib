@@ -31,7 +31,7 @@ public: \
 	TYPE VALUE; \
 	constexpr CLASS(TYPE _value): VALUE(_value) {} \
 	constexpr CLASS(const CLASS& other): VALUE(other.VALUE) {} \
-	constexpr explicit operator TYPE() const { return VALUE; } \
+	constexpr operator TYPE() const { return VALUE; } \
 	CLASS& operator=(const CLASS& other) noexcept { VALUE = other.VALUE; return *this; } \
 	CLASS& operator=(TYPE _value) noexcept { VALUE = _value; return *this; } \
 	constexpr sl_bool equals(const CLASS& other) const { return VALUE == other.VALUE; } \
