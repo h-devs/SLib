@@ -124,8 +124,8 @@ namespace slib
 		if (!alertMap) {
 			return sl_false;
 		}
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (context) {
 			Ref<AlertDialogResult> result = new AlertDialogResult();
 			if (result.isNotNull()) {
 				result->onResult = SLIB_FUNCTION_REF(AlertDialog, _onResult, this);
@@ -151,7 +151,7 @@ namespace slib
 					}
 					JAlert::titleNo.set(jalert, _titleNo);
 					alertMap->put(lresult, result);
-					if (JAlert::show.callBoolean(jalert, jactivity)) {
+					if (JAlert::show.callBoolean(jalert, context)) {
 						return sl_true;
 					}
 					alertMap->remove(lresult);

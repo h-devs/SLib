@@ -118,8 +118,8 @@ namespace slib
 						oldCallback = callback;
 						callback.setNull();
 					}
-					jobject jactivity = Android::getCurrentActivity();
-					if (jactivity) {
+					jobject context = Android::getCurrentContext();
+					if (context) {
 						callback = takePhoto.onComplete;
 						locker.unlock();
 						if (oldCallback.isNotNull()) {
@@ -127,7 +127,7 @@ namespace slib
 							oldCallback(result);
 						}
 						JniLocal<jstring> jpath = Jni::getJniString(takePhoto.outputFilePath);
-						JTakePhoto::open.call(sl_null, jactivity, flagCamera, jpath.get());
+						JTakePhoto::open.call(sl_null, context, flagCamera, jpath.get());
 					} else {
 						locker.unlock();
 						if (oldCallback.isNotNull()) {

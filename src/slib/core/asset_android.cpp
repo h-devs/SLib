@@ -28,8 +28,9 @@
 #include "slib/core/android/asset.h"
 
 #include "slib/core/java.h"
-#include "slib/core/android/platform.h"
 #include "slib/core/java/input_stream.h"
+#include "slib/core/android/platform.h"
+#include "slib/core/android/context.h"
 
 namespace slib
 {
@@ -39,10 +40,6 @@ namespace slib
 		namespace android_asset
 		{
 			
-			SLIB_JNI_BEGIN_CLASS(JActivity, "android/app/Activity")
-				SLIB_JNI_METHOD(getAssets, "getAssets", "()Landroid/content/res/AssetManager;")
-			SLIB_JNI_END_CLASS
-
 			SLIB_JNI_BEGIN_CLASS(JAssetManager, "android/content/res/AssetManager")
 				SLIB_JNI_METHOD(open, "open", "(Ljava/lang/String;)Ljava/io/InputStream;")
 			SLIB_JNI_END_CLASS
@@ -57,9 +54,9 @@ namespace slib
 
 		jobject Assets::open(const StringParam& _path) noexcept
 		{
-			jobject activity = Android::getCurrentActivity();
-			if (activity) {
-				JniLocal<jobject> assets = JActivity::getAssets.callObject(activity);
+			jobject context = Android::getCurrentContext();
+			if (context) {
+				JniLocal<jobject> assets = android::Context::getAssets(context);
 				if (assets.isNotNull()) {
 					JniLocal<jstring> path = Jni::getJniString(_path);
 					if (path.isNotNull()) {

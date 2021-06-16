@@ -20,29 +20,33 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_JAVA_INPUT_STREAM
-#define CHECKHEADER_SLIB_CORE_JAVA_INPUT_STREAM
+#ifndef CHECKHEADER_SLIB_CORE_ANDROID_DISPLAY
+#define CHECKHEADER_SLIB_CORE_ANDROID_DISPLAY
 
 #include "../definition.h"
 
-#if defined(SLIB_PLATFORM_USE_JNI)
+#if defined(SLIB_PLATFORM_IS_ANDROID)
 
 #include "../java.h"
 
 namespace slib
 {
-
-	class Memory;
-
-	namespace java
+	namespace android
 	{
 
-		class SLIB_EXPORT InputStream
+		class SLIB_EXPORT Display
 		{
 		public:
-			static sl_int32 readStream(jobject stream, jbyteArray array) noexcept;			
-			static void closeStream(jobject stream) noexcept;
-			static Memory readAllBytes(jobject stream) noexcept;
+			static JniLocal<jobject> getMetrics(jobject thiz) noexcept;
+
+		};
+
+		class SLIB_EXPORT DisplayMetrics
+		{
+		public:
+			static sl_int32 getWidthPixels(jobject thiz) noexcept;
+			static sl_int32 getHeightPixels(jobject thiz) noexcept;
+			static sl_int32 getDensityDpi(jobject thiz) noexcept;
 
 		};
 

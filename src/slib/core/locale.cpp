@@ -986,14 +986,15 @@ namespace slib
 	{
 		JniLocal<jobject> locale(java::Locale::getDefault());
 		if (locale.isNotNull()) {
-			String script = java::Locale::getScript(locale.value);
-			String lang = java::Locale::getLanguage(locale.value);
-			String country = java::Locale::getCountry(locale.value);
-			if (script.isNotEmpty()) {
-				return String::join(lang, "_", script, "_", country);
-			} else {
-				return String::join(lang, "_", country);
+			String lang = java::Locale::getLanguage(locale);
+			String country = java::Locale::getCountry(locale);
+			if (Android::getSdkVersion() >= AndroidSdkVersion::LOLLIPOP) {
+				String script = java::Locale::getScript(locale);
+				if (script.isNotEmpty()) {
+					return String::join(lang, "_", script, "_", country);
+				}
 			}
+			return String::join(lang, "_", country);
 		}
 		return Locale::Unknown;
 	}

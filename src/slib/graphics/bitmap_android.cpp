@@ -91,11 +91,11 @@ namespace slib
 							if (bitmap.isNotNull()) {
 								ret = new BitmapImpl();
 								if (ret.isNotNull()) {
-									ret->m_bitmap = bitmap;
 									ret->m_width = (sl_real)width;
 									ret->m_height = (sl_real)height;
 									ret->m_flagFreeOnRelease = flagFreeOnRelease;
 									ret->m_ref = ref;
+									ret->m_bitmap = Move(bitmap);
 									return ret;
 								}
 							}
@@ -111,50 +111,44 @@ namespace slib
 				{
 					Ref<BitmapImpl> ret;
 					if (width > 0 && height > 0) {
-						JniLocal<jobject> jbitmap = JBitmap::create.callObject(sl_null, width, height);
-						if (jbitmap.isNotNull()) {
-							JniGlobal<jobject> bitmap = jbitmap;
-							if (bitmap.isNotNull()) {
-								ret = new BitmapImpl();
-								if (ret.isNotNull()) {
-									ret->m_width = width;
-									ret->m_height = height;
-									ret->m_bitmap = bitmap;
-									return ret;
-								}
+						JniGlobal<jobject> bitmap = JBitmap::create.callObject(sl_null, width, height);
+						if (bitmap.isNotNull()) {
+							ret = new BitmapImpl();
+							if (ret.isNotNull()) {
+								ret->m_width = width;
+								ret->m_height = height;
+								ret->m_bitmap = Move(bitmap);
+								return ret;
 							}
-							JBitmap::recycle.call(jbitmap);
+							JBitmap::recycle.call(bitmap);
 						}
 					}
 					return ret;
 				}
 
-				static jobject loadJBitmap(const void* buf, sl_size size)
+				static JniLocal<jobject> loadJBitmap(const void* buf, sl_size size)
 				{
 					JniLocal<jbyteArray> imageData = Jni::newByteArray(size);
 					if (imageData.isNotNull()) {
-						Jni::setByteArrayRegion(imageData, 0, size, (jbyte*)buf);
-						return JBitmap::load.callObject(sl_null, Android::getCurrentActivity(), imageData.value);
+						Jni::setByteArrayRegion(imageData., 0, size, (jbyte*)buf);
+						return JBitmap::load.callObject(sl_null, Android::getCurrentContext(), imageData.get());
 					}
-					return 0;
+					return sl_null;
 				}
 
 				static Ref<BitmapImpl> load(const void* buf, sl_size size)
 				{
 					Ref<BitmapImpl> ret;
-					JniLocal<jobject> jbitmap = loadJBitmap(buf, size);
-					if (jbitmap.isNotNull()) {
-						JniGlobal<jobject> bitmap = jbitmap;
-						if (bitmap.isNotNull()) {
-							ret = new BitmapImpl();
-							if (ret.isNotNull()) {
-								ret->m_width = JBitmap::getWidth.callInt(jbitmap);
-								ret->m_height = JBitmap::getHeight.callInt(jbitmap);
-								ret->m_bitmap = bitmap;
-								return ret;
-							}
+					JniGlobal<jobject> bitmap = loadJBitmap(buf, size);
+					if (bitmap.isNotNull()) {
+						ret = new BitmapImpl();
+						if (ret.isNotNull()) {
+							ret->m_width = JBitmap::getWidth.callInt(bitmap);
+							ret->m_height = JBitmap::getHeight.callInt(bitmap);
+							ret->m_bitmap = Move(bitmap);
+							return ret;
 						}
-						JBitmap::recycle.call(jbitmap);
+						JBitmap::recycle.call(bitmap);
 					}
 					return ret;
 				}
@@ -229,24 +223,24 @@ namespace slib
 									heightSegment = nRowsMax;
 								}
 								if (flagRead) {
-									JBitmap::read.call(jbitmap, x, yCurrent, width, heightSegment, abuf.value, width);
+									JBitmap::read.call(jbitmap, x, yCurrent, width, heightSegment, abuf.get(), width);
 									for (sl_uint32 r = 0; r < heightSegment; r++) {
-										Jni::getIntArrayRegion(abuf.value, r*width, width, (jint*)(pixelsCurrent));
+										Jni::getIntArrayRegion(abuf, r*width, width, (jint*)(pixelsCurrent));
 										pixelsCurrent += data.pitch;
 									}
 								} else {
 									for (sl_uint32 r = 0; r < heightSegment; r++) {
-										Jni::setIntArrayRegion(abuf.value, r*width, width, (jint*)(pixelsCurrent));
+										Jni::setIntArrayRegion(abuf, r*width, width, (jint*)(pixelsCurrent));
 										pixelsCurrent += data.pitch;
 									}
-									JBitmap::write.call(jbitmap, x, yCurrent, width, heightSegment, abuf.value, width);
+									JBitmap::write.call(jbitmap, x, yCurrent, width, heightSegment, abuf.get(), width);
 								}
 								yCurrent += heightSegment;
 								heightRemain -= heightSegment;
 							}
 							ret = sl_true;
 						}
-						JBitmap::returnArrayBuffer.call(sl_null, abuf.value);
+						JBitmap::returnArrayBuffer.call(sl_null, abuf.get());
 					}
 					if (ret && flagRead) {
 						bitmapData.copyPixelsFrom(data);
@@ -308,16 +302,16 @@ namespace slib
 										heightSegment = nRowsMax;
 									}
 									for (sl_uint32 r = 0; r < heightSegment; r++) {
-										Jni::setIntArrayRegion(abuf.value, r*width, width, (jint*)(bufRow));
+										Jni::setIntArrayRegion(abuf, r*width, width, (jint*)(bufRow));
 									}
-									JBitmap::write.call(jbitmap, x, yCurrent, width, heightSegment, abuf.value, width);
+									JBitmap::write.call(jbitmap, x, yCurrent, width, heightSegment, abuf.get(), width);
 									yCurrent += heightSegment;
 									heightRemain -= heightSegment;
 								}
 								ret = sl_true;
 							}
 						}
-						JBitmap::returnArrayBuffer.call(sl_null, abuf.value);
+						JBitmap::returnArrayBuffer.call(sl_null, abuf);
 					}
 					return ret;
 				}

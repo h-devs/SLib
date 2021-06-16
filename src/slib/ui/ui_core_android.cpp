@@ -147,7 +147,7 @@ namespace slib
 			void OnCreateActivity(JNIEnv* env, jobject _this, jobject activity)
 			{
 				Log("Activity", "onCreateActivity");
-				Android::setCurrentActivity(activity);
+				Android::setCurrentContext(activity);
 				Ref<UIApp> app = UIApp::getApp();
 				if (app.isNotNull()) {
 					static sl_bool flagStartApp = sl_false;
@@ -169,7 +169,7 @@ namespace slib
 			void OnResumeActivity(JNIEnv* env, jobject _this, jobject activity)
 			{
 				Log("Activity", "onResumeActivity");
-				Android::setCurrentActivity(activity);
+				Android::setCurrentContext(activity);
 				MobileApp::dispatchResumeToApp();
 			}
 
@@ -216,9 +216,9 @@ namespace slib
 
 			void UpdateKeyboardAdjustMode(UIKeyboardAdjustMode mode)
 			{
-				jobject jactivity = Android::getCurrentActivity();
-				if (jactivity) {
-					JUtil::setKeyboardAdjustMode.call(sl_null, jactivity, (jint)mode);
+				jobject context = Android::getCurrentContext();
+				if (context) {
+					JUtil::setKeyboardAdjustMode.call(sl_null, context, (jint)mode);
 				}
 			}
 
@@ -256,9 +256,9 @@ namespace slib
 
 	ScreenOrientation UI::getScreenOrientation()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return (ScreenOrientation)(JUtil::getScreenOrientation.callInt(sl_null, jactivity));
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			return (ScreenOrientation)(JUtil::getScreenOrientation.callInt(sl_null, context));
 		}
 		return ScreenOrientation::Portrait;
 	}
@@ -266,12 +266,12 @@ namespace slib
 	void UI::attemptRotateScreenOrientation()
 	{
 		List<ScreenOrientation> orientations(getAvailableScreenOrientations());
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (context) {
 			if (orientations.isEmpty()) {
-				JUtil::setScreenOrientations.call(sl_null, jactivity, sl_true, sl_true, sl_true, sl_true);
+				JUtil::setScreenOrientations.call(sl_null, context, sl_true, sl_true, sl_true, sl_true);
 			} else {
-				JUtil::setScreenOrientations.call(sl_null, jactivity,
+				JUtil::setScreenOrientations.call(sl_null, context,
 					orientations.contains(ScreenOrientation::Portrait),
 					orientations.contains(ScreenOrientation::LandscapeRight),
 					orientations.contains(ScreenOrientation::PortraitUpsideDown),
@@ -305,25 +305,25 @@ namespace slib
 
 	void UI::showKeyboard()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JUtil::showKeyboard.call(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JUtil::showKeyboard.call(sl_null, context);
 		}
 	}
 
 	void UI::dismissKeyboard()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JUtil::dismissKeyboard.call(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JUtil::dismissKeyboard.call(sl_null, context);
 		}
 	}
 
 	UIEdgeInsets UI::getSafeAreaInsets()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JniLocal<jobject> jrect = JUtil::getSafeAreaInsets.callObject(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JniLocal<jobject> jrect = JUtil::getSafeAreaInsets.callObject(sl_null, context);
 			if (jrect.isNotNull()) {
 				UIEdgeInsets ret;
 				ret.left = (sl_ui_len)(JRect::left.get(jrect));
@@ -339,27 +339,27 @@ namespace slib
 
 	sl_ui_len UI::getStatusBarHeight()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return JUtil::getStatusBarHeight.callInt(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			return JUtil::getStatusBarHeight.callInt(sl_null, context);
 		}
 		return 0;
 	}
 
 	void UI::setStatusBarStyle(StatusBarStyle style)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JUtil::setStatusBarStyle.call(sl_null, jactivity, (int)style);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JUtil::setStatusBarStyle.call(sl_null, context, (int)style);
 			UIResource::updateDefaultScreenSize();
 		}
 	}
 
 	void UI::setBadgeNumber(sl_uint32 number)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JUtil::setBadgeNumber.call(sl_null, jactivity, number);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JUtil::setBadgeNumber.call(sl_null, context, number);
 		}
 	}
 	
@@ -384,12 +384,12 @@ namespace slib
 
 	void UIPlatform::sendFile(const StringParam& filePath, const StringParam& mimeType, const StringParam& chooserTitle)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (context) {
 			JniLocal<jstring> jfilePath = Jni::getJniString(filePath);
 			JniLocal<jstring> jmimeType = Jni::getJniString(mimeType);
 			JniLocal<jstring> jchooserTitle = Jni::getJniString(chooserTitle);
-			return JUtil::sendFile.call(sl_null, jactivity, jfilePath.value, jmimeType.value, jchooserTitle.value);
+			return JUtil::sendFile.call(sl_null, context, jfilePath.get(), jmimeType.get(), jchooserTitle.get());
 		}
 	}
 

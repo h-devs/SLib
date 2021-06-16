@@ -27,9 +27,7 @@
 
 #if defined(SLIB_PLATFORM_USE_JNI)
 
-#include <jni.h>
-
-#include "../string.h"
+#include "../java.h"
 
 namespace slib
 {
@@ -39,7 +37,7 @@ namespace slib
 		class SLIB_EXPORT Locale
 		{
 		public:
-			static jobject getDefault() noexcept;
+			static JniLocal<jobject> getDefault() noexcept;
 			
 			static String getLanguage(jobject thiz) noexcept;
 			static String getCountry(jobject thiz) noexcept;

@@ -47,28 +47,28 @@ namespace slib
 	
 	sl_bool Clipboard::hasText()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return JClipboard::hasText.callBoolean(sl_null, jactivity) != 0;
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			return JClipboard::hasText.callBoolean(sl_null, context) != 0;
 		}
 		return sl_false;
 	}
 	
 	String Clipboard::getText()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return JClipboard::getText.callString(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			return JClipboard::getText.callString(sl_null, context);
 		}
 		return sl_null;
 	}
 	
 	void Clipboard::setText(const StringParam& text)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (context) {
 			JniLocal<jstring> jtext = Jni::getJniString(text);
-			return JClipboard::setText.call(sl_null, jactivity, jtext.get());
+			return JClipboard::setText.call(sl_null, context, jtext.get());
 		}
 	}
 

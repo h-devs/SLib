@@ -228,17 +228,17 @@ namespace slib
 
 	void DefaultWebViewProvider::clearCache()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JWebView::clearCache.call(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JWebView::clearCache.call(sl_null, context);
 		}
 	}
 
 	void DefaultWebViewProvider::clearCookie()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JWebView::clearCookie.call(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JWebView::clearCookie.call(sl_null, context);
 		}
 	}
 }

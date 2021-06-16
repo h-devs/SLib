@@ -267,7 +267,7 @@ namespace slib
 
 	Android_ViewInstance::~Android_ViewInstance()
 	{
-		jobject jhandle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (jhandle) {
 			UIPlatform::removeViewInstance(jhandle);
 			JView::freeView.call(sl_null, jhandle);
@@ -277,13 +277,12 @@ namespace slib
 	sl_bool Android_ViewInstance::initWithHandle(jobject jhandle)
 	{
 		if (jhandle) {
-			JniLocal<jobject> jcontext = JView::getContext.callObject(sl_null, jhandle);
-			JniGlobal<jobject> context = jcontext;
+			JniGlobal<jobject> context = JView::getContext.callObject(sl_null, jhandle);
 			JniGlobal<jobject> handle = jhandle;
 			if (context.isNotNull() && handle.isNotNull()) {
-				m_context = context;
-				m_handle = handle;
 				jhandle = handle.get();
+				m_context = Move(context);
+				m_handle = Move(handle);
 				jlong instance = (jlong)(jhandle);
 				JView::setInstance.call(sl_null, jhandle, instance);
 				UIPlatform::registerViewInstance(jhandle, this);
@@ -295,7 +294,7 @@ namespace slib
 
 	sl_bool Android_ViewInstance::applyProperties(View* view, ViewInstance* parent)
 	{
-		jobject jhandle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (jhandle) {
 			UIRect frame = view->getFrameInInstance();
 			JView::setFrame.callBoolean(sl_null, jhandle, (int)(frame.left), (int)(frame.top), (int)(frame.right), (int)(frame.bottom));
@@ -363,7 +362,7 @@ namespace slib
 
 	void Android_ViewInstance::setFocus(View* view, sl_bool flag)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			JView::setFocus.call(sl_null, handle, flag ? sl_true : sl_false);
 		}
@@ -371,7 +370,7 @@ namespace slib
 
 	void Android_ViewInstance::invalidate(View* view)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			JView::invalidate.call(sl_null, handle);
 		}
@@ -379,7 +378,7 @@ namespace slib
 
 	void Android_ViewInstance::invalidate(View* view, const UIRect& rect)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			JView::invalidateRect.call(sl_null, handle, (int)(rect.left), (int)(rect.top), (int)(rect.right), (int)(rect.bottom));
 		}
@@ -387,7 +386,7 @@ namespace slib
 
 	void Android_ViewInstance::setFrame(View* view, const UIRect& frame)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			JView::setFrame.callBoolean(sl_null, handle, (int)(frame.left), (int)(frame.top), (int)(frame.right), (int)(frame.bottom));
 		}
@@ -395,7 +394,7 @@ namespace slib
 
 	void Android_ViewInstance::setTransform(View* view, const Matrix3& transform)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			Vector2 t = Transform2::getTranslationFromMatrix(transform);
 			sl_real r = Transform2::getRotationAngleFromMatrix(transform);
@@ -406,7 +405,7 @@ namespace slib
 
 	void Android_ViewInstance::setVisible(View* view, sl_bool flag)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			JView::setVisible.call(sl_null, handle, flag);
 		}
@@ -414,7 +413,7 @@ namespace slib
 
 	void Android_ViewInstance::setEnabled(View* view, sl_bool flag)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			JView::setEnabled.call(sl_null, handle, flag);
 		}
@@ -426,7 +425,7 @@ namespace slib
 
 	void Android_ViewInstance::setAlpha(View* view, sl_real alpha)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			JView::setAlpha.call(sl_null, handle, (float)alpha);
 		}
@@ -434,7 +433,7 @@ namespace slib
 
 	void Android_ViewInstance::setClipping(View* view, sl_bool flag)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			JView::setClipping.call(sl_null, handle, flag);
 		}
@@ -442,7 +441,7 @@ namespace slib
 
 	void Android_ViewInstance::setDrawing(View* view, sl_bool flag)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			JView::setDrawing.call(sl_null, handle, flag);
 		}
@@ -450,7 +449,7 @@ namespace slib
 
 	UIPointf Android_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			JniLocal<jobject> jpt = JView::convertCoordinateFromScreenToView.callObject(sl_null, handle, 0, 0);
 			if (jpt.isNotNull()) {
@@ -465,7 +464,7 @@ namespace slib
 
 	UIPointf Android_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			JniLocal<jobject> jpt = JView::convertCoordinateFromViewToScreen.callObject(sl_null, handle, 0, 0);
 			if (jpt.isNotNull()) {
@@ -480,7 +479,7 @@ namespace slib
 
 	void Android_ViewInstance::addChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		jobject child = UIPlatform::getViewHandle(_child.get());
 		if (handle && child) {
 			JView::addChild.call(sl_null, handle, child);
@@ -489,7 +488,7 @@ namespace slib
 
 	void Android_ViewInstance::removeChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		jobject child = UIPlatform::getViewHandle(_child.get());
 		if (handle && child) {
 			JView::removeChild.call(sl_null, handle, child);
@@ -498,7 +497,7 @@ namespace slib
 
 	void Android_ViewInstance::bringToFront(View* view)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			JView::bringToFront.call(sl_null, handle);
 		}
@@ -506,7 +505,7 @@ namespace slib
 
 	void Android_ViewInstance::setShadowOpacity(View* view, float opacity)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			JView::setShadow.call(sl_null, (jfloat)opacity, (jfloat)(view->getShadowRadius()));
 		}
@@ -514,7 +513,7 @@ namespace slib
 	
 	void Android_ViewInstance::setShadowRadius(View* view, sl_ui_posf radius)
 	{
-		jobject handle = m_handle.get();
+		jobject jhandle = m_handle;
 		if (handle) {
 			JView::setShadow.call(sl_null, (jfloat)(view->getShadowOpacity()), (jfloat)(radius));
 		}

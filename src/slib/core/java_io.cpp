@@ -26,7 +26,6 @@
 
 #include "slib/core/java/input_stream.h"
 
-#include "slib/core/java.h"
 #include "slib/core/memory_output.h"
 
 namespace slib
@@ -34,18 +33,18 @@ namespace slib
 
 	namespace priv
 	{
-		namespace java_input_stream
+		namespace java_io
 		{
 
 			SLIB_JNI_BEGIN_CLASS(JInputStream, "java/io/InputStream")
-				SLIB_JNI_METHOD(read, "read", "([B)I");
-				SLIB_JNI_METHOD(close, "close", "()V");
+				SLIB_JNI_METHOD(read, "read", "([B)I")
+				SLIB_JNI_METHOD(close, "close", "()V")
 			SLIB_JNI_END_CLASS
 
 		}
 	}
 
-	using namespace priv::java_input_stream;
+	using namespace priv::java_io;
 
 	namespace java
 	{
@@ -85,12 +84,12 @@ namespace slib
 				if (arr.isNotNull()) {
 					MemoryOutput writer;
 					while (1) {
-						sl_int32 n = JInputStream::read.callInt(stream, arr.value);
+						sl_int32 n = JInputStream::read.callInt(stream, arr.get());
 						if (Jni::checkExceptionAndPrintClear()) {
 							break;
 						}
 						if (n > 0) {
-							Jni::getByteArrayRegion(arr.value, 0, n, buf);
+							Jni::getByteArrayRegion(arr, 0, n, buf);
 							writer.write(buf, n);
 						} else {
 							break;

@@ -161,13 +161,13 @@ namespace slib
 										for (sl_uint32 x = 0; x < width; x++) {
 											jpixels[x] = pixelsCurrent[x].getARGB();
 										}
-										Jni::setIntArrayRegion(abuf.value, r*width, width, (jint*)(jpixels));
+										Jni::setIntArrayRegion(abuf, r*width, width, (jint*)(jpixels));
 										pixelsCurrent += image.stride;
 									}
 									if (param.useColorMatrix) {
 										JBitmap::drawPixelsWithColorMatrix.call(sl_null, jcanvas,
 											rectDst.left, yCurrent, rectDst.right, yCurrent + heightSegmentDst,
-											abuf.value, width, width, heightSegment,
+											abuf.get(), width, width, heightSegment,
 											alpha, blur,
 											cr.x, cr.y, cr.z, cr.w,
 											cg.x, cg.y, cg.z, cg.w,
@@ -178,7 +178,7 @@ namespace slib
 									} else {
 										JBitmap::drawPixels.call(sl_null, jcanvas,
 											rectDst.left, yCurrent, rectDst.right, yCurrent + heightSegmentDst,
-											abuf.value, width, width, heightSegment,
+											abuf.get(), width, width, heightSegment,
 											alpha, blur);
 									}
 
@@ -188,7 +188,7 @@ namespace slib
 								delete[] jpixels;
 							}
 						}
-						JBitmap::returnArrayBuffer.call(sl_null, abuf.value);
+						JBitmap::returnArrayBuffer.call(sl_null, abuf.get());
 					}
 				}
 

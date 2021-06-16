@@ -89,8 +89,8 @@ namespace slib
 			public:
 				static Ref<UserNotificationImpl> create(const UserNotificationMessage& message)
 				{
-					jobject jactivity = Android::getCurrentActivity();
-					if (!jactivity) {
+					jobject context = Android::getCurrentContext();
+					if (!context) {
 						return sl_null;
 					}
 
@@ -158,7 +158,7 @@ namespace slib
 								JUserNotificationMessage::flagRepeat.set(jmsg.get(), message.flagRepeat);
 							}
 
-							JUserNotification::add.call(sl_null, jactivity, jmsg.get());
+							JUserNotification::add.call(sl_null, context, jmsg.get());
 
 							ret->m_id = id;
 
@@ -201,9 +201,9 @@ namespace slib
 
 	void UserNotification::startInternal()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JUserNotification::initialize.call(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JUserNotification::initialize.call(sl_null, context);
 		}
 	}
 
@@ -234,17 +234,17 @@ namespace slib
 	
 	void UserNotification::removeDeliveredNotification(sl_uint32 id)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JUserNotification::cancel.call(sl_null, jactivity, (jint)id);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JUserNotification::cancel.call(sl_null, context, (jint)id);
 		}
 	}
 	
 	void UserNotification::removeAllDeliveredNotifications()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JUserNotification::cancelAll.call(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JUserNotification::cancelAll.call(sl_null, context);
 		}
 	}
 

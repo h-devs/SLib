@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_JAVA_INPUT_STREAM
-#define CHECKHEADER_SLIB_CORE_JAVA_INPUT_STREAM
+#ifndef CHECKHEADER_SLIB_CORE_JAVA_LIST
+#define CHECKHEADER_SLIB_CORE_JAVA_LIST
 
 #include "../definition.h"
 
@@ -31,18 +31,35 @@
 
 namespace slib
 {
-
-	class Memory;
-
 	namespace java
 	{
 
-		class SLIB_EXPORT InputStream
+		class SLIB_EXPORT List
 		{
 		public:
-			static sl_int32 readStream(jobject stream, jbyteArray array) noexcept;			
-			static void closeStream(jobject stream) noexcept;
-			static Memory readAllBytes(jobject stream) noexcept;
+			static sl_int32 size(jobject list) noexcept;
+
+   			static sl_bool contains(jobject list, jobject element) noexcept;
+			
+			static JniLocal<jobject> iterator(jobject list) noexcept;
+
+			static JniLocal<jobject> get(jobject list, sl_int32 index) noexcept;
+
+			static JniLocal<jobject> set(jobject list, sl_int32 index, jobject element) noexcept;
+
+			static sl_bool add(jobject list, jobject element) noexcept;
+
+			static void add(jobject list, sl_int32 index, jobject element) noexcept;
+
+			static sl_bool remove(jobject list, jobject element) noexcept;
+
+			static JniLocal<jobject> remove(jobject list, sl_int32 index) noexcept;
+
+			static void clear(jobject list) noexcept;
+
+			static sl_int32 indexOf(jobject list, jobject element) noexcept;
+
+			static sl_int32 lastIndexOf(jobject list, jobject element) noexcept;
 
 		};
 

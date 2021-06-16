@@ -79,19 +79,19 @@ namespace slib
 
 	void XgPush::onStart()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JXgPush::start.call(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JXgPush::start.call(sl_null, context);
 		}
 	}
 	
 	void XgPush::setEnableDebug(sl_bool flag)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (!jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (!context) {
 			return;
 		}
-		JXgPush::setEnableDebug.call(sl_null, jactivity, flag);
+		JXgPush::setEnableDebug.call(sl_null, context, flag);
 	}
 
 }

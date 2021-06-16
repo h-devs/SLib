@@ -28,19 +28,19 @@ import android.provider.Settings;
 
 public class System {
 
-    public static String getDeviceNameOnSettings(Context context) {
-        String str = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            try {
-                str = Settings.Global.getString(context.getContentResolver(), "device_name");
-            } catch (Exception e) {
-                Logger.exception(e);
-            }
-        }
-        if (str != null && str.length() > 0) {
-            return str;
-        }
-        return Device.getDeviceName();
-    }
+	public static String getDeviceNameOnSettings(Context context) {
+		String str = null;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+			try {
+				str = Settings.Global.getString(context.getContentResolver(), "device_name");
+			} catch (Exception e) {
+				Logger.exception(e);
+			}
+		}
+		if (str != null && str.length() > 0) {
+			return str;
+		}
+		return Device.getDeviceName();
+	}
 
 }

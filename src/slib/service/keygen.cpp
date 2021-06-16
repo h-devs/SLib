@@ -28,7 +28,12 @@
 #include "slib/crypto/chacha.h"
 #include "slib/crypto/ecc.h"
 #include "slib/crypto/base64.h"
+
+#if defined(SLIB_PLATFORM_IS_ANDROID)
+#include "slib/device/device.h"
+#else
 #include "slib/storage/disk.h"
+#endif
 
 #ifdef KEYGEN_USE_OPENSSL
 
@@ -214,11 +219,20 @@ namespace slib
 		return sl_null;
 	}
 
-	String Keygen::getRequestCode(const StringParam& _publicKey, const StringParam& _extraInfo)
+	String Keygen::getMachineCode()
+	{
+#if defined(SLIB_PLATFORM_IS_ANDROID)
+		return Device::getIMEI();
+#else
+		return Disk::getSerialNumber(0);
+#endif
+	}
+
+	String Keygen::getRequestCode(const StringParam& machineCode, const StringParam& _publicKey, const StringParam& _extraInfo)
 	{
 		StringData publicKey(_publicKey);
 		StringData extraInfo(_extraInfo);
-		String s = String::join(extraInfo, Disk::getSerialNumber(0));
+		String s = String::join(extraInfo, machineCode);
 		sl_size lenExtra = extraInfo.getLength();
 		sl_size nBuf = 10 + lenExtra;
 		SLIB_SCOPED_BUFFER(sl_uint8, 256, buf, nBuf)
@@ -240,6 +254,11 @@ namespace slib
 		return EncodeCode(buf, nBuf);
 	}
 
+	String Keygen::getRequestCode(const StringParam& publicKey, const StringParam& extraInfo)
+	{
+		return getRequestCode(getMachineCode(), publicKey, extraInfo);
+	}
+	
 	String Keygen::getRequestCode()
 	{
 		return getRequestCode(sl_null, sl_null);

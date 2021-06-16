@@ -46,9 +46,9 @@ namespace slib
 		static String getDeviceName() noexcept;
 		
 
-		static jobject getCurrentActivity() noexcept;
+		static jobject getCurrentContext() noexcept;
 
-		static void setCurrentActivity(jobject activity) noexcept;
+		static void setCurrentContext(jobject activity) noexcept;
 		
 	};
 

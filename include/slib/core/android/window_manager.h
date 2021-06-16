@@ -20,43 +20,31 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#ifndef CHECKHEADER_SLIB_CORE_ANDROID_WINDOW_MANAGER
+#define CHECKHEADER_SLIB_CORE_ANDROID_WINDOW_MANAGER
 
-#ifdef SLIB_PLATFORM_IS_ANDROID
+#include "../definition.h"
 
-#include "slib/core/android/activity.h"
+#if defined(SLIB_PLATFORM_IS_ANDROID)
 
-#include "slib/core/java.h"
+#include "../java.h"
 
 namespace slib
 {
-	
-	namespace priv
-	{
-		namespace java_locale
-		{
-
-			SLIB_JNI_BEGIN_CLASS(JActivity, "android/app/Activity")
-				SLIB_JNI_METHOD(finish, "finish", "()V");
-			SLIB_JNI_END_CLASS
-
-		}
-	}
-
-	using namespace priv::java_locale;
-
 	namespace android
 	{
 
-		void Activity::finish(jobject thiz) noexcept
+		class SLIB_EXPORT WindowManager
 		{
-			if (thiz) {
-				JActivity::finish.call(thiz);
-			}
-		}
+		public:
+			static JniLocal<jobject> getDefaultDisplay(jobject thiz) noexcept;
+
+		};
 
 	}
 
 }
+
+#endif
 
 #endif

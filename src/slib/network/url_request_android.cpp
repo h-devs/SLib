@@ -59,7 +59,7 @@ namespace slib
 
 			class UrlRequestImpl : public UrlRequest {
 			public:
-				AtomicJniGlobal<jobject> m_jrequest;
+				AtomicJniGlobal<jobject> m_request;
 
 			public:
 				UrlRequestImpl() {
@@ -127,11 +127,10 @@ namespace slib
 
 				void clear()
 				{
-					JniGlobal<jobject> jrequest(m_jrequest);
-					if (jrequest.isNotNull()) {
-						JUrlRequest::close.call(jrequest);
+					JniGlobal<jobject> request = Move(m_request);
+					if (request.isNotNull()) {
+						JUrlRequest::close.call(request);
 					}
-					m_jrequest.setNull();
 				}
 
 				void dispatchUploadBody(int n)
@@ -208,7 +207,7 @@ namespace slib
 			{
 				UrlRequestImpl* request = (UrlRequestImpl*)((void*)((sl_reg)jinstance));
 				if (request) {
-					request->m_jrequest = _this;
+					request->m_request = _this;
 				}
 			}
 

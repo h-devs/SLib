@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_JAVA_INPUT_STREAM
-#define CHECKHEADER_SLIB_CORE_JAVA_INPUT_STREAM
+#ifndef CHECKHEADER_SLIB_CORE_JAVA_OBJECT
+#define CHECKHEADER_SLIB_CORE_JAVA_OBJECT
 
 #include "../definition.h"
 
@@ -31,19 +31,14 @@
 
 namespace slib
 {
-
-	class Memory;
-
 	namespace java
 	{
 
-		class SLIB_EXPORT InputStream
+		class SLIB_EXPORT Object
 		{
 		public:
-			static sl_int32 readStream(jobject stream, jbyteArray array) noexcept;			
-			static void closeStream(jobject stream) noexcept;
-			static Memory readAllBytes(jobject stream) noexcept;
-
+			static String toString(jobject thiz) noexcept;
+			
 		};
 
 	}

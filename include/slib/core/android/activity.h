@@ -27,7 +27,7 @@
 
 #if defined(SLIB_PLATFORM_IS_ANDROID)
 
-#include <jni.h>
+#include "../java.h"
 
 namespace slib
 {
@@ -37,7 +37,11 @@ namespace slib
 		class SLIB_EXPORT Activity
 		{
 		public:
+			static sl_bool isActivity(jobject object) noexcept;
+
 			static void finish(jobject thiz) noexcept;
+			
+			static JniLocal<jobject> getWindowManager(jobject thiz) noexcept;
 
 		};
 

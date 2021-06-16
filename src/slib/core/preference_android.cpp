@@ -45,25 +45,25 @@ namespace slib
 
 	void Preference::setValue(const StringParam& key, const Json& value)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (context) {
 			JniLocal<jstring> jkey = Jni::getJniString(key);
 			if (value.isNotNull()) {
 				String _value = value.toJsonString();
 				JniLocal<jstring> jvalue = Jni::getJniString(_value);
-				priv::preference::JPreference::setValue.call(sl_null, jactivity, jkey.get(), jvalue.get());
+				priv::preference::JPreference::setValue.call(sl_null, context, jkey.get(), jvalue.get());
 			} else {
-				priv::preference::JPreference::setValue.call(sl_null, jactivity, jkey.get(), sl_null);
+				priv::preference::JPreference::setValue.call(sl_null, context, jkey.get(), sl_null);
 			}
 		}
 	}
 
 	Json Preference::getValue(const StringParam& key)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (context) {
 			JniLocal<jstring> jkey = Jni::getJniString(key);
-			String value = priv::preference::JPreference::getValue.callString(sl_null, jactivity, jkey.get());
+			String value = priv::preference::JPreference::getValue.callString(sl_null, context, jkey.get());
 			return Json::parseJson(value);
 		}
 		return sl_null;

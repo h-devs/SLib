@@ -20,29 +20,34 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_JAVA_INPUT_STREAM
-#define CHECKHEADER_SLIB_CORE_JAVA_INPUT_STREAM
+#ifndef CHECKHEADER_SLIB_CORE_ANDROID_CONTEXT
+#define CHECKHEADER_SLIB_CORE_ANDROID_CONTEXT
 
 #include "../definition.h"
 
-#if defined(SLIB_PLATFORM_USE_JNI)
+#if defined(SLIB_PLATFORM_IS_ANDROID)
 
 #include "../java.h"
 
 namespace slib
 {
-
-	class Memory;
-
-	namespace java
+	namespace android
 	{
 
-		class SLIB_EXPORT InputStream
+		class SLIB_EXPORT Context
 		{
 		public:
-			static sl_int32 readStream(jobject stream, jbyteArray array) noexcept;			
-			static void closeStream(jobject stream) noexcept;
-			static Memory readAllBytes(jobject stream) noexcept;
+			static JniLocal<jobject> getSystemService(jobject thiz, const char* variableName) noexcept;
+			static JniLocal<jobject> getSystemService(jobject thiz, jstring name) noexcept;
+
+			static JniLocal<jobject> getAudioManager(jobject thiz); // AUDIO_SERVICE
+			static JniLocal<jobject> getVibrator(jobject thiz); // VIBRATOR_SERVICE
+			static JniLocal<jobject> getTelephonyManager(jobject thiz); // TELEPHONY_SERVICE
+			static JniLocal<jobject> GetTelephonySubscriptionManager(jobject thiz); // TELEPHONY_SUBSCRIPTION_SERVICE
+
+			static JniLocal<jobject> getAssets(jobject thiz) noexcept;
+
+			static JniLocal<jobject> getSharedPreferences(jobject thiz, const StringParam& name, sl_uint32 mode) noexcept;
 
 		};
 

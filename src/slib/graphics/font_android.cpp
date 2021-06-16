@@ -76,12 +76,9 @@ namespace slib
 					}
 					float size = (float)(desc.size);
 					JniLocal<jstring> fontName = Jni::getJniString(desc.familyName);
-					JniLocal<jobject> jfont = JFont::create.callObject(sl_null, fontName.value, size, style);
-					if (jfont.isNotNull()) {
-						JniGlobal<jobject> gfont = jfont;
-						if (gfont.isNotNull()) {
-							m_font = gfont;
-						}
+					JniGlobal<jobject> font = JFont::create.callObject(sl_null, fontName.get(), size, style);
+					if (font.isNotNull()) {
+						m_font = Move(font);
 					}
 				}
 

@@ -61,6 +61,17 @@ namespace slib
 				}
 			}
 
+			class AnimatorInstance : public Referable
+			{
+			public:
+				JniGlobal<jobject> object;
+
+			public:
+				template <class T>
+				AnimatorInstance(T&& t): object(Forward<T>(t)) {}
+
+			};
+
 		}
 	}
 
@@ -174,7 +185,7 @@ namespace slib
 						anchor = viewAnimate->getAnchorOffset();
 					}
 				}
-				JniLocal<jobject> ret = JAnimation::start.callObject(sl_null, handle, (jlong)id, animation->getDuration(), animation->getStartDelay(),
+				JniGlobal<jobject> ret = JAnimation::start.callObject(sl_null, handle, (jlong)id, animation->getDuration(), animation->getStartDelay(),
 											(int)(animation->getAnimationCurve()), animation->getRepeatCount(), animation->isAutoReverse(),
 											anchor.x, anchor.y,
 											flagTranslate, translateStart.x, translateStart.y, translateEnd.x, translateEnd.y,
@@ -182,9 +193,11 @@ namespace slib
 											flagRotate, rotateStart, rotateEnd,
 											flagAlpha, alphaStart, alphaEnd);
 				if (ret.isNotNull()) {
-					JniGlobal<jobject> animator = ret.get();
-					_setNativeInstance(animation, animator.ref.get());
-					return sl_true;
+					Ref<AnimatorInstance> instance = new AnimatorInstance(Move(ret));
+					if (instance.isNotNull()) {
+						_setNativeInstance(animation, instance.get());
+						return sl_true;
+					}
 				}
 			}
 		}
@@ -194,9 +207,9 @@ namespace slib
 	void UIAnimationLoop::_stopNativeAnimation(Animation* animation)
 	{
 		Ref<Referable> _animator = _getNativeInstance(animation);
-		JniGlobal<jobject> animator = CastInstance< CJniGlobal<jobject> >(_animator.get());
+		Ref<AnimatorInstance> animator = CastInstance< AnimatorInstance >(_animator.get());
 		if (animator.isNotNull()) {
-			JAnimation::stop.call(animator.get());
+			JAnimation::stop.call(animator->object);
 		}
 	}
 

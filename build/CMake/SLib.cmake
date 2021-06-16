@@ -512,8 +512,9 @@ endif()
 if(ANDROID)
  set (SLIB_JAVA_FILES
   "${SLIB_PATH}/src/slib/core/java.cpp"
-  "${SLIB_PATH}/src/slib/core/java_input_stream.cpp"
-  "${SLIB_PATH}/src/slib/core/java_locale.cpp"
+  "${SLIB_PATH}/src/slib/core/java_lang.cpp"
+  "${SLIB_PATH}/src/slib/core/java_io.cpp"
+  "${SLIB_PATH}/src/slib/core/java_util.cpp"
  )
 else()
  set (SLIB_JAVA_FILES "")
@@ -521,9 +522,10 @@ endif()
 
 if(ANDROID)
  set (SLIB_ANDROID_FILES
-  "${SLIB_PATH}/src/slib/core/android_activity.cpp"
+  "${SLIB_PATH}/src/slib/core/android_context.cpp"
   "${SLIB_PATH}/src/slib/core/android_log.cpp"
   "${SLIB_PATH}/src/slib/core/android_platform.cpp"
+  "${SLIB_PATH}/src/slib/core/android_view.cpp"
  )
 else()
  set (SLIB_JAVA_FILES "")

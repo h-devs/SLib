@@ -91,47 +91,47 @@ namespace slib
 
 	sl_bool Application::checkPermissions(const AppPermissions& permissions)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return JApplication::checkPermissions.callBoolean(sl_null, jactivity, (int)permissions);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			return JApplication::checkPermissions.callBoolean(sl_null, context, (int)permissions);
 		}
 		return sl_null;
 	}
 	
 	void Application::grantPermissions(const AppPermissions& permissions, const Function<void()>& callback)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (context) {
 			g_callbackOnGrantPermission();
 			g_callbackOnGrantPermission = callback;
-			JApplication::grantPermissions.call(sl_null, jactivity, (int)permissions);
+			JApplication::grantPermissions.call(sl_null, context, (int)permissions);
 		}
 	}
 
 	sl_bool Application::isRoleHeld(AppRole role)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return JApplication::isRoleHeld.callBoolean(sl_null, jactivity, (int)role);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			return JApplication::isRoleHeld.callBoolean(sl_null, context, (int)role);
 		}
 		return sl_null;
 	}
 
 	void Application::requestRole(AppRole role, const Function<void()>& callback)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (context) {
 			g_callbackOnRequestRole();
 			g_callbackOnRequestRole = callback;
-			JApplication::requestRole.call(sl_null, jactivity, (int)role);
+			JApplication::requestRole.call(sl_null, context, (int)role);
 		}
 	}
 
 	void Application::openDefaultAppsSetting()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JApplication::openDefaultAppsSetting.call(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JApplication::openDefaultAppsSetting.call(sl_null, context);
 		}
 	}
 
@@ -145,9 +145,9 @@ namespace slib
 		if (Android::getSdkVersion() >= AndroidSdkVersion::Q) {
 			return isRoleHeld(AppRole::Dialer);
 		}
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return JApplication::isDefaultCallingApp.callBoolean(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			return JApplication::isDefaultCallingApp.callBoolean(sl_null, context);
 		}
 		return sl_false;
 	}
@@ -158,28 +158,28 @@ namespace slib
 			requestRole(AppRole::Dialer, callback);
 			return;
 		}
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (context) {
 			g_callbackOnSetDefaultCallingApp();
 			g_callbackOnSetDefaultCallingApp = callback;
-			JApplication::setDefaultCallingApp.call(sl_null, jactivity);
+			JApplication::setDefaultCallingApp.call(sl_null, context);
 		}
 	}
 
 	sl_bool Application::isSystemOverlayEnabled()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return JApplication::isSystemOverlayEnabled.callBoolean(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			return JApplication::isSystemOverlayEnabled.callBoolean(sl_null, context);
 		}
 		return sl_false;
 	}
 
 	void Application::openSystemOverlaySetting()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JApplication::openSystemOverlaySetting.call(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JApplication::openSystemOverlaySetting.call(sl_null, context);
 		}
 	}
 

@@ -20,29 +20,35 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_JAVA_INPUT_STREAM
-#define CHECKHEADER_SLIB_CORE_JAVA_INPUT_STREAM
+#ifndef CHECKHEADER_SLIB_CORE_ANDROID_PREFERENCE
+#define CHECKHEADER_SLIB_CORE_ANDROID_PREFERENCE
 
 #include "../definition.h"
 
-#if defined(SLIB_PLATFORM_USE_JNI)
+#if defined(SLIB_PLATFORM_IS_ANDROID)
 
 #include "../java.h"
 
 namespace slib
 {
-
-	class Memory;
-
-	namespace java
+	namespace android
 	{
 
-		class SLIB_EXPORT InputStream
+		class SLIB_EXPORT SharedPreferences
 		{
 		public:
-			static sl_int32 readStream(jobject stream, jbyteArray array) noexcept;			
-			static void closeStream(jobject stream) noexcept;
-			static Memory readAllBytes(jobject stream) noexcept;
+			static JniLocal<jobject> getEditor(jobject thiz) noexcept;
+
+			static String getString(jobject thiz, const StringParam& key, const StringParam& def) noexcept;
+
+		};
+
+		class SLIB_EXPORT SharedPreferencesEditor
+		{
+		public:
+			static void apply(jobject thiz);
+			
+			static void putString(jobject thiz, const StringParam& key, const StringParam& value) noexcept;
 
 		};
 

@@ -155,8 +155,8 @@ namespace slib
 		}
 		auto p = FacebookSDKContext::get();
 		if (p) {
-			jobject jactivity = Android::getCurrentActivity();
-			if (jactivity) {
+			jobject context = Android::getCurrentContext();
+			if (context) {
 				if (p->onLoginResult.isNotNull()) {
 					FacebookLoginResult result;
 					p->onLoginResult(result);
@@ -164,7 +164,7 @@ namespace slib
 				p->onLoginResult = param.onComplete;
 				String scopes = String::join(param.authorization.scopes, ",");
 				JniLocal<jstring> jscopes = Jni::getJniString(scopes);
-				JFacebook::login.call(sl_null, jactivity, jscopes.get());
+				JFacebook::login.call(sl_null, context, jscopes.get());
 				return;
 			}
 		}
@@ -191,8 +191,8 @@ namespace slib
 			});
 			return;
 		}
-		jobject jactivity = Android::getCurrentActivity();
-		if (!jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (!context) {
 			FacebookShareResult result;
 			param.onComplete(result);
 			return;
@@ -206,7 +206,7 @@ namespace slib
 		JniLocal<jstring> jurl = Jni::getJniString(param.url);
 		JniLocal<jstring> jquote = Jni::getJniString(param.quote);
 		JniLocal<jstring> jhashTag = Jni::getJniString(param.hashTag);
-		JFacebook::share.call(sl_null, jactivity, jurl.get(), jquote.get(), jhashTag.get());
+		JFacebook::share.call(sl_null, context, jurl.get(), jquote.get(), jhashTag.get());
 	}
 
 	void FacebookSDK::clearAccessToken()

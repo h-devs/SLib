@@ -113,9 +113,9 @@ namespace slib
 
 	void FCM::onStart()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JFCM::initialize.call(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JFCM::initialize.call(sl_null, context);
 		}
 	}
 

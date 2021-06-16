@@ -37,6 +37,10 @@ namespace slib
 
 		static String getPublicKey(const StringParam& privateKey);
 
+		static String getMachineCode();
+
+		static String getRequestCode(const StringParam& machineCode, const StringParam& publicKey, const StringParam& extraInfo);
+
 		static String getRequestCode(const StringParam& publicKey, const StringParam& extraInfo);
 
 		static String getRequestCode();

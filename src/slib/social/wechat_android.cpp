@@ -123,10 +123,10 @@ namespace slib
 	
 	void WeChatSDK::initialize(const String& appId, const String& universalLink)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (context) {
 			JniLocal<jstring> jappId = Jni::getJniString(appId);
-			JWeChat::initialize.call(sl_null, jactivity, jappId.get());
+			JWeChat::initialize.call(sl_null, context, jappId.get());
 		}
 	}
 

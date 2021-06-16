@@ -20,62 +20,31 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/definition.h"
+#ifndef CHECKHEADER_SLIB_CORE_JAVA_STRING
+#define CHECKHEADER_SLIB_CORE_JAVA_STRING
 
-#ifdef SLIB_PLATFORM_USE_JNI
+#include "../definition.h"
 
-#include "slib/core/java/locale.h"
+#if defined(SLIB_PLATFORM_USE_JNI)
 
-#include "slib/core/java.h"
+#include "../java.h"
 
 namespace slib
 {
-	
-	namespace priv
-	{
-		namespace java_locale
-		{
-
-			SLIB_JNI_BEGIN_CLASS(JLocale, "java/util/Locale")
-				SLIB_JNI_STATIC_METHOD(getDefault, "getDefault", "()Ljava/util/Locale;");
-				SLIB_JNI_METHOD(getLanguage, "getLanguage", "()Ljava/lang/String;");
-				SLIB_JNI_METHOD(getCountry, "getCountry", "()Ljava/lang/String;");
-				SLIB_JNI_METHOD_OPTIONAL(getScript, "getScript", "()Ljava/lang/String;");
-			SLIB_JNI_END_CLASS
-
-		}
-	}
-
-	using namespace priv::java_locale;
-
 	namespace java
 	{
 
-		jobject Locale::getDefault() noexcept
+		class SLIB_EXPORT String
 		{
-			return JLocale::getDefault.callObject(sl_null);
-		}
-	
-		String Locale::getLanguage(jobject thiz) noexcept
-		{
-			return JLocale::getLanguage.callString(thiz);
-		}
-
-		String Locale::getCountry(jobject thiz) noexcept
-		{
-			return JLocale::getCountry.callString(thiz);
-		}
-
-		String Locale::getScript(jobject thiz) noexcept
-		{
-			if (JLocale::getScript.id) {
-				return JLocale::getScript.callString(thiz);
-			}
-			return sl_null;
-		}
+		public:
+			static jclass getClass() noexcept;
+			
+		};
 
 	}
 
 }
+
+#endif
 
 #endif

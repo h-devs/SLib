@@ -98,8 +98,8 @@ namespace slib
 			return;
 		}
 
-		jobject jactivity = Android::getCurrentActivity();
-		if (!jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (!context) {
 			AlipayPaymentResult result;
 			param.onComplete(result);
 		}
@@ -108,7 +108,7 @@ namespace slib
 
 		JniLocal<jstring> order(Jni::getJniString(param.order));
 
-		JWeChat::pay.call(sl_null, jactivity, order.get());
+		JWeChat::pay.call(sl_null, context, order.get());
 
 	}
 

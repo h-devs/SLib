@@ -71,24 +71,21 @@ namespace slib
 		
 		static void vibrate(sl_uint32 durationMillis = 500);
 
-
+	
 		// Works on Android
-		static String getIMEI();
+		static sl_uint32 getSimSlotsCount();
 		
 		// Works on Android
 		static List<String> getIMEIs();
 
 		// Works on Android
-		static String getPhoneNumber();
+		static String getIMEI(sl_uint32 indexSlot = 0);
 
 		// Works on Android
 		static List<String> getPhoneNumbers();
 		
 		// Works on Android
-		static sl_uint32 getSimSlotsCount();
-		
-		// Works on Android
-		static String getPhoneNumber(sl_uint32 indexSIM);
+		static String getPhoneNumber(sl_uint32 indexSlot = 0);
 
 		static String getDeviceId();
 		

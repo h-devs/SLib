@@ -53,9 +53,9 @@ namespace slib
 	{
 		static AndroidSdkVersion version = AndroidSdkVersion::CUR_DEVELOPMENT;
 		if (version == AndroidSdkVersion::CUR_DEVELOPMENT) {
-			JniClass cls = Jni::getClass("android/os/Build$VERSION");
-			if (cls.isNotNull()) {
-				version = (AndroidSdkVersion)(cls.getStaticIntField("SDK_INT"));
+			jclass cls = Jni::getClass("android/os/Build$VERSION");
+			if (cls) {
+				version = (AndroidSdkVersion)(Jni::getStaticIntField(cls, "SDK_INT"));
 			}
 		}
 		return version;
@@ -64,9 +64,9 @@ namespace slib
 	String Android::getSystemRelease() noexcept
 	{
 		if (g_strSystemRelease.isNull()) {
-			JniClass cls = Jni::getClass("android/os/Build$VERSION");
-			if (cls.isNotNull()) {
-				String release = cls.getStaticStringField("RELEASE");
+			jclass cls = Jni::getClass("android/os/Build$VERSION");
+			if (cls) {
+				String release = Jni::getStaticStringField(cls, "RELEASE");
 				g_strSystemRelease = release;
 				return release;
 			}
@@ -78,10 +78,10 @@ namespace slib
 	String Android::getDeviceName() noexcept
 	{
 		if (g_strDeviceName.isNull()) {
-			JniClass cls = Jni::getClass("android/os/Build");
+			jclass cls = Jni::getClass("android/os/Build");
 			if (cls.isNotNull()) {
-				String manufacturer = cls.getStaticStringField("MANUFACTURER");
-				String model = cls.getStaticStringField("MODEL");
+				String manufacturer = Jni::getStaticStringField(cls, "MANUFACTURER");
+				String model = Jni::getStaticStringField(cls, "MODEL");
 				if (!(model.startsWith(manufacturer))) {
 					model = String::join(manufacturer, " ", model);
 				}
@@ -92,12 +92,12 @@ namespace slib
 		return g_strDeviceName;
 	}
 
-	jobject Android::getCurrentActivity() noexcept
+	jobject Android::getCurrentContext() noexcept
 	{
-		return g_activityCurrent.get();
+		return ((JniGlobal<jobject>*)((void*)&g_activityCurrent))->get();
 	}
 
-	void Android::setCurrentActivity(jobject activity) noexcept
+	void Android::setCurrentContext(jobject activity) noexcept
 	{
 		g_activityCurrent = activity;
 	}

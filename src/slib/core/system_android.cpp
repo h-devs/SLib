@@ -37,19 +37,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace system
-		{
-
-			SLIB_JNI_BEGIN_CLASS(JBuild, "android/os/Build")
-			SLIB_JNI_END_CLASS
-
-		}
-	}
-
-	using namespace priv::system;
-
 #define PRIV_PATH_MAX 1024
 
 	String System::getApplicationPath()
@@ -85,19 +72,16 @@ namespace slib
 	String System::getComputerName()
 	{
 		if (Android::getSdkVersion() >= AndroidSdkVersion::JELLY_BEAN_MR1) {
-			jobject jactivity = Android::getCurrentActivity();
-			if (jactivity) {
-				JniClass clsActivity = Jni::getClass("android/app/Activity");
-				if (clsActivity.isNotNull()) {
-					JniLocal<jobject> resolver = clsActivity.callObjectMethod("getContentResolver", "()Landroid/content/ContentResolver;", jactivity);
-					if (resolver.isNotNull()) {
-						JniClass clsGlobal = Jni::getClass("android/provider/Settings$Global");
-						if (clsGlobal.isNotNull()) {
-							JniLocal<jstring> strDeviceName = Jni::getJniString("device_name");
-							String name = clsGlobal.callStaticStringMethod("getString", "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;", resolver.value, strDeviceName.value);
-							if (name.isNotEmpty()) {
-								return name;
-							}
+			jobject context = Android::getCurrentContext();
+			if (context) {
+				JniLocal<jobject> resolver = Jni::callObjectMethod(context, "getContentResolver", "()Landroid/content/ContentResolver;");
+				if (resolver.isNotNull()) {
+					jclass clsGlobal = Jni::getClass("android/provider/Settings$Global");
+					if (clsGlobal) {
+						SLIB_JNI_STRING(strDeviceName, "device_name")
+						String name = Jni::callStaticStringMethod(clsGlobal, "getString", "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;", resolver.get(), strDeviceName.get());
+						if (name.isNotEmpty()) {
+							return name;
 						}
 					}
 				}

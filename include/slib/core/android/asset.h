@@ -27,9 +27,7 @@
 
 #ifdef SLIB_PLATFORM_IS_ANDROID
 
-#include <jni.h>
-
-#include "../string.h"
+#include "../java.h"
 
 namespace slib
 {
@@ -42,7 +40,7 @@ namespace slib
 		class SLIB_EXPORT Assets
 		{
 		public:
-			static jobject open(const StringParam& path) noexcept;
+			static JniLocal<jobject> open(const StringParam& path) noexcept;
 			static Memory readAllBytes(const StringParam& path) noexcept;
 
 		};

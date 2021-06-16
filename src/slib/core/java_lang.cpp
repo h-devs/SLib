@@ -20,36 +20,48 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_JAVA_INPUT_STREAM
-#define CHECKHEADER_SLIB_CORE_JAVA_INPUT_STREAM
+#include "slib/core/definition.h"
 
-#include "../definition.h"
+#ifdef SLIB_PLATFORM_USE_JNI
 
-#if defined(SLIB_PLATFORM_USE_JNI)
-
-#include "../java.h"
+#include "slib/core/java/object.h"
+#include "slib/core/java/string.h"
 
 namespace slib
 {
+	
+	namespace priv
+	{
+		namespace java_lang
+		{
 
-	class Memory;
+			SLIB_JNI_BEGIN_CLASS(JObject, "java/lang/Object")
+				SLIB_JNI_METHOD(toString, "toString", "()Ljava/lang/String;")
+			SLIB_JNI_END_CLASS
+
+			SLIB_JNI_BEGIN_CLASS(JString, "java/lang/String")
+			SLIB_JNI_END_CLASS
+
+		}
+	}
+
+	using namespace priv::java_lang;
 
 	namespace java
 	{
-
-		class SLIB_EXPORT InputStream
+		
+		String Object::toString(jobject thiz) noexcept
 		{
-		public:
-			static sl_int32 readStream(jobject stream, jbyteArray array) noexcept;			
-			static void closeStream(jobject stream) noexcept;
-			static Memory readAllBytes(jobject stream) noexcept;
+			return JObject::toString.callString(thiz);
+		}
 
-		};
+		jclass String::getClass() noexcept
+		{
+			return JString::get();
+		}
 
 	}
 
 }
-
-#endif
 
 #endif
