@@ -40,7 +40,7 @@ Java_io_slib_examplejni_MainActivity_callCpp(
 
 	Log("JNI", "Called from Java with params: %s, %d", strMessage, nSeconds);
 
-	Dispatch::setTimeout([strMessage, time, activity=Move(activity)] () {
+	Dispatch::setTimeout([strMessage, time, nSeconds, activity=Move(activity)] () {
 
 		String strSend = String::format("Welcome to SLib. I've received your message '%s' on %s", strMessage, time);
 
@@ -59,6 +59,6 @@ Java_io_slib_examplejni_MainActivity_callCpp(
 
 	}, nSeconds * 1000);
 
-	return Jni::getJniString(String::format("JNI will call your callback `callJava` after %d seconds", nSeconds));
+	return Jni::getJniString(String::format("JNI will call your callback `callJava` after %d seconds", nSeconds)).release();
 
 }

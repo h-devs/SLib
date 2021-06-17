@@ -2,7 +2,7 @@ set (SLIB_BASE_PATH "${CMAKE_CURRENT_LIST_DIR}/..")
 
 include_directories ("${SLIB_BASE_PATH}/include")
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -frtti")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -frtti")
 if (ANDROID)
  if(ANDROID_ABI MATCHES "armeabi")
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -marm -mfpu=neon")
