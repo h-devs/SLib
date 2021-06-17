@@ -226,7 +226,8 @@ public: \
 		SLIB_DEFINE_UNIQUE_PTR_ATOMIC_MEMBERS(UniquePtr, T*, ptr, sl_null, delete[])
 
 	public:
-		T& operator[](sl_size index) const noexcept
+		template <typename INT>
+		T& operator[](INT index) const noexcept
 		{
 			return ptr[index];
 		}
