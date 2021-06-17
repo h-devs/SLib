@@ -19,7 +19,8 @@
 #include "intel/filter_sse2_intrinsics.c"
 #endif
 
-#if defined(__arm__) || defined(__arm) || defined(ARM) || defined(_ARM_) || defined(__ARM__) || defined(_M_ARM)
+#if defined(__arm__) || defined(__aarch64__) || defined(__arm) || defined(ARM) || defined(_ARM_) || defined(__ARM__) || defined(_M_ARM)
 #include "arm/arm_init.c"
 #include "arm/filter_neon_intrinsics.c"
+#include "arm/palette_neon_intrinsics.c"
 #endif

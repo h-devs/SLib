@@ -59,13 +59,13 @@ namespace slib
 			SLIB_JNI_END_CLASS
 			
 			SLIB_JNI_BEGIN_CLASS(JSharedPreferences, "android/content/SharedPreferences")
-				SLIB_JNI_METHOD(edit, "edit", "()Landroid/content/SharedPreferences$Editor;")
-				SLIB_JNI_METHOD(getString, "getString", "(Ljava/lang/String;java/lang/String;)Ljava/lang/String;")
+				SLIB_JNI_METHOD(edit, "edit", "()Landroid/content/SharedPreferences$Editor;")				
+				SLIB_JNI_METHOD(getString, "getString", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;")
 			SLIB_JNI_END_CLASS
 
 			SLIB_JNI_BEGIN_CLASS(JSharedPreferencesEditor, "android/content/SharedPreferences$Editor")
 				SLIB_JNI_METHOD(apply, "apply", "()V")
-				SLIB_JNI_METHOD(putString, "putString", "(Ljava/lang/String;java/lang/String;)Landroid/content/SharedPreferences$Editor;")
+				SLIB_JNI_METHOD(putString, "putString", "(Ljava/lang/String;Ljava/lang/String;)Landroid/content/SharedPreferences$Editor;")
 			SLIB_JNI_END_CLASS
 
 		}

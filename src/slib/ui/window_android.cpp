@@ -120,13 +120,13 @@ namespace slib
 					return sl_null;
 				}
 
-				static jobject createHandle(Window* window)
+				static JniLocal<jobject> createHandle(Window* window)
 				{
 					jobject context = (jobject)(window->getActivity());
 					if (!context) {
 						context = Android::getCurrentContext();
 						if (!context) {
-							return 0;
+							return sl_null;
 						}
 					}
 					JniLocal<jobject> jwindow = JWindow::create.callObject(sl_null, context, window->isFullScreen(), window->isCenterScreen(), (int)(window->getLeft()), (int)(window->getTop()), (int)(window->getWidth()), (int)(window->getHeight()));
