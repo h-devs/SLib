@@ -23,12 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_HEADER
 #define CHECKHEADER_SLIB_CORE_HEADER
 
-#ifndef SLIB_NOT_SUPPORT_STD_TYPES
-#	ifndef SLIB_SUPPORT_STD_TYPES
-#		define SLIB_SUPPORT_STD_TYPES
-#	endif
-#endif
-
 #include "core/definition.h"
 
 #include "core/base.h"

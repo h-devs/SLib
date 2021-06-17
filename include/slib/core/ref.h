@@ -62,7 +62,7 @@ public: \
 	sl_object_type CLASS::getObjectType() const noexcept { return (sl_object_type)(sl_size)(object_types::CLASS); } \
 	sl_bool CLASS::isInstanceOf(sl_object_type type) const noexcept { if (type == (sl_object_type)(sl_size)(object_types::CLASS)) return sl_true; return BASE::isDerivedFrom(type); }
 
-#ifdef SLIB_USE_OBJECT_TYPE_CONSTANTS
+#ifdef SLIB_COMPILE_LIB
 #	define SLIB_DEFINE_ROOT_OBJECT(CLASS) SLIB_DEFINE_ROOT_OBJECT_BY_CONSTANT_TYPE(CLASS)
 #	define SLIB_DEFINE_OBJECT(CLASS, BASE) SLIB_DEFINE_OBJECT_BY_CONSTANT_TYPE(CLASS, BASE)
 #else

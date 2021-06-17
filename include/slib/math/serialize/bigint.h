@@ -58,9 +58,9 @@ namespace slib
 		if (!bi) {
 			return sl_false;
 		}
-		sl_uint32* e = bi->getElements();
+		sl_uint32* e = bi->elements;
 		for (sl_size i = 0; i < n; i++) {
-			if (!(Deserialize(output, e[i]))) {
+			if (!(Deserialize(input, e[i]))) {
 				delete bi;
 				return sl_false;
 			}

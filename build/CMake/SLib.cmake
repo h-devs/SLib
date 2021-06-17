@@ -24,7 +24,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL Linux)
  set (SLIB_BIN_PATH "${SLIB_PATH}/bin/Linux/${CMAKE_SYSTEM_PROCESSOR}")
 endif ()
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -frtti -DSLIB_USE_OBJECT_TYPE_CONSTANTS")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -frtti -DSLIB_COMPILE_LIB")
 # generates no debug information
 if (CMAKE_BUILD_TYPE MATCHES Release)
  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g0")
