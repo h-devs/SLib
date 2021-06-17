@@ -74,12 +74,12 @@ namespace slib
 		return g_strSystemRelease;
 	}
 
-	// From Java code: slib.android.Device.getDeviceName
+	// From Java code: slib.android.device.Device.getDeviceName
 	String Android::getDeviceName() noexcept
 	{
 		if (g_strDeviceName.isNull()) {
 			jclass cls = Jni::getClass("android/os/Build");
-			if (cls.isNotNull()) {
+			if (cls) {
 				String manufacturer = Jni::getStaticStringField(cls, "MANUFACTURER");
 				String model = Jni::getStaticStringField(cls, "MODEL");
 				if (!(model.startsWith(manufacturer))) {

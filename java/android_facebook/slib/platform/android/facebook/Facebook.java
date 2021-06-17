@@ -1,4 +1,4 @@
-package slib.platform.android.facebook;
+package slib.android.facebook;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -19,8 +19,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import slib.platform.android.Logger;
-import slib.platform.android.SlibActivity;
+import slib.android.Logger;
+import slib.android.SlibActivity;
 
 public class Facebook {
 

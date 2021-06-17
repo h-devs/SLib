@@ -241,15 +241,15 @@ namespace slib
 		namespace network_os
 		{
 
-			SLIB_JNI_BEGIN_CLASS(JNetworkDevice, "slib/platform/android/network/NetworkDevice")
+			SLIB_JNI_BEGIN_CLASS(JNetworkDevice, "slib/android/network/NetworkDevice")
 				SLIB_JNI_STRING_FIELD(name);
 				SLIB_JNI_STRING_FIELD(macAddress);
 				SLIB_JNI_OBJECT_FIELD(addresses_IPv4, "[Ljava/lang/String;");
 				SLIB_JNI_OBJECT_FIELD(addresses_IPv6, "[Ljava/lang/String;");
 			SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JNetworkAddress, "slib/platform/android/network/Network")
-				SLIB_JNI_STATIC_METHOD(getAllDevices, "getAllDevices", "()[Lslib/platform/android/network/NetworkDevice;");
+			SLIB_JNI_BEGIN_CLASS(JNetworkAddress, "slib/android/network/Network")
+				SLIB_JNI_STATIC_METHOD(getAllDevices, "getAllDevices", "()[Lslib/android/network/NetworkDevice;");
 			SLIB_JNI_END_CLASS
 
 		}
@@ -260,8 +260,8 @@ namespace slib
 	List<NetworkInterfaceInfo> Network::findAllInterfaces()
 	{
 		List<NetworkInterfaceInfo> ret;
-		if (JNetworkAddress::get().isNotNull() && JNetworkDevice::get().isNotNull()) {
-			JniLocal<jobjectArray> jarr = (jobjectArray)(JNetworkAddress::getAllDevices.callObject(sl_null));
+		if (JNetworkAddress::get() && JNetworkDevice::get()) {
+			JniLocal<jobjectArray> jarr = JNetworkAddress::getAllDevices.callObject(sl_null);
 			if (jarr.isNotNull()) {
 				sl_uint32 n = Jni::getArrayLength(jarr);
 				for (sl_uint32 i = 0; i < n; i++) {
@@ -272,7 +272,7 @@ namespace slib
 						dev.displayName = dev.name;
 						dev.macAddress.setZero();
 						dev.macAddress.parse(JNetworkDevice::macAddress.get(jdev));
-						JniLocal<jobjectArray> jarrIPv4 = (jobjectArray)(JNetworkDevice::addresses_IPv4.get(jdev));
+						JniLocal<jobjectArray> jarrIPv4 = JNetworkDevice::addresses_IPv4.get(jdev);
 						if (jarrIPv4.isNotNull()) {
 							sl_uint32 nAddr = Jni::getArrayLength(jarrIPv4);
 							for (sl_uint32 k = 0; k < nAddr; k++) {
@@ -288,7 +288,7 @@ namespace slib
 							}
 
 						}
-						JniLocal<jobjectArray> jarrIPv6 = (jobjectArray)(JNetworkDevice::addresses_IPv6.get(jdev));
+						JniLocal<jobjectArray> jarrIPv6 = JNetworkDevice::addresses_IPv6.get(jdev);
 						if (jarrIPv6.isNotNull()) {
 							sl_uint32 nAddr = Jni::getArrayLength(jarrIPv6);
 							for (sl_uint32 k = 0; k < nAddr; k++) {

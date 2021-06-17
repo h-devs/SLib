@@ -1,4 +1,4 @@
-package slib.platform.android.fcm;
+package slib.android.fcm;
 
 import android.app.Activity;
 import android.app.NotificationChannel;
@@ -16,9 +16,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import slib.platform.android.Logger;
-import slib.platform.android.SlibActivity;
-import slib.platform.android.ui.Util;
+import slib.android.Logger;
+import slib.android.SlibActivity;
+import slib.android.ui.Util;
 
 public class FCM {
 

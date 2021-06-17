@@ -43,7 +43,7 @@ namespace slib
 
 			void OnResultShowAlertDialog(JNIEnv* env, jobject _this, jlong _alert, int result);
 
-			SLIB_JNI_BEGIN_CLASS(JAlert, "slib/platform/android/ui/Alert")
+			SLIB_JNI_BEGIN_CLASS(JAlert, "slib/android/ui/Alert")
 				SLIB_JNI_INT_FIELD(type);
 				SLIB_JNI_STRING_FIELD(text);
 				SLIB_JNI_BOOLEAN_FIELD(flagHyperText);
@@ -55,7 +55,7 @@ namespace slib
 				SLIB_JNI_LONG_FIELD(nativeObject);
 
 				SLIB_JNI_NEW(init, "()V");
-				SLIB_JNI_METHOD(show, "show", "(Lslib/platform/android/SlibActivity;)Z");
+				SLIB_JNI_METHOD(show, "show", "(Lslib/android/SlibActivity;)Z");
 
 				SLIB_JNI_NATIVE(nativeShowAlertResult, "nativeShowResult", "(JI)V", OnResultShowAlertDialog);
 			SLIB_JNI_END_CLASS

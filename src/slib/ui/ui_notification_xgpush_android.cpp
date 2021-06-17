@@ -56,7 +56,7 @@ namespace slib
 				XgPush::getInstance()->dispatchReceiveMessage(message);
 			}
 
-			SLIB_JNI_BEGIN_CLASS(JXgPush, "slib/platform/android/xgpush/XgPush")
+			SLIB_JNI_BEGIN_CLASS(JXgPush, "slib/android/xgpush/XgPush")
 				SLIB_JNI_STATIC_METHOD(start, "start", "(Landroid/app/Activity;)V");
 				SLIB_JNI_STATIC_METHOD(stop, "stop", "(Landroid/app/Activity;)V");
 				SLIB_JNI_STATIC_METHOD(setEnableDebug, "setEnableDebug", "(Landroid/app/Activity;Z)V");

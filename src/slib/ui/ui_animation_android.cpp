@@ -40,8 +40,8 @@ namespace slib
 			
 			void OnStop(JNIEnv* env, jobject _this, jlong ptr);
 
-			SLIB_JNI_BEGIN_CLASS(JAnimation, "slib/platform/android/ui/UiAnimation")
-				SLIB_JNI_STATIC_METHOD(start, "start", "(Landroid/view/View;JFFIIZFFZFFFFZFFFFZFFZFF)Lslib/platform/android/ui/UiAnimation;");
+			SLIB_JNI_BEGIN_CLASS(JAnimation, "slib/android/ui/UiAnimation")
+				SLIB_JNI_STATIC_METHOD(start, "start", "(Landroid/view/View;JFFIIZFFZFFFFZFFFFZFFZFF)Lslib/android/ui/UiAnimation;");
 				SLIB_JNI_METHOD(stop, "stop", "()V");
 				SLIB_JNI_NATIVE(nativeOnStop, "nativeOnStop", "(J)V", OnStop);
 			SLIB_JNI_END_CLASS

@@ -38,9 +38,9 @@ namespace slib
 
 			void JNICALL OnSelect(JNIEnv* env, jobject _this, jlong instance, jint n);
 
-			SLIB_JNI_BEGIN_CLASS(JSelectView, "slib/platform/android/ui/view/UiSelectView")
+			SLIB_JNI_BEGIN_CLASS(JSelectView, "slib/android/ui/view/UiSelectView")
 
-				SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;)Lslib/platform/android/ui/view/UiSelectView;");
+				SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;)Lslib/android/ui/view/UiSelectView;");
 
 				SLIB_JNI_STATIC_METHOD(applyList, "_applyList", "(Landroid/view/View;[Ljava/lang/String;)V");
 				SLIB_JNI_STATIC_METHOD(select, "_select", "(Landroid/view/View;I)V");
@@ -48,7 +48,7 @@ namespace slib
 				SLIB_JNI_STATIC_METHOD(setTextColor, "_setTextColor", "(Landroid/view/View;I)Z");
 				SLIB_JNI_STATIC_METHOD(setBorder, "_setBorder", "(Landroid/view/View;Z)Z");
 				SLIB_JNI_STATIC_METHOD(setBackgroundColor, "_setBackgroundColor", "(Landroid/view/View;I)Z");
-				SLIB_JNI_STATIC_METHOD(setFont, "_setFont", "(Landroid/view/View;Lslib/platform/android/ui/UiFont;)Z");
+				SLIB_JNI_STATIC_METHOD(setFont, "_setFont", "(Landroid/view/View;Lslib/android/ui/UiFont;)Z");
 
 				SLIB_JNI_NATIVE(nativeOnSelect, "nativeOnSelect", "(JI)V", OnSelect);
 

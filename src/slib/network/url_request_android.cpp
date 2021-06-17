@@ -44,7 +44,7 @@ namespace slib
 			void JNICALL OnComplete(JNIEnv* env, jobject _this, jlong jinstance);
 			void JNICALL OnError(JNIEnv* env, jobject _this, jlong jinstance, jstring errorMessage);
 
-			SLIB_JNI_BEGIN_CLASS(JUrlRequest, "slib/platform/android/network/UrlRequest")
+			SLIB_JNI_BEGIN_CLASS(JUrlRequest, "slib/android/network/UrlRequest")
 				SLIB_JNI_STATIC_METHOD(execute, "execute", "(JLjava/lang/String;Ljava/lang/String;[Ljava/lang/String;[BLjava/lang/String;IZ)V")
 				SLIB_JNI_METHOD(close, "close", "()V")
 

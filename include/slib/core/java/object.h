@@ -37,7 +37,7 @@ namespace slib
 		class SLIB_EXPORT Object
 		{
 		public:
-			static String toString(jobject thiz) noexcept;
+			static slib::String toString(jobject thiz) noexcept;
 			
 		};
 

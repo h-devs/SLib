@@ -36,9 +36,9 @@ namespace slib
 	{
 		namespace preference
 		{
-			SLIB_JNI_BEGIN_CLASS(JPreference, "slib/platform/android/Preference")
-				SLIB_JNI_STATIC_METHOD(setValue, "setValue", "(Lslib/platform/android/SlibActivity;Ljava/lang/String;Ljava/lang/String;)V");
-				SLIB_JNI_STATIC_METHOD(getValue, "getValue", "(Lslib/platform/android/SlibActivity;Ljava/lang/String;)Ljava/lang/String;");
+			SLIB_JNI_BEGIN_CLASS(JPreference, "slib/android/Preference")
+				SLIB_JNI_STATIC_METHOD(setValue, "setValue", "(Lslib/android/SlibActivity;Ljava/lang/String;Ljava/lang/String;)V");
+				SLIB_JNI_STATIC_METHOD(getValue, "getValue", "(Lslib/android/SlibActivity;Ljava/lang/String;)Ljava/lang/String;");
 			SLIB_JNI_END_CLASS
 		}
 	}

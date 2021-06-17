@@ -38,7 +38,7 @@ namespace slib
 		namespace android
 		{
 
-			SLIB_JNI_BEGIN_CLASS(JBrush, "slib/platform/android/ui/UiBrush")
+			SLIB_JNI_BEGIN_CLASS(JBrush, "slib/android/ui/UiBrush")
 				SLIB_JNI_NEW(init, "()V");
 				SLIB_JNI_INT_FIELD(style);
 				SLIB_JNI_INT_FIELD(color);
@@ -49,7 +49,7 @@ namespace slib
 				SLIB_JNI_FLOAT_FIELD(radius)
 				SLIB_JNI_OBJECT_FIELD(colors, "[I")
 				SLIB_JNI_OBJECT_FIELD(locations, "[F")
-				SLIB_JNI_OBJECT_FIELD(pattern, "Lslib/platform/android/ui/UiBitmap;")
+				SLIB_JNI_OBJECT_FIELD(pattern, "Lslib/android/ui/UiBitmap;")
 			SLIB_JNI_END_CLASS
 
 			class BrushPlatformObject : public Referable
@@ -66,7 +66,6 @@ namespace slib
 						JBrush::style.set(brush, (int)(desc.style));
 						if (desc.style == BrushStyle::Solid) {
 							JBrush::color.set(brush, desc.color.getARGB());
-							m_brush = gbrush;
 						} else if (desc.style == BrushStyle::LinearGradient || desc.style == BrushStyle::RadialGradient) {
 							GradientBrushDetail* detail = (GradientBrushDetail*)(desc.detail.get());
 							if (detail) {
@@ -94,7 +93,6 @@ namespace slib
 									} else {
 										JBrush::radius.set(brush, (jfloat)(detail->radius));
 									}
-									m_brush = gbrush;
 								}
 							}
 						} else if (desc.style == BrushStyle::Texture) {
@@ -108,7 +106,6 @@ namespace slib
 										if (jbitmap) {
 											JBrush::pattern.set(brush, jbitmap);
 											m_bitmapCache = bitmap;
-											m_brush = gbrush;
 										}
 									}
 								} else {

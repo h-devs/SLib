@@ -39,7 +39,7 @@ namespace slib
 		namespace app
 		{
 
-			SLIB_JNI_BEGIN_CLASS(JApplication, "slib/platform/android/app/Application")
+			SLIB_JNI_BEGIN_CLASS(JApplication, "slib/android/app/Application")
 				SLIB_JNI_STATIC_METHOD(checkPermissions, "checkPermissions", "(Landroid/app/Activity;I)Z");
 				SLIB_JNI_STATIC_METHOD(grantPermissions, "grantPermissions", "(Landroid/app/Activity;I)V");
 

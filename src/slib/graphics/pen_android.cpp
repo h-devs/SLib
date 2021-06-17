@@ -36,7 +36,7 @@ namespace slib
 		namespace android
 		{
 
-			SLIB_JNI_BEGIN_CLASS(JPen, "slib/platform/android/ui/UiPen")
+			SLIB_JNI_BEGIN_CLASS(JPen, "slib/android/ui/UiPen")
 				SLIB_JNI_NEW(init, "()V");
 				SLIB_JNI_METHOD(setStyle, "setStyle", "(I)V");
 				SLIB_JNI_INT_FIELD(cap);

@@ -40,7 +40,7 @@ namespace slib
 
 			void OnPayResult(JNIEnv* env, jobject _this, jstring jresult);
 
-			SLIB_JNI_BEGIN_CLASS(JWeChat, "slib/platform/android/alipay/Alipay")
+			SLIB_JNI_BEGIN_CLASS(JWeChat, "slib/android/alipay/Alipay")
 				SLIB_JNI_STATIC_METHOD(pay, "pay", "(Landroid/app/Activity;Ljava/lang/String;)V");
 				SLIB_JNI_NATIVE(nativeOnPayResult, "nativeOnPayResult", "(Ljava/lang/String;)V", OnPayResult);
 			SLIB_JNI_END_CLASS

@@ -32,6 +32,8 @@
 #include "slib/core/app.h"
 #include "slib/core/file.h"
 #include "slib/core/safe_static.h"
+#include "slib/core/android/context.h"
+#include "slib/core/java/file.h"
 
 namespace slib
 {
@@ -43,13 +45,9 @@ namespace slib
 			
 			void JNICALL OnCompleteTakePhoto(JNIEnv* env, jobject _this, jstring filePath, jint fd, jint rotation, jboolean flipHorz, jboolean flipVert, jboolean flagCancel);
 
-			SLIB_JNI_BEGIN_CLASS(JTakePhoto, "slib/platform/android/camera/TakePhoto")
+			SLIB_JNI_BEGIN_CLASS(JTakePhoto, "slib/android/camera/TakePhoto")
 				SLIB_JNI_STATIC_METHOD(open, "open", "(Landroid/app/Activity;ZLjava/lang/String;)V");
 				SLIB_JNI_NATIVE(onComplete, "navtiveOnComplete", "(Ljava/lang/String;IIZZZ)V", OnCompleteTakePhoto);
-			SLIB_JNI_END_CLASS
-
-			SLIB_JNI_BEGIN_CLASS(JUtil, "slib/platform/android/ui/Util")
-				SLIB_JNI_STATIC_METHOD(getPicturesDirectory, "getPicturesDirectory", "()Ljava/lang/String;");
 			SLIB_JNI_END_CLASS
 
 			class TakePhotoResultEx : public TakePhotoResult
@@ -208,11 +206,15 @@ namespace slib
 					content = param.content;
 				}
 				if (content.isNotNull()) {
-					String path = JUtil::getPicturesDirectory.callString(sl_null) + "/" + Time::now().format("%04y-%02m-%02d_%02H%02M%02S.jpg");
-					sl_size nWritten = File::writeAllBytes(path, content);
-					if (nWritten == content.getSize()) {
-						param.onComplete(path);
-						return;
+					JniLocal<jobject> dir = android::Context::getPicturesDir(Android::getCurrentContext());					
+					String path = java::File::getAbsolutePath(dir);
+					if (path.isNotEmpty()) {
+						path += "/" + Time::now().format("%04y-%02m-%02d_%02H%02M%02S.jpg");
+						sl_size nWritten = File::writeAllBytes(path, content);
+						if (nWritten == content.getSize()) {
+							param.onComplete(path);
+							return;
+						}
 					}
 				}
 				param.onComplete(sl_null);

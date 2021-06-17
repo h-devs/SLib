@@ -50,7 +50,7 @@ namespace slib
 	namespace java
 	{
 		
-		String Object::toString(jobject thiz) noexcept
+		slib::String Object::toString(jobject thiz) noexcept
 		{
 			return JObject::toString.callString(thiz);
 		}

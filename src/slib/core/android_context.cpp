@@ -38,6 +38,7 @@ namespace slib
 
 			SLIB_JNI_BEGIN_CLASS(JContext, "android/content/Context")
 				SLIB_JNI_METHOD(getSystemService, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;")
+				SLIB_JNI_METHOD(getExternalFilesDir, "getExternalFilesDir", "(Ljava/lang/String;)Ljava/io/File;")
 				SLIB_JNI_METHOD(getAssets, "getAssets", "()Landroid/content/res/AssetManager;")
 				SLIB_JNI_METHOD(getSharedPreferences, "getSharedPreferences", "(Ljava/lang/String;I)Landroid/content/SharedPreferences;")
 
@@ -50,8 +51,13 @@ namespace slib
 			SLIB_JNI_BEGIN_CLASS(JActivity, "android/app/Activity")
 				SLIB_JNI_METHOD(finish, "finish", "()V")
 				SLIB_JNI_METHOD(getWindowManager, "getWindowManager", "()Landroid/view/WindowManager;")
+				SLIB_JNI_METHOD(getWindow, "getWindow", "()Landroid/view/Window;")
 			SLIB_JNI_END_CLASS
 
+			SLIB_JNI_BEGIN_CLASS(JEnvironment, "android/os/Environment")
+				SLIB_JNI_FINAL_STRING_OBJECT_FIELD(DIRECTORY_PICTURES)
+			SLIB_JNI_END_CLASS
+			
 			SLIB_JNI_BEGIN_CLASS(JSharedPreferences, "android/content/SharedPreferences")
 				SLIB_JNI_METHOD(edit, "edit", "()Landroid/content/SharedPreferences$Editor;")
 				SLIB_JNI_METHOD(getString, "getString", "(Ljava/lang/String;java/lang/String;)Ljava/lang/String;")
@@ -70,20 +76,12 @@ namespace slib
 	namespace android
 	{
 
-		JniLocal<jobject> Context::getSystemService(jobject thiz, const char* variableName) noexcept
-		{
-			if (thiz) {
-				JniLocal<jobject> name = Jni::getStaticObjectField(JContext::get(), variableName, "Ljava/lang/String;");
-				if (name.isNotNull()) {
-					return JContext::getSystemService.callObject(thiz, name.get());
-				}
-			}
-			return sl_null;
-		}
-
 		JniLocal<jobject> Context::getSystemService(jobject thiz, jstring name) noexcept
 		{
-			return JContext::getSystemService.callObject(thiz, name);
+			if (name) {
+				return JContext::getSystemService.callObject(thiz, name);
+			}
+			return sl_null;
 		}
 
 		JniLocal<jobject> Context::getAudioManager(jobject thiz)
@@ -101,9 +99,22 @@ namespace slib
 			return getSystemService(thiz, JContext::TELEPHONY_SERVICE.get());
 		}
 
-		JniLocal<jobject> Context::GetTelephonySubscriptionManager(jobject thiz)
+		JniLocal<jobject> Context::getTelephonySubscriptionManager(jobject thiz)
 		{
 			return getSystemService(thiz, JContext::TELEPHONY_SUBSCRIPTION_SERVICE.get());
+		}
+
+		JniLocal<jobject> Context::getExternalFilesDir(jobject thiz, jstring type) noexcept
+		{
+			if (type) {
+				return JContext::getExternalFilesDir.callObject(thiz, type);
+			}
+			return sl_null;
+		}
+
+		JniLocal<jobject> Context::getPicturesDir(jobject thiz) noexcept
+		{
+			return getExternalFilesDir(thiz, JEnvironment::DIRECTORY_PICTURES.get());
 		}
 
 		JniLocal<jobject> Context::getAssets(jobject thiz) noexcept
@@ -138,6 +149,11 @@ namespace slib
 			return JActivity::getWindowManager.callObject(thiz);
 		}
 
+		JniLocal<jobject> Activity::getWindow(jobject thiz) noexcept
+		{
+			return JActivity::getWindow.callObject(thiz);
+		}
+
 
 		JniLocal<jobject> SharedPreferences::getEditor(jobject thiz) noexcept
 		{
@@ -170,7 +186,7 @@ namespace slib
 				if (key.isNotNull()) {
 					JniLocal<jstring> value = Jni::getJniString(_value);
 					if (value.isNotNull()) {
-						return JSharedPreferencesEditor::putString.callObject(thiz, key.get(), value.get());						
+						JSharedPreferencesEditor::putString.callObject(thiz, key.get(), value.get());						
 					}
 				}
 			}

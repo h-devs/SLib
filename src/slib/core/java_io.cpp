@@ -25,6 +25,7 @@
 #ifdef SLIB_PLATFORM_USE_JNI
 
 #include "slib/core/java/input_stream.h"
+#include "slib/core/java/file.h"
 
 #include "slib/core/memory_output.h"
 
@@ -39,6 +40,10 @@ namespace slib
 			SLIB_JNI_BEGIN_CLASS(JInputStream, "java/io/InputStream")
 				SLIB_JNI_METHOD(read, "read", "([B)I")
 				SLIB_JNI_METHOD(close, "close", "()V")
+			SLIB_JNI_END_CLASS
+
+			SLIB_JNI_BEGIN_CLASS(JFile, "java/io/File")
+				SLIB_JNI_METHOD(getAbsolutePath, "getAbsolutePath", "()Ljava/lang/String;")
 			SLIB_JNI_END_CLASS
 
 		}
@@ -101,6 +106,12 @@ namespace slib
 				}
 			}
 			return sl_null;
+		}
+
+
+		String File::getAbsolutePath(jobject thiz) noexcept
+		{
+			return JFile::getAbsolutePath.callString(thiz);
 		}
 
 	}

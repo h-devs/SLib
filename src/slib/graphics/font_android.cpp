@@ -47,8 +47,8 @@ namespace slib
 				SLIB_JNI_FLOAT_FIELD(leading);
 			SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JFont, "slib/platform/android/ui/UiFont")
-				SLIB_JNI_STATIC_METHOD(create, "create", "(Ljava/lang/String;FI)Lslib/platform/android/ui/UiFont;");
+			SLIB_JNI_BEGIN_CLASS(JFont, "slib/android/ui/UiFont")
+				SLIB_JNI_STATIC_METHOD(create, "create", "(Ljava/lang/String;FI)Lslib/android/ui/UiFont;");
 				SLIB_JNI_METHOD(getFontMetrics, "getFontMetrics", "()Landroid/graphics/Paint$FontMetrics;");
 				SLIB_JNI_METHOD(measureText, "measureText", "(Ljava/lang/String;)Landroid/graphics/PointF;");
 			SLIB_JNI_END_CLASS

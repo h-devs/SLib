@@ -44,7 +44,7 @@ namespace slib
 				SLIB_JNI_FLOAT_FIELD(bottom);
 			SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JPath, "slib/platform/android/ui/UiPath")
+			SLIB_JNI_BEGIN_CLASS(JPath, "slib/android/ui/UiPath")
 				SLIB_JNI_NEW(init, "()V");
 				SLIB_JNI_METHOD(setFillMode, "setFillMode", "(I)V");
 				SLIB_JNI_METHOD(moveTo, "moveTo", "(FF)V");

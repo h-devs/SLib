@@ -26,6 +26,8 @@ import android.content.Context;
 import android.os.Build;
 import android.provider.Settings;
 
+import slib.android.device.Device;
+
 public class System {
 
 	public static String getDeviceNameOnSettings(Context context) {

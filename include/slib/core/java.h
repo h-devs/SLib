@@ -237,7 +237,7 @@ namespace slib
 		static void deleteLocalRef(jobject obj) noexcept;
 
 		static sl_bool isGlobalRef(jobject obj) noexcept;
-		static JniLocal<jobject> newGlobalRef(jobject obj) noexcept;
+		static jobject newGlobalRef(jobject obj) noexcept;
 		static void deleteGlobalRef(jobject obj) noexcept;
 
 		static sl_bool isWeakRef(jobject obj) noexcept;
@@ -769,8 +769,8 @@ namespace slib
 		RET JNICALL JNativeMethodImpl_##VAR(JNIEnv* env, jobject _this, ##__VA_ARGS__) noexcept
 
 	#define SLIB_JNI_STRING(NAME, VALUE) \
-		static slib::priv::java::StringConstantContainer _static_jni_string_constant_##NAME = { SLIB_UNICODE(VALUE), sl_false, 0, 0 };
-		static const slib::JniStringConstant& NAME = *(reinterpret_cast<slib::JniStringConstant*>(&_static_jni_string_constant_##name));
+		static slib::priv::java::StringConstantContainer _static_jni_string_constant_##NAME = { SLIB_UNICODE(VALUE), sl_false, 0, 0 }; \
+		static slib::JniStringConstant& NAME = *(reinterpret_cast<slib::JniStringConstant*>(&_static_jni_string_constant_##NAME));
 
 	#define PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(TYPE, NAME) \
 		namespace priv { \
@@ -793,7 +793,6 @@ namespace slib
 	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_int64, Long)
 	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(float, Float)
 	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(double, Double)
-	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(String, String)
 
 	#define PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(TYPE, NAME) \
 		namespace priv { \

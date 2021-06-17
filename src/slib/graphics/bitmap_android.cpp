@@ -39,17 +39,17 @@ namespace slib
 		namespace android
 		{
 
-			SLIB_JNI_BEGIN_CLASS(JBitmap, "slib/platform/android/ui/UiBitmap")
-				SLIB_JNI_STATIC_METHOD(create, "create", "(II)Lslib/platform/android/ui/UiBitmap;");
-				SLIB_JNI_STATIC_METHOD(load, "load", "(Landroid/app/Activity;[B)Lslib/platform/android/ui/UiBitmap;");
+			SLIB_JNI_BEGIN_CLASS(JBitmap, "slib/android/ui/UiBitmap")
+				SLIB_JNI_STATIC_METHOD(create, "create", "(II)Lslib/android/ui/UiBitmap;");
+				SLIB_JNI_STATIC_METHOD(load, "load", "(Landroid/app/Activity;[B)Lslib/android/ui/UiBitmap;");
 				SLIB_JNI_METHOD(getWidth, "getWidth", "()I");
 				SLIB_JNI_METHOD(getHeight, "getHeight", "()I");
 				SLIB_JNI_METHOD(recycle, "recycle", "()V");
 				SLIB_JNI_METHOD(read, "read", "(IIII[II)V");
 				SLIB_JNI_METHOD(write, "write", "(IIII[II)V");
-				SLIB_JNI_METHOD(getCanvas, "getCanvas", "()Lslib/platform/android/ui/Graphics;");
-				SLIB_JNI_METHOD(draw, "draw", "(Lslib/platform/android/ui/Graphics;FFFFIIIIFF)V");
-				SLIB_JNI_METHOD(drawWithColorMatrix, "draw", "(Lslib/platform/android/ui/Graphics;FFFFIIIIFFFFFFFFFFFFFFFFFFFFFF)V");
+				SLIB_JNI_METHOD(getCanvas, "getCanvas", "()Lslib/android/ui/Graphics;");
+				SLIB_JNI_METHOD(draw, "draw", "(Lslib/android/ui/Graphics;FFFFIIIIFF)V");
+				SLIB_JNI_METHOD(drawWithColorMatrix, "draw", "(Lslib/android/ui/Graphics;FFFFIIIIFFFFFFFFFFFFFFFFFFFFFF)V");
 				SLIB_JNI_STATIC_METHOD(getArrayBuffer, "getArrayBuffer", "()[I");
 				SLIB_JNI_STATIC_METHOD(returnArrayBuffer, "returnArrayBuffer", "([I)V");
 			SLIB_JNI_END_CLASS
@@ -130,7 +130,7 @@ namespace slib
 				{
 					JniLocal<jbyteArray> imageData = Jni::newByteArray(size);
 					if (imageData.isNotNull()) {
-						Jni::setByteArrayRegion(imageData., 0, size, (jbyte*)buf);
+						Jni::setByteArrayRegion(imageData, 0, size, (jbyte*)buf);
 						return JBitmap::load.callObject(sl_null, Android::getCurrentContext(), imageData.get());
 					}
 					return sl_null;
@@ -207,7 +207,7 @@ namespace slib
 					}
 
 					sl_bool ret = sl_false;
-					JniLocal<jintArray> abuf = (jintArray)(JBitmap::getArrayBuffer.callObject(sl_null));
+					JniLocal<jintArray> abuf = JBitmap::getArrayBuffer.callObject(sl_null);
 					if (abuf.isNotNull()) {
 						sl_uint32 nAbuf = Jni::getArrayLength(abuf);
 						if (nAbuf >= width) {
@@ -279,7 +279,7 @@ namespace slib
 
 					sl_bool ret = sl_false;
 
-					JniLocal<jintArray> abuf = (jintArray)(JBitmap::getArrayBuffer.callObject(sl_null));
+					JniLocal<jintArray> abuf = JBitmap::getArrayBuffer.callObject(sl_null);
 
 					if (abuf.isNotNull()) {
 
@@ -311,7 +311,7 @@ namespace slib
 								ret = sl_true;
 							}
 						}
-						JBitmap::returnArrayBuffer.call(sl_null, abuf);
+						JBitmap::returnArrayBuffer.call(sl_null, abuf.get());
 					}
 					return ret;
 				}

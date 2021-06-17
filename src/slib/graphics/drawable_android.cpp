@@ -39,9 +39,9 @@ namespace slib
 		namespace android
 		{
 
-			SLIB_JNI_BEGIN_CLASS(JBitmap, "slib/platform/android/ui/UiBitmap")
-				SLIB_JNI_STATIC_METHOD(drawPixels, "drawPixels", "(Lslib/platform/android/ui/Graphics;FFFF[IIIIFF)V");
-				SLIB_JNI_STATIC_METHOD(drawPixelsWithColorMatrix, "drawPixels", "(Lslib/platform/android/ui/Graphics;FFFF[IIIIFFFFFFFFFFFFFFFFFFFFFF)V");
+			SLIB_JNI_BEGIN_CLASS(JBitmap, "slib/android/ui/UiBitmap")
+				SLIB_JNI_STATIC_METHOD(drawPixels, "drawPixels", "(Lslib/android/ui/Graphics;FFFF[IIIIFF)V");
+				SLIB_JNI_STATIC_METHOD(drawPixelsWithColorMatrix, "drawPixels", "(Lslib/android/ui/Graphics;FFFF[IIIIFFFFFFFFFFFFFFFFFFFFFF)V");
 				SLIB_JNI_STATIC_METHOD(getArrayBuffer, "getArrayBuffer", "()[I");
 				SLIB_JNI_STATIC_METHOD(returnArrayBuffer, "returnArrayBuffer", "([I)V");
 			SLIB_JNI_END_CLASS
@@ -136,7 +136,7 @@ namespace slib
 					sl_uint32 width = (sl_uint32)(rectSrc.getWidth());
 					sl_uint32 height = (sl_uint32)(rectSrc.getHeight());
 
-					JniLocal<jintArray> abuf = (jintArray)(JBitmap::getArrayBuffer.callObject(sl_null));
+					JniLocal<jintArray> abuf = JBitmap::getArrayBuffer.callObject(sl_null);
 					if (abuf.isNotNull()) {
 						sl_uint32 nAbuf = Jni::getArrayLength(abuf);
 						if (nAbuf >= width) {

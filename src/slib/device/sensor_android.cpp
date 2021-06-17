@@ -44,8 +44,8 @@ namespace slib
 			
 			SLIB_SAFE_STATIC_GETTER(SensorMap, GetSensorMap)
 
-			SLIB_JNI_BEGIN_CLASS(JSensor, "slib/platform/android/device/Sensor")
-				SLIB_JNI_STATIC_METHOD(create, "create", "(Landroid/app/Activity;ZIZZ)Lslib/platform/android/device/Sensor;");
+			SLIB_JNI_BEGIN_CLASS(JSensor, "slib/android/device/Sensor")
+				SLIB_JNI_STATIC_METHOD(create, "create", "(Landroid/app/Activity;ZIZZ)Lslib/android/device/Sensor;");
 				SLIB_JNI_STATIC_METHOD(isAvailableLocation, "isAvailableLocation", "(Landroid/app/Activity;)Z");
 				SLIB_JNI_STATIC_METHOD(isAvailableCompass, "isAvailableCompass", "(Landroid/app/Activity;)Z");
 				SLIB_JNI_STATIC_METHOD(isAvailableAccelerometer, "isAvailableAccelerometer", "(Landroid/app/Activity;)Z");

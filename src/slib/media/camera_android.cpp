@@ -38,15 +38,15 @@ namespace slib
 		namespace camera
 		{
 
-			SLIB_JNI_BEGIN_CLASS(JCameraInfo, "slib/platform/android/camera/SCameraInfo")
+			SLIB_JNI_BEGIN_CLASS(JCameraInfo, "slib/android/camera/SCameraInfo")
 				SLIB_JNI_STRING_FIELD(id);
 				SLIB_JNI_STRING_FIELD(name);
 			SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JCamera, "slib/platform/android/camera/SCamera")
+			SLIB_JNI_BEGIN_CLASS(JCamera, "slib/android/camera/SCamera")
 
-				SLIB_JNI_STATIC_METHOD(getCamerasList, "getCamerasList", "(Landroid/app/Activity;)[Lslib/platform/android/camera/SCameraInfo;");
-				SLIB_JNI_STATIC_METHOD(create, "create", "(Landroid/app/Activity;Ljava/lang/String;J)Lslib/platform/android/camera/SCamera;");
+				SLIB_JNI_STATIC_METHOD(getCamerasList, "getCamerasList", "(Landroid/app/Activity;)[Lslib/android/camera/SCameraInfo;");
+				SLIB_JNI_STATIC_METHOD(create, "create", "(Landroid/app/Activity;Ljava/lang/String;J)Lslib/android/camera/SCamera;");
 				SLIB_JNI_STATIC_METHOD(isMobileDeviceTorchActive, "isMobileDeviceTorchActive", "(Landroid/app/Activity;)Z");
 				SLIB_JNI_STATIC_METHOD(setMobileDeviceTorchMode, "setMobileDeviceTorchMode", "(Landroid/app/Activity;IF)V");
 
@@ -468,7 +468,7 @@ namespace slib
 			return sl_null;
 		}
 		List<CameraInfo> ret;
-		JniLocal<jobjectArray> arr = (jobjectArray)(JCamera::getCamerasList.callObject(sl_null, context));
+		JniLocal<jobjectArray> arr = JCamera::getCamerasList.callObject(sl_null, context);
 		sl_uint32 len = Jni::getArrayLength(arr);
 		for (sl_uint32 i = 0; i < len; i++) {
 			JniLocal<jobject> jinfo = Jni::getObjectArrayElement(arr, i);

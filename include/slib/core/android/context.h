@@ -37,13 +37,14 @@ namespace slib
 		class SLIB_EXPORT Context
 		{
 		public:
-			static JniLocal<jobject> getSystemService(jobject thiz, const char* variableName) noexcept;
 			static JniLocal<jobject> getSystemService(jobject thiz, jstring name) noexcept;
-
 			static JniLocal<jobject> getAudioManager(jobject thiz); // AUDIO_SERVICE
 			static JniLocal<jobject> getVibrator(jobject thiz); // VIBRATOR_SERVICE
 			static JniLocal<jobject> getTelephonyManager(jobject thiz); // TELEPHONY_SERVICE
-			static JniLocal<jobject> GetTelephonySubscriptionManager(jobject thiz); // TELEPHONY_SUBSCRIPTION_SERVICE
+			static JniLocal<jobject> getTelephonySubscriptionManager(jobject thiz); // TELEPHONY_SUBSCRIPTION_SERVICE
+
+			static JniLocal<jobject> getExternalFilesDir(jobject thiz, jstring type) noexcept;
+			static JniLocal<jobject> getPicturesDir(jobject thiz) noexcept; // android.os.Environment.DIRECTORY_PICTURES
 
 			static JniLocal<jobject> getAssets(jobject thiz) noexcept;
 

@@ -24,6 +24,7 @@
 
 #ifdef SLIB_PLATFORM_IS_ANDROID
 
+#include "slib/core/android/window.h"
 #include "slib/core/android/window_manager.h"
 #include "slib/core/android/display.h"
 
@@ -34,6 +35,10 @@ namespace slib
 	{
 		namespace android_context
 		{
+
+			SLIB_JNI_BEGIN_CLASS(JWindow, "android/view/Window")
+				SLIB_JNI_METHOD(setSoftInputMode, "setSoftInputMode", "(I)V")
+			SLIB_JNI_END_CLASS
 
 			SLIB_JNI_BEGIN_CLASS(JWindowManager, "android/view/WindowManager")
 				SLIB_JNI_METHOD(getDefaultDisplay, "getDefaultDisplay", "()Landroid/view/Display;")
@@ -57,6 +62,12 @@ namespace slib
 
 	namespace android
 	{
+
+		void Window::setSoftInputMode(jobject thiz, sl_uint32 mode) noexcept
+		{
+			JWindow::setSoftInputMode.callObject(thiz, mode);
+		}
+
 
 		JniLocal<jobject> WindowManager::getDefaultDisplay(jobject thiz) noexcept
 		{

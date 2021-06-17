@@ -46,7 +46,7 @@ namespace slib
 		class SLIB_EXPORT SharedPreferencesEditor
 		{
 		public:
-			static void apply(jobject thiz);
+			static void apply(jobject thiz) noexcept;
 			
 			static void putString(jobject thiz, const StringParam& key, const StringParam& value) noexcept;
 

@@ -1,4 +1,4 @@
-package slib.platform.android.alipay;
+package slib.android.alipay;
 
 import android.app.Activity;
 
@@ -6,7 +6,7 @@ import com.alipay.sdk.app.PayTask;
 
 import java.util.Map;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 
 public class Alipay {
 

@@ -26,6 +26,7 @@
 
 #include "slib/core/java/list.h"
 #include "slib/core/java/locale.h"
+#include "slib/core/java/uuid.h"
 
 namespace slib
 {
@@ -39,12 +40,13 @@ namespace slib
 				SLIB_JNI_METHOD(size, "size", "()I")
 				SLIB_JNI_METHOD(contains, "contains", "(Ljava/lang/Object;)Z")
 				SLIB_JNI_METHOD(iterator, "iterator", "()Ljava/util/Iterator;")
-				SLIB_JNI_METHOD(get, "get", "(I)Ljava/lang/Object;")
+				SLIB_JNI_METHOD(getAt, "get", "(I)Ljava/lang/Object;")
 				SLIB_JNI_METHOD(set, "set", "(ILjava/lang/Object;)Ljava/lang/Object;")
 				SLIB_JNI_METHOD(add, "add", "(Ljava/lang/Object;)Z")
 				SLIB_JNI_METHOD(addAt, "add", "(ILjava/lang/Object;)V")
 				SLIB_JNI_METHOD(remove, "remove", "(Ljava/lang/Object;)Z")
 				SLIB_JNI_METHOD(removeAt, "remove", "(I)Ljava/lang/Object;")
+				SLIB_JNI_METHOD(clear, "clear", "()V")
 				SLIB_JNI_METHOD(indexOf, "indexOf", "(Ljava/lang/Object;)I")
 				SLIB_JNI_METHOD(lastIndexOf, "lastIndexOf", "(Ljava/lang/Object;)I")
 			SLIB_JNI_END_CLASS
@@ -56,7 +58,7 @@ namespace slib
 				SLIB_JNI_METHOD(getScript, "getScript", "()Ljava/lang/String;")
 			SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JLocale, "java/util/UUID")
+			SLIB_JNI_BEGIN_CLASS(JUUID, "java/util/UUID")
 				SLIB_JNI_STATIC_METHOD(randomUUID, "randomUUID", "()Ljava/util/UUID;")
 			SLIB_JNI_END_CLASS
 		}
@@ -84,7 +86,7 @@ namespace slib
 
 		JniLocal<jobject> List::get(jobject list, sl_int32 index) noexcept
 		{
-			return JList::get.callObject(list, (jint)index);
+			return JList::getAt.callObject(list, (jint)index);
 		}
 
 		JniLocal<jobject> List::set(jobject list, sl_int32 index, jobject element) noexcept
@@ -119,12 +121,12 @@ namespace slib
 
 		sl_int32 List::indexOf(jobject list, jobject element) noexcept
 		{
-			return (sl_int32)(JList::indexOf.callInt(list, (jint)index));
+			return (sl_int32)(JList::indexOf.callInt(list, element));
 		}
 
 		sl_int32 List::lastIndexOf(jobject list, jobject element) noexcept
 		{
-			return (sl_int32)(JList::lastIndexOf.callInt(list, (jint)index));
+			return (sl_int32)(JList::lastIndexOf.callInt(list, element));
 		}
 
 
@@ -151,7 +153,7 @@ namespace slib
 
 		JniLocal<jobject> UUID::randomUUID() noexcept
 		{
-			return JLocale::randomUUID.callObject(sl_null);
+			return JUUID::randomUUID.callObject(sl_null);
 		}
 
 	}

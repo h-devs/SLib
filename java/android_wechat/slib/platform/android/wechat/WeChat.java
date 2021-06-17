@@ -1,4 +1,4 @@
-package slib.platform.android.wechat;
+package slib.android.wechat;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -16,7 +16,7 @@ import com.tencent.mm.opensdk.openapi.IWXAPI;
 import com.tencent.mm.opensdk.openapi.IWXAPIEventHandler;
 import com.tencent.mm.opensdk.openapi.WXAPIFactory;
 
-import slib.platform.android.Logger;
+import slib.android.Logger;
 
 public class WeChat {
 

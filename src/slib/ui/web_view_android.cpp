@@ -82,9 +82,9 @@ namespace slib
 				}
 			};
 
-			SLIB_JNI_BEGIN_CLASS(JWebView, "slib/platform/android/ui/view/UiWebView")
+			SLIB_JNI_BEGIN_CLASS(JWebView, "slib/android/ui/view/UiWebView")
 
-				SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;)Lslib/platform/android/ui/view/UiWebView;");
+				SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;)Lslib/android/ui/view/UiWebView;");
 
 				SLIB_JNI_STATIC_METHOD(load, "_load", "(Landroid/view/View;Ljava/lang/String;)V");
 				SLIB_JNI_STATIC_METHOD(loadHTML, "_loadHTML", "(Landroid/view/View;Ljava/lang/String;Ljava/lang/String;)V");

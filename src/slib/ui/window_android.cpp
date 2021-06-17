@@ -51,9 +51,9 @@ namespace slib
 			void JNICALL OnResize(JNIEnv* env, jobject _this, jlong instance, int w, int h);
 			jboolean JNICALL OnClose(JNIEnv* env, jobject _this, jlong instance);
 
-			SLIB_JNI_BEGIN_CLASS(JWindow, "slib/platform/android/ui/window/UiWindow")
+			SLIB_JNI_BEGIN_CLASS(JWindow, "slib/android/ui/window/UiWindow")
 
-				SLIB_JNI_STATIC_METHOD(create, "create", "(Landroid/app/Activity;ZZIIII)Lslib/platform/android/ui/window/UiWindow;");
+				SLIB_JNI_STATIC_METHOD(create, "create", "(Landroid/app/Activity;ZZIIII)Lslib/android/ui/window/UiWindow;");
 
 				SLIB_JNI_LONG_FIELD(instance);
 

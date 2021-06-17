@@ -39,7 +39,7 @@ namespace slib
 			void JNICALL OnChange(JNIEnv* env, jobject _this, jlong instance);
 			void JNICALL OnReturn(JNIEnv* env, jobject _this, jlong instance);
 
-			SLIB_JNI_BEGIN_CLASS(JEditView, "slib/platform/android/ui/view/UiEditView")
+			SLIB_JNI_BEGIN_CLASS(JEditView, "slib/android/ui/view/UiEditView")
 
 				SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;I)Landroid/view/View;");
 
@@ -50,13 +50,13 @@ namespace slib
 				SLIB_JNI_STATIC_METHOD(setHintText, "_setHintText", "(Landroid/view/View;Ljava/lang/String;)Z");
 				SLIB_JNI_STATIC_METHOD(setHintAlignment, "_setHintAlignment", "(Landroid/view/View;I)Z");
 				SLIB_JNI_STATIC_METHOD(setHintTextColor, "_setHintTextColor", "(Landroid/view/View;I)Z");
-				SLIB_JNI_STATIC_METHOD(setHintFont, "_setHintFont", "(Landroid/view/View;Lslib/platform/android/ui/UiFont;)Z");
+				SLIB_JNI_STATIC_METHOD(setHintFont, "_setHintFont", "(Landroid/view/View;Lslib/android/ui/UiFont;)Z");
 				SLIB_JNI_STATIC_METHOD(setReadOnly, "_setReadOnly", "(Landroid/view/View;Z)Z");
 				SLIB_JNI_STATIC_METHOD(setMultiLine, "_setMultiLine", "(Landroid/view/View;Z)Z");
 				SLIB_JNI_STATIC_METHOD(setReturnKeyType, "_setReturnKeyType", "(Landroid/view/View;I)Z");
 				SLIB_JNI_STATIC_METHOD(setInputType, "_setInputType", "(Landroid/view/View;IIZ)Z");
 				SLIB_JNI_STATIC_METHOD(measureHeight, "_measureHeight", "(Landroid/view/View;)I");
-				SLIB_JNI_STATIC_METHOD(setFont, "_setFont", "(Landroid/view/View;Lslib/platform/android/ui/UiFont;)Z");
+				SLIB_JNI_STATIC_METHOD(setFont, "_setFont", "(Landroid/view/View;Lslib/android/ui/UiFont;)Z");
 				SLIB_JNI_STATIC_METHOD(setBorder, "_setBorder", "(Landroid/view/View;Z)Z");
 				SLIB_JNI_STATIC_METHOD(setBackgroundColor, "_setBackgroundColor", "(Landroid/view/View;I)Z");
 

@@ -43,6 +43,8 @@ namespace slib
 			
 			static JniLocal<jobject> getWindowManager(jobject thiz) noexcept;
 
+			static JniLocal<jobject> getWindow(jobject thiz) noexcept;
+
 		};
 
 	}

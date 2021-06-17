@@ -43,26 +43,26 @@ namespace slib
 				SLIB_JNI_INT_FIELD(bottom);
 			SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JGraphics, "slib/platform/android/ui/Graphics")
+			SLIB_JNI_BEGIN_CLASS(JGraphics, "slib/android/ui/Graphics")
 				SLIB_JNI_METHOD(getWidth, "getWidth", "()I");
 				SLIB_JNI_METHOD(getHeight, "getHeight", "()I");
 				SLIB_JNI_METHOD(save, "save", "()V");
 				SLIB_JNI_METHOD(restore, "restore", "()V");
 				SLIB_JNI_METHOD(getClipBounds, "getClipBounds", "()Landroid/graphics/Rect;");
 				SLIB_JNI_METHOD(clipToRectangle, "clipToRectangle", "(FFFF)V");
-				SLIB_JNI_METHOD(clipToPath, "clipToPath", "(Lslib/platform/android/ui/UiPath;)V");
+				SLIB_JNI_METHOD(clipToPath, "clipToPath", "(Lslib/android/ui/UiPath;)V");
 				SLIB_JNI_METHOD(concatMatrix, "concatMatrix", "(FFFFFFFFF)V");
-				SLIB_JNI_METHOD(drawText, "drawText", "(Ljava/lang/String;FFLslib/platform/android/ui/UiFont;I)V");
-				SLIB_JNI_METHOD(drawText2, "drawText", "(Ljava/lang/String;FFLslib/platform/android/ui/UiFont;IIFFF)V");
-				SLIB_JNI_METHOD(drawLine, "drawLine", "(FFFFLslib/platform/android/ui/UiPen;)V");
-				SLIB_JNI_METHOD(drawLines, "drawLines", "([FLslib/platform/android/ui/UiPen;)V");
-				SLIB_JNI_METHOD(drawArc, "drawArc", "(FFFFFFLslib/platform/android/ui/UiPen;)V");
-				SLIB_JNI_METHOD(drawRectangle, "drawRectangle", "(FFFFLslib/platform/android/ui/UiPen;Lslib/platform/android/ui/UiBrush;)V");
-				SLIB_JNI_METHOD(drawRoundRectangle, "drawRoundRectangle", "(FFFFFFLslib/platform/android/ui/UiPen;Lslib/platform/android/ui/UiBrush;)V");
-				SLIB_JNI_METHOD(drawEllipse, "drawEllipse", "(FFFFLslib/platform/android/ui/UiPen;Lslib/platform/android/ui/UiBrush;)V");
-				SLIB_JNI_METHOD(drawPolygon, "drawPolygon", "([FLslib/platform/android/ui/UiPen;Lslib/platform/android/ui/UiBrush;I)V");
-				SLIB_JNI_METHOD(drawPie, "drawPie", "(FFFFFFLslib/platform/android/ui/UiPen;Lslib/platform/android/ui/UiBrush;)V");
-				SLIB_JNI_METHOD(drawPath, "drawPath", "(Lslib/platform/android/ui/UiPath;Lslib/platform/android/ui/UiPen;Lslib/platform/android/ui/UiBrush;)V");
+				SLIB_JNI_METHOD(drawText, "drawText", "(Ljava/lang/String;FFLslib/android/ui/UiFont;I)V");
+				SLIB_JNI_METHOD(drawText2, "drawText", "(Ljava/lang/String;FFLslib/android/ui/UiFont;IIFFF)V");
+				SLIB_JNI_METHOD(drawLine, "drawLine", "(FFFFLslib/android/ui/UiPen;)V");
+				SLIB_JNI_METHOD(drawLines, "drawLines", "([FLslib/android/ui/UiPen;)V");
+				SLIB_JNI_METHOD(drawArc, "drawArc", "(FFFFFFLslib/android/ui/UiPen;)V");
+				SLIB_JNI_METHOD(drawRectangle, "drawRectangle", "(FFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
+				SLIB_JNI_METHOD(drawRoundRectangle, "drawRoundRectangle", "(FFFFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
+				SLIB_JNI_METHOD(drawEllipse, "drawEllipse", "(FFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
+				SLIB_JNI_METHOD(drawPolygon, "drawPolygon", "([FLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;I)V");
+				SLIB_JNI_METHOD(drawPie, "drawPie", "(FFFFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
+				SLIB_JNI_METHOD(drawPath, "drawPath", "(Lslib/android/ui/UiPath;Lslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
 				SLIB_JNI_METHOD(setAlpha, "setAlpha", "(F)V");
 				SLIB_JNI_METHOD(setAntiAlias, "setAntiAlias", "(Z)V");
 			SLIB_JNI_END_CLASS

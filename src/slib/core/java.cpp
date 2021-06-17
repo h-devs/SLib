@@ -180,7 +180,7 @@ namespace slib
 				va_list args;
 				va_start(args, _null);
 				JniLocal<jobject> ret;
-				jMethodID id = getId();
+				jmethodID id = getId();
 				if (id) {
 					JNIEnv* env = Jni::getCurrent();
 					if (env) {
@@ -199,7 +199,7 @@ namespace slib
 				va_list args;
 				va_start(args, _this);
 				if (_this) {
-					jMethodID id = getId();
+					jmethodID id = getId();
 					if (id) {
 						JNIEnv* env = Jni::getCurrent();
 						if (env) {
@@ -217,11 +217,11 @@ namespace slib
 				va_start(args, _this);
 				JniLocal<jobject> ret;
 				if (_this) {
-					jMethodID id = getId();
+					jmethodID id = getId();
 					if (id) {
 						JNIEnv* env = Jni::getCurrent();
 						if (env) {
-							ret = env->CallObjectMethodV(_this, id, args));
+							ret = env->CallObjectMethodV(_this, id, args);
 							if (CheckException(env)) {
 								ret.setNull();
 							}
@@ -238,7 +238,7 @@ namespace slib
 				va_start(args, _this);
 				String ret;
 				if (_this) {
-					jMethodID id = getId();
+					jmethodID id = getId();
 					if (id) {
 						JNIEnv* env = Jni::getCurrent();
 						if (env) {
@@ -312,7 +312,7 @@ namespace slib
 				if (id) {
 					JNIEnv* env = Jni::getCurrent();
 					if (env) {
-						ret = env->CallStaticObjectMethodV(cls->get(), id, args));
+						ret = env->CallStaticObjectMethodV(cls->get(), id, args);
 						if (CheckException(env)) {
 							ret.setNull();
 						}
@@ -806,7 +806,7 @@ namespace slib
 
 			jstring JFinalStringObjectField::get() noexcept
 			{
-				return JFinalObjectField::get();
+				return (jstring)(JFinalObjectField::get());
 			}
 
 
@@ -839,7 +839,7 @@ namespace slib
 				});
 			}
 
-			void JNativeMethod::doRegister()
+			void JNativeMethod::doRegister() noexcept
 			{
 #if defined(JNI_LOG_INIT_LOAD)
 				LOG("REGISTERING JAVA NATIVE: %s::%s (%s)", cls->name, name, sig);
@@ -1017,7 +1017,7 @@ namespace slib
 		return sl_null;
 	}
 
-	jfieldID Jni::getStaticFieldID(const char* name, const char* sig) noexcept
+	jfieldID Jni::getStaticFieldID(jclass cls, const char* name, const char* sig) noexcept
 	{
 		if (cls) {
 			JNIEnv* env = Jni::getCurrent();
@@ -1035,7 +1035,7 @@ namespace slib
 	{
 		va_list args;
 		va_start(args, method);
-		jobject ret = sl_null;
+		JniLocal<jobject> ret = sl_null;
 		if (cls && method) {
 			JNIEnv* env = Jni::getCurrent();
 			if (env) {
@@ -1053,7 +1053,7 @@ namespace slib
 	{
 		va_list args;
 		va_start(args, sig);
-		jobject ret = sl_null;
+		JniLocal<jobject> ret = sl_null;
 		if (cls) {
 			JNIEnv* env = Jni::getCurrent();
 			if (env) {
@@ -1109,7 +1109,7 @@ namespace slib
 					if (!(CheckException(env))) { \
 						if (method) { \
 							ret = env->Call##NAME##MethodV(_this, method, args); \
-							if (CheckException(ProcessException(env))) { \
+							if (CheckException(env)) { \
 								ret = 0; \
 							} \
 						} \
@@ -1201,7 +1201,7 @@ namespace slib
 					if (!(CheckException(env))) {
 						if (method) {
 							ret = env->CallObjectMethodV(_this, method, args);
-							if (CheckException(ProcessException(env))) {
+							if (CheckException(env)) {
 								ret.setNull();
 							}
 						}
@@ -1277,7 +1277,7 @@ namespace slib
 	String Jni::callStringMethod(jobject _this, const char* name, const char* sig, ...) noexcept
 	{
 		va_list args;
-		va_start(args, _this);
+		va_start(args, sig);
 		String ret;
 		if (_this) {
 			JNIEnv* env = Jni::getCurrent();
@@ -1550,13 +1550,13 @@ namespace slib
 		if (_this && field) {
 			JNIEnv* env = Jni::getCurrent();
 			if (env) {
-				jobject ret = env->GetObjectField(_this, field);
+				JniLocal<jobject> ret = env->GetObjectField(_this, field);
 				if (!(CheckException(env))) {
 					return ret;
 				}
 			}
 		}
-		return 0;
+		return sl_null;
 	}
 
 	JniLocal<jobject> Jni::getObjectField(jobject _this, const char* name, const char* sig) noexcept
@@ -1569,7 +1569,7 @@ namespace slib
 					jfieldID field = env->GetFieldID(cls, name, sig);
 					if (!(CheckException(env))) {
 						if (field) {
-							jobject ret = env->GetObjectField(_this, field);
+							JniLocal<jobject> ret = env->GetObjectField(_this, field);
 							if (!(CheckException(env))) {
 								return ret;
 							}
@@ -1578,7 +1578,7 @@ namespace slib
 				}
 			}
 		}
-		return 0;
+		return sl_null;
 	}
 
 	JniLocal<jobject> Jni::getStaticObjectField(jclass cls, jfieldID field) noexcept
@@ -1586,13 +1586,13 @@ namespace slib
 		if (cls && field) {
 			JNIEnv* env = Jni::getCurrent();
 			if (env) {
-				jobject ret = env->GetStaticObjectField(get(), field);
+				JniLocal<jobject> ret = env->GetStaticObjectField(cls, field);
 				if (!(CheckException(env))) {
 					return ret;
 				}
 			}
 		}
-		return 0;
+		return sl_null;
 	}
 
 	JniLocal<jobject> Jni::getStaticObjectField(jclass cls, const char* name, const char* sig) noexcept
@@ -1603,7 +1603,7 @@ namespace slib
 				jfieldID field = env->GetStaticFieldID(cls, name, sig);
 				if (!(CheckException(env))) {
 					if (field) {
-						jobject ret = env->GetStaticObjectField(cls, field);
+						JniLocal<jobject> ret = env->GetStaticObjectField(cls, field);
 						if (!(CheckException(env))) {
 							return ret;
 						}
@@ -1611,7 +1611,7 @@ namespace slib
 				}
 			}
 		}
-		return 0;
+		return sl_null;
 	}
 
 	void Jni::setObjectField(jobject _this, jfieldID field, jobject value) noexcept
@@ -1632,7 +1632,7 @@ namespace slib
 			if (env) {
 				JniLocal<jclass> cls = env->GetObjectClass(_this);
 				if (cls.isNotNull()) {
-					jfieldID field = env->GetFieldID(get(), name, sig);
+					jfieldID field = env->GetFieldID(cls, name, sig);
 					if (!(CheckException(env))) {
 						if (field) {
 							env->SetObjectField(_this, field, value);
@@ -1673,7 +1673,7 @@ namespace slib
 
 	String Jni::getStringField(jobject _this, jfieldID field) noexcept
 	{
-		JniLocal<jstring> str((jstring)(getObjectField(_this, field)));
+		JniLocal<jstring> str(getObjectField(_this, field));
 		if (str.isNotNull()) {
 			return Jni::getString(str);
 		}
@@ -1682,7 +1682,7 @@ namespace slib
 
 	String Jni::getStringField(jobject _this, const char* name) noexcept
 	{
-		JniLocal<jstring> str((jstring)(getObjectField(_this, name, "Ljava/lang/String;")));
+		JniLocal<jstring> str(getObjectField(_this, name, "Ljava/lang/String;"));
 		if (str.isNotNull()) {
 			return Jni::getString(str);
 		}
@@ -1691,7 +1691,7 @@ namespace slib
 
 	String Jni::getStaticStringField(jclass cls, jfieldID field) noexcept
 	{
-		JniLocal<jstring> str((jstring)(getStaticObjectField(cls, field)));
+		JniLocal<jstring> str(getStaticObjectField(cls, field));
 		if (str.isNotNull()) {
 			return Jni::getString(str);
 		}
@@ -1700,7 +1700,7 @@ namespace slib
 
 	String Jni::getStaticStringField(jclass cls, const char* name) noexcept
 	{
-		JniLocal<jstring> str((jstring)(getStaticObjectField(cls, name, "Ljava/lang/String;")));
+		JniLocal<jstring> str(getStaticObjectField(cls, name, "Ljava/lang/String;"));
 		if (str.isNotNull()) {
 			return Jni::getString(str);
 		}
@@ -1832,7 +1832,7 @@ namespace slib
 		return Jni::getRefType(obj) == JNIGlobalRefType;
 	}
 
-	JniLocal<jobject> Jni::newGlobalRef(jobject obj) noexcept
+	jobject Jni::newGlobalRef(jobject obj) noexcept
 	{
 		if (obj) {
 			JNIEnv* env = Jni::getCurrent();
@@ -1860,7 +1860,7 @@ namespace slib
 
 	JniLocal<jobject> Jni::newWeakRef(jobject obj) noexcept
 	{
-		if (Obj) {
+		if (obj) {
 			JNIEnv* env = Jni::getCurrent();
 			if (env) {
 				return env->NewWeakGlobalRef(obj);
@@ -1982,7 +1982,7 @@ namespace slib
 
 	String Jni::getStringArrayElement(jobjectArray array, sl_uint32 index) noexcept
 	{
-		JniLocal<jstring> v((jstring)(Jni::getObjectArrayElement(array, index)));
+		JniLocal<jstring> v(Jni::getObjectArrayElement(array, index));
 		if (v.isNotNull()) {
 			return Jni::getString(v);
 		}
@@ -2153,7 +2153,8 @@ namespace slib
 	{
 		g_flagAutoPrintException = flag;
 	}
-	
+
+
 	JniStringConstant::JniStringConstant(const sl_char16* sz) noexcept: content(sz), m_flagLoaded(sl_false)
 	{
 	}
@@ -2165,9 +2166,6 @@ namespace slib
 	
 	jstring JniStringConstant::get() noexcept
 	{
-		if (content.isNull()) {
-			return sl_null;
-		}
 		if (m_flagLoaded) {
 			return m_object.get();
 		}

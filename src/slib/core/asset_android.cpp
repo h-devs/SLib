@@ -52,7 +52,7 @@ namespace slib
 	namespace android
 	{
 
-		jobject Assets::open(const StringParam& _path) noexcept
+		JniLocal<jobject> Assets::open(const StringParam& _path) noexcept
 		{
 			jobject context = Android::getCurrentContext();
 			if (context) {

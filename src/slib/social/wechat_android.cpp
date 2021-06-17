@@ -41,7 +41,7 @@ namespace slib
 			void OnLoginResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring code, jstring errStr);
 			void OnPayResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring errStr);
 			
-			SLIB_JNI_BEGIN_CLASS(JWeChat, "slib/platform/android/wechat/WeChat")
+			SLIB_JNI_BEGIN_CLASS(JWeChat, "slib/android/wechat/WeChat")
 				SLIB_JNI_STATIC_METHOD(initialize, "initialize", "(Landroid/app/Activity;Ljava/lang/String;)V");
 				SLIB_JNI_STATIC_METHOD(login, "login", "()V");
 				SLIB_JNI_STATIC_METHOD(pay, "pay", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;)V");

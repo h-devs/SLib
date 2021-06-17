@@ -50,9 +50,9 @@ namespace slib
 			void OnCompleted(JNIEnv* env, jobject _this, jlong instance);
 			void OnPrepared(JNIEnv* env, jobject _this, jlong instance);
 
-			SLIB_JNI_BEGIN_CLASS(JMediaPlayer, "slib/platform/android/media/SMediaPlayer")
-				SLIB_JNI_STATIC_METHOD(openUrl, "openUrl", "(Ljava/lang/String;)Lslib/platform/android/media/SMediaPlayer;");
-				SLIB_JNI_STATIC_METHOD(openAsset, "openAsset", "(Landroid/content/Context;Ljava/lang/String;)Lslib/platform/android/media/SMediaPlayer;");
+			SLIB_JNI_BEGIN_CLASS(JMediaPlayer, "slib/android/media/SMediaPlayer")
+				SLIB_JNI_STATIC_METHOD(openUrl, "openUrl", "(Ljava/lang/String;)Lslib/android/media/SMediaPlayer;");
+				SLIB_JNI_STATIC_METHOD(openAsset, "openAsset", "(Landroid/content/Context;Ljava/lang/String;)Lslib/android/media/SMediaPlayer;");
 				SLIB_JNI_METHOD(setInstance, "setInstance", "(J)V");
 				SLIB_JNI_METHOD(start, "start", "()V");
 				SLIB_JNI_METHOD(pause, "pause", "()V");
@@ -284,7 +284,7 @@ namespace slib
 
 					param.flagUpdated = JMediaPlayer::renderVideo.callBoolean(m_player, textureName, flagResetTexture) != 0;
 					if (param.flagUpdated) {
-						JniLocal<jfloatArray> arr = (jfloatArray)(JMediaPlayer::mTextureMatrix.get(m_player));
+						JniLocal<jfloatArray> arr = JMediaPlayer::mTextureMatrix.get(m_player);
 						if (arr.isNotNull()) {
 							float t[16];
 							Jni::getFloatArrayRegion(arr.get(), 0, 16, t);

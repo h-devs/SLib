@@ -38,7 +38,7 @@ namespace slib
 		namespace ui_notification_android
 		{
 			
-			SLIB_JNI_BEGIN_CLASS(JUserNotificationMessage, "slib/platform/android/ui/notification/UserNotificationMessage")
+			SLIB_JNI_BEGIN_CLASS(JUserNotificationMessage, "slib/android/ui/notification/UserNotificationMessage")
 				SLIB_JNI_NEW(init, "()V");
 				
 				SLIB_JNI_INT_FIELD(id)
@@ -73,12 +73,12 @@ namespace slib
 
 			void OnClickMessage(JNIEnv* env, jobject _this, jobject jmsg);
 
-			SLIB_JNI_BEGIN_CLASS(JUserNotification, "slib/platform/android/ui/notification/UserNotification")
+			SLIB_JNI_BEGIN_CLASS(JUserNotification, "slib/android/ui/notification/UserNotification")
 				SLIB_JNI_STATIC_METHOD(initialize, "initialize", "(Landroid/app/Activity;)V");
-				SLIB_JNI_STATIC_METHOD(add, "add", "(Landroid/app/Activity;Lslib/platform/android/ui/notification/UserNotificationMessage;)V");
+				SLIB_JNI_STATIC_METHOD(add, "add", "(Landroid/app/Activity;Lslib/android/ui/notification/UserNotificationMessage;)V");
 				SLIB_JNI_STATIC_METHOD(cancel, "cancel", "(Landroid/app/Activity;I)V");
 				SLIB_JNI_STATIC_METHOD(cancelAll, "cancelAll", "(Landroid/app/Activity;)V");
-				SLIB_JNI_NATIVE(onClickMessage, "nativeOnClickMessage", "(Lslib/platform/android/ui/notification/UserNotificationMessage;)V", OnClickMessage);
+				SLIB_JNI_NATIVE(onClickMessage, "nativeOnClickMessage", "(Lslib/android/ui/notification/UserNotificationMessage;)V", OnClickMessage);
 			SLIB_JNI_END_CLASS
 			
 			class UserNotificationImpl : public UserNotification
