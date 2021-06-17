@@ -109,7 +109,7 @@ namespace slib
 									jwindow = window.get();
 									ret->m_window = Move(window);
 									ret->m_viewContent = Move(content);
-									jlong instance = (jlong)(window.get());
+									jlong instance = (jlong)(jwindow);
 									JWindow::instance.set(jwindow, instance);
 									UIPlatform::registerWindowInstance(jwindow, ret.get());
 									return ret;

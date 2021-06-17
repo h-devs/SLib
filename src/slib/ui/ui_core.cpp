@@ -294,55 +294,36 @@ namespace slib
 
 	UIRect UI::getScreenRegion()
 	{
-		return UI::getScreenRegion(Ref<Screen>::null());
+		UISize size = Device::getScreenSize();
+		return UIRect(0, 0, size.x, size.y);
 	}
 
 	UIRect UI::getScreenRegion(const Ref<Screen>& _screen)
 	{
-		Ref<Screen> screen = _screen;
-		if (screen.isNull()) {
-			screen = getPrimaryScreen();
-			if (screen.isNull()) {
-				return UIRect::zero();
-			}
-		}
-		return screen->getRegion();
+		UISize size = Device::getScreenSize();
+		return UIRect(0, 0, size.x, size.y);
 	}
 
 	UIRect UI::getScreenBounds()
 	{
-		return UI::getScreenBounds(Ref<Screen>::null());
+		UISize size = Device::getScreenSize();
+		return UIRect(0, 0, size.x, size.y);
 	}
 
 	UIRect UI::getScreenBounds(const Ref<Screen>& _screen)
 	{
-		Ref<Screen> screen = _screen;
-		if (screen.isNull()) {
-			screen = getPrimaryScreen();
-			if (screen.isNull()) {
-				return UIRect::zero();
-			}
-		}
-		UIRect region = screen->getRegion();
-		return UIRect(0, 0, region.getWidth(), region.getHeight());
+		UISize size = Device::getScreenSize();
+		return UIRect(0, 0, size.x, size.y);
 	}
 
 	UISize UI::getScreenSize()
 	{
-		return UI::getScreenSize(Ref<Screen>::null());
+		return Device::getScreenSize();
 	}
 
 	UISize UI::getScreenSize(const Ref<Screen>& _screen)
 	{
-		Ref<Screen> screen = _screen;
-		if (screen.isNull()) {
-			screen = getPrimaryScreen();
-			if (screen.isNull()) {
-				return UISize::zero();
-			}
-		}
-		UIRect region = screen->getRegion();
-		return UISize(region.getWidth(), region.getHeight());
+		return Device::getScreenSize();
 	}
 
 	sl_ui_len UI::getScreenWidth()
