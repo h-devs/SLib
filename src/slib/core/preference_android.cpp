@@ -26,8 +26,9 @@
 
 #include "slib/core/preference.h"
 
-#include "slib/core/json.h"
-#include "slib/core/platform.h"
+#include "slib/core/android/platform.h"
+#include "slib/core/android/context.h"
+#include "slib/core/android/preference.h"
 
 namespace slib
 {
@@ -36,37 +37,56 @@ namespace slib
 	{
 		namespace preference
 		{
-			SLIB_JNI_BEGIN_CLASS(JPreference, "slib/android/Preference")
-				SLIB_JNI_STATIC_METHOD(setValue, "setValue", "(Lslib/android/SlibActivity;Ljava/lang/String;Ljava/lang/String;)V");
-				SLIB_JNI_STATIC_METHOD(getValue, "getValue", "(Lslib/android/SlibActivity;Ljava/lang/String;)Ljava/lang/String;");
-			SLIB_JNI_END_CLASS
-		}
-	}
 
-	void Preference::setValue(const StringParam& key, const Json& value)
-	{
-		jobject context = Android::getCurrentContext();
-		if (context) {
-			JniLocal<jstring> jkey = Jni::getJniString(key);
-			if (value.isNotNull()) {
-				String _value = value.toJsonString();
-				JniLocal<jstring> jvalue = Jni::getJniString(_value);
-				priv::preference::JPreference::setValue.call(sl_null, context, jkey.get(), jvalue.get());
-			} else {
-				priv::preference::JPreference::setValue.call(sl_null, context, jkey.get(), sl_null);
+			static JniLocal<jobject> GetSharedPreference() noexcept
+			{
+				jobject context = Android::getCurrentContext();
+				if (context) {
+					return android::Context::getSharedPreferences(context,
+						android::Context::getPackageName(context) + "__preferences",
+						0 // Context.MODE_PRIVATE
+						);
+				}
+				return sl_null;
 			}
+
+			static JniLocal<jobject> GetSharedPreferenceEditor() noexcept
+			{
+				JniLocal<jobject> pref = GetSharedPreference();
+				if (pref) {
+					return android::SharedPreferences::getEditor(pref);
+				}
+				return sl_null;
+			}
+
 		}
 	}
 
+	using namespace priv::preference;
+
+	// From Java code: slib.android.Preference.getString
 	Json Preference::getValue(const StringParam& key)
 	{
-		jobject context = Android::getCurrentContext();
-		if (context) {
-			JniLocal<jstring> jkey = Jni::getJniString(key);
-			String value = priv::preference::JPreference::getValue.callString(sl_null, context, jkey.get());
+		JniLocal<jobject> pref = GetSharedPreference();
+		if (pref.isNotNull()) {
+			String value = android::SharedPreferences::getString(pref, key, sl_null);
 			return Json::parseJson(value);
 		}
 		return sl_null;
+	}
+
+	// From Java code: slib.android.Preference.setString
+	void Preference::setValue(const StringParam& key, const Json& value)
+	{
+		JniLocal<jobject> editor = GetSharedPreferenceEditor();
+		if (editor.isNotNull()) {
+			if (value.isNotNull()) {
+				android::SharedPreferencesEditor::putString(editor, key, value.toJsonString());
+			} else {
+				android::SharedPreferencesEditor::remove(editor, key);
+			}
+			android::SharedPreferencesEditor::apply(editor);
+		}
 	}
 
 }

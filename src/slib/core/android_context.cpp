@@ -39,6 +39,7 @@ namespace slib
 			SLIB_JNI_BEGIN_CLASS(JContext, "android/content/Context")
 				SLIB_JNI_METHOD(getSystemService, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;")
 				SLIB_JNI_METHOD(getExternalFilesDir, "getExternalFilesDir", "(Ljava/lang/String;)Ljava/io/File;")
+				SLIB_JNI_METHOD(getPackageName, "getPackageName", "()Ljava/lang/String;")
 				SLIB_JNI_METHOD(getAssets, "getAssets", "()Landroid/content/res/AssetManager;")
 				SLIB_JNI_METHOD(getSharedPreferences, "getSharedPreferences", "(Ljava/lang/String;I)Landroid/content/SharedPreferences;")
 
@@ -65,7 +66,9 @@ namespace slib
 
 			SLIB_JNI_BEGIN_CLASS(JSharedPreferencesEditor, "android/content/SharedPreferences$Editor")
 				SLIB_JNI_METHOD(apply, "apply", "()V")
+				SLIB_JNI_METHOD(commit, "commit", "()Z")
 				SLIB_JNI_METHOD(putString, "putString", "(Ljava/lang/String;Ljava/lang/String;)Landroid/content/SharedPreferences$Editor;")
+				SLIB_JNI_METHOD(remove, "remove", "(Ljava/lang/String;)Landroid/content/SharedPreferences$Editor;")
 			SLIB_JNI_END_CLASS
 
 		}
@@ -117,6 +120,11 @@ namespace slib
 			return getExternalFilesDir(thiz, JEnvironment::DIRECTORY_PICTURES.get());
 		}
 
+		String Context::getPackageName(jobject thiz) noexcept
+		{
+			return JContext::getPackageName.callString(thiz);
+		}
+		
 		JniLocal<jobject> Context::getAssets(jobject thiz) noexcept
 		{
 			return JContext::getAssets.callObject(thiz);
@@ -165,9 +173,11 @@ namespace slib
 			if (thiz) {
 				JniLocal<jstring> key = Jni::getJniString(_key);
 				if (key.isNotNull()) {
-					JniLocal<jstring> def = Jni::getJniString(_def);
-					if (def.isNotNull()) {
-						return JSharedPreferences::getString.callString(thiz, key.get(), def.get());						
+					if (_def.isNotNull()) {
+						JniLocal<jstring> def = Jni::getJniString(_def);
+						return JSharedPreferences::getString.callString(thiz, key.get(), def.get());
+					} else {
+						return JSharedPreferences::getString.callString(thiz, key.get(), sl_null);
 					}
 				}
 			}
@@ -179,16 +189,31 @@ namespace slib
 			return JSharedPreferencesEditor::apply.call(thiz);
 		}
 
+		sl_bool SharedPreferencesEditor::commit(jobject thiz) noexcept
+		{
+			return JSharedPreferencesEditor::commit.callBoolean(thiz) != 0;
+		}
+
 		void SharedPreferencesEditor::putString(jobject thiz, const StringParam& _key, const StringParam& _value) noexcept
 		{
 			if (thiz) {
 				JniLocal<jstring> key = Jni::getJniString(_key);
 				if (key.isNotNull()) {
-					JniLocal<jstring> value = Jni::getJniString(_value);
-					if (value.isNotNull()) {
-						JSharedPreferencesEditor::putString.callObject(thiz, key.get(), value.get());						
+					if (_value.isNotNull()) {
+						JniLocal<jstring> value = Jni::getJniString(_value);
+						JSharedPreferencesEditor::putString.callObject(thiz, key.get(), value.get());
+					} else {
+						JSharedPreferencesEditor::putString.callObject(thiz, key.get(), sl_null);
 					}
 				}
+			}
+		}
+
+		void SharedPreferencesEditor::remove(jobject thiz, const StringParam& _key) noexcept
+		{
+			JniLocal<jstring> key = Jni::getJniString(_key);
+			if (key.isNotNull()) {
+				JSharedPreferencesEditor::remove.callObject(thiz, key.get());
 			}
 		}
 

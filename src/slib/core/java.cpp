@@ -44,7 +44,7 @@
 #define JNIVERSION JNI_VERSION_1_4
 
 #ifdef SLIB_DEBUG
-#define INIT_ON_LOAD
+//#define INIT_ON_LOAD
 #endif
 
 namespace slib
@@ -1885,7 +1885,7 @@ namespace slib
 			StringData16 str(_str);
 			JNIEnv* env = Jni::getCurrent();
 			if (env) {
-				jstring ret = env->NewString((jchar*)(str.getData()), (jsize)(str.getLength()));
+				JniLocal<jstring> ret = env->NewString((jchar*)(str.getData()), (jsize)(str.getLength()));
 				if (!(CheckException(env))) {
 					return ret;
 				}
@@ -1899,7 +1899,7 @@ namespace slib
 		if (str) {
 			JNIEnv* env = Jni::getCurrent();
 			if (env) {
-				jstring ret = env->NewString((jchar*)(str), (jsize)(length));
+				JniLocal<jstring> ret = env->NewString((jchar*)(str), (jsize)(length));
 				if (!(CheckException(env))) {
 					return ret;
 				}

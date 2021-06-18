@@ -46,6 +46,8 @@ namespace slib
 			static JniLocal<jobject> getExternalFilesDir(jobject thiz, jstring type) noexcept;
 			static JniLocal<jobject> getPicturesDir(jobject thiz) noexcept; // android.os.Environment.DIRECTORY_PICTURES
 
+			static String getPackageName(jobject thiz) noexcept;
+
 			static JniLocal<jobject> getAssets(jobject thiz) noexcept;
 
 			static JniLocal<jobject> getSharedPreferences(jobject thiz, const StringParam& name, sl_uint32 mode) noexcept;

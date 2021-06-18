@@ -238,7 +238,7 @@ namespace slib
 		return 0;
 	}
 
-	// Require permission: android.permission.READ_PHONE_STATE
+	// Require permission: android.permission.READ_PRIVILEGED_PHONE_STATE
 	// From Java code: slib.android.device.Device.getIMEIs
 	List<String> Device::getIMEIs()
 	{
@@ -270,7 +270,7 @@ namespace slib
 		return sl_null;
 	}
 
-	// Require permission: android.permission.READ_PHONE_STATE
+	// Require permission: android.permission.READ_PRIVILEGED_PHONE_STATE
 	// From Java code: slib.android.device.Device.getIMEI
 	String Device::getIMEI(sl_uint32 indexSlot)
 	{
@@ -310,17 +310,18 @@ namespace slib
 								}
 							}
 						}
-						return ret;
+						if (ret.isNotEmpty()) {
+							return ret;
+						}
 					}
 				}
 			}
-		} else {
-			JniLocal<jobject> manager = android::Context::getTelephonyManager(Android::getCurrentContext());
-			if (manager.isNotNull()) {
-				String number = JTelephonyManager::getLine1Number.callString(manager);
-				if (number.isNotEmpty()) {
-					return List<String>::createFromElement(Move(number));
-				}
+		}
+		JniLocal<jobject> manager = android::Context::getTelephonyManager(Android::getCurrentContext());
+		if (manager.isNotNull()) {
+			String number = JTelephonyManager::getLine1Number.callString(manager);
+			if (number.isNotEmpty()) {
+				return List<String>::createFromElement(Move(number));
 			}
 		}
 		return sl_null;
@@ -338,7 +339,8 @@ namespace slib
 					return JTelephonySubscriptionInfo::getNumber.callString(info);
 				}
 			}
-		} else if (!indexSlot) {
+		}
+		if (!indexSlot) {
 			JniLocal<jobject> manager = android::Context::getTelephonyManager(Android::getCurrentContext());
 			if (manager.isNotNull()) {
 				return JTelephonyManager::getLine1Number.callString(manager);
@@ -352,7 +354,10 @@ namespace slib
 	{
 		jobject context = Android::getCurrentContext();
 		if (context) {
-			JniLocal<jobject> prefs = android::Context::getSharedPreferences(context, "device_id_prefs", 0);
+			JniLocal<jobject> prefs = android::Context::getSharedPreferences(
+				context, "device_id_prefs",
+				0 // Context.MODE_PRIVATE
+			);
 			if (prefs.isNotNull()) {
 				String value = android::SharedPreferences::getString(prefs, "DeviceId", sl_null);
 				if (value.isNotNull()) {

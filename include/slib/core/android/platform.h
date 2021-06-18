@@ -48,8 +48,10 @@ namespace slib
 
 		static jobject getCurrentContext() noexcept;
 
-		static void setCurrentContext(jobject activity) noexcept;
+		static void setCurrentContext(jobject context) noexcept;
 		
+		static void initializeContext(jobject context) noexcept;
+
 	};
 
 }

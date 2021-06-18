@@ -22,23 +22,29 @@
 
 package slib.android;
 
+import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-
-/**
- * Created by strongman on 12/29/16.
- */
 
 public class Preference {
 
-    public static void setValue(SlibActivity activity, String key, String value) {
+    public static String getString(Context context, String key) {
         try {
-            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(activity);
+            SharedPreferences sp = getDefaultSharedPreferences(context);
+            return sp.getString(key, null);
+        } catch (Exception e) {
+            Logger.exception(e);
+        }
+        return null;
+    }
+
+    public static void setString(Context context, String key, String value) {
+        try {
+            SharedPreferences sp = getDefaultSharedPreferences(context);
             SharedPreferences.Editor editor = sp.edit();
             if (value != null) {
-	            editor.putString(key, value);
+                editor.putString(key, value);
             } else {
-            	editor.remove(key);
+                editor.remove(key);
             }
             editor.commit();
         } catch (Exception e) {
@@ -46,14 +52,12 @@ public class Preference {
         }
     }
 
-    public static String getValue(SlibActivity activity, String key) {
-        try {
-            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(activity);
-            return sp.getString(key, null);
-        } catch (Exception e) {
-            Logger.exception(e);
-        }
-        return null;
+    static String getDefaultSharedPreferencesName(Context context) {
+        return context.getPackageName() + "_preferences";
+    }
+
+    private static SharedPreferences getDefaultSharedPreferences(Context context) {
+        return context.getSharedPreferences(getDefaultSharedPreferencesName(context), Context.MODE_PRIVATE);
     }
 
 }

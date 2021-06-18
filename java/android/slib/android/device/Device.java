@@ -191,7 +191,8 @@ public class Device {
 						return info.getNumber();
 					}
 				}
-			} else if (slot == 0) {
+			}
+			if (slot == 0) {
 				try {
 					TelephonyManager tm = (TelephonyManager) (context.getSystemService(Context.TELEPHONY_SERVICE));
 					if (tm != null) {
