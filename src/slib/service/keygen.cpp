@@ -232,14 +232,13 @@ namespace slib
 	{
 		StringData publicKey(_publicKey);
 		StringData extraInfo(_extraInfo);
-		String s = String::join(extraInfo, machineCode);
 		sl_size lenExtra = extraInfo.getLength();
 		sl_size nBuf = 10 + lenExtra;
 		SLIB_SCOPED_BUFFER(sl_uint8, 256, buf, nBuf)
 		{
 			Base::zeroMemory(buf, 32);
 			sl_uint8 hash[32];
-			SHA256::hash(s, hash);
+			SHA256::hash(String::join(extraInfo, publicKey, machineCode), hash);
 			for (sl_uint32 i = 0; i < 32; i++) {
 				buf[i % 10] ^= hash[i];
 			}
