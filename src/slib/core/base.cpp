@@ -406,7 +406,10 @@ namespace slib
 	sl_size Base::copyString(sl_char8* dst, const sl_char8* src) noexcept
 	{
 		const sl_char8* begin = src;
-		while ((*(dst++) = *(src++))) {}
+		while ((*dst = *src)) {
+			dst++;
+			src++;
+		}
 		return src - begin;
 	}
 
@@ -418,7 +421,13 @@ namespace slib
 		const sl_char8* end = src + count;
 		if (src < end) {
 			const sl_char8* begin = src;
-			while ((*(dst++) = *(src++)) && src < end) {}
+			while ((*dst = *src)) {
+				dst++;
+				src++;
+				if (src >= end) {
+					break;
+				}
+			}
 			return src - begin;
 		} else {
 			return copyString(dst, src);
@@ -428,7 +437,10 @@ namespace slib
 	sl_size Base::copyString2(sl_char16* dst, const sl_char16* src) noexcept
 	{
 		const sl_char16* begin = src;
-		while ((*(dst++) = *(src++))) {}
+		while ((*dst = *src)) {
+			dst++;
+			src++;
+		}
 		return src - begin;
 	}
 
@@ -440,7 +452,13 @@ namespace slib
 		const sl_char16* end = src + count;
 		if (src < end) {
 			const sl_char16* begin = src;
-			while ((*(dst++) = *(src++)) && src < end) {}
+			while ((*dst = *src)) {
+				dst++;
+				src++;
+				if (src >= end) {
+					break;
+				}
+			}
 			return src - begin;
 		} else {
 			return copyString2(dst, src);
@@ -450,7 +468,10 @@ namespace slib
 	sl_size Base::copyString4(sl_char32* dst, const sl_char32* src) noexcept
 	{
 		const sl_char32* begin = src;
-		while ((*(dst++) = *(src++))) {}
+		while ((*dst = *src)) {
+			dst++;
+			src++;
+		}
 		return src - begin;
 	}
 
@@ -462,7 +483,13 @@ namespace slib
 		const sl_char32* end = src + count;
 		if (src < end) {
 			const sl_char32* begin = src;
-			while ((*(dst++) = *(src++)) && src < end) {}
+			while ((*dst = *src)) {
+				dst++;
+				src++;
+				if (src >= end) {
+					break;
+				}
+			}
 			return src - begin;
 		} else {
 			return copyString4(dst, src);
@@ -494,7 +521,9 @@ namespace slib
 		return wcslen((wchar_t*)sz);
 #else
 		const sl_char16* begin = sz;
-		while (*(sz++)) {}
+		while (*sz) {
+			sz++;
+		}
 		return sz - begin;
 #endif
 	}
@@ -513,7 +542,12 @@ namespace slib
 		const sl_char16* end = sz + count;
 		if (sz < end) {
 			const sl_char16* begin = sz;
-			while (*(sz++) && sz < end) {}
+			while (*sz) {
+				sz++;
+				if (sz >= end) {
+					break;
+				}
+			}
 			return sz - begin;
 		} else {
 			return getStringLength2(sz);
@@ -530,7 +564,9 @@ namespace slib
 		return wcslen((wchar_t*)sz);
 #else
 		const sl_char32* begin = sz;
-		while (*(sz++)) {}
+		while (*sz) {
+			sz++;
+		}
 		return sz - begin;
 #endif
 	}
@@ -549,7 +585,12 @@ namespace slib
 		const sl_char32* end = sz + count;
 		if (sz < end) {
 			const sl_char32* begin = sz;
-			while (*(sz++) && sz < end) {}
+			while (*sz) {
+				sz++;
+				if (sz >= end) {
+					break;
+				}
+			}
 			return sz - begin;
 		} else {
 			return getStringLength4(sz);
