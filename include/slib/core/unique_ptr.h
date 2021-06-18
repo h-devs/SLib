@@ -194,16 +194,31 @@ public: \
 	} \
 	void setNull() noexcept \
 	{ \
-		POINTER_TYPE old = POINTER_NAME; \
+		POINTER_TYPE old; \
 		{ \
 			SpinLocker locker(&_lock); \
+			old = POINTER_NAME; \
 			POINTER_NAME = sl_null; \
 		} \
 		if (old != POINTER_NULL) { \
 			FREE_POINTER (old); \
 		} \
+	} \
+	constexpr POINTER_TYPE get() const& \
+	{ \
+		return POINTER_NAME; \
+	} \
+	POINTER_TYPE get() && = delete; \
+	POINTER_TYPE release() \
+	{ \
+		POINTER_TYPE ret; \
+		{ \
+			SpinLocker locker(&_lock); \
+			ret = POINTER_NAME; \
+			POINTER_NAME = sl_null; \
+		} \
+		return ret; \
 	}
-
 
 	template <class T>
 	class SLIB_EXPORT UniquePtr
