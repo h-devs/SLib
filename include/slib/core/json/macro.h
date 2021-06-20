@@ -36,7 +36,7 @@ public: \
 	void setJson(const slib::Json& json) \
 	{ \
 		if (json.isUndefined()) { \
-			return sl_false; \
+			return; \
 		} \
 		doJson(*((slib::Json*)&json), sl_true); \
 	} \

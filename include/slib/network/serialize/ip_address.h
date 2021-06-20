@@ -26,6 +26,7 @@
 #include "../ip_address.h"
 
 #include "../../core/serialize/primitive.h"
+#include "../../core/serialize/generic.h"
 
 namespace slib
 {

@@ -25,6 +25,7 @@
 
 #include "primitive.h"
 #include "variable_length_integer.h"
+#include "generic.h"
 
 #include "../memory_buffer.h"
 

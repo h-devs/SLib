@@ -750,6 +750,9 @@ namespace slib
 
 		sl_bool serialize(MemoryBuffer* buf) const;
 
+		template <class OUTPUT>
+		sl_bool serialize(OUTPUT* output) const;
+
 		sl_size deserialize(const void* data, sl_size size);
 
 		sl_size deserialize(const MemoryData& data);
@@ -759,6 +762,9 @@ namespace slib
 		sl_size deserialize(const Memory& mem);
 
 		sl_size deserialize(Memory&& mem);
+
+		template <class INPUT>
+		sl_bool deserialize(INPUT* input);
 
 		
 		sl_compare_result compare(const Variant& other) const noexcept;

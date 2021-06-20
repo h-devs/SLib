@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_CORE_SERIALIZE_BYTES
 
 #include "primitive.h"
+#include "generic.h"
 
 #include "../bytes.h"
 

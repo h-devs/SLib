@@ -30,6 +30,7 @@
 #include "list.h"
 #include "map.h"
 #include "bytes.h"
+#include "generic.h"
 
 #include "../variant.h"
 #include "../memory_buffer.h"
@@ -54,8 +55,9 @@ namespace slib
 	sl_size SerializeVariant(const Variant& var, void* buf, sl_size size, Memory* pOutMemoryIfInsufficient, const void* prefix = sl_null, sl_size sizePrefix = 0);
 
 	template <class OUTPUT>
-	static sl_bool Serialize(OUTPUT* output, const Variant& _in)
+	sl_bool Variant::serialize(OUTPUT* output) const
 	{
+		const Variant& _in = *this;
 		sl_uint8 buf[32];
 		sl_size nWritten = SerializeVariantPrimitive(_in, buf, sizeof(buf));
 		if (nWritten) {
@@ -156,8 +158,9 @@ namespace slib
 	}
 
 	template <class INPUT>
-	static sl_bool Deserialize(INPUT* input, Variant& _out)
+	sl_bool Variant::deserialize(INPUT* input)
 	{
+		Variant& _out = *this;
 		sl_uint8 type;
 		if (!(DeserializeByte(input, type))) {
 			return sl_false;
