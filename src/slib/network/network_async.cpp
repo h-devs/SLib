@@ -107,9 +107,9 @@ namespace slib
 
 	Ref<AsyncTcpSocket> AsyncTcpSocket::create(const AsyncTcpSocketParam& param)
 	{
+		sl_bool flagIPv6 = param.flagIPv6;
 		Ref<Socket> socket = param.socket;
 		if (socket.isNull()) {
-			sl_bool flagIPv6 = param.flagIPv6;
 			if (param.bindAddress.ip.isIPv6()) {
 				flagIPv6 = sl_true;
 			}
@@ -131,7 +131,7 @@ namespace slib
 			}
 		}
 
-		Ref<AsyncTcpSocketInstance> instance = _createInstance(socket);
+		Ref<AsyncTcpSocketInstance> instance = _createInstance(socket, flagIPv6);
 		if (instance.isNotNull()) {
 			Ref<AsyncIoLoop> loop = param.ioLoop;
 			if (loop.isNull()) {
@@ -170,13 +170,12 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool AsyncTcpSocket::connect(const SocketAddress& _address)
+	sl_bool AsyncTcpSocket::connect(const SocketAddress& address)
 	{
 		Ref<AsyncIoLoop> loop = getIoLoop();
 		if (loop.isNull()) {
 			return sl_false;
 		}
-		SocketAddress address = _address;
 		if (address.isInvalid()) {
 			return sl_false;
 		}
@@ -185,17 +184,7 @@ namespace slib
 			Ref<Socket> socket = instance->getSocket();
 			if (socket.isNotNull()) {
 				if (instance->isSupportedConnect()) {
-					SocketType type = socket->getType();
-					SocketAddress addr = address;
-					if (addr.ip.isIPv4() && type == SocketType::Stream) {
-					} else if ((addr.ip.isIPv4() || addr.ip.isIPv6()) && type == SocketType::StreamIPv6) {
-						if (addr.ip.isIPv4()) {
-							addr.ip = IPv6Address(addr.ip.getIPv4());
-						}
-					} else {
-						return sl_false;
-					}
-					if (instance->connect(addr)) {
+					if (instance->connect(address)) {
 						loop->requestOrder(instance.get());
 						return sl_true;
 					}
@@ -343,12 +332,12 @@ namespace slib
 
 	Ref<AsyncTcpServer> AsyncTcpServer::create(const AsyncTcpServerParam& param)
 	{
+		sl_bool flagIPv6 = param.flagIPv6;
 		Ref<Socket> socket = param.socket;
 		if (socket.isNull()) {
 			if (param.bindAddress.port == 0) {
 				return sl_null;
 			}
-			sl_bool flagIPv6 = param.flagIPv6;
 			if (param.bindAddress.ip.isIPv6()) {
 				flagIPv6 = sl_true;
 			}
@@ -380,7 +369,7 @@ namespace slib
 		}
 		
 		if (socket->listen()) {
-			Ref<AsyncTcpServerInstance> instance = _createInstance(socket);
+			Ref<AsyncTcpServerInstance> instance = _createInstance(socket, flagIPv6);
 			if (instance.isNotNull()) {
 				Ref<AsyncIoLoop> loop = param.ioLoop;
 				if (loop.isNull()) {

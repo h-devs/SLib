@@ -113,7 +113,7 @@ namespace slib
 		}
 	}
 	
-	sl_uint32 SocketAddress::getSystemSocketAddress(void* addr) noexcept
+	sl_uint32 SocketAddress::getSystemSocketAddress(void* addr) const noexcept
 	{
 		if (ip.isIPv4()) {
 			sockaddr_in& out = *((sockaddr_in*)addr);

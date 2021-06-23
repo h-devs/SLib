@@ -44,6 +44,8 @@ namespace slib
 			class AsyncTcpSocketInstanceImpl : public AsyncTcpSocketInstance
 			{
 			public:
+				sl_bool m_flagIPv6;
+
 				WSAOVERLAPPED m_overlappedRead;
 				WSABUF m_bufRead;
 				DWORD m_flagsRead;
@@ -67,7 +69,7 @@ namespace slib
 				}
 
 			public:
-				static Ref<AsyncTcpSocketInstanceImpl> create(const Ref<Socket>& socket)
+				static Ref<AsyncTcpSocketInstanceImpl> create(const Ref<Socket>& socket, sl_bool flagIPv6)
 				{
 					if (socket.isNotNull()) {
 						sl_async_handle handle = (sl_async_handle)(socket->getHandle());
@@ -75,6 +77,7 @@ namespace slib
 							Ref<AsyncTcpSocketInstanceImpl> ret = new AsyncTcpSocketInstanceImpl();
 							if (ret.isNotNull()) {
 								ret->m_socket = socket;
+								ret->m_flagIPv6 = flagIPv6;
 								ret->setHandle(handle);
 								ret->initializeConnectEx();
 								return ret;
@@ -196,7 +199,7 @@ namespace slib
 										sockaddr_storage saBind;
 										SocketAddress aBind;
 										aBind.port = 0;
-										if (socket->isIPv6()) {
+										if (m_flagIPv6) {
 											aBind.ip = IPv6Address::zero();
 										} else {
 											aBind.ip = IPv4Address::zero();
@@ -270,6 +273,7 @@ namespace slib
 			class AsyncTcpServerInstanceImpl : public AsyncTcpServerInstance
 			{
 			public:
+				sl_bool m_flagIPv6;
 				sl_bool m_flagAccepting;
 
 				WSAOVERLAPPED m_overlapped;
@@ -291,7 +295,7 @@ namespace slib
 				}
 
 			public:
-				static Ref<AsyncTcpServerInstanceImpl> create(const Ref<Socket>& socket)
+				static Ref<AsyncTcpServerInstanceImpl> create(const Ref<Socket>& socket, sl_bool flagIPv6)
 				{
 					if (socket.isNotNull()) {
 						sl_async_handle handle = (sl_async_handle)(socket->getHandle());
@@ -299,6 +303,7 @@ namespace slib
 							Ref<AsyncTcpServerInstanceImpl> ret = new AsyncTcpServerInstanceImpl();
 							if (ret.isNotNull()) {
 								ret->m_socket = socket;
+								ret->m_flagIPv6 = flagIPv6;
 								ret->setHandle(handle);
 								if (ret->initialize()) {
 									return ret;
@@ -370,7 +375,7 @@ namespace slib
 						if (!(socket->isOpened())) {
 							return;
 						}
-						Ref<Socket> socketAccept = Socket::open(socket->getType());
+						Ref<Socket> socketAccept = Socket::open(m_flagIPv6 ? SocketType::StreamIPv6 : SocketType::Stream);
 						if (socketAccept.isNotNull()) {
 							m_socketAccept = socketAccept;
 							Base::zeroMemory(&m_overlapped, sizeof(WSAOVERLAPPED));
@@ -585,15 +590,15 @@ namespace slib
 		}
 	}
 
-	Ref<AsyncTcpSocketInstance> AsyncTcpSocket::_createInstance(const Ref<Socket>& socket)
+	Ref<AsyncTcpSocketInstance> AsyncTcpSocket::_createInstance(const Ref<Socket>& socket, sl_bool flagIPv6)
 	{
-		return priv::network_async::AsyncTcpSocketInstanceImpl::create(socket);
+		return priv::network_async::AsyncTcpSocketInstanceImpl::create(socket, flagIPv6);
 	}
 
 
-	Ref<AsyncTcpServerInstance> AsyncTcpServer::_createInstance(const Ref<Socket>& socket)
+	Ref<AsyncTcpServerInstance> AsyncTcpServer::_createInstance(const Ref<Socket>& socket, sl_bool flagIPv6)
 	{
-		return priv::network_async::AsyncTcpServerInstanceImpl::create(socket);
+		return priv::network_async::AsyncTcpServerInstanceImpl::create(socket, flagIPv6);
 	}
 
 	Ref<AsyncUdpSocketInstance> AsyncUdpSocket::_createInstance(const Ref<Socket>& socket, sl_uint32 packetSize)

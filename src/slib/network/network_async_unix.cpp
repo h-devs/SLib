@@ -395,12 +395,12 @@ namespace slib
 		}
 	}
 
-	Ref<AsyncTcpSocketInstance> AsyncTcpSocket::_createInstance(const Ref<Socket>& socket)
+	Ref<AsyncTcpSocketInstance> AsyncTcpSocket::_createInstance(const Ref<Socket>& socket, sl_bool flagIPv6)
 	{
 		return priv::network_async::AsyncTcpSocketInstanceImpl::create(socket);
 	}
 
-	Ref<AsyncTcpServerInstance> AsyncTcpServer::_createInstance(const Ref<Socket>& socket)
+	Ref<AsyncTcpServerInstance> AsyncTcpServer::_createInstance(const Ref<Socket>& socket, sl_bool flagIPv6)
 	{
 		return priv::network_async::AsyncTcpServerInstanceImpl::create(socket);
 	}

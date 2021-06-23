@@ -48,8 +48,9 @@ namespace slib
 		: port(_port)
 		{}
 		
-		SocketAddress(const IPAddress& _ip, sl_uint16 _port) noexcept
-		: ip(_ip), port(_port)
+		template <class IP>
+		SocketAddress(IP&& _ip, sl_uint16 _port) noexcept
+		: ip(Forward<IP>(_ip)), port(_port)
 		{}
 		
 		SocketAddress(const String& str) noexcept;
@@ -79,7 +80,7 @@ namespace slib
 		
 		sl_bool setString(const String& str) noexcept;
 		
-		sl_uint32 getSystemSocketAddress(void* addr) noexcept;
+		sl_uint32 getSystemSocketAddress(void* addr) const noexcept;
 		
 		sl_bool setSystemSocketAddress(const void* addr, sl_uint32 size = 0) noexcept;
 		

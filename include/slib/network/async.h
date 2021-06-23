@@ -91,7 +91,7 @@ namespace slib
 		void _onError();
 		
 	private:
-		static Ref<AsyncTcpSocketInstance> _createInstance(const Ref<Socket>& socket);
+		static Ref<AsyncTcpSocketInstance> _createInstance(const Ref<Socket>& socket, sl_bool flagIPv6);
 		
 	protected:
 		Function<void(AsyncTcpSocket*, sl_bool flagError)> m_onConnect;
@@ -158,7 +158,7 @@ namespace slib
 		void _onError();
 		
 	protected:
-		static Ref<AsyncTcpServerInstance> _createInstance(const Ref<Socket>& socket);
+		static Ref<AsyncTcpServerInstance> _createInstance(const Ref<Socket>& socket, sl_bool flagIPv6);
 		
 	protected:
 		Function<void(AsyncTcpServer*, Socket*, const SocketAddress&)> m_onAccept;
