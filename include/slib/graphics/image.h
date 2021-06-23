@@ -122,6 +122,8 @@ namespace slib
 
 		void tintColor(const Color& color);
 
+		void makeGray();
+
 
 		static void draw(ImageDesc& dst, const ImageDesc& src, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
 
@@ -219,7 +221,11 @@ namespace slib
 
 		static Memory saveJPEG(const Ref<Image>& image, float quality = 0.5f);
 
+		static Memory saveMonochromeJPEG(const Ref<Image>& image, float quality = 0.5f);
+
 		Memory saveJPEG(float quality = 0.5f);
+
+		Memory saveMonochromeJPEG(float quality = 0.5f);
 
 		static sl_bool saveJPEG(const StringParam& filePath, const Ref<Image>& image, float quality = 0.5f);
 

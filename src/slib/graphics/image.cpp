@@ -485,6 +485,25 @@ namespace slib
 		}
 	}
 
+	void Image::makeGray()
+	{
+		sl_uint32 width = m_desc.width;
+		sl_uint32 height = m_desc.height;
+		sl_int32 stride = m_desc.stride;
+		Color* colors = m_desc.colors;
+		for (sl_uint32 y = 0; y < height; y++) {
+			Color* d = colors;
+			for (sl_uint32 x = 0; x < width; x++) {
+				sl_uint8 g = (sl_uint8)(((sl_uint32)(d->r) + (sl_uint32)(d->g) + (sl_uint32)(d->b)) / 3);
+				d->r = g;
+				d->g = g;
+				d->b = g;
+				d++;
+			}
+			colors += stride;
+		}
+	}
+
 	namespace priv
 	{
 		namespace image
