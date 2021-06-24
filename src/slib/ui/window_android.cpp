@@ -99,7 +99,7 @@ namespace slib
 					}
 					JniLocal<jobject> jcontent = JWindow::getContentView.callObject(jwindow);
 					if (jcontent.isNotNull()) {
-						JniGlobal<jobject> window = jwindow;
+						JniGlobal<jobject> window = JniGlobal<jobject>::create(jwindow);
 						if (window.isNotNull()) {
 							Ref<ViewInstance> content = UIPlatform::createViewInstance(jcontent);
 							if (content.isNotNull()) {

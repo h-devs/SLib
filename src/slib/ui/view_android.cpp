@@ -278,7 +278,7 @@ namespace slib
 	{
 		if (handle) {
 			JniGlobal<jobject> context = JView::getContext.callObject(sl_null, handle);
-			JniGlobal<jobject> ghandle = handle;
+			JniGlobal<jobject> ghandle = JniGlobal<jobject>::create(handle);
 			if (context.isNotNull() && ghandle.isNotNull()) {
 				handle = ghandle.get();
 				m_context = Move(context);

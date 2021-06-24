@@ -28,7 +28,7 @@ Java_io_slib_examplejni_MainActivity_callCpp(
 	 * At that moment, this function call is already finished and
 	 * the local reference `thiz` is not available.
 	 */
-	JniGlobal<jobject> activity(thiz);
+	JniGlobal<jobject> activity = JniGlobal<jobject>::create(thiz);
 
 	/*
 	 * Convert JNI string handle to a `String` C++ object provided by SLib.

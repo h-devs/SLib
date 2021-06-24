@@ -87,7 +87,7 @@ namespace slib
 						jint width = JBitmap::getWidth.callInt(jbitmap);
 						jint height = JBitmap::getHeight.callInt(jbitmap);
 						if (width > 0 && height > 0) {
-							JniGlobal<jobject> bitmap = jbitmap;
+							JniGlobal<jobject> bitmap = JniGlobal<jobject>::create(jbitmap);
 							if (bitmap.isNotNull()) {
 								ret = new BitmapImpl();
 								if (ret.isNotNull()) {

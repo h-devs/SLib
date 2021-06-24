@@ -75,7 +75,7 @@ namespace slib
 
 			public:
 				static Ref<CanvasImpl> create(CanvasType type, jobject jcanvas) {
-					JniGlobal<jobject> canvas = jcanvas;
+					JniGlobal<jobject> canvas = JniGlobal<jobject>::create(jcanvas);
 					if (canvas.isNotNull()) {
 						int width = JGraphics::getWidth.callInt(jcanvas);
 						int height = JGraphics::getHeight.callInt(jcanvas);

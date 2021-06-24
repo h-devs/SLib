@@ -65,7 +65,7 @@ namespace slib
 			return data[index];
 		}
 
-		explicit operator bool() const noexcept
+		explicit operator sl_bool() const noexcept
 		{
 			return data != sl_null;
 		}

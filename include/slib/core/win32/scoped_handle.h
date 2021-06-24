@@ -29,14 +29,15 @@
 
 #include "windows.h"
 
-#include "../unique_ptr.h"
+#include "../handle_container.h"
 
 namespace slib
 {
 	
 	class SLIB_EXPORT ScopedHandle
 	{
-		SLIB_DEFINE_UNIQUE_PTR_MEMBERS(ScopedHandle, HANDLE, handle, INVALID_HANDLE_VALUE, ::CloseHandle)
+	public:
+		SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(ScopedHandle, HANDLE, handle, INVALID_HANDLE_VALUE, ::CloseHandle)
 	};
 	
 }

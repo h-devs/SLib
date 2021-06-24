@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_SHARED_PTR
 #define CHECKHEADER_SLIB_CORE_SHARED_PTR
 
-#include "atomic.h"
+#include "unique_ptr.h"
 
 namespace slib
 {
@@ -201,6 +201,9 @@ namespace slib
 			}
 		}
 
+		template <class OTHER>
+		SharedPtr(UniquePtr<OTHER>&& other) noexcept: SharedPtr((T*)(other.release())) {}
+
 		SharedPtr(ValueType&& t) noexcept: container(new priv::shared::SharedObjectContainer<ValueType>(Move(t))) {}
 
 		SharedPtr(const ValueType& t) noexcept: container(new priv::shared::SharedObjectContainer<ValueType>(t)) {}
@@ -311,6 +314,13 @@ namespace slib
 			if ((void*)container != (void*)(other._container)) {
 				_replace(other._retain());
 			}
+			return *this;
+		}
+
+		template <class OTHER>
+		SharedPtr& operator=(UniquePtr<OTHER>&& other)
+		{
+			_replace(new priv::shared::SharedPtrContainer<T>((T*)(other.release())));
 			return *this;
 		}
 

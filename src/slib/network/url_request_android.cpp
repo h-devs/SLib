@@ -127,7 +127,7 @@ namespace slib
 
 				void clear()
 				{
-					JniGlobal<jobject> request = Move(m_request);
+					JniGlobal<jobject> request = m_request.release();
 					if (request.isNotNull()) {
 						JUrlRequest::close.call(request);
 					}
@@ -207,7 +207,7 @@ namespace slib
 			{
 				UrlRequestImpl* request = (UrlRequestImpl*)((void*)((sl_reg)jinstance));
 				if (request) {
-					request->m_request = _this;
+					request->m_request = JniGlobal<jobject>::create(_this);
 				}
 			}
 

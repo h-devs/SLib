@@ -99,13 +99,13 @@ namespace slib
 
 	void Android::setCurrentContext(jobject context) noexcept
 	{
-		g_contextCurrent = context;
+		g_contextCurrent = JniGlobal<jobject>::create(context);
 	}
 
 	void Android::initializeContext(jobject context) noexcept
 	{
 		if (g_contextCurrent.isNull()) {
-			g_contextCurrent = context;
+			g_contextCurrent = JniGlobal<jobject>::create(context);
 		}
 	}
 

@@ -34,7 +34,7 @@
 #if defined(SLIB_PLATFORM_USE_JNI)
 
 #include "string.h"
-#include "unique_ptr.h"
+#include "handle_container.h"
 #include "primitive_wrapper.h"
 
 #include <jni.h>
@@ -324,7 +324,8 @@ namespace slib
 	template <class T>
 	class SLIB_EXPORT JniLocal
 	{
-		SLIB_DEFINE_UNIQUE_PTR_MEMBERS(JniLocal, T, value, sl_null, Jni::deleteLocalRef)
+	public:
+		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(JniLocal, T, value, Jni::deleteLocalRef)
 
 	public:
 		template <class OTHER>
@@ -348,20 +349,13 @@ namespace slib
 	template <class T>
 	class SLIB_EXPORT JniGlobal
 	{
-		SLIB_DEFINE_UNIQUE_PTR_MEMBERS_NO_ASSIGN(JniGlobal, T, value, sl_null, Jni::deleteGlobalRef)
-		SLIB_DEFINE_UNIQUE_PTR_ATOMIC_MEMBERS(JniGlobal, T, value, sl_null, Jni::deleteGlobalRef)
+	public:
+		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(JniGlobal, T, value, Jni::deleteGlobalRef)
 
 	public:		
-		JniGlobal(T _value) noexcept
+		static JniGlobal create(T _value) noexcept
 		{
-			value = (T)(Jni::newGlobalRef(_value));
-		}
-
-		JniGlobal& operator=(T _value) noexcept
-		{
-			Jni::deleteGlobalRef(value);
-			value = (T)(Jni::newGlobalRef(_value));
-			return *this;
+			return (T)(Jni::newGlobalRef(_value));
 		}
 
 		template <class OTHER>
@@ -399,7 +393,37 @@ namespace slib
 	template <class T>
 	class SLIB_EXPORT Atomic< JniGlobal<T> >
 	{
-		SLIB_DEFINE_ATOMIC_UNIQUE_PTR_MEMBERS(JniGlobal<T>, T, value, sl_null, Jni::deleteGlobalRef)		
+		SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(JniGlobal<T>, T, value, Jni::deleteGlobalRef)
+
+	public:
+		template <class OTHER>
+		Atomic(JniGlobal<OTHER>&& other) noexcept
+		{
+			value = (T)(other.value);
+			other.value = sl_null;
+		}
+
+		template <class OTHER>
+		Atomic& operator=(JniGlobal<OTHER>&& other) noexcept
+		{
+			set((T)(other.value));
+			other.value = sl_null;
+			return *this;
+		}
+
+		template <class OTHER>
+		Atomic(const JniLocal<OTHER>& other) noexcept
+		{
+			value = (T)(Jni::newGlobalRef(other.value));
+		}
+
+		template <class OTHER>
+		Atomic& operator=(const JniLocal<OTHER>& other) noexcept
+		{
+			set((T)(Jni::newGlobalRef(other.value)));
+			return *this;
+		}
+
 	};
 
 	template <class T>
