@@ -176,10 +176,10 @@ namespace slib
 						return;
 					}
 					while (thread->isNotStopping()) {
-						String address;
-						Ref<Socket> socket = m_socketServer->acceptDomain(address);
-						if (socket.isNotNull()) {
-							if (m_threads.getCount() < m_maxThreadsCount) {
+						if (m_threads.getCount() < m_maxThreadsCount) {
+							String address;
+							Ref<Socket> socket = m_socketServer->acceptDomain(address);
+							if (socket.isNotNull()) {
 								MovingContainer< Ref<Socket> > _socket(Move(socket));
 								auto thiz = ToWeakRef(this);
 								Ref<Thread> thread = Thread::create([_socket, thiz, this]() {
@@ -194,9 +194,11 @@ namespace slib
 									m_threads.add(thread);
 									thread->start();
 								}
+							} else {
+								event->wait();
 							}
 						} else {
-							event->wait();
+							thread->wait(10);
 						}
 					}
 				}
