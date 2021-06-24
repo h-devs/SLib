@@ -102,7 +102,7 @@ namespace slib
 			{
 				HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 				if (handle) {
-					DWORD dwWritten;
+					DWORD dwWritten = 0;
 					WriteFile(handle, data, (DWORD)size, &dwWritten, NULL);
 				}
 			}
