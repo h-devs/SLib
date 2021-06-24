@@ -26,10 +26,10 @@
 
 #include "slib/core/service_manager.h"
 
-#include "slib/core/app.h"
 #include "slib/core/thread.h"
 #include "slib/core/time_counter.h"
 #include "slib/core/memory.h"
+#include "slib/core/command_line.h"
 #include "slib/core/windows.h"
 
 #pragma comment(lib, "advapi32.lib")
@@ -204,7 +204,7 @@ namespace slib
 			StringParam _path = param.commandLine;
 			if (_path.isNull()) {
 				ListLocker<StringParam> arguments(param.arguments);
-				_path = Application::buildCommandLine(param.path, arguments.data, arguments.count);
+				_path = CommandLine::build(param.path, arguments.data, arguments.count);
 			}
 			StringCstr16 path = _path;
 			SC_HANDLE handle = CreateServiceW(

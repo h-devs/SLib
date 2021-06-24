@@ -43,7 +43,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FilePathSegments)
 
 	public:
-		void parsePath(const String& path);
+		void parsePath(const StringParam& path);
 
 		String buildPath();
 	

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -175,31 +175,6 @@ namespace slib
 		static void setApplicationDirectory(const StringParam& path);
 
 		static String findFileAndSetAppPath(const StringParam& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX);
-
-
-		static List<String> breakCommandLine(const StringParam& commandLine);
-
-		static List<String> breakCommandLine_Win32(const StringParam& commandLine);
-
-		static List<String> breakCommandLine_Unix(const StringParam& commandLine);
-
-		static String makeSafeArgument(const String& arg);
-
-		static String makeSafeArgument_Win32(const String& arg);
-
-		static String makeSafeArgument_Unix(const String& arg);
-
-		static String buildCommandLine(const String* argv, sl_size argc);
-
-		static String buildCommandLine_Win32(const String* argv, sl_size argc);
-
-		static String buildCommandLine_Unix(const String* argv, sl_size argc);
-
-		static String buildCommandLine(const String& pathExecutable, const String* argv, sl_size argc);
-
-		static String buildCommandLine_Win32(const String& pathExecutable, const String* argv, sl_size argc);
-
-		static String buildCommandLine_Unix(const String& pathExecutable, const String* argv, sl_size argc);
 
 	public:
 		static sl_bool checkPermissions(const AppPermissions& permissions);

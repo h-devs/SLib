@@ -678,7 +678,7 @@ namespace slib
 		template <class VALUE>
 		sl_bool insertElements_NoLock(sl_size index, const VALUE* values, sl_size nValues) noexcept
 		{
-			if (nValues == 0) {
+			if (!nValues) {
 				return sl_true;
 			}
 			sl_size oldCount = m_count;
@@ -701,7 +701,7 @@ namespace slib
 		template <class VALUE>
 		sl_bool insertElements(sl_size index, const VALUE* values, sl_size count) noexcept
 		{
-			if (count == 0) {
+			if (!count) {
 				return sl_true;
 			}
 			ObjectLocker lock(this);
@@ -710,7 +710,7 @@ namespace slib
 		
 		sl_bool insertElements_NoLock(sl_size index, sl_size nValues, const T& value) noexcept
 		{
-			if (nValues == 0) {
+			if (!nValues) {
 				return sl_true;
 			}
 			sl_size oldCount = m_count;
@@ -734,7 +734,7 @@ namespace slib
 		
 		sl_bool insertElements(sl_size index, sl_size count, const T& value) noexcept
 		{
-			if (count == 0) {
+			if (!count) {
 				return sl_true;
 			}
 			ObjectLocker lock(this);
@@ -801,7 +801,7 @@ namespace slib
 		template <class VALUE>
 		sl_bool addElements_NoLock(const VALUE* values, sl_size nValues) noexcept
 		{
-			if (nValues == 0) {
+			if (!nValues) {
 				return sl_true;
 			}
 			sl_size oldCount = m_count;
@@ -817,7 +817,7 @@ namespace slib
 		template <class VALUE>
 		sl_bool addElements(const VALUE* values, sl_size count) noexcept
 		{
-			if (count == 0) {
+			if (!count) {
 				return sl_true;
 			}
 			ObjectLocker lock(this);
@@ -826,7 +826,7 @@ namespace slib
 		
 		sl_bool addElements_NoLock(sl_size nValues, const T& value) noexcept
 		{
-			if (nValues == 0) {
+			if (!nValues) {
 				return sl_true;
 			}
 			sl_size oldCount = m_count;
@@ -844,7 +844,7 @@ namespace slib
 		
 		sl_bool addElements(sl_size count, const T& value) noexcept
 		{
-			if (count == 0) {
+			if (!count) {
 				return sl_true;
 			}
 			ObjectLocker lock(this);
@@ -869,7 +869,7 @@ namespace slib
 			if (!other) {
 				return sl_true;
 			}
-			if (this == other) {
+			if ((void*)this == (void*)other) {
 				return sl_false;
 			}
 			return addElements_NoLock(other->getData(), other->getCount());
@@ -881,7 +881,7 @@ namespace slib
 			if (!other) {
 				return sl_true;
 			}
-			if (this == other) {
+			if ((void*)this == (void*)other) {
 				return sl_false;
 			}
 			MultipleObjectsLocker lock(this, other);
@@ -1496,7 +1496,7 @@ namespace slib
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->getCount() == 0;
+				return !(obj->getCount());
 			}
 			return sl_true;
 		}
@@ -1730,7 +1730,7 @@ namespace slib
 			if (obj) {
 				return obj->setCount_NoLock(count);
 			} else {
-				if (count == 0) {
+				if (!count) {
 					return sl_true;
 				}
 				obj = CList<T>::create(count);
@@ -1748,7 +1748,7 @@ namespace slib
 			if (obj) {
 				return obj->setCount(count);
 			} else {
-				if (count == 0) {
+				if (!count) {
 					return sl_true;
 				}
 				obj = CList<T>::create(count);
@@ -1766,7 +1766,7 @@ namespace slib
 			if (obj) {
 				return obj->setCapacity_NoLock(capacity);
 			} else {
-				if (capacity == 0) {
+				if (!capacity) {
 					return sl_true;
 				}
 				obj = CList<T>::create(0, capacity);
@@ -1784,7 +1784,7 @@ namespace slib
 			if (obj) {
 				return obj->setCount(capacity);
 			} else {
-				if (capacity == 0) {
+				if (!capacity) {
 					return sl_true;
 				}
 				obj = CList<T>::create(0, capacity);
@@ -2042,7 +2042,7 @@ namespace slib
 		template <class VALUE>
 		sl_bool addElements_NoLock(const VALUE* values, sl_size count) noexcept
 		{
-			if (count == 0) {
+			if (!count) {
 				return sl_true;
 			}
 			CList<T>* obj = ref.ptr;
@@ -2061,7 +2061,7 @@ namespace slib
 		template <class VALUE>
 		sl_bool addElements(const VALUE* values, sl_size count) noexcept
 		{
-			if (count == 0) {
+			if (!count) {
 				return sl_true;
 			}
 			CList<T>* obj = ref.ptr;
@@ -2086,7 +2086,7 @@ namespace slib
 		
 		sl_bool addElements_NoLock(sl_size count, const T& value) noexcept
 		{
-			if (count == 0) {
+			if (!count) {
 				return sl_true;
 			}
 			CList<T>* obj = ref.ptr;
@@ -2104,7 +2104,7 @@ namespace slib
 		
 		sl_bool addElements(sl_size count, const T& value) noexcept
 		{
-			if (count == 0) {
+			if (!count) {
 				return sl_true;
 			}
 			CList<T>* obj = ref.ptr;
@@ -2733,7 +2733,7 @@ namespace slib
 		{
 			Ref< CList<T> > obj(ref);
 			if (obj.isNotNull()) {
-				return obj->getCount() == 0;
+				return !(obj->getCount());
 			}
 			return sl_true;
 		}
@@ -3048,7 +3048,7 @@ namespace slib
 		template <class VALUE>
 		sl_bool addElements(const VALUE* values, sl_size count) noexcept
 		{
-			if (count == 0) {
+			if (!count) {
 				return sl_true;
 			}
 			Ref< CList<T> > obj(ref);
@@ -3073,7 +3073,7 @@ namespace slib
 		
 		sl_bool addElements(sl_size count, const T& value) noexcept
 		{
-			if (count == 0) {
+			if (!count) {
 				return sl_true;
 			}
 			Ref< CList<T> > obj(ref);

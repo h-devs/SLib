@@ -146,6 +146,7 @@
 #include "core/global_unique_instance.h"
 
 #include "core/app.h"
+#include "core/command_line.h"
 #include "core/service.h"
 #include "core/service_manager.h"
 #include "core/content_type.h"

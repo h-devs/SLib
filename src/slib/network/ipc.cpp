@@ -108,6 +108,7 @@ namespace slib
 							}
 						}
 					}
+					return sl_null;
 				}
 
 				void sendMessage(const StringParam& _targetName, const Memory& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse) override
@@ -218,11 +219,11 @@ namespace slib
 				{
 					Ref<SocketEvent> event = SocketEvent::createRead(socket);
 					if (event.isNull()) {
-						return;
+						return sl_null;
 					}
 					sl_uint32 sizeContent = 0;
 					MemoryBuffer bufRead;
-					char bufHeader[16];
+					sl_uint8 bufHeader[16];
 					sl_uint32 nReadHeader = 0;
 					while (thread->isNotStopping()) {
 						sl_int32 n = socket->receive(bufHeader + nReadHeader, sizeof(bufHeader) - nReadHeader);
@@ -231,8 +232,7 @@ namespace slib
 						}
 						if (n) {
 							nReadHeader += n;
-							SerializeBuffer buf(bufHeader, nReadHeader);
-							sl_uint32 nSizeHeader = CVLI::deserialize(&buf, sizeContent);
+							sl_uint32 nSizeHeader = CVLI::deserialize(bufHeader, nReadHeader, sizeContent);
 							if (nSizeHeader) {
 								bufRead.addStatic(bufHeader + nSizeHeader, nReadHeader - nSizeHeader);
 								break;

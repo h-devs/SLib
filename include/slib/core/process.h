@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -82,7 +82,7 @@ namespace slib
 		static void exec(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs = 0);
 
 		template <class... ARGS>
-		static void exec(const StringParam& pathExecutable, const ListParam<String>& arguments)
+		static void exec(const StringParam& pathExecutable, const StringParam& arg, ARGS&&... args)
 		{
 			StringParam params[] = { arg, Forward<ARGS>(args)... };
 			return exec(pathExecutable, params, 1 + sizeof...(args));

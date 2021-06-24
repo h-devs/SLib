@@ -90,7 +90,7 @@ namespace slib
 			Log(TAG, "STARING %s", appName);
 
 			String appPath = System::getApplicationPath();
-			Ref<Process> process = Process::run(appPath, sl_null, 0);
+			Ref<Process> process = Process::run(appPath);
 
 			for (int i = 0; i < WAIT_SECONDS*10; i++) {
 				if (GlobalUniqueInstance::exists(appName + START_ID)) {
@@ -208,7 +208,9 @@ namespace slib
 			}
 			if (!(Process::isAdmin())) {
 				if (arguments.contains("admin")) {
-					Process::runAsAdmin(getApplicationPath(), getArguments());
+					List<StringParam> args;
+					args.addAll_NoLock(getArguments());
+					Process::runAsAdmin(getApplicationPath(), args.getData(), args.getCount());
 					return 0;
 				} else {
 					Log(TAG, "RUN AS ADMIN!");

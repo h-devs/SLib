@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_VARIABLE_LENGTH_INTEGER
 #define CHECKHEADER_SLIB_CORE_SERIALIZE_VARIABLE_LENGTH_INTEGER
 
-#include "../io.h"
+#include "io.h"
 
 namespace slib
 {
@@ -87,6 +87,26 @@ namespace slib
 			sl_uint32 m = 0;
 			sl_uint8 n;
 			while (DeserializeByte(input, n)) {
+				value += (((T)(n & 127)) << m);
+				m += 7;
+				count++;
+				if (!(n & 128)) {
+					return count;
+				}
+			}
+			return 0;
+		}
+
+		template <class T>
+		static sl_uint32 deserialize(const void* _input, sl_size size, T& value)
+		{
+			sl_uint8* input = (sl_uint8*)_input;
+			value = 0;
+			sl_uint32 count = 0;
+			sl_uint32 m = 0;
+			sl_uint8 n;
+			while (count < size) {
+				n = *(input++);
 				value += (((T)(n & 127)) << m);
 				m += 7;
 				count++;

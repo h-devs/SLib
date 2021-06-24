@@ -23,6 +23,7 @@
 #include "slib/db/mongodb.h"
 
 #include "slib/math/decimal128.h"
+#include "slib/math/json/decimal128.h"
 #include "slib/core/safe_static.h"
 
 #define BSON_STATIC

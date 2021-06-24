@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
  */
 
 #include "slib/core/app.h"
+#include "slib/core/command_line.h"
 
 #include "slib/core/hash_map.h"
 #include "slib/core/system.h"
@@ -66,7 +67,110 @@ namespace slib
 				}
 			}
 #endif
-			
+
+/**************************************************************************************
+For parsing command line in Win32 platform,
+	refered to https://msdn.microsoft.com/en-us/library/windows/desktop/17w5ykft(v=vs.85).aspx
+
+Microsoft Specific
+	Microsoft C/C++ startup code uses the following rules when interpreting arguments given on the operating system command line:
+	* Arguments are delimited by white space, which is either a space or a tab.
+	* The caret character (^) is not recognized as an escape character or delimiter. The character is handled completely by the command-line parser in the operating system before being passed to the argv array in the program.
+	* A string surrounded by double quotation marks ("string") is interpreted as a single argument, regardless of white space contained within. A quoted string can be embedded in an argument.
+	* A double quotation mark preceded by a backslash (\") is interpreted as a literal double quotation mark character (").
+	* Backslashes are interpreted literally, unless they immediately precede a double quotation mark.
+	* If an even number of backslashes is followed by a double quotation mark, one backslash is placed in the argv array for every pair of backslashes, and the double quotation mark is interpreted as a string delimiter.
+	* If an odd number of backslashes is followed by a double quotation mark, one backslash is placed in the argv array for every pair of backslashes, and the double quotation mark is "escaped" by the remaining backslash, causing a literal double quotation mark (") to be placed in argv.
+***************************************************************************************/
+
+			List<String> ParseCommandLine(const StringParam& _commandLine, sl_bool flagWin32)
+			{
+				StringCstr commandLine(_commandLine);
+				List<String> ret;
+				sl_char8* sz = commandLine.getData();
+				sl_size len = commandLine.getLength();
+				StringBuffer sb;
+				sl_size start = 0;
+				sl_size pos = 0;
+				sl_bool flagQuote = sl_false;
+				while (pos < len) {
+					sl_char8 ch = sz[pos];
+					if (flagWin32) {
+						if (ch == '\"') {
+							sl_size k = pos - 1;
+							while (k > 0) {
+								if (sz[k] != '\\') {
+									break;
+								}
+								k--;
+							}
+							sl_size n = pos - 1 - k;
+							sl_size m = n / 2;
+							sb.addStatic(sz + start, k + 1 + m - start);
+							if (n % 2) {
+								start = pos;
+								pos++;
+								continue;
+							} else {
+								start = pos + 1;
+							}
+						}
+					} else {
+						if (ch == '\\') {
+							if (pos > start) {
+								sb.addStatic(sz + start, pos - start);
+							}
+							start = pos + 1;
+							pos++;
+							if (pos < len) {
+								pos++;
+								continue;
+							} else {
+								break;
+							}
+						}
+					}
+					if (flagQuote) {
+						if (ch == '\"') {
+							flagQuote = sl_false;
+							if (pos > start) {
+								sb.addStatic(sz + start, pos - start);
+							}
+							start = pos + 1;
+						}
+					} else {
+						if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+							if (pos > start) {
+								sb.addStatic(sz + start, pos - start);
+							}
+							start = pos + 1;
+							String s = sb.merge();
+							if (s.isNotEmpty()) {
+								ret.add(s);
+							}
+							sb.clear();
+						} else if (ch == '\"') {
+							flagQuote = sl_true;
+							if (pos > start) {
+								sb.addStatic(sz + start, pos - start);
+							}
+							start = pos + 1;
+						}
+					}
+					pos++;
+				}
+				if (!flagQuote) {
+					if (pos > start) {
+						sb.addStatic(sz + start, pos - start);
+					}
+					String s = sb.merge();
+					if (s.isNotEmpty()) {
+						ret.add(s);
+					}
+				}
+				return ret;
+			}
+
 		}
 	}
 
@@ -128,7 +232,7 @@ namespace slib
 	void Application::initialize(const StringParam& commandLine)
 	{
 		m_commandLine = commandLine.toString();
-		m_arguments = breakCommandLine(commandLine);
+		m_arguments = CommandLine::parse(commandLine);
 		_initApp();
 	}
 
@@ -142,7 +246,9 @@ namespace slib
 			list.add(argv[i]);
 #endif
 		}
-		m_commandLine = buildCommandLine(list.getData(), argc);
+		List<StringParam> params;
+		params.addAll_NoLock(list);
+		m_commandLine = CommandLine::build(params.getData(), argc);
 		m_arguments = Move(list);
 		_initApp();
 	}
@@ -157,7 +263,7 @@ namespace slib
 #ifdef SLIB_PLATFORM_IS_WIN32
 		String commandLine = String::create(GetCommandLineW());
 		m_commandLine = commandLine;
-		m_arguments = breakCommandLine(commandLine);
+		m_arguments = CommandLine::parse(commandLine);
 #endif
 		_initApp();
 	}
@@ -315,262 +421,6 @@ namespace slib
 		return appPath;
 	}
 
-
-/**************************************************************************************
-For breaking command line in Win32 platform,
-	refered to https://msdn.microsoft.com/en-us/library/windows/desktop/17w5ykft(v=vs.85).aspx
-
-Microsoft Specific
-	Microsoft C/C++ startup code uses the following rules when interpreting arguments given on the operating system command line:
-	* Arguments are delimited by white space, which is either a space or a tab.
-	* The caret character (^) is not recognized as an escape character or delimiter. The character is handled completely by the command-line parser in the operating system before being passed to the argv array in the program.
-	* A string surrounded by double quotation marks ("string") is interpreted as a single argument, regardless of white space contained within. A quoted string can be embedded in an argument.
-	* A double quotation mark preceded by a backslash (\") is interpreted as a literal double quotation mark character (").
-	* Backslashes are interpreted literally, unless they immediately precede a double quotation mark.
-	* If an even number of backslashes is followed by a double quotation mark, one backslash is placed in the argv array for every pair of backslashes, and the double quotation mark is interpreted as a string delimiter.
-	* If an odd number of backslashes is followed by a double quotation mark, one backslash is placed in the argv array for every pair of backslashes, and the double quotation mark is "escaped" by the remaining backslash, causing a literal double quotation mark (") to be placed in argv.
-***************************************************************************************/
-
-	namespace priv
-	{
-		namespace app
-		{
-
-			List<String> BreakCommandLine(const StringParam& _commandLine, sl_bool flagWin32)
-			{
-				StringCstr commandLine(_commandLine);
-				List<String> ret;
-				sl_char8* sz = commandLine.getData();
-				sl_size len = commandLine.getLength();
-				StringBuffer sb;
-				sl_size start = 0;
-				sl_size pos = 0;
-				sl_bool flagQuote = sl_false;
-				while (pos < len) {
-					sl_char8 ch = sz[pos];
-					if (flagWin32) {
-						if (ch == '\"') {
-							sl_size k = pos - 1;
-							while (k > 0) {
-								if (sz[k] != '\\') {
-									break;
-								}
-								k--;
-							}
-							sl_size n = pos - 1 - k;
-							sl_size m = n / 2;
-							sb.addStatic(sz + start, k + 1 + m - start);
-							if (n % 2) {
-								start = pos;
-								pos++;
-								continue;
-							} else {
-								start = pos + 1;
-							}
-						}
-					} else {
-						if (ch == '\\') {
-							if (pos > start) {
-								sb.addStatic(sz + start, pos - start);
-							}
-							start = pos + 1;
-							pos++;
-							if (pos < len) {
-								pos++;
-								continue;
-							} else {
-								break;
-							}
-						}
-					}
-					if (flagQuote) {
-						if (ch == '\"') {
-							flagQuote = sl_false;
-							if (pos > start) {
-								sb.addStatic(sz + start, pos - start);
-							}
-							start = pos + 1;
-						}
-					} else {
-						if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
-							if (pos > start) {
-								sb.addStatic(sz + start, pos - start);
-							}
-							start = pos + 1;
-							String s = sb.merge();
-							if (s.isNotEmpty()) {
-								ret.add(s);
-							}
-							sb.clear();
-						} else if (ch == '\"') {
-							flagQuote = sl_true;
-							if (pos > start) {
-								sb.addStatic(sz + start, pos - start);
-							}
-							start = pos + 1;
-						}
-					}
-					pos++;
-				}
-				if (!flagQuote) {
-					if (pos > start) {
-						sb.addStatic(sz + start, pos - start);
-					}
-					String s = sb.merge();
-					if (s.isNotEmpty()) {
-						ret.add(s);
-					}
-				}
-				return ret;
-			}
-
-		}
-	}
-
-	List<String> Application::breakCommandLine(const StringParam& commandLine)
-	{
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-		return priv::app::BreakCommandLine(commandLine, sl_true);
-#else
-		return priv::app::BreakCommandLine(commandLine, sl_false);
-#endif
-	}
-
-	List<String> Application::breakCommandLine_Win32(const StringParam& commandLine)
-	{
-		return priv::app::BreakCommandLine(commandLine, sl_true);
-	}
-
-	List<String> Application::breakCommandLine_Unix(const StringParam& commandLine)
-	{
-		return priv::app::BreakCommandLine(commandLine, sl_false);
-	}
-
-	String Application::makeSafeArgument(const String& s)
-	{
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-		return makeSafeArgument_Win32(s);
-#else
-		return makeSafeArgument_Unix(s);
-#endif
-	}
-
-	String Application::makeSafeArgument_Win32(const String& s)
-	{
-		if (s.contains(" ") || s.contains("\t") || s.contains("\r") || s.contains("\n") || s.contains("\"")) {
-			StringBuffer buf;
-			buf.addStatic("\"");
-			ListElements<String> items(s.split("\""));
-			for (sl_size k = 0; k < items.count; k++) {
-				String t = items[k];
-				buf.add(t);
-				sl_char8* sz = t.getData();
-				sl_size len = t.getLength();
-				sl_size p = 0;
-				for (; p < len; p++) {
-					if (sz[len - 1 - p] != '\\') {
-						break;
-					}
-				}
-				buf.add(String('\\', p));
-				if (k < items.count - 1) {
-					buf.addStatic("\\\"");
-				}
-			}
-			buf.addStatic("\"");
-			return buf.merge();
-		}
-		if (s.isNotEmpty()) {
-			return s;
-		} else {
-			SLIB_RETURN_STRING("\"\"");
-		}
-	}
-
-	String Application::makeSafeArgument_Unix(const String& s)
-	{
-		if (s.contains(" ") || s.contains("\t") || s.contains("\r") || s.contains("\n") || s.contains("\"") || s.contains("\\")) {
-			String t = s
-				.replaceAll("\\", "\\\\")
-				.replaceAll("\"", "\\\"");
-			return String::join("\"", Move(t), "\"");
-		}
-		if (s.isNotEmpty()) {
-			return s;
-		} else {
-			SLIB_RETURN_STRING("\"\"");
-		}
-	}
-
-	String Application::buildCommandLine(const String* argv, sl_size argc)
-	{
-		StringBuffer buf;
-		for (sl_size i = 0; i < argc; i++) {
-			if (i > 0) {
-				buf.addStatic(" ");
-			}
-			buf.add(makeSafeArgument(argv[i]));
-		}
-		return buf.merge();
-	}
-
-	String Application::buildCommandLine_Win32(const String* argv, sl_size argc)
-	{
-		StringBuffer buf;
-		for (sl_size i = 0; i < argc; i++) {
-			if (i > 0) {
-				buf.addStatic(" ");
-			}
-			buf.add(makeSafeArgument_Win32(argv[i]));
-		}
-		return buf.merge();
-	}
-
-	String Application::buildCommandLine_Unix(const String* argv, sl_size argc)
-	{
-		StringBuffer buf;
-		for (sl_size i = 0; i < argc; i++) {
-			if (i > 0) {
-				buf.addStatic(" ");
-			}
-			buf.add(makeSafeArgument_Unix(argv[i]));
-		}
-		return buf.merge();
-	}
-
-	String Application::buildCommandLine(const String& pathExecutable, const String* argv, sl_size argc)
-	{
-		StringBuffer buf;
-		buf.add(makeSafeArgument(pathExecutable));
-		for (sl_size i = 0; i < argc; i++) {
-			buf.addStatic(" ");
-			buf.add(makeSafeArgument(argv[i]));
-		}
-		return buf.merge();
-	}
-
-	String Application::buildCommandLine_Win32(const String& pathExecutable, const String* argv, sl_size argc)
-	{
-		StringBuffer buf;
-		buf.add(makeSafeArgument_Win32(pathExecutable));
-		for (sl_size i = 0; i < argc; i++) {
-			buf.addStatic(" ");
-			buf.add(makeSafeArgument_Win32(argv[i]));
-		}
-		return buf.merge();
-	}
-
-	String Application::buildCommandLine_Unix(const String& pathExecutable, const String* argv, sl_size argc)
-	{
-		StringBuffer buf;
-		buf.add(makeSafeArgument_Unix(pathExecutable));
-		for (sl_size i = 0; i < argc; i++) {
-			buf.addStatic(" ");
-			buf.add(makeSafeArgument_Unix(argv[i]));
-		}
-		return buf.merge();
-	}
-
 #if !defined(SLIB_UI_IS_ANDROID)
 	sl_bool Application::checkPermissions(const AppPermissions& permissions)
 	{
@@ -619,5 +469,152 @@ Microsoft Specific
 	{
 	}
 #endif
+
+
+	List<String> CommandLine::parse(const StringParam& commandLine)
+	{
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		return ParseCommandLine(commandLine, sl_true);
+#else
+		return ParseCommandLine(commandLine, sl_false);
+#endif
+	}
+
+	List<String> CommandLine::parseForWin32(const StringParam& commandLine)
+	{
+		return ParseCommandLine(commandLine, sl_true);
+	}
+
+	List<String> CommandLine::parseForUnix(const StringParam& commandLine)
+	{
+		return ParseCommandLine(commandLine, sl_false);
+	}
+
+	String CommandLine::makeSafeArgument(const StringParam& s)
+	{
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		return makeSafeArgumentForWin32(s);
+#else
+		return makeSafeArgumentForUnix(s);
+#endif
+	}
+
+	String CommandLine::makeSafeArgumentForWin32(const StringParam& _s)
+	{
+		StringData s(_s);
+		if (s.contains(" ") || s.contains("\t") || s.contains("\r") || s.contains("\n") || s.contains("\"")) {
+			StringBuffer buf;
+			buf.addStatic("\"");
+			ListElements<StringView> items(s.split("\""));
+			for (sl_size k = 0; k < items.count; k++) {
+				String t = items[k];
+				buf.add(t);
+				sl_char8* sz = t.getData();
+				sl_size len = t.getLength();
+				sl_size p = 0;
+				for (; p < len; p++) {
+					if (sz[len - 1 - p] != '\\') {
+						break;
+					}
+				}
+				buf.add(String('\\', p));
+				if (k < items.count - 1) {
+					buf.addStatic("\\\"");
+				}
+			}
+			buf.addStatic("\"");
+			return buf.merge();
+		} else {
+			if (s.isNotEmpty()) {
+				return s.toString(_s);
+			} else {
+				SLIB_RETURN_STRING("\"\"")
+			}
+		}
+	}
+
+	String CommandLine::makeSafeArgumentForUnix(const StringParam& _s)
+	{
+		StringData s(_s);
+		if (s.contains(" ") || s.contains("\t") || s.contains("\r") || s.contains("\n") || s.contains("\"") || s.contains("\\")) {
+			String t = s.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"");
+			return String::join("\"", Move(t), "\"");
+		} else {
+			if (s.isNotEmpty()) {
+				return s.toString(_s);
+			} else {
+				SLIB_RETURN_STRING("\"\"")
+			}
+		}
+	}
+
+	String CommandLine::build(const StringParam* argv, sl_size argc)
+	{
+		StringBuffer buf;
+		for (sl_size i = 0; i < argc; i++) {
+			if (i > 0) {
+				buf.addStatic(" ");
+			}
+			buf.add(makeSafeArgument(argv[i]));
+		}
+		return buf.merge();
+	}
+
+	String CommandLine::buildForWin32(const StringParam* argv, sl_size argc)
+	{
+		StringBuffer buf;
+		for (sl_size i = 0; i < argc; i++) {
+			if (i > 0) {
+				buf.addStatic(" ");
+			}
+			buf.add(makeSafeArgumentForWin32(argv[i]));
+		}
+		return buf.merge();
+	}
+
+	String CommandLine::buildForUnix(const StringParam* argv, sl_size argc)
+	{
+		StringBuffer buf;
+		for (sl_size i = 0; i < argc; i++) {
+			if (i > 0) {
+				buf.addStatic(" ");
+			}
+			buf.add(makeSafeArgumentForUnix(argv[i]));
+		}
+		return buf.merge();
+	}
+
+	String CommandLine::build(const StringParam& pathExecutable, const StringParam* argv, sl_size argc)
+	{
+		StringBuffer buf;
+		buf.add(makeSafeArgument(pathExecutable));
+		for (sl_size i = 0; i < argc; i++) {
+			buf.addStatic(" ");
+			buf.add(makeSafeArgument(argv[i]));
+		}
+		return buf.merge();
+	}
+
+	String CommandLine::buildForWin32(const StringParam& pathExecutable, const StringParam* argv, sl_size argc)
+	{
+		StringBuffer buf;
+		buf.add(makeSafeArgumentForWin32(pathExecutable));
+		for (sl_size i = 0; i < argc; i++) {
+			buf.addStatic(" ");
+			buf.add(makeSafeArgumentForWin32(argv[i]));
+		}
+		return buf.merge();
+	}
+
+	String CommandLine::buildForUnix(const StringParam& pathExecutable, const StringParam* argv, sl_size argc)
+	{
+		StringBuffer buf;
+		buf.add(makeSafeArgumentForUnix(pathExecutable));
+		for (sl_size i = 0; i < argc; i++) {
+			buf.addStatic(" ");
+			buf.add(makeSafeArgumentForUnix(argv[i]));
+		}
+		return buf.merge();
+	}
 
 }

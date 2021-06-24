@@ -384,7 +384,7 @@ namespace slib
 		// converts any invalid characters (0~0x1f, 0x7f~0x9f, :*?"<>|) into "_"
 		static String makeSafeFilePath(const StringParam& filePath);
 	
-		static String findParentPathContainingFile(const String& basePath, const String& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX);
+		static String findParentPathContainingFile(const StringParam& basePath, const StringParam& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX);
 	
 #if defined(SLIB_PLATFORM_IS_UNIX)
 		static sl_bool setNonBlocking(int fd, sl_bool flag);

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -49,42 +49,18 @@ namespace slib
 		return m_exitStatus;
 	}
 	
-	Ref<Process> Process::open(const StringParam& pathExecutable, const ListParam<String>& _arguments)
-	{
-		ListLocker<String> arguments(_arguments);
-		return open(pathExecutable, arguments.data, (sl_uint32)(arguments.count));
-	}
-
-	Ref<Process> Process::run(const StringParam& pathExecutable, const ListParam<String>& _arguments)
-	{
-		ListLocker<String> arguments(_arguments);
-		return run(pathExecutable, arguments.data, (sl_uint32)(arguments.count));
-	}
-	
-	void Process::runAsAdmin(const StringParam& pathExecutable, const ListParam<String>& _arguments)
-	{
-		ListLocker<String> arguments(_arguments);
-		runAsAdmin(pathExecutable, arguments.data, (sl_uint32)(arguments.count));
-	}
-	
-	void Process::exec(const StringParam& pathExecutable, const ListParam<String>& _arguments)
-	{
-		ListLocker<String> arguments(_arguments);
-		exec(pathExecutable, arguments.data, (sl_uint32)(arguments.count));
-	}
-	
 #if defined(SLIB_PLATFORM_IS_MOBILE)
-	Ref<Process> Process::open(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments)
+	Ref<Process> Process::open(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		return sl_null;
 	}
 
-	Ref<Process> Process::run(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments)
+	Ref<Process> Process::run(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		return sl_null;
 	}
 	
-	void Process::runAsAdmin(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments)
+	void Process::runAsAdmin(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 	}
 	
@@ -93,7 +69,7 @@ namespace slib
 		return sl_false;
 	}
 	
-	void Process::exec(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments)
+	void Process::exec(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 	}
 	

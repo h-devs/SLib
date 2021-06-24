@@ -820,7 +820,7 @@ namespace slib
 		return ret;
 	}
 
-	String File::findParentPathContainingFile(const String& basePath, const String& filePath, sl_uint32 nDeep)
+	String File::findParentPathContainingFile(const StringParam& basePath, const StringParam& filePath, sl_uint32 nDeep)
 	{
 		FilePathSegments segments;
 		segments.parsePath(basePath);
@@ -829,7 +829,7 @@ namespace slib
 		}
 		for (sl_uint32 i = 0; i <= nDeep; i++) {
 			String path = segments.buildPath();
-			if (File::exists(path + "/" + filePath)) {
+			if (File::exists(String::join(path, "/", filePath))) {
 				return path;
 			}
 			segments.segments.popBack();
@@ -845,8 +845,10 @@ namespace slib
 		parentLevel = 0;
 	}
 
-	void FilePathSegments::parsePath(const String& path)
+	void FilePathSegments::parsePath(const StringParam& _path)
 	{
+		StringData path(_path);
+
 		parentLevel = 0;
 		segments.setNull();
 
@@ -863,7 +865,7 @@ namespace slib
 			}
 			if (ch == '/' || ch == '\\') {
 				if (pos == 0) {
-					segments.add_NoLock(String::null());
+					segments.add_NoLock(sl_null);
 				} else {
 					sl_size n = pos - start;
 					if (n > 0) {
@@ -875,8 +877,7 @@ namespace slib
 								parentLevel++;
 							}
 						} else {
-							String s(buf + start, n);
-							segments.add_NoLock(s);
+							segments.add_NoLock(String(buf + start, n));
 						}
 					}
 				}

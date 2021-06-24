@@ -37,14 +37,14 @@ namespace slib
 		namespace process
 		{
         
-			static String FixArgument(const String& arg)
+			static String FixArgument(const StringParam& arg)
 			{
-				String s = arg;
+				String s = arg.toString();
 				s = s.removeAll('\\');
 				s = s.removeAll('"');
 				s = s.removeAll('\'');
 				if (s.contains(' ') || s.contains('\t') || s.contains('\r') || s.contains('\n')) {
-					s = "'" + s + "'";
+					s = String::join("'", s, "'");
 				}
 				if (s.isEmpty()) {
 					return "''";
@@ -52,7 +52,7 @@ namespace slib
 				return s;
 			}
 			
-			static String BuildCommand(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments)
+			static String BuildCommand(const StringParam& pathExecutable, const StringParam* arguments, sl_uint32 nArguments)
 			{
 				StringBuffer commandLine;
 				commandLine.add(FixArgument(pathExecutable.toString()));
@@ -61,7 +61,7 @@ namespace slib
 				}
 				for (sl_size i = 0; i < nArguments; i++) {
 					if (i > 0) {
-						commandLine.add(" ");
+						commandLine.addStatic(" ");
 					}
 					commandLine.add(FixArgument(arguments[i]));
 				}
@@ -114,7 +114,7 @@ namespace slib
 
 	using namespace priv::process;
 
-	Ref<Process> Process::run(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
+	Ref<Process> Process::run(const StringParam& pathExecutable, const StringParam* strArguments, sl_size nArguments)
 	{
 		@try {
 			NSMutableArray* arguments = [NSMutableArray array];
@@ -137,10 +137,10 @@ namespace slib
 		return sl_null;
 	}
 
-	void Process::runAsAdmin(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
+	void Process::runAsAdmin(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
-		String command = BuildCommand(pathExecutable, strArguments, nArguments);
-		String source = "do shell script \"" + command + "\" with administrator privileges";
+		String command = BuildCommand(pathExecutable, arguments, nArguments);
+		String source = String::join("do shell script \"", command, "\" with administrator privileges");
 		NSAppleScript* script = [[NSAppleScript alloc] initWithSource:(Apple::getNSStringFromString(source))];
 		[script executeAndReturnError:nil];
 	}

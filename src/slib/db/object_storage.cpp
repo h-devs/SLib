@@ -66,8 +66,7 @@ namespace slib
 			{
 				if (size) {
 					sl_uint64 dictionaryId = 0;
-					SerializeBuffer buf(data, size);
-					if (CVLI::deserialize(&buf, dictionaryId)) {
+					if (CVLI::deserialize(data, size, dictionaryId)) {
 						return dictionaryId;
 					}
 				}

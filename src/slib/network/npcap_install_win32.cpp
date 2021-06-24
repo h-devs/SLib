@@ -108,8 +108,7 @@ namespace slib
 						return sl_false;
 					}
 				}
-				String args[] = { "-i" };
-				Ref<Process> process = Process::open(path + "\\npfinstall.exe", args);
+				Ref<Process> process = Process::open(path + "\\npfinstall.exe", "-i");
 				if (process.isNotNull()) {
 					Ref<Stream> stream = process->getStream();
 					if (stream.isNotNull()) {
@@ -155,8 +154,7 @@ namespace slib
 						return sl_false;
 					}
 				}
-				String args[] = { "-u" };
-				Ref<Process> process = Process::open(path + "\\npfinstall.exe", args);
+				Ref<Process> process = Process::open(path + "\\npfinstall.exe", "-u");
 				if (process.isNotNull()) {
 					Ref<Stream> stream = process->getStream();
 					if (stream.isNotNull()) {

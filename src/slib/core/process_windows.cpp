@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,8 @@
 
 #include "slib/core/process.h"
 
-#include "slib/core/app.h"
 #include "slib/core/file.h"
+#include "slib/core/command_line.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/platform.h"
 
@@ -61,7 +61,7 @@ namespace slib
 					sb.addStatic(SLIB_UNICODE("\""));
 					sb.addStatic(pathExecutable.getData(), pathExecutable.getLength());
 					sb.addStatic(SLIB_UNICODE("\""));
-					String args = Application::buildCommandLine(cmds, nCmds);
+					String args = CommandLine::build(cmds, nCmds);
 					if (args.isNotEmpty()) {
 						sb.addStatic(SLIB_UNICODE(" "));
 						sb.add(String16::from(args));
@@ -174,7 +174,7 @@ namespace slib
 				}
 
 			public:
-				static Ref<ProcessImpl> create(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
+				static Ref<ProcessImpl> create(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 				{
 					HANDLE hStdinRead, hStdinWrite, hStdoutRead, hStdoutWrite;
 					if (CreatePipe(&hStdinRead, &hStdinWrite)) {
@@ -190,7 +190,7 @@ namespace slib
 							si.hStdOutput = hStdoutWrite;
 							si.hStdError = hStdoutWrite;
 							si.dwFlags = STARTF_USESTDHANDLES;
-							if (Execute(pathExecutable, strArguments, nArguments, &pi, &si, sl_true)) {
+							if (Execute(pathExecutable, arguments, nArguments, &pi, &si, sl_true)) {
 								CloseHandle(pi.hThread);
 								CloseHandle(hStdinRead);
 								CloseHandle(hStdoutWrite);
@@ -331,7 +331,7 @@ namespace slib
 		ShellExecuteParam param;
 		param.runAsAdmin = sl_true;
 		param.path = pathExecutable;
-		param.params = Application::buildCommandLine(arguments, nArguments);
+		param.params = CommandLine::build(arguments, nArguments);
 		Win32::shell(param);
 	}
 
@@ -352,7 +352,7 @@ namespace slib
 			nArguments = 60;
 		}
 		for (sl_size i = 0; i < nArguments; i++) {
-			_args[i] = strArguments[i];
+			_args[i] = arguments[i];
 			args[i + 1] = _args[i].getData();
 		}
 		args[nArguments + 1] = 0;
