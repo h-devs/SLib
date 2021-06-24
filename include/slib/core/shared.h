@@ -100,6 +100,8 @@ namespace slib
 
 		Shared(const AtomicShared<T>& other) noexcept;
 
+		Shared(const T& t) noexcept: container(new Container(t)) {}
+
 		Shared(T&& t) noexcept: container(new Container(Move(t))) {}
 
 		~Shared()
@@ -165,6 +167,12 @@ namespace slib
 		}
 
 		Shared& operator=(const AtomicShared<T>& other);
+
+		Shared& operator=(const T& other)
+		{
+			_replace(new Container(other));
+			return *this;
+		}
 
 		Shared& operator=(T&& other)
 		{
