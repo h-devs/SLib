@@ -73,21 +73,24 @@ namespace slib
 				{
 					HANDLE hEvent;
 #if defined(SLIB_PLATFORM_IS_WIN32)
-					hEvent = ::CreateEventW(NULL, flagAutoReset ? FALSE : TRUE, FALSE, NULL);
+					hEvent = CreateEventW(NULL, flagAutoReset ? FALSE : TRUE, FALSE, NULL);
 #else
-					hEvent = ::CreateEventEx(NULL, NULL, flagAutoReset ? CREATE_EVENT_INITIAL_SET : CREATE_EVENT_MANUAL_RESET, EVENT_ALL_ACCESS);
+					hEvent = CreateEventEx(NULL, NULL, flagAutoReset ? CREATE_EVENT_INITIAL_SET : CREATE_EVENT_MANUAL_RESET, EVENT_ALL_ACCESS);
 #endif
-					return create(hEvent, sl_true);
+					if (hEvent) {
+						return create(hEvent, sl_true);
+					}
+					return sl_null;
 				}
 
 				void _native_set() override
 				{
-					::SetEvent(m_hEvent);
+					SetEvent(m_hEvent);
 				}
 
 				void _native_reset() override
 				{
-					::ResetEvent(m_hEvent);
+					ResetEvent(m_hEvent);
 				}
 
 				sl_bool _native_wait(sl_int32 timeout) override
@@ -108,14 +111,25 @@ namespace slib
 		}
 	}
 
+	using namespace priv::event;
+
 	Ref<Event> Win32::createEvent(HANDLE hEvent, sl_bool flagCloseOnRelease)
 	{
-		return priv::event::EventImpl::create(hEvent, flagCloseOnRelease);
+		return EventImpl::create(hEvent, flagCloseOnRelease);
+	}
+
+	HANDLE Win32::getEventHandle(Event* event)
+	{
+		if (event) {
+			return ((EventImpl*)event)->m_hEvent;
+		} else {
+			return NULL;
+		}
 	}
 
 	Ref<Event> Event::create(sl_bool flagAutoReset)
 	{
-		return priv::event::EventImpl::create(flagAutoReset);
+		return EventImpl::create(flagAutoReset);
 	}
 
 }

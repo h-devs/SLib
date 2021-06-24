@@ -127,6 +127,8 @@ namespace slib
 
 	
 		static Ref<Event> createEvent(HANDLE hEvent, sl_bool flagCloseOnRelease = sl_true);
+
+		static HANDLE getEventHandle(Event* event);
 	
 	
 		static sl_bool getRegistryValue(HKEY hKey, const StringParam& subPath, const StringParam& name, Variant* out);
