@@ -54,7 +54,8 @@ namespace slib
 			NetCapture,
 			NatTable,
 			Tap,
-			Pcap
+			Pcap,
+			IPC
 		};
 
 	}

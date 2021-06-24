@@ -289,6 +289,8 @@
     <ClCompile Include="..\..\src\slib\network\http_openssl.cpp" />
     <ClCompile Include="..\..\src\slib\network\http_server.cpp" />
     <ClCompile Include="..\..\src\slib\network\icmp.cpp" />
+    <ClCompile Include="..\..\src\slib\network\ipc.cpp" />
+    <ClCompile Include="..\..\src\slib\network\ipc_win32.cpp" />
     <ClCompile Include="..\..\src\slib\network\ip_address.cpp" />
     <ClCompile Include="..\..\src\slib\network\mac_address.cpp" />
     <ClCompile Include="..\..\src\slib\network\nat.cpp" />
