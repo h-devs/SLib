@@ -131,37 +131,37 @@ namespace slib
 		static sl_real dpToPixel(sl_real dp);
 		
 		// Message Box
-		static void alert(const String& text);
+		static void alert(const StringParam& text);
 
-		static void alert(const String& caption, const String& text);
+		static void alert(const StringParam& caption, const StringParam& text);
 		
-		static void alert(const Ref<Window>& parent, const String& text);
+		static void alert(const Ref<Window>& parent, const StringParam& text);
 		
-		static void alert(const Ref<Window>& parent, const String& caption, const String& text);
+		static void alert(const Ref<Window>& parent, const StringParam& caption, const StringParam& text);
 		
-		static void showAlert(const String& text, const Function<void()>& onOk = Function<void()>::null());
+		static void showAlert(const StringParam& text, const Function<void()>& onOk = Function<void()>::null());
 		
-		static void showAlert(const String& caption, const String& text, const Function<void()>& onOk = Function<void()>::null());
+		static void showAlert(const StringParam& caption, const StringParam& text, const Function<void()>& onOk = Function<void()>::null());
 		
-		static void showAlert(const Ref<Window>& parent, const String& text, const Function<void()>& onOk = Function<void()>::null());
+		static void showAlert(const Ref<Window>& parent, const StringParam& text, const Function<void()>& onOk = Function<void()>::null());
 		
-		static void showAlert(const Ref<Window>& parent, const String& caption, const String& text, const Function<void()>& onOk = Function<void()>::null());
+		static void showAlert(const Ref<Window>& parent, const StringParam& caption, const StringParam& text, const Function<void()>& onOk = Function<void()>::null());
 		
-		static sl_bool confirm(const String& text);
+		static sl_bool confirm(const StringParam& text);
 
-		static sl_bool confirm(const String& caption, const String& text);
+		static sl_bool confirm(const StringParam& caption, const StringParam& text);
 
-		static sl_bool confirm(const Ref<Window>& parent, const String& text);
+		static sl_bool confirm(const Ref<Window>& parent, const StringParam& text);
 
-		static sl_bool confirm(const Ref<Window>& parent, const String& caption, const String& text);
+		static sl_bool confirm(const Ref<Window>& parent, const StringParam& caption, const StringParam& text);
 		
-		static void showConfirm(const String& text, const Function<void(sl_bool)>& onResult = Function<void(sl_bool)>::null());
+		static void showConfirm(const StringParam& text, const Function<void(sl_bool)>& onResult = Function<void(sl_bool)>::null());
 		
-		static void showConfirm(const String& caption, const String& text, const Function<void(sl_bool)>& onResult = Function<void(sl_bool)>::null());
+		static void showConfirm(const StringParam& caption, const StringParam& text, const Function<void(sl_bool)>& onResult = Function<void(sl_bool)>::null());
 		
-		static void showConfirm(const Ref<Window>& parent, const String& text, const Function<void(sl_bool)>& onResult = Function<void(sl_bool)>::null());
+		static void showConfirm(const Ref<Window>& parent, const StringParam& text, const Function<void(sl_bool)>& onResult = Function<void(sl_bool)>::null());
 		
-		static void showConfirm(const Ref<Window>& parent, const String& caption, const String& text, const Function<void(sl_bool)>& onResult = Function<void(sl_bool)>::null());
+		static void showConfirm(const Ref<Window>& parent, const StringParam& caption, const StringParam& text, const Function<void(sl_bool)>& onResult = Function<void(sl_bool)>::null());
 		
 
 		// HID related functions (Platform Specific)

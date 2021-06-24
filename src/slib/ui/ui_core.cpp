@@ -455,115 +455,115 @@ namespace slib
 		return (sl_real)(dp * getScreenPPI() / 160);
 	}
 	
-	void UI::alert(const String& text)
+	void UI::alert(const StringParam& text)
 	{
 		AlertDialog alert;
-		alert.text = text;
+		alert.text = text.toString();
 		alert.run();
 	}
 
-	void UI::alert(const String& caption, const String& text)
+	void UI::alert(const StringParam& caption, const StringParam& text)
 	{
 		AlertDialog alert;
-		alert.caption = caption;
-		alert.text = text;
+		alert.caption = caption.toString();
+		alert.text = text.toString();
 		alert.run();
 	}
 
-	void UI::alert(const Ref<Window>& parent, const String& text)
+	void UI::alert(const Ref<Window>& parent, const StringParam& text)
 	{
 		AlertDialog alert;
 		alert.parent = parent;
-		alert.text = text;
+		alert.text = text.toString();
 		alert.run();
 	}
 
-	void UI::alert(const Ref<Window>& parent, const String& caption, const String& text)
+	void UI::alert(const Ref<Window>& parent, const StringParam& caption, const StringParam& text)
 	{
 		AlertDialog alert;
 		alert.parent = parent;
-		alert.caption = caption;
-		alert.text = text;
+		alert.caption = caption.toString();
+		alert.text = text.toString();
 		alert.run();
 	}
 
-	void UI::showAlert(const String& text, const Function<void()>& onOk)
+	void UI::showAlert(const StringParam& text, const Function<void()>& onOk)
 	{
 		AlertDialog alert;
-		alert.text = text;
+		alert.text = text.toString();
 		alert.onOk = onOk;
 		alert.show();
 	}
 
-	void UI::showAlert(const String& caption, const String& text, const Function<void()>& onOk)
+	void UI::showAlert(const StringParam& caption, const StringParam& text, const Function<void()>& onOk)
 	{
 		AlertDialog alert;
-		alert.caption = caption;
-		alert.text = text;
+		alert.caption = caption.toString();
+		alert.text = text.toString();
 		alert.onOk = onOk;
 		alert.show();
 	}
 
-	void UI::showAlert(const Ref<Window>& parent, const String& text, const Function<void()>& onOk)
+	void UI::showAlert(const Ref<Window>& parent, const StringParam& text, const Function<void()>& onOk)
 	{
 		AlertDialog alert;
 		alert.parent = parent;
-		alert.text = text;
+		alert.text = text.toString();
 		alert.onOk = onOk;
 		alert.show();
 	}
 	
-	void UI::showAlert(const Ref<Window>& parent, const String& caption, const String& text, const Function<void()>& onOk)
+	void UI::showAlert(const Ref<Window>& parent, const StringParam& caption, const StringParam& text, const Function<void()>& onOk)
 	{
 		AlertDialog alert;
 		alert.parent = parent;
-		alert.caption = caption;
-		alert.text = text;
+		alert.caption = caption.toString();
+		alert.text = text.toString();
 		alert.onOk = onOk;
 		alert.show();
 	}
 
-	sl_bool UI::confirm(const String& text)
+	sl_bool UI::confirm(const StringParam& text)
 	{
 		AlertDialog alert;
 		alert.buttons = AlertDialogButtons::OkCancel;
-		alert.text = text;
+		alert.text = text.toString();
 		return alert.run() == DialogResult::Ok;
 	}
 	
-	sl_bool UI::confirm(const String& caption, const String& text)
+	sl_bool UI::confirm(const StringParam& caption, const StringParam& text)
 	{
 		AlertDialog alert;
 		alert.buttons = AlertDialogButtons::OkCancel;
-		alert.caption = caption;
-		alert.text = text;
+		alert.caption = caption.toString();
+		alert.text = text.toString();
 		return alert.run() == DialogResult::Ok;
 	}
 	
-	sl_bool UI::confirm(const Ref<Window>& parent, const String& text)
+	sl_bool UI::confirm(const Ref<Window>& parent, const StringParam& text)
 	{
 		AlertDialog alert;
 		alert.buttons = AlertDialogButtons::OkCancel;
 		alert.parent = parent;
-		alert.text = text;
+		alert.text = text.toString();
 		return alert.run() == DialogResult::Ok;
 	}
 	
-	sl_bool UI::confirm(const Ref<Window>& parent, const String& caption, const String& text)
+	sl_bool UI::confirm(const Ref<Window>& parent, const StringParam& caption, const StringParam& text)
 	{
 		AlertDialog alert;
 		alert.buttons = AlertDialogButtons::OkCancel;
 		alert.parent = parent;
-		alert.caption = caption;
-		alert.text = text;
+		alert.caption = caption.toString();
+		alert.text = text.toString();
 		return alert.run() == DialogResult::Ok;
 	}
 	
-	void UI::showConfirm(const String& text, const Function<void(sl_bool)>& onResult)
+	void UI::showConfirm(const StringParam& text, const Function<void(sl_bool)>& onResult)
 	{
 		AlertDialog alert;
 		alert.buttons = AlertDialogButtons::OkCancel;
-		alert.text = text;
+		alert.text = text.toString();
 		alert.onComplete = [onResult](DialogResult result) {
 			if (result == DialogResult::Ok) {
 				onResult(sl_true);
@@ -574,12 +574,12 @@ namespace slib
 		alert.show();
 	}
 	
-	void UI::showConfirm(const String& caption, const String& text, const Function<void(sl_bool)>& onResult)
+	void UI::showConfirm(const StringParam& caption, const StringParam& text, const Function<void(sl_bool)>& onResult)
 	{
 		AlertDialog alert;
 		alert.buttons = AlertDialogButtons::OkCancel;
-		alert.caption = caption;
-		alert.text = text;
+		alert.caption = caption.toString();
+		alert.text = text.toString();
 		alert.onComplete = [onResult](DialogResult result) {
 			if (result == DialogResult::Ok) {
 				onResult(sl_true);
@@ -590,12 +590,12 @@ namespace slib
 		alert.show();
 	}
 	
-	void UI::showConfirm(const Ref<Window>& parent, const String& text, const Function<void(sl_bool)>& onResult)
+	void UI::showConfirm(const Ref<Window>& parent, const StringParam& text, const Function<void(sl_bool)>& onResult)
 	{
 		AlertDialog alert;
 		alert.buttons = AlertDialogButtons::OkCancel;
 		alert.parent = parent;
-		alert.text = text;
+		alert.text = text.toString();
 		alert.onComplete = [onResult](DialogResult result) {
 			if (result == DialogResult::Ok) {
 				onResult(sl_true);
@@ -606,13 +606,13 @@ namespace slib
 		alert.show();
 	}
 	
-	void UI::showConfirm(const Ref<Window>& parent, const String& caption, const String& text, const Function<void(sl_bool)>& onResult)
+	void UI::showConfirm(const Ref<Window>& parent, const StringParam& caption, const StringParam& text, const Function<void(sl_bool)>& onResult)
 	{
 		AlertDialog alert;
 		alert.buttons = AlertDialogButtons::OkCancel;
 		alert.parent = parent;
-		alert.caption = caption;
-		alert.text = text;
+		alert.caption = caption.toString();
+		alert.text = text.toString();
 		alert.onComplete = [onResult](DialogResult result) {
 			if (result == DialogResult::Ok) {
 				onResult(sl_true);
