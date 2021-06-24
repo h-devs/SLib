@@ -155,12 +155,14 @@ namespace slib
 								if (thread->isNotStoppingCurrent()) {
 									Memory mem = readMessage(thread, socket);
 									callbackResponse((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()));
+									m_threads.remove(thread);
 									return;
 								}
 							}
 						}
 					}
 					callbackResponse(sl_null, 0);
+					m_threads.remove(thread);
 				}
 
 				void runListen()

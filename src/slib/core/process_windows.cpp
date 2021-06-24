@@ -52,7 +52,7 @@ namespace slib
 				return ::CreatePipe(pRead, pWrite, &saAttr, 0) != 0;
 			}
 			
-			static sl_bool Execute(const StringParam& _pathExecutable, const StringParam* cmds, sl_size nCmds, PROCESS_INFORMATION* pi, STARTUPINFOW* si, sl_bool flagInheritHandles)
+			static sl_bool Execute(const StringParam& _pathExecutable, const StringParam* cmds, sl_size nCmds, PROCESS_INFORMATION* pi, STARTUPINFOW* si, DWORD flags, sl_bool flagInheritHandles)
 			{
 				StringCstr16 pathExecutable(_pathExecutable);
 				StringCstr16 cmd;
@@ -74,7 +74,7 @@ namespace slib
 					NULL, // process security attributes
 					NULL, // thread security attributes
 					flagInheritHandles, // handles are inherited,
-					NORMAL_PRIORITY_CLASS,
+					flags,
 					NULL, // Environment (uses parent's environment)
 					NULL, // Current Directory (uses parent's current directory)
 					si,
@@ -190,7 +190,7 @@ namespace slib
 							si.hStdOutput = hStdoutWrite;
 							si.hStdError = hStdoutWrite;
 							si.dwFlags = STARTF_USESTDHANDLES;
-							if (Execute(pathExecutable, arguments, nArguments, &pi, &si, sl_true)) {
+							if (Execute(pathExecutable, arguments, nArguments, &pi, &si, NORMAL_PRIORITY_CLASS, sl_true)) {
 								CloseHandle(pi.hThread);
 								CloseHandle(hStdinRead);
 								CloseHandle(hStdoutWrite);
@@ -311,10 +311,9 @@ namespace slib
 
 		STARTUPINFOW si;
 		ZeroMemory(&si, sizeof(si));
-		si.dwFlags = STARTF_USESTDHANDLES;
 		si.cb = sizeof(si);
 
-		if (Execute(pathExecutable, arguments, nArguments, &pi, &si, sl_false)) {
+		if (Execute(pathExecutable, arguments, nArguments, &pi, &si, NORMAL_PRIORITY_CLASS | DETACHED_PROCESS, sl_false)) {
 			CloseHandle(pi.hThread);
 			Ref<ProcessImpl> ret = new ProcessImpl;
 			if (ret.isNotNull()) {

@@ -80,6 +80,7 @@ namespace slib
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 #	include <conio.h>
+#	include "slib/core/win32/windows.h"
 #	define scanf scanf_s
 #else
 #	include <stdlib.h>
@@ -92,6 +93,25 @@ namespace slib
 namespace slib
 {
 
+	namespace priv
+	{
+		namespace console
+		{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+			void PrintConsole(const void* data, sl_size size)
+			{
+				HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+				if (handle) {
+					DWORD dwWritten;
+					WriteFile(handle, data, (DWORD)size, &dwWritten, NULL);
+				}
+			}
+#endif
+		}
+	}
+
+	using namespace priv::console;
+
 	void Console::print(const StringParam& _s)
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
@@ -99,8 +119,8 @@ namespace slib
 		if (s.isEmpty()) {
 			return;
 		}
-		Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
-		printf("%s", (char*)(mem.getData()));
+		Memory mem = Charsets::encode16(s.getData(), s.getLength(), Charset::ANSI);
+		PrintConsole(mem.getData(), mem.getSize());
 #else
 		StringCstr s(_s);
 		printf("%s", s.getData());
@@ -111,12 +131,20 @@ namespace slib
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		StringCstr16 s(_s);
-		if (s.isEmpty()) {
-			printf("\n");
-			return;
+		if (s.isNotEmpty()) {
+			sl_size len = Charsets::encode16(s.getData(), s.getLength(), Charset::ANSI, sl_null, -1);
+			if (len) {
+				Memory mem = Memory::create(len + 1);
+				if (mem.isNotNull()) {
+					Charsets::encode16(s.getData(), s.getLength(), Charset::ANSI, mem.getData(), len);
+					((char*)(mem.getData()))[len] = '\n';
+					PrintConsole(mem.getData(), mem.getSize());
+				}
+			}
+			Memory mem = Charsets::encode16(s.getData(), s.getLength(), Charset::ANSI);
+		} else {
+			PrintConsole(L"\n", 1);
 		}
-		Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
-		printf("%s\n", (char*)(mem.getData()));
 #else
 		StringCstr s(_s);
 		printf("%s\n", s.getData());
@@ -376,17 +404,7 @@ namespace slib
 		}
 	}
 
-}
-
 #if defined(SLIB_UI_IS_WIN32)
-#include "slib/core/windows.h"
-#endif
-
-namespace slib
-{
-
-#if defined(SLIB_UI_IS_WIN32)
-
 	sl_bool Console::open()
 	{
 		return AllocConsole() != 0;
@@ -396,9 +414,7 @@ namespace slib
 	{
 		return FreeConsole() != 0;
 	}
-
 #else
-
 	sl_bool Console::open()
 	{
 		return sl_false;
@@ -408,7 +424,6 @@ namespace slib
 	{
 		return sl_false;
 	}
-
 #endif
 
 }

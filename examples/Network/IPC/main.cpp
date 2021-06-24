@@ -1,4 +1,4 @@
-#include <slib.h>
+﻿#include <slib.h>
 
 using namespace slib;
 
@@ -20,7 +20,9 @@ void Run(const String& name, const String& target)
 		for (;;) {
 			String msg = String::format("Request from %s: %d", name, index++);
 			ipc->sendMessage(target, msg.toMemory(), [name](sl_uint8* data, sl_uint32 size) {
-				Println("Response to %s: %s", name, StringView((char*)data, size));
+				if (size) {
+					Println("Response to %s: %s", name, StringView((char*)data, size));
+				}
 			});
 			Thread::sleep(1000);
 		}
@@ -29,10 +31,11 @@ void Run(const String& name, const String& target)
 
 int main(int argc, const char * argv[])
 {
-	if (argc == 1 && StringView(argv[1]) == "child") {
+	if (argc == 2 && StringView(argv[1]) == "child") {
+		Console::open();
 		Run("child", "parent");
 	} else {
-		Process::exec(argv[0], "child");
+		Process::run(argv[0], "child");
 		Run("parent", "child");
 	}
 	Println("Press x to exit!");
