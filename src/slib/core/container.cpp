@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,18 @@
  */
 
 #include "slib/core/list.h"
+#include "slib/core/iterator.h"
+#include "slib/core/map.h"
+#include "slib/core/hash_map.h"
+#include "slib/core/linked_list.h"
+#include "slib/core/queue.h"
+#include "slib/core/queue_channel.h"
+#include "slib/core/linked_object.h"
+#include "slib/core/loop_queue.h"
+#include "slib/core/ptr.h"
+#include "slib/core/shared_ptr.h"
+#include "slib/core/function.h"
+#include "slib/core/promise.h"
 
 namespace slib
 {
@@ -144,6 +156,33 @@ namespace slib
 			}
 			
 		}
+
+		namespace ptr
+		{
+
+			struct ConstStruct
+			{
+				void* ptr;
+				void* ref;
+			};
+
+			const ConstStruct g_null = { 0, 0 };
+
+		}
+
+		namespace shared
+		{
+			void* const g_shared_null = 0;
+		}
+
+		namespace function_list
+		{
+			sl_object_type GetObjectType()
+			{
+				return (sl_object_type)(sl_size)(object_types::FunctionList);
+			}
+		}
+
 	}
 
 
@@ -154,6 +193,124 @@ namespace slib
 	}
 
 	CListBase::~CListBase()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CIteratorBase)
+
+	CIteratorBase::CIteratorBase()
+	{
+	}
+
+	CIteratorBase::~CIteratorBase()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CArrayBase)
+
+	CArrayBase::CArrayBase()
+	{
+	}
+
+	CArrayBase::~CArrayBase()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CMapBase)
+
+	CMapBase::CMapBase()
+	{
+	}
+
+	CMapBase::~CMapBase()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CHashMapBase)
+
+	CHashMapBase::CHashMapBase()
+	{
+	}
+
+	CHashMapBase::~CHashMapBase()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CLinkedListBase)
+
+	CLinkedListBase::CLinkedListBase()
+	{
+	}
+
+	CLinkedListBase::~CLinkedListBase()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(LinkedObjectListBase)
+
+	LinkedObjectListBase::LinkedObjectListBase()
+	{
+	}
+
+	LinkedObjectListBase::~LinkedObjectListBase()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(LoopQueueBase)
+
+	LoopQueueBase::LoopQueueBase()
+	{
+	}
+
+	LoopQueueBase::~LoopQueueBase()
+	{
+	}
+
+
+	CSharedPtrBase::~CSharedPtrBase()
+	{
+	}
+
+	sl_reg CSharedPtrBase::increaseReference() noexcept
+	{
+		return Base::interlockedIncrement(&refCount);
+	}
+
+	sl_reg CSharedPtrBase::decreaseReference()
+	{
+		sl_reg nRef = Base::interlockedDecrement(&refCount);
+		if (!nRef) {
+			delete this;
+		}
+		return nRef;
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CallableBase)
+
+	CallableBase::CallableBase()
+	{
+	}
+
+	CallableBase::~CallableBase()
+	{
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(CPromiseBase)
+
+	CPromiseBase::CPromiseBase()
+	{
+	}
+
+	CPromiseBase::~CPromiseBase()
 	{
 	}
 

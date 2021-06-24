@@ -45,7 +45,7 @@ namespace slib
 	public:
 		sl_reg increaseReference() noexcept;
 
-		sl_reg decreaseReference() noexcept;
+		sl_reg decreaseReference();
 
 	public:
 		sl_reg refCount;
@@ -62,7 +62,7 @@ namespace slib
 	
 	namespace priv
 	{
-		namespace ptr
+		namespace shared
 		{
 
 			extern void* const g_shared_null;
@@ -137,10 +137,12 @@ namespace slib
 	class SLIB_EXPORT SharedPtr
 	{
 		typedef CSharedPtr<T> Container;
-		typedef typename priv::ptr::SharedPtrValueType<T>::Type ValueType;
+		typedef typename priv::shared::SharedPtrValueType<T>::Type ValueType;
 
 	public:
 		constexpr SharedPtr(): container(sl_null) {}
+
+		constexpr SharedPtr(sl_null_t): container(sl_null) {}
 
 		SharedPtr(SharedPtr&& other) noexcept
 		{
@@ -180,12 +182,10 @@ namespace slib
 			container = reinterpret_cast<Container*>(other._retain());
 		}
 
-		constexpr SharedPtr(sl_null_t): container(sl_null) {}
-
 		SharedPtr(const T* ptr) noexcept
 		{
 			if (ptr) {
-				container = new priv::ptr::SharedPtrContainer<T>((T*)ptr);
+				container = new priv::shared::SharedPtrContainer<T>((T*)ptr);
 			} else {
 				container = sl_null;
 			}
@@ -195,15 +195,15 @@ namespace slib
 		SharedPtr(const T* ptr, DELETER&& deleter) noexcept
 		{
 			if (ptr) {
-				container = new priv::ptr::SharedPtrContainerWithDeleter<T, typename RemoveConstReference<DELETER>::Type>((T*)ptr, Forward<DELETER>(deleter));
+				container = new priv::shared::SharedPtrContainerWithDeleter<T, typename RemoveConstReference<DELETER>::Type>((T*)ptr, Forward<DELETER>(deleter));
 			} else {
 				container = sl_null;
 			}
 		}
 
-		SharedPtr(ValueType&& t) noexcept: container(new priv::ptr::SharedObjectContainer<ValueType>(Move(t))) {}
+		SharedPtr(ValueType&& t) noexcept: container(new priv::shared::SharedObjectContainer<ValueType>(Move(t))) {}
 
-		SharedPtr(const ValueType& t) noexcept: container(new priv::ptr::SharedObjectContainer<ValueType>(t)) {}
+		SharedPtr(const ValueType& t) noexcept: container(new priv::shared::SharedObjectContainer<ValueType>(t)) {}
 
 		~SharedPtr()
 		{
@@ -220,12 +220,12 @@ namespace slib
 		template <class... Args>
 		static SharedPtr create(Args&&... args)
 		{
-			return new priv::ptr::SharedObjectContainer<ValueType>(Forward<Args>(args)...);
+			return new priv::shared::SharedObjectContainer<ValueType>(Forward<Args>(args)...);
 		}
 
 		static const SharedPtr& null() noexcept
 		{
-			return *(reinterpret_cast<SharedPtr const*>(&(priv::ptr::g_shared_null)));
+			return *(reinterpret_cast<SharedPtr const*>(&(priv::shared::g_shared_null)));
 		}
 	
 		constexpr sl_bool isNull() const
@@ -238,7 +238,7 @@ namespace slib
 			return container != sl_null;
 		}
 
-		void setNull() noexcept
+		void setNull()
 		{
 			_replace(sl_null);
 		}
@@ -267,13 +267,13 @@ namespace slib
 		}
 
 	public:
-		SharedPtr& operator=(SharedPtr&& other) noexcept
+		SharedPtr& operator=(SharedPtr&& other)
 		{
 			_move_assign(&other);
 			return *this;
 		}
 
-		SharedPtr& operator=(const SharedPtr& other) noexcept
+		SharedPtr& operator=(const SharedPtr& other)
 		{
 			Container* o = other.container;
 			if (container != o) {
@@ -286,14 +286,14 @@ namespace slib
 		}
 
 		template <class OTHER>
-		SharedPtr& operator=(SharedPtr<OTHER>&& other) noexcept
+		SharedPtr& operator=(SharedPtr<OTHER>&& other)
 		{
 			_move_assign(&other);
 			return *this;
 		}
 
 		template <class OTHER>
-		SharedPtr& operator=(const SharedPtr<OTHER>& other) noexcept
+		SharedPtr& operator=(const SharedPtr<OTHER>& other)
 		{
 			Container* o = reinterpret_cast<Container*>(other.container);
 			if (container != o) {
@@ -306,23 +306,23 @@ namespace slib
 		}
 
 		template <class OTHER>
-		SharedPtr& operator=(const AtomicSharedPtr<OTHER>& other) noexcept
+		SharedPtr& operator=(const AtomicSharedPtr<OTHER>& other)
 		{
-			if ((void*)container != (void*)(other.container)) {
+			if ((void*)container != (void*)(other._container)) {
 				_replace(other._retain());
 			}
 			return *this;
 		}
 
-		SharedPtr& operator=(ValueType&& other) noexcept
+		SharedPtr& operator=(ValueType&& other)
 		{
-			_replace(new priv::ptr::SharedObjectContainer<ValueType>(Move(other)));
+			_replace(new priv::shared::SharedObjectContainer<ValueType>(Move(other)));
 			return *this;
 		}
 
-		SharedPtr& operator=(const ValueType& other) noexcept
+		SharedPtr& operator=(const ValueType& other)
 		{
-			_replace(new priv::ptr::SharedObjectContainer<ValueType>(other));
+			_replace(new priv::shared::SharedObjectContainer<ValueType>(other));
 			return *this;
 		}
 
@@ -369,7 +369,7 @@ namespace slib
 		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR
 
 	private:
-		void _replace(Container* other) noexcept
+		void _replace(Container* other)
 		{
 			if (container) {
 				container->decreaseReference();
@@ -377,7 +377,7 @@ namespace slib
 			container = other;
 		}
 		
-		void _move_assign(void* _other) noexcept
+		void _move_assign(void* _other)
 		{
 			if ((void*)this != _other) {
 				SharedPtr& other = *(reinterpret_cast<SharedPtr*>(_other));
@@ -395,10 +395,12 @@ namespace slib
 	class SLIB_EXPORT Atomic< SharedPtr<T> >
 	{
 		typedef CSharedPtr<T> Container;
-		typedef typename priv::ptr::SharedPtrValueType<T>::Type ValueType;
+		typedef typename priv::shared::SharedPtrValueType<T>::Type ValueType;
 
 	public:
 		constexpr Atomic(): _container(sl_null) {}
+
+		constexpr Atomic(sl_null_t): _container(sl_null) {}
 
 		Atomic(const Atomic& other) noexcept
 		{
@@ -428,12 +430,10 @@ namespace slib
 			_container = o;
 		}
 
-		constexpr Atomic(sl_null_t): _container(sl_null) {}
-
 		Atomic(const T* ptr) noexcept
 		{
 			if (ptr) {
-				_container = new priv::ptr::SharedPtrContainer<T>((T*)ptr);
+				_container = new priv::shared::SharedPtrContainer<T>((T*)ptr);
 			} else {
 				_container = sl_null;
 			}
@@ -443,15 +443,15 @@ namespace slib
 		Atomic(const T* ptr, DELETER&& deleter) noexcept
 		{
 			if (ptr) {
-				_container = new priv::ptr::SharedPtrContainerWithDeleter<T, typename RemoveConstReference<DELETER>::Type>((T*)ptr, Forward<DELETER>(deleter));
+				_container = new priv::shared::SharedPtrContainerWithDeleter<T, typename RemoveConstReference<DELETER>::Type>((T*)ptr, Forward<DELETER>(deleter));
 			} else {
 				_container = sl_null;
 			}
 		}
 
-		Atomic(ValueType&& t) noexcept: _container(new priv::ptr::SharedObjectContainer<ValueType>(Move(t))) {}
+		Atomic(ValueType&& t) noexcept: _container(new priv::shared::SharedObjectContainer<ValueType>(Move(t))) {}
 
-		Atomic(const ValueType& t) noexcept: _container(new priv::ptr::SharedObjectContainer<ValueType>(t)) {}
+		Atomic(const ValueType& t) noexcept: _container(new priv::shared::SharedObjectContainer<ValueType>(t)) {}
 
 		~Atomic()
 		{
@@ -472,7 +472,7 @@ namespace slib
 			return _container != sl_null;
 		}
 
-		void setNull() noexcept
+		void setNull()
 		{
 			_replace(sl_null);
 		}
@@ -490,7 +490,7 @@ namespace slib
 		}
 
 	public:
-		Atomic & operator=(const Atomic& other) noexcept
+		Atomic & operator=(const Atomic& other)
 		{
 			if (_container != other._container) {
 				_replace(other._retain());
@@ -499,7 +499,7 @@ namespace slib
 		}
 
 		template <class OTHER>
-		Atomic& operator=(const AtomicSharedPtr<OTHER>& other) noexcept
+		Atomic& operator=(const AtomicSharedPtr<OTHER>& other)
 		{
 			if (_container != reinterpret_cast<Container*>(other._container)) {
 				_replace(other._retain());
@@ -508,14 +508,14 @@ namespace slib
 		}
 
 		template <class OTHER>
-		Atomic& operator=(SharedPtr<OTHER>&& other) noexcept
+		Atomic& operator=(SharedPtr<OTHER>&& other)
 		{
 			_move_assign(&other);
 			return *this;
 		}
 
 		template <class OTHER>
-		Atomic& operator=(const SharedPtr<OTHER>& other) noexcept
+		Atomic& operator=(const SharedPtr<OTHER>& other)
 		{
 			Container* o = reinterpret_cast<Container*>(other.container);
 			if (_container != o) {
@@ -527,15 +527,15 @@ namespace slib
 			return *this;
 		}
 
-		Atomic& operator=(ValueType&& other) noexcept
+		Atomic& operator=(ValueType&& other)
 		{
-			_replace(new priv::ptr::SharedObjectContainer<ValueType>(Move(other)));
+			_replace(new priv::shared::SharedObjectContainer<ValueType>(Move(other)));
 			return *this;
 		}
 
-		Atomic& operator=(const ValueType& other) noexcept
+		Atomic& operator=(const ValueType& other)
 		{
-			_replace(new priv::ptr::SharedObjectContainer<ValueType>(other));
+			_replace(new priv::shared::SharedObjectContainer<ValueType>(other));
 			return *this;
 		}
 
@@ -544,7 +544,7 @@ namespace slib
 			return *this;
 		}
 
-		explicit operator sl_bool() const noexcept
+		explicit constexpr operator sl_bool() const
 		{
 			return _container != sl_null;
 		}
@@ -591,7 +591,7 @@ namespace slib
 			return p;
 		}
 
-		void _replace(Container* other) noexcept
+		void _replace(Container* other)
 		{
 			m_lock.unlock();
 			Container* before = _container;
@@ -602,7 +602,7 @@ namespace slib
 			}
 		}
 
-		void _move_assign(void* _other) noexcept
+		void _move_assign(void* _other)
 		{
 			if ((void*)this != _other) {
 				SharedPtr<T>& other = *(reinterpret_cast<SharedPtr<T>*>(_other));

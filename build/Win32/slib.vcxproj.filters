@@ -290,9 +290,6 @@
     <ClCompile Include="..\..\src\slib\core\resource.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\list.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\object.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -1407,6 +1404,9 @@
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\charset_win32.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\container.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
   </ItemGroup>
