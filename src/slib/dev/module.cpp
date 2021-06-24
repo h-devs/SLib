@@ -26,7 +26,7 @@
 
 #include "slib/core/base.h"
 
-#include "slib/core/windows.h"
+#include "slib/core/win32/windows.h"
 
 #define PSAPI_VERSION 1
 #include <psapi.h>

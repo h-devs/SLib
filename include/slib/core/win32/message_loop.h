@@ -27,7 +27,8 @@
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 
-#include "../windows.h"
+#include "windows.h"
+
 #include "../dispatch.h"
 #include "../queue.h"
 #include "../string.h"

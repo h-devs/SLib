@@ -30,7 +30,7 @@
 #include "slib/core/time_counter.h"
 #include "slib/core/memory.h"
 #include "slib/core/command_line.h"
-#include "slib/core/windows.h"
+#include "slib/core/win32/windows.h"
 
 #pragma comment(lib, "advapi32.lib")
 

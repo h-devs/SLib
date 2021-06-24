@@ -33,7 +33,7 @@
 #include "slib/core/async_file.h"
 #include "slib/core/system.h"
 
-#include "slib/core/windows.h"
+#include "slib/core/win32/windows.h"
 
 #include <winhttp.h>
 #pragma comment(lib, "winhttp.lib")

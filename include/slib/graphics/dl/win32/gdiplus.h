@@ -29,7 +29,7 @@
 
 #include "../../../core/dl.h"
 
-#include "../../../core/windows.h"
+#include "../../../core/win32/windows.h"
 
 #include <objidl.h>
 

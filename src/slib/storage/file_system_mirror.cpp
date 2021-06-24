@@ -29,7 +29,7 @@
 #include "slib/core/variant.h"
 #include "slib/storage/disk.h"
 
-#include "slib/core/windows.h"
+#include "slib/core/win32/windows.h"
 
 #define FILE_FROM_CONTEXT(context) (context ? ((MirrorFileContext*)(context))->file : sl_null)
 

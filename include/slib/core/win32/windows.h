@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,10 +20,10 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_WINDOWS
-#define CHECKHEADER_SLIB_CORE_WINDOWS
+#ifndef CHECKHEADER_SLIB_CORE_WIN32_WINDOWS
+#define CHECKHEADER_SLIB_CORE_WIN32_WINDOWS
 
-#include "definition.h"
+#include "../definition.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 

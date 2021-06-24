@@ -27,7 +27,7 @@
 #include "slib/core/global_unique_instance.h"
 
 #include "slib/core/file.h"
-#include "slib/core/windows.h"
+#include "slib/core/win32/windows.h"
 
 namespace slib
 {

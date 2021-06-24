@@ -32,7 +32,7 @@
 #include "slib/core/safe_static.h"
 #include "slib/core/log.h"
 
-#include "slib/core/windows.h"
+#include "slib/core/win32/windows.h"
 
 namespace slib
 {

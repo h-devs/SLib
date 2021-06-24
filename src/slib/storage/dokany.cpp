@@ -33,7 +33,7 @@
 #include "slib/core/dynamic_library.h"
 #include "slib/core/safe_static.h"
 
-#include "slib/core/windows.h"
+#include "slib/core/win32/windows.h"
 
 #define TAG "DokanHost"
 #include "slib/storage/file_system_internal.h"

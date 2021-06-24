@@ -26,7 +26,7 @@
 
 #include "slib/core/charset.h"
 
-#include "slib/core/windows.h"
+#include "slib/core/win32/windows.h"
 
 namespace slib
 {
@@ -38,7 +38,7 @@ namespace slib
 			
 			sl_size Encode16(const sl_char16* utf16, sl_size lenUtf16, sl_uint32 codepage, void* output, sl_reg sizeOutputBuffer)
 			{
-				if (lenUtf16 && lenUtf16 <= 0x40000000 && sizeOutputBuffer != 0) {
+				if (lenUtf16 && lenUtf16 <= 0x40000000 && sizeOutputBuffer) {
 					if (sizeOutputBuffer > 0x40000000) {
 						sizeOutputBuffer = 0x40000000;
 					}

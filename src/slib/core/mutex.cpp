@@ -25,7 +25,7 @@
 #include "slib/core/base.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-#include "slib/core/windows.h"
+#include "slib/core/win32/windows.h"
 #elif defined(SLIB_PLATFORM_IS_UNIX)
 #include <pthread.h>
 #endif
