@@ -31,7 +31,7 @@
 #include "../core/linked_list.h"
 #include "../core/function.h"
 #include "../core/string.h"
-#include "../core/shared_ptr.h"
+#include "../core/shared.h"
 
 namespace slib
 {
@@ -318,7 +318,7 @@ namespace slib
 		AtomicWeakRef<View> viewPrevTabStop;
 		AtomicRef<Cursor> cursor;
 		AtomicRef<GestureDetector> gestureDetector;
-		AtomicSharedPtr<DragItem> dragItem;
+		AtomicShared<DragItem> dragItem;
 		DragOperations dragOperationMask;
 		char mnemonicKey;
 

@@ -135,7 +135,7 @@ namespace slib
 	{
 	}
 	
-	SharedPtr<OAuth1_AccessToken> OAuth1::getAccessToken()
+	Shared<OAuth1_AccessToken> OAuth1::getAccessToken()
 	{
 		return m_accessToken;
 	}
@@ -168,7 +168,7 @@ namespace slib
 	
 	String OAuth1::getAccessTokenKey()
 	{
-		SharedPtr<OAuth1_AccessToken> accessToken = m_accessToken;
+		Shared<OAuth1_AccessToken> accessToken = m_accessToken;
 		if (accessToken.isNotNull()) {
 			return accessToken->token;
 		}
@@ -177,7 +177,7 @@ namespace slib
 	
 	String OAuth1::getAccessTokenSecret()
 	{
-		SharedPtr<OAuth1_AccessToken> accessToken = m_accessToken;
+		Shared<OAuth1_AccessToken> accessToken = m_accessToken;
 		if (accessToken.isNotNull()) {
 			return accessToken->secret;
 		}
@@ -314,7 +314,7 @@ namespace slib
 	
 	void OAuth1::authorizeRequest(UrlRequestParam& param)
 	{
-		SharedPtr<OAuth1_AccessToken> token = m_accessToken;
+		Shared<OAuth1_AccessToken> token = m_accessToken;
 		if (token.isNotNull()) {
 			authorizeRequest(param, token->token, token->secret, sl_null);
 		}
@@ -403,7 +403,7 @@ namespace slib
 		}
 		String key = "slib_oauth1_" + m_preferenceName;
 		Json value;
-		SharedPtr<OAuth1_AccessToken> accessToken = m_accessToken;
+		Shared<OAuth1_AccessToken> accessToken = m_accessToken;
 		if (accessToken.isNotNull()) {
 			ToJson(value, *accessToken);
 		}
@@ -624,7 +624,7 @@ namespace slib
 	{
 	}
 	
-	SharedPtr<OAuthAccessToken> OAuth2::getAccessToken()
+	Shared<OAuthAccessToken> OAuth2::getAccessToken()
 	{
 		return m_accessToken;
 	}
@@ -657,7 +657,7 @@ namespace slib
 	
 	String OAuth2::getAccessTokenKey()
 	{
-		SharedPtr<OAuthAccessToken> accessToken = m_accessToken;
+		Shared<OAuthAccessToken> accessToken = m_accessToken;
 		if (accessToken.isNotNull()) {
 			return accessToken->token;
 		}
@@ -666,7 +666,7 @@ namespace slib
 	
 	List<String> OAuth2::getAccessTokenScopes()
 	{
-		SharedPtr<OAuthAccessToken> accessToken = m_accessToken;
+		Shared<OAuthAccessToken> accessToken = m_accessToken;
 		if (accessToken.isNotNull()) {
 			return accessToken->scopes;
 		}
@@ -687,7 +687,7 @@ namespace slib
 	
 	void OAuth2::authorizeRequest(UrlRequestParam& param)
 	{
-		SharedPtr<OAuthAccessToken> token = m_accessToken;
+		Shared<OAuthAccessToken> token = m_accessToken;
 		if (token.isNotNull()) {
 			authorizeRequest(param, *token);
 		}
@@ -945,7 +945,7 @@ namespace slib
 		}
 		String key = "slib_oauth2_" + m_preferenceName;
 		Json value;
-		SharedPtr<OAuthAccessToken> accessToken = m_accessToken;
+		Shared<OAuthAccessToken> accessToken = m_accessToken;
 		if (accessToken.isNotNull()) {
 			ToJson(value, *accessToken);
 		}

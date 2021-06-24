@@ -28,7 +28,7 @@
 #include "json/conv.h"
 #include "json/generic.h"
 #include "json/ref.h"
-#include "json/shared_ptr.h"
+#include "json/shared.h"
 #include "json/list.h"
 #include "json/map.h"
 #include "json/nullable.h"

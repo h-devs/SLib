@@ -29,7 +29,7 @@
 
 #include "../core/io.h"
 #include "../core/property.h"
-#include "../core/shared_ptr.h"
+#include "../core/shared.h"
 #include "../crypto/tls.h"
 
 namespace slib
@@ -217,8 +217,8 @@ namespace slib
 	public:
 		Function<Variant(HttpServerContext*)> onRequest;
 		HashMap<String, HttpServerRoute> routes;
-		SharedPtr<HttpServerRoute> defaultRoute;
-		SharedPtr<HttpServerRoute> ellipsisRoute;
+		Shared<HttpServerRoute> defaultRoute;
+		Shared<HttpServerRoute> ellipsisRoute;
 		List< Pair<String, HttpServerRoute> > parameterRoutes;
 		
 	public:

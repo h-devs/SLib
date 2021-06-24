@@ -27,6 +27,7 @@
 #include "expression.h"
 
 #include "../core/string_buffer.h"
+#include "../core/shared.h"
 
 namespace slib
 {
@@ -223,7 +224,7 @@ namespace slib
 	public:
 		String name;
 		DatabaseIdentifier table;
-		SharedPtr<DatabaseQuery> query;
+		Shared<DatabaseQuery> query;
 		DatabaseExpression expression;
 		
 	public:

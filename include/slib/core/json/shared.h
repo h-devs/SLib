@@ -20,46 +20,62 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_SHARED_PTR
-#define CHECKHEADER_SLIB_CORE_SERIALIZE_SHARED_PTR
+#ifndef CHECKHEADER_SLIB_CORE_JSON_SHARED_PTR
+#define CHECKHEADER_SLIB_CORE_JSON_SHARED_PTR
 
-#include "primitive.h"
+#include "core.h"
 
-#include "../shared_ptr.h"
+#include "../shared.h"
 
 namespace slib
 {
-
-	template <class OUTPUT, class T>
-	static sl_bool Serialize(OUTPUT* output, const SharedPtr<T>& _in)
+	
+	template <class T>
+	static void FromJson(const Json& json, Shared<T>& _out)
 	{
-		if (_in.isNull()) {
-			return SerializeStatic(output, "", 1);
+		if (json.isUndefined()) {
+			return;
+		}
+		if (json.isNull()) {
+			_out.setNull();
 		} else {
-			if (!(SerializeStatic(output, "\x01", 1))) {
-				return sl_false;
-			}
-			return Serialize(output, *(_in.get()));
+			_out = Shared<T>::create();
+			FromJson(json, *(_out.get()));
 		}
 	}
 
-	template <class INPUT, class T>
-	static sl_bool Deserialize(INPUT* input, SharedPtr<T>& _out)
+	template <class T>
+	static void ToJson(Json& json, const Shared<T>& _in)
 	{
-		sl_uint8 f;
-		if (!(DeserializeByte(input, f))) {
-			return sl_false;
-		}
-		if (f) {
-			_out = SharedPtr<T>::create();
-			if (_out.isNotNull()) {
-				return Deserialize(input, *(_out.get()));
-			} else {
-				return sl_false;
-			}
+		if (_in.isNull()) {
+			json.setNull();
 		} else {
+			ToJson(json, *(_in.get()));
+		}
+	}
+
+
+	template <class T>
+	static void FromJson(const Json& json, SharedPtr<T>& _out)
+	{
+		if (json.isUndefined()) {
+			return;
+		}
+		if (json.isNull()) {
 			_out.setNull();
-			return sl_true;
+		} else {
+			_out = SharedPtr<T>::create();
+			FromJson(json, *(_out.get()));
+		}
+	}
+
+	template <class T>
+	static void ToJson(Json& json, const SharedPtr<T>& _in)
+	{
+		if (_in.isNull()) {
+			json.setNull();
+		} else {
+			ToJson(json, *(_in.get()));
 		}
 	}
 

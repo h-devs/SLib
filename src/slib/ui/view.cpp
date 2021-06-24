@@ -7683,7 +7683,7 @@ namespace slib
 	{
 		Ref<ViewOtherAttributes>& attrs = m_otherAttrs;
 		if (attrs.isNotNull()) {
-			SharedPtr<DragItem> item = attrs->dragItem;
+			Shared<DragItem> item = attrs->dragItem;
 			if (item.isNotNull()) {
 				return *item;
 			}

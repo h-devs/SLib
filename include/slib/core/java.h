@@ -35,7 +35,6 @@
 
 #include "string.h"
 #include "unique_ptr.h"
-#include "shared_ptr.h"
 #include "primitive_wrapper.h"
 
 #include <jni.h>

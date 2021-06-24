@@ -37,6 +37,7 @@
 #include "definition.h"
 
 #include "../network/url_request.h"
+#include "../core/shared.h"
 
 namespace slib
 {
@@ -239,7 +240,7 @@ namespace slib
 		~OAuth1();
 		
 	public:
-		SharedPtr<OAuth1_AccessToken> getAccessToken();
+		Shared<OAuth1_AccessToken> getAccessToken();
 		
 		void setAccessToken(const OAuth1_AccessToken& accessToken);
 		
@@ -285,7 +286,7 @@ namespace slib
 		String m_consumerKey;
 		String m_consumerSecret;
 		
-		AtomicSharedPtr<OAuth1_AccessToken> m_accessToken;
+		AtomicShared<OAuth1_AccessToken> m_accessToken;
 
 		HttpMethod m_requestTokenMethod;
 		String m_requestTokenUrl;
@@ -511,7 +512,7 @@ namespace slib
 		~OAuth2();
 		
 	public:
-		SharedPtr<OAuthAccessToken> getAccessToken();
+		Shared<OAuthAccessToken> getAccessToken();
 		
 		void setAccessToken(const OAuthAccessToken& accessToken);
 		
@@ -593,7 +594,7 @@ namespace slib
 		String m_clientSecret;
 		String m_preferenceName;
 		
-		AtomicSharedPtr<OAuthAccessToken> m_accessToken;
+		AtomicShared<OAuthAccessToken> m_accessToken;
 
 		String m_authorizeUrl;
 		String m_accessTokenUrl;
