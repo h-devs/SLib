@@ -49,24 +49,44 @@ namespace slib
 	public:
 		static sl_uint32 getCurrentProcessId();
 		
-		static Ref<Process> open(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments);
+		static Ref<Process> open(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs = 0);
 
-		static Ref<Process> open(const StringParam& pathExecutable, const ListParam<String>& arguments);
+		template <class... ARGS>
+		static Ref<Process> open(const StringParam& pathExecutable, const StringParam& arg, ARGS&&... args)
+		{
+			StringParam params[] = { arg, Forward<ARGS>(args)... };
+			return open(pathExecutable, params, 1 + sizeof...(args));
+		}
 
-		static Ref<Process> run(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments);
+		static Ref<Process> run(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs = 0);
 
-		static Ref<Process> run(const StringParam& pathExecutable, const ListParam<String>& arguments);
+		template <class... ARGS>
+		static Ref<Process> run(const StringParam& pathExecutable, const StringParam& arg, ARGS&&... args)
+		{
+			StringParam params[] = { arg, Forward<ARGS>(args)... };
+			return run(pathExecutable, params, 1 + sizeof...(args));
+		}
 
-		static void runAsAdmin(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments);
+		static void runAsAdmin(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs = 0);
 		
-		static void runAsAdmin(const StringParam& pathExecutable, const ListParam<String>& arguments);
+		template <class... ARGS>
+		static void runAsAdmin(const StringParam& pathExecutable, const StringParam& arg, ARGS&&... args)
+		{
+			StringParam params[] = { arg, Forward<ARGS>(args)... };
+			return runAsAdmin(pathExecutable, params, 1 + sizeof...(args));
+		}
 		
 		// check administrative privilege (effective root user on Unix)
 		static sl_bool isAdmin();
 		
-		static void exec(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments);
+		static void exec(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs = 0);
 
-		static void exec(const StringParam& pathExecutable, const ListParam<String>& arguments);
+		template <class... ARGS>
+		static void exec(const StringParam& pathExecutable, const ListParam<String>& arguments)
+		{
+			StringParam params[] = { arg, Forward<ARGS>(args)... };
+			return exec(pathExecutable, params, 1 + sizeof...(args));
+		}
 		
 		static void exit(int code);
 		

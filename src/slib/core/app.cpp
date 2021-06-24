@@ -45,24 +45,23 @@ namespace slib
 
 			typedef HashMap<String, String> EnvironmentList;
 			
-			SLIB_SAFE_STATIC_GETTER(EnvironmentList, getEnvironmentList, EnvironmentList::create())
+			SLIB_SAFE_STATIC_GETTER(EnvironmentList, GetEnvironmentList, EnvironmentList::create())
 
-			SLIB_SAFE_STATIC_GETTER(String, getAppPath, System::getApplicationPath())
+			SLIB_SAFE_STATIC_GETTER(String, GetAppPath, System::getApplicationPath())
 		
-			SLIB_SAFE_STATIC_GETTER(String, getAppDir, System::getApplicationDirectory())
+			SLIB_SAFE_STATIC_GETTER(String, GetAppDir, System::getApplicationDirectory())
 			
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 			static void CrashHandler(int)
 			{
 				Ref<Application> app = Application::getApp();
 				if (app.isNotNull()) {
-					List<String> args = app->getArguments();
-					String* s = args.getData();
-					sl_uint32 n = (sl_uint32)(args.getCount());
-					if (n) {
-						Process::exec(app->getExecutablePath(), s + 1, n - 1);
+					List<StringParam> args;
+					args.addAll_NoLock(app->getArguments());
+					if (args.isNotEmpty()) {
+						Process::exec(app->getExecutablePath(), args.getData() + 1, args.getCount() - 1);
 					} else {
-						Process::exec(app->getExecutablePath(), s, n);
+						Process::exec(app->getExecutablePath());
 					}
 				}
 			}
@@ -126,9 +125,9 @@ namespace slib
 		m_flagInitialized = flag;
 	}
 
-	void Application::initialize(const String& commandLine)
+	void Application::initialize(const StringParam& commandLine)
 	{
-		m_commandLine = commandLine;
+		m_commandLine = commandLine.toString();
 		m_arguments = breakCommandLine(commandLine);
 		_initApp();
 	}
@@ -223,9 +222,9 @@ namespace slib
 		return m_uniqueInstanceId;
 	}
 
-	void Application::setUniqueInstanceId(const String& _id)
+	void Application::setUniqueInstanceId(const StringParam& _id)
 	{
-		m_uniqueInstanceId = _id;
+		m_uniqueInstanceId = _id.toString();
 	}
 
 	sl_bool Application::isCrashRecoverySupport()
@@ -238,26 +237,26 @@ namespace slib
 		m_flagCrashRecoverySupport = flagSupport;
 	}
 	
-	void Application::setEnvironmentPath(const String& key, const String& path)
+	void Application::setEnvironmentPath(const StringParam& key, const StringParam& path)
 	{
-		EnvironmentList* envMap = getEnvironmentList();
+		EnvironmentList* envMap = GetEnvironmentList();
 		if (envMap) {
-			envMap->put(key, path);
+			envMap->put(key.toString(), path.toString());
 		}
 	}
 
-	String Application::getEnvironmentPath(const String& key)
+	String Application::getEnvironmentPath(const StringParam& key)
 	{
-		EnvironmentList* envMap = getEnvironmentList();
+		EnvironmentList* envMap = GetEnvironmentList();
 		if (envMap) {
-			return envMap->getValue(key, String::null());
+			return envMap->getValue(key.toString(), String::null());
 		}
 		return sl_null;
 	}
 
-	String Application::parseEnvironmentPath(const String& _path)
+	String Application::parseEnvironmentPath(const StringParam& _path)
 	{
-		String path = _path;
+		String path = _path.toString();
 		if (path.startsWith('<')) {
 			sl_reg index = path.indexOf('>', 1);
 			if (index > 2) {
@@ -276,7 +275,7 @@ namespace slib
 
 	String Application::getApplicationPath()
 	{
-		String* s = getAppPath();
+		String* s = GetAppPath();
 		if (!s) {
 			return sl_null;
 		}
@@ -285,22 +284,22 @@ namespace slib
 
 	String Application::getApplicationDirectory()
 	{
-		String* s = getAppDir();
+		String* s = GetAppDir();
 		if (!s) {
 			return sl_null;
 		}
 		return *s;
 	}
 
-	void Application::setApplicationDirectory(const String& path)
+	void Application::setApplicationDirectory(const StringParam& path)
 	{
-		String* s = getAppDir();
+		String* s = GetAppDir();
 		if (s) {
-			*s = path;
+			*s = path.toString();
 		}
 	}
 
-	String Application::findFileAndSetAppPath(const String& filePath, sl_uint32 nDeep)
+	String Application::findFileAndSetAppPath(const StringParam& filePath, sl_uint32 nDeep)
 	{
 		String appPath = getApplicationDirectory();
 		String path = File::findParentPathContainingFile(appPath, filePath);
@@ -332,8 +331,9 @@ Microsoft Specific
 		namespace app
 		{
 
-			List<String> BreakCommandLine(const String& commandLine, sl_bool flagWin32)
+			List<String> BreakCommandLine(const StringParam& _commandLine, sl_bool flagWin32)
 			{
+				StringCstr commandLine(_commandLine);
 				List<String> ret;
 				sl_char8* sz = commandLine.getData();
 				sl_size len = commandLine.getLength();
@@ -422,7 +422,7 @@ Microsoft Specific
 		}
 	}
 
-	List<String> Application::breakCommandLine(const String& commandLine)
+	List<String> Application::breakCommandLine(const StringParam& commandLine)
 	{
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 		return priv::app::BreakCommandLine(commandLine, sl_true);
@@ -431,12 +431,12 @@ Microsoft Specific
 #endif
 	}
 
-	List<String> Application::breakCommandLine_Win32(const String& commandLine)
+	List<String> Application::breakCommandLine_Win32(const StringParam& commandLine)
 	{
 		return priv::app::BreakCommandLine(commandLine, sl_true);
 	}
 
-	List<String> Application::breakCommandLine_Unix(const String& commandLine)
+	List<String> Application::breakCommandLine_Unix(const StringParam& commandLine)
 	{
 		return priv::app::BreakCommandLine(commandLine, sl_false);
 	}

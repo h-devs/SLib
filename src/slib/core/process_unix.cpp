@@ -49,7 +49,7 @@ namespace slib
 
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 			
-			static void Exec(const StringParam& _pathExecutable, const String* strArguments, sl_uint32 nArguments)
+			static void Exec(const StringParam& _pathExecutable, const StringParam* arguments, sl_size nArguments)
 			{
 				StringCstr pathExecutable(_pathExecutable);
 				char* exe = pathExecutable.getData();
@@ -60,7 +60,7 @@ namespace slib
 					nArguments = 60;
 				}
 				for (sl_size i = 0; i < nArguments; i++) {
-					_args[i] = strArguments[i];
+					_args[i] = arguments[i];
 					args[i+1] = _args[i].getData();
 				}
 				args[nArguments+1] = 0;
@@ -165,7 +165,7 @@ namespace slib
 				}
 				
 			public:
-				static Ref<ProcessImpl> create(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
+				static Ref<ProcessImpl> create(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 				{
 					int hStdin[2], hStdout[2];
 					if (pipe(hStdin) == 0) {
@@ -181,7 +181,7 @@ namespace slib
 								dup2(hStdin[0], 0); // STDIN
 								dup2(hStdout[1], 1); // STDOUT
 								dup2(hStdout[1], 2); // STDERR
-								Exec(pathExecutable, strArguments, nArguments);
+								Exec(pathExecutable, arguments, nArguments);
 								return sl_null;
 							} else if (pid > 0) {
 								// parent process
@@ -300,14 +300,14 @@ namespace slib
 	}
 	
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-	Ref<Process> Process::open(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments)
+	Ref<Process> Process::open(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		return Ref<Process>::from(ProcessImpl::create(pathExecutable, arguments, nArguments));
 	}
 #endif
 	
 #if !defined(SLIB_PLATFORM_IS_MOBILE) && !defined(SLIB_PLATFORM_IS_MACOS)
-	Ref<Process> Process::run(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
+	Ref<Process> Process::run(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		pid_t pid = fork();
 		if (!pid) {
@@ -329,7 +329,7 @@ namespace slib
 
 			signal(SIGHUP, SIG_IGN);
 
-			Exec(pathExecutable, strArguments, nArguments);
+			Exec(pathExecutable, arguments, nArguments);
 		} else if (pid > 0) {
 			// Parent process
 			Ref<ProcessImpl> ret = new ProcessImpl;
@@ -341,7 +341,7 @@ namespace slib
 		return sl_null;
 	}
 
-	void Process::runAsAdmin(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
+	void Process::runAsAdmin(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		String command;
 		if (File::isFile("/usr/bin/pkexec")) {
@@ -353,10 +353,10 @@ namespace slib
 		} else {
 			return;
 		}
-		List<String> arguments;
-		arguments.add_NoLock(pathExecutable.toString());
-		arguments.addElements_NoLock(strArguments, nArguments);
-		auto process = open(command, arguments);
+		List<StringParam> list;
+		list.add_NoLock(pathExecutable.toString());
+		list.addElements_NoLock(arguments, nArguments);
+		auto process = open(command, list.getData(), list.getCount());
 		if (process.isNotNull()) {
 			process->wait();
 		}
@@ -371,9 +371,9 @@ namespace slib
 #endif
 	
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-	void Process::exec(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
+	void Process::exec(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
-		Exec(pathExecutable, strArguments, nArguments);
+		Exec(pathExecutable, arguments, nArguments);
 	}
 	
 	void Process::exit(int code)

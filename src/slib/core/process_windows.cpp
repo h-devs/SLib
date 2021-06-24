@@ -52,7 +52,7 @@ namespace slib
 				return ::CreatePipe(pRead, pWrite, &saAttr, 0) != 0;
 			}
 			
-			static sl_bool Execute(const StringParam& _pathExecutable, const String* cmds, sl_uint32 nCmds, PROCESS_INFORMATION* pi, STARTUPINFOW* si, sl_bool flagInheritHandles)
+			static sl_bool Execute(const StringParam& _pathExecutable, const StringParam* cmds, sl_size nCmds, PROCESS_INFORMATION* pi, STARTUPINFOW* si, sl_bool flagInheritHandles)
 			{
 				StringCstr16 pathExecutable(_pathExecutable);
 				StringCstr16 cmd;
@@ -299,12 +299,12 @@ namespace slib
 	}
 
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-	Ref<Process> Process::open(const StringParam& pathExecutable, const String* arguments, sl_uint32 nArguments)
+	Ref<Process> Process::open(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		return Ref<Process>::from(ProcessImpl::create(pathExecutable, arguments, nArguments));
 	}
 
-	Ref<Process> Process::run(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
+	Ref<Process> Process::run(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		PROCESS_INFORMATION pi;
 		ZeroMemory(&pi, sizeof(pi));
@@ -314,7 +314,7 @@ namespace slib
 		si.dwFlags = STARTF_USESTDHANDLES;
 		si.cb = sizeof(si);
 
-		if (Execute(pathExecutable, strArguments, nArguments, &pi, &si, sl_false)) {
+		if (Execute(pathExecutable, arguments, nArguments, &pi, &si, sl_false)) {
 			CloseHandle(pi.hThread);
 			Ref<ProcessImpl> ret = new ProcessImpl;
 			if (ret.isNotNull()) {
@@ -326,12 +326,12 @@ namespace slib
 		return sl_null;
 	}
 
-	void Process::runAsAdmin(const StringParam& pathExecutable, const String* strArguments, sl_uint32 nArguments)
+	void Process::runAsAdmin(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		ShellExecuteParam param;
 		param.runAsAdmin = sl_true;
 		param.path = pathExecutable;
-		param.params = Application::buildCommandLine(strArguments, nArguments);
+		param.params = Application::buildCommandLine(arguments, nArguments);
 		Windows::shell(param);
 	}
 
@@ -340,7 +340,7 @@ namespace slib
 		return Windows::isCurrentProcessRunAsAdmin();
 	}
 
-	void Process::exec(const StringParam& _pathExecutable, const String* strArguments, sl_uint32 nArguments)
+	void Process::exec(const StringParam& _pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		StringCstr pathExecutable(_pathExecutable);

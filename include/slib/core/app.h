@@ -113,7 +113,7 @@ namespace slib
 
 		void setInitialized(sl_bool flag);
 
-		void initialize(const String& commandLine);
+		void initialize(const StringParam& commandLine);
 
 		void initialize(int argc, const char * argv[]);
 
@@ -135,7 +135,7 @@ namespace slib
 
 		virtual String getUniqueInstanceId();
 
-		void setUniqueInstanceId(const String& _id);
+		void setUniqueInstanceId(const StringParam& _id);
 
 		virtual sl_bool isCrashRecoverySupport();
 
@@ -159,27 +159,27 @@ namespace slib
 		static void setApp(Application* app);
 
 
-		static void setEnvironmentPath(const String& key, const String& path);
+		static void setEnvironmentPath(const StringParam& key, const StringParam& path);
 
-		static String getEnvironmentPath(const String& key);
+		static String getEnvironmentPath(const StringParam& key);
 
-		static String parseEnvironmentPath(const String& path);
+		static String parseEnvironmentPath(const StringParam& path);
 	
 
 		static String getApplicationPath();
 
 		static String getApplicationDirectory();
 
-		static void setApplicationDirectory(const String& path);
+		static void setApplicationDirectory(const StringParam& path);
 
-		static String findFileAndSetAppPath(const String& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX);
+		static String findFileAndSetAppPath(const StringParam& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX);
 
 
-		static List<String> breakCommandLine(const String& commandLine);
+		static List<String> breakCommandLine(const StringParam& commandLine);
 
-		static List<String> breakCommandLine_Win32(const String& commandLine);
+		static List<String> breakCommandLine_Win32(const StringParam& commandLine);
 
-		static List<String> breakCommandLine_Unix(const String& commandLine);
+		static List<String> breakCommandLine_Unix(const StringParam& commandLine);
 
 		static String makeSafeArgument(const String& arg);
 
