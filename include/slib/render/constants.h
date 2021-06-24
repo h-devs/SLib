@@ -125,12 +125,12 @@ namespace slib
 		Pixel = 2
 	};
 
-	SLIB_INLINE constexpr RenderShaderType operator|(RenderShaderType v1, RenderShaderType v2)
+	constexpr RenderShaderType operator|(RenderShaderType v1, RenderShaderType v2)
 	{
 		return (RenderShaderType)(((int)v1) | ((int)v2));
 	}
 
-	SLIB_INLINE constexpr int operator&(RenderShaderType v1, RenderShaderType v2)
+	constexpr int operator&(RenderShaderType v1, RenderShaderType v2)
 	{
 		return ((int)v1) & ((int)v2);
 	}

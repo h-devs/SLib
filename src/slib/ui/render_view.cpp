@@ -77,14 +77,14 @@ namespace slib
 				WeakRef<RenderView> m_view;
 
 			public:
-				sl_bool dispatch(const Function<void()>& callback, sl_uint64 delay_ms) override
+				sl_bool dispatch(const Function<void()>& callback, sl_uint64 delayMillis) override
 				{
 					Ref<RenderView> view(m_view);
 					if (view.isNotNull()) {
-						if (delay_ms > 0x7fffffff) {
-							delay_ms = 0x7fffffff;
+						if (delayMillis > 0x7fffffff) {
+							delayMillis = 0x7fffffff;
 						}
-						view->dispatchToDrawingThread(callback, (sl_uint32)delay_ms);
+						view->dispatchToDrawingThread(callback, (sl_uint32)delayMillis);
 						return sl_true;
 					}
 					return sl_false;

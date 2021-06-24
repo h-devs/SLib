@@ -27,6 +27,7 @@
 #include "mac_address.h"
 
 #include "../core/string.h"
+#include "../core/list.h"
 
 namespace slib
 {

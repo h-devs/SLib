@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-package slib.platform.android.xgpush;
+package slib.android.xgpush;
 
 import android.app.Activity;
 

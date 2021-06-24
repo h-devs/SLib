@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,29 +25,54 @@
 
 #include "definition.h"
 
+typedef sl_int32 sl_compare_result;
+
 namespace slib
 {
 
-	typedef sl_int32 sl_compare_result;
-
 	template <class T1, class T2>
-	SLIB_INLINE constexpr sl_compare_result ComparePrimitiveValues(T1 a, T2 b)
+	constexpr sl_compare_result ComparePrimitiveValues(T1 a, T2 b)
 	{
 		return (a < b) ? (sl_compare_result)-1 : ((sl_compare_result)(a > b));
 	}
 
-	template <class T1, class T2 = T1>
-	class SLIB_EXPORT Compare
+	template <class T, sl_bool isClass = __is_class(T)>
+	class DefaultComparator {};
+
+	template <class T>
+	class DefaultComparator<T, sl_true>
 	{
 	public:
-		sl_compare_result operator()(const T1& a, const T2& b) const noexcept
+		template <class T2>
+		static sl_compare_result compare(const T& a, const T2& b) noexcept
+		{
+			return a.compare(b);
+		}
+	};
+
+	template <class T>
+	class DefaultComparator<T, sl_false>
+	{
+	public:
+		template <class T2>
+		static sl_compare_result compare(const T& a, const T2& b) noexcept
 		{
 			return (a < b) ? (sl_compare_result)-1 : ((sl_compare_result)(a > b));
 		}
 	};
+
+	template <class T1, class T2 = T1>
+	class Compare
+	{
+	public:
+		sl_compare_result operator()(const T1& a, const T2& b) const noexcept
+		{
+			return DefaultComparator<T1>::compare(a, b);
+		}
+	};
 	
 	template <class T1, class T2 = T1>
-	class SLIB_EXPORT CompareDescending
+	class CompareDescending
 	{
 	public:
 		sl_compare_result operator()(const T1& a, const T2& b) const noexcept
@@ -57,7 +82,17 @@ namespace slib
 	};
 
 	template <class T1, class T2 = T1>
-	class SLIB_EXPORT Equals
+	class CompareIgnoreCase
+	{
+	public:
+		sl_compare_result operator()(const T1& a, const T2& b) const noexcept
+		{
+			return a.compareIgnoreCase(b);
+		}
+	};
+	
+	template <class T1, class T2 = T1>
+	class Equals
 	{
 	public:
 		sl_bool operator()(const T1& a, const T2& b) const noexcept
@@ -66,6 +101,43 @@ namespace slib
 		}
 	};
 	
+	template <class T1, class T2 = T1>
+	class EqualsIgnoreCase
+	{
+	public:
+		sl_bool operator()(const T1& a, const T2& b) const noexcept
+		{
+			return a.equalsIgnoreCase(b);
+		}
+	};
+	
 }
+
+#define PRIV_SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS(PREFIX, SUFFIX) \
+	template <class OTHER> PREFIX sl_bool operator==(const OTHER& other) const SUFFIX { return equals(other); } \
+	template <class OTHER> PREFIX sl_bool operator!=(const OTHER& other) const SUFFIX { return !(equals(other)); } \
+	template <class OTHER> PREFIX sl_bool operator>(const OTHER& other) const SUFFIX { return compare(other) > 0; } \
+	template <class OTHER> PREFIX sl_bool operator>=(const OTHER& other) const SUFFIX { return compare(other) >= 0; } \
+	template <class OTHER> PREFIX sl_bool operator<(const OTHER& other) const SUFFIX { return compare(other) < 0; } \
+	template <class OTHER> PREFIX sl_bool operator<=(const OTHER& other) const SUFFIX { return compare(other) <= 0; }
+
+#define SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS PRIV_SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS(,noexcept)
+#define SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR PRIV_SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS(constexpr,)
+
+#define SLIB_DECLARE_DEFAULT_COMPARE_OPERATORS(CLASS) \
+	sl_bool operator==(const CLASS& a, const CLASS& b) noexcept; \
+	sl_bool operator!=(const CLASS& a, const CLASS& b) noexcept; \
+	sl_bool operator>(const CLASS& a, const CLASS& b) noexcept; \
+	sl_bool operator>=(const CLASS& a, const CLASS& b) noexcept; \
+	sl_bool operator<(const CLASS& a, const CLASS& b) noexcept; \
+	sl_bool operator<=(const CLASS& a, const CLASS& b) noexcept;
+
+#define SLIB_DEFINE_DEFAULT_COMPARE_OPERATORS(CLASS) \
+	sl_bool operator==(const CLASS& a, const CLASS& b) noexcept { return a.equals(b); } \
+	sl_bool operator!=(const CLASS& a, const CLASS& b) noexcept { return !(a.equals(b)); } \
+	sl_bool operator>(const CLASS& a, const CLASS& b) noexcept { return a.compare(b) > 0; } \
+	sl_bool operator>=(const CLASS& a, const CLASS& b) noexcept { return a.compare(b) >= 0; } \
+	sl_bool operator<(const CLASS& a, const CLASS& b) noexcept { return a.compare(b) < 0; } \
+	sl_bool operator<=(const CLASS& a, const CLASS& b) noexcept { return a.compare(b) <= 0; }
 
 #endif

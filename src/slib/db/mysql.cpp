@@ -25,7 +25,7 @@
 #if defined(SLIB_DATABASE_SUPPORT_MYSQL)
 
 #ifdef SLIB_PLATFORM_IS_WIN32
-#include "slib/db/dl_libmysql.h"
+#include "slib/db/dl/win32/libmysql.h"
 #else
 #include "libmariadb/mysql.h"
 #endif
@@ -33,7 +33,7 @@
 #include "libmariadb/errmsg.h"
 
 #include "slib/core/thread.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/log.h"
 #include "slib/core/safe_static.h"
 

@@ -31,19 +31,19 @@
 	public: \
 		using Ref<T1>::ptr; \
 		template <class... OTHERS> \
-		Ref(const Ref<OTHERS...>& v) noexcept : Ref<T1>(v) { _init(v); } \
+		Ref(const Ref<OTHERS...>& v) noexcept: Ref<T1>(v) { _init(v); } \
 		template <class... OTHERS> \
 		Ref(Ref<OTHERS...>&& v) noexcept { ptr = v; _init(v); v.ptr = sl_null; } \
 		template <class OTHER> \
-		Ref(const AtomicRef<OTHER>& v) noexcept : Ref(Ref<OTHER>(v)) {} \
+		Ref(const AtomicRef<OTHER>& v) noexcept: Ref(Ref<OTHER>(v)) {} \
 		template <class OTHER> \
-		Ref(const WeakRef<OTHER>& v) noexcept : Ref(Ref<OTHER>(v)) {} \
+		Ref(const WeakRef<OTHER>& v) noexcept: Ref(Ref<OTHER>(v)) {} \
 		template <class OTHER> \
-		Ref(const AtomicWeakRef<OTHER>& v) noexcept : Ref(Ref<OTHER>(v)) {} \
+		Ref(const AtomicWeakRef<OTHER>& v) noexcept: Ref(Ref<OTHER>(v)) {} \
 		template <class OTHER> \
-		Ref(OTHER* v) noexcept : Ref<T1>(v) { _init(v); } \
+		Ref(OTHER* v) noexcept: Ref<T1>(v) { _init(v); } \
 		template <class... OTHERS> \
-		Ref(const Pointer<OTHERS...>& v) noexcept : Ref<T1>(v) { _init(v); } \
+		Ref(const Pointer<OTHERS...>& v) noexcept: Ref<T1>(v) { _init(v); } \
 		static Ref null() noexcept { return sl_null; } \
 		void setNull() noexcept { Ref<T1>::setNull(); _init(sl_null); } \
 		template <class... OTHERS> \
@@ -87,27 +87,27 @@ namespace slib
 		T2* ptr2;
 
 	public:
-		constexpr Ref() noexcept : ptr2(sl_null) {}
+		constexpr Ref(): ptr2(sl_null) {}
 
-		constexpr Ref(sl_null_t) noexcept : ptr2(sl_null) {}
+		constexpr Ref(sl_null_t): ptr2(sl_null) {}
 
 		template <class OTHER>
-		Ref(OTHER&& v1, T2* v2) noexcept : Ref<T1>(Forward<OTHER>(v1)), ptr2(v2) {}
+		Ref(OTHER&& v1, T2* v2): Ref<T1>(Forward<OTHER>(v1)), ptr2(v2) {}
 
 	public:
-		operator T1*() const noexcept
+		constexpr operator T1*() const
 		{
 			return ptr;
 		}
 
-		operator T2*() const noexcept
+		constexpr operator T2*() const
 		{
 			return ptr2;
 		}
 
 	private:
 		template <class OTHER>
-		void _init(const OTHER& p)
+		void _init(const OTHER& p) noexcept
 		{
 			Helper::init(ptr2, p);
 		}
@@ -127,32 +127,32 @@ namespace slib
 		T3* ptr3;
 
 	public:
-		constexpr Ref() noexcept : ptr2(sl_null), ptr3(sl_null) {}
+		constexpr Ref(): ptr2(sl_null), ptr3(sl_null) {}
 
-		constexpr Ref(sl_null_t) noexcept : ptr2(sl_null), ptr3(sl_null) {}
+		constexpr Ref(sl_null_t): ptr2(sl_null), ptr3(sl_null) {}
 
 		template <class OTHER>
-		Ref(OTHER&& v1, T2* v2, T3* v3) noexcept : Ref<T1>(Forward<OTHER>(v1)), ptr2(v2), ptr3(v3) {}
+		Ref(OTHER&& v1, T2* v2, T3* v3): Ref<T1>(Forward<OTHER>(v1)), ptr2(v2), ptr3(v3) {}
 
 	public:
-		operator T1*() const noexcept
+		constexpr operator T1*() const
 		{
 			return ptr;
 		}
 
-		operator T2*() const noexcept
+		constexpr operator T2*() const
 		{
 			return ptr2;
 		}
 
-		operator T3*() const noexcept
+		constexpr operator T3*() const
 		{
 			return ptr3;
 		}
 
 	private:
 		template <class OTHER>
-		void _init(const OTHER& p)
+		void _init(const OTHER& p) noexcept
 		{
 			Helper::init(ptr2, p);
 			Helper::init(ptr3, p);
@@ -174,37 +174,37 @@ namespace slib
 		T4* ptr4;
 
 	public:
-		constexpr Ref() noexcept : ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+		constexpr Ref(): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
-		constexpr Ref(sl_null_t) noexcept : ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+		constexpr Ref(sl_null_t): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
 		template <class OTHER>
-		Ref(OTHER&& v1, T2* v2, T3* v3, T4* v4) noexcept : Ref<T1>(Forward<OTHER>(v1)), ptr2(v2), ptr3(v3), ptr4(v4) {}
+		Ref(OTHER&& v1, T2* v2, T3* v3, T4* v4) noexcept: Ref<T1>(Forward<OTHER>(v1)), ptr2(v2), ptr3(v3), ptr4(v4) {}
 
 	public:
-		operator T1*() const noexcept
+		constexpr operator T1*() const
 		{
 			return ptr;
 		}
 
-		operator T2*() const noexcept
+		constexpr operator T2*() const
 		{
 			return ptr2;
 		}
 
-		operator T3*() const noexcept
+		constexpr operator T3*() const
 		{
 			return ptr3;
 		}
 
-		operator T4*() const noexcept
+		constexpr operator T4*() const
 		{
 			return ptr4;
 		}
 
 	private:
 		template <class OTHER>
-		void _init(const OTHER& p)
+		void _init(const OTHER& p) noexcept
 		{
 			Helper::init(ptr2, p);
 			Helper::init(ptr3, p);
@@ -215,7 +215,7 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Ref<T>::Ref(const Ref<T1, T2, TYPES...>& other) noexcept
+	SLIB_INLINE Ref<T>::Ref(const Ref<T1, T2, TYPES...>& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		T* o = other.ptr;
@@ -227,7 +227,7 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Ref<T>::Ref(Ref<T1, T2, TYPES...>&& other) noexcept
+	SLIB_INLINE Ref<T>::Ref(Ref<T1, T2, TYPES...>&& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		_move_init(&other);
@@ -235,7 +235,7 @@ namespace slib
 
 	template <class T>
 	template <class... TYPES>
-	Ref<T>::Ref(const Pointer<TYPES...>& other) noexcept
+	SLIB_INLINE Ref<T>::Ref(const Pointer<TYPES...>& other) noexcept
 	{
 		T* o = other;
 		if (o) {
@@ -246,7 +246,7 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Ref<T>& Ref<T>::operator=(const Ref<T1, T2, TYPES...>& other) noexcept
+	SLIB_INLINE Ref<T>& Ref<T>::operator=(const Ref<T1, T2, TYPES...>& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		T* o = other.ptr;
@@ -261,7 +261,7 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Ref<T>& Ref<T>::operator=(Ref<T1, T2, TYPES...>&& other) noexcept
+	SLIB_INLINE Ref<T>& Ref<T>::operator=(Ref<T1, T2, TYPES...>&& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		_move_assign(&other);
@@ -270,7 +270,7 @@ namespace slib
 
 	template <class T>
 	template <class... TYPES>
-	Ref<T>& Ref<T>::operator=(const Pointer<TYPES...>& other) noexcept
+	SLIB_INLINE Ref<T>& Ref<T>::operator=(const Pointer<TYPES...>& other) noexcept
 	{
 		T* o = other;
 		if (ptr != o) {
@@ -285,7 +285,7 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Atomic< Ref<T> >::Atomic(const Ref<T1, T2, TYPES...>& other) noexcept
+	SLIB_INLINE Atomic< Ref<T> >::Atomic(const Ref<T1, T2, TYPES...>& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		T* o = other.ptr;
@@ -297,7 +297,7 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Atomic< Ref<T> >::Atomic(Ref<T1, T2, TYPES...>&& other) noexcept
+	SLIB_INLINE Atomic< Ref<T> >::Atomic(Ref<T1, T2, TYPES...>&& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		_move_init(&other);
@@ -305,7 +305,7 @@ namespace slib
 
 	template <class T>
 	template <class... TYPES>
-	Atomic< Ref<T> >::Atomic(const Pointer<TYPES...>& other) noexcept
+	SLIB_INLINE Atomic< Ref<T> >::Atomic(const Pointer<TYPES...>& other) noexcept
 	{
 		T* o = other;
 		if (o) {
@@ -316,7 +316,7 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Atomic< Ref<T> >& Atomic< Ref<T> >::operator=(const Ref<T1, T2, TYPES...>& other) noexcept
+	SLIB_INLINE Atomic< Ref<T> >& Atomic< Ref<T> >::operator=(const Ref<T1, T2, TYPES...>& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		T* o = other.ptr;
@@ -331,7 +331,7 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Atomic< Ref<T> >& Atomic< Ref<T> >::operator=(Ref<T1, T2, TYPES...>&& other) noexcept
+	SLIB_INLINE Atomic< Ref<T> >& Atomic< Ref<T> >::operator=(Ref<T1, T2, TYPES...>&& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		_move_assign(&other);
@@ -340,7 +340,7 @@ namespace slib
 
 	template <class T>
 	template <class... TYPES>
-	Atomic< Ref<T> >& Atomic< Ref<T> >::operator=(const Pointer<TYPES...>& other) noexcept
+	SLIB_INLINE Atomic< Ref<T> >& Atomic< Ref<T> >::operator=(const Pointer<TYPES...>& other) noexcept
 	{
 		T* o = other;
 		if (_ptr != o) {
@@ -355,7 +355,7 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	WeakRef<T>::WeakRef(const Ref<T1, T2, TYPES...>& other) noexcept
+	SLIB_INLINE WeakRef<T>::WeakRef(const Ref<T1, T2, TYPES...>& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		_set(other.ptr);
@@ -363,14 +363,14 @@ namespace slib
 	
 	template <class T>
 	template <class... TYPES>
-	WeakRef<T>::WeakRef(const Pointer<TYPES...>& other) noexcept
+	SLIB_INLINE WeakRef<T>::WeakRef(const Pointer<TYPES...>& other) noexcept
 	{
 		_set(other);
 	}
 	
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	WeakRef<T>& WeakRef<T>::operator=(const Ref<T1, T2, TYPES...>& other) noexcept
+	SLIB_INLINE WeakRef<T>& WeakRef<T>::operator=(const Ref<T1, T2, TYPES...>& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		_set(other.ptr);
@@ -379,7 +379,7 @@ namespace slib
 	
 	template <class T>
 	template <class... TYPES>
-	WeakRef<T>& WeakRef<T>::operator=(const Pointer<TYPES...>& other) noexcept
+	SLIB_INLINE WeakRef<T>& WeakRef<T>::operator=(const Pointer<TYPES...>& other) noexcept
 	{
 		_set(other);
 		return *this;
@@ -388,7 +388,7 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Atomic< WeakRef<T> >::Atomic(const Ref<T1, T2, TYPES...>& other) noexcept
+	SLIB_INLINE Atomic< WeakRef<T> >::Atomic(const Ref<T1, T2, TYPES...>& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		_set(other.ptr);
@@ -396,14 +396,14 @@ namespace slib
 	
 	template <class T>
 	template <class... TYPES>
-	Atomic< WeakRef<T> >::Atomic(const Pointer<TYPES...>& other) noexcept
+	SLIB_INLINE Atomic< WeakRef<T> >::Atomic(const Pointer<TYPES...>& other) noexcept
 	{
 		_set(other);
 	}
 	
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	AtomicWeakRef<T>& Atomic< WeakRef<T> >::operator=(const Ref<T1, T2, TYPES...>& other) noexcept
+	SLIB_INLINE AtomicWeakRef<T>& Atomic< WeakRef<T> >::operator=(const Ref<T1, T2, TYPES...>& other) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		_set(other.ptr);
@@ -412,7 +412,7 @@ namespace slib
 	
 	template <class T>
 	template <class... TYPES>
-	AtomicWeakRef<T>& Atomic< WeakRef<T> >::operator=(const Pointer<TYPES...>& other) noexcept
+	SLIB_INLINE AtomicWeakRef<T>& Atomic< WeakRef<T> >::operator=(const Pointer<TYPES...>& other) noexcept
 	{
 		_set(other);
 		return *this;

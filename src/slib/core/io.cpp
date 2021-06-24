@@ -33,7 +33,7 @@
 #include "slib/core/mio.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/thread.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/math/bigint.h"
 
 #include "slib/core/serialize/io.h"

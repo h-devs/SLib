@@ -66,7 +66,7 @@ namespace slib
 	
 		sl_bool addTask(const Function<void()>& task);
 
-		sl_bool dispatch(const Function<void()>& callback, sl_uint64 delay_ms = 0) override;
+		sl_bool dispatch(const Function<void()>& callback, sl_uint64 delayMillis = 0) override;
 	
 	protected:
 		void onRunWorker();

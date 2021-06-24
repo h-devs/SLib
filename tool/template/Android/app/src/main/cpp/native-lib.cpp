@@ -1,4 +1,4 @@
-#include <slib/core/platform_android.h>
+#include <slib/core/platform.h>
 
 #include "app.h"
 

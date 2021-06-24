@@ -25,7 +25,7 @@
 #if defined(ASYNC_USE_IOCP)
 
 #include "slib/core/async.h"
-#include "slib/core/dl_windows_kernel32.h"
+#include "slib/core/dl/win32/kernel32.h"
 
 namespace slib
 {

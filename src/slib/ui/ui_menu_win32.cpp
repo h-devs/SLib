@@ -428,7 +428,7 @@ namespace slib
 				if (msg.message != WM_KEYDOWN && msg.message != WM_SYSKEYDOWN) {
 					return sl_false;
 				}
-				HWND hWnd = Windows::getRootWindow(msg.hwnd);
+				HWND hWnd = GetAncestor(msg.hwnd, GA_ROOT);
 				if (hWnd) {
 					Ref<WindowInstance> instance = UIPlatform::getWindowInstance(hWnd);
 					if (instance.isNotNull()) {

@@ -26,8 +26,8 @@
 #include "definition.h"
 
 #include "../core/math.h"
-#include "../core/interpolation.h"
 #include "../core/default_members.h"
+#include "../core/interpolation.h"
 
 namespace slib
 {
@@ -41,7 +41,7 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(VectorT)
 		
-		VectorT() noexcept = default;
+		VectorT() = default;
 	
 		template <class O, class FO>
 		VectorT(const VectorT<N, O, FO>& other) noexcept
@@ -306,17 +306,7 @@ namespace slib
 			}
 			return ret;
 		}
-
-		sl_bool operator==(const VectorT& other) const noexcept
-		{
-			return equals(other);
-		}
-
-		sl_bool operator!=(const VectorT& other) const noexcept
-		{
-			return !(equals(other));
-		}
-
+		
 	};
 
 
@@ -332,18 +322,6 @@ namespace slib
 		return v.devideReverse(f);
 	}
 
-
-	template <sl_uint32 N, class T, class FT>
-	class Interpolation< VectorT<N, T, FT> >
-	{
-	public:
-		static VectorT<N, T, FT> interpolate(const VectorT<N, T, FT>& a, const VectorT<N, T, FT>& b, float factor) noexcept
-		{
-			return a.lerp(b, factor);
-		}
-
-	};
-	
 	
 	template <sl_uint32 N>
 	using Vector = VectorT<N, sl_real>;

@@ -25,7 +25,6 @@
 #include "slib/graphics/font_atlas.h"
 #include "slib/graphics/emoji.h"
 #include "slib/graphics/util.h"
-#include "slib/graphics/color_parse.h"
 #include "slib/math/calculator.h"
 #include "slib/device/device.h"
 #include "slib/core/xml.h"

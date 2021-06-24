@@ -32,13 +32,13 @@ namespace slib
 	class SLIB_EXPORT NodePosition
 	{
 	public:
-		constexpr NodePosition() noexcept: node(sl_null) {}
+		constexpr NodePosition(): node(sl_null) {}
 		
-		constexpr NodePosition(sl_null_t) noexcept: node(sl_null) {}
+		constexpr NodePosition(sl_null_t): node(sl_null) {}
 		
-		constexpr NodePosition(NODE* other) noexcept: node(other) {}
+		constexpr NodePosition(NODE* other): node(other) {}
 		
-		constexpr NodePosition(const NodePosition& other) noexcept: node(other.node) {}
+		constexpr NodePosition(const NodePosition& other): node(other.node) {}
 		
 	public:
 		NodePosition& operator=(const NodePosition& other) noexcept
@@ -58,27 +58,27 @@ namespace slib
 			return *node;
 		}
 		
-		constexpr sl_bool operator==(const NodePosition& other) const noexcept
+		constexpr sl_bool operator==(const NodePosition& other) const
 		{
 			return node == other.node;
 		}
 		
-		constexpr sl_bool operator==(const NODE* other) const noexcept
+		constexpr sl_bool operator==(const NODE* other) const
 		{
 			return node == other;
 		}
 		
-		constexpr sl_bool operator!=(const NodePosition& other) const noexcept
+		constexpr sl_bool operator!=(const NodePosition& other) const
 		{
 			return node != other.node;
 		}
 		
-		constexpr sl_bool operator!=(const NODE* other) const noexcept
+		constexpr sl_bool operator!=(const NODE* other) const
 		{
 			return node != other;
 		}
 		
-		operator NODE*() const noexcept
+		constexpr operator NODE*() const
 		{
 			return node;
 		}
@@ -98,15 +98,15 @@ namespace slib
 	class SLIB_EXPORT NodePositionWithRef
 	{
 	public:
-		constexpr NodePositionWithRef() noexcept: node(sl_null) {}
+		constexpr NodePositionWithRef(): node(sl_null) {}
 		
-		constexpr NodePositionWithRef(sl_null_t) noexcept: node(sl_null) {}
+		constexpr NodePositionWithRef(sl_null_t): node(sl_null) {}
 		
-		constexpr NodePositionWithRef(NODE* _node) noexcept: node(_node) {}
+		constexpr NodePositionWithRef(NODE* _node): node(_node) {}
 		
-		constexpr NodePositionWithRef(NODE* _node, Referable* _ref) noexcept: node(_node), ref(_ref) {}
+		constexpr NodePositionWithRef(NODE* _node, Referable* _ref): node(_node), ref(_ref) {}
 		
-		constexpr NodePositionWithRef(const NodePositionWithRef& other) noexcept: node(other.node), ref(other.ref) {}
+		constexpr NodePositionWithRef(const NodePositionWithRef& other): node(other.node), ref(other.ref) {}
 		
 	public:
 		NodePositionWithRef& operator=(const NodePositionWithRef& other) noexcept
@@ -127,27 +127,27 @@ namespace slib
 			return *node;
 		}
 		
-		constexpr sl_bool operator==(const NodePositionWithRef& other) const noexcept
+		constexpr sl_bool operator==(const NodePositionWithRef& other) const
 		{
 			return node == other.node;
 		}
 		
-		constexpr sl_bool operator==(const NODE* other) const noexcept
+		constexpr sl_bool operator==(const NODE* other) const
 		{
 			return node == other;
 		}
 		
-		constexpr sl_bool operator!=(const NodePositionWithRef& other) const noexcept
+		constexpr sl_bool operator!=(const NodePositionWithRef& other) const
 		{
 			return node != other.node;
 		}
 		
-		constexpr sl_bool operator!=(const NODE* other) const noexcept
+		constexpr sl_bool operator!=(const NODE* other) const
 		{
 			return node != other;
 		}
 		
-		operator NODE*() const noexcept
+		constexpr operator NODE*() const
 		{
 			return node;
 		}

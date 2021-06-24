@@ -29,7 +29,6 @@
 
 #include "slib/core/timer.h"
 #include "slib/core/parse_util.h"
-#include "slib/core/platform_android.h"
 
 #if defined(SLIB_UI)
 #	define HAS_NATIVE_WIDGET_IMPL 1
@@ -134,7 +133,7 @@ namespace slib
 #endif
 #if defined(SLIB_UI_IS_ANDROID)
 					UI::dispatchToUiThread([] {
-						Android::showKeyboard();
+						UI::showKeyboard();
 					}, 500);
 #endif
 					if (flagDoneButton) {
@@ -217,7 +216,7 @@ namespace slib
 					view->invalidate();
 					view->closeDialog();
 #if defined(SLIB_PLATFORM_IS_ANDROID)
-					Android::dismissKeyboard();
+					UI::dismissKeyboard();
 #endif
 				}
 

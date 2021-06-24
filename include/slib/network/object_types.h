@@ -53,6 +53,7 @@ namespace slib
 			StunServer,
 			NetCapture,
 			NatTable,
+			P2PSocket,
 			Tap,
 			Pcap,
 			IPC

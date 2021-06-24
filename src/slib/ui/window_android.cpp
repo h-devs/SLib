@@ -51,9 +51,9 @@ namespace slib
 			void JNICALL OnResize(JNIEnv* env, jobject _this, jlong instance, int w, int h);
 			jboolean JNICALL OnClose(JNIEnv* env, jobject _this, jlong instance);
 
-			SLIB_JNI_BEGIN_CLASS(JWindow, "slib/platform/android/ui/window/UiWindow")
+			SLIB_JNI_BEGIN_CLASS(JWindow, "slib/android/ui/window/UiWindow")
 
-				SLIB_JNI_STATIC_METHOD(create, "create", "(Landroid/app/Activity;ZZIIII)Lslib/platform/android/ui/window/UiWindow;");
+				SLIB_JNI_STATIC_METHOD(create, "create", "(Landroid/app/Activity;ZZIIII)Lslib/android/ui/window/UiWindow;");
 
 				SLIB_JNI_LONG_FIELD(instance);
 
@@ -76,12 +76,14 @@ namespace slib
 			class Android_WindowInstance : public WindowInstance
 			{
 			public:
-				AtomicJniGlobal<jobject> m_window;
+				JniGlobal<jobject> m_window;
 				AtomicRef<ViewInstance> m_viewContent;
+				sl_bool m_flagClosed;
 
 			public:
 				Android_WindowInstance()
 				{
+					m_flagClosed = sl_false;
 				}
 
 				~Android_WindowInstance()
@@ -96,35 +98,38 @@ namespace slib
 						return sl_null;
 					}
 					JniLocal<jobject> jcontent = JWindow::getContentView.callObject(jwindow);
-					Ref<Android_WindowInstance> ret = new Android_WindowInstance();
-					if (ret.isNotNull()) {
+					if (jcontent.isNotNull()) {
 						JniGlobal<jobject> window = jwindow;
-						Ref<ViewInstance> content = UIPlatform::createViewInstance(jcontent);
-						if (window.isNotNull() && content.isNotNull()) {
-							content->setWindowContent(sl_true);
-							ret->m_window = window;
-							ret->m_viewContent = content;
-							jlong instance = (jlong)(window.get());
-							JWindow::instance.set(jwindow, instance);
-							UIPlatform::registerWindowInstance(window.get(), ret.get());
-							return ret;
+						if (window.isNotNull()) {
+							Ref<ViewInstance> content = UIPlatform::createViewInstance(jcontent);
+							if (content.isNotNull()) {
+								Ref<Android_WindowInstance> ret = new Android_WindowInstance();
+								if (ret.isNotNull()) {
+									content->setWindowContent(sl_true);
+									jwindow = window.get();
+									ret->m_window = Move(window);
+									ret->m_viewContent = Move(content);
+									jlong instance = (jlong)(jwindow);
+									JWindow::instance.set(jwindow, instance);
+									UIPlatform::registerWindowInstance(jwindow, ret.get());
+									return ret;
+								}
+							}
 						}
 					}
 					return sl_null;
 				}
 
-				static jobject createHandle(Window* window)
+				static JniLocal<jobject> createHandle(Window* window)
 				{
-					jobject jactivity = (jobject)(window->getActivity());
-					if (!jactivity) {
-						jactivity = Android::getCurrentActivity();
-						if (!jactivity) {
-							return 0;
+					jobject context = (jobject)(window->getActivity());
+					if (!context) {
+						context = Android::getCurrentContext();
+						if (!context) {
+							return sl_null;
 						}
 					}
-					jobject jwindow = JWindow::create.callObject(sl_null, jactivity
-						, window->isFullScreen(), window->isCenterScreen()
-						, (int)(window->getLeft()), (int)(window->getTop()), (int)(window->getWidth()), (int)(window->getHeight()));
+					JniLocal<jobject> jwindow = JWindow::create.callObject(sl_null, context, window->isFullScreen(), window->isCenterScreen(), (int)(window->getLeft()), (int)(window->getTop()), (int)(window->getWidth()), (int)(window->getHeight()));
 					if (jwindow) {
 						if (!(window->isDefaultBackgroundColor())) {
 							Color color = window->getBackgroundColor();
@@ -146,8 +151,11 @@ namespace slib
 				{
 					ObjectLocker lock(this);
 					m_viewContent.setNull();
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
+					if (m_flagClosed) {
+						return;
+					}
+					m_flagClosed = sl_true;
+					jobject jwindow = m_window;
 					if (jwindow) {
 						UIPlatform::removeWindowInstance(jwindow);
 						JWindow::close.call(jwindow);
@@ -171,8 +179,10 @@ namespace slib
 
 				UIRect getFrame() override
 				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
+					if (m_flagClosed) {
+						return UIRect::zero();
+					}
+					jobject jwindow = m_window;
 					if (jwindow) {
 						JniLocal<jobject> rect = JWindow::getFrame.callObject(jwindow);
 						if (rect.isNotNull()) {
@@ -190,8 +200,10 @@ namespace slib
 
 				void setFrame(const UIRect& frame) override
 				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
+					if (m_flagClosed) {
+						return;
+					}
+					jobject jwindow = m_window;
 					if (jwindow) {
 						JWindow::setFrame.call(jwindow, (int)(frame.left), (int)(frame.top), (int)(frame.right), (int)(frame.bottom));
 					}
@@ -199,8 +211,10 @@ namespace slib
 
 				sl_bool isActive() override
 				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
+					if (m_flagClosed) {
+						return sl_false;
+					}
+					jobject jwindow = m_window;
 					if (jwindow) {
 						return JWindow::isActive.callBoolean(jwindow);
 					}
@@ -209,8 +223,10 @@ namespace slib
 				
 				void activate() override
 				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
+					if (m_flagClosed) {
+						return;
+					}
+					jobject jwindow = m_window;
 					if (jwindow) {
 						JWindow::activate.call(jwindow);
 					}
@@ -218,8 +234,10 @@ namespace slib
 
 				void setBackgroundColor(const Color& color) override
 				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
+					if (m_flagClosed) {
+						return;
+					}
+					jobject jwindow = m_window;
 					if (jwindow) {
 						JWindow::setBackgroundColor.call(jwindow, color.getARGB());
 					}
@@ -227,8 +245,10 @@ namespace slib
 
 				void setVisible(sl_bool flag) override
 				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
+					if (m_flagClosed) {
+						return;
+					}
+					jobject jwindow = m_window;
 					if (jwindow) {
 						JWindow::setVisible.call(jwindow, flag);
 					}
@@ -236,8 +256,10 @@ namespace slib
 
 				void setAlwaysOnTop(sl_bool flag) override
 				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
+					if (m_flagClosed) {
+						return;
+					}
+					jobject jwindow = m_window;
 					if (jwindow) {
 						JWindow::setAlwaysOnTop.call(jwindow, flag);
 					}
@@ -245,8 +267,10 @@ namespace slib
 
 				void setAlpha(sl_real alpha) override
 				{
-					JniGlobal<jobject> _jwindow(m_window);
-					jobject jwindow = _jwindow;
+					if (m_flagClosed) {
+						return;
+					}
+					jobject jwindow = m_window;
 					if (jwindow) {
 						JWindow::setAlpha.call(jwindow, (jfloat)alpha);
 					}

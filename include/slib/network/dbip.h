@@ -30,11 +30,13 @@ Get Country code from ip address using the database updated from https://db-ip.c
 
 For example,
 
-   211.106.66.5 => KR
+   211.106.66.5 => CN
 
 *************************************************/
 
 #include "ip_address.h"
+
+#include "../core/list.h"
 
 namespace slib
 {

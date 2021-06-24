@@ -29,7 +29,7 @@
 #include "slib/core/app.h"
 #include "slib/core/file.h"
 #include "slib/core/string_buffer.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 
 #include <process.h>
 
@@ -332,12 +332,12 @@ namespace slib
 		param.runAsAdmin = sl_true;
 		param.path = pathExecutable;
 		param.params = Application::buildCommandLine(arguments, nArguments);
-		Windows::shell(param);
+		Win32::shell(param);
 	}
 
 	sl_bool Process::isAdmin()
 	{
-		return Windows::isCurrentProcessRunAsAdmin();
+		return Win32::isCurrentProcessRunAsAdmin();
 	}
 
 	void Process::exec(const StringParam& _pathExecutable, const StringParam* arguments, sl_size nArguments)

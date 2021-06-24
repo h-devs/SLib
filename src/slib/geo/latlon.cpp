@@ -26,18 +26,17 @@
 
 namespace slib
 {
-	
-	sl_bool LatLon::operator==(const LatLon& other) const
+	sl_bool LatLon::equals(const LatLon& other) const noexcept
+	{
+		return latitude == other.latitude && longitude == other.longitude;
+	}
+
+	sl_bool LatLon::isAlmostEqual(const LatLon& other) const noexcept
 	{
 		return Math::isAlmostZero(latitude - other.latitude) && Math::isAlmostZero(longitude - other.longitude);
 	}
-	
-	sl_bool LatLon::operator!=(const LatLon& other) const
-	{
-		return !(Math::isAlmostZero(latitude - other.latitude)) || !(Math::isAlmostZero(longitude - other.longitude));
-	}
-	
-	LatLon LatLon::getCenter(const LatLon* list, sl_size count)
+
+	LatLon LatLon::getCenter(const LatLon* list, sl_size count) noexcept
 	{
 		LatLon ret;
 		ret.latitude = 0;
@@ -83,7 +82,7 @@ namespace slib
 		return ret;
 	}
 
-	double LatLon::normalizeLatitude(double latitude)
+	double LatLon::normalizeLatitude(double latitude) noexcept
 	{
 		if (latitude < -90) {
 			latitude = -90;
@@ -94,19 +93,19 @@ namespace slib
 		return latitude;
 	}
 
-	double LatLon::normalizeLongitude(double longitude)
+	double LatLon::normalizeLongitude(double longitude) noexcept
 	{
 		longitude = Math::normalizeDegree(longitude + 180) - 180;
 		return longitude;
 	}
 
-	void LatLon::normalize()
+	void LatLon::normalize() noexcept
 	{
 		latitude = normalizeLatitude(latitude);
 		longitude = normalizeLongitude(longitude);
 	}
 
-	LatLon LatLon::lerp(const LatLon& target, float factor) const
+	LatLon LatLon::lerp(const LatLon& target, float factor) const noexcept
 	{
 		double tlon = target.longitude;
 		double dlon = tlon - longitude;

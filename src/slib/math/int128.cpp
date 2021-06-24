@@ -1,5 +1,5 @@
 ﻿/*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,32 +23,61 @@
 #include "slib/math/int128.h"
 
 #include "slib/core/mio.h"
-
+#include "slib/core/string.h"
 
 namespace slib
 {
 
 	SLIB_ALIGN(8) const sl_uint64 Uint128::_zero[2] = { 0, 0 };
 
-	sl_compare_result Uint128::compare(const Uint128& other) const noexcept
+	sl_uint32 Uint128::getMostSignificantBits() const noexcept
 	{
-		if (high > other.high) {
-			return 1;
+		if (high) {
+			return 64 + Math::getMostSignificantBits(high);
 		}
-		if (high < other.high) {
-			return -1;
+		if (low) {
+			return Math::getMostSignificantBits(low);
 		}
-		return (low < other.low) ? -1 : (low > other.low);
+		return 0;
 	}
 
-	sl_bool Uint128::equals(const Uint128& other) const noexcept
+	sl_uint32 Uint128::getLeastSignificantBits() const noexcept
 	{
-		return high == other.high && low == other.low;
+		if (low) {
+			return Math::getLeastSignificantBits(low);
+		}
+		if (high) {
+			return 64 + Math::getLeastSignificantBits(high);
+		}
+		return 0;
 	}
-	
-	sl_size Uint128::getHashCode() const noexcept
+
+	void Uint128::getBytesBE(void* _buf) noexcept
 	{
-		return Rehash64ToSize(high ^ low);
+		char* buf = (char*)_buf;
+		MIO::writeUint64BE(buf, high);
+		MIO::writeUint64BE(buf + 8, low);
+	}
+
+	void Uint128::setBytesBE(const void* _buf) noexcept
+	{
+		const char* buf = (const char*)_buf;
+		high = MIO::readUint64BE(buf);
+		low = MIO::readUint64BE(buf + 8);
+	}
+
+	void Uint128::getBytesLE(void* _buf) noexcept
+	{
+		char* buf = (char*)_buf;
+		MIO::writeUint64LE(buf, low);
+		MIO::writeUint64LE(buf + 8, high);
+	}
+
+	void Uint128::setBytesLE(const void* _buf) noexcept
+	{
+		const char* buf = (const char*)_buf;
+		low = MIO::readUint64LE(buf);
+		high = MIO::readUint64LE(buf + 8);
 	}
 
 	Uint128 Uint128::mul64(sl_uint64 a, sl_uint64 b) noexcept
@@ -281,120 +310,6 @@ namespace slib
 		} else {
 			return 16 + (*this / SLIB_POW10_16).log10();
 		}
-	}
-
-	sl_bool Uint128::operator==(const Uint128& other) const noexcept
-	{
-		return high == other.high && low == other.low;
-	}
-
-	sl_bool Uint128::operator==(sl_uint64 num) const noexcept
-	{
-		return high == 0 && low == num;
-	}
-
-	sl_bool operator==(sl_uint64 num, const Uint128& v) noexcept
-	{
-		return v.high == 0 && v.low == num;
-	}
-
-	sl_bool Uint128::operator!=(const Uint128& other) const noexcept
-	{
-		return high != other.high || low != other.low;
-	}
-
-	sl_bool Uint128::operator!=(sl_uint64 num) const noexcept
-	{
-		return high != 0 || low != num;
-	}
-
-	sl_bool operator!=(sl_uint64 num, const Uint128& v) noexcept
-	{
-		return v.high != 0 || v.low != num;
-	}
-
-	sl_bool Uint128::operator>=(const Uint128& other) const noexcept
-	{
-		if (high > other.high) {
-			return sl_true;
-		}
-		if (high < other.high) {
-			return sl_false;
-		}
-		return low >= other.low;
-	}
-
-	sl_bool Uint128::operator>=(sl_uint64 num) const noexcept
-	{
-		return high > 0 || low >= num;
-	}
-
-	sl_bool operator>=(sl_uint64 num, const Uint128& v) noexcept
-	{
-		return v.high == 0 && v.low <= num;
-	}
-
-	sl_bool Uint128::operator<=(const Uint128& other) const noexcept
-	{
-		if (high < other.high) {
-			return sl_true;
-		}
-		if (high > other.high) {
-			return sl_false;
-		}
-		return low <= other.low;
-	}
-
-	sl_bool Uint128::operator<=(sl_uint64 num) const noexcept
-	{
-		return high == 0 && low <= num;
-	}
-
-	sl_bool operator<=(sl_uint64 num, const Uint128& v) noexcept
-	{
-		return v.high > 0 || v.low >= num;
-	}
-
-	sl_bool Uint128::operator>(const Uint128& other) const noexcept
-	{
-		if (high > other.high) {
-			return sl_true;
-		}
-		if (high < other.high) {
-			return sl_false;
-		}
-		return low > other.low;
-	}
-
-	sl_bool Uint128::operator>(sl_uint64 num) const noexcept
-	{
-		return high > 0 || low > num;
-	}
-
-	sl_bool operator>(sl_uint64 num, const Uint128& v) noexcept
-	{
-		return v.high == 0 && v.low < num;
-	}
-
-	sl_bool Uint128::operator<(const Uint128& other) const noexcept
-	{
-		if (high < other.high) {
-			return sl_true;
-		}
-		if (high > other.high) {
-			return sl_false;
-		}
-		return low < other.low;
-	}
-
-	sl_bool Uint128::operator<(sl_uint64 num) const noexcept
-	{
-		return high == 0 && low < num;
-	}
-
-	sl_bool operator<(sl_uint64 num, const Uint128& v) noexcept
-	{
-		return v.high > 0 || v.low > num;
 	}
 
 	Uint128 Uint128::operator+(const Uint128& other) const noexcept
@@ -858,54 +773,68 @@ namespace slib
 		return ret;
 	}
 
-	sl_uint32 Uint128::getMostSignificantBits() const noexcept
+	sl_bool Uint128::equals(const Uint128& other) const noexcept
 	{
-		if (high) {
-			return 64 + Math::getMostSignificantBits(high);
+		return high == other.high && low == other.low;
+	}
+
+	sl_bool Uint128::equals(sl_uint64 other) const noexcept
+	{
+		return high == 0 && low == other;
+	}
+
+	sl_compare_result Uint128::compare(const Uint128& other) const noexcept
+	{
+		if (high > other.high) {
+			return 1;
 		}
-		if (low) {
-			return Math::getMostSignificantBits(low);
+		if (high < other.high) {
+			return -1;
 		}
-		return 0;
+		return ComparePrimitiveValues(low, other.low);
 	}
 
-	sl_uint32 Uint128::getLeastSignificantBits() const noexcept
+	sl_compare_result Uint128::compare(const sl_uint64 other) const noexcept
 	{
-		if (low) {
-			return Math::getLeastSignificantBits(low);
+		if (high > 0) {
+			return 1;
 		}
-		if (high) {
-			return 64 + Math::getLeastSignificantBits(high);
-		}
-		return 0;
+		return ComparePrimitiveValues(low, other);
 	}
 
-	void Uint128::getBytesBE(void* _buf) noexcept
+	sl_bool operator==(sl_uint64 num, const Uint128& v) noexcept
 	{
-		char* buf = (char*)_buf;
-		MIO::writeUint64BE(buf, high);
-		MIO::writeUint64BE(buf + 8, low);
+		return v.equals(num);
 	}
 
-	void Uint128::setBytesBE(const void* _buf) noexcept
+	sl_bool operator!=(sl_uint64 num, const Uint128& v) noexcept
 	{
-		const char* buf = (const char*)_buf;
-		high = MIO::readUint64BE(buf);
-		low = MIO::readUint64BE(buf + 8);
+		return !(v.equals(num));
 	}
 
-	void Uint128::getBytesLE(void* _buf) noexcept
+	sl_bool operator>=(sl_uint64 num, const Uint128& v) noexcept
 	{
-		char* buf = (char*)_buf;
-		MIO::writeUint64LE(buf, low);
-		MIO::writeUint64LE(buf + 8, high);
+		return v.compare(num) <= 0;
 	}
 
-	void Uint128::setBytesLE(const void* _buf) noexcept
+	sl_bool operator<=(sl_uint64 num, const Uint128& v) noexcept
 	{
-		const char* buf = (const char*)_buf;
-		low = MIO::readUint64LE(buf);
-		high = MIO::readUint64LE(buf + 8);
+		return v.compare(num) >= 0;
+	}
+
+	sl_bool operator>(sl_uint64 num, const Uint128& v) noexcept
+	{
+		return v.compare(num) < 0;
+	}
+
+	sl_bool operator<(sl_uint64 num, const Uint128& v) noexcept
+	{
+		return v.compare(num) > 0;
+	}
+
+	sl_size Uint128::getHashCode() const noexcept
+	{
+		return Rehash64ToSize(high ^ low);
 	}
 
 	Uint128 Uint128::fromString(const StringParam& str, sl_uint32 radix) noexcept
@@ -981,7 +910,7 @@ namespace slib
 		{
 
 			template <class CT>
-			SLIB_INLINE static sl_reg ParseString(Uint128* out, const CT* sz, sl_size posBegin, sl_size len, sl_uint32 radix) noexcept
+			SLIB_INLINE static sl_reg Parse(Uint128* out, sl_uint32 radix, const CT* sz, sl_size posBegin, sl_size len) noexcept
 			{
 				if (radix < 2 || radix > 64) {
 					return SLIB_PARSE_ERROR;
@@ -1022,34 +951,8 @@ namespace slib
 		}
 	}
 
+	SLIB_DEFINE_CLASS_PARSE_INT_MEMBERS(Uint128, priv::uint128::Parse)
 
-	template <>
-	sl_reg IntParser<Uint128, sl_char8>::parse(Uint128* _out, sl_uint32 radix, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::uint128::ParseString(_out, sz, posBegin, posEnd, radix);
-	}
-
-	template <>
-	sl_reg IntParser<Uint128, sl_char16>::parse(Uint128* _out, sl_uint32 radix, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::uint128::ParseString(_out, sz, posBegin, posEnd, radix);
-	}
-
-
-	sl_compare_result Compare<Uint128>::operator()(const Uint128& a, const Uint128& b) const noexcept
-	{
-		return a.compare(b);
-	}
-
-	sl_bool Equals<Uint128>::operator()(const Uint128& a, const Uint128& b) const noexcept
-	{
-		return a.equals(b);
-	}
-
-	sl_size Hash<Uint128>::operator()(const Uint128& v) const noexcept
-	{
-		return v.getHashCode();
-	}
 
 	template <>
 	void Math::pow10iT<Uint128>(Uint128& _out, sl_uint32 exponent) noexcept

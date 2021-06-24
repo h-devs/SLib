@@ -26,7 +26,6 @@
 #include "graphics/constants.h"
 
 #include "graphics/color.h"
-#include "graphics/color_parse.h"
 #include "graphics/yuv.h"
 #include "graphics/bitmap_format.h"
 #include "graphics/bitmap_data.h"
@@ -50,5 +49,8 @@
 #include "graphics/util.h"
 
 #include "graphics/zxing.h"
+
+#include "graphics/json.h"
+#include "graphics/serialize.h"
 
 #endif

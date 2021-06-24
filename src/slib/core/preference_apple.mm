@@ -27,7 +27,7 @@
 #include "slib/core/preference.h"
 
 #include "slib/core/json.h"
-#include "slib/core/platform_apple.h"
+#include "slib/core/platform.h"
 
 #import <Foundation/Foundation.h>
 

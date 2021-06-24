@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 #include "slib/crypto/sha2.h"
 
 #include "slib/core/string_buffer.h"
+#include "slib/core/math.h"
 #include "slib/core/safe_static.h"
 
 #include "ecc_secp256k1.inc"
@@ -34,21 +35,21 @@ namespace slib
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPoint)
 	
-	ECPoint::ECPoint()
+	ECPoint::ECPoint() noexcept
 	{
 	}
 	
-	sl_bool ECPoint::isO() const
+	sl_bool ECPoint::isO() const noexcept
 	{
 		return y.isZero();
 	}
 	
-	Memory ECPoint::toUncompressedFormat(const EllipticCurve& curve) const
+	Memory ECPoint::toUncompressedFormat(const EllipticCurve& curve) const noexcept
 	{
 		return toUncompressedFormat(curve.n.getMostSignificantBytes());
 	}
 	
-	Memory ECPoint::toUncompressedFormat(sl_size nBytesPerComponent) const
+	Memory ECPoint::toUncompressedFormat(sl_size nBytesPerComponent) const noexcept
 	{
 		if (isO()) {
 			sl_uint8 c = 0;
@@ -70,7 +71,7 @@ namespace slib
 		return sl_null;
 	}
 	
-	sl_bool ECPoint::parseUncompressedFormat(const void* _buf, sl_size size)
+	sl_bool ECPoint::parseUncompressedFormat(const void* _buf, sl_size size) noexcept
 	{
 		const sl_uint8* buf = (const sl_uint8*)_buf;
 		if (size) {
@@ -92,70 +93,20 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
-	String ECPoint::toUncompressedFormatString(const EllipticCurve& curve) const
+
+	sl_bool ECPoint::parseUncompressedFormat(const Memory& mem) noexcept
 	{
-		return toUncompressedFormatString(curve.n.getMostSignificantBytes());
-	}
-	
-	String ECPoint::toUncompressedFormatString(sl_size nBytesPerComponent) const
-	{
-		if (isO()) {
-			SLIB_RETURN_STRING("00");
-		}
-		if (!nBytesPerComponent) {
-			nBytesPerComponent = Math::max(x.getMostSignificantBytes(), y.getMostSignificantBytes());
-		}
-		SLIB_SCOPED_BUFFER(sl_uint8, 1024, buf, nBytesPerComponent);
-		if (buf) {
-			StringBuffer sb;
-			sb.addStatic("04");
-			if (x.getBytesBE(buf, nBytesPerComponent)) {
-				sb.add(String::makeHexString(buf, nBytesPerComponent, sl_false));
-				if (y.getBytesBE(buf, nBytesPerComponent)) {
-					sb.add(String::makeHexString(buf, nBytesPerComponent, sl_false));
-					return sb.merge();
-				}
-			}
-		}
-		return sl_null;
-	}
-	
-	sl_bool ECPoint::parseUncompressedFormatString(const sl_char8* sz, sl_size n)
-	{
-		if (n && !(n & 1)) {
-			if (sz[0] == '0' && sz[1] == '4') {
-				sl_size m = (n - 2) >> 1;
-				if (!(m & 1)) {
-					BigInt _x = BigInt::fromHexString(sz + 2, m);
-					if (_x.isNotNull()) {
-						BigInt _y = BigInt::fromHexString(sz + (2 + m), m);
-						if (_y.isNotNull()) {
-							x = Move(_x);
-							y = Move(_y);
-							return sl_true;
-						}
-					}
-				}
-			}
-		}
-		return sl_false;
-	}
-	
-	sl_bool ECPoint::parseUncompressedFormatString(const StringParam& _str)
-	{
-		StringData str(_str);
-		return parseUncompressedFormatString(str.getData(), str.getLength());
+		return parseUncompressedFormat(mem.getData(), mem.getSize());
 	}
 
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EllipticCurve)
 
-	EllipticCurve::EllipticCurve(): h(1)
+	EllipticCurve::EllipticCurve() noexcept: h(1)
 	{
 	}
 	
-	ECPoint EllipticCurve::addPoint(const ECPoint& p1, const ECPoint& p2) const
+	ECPoint EllipticCurve::addPoint(const ECPoint& p1, const ECPoint& p2) const noexcept
 	{
 		if (p1.isO()) {
 			return p2;
@@ -177,7 +128,7 @@ namespace slib
 		}
 	}
 	
-	ECPoint EllipticCurve::doublePoint(const ECPoint& pt) const
+	ECPoint EllipticCurve::doublePoint(const ECPoint& pt) const noexcept
 	{
 		if (pt.isO()) {
 			return pt;
@@ -190,7 +141,7 @@ namespace slib
 		return ret;
 	}
 	
-	ECPoint EllipticCurve::multiplyPoint(const ECPoint& pt, const BigInt& _k) const
+	ECPoint EllipticCurve::multiplyPoint(const ECPoint& pt, const BigInt& _k) const noexcept
 	{
 		CBigInt* k = _k.ref.get();
 		if (!k) {
@@ -214,7 +165,7 @@ namespace slib
 		return ret;
 	}
 	
-	ECPoint EllipticCurve::multiplyG(const BigInt& _k) const
+	ECPoint EllipticCurve::multiplyG(const BigInt& _k) const noexcept
 	{
 		if (pow2g.isNull()) {
 			return multiplyPoint(G, _k);
@@ -247,11 +198,26 @@ namespace slib
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPublicKey)
 	
-	ECPublicKey::ECPublicKey()
+	ECPublicKey::ECPublicKey() noexcept
 	{
 	}
-	
-	sl_bool ECPublicKey::checkValid(const EllipticCurve& curve) const
+
+	sl_bool ECPublicKey::isNull() const noexcept
+	{
+		return Q.x.isNull();
+	}
+
+	sl_bool ECPublicKey::equals(const ECPublicKey& other) const noexcept
+	{
+		return Q.x.equals(other.Q.x);
+	}
+
+	sl_compare_result ECPublicKey::compare(const ECPublicKey& other) const noexcept
+	{
+		return Q.x.compare(other.Q.x);
+	}
+
+	sl_bool ECPublicKey::checkValid(const EllipticCurve& curve) const noexcept
 	{
 		if (Q.isO()) {
 			return sl_false;
@@ -272,15 +238,24 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
+	sl_bool ECPublicKey::verifySignature(const EllipticCurve& curve, const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept
+	{
+		ECDSA_Signature sig;
+		if (sig.deserialize(signature, sizeSignature)) {
+			return ECDSA::verify(curve, *this, hash, size, sig);
+		}
+		return sl_false;
+	}
+
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPrivateKey)
 	
-	ECPrivateKey::ECPrivateKey()
+	ECPrivateKey::ECPrivateKey() noexcept
 	{
 	}
 	
-	sl_bool ECPrivateKey::generate(const EllipticCurve& curve)
+	sl_bool ECPrivateKey::generate(const EllipticCurve& curve) noexcept
 	{
 		if (curve.n < 3) {
 			return sl_false;
@@ -299,19 +274,114 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
-	
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECDSA_Signature)
-	
-	ECDSA_Signature::ECDSA_Signature()
+
+	Memory ECPrivateKey::generateSignature(const EllipticCurve& curve, const void* hash, sl_size size) const noexcept
+	{
+		return ECDSA::sign(curve, *this, hash, size).serialize();		
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPublicKey_secp256k1)
+
+	ECPublicKey_secp256k1::ECPublicKey_secp256k1() noexcept
 	{
 	}
+
+	sl_bool ECPublicKey_secp256k1::checkValid() const noexcept
+	{
+		return ECPublicKey::checkValid(EllipticCurve::secp256k1());
+	}
+
+	sl_bool ECPublicKey_secp256k1::verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept
+	{
+		return ECPublicKey::verifySignature(EllipticCurve::secp256k1(), hash, size, signature, sizeSignature);
+	}
+
+	Bytes<32> ECPublicKey_secp256k1::toId() const noexcept
+	{
+		Bytes<32> ret;
+		Q.x.getBytesBE(ret.data, 32);
+		return ret;
+	}
 	
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPrivateKey_secp256k1)
+
+	ECPrivateKey_secp256k1::ECPrivateKey_secp256k1() noexcept
+	{
+	}
+
+	sl_bool ECPrivateKey_secp256k1::generate() noexcept
+	{
+		return ECPrivateKey::generate(EllipticCurve::secp256k1());
+	}
+
+	Memory ECPrivateKey_secp256k1::generateSignature(const void* hash, sl_size size) const noexcept
+	{
+		return ECPrivateKey::generateSignature(EllipticCurve::secp256k1(), hash, size);
+	}
+
+	sl_bool ECPrivateKey_secp256k1::checkValid() const noexcept
+	{
+		return ECPublicKey::checkValid(EllipticCurve::secp256k1());
+	}
+
+	sl_bool ECPrivateKey_secp256k1::verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept
+	{
+		return ECPublicKey::verifySignature(EllipticCurve::secp256k1(), hash, size, signature, sizeSignature);
+	}
+
+	Bytes<32> ECPrivateKey_secp256k1::toId() const noexcept
+	{
+		Bytes<32> ret;
+		Q.x.getBytesBE(ret.data, 32);
+		return ret;
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECDSA_Signature)
+	
+	ECDSA_Signature::ECDSA_Signature() noexcept
+	{
+	}
+
+	Memory ECDSA_Signature::serialize() const noexcept
+	{
+		sl_size n1 = r.getMostSignificantBytes();
+		sl_size n2 = s.getMostSignificantBytes();
+		sl_size n = Math::max(n1, n2);
+		Memory ret = Memory::create(n << 1);
+		if (ret.isNotNull()) {
+			sl_uint8* signature = (sl_uint8*)(ret.getData());
+			r.getBytesBE(signature, n);
+			s.getBytesBE(signature + n, n);
+			return ret;
+		}
+		return sl_null;
+	}
+
+	sl_bool ECDSA_Signature::deserialize(const void* buf, sl_size size)
+	{
+		const sl_uint8* signature = (const sl_uint8*)buf;
+		if (size & 1) {
+			return sl_false;
+		}
+		size >>= 1;
+		r = BigInt::fromBytesBE(signature, size);
+		s = BigInt::fromBytesBE(signature + size, size);
+		return sl_true;
+	}
+
+	sl_bool ECDSA_Signature::deserialize(const Memory& mem) noexcept
+	{
+		return deserialize(mem.getData(), mem.getSize());
+	}
+
 	namespace priv
 	{
 		namespace ecdsa
 		{
-			static BigInt makeZ(const EllipticCurve& curve, const void* hash, sl_size hashSize)
+			static BigInt MakeZ(const EllipticCurve& curve, const void* hash, sl_size hashSize) noexcept
 			{
 				sl_size nBits = curve.n.getMostSignificantBits();
 				if (!nBits) {
@@ -333,7 +403,7 @@ namespace slib
 		}
 	}
 	
-	ECDSA_Signature ECDSA::sign(const EllipticCurve& curve, const ECPrivateKey& key, const BigInt& z, BigInt* _k)
+	ECDSA_Signature ECDSA::sign(const EllipticCurve& curve, const ECPrivateKey& key, const BigInt& z, BigInt* _k) noexcept
 	{
 		if (curve.G.isO()) {
 			return ECDSA_Signature();
@@ -385,25 +455,22 @@ namespace slib
 			}
 			break;
 		}
-		ECDSA_Signature ret;
-		ret.r = r;
-		ret.s = s;
-		return ret;
+		return ECDSA_Signature(Move(r), Move(s));
 	}
 	
-	ECDSA_Signature ECDSA::sign(const EllipticCurve& curve, const ECPrivateKey& key, const void* hash, sl_size size, BigInt* k)
+	ECDSA_Signature ECDSA::sign(const EllipticCurve& curve, const ECPrivateKey& key, const void* hash, sl_size size, BigInt* k) noexcept
 	{
-		return sign(curve, key, priv::ecdsa::makeZ(curve, hash, size), k);
+		return sign(curve, key, priv::ecdsa::MakeZ(curve, hash, size), k);
 	}
 	
-	ECDSA_Signature ECDSA::sign_SHA256(const EllipticCurve& curve, const ECPrivateKey& key, const void* data, sl_size size, BigInt* k)
+	ECDSA_Signature ECDSA::sign_SHA256(const EllipticCurve& curve, const ECPrivateKey& key, const void* data, sl_size size, BigInt* k) noexcept
 	{
 		sl_uint8 hash[SHA256::HashSize];
 		SHA256::hash(data, size, hash);
-		return sign(curve, key, priv::ecdsa::makeZ(curve, hash, SHA256::HashSize), k);
+		return sign(curve, key, priv::ecdsa::MakeZ(curve, hash, SHA256::HashSize), k);
 	}
 	
-	sl_bool ECDSA::verify(const EllipticCurve& curve, const ECPublicKey& key, const BigInt& z, const ECDSA_Signature& signature)
+	sl_bool ECDSA::verify(const EllipticCurve& curve, const ECPublicKey& key, const BigInt& z, const ECDSA_Signature& signature) noexcept
 	{
 		if (!(key.checkValid(curve))) {
 			return sl_false;
@@ -432,19 +499,19 @@ namespace slib
 		return kG.x == signature.r;
 	}
 	
-	sl_bool ECDSA::verify(const EllipticCurve& curve, const ECPublicKey& key, const void* hash, sl_size size, const ECDSA_Signature& signature)
+	sl_bool ECDSA::verify(const EllipticCurve& curve, const ECPublicKey& key, const void* hash, sl_size size, const ECDSA_Signature& signature) noexcept
 	{
-		return verify(curve, key, priv::ecdsa::makeZ(curve, hash, size), signature);
+		return verify(curve, key, priv::ecdsa::MakeZ(curve, hash, size), signature);
 	}
 	
-	sl_bool ECDSA::verify_SHA256(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature)
+	sl_bool ECDSA::verify_SHA256(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature) noexcept
 	{
 		sl_uint8 hash[SHA256::HashSize];
 		SHA256::hash(data, size, hash);
-		return verify(curve, key, priv::ecdsa::makeZ(curve, hash, SHA256::HashSize), signature);
+		return verify(curve, key, priv::ecdsa::MakeZ(curve, hash, SHA256::HashSize), signature);
 	}
 	
-	BigInt ECDH::getSharedKey(const EllipticCurve& curve, const ECPrivateKey& keyLocal, const ECPublicKey& keyRemote)
+	BigInt ECDH::getSharedKey(const EllipticCurve& curve, const ECPrivateKey& keyLocal, const ECPublicKey& keyRemote) noexcept
 	{
 		if (!(keyRemote.checkValid(curve))) {
 			return BigInt::null();

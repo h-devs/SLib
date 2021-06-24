@@ -26,11 +26,9 @@
 namespace slib
 {
 
-	class Variant;
 	typedef List<Variant> VariantList;
 	typedef HashMap<String, Variant> VariantMap;
 
-	class Json;
 	typedef List<Json> JsonList;
 	typedef HashMap<String, Json> JsonMap;
 

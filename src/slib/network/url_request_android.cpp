@@ -27,7 +27,7 @@
 #include "slib/network/url_request.h"
 
 #include "slib/core/safe_static.h"
-#include "slib/core/platform_android.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {
@@ -44,7 +44,7 @@ namespace slib
 			void JNICALL OnComplete(JNIEnv* env, jobject _this, jlong jinstance);
 			void JNICALL OnError(JNIEnv* env, jobject _this, jlong jinstance, jstring errorMessage);
 
-			SLIB_JNI_BEGIN_CLASS(JUrlRequest, "slib/platform/android/network/UrlRequest")
+			SLIB_JNI_BEGIN_CLASS(JUrlRequest, "slib/android/network/UrlRequest")
 				SLIB_JNI_STATIC_METHOD(execute, "execute", "(JLjava/lang/String;Ljava/lang/String;[Ljava/lang/String;[BLjava/lang/String;IZ)V")
 				SLIB_JNI_METHOD(close, "close", "()V")
 
@@ -59,7 +59,7 @@ namespace slib
 
 			class UrlRequestImpl : public UrlRequest {
 			public:
-				AtomicJniGlobal<jobject> m_jrequest;
+				AtomicJniGlobal<jobject> m_request;
 
 			public:
 				UrlRequestImpl() {
@@ -127,11 +127,10 @@ namespace slib
 
 				void clear()
 				{
-					JniGlobal<jobject> jrequest(m_jrequest);
-					if (jrequest.isNotNull()) {
-						JUrlRequest::close.call(jrequest);
+					JniGlobal<jobject> request = Move(m_request);
+					if (request.isNotNull()) {
+						JUrlRequest::close.call(request);
 					}
-					m_jrequest.setNull();
 				}
 
 				void dispatchUploadBody(int n)
@@ -208,7 +207,7 @@ namespace slib
 			{
 				UrlRequestImpl* request = (UrlRequestImpl*)((void*)((sl_reg)jinstance));
 				if (request) {
-					request->m_jrequest = _this;
+					request->m_request = _this;
 				}
 			}
 

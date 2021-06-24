@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_MATH_HEADER
 #define CHECKHEADER_SLIB_MATH_HEADER
 
-#include "core/math.h"
-
 #include "math/complex.h"
 #include "math/bigint.h"
 #include "math/int128.h"
@@ -63,5 +61,8 @@
 #include "math/calculator.h"
 
 #include "math/plot.h"
+
+#include "math/json.h"
+#include "math/serialize.h"
 
 #endif

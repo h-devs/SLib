@@ -43,26 +43,26 @@ namespace slib
 				SLIB_JNI_INT_FIELD(bottom);
 			SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JGraphics, "slib/platform/android/ui/Graphics")
+			SLIB_JNI_BEGIN_CLASS(JGraphics, "slib/android/ui/Graphics")
 				SLIB_JNI_METHOD(getWidth, "getWidth", "()I");
 				SLIB_JNI_METHOD(getHeight, "getHeight", "()I");
 				SLIB_JNI_METHOD(save, "save", "()V");
 				SLIB_JNI_METHOD(restore, "restore", "()V");
 				SLIB_JNI_METHOD(getClipBounds, "getClipBounds", "()Landroid/graphics/Rect;");
 				SLIB_JNI_METHOD(clipToRectangle, "clipToRectangle", "(FFFF)V");
-				SLIB_JNI_METHOD(clipToPath, "clipToPath", "(Lslib/platform/android/ui/UiPath;)V");
+				SLIB_JNI_METHOD(clipToPath, "clipToPath", "(Lslib/android/ui/UiPath;)V");
 				SLIB_JNI_METHOD(concatMatrix, "concatMatrix", "(FFFFFFFFF)V");
-				SLIB_JNI_METHOD(drawText, "drawText", "(Ljava/lang/String;FFLslib/platform/android/ui/UiFont;I)V");
-				SLIB_JNI_METHOD(drawText2, "drawText", "(Ljava/lang/String;FFLslib/platform/android/ui/UiFont;IIFFF)V");
-				SLIB_JNI_METHOD(drawLine, "drawLine", "(FFFFLslib/platform/android/ui/UiPen;)V");
-				SLIB_JNI_METHOD(drawLines, "drawLines", "([FLslib/platform/android/ui/UiPen;)V");
-				SLIB_JNI_METHOD(drawArc, "drawArc", "(FFFFFFLslib/platform/android/ui/UiPen;)V");
-				SLIB_JNI_METHOD(drawRectangle, "drawRectangle", "(FFFFLslib/platform/android/ui/UiPen;Lslib/platform/android/ui/UiBrush;)V");
-				SLIB_JNI_METHOD(drawRoundRectangle, "drawRoundRectangle", "(FFFFFFLslib/platform/android/ui/UiPen;Lslib/platform/android/ui/UiBrush;)V");
-				SLIB_JNI_METHOD(drawEllipse, "drawEllipse", "(FFFFLslib/platform/android/ui/UiPen;Lslib/platform/android/ui/UiBrush;)V");
-				SLIB_JNI_METHOD(drawPolygon, "drawPolygon", "([FLslib/platform/android/ui/UiPen;Lslib/platform/android/ui/UiBrush;I)V");
-				SLIB_JNI_METHOD(drawPie, "drawPie", "(FFFFFFLslib/platform/android/ui/UiPen;Lslib/platform/android/ui/UiBrush;)V");
-				SLIB_JNI_METHOD(drawPath, "drawPath", "(Lslib/platform/android/ui/UiPath;Lslib/platform/android/ui/UiPen;Lslib/platform/android/ui/UiBrush;)V");
+				SLIB_JNI_METHOD(drawText, "drawText", "(Ljava/lang/String;FFLslib/android/ui/UiFont;I)V");
+				SLIB_JNI_METHOD(drawText2, "drawText", "(Ljava/lang/String;FFLslib/android/ui/UiFont;IIFFF)V");
+				SLIB_JNI_METHOD(drawLine, "drawLine", "(FFFFLslib/android/ui/UiPen;)V");
+				SLIB_JNI_METHOD(drawLines, "drawLines", "([FLslib/android/ui/UiPen;)V");
+				SLIB_JNI_METHOD(drawArc, "drawArc", "(FFFFFFLslib/android/ui/UiPen;)V");
+				SLIB_JNI_METHOD(drawRectangle, "drawRectangle", "(FFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
+				SLIB_JNI_METHOD(drawRoundRectangle, "drawRoundRectangle", "(FFFFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
+				SLIB_JNI_METHOD(drawEllipse, "drawEllipse", "(FFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
+				SLIB_JNI_METHOD(drawPolygon, "drawPolygon", "([FLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;I)V");
+				SLIB_JNI_METHOD(drawPie, "drawPie", "(FFFFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
+				SLIB_JNI_METHOD(drawPath, "drawPath", "(Lslib/android/ui/UiPath;Lslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
 				SLIB_JNI_METHOD(setAlpha, "setAlpha", "(F)V");
 				SLIB_JNI_METHOD(setAntiAlias, "setAntiAlias", "(Z)V");
 			SLIB_JNI_END_CLASS
@@ -81,9 +81,9 @@ namespace slib
 						int height = JGraphics::getHeight.callInt(jcanvas);
 						Ref<CanvasImpl> ret = new CanvasImpl();
 						if (ret.isNotNull()) {
-							ret->m_canvas = canvas;
 							ret->setType(type);
 							ret->setSize(Size((sl_real)width, (sl_real)height));
+							ret->m_canvas = Move(canvas);
 							return ret;
 						}
 					}
@@ -140,9 +140,7 @@ namespace slib
 				{
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 					if (hPen) {
-						JGraphics::drawLine.call(m_canvas
-								, (float)(pt1.x), (float)(pt1.y), (float)(pt2.x), (float)(pt2.y)
-								, hPen);
+						JGraphics::drawLine.call(m_canvas, (float)(pt1.x), (float)(pt1.y), (float)(pt2.x), (float)(pt2.y), hPen);
 					}
 				}
 
@@ -156,7 +154,7 @@ namespace slib
 						JniLocal<jfloatArray> jarr = Jni::newFloatArray(countPoints*2);
 						if (jarr.isNotNull()) {
 							Jni::setFloatArrayRegion(jarr, 0, countPoints*2, (jfloat*)(points));
-							JGraphics::drawLines.call(m_canvas, jarr.value, hPen);
+							JGraphics::drawLines.call(m_canvas, jarr.get(), hPen);
 						}
 					}
 				}
@@ -165,10 +163,10 @@ namespace slib
 				{
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 					if (hPen) {
-						JGraphics::drawArc.call(m_canvas
-								, (float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom)
-								, (float)(startDegrees), (float)(endDegrees)
-								, hPen);
+						JGraphics::drawArc.call(m_canvas,
+							(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
+							(float)(startDegrees), (float)(endDegrees),
+							hPen);
 					}
 				}
 
@@ -177,9 +175,9 @@ namespace slib
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
 					if (hPen || hBrush) {
-						JGraphics::drawRectangle.call(m_canvas
-								, (float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom)
-								, hPen, hBrush);
+						JGraphics::drawRectangle.call(m_canvas,
+							(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
+							hPen, hBrush);
 					}
 				}
 
@@ -188,9 +186,9 @@ namespace slib
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
 					if (hPen || hBrush) {
-						JGraphics::drawRoundRectangle.call(m_canvas
-								, (float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom)
-								, (float)(radius.x), (float)(radius.y), hPen, hBrush);
+						JGraphics::drawRoundRectangle.call(m_canvas,
+							(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
+							(float)(radius.x), (float)(radius.y), hPen, hBrush);
 					}
 				}
 
@@ -199,9 +197,9 @@ namespace slib
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
 					if (hPen || hBrush) {
-						JGraphics::drawEllipse.call(m_canvas
-								, (float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom)
-								, hPen, hBrush);
+						JGraphics::drawEllipse.call(m_canvas,
+							(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
+							hPen, hBrush);
 					}
 				}
 
@@ -216,7 +214,7 @@ namespace slib
 						JniLocal<jfloatArray> jarr = Jni::newFloatArray(countPoints*2);
 						if (jarr.isNotNull()) {
 							Jni::setFloatArrayRegion(jarr, 0, countPoints*2, (jfloat*)(points));
-							JGraphics::drawPolygon.call(m_canvas, jarr.value, hPen, hBrush, fillMode);
+							JGraphics::drawPolygon.call(m_canvas, jarr.get(), hPen, hBrush, fillMode);
 						}
 					}
 				}
@@ -226,10 +224,10 @@ namespace slib
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
 					if (hPen || hBrush) {
-						JGraphics::drawPie.call(m_canvas
-								, (float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom)
-								, (float)(startDegrees), (float)(endDegrees)
-								, hPen, hBrush);
+						JGraphics::drawPie.call(m_canvas,
+							(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
+							(float)(startDegrees), (float)(endDegrees),
+							hPen, hBrush);
 					}
 				}
 				
@@ -240,9 +238,7 @@ namespace slib
 						jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 						jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
 						if (hPen || hBrush) {
-							JGraphics::drawPath.call(m_canvas
-									, hPath
-									, hPen, hBrush);
+							JGraphics::drawPath.call(m_canvas,hPath, hPen, hBrush);
 						}
 					}
 				}
@@ -258,10 +254,10 @@ namespace slib
 							if (shadowOpacity > 0.0001f) {
 								Color shadowColor = param.shadowColor;
 								shadowColor.multiplyAlpha((float)shadowOpacity);
-								JGraphics::drawText2.call(m_canvas, jtext.value, (jfloat)x, (jfloat)y, hFont, (jint)(param.color.getARGB()),
+								JGraphics::drawText2.call(m_canvas, jtext.get(), (jfloat)x, (jfloat)y, hFont, (jint)(param.color.getARGB()),
 									(jint)(shadowColor.getARGB()), (jfloat)(param.shadowRadius), (jfloat)(param.shadowOffset.x), (jfloat)(param.shadowOffset.y));
 							} else {
-								JGraphics::drawText.call(m_canvas, jtext.value, (jfloat)x, (jfloat)y, hFont, (jint)(param.color.getARGB()));
+								JGraphics::drawText.call(m_canvas, jtext.get(), (jfloat)x, (jfloat)y, hFont, (jint)(param.color.getARGB()));
 							}
 						}
 					}

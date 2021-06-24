@@ -30,11 +30,14 @@
 #include "slib/ui/platform.h"
 #include "slib/ui/mobile_app.h"
 #include "slib/ui/resource.h"
-
+#include "slib/device/device.h"
 #include "slib/core/locale.h"
 #include "slib/core/io.h"
 #include "slib/core/log.h"
 #include "slib/core/safe_static.h"
+
+#include "slib/core/android/activity.h"
+#include "slib/core/android/window.h"
 
 #include "ui_core_common.h"
 
@@ -48,11 +51,6 @@ namespace slib
 			
 			Ref<UIApp> g_app;
 			
-			SLIB_JNI_BEGIN_CLASS(JPoint, "android/graphics/Point")
-				SLIB_JNI_INT_FIELD(x);
-				SLIB_JNI_INT_FIELD(y);
-			SLIB_JNI_END_CLASS
-
 			SLIB_JNI_BEGIN_CLASS(JRect, "android/graphics/Rect")
 				SLIB_JNI_INT_FIELD(left);
 				SLIB_JNI_INT_FIELD(top);
@@ -60,21 +58,23 @@ namespace slib
 				SLIB_JNI_INT_FIELD(bottom);
 			SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JUtil, "slib/platform/android/ui/Util")
-				SLIB_JNI_STATIC_METHOD(getDefaultDisplay, "getDefaultDisplay", "(Landroid/app/Activity;)Landroid/view/Display;");
-				SLIB_JNI_STATIC_METHOD(getDisplaySize, "getDisplaySize", "(Landroid/view/Display;)Landroid/graphics/Point;");
-				SLIB_JNI_STATIC_METHOD(getScreenOrientation, "getScreenOrientation", "(Landroid/app/Activity;)I");
-				SLIB_JNI_STATIC_METHOD(setScreenOrientations, "setScreenOrientations", "(Landroid/app/Activity;ZZZZ)V");
-				SLIB_JNI_STATIC_METHOD(getSafeAreaInsets, "getSafeAreaInsets", "(Landroid/app/Activity;)Landroid/graphics/Rect;");
-				SLIB_JNI_STATIC_METHOD(getStatusBarHeight, "getStatusBarHeight", "(Landroid/app/Activity;)I");
-				SLIB_JNI_STATIC_METHOD(setStatusBarStyle, "setStatusBarStyle", "(Landroid/app/Activity;I)V");
-				SLIB_JNI_STATIC_METHOD(setBadgeNumber, "setBadgeNumber", "(Landroid/app/Activity;I)V");
+			SLIB_JNI_BEGIN_CLASS(JUtil, "slib/android/ui/Util")
+				SLIB_JNI_STATIC_METHOD(getScreenOrientation, "getScreenOrientation", "(Landroid/app/Activity;)I")
+				SLIB_JNI_STATIC_METHOD(setScreenOrientations, "setScreenOrientations", "(Landroid/app/Activity;ZZZZ)V")
+				SLIB_JNI_STATIC_METHOD(showKeyboard, "showKeyboard", "(Landroid/app/Activity;)V")
+				SLIB_JNI_STATIC_METHOD(dismissKeyboard, "dismissKeyboard", "(Landroid/app/Activity;)V")
+				SLIB_JNI_STATIC_METHOD(getSafeAreaInsets, "getSafeAreaInsets", "(Landroid/app/Activity;)Landroid/graphics/Rect;")
+				SLIB_JNI_STATIC_METHOD(getStatusBarHeight, "getStatusBarHeight", "(Landroid/content/Context;)I")
+				SLIB_JNI_STATIC_METHOD(setStatusBarStyle, "setStatusBarStyle", "(Landroid/app/Activity;ZZ)V")
+				SLIB_JNI_STATIC_METHOD(setBadgeNumber, "setBadgeNumber", "(Landroid/content/Context;I)V")
+				SLIB_JNI_STATIC_METHOD(openUrl, "openUrl", "(Landroid/content/Context;Ljava/lang/String;)V")
+				SLIB_JNI_STATIC_METHOD(sendFile, "sendFile", "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V")
 			SLIB_JNI_END_CLASS
 
 			void DispatchCallback(JNIEnv* env, jobject _this);
 			void DispatchDelayedCallback(JNIEnv* env, jobject _this, jlong ptr);
 
-			SLIB_JNI_BEGIN_CLASS(JUiThread, "slib/platform/android/ui/UiThread")
+			SLIB_JNI_BEGIN_CLASS(JUiThread, "slib/android/ui/UiThread")
 				SLIB_JNI_STATIC_METHOD(isUiThread, "isUiThread", "()Z");
 				SLIB_JNI_STATIC_METHOD(dispatch, "dispatch", "()V");
 				SLIB_JNI_STATIC_METHOD(dispatchDelayed, "dispatchDelayed", "(JI)V");
@@ -94,9 +94,7 @@ namespace slib
 			void OnChangeWindowInsets(JNIEnv* env, jobject _this, jobject activity);
 			void OnOpenUrl(JNIEnv* env, jobject _this, jobject activity, jstring url);
 
-			SLIB_JNI_BEGIN_CLASS(JAndroid, "slib/platform/android/Android")
-				SLIB_JNI_STATIC_METHOD(setKeyboardAdjustMode, "setKeyboardAdjustMode", "(Landroid/app/Activity;I)V");
-
+			SLIB_JNI_BEGIN_CLASS(JAndroid, "slib/android/Android")
 				SLIB_JNI_NATIVE(onCreateActivity, "nativeOnCreateActivity", "(Landroid/app/Activity;)V", OnCreateActivity);
 				SLIB_JNI_NATIVE(onDestroyActivity, "nativeOnDestroyActivity", "(Landroid/app/Activity;)V", OnDestroyActivity);
 				SLIB_JNI_NATIVE(onResumeActivity, "nativeOnResumeActivity", "(Landroid/app/Activity;)V", OnResumeActivity);
@@ -110,22 +108,18 @@ namespace slib
 			class ScreenImpl : public Screen
 			{
 			public:
-				JniGlobal<jobject> m_display;
-				int m_width;
-				int m_height;
+				sl_ui_len m_width;
+				sl_ui_len m_height;
 
 			public:
-				static Ref<ScreenImpl> create(jobject display)
+				static Ref<ScreenImpl> create()
 				{
-					JniLocal<jobject> size = JUtil::getDisplaySize.callObject(sl_null, display);
-					if (size.isNotNull()) {
-						Ref<ScreenImpl> ret = new ScreenImpl();
-						if (ret.isNotNull()) {
-							ret->m_display = display;
-							ret->m_width = JPoint::x.get(size);
-							ret->m_height = JPoint::y.get(size);
-							return ret;
-						}
+					Ref<ScreenImpl> ret = new ScreenImpl();
+					if (ret.isNotNull()) {
+						UISize size = UI::getScreenSize();
+						ret->m_width = size.x;
+						ret->m_height = size.y;
+						return ret;
 					}
 					return sl_null;
 				}
@@ -145,7 +139,7 @@ namespace slib
 			void OnCreateActivity(JNIEnv* env, jobject _this, jobject activity)
 			{
 				Log("Activity", "onCreateActivity");
-				Android::setCurrentActivity(activity);
+				Android::setCurrentContext(activity);
 				Ref<UIApp> app = UIApp::getApp();
 				if (app.isNotNull()) {
 					static sl_bool flagStartApp = sl_false;
@@ -167,7 +161,7 @@ namespace slib
 			void OnResumeActivity(JNIEnv* env, jobject _this, jobject activity)
 			{
 				Log("Activity", "onResumeActivity");
-				Android::setCurrentActivity(activity);
+				Android::setCurrentContext(activity);
 				MobileApp::dispatchResumeToApp();
 			}
 
@@ -214,9 +208,23 @@ namespace slib
 
 			void UpdateKeyboardAdjustMode(UIKeyboardAdjustMode mode)
 			{
-				jobject jactivity = Android::getCurrentActivity();
-				if (jactivity) {
-					JAndroid::setKeyboardAdjustMode.call(sl_null, jactivity, (jint)mode);
+				jobject context = Android::getCurrentContext();
+				if (android::Activity::isActivity(context)) {
+					JniLocal<jobject> window = android::Activity::getWindow(context);
+					if (window.isNotNull()) {
+						sl_uint32 jmode = 0;
+						switch (mode) {
+							case UIKeyboardAdjustMode::Pan:
+								jmode = 0x20; // WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN
+								break;
+							case UIKeyboardAdjustMode::Resize:
+								jmode = 0x10; // WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+								break;
+							default:
+								break;
+						}
+						android::Window::setSoftInputMode(window, jmode);
+					}
 				}
 			}
 
@@ -232,7 +240,7 @@ namespace slib
 			return sl_null;
 		}
 		if (ret.isNull()) {
-			ret = ScreenImpl::create(sl_null);
+			ret = ScreenImpl::create();
 		}
 		return ret;
 	}
@@ -254,22 +262,22 @@ namespace slib
 
 	ScreenOrientation UI::getScreenOrientation()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return (ScreenOrientation)(JUtil::getScreenOrientation.callInt(sl_null, jactivity));
+		jobject context = Android::getCurrentContext();
+		if (android::Activity::isActivity(context)) {
+			return (ScreenOrientation)(JUtil::getScreenOrientation.callInt(sl_null, context));
 		}
 		return ScreenOrientation::Portrait;
 	}
 	
 	void UI::attemptRotateScreenOrientation()
 	{
-		List<ScreenOrientation> orientations(getAvailableScreenOrientations());
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (android::Activity::isActivity(context)) {
+			List<ScreenOrientation> orientations(getAvailableScreenOrientations());
 			if (orientations.isEmpty()) {
-				JUtil::setScreenOrientations.call(sl_null, jactivity, sl_true, sl_true, sl_true, sl_true);
+				JUtil::setScreenOrientations.call(sl_null, context, sl_true, sl_true, sl_true, sl_true);
 			} else {
-				JUtil::setScreenOrientations.call(sl_null, jactivity,
+				JUtil::setScreenOrientations.call(sl_null, context,
 					orientations.contains(ScreenOrientation::Portrait),
 					orientations.contains(ScreenOrientation::LandscapeRight),
 					orientations.contains(ScreenOrientation::PortraitUpsideDown),
@@ -301,16 +309,27 @@ namespace slib
 		}
 	}
 
+	void UI::showKeyboard()
+	{
+		jobject context = Android::getCurrentContext();
+		if (android::Activity::isActivity(context)) {
+			JUtil::showKeyboard.call(sl_null, context);
+		}
+	}
+
 	void UI::dismissKeyboard()
 	{
-		Android::dismissKeyboard();
+		jobject context = Android::getCurrentContext();
+		if (android::Activity::isActivity(context)) {
+			JUtil::dismissKeyboard.call(sl_null, context);
+		}
 	}
-	
+
 	UIEdgeInsets UI::getSafeAreaInsets()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JniLocal<jobject> jrect = JUtil::getSafeAreaInsets.callObject(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (android::Activity::isActivity(context)) {
+			JniLocal<jobject> jrect = JUtil::getSafeAreaInsets.callObject(sl_null, context);
 			if (jrect.isNotNull()) {
 				UIEdgeInsets ret;
 				ret.left = (sl_ui_len)(JRect::left.get(jrect));
@@ -326,27 +345,27 @@ namespace slib
 
 	sl_ui_len UI::getStatusBarHeight()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return JUtil::getStatusBarHeight.callInt(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			return JUtil::getStatusBarHeight.callInt(sl_null, context);
 		}
 		return 0;
 	}
 
 	void UI::setStatusBarStyle(StatusBarStyle style)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JUtil::setStatusBarStyle.call(sl_null, jactivity, (int)style);
+		jobject context = Android::getCurrentContext();
+		if (android::Activity::isActivity(context)) {
+			JUtil::setStatusBarStyle.call(sl_null, context, style == StatusBarStyle::Hidden, style == StatusBarStyle::Dark);
 			UIResource::updateDefaultScreenSize();
 		}
 	}
 
 	void UI::setBadgeNumber(sl_uint32 number)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JUtil::setBadgeNumber.call(sl_null, jactivity, number);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JUtil::setBadgeNumber.call(sl_null, context, number);
 		}
 	}
 	
@@ -367,6 +386,25 @@ namespace slib
 
 	void UIPlatform::quitApp()
 	{
+	}
+
+	void UIPlatform::sendFile(const StringParam& filePath, const StringParam& mimeType, const StringParam& chooserTitle)
+	{
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JniLocal<jstring> jfilePath = Jni::getJniString(filePath);
+			JniLocal<jstring> jmimeType = Jni::getJniString(mimeType);
+			JniLocal<jstring> jchooserTitle = Jni::getJniString(chooserTitle);
+			return JUtil::sendFile.call(sl_null, context, jfilePath.get(), jmimeType.get(), jchooserTitle.get());
+		}
+	}
+
+	void Device::openUrl(const StringParam& _url) {
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JniLocal<jstring> url = Jni::getJniString(_url);
+			JUtil::openUrl.call(sl_null, context, url.get());
+		}
 	}
 
 }

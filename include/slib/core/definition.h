@@ -67,7 +67,7 @@ typedef __SIZE_TYPE__		sl_size_t;
 
 #	define SLIB_ALIGN(n)	__attribute__((aligned(n)))
 
-#	if __GNUC__ >= 4
+#	if __GNUC__ >= 4 && defined(SLIB_COMPILE_AS_SHARED_LIBRARY)
 #		define SLIB_EXPORT			__attribute__((visibility("default")))
 #		define SLIB_VISIBLE_LOCAL	__attribute__((visibility("hidden")))
 #	else
@@ -207,6 +207,19 @@ typedef char32_t			sl_char32;
 #   define SLIB_UNLIKELY(v) (v)
 #endif
 
+#if defined(SLIB_COMPILE_LIB)
+#   ifndef PRIV_SLIB_INCLUDED_OBJECT_TYPES
+#       define PRIV_SLIB_INCLUDED_OBJECT_TYPES
+#       include "object_types.h"
+#   endif
+#else
+#   if !defined(SLIB_NOT_SUPPORT_STD_TYPES)
+#	    ifndef SLIB_SUPPORT_STD_TYPES
+#		    define SLIB_SUPPORT_STD_TYPES
+#	    endif
+#   endif
+#endif
+
 /************************************************************************/
 /* Operating System Related Difinitions                                 */
 /************************************************************************/
@@ -214,13 +227,6 @@ typedef char32_t			sl_char32;
 #	ifndef _WIN32_WINNT
 #		define _WIN32_WINNT 0x0501
 #	endif
-#endif
-
-#ifdef SLIB_USE_OBJECT_TYPE_CONSTANTS
-#   ifndef PRIV_SLIB_INCLUDED_OBJECT_TYPES
-#       define PRIV_SLIB_INCLUDED_OBJECT_TYPES
-#       include "object_types.h"
-#   endif
 #endif
 
 #endif

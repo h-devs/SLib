@@ -27,7 +27,7 @@
 #include "slib/media/camera.h"
 
 #include "slib/core/hash_map.h"
-#include "slib/core/platform_android.h"
+#include "slib/core/platform.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -38,15 +38,15 @@ namespace slib
 		namespace camera
 		{
 
-			SLIB_JNI_BEGIN_CLASS(JCameraInfo, "slib/platform/android/camera/SCameraInfo")
+			SLIB_JNI_BEGIN_CLASS(JCameraInfo, "slib/android/camera/SCameraInfo")
 				SLIB_JNI_STRING_FIELD(id);
 				SLIB_JNI_STRING_FIELD(name);
 			SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JCamera, "slib/platform/android/camera/SCamera")
+			SLIB_JNI_BEGIN_CLASS(JCamera, "slib/android/camera/SCamera")
 
-				SLIB_JNI_STATIC_METHOD(getCamerasList, "getCamerasList", "(Landroid/app/Activity;)[Lslib/platform/android/camera/SCameraInfo;");
-				SLIB_JNI_STATIC_METHOD(create, "create", "(Landroid/app/Activity;Ljava/lang/String;J)Lslib/platform/android/camera/SCamera;");
+				SLIB_JNI_STATIC_METHOD(getCamerasList, "getCamerasList", "(Landroid/app/Activity;)[Lslib/android/camera/SCameraInfo;");
+				SLIB_JNI_STATIC_METHOD(create, "create", "(Landroid/app/Activity;Ljava/lang/String;J)Lslib/android/camera/SCamera;");
 				SLIB_JNI_STATIC_METHOD(isMobileDeviceTorchActive, "isMobileDeviceTorchActive", "(Landroid/app/Activity;)Z");
 				SLIB_JNI_STATIC_METHOD(setMobileDeviceTorchMode, "setMobileDeviceTorchMode", "(Landroid/app/Activity;IF)V");
 
@@ -88,8 +88,8 @@ namespace slib
 			public:
 				static Ref<CameraImpl> _create(const CameraParam& param)
 				{
-					jobject jactivity = Android::getCurrentActivity();
-					if (!jactivity) {
+					jobject context = Android::getCurrentContext();
+					if (!context) {
 						return sl_null;
 					}
 					CameraMap* cameraMap = GetCameraMap();
@@ -101,13 +101,11 @@ namespace slib
 						jlong instance = (jlong)(ret.get());
 						cameraMap->put(instance, ret);
 						JniLocal<jstring> jid = Jni::getJniString(param.deviceId);
-						JniLocal<jobject> jcamera = JCamera::create.callObject(sl_null, jactivity, jid.get(), instance);
-						if (jcamera.isNotNull()) {
-							ret->m_camera = jcamera;
+						JniGlobal<jobject> camera = JCamera::create.callObject(sl_null, context, jid.get(), instance);
+						if (camera.isNotNull()) {
+							JCamera::setSettings.call(camera, param.preferedFrameWidth, param.preferedFrameHeight);
 							ret->_init(param);
-							JCamera::setSettings.call(jcamera,
-									param.preferedFrameWidth,
-									param.preferedFrameHeight);
+							ret->m_camera = Move(camera);
 							if (param.flagAutoStart) {
 								ret->start();
 							}
@@ -465,12 +463,12 @@ namespace slib
 
 	List<CameraInfo> Camera::getCamerasList()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (!jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (!context) {
 			return sl_null;
 		}
 		List<CameraInfo> ret;
-		JniLocal<jobjectArray> arr = (jobjectArray)(JCamera::getCamerasList.callObject(sl_null, jactivity));
+		JniLocal<jobjectArray> arr = JCamera::getCamerasList.callObject(sl_null, context);
 		sl_uint32 len = Jni::getArrayLength(arr);
 		for (sl_uint32 i = 0; i < len; i++) {
 			JniLocal<jobject> jinfo = Jni::getObjectArrayElement(arr, i);
@@ -486,18 +484,18 @@ namespace slib
 
 	sl_bool Camera::isMobileDeviceTorchActive()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return JCamera::isMobileDeviceTorchActive.callBoolean(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			return JCamera::isMobileDeviceTorchActive.callBoolean(sl_null, context);
 		}
 		return sl_false;
 	}
 
 	void Camera::setMobileDeviceTorchMode(CameraTorchMode mode, float level)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JCamera::setMobileDeviceTorchMode.call(sl_null, jactivity, (jint)((int)mode), (jfloat)level);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JCamera::setMobileDeviceTorchMode.call(sl_null, context, (jint)((int)mode), (jfloat)level);
 		}
 	}
 

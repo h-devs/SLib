@@ -528,22 +528,6 @@ namespace slib
 	}
 	
 	
-	sl_compare_result Compare<StringParam>::operator()(const StringParam& a, const StringParam& b) const noexcept
-	{
-		return a.compare(b);
-	}
-	
-	sl_bool Equals<StringParam>::operator()(const StringParam& a, const StringParam& b) const noexcept
-	{
-		return a.equals(b);
-	}
-	
-	sl_size Hash<StringParam>::operator()(const StringParam& a) const noexcept
-	{
-		return a.getHashCode();
-	}
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(StringData)
 
 	StringData::StringData(const StringParam& param) noexcept

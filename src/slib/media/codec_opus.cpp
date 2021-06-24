@@ -24,7 +24,7 @@
 
 #include "slib/core/time_counter.h"
 #include "slib/core/log.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #include "opus/opus.h"
 

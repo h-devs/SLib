@@ -20,39 +20,16 @@
  *   THE SOFTWARE.
  */
 
+#include "slib/core/definition.h"
+
+#if !defined(SLIB_PLATFORM_IS_ANDROID)
+
 #include "slib/core/asset.h"
 
 #include "slib/core/file.h"
 #include "slib/core/system.h"
 #include "slib/core/app.h"
-
-#include "slib/core/platform_apple.h"
-#include "slib/core/platform_android.h"
-#include "slib/core/platform_tizen.h"
-
-
-#if defined(SLIB_PLATFORM_IS_ANDROID)
-
-namespace slib
-{
-	sl_bool Assets::isBasedOnFileSystem()
-	{
-		return sl_false;
-	}
-
-	String Assets::getFilePath(const StringParam& path)
-	{
-		return sl_null;
-	}
-
-	Memory Assets::readAllBytes(const StringParam& path)
-	{
-		return Android::readAllBytesFromAsset(path);
-	}
-
-}
-
-#else
+#include "slib/core/platform.h"
 
 namespace slib
 {
@@ -62,41 +39,30 @@ namespace slib
 		return sl_true;
 	}
 
+	String Assets::getFilePath(const StringParam& path)
+	{
 #	if defined(SLIB_PLATFORM_IS_APPLE)
-
-	String Assets::getFilePath(const StringParam& path)
-	{
 		return Apple::getAssetFilePath(path);
-	}
-
 #	elif defined(SLIB_PLATFORM_IS_TIZEN)
-
-	String Assets::getFilePath(const StringParam& path)
-	{
 		return Tizen::getAssetFilePath(path);
-	}
-
 #	else
-
-	String Assets::getFilePath(const StringParam& path)
-	{
-		String s = File::makeSafeFilePath(path);
-		if (s.isNotEmpty()) {
-			return String::join(Application::getApplicationDirectory(), "/", s);
+		String name = File::makeSafeFilePath(path);
+		if (name.isNotEmpty()) {
+			return String::join(Application::getApplicationDirectory(), "/", name);
 		}
 		return sl_null;
-	}
-
 #	endif
+	}
 
-	Memory Assets::readAllBytes(const StringParam& path)
+	Memory Assets::readAllBytes(const StringParam& _path)
 	{
-		String s = Assets::getFilePath(path);
-		if (s.isNotEmpty()) {
-			return File::readAllBytes(s);
+		String path = Assets::getFilePath(_path);
+		if (path.isNotEmpty()) {
+			return File::readAllBytes(path);
 		}
 		return sl_null;
 	}
+
 }
 
 #endif

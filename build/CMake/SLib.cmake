@@ -24,11 +24,11 @@ if (CMAKE_SYSTEM_NAME STREQUAL Linux)
  set (SLIB_BIN_PATH "${SLIB_PATH}/bin/Linux/${CMAKE_SYSTEM_PROCESSOR}")
 endif ()
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -frtti -DSLIB_USE_OBJECT_TYPE_CONSTANTS")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -frtti -DSLIB_COMPILE_LIB")
 # generates no debug information
 if (CMAKE_BUILD_TYPE MATCHES Release)
- set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g0")
- set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g0")
+ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g0 -fvisibility=hidden")
+ set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g0 -fvisibility=hidden")
 endif ()
 if (SLIB_ARM AND NOT SLIB_ARM64)
  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -marm -mfpu=neon")
@@ -69,7 +69,6 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/animation.cpp"
  "${SLIB_PATH}/src/slib/core/app.cpp"
  "${SLIB_PATH}/src/slib/core/asm_x64.cpp"
- "${SLIB_PATH}/src/slib/core/asset.cpp"
  "${SLIB_PATH}/src/slib/core/async.cpp"
  "${SLIB_PATH}/src/slib/core/async_epoll.cpp"
  "${SLIB_PATH}/src/slib/core/atomic.cpp"
@@ -90,7 +89,6 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/global_unique_instance_unix.cpp"
  "${SLIB_PATH}/src/slib/core/hash.cpp"
  "${SLIB_PATH}/src/slib/core/io.cpp"
- "${SLIB_PATH}/src/slib/core/java.cpp"
  "${SLIB_PATH}/src/slib/core/json.cpp"
  "${SLIB_PATH}/src/slib/core/list.cpp"
  "${SLIB_PATH}/src/slib/core/locale.cpp"
@@ -178,6 +176,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/network/network_async_unix.cpp"
  "${SLIB_PATH}/src/slib/network/network_io.cpp"
  "${SLIB_PATH}/src/slib/network/network_os.cpp"
+ "${SLIB_PATH}/src/slib/network/p2p.cpp"
  "${SLIB_PATH}/src/slib/network/pcap.cpp"
  "${SLIB_PATH}/src/slib/network/pseudo_tcp.cpp"
  "${SLIB_PATH}/src/slib/network/pseudo_tcp_message.cpp"
@@ -196,14 +195,15 @@ set (SLIB_CORE_FILES
 if(ANDROID)
  set (SLIB_CORE_PLATFORM_FILES
   "${SLIB_PATH}/src/slib/core/app_android.cpp"
+  "${SLIB_PATH}/src/slib/core/asset_android.cpp"
   "${SLIB_PATH}/src/slib/core/charset_android.cpp"
-  "${SLIB_PATH}/src/slib/core/platform_android.cpp"
   "${SLIB_PATH}/src/slib/core/preference_android.cpp"
   "${SLIB_PATH}/src/slib/core/system_android.cpp"
   "${SLIB_PATH}/src/slib/network/url_request_android.cpp"
  )
 else ()
  set (SLIB_CORE_PLATFORM_FILES
+  "${SLIB_PATH}/src/slib/core/asset.cpp"
   "${SLIB_PATH}/src/slib/core/charset_icu.cpp"
   "${SLIB_PATH}/src/slib/core/preference_linux.cpp"
   "${SLIB_PATH}/src/slib/core/wrap_memcpy.cpp"
@@ -297,6 +297,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/service/chat_sqlite.cpp"
  "${SLIB_PATH}/src/slib/service/fcm_service.cpp"
  "${SLIB_PATH}/src/slib/service/ginger.cpp"
+ "${SLIB_PATH}/src/slib/service/keygen.cpp"
  "${SLIB_PATH}/src/slib/service/push_notification.cpp"
  "${SLIB_PATH}/src/slib/service/web_service.cpp"
  "${SLIB_PATH}/src/slib/service/xgpush_service.cpp"
@@ -508,6 +509,28 @@ else ()
  )
 endif()
 
+if(ANDROID)
+ set (SLIB_JAVA_FILES
+  "${SLIB_PATH}/src/slib/core/java.cpp"
+  "${SLIB_PATH}/src/slib/core/java_lang.cpp"
+  "${SLIB_PATH}/src/slib/core/java_io.cpp"
+  "${SLIB_PATH}/src/slib/core/java_util.cpp"
+ )
+else()
+ set (SLIB_JAVA_FILES "")
+endif()
+
+if(ANDROID)
+ set (SLIB_ANDROID_FILES
+  "${SLIB_PATH}/src/slib/core/android_context.cpp"
+  "${SLIB_PATH}/src/slib/core/android_log.cpp"
+  "${SLIB_PATH}/src/slib/core/android_platform.cpp"
+  "${SLIB_PATH}/src/slib/core/android_view.cpp"
+ )
+else()
+ set (SLIB_JAVA_FILES "")
+endif()
+
 if (SLIB_X86_64)
  SET_PROPERTY( SOURCE ${SLIB_PATH}/src/slib/crypto/crc32c.cpp PROPERTY COMPILE_FLAGS -msse4.2 )
 endif()
@@ -578,6 +601,8 @@ add_library (
  ${SLIB_CORE_PLATFORM_FILES}
  ${SLIB_EXTRA_FILES}
  ${SLIB_EXTRA_PLATFORM_FILES}
+ ${SLIB_JAVA_FILES}
+ ${SLIB_ANDROID_FILES}
  ${ZLIB_FILES}
  ${LIBPNG_FILES}
  ${LIBJPEG_FILES}

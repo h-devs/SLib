@@ -39,34 +39,30 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Triangle3T)
 		
-		Triangle3T() noexcept = default;
+		Triangle3T() = default;
 		
 		template <class O>
-		Triangle3T(const Triangle3T<O>& other) noexcept :
-			point1(other.point1), point2(other.point2), point3(other.point3)
-		{}
+		constexpr Triangle3T(const Triangle3T<O>& other): point1(other.point1), point2(other.point2), point3(other.point3) {}
 
-		Triangle3T(const Vector3T<T>& _point1, const Vector3T<T>& _point2, const Vector3T<T>& _point3) noexcept :
-			point1(_point1), point2(_point2), point3(_point3)
-		{}
+		constexpr Triangle3T(const Vector3T<T>& _point1, const Vector3T<T>& _point2, const Vector3T<T>& _point3): point1(_point1), point2(_point2), point3(_point3) {}
 
 	public:
-		static Vector3T<T> getNormal(const Vector3T<T>& point1, const Vector3T<T>& point2, const Vector3T<T>& point3) noexcept
+		static constexpr Vector3T<T> getNormal(const Vector3T<T>& point1, const Vector3T<T>& point2, const Vector3T<T>& point3)
 		{
 			return (point1 - point2).cross(point2 - point3);
 		}
 
-		Vector3T<T> getNormal() const noexcept
+		constexpr Vector3T<T> getNormal() const
 		{
 			return getNormal(point1, point2, point3);
 		}
 
-		T getSize() const noexcept
+		constexpr T getSize() const
 		{
 			return (point1 - point2).cross(point2 - point3).getLength() / 2;
 		}
 
-		PlaneT<T> getPlane() const noexcept
+		constexpr PlaneT<T> getPlane() const
 		{
 			return { point1, getNormal() };
 		}

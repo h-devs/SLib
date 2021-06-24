@@ -22,7 +22,7 @@
 
 #include "slib/ui/table_layout.h"
 
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {
@@ -73,7 +73,7 @@ namespace slib
 				}
 
 			public:
-				SLIB_INLINE sl_ui_len restrictWidth(sl_ui_len width)
+				sl_ui_len restrictWidth(sl_ui_len width)
 				{
 					if (width < minWidth) {
 						return minWidth;
@@ -86,12 +86,12 @@ namespace slib
 					return width;
 				}
 
-				SLIB_INLINE sl_ui_len getFixedWidth()
+				sl_ui_len getFixedWidth()
 				{
 					return restrictWidth(widthFixed);
 				}
 
-				SLIB_INLINE sl_ui_len getWeightWidth(sl_ui_len widthParent)
+				sl_ui_len getWeightWidth(sl_ui_len widthParent)
 				{
 					return restrictWidth((sl_ui_len)(widthParent * widthWeight));
 				}
@@ -126,7 +126,7 @@ namespace slib
 				}
 
 			public:
-				SLIB_INLINE sl_ui_len restrictHeight(sl_ui_len height)
+				sl_ui_len restrictHeight(sl_ui_len height)
 				{
 					if (height < minHeight) {
 						return minHeight;
@@ -139,12 +139,12 @@ namespace slib
 					return height;
 				}
 
-				SLIB_INLINE sl_ui_len getFixedHeight()
+				sl_ui_len getFixedHeight()
 				{
 					return restrictHeight(heightFixed);
 				}
 
-				SLIB_INLINE sl_ui_len getWeightHeight(sl_ui_len heightParent)
+				sl_ui_len getWeightHeight(sl_ui_len heightParent)
 				{
 					return restrictHeight((sl_ui_len)(heightParent * heightWeight));
 				}

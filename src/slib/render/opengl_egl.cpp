@@ -24,7 +24,7 @@
 
 #if defined(SLIB_RENDER_SUPPORT_OPENGL_EGL)
 
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 #include "opengl_egl_entries.h"
 
 #include "slib/render/engine.h"
@@ -89,7 +89,7 @@ namespace slib
 
 				static sl_bool isWindowVisible(EGLNativeWindowType window)
 				{
-					return Windows::isWindowVisible((HWND)window);
+					return Win32::isWindowVisible((HWND)window);
 				}
 
 				static Sizei getWindowSize(EGLNativeWindowType window)

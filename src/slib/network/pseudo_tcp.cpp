@@ -210,7 +210,7 @@ namespace slib
 					const sl_size tail_copy = Math::min(copy, m_lenBuf - m_posRead);
 					Base::copyMemory(buffer, &m_buf[m_posRead], tail_copy);
 					Base::copyMemory(buffer + tail_copy, &m_buf[0], copy - tail_copy);
-					m_buf.reset(buffer);
+					m_buf = buffer;
 					m_posRead = 0;
 					m_lenBuf = size;
 				}
@@ -1028,7 +1028,7 @@ namespace slib
 			} else {
 				sl_uint32 nOffset = seg.seq - m_rcv_nxt;
 
-				if (!m_rbuf.writeOffset(seg.data, seg.len, nOffset, NULL)) {
+				if (!m_rbuf.writeOffset(seg.data, seg.len, nOffset, sl_null)) {
 					// Ignore incoming packets outside of the receive window.
 					return sl_false;
 				}

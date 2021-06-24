@@ -26,11 +26,11 @@
 
 #include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/log.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 
-#include "slib/render/dl_windows_d3d.h"
+#include "slib/render/dl/win32/d3d.h"
 
 #if D3D_VERSION_MAJOR < 11
 #define m_context m_device
@@ -309,7 +309,7 @@ namespace slib
 				void runStep(RenderEngine* engine)
 				{
 					if (m_hWnd) {
-						if (!(Windows::isWindowVisible(m_hWnd))) {
+						if (!(Win32::isWindowVisible(m_hWnd))) {
 							return;
 						}
 					}
@@ -1957,7 +1957,7 @@ namespace slib
 				}
 
 			public:
-				SLIB_INLINE RendererParam* getRendererParam()
+				RendererParam* getRendererParam()
 				{
 					RendererImpl* renderer = m_renderer;
 					if (renderer) {
@@ -1966,7 +1966,7 @@ namespace slib
 					return sl_null;
 				}
 
-				SLIB_INLINE ID3DDevice* getDevice()
+				ID3DDevice* getDevice()
 				{
 					RendererImpl* renderer = m_renderer;
 					if (renderer) {
@@ -1975,7 +1975,7 @@ namespace slib
 					return sl_null;
 				}
 
-				SLIB_INLINE ID3DDeviceContext* getContext()
+				ID3DDeviceContext* getContext()
 				{
 					RendererImpl* renderer = m_renderer;
 					if (renderer) {
@@ -1985,7 +1985,7 @@ namespace slib
 				}
 
 #if D3D_VERSION_MAJOR >= 10
-				SLIB_INLINE ID3DRenderTargetView* getRenderTarget()
+				ID3DRenderTargetView* getRenderTarget()
 				{
 					RendererImpl* renderer = m_renderer;
 					if (renderer) {

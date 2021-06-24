@@ -27,7 +27,7 @@
 #include "slib/core/system.h"
 
 #include "slib/core/file.h"
-#include "slib/core/platform_android.h"
+#include "slib/core/platform.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -36,18 +36,6 @@
 
 namespace slib
 {
-
-	namespace priv
-	{
-		namespace system
-		{
-			SLIB_JNI_BEGIN_CLASS(JAndroid, "slib/platform/android/Android")
-				SLIB_JNI_STATIC_METHOD(getDeviceNameOnSettings, "getDeviceNameOnSettings", "(Landroid/app/Activity;)Ljava/lang/String;")
-			SLIB_JNI_END_CLASS
-		}
-	}
-
-	using namespace priv::system;
 
 #define PRIV_PATH_MAX 1024
 
@@ -80,13 +68,26 @@ namespace slib
 		return dir;
 	}
 	
+	// From Java code: slib.android.System.getDeviceNameOnSettings
 	String System::getComputerName()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			return JAndroid::getDeviceNameOnSettings.callString(sl_null, jactivity);
+		if (Android::getSdkVersion() >= AndroidSdkVersion::JELLY_BEAN_MR1) {
+			jobject context = Android::getCurrentContext();
+			if (context) {
+				JniLocal<jobject> resolver = Jni::callObjectMethod(context, "getContentResolver", "()Landroid/content/ContentResolver;");
+				if (resolver.isNotNull()) {
+					jclass clsGlobal = Jni::getClass("android/provider/Settings$Global");
+					if (clsGlobal) {
+						SLIB_JNI_STRING(strDeviceName, "device_name")
+						String name = Jni::callStaticStringMethod(clsGlobal, "getString", "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;", resolver.get(), strDeviceName.get());
+						if (name.isNotEmpty()) {
+							return name;
+						}
+					}
+				}
+			}
 		}
-		return sl_null;
+		return Android::getDeviceName();
 	}
 	
 	String System::getUserName()

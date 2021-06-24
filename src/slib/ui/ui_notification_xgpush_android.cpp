@@ -56,7 +56,7 @@ namespace slib
 				XgPush::getInstance()->dispatchReceiveMessage(message);
 			}
 
-			SLIB_JNI_BEGIN_CLASS(JXgPush, "slib/platform/android/xgpush/XgPush")
+			SLIB_JNI_BEGIN_CLASS(JXgPush, "slib/android/xgpush/XgPush")
 				SLIB_JNI_STATIC_METHOD(start, "start", "(Landroid/app/Activity;)V");
 				SLIB_JNI_STATIC_METHOD(stop, "stop", "(Landroid/app/Activity;)V");
 				SLIB_JNI_STATIC_METHOD(setEnableDebug, "setEnableDebug", "(Landroid/app/Activity;Z)V");
@@ -79,19 +79,19 @@ namespace slib
 
 	void XgPush::onStart()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JXgPush::start.call(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JXgPush::start.call(sl_null, context);
 		}
 	}
 	
 	void XgPush::setEnableDebug(sl_bool flag)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (!jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (!context) {
 			return;
 		}
-		JXgPush::setEnableDebug.call(sl_null, jactivity, flag);
+		JXgPush::setEnableDebug.call(sl_null, context, flag);
 	}
 
 }

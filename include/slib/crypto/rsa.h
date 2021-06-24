@@ -26,7 +26,7 @@
 #include "hash.h"
 
 #include "../math/bigint.h"
-#include "../core/scoped.h"
+#include "../core/scoped_buffer.h"
 #include "../core/math.h"
 
 namespace slib

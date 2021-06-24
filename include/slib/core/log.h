@@ -119,29 +119,26 @@ namespace slib
 	};
 
 	template <class... ARGS>
-	void Log(const StringParam& tag, const StringParam& format, ARGS&&... args)
+	SLIB_INLINE static void Log(const StringParam& tag, const StringParam& format, ARGS&&... args)
 	{
-		String content = String::format(format, Forward<ARGS>(args)...);
-		Logger::logGlobal(tag, content);
+		Logger::logGlobal(tag, String::format(format, Forward<ARGS>(args)...));
 	}
 	
 	template <class... ARGS>
-	void LogError(const StringParam& tag, const StringParam& format, ARGS&&... args)
+	SLIB_INLINE static void LogError(const StringParam& tag, const StringParam& format, ARGS&&... args)
 	{
-		String content = String::format(format, Forward<ARGS>(args)...);
-		Logger::logGlobalError(tag, content);
+		Logger::logGlobalError(tag, String::format(format, Forward<ARGS>(args)...));
 	}
 	
 #ifdef SLIB_DEBUG
 	template <class... ARGS>
-	void LogDebug(const StringParam& tag, const StringParam& format, ARGS&&... args)
+	SLIB_INLINE static void LogDebug(const StringParam& tag, const StringParam& format, ARGS&&... args)
 	{
-		String content = String::format(format, Forward<ARGS>(args)...);
-		Logger::logGlobalDebug(tag, content);
+		Logger::logGlobalDebug(tag, String::format(format, Forward<ARGS>(args)...));
 	}
 #else
 	template <class... ARGS>
-	void LogDebug(const ARGS&... args)
+	SLIB_INLINE static void LogDebug(const ARGS&... args)
 	{
 	}
 #endif

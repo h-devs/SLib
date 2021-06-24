@@ -22,4 +22,4 @@
 
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "slib/network/dl_windows_iphlpapi.h"
+#include "slib/network/dl/win32/iphlpapi.h"

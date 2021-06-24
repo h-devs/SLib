@@ -394,7 +394,7 @@ namespace slib
 		if (!(SerializeByte(&buf, (sl_uint8)(VariantType::Memory)))) {
 			return sl_false;
 		}
-		return Serialize(&buf, this);
+		return serialize(&buf);
 	}
 
 	CMemory* CMemory::sub(sl_size offset, sl_size sizeSub) noexcept
@@ -477,6 +477,18 @@ namespace slib
 	CMemory* CMemory::duplicate() noexcept
 	{
 		return Create(data, size);
+	}
+
+	sl_bool CMemory::serialize(MemoryBuffer* output) noexcept
+	{
+		if (!(CVLI::serialize(output, size))) {
+			return sl_false;
+		}
+		if (size) {
+			return output->add(data, size, getRef());
+		} else {
+			return sl_true;
+		}
 	}
 
 
@@ -764,6 +776,41 @@ namespace slib
 		return 0;
 	}
 
+	sl_bool Memory::serialize(MemoryBuffer* output) const
+	{
+		CMemory* mem = ref.get();
+		if (mem) {
+			return mem->serialize(output);
+		} else {
+			return SerializeStatic(output, "", 1);
+		}
+	}
+
+	sl_bool Memory::deserialize(DeserializeBuffer* input)
+	{
+		sl_size size;
+		if (!(CVLI::deserialize(input, size))) {
+			return sl_false;
+		}
+		if (size) {
+			if (input->current + size <= input->end) {
+				if (input->ref.isNotNull()) {
+					*this = Memory::createStatic(input->current, size, input->ref);
+				} else {
+					*this = Memory::create(input->current, size);
+				}
+				if (isNotNull()) {
+					input->current += size;
+					return sl_true;
+				}
+			}
+			return sl_false;
+		} else {
+			setNull();
+			return sl_true;
+		}
+	}
+
 
 	sl_size Atomic<Memory>::getSize() const noexcept
 	{
@@ -852,58 +899,10 @@ namespace slib
 		return mem.getHashCode();
 	}
 	
-
-	sl_bool Serialize(MemoryBuffer* output, CMemory* mem)
-	{
-		sl_size size = mem->size;
-		if (!(CVLI::serialize(output, size))) {
-			return sl_false;
-		}
-		if (size) {
-			return output->add(mem->data, size, mem->getRef());
-		} else {
-			return sl_true;
-		}
-	}
-
-	sl_bool Serialize(MemoryBuffer* output, const Memory& _in)
-	{
-		CMemory* mem = _in.ref.get();
-		if (mem) {
-			return Serialize(output, mem);
-		} else {
-			return SerializeStatic(output, "", 1);
-		}
-	}
-
+	
 	sl_bool Serialize(MemoryBuffer* output, const String& _in)
 	{
-		return Serialize(output, _in.toMemory());
-	}
-
-	sl_bool Deserialize(DeserializeBuffer* input, Memory& _out)
-	{
-		sl_size size;
-		if (!(CVLI::deserialize(input, size))) {
-			return sl_false;
-		}
-		if (size) {
-			if (input->current + size <= input->end) {
-				if (input->ref.isNotNull()) {
-					_out = Memory::createStatic(input->current, size, input->ref);
-				} else {
-					_out = Memory::create(input->current, size);
-				}
-				if (_out.isNotNull()) {
-					input->current += size;
-					return sl_true;
-				}
-			}
-			return sl_false;
-		} else {
-			_out.setNull();
-			return sl_true;
-		}
+		return _in.toMemory().serialize(output);
 	}
 
 	sl_bool Deserialize(DeserializeBuffer* input, String& _out)
@@ -931,36 +930,9 @@ namespace slib
 		}
 	}
 
-	sl_bool operator==(const Memory& a, const Memory& b) noexcept
-	{
-		return a.equals(b);
-	}
-	
-	sl_bool operator!=(const Memory& a, const Memory& b) noexcept
-	{
-		return !(a.equals(b));
-	}
-	
-	sl_bool operator>=(const Memory& a, const Memory& b) noexcept
-	{
-		return a.compare(b) >= 0;
-	}
-	
-	sl_bool operator>(const Memory& a, const Memory& b) noexcept
-	{
-		return a.compare(b) > 0;
-	}
-	
-	sl_bool operator<=(const Memory& a, const Memory& b) noexcept
-	{
-		return a.compare(b) <= 0;
-	}
-	
-	sl_bool operator<(const Memory& a, const Memory& b) noexcept
-	{
-		return a.compare(b) < 0;
-	}
-	
+
+	SLIB_DEFINE_DEFAULT_COMPARE_OPERATORS(Memory)
+
 	Memory operator+(const Memory& a, const Memory& b) noexcept
 	{
 		if (a.isNull()) {
@@ -979,21 +951,6 @@ namespace slib
 			return ret;
 		}
 		return sl_null;
-	}
-	
-	sl_compare_result Compare<Memory>::operator()(const Memory& a, const Memory& b) const noexcept
-	{
-		return a.compare(b);
-	}
-
-	sl_bool Equals<Memory>::operator()(const Memory& a, const Memory& b) const noexcept
-	{
-		return a.equals(b);
-	}
-
-	sl_size Hash<Memory>::operator()(const Memory& a) const noexcept
-	{
-		return a.getHashCode();
 	}
 
 

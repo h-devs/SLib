@@ -41,9 +41,9 @@ namespace slib
 			void JNICALL OnCreate(JNIEnv* env, jobject _this, jlong jinstance);
 			void JNICALL OnFrame(JNIEnv* env, jobject _this, jlong jinstance, jint width, jint height);
 
-			SLIB_JNI_BEGIN_CLASS(JGLView, "slib/platform/android/ui/view/UiGLView")
+			SLIB_JNI_BEGIN_CLASS(JGLView, "slib/android/ui/view/UiGLView")
 
-				SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;)Lslib/platform/android/ui/view/UiGLView;")
+				SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;)Lslib/android/ui/view/UiGLView;")
 
 				SLIB_JNI_STATIC_METHOD(setRenderMode, "_setRenderMode", "(Landroid/view/View;I)Z")
 				SLIB_JNI_STATIC_METHOD(requestRender, "_requestRender", "(Landroid/view/View;)V")

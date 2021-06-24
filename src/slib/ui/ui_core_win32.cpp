@@ -35,6 +35,7 @@
 #include "slib/core/queue.h"
 #include "slib/core/file.h"
 #include "slib/core/safe_static.h"
+#include "slib/core/scoped_buffer.h"
 
 #include <commctrl.h>
 #include <shobjidl.h>
@@ -401,7 +402,7 @@ namespace slib
 		ShellOpenFolderAndSelectItemsParam param;
 		param.path = dir;
 		param.items.add(path);
-		Windows::shell(param);
+		Win32::shell(param);
 	}
 
 	void UI::setBadgeNumber(sl_uint32 num)
@@ -447,6 +448,276 @@ namespace slib
 	{
 		g_bFlagQuit = sl_true;
 		PostQuitMessage(0);
+	}
+
+	sl_bool UIPlatform::isWindowVisible(HWND hWnd)
+	{
+		return Win32::isWindowVisible(hWnd);
+	}
+
+	String UIPlatform::getWindowText(HWND hWnd)
+	{
+		sl_int32 len = GetWindowTextLengthW(hWnd);
+		if (len > 0) {
+			SLIB_SCOPED_BUFFER(WCHAR, 1024, buf, len + 2);
+			if (buf) {
+				len = GetWindowTextW(hWnd, buf, len + 1);
+				return String::create(buf, len);
+			}
+		}
+		return sl_null;
+	}
+
+	String16 UIPlatform::getWindowText16(HWND hWnd)
+	{
+		int len = GetWindowTextLengthW(hWnd);
+		if (len > 0) {
+			String16 ret = String16::allocate(len);
+			if (ret.isNotNull()) {
+				int n = GetWindowTextW(hWnd, (LPWSTR)(ret.getData()), len + 1);
+				if (n < len) {
+					return ret.substring(0, n);
+				} else {
+					return ret;
+				}
+			}
+		}
+		return sl_null;
+	}
+
+	void UIPlatform::setWindowText(HWND hWnd, const StringParam& _str)
+	{
+		if (hWnd) {
+			StringCstr16 str(_str);
+			SetWindowTextW(hWnd, (LPCWSTR)(str.getData()));
+		}
+	}
+
+	void UIPlatform::setWindowStyle(HWND hWnd, LONG flags, sl_bool flagAdd)
+	{
+		if (!hWnd) {
+			return;
+		}
+		LONG old = GetWindowLongW(hWnd, GWL_STYLE);
+		if (flagAdd) {
+			SetWindowLongW(hWnd, GWL_STYLE, old | flags);
+		} else {
+			SetWindowLongW(hWnd, GWL_STYLE, old & (~flags));
+		}
+		SetWindowPos(hWnd, NULL, 0, 0, 0, 0,
+			SWP_FRAMECHANGED | SWP_NOREPOSITION | SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
+	}
+
+	void UIPlatform::removeAndAddWindowStyle(HWND hWnd, LONG flagsRemove, LONG flagsAdd)
+	{
+		if (!hWnd) {
+			return;
+		}
+		LONG old = GetWindowLongW(hWnd, GWL_STYLE);
+		SetWindowLongW(hWnd, GWL_STYLE, (old & (~flagsRemove)) | flagsAdd);
+		SetWindowPos(hWnd, NULL, 0, 0, 0, 0,
+			SWP_FRAMECHANGED | SWP_NOREPOSITION | SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
+	}
+
+	void UIPlatform::setWindowExStyle(HWND hWnd, LONG flags, sl_bool flagAdd)
+	{
+		if (!hWnd) {
+			return;
+		}
+		LONG old = GetWindowLongW(hWnd, GWL_EXSTYLE);
+		if (flagAdd) {
+			SetWindowLongW(hWnd, GWL_EXSTYLE, old | flags);
+		} else {
+			SetWindowLongW(hWnd, GWL_EXSTYLE, old & (~flags));
+		}
+		SetWindowPos(hWnd, NULL, 0, 0, 0, 0,
+			SWP_FRAMECHANGED | SWP_NOREPOSITION | SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
+	}
+
+	void UIPlatform::removeAndAddWindowExStyle(HWND hWnd, LONG flagsRemove, LONG flagsAdd)
+	{
+		if (!hWnd) {
+			return;
+		}
+		LONG old = GetWindowLongW(hWnd, GWL_EXSTYLE);
+		SetWindowLongW(hWnd, GWL_EXSTYLE, (old & (~flagsRemove)) | flagsAdd);
+		SetWindowPos(hWnd, NULL, 0, 0, 0, 0,
+			SWP_FRAMECHANGED | SWP_NOREPOSITION | SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
+	}
+
+	sl_bool UIPlatform::processWindowHorizontalScrollEvents(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, sl_uint32 nLine, sl_uint32 nWheel)
+	{
+		int nSBCode = LOWORD(wParam);
+
+		if (uMsg == WM_HSCROLL) {
+
+			SCROLLINFO si;
+			Base::zeroMemory(&si, sizeof(si));
+			si.cbSize = sizeof(si);
+			si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE | SIF_TRACKPOS;
+			GetScrollInfo(hWnd, SB_HORZ, &si);
+			switch (nSBCode) {
+			case SB_TOP:
+			case SB_LINEUP:
+				si.nPos -= (int)nLine;
+				break;
+			case SB_BOTTOM:
+			case SB_LINEDOWN:
+				si.nPos += (int)nLine;
+				break;
+			case SB_PAGEUP:
+				si.nPos -= si.nPage;
+				break;
+			case SB_PAGEDOWN:
+				si.nPos += si.nPage;
+				break;
+			case SB_THUMBPOSITION:
+			case SB_THUMBTRACK:
+				si.nPos = si.nTrackPos;
+				break;
+			}
+
+			if (si.nPos < si.nMin) {
+				si.nPos = si.nMin;
+			}
+			if (si.nPos >= si.nMax) {
+				si.nPos = si.nMax - 1;
+			}
+
+			si.fMask = SIF_POS;
+			SetScrollInfo(hWnd, SB_HORZ, &si, TRUE);
+
+			return sl_true;
+
+		} else if (uMsg == 0x020E) {
+			// WM_MOUSEHWHEEL
+			int delta = (short)((wParam >> 16) & 0xffff);
+
+			if (delta != 0) {
+
+				SCROLLINFO si;
+				Base::zeroMemory(&si, sizeof(si));
+				si.cbSize = sizeof(si);
+				si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
+				GetScrollInfo(hWnd, SB_HORZ, &si);
+
+				si.nPos += delta * (int)nWheel / WHEEL_DELTA;
+				if (si.nPos < si.nMin) {
+					si.nPos = si.nMin;
+				}
+				if (si.nPos >= si.nMax) {
+					si.nPos = si.nMax - 1;
+				}
+
+				si.fMask = SIF_POS;
+				SetScrollInfo(hWnd, SB_HORZ, &si, TRUE);
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool UIPlatform::processWindowVerticalScrollEvents(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, sl_uint32 nLine, sl_uint32 nWheel)
+	{
+		int nSBCode = LOWORD(wParam);
+
+		if (uMsg == WM_VSCROLL) {
+
+			SCROLLINFO si;
+			Base::zeroMemory(&si, sizeof(si));
+			si.cbSize = sizeof(si);
+			si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE | SIF_TRACKPOS;
+			GetScrollInfo(hWnd, SB_VERT, &si);
+
+			switch (nSBCode) {
+			case SB_TOP:
+			case SB_LINEUP:
+				si.nPos -= (int)nLine;
+				break;
+			case SB_BOTTOM:
+			case SB_LINEDOWN:
+				si.nPos += (int)nLine;
+				break;
+			case SB_PAGEUP:
+				si.nPos -= si.nPage;
+				break;
+			case SB_PAGEDOWN:
+				si.nPos += si.nPage;
+				break;
+			case SB_THUMBPOSITION:
+			case SB_THUMBTRACK:
+				si.nPos = si.nTrackPos;
+				break;
+			}
+
+			if (si.nPos < si.nMin) {
+				si.nPos = si.nMin;
+			}
+			if (si.nPos >= si.nMax) {
+				si.nPos = si.nMax - 1;
+			}
+			si.fMask = SIF_POS;
+			SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
+
+			return sl_true;
+
+		} else if (uMsg == WM_MOUSEWHEEL) {
+
+			int delta = (short)((wParam >> 16) & 0xffff);
+
+			if (delta != 0) {
+
+				SCROLLINFO si;
+				Base::zeroMemory(&si, sizeof(si));
+				si.cbSize = sizeof(si);
+				si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
+				GetScrollInfo(hWnd, SB_VERT, &si);
+
+				si.nPos -= delta * (int)nWheel / WHEEL_DELTA;
+				if (si.nPos < si.nMin) {
+					si.nPos = si.nMin;
+				}
+				if (si.nPos >= si.nMax) {
+					si.nPos = si.nMax - 1;
+				}
+
+				si.fMask = SIF_POS;
+				SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
+			}
+			return sl_true;
+
+		}
+		return sl_false;
+	}
+
+	void UIPlatform::setWindowHorizontalScrollParam(HWND hWnd, sl_int32 nMin, sl_int32 nMax, sl_int32 nPage)
+	{
+		if (nMax < nMin) {
+			nMax = nMin;
+		}
+		SCROLLINFO si;
+		Base::zeroMemory(&si, sizeof(si));
+		si.cbSize = sizeof(si);
+		si.fMask = SIF_PAGE | SIF_RANGE;
+		si.nMin = nMin;
+		si.nMax = nMax;
+		si.nPage = nPage;
+		SetScrollInfo(hWnd, SB_HORZ, &si, TRUE);
+	}
+
+	void UIPlatform::setWindowVerticalScrollParam(HWND hWnd, sl_int32 nMin, sl_int32 nMax, sl_int32 nPage)
+	{
+		if (nMax < nMin) {
+			nMax = nMin;
+		}
+		SCROLLINFO si;
+		Base::zeroMemory(&si, sizeof(si));
+		si.cbSize = sizeof(si);
+		si.fMask = SIF_PAGE | SIF_RANGE;
+		si.nMin = nMin;
+		si.nMax = nMax;
+		si.nPage = nPage;
+		SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
 	}
 
 	sl_int32 UIApp::onExistingInstance()

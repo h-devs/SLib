@@ -27,7 +27,7 @@
 #include "slib/device/sensor.h"
 
 #include "slib/core/hash_map.h"
-#include "slib/core/platform_android.h"
+#include "slib/core/platform.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -44,8 +44,8 @@ namespace slib
 			
 			SLIB_SAFE_STATIC_GETTER(SensorMap, GetSensorMap)
 
-			SLIB_JNI_BEGIN_CLASS(JSensor, "slib/platform/android/device/Sensor")
-				SLIB_JNI_STATIC_METHOD(create, "create", "(Landroid/app/Activity;ZIZZ)Lslib/platform/android/device/Sensor;");
+			SLIB_JNI_BEGIN_CLASS(JSensor, "slib/android/device/Sensor")
+				SLIB_JNI_STATIC_METHOD(create, "create", "(Landroid/app/Activity;ZIZZ)Lslib/android/device/Sensor;");
 				SLIB_JNI_STATIC_METHOD(isAvailableLocation, "isAvailableLocation", "(Landroid/app/Activity;)Z");
 				SLIB_JNI_STATIC_METHOD(isAvailableCompass, "isAvailableCompass", "(Landroid/app/Activity;)Z");
 				SLIB_JNI_STATIC_METHOD(isAvailableAccelerometer, "isAvailableAccelerometer", "(Landroid/app/Activity;)Z");
@@ -77,27 +77,27 @@ namespace slib
 			public:
 				static sl_bool  _isAvailableLocation()
 				{
-					jobject jactivity = Android::getCurrentActivity();
-					if (jactivity) {
-						return JSensor::isAvailableLocation.callBoolean(sl_null, jactivity);
+					jobject context = Android::getCurrentContext();
+					if (context) {
+						return JSensor::isAvailableLocation.callBoolean(sl_null, context);
 					}
 					return sl_false;
 				}
 
 				static sl_bool  _isAvailableCompass()
 				{
-					jobject jactivity = Android::getCurrentActivity();
-					if (jactivity) {
-						return JSensor::isAvailableCompass.callBoolean(sl_null, jactivity);
+					jobject context = Android::getCurrentContext();
+					if (context) {
+						return JSensor::isAvailableCompass.callBoolean(sl_null, context);
 					}
 					return sl_false;
 				}
 
 				static sl_bool  _isAvailableAccelerometer()
 				{
-					jobject jactivity = Android::getCurrentActivity();
-					if (jactivity) {
-						return JSensor::isAvailableAccelerometer.callBoolean(sl_null, jactivity);
+					jobject context = Android::getCurrentContext();
+					if (context) {
+						return JSensor::isAvailableAccelerometer.callBoolean(sl_null, context);
 					}
 					return sl_false;
 				}
@@ -109,27 +109,21 @@ namespace slib
 						return sl_null;
 					}
 
-					jobject jactivity = Android::getCurrentActivity();
-					if (jactivity) {
-						JniLocal<jobject> obj = JSensor::create.callObject(sl_null, jactivity,
-																					param.flagUseLocation, param.locationProviderType,
-																					param.flagUseCompass,
-																					param.flagUseAccelerometor);
-						if (obj.isNotNull()) {
-							JniGlobal<jobject> sensor = obj;
-							if (sensor.isNotNull()) {
-								Ref<SensorImpl> ret = new SensorImpl;
-								if (ret.isNotNull()) {
-									ret->_init(param);
-									ret->m_sensor = sensor;
-									jlong instance = (jlong)(ret.get());
-									JSensor::setInstance.call(obj, instance);
-									sensorMap->put(instance, ret);
-									if (param.flagAutoStart) {
-										ret->start();
-									}
-									return ret;
+					jobject context = Android::getCurrentContext();
+					if (context) {
+						JniGlobal<jobject> sensor = JSensor::create.callObject(sl_null, context, param.flagUseLocation, param.locationProviderType, param.flagUseCompass, param.flagUseAccelerometor);
+						if (sensor.isNotNull()) {
+							Ref<SensorImpl> ret = new SensorImpl;
+							if (ret.isNotNull()) {
+								ret->_init(param);
+								jlong instance = (jlong)(ret.get());
+								JSensor::setInstance.call(sensor, instance);
+								ret->m_sensor = Move(sensor);
+								sensorMap->put(instance, ret);
+								if (param.flagAutoStart) {
+									ret->start();
 								}
+								return ret;
 							}
 						}
 					}

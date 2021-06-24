@@ -36,7 +36,7 @@ namespace slib
 		namespace android
 		{
 
-			SLIB_JNI_BEGIN_CLASS(JPen, "slib/platform/android/ui/UiPen")
+			SLIB_JNI_BEGIN_CLASS(JPen, "slib/android/ui/UiPen")
 				SLIB_JNI_NEW(init, "()V");
 				SLIB_JNI_METHOD(setStyle, "setStyle", "(I)V");
 				SLIB_JNI_INT_FIELD(cap);
@@ -54,18 +54,15 @@ namespace slib
 			public:
 				PenPlatformObject(const PenDesc& desc)
 				{
-					JniLocal<jobject> jpen = JPen::init.newObject(sl_null);
-					if (jpen.isNotNull()) {
-						JniGlobal<jobject> gpen = jpen;
-						if (gpen.isNotNull()) {
-							JPen::cap.set(jpen, (int)(desc.cap));
-							JPen::join.set(jpen, (int)(desc.join));
-							JPen::color.set(jpen, desc.color.getARGB());
-							JPen::width.set(jpen, desc.width);
-							JPen::miterLimit.set(jpen, desc.miterLimit);
-							JPen::setStyle.call(jpen, desc.style);
-							m_pen = gpen;
-						}
+					JniGlobal<jobject> pen = JPen::init.newObject(sl_null);
+					if (pen.isNotNull()) {
+						JPen::cap.set(pen, (int)(desc.cap));
+						JPen::join.set(pen, (int)(desc.join));
+						JPen::color.set(pen, desc.color.getARGB());
+						JPen::width.set(pen, desc.width);
+						JPen::miterLimit.set(pen, desc.miterLimit);
+						JPen::setStyle.call(pen, desc.style);
+						m_pen = Move(pen);
 					}
 				}
 			};
@@ -88,7 +85,7 @@ namespace slib
 				{
 					PenPlatformObject* po = getPenPlatformObject();
 					if (po) {
-						return po->m_pen.get();
+						return po->m_pen;
 					}
 					return 0;
 				}

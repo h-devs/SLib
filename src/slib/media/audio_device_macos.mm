@@ -27,8 +27,8 @@
 #include "slib/media/audio_device.h"
 
 #include "slib/core/log.h"
-#include "slib/core/scoped.h"
-#include "slib/core/platform_apple.h"
+#include "slib/core/scoped_buffer.h"
+#include "slib/core/platform.h"
 
 #import <CoreAudio/CoreAudio.h>
 #import <AudioToolbox/AudioConverter.h>

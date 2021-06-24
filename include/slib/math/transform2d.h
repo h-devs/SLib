@@ -224,7 +224,7 @@ namespace slib
 			return ret;
 		}
 		
-		static Vector2T<T> getScaleFromMatrix(const Matrix3T<T>& mat)
+		static Vector2T<T> getScaleFromMatrix(const Matrix3T<T>& mat) noexcept
 		{
 			Vector2T<T> ret;
 			ret.x = Math::sqrt(mat.m00 * mat.m00 + mat.m01 * mat.m01);
@@ -232,7 +232,7 @@ namespace slib
 			return ret;
 		}
 		
-		static T getRotationAngleFromMatrix(const Matrix3T<T>& mat)
+		static T getRotationAngleFromMatrix(const Matrix3T<T>& mat) noexcept
 		{
 			T x = mat.m00;
 			T y = mat.m01;
@@ -244,7 +244,7 @@ namespace slib
 			return a;
 		}
 		
-		static Vector2T<T> getTranslationFromMatrix(const Matrix3T<T>& mat)
+		static Vector2T<T> getTranslationFromMatrix(const Matrix3T<T>& mat) noexcept
 		{
 			Vector2T<T> ret;
 			ret.x = mat.m20;

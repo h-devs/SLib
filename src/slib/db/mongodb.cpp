@@ -22,6 +22,7 @@
 
 #include "slib/db/mongodb.h"
 
+#include "slib/math/decimal128.h"
 #include "slib/core/safe_static.h"
 
 #define BSON_STATIC
@@ -158,15 +159,6 @@ namespace slib
 					case VariantType::ObjectId:
 						bson_append_oid(bson, key.getData(), (int)(key.getLength()), PTR_VAR(bson_oid_t, json._value));
 						return;
-					case VariantType::Decimal128:
-						{
-							bson_decimal128_t dec;
-							Decimal128* p = REF_VAR(SharedPtr<Decimal128>, json._value).get();
-							dec.high = p->high;
-							dec.low = p->low;
-							bson_append_decimal128(bson, key.getData(), (int)(key.getLength()), &dec);
-							return;
-						}
 					case VariantType::Null:
 						if (json._value) {
 							bson_append_null(bson, key.getData(), (int)(key.getLength()));

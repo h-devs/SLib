@@ -24,7 +24,7 @@
 
 #include "slib/core/file.h"
 #include "slib/core/asset.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {

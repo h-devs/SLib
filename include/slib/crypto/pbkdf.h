@@ -50,8 +50,8 @@ namespace slib
 				outDK: derived key
 		*/
 		static void generateKey(
-			const void* password, sl_uint32 lenPassword,
-			const void* salt, sl_uint32 lenSalt,
+			const void* password, sl_size lenPassword,
+			const void* salt, sl_size lenSalt,
 			sl_uint32 nIteration,
 			void* _outDK, sl_uint32 lenDK)
 		{
@@ -93,8 +93,8 @@ namespace slib
 				outDK: derived key
 		*/
 		static void generateKey(
-			const void* password, sl_uint32 lenPassword,
-			const void* salt, sl_uint32 lenSalt,
+			const void* password, sl_size lenPassword,
+			const void* salt, sl_size lenSalt,
 			sl_uint32 nIteration,
 			void* _outDK, sl_size lenDK)
 		{

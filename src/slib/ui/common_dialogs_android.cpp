@@ -43,7 +43,7 @@ namespace slib
 
 			void OnResultShowAlertDialog(JNIEnv* env, jobject _this, jlong _alert, int result);
 
-			SLIB_JNI_BEGIN_CLASS(JAlert, "slib/platform/android/ui/Alert")
+			SLIB_JNI_BEGIN_CLASS(JAlert, "slib/android/ui/Alert")
 				SLIB_JNI_INT_FIELD(type);
 				SLIB_JNI_STRING_FIELD(text);
 				SLIB_JNI_BOOLEAN_FIELD(flagHyperText);
@@ -55,7 +55,7 @@ namespace slib
 				SLIB_JNI_LONG_FIELD(nativeObject);
 
 				SLIB_JNI_NEW(init, "()V");
-				SLIB_JNI_METHOD(show, "show", "(Lslib/platform/android/SlibActivity;)Z");
+				SLIB_JNI_METHOD(show, "show", "(Lslib/android/SlibActivity;)Z");
 
 				SLIB_JNI_NATIVE(nativeShowAlertResult, "nativeShowResult", "(JI)V", OnResultShowAlertDialog);
 			SLIB_JNI_END_CLASS
@@ -124,8 +124,8 @@ namespace slib
 		if (!alertMap) {
 			return sl_false;
 		}
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (context) {
 			Ref<AlertDialogResult> result = new AlertDialogResult();
 			if (result.isNotNull()) {
 				result->onResult = SLIB_FUNCTION_REF(AlertDialog, _onResult, this);
@@ -151,7 +151,7 @@ namespace slib
 					}
 					JAlert::titleNo.set(jalert, _titleNo);
 					alertMap->put(lresult, result);
-					if (JAlert::show.callBoolean(jalert, jactivity)) {
+					if (JAlert::show.callBoolean(jalert, context)) {
 						return sl_true;
 					}
 					alertMap->remove(lresult);

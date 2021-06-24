@@ -22,9 +22,11 @@
 
 #include "slib/math/decimal128.h"
 
-#include "slib/core/mio.h"
 #include "slib/math/decimal.h"
 #include "slib/math/int128.h"
+#include "slib/core/mio.h"
+#include "slib/core/string.h"
+#include "slib/core/hash.h"
 
 #define COMBINATION_MASK 0x1f // least significant 5 bits
 #define EXPONENT_MASK 0x3fff // least significant 14 bits
@@ -561,6 +563,19 @@ namespace slib
 				return sl_true;
 			}
 
+			template <class CHAR>
+			SLIB_INLINE static sl_reg Parse(Decimal128* _out, const CHAR *sz, sl_size posBegin, sl_size posEnd) noexcept
+			{
+				if (posEnd <= posBegin) {
+					return SLIB_PARSE_ERROR;
+				}
+				sl_size len = posEnd - posBegin;
+				if (FromString(_out, sz + posBegin, len)) {
+					return posBegin + len;
+				}
+				return SLIB_PARSE_ERROR;
+			}
+
 		}
 	}
 
@@ -644,6 +659,44 @@ namespace slib
 		low = 0;
 	}
 
+	void Decimal128::getBytesBE(void* _buf) noexcept
+	{
+		char* buf = (char*)_buf;
+		MIO::writeUint64BE(buf, high);
+		MIO::writeUint64BE(buf + 8, low);
+	}
+
+	void Decimal128::setBytesBE(const void* _buf) noexcept
+	{
+		const char* buf = (const char*)_buf;
+		high = MIO::readUint64BE(buf);
+		low = MIO::readUint64BE(buf + 8);
+	}
+
+	void Decimal128::getBytesLE(void* _buf) noexcept
+	{
+		char* buf = (char*)_buf;
+		MIO::writeUint64LE(buf, low);
+		MIO::writeUint64LE(buf + 8, high);
+	}
+
+	void Decimal128::setBytesLE(const void* _buf) noexcept
+	{
+		const char* buf = (const char*)_buf;
+		low = MIO::readUint64LE(buf);
+		high = MIO::readUint64LE(buf + 8);
+	}
+
+	Decimal128 Decimal128::fromString(const StringParam& str) noexcept
+	{
+		Decimal128 ret;
+		if (ret.parse(str)) {
+			return ret;
+		}
+		ret.setNaN();
+		return ret;
+	}
+
 	sl_compare_result Decimal128::compare(const Decimal128& other) const noexcept
 	{
 		DecimalOp op1, op2;
@@ -662,35 +715,14 @@ namespace slib
 		return Rehash64ToSize(high ^ low);
 	}
 
-	sl_bool Decimal128::operator==(const Decimal128& other) const noexcept
+	String Decimal128::toString() const noexcept
 	{
-		return equals(other);
+		char str[STRING_LENGTH];
+		sl_uint32 n = ToString(this, str);
+		return String(str, n);
 	}
 
-	sl_bool Decimal128::operator!=(const Decimal128& other) const noexcept
-	{
-		return !(equals(other));
-	}
-
-	sl_bool Decimal128::operator>=(const Decimal128& other) const noexcept
-	{
-		return compare(other) >= 0;
-	}
-
-	sl_bool Decimal128::operator<=(const Decimal128& other) const noexcept
-	{
-		return compare(other) <= 0;
-	}
-
-	sl_bool Decimal128::operator>(const Decimal128& other) const noexcept
-	{
-		return compare(other) > 0;
-	}
-
-	sl_bool Decimal128::operator<(const Decimal128& other) const noexcept
-	{
-		return compare(other) < 0;
-	}
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(Decimal128, Parse)
 
 	Decimal128 Decimal128::operator+(const Decimal128& other) const noexcept
 	{
@@ -781,93 +813,6 @@ namespace slib
 	Decimal128 Decimal128::operator-() const noexcept
 	{
 		return Decimal128(high ^ SLIB_UINT64(0x8000000000000000), low);
-	}
-
-	void Decimal128::getBytesBE(void* _buf) noexcept
-	{
-		char* buf = (char*)_buf;
-		MIO::writeUint64BE(buf, high);
-		MIO::writeUint64BE(buf + 8, low);
-	}
-
-	void Decimal128::setBytesBE(const void* _buf) noexcept
-	{
-		const char* buf = (const char*)_buf;
-		high = MIO::readUint64BE(buf);
-		low = MIO::readUint64BE(buf + 8);
-	}
-
-	void Decimal128::getBytesLE(void* _buf) noexcept
-	{
-		char* buf = (char*)_buf;
-		MIO::writeUint64LE(buf, low);
-		MIO::writeUint64LE(buf + 8, high);
-	}
-
-	void Decimal128::setBytesLE(const void* _buf) noexcept
-	{
-		const char* buf = (const char*)_buf;
-		low = MIO::readUint64LE(buf);
-		high = MIO::readUint64LE(buf + 8);
-	}
-
-	Decimal128 Decimal128::fromString(const StringParam& str) noexcept
-	{
-		Decimal128 ret;
-		if (ret.parse(str)) {
-			return ret;
-		}
-		ret.setNaN();
-		return ret;
-	}
-
-	String Decimal128::toString() const noexcept
-	{
-		char str[STRING_LENGTH];
-		sl_uint32 n = ToString(this, str);
-		return String(str, n);
-	}
-
-
-	template <>
-	sl_reg Parser<Decimal128, sl_char8>::parse(Decimal128* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		if (posEnd <= posBegin) {
-			return SLIB_PARSE_ERROR;
-		}
-		sl_size len = posEnd - posBegin;
-		if (FromString(_out, sz + posBegin, len)) {
-			return posBegin + len;
-		}
-		return SLIB_PARSE_ERROR;
-	}
-
-	template <>
-	sl_reg Parser<Decimal128, sl_char16>::parse(Decimal128* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		if (posEnd <= posBegin) {
-			return SLIB_PARSE_ERROR;
-		}
-		sl_size len = posEnd - posBegin;
-		if (FromString(_out, sz + posBegin, len)) {
-			return posBegin + len;
-		}
-		return SLIB_PARSE_ERROR;
-	}
-
-	sl_compare_result Compare<Decimal128>::operator()(const Decimal128& a, const Decimal128& b) const noexcept
-	{
-		return a.compare(b);
-	}
-
-	sl_bool Equals<Decimal128>::operator()(const Decimal128& a, const Decimal128& b) const noexcept
-	{
-		return a.equals(b);
-	}
-
-	sl_size Hash<Decimal128>::operator()(const Decimal128& a) const noexcept
-	{
-		return a.getHashCode();
 	}
 
 }

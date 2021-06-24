@@ -37,7 +37,7 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(MatrixT)
 		
-		MatrixT() noexcept = default;
+		MatrixT() = default;
 
 		template <class O>
 		MatrixT(const MatrixT<ROWS, COLS, O>& other) noexcept
@@ -374,29 +374,6 @@ namespace slib
 		return m;
 	}
 
-	template <sl_uint32 ROWS, sl_uint32 COLS, class T>
-	SLIB_INLINE sl_bool operator==(const MatrixT<ROWS, COLS, T>& m1, const MatrixT<ROWS, COLS, T>& m2) noexcept
-	{
-		return m1.equals(m2);
-	}
-
-	template <sl_uint32 ROWS, sl_uint32 COLS, class T>
-	SLIB_INLINE sl_bool operator!=(const MatrixT<ROWS, COLS, T>& m1, const MatrixT<ROWS, COLS, T>& m2) noexcept
-	{
-		return !(m1.equals(m2));
-	}
-
-
-	template <sl_uint32 ROWS, sl_uint32 COLS, class T>
-	class Interpolation< MatrixT<ROWS, COLS, T> >
-	{
-	public:
-		static MatrixT<ROWS, COLS, T> interpolate(const MatrixT<ROWS, COLS, T>& a, const MatrixT<ROWS, COLS, T>& b, float factor) noexcept
-		{
-			return a.lerp(b, factor);
-		}
-
-	};
 
 	template <sl_uint32 ROWS, sl_uint32 COLS>
 	using Matrix = MatrixT<ROWS, COLS, sl_real>;

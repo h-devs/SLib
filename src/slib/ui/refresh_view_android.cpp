@@ -38,7 +38,7 @@ namespace slib
 
 			void JNICALL OnRefresh(JNIEnv* env, jobject _this, jlong instance);
 
-			SLIB_JNI_BEGIN_CLASS(JRefreshView, "slib/platform/android/ui/view/UiRefreshView")
+			SLIB_JNI_BEGIN_CLASS(JRefreshView, "slib/android/ui/view/UiRefreshView")
 
 				SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;)Landroid/view/View;");
 

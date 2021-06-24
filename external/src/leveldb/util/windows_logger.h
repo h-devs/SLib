@@ -56,7 +56,7 @@ class WindowsLogger final : public Logger {
           (iteration == 0) ? stack_buffer : new char[dynamic_buffer_size];
 
       // Print the header into the buffer.
-      int buffer_offset = std::snprintf(
+      int buffer_offset = snprintf(
           buffer, buffer_size, "%04d/%02d/%02d-%02d:%02d:%02d.%06d %s ",
           now_components.wYear, now_components.wMonth, now_components.wDay,
           now_components.wHour, now_components.wMinute, now_components.wSecond,
@@ -75,7 +75,7 @@ class WindowsLogger final : public Logger {
       std::va_list arguments_copy;
       va_copy(arguments_copy, arguments);
       buffer_offset +=
-          std::vsnprintf(buffer + buffer_offset, buffer_size - buffer_offset,
+          vsnprintf(buffer + buffer_offset, buffer_size - buffer_offset,
                          format, arguments_copy);
       va_end(arguments_copy);
 

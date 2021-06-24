@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-package slib.platform.android.fcm;
+package slib.android.fcm;
 
 import androidx.annotation.NonNull;
 

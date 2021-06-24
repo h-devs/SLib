@@ -28,7 +28,7 @@
 
 #include "slib/graphics/image.h"
 #include "slib/graphics/platform.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #include <shlwapi.h>
 #pragma comment(lib, "shlwapi.lib")

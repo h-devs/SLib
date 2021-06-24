@@ -41,7 +41,7 @@ namespace slib
 			void OnLoginResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring code, jstring errStr);
 			void OnPayResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring errStr);
 			
-			SLIB_JNI_BEGIN_CLASS(JWeChat, "slib/platform/android/wechat/WeChat")
+			SLIB_JNI_BEGIN_CLASS(JWeChat, "slib/android/wechat/WeChat")
 				SLIB_JNI_STATIC_METHOD(initialize, "initialize", "(Landroid/app/Activity;Ljava/lang/String;)V");
 				SLIB_JNI_STATIC_METHOD(login, "login", "()V");
 				SLIB_JNI_STATIC_METHOD(pay, "pay", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;)V");
@@ -123,10 +123,10 @@ namespace slib
 	
 	void WeChatSDK::initialize(const String& appId, const String& universalLink)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (context) {
 			JniLocal<jstring> jappId = Jni::getJniString(appId);
-			JWeChat::initialize.call(sl_null, jactivity, jappId.get());
+			JWeChat::initialize.call(sl_null, context, jappId.get());
 		}
 	}
 

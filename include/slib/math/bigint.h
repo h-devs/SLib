@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/parse.h"
+#include "../core/ref.h"
 
 namespace slib
 {
@@ -150,6 +150,8 @@ namespace slib
 
 		sl_bool setValue(sl_uint64 v) noexcept;
 		
+		static CBigInt* fromUint64(sl_uint64 v) noexcept;
+
 		sl_int32 getInt32() const noexcept;
 
 		sl_uint32 getUint32() const noexcept;
@@ -158,36 +160,9 @@ namespace slib
 
 		sl_uint64 getUint64() const noexcept;
 
-		static CBigInt* fromUint64(sl_uint64 v) noexcept;
-
-		static CBigInt* fromString(sl_uint32 radix, const sl_char8* sz, sl_size len) noexcept;
-
-		static CBigInt* fromString(sl_uint32 radix, const String& str) noexcept;
-		
-		static CBigInt* fromString(const sl_char8* sz, sl_size len) noexcept;
-		
-		static CBigInt* fromString(const String& str) noexcept;
-
 		String toString(sl_uint32 radix = 10) const noexcept;
 
-		static CBigInt* fromHexString(const sl_char8* sz, sl_size len) noexcept;
-
-		static CBigInt* fromHexString(const String& str) noexcept;
-
 		String toHexString() const noexcept;
-
-
-		template <class ST>
-		static sl_bool parse(const ST& str, CBigInt* _out, sl_uint32 radix = 10) noexcept
-		{
-			return ParseInt(str, _out, radix);
-		}
-
-		template <class ST>
-		sl_bool parse(const ST& str, sl_uint32 radix = 10) noexcept
-		{
-			return ParseInt(str, this, radix);
-		}
 
 
 		sl_bool equals(const CBigInt& other) const noexcept;
@@ -393,13 +368,8 @@ namespace slib
 	
 	private:
 		void _free() noexcept;
+
 	};
-	
-	template <>
-	sl_reg IntParser<CBigInt, sl_char8>::parse(CBigInt* _out, sl_uint32 radix, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept;
-	
-	template <>
-	sl_reg IntParser<CBigInt, sl_char16>::parse(CBigInt* _out, sl_uint32 radix, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept;
 	
 	
 	class BigInt;
@@ -517,17 +487,9 @@ namespace slib
 
 		static BigInt fromBytesBE(const Memory& mem) noexcept;
 
-		static BigInt fromString(sl_uint32 radix, const sl_char8* sz, sl_size len) noexcept;
-		
-		static BigInt fromString(sl_uint32 radix, const String& str) noexcept;
+		static BigInt fromString(const StringParam& str, sl_uint32 radix = 10) noexcept;
 
-		static BigInt fromString(const sl_char8* sz, sl_size len) noexcept;
-		
-		static BigInt fromString(const String& str) noexcept;
-
-		static BigInt fromHexString(const sl_char8* sz, sl_size len) noexcept;
-		
-		static BigInt fromHexString(const String& str) noexcept;
+		static BigInt fromHexString(const StringParam& str) noexcept;
 
 		CBigInt& instance() const noexcept;
 
@@ -792,6 +754,10 @@ namespace slib
 		
 
 		sl_size getHashCode() const noexcept;
+
+
+		SLIB_DECLARE_CLASS_JSON_SERIALIZE_MEMBERS
+		SLIB_DECLARE_CLASS_PARSE_INT_MEMBERS(BigInt)
 
 	public:
 		BigInt& operator=(sl_int32 n) noexcept;
@@ -1071,28 +1037,6 @@ namespace slib
 	BigInt operator<<(const BigInt& a, sl_size n) noexcept;
 	
 	BigInt operator>>(const BigInt& a, sl_size n) noexcept;
-
-
-	template <>
-	class Compare<BigInt>
-	{
-	public:
-		sl_compare_result operator()(const BigInt& a, const BigInt& b) const noexcept;
-	};
-	
-	template <>
-	class Equals<BigInt>
-	{
-	public:
-		sl_bool operator()(const BigInt& a, const BigInt& b) const noexcept;
-	};
-	
-	template <>
-	class Hash<BigInt>
-	{
-	public:
-		sl_size operator()(const BigInt& a) const noexcept;
-	};
 	
 }
 

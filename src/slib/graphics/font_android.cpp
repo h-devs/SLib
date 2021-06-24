@@ -47,8 +47,8 @@ namespace slib
 				SLIB_JNI_FLOAT_FIELD(leading);
 			SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JFont, "slib/platform/android/ui/UiFont")
-				SLIB_JNI_STATIC_METHOD(create, "create", "(Ljava/lang/String;FI)Lslib/platform/android/ui/UiFont;");
+			SLIB_JNI_BEGIN_CLASS(JFont, "slib/android/ui/UiFont")
+				SLIB_JNI_STATIC_METHOD(create, "create", "(Ljava/lang/String;FI)Lslib/android/ui/UiFont;");
 				SLIB_JNI_METHOD(getFontMetrics, "getFontMetrics", "()Landroid/graphics/Paint$FontMetrics;");
 				SLIB_JNI_METHOD(measureText, "measureText", "(Ljava/lang/String;)Landroid/graphics/PointF;");
 			SLIB_JNI_END_CLASS
@@ -76,12 +76,9 @@ namespace slib
 					}
 					float size = (float)(desc.size);
 					JniLocal<jstring> fontName = Jni::getJniString(desc.familyName);
-					JniLocal<jobject> jfont = JFont::create.callObject(sl_null, fontName.value, size, style);
-					if (jfont.isNotNull()) {
-						JniGlobal<jobject> gfont = jfont;
-						if (gfont.isNotNull()) {
-							m_font = gfont;
-						}
+					JniGlobal<jobject> font = JFont::create.callObject(sl_null, fontName.get(), size, style);
+					if (font.isNotNull()) {
+						m_font = Move(font);
 					}
 				}
 

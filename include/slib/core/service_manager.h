@@ -76,7 +76,7 @@ namespace slib
 		ServiceErrorControl errorControl;
 		StringParam commandLine;
 		StringParam path;
-		List<String> arguments;
+		ListParam<StringParam> arguments;
 
 	public:
 		ServiceCreateParam();

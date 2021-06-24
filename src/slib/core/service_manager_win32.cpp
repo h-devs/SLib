@@ -203,8 +203,8 @@ namespace slib
 			StringCstr16 displayName = _displayName;
 			StringParam _path = param.commandLine;
 			if (_path.isNull()) {
-				ListLocker<String> arguments(param.arguments);
-				_path = Application::buildCommandLine(param.path.toString() , arguments.data, arguments.count);
+				ListLocker<StringParam> arguments(param.arguments);
+				_path = Application::buildCommandLine(param.path, arguments.data, arguments.count);
 			}
 			StringCstr16 path = _path;
 			SC_HANDLE handle = CreateServiceW(

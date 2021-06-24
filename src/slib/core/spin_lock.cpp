@@ -97,7 +97,7 @@ namespace slib
 		}
 	}
 	
-	SpinLocker::~SpinLocker() noexcept
+	SpinLocker::~SpinLocker()
 	{
 		unlock();
 	}
@@ -135,7 +135,7 @@ namespace slib
 		}
 	}
 	
-	DualSpinLocker::~DualSpinLocker() noexcept
+	DualSpinLocker::~DualSpinLocker()
 	{
 		unlock();
 	}

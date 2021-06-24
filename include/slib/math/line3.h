@@ -38,23 +38,17 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Line3T)
 		
-		Line3T() noexcept = default;
+		Line3T() = default;
 
 		template <class O>
-		Line3T(const Line3T<O>& other) noexcept :
-			point1(other.point1), point2(other.point2)
-		{}
+		Line3T(const Line3T<O>& other): point1(other.point1), point2(other.point2) {}
 
-		Line3T(const Vector3T<T>& _point1, const Vector3T<T>& _point2) noexcept :
-			point1(_point1), point2(_point2)
-		{}
+		Line3T(const Vector3T<T>& _point1, const Vector3T<T>& _point2): point1(_point1), point2(_point2) {}
 
-		Line3T(T x1, T y1, T z1, T x2, T y2, T z2) noexcept :
-			point1(x1, y1, z1), point2(x2, y2, z2)
-		{}
+		Line3T(T x1, T y1, T z1, T x2, T y2, T z2): point1(x1, y1, z1), point2(x2, y2, z2) {}
 
 	public:
-		Vector3T<T> getDirection() const noexcept
+		constexpr Vector3T<T> getDirection() const
 		{
 			return point2 - point1;
 		}
@@ -72,8 +66,7 @@ namespace slib
 		Vector3T<T> projectPoint(const Vector3T<T>& point) const noexcept
 		{
 			Vector3T<T> dir = point2 - point1;
-			Vector3T<T> ret = point1 + (point - point1).dot(dir) * dir;
-			return ret;
+			return point1 + (point - point1).dot(dir) * dir;
 		}
 
 		T getDistanceFromPoint(const Vector3T<T>& point) const noexcept

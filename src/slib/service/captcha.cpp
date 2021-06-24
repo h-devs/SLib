@@ -23,7 +23,7 @@
 #include "slib/service/captcha.h"
 
 #include "slib/math/transform2d.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {

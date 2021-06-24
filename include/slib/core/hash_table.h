@@ -151,10 +151,10 @@ namespace slib
 			++(*this);
 		}
 		
-		HashTablePosition(const HashTablePosition& other) noexcept = default;
+		HashTablePosition(const HashTablePosition& other) = default;
 		
 	public:
-		HashTablePosition& operator=(const HashTablePosition& other) noexcept = default;
+		HashTablePosition& operator=(const HashTablePosition& other) = default;
 		
 		NODE& operator*() const noexcept
 		{

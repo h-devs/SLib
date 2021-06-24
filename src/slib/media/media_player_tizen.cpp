@@ -25,7 +25,7 @@
 #if defined(SLIB_PLATFORM_IS_TIZEN)
 
 #include "slib/media/media_player.h"
-#include "slib/core/platform_tizen.h"
+#include "slib/core/platform.h"
 
 #include <player.h>
 

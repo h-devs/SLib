@@ -24,7 +24,7 @@
 #include "slib/core/file_util.h"
 
 #include "slib/core/string_buffer.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {
@@ -114,7 +114,7 @@ namespace slib
 
 	Ref<File> File::openDevice(const StringParam& path, const FileMode& mode)
 	{
-		return open(path, mode | FileMode::NotCreate | FileMode::NotTruncate | FileMode::HintRandomAccess);
+		return open(path, mode | FileMode::Device | FileMode::NotCreate | FileMode::NotTruncate | FileMode::HintRandomAccess);
 	}
 	
 	Ref<File> File::openDeviceForRead(const StringParam& path)

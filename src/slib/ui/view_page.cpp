@@ -25,10 +25,6 @@
 #include "slib/ui/mobile_app.h"
 #include "slib/ui/core.h"
 
-#if defined(SLIB_UI_IS_ANDROID)
-#	include "slib/core/platform_android.h"
-#endif
-
 namespace slib
 {
 	
@@ -296,7 +292,7 @@ namespace slib
 		}
 
 #if defined(SLIB_UI_IS_ANDROID)
-		Android::dismissKeyboard();
+		UI::dismissKeyboard();
 #endif
 
 		_applyDefaultClosingPopupTransition(transition);

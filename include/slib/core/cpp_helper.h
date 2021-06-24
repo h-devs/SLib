@@ -50,33 +50,33 @@ namespace slib
 
 	template <class T> struct IsLValueHelper : ConstValue<bool, false> {};
 	template <class T> struct IsLValueHelper<T&> : ConstValue<bool, true> {};
-	template <class T> constexpr bool IsLValue() noexcept { return IsLValueHelper<T>::value; }
+	template <class T> constexpr bool IsLValue() { return IsLValueHelper<T>::value; }
 
 	template <class T1, class T2> struct IsSameTypeHelper : ConstValue<bool, false> {};
 	template <class T> struct IsSameTypeHelper<T, T> : ConstValue<bool, true> {};
-	template <class T1, class T2> constexpr bool IsSameType() noexcept { return IsSameTypeHelper<T1, T2>::value; }
+	template <class T1, class T2> constexpr bool IsSameType() { return IsSameTypeHelper<T1, T2>::value; }
 
 	template <class T>
-	constexpr typename RemoveReference<T>::Type&& Move(T&& v) noexcept
+	constexpr typename RemoveReference<T>::Type&& Move(T&& v)
 	{
 		return static_cast<typename RemoveReference<T>::Type&&>(v);
 	}
 
 	template <class T>
-	constexpr T&& Forward(typename RemoveReference<T>::Type& v) noexcept
+	constexpr T&& Forward(typename RemoveReference<T>::Type& v)
 	{
 		return static_cast<T&&>(v);
 	}
 
 	template <class T>
-	constexpr T&& Forward(typename RemoveReference<T>::Type&& v) noexcept
+	constexpr T&& Forward(typename RemoveReference<T>::Type&& v)
 	{
 		static_assert(!(IsLValue<T>()), "Can't forward an rvalue as an lvalue.");
 		return static_cast<T&&>(v);
 	}
 
 	template<class T, sl_size_t N>
-	constexpr sl_size_t CountOfArray(const T (&)[N]) noexcept
+	constexpr sl_size_t CountOfArray(const T (&)[N])
 	{
 		return N;
 	}

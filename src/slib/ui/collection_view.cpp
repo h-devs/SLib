@@ -25,7 +25,7 @@
 #include "slib/ui/view_attributes.h"
 #include "slib/ui/core.h"
 #include "slib/core/linked_list.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #define MAX_ITEMS_PER_PAGE 500
 #define MAX_FREE_VIEWS 50

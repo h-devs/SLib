@@ -39,9 +39,7 @@ namespace slib
 	class ViewInstance;
 	class Window;
 	class WindowInstance;
-	
-	class Variant;
-	
+		
 	namespace priv
 	{
 		namespace window

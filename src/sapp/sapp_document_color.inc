@@ -48,7 +48,7 @@ namespace slib
 		
 		String valueText = element->getText();
 		Color value;
-		if (!(Color::parse(valueText, &value))) {
+		if (!(value.parse(valueText))) {
 			_logError(element, g_str_error_resource_color_value_invalid.arg(valueText));
 			return sl_false;
 		}

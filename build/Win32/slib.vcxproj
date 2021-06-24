@@ -102,10 +102,10 @@
     <ClCompile Include="..\..\src\slib\core\console.cpp" />
     <ClCompile Include="..\..\src\slib\core\content_type.cpp" />
     <ClCompile Include="..\..\src\slib\core\dispatch.cpp" />
-    <ClCompile Include="..\..\src\slib\core\dl_windows_bcrypt.cpp" />
-    <ClCompile Include="..\..\src\slib\core\dl_windows_kernel32.cpp" />
-    <ClCompile Include="..\..\src\slib\core\dl_windows_user32.cpp" />
-    <ClCompile Include="..\..\src\slib\core\dl_windows_wininet.cpp" />
+    <ClCompile Include="..\..\src\slib\core\dl_win32_bcrypt.cpp" />
+    <ClCompile Include="..\..\src\slib\core\dl_win32_kernel32.cpp" />
+    <ClCompile Include="..\..\src\slib\core\dl_win32_user32.cpp" />
+    <ClCompile Include="..\..\src\slib\core\dl_win32_wininet.cpp" />
     <ClCompile Include="..\..\src\slib\core\dynamic_library.cpp" />
     <ClCompile Include="..\..\src\slib\core\dynamic_library_windows.cpp" />
     <ClCompile Include="..\..\src\slib\core\event.cpp" />
@@ -127,9 +127,8 @@
     <ClCompile Include="..\..\src\slib\core\parse.cpp" />
     <ClCompile Include="..\..\src\slib\core\pipe.cpp" />
     <ClCompile Include="..\..\src\slib\core\pipe_windows.cpp" />
-    <ClCompile Include="..\..\src\slib\core\java.cpp" />
-    <ClCompile Include="..\..\src\slib\core\platform_windows.cpp" />
-    <ClCompile Include="..\..\src\slib\core\platform_windows_setup.cpp" />
+    <ClCompile Include="..\..\src\slib\core\win32_platform.cpp" />
+    <ClCompile Include="..\..\src\slib\core\win32_setup.cpp" />
     <ClCompile Include="..\..\src\slib\core\preference.cpp" />
     <ClCompile Include="..\..\src\slib\core\preference_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\asset.cpp" />
@@ -161,6 +160,7 @@
     <ClCompile Include="..\..\src\slib\core\variant.cpp" />
     <ClCompile Include="..\..\src\slib\core\win32_com.cpp" />
     <ClCompile Include="..\..\src\slib\core\service_manager.cpp" />
+    <ClCompile Include="..\..\src\slib\core\win32_message_loop.cpp" />
     <ClCompile Include="..\..\src\slib\core\xml.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\aes.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\base64.cpp" />
@@ -189,7 +189,7 @@
     <ClCompile Include="..\..\src\slib\db\database_expression.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_sql.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_statement.cpp" />
-    <ClCompile Include="..\..\src\slib\db\dl_libmysql.cpp" />
+    <ClCompile Include="..\..\src\slib\db\dl_win32_libmysql.cpp" />
     <ClCompile Include="..\..\src\slib\db\document_store.cpp" />
     <ClCompile Include="..\..\src\slib\db\key_value_store.cpp" />
     <ClCompile Include="..\..\src\slib\db\leveldb.cpp" />
@@ -241,7 +241,7 @@
     <ClCompile Include="..\..\src\slib\graphics\font_gdi.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\graphics_path.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\graphics_path_gdi.cpp" />
-    <ClCompile Include="..\..\src\slib\graphics\graphics_platform_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\graphics\gdi_platform.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\graphics_resource.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\graphics_text.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\graphics_util.cpp" />
@@ -272,7 +272,7 @@
     <ClCompile Include="..\..\src\slib\media\camera_win32.cpp" />
     <ClCompile Include="..\..\src\slib\media\codec_opus.cpp" />
     <ClCompile Include="..\..\src\slib\media\codec_vpx.cpp" />
-    <ClCompile Include="..\..\src\slib\media\dl_windows_winmm.cpp" />
+    <ClCompile Include="..\..\src\slib\media\dl_win32_winmm.cpp" />
     <ClCompile Include="..\..\src\slib\media\media_player.cpp" />
     <ClCompile Include="..\..\src\slib\media\media_player_ffmpeg.cpp" />
     <ClCompile Include="..\..\src\slib\media\media_player_win32.cpp" />
@@ -300,6 +300,7 @@
     <ClCompile Include="..\..\src\slib\network\network_os.cpp" />
     <ClCompile Include="..\..\src\slib\network\net_capture.cpp" />
     <ClCompile Include="..\..\src\slib\network\npcap_install_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\network\p2p.cpp" />
     <ClCompile Include="..\..\src\slib\network\pcap.cpp" />
     <ClCompile Include="..\..\src\slib\network\pseudo_tcp.cpp" />
     <ClCompile Include="..\..\src\slib\network\pseudo_tcp_message.cpp" />
@@ -342,6 +343,7 @@
     <ClCompile Include="..\..\src\slib\service\chat_sqlite.cpp" />
     <ClCompile Include="..\..\src\slib\service\fcm_service.cpp" />
     <ClCompile Include="..\..\src\slib\service\ginger.cpp" />
+    <ClCompile Include="..\..\src\slib\service\keygen.cpp" />
     <ClCompile Include="..\..\src\slib\service\push_notification.cpp" />
     <ClCompile Include="..\..\src\slib\service\web_service.cpp" />
     <ClCompile Include="..\..\src\slib\service\xgpush_service.cpp" />
@@ -377,6 +379,8 @@
     <ClCompile Include="..\..\src\slib\storage\file_system_logger.cpp" />
     <ClCompile Include="..\..\src\slib\storage\file_system_mirror.cpp" />
     <ClCompile Include="..\..\src\slib\storage\fuse.cpp" />
+    <ClCompile Include="..\..\src\slib\storage\storage.cpp" />
+    <ClCompile Include="..\..\src\slib\storage\storage_volume_win32.cpp" />
     <ClCompile Include="..\..\src\slib\ui\audio_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button_win32.cpp" />
@@ -553,7 +557,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;SLIB_USE_OBJECT_TYPE_CONSTANTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;SLIB_COMPILE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -580,7 +584,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;SLIB_USE_OBJECT_TYPE_CONSTANTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;SLIB_COMPILE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -608,7 +612,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;SLIB_USE_OBJECT_TYPE_CONSTANTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;SLIB_COMPILE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -638,7 +642,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;SLIB_USE_OBJECT_TYPE_CONSTANTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;SLIB_COMPILE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>

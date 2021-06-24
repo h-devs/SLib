@@ -26,7 +26,7 @@
 
 #include "slib/ui/web_view.h"
 
-#include "slib/core/win32_com.h"
+#include "slib/core/win32/com.h"
 
 #include "view_win32.h"
 

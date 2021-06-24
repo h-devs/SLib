@@ -382,27 +382,27 @@ namespace slib
 			return sl_null;
 		}
 		
-		static Promise<T> setTimeout(const Ref<Dispatcher>& dispatcher, const Function<T()>& task, sl_uint64 delay_ms)
+		static Promise<T> setTimeout(const Ref<Dispatcher>& dispatcher, const Function<T()>& task, sl_uint64 delayMillis)
 		{
 			if (dispatcher.isNotNull()) {
 				Promise<T> ret;
 				ret.initialize();
 				if (dispatcher->dispatch([ret, task]() {
 					ret.resolve(task());
-				}, delay_ms)) {
+				}, delayMillis)) {
 					return ret;
 				}
 			}
 			return sl_null;
 		}
 		
-		static Promise<T> setTimeout(const Function<T()>& task, sl_uint64 delay_ms)
+		static Promise<T> setTimeout(const Function<T()>& task, sl_uint64 delayMillis)
 		{
 			Promise<T> ret;
 			ret.initialize();
 			if (Dispatch::setTimeout([ret, task]() {
 				ret.resolve(task());
-			}, delay_ms)) {
+			}, delayMillis)) {
 				return ret;
 			}
 			return sl_null;
@@ -438,7 +438,7 @@ namespace slib
 			return sl_null;
 		}
 		
-		static Promise<T> setTimeoutPromise(const Ref<Dispatcher>& dispatcher, const Function<Promise<T>()>& task, sl_uint64 delay_ms)
+		static Promise<T> setTimeoutPromise(const Ref<Dispatcher>& dispatcher, const Function<Promise<T>()>& task, sl_uint64 delayMillis)
 		{
 			if (dispatcher.isNotNull()) {
 				Promise<T> ret;
@@ -447,14 +447,14 @@ namespace slib
 					task().then([ret](T& result) {
 						ret.resolve(result);
 					});
-				}, delay_ms)) {
+				}, delayMillis)) {
 					return ret;
 				}
 			}
 			return sl_null;
 		}
 		
-		static Promise<T> setTimeoutPromise(const Function<Promise<T>()>& task, sl_uint64 delay_ms)
+		static Promise<T> setTimeoutPromise(const Function<Promise<T>()>& task, sl_uint64 delayMillis)
 		{
 			Promise<T> ret;
 			ret.initialize();
@@ -462,7 +462,7 @@ namespace slib
 				task().then([ret](T& result) {
 					ret.resolve(result);
 				});
-			}, delay_ms)) {
+			}, delayMillis)) {
 				return ret;
 			}
 			return sl_null;

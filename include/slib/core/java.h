@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -33,60 +33,221 @@
 
 #if defined(SLIB_PLATFORM_USE_JNI)
 
-#include "object.h"
 #include "string.h"
+#include "unique_ptr.h"
+#include "shared_ptr.h"
+#include "primitive_wrapper.h"
 
 #include <jni.h>
+
+/*
+	JNI Signature
+
+		Z -> boolean
+		B -> byte
+		C -> char
+		S -> short
+		I -> int
+		J -> long long
+		F -> float
+		D -> double
+		V -> void
+		L<class-name>; -> object
+		[<type> -> type[]
+		(<arg-types>)<ret-type> -> method
+		<Package>/.../<Name> -> class
+		<Package>/.../<ParentName>$<Name> -> inner class
+*/
 
 namespace slib
 {
 
-	class JniClass;
+	template <class T>
+	class JniLocal;
 
 	class SLIB_EXPORT Jni
 	{
 	public:
-		static void initialize(JavaVM* jvm);
+		static void initialize(JavaVM* jvm) noexcept;
 
-		static void setSharedJVM(JavaVM* jvm);
-		static JavaVM* getSharedJVM();
+		static void setSharedJVM(JavaVM* jvm) noexcept;
+		static JavaVM* getSharedJVM() noexcept;
 
 		// thread-storage
-		static JNIEnv* getCurrent();
-		static void setCurrent(JNIEnv* jni);
+		static JNIEnv* getCurrent() noexcept;
+		static void setCurrent(JNIEnv* env) noexcept;
 
 		// attach and set current
-		static JNIEnv* attachThread(JavaVM* jvm = sl_null);
-		static void detachThread(JavaVM* jvm = sl_null);
+		static JNIEnv* attachThread(JavaVM* jvm = sl_null) noexcept;
+		static void detachThread(JavaVM* jvm = sl_null) noexcept;
 
 		// class
-		static JniClass getClass(const String& className);
-		static void registerClass(const String& className, jclass cls);
-		static void unregisterClass(const String& className);
-		static JniClass findClass(const StringParam& className);
+		static JniLocal<jclass> findClass(const StringParam& className) noexcept;
+		static jclass getClass(const StringParam& className) noexcept;
+
+		// method & field
+		static jmethodID getMethodID(jclass cls, const char* name, const char* sig) noexcept;
+		static jmethodID getStaticMethodID(jclass cls, const char* name, const char* sig) noexcept;
+		static jfieldID getFieldID(jclass cls, const char* name, const char* sig) noexcept;
+		static jfieldID getStaticFieldID(jclass cls, const char* name, const char* sig) noexcept;
+
+		static JniLocal<jobject> newObject(jclass cls, jmethodID method, ...) noexcept;
+		static JniLocal<jobject> newObject(jclass cls, const char* sigConstructor, ...) noexcept;
+		static JniLocal<jobject> newObject(jclass cls) noexcept;
+
+		static JniLocal<jobject> callObjectMethod(jobject _this, jmethodID method, ...) noexcept;
+		static JniLocal<jobject> callObjectMethod(jobject _this, const char* name, const char* sig, ...) noexcept;
+		static JniLocal<jobject> callStaticObjectMethod(jclass cls, jmethodID method, ...) noexcept;
+		static JniLocal<jobject> callStaticObjectMethod(jclass cls, const char* name, const char* sig, ...) noexcept;
+		static jboolean callBooleanMethod(jobject _this, jmethodID method, ...) noexcept;
+		static jboolean callBooleanMethod(jobject _this, const char* name, const char* sig, ...) noexcept;
+		static jboolean callStaticBooleanMethod(jclass cls, jmethodID method, ...) noexcept;
+		static jboolean callStaticBooleanMethod(jclass cls, const char* name, const char* sig, ...) noexcept;
+		static jbyte callByteMethod(jobject _this, jmethodID method, ...) noexcept;
+		static jbyte callByteMethod(jobject _this, const char* name, const char* sig, ...) noexcept;
+		static jbyte callStaticByteMethod(jclass cls, jmethodID method, ...) noexcept;
+		static jbyte callStaticByteMethod(jclass cls, const char* name, const char* sig, ...) noexcept;
+		static jchar callCharMethod(jobject _this, jmethodID method, ...) noexcept;
+		static jchar callCharMethod(jobject _this, const char* name, const char* sig, ...) noexcept;
+		static jchar callStaticCharMethod(jclass cls, jmethodID method, ...) noexcept;
+		static jchar callStaticCharMethod(jclass cls, const char* name, const char* sig, ...) noexcept;
+		static jshort callShortMethod(jobject _this, jmethodID method, ...) noexcept;
+		static jshort callShortMethod(jobject _this, const char* name, const char* sig, ...) noexcept;
+		static jshort callStaticShortMethod(jclass cls, jmethodID method, ...) noexcept;
+		static jshort callStaticShortMethod(jclass cls, const char* name, const char* sig, ...) noexcept;
+		static jint callIntMethod(jobject _this, jmethodID method, ...) noexcept;
+		static jint callIntMethod(jobject _this, const char* name, const char* sig, ...) noexcept;
+		static jint callStaticIntMethod(jclass cls, jmethodID method, ...) noexcept;
+		static jint callStaticIntMethod(jclass cls, const char* name, const char* sig, ...) noexcept;
+		static jlong callLongMethod(jobject _this, jmethodID method, ...) noexcept;
+		static jlong callLongMethod(jobject _this, const char* name, const char* sig, ...) noexcept;
+		static jlong callStaticLongMethod(jclass cls, jmethodID method, ...) noexcept;
+		static jlong callStaticLongMethod(jclass cls, const char* name, const char* sig, ...) noexcept;
+		static jfloat callFloatMethod(jobject _this, jmethodID method, ...) noexcept;
+		static jfloat callFloatMethod(jobject _this, const char* name, const char* sig, ...) noexcept;
+		static jfloat callStaticFloatMethod(jclass cls, jmethodID method, ...) noexcept;
+		static jfloat callStaticFloatMethod(jclass cls, const char* name, const char* sig, ...) noexcept;
+		static jdouble callDoubleMethod(jobject _this, jmethodID method, ...) noexcept;
+		static jdouble callDoubleMethod(jobject _this, const char* name, const char* sig, ...) noexcept;
+		static jdouble callStaticDoubleMethod(jclass cls, jmethodID method, ...) noexcept;
+		static jdouble callStaticDoubleMethod(jclass cls, const char* name, const char* sig, ...) noexcept;
+		static void callVoidMethod(jobject _this, jmethodID method, ...) noexcept;
+		static void callVoidMethod(jobject _this, const char* name, const char* sig, ...) noexcept;
+		static void callStaticVoidMethod(jclass cls, jmethodID method, ...) noexcept;
+		static void callStaticVoidMethod(jclass cls, const char* name, const char* sig, ...) noexcept;
+		static String callStringMethod(jobject _this, jmethodID method, ...) noexcept;
+		static String callStringMethod(jobject _this, const char* name, const char* sig, ...) noexcept;
+		static String callStaticStringMethod(jclass cls, jmethodID method, ...) noexcept;
+		static String callStaticStringMethod(jclass cls, const char* name, const char* sig, ...) noexcept;
+
+		static JniLocal<jobject> getObjectField(jobject _this, jfieldID field) noexcept;
+		static JniLocal<jobject> getObjectField(jobject _this, const char* name, const char* sig) noexcept;
+		static void setObjectField(jobject _this, jfieldID field, jobject value) noexcept;
+		static void setObjectField(jobject _this, const char* name, const char* sig, jobject value) noexcept;
+		static JniLocal<jobject> getStaticObjectField(jclass cls, jfieldID field) noexcept;
+		static JniLocal<jobject> getStaticObjectField(jclass cls, const char* name, const char* sig) noexcept;
+		static void setStaticObjectField(jclass cls, jfieldID field, jobject value) noexcept;
+		static void setStaticObjectField(jclass cls, const char* name, const char* sig, jobject value) noexcept;
+		static jboolean getBooleanField(jobject _this, jfieldID field) noexcept;
+		static jboolean getBooleanField(jobject _this, const char* name) noexcept;
+		static void setBooleanField(jobject _this, jfieldID field, jboolean value) noexcept;
+		static void setBooleanField(jobject _this, const char* name, jboolean value) noexcept;
+		static jboolean getStaticBooleanField(jclass cls, jfieldID field) noexcept;
+		static jboolean getStaticBooleanField(jclass cls, const char* name) noexcept;
+		static void setStaticBooleanField(jclass cls, jfieldID field, jboolean value) noexcept;
+		static void setStaticBooleanField(jclass cls, const char* name, jboolean value) noexcept;
+		static jbyte getByteField(jobject _this, jfieldID field) noexcept;
+		static jbyte getByteField(jobject _this, const char* name) noexcept;
+		static void setByteField(jobject _this, jfieldID field, jbyte value) noexcept;
+		static void setByteField(jobject _this, const char* name, jbyte value) noexcept;
+		static jbyte getStaticByteField(jclass cls, jfieldID field) noexcept;
+		static jbyte getStaticByteField(jclass cls, const char* name) noexcept;
+		static void setStaticByteField(jclass cls, jfieldID field, jbyte value) noexcept;
+		static void setStaticByteField(jclass cls, const char* name, jbyte value) noexcept;
+		static jchar getCharField(jobject _this, jfieldID field) noexcept;
+		static jchar getCharField(jobject _this, const char* name) noexcept;
+		static void setCharField(jobject _this, jfieldID field, jchar value) noexcept;
+		static void setCharField(jobject _this, const char* name, jchar value) noexcept;
+		static jchar getStaticCharField(jclass cls, jfieldID field) noexcept;
+		static jchar getStaticCharField(jclass cls, const char* name) noexcept;
+		static void setStaticCharField(jclass cls, jfieldID field, jchar value) noexcept;
+		static void setStaticCharField(jclass cls, const char* name, jchar value) noexcept;
+		static jshort getShortField(jobject _this, jfieldID field) noexcept;
+		static jshort getShortField(jobject _this, const char* name) noexcept;
+		static void setShortField(jobject _this, jfieldID field, jshort value) noexcept;
+		static void setShortField(jobject _this, const char* name, jshort value) noexcept;
+		static jshort getStaticShortField(jclass cls, jfieldID field) noexcept;
+		static jshort getStaticShortField(jclass cls, const char* name) noexcept;
+		static void setStaticShortField(jclass cls, jfieldID field, jshort value) noexcept;
+		static void setStaticShortField(jclass cls, const char* name, jshort value) noexcept;
+		static jint getIntField(jobject _this, jfieldID field) noexcept;
+		static jint getIntField(jobject _this, const char* name) noexcept;
+		static void setIntField(jobject _this, jfieldID field, jint value) noexcept;
+		static void setIntField(jobject _this, const char* name, jint value) noexcept;
+		static jint getStaticIntField(jclass cls, jfieldID field) noexcept;
+		static jint getStaticIntField(jclass cls, const char* name) noexcept;
+		static void setStaticIntField(jclass cls, jfieldID field, jint value) noexcept;
+		static void setStaticIntField(jclass cls, const char* name, jint value) noexcept;
+		static jlong getLongField(jobject _this, jfieldID field) noexcept;
+		static jlong getLongField(jobject _this, const char* name) noexcept;
+		static void setLongField(jobject _this, jfieldID field, jlong value) noexcept;
+		static void setLongField(jobject _this, const char* name, jlong value) noexcept;
+		static jlong getStaticLongField(jclass cls, jfieldID field) noexcept;
+		static jlong getStaticLongField(jclass cls, const char* name) noexcept;
+		static void setStaticLongField(jclass cls, jfieldID field, jlong value) noexcept;
+		static void setStaticLongField(jclass cls, const char* name, jlong value) noexcept;
+		static jfloat getFloatField(jobject _this, jfieldID field) noexcept;
+		static jfloat getFloatField(jobject _this, const char* name) noexcept;
+		static void setFloatField(jobject _this, jfieldID field, jfloat value) noexcept;
+		static void setFloatField(jobject _this, const char* name, jfloat value) noexcept;
+		static jfloat getStaticFloatField(jclass cls, jfieldID field) noexcept;
+		static jfloat getStaticFloatField(jclass cls, const char* name) noexcept;
+		static void setStaticFloatField(jclass cls, jfieldID field, jfloat value) noexcept;
+		static void setStaticFloatField(jclass cls, const char* name, jfloat value) noexcept;
+		static jdouble getDoubleField(jobject _this, jfieldID field) noexcept;
+		static jdouble getDoubleField(jobject _this, const char* name) noexcept;
+		static void setDoubleField(jobject _this, jfieldID field, jdouble value) noexcept;
+		static void setDoubleField(jobject _this, const char* name, jdouble value) noexcept;
+		static jdouble getStaticDoubleField(jclass cls, jfieldID field) noexcept;
+		static jdouble getStaticDoubleField(jclass cls, const char* name) noexcept;
+		static void setStaticDoubleField(jclass cls, jfieldID field, jdouble value) noexcept;
+		static void setStaticDoubleField(jclass cls, const char* name, jdouble value) noexcept;
+
+		static String getStringField(jobject _this, jfieldID field) noexcept;
+		static String getStringField(jobject _this, const char* name) noexcept;
+		static void setStringField(jobject _this, jfieldID field, const StringParam& value) noexcept;
+		static void setStringField(jobject _this, const char* name, const StringParam& value) noexcept;
+		static String getStaticStringField(jclass cls, jfieldID field) noexcept;
+		static String getStaticStringField(jclass cls, const char* name) noexcept;
+		static void setStaticStringField(jclass cls, jfieldID field, const StringParam& value) noexcept;
+		static void setStaticStringField(jclass cls, const char* name, const StringParam& value) noexcept;
+
+		static sl_bool registerNative(jclass cls, const char* name, const char* sig, const void* fn) noexcept;
 
 		// object
-		static sl_bool isSameObject(jobject ref1, jobject ref2);
+		static JniLocal<jclass> getObjectClass(jobject obj) noexcept;
+		static sl_bool isInstanceOf(jobject obj, jclass cls) noexcept;
+		static sl_bool isSameObject(jobject ref1, jobject ref2) noexcept;
 
-		static jobjectRefType getRefType(jobject obj);
-		static sl_bool isInvalidRef(jobject obj);
+		static jobjectRefType getRefType(jobject obj) noexcept;
+		static sl_bool isInvalidRef(jobject obj) noexcept;
 
-		static sl_bool isLocalRef(jobject obj);
-		static jobject newLocalRef(jobject obj);
-		static void deleteLocalRef(jobject obj);
+		static sl_bool isLocalRef(jobject obj) noexcept;
+		static JniLocal<jobject> newLocalRef(jobject obj) noexcept;
+		static void deleteLocalRef(jobject obj) noexcept;
 
-		static sl_bool isGlobalRef(jobject obj);
-		static jobject newGlobalRef(jobject obj);
-		static void deleteGlobalRef(jobject obj);
+		static sl_bool isGlobalRef(jobject obj) noexcept;
+		static jobject newGlobalRef(jobject obj) noexcept;
+		static void deleteGlobalRef(jobject obj) noexcept;
 
-		static sl_bool isWeakRef(jobject obj);
-		static jobject newWeakRef(jobject obj);
-		static void deleteWeakRef(jobject obj);
+		static sl_bool isWeakRef(jobject obj) noexcept;
+		static JniLocal<jobject> newWeakRef(jobject obj) noexcept;
+		static void deleteWeakRef(jobject obj) noexcept;
 
 		// string
-		static jstring getJniString(const StringParam& str);
-		static jstring getJniString(const sl_char16* str, const sl_size length);
-		static String getString(jstring str);
+		static JniLocal<jstring> getJniString(const StringParam& str) noexcept;
+		static JniLocal<jstring> getJniString(const sl_char16* str, const sl_size length) noexcept;
+		static String getString(jstring str) noexcept;
 
 		/*
 		 * Array release<TYPE>ArrayElements Mode
@@ -94,480 +255,182 @@ namespace slib
 		 * JNI_COMMIT - commit only
 		 * JNI_ABORT - free only
 		 */
-		static sl_uint32 getArrayLength(jarray array);
-		static jobjectArray newObjectArray(jclass clsElement, sl_uint32 length);
-		static jobject getObjectArrayElement(jobjectArray array, sl_uint32 index);
-		static void setObjectArrayElement(jobjectArray array, sl_uint32 index, jobject value);
-		static jobjectArray newStringArray(sl_uint32 length);
-		static String getStringArrayElement(jobjectArray array, sl_uint32 index);
-		static void setStringArrayElement(jobjectArray array, sl_uint32 index, const StringParam& value);
-		static jbooleanArray newBooleanArray(sl_uint32 length);
-		static jboolean* getBooleanArrayElements(jbooleanArray array, jboolean* isCopy = sl_null);
-		static void releaseBooleanArrayElements(jbooleanArray array, jboolean* buf, jint mode = 0);
-		static void getBooleanArrayRegion(jbooleanArray array, sl_uint32 index, sl_uint32 len, jboolean* buf);
-		static void setBooleanArrayRegion(jbooleanArray array, sl_uint32 index, sl_uint32 len, jboolean* buf);
-		static jbyteArray newByteArray(sl_uint32 length);
-		static jbyte* getByteArrayElements(jbyteArray array, jboolean* isCopy);
-		static void releaseByteArrayElements(jbyteArray array, jbyte* buf, jint mode = 0);
-		static void getByteArrayRegion(jbyteArray array, sl_uint32 index, sl_uint32 len, jbyte* buf);
-		static void setByteArrayRegion(jbyteArray array, sl_uint32 index, sl_uint32 len, jbyte* buf);
-		static jcharArray newCharArray(sl_uint32 length);
-		static jchar* getCharArrayElements(jcharArray array, jboolean* isCopy = sl_null);
-		static void releaseCharArrayElements(jcharArray array, jchar* buf, jint mode = 0);
-		static void getCharArrayRegion(jcharArray array, sl_uint32 index, sl_uint32 len, jchar* buf);
-		static void setCharArrayRegion(jcharArray array, sl_uint32 index, sl_uint32 len, jchar* buf);
-		static jshortArray newShortArray(sl_uint32 length);
-		static jshort* getShortArrayElements(jshortArray array, jboolean* isCopy = sl_null);
-		static void releaseShortArrayElements(jshortArray array, jshort* buf, jint mode = 0);
-		static void getShortArrayRegion(jshortArray array, sl_uint32 index, sl_uint32 len, jshort* buf);
-		static void setShortArrayRegion(jshortArray array, sl_uint32 index, sl_uint32 len, jshort* buf);
-		static jintArray newIntArray(sl_uint32 length);
-		static jint* getIntArrayElements(jintArray array, jboolean* isCopy = sl_null);
-		static void releaseIntArrayElements(jintArray array, jint* buf, jint mode = 0);
-		static void getIntArrayRegion(jintArray array, sl_uint32 index, sl_uint32 len, jint* buf);
-		static void setIntArrayRegion(jintArray array, sl_uint32 index, sl_uint32 len, jint* buf);
-		static jlongArray newLongArray(sl_uint32 length);
-		static jlong* getLongArrayElements(jlongArray array, jboolean* isCopy = sl_null);
-		static void releaseLongArrayElements(jlongArray array, jlong* buf, jint mode = 0);
-		static void getLongArrayRegion(jlongArray array, sl_uint32 index, sl_uint32 len, jlong* buf);
-		static void setLongArrayRegion(jlongArray array, sl_uint32 index, sl_uint32 len, jlong* buf);
-		static jfloatArray newFloatArray(sl_uint32 length);
-		static jfloat* getFloatArrayElements(jfloatArray array, jboolean* isCopy = sl_null);
-		static void releaseFloatArrayElements(jfloatArray array, jfloat* buf, jint mode = 0);
-		static void getFloatArrayRegion(jfloatArray array, sl_uint32 index, sl_uint32 len, jfloat* buf);
-		static void setFloatArrayRegion(jfloatArray array, sl_uint32 index, sl_uint32 len, jfloat* buf);
-		static jdoubleArray newDoubleArray(sl_uint32 length);
-		static jdouble* getDoubleArrayElements(jdoubleArray array, jboolean* isCopy = sl_null);
-		static void releaseDoubleArrayElements(jdoubleArray array, jdouble* buf, jint mode = 0);
-		static void getDoubleArrayRegion(jdoubleArray array, sl_uint32 index, sl_uint32 len, jdouble* buf);
-		static void setDoubleArrayRegion(jdoubleArray array, sl_uint32 index, sl_uint32 len, jdouble* buf);
+		static sl_uint32 getArrayLength(jarray array) noexcept;
+		static JniLocal<jobjectArray> newObjectArray(jclass clsElement, sl_uint32 length) noexcept;
+		static JniLocal<jobject> getObjectArrayElement(jobjectArray array, sl_uint32 index) noexcept;
+		static void setObjectArrayElement(jobjectArray array, sl_uint32 index, jobject value) noexcept;
+		static JniLocal<jobjectArray> newStringArray(sl_uint32 length) noexcept;
+		static String getStringArrayElement(jobjectArray array, sl_uint32 index) noexcept;
+		static void setStringArrayElement(jobjectArray array, sl_uint32 index, const StringParam& value) noexcept;
+		static JniLocal<jbooleanArray> newBooleanArray(sl_uint32 length) noexcept;
+		static jboolean* getBooleanArrayElements(jbooleanArray array, jboolean* isCopy = sl_null) noexcept;
+		static void releaseBooleanArrayElements(jbooleanArray array, jboolean* buf, jint mode = 0) noexcept;
+		static void getBooleanArrayRegion(jbooleanArray array, sl_uint32 index, sl_uint32 len, jboolean* buf) noexcept;
+		static void setBooleanArrayRegion(jbooleanArray array, sl_uint32 index, sl_uint32 len, jboolean* buf) noexcept;
+		static JniLocal<jbyteArray> newByteArray(sl_uint32 length) noexcept;
+		static jbyte* getByteArrayElements(jbyteArray array, jboolean* isCopy) noexcept;
+		static void releaseByteArrayElements(jbyteArray array, jbyte* buf, jint mode = 0) noexcept;
+		static void getByteArrayRegion(jbyteArray array, sl_uint32 index, sl_uint32 len, jbyte* buf) noexcept;
+		static void setByteArrayRegion(jbyteArray array, sl_uint32 index, sl_uint32 len, jbyte* buf) noexcept;
+		static JniLocal<jcharArray> newCharArray(sl_uint32 length) noexcept;
+		static jchar* getCharArrayElements(jcharArray array, jboolean* isCopy = sl_null) noexcept;
+		static void releaseCharArrayElements(jcharArray array, jchar* buf, jint mode = 0) noexcept;
+		static void getCharArrayRegion(jcharArray array, sl_uint32 index, sl_uint32 len, jchar* buf) noexcept;
+		static void setCharArrayRegion(jcharArray array, sl_uint32 index, sl_uint32 len, jchar* buf) noexcept;
+		static JniLocal<jshortArray> newShortArray(sl_uint32 length) noexcept;
+		static jshort* getShortArrayElements(jshortArray array, jboolean* isCopy = sl_null) noexcept;
+		static void releaseShortArrayElements(jshortArray array, jshort* buf, jint mode = 0) noexcept;
+		static void getShortArrayRegion(jshortArray array, sl_uint32 index, sl_uint32 len, jshort* buf) noexcept;
+		static void setShortArrayRegion(jshortArray array, sl_uint32 index, sl_uint32 len, jshort* buf) noexcept;
+		static JniLocal<jintArray> newIntArray(sl_uint32 length) noexcept;
+		static jint* getIntArrayElements(jintArray array, jboolean* isCopy = sl_null) noexcept;
+		static void releaseIntArrayElements(jintArray array, jint* buf, jint mode = 0) noexcept;
+		static void getIntArrayRegion(jintArray array, sl_uint32 index, sl_uint32 len, jint* buf) noexcept;
+		static void setIntArrayRegion(jintArray array, sl_uint32 index, sl_uint32 len, jint* buf) noexcept;
+		static JniLocal<jlongArray> newLongArray(sl_uint32 length) noexcept;
+		static jlong* getLongArrayElements(jlongArray array, jboolean* isCopy = sl_null) noexcept;
+		static void releaseLongArrayElements(jlongArray array, jlong* buf, jint mode = 0) noexcept;
+		static void getLongArrayRegion(jlongArray array, sl_uint32 index, sl_uint32 len, jlong* buf) noexcept;
+		static void setLongArrayRegion(jlongArray array, sl_uint32 index, sl_uint32 len, jlong* buf) noexcept;
+		static JniLocal<jfloatArray> newFloatArray(sl_uint32 length) noexcept;
+		static jfloat* getFloatArrayElements(jfloatArray array, jboolean* isCopy = sl_null) noexcept;
+		static void releaseFloatArrayElements(jfloatArray array, jfloat* buf, jint mode = 0) noexcept;
+		static void getFloatArrayRegion(jfloatArray array, sl_uint32 index, sl_uint32 len, jfloat* buf) noexcept;
+		static void setFloatArrayRegion(jfloatArray array, sl_uint32 index, sl_uint32 len, jfloat* buf) noexcept;
+		static JniLocal<jdoubleArray> newDoubleArray(sl_uint32 length) noexcept;
+		static jdouble* getDoubleArrayElements(jdoubleArray array, jboolean* isCopy = sl_null) noexcept;
+		static void releaseDoubleArrayElements(jdoubleArray array, jdouble* buf, jint mode = 0) noexcept;
+		static void getDoubleArrayRegion(jdoubleArray array, sl_uint32 index, sl_uint32 len, jdouble* buf) noexcept;
+		static void setDoubleArrayRegion(jdoubleArray array, sl_uint32 index, sl_uint32 len, jdouble* buf) noexcept;
 
 		// direct buffer
-		static jobject newDirectByteBuffer(void* address, sl_size capacity);
-		static void* getDirectBufferAddress(jobject buf);
-		static sl_size getDirectBufferCapacity(jobject buf);
+		static JniLocal<jobject> newDirectByteBuffer(void* address, sl_size capacity) noexcept;
+		static void* getDirectBufferAddress(jobject buf) noexcept;
+		static sl_size getDirectBufferCapacity(jobject buf) noexcept;
 
 		// exception
-		static sl_bool checkException();
-		static void clearException();
-		static void printException();
+		static sl_bool checkException() noexcept;
+		static void clearException() noexcept;
+		static void printException() noexcept;
+		static sl_bool checkExceptionAndClear() noexcept;
+		static sl_bool checkExceptionAndPrintClear() noexcept;
+		static sl_bool isAutoClearException() noexcept;
+		static void setAutoClearException(sl_bool flag) noexcept;
+		static sl_bool isAutoPrintException() noexcept;
+		static void setAutoPrintException(sl_bool flag) noexcept;
 
-		// input stream
-		static sl_int32 readFromInputStream(jobject stream, jbyteArray array);
-		static void closeInputStream(jobject stream);
-	
 	};
 
 
 	template <class T>
 	class SLIB_EXPORT JniLocal
 	{
-	public:
-		T value;
+		SLIB_DEFINE_UNIQUE_PTR_MEMBERS(JniLocal, T, value, sl_null, Jni::deleteLocalRef)
 
 	public:
-		JniLocal() : value(sl_null)
+		template <class OTHER>
+		JniLocal(JniLocal<OTHER>&& other) noexcept
 		{
+			value = (T)(other.value);
+			other.value = sl_null;
 		}
 
-		JniLocal(T _value) : value(_value)
+		template <class OTHER>
+		JniLocal& operator=(JniLocal<OTHER>&& other) noexcept
 		{
+			Jni::deleteLocalRef(value);
+			value = (T)(other.value);
+			other.value = sl_null;
+			return *this;
 		}
-
-		~JniLocal()
-		{
-			free();
-		}
-
-	public:
-		operator T&()
-		{
-			return value;
-		}
-
-		operator T() const
-		{
-			return value;
-		}
-
-		T operator=(T value)
-		{
-			this->value = value;
-			return value;
-		}
-
-		T get() const
-		{
-			return value;
-		}
-
-		sl_bool isNotNull() const
-		{
-			return value != sl_null;
-		}
-
-		sl_bool isNull() const
-		{
-			return value == sl_null;
-		}
-
-		void setNull()
-		{
-			this->value = sl_null;
-		}
-
-		void free()
-		{
-			if (value) {
-				Jni::deleteLocalRef(value);
-				value = sl_null;
-			}
-		}
-
-	};
-
-	class SLIB_EXPORT CJniGlobalBase : public Referable
-	{
-		SLIB_DECLARE_OBJECT
-	};
-
-	template <class T>
-	class SLIB_EXPORT CJniGlobal : public CJniGlobalBase
-	{
-	protected:
-		CJniGlobal() = default;
-
-		~CJniGlobal()
-		{
-			Jni::deleteGlobalRef(object);
-		}
-
-	public:
-		static Ref< CJniGlobal<T> > from(T obj)
-		{
-			Ref< CJniGlobal<T> > ret;
-			if (obj) {
-				jobject jglobal = Jni::newGlobalRef(obj);
-				if (jglobal) {
-					ret = new CJniGlobal<T>();
-					if (ret.isNotNull()) {
-						ret->object = (T)jglobal;
-						return ret;
-					}
-					Jni::deleteGlobalRef(jglobal);
-				}
-			}
-			return sl_null;
-		}
-
-
-	public:
-		T object;
 
 	};
 
 	template <class T>
 	class SLIB_EXPORT JniGlobal
 	{
-	public:
-		Ref< CJniGlobal<T> > ref;
-		SLIB_REF_WRAPPER(JniGlobal, CJniGlobal<T>)
+		SLIB_DEFINE_UNIQUE_PTR_MEMBERS_NO_ASSIGN(JniGlobal, T, value, sl_null, Jni::deleteGlobalRef)
+		SLIB_DEFINE_UNIQUE_PTR_ATOMIC_MEMBERS(JniGlobal, T, value, sl_null, Jni::deleteGlobalRef)
 
-	public:
-		JniGlobal(T obj) : ref(CJniGlobal<T>::from(obj))
+	public:		
+		JniGlobal(T _value) noexcept
 		{
+			value = (T)(Jni::newGlobalRef(_value));
 		}
 
-		JniGlobal(const JniLocal<T>& obj) : ref(CJniGlobal<T>::from(obj.value))
+		JniGlobal& operator=(T _value) noexcept
 		{
-		}
-
-	public:
-		static JniGlobal<T> from(T obj)
-		{
-			return JniGlobal<T>(obj);
-		}
-
-	public:
-		JniGlobal<T>& operator=(T obj)
-		{
-			ref = CJniGlobal<T>::from(obj);
+			Jni::deleteGlobalRef(value);
+			value = (T)(Jni::newGlobalRef(_value));
 			return *this;
 		}
 
-		JniGlobal<T>& operator=(const JniLocal<T>& obj)
+		template <class OTHER>
+		JniGlobal(JniGlobal<OTHER>&& other) noexcept
 		{
-			ref = CJniGlobal<T>::from(obj.value);
+			value = (T)(other.value);
+			other.value = sl_null;
+		}
+
+		template <class OTHER>
+		JniGlobal& operator=(JniGlobal<OTHER>&& other) noexcept
+		{
+			Jni::deleteLocalRef(value);
+			value = (T)(other.value);
+			other.value = sl_null;
 			return *this;
 		}
 
-
-	public:
-		T get() const
+		template <class OTHER>
+		JniGlobal(const JniLocal<OTHER>& other) noexcept
 		{
-			CJniGlobal<T>* o = ref.get();
-			if (o) {
-				return o->object;
-			} else {
-				return 0;
-			}
+			value = (T)(Jni::newGlobalRef(other.value));
 		}
 
-		operator T() const
+		template <class OTHER>
+		JniGlobal& operator=(const JniLocal<OTHER>& other) noexcept
 		{
-			CJniGlobal<T>* o = ref.get();
-			if (o) {
-				return o->object;
-			} else {
-				return 0;
-			}
+			Jni::deleteGlobalRef(value);
+			value = (T)(Jni::newGlobalRef(other.value));
+			return *this;
 		}
 
 	};
 
-
 	template <class T>
 	class SLIB_EXPORT Atomic< JniGlobal<T> >
 	{
-	public:
-		AtomicRef< CJniGlobal<T> > ref;
-		SLIB_ATOMIC_REF_WRAPPER(CJniGlobal<T>)
-
-	public:
-		Atomic(T obj) : ref(CJniGlobal<T>::from(obj))
-		{
-		}
-
-		Atomic(JniLocal<T>& obj) : ref(CJniGlobal<T>::from(obj.value))
-		{
-		}
-
-	public:
-		Atomic& operator=(T obj)
-		{
-			ref = CJniGlobal<T>::from(obj);
-			return *this;
-		}
-
-		Atomic& operator=(JniLocal<T>& obj)
-		{
-			ref = CJniGlobal<T>::from(obj.value);
-			return *this;
-		}
-
-	public:
-		T get() const
-		{
-			Ref< CJniGlobal<T> > o(ref);
-			if (o.isNotNull()) {
-				return o->object;
-			} else {
-				return 0;
-			}
-		}
-
+		SLIB_DEFINE_ATOMIC_UNIQUE_PTR_MEMBERS(JniGlobal<T>, T, value, sl_null, Jni::deleteGlobalRef)		
 	};
 
 	template <class T>
 	using AtomicJniGlobal = Atomic< JniGlobal<T> >;
 
-
-	template <>
-	class SLIB_EXPORT Atomic<JniClass>
+	class SLIB_EXPORT JniStringConstant
 	{
 	public:
-		AtomicRef< CJniGlobal<jclass> > ref;
-		SLIB_ATOMIC_REF_WRAPPER(CJniGlobal<jclass>)
+		JniStringConstant(const sl_char16* sz) noexcept;
+
+		~JniStringConstant();
+	
+	public:
+		jstring get() noexcept;
 
 	public:
-		Atomic(jclass cls);
-	
-	public:
-		Atomic& operator=(jclass cls);
-	
+		const sl_char16* content;
+
+	private:
+		sl_bool m_flagLoaded;
+		SpinLock m_lock;
+		JniGlobal<jstring> m_object;
 	};
-	
-	typedef Atomic<JniClass> AtomicJniClass;
-	
-	class SLIB_EXPORT JniClass
+
+	class SLIB_EXPORT JniPreserveExceptionScope
 	{
 	public:
-		Ref< CJniGlobal<jclass> > ref;
-		SLIB_REF_WRAPPER(JniClass, CJniGlobal<jclass>)
-		
-	public:
-		JniClass(jclass cls);
+		JniPreserveExceptionScope() noexcept;
 
-	public:
-		JniClass& operator=(jclass cls);
-
-	public:
-		static JniClass from(jclass cls);
-
-		static JniClass getClassOfObject(jobject object);
-
-	public:
-		jclass get() const;
-
-		operator jclass() const;
-
-	public:
-		sl_bool isInstanceOf(jobject obj) const;
-
-		/*
-		 * Signature
-		 * Z - boolean
-		 * B - byte
-		 * C - char
-		 * S - short
-		 * I - int
-		 * J - long long
-		 * F - float
-		 * D - double
-		 * V - void
-		 * L<class-name>; - object
-		 * [<type> - type[]
-		 * (arg-types)ret-type : method type
-		 */
-		jmethodID getMethodID(const char* name, const char* sig) const;
-		jmethodID getStaticMethodID(const char* name, const char* sig) const;
-		jfieldID getFieldID(const char* name, const char* sig) const;
-		jfieldID getStaticFieldID(const char* name, const char* sig) const;
-
-		jobject newObject(jmethodID method, ...) const;
-		jobject newObject(const char* sigConstructor, ...) const;
-		jobject newObject() const;
-
-		jobject callObjectMethod(jmethodID method, jobject _this, ...) const;
-		jobject callObjectMethod(const char* name, const char* sig, jobject _this, ...) const;
-		jobject callStaticObjectMethod(jmethodID method, ...) const;
-		jobject callStaticObjectMethod(const char* name, const char* sig, ...) const;
-		jboolean callBooleanMethod(jmethodID method, jobject _this, ...) const;
-		jboolean callBooleanMethod(const char* name, const char* sig, jobject _this, ...) const;
-		jboolean callStaticBooleanMethod(jmethodID method, ...) const;
-		jboolean callStaticBooleanMethod(const char* name, const char* sig, ...) const;
-		jbyte callByteMethod(jmethodID method, jobject _this, ...) const;
-		jbyte callByteMethod(const char* name, const char* sig, jobject _this, ...) const;
-		jbyte callStaticByteMethod(jmethodID method, ...) const;
-		jbyte callStaticByteMethod(const char* name, const char* sig, ...) const;
-		jchar callCharMethod(jmethodID method, jobject _this, ...) const;
-		jchar callCharMethod(const char* name, const char* sig, jobject _this, ...) const;
-		jchar callStaticCharMethod(jmethodID method, ...) const;
-		jchar callStaticCharMethod(const char* name, const char* sig, ...) const;
-		jshort callShortMethod(jmethodID method, jobject _this, ...) const;
-		jshort callShortMethod(const char* name, const char* sig, jobject _this, ...) const;
-		jshort callStaticShortMethod(jmethodID method, ...) const;
-		jshort callStaticShortMethod(const char* name, const char* sig, ...) const;
-		jint callIntMethod(jmethodID method, jobject _this, ...) const;
-		jint callIntMethod(const char* name, const char* sig, jobject _this, ...) const;
-		jint callStaticIntMethod(jmethodID method, ...) const;
-		jint callStaticIntMethod(const char* name, const char* sig, ...) const;
-		jlong callLongMethod(jmethodID method, jobject _this, ...) const;
-		jlong callLongMethod(const char* name, const char* sig, jobject _this, ...) const;
-		jlong callStaticLongMethod(jmethodID method, ...) const;
-		jlong callStaticLongMethod(const char* name, const char* sig, ...) const;
-		jfloat callFloatMethod(jmethodID method, jobject _this, ...) const;
-		jfloat callFloatMethod(const char* name, const char* sig, jobject _this, ...) const;
-		jfloat callStaticFloatMethod(jmethodID method, ...) const;
-		jfloat callStaticFloatMethod(const char* name, const char* sig, ...) const;
-		jdouble callDoubleMethod(jmethodID method, jobject _this, ...) const;
-		jdouble callDoubleMethod(const char* name, const char* sig, jobject _this, ...) const;
-		jdouble callStaticDoubleMethod(jmethodID method, ...) const;
-		jdouble callStaticDoubleMethod(const char* name, const char* sig, ...) const;
-		void callVoidMethod(jmethodID method, jobject _this, ...) const;
-		void callVoidMethod(const char* name, const char* sig, jobject _this, ...) const;
-		void callStaticVoidMethod(jmethodID method, ...) const;
-		void callStaticVoidMethod(const char* name, const char* sig, ...) const;
-		String callStringMethod(jmethodID method, jobject _this, ...) const;
-		String callStringMethod(const char* name, const char* sig, jobject _this, ...) const;
-		String callStaticStringMethod(jmethodID method, ...) const;
-		String callStaticStringMethod(const char* name, const char* sig, ...) const;
-
-		jobject getObjectField(jfieldID field, jobject _this) const;
-		jobject getObjectField(const char* name, const char* sig, jobject _this) const;
-		void setObjectField(jfieldID field, jobject _this, jobject value) const;
-		void setObjectField(const char* name, const char* sig, jobject _this, jobject value) const;
-		jobject getStaticObjectField(jfieldID field) const;
-		jobject getStaticObjectField(const char* name, const char* sig) const;
-		void setStaticObjectField(jfieldID field, jobject value) const;
-		void setStaticObjectField(const char* name, const char* sig, jobject value) const;
-		jboolean getBooleanField(jfieldID field, jobject _this) const;
-		jboolean getBooleanField(const char* name, const char* sig, jobject _this) const;
-		void setBooleanField(jfieldID field, jobject _this, jboolean value) const;
-		void setBooleanField(const char* name, const char* sig, jobject _this, jboolean value) const;
-		jboolean getStaticBooleanField(jfieldID field) const;
-		jboolean getStaticBooleanField(const char* name, const char* sig) const;
-		void setStaticBooleanField(jfieldID field, jboolean value) const;
-		void setStaticBooleanField(const char* name, const char* sig, jboolean value) const;
-		jbyte getByteField(jfieldID field, jobject _this) const;
-		jbyte getByteField(const char* name, const char* sig, jobject _this) const;
-		void setByteField(jfieldID field, jobject _this, jbyte value) const;
-		void setByteField(const char* name, const char* sig, jobject _this, jbyte value) const;
-		jbyte getStaticByteField(jfieldID field) const;
-		jbyte getStaticByteField(const char* name, const char* sig) const;
-		void setStaticByteField(jfieldID field, jbyte value) const;
-		void setStaticByteField(const char* name, const char* sig, jbyte value) const;
-		jchar getCharField(jfieldID field, jobject _this) const;
-		jchar getCharField(const char* name, const char* sig, jobject _this) const;
-		void setCharField(jfieldID field, jobject _this, jchar value) const;
-		void setCharField(const char* name, const char* sig, jobject _this, jchar value) const;
-		jchar getStaticCharField(jfieldID field) const;
-		jchar getStaticCharField(const char* name, const char* sig) const;
-		void setStaticCharField(jfieldID field, jchar value) const;
-		void setStaticCharField(const char* name, const char* sig, jchar value) const;
-		jshort getShortField(jfieldID field, jobject _this) const;
-		jshort getShortField(const char* name, const char* sig, jobject _this) const;
-		void setShortField(jfieldID field, jobject _this, jshort value) const;
-		void setShortField(const char* name, const char* sig, jobject _this, jshort value) const;
-		jshort getStaticShortField(jfieldID field) const;
-		jshort getStaticShortField(const char* name, const char* sig) const;
-		void setStaticShortField(jfieldID field, jshort value) const;
-		void setStaticShortField(const char* name, const char* sig, jshort value) const;
-		jint getIntField(jfieldID field, jobject _this) const;
-		jint getIntField(const char* name, const char* sig, jobject _this) const;
-		void setIntField(jfieldID field, jobject _this, jint value) const;
-		void setIntField(const char* name, const char* sig, jobject _this, jint value) const;
-		jint getStaticIntField(jfieldID field) const;
-		jint getStaticIntField(const char* name, const char* sig) const;
-		void setStaticIntField(jfieldID field, jint value) const;
-		void setStaticIntField(const char* name, const char* sig, jint value) const;
-		jlong getLongField(jfieldID field, jobject _this) const;
-		jlong getLongField(const char* name, const char* sig, jobject _this) const;
-		void setLongField(jfieldID field, jobject _this, jlong value) const;
-		void setLongField(const char* name, const char* sig, jobject _this, jlong value) const;
-		jlong getStaticLongField(jfieldID field) const;
-		jlong getStaticLongField(const char* name, const char* sig) const;
-		void setStaticLongField(jfieldID field, jlong value) const;
-		void setStaticLongField(const char* name, const char* sig, jlong value) const;
-		jfloat getFloatField(jfieldID field, jobject _this) const;
-		jfloat getFloatField(const char* name, const char* sig, jobject _this) const;
-		void setFloatField(jfieldID field, jobject _this, jfloat value) const;
-		void setFloatField(const char* name, const char* sig, jobject _this, jfloat value) const;
-		jfloat getStaticFloatField(jfieldID field) const;
-		jfloat getStaticFloatField(const char* name, const char* sig) const;
-		void setStaticFloatField(jfieldID field, jfloat value) const;
-		void setStaticFloatField(const char* name, const char* sig, jfloat value) const;
-		jdouble getDoubleField(jfieldID field, jobject _this) const;
-		jdouble getDoubleField(const char* name, const char* sig, jobject _this) const;
-		void setDoubleField(jfieldID field, jobject _this, jdouble value) const;
-		void setDoubleField(const char* name, const char* sig, jobject _this, jdouble value) const;
-		jdouble getStaticDoubleField(jfieldID field) const;
-		jdouble getStaticDoubleField(const char* name, const char* sig) const;
-		void setStaticDoubleField(jfieldID field, jdouble value) const;
-		void setStaticDoubleField(const char* name, const char* sig, jdouble value) const;
-
-		String getStringField(jfieldID field, jobject _this) const;
-		String getStringField(const char* name, const char* sig, jobject _this) const;
-		String getStaticStringField(jfieldID field) const;
-		String getStaticStringField(const char* name, const char* sig) const;
-
-		void setStringField(jfieldID field, jobject _this, const StringParam& value) const;
-		void setStringField(const char* name, const char* sig, jobject _this, const StringParam& value) const;
-		void setStaticStringField(jfieldID field, const StringParam& value) const;
-		void setStaticStringField(const char* name, const char* sig, const StringParam& value) const;
-
-		sl_bool registerNative(const char* name, const char* sig, const void* fn) const;
-
+		~JniPreserveExceptionScope();
 	};
 
 
@@ -579,187 +442,284 @@ namespace slib
 			class SLIB_EXPORT JClass
 			{
 			public:
-				JClass(const char* name);
+				JClass(const char* name) noexcept;
+
+			public:
+				jclass get() noexcept;
 
 			public:
 				const char* name;
-				JniClass cls;
-			};
 
-			class SLIB_EXPORT JNativeMethod
-			{
-			public:
-				JNativeMethod(priv::java::JClass* gcls, const char* name, const char* sig, const void* fn);
-
-			public:
-				priv::java::JClass*gcls;
-				const char* name;
-				const char* sig;
-				const void* fn;
+			private:
+				sl_bool m_flagLoaded;
+				SpinLock m_lock;
+				jclass m_cls;
 			};
 
 			class SLIB_EXPORT JMethod
 			{
 			public:
-				JMethod(JClass* gcls, const char* name, const char* sig);
+				JMethod(JClass* cls, const char* name, const char* sig) noexcept;
 
 			public:
-				jobject callObject(jobject _this, ...);
-				jboolean callBoolean(jobject _this, ...);
-				jbyte callByte(jobject _this, ...);
-				jchar callChar(jobject _this, ...);
-				jshort callShort(jobject _this, ...);
-				jint callInt(jobject _this, ...);
-				jlong callLong(jobject _this, ...);
-				jfloat callFloat(jobject _this, ...);
-				jdouble callDouble(jobject _this, ...);
-				void call(jobject _this, ...);
-				String callString(jobject _this, ...);
-				jobject newObject(jobject _null, ...);
+				jmethodID getId() noexcept;
+				JniLocal<jobject> callObject(jobject _this, ...) noexcept;
+				jboolean callBoolean(jobject _this, ...) noexcept;
+				jbyte callByte(jobject _this, ...) noexcept;
+				jchar callChar(jobject _this, ...) noexcept;
+				jshort callShort(jobject _this, ...) noexcept;
+				jint callInt(jobject _this, ...) noexcept;
+				jlong callLong(jobject _this, ...) noexcept;
+				jfloat callFloat(jobject _this, ...) noexcept;
+				jdouble callDouble(jobject _this, ...) noexcept;
+				void call(jobject _this, ...) noexcept;
+				String callString(jobject _this, ...) noexcept;
+				JniLocal<jobject> newObject(jobject _null, ...) noexcept;
 
 			public:
-				JClass * gcls;
+				JClass* cls;
 				const char* name;
 				const char* sig;
-				jclass cls;
-				jmethodID id;
+
+			private:
+				sl_bool m_flagLoaded;
+				SpinLock m_lock;
+				jmethodID m_id;
 			};
 
 			class SLIB_EXPORT JStaticMethod
 			{
 			public:
-				JStaticMethod(JClass* gcls, const char* name, const char* sig);
+				JStaticMethod(JClass* cls, const char* name, const char* sig) noexcept;
 
 			public:
-				jobject callObject(jobject _null, ...);
-				jboolean callBoolean(jobject _null, ...);
-				jbyte callByte(jobject _null, ...);
-				jchar callChar(jobject _null, ...);
-				jshort callShort(jobject _null, ...);
-				jint callInt(jobject _null, ...);
-				jlong callLong(jobject _null, ...);
-				jfloat callFloat(jobject _null, ...);
-				jdouble callDouble(jobject _null, ...);
-				void call(jobject _null, ...);
-				String callString(jobject _null, ...);
+				jmethodID getId() noexcept;
+				JniLocal<jobject> callObject(jobject _null, ...) noexcept;
+				jboolean callBoolean(jobject _null, ...) noexcept;
+				jbyte callByte(jobject _null, ...) noexcept;
+				jchar callChar(jobject _null, ...) noexcept;
+				jshort callShort(jobject _null, ...) noexcept;
+				jint callInt(jobject _null, ...) noexcept;
+				jlong callLong(jobject _null, ...) noexcept;
+				jfloat callFloat(jobject _null, ...) noexcept;
+				jdouble callDouble(jobject _null, ...) noexcept;
+				void call(jobject _null, ...) noexcept;
+				String callString(jobject _null, ...) noexcept;
 
 			public:
-				JClass * gcls;
+				JClass* cls;
 				const char* name;
 				const char* sig;
-				jclass cls;
-				jmethodID id;
+
+			private:
+				sl_bool m_flagLoaded;
+				SpinLock m_lock;
+				jmethodID m_id;
 			};
 
 			class SLIB_EXPORT JField
 			{
 			public:
-				JField(JClass* gcls, const char* name, const char* sig);
+				JField(JClass* cls, const char* name, const char* sig) noexcept;
 
 			public:
-				jobject getObject(jobject _this);
-				void setObject(jobject _this, jobject value);
-				jboolean getBoolean(jobject _this);
-				void setBoolean(jobject _this, jboolean value);
-				jbyte getByte(jobject _this);
-				void setByte(jobject _this, jbyte value);
-				jchar getChar(jobject _this);
-				void setChar(jobject _this, jchar value);
-				jshort getShort(jobject _this);
-				void setShort(jobject _this, jshort value);
-				jint getInt(jobject _this);
-				void setInt(jobject _this, jint value);
-				jlong getLong(jobject _this);
-				void setLong(jobject _this, jlong value);
-				jfloat getFloat(jobject _this);
-				void setFloat(jobject _this, jfloat value);
-				jdouble getDouble(jobject _this);
-				void setDouble(jobject _this, jdouble value);
-				String getString(jobject _this);
-				void setString(jobject _this, const StringParam& value);
+				jfieldID getId() noexcept;
+				JniLocal<jobject> getObject(jobject _this) noexcept;
+				void setObject(jobject _this, jobject value) noexcept;
+				jboolean getBoolean(jobject _this) noexcept;
+				void setBoolean(jobject _this, jboolean value) noexcept;
+				jbyte getByte(jobject _this) noexcept;
+				void setByte(jobject _this, jbyte value) noexcept;
+				jchar getChar(jobject _this) noexcept;
+				void setChar(jobject _this, jchar value) noexcept;
+				jshort getShort(jobject _this) noexcept;
+				void setShort(jobject _this, jshort value) noexcept;
+				jint getInt(jobject _this) noexcept;
+				void setInt(jobject _this, jint value) noexcept;
+				jlong getLong(jobject _this) noexcept;
+				void setLong(jobject _this, jlong value) noexcept;
+				jfloat getFloat(jobject _this) noexcept;
+				void setFloat(jobject _this, jfloat value) noexcept;
+				jdouble getDouble(jobject _this) noexcept;
+				void setDouble(jobject _this, jdouble value) noexcept;
+				String getString(jobject _this) noexcept;
+				void setString(jobject _this, const StringParam& value) noexcept;
 
 			public:
-				JClass * gcls;
+				JClass* cls;
 				const char* name;
 				const char* sig;
-				jclass cls;
-				jfieldID id;
-			};
 
+			private:
+				sl_bool m_flagLoaded;
+				SpinLock m_lock;
+				jfieldID m_id;
+			};
 
 			class SLIB_EXPORT JObjectField : protected JField
 			{
 			public:
-				JObjectField(JClass* gcls, const char* name, const char* sig);
+				JObjectField(JClass* cls, const char* name, const char* sig) noexcept;
+
 			public:
-				jobject get(jobject _this);
-				void set(jobject _this, jobject value);
+				JniLocal<jobject> get(jobject _this) noexcept;
+				void set(jobject _this, jobject value) noexcept;
+			};
+
+			class SLIB_EXPORT JStringField : protected JField
+			{
+			public:
+				JStringField(JClass* cls, const char* name) noexcept;
+
+			public:
+				String get(jobject _this) noexcept;
+				void set(jobject _this, const StringParam& value) noexcept;
+				JniLocal<jstring> getObject(jobject _this) noexcept;
+				void setObject(jobject _this, jstring value) noexcept;
 			};
 
 			class SLIB_EXPORT JStaticField
 			{
 			public:
-				JStaticField(JClass* gcls, const char* name, const char* sig);
+				JStaticField(JClass* cls, const char* name, const char* sig) noexcept;
 
 			public:
-				jobject getObject(jobject _null);
-				void setObject(jobject _null, jobject value);
-				jboolean getBoolean(jobject _null);
-				void setBoolean(jobject _null, jboolean value);
-				jbyte getByte(jobject _null);
-				void setByte(jobject _null, jbyte value);
-				jchar getChar(jobject _null);
-				void setChar(jobject _null, jchar value);
-				jshort getShort(jobject _null);
-				void setShort(jobject _null, jshort value);
-				jint getInt(jobject _null);
-				void setInt(jobject _null, jint value);
-				jlong getLong(jobject _null);
-				void setLong(jobject _null, jlong value);
-				jfloat getFloat(jobject _null);
-				void setFloat(jobject _null, jfloat value);
-				jdouble getDouble(jobject _null);
-				void setDouble(jobject _null, jdouble value);
-				String getString(jobject _null);
-				void setString(jobject _null, const StringParam& value);
+				jfieldID getId() noexcept;
+				JniLocal<jobject> getObject() noexcept;
+				void setObject(jobject value) noexcept;
+				jboolean getBoolean() noexcept;
+				void setBoolean(jboolean value) noexcept;
+				jbyte getByte() noexcept;
+				void setByte(jbyte value) noexcept;
+				jchar getChar() noexcept;
+				void setChar(jchar value) noexcept;
+				jshort getShort() noexcept;
+				void setShort(jshort value) noexcept;
+				jint getInt() noexcept;
+				void setInt(jint value) noexcept;
+				jlong getLong() noexcept;
+				void setLong(jlong value) noexcept;
+				jfloat getFloat() noexcept;
+				void setFloat(jfloat value) noexcept;
+				jdouble getDouble() noexcept;
+				void setDouble(jdouble value) noexcept;
+				String getString() noexcept;
+				void setString(const StringParam& value) noexcept;
 
 			public:
-				JClass * gcls;
+				JClass* cls;
 				const char* name;
 				const char* sig;
-				jclass cls;
-				jfieldID id;
+
+			private:
+				sl_bool m_flagLoaded;
+				SpinLock m_lock;
+				jfieldID m_id;
 			};
 
 			class SLIB_EXPORT JStaticObjectField : protected JStaticField
 			{
 			public:
-				JStaticObjectField(JClass* gcls, const char* name, const char* sig);
+				JStaticObjectField(JClass* cls, const char* name, const char* sig) noexcept;
+
 			public:
-				jobject get();
-				void set(jobject value);
+				JniLocal<jobject> get() noexcept;
+				void set(jobject value) noexcept;
+			};
+			
+			class JStaticStringField : protected JStaticField
+			{
+			public:
+				JStaticStringField(JClass* cls, const char* name) noexcept;
+
+			public:
+				String get() noexcept;
+				void set(const StringParam& value) noexcept;
+				JniLocal<jstring> getObject() noexcept;
+				void setObject(jstring value) noexcept;
+			};
+
+			class SLIB_EXPORT JFinalObjectField : protected JStaticObjectField
+			{
+			public:
+				JFinalObjectField(JClass* cls, const char* name, const char* sig) noexcept;
+
+			public:
+				jobject get() noexcept;
+
+			private:
+				sl_bool m_flagLoadedValue;
+				SpinLock m_lockValue;
+				JniGlobal<jobject> m_value;
+			};
+
+			class SLIB_EXPORT JFinalStringObjectField : protected JFinalObjectField
+			{
+			public:
+				JFinalStringObjectField(JClass* cls, const char* name) noexcept;
+
+			public:
+				jstring get() noexcept;
+
+			};
+
+			class SLIB_EXPORT JFinalStringField : protected JStaticStringField
+			{
+			public:
+				JFinalStringField(JClass* cls, const char* name) noexcept;
+
+			public:
+				String get() noexcept;
+
+			private:
+				sl_bool m_flagLoadedValue;
+				SpinLock m_lockValue;
+				String m_value;
+			};
+
+			class SLIB_EXPORT JNativeMethod
+			{
+			public:
+				JNativeMethod(priv::java::JClass* cls, const char* name, const char* sig, const void* fn) noexcept;
+
+			public:
+				void doRegister() noexcept;
+
+			public:
+				priv::java::JClass* cls;
+				const char* name;
+				const char* sig;
+				const void* fn;
+			};
+
+			struct StringConstantContainer
+			{
+				const sl_char16* content;
+				sl_bool flagLoaded;
+				sl_int32 lock;
+				jstring object;
 			};
 
 		}
 	}
 
 	#define SLIB_JNI_BEGIN_CLASS(CLASS, NAME) \
-	namespace CLASS \
-	{ \
-		static slib::priv::java::JClass _gcls(NAME); \
-		SLIB_INLINE slib::JniClass get() { \
-			return _gcls.cls; \
-		}
+		namespace CLASS \
+		{ \
+			static slib::priv::java::JClass _gcls(NAME); \
+			SLIB_INLINE jclass get() noexcept { \
+				return _gcls.get(); \
+			}
 
 	#define SLIB_JNI_END_CLASS \
-	}
+		}
 
 	#define SLIB_JNI_BEGIN_CLASS_SECTION(CLASS) \
-	namespace CLASS \
-	{ \
+		namespace CLASS \
+		{ \
 
 	#define SLIB_JNI_END_CLASS_SECTION \
-	}
+		}
 
 	#define SLIB_JNI_NEW(VAR, SIG) static slib::priv::java::JMethod VAR(&_gcls, "<init>", SIG);
 
@@ -790,12 +750,27 @@ namespace slib
 	#define SLIB_JNI_STATIC_DOUBLE_FIELD(VAR) static slib::priv::java::JStaticDoubleField VAR(&_gcls, (#VAR));
 	#define SLIB_JNI_STATIC_STRING_FIELD(VAR) static slib::priv::java::JStaticStringField VAR(&_gcls, (#VAR));
 
+	#define SLIB_JNI_FINAL_OBJECT_FIELD(VAR, SIG) static slib::priv::java::JFinalObjectField VAR(&_gcls, (#VAR), SIG);
+	#define SLIB_JNI_FINAL_BOOLEAN_FIELD(VAR) static slib::priv::java::JFinalBooleanField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_FINAL_BYTE_FIELD(VAR) static slib::priv::java::JFinalByteField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_FINAL_CHAR_FIELD(VAR) static slib::priv::java::JFinalCharField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_FINAL_SHORT_FIELD(VAR) static slib::priv::java::JFinalShortField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_FINAL_INT_FIELD(VAR) static slib::priv::java::JFinalIntField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_FINAL_LONG_FIELD(VAR) static slib::priv::java::JFinalLongField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_FINAL_FLOAT_FIELD(VAR) static slib::priv::java::JFinalFloatField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_FINAL_DOUBLE_FIELD(VAR) static slib::priv::java::JFinalDoubleField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_FINAL_STRING_FIELD(VAR) static slib::priv::java::JFinalStringField VAR(&_gcls, (#VAR));
+	#define SLIB_JNI_FINAL_STRING_OBJECT_FIELD(VAR) static slib::priv::java::JFinalStringObjectField VAR(&_gcls, (#VAR));
+
 	#define SLIB_JNI_NATIVE(VAR, NAME, SIG, fn) static slib::priv::java::JNativeMethod native_##VAR(&_gcls, NAME, SIG, (const void*)(fn));
 	#define SLIB_JNI_NATIVE_IMPL(VAR, NAME, SIG, RET, ...) \
-		static RET JNICALL JNativeMethodImpl_##VAR(JNIEnv* env, jobject _this, ##__VA_ARGS__); \
+		static RET JNICALL JNativeMethodImpl_##VAR(JNIEnv* env, jobject _this, ##__VA_ARGS__) noexcept; \
 		static slib::priv::java::JNativeMethod native_##VAR(&_gcls, NAME, SIG, (const void*)(JNativeMethodImpl_##VAR)); \
-		RET JNICALL JNativeMethodImpl_##VAR(JNIEnv* env, jobject _this, ##__VA_ARGS__)
+		RET JNICALL JNativeMethodImpl_##VAR(JNIEnv* env, jobject _this, ##__VA_ARGS__) noexcept
 
+	#define SLIB_JNI_STRING(NAME, VALUE) \
+		static slib::priv::java::StringConstantContainer _static_jni_string_constant_##NAME = { SLIB_UNICODE(VALUE), sl_false, 0, 0 }; \
+		static slib::JniStringConstant& NAME = *(reinterpret_cast<slib::JniStringConstant*>(&_static_jni_string_constant_##NAME));
 
 	#define PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(TYPE, NAME) \
 		namespace priv { \
@@ -803,9 +778,9 @@ namespace slib
 				class J##NAME##Field : protected JField \
 				{ \
 				public: \
-					J##NAME##Field(JClass* gcls, const char* name); \
-					TYPE get(jobject _this); \
-					void set(jobject _this, TYPE value); \
+					J##NAME##Field(JClass* cls, const char* name) noexcept; \
+					TYPE get(jobject _this) noexcept; \
+					void set(jobject _this, TYPE value) noexcept; \
 				}; \
 			} \
 		}
@@ -818,7 +793,6 @@ namespace slib
 	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(sl_int64, Long)
 	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(float, Float)
 	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(double, Double)
-	PRIV_SLIB_JNI_DECLARE_FIELD_TYPE(String, String)
 
 	#define PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(TYPE, NAME) \
 		namespace priv { \
@@ -826,9 +800,18 @@ namespace slib
 				class JStatic##NAME##Field : protected JStaticField \
 				{ \
 				public: \
-					JStatic##NAME##Field(JClass* gcls, const char* name); \
-					TYPE get(); \
-					void set(TYPE value); \
+					JStatic##NAME##Field(JClass* cls, const char* name) noexcept; \
+					TYPE get() noexcept; \
+					void set(TYPE value) noexcept; \
+				}; \
+				class JFinal##NAME##Field : protected JStatic##NAME##Field \
+				{ \
+				public: \
+					JFinal##NAME##Field(JClass* cls, const char* name) noexcept; \
+					TYPE get() noexcept; \
+				public: \
+					sl_bool m_flagLoadedValue; \
+					TYPE m_value; \
 				}; \
 			} \
 		}
@@ -841,7 +824,6 @@ namespace slib
 	PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(sl_int64, Long)
 	PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(float, Float)
 	PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(double, Double)
-	PRIV_SLIB_JNI_DECLARE_STATIC_FIELD_TYPE(String, String)
 
 }
 

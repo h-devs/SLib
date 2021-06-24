@@ -39,7 +39,7 @@ namespace slib
 		namespace facebook
 		{
 
-			SLIB_JNI_BEGIN_CLASS(JToken, "slib/platform/android/facebook/FacebookToken")
+			SLIB_JNI_BEGIN_CLASS(JToken, "slib/android/facebook/FacebookToken")
 				SLIB_JNI_STRING_FIELD(token)
 				SLIB_JNI_STRING_FIELD(scopes)
 				SLIB_JNI_LONG_FIELD(expirationTime)
@@ -49,13 +49,13 @@ namespace slib
 			static void OnLoginResult(JNIEnv* env, jobject _this, jobject token, jboolean flagCancel);
 			static void OnShareResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel);
 
-			SLIB_JNI_BEGIN_CLASS(JFacebook, "slib/platform/android/facebook/Facebook")
+			SLIB_JNI_BEGIN_CLASS(JFacebook, "slib/android/facebook/Facebook")
 				SLIB_JNI_STATIC_METHOD(initialize, "initialize", "()V");
-				SLIB_JNI_STATIC_METHOD(getCurrentToken, "getCurrentToken", "()Lslib/platform/android/facebook/FacebookToken;");
+				SLIB_JNI_STATIC_METHOD(getCurrentToken, "getCurrentToken", "()Lslib/android/facebook/FacebookToken;");
 				SLIB_JNI_STATIC_METHOD(clearAccessToken, "clearAccessToken", "()V");
 
 				SLIB_JNI_STATIC_METHOD(login, "login", "(Landroid/app/Activity;Ljava/lang/String;)V");
-				SLIB_JNI_NATIVE(nativeOnLoginResult, "nativeOnLoginResult", "(Lslib/platform/android/facebook/FacebookToken;Z)V", OnLoginResult);
+				SLIB_JNI_NATIVE(nativeOnLoginResult, "nativeOnLoginResult", "(Lslib/android/facebook/FacebookToken;Z)V", OnLoginResult);
 
 				SLIB_JNI_STATIC_METHOD(share, "share", "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
 				SLIB_JNI_NATIVE(nativeOnShareResult, "nativeOnShareResult", "(ZZ)V", OnShareResult);
@@ -155,8 +155,8 @@ namespace slib
 		}
 		auto p = FacebookSDKContext::get();
 		if (p) {
-			jobject jactivity = Android::getCurrentActivity();
-			if (jactivity) {
+			jobject context = Android::getCurrentContext();
+			if (context) {
 				if (p->onLoginResult.isNotNull()) {
 					FacebookLoginResult result;
 					p->onLoginResult(result);
@@ -164,7 +164,7 @@ namespace slib
 				p->onLoginResult = param.onComplete;
 				String scopes = String::join(param.authorization.scopes, ",");
 				JniLocal<jstring> jscopes = Jni::getJniString(scopes);
-				JFacebook::login.call(sl_null, jactivity, jscopes.get());
+				JFacebook::login.call(sl_null, context, jscopes.get());
 				return;
 			}
 		}
@@ -191,8 +191,8 @@ namespace slib
 			});
 			return;
 		}
-		jobject jactivity = Android::getCurrentActivity();
-		if (!jactivity) {
+		jobject context = Android::getCurrentContext();
+		if (!context) {
 			FacebookShareResult result;
 			param.onComplete(result);
 			return;
@@ -206,7 +206,7 @@ namespace slib
 		JniLocal<jstring> jurl = Jni::getJniString(param.url);
 		JniLocal<jstring> jquote = Jni::getJniString(param.quote);
 		JniLocal<jstring> jhashTag = Jni::getJniString(param.hashTag);
-		JFacebook::share.call(sl_null, jactivity, jurl.get(), jquote.get(), jhashTag.get());
+		JFacebook::share.call(sl_null, context, jurl.get(), jquote.get(), jhashTag.get());
 	}
 
 	void FacebookSDK::clearAccessToken()

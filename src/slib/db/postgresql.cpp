@@ -27,7 +27,7 @@
 #include "slib/core/mio.h"
 #include "slib/core/math.h"
 #include "slib/core/parse.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/log.h"
 

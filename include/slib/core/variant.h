@@ -34,8 +34,6 @@
 #include "variant_def.h"
 #include "variant_type.h"
 
-#include "../math/decimal128.h"
-
 #ifdef SLIB_SUPPORT_STD_TYPES
 #include <string>
 #endif
@@ -228,8 +226,6 @@ namespace slib
 		{
 			_constructorMoveSharedPtr(&ptr, VariantType::SharedPtr);
 		}
-
-		Variant(const Decimal128& value) noexcept;
 
 		template <class T>
 		Variant(const Ref<T>& ref) noexcept
@@ -556,14 +552,6 @@ namespace slib
 			return ret;
 		}
 
-		sl_bool isDecimal128() const noexcept;
-
-		Decimal128 getDecimal128() const noexcept;
-
-		sl_bool getDecimal128(Decimal128* _out) const noexcept;
-
-		void setDecimal128(const Decimal128& _id) noexcept;
-
 
 		sl_bool isRef() const noexcept;
 
@@ -762,6 +750,9 @@ namespace slib
 
 		sl_bool serialize(MemoryBuffer* buf) const;
 
+		template <class OUTPUT>
+		sl_bool serialize(OUTPUT* output) const;
+
 		sl_size deserialize(const void* data, sl_size size);
 
 		sl_size deserialize(const MemoryData& data);
@@ -771,6 +762,9 @@ namespace slib
 		sl_size deserialize(const Memory& mem);
 
 		sl_size deserialize(Memory&& mem);
+
+		template <class INPUT>
+		sl_bool deserialize(INPUT* input);
 
 		
 		sl_compare_result compare(const Variant& other) const noexcept;
@@ -1027,33 +1021,7 @@ namespace slib
 
 	};
 
-
-	sl_bool operator==(const Variant& v1, const Variant& v2) noexcept;
-	
-	sl_bool operator!=(const Variant& v1, const Variant& v2) noexcept;
-
-	
-	template <>
-	class Compare<Variant>
-	{
-	public:
-		sl_compare_result operator()(const Variant &a, const Variant &b) const noexcept;
-	};
-	
-	template <>
-	class Equals<Variant>
-	{
-	public:
-		sl_bool operator()(const Variant &a, const Variant &b) const noexcept;
-	};
-	
-	template <>
-	class Hash<Variant>
-	{
-	public:
-		sl_size operator()(const Variant &a) const noexcept;
-	};
-
+	SLIB_DECLARE_DEFAULT_COMPARE_OPERATORS(Variant)
 	
 	class VariantEx : public Variant
 	{

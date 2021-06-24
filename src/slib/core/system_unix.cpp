@@ -29,7 +29,7 @@
 #include "slib/core/file.h"
 #include "slib/core/variant.h"
 
-#include "slib/core/dl_linux_rt.h"
+#include "slib/core/dl/linux/rt.h"
 
 #include <string.h>
 #include <time.h>
@@ -44,7 +44,7 @@
 #include <sys/time.h>
 
 #if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
-#	include "slib/core/dl_linux_rt.h"
+#	include "slib/core/dl/linux/rt.h"
 #endif
 
 #define PRIV_PATH_MAX 1024

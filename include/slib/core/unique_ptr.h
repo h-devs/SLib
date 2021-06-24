@@ -23,156 +23,247 @@
 #ifndef CHECKHEADER_SLIB_CORE_UNIQUE_PTR
 #define CHECKHEADER_SLIB_CORE_UNIQUE_PTR
 
-#include "definition.h"
+#include "atomic.h"
 
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ptr
-		{
-			
-			template <class T>
-			class UniqueHelper
-			{
-			public:
-				typedef T* PointerType;
-				typedef T ValueType;
+#define SLIB_DEFINE_UNIQUE_PTR_MEMBERS_NO_ASSIGN(CLASS, POINTER_TYPE, POINTER_NAME, POINTER_NULL, FREE_POINTER) \
+public: \
+	POINTER_TYPE POINTER_NAME; \
+	constexpr CLASS(): POINTER_NAME(POINTER_NULL) {} \
+	constexpr CLASS(sl_null_t): POINTER_NAME(POINTER_NULL) {} \
+	CLASS(const CLASS&) = delete; \
+	CLASS(CLASS&& other) noexcept \
+	{ \
+		POINTER_NAME = other.POINTER_NAME; \
+		other.POINTER_NAME = POINTER_NULL; \
+	} \
+	~CLASS() \
+	{ \
+		if (POINTER_NAME != POINTER_NULL) { \
+			FREE_POINTER (POINTER_NAME); \
+		} \
+	} \
+	CLASS& operator=(const CLASS&) = delete; \
+	CLASS& operator=(CLASS&& other) noexcept \
+	{ \
+		if (POINTER_NAME != POINTER_NULL) { \
+			FREE_POINTER (POINTER_NAME); \
+		} \
+		POINTER_NAME = other.POINTER_NAME; \
+		other.POINTER_NAME = sl_null; \
+		return *this; \
+	} \
+	CLASS& operator=(sl_null_t) noexcept \
+	{ \
+		if (POINTER_NAME != POINTER_NULL) { \
+			FREE_POINTER (POINTER_NAME); \
+			POINTER_NAME = POINTER_NULL; \
+		} \
+		return *this; \
+	} \
+	constexpr explicit operator bool() const \
+	{ \
+		return POINTER_NAME != sl_null; \
+	} \
+	constexpr operator POINTER_TYPE() const& \
+	{ \
+		return POINTER_NAME; \
+	} \
+	operator POINTER_TYPE() && = delete; \
+	constexpr POINTER_TYPE operator->() const& \
+	{ \
+		return POINTER_NAME; \
+	} \
+	POINTER_TYPE operator->() && = delete; \
+	constexpr sl_bool isNull() const \
+	{ \
+		return !POINTER_NAME; \
+	} \
+	constexpr sl_bool isNotNull() const \
+	{ \
+		return POINTER_NAME != sl_null; \
+	} \
+	void setNull() noexcept \
+	{ \
+		if (POINTER_NAME != POINTER_NULL) { \
+			FREE_POINTER (POINTER_NAME); \
+			POINTER_NAME = POINTER_NULL; \
+		} \
+	} \
+	constexpr POINTER_TYPE get() const& \
+	{ \
+		return POINTER_NAME; \
+	} \
+	POINTER_TYPE get() && = delete; \
+	POINTER_TYPE release() \
+	{ \
+		POINTER_TYPE ret = POINTER_NAME; \
+		POINTER_NAME = POINTER_NULL; \
+		return ret; \
+	}
 
-				static void free(T* t)
-				{
-					delete t;
-				}
-			};
+#define SLIB_DEFINE_UNIQUE_PTR_MEMBERS(CLASS, POINTER_TYPE, POINTER_NAME, POINTER_NULL, FREE_POINTER) \
+	SLIB_DEFINE_UNIQUE_PTR_MEMBERS_NO_ASSIGN(CLASS, POINTER_TYPE, POINTER_NAME, POINTER_NULL, FREE_POINTER) \
+	constexpr CLASS(POINTER_TYPE other): POINTER_NAME(other) {} \
+	CLASS& operator=(POINTER_TYPE other) noexcept \
+	{ \
+		if (POINTER_NAME != POINTER_NULL) { \
+			FREE_POINTER (POINTER_NAME); \
+		} \
+		POINTER_NAME = other; \
+		return *this; \
+	}
 
-			template <class T>
-			class UniqueHelper<T[]>
-			{
-			public:
-				typedef T* PointerType;
-				typedef T ValueType;
+#define SLIB_DEFINE_UNIQUE_PTR_ATOMIC_MEMBERS(CLASS, POINTER_TYPE, POINTER_NAME, POINTER_NULL, FREE_POINTER) \
+	class AtomicTemplate { public: POINTER_TYPE POINTER_NAME; SpinLock _lock; }; \
+	CLASS(const Atomic<CLASS>&) = delete; \
+	CLASS(Atomic<CLASS>&& _other) noexcept \
+	{ \
+		AtomicTemplate& other = *((AtomicTemplate*)((void*)&_other)); \
+		SpinLocker locker(&(other._lock)); \
+		POINTER_NAME = other.POINTER_NAME; \
+		other.POINTER_NAME = POINTER_NULL; \
+	} \
+	CLASS& operator=(const Atomic<CLASS>&) = delete; \
+	CLASS& operator=(Atomic<CLASS>&& _other) noexcept \
+	{ \
+		AtomicTemplate& other = *((AtomicTemplate*)((void*)&_other)); \
+		if (POINTER_NAME != POINTER_NULL) { \
+			FREE_POINTER (POINTER_NAME); \
+		} \
+		SpinLocker locker(&(other._lock)); \
+		POINTER_NAME = other.POINTER_NAME; \
+		other.POINTER_NAME = POINTER_NULL; \
+		return *this; \
+	}
 
-				static void free(T* t)
-				{
-					delete[] t;
-				}
-			};
-			
-			template <>
-			class UniqueHelper<void>
-			{
-			public:
-				typedef void* PointerType;
-				typedef int ValueType;
 
-				static void free(void* t)
-				{
-					delete[] (char*)t;
-				}
-			};
-
-		}
+#define SLIB_DEFINE_ATOMIC_UNIQUE_PTR_MEMBERS(CLASS, POINTER_TYPE, POINTER_NAME, POINTER_NULL, FREE_POINTER) \
+private: \
+	POINTER_TYPE POINTER_NAME; \
+	SpinLock _lock; \
+public: \
+	constexpr Atomic(): POINTER_NAME(POINTER_NULL) {} \
+	constexpr Atomic(sl_null_t): POINTER_NAME(POINTER_NULL) {} \
+	Atomic(const CLASS&) = delete; \
+	Atomic(CLASS&& other) noexcept \
+	{ \
+		POINTER_NAME = other.POINTER_NAME; \
+		other.POINTER_NAME = POINTER_NULL; \
+	} \
+	Atomic(const Atomic&) = delete; \
+	~Atomic() \
+	{ \
+		if (POINTER_NAME != POINTER_NULL) { \
+			FREE_POINTER (POINTER_NAME); \
+		} \
+	} \
+	Atomic& operator=(const CLASS&) = delete; \
+	Atomic& operator=(CLASS&& other) noexcept \
+	{ \
+		POINTER_TYPE old = POINTER_NAME; \
+		{ \
+			SpinLocker locker(&_lock); \
+			POINTER_NAME = other.POINTER_NAME; \
+			other.POINTER_NAME = sl_null; \
+		} \
+		if (old != POINTER_NULL) { \
+			FREE_POINTER (old); \
+		} \
+		return *this; \
+	} \
+	Atomic& operator=(const Atomic&) = delete; \
+	Atomic& operator=(sl_null_t) noexcept \
+	{ \
+		setNull(); \
+		return *this; \
+	} \
+	constexpr explicit operator bool() const \
+	{ \
+		return POINTER_NAME != sl_null; \
+	} \
+	constexpr sl_bool isNull() const \
+	{ \
+		return !POINTER_NAME; \
+	} \
+	constexpr sl_bool isNotNull() const \
+	{ \
+		return POINTER_NAME != sl_null; \
+	} \
+	void setNull() noexcept \
+	{ \
+		POINTER_TYPE old; \
+		{ \
+			SpinLocker locker(&_lock); \
+			old = POINTER_NAME; \
+			POINTER_NAME = sl_null; \
+		} \
+		if (old != POINTER_NULL) { \
+			FREE_POINTER (old); \
+		} \
+	} \
+	constexpr POINTER_TYPE get() const& \
+	{ \
+		return POINTER_NAME; \
+	} \
+	POINTER_TYPE get() && = delete; \
+	POINTER_TYPE release() \
+	{ \
+		POINTER_TYPE ret; \
+		{ \
+			SpinLocker locker(&_lock); \
+			ret = POINTER_NAME; \
+			POINTER_NAME = sl_null; \
+		} \
+		return ret; \
 	}
 
 	template <class T>
 	class SLIB_EXPORT UniquePtr
 	{
-	public:
-		typedef typename priv::ptr::UniqueHelper<T>::PointerType PointerType;
-		typedef typename priv::ptr::UniqueHelper<T>::ValueType ValueType;
+		SLIB_DEFINE_UNIQUE_PTR_MEMBERS(UniquePtr, T*, ptr, sl_null, delete)
+		SLIB_DEFINE_UNIQUE_PTR_ATOMIC_MEMBERS(UniquePtr, T*, ptr, sl_null, delete)
 
 	public:
-		PointerType ptr;
+		T& operator*() const noexcept
+		{
+			return *ptr;
+		}
+
+	};
+
+	template <class T>
+	class SLIB_EXPORT Atomic< UniquePtr<T> >
+	{
+		SLIB_DEFINE_ATOMIC_UNIQUE_PTR_MEMBERS(UniquePtr<T>, T*, ptr, sl_null, delete)
+	};
+
+	template <class T>
+	class SLIB_EXPORT UniquePtr<T[]>
+	{
+		SLIB_DEFINE_UNIQUE_PTR_MEMBERS(UniquePtr, T*, ptr, sl_null, delete[])
+		SLIB_DEFINE_UNIQUE_PTR_ATOMIC_MEMBERS(UniquePtr, T*, ptr, sl_null, delete[])
 
 	public:
-		constexpr UniquePtr() noexcept: ptr(sl_null) {}
-
-		constexpr UniquePtr(sl_null_t) noexcept: ptr(sl_null) {}
-
-		explicit UniquePtr(PointerType _ptr) noexcept: ptr(_ptr) {}
-
-		UniquePtr(const UniquePtr&) = delete;
-
-		UniquePtr(UniquePtr&& other) noexcept
-		{
-			ptr = other.release();
-		}
-
-		~UniquePtr()
-		{
-			_free();
-		}
-
-	public:
-		UniquePtr& operator=(sl_null_t)
-		{
-			reset();
-			return *this;
-		}
-
-		UniquePtr& operator=(const UniquePtr&) = delete;
-
-		UniquePtr& operator=(UniquePtr&& other) noexcept
-		{
-			_free();
-			ptr = other.release();
-			return *this;
-		}
-
-		explicit operator bool() const noexcept
-		{
-			return ptr != sl_null;
-		}
-
-		ValueType& operator*() const noexcept
-		{
-			return *((ValueType*)(void*)ptr);
-		}
-
-		PointerType operator->() const noexcept
-		{
-			return ptr;
-		}
-
-		ValueType& operator[](sl_size index) const noexcept
+		template <typename INT>
+		T& operator[](INT index) const noexcept
 		{
 			return ptr[index];
 		}
 
-	public:
-		PointerType get() const noexcept
-		{
-			return ptr;
-		}
-
-		PointerType release() noexcept
-		{
-			PointerType ret = ptr;
-			ptr = sl_null;
-			return ret;
-		}
-
-		void reset()
-		{
-			_free();
-			ptr = sl_null;
-		}
-
-		void reset(PointerType _ptr)
-		{
-			_free();
-			ptr = _ptr;
-		}
-
-	private:
-		void _free()
-		{
-			priv::ptr::UniqueHelper<T>::free(ptr);
-		}
-
 	};
-	
+
+	template <class T>
+	class SLIB_EXPORT Atomic< UniquePtr<T[]> >
+	{
+		SLIB_DEFINE_ATOMIC_UNIQUE_PTR_MEMBERS(UniquePtr<T[]>, T*, ptr, sl_null, delete[])
+	};
+
+	template <class T>
+	using AtomicUniquePtr = Atomic< UniquePtr<T> >;
+
 }
 
 #endif

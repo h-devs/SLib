@@ -38,7 +38,7 @@ namespace slib
 			
 			void JNICALL OnScroll(JNIEnv* env, jobject _this, jlong instance, int x, int y);
 
-			SLIB_JNI_BEGIN_CLASS(JScrollView, "slib/platform/android/ui/view/UiScrollView")
+			SLIB_JNI_BEGIN_CLASS(JScrollView, "slib/android/ui/view/UiScrollView")
 
 				SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;Z)Landroid/view/View;");
 

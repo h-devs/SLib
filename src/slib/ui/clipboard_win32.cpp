@@ -25,7 +25,7 @@
 #if defined(SLIB_UI_IS_WIN32)
 
 #include "slib/core/safe_static.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {
@@ -139,7 +139,7 @@ namespace slib
 		ClipboardScope scope;
 		EmptyClipboard();
 		StringCstr16 text(_text);
-		HGLOBAL handle = Windows::createGlobalData(text.getData(), (text.getLength() + 1) << 1);
+		HGLOBAL handle = Win32::createGlobalData(text.getData(), (text.getLength() + 1) << 1);
 		if (handle) {
 			SetClipboardData(CF_UNICODETEXT, handle);
 			GlobalFree(handle);

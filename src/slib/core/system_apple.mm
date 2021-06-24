@@ -27,7 +27,7 @@
 #include "slib/core/system.h"
 
 #include "slib/core/file.h"
-#include "slib/core/platform_apple.h"
+#include "slib/core/platform.h"
 
 #include <mach-o/dyld.h>
 #include <mach/mach_time.h>

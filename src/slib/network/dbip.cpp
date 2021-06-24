@@ -33,7 +33,7 @@ namespace slib
 	class Compare<DbIp::IPv4Item, sl_uint32>
 	{
 	public:
-		SLIB_INLINE int operator()(const DbIp::IPv4Item& a, const sl_uint32& b) const
+		int operator()(const DbIp::IPv4Item& a, const sl_uint32& b) const
 		{
 			return Compare<sl_uint32>()(a.start, b);
 		}
@@ -71,7 +71,7 @@ namespace slib
 					pos++;
 				}
 				IPAddress ip;
-				resultParse = Parser<IPAddress, sl_char8>::parse(&ip, sz, pos, len);
+				resultParse = IPAddress::parse(&ip, sz, pos, len);
 				if (resultParse == SLIB_PARSE_ERROR) {
 					break;
 				}
@@ -100,14 +100,14 @@ namespace slib
 				}
 				if (ip.isIPv4()) {
 					IPv4Address ip4;
-					resultParse = Parser<IPv4Address, sl_char8>::parse(&ip4, sz, pos, len);
+					resultParse = IPv4Address::parse(&ip4, sz, pos, len);
 					if (resultParse == SLIB_PARSE_ERROR) {
 						break;
 					}
 					item4.end = ip4.getInt();
 				} else {
 					IPv6Address ip6;
-					resultParse = Parser<IPv6Address, sl_char8>::parse(&ip6, sz, pos, len);
+					resultParse = IPv6Address::parse(&ip6, sz, pos, len);
 					if (resultParse == SLIB_PARSE_ERROR) {
 						break;
 					}
@@ -208,7 +208,7 @@ namespace slib
 	class Compare<DbIp::IPv6Item, IPv6Address>
 	{
 	public:
-		SLIB_INLINE int operator()(const DbIp::IPv6Item& a, const IPv6Address& b) const
+		int operator()(const DbIp::IPv6Item& a, const IPv6Address& b) const
 		{
 			return Compare<IPv6Address>()(a.start, b);
 		}

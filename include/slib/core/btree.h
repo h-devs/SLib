@@ -184,8 +184,7 @@ namespace slib
 			initialize();
 		}
 
-		BTree(const KEY_COMPARE& compare, sl_uint32 order = SLIB_BTREE_DEFAULT_ORDER)
-		 : m_compare(compare)
+		BTree(const KEY_COMPARE& compare, sl_uint32 order = SLIB_BTREE_DEFAULT_ORDER): m_compare(compare)
 		{
 			if (order < 1) {
 				order = 1;
@@ -685,7 +684,7 @@ namespace slib
 			if (pLowerBound) {
 				sl_uint32 item = itemMiddle;
 				for (sl_int32 i = itemMiddle - 1; i >= 0; i--) {
-					if (m_compare(data->keys[i], key) == 0) {
+					if (!(m_compare(data->keys[i], key))) {
 						item = i;
 					} else {
 						break;
@@ -705,7 +704,7 @@ namespace slib
 			if (pUpperBound) {
 				sl_uint32 item = itemMiddle;
 				for (sl_uint32 i = itemMiddle + 1; i < n; i++) {
-					if (m_compare(data->keys[i], key) == 0) {
+					if (!(m_compare(data->keys[i], key))) {
 						item = i;
 					} else {
 						break;

@@ -26,7 +26,7 @@
 
 #include "slib/ui/common_dialogs.h"
 #include "slib/ui/window.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/file.h"
 
 #include "slib/ui/platform.h"

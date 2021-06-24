@@ -26,6 +26,7 @@
 #include "socket_address.h"
 #include "async.h"
 
+#include "../core/string.h"
 #include "../core/memory.h"
 
 /********************************************************************

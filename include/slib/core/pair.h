@@ -23,6 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_PAIR
 #define CHECKHEADER_SLIB_CORE_PAIR
 
+#include "default_members.h"
 #include "compare.h"
 #include "hash.h"
 #include "cpp_helper.h"
@@ -40,50 +41,40 @@ namespace slib
 	public:
 		Pair() noexcept {}
 
-		Pair(const Pair& other) = default;
-
-		Pair(Pair&& other) = default;
-
 		template <class FIRST, class SECOND>
 		Pair(FIRST&& _first, SECOND&& _second) noexcept: first(Forward<FIRST>(_first)), second(Forward<SECOND>(_second)) {}
 
+		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Pair)
+		
 	public:
-		Pair& operator=(const Pair& other)  = default;
-
-		Pair& operator=(Pair&& other) = default;
-
-	};
-	
-	template <class FIRST_T, class SECOND_T>
-	class Compare< Pair<FIRST_T, SECOND_T> >
-	{
-	public:
-		sl_compare_result operator()(const Pair<FIRST_T, SECOND_T>& a, const Pair<FIRST_T, SECOND_T>& b) const noexcept
+		sl_compare_result compare(const Pair& other) const
 		{
-			sl_compare_result ret = Compare<FIRST_T>()(a.first, b.first);
+			sl_compare_result ret = Compare<FIRST_T>()(first, other.first);
 			if (ret) {
 				return ret;
 			}
-			return Compare<SECOND_T>()(a.second, b.second);
+			return Compare<SECOND_T>()(second, other.second);
 		}
 
-	};
-	
-	template <class FIRST_T, class SECOND_T>
-	class Hash< Pair<FIRST_T, SECOND_T>, sl_false >
-	{
-	public:
-		constexpr sl_size operator()(const Pair<FIRST_T, SECOND_T>& pair) const noexcept
+		sl_bool equals(const Pair& other) const
+		{
+			return Equals<FIRST_T>()(first, other.first) && Equals<SECOND_T>()(second, other.second);
+		}
+
+		sl_size getHashCode() const
 		{
 #ifdef SLIB_ARCH_IS_64BIT
-			return SLIB_MAKE_QWORD4(Rehash64To32(Hash<FIRST_T>()(pair.first)), Rehash64To32(Hash<SECOND_T>()(pair.second)));
+			return SLIB_MAKE_QWORD4(Rehash64To32(Hash<FIRST_T>()(first)), Rehash64To32(Hash<SECOND_T>()(second)));
 #else
-			return Rehash64ToSize(SLIB_MAKE_QWORD4(Hash<FIRST_T>()(pair.first), Hash<SECOND_T>()(pair.second)));
+			return Rehash64ToSize(SLIB_MAKE_QWORD4(Hash<FIRST_T>()(first), Hash<SECOND_T>()(second)));
 #endif
 		}
 
-	};
+	public:
+		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
 
+	};
+	
 }
 
 #endif

@@ -38,7 +38,7 @@ namespace slib
 		namespace ui_notification_android
 		{
 			
-			SLIB_JNI_BEGIN_CLASS(JUserNotificationMessage, "slib/platform/android/ui/notification/UserNotificationMessage")
+			SLIB_JNI_BEGIN_CLASS(JUserNotificationMessage, "slib/android/ui/notification/UserNotificationMessage")
 				SLIB_JNI_NEW(init, "()V");
 				
 				SLIB_JNI_INT_FIELD(id)
@@ -73,12 +73,12 @@ namespace slib
 
 			void OnClickMessage(JNIEnv* env, jobject _this, jobject jmsg);
 
-			SLIB_JNI_BEGIN_CLASS(JUserNotification, "slib/platform/android/ui/notification/UserNotification")
+			SLIB_JNI_BEGIN_CLASS(JUserNotification, "slib/android/ui/notification/UserNotification")
 				SLIB_JNI_STATIC_METHOD(initialize, "initialize", "(Landroid/app/Activity;)V");
-				SLIB_JNI_STATIC_METHOD(add, "add", "(Landroid/app/Activity;Lslib/platform/android/ui/notification/UserNotificationMessage;)V");
+				SLIB_JNI_STATIC_METHOD(add, "add", "(Landroid/app/Activity;Lslib/android/ui/notification/UserNotificationMessage;)V");
 				SLIB_JNI_STATIC_METHOD(cancel, "cancel", "(Landroid/app/Activity;I)V");
 				SLIB_JNI_STATIC_METHOD(cancelAll, "cancelAll", "(Landroid/app/Activity;)V");
-				SLIB_JNI_NATIVE(onClickMessage, "nativeOnClickMessage", "(Lslib/platform/android/ui/notification/UserNotificationMessage;)V", OnClickMessage);
+				SLIB_JNI_NATIVE(onClickMessage, "nativeOnClickMessage", "(Lslib/android/ui/notification/UserNotificationMessage;)V", OnClickMessage);
 			SLIB_JNI_END_CLASS
 			
 			class UserNotificationImpl : public UserNotification
@@ -89,8 +89,8 @@ namespace slib
 			public:
 				static Ref<UserNotificationImpl> create(const UserNotificationMessage& message)
 				{
-					jobject jactivity = Android::getCurrentActivity();
-					if (!jactivity) {
+					jobject context = Android::getCurrentContext();
+					if (!context) {
 						return sl_null;
 					}
 
@@ -158,7 +158,7 @@ namespace slib
 								JUserNotificationMessage::flagRepeat.set(jmsg.get(), message.flagRepeat);
 							}
 
-							JUserNotification::add.call(sl_null, jactivity, jmsg.get());
+							JUserNotification::add.call(sl_null, context, jmsg.get());
 
 							ret->m_id = id;
 
@@ -201,9 +201,9 @@ namespace slib
 
 	void UserNotification::startInternal()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JUserNotification::initialize.call(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JUserNotification::initialize.call(sl_null, context);
 		}
 	}
 
@@ -234,17 +234,17 @@ namespace slib
 	
 	void UserNotification::removeDeliveredNotification(sl_uint32 id)
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JUserNotification::cancel.call(sl_null, jactivity, (jint)id);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JUserNotification::cancel.call(sl_null, context, (jint)id);
 		}
 	}
 	
 	void UserNotification::removeAllDeliveredNotifications()
 	{
-		jobject jactivity = Android::getCurrentActivity();
-		if (jactivity) {
-			JUserNotification::cancelAll.call(sl_null, jactivity);
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JUserNotification::cancelAll.call(sl_null, context);
 		}
 	}
 

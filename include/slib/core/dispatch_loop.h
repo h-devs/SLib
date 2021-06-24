@@ -38,7 +38,7 @@ namespace slib
 	{
 		SLIB_DECLARE_OBJECT
 
-	private:
+	protected:
 		DispatchLoop();
 
 		~DispatchLoop();
@@ -57,7 +57,7 @@ namespace slib
 
 		sl_bool isRunning();
 
-		sl_bool dispatch(const Function<void()>& task, sl_uint64 delay_ms = 0) override;
+		sl_bool dispatch(const Function<void()>& task, sl_uint64 delayMillis = 0) override;
 
 		sl_bool addTimer(const Ref<Timer>& timer);
 		
@@ -93,7 +93,7 @@ namespace slib
 			WeakRef<Timer> timer;
 
 		public:
-			sl_bool operator==(const TimerTask& other) const;
+			sl_bool operator==(const TimerTask& other) const noexcept;
 		};
 		LinkedQueue<TimerTask> m_queueTimers;
 		Mutex m_lockTimer;

@@ -245,16 +245,10 @@
     <ClCompile Include="..\..\src\slib\core\pipe.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\java.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\content_type.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\math.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\platform_windows.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\win32_com.cpp">
@@ -414,9 +408,6 @@
       <Filter>src\graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\graphics_path.cpp">
-      <Filter>src\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\graphics\graphics_platform_win32.cpp">
       <Filter>src\graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\graphics_resource.cpp">
@@ -1160,26 +1151,11 @@
     <ClCompile Include="..\..\src\slib\core\dynamic_library.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\dl_windows_kernel32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\dynamic_library_windows.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\dl_windows_user32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\dl_windows_wininet.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\dl_windows_bcrypt.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\dl_windows_gdiplus.cpp">
       <Filter>src\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\dl_windows_winmm.cpp">
-      <Filter>src\media</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\doc\rar.cpp">
       <Filter>src\doc</Filter>
@@ -1277,9 +1253,6 @@
     <ClCompile Include="..\..\src\slib\render\d3d8.cpp">
       <Filter>src\render</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\db\dl_libmysql.cpp">
-      <Filter>src\db</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\db\mysql_data.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
@@ -1309,9 +1282,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\network\tap_win32.cpp">
       <Filter>src\network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\platform_windows_setup.cpp">
-      <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\math\decimal128.cpp">
       <Filter>src\math</Filter>
@@ -1396,6 +1366,48 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\network\ipc_win32.cpp">
       <Filter>src\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\win32_message_loop.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\storage_volume_win32.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\storage.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\p2p.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\media\dl_win32_winmm.cpp">
+      <Filter>src\media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\dl_win32_bcrypt.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\dl_win32_kernel32.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\dl_win32_user32.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\dl_win32_wininet.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\db\dl_win32_libmysql.cpp">
+      <Filter>src\db</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\service\keygen.cpp">
+      <Filter>src\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\win32_platform.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\win32_setup.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\graphics\gdi_platform.cpp">
+      <Filter>src\graphics</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

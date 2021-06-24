@@ -22,7 +22,7 @@
 
 #include "slib/ui/tile_layout.h"
 
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {

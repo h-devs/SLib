@@ -23,7 +23,7 @@
 #include "slib/ui/linear_layout.h"
 
 #include "slib/ui/view_attributes.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {

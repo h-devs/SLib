@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -62,5 +62,8 @@
 // Third-party
 #include "crypto/zlib.h"
 #include "crypto/openssl.h"
+
+#include "crypto/json.h"
+#include "crypto/serialize.h"
 
 #endif

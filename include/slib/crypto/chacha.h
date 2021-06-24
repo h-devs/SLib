@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -41,14 +41,8 @@ namespace slib
 	class SLIB_EXPORT ChaCha20_Core
 	{
 	public:
-		ChaCha20_Core();
-		
-		ChaCha20_Core(const ChaCha20_Core& other);
-
-		~ChaCha20_Core();
-		
-	public:
-		ChaCha20_Core & operator=(const ChaCha20_Core& other);
+		sl_uint32 key[8];
+		sl_uint32 constants[4];
 
 	public:
 		// size: 16, 32, 48
@@ -68,20 +62,31 @@ namespace slib
 
 		// output: 64 bytes
 		void generateBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, void* output) const;
-		
+
 		// input, output: 64 bytes
 		void encryptBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, const void* input, void* output) const;
-		
+
 		// input, output: 64 bytes
 		void decryptBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, const void* input, void* output) const;
 
-	protected:
-		void _copy(const ChaCha20_Core& other);
+	};
 
-	protected:
-		sl_uint32* m_constants;
-		sl_uint32 m_key[8];
-		sl_uint32 m_arrConstants[4];
+	class SLIB_EXPORT ChaCha20_IO : public ChaCha20_Core
+	{
+	public:
+		enum {
+			IvSize = 16
+		};
+
+	public:
+		sl_uint32 iv[4];
+
+	public:
+		void encrypt(sl_uint64 offset, const void* src, void* dst, sl_size size) const;
+
+		// _in, _out: `IvSize` bytes
+		void getIV(void* _out) const;
+		void setIV(const void* _in);
 
 	};
 	
@@ -178,7 +183,7 @@ namespace slib
 		
 	};
 
-	class SLIB_EXPORT ChaCha20FileEncryptor
+	class SLIB_EXPORT ChaCha20_FileEncryptor : public ChaCha20_IO
 	{
 	public:
 		enum {
@@ -186,33 +191,22 @@ namespace slib
 		};
 
 	public:
-		ChaCha20FileEncryptor();
-
-		~ChaCha20FileEncryptor();
-
-	public:
 		// outHeader: `HeaderSize` bytes
-		void create(void* outHeader, const void* password, sl_uint32 lenPassword);
-		void create(void* outHeader, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCount);
+		void create(void* outHeader, const void* password, sl_size lenPassword);
+		void create(void* outHeader, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCount);
 
 		// header: `HeaderSize` bytes
-		sl_bool open(const void* header, const void* password, sl_uint32 lenPassword);
-		sl_bool open(const void* header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCountLimit);
+		sl_bool open(const void* header, const void* password, sl_size lenPassword);
+		sl_bool open(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit);
 
 		// header: `HeaderSize` bytes
-		static sl_bool checkPassword(const void* header, const void* password, sl_uint32 lenPassword);
-		static sl_bool checkPassword(const void* header, const void* password, sl_uint32 lenPassword, sl_uint32 iterationBitsCountLimit);
+		static sl_bool checkPassword(const void* header, const void* password, sl_size lenPassword);
+		static sl_bool checkPassword(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit);
 
 		// header: `HeaderSize` bytes
-		static sl_bool changePassword(void* header, const void* oldPassword, sl_uint32 lenOldPassword, const void* newPassword, sl_uint32 lenNewPassword);
-		static sl_bool changePassword(void* header, const void* oldPassword, sl_uint32 lenOldPassword, const void* newPassword, sl_uint32 lenNewPassword, sl_uint32 iterationBitsCountLimit);
-
-		void encrypt(sl_uint64 offset, const void* src, void* dst, sl_size size);
-		
-	protected:
-		ChaCha20_Core m_encrypt;
-		sl_uint32 m_iv[4];
-
+		static sl_bool changePassword(void* header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword);
+		static sl_bool changePassword(void* header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword, sl_uint32 iterationBitsCountLimit);
+	
 	};
 
 }

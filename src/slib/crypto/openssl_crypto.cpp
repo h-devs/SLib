@@ -23,7 +23,7 @@
 #include "slib/crypto/openssl.h"
 
 #include "slib/crypto/sha2.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #include "openssl/aes.h"
 #include "openssl/rand.h"
@@ -70,7 +70,7 @@ namespace slib
 				return sl_null;
 			}
 		
-			static sl_bool Verify_RSA_Signature(EVP_PKEY* key, const EVP_MD* md, const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature)
+			static sl_bool Verify_RSA_Signature(EVP_PKEY* key, const EVP_MD* md, const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature)
 			{
 				EVP_MD_CTX* ctx = EVP_MD_CTX_new();
 				if (ctx) {
@@ -115,7 +115,7 @@ namespace slib
 				return ret;
 			}
 		
-			static sl_bool Verify_ECDSA_Signature(EVP_PKEY* key, const void* hash, sl_uint32 sizeHash, const void* signature, sl_uint32 sizeSignature)
+			static sl_bool Verify_ECDSA_Signature(EVP_PKEY* key, const void* hash, sl_uint32 sizeHash, const void* signature, sl_size sizeSignature)
 			{
 				if (sizeSignature & 1) {
 					return sl_false;
@@ -160,7 +160,7 @@ namespace slib
 				return sl_null;
 			}
 		
-			static sl_bool Verify_RSA_PSS_Signature(EVP_PKEY* key, const EVP_MD* md, const void* hash, sl_size sizeHash, const void* signature, sl_uint32 sizeSignature)
+			static sl_bool Verify_RSA_PSS_Signature(EVP_PKEY* key, const EVP_MD* md, const void* hash, sl_size sizeHash, const void* signature, sl_size sizeSignature)
 			{
 				::RSA* rsa = EVP_PKEY_get0_RSA(key);
 				if (!rsa) {
@@ -418,7 +418,59 @@ namespace slib
 	{
 		AES_decrypt((unsigned char*)src, (unsigned char*)dst, (AES_KEY*)m_keyDec);
 	}
-	
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OpenSSL_ECPublicKey_secp256k1)
+
+	OpenSSL_ECPublicKey_secp256k1::OpenSSL_ECPublicKey_secp256k1()
+	{
+	}
+
+	sl_bool OpenSSL_ECPublicKey_secp256k1::checkValid() const
+	{
+		return OpenSSL::check_ECKey_secp256k1(*this);
+	}
+
+	sl_bool OpenSSL_ECPublicKey_secp256k1::verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const
+	{
+		ECDSA_Signature sig;
+		if (sig.deserialize(signature, sizeSignature)) {
+			return OpenSSL::verify_ECDSA_secp256k1(*this, hash, size, sig);
+		}
+		return sl_false;
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OpenSSL_ECPrivateKey_secp256k1)
+
+	OpenSSL_ECPrivateKey_secp256k1::OpenSSL_ECPrivateKey_secp256k1()
+	{
+	}
+
+	sl_bool OpenSSL_ECPrivateKey_secp256k1::generate() noexcept
+	{
+		return OpenSSL::generate_ECKey_secp256k1(*this);
+	}
+
+	Memory OpenSSL_ECPrivateKey_secp256k1::generateSignature(const void* hash, sl_size size) const noexcept
+	{
+		return OpenSSL::sign_ECDSA_secp256k1(*this, hash, size).serialize();
+	}
+
+	sl_bool OpenSSL_ECPrivateKey_secp256k1::checkValid() const noexcept
+	{
+		return OpenSSL::check_ECKey_secp256k1(*this);
+	}
+
+	sl_bool OpenSSL_ECPrivateKey_secp256k1::verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept
+	{
+		ECDSA_Signature sig;
+		if (sig.deserialize(signature, sizeSignature)) {
+			return OpenSSL::verify_ECDSA_secp256k1(*this, hash, size, sig);
+		}
+		return sl_false;
+	}
+
 
 	SLIB_DEFINE_OBJECT(OpenSSL_Key, Object)
 	
@@ -479,7 +531,7 @@ namespace slib
 		return Generate_RSA_Signature(m_key, EVP_sha256(), data, sizeData);
 	}
 	
-	sl_bool OpenSSL_Key::verify_RSA_SHA256(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature)
+	sl_bool OpenSSL_Key::verify_RSA_SHA256(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature)
 	{
 		return Verify_RSA_Signature(m_key, EVP_sha256(), data, sizeData, signature, sizeSignature);
 	}
@@ -489,7 +541,7 @@ namespace slib
 		return Generate_RSA_Signature(m_key, EVP_sha384(), data, sizeData);
 	}
 
-	sl_bool OpenSSL_Key::verify_RSA_SHA384(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature)
+	sl_bool OpenSSL_Key::verify_RSA_SHA384(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature)
 	{
 		return Verify_RSA_Signature(m_key, EVP_sha384(), data, sizeData, signature, sizeSignature);
 	}
@@ -499,7 +551,7 @@ namespace slib
 		return Generate_RSA_Signature(m_key, EVP_sha512(), data, sizeData);
 	}
 
-	sl_bool OpenSSL_Key::verify_RSA_SHA512(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature)
+	sl_bool OpenSSL_Key::verify_RSA_SHA512(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature)
 	{
 		return Verify_RSA_Signature(m_key, EVP_sha512(), data, sizeData, signature, sizeSignature);
 	}
@@ -511,7 +563,7 @@ namespace slib
 		return Generate_RSA_PSS_Signature(m_key, EVP_sha256(), h, 32);
 	}
 
-	sl_bool OpenSSL_Key::verify_RSA_PSS_SHA256(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature)
+	sl_bool OpenSSL_Key::verify_RSA_PSS_SHA256(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature)
 	{
 		unsigned char h[32];
 		SHA256::hash(data, sizeData, h);
@@ -525,7 +577,7 @@ namespace slib
 		return Generate_RSA_PSS_Signature(m_key, EVP_sha384(), h, 48);
 	}
 
-	sl_bool OpenSSL_Key::verify_RSA_PSS_SHA384(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature)
+	sl_bool OpenSSL_Key::verify_RSA_PSS_SHA384(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature)
 	{
 		unsigned char h[48];
 		SHA384::hash(data, sizeData, h);
@@ -539,7 +591,7 @@ namespace slib
 		return Generate_RSA_PSS_Signature(m_key, EVP_sha512(), h, 64);
 	}
 
-	sl_bool OpenSSL_Key::verify_RSA_PSS_SHA512(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature)
+	sl_bool OpenSSL_Key::verify_RSA_PSS_SHA512(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature)
 	{
 		unsigned char h[64];
 		SHA384::hash(data, sizeData, h);
@@ -553,7 +605,7 @@ namespace slib
 		return Generate_ECDSA_Signature(m_key, h, 32);
 	}
 
-	sl_bool OpenSSL_Key::verify_ECDSA_SHA256(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature)
+	sl_bool OpenSSL_Key::verify_ECDSA_SHA256(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature)
 	{
 		unsigned char h[32];
 		SHA256::hash(data, sizeData, h);
@@ -567,7 +619,7 @@ namespace slib
 		return Generate_ECDSA_Signature(m_key, h, 48);
 	}
 
-	sl_bool OpenSSL_Key::verify_ECDSA_SHA384(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature)
+	sl_bool OpenSSL_Key::verify_ECDSA_SHA384(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature)
 	{
 		unsigned char h[48];
 		SHA384::hash(data, sizeData, h);
@@ -581,7 +633,7 @@ namespace slib
 		return Generate_ECDSA_Signature(m_key, h, 64);
 	}
 
-	sl_bool OpenSSL_Key::verify_ECDSA_SHA512(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature)
+	sl_bool OpenSSL_Key::verify_ECDSA_SHA512(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature)
 	{
 		unsigned char h[64];
 		SHA512::hash(data, sizeData, h);

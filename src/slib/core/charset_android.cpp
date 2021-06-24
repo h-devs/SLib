@@ -26,7 +26,7 @@
 
 #include "slib/core/charset.h"
 
-#include "slib/core/platform_android.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {

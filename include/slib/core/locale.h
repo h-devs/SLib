@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_LOCALE
 #define CHECKHEADER_SLIB_CORE_LOCALE
 
-#include "parse.h"
 #include "function.h"
 #include "primitive_wrapper.h"
 
@@ -751,8 +750,7 @@ namespace slib
 	class Locale
 	{
 	public:
-		sl_uint64 value;
-		SLIB_MEMBERS_OF_PRIMITIVE_WRAPPER(Locale, sl_uint64, value)
+		SLIB_DEFINE_PRIMITIVE_WRAPPER_MEMBERS(Locale, sl_uint64, value)
 	
 		enum : sl_uint64 {
 			ar = SLIB_LOCALE(Language::Arabic, LanguageScript::Unknown, Country::Unknown),
@@ -859,18 +857,8 @@ namespace slib
 
 		
 		String toString(sl_char8 delimiter='-') const;
-		
-		template <class ST>
-		static sl_bool parse(const ST& str, Locale* _out) noexcept
-		{
-			return Parse(str, _out);
-		}
-		
-		template <class ST>
-		sl_bool parse(const ST& str) noexcept
-		{
-			return Parse(str, this);
-		}
+
+		SLIB_DECLARE_CLASS_PARSE_MEMBERS(Locale)
 
 	public:
 		static String getLanguageName(Language language);
@@ -947,23 +935,6 @@ namespace slib
 		static void _setupOnChangeCurrentLocale();
 		
 	};
-	
-	template <>
-	class Hash<Locale>
-	{
-	public:
-		constexpr sl_size operator()(const Locale& locale) const
-		{
-			return Rehash64ToSize(locale.value);
-		}
-
-	};
-
-	template <>
-	sl_reg Parser<Locale, sl_char8>::parse(Locale* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept;
-	
-	template <>
-	sl_reg Parser<Locale, sl_char16>::parse(Locale* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept;
 	
 }
 

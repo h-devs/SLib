@@ -24,7 +24,7 @@
 
 #include "slib/core/memory_reader.h"
 #include "slib/core/memory_output.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/log.h"
 
 #include "vpx/vp8cx.h"

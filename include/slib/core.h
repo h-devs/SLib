@@ -23,12 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_HEADER
 #define CHECKHEADER_SLIB_CORE_HEADER
 
-#ifndef SLIB_NOT_SUPPORT_STD_TYPES
-#	ifndef SLIB_SUPPORT_STD_TYPES
-#		define SLIB_SUPPORT_STD_TYPES
-#	endif
-#endif
-
 #include "core/definition.h"
 
 #include "core/base.h"
@@ -42,7 +36,6 @@
 #include "core/cast.h"
 #include "core/convert.h"
 #include "core/nullable.h"
-#include "core/scoped.h"
 #include "core/safe_static.h"
 #include "core/singleton.h"
 #include "core/stringify.h"
@@ -56,6 +49,7 @@
 #include "core/pointer.h"
 #include "core/shared_ptr.h"
 #include "core/unique_ptr.h"
+#include "core/scoped_buffer.h"
 #include "core/object.h"
 #include "core/property.h"
 #include "core/function.h"
@@ -68,6 +62,7 @@
 #include "core/memory_buffer.h"
 #include "core/memory_queue.h"
 #include "core/memory_traits.h"
+#include "core/bytes.h"
 #include "core/object_id.h"
 #include "core/variant.h"
 
@@ -75,7 +70,6 @@
 #include "core/time_counter.h"
 #include "core/time_keeper.h"
 #include "core/time_zone.h"
-#include "core/time_parse.h"
 
 #include "core/compare.h"
 #include "core/hash.h"
@@ -104,6 +98,7 @@
 #include "core/math.h"
 #include "core/interpolation.h"
 #include "core/animation.h"
+#include "core/scoped_counter.h"
 
 #include "core/system.h"
 #include "core/spin_lock.h"

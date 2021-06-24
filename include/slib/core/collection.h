@@ -28,8 +28,6 @@
 namespace slib
 {
 
-	class Variant;
-
 	class SLIB_EXPORT Collection : public Referable
 	{
 		SLIB_DECLARE_OBJECT

@@ -94,10 +94,10 @@ namespace slib
 						Sizei sizeContent = view->getContentSize();
 						Sizei sizeParent = view->getSize();
 						if (view->isHorizontalScrolling()) {
-							Windows::setWindowHorizontalScrollParam(handle, 0, sizeContent.x - 1, sizeParent.x);
+							UIPlatform::setWindowHorizontalScrollParam(handle, 0, sizeContent.x - 1, sizeParent.x);
 						}
 						if (view->isVerticalScrolling()) {
-							Windows::setWindowVerticalScrollParam(handle, 0, sizeContent.y - 1, sizeParent.y);
+							UIPlatform::setWindowVerticalScrollParam(handle, 0, sizeContent.y - 1, sizeParent.y);
 						}
 						refreshContentPosition(view, view->getScrollX(), view->getScrollY(), sl_false);
 					}
@@ -192,12 +192,12 @@ namespace slib
 					if (helper.isNotNull()) {
 						sl_bool flagUpdateScroll = sl_false;
 						if (helper->isHorizontalScrolling()) {
-							if (Windows::processWindowHorizontalScrollEvents(handle, msg, wParam, lParam, PRIV_SCROLL_LINE_SIZE, PRIV_SCROLL_WHEEL_SIZE)) {
+							if (UIPlatform::processWindowHorizontalScrollEvents(handle, msg, wParam, lParam, PRIV_SCROLL_LINE_SIZE, PRIV_SCROLL_WHEEL_SIZE)) {
 								flagUpdateScroll = sl_true;
 							}
 						}
 						if (helper->isVerticalScrolling()) {
-							if (Windows::processWindowVerticalScrollEvents(handle, msg, wParam, lParam, PRIV_SCROLL_LINE_SIZE, PRIV_SCROLL_WHEEL_SIZE)) {
+							if (UIPlatform::processWindowVerticalScrollEvents(handle, msg, wParam, lParam, PRIV_SCROLL_LINE_SIZE, PRIV_SCROLL_WHEEL_SIZE)) {
 								flagUpdateScroll = sl_true;
 							}
 						}

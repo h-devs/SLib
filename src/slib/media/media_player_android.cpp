@@ -28,7 +28,7 @@
 #include "slib/render/opengl.h"
 
 #include "slib/core/hash_map.h"
-#include "slib/core/platform_android.h"
+#include "slib/core/platform.h"
 #include "slib/core/safe_static.h"
 
 #include <GLES2/gl2.h>
@@ -50,9 +50,9 @@ namespace slib
 			void OnCompleted(JNIEnv* env, jobject _this, jlong instance);
 			void OnPrepared(JNIEnv* env, jobject _this, jlong instance);
 
-			SLIB_JNI_BEGIN_CLASS(JMediaPlayer, "slib/platform/android/media/SMediaPlayer")
-				SLIB_JNI_STATIC_METHOD(openUrl, "openUrl", "(Ljava/lang/String;)Lslib/platform/android/media/SMediaPlayer;");
-				SLIB_JNI_STATIC_METHOD(openAsset, "openAsset", "(Landroid/content/Context;Ljava/lang/String;)Lslib/platform/android/media/SMediaPlayer;");
+			SLIB_JNI_BEGIN_CLASS(JMediaPlayer, "slib/android/media/SMediaPlayer")
+				SLIB_JNI_STATIC_METHOD(openUrl, "openUrl", "(Ljava/lang/String;)Lslib/android/media/SMediaPlayer;");
+				SLIB_JNI_STATIC_METHOD(openAsset, "openAsset", "(Landroid/content/Context;Ljava/lang/String;)Lslib/android/media/SMediaPlayer;");
 				SLIB_JNI_METHOD(setInstance, "setInstance", "(J)V");
 				SLIB_JNI_METHOD(start, "start", "()V");
 				SLIB_JNI_METHOD(pause, "pause", "()V");
@@ -102,7 +102,7 @@ namespace slib
 			public:
 				static Ref<MediaPlayerImpl> create(const MediaPlayerParam& param)
 				{
-					JniLocal<jobject> player;
+					JniGlobal<jobject> player;
 					if (param.url.isNotEmpty()) {
 						JniLocal<jstring> url = Jni::getJniString(param.url);
 						player = JMediaPlayer::openUrl.callObject(sl_null, url.get());
@@ -111,9 +111,9 @@ namespace slib
 						player = JMediaPlayer::openUrl.callObject(sl_null, filePath.get());
 					} else if (param.assetFileName.isNotEmpty()) {
 						JniLocal<jstring> assetFileName = Jni::getJniString(param.assetFileName);
-						jobject jactivity = Android::getCurrentActivity();
-						if (jactivity) {
-							player = JMediaPlayer::openAsset.callObject(sl_null, jactivity, assetFileName.get());
+						jobject context = Android::getCurrentContext();
+						if (context) {
+							player = JMediaPlayer::openAsset.callObject(sl_null, context, assetFileName.get());
 						}
 					}
 					if (player.isNull()) {
@@ -122,16 +122,16 @@ namespace slib
 
 					Ref<MediaPlayerImpl> ret = new MediaPlayerImpl;
 					if (ret.isNotNull()) {
-						ret->m_player = player;
 						ret->_init(param);
 						MediaPlayerMap* map = GetMediaPlayerMap();
 						if (map) {
 							jlong instance = (jlong)(ret.get());
 							map->put(instance, ret);
-							JMediaPlayer::setInstance.call(player.get(), instance);
-							JMediaPlayer::setLooping.call(player.get(), param.flagAutoRepeat);
+							JMediaPlayer::setInstance.call(player, instance);
+							JMediaPlayer::setLooping.call(player, param.flagAutoRepeat);
 							ret->m_flagVideo = param.flagVideo;
 							ret->m_flagInited = sl_true;
+							ret->m_player = Move(player);
 							return ret;
 						}
 					}
@@ -146,10 +146,7 @@ namespace slib
 					}
 					m_flagInited = sl_false;
 					if (m_flagPrepared) {
-						JniGlobal<jobject> player = m_player;
-						if (player.isNotNull()) {
-							JMediaPlayer::stop.call(player.get());
-						}
+						JMediaPlayer::stop.call(m_player);
 					}
 					_removeFromMap();
 				}
@@ -164,7 +161,7 @@ namespace slib
 						return;
 					}
 					if (m_flagPrepared) {
-						JMediaPlayer::start.call(m_player.get());
+						JMediaPlayer::start.call(m_player);
 					}
 					m_flagPlaying = sl_true;
 					_addToMap();
@@ -180,7 +177,7 @@ namespace slib
 						return;
 					}
 					if (m_flagPrepared) {
-						JMediaPlayer::pause.call(m_player.get());
+						JMediaPlayer::pause.call(m_player);
 					}
 					m_flagPlaying = sl_false;
 					_removeFromMap();
@@ -197,7 +194,7 @@ namespace slib
 
 				sl_real getVolume() override
 				{
-					return (sl_real) JMediaPlayer::getVolume.callFloat(m_player.get());
+					return (sl_real) JMediaPlayer::getVolume.callFloat(m_player);
 				}
 
 				void setVolume(sl_real volume) override
@@ -206,14 +203,14 @@ namespace slib
 					if (!m_flagInited) {
 						return;
 					}
-					JMediaPlayer::setVolume.call(m_player.get(), volume);
+					JMediaPlayer::setVolume.call(m_player, volume);
 				}
 
 				double getDuration() override
 				{
 					ObjectLocker lock(this);
 					if (m_flagInited) {
-						return JMediaPlayer::getDuration.callDouble(m_player.get());
+						return JMediaPlayer::getDuration.callDouble(m_player);
 					}
 					return 0;
 				}
@@ -222,7 +219,7 @@ namespace slib
 				{
 					ObjectLocker lock(this);
 					if (m_flagInited) {
-						return JMediaPlayer::getCurrentTime.callDouble(m_player.get());
+						return JMediaPlayer::getCurrentTime.callDouble(m_player);
 					}
 					return 0;
 				}
@@ -231,7 +228,7 @@ namespace slib
 				{
 					ObjectLocker lock(this);
 					if (m_flagInited) {
-						JMediaPlayer::seekTo.call(m_player.get(), seconds);
+						JMediaPlayer::seekTo.call(m_player, seconds);
 					}
 				}
 
@@ -241,7 +238,7 @@ namespace slib
 					if (!m_flagInited) {
 						return;
 					}
-					JMediaPlayer::setLooping.call(m_player.get(), flagRepeat);
+					JMediaPlayer::setLooping.call(m_player, flagRepeat);
 				}
 
 				void renderVideo(MediaPlayerRenderVideoParam& param) override
@@ -282,12 +279,12 @@ namespace slib
 					}
 
 					EngineTexture* engineTexture = (EngineTexture*)(param.glTextureOES.get());
-					engineTexture->setWidth(JMediaPlayer::getVideoWidth.callInt(m_player.get()));
-					engineTexture->setHeight(JMediaPlayer::getVideoHeight.callInt(m_player.get()));
+					engineTexture->setWidth(JMediaPlayer::getVideoWidth.callInt(m_player));
+					engineTexture->setHeight(JMediaPlayer::getVideoHeight.callInt(m_player));
 
-					param.flagUpdated = JMediaPlayer::renderVideo.callBoolean(m_player.get(), textureName, flagResetTexture) != 0;
+					param.flagUpdated = JMediaPlayer::renderVideo.callBoolean(m_player, textureName, flagResetTexture) != 0;
 					if (param.flagUpdated) {
-						JniLocal<jfloatArray> arr = (jfloatArray)(JMediaPlayer::mTextureMatrix.get(m_player.get()));
+						JniLocal<jfloatArray> arr = JMediaPlayer::mTextureMatrix.get(m_player);
 						if (arr.isNotNull()) {
 							float t[16];
 							Jni::getFloatArrayRegion(arr.get(), 0, 16, t);
@@ -314,7 +311,7 @@ namespace slib
 					}
 					m_flagPrepared = sl_true;
 					if (m_flagPlaying) {
-						JMediaPlayer::start.call(m_player.get());
+						JMediaPlayer::start.call(m_player);
 					}
 					lock.unlock();
 					_onReadyToPlay();

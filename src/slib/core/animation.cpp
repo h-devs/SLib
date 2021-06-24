@@ -24,7 +24,7 @@
 
 #include "slib/core/thread.h"
 #include "slib/core/time.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/safe_static.h"
 
 namespace slib

@@ -29,7 +29,7 @@
 #include "slib/core/string.h"
 #include "slib/core/base.h"
 #include "slib/core/memory.h"
-#include "slib/core/platform_apple.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {

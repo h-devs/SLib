@@ -38,20 +38,14 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(SphereT)
 		
-		SphereT() noexcept = default;
+		SphereT() = default;
 
 		template <class O>
-		SphereT(const SphereT<O>& other) noexcept :
-			center(other.center), radius((T)(other.radius))
-		{}
+		constexpr SphereT(const SphereT<O>& other): center(other.center), radius((T)(other.radius)) {}
 
-		SphereT(const Vector3T<T>& _center, T _radius) noexcept :
-			center(_center), radius(_radius)
-		{}
+		constexpr SphereT(const Vector3T<T>& _center, T _radius): center(_center), radius(_radius) {}
 
-		SphereT(T xc, T yc, T zc, T _radius) noexcept :
-			center(xc, yc, zc), radius(_radius)
-		{}
+		constexpr SphereT(T xc, T yc, T zc, T _radius): center(xc, yc, zc), radius(_radius) {}
 
 	public:
 		sl_bool containsPoint(const Vector3T<T>& point) const noexcept

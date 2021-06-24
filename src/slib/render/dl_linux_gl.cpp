@@ -22,4 +22,4 @@
 
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "slib/render/dl_linux_gl.h"
+#include "slib/render/dl/linux/gl.h"

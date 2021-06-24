@@ -220,6 +220,9 @@ namespace slib
 
 		static void openDirectoryAndSelectFile(const StringParam& path);
 
+		
+		static void showKeyboard();
+
 		static void dismissKeyboard();
 		
 		static UIKeyboardAdjustMode getKeyboardAdjustMode();

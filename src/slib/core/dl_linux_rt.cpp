@@ -22,4 +22,4 @@
 
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "slib/core/dl_linux_rt.h"
+#include "slib/core/dl/linux/rt.h"

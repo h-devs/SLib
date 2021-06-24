@@ -24,11 +24,8 @@
 
 #include "slib/ui/view_page.h"
 #include "slib/ui/gesture.h"
-#include "slib/core/scoped.h"
-
-#if defined(SLIB_UI_IS_ANDROID)
-#	include "slib/core/platform_android.h"
-#endif
+#include "slib/ui/core.h"
+#include "slib/core/scoped_counter.h"
 
 namespace slib
 {
@@ -137,7 +134,7 @@ namespace slib
 		if (n == 0) {
 
 #if defined(SLIB_UI_IS_ANDROID)
-			Android::dismissKeyboard();
+			UI::dismissKeyboard();
 #endif
 
 			ScopedCounter counter(&m_countActiveTransitionAnimations);
@@ -160,7 +157,7 @@ namespace slib
 		}
 
 #if defined(SLIB_UI_IS_ANDROID)
-		Android::dismissKeyboard();
+		UI::dismissKeyboard();
 #endif
 
 		viewIn->setFrame(getBoundsInnerPadding(), UIUpdateMode::None);
@@ -314,7 +311,7 @@ namespace slib
 		Transition transition(*_transition);
 		
 #if defined(SLIB_UI_IS_ANDROID)
-		Android::dismissKeyboard();
+		UI::dismissKeyboard();
 #endif
 
 		Ref<View> viewBack = *(m_pages.getPointerAt(n - 2));

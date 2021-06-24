@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,8 @@
  */
 
 #include "slib/network/mac_address.h"
+
+#include "slib/core/string_buffer.h"
 
 namespace slib
 {
@@ -48,9 +50,11 @@ namespace slib
 		m[5] = m5;
 	}
 
-	MacAddress::MacAddress(const String& address) noexcept
+	MacAddress::MacAddress(const StringParam& address) noexcept
 	{
-		setString(address);
+		if (!(parse(address))) {
+			setZero();
+		}
 	}
 
 	void MacAddress::setZero() noexcept
@@ -113,36 +117,16 @@ namespace slib
 		m[5] = _m[5];
 	}
 
-	sl_compare_result MacAddress::compare(const MacAddress& other) const noexcept
-	{
-		return Base::compareMemory(m, other.m, 6);
-	}
-
-	sl_size MacAddress::getHashCode() const noexcept
-	{
-		return Rehash64ToSize(SLIB_MAKE_QWORD4(SLIB_MAKE_WORD(0, 0), SLIB_MAKE_DWORD(m[2], m[3], m[4], m[5])));
-	}
-
 	String MacAddress::toString(sl_char8 sep) const noexcept
 	{
-		String ret;
+		StringBuffer ret;
 		for (int i = 0; i < 6; i++) {
 			if (i) {
-				ret += String(sep, 1);
+				ret.addStatic(&sep, 1);
 			}
-			ret += String::fromUint32(m[i], 16, 2, sl_true);
+			ret.add(String::fromUint32(m[i], 16, 2, sl_true));
 		}
-		return ret;
-	}
-
-	sl_bool MacAddress::setString(const String& str) noexcept
-	{
-		if (parse(str)) {
-			return sl_true;
-		} else {
-			setZero();
-			return sl_false;
-		}
+		return ret.merge();
 	}
 
 	namespace priv
@@ -150,7 +134,7 @@ namespace slib
 		namespace mac_address
 		{
 			template <class CT>
-			SLIB_INLINE static sl_reg parse(MacAddress* obj, const CT* sz, sl_size i, sl_size n) noexcept
+			SLIB_INLINE static sl_reg Parse(MacAddress* obj, const CT* sz, sl_size i, sl_size n) noexcept
 			{
 				int v[6];
 				for (int k = 0; k < 6; k++) {
@@ -204,39 +188,14 @@ namespace slib
 		}
 	}
 
-	template <>
-	sl_reg Parser<MacAddress, sl_char8>::parse(MacAddress* _out, const sl_char8 *sz, sl_size posBegin, sl_size posEnd) noexcept
-	{
-		return priv::mac_address::parse(_out, sz, posBegin, posEnd);
-	}
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(MacAddress, priv::mac_address::Parse)
 
-	template <>
-	sl_reg Parser<MacAddress, sl_char16>::parse(MacAddress* _out, const sl_char16 *sz, sl_size posBegin, sl_size posEnd) noexcept
+	MacAddress& MacAddress::operator=(const StringParam& address) noexcept
 	{
-		return priv::mac_address::parse(_out, sz, posBegin, posEnd);
-	}
-
-
-	MacAddress& MacAddress::operator=(const String& address) noexcept
-	{
-		setString(address);
+		if (!(parse(address))) {
+			setZero();
+		}
 		return *this;
 	}
 
-
-	sl_compare_result Compare<MacAddress>::operator()(const MacAddress& a, const MacAddress& b) const noexcept
-	{
-		return a.compare(b);
-	}
-
-	sl_bool Equals<MacAddress>::operator()(const MacAddress& a, const MacAddress& b) const noexcept
-	{
-		return a == b;
-	}
-
-	sl_size Hash<MacAddress>::operator()(const MacAddress& a) const noexcept
-	{
-		return a.getHashCode();
-	}
-	
 }

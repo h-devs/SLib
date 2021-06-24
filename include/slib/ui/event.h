@@ -65,22 +65,10 @@ namespace slib
 
 	};
 
-	template<>
-	class Hash<Keycode>
-	{
-	public:
-		constexpr sl_size operator()(const Keycode& code) const
-		{
-			return Rehash32((sl_uint32)code);
-		}
-		
-	};
-
 	class SLIB_EXPORT KeycodeAndModifiers
 	{
 	public:
-		int value;
-		SLIB_MEMBERS_OF_PRIMITIVE_WRAPPER(KeycodeAndModifiers, int, value)
+		SLIB_DEFINE_PRIMITIVE_WRAPPER_MEMBERS(KeycodeAndModifiers, int, value)
 		
 	public:
 		constexpr KeycodeAndModifiers() : value(0) {}
@@ -138,7 +126,7 @@ namespace slib
 
 		String toString() const;
 		
-		sl_bool parse(const String& str);
+		sl_bool parse(const StringParam& str);
 		
 	public:
 		KeycodeAndModifiers& operator|=(int modifiers);

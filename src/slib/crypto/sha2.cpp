@@ -33,7 +33,7 @@ namespace slib
 		namespace sha2
 		{
 
-			SHA256Base::SHA256Base()
+			SHA256Base::SHA256Base() noexcept
 			{
 				rdata_len = 0;
 			}
@@ -42,13 +42,13 @@ namespace slib
 			{
 			}
 
-			void SHA256Base::_start()
+			void SHA256Base::_start() noexcept
 			{
 				rdata_len = 0;
 				sizeTotalInput = 0;
 			}
 
-			void SHA256Base::update(const void* _input, sl_size sizeInput)
+			void SHA256Base::update(const void* _input, sl_size sizeInput) noexcept
 			{
 				if (rdata_len >= 64) {
 					return;
@@ -86,7 +86,7 @@ namespace slib
 				}
 			}
 
-			void SHA256Base::_finish()
+			void SHA256Base::_finish() noexcept
 			{
 				if (rdata_len >= 64) {
 					return;
@@ -106,7 +106,7 @@ namespace slib
 				rdata_len = 0;
 			}
 
-			void SHA256Base::_updateSection(const sl_uint8* input)
+			void SHA256Base::_updateSection(const sl_uint8* input) noexcept
 			{
 				static sl_uint32 K[64] = {
 					0x428a2f98ul, 0x71374491ul, 0xb5c0fbcful, 0xe9b5dba5ul,
@@ -162,7 +162,7 @@ namespace slib
 				}
 			}
 
-			SHA512Base::SHA512Base()
+			SHA512Base::SHA512Base() noexcept
 			{
 				rdata_len = 0;
 			}
@@ -171,13 +171,13 @@ namespace slib
 			{
 			}
 
-			void SHA512Base::_start()
+			void SHA512Base::_start() noexcept
 			{
 				rdata_len = 0;
 				sizeTotalInput = 0;
 			}
 
-			void SHA512Base::update(const void* _input, sl_size sizeInput)
+			void SHA512Base::update(const void* _input, sl_size sizeInput) noexcept
 			{
 				if (rdata_len >= 128) {
 					return;
@@ -215,7 +215,7 @@ namespace slib
 				}
 			}
 
-			void SHA512Base::_finish()
+			void SHA512Base::_finish() noexcept
 			{
 				if (rdata_len >= 128) {
 					return;
@@ -235,7 +235,7 @@ namespace slib
 				rdata_len = 0;
 			}
 
-			void SHA512Base::_updateSection(const sl_uint8* input)
+			void SHA512Base::_updateSection(const sl_uint8* input) noexcept
 			{
 				static sl_uint64 K[80] = {
 					SLIB_UINT64(0x428a2f98d728ae22), SLIB_UINT64(0x7137449123ef65cd), SLIB_UINT64(0xb5c0fbcfec4d3b2f), SLIB_UINT64(0xe9b5dba58189dbbc), SLIB_UINT64(0x3956c25bf348b538),
@@ -294,7 +294,7 @@ namespace slib
 		}
 	}
 
-	SHA224::SHA224()
+	SHA224::SHA224() noexcept
 	{
 	}
 
@@ -302,7 +302,7 @@ namespace slib
 	{
 	}
 
-	void SHA224::start()
+	void SHA224::start() noexcept
 	{
 		_start();
 		h[0] = 0xc1059ed8ul;
@@ -315,7 +315,7 @@ namespace slib
 		h[7] = 0xbefa4fa4ul;
 	}
 
-	void SHA224::finish(void* _output)
+	void SHA224::finish(void* _output) noexcept
 	{
 		_finish();
 		sl_uint8* output = (sl_uint8*)_output;
@@ -326,7 +326,7 @@ namespace slib
 	}
 
 
-	SHA256::SHA256()
+	SHA256::SHA256() noexcept
 	{
 	}
 
@@ -334,7 +334,7 @@ namespace slib
 	{
 	}
 
-	void SHA256::start()
+	void SHA256::start() noexcept
 	{
 		_start();
 		h[0] = 0x6a09e667ul;
@@ -347,7 +347,7 @@ namespace slib
 		h[7] = 0x5be0cd19ul;
 	}
 
-	void SHA256::finish(void* _output)
+	void SHA256::finish(void* _output) noexcept
 	{
 		_finish();
 		sl_uint8* output = (sl_uint8*)_output;
@@ -358,7 +358,7 @@ namespace slib
 	}
 
 
-	SHA384::SHA384()
+	SHA384::SHA384() noexcept
 	{
 	}
 
@@ -366,7 +366,7 @@ namespace slib
 	{
 	}
 
-	void SHA384::start()
+	void SHA384::start() noexcept
 	{
 		_start();
 		h[0] = SLIB_UINT64(0xcbbb9d5dc1059ed8);
@@ -379,7 +379,7 @@ namespace slib
 		h[7] = SLIB_UINT64(0x47b5481dbefa4fa4);
 	}
 
-	void SHA384::finish(void* _output)
+	void SHA384::finish(void* _output) noexcept
 	{
 		_finish();
 		sl_uint8* output = (sl_uint8*)_output;
@@ -390,7 +390,7 @@ namespace slib
 	}
 
 
-	SHA512::SHA512()
+	SHA512::SHA512() noexcept
 	{
 	}
 
@@ -398,7 +398,7 @@ namespace slib
 	{
 	}
 
-	void SHA512::start()
+	void SHA512::start() noexcept
 	{
 		_start();
 		h[0] = SLIB_UINT64(0x6a09e667f3bcc908);
@@ -411,7 +411,7 @@ namespace slib
 		h[7] = SLIB_UINT64(0x5be0cd19137e2179);
 	}
 
-	void SHA512::finish(void* _output)
+	void SHA512::finish(void* _output) noexcept
 	{
 		_finish();
 		sl_uint8* output = (sl_uint8*)_output;
@@ -421,7 +421,7 @@ namespace slib
 		}
 	}
 
-	sl_uint32 SHA256::make32bitChecksum(const void* input, sl_size n)
+	sl_uint32 SHA256::make32bitChecksum(const void* input, sl_size n) noexcept
 	{
 		char hash[32];
 		SHA256::hash(input, (sl_uint32)n, hash);

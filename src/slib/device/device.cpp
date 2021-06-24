@@ -101,27 +101,7 @@ namespace slib
 	}
 #endif
 
-	String Device::getIMEI()
-	{
-		return getIMEIs().getValueAt(0);
-	}
-
-	String Device::getPhoneNumber()
-	{
-		return getPhoneNumbers().getValueAt(0);
-	}
-
 #if !defined(SLIB_PLATFORM_IS_ANDROID)
-	List<String> Device::getIMEIs()
-	{
-		return sl_null;
-	}
-
-	List<String> Device::getPhoneNumbers()
-	{
-		return sl_null;
-	}
-
 	sl_uint32 Device::getSimSlotsCount()
 	{
 #ifdef SLIB_PLATFORM_IS_MOBILE
@@ -131,7 +111,22 @@ namespace slib
 #endif
 	}
 
-	String Device::getPhoneNumber(sl_uint32 indexSIM)
+	List<String> Device::getIMEIs()
+	{
+		return sl_null;
+	}
+
+	String Device::getIMEI(sl_uint32 indexSlot)
+	{
+		return sl_null;
+	}
+
+	List<String> Device::getPhoneNumbers()
+	{
+		return sl_null;
+	}
+
+	String Device::getPhoneNumber(sl_uint32 indexSlot)
 	{
 		return sl_null;
 	}

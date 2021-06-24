@@ -72,9 +72,7 @@ namespace slib
 				Function<void()> m_callback;
 				
 			public:
-				SLIB_INLINE UICallback(const Function<void()>& callback) noexcept
-				 : m_callback(callback)
-				{}
+				UICallback(const Function<void()>& callback) noexcept: m_callback(callback) {}
 				
 			public:
 				void invoke() noexcept override
@@ -91,12 +89,12 @@ namespace slib
 			class DispatcherImpl : public Dispatcher
 			{
 			public:
-				sl_bool dispatch(const Function<void()>& callback, sl_uint64 delay_ms) override
+				sl_bool dispatch(const Function<void()>& callback, sl_uint64 delayMillis) override
 				{
-					if (delay_ms > 0x7fffffff) {
-						delay_ms = 0x7fffffff;
+					if (delayMillis > 0x7fffffff) {
+						delayMillis = 0x7fffffff;
 					}
-					UI::dispatchToUiThread(callback, (sl_uint32)delay_ms);
+					UI::dispatchToUiThread(callback, (sl_uint32)delayMillis);
 					return sl_true;
 				}
 			};
@@ -296,55 +294,36 @@ namespace slib
 
 	UIRect UI::getScreenRegion()
 	{
-		return UI::getScreenRegion(Ref<Screen>::null());
+		UISize size = Device::getScreenSize();
+		return UIRect(0, 0, size.x, size.y);
 	}
 
 	UIRect UI::getScreenRegion(const Ref<Screen>& _screen)
 	{
-		Ref<Screen> screen = _screen;
-		if (screen.isNull()) {
-			screen = getPrimaryScreen();
-			if (screen.isNull()) {
-				return UIRect::zero();
-			}
-		}
-		return screen->getRegion();
+		UISize size = Device::getScreenSize();
+		return UIRect(0, 0, size.x, size.y);
 	}
 
 	UIRect UI::getScreenBounds()
 	{
-		return UI::getScreenBounds(Ref<Screen>::null());
+		UISize size = Device::getScreenSize();
+		return UIRect(0, 0, size.x, size.y);
 	}
 
 	UIRect UI::getScreenBounds(const Ref<Screen>& _screen)
 	{
-		Ref<Screen> screen = _screen;
-		if (screen.isNull()) {
-			screen = getPrimaryScreen();
-			if (screen.isNull()) {
-				return UIRect::zero();
-			}
-		}
-		UIRect region = screen->getRegion();
-		return UIRect(0, 0, region.getWidth(), region.getHeight());
+		UISize size = Device::getScreenSize();
+		return UIRect(0, 0, size.x, size.y);
 	}
 
 	UISize UI::getScreenSize()
 	{
-		return UI::getScreenSize(Ref<Screen>::null());
+		return Device::getScreenSize();
 	}
 
 	UISize UI::getScreenSize(const Ref<Screen>& _screen)
 	{
-		Ref<Screen> screen = _screen;
-		if (screen.isNull()) {
-			screen = getPrimaryScreen();
-			if (screen.isNull()) {
-				return UISize::zero();
-			}
-		}
-		UIRect region = screen->getRegion();
-		return UISize(region.getWidth(), region.getHeight());
+		return Device::getScreenSize();
 	}
 
 	sl_ui_len UI::getScreenWidth()
@@ -757,6 +736,12 @@ namespace slib
 	}
 #endif
 
+#if !defined(SLIB_UI_IS_ANDROID)
+	void UI::showKeyboard()
+	{
+	}
+#endif
+	
 #if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_ANDROID)
 	void UI::dismissKeyboard()
 	{

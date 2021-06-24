@@ -29,7 +29,7 @@
 #include "slib/graphics/image.h"
 #include "slib/graphics/platform.h"
 #include "slib/graphics/resource.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {
@@ -39,9 +39,9 @@ namespace slib
 		namespace android
 		{
 
-			SLIB_JNI_BEGIN_CLASS(JBitmap, "slib/platform/android/ui/UiBitmap")
-				SLIB_JNI_STATIC_METHOD(drawPixels, "drawPixels", "(Lslib/platform/android/ui/Graphics;FFFF[IIIIFF)V");
-				SLIB_JNI_STATIC_METHOD(drawPixelsWithColorMatrix, "drawPixels", "(Lslib/platform/android/ui/Graphics;FFFF[IIIIFFFFFFFFFFFFFFFFFFFFFF)V");
+			SLIB_JNI_BEGIN_CLASS(JBitmap, "slib/android/ui/UiBitmap")
+				SLIB_JNI_STATIC_METHOD(drawPixels, "drawPixels", "(Lslib/android/ui/Graphics;FFFF[IIIIFF)V");
+				SLIB_JNI_STATIC_METHOD(drawPixelsWithColorMatrix, "drawPixels", "(Lslib/android/ui/Graphics;FFFF[IIIIFFFFFFFFFFFFFFFFFFFFFF)V");
 				SLIB_JNI_STATIC_METHOD(getArrayBuffer, "getArrayBuffer", "()[I");
 				SLIB_JNI_STATIC_METHOD(returnArrayBuffer, "returnArrayBuffer", "([I)V");
 			SLIB_JNI_END_CLASS
@@ -136,7 +136,7 @@ namespace slib
 					sl_uint32 width = (sl_uint32)(rectSrc.getWidth());
 					sl_uint32 height = (sl_uint32)(rectSrc.getHeight());
 
-					JniLocal<jintArray> abuf = (jintArray)(JBitmap::getArrayBuffer.callObject(sl_null));
+					JniLocal<jintArray> abuf = JBitmap::getArrayBuffer.callObject(sl_null);
 					if (abuf.isNotNull()) {
 						sl_uint32 nAbuf = Jni::getArrayLength(abuf);
 						if (nAbuf >= width) {
@@ -161,13 +161,13 @@ namespace slib
 										for (sl_uint32 x = 0; x < width; x++) {
 											jpixels[x] = pixelsCurrent[x].getARGB();
 										}
-										Jni::setIntArrayRegion(abuf.value, r*width, width, (jint*)(jpixels));
+										Jni::setIntArrayRegion(abuf, r*width, width, (jint*)(jpixels));
 										pixelsCurrent += image.stride;
 									}
 									if (param.useColorMatrix) {
 										JBitmap::drawPixelsWithColorMatrix.call(sl_null, jcanvas,
 											rectDst.left, yCurrent, rectDst.right, yCurrent + heightSegmentDst,
-											abuf.value, width, width, heightSegment,
+											abuf.get(), width, width, heightSegment,
 											alpha, blur,
 											cr.x, cr.y, cr.z, cr.w,
 											cg.x, cg.y, cg.z, cg.w,
@@ -178,7 +178,7 @@ namespace slib
 									} else {
 										JBitmap::drawPixels.call(sl_null, jcanvas,
 											rectDst.left, yCurrent, rectDst.right, yCurrent + heightSegmentDst,
-											abuf.value, width, width, heightSegment,
+											abuf.get(), width, width, heightSegment,
 											alpha, blur);
 									}
 
@@ -188,7 +188,7 @@ namespace slib
 								delete[] jpixels;
 							}
 						}
-						JBitmap::returnArrayBuffer.call(sl_null, abuf.value);
+						JBitmap::returnArrayBuffer.call(sl_null, abuf.get());
 					}
 				}
 

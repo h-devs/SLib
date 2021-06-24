@@ -42,7 +42,7 @@ namespace slib
 
 			};
 
-			SLIB_INLINE UIRect MakeWindowFrame(Window* window)
+			SLIB_INLINE static UIRect MakeWindowFrame(Window* window)
 			{
 				return ((WindowHelper*)window)->makeFrame();
 			}

@@ -23,7 +23,7 @@
 #include "slib/network/dns.h"
 
 #include "slib/network/event.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/mio.h"
 #include "slib/core/log.h"
 

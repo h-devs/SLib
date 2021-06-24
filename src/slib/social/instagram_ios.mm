@@ -28,7 +28,7 @@
 
 #include "slib/ui/photo.h"
 #include "slib/ui/core.h"
-#include "slib/core/platform_apple.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {

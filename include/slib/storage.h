@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 #ifndef CHECKHEADER_SLIB_STORAGE_HEADER
 #define CHECKHEADER_SLIB_STORAGE_HEADER
 
+#include "storage/storage.h"
 #include "storage/disk.h"
 
 #include "storage/file_system.h"

@@ -39,30 +39,23 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(LineSegmentT)
 		
-		LineSegmentT() noexcept = default;
+		LineSegmentT() = default;
 
 		template <class O>
-		LineSegmentT(const LineSegmentT<O>& other) noexcept :
-			point1(other.point1), point2(other.point2)
-		{
-		}
+		LineSegmentT(const LineSegmentT<O>& other): point1(other.point1), point2(other.point2) {}
 
-		LineSegmentT(const PointT<T>& _point1, const PointT<T>& _point2) noexcept :
-			point1(_point1), point2(_point2)
+		LineSegmentT(const PointT<T>& _point1, const PointT<T>& _point2): point1(_point1), point2(_point2)
 		{
 			point1 = _point1;
 			point2 = _point2;
 		}
 
-		LineSegmentT(T x1, T y1, T x2, T y2) noexcept :
-			point1(x1, y1), point2(x2, y2)
-		{
-		}
+		LineSegmentT(T x1, T y1, T x2, T y2): point1(x1, y1), point2(x2, y2) {}
 
 	public:
-		Vector2T<T> getDirection() const noexcept
+		constexpr Vector2T<T> getDirection() const
 		{
-			return (point2 - point1);
+			return point2 - point1;
 		}
 
 		T getLength2p() const noexcept
@@ -84,8 +77,7 @@ namespace slib
 		PointT<T> projectPoint(const PointT<T>& point) const noexcept
 		{
 			Vector2T<T> dir = point2 - point1;
-			PointT<T> ret = point1 + (point - point1).dot(dir) * dir;
-			return ret;
+			return point1 + (point - point1).dot(dir) * dir;
 		}
 
 		T getDistanceFromPoint(const PointT<T>& point) const noexcept

@@ -24,7 +24,7 @@
 #include "slib/core/parse_util.h"
 
 #include "slib/core/list.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/math.h"
 
 namespace slib
@@ -577,7 +577,7 @@ namespace slib
 			{
 			public:
 				template <class T>
-				SLIB_INLINE sl_bool operator()(const T& ch) const noexcept
+				sl_bool operator()(const T& ch) const noexcept
 				{
 					return ch == '\r' || ch == '\n';
 				}
@@ -587,7 +587,7 @@ namespace slib
 			{
 			public:
 				template <class T>
-				SLIB_INLINE sl_bool operator()(const T& ch) const
+				sl_bool operator()(const T& ch) const
 				{
 					return ch != '\r' && ch != '\n';
 				}
@@ -597,7 +597,7 @@ namespace slib
 			{
 			public:
 				template <class T>
-				SLIB_INLINE sl_bool operator()(const T& ch) const noexcept
+				sl_bool operator()(const T& ch) const noexcept
 				{
 					return SLIB_CHAR_IS_WHITE_SPACE(ch);
 				}
@@ -607,7 +607,7 @@ namespace slib
 			{
 			public:
 				template <class T>
-				SLIB_INLINE sl_bool operator()(const T& ch) const noexcept
+				sl_bool operator()(const T& ch) const noexcept
 				{
 					return !SLIB_CHAR_IS_WHITE_SPACE(ch);
 				}
@@ -622,7 +622,7 @@ namespace slib
 
 			public:
 				template <class T>
-				SLIB_INLINE sl_bool operator()(const T& ch) const noexcept
+				sl_bool operator()(const T& ch) const noexcept
 				{
 					for (sl_size i = 0; i < count; i++) {
 						if (ch == list[i]) {
@@ -642,7 +642,7 @@ namespace slib
 
 			public:
 				template <class T>
-				SLIB_INLINE sl_bool operator()(const T& ch) const noexcept
+				sl_bool operator()(const T& ch) const noexcept
 				{
 					for (sl_size i = 0; i < count; i++) {
 						if (ch == list[i]) {

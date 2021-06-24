@@ -57,46 +57,90 @@ namespace slib
 		
 		Memory sign_RSA_SHA256(const void* data, sl_size sizeData);
 		
-		sl_bool verify_RSA_SHA256(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature);
+		sl_bool verify_RSA_SHA256(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature);
 
 		Memory sign_RSA_SHA384(const void* data, sl_size sizeData);
 		
-		sl_bool verify_RSA_SHA384(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature);
+		sl_bool verify_RSA_SHA384(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature);
 
 		Memory sign_RSA_SHA512(const void* data, sl_size sizeData);
 		
-		sl_bool verify_RSA_SHA512(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature);
+		sl_bool verify_RSA_SHA512(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature);
 		
 		Memory sign_RSA_PSS_SHA256(const void* data, sl_size sizeData);
 		
-		sl_bool verify_RSA_PSS_SHA256(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature);
+		sl_bool verify_RSA_PSS_SHA256(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature);
 
 		Memory sign_RSA_PSS_SHA384(const void* data, sl_size sizeData);
 		
-		sl_bool verify_RSA_PSS_SHA384(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature);
+		sl_bool verify_RSA_PSS_SHA384(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature);
 
 		Memory sign_RSA_PSS_SHA512(const void* data, sl_size sizeData);
 		
-		sl_bool verify_RSA_PSS_SHA512(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature);
+		sl_bool verify_RSA_PSS_SHA512(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature);
 
 
 		Memory sign_ECDSA_SHA256(const void* data, sl_size sizeData);
 		
-		sl_bool verify_ECDSA_SHA256(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature);
+		sl_bool verify_ECDSA_SHA256(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature);
 		
 		Memory sign_ECDSA_SHA384(const void* data, sl_size sizeData);
 		
-		sl_bool verify_ECDSA_SHA384(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature);
+		sl_bool verify_ECDSA_SHA384(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature);
 		
 		Memory sign_ECDSA_SHA512(const void* data, sl_size sizeData);
 		
-		sl_bool verify_ECDSA_SHA512(const void* data, sl_size sizeData, const void* signature, sl_uint32 sizeSignature);
+		sl_bool verify_ECDSA_SHA512(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature);
 		
 	private:
 		evp_pkey_st* m_key;
 		
 	};
-	
+
+	class SLIB_EXPORT OpenSSL_ECPublicKey_secp256k1 : public ECPublicKey_secp256k1
+	{
+	public:
+		OpenSSL_ECPublicKey_secp256k1();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OpenSSL_ECPublicKey_secp256k1)
+		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
+
+	public:
+		sl_bool checkValid() const;
+		
+		sl_bool verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const;
+
+	};
+
+	class SLIB_EXPORT OpenSSL_ECPrivateKey_secp256k1 : public ECPrivateKey_secp256k1
+	{
+	public:
+		OpenSSL_ECPrivateKey_secp256k1();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OpenSSL_ECPrivateKey_secp256k1)
+
+	public:
+		const OpenSSL_ECPublicKey_secp256k1& toPublicKey() const noexcept
+		{
+			return *((const OpenSSL_ECPublicKey_secp256k1*)(const ECPublicKey*)this);
+		}
+
+		OpenSSL_ECPublicKey_secp256k1& toPublicKey() noexcept
+		{
+			return *((OpenSSL_ECPublicKey_secp256k1*)(ECPublicKey*)this);
+		}
+
+	public:
+		sl_bool generate() noexcept;
+
+		Memory generateSignature(const void* hash, sl_size size) const noexcept;
+
+		sl_bool checkValid() const noexcept;
+
+		sl_bool verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept;
+
+	};
+
 	class SLIB_EXPORT OpenSSL_Context : public TlsContext
 	{
 		SLIB_DECLARE_OBJECT

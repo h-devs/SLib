@@ -62,7 +62,7 @@ class PosixLogger final : public Logger {
           (iteration == 0) ? stack_buffer : new char[dynamic_buffer_size];
 
       // Print the header into the buffer.
-      int buffer_offset = std::snprintf(
+      int buffer_offset = snprintf(
           buffer, buffer_size, "%04d/%02d/%02d-%02d:%02d:%02d.%06d %s ",
           now_components.tm_year + 1900, now_components.tm_mon + 1,
           now_components.tm_mday, now_components.tm_hour, now_components.tm_min,
@@ -81,7 +81,7 @@ class PosixLogger final : public Logger {
       std::va_list arguments_copy;
       va_copy(arguments_copy, arguments);
       buffer_offset +=
-          std::vsnprintf(buffer + buffer_offset, buffer_size - buffer_offset,
+          vsnprintf(buffer + buffer_offset, buffer_size - buffer_offset,
                          format, arguments_copy);
       va_end(arguments_copy);
 

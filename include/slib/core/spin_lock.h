@@ -31,9 +31,9 @@ namespace slib
 	class SLIB_EXPORT SpinLock
 	{
 	public:
-		constexpr SpinLock() noexcept: m_flagLock(0) {}
+		constexpr SpinLock(): m_flagLock(0) {}
 
-		constexpr SpinLock(const SpinLock&) noexcept: m_flagLock(0) {}
+		constexpr SpinLock(const SpinLock&): m_flagLock(0) {}
 
 	public:
 		void lock() const noexcept;
@@ -57,7 +57,7 @@ namespace slib
 
 		SpinLocker(const SpinLock* lock) noexcept;
 
-		~SpinLocker() noexcept;
+		~SpinLocker();
 
 	public:
 		void lock(const SpinLock* lock) noexcept;
@@ -74,7 +74,7 @@ namespace slib
 	public:
 		DualSpinLocker(const SpinLock* lock1, const SpinLock* lock2) noexcept;
 		
-		~DualSpinLocker() noexcept;
+		~DualSpinLocker();
 		
 	public:
 		void unlock() noexcept;

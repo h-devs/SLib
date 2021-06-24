@@ -1,4 +1,4 @@
-package slib.platform.android.wechat;
+package slib.android.wechat;
 
 import android.app.Activity;
 import android.content.Intent;

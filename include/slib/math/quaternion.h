@@ -40,20 +40,14 @@ namespace slib
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(QuaternionT)
 		
-		QuaternionT() noexcept = default;
+		QuaternionT() = default;
 
 		template <class O>
-		constexpr QuaternionT(const QuaternionT<O>& other)
-		 : x((T)(other.x)), y((T)(other.y)), z((T)(other.z)), w((T)(other.w))
-		 {}
+		constexpr QuaternionT(const QuaternionT<O>& other): x((T)(other.x)), y((T)(other.y)), z((T)(other.z)), w((T)(other.w)) {}
 	
-		QuaternionT(T _x, T _y, T _z, T _w)
-		 : x(_x), y(_y), z(_z), w(_w)
-		 {}
+		constexpr QuaternionT(T _x, T _y, T _z, T _w): x(_x), y(_y), z(_z), w(_w) {}
 
-		QuaternionT(const Vector4T<T>& other)
-		 : x(other.x), y(other.y), z(other.z), w(other.w)
-		 {}
+		constexpr QuaternionT(const Vector4T<T>& other): x(other.x), y(other.y), z(other.z), w(other.w) {}
 	
 	public:
 		static const QuaternionT<T>& identity() noexcept
@@ -152,6 +146,16 @@ namespace slib
 			return ret;
 		}
 
+		constexpr sl_bool equals(const QuaternionT& other) const
+		{
+			return x == other.x && y == other.y && z == other.z && w == other.w;
+		}
+
+		constexpr sl_bool isAlmostEqual(const QuaternionT& other) const
+		{
+			return Math::isAlmostZero(x - other.x) && Math::isAlmostZero(y - other.y) && Math::isAlmostZero(z - other.z) && Math::isAlmostZero(w - other.w);
+		}
+
 	public:
 		template <class O>
 		QuaternionT<T>& operator=(const QuaternionT<O>& other) noexcept
@@ -197,17 +201,7 @@ namespace slib
 			ret.divide(other);
 			return ret;
 		}
-
-		sl_bool operator==(const QuaternionT<T>& other) const noexcept
-		{
-			return (x == other.x) && (y == other.y) && (z == other.z) && (w == other.w);
-		}
-
-		sl_bool operator!=(const QuaternionT<T>& other) const noexcept
-		{
-			return (x != other.x) || (y != other.y) || (z != other.z) || (w != other.w);
-		}
-
+		
 	};
 	
 	typedef QuaternionT<sl_real> Quaternion;

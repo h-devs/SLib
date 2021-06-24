@@ -2,7 +2,7 @@ package SLIB_TEMPLATE_APP_ID;
 
 import android.os.Bundle;
 
-import slib.platform.android.SlibActivity;
+import slib.android.SlibActivity;
 
 public class MainActivity extends SlibActivity {
 

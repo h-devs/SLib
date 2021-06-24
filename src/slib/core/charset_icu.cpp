@@ -29,7 +29,7 @@
 #include "slib/core/file.h"
 #include "slib/core/string.h"
 #include "slib/core/list.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #include "unicode/ucnv.h"
 
@@ -81,7 +81,7 @@ namespace slib
 			typedef const char* (*TYPE_ucnv_getAvailableName)(int32_t n);
 			TYPE_ucnv_getAvailableName SLIB_ucnv_getAvailableName = sl_null;
 
-			SLIB_INLINE static void* LoadSymbolWithSuffix(void* handle, const char* symbol, const String& suffix)
+			static void* LoadSymbolWithSuffix(void* handle, const char* symbol, const String& suffix)
 			{
 				if (suffix.isNotEmpty()) {
 					StringCstr s(symbol + suffix);
@@ -93,7 +93,7 @@ namespace slib
 				return dlsym(handle, symbol);
 			}
 
-			SLIB_INLINE static sl_bool LoadIcu()
+			static sl_bool LoadIcu()
 			{
 				static void* hDll = sl_null;
 				static sl_bool flagLoaded = sl_false;
@@ -139,7 +139,7 @@ namespace slib
 			}
 #endif
 
-			SLIB_INLINE static UConverter* OpenConverter(sl_uint32 codepage)
+			static UConverter* OpenConverter(sl_uint32 codepage)
 			{
 #ifdef LOAD_DLL
 				if (!(LoadIcu())) {

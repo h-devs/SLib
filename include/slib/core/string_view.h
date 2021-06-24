@@ -516,27 +516,6 @@ namespace slib
 
 	};
 
-	template <>
-	class Compare<StringView>
-	{
-	public:
-		sl_compare_result operator()(const StringView& a, const StringView& b) const noexcept;
-	};
-
-	template <>
-	class Equals<StringView>
-	{
-	public:
-		sl_bool operator()(const StringView& a, const StringView& b) const noexcept;
-	};
-
-	template <>
-	class Hash<StringView>
-	{
-	public:
-		sl_size operator()(const StringView& a) const noexcept;
-	};
-
 
 	class SLIB_EXPORT StringView16
 	{
@@ -1026,27 +1005,6 @@ namespace slib
 		sl_char16* data;
 		mutable sl_reg length;
 
-	};
-
-	template <>
-	class Compare<StringView16>
-	{
-	public:
-		sl_compare_result operator()(const StringView16& a, const StringView16& b) const noexcept;
-	};
-
-	template <>
-	class Equals<StringView16>
-	{
-	public:
-		sl_bool operator()(const StringView16& a, const StringView16& b) const noexcept;
-	};
-
-	template <>
-	class Hash<StringView16>
-	{
-	public:
-		sl_size operator()(const StringView16& a) const noexcept;
 	};
 
 }

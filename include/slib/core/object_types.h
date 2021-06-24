@@ -99,7 +99,6 @@ namespace slib
 			XmlComment,
 			XmlWhiteSpace,
 			GlobalUniqueInstance,
-			CJniGlobalBase,
 			CIteratorBase
 		};
 

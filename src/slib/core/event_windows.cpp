@@ -25,7 +25,7 @@
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
 #include "slib/core/event.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {
@@ -108,7 +108,7 @@ namespace slib
 		}
 	}
 
-	Ref<Event> Windows::createEvent(HANDLE hEvent, sl_bool flagCloseOnRelease)
+	Ref<Event> Win32::createEvent(HANDLE hEvent, sl_bool flagCloseOnRelease)
 	{
 		return priv::event::EventImpl::create(hEvent, flagCloseOnRelease);
 	}

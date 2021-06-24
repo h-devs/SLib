@@ -39,7 +39,7 @@
 #include "slib/graphics/util.h"
 #include "slib/render/canvas.h"
 #include "slib/core/timer.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 #include "ui_animation.h"
 
@@ -8659,13 +8659,13 @@ namespace slib
 				View* view;
 				
 			public:
-				SLIB_INLINE DuringEventScope(View* view, UIEvent* ev)
+				DuringEventScope(View* view, UIEvent* ev)
 				{
 					this->view = view;
 					view->setCurrentEvent(ev);
 				}
 				
-				SLIB_INLINE ~DuringEventScope()
+				~DuringEventScope()
 				{
 					view->setCurrentEvent(sl_null);
 				}

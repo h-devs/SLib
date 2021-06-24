@@ -28,7 +28,8 @@
 #include "slib/core/file_util.h"
 
 #include "slib/core/hash_map.h"
-#include "slib/core/dl_windows_kernel32.h"
+#include "slib/core/dl/win32/kernel32.h"
+#include "slib/core/platform.h"
 
 #include <winioctl.h>
 
@@ -114,19 +115,9 @@ namespace slib
 
 	sl_file File::_open(const StringParam& _filePath, const FileMode& mode, const FileAttributes& attrs)
 	{
-		StringCstr16 filePath(_filePath);
-		if (filePath.isEmpty()) {
-			return (sl_file)(INVALID_HANDLE_VALUE);
-		}
-
 		DWORD dwShareMode = 0;
 		DWORD dwDesiredAccess = 0;
-		DWORD dwCreateDisposition = 0;
-		DWORD dwFlags = 0;
 		if (mode & FileMode::Write) {
-			if (!(mode & FileMode::NotCreate)) {
-				dwFlags = attrs & 0x7ffff;
-			}
 		}
 		if (mode & FileMode::ShareRead) {
 			dwShareMode |= FILE_SHARE_READ;
@@ -161,7 +152,17 @@ namespace slib
 		if (mode & FileMode::Sync) {
 			dwDesiredAccess |= SYNCHRONIZE;
 		}
+
+		if (mode & FileMode::Device) {
+			return (sl_file)(Win32::createDeviceHandle(_filePath, dwDesiredAccess, dwShareMode));
+		}
+
+		DWORD dwCreateDisposition = 0;
+		DWORD dwFlags = 0;
 		if (mode & FileMode::Write) {
+			if (!(mode & FileMode::NotCreate)) {
+				dwFlags = attrs & 0x7ffff;
+			}
 			if (mode & FileMode::NotCreate) {
 				if (mode & FileMode::NotTruncate) {
 					dwCreateDisposition = OPEN_EXISTING;
@@ -185,14 +186,15 @@ namespace slib
 			dwFlags |= FILE_FLAG_BACKUP_SEMANTICS;
 		}
 
+		StringCstr16 filePath(_filePath);
 		HANDLE handle = CreateFileW(
-			(LPCWSTR)(filePath.getData())
-			, dwDesiredAccess
-			, dwShareMode
-			, NULL
-			, dwCreateDisposition
-			, dwFlags
-			, NULL
+			(LPCWSTR)(filePath.getData()),
+			dwDesiredAccess,
+			dwShareMode,
+			NULL,
+			dwCreateDisposition,
+			dwFlags,
+			NULL
 		);
 		return (sl_file)handle;
 	}

@@ -24,7 +24,7 @@
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
-#include "slib/core/win32_com.h"
+#include "slib/core/win32/com.h"
 #include "slib/core/log.h"
 
 #include <dshow.h>

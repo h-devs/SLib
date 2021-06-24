@@ -30,7 +30,7 @@
 namespace slib
 {
 
-	class Disk
+	class SLIB_EXPORT Disk
 	{
 	public:
 		static String getSerialNumber(sl_uint32 diskNo);
@@ -40,7 +40,7 @@ namespace slib
 		static sl_uint64 getTotalSize(const StringParam& path);
 
 		static sl_uint64 getFreeSize(const StringParam& path);
-
+		
 	};
 
 }

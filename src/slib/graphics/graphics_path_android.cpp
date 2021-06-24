@@ -27,7 +27,7 @@
 #include "slib/graphics/path.h"
 
 #include "slib/graphics/platform.h"
-#include "slib/core/scoped.h"
+#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {
@@ -44,7 +44,7 @@ namespace slib
 				SLIB_JNI_FLOAT_FIELD(bottom);
 			SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JPath, "slib/platform/android/ui/UiPath")
+			SLIB_JNI_BEGIN_CLASS(JPath, "slib/android/ui/UiPath")
 				SLIB_JNI_NEW(init, "()V");
 				SLIB_JNI_METHOD(setFillMode, "setFillMode", "(I)V");
 				SLIB_JNI_METHOD(moveTo, "moveTo", "(FF)V");
@@ -58,20 +58,14 @@ namespace slib
 			class GraphicsPathPlatformObject : public Referable
 			{
 			public:
-				JniGlobal<jobject> m_gpath;
-				jobject path;
+				JniGlobal<jobject> m_path;
 
 			public:
 				GraphicsPathPlatformObject()
 				{
-					path = 0;
-					JniLocal<jobject> jpath = JPath::init.newObject(sl_null);
-					if (jpath.isNotNull()) {
-						JniGlobal<jobject> gpath = jpath;
-						if (gpath.isNotNull()) {
-							m_gpath = gpath;
-							path = gpath.get();
-						}
+					JniGlobal<jobject> path = JPath::init.newObject(sl_null);
+					if (path.isNotNull()) {
+						m_path = Move(path);
 					}
 				}
 			};
@@ -83,7 +77,7 @@ namespace slib
 				{
 					GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
 					if (po) {
-						return po->path;
+						return po->m_path;
 					}
 					return 0;
 				}
@@ -97,7 +91,7 @@ namespace slib
 	sl_bool GraphicsPath::_initialize_PO()
 	{
 		Ref<GraphicsPathPlatformObject> po = new GraphicsPathPlatformObject;
-		if (po.isNotNull() && po->path) {
+		if (po.isNotNull() && po->m_path.isNotNull()) {
 			m_platformObject = po;
 			return sl_true;
 		}
@@ -108,7 +102,7 @@ namespace slib
 	{
 		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
 		if (po) {
-			JPath::moveTo.call(po->path, (float)(x), (float)(y));
+			JPath::moveTo.call(po->m_path, (float)(x), (float)(y));
 		}
 	}
 
@@ -116,7 +110,7 @@ namespace slib
 	{
 		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
 		if (po) {
-			JPath::lineTo.call(po->path, (float)(x), (float)(y));
+			JPath::lineTo.call(po->m_path, (float)(x), (float)(y));
 		}
 	}
 
@@ -124,7 +118,7 @@ namespace slib
 	{
 		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
 		if (po) {
-			JPath::cubicTo.call(po->path, (float)(xc1), (float)(yc1) , (float)(xc2), (float)(yc2) , (float)(xe), (float)(ye));
+			JPath::cubicTo.call(po->m_path, (float)(xc1), (float)(yc1) , (float)(xc2), (float)(yc2) , (float)(xe), (float)(ye));
 		}
 	}
 
@@ -132,7 +126,7 @@ namespace slib
 	{
 		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
 		if (po) {
-			JPath::closeSubpath.call(po->path);
+			JPath::closeSubpath.call(po->m_path);
 		}
 	}
 
@@ -140,7 +134,7 @@ namespace slib
 	{
 		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
 		if (po) {
-			JPath::setFillMode.call(po->path, (int)mode);
+			JPath::setFillMode.call(po->m_path, (int)mode);
 		}
 	}
 
@@ -148,7 +142,7 @@ namespace slib
 	{
 		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
 		if (po) {
-			JniLocal<jobject> jrect = JPath::getBounds.callObject(po->path);
+			JniLocal<jobject> jrect = JPath::getBounds.callObject(po->m_path);
 			if (jrect.isNotNull()) {
 				Rectangle ret;
 				ret.left = JRectF::left.get(jrect);
@@ -165,7 +159,7 @@ namespace slib
 	{
 		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
 		if (po) {
-			return (JPath::containsPoint.callBoolean(po->path, x, y)) != 0;
+			return (JPath::containsPoint.callBoolean(po->m_path, x, y)) != 0;
 		}
 		return sl_false;
 	}

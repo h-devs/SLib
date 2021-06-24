@@ -30,9 +30,9 @@
 #include "slib/ui/core.h"
 #include "slib/ui/drag.h"
 #include "slib/math/transform2d.h"
-#include "slib/core/win32_com.h"
+#include "slib/core/win32/com.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/dl_windows_user32.h"
+#include "slib/core/dl/win32/user32.h"
 
 #include <commctrl.h>
 #include <shellapi.h>
@@ -843,11 +843,11 @@ namespace slib
 	void Win32_ViewInstance::setBorder(View* view, sl_bool flag)
 	{
 		if (view->isClientEdge()) {
-			Windows::setWindowExStyle(m_handle, WS_EX_CLIENTEDGE, flag);
-			Windows::setWindowStyle(m_handle, WS_BORDER, sl_false);
+			UIPlatform::setWindowExStyle(m_handle, WS_EX_CLIENTEDGE, flag);
+			UIPlatform::setWindowStyle(m_handle, WS_BORDER, sl_false);
 		} else {
-			Windows::setWindowExStyle(m_handle, WS_EX_CLIENTEDGE, sl_false);
-			Windows::setWindowStyle(m_handle, WS_BORDER, flag);
+			UIPlatform::setWindowExStyle(m_handle, WS_EX_CLIENTEDGE, sl_false);
+			UIPlatform::setWindowStyle(m_handle, WS_BORDER, flag);
 		}
 	}
 
@@ -887,7 +887,7 @@ namespace slib
 		HWND handle = m_handle;
 		if (handle) {
 			String16 text = _text.toString16();
-			Windows::setWindowText(handle, text);
+			UIPlatform::setWindowText(handle, text);
 			m_text = Move(text);
 		}
 	}
@@ -938,16 +938,15 @@ namespace slib
 					Ref<Window> window = view->getWindow();
 					if (window.isNotNull()) {
 						colorBack = window->getBackgroundColor();
-						if (colorBack.a == 255) {
-							flagOpaque = sl_true;
-						}
 					}
 				}
 			}
 			if (!flagOpaque) {
-				Color c = GetDefaultBackColor();
-				c.blend_PA_NPA(colorBack);
-				colorBack = c;
+				if (colorBack.a < 255) {
+					Color c = GetDefaultBackColor();
+					c.blend_PA_NPA(colorBack);
+					colorBack = c;
+				}
 			}
 		}
 		
@@ -1241,7 +1240,7 @@ namespace slib
 
 					Ref<View>& viewDrag = dragContext.view;
 					if (viewDrag.isNotNull()) {
-						GenericDataObject* data = new GenericDataObject;
+						win32::GenericDataObject* data = new win32::GenericDataObject;
 						if (data) {
 							data->AddRef();
 							data->setText(dragContext.item.getText());

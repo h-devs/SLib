@@ -273,12 +273,29 @@ namespace slib
 	}
 	
 	
-	sl_bool IPv4PacketIdentifier::operator==(const IPv4PacketIdentifier& other) const
+	sl_bool IPv4PacketIdentifier::equals(const IPv4PacketIdentifier& other) const noexcept
 	{
 		return source == other.source && destination == other.destination && identification == other.identification && protocol == other.protocol;
 	}
 	
-	sl_size IPv4PacketIdentifier::getHashCode() const
+	sl_compare_result IPv4PacketIdentifier::compare(const IPv4PacketIdentifier& other) const noexcept
+	{
+		sl_compare_result result = source.compare(other.source);
+		if (result) {
+			return result;
+		}
+		result = destination.compare(other.destination);
+		if (result) {
+			return result;
+		}
+		result = ComparePrimitiveValues(identification, other.identification);
+		if (result) {
+			return result;
+		}
+		return ComparePrimitiveValues(protocol, other.protocol);
+	}
+
+	sl_size IPv4PacketIdentifier::getHashCode() const noexcept
 	{
 		sl_uint64 t = source.getHashCode();
 		t *= 961;
@@ -286,18 +303,6 @@ namespace slib
 		t *= 31;
 		t += SLIB_MAKE_DWORD2(identification, protocol);
 		return Rehash64ToSize(t);
-	}
-	
-	sl_compare_result Compare<IPv4PacketIdentifier>::operator()(const IPv4PacketIdentifier& a, const IPv4PacketIdentifier& b) const
-	{
-		sl_size _a = a.getHashCode();
-		sl_size _b = b.getHashCode();
-		return (_a < _b) ? -1 : (_a > _b);
-	}
-
-	sl_size Hash<IPv4PacketIdentifier>::operator()(const IPv4PacketIdentifier& v) const
-	{
-		return v.getHashCode();
 	}
 	
 	

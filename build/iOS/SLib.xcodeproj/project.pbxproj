@@ -143,18 +143,15 @@
 		26D9D80A1E9628E0005F7BD3 /* gcm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD37A1C117A3100D47AB0 /* gcm.cpp */; };
 		26D9D80D1E9628E0005F7BD3 /* charset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26D6C37C1D1E87E2008720E4 /* charset.cpp */; };
 		26D9D80E1E9628E0005F7BD3 /* system_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26CA8D701C23A61D0049A658 /* system_apple.mm */; };
-		26D9D80F1E9628E0005F7BD3 /* platform_windows.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2EDD1B039EF600854DAF /* platform_windows.cpp */; };
 		26D9D8101E9628E0005F7BD3 /* mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2ED91B039EF600854DAF /* mutex.cpp */; };
 		26D9D8111E9628E0005F7BD3 /* math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 260251FD1BF18BC200DEFAB1 /* math.cpp */; };
 		26D9D8131E9628E0005F7BD3 /* log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2ED71B039EF600854DAF /* log.cpp */; };
 		26D9D8151E9628E0005F7BD3 /* variant.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2EEC1B039EF600854DAF /* variant.cpp */; };
-		26D9D8161E9628E0005F7BD3 /* platform_android.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2EDA1B039EF600854DAF /* platform_android.cpp */; };
 		26D9D8171E9628E0005F7BD3 /* async_kqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2ECC1B039EF600854DAF /* async_kqueue.cpp */; };
 		26D9D8181E9628E0005F7BD3 /* int128.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3AD1C117B1200D47AB0 /* int128.cpp */; };
 		26D9D81B1E9628E0005F7BD3 /* collection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26C72AD01E22484F00F7D6D0 /* collection.cpp */; };
 		26D9D81C1E9628E0005F7BD3 /* preference_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = E1D3A42A1E14A38C00007A98 /* preference_apple.mm */; };
 		26D9D81D1E9628E0005F7BD3 /* json.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2ED61B039EF600854DAF /* json.cpp */; };
-		26D9D81E1E9628E0005F7BD3 /* java.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A2DE1DB91B3888DA00A74698 /* java.cpp */; };
 		26D9D8221E9628E0005F7BD3 /* pipe_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A2DE1DA11B383E8B00A74698 /* pipe_unix.cpp */; };
 		26D9D8231E9628E0005F7BD3 /* file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2ED21B039EF600854DAF /* file.cpp */; };
 		26D9D8241E9628E0005F7BD3 /* setting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2EE11B039EF600854DAF /* setting.cpp */; };
@@ -171,7 +168,7 @@
 		26D9D8321E9628E0005F7BD3 /* blowfish.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 268A13031E7B16340048F2CE /* blowfish.cpp */; };
 		26D9D8331E9628E0005F7BD3 /* content_type.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A234D6ED1B3F12F600ADDF4E /* content_type.cpp */; };
 		26D9D8341E9628E0005F7BD3 /* string.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2EE31B039EF600854DAF /* string.cpp */; };
-		26D9D8361E9628E0005F7BD3 /* platform_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = A25F2EDB1B039EF600854DAF /* platform_apple.mm */; };
+		26D9D8361E9628E0005F7BD3 /* apple_platform.mm in Sources */ = {isa = PBXBuildFile; fileRef = A25F2EDB1B039EF600854DAF /* apple_platform.mm */; };
 		26D9D8381E9628E0005F7BD3 /* thread_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = A25F2EE81B039EF600854DAF /* thread_apple.mm */; };
 		26D9D8391E9628E0005F7BD3 /* memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2ED81B039EF600854DAF /* memory.cpp */; };
 		26D9D83A1E9628E0005F7BD3 /* aes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3781C117A3100D47AB0 /* aes.cpp */; };
@@ -214,7 +211,7 @@
 		26D9D86D1E96294F005F7BD3 /* font_freetype.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3911C117AE300D47AB0 /* font_freetype.cpp */; };
 		26D9D86F1E96294F005F7BD3 /* graphics_path.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3941C117AE300D47AB0 /* graphics_path.cpp */; };
 		26D9D8701E96294F005F7BD3 /* graphics_path_quartz.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2601078F1DACE8E900C40723 /* graphics_path_quartz.mm */; };
-		26D9D8711E96294F005F7BD3 /* graphics_platform_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 260107911DACE8F200C40723 /* graphics_platform_apple.mm */; };
+		26D9D8711E96294F005F7BD3 /* quartz_platform.mm in Sources */ = {isa = PBXBuildFile; fileRef = 260107911DACE8F200C40723 /* quartz_platform.mm */; };
 		26D9D8721E96294F005F7BD3 /* graphics_resource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266F926F1D51CD7A0040166C /* graphics_resource.cpp */; };
 		26D9D8731E96294F005F7BD3 /* graphics_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26BFCFC21E41CFAF00F4493D /* graphics_text.cpp */; };
 		26D9D8741E96294F005F7BD3 /* graphics_util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3951C117AE300D47AB0 /* graphics_util.cpp */; };
@@ -380,7 +377,7 @@
 		260107891DACE8C400C40723 /* canvas_quartz.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = canvas_quartz.mm; sourceTree = "<group>"; };
 		2601078B1DACE8CF00C40723 /* drawable_quartz.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = drawable_quartz.mm; sourceTree = "<group>"; };
 		2601078F1DACE8E900C40723 /* graphics_path_quartz.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = graphics_path_quartz.mm; sourceTree = "<group>"; };
-		260107911DACE8F200C40723 /* graphics_platform_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = graphics_platform_apple.mm; sourceTree = "<group>"; };
+		260107911DACE8F200C40723 /* quartz_platform.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = quartz_platform.mm; sourceTree = "<group>"; };
 		260107B11DAD3E5400C40723 /* image_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = image_view.cpp; sourceTree = "<group>"; };
 		260251FD1BF18BC200DEFAB1 /* math.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = math.cpp; sourceTree = "<group>"; };
 		26072FFB20D8F535004EB272 /* font_quartz.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = font_quartz.mm; sourceTree = "<group>"; };
@@ -697,9 +694,7 @@
 		A25F2ED71B039EF600854DAF /* log.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = log.cpp; sourceTree = "<group>"; };
 		A25F2ED81B039EF600854DAF /* memory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = memory.cpp; sourceTree = "<group>"; };
 		A25F2ED91B039EF600854DAF /* mutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mutex.cpp; sourceTree = "<group>"; };
-		A25F2EDA1B039EF600854DAF /* platform_android.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = platform_android.cpp; sourceTree = "<group>"; };
-		A25F2EDB1B039EF600854DAF /* platform_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = platform_apple.mm; sourceTree = "<group>"; };
-		A25F2EDD1B039EF600854DAF /* platform_windows.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = platform_windows.cpp; sourceTree = "<group>"; };
+		A25F2EDB1B039EF600854DAF /* apple_platform.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = apple_platform.mm; sourceTree = "<group>"; };
 		A25F2EDF1B039EF600854DAF /* resource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = resource.cpp; sourceTree = "<group>"; };
 		A25F2EE01B039EF600854DAF /* service.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = service.cpp; sourceTree = "<group>"; };
 		A25F2EE11B039EF600854DAF /* setting.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = setting.cpp; sourceTree = "<group>"; };
@@ -717,7 +712,6 @@
 		A2DE1D9F1B383E8500A74698 /* pipe.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pipe.cpp; sourceTree = "<group>"; };
 		A2DE1DA11B383E8B00A74698 /* pipe_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pipe_unix.cpp; sourceTree = "<group>"; };
 		A2DE1DA51B383EA000A74698 /* system_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system_unix.cpp; sourceTree = "<group>"; };
-		A2DE1DB91B3888DA00A74698 /* java.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = java.cpp; sourceTree = "<group>"; };
 		D7C7097926458FD600FB3A32 /* pseudo_tcp_message.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pseudo_tcp_message.cpp; sourceTree = "<group>"; };
 		D7C7097A26458FD600FB3A32 /* pseudo_tcp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pseudo_tcp.cpp; sourceTree = "<group>"; };
 		D7C7097E26458FDF00FB3A32 /* dbip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dbip.cpp; sourceTree = "<group>"; };
@@ -797,7 +791,7 @@
 				266DD3911C117AE300D47AB0 /* font_freetype.cpp */,
 				266DD3941C117AE300D47AB0 /* graphics_path.cpp */,
 				2601078F1DACE8E900C40723 /* graphics_path_quartz.mm */,
-				260107911DACE8F200C40723 /* graphics_platform_apple.mm */,
+				260107911DACE8F200C40723 /* quartz_platform.mm */,
 				266F926F1D51CD7A0040166C /* graphics_resource.cpp */,
 				26BFCFC21E41CFAF00F4493D /* graphics_text.cpp */,
 				266DD3951C117AE300D47AB0 /* graphics_util.cpp */,
@@ -1032,7 +1026,6 @@
 				265A935523043C3400B155A2 /* global_unique_instance.cpp */,
 				26CE672A1DE8271500C1371F /* hash.cpp */,
 				A25F2ED51B039EF600854DAF /* io.cpp */,
-				A2DE1DB91B3888DA00A74698 /* java.cpp */,
 				A25F2ED61B039EF600854DAF /* json.cpp */,
 				26B571461C9D43D70099E69B /* list.cpp */,
 				26B571471C9D43D70099E69B /* locale.cpp */,
@@ -1045,9 +1038,7 @@
 				2682C3ED1E2D35A200E9CB98 /* parse.cpp */,
 				A2DE1D9F1B383E8500A74698 /* pipe.cpp */,
 				A2DE1DA11B383E8B00A74698 /* pipe_unix.cpp */,
-				A25F2EDA1B039EF600854DAF /* platform_android.cpp */,
-				A25F2EDB1B039EF600854DAF /* platform_apple.mm */,
-				A25F2EDD1B039EF600854DAF /* platform_windows.cpp */,
+				A25F2EDB1B039EF600854DAF /* apple_platform.mm */,
 				E1D3A4281E14A2FC00007A98 /* preference.cpp */,
 				E1D3A42A1E14A38C00007A98 /* preference_apple.mm */,
 				265A935723043CBE00B155A2 /* process.cpp */,
@@ -1510,7 +1501,6 @@
 				D7ECA22226317C7600D366A8 /* zstd_unity.c in Sources */,
 				26D9D80E1E9628E0005F7BD3 /* system_apple.mm in Sources */,
 				26D9D8AF1E962969005F7BD3 /* render_drawable.cpp in Sources */,
-				26D9D80F1E9628E0005F7BD3 /* platform_windows.cpp in Sources */,
 				26D9D8D21E962976005F7BD3 /* scroll_view_ios.mm in Sources */,
 				26D9D8C71E962976005F7BD3 /* motion_tracker.cpp in Sources */,
 				26D9D8BA1E962976005F7BD3 /* common_dialogs_ios.mm in Sources */,
@@ -1528,7 +1518,7 @@
 				267B9D65225D11450057DF2A /* instagram_ios.mm in Sources */,
 				26D9D8111E9628E0005F7BD3 /* math.cpp in Sources */,
 				26BB17E92200E1FE0089C7EC /* switch_view.cpp in Sources */,
-				26D9D8711E96294F005F7BD3 /* graphics_platform_apple.mm in Sources */,
+				26D9D8711E96294F005F7BD3 /* quartz_platform.mm in Sources */,
 				26D9D8DA1E962976005F7BD3 /* tree_view.cpp in Sources */,
 				263916F821C930FF008B335B /* zxing.cpp in Sources */,
 				26D9D8B01E962969005F7BD3 /* render_engine.cpp in Sources */,
@@ -1549,7 +1539,6 @@
 				26D9D85F1E962937005F7BD3 /* globe.cpp in Sources */,
 				26D9D8151E9628E0005F7BD3 /* variant.cpp in Sources */,
 				26C7959D221538D90053C5A1 /* clipboard.cpp in Sources */,
-				26D9D8161E9628E0005F7BD3 /* platform_android.cpp in Sources */,
 				26539FA82374BA130064340D /* ui_notification_xgpush_ios.mm in Sources */,
 				26E1ADB823688B8F002BF6B8 /* jwt_openssl.cpp in Sources */,
 				26D9D8171E9628E0005F7BD3 /* async_kqueue.cpp in Sources */,
@@ -1570,7 +1559,6 @@
 				26D9D88D1E96295A005F7BD3 /* media_player_apple.mm in Sources */,
 				260B73F8220D872600858EEA /* twitter.cpp in Sources */,
 				2644BD0823638FFB001B9842 /* table_layout.cpp in Sources */,
-				26D9D81E1E9628E0005F7BD3 /* java.cpp in Sources */,
 				26D9D8D41E962976005F7BD3 /* select_view_ios.mm in Sources */,
 				266CF0F025032CC700E694E3 /* combo_box.cpp in Sources */,
 				26D9D8E11E962976005F7BD3 /* ui_core_ios.mm in Sources */,
@@ -1676,7 +1664,7 @@
 				26BAE00A221BEE590085B5AB /* etsy_ui.cpp in Sources */,
 				26D9D8CC1E962976005F7BD3 /* progress_bar.cpp in Sources */,
 				26D9D8541E96292E005F7BD3 /* sqlite.cpp in Sources */,
-				26D9D8361E9628E0005F7BD3 /* platform_apple.mm in Sources */,
+				26D9D8361E9628E0005F7BD3 /* apple_platform.mm in Sources */,
 				26D9D8BC1E962976005F7BD3 /* edit_view.cpp in Sources */,
 				26D9D8BE1E962976005F7BD3 /* gesture.cpp in Sources */,
 				26D9D8D71E962976005F7BD3 /* tab_view.cpp in Sources */,
@@ -1775,7 +1763,7 @@
 				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/../../lib/iOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
-					SLIB_USE_OBJECT_TYPE_CONSTANTS,
+					SLIB_COMPILE_LIB,
 					"$(inherited)",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
@@ -1796,7 +1784,7 @@
 				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/../../lib/iOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					SLIB_USE_OBJECT_TYPE_CONSTANTS,
+					SLIB_COMPILE_LIB,
 					"$(inherited)",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;

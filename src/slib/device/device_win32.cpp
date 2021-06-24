@@ -27,7 +27,7 @@
 #include "slib/device/device.h"
 
 #include "slib/core/variant.h"
-#include "slib/core/platform_windows.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {
@@ -53,7 +53,7 @@ namespace slib
 
 	String Device::getSystemVersion()
 	{
-		WindowsVersion version = Windows::getVersion();
+		WindowsVersion version = Win32::getVersion();
 		return String::format("%d.%d", SLIB_WINDOWS_MAJOR_VERSION(version), SLIB_WINDOWS_MINOR_VERSION(version));
 	}
 	
@@ -63,7 +63,7 @@ namespace slib
 	*/
 	String Device::getSystemName()
 	{
-		WindowsVersion version = Windows::getVersion();
+		WindowsVersion version = Win32::getVersion();
 		switch (version) {
 		case WindowsVersion::Server2016:
 			return "Windows Server 2016";
@@ -124,7 +124,7 @@ namespace slib
 		ShellExecuteParam param;
 		param.operation = "open";
 		param.path = url;
-		Windows::shell(param);
+		Win32::shell(param);
 	}
 
 }

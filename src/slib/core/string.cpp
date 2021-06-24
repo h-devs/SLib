@@ -846,7 +846,7 @@ namespace slib
 	}
 
 
-	String::~String() noexcept
+	String::~String()
 	{
 		StringContainer* container = m_container;
 		if (container) {
@@ -854,7 +854,7 @@ namespace slib
 		}
 	}
 
-	String16::~String16() noexcept
+	String16::~String16()
 	{
 		StringContainer16* container = m_container;
 		if (container) {
@@ -862,7 +862,7 @@ namespace slib
 		}
 	}
 
-	Atomic<String>::~Atomic() noexcept
+	Atomic<String>::~Atomic()
 	{
 		StringContainer* container = m_container;
 		if (container) {
@@ -870,7 +870,7 @@ namespace slib
 		}
 	}
 
-	Atomic<String16>::~Atomic() noexcept
+	Atomic<String16>::~Atomic()
 	{
 		StringContainer16* container = m_container;
 		if (container) {

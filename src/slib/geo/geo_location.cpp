@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,52 +23,52 @@
 #include "slib/geo/geo_location.h"
 
 #include "slib/core/math.h"
-
+#include "slib/core/interpolation.h"
+#include <type_traits>
 namespace slib
 {
 
-	sl_bool GeoLocation::operator==(const GeoLocation& other) const
+	sl_bool GeoLocation::equals(const GeoLocation& other) const noexcept
+	{
+		return latitude == other.latitude && longitude == other.longitude && altitude == other.altitude;
+	}
+
+	sl_bool GeoLocation::isAlmostEqual(const GeoLocation& other) const noexcept
 	{
 		return Math::isAlmostZero(latitude - other.latitude) && Math::isAlmostZero(longitude - other.longitude) && Math::isAlmostZero(altitude - other.altitude);
 	}
 
-	sl_bool GeoLocation::operator!=(const GeoLocation& other) const
-	{
-		return !(Math::isAlmostZero(latitude - other.latitude)) || !(Math::isAlmostZero(longitude - other.longitude)) || !(Math::isAlmostZero(altitude - other.altitude));
-	}
-
-	LatLon& GeoLocation::getLatLon()
+	LatLon& GeoLocation::getLatLon() noexcept
 	{
 		return *((LatLon*)((void*)this));
 	}
 
-	const LatLon& GeoLocation::getLatLon() const
+	const LatLon& GeoLocation::getLatLon() const noexcept
 	{
 		return *((LatLon*)((void*)this));
 	}
 
-	void GeoLocation::setLatLon(const LatLon& v)
+	void GeoLocation::setLatLon(const LatLon& v) noexcept
 	{
 		latitude = v.latitude;
 		longitude = v.longitude;
 	}
 
-	void GeoLocation::setLatLon(double _latitude, double _longitude)
+	void GeoLocation::setLatLon(double _latitude, double _longitude) noexcept
 	{
 		latitude = _latitude;
 		longitude = _longitude;
 	}
 
-	void GeoLocation::normalize()
+	void GeoLocation::normalize() noexcept
 	{
 		latitude = LatLon::normalizeLatitude(latitude);
 		longitude = LatLon::normalizeLongitude(longitude);
 	}
 
-	GeoLocation GeoLocation::lerp(const GeoLocation& target, float factor) const
+	GeoLocation GeoLocation::lerp(const GeoLocation& target, float factor) const noexcept
 	{
-		return GeoLocation(LatLon(latitude, longitude).lerp(LatLon(target.latitude, target.longitude), factor),
-						SLIB_LERP(altitude, target.altitude, factor));
+		return GeoLocation(LatLon(latitude, longitude).lerp(LatLon(target.latitude, target.longitude), factor), SLIB_LERP(altitude, target.altitude, factor));
 	}
 
 }
