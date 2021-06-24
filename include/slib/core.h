@@ -47,6 +47,7 @@
 #include "core/ptr.h"
 #include "core/ptrx.h"
 #include "core/pointer.h"
+#include "core/shared.h"
 #include "core/shared_ptr.h"
 #include "core/unique_ptr.h"
 #include "core/scoped_buffer.h"
