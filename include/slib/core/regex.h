@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,9 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_REGEX
 #define CHECKHEADER_SLIB_CORE_REGEX
 
-#include "ref.h"
 #include "string.h"
 #include "flags.h"
+#include "handle_container.h"
 
 namespace slib
 {
@@ -58,73 +58,36 @@ namespace slib
 		FormatNoCopy = 0x0200,
 		FormatFirstOnly = 0x0400
 	})
-	
-	class CRegEx : public Referable
+
+	namespace priv
 	{
-		SLIB_DECLARE_OBJECT
-		
-	protected:
-		CRegEx() noexcept;
-		
-		~CRegEx() noexcept;
-		
+		namespace regex
+		{
+			struct HandleType;
+			void DeleteRegExHandle(void* handle) noexcept;
+		}
+	}
+
+	class RegEx
+	{
+		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(RegEx, priv::regex::HandleType*, m_handle, priv::regex::DeleteRegExHandle)
+
 	public:
-		static Ref<CRegEx> create(const StringParam& pattern) noexcept;
+		RegEx(const StringParam& pattern) noexcept;
 		
-		static Ref<CRegEx> create(const StringParam& pattern, const RegExFlags& flags) noexcept;
+		RegEx(const StringParam& pattern, const RegExFlags& flags) noexcept;
 
 	public:
 		sl_bool match(const StringParam& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
 		
-	private:
-		static Ref<CRegEx> _create(const StringParam& pattern, int flags) noexcept;
-		
-	private:
-		void* m_obj;
-		
+		static sl_bool matchEmail(const StringParam& str) noexcept;
+
 	};
-	
-	class RegEx;
 	
 	template <>
 	class SLIB_EXPORT Atomic<RegEx>
 	{
-	public:
-		SLIB_ATOMIC_REF_WRAPPER(CRegEx)
-		
-		Atomic(const StringParam& pattern) noexcept;
-		
-		Atomic(const StringParam& pattern, const RegExFlags& flags) noexcept;
-		
-	public:
-		sl_bool match(const StringParam& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
-
-	private:
-		AtomicRef<CRegEx> ref;
-		
-	};
-
-	typedef Atomic<RegEx> AtomicRegEx;
-
-	
-	class SLIB_EXPORT RegEx
-	{
-	public:
-		SLIB_REF_WRAPPER(RegEx, CRegEx)
-		
-		RegEx(const StringParam& pattern) noexcept;
-
-		RegEx(const StringParam& pattern, const RegExFlags& flags) noexcept;
-				
-	public:
-		sl_bool match(const StringParam& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
-		
-	public:
-		static sl_bool matchEmail(const StringParam& str) noexcept;
-
-	private:
-		Ref<CRegEx> ref;
-		
+		SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(RegEx, priv::regex::HandleType*, m_handle, priv::regex::DeleteRegExHandle)
 	};
 
 }
