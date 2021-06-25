@@ -67,7 +67,7 @@ namespace slib
 		sl_bool readDictionary(HashMap<String, String>& map);
 
 	private:
-		Ref<BufferedSeekableReader> m_reader;
+		BufferedSeekableReader m_reader;
 
 	};
 

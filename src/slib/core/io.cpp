@@ -1412,13 +1412,11 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_OBJECT(Stream, Object)
-
-	Stream::Stream()
+	IStream::IStream()
 	{
 	}
 
-	Stream::~Stream()
+	IStream::~IStream()
 	{
 	}
 	
@@ -1820,8 +1818,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_OBJECT(IO, Stream)
-
 	IO::IO()
 	{
 	}
@@ -1830,8 +1826,6 @@ namespace slib
 	{
 	}
 
-
-	SLIB_DEFINE_OBJECT(MemoryIO, IO)
 
 	MemoryIO::MemoryIO()
 	{
@@ -1855,7 +1849,6 @@ namespace slib
 
 	MemoryIO::~MemoryIO()
 	{
-		_free();
 	}
 
 	void MemoryIO::_initialize()
@@ -2169,8 +2162,6 @@ namespace slib
 		return -1;
 	}
 
-
-	SLIB_DEFINE_ROOT_OBJECT(MemoryReader)
 	
 	MemoryReader::MemoryReader(const Memory& mem)
 	{
@@ -2600,8 +2591,6 @@ namespace slib
 	}
 
 	
-	SLIB_DEFINE_ROOT_OBJECT(MemoryWriter)
-
 	MemoryWriter::MemoryWriter(const Memory& mem)
 	{
 		initialize(mem);
@@ -2832,8 +2821,6 @@ namespace slib
 	}
 
 	
-	SLIB_DEFINE_ROOT_OBJECT(MemoryOutput)
-
 	MemoryOutput::MemoryOutput()
 	{
 	}
@@ -2969,8 +2956,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_ROOT_OBJECT(BufferedReader)
-
 	BufferedReader::BufferedReader(): m_reader(sl_null), m_closable(sl_null), m_posInBuf(0), m_sizeRead(0), m_dataBuf(sl_null), m_sizeBuf(0)
 	{
 	}
@@ -2979,26 +2964,32 @@ namespace slib
 	{
 	}
 
-	Ref<BufferedReader> BufferedReader::create(const Ptrx<IReader, IClosable>& _obj, sl_size bufferSize)
+	sl_bool BufferedReader::open(const Ptrx<IReader, IClosable>& _obj, sl_size bufferSize)
 	{
 		if (!bufferSize) {
-			return sl_null;
+			return sl_false;
 		}
 		Ptrx<IReader, IClosable> obj = _obj.lock();
 		if (!(obj.ptr)) {
-			return sl_null;
+			return sl_false;
 		}
 		Memory buf = Memory::create(bufferSize);
 		if (buf.isNull()) {
-			return sl_null;
+			return sl_false;
 		}
 
-		Ref<BufferedReader> ret = new BufferedReader;
-		if (ret.isNotNull()) {
-			ret->_init(obj, buf);
-			return ret;
+		_init(obj, buf);
+		return sl_true;
+	}
+
+	void BufferedReader::close()
+	{
+		if (m_closable) {
+			m_closable->close();
 		}
-		return sl_null;
+		m_reader = sl_null;
+		m_closable = sl_null;
+		m_ref.setNull();
 	}
 
 	sl_reg BufferedReader::read(void* buf, sl_size size)
@@ -3030,16 +3021,6 @@ namespace slib
 		Base::copyMemory(buf, m_dataBuf + m_posInBuf, size);
 		m_posInBuf += size;
 		return size;
-	}
-
-	void BufferedReader::close()
-	{
-		if (m_closable) {
-			m_closable->close();
-		}
-		m_reader = sl_null;
-		m_closable = sl_null;
-		m_ref.setNull();
 	}
 
 	sl_bool BufferedReader::readInt8(sl_int8* output)
@@ -3310,8 +3291,6 @@ namespace slib
 	}
 
 	
-	SLIB_DEFINE_ROOT_OBJECT(BufferedWriter)
-
 	BufferedWriter::BufferedWriter(): m_writer(sl_null), m_closable(sl_null), m_dataBuf(sl_null), m_sizeBuf(0), m_sizeWritten(0)
 	{
 	}
@@ -3321,25 +3300,40 @@ namespace slib
 		flush();
 	}
 
-	Ref<BufferedWriter> BufferedWriter::create(const Ptrx<IWriter, IClosable>& _obj, sl_size bufferSize)
+	sl_bool BufferedWriter::open(const Ptrx<IWriter, IClosable>& _obj, sl_size bufferSize)
 	{
 		if (!bufferSize) {
-			return sl_null;
+			return sl_false;
 		}
 		Memory buf = Memory::create(bufferSize);
 		if (buf.isNull()) {
-			return sl_null;
+			return sl_false;
 		}
 		Ptrx<IWriter, IClosable> obj = _obj.lock();
 		if (!(obj.ptr)) {
-			return sl_null;
+			return sl_false;
 		}
-		Ref<BufferedWriter> ret = new BufferedWriter;
-		if (ret.isNotNull()) {
-			ret->_init(obj, buf);
-			return ret;
+		_init(obj, buf);
+		return sl_true;
+	}
+
+	sl_bool BufferedWriter::isOpened()
+	{
+		return m_writer != sl_null;
+	}
+
+	void BufferedWriter::close()
+	{
+		if (!m_writer) {
+			return;
 		}
-		return sl_null;
+		flush();
+		if (m_closable) {
+			m_closable->close();
+		}
+		m_writer = sl_null;
+		m_closable = sl_null;
+		m_ref.setNull();
 	}
 
 	sl_reg BufferedWriter::write(const void* buf, sl_size size)
@@ -3361,17 +3355,6 @@ namespace slib
 			}
 		}
 		return -1;
-	}
-
-	void BufferedWriter::close()
-	{
-		flush();
-		if (m_closable) {
-			m_closable->close();
-		}
-		m_writer = sl_null;
-		m_closable = sl_null;
-		m_ref.setNull();
 	}
 
 	sl_bool BufferedWriter::flush()
@@ -3529,8 +3512,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_ROOT_OBJECT(BufferedSeekableReader)
-
 	BufferedSeekableReader::BufferedSeekableReader() : m_reader(sl_null), m_seekable(sl_null), m_closable(sl_null), m_posCurrent(0), m_sizeTotal(0), m_posInternal(0), m_dataBuf(sl_null), m_sizeBuf(0), m_sizeRead(0), m_posBuf(0)
 	{
 	}
@@ -3539,34 +3520,35 @@ namespace slib
 	{
 	}
 
-	Ref<BufferedSeekableReader> BufferedSeekableReader::create(const Ptrx<IReader, ISeekable, IClosable>& _obj, sl_size bufferSize)
+	sl_bool BufferedSeekableReader::open(const Ptrx<IReader, ISeekable, IClosable>& _obj, sl_size bufferSize)
 	{
 		if (!bufferSize) {
-			return sl_null;
+			return sl_false;
 		}
 		Ptrx<IReader, ISeekable, IClosable> obj = _obj.lock();
 		if (!(obj.ptr)) {
-			return sl_null;
+			return sl_false;
 		}
 		ISeekable* seeker = obj;
 		if (!seeker) {
-			return sl_null;
+			return sl_false;
 		}
 		sl_uint64 size = seeker->getSize();
 		if (!size) {
-			return sl_null;
+			return sl_false;
 		}
 		Memory buf = Memory::create(bufferSize);
 		if (buf.isNull()) {
-			return sl_null;
+			return sl_false;
 		}
 
-		Ref<BufferedSeekableReader> ret = new BufferedSeekableReader;
-		if (ret.isNotNull()) {
-			ret->_init(obj, size, buf);
-			return ret;
-		}
-		return sl_null;
+		_init(obj, size, buf);
+		return sl_true;
+	}
+
+	sl_bool BufferedSeekableReader::isOpened()
+	{
+		return m_reader != sl_null;
 	}
 
 	void BufferedSeekableReader::_init(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_uint64 size, const Memory& buf)

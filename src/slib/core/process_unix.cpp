@@ -69,7 +69,7 @@ namespace slib
 				::exit(1);
 			}
 			
-			class ProcessStream : public Stream
+			class ProcessStream : public IStream
 			{
 			public:
 				int m_hRead;
@@ -90,7 +90,6 @@ namespace slib
 			public:
 				void close() override
 				{
-					ObjectLocker lock(this);
 					_close();
 				}
 				
@@ -152,7 +151,7 @@ namespace slib
 			{
 			public:
 				pid_t m_pid;
-				Ref<ProcessStream> m_stream;
+				ProcessStream m_stream;
 				
 			public:
 				ProcessImpl()
@@ -188,15 +187,11 @@ namespace slib
 								Ref<ProcessImpl> ret = new ProcessImpl;
 								if (ret.isNotNull()) {
 									ret->m_pid = pid;
-									Ref<ProcessStream> stream = new ProcessStream;
-									if (stream.isNotNull()) {
-										::close(hStdin[0]); // READ
-										::close(hStdout[1]); // WRITE
-										stream->m_hRead = hStdout[0];
-										stream->m_hWrite = hStdin[1];
-										ret->m_stream = stream;
-										return ret;
-									}
+									::close(hStdin[0]); // READ
+									::close(hStdout[1]); // WRITE
+									ret->m_stream.m_hRead = hStdout[0];
+									ret->m_stream.m_hWrite = hStdin[1];
+									return ret;
 								}
 							}
 							::close(hStdout[0]);
@@ -212,7 +207,7 @@ namespace slib
 				void terminate() override
 				{
 					ObjectLocker lock(this);
-					m_stream->close();
+					m_stream.close();
 					if (m_pid > 0) {
 						pid_t pid = m_pid;
 						m_pid = -1;
@@ -225,7 +220,7 @@ namespace slib
 				void kill() override
 				{
 					ObjectLocker lock(this);
-					m_stream->close();
+					m_stream.close();
 					if (m_pid > 0) {
 						pid_t pid = m_pid;
 						m_pid = -1;
@@ -246,7 +241,7 @@ namespace slib
 							int status = 0;
 							int ret = waitpid(pid, &status, WUNTRACED | WCONTINUED);
 							if (ret == -1) {
-								m_stream->close();
+								m_stream.close();
 								::kill(pid, SIGKILL);
 								m_status = ProcessStatus::Killed;
 								return;
@@ -269,7 +264,7 @@ namespace slib
 								System::sleep(1);
 							}
 						}
-						m_stream->close();
+						m_stream.close();
 					}
 				}
 
@@ -280,9 +275,9 @@ namespace slib
 					return waitpid(pid, &status, WNOHANG) != -1;
 				}
 
-				Ref<Stream> getStream() override
+				IStream* getStream() override
 				{
-					return Ref<Stream>::from(m_stream);
+					return &m_stream;
 				}
 				
 			};

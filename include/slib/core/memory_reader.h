@@ -29,10 +29,8 @@ namespace slib
 {
 	
 	// MemoryReader is not thread-safe
-	class SLIB_EXPORT MemoryReader : public Referable, public IReader, public ISeekable, public SeekableReaderBase<MemoryReader>
+	class SLIB_EXPORT MemoryReader : public IReader, public ISeekable, public SeekableReaderBase<MemoryReader>
 	{
-		SLIB_DECLARE_OBJECT
-		
 	public:
 		MemoryReader(const Memory& mem);
 	

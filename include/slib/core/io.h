@@ -24,7 +24,6 @@
 #define CHECKHEADER_SLIB_CORE_IO
 
 #include "io_base.h"
-#include "object.h"
 #include "memory.h"
 #include "string.h"
 #include "time.h"
@@ -32,14 +31,12 @@
 namespace slib
 {
 	
-	class SLIB_EXPORT Stream : public Object, public IReader, public IWriter, public IClosable
+	class SLIB_EXPORT IStream : public IReader, public IWriter, public IClosable
 	{
-		SLIB_DECLARE_OBJECT
-		
 	public:
-		Stream();
+		IStream();
 		
-		~Stream();
+		~IStream();
 		
 	};
 
@@ -184,10 +181,8 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT IO : public Stream, public ISeekable, public IResizable, public SeekableReaderBase<IO>, public SeekableWriterBase<IO>
+	class SLIB_EXPORT IO : public IStream, public ISeekable, public IResizable, public SeekableReaderBase<IO>, public SeekableWriterBase<IO>
 	{
-		SLIB_DECLARE_OBJECT
-
 	public:
 		IO();
 

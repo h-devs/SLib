@@ -105,8 +105,8 @@ namespace slib
 					String params[] = { "install", path + "\\tap0901.inf", "tap0901" };
 					Ref<Process> process = Process::open(path + "\\tapinstall.exe", params);
 					if (process.isNotNull()) {
-						Ref<Stream> stream = process->getStream();
-						if (stream.isNotNull()) {
+						IStream* stream = process->getStream();
+						if (stream) {
 							char buf[512];
 							sl_reg n = stream->readFully(buf, sizeof(buf) - 1);
 							if (n > 0) {
@@ -144,8 +144,8 @@ namespace slib
 					String params[] = { "remove", "tap0901" };
 					Ref<Process> process = Process::open(path + "\\tapinstall.exe", params);
 					if (process.isNotNull()) {
-						Ref<Stream> stream = process->getStream();
-						if (stream.isNotNull()) {
+						IStream* stream = process->getStream();
+						if (stream) {
 							char buf[512] = { 0 };
 							sl_reg n = stream->readFully(buf, sizeof(buf) - 1);
 							if (n > 0) {

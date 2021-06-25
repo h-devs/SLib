@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_PROCESS
 #define CHECKHEADER_SLIB_CORE_PROCESS
 
-#include "io.h"
+#include "object.h"
 
 namespace slib
 {
@@ -36,6 +36,8 @@ namespace slib
 		Killed = 3,
 		Unknown = 4
 	};
+
+	class IStream;
 	
 	class SLIB_EXPORT Process : public Object
 	{
@@ -99,7 +101,7 @@ namespace slib
 
 		virtual sl_bool isAlive() = 0;
 		
-		virtual Ref<Stream> getStream() = 0;
+		virtual IStream* getStream() = 0;
 		
 	public:
 		ProcessStatus getStatus();

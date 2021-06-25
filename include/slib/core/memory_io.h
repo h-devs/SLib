@@ -31,8 +31,6 @@ namespace slib
 	// MemoryIO is not thread-safe
 	class SLIB_EXPORT MemoryIO : public IO
 	{
-		SLIB_DECLARE_OBJECT
-		
 	public:
 		MemoryIO();
 		

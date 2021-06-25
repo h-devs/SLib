@@ -29,19 +29,18 @@
 namespace slib
 {
 	
-	class SLIB_EXPORT BufferedSeekableReader : public Referable, public IReader, public ISeekable, public IClosable, public SeekableReaderBase<BufferedSeekableReader>
+	class SLIB_EXPORT BufferedSeekableReader : public IReader, public ISeekable, public IClosable, public SeekableReaderBase<BufferedSeekableReader>
 	{
-		SLIB_DECLARE_OBJECT
-
-	private:
+	public:
 		BufferedSeekableReader();
 
 		~BufferedSeekableReader();
 
 	public:
-		static Ref<BufferedSeekableReader> create(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_READER_DEFAULT_SIZE);
+		sl_bool open(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_READER_DEFAULT_SIZE);
 
-	public:
+		sl_bool isOpened();
+
 		sl_reg read(void*& buf);
 
 		sl_reg read(void* buf, sl_size size) override;

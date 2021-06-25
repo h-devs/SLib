@@ -30,10 +30,8 @@ namespace slib
 {
 
 	// MemoryWriter is not thread-safe
-	class SLIB_EXPORT MemoryWriter : public Referable, public IWriter, public ISeekable
+	class SLIB_EXPORT MemoryWriter : public IWriter, public ISeekable
 	{
-		SLIB_DECLARE_OBJECT
-		
 	public:
 		MemoryWriter(const Memory& mem);
 

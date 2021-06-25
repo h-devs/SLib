@@ -81,7 +81,7 @@ namespace slib
 					pi) != 0;
 			}
 
-			class ProcessStream : public Stream
+			class ProcessStream : public IStream
 			{
 			public:
 				HANDLE m_hRead;
@@ -102,7 +102,6 @@ namespace slib
 			public:
 				void close() override
 				{
-					ObjectLocker lock(this);
 					_close();
 				}
 
@@ -160,7 +159,7 @@ namespace slib
 			{
 			public:
 				HANDLE m_hProcess;
-				Ref<ProcessStream> m_stream;
+				ProcessStream m_stream;
 
 			public:
 				ProcessImpl()
@@ -197,13 +196,9 @@ namespace slib
 								Ref<ProcessImpl> ret = new ProcessImpl;
 								if (ret.isNotNull()) {
 									ret->m_hProcess = pi.hProcess;
-									Ref<ProcessStream> stream = new ProcessStream;
-									if (stream.isNotNull()) {
-										stream->m_hRead = hStdoutRead;
-										stream->m_hWrite = hStdinWrite;
-										ret->m_stream = Move(stream);
-										return ret;
-									}
+									ret->m_stream.m_hRead = hStdoutRead;
+									ret->m_stream.m_hWrite = hStdinWrite;
+									return ret;
 								}
 							}
 							CloseHandle(hStdoutRead);
@@ -219,7 +214,7 @@ namespace slib
 				void terminate() override
 				{
 					ObjectLocker lock(this);
-					m_stream->close();
+					m_stream.close();
 					if (m_hProcess != INVALID_HANDLE_VALUE) {
 						HANDLE handle = m_hProcess;
 						m_hProcess = INVALID_HANDLE_VALUE;
@@ -253,7 +248,7 @@ namespace slib
 							m_status = ProcessStatus::Unknown;
 						}
 						CloseHandle(handle);
-						m_stream->close();
+						m_stream.close();
 					}
 				}
 
@@ -271,9 +266,9 @@ namespace slib
 					return sl_false;
 				}
 
-				Ref<Stream> getStream() override
+				IStream* getStream() override
 				{
-					return Ref<Stream>::from(m_stream);
+					return &m_stream;
 				}
 
 				void close()

@@ -33,24 +33,20 @@ namespace slib
 {
 	
 	// Not thread-safe
-	class SLIB_EXPORT BufferedReader : public Referable, public IReader, public IClosable
+	class SLIB_EXPORT BufferedReader : public IReader, public IClosable
 	{
-		SLIB_DECLARE_OBJECT
-
-	private:
+	public:
 		BufferedReader();
 
 		~BufferedReader();
 
 	public:
-		static Ref<BufferedReader> create(const Ptrx<IReader, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_READER_DEFAULT_SIZE);
-
-	public:
-		sl_reg read(void* buf, sl_size size) override;
+		sl_bool open(const Ptrx<IReader, IClosable>& reader, sl_size bufferSize = SLIB_BUFFERED_READER_DEFAULT_SIZE);
 
 		void close() override;
 
-	public:
+		sl_reg read(void* buf, sl_size size) override;
+
 		sl_bool readInt8(sl_int8* output);
 
 		sl_int8 readInt8(sl_int8 def = 0);

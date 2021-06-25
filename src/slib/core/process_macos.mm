@@ -102,7 +102,7 @@ namespace slib
 					return [m_task isRunning];
 				}
 				
-				Ref<Stream> getStream() override
+				IStream* getStream() override
 				{
 					return sl_null;
 				}

@@ -25,8 +25,6 @@
 namespace slib
 {
 
-	SLIB_DEFINE_OBJECT(TcpStream, Stream)
-
 	TcpStream::TcpStream()
 	{
 	}

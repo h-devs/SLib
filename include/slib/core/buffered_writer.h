@@ -33,24 +33,22 @@ namespace slib
 {
 
 	// Not thread-safe
-	class SLIB_EXPORT BufferedWriter : public Referable, public IWriter, public IClosable
+	class SLIB_EXPORT BufferedWriter : public IWriter, public IClosable
 	{
-		SLIB_DECLARE_OBJECT
-
-	protected:
+	public:
 		BufferedWriter();
 
 		~BufferedWriter();
 
 	public:
-		static Ref<BufferedWriter> create(const Ptrx<IWriter, IClosable>& writer, sl_size bufferSize = SLIB_BUFFERED_WRITER_DEFAULT_SIZE);
+		sl_bool open(const Ptrx<IWriter, IClosable>& writer, sl_size bufferSize = SLIB_BUFFERED_WRITER_DEFAULT_SIZE);
 
-	public:
-		sl_reg write(const void* buf, sl_size size) override;
+		sl_bool isOpened();
 
 		void close() override;
 
-	public:
+		sl_reg write(const void* buf, sl_size size) override;
+
 		sl_bool flush();
 
 		sl_bool writeInt8(sl_int8 value);

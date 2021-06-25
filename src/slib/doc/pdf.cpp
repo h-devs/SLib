@@ -111,7 +111,7 @@ namespace slib
 		sl_bool bStartSpace = sl_true;
 		while (1) {
 			void* _buf;
-			sl_reg n = m_reader->read(_buf);
+			sl_reg n = m_reader.read(_buf);
 			if (n < 0) {
 				break;
 			}
@@ -127,7 +127,7 @@ namespace slib
 						}
 					} else {
 						if (IsWhitespace(ch)) {
-							m_reader->seek(i - n, SeekPosition::Current);
+							m_reader.seek(i - n, SeekPosition::Current);
 							if (sb.getLength()) {
 								sb.addStatic(buf + posStartWord, i - posStartWord);
 								return sb.merge();
@@ -187,19 +187,14 @@ namespace slib
 
 	sl_bool PdfDocument::setReader(const Ptr<IReader, ISeekable>& reader)
 	{
-		Ref<BufferedSeekableReader> obj = BufferedSeekableReader::create(reader);
-		if (obj.isNotNull()) {
-			m_reader = obj;
-			return sl_true;
-		}
-		return sl_false;
+		return m_reader.open(reader);
 	}
 
 	sl_bool PdfDocument::readHeader()
 	{
 		// size
 		{
-			sl_uint64 size = m_reader->getSize();
+			sl_uint64 size = m_reader.getSize();
 			if (!size) {
 				return sl_false;
 			}
@@ -210,7 +205,7 @@ namespace slib
 		}
 
 		char version[8];
-		if (m_reader->readFully(version, 8) != 8) {
+		if (m_reader.readFully(version, 8) != 8) {
 			return sl_false;
 		}
 		if (version[0] != '%' || version[1] != 'P' || version[2] != 'D' || version[3] != 'F' || version[4] != '-' || version[6] != '.') {
@@ -228,15 +223,15 @@ namespace slib
 
 		// last startxref, trailer
 		{
-			sl_int64 pos = m_reader->findBackward("startxref", 9, -1, 4096);
+			sl_int64 pos = m_reader.findBackward("startxref", 9, -1, 4096);
 			if (pos <= 0) {
 				return sl_false;
 			}
-			if (!(m_reader->seek(pos - 1, SeekPosition::Begin))) {
+			if (!(m_reader.seek(pos - 1, SeekPosition::Begin))) {
 				return sl_false;
 			}
 			sl_int8 c;
-			if (!(m_reader->readInt8(&c))) {
+			if (!(m_reader.readInt8(&c))) {
 				return sl_false;
 			}
 			if (!(IsWhitespace(c))) {
@@ -254,14 +249,14 @@ namespace slib
 			}
 			offsetOfLastCrossRef = posCrossRef;
 
-			pos = m_reader->findBackward("trailer", 7, pos, 4096);
+			pos = m_reader.findBackward("trailer", 7, pos, 4096);
 			if (pos <= 0) {
 				return sl_false;
 			}
-			if (!(m_reader->seek(pos - 1, SeekPosition::Begin))) {
+			if (!(m_reader.seek(pos - 1, SeekPosition::Begin))) {
 				return sl_false;
 			}
-			if (!(m_reader->readInt8(&c))) {
+			if (!(m_reader.readInt8(&c))) {
 				return sl_false;
 			}
 			if (!(IsWhitespace(c))) {

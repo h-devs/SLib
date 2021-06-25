@@ -110,8 +110,8 @@ namespace slib
 				}
 				Ref<Process> process = Process::open(path + "\\npfinstall.exe", "-i");
 				if (process.isNotNull()) {
-					Ref<Stream> stream = process->getStream();
-					if (stream.isNotNull()) {
+					IStream* stream = process->getStream();
+					if (stream) {
 						char buf[512];
 						sl_reg n = stream->readFully(buf, sizeof(buf) - 1);
 						if (n > 0) {
@@ -156,8 +156,8 @@ namespace slib
 				}
 				Ref<Process> process = Process::open(path + "\\npfinstall.exe", "-u");
 				if (process.isNotNull()) {
-					Ref<Stream> stream = process->getStream();
-					if (stream.isNotNull()) {
+					IStream* stream = process->getStream();
+					if (stream) {
 						char buf[512];
 						sl_reg n = stream->readFully(buf, sizeof(buf) - 1);
 						if (n > 0) {

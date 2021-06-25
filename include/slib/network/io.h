@@ -30,10 +30,8 @@
 namespace slib
 {
 
-	class SLIB_EXPORT TcpStream : public Stream
+	class SLIB_EXPORT TcpStream : public IStream
 	{
-		SLIB_DECLARE_OBJECT
-		
 	public:
 		TcpStream();
 		
