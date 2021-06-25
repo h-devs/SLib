@@ -285,15 +285,14 @@ namespace slib
 			extern void* const g_shared_null;
 
 			template <class T>
-			class SharedContainer
+			class SharedContainer : public T
 			{
 			public:
-				T object;
 				sl_reg refCount;
 
 			public:
 				template <class... ARGS>
-				SharedContainer(ARGS&&... args) noexcept: object(Forward<ARGS>(args)...), refCount(1) {}
+				SharedContainer(ARGS&&... args) noexcept: T(Forward<ARGS>(args)...), refCount(1) {}
 
 			public:
 				sl_reg increaseReference() noexcept
@@ -426,7 +425,7 @@ namespace slib
 
 		constexpr T* get() const&
 		{
-			return &(container->object);
+			return container;
 		}
 
 	public:
@@ -696,6 +695,13 @@ namespace slib
 			_replace(other._retain());
 		}
 		return *this;
+	}
+
+
+	template <class T>
+	SLIB_INLINE static Shared<typename RemoveConstReference<T>::Type> ToShared(T&& t)
+	{
+		return Shared<typename RemoveConstReference<T>::Type>::create(Forward<T>(t));
 	}
 
 }

@@ -1408,7 +1408,6 @@ namespace slib
 	
 	};
 	
-	
 	template <class T>
 	constexpr sl_bool operator==(sl_null_t, const Ref<T>& b)
 	{
@@ -1589,6 +1588,31 @@ namespace slib
 	SLIB_INLINE static WeakRef<T> ToWeakRef(const AtomicWeakRef<T>& other) noexcept
 	{
 		return WeakRef<T>(other);
+	}
+
+
+	template <class T>
+	class CRefT : public Referable, public T
+	{
+	public:
+		template <class... ARGS>
+		CRefT(ARGS&&... args): T(Forward<ARGS>(args)...) {}
+		
+	};
+	
+	template <class T>
+	using RefT = Ref< CRefT<T> >;
+	
+	template <class T>
+	SLIB_INLINE static RefT<typename RemoveConstReference<T>::Type> ToRefT(T&& t)
+	{
+		return new CRefT<typename RemoveConstReference<T>::Type>(Forward<T>(t));
+	}
+
+	template <class T, class... ARGS>
+	SLIB_INLINE static RefT<T> NewRefT(ARGS&&... args)
+	{
+		return new CRefT<T>(Forward<ARGS>(args)...);
 	}
 
 }

@@ -108,18 +108,6 @@ namespace slib
 				
 			};
 			
-			template <class T>
-			class ManagedObjectContainer : public Referable
-			{
-			public:
-				T object;
-				
-			public:
-				template <class... ARGS>
-				ManagedObjectContainer(ARGS&&... args): object(Forward<ARGS>(args)...) {}
-				
-			};
-			
 		}
 	}
 
@@ -260,9 +248,9 @@ namespace slib
 		template <class... Args>
 		static Ptr createManagedObject(Args&&... args)
 		{
-			Ref< priv::ptr::ManagedObjectContainer<T> > ref = new priv::ptr::ManagedObjectContainer<T>(Forward<Args>(args)...);
+			RefT<T> ref = new CRefT<T>(Forward<Args>(args)...);
 			if (ref.isNotNull()) {
-				return Ptr(&(ref->object), Move(ref));
+				return Ptr(static_cast<T*>(ref.ptr), Move(ref));
 			} else {
 				return sl_null;
 			}
