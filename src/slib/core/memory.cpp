@@ -954,8 +954,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_ROOT_OBJECT(MemoryBuffer)
-
 	MemoryBuffer::MemoryBuffer(): m_size(0)
 	{
 	}
@@ -1061,8 +1059,6 @@ namespace slib
 		return ret;
 	}
 
-
-	SLIB_DEFINE_ROOT_OBJECT(MemoryQueue)
 
 	MemoryQueue::MemoryQueue()
 	{

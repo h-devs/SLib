@@ -30,10 +30,8 @@ namespace slib
 {
 
 	// MemoryBuffer is not thread-safe
-	class SLIB_EXPORT MemoryBuffer : public Referable
+	class SLIB_EXPORT MemoryBuffer
 	{
-		SLIB_DECLARE_OBJECT
-
 	public:
 		MemoryBuffer();
 

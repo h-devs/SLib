@@ -29,10 +29,8 @@
 namespace slib
 {
 	
-	class SLIB_EXPORT MemoryQueue : public Referable, public Lockable
+	class SLIB_EXPORT MemoryQueue : public Lockable
 	{
-		SLIB_DECLARE_OBJECT
-
 	public:
 		MemoryQueue();
 
