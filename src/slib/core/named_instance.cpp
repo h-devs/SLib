@@ -103,7 +103,7 @@ namespace slib
 				return sl_null;
 			}
 
-			void CloseInstanceHandle(DummyHandle _handle)
+			static void CloseInstanceHandle(DummyHandle _handle)
 			{
 #if defined(SLIB_PLATFORM_IS_WIN32)
 				CloseHandle((void*)_handle);

@@ -98,7 +98,7 @@ namespace slib
 				return sl_null;
 			}
 
-			void DeleteRegExHandle(void* _handle) noexcept
+			static void DeleteRegExHandle(void* _handle) noexcept
 			{
 				std::regex* handle = reinterpret_cast<std::regex*>(_handle);
 				if (handle) {
