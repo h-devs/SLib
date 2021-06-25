@@ -33,11 +33,6 @@ namespace slib
 	
 	class SLIB_EXPORT IStream : public IReader, public IWriter, public IClosable
 	{
-	public:
-		IStream();
-		
-		~IStream();
-		
 	};
 
 	class SeekableReaderHelper
@@ -183,11 +178,6 @@ namespace slib
 
 	class SLIB_EXPORT IO : public IStream, public ISeekable, public IResizable, public SeekableReaderBase<IO>, public SeekableWriterBase<IO>
 	{
-	public:
-		IO();
-
-		~IO();
-
 	};
 	
 }

@@ -75,14 +75,6 @@ namespace slib
 	}
 
 	
-	IReader::IReader()
-	{
-	}
-
-	IReader::~IReader()
-	{
-	}
-
 	sl_int32 IReader::read32(void* buf, sl_uint32 size)
 	{
 		return (sl_int32)(read(buf, size));
@@ -895,14 +887,6 @@ namespace slib
 	}
 
 
-	IWriter::IWriter()
-	{
-	}
-
-	IWriter::~IWriter()
-	{
-	}
-
 	sl_int32 IWriter::write32(const void* buf, sl_uint32 size)
 	{
 		return (sl_int32)(write(buf, size));
@@ -1206,14 +1190,6 @@ namespace slib
 	}
 
 
-	IBlockReader::IBlockReader()
-	{
-	}
-
-	IBlockReader::~IBlockReader()
-	{
-	}
-
 	sl_int32 IBlockReader::readAt32(sl_uint64 offset, void* buf, sl_uint32 size)
 	{
 		return (sl_int32)(readAt(offset, buf, size));
@@ -1258,14 +1234,6 @@ namespace slib
 		return nRead;
 	}
 
-
-	IBlockWriter::IBlockWriter()
-	{
-	}
-
-	IBlockWriter::~IBlockWriter()
-	{
-	}
 
 	sl_int32 IBlockWriter::writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size)
 	{
@@ -1329,14 +1297,6 @@ namespace slib
 	}
 
 
-	ISize::ISize()
-	{
-	}
-
-	ISize::~ISize()
-	{
-	}
-
 	sl_uint64 ISize::getSize()
 	{
 		sl_uint64 size;
@@ -1346,23 +1306,6 @@ namespace slib
 		return 0;
 	}
 
-
-	IResizable::IResizable()
-	{
-	}
-
-	IResizable::~IResizable()
-	{
-	}
-
-
-	ISeekable::ISeekable()
-	{
-	}
-
-	ISeekable::~ISeekable()
-	{
-	}
 
 	sl_bool ISeekable::isEnd(sl_bool& outFlag)
 	{
@@ -1402,24 +1345,6 @@ namespace slib
 		return seek(0, SeekPosition::End);
 	}
 
-
-	IClosable::IClosable()
-	{
-	}
-
-	IClosable::~IClosable()
-	{
-	}
-
-
-	IStream::IStream()
-	{
-	}
-
-	IStream::~IStream()
-	{
-	}
-	
 
 	String SeekableReaderHelper::readLine(IReader* reader, ISeekable* seekable)
 	{
@@ -1815,15 +1740,6 @@ namespace slib
 			startPosition -= nRead;
 		}
 		return -1;
-	}
-
-
-	IO::IO()
-	{
-	}
-
-	IO::~IO()
-	{
 	}
 
 

@@ -46,11 +46,6 @@ namespace slib
 	class SLIB_EXPORT IReader
 	{
 	public:
-		IReader();
-
-		virtual ~IReader();
-
-	public:
 		virtual sl_reg read(void* buf, sl_size size);
 
 		virtual sl_int32 read32(void* buf, sl_uint32 size);
@@ -156,11 +151,6 @@ namespace slib
 	class SLIB_EXPORT IWriter
 	{
 	public:
-		IWriter();
-
-		virtual ~IWriter();
-
-	public:
 		virtual sl_reg write(const void* buf, sl_size size);
 
 		virtual sl_int32 write32(const void* buf, sl_uint32 size);
@@ -219,11 +209,6 @@ namespace slib
 	class SLIB_EXPORT IBlockReader
 	{
 	public:
-		IBlockReader();
-
-		virtual ~IBlockReader();
-
-	public:
 		virtual sl_reg readAt(sl_uint64 offset, void* buf, sl_size size);
 
 		virtual sl_int32 readAt32(sl_uint64 offset, void* buf, sl_uint32 size);
@@ -234,11 +219,6 @@ namespace slib
 
 	class SLIB_EXPORT IBlockWriter
 	{
-	public:
-		IBlockWriter();
-
-		virtual ~IBlockWriter();
-
 	public:
 		virtual sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size);
 
@@ -251,11 +231,6 @@ namespace slib
 	class SLIB_EXPORT ISize
 	{
 	public:
-		ISize();
-
-		virtual ~ISize();
-
-	public:
 		virtual sl_bool getSize(sl_uint64& outSize) = 0;
 
 	public:
@@ -266,21 +241,11 @@ namespace slib
 	class SLIB_EXPORT IResizable
 	{
 	public:
-		IResizable();
-
-		virtual ~IResizable();
-
-	public:
 		virtual sl_bool setSize(sl_uint64 size) = 0;
 	};
 
 	class SLIB_EXPORT ISeekable : public ISize
 	{
-	public:
-		ISeekable();
-
-		virtual ~ISeekable();
-
 	public:
 		virtual sl_bool getPosition(sl_uint64& outPos) = 0;
 
@@ -301,11 +266,6 @@ namespace slib
 
 	class SLIB_EXPORT IClosable
 	{
-	public:
-		IClosable();
-
-		virtual ~IClosable();
-
 	public:
 		virtual void close() = 0;
 	};
