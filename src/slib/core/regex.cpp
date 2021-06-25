@@ -112,14 +112,17 @@ namespace slib
 
 	using namespace priv::regex;
 
+	SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(RegEx, DummyHandle, m_handle, DeleteRegExHandle)
+	SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(RegEx, DummyHandle, m_handle, DeleteRegExHandle)
+
 	RegEx::RegEx(const StringParam& pattern) noexcept
 	{
-		m_handle = reinterpret_cast<HandleType*>(Create(pattern, 0));
+		m_handle = reinterpret_cast<DummyHandle>(Create(pattern, 0));
 	}
 	
 	RegEx::RegEx(const StringParam& pattern, const RegExFlags& flags) noexcept
 	{
-		m_handle = reinterpret_cast<HandleType*>(Create(pattern, flags));
+		m_handle = reinterpret_cast<DummyHandle>(Create(pattern, flags));
 	}
 	
 	sl_bool RegEx::match(const StringParam& _str, const RegExMatchFlags& _flags) noexcept

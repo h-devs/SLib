@@ -325,7 +325,7 @@ namespace slib
 	class SLIB_EXPORT JniLocal
 	{
 	public:
-		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(JniLocal, T, value, Jni::deleteLocalRef)
+		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(JniLocal, T, value, Jni::deleteLocalRef)
 
 	public:
 		template <class OTHER>
@@ -350,7 +350,7 @@ namespace slib
 	class SLIB_EXPORT JniGlobal
 	{
 	public:
-		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(JniGlobal, T, value, Jni::deleteGlobalRef)
+		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(JniGlobal, T, value, Jni::deleteGlobalRef)
 
 	public:		
 		static JniGlobal create(T _value) noexcept
@@ -393,7 +393,7 @@ namespace slib
 	template <class T>
 	class SLIB_EXPORT Atomic< JniGlobal<T> >
 	{
-		SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(JniGlobal<T>, T, value, Jni::deleteGlobalRef)
+		SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(JniGlobal<T>, T, value, Jni::deleteGlobalRef)
 
 	public:
 		template <class OTHER>

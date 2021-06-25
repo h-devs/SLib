@@ -61,7 +61,7 @@ namespace slib
 			}
 #endif
 
-			static HandleType* CreateInstanceHandle(const StringParam& _name)
+			static DummyHandle CreateInstanceHandle(const StringParam& _name)
 			{
 				if (_name.isEmpty()) {
 					return sl_null;
@@ -75,7 +75,7 @@ namespace slib
 				}
 				hMutex = CreateMutexW(NULL, FALSE, (LPCWSTR)(name.getData()));
 				if (hMutex) {
-					return (HandleType*)hMutex;
+					return (DummyHandle)hMutex;
 				}
 #else
 				String path = MakeInstancePath(_name);
@@ -95,7 +95,7 @@ namespace slib
 					fl.l_whence = SEEK_SET;
 					int ret = fcntl(handle, F_SETLK, &fl);
 					if (ret >= 0) {
-						return (HandleType*)((void*)((sl_size)handle));
+						return (DummyHandle)((void*)((sl_size)handle));
 					}
 					close(handle);
 				}
@@ -103,12 +103,12 @@ namespace slib
 				return sl_null;
 			}
 
-			void CloseInstanceHandle(HandleType* _handle)
+			void CloseInstanceHandle(DummyHandle _handle)
 			{
 #if defined(SLIB_PLATFORM_IS_WIN32)
-				CloseHandle((HANDLE)_handle);
+				CloseHandle((void*)_handle);
 #else
-				int handle = int((sl_size)((void*)_handle));
+				int handle = (int)((sl_size)((void*)_handle));
 				struct flock fl;
 				Base::zeroMemory(&fl, sizeof(fl));
 				fl.l_start = 0;
@@ -124,6 +124,9 @@ namespace slib
 	}
 
 	using namespace priv::named_instance;
+
+	SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(NamedInstance, DummyHandle, m_handle, CloseInstanceHandle)
+	SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(NamedInstance, DummyHandle, m_handle, CloseInstanceHandle)
 
 	NamedInstance::NamedInstance(const StringParam& name)
 	{

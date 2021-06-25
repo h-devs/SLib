@@ -59,18 +59,9 @@ namespace slib
 		FormatFirstOnly = 0x0400
 	})
 
-	namespace priv
-	{
-		namespace regex
-		{
-			struct HandleType;
-			void DeleteRegExHandle(void* handle) noexcept;
-		}
-	}
-
 	class RegEx
 	{
-		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(RegEx, priv::regex::HandleType*, m_handle, priv::regex::DeleteRegExHandle)
+		SLIB_DECLARE_NULLABLE_HANDLE_CONTAINER_MEMBERS(RegEx, DummyHandle, m_handle)
 
 	public:
 		RegEx(const StringParam& pattern) noexcept;
@@ -87,7 +78,7 @@ namespace slib
 	template <>
 	class SLIB_EXPORT Atomic<RegEx>
 	{
-		SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(RegEx, priv::regex::HandleType*, m_handle, priv::regex::DeleteRegExHandle)
+		SLIB_DECLARE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(RegEx, DummyHandle, m_handle)
 	};
 
 }

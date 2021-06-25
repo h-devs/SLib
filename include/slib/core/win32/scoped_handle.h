@@ -37,7 +37,7 @@ namespace slib
 	class SLIB_EXPORT ScopedHandle
 	{
 	public:
-		SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(ScopedHandle, HANDLE, handle, INVALID_HANDLE_VALUE, ::CloseHandle)
+		SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(ScopedHandle, HANDLE, handle, INVALID_HANDLE_VALUE, ::CloseHandle)
 	};
 	
 }

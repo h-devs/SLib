@@ -29,18 +29,9 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace named_instance
-		{
-			struct HandleType;
-			void CloseInstanceHandle(HandleType* handle);
-		}
-	}
-	
 	class SLIB_EXPORT NamedInstance
 	{
-		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(NamedInstance, priv::named_instance::HandleType*, m_handle, priv::named_instance::CloseInstanceHandle)
+		SLIB_DECLARE_NULLABLE_HANDLE_CONTAINER_MEMBERS(NamedInstance, DummyHandle, m_handle)
 
 	public:
 		NamedInstance(const StringParam& name);
@@ -53,7 +44,7 @@ namespace slib
 	template <>
 	class SLIB_EXPORT Atomic<NamedInstance>
 	{
-		SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(NamedInstance, priv::named_instance::HandleType*, m_handle, priv::named_instance::CloseInstanceHandle)
+		SLIB_DECLARE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(NamedInstance, DummyHandle, m_handle)
 	};
 
 }

@@ -25,7 +25,7 @@
 
 #include "atomic.h"
 
-#define SLIB_DEFINE_HANDLE_CONTAINER_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
+#define SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
 	HANDLE_TYPE MEMBER_NAME; \
 public: \
 	constexpr CLASS(): MEMBER_NAME(HANDLE_INVALID) {} \
@@ -53,8 +53,8 @@ public: \
 		return *this; \
 	}
 
-#define SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
-	SLIB_DEFINE_HANDLE_CONTAINER_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
+#define SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
+	SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
 	constexpr explicit operator sl_bool() const \
 	{ \
 		return MEMBER_NAME != HANDLE_INVALID; \
@@ -93,8 +93,8 @@ public: \
 		return *this; \
 	}
 
-#define SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_DELETER) \
-	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, sl_null, HANDLE_DELETER) \
+#define SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_DELETER) \
+	SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, sl_null, HANDLE_DELETER) \
 	constexpr CLASS(sl_null_t): MEMBER_NAME(sl_null) {} \
 	CLASS& operator=(sl_null_t) \
 	{ \
@@ -115,7 +115,7 @@ public: \
 	}
 
 
-#define SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
+#define SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_TEMPLATE_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
 	HANDLE_TYPE MEMBER_NAME; \
 private: \
 	SpinLock _lock; \
@@ -151,8 +151,8 @@ public: \
 		return *this; \
 	}
 
-#define SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
-	SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
+#define SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_TEMPLATE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
+	SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_TEMPLATE_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
 	constexpr explicit operator sl_bool() const \
 	{ \
 		return MEMBER_NAME != sl_null; \
@@ -190,8 +190,8 @@ public: \
 		return *this; \
 	}
 
-#define SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_DELETER) \
-	SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, sl_null, HANDLE_DELETER) \
+#define SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_DELETER) \
+	SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_TEMPLATE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, sl_null, HANDLE_DELETER) \
 	constexpr Atomic(sl_null_t): MEMBER_NAME(sl_null) {} \
 	Atomic& operator=(sl_null_t) \
 	{ \
@@ -210,5 +210,231 @@ public: \
 	{ \
 		set(sl_null); \
 	}
+
+
+#define SLIB_DECLARE_HANDLE_CONTAINER_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID) \
+	HANDLE_TYPE MEMBER_NAME; \
+public: \
+	constexpr CLASS(): MEMBER_NAME(HANDLE_INVALID) {} \
+	constexpr CLASS(HANDLE_TYPE other): MEMBER_NAME(other) {} \
+	CLASS(const CLASS&) = delete; \
+	CLASS(CLASS&& other) noexcept; \
+	~CLASS(); \
+	CLASS& operator=(const CLASS&) = delete; \
+	CLASS& operator=(CLASS&& other);
+
+#define SLIB_DEFINE_HANDLE_CONTAINER_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
+	CLASS::CLASS(CLASS&& other) noexcept \
+	{ \
+		MEMBER_NAME = other.MEMBER_NAME; \
+		other.MEMBER_NAME = HANDLE_INVALID; \
+	} \
+	CLASS::~CLASS() \
+	{ \
+		if (MEMBER_NAME != HANDLE_INVALID) { \
+			HANDLE_DELETER (MEMBER_NAME); \
+		} \
+	} \
+	CLASS& CLASS::operator=(CLASS&& other) \
+	{ \
+		if (MEMBER_NAME != HANDLE_INVALID) { \
+			HANDLE_DELETER (MEMBER_NAME); \
+		} \
+		MEMBER_NAME = other.MEMBER_NAME; \
+		other.MEMBER_NAME = HANDLE_INVALID; \
+		return *this; \
+	}
+
+#define SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID) \
+	SLIB_DECLARE_HANDLE_CONTAINER_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID) \
+	constexpr explicit operator sl_bool() const \
+	{ \
+		return MEMBER_NAME != HANDLE_INVALID; \
+	} \
+	constexpr operator HANDLE_TYPE() const& \
+	{ \
+		return MEMBER_NAME; \
+	} \
+	operator HANDLE_TYPE() && = delete; \
+	constexpr HANDLE_TYPE operator->() const& \
+	{ \
+		return MEMBER_NAME; \
+	} \
+	HANDLE_TYPE operator->() && = delete; \
+	constexpr HANDLE_TYPE get() const& \
+	{ \
+		return MEMBER_NAME; \
+	} \
+	HANDLE_TYPE get() && = delete; \
+	void set(HANDLE_TYPE other); \
+	HANDLE_TYPE release() noexcept; \
+	CLASS& operator=(HANDLE_TYPE other);
+
+#define SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
+	SLIB_DEFINE_HANDLE_CONTAINER_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
+	void CLASS::set(HANDLE_TYPE other) \
+	{ \
+		if (MEMBER_NAME != HANDLE_INVALID) { \
+			HANDLE_DELETER (MEMBER_NAME); \
+		} \
+		MEMBER_NAME = other; \
+	} \
+	HANDLE_TYPE CLASS::release() noexcept \
+	{ \
+		HANDLE_TYPE ret = MEMBER_NAME; \
+		MEMBER_NAME = HANDLE_INVALID; \
+		return ret; \
+	} \
+	CLASS& CLASS::operator=(HANDLE_TYPE other) \
+	{ \
+		set(other); \
+		return *this; \
+	}
+
+#define SLIB_DECLARE_NULLABLE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME) \
+	SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, sl_null) \
+	constexpr CLASS(sl_null_t): MEMBER_NAME(sl_null) {} \
+	CLASS& operator=(sl_null_t); \
+	constexpr sl_bool isNull() const \
+	{ \
+		return !MEMBER_NAME; \
+	} \
+	constexpr sl_bool isNotNull() const \
+	{ \
+		return MEMBER_NAME != sl_null; \
+	} \
+	void setNull();
+
+#define SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_DELETER) \
+	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, sl_null, HANDLE_DELETER) \
+	CLASS& CLASS::operator=(sl_null_t) \
+	{ \
+		set(sl_null); \
+		return *this; \
+	} \
+	void CLASS::setNull() \
+	{ \
+		set(sl_null); \
+	}
+
+
+#define SLIB_DECLARE_ATOMIC_HANDLE_CONTAINER_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID) \
+	HANDLE_TYPE MEMBER_NAME; \
+private: \
+	SpinLock _lock; \
+public: \
+	constexpr Atomic(): MEMBER_NAME(HANDLE_INVALID) {} \
+	constexpr Atomic(HANDLE_TYPE other): MEMBER_NAME(other) {} \
+	Atomic(const Atomic&) = delete; \
+	Atomic(CLASS&& _other) noexcept; \
+	~Atomic(); \
+	Atomic& operator=(const Atomic&) = delete; \
+	Atomic& operator=(CLASS&& _other);
+
+#define SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
+	Atomic<CLASS>::Atomic(CLASS&& _other) noexcept \
+	{ \
+		Atomic& other = *(reinterpret_cast<Atomic*>(&_other)); \
+		MEMBER_NAME = other.MEMBER_NAME; \
+		other.MEMBER_NAME = HANDLE_INVALID; \
+	} \
+	Atomic<CLASS>::~Atomic() \
+	{ \
+		if (MEMBER_NAME != HANDLE_INVALID) { \
+			HANDLE_DELETER (MEMBER_NAME); \
+		} \
+	} \
+	Atomic<CLASS>& Atomic<CLASS>::operator=(CLASS&& _other) \
+	{ \
+		Atomic& other = *(reinterpret_cast<Atomic*>(&_other)); \
+		HANDLE_TYPE old = MEMBER_NAME; \
+		{ \
+			SpinLocker locker(&_lock); \
+			MEMBER_NAME = other.MEMBER_NAME; \
+			other.MEMBER_NAME = HANDLE_INVALID; \
+		} \
+		if (old != HANDLE_INVALID) { \
+			HANDLE_DELETER (old); \
+		} \
+		return *this; \
+	}
+
+#define SLIB_DECLARE_ATOMIC_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID) \
+	SLIB_DECLARE_ATOMIC_HANDLE_CONTAINER_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID) \
+	constexpr explicit operator sl_bool() const \
+	{ \
+		return MEMBER_NAME != sl_null; \
+	} \
+	constexpr HANDLE_TYPE get() const& \
+	{ \
+		return MEMBER_NAME; \
+	} \
+	HANDLE_TYPE get() && = delete; \
+	void set(HANDLE_TYPE other); \
+	HANDLE_TYPE release() noexcept; \
+	Atomic& operator=(HANDLE_TYPE other);
+
+#define SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
+	SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_INVALID, HANDLE_DELETER) \
+	void Atomic<CLASS>::set(HANDLE_TYPE other) \
+	{ \
+		HANDLE_TYPE old; \
+		{ \
+			SpinLocker locker(&_lock); \
+			old = MEMBER_NAME; \
+			MEMBER_NAME = other; \
+		} \
+		if (old != HANDLE_INVALID) { \
+			HANDLE_DELETER (old); \
+		} \
+	} \
+	HANDLE_TYPE Atomic<CLASS>::release() noexcept \
+	{ \
+		HANDLE_TYPE ret; \
+		{ \
+			SpinLocker locker(&_lock); \
+			ret = MEMBER_NAME; \
+			MEMBER_NAME = HANDLE_INVALID; \
+		} \
+		return ret; \
+	} \
+	Atomic<CLASS>& Atomic<CLASS>::operator=(HANDLE_TYPE other) \
+	{ \
+		set(other); \
+		return *this; \
+	}
+
+#define SLIB_DECLARE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME) \
+	SLIB_DECLARE_ATOMIC_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, sl_null) \
+	constexpr Atomic(sl_null_t): MEMBER_NAME(sl_null) {} \
+	Atomic& operator=(sl_null_t); \
+	constexpr sl_bool isNull() const \
+	{ \
+		return !MEMBER_NAME; \
+	} \
+	constexpr sl_bool isNotNull() const \
+	{ \
+		return MEMBER_NAME != sl_null; \
+	} \
+	void setNull();
+
+#define SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_DELETER) \
+	SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, sl_null, HANDLE_DELETER) \
+	Atomic<CLASS>& Atomic<CLASS>::operator=(sl_null_t) \
+	{ \
+		set(sl_null); \
+		return *this; \
+	} \
+	void Atomic<CLASS>::setNull() \
+	{ \
+		set(sl_null); \
+	}
+
+namespace slib
+{
+
+	typedef struct DummyHandleContainer* DummyHandle;
+
+}
 
 #endif

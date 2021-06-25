@@ -32,7 +32,7 @@ namespace slib
 	class SLIB_EXPORT UniquePtr
 	{
 	public:
-		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(UniquePtr, T*, ptr, delete)
+		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(UniquePtr, T*, ptr, delete)
 
 	public:
 		T& operator*() const noexcept
@@ -45,14 +45,14 @@ namespace slib
 	template <class T>
 	class SLIB_EXPORT Atomic< UniquePtr<T> >
 	{
-		SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(UniquePtr<T>, T*, ptr, delete)
+		SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(UniquePtr<T>, T*, ptr, delete)
 	};
 
 	template <class T>
 	class SLIB_EXPORT UniquePtr<T[]>
 	{
 	public:
-		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(UniquePtr, T*, ptr, delete[])
+		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(UniquePtr, T*, ptr, delete[])
 
 	public:
 		template <typename INT>
@@ -66,7 +66,7 @@ namespace slib
 	template <class T>
 	class SLIB_EXPORT Atomic< UniquePtr<T[]> >
 	{
-		SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(UniquePtr<T[]>, T*, ptr, delete[])
+		SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(UniquePtr<T[]>, T*, ptr, delete[])
 	};
 
 	template <class T>
