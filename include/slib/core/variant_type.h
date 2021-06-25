@@ -48,7 +48,6 @@ namespace slib
 			Time = 12,
 			Pointer = 13,
 			ObjectId = 14,
-			SharedPtr = 50,
 			Referable = 100,
 			Weak = Referable + 1,
 			Object = Referable + 2,

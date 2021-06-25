@@ -25,7 +25,6 @@
 
 #include "string.h"
 #include "time.h"
-#include "shared_ptr.h"
 #include "memory.h"
 #include "hash_map.h"
 #include "promise.h"
@@ -119,7 +118,6 @@ namespace slib
 			const StringContainer16* _m_string16;
 			const sl_char8* _m_sz8;
 			const sl_char16* _m_sz16;
-			CSharedPtrBase* _m_sharedPtr;
 			Referable* _m_ref;
 			CWeakRef* _m_wref;
 			Collection* _m_collection;
@@ -214,18 +212,6 @@ namespace slib
 		}
 
 		Variant(const ObjectId& _id) noexcept;
-
-		template <class T>
-		Variant(const SharedPtr<T>& ptr) noexcept
-		{
-			_constructorSharedPtr(&ptr, VariantType::SharedPtr);
-		}
-
-		template <class T>
-		Variant(SharedPtr<T>&& ptr) noexcept
-		{
-			_constructorMoveSharedPtr(&ptr, VariantType::SharedPtr);
-		}
 
 		template <class T>
 		Variant(const Ref<T>& ref) noexcept
@@ -534,25 +520,6 @@ namespace slib
 		void setObjectId(const ObjectId& _id) noexcept;
 
 
-		sl_bool isSharedPtr() const noexcept;
-
-		SharedPtr<void> getSharedPtr() const noexcept;
-
-		template <class T>
-		void setSharedPtr(T&& t) noexcept
-		{
-			_setSharedPtr(Forward<T>(t), VariantType::SharedPtr);
-		}
-
-		template <class T>
-		static Variant fromSharedPtr(T&& t) noexcept
-		{
-			Variant ret;
-			ret._initSharedPtr(Forward<T>(t), VariantType::Collection);
-			return ret;
-		}
-
-
 		sl_bool isRef() const noexcept;
 
 		Ref<Referable> getRef() const noexcept;
@@ -829,12 +796,6 @@ namespace slib
 		void get(Time& _out, const Time& def) const noexcept;
 
 		template <class T>
-		void get(SharedPtr<T>& _out) const noexcept
-		{
-			_out = SharedPtr<T>::from(getSharedPtr());
-		}
-
-		template <class T>
 		void get(Ref<T>& _out) const noexcept
 		{
 			_out = CastRef<T>(getRef());
@@ -905,14 +866,6 @@ namespace slib
 
 		void _assignMove(Variant& other) noexcept;
 
-		void _constructorSharedPtr(const void* ptr, sl_uint8 type) noexcept;
-
-		void _constructorMoveSharedPtr(void* ptr, sl_uint8 type) noexcept;
-
-		void _assignSharedPtr(const void* ptr, sl_uint8 type) noexcept;
-
-		void _assignMoveSharedPtr(void* ptr, sl_uint8 type) noexcept;
-
 		void _constructorRef(const void* ptr, sl_uint8 type) noexcept;
 
 		void _constructorMoveRef(void* ptr, sl_uint8 type) noexcept;
@@ -922,30 +875,6 @@ namespace slib
 		void _assignMoveRef(void* ptr, sl_uint8 type) noexcept;
 
 		static void _free(sl_uint8 type, sl_uint64 value) noexcept;
-
-		template <class T>
-		void _initSharedPtr(const SharedPtr<T>& ptr, sl_uint8 type) noexcept
-		{
-			_constructorSharedPtr(&ptr, type);
-		}
-
-		template <class T>
-		void _initSharedPtr(SharedPtr<T>&& ptr, sl_uint8 type) noexcept
-		{
-			_constructorMoveSharedPtr(&ptr, type);
-		}
-
-		template <class T>
-		void _setSharedPtr(const SharedPtr<T>& ptr, sl_uint8 type) noexcept
-		{
-			_assignSharedPtr(&ptr, type);
-		}
-
-		template <class T>
-		void _setSharedPtr(SharedPtr<T>&& ptr, sl_uint8 type) noexcept
-		{
-			_assignMoveSharedPtr(&ptr, type);
-		}
 
 		template <class T>
 		void _initRef(T* ref, sl_uint8 type) noexcept

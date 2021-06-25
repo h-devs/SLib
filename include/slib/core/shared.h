@@ -25,6 +25,242 @@
 
 #include "atomic.h"
 #include "base.h"
+#include "unique_ptr.h"
+
+#define PRIV_SLIB_DEFINE_SHARED_CLASS_MEMBERS \
+public: \
+	Container* container; \
+public: \
+	constexpr Shared(): container(sl_null) {} \
+	constexpr Shared(sl_null_t): container(sl_null) {} \
+	Shared(Shared&& other) noexcept \
+	{ \
+		container = other.container; \
+		other.container = sl_null; \
+	} \
+	Shared(const Shared& other) noexcept \
+	{ \
+		Container* o = other.container; \
+		if (o) { \
+			o->increaseReference(); \
+		} \
+		container = o; \
+	} \
+	~Shared() \
+	{ \
+		if (container) { \
+			container->decreaseReference(); \
+			container = sl_null; \
+		} \
+	} \
+public: \
+	static const Shared& null() noexcept \
+	{ \
+		return *(reinterpret_cast<Shared const*>(&(priv::shared::g_shared_null))); \
+	} \
+	constexpr sl_bool isNull() const \
+	{ \
+		return !container; \
+	} \
+	constexpr sl_bool isNotNull() const \
+	{ \
+		return container != sl_null; \
+	} \
+	void setNull() \
+	{ \
+		_replace(sl_null); \
+	} \
+public: \
+	Shared& operator=(Shared&& other) \
+	{ \
+		_move_assign(&other); \
+		return *this; \
+	} \
+	Shared& operator=(const Shared& other) \
+	{ \
+		Container* o = other.container; \
+		if (container != o) { \
+			if (o) { \
+				o->increaseReference(); \
+			} \
+			_replace(o); \
+		} \
+		return *this; \
+	} \
+	constexpr explicit operator sl_bool() const \
+	{ \
+		return container != sl_null; \
+	} \
+	constexpr T* operator->() const \
+	{ \
+		return get(); \
+	} \
+	template <class OTHER> \
+	sl_bool equals(const Shared<OTHER>& other) const noexcept \
+	{ \
+		return *((void**)this) == *((void**)&other); \
+	} \
+	template <class OTHER> \
+	sl_bool equals(const AtomicShared<OTHER>& other) const noexcept \
+	{ \
+		return *((void**)this) == *((void**)&other); \
+	} \
+	template <class OTHER> \
+	sl_compare_result compare(const Shared<OTHER>& other) const noexcept \
+	{ \
+		return ComparePrimitiveValues(*((void**)this), *((void**)&other)); \
+	} \
+	template <class OTHER> \
+	sl_compare_result compare(const AtomicShared<T>& other) const noexcept \
+	{ \
+		return ComparePrimitiveValues(*((void**)this), *((void**)&other)); \
+	} \
+	SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR \
+private: \
+	Shared(Container* _container) noexcept: container(_container) {} \
+	void _replace(Container* other) \
+	{ \
+		if (container) { \
+			container->decreaseReference(); \
+		} \
+		container = other; \
+	} \
+	void _move_assign(void* _other) \
+	{ \
+		if ((void*)this != _other) { \
+			Shared& other = *(reinterpret_cast<Shared*>(_other)); \
+			_replace(other.container); \
+			other.container = sl_null; \
+		} \
+	}
+
+#define PRIV_SLIB_DEFINE_ATOMIC_SHARED_CLASS_MEMBERS \
+public: \
+	Container* _container; \
+private: \
+	SpinLock m_lock; \
+public: \
+	constexpr Atomic(): _container(sl_null) {} \
+	constexpr Atomic(sl_null_t): _container(sl_null) {} \
+	Atomic(const Atomic& other) noexcept \
+	{ \
+		_container = other._retain(); \
+	} \
+	Atomic(typename RemoveAtomic<Atomic>::Type && other) noexcept \
+	{ \
+		_container = other.container; \
+		other.container = sl_null; \
+	} \
+	Atomic(const typename RemoveAtomic<Atomic>::Type& other) noexcept \
+	{ \
+		Container* o = other.container; \
+		if (o) { \
+			o->increaseReference(); \
+		} \
+		_container = o; \
+	} \
+	~Atomic() \
+	{ \
+		if (_container) { \
+			_container->decreaseReference(); \
+			_container = sl_null; \
+		} \
+	} \
+public: \
+	constexpr sl_bool isNull() const \
+	{ \
+		return !_container; \
+	} \
+	constexpr sl_bool isNotNull() const \
+	{ \
+		return _container != sl_null; \
+	} \
+	void setNull() \
+	{ \
+		_replace(sl_null); \
+	} \
+public: \
+	Atomic& operator=(const Atomic& other) \
+	{ \
+		if (_container != other._container) { \
+			_replace(other._retain()); \
+		} \
+		return *this; \
+	} \
+	Atomic& operator=(typename RemoveAtomic<Atomic>::Type&& other) \
+	{ \
+		_move_assign(&other); \
+		return *this; \
+	} \
+	Atomic& operator=(const typename RemoveAtomic<Atomic>::Type& other) \
+	{ \
+		Container* o = other.container; \
+		if (_container != o) { \
+			if (o) { \
+				o->increaseReference(); \
+			} \
+			_replace(o); \
+		} \
+		return *this; \
+	} \
+	explicit constexpr operator sl_bool() const \
+	{ \
+		return _container != sl_null; \
+	} \
+	template <class OTHER> \
+	sl_bool equals(const Shared<OTHER>& other) const noexcept \
+	{ \
+		return *((void**)this) == *((void**)&other); \
+	} \
+	template <class OTHER> \
+	sl_bool equals(const AtomicShared<OTHER>& other) const noexcept \
+	{ \
+		return *((void**)this) == *((void**)&other); \
+	} \
+	template <class OTHER> \
+	sl_compare_result compare(const Shared<OTHER>& other) const noexcept \
+	{ \
+		return ComparePrimitiveValues(*((void**)this), *((void**)&other)); \
+	} \
+	template <class OTHER> \
+	sl_compare_result compare(const AtomicShared<T>& other) const noexcept \
+	{ \
+		return ComparePrimitiveValues(*((void**)this), *((void**)&other)); \
+	} \
+	SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR \
+private: \
+	void _replace(Container* other) \
+	{ \
+		m_lock.unlock(); \
+		Container* before = _container; \
+		_container = other; \
+		m_lock.unlock(); \
+		if (before) { \
+			before->decreaseReference(); \
+		} \
+	} \
+	void _move_assign(void* _other) \
+	{ \
+		if ((void*)this != _other) { \
+			Shared<T>& other = *(reinterpret_cast<Shared<T>*>(_other)); \
+			_replace(other.container); \
+			other.container = sl_null; \
+		} \
+	} \
+public: \
+	Container* _retain() const noexcept \
+	{ \
+		if (!_container) { \
+			return sl_null; \
+		} \
+		m_lock.lock(); \
+		Container* p = _container; \
+		if (p) { \
+			p->increaseReference(); \
+		} \
+		m_lock.unlock(); \
+		return p; \
+	}
 
 namespace slib
 {
@@ -34,6 +270,12 @@ namespace slib
 
 	template <class T>
 	using AtomicShared = Atomic< Shared<T> >;
+
+	template <class T>
+	using SharedPtr = Shared<T*>;
+
+	template <class T>
+	using AtomicSharedPtr = Atomic< Shared<T*> >;
 
 	namespace priv
 	{
@@ -70,76 +312,116 @@ namespace slib
 
 			};
 
+			class PtrContainer
+			{
+			public:
+				sl_reg refCount;
+				void* ptr;
+
+			public:
+				PtrContainer() noexcept: refCount(1) {}
+
+				virtual ~PtrContainer();
+
+			public:
+				sl_reg increaseReference() noexcept;
+
+				sl_reg decreaseReference();
+
+			};
+			
+			template <class T>
+			class GenericContainer : public PtrContainer
+			{
+			public:
+				T* ptr2;
+
+			public:
+				GenericContainer(void* _ptr, T* _ptr2) noexcept
+				{
+					ptr = _ptr;
+					ptr2 = _ptr2;
+				}
+
+				~GenericContainer()
+				{
+					delete ptr2;
+				}
+
+			};
+
+			template <class T, class Deleter>
+			class DeleterContainer : public PtrContainer
+			{
+			public:
+				T* ptr2;
+				Deleter deleter;
+
+			public:
+				template <class DELETER>
+				DeleterContainer(void* _ptr, const T* _ptr2, DELETER&& _deleter) noexcept: deleter(Forward<DELETER>(_deleter))
+				{
+					ptr = _ptr;
+					ptr2 = _ptr2;
+				}
+
+				~DeleterContainer()
+				{
+					deleter(ptr2);
+				}
+
+			};
+
+			template <class OBJECT>
+			class ObjectContainer : public PtrContainer
+			{
+			public:
+				OBJECT object;
+
+			public:
+				template <class T, class... ARGS>
+				ObjectContainer(T*, ARGS&&... args) noexcept: object(Forward<ARGS>(args)...)
+				{
+					ptr = (T*)(&object);
+				}
+
+			};
+
+			template <class T>
+			struct ValueType
+			{
+				typedef T Type;
+			};
+			
+			template <>
+			struct ValueType<void>
+			{
+				typedef int Type;
+			};
+
 		}
 	}
 
 	template <class T>
 	class SLIB_EXPORT Shared
 	{
+	public:
 		typedef typename priv::shared::SharedContainer<T> Container;
+		typedef T ValueType;
+		PRIV_SLIB_DEFINE_SHARED_CLASS_MEMBERS
 
 	public:
-		constexpr Shared(): container(sl_null) {}
-
-		constexpr Shared(sl_null_t): container(sl_null) {}
-
-		Shared(Shared&& other) noexcept
-		{
-			container = other.container;
-			other.container = sl_null;
-		}
-
-		Shared(const Shared& other) noexcept
-		{
-			Container* o = other.container;
-			if (o) {
-				o->increaseReference();
-			}
-			container = o;
-		}
-
 		Shared(const AtomicShared<T>& other) noexcept;
 
 		Shared(const T& t) noexcept: container(new Container(t)) {}
 
 		Shared(T&& t) noexcept: container(new Container(Move(t))) {}
 
-		~Shared()
-		{
-			if (container) {
-				container->decreaseReference();
-				container = sl_null;
-			}
-		}
-
-	private:
-		Shared(Container* _container) noexcept: container(_container) {}
-
 	public:
 		template <class... Args>
 		static Shared create(Args&&... args)
 		{
-			return new Container(Forward<Args>(args)...);
-		}
-
-		static const Shared& null() noexcept
-		{
-			return *(reinterpret_cast<Shared const*>(&(priv::shared::g_shared_null)));
-		}
-	
-		constexpr sl_bool isNull() const
-		{
-			return !container;
-		}
-
-		constexpr sl_bool isNotNull() const
-		{
-			return container != sl_null;
-		}
-
-		void setNull()
-		{
-			_replace(sl_null);
+			return new container(Forward<Args>(args)...);
 		}
 
 		constexpr T* get() const&
@@ -148,24 +430,6 @@ namespace slib
 		}
 
 	public:
-		Shared& operator=(Shared&& other)
-		{
-			_move_assign(&other);
-			return *this;
-		}
-
-		Shared& operator=(const Shared& other)
-		{
-			Container* o = other.container;
-			if (container != o) {
-				if (o) {
-					o->increaseReference();
-				}
-				_replace(o);
-			}
-			return *this;
-		}
-
 		Shared& operator=(const AtomicShared<T>& other);
 
 		Shared& operator=(const T& other)
@@ -182,230 +446,228 @@ namespace slib
 
 		T& operator*() const noexcept
 		{
-			return container->object;
+			return *(get());
 		}
-
-		constexpr T* operator->() const
-		{
-			return &(container->object);
-		}
-
-		constexpr explicit operator sl_bool() const
-		{
-			return container != sl_null;
-		}
-
-	public:
-		constexpr sl_bool equals(const Shared& other) const
-		{
-			return container == other.container;
-		}
-
-		sl_bool equals(const AtomicShared<T>& other) const noexcept
-		{
-			return container == ((Shared*)((void*)&other))->container;
-		}
-
-		constexpr sl_compare_result compare(const Shared& other) const
-		{
-			return ComparePrimitiveValues(container, other.container);
-		}
-
-		sl_compare_result compare(const AtomicShared<T>& other) const
-		{
-			return ComparePrimitiveValues(container, ((Shared*)((void*)&other))->container);
-		}
-		
-		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR
-
-	private:
-		void _replace(Container* other)
-		{
-			if (container) {
-				container->decreaseReference();
-			}
-			container = other;
-		}
-		
-		void _move_assign(void* _other)
-		{
-			if ((void*)this != _other) {
-				Shared& other = *(reinterpret_cast<Shared*>(_other));
-				_replace(other.container);
-				other.container = sl_null;
-			}
-		}
-
-	public:
-		Container* container;
 
 	};
 
 	template <class T>
 	class SLIB_EXPORT Atomic< Shared<T> >
 	{
+	public:
 		typedef typename priv::shared::SharedContainer<T> Container;
+		typedef T ValueType;
+		PRIV_SLIB_DEFINE_ATOMIC_SHARED_CLASS_MEMBERS
 
 	public:
-		constexpr Atomic(): _container(sl_null) {}
-
-		constexpr Atomic(sl_null_t): _container(sl_null) {}
-
-		Atomic(const Atomic& other) noexcept
-		{
-			_container = other._retain();
-		}
-
-		Atomic(Shared<T>&& other) noexcept
-		{
-			_container = other.container;
-			other.container = sl_null;
-		}
-
-		Atomic(const Shared<T>& other) noexcept
-		{
-			Container* o = other.container;
-			if (o) {
-				o->increaseReference();
-			}
-			_container = o;
-		}
+		Atomic(const T& t) noexcept: _container(new Container(t)) {}
 
 		Atomic(T&& t) noexcept: _container(new Container(Move(t))) {}
 
-		~Atomic()
-		{
-			if (_container) {
-				_container->decreaseReference();
-				_container = sl_null;
-			}
-		}
-
 	public:
-		constexpr sl_bool isNull() const
+		Atomic& operator=(const T& other)
 		{
-			return !_container;
-		}
-
-		constexpr sl_bool isNotNull() const
-		{
-			return _container != sl_null;
-		}
-
-		void setNull()
-		{
-			_replace(sl_null);
-		}
-
-	public:
-		Atomic& operator=(const Atomic& other)
-		{
-			if (_container != other._container) {
-				_replace(other._retain());
-			}
-			return *this;
-		}
-		
-		Atomic& operator=(Shared<T>&& other)
-		{
-			_move_assign(&other);
+			_replace(new Container(other));
 			return *this;
 		}
 
-		Atomic& operator=(const Shared<T>& other)
-		{
-			Container* o = other.container;
-			if (_container != o) {
-				if (o) {
-					o->increaseReference();
-				}
-				_replace(o);
-			}
-			return *this;
-		}
-
-		Atomic& operator=(T&& other) noexcept
+		Atomic& operator=(T&& other)
 		{
 			_replace(new Container(Move(other)));
 			return *this;
 		}
 
-		Shared<T> operator*() const noexcept
+	};
+	
+	template <class T>
+	class SLIB_EXPORT Shared<T*>
+	{
+	public:
+		typedef priv::shared::PtrContainer Container;
+		typedef typename priv::shared::ValueType<T>::Type ValueType;
+		PRIV_SLIB_DEFINE_SHARED_CLASS_MEMBERS
+
+	public:
+		Shared(const AtomicShared<T*>& other) noexcept;
+		
+		template <class OTHER>
+		Shared(OTHER* ptr) noexcept
 		{
+			if (ptr) {
+				container = new priv::shared::GenericContainer<OTHER>((T*)ptr, ptr);
+			} else {
+				container = sl_null;
+			}
+		}
+
+		template <class OTHER, class DELETER>
+		Shared(OTHER* ptr, DELETER&& deleter) noexcept
+		{
+			if (ptr) {
+				container = new priv::shared::DeleterContainer<OTHER, typename RemoveConstReference<DELETER>::Type>((T*)ptr, ptr, Forward<DELETER>(deleter));
+			} else {
+				container = sl_null;
+			}
+		}
+
+		template <class OTHER>
+		Shared(UniquePtr<OTHER>&& other) noexcept: Shared(other.release()) {}
+
+		Shared(ValueType&& t): container(new priv::shared::ObjectContainer<ValueType>((T*)0, Move(t))) {}
+
+		Shared(const ValueType& t): container(new priv::shared::ObjectContainer<ValueType>((T*)0, t)) {}
+
+	public:
+		template <class... Args>
+		static Shared create(Args&&... args)
+		{
+			return new priv::shared::ObjectContainer<ValueType>((T*)0, Forward<Args>(args)...);
+		}
+
+		constexpr T* get() const&
+		{
+			return container ? (T*)(container->ptr) : sl_null;
+		}
+
+		template <class OTHER>
+		static const Shared& from(const Shared<OTHER*>& other) noexcept
+		{
+			return *(reinterpret_cast<Shared const*>(&other));
+		}
+
+		template <class OTHER>
+		static Shared& from(SharedPtr<OTHER*>& other) noexcept
+		{
+			return *(reinterpret_cast<Shared*>(&other));
+		}
+
+		template <class OTHER>
+		static Shared&& from(Shared<OTHER*>&& other) noexcept
+		{
+			return static_cast<Shared&&>(*(reinterpret_cast<Shared*>(&other)));
+		}
+
+	public:
+		Shared& operator=(const AtomicShared<T*>& other);
+
+		template <class OTHER>
+		Shared& operator=(OTHER* ptr) noexcept
+		{
+			if (ptr) {
+				_replace(new priv::shared::GenericContainer<OTHER>((T*)ptr, ptr));
+			} else {
+				_replace(sl_null);
+			}
 			return *this;
 		}
 
-		explicit constexpr operator sl_bool() const
+		template <class OTHER>
+		Shared& operator=(UniquePtr<OTHER>&& other)
 		{
-			return _container != sl_null;
+			return *this = other.release();
 		}
 
-	public:
-		constexpr sl_bool equals(const Shared<T>& other) const
+		Shared& operator=(ValueType&& other)
 		{
-			return _container == other.container;
+			_replace(new priv::shared::ObjectContainer<ValueType>((T*)0, Move(other)));
+			return *this;
 		}
 
-		constexpr sl_bool equals(const Atomic& other) const
+		Shared& operator=(const ValueType& other)
 		{
-			return _container == other._container;
+			_replace(new priv::shared::ObjectContainer<ValueType>((T*)0, other));
+			return *this;
 		}
 
-		constexpr sl_compare_result compare(const Shared<T>& other) const
+		ValueType& operator*() const noexcept
 		{
-			return ComparePrimitiveValues(_container, other.container);
+			return *(get());
 		}
-
-		constexpr sl_compare_result compare(const Atomic& other) const
-		{
-			return ComparePrimitiveValues(_container, other._container);
-		}
-
-		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR
-
-	public:
-		Container* _retain() const noexcept
-		{
-			if (!_container) {
-				return sl_null;
-			}
-			m_lock.lock();
-			Container* p = _container;
-			if (p) {
-				p->increaseReference();
-			}
-			m_lock.unlock();
-			return p;
-		}
-
-		void _replace(Container* other)
-		{
-			m_lock.unlock();
-			Container* before = _container;
-			_container = other;
-			m_lock.unlock();
-			if (before) {
-				before->decreaseReference();
-			}
-		}
-
-		void _move_assign(void* _other)
-		{
-			if ((void*)this != _other) {
-				Shared<T>& other = *(reinterpret_cast<Shared<T>*>(_other));
-				_replace(other.container);
-				other.container = sl_null;
-			}
-		}
-
-	public:
-		Container* _container;
-
-	private:
-		SpinLock m_lock;
 
 	};
-	
+
+	template <class T>
+	class SLIB_EXPORT Atomic< Shared<T*> >
+	{
+	public:
+		typedef priv::shared::PtrContainer Container;
+		typedef typename priv::shared::ValueType<T>::Type ValueType;
+		PRIV_SLIB_DEFINE_ATOMIC_SHARED_CLASS_MEMBERS
+
+	public:
+		template <class OTHER>
+		Atomic(OTHER* ptr) noexcept
+		{
+			if (ptr) {
+				_container = new priv::shared::GenericContainer<OTHER>((T*)ptr, ptr);
+			} else {
+				_container = sl_null;
+			}
+		}
+
+		template <class OTHER, class DELETER>
+		Atomic(OTHER* ptr, DELETER&& deleter) noexcept
+		{
+			if (ptr) {
+				_container = new priv::shared::DeleterContainer<OTHER, typename RemoveConstReference<DELETER>::Type>((T*)ptr, ptr, Forward<DELETER>(deleter));
+			} else {
+				_container = sl_null;
+			}
+		}
+
+		template <class OTHER>
+		Atomic(UniquePtr<OTHER>&& other) noexcept: Atomic(other.release()) {}
+
+		Atomic(ValueType&& t): _container(new priv::shared::ObjectContainer<ValueType>((T*)0, Move(t))) {}
+
+		Atomic(const ValueType& t): _container(new priv::shared::ObjectContainer<ValueType>((T*)0, t)) {}
+
+	public:
+		template <class OTHER>
+		static const Atomic& from(const AtomicShared<OTHER*>& other) noexcept
+		{
+			return *(reinterpret_cast<Atomic const*>(&other));
+		}
+
+		template <class OTHER>
+		static Atomic& from(AtomicShared<OTHER*>& other) noexcept
+		{
+			return *(reinterpret_cast<Atomic*>(&other));
+		}
+
+	public:
+		template <class OTHER>
+		Atomic& operator=(OTHER* ptr) noexcept
+		{
+			if (ptr) {
+				_replace(new priv::shared::GenericContainer<OTHER>((T*)ptr, ptr));
+			} else {
+				_replace(sl_null);
+			}
+			return *this;
+		}
+
+		template <class OTHER>
+		Atomic& operator=(UniquePtr<OTHER>&& other)
+		{
+			return *this = other.release();
+		}
+
+		Atomic& operator=(ValueType&& other)
+		{
+			_replace(new priv::shared::ObjectContainer<ValueType>((T*)0, Move(other)));
+			return *this;
+		}
+
+		Atomic& operator=(const ValueType& other)
+		{
+			_replace(new priv::shared::ObjectContainer<ValueType>((T*)0, other));
+			return *this;
+		}
+
+	};
+
+
 	template <class T>
 	Shared<T>::Shared(const AtomicShared<T>& other) noexcept
 	{
@@ -414,6 +676,21 @@ namespace slib
 
 	template <class T>
 	Shared<T>& Shared<T>::operator=(const AtomicShared<T>& other)
+	{
+		if (container != other._container) {
+			_replace(other._retain());
+		}
+		return *this;
+	}
+
+	template <class T>
+	Shared<T*>::Shared(const AtomicShared<T*>& other) noexcept
+	{
+		container = other._retain();
+	}
+
+	template <class T>
+	Shared<T*>& Shared<T*>::operator=(const AtomicShared<T*>& other)
 	{
 		if (container != other._container) {
 			_replace(other._retain());

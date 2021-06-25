@@ -30,7 +30,7 @@
 #include "slib/core/linked_object.h"
 #include "slib/core/loop_queue.h"
 #include "slib/core/ptr.h"
-#include "slib/core/shared_ptr.h"
+#include "slib/core/shared.h"
 #include "slib/core/function.h"
 #include "slib/core/promise.h"
 
@@ -172,7 +172,27 @@ namespace slib
 
 		namespace shared
 		{
+
 			void* const g_shared_null = 0;
+
+			PtrContainer::~PtrContainer()
+			{
+			}
+
+			sl_reg PtrContainer::increaseReference() noexcept
+			{
+				return Base::interlockedIncrement(&refCount);
+			}
+
+			sl_reg PtrContainer::decreaseReference()
+			{
+				sl_reg nRef = Base::interlockedDecrement(&refCount);
+				if (!nRef) {
+					delete this;
+				}
+				return nRef;
+			}
+
 		}
 
 		namespace function_list
@@ -271,25 +291,6 @@ namespace slib
 
 	LoopQueueBase::~LoopQueueBase()
 	{
-	}
-
-
-	CSharedPtrBase::~CSharedPtrBase()
-	{
-	}
-
-	sl_reg CSharedPtrBase::increaseReference() noexcept
-	{
-		return Base::interlockedIncrement(&refCount);
-	}
-
-	sl_reg CSharedPtrBase::decreaseReference()
-	{
-		sl_reg nRef = Base::interlockedDecrement(&refCount);
-		if (!nRef) {
-			delete this;
-		}
-		return nRef;
 	}
 
 

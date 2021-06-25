@@ -216,7 +216,7 @@ namespace slib
 		hardwareAddress[7] = 0;
 	}
 
-	sl_bool L2PacketInfo::getMacAddress(MacAddress* address) noexcept
+	sl_bool L2PacketInfo::getMacAddress(MacAddress* address) const noexcept
 	{
 		if (lenHardwareAddress == 6) {
 			if (address) {

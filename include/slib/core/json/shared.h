@@ -54,31 +54,6 @@ namespace slib
 		}
 	}
 
-
-	template <class T>
-	static void FromJson(const Json& json, SharedPtr<T>& _out)
-	{
-		if (json.isUndefined()) {
-			return;
-		}
-		if (json.isNull()) {
-			_out.setNull();
-		} else {
-			_out = SharedPtr<T>::create();
-			FromJson(json, *(_out.get()));
-		}
-	}
-
-	template <class T>
-	static void ToJson(Json& json, const SharedPtr<T>& _in)
-	{
-		if (_in.isNull()) {
-			json.setNull();
-		} else {
-			ToJson(json, *(_in.get()));
-		}
-	}
-
 }
 
 #endif

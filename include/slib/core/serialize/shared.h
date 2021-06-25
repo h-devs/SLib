@@ -26,7 +26,6 @@
 #include "primitive.h"
 
 #include "../shared.h"
-#include "../shared_ptr.h"
 
 namespace slib
 {
@@ -53,40 +52,6 @@ namespace slib
 		}
 		if (f) {
 			_out = Shared<T>::create();
-			if (_out.isNotNull()) {
-				return Deserialize(input, *(_out.get()));
-			} else {
-				return sl_false;
-			}
-		} else {
-			_out.setNull();
-			return sl_true;
-		}
-	}
-
-
-	template <class OUTPUT, class T>
-	static sl_bool Serialize(OUTPUT* output, const SharedPtr<T>& _in)
-	{
-		if (_in.isNull()) {
-			return SerializeStatic(output, "", 1);
-		} else {
-			if (!(SerializeStatic(output, "\x01", 1))) {
-				return sl_false;
-			}
-			return Serialize(output, *(_in.get()));
-		}
-	}
-
-	template <class INPUT, class T>
-	static sl_bool Deserialize(INPUT* input, SharedPtr<T>& _out)
-	{
-		sl_uint8 f;
-		if (!(DeserializeByte(input, f))) {
-			return sl_false;
-		}
-		if (f) {
-			_out = SharedPtr<T>::create();
 			if (_out.isNotNull()) {
 				return Deserialize(input, *(_out.get()));
 			} else {

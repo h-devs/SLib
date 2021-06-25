@@ -65,11 +65,6 @@ namespace slib
 				*((sl_uint32*)dst + 2) = 0;
 			}
 
-			SLIB_INLINE static sl_bool IsSharedPtr(sl_uint8 type)
-			{
-				return type >= VariantType::SharedPtr && type < VariantType::Referable;
-			}
-
 			SLIB_INLINE static sl_bool IsReferable(sl_uint8 type)
 			{
 				return type >= VariantType::Referable;
@@ -90,12 +85,8 @@ namespace slib
 						CopyBytes12(_dst_value, _src_value);
 						break;
 					default:
-						if (src_type >= VariantType::SharedPtr) {
-							if (src_type >= VariantType::Referable) {
-								new PTR_VAR(Ref<Referable>, dst_value) Ref<Referable>(REF_VAR(Ref<Referable>, src_value));
-							} else {
-								new PTR_VAR(SharedPtr<void>, dst_value) SharedPtr<void>(REF_VAR(SharedPtr<void>, src_value));
-							}
+						if (src_type >= VariantType::Referable) {
+							new PTR_VAR(Ref<Referable>, dst_value) Ref<Referable>(REF_VAR(Ref<Referable>, src_value));
 						} else {
 							dst_value = src_value;
 						}
@@ -114,12 +105,8 @@ namespace slib
 						REF_VAR(String16, value).String16::~String16();
 						break;
 					default:
-						if (type >= VariantType::SharedPtr) {
-							if (type >= VariantType::Referable) {
-								REF_VAR(Ref<Referable>, value).Ref<Referable>::~Ref();
-							} else {
-								REF_VAR(SharedPtr<void>, value).SharedPtr<void>::~SharedPtr();
-							}
+						if (type >= VariantType::Referable) {
+							REF_VAR(Ref<Referable>, value).Ref<Referable>::~Ref();
 						}
 						break;
 				}
@@ -938,42 +925,6 @@ namespace slib
 			CopyBytes16(this, &other);
 			other._type = VariantType::Null;
 		}
-	}
-
-	void Variant::_constructorSharedPtr(const void* ptr, sl_uint8 type) noexcept
-	{
-		const SharedPtr<void>& ref = *reinterpret_cast<SharedPtr<void> const*>(ptr);
-		if (ref.isNotNull()) {
-			_type = type;
-			new (reinterpret_cast<SharedPtr<void>*>(&_value)) SharedPtr<void>(ref);
-		} else {
-			_type = VariantType::Null;
-			_value = 1;
-		}
-	}
-
-	void Variant::_constructorMoveSharedPtr(void* ptr, sl_uint8 type) noexcept
-	{
-		SharedPtr<void>& ref = *reinterpret_cast<SharedPtr<void>*>(ptr);
-		if (ref.isNotNull()) {
-			_type = type;
-			new (reinterpret_cast<SharedPtr<void>*>(&_value)) SharedPtr<void>(Move(ref));
-		} else {
-			_type = VariantType::Null;
-			_value = 1;
-		}
-	}
-
-	void Variant::_assignSharedPtr(const void* ptr, sl_uint8 type) noexcept
-	{
-		Free(_type, _value);
-		_constructorSharedPtr(ptr, type);
-	}
-
-	void Variant::_assignMoveSharedPtr(void* ptr, sl_uint8 type) noexcept
-	{
-		Free(_type, _value);
-		_constructorMoveSharedPtr(ptr, type);
 	}
 
 	void Variant::_constructorRef(const void* ptr, sl_uint8 type) noexcept
@@ -2530,12 +2481,12 @@ namespace slib
 
 	sl_bool Variant::isPointer() const noexcept
 	{
-		return _type == VariantType::Pointer || _type == VariantType::Sz8 || _type == VariantType::Sz16 || _type >= VariantType::SharedPtr;
+		return _type == VariantType::Pointer || _type == VariantType::Sz8 || _type == VariantType::Sz16 || _type >= VariantType::Referable;
 	}
 
 	void* Variant::getPointer(const void* def) const noexcept
 	{
-		if (_type == VariantType::Pointer || _type == VariantType::Sz8 || _type == VariantType::Sz16 || _type >= VariantType::SharedPtr) {
+		if (_type == VariantType::Pointer || _type == VariantType::Sz8 || _type == VariantType::Sz16 || _type >= VariantType::Referable) {
 			return REF_VAR(void* const, _value);
 		}
 		return (void*)def;
@@ -2593,19 +2544,6 @@ namespace slib
 		Free(_type, _value);
 		_type = VariantType::ObjectId;
 		CopyBytes12(&_value, _id.data);
-	}
-
-	sl_bool Variant::isSharedPtr() const noexcept
-	{
-		return IsSharedPtr(_type);
-	}
-
-	SharedPtr<void> Variant::getSharedPtr() const noexcept
-	{
-		if (IsSharedPtr(_type)) {
-			return REF_VAR(SharedPtr<void> const, _value);
-		}
-		return sl_null;
 	}
 
 	sl_bool Variant::isRef() const noexcept
@@ -3235,8 +3173,7 @@ namespace slib
 			case VariantType::Pointer:
 			case VariantType::ObjectId:
 			case VariantType::Memory:
-			case VariantType::SharedPtr:
-				return String::join("<shared-ptr:", String::fromPointerValue(REF_VAR(void*, _value)), ">");
+				return getString();
 			case VariantType::Weak:
 				{
 					Ref<Referable> ref(getRef());
@@ -3607,7 +3544,7 @@ namespace slib
 				case VariantType::ObjectId:
 					return REF_VAR(ObjectId const, v1._value).compare(REF_VAR(ObjectId const, v2._value));
 				default:
-					if (type >= VariantType::SharedPtr) {
+					if (type >= VariantType::Referable) {
 						return ComparePrimitiveValues(REF_VAR(sl_size const, v1._value), REF_VAR(sl_size const, v2._value));
 					} else {
 						return ComparePrimitiveValues(v1._value, v2._value);
@@ -3659,7 +3596,7 @@ namespace slib
 				case VariantType::ObjectId:
 					return REF_VAR(ObjectId const, v1._value).equals(REF_VAR(ObjectId const, v2._value));
 				default:
-					if (type >= VariantType::SharedPtr) {
+					if (type >= VariantType::Referable) {
 						return REF_VAR(void const* const, v1._value) == REF_VAR(void const* const, v2._value);
 					} else {
 						return v1._value == v2._value;
