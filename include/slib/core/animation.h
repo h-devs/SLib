@@ -66,7 +66,7 @@ namespace slib
 		NotSelfAlive = 32
 	})
 	
-	class Animation : public Object
+	class SLIB_EXPORT Animation : public Object
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -269,7 +269,7 @@ namespace slib
 		friend class AnimationLoop;
 	};
 	
-	class AnimationLoop : public Object
+	class SLIB_EXPORT AnimationLoop : public Object
 	{
 	public:
 		AnimationLoop();
@@ -322,7 +322,7 @@ namespace slib
 	};
 	
 	template <class T>
-	class AnimationFrame
+	class SLIB_EXPORT AnimationFrame
 	{
 	public:
 		float fraction;
@@ -338,7 +338,7 @@ namespace slib
 	};
 	
 	template < class T, class INTERPOLATION = Interpolation<T> >
-	class AnimationFrames
+	class SLIB_EXPORT AnimationFrames
 	{
 	public:
 		AnimationFrames() {}
@@ -395,7 +395,7 @@ namespace slib
 	
 	
 	template < class T, class INTERPOLATION = Interpolation<T> >
-	class AnimationFramesSeeker : public Object
+	class SLIB_EXPORT AnimationFramesSeeker : public Object
 	{
 	public:
 		AnimationFramesSeeker(const AnimationFrames<T, INTERPOLATION>& frames)
@@ -504,7 +504,7 @@ namespace slib
 	};
 	
 	
-	class AnimationTarget : public Object
+	class SLIB_EXPORT AnimationTarget : public Object
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -529,7 +529,7 @@ namespace slib
 	};
 	
 	template <class T>
-	class AnimationTargetT : public AnimationTarget
+	class SLIB_EXPORT AnimationTargetT : public AnimationTarget
 	{
 	public:
 		AnimationTargetT(const AnimationFrames<T>& frames) : m_seeker(frames) {}
