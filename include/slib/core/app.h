@@ -26,12 +26,11 @@
 #include "object.h"
 #include "string.h"
 #include "function.h"
+#include "named_instance.h"
 #include "flags.h"
 
 namespace slib
 {
-
-	class GlobalUniqueInstance;
 
 	enum class AppType
 	{
@@ -210,7 +209,7 @@ namespace slib
 		List<String> m_arguments;
 
 		AtomicString m_uniqueInstanceId;
-		Ref<GlobalUniqueInstance> m_uniqueInstance;
+		NamedInstance m_uniqueInstance;
 
 		sl_bool m_flagCrashRecoverySupport;
 
