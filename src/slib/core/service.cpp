@@ -23,7 +23,7 @@
 #include "slib/core/service.h"
 
 #include "slib/core/service_manager.h"
-#include "slib/core/global_unique_instance.h"
+#include "slib/core/named_instance.h"
 #include "slib/core/system.h"
 #include "slib/core/process.h"
 #include "slib/core/log.h"
@@ -80,7 +80,7 @@ namespace slib
 			return sl_false;
 		}
 		
-		if (GlobalUniqueInstance::exists(appName + STOP_ID)) {
+		if (NamedInstance::exists(appName + STOP_ID)) {
 			LogError(TAG, "OTHER PROCESS IS STOPPING %s", appName);
 			return sl_false;
 		}
@@ -93,7 +93,7 @@ namespace slib
 			Ref<Process> process = Process::run(appPath);
 
 			for (int i = 0; i < WAIT_SECONDS*10; i++) {
-				if (GlobalUniqueInstance::exists(appName + START_ID)) {
+				if (NamedInstance::exists(appName + START_ID)) {
 					Log(TAG, "%s IS STARTED", appName);
 					return sl_true;
 				}
@@ -116,7 +116,7 @@ namespace slib
 		if (!(isUniqueInstanceRunning())) {
 			LogError(TAG, "%s IS NOT RUNNING", appName);
 		} else {
-			Ref<GlobalUniqueInstance> stopInstance = GlobalUniqueInstance::create(appName + STOP_ID);
+			NamedInstance stopInstance = NamedInstance(appName + STOP_ID);
 			if (stopInstance.isNotNull()) {
 				Log(TAG, "STOPPING %s", appName);
 				for (int i = 0; i < WAIT_SECONDS * 10; i++) {
@@ -338,12 +338,12 @@ namespace slib
 			return -1;
 		}
 
-		Ref<GlobalUniqueInstance> startInstance = GlobalUniqueInstance::create(appName + START_ID);
+		NamedInstance startInstance = NamedInstance(appName + START_ID);
 
 		String stopId = appName + STOP_ID;
 
 		while (1) {
-			if (GlobalUniqueInstance::exists(stopId)) {
+			if (NamedInstance::exists(stopId)) {
 				break;
 			}
 			System::sleep(500);

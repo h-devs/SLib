@@ -112,8 +112,6 @@
     <ClCompile Include="..\..\src\slib\core\event_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\file.cpp" />
     <ClCompile Include="..\..\src\slib\core\file_win32.cpp" />
-    <ClCompile Include="..\..\src\slib\core\global_unique_instance.cpp" />
-    <ClCompile Include="..\..\src\slib\core\global_unique_instance_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\hash.cpp" />
     <ClCompile Include="..\..\src\slib\core\io.cpp" />
     <ClCompile Include="..\..\src\slib\core\json.cpp" />
@@ -123,6 +121,7 @@
     <ClCompile Include="..\..\src\slib\core\math.cpp" />
     <ClCompile Include="..\..\src\slib\core\memory.cpp" />
     <ClCompile Include="..\..\src\slib\core\mutex.cpp" />
+    <ClCompile Include="..\..\src\slib\core\named_instance.cpp" />
     <ClCompile Include="..\..\src\slib\core\object.cpp" />
     <ClCompile Include="..\..\src\slib\core\parse.cpp" />
     <ClCompile Include="..\..\src\slib\core\pipe.cpp" />

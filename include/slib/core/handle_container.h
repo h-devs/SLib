@@ -123,8 +123,9 @@ public: \
 	constexpr Atomic(): MEMBER_NAME(HANDLE_INVALID) {} \
 	constexpr Atomic(HANDLE_TYPE other): MEMBER_NAME(other) {} \
 	Atomic(const Atomic&) = delete; \
-	Atomic(CLASS&& other) noexcept \
+	Atomic(CLASS&& _other) noexcept \
 	{ \
+		Atomic& other = *(reinterpret_cast<Atomic*>(&_other)); \
 		MEMBER_NAME = other.MEMBER_NAME; \
 		other.MEMBER_NAME = HANDLE_INVALID; \
 	} \
@@ -135,8 +136,9 @@ public: \
 		} \
 	} \
 	Atomic& operator=(const Atomic&) = delete; \
-	Atomic& operator=(CLASS&& other) \
+	Atomic& operator=(CLASS&& _other) \
 	{ \
+		Atomic& other = *(reinterpret_cast<Atomic*>(&_other)); \
 		HANDLE_TYPE old = MEMBER_NAME; \
 		{ \
 			SpinLocker locker(&_lock); \

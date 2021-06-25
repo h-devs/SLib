@@ -962,12 +962,6 @@
     <ClCompile Include="..\..\src\slib\ui\screen_capture_win32.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\global_unique_instance.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\global_unique_instance_win32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\process.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -1407,6 +1401,9 @@
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\container.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\named_instance.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
   </ItemGroup>

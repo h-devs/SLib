@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,28 +20,40 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_GLOBAL_UNIQUE_INSTANCE
-#define CHECKHEADER_SLIB_CORE_GLOBAL_UNIQUE_INSTANCE
+#ifndef CHECKHEADER_SLIB_CORE_NAMED_INSTANCE
+#define CHECKHEADER_SLIB_CORE_NAMED_INSTANCE
 
 #include "string.h"
+#include "handle_container.h"
 
 namespace slib
 {
-	
-	class SLIB_EXPORT GlobalUniqueInstance : public Referable
+
+	namespace priv
 	{
-		SLIB_DECLARE_OBJECT
+		namespace named_instance
+		{
+			struct HandleType;
+			void CloseInstanceHandle(HandleType* handle);
+		}
+	}
+	
+	class SLIB_EXPORT NamedInstance
+	{
+		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(NamedInstance, priv::named_instance::HandleType*, m_handle, priv::named_instance::CloseInstanceHandle)
 
 	public:
-		GlobalUniqueInstance();
-
-		~GlobalUniqueInstance();
+		NamedInstance(const StringParam& name);
 
 	public:
-		static Ref<GlobalUniqueInstance> create(const String& name);
+		static sl_bool exists(const StringParam& name);
 
-		static sl_bool exists(const String& name);
+	};
 
+	template <>
+	class SLIB_EXPORT Atomic<NamedInstance>
+	{
+		SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(NamedInstance, priv::named_instance::HandleType*, m_handle, priv::named_instance::CloseInstanceHandle)
 	};
 
 }

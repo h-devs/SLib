@@ -28,7 +28,6 @@
 #include "slib/core/process.h"
 #include "slib/core/file.h"
 #include "slib/core/string_buffer.h"
-#include "slib/core/global_unique_instance.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/log.h"
 
@@ -280,7 +279,7 @@ Microsoft Specific
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 		String instanceId = getUniqueInstanceId();
 		if (instanceId.isNotEmpty()) {
-			m_uniqueInstance = GlobalUniqueInstance::create(instanceId);
+			m_uniqueInstance = NamedInstance(instanceId);
 			if (m_uniqueInstance.isNull()) {
 				return onExistingInstance();
 			}
@@ -322,7 +321,7 @@ Microsoft Specific
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 		String instanceId = getUniqueInstanceId();
 		if (instanceId.isNotEmpty()) {
-			return GlobalUniqueInstance::exists(instanceId);
+			return NamedInstance::exists(instanceId);
 		}
 #endif
 		return sl_false;

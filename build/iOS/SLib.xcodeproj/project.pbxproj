@@ -52,7 +52,7 @@
 		26539FB62374BC140064340D /* push_notification.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26539FB52374BC140064340D /* push_notification.cpp */; };
 		2657CE93238021F700402782 /* ui_notification_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2657CE92238021F600402782 /* ui_notification_apple.mm */; };
 		265A934C2303558A00B155A2 /* screen_capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A934B2303558A00B155A2 /* screen_capture.cpp */; };
-		265A935623043C3400B155A2 /* global_unique_instance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A935523043C3400B155A2 /* global_unique_instance.cpp */; };
+		265A935623043C3400B155A2 /* named_instance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A935523043C3400B155A2 /* named_instance.cpp */; };
 		265A935823043CBF00B155A2 /* process.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A935723043CBE00B155A2 /* process.cpp */; };
 		265A935E2304783200B155A2 /* console.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A935D2304783200B155A2 /* console.cpp */; };
 		265A9360230478E300B155A2 /* time_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A935F230478E300B155A2 /* time_unix.cpp */; };
@@ -443,7 +443,7 @@
 		26539FB52374BC140064340D /* push_notification.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = push_notification.cpp; sourceTree = "<group>"; };
 		2657CE92238021F600402782 /* ui_notification_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ui_notification_apple.mm; sourceTree = "<group>"; };
 		265A934B2303558A00B155A2 /* screen_capture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = screen_capture.cpp; sourceTree = "<group>"; };
-		265A935523043C3400B155A2 /* global_unique_instance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_unique_instance.cpp; sourceTree = "<group>"; };
+		265A935523043C3400B155A2 /* named_instance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = named_instance.cpp; sourceTree = "<group>"; };
 		265A935723043CBE00B155A2 /* process.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = process.cpp; sourceTree = "<group>"; };
 		265A935D2304783200B155A2 /* console.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = console.cpp; sourceTree = "<group>"; };
 		265A935F230478E300B155A2 /* time_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = time_unix.cpp; sourceTree = "<group>"; };
@@ -1023,7 +1023,7 @@
 				A2DE1D9B1B383E7800A74698 /* event_unix.cpp */,
 				A25F2ED21B039EF600854DAF /* file.cpp */,
 				A25F2ED31B039EF600854DAF /* file_unix.cpp */,
-				265A935523043C3400B155A2 /* global_unique_instance.cpp */,
+				265A935523043C3400B155A2 /* named_instance.cpp */,
 				26CE672A1DE8271500C1371F /* hash.cpp */,
 				A25F2ED51B039EF600854DAF /* io.cpp */,
 				A25F2ED61B039EF600854DAF /* json.cpp */,
@@ -1445,7 +1445,7 @@
 				26D9D8D81E962976005F7BD3 /* text_view.cpp in Sources */,
 				26D9D8031E9628E0005F7BD3 /* thread.cpp in Sources */,
 				26D9D8A81E962962005F7BD3 /* url_request.cpp in Sources */,
-				265A935623043C3400B155A2 /* global_unique_instance.cpp in Sources */,
+				265A935623043C3400B155A2 /* named_instance.cpp in Sources */,
 				26C795CD2215FC7C0053C5A1 /* strings.cpp in Sources */,
 				26D9D8041E9628E0005F7BD3 /* md5.cpp in Sources */,
 				26D9D85E1E962937005F7BD3 /* geo_rectangle.cpp in Sources */,
