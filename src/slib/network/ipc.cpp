@@ -28,7 +28,7 @@
 #include "slib/core/system.h"
 #include "slib/core/file.h"
 #include "slib/core/thread.h"
-#include "slib/core/moving_container.h"
+#include "slib/core/move_t.h"
 #include "slib/core/serialize/variable_length_integer.h"
 #include "slib/core/serialize/buffer.h"
 
@@ -119,7 +119,7 @@ namespace slib
 							if (m_threads.getCount() < m_maxThreadsCount) {
 								Ref<Socket> socket = Socket::openDomainStream();
 								if (socket.isNotNull()) {
-									MovingContainer< Ref<Socket> > _socket(Move(socket));
+									MoveT< Ref<Socket> > _socket(Move(socket));
 									auto thiz = ToWeakRef(this);
 									Ref<Thread> thread = Thread::create([_socket, thiz, this, targetName, data, callbackResponse]() {
 										auto ref = ToRef(thiz);
@@ -180,7 +180,7 @@ namespace slib
 							String address;
 							Ref<Socket> socket = m_socketServer->acceptDomain(address);
 							if (socket.isNotNull()) {
-								MovingContainer< Ref<Socket> > _socket(Move(socket));
+								MoveT< Ref<Socket> > _socket(Move(socket));
 								auto thiz = ToWeakRef(this);
 								Ref<Thread> thread = Thread::create([_socket, thiz, this]() {
 									auto ref = ToRef(thiz);

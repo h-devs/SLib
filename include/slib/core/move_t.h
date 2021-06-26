@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_MOVING_CONTAINER
-#define CHECKHEADER_SLIB_CORE_MOVING_CONTAINER
+#ifndef CHECKHEADER_SLIB_CORE_MOVE_T
+#define CHECKHEADER_SLIB_CORE_MOVE_T
 
 #include "definition.h"
 
@@ -29,15 +29,15 @@ namespace slib
 {
 
 	template <class T>
-	class MovingContainer
+	class MoveT
 	{
 	public:
 		T value;
 
 	public:
-		MovingContainer(T&& other) noexcept: value(Move(other)) {}
+		MoveT(T&& other) noexcept: value(Move(other)) {}
 
-		MovingContainer(const MovingContainer& other) noexcept: value(Move(((MovingContainer*)&other)->value)) {}
+		MoveT(MoveT& other) noexcept: value(Move(other.value)) {}
 
 	};
 	
