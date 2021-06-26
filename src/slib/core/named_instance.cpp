@@ -22,7 +22,7 @@
 
 #include "slib/core/named_instance.h"
 
-#if defined(SLIB_PLATFORM_IS_WIN32)
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
 
 #include "slib/core/win32/windows.h"
 
@@ -61,12 +61,12 @@ namespace slib
 			}
 #endif
 
-			static DummyHandle CreateInstanceHandle(const StringParam& _name)
+			static HNamedInstance CreateInstanceHandle(const StringParam& _name)
 			{
 				if (_name.isEmpty()) {
 					return sl_null;
 				}
-#if defined(SLIB_PLATFORM_IS_WIN32)
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
 				String16 name = MakeInstanceName(_name);
 				HANDLE hMutex = OpenMutexW(MUTEX_ALL_ACCESS, FALSE, (LPCWSTR)(name.getData()));
 				if (hMutex) {
@@ -75,8 +75,9 @@ namespace slib
 				}
 				hMutex = CreateMutexW(NULL, FALSE, (LPCWSTR)(name.getData()));
 				if (hMutex) {
-					return (DummyHandle)hMutex;
+					return hMutex;
 				}
+				return sl_null;
 #else
 				String path = MakeInstancePath(_name);
 				int handle = open(path.getData(), O_RDWR | O_CREAT | O_EXCL, 0644);
@@ -95,20 +96,19 @@ namespace slib
 					fl.l_whence = SEEK_SET;
 					int ret = fcntl(handle, F_SETLK, &fl);
 					if (ret >= 0) {
-						return (DummyHandle)((void*)((sl_size)handle));
+						return handle;
 					}
 					close(handle);
 				}
+				return 0;
 #endif
-				return sl_null;
 			}
 
-			static void CloseInstanceHandle(DummyHandle _handle)
+			static void CloseInstanceHandle(HNamedInstance handle)
 			{
-#if defined(SLIB_PLATFORM_IS_WIN32)
-				CloseHandle((void*)_handle);
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+				CloseHandle(handle);
 #else
-				int handle = (int)((sl_size)((void*)_handle));
 				struct flock fl;
 				Base::zeroMemory(&fl, sizeof(fl));
 				fl.l_start = 0;
@@ -125,8 +125,8 @@ namespace slib
 
 	using namespace priv::named_instance;
 
-	SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(NamedInstance, DummyHandle, m_handle, CloseInstanceHandle)
-	SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(NamedInstance, DummyHandle, m_handle, CloseInstanceHandle)
+	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(NamedInstance, HNamedInstance, m_handle, SLIB_NAMED_INSTANCE_INVALID_HANDLE, CloseInstanceHandle)
+	SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_MEMBERS(NamedInstance, HNamedInstance, m_handle, SLIB_NAMED_INSTANCE_INVALID_HANDLE, CloseInstanceHandle)
 
 	NamedInstance::NamedInstance(const StringParam& name)
 	{
@@ -138,7 +138,7 @@ namespace slib
 		if (_name.isEmpty()) {
 			return sl_false;
 		}
-#if defined(SLIB_PLATFORM_IS_WIN32)
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
 		String16 name = MakeInstanceName(_name);
 		HANDLE hMutex = OpenMutexW(MUTEX_ALL_ACCESS, FALSE, (LPCWSTR)(name.getData()));
 		if (hMutex != NULL) {

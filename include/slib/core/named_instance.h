@@ -29,9 +29,17 @@
 namespace slib
 {
 
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+	typedef void* HNamedInstance;
+	#define SLIB_NAMED_INSTANCE_INVALID_HANDLE sl_null
+#else
+	typedef int HNamedInstance;
+	#define SLIB_NAMED_INSTANCE_INVALID_HANDLE -1
+#endif
+
 	class SLIB_EXPORT NamedInstance
 	{
-		SLIB_DECLARE_NULLABLE_HANDLE_CONTAINER_MEMBERS(NamedInstance, DummyHandle, m_handle)
+		SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(NamedInstance, HNamedInstance, m_handle, SLIB_NAMED_INSTANCE_INVALID_HANDLE)
 
 	public:
 		NamedInstance(const StringParam& name);
@@ -44,7 +52,7 @@ namespace slib
 	template <>
 	class SLIB_EXPORT Atomic<NamedInstance>
 	{
-		SLIB_DECLARE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(NamedInstance, DummyHandle, m_handle)
+		SLIB_DECLARE_ATOMIC_HANDLE_CONTAINER_MEMBERS(NamedInstance, HNamedInstance, m_handle, SLIB_NAMED_INSTANCE_INVALID_HANDLE)
 	};
 
 }
