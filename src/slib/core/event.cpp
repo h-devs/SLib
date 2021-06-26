@@ -83,11 +83,7 @@ namespace slib
 
 	SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(Event, HEvent, m_handle, CloseEventHandle)
 	SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(Event, HEvent, m_handle, CloseEventHandle)
-
-	Event::Event(sl_bool flagAutoReset) noexcept: m_handle(CreateEventHandle(flagAutoReset))
-	{
-	}
-
+	
 	Event Event::create(sl_bool flagAutoReset) noexcept
 	{
 		return CreateEventHandle(flagAutoReset);

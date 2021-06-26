@@ -270,6 +270,10 @@ namespace slib
 		virtual void close() = 0;
 	};
 
+	class SLIB_EXPORT IStream : public IReader, public IWriter, public IClosable
+	{
+	};
+
 }
 
 #endif

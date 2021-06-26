@@ -31,10 +31,6 @@
 namespace slib
 {
 	
-	class SLIB_EXPORT IStream : public IReader, public IWriter, public IClosable
-	{
-	};
-
 	class SeekableReaderHelper
 	{
 	public:

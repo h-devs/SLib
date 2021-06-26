@@ -32,7 +32,6 @@
 #include "slib/ui/resource.h"
 #include "slib/device/device.h"
 #include "slib/core/locale.h"
-#include "slib/core/io.h"
 #include "slib/core/log.h"
 #include "slib/core/safe_static.h"
 

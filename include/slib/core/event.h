@@ -58,9 +58,6 @@ namespace slib
 		SLIB_DECLARE_NULLABLE_HANDLE_CONTAINER_MEMBERS(Event, HEvent, m_handle)
 
 	public:
-		Event(sl_bool flagAutoReset) noexcept;
-
-	public:
 		static Event create(sl_bool flagAutoReset = sl_true) noexcept;
 
 	public:
