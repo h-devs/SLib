@@ -34,7 +34,7 @@ namespace slib
 	#define SLIB_NAMED_INSTANCE_INVALID_HANDLE sl_null
 #else
 	typedef int HNamedInstance;
-	#define SLIB_NAMED_INSTANCE_INVALID_HANDLE -1
+	#define SLIB_NAMED_INSTANCE_INVALID_HANDLE (-1)
 #endif
 
 	class SLIB_EXPORT NamedInstance
