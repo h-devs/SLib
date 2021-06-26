@@ -20,65 +20,41 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_EVENT
-#define CHECKHEADER_SLIB_CORE_EVENT
+#ifndef CHECKHEADER_SLIB_CORE_POSIX_EVENT
+#define CHECKHEADER_SLIB_CORE_POSIX_EVENT
 
-#include "handle_container.h"
+#include "../definition.h"
+
+#include <pthread.h>
 
 namespace slib
 {
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-	typedef void* HEvent;
-#else
 	namespace posix
 	{
-		class Event;
+
+		class Event
+		{
+		public:
+			pthread_cond_t cond;
+			pthread_mutex_t mutex;
+			sl_bool signal;
+			sl_bool flagAutoReset;
+
+		public:
+			Event(sl_bool flagAutoReset) noexcept;
+
+			~Event() noexcept;
+
+		public:
+			void set() noexcept;
+
+			void reset() noexcept;
+
+			sl_bool wait(sl_int32 timeout = -1) noexcept;
+
+		};
+
 	}
-	typedef posix::Event* HEvent;
-#endif
-
-	class SLIB_EXPORT IEvent
-	{
-	public:
-		virtual void set() = 0;
-
-		virtual void reset() = 0;
-
-	public:
-		// milliseconds. negative means INFINITE
-		sl_bool wait(sl_int32 timeout = -1);
-
-	protected:
-		virtual sl_bool doWait(sl_int32 timeout) = 0;
-
-	};
-	
-	class SLIB_EXPORT Event : public IEvent
-	{
-		SLIB_DECLARE_NULLABLE_HANDLE_CONTAINER_MEMBERS(Event, HEvent, m_handle)
-
-	public:
-		Event(sl_bool flagAutoReset) noexcept;
-
-	public:
-		static Event create(sl_bool flagAutoReset = sl_true) noexcept;
-
-	public:
-		void set() override;
-
-		void reset() override;
-
-	protected:
-		sl_bool doWait(sl_int32 timeout) override;
-
-	};
-
-	template <>
-	class SLIB_EXPORT Atomic<Event>
-	{
-		SLIB_DECLARE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(Event, HEvent, m_handle)
-	};
-
 }
 
 #endif
