@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,77 +24,94 @@
 #define CHECKHEADER_SLIB_CORE_PIPE
 
 #include "io.h"
-#include "event.h"
+#include "handle_container.h"
+#include "default_members.h"
 
-typedef sl_reg sl_pipe;
-#define SLIB_PIPE_INVALID_HANDLE (sl_pipe)(-1)
+#ifdef SLIB_PLATFORM_IS_WINDOWS
+typedef void* sl_pipe;
+#define SLIB_PIPE_INVALID_HANDLE ((void*)((sl_reg)-1))
+#else
+typedef int sl_pipe;
+#define SLIB_PIPE_INVALID_HANDLE (-1)
+#endif
 
 namespace slib
 {
-	
-	class SLIB_EXPORT Pipe : public Stream
+
+	class HPipe
 	{
-		SLIB_DECLARE_OBJECT
-
-	private:
-		Pipe();
-
-		~Pipe();
+	public:
+		sl_pipe hRead;
+		sl_pipe hWrite;
 
 	public:
-		static Ref<Pipe> create();
+		HPipe() = default;
 
-		sl_bool isOpened() const;
+		constexpr HPipe(sl_null_t): hRead(SLIB_PIPE_INVALID_HANDLE), hWrite(SLIB_PIPE_INVALID_HANDLE) {}
 
-		sl_pipe getReadHandle() const;
+		constexpr HPipe(const HPipe& other): hRead(other.hRead), hWrite(other.hWrite) {}
 
-		sl_pipe getWriteHandle() const;
+		HPipe& operator=(sl_null_t) noexcept
+		{
+			hRead = SLIB_PIPE_INVALID_HANDLE;
+			hWrite = SLIB_PIPE_INVALID_HANDLE;
+			return *this;
+		}
 
-		sl_int32 read32(void* buf, sl_uint32 size) override;
+		HPipe& operator=(const HPipe& other) noexcept
+		{
+			hRead = other.hRead;
+			hWrite = other.hWrite;
+			return *this;
+		}
 
-		sl_int32 write32(const void* buf, sl_uint32 size) override;
+		constexpr sl_bool operator==(sl_null_t) const
+		{
+			return hRead == SLIB_PIPE_INVALID_HANDLE;
+		}
 
-		void close() override;
-
-	protected:
-		static sl_bool _open(sl_pipe& hRead, sl_pipe& hWrite);
-
-		static void _close(sl_pipe handle);
-
-	private:
-		sl_pipe m_hRead;
-		sl_pipe m_hWrite;
+		constexpr sl_bool operator!=(sl_null_t) const
+		{
+			return hRead != SLIB_PIPE_INVALID_HANDLE;
+		}
 
 	};
 	
-	class SLIB_EXPORT PipeEvent : public Event
+	class SLIB_EXPORT Pipe
 	{
-	protected:
-		PipeEvent();
-
-		~PipeEvent();
+		SLIB_DECLARE_NULLABLE_HANDLE_CONTAINER_MEMBERS(Pipe, HPipe, m_handle)
+		SLIB_DECLARE_ISTREAM_MEMBERS
 
 	public:
-		static Ref<PipeEvent> create();
+		static Pipe create() noexcept;
 
-		Ref<Pipe> getPipe();
+	public:
+		sl_bool isOpened() const noexcept;
 
-		sl_pipe getReadPipeHandle();
+		sl_pipe getReadHandle() const noexcept;
 
-		sl_pipe getWritePipeHandle();
+		sl_pipe getWriteHandle() const noexcept;
 
-	protected:
-		void _native_set() override;
+		sl_reg read(void* buf, sl_size size) const noexcept;
+		sl_int32 read32(void* buf, sl_uint32 size) const noexcept;
 
-		void _native_reset() override;
+		sl_reg write(const void* buf, sl_size size) const noexcept;
+		sl_int32 write32(const void* buf, sl_uint32 size) const noexcept;
 
-		sl_bool _native_wait(sl_int32 timeout) override;
+		void close() noexcept;
 
-	protected:
-		Ref<Pipe> m_pipe;
-		sl_bool m_flagSet;
-		SpinLock m_lock;
+	public:
+		constexpr Pipe& operator*()
+		{
+			return *this;
+		}
 
+	};
+
+	template <>
+	class SLIB_EXPORT Atomic<Pipe>
+	{
+		SLIB_DECLARE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(Pipe, HPipe, m_handle)
 	};
 
 }

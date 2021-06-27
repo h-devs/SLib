@@ -110,15 +110,6 @@
 	}
 
 #define SLIB_DEFINE_ISEEKABLE_MEMBERS(CLASS) \
-	sl_bool CLASS::isEnd(sl_bool& outFlag) \
-	{ \
-		sl_uint64 pos, size; \
-		if (getPosition(pos) && getSize(size)) { \
-			outFlag = pos >= size; \
-			return sl_true; \
-		} \
-		return sl_false; \
-	} \
 	sl_uint64 CLASS::getPosition() \
 	{ \
 		sl_uint64 pos; \
