@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -41,17 +41,17 @@ namespace slib
 		namespace file
 		{
 
-			SLIB_INLINE static Time FileTimeToTime(const FILETIME& ft)
+			SLIB_INLINE static Time FileTimeToTime(const FILETIME& ft) noexcept
 			{
 				return Time::fromWindowsFileTime(*((sl_int64*)&ft));
 			}
 
-			SLIB_INLINE static void TimeToFileTime(const Time& time, FILETIME& ft)
+			SLIB_INLINE static void TimeToFileTime(const Time& time, FILETIME& ft) noexcept
 			{
 				*((sl_int64*)&ft) = time.toWindowsFileTime();
 			}
 
-			SLIB_INLINE static Time GetModifiedTime(HANDLE handle)
+			SLIB_INLINE static Time GetModifiedTime(HANDLE handle) noexcept
 			{
 				FILETIME ft;
 				BOOL bRet = GetFileTime(handle, NULL, NULL, &ft);
@@ -62,7 +62,7 @@ namespace slib
 				}
 			}
 
-			SLIB_INLINE static Time GetAccessedTime(HANDLE handle)
+			SLIB_INLINE static Time GetAccessedTime(HANDLE handle) noexcept
 			{
 				FILETIME ft;
 				BOOL bRet = GetFileTime(handle, NULL, &ft, NULL);
@@ -73,7 +73,7 @@ namespace slib
 				}
 			}
 
-			SLIB_INLINE static Time GetCreatedTime(HANDLE handle)
+			SLIB_INLINE static Time GetCreatedTime(HANDLE handle) noexcept
 			{
 				FILETIME ft;
 				BOOL bRet = GetFileTime(handle, &ft, NULL, NULL);
@@ -84,7 +84,7 @@ namespace slib
 				}
 			}
 
-			SLIB_INLINE static sl_bool SetModifiedTime(HANDLE handle, const Time& time)
+			SLIB_INLINE static sl_bool SetModifiedTime(HANDLE handle, const Time& time) noexcept
 			{
 				FILETIME ft;
 				TimeToFileTime(time, ft);
@@ -92,7 +92,7 @@ namespace slib
 				return bRet != 0;
 			}
 
-			SLIB_INLINE static sl_bool SetAccessedTime(HANDLE handle, const Time& time)
+			SLIB_INLINE static sl_bool SetAccessedTime(HANDLE handle, const Time& time) noexcept
 			{
 				FILETIME ft;
 				TimeToFileTime(time, ft);
@@ -100,7 +100,7 @@ namespace slib
 				return bRet != 0;
 			}
 
-			SLIB_INLINE static sl_bool SetCreatedTime(HANDLE handle, const Time& time)
+			SLIB_INLINE static sl_bool SetCreatedTime(HANDLE handle, const Time& time) noexcept
 			{
 				FILETIME ft;
 				TimeToFileTime(time, ft);
@@ -113,7 +113,7 @@ namespace slib
 
 	using namespace priv::file;
 
-	sl_file File::_open(const StringParam& _filePath, const FileMode& mode, const FileAttributes& attrs)
+	sl_file File::_open(const StringParam& _filePath, const FileMode& mode, const FileAttributes& attrs) noexcept
 	{
 		DWORD dwShareMode = 0;
 		DWORD dwDesiredAccess = 0;
@@ -196,12 +196,11 @@ namespace slib
 			dwFlags,
 			NULL
 		);
-		return (sl_file)handle;
+		return handle;
 	}
 
-	sl_bool File::_close(sl_file file)
+	sl_bool File::_close(sl_file handle) noexcept
 	{
-		HANDLE handle = (HANDLE)file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			CloseHandle(handle);
 			return sl_true;
@@ -209,9 +208,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::getPosition(sl_uint64& outPos)
+	sl_bool File::getPosition(sl_uint64& outPos) const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			static LARGE_INTEGER zero = { 0 };
 			if (SetFilePointerEx(handle, zero, ((LARGE_INTEGER*)&outPos), FILE_CURRENT)) {
@@ -221,9 +220,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::seek(sl_int64 location, SeekPosition from)
+	sl_bool File::seek(sl_int64 location, SeekPosition from) const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			DWORD dwFrom;
 			if (from == SeekPosition::Current) {
@@ -242,9 +241,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::isEnd(sl_bool& outFlag)
+	sl_bool File::isEnd(sl_bool& outFlag) const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			static LARGE_INTEGER zero = { 0 };
 			sl_uint64 cur;
@@ -264,9 +263,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_int32 File::read32(void* buf, sl_uint32 size)
+	sl_int32 File::read32(void* buf, sl_uint32 size) const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			if (size == 0) {
 				return 0;
@@ -281,9 +280,9 @@ namespace slib
 		return -1;
 	}
 
-	sl_int32 File::write32(const void* buf, sl_uint32 size)
+	sl_int32 File::write32(const void* buf, sl_uint32 size) const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			if (size == 0) {
 				return 0;
@@ -298,9 +297,9 @@ namespace slib
 		return -1;
 	}
 
-	sl_bool File::setSize(sl_uint64 size)
+	sl_bool File::setSize(sl_uint64 size) const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			sl_int64 posOld = getPosition();
 			if (seek(size, SeekPosition::Begin)) {
@@ -312,9 +311,8 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::getSizeByHandle(sl_file fd, sl_uint64& outSize)
+	sl_bool File::getSizeByHandle(sl_file handle, sl_uint64& outSize) noexcept
 	{
-		HANDLE handle = (HANDLE)fd;
 		if (handle != INVALID_HANDLE_VALUE) {
 			if (GetFileSizeEx(handle, (PLARGE_INTEGER)(&outSize))) {
 				return sl_true;
@@ -323,7 +321,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::getSize(const StringParam& _filePath, sl_uint64& outSize)
+	sl_bool File::getSize(const StringParam& _filePath, sl_uint64& outSize) noexcept
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -338,9 +336,8 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::getDiskSizeByHandle(sl_file fd, sl_uint64& outSize)
+	sl_bool File::getDiskSizeByHandle(sl_file handle, sl_uint64& outSize) noexcept
 	{
-		HANDLE handle = (HANDLE)fd;
 		if (handle != INVALID_HANDLE_VALUE) {
 			sl_uint64 size = 0;
 			DWORD nOutput;
@@ -352,9 +349,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::lock()
+	sl_bool File::lock() const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			OVERLAPPED o;
 			ZeroMemory(&o, sizeof(o));
@@ -365,9 +362,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::unlock()
+	sl_bool File::unlock() const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			OVERLAPPED o;
 			ZeroMemory(&o, sizeof(o));
@@ -378,9 +375,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::flush()
+	sl_bool File::flush() const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			if (FlushFileBuffers(handle)) {
 				return sl_true;
@@ -389,9 +386,9 @@ namespace slib
 		return sl_false;
 	}
 
-	Time File::getModifiedTime()
+	Time File::getModifiedTime() const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			return GetModifiedTime(handle);
 		} else {
@@ -399,7 +396,7 @@ namespace slib
 		}
 	}
 
-	Time File::getModifiedTime(const StringParam& _filePath)
+	Time File::getModifiedTime(const StringParam& _filePath) noexcept
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -416,9 +413,9 @@ namespace slib
 		}
 	}
 
-	Time File::getAccessedTime()
+	Time File::getAccessedTime() const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			return GetAccessedTime(handle);
 		} else {
@@ -426,7 +423,7 @@ namespace slib
 		}
 	}
 
-	Time File::getAccessedTime(const StringParam& _filePath)
+	Time File::getAccessedTime(const StringParam& _filePath) noexcept
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -443,9 +440,9 @@ namespace slib
 		}
 	}
 
-	Time File::getCreatedTime()
+	Time File::getCreatedTime() const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			return GetCreatedTime(handle);
 		} else {
@@ -453,7 +450,7 @@ namespace slib
 		}
 	}
 
-	Time File::getCreatedTime(const StringParam& _filePath)
+	Time File::getCreatedTime(const StringParam& _filePath) noexcept
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -469,9 +466,9 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setModifiedTime(const Time& time)
+	sl_bool File::setModifiedTime(const Time& time) const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			return SetModifiedTime(handle, time);
 		} else {
@@ -479,7 +476,7 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setModifiedTime(const StringParam& _filePath, const Time& time)
+	sl_bool File::setModifiedTime(const StringParam& _filePath, const Time& time) noexcept
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -495,9 +492,9 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setAccessedTime(const Time& time)
+	sl_bool File::setAccessedTime(const Time& time) const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			return SetAccessedTime(handle, time);
 		} else {
@@ -505,7 +502,7 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setAccessedTime(const StringParam& _filePath, const Time& time)
+	sl_bool File::setAccessedTime(const StringParam& _filePath, const Time& time) noexcept
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -521,9 +518,9 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setCreatedTime(const Time& time)
+	sl_bool File::setCreatedTime(const Time& time) const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			return SetCreatedTime(handle, time);
 		} else {
@@ -531,7 +528,7 @@ namespace slib
 		}
 	}
 
-	sl_bool File::setCreatedTime(const StringParam& _filePath, const Time& time)
+	sl_bool File::setCreatedTime(const StringParam& _filePath, const Time& time) noexcept
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -547,9 +544,9 @@ namespace slib
 		}
 	}
 
-	FileAttributes File::getAttributes()
+	FileAttributes File::getAttributes() const noexcept
 	{
-		HANDLE handle = (HANDLE)m_file;
+		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
 			BY_HANDLE_FILE_INFORMATION info;
 			if (GetFileInformationByHandle(handle, &info)) {
@@ -559,7 +556,7 @@ namespace slib
 		return FileAttributes::NotExist;
 	}
 
-	FileAttributes File::_getAttributes(const StringParam& _filePath)
+	FileAttributes File::_getAttributes(const StringParam& _filePath) noexcept
 	{
 		StringCstr16 filePath(_filePath);
 		DWORD attr = GetFileAttributesW((LPCWSTR)(filePath.getData()));
@@ -570,7 +567,7 @@ namespace slib
 		}
 	}
 
-	sl_bool File::_setAttributes(const StringParam& _filePath, const FileAttributes& attrs)
+	sl_bool File::_setAttributes(const StringParam& _filePath, const FileAttributes& attrs) noexcept
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -579,7 +576,7 @@ namespace slib
 		return SetFileAttributesW((LPCWSTR)(filePath.getData()), (DWORD)(attrs.value & 0x7ffff)) != 0;
 	}
 
-	List<String> File::getFiles(const StringParam& _filePath)
+	List<String> File::getFiles(const StringParam& _filePath) noexcept
 	{
 		String filePath(_filePath.toString());
 		if (filePath.isEmpty()) {
@@ -611,7 +608,7 @@ namespace slib
 		}
 	}
 
-	HashMap<String, FileInfo> File::getFileInfos(const StringParam& _filePath)
+	HashMap<String, FileInfo> File::getFileInfos(const StringParam& _filePath) noexcept
 	{
 		String filePath(_filePath.toString());
 		if (filePath.isEmpty()) {
@@ -649,7 +646,7 @@ namespace slib
 		}
 	}
 
-	sl_bool File::_createDirectory(const StringParam& _filePath)
+	sl_bool File::_createDirectory(const StringParam& _filePath) noexcept
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -659,7 +656,7 @@ namespace slib
 		return ret != 0;
 	}
 
-	sl_bool File::deleteFile(const StringParam& _filePath)
+	sl_bool File::deleteFile(const StringParam& _filePath) noexcept
 	{
 		StringCstr16 filePath(_filePath);
 		if (filePath.isEmpty()) {
@@ -669,7 +666,7 @@ namespace slib
 		return ret != 0;
 	}
 
-	sl_bool File::deleteDirectory(const StringParam& _filePath)
+	sl_bool File::deleteDirectory(const StringParam& _filePath) noexcept
 	{
 		String filePath = _filePath.toString();
 		if (filePath.isEmpty()) {
@@ -680,7 +677,7 @@ namespace slib
 		return ret != 0;
 	}
 
-	sl_bool File::_copyFile(const StringParam& _pathSrc, const StringParam& _pathDst)
+	sl_bool File::_copyFile(const StringParam& _pathSrc, const StringParam& _pathDst) noexcept
 	{
 		StringCstr16 pathSrc(_pathSrc);
 		if (pathSrc.isEmpty()) {
@@ -694,7 +691,7 @@ namespace slib
 		return ret != 0;
 	}
 
-	sl_bool File::_move(const StringParam& _oldPath, const StringParam& _newPath)
+	sl_bool File::_move(const StringParam& _oldPath, const StringParam& _newPath) noexcept
 	{
 		StringCstr16 oldPath(_oldPath);
 		if (oldPath.isEmpty()) {
@@ -708,7 +705,7 @@ namespace slib
 		return ret != 0;
 	}
 
-	String File::getRealPath(const StringParam& _filePath)
+	String File::getRealPath(const StringParam& _filePath) noexcept
 	{
 		StringCstr16 path(_filePath);
 		WCHAR buf[4096];
@@ -719,13 +716,13 @@ namespace slib
 		return sl_null;
 	}
 
-	String File::getOwnerName(const StringParam& filePath)
+	String File::getOwnerName(const StringParam& filePath) noexcept
 	{
 		return sl_null;
 	}
 
 
-	DisableWow64FsRedirectionScope::DisableWow64FsRedirectionScope()
+	DisableWow64FsRedirectionScope::DisableWow64FsRedirectionScope() noexcept
 	{
 		auto func = kernel32::getApi_Wow64DisableWow64FsRedirection();
 		if (func) {
@@ -733,7 +730,7 @@ namespace slib
 		}
 	}
 
-	DisableWow64FsRedirectionScope::~DisableWow64FsRedirectionScope()
+	DisableWow64FsRedirectionScope::~DisableWow64FsRedirectionScope() noexcept
 	{
 		auto func = kernel32::getApi_Wow64RevertWow64FsRedirection();
 		if (func) {

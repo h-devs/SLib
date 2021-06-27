@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,11 +23,18 @@
 #ifndef CHECKHEADER_SLIB_CORE_FILE
 #define CHECKHEADER_SLIB_CORE_FILE
 
+#include "handle_container.h"
 #include "io.h"
+#include "time.h"
 #include "flags.h"
 
-typedef sl_reg sl_file;
-#define SLIB_FILE_INVALID_HANDLE ((sl_file)(-1))
+#ifdef SLIB_PLATFORM_IS_WINDOWS
+typedef void* sl_file;
+#define SLIB_FILE_INVALID_HANDLE ((void*)((sl_reg)-1))
+#else
+typedef int sl_file;
+#define SLIB_FILE_INVALID_HANDLE (-1)
+#endif
 
 namespace slib
 {
@@ -128,7 +135,7 @@ namespace slib
 		Time accessedAt;
 
 	public:
-		FileInfo();
+		FileInfo() noexcept;
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileInfo)
 
@@ -141,42 +148,35 @@ namespace slib
 		FileAttributes attributes;
 
 	public:
-		FileOpenParam();
+		FileOpenParam() noexcept;
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileOpenParam)
 
 	};
 	
-	class SLIB_EXPORT File : public IO
+	class SLIB_EXPORT File
 	{
-		SLIB_DECLARE_OBJECT
-	
-	private:
-		sl_file m_file;
+		SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(File, sl_file, m_file, SLIB_FILE_INVALID_HANDLE)
+		SLIB_DECLARE_IO_MEMBERS(const noexcept)
 
 	public:
-		File(sl_file file);
+		static File open(const StringParam& filePath, const FileOpenParam& param) noexcept;
+
+		static File open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs) noexcept;
+
+		static File open(const StringParam& filePath, const FileMode& mode) noexcept;
 	
-		~File();
+		static File openForRead(const StringParam& filePath) noexcept;
+
+		static File openForWrite(const StringParam& filePath) noexcept;
+
+		static File openForReadWrite(const StringParam& filePath) noexcept;
+
+		static File openForAppend(const StringParam& filePath) noexcept;
+
+		static File openForRandomAccess(const StringParam& filePath) noexcept;
 	
-	public:
-		static Ref<File> open(const StringParam& filePath, const FileOpenParam& param);
-
-		static Ref<File> open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs);
-
-		static Ref<File> open(const StringParam& filePath, const FileMode& mode);
-	
-		static Ref<File> openForRead(const StringParam& filePath);
-
-		static Ref<File> openForWrite(const StringParam& filePath);
-
-		static Ref<File> openForReadWrite(const StringParam& filePath);
-
-		static Ref<File> openForAppend(const StringParam& filePath);
-
-		static Ref<File> openForRandomAccess(const StringParam& filePath);
-	
-		static Ref<File> openForRandomRead(const StringParam& filePath);
+		static File openForRandomRead(const StringParam& filePath) noexcept;
 
 		/*
 			Physical Disks and Volumes
@@ -190,229 +190,222 @@ namespace slib
 		 		"/dev/disk0"  (macOS)
 		 		"/dev/sda1"   (Linux)
 		*/
-		static Ref<File> openDevice(const StringParam& path, const FileMode& mode);
+		static File openDevice(const StringParam& path, const FileMode& mode) noexcept;
 
-		static Ref<File> openDeviceForRead(const StringParam& path);
+		static File openDeviceForRead(const StringParam& path) noexcept;
 
 	public:
-		void close() override;
-
-		sl_bool isOpened() const;
+		constexpr sl_bool isOpened() const
+		{
+			return m_file != SLIB_FILE_INVALID_HANDLE;
+		}
 		
-		sl_file getHandle() const;
-		
-		void setHandle(sl_file handle);
-		
-		void clearHandle();
+		void close() noexcept;
 
-		using IO::getPosition;
-		sl_bool getPosition(sl_uint64& outPos) override;
 
-		using IO::getSize;
-		sl_bool getSize(sl_uint64& outSize) override;
+		sl_bool getPosition(sl_uint64& outPos) const noexcept;
+
+		sl_bool getSize(sl_uint64& outSize) const noexcept;
 		
-		sl_bool seek(sl_int64 offset, SeekPosition from) override;
+		sl_bool seek(sl_int64 offset, SeekPosition from) const noexcept;
 
-		using IO::isEnd;
-		sl_bool isEnd(sl_bool& outFlag) override;
+		sl_bool isEnd(sl_bool& outFlag) const noexcept;
 	
 
-		sl_int32 read32(void* buf, sl_uint32 size) override;
+		sl_reg read(void* buf, sl_size size) const noexcept;
+		sl_int32 read32(void* buf, sl_uint32 size) const noexcept;
 
-		sl_int32 write32(const void* buf, sl_uint32 size) override;
-	
+		sl_reg write(const void* buf, sl_size size) const noexcept;
+		sl_int32 write32(const void* buf, sl_uint32 size) const noexcept;
 	
 		// works only if the file is already opened
-		sl_bool setSize(sl_uint64 size) override;
+		sl_bool setSize(sl_uint64 size) const noexcept;
+		
+		static sl_bool getSizeByHandle(sl_file fd, sl_uint64& outSize) noexcept;
+
+		static sl_uint64 getSizeByHandle(sl_file fd) noexcept;
+		
+		static sl_bool getSize(const StringParam& path, sl_uint64& outSize) noexcept;
+		
+		static sl_uint64 getSize(const StringParam& path) noexcept;
+
+		static sl_bool getDiskSizeByHandle(sl_file fd, sl_uint64& outSize) noexcept;
+
+		static sl_uint64 getDiskSizeByHandle(sl_file fd) noexcept;
+
+		static sl_bool getDiskSize(const StringParam& devicePath, sl_uint64& outSize) noexcept;
+
+		static sl_uint64 getDiskSize(const StringParam& devicePath) noexcept;
 
 		
-		static sl_bool getSizeByHandle(sl_file fd, sl_uint64& outSize);
+		sl_bool lock() const noexcept;
 
-		static sl_uint64 getSizeByHandle(sl_file fd);
-		
-		static sl_bool getSize(const StringParam& path, sl_uint64& outSize);
-		
-		static sl_uint64 getSize(const StringParam& path);
+		sl_bool unlock() const noexcept;
 
-		static sl_bool getDiskSizeByHandle(sl_file fd, sl_uint64& outSize);
+		sl_bool flush() const noexcept;
+	
+		sl_bool getDiskSize(sl_uint64& outSize) const noexcept;
 
-		static sl_uint64 getDiskSizeByHandle(sl_file fd);
-
-		static sl_bool getDiskSize(const StringParam& devicePath, sl_uint64& outSize);
-
-		static sl_uint64 getDiskSize(const StringParam& devicePath);
+		sl_uint64 getDiskSize() const noexcept;
 
 		
-		sl_bool lock();
+		Time getModifiedTime() const noexcept;
 
-		sl_bool unlock();
+		Time getAccessedTime() const noexcept;
 
-		sl_bool flush();
+		Time getCreatedTime() const noexcept;
+
+		static Time getModifiedTime(const StringParam& filePath) noexcept;
+
+		static Time getAccessedTime(const StringParam& filePath) noexcept;
+
+		static Time getCreatedTime(const StringParam& filePath) noexcept;
+
+		sl_bool setModifiedTime(const Time& time) const noexcept;
+
+		sl_bool setAccessedTime(const Time& time) const noexcept;
+
+		sl_bool setCreatedTime(const Time& time) const noexcept;
+
+		static sl_bool setModifiedTime(const StringParam& filePath, const Time& time) noexcept;
+
+		static sl_bool setAccessedTime(const StringParam& filePath, const Time& time) noexcept;
+
+		static sl_bool setCreatedTime(const StringParam& filePath, const Time& time) noexcept;
+
+
+		FileAttributes getAttributes() const noexcept;
+
+		static FileAttributes getAttributes(const StringParam& filePath) noexcept;
+
+		static sl_bool setAttributes(const StringParam& filePath, const FileAttributes& attrs) noexcept;
+
+		static sl_bool exists(const StringParam& filePath) noexcept;
 	
-		sl_bool getDiskSize(sl_uint64& outSize);
-
-		sl_uint64 getDiskSize();
-
-		
-		Time getModifiedTime();
-
-		Time getAccessedTime();
-
-		Time getCreatedTime();
-
-		static Time getModifiedTime(const StringParam& filePath);
-
-		static Time getAccessedTime(const StringParam& filePath);
-
-		static Time getCreatedTime(const StringParam& filePath);
-
-		sl_bool setModifiedTime(const Time& time);
-
-		sl_bool setAccessedTime(const Time& time);
-
-		sl_bool setCreatedTime(const Time& time);
-
-		static sl_bool setModifiedTime(const StringParam& filePath, const Time& time);
-
-		static sl_bool setAccessedTime(const StringParam& filePath, const Time& time);
-
-		static sl_bool setCreatedTime(const StringParam& filePath, const Time& time);
-
-
-		FileAttributes getAttributes();
-
-		static FileAttributes getAttributes(const StringParam& filePath);
-
-		static sl_bool setAttributes(const StringParam& filePath, const FileAttributes& attrs);
-
-		static sl_bool exists(const StringParam& filePath);
+		static sl_bool isFile(const StringParam& filePath) noexcept;
 	
-		static sl_bool isFile(const StringParam& filePath);
+		static sl_bool isDirectory(const StringParam& filePath) noexcept;
+
+		static sl_bool isHidden(const StringParam& filePath) noexcept;
 	
-		static sl_bool isDirectory(const StringParam& filePath);
+		static sl_bool setHidden(const StringParam& filePath, sl_bool flagHidden = sl_true) noexcept;
 
-		static sl_bool isHidden(const StringParam& filePath);
-	
-		static sl_bool setHidden(const StringParam& filePath, sl_bool flagHidden = sl_true);
+		static sl_bool isReadOnly(const StringParam& filePath) noexcept;
 
-		static sl_bool isReadOnly(const StringParam& filePath);
-
-		static sl_bool setReadOnly(const StringParam& filePath, sl_bool flagReadOnly = sl_true);
+		static sl_bool setReadOnly(const StringParam& filePath, sl_bool flagReadOnly = sl_true) noexcept;
 
 
-		static sl_bool createDirectory(const StringParam& dirPath, const FileOperationFlags& flags = FileOperationFlags::Default);
+		static sl_bool createDirectory(const StringParam& dirPath, const FileOperationFlags& flags = FileOperationFlags::Default) noexcept;
 
-		static sl_bool createDirectories(const StringParam& dirPath);
+		static sl_bool createDirectories(const StringParam& dirPath) noexcept;
 
-		static sl_bool deleteFile(const StringParam& filePath);
+		static sl_bool deleteFile(const StringParam& filePath) noexcept;
 
-		static sl_bool deleteDirectory(const StringParam& filePath);
+		static sl_bool deleteDirectory(const StringParam& filePath) noexcept;
 
-		static sl_bool remove(const StringParam& path, const FileOperationFlags& flags = FileOperationFlags::Default);
+		static sl_bool remove(const StringParam& path, const FileOperationFlags& flags = FileOperationFlags::Default) noexcept;
 
-		static sl_bool copyFile(const StringParam& pathSource, const StringParam& pathTarget, const FileOperationFlags& flags = FileOperationFlags::Default);
+		static sl_bool copyFile(const StringParam& pathSource, const StringParam& pathTarget, const FileOperationFlags& flags = FileOperationFlags::Default) noexcept;
 
-		static sl_bool copy(const StringParam& pathSource, const StringParam& pathTarget, const FileOperationFlags& flags = FileOperationFlags::Default);
+		static sl_bool copy(const StringParam& pathSource, const StringParam& pathTarget, const FileOperationFlags& flags = FileOperationFlags::Default) noexcept;
 
-		static sl_bool move(const StringParam& pathOriginal, const StringParam& filePathNew, const FileOperationFlags& flags = FileOperationFlags::Default);
-	
-
-		static List<String> getFiles(const StringParam& dirPath);
-
-		static HashMap< String, FileInfo, Hash<String>, Compare<String> > getFileInfos(const StringParam& dirPath);
-	
-		static List<String> getAllDescendantFiles(const StringParam& dirPath);
+		static sl_bool move(const StringParam& pathOriginal, const StringParam& filePathNew, const FileOperationFlags& flags = FileOperationFlags::Default) noexcept;
 	
 
-		Memory readAllBytes(sl_size maxSize = SLIB_SIZE_MAX);
-		
-		static Memory readAllBytes(const StringParam& path, sl_size maxSize = SLIB_SIZE_MAX);
-		
-		String readAllTextUTF8(sl_size maxSize = SLIB_SIZE_MAX);
+		static List<String> getFiles(const StringParam& dirPath) noexcept;
 
-		static String readAllTextUTF8(const StringParam& path, sl_size maxSize = SLIB_SIZE_MAX);
-
-		String16 readAllTextUTF16(EndianType endian = Endian::Little, sl_size maxSize = SLIB_SIZE_MAX);
-		
-		static String16 readAllTextUTF16(const StringParam& path, EndianType endian = Endian::Little, sl_size maxSize = SLIB_SIZE_MAX);
-		
-		String readAllText(Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX);
-
-		static String readAllText(const StringParam& path, Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX);
-		
-		String16 readAllText16(Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX);
-
-		static String16 readAllText16(const StringParam& path, Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX);
+		static HashMap< String, FileInfo, Hash<String>, Compare<String> > getFileInfos(const StringParam& dirPath) noexcept;
 	
-		static sl_size writeAllBytes(const StringParam& path, const void* buf, sl_size size);
+		static List<String> getAllDescendantFiles(const StringParam& dirPath) noexcept;
+	
+		
+		static Memory readAllBytes(const StringParam& path, sl_size maxSize = SLIB_SIZE_MAX) noexcept;
+		
+		static String readAllTextUTF8(const StringParam& path, sl_size maxSize = SLIB_SIZE_MAX) noexcept;
+		
+		static String16 readAllTextUTF16(const StringParam& path, EndianType endian = Endian::Little, sl_size maxSize = SLIB_SIZE_MAX) noexcept;
+		
+		static String readAllText(const StringParam& path, Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX) noexcept;
+		
+		static String16 readAllText16(const StringParam& path, Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX) noexcept;
+	
+		static sl_size writeAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept;
 
-		static sl_size writeAllBytes(const StringParam& path, const Memory& mem);
+		static sl_size writeAllBytes(const StringParam& path, const Memory& mem) noexcept;
 
-		static sl_bool writeAllTextUTF8(const StringParam& path, const StringParam& text, sl_bool flagWriteByteOrderMark = sl_false);
+		static sl_bool writeAllTextUTF8(const StringParam& path, const StringParam& text, sl_bool flagWriteByteOrderMark = sl_false) noexcept;
 
-		static sl_bool writeAllTextUTF16LE(const StringParam& path, const StringParam& text, sl_bool flagWriteByteOrderMark = sl_false);
+		static sl_bool writeAllTextUTF16LE(const StringParam& path, const StringParam& text, sl_bool flagWriteByteOrderMark = sl_false) noexcept;
 
-		static sl_bool writeAllTextUTF16BE(const StringParam& path, const StringParam& text, sl_bool flagWriteByteOrderMark = sl_false);
+		static sl_bool writeAllTextUTF16BE(const StringParam& path, const StringParam& text, sl_bool flagWriteByteOrderMark = sl_false) noexcept;
 
-		static sl_size appendAllBytes(const StringParam& path, const void* buf, sl_size size);
+		static sl_size appendAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept;
 
-		static sl_size appendAllBytes(const StringParam& path, const Memory& mem);
+		static sl_size appendAllBytes(const StringParam& path, const Memory& mem) noexcept;
 
-		static sl_bool appendAllTextUTF8(const StringParam& path, const StringParam& text);
+		static sl_bool appendAllTextUTF8(const StringParam& path, const StringParam& text) noexcept;
 
-		static sl_bool appendAllTextUTF16LE(const StringParam& path, const StringParam& text);
+		static sl_bool appendAllTextUTF16LE(const StringParam& path, const StringParam& text) noexcept;
 
-		static sl_bool appendAllTextUTF16BE(const StringParam& path, const StringParam& text);
+		static sl_bool appendAllTextUTF16BE(const StringParam& path, const StringParam& text) noexcept;
 
 	
-		static String getParentDirectoryPath(const StringParam& path);
+		static String getParentDirectoryPath(const StringParam& path) noexcept;
 
-		static String getFileName(const StringParam& path);
+		static String getFileName(const StringParam& path) noexcept;
 
-		static String getFileExtension(const StringParam& path);
+		static String getFileExtension(const StringParam& path) noexcept;
 
-		static String getFileNameOnly(const StringParam& path);
+		static String getFileNameOnly(const StringParam& path) noexcept;
 
-		static String normalizeDirectoryPath(const StringParam& path);
+		static String normalizeDirectoryPath(const StringParam& path) noexcept;
 
-		static String joinPath(const StringParam& path1, const StringParam& path2);
+		static String joinPath(const StringParam& path1, const StringParam& path2) noexcept;
 	
 
 		// converts any invalid characters (0~0x1f, 0x7f~0x9f, :*?"<>|\/) into "_"
-		static String makeSafeFileName(const StringParam& fileName);
+		static String makeSafeFileName(const StringParam& fileName) noexcept;
 	
 		// converts any invalid characters (0~0x1f, 0x7f~0x9f, :*?"<>|) into "_"
-		static String makeSafeFilePath(const StringParam& filePath);
+		static String makeSafeFilePath(const StringParam& filePath) noexcept;
 	
-		static String findParentPathContainingFile(const StringParam& basePath, const StringParam& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX);
+		static String findParentPathContainingFile(const StringParam& basePath, const StringParam& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX) noexcept;
 	
 #if defined(SLIB_PLATFORM_IS_UNIX)
-		static sl_bool setNonBlocking(int fd, sl_bool flag);
+		static sl_bool setNonBlocking(int fd, sl_bool flag) noexcept;
 #endif
 		
-		static String getRealPath(const StringParam& filePath);
+		static String getRealPath(const StringParam& filePath) noexcept;
 		
-		static String getOwnerName(const StringParam& filePath);
+		static String getOwnerName(const StringParam& filePath) noexcept;
 
 	private:
-		static sl_file _open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs);
+		static sl_file _open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs) noexcept;
 
-		static sl_bool _close(sl_file file);
+		static sl_bool _close(sl_file file) noexcept;
 
-		static FileAttributes _fixAttributes(const FileAttributes& attrs);
+		static FileAttributes _fixAttributes(const FileAttributes& attrs) noexcept;
 
-		static FileAttributes _getAttributes(const StringParam& filePath);
+		static FileAttributes _getAttributes(const StringParam& filePath) noexcept;
 
-		static sl_bool _setAttributes(const StringParam& filePath, const FileAttributes& attrs);
+		static sl_bool _setAttributes(const StringParam& filePath, const FileAttributes& attrs) noexcept;
 
-		static sl_bool _createDirectory(const StringParam& dirPath);
+		static sl_bool _createDirectory(const StringParam& dirPath) noexcept;
 
-		static sl_bool _copyFile(const StringParam& pathSource, const StringParam& pathTarget);
+		static sl_bool _copyFile(const StringParam& pathSource, const StringParam& pathTarget) noexcept;
 
-		static sl_bool _move(const StringParam& pathOriginal, const StringParam& filePathNew);
+		static sl_bool _move(const StringParam& pathOriginal, const StringParam& filePathNew) noexcept;
+
+		friend class Atomic<File>;
 
 	};
-	
+
+	template <>
+	class SLIB_EXPORT Atomic<File>
+	{
+		SLIB_DECLARE_ATOMIC_HANDLE_CONTAINER_MEMBERS(File, sl_file, m_file, SLIB_FILE_INVALID_HANDLE)
+	};
+
 }
 
 #endif

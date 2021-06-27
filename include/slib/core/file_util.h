@@ -38,14 +38,14 @@ namespace slib
 		List<String> segments;
 	
 	public:
-		FilePathSegments();
+		FilePathSegments() noexcept;
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FilePathSegments)
 
 	public:
-		void parsePath(const StringParam& path);
+		void parsePath(const StringParam& path) noexcept;
 
-		String buildPath();
+		String buildPath() const noexcept;
 	
 	};
 
@@ -53,9 +53,9 @@ namespace slib
 	class SLIB_EXPORT DisableWow64FsRedirectionScope
 	{
 	public:
-		DisableWow64FsRedirectionScope();
+		DisableWow64FsRedirectionScope() noexcept;
 
-		~DisableWow64FsRedirectionScope();
+		~DisableWow64FsRedirectionScope() noexcept;
 
 	private:
 #ifdef SLIB_PLATFORM_IS_WIN32
