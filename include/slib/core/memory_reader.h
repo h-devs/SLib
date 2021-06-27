@@ -40,7 +40,7 @@ namespace slib
 		~MemoryReader();
 
 	public:
-		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(override)
+		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(,override)
 	
 	public:
 		void initialize(const Memory& mem);

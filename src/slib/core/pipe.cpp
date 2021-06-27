@@ -79,7 +79,7 @@ namespace slib
 
 	SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(Pipe, HPipe, m_handle, ClosePipeHandle)
 	SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(Pipe, HPipe, m_handle, ClosePipeHandle)
-	SLIB_DEFINE_ISTREAM_MEMBERS(Pipe)
+	SLIB_DEFINE_ISTREAM_MEMBERS(Pipe, const noexcept)
 
 	Pipe Pipe::create() noexcept
 	{

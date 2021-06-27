@@ -71,7 +71,7 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_IREADER_MEMBERS(IReader)
+	SLIB_DEFINE_IREADER_MEMBERS(IReader,)
 	
 	sl_int32 IReader::read32(void* buf, sl_uint32 size)
 	{
@@ -84,7 +84,7 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_IWRITER_MEMBERS(IWriter)
+	SLIB_DEFINE_IWRITER_MEMBERS(IWriter,)
 
 	sl_int32 IWriter::write32(const void* buf, sl_uint32 size)
 	{
@@ -129,10 +129,10 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_ISIZE_MEMBERS(ISize)
+	SLIB_DEFINE_ISIZE_MEMBERS(ISize,)
 
 
-	SLIB_DEFINE_ISEEKABLE_MEMBERS(ISeekable)
+	SLIB_DEFINE_ISEEKABLE_MEMBERS(ISeekable,)
 
 	sl_bool ISeekable::isEnd(sl_bool& outFlag)
 	{
@@ -145,8 +145,8 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(IOBase)
-	SLIB_DEFINE_SEEKABLE_WRITER_MEMBERS(IOBase)
+	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(IOBase,)
+	SLIB_DEFINE_SEEKABLE_WRITER_MEMBERS(IOBase,)
 
 
 	MemoryIO::MemoryIO()
@@ -485,7 +485,7 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(MemoryReader)
+	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(MemoryReader,)
 
 	MemoryReader::MemoryReader(const Memory& mem)
 	{
@@ -915,7 +915,7 @@ namespace slib
 	}
 
 	
-	SLIB_DEFINE_SEEKABLE_WRITER_MEMBERS(MemoryWriter)
+	SLIB_DEFINE_SEEKABLE_WRITER_MEMBERS(MemoryWriter,)
 
 	MemoryWriter::MemoryWriter(const Memory& mem)
 	{
@@ -1838,7 +1838,7 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(BufferedSeekableReader)
+	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(BufferedSeekableReader,)
 
 	BufferedSeekableReader::BufferedSeekableReader() : m_reader(sl_null), m_seekable(sl_null), m_closable(sl_null), m_posCurrent(0), m_sizeTotal(0), m_posInternal(0), m_dataBuf(sl_null), m_sizeBuf(0), m_sizeRead(0), m_posBuf(0)
 	{

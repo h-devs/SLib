@@ -40,7 +40,7 @@ namespace slib
 		~MemoryWriter();
 
 	public:
-		SLIB_DECLARE_SEEKABLE_WRITER_MEMBERS(override)
+		SLIB_DECLARE_SEEKABLE_WRITER_MEMBERS(,override)
 	
 	public:
 		void initialize(const Memory& mem);

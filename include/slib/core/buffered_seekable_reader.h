@@ -56,7 +56,7 @@ namespace slib
 		void close() override;
 
 	public:
-		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(override)
+		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(,override)
 
 	private:
 		void _init(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_uint64 size, const Memory& buf);

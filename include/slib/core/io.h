@@ -36,7 +36,7 @@ namespace slib
 		virtual sl_int32 read32(void* buf, sl_uint32 size);
 	
 	public:
-		SLIB_DECLARE_IREADER_MEMBERS
+		SLIB_DECLARE_IREADER_MEMBERS()
 		
 	};
 	
@@ -49,7 +49,7 @@ namespace slib
 		virtual sl_int32 write32(const void* buf, sl_uint32 size);
 	
 	public:
-		SLIB_DECLARE_IWRITER_MEMBERS
+		SLIB_DECLARE_IWRITER_MEMBERS()
 		
 	};
 
@@ -81,7 +81,7 @@ namespace slib
 		virtual sl_bool getSize(sl_uint64& outSize) = 0;
 
 	public:
-		SLIB_DECLARE_ISIZE_MEMBERS
+		SLIB_DECLARE_ISIZE_MEMBERS()
 
 	};
 
@@ -101,7 +101,7 @@ namespace slib
 		virtual sl_bool isEnd(sl_bool& outFlag);
 
 	public:
-		SLIB_DECLARE_ISEEKABLE_MEMBERS
+		SLIB_DECLARE_ISEEKABLE_MEMBERS()
 
 	};
 
@@ -126,7 +126,7 @@ namespace slib
 		Stream(Stream&& other) = default;
 
 		template <class T>
-		Stream(T&& base) noexcept : m_base(Forward<T>(base)) {}
+		Stream(T&& base) noexcept: m_base(Forward<T>(base)) {}
 
 	public:
 		Stream& operator=(const Stream& other) = default;
@@ -164,8 +164,8 @@ namespace slib
 	class SLIB_EXPORT IOBase : public IStream, public IBlockReader, public IBlockWriter, public ISeekable, public IResizable
 	{
 	public:
-		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(override)
-		SLIB_DECLARE_SEEKABLE_WRITER_MEMBERS(override)
+		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(,override)
+		SLIB_DECLARE_SEEKABLE_WRITER_MEMBERS(,override)
 	};
 
 	template <class T>

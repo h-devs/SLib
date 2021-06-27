@@ -80,7 +80,7 @@ namespace slib
 	class SLIB_EXPORT Pipe
 	{
 		SLIB_DECLARE_NULLABLE_HANDLE_CONTAINER_MEMBERS(Pipe, HPipe, m_handle)
-		SLIB_DECLARE_ISTREAM_MEMBERS
+		SLIB_DECLARE_ISTREAM_MEMBERS(const noexcept)
 
 	public:
 		static Pipe create() noexcept;
