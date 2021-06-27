@@ -214,7 +214,7 @@ namespace slib
 
 	void PipeEvent::set()
 	{
-		if (m_pipe.isNull()) {
+		if (m_pipe.isNone()) {
 			return;
 		}
 		SpinLocker lock(&m_lock);
@@ -228,7 +228,7 @@ namespace slib
 
 	void PipeEvent::reset()
 	{
-		if (m_pipe.isNull()) {
+		if (m_pipe.isNone()) {
 			return;
 		}
 		SpinLocker lock(&m_lock);
@@ -247,7 +247,7 @@ namespace slib
 
 	sl_bool PipeEvent::doWait(sl_int32 timeout)
 	{
-		if (m_pipe.isNull()) {
+		if (m_pipe.isNone()) {
 			return sl_false;
 		}
 #if defined(SLIB_PLATFORM_IS_WINDOWS)

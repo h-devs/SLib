@@ -104,18 +104,6 @@ public: \
 	{ \
 		set(sl_null); \
 		return *this; \
-	} \
-	constexpr sl_bool isNull() const \
-	{ \
-		return !MEMBER_NAME; \
-	} \
-	constexpr sl_bool isNotNull() const \
-	{ \
-		return MEMBER_NAME != sl_null; \
-	} \
-	void setNull() \
-	{ \
-		set(sl_null); \
 	}
 
 
@@ -210,18 +198,6 @@ public: \
 	{ \
 		set(sl_null); \
 		return *this; \
-	} \
-	constexpr sl_bool isNull() const \
-	{ \
-		return !MEMBER_NAME; \
-	} \
-	constexpr sl_bool isNotNull() const \
-	{ \
-		return MEMBER_NAME != sl_null; \
-	} \
-	void setNull() \
-	{ \
-		set(sl_null); \
 	}
 
 
@@ -265,16 +241,7 @@ public: \
 #define SLIB_DECLARE_NULLABLE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME) \
 	SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, sl_null) \
 	constexpr CLASS(sl_null_t): MEMBER_NAME(sl_null) {} \
-	CLASS& operator=(sl_null_t); \
-	constexpr sl_bool isNull() const \
-	{ \
-		return MEMBER_NAME == sl_null; \
-	} \
-	constexpr sl_bool isNotNull() const \
-	{ \
-		return MEMBER_NAME != sl_null; \
-	} \
-	void setNull();
+	CLASS& operator=(sl_null_t);
 
 #define SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_NONE, HANDLE_DELETER) \
 	CLASS::CLASS(CLASS&& other) noexcept \
@@ -326,10 +293,6 @@ public: \
 	{ \
 		set(sl_null); \
 		return *this; \
-	} \
-	void CLASS::setNull() \
-	{ \
-		set(sl_null); \
 	}
 
 
@@ -370,16 +333,7 @@ public: \
 #define SLIB_DECLARE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME) \
 	SLIB_DECLARE_ATOMIC_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, sl_null) \
 	constexpr Atomic(sl_null_t): MEMBER_NAME(sl_null) {} \
-	Atomic& operator=(sl_null_t); \
-	constexpr sl_bool isNull() const \
-	{ \
-		return MEMBER_NAME == sl_null; \
-	} \
-	constexpr sl_bool isNotNull() const \
-	{ \
-		return MEMBER_NAME != sl_null; \
-	} \
-	void setNull();
+	Atomic& operator=(sl_null_t);
 
 #define SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_NONE, HANDLE_DELETER) \
 	Atomic<CLASS>::Atomic(CLASS&& _other) noexcept \
@@ -446,10 +400,6 @@ public: \
 	{ \
 		set(sl_null); \
 		return *this; \
-	} \
-	void Atomic<CLASS>::setNull() \
-	{ \
-		set(sl_null); \
 	}
 
 #endif
