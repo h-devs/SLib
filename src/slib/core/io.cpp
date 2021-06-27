@@ -80,10 +80,7 @@ namespace slib
 
 	sl_reg IReader::read(void* buf, sl_size size)
 	{
-		if (size >= 0x40000000) {
-			size = 0x40000000; // 1GB
-		}
-		return read32(buf, (sl_uint32)size);
+		return ReaderHelper::readWithRead32(this, buf, size);
 	}
 
 
@@ -107,10 +104,7 @@ namespace slib
 
 	sl_reg IBlockReader::readAt(sl_uint64 offset, void* buf, sl_size size)
 	{
-		if (size >= 0x40000000) {
-			size = 0x40000000; // 1GB
-		}
-		return readAt32(offset, buf, (sl_uint32)size);
+		return BlockReaderHelper::readAtWithReadAt32(this, offset, buf, size);
 	}
 
 	sl_reg IBlockReader::readFullyAt(sl_uint64 offset, void* buf, sl_size size)
@@ -126,7 +120,7 @@ namespace slib
 
 	sl_reg IBlockWriter::writeAt(sl_uint64 offset, const void* buf, sl_size size)
 	{
-		return BlockWriterHelper::writeAtWithWrite32(this, offset, buf, size);
+		return BlockWriterHelper::writeAtWithWriteAt32(this, offset, buf, size);
 	}
 
 	sl_reg IBlockWriter::writeFullyAt(sl_uint64 offset, const void* buf, sl_size size)

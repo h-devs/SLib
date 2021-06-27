@@ -299,7 +299,7 @@ namespace slib
 	{
 	public:
 		template <class WRITER>
-		static sl_reg writeAtWithWrite32(WRITER* writer, sl_uint64 offset, const void* _buf, sl_size size)
+		static sl_reg writeAtWithWriteAt32(WRITER* writer, sl_uint64 offset, const void* _buf, sl_size size)
 		{
 			char* buf = (char*)_buf;
 			if (size == 0) {

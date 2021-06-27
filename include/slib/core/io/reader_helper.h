@@ -37,6 +37,15 @@ namespace slib
 	{
 	public:
 		template <class READER>
+		static sl_reg readWithRead32(READER* reader, void* buf, sl_size size)
+		{
+			if (size >= 0x40000000) {
+				size = 0x40000000; // 1GB
+			}
+			return reader->read32(buf, (sl_uint32)size);
+		}
+		
+		template <class READER>
 		static sl_reg readFully(READER* reader, void* _buf, sl_size size)
 		{
 			char* buf = (char*)_buf;
@@ -805,6 +814,15 @@ namespace slib
 	class BlockReaderHelper
 	{
 	public:
+		template <class READER>
+		static sl_reg readAtWithReadAt32(READER* reader, sl_uint64 offset, void* buf, sl_size size)
+		{
+			if (size >= 0x40000000) {
+				size = 0x40000000; // 1GB
+			}
+			return reader->readAt32(offset, buf, (sl_uint32)size);
+		}
+
 		template <class READER>
 		static sl_reg readFullyAt(READER* reader, sl_uint64 offset, void* _buf, sl_size size)
 		{
