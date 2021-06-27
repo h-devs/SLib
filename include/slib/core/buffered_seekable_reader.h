@@ -29,7 +29,7 @@
 namespace slib
 {
 	
-	class SLIB_EXPORT BufferedSeekableReader : public IReader, public ISeekable, public IClosable, public SeekableReaderBase<BufferedSeekableReader>
+	class SLIB_EXPORT BufferedSeekableReader : public IReader, public IBlockReader, public ISeekable, public IClosable
 	{
 	public:
 		BufferedSeekableReader();
@@ -54,6 +54,9 @@ namespace slib
 		sl_bool seek(sl_int64 offset, SeekPosition pos) override;
 
 		void close() override;
+
+	public:
+		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(override)
 
 	private:
 		void _init(const Ptrx<IReader, ISeekable, IClosable>& reader, sl_uint64 size, const Memory& buf);

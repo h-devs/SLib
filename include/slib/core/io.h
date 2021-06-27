@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,157 +23,103 @@
 #ifndef CHECKHEADER_SLIB_CORE_IO
 #define CHECKHEADER_SLIB_CORE_IO
 
-#include "io_base.h"
-#include "memory.h"
-#include "string.h"
-#include "time.h"
+#include "io/def.h"
 
 namespace slib
 {
 	
-	class SeekableReaderHelper
+	class SLIB_EXPORT IReader
 	{
 	public:
-		static String readLine(IReader* reader, ISeekable* seekable);
+		virtual sl_reg read(void* buf, sl_size size);
 
-		static String readStringUntilWhitespace(IReader* reader, ISeekable* seekable);
+		virtual sl_int32 read32(void* buf, sl_uint32 size);
+	
+	public:
+		SLIB_DECLARE_IREADER_MEMBERS
+		
+	};
+	
+	
+	class SLIB_EXPORT IWriter
+	{
+	public:
+		virtual sl_reg write(const void* buf, sl_size size);
 
-		static String readNullTerminatedString(IReader* reader, ISeekable* seekable);
+		virtual sl_int32 write32(const void* buf, sl_uint32 size);
+	
+	public:
+		SLIB_DECLARE_IWRITER_MEMBERS
+		
+	};
 
-		static Memory readAllBytes(IReader* reader, ISeekable* seekable, sl_size maxSize);
+	class SLIB_EXPORT IBlockReader
+	{
+	public:
+		virtual sl_reg readAt(sl_uint64 offset, void* buf, sl_size size);
 
-		static String readAllTextUTF8(IReader* reader, ISeekable* seekable, sl_size maxSize);
+		virtual sl_int32 readAt32(sl_uint64 offset, void* buf, sl_uint32 size);
 
-		static String16 readAllTextUTF16(IReader* reader, ISeekable* seekable, EndianType endian, sl_size maxSize);
-
-		static String readAllText(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize);
-
-		static String16 readAllText16(IReader* reader, ISeekable* seekable, Charset* outCharset, sl_size maxSize);
-
-		static sl_int64 find(IReader* reader, ISeekable* seekable, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind);
-
-		static sl_int64 findBackward(IReader* reader, ISeekable* seekable, const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind);
+		virtual sl_reg readFullyAt(sl_uint64 offset, void* buf, sl_size size);
 
 	};
 
-	template <class READER>
-	class SLIB_EXPORT SeekableReaderBase : public IBlockReader
+	class SLIB_EXPORT IBlockWriter
 	{
 	public:
-		sl_reg readAt(sl_uint64 offset, void* buf, sl_size size) override
-		{
-			READER* reader = (READER*)this;
-			if (reader->seek(offset, SeekPosition::Begin)) {
-				return reader->read(buf, size);
-			}
-			return -1;
-		}
+		virtual sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size);
 
-		sl_int32 readAt32(sl_uint64 offset, void* buf, sl_uint32 size) override
-		{
-			READER* reader = (READER*)this;
-			if (reader->seek(offset, SeekPosition::Begin)) {
-				return reader->read32(buf, size);
-			}
-			return -1;
-		}
+		virtual sl_int32 writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size);
 
-		sl_reg readFullyAt(sl_uint64 offset, void* buf, sl_size size) override
-		{
-			READER* reader = (READER*)this;
-			if (reader->seek(offset, SeekPosition::Begin)) {
-				return reader->readFully(buf, size);
-			}
-			return -1;
-		}
-
-		String readLine()
-		{
-			return SeekableReaderHelper::readLine((READER*)this, (READER*)this);
-		}
-
-		String readStringUntilWhitespace()
-		{
-			return SeekableReaderHelper::readStringUntilWhitespace((READER*)this, (READER*)this);
-		}
-
-		String readNullTerminatedString()
-		{
-			return SeekableReaderHelper::readNullTerminatedString((READER*)this, (READER*)this);
-		}
-
-		Memory readAllBytes(sl_size maxSize = SLIB_SIZE_MAX)
-		{
-			return SeekableReaderHelper::readAllBytes((READER*)this, (READER*)this, maxSize);
-		}
-
-		String readAllTextUTF8(sl_size maxSize = SLIB_SIZE_MAX)
-		{
-			return SeekableReaderHelper::readAllTextUTF8((READER*)this, (READER*)this, maxSize);
-		}
-
-		String16 readAllTextUTF16(EndianType endian = Endian::Little, sl_size maxSize = SLIB_SIZE_MAX)
-		{
-			return SeekableReaderHelper::readAllTextUTF16((READER*)this, (READER*)this, endian, maxSize);
-		}
-
-		String readAllText(Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX)
-		{
-			return SeekableReaderHelper::readAllText((READER*)this, (READER*)this, outCharset, maxSize);
-		}
-
-		String16 readAllText16(Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX)
-		{
-			return SeekableReaderHelper::readAllText16((READER*)this, (READER*)this, outCharset, maxSize);
-		}
-
-		sl_int64 find(const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_uint64 sizeFind = SLIB_UINT64_MAX)
-		{
-			return SeekableReaderHelper::find((READER*)this, (READER*)this, pattern, nPattern, startPosition, sizeFind);
-		}
-
-		sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_uint64 sizeFind = SLIB_UINT64_MAX)
-		{
-			return SeekableReaderHelper::findBackward((READER*)this, (READER*)this, pattern, nPattern, startPosition, sizeFind);
-		}
+		virtual sl_reg writeFullyAt(sl_uint64 offset, const void* buf, sl_size size);
 
 	};
 
-	template <class WRITER>
-	class SLIB_EXPORT SeekableWriterBase : public IBlockWriter
+	class SLIB_EXPORT ISize
 	{
 	public:
-		sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size) override
-		{
-			WRITER* writer = (WRITER*)this;
-			if (writer->seek(offset, SeekPosition::Begin)) {
-				return writer->write(buf, size);
-			}
-			return -1;
-		}
+		virtual sl_bool getSize(sl_uint64& outSize) = 0;
 
-		sl_int32 writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size) override
-		{
-			WRITER* writer = (WRITER*)this;
-			if (writer->seek(offset, SeekPosition::Begin)) {
-				return writer->write32(buf, size);
-			}
-			return -1;
-		}
-
-		sl_reg writeFullyAt(sl_uint64 offset, const void* buf, sl_size size) override
-		{
-			WRITER* writer = (WRITER*)this;
-			if (writer->seek(offset, SeekPosition::Begin)) {
-				return writer->writeFully(buf, size);
-			}
-			return -1;
-		}
+	public:
+		SLIB_DECLARE_ISIZE_MEMBERS
 
 	};
 
-	class SLIB_EXPORT IO : public IStream, public ISeekable, public IResizable, public SeekableReaderBase<IO>, public SeekableWriterBase<IO>
+	class SLIB_EXPORT IResizable
 	{
+	public:
+		virtual sl_bool setSize(sl_uint64 size) = 0;
+	};
+
+	class SLIB_EXPORT ISeekable : public ISize
+	{
+	public:
+		virtual sl_bool getPosition(sl_uint64& outPos) = 0;
+
+		virtual sl_bool seek(sl_int64 offset, SeekPosition pos) = 0;
+
+		virtual sl_bool isEnd(sl_bool& outFlag);
+
+	public:
+		SLIB_DECLARE_ISEEKABLE_MEMBERS
+	
+	};
+
+	class SLIB_EXPORT IClosable
+	{
+	public:
+		virtual void close() = 0;
+	};
+
+	class SLIB_EXPORT IStream : public IReader, public IWriter, public IClosable
+	{
+	};
+	
+	class SLIB_EXPORT IO : public IStream, public IBlockReader, public IBlockWriter, public ISeekable, public IResizable
+	{
+	public:
+		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(override)
+		SLIB_DECLARE_SEEKABLE_WRITER_MEMBERS(override)
 	};
 	
 }

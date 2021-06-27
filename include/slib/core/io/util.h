@@ -23,8 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CORE_IO_UTIL
 #define CHECKHEADER_SLIB_CORE_IO_UTIL
 
-#include "io.h"
-#include "ptrx.h"
+#include "../io.h"
+#include "../ptrx.h"
 
 namespace slib
 {
@@ -40,57 +40,6 @@ namespace slib
 
 	};
 	
-	class SLIB_EXPORT SkippableReader : public IReader
-	{
-	public:
-		SkippableReader();
-
-		SkippableReader(const Ptrx<IReader, ISeekable>& reader);
-
-		~SkippableReader();
-
-	public:
-		sl_bool setReader(const Ptrx<IReader, ISeekable>& reader);
-
-		IReader* getReader()
-		{
-			return m_reader;
-		}
-
-		ISeekable* getSeekable()
-		{
-			return m_seekable;
-		}
-
-	public:
-		operator IReader*()
-		{
-			return m_reader;
-		}
-
-		operator ISeekable*()
-		{
-			return m_seekable;
-		}
-
-	public:
-		sl_reg read(void* buf, sl_size size) override;
-
-		sl_int32 read32(void* buf, sl_uint32 size) override;
-
-		sl_uint64 skip(sl_uint64 size);
-
-		sl_uint64 getPosition();
-
-	private:
-		Ref<Referable> m_ref;
-		IReader* m_reader;
-		ISeekable* m_seekable;
-
-		sl_uint64 m_pos;
-
-	};
-
 }
 
 #endif

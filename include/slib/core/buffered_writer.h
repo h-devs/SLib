@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_BUFFERED_WRITER
 #define CHECKHEADER_SLIB_CORE_BUFFERED_WRITER
 
-#include "io_base.h"
+#include "io.h"
 #include "ptrx.h"
 #include "memory.h"
 

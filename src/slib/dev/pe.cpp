@@ -23,6 +23,7 @@
 #include "slib/dev/pe.h"
 
 #include "slib/core/memory_reader.h"
+#include "slib/core/io/seekable_reader_helper.h"
 
 namespace slib
 {
@@ -252,7 +253,7 @@ namespace slib
 
 	sl_bool Coff::load(const void* _baseAddress, sl_size size)
 	{
-		return load(_baseAddress, ToRef(new MemoryReader(_baseAddress, size)));
+		return load(_baseAddress, NewRefT<MemoryReader>(_baseAddress, size));
 	}
 
 	sl_bool Coff::isLoaded()

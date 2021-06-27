@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_CORE_MEMORY_IO
 
 #include "io.h"
+#include "memory.h"
 
 namespace slib
 {

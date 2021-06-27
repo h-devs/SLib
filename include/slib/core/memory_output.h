@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_MEMORY_OUTPUT
 #define CHECKHEADER_SLIB_CORE_MEMORY_OUTPUT
 
-#include "io_base.h"
+#include "io.h"
 #include "memory_buffer.h"
 
 namespace slib

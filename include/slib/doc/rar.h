@@ -25,8 +25,8 @@
 
 #include "definition.h"
 
+#include "../core/skippable_reader.h"
 #include "../core/string.h"
-#include "../core/io_util.h"
 #include "../core/flags.h"
 
 namespace slib

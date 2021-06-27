@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/io_util.h"
+#include "../core/skippable_reader.h"
 #include "../core/function.h"
 
 #define SLIB_JPEG_QUANTIZATION_TABLES_COUNT 4

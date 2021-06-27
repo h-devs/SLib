@@ -24,12 +24,13 @@
 #define CHECKHEADER_SLIB_CORE_MEMORY_READER
 
 #include "io.h"
+#include "memory.h"
 
 namespace slib
 {
 	
 	// MemoryReader is not thread-safe
-	class SLIB_EXPORT MemoryReader : public IReader, public ISeekable, public SeekableReaderBase<MemoryReader>
+	class SLIB_EXPORT MemoryReader : public IReader, public IBlockReader, public ISeekable
 	{
 	public:
 		MemoryReader(const Memory& mem);
@@ -37,6 +38,9 @@ namespace slib
 		MemoryReader(const void* buf, sl_size size);
 
 		~MemoryReader();
+
+	public:
+		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(override)
 	
 	public:
 		void initialize(const Memory& mem);
