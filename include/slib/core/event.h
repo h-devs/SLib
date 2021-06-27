@@ -27,6 +27,7 @@
 
 namespace slib
 {
+	
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 	typedef void* HEvent;
 #else

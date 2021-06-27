@@ -278,7 +278,7 @@ public: \
 	CLASS& operator=(sl_null_t); \
 	constexpr sl_bool isNull() const \
 	{ \
-		return !MEMBER_NAME; \
+		return MEMBER_NAME == sl_null; \
 	} \
 	constexpr sl_bool isNotNull() const \
 	{ \
@@ -383,7 +383,7 @@ public: \
 	Atomic& operator=(sl_null_t); \
 	constexpr sl_bool isNull() const \
 	{ \
-		return !MEMBER_NAME; \
+		return MEMBER_NAME == sl_null; \
 	} \
 	constexpr sl_bool isNotNull() const \
 	{ \
