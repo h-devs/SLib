@@ -131,10 +131,23 @@ namespace slib
 
 	SLIB_DEFINE_ISIZE_MEMBERS(ISize)
 
+
 	SLIB_DEFINE_ISEEKABLE_MEMBERS(ISeekable)
 
-	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(IO)
-	SLIB_DEFINE_SEEKABLE_WRITER_MEMBERS(IO)
+	sl_bool ISeekable::isEnd(sl_bool& outFlag)
+	{
+		sl_uint64 pos, size;
+		if (getPosition(pos) && getSize(size)) {
+			outFlag = pos >= size;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+
+	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(IOBase)
+	SLIB_DEFINE_SEEKABLE_WRITER_MEMBERS(IOBase)
+
 
 	MemoryIO::MemoryIO()
 	{

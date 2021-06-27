@@ -102,7 +102,7 @@ namespace slib
 
 	public:
 		SLIB_DECLARE_ISEEKABLE_MEMBERS
-	
+
 	};
 
 	class SLIB_EXPORT IClosable
@@ -114,12 +114,124 @@ namespace slib
 	class SLIB_EXPORT IStream : public IReader, public IWriter, public IClosable
 	{
 	};
+
+	template <class T>
+	class SLIB_EXPORT Stream : public IStream
+	{
+	public:
+		Stream() noexcept {}
+
+		Stream(const Stream& other) = default;
+
+		Stream(Stream&& other) = default;
+
+		template <class T>
+		Stream(T&& base) noexcept : m_base(Forward<T>(base)) {}
+
+	public:
+		Stream& operator=(const Stream& other) = default;
+
+		Stream& operator=(Stream&& other) = default;
+
+		template <class T>
+		Stream& operator=(T&& base) noexcept
+		{
+			m_base = Forward<T>(base);
+			return *this;
+		}
+
+	public:
+		sl_reg read(void* buf, sl_size size) override
+		{
+			return (*m_base).read(buf, size);
+		}
+
+		sl_reg write(const void* buf, sl_size size) override
+		{
+			return (*m_base).write(buf, size);
+		}
+
+		void close() override
+		{
+			return (*m_base).close();
+		}
+
+	private:
+		T m_base;
+
+	};
 	
-	class SLIB_EXPORT IO : public IStream, public IBlockReader, public IBlockWriter, public ISeekable, public IResizable
+	class SLIB_EXPORT IOBase : public IStream, public IBlockReader, public IBlockWriter, public ISeekable, public IResizable
 	{
 	public:
 		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(override)
 		SLIB_DECLARE_SEEKABLE_WRITER_MEMBERS(override)
+	};
+
+	template <class T>
+	class SLIB_EXPORT IO : public IOBase
+	{
+	public:
+		IO() noexcept {}
+
+		IO(const IO& other) = default;
+
+		IO(IO&& other) = default;
+
+		template <class T>
+		IO(T&& base) noexcept : m_base(Forward<T>(base)) {}
+
+	public:
+		IO & operator=(const IO& other) = default;
+
+		IO& operator=(IO&& other) = default;
+
+		template <class T>
+		IO& operator=(T&& base) noexcept
+		{
+			m_base = Forward<T>(base);
+			return *this;
+		}
+
+	public:
+		sl_reg read(void* buf, sl_size size) override
+		{
+			return (*m_base).read(buf, size);
+		}
+
+		sl_reg write(const void* buf, sl_size size) override
+		{
+			return (*m_base).write(buf, size);
+		}
+
+		void close() override
+		{
+			return (*m_base).close();
+		}
+
+		using ISeekable::getPosition;
+		sl_bool getPosition(sl_uint64& outPos) override
+		{
+			return (*m_base).getPosition(outPos);
+		}
+
+		using ISeekable::seek;
+		sl_bool seek(sl_int64 offset, SeekPosition pos) override
+		{
+			return (*m_base).seek(offset, pos);
+		}
+
+		using ISeekable::isEnd;
+		sl_bool isEnd(sl_bool& outFlag) override
+		{
+			return (*m_base).isEnd(outFlag);
+		}
+
+		sl_bool setSize(sl_uint64 size) override
+		{
+			return (*m_base).setSize(size);
+		}
+
 	};
 	
 }

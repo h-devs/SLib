@@ -61,11 +61,6 @@ public: \
 		return MEMBER_NAME; \
 	} \
 	operator HANDLE_TYPE() && = delete; \
-	constexpr HANDLE_TYPE operator->() const& \
-	{ \
-		return MEMBER_NAME; \
-	} \
-	HANDLE_TYPE operator->() && = delete; \
 	constexpr HANDLE_TYPE get() const& \
 	{ \
 		return MEMBER_NAME; \
@@ -249,11 +244,6 @@ public: \
 		return MEMBER_NAME; \
 	} \
 	operator HANDLE_TYPE() && = delete; \
-	constexpr HANDLE_TYPE operator->() const& \
-	{ \
-		return MEMBER_NAME; \
-	} \
-	HANDLE_TYPE operator->() && = delete; \
 	constexpr HANDLE_TYPE get() const& \
 	{ \
 		return MEMBER_NAME; \

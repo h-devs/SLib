@@ -30,7 +30,7 @@ namespace slib
 {
 	
 	// MemoryIO is not thread-safe
-	class SLIB_EXPORT MemoryIO : public IO
+	class SLIB_EXPORT MemoryIO : public IOBase
 	{
 	public:
 		MemoryIO();
