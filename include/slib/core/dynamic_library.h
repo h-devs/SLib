@@ -35,7 +35,10 @@ namespace slib
 
 		DynamicLibrary(const StringParam& path);
 
-		DynamicLibrary(const StringParam& path1, const StringParam& path2);
+		DynamicLibrary(const StringParam* libs, sl_size nLibs);
+
+		template <class... ARGS>
+		DynamicLibrary(const StringParam& path1, const StringParam& path2, ARGS&&... args): m_library(loadLibrary(path1, path2, Forward<ARGS>(args)...)) {}
 
 		~DynamicLibrary();
 
@@ -44,7 +47,14 @@ namespace slib
 
 		sl_bool load(const StringParam& path);
 
-		sl_bool load(const StringParam& path1, const StringParam& path2);
+		sl_bool load(const StringParam* libs, sl_size nLibs);
+
+		template <class... ARGS>
+		sl_bool load(const StringParam& path1, const StringParam& path2, ARGS&&... args)
+		{
+			StringParam params[] = { path1, path2, Forward<ARGS>(args)... };
+			return load(params, 2 + sizeof...(args));
+		}
 
 		void free();
 
@@ -53,7 +63,14 @@ namespace slib
 	public:
 		static void* loadLibrary(const StringParam& path);
 
-		static void* loadLibrary(const StringParam& path1, const StringParam& path2);
+		static void* loadLibrary(const StringParam* libs, sl_size nLibs);
+
+		template <class... ARGS>
+		static void* loadLibrary(const StringParam& path1, const StringParam& path2, ARGS&&... args)
+		{
+			StringParam params[] = { path1, path2, Forward<ARGS>(args)... };
+			return loadLibrary(params, 2 + sizeof...(args));
+		}
 
 		static void freeLibrary(void* library);
 

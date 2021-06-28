@@ -25,18 +25,16 @@
 namespace slib
 {
 
-	DynamicLibrary::DynamicLibrary() : m_library(sl_null)
+	DynamicLibrary::DynamicLibrary(): m_library(sl_null)
 	{
 	}
 
-	DynamicLibrary::DynamicLibrary(const StringParam& path) : m_library(sl_null)
+	DynamicLibrary::DynamicLibrary(const StringParam& path): m_library(loadLibrary(path))
 	{
-		load(path);
 	}
 
-	DynamicLibrary::DynamicLibrary(const StringParam& path1, const StringParam& path2) : m_library(sl_null)
+	DynamicLibrary::DynamicLibrary(const StringParam* libs, sl_size n): m_library(loadLibrary(libs, n))
 	{
-		load(path1, path2);
 	}
 
 	DynamicLibrary::~DynamicLibrary()
@@ -57,12 +55,12 @@ namespace slib
 		return library != sl_null;
 	}
 
-	sl_bool DynamicLibrary::load(const StringParam& path1, const StringParam& path2)
+	sl_bool DynamicLibrary::load(const StringParam* libs, sl_size n)
 	{
-		if (load(path1)) {
-			return sl_true;
-		}
-		return load(path2);
+		free();
+		void* library = loadLibrary(libs, n);
+		m_library = library;
+		return library != sl_null;
 	}
 
 	void DynamicLibrary::free()
@@ -85,13 +83,15 @@ namespace slib
 		}
 	}
 
-	void* DynamicLibrary::loadLibrary(const StringParam& path1, const StringParam& path2)
+	void* DynamicLibrary::loadLibrary(const StringParam* libs, sl_size n)
 	{
-		void* lib = loadLibrary(path1);
-		if (lib) {
-			return lib;
+		for (sl_size i = 0; i < n; i++) {
+			void* lib = loadLibrary(libs[i]);
+			if (lib) {
+				return lib;
+			}
 		}
-		return loadLibrary(path2);
+		return sl_null;
 	}
 
 }
