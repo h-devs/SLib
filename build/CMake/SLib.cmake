@@ -450,6 +450,7 @@ else ()
   "${SLIB_PATH}/src/slib/core/dl_linux_glib.cpp"
   "${SLIB_PATH}/src/slib/core/dl_linux_rt.cpp"
   "${SLIB_PATH}/src/slib/network/dl_linux_curl.cpp"
+  "${SLIB_PATH}/src/slib/network/dl_linux_pcap.cpp"
   "${SLIB_PATH}/src/slib/graphics/dl_linux_cairo.cpp"
   "${SLIB_PATH}/src/slib/render/dl_linux_gl.cpp"
   "${SLIB_PATH}/src/slib/media/dl_linux_alsa.cpp"

@@ -44,7 +44,7 @@
 #include "winpcap/pcap/pcap.h"
 #endif
 #elif defined(SLIB_PLATFORM_IS_UNIX)
-#include "pcap/pcap.h"
+#include "slib/network/dl/linux/pcap.h"
 #include <sys/socket.h>
 #endif
 

@@ -34,7 +34,7 @@
 namespace slib
 {
 
-	SLIB_IMPORT_LIBRARY_BEGIN(curl, "libcurl.so.4", "libcurl.so.3")
+	SLIB_IMPORT_LIBRARY_BEGIN(curl, "libcurl.so.4", "libcurl.so.3", "libcurl-gnutls.so.4", "libcurl-gnutls.so.3")
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			curl_easy_init,
