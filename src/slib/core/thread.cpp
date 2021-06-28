@@ -129,8 +129,8 @@ namespace slib
 		if (!m_flagRunning) {
 			m_flagRunning = sl_true;
 			m_flagRequestStop = sl_false;
-			m_eventExit->reset();
-			m_eventWake->reset();
+			m_eventExit.reset();
+			m_eventWake.reset();
 			_nativeStart(stackSize);
 			if (m_handle) {
 				if (m_priority != ThreadPriority::Normal) {
@@ -155,7 +155,7 @@ namespace slib
 	sl_bool Thread::join(sl_int32 timeout)
 	{
 		if (isRunning()) {
-			if (!m_eventExit->wait(timeout)) {
+			if (!(m_eventExit.wait(timeout))) {
 				return sl_false;
 			}
 		}
@@ -183,7 +183,7 @@ namespace slib
 					if (t > 100) {
 						t = 100;
 					}
-					if (m_eventExit->wait(t)) {
+					if (m_eventExit.wait(t)) {
 						return sl_true;
 					}
 					if (timeout <= 100) {
@@ -207,41 +207,41 @@ namespace slib
 		if (m_flagRequestStop) {
 			return sl_false;
 		} else {
-			return m_eventWake->wait(timeout);
+			return m_eventWake.wait(timeout);
 		}
 	}
 
 	void Thread::wakeSelfEvent()
 	{
-		m_eventWake->set();
+		m_eventWake.set();
 	}
 	
-	const Ref<Event>& Thread::getSelfEvent()
+	const Event& Thread::getSelfEvent()
 	{
 		return m_eventWake;
 	}
 
 	void Thread::wake()
 	{
-		Ref<Event> ev = m_eventWaiting;
-		if (ev.isNotNull()) {
+		IEvent* ev = m_eventWaiting;
+		if (ev) {
 			ev->set();
 		}
 	}
 	
-	Ref<Event> Thread::getWaitingEvent()
+	IEvent* Thread::getWaitingEvent()
 	{
 		return m_eventWaiting;
 	}
 
-	void Thread::setWaitingEvent(Event* ev)
+	void Thread::setWaitingEvent(IEvent* ev)
 	{
 		m_eventWaiting = ev;
 	}
 
 	void Thread::clearWaitingEvent()
 	{
-		m_eventWaiting.setNull();
+		m_eventWaiting = sl_null;
 	}
 
 	ThreadPriority Thread::getPriority()
@@ -277,12 +277,12 @@ namespace slib
 
 	sl_bool Thread::isWaiting()
 	{
-		return m_eventWaiting.isNotNull();
+		return m_eventWaiting != sl_null;
 	}
 
 	sl_bool Thread::isNotWaiting()
 	{
-		return m_eventWaiting.isNull();
+		return !m_eventWaiting;
 	}
 
 	const Function<void()>& Thread::getCallback()
@@ -292,8 +292,8 @@ namespace slib
 
 	sl_bool Thread::sleep(sl_uint32 ms)
 	{
-		Ref<Thread> thread = getCurrent();
-		if (thread.isNotNull()) {
+		Thread* thread = getCurrent();
+		if (thread) {
 			return thread->wait(ms);
 		} else {
 			System::sleep(ms);
@@ -313,8 +313,8 @@ namespace slib
 
 	sl_bool Thread::isStoppingCurrent()
 	{
-		Ref<Thread> thread = getCurrent();
-		if (thread.isNotNull()) {
+		Thread* thread = getCurrent();
+		if (thread) {
 			return thread->isStopping();
 		}
 		return sl_false;
@@ -322,8 +322,8 @@ namespace slib
 
 	sl_bool Thread::isNotStoppingCurrent()
 	{
-		Ref<Thread> thread = getCurrent();
-		if (thread.isNotNull()) {
+		Thread* thread = getCurrent();
+		if (thread) {
 			return thread->isNotStopping();
 		}
 		return sl_true;
@@ -375,7 +375,7 @@ namespace slib
 		_nativeClose();
 		m_handle = sl_null;
 		m_flagRunning = sl_false;
-		m_eventExit->set();
+		m_eventExit.set();
 	}
 
 
@@ -508,8 +508,8 @@ namespace slib
 
 	void ThreadPool::onRunWorker()
 	{
-		Ref<Thread> thread = Thread::getCurrent();
-		if (thread.isNull()) {
+		Thread* thread = Thread::getCurrent();
+		if (!thread) {
 			return;
 		}
 		while (m_flagRunning && thread->isNotStopping()) {

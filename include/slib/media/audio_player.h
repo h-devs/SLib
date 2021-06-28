@@ -27,7 +27,8 @@
 
 #include "../core/object.h"
 #include "../core/string.h"
-#include "../core/loop_queue.h"
+#include "../core/event.h"
+#include "../core/shared.h"
 #include "../core/memory_queue.h"
 #include "../core/function.h"
 
@@ -78,7 +79,7 @@ namespace slib
 		
 		// called before playing a frame
 		Function<void(AudioPlayer*, sl_uint32 samplesCount)> onPlayAudio;
-		Ref<Event> event;
+		Shared<Event> event;
 		
 	public:
 		AudioPlayerParam();

@@ -26,6 +26,7 @@
 
 #include "slib/core/async_file.h"
 
+#include "slib/core/string.h"
 #include "slib/core/win32/windows.h"
 
 namespace slib

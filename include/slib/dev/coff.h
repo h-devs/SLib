@@ -5,6 +5,7 @@
 
 #include "../core/map.h"
 #include "../core/io.h"
+#include "../core/string.h"
 #include "../core/ptrx.h"
 
 #define	SLIB_COFF_MACHINE_I386		0x014c

@@ -42,14 +42,14 @@ namespace slib
 			{
 			public:
 				AlertDialog* alert;
-				Ref<Event> event;
+				Event event;
 				DialogResult result = DialogResult::Cancel;
 				
 			public:
 				void run()
 				{
 					result = alert->_run();
-					event->set();
+					event.set();
 				}
 				
 			};
@@ -72,13 +72,13 @@ namespace slib
 			{
 			public:
 				DialogResult result = DialogResult::Error;
-				Ref<Event> event;
+				Event event;
 				
 			public:
 				void onComplete(DialogResult _result)
 				{
 					result = _result;
-					event->set();
+					event.set();
 				}
 				
 			};
@@ -120,13 +120,13 @@ namespace slib
 		if (UI::isUiThread()) {
 			return _run();
 		}
-		Ref<Event> ev = Event::create(sl_false);
-		if (ev.isNotNull()) {
+		Event ev = Event::create(sl_false);
+		if (ev.isNotNone()) {
 			priv::alert_dialog::RunOnUiThread m;
 			m.alert = this;
-			m.event = ev;
+			m.event = Move(ev);
 			UI::dispatchToUiThread(SLIB_FUNCTION_MEMBER(priv::alert_dialog::RunOnUiThread, run, &m));
-			ev->wait();
+			m.event.wait();
 			return m.result;
 		}
 		return DialogResult::Error;
@@ -153,13 +153,13 @@ namespace slib
 			}
 #endif
 		} else {
-			Ref<Event> ev = Event::create(sl_false);
-			if (ev.isNotNull()) {
+			Event ev = Event::create(sl_false);
+			if (ev.isNotNone()) {
 				priv::alert_dialog::RunByShowOnWorkingThread m;
-				m.event = ev;
+				m.event = Move(ev);
 				alert->onComplete = SLIB_FUNCTION_MEMBER(priv::alert_dialog::RunByShowOnWorkingThread, onComplete, &m);
 				UI::dispatchToUiThread(Function<void()>::bind(&(priv::alert_dialog::ShowOnWorkingThread), alert.get(), &m));
-				ev->wait();
+				m.event.wait();
 				return m.result;
 			}
 		}
@@ -327,14 +327,14 @@ namespace slib
 			{
 			public:
 				FileDialog* dlg;
-				Ref<Event> event;
+				Event event;
 				DialogResult result = sl_false;
 				
 			public:
 				void run()
 				{
 					result = dlg->_run();
-					event->set();
+					event.set();
 				}
 				
 			};
@@ -360,7 +360,7 @@ namespace slib
 			class RunByShowOnWorkingThread
 			{
 			public:
-				Ref<Event> event;
+				Event event;
 				DialogResult result = DialogResult::Error;
 				String path;
 				List<String> list;
@@ -371,7 +371,7 @@ namespace slib
 					result = dialog.result;
 					path = dialog.selectedPath;
 					list = dialog.selectedPaths;
-					event->set();
+					event.set();
 				}
 				
 			};
@@ -472,13 +472,13 @@ namespace slib
 		if (UI::isUiThread()) {
 			return _run();
 		}
-		Ref<Event> ev = Event::create(sl_false);
-		if (ev.isNotNull()) {
+		Event ev = Event::create(sl_false);
+		if (ev.isNotNone()) {
 			priv::file_dialog::RunOnUiThread m;
 			m.dlg = this;
-			m.event = ev;
+			m.event = Move(ev);
 			UI::dispatchToUiThread(SLIB_FUNCTION_MEMBER(priv::file_dialog::RunOnUiThread, run, &m));
-			ev->wait();
+			m.event.wait();
 			return m.result;
 		}
 		return sl_false;
@@ -501,13 +501,13 @@ namespace slib
 				return m.result;
 			}
 		} else {
-			Ref<Event> ev = Event::create(sl_false);
-			if (ev.isNotNull()) {
+			Event ev = Event::create(sl_false);
+			if (ev.isNotNone()) {
 				priv::file_dialog::RunByShowOnWorkingThread m;
-				m.event = ev;
+				m.event = Move(ev);
 				dialog->onComplete = SLIB_FUNCTION_MEMBER(priv::file_dialog::RunByShowOnWorkingThread, onComplete, &m);
 				UI::dispatchToUiThread(Function<void()>::bind(&(priv::file_dialog::ShowOnWorkingThread), dialog.get(), &m));
-				ev->wait();
+				m.event.wait();
 				result = m.result;
 				selectedPath = m.path;
 				selectedPaths = m.list;

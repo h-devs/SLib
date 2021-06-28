@@ -25,6 +25,7 @@
 
 #include "pipe.h"
 #include "event.h"
+#include "spin_lock.h"
 
 namespace slib
 {
@@ -43,7 +44,7 @@ namespace slib
 
 		sl_pipe getWritePipeHandle();
 
-		sl_bool isOpended();
+		sl_bool isOpened();
 
 		void close();
 

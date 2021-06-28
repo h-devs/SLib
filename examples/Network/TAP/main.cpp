@@ -67,11 +67,11 @@ int main(int argc, const char * argv[])
 	}
 
 	auto socket = Socket::openUdp();
-	if (socket.isNull()) {
+	if (socket.isNone()) {
 		Println("Failed to open UDP socket!");
 		return -1;
 	}
-	if (!(socket->bind(UDP_PORT))) {
+	if (!(socket.bind(UDP_PORT))) {
 		Println("Failed to bind to UDP port: %s", UDP_PORT);
 		return -1;
 	}
@@ -150,13 +150,13 @@ int main(int argc, const char * argv[])
 		}
 	});
 
-	auto threadSend = Thread::start([socket]() {
+	auto threadSend = Thread::start([socket = Move(socket)]() {
 		SocketAddress address(TAP_TARGET_IP, UDP_PORT);
 		sl_uint32 no = 1;
 		auto thread = Thread::getCurrent();
 		while (thread->isNotStopping()) {
 			String data = String::format("Packet %s", no++);
-			socket->sendTo(address, data.getData(), (sl_uint32)(data.getLength()));
+			socket.sendTo(address, data.getData(), (sl_uint32)(data.getLength()));
 			Thread::sleep(1000);
 		}
 	});

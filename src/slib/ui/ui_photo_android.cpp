@@ -64,7 +64,7 @@ namespace slib
 						File file(fd);
 						mem = file.readAllBytes();
 						fileContent = mem;
-						file.clearHandle();
+						file.release();
 					}
 					if (mem.isNull()) {
 						return;

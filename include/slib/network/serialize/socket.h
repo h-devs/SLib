@@ -2,7 +2,7 @@
  *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
- *   of this software and associated documentation files (the "Software"), to deal
+ *   of this software and associated documentation sockets (the "Software"), to deal
  *   in the Software without restriction, including without limitation the rights
  *   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *   copies of the Software, and to permit persons to whom the Software is
@@ -20,33 +20,45 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_MOVE_T
-#define CHECKHEADER_SLIB_CORE_MOVE_T
+#ifndef CHECKHEADER_SLIB_NETWORK_SERIALIZE_SOCKET
+#define CHECKHEADER_SLIB_NETWORK_SERIALIZE_SOCKET
 
-#include "definition.h"
+#include "../socket.h"
+#include "../../core/memory.h"
 
 namespace slib
 {
 
-	template <class T>
-	class MoveT
+	SLIB_INLINE static sl_bool SerializeByte(Socket* socket, sl_uint8 value) noexcept
 	{
-	public:
-		T value;
+		return socket->writeUint8(value);
+	}
 
-	public:
-		MoveT(T&& other) noexcept: value(Move(other)) {}
+	SLIB_INLINE static sl_bool SerializeRaw(Socket* socket, const void* data, sl_size size) noexcept
+	{
+		return socket->writeFully(data, size) == size;
+	}
 
-		MoveT(MoveT& other) noexcept: value(Move(other.value)) {}
+	SLIB_INLINE static sl_bool SerializeRaw(Socket* socket, const MemoryData& data) noexcept
+	{
+		return socket->writeFully(data.data, data.size) == data.size;
+	}
 
-	public:
-		T&& release() const noexcept
-		{
-			return static_cast<T&&>(*(const_cast<T*>(&value)));
-		}
+	SLIB_INLINE static sl_bool SerializeStatic(Socket* socket, const void* data, sl_size size) noexcept
+	{
+		return socket->writeFully(data, size) == size;
+	}
 
-	};
-	
+	SLIB_INLINE static sl_bool DeserializeByte(Socket* socket, sl_uint8& value) noexcept
+	{
+		return socket->readUint8(&value);
+	}
+
+	SLIB_INLINE static sl_bool DeserializeRaw(Socket* socket, void* data, sl_size size) noexcept
+	{
+		return socket->readFully(data, size) == size;
+	}
+
 }
 
 #endif

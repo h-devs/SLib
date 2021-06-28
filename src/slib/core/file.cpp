@@ -45,7 +45,6 @@ namespace slib
 
 
 	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(File, sl_file, m_file, SLIB_FILE_INVALID_HANDLE, _close)
-	SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_MEMBERS(File, sl_file, m_file, SLIB_FILE_INVALID_HANDLE, File::_close)
 	SLIB_DEFINE_IO_MEMBERS(File, const noexcept)
 
 	File File::open(const StringParam& filePath, const FileOpenParam& param) noexcept
@@ -56,7 +55,7 @@ namespace slib
 	File File::open(const StringParam& filePath, const FileMode& mode, const FileAttributes& _attrs) noexcept
 	{
 		if (_attrs & FileAttributes::NotExist) {
-			return sl_null;
+			return SLIB_FILE_INVALID_HANDLE;
 		}
 		FileAttributes attrs = _fixAttributes(_attrs);
 		sl_file file = _open(filePath, mode, attrs);
@@ -67,7 +66,7 @@ namespace slib
 			}
 			return ret;
 		}
-		return sl_null;
+		return SLIB_FILE_INVALID_HANDLE;
 	}
 
 	File File::open(const StringParam& filePath, const FileMode& mode) noexcept
@@ -117,11 +116,7 @@ namespace slib
 
 	void File::close() noexcept
 	{
-		if (isOpened()) {
-			if (_close(m_file)) {
-				m_file = SLIB_FILE_INVALID_HANDLE;
-			}
-		}
+		setNone();
 	}
 
 	sl_reg File::read(void* buf, sl_size size) const noexcept

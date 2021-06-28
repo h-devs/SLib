@@ -369,8 +369,12 @@ namespace slib
 
 	void DispatchLoop::_runLoop()
 	{
-		Ref<Thread> thread = Thread::getCurrent();
-		while (thread.isNull() || thread->isNotStopping()) {
+		Thread* thread = Thread::getCurrent();
+		if (!thread) {
+			return;
+		}
+
+		while (thread->isNotStopping()) {
 
 			// Async Tasks
 			{
@@ -387,7 +391,7 @@ namespace slib
 				if (t < 0 || t > 10000) {
 					t = 10000;
 				}
-				Thread::sleep(t);
+				thread->wait(t);
 			}
 		}
 	}

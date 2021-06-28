@@ -33,7 +33,6 @@ namespace slib
 		enum {
 			Package_Core = packages::Core,
 			CWeakRef,
-			Lockable,
 			Object,
 			Collection,
 			CArrayBase,
@@ -70,7 +69,6 @@ namespace slib
 			CTimeZone,
 			GenericTimeZone,
 			Timer,
-			Event,
 			Dispatcher,
 			DispatchLoop,
 			Thread,

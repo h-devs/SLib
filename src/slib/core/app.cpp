@@ -280,7 +280,7 @@ Microsoft Specific
 		String instanceId = getUniqueInstanceId();
 		if (instanceId.isNotEmpty()) {
 			m_uniqueInstance = NamedInstance(instanceId);
-			if (m_uniqueInstance.isNull()) {
+			if (m_uniqueInstance.isNone()) {
 				return onExistingInstance();
 			}
 		}
@@ -302,7 +302,7 @@ Microsoft Specific
 	{
 		onQuitApp();
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-		m_uniqueInstance.setNull();
+		m_uniqueInstance.setNone();
 #endif
 	}
 

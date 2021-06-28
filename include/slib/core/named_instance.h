@@ -49,12 +49,6 @@ namespace slib
 
 	};
 
-	template <>
-	class SLIB_EXPORT Atomic<NamedInstance>
-	{
-		SLIB_DECLARE_ATOMIC_HANDLE_CONTAINER_MEMBERS(NamedInstance, HNamedInstance, m_handle, SLIB_NAMED_INSTANCE_INVALID_HANDLE)
-	};
-
 }
 
 #endif

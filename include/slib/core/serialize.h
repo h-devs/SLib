@@ -38,5 +38,7 @@
 #include "serialize/shared.h"
 #include "serialize/generic.h"
 #include "serialize/macro.h"
+#include "serialize/file.h"
+#include "serialize/pipe.h"
 
 #endif

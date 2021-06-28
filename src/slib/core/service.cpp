@@ -117,7 +117,7 @@ namespace slib
 			LogError(TAG, "%s IS NOT RUNNING", appName);
 		} else {
 			NamedInstance stopInstance = NamedInstance(appName + STOP_ID);
-			if (stopInstance.isNotNull()) {
+			if (stopInstance.isNotNone()) {
 				Log(TAG, "STOPPING %s", appName);
 				for (int i = 0; i < WAIT_SECONDS * 10; i++) {
 					if (!(isUniqueInstanceRunning())) {

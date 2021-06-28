@@ -26,5 +26,6 @@
 #include "serialize/mac_address.h"
 #include "serialize/ip_address.h"
 #include "serialize/socket_address.h"
+#include "serialize/socket.h"
 
 #endif

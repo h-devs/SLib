@@ -139,6 +139,11 @@ namespace slib
 
 				void run()
 				{
+					Thread* thread = Thread::getCurrent();
+					if (!thread) {
+						return;
+					}
+
 					wglMakeCurrent(m_hDC, m_context);
 
 					GL::loadEntries();
@@ -149,11 +154,10 @@ namespace slib
 					}
 
 					TimeCounter timer;
-					Ref<Thread> thread = Thread::getCurrent();
-					while (thread.isNull() || thread->isNotStopping()) {
+					while (thread->isNotStopping()) {
 						Ref<RendererImpl> thiz = this;
 						runStep(engine.get());
-						if (thread.isNull() || thread->isNotStopping()) {
+						if (thread->isNotStopping()) {
 							sl_uint64 t = timer.getElapsedMilliseconds();
 							if (t < 10) {
 								Thread::sleep(10 - (sl_uint32)(t));

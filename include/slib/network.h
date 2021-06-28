@@ -32,7 +32,6 @@
 #include "network/os.h"
 #include "network/socket.h"
 #include "network/async.h"
-#include "network/io.h"
 #include "network/event.h"
 
 #include "network/tcpip.h"

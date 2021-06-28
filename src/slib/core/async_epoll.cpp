@@ -25,7 +25,7 @@
 #if defined(ASYNC_USE_EPOLL)
 
 #include "slib/core/async.h"
-#include "slib/core/pipe.h"
+#include "slib/core/pipe_event.h"
 
 #include <unistd.h>
 #include <sys/epoll.h>
@@ -45,7 +45,7 @@ namespace slib
 			struct AsyncIoLoopHandle
 			{
 				int fdEpoll;
-				Ref<PipeEvent> eventWake;
+				PipeEvent eventWake;
 			};
 		}
 	}
@@ -54,10 +54,6 @@ namespace slib
 
 	void* AsyncIoLoop::_native_createHandle()
 	{
-		Ref<PipeEvent> pipe = PipeEvent::create();
-		if (pipe.isNull()) {
-			return 0;
-		}
 		int fdEpoll;
 #if defined(EPOLL_LOW)
 		fdEpoll = epoll_create(1024);
@@ -67,14 +63,15 @@ namespace slib
 		if (fdEpoll >= 0) {
 			AsyncIoLoopHandle* handle = new AsyncIoLoopHandle;
 			if (handle) {
-				handle->fdEpoll = fdEpoll;
-				handle->eventWake = pipe;
-				// register wake event
-				epoll_event ev;
-				ev.data.ptr = sl_null;
-				ev.events = EPOLLIN | EPOLLPRI | EPOLLET;
-				if (0 == epoll_ctl(fdEpoll, EPOLL_CTL_ADD, (int)(pipe->getReadPipeHandle()), &ev)) {
-					return handle;
+				if (handle->eventWake.isOpened()) {
+					handle->fdEpoll = fdEpoll;
+					// register wake event
+					epoll_event ev;
+					ev.data.ptr = sl_null;
+					ev.events = EPOLLIN | EPOLLPRI | EPOLLET;
+					if (!(epoll_ctl(fdEpoll, EPOLL_CTL_ADD, handle->eventWake.getReadPipeHandle(), &ev))) {
+						return handle;
+					}
 				}
 				delete handle;
 			}
@@ -137,7 +134,7 @@ namespace slib
 						instance->onEvent(&desc);
 					}
 				} else {
-					handle->eventWake->reset();
+					handle->eventWake.reset();
 				}
 			}
 
@@ -151,7 +148,7 @@ namespace slib
 	void AsyncIoLoop::_native_wake()
 	{
 		AsyncIoLoopHandle* handle = (AsyncIoLoopHandle*)m_handle;
-		handle->eventWake->set();
+		handle->eventWake.set();
 	}
 
 	sl_bool AsyncIoLoop::_native_attachInstance(AsyncIoInstance* instance, AsyncIoMode mode)

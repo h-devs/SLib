@@ -154,11 +154,11 @@ namespace slib
 						return;
 					}
 
-					Ref<Event> ev = Event::create();
-					if (ev.isNull()) {
+					Event ev = Event::create();
+					if (ev.isNone()) {
 						return;
 					}
-					HANDLE hEvent = Win32::getEventHandle(ev.get());
+					HANDLE hEvent = Win32::getEventHandle(ev);
 
 					while (thread->isNotStopping()) {
 
@@ -189,7 +189,7 @@ namespace slib
 										if (err == ERROR_PIPE_CONNECTED) {
 											flagConnected = sl_true;
 										} else if (err == ERROR_IO_PENDING) {
-											ev->wait();
+											ev.wait();
 											if (HasOverlappedIoCompleted(&overlapped)) {
 												flagConnected = sl_true;
 											}
@@ -201,7 +201,7 @@ namespace slib
 									}
 									if (flagConnected) {
 										auto thiz = ToWeakRef(this);
-										Ref<Thread> thread = Thread::create([thiz, this, hPipe]() {
+										Ref<Thread> threadNew = Thread::create([thiz, this, hPipe]() {
 											auto ref = ToRef(thiz);
 											if (ref.isNull()) {
 												return;
@@ -209,9 +209,9 @@ namespace slib
 											processReceiving(hPipe);
 											CloseHandle(hPipe);
 										});
-										if (thread.isNotNull()) {
-											m_threads.add(thread);
-											thread->start();
+										if (threadNew.isNotNull()) {
+											m_threads.add(threadNew);
+											threadNew->start();
 										} else {
 											CloseHandle(hPipe);
 										}
@@ -246,11 +246,11 @@ namespace slib
 
 				Memory readMessage(Thread* thread, HANDLE handle)
 				{
-					Ref<Event> event = Event::create();
-					if (event.isNull()) {
+					Event event = Event::create();
+					if (event.isNone()) {
 						return sl_null;
 					}
-					HANDLE hEvent = Win32::getEventHandle(event.get());
+					HANDLE hEvent = Win32::getEventHandle(event);
 	
 					MemoryBuffer bufRead;
 					char buf[1024];
@@ -276,7 +276,7 @@ namespace slib
 								}
 							} else {
 								if (err == ERROR_IO_PENDING) {
-									event->wait();
+									event.wait();
 									if (GetOverlappedResult(handle, &overlapped, &dwRead, FALSE)) {
 										if (dwRead) {
 											bufRead.add(Memory::create(buf, dwRead));
@@ -303,11 +303,11 @@ namespace slib
 				sl_bool writeMessage(Thread* thread, HANDLE handle, const void* _data, sl_uint32 size)
 				{
 					sl_uint8* data = (sl_uint8*)_data;
-					Ref<Event> event = Event::create();
-					if (event.isNull()) {
+					Event event = Event::create();
+					if (event.isNone()) {
 						return sl_null;
 					}
-					HANDLE hEvent = Win32::getEventHandle(event.get());
+					HANDLE hEvent = Win32::getEventHandle(event);
 
 					OVERLAPPED overlapped;
 					Base::zeroMemory(&overlapped, sizeof(overlapped));
@@ -320,7 +320,7 @@ namespace slib
 					} else {
 						DWORD err = GetLastError();
 						if (err == ERROR_IO_PENDING) {
-							event->wait();
+							event.wait();
 							if (GetOverlappedResult(handle, &overlapped, &dwWritten, FALSE)) {
 								return dwWritten == (DWORD)size;
 							}

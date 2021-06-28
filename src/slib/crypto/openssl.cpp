@@ -57,8 +57,8 @@ namespace slib
 				}
 				check = 1;
 				SSL_library_init();
-				Ref<Thread> thread = Thread::getCurrent();
-				if (thread.isNotNull()) {
+				Thread* thread = Thread::getCurrent();
+				if (thread) {
 					SLIB_STATIC_STRING(name, "_SLIB_OPENSSL")
 					Ref<Referable> ref = thread->getAttachedObject(name);
 					if (ref.isNull()) {

@@ -497,9 +497,6 @@
     <ClCompile Include="..\..\src\slib\network\network_async_win32.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\network_io.cpp">
-      <Filter>src\network</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\network\network_os.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
@@ -513,9 +510,6 @@
       <Filter>src\network</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\network\socket_event.cpp">
-      <Filter>src\network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\socket_event_win32.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\network\tcpip.cpp">
@@ -1386,12 +1380,6 @@
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\process_win32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\pipe_win32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\event_win32.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\dynamic_library_win32.cpp">

@@ -44,7 +44,7 @@ namespace slib
 		~AsyncTcpSocketInstance();
 		
 	public:
-		Ref<Socket> getSocket();
+		sl_socket getSocket();
 		
 		sl_bool isSupportedConnect();
 		
@@ -61,7 +61,7 @@ namespace slib
 		void _onConnect(sl_bool flagError);
 		
 	protected:
-		AtomicRef<Socket> m_socket;
+		Socket m_socket;
 		
 		sl_bool m_flagSupportingConnect;
 		sl_bool m_flagRequestConnect;
@@ -85,15 +85,15 @@ namespace slib
 		
 		sl_bool isRunning();
 		
-		Ref<Socket> getSocket();
+		sl_socket getSocket();
 			
 	protected:
-		void _onAccept(const Ref<Socket>& socketAccept, const SocketAddress& address);
+		void _onAccept(Socket& socketAccept, const SocketAddress& address);
 		
 		void _onError();
 		
 	protected:
-		AtomicRef<Socket> m_socket;
+		Socket m_socket;
 		
 		sl_bool m_flagRunning;
 		
@@ -115,7 +115,7 @@ namespace slib
 		
 		sl_bool isRunning();
 		
-		Ref<Socket> getSocket();
+		sl_socket getSocket();
 		
 	protected:
 		void _onReceive(const SocketAddress& address, sl_uint32 size);
@@ -123,7 +123,7 @@ namespace slib
 		void _onError();
 		
 	protected:
-		AtomicRef<Socket> m_socket;
+		Socket m_socket;
 
 		sl_bool m_flagRunning;
 		Memory m_buffer;

@@ -27,6 +27,7 @@
 
 #include "../core/skippable_reader.h"
 #include "../core/string.h"
+#include "../core/memory.h"
 #include "../core/flags.h"
 
 namespace slib

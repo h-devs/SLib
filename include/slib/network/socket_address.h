@@ -25,7 +25,7 @@
 
 #include "ip_address.h"
 
-#include "../core/parse.h"
+#include "../core/cpp_helper.h"
 
 namespace slib
 {

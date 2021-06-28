@@ -352,9 +352,7 @@ namespace slib
 
 			public:
 				static Ref<AudioPlayerImpl> create(Ref<AudioPlayerDeviceImpl> engine, const AudioPlayerParam& param)
-				{
-					Ref<AudioPlayerImpl> ret;
-					
+				{					
 					if (param.channelsCount != 1 && param.channelsCount != 2) {
 						return sl_null;
 					}

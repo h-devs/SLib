@@ -67,22 +67,21 @@ namespace slib
 
 	sl_bool IEvent::wait(sl_int32 timeout)
 	{
-		Ref<Thread> thread = Thread::getCurrent();
-		if (thread.isNotNull()) {
+		Thread* thread = Thread::getCurrent();
+		if (thread) {
 			if (thread->isStopping()) {
 				return sl_false;
 			}
 			thread->setWaitingEvent(this);
 		}
 		sl_bool ret = doWait(timeout);
-		if (thread.isNotNull()) {
+		if (thread) {
 			thread->clearWaitingEvent();
 		}
 		return ret;
 	}
 
-	SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(Event, HEvent, m_handle, CloseEventHandle)
-	SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(Event, HEvent, m_handle, CloseEventHandle)
+	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(Event, HEvent, m_handle, sl_null, CloseEventHandle)
 	
 	Event Event::create(sl_bool flagAutoReset) noexcept
 	{

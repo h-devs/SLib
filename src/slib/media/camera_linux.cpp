@@ -483,8 +483,8 @@ namespace slib
 
 				void _run()
 				{
-					Ref<Thread> thread = Thread::getCurrent();
-					if (thread.isNull()) {
+					Thread* thread = Thread::getCurrent();
+					if (!thread) {
 						return;
 					}
 					FlushBuffers(m_handle);
@@ -495,7 +495,7 @@ namespace slib
 						}
 						sl_uint32 dt = (sl_uint32)(t.getElapsedMilliseconds());
 						if (dt < 30) {
-							Thread::sleep(30 - dt);
+							thread->wait(30 - dt);
 						}
 						t.reset();
 					}

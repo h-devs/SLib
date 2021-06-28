@@ -351,7 +351,7 @@ namespace slib
 		List<StringParam> list;
 		list.add_NoLock(pathExecutable.toString());
 		list.addElements_NoLock(arguments, nArguments);
-		auto process = open(command, list.getData(), list.getCount());
+		Ref<Process> process = open(command, list.getData(), list.getCount());
 		if (process.isNotNull()) {
 			process->wait();
 		}

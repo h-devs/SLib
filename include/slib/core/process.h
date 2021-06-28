@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_CORE_PROCESS
 
 #include "object.h"
+#include "string.h"
 
 namespace slib
 {

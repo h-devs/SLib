@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,16 @@
 #define CHECKHEADER_SLIB_CORE_CONVERT
 
 #include "cpp_helper.h"
+
+#if defined(SLIB_COMPILER_IS_VC)
+#	define SLIB_HAS_FEATURE_IS_CONVERTIBLE_TO
+#elif defined(SLIB_COMPILER_IS_GCC)
+#	if defined(__has_feature)
+#		if __has_feature(is_convertible_to)
+#			define SLIB_HAS_FEATURE_IS_CONVERTIBLE_TO
+#		endif
+#	endif
+#endif
 
 namespace slib
 {
@@ -52,22 +62,12 @@ namespace slib
 
 }
 
-#if defined(SLIB_COMPILER_IS_VC)
-#	define SLIB_HAS_FEATURE_IS_CONVERTIBLE_TO
-#elif defined(SLIB_COMPILER_IS_GCC)
-#	if defined(__has_feature)
-#		if __has_feature(is_convertible_to)
-#			define SLIB_HAS_FEATURE_IS_CONVERTIBLE_TO
-#		endif
-#	endif
+#if defined(SLIB_HAS_FEATURE_IS_CONVERTIBLE_TO)
+#	define SLIB_IS_CONVERTIBLE(FROM, TO) __is_convertible_to(FROM, TO)
+#else
+#	define SLIB_IS_CONVERTIBLE(FROM, TO) slib::IsConvertible<FROM, TO>::value
 #endif
 
-#if defined(SLIB_HAS_FEATURE_IS_CONVERTIBLE_TO)
-#	define SLIB_TRY_CONVERT_TYPE(FROM, TO) \
-		{ static_assert(__is_convertible_to(FROM, TO), "Cannot convert from '" #FROM "' to '" #TO "'"); }
-#else
-#	define SLIB_TRY_CONVERT_TYPE(FROM, TO) \
-		{ static_assert(slib::IsConvertible<FROM, TO>::value, "Cannot convert from '" #FROM "' to '" #TO "'"); }
-#endif
+#define SLIB_TRY_CONVERT_TYPE(FROM, TO) { static_assert(SLIB_IS_CONVERTIBLE(FROM, TO), "Cannot convert from '" #FROM "' to '" #TO "'"); }
 
 #endif

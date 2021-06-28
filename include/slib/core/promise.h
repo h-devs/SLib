@@ -234,24 +234,24 @@ namespace slib
 		// don't use mixed with `then()`, timeoutMilliseconds: negative means infinite timeout
 		sl_bool wait(sl_int32 timeoutMilliseconds = -1) const
 		{
-			Ref<Event> event = Event::create();
+			Event event = Event::create();
 			then([&event](T& result) {
-				event->set();
+				event.set();
 			});
-			return event->wait(timeoutMilliseconds);
+			return event.wait(timeoutMilliseconds);
 		}
 		
 		// don't use mixed with `then()`, timeoutMilliseconds: negative means infinite timeout
 		sl_bool wait(T* _output, sl_int32 timeoutMilliseconds = -1) const
 		{
-			Ref<Event> event = Event::create();
+			Event event = Event::create();
 			then([&event, _output](T& result) {
 				if (_output) {
 					*_output = Move(result);
 				}
-				event->set();
+				event.set();
 			});
-			return event->wait(timeoutMilliseconds);
+			return event.wait(timeoutMilliseconds);
 		}
 		
 		template <class... PROMISES>

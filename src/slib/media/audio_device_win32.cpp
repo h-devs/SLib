@@ -307,8 +307,11 @@ namespace slib
 				void run()
 				{
 					CoInitializeEx(NULL, COINIT_MULTITHREADED);
-					Ref<Thread> thread = Thread::getCurrent();
-					while (thread.isNull() || thread->isNotStopping()) {
+					Thread* thread = Thread::getCurrent();
+					if (!thread) {
+						return;
+					}
+					while (thread->isNotStopping()) {
 						DWORD dwWait = WaitForMultipleObjects(3, m_events, FALSE, INFINITE);
 						if (dwWait >= WAIT_OBJECT_0 && dwWait < WAIT_OBJECT_0 + 2) {
 							onFrame(dwWait - WAIT_OBJECT_0);
@@ -593,8 +596,11 @@ namespace slib
 				void run()
 				{
 					CoInitializeEx(NULL, COINIT_MULTITHREADED);
-					Ref<Thread> thread = Thread::getCurrent();
-					while (thread.isNull() || thread->isNotStopping()) {
+					Thread* thread = Thread::getCurrent();
+					if (!thread) {
+						return;
+					}
+					while (thread->isNotStopping()) {
 						DWORD dwWait = WaitForMultipleObjects(2, m_hNotificationEvents, FALSE, INFINITE);
 						if (dwWait == WAIT_OBJECT_0) {
 							onFrame();

@@ -25,10 +25,12 @@
 
 #include "file_system.h"
 
+#include "../core/shared.h"
+
 namespace slib
 {
 
-	SLIB_DECLARE_FILE_CONTEXT_SINGLE_MEMBER(MirrorFileContext, Ref<File>, file)
+	SLIB_DECLARE_FILE_CONTEXT_SINGLE_MEMBER(MirrorFileContext, Shared<File>, file)
 
 	class MirrorFileSystem : public FileSystemProvider
 	{

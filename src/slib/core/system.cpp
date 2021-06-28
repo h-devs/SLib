@@ -23,6 +23,7 @@
 #include "slib/core/system.h"
 
 #include "slib/core/file.h"
+#include "slib/core/string.h"
 
 #include <errno.h>
 

@@ -109,7 +109,6 @@
     <ClCompile Include="..\..\src\slib\core\dynamic_library.cpp" />
     <ClCompile Include="..\..\src\slib\core\dynamic_library_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\event.cpp" />
-    <ClCompile Include="..\..\src\slib\core\event_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\file.cpp" />
     <ClCompile Include="..\..\src\slib\core\file_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\hash.cpp" />
@@ -125,7 +124,6 @@
     <ClCompile Include="..\..\src\slib\core\object.cpp" />
     <ClCompile Include="..\..\src\slib\core\parse.cpp" />
     <ClCompile Include="..\..\src\slib\core\pipe.cpp" />
-    <ClCompile Include="..\..\src\slib\core\pipe_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\win32_platform.cpp" />
     <ClCompile Include="..\..\src\slib\core\win32_setup.cpp" />
     <ClCompile Include="..\..\src\slib\core\preference.cpp" />
@@ -295,7 +293,6 @@
     <ClCompile Include="..\..\src\slib\network\nat.cpp" />
     <ClCompile Include="..\..\src\slib\network\network_async.cpp" />
     <ClCompile Include="..\..\src\slib\network\network_async_win32.cpp" />
-    <ClCompile Include="..\..\src\slib\network\network_io.cpp" />
     <ClCompile Include="..\..\src\slib\network\network_os.cpp" />
     <ClCompile Include="..\..\src\slib\network\net_capture.cpp" />
     <ClCompile Include="..\..\src\slib\network\npcap_install_win32.cpp" />
@@ -306,7 +303,6 @@
     <ClCompile Include="..\..\src\slib\network\socket.cpp" />
     <ClCompile Include="..\..\src\slib\network\socket_address.cpp" />
     <ClCompile Include="..\..\src\slib\network\socket_event.cpp" />
-    <ClCompile Include="..\..\src\slib\network\socket_event_win32.cpp" />
     <ClCompile Include="..\..\src\slib\network\stun.cpp" />
     <ClCompile Include="..\..\src\slib\network\tap.cpp" />
     <ClCompile Include="..\..\src\slib\network\tap_install_win32.cpp" />

@@ -102,8 +102,7 @@ namespace slib
 				}
 #ifndef SLIB_PLATFORM_IS_WIN64
 				if (flag64Bit) {
-					String params[] = { "install", path + "\\tap0901.inf", "tap0901" };
-					Ref<Process> process = Process::open(path + "\\tapinstall.exe", params);
+					Ref<Process> process = Process::open(path + "\\tapinstall.exe", "install", path + "\\tap0901.inf", "tap0901");
 					if (process.isNotNull()) {
 						IStream* stream = process->getStream();
 						if (stream) {
@@ -141,8 +140,7 @@ namespace slib
 					if (File::writeAllBytes(path + "\\tapinstall.exe", data) != data.getSize()) {
 						return sl_false;
 					}
-					String params[] = { "remove", "tap0901" };
-					Ref<Process> process = Process::open(path + "\\tapinstall.exe", params);
+					Ref<Process> process = Process::open(path + "\\tapinstall.exe", "remove", "tap0901");
 					if (process.isNotNull()) {
 						IStream* stream = process->getStream();
 						if (stream) {

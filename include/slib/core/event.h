@@ -56,7 +56,7 @@ namespace slib
 	
 	class SLIB_EXPORT Event : public IEvent
 	{
-		SLIB_DECLARE_NULLABLE_HANDLE_CONTAINER_MEMBERS(Event, HEvent, m_handle)
+		SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(Event, HEvent, m_handle, sl_null)
 
 	public:
 		static Event create(sl_bool flagAutoReset = sl_true) noexcept;
@@ -69,12 +69,6 @@ namespace slib
 	protected:
 		sl_bool doWait(sl_int32 timeout) override;
 
-	};
-
-	template <>
-	class SLIB_EXPORT Atomic<Event>
-	{
-		SLIB_DECLARE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(Event, HEvent, m_handle)
 	};
 
 }

@@ -26,6 +26,8 @@
 
 #include "slib/core/file.h"
 
+#include "slib/core/string.h"
+#include "slib/core/memory.h"
 #include "slib/core/hash_map.h"
 
 #define _FILE_OFFSET_BITS 64

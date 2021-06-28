@@ -117,8 +117,8 @@ void LanTvServerApp::onStart()
 
 void LanTvServerApp::doRunServer()
 {
-	Ref<Socket> socketAudio = Socket::openUdp();
-	Ref<Socket> socketVideo = Socket::openUdp();
+	Shared<Socket> socketAudio = Socket::openUdp();
+	Shared<Socket> socketVideo = Socket::openUdp();
 
 	String videoId = m_viewSelectVideoSource->getSelectedValue();
 	String audioId = m_viewSelectAudioSource->getSelectedValue();

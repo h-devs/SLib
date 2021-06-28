@@ -14,14 +14,14 @@ int main(int argc, const char * argv[])
 #else
 		auto socket = Socket::openUdp();
 #endif
-		if (!(socket->bind(SocketAddress(PORT)))) {
+		if (!(socket.bind(SocketAddress(PORT)))) {
 			Println("%s", Socket::getLastErrorMessage());
 			return;
 		}
 		for (;;) {
 			char buf[1024];
 			SocketAddress address;
-			sl_int32 n = socket->receiveFrom(address, buf, sizeof(buf));
+			sl_int32 n = socket.receiveFrom(address, buf, sizeof(buf));
 			if (n > 0) {
 				Println("Received from %s: %s", address.toString(), StringView(buf, n));
 			} else {
@@ -41,9 +41,9 @@ int main(int argc, const char * argv[])
 		for (;;) {
 			String msg = String::format("Message %d", index++);
 #ifdef USE_IPV6
-			sl_int32 n = socket->sendTo(SocketAddress(IPv6Address::getLoopback(), PORT), msg.getData(), msg.getLength());
+			sl_int32 n = socket.sendTo(SocketAddress(IPv6Address::getLoopback(), PORT), msg.getData(), msg.getLength());
 #else
-			sl_int32 n = socket->sendTo(SocketAddress(IPv4Address::Loopback, PORT), msg.getData(), msg.getLength());
+			sl_int32 n = socket.sendTo(SocketAddress(IPv4Address::Loopback, PORT), msg.getData(), msg.getLength());
 #endif
 			if (n <= 0) {
 				Println("%s", Socket::getLastErrorMessage());

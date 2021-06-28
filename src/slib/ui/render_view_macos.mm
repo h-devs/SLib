@@ -117,6 +117,11 @@ namespace slib
 		{
 			static void RenderThreadProc(__weak SLIBGLViewHandle* _handle)
 			{
+				Thread* thread = Thread::getCurrent();
+				if (!thread) {
+					return;
+				}
+
 				Ref<RenderEngine> engine = GL::createEngine();
 				if (engine.isNull()) {
 					return;
@@ -146,8 +151,7 @@ namespace slib
 					
 					sl_bool flagWorking = sl_false;
 					
-					Ref<Thread> thread = Thread::getCurrent();
-					if (thread.isNull() || thread->isNotStopping()) {
+					if (thread->isNotStopping()) {
 						
 						SLIBGLViewHandle* handle = _handle;
 						if (handle == nil) {
@@ -237,7 +241,7 @@ namespace slib
 						break;
 					}
 					
-					if (thread.isNull() || thread->isNotStopping()) {
+					if (thread->isNotStopping()) {
 						if (flagWorking) {
 							sl_uint64 t = timer.getElapsedMilliseconds();
 							if (t < 10) {

@@ -79,7 +79,7 @@ namespace slib
 	
 	class SLIB_EXPORT Pipe
 	{
-		SLIB_DECLARE_NULLABLE_HANDLE_CONTAINER_MEMBERS(Pipe, HPipe, m_handle)
+		SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(Pipe, HPipe, m_handle, sl_null)
 		SLIB_DECLARE_ISTREAM_MEMBERS(const noexcept)
 
 	public:
@@ -101,17 +101,11 @@ namespace slib
 		void close() noexcept;
 
 	public:
-		constexpr Pipe& operator*()
+		Pipe& operator*() noexcept
 		{
 			return *this;
 		}
 
-	};
-
-	template <>
-	class SLIB_EXPORT Atomic<Pipe>
-	{
-		SLIB_DECLARE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(Pipe, HPipe, m_handle)
 	};
 
 }

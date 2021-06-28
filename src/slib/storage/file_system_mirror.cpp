@@ -43,7 +43,7 @@
 namespace slib
 {
 
-	SLIB_DEFINE_FILE_CONTEXT_SINGLE_MEMBER(MirrorFileContext, Ref<File>, file)
+	SLIB_DEFINE_FILE_CONTEXT_SINGLE_MEMBER(MirrorFileContext, Shared<File>, file)
 
 	SLIB_DEFINE_OBJECT(MirrorFileSystem, FileSystemProvider)
 
@@ -117,7 +117,7 @@ namespace slib
 
 	Ref<FileContext> MirrorFileSystem::openFile(const StringParam& path, const FileOpenParam& param)
 	{
-		Ref<File> file = File::open(CONCAT_PATH(path), param);
+		Shared<File> file = File::open(CONCAT_PATH(path), param);
 		if (file.isNull()) {
 			return sl_null;
 		}
@@ -126,7 +126,7 @@ namespace slib
 
 	sl_bool MirrorFileSystem::closeFile(FileContext* context)
 	{
-		Ref<File> file = FILE_FROM_CONTEXT(context);
+		Shared<File> file = FILE_FROM_CONTEXT(context);
 		if (file.isNotNull()) {
 			file->close();
 			if (file->isOpened()) {
@@ -139,7 +139,7 @@ namespace slib
 	sl_uint32 MirrorFileSystem::readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size)
 	{
 		String filePath = CONCAT_PATH(PATH_FROM_CONTEXT(context));
-		Ref<File> file = FILE_FROM_CONTEXT(context);
+		Shared<File> file = FILE_FROM_CONTEXT(context);
 
 		if (file.isNull() || !file->isOpened()) {
 			file = File::openForRead(filePath);
@@ -163,7 +163,7 @@ namespace slib
 	sl_uint32 MirrorFileSystem::writeFile(FileContext* context, sl_int64 offset, const void* buf, sl_uint32 size)
 	{
 		String filePath = CONCAT_PATH(PATH_FROM_CONTEXT(context));
-		Ref<File> file = FILE_FROM_CONTEXT(context);
+		Shared<File> file = FILE_FROM_CONTEXT(context);
 
 		if (file.isNull() || !file->isOpened()) {
 			file = File::open(filePath, FileMode::Write | FileMode::NotCreate | FileMode::NotTruncate);
@@ -192,7 +192,7 @@ namespace slib
 
 	sl_bool MirrorFileSystem::flushFile(FileContext* context)
 	{
-		Ref<File> file = FILE_FROM_CONTEXT(context);
+		Shared<File> file = FILE_FROM_CONTEXT(context);
 		if (file.isNotNull()) {
 			if (file->flush()) {
 				return sl_true;
@@ -219,7 +219,7 @@ namespace slib
 	sl_bool MirrorFileSystem::getFileInfo(FileContext* context, FileInfo& outInfo, const FileInfoMask& mask)
 	{
 		String filePath = CONCAT_PATH(PATH_FROM_CONTEXT(context));
-		Ref<File> file = FILE_FROM_CONTEXT(context);
+		Shared<File> file = FILE_FROM_CONTEXT(context);
 		sl_bool flagOpened = file.isNotNull() && file->isOpened();
 
 		FileAttributes attr = File::getAttributes(filePath);
@@ -282,7 +282,7 @@ namespace slib
 	sl_bool MirrorFileSystem::setFileInfo(FileContext* context, const FileInfo& info, const FileInfoMask& mask)
 	{
 		String filePath = CONCAT_PATH(PATH_FROM_CONTEXT(context));
-		Ref<File> file = FILE_FROM_CONTEXT(context);
+		Shared<File> file = FILE_FROM_CONTEXT(context);
 		sl_bool flagOpened = file.isNotNull() && file->isOpened();
 
 		if (mask & FileInfoMask::Attributes) {

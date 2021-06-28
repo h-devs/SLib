@@ -311,6 +311,35 @@ namespace slib
 
 			};
 
+			template <class T, sl_bool CanBeBool = SLIB_IS_CONVERTIBLE(T, sl_bool)>
+			class SharedContainerHelper;
+
+			template <class T>
+			class SharedContainerHelper<T, sl_true>
+			{
+			public:
+				template <class VALUE>
+				static SharedContainer<T>* create(VALUE&& value)
+				{
+					if (value) {
+						return new SharedContainer<T>(Forward<VALUE>(value));
+					} else {
+						return sl_false;
+					}
+				}
+			};
+
+			template <class T>
+			class SharedContainerHelper<T, sl_false>
+			{
+			public:
+				template <class VALUE>
+				static SharedContainer<T>* create(VALUE&& value)
+				{
+					return new SharedContainer<T>(Forward<VALUE>(value));
+				}
+			};
+
 			class PtrContainer
 			{
 			public:
@@ -412,15 +441,15 @@ namespace slib
 	public:
 		Shared(const AtomicShared<T>& other) noexcept;
 
-		Shared(const T& t) noexcept: container(new Container(t)) {}
+		Shared(const T& t) noexcept: container(priv::shared::SharedContainerHelper<ValueType>::create(t)) {}
 
-		Shared(T&& t) noexcept: container(new Container(Move(t))) {}
+		Shared(T&& t) noexcept: container(priv::shared::SharedContainerHelper<ValueType>::create(Move(t))) {}
 
 	public:
 		template <class... Args>
 		static Shared create(Args&&... args)
 		{
-			return new container(Forward<Args>(args)...);
+			return new Container(Forward<Args>(args)...);
 		}
 
 		constexpr T* get() const&
@@ -433,13 +462,13 @@ namespace slib
 
 		Shared& operator=(const T& other)
 		{
-			_replace(new Container(other));
+			_replace(priv::shared::SharedContainerHelper<ValueType>::create(other));
 			return *this;
 		}
 
 		Shared& operator=(T&& other)
 		{
-			_replace(new Container(Move(other)));
+			_replace(priv::shared::SharedContainerHelper<ValueType>::create(Move(other)));
 			return *this;
 		}
 
@@ -448,6 +477,11 @@ namespace slib
 			return *(get());
 		}
 
+		operator T&() const noexcept
+		{
+			return *(get());
+		}
+		
 	};
 
 	template <class T>
@@ -459,20 +493,20 @@ namespace slib
 		PRIV_SLIB_DEFINE_ATOMIC_SHARED_CLASS_MEMBERS
 
 	public:
-		Atomic(const T& t) noexcept: _container(new Container(t)) {}
+		Atomic(const T& t) noexcept: _container(priv::shared::SharedContainerHelper<ValueType>::create(t)) {}
 
-		Atomic(T&& t) noexcept: _container(new Container(Move(t))) {}
+		Atomic(T&& t) noexcept: _container(priv::shared::SharedContainerHelper<ValueType>::create(Move(t))) {}
 
 	public:
 		Atomic& operator=(const T& other)
 		{
-			_replace(new Container(other));
+			_replace(priv::shared::SharedContainerHelper<ValueType>::create(other));
 			return *this;
 		}
 
 		Atomic& operator=(T&& other)
 		{
-			_replace(new Container(Move(other)));
+			_replace(priv::shared::SharedContainerHelper<ValueType>::create(Move(other)));
 			return *this;
 		}
 

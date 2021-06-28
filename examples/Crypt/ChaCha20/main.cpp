@@ -13,7 +13,7 @@ sl_bool DoFileOperation(sl_bool flagEncrypt, const String& key, const String& pa
 {
 	Println("%s -> %s", pathSrc, pathDst);
 	auto fileSrc = File::openForRead(pathSrc);
-	if (fileSrc.isNull()) {
+	if (fileSrc.isNone()) {
 		Println("Failed to open for read: %s", pathSrc);
 		return sl_false;
 	}
@@ -22,7 +22,7 @@ sl_bool DoFileOperation(sl_bool flagEncrypt, const String& key, const String& pa
 	if (flagEncrypt) {
 		enc.create(header, key.getData(), key.getLength());
 	} else {
-		if (fileSrc->readFully(header, sizeof(header)) != sizeof(header)) {
+		if (fileSrc.readFully(header, sizeof(header)) != sizeof(header)) {
 			Println("Invalid header size: %s", pathSrc);
 			return sl_false;
 		}
@@ -32,12 +32,12 @@ sl_bool DoFileOperation(sl_bool flagEncrypt, const String& key, const String& pa
 		}
 	}
 	auto fileDst = File::openForWrite(pathDst);
-	if (fileDst.isNull()) {
+	if (fileDst.isNone()) {
 		Println("Failed to open for write: %s", pathDst);
 		return sl_false;
 	}
 	if (flagEncrypt) {
-		if (fileDst->writeFully(header, sizeof(header)) != sizeof(header)) {
+		if (fileDst.writeFully(header, sizeof(header)) != sizeof(header)) {
 			Println("Failed to write header: %s", pathDst);
 			return sl_false;
 		}
@@ -45,24 +45,24 @@ sl_bool DoFileOperation(sl_bool flagEncrypt, const String& key, const String& pa
 	static char buf[1024 * 1024];
 	sl_size offset = 0;
 	for (;;) {
-		if (fileSrc->isEnd()) {
+		if (fileSrc.isEnd()) {
 			return sl_true;
 		}
-		sl_reg n = fileSrc->read(buf, sizeof(buf));
+		sl_reg n = fileSrc.read(buf, sizeof(buf));
 		if (n < 0) {
 			Println("Failed to read data: %s", pathSrc);
 			break;
 		}
 		if (n) {
 			enc.encrypt(offset, buf, buf, n);
-			if (fileDst->writeFully(buf, n) != n) {
+			if (fileDst.writeFully(buf, n) != n) {
 				Println("Failed to write data: %s", pathDst);
 				break;
 			}
 			offset += n;
 		}
 	}
-	fileDst->close();
+	fileDst.close();
 	File::deleteFile(pathDst);
 	return sl_false;
 }
@@ -91,12 +91,12 @@ sl_bool DoDirOperation(sl_bool flagEncrypt, const String& key, const String& pat
 sl_bool CheckPassword(const String& key, const String& path)
 {
 	auto file = File::openForRead(path);
-	if (file.isNull()) {
+	if (file.isNone()) {
 		Println("Failed to open for read: %s", path);
 		return sl_false;
 	}
 	char header[ChaCha20_FileEncryptor::HeaderSize];
-	if (file->readFully(header, sizeof(header)) != sizeof(header)) {
+	if (file.readFully(header, sizeof(header)) != sizeof(header)) {
 		Println("Invalid header size: %s", path);
 		return sl_false;
 	}
@@ -113,21 +113,21 @@ sl_bool UpdateFilePassword(const String& oldKey, const String& newKey, const Str
 {
 	Println("Processing: %s", path);
 	auto file = File::open(path, FileMode::ReadWrite | FileMode::NotCreate | FileMode::NotTruncate);
-	if (file.isNull()) {
+	if (file.isNone()) {
 		Println("Failed to open for read: %s", path);
 		return sl_false;
 	}
 	char header[ChaCha20_FileEncryptor::HeaderSize];
-	if (file->readFully(header, sizeof(header)) != sizeof(header)) {
+	if (file.readFully(header, sizeof(header)) != sizeof(header)) {
 		Println("Invalid header size: %s", path);
 		return sl_false;
 	}
 	if (ChaCha20_FileEncryptor::changePassword(header, oldKey.getData(), oldKey.getLength(), newKey.getData(), newKey.getLength())) {
-		if (!(file->seekToBegin())) {
+		if (!(file.seekToBegin())) {
 			Println("Failed to seek to begin: %s", path);
 			return sl_false;
 		}
-		if (file->writeFully(header, sizeof(header)) != sizeof(header)) {
+		if (file.writeFully(header, sizeof(header)) != sizeof(header)) {
 			Println("Failed to write new header: %s", path);
 			return sl_false;
 		}

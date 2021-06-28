@@ -575,9 +575,9 @@ namespace slib
 #if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
 		{
 			SLIB_STATIC_STRING(path, "/dev/urandom")
-			Ref<File> file = File::open(path, FileMode::Read);
-			if (file.isNotNull()) {
-				sl_size sizeRead = file->read(_mem, size);
+			File file = File::open(path, FileMode::Read);
+			if (file.isOpened()) {
+				sl_size sizeRead = file.read(_mem, size);
 				if (sizeRead == size) {
 					return;
 				}

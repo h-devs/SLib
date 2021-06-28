@@ -46,13 +46,13 @@ int main(int argc, const char * argv[])
 	Println("List File: %s", pathList);
 
 	auto fileList = File::openForRead(pathList);
-	if (fileList.isNull()) {
+	if (fileList.isNone()) {
 		Println("Failed to open list file!");
 		return -1;
 	}
 
-	while (!(fileList->isEnd())) {
-		String item = fileList->readLine().trim();
+	while (!(fileList.isEnd())) {
+		String item = fileList.readLine().trim();
 		if (item.isNotEmpty()) {
 			String pathSrcFile = File::joinPath(pathSrc, item);
 			if (File::exists(pathSrcFile)) {

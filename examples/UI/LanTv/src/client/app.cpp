@@ -52,15 +52,15 @@ void LanTvClientApp::onStart()
 			decoderAudio = OpusDecoder::create(param);
 		}
 
-		Ref<Socket> socket = Socket::openUdp();
+		Socket socket = Socket::openUdp();
 
-		socket->setNonBlockingMode(sl_true);
-		socket->bind(SocketAddress(UDP_PORT_AUDIO));
-		socket->setOption_Broadcast(sl_true);
-		socket->setOption_IpAddMembership(IPv4Address(MULTICAST_ADDR), IPv4Address::Any);
-		socket->setOption_IpMulticastLoop(sl_true);
-		socket->setOption_SendBufferSize(PACKET_SIZE);
-		socket->setOption_ReceiveBufferSize(PACKET_SIZE);
+		socket.setNonBlockingMode(sl_true);
+		socket.bind(SocketAddress(UDP_PORT_AUDIO));
+		socket.setOption_Broadcast(sl_true);
+		socket.setOption_IpAddMembership(IPv4Address(MULTICAST_ADDR), IPv4Address::Any);
+		socket.setOption_IpMulticastLoop(sl_true);
+		socket.setOption_SendBufferSize(PACKET_SIZE);
+		socket.setOption_ReceiveBufferSize(PACKET_SIZE);
 
 		auto event = SocketEvent::createRead(socket);
 
@@ -70,7 +70,7 @@ void LanTvClientApp::onStart()
 		SocketAddress addr;
 
 		while (Thread::isNotStoppingCurrent()) {
-			sl_int32 nRead = socket->receiveFrom(addr, buf, PACKET_SIZE);
+			sl_int32 nRead = socket.receiveFrom(addr, buf, PACKET_SIZE);
 			if (nRead > 8) {
 				sl_int16 audioSamples[AUDIO_SAMPLES_PER_SECOND * AUDIO_FRAME_MS / 1000];
 				AudioData audioOutput;
@@ -84,7 +84,7 @@ void LanTvClientApp::onStart()
 					audioPlayer->write(data);
 				}
 			}
-			event->wait();
+			event.wait();
 		}
 
 	});
@@ -95,15 +95,15 @@ void LanTvClientApp::onStart()
 		sl_uint32 width = 0;
 		sl_uint32 height = 0;
 
-		Ref<Socket> socket = Socket::openUdp();
+		Socket socket = Socket::openUdp();
 
-		socket->setNonBlockingMode(sl_true);
-		socket->bind(SocketAddress(UDP_PORT_VIDEO));
-		socket->setOption_Broadcast(sl_true);
-		socket->setOption_IpAddMembership(IPv4Address(MULTICAST_ADDR), IPv4Address::Any);
-		socket->setOption_IpMulticastLoop(sl_true);
-		socket->setOption_SendBufferSize(PACKET_SIZE);
-		socket->setOption_ReceiveBufferSize(PACKET_SIZE);
+		socket.setNonBlockingMode(sl_true);
+		socket.bind(SocketAddress(UDP_PORT_VIDEO));
+		socket.setOption_Broadcast(sl_true);
+		socket.setOption_IpAddMembership(IPv4Address(MULTICAST_ADDR), IPv4Address::Any);
+		socket.setOption_IpMulticastLoop(sl_true);
+		socket.setOption_SendBufferSize(PACKET_SIZE);
+		socket.setOption_ReceiveBufferSize(PACKET_SIZE);
 
 		auto event = SocketEvent::createRead(socket);
 
@@ -113,7 +113,7 @@ void LanTvClientApp::onStart()
 		SocketAddress addr;
 
 		while (Thread::isNotStoppingCurrent()) {
-			sl_int32 nRead = socket->receiveFrom(addr, buf, PACKET_SIZE);
+			sl_int32 nRead = socket.receiveFrom(addr, buf, PACKET_SIZE);
 			if (nRead > 8) {
 				sl_uint32 w = MIO::readUint16LE(buf);
 				sl_uint32 h = MIO::readUint16LE(buf + 2);
@@ -133,7 +133,7 @@ void LanTvClientApp::onStart()
 					});
 				}
 			}
-			event->wait();
+			event.wait();
 		}
 
 	});

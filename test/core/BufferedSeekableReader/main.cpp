@@ -15,9 +15,13 @@ int main(int argc, const char * argv[])
 	Memory memContent = File::readAllBytes(filePath);
 	SLIB_ASSERT(memContent.isNotNull());
 
+	IO<File> file = File::openForRead(filePath);
+	SLIB_ASSERT(file.isOpened());
+
 	MemoryReader readerMem(memContent);
-	auto readerFile = BufferedSeekableReader::create(File::openForRead(filePath));
-	SLIB_ASSERT(readerFile.isNotNull());
+	BufferedSeekableReader readerFile;
+	readerFile.open(&file);
+	SLIB_ASSERT(readerFile.isOpened());
 
 	sl_size sizeFile = memContent.getSize();
 	static char buf[100000];
@@ -26,11 +30,11 @@ int main(int argc, const char * argv[])
 		sl_size offset = getRandom() % sizeFile;
 		sl_uint32 nIter = getRandom() % 50;
 		SLIB_ASSERT(readerMem.seek(offset, SeekPosition::Begin));
-		SLIB_ASSERT(readerFile->seek(offset, SeekPosition::Begin));
+		SLIB_ASSERT(readerFile.seek(offset, SeekPosition::Begin));
 		for (sl_uint32 k = 0; k < nIter; k++) {
 			sl_size size = getRandom() % sizeof(buf);
 			sl_reg n = readerMem.readFully(buf, size);
-			sl_reg n2 = readerFile->readFully(buf2, size);
+			sl_reg n2 = readerFile.readFully(buf2, size);
 			SLIB_ASSERT(n == n2);
 			if (n > 0) {
 				SLIB_ASSERT(Base::equalsMemory(buf, buf2, n));

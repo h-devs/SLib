@@ -44,9 +44,9 @@ int main(int argc, const char * argv[])
 	}
 	
 #ifdef SLIB_PLATFORM_IS_MACOS
-	Ref<Socket> socket = Socket::openDatagram(NetworkInternetProtocol::ICMP);
+	Shared<Socket> socket = Socket::openDatagram(NetworkInternetProtocol::ICMP);
 #else
-	Ref<Socket> socket = Socket::openRaw(NetworkInternetProtocol::ICMP);
+	Shared<Socket> socket = Socket::openRaw(NetworkInternetProtocol::ICMP);
 #endif
 	if (socket.isNull()) {
 		Println("Can't open socket.");
@@ -55,15 +55,11 @@ int main(int argc, const char * argv[])
 	
 	socket->setNonBlockingMode(sl_true);
 	
-	Ref<SocketEvent> event = SocketEvent::createRead(socket);
-	if (event.isNull()) {
-		Println("Can't create event.");
-		return -1;
-	}
-	
-	Ref<Thread> threadReceive = Thread::start([socket, event]() {
+	Ref<Thread> threadReceive = Thread::start([socket]() {
+		
+		SocketEvent event = SocketEvent::createRead(socket);
+
 		while (Thread::isNotStoppingCurrent()) {
-			event->waitEvents(100);
 			sl_uint8 buf[4096];
 			SocketAddress receivedHostAddress;
 			sl_int32 n = socket->receiveFrom(receivedHostAddress, buf, 4096);
@@ -79,6 +75,8 @@ int main(int argc, const char * argv[])
 						}
 					}
 				}
+			} else {
+				event.waitEvents(100);
 			}
 		}
 	});

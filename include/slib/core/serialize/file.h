@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,40 +20,44 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_NETWORK_IO
-#define CHECKHEADER_SLIB_NETWORK_IO
+#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_FILE
+#define CHECKHEADER_SLIB_CORE_SERIALIZE_FILE
 
-#include "socket.h"
-
-#include "../core/io.h"
+#include "../file.h"
+#include "../memory.h"
 
 namespace slib
 {
 
-	class SLIB_EXPORT TcpStream : public IStream
+	SLIB_INLINE static sl_bool SerializeByte(File* file, sl_uint8 value) noexcept
 	{
-	public:
-		TcpStream();
-		
-		TcpStream(const Ref<Socket>& socket);
-		
-		~TcpStream();
-		
-	public:
-		void setSocket(const Ref<Socket>& socket);
-		
-		Ref<Socket> getSocket();
-		
-		void close() override;
-		
-		sl_int32 read32(void* buf, sl_uint32 size) override;
-		
-		sl_int32 write32(const void* buf, sl_uint32 size) override;
-		
-	protected:
-		AtomicRef<Socket> m_socket;
-		
-	};
+		return file->writeUint8(value);
+	}
+
+	SLIB_INLINE static sl_bool SerializeRaw(File* file, const void* data, sl_size size) noexcept
+	{
+		return file->writeFully(data, size) == size;
+	}
+
+	SLIB_INLINE static sl_bool SerializeRaw(File* file, const MemoryData& data) noexcept
+	{
+		return file->writeFully(data.data, data.size) == data.size;
+	}
+
+	SLIB_INLINE static sl_bool SerializeStatic(File* file, const void* data, sl_size size) noexcept
+	{
+		return file->writeFully(data, size) == size;
+	}
+
+	SLIB_INLINE static sl_bool DeserializeByte(File* file, sl_uint8& value) noexcept
+	{
+		return file->readUint8(&value);
+	}
+
+	SLIB_INLINE static sl_bool DeserializeRaw(File* file, void* data, sl_size size) noexcept
+	{
+		return file->readFully(data, size) == size;
+	}
 
 }
 

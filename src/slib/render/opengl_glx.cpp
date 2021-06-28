@@ -136,6 +136,11 @@ namespace slib
 
 				void run()
 				{
+					Thread* thread = Thread::getCurrent();
+					if (!thread) {
+						return;
+					}
+
 					glXMakeCurrent(m_xdisplay, m_xwindow, m_context);
 
 					Ref<RenderEngine> engine = GL::createEngine();
@@ -144,13 +149,13 @@ namespace slib
 					}
 
 					TimeCounter timer;
-					Ref<Thread> thread = Thread::getCurrent();
-					while (thread.isNull() || thread->isNotStopping()) {
+
+					while (thread->isNotStopping()) {
 						runStep(engine.get());
-						if (thread.isNull() || thread->isNotStopping()) {
+						if (thread->isNotStopping()) {
 							sl_uint64 t = timer.getElapsedMilliseconds();
 							if (t < 10) {
-								Thread::sleep(10 - (sl_uint32)(t));
+								thread->wait(10 - (sl_uint32)(t));
 							}
 							timer.reset();
 						} else {

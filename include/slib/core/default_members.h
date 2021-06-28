@@ -59,4 +59,17 @@
 		CLASS& operator=(CLASS const& other) = delete; \
 		CLASS& operator=(CLASS&& other) = delete;
 
+#define SLIB_DECLARE_MOVEONLY_CLASS_DEFAULT_MEMBERS(CLASS) \
+	public: \
+		~CLASS(); \
+		CLASS(CLASS const& other) = delete; \
+		CLASS(CLASS&& other); \
+		CLASS& operator=(CLASS const& other) = delete; \
+		CLASS& operator=(CLASS&& other);
+
+#define SLIB_DEFINE_MOVEONLY_CLASS_DEFAULT_MEMBERS(CLASS) \
+	CLASS::~CLASS() {} \
+	CLASS::CLASS(CLASS&& other) = default; \
+	CLASS& CLASS::operator=(CLASS&& other) = default;
+
 #endif

@@ -101,9 +101,10 @@
 	SLIB_DEFINE_IWRITER_MEMBERS(CLASS, ATTR)
 
 #define SLIB_DEFINE_ISIZE_MEMBERS(CLASS, ATTR) \
-	sl_uint64 CLASS::getSize() ATTR { \
+	sl_uint64 CLASS::getSize() ATTR \
+	{ \
 		sl_uint64 size; \
-		if (getSize(size)) ATTR { \
+		if (getSize(size)) { \
 			return size; \
 		} \
 		return 0; \
@@ -152,7 +153,7 @@
 
 #define SLIB_DEFINE_SEEKABLE_WRITER_MEMBERS(CLASS, ATTR) \
 	sl_reg CLASS::writeAt(sl_uint64 offset, const void* buf, sl_size size) ATTR { return (seek(offset, SeekPosition::Begin)) ? write(buf, size) : -1; } \
-	sl_int32 CLASS::writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size) ATTR { return (seek(offset, SeekPosition::Begin) ? write32(buf, size) : -1); } \
+	sl_int32 CLASS::writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size) ATTR { return (seek(offset, SeekPosition::Begin)) ? write32(buf, size) : -1; } \
 	sl_reg CLASS::writeFullyAt(sl_uint64 offset, const void* buf, sl_size size) ATTR { return (seek(offset, SeekPosition::Begin)) ? writeFully(buf, size) : -1; }
 
 #define SLIB_DEFINE_IO_MEMBERS(CLASS, ATTR) \

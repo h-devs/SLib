@@ -155,31 +155,31 @@ namespace slib
 		if (!(File::exists(sourcePath))) {
 			return sl_false;
 		}
-		Ref<File> fileSrc = File::openForRead(sourcePath);
-		if (fileSrc.isNull()) {
+		File fileSrc = File::openForRead(sourcePath);
+		if (fileSrc.isNone()) {
 			return sl_false;
 		}
-		Time timeModified = fileSrc->getModifiedTime();
-		String signature = String::format("// Source: %s Size: %d bytes, Modified Time: %04y-%02m-%02d %02H:%02M:%02S", File::getFileName(sourcePath), fileSrc->getSize(), timeModified);
+		Time timeModified = fileSrc.getModifiedTime();
+		String signature = String::format("// Source: %s Size: %d bytes, Modified Time: %04y-%02m-%02d %02H:%02M:%02S", File::getFileName(sourcePath), fileSrc.getSize(), timeModified);
 		if (File::exists(targetPath)) {
-			Ref<File> fileDst = File::openForRead(targetPath);
-			if (fileDst.isNotNull()) {
-				String line = fileDst->readLine();
+			File fileDst = File::openForRead(targetPath);
+			if (fileDst.isOpened()) {
+				String line = fileDst.readLine();
 				if (line == signature) {
 					return sl_true;
 				}
-				fileDst->close();
+				fileDst.close();
 				File::deleteFile(targetPath);
 			}
 		}
-		Memory mem = fileSrc->readAllBytes();
-		Ref<File> fileDst = File::openForWrite(targetPath);
-		if (fileDst.isNotNull()) {
-			fileDst->writeTextUTF8(signature);
-			fileDst->writeTextUTF8(String::format("\r\nnamespace %s {%nconst sl_uint8 bytes[] = {%n", resourceName, mem.getData()));
-			fileDst->writeTextUTF8(SAppUtil::generateBytesArrayDefinition(mem.getData(), mem.getSize(), 16, 0));
+		Memory mem = fileSrc.readAllBytes();
+		File fileDst = File::openForWrite(targetPath);
+		if (fileDst.isOpened()) {
+			fileDst.writeTextUTF8(signature);
+			fileDst.writeTextUTF8(String::format("\r\nnamespace %s {%nconst sl_uint8 bytes[] = {%n", resourceName, mem.getData()));
+			fileDst.writeTextUTF8(SAppUtil::generateBytesArrayDefinition(mem.getData(), mem.getSize(), 16, 0));
 			static const sl_char8 strDataEnd[] = "};\r\n}\r\n";
-			fileDst->write(strDataEnd, sizeof(strDataEnd) - 1);
+			fileDst.write(strDataEnd, sizeof(strDataEnd) - 1);
 			return sl_true;
 		}
 		return sl_false;

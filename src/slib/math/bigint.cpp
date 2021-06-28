@@ -23,8 +23,9 @@
 #include "slib/math/bigint.h"
 
 #include "slib/core/math.h"
-#include "slib/core/io.h"
+#include "slib/core/memory.h"
 #include "slib/core/mio.h"
+#include "slib/core/string.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/compile_optimize.h"
 

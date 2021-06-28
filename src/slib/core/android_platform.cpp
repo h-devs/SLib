@@ -35,7 +35,7 @@ namespace slib
 		namespace android
 		{
 
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicJniGlobal<jobject>, g_contextCurrent);
+			SLIB_GLOBAL_ZERO_INITIALIZED(JniGlobal<jobject>, g_contextCurrent);
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strSystemRelease);
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strDeviceName);
 
@@ -99,11 +99,13 @@ namespace slib
 
 	void Android::setCurrentContext(jobject context) noexcept
 	{
+		SLIB_STATIC_SPINLOCKER(lock)
 		g_contextCurrent = JniGlobal<jobject>::create(context);
 	}
 
 	void Android::initializeContext(jobject context) noexcept
 	{
+		SLIB_STATIC_SPINLOCKER(lock)
 		if (g_contextCurrent.isNull()) {
 			g_contextCurrent = JniGlobal<jobject>::create(context);
 		}

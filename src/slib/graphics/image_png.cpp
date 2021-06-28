@@ -138,16 +138,16 @@ namespace slib
 		if (image.isNull()) {
 			return sl_false;
 		}
-		Ref<File> file = File::openForWrite(filePath);
-		if (file.isNotNull()) {
+		File file = File::openForWrite(filePath);
+		if (file.isOpened()) {
 			Memory mem = savePNG(image);
 			if (mem.isNotNull()) {
 				sl_reg size = mem.getSize();
-				if (file->write(mem.getData(), size) == size) {
+				if (file.write(mem.getData(), size) == size) {
 					return sl_true;
 				}
 			}
-			file->close();
+			file.close();
 			File::deleteFile(filePath);
 		}
 		return sl_false;

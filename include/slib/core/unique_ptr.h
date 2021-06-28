@@ -40,12 +40,11 @@ namespace slib
 			return *ptr;
 		}
 
-	};
+		constexpr T* operator->() const
+		{
+			return ptr;
+		}
 
-	template <class T>
-	class SLIB_EXPORT Atomic< UniquePtr<T> >
-	{
-		SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(UniquePtr<T>, T*, ptr, delete)
 	};
 
 	template <class T>
@@ -56,21 +55,12 @@ namespace slib
 
 	public:
 		template <typename INT>
-		T& operator[](INT index) const noexcept
+		constexpr T& operator[](INT index) const
 		{
 			return ptr[index];
 		}
 
 	};
-
-	template <class T>
-	class SLIB_EXPORT Atomic< UniquePtr<T[]> >
-	{
-		SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(UniquePtr<T[]>, T*, ptr, delete[])
-	};
-
-	template <class T>
-	using AtomicUniquePtr = Atomic< UniquePtr<T> >;
 
 }
 

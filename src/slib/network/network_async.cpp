@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -39,9 +39,9 @@ namespace slib
 	{
 	}
 
-	Ref<Socket> AsyncTcpSocketInstance::getSocket()
+	sl_socket AsyncTcpSocketInstance::getSocket()
 	{
-		return m_socket;
+		return m_socket.get();
 	}
 
 	sl_bool AsyncTcpSocketInstance::isSupportedConnect()
@@ -85,12 +85,11 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AsyncTcpSocketParam)
+	SLIB_DEFINE_MOVEONLY_CLASS_DEFAULT_MEMBERS(AsyncTcpSocketParam)
 	
 	AsyncTcpSocketParam::AsyncTcpSocketParam()
 	{
 		flagIPv6 = sl_false;
-		
 		flagLogError = sl_true;
 	}
 
@@ -105,11 +104,11 @@ namespace slib
 	{
 	}
 
-	Ref<AsyncTcpSocket> AsyncTcpSocket::create(const AsyncTcpSocketParam& param)
+	Ref<AsyncTcpSocket> AsyncTcpSocket::create(AsyncTcpSocketParam& param)
 	{
 		sl_bool flagIPv6 = param.flagIPv6;
-		Ref<Socket> socket = param.socket;
-		if (socket.isNull()) {
+		Socket& socket = param.socket;
+		if (socket.isNone()) {
 			if (param.bindAddress.ip.isIPv6()) {
 				flagIPv6 = sl_true;
 			}
@@ -118,11 +117,11 @@ namespace slib
 			} else {
 				socket = Socket::openTcp();
 			}
-			if (socket.isNull()) {
+			if (socket.isNone()) {
 				return sl_null;
 			}
 			if (param.bindAddress.ip.isNotNone() || param.bindAddress.port != 0) {
-				if (!(socket->bind(param.bindAddress))) {
+				if (!(socket.bind(param.bindAddress))) {
 					if (param.flagLogError) {
 						LogError(TAG, "AsyncTcpSocket bind error: %s, %s", param.bindAddress.toString(), Socket::getLastErrorMessage());
 					}
@@ -131,7 +130,7 @@ namespace slib
 			}
 		}
 
-		Ref<AsyncTcpSocketInstance> instance = _createInstance(socket, flagIPv6);
+		Ref<AsyncTcpSocketInstance> instance = _createInstance(Move(socket), flagIPv6);
 		if (instance.isNotNull()) {
 			Ref<AsyncIoLoop> loop = param.ioLoop;
 			if (loop.isNull()) {
@@ -161,13 +160,13 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<Socket> AsyncTcpSocket::getSocket()
+	sl_socket AsyncTcpSocket::getSocket()
 	{
 		Ref<AsyncTcpSocketInstance> instance = _getIoInstance();
 		if (instance.isNotNull()) {
 			return instance->getSocket();
 		}
-		return sl_null;
+		return SLIB_SOCKET_INVALID_HANDLE;
 	}
 
 	sl_bool AsyncTcpSocket::connect(const SocketAddress& address)
@@ -181,15 +180,15 @@ namespace slib
 		}
 		Ref<AsyncTcpSocketInstance> instance = _getIoInstance();
 		if (instance.isNotNull()) {
-			Ref<Socket> socket = instance->getSocket();
-			if (socket.isNotNull()) {
+			SocketValue socket(instance->getSocket());
+			if (socket.isOpened()) {
 				if (instance->isSupportedConnect()) {
 					if (instance->connect(address)) {
 						loop->requestOrder(instance.get());
 						return sl_true;
 					}
 				} else {
-					if (socket->connectAndWait(address)) {
+					if (socket.connectAndWait(address)) {
 						_onConnect(sl_true);
 						return sl_true;
 					} else {
@@ -287,12 +286,12 @@ namespace slib
 		return m_flagRunning;
 	}
 
-	Ref<Socket> AsyncTcpServerInstance::getSocket()
+	sl_socket AsyncTcpServerInstance::getSocket()
 	{
-		return m_socket;
+		return m_socket.get();
 	}
 
-	void AsyncTcpServerInstance::_onAccept(const Ref<Socket>& socketAccept, const SocketAddress& address)
+	void AsyncTcpServerInstance::_onAccept(Socket& socketAccept, const SocketAddress& address)
 	{
 		Ref<AsyncTcpServer> server = Ref<AsyncTcpServer>::from(getObject());
 		if (server.isNotNull()) {
@@ -309,7 +308,7 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AsyncTcpServerParam)
+	SLIB_DEFINE_MOVEONLY_CLASS_DEFAULT_MEMBERS(AsyncTcpServerParam)
 	
 	AsyncTcpServerParam::AsyncTcpServerParam()
 	{
@@ -330,11 +329,11 @@ namespace slib
 	{
 	}
 
-	Ref<AsyncTcpServer> AsyncTcpServer::create(const AsyncTcpServerParam& param)
+	Ref<AsyncTcpServer> AsyncTcpServer::create(AsyncTcpServerParam& param)
 	{
 		sl_bool flagIPv6 = param.flagIPv6;
-		Ref<Socket> socket = param.socket;
-		if (socket.isNull()) {
+		Socket& socket = param.socket;
+		if (socket.isNone()) {
 			if (param.bindAddress.port == 0) {
 				return sl_null;
 			}
@@ -346,7 +345,7 @@ namespace slib
 			} else {
 				socket = Socket::openTcp();
 			}
-			if (socket.isNull()) {
+			if (socket.isNone()) {
 				return sl_null;
 			}
 			
@@ -357,10 +356,10 @@ namespace slib
 			 *
 			 * http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t
 			 */
-			socket->setOption_ReuseAddress(sl_true);
+			socket.setOption_ReuseAddress(sl_true);
 #endif
 
-			if (!(socket->bind(param.bindAddress))) {
+			if (!(socket.bind(param.bindAddress))) {
 				if (param.flagLogError) {
 					LogError(TAG, "AsyncTcpServer bind error: %s, %s", param.bindAddress.toString(), Socket::getLastErrorMessage());
 				}
@@ -368,8 +367,8 @@ namespace slib
 			}
 		}
 		
-		if (socket->listen()) {
-			Ref<AsyncTcpServerInstance> instance = _createInstance(socket, flagIPv6);
+		if (socket.listen()) {
+			Ref<AsyncTcpServerInstance> instance = _createInstance(Move(socket), flagIPv6);
 			if (instance.isNotNull()) {
 				Ref<AsyncIoLoop> loop = param.ioLoop;
 				if (loop.isNull()) {
@@ -429,13 +428,13 @@ namespace slib
 		return sl_false;
 	}
 
-	Ref<Socket> AsyncTcpServer::getSocket()
+	sl_socket AsyncTcpServer::getSocket()
 	{
 		Ref<AsyncTcpServerInstance> instance = _getIoInstance();
 		if (instance.isNotNull()) {
 			return instance->getSocket();
 		}
-		return sl_null;
+		return SLIB_SOCKET_INVALID_HANDLE;
 	}
 
 	Ref<AsyncTcpServerInstance> AsyncTcpServer::_getIoInstance()
@@ -443,9 +442,9 @@ namespace slib
 		return Ref<AsyncTcpServerInstance>::from(AsyncIoObject::getIoInstance());
 	}
 
-	void AsyncTcpServer::_onAccept(const Ref<Socket>& socketAccept, const SocketAddress& address)
+	void AsyncTcpServer::_onAccept(Socket& socketAccept, const SocketAddress& address)
 	{
-		m_onAccept(this, socketAccept.get(), address);
+		m_onAccept(this, socketAccept, address);
 	}
 
 	void AsyncTcpServer::_onError()
@@ -485,9 +484,9 @@ namespace slib
 		return m_flagRunning;
 	}
 
-	Ref<Socket> AsyncUdpSocketInstance::getSocket()
+	sl_socket AsyncUdpSocketInstance::getSocket()
 	{
-		return m_socket;
+		return m_socket.get();
 	}
 
 	void AsyncUdpSocketInstance::_onReceive(const SocketAddress& address, sl_uint32 size)
@@ -506,7 +505,7 @@ namespace slib
 		}
 	}
 	
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AsyncUdpSocketParam)
+	SLIB_DEFINE_MOVEONLY_CLASS_DEFAULT_MEMBERS(AsyncUdpSocketParam)
 
 	AsyncUdpSocketParam::AsyncUdpSocketParam()
 	{
@@ -528,14 +527,14 @@ namespace slib
 	{
 	}
 
-	Ref<AsyncUdpSocket> AsyncUdpSocket::create(const AsyncUdpSocketParam& param)
+	Ref<AsyncUdpSocket> AsyncUdpSocket::create(AsyncUdpSocketParam& param)
 	{
 		if (param.packetSize < 1) {
 			return sl_null;
 		}
 		
-		Ref<Socket> socket = param.socket;
-		if (socket.isNull()) {
+		Socket& socket = param.socket;
+		if (socket.isNone()) {
 			sl_bool flagIPv6 = param.flagIPv6;
 			if (param.bindAddress.ip.isIPv6()) {
 				flagIPv6 = sl_true;
@@ -545,7 +544,7 @@ namespace slib
 			} else {
 				socket = Socket::openUdp();
 			}
-			if (socket.isNull()) {
+			if (socket.isNone()) {
 				return sl_null;
 			}
 #if defined(SLIB_PLATFORM_IS_UNIX)
@@ -555,10 +554,10 @@ namespace slib
 			 *
 			 * http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t
 			 */
-			socket->setOption_ReuseAddress(sl_true);
+			socket.setOption_ReuseAddress(sl_true);
 #endif
 			if (param.bindAddress.ip.isNotNone() || param.bindAddress.port != 0) {
-				if (!(socket->bind(param.bindAddress))) {
+				if (!(socket.bind(param.bindAddress))) {
 					if (param.flagLogError) {
 						LogError(TAG, "AsyncTcpSocket bind error: %s, %s", param.bindAddress.toString(), Socket::getLastErrorMessage());
 					}
@@ -567,10 +566,10 @@ namespace slib
 			}
 		}
 		if (param.flagBroadcast) {
-			socket->setOption_Broadcast(sl_true);
+			socket.setOption_Broadcast(sl_true);
 		}
 		
-		Ref<AsyncUdpSocketInstance> instance = _createInstance(socket, param.packetSize);
+		Ref<AsyncUdpSocketInstance> instance = _createInstance(Move(socket), param.packetSize);
 		if (instance.isNotNull()) {
 			Ref<AsyncIoLoop> loop = param.ioLoop;
 			if (loop.isNull()) {
@@ -624,44 +623,44 @@ namespace slib
 		return sl_false;
 	}
 
-	Ref<Socket> AsyncUdpSocket::getSocket()
+	sl_socket AsyncUdpSocket::getSocket()
 	{
 		Ref<AsyncUdpSocketInstance> instance = _getIoInstance();
 		if (instance.isNotNull()) {
 			return instance->getSocket();
 		}
-		return sl_null;
+		return SLIB_SOCKET_INVALID_HANDLE;
 	}
 
 	void AsyncUdpSocket::setBroadcast(sl_bool flag)
 	{
-		Ref<Socket> socket = getSocket();
-		if (socket.isNotNull()) {
-			socket->setOption_Broadcast(flag);
+		SocketValue socket(getSocket());
+		if (socket.isNotNone()) {
+			socket.setOption_Broadcast(flag);
 		}
 	}
 
 	void AsyncUdpSocket::setSendBufferSize(sl_uint32 size)
 	{
-		Ref<Socket> socket = getSocket();
-		if (socket.isNotNull()) {
-			socket->setOption_SendBufferSize(size);
+		SocketValue socket(getSocket());
+		if (socket.isNotNone()) {
+			socket.setOption_SendBufferSize(size);
 		}
 	}
 
 	void AsyncUdpSocket::setReceiveBufferSize(sl_uint32 size)
 	{
-		Ref<Socket> socket = getSocket();
-		if (socket.isNotNull()) {
-			socket->setOption_ReceiveBufferSize(size);
+		SocketValue socket(getSocket());
+		if (socket.isNotNone()) {
+			socket.setOption_ReceiveBufferSize(size);
 		}
 	}
 
 	sl_bool AsyncUdpSocket::sendTo(const SocketAddress& addressTo, const void* data, sl_uint32 size)
 	{
-		Ref<Socket> socket = getSocket();
-		if (socket.isNotNull()) {
-			return socket->sendTo(addressTo, data, size) == size;
+		SocketValue socket(getSocket());
+		if (socket.isNotNone()) {
+			return socket.sendTo(addressTo, data, size) == size;
 		}
 		return sl_false;
 	}

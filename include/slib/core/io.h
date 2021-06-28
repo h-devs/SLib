@@ -125,22 +125,33 @@ namespace slib
 
 		Stream(Stream&& other) = default;
 
-		template <class T>
-		Stream(T&& base) noexcept: m_base(Forward<T>(base)) {}
+		Stream(const T& t) noexcept: m_base(t) {}
+
+		Stream(T&& t) noexcept: m_base(Move(t)) {}
 
 	public:
 		Stream& operator=(const Stream& other) = default;
 
 		Stream& operator=(Stream&& other) = default;
 
-		template <class T>
-		Stream& operator=(T&& base) noexcept
+		Stream& operator=(const T& t) noexcept
 		{
-			m_base = Forward<T>(base);
+			m_base = t;
+			return *this;
+		}
+
+		Stream& operator=(T&& t) noexcept
+		{
+			m_base = Move(t);
 			return *this;
 		}
 
 	public:
+		sl_bool isOpened() const noexcept
+		{
+			return m_base ? sl_true : sl_false;
+		}
+
 		sl_reg read(void* buf, sl_size size) override
 		{
 			return (*m_base).read(buf, size);
@@ -178,22 +189,33 @@ namespace slib
 
 		IO(IO&& other) = default;
 
-		template <class T>
-		IO(T&& base) noexcept : m_base(Forward<T>(base)) {}
+		IO(const T& t) noexcept: m_base(t) {}
+
+		IO(T&& t) noexcept: m_base(Move(t)) {}
 
 	public:
 		IO & operator=(const IO& other) = default;
 
 		IO& operator=(IO&& other) = default;
 
-		template <class T>
-		IO& operator=(T&& base) noexcept
+		IO& operator=(const T& t) noexcept
 		{
-			m_base = Forward<T>(base);
+			m_base = t;
+			return *this;
+		}
+
+		IO& operator=(T&& t) noexcept
+		{
+			m_base = Move(t);
 			return *this;
 		}
 
 	public:
+		sl_bool isOpened() const noexcept
+		{
+			return m_base ? sl_true : sl_false;
+		}
+
 		sl_reg read(void* buf, sl_size size) override
 		{
 			return (*m_base).read(buf, size);
@@ -207,6 +229,12 @@ namespace slib
 		void close() override
 		{
 			return (*m_base).close();
+		}
+
+		using ISize::getSize;
+		sl_bool getSize(sl_uint64& outSize) override
+		{
+			return (*m_base).getSize(outSize);
 		}
 
 		using ISeekable::getPosition;
@@ -231,6 +259,9 @@ namespace slib
 		{
 			return (*m_base).setSize(size);
 		}
+
+	private:
+		T m_base;
 
 	};
 	

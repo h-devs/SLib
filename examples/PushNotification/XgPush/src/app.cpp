@@ -86,7 +86,7 @@ void ExampleXgPushApp::addDevice(const String& device)
 // broadcast device token over LAN, so that devices can list the other device tokens in the same LAN
 void ExampleXgPushApp::startBroadcast()
 {
-	Ref<Socket> socket = Socket::openUdp();
+	Shared<Socket> socket = Socket::openUdp();
 	socket->setOption_Broadcast(sl_true);
 	socket->setNonBlockingMode(sl_true);
 	if (socket->bind(BROADCAST_PORT)) { // port number
@@ -105,7 +105,7 @@ void ExampleXgPushApp::startBroadcast()
 				if (n > 0) {
 					addDevice(String(buf, n));
 				} else {
-					event->waitEvents();
+					event.waitEvents();
 				}
 			}
 		});

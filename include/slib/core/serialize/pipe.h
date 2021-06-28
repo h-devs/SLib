@@ -1,8 +1,8 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
- *   of this software and associated documentation files (the "Software"), to deal
+ *   of this software and associated documentation pipes (the "Software"), to deal
  *   in the Software without restriction, including without limitation the rights
  *   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *   copies of the Software, and to permit persons to whom the Software is
@@ -20,60 +20,45 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/network/io.h"
+#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_PIPE
+#define CHECKHEADER_SLIB_CORE_SERIALIZE_PIPE
+
+#include "../pipe.h"
+#include "../memory.h"
 
 namespace slib
 {
 
-	TcpStream::TcpStream()
+	SLIB_INLINE static sl_bool SerializeByte(Pipe* pipe, sl_uint8 value) noexcept
 	{
+		return pipe->writeUint8(value);
 	}
 
-	TcpStream::TcpStream(const Ref<Socket>& socket) : m_socket(socket)
+	SLIB_INLINE static sl_bool SerializeRaw(Pipe* pipe, const void* data, sl_size size) noexcept
 	{
+		return pipe->writeFully(data, size) == size;
 	}
 
-	TcpStream::~TcpStream()
+	SLIB_INLINE static sl_bool SerializeRaw(Pipe* pipe, const MemoryData& data) noexcept
 	{
+		return pipe->writeFully(data.data, data.size) == data.size;
 	}
 
-	Ref<Socket> TcpStream::getSocket()
+	SLIB_INLINE static sl_bool SerializeStatic(Pipe* pipe, const void* data, sl_size size) noexcept
 	{
-		return m_socket;
+		return pipe->writeFully(data, size) == size;
 	}
 
-	void TcpStream::setSocket(const Ref<Socket>& socket)
+	SLIB_INLINE static sl_bool DeserializeByte(Pipe* pipe, sl_uint8& value) noexcept
 	{
-		m_socket = socket;
+		return pipe->readUint8(&value);
 	}
 
-	void TcpStream::close()
+	SLIB_INLINE static sl_bool DeserializeRaw(Pipe* pipe, void* data, sl_size size) noexcept
 	{
-		Ref<Socket> socket = m_socket;
-		if (socket.isNotNull()) {
-			socket->close();
-			m_socket.setNull();
-		}
-	}
-
-	sl_int32 TcpStream::read32(void* buf, sl_uint32 size)
-	{
-		Ref<Socket> socket = m_socket;
-		if (socket.isNotNull()) {
-			sl_int32 n = socket->receive(buf, size);
-			return n;
-		}
-		return -1;
-	}
-
-	sl_int32 TcpStream::write32(const void* buf, sl_uint32 size)
-	{
-		Ref<Socket> socket = m_socket;
-		if (socket.isNotNull()) {
-			sl_int32 n = socket->send(buf, size);
-			return n;
-		}
-		return -1;
+		return pipe->readFully(data, size) == size;
 	}
 
 }
+
+#endif

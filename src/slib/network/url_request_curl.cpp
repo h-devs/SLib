@@ -299,9 +299,9 @@ namespace slib
 					}
 					processResponse();
 					if (m_downloadFilePath.isNotEmpty()) {
-						Ref<File> file = File::openForAppend(m_downloadFilePath);
-						if (file.isNotNull()) {
-							sl_reg ret = file->write(data, size);
+						File file = File::openForAppend(m_downloadFilePath);
+						if (file.isOpened()) {
+							sl_reg ret = file.write(data, size);
 							if (ret > 0) {
 								size = ret;
 							} else {

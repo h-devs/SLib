@@ -59,7 +59,7 @@ namespace slib
 
 			class UrlRequestImpl : public UrlRequest {
 			public:
-				AtomicJniGlobal<jobject> m_request;
+				JniGlobal<jobject> m_request;
 
 			public:
 				UrlRequestImpl() {

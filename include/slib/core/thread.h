@@ -26,14 +26,13 @@
 #include "function.h"
 #include "string.h"
 #include "hash_map.h"
+#include "event.h"
 
 #define SLIB_THREAD_DEFAULT_STACK_SIZE 1048576 // 1MB
 
 namespace slib
 {
 
-	class Event;
-	
 	enum class ThreadPriority
 	{
 		Lowest = -2,
@@ -74,13 +73,13 @@ namespace slib
 		
 		void wakeSelfEvent();
 
-		const Ref<Event>& getSelfEvent();
+		const Event& getSelfEvent();
 		
 		void wake();
 		
-		Ref<Event> getWaitingEvent();
+		IEvent* getWaitingEvent();
 	
-		void setWaitingEvent(Event* ev);
+		void setWaitingEvent(IEvent* ev);
 
 		void clearWaitingEvent();
 	
@@ -131,9 +130,9 @@ namespace slib
 		sl_bool m_flagRunning;
 		Function<void()> m_callback;
 	
-		Ref<Event> m_eventWake;
-		Ref<Event> m_eventExit;
-		AtomicRef<Event> m_eventWaiting;
+		Event m_eventWake;
+		Event m_eventExit;
+		IEvent* m_eventWaiting;
 	
 		HashMap< String, Ref<Referable> > m_attachedObjects;
 	

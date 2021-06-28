@@ -304,7 +304,7 @@ namespace slib
 
 	sl_bool AsyncIoInstance::isOpened()
 	{
-		return m_handle != SLIB_FILE_INVALID_HANDLE;
+		return m_handle != SLIB_ASYNC_INVALID_HANDLE;
 	}
 
 	AsyncIoMode AsyncIoInstance::getMode()
@@ -814,8 +814,8 @@ namespace slib
 	void AsyncStreamSimulator::_runProcessor()
 	{
 		if (isOpened()) {
-			Ref<Thread> thread = Thread::getCurrent();
-			while (thread.isNull() || thread->isNotStopping()) {
+			Thread* thread = Thread::getCurrent();
+			while (!thread || thread->isNotStopping()) {
 				Ref<AsyncStreamRequest> req;
 				{
 					ObjectLocker lock(this);
@@ -993,12 +993,12 @@ namespace slib
 		close();
 	}
 
-	Ref<AsyncFile> AsyncFile::create(const Ref<File>& file)
+	Ref<AsyncFile> AsyncFile::create(File&& file)
 	{
-		if (file.isNotNull()) {
+		if (file.isOpened()) {
 			Ref<AsyncFile> ret = new AsyncFile;
 			if (ret.isNotNull()) {
-				ret->m_file = file;
+				ret->m_file = Move(file);
 				ret->initialize();
 				return ret;
 			}
@@ -1006,12 +1006,12 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<AsyncFile> AsyncFile::create(const Ref<File>& file, const Ref<Dispatcher>& dispatcher)
+	Ref<AsyncFile> AsyncFile::create(File&& file, const Ref<Dispatcher>& dispatcher)
 	{
-		if (file.isNotNull()) {
+		if (file.isOpened()) {
 			Ref<AsyncFile> ret = new AsyncFile;
 			if (ret.isNotNull()) {
-				ret->m_file = file;
+				ret->m_file = Move(file);
 				ret->initialize(dispatcher);
 				return ret;
 			}
@@ -1021,18 +1021,18 @@ namespace slib
 
 	Ref<AsyncFile> AsyncFile::open(const StringParam& path, FileMode mode)
 	{
-		Ref<File> file = File::open(path, mode);
-		if (file.isNotNull()) {
-			return AsyncFile::create(file);
+		File file = File::open(path, mode);
+		if (file.isOpened()) {
+			return AsyncFile::create(Move(file));
 		}
 		return sl_null;
 	}
 
 	Ref<AsyncFile> AsyncFile::open(const StringParam& path, FileMode mode, const Ref<Dispatcher>& dispatcher)
 	{
-		Ref<File> file = File::open(path, mode);
-		if (file.isNotNull()) {
-			return AsyncFile::create(file, dispatcher);
+		File file = File::open(path, mode);
+		if (file.isOpened()) {
+			return AsyncFile::create(Move(file), dispatcher);
 		}
 		return sl_null;
 	}
@@ -1067,32 +1067,32 @@ namespace slib
 		return AsyncFile::open(path, FileMode::Append, dispatcher);
 	}
 
-	Ref<File> AsyncFile::getFile()
+	File& AsyncFile::getFile()
 	{
 		return m_file;
 	}
 
 	void AsyncFile::close()
 	{
-		m_file.setNull();
+		m_file.close();
 	}
 
 	sl_bool AsyncFile::isOpened()
 	{
-		return m_file.isNotNull();
+		return m_file.isOpened();
 	}
 
 	void AsyncFile::processRequest(AsyncStreamRequest* request)
 	{
-		Ref<File> file = m_file;
-		if (file.isNotNull()) {
+		File& file = m_file;
+		if (file.isOpened()) {
 			if (request->data && request->size) {
 				sl_reg size;
 				sl_bool flagError = sl_false;
 				if (request->flagRead) {
-					size = file->read(request->data, request->size);
+					size = file.read(request->data, request->size);
 				} else {
-					size = file->write(request->data, request->size);
+					size = file.write(request->data, request->size);
 				}
 				if (size <= 0) {
 					flagError = sl_true;
@@ -1112,20 +1112,12 @@ namespace slib
 
 	sl_bool AsyncFile::seek(sl_uint64 pos)
 	{
-		Ref<File> file = m_file;
-		if (file.isNotNull()) {
-			return file->seek(pos, SeekPosition::Begin);
-		}
-		return sl_false;
+		return m_file.seek(pos, SeekPosition::Begin);
 	}
 
 	sl_uint64 AsyncFile::getSize()
 	{
-		Ref<File> file = m_file;
-		if (file.isNotNull()) {
-			return file->getSize();
-		}
-		return 0;
+		return m_file.getSize();
 	}
 
 

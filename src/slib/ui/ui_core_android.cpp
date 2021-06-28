@@ -138,7 +138,7 @@ namespace slib
 			void OnCreateActivity(JNIEnv* env, jobject _this, jobject activity)
 			{
 				Log("Activity", "onCreateActivity");
-				Android::setCurrentContext(activity);
+				Android::initializeContext(activity);
 				Ref<UIApp> app = UIApp::getApp();
 				if (app.isNotNull()) {
 					static sl_bool flagStartApp = sl_false;
@@ -160,7 +160,7 @@ namespace slib
 			void OnResumeActivity(JNIEnv* env, jobject _this, jobject activity)
 			{
 				Log("Activity", "onResumeActivity");
-				Android::setCurrentContext(activity);
+				Android::initializeContext(activity);
 				MobileApp::dispatchResumeToApp();
 			}
 

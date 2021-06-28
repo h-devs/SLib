@@ -326,8 +326,8 @@ namespace slib
 
 				void run()
 				{
-					Ref<Thread> thread = Thread::getCurrent();
-					if (thread.isNull()) {
+					Thread* thread = Thread::getCurrent();
+					if (!thread) {
 						return;
 					}
 
@@ -361,7 +361,7 @@ namespace slib
 						if (!flagRead) {
 							sl_uint32 dt = (sl_uint32)(t.getElapsedMilliseconds());
 							if (dt < st) {
-								Thread::sleep(st - dt);
+								thread->wait(st - dt);
 							}
 							t.reset();
 						}
@@ -469,8 +469,8 @@ namespace slib
 
 				void run()
 				{
-					Ref<Thread> thread = Thread::getCurrent();
-					if (thread.isNull()) {
+					Thread* thread = Thread::getCurrent();
+					if (!thread) {
 						return;
 					}
 
@@ -502,7 +502,7 @@ namespace slib
 						if (!flagWritten) {
 							sl_uint32 dt = (sl_uint32)(t.getElapsedMilliseconds());
 							if (dt < st) {
-								Thread::sleep(st - dt);
+								thread->wait(st - dt);
 							}
 							t.reset();
 						}

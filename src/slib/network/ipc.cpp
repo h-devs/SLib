@@ -50,7 +50,7 @@ namespace slib
 			class DomainSocketIPCImpl : public IPC
 			{
 			public:
-				Ref<Socket> m_socketServer;
+				Socket m_socketServer;
 				Ref<Thread> m_threadListen;
 				CList< Ref<Thread> > m_threads;
 
@@ -81,17 +81,17 @@ namespace slib
 			public:
 				static Ref<DomainSocketIPCImpl> create(const IPCParam& param)
 				{
-					Ref<Socket> socket = Socket::openDomainStream();
-					if (socket.isNotNull()) {
+					Socket socket = Socket::openDomainStream();
+					if (socket.isOpened()) {
 #if defined(SLIB_PLATFORM_IS_WIN32)
 						String path = GetDomainName(param.name);
 						File::deleteFile(path);
-						if (socket->bindDomain(path)) {
+						if (socket.bindDomain(path)) {
 #else
-						if (socket->bindAbstractDomain(param.name))) {
+						if (socket.bindAbstractDomain(param.name))) {
 #endif
-							if (socket->setNonBlockingMode(sl_true)) {
-								if (socket->listen()) {
+							if (socket.setNonBlockingMode(sl_true)) {
+								if (socket.listen()) {
 									Ref<DomainSocketIPCImpl> ret = new DomainSocketIPCImpl;
 									if (ret.isNotNull()) {
 										ret->m_maxThreadsCount = param.maxThreadsCount;
@@ -117,9 +117,9 @@ namespace slib
 					if (targetName.isNotEmpty()) {
 						if (data.isNotNull()) {
 							if (m_threads.getCount() < m_maxThreadsCount) {
-								Ref<Socket> socket = Socket::openDomainStream();
-								if (socket.isNotNull()) {
-									MoveT< Ref<Socket> > _socket(Move(socket));
+								Socket socket = Socket::openDomainStream();
+								if (socket.isOpened()) {
+									MoveT<Socket> _socket(Move(socket));
 									auto thiz = ToWeakRef(this);
 									Ref<Thread> thread = Thread::create([_socket, thiz, this, targetName, data, callbackResponse]() {
 										auto ref = ToRef(thiz);
@@ -127,7 +127,7 @@ namespace slib
 											callbackResponse(sl_null, 0);
 											return;
 										}
-										Ref<Socket> socket = Move(_socket.value);
+										Socket socket = _socket.release();
 										processSending(socket, targetName, data, callbackResponse);
 									});
 									if (thread.isNotNull()) {
@@ -142,14 +142,14 @@ namespace slib
 					callbackResponse(sl_null, 0);
 				}
 
-				void processSending(const Ref<Socket>& socket, const String& serverName, const Memory& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse)
+				void processSending(const Socket& socket, const String& serverName, const Memory& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse)
 				{
 					Thread* thread = Thread::getCurrent();
 					if (thread) {
 #if defined(SLIB_PLATFORM_IS_WIN32)
-						if (socket->connectDomainAndWait(GetDomainName(serverName))) {
+						if (socket.connectDomainAndWait(GetDomainName(serverName))) {
 #else
-						if (socket->connectAbstractDomainAndWait(serverName)) {
+						if (socket.connectAbstractDomainAndWait(serverName)) {
 #endif
 							if (writeMessage(thread, socket, data.getData(), (sl_uint32)(data.getSize()))) {
 								if (thread->isNotStoppingCurrent()) {
@@ -171,31 +171,31 @@ namespace slib
 					if (!thread) {
 						return;
 					}
-					Ref<SocketEvent> event = SocketEvent::createRead(m_socketServer);
-					if (event.isNull()) {
+					SocketEvent event = SocketEvent::createRead(m_socketServer);
+					if (event.isNone()) {
 						return;
 					}
 					while (thread->isNotStopping()) {
 						if (m_threads.getCount() < m_maxThreadsCount) {
 							String address;
-							Ref<Socket> socket = m_socketServer->acceptDomain(address);
-							if (socket.isNotNull()) {
-								MoveT< Ref<Socket> > _socket(Move(socket));
+							Socket socket = m_socketServer.acceptDomain(address);
+							if (socket.isOpened()) {
+								MoveT<Socket> _socket(Move(socket));
 								auto thiz = ToWeakRef(this);
-								Ref<Thread> thread = Thread::create([_socket, thiz, this]() {
+								Ref<Thread> threadNew = Thread::create([_socket, thiz, this]() {
 									auto ref = ToRef(thiz);
 									if (ref.isNull()) {
 										return;
 									}
-									Ref<Socket> socket = Move(_socket.value);
+									Socket socket = _socket.release();
 									processReceiving(socket);
 								});
-								if (thread.isNotNull()) {
-									m_threads.add(thread);
-									thread->start();
+								if (threadNew.isNotNull()) {
+									m_threads.add(threadNew);
+									threadNew->start();
 								}
 							} else {
-								event->wait();
+								event.wait();
 							}
 						} else {
 							thread->wait(10);
@@ -203,7 +203,7 @@ namespace slib
 					}
 				}
 
-				void processReceiving(const Ref<Socket>& socket)
+				void processReceiving(const Socket& socket)
 				{
 					Thread* thread = Thread::getCurrent();
 					if (!thread) {
@@ -219,10 +219,10 @@ namespace slib
 					m_threads.remove(thread);
 				}
 
-				Memory readMessage(Thread* thread, const Ref<Socket>& socket)
+				Memory readMessage(Thread* thread, const Socket& socket)
 				{
-					Ref<SocketEvent> event = SocketEvent::createRead(socket);
-					if (event.isNull()) {
+					SocketEvent event = SocketEvent::createRead(socket);
+					if (event.isNone()) {
 						return sl_null;
 					}
 					sl_uint32 sizeContent = 0;
@@ -230,7 +230,7 @@ namespace slib
 					sl_uint8 bufHeader[16];
 					sl_uint32 nReadHeader = 0;
 					while (thread->isNotStopping()) {
-						sl_int32 n = socket->receive(bufHeader + nReadHeader, sizeof(bufHeader) - nReadHeader);
+						sl_int32 n = socket.receive(bufHeader + nReadHeader, sizeof(bufHeader) - nReadHeader);
 						if (n < 0) {
 							return sl_null;
 						}
@@ -245,7 +245,7 @@ namespace slib
 								return sl_null;
 							}
 						} else {
-							event->wait();
+							event.wait();
 						}
 					}
 					if (!sizeContent) {
@@ -256,7 +256,7 @@ namespace slib
 					}
 					char buf[1024];
 					while (thread->isNotStopping()) {
-						sl_int32 n = socket->receive(buf, sizeof(buf));
+						sl_int32 n = socket.receive(buf, sizeof(buf));
 						if (n < 0) {
 							return sl_null;
 						}
@@ -266,24 +266,24 @@ namespace slib
 								return bufRead.merge();
 							}
 						} else {
-							event->wait();
+							event.wait();
 						}
 					}
 					return sl_null;
 				}
 
-				sl_bool writeMessage(Thread* thread, const Ref<Socket>& socket, const void* _data, sl_uint32 size)
+				sl_bool writeMessage(Thread* thread, const Socket& socket, const void* _data, sl_uint32 size)
 				{
 					sl_uint8* data = (sl_uint8*)_data;
-					Ref<SocketEvent> event = SocketEvent::createWrite(socket);
-					if (event.isNull()) {
+					SocketEvent event = SocketEvent::createWrite(socket);
+					if (event.isNone()) {
 						return sl_false;
 					}
 					sl_uint8 bufHeader[16];
 					sl_uint32 nHeader = CVLI::serialize(bufHeader, size);
 					sl_uint32 nWriteHeader = 0;
 					while (thread->isNotStopping()) {
-						sl_int32 n = socket->send(bufHeader + nWriteHeader, nHeader - nWriteHeader);
+						sl_int32 n = socket.send(bufHeader + nWriteHeader, nHeader - nWriteHeader);
 						if (n < 0) {
 							return sl_false;
 						}
@@ -293,7 +293,7 @@ namespace slib
 								break;
 							}
 						} else {
-							event->wait();
+							event.wait();
 						}
 					}
 					if (!size) {
@@ -301,7 +301,7 @@ namespace slib
 					}
 					sl_uint32 posWrite = 0;
 					while (thread->isNotStopping()) {
-						sl_int32 n = socket->send(data + posWrite, size - posWrite);
+						sl_int32 n = socket.send(data + posWrite, size - posWrite);
 						if (n < 0) {
 							return sl_false;
 						}
@@ -311,7 +311,7 @@ namespace slib
 								break;
 							}
 						} else {
-							event->wait();
+							event.wait();
 						}
 					}
 					return sl_true;

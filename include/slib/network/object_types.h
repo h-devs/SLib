@@ -32,15 +32,12 @@ namespace slib
 
 		enum {
 			Package_Network = packages::Network,
-			Socket,
-			SocketEvent,
 			AsyncTcpSocket,
 			AsyncTcpSocketInstance,
 			AsyncTcpServer,
 			AsyncTcpServerInstance,
 			AsyncUdpSocket,
 			AsyncUdpSocketInstance,
-			TcpStream,
 			UrlRequest,
 			HttpServer,
 			HttpServerContext,

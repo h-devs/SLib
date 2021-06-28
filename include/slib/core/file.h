@@ -33,7 +33,7 @@ typedef void* sl_file;
 #define SLIB_FILE_INVALID_HANDLE ((void*)((sl_reg)-1))
 #else
 typedef int sl_file;
-#define SLIB_FILE_INVALID_HANDLE (-1)
+#define SLIB_FILE_INVALID_HANDLE ((sl_file)-1)
 #endif
 
 namespace slib
@@ -396,14 +396,12 @@ namespace slib
 
 		static sl_bool _move(const StringParam& pathOriginal, const StringParam& filePathNew) noexcept;
 
-		friend class Atomic<File>;
+	public:
+		File& operator*() noexcept
+		{
+			return *this;
+		}
 
-	};
-
-	template <>
-	class SLIB_EXPORT Atomic<File>
-	{
-		SLIB_DECLARE_ATOMIC_HANDLE_CONTAINER_MEMBERS(File, sl_file, m_file, SLIB_FILE_INVALID_HANDLE)
 	};
 
 }

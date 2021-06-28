@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{D1153F23-72DA-4CFF-B753-6FA6C5F95292}</ProjectGuid>
+    <ProjectGuid>{7E067732-62BA-448D-91BD-7B4ECF83CB5E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ChaCha20</RootNamespace>
     <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>

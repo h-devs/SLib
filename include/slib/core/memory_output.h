@@ -30,10 +30,8 @@ namespace slib
 {
 
 	// MemoryOutput is not thread-safe
-	class SLIB_EXPORT MemoryOutput : public Referable, public IWriter
+	class SLIB_EXPORT MemoryOutput : public IWriter
 	{
-		SLIB_DECLARE_OBJECT
-
 	public:
 		MemoryOutput();
 

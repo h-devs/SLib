@@ -41,7 +41,7 @@ namespace slib
 		namespace network_async
 		{
 
-			class AsyncTcpSocketInstanceImpl : public AsyncTcpSocketInstance
+			class TcpInstance : public AsyncTcpSocketInstance
 			{
 			public:
 				sl_bool m_flagIPv6;
@@ -59,24 +59,24 @@ namespace slib
 				LPFN_CONNECTEX m_funcConnectEx;
 
 			public:
-				AsyncTcpSocketInstanceImpl()
+				TcpInstance()
 				{
 				}
 
-				~AsyncTcpSocketInstanceImpl()
+				~TcpInstance()
 				{
 					close();
 				}
 
 			public:
-				static Ref<AsyncTcpSocketInstanceImpl> create(const Ref<Socket>& socket, sl_bool flagIPv6)
+				static Ref<TcpInstance> create(Socket&& socket, sl_bool flagIPv6)
 				{
-					if (socket.isNotNull()) {
-						sl_async_handle handle = (sl_async_handle)(socket->getHandle());
+					if (socket.isOpened()) {
+						sl_async_handle handle = (sl_async_handle)(socket.get());
 						if (handle != SLIB_ASYNC_INVALID_HANDLE) {
-							Ref<AsyncTcpSocketInstanceImpl> ret = new AsyncTcpSocketInstanceImpl();
+							Ref<TcpInstance> ret = new TcpInstance();
 							if (ret.isNotNull()) {
-								ret->m_socket = socket;
+								ret->m_socket = Move(socket);
 								ret->m_flagIPv6 = flagIPv6;
 								ret->setHandle(handle);
 								ret->initializeConnectEx();
@@ -107,16 +107,16 @@ namespace slib
 					m_flagSupportingConnect = m_funcConnectEx != sl_null;
 				}
 
-				void close()
+				void close() override
 				{
 					setHandle(SLIB_ASYNC_INVALID_HANDLE);
-					m_socket.setNull();
+					m_socket.close();
 				}
 
-				void onOrder()
+				void onOrder() override
 				{
-					Ref<Socket> socket = m_socket;
-					if (socket.isNull()) {
+					Socket& socket = m_socket;
+					if (socket.isNone()) {
 						return;
 					}
 					sl_async_handle handle = getHandle();
@@ -205,7 +205,7 @@ namespace slib
 											aBind.ip = IPv4Address::zero();
 										}
 										sl_uint32 nSaBind = aBind.getSystemSocketAddress(&saBind);
-										bind(handle, (SOCKADDR*)&saBind, nSaBind);
+										bind((SOCKET)handle, (SOCKADDR*)&saBind, nSaBind);
 										BOOL ret = m_funcConnectEx((SOCKET)handle, (sockaddr*)&addr, lenAddr, NULL, 0, NULL, &m_overlappedConnect);
 										if (ret) {
 											_onConnect(sl_true);
@@ -224,7 +224,7 @@ namespace slib
 					}
 				}
 
-				void onEvent(EventDesc* pev)
+				void onEvent(EventDesc* pev) override
 				{
 					sl_async_handle handle = getHandle();
 					if (handle == SLIB_ASYNC_INVALID_HANDLE) {
@@ -270,7 +270,7 @@ namespace slib
 				}
 			};
 
-			class AsyncTcpServerInstanceImpl : public AsyncTcpServerInstance
+			class TcpServerInstance : public AsyncTcpServerInstance
 			{
 			public:
 				sl_bool m_flagIPv6;
@@ -278,31 +278,31 @@ namespace slib
 
 				WSAOVERLAPPED m_overlapped;
 				char m_bufferAccept[2 * (sizeof(SOCKADDR_IN) + 16)];
-				AtomicRef<Socket> m_socketAccept;
+				Socket m_socketAccept;
 
 				LPFN_ACCEPTEX m_funcAcceptEx;
 				LPFN_GETACCEPTEXSOCKADDRS m_funcGetAcceptExSockaddrs;
 
 			public:
-				AsyncTcpServerInstanceImpl()
+				TcpServerInstance()
 				{
 					m_flagAccepting = sl_false;
 				}
 
-				~AsyncTcpServerInstanceImpl()
+				~TcpServerInstance()
 				{
 					close();
 				}
 
 			public:
-				static Ref<AsyncTcpServerInstanceImpl> create(const Ref<Socket>& socket, sl_bool flagIPv6)
+				static Ref<TcpServerInstance> create(Socket&& socket, sl_bool flagIPv6)
 				{
-					if (socket.isNotNull()) {
-						sl_async_handle handle = (sl_async_handle)(socket->getHandle());
+					if (socket.isOpened()) {
+						sl_async_handle handle = (sl_async_handle)(socket.get());
 						if (handle != SLIB_ASYNC_INVALID_HANDLE) {
-							Ref<AsyncTcpServerInstanceImpl> ret = new AsyncTcpServerInstanceImpl();
+							Ref<TcpServerInstance> ret = new TcpServerInstance();
 							if (ret.isNotNull()) {
-								ret->m_socket = socket;
+								ret->m_socket = Move(socket);
 								ret->m_flagIPv6 = flagIPv6;
 								ret->setHandle(handle);
 								if (ret->initialize()) {
@@ -350,15 +350,19 @@ namespace slib
 					return m_funcAcceptEx != sl_null && m_funcGetAcceptExSockaddrs != sl_null;
 				}
 
-				void close()
+				void close() override
 				{
 					AsyncTcpServerInstance::close();
-					m_socket.setNull();
 					setHandle(SLIB_ASYNC_INVALID_HANDLE);
+					m_socket.close();
 				}
 
-				void onOrder()
+				void onOrder() override
 				{
+					Socket& socket = m_socket;
+					if (socket.isNone()) {
+						return;
+					}
 					if (m_flagAccepting) {
 						return;
 					}
@@ -366,24 +370,18 @@ namespace slib
 					if (handle == SLIB_ASYNC_INVALID_HANDLE) {
 						return;
 					}
-					Ref<Thread> thread = Thread::getCurrent();
-					while (thread.isNull() || thread->isNotStopping()) {
-						Ref<Socket> socket = m_socket;
-						if (socket.isNull()) {
-							return;
-						}
-						if (!(socket->isOpened())) {
-							return;
-						}
-						Ref<Socket> socketAccept = Socket::open(m_flagIPv6 ? SocketType::StreamIPv6 : SocketType::Stream);
-						if (socketAccept.isNotNull()) {
-							m_socketAccept = socketAccept;
+					Thread* thread = Thread::getCurrent();
+					while (!thread || thread->isNotStopping()) {
+						Socket socketAccept = Socket::open(m_flagIPv6 ? SocketType::StreamIPv6 : SocketType::Stream);
+						if (socketAccept.isOpened()) {
+							SOCKET handleAccept = socketAccept.get();
+							m_socketAccept = Move(socketAccept);
 							Base::zeroMemory(&m_overlapped, sizeof(WSAOVERLAPPED));
 							DWORD dwSize = 0;
 							BOOL ret = m_funcAcceptEx(
-								(SOCKET)(handle), (SOCKET)(socketAccept->getHandle())
-								, m_bufferAccept, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &dwSize
-								, &m_overlapped);
+								(SOCKET)(handle), handleAccept,
+								m_bufferAccept, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &dwSize,
+								&m_overlapped);
 							if (ret) {
 								processAccept(sl_false);
 							} else {
@@ -404,7 +402,7 @@ namespace slib
 					}
 				}
 
-				void onEvent(EventDesc* pev)
+				void onEvent(EventDesc* pev) override
 				{
 					sl_async_handle handle = getHandle();
 					if (handle == SLIB_ASYNC_INVALID_HANDLE) {
@@ -434,8 +432,8 @@ namespace slib
 					if (server.isNull()) {
 						return;
 					}
-					Ref<Socket> socketAccept = m_socketAccept;
-					if (socketAccept.isNull()) {
+					Socket& socketAccept = m_socketAccept;
+					if (socketAccept.isNone()) {
 						return;
 					}
 					if (flagError) {
@@ -447,7 +445,7 @@ namespace slib
 						m_funcGetAcceptExSockaddrs(m_bufferAccept, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, (sockaddr**)&paddr_local, &lenaddr_local, (sockaddr**)&paddr_remote, &lenaddr_remote);
 						if (paddr_remote) {
 							SOCKET socketListen = (SOCKET)(getHandle());
-							setsockopt((SOCKET)(socketAccept->getHandle()), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&socketListen, sizeof(void*));
+							setsockopt(socketAccept.get(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&socketListen, sizeof(void*));
 							SocketAddress addressRemote;
 							addressRemote.setSystemSocketAddress(paddr_remote);
 							SocketAddress addressLocal;
@@ -459,7 +457,7 @@ namespace slib
 
 			};
 
-			class AsyncUdpSocketInstancenceImpl : public AsyncUdpSocketInstance
+			class UdpInstance : public AsyncUdpSocketInstance
 			{
 			public:
 				sl_bool m_flagReceiving;
@@ -471,26 +469,26 @@ namespace slib
 				int m_lenAddrReceive;
 
 			public:
-				AsyncUdpSocketInstancenceImpl()
+				UdpInstance()
 				{
 					m_flagReceiving = sl_false;
 				}
 
-				~AsyncUdpSocketInstancenceImpl()
+				~UdpInstance()
 				{
 					close();
 				}
 
 			public:
-				static Ref<AsyncUdpSocketInstancenceImpl> create(const Ref<Socket>& socket, const Memory& buffer)
+				static Ref<UdpInstance> create(Socket&& socket, const Memory& buffer)
 				{
-					if (socket.isNotNull()) {
-						if (socket->setNonBlockingMode(sl_true)) {
-							sl_async_handle handle = (sl_async_handle)(socket->getHandle());
+					if (socket.isOpened()) {
+						if (socket.setNonBlockingMode(sl_true)) {
+							sl_async_handle handle = (sl_async_handle)(socket.get());
 							if (handle != SLIB_ASYNC_INVALID_HANDLE) {
-								Ref<AsyncUdpSocketInstancenceImpl> ret = new AsyncUdpSocketInstancenceImpl();
+								Ref<UdpInstance> ret = new UdpInstance();
 								if (ret.isNotNull()) {
-									ret->m_socket = socket;
+									ret->m_socket = Move(socket);
 									ret->setHandle(handle);
 									ret->m_buffer = buffer;
 									return ret;
@@ -501,19 +499,19 @@ namespace slib
 					return sl_null;
 				}
 
-				void close()
+				void close() override
 				{
 					AsyncUdpSocketInstance::close();
 					setHandle(SLIB_ASYNC_INVALID_HANDLE);
-					m_socket.setNull();
+					m_socket.close();
 				}
 
-				void onOrder()
+				void onOrder() override
 				{
 					processReceive();
 				}
 
-				void onEvent(EventDesc* pev)
+				void onEvent(EventDesc* pev) override
 				{
 					sl_async_handle handle = getHandle();
 					if (handle == SLIB_ASYNC_INVALID_HANDLE) {
@@ -555,13 +553,7 @@ namespace slib
 					if (handle == SLIB_ASYNC_INVALID_HANDLE) {
 						return;
 					}
-					Ref<Socket> socket = m_socket;
-					if (socket.isNull()) {
-						return;
-					}
-					if (!(socket->isOpened())) {
-						return;
-					}
+
 					void* buf = m_buffer.getData();
 					sl_uint32 sizeBuf = (sl_uint32)(m_buffer.getSize());
 
@@ -590,22 +582,22 @@ namespace slib
 		}
 	}
 
-	Ref<AsyncTcpSocketInstance> AsyncTcpSocket::_createInstance(const Ref<Socket>& socket, sl_bool flagIPv6)
+	Ref<AsyncTcpSocketInstance> AsyncTcpSocket::_createInstance(Socket&& socket, sl_bool flagIPv6)
 	{
-		return priv::network_async::AsyncTcpSocketInstanceImpl::create(socket, flagIPv6);
+		return priv::network_async::TcpInstance::create(Move(socket), flagIPv6);
 	}
 
 
-	Ref<AsyncTcpServerInstance> AsyncTcpServer::_createInstance(const Ref<Socket>& socket, sl_bool flagIPv6)
+	Ref<AsyncTcpServerInstance> AsyncTcpServer::_createInstance(Socket&& socket, sl_bool flagIPv6)
 	{
-		return priv::network_async::AsyncTcpServerInstanceImpl::create(socket, flagIPv6);
+		return priv::network_async::TcpServerInstance::create(Move(socket), flagIPv6);
 	}
 
-	Ref<AsyncUdpSocketInstance> AsyncUdpSocket::_createInstance(const Ref<Socket>& socket, sl_uint32 packetSize)
+	Ref<AsyncUdpSocketInstance> AsyncUdpSocket::_createInstance(Socket&& socket, sl_uint32 packetSize)
 	{
 		Memory buffer = Memory::create(packetSize);
 		if (buffer.isNotNull()) {
-			return priv::network_async::AsyncUdpSocketInstancenceImpl::create(socket, buffer);
+			return priv::network_async::UdpInstance::create(Move(socket), buffer);
 		}
 		return sl_null;
 	}

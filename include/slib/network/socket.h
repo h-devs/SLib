@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +27,15 @@
 #include "socket_address.h"
 #include "mac_address.h"
 
-#include "../core/ref.h"
+#include "../core/handle_container.h"
+#include "../core/io/def.h"
 
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+typedef sl_size sl_socket;
+#else
 typedef int sl_socket;
-#define SLIB_SOCKET_INVALID_HANDLE (-1)
+#endif
+#define SLIB_SOCKET_INVALID_HANDLE ((sl_socket)-1)
 
 namespace slib
 {
@@ -59,7 +64,7 @@ namespace slib
 	public:
 		void setMacAddress(const MacAddress& address) noexcept;
 		
-		sl_bool getMacAddress(MacAddress* address = sl_null) noexcept;
+		sl_bool getMacAddress(MacAddress* address = sl_null) const noexcept;
 		
 		void clearAddress() noexcept;
 		
@@ -130,45 +135,41 @@ namespace slib
 	};
 	
 	
-	class SLIB_EXPORT Socket : public Referable
+	class SLIB_EXPORT Socket
 	{
-		SLIB_DECLARE_OBJECT
-		
-	private:
-		Socket() noexcept;
-		
-		~Socket();
+		SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(Socket, sl_socket, m_socket, SLIB_SOCKET_INVALID_HANDLE)
+		SLIB_DECLARE_ISTREAM_MEMBERS(const noexcept)
 		
 	public:
-		static Ref<Socket> open(SocketType type, sl_uint32 protocol = 0) noexcept;
+		static Socket open(SocketType type, sl_uint32 protocol = 0) noexcept;
 		
-		static Ref<Socket> openStream(NetworkInternetProtocol internetProtocol) noexcept;
+		static Socket openStream(NetworkInternetProtocol internetProtocol) noexcept;
 
-		static Ref<Socket> openTcp() noexcept;
+		static Socket openTcp() noexcept;
 
-		static Ref<Socket> openDatagram(NetworkInternetProtocol internetProtocol) noexcept;
+		static Socket openDatagram(NetworkInternetProtocol internetProtocol) noexcept;
 
-		static Ref<Socket> openUdp() noexcept;
+		static Socket openUdp() noexcept;
 		
-		static Ref<Socket> openRaw(NetworkInternetProtocol internetProtocol) noexcept;
+		static Socket openRaw(NetworkInternetProtocol internetProtocol) noexcept;
 		
-		static Ref<Socket> openStream_IPv6(NetworkInternetProtocol internetProtocol) noexcept;
+		static Socket openStream_IPv6(NetworkInternetProtocol internetProtocol) noexcept;
 
-		static Ref<Socket> openTcp_IPv6() noexcept;
+		static Socket openTcp_IPv6() noexcept;
 		
-		static Ref<Socket> openDatagram_IPv6(NetworkInternetProtocol internetProtocol) noexcept;
+		static Socket openDatagram_IPv6(NetworkInternetProtocol internetProtocol) noexcept;
 		
-		static Ref<Socket> openUdp_IPv6() noexcept;
+		static Socket openUdp_IPv6() noexcept;
 		
-		static Ref<Socket> openRaw_IPv6(NetworkInternetProtocol internetProtocol) noexcept;
+		static Socket openRaw_IPv6(NetworkInternetProtocol internetProtocol) noexcept;
 
-		static Ref<Socket> openDomainStream() noexcept;
+		static Socket openDomainStream() noexcept;
 
-		static Ref<Socket> openDomainDatagram() noexcept;
+		static Socket openDomainDatagram() noexcept;
 
-		static Ref<Socket> openPacketRaw(NetworkLinkProtocol linkProtocol = NetworkLinkProtocol::All) noexcept;
+		static Socket openPacketRaw(NetworkLinkProtocol linkProtocol = NetworkLinkProtocol::All) noexcept;
 		
-		static Ref<Socket> openPacketDatagram(NetworkLinkProtocol linkProtocol = NetworkLinkProtocol::All) noexcept;
+		static Socket openPacketDatagram(NetworkLinkProtocol linkProtocol = NetworkLinkProtocol::All) noexcept;
 
 	public:
 		static String getTypeText(SocketType type) noexcept;
@@ -192,136 +193,137 @@ namespace slib
 
 		sl_bool isOpened() const noexcept;
 
-		sl_socket getHandle() const noexcept;
-
-	public:
-		sl_bool shutdown(SocketShutdownMode shutMode) noexcept;
+		sl_bool shutdown(SocketShutdownMode shutMode) const noexcept;
 		
-		sl_bool bind(const SocketAddress& addr) noexcept;
+		sl_bool bind(const SocketAddress& addr) const noexcept;
 
-		sl_bool bindDomain(const StringParam& path, sl_bool flagAbstract = sl_false) noexcept;
+		sl_bool bindDomain(const StringParam& path, sl_bool flagAbstract = sl_false) const noexcept;
 
-		sl_bool bindAbstractDomain(const StringParam& name) noexcept;
+		sl_bool bindAbstractDomain(const StringParam& name) const noexcept;
 
-		sl_bool listen() noexcept;
+		sl_bool listen() const noexcept;
 		
-		sl_bool accept(Ref<Socket>& socket, SocketAddress& address) noexcept;
+		sl_bool accept(Socket& socket, SocketAddress& address) const noexcept;
 
-		Ref<Socket> accept(SocketAddress& address) noexcept;
+		Socket accept(SocketAddress& address) const noexcept;
 
-		sl_bool acceptDomain(Ref<Socket>& socket, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) noexcept;
+		sl_bool acceptDomain(Socket& socket, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
 
-		Ref<Socket> acceptDomain(char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) noexcept;
+		Socket acceptDomain(char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
 
-		sl_bool acceptDomain(Ref<Socket>& socket, String& outPath, sl_bool* pOutFlagAbstract = sl_null) noexcept;
+		sl_bool acceptDomain(Socket& socket, String& outPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
 
-		Ref<Socket> acceptDomain(String& outPath, sl_bool* pOutFlagAbstract = sl_null) noexcept;
+		Socket acceptDomain(String& outPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
 
-		sl_bool connect(const SocketAddress& address) noexcept;
+		sl_bool connect(const SocketAddress& address) const noexcept;
 		
-		sl_bool connectAndWait(const SocketAddress& address, sl_int32 timeout = -1) noexcept;
+		sl_bool connectAndWait(const SocketAddress& address, sl_int32 timeout = -1) const noexcept;
 
-		sl_bool connectDomain(const StringParam& path, sl_bool flagAbstract = sl_false) noexcept;
+		sl_bool connectDomain(const StringParam& path, sl_bool flagAbstract = sl_false) const noexcept;
 
-		sl_bool connectDomainAndWait(const StringParam& address, sl_int32 timeout = -1) noexcept;
+		sl_bool connectDomainAndWait(const StringParam& address, sl_int32 timeout = -1) const noexcept;
 
-		sl_bool connectAbstractDomain(const StringParam& name) noexcept;
+		sl_bool connectAbstractDomain(const StringParam& name) const noexcept;
 
-		sl_bool connectAbstractDomainAndWait(const StringParam& name, sl_int32 timeout = -1) noexcept;
+		sl_bool connectAbstractDomainAndWait(const StringParam& name, sl_int32 timeout = -1) const noexcept;
 
-		sl_int32 send(const void* buf, sl_size size) noexcept;
+		sl_int32 send(const void* buf, sl_size size) const noexcept;
+		sl_int32 write32(const void* buf, sl_uint32 size) const noexcept;
+		sl_reg write(const void* buf, sl_size size) const noexcept;
+
+		sl_int32 receive(void* buf, sl_size size) const noexcept;
+		sl_int32 read32(void* buf, sl_uint32 size) const noexcept;
+		sl_reg read(void* buf, sl_size size) const noexcept;
+
+		sl_int32 sendTo(const SocketAddress& address, const void* buf, sl_size size) const noexcept;
+
+		sl_int32 sendToDomain(const StringParam& path, const void* buf, sl_size size, sl_bool flagAbstract = sl_false) const noexcept;
+
+		sl_int32 sendToAbstractDomain(const StringParam& name, const void* buf, sl_size size) const noexcept;
+
+		sl_int32 receiveFrom(SocketAddress& address, void* buf, sl_size size) const noexcept;
+
+		sl_int32 receiveFromDomain(void* buf, sl_size size, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
+
+		sl_int32 receiveFromDomain(void* buf, sl_size size, String& outPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
+
+		sl_int32 sendPacket(const void* buf, sl_size size, const L2PacketInfo& info) const noexcept;
 		
-		sl_int32 receive(void* buf, sl_size size) noexcept;
+		sl_int32 receivePacket(const void* buf, sl_size size, L2PacketInfo& info) const noexcept;
 		
-		sl_int32 sendTo(const SocketAddress& address, const void* buf, sl_size size) noexcept;
-
-		sl_int32 sendToDomain(const StringParam& path, const void* buf, sl_size size, sl_bool flagAbstract = sl_false) noexcept;
-
-		sl_int32 sendToAbstractDomain(const StringParam& name, const void* buf, sl_size size) noexcept;
-
-		sl_int32 receiveFrom(SocketAddress& address, void* buf, sl_size size) noexcept;
-
-		sl_int32 receiveFromDomain(void* buf, sl_size size, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) noexcept;
-
-		sl_int32 receiveFromDomain(void* buf, sl_size size, String& outPath, sl_bool* pOutFlagAbstract = sl_null) noexcept;
-
-		sl_int32 sendPacket(const void* buf, sl_size size, const L2PacketInfo& info) noexcept;
+		sl_bool setNonBlockingMode(sl_bool flagEnable) const noexcept;
 		
-		sl_int32 receivePacket(const void* buf, sl_size size, L2PacketInfo& info) noexcept;
+		sl_bool setPromiscuousMode(const StringParam& deviceName, sl_bool flagEnable) const noexcept;
 		
-		sl_bool setNonBlockingMode(sl_bool flagEnable) noexcept;
+		sl_bool getLocalAddress(SocketAddress& _out) const noexcept;
 		
-		sl_bool setPromiscuousMode(const StringParam& deviceName, sl_bool flagEnable) noexcept;
-		
-		sl_bool getLocalAddress(SocketAddress& _out) noexcept;
-		
-		sl_bool getRemoteAddress(SocketAddress& _out) noexcept;
+		sl_bool getRemoteAddress(SocketAddress& _out) const noexcept;
 
-		sl_bool getLocalDomain(char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) noexcept;
+		sl_bool getLocalDomain(char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
 
-		String getLocalDomain(sl_bool* pOutFlagAbstract = sl_null) noexcept;
+		String getLocalDomain(sl_bool* pOutFlagAbstract = sl_null) const noexcept;
 
-		sl_bool getRemoteDomain(char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) noexcept;
+		sl_bool getRemoteDomain(char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
 
-		String getRemoteDomain(sl_bool* pOutFlagAbstract = sl_null) noexcept;
+		String getRemoteDomain(sl_bool* pOutFlagAbstract = sl_null) const noexcept;
 
 		sl_uint32 getOption_Error() const noexcept;
 		
-		sl_bool setOption_Broadcast(sl_bool flagEnable) noexcept;
+		sl_bool setOption_Broadcast(sl_bool flagEnable) const noexcept;
 		
 		sl_bool getOption_Broadcast() const noexcept;
 		
-		sl_bool setOption_ReuseAddress(sl_bool flagEnable) noexcept;
+		sl_bool setOption_ReuseAddress(sl_bool flagEnable) const noexcept;
 		
 		sl_bool getOption_ReuseAddress() const noexcept;
 		
-		sl_bool setOption_ReusePort(sl_bool flagEnable) noexcept;
+		sl_bool setOption_ReusePort(sl_bool flagEnable) const noexcept;
 		
 		sl_bool getOption_ReusePort() const noexcept;
 		
-		sl_bool setOption_SendBufferSize(sl_uint32 size) noexcept;
+		sl_bool setOption_SendBufferSize(sl_uint32 size) const noexcept;
 		
 		sl_uint32 getOption_SendBufferSize() const noexcept;
 		
-		sl_bool setOption_ReceiveBufferSize(sl_uint32 size) noexcept;
+		sl_bool setOption_ReceiveBufferSize(sl_uint32 size) const noexcept;
 		
 		sl_uint32 getOption_ReceiveBufferSize() const noexcept;
 		
-		sl_bool setOption_SendTimeout(sl_uint32 size) noexcept; // write-only
+		sl_bool setOption_SendTimeout(sl_uint32 size) const noexcept; // write-only
 		
-		sl_bool setOption_ReceiveTimeout(sl_uint32 size) noexcept; // write-only
+		sl_bool setOption_ReceiveTimeout(sl_uint32 size) const noexcept; // write-only
 		
-		sl_bool setOption_IPv6Only(sl_bool flagEnable) noexcept;
+		sl_bool setOption_IPv6Only(sl_bool flagEnable) const noexcept;
 		
 		sl_bool getOption_IPv6Only() const noexcept;
 		
-		sl_bool setOption_TcpNoDelay(sl_bool flagEnable) noexcept;
+		sl_bool setOption_TcpNoDelay(sl_bool flagEnable) const noexcept;
 		
 		sl_bool getOption_TcpNoDelay() const noexcept;
 		
-		sl_bool setOption_IpTTL(sl_uint32 ttl) noexcept; // max - 255
+		sl_bool setOption_IpTTL(sl_uint32 ttl) const noexcept; // max - 255
 		
 		sl_uint32 getOption_IpTTL() const noexcept;
 		
 		sl_bool getOption_IsListening() const noexcept; // read-only
 		
-		sl_bool setOption_IncludeIpHeader(sl_bool flagEnable) noexcept;
+		sl_bool setOption_IncludeIpHeader(sl_bool flagEnable) const noexcept;
 		
 		sl_bool getOption_IncludeIpHeader() const noexcept;
 		
-		sl_bool setOption_bindToDevice(const StringParam& ifname) noexcept;
+		sl_bool setOption_bindToDevice(const StringParam& ifname) const noexcept;
 		
 		// multicast
 		// interface address may be null
-		sl_bool setOption_IpAddMembership(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) noexcept;
+		sl_bool setOption_IpAddMembership(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) const noexcept;
 		
-		sl_bool setOption_IpDropMembership(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) noexcept;
+		sl_bool setOption_IpDropMembership(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) const noexcept;
 		
-		sl_bool setOption_IpMulticastLoop(sl_bool flag) noexcept;
+		sl_bool setOption_IpMulticastLoop(sl_bool flag) const noexcept;
 		
 		sl_bool getOption_IpMulticastLoop() const noexcept;
 		
-		sl_bool setOption_IpMulticastTTL(sl_uint32 ttl = 1) noexcept;
+		sl_bool setOption_IpMulticastTTL(sl_uint32 ttl = 1) const noexcept;
 		
 		sl_uint32 getOption_IpMulticastTTL() const noexcept;
 
@@ -338,19 +340,34 @@ namespace slib
 		
 		static void clearError() noexcept;
 		
+	public:
+		Socket& operator*() noexcept
+		{
+			return *this;
+		}
+
 	private:
 		static SocketError _setError(SocketError code) noexcept;
 		static SocketError _checkError() noexcept;
 		static sl_int32 _processResult(sl_int32 result) noexcept;
 		
-		sl_bool setOption(int level, int option, const void* buf, sl_uint32 bufSize) noexcept;
+		sl_bool setOption(int level, int option, const void* buf, sl_uint32 bufSize) const noexcept;
 		sl_bool getOption(int level, int option, void* buf, sl_uint32 bufSize) const noexcept;
-		sl_bool setOption(int level, int option, sl_uint32 value) noexcept;
+		sl_bool setOption(int level, int option, sl_uint32 value) const noexcept;
 		sl_uint32 getOption(int level, int option) const noexcept;
 		
-	protected:
-		sl_socket m_socket;
-		
+	};
+
+	class SocketValue : public Socket
+	{
+	public:
+		SocketValue(sl_socket socket) noexcept: Socket(socket) {}
+
+		~SocketValue()
+		{
+			release();
+		}
+
 	};
 
 }

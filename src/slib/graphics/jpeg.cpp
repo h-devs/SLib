@@ -1351,9 +1351,9 @@ namespace slib
 
 	Ref<Image> Jpeg::loadFromFile(const StringParam& path)
 	{
-		Ref<File> file = File::openForRead(path);
-		if (file.isNotNull()) {
-			return load(file.get());
+		IO<File> file = File::openForRead(path);
+		if (file.isOpened()) {
+			return load(&file);
 		}
 		return sl_null;
 	}

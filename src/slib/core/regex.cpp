@@ -112,8 +112,7 @@ namespace slib
 
 	using namespace priv::regex;
 
-	SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(RegEx, HRegEx, m_handle, DeleteRegExHandle)
-	SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(RegEx, HRegEx, m_handle, DeleteRegExHandle)
+	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(RegEx, HRegEx, m_handle, sl_null, DeleteRegExHandle)
 
 	RegEx::RegEx(const StringParam& pattern) noexcept
 	{

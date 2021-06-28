@@ -63,7 +63,7 @@ namespace slib
 
 	class RegEx
 	{
-		SLIB_DECLARE_NULLABLE_HANDLE_CONTAINER_MEMBERS(RegEx, HRegEx, m_handle)
+		SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(RegEx, HRegEx, m_handle, sl_null)
 
 	public:
 		RegEx(const StringParam& pattern) noexcept;
@@ -77,12 +77,6 @@ namespace slib
 
 	};
 	
-	template <>
-	class SLIB_EXPORT Atomic<RegEx>
-	{
-		SLIB_DECLARE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(RegEx, HRegEx, m_handle)
-	};
-
 }
 
 #endif

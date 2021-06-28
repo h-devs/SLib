@@ -407,8 +407,11 @@ namespace slib
 				
 				static void onRunPlay(WeakRef<FFmpegPlayer> weak)
 				{
-					Ref<Thread> thread = Thread::getCurrent();
-					while (thread.isNull() || thread->isNotStopping()) {
+					Thread* thread = Thread::getCurrent();
+					if (!thread) {
+						return;
+					}
+					while (thread->isNotStopping()) {
 						auto player = ToRef(weak);
 						if (player.isNull()) {
 							return;

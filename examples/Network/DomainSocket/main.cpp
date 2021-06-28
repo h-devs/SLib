@@ -9,15 +9,15 @@ int main(int argc, const char * argv[])
 	// Listening Thread
 	Thread::start([]() {
 		auto server = Socket::openDomainStream();
-		if (server.isNull()) {
+		if (server.isNone()) {
 			Println("Domain socket is not supported!");
 			return;
 		}
-		if (!(server->bindDomain(SERVER_PATH))) {
+		if (!(server.bindDomain(SERVER_PATH))) {
 			Println("Bind: %s", Socket::getLastErrorMessage());
 			return;
 		}
-		if (!(server->listen())) {
+		if (!(server.listen())) {
 			Println("Listen: %s", Socket::getLastErrorMessage());
 			return;
 		}
@@ -25,32 +25,30 @@ int main(int argc, const char * argv[])
 		// Connecting Thread
 		Thread::start([]() {
 			auto socket = Socket::openDomainStream();
-			socket->bindAbstractDomain("first client");
-			if (!(socket->connectDomain(SERVER_PATH))) {
+			socket.bindAbstractDomain("first client");
+			if (!(socket.connectDomain(SERVER_PATH))) {
 				Println("Connect: %s", Socket::getLastErrorMessage());
 				return;
 			}
-			TcpStream stream(socket);
 			int index = 1;
 			for (;;) {
 				String msg = String::format("Message %d", index++);
-				Serialize(&stream, msg);
+				Serialize(&socket, msg);
 				Thread::sleep(1000);
 			}
 		});
 
 		String pathClient;
 		sl_bool flagAbstract;
-		auto socket = server->acceptDomain(pathClient, &flagAbstract);
-		if (socket.isNull()) {
+		auto socket = server.acceptDomain(pathClient, &flagAbstract);
+		if (socket.isNone()) {
 			Println("%s", Socket::getLastErrorMessage());
 			return;
 		}
 		Println("Accepted: %s, Abstract: %s", pathClient, flagAbstract);
-		TcpStream stream(socket);
 		for (;;) {
 			String msg;
-			Deserialize(&stream, msg);
+			Deserialize(&socket, msg);
 			Println(msg);
 		}
 	});

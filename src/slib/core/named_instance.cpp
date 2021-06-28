@@ -29,6 +29,7 @@
 #else
 
 #include "slib/core/file.h"
+#include "slib/core/system.h"
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -51,9 +52,9 @@ namespace slib
 				return String16::join("Global\\", _name);
 			}
 #else
-			static String MakeInstancePath(const StringParam& _name)
+			static String MakeInstancePath(const StringParam& name)
 			{
-				String pathRoot = String::join(System::getHomeDirectory(), "/.named_inst";
+				String pathRoot = String::join(System::getHomeDirectory(), "/.named_inst");
 				if (!(File::exists(pathRoot))) {
 					File::createDirectory(pathRoot);
 				}
@@ -64,42 +65,40 @@ namespace slib
 			static HNamedInstance CreateInstanceHandle(const StringParam& _name)
 			{
 				if (_name.isEmpty()) {
-					return sl_null;
+					return SLIB_NAMED_INSTANCE_INVALID_HANDLE;
 				}
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 				String16 name = MakeInstanceName(_name);
 				HANDLE hMutex = OpenMutexW(MUTEX_ALL_ACCESS, FALSE, (LPCWSTR)(name.getData()));
 				if (hMutex) {
 					CloseHandle(hMutex);
-					return sl_null;
+					return SLIB_NAMED_INSTANCE_INVALID_HANDLE;
 				}
 				hMutex = CreateMutexW(NULL, FALSE, (LPCWSTR)(name.getData()));
 				if (hMutex) {
 					return hMutex;
 				}
-				return sl_null;
+				return SLIB_NAMED_INSTANCE_INVALID_HANDLE;
 #else
 				String path = MakeInstancePath(_name);
 				int handle = open(path.getData(), O_RDWR | O_CREAT | O_EXCL, 0644);
 				if (handle == -1) {
-					handle = open(_path.getData(), O_RDWR);
+					handle = open(path.getData(), O_RDWR);
 					if (handle == -1) {
-						return sl_null;
+						return SLIB_NAMED_INSTANCE_INVALID_HANDLE;
 					}
 				}
-				if (handle != -1) {
-					struct flock fl;
-					Base::zeroMemory(&fl, sizeof(fl));
-					fl.l_start = 0;
-					fl.l_len = 0;
-					fl.l_type = F_WRLCK;
-					fl.l_whence = SEEK_SET;
-					int ret = fcntl(handle, F_SETLK, &fl);
-					if (ret >= 0) {
-						return handle;
-					}
-					close(handle);
+				struct flock fl;
+				Base::zeroMemory(&fl, sizeof(fl));
+				fl.l_start = 0;
+				fl.l_len = 0;
+				fl.l_type = F_WRLCK;
+				fl.l_whence = SEEK_SET;
+				int ret = fcntl(handle, F_SETLK, &fl);
+				if (ret >= 0) {
+					return handle;
 				}
+				close(handle);
 				return 0;
 #endif
 			}
@@ -126,7 +125,6 @@ namespace slib
 	using namespace priv::named_instance;
 
 	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(NamedInstance, HNamedInstance, m_handle, SLIB_NAMED_INSTANCE_INVALID_HANDLE, CloseInstanceHandle)
-	SLIB_DEFINE_ATOMIC_HANDLE_CONTAINER_MEMBERS(NamedInstance, HNamedInstance, m_handle, SLIB_NAMED_INSTANCE_INVALID_HANDLE, CloseInstanceHandle)
 
 	NamedInstance::NamedInstance(const StringParam& name)
 	{
@@ -146,7 +144,7 @@ namespace slib
 			return sl_true;
 		}
 #else
-		return NamedInstance(_name).isNull();
+		return NamedInstance(_name).isNone();
 #endif
 		return sl_false;
 	}

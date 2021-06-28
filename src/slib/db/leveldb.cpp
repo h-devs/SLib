@@ -420,10 +420,10 @@ namespace slib
 							StringCstr encryptionKey(param.encryptionKey);
 							SLIB_STATIC_STRING(filenameENC, "ENC")
 							String pathENC = File::joinPath(path, filenameENC);
-							Ref<File> file = File::openForRead(pathENC);
-							if (file.isNotNull()) {
+							File file = File::openForRead(pathENC);
+							if (file.isOpened()) {
 								char header[ChaCha20_FileEncryptor::HeaderSize];
-								if (file->readFully(header, sizeof(header)) == sizeof(header)) {
+								if (file.readFully(header, sizeof(header)) == sizeof(header)) {
 									if (enc.open(header, encryptionKey.getData(), encryptionKey.getLength())) {
 										break;
 									} else {
@@ -444,7 +444,7 @@ namespace slib
 											File::createDirectories(path);
 										}
 										file = File::openForWrite(pathENC);
-										if (file.isNotNull()) {
+										if (file.isOpened()) {
 											break;
 										}
 									}
@@ -456,7 +456,7 @@ namespace slib
 
 							char header[ChaCha20_FileEncryptor::HeaderSize];
 							enc.create(header, encryptionKey.getData(), encryptionKey.getLength());
-							if (!(file->writeFully(header, sizeof(header)) == sizeof(header))) {
+							if (!(file.writeFully(header, sizeof(header)) == sizeof(header))) {
 								SLIB_STATIC_STRING(error, "Failed to write encryption header")
 								param.errorText = error;
 								return sl_null;

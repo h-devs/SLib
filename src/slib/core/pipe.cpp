@@ -51,7 +51,7 @@ namespace slib
 				}
 #else
 				int fd[2];
-				if (!(pipe(fd))) {
+				if (!(::pipe(fd))) {
 					handle.hRead = fd[0];
 					handle.hWrite = fd[1];
 					return;
@@ -77,8 +77,7 @@ namespace slib
 
 	using namespace priv::pipe;
 
-	SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_MEMBERS(Pipe, HPipe, m_handle, ClosePipeHandle)
-	SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_MEMBERS(Pipe, HPipe, m_handle, ClosePipeHandle)
+	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(Pipe, HPipe, m_handle, sl_null, ClosePipeHandle)
 	SLIB_DEFINE_ISTREAM_MEMBERS(Pipe, const noexcept)
 
 	Pipe Pipe::create() noexcept
@@ -177,8 +176,8 @@ namespace slib
 		m_flagSet = sl_false;
 #if defined(SLIB_PLATFORM_IS_UNIX)
 		if (m_pipe.isOpened()) {
-			File::setNonBlocking(pipe.getReadHandle(), sl_true);
-			File::setNonBlocking(pipe.getWriteHandle(), sl_true);
+			File::setNonBlocking(m_pipe.getReadHandle(), sl_true);
+			File::setNonBlocking(m_pipe.getWriteHandle(), sl_true);
 		}
 #endif
 	}
@@ -202,7 +201,7 @@ namespace slib
 		return m_pipe.getWriteHandle();
 	}
 
-	sl_bool PipeEvent::isOpended()
+	sl_bool PipeEvent::isOpened()
 	{
 		return m_pipe.isOpened();
 	}

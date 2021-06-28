@@ -390,45 +390,6 @@ namespace slib
 
 	};
 
-	template <class T>
-	class SLIB_EXPORT Atomic< JniGlobal<T> >
-	{
-		SLIB_DEFINE_ATOMIC_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(JniGlobal<T>, T, value, Jni::deleteGlobalRef)
-
-	public:
-		template <class OTHER>
-		Atomic(JniGlobal<OTHER>&& other) noexcept
-		{
-			value = (T)(other.value);
-			other.value = sl_null;
-		}
-
-		template <class OTHER>
-		Atomic& operator=(JniGlobal<OTHER>&& other) noexcept
-		{
-			set((T)(other.value));
-			other.value = sl_null;
-			return *this;
-		}
-
-		template <class OTHER>
-		Atomic(const JniLocal<OTHER>& other) noexcept
-		{
-			value = (T)(Jni::newGlobalRef(other.value));
-		}
-
-		template <class OTHER>
-		Atomic& operator=(const JniLocal<OTHER>& other) noexcept
-		{
-			set((T)(Jni::newGlobalRef(other.value)));
-			return *this;
-		}
-
-	};
-
-	template <class T>
-	using AtomicJniGlobal = Atomic< JniGlobal<T> >;
-
 	class SLIB_EXPORT JniStringConstant
 	{
 	public:

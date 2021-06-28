@@ -106,7 +106,7 @@ namespace slib
 			class RawPacketCapture : public NetCapture
 			{
 			public:
-				AtomicRef<Socket> m_socket;
+				Socket m_socket;
 				
 				NetworkLinkDeviceType m_deviceType;
 				sl_uint32 m_ifaceIndex;
@@ -144,7 +144,7 @@ namespace slib
 							return sl_null;
 						}
 					}
-					Ref<Socket> socket;
+					Socket socket;
 					NetworkLinkDeviceType deviceType = param.preferedLinkDeviceType;
 					if (deviceType == NetworkLinkDeviceType::Raw) {
 						socket = Socket::openPacketDatagram(NetworkLinkProtocol::All);
@@ -152,14 +152,14 @@ namespace slib
 						deviceType = NetworkLinkDeviceType::Ethernet;
 						socket = Socket::openPacketRaw(NetworkLinkProtocol::All);
 					}
-					if (socket.isNotNull()) {
+					if (socket.isOpened()) {
 						if (iface > 0) {
 							if (param.flagPromiscuous) {
-								if (!(socket->setPromiscuousMode(deviceName, sl_true))) {
+								if (!(socket.setPromiscuousMode(deviceName, sl_true))) {
 									Log(TAG, "Failed to set promiscuous mode to the network device: %s", deviceName);
 								}
 							}
-							if (!(socket->setOption_bindToDevice(deviceName))) {
+							if (!(socket.setOption_bindToDevice(deviceName))) {
 								Log(TAG, "Failed to bind the network device: %s", deviceName);
 							}
 						}
@@ -168,8 +168,8 @@ namespace slib
 							Ref<RawPacketCapture> ret = new RawPacketCapture;
 							if (ret.isNotNull()) {
 								ret->_initWithParam(param);
-								ret->m_bufPacket = mem;
-								ret->m_socket = socket;
+								ret->m_bufPacket = Move(mem);
+								ret->m_socket = Move(socket);
 								ret->m_deviceType = deviceType;
 								ret->m_ifaceIndex = iface;
 								ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(RawPacketCapture, _run, ret.get()));
@@ -203,7 +203,7 @@ namespace slib
 						m_thread->finishAndWait();
 						m_thread.setNull();
 					}
-					m_socket.setNull();
+					m_socket.setNone();
 				}
 				
 				void start()
@@ -230,26 +230,28 @@ namespace slib
 				
 				void _run()
 				{
-					NetCapturePacket packet;
-					
-					Ref<Socket> socket = m_socket;
-					if (socket.isNull()) {
+					Thread* thread = Thread::getCurrent();
+					if (!thread) {
 						return;
 					}
-					socket->setNonBlockingMode(sl_true);
-					Ref<SocketEvent> event = SocketEvent::createRead(socket);
-					if (event.isNull()) {
+
+					NetCapturePacket packet;
+					
+					Socket& socket = m_socket;
+
+					socket.setNonBlockingMode(sl_true);
+					SocketEvent event = SocketEvent::createRead(socket);
+					if (event.isNone()) {
 						return;
 					}
 					
 					sl_uint8* buf = (sl_uint8*)(m_bufPacket.getData());
 					sl_uint32 sizeBuf = (sl_uint32)(m_bufPacket.getSize());
 					
-					Ref<Thread> thread = Thread::getCurrent();
-					while (thread.isNull() || thread->isNotStopping()) {
+					while (thread->isNotStopping()) {
 						while (1) {
 							L2PacketInfo info;
-							sl_int32 n = socket->receivePacket(buf, sizeBuf, info);
+							sl_int32 n = socket.receivePacket(buf, sizeBuf, info);
 							if (n > 0) {
 								packet.data = buf;
 								packet.length = n;
@@ -259,7 +261,7 @@ namespace slib
 								break;
 							}
 						}
-						event->wait();
+						event.wait();
 					}
 				}
 				
@@ -288,12 +290,9 @@ namespace slib
 							info.protocol = NetworkLinkProtocol::IPv4;
 							info.clearAddress();
 						}
-						Ref<Socket> socket = m_socket;
-						if (socket.isNotNull()) {
-							sl_uint32 ret = socket->sendPacket(buf, size, info);
-							if (ret == size) {
-								return sl_true;
-							}
+						sl_uint32 ret = m_socket.sendPacket(buf, size, info);
+						if (ret == size) {
+							return sl_true;
 						}
 					}
 					return sl_false;
@@ -305,9 +304,9 @@ namespace slib
 			class RawIPv4Capture : public NetCapture
 			{
 			public:
-				AtomicRef<Socket> m_socketTCP;
-				AtomicRef<Socket> m_socketUDP;
-				AtomicRef<Socket> m_socketICMP;
+				Socket m_socketTCP;
+				Socket m_socketUDP;
+				Socket m_socketICMP;
 				
 				Memory m_bufPacket;
 				Ref<Thread> m_thread;
@@ -330,22 +329,22 @@ namespace slib
 			public:
 				static Ref<RawIPv4Capture> create(const NetCaptureParam& param)
 				{
-					Ref<Socket> socketTCP = Socket::openRaw(NetworkInternetProtocol::TCP);
-					Ref<Socket> socketUDP = Socket::openRaw(NetworkInternetProtocol::UDP);
-					Ref<Socket> socketICMP = Socket::openRaw(NetworkInternetProtocol::ICMP);
-					if (socketTCP.isNotNull() && socketUDP.isNotNull() && socketICMP.isNotNull()) {
-						socketTCP->setOption_IncludeIpHeader(sl_true);
-						socketUDP->setOption_IncludeIpHeader(sl_true);
-						socketICMP->setOption_IncludeIpHeader(sl_true);
+					Socket socketTCP = Socket::openRaw(NetworkInternetProtocol::TCP);
+					Socket socketUDP = Socket::openRaw(NetworkInternetProtocol::UDP);
+					Socket socketICMP = Socket::openRaw(NetworkInternetProtocol::ICMP);
+					if (socketTCP.isOpened() && socketUDP.isOpened() && socketICMP.isOpened()) {
+						socketTCP.setOption_IncludeIpHeader(sl_true);
+						socketUDP.setOption_IncludeIpHeader(sl_true);
+						socketICMP.setOption_IncludeIpHeader(sl_true);
 						Memory mem = Memory::create(MAX_PACKET_SIZE);
 						if (mem.isNotNull()) {
 							Ref<RawIPv4Capture> ret = new RawIPv4Capture;
 							if (ret.isNotNull()) {
 								ret->_initWithParam(param);
-								ret->m_bufPacket = mem;
-								ret->m_socketTCP = socketTCP;
-								ret->m_socketUDP = socketUDP;
-								ret->m_socketICMP = socketICMP;
+								ret->m_bufPacket = Move(mem);
+								ret->m_socketTCP = Move(socketTCP);
+								ret->m_socketUDP = Move(socketUDP);
+								ret->m_socketICMP = Move(socketICMP);
 								ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(RawIPv4Capture, _run, ret.get()));
 								if (ret->m_thread.isNotNull()) {
 									ret->m_flagInit = sl_true;
@@ -375,9 +374,9 @@ namespace slib
 						m_thread->finishAndWait();
 						m_thread.setNull();
 					}
-					m_socketTCP.setNull();
-					m_socketUDP.setNull();
-					m_socketICMP.setNull();
+					m_socketTCP.setNone();
+					m_socketUDP.setNone();
+					m_socketICMP.setNone();
 				}
 				
 				void start()
@@ -405,50 +404,55 @@ namespace slib
 				
 				void _run()
 				{
+					Thread* thread = Thread::getCurrent();
+					if (!thread) {
+						return;
+					}
+
 					NetCapturePacket packet;
 					
-					Ref<Socket> socketTCP = m_socketTCP;
-					if (socketTCP.isNull()) {
+					Socket& socketTCP = m_socketTCP;
+					if (socketTCP.isNone()) {
 						return;
 					}
-					socketTCP->setNonBlockingMode(sl_true);
-					Ref<SocketEvent> eventTCP = SocketEvent::createRead(socketTCP);
-					if (eventTCP.isNull()) {
-						return;
-					}
-					
-					Ref<Socket> socketUDP = m_socketUDP;
-					if (socketUDP.isNull()) {
-						return;
-					}
-					socketUDP->setNonBlockingMode(sl_true);
-					Ref<SocketEvent> eventUDP = SocketEvent::createRead(socketUDP);
-					if (eventUDP.isNull()) {
+					socketTCP.setNonBlockingMode(sl_true);
+					SocketEvent eventTCP = SocketEvent::createRead(socketTCP);
+					if (eventTCP.isNone()) {
 						return;
 					}
 					
-					Ref<Socket> socketICMP = m_socketICMP;
-					if (socketICMP.isNull()) {
+					Socket& socketUDP = m_socketUDP;
+					if (socketUDP.isNone()) {
 						return;
 					}
-					socketICMP->setNonBlockingMode(sl_true);
-					Ref<SocketEvent> eventICMP = SocketEvent::createRead(socketICMP);
-					if (eventICMP.isNull()) {
+					socketUDP.setNonBlockingMode(sl_true);
+					SocketEvent eventUDP = SocketEvent::createRead(socketUDP);
+					if (eventUDP.isNone()) {
 						return;
 					}
 					
-					Ref<SocketEvent> events[3];
-					events[0] = eventTCP;
-					events[1] = eventUDP;
-					events[2] = eventICMP;
+					Socket& socketICMP = m_socketICMP;
+					if (socketICMP.isNone()) {
+						return;
+					}
+					socketICMP.setNonBlockingMode(sl_true);
+					SocketEvent eventICMP = SocketEvent::createRead(socketICMP);
+					if (eventICMP.isNone()) {
+						return;
+					}
+					
+					SocketEvent* events[3];
+					events[0] = &eventTCP;
+					events[1] = &eventUDP;
+					events[2] = &eventICMP;
 					
 					sl_uint8* buf = (sl_uint8*)(m_bufPacket.getData());
 					sl_uint32 sizeBuf = (sl_uint32)(m_bufPacket.getSize());
-					Ref<Thread> thread = Thread::getCurrent();
-					while (thread.isNull() || thread->isNotStopping()) {
+
+					while (thread->isNotStopping()) {
 						while (1) {
 							SocketAddress address;
-							sl_int32 n = socketTCP->receiveFrom(address, buf, sizeBuf);
+							sl_int32 n = socketTCP.receiveFrom(address, buf, sizeBuf);
 							if (n > 0) {
 								packet.data = buf;
 								packet.length = n;
@@ -460,7 +464,7 @@ namespace slib
 						}
 						while (1) {
 							SocketAddress address;
-							sl_int32 n = socketUDP->receiveFrom(address, buf, sizeBuf);
+							sl_int32 n = socketUDP.receiveFrom(address, buf, sizeBuf);
 							if (n > 0) {
 								packet.data = buf;
 								packet.length = n;
@@ -472,7 +476,7 @@ namespace slib
 						}
 						while (1) {
 							SocketAddress address;
-							sl_int32 n = socketICMP->receiveFrom(address, buf, sizeBuf);
+							sl_int32 n = socketICMP.receiveFrom(address, buf, sizeBuf);
 							if (n > 0) {
 								packet.data = buf;
 								packet.length = n;
@@ -499,20 +503,20 @@ namespace slib
 							IPv4Packet* ip = (IPv4Packet*)buf;
 							address.ip = ip->getDestinationAddress();
 							address.port = 0;
-							Ref<Socket> socket;
+							Socket* socket;
 							NetworkInternetProtocol protocol = ip->getProtocol();
 							if (protocol == NetworkInternetProtocol::TCP) {
-								socket = m_socketTCP;
+								socket = &m_socketTCP;
 							} else if (protocol == NetworkInternetProtocol::UDP) {
-								socket = m_socketUDP;
+								socket = &m_socketUDP;
 							} else if (protocol == NetworkInternetProtocol::ICMP) {
-								socket = m_socketICMP;
+								socket = &m_socketICMP;
+							} else {
+								return sl_false;
 							}
-							if (socket.isNotNull()) {
-								sl_uint32 ret = socket->sendTo(address, buf, size);
-								if (ret == size) {
-									return sl_true;
-								}
+							sl_uint32 ret = socket->sendTo(address, buf, size);
+							if (ret == size) {
+								return sl_true;
 							}
 						}
 					}

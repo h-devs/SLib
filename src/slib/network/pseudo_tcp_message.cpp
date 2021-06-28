@@ -380,7 +380,10 @@ namespace slib
 
 	void PseudoTcpMessage::process()
 	{
-		Ref<Thread> thread = Thread::getCurrent();
+		Thread* thread = Thread::getCurrent();
+		if (!thread) {
+			return;
+		}
 		while (thread->isNotStopping()) {
 			Function<void()> callback;
 			while (m_queueDispatch.popFront(&callback)) {

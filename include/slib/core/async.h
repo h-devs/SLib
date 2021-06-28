@@ -43,9 +43,14 @@ namespace slib
 	class AsyncIoInstance;
 	class AsyncIoObject;
 
-	typedef sl_reg sl_async_handle;
-	#define SLIB_ASYNC_INVALID_HANDLE ((sl_async_handle)(-1))
-	
+#ifdef SLIB_PLATFORM_IS_WINDOWS
+	typedef void* sl_async_handle;
+	#define SLIB_ASYNC_INVALID_HANDLE ((void*)((sl_reg)-1))
+#else
+	typedef int sl_async_handle;
+	#define SLIB_ASYNC_INVALID_HANDLE ((sl_async_handle)-1)
+#endif
+
 	class SLIB_EXPORT AsyncIoLoop : public Dispatcher
 	{
 		SLIB_DECLARE_OBJECT

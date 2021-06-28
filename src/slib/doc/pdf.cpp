@@ -286,9 +286,9 @@ namespace slib
 
 	sl_bool PdfDocument::isEncryptedFile(const StringParam& path)
 	{
-		Ref<File> file = File::openForRead(path);
-		if (file.isNotNull()) {
-			return isEncrypted(file);
+		IO<File> file = File::openForRead(path);
+		if (file.isOpened()) {
+			return isEncrypted(&file);
 		}
 		return sl_false;
 	}

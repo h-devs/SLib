@@ -1305,8 +1305,8 @@ namespace slib
 		}
 		check = 1;
 #endif
-		Ref<Thread> thread = Thread::getCurrent();
-		if (thread.isNotNull()) {
+		Thread* thread = Thread::getCurrent();
+		if (thread) {
 			SLIB_STATIC_STRING(name, "_SLIB_MYSQL")
 			Ref<Referable> ref = thread->getAttachedObject(name);
 			if (ref.isNull()) {

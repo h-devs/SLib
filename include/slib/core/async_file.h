@@ -39,9 +39,9 @@ namespace slib
 		~AsyncFile();
 
 	public:
-		static Ref<AsyncFile> create(const Ref<File>& file);
+		static Ref<AsyncFile> create(File&& file);
 
-		static Ref<AsyncFile> create(const Ref<File>& file, const Ref<Dispatcher>& dispatcher);
+		static Ref<AsyncFile> create(File&& file, const Ref<Dispatcher>& dispatcher);
 
 
 		static Ref<AsyncFile> open(const StringParam& path, FileMode mode);
@@ -82,13 +82,13 @@ namespace slib
 		sl_uint64 getSize() override;
 
 	public:
-		Ref<File> getFile();
+		File& getFile();
 
 	protected:
 		void processRequest(AsyncStreamRequest* request) override;
 
 	private:
-		AtomicRef<File> m_file;
+		File m_file;
 
 	};
 

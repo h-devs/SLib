@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{D1153F23-72DA-4CFF-B753-6FA6C5F95292}</ProjectGuid>
+    <ProjectGuid>{90954C3D-F076-4394-8906-1B63F43F7EEC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ExamplePing</RootNamespace>
   </PropertyGroup>

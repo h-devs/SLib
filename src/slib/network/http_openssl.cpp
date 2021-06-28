@@ -83,7 +83,7 @@ namespace slib
 							sp.ioLoop = loop;
 							Ref<AsyncTcpServer> server = AsyncTcpServer::create(sp);
 							if (server.isNotNull()) {
-								ret->m_server = server;
+								ret->m_server = Move(server);
 								return ret;
 							}
 						}
@@ -100,7 +100,7 @@ namespace slib
 					m_streamsHandshaking.setNull();
 				}
 				
-				void onAccept(AsyncTcpServer* socketListen, const Ref<Socket>& socketAccept, const SocketAddress& address)
+				void onAccept(AsyncTcpServer* socketListen, Socket& socketAccept, const SocketAddress& address)
 				{
 					Ref<HttpServer> server = getServer();
 					if (server.isNotNull()) {
@@ -108,15 +108,15 @@ namespace slib
 						if (loop.isNull()) {
 							return;
 						}
+						SocketAddress addrLocal;
+						socketAccept.getLocalAddress(addrLocal);
 						AsyncTcpSocketParam cp;
-						cp.socket = socketAccept;
+						cp.socket = Move(socketAccept);
 						cp.ioLoop = loop;
 						Ref<AsyncTcpSocket> stream = AsyncTcpSocket::create(cp);
 						if (stream.isNotNull()) {
 							Ref<OpenSSL_AsyncStream> tlsStream = OpenSSL::acceptStream(stream, m_tlsParam);
 							if (tlsStream.isNotNull()) {
-								SocketAddress addrLocal;
-								socketAccept->getLocalAddress(addrLocal);
 								StreamDesc desc;
 								desc.stream = tlsStream;
 								desc.addressLocal = addrLocal;
