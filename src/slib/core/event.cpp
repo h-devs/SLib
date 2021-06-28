@@ -142,11 +142,11 @@ namespace slib
 	namespace posix
 	{
 
-		Event::Event(sl_bool flagAutoReset) noexcept
+		Event::Event(sl_bool _flagAutoReset) noexcept
 		{
 			pthread_cond_init(&cond, sl_null);
 			pthread_mutex_init(&mutex, sl_null);
-			flagAutoReset = flagAutoReset;
+			flagAutoReset = _flagAutoReset;
 			signal = sl_false;
 		}
 

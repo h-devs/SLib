@@ -223,6 +223,7 @@ namespace slib
 
 	void Thread::wake()
 	{
+		ObjectLocker lock(this);
 		IEvent* ev = m_eventWaiting;
 		if (ev) {
 			ev->set();
@@ -236,11 +237,13 @@ namespace slib
 
 	void Thread::setWaitingEvent(IEvent* ev)
 	{
+		ObjectLocker lock(this);
 		m_eventWaiting = ev;
 	}
 
 	void Thread::clearWaitingEvent()
 	{
+		ObjectLocker lock(this);
 		m_eventWaiting = sl_null;
 	}
 
