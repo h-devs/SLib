@@ -76,7 +76,7 @@ namespace slib
 		static void registerOpenUrlCallback(const Function<BOOL(NSURL*, NSDictionary*)>& callback);
 
 		static sl_bool parseRemoteNotificationInfo(NSDictionary* userInfo, PushNotificationMessage& _out);
-
+#	endif
 	};
 
 }

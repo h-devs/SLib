@@ -37,7 +37,7 @@ namespace slib
 	public:
 		MoveT(T&& other) noexcept: value(Move(other)) {}
 
-		MoveT(MoveT& other) noexcept: value(Move(other.value)) {}
+		MoveT(const MoveT& other) noexcept: value(Move(const_cast<T&>(other.value))) {}
 
 	public:
 		T&& release() const noexcept

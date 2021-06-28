@@ -370,6 +370,7 @@
 		26FE7D8D25A2F1B900B787F0 /* plot_ui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8B25A2F1B800B787F0 /* plot_ui.cpp */; };
 		26FE7D8E25A2F1B900B787F0 /* plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8C25A2F1B800B787F0 /* plot.cpp */; };
 		26FE7D9025A2F1CB00B787F0 /* image_canvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8F25A2F1CB00B787F0 /* image_canvas.cpp */; };
+		D71B3A57268A4D7400707369 /* ipc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D71B3A56268A4D7400707369 /* ipc.cpp */; };
 		D72A0871263B503300BCD333 /* rocksdb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0870263B503300BCD333 /* rocksdb.cpp */; };
 		D72A0879263B503E00BCD333 /* object_storage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0878263B503E00BCD333 /* object_storage.cpp */; };
 		D72A0881263B504600BCD333 /* mysql_data.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0880263B504600BCD333 /* mysql_data.cpp */; };
@@ -858,6 +859,7 @@
 		A25F2FC11B03A33700854DAF /* variant.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = variant.cpp; sourceTree = "<group>"; };
 		A2DE1D861B383BA600A74698 /* pipe.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pipe.cpp; sourceTree = "<group>"; };
 		A2DE1D8A1B383BB000A74698 /* system_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system_unix.cpp; sourceTree = "<group>"; };
+		D71B3A56268A4D7400707369 /* ipc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ipc.cpp; sourceTree = "<group>"; };
 		D72A0870263B503300BCD333 /* rocksdb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rocksdb.cpp; sourceTree = "<group>"; };
 		D72A0878263B503E00BCD333 /* object_storage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = object_storage.cpp; sourceTree = "<group>"; };
 		D72A0880263B504600BCD333 /* mysql_data.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mysql_data.cpp; sourceTree = "<group>"; };
@@ -1204,6 +1206,7 @@
 				266DD4C31C11940A00D47AB0 /* http_server.cpp */,
 				26BAE0322223E3BB0085B5AB /* http_openssl.cpp */,
 				266DD4C41C11940A00D47AB0 /* icmp.cpp */,
+				D71B3A56268A4D7400707369 /* ipc.cpp */,
 				266DD4C51C11940A00D47AB0 /* ip_address.cpp */,
 				266DD4C61C11940A00D47AB0 /* mac_address.cpp */,
 				266DD4C71C11940A00D47AB0 /* nat.cpp */,
@@ -2163,6 +2166,7 @@
 				26D9D9261E9645CE005F7BD3 /* file.cpp in Sources */,
 				26EA2061239A90E2008218D7 /* ui_notification_fcm.cpp in Sources */,
 				26D9D9DA1E96468D005F7BD3 /* transition.cpp in Sources */,
+				D71B3A57268A4D7400707369 /* ipc.cpp in Sources */,
 				26D9D9C31E96468D005F7BD3 /* linear_layout.cpp in Sources */,
 				26446D66249377BE00430AC5 /* list_box.cpp in Sources */,
 				26D9D97E1E964675005F7BD3 /* audio_device.cpp in Sources */,

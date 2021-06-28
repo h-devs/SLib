@@ -40,12 +40,10 @@ namespace slib
 		namespace ipc
 		{
 
-#if defined(SLIB_PLATFORM_IS_WIN32)
 			static String GetDomainName(const StringParam& name)
 			{
-				return String::join(System::getTempDirectory(), "/", name);
+				return String::join(System::getTempDirectory(), "/IPC__", name);
 			}
-#endif
 
 			class DomainSocketIPCImpl : public IPC
 			{
@@ -83,13 +81,9 @@ namespace slib
 				{
 					Socket socket = Socket::openDomainStream();
 					if (socket.isOpened()) {
-#if defined(SLIB_PLATFORM_IS_WIN32)
 						String path = GetDomainName(param.name);
 						File::deleteFile(path);
 						if (socket.bindDomain(path)) {
-#else
-						if (socket.bindAbstractDomain(param.name))) {
-#endif
 							if (socket.setNonBlockingMode(sl_true)) {
 								if (socket.listen()) {
 									Ref<DomainSocketIPCImpl> ret = new DomainSocketIPCImpl;
@@ -146,11 +140,7 @@ namespace slib
 				{
 					Thread* thread = Thread::getCurrent();
 					if (thread) {
-#if defined(SLIB_PLATFORM_IS_WIN32)
 						if (socket.connectDomainAndWait(GetDomainName(serverName))) {
-#else
-						if (socket.connectAbstractDomainAndWait(serverName)) {
-#endif
 							if (writeMessage(thread, socket, data.getData(), (sl_uint32)(data.getSize()))) {
 								if (thread->isNotStoppingCurrent()) {
 									Memory mem = readMessage(thread, socket);
@@ -195,7 +185,11 @@ namespace slib
 									threadNew->start();
 								}
 							} else {
-								event.wait();
+								if (Socket::getLastError() == SocketError::WouldBlock) {
+									event.wait();
+								} else {
+									return;
+								}
 							}
 						} else {
 							thread->wait(10);

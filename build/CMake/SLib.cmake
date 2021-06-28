@@ -165,6 +165,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/network/http_server.cpp"
  "${SLIB_PATH}/src/slib/network/http_openssl.cpp"
  "${SLIB_PATH}/src/slib/network/icmp.cpp"
+ "${SLIB_PATH}/src/slib/network/ipc.cpp"
  "${SLIB_PATH}/src/slib/network/ip_address.cpp"
  "${SLIB_PATH}/src/slib/network/mac_address.cpp"
  "${SLIB_PATH}/src/slib/network/nat.cpp"
