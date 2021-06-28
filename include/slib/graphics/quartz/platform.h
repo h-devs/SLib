@@ -67,13 +67,8 @@ namespace slib
 		static CGImageRef loadCGImageFromApp(const StringParam& name);
 		static CGColorRef getCGColorFromColor(const Color& color);
 
-		static void getCATransform(CATransform3D& _out, const Matrix3& mat);
-		static void getCATransform(CATransform3D& _out, const Matrix4& mat);
-		static void getCGAffineTransform(CGAffineTransform& _out, const Matrix3& mat);
-		static void getCGAffineTransform(CGAffineTransform& _out, const Matrix3& mat, CGFloat scaleFactor, CGFloat anchorX, CGFloat anchorY);
-		static void getMatrix3FromCGAffineTransform(Matrix3& _out, const CGAffineTransform& transform);
-
 #	if defined(__OBJC__)
+
 		static UIFont* getNativeFont(Font* font, CGFloat scaleFactor = 1);
 
 #		if defined(SLIB_PLATFORM_IS_MACOS)
@@ -92,8 +87,14 @@ namespace slib
 
 #		endif
 
+		static void getCATransform(CATransform3D& _out, const Matrix3& mat);
+		static void getCATransform(CATransform3D& _out, const Matrix4& mat);
+		static void getCGAffineTransform(CGAffineTransform& _out, const Matrix3& mat);
+		static void getCGAffineTransform(CGAffineTransform& _out, const Matrix3& mat, CGFloat scaleFactor, CGFloat anchorX, CGFloat anchorY);
+		static void getMatrix3FromCGAffineTransform(Matrix3& _out, const CGAffineTransform& transform);
+
 #	endif
-		
+
 	};
 
 }

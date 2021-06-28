@@ -53,7 +53,7 @@ namespace slib
 			return *(reinterpret_cast<MacAddress const*>(&_zero));
 		}
 
-		constexpr sl_uint32 getInt() const
+		constexpr sl_uint64 getInt() const
 		{
 			return SLIB_MAKE_QWORD(0, 0, m[0], m[1], m[2], m[3], m[4], m[5]);
 		}

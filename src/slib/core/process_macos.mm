@@ -52,7 +52,7 @@ namespace slib
 				return s;
 			}
 			
-			static String BuildCommand(const StringParam& pathExecutable, const StringParam* arguments, sl_uint32 nArguments)
+			static String BuildCommand(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 			{
 				StringBuffer commandLine;
 				commandLine.add(FixArgument(pathExecutable.toString()));

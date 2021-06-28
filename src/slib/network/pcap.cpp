@@ -37,15 +37,19 @@
 #define USE_WINPCAP 0
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
-#if !USE_WINPCAP
-#define USE_STATIC_NPCAP
-#include "pcap/pcap.h"
+#	if !USE_WINPCAP
+#		define USE_STATIC_NPCAP
+#		include "pcap/pcap.h"
+#	else
+#		include "winpcap/pcap/pcap.h"
+#	endif
 #else
-#include "winpcap/pcap/pcap.h"
-#endif
-#elif defined(SLIB_PLATFORM_IS_UNIX)
-#include "slib/network/dl/linux/pcap.h"
-#include <sys/socket.h>
+#	if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+#		include "slib/network/dl/linux/pcap.h"
+#	else
+#		include "pcap/pcap.h"
+#	endif
+#	include <sys/socket.h>
 #endif
 
 #define MAX_PACKET_SIZE 65535

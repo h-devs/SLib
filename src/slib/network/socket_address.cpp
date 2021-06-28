@@ -76,7 +76,6 @@ namespace slib
 			out.sin_port = htons(port);
 			return sizeof(sockaddr_in);
 		} else if (ip.isIPv6()) {
-			IPv6Address ipv6 = ip.getIPv6();
 			sockaddr_in6& out = *((sockaddr_in6*)addr);
 			Base::zeroMemory(&out, sizeof(sockaddr_in6));
 			out.sin6_family = AF_INET6;
