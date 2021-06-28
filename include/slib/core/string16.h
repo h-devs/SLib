@@ -1170,7 +1170,7 @@ namespace slib
 	class SLIB_EXPORT Atomic<String16>
 	{
 	private:
-		StringContainer16* volatile m_container;
+		StringContainer16* m_container;
 		SpinLock m_lock;
 		
 	public:

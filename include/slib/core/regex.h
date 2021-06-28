@@ -59,7 +59,7 @@ namespace slib
 		FormatFirstOnly = 0x0400
 	})
 
-	typedef struct {} *HRegEx;
+	typedef struct HRegEx_ *HRegEx;
 
 	class RegEx
 	{

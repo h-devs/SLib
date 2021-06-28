@@ -1005,7 +1005,7 @@ namespace slib
 		} else {
 			_setError(SocketError::Closed);
 		}
-		return sl_null;
+		return sl_false;
 	}
 
 	String Socket::getLocalDomain(sl_bool* pOutFlagAbstract) const noexcept
@@ -1037,7 +1037,7 @@ namespace slib
 		} else {
 			_setError(SocketError::Closed);
 		}
-		return sl_null;
+		return sl_false;
 	}
 
 	String Socket::getRemoteDomain(sl_bool* pOutFlagAbstract) const noexcept
