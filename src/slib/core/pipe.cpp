@@ -184,7 +184,7 @@ namespace slib
 	{
 	}
 
-	Ref<PipeEvent> create()
+	Ref<PipeEvent> PipeEvent::create()
 	{
 		Pipe pipe = Pipe::create();
 		if (pipe.isOpened()) {
