@@ -30,14 +30,16 @@
 namespace slib
 {
 
-	class SLIB_EXPORT PipeEvent : public IEvent
+	class SLIB_EXPORT PipeEvent : public Event
 	{
 	public:
-		PipeEvent();
+		PipeEvent(Pipe&& pipe);
 
 		~PipeEvent();
 
 	public:
+		static Ref<PipeEvent> create();
+
 		Pipe& getPipe();
 
 		sl_pipe getReadPipeHandle();

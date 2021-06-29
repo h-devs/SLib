@@ -336,7 +336,7 @@ namespace slib
 		sl_bool m_flagError;
 		AtomicString m_errorMessage;
 		
-		Event m_eventSync;
+		AtomicRef<Event> m_eventSync;
 		
 		friend class CurlRequest;
 	};

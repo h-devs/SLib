@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ namespace slib
 			struct AsyncIoLoopHandle
 			{
 				int fdEpoll;
-				PipeEvent eventWake;
+				Ref<PipeEvent> eventWake;
 			};
 		}
 	}
@@ -63,13 +63,14 @@ namespace slib
 		if (fdEpoll >= 0) {
 			AsyncIoLoopHandle* handle = new AsyncIoLoopHandle;
 			if (handle) {
-				if (handle->eventWake.isOpened()) {
+				handle->eventWake = PipeEvent::create();
+				if (handle->eventWake.isNotNull()) {
 					handle->fdEpoll = fdEpoll;
 					// register wake event
 					epoll_event ev;
 					ev.data.ptr = sl_null;
 					ev.events = EPOLLIN | EPOLLPRI | EPOLLET;
-					if (!(epoll_ctl(fdEpoll, EPOLL_CTL_ADD, handle->eventWake.getReadPipeHandle(), &ev))) {
+					if (!(epoll_ctl(fdEpoll, EPOLL_CTL_ADD, handle->eventWake->getReadPipeHandle(), &ev))) {
 						return handle;
 					}
 				}
@@ -134,7 +135,7 @@ namespace slib
 						instance->onEvent(&desc);
 					}
 				} else {
-					handle->eventWake.reset();
+					handle->eventWake->reset();
 				}
 			}
 
@@ -148,7 +149,7 @@ namespace slib
 	void AsyncIoLoop::_native_wake()
 	{
 		AsyncIoLoopHandle* handle = (AsyncIoLoopHandle*)m_handle;
-		handle->eventWake.set();
+		handle->eventWake->set();
 	}
 
 	sl_bool AsyncIoLoop::_native_attachInstance(AsyncIoInstance* instance, AsyncIoMode mode)

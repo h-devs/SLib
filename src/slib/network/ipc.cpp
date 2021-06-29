@@ -161,8 +161,8 @@ namespace slib
 					if (!thread) {
 						return;
 					}
-					SocketEvent event = SocketEvent::createRead(m_socketServer);
-					if (event.isNone()) {
+					Ref<SocketEvent> event = SocketEvent::createRead(m_socketServer);
+					if (event.isNull()) {
 						return;
 					}
 					while (thread->isNotStopping()) {
@@ -186,7 +186,7 @@ namespace slib
 								}
 							} else {
 								if (Socket::getLastError() == SocketError::WouldBlock) {
-									event.wait();
+									event->wait();
 								} else {
 									return;
 								}
@@ -215,8 +215,8 @@ namespace slib
 
 				Memory readMessage(Thread* thread, const Socket& socket)
 				{
-					SocketEvent event = SocketEvent::createRead(socket);
-					if (event.isNone()) {
+					Ref<SocketEvent> event = SocketEvent::createRead(socket);
+					if (event.isNull()) {
 						return sl_null;
 					}
 					sl_uint32 sizeContent = 0;
@@ -239,7 +239,7 @@ namespace slib
 								return sl_null;
 							}
 						} else {
-							event.wait();
+							event->wait();
 						}
 					}
 					if (!sizeContent) {
@@ -260,7 +260,7 @@ namespace slib
 								return bufRead.merge();
 							}
 						} else {
-							event.wait();
+							event->wait();
 						}
 					}
 					return sl_null;
@@ -269,8 +269,8 @@ namespace slib
 				sl_bool writeMessage(Thread* thread, const Socket& socket, const void* _data, sl_uint32 size)
 				{
 					sl_uint8* data = (sl_uint8*)_data;
-					SocketEvent event = SocketEvent::createWrite(socket);
-					if (event.isNone()) {
+					Ref<SocketEvent> event = SocketEvent::createWrite(socket);
+					if (event.isNull()) {
 						return sl_false;
 					}
 					sl_uint8 bufHeader[16];
@@ -287,7 +287,7 @@ namespace slib
 								break;
 							}
 						} else {
-							event.wait();
+							event->wait();
 						}
 					}
 					if (!size) {
@@ -305,7 +305,7 @@ namespace slib
 								break;
 							}
 						} else {
-							event.wait();
+							event->wait();
 						}
 					}
 					return sl_true;

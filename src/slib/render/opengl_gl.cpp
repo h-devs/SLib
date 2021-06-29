@@ -39,10 +39,11 @@ namespace slib
 
 #if defined(SLIB_RENDER_SUPPORT_OPENGL_GL)
 
-#include "opengl_gl.h"
-
 #include "slib/render/program.h"
 #include "slib/core/queue.h"
+#include "slib/core/event.h"
+
+#include "opengl_gl.h"
 
 #define PRIV_OPENGL_IMPL
 #define GL_BASE GL

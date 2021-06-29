@@ -126,9 +126,9 @@ namespace slib
 		static void setDebugAllocHook(WINDOWS_DEBUG_ALLOC_HOOK hook);
 
 	
-		static Event createEvent(HANDLE hEvent);
+		static Ref<Event> createEvent(HANDLE hEvent);
 
-		static HANDLE getEventHandle(const Event& event);
+		static HANDLE getEventHandle(Event* event);
 	
 	
 		static sl_bool getRegistryValue(HKEY hKey, const StringParam& subPath, const StringParam& name, Variant* out);

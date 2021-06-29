@@ -338,7 +338,7 @@ namespace slib
 			return -1;
 		}
 
-		NamedInstance startInstance = NamedInstance(appName + START_ID);
+		NamedInstance startInstance(appName + START_ID);
 
 		String stopId = appName + STOP_ID;
 

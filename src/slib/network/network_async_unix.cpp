@@ -287,8 +287,8 @@ namespace slib
 					Thread* thread = Thread::getCurrent();
 					while (!thread || thread->isNotStopping()) {
 						SocketAddress addr;
-						Socket socketAccept = socket.accept(socketAccept, addr);
-						if (socketAccept.isOpened()) {
+						Socket socketAccept;
+						if (socket.accept(socketAccept, addr)) {
 							_onAccept(socketAccept, addr);
 						} else {
 							SocketError err = Socket::getLastError();

@@ -154,8 +154,8 @@ namespace slib
 						return;
 					}
 
-					Event ev = Event::create();
-					if (ev.isNone()) {
+					Ref<Event> ev = Event::create();
+					if (ev.isNull()) {
 						return;
 					}
 					HANDLE hEvent = Win32::getEventHandle(ev);
@@ -189,7 +189,7 @@ namespace slib
 										if (err == ERROR_PIPE_CONNECTED) {
 											flagConnected = sl_true;
 										} else if (err == ERROR_IO_PENDING) {
-											ev.wait();
+											ev->wait();
 											if (HasOverlappedIoCompleted(&overlapped)) {
 												flagConnected = sl_true;
 											}
@@ -246,11 +246,11 @@ namespace slib
 
 				Memory readMessage(Thread* thread, HANDLE handle)
 				{
-					Event event = Event::create();
-					if (event.isNone()) {
+					Ref<Event> event = Event::create();
+					if (event.isNull()) {
 						return sl_null;
 					}
-					HANDLE hEvent = Win32::getEventHandle(event);
+					HANDLE hEvent = Win32::getEventHandle(event.get());
 	
 					MemoryBuffer bufRead;
 					char buf[1024];
@@ -276,7 +276,7 @@ namespace slib
 								}
 							} else {
 								if (err == ERROR_IO_PENDING) {
-									event.wait();
+									event->wait();
 									if (GetOverlappedResult(handle, &overlapped, &dwRead, FALSE)) {
 										if (dwRead) {
 											bufRead.add(Memory::create(buf, dwRead));
@@ -303,11 +303,11 @@ namespace slib
 				sl_bool writeMessage(Thread* thread, HANDLE handle, const void* _data, sl_uint32 size)
 				{
 					sl_uint8* data = (sl_uint8*)_data;
-					Event event = Event::create();
-					if (event.isNone()) {
+					Ref<Event> event = Event::create();
+					if (event.isNull()) {
 						return sl_null;
 					}
-					HANDLE hEvent = Win32::getEventHandle(event);
+					HANDLE hEvent = Win32::getEventHandle(event.get());
 
 					OVERLAPPED overlapped;
 					Base::zeroMemory(&overlapped, sizeof(overlapped));
@@ -320,7 +320,7 @@ namespace slib
 					} else {
 						DWORD err = GetLastError();
 						if (err == ERROR_IO_PENDING) {
-							event.wait();
+							event->wait();
 							if (GetOverlappedResult(handle, &overlapped, &dwWritten, FALSE)) {
 								return dwWritten == (DWORD)size;
 							}

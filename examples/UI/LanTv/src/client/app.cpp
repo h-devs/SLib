@@ -84,7 +84,7 @@ void LanTvClientApp::onStart()
 					audioPlayer->write(data);
 				}
 			}
-			event.wait();
+			event->wait();
 		}
 
 	});
@@ -133,7 +133,7 @@ void LanTvClientApp::onStart()
 					});
 				}
 			}
-			event.wait();
+			event->wait();
 		}
 
 	});

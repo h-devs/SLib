@@ -42,7 +42,7 @@ namespace slib
 			struct AsyncIoLoopHandle
 			{
 				int kq;
-				PipeEvent eventWake;
+				Ref<PipeEvent> eventWake;
 			};
 		}
 	}
@@ -56,11 +56,12 @@ namespace slib
 		if (kq != -1) {
 			AsyncIoLoopHandle* handle = new AsyncIoLoopHandle;
 			if (handle) {
-				if (handle->eventWake.isOpened()) {
+				handle->eventWake = PipeEvent::create();
+				if (handle->eventWake.isNotNull()) {
 					handle->kq = kq;
 					// register wake event
 					struct kevent ke;
-					EV_SET(&ke, (int)(handle->eventWake.getReadPipeHandle()), EVFILT_READ, EV_ADD | EV_CLEAR | EV_ENABLE, 0, 0, sl_null);
+					EV_SET(&ke, (int)(handle->eventWake->getReadPipeHandle()), EVFILT_READ, EV_ADD | EV_CLEAR | EV_ENABLE, 0, 0, sl_null);
 					if (-1 != ::kevent(kq, &ke, 1, sl_null, 0, sl_null)) {
 						return handle;
 					}
@@ -120,7 +121,7 @@ namespace slib
 						instance->onEvent(&desc);
 					}
 				} else {
-					handle->eventWake.reset();
+					handle->eventWake->reset();
 				}
 			}
 
@@ -134,7 +135,7 @@ namespace slib
 	void AsyncIoLoop::_native_wake()
 	{
 		AsyncIoLoopHandle* handle = (AsyncIoLoopHandle*)m_handle;
-		handle->eventWake.set();
+		handle->eventWake->set();
 	}
 
 	sl_bool AsyncIoLoop::_native_attachInstance(AsyncIoInstance* instance, AsyncIoMode mode)

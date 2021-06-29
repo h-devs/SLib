@@ -71,6 +71,7 @@ namespace slib
 			Timer,
 			Dispatcher,
 			DispatchLoop,
+			Event,
 			Thread,
 			ThreadPool,
 			Process,

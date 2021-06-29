@@ -272,11 +272,11 @@ namespace slib
 	
 	void UrlRequest::_sendSync()
 	{
-		Event ev = Event::create();
-		if (ev.isNotNone()) {
-			m_eventSync = Move(ev);
+		Ref<Event> ev = Event::create();
+		if (ev.isNotNull()) {
+			m_eventSync = ev;
 			_sendAsync();
-			m_eventSync.wait();
+			ev->wait();
 			return;
 		}
 		onError();
@@ -375,8 +375,9 @@ namespace slib
 		}
 		_removeFromMap();
 		
-		if (m_eventSync.isNotNone()) {
-			m_eventSync.set();
+		Ref<Event> event = m_eventSync;
+		if (event.isNotNull()) {
+			event->set();
 		}
 	}
 	

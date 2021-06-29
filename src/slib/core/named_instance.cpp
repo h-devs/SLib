@@ -99,7 +99,7 @@ namespace slib
 					return handle;
 				}
 				close(handle);
-				return 0;
+				return SLIB_NAMED_INSTANCE_INVALID_HANDLE;
 #endif
 			}
 
@@ -143,10 +143,10 @@ namespace slib
 			CloseHandle(hMutex);
 			return sl_true;
 		}
+		return sl_false;
 #else
 		return NamedInstance(_name).isNone();
 #endif
-		return sl_false;
 	}
 
 }

@@ -25,60 +25,29 @@
 
 #include "socket.h"
 
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
 #include "../core/event.h"
-#include "../core/handle_container.h"
+#else
+#include "../core/pipe_event.h"
+#endif
 
 namespace slib
 {
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-	class HSocketEvent
-	{
-	public:
-		void* event;
-		sl_socket socket;
-
-	public:
-		HSocketEvent() = default;
-
-		constexpr HSocketEvent(sl_null_t): event(sl_null), socket(SLIB_SOCKET_INVALID_HANDLE) {}
-
-		constexpr HSocketEvent(const HSocketEvent& other): event(other.event), socket(other.socket) {}
-
-		constexpr HSocketEvent(void* _event, sl_socket _socket) : event(_event), socket(_socket) {}
-
-		HSocketEvent& operator=(sl_null_t) noexcept
-		{
-			event = sl_null;
-			socket = SLIB_SOCKET_INVALID_HANDLE;
-			return *this;
-		}
-
-		HSocketEvent& operator=(const HSocketEvent& other) noexcept
-		{
-			event = other.event;
-			socket = other.socket;
-			return *this;
-		}
-
-		constexpr sl_bool operator==(sl_null_t) const
-		{
-			return !event;
-		}
-
-		constexpr sl_bool operator!=(sl_null_t) const
-		{
-			return event != sl_null;
-		}
-
-	};
+	class SLIB_EXPORT SocketEvent : public Event
 #else
-	typedef void* HSocketEvent;
+	class SLIB_EXPORT SocketEvent : public PipeEvent
+#endif
+	{
+	protected:
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		SocketEvent(sl_socket socket, sl_uint32 events, void* handle);
+#else
+		SocketEvent(sl_socket socket, sl_uint32 events, Pipe&& pipe);
 #endif
 
-	class SLIB_EXPORT SocketEvent : public IEvent
-	{
-		SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(SocketEvent, HSocketEvent, m_handle, sl_null)
+		~SocketEvent();
 
 	public:
 		enum
@@ -89,22 +58,20 @@ namespace slib
 		};
 		
 	public:
-		static SocketEvent create(const Socket& socket, sl_uint32 events) noexcept;
+		static Ref<SocketEvent> create(const Socket& socket, sl_uint32 events) noexcept;
 		
-		static SocketEvent createRead(const Socket& socket) noexcept;
+		static Ref<SocketEvent> createRead(const Socket& socket) noexcept;
 
-		static SocketEvent createWrite(const Socket& socket) noexcept;
+		static Ref<SocketEvent> createWrite(const Socket& socket) noexcept;
 
-		static SocketEvent createReadWrite(const Socket& socket) noexcept;
+		static Ref<SocketEvent> createReadWrite(const Socket& socket) noexcept;
 
 	public:
-		sl_bool isOpened() const noexcept;
-
-		void close() noexcept;
-
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
 		void set() override;
 
 		void reset() override;
+#endif
 
 		sl_uint32 waitEvents(sl_int32 timeout = -1) noexcept;
 
@@ -116,6 +83,13 @@ namespace slib
 
 		static sl_bool doWaitMultipleEvents(SocketEvent** events, sl_uint32* status, sl_uint32 count, sl_int32 timeout) noexcept;
 		
+	protected:
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		void* m_handle;
+#endif
+		sl_socket m_socket;
+		sl_uint32 m_events;
+
 	};
 
 }
