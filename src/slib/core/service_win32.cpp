@@ -54,7 +54,7 @@ namespace slib
 			};
 
 			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<ServiceHelper>, g_servicePlatform)
-			SLIB_GLOBAL_ZERO_INITIALIZED(Event, g_eventStop)
+			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Event>, g_eventStop)
 
 			SERVICE_STATUS_HANDLE g_hServiceStatus = NULL;
 			SERVICE_STATUS g_statusService;
@@ -88,7 +88,7 @@ namespace slib
 				if (SLIB_SAFE_STATIC_CHECK_FREED(g_eventStop)) {
 					return;
 				}
-				if (g_servicePlatform.isNull() || g_eventStop.isNone()) {
+				if (g_servicePlatform.isNull() || g_eventStop.isNull()) {
 					return;
 				}
 				g_servicePlatform->_control(fdwControl);
@@ -110,7 +110,7 @@ namespace slib
 					return;
 				}
 
-				if (g_eventStop.isNone()) {
+				if (g_eventStop.isNull()) {
 					ReportServiceStatus(SERVICE_STOPPED, NO_ERROR, 0);
 					return;
 				}
@@ -167,7 +167,7 @@ namespace slib
 				}
 				ReportServiceStatus(SERVICE_RUNNING, NO_ERROR, 0);
 				
-				g_eventStop.wait();
+				g_eventStop->wait();
 
 				dispatchStopService();
 				ReportServiceStatus(SERVICE_STOPPED, NO_ERROR, 0);
@@ -178,7 +178,7 @@ namespace slib
 				switch (fdwControl) {
 				case SERVICE_CONTROL_STOP:
 					ReportServiceStatus(SERVICE_STOP_PENDING, NO_ERROR, 0);
-					g_eventStop.set();
+					g_eventStop->set();
 					break;
 				}
 			}

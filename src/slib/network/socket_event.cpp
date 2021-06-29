@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 #include "slib/core/thread.h"
 #include "slib/core/scoped_buffer.h"
 
-#if defined(SLIB_PLATFORM_IS_WIN32)
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
 #include <winsock2.h>
 #pragma comment(lib, "ws2_32.lib")
 #else
@@ -37,142 +37,91 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace socket_event
-		{
-
-#if !defined(SLIB_PLATFORM_IS_WIN32)
-			class EventImpl : public PipeEvent
-			{
-			public:
-				sl_socket socket;
-				sl_uint32 events;
-
-			public:
-				EventImpl(sl_socket _socket, sl_uint32 _events)
-				{
-					socket = _socket;
-					events = _events;
-				}
-
-			};
-#endif
-
-			static HSocketEvent CreateEventHandle(const Socket& socket, sl_uint32 events)
-			{
-				if (socket.isOpened()) {
-					Socket::initializeSocket();
-					socket.setNonBlockingMode(sl_true);
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-					WSAEVENT hEvent = WSACreateEvent();
-					if (hEvent) { // WSA_INVALID_EVENT = NULL
-						sl_uint32 ev = 0;
-						if (events & SocketEvent::Read) {
-							ev = ev | FD_READ | FD_ACCEPT;
-						}
-						if (events & SocketEvent::Write) {
-							ev = ev | FD_WRITE | FD_CONNECT;
-						}
-						if (events & SocketEvent::Close) {
-							ev = ev | FD_CLOSE;
-						}
-
-						int ret = WSAEventSelect(socket.get(), hEvent, ev);
-						if (!ret) {
-							return HSocketEvent(hEvent, socket.get());
-						}
-						WSACloseEvent(hEvent);
-					}
+	SocketEvent::SocketEvent(sl_socket socket, sl_uint32 events, void* handle): m_handle(handle)
 #else
-					EventImpl* ev = new EventImpl(socket.get(), events);
-					if (ev) {
-						if (ev->isOpened()) {
-							return ev;
-						}
-						delete ev;
-					}
+	SocketEvent::SocketEvent(sl_socket socket, sl_uint32 events, Pipe&& pipe): PipeEvent(Move(pipe))
 #endif
-				}
-				return sl_null;
-			}
+	{
+		m_socket = socket;
+		m_events = events;
+	}
 
-			static void DeleteEventHandle(const HSocketEvent& handle)
-			{
-#if defined(SLIB_PLATFORM_IS_WIN32)
-				WSACloseEvent(handle.event);
-#else
-				delete (EventImpl*)handle;
-#endif
-			}
-
+	SocketEvent::~SocketEvent()
+	{
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		if (m_handle) {
+			CloseHandle(m_handle);
 		}
+#endif
 	}
 
-	using namespace priv::socket_event;
-
-	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(SocketEvent, HSocketEvent, m_handle, sl_null, DeleteEventHandle)
-
-	SocketEvent SocketEvent::create(const Socket& socket, sl_uint32 events) noexcept
+	Ref<SocketEvent> SocketEvent::create(const Socket& socket, sl_uint32 events) noexcept
 	{
-		return CreateEventHandle(socket, events);
+		if (socket.isOpened()) {
+			Socket::initializeSocket();
+			socket.setNonBlockingMode(sl_true);
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+			WSAEVENT hEvent = WSACreateEvent();
+			if (hEvent) { // WSA_INVALID_EVENT = NULL
+				sl_uint32 ev = 0;
+				if (events & SocketEvent::Read) {
+					ev = ev | FD_READ | FD_ACCEPT;
+				}
+				if (events & SocketEvent::Write) {
+					ev = ev | FD_WRITE | FD_CONNECT;
+				}
+				if (events & SocketEvent::Close) {
+					ev = ev | FD_CLOSE;
+				}
+				if (!(WSAEventSelect(socket.get(), hEvent, ev))) {
+					return new SocketEvent(socket.get(), events, hEvent);
+				}
+				WSACloseEvent(hEvent);
+			}
+#else
+			Pipe pipe = Pipe::create();
+			if (pipe.isOpened()) {
+				return new SocketEvent(socket.get(), events, Move(pipe));
+			}
+#endif
+		}
+		return sl_null;
 	}
 
-	SocketEvent SocketEvent::createRead(const Socket& socket) noexcept
+	Ref<SocketEvent> SocketEvent::createRead(const Socket& socket) noexcept
 	{
-		return CreateEventHandle(socket, SocketEvent::Read | SocketEvent::Close);
+		return create(socket, SocketEvent::Read | SocketEvent::Close);
 	}
 
-	SocketEvent SocketEvent::createWrite(const Socket& socket) noexcept
+	Ref<SocketEvent> SocketEvent::createWrite(const Socket& socket) noexcept
 	{
-		return CreateEventHandle(socket, SocketEvent::Write | SocketEvent::Close);
+		return create(socket, SocketEvent::Write | SocketEvent::Close);
 	}
 
-	SocketEvent SocketEvent::createReadWrite(const Socket& socket) noexcept
+	Ref<SocketEvent> SocketEvent::createReadWrite(const Socket& socket) noexcept
 	{
-		return CreateEventHandle(socket, SocketEvent::Read | SocketEvent::Write | SocketEvent::Close);
+		return create(socket, SocketEvent::Read | SocketEvent::Write | SocketEvent::Close);
 	}
 
-	sl_bool SocketEvent::isOpened() const noexcept
-	{
-		return isNotNone();
-	}
-
-	void SocketEvent::close() noexcept
-	{
-		setNone();
-	}
-
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
 	void SocketEvent::set()
 	{
-		if (isNotNone()) {
-#if defined(SLIB_PLATFORM_IS_WIN32)
-			WSASetEvent(m_handle.event);
-#else
-			((EventImpl*)m_handle)->set();
-#endif
-		}
+		WSASetEvent(m_handle);
 	}
 
 	void SocketEvent::reset()
 	{
-		if (isNotNone()) {
-#if defined(SLIB_PLATFORM_IS_WIN32)
-			WSAResetEvent(m_handle.event);
-#else
-			((EventImpl*)m_handle)->reset();
-#endif
-		}
+		WSAResetEvent(m_handle);
 	}
+#endif
 
 	sl_uint32 SocketEvent::waitEvents(sl_int32 timeout) noexcept
 	{
-		if (isOpened()) {
-			SocketEvent* ev = this;
-			sl_uint32 events;
-			if (waitMultipleEvents(&ev, &events, 1, timeout)) {
-				return events;
-			}
+		SocketEvent* ev = this;
+		sl_uint32 events;
+		if (waitMultipleEvents(&ev, &events, 1, timeout)) {
+			return events;
 		}
 		return 0;
 	}
@@ -212,7 +161,7 @@ namespace slib
 		for (sl_uint32 i = 0; i < count; i++) {
 			SocketEvent* ev = events[i];
 			if (ev) {
-				hEvents[cEvents] = ev->m_handle.event;
+				hEvents[cEvents] = ev->m_handle;
 				indexMap[cEvents] = i;
 				cEvents++;
 			}
@@ -231,7 +180,7 @@ namespace slib
 			WSANETWORKEVENTS ne;
 			ZeroMemory(&ne, sizeof(ne));
 			SocketEvent* ev = events[index];
-			if (!(WSAEnumNetworkEvents(ev->m_handle.socket, hEvents[indexHandle], &ne))) {
+			if (!(WSAEnumNetworkEvents(ev->m_socket, hEvents[indexHandle], &ne))) {
 				sl_uint32 st = 0;
 				sl_uint32 le = ne.lNetworkEvents;
 				if (le & (FD_CONNECT | FD_WRITE)) {
@@ -258,10 +207,9 @@ namespace slib
 		for (sl_uint32 i = 0; i < count; i++) {
 			SocketEvent* ev = events[i];
 			if (ev) {
-				EventImpl* handle = (EventImpl*)(ev->m_handle);
-				fd[cEvents * 2].fd = handle->socket;
+				fd[cEvents * 2].fd = ev->m_socket;
 				sl_uint32 evs = 0;
-				sl_uint32 sevs = handle->events;
+				sl_uint32 sevs = ev->m_events;
 				if (sevs & SocketEvent::Read) {
 					evs = evs | POLLIN | POLLPRI;
 				}
@@ -276,7 +224,7 @@ namespace slib
 #endif
 				}
 				fd[cEvents * 2].events = evs;
-				fd[cEvents * 2 + 1].fd = (int)(handle->getReadPipeHandle());
+				fd[cEvents * 2 + 1].fd = (int)(ev->getReadPipeHandle());
 				fd[cEvents * 2 + 1].events = POLLIN | POLLPRI | POLLERR | POLLHUP;
 				indexMap[cEvents] = i;
 				cEvents++;
@@ -327,9 +275,9 @@ namespace slib
 	{
 		setNonBlockingMode(sl_true);
 		if (connect(address)) {
-			SocketEvent ev = SocketEvent::createWrite(*this);
-			if (ev.isOpened()) {
-				if (ev.waitEvents(timeout) & SocketEvent::Write) {
+			Ref<SocketEvent> ev = SocketEvent::createWrite(*this);
+			if (ev.isNotNull()) {
+				if (ev->waitEvents(timeout) & SocketEvent::Write) {
 					if (getOption_Error() == 0) {
 						return sl_true;
 					}
@@ -343,9 +291,9 @@ namespace slib
 	{
 		setNonBlockingMode(sl_true);
 		if (connectDomain(address)) {
-			SocketEvent ev = SocketEvent::createWrite(*this);
-			if (ev.isOpened()) {
-				if (ev.waitEvents(timeout) & SocketEvent::Write) {
+			Ref<SocketEvent> ev = SocketEvent::createWrite(*this);
+			if (ev.isNotNull()) {
+				if (ev->waitEvents(timeout) & SocketEvent::Write) {
 					if (getOption_Error() == 0) {
 						return sl_true;
 					}
@@ -359,9 +307,9 @@ namespace slib
 	{
 		setNonBlockingMode(sl_true);
 		if (connectAbstractDomain(address)) {
-			SocketEvent ev = SocketEvent::createWrite(*this);
-			if (ev.isOpened()) {
-				if (ev.waitEvents(timeout) & SocketEvent::Write) {
+			Ref<SocketEvent> ev = SocketEvent::createWrite(*this);
+			if (ev.isNotNull()) {
+				if (ev->waitEvents(timeout) & SocketEvent::Write) {
 					if (getOption_Error() == 0) {
 						return sl_true;
 					}

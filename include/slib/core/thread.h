@@ -73,13 +73,13 @@ namespace slib
 		
 		void wakeSelfEvent();
 
-		const Event& getSelfEvent();
+		Event* getSelfEvent();
 		
 		void wake();
 		
-		IEvent* getWaitingEvent();
+		Ref<Event> getWaitingEvent();
 	
-		void setWaitingEvent(IEvent* ev);
+		void setWaitingEvent(Event* ev);
 
 		void clearWaitingEvent();
 	
@@ -130,9 +130,9 @@ namespace slib
 		sl_bool m_flagRunning;
 		Function<void()> m_callback;
 	
-		Event m_eventWake;
-		Event m_eventExit;
-		IEvent* m_eventWaiting;
+		Ref<Event> m_eventWake;
+		Ref<Event> m_eventExit;
+		AtomicRef<Event> m_eventWaiting;
 	
 		HashMap< String, Ref<Referable> > m_attachedObjects;
 	

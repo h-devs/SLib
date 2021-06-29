@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -35,37 +35,22 @@
 namespace slib
 {
 
-	namespace priv
+	SLIB_DEFINE_ROOT_OBJECT(Event)
+	
+	Event::Event()
 	{
-		namespace ev
-		{
-
-			static HEvent CreateEventHandle(sl_bool flagAutoReset) noexcept
-			{
-#if defined(SLIB_PLATFORM_IS_WIN32)
-				return CreateEventW(NULL, flagAutoReset ? FALSE : TRUE, FALSE, NULL);
-#elif defined(SLIB_PLATFORM_IS_WINDOWS)
-				return CreateEventEx(NULL, NULL, flagAutoReset ? CREATE_EVENT_INITIAL_SET : CREATE_EVENT_MANUAL_RESET, EVENT_ALL_ACCESS);
-#else
-				return new posix::Event(flagAutoReset);
-#endif
-			}
-
-			static void CloseEventHandle(HEvent handle) noexcept
-			{
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-				CloseHandle((HANDLE)handle);
-#else
-				delete handle;
-#endif
-			}
-
-		}
 	}
 
-	using namespace priv::ev;
+	Event::~Event()
+	{
+	}
 
-	sl_bool IEvent::wait(sl_int32 timeout)
+	Ref<Event> Event::create(sl_bool flagAutoReset)
+	{
+		return Ref<Event>::from(GenericEvent::create(flagAutoReset));
+	}
+
+	sl_bool Event::wait(sl_int32 timeout)
 	{
 		Thread* thread = Thread::getCurrent();
 		if (thread) {
@@ -81,14 +66,54 @@ namespace slib
 		return ret;
 	}
 
-	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(Event, HEvent, m_handle, sl_null, CloseEventHandle)
-	
-	Event Event::create(sl_bool flagAutoReset) noexcept
+
+	GenericEvent::GenericEvent()
 	{
-		return CreateEventHandle(flagAutoReset);
+		m_handle = sl_null;
 	}
 
-	void Event::set()
+	GenericEvent::~GenericEvent()
+	{
+		if (m_handle) {
+			closeHandle(m_handle);
+		}
+	}
+
+	Ref<GenericEvent> GenericEvent::create(sl_bool flagAutoReset)
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		HANDLE handle = CreateEventW(NULL, flagAutoReset ? FALSE : TRUE, FALSE, NULL);
+#elif defined(SLIB_PLATFORM_IS_WINDOWS)
+		HANDLE handle = CreateEventEx(NULL, NULL, flagAutoReset ? CREATE_EVENT_INITIAL_SET : CREATE_EVENT_MANUAL_RESET, EVENT_ALL_ACCESS);
+#else
+		HEvent handle = new posix::Event(flagAutoReset);
+#endif
+		return create(handle);
+	}
+
+	Ref<GenericEvent> GenericEvent::create(HEvent handle)
+	{
+		if (handle) {
+			Ref<GenericEvent> ret = new GenericEvent;
+			if (ret.isNotNull()) {
+				ret->m_handle = handle;
+				return ret;
+			}
+			closeHandle(handle);
+		}
+		return sl_null;
+	}
+
+	void GenericEvent::closeHandle(HEvent handle)
+	{
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		CloseHandle(handle);
+#else
+		delete handle;
+#endif
+	}
+
+	void GenericEvent::set()
 	{
 		if (!m_handle) {
 			return;
@@ -100,7 +125,7 @@ namespace slib
 #endif
 	}
 
-	void Event::reset()
+	void GenericEvent::reset()
 	{
 		if (!m_handle) {
 			return;
@@ -112,7 +137,7 @@ namespace slib
 #endif
 	}
 
-	sl_bool Event::doWait(sl_int32 timeout)
+	sl_bool GenericEvent::doWait(sl_int32 timeout)
 	{
 		if (!m_handle) {
 			return sl_false;
@@ -127,14 +152,17 @@ namespace slib
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 	
-	Event Win32::createEvent(HANDLE hEvent)
+	Ref<Event> Win32::createEvent(HANDLE hEvent)
 	{
-		return hEvent;
+		return Ref<Event>::from(GenericEvent::create(hEvent));
 	}
 
-	HANDLE Win32::getEventHandle(const Event& ev)
+	HANDLE Win32::getEventHandle(Event* ev)
 	{
-		return ev.get();
+		if (ev) {
+			return ((GenericEvent*)ev)->getHandle();
+		}
+		return sl_null;
 	}
 
 #else

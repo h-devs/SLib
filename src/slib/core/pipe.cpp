@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -171,19 +171,26 @@ namespace slib
 	}
 
 
-	PipeEvent::PipeEvent() : m_pipe(Pipe::create())
+	PipeEvent::PipeEvent(Pipe&& pipe): m_pipe(Move(pipe))
 	{
 		m_flagSet = sl_false;
 #if defined(SLIB_PLATFORM_IS_UNIX)
-		if (m_pipe.isOpened()) {
-			File::setNonBlocking(m_pipe.getReadHandle(), sl_true);
-			File::setNonBlocking(m_pipe.getWriteHandle(), sl_true);
-		}
+		File::setNonBlocking(m_pipe.getReadHandle(), sl_true);
+		File::setNonBlocking(m_pipe.getWriteHandle(), sl_true);
 #endif
 	}
 
 	PipeEvent::~PipeEvent()
 	{
+	}
+
+	Ref<PipeEvent> create()
+	{
+		Pipe pipe = Pipe::create();
+		if (pipe.isOpened()) {
+			return new PipeEvent(Move(pipe));
+		}
+		return sl_null;
 	}
 
 	Pipe& PipeEvent::getPipe()

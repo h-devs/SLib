@@ -23,23 +23,23 @@
 #ifndef CHECKHEADER_SLIB_CORE_EVENT
 #define CHECKHEADER_SLIB_CORE_EVENT
 
-#include "handle_container.h"
+#include "ref.h"
 
 namespace slib
 {
-	
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-	typedef void* HEvent;
-#else
-	namespace posix
-	{
-		class Event;
-	}
-	typedef posix::Event* HEvent;
-#endif
 
-	class SLIB_EXPORT IEvent
+	class SLIB_EXPORT Event : public Referable
 	{
+		SLIB_DECLARE_OBJECT
+
+	protected:
+		Event();
+
+		~Event();
+
+	public:
+		static Ref<Event> create(sl_bool flagAutoReset = sl_true);
+
 	public:
 		virtual void set() = 0;
 
@@ -53,21 +53,46 @@ namespace slib
 		virtual sl_bool doWait(sl_int32 timeout) = 0;
 
 	};
-	
-	class SLIB_EXPORT Event : public IEvent
+
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+	typedef void* HEvent;
+#else
+	namespace posix
 	{
-		SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(Event, HEvent, m_handle, sl_null)
+		class Event;
+	}
+	typedef posix::Event* HEvent;
+#endif
+
+	class GenericEvent : public Event
+	{
+	protected:
+		GenericEvent();
+
+		~GenericEvent();
 
 	public:
-		static Event create(sl_bool flagAutoReset = sl_true) noexcept;
+		static Ref<GenericEvent> create(sl_bool flagAutoReset = sl_true);
+		
+		static Ref<GenericEvent> create(HEvent handle);
 
 	public:
+		constexpr HEvent getHandle() const
+		{
+			return m_handle;
+		}
+
+		static void closeHandle(HEvent handle);
+
 		void set() override;
 
 		void reset() override;
 
 	protected:
 		sl_bool doWait(sl_int32 timeout) override;
+
+	protected:
+		HEvent m_handle;
 
 	};
 

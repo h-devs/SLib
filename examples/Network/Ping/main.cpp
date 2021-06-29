@@ -57,8 +57,8 @@ int main(int argc, const char * argv[])
 	
 	Ref<Thread> threadReceive = Thread::start([socket]() {
 		
-		SocketEvent event = SocketEvent::createRead(socket);
-
+		auto event = SocketEvent::createRead(socket);
+		
 		while (Thread::isNotStoppingCurrent()) {
 			sl_uint8 buf[4096];
 			SocketAddress receivedHostAddress;
@@ -76,7 +76,7 @@ int main(int argc, const char * argv[])
 					}
 				}
 			} else {
-				event.waitEvents(100);
+				event->waitEvents(100);
 			}
 		}
 	});

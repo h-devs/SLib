@@ -28,7 +28,6 @@
 #include "../core/loop_queue.h"
 #include "../core/string.h"
 #include "../core/event.h"
-#include "../core/shared.h"
 #include "../core/function.h"
 
 namespace slib
@@ -66,7 +65,7 @@ namespace slib
 		sl_bool flagAutoStart;
 		
 		Function<void(AudioRecorder*, AudioData&)> onRecordAudio;
-		Shared<Event> event;
+		Ref<Event> event;
 		
 	public:
 		AudioRecorderParam();

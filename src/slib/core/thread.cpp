@@ -47,7 +47,7 @@ namespace slib
 
 	using namespace priv::thread;
 
-	Thread::Thread(): m_eventWake(Event::create(sl_true)), m_eventExit(Event::create(sl_false))
+	Thread::Thread()
 	{
 		m_flagRunning = sl_false;
 		m_flagRequestStop = sl_false;
@@ -71,11 +71,19 @@ namespace slib
 		if (callback.isNull()) {
 			return sl_null;
 		}
-		Ref<Thread> ret = new Thread();
-		if (ret.isNotNull()) {
-			g_mapThreads.put(ret.get(), ret);
-			ret->m_callback = callback;
-			return ret;
+		Ref<Event> eventWake = Event::create(sl_true);
+		if (eventWake.isNotNull()) {
+			Ref<Event> eventExit = Event::create(sl_false);
+			if (eventExit.isNotNull()) {
+				Ref<Thread> ret = new Thread();
+				if (ret.isNotNull()) {
+					ret->m_eventWake = Move(eventWake);
+					ret->m_eventExit = Move(eventExit);
+					g_mapThreads.put(ret.get(), ret);
+					ret->m_callback = callback;
+					return ret;
+				}
+			}
 		}
 		return sl_null;
 	}
@@ -129,8 +137,8 @@ namespace slib
 		if (!m_flagRunning) {
 			m_flagRunning = sl_true;
 			m_flagRequestStop = sl_false;
-			m_eventExit.reset();
-			m_eventWake.reset();
+			m_eventExit->reset();
+			m_eventWake->reset();
 			_nativeStart(stackSize);
 			if (m_handle) {
 				if (m_priority != ThreadPriority::Normal) {
@@ -155,7 +163,7 @@ namespace slib
 	sl_bool Thread::join(sl_int32 timeout)
 	{
 		if (isRunning()) {
-			if (!(m_eventExit.wait(timeout))) {
+			if (!(m_eventExit->wait(timeout))) {
 				return sl_false;
 			}
 		}
@@ -183,7 +191,7 @@ namespace slib
 					if (t > 100) {
 						t = 100;
 					}
-					if (m_eventExit.wait(t)) {
+					if (m_eventExit->wait(t)) {
 						return sl_true;
 					}
 					if (timeout <= 100) {
@@ -207,44 +215,41 @@ namespace slib
 		if (m_flagRequestStop) {
 			return sl_false;
 		} else {
-			return m_eventWake.wait(timeout);
+			return m_eventWake->wait(timeout);
 		}
 	}
 
 	void Thread::wakeSelfEvent()
 	{
-		m_eventWake.set();
+		m_eventWake->set();
 	}
 	
-	const Event& Thread::getSelfEvent()
+	Event* Thread::getSelfEvent()
 	{
-		return m_eventWake;
+		return m_eventWake.get();
 	}
 
 	void Thread::wake()
 	{
-		ObjectLocker lock(this);
-		IEvent* ev = m_eventWaiting;
-		if (ev) {
+		Ref<Event> ev = m_eventWaiting;
+		if (ev.isNotNull()) {
 			ev->set();
 		}
 	}
 	
-	IEvent* Thread::getWaitingEvent()
+	Ref<Event> Thread::getWaitingEvent()
 	{
 		return m_eventWaiting;
 	}
 
-	void Thread::setWaitingEvent(IEvent* ev)
+	void Thread::setWaitingEvent(Event* ev)
 	{
-		ObjectLocker lock(this);
 		m_eventWaiting = ev;
 	}
 
 	void Thread::clearWaitingEvent()
 	{
-		ObjectLocker lock(this);
-		m_eventWaiting = sl_null;
+		m_eventWaiting.setNull();
 	}
 
 	ThreadPriority Thread::getPriority()
@@ -378,7 +383,7 @@ namespace slib
 		_nativeClose();
 		m_handle = sl_null;
 		m_flagRunning = sl_false;
-		m_eventExit.set();
+		m_eventExit->set();
 	}
 
 

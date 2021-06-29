@@ -240,8 +240,8 @@ namespace slib
 					Socket& socket = m_socket;
 
 					socket.setNonBlockingMode(sl_true);
-					SocketEvent event = SocketEvent::createRead(socket);
-					if (event.isNone()) {
+					Ref<SocketEvent> event = SocketEvent::createRead(socket);
+					if (event.isNull()) {
 						return;
 					}
 					
@@ -261,7 +261,7 @@ namespace slib
 								break;
 							}
 						}
-						event.wait();
+						event->wait();
 					}
 				}
 				
@@ -416,8 +416,8 @@ namespace slib
 						return;
 					}
 					socketTCP.setNonBlockingMode(sl_true);
-					SocketEvent eventTCP = SocketEvent::createRead(socketTCP);
-					if (eventTCP.isNone()) {
+					Ref<SocketEvent> eventTCP = SocketEvent::createRead(socketTCP);
+					if (eventTCP.isNull()) {
 						return;
 					}
 					
@@ -426,8 +426,8 @@ namespace slib
 						return;
 					}
 					socketUDP.setNonBlockingMode(sl_true);
-					SocketEvent eventUDP = SocketEvent::createRead(socketUDP);
-					if (eventUDP.isNone()) {
+					Ref<SocketEvent> eventUDP = SocketEvent::createRead(socketUDP);
+					if (eventUDP.isNull()) {
 						return;
 					}
 					
@@ -436,15 +436,15 @@ namespace slib
 						return;
 					}
 					socketICMP.setNonBlockingMode(sl_true);
-					SocketEvent eventICMP = SocketEvent::createRead(socketICMP);
-					if (eventICMP.isNone()) {
+					Ref<SocketEvent> eventICMP = SocketEvent::createRead(socketICMP);
+					if (eventICMP.isNull()) {
 						return;
 					}
 					
 					SocketEvent* events[3];
-					events[0] = &eventTCP;
-					events[1] = &eventUDP;
-					events[2] = &eventICMP;
+					events[0] = eventTCP.get();
+					events[1] = eventUDP.get();
+					events[2] = eventICMP.get();
 					
 					sl_uint8* buf = (sl_uint8*)(m_bufPacket.getData());
 					sl_uint32 sizeBuf = (sl_uint32)(m_bufPacket.getSize());
