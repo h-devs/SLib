@@ -320,9 +320,10 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::getSizeByHandle(sl_file fd, sl_uint64& outSize) noexcept
+	sl_bool File::getSize(sl_uint64& outSize) const noexcept
 	{
-		if (fd != -1) {
+		int fd = m_file;
+		if (fd != SLIB_FILE_INVALID_HANDLE) {
 			struct stat st;
 			if (!(fstat(fd, &st))) {
 				outSize = st.st_size;
@@ -346,10 +347,11 @@ namespace slib
 		return sl_false;
 	}
 	
-	sl_bool File::getDiskSizeByHandle(sl_file fd, sl_uint64& outSize) noexcept
+	sl_bool File::getDiskSize(sl_uint64& outSize) const noexcept
 	{
 #if defined(SLIB_PLATFORM_IS_DESKTOP)
 #	if defined(SLIB_PLATFORM_IS_MACOS)
+		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
 			sl_uint64 nSectors = 0;
 			ioctl(fd, DKIOCGETBLOCKCOUNT, &nSectors);
@@ -359,6 +361,7 @@ namespace slib
 			return sl_true;
 		}
 #	elif defined(SLIB_PLATFORM_IS_LINUX)
+		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
 			ioctl(fd, BLKGETSIZE64, &outSize);
 			return sl_true;
@@ -411,6 +414,24 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool File::setNonBlocking(sl_bool flagEnable) const noexcept
+	{
+		int fd = m_file;
+		if (fd != SLIB_FILE_INVALID_HANDLE) {
+			int flag = fcntl(fd, F_GETFL, 0);
+			if (flag != -1) {
+				if (flagEnable) {
+					flag |= O_NONBLOCK;
+				} else {
+					flag = flag & ~O_NONBLOCK;
+				}
+				int ret = fcntl(fd, F_SETFL, flag);
+				return !ret;
+			}
+		}
+		return sl_false;
+	}
+	
 	Time File::getModifiedTime() const noexcept
 	{
 		int fd = m_file;
@@ -752,22 +773,6 @@ namespace slib
 		return 0 == ::rename(oldPath.getData(), newPath.getData());
 	}
 
-	sl_bool File::setNonBlocking(int fd, sl_bool flagEnable) noexcept
-	{
-		int flag = fcntl(fd, F_GETFL, 0);
-		if (flag != -1) {
-			if (flagEnable) {
-				flag |= O_NONBLOCK;
-			} else {
-				flag = flag & ~O_NONBLOCK;
-			}
-			int ret = fcntl(fd, F_SETFL, flag);
-			return ret == 0;
-		} else {
-			return sl_false;
-		}
-	}
-	
 	String File::getRealPath(const StringParam& _filePath) noexcept
 	{
 		StringCstr filePath(_filePath);

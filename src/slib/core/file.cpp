@@ -129,20 +129,6 @@ namespace slib
 		return WriterHelper::writeWithWrite32(this, buf, size);
 	}
 
-	sl_bool File::getSize(sl_uint64& outSize) const noexcept
-	{
-		return getSizeByHandle(m_file, outSize);
-	}
-
-	sl_uint64 File::getSizeByHandle(sl_file handle) noexcept
-	{
-		sl_uint64 size;
-		if (getSizeByHandle(handle, size)) {
-			return size;
-		}
-		return 0;
-	}
-
 	sl_uint64 File::getSize(const StringParam& path) noexcept
 	{
 		sl_uint64 size;
@@ -152,20 +138,10 @@ namespace slib
 		return 0;
 	}
 
-	sl_bool File::getDiskSize(sl_uint64& outSize) const noexcept
-	{
-		return getDiskSizeByHandle(m_file, outSize);
-	}
-
 	sl_uint64 File::getDiskSize() const noexcept
 	{
-		return getDiskSizeByHandle(m_file);
-	}
-
-	sl_uint64 File::getDiskSizeByHandle(sl_file handle) noexcept
-	{
 		sl_uint64 size;
-		if (getDiskSizeByHandle(handle, size)) {
+		if (getDiskSize(size)) {
 			return size;
 		}
 		return 0;
@@ -175,7 +151,7 @@ namespace slib
 	{
 		File file = openDevice(devicePath, 0);
 		if (file.isNotNone()) {
-			return getDiskSizeByHandle(file.m_file, outSize);
+			return file.getDiskSize(outSize);
 		}
 		return sl_false;
 	}
@@ -724,17 +700,17 @@ namespace slib
 				buf[i] = '_';
 			} else {
 				switch (ch) {
-				case '\\':
-				case '/':
-				case ':':
-				case '*':
-				case '?':
-				case '"':
-				case '<':
-				case '>':
-				case '|':
-					buf[i] = '_';
-					break;
+					case '\\':
+					case '/':
+					case ':':
+					case '*':
+					case '?':
+					case '"':
+					case '<':
+					case '>':
+					case '|':
+						buf[i] = '_';
+						break;
 				}
 			}
 		}
@@ -757,15 +733,15 @@ namespace slib
 				buf[i] = '_';
 			} else {
 				switch (ch) {
-				case ':':
-				case '*':
-				case '?':
-				case '"':
-				case '<':
-				case '>':
-				case '|':
-					buf[i] = '_';
-					break;
+					case ':':
+					case '*':
+					case '?':
+					case '"':
+					case '<':
+					case '>':
+					case '|':
+						buf[i] = '_';
+						break;
 				}
 			}
 		}

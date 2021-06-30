@@ -27,6 +27,7 @@
 #include "slib/core/async_file.h"
 
 #include "slib/core/string.h"
+#include "slib/core/handle_ptr.h"
 #include "slib/core/win32/windows.h"
 
 namespace slib
@@ -64,7 +65,7 @@ namespace slib
 						if (ret.isNotNull()) {
 							ret->setHandle(handle);
 							if (mode & FileMode::SeekToEnd) {
-								ret->seek(File::getSizeByHandle(handle));
+								ret->seek(HandlePtr<File>(handle)->getSize());
 							}
 							return ret;
 						}
@@ -198,7 +199,7 @@ namespace slib
 				sl_uint64 getSize() override
 				{
 					sl_file handle = getHandle();
-					return File::getSizeByHandle(handle);
+					return HandlePtr<File>(handle)->getSize();
 				}
 
 				static sl_file _openHandle(const StringParam& _filePath, FileMode mode)

@@ -24,6 +24,7 @@
 #include "slib/core/pipe_event.h"
 
 #include "slib/core/file.h"
+#include "slib/core/handle_ptr.h"
 #include "slib/core/io/impl.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
@@ -175,8 +176,8 @@ namespace slib
 	{
 		m_flagSet = sl_false;
 #if defined(SLIB_PLATFORM_IS_UNIX)
-		File::setNonBlocking(m_pipe.getReadHandle(), sl_true);
-		File::setNonBlocking(m_pipe.getWriteHandle(), sl_true);
+		HandlePtr<File>(m_pipe.getReadHandle())->setNonBlocking(sl_true);
+		HandlePtr<File>(m_pipe.getWriteHandle())->setNonBlocking(sl_true);
 #endif
 	}
 

@@ -29,6 +29,7 @@
 #include "slib/core/thread.h"
 #include "slib/core/system.h"
 #include "slib/core/file.h"
+#include "slib/core/handle_ptr.h"
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -75,7 +76,7 @@ namespace slib
 
 					int handle = ::open("/dev/net/tun", O_RDWR);
 					if (handle != -1) {
-						File::setNonBlocking(handle, sl_true);
+						HandlePtr<File>(handle)->setNonBlocking(sl_true);
 						ifreq ifr;
 						Base::zeroMemory(&ifr, sizeof(ifr));
 						ifr.ifr_flags = IFF_TAP | IFF_NO_PI;

@@ -221,17 +221,9 @@ namespace slib
 		// works only if the file is already opened
 		sl_bool setSize(sl_uint64 size) const noexcept;
 		
-		static sl_bool getSizeByHandle(sl_file fd, sl_uint64& outSize) noexcept;
-
-		static sl_uint64 getSizeByHandle(sl_file fd) noexcept;
-		
 		static sl_bool getSize(const StringParam& path, sl_uint64& outSize) noexcept;
 		
 		static sl_uint64 getSize(const StringParam& path) noexcept;
-
-		static sl_bool getDiskSizeByHandle(sl_file fd, sl_uint64& outSize) noexcept;
-
-		static sl_uint64 getDiskSizeByHandle(sl_file fd) noexcept;
 
 		static sl_bool getDiskSize(const StringParam& devicePath, sl_uint64& outSize) noexcept;
 
@@ -244,6 +236,8 @@ namespace slib
 
 		sl_bool flush() const noexcept;
 	
+		sl_bool setNonBlocking(sl_bool flag) const noexcept;
+
 		sl_bool getDiskSize(sl_uint64& outSize) const noexcept;
 
 		sl_uint64 getDiskSize() const noexcept;
@@ -371,10 +365,6 @@ namespace slib
 	
 		static String findParentPathContainingFile(const StringParam& basePath, const StringParam& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX) noexcept;
 	
-#if defined(SLIB_PLATFORM_IS_UNIX)
-		static sl_bool setNonBlocking(int fd, sl_bool flag) noexcept;
-#endif
-		
 		static String getRealPath(const StringParam& filePath) noexcept;
 		
 		static String getOwnerName(const StringParam& filePath) noexcept;
