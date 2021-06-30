@@ -23,6 +23,7 @@
 #include "slib/network/async.h"
 
 #include "network_async.h"
+#include "slib/core/handle_ptr.h"
 
 namespace slib
 {
@@ -180,15 +181,15 @@ namespace slib
 		}
 		Ref<AsyncTcpSocketInstance> instance = _getIoInstance();
 		if (instance.isNotNull()) {
-			SocketValue socket(instance->getSocket());
-			if (socket.isOpened()) {
+			HandlePtr<Socket> socket(instance->getSocket());
+			if (socket->isOpened()) {
 				if (instance->isSupportedConnect()) {
 					if (instance->connect(address)) {
 						loop->requestOrder(instance.get());
 						return sl_true;
 					}
 				} else {
-					if (socket.connectAndWait(address)) {
+					if (socket->connectAndWait(address)) {
 						_onConnect(sl_true);
 						return sl_true;
 					} else {
@@ -634,33 +635,33 @@ namespace slib
 
 	void AsyncUdpSocket::setBroadcast(sl_bool flag)
 	{
-		SocketValue socket(getSocket());
-		if (socket.isNotNone()) {
-			socket.setOption_Broadcast(flag);
+		HandlePtr<Socket> socket(getSocket());
+		if (socket->isNotNone()) {
+			socket->setOption_Broadcast(flag);
 		}
 	}
 
 	void AsyncUdpSocket::setSendBufferSize(sl_uint32 size)
 	{
-		SocketValue socket(getSocket());
-		if (socket.isNotNone()) {
-			socket.setOption_SendBufferSize(size);
+		HandlePtr<Socket> socket(getSocket());
+		if (socket->isNotNone()) {
+			socket->setOption_SendBufferSize(size);
 		}
 	}
 
 	void AsyncUdpSocket::setReceiveBufferSize(sl_uint32 size)
 	{
-		SocketValue socket(getSocket());
-		if (socket.isNotNone()) {
-			socket.setOption_ReceiveBufferSize(size);
+		HandlePtr<Socket> socket(getSocket());
+		if (socket->isNotNone()) {
+			socket->setOption_ReceiveBufferSize(size);
 		}
 	}
 
 	sl_bool AsyncUdpSocket::sendTo(const SocketAddress& addressTo, const void* data, sl_uint32 size)
 	{
-		SocketValue socket(getSocket());
-		if (socket.isNotNone()) {
-			return socket.sendTo(addressTo, data, size) == size;
+		HandlePtr<Socket> socket(getSocket());
+		if (socket->isNotNone()) {
+			return socket->sendTo(addressTo, data, size) == size;
 		}
 		return sl_false;
 	}

@@ -311,9 +311,10 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::getSizeByHandle(sl_file handle, sl_uint64& outSize) noexcept
+	sl_bool File::getSize(sl_uint64& outSize) const noexcept
 	{
-		if (handle != INVALID_HANDLE_VALUE) {
+		HANDLE handle = m_file;
+		if (handle != SLIB_FILE_INVALID_HANDLE) {
 			if (GetFileSizeEx(handle, (PLARGE_INTEGER)(&outSize))) {
 				return sl_true;
 			}
@@ -329,16 +330,20 @@ namespace slib
 		}
 		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), 0, 0, NULL, OPEN_EXISTING, 0, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
-			sl_bool bRet = getSizeByHandle((sl_file)handle, outSize);
+			sl_bool bRet = sl_false;
+			if (GetFileSizeEx(handle, (PLARGE_INTEGER)(&outSize))) {
+				bRet = sl_true;
+			}
 			CloseHandle(handle);
 			return bRet;
 		}
 		return sl_false;
 	}
 
-	sl_bool File::getDiskSizeByHandle(sl_file handle, sl_uint64& outSize) noexcept
+	sl_bool File::getDiskSize(sl_uint64& outSize) const noexcept
 	{
-		if (handle != INVALID_HANDLE_VALUE) {
+		HANDLE handle = m_file;
+		if (handle != SLIB_FILE_INVALID_HANDLE) {
 			sl_uint64 size = 0;
 			DWORD nOutput;
 			if (DeviceIoControl(handle, IOCTL_DISK_GET_LENGTH_INFO, NULL, 0, &size, sizeof(size), &nOutput, NULL)) {
@@ -383,6 +388,11 @@ namespace slib
 				return sl_true;
 			}
 		}
+		return sl_false;
+	}
+
+	sl_bool File::setNonBlocking(sl_bool flag) const noexcept
+	{
 		return sl_false;
 	}
 

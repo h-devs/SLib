@@ -27,6 +27,7 @@
 #include "slib/core/event.h"
 #include "slib/core/file.h"
 #include "slib/core/system.h"
+#include "slib/core/handle_ptr.h"
 #include "slib/core/io/impl.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
@@ -173,7 +174,7 @@ namespace slib
 				sl_int32 flag = flagEnable ? 1 : 0;
 				return !(ioctl(fd, FIONBIO, &flag));
 #	else
-				return File::setNonBlocking(fd, flagEnable);
+				return HandlePtr<File>(fd)->setNonBlocking(flagEnable);
 #	endif
 #endif
 			}

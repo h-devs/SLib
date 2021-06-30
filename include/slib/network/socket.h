@@ -358,18 +358,6 @@ namespace slib
 		
 	};
 
-	class SocketValue : public Socket
-	{
-	public:
-		SocketValue(sl_socket socket) noexcept: Socket(socket) {}
-
-		~SocketValue()
-		{
-			release();
-		}
-
-	};
-
 }
 
 #endif
