@@ -315,7 +315,7 @@ namespace slib
 	{
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
-			return 0 == ftruncate(fd, newSize);
+			return !(ftruncate(fd, newSize));
 		}
 		return sl_false;
 	}
@@ -406,7 +406,7 @@ namespace slib
 	{
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
-			return 0 == fsync(fd);
+			return !(fsync(fd));
 		}
 		return sl_false;
 	}
@@ -416,7 +416,7 @@ namespace slib
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
 			struct stat st;
-			if (0 == fstat(fd, &st)) {
+			if (!(fstat(fd, &st))) {
 				return GetModifiedTime(st);
 			}
 		}
@@ -430,7 +430,7 @@ namespace slib
 			return Time::zero();
 		}
 		struct stat st;
-		if (0 == stat(filePath.getData(), &st)) {
+		if (!(stat(filePath.getData(), &st))) {
 			return GetModifiedTime(st);
 		} else {
 			return Time::zero();
@@ -442,7 +442,7 @@ namespace slib
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
 			struct stat st;
-			if (0 == fstat(fd, &st)) {
+			if (!(fstat(fd, &st))) {
 				return GetAccessedTime(st);
 			}
 		}
@@ -456,7 +456,7 @@ namespace slib
 			return Time::zero();
 		}
 		struct stat st;
-		if (0 == stat(filePath.getData(), &st)) {
+		if (!(stat(filePath.getData(), &st))) {
 			return GetAccessedTime(st);
 		} else {
 			return Time::zero();
@@ -468,7 +468,7 @@ namespace slib
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
 			struct stat st;
-			if (0 == fstat(fd, &st)) {
+			if (!(fstat(fd, &st))) {
 				return GetCreatedTime(st);
 			}
 		}
@@ -482,7 +482,7 @@ namespace slib
 			return Time::zero();
 		}
 		struct stat st;
-		if (0 == stat(filePath.getData(), &st)) {
+		if (!(stat(filePath.getData(), &st))) {
 			return GetCreatedTime(st);
 		} else {
 			return Time::zero();
@@ -749,7 +749,7 @@ namespace slib
 		if (newPath.isEmpty()) {
 			return sl_false;
 		}
-		return 0 == ::rename(oldPath.getData(), newPath.getData());
+		return !(::rename(oldPath.getData(), newPath.getData()));
 	}
 
 	sl_bool File::setNonBlocking(int fd, sl_bool flagEnable) noexcept
@@ -784,7 +784,7 @@ namespace slib
 		StringCstr filePath(_filePath);
 		if (filePath.isNotEmpty()) {
 			struct stat st;
-			if (0 == stat(filePath.getData(), &st)) {
+			if (!(stat(filePath.getData(), &st))) {
 				passwd* pw = getpwuid(st.st_uid);
 				if (pw) {
 					return pw->pw_name;
@@ -792,6 +792,20 @@ namespace slib
 			}
 		}
 		return sl_null;
+	}
+
+	void File::setOwnerName(const StringParam& filePath, const StringParam& owner) noexcept
+	{
+	}
+
+	String File::getGroupName(const StringParam& filePath) noexcept
+	{
+		return sl_null;
+	}
+
+	void File::setGroupName(const StringParam& filePath, const StringParam& group) noexcept
+	{
+		
 	}
 
 }

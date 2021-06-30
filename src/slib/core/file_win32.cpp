@@ -721,6 +721,19 @@ namespace slib
 		return sl_null;
 	}
 
+	void File::setOwnerName(const StringParam& filePath, const StringParam& owner) noexcept
+	{
+	}
+
+	String File::getGroupName(const StringParam& filePath) noexcept
+	{
+		return sl_null;
+	}
+
+	void File::setGroupName(const StringParam& filePath, const StringParam& group) noexcept
+	{
+	}
+
 
 	DisableWow64FsRedirectionScope::DisableWow64FsRedirectionScope() noexcept
 	{

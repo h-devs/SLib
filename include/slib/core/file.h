@@ -378,6 +378,12 @@ namespace slib
 		static String getRealPath(const StringParam& filePath) noexcept;
 		
 		static String getOwnerName(const StringParam& filePath) noexcept;
+		
+		static void setOwnerName(const StringParam& filePath, const StringParam& owner) noexcept;
+		
+		static String getGroupName(const StringParam& filePath) noexcept;
+		
+		static void setGroupName(const StringParam& filePath, const StringParam& group) noexcept;
 
 	private:
 		static sl_file _open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs) noexcept;
