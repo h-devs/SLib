@@ -1394,5 +1394,8 @@
     <ClCompile Include="..\..\src\slib\core\named_instance.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\win32_registry.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

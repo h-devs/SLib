@@ -131,10 +131,6 @@ namespace slib
 		static HANDLE getEventHandle(Event* event);
 	
 	
-		static sl_bool getRegistryValue(HKEY hKey, const StringParam& subPath, const StringParam& name, Variant* out);
-	
-		static sl_bool setRegistryValue(HKEY hKey, const StringParam& subPath, const StringParam& name, const Variant& value);
-	
 		static void setApplicationRunAtStartup(const StringParam& name, const StringParam& path, sl_bool flagRegister);
 
 
