@@ -1,23 +1,23 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *	Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
- *   Permission is hereby granted, free of charge, to any person obtaining a copy
- *   of this software and associated documentation files (the "Software"), to deal
- *   in the Software without restriction, including without limitation the rights
- *   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *   copies of the Software, and to permit persons to whom the Software is
- *   furnished to do so, subject to the following conditions:
+ *	Permission is hereby granted, free of charge, to any person obtaining a copy
+ *	of this software and associated documentation files (the "Software"), to deal
+ *	in the Software without restriction, including without limitation the rights
+ *	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *	copies of the Software, and to permit persons to whom the Software is
+ *	furnished to do so, subject to the following conditions:
  *
- *   The above copyright notice and this permission notice shall be included in
- *   all copies or substantial portions of the Software.
+ *	The above copyright notice and this permission notice shall be included in
+ *	all copies or substantial portions of the Software.
  *
- *   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *   THE SOFTWARE.
+ *	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *	THE SOFTWARE.
  */
 
 #include "slib/core/definition.h"
@@ -586,6 +586,65 @@ namespace slib
 		return SetFileAttributesW((LPCWSTR)(filePath.getData()), (DWORD)(attrs.value & 0x7ffff)) != 0;
 	}
 
+	sl_bool File::_createDirectory(const StringParam& _filePath) noexcept
+	{
+		StringCstr16 filePath(_filePath);
+		if (filePath.isEmpty()) {
+			return sl_false;
+		}
+		BOOL ret = CreateDirectoryW((LPCWSTR)(filePath.getData()), NULL);
+		return ret != 0;
+	}
+
+	sl_bool File::deleteFile(const StringParam& _filePath) noexcept
+	{
+		StringCstr16 filePath(_filePath);
+		if (filePath.isEmpty()) {
+			return sl_false;
+		}
+		BOOL ret = DeleteFileW((LPCWSTR)(filePath.getData()));
+		return ret != 0;
+	}
+
+	sl_bool File::deleteDirectory(const StringParam& _filePath) noexcept
+	{
+		String filePath = _filePath.toString();
+		if (filePath.isEmpty()) {
+			return sl_false;
+		}
+		String16 dirPath = String16::from(normalizeDirectoryPath(filePath));
+		BOOL ret = RemoveDirectoryW((LPCWSTR)(dirPath.getData()));
+		return ret != 0;
+	}
+
+	sl_bool File::_copyFile(const StringParam& _pathSrc, const StringParam& _pathDst) noexcept
+	{
+		StringCstr16 pathSrc(_pathSrc);
+		if (pathSrc.isEmpty()) {
+			return sl_false;
+		}
+		StringCstr16 pathDst(_pathDst);
+		if (pathDst.isEmpty()) {
+			return sl_false;
+		}
+		BOOL ret = CopyFileW((LPCWSTR)(pathSrc.getData()), (LPCWSTR)(pathDst.getData()), FALSE);
+		return ret != 0;
+	}
+
+	sl_bool File::_move(const StringParam& _oldPath, const StringParam& _newPath) noexcept
+	{
+		StringCstr16 oldPath(_oldPath);
+		if (oldPath.isEmpty()) {
+			return sl_false;
+		}
+		StringCstr16 newPath(_newPath);
+		if (newPath.isEmpty()) {
+			return sl_false;
+		}
+		BOOL ret = MoveFileExW((LPCWSTR)(oldPath.getData()), (LPCWSTR)(newPath.getData()), MOVEFILE_REPLACE_EXISTING);
+		return ret != 0;
+	}
+
 	List<String> File::getFiles(const StringParam& _filePath) noexcept
 	{
 		String filePath(_filePath.toString());
@@ -656,65 +715,6 @@ namespace slib
 		}
 	}
 
-	sl_bool File::_createDirectory(const StringParam& _filePath) noexcept
-	{
-		StringCstr16 filePath(_filePath);
-		if (filePath.isEmpty()) {
-			return sl_false;
-		}
-		BOOL ret = CreateDirectoryW((LPCWSTR)(filePath.getData()), NULL);
-		return ret != 0;
-	}
-
-	sl_bool File::deleteFile(const StringParam& _filePath) noexcept
-	{
-		StringCstr16 filePath(_filePath);
-		if (filePath.isEmpty()) {
-			return sl_false;
-		}
-		BOOL ret = DeleteFileW((LPCWSTR)(filePath.getData()));
-		return ret != 0;
-	}
-
-	sl_bool File::deleteDirectory(const StringParam& _filePath) noexcept
-	{
-		String filePath = _filePath.toString();
-		if (filePath.isEmpty()) {
-			return sl_false;
-		}
-		String16 dirPath = String16::from(normalizeDirectoryPath(filePath));
-		BOOL ret = RemoveDirectoryW((LPCWSTR)(dirPath.getData()));
-		return ret != 0;
-	}
-
-	sl_bool File::_copyFile(const StringParam& _pathSrc, const StringParam& _pathDst) noexcept
-	{
-		StringCstr16 pathSrc(_pathSrc);
-		if (pathSrc.isEmpty()) {
-			return sl_false;
-		}
-		StringCstr16 pathDst(_pathDst);
-		if (pathDst.isEmpty()) {
-			return sl_false;
-		}
-		BOOL ret = CopyFileW((LPCWSTR)(pathSrc.getData()), (LPCWSTR)(pathDst.getData()), FALSE);
-		return ret != 0;
-	}
-
-	sl_bool File::_move(const StringParam& _oldPath, const StringParam& _newPath) noexcept
-	{
-		StringCstr16 oldPath(_oldPath);
-		if (oldPath.isEmpty()) {
-			return sl_false;
-		}
-		StringCstr16 newPath(_newPath);
-		if (newPath.isEmpty()) {
-			return sl_false;
-		}
-		BOOL ret = MoveFileExW((LPCWSTR)(oldPath.getData()), (LPCWSTR)(newPath.getData()), MOVEFILE_REPLACE_EXISTING);
-		return ret != 0;
-	}
-
 	String File::getRealPath(const StringParam& _filePath) noexcept
 	{
 		StringCstr16 path(_filePath);
@@ -731,8 +731,9 @@ namespace slib
 		return sl_null;
 	}
 
-	void File::setOwnerName(const StringParam& filePath, const StringParam& owner) noexcept
+	sl_bool File::setOwnerName(const StringParam& filePath, const StringParam& owner) noexcept
 	{
+		return sl_false;
 	}
 
 	String File::getGroupName(const StringParam& filePath) noexcept
@@ -740,8 +741,9 @@ namespace slib
 		return sl_null;
 	}
 
-	void File::setGroupName(const StringParam& filePath, const StringParam& group) noexcept
+	sl_bool File::setGroupName(const StringParam& filePath, const StringParam& group) noexcept
 	{
+		return sl_false;
 	}
 
 

@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pwd.h>
+#include <grp.h>
 #include <errno.h>
 #if defined(__APPLE__) || defined(__FreeBSD__)
 #	include <copyfile.h>
@@ -135,7 +136,7 @@ namespace slib
 				t[0].tv_usec = (int)(timeAccess.toInt() % 1000000);
 				t[1].tv_sec = (int)(timeModify.toInt() / 1000000);
 				t[1].tv_usec = (int)(timeModify.toInt() % 1000000);
-				return utimes(filePath.getData(), t) == 0;
+				return !(utimes(filePath.getData(), t));
 			}
 
 		}
@@ -553,7 +554,7 @@ namespace slib
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
 			struct stat st;
-			if (0 == fstat(fd, &st)) {
+			if (!(fstat(fd, &st))) {
 				int ret = 0;
 				if (S_ISDIR(st.st_mode)) {
 					ret |= FileAttributes::Directory;
@@ -573,7 +574,7 @@ namespace slib
 			return FileAttributes::NotExist;
 		}
 		struct stat st;
-		if (0 == stat(filePath.getData(), &st)) {
+		if (!(stat(filePath.getData(), &st))) {
 			int ret = 0;
 			if (S_ISDIR(st.st_mode)) {
 				ret |= FileAttributes::Directory;
@@ -593,68 +594,13 @@ namespace slib
 		return sl_false;
 	}
 
-	List<String> File::getFiles(const StringParam& _filePath) noexcept
-	{
-		String filePath = _filePath.toString();
-		if (filePath.isEmpty()) {
-			return sl_null;
-		}
-		if (File::isDirectory(filePath)) {
-			filePath = normalizeDirectoryPath(filePath);
-		} else {
-			return sl_null;
-		}
-		List<String> ret;
-		StringCstr dirPath(filePath);
-		DIR* dir = opendir(dirPath.getData());
-		if (dir) {
-			dirent* ent;
-			while ((ent = readdir(dir))) {
-				ret.add_NoLock(String::fromUtf8(ent->d_name));
-			}
-			closedir(dir);
-		}
-		return ret;
-	}
-
-	HashMap<String, FileInfo> File::getFileInfos(const StringParam& _filePath) noexcept
-	{
-		String filePath = _filePath.toString();
-		if (filePath.isEmpty()) {
-			return sl_null;
-		}
-		if (File::isDirectory(filePath)) {
-			filePath = normalizeDirectoryPath(filePath);
-		} else {
-			return sl_null;
-		}
-		HashMap<String, FileInfo> ret;
-		StringCstr dirPath(filePath);
-		DIR* dir = opendir(dirPath.getData());
-		if (dir) {
-			dirent* ent;
-			while ((ent = readdir(dir))) {
-				FileInfo info;
-				filePath = String::join(dirPath, "/", String::fromUtf8(ent->d_name));
-				info.attributes = File::getAttributes(filePath);
-				info.size = info.allocSize = File::getSize(filePath);
-				info.createdAt = File::getCreatedTime(filePath);
-				info.modifiedAt = File::getModifiedTime(filePath);
-				info.accessedAt = File::getAccessedTime(filePath);
-				ret.add_NoLock(String::fromUtf8(ent->d_name), info);
-			}
-			closedir(dir);
-		}
-		return ret;
-	}
-
 	sl_bool File::_createDirectory(const StringParam& _filePath) noexcept
 	{
 		StringCstr filePath(_filePath);
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		return 0 == mkdir(filePath.getData(), 0777);
+		return !(mkdir(filePath.getData(), 0777));
 	}
 
 	sl_bool File::deleteFile(const StringParam& _filePath) noexcept
@@ -663,7 +609,7 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		return 0 == ::remove(filePath.getData());
+		return !(::remove(filePath.getData()));
 	}
 
 	sl_bool File::deleteDirectory(const StringParam& _filePath) noexcept
@@ -673,7 +619,7 @@ namespace slib
 			return sl_false;
 		}
 		StringCstr dirPath(normalizeDirectoryPath(filePath));
-		return 0 == rmdir(dirPath.getData());
+		return !(rmdir(dirPath.getData()));
 	}
 
 	sl_bool File::_copyFile(const StringParam& _pathSrc, const StringParam& _pathDst) noexcept
@@ -687,7 +633,7 @@ namespace slib
 			return sl_false;
 		}
 #if defined(__APPLE__) || defined(__FreeBSD__)
-		return copyfile(pathSrc.getData(), pathDst.getData(), sl_null, COPYFILE_ALL) == 0;
+		return !(copyfile(pathSrc.getData(), pathDst.getData(), sl_null, COPYFILE_ALL));
 #else
 		sl_bool bRet = sl_false;
 		int handleSrc = ::open(pathSrc.getData(), O_RDONLY);
@@ -773,6 +719,61 @@ namespace slib
 		return !(::rename(oldPath.getData(), newPath.getData()));
 	}
 
+	List<String> File::getFiles(const StringParam& _filePath) noexcept
+	{
+		String filePath = _filePath.toString();
+		if (filePath.isEmpty()) {
+			return sl_null;
+		}
+		if (File::isDirectory(filePath)) {
+			filePath = normalizeDirectoryPath(filePath);
+		} else {
+			return sl_null;
+		}
+		List<String> ret;
+		StringCstr dirPath(filePath);
+		DIR* dir = opendir(dirPath.getData());
+		if (dir) {
+			dirent* ent;
+			while ((ent = readdir(dir))) {
+				ret.add_NoLock(String::fromUtf8(ent->d_name));
+			}
+			closedir(dir);
+		}
+		return ret;
+	}
+
+	HashMap<String, FileInfo> File::getFileInfos(const StringParam& _filePath) noexcept
+	{
+		String filePath = _filePath.toString();
+		if (filePath.isEmpty()) {
+			return sl_null;
+		}
+		if (File::isDirectory(filePath)) {
+			filePath = normalizeDirectoryPath(filePath);
+		} else {
+			return sl_null;
+		}
+		HashMap<String, FileInfo> ret;
+		StringCstr dirPath(filePath);
+		DIR* dir = opendir(dirPath.getData());
+		if (dir) {
+			dirent* ent;
+			while ((ent = readdir(dir))) {
+				FileInfo info;
+				filePath = String::join(dirPath, "/", String::fromUtf8(ent->d_name));
+				info.attributes = File::getAttributes(filePath);
+				info.size = info.allocSize = File::getSize(filePath);
+				info.createdAt = File::getCreatedTime(filePath);
+				info.modifiedAt = File::getModifiedTime(filePath);
+				info.accessedAt = File::getAccessedTime(filePath);
+				ret.add_NoLock(String::fromUtf8(ent->d_name), info);
+			}
+			closedir(dir);
+		}
+		return ret;
+	}
+
 	String File::getRealPath(const StringParam& _filePath) noexcept
 	{
 		StringCstr filePath(_filePath);
@@ -799,18 +800,45 @@ namespace slib
 		return sl_null;
 	}
 
-	void File::setOwnerName(const StringParam& filePath, const StringParam& owner) noexcept
+	sl_bool File::setOwnerName(const StringParam& _filePath, const StringParam& _owner) noexcept
 	{
+		StringCstr owner(_owner);
+		StringCstr filePath(_filePath);
+		if (owner.isNotEmpty() && filePath.isNotEmpty()) {
+			passwd* pw = getpwnam(owner.getData());
+			if (pw) {
+				return !(chown(filePath.getData(), pw->pw_uid, -1));
+			}
+		}
+		return sl_false;
 	}
 
-	String File::getGroupName(const StringParam& filePath) noexcept
+	String File::getGroupName(const StringParam& _filePath) noexcept
 	{
+		StringCstr filePath(_filePath);
+		if (filePath.isNotEmpty()) {
+			struct stat st;
+			if (!(stat(filePath.getData(), &st))) {
+				group* grp = getgrgid(st.st_gid);
+				if (grp) {
+					return grp->gr_name;
+				}
+			}
+		}
 		return sl_null;
 	}
 
-	void File::setGroupName(const StringParam& filePath, const StringParam& group) noexcept
+	sl_bool File::setGroupName(const StringParam& _filePath, const StringParam& _groupName) noexcept
 	{
-		
+		StringCstr groupName(_groupName);
+		StringCstr filePath(_filePath);
+		if (groupName.isNotEmpty() && filePath.isNotEmpty()) {
+			group* grp = getgrnam(groupName.getData());
+			if (grp) {
+				return !(chown(filePath.getData(), -1, grp->gr_gid));
+			}
+		}
+		return sl_false;
 	}
 
 }

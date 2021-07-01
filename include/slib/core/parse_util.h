@@ -43,11 +43,18 @@ namespace slib
 		
 		static sl_size countLineNumber(const StringParam& input, sl_size* column = sl_null) noexcept;
 
+		static List<String> splitLines(const String& input) noexcept;
+		static List<String> splitLines(const AtomicString& input) noexcept;
+		static List<String16> splitLines(const String16& input) noexcept;
+		static List<String16> splitLines(const AtomicString16& input) noexcept;
+		static List<StringView> splitLines(const StringView& input) noexcept;
+		static List<StringView16> splitLines(const StringView16& input) noexcept;
 
+		
 		static sl_reg indexOfLine(const StringParam& input, sl_reg start = 0) noexcept;
 
 		static sl_reg indexOfNotLine(const StringParam& input, sl_reg start = 0) noexcept;
-
+		
 		static sl_reg indexOfWhitespace(const StringParam& input, sl_reg start = 0) noexcept;
 
 		static sl_reg indexOfNotWhitespace(const StringParam& input, sl_reg start = 0) noexcept;

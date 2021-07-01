@@ -25,7 +25,7 @@
 #include "slib/ui/core.h"
 #include "slib/core/safe_static.h"
 
-#if !defined(SLIB_UI_IS_WIN32)
+#if !(defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_MACOS))
 #define RUN_ON_UI_THREAD
 #endif
 

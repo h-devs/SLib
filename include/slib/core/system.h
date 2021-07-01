@@ -52,6 +52,15 @@ namespace slib
 
 		static sl_bool setCurrentDirectory(const StringParam& dir);
 		
+#ifdef SLIB_PLATFORM_IS_APPLE
+		static String getMainBundlePath();
+#endif
+		
+#ifdef SLIB_PLATFORM_IS_WIN32
+		static String getWindowsDirectory();
+		static String getSystemDirectory();
+		static String getSystemWow64Directory();
+#endif
 		
 		static String getComputerName();
 

@@ -1,23 +1,23 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *	Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
  *
- *   Permission is hereby granted, free of charge, to any person obtaining a copy
- *   of this software and associated documentation files (the "Software"), to deal
- *   in the Software without restriction, including without limitation the rights
- *   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *   copies of the Software, and to permit persons to whom the Software is
- *   furnished to do so, subject to the following conditions:
+ *	Permission is hereby granted, free of charge, to any person obtaining a copy
+ *	of this software and associated documentation files (the "Software"), to deal
+ *	in the Software without restriction, including without limitation the rights
+ *	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *	copies of the Software, and to permit persons to whom the Software is
+ *	furnished to do so, subject to the following conditions:
  *
- *   The above copyright notice and this permission notice shall be included in
- *   all copies or substantial portions of the Software.
+ *	The above copyright notice and this permission notice shall be included in
+ *	all copies or substantial portions of the Software.
  *
- *   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *   THE SOFTWARE.
+ *	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *	THE SOFTWARE.
  */
 
 #include "slib/core/parse.h"
@@ -507,7 +507,32 @@ namespace slib
 				}
 				return line;
 			}
-
+		
+			template <class ST, class CT>
+			static List<ST> SplitLines(const CT* input, sl_size len)
+			{
+				List<ST> ret;
+				sl_size start = 0;
+				for (sl_size i = 0; i < len; i++) {
+					CT ch = input[i];
+					if (!ch) {
+						break;
+					}
+					if (ch == '\r') {
+						ret.add_NoLock(input + start, len - start);
+						if (i + 1 < len && input[i + 1] == '\n') {
+							i++;
+						}
+						start = i + 1;
+					} else if (ch == '\n') {
+						ret.add_NoLock(input + start, len - start);
+						start = i + 1;
+					}
+				}
+				ret.add_NoLock(input + start, len - start);
+				return ret;
+			}
+			
 		}
 	}
 
@@ -525,6 +550,36 @@ namespace slib
 			}
 		}
 		return 0;
+	}
+
+	List<String> ParseUtil::splitLines(const String& input) noexcept
+	{
+		return priv::parse::SplitLines<String>(input.getData(), input.getLength());
+	}
+
+	List<String> ParseUtil::splitLines(const AtomicString& input) noexcept
+	{
+		return splitLines(String(input));
+	}
+
+	List<String16> ParseUtil::splitLines(const String16& input) noexcept
+	{
+		return priv::parse::SplitLines<String16>(input.getData(), input.getLength());
+	}
+
+	List<String16> ParseUtil::splitLines(const AtomicString16& input) noexcept
+	{
+		return splitLines(String16(input));
+	}
+
+	List<StringView> ParseUtil::splitLines(const StringView& input) noexcept
+	{
+		return priv::parse::SplitLines<StringView>(input.getData(), input.getLength());
+	}
+
+	List<StringView16> ParseUtil::splitLines(const StringView16& input) noexcept
+	{
+		return priv::parse::SplitLines<StringView16>(input.getData(), input.getLength());
 	}
 
 	namespace priv

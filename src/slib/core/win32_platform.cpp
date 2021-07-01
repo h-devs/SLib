@@ -25,6 +25,7 @@
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
 #include "slib/core/platform.h"
+#include "slib/core/system.h"
 
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/variant.h"
@@ -642,6 +643,11 @@ namespace slib
 		return String::from(path, nLen);
 	}
 
+	String System::getWindowsDirectory()
+	{
+		return Win32::getWindowsDirectory();
+	}
+
 	String Win32::getSystemDirectory()
 	{
 		WCHAR path[MAX_PATH];
@@ -649,11 +655,21 @@ namespace slib
 		return String::from(path, nLen);
 	}
 
+	String System::getSystemDirectory()
+	{
+		return Win32::getSystemDirectory();
+	}
+
 	String Win32::getSystemWow64Directory()
 	{
 		WCHAR path[MAX_PATH];
 		UINT nLen = GetSystemWow64DirectoryW(path, MAX_PATH);
 		return String::from(path, nLen);
+	}
+
+	String System::getSystemWow64Directory()
+	{
+		return Win32::getSystemWow64Directory();
 	}
 
 	HANDLE Win32::createDeviceHandle(const StringParam& _path, DWORD dwDesiredAccess, DWORD dwShareMode)

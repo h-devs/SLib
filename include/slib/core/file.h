@@ -313,6 +313,17 @@ namespace slib
 		static List<String> getAllDescendantFiles(const StringParam& dirPath) noexcept;
 	
 		
+		static String getRealPath(const StringParam& filePath) noexcept;
+		
+		static String getOwnerName(const StringParam& filePath) noexcept;
+		
+		static sl_bool setOwnerName(const StringParam& filePath, const StringParam& owner) noexcept;
+		
+		static String getGroupName(const StringParam& filePath) noexcept;
+		
+		static sl_bool setGroupName(const StringParam& filePath, const StringParam& group) noexcept;
+
+		
 		static Memory readAllBytes(const StringParam& path, sl_size maxSize = SLIB_SIZE_MAX) noexcept;
 		
 		static String readAllTextUTF8(const StringParam& path, sl_size maxSize = SLIB_SIZE_MAX) noexcept;
@@ -365,16 +376,6 @@ namespace slib
 	
 		static String findParentPathContainingFile(const StringParam& basePath, const StringParam& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX) noexcept;
 	
-		static String getRealPath(const StringParam& filePath) noexcept;
-		
-		static String getOwnerName(const StringParam& filePath) noexcept;
-		
-		static void setOwnerName(const StringParam& filePath, const StringParam& owner) noexcept;
-		
-		static String getGroupName(const StringParam& filePath) noexcept;
-		
-		static void setGroupName(const StringParam& filePath, const StringParam& group) noexcept;
-
 	private:
 		static sl_file _open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs) noexcept;
 

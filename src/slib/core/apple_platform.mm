@@ -28,6 +28,7 @@
 #include "slib/core/variant.h"
 #include "slib/core/safe_static.h"
 
+#include "slib/core/system.h"
 #include "slib/core/platform.h"
 
 namespace slib
@@ -249,6 +250,11 @@ namespace slib
 	{
 		NSString* path = [[NSBundle mainBundle] bundlePath];
 		return getStringFromNSString(path);
+	}
+
+	String System::getMainBundlePath()
+	{
+		return Apple::getMainBundlePath();
 	}
 
 	String Apple::getSystemLocalizedString(const StringParam& key)
