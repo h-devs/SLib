@@ -519,13 +519,13 @@ namespace slib
 						break;
 					}
 					if (ch == '\r') {
-						ret.add_NoLock(input + start, len - start);
+						ret.add_NoLock(input + start, i - start);
 						if (i + 1 < len && input[i + 1] == '\n') {
 							i++;
 						}
 						start = i + 1;
 					} else if (ch == '\n') {
-						ret.add_NoLock(input + start, len - start);
+						ret.add_NoLock(input + start, i - start);
 						start = i + 1;
 					}
 				}
