@@ -3429,7 +3429,7 @@ namespace slib
 							return 0;
 						}
 					}
-					if (Serialize(&mb, var)) {
+					if (var.serialize(&mb)) {
 						Memory mem = mb.merge();
 						sl_size n = mem.getSize();
 						if (n) {
@@ -3459,7 +3459,7 @@ namespace slib
 
 	sl_bool Variant::serialize(MemoryBuffer* buf) const
 	{
-		return Serialize(buf, *this);
+		return serialize<MemoryBuffer>(buf);
 	}
 
 	sl_size Variant::deserialize(const void* data, sl_size size)
