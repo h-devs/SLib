@@ -11,11 +11,17 @@ namespace npcap
 		unsigned char* npcap_inf_compressed_data64 = _npcap_inf_x64;
 		unsigned long npcap_inf_compressed_size64 = sizeof(_npcap_inf_x64);
 
-		static unsigned char _npcap_sys_x64[] = {
-#include "x64/npcap_sys.txt"
+		static unsigned char _npcap_win10_sys_x64[] = {
+#include "x64/npcap_win10_sys.txt"
 		};
-		unsigned char* npcap_sys_compressed_data64 = _npcap_sys_x64;
-		unsigned long npcap_sys_compressed_size64 = sizeof(_npcap_sys_x64);
+		unsigned char* npcap_win10_sys_compressed_data64 = _npcap_win10_sys_x64;
+		unsigned long npcap_win10_sys_compressed_size64 = sizeof(_npcap_win10_sys_x64);
+
+		static unsigned char _npcap_win7_sys_x64[] = {
+#include "x64/npcap_win7_sys.txt"
+		};
+		unsigned char* npcap_win7_sys_compressed_data64 = _npcap_win7_sys_x64;
+		unsigned long npcap_win7_sys_compressed_size64 = sizeof(_npcap_win7_sys_x64);
 
 		static unsigned char _npcap_cat_x64[] = {
 #include "x64/npcap_cat.txt"

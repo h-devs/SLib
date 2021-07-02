@@ -53,22 +53,25 @@ namespace slib
 					return sl_false;
 				}
 
+				ServiceManager::setStartType(DRIVER_NAME, ServiceStartType::Auto);
 				if (ServiceManager::start(DRIVER_NAME)) {
-					ServiceManager::setStartType(DRIVER_NAME, ServiceStartType::Auto);
 					return sl_true;
 				}
 
-				String path = System::getTempDirectory() + "\\slib_npcap";
+				String path = System::getTempDirectory() + "\\.npcap";
 				File::createDirectory(path);
 				if (!(File::isDirectory(path))) {
 					return sl_false;
 				}
 
+				sl_bool flagWin10 = Win32::getVersion() >= WindowsVersion::Windows10;
+				unsigned char* npcap_sys_compressed_data64 = flagWin10 ? ::npcap::files::npcap_win10_sys_compressed_data64 : ::npcap::files::npcap_win7_sys_compressed_data64;
+				unsigned long npcap_sys_compressed_size64 = flagWin10 ? ::npcap::files::npcap_win10_sys_compressed_size64 : ::npcap::files::npcap_win7_sys_compressed_size64;
 #ifdef SLIB_PLATFORM_IS_WIN64
 				unsigned char* npcap_inf_compressed_data = ::npcap::files::npcap_inf_compressed_data64;
 				unsigned long npcap_inf_compressed_size = ::npcap::files::npcap_inf_compressed_size64;
-				unsigned char* npcap_sys_compressed_data = ::npcap::files::npcap_sys_compressed_data64;
-				unsigned long npcap_sys_compressed_size = ::npcap::files::npcap_sys_compressed_size64;
+				unsigned char* npcap_sys_compressed_data = npcap_sys_compressed_data64;
+				unsigned long npcap_sys_compressed_size = npcap_sys_compressed_size64;
 				unsigned char* npcap_cat_compressed_data = ::npcap::files::npcap_cat_compressed_data64;
 				unsigned long npcap_cat_compressed_size = ::npcap::files::npcap_cat_compressed_size64;
 				unsigned char* npfinstall_exe_compressed_data = ::npcap::files::npfinstall_exe_compressed_data64;
@@ -77,8 +80,8 @@ namespace slib
 				sl_bool flag64Bit = Win32::is64BitSystem();
 				unsigned char* npcap_inf_compressed_data = flag64Bit ? ::npcap::files::npcap_inf_compressed_data64 : ::npcap::files::npcap_inf_compressed_data86;
 				unsigned long npcap_inf_compressed_size = flag64Bit ? ::npcap::files::npcap_inf_compressed_size64 : ::npcap::files::npcap_inf_compressed_size86;
-				unsigned char* npcap_sys_compressed_data = flag64Bit ? ::npcap::files::npcap_sys_compressed_data64 : ::npcap::files::npcap_sys_compressed_data86;
-				unsigned long npcap_sys_compressed_size = flag64Bit ? ::npcap::files::npcap_sys_compressed_size64 : ::npcap::files::npcap_sys_compressed_size86;
+				unsigned char* npcap_sys_compressed_data = flag64Bit ? npcap_sys_compressed_data64 : ::npcap::files::npcap_sys_compressed_data86;
+				unsigned long npcap_sys_compressed_size = flag64Bit ? npcap_sys_compressed_size64 : ::npcap::files::npcap_sys_compressed_size86;
 				unsigned char* npcap_cat_compressed_data = flag64Bit ? ::npcap::files::npcap_cat_compressed_data64 : ::npcap::files::npcap_cat_compressed_data86;
 				unsigned long npcap_cat_compressed_size = flag64Bit ? ::npcap::files::npcap_cat_compressed_size64 : ::npcap::files::npcap_cat_compressed_size86;
 				unsigned char* npfinstall_exe_compressed_data = flag64Bit ? ::npcap::files::npfinstall_exe_compressed_data64 : ::npcap::files::npfinstall_exe_compressed_data86;
@@ -109,7 +112,13 @@ namespace slib
 					}
 				}
 				String output = Process::getOutput(path + "\\npfinstall.exe", "-i");
-				return output.contains("successfully installed");
+				if (output.contains("successfully installed")) {
+					ServiceManager::setStartType(DRIVER_NAME, ServiceStartType::Auto);
+					if (ServiceManager::start(DRIVER_NAME)) {
+						return sl_true;
+					}
+				}
+				return sl_false;
 			}
 
 			static sl_bool UninstallDriver()
@@ -121,7 +130,7 @@ namespace slib
 					return sl_false;
 				}
 
-				String path = System::getTempDirectory() + "\\slib_npcap";
+				String path = System::getTempDirectory() + "\\.npcap";
 				File::createDirectory(path);
 				if (!(File::isDirectory(path))) {
 					return sl_false;

@@ -1,5 +1,6 @@
 BinaryToArray compress x64/npcap.inf x64/npcap_inf.txt
-BinaryToArray compress x64/npcap.sys x64/npcap_sys.txt
+BinaryToArray compress x64/npcap_win10.sys x64/npcap_win10_sys.txt
+BinaryToArray compress x64/npcap_win7.sys x64/npcap_win7_sys.txt
 BinaryToArray compress x64/npcap.cat x64/npcap_cat.txt
 BinaryToArray compress x64/NPFInstall.exe x64/npfinstall_exe.txt
 BinaryToArray compress x86/npcap.inf x86/npcap_inf.txt

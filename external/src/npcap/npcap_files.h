@@ -8,8 +8,10 @@ namespace npcap
 		
 		extern unsigned char* npcap_inf_compressed_data64;
 		extern unsigned long npcap_inf_compressed_size64;
-		extern unsigned char* npcap_sys_compressed_data64;
-		extern unsigned long npcap_sys_compressed_size64;
+		extern unsigned char* npcap_win10_sys_compressed_data64;
+		extern unsigned long npcap_win10_sys_compressed_size64;
+		extern unsigned char* npcap_win7_sys_compressed_data64;
+		extern unsigned long npcap_win7_sys_compressed_size64;
 		extern unsigned char* npcap_cat_compressed_data64;
 		extern unsigned long npcap_cat_compressed_size64;
 		extern unsigned char* npfinstall_exe_compressed_data64;
