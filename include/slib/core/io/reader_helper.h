@@ -25,9 +25,9 @@
 
 #include "../mio.h"
 #include "../thread.h"
-#include "../memory.h"
 #include "../string.h"
 #include "../time.h"
+#include "../memory_buffer.h"
 #include "../scoped_buffer.h"
 
 namespace slib
@@ -75,6 +75,31 @@ namespace slib
 				}
 			}
 			return nRead;
+		}
+		
+		template <class READER>
+		static Memory readFully(READER* reader)
+		{
+			MemoryBuffer mb;
+			char buf[1024];
+			for (;;) {
+				sl_reg nRead = reader->read(buf, sizeof(buf));
+				if (nRead < 0) {
+					break;
+				}
+				if (Thread::isStoppingCurrent()) {
+					break;
+				}
+				if (nRead) {
+					mb.add(Memory::create(buf, nRead));
+				} else {
+					Thread::sleep(1);
+					if (Thread::isStoppingCurrent()) {
+						break;
+					}
+				}
+			}
+			return mb.merge();
 		}
 
 		template <class READER>
@@ -808,7 +833,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-
+		
 	};
 
 	class BlockReaderHelper

@@ -23,6 +23,8 @@
 #include "slib/core/process.h"
 
 #include "slib/core/list.h"
+#include "slib/core/memory.h"
+#include "slib/core/io.h"
 
 namespace slib
 {
@@ -50,6 +52,7 @@ namespace slib
 	}
 	
 #if defined(SLIB_PLATFORM_IS_MOBILE)
+
 	Ref<Process> Process::open(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		return sl_null;
@@ -76,6 +79,27 @@ namespace slib
 	void Process::exit(int code)
 	{
 	}
+
+	String Process::getOutput(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs)
+	{
+		return sl_null;
+	}
+
+#else
+
+	String Process::getOutput(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs)
+	{
+		Ref<Process> process = open(pathExecutable, args, nArgs);
+		if (process.isNotNull()) {
+			IStream* stream = process->getStream();
+			if (stream) {
+				Memory mem = stream->readFully();
+				return String::fromMemory(mem);
+			}
+		}
+		return sl_null;
+	}
+
 #endif
 
 }

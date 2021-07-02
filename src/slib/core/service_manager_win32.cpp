@@ -29,7 +29,6 @@
 #include "slib/core/thread.h"
 #include "slib/core/time_counter.h"
 #include "slib/core/memory.h"
-#include "slib/core/command_line.h"
 #include "slib/core/win32/windows.h"
 
 #pragma comment(lib, "advapi32.lib")
@@ -201,12 +200,7 @@ namespace slib
 				_displayName = name;
 			}
 			StringCstr16 displayName = _displayName;
-			StringParam _path = param.commandLine;
-			if (_path.isNull()) {
-				ListLocker<StringParam> arguments(param.arguments);
-				_path = CommandLine::build(param.path, arguments.data, arguments.count);
-			}
-			StringCstr16 path = _path;
+			StringCstr16 path = param.getCommandLine();
 			SC_HANDLE handle = CreateServiceW(
 				manager,
 				(LPCWSTR)(name.getData()),

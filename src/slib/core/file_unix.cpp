@@ -138,6 +138,39 @@ namespace slib
 				t[1].tv_usec = (int)(timeModify.toInt() % 1000000);
 				return !(utimes(filePath.getData(), t));
 			}
+		
+			static int GetFilePermissions(const FileAttributes& attrs)
+			{
+				int perm = 0;
+				if (attrs & FileAttributes::ReadByOthers) {
+					perm |= S_IROTH;
+				}
+				if (attrs & FileAttributes::WriteByOthers) {
+					perm |= S_IWOTH;
+				}
+				if (attrs & FileAttributes::ExecuteByOthers) {
+					perm |= S_IXOTH;
+				}
+				if (attrs & FileAttributes::ReadByGroup) {
+					perm |= S_IRGRP;
+				}
+				if (attrs & FileAttributes::WriteByGroup) {
+					perm |= S_IWGRP;
+				}
+				if (attrs & FileAttributes::ExecuteByGroup) {
+					perm |= S_IXGRP;
+				}
+				if (attrs & FileAttributes::ReadByUser) {
+					perm |= S_IRUSR;
+				}
+				if (attrs & FileAttributes::WriteByUser) {
+					perm |= S_IWUSR;
+				}
+				if (attrs & FileAttributes::ExecuteByUser) {
+					perm |= S_IXUSR;
+				}
+				return perm;
+			}
 
 		}
 	}
@@ -170,33 +203,7 @@ namespace slib
 		
 		int perm = 0;
 		if (flags & O_CREAT) {
-			if (attrs & FileAttributes::ReadByOthers) {
-				perm |= S_IROTH;
-			}
-			if (attrs & FileAttributes::WriteByOthers) {
-				perm |= S_IWOTH;
-			}
-			if (attrs & FileAttributes::ExecuteByOthers) {
-				perm |= S_IXOTH;
-			}
-			if (attrs & FileAttributes::ReadByGroup) {
-				perm |= S_IRGRP;
-			}
-			if (attrs & FileAttributes::WriteByGroup) {
-				perm |= S_IWGRP;
-			}
-			if (attrs & FileAttributes::ExecuteByGroup) {
-				perm |= S_IXGRP;
-			}
-			if (attrs & FileAttributes::ReadByUser) {
-				perm |= S_IRUSR;
-			}
-			if (attrs & FileAttributes::WriteByUser) {
-				perm |= S_IWUSR;
-			}
-			if (attrs & FileAttributes::ExecuteByUser) {
-				perm |= S_IXUSR;
-			}
+			perm = GetFilePermissions(attrs);
 		}
 		
 		int fd = ::open(filePath.getData(), flags, perm);
@@ -579,6 +586,48 @@ namespace slib
 			if (S_ISDIR(st.st_mode)) {
 				ret |= FileAttributes::Directory;
 			}
+			if (S_ISSOCK(st.st_mode)) {
+				ret |= FileAttributes::Socket;
+			}
+			if (S_ISLNK(st.st_mode)) {
+				ret |= FileAttributes::Link;
+			}
+			if (S_ISBLK(st.st_mode)) {
+				ret |= FileAttributes::Device;
+			}
+			if (S_ISCHR(st.st_mode)) {
+				ret |= FileAttributes::CharDevice;
+			}
+			if (S_ISFIFO(st.st_mode)) {
+				ret |= FileAttributes::FIFO;
+			}
+			if (st.st_mode & S_IRUSR) {
+				ret |= FileAttributes::ReadByUser;
+			}
+			if (st.st_mode & S_IWUSR) {
+				ret |= FileAttributes::WriteByUser;
+			}
+			if (st.st_mode & S_IXUSR) {
+				ret |= FileAttributes::ExecuteByUser;
+			}
+			if (st.st_mode & S_IRGRP) {
+				ret |= FileAttributes::ReadByGroup;
+			}
+			if (st.st_mode & S_IWGRP) {
+				ret |= FileAttributes::WriteByGroup;
+			}
+			if (st.st_mode & S_IXGRP) {
+				ret |= FileAttributes::ExecuteByGroup;
+			}
+			if (st.st_mode & S_IROTH) {
+				ret |= FileAttributes::ReadByOthers;
+			}
+			if (st.st_mode & S_IWOTH) {
+				ret |= FileAttributes::WriteByOthers;
+			}
+			if (st.st_mode & S_IXOTH) {
+				ret |= FileAttributes::ExecuteByOthers;
+			}
 			if (filePath.startsWith('.')) {
 				ret |= FileAttributes::Hidden;
 			}
@@ -590,8 +639,8 @@ namespace slib
 
 	sl_bool File::_setAttributes(const StringParam& _filePath, const FileAttributes& attrs) noexcept
 	{
-		// not supported
-		return sl_false;
+		StringCstr filePath(_filePath);
+		return !(chmod(filePath.getData(), GetFilePermissions(attrs)));
 	}
 
 	sl_bool File::_createDirectory(const StringParam& _filePath) noexcept

@@ -108,21 +108,8 @@ namespace slib
 						return sl_false;
 					}
 				}
-				Ref<Process> process = Process::open(path + "\\npfinstall.exe", "-i");
-				if (process.isNotNull()) {
-					IStream* stream = process->getStream();
-					if (stream) {
-						char buf[512];
-						sl_reg n = stream->readFully(buf, sizeof(buf) - 1);
-						if (n > 0) {
-							if (StringView(buf).contains("successfully installed")) {
-								ServiceManager::setStartType(DRIVER_NAME, ServiceStartType::Auto);
-								return sl_true;
-							}
-						}
-					}
-				}
-				return sl_false;
+				String output = Process::getOutput(path + "\\npfinstall.exe", "-i");
+				return output.contains("successfully installed");
 			}
 
 			static sl_bool UninstallDriver()
@@ -154,20 +141,8 @@ namespace slib
 						return sl_false;
 					}
 				}
-				Ref<Process> process = Process::open(path + "\\npfinstall.exe", "-u");
-				if (process.isNotNull()) {
-					IStream* stream = process->getStream();
-					if (stream) {
-						char buf[512];
-						sl_reg n = stream->readFully(buf, sizeof(buf) - 1);
-						if (n > 0) {
-							if (StringView(buf).contains("successfully uninstalled")) {
-								return sl_true;
-							}
-						}
-					}
-				}
-				return sl_false;
+				String output = Process::getOutput(path + "\\npfinstall.exe", "-u");
+				return output.contains("successfully uninstalled");
 			}
 
 		}

@@ -397,6 +397,7 @@
 		D7BF60F226311F7600E0B3DD /* midl.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60F026311F7600E0B3DD /* midl.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7BF60FB26311FB700E0B3DD /* leveldb_unity.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60FA26311FB700E0B3DD /* leveldb_unity.cc */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7C709832645A0BB00FB3A32 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C709822645A0BB00FB3A32 /* main.cpp */; };
+		D7E978ED268DC6A7000343F8 /* service_manager_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = D7E978EC268DC6A7000343F8 /* service_manager_macos.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -885,6 +886,7 @@
 		D7BF60F026311F7600E0B3DD /* midl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = midl.c; path = ../../external/src/lmdb/midl.c; sourceTree = "<group>"; };
 		D7BF60FA26311FB700E0B3DD /* leveldb_unity.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = leveldb_unity.cc; path = ../../external/src/leveldb/leveldb_unity.cc; sourceTree = "<group>"; };
 		D7C709822645A0BB00FB3A32 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../../tool/src/GenerateAppIcons/main.cpp; sourceTree = "<group>"; };
+		D7E978EC268DC6A7000343F8 /* service_manager_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = service_manager_macos.mm; sourceTree = "<group>"; };
 		E17DADEE1E0C9A10006161F6 /* motion_tracker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = motion_tracker.cpp; sourceTree = "<group>"; };
 		E17DADF01E0C9A1E006161F6 /* gesture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gesture.cpp; sourceTree = "<group>"; };
 		E1B34E9E1E0A90C0006217F4 /* picker_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = picker_view.cpp; sourceTree = "<group>"; };
@@ -1543,6 +1545,7 @@
 				2647C96C25023F22005560C7 /* safe_static.cpp */,
 				A25F2FB51B03A33700854DAF /* service.cpp */,
 				261782C7251C9E1200C2AAC0 /* service_manager.cpp */,
+				D7E978EC268DC6A7000343F8 /* service_manager_macos.mm */,
 				A25F2FB61B03A33700854DAF /* setting.cpp */,
 				A25F2FB71B03A33700854DAF /* spin_lock.cpp */,
 				A25F2FB81B03A33700854DAF /* string.cpp */,
@@ -1994,6 +1997,7 @@
 				26D9D9781E96466A005F7BD3 /* image.cpp in Sources */,
 				265A93522304298600B155A2 /* named_instance.cpp in Sources */,
 				26EA207123A2BF75008218D7 /* database_sql.cpp in Sources */,
+				D7E978ED268DC6A7000343F8 /* service_manager_macos.mm in Sources */,
 				26C1B63F20D51D1D00E36539 /* font.cpp in Sources */,
 				26D9D9021E9645CE005F7BD3 /* container.cpp in Sources */,
 				26D9D9031E9645CE005F7BD3 /* system_unix.cpp in Sources */,

@@ -66,7 +66,7 @@ namespace slib
 				args[nArguments+1] = 0;
 				
 				execvp(exe, args);
-				::exit(1);
+				::abort();
 			}
 			
 			class ProcessStream : public IStream
@@ -161,6 +161,10 @@ namespace slib
 				
 				~ProcessImpl()
 				{
+					if (m_pid != -1) {
+						int status = 0;
+						waitpid(m_pid, &status, WNOHANG | WUNTRACED | WCONTINUED);
+					}
 				}
 				
 			public:
@@ -174,12 +178,10 @@ namespace slib
 								// child process
 								::close(hStdin[1]); // WRITE
 								::close(hStdout[0]); // READ
-								::close(0);
-								::close(1);
-								::close(2);
 								dup2(hStdin[0], 0); // STDIN
 								dup2(hStdout[1], 1); // STDOUT
-								dup2(hStdout[1], 2); // STDERR
+								::close(hStdin[0]);
+								::close(hStdout[1]);
 								Exec(pathExecutable, arguments, nArguments);
 								return sl_null;
 							} else if (pid > 0) {

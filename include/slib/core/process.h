@@ -93,6 +93,15 @@ namespace slib
 		
 		static void exit(int code);
 		
+		static String getOutput(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs = 0);
+
+		template <class... ARGS>
+		static String getOutput(const StringParam& pathExecutable, const StringParam& arg, ARGS&&... args)
+		{
+			StringParam params[] = { arg, Forward<ARGS>(args)... };
+			return getOutput(pathExecutable, params, 1 + sizeof...(args));
+		}
+
 	public:
 		virtual void terminate() = 0;
 

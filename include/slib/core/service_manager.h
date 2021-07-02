@@ -25,6 +25,20 @@
 
 #include "string.h"
 #include "list.h"
+#include "default_members.h"
+
+/*
+ 
+ macOS Service name format:
+		system/[service-name]
+		user/[user-id]/[service-name]
+		login/[asid]/[service-name]
+		gui/[user-id]/[service-name]
+		session/[asid]/[service-name]
+		pid/[pid]/[service-name]
+	otherwise, system/[service-name] will be selected by default
+ 
+*/
 
 namespace slib
 {
@@ -58,12 +72,12 @@ namespace slib
 	{
 		None = 0,
 		Running = 1,
-		Paused = 2,
+		Paused = 2, // [Win32]
 		Stopped = 3,
-		StartPending = 0x11,
-		PausePending = 0x12,
-		StopPending = 0x13,
-		ContinuePending = 0x14
+		StartPending = 0x11, // [Win32]
+		PausePending = 0x12, // [Win32]
+		StopPending = 0x13, // [Win32]
+		ContinuePending = 0x14 // [Win32]
 	};
 
 	class SLIB_EXPORT ServiceCreateParam
@@ -79,10 +93,13 @@ namespace slib
 		ListParam<StringParam> arguments;
 
 	public:
-		ServiceCreateParam();
+		ServiceCreateParam() noexcept;
 
-		~ServiceCreateParam();
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ServiceCreateParam);
 
+	public:
+		String getCommandLine() const noexcept;
+		
 	};
 
 	class SLIB_EXPORT ServiceManager

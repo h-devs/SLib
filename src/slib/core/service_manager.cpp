@@ -22,23 +22,33 @@
 
 #include "slib/core/service_manager.h"
 
-#ifdef SLIB_PLATFORM_IS_WIN32
+#include "slib/core/command_line.h"
+
+#if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_MACOS)
 #define SUPPORT_SERVICE_MANAGER
 #endif
 
 namespace slib
 {
 
-	ServiceCreateParam::ServiceCreateParam()
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ServiceCreateParam)
+
+	ServiceCreateParam::ServiceCreateParam() noexcept
 	{
 		type = ServiceType::Generic;
 		startType = ServiceStartType::Manual;
 		errorControl = ServiceErrorControl::Normal;
 	}
 
-	ServiceCreateParam::~ServiceCreateParam()
+	String ServiceCreateParam::getCommandLine() const noexcept
 	{
+		if (commandLine.isNotNull()) {
+			return commandLine.toString();
+		}
+		ListLocker<StringParam> args(arguments);
+		return CommandLine::build(path, args.data, args.count);
 	}
+
 
 	sl_bool ServiceManager::isStarted(const StringParam& name)
 	{
@@ -135,6 +145,11 @@ namespace slib
 	sl_bool ServiceManager::setStartType(const StringParam& serviceName, ServiceStartType type)
 	{
 		return sl_false;
+	}
+
+	String ServiceManager::getCommandLine(const StringParam& serviceName)
+	{
+		return sl_null;
 	}
 #endif
 

@@ -30,6 +30,7 @@
 
 #define SLIB_DEFINE_IREADER_MEMBERS(CLASS, ATTR) \
 	sl_reg CLASS::readFully(void* buf, sl_size size) ATTR { return ReaderHelper::readFully(this, buf, size); } \
+	Memory CLASS::readFully() ATTR { return ReaderHelper::readFully(this); } \
 	sl_bool CLASS::readInt8(sl_int8* output) ATTR { return ReaderHelper::readInt8(this, output); } \
 	sl_int8 CLASS::readInt8(sl_int8 def) ATTR { return ReaderHelper::readInt8(this, def); } \
 	sl_bool CLASS::readUint8(sl_uint8* output) ATTR { return ReaderHelper::readUint8(this, output); } \

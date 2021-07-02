@@ -28,6 +28,8 @@
 namespace slib
 {
 	
+	class Event;
+	
 	class SLIB_EXPORT Service : public Application
 	{
 		SLIB_DECLARE_OBJECT
@@ -67,7 +69,12 @@ namespace slib
 
 		sl_int32 runService();
 	
+	public:
 		static Ref<Service> getApp();
+		
+		static void quitApp();
+		
+		void quit();
 	
 	private:
 		sl_bool _tryPlatformService();
@@ -76,6 +83,8 @@ namespace slib
 
 	protected:
 		sl_bool m_flagPlatformService;
+		Ref<Event> m_eventQuit;
+		sl_bool m_flagRequestQuit;
 
 	};
 

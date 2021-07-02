@@ -28,17 +28,38 @@
 #include "slib/core/process.h"
 #include "slib/core/log.h"
 
+#ifndef SLIB_PLATFORM_IS_WINDOWS
+#include <signal.h>
+#endif
+
 #define TAG "Service"
 #define WAIT_SECONDS 300
 
 namespace slib
 {
 
+	namespace priv
+	{
+		namespace service
+		{
+
+			static void TermHandler(int signum)
+			{
+				Service::quitApp();
+			}
+
+		}
+	}
+
+	using namespace priv::service;
+
 	SLIB_DEFINE_OBJECT(Service, Object)
 
 	Service::Service()
 	{
 		m_flagPlatformService = sl_false;
+		m_eventQuit = Event::create();
+		m_flagRequestQuit = sl_false;
 	}
 
 	Service::~Service()
@@ -57,6 +78,22 @@ namespace slib
 			return Ref<Service>::from(app);
 		}
 		return sl_null;
+	}
+
+	void Service::quitApp()
+	{
+		Ref<Service> service = getApp();
+		if (service.isNotNull()) {
+			service->quit();
+		}
+	}
+
+	void Service::quit()
+	{
+		m_flagRequestQuit = sl_true;
+		if (m_eventQuit.isNotNull()) {
+			m_eventQuit->set();
+		}
 	}
 
 	sl_bool Service::dispatchStartService()
@@ -330,7 +367,18 @@ namespace slib
 			_runPlatformService();
 			return 0;
 		}
-
+		
+		if (m_eventQuit.isNull()) {
+			return -1;
+		}
+		
+#ifndef SLIB_PLATFORM_IS_WINDOWS
+		struct sigaction sa;
+		Base::zeroMemory(&sa, sizeof(sa));
+		sa.sa_handler = &TermHandler;
+		sigaction(SIGTERM, &sa, sl_null);
+#endif
+		
 		String appName = getServiceName();
 
 		if (!(dispatchStartService())) {
@@ -341,12 +389,12 @@ namespace slib
 		NamedInstance startInstance(appName + START_ID);
 
 		String stopId = appName + STOP_ID;
-
-		while (1) {
+		
+		while (!m_flagRequestQuit) {
 			if (NamedInstance::exists(stopId)) {
 				break;
 			}
-			System::sleep(500);
+			m_eventQuit->wait(500);
 		}
 
 		dispatchStopService();

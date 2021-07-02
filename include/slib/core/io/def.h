@@ -28,6 +28,7 @@
 
 #define SLIB_DECLARE_IREADER_MEMBERS(...) \
 	sl_reg readFully(void* buf, sl_size size) __VA_ARGS__; \
+	Memory readFully() __VA_ARGS__; \
 	sl_bool readInt8(sl_int8* output) __VA_ARGS__; \
 	sl_int8 readInt8(sl_int8 def = 0) __VA_ARGS__; \
 	sl_bool readUint8(sl_uint8* output) __VA_ARGS__; \
@@ -69,7 +70,7 @@
 	String16 readTextUTF16(sl_size size, EndianType endian = Endian::Little) __VA_ARGS__; \
 	String readText(sl_size size, Charset* outCharset = sl_null) __VA_ARGS__; \
 	String16 readText16(sl_size size, Charset* outCharset = sl_null) __VA_ARGS__;
-	
+
 #define SLIB_DECLARE_IWRITER_MEMBERS(...) \
 	sl_reg writeFully(const void* buf, sl_size size) __VA_ARGS__; \
 	sl_bool writeInt8(sl_int8 value) __VA_ARGS__; \

@@ -54,7 +54,7 @@ namespace slib
 					return sl_false;
 				}
 
-				String path = System::getTempDirectory() + "\\slib_tap";
+				String path = System::getTempDirectory() + "\\.tap";
 				File::createDirectory(path);
 				if (!(File::isDirectory(path))) {
 					return sl_false;
@@ -102,20 +102,8 @@ namespace slib
 				}
 #ifndef SLIB_PLATFORM_IS_WIN64
 				if (flag64Bit) {
-					Ref<Process> process = Process::open(path + "\\tapinstall.exe", "install", path + "\\tap0901.inf", "tap0901");
-					if (process.isNotNull()) {
-						IStream* stream = process->getStream();
-						if (stream) {
-							char buf[512];
-							sl_reg n = stream->readFully(buf, sizeof(buf) - 1);
-							if (n > 0) {
-								if (StringView(buf).startsWith("Device node created")) {
-									return sl_true;
-								}
-							}
-						}
-					}
-					return sl_false;
+					String output = Process::getOutput(path + "\\tapinstall.exe", "install", path + "\\tap0901.inf", "tap0901");
+					return output.startsWith("Device node created");
 				}
 #endif
 				return win32::Setup::installDriver(path + "\\tap0901.inf", DRIVER_NAME);
@@ -131,7 +119,7 @@ namespace slib
 				}
 #ifndef SLIB_PLATFORM_IS_WIN64
 				if (Win32::is64BitSystem()) {
-					String path = System::getTempDirectory() + "\\slib_tap";
+					String path = System::getTempDirectory() + "\\.tap";
 					File::createDirectory(path);
 					if (!(File::isDirectory(path))) {
 						return sl_false;
@@ -140,20 +128,8 @@ namespace slib
 					if (File::writeAllBytes(path + "\\tapinstall.exe", data) != data.getSize()) {
 						return sl_false;
 					}
-					Ref<Process> process = Process::open(path + "\\tapinstall.exe", "remove", "tap0901");
-					if (process.isNotNull()) {
-						IStream* stream = process->getStream();
-						if (stream) {
-							char buf[512] = { 0 };
-							sl_reg n = stream->readFully(buf, sizeof(buf) - 1);
-							if (n > 0) {
-								if (StringView(buf).contains(" device(s) were removed.")) {
-									return sl_true;
-								}
-							}
-						}
-					}
-					return sl_false;
+					String output = Process::getOutput(path + "\\tapinstall.exe", "remove", "tap0901");
+					return output.contains(" device(s) were removed.");
 				}
 #endif
 				return win32::Setup::uninstallDriver(DRIVER_NAME);
