@@ -182,7 +182,7 @@ namespace slib
 			return open(hKeyParent, path, sam, sl_true);
 		}
 
-		HashMap<String, Variant> Registry::getValues()
+		VariantMap Registry::getValues()
 		{
 			HKEY hKey = get();
 			if (!hKey) {
@@ -197,7 +197,7 @@ namespace slib
 
 			WCHAR achValue[16383];
 			DWORD cchValue;
-			HashMap<String, Variant> ret;
+			VariantMap ret;
 			for (DWORD i = 0; i < cValues; i++)
 			{
 				cchValue = sizeof(achValue);
@@ -213,7 +213,7 @@ namespace slib
 			return ret;
 		}
 
-		HashMap<String, Variant> Registry::getValues(HKEY hKeyParent, const StringParam& subPath)
+		VariantMap Registry::getValues(HKEY hKeyParent, const StringParam& subPath)
 		{
 			Registry key(open(hKeyParent, subPath, KEY_QUERY_VALUE));
 			return key.getValues();
@@ -234,6 +234,28 @@ namespace slib
 		{
 			Registry key(open(hKeyParent, subPath, KEY_QUERY_VALUE));
 			return key.getValue(name, out);
+		}
+
+		sl_size Registry::setValues(const VariantMap& values)
+		{
+			HKEY hKey = get();
+			if (!hKey) {
+				return sl_false;
+			}
+
+			sl_size ret = 0;
+			for (auto& item : values) {
+				if (setValue(item.key, item.value)) {
+					ret++;
+				}
+			}
+			return ret;
+		}
+
+		sl_size Registry::setValues(HKEY hKeyParent, const StringParam& subPath, const VariantMap& values)
+		{
+			Registry key(create(hKeyParent, subPath, KEY_SET_VALUE));
+			return key.setValues(values);
 		}
 
 		sl_bool Registry::setValue(const StringParam& _name, const Variant& value)
