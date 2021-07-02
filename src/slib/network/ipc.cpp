@@ -28,6 +28,7 @@
 #include "slib/core/system.h"
 #include "slib/core/file.h"
 #include "slib/core/thread.h"
+#include "slib/core/time_counter.h"
 #include "slib/core/move_t.h"
 #include "slib/core/serialize/variable_length_integer.h"
 #include "slib/core/serialize/buffer.h"
@@ -44,29 +45,19 @@ namespace slib
 			{
 				return String::join(System::getTempDirectory(), "/IPC__", name);
 			}
-
-			class DomainSocketIPCImpl : public IPC
+		
+			class DomainSocketIPC : public IPC
 			{
 			public:
-				Socket m_socketServer;
-				Ref<Thread> m_threadListen;
 				CList< Ref<Thread> > m_threads;
-
-				sl_uint32 m_maxThreadsCount;
-				sl_uint32 m_maxReceivingMessageSize;
-
-				Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)> m_onReceiveMessage;
 				
 			public:
-				DomainSocketIPCImpl()
+				DomainSocketIPC()
 				{
 				}
-
-				~DomainSocketIPCImpl()
+				
+				~DomainSocketIPC()
 				{
-					if (m_threadListen.isNotNull()) {
-						m_threadListen->finishAndWait();
-					}
 					List< Ref<Thread> > threads = m_threads.duplicate();
 					for (auto& item : threads) {
 						item->finish();
@@ -75,36 +66,19 @@ namespace slib
 						item->finishAndWait();
 					}
 				}
-
+				
 			public:
-				static Ref<DomainSocketIPCImpl> create(const IPCParam& param)
+				static Ref<DomainSocketIPC> create(const IPCParam& param)
 				{
-					Socket socket = Socket::openDomainStream();
-					if (socket.isOpened()) {
-						String path = GetDomainName(param.name);
-						File::deleteFile(path);
-						if (socket.bindDomain(path)) {
-							if (socket.setNonBlockingMode(sl_true)) {
-								if (socket.listen()) {
-									Ref<DomainSocketIPCImpl> ret = new DomainSocketIPCImpl;
-									if (ret.isNotNull()) {
-										ret->m_maxThreadsCount = param.maxThreadsCount;
-										ret->m_maxReceivingMessageSize = param.maxReceivingMessageSize;
-										ret->m_socketServer = Move(socket);
-										Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(DomainSocketIPCImpl, runListen, ret.get()));
-										if (thread.isNotNull()) {
-											ret->m_threadListen = Move(thread);
-											ret->m_onReceiveMessage = param.onReceiveMessage;
-											return ret;
-										}
-									}
-								}
-							}
-						}
+					Ref<DomainSocketIPC> ret = new DomainSocketIPC;
+					if (ret.isNotNull()) {
+						ret->_init(param);
+						return ret;
 					}
 					return sl_null;
 				}
-
+				
+			public:
 				void sendMessage(const StringParam& _targetName, const Memory& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse) override
 				{
 					String targetName = _targetName.toString();
@@ -153,6 +127,165 @@ namespace slib
 					}
 					callbackResponse(sl_null, 0);
 					m_threads.remove(thread);
+				}
+
+				Memory readMessage(Thread* thread, const Socket& socket)
+				{
+					Ref<SocketEvent> event = SocketEvent::createRead(socket);
+					if (event.isNull()) {
+						return sl_null;
+					}
+					TimeCounter tc;
+					sl_uint32 sizeContent = 0;
+					MemoryBuffer bufRead;
+					sl_uint8 bufHeader[16];
+					sl_uint32 nReadHeader = 0;
+					while (thread->isNotStopping()) {
+						sl_int32 n = socket.receive(bufHeader + nReadHeader, sizeof(bufHeader) - nReadHeader);
+						if (n < 0) {
+							return sl_null;
+						}
+						if (n) {
+							nReadHeader += n;
+							sl_uint32 nSizeHeader = CVLI::deserialize(bufHeader, nReadHeader, sizeContent);
+							if (nSizeHeader) {
+								bufRead.addStatic(bufHeader + nSizeHeader, nReadHeader - nSizeHeader);
+								break;
+							}
+							if (nReadHeader >= sizeof(bufHeader)) {
+								return sl_null;
+							}
+						} else {
+							event->wait(10);
+							if (tc.getElapsedMilliseconds() > m_timeout) {
+								return sl_null;
+							}
+						}
+					}
+					if (!sizeContent) {
+						return sl_null;
+					}
+					if (sizeContent > m_maxReceivingMessageSize) {
+						return sl_null;
+					}
+					char buf[1024];
+					while (thread->isNotStopping()) {
+						sl_int32 n = socket.receive(buf, sizeof(buf));
+						if (n < 0) {
+							return sl_null;
+						}
+						if (n) {
+							bufRead.add(Memory::create(buf, n));
+							if (bufRead.getSize() >= sizeContent) {
+								return bufRead.merge();
+							}
+						} else {
+							event->wait(10);
+							if (tc.getElapsedMilliseconds() > m_timeout) {
+								return sl_null;
+							}
+						}
+					}
+					return sl_null;
+				}
+
+				sl_bool writeMessage(Thread* thread, const Socket& socket, const void* _data, sl_uint32 size)
+				{
+					sl_uint8* data = (sl_uint8*)_data;
+					Ref<SocketEvent> event = SocketEvent::createWrite(socket);
+					if (event.isNull()) {
+						return sl_false;
+					}
+					TimeCounter tc;
+					sl_uint8 bufHeader[16];
+					sl_uint32 nHeader = CVLI::serialize(bufHeader, size);
+					sl_uint32 nWriteHeader = 0;
+					while (thread->isNotStopping()) {
+						sl_int32 n = socket.send(bufHeader + nWriteHeader, nHeader - nWriteHeader);
+						if (n < 0) {
+							return sl_false;
+						}
+						if (n) {
+							nWriteHeader += n;
+							if (nWriteHeader >= nHeader) {
+								break;
+							}
+						} else {
+							event->wait(10);
+							if (tc.getElapsedMilliseconds() > m_timeout) {
+								return sl_null;
+							}
+						}
+					}
+					if (!size) {
+						return sl_true;
+					}
+					sl_uint32 posWrite = 0;
+					while (thread->isNotStopping()) {
+						sl_int32 n = socket.send(data + posWrite, size - posWrite);
+						if (n < 0) {
+							return sl_false;
+						}
+						if (n) {
+							posWrite += n;
+							if (posWrite >= size) {
+								break;
+							}
+						} else {
+							event->wait(10);
+							if (tc.getElapsedMilliseconds() > m_timeout) {
+								return sl_null;
+							}
+						}
+					}
+					return sl_true;
+				}
+
+			};
+				
+			class DomainSocketServer : public DomainSocketIPC
+			{
+			public:
+				Socket m_socketServer;
+				Ref<Thread> m_threadListen;
+				
+			public:
+				DomainSocketServer()
+				{
+				}
+
+				~DomainSocketServer()
+				{
+					if (m_threadListen.isNotNull()) {
+						m_threadListen->finishAndWait();
+					}
+				}
+
+			public:
+				static Ref<DomainSocketServer> create(const IPCParam& param)
+				{
+					Socket socket = Socket::openDomainStream();
+					if (socket.isOpened()) {
+						String path = GetDomainName(param.name);
+						File::deleteFile(path);
+						if (socket.bindDomain(path)) {
+							if (socket.setNonBlockingMode(sl_true)) {
+								if (socket.listen()) {
+									Ref<DomainSocketServer> ret = new DomainSocketServer;
+									if (ret.isNotNull()) {
+										ret->_init(param);
+										ret->m_socketServer = Move(socket);
+										Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(DomainSocketServer, runListen, ret.get()));
+										if (thread.isNotNull()) {
+											ret->m_threadListen = Move(thread);
+											return ret;
+										}
+									}
+								}
+							}
+						}
+					}
+					return sl_null;
 				}
 
 				void runListen()
@@ -213,104 +346,6 @@ namespace slib
 					m_threads.remove(thread);
 				}
 
-				Memory readMessage(Thread* thread, const Socket& socket)
-				{
-					Ref<SocketEvent> event = SocketEvent::createRead(socket);
-					if (event.isNull()) {
-						return sl_null;
-					}
-					sl_uint32 sizeContent = 0;
-					MemoryBuffer bufRead;
-					sl_uint8 bufHeader[16];
-					sl_uint32 nReadHeader = 0;
-					while (thread->isNotStopping()) {
-						sl_int32 n = socket.receive(bufHeader + nReadHeader, sizeof(bufHeader) - nReadHeader);
-						if (n < 0) {
-							return sl_null;
-						}
-						if (n) {
-							nReadHeader += n;
-							sl_uint32 nSizeHeader = CVLI::deserialize(bufHeader, nReadHeader, sizeContent);
-							if (nSizeHeader) {
-								bufRead.addStatic(bufHeader + nSizeHeader, nReadHeader - nSizeHeader);
-								break;
-							}
-							if (nReadHeader >= sizeof(bufHeader)) {
-								return sl_null;
-							}
-						} else {
-							event->wait();
-						}
-					}
-					if (!sizeContent) {
-						return sl_null;
-					}
-					if (sizeContent > m_maxReceivingMessageSize) {
-						return sl_null;
-					}
-					char buf[1024];
-					while (thread->isNotStopping()) {
-						sl_int32 n = socket.receive(buf, sizeof(buf));
-						if (n < 0) {
-							return sl_null;
-						}
-						if (n) {
-							bufRead.add(Memory::create(buf, n));
-							if (bufRead.getSize() >= sizeContent) {
-								return bufRead.merge();
-							}
-						} else {
-							event->wait();
-						}
-					}
-					return sl_null;
-				}
-
-				sl_bool writeMessage(Thread* thread, const Socket& socket, const void* _data, sl_uint32 size)
-				{
-					sl_uint8* data = (sl_uint8*)_data;
-					Ref<SocketEvent> event = SocketEvent::createWrite(socket);
-					if (event.isNull()) {
-						return sl_false;
-					}
-					sl_uint8 bufHeader[16];
-					sl_uint32 nHeader = CVLI::serialize(bufHeader, size);
-					sl_uint32 nWriteHeader = 0;
-					while (thread->isNotStopping()) {
-						sl_int32 n = socket.send(bufHeader + nWriteHeader, nHeader - nWriteHeader);
-						if (n < 0) {
-							return sl_false;
-						}
-						if (n) {
-							nWriteHeader += n;
-							if (nWriteHeader >= nHeader) {
-								break;
-							}
-						} else {
-							event->wait();
-						}
-					}
-					if (!size) {
-						return sl_true;
-					}
-					sl_uint32 posWrite = 0;
-					while (thread->isNotStopping()) {
-						sl_int32 n = socket.send(data + posWrite, size - posWrite);
-						if (n < 0) {
-							return sl_false;
-						}
-						if (n) {
-							posWrite += n;
-							if (posWrite >= size) {
-								break;
-							}
-						} else {
-							event->wait();
-						}
-					}
-					return sl_true;
-				}
-
 			};
 
 		}
@@ -325,6 +360,7 @@ namespace slib
 	{
 		maxThreadsCount = 16;
 		maxReceivingMessageSize = 64 << 20;
+		timeout = 10000;
 	}
 
 
@@ -338,6 +374,12 @@ namespace slib
 	{
 	}
 
+	Ref<IPC> IPC::create()
+	{
+		IPCParam param;
+		return create(param);
+	}
+
 #if defined(SLIB_PLATFORM_IS_UNIX)
 	Ref<IPC> IPC::create(const IPCParam& param)
 	{
@@ -347,7 +389,19 @@ namespace slib
 
 	Ref<IPC> IPC::createDomainSocket(const IPCParam& param)
 	{
-		return Ref<IPC>::from(DomainSocketIPCImpl::create(param));
+		if (param.name.isEmpty()) {
+			return Ref<IPC>::from(DomainSocketIPC::create(param));
+		} else {
+			return Ref<IPC>::from(DomainSocketServer::create(param));
+		}
+	}
+
+	void IPC::_init(const IPCParam& param) noexcept
+	{
+		m_maxThreadsCount = param.maxThreadsCount;
+		m_maxReceivingMessageSize = param.maxReceivingMessageSize;
+		m_timeout = param.timeout;
+		m_onReceiveMessage = param.onReceiveMessage;
 	}
 
 }

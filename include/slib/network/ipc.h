@@ -42,6 +42,7 @@ namespace slib
 
 		sl_uint32 maxThreadsCount;
 		sl_uint32 maxReceivingMessageSize;
+		sl_uint32 timeout; // milliseconds
 
 		Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)> onReceiveMessage;
 
@@ -62,12 +63,23 @@ namespace slib
 		~IPC();
 
 	public:
+		static Ref<IPC> create();
+		
 		static Ref<IPC> create(const IPCParam& param);
 
 		static Ref<IPC> createDomainSocket(const IPCParam& param);
 
 	public:
 		virtual void sendMessage(const StringParam& targetName, const Memory& data, const Function<void(sl_uint8* data, sl_uint32 size)>& callbackResponse) = 0;
+
+	protected:
+		void _init(const IPCParam& param) noexcept;
+		
+	protected:
+		sl_uint32 m_maxThreadsCount;
+		sl_uint32 m_maxReceivingMessageSize;
+		sl_uint32 m_timeout;
+		Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)> m_onReceiveMessage;
 
 	};
 
