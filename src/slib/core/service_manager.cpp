@@ -146,11 +146,6 @@ namespace slib
 	{
 		return sl_false;
 	}
-
-	String ServiceManager::getCommandLine(const StringParam& serviceName)
-	{
-		return sl_null;
-	}
 #endif
 
 }
