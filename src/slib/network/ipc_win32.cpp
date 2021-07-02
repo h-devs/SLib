@@ -29,6 +29,7 @@
 #include "slib/core/thread.h"
 #include "slib/core/event.h"
 #include "slib/core/memory_output.h"
+#include "slib/core/time_counter.h"
 #include "slib/core/win32/platform.h"
 
 namespace slib
@@ -39,28 +40,18 @@ namespace slib
 		namespace ipc
 		{
 
-			class NamedPipeIPCImpl : public IPC
+			class NamedPipeIPC : public IPC
 			{
 			public:
-				Ref<Thread> m_threadListen;
 				CList< Ref<Thread> > m_threads;
 
-				String16 m_name;
-				sl_uint32 m_maxThreadsCount;
-				sl_uint32 m_maxReceivingMessageSize;
-
-				Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)> m_onReceiveMessage;
-
 			public:
-				NamedPipeIPCImpl()
+				NamedPipeIPC()
 				{
 				}
 
-				~NamedPipeIPCImpl()
+				~NamedPipeIPC()
 				{
-					if (m_threadListen.isNotNull()) {
-						m_threadListen->finishAndWait();
-					}
 					List< Ref<Thread> > threads = m_threads.duplicate();
 					for (auto& item : threads) {
 						item->finish();
@@ -71,23 +62,17 @@ namespace slib
 				}
 
 			public:
-				static Ref<NamedPipeIPCImpl> create(const IPCParam& param)
+				static Ref<NamedPipeIPC> create(const IPCParam& param)
 				{
-					Ref<NamedPipeIPCImpl> ret = new NamedPipeIPCImpl;
+					Ref<NamedPipeIPC> ret = new NamedPipeIPC;
 					if (ret.isNotNull()) {
-						ret->m_maxThreadsCount = param.maxThreadsCount;
-						ret->m_maxReceivingMessageSize = param.maxReceivingMessageSize;
-						Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(NamedPipeIPCImpl, runListen, ret.get()));
-						if (thread.isNotNull()) {
-							ret->m_name = String16::join(L"\\\\.\\pipe\\", param.name);
-							ret->m_threadListen = Move(thread);
-							ret->m_onReceiveMessage = param.onReceiveMessage;
-							return ret;
-						}
+						ret->_init(param);
+						return ret;
 					}
 					return sl_null;
 				}
 
+			public:
 				void sendMessage(const StringParam& _targetName, const Memory& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse) override
 				{
 					if (data.isNotNull()) {
@@ -95,7 +80,7 @@ namespace slib
 							String16 targetName = String16::join(L"\\\\.\\pipe\\", _targetName);
 							if (m_threads.getCount() < m_maxThreadsCount) {
 								HANDLE hPipe = CreateFileW(
-									(LPCWSTR)(targetName.getData()), 
+									(LPCWSTR)(targetName.getData()),
 									GENERIC_READ | GENERIC_WRITE,
 									0, // No sharing 
 									NULL, // Default security attributes
@@ -145,6 +130,139 @@ namespace slib
 					}
 					callbackResponse(sl_null, 0);
 					m_threads.remove(thread);
+				}
+
+				Memory readMessage(Thread* thread, HANDLE handle)
+				{
+					Ref<Event> event = Event::create();
+					if (event.isNull()) {
+						return sl_null;
+					}
+					HANDLE hEvent = Win32::getEventHandle(event.get());
+
+					TimeCounter tc;
+
+					MemoryBuffer bufRead;
+					char buf[1024];
+
+					while (thread->isNotStopping()) {
+
+						OVERLAPPED overlapped;
+						Base::zeroMemory(&overlapped, sizeof(overlapped));
+						overlapped.hEvent = hEvent;
+
+						DWORD dwRead = 0;
+						BOOL bRet = ReadFile(handle, buf, sizeof(buf), &dwRead, &overlapped);
+						if (bRet) {
+							if (dwRead) {
+								bufRead.add(Memory::create(buf, dwRead));
+							}
+							return bufRead.merge();
+						} else {
+							DWORD err = GetLastError();
+							if (err == ERROR_MORE_DATA) {
+								if (dwRead) {
+									bufRead.add(Memory::create(buf, dwRead));
+								}
+							} else {
+								if (err == ERROR_IO_PENDING) {
+									event->wait(10);
+									if (GetOverlappedResult(handle, &overlapped, &dwRead, FALSE)) {
+										if (dwRead) {
+											bufRead.add(Memory::create(buf, dwRead));
+										}
+										return bufRead.merge();
+									}
+									if (tc.getElapsedMilliseconds() > m_timeout) {
+										return sl_null;
+									}
+									err = GetLastError();
+									if (err == ERROR_MORE_DATA) {
+										if (dwRead) {
+											bufRead.add(Memory::create(buf, dwRead));
+										}
+									} else {
+										return sl_null;
+									}
+								} else {
+									return sl_null;
+								}
+							}
+						}
+					}
+					return sl_null;
+				}
+
+				sl_bool writeMessage(Thread* thread, HANDLE handle, const void* _data, sl_uint32 size)
+				{
+					sl_uint8* data = (sl_uint8*)_data;
+					Ref<Event> event = Event::create();
+					if (event.isNull()) {
+						return sl_null;
+					}
+					HANDLE hEvent = Win32::getEventHandle(event.get());
+
+					TimeCounter tc;
+
+					OVERLAPPED overlapped;
+					Base::zeroMemory(&overlapped, sizeof(overlapped));
+					overlapped.hEvent = hEvent;
+
+					DWORD dwWritten = 0;
+					BOOL bRet = WriteFile(handle, data, (DWORD)size, &dwWritten, &overlapped);
+					if (bRet) {
+						return dwWritten == (DWORD)size;
+					} else {
+						DWORD err = GetLastError();
+						if (err == ERROR_IO_PENDING) {
+							event->wait(10);
+							if (GetOverlappedResult(handle, &overlapped, &dwWritten, FALSE)) {
+								return dwWritten == (DWORD)size;
+							}
+							if (tc.getElapsedMilliseconds() > m_timeout) {
+								return sl_null;
+							}
+						}
+						return sl_false;
+					}
+				}
+
+			};
+
+			class NamedPipeServer : public NamedPipeIPC
+			{
+			public:
+				Ref<Thread> m_threadListen;
+				String16 m_name;
+
+			public:
+				NamedPipeServer()
+				{
+				}
+
+				~NamedPipeServer()
+				{
+					if (m_threadListen.isNotNull()) {
+						m_threadListen->finishAndWait();
+					}
+				}
+
+			public:
+				static Ref<NamedPipeServer> create(const IPCParam& param)
+				{
+					Ref<NamedPipeServer> ret = new NamedPipeServer;
+					if (ret.isNotNull()) {
+						ret->m_maxThreadsCount = param.maxThreadsCount;
+						ret->m_maxReceivingMessageSize = param.maxReceivingMessageSize;
+						Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(NamedPipeServer, runListen, ret.get()));
+						if (thread.isNotNull()) {
+							ret->m_name = String16::join(L"\\\\.\\pipe\\", param.name);
+							ret->m_threadListen = Move(thread);
+							ret->m_onReceiveMessage = param.onReceiveMessage;
+							return ret;
+						}
+					}
+					return sl_null;
 				}
 
 				void runListen()
@@ -244,91 +362,6 @@ namespace slib
 					m_threads.remove(thread);
 				}
 
-				Memory readMessage(Thread* thread, HANDLE handle)
-				{
-					Ref<Event> event = Event::create();
-					if (event.isNull()) {
-						return sl_null;
-					}
-					HANDLE hEvent = Win32::getEventHandle(event.get());
-	
-					MemoryBuffer bufRead;
-					char buf[1024];
-
-					while (thread->isNotStopping()) {
-
-						OVERLAPPED overlapped;
-						Base::zeroMemory(&overlapped, sizeof(overlapped));
-						overlapped.hEvent = hEvent;
-
-						DWORD dwRead = 0;
-						BOOL bRet = ReadFile(handle, buf, sizeof(buf), &dwRead, &overlapped);
-						if (bRet) {
-							if (dwRead) {
-								bufRead.add(Memory::create(buf, dwRead));
-							}
-							return bufRead.merge();
-						} else {
-							DWORD err = GetLastError();
-							if (err == ERROR_MORE_DATA) {
-								if (dwRead) {
-									bufRead.add(Memory::create(buf, dwRead));
-								}
-							} else {
-								if (err == ERROR_IO_PENDING) {
-									event->wait();
-									if (GetOverlappedResult(handle, &overlapped, &dwRead, FALSE)) {
-										if (dwRead) {
-											bufRead.add(Memory::create(buf, dwRead));
-										}
-										return bufRead.merge();
-									}
-									err = GetLastError();
-									if (err == ERROR_MORE_DATA) {
-										if (dwRead) {
-											bufRead.add(Memory::create(buf, dwRead));
-										}
-									} else {
-										return sl_null;
-									}
-								} else {
-									return sl_null;
-								}
-							}
-						}
-					}
-					return sl_null;
-				}
-
-				sl_bool writeMessage(Thread* thread, HANDLE handle, const void* _data, sl_uint32 size)
-				{
-					sl_uint8* data = (sl_uint8*)_data;
-					Ref<Event> event = Event::create();
-					if (event.isNull()) {
-						return sl_null;
-					}
-					HANDLE hEvent = Win32::getEventHandle(event.get());
-
-					OVERLAPPED overlapped;
-					Base::zeroMemory(&overlapped, sizeof(overlapped));
-					overlapped.hEvent = hEvent;
-
-					DWORD dwWritten = 0;
-					BOOL bRet = WriteFile(handle, data, (DWORD)size, &dwWritten, &overlapped);
-					if (bRet) {
-						return dwWritten == (DWORD)size;
-					} else {
-						DWORD err = GetLastError();
-						if (err == ERROR_IO_PENDING) {
-							event->wait();
-							if (GetOverlappedResult(handle, &overlapped, &dwWritten, FALSE)) {
-								return dwWritten == (DWORD)size;
-							}
-						}
-						return sl_false;
-					}
-				}
-
 			};
 
 		}
@@ -338,7 +371,11 @@ namespace slib
 
 	Ref<IPC> IPC::create(const IPCParam& param)
 	{
-		return Ref<IPC>::from(NamedPipeIPCImpl::create(param));
+		if (param.name.isEmpty()) {
+			return Ref<IPC>::from(NamedPipeIPC::create(param));
+		} else {
+			return Ref<IPC>::from(NamedPipeServer::create(param));
+		}
 	}
 
 }
