@@ -108,7 +108,7 @@ typedef bool				sl_bool;
 #define sl_true				true
 #define sl_false			false
 
-#ifdef SLIB_ARCH_IS_64BIT
+#if defined(SLIB_ARCH_IS_64BIT)
 typedef sl_uint64			sl_size;
 typedef sl_int64			sl_reg;
 #else
@@ -157,6 +157,26 @@ typedef char32_t			sl_char32;
 #   define SLIB_SIZE_MASK_NO_SIGN_BITS 0x7FFFFFFF
 #   define SLIB_REG_MAX		SLIB_INT32_MAX
 #   define SLIB_REG_MIN		SLIB_INT32_MIN
+#endif
+
+#if defined(__SIZEOF_INT__)
+#	define SLIB_INT_SIZE	__SIZEOF_INT__
+#else
+#	define SLIB_INT_SIZE	4
+#endif
+#if defined(__SIZEOF_LONG__)
+#	define SLIB_LONG_SIZE	__SIZEOF_LONG__
+#else
+#	define SLIB_LONG_SIZE	4
+#endif
+#if defined(__SIZEOF_POINTER__)
+#	define SLIB_POINTER_SIZE		__SIZEOF_POINTER__
+#else
+#	if defined(SLIB_ARCH_IS_64BIT)
+#		define SLIB_POINTER_SIZE	8
+#	else
+#		define SLIB_POINTER_SIZE	4
+#	endif
 #endif
 
 #define SLIB_UNUSED(x) (void)x;

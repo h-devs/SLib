@@ -1040,14 +1040,24 @@ namespace slib
 	
 	Variant::Variant(long value) noexcept
 	{
+#if SLIB_LONG_SIZE == 8
+		_type = VariantType::Int64;
+		REF_VAR(sl_int64, _value) = (sl_int64)value;
+#else
 		_type = VariantType::Int32;
 		REF_VAR(sl_int32, _value) = (sl_int32)value;
+#endif
 	}
 	
 	Variant::Variant(unsigned long value) noexcept
 	{
+#if SLIB_LONG_SIZE == 8
+		_type = VariantType::Uint64;
+		REF_VAR(sl_uint64, _value) = (sl_uint64)value;
+#else
 		_type = VariantType::Uint32;
 		REF_VAR(sl_uint32, _value) = (sl_uint32)value;
+#endif
 	}
 
 	Variant::Variant(sl_int64 value) noexcept
