@@ -46,6 +46,7 @@ namespace slib
 
 		static String getCachesDirectory();
 
+		// per-user temp directory
 		static String getTempDirectory();
 
 		static String getCurrentDirectory();

@@ -69,7 +69,12 @@ namespace slib
 	String System::getTempDirectory()
 	{
 		NSString* path = NSTemporaryDirectory();
-		return Apple::getStringFromNSString(path);
+		String ret = Apple::getStringFromNSString(path);
+		if (ret.endsWith('/')) {
+			return ret.substring(0, ret.getLength() - 1);
+		} else {
+			return ret;
+		}
 	}
 	
 	String System::getComputerName()

@@ -43,7 +43,11 @@ namespace slib
 
 			static String GetDomainName(const StringParam& name)
 			{
-				return String::join(System::getTempDirectory(), "/IPC__", name);
+#if defined(SLIB_PLATFORM_IS_WIN32)
+				return String::join(System::getWindowsDirectory(), "/Temp/IPC__", name);
+#else
+				return String::join("/var/tmp/IPC__", name);
+#endif
 			}
 		
 			class DomainSocketIPC : public IPC
@@ -269,6 +273,9 @@ namespace slib
 						String path = GetDomainName(param.name);
 						File::deleteFile(path);
 						if (socket.bindDomain(path)) {
+#if !defined(SLIB_PLATFORM_IS_WINDOWS)
+							File::setAttributes(path, FileAttributes::AllAccess);
+#endif
 							if (socket.setNonBlockingMode(sl_true)) {
 								if (socket.listen()) {
 									Ref<DomainSocketServer> ret = new DomainSocketServer;
