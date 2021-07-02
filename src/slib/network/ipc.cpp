@@ -217,7 +217,7 @@ namespace slib
 						} else {
 							event->wait(10);
 							if (tc.getElapsedMilliseconds() > m_timeout) {
-								return sl_null;
+								return sl_false;
 							}
 						}
 					}
@@ -238,7 +238,7 @@ namespace slib
 						} else {
 							event->wait(10);
 							if (tc.getElapsedMilliseconds() > m_timeout) {
-								return sl_null;
+								return sl_false;
 							}
 						}
 					}
