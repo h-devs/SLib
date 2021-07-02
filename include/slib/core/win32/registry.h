@@ -32,6 +32,7 @@
 #include "../handle_container.h"
 #include "../string.h"
 #include "../hash_map.h"
+#include "../variant_def.h"
 
 namespace slib
 {
@@ -50,13 +51,17 @@ namespace slib
 			static Registry create(HKEY hKeyParent, const StringParam& subPath, REGSAM sam = KEY_ALL_ACCESS);
 
 		public:
-			HashMap<String, Variant> getValues();
+			VariantMap getValues();
 			
-			static HashMap<String, Variant> getValues(HKEY hKeyParent, const StringParam& subPath);
+			static VariantMap getValues(HKEY hKeyParent, const StringParam& subPath);
 
 			sl_bool getValue(const StringParam& name, Variant* out);
 
 			static sl_bool getValue(HKEY hKeyParent, const StringParam& subPath, const StringParam& name, Variant* out);
+
+			sl_size setValues(const VariantMap& values);
+
+			static sl_size setValues(HKEY hKeyParent, const StringParam& subPath, const VariantMap& values);
 
 			sl_bool setValue(const StringParam& name, const Variant& value);
 
