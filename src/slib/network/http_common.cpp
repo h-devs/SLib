@@ -221,6 +221,7 @@ namespace slib
 
 	DEFINE_HTTP_HEADER(TransferEncoding, "Transfer-Encoding")
 	DEFINE_HTTP_HEADER(AccessControlAllowOrigin, "Access-Control-Allow-Origin")
+	DEFINE_HTTP_HEADER(AccessControlAllowHeaders, "Access-Control-Allow-Headers")
 	DEFINE_HTTP_HEADER(SetCookie, "Set-Cookie")
 	DEFINE_HTTP_HEADER(AcceptRanges, "Accept-Ranges")
 	DEFINE_HTTP_HEADER(ContentRange, "Content-Range")
@@ -1816,7 +1817,17 @@ namespace slib
 	{
 		setResponseHeader(HttpHeader::AccessControlAllowOrigin, origin);
 	}
-	
+
+	String HttpResponse::getResponseAccessControlAllowHeaders() const
+	{
+		return getResponseHeader(HttpHeader::AccessControlAllowHeaders);
+	}
+
+	void HttpResponse::setResponseAccessControlAllowHeaders(const String& headers)
+	{
+		setResponseHeader(HttpHeader::AccessControlAllowHeaders, headers);
+	}
+
 	Time HttpResponse::getResponseLastModified() const
 	{
 		Time time;
