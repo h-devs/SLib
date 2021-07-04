@@ -80,7 +80,7 @@ namespace slib
 	{
 	}
 
-	String Process::getOutput(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs)
+	String Process::getOutput(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs)
 	{
 		return sl_null;
 	}
