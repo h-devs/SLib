@@ -85,12 +85,14 @@ namespace slib
 			
 			static Ref<Image> TakeScreenshot(Helper* helper, NSScreen* screen)
 			{
-				NSRect rectScreen = [screen frame];
-				CGImageRef cgImage = CGWindowListCreateImage(rectScreen, kCGWindowListOptionOnScreenOnly, kCGNullWindowID, kCGWindowImageDefault);
-				if (cgImage) {
-					Ref<Image> image = helper->getImage(cgImage);
-					CGImageRelease(cgImage);
-					return image;
+				CGDirectDisplayID display = (CGDirectDisplayID)([[[screen deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue]);
+				if (display) {
+					CGImageRef cgImage = CGDisplayCreateImage(display);
+					if (cgImage) {
+						Ref<Image> image = helper->getImage(cgImage);
+						CGImageRelease(cgImage);
+						return image;
+					}
 				}
 				return sl_null;
 			}
@@ -137,36 +139,46 @@ namespace slib
 		return ret;
 	}
 	
+	// https://stackoverflow.com/a/58985069
 	sl_bool ScreenCapture::isScreenRecordingEnabled()
 	{
-		if (@available(macos 10.15, *)) {
-			sl_bool bRet = sl_false;
-			CFArrayRef list = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID);
-			if (list) {
-				sl_uint32 n = (sl_uint32)(CFArrayGetCount(list));
-				for (sl_uint32 i = 0; i < n; i++) {
-					NSDictionary* info = (NSDictionary*)(CFArrayGetValueAtIndex(list, (CFIndex)i));
-					NSString* name = info[(id)kCGWindowName];
-					NSNumber* pid = info[(id)kCGWindowOwnerPID];
-					if (pid != nil && name != nil) {
-						int nPid = [pid intValue];
-						char path[PROC_PIDPATHINFO_MAXSIZE+1];
-						int lenPath = proc_pidpath(nPid, path, PROC_PIDPATHINFO_MAXSIZE);
-						if (lenPath > 0) {
-							path[lenPath] = 0;
-							if (strcmp(path, "/System/Library/CoreServices/SystemUIServer.app/Contents/MacOS/SystemUIServer") == 0) {
-								bRet = sl_true;
+		BOOL canRecordScreen = YES;
+		if (@available(macOS 10.15, *)) {
+			canRecordScreen = NO;
+			NSRunningApplication *runningApplication = NSRunningApplication.currentApplication;
+			NSNumber *ourProcessIdentifier = [NSNumber numberWithInteger:runningApplication.processIdentifier];
+
+			CFArrayRef windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly, kCGNullWindowID);
+			NSUInteger numberOfWindows = CFArrayGetCount(windowList);
+			for (int index = 0; index < numberOfWindows; index++) {
+				// get information for each window
+				NSDictionary *windowInfo = (NSDictionary *)CFArrayGetValueAtIndex(windowList, index);
+				NSString *windowName = windowInfo[(id)kCGWindowName];
+				NSNumber *processIdentifier = windowInfo[(id)kCGWindowOwnerPID];
+
+				// don't check windows owned by this process
+				if (! [processIdentifier isEqual:ourProcessIdentifier]) {
+					// get process information for each window
+					pid_t pid = processIdentifier.intValue;
+					NSRunningApplication *windowRunningApplication = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
+					if (! windowRunningApplication) {
+						// ignore processes we don't have access to, such as WindowServer, which manages the windows named "Menubar" and "Backstop Menubar"
+					} else {
+						NSString *windowExecutableName = windowRunningApplication.executableURL.lastPathComponent;
+						if (windowName) {
+							if ([windowExecutableName isEqual:@"Dock"]) {
+								// ignore the Dock, which provides the desktop picture
+							} else {
+								canRecordScreen = YES;
 								break;
 							}
 						}
 					}
 				}
-				CFRelease(list);
 			}
-			return bRet;
-		} else {
-			return sl_true;
+			CFRelease(windowList);
 		}
+		return canRecordScreen;
 	}
 
 	void ScreenCapture::openSystemPreferencesForScreenRecording()
@@ -176,6 +188,12 @@ namespace slib
 		}
 	}
 
-}
+	void ScreenCapture::requestScreenRecordingAccess()
+	{
+		if (@available(macos 10.15, *)) {
+			ScreenCapture::takeScreenshot();
+		}
+	}
 
+}
 #endif

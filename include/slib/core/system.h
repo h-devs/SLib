@@ -65,6 +65,8 @@ namespace slib
 		
 		static String getComputerName();
 
+		static String getUserId();
+		
 		static String getUserName();
 		
 		static String getFullUserName();

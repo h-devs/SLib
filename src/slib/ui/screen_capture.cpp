@@ -55,6 +55,10 @@ namespace slib
 	void ScreenCapture::openSystemPreferencesForScreenRecording()
 	{
 	}
+
+	void ScreenCapture::requestScreenRecordingAccess()
+	{
+	}
 #endif
 
 }

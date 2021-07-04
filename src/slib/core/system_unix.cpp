@@ -102,7 +102,12 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
+	String System::getUserId()
+	{
+		return String::fromUint32((sl_uint32)(getuid()));
+	}
+
 #if !defined(SLIB_PLATFORM_IS_APPLE) && !defined(SLIB_PLATFORM_IS_ANDROID)
 	String System::getComputerName()
 	{

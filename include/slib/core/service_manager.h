@@ -74,7 +74,7 @@ namespace slib
 		Running = 1,
 		Paused = 2, // [Win32]
 		Stopped = 3,
-		StartPending = 0x11, // [Win32]
+		StartPending = 0x11,
 		PausePending = 0x12, // [Win32]
 		StopPending = 0x13, // [Win32]
 		ContinuePending = 0x14 // [Win32]

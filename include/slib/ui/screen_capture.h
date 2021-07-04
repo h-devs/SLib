@@ -41,6 +41,8 @@ namespace slib
 		
 		static void openSystemPreferencesForScreenRecording();
 		
+		static void requestScreenRecordingAccess();
+		
 	};
 
 }

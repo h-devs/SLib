@@ -82,6 +82,9 @@ namespace slib
 			if (state.startsWith("waiting")) {
 				return ServiceState::Stopped;
 			}
+			if (state.startsWith("pending")) {
+				return ServiceState::StartPending;
+			}
 		}
 		return ServiceState::None;
 	}

@@ -485,7 +485,11 @@ using namespace slib::priv::ui_core;
 
 - (BOOL)applicationShouldOpenUntitledFile:(NSApplication *)sender
 {
-	return UIApp::getApp()->shouldOpenUntitledFile();
+	Ref<UIApp> app = UIApp::getApp();
+	if (app.isNotNull()) {
+		return app->shouldOpenUntitledFile();
+	}
+	return NO;
 }
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag

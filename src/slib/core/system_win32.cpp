@@ -135,6 +135,11 @@ namespace slib
 #endif
 	}
 
+	String System::getUserId()
+	{
+		return getUserName();
+	}
+
 	String System::getUserName()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)

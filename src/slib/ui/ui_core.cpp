@@ -32,6 +32,10 @@
 #include "slib/core/file.h"
 #include "slib/core/safe_static.h"
 
+#ifndef SLIB_PLATFORM_IS_WINDOWS
+#include <signal.h>
+#endif
+
 namespace slib
 {
 	
@@ -121,6 +125,11 @@ namespace slib
 				QuitLoop();
 			}
 			
+			static void TermHandler(int signum)
+			{
+				QuitApp();
+			}
+
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicList<ScreenOrientation>, g_listAvailableScreenOrientations)
 
 			UIKeyboardAdjustMode g_keyboardAdjustMode = UIKeyboardAdjustMode::Pan;
@@ -684,6 +693,12 @@ namespace slib
 		if (g_flagQuitApp) {
 			return;
 		}
+#ifndef SLIB_PLATFORM_IS_WINDOWS
+		struct sigaction sa;
+		Base::zeroMemory(&sa, sizeof(sa));
+		sa.sa_handler = &TermHandler;
+		sigaction(SIGTERM, &sa, sl_null);
+#endif
 		g_flagRunningApp = sl_true;
 		UIPlatform::runApp();
 	#if !defined(SLIB_PLATFORM_IS_ANDROID)
