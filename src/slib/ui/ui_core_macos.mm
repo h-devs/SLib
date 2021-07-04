@@ -427,7 +427,7 @@ namespace slib
 			[[NSApp dockTile] setBadgeLabel:nil];
 		}
 	}
-	
+
 }
 
 using namespace slib;

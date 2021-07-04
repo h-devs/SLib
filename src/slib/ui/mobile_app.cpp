@@ -29,6 +29,18 @@
 namespace slib
 {
 
+	namespace priv
+	{
+		namespace mobile_app
+		{
+			
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicList<ScreenOrientation>, g_listAvailableScreenOrientations)
+
+		}
+	}
+
+	using namespace priv::mobile_app;
+
 	SLIB_DEFINE_OBJECT(MobileApp, UIApp)
 
 	MobileApp::MobileApp()
