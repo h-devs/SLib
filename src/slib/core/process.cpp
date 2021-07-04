@@ -102,4 +102,10 @@ namespace slib
 
 #endif
 
+#if !defined(SLIB_UI_IS_MACOS)
+	void Process::setAppNapEnabled(sl_bool flag)
+	{
+	}
+#endif
+
 }

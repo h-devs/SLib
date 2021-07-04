@@ -36,6 +36,8 @@ namespace slib
 	{
 		namespace process
 		{
+		
+			static id g_activityDisableAppNap;
         
 			static String FixArgument(const StringParam& arg)
 			{
@@ -145,6 +147,18 @@ namespace slib
 		[script executeAndReturnError:nil];
 	}
 	
+	void Process::setAppNapEnabled(sl_bool flag)
+	{
+		if (flag) {
+			NSProcessInfo* info = [NSProcessInfo processInfo];
+			if ([info performSelector:@selector(beginActivityWithOptions:reason:)]) {
+				g_activityDisableAppNap = [info beginActivityWithOptions:NSActivityUserInitiated reason:@"User Request"];
+			}
+		} else {
+			g_activityDisableAppNap = nil;
+		}
+	}
+
 }
 
 #endif

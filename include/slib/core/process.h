@@ -101,6 +101,8 @@ namespace slib
 			StringParam params[] = { arg, Forward<ARGS>(args)... };
 			return getOutput(pathExecutable, params, 1 + sizeof...(args));
 		}
+		
+		static void setAppNapEnabled(sl_bool flag);
 
 	public:
 		virtual void terminate() = 0;
