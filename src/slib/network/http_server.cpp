@@ -1654,6 +1654,7 @@ namespace slib
 	{
 		if (m_param.flagAllowCrossOrigin) {
 			context->setResponseAccessControlAllowOrigin("*");
+			context->setResponseAccessControlAllowHeaders("*");
 		}
 
 		m_param.router.postProcessRequest(context->getPath(), context);

@@ -185,6 +185,7 @@ namespace slib
 		// Response Headers
 		static const String& TransferEncoding;
 		static const String& AccessControlAllowOrigin;
+		static const String& AccessControlAllowHeaders;
 		static const String& SetCookie;
 		static const String& AcceptRanges;
 		static const String& ContentRange;
@@ -686,7 +687,11 @@ namespace slib
 		String getResponseAccessControlAllowOrigin() const;
 		
 		void setResponseAccessControlAllowOrigin(const String& origin);
-		
+
+		String getResponseAccessControlAllowHeaders() const;
+
+		void setResponseAccessControlAllowHeaders(const String& headers);
+
 		Time getResponseLastModified() const;
 		
 		void setResponseLastModified(const Time& time);
