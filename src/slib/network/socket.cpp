@@ -1360,6 +1360,8 @@ namespace slib
 			SLIB_RETURN_STRING("EINVAL - An invalid argument was supplied")
 		case SocketError::Fault:
 			SLIB_RETURN_STRING("EFAULT - Invalid pointer address")
+		case SocketError::Interrupted:
+			SLIB_RETURN_STRING("EINTR - Operation is interrupted")
 		case SocketError::Closed:
 			SLIB_RETURN_STRING("Socket is closed")
 		case SocketError::UnexpectedResult:
@@ -1567,6 +1569,9 @@ namespace slib
 			case EPERM:
 				ret = _setError(SocketError::NotPermitted);
 				break;
+			case EINTR:
+				ret = _setError(SocketError::Interrupted);
+				break;
 #endif
 
 			default:
@@ -1586,7 +1591,8 @@ namespace slib
 				return -1;
 			}
 		} else {
-			if (_checkError() == SocketError::WouldBlock) {
+			SocketError err = _checkError();
+			if (err == SocketError::WouldBlock || err == SocketError::Interrupted) {
 				return 0;
 			} else {
 				return -1;

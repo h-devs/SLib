@@ -126,7 +126,8 @@ namespace slib
 		NotPermitted = 20,
 		Invalid = 21,
 		Fault = 22,
-
+		Interrupted = 23,
+		
 		Closed = 101,
 		UnexpectedResult = 102,
 

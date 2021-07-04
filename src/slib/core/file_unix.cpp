@@ -289,7 +289,7 @@ namespace slib
 				}
 			} else {
 				int err = errno;
-				if (err == EAGAIN || err == EWOULDBLOCK) {
+				if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
 					return 0;
 				}
 			}
@@ -311,7 +311,7 @@ namespace slib
 				}
 			} else {
 				int err = errno;
-				if (err == EAGAIN || err == EWOULDBLOCK) {
+				if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
 					return 0;
 				}
 			}

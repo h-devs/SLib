@@ -122,13 +122,14 @@ namespace slib
 #else
 			ssize_t n = ::read(m_handle.hRead, buf, size);
 			if (n >= 0) {
-				return (sl_int32)n;
+				if (n > 0) {
+					return (sl_int32)n;
+				}
 			} else {
 				int err = errno;
-				if (err == EAGAIN || err == EWOULDBLOCK) {
+				if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
 					return 0;
 				}
-				return -1;
 			}
 #endif
 		}
@@ -154,10 +155,12 @@ namespace slib
 #else
 			ssize_t n = ::write(m_handle.hWrite, buf, size);
 			if (n >= 0) {
-				return (sl_int32)n;
+				if (n > 0) {
+					return (sl_int32)n;
+				}
 			} else {
 				int err = errno;
-				if (err == EAGAIN || err == EWOULDBLOCK) {
+				if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
 					return 0;
 				}
 			}
