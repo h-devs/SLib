@@ -24,7 +24,7 @@
 
 #if defined(SLIB_PLATFORM_IS_IOS)
 
-#include "slib/ui/core.h"
+#include "slib/ui/app.h"
 #include "slib/ui/platform.h"
 
 #include <UserNotifications/UserNotifications.h>
@@ -32,7 +32,7 @@
 namespace slib
 {
 	
-	void UI::setBadgeNumber(sl_uint32 number)
+	void UIApp::setBadgeNumber(sl_uint32 number)
 	{
 		[[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:UNAuthorizationOptionBadge completionHandler:^(BOOL granted, NSError* error) {
 			if (granted) {

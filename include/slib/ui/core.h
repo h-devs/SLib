@@ -85,24 +85,6 @@ namespace slib
 		
 		static sl_ui_len getScreenHeight();
 		
-		static List<ScreenOrientation> getAvailableScreenOrientations();
-		
-		static void setAvailableScreenOrientations(const List<ScreenOrientation>& orientations);
-		
-		static void setAvailableScreenOrientation(const ScreenOrientation& orientation);
-		
-		// ScreenOrientationPortrait
-		static void setAvailableScreenOrientationsPortrait();
-		
-		// ScreenOrientationLandscapeRight, ScreenOrientationLandscapeLeft
-		static void setAvailableScreenOrientationsLandscape();
-		
-		static void setAvailableScreenOrientationsAll();
-		
-		static ScreenOrientation getScreenOrientation();
-		
-		static void attemptRotateScreenOrientation();
-		
 		
 		static double getScreenPPI();
 		
@@ -229,14 +211,6 @@ namespace slib
 		
 		static void setKeyboardAdjustMode(UIKeyboardAdjustMode mode);
 		
-		static UIEdgeInsets getSafeAreaInsets();
-		
-		static sl_ui_len getStatusBarHeight();
-		
-		static void setStatusBarStyle(StatusBarStyle style);
-		
-		static void setBadgeNumber(sl_uint32 number);
-
 	};
 	
 }

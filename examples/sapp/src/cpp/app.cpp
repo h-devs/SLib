@@ -41,5 +41,5 @@ Ref<View> SAppExampleApp::getStartupPage()
 
 void SAppExampleApp::onStart()
 {
-	UI::setAvailableScreenOrientationsPortrait();
+	setAvailableScreenOrientationsPortrait();
 }

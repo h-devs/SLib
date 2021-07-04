@@ -15,5 +15,5 @@ Ref<View> ExampleAlipayApp::getStartupPage()
 
 void ExampleAlipayApp::onStart()
 {
-	UI::setAvailableScreenOrientationsPortrait();
+	setAvailableScreenOrientationsPortrait();
 }

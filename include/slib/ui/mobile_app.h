@@ -96,6 +96,32 @@ namespace slib
 		
 		void openStartupPage();
 		
+
+		static List<ScreenOrientation> getAvailableScreenOrientations();
+		
+		static void setAvailableScreenOrientations(const List<ScreenOrientation>& orientations);
+		
+		static void setAvailableScreenOrientation(const ScreenOrientation& orientation);
+		
+		// ScreenOrientationPortrait
+		static void setAvailableScreenOrientationsPortrait();
+		
+		// ScreenOrientationLandscapeRight, ScreenOrientationLandscapeLeft
+		static void setAvailableScreenOrientationsLandscape();
+		
+		static void setAvailableScreenOrientationsAll();
+		
+		static ScreenOrientation getScreenOrientation();
+		
+		static void attemptRotateScreenOrientation();
+
+
+		static sl_ui_len getStatusBarHeight();
+		
+		static void setStatusBarStyle(StatusBarStyle style);
+		
+		static UIEdgeInsets getSafeAreaInsets();
+		
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, Pause)
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, Resume)

@@ -259,33 +259,6 @@ namespace slib
 		return ret;
 	}
 
-	ScreenOrientation UI::getScreenOrientation()
-	{
-		jobject context = Android::getCurrentContext();
-		if (android::Activity::isActivity(context)) {
-			return (ScreenOrientation)(JUtil::getScreenOrientation.callInt(sl_null, context));
-		}
-		return ScreenOrientation::Portrait;
-	}
-	
-	void UI::attemptRotateScreenOrientation()
-	{
-		jobject context = Android::getCurrentContext();
-		if (android::Activity::isActivity(context)) {
-			List<ScreenOrientation> orientations(getAvailableScreenOrientations());
-			if (orientations.isEmpty()) {
-				JUtil::setScreenOrientations.call(sl_null, context, sl_true, sl_true, sl_true, sl_true);
-			} else {
-				JUtil::setScreenOrientations.call(sl_null, context,
-					orientations.contains(ScreenOrientation::Portrait),
-					orientations.contains(ScreenOrientation::LandscapeRight),
-					orientations.contains(ScreenOrientation::PortraitUpsideDown),
-					orientations.contains(ScreenOrientation::LandscapeLeft)
-					);
-			}
-		}
-	}
-
 	sl_bool UI::isUiThread()
 	{
 		return JUiThread::isUiThread.callBoolean(sl_null) != 0;
@@ -324,50 +297,6 @@ namespace slib
 		}
 	}
 
-	UIEdgeInsets UI::getSafeAreaInsets()
-	{
-		jobject context = Android::getCurrentContext();
-		if (android::Activity::isActivity(context)) {
-			JniLocal<jobject> jrect = JUtil::getSafeAreaInsets.callObject(sl_null, context);
-			if (jrect.isNotNull()) {
-				UIEdgeInsets ret;
-				ret.left = (sl_ui_len)(JRect::left.get(jrect));
-				ret.top = (sl_ui_len)(JRect::top.get(jrect));
-				ret.right = (sl_ui_len)(JRect::right.get(jrect));
-				ret.bottom = (sl_ui_len)(JRect::bottom.get(jrect));
-				return ret;
-			}
-		}
-		UIEdgeInsets ret = {0, 0, 0, 0};
-		return ret;
-	}
-
-	sl_ui_len UI::getStatusBarHeight()
-	{
-		jobject context = Android::getCurrentContext();
-		if (context) {
-			return JUtil::getStatusBarHeight.callInt(sl_null, context);
-		}
-		return 0;
-	}
-
-	void UI::setStatusBarStyle(StatusBarStyle style)
-	{
-		jobject context = Android::getCurrentContext();
-		if (android::Activity::isActivity(context)) {
-			JUtil::setStatusBarStyle.call(sl_null, context, style == StatusBarStyle::Hidden, style == StatusBarStyle::Dark);
-			UIResource::updateDefaultScreenSize();
-		}
-	}
-
-	void UI::setBadgeNumber(sl_uint32 number)
-	{
-		jobject context = Android::getCurrentContext();
-		if (context) {
-			JUtil::setBadgeNumber.call(sl_null, context, number);
-		}
-	}
-	
 	void UIPlatform::runLoop(sl_uint32 level)
 	{
 		JUiThread::runLoop.call(sl_null);
@@ -396,6 +325,77 @@ namespace slib
 			JniLocal<jstring> jchooserTitle = Jni::getJniString(chooserTitle);
 			return JUtil::sendFile.call(sl_null, context, jfilePath.get(), jmimeType.get(), jchooserTitle.get());
 		}
+	}
+
+	void UIApp::setBadgeNumber(sl_uint32 number)
+	{
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JUtil::setBadgeNumber.call(sl_null, context, number);
+		}
+	}
+	
+	ScreenOrientation MobileApp::getScreenOrientation()
+	{
+		jobject context = Android::getCurrentContext();
+		if (android::Activity::isActivity(context)) {
+			return (ScreenOrientation)(JUtil::getScreenOrientation.callInt(sl_null, context));
+		}
+		return ScreenOrientation::Portrait;
+	}
+	
+	void MobileApp::attemptRotateScreenOrientation()
+	{
+		jobject context = Android::getCurrentContext();
+		if (android::Activity::isActivity(context)) {
+			List<ScreenOrientation> orientations(MobileApp::getAvailableScreenOrientations());
+			if (orientations.isEmpty()) {
+				JUtil::setScreenOrientations.call(sl_null, context, sl_true, sl_true, sl_true, sl_true);
+			} else {
+				JUtil::setScreenOrientations.call(sl_null, context,
+					orientations.contains(ScreenOrientation::Portrait),
+					orientations.contains(ScreenOrientation::LandscapeRight),
+					orientations.contains(ScreenOrientation::PortraitUpsideDown),
+					orientations.contains(ScreenOrientation::LandscapeLeft)
+					);
+			}
+		}
+	}
+
+	sl_ui_len MobileApp::getStatusBarHeight()
+	{
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			return JUtil::getStatusBarHeight.callInt(sl_null, context);
+		}
+		return 0;
+	}
+
+	void MobileApp::setStatusBarStyle(StatusBarStyle style)
+	{
+		jobject context = Android::getCurrentContext();
+		if (android::Activity::isActivity(context)) {
+			JUtil::setStatusBarStyle.call(sl_null, context, style == StatusBarStyle::Hidden, style == StatusBarStyle::Dark);
+			UIResource::updateDefaultScreenSize();
+		}
+	}
+
+	UIEdgeInsets MobileApp::getSafeAreaInsets()
+	{
+		jobject context = Android::getCurrentContext();
+		if (android::Activity::isActivity(context)) {
+			JniLocal<jobject> jrect = JUtil::getSafeAreaInsets.callObject(sl_null, context);
+			if (jrect.isNotNull()) {
+				UIEdgeInsets ret;
+				ret.left = (sl_ui_len)(JRect::left.get(jrect));
+				ret.top = (sl_ui_len)(JRect::top.get(jrect));
+				ret.right = (sl_ui_len)(JRect::right.get(jrect));
+				ret.bottom = (sl_ui_len)(JRect::bottom.get(jrect));
+				return ret;
+			}
+		}
+		UIEdgeInsets ret = {0, 0, 0, 0};
+		return ret;
 	}
 
 	void Device::openUrl(const StringParam& _url) {

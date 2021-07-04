@@ -120,6 +120,12 @@ namespace slib
 	}
 #endif
 	
+#if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_ANDROID) && !defined(SLIB_UI_IS_WIN32)
+	void UIApp::setBadgeNumber(sl_uint32 number)
+	{
+	}
+#endif
+
 	sl_int32 UIApp::onRunApp()
 	{
 		UI::runApp();

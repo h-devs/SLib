@@ -13,5 +13,5 @@ Ref<View> ExampleContactApp::getStartupPage()
 
 void ExampleContactApp::onStart()
 {
-	UI::setAvailableScreenOrientationsPortrait();
+	setAvailableScreenOrientationsPortrait();
 }

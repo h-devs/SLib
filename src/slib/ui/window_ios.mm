@@ -28,6 +28,7 @@
 
 #include "slib/ui/platform.h"
 #include "slib/ui/resource.h"
+#include "slib/ui/mobile_app.h"
 
 #include "view_ios.h"
 
@@ -406,56 +407,6 @@ namespace slib
 		return sl_null;
 	}
 	
-	
-	ScreenOrientation UI::getScreenOrientation()
-	{
-		switch (g_screenOrientation) {
-			case UIInterfaceOrientationPortrait:
-				return ScreenOrientation::Portrait;
-			case UIInterfaceOrientationPortraitUpsideDown:
-				return ScreenOrientation::PortraitUpsideDown;
-			case UIInterfaceOrientationLandscapeLeft:
-				return ScreenOrientation::LandscapeLeft;
-			case UIInterfaceOrientationLandscapeRight:
-				return ScreenOrientation::LandscapeRight;
-			default:
-				break;
-		}
-		return ConvertScreenOrientation(g_screenOrientation);
-	}
-	
-	void UI::attemptRotateScreenOrientation()
-	{
-		[UIViewController attemptRotationToDeviceOrientation];
-#ifndef SLIB_PLATFORM_IS_IOS_CATALYST
-		List<ScreenOrientation> orientations(UI::getAvailableScreenOrientations());
-		if (orientations.isEmpty()) {
-			return;
-		}
-		if (orientations.contains(ConvertScreenOrientation([[UIApplication sharedApplication] statusBarOrientation]))) {
-			return;
-		}
-		ScreenOrientation orientation = orientations.getValueAt(0, ScreenOrientation::Portrait);
-		@try {
-			[[UIDevice currentDevice] setValue:[NSNumber numberWithInteger:ConvertScreenOrientation(orientation)] forKey:@"orientation"];
-		} @catch (NSError* error) {
-			NSLog(@"[Error] %@", error.localizedDescription);
-		}
-#endif
-	}
-
-	void UI::setStatusBarStyle(StatusBarStyle style)
-	{
-		g_flagSetStatusBarStyle = sl_true;
-		g_currentStatusBarStyle = style;
-		SLIBWindowRootViewController* controller = g_currentRootController;
-		if (controller != nil) {
-			[controller setNeedsStatusBarAppearanceUpdate];
-		}
-		UIResource::updateDefaultScreenSize();
-	}
-	
-	
 	Ref<WindowInstance> UIPlatform::createWindowInstance(UIView* window)
 	{
 		Ref<WindowInstance> ret = UIPlatform::_getWindowInstance((__bridge void*)window);
@@ -499,6 +450,54 @@ namespace slib
 		}
 #endif
 		return UIPlatform::getMainWindow();
+	}
+	
+	ScreenOrientation MobileApp::getScreenOrientation()
+	{
+		switch (g_screenOrientation) {
+			case UIInterfaceOrientationPortrait:
+				return ScreenOrientation::Portrait;
+			case UIInterfaceOrientationPortraitUpsideDown:
+				return ScreenOrientation::PortraitUpsideDown;
+			case UIInterfaceOrientationLandscapeLeft:
+				return ScreenOrientation::LandscapeLeft;
+			case UIInterfaceOrientationLandscapeRight:
+				return ScreenOrientation::LandscapeRight;
+			default:
+				break;
+		}
+		return ConvertScreenOrientation(g_screenOrientation);
+	}
+	
+	void MobileApp::attemptRotateScreenOrientation()
+	{
+		[UIViewController attemptRotationToDeviceOrientation];
+#ifndef SLIB_PLATFORM_IS_IOS_CATALYST
+		List<ScreenOrientation> orientations(MobileApp::getAvailableScreenOrientations());
+		if (orientations.isEmpty()) {
+			return;
+		}
+		if (orientations.contains(ConvertScreenOrientation([[UIApplication sharedApplication] statusBarOrientation]))) {
+			return;
+		}
+		ScreenOrientation orientation = orientations.getValueAt(0, ScreenOrientation::Portrait);
+		@try {
+			[[UIDevice currentDevice] setValue:[NSNumber numberWithInteger:ConvertScreenOrientation(orientation)] forKey:@"orientation"];
+		} @catch (NSError* error) {
+			NSLog(@"[Error] %@", error.localizedDescription);
+		}
+#endif
+	}
+
+	void MobileApp::setStatusBarStyle(StatusBarStyle style)
+	{
+		g_flagSetStatusBarStyle = sl_true;
+		g_currentStatusBarStyle = style;
+		SLIBWindowRootViewController* controller = g_currentRootController;
+		if (controller != nil) {
+			[controller setNeedsStatusBarAppearanceUpdate];
+		}
+		UIResource::updateDefaultScreenSize();
 	}
 	
 }

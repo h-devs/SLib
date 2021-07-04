@@ -345,55 +345,6 @@ namespace slib
 		return getScreenSize().y;
 	}
 
-	List<ScreenOrientation> UI::getAvailableScreenOrientations()
-	{
-		if (SLIB_SAFE_STATIC_CHECK_FREED(g_listAvailableScreenOrientations)) {
-			return sl_null;
-		}
-		return g_listAvailableScreenOrientations;
-	}
-	
-	void UI::setAvailableScreenOrientations(const List<ScreenOrientation>& orientations)
-	{
-		if (SLIB_SAFE_STATIC_CHECK_FREED(g_listAvailableScreenOrientations)) {
-			return;
-		}
-		g_listAvailableScreenOrientations = orientations;
-		attemptRotateScreenOrientation();
-	}
-	
-	void UI::setAvailableScreenOrientation(const ScreenOrientation& orientation)
-	{
-		setAvailableScreenOrientations(List<ScreenOrientation>::createFromElements(orientation));
-	}
-	
-	void UI::setAvailableScreenOrientationsPortrait()
-	{
-		setAvailableScreenOrientations(List<ScreenOrientation>::createFromElements(ScreenOrientation::Portrait, ScreenOrientation::PortraitUpsideDown));
-	}
-	
-	void UI::setAvailableScreenOrientationsLandscape()
-	{
-		setAvailableScreenOrientations(List<ScreenOrientation>::createFromElements(ScreenOrientation::LandscapeRight, ScreenOrientation::LandscapeLeft));
-	}
-	
-	void UI::setAvailableScreenOrientationsAll()
-	{
-		setAvailableScreenOrientations(sl_null);
-	}
-	
-
-#if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_ANDROID)
-	ScreenOrientation UI::getScreenOrientation()
-	{
-		return ScreenOrientation::Portrait;
-	}
-
-	void UI::attemptRotateScreenOrientation()
-	{
-	}
-#endif
-
 	double UI::getScreenPPI()
 	{
 		double ppi = Device::getScreenPPI();
@@ -776,31 +727,4 @@ namespace slib
 #endif
 	}
 	
-#if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_ANDROID)
-	UIEdgeInsets UI::getSafeAreaInsets()
-	{
-		UIEdgeInsets ret;
-		ret.left = 0;
-		ret.top = getStatusBarHeight();
-		ret.right = 0;
-		ret.bottom = 0;
-		return ret;
-	}
-
-	sl_ui_len UI::getStatusBarHeight()
-	{
-		return 0;
-	}
-	
-	void UI::setStatusBarStyle(StatusBarStyle style)
-	{
-	}
-#endif
-	
-#if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_ANDROID) && !defined(SLIB_UI_IS_WIN32)
-	void UI::setBadgeNumber(sl_uint32 number)
-	{
-	}
-#endif
-
 }

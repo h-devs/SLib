@@ -405,13 +405,6 @@ namespace slib
 		Win32::shell(param);
 	}
 
-	void UI::setBadgeNumber(sl_uint32 num)
-	{
-		g_nBadgeNumber = num;
-		InitTaskbarButtonList();
-		ApplyBadgeNumber();
-	}
-
 	void UIPlatform::runLoop(sl_uint32 level)
 	{
 		RunLoop(NULL);
@@ -739,6 +732,13 @@ namespace slib
 		} else {
 			return -1;
 		}
+	}
+
+	void UIApp::setBadgeNumber(sl_uint32 num)
+	{
+		g_nBadgeNumber = num;
+		InitTaskbarButtonList();
+		ApplyBadgeNumber();
 	}
 
 	Win32_UI_Shared::Win32_UI_Shared()
