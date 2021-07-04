@@ -14,7 +14,7 @@ Ref<View> ExampleWechatApp::getStartupPage()
 
 void ExampleWechatApp::onStart()
 {
-	UI::setAvailableScreenOrientationsPortrait();
+	setAvailableScreenOrientationsPortrait();
 	
 	WeChatSDK::initialize(WECHAT_APP_ID, WECHAT_UNIVERSAL_LINK);
 	

@@ -208,15 +208,6 @@ namespace slib
 		return UIPlatform::createScreen(screen);
 	}
 
-	void UI::setBadgeNumber(sl_uint32 number)
-	{
-		if (number) {
-			[[NSApp dockTile] setBadgeLabel:[NSString stringWithFormat:@"%d", number]];
-		} else {
-			[[NSApp dockTile] setBadgeLabel:nil];
-		}
-	}
-	
 	sl_bool UI::isUiThread()
 	{
 		return [NSThread isMainThread];
@@ -428,6 +419,15 @@ namespace slib
 		[NSApp activateIgnoringOtherApps:(flagIgnoreOtherApps ? YES : NO)];
 	}
 
+	void UIApp::setBadgeNumber(sl_uint32 number)
+	{
+		if (number) {
+			[[NSApp dockTile] setBadgeLabel:[NSString stringWithFormat:@"%d", number]];
+		} else {
+			[[NSApp dockTile] setBadgeLabel:nil];
+		}
+	}
+	
 }
 
 using namespace slib;

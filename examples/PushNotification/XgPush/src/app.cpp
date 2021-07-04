@@ -28,11 +28,11 @@ ExampleXgPushApp::ExampleXgPushApp()
 
 void ExampleXgPushApp::onStart()
 {
-	UI::setAvailableScreenOrientationsLandscape();
+	setAvailableScreenOrientationsLandscape();
 	
 	initUI();
 	
-	UI::setBadgeNumber(0);
+	setBadgeNumber(0);
 
 	XgPush::setEnableDebug(sl_true);
 	XgPush::initialize(2200320550, "IJ771W8CH8CR");
@@ -48,7 +48,7 @@ void ExampleXgPushApp::onStart()
 		if (!(isPaused())) {
 			// When app is foreground, reset badget after 1 second (after XgPush already added badge)
 			Dispatch::setTimeout([]() {
-				UI::setBadgeNumber(0);
+				setBadgeNumber(0);
 			}, 1000);
 		}
 		if (message.flagClicked) {
@@ -65,7 +65,7 @@ void ExampleXgPushApp::onStart()
 
 void ExampleXgPushApp::onResume()
 {
-	UI::setBadgeNumber(0);
+	setBadgeNumber(0);
 }
 
 void ExampleXgPushApp::addDevice(const String& device)
@@ -165,7 +165,7 @@ void ExampleXgPushApp::initUI()
 	
 	Ref<LinearLayout> linear = new LinearLayout;
 	linear->setWidthFilling();
-	linear->setMargin(UI::getSafeAreaInsets());
+	linear->setMargin(getSafeAreaInsets());
 	linear->setHeightWrapping();
 	linear->setCenterVertical();
 	linear->setPadding(padding);

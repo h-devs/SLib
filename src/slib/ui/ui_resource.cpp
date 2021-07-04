@@ -23,6 +23,7 @@
 #include "slib/ui/resource.h"
 
 #include "slib/ui/core.h"
+#include "slib/ui/mobile_app.h"
 #include "slib/graphics/resource.h"
 
 namespace slib
@@ -61,8 +62,8 @@ namespace slib
 		g_defaultScreenWidth = size.x;
 		g_defaultScreenHeight = size.y;
 		g_defaultScreenPPI = UI::getScreenPPI();
-		g_defaultStatusBarHeight = UI::getStatusBarHeight();
-		UIEdgeInsets insets = UI::getSafeAreaInsets();
+		g_defaultStatusBarHeight = MobileApp::getStatusBarHeight();
+		UIEdgeInsets insets = MobileApp::getSafeAreaInsets();
 		g_defaultSafeAreaLeft = insets.left;
 		g_defaultSafeAreaTop = insets.top;
 		g_defaultSafeAreaRight = insets.right;

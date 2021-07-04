@@ -30,11 +30,11 @@ ExampleFCMApp::ExampleFCMApp()
 
 void ExampleFCMApp::onStart()
 {
-	UI::setAvailableScreenOrientationsLandscape();
+	setAvailableScreenOrientationsLandscape();
 	
 	initUI();
 	
-	UI::setBadgeNumber(0);
+	setBadgeNumber(0);
 
 	auto push = FCM::getInstance();
 	push->addOnRefreshToken([this](String deviceToken) {
@@ -47,7 +47,7 @@ void ExampleFCMApp::onStart()
 		if (!(isPaused())) {
 			// When app is foreground, reset badget after 1 second (after FCM already added badge)
 			Dispatch::setTimeout([]() {
-				UI::setBadgeNumber(0);
+				setBadgeNumber(0);
 			}, 1000);
 		}
 		if (message.flagClicked) {
@@ -63,7 +63,7 @@ void ExampleFCMApp::onStart()
 
 void ExampleFCMApp::onResume()
 {
-	UI::setBadgeNumber(0);
+	setBadgeNumber(0);
 }
 
 void ExampleFCMApp::addDevice(const String& device)
@@ -147,7 +147,7 @@ void ExampleFCMApp::initUI()
 	
 	Ref<LinearLayout> linear = new LinearLayout;
 	linear->setWidthFilling();
-	linear->setMargin(UI::getSafeAreaInsets());
+	linear->setMargin(getSafeAreaInsets());
 	linear->setHeightWrapping();
 	linear->setCenterVertical();
 	linear->setPadding(padding);

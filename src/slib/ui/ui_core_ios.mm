@@ -122,20 +122,6 @@ namespace slib
 	
 	using namespace priv::ui_core;
 	
-	Ref<Screen> UIPlatform::createScreen(UIScreen* screen)
-	{
-		return ScreenImpl::create(screen);
-	}
-	
-	UIScreen* UIPlatform::getScreenHandle(Screen* _screen)
-	{
-		ScreenImpl* screen = (ScreenImpl*)_screen;
-		if (screen) {
-			return screen->m_screen;
-		}
-		return nil;
-	}
-	
 	List< Ref<Screen> > UI::getScreens()
 	{
 		List< Ref<Screen> > ret;
@@ -176,38 +162,6 @@ namespace slib
 		}
 	}
 	
-	UIEdgeInsets UI::getSafeAreaInsets()
-	{
-		if (@available(iOS 12.0, *)) {
-			UIWindow* window = UIPlatform::getMainWindow();
-			if (window != nil) {
-				::UIEdgeInsets insets = window.safeAreaInsets;
-				UIEdgeInsets ret;
-				ret.left = (sl_ui_len)(insets.left * UIPlatform::getGlobalScaleFactor());
-				ret.top = (sl_ui_len)(insets.top * UIPlatform::getGlobalScaleFactor());
-				ret.right = (sl_ui_len)(insets.right * UIPlatform::getGlobalScaleFactor());
-				ret.bottom = (sl_ui_len)(insets.bottom * UIPlatform::getGlobalScaleFactor());
-				return ret;
-			}
-		}
-		UIEdgeInsets ret;
-		ret.left = 0;
-		ret.top = getStatusBarHeight();
-		ret.right = 0;
-		ret.bottom = 0;
-		return ret;
-	}
-
-	sl_ui_len UI::getStatusBarHeight()
-	{
-#ifndef SLIB_PLATFORM_IS_IOS_CATALYST
-		CGRect rectOfStatusbar = [[UIApplication sharedApplication] statusBarFrame];
-		return (sl_ui_len)(rectOfStatusbar.size.height * UIPlatform::getGlobalScaleFactor());
-#else
-		return 0;
-#endif
-	}
-	
 	sl_bool UI::isUiThread()
 	{
 		return [NSThread isMainThread];
@@ -228,6 +182,20 @@ namespace slib
 				});
 			}
 		}
+	}
+	
+	Ref<Screen> UIPlatform::createScreen(UIScreen* screen)
+	{
+		return ScreenImpl::create(screen);
+	}
+	
+	UIScreen* UIPlatform::getScreenHandle(Screen* _screen)
+	{
+		ScreenImpl* screen = (ScreenImpl*)_screen;
+		if (screen) {
+			return screen->m_screen;
+		}
+		return nil;
 	}
 	
 	void UIPlatform::runLoop(sl_uint32 level)
@@ -347,6 +315,38 @@ namespace slib
 		g_callbackOpenURL.add(callback);
 	}
 	
+	sl_ui_len MobileApp::getStatusBarHeight()
+	{
+#ifndef SLIB_PLATFORM_IS_IOS_CATALYST
+		CGRect rectOfStatusbar = [[UIApplication sharedApplication] statusBarFrame];
+		return (sl_ui_len)(rectOfStatusbar.size.height * UIPlatform::getGlobalScaleFactor());
+#else
+		return 0;
+#endif
+	}
+	
+	UIEdgeInsets MobileApp::getSafeAreaInsets()
+	{
+		if (@available(iOS 12.0, *)) {
+			UIWindow* window = UIPlatform::getMainWindow();
+			if (window != nil) {
+				::UIEdgeInsets insets = window.safeAreaInsets;
+				UIEdgeInsets ret;
+				ret.left = (sl_ui_len)(insets.left * UIPlatform::getGlobalScaleFactor());
+				ret.top = (sl_ui_len)(insets.top * UIPlatform::getGlobalScaleFactor());
+				ret.right = (sl_ui_len)(insets.right * UIPlatform::getGlobalScaleFactor());
+				ret.bottom = (sl_ui_len)(insets.bottom * UIPlatform::getGlobalScaleFactor());
+				return ret;
+			}
+		}
+		UIEdgeInsets ret;
+		ret.left = 0;
+		ret.top = getStatusBarHeight();
+		ret.right = 0;
+		ret.bottom = 0;
+		return ret;
+	}
+
 }
 
 using namespace slib::priv::ui_core;
@@ -418,7 +418,7 @@ using namespace slib::priv::window;
 - (UIInterfaceOrientationMask)application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(nullable UIWindow *)window
 {
 	UIInterfaceOrientationMask mask = 0;
-	for (slib::ScreenOrientation value : slib::UI::getAvailableScreenOrientations()) {
+	for (slib::ScreenOrientation value : slib::MobileApp::getAvailableScreenOrientations()) {
 		switch (value) {
 			case slib::ScreenOrientation::Portrait:
 				mask |= UIInterfaceOrientationMaskPortrait;

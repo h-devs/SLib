@@ -72,6 +72,8 @@ namespace slib
 		
 		static void activate(sl_bool flagIgnoreOtherApps = sl_true);
 		
+		static void setBadgeNumber(sl_uint32 number);
+
 	protected:
 		sl_int32 onRunApp() override;
 		

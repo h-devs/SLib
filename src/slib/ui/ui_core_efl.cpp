@@ -89,7 +89,7 @@ namespace slib
 						rotation = elm_win_rotation_get(win);
 					}
 
-					List<ScreenOrientation> orientations = UI::getAvailableScreenOrientations();
+					List<ScreenOrientation> orientations = MobileApp::getAvailableScreenOrientations();
 					if(orientations.getCount() > 0) {
 						if(orientations.indexOf((ScreenOrientation)rotation) == -1) {
 							rotation = (int)(orientations.getValueAt(0));

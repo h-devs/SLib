@@ -13,5 +13,5 @@ Ref<View> SLIB_TEMPLATE_APP_NAMEApp::getStartupPage()
 
 void SLIB_TEMPLATE_APP_NAMEApp::onStart()
 {
-	UI::setAvailableScreenOrientationsPortrait();
+	setAvailableScreenOrientationsPortrait();
 }

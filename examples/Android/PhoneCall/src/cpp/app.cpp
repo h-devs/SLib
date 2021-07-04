@@ -13,7 +13,7 @@ Ref<View> PhoneCallApp::getStartupPage()
 
 void PhoneCallApp::onStart()
 {
-	UI::setAvailableScreenOrientationsPortrait();
+	setAvailableScreenOrientationsPortrait();
 
 	MainPage::getInstance()->initPage();
 }

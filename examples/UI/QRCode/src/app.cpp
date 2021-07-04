@@ -6,7 +6,7 @@ QRCodeExampleApp::QRCodeExampleApp()
 
 void QRCodeExampleApp::onStart()
 {
-	UI::setAvailableScreenOrientationsLandscape();
+	setAvailableScreenOrientationsLandscape();
 #ifdef SLIB_PLATFORM_IS_DESKTOP
 	getMainWindow()->setSize(800, 450);
 	getMainWindow()->setCenterScreen(sl_true);

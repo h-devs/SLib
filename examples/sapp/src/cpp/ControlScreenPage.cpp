@@ -25,32 +25,32 @@
 void ControlScreenPage::onOpen()
 {
 	btnSetOrientationPortrait->setOnClick([](View*) {
-		UI::setAvailableScreenOrientation(ScreenOrientation::Portrait);
+		MobileApp::setAvailableScreenOrientation(ScreenOrientation::Portrait);
 	});
 	btnSetOrientationPortraitUpDown->setOnClick([](View*) {
-		UI::setAvailableScreenOrientation(ScreenOrientation::PortraitUpsideDown);
+		MobileApp::setAvailableScreenOrientation(ScreenOrientation::PortraitUpsideDown);
 	});
 	btnSetOrientationLandscapeLeft->setOnClick([](View*) {
-		UI::setAvailableScreenOrientation(ScreenOrientation::LandscapeLeft);
+		MobileApp::setAvailableScreenOrientation(ScreenOrientation::LandscapeLeft);
 	});
 	btnSetOrientationLandscapeRight->setOnClick([](View*) {
-		UI::setAvailableScreenOrientation(ScreenOrientation::LandscapeRight);
+		MobileApp::setAvailableScreenOrientation(ScreenOrientation::LandscapeRight);
 	});
 	btnSetOrientationLandscape->setOnClick([](View*) {
-		UI::setAvailableScreenOrientationsLandscape();
+		MobileApp::setAvailableScreenOrientationsLandscape();
 	});
 	btnSetOrientationAll->setOnClick([](View*) {
-		UI::setAvailableScreenOrientationsAll();
+		MobileApp::setAvailableScreenOrientationsAll();
 	});
 	btnBlackStatusBar->setOnClick([this](View*) {
-		UI::setStatusBarStyle(StatusBarStyle::Dark);
+		MobileApp::setStatusBarStyle(StatusBarStyle::Dark);
 		this->setBackgroundColor(Color::White);
 	});
 	btnLightStatusBar->setOnClick([this](View*) {
-		UI::setStatusBarStyle(StatusBarStyle::Light);
+		MobileApp::setStatusBarStyle(StatusBarStyle::Light);
 		this->setBackgroundColor(Color::Black);
 	});
 	btnHideStatusBar->setOnClick([](View*) {
-		UI::setStatusBarStyle(StatusBarStyle::Hidden);
+		MobileApp::setStatusBarStyle(StatusBarStyle::Hidden);
 	});
 }
