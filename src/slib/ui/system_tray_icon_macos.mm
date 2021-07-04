@@ -30,7 +30,7 @@
 #include "slib/ui/notification.h"
 #include "slib/core/safe_static.h"
 
-#define NOTIFICATION_ID_PREFIX "com.hopanatech.hopmon.notify."
+#define NOTIFICATION_ID_PREFIX "system_tray_icon.notify."
 
 namespace slib
 {
