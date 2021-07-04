@@ -120,6 +120,8 @@ namespace slib
 
 	UserNotificationMessage::UserNotificationMessage()
 	{
+		id = 0;
+		
 		flagGroupSummary = sl_false;
 		
 		flagSound = sl_true;

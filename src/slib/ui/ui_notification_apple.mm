@@ -165,6 +165,9 @@ namespace slib
 				static Ref<UserNotificationImpl> createUN(const UserNotificationMessage& message)
 				{
 					StaticContext* context = GetStaticContext();
+					if (!context) {
+						return sl_null;
+					}
 					Ref<UserNotificationImpl> ret = new UserNotificationImpl;
 					if (ret.isNotNull()) {
 						UNMutableNotificationContent* content = [UNMutableNotificationContent new];
@@ -277,6 +280,9 @@ namespace slib
 				static Ref<UserNotificationImpl> createNS(const UserNotificationMessage& message)
 				{
 					StaticContext* context = GetStaticContext();
+					if (!context) {
+						return sl_null;
+					}
 					Ref<UserNotificationImpl> ret = new UserNotificationImpl;
 					if (ret.isNotNull()) {
 						NSUserNotification* notification = [NSUserNotification new];

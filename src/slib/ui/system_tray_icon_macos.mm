@@ -27,6 +27,10 @@
 #include "slib/ui/system_tray_icon.h"
 
 #include "slib/ui/platform.h"
+#include "slib/ui/notification.h"
+#include "slib/core/safe_static.h"
+
+#define NOTIFICATION_ID_PREFIX "com.hopanatech.hopmon.notify."
 
 namespace slib
 {
@@ -61,13 +65,45 @@ namespace slib
 	{
 		namespace system_tray_icon
 		{
+		
+			class StaticContext
+			{
+			public:
+				CHashMap< String, WeakRef<SystemTrayIcon> > icons;
+				Function<void(UserNotificationMessage&)> callbackClick;
+				
+			public:
+				StaticContext()
+				{
+					UserNotification::start();
+					UserNotification::requestAuthorization(UserNotificationAuthorizationOptions::Alert | UserNotificationAuthorizationOptions::Sound, sl_null);
+					callbackClick = [this](UserNotificationMessage& msg) {
+						if (msg.identifier.startsWith(NOTIFICATION_ID_PREFIX)) {
+							Ref<SystemTrayIcon> icon = icons.getValue(msg.identifier.substring(StringView(NOTIFICATION_ID_PREFIX).getLength()));
+							if (icon.isNotNull()) {
+								Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
+								icon->dispatchClick(ev.get());
+							}
+						}
+					};
+					UserNotification::addOnClickMessage(callbackClick);
+				}
+				
+				~StaticContext()
+				{
+					UserNotification::removeOnClickMessage(callbackClick);
+				}
+				
+			};
+		
+			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
 			
 			class SystemTrayIconImpl : public SystemTrayIcon
 			{
 			public:
 				NSStatusItem* m_item;
 				SLIBSystemTrayIconListener* m_listener;
-				
+
 			public:
 				SystemTrayIconImpl()
 				{
@@ -77,6 +113,10 @@ namespace slib
 				
 				~SystemTrayIconImpl()
 				{
+					StaticContext* context = GetStaticContext();
+					if (context) {
+						context->icons.remove(m_iconName);
+					}
 					if (m_item != nil) {
 						NSStatusBar* bar = [NSStatusBar systemStatusBar];
 						if (bar != nil) {
@@ -88,6 +128,10 @@ namespace slib
 			public:
 				static Ref<SystemTrayIconImpl> create(const SystemTrayIconParam& param)
 				{
+					StaticContext* context = GetStaticContext();
+					if (!context) {
+						return sl_null;
+					}
 					NSStatusBar* bar = [NSStatusBar systemStatusBar];
 					if (bar != nil) {
 						NSStatusItem* item = [bar statusItemWithLength:NSSquareStatusItemLength];
@@ -96,6 +140,7 @@ namespace slib
 							if (ret.isNotNull()) {
 								ret->m_item = item;
 								ret->_init(param);
+								context->icons.add(param.iconName, ret);
 								return ret;
 							}
 						}
@@ -174,6 +219,16 @@ namespace slib
 				void setMenu_NI(const Ref<Menu>& menu) override
 				{
 					m_item.menu = UIPlatform::getMenuHandle(menu);
+				}
+				
+				void notify_NI(const SystemTrayIconNotifyParam& param) override
+				{
+					UserNotificationMessage msg;
+					msg.identifier = String::join(NOTIFICATION_ID_PREFIX, m_iconName);
+					msg.title = param.title;
+					msg.content = param.message;
+					msg.flagSound = param.flagSound;
+					UserNotification::add(msg);
 				}
 				
 				UIEventFlags _onEvent(UIAction action, NSEvent* event)
