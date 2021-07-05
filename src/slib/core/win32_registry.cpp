@@ -39,6 +39,34 @@ namespace slib
 		namespace registry
 		{
 
+			static String ParseRegistryPath(const StringParam& _path, HKEY* hRootKeyOut)
+			{
+				HKEY tmp;
+				if (!hRootKeyOut) {
+					hRootKeyOut = &tmp;
+				}
+				String path = _path.toString();
+				if (path.startsWith("HKLM\\")) {
+					*hRootKeyOut = HKEY_LOCAL_MACHINE;
+					path = path.substring(5);
+				} else if (path.startsWith("HKCU\\")) {
+					*hRootKeyOut = HKEY_CURRENT_USER;
+					path = path.substring(5);
+				} else if (path.startsWith("HKCR\\")) {
+					*hRootKeyOut = HKEY_CLASSES_ROOT;
+					path = path.substring(5);
+				} else if (path.startsWith("HKCC\\")) {
+					*hRootKeyOut = HKEY_CURRENT_CONFIG;
+					path = path.substring(5);
+				} else if (path.startsWith("HKU\\")) {
+					*hRootKeyOut = HKEY_USERS;
+					path = path.substring(4);
+				} else {
+					*hRootKeyOut = HKEY_CURRENT_USER;
+				}
+				return path;
+			}
+
 			static sl_bool GetRegistryValue(HKEY hKey, LPCWSTR name, Variant* out)
 			{
 				DWORD type = 0;
@@ -218,6 +246,14 @@ namespace slib
 			Registry key(open(hKeyParent, subPath, KEY_QUERY_VALUE));
 			return key.getValues();
 		}
+
+		VariantMap Registry::getValues(const StringParam& path)
+		{
+			HKEY hRootKey;
+			String subPath = ParseRegistryPath(path, &hRootKey);
+			Registry key(open(hRootKey, subPath, KEY_QUERY_VALUE));
+			return key.getValues();
+		}
 		
 		sl_bool Registry::getValue(const StringParam& _name, Variant* out)
 		{
@@ -233,6 +269,14 @@ namespace slib
 		sl_bool Registry::getValue(HKEY hKeyParent, const StringParam& subPath, const StringParam& name, Variant* out)
 		{
 			Registry key(open(hKeyParent, subPath, KEY_QUERY_VALUE));
+			return key.getValue(name, out);
+		}
+
+		sl_bool Registry::getValue(const StringParam& path, const StringParam& name, Variant* out)
+		{
+			HKEY hRootKey;
+			String subPath = ParseRegistryPath(path, &hRootKey);
+			Registry key(open(hRootKey, subPath, KEY_QUERY_VALUE));
 			return key.getValue(name, out);
 		}
 
@@ -255,6 +299,14 @@ namespace slib
 		sl_size Registry::setValues(HKEY hKeyParent, const StringParam& subPath, const VariantMap& values)
 		{
 			Registry key(create(hKeyParent, subPath, KEY_SET_VALUE));
+			return key.setValues(values);
+		}
+
+		sl_size Registry::setValues(const StringParam& path, const VariantMap& values)
+		{
+			HKEY hRootKey;
+			String subPath = ParseRegistryPath(path, &hRootKey);
+			Registry key(create(hRootKey, subPath, KEY_SET_VALUE));
 			return key.setValues(values);
 		}
 
@@ -314,6 +366,14 @@ namespace slib
 		sl_bool Registry::setValue(HKEY hKeyParent, const StringParam& subPath, const StringParam& name, const Variant& value)
 		{
 			Registry key(create(hKeyParent, subPath, KEY_SET_VALUE));
+			return key.setValue(name, value);
+		}
+
+		sl_bool Registry::setValue(const StringParam& path, const StringParam& name, const Variant& value)
+		{
+			HKEY hRootKey;
+			String subPath = ParseRegistryPath(path, &hRootKey);
+			Registry key(create(hRootKey, subPath, KEY_SET_VALUE));
 			return key.setValue(name, value);
 		}
 
