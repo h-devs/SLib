@@ -215,6 +215,15 @@ namespace slib
 		UINT nLen = GetSystemWow64DirectoryW(path, MAX_PATH);
 		return String::from(path, nLen);
 	}
+
+	String System::getProgramsDirectory()
+	{
+		WCHAR path[MAX_PATH] = { 0 };
+		if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_PROGRAMS, NULL, 0, path))) {
+			return String::create(path);
+		}
+		return sl_null;
+	}
 #endif
 
 	sl_bool System::is64BitSystem()

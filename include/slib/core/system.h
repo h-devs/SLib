@@ -64,8 +64,12 @@ namespace slib
 		
 #ifdef SLIB_PLATFORM_IS_WIN32
 		static String getWindowsDirectory();
+
 		static String getSystemDirectory();
+
 		static String getSystemWow64Directory();
+
+		static String getProgramsDirectory();
 #endif
 
 
