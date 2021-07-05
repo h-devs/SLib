@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@
 #include "slib/ui/web_view.h"
 
 #include "slib/core/win32/com.h"
+#include "slib/core/dl/win32/shlwapi.h"
 
 #include "view_win32.h"
 
@@ -37,9 +38,6 @@
 
 #include <wininet.h>
 #pragma comment(lib, "wininet.lib")
-
-#include <shlwapi.h>
-#pragma comment(lib, "shlwapi.lib")
 
 namespace slib
 {
@@ -207,7 +205,7 @@ namespace slib
 				{
 					String16 name = m_displayName;
 					DWORD size = (DWORD)(name.getLength()) * 2 + 2;
-					OLECHAR* buf = (OLECHAR*)(::CoTaskMemAlloc(size));
+					OLECHAR* buf = (OLECHAR*)(CoTaskMemAlloc(size));
 					if (buf) {
 						Base::copyMemory(buf, name.getData(), size);
 						*ppszDisplayName = buf;
@@ -235,13 +233,13 @@ namespace slib
 				if (baseURL.isNotEmpty()) {
 					HRESULT hr;
 					StringData content(_content);
-					IStream* stream = ::SHCreateMemStream((BYTE*)(content.getData()), (sl_uint32)(content.getLength()));
+					IStream* stream = SHCreateMemStream((BYTE*)(content.getData()), (sl_uint32)(content.getLength()));
 					if (stream) {
 						IPersistMoniker* persistMoniker = NULL;
 						hr = doc->QueryInterface(IID_IPersistMoniker, (void**)(&persistMoniker));
 						if (hr == S_OK) {
 							IBindCtx* ctx = NULL;
-							hr = ::CreateBindCtx(0, &ctx);
+							hr = CreateBindCtx(0, &ctx);
 							if (hr == S_OK) {
 								DocumentMoniker* moniker = new DocumentMoniker;
 								if (moniker) {
@@ -265,10 +263,10 @@ namespace slib
 					SAFEARRAYBOUND bound;
 					bound.cElements = 1;
 					bound.lLbound = 0;
-					SAFEARRAY* sa = ::SafeArrayCreate(VT_VARIANT, 1, &bound);
+					SAFEARRAY* sa = SafeArrayCreate(VT_VARIANT, 1, &bound);
 					if (sa) {
 						VARIANT* varArr;
-						HRESULT hr = ::SafeArrayAccessData(sa, (void**)(&varArr));
+						HRESULT hr = SafeArrayAccessData(sa, (void**)(&varArr));
 						if (hr == S_OK) {
 							varArr[0].vt = VT_BSTR;
 							StringCstr content(_content);
@@ -390,7 +388,7 @@ namespace slib
 							bRet = sl_true;
 						}
 						if (title) {
-							::SysFreeString(title);
+							SysFreeString(title);
 						}
 						doc2->Release();
 						return bRet;
@@ -1018,7 +1016,7 @@ namespace slib
 								VARIANT vars[1];
 								DISPPARAMS params;
 								params.rgvarg = vars;
-								::VariantInit(&(vars[0]));
+								VariantInit(&(vars[0]));
 								vars[0].vt = VT_DISPATCH;
 								vars[0].pdispVal = m_oleClient;
 								params.rgdispidNamedArgs = namedArgs;
@@ -1043,7 +1041,7 @@ namespace slib
 	{
 		Win32_UI_Shared* shared = Win32_UI_Shared::get();
 		if (!shared) {
-			return sl_null;
+			return sl_null; 
 		}
 		return Win32_ViewInstance::create<WebViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
 	}
@@ -1057,19 +1055,19 @@ namespace slib
 	void DefaultWebViewProvider::clearCache()
 	{
 		GROUPID groupId;
-		HANDLE handle = ::FindFirstUrlCacheGroup(0, CACHEGROUP_SEARCH_ALL, NULL, 0, &groupId, NULL);
+		HANDLE handle = FindFirstUrlCacheGroup(0, CACHEGROUP_SEARCH_ALL, NULL, 0, &groupId, NULL);
 		if (handle) {
 			for (;;) {
 				GROUPID next = groupId;
-				BOOL bRet = ::FindNextUrlCacheGroup(handle, &next, NULL);
-				::DeleteUrlCacheGroup(groupId, CACHEGROUP_FLAG_FLUSHURL_ONDELETE, NULL);
+				BOOL bRet = FindNextUrlCacheGroup(handle, &next, NULL);
+				DeleteUrlCacheGroup(groupId, CACHEGROUP_FLAG_FLUSHURL_ONDELETE, NULL);
 				if (bRet) {
 					groupId = next;
 				} else {
 					break;
 				}
 			}
-			::FindCloseUrlCache(handle);
+			FindCloseUrlCache(handle);
 		}
 	}
 

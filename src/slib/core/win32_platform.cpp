@@ -24,14 +24,15 @@
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
-#include "slib/core/platform.h"
+#include "slib/core/win32/platform.h"
 
 #include "slib/core/scoped_buffer.h"
+#include "slib/core/dl/win32/shlwapi.h"
+
+#include <objbase.h>
+#include <shellapi.h>
 
 #pragma warning(disable: 4091)
-
-#include <shellapi.h>
-#include <shlwapi.h>
 #include <shlobj.h>
 
 namespace slib

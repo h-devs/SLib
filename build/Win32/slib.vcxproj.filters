@@ -1403,5 +1403,8 @@
     <ClCompile Include="..\..\src\slib\core\app_win32.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\dl_win32_shlwapi.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

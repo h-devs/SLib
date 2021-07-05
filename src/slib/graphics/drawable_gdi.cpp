@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +29,7 @@
 #include "slib/graphics/image.h"
 #include "slib/graphics/platform.h"
 #include "slib/core/scoped_buffer.h"
-
-#include <shlwapi.h>
-#pragma comment(lib, "shlwapi.lib")
+#include "slib/core/dl/win32/shlwapi.h"
 
 namespace slib
 {
@@ -110,7 +108,7 @@ namespace slib
 
 	Ref<Drawable> PlatformDrawable::loadFromMemory(const void* buf, sl_size size)
 	{
-		IStream* stream = ::SHCreateMemStream((BYTE*)buf, (sl_uint32)size);
+		IStream* stream = SHCreateMemStream((BYTE*)buf, (sl_uint32)size);
 		if (stream) {
 			GraphicsPlatform::startGdiplus();
 			Gdiplus::Image* image = new Gdiplus::Image(stream);

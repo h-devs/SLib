@@ -31,13 +31,13 @@
 #include "slib/core/dl/win32/kernel32.h"
 #include "slib/core/dl/win32/wininet.h"
 
-#pragma warning(disable: 4091)
-
 #include <assert.h>
 #include <signal.h>
 #include <float.h>
 #include <stdlib.h>
 #include <crtdbg.h>
+
+#pragma warning(disable: 4091)
 #include <shlobj.h>
 
 #if defined(SLIB_PLATFORM_IS_UWP)

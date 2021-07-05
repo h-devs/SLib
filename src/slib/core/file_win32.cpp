@@ -28,8 +28,8 @@
 #include "slib/core/file_util.h"
 
 #include "slib/core/hash_map.h"
-#include "slib/core/dl/win32/kernel32.h"
 #include "slib/core/platform.h"
+#include "slib/core/dl/win32/kernel32.h"
 
 #include <winioctl.h>
 
