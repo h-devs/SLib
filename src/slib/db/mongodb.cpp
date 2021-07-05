@@ -601,6 +601,23 @@ namespace slib
 					return sl_null;
 				}
 
+				Json execute(const Json& _command) override
+				{
+					Json ret;
+					bson_t* command = GetBsonFromJson(_command);
+					if (command) {
+						bson_error_t error;
+						bson_t reply;
+						bool bRet = mongoc_database_command_simple(m_db, command, sl_null, &reply, &error);
+						if (bRet) {
+							ret = GetJsonFromBson(&reply);
+						}
+						bson_destroy(&reply);
+						bson_destroy(command);
+					}
+					return ret;
+				}
+
 			public:
 				Ref<DocumentCollection> getCollection(mongoc_collection_t* collection);
 				

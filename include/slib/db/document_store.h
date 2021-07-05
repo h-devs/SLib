@@ -137,6 +137,8 @@ namespace slib
 
 		virtual List<String> getCollectionNames() = 0;
 
+		virtual Json execute(const Json& command) = 0;
+
 	public:
 		sl_int64 getDocumentsCount(const StringParam& collectionName, const Json& filter);
 
