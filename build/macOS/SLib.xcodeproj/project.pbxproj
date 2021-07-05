@@ -396,6 +396,7 @@
 		D7BF60F126311F7600E0B3DD /* mdb.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60EF26311F7600E0B3DD /* mdb.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7BF60F226311F7600E0B3DD /* midl.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60F026311F7600E0B3DD /* midl.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7BF60FB26311FB700E0B3DD /* leveldb_unity.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60FA26311FB700E0B3DD /* leveldb_unity.cc */; settings = {COMPILER_FLAGS = "-w"; }; };
+		D7C682CF2692A4F8000A85E1 /* app_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = D7C682CE2692A4F7000A85E1 /* app_macos.mm */; };
 		D7C709832645A0BB00FB3A32 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C709822645A0BB00FB3A32 /* main.cpp */; };
 		D7E978ED268DC6A7000343F8 /* service_manager_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = D7E978EC268DC6A7000343F8 /* service_manager_macos.mm */; };
 /* End PBXBuildFile section */
@@ -885,6 +886,7 @@
 		D7BF60EF26311F7600E0B3DD /* mdb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mdb.c; path = ../../external/src/lmdb/mdb.c; sourceTree = "<group>"; };
 		D7BF60F026311F7600E0B3DD /* midl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = midl.c; path = ../../external/src/lmdb/midl.c; sourceTree = "<group>"; };
 		D7BF60FA26311FB700E0B3DD /* leveldb_unity.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = leveldb_unity.cc; path = ../../external/src/leveldb/leveldb_unity.cc; sourceTree = "<group>"; };
+		D7C682CE2692A4F7000A85E1 /* app_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = app_macos.mm; sourceTree = "<group>"; };
 		D7C709822645A0BB00FB3A32 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../../tool/src/GenerateAppIcons/main.cpp; sourceTree = "<group>"; };
 		D7E978EC268DC6A7000343F8 /* service_manager_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = service_manager_macos.mm; sourceTree = "<group>"; };
 		E17DADEE1E0C9A10006161F6 /* motion_tracker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = motion_tracker.cpp; sourceTree = "<group>"; };
@@ -1499,6 +1501,7 @@
 			children = (
 				26F900641D994ED0001A6EE9 /* animation.cpp */,
 				A25F2F9C1B03A33700854DAF /* app.cpp */,
+				D7C682CE2692A4F7000A85E1 /* app_macos.mm */,
 				A25F2FB01B03A33700854DAF /* apple_platform.mm */,
 				26AFC5FE22B1773F0034C634 /* asm_x64.cpp */,
 				260272E51C81877F0079E2F2 /* asset.cpp */,
@@ -2190,6 +2193,7 @@
 				26F53F7E22DB4F6D0031D485 /* date_picker.cpp in Sources */,
 				26D9D92C1E9645CE005F7BD3 /* int128.cpp in Sources */,
 				26D9D9BB1E96468D005F7BD3 /* cursor.cpp in Sources */,
+				D7C682CF2692A4F8000A85E1 /* app_macos.mm in Sources */,
 				26D9D95F1E964662005F7BD3 /* globe.cpp in Sources */,
 				26D9D9C81E96468D005F7BD3 /* mobile_game.cpp in Sources */,
 				26987D1223B3F7E300872C1D /* alipay_openssl.cpp in Sources */,

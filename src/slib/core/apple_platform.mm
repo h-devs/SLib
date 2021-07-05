@@ -33,7 +33,7 @@
 
 namespace slib
 {
-	
+
 #if defined(SLIB_PLATFORM_IS_IOS)
 	namespace priv
 	{

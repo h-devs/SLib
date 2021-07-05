@@ -130,13 +130,6 @@ namespace slib
 				QuitApp();
 			}
 
-			UIKeyboardAdjustMode g_keyboardAdjustMode = UIKeyboardAdjustMode::Pan;
-			
-#if defined(SLIB_UI_IS_ANDROID)
-			void UpdateKeyboardAdjustMode(UIKeyboardAdjustMode mode);
-#endif
-			
-			
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<View>, g_currentDraggingView)
 			DragOperations g_currentDraggingOperationMask;
 		
@@ -711,18 +704,5 @@ namespace slib
 	{
 	}
 #endif
-	
-	UIKeyboardAdjustMode UI::getKeyboardAdjustMode()
-	{
-		return g_keyboardAdjustMode;
-	}
-	
-	void UI::setKeyboardAdjustMode(UIKeyboardAdjustMode mode)
-	{
-		g_keyboardAdjustMode = mode;
-#if defined(SLIB_UI_IS_ANDROID)
-		UpdateKeyboardAdjustMode(mode);
-#endif
-	}
 	
 }

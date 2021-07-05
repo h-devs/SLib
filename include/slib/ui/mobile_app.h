@@ -96,7 +96,7 @@ namespace slib
 		
 		void openStartupPage();
 		
-
+	public:
 		static List<ScreenOrientation> getAvailableScreenOrientations();
 		
 		static void setAvailableScreenOrientations(const List<ScreenOrientation>& orientations);
@@ -122,6 +122,11 @@ namespace slib
 		
 		static UIEdgeInsets getSafeAreaInsets();
 		
+		
+		static UIKeyboardAdjustMode getKeyboardAdjustMode();
+		
+		static void setKeyboardAdjustMode(UIKeyboardAdjustMode mode);
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, Pause)
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, Resume)

@@ -638,7 +638,7 @@ using namespace slib::priv::window;
 		[self restoreKeyboardScrollView];
 	}
 	
-	UIKeyboardAdjustMode adjustMode = UI::getKeyboardAdjustMode();
+	UIKeyboardAdjustMode adjustMode = MobileApp::getKeyboardAdjustMode();
 	Ref<iOS_WindowInstance> window = self->m_window;
 	if (window.isNotNull()) {
 		if (adjustMode == UIKeyboardAdjustMode::Resize) {

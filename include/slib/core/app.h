@@ -197,7 +197,17 @@ namespace slib
 
 		// Android only
 		static void openSystemOverlaySetting();
-
+		
+		
+		// macOS only
+		static sl_bool isAccessibilityEnabled();
+		
+		// macOS only
+		static void authenticateAccessibility();
+		
+		// macOS only
+		static void openSystemPreferencesForAccessibility();
+		
 	protected:
 		void _initApp();
 

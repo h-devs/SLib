@@ -36,6 +36,12 @@ namespace slib
 			
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicList<ScreenOrientation>, g_listAvailableScreenOrientations)
 
+			UIKeyboardAdjustMode g_keyboardAdjustMode = UIKeyboardAdjustMode::Pan;
+		   
+#if defined(SLIB_UI_IS_ANDROID)
+			void UpdateKeyboardAdjustMode(UIKeyboardAdjustMode mode);
+#endif
+		   
 		}
 	}
 
@@ -252,73 +258,6 @@ namespace slib
 		}
 	}
 	
-	List<ScreenOrientation> MobileApp::getAvailableScreenOrientations()
-	{
-		if (SLIB_SAFE_STATIC_CHECK_FREED(g_listAvailableScreenOrientations)) {
-			return sl_null;
-		}
-		return g_listAvailableScreenOrientations;
-	}
-	
-	void MobileApp::setAvailableScreenOrientations(const List<ScreenOrientation>& orientations)
-	{
-		if (SLIB_SAFE_STATIC_CHECK_FREED(g_listAvailableScreenOrientations)) {
-			return;
-		}
-		g_listAvailableScreenOrientations = orientations;
-		attemptRotateScreenOrientation();
-	}
-	
-	void MobileApp::setAvailableScreenOrientation(const ScreenOrientation& orientation)
-	{
-		setAvailableScreenOrientations(List<ScreenOrientation>::createFromElements(orientation));
-	}
-	
-	void MobileApp::setAvailableScreenOrientationsPortrait()
-	{
-		setAvailableScreenOrientations(List<ScreenOrientation>::createFromElements(ScreenOrientation::Portrait, ScreenOrientation::PortraitUpsideDown));
-	}
-	
-	void MobileApp::setAvailableScreenOrientationsLandscape()
-	{
-		setAvailableScreenOrientations(List<ScreenOrientation>::createFromElements(ScreenOrientation::LandscapeRight, ScreenOrientation::LandscapeLeft));
-	}
-	
-	void MobileApp::setAvailableScreenOrientationsAll()
-	{
-		setAvailableScreenOrientations(sl_null);
-	}
-	
-#if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_ANDROID)
-	ScreenOrientation MobileApp::getScreenOrientation()
-	{
-		return ScreenOrientation::Portrait;
-	}
-
-	void MobileApp::attemptRotateScreenOrientation()
-	{
-	}
-
-	sl_ui_len MobileApp::getStatusBarHeight()
-	{
-		return 0;
-	}
-	
-	void MobileApp::setStatusBarStyle(StatusBarStyle style)
-	{
-	}
-
-	UIEdgeInsets MobileApp::getSafeAreaInsets()
-	{
-		UIEdgeInsets ret;
-		ret.left = 0;
-		ret.top = getStatusBarHeight();
-		ret.right = 0;
-		ret.bottom = 0;
-		return ret;
-	}
-#endif
-	
 	void MobileApp::dispatchStart()
 	{
 		UIApp::dispatchStart();
@@ -329,7 +268,7 @@ namespace slib
 		}
 #endif
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(MobileApp, Pause)
 
 	void MobileApp::dispatchPause()
@@ -554,6 +493,87 @@ namespace slib
 	void MobileMainWindow::onResize(sl_ui_len width, sl_ui_len height)
 	{
 		MobileApp::dispatchResizeToApp(width, height);
+	}
+
+
+	List<ScreenOrientation> MobileApp::getAvailableScreenOrientations()
+	{
+		if (SLIB_SAFE_STATIC_CHECK_FREED(g_listAvailableScreenOrientations)) {
+			return sl_null;
+		}
+		return g_listAvailableScreenOrientations;
+	}
+
+	void MobileApp::setAvailableScreenOrientations(const List<ScreenOrientation>& orientations)
+	{
+		if (SLIB_SAFE_STATIC_CHECK_FREED(g_listAvailableScreenOrientations)) {
+			return;
+		}
+		g_listAvailableScreenOrientations = orientations;
+		attemptRotateScreenOrientation();
+	}
+
+	void MobileApp::setAvailableScreenOrientation(const ScreenOrientation& orientation)
+	{
+		setAvailableScreenOrientations(List<ScreenOrientation>::createFromElements(orientation));
+	}
+
+	void MobileApp::setAvailableScreenOrientationsPortrait()
+	{
+		setAvailableScreenOrientations(List<ScreenOrientation>::createFromElements(ScreenOrientation::Portrait, ScreenOrientation::PortraitUpsideDown));
+	}
+
+	void MobileApp::setAvailableScreenOrientationsLandscape()
+	{
+		setAvailableScreenOrientations(List<ScreenOrientation>::createFromElements(ScreenOrientation::LandscapeRight, ScreenOrientation::LandscapeLeft));
+	}
+
+	void MobileApp::setAvailableScreenOrientationsAll()
+	{
+		setAvailableScreenOrientations(sl_null);
+	}
+
+#if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_ANDROID)
+	ScreenOrientation MobileApp::getScreenOrientation()
+	{
+		return ScreenOrientation::Portrait;
+	}
+
+	void MobileApp::attemptRotateScreenOrientation()
+	{
+	}
+
+	sl_ui_len MobileApp::getStatusBarHeight()
+	{
+		return 0;
+	}
+
+	void MobileApp::setStatusBarStyle(StatusBarStyle style)
+	{
+	}
+
+	UIEdgeInsets MobileApp::getSafeAreaInsets()
+	{
+		UIEdgeInsets ret;
+		ret.left = 0;
+		ret.top = getStatusBarHeight();
+		ret.right = 0;
+		ret.bottom = 0;
+		return ret;
+	}
+#endif
+
+	UIKeyboardAdjustMode MobileApp::getKeyboardAdjustMode()
+	{
+		return g_keyboardAdjustMode;
+	}
+
+	void MobileApp::setKeyboardAdjustMode(UIKeyboardAdjustMode mode)
+	{
+		g_keyboardAdjustMode = mode;
+#if defined(SLIB_UI_IS_ANDROID)
+		UpdateKeyboardAdjustMode(mode);
+#endif
 	}
 
 }

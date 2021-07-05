@@ -469,6 +469,20 @@ Microsoft Specific
 	}
 #endif
 
+#if !defined(SLIB_PLATFORM_IS_MACOS)
+	sl_bool Application::isAccessibilityEnabled()
+	{
+		return sl_true;
+	}
+
+	void Application::authenticateAccessibility()
+	{
+	}
+
+	void Application::openSystemPreferencesForAccessibility()
+	{
+	}
+#endif
 
 	List<String> CommandLine::parse(const StringParam& commandLine)
 	{

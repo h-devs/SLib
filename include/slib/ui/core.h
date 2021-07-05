@@ -207,9 +207,11 @@ namespace slib
 
 		static void dismissKeyboard();
 		
-		static UIKeyboardAdjustMode getKeyboardAdjustMode();
+
+		static String getActiveApplicationName();
 		
-		static void setKeyboardAdjustMode(UIKeyboardAdjustMode mode);
+		// [macOS] Accessibility authentication is required. See `Application::isAccessibilityEnabled()`.
+		static String getActiveWindowTitle();
 		
 	};
 	

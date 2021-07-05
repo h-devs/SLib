@@ -258,6 +258,39 @@ namespace slib
 		}
 	}
 
+	String UI::getActiveApplicationName()
+	{
+		NSRunningApplication* app = [[NSWorkspace sharedWorkspace] frontmostApplication];
+		if (app != nil) {
+			return Apple::getStringFromNSString(app.localizedName);
+		}
+		return sl_null;
+	}
+
+	String UI::getActiveWindowTitle()
+	{
+		String ret;
+		NSRunningApplication* app = [[NSWorkspace sharedWorkspace] frontmostApplication];
+		if (app != nil) {
+			AXUIElementRef axApp = AXUIElementCreateApplication([app processIdentifier]);
+			if (axApp) {
+				AXUIElementRef axWindow = NULL;
+				AXUIElementCopyAttributeValue(axApp, kAXFocusedWindowAttribute, (CFTypeRef*)&axWindow);
+				if (axWindow) {
+					CFStringRef title = NULL;
+					AXUIElementCopyAttributeValue(axWindow, kAXTitleAttribute, (CFTypeRef*)&title);
+					if (title) {
+						ret = Apple::getStringFromNSString((__bridge NSString*)title);
+						CFRelease(title);
+					}
+					CFRelease(axWindow);
+				}
+				CFRelease(axApp);
+			}
+		}
+		return ret;
+	}
+
 	void UIPlatform::runLoop(sl_uint32 level)
 	{
 		StaticContext* context = GetStaticContext();

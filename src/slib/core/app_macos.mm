@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,53 +20,33 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_UI_GLOBAL_EVENT_MONITOR
-#define CHECKHEADER_SLIB_UI_GLOBAL_EVENT_MONITOR
+#include "slib/core/definition.h"
 
-#include "event.h"
+#if defined(SLIB_PLATFORM_IS_MACOS)
 
-#include "../core/function.h"
+#include "slib/core/app.h"
 
-/*
- [macOS] Accessibility authentication is required for global keyboard monitoring. See `Application::isAccessibilityEnabled()`.
-*/
+#include <AppKit/AppKit.h>
 
 namespace slib
 {
 	
-	class GlobalEventMonitor
+	sl_bool Application::isAccessibilityEnabled()
 	{
-	public:
-		static void addMonitor(const Function<void(UIEvent*)>& callback);
-		
-		static void removeMonitor(const Function<void(UIEvent*)>& callback);
-		
-		static void removeAllMonitors();
-		
-		static void addMouseMonitor(const Function<void(UIEvent*)>& callback);
-		
-		static void removeMouseMonitor(const Function<void(UIEvent*)>& callback);
-		
-		static void removeAllMouseMonitors();
-		
-		static void addKeyboardMonitor(const Function<void(UIEvent*)>& callback);
-		
-		static void removeKeyboardMonitor(const Function<void(UIEvent*)>& callback);
-		
-		static void removeAllKeyboardMonitors();
+		return AXIsProcessTrustedWithOptions(NULL) != FALSE;
+	}
 
-	protected:
-		enum {
-			MASK_MOUSE = 0x0001,
-			MASK_KEYBOARD = 0x0002
-		};
-		
-		static sl_bool _updateMonitor(sl_uint32 mask);
-		
-		static void _onEvent(UIEvent*);
-		
-	};
-	
+	void Application::authenticateAccessibility()
+	{
+		NSDictionary *options = @{(__bridge NSString*)kAXTrustedCheckOptionPrompt: @YES};
+		AXIsProcessTrustedWithOptions((CFDictionaryRef)options);
+	}
+
+	void Application::openSystemPreferencesForAccessibility()
+	{
+		[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"]];
+	}
+
 }
 
 #endif

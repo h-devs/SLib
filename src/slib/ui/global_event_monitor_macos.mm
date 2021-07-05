@@ -27,6 +27,7 @@
 #include "slib/ui/global_event_monitor.h"
 
 #include "slib/ui/platform.h"
+#include "slib/ui/core.h"
 
 namespace slib
 {
@@ -202,22 +203,6 @@ namespace slib
 		return sl_false;
 	}
 	
-	sl_bool GlobalEventMonitor::isKeyboardAccessEnabled()
-	{
-		return AXIsProcessTrustedWithOptions(NULL) != FALSE;
-	}
-	
-	void GlobalEventMonitor::authenticateKeyboardAccess()
-	{
-		NSDictionary *options = @{(__bridge NSString*)kAXTrustedCheckOptionPrompt: @YES};
-		AXIsProcessTrustedWithOptions((CFDictionaryRef)options);
-	}
-	
-	void GlobalEventMonitor::openSystemPreferencesForKeyboardAccess()
-	{
-		[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"]];
-	}
-
 }
 
 #endif
