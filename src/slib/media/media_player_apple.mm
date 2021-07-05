@@ -26,8 +26,9 @@
 
 #include "slib/media/media_player.h"
 
+#include "slib/core/asset.h"
 #include "slib/core/endian.h"
-#include "slib/core/platform.h"
+#include "slib/core/apple/platform.h"
 
 #import <AVFoundation/AVFoundation.h>
 
@@ -90,13 +91,13 @@ namespace slib
 				{
 					AVPlayerItem* playerItem = nil;
 					if (param.url.isNotEmpty()) {
-						NSURL* url = [NSURL URLWithString: slib::Apple::getNSStringFromString(param.url)];
+						NSURL* url = [NSURL URLWithString: Apple::getNSStringFromString(param.url)];
 						playerItem = [AVPlayerItem playerItemWithURL:url];
 					} else if (param.filePath.isNotEmpty()) {
-						NSURL* url = [NSURL fileURLWithPath: slib::Apple::getNSStringFromString(param.filePath)];
+						NSURL* url = [NSURL fileURLWithPath: Apple::getNSStringFromString(param.filePath)];
 						playerItem = [AVPlayerItem playerItemWithURL:url];
 					} else if (param.assetFileName.isNotEmpty()) {
-						NSURL* url = [NSURL fileURLWithPath: slib::Apple::getNSStringFromString(Apple::getAssetFilePath(param.assetFileName))];
+						NSURL* url = [NSURL fileURLWithPath: Apple::getNSStringFromString(Assets::getFilePath(param.assetFileName))];
 						playerItem = [AVPlayerItem playerItemWithURL:url];
 					}
 					if (playerItem == nil) {

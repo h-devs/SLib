@@ -32,7 +32,7 @@
 namespace slib
 {
 
-	String Assets::getAssetFilePath(const StringParam& _path)
+	String Assets::getFilePath(const StringParam& _path)
 	{
 		StringData path(_path);
 		String fileExt = File::getFileExtension(path);

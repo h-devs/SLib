@@ -26,6 +26,8 @@
 
 #include "slib/core/platform.h"
 
+#include "slib/core/memory.h"
+
 namespace slib
 {
 

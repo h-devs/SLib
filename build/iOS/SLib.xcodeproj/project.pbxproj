@@ -338,6 +338,7 @@
 		26FE7D9525A2F20A00B787F0 /* plot_ui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D9325A2F20900B787F0 /* plot_ui.cpp */; };
 		26FE7D9625A2F20A00B787F0 /* plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D9425A2F20900B787F0 /* plot.cpp */; };
 		26FE7D9825A2F21000B787F0 /* fft.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D9725A2F21000B787F0 /* fft.cpp */; };
+		D79AF21026935A5F00FCDE3D /* asset_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = D79AF20F26935A5F00FCDE3D /* asset_apple.mm */; };
 		D7C7097B26458FD700FB3A32 /* pseudo_tcp_message.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C7097926458FD600FB3A32 /* pseudo_tcp_message.cpp */; };
 		D7C7097C26458FD700FB3A32 /* pseudo_tcp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C7097A26458FD600FB3A32 /* pseudo_tcp.cpp */; };
 		D7C7097F26458FDF00FB3A32 /* dbip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C7097E26458FDF00FB3A32 /* dbip.cpp */; };
@@ -704,6 +705,7 @@
 		A2774E291B1CBBFD00538A7B /* ui_core.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ui_core.cpp; sourceTree = "<group>"; };
 		A2DE1D9F1B383E8500A74698 /* pipe.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pipe.cpp; sourceTree = "<group>"; };
 		A2DE1DA51B383EA000A74698 /* system_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system_unix.cpp; sourceTree = "<group>"; };
+		D79AF20F26935A5F00FCDE3D /* asset_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = asset_apple.mm; sourceTree = "<group>"; };
 		D7C7097926458FD600FB3A32 /* pseudo_tcp_message.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pseudo_tcp_message.cpp; sourceTree = "<group>"; };
 		D7C7097A26458FD600FB3A32 /* pseudo_tcp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pseudo_tcp.cpp; sourceTree = "<group>"; };
 		D7C7097E26458FDF00FB3A32 /* dbip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dbip.cpp; sourceTree = "<group>"; };
@@ -999,6 +1001,7 @@
 				A25F2EC71B039EF600854DAF /* app.cpp */,
 				26AFC60322B198340034C634 /* asm_x64.cpp */,
 				26B571421C9D43A70099E69B /* asset.cpp */,
+				D79AF20F26935A5F00FCDE3D /* asset_apple.mm */,
 				A25F2EC81B039EF600854DAF /* async.cpp */,
 				A25F2EC91B039EF600854DAF /* async_config.h */,
 				A25F2ECC1B039EF600854DAF /* async_kqueue.cpp */,
@@ -1589,6 +1592,7 @@
 				261EB6032398137B00630C06 /* ui_notification_fcm.cpp in Sources */,
 				2614D10D237A6556001C52F0 /* device_contacts_ios.mm in Sources */,
 				26D9D8981E962962005F7BD3 /* icmp.cpp in Sources */,
+				D79AF21026935A5F00FCDE3D /* asset_apple.mm in Sources */,
 				26D9D8E41E962976005F7BD3 /* ui_menu.cpp in Sources */,
 				26D9D87A1E96294F005F7BD3 /* yuv.cpp in Sources */,
 				26D9D8EE1E962976005F7BD3 /* window_ios.mm in Sources */,

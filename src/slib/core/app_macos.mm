@@ -27,6 +27,7 @@
 #include "slib/core/app.h"
 
 #include "slib/core/system.h"
+#include "slib/core/apple/platform.h"
 
 #include <AppKit/AppKit.h>
 
@@ -38,7 +39,7 @@ namespace slib
 		namespace app
 		{
 
-			static SetBundleLoginItemEnabled(const StringParam& path, sl_bool flagEnabled)
+			static void SetBundleLoginItemEnabled(const StringParam& path, sl_bool flagEnabled)
 			{
 				if (path.isEmpty()) {
 					return;

@@ -27,6 +27,7 @@
 #include "slib/core/system.h"
 
 #include "slib/core/file.h"
+#include "slib/core/list.h"
 #include "slib/core/safe_static.h"
 
 #include "slib/core/apple/platform.h"
@@ -80,7 +81,7 @@ namespace slib
 					NSString* _version = [[UIDevice currentDevice] systemVersion];
 					String version = Apple::getStringFromNSString(_version);
 					if (version.isNotEmpty()) {
-						ListLocker<String> list(version.split("."));
+						ListElements<String> list(version.split("."));
 						if (list.count > 0) {
 							g_systemVersionMajor = list[0].parseUint32();
 							if (list.count > 1) {
@@ -149,7 +150,7 @@ namespace slib
 	{
 #if defined(SLIB_PLATFORM_IS_MACOS)
 		return "macOS " + getVersion();
-##elif defined(SLIB_PLATFORM_IS_IOS)
+#elif defined(SLIB_PLATFORM_IS_IOS)
 		return "iOS " + getVersion();
 #else
 		return sl_null;
