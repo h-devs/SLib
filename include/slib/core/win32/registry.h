@@ -55,17 +55,25 @@ namespace slib
 			
 			static VariantMap getValues(HKEY hKeyParent, const StringParam& subPath);
 
+			static VariantMap getValues(const StringParam& path);
+
 			sl_bool getValue(const StringParam& name, Variant* out);
 
 			static sl_bool getValue(HKEY hKeyParent, const StringParam& subPath, const StringParam& name, Variant* out);
+
+			static sl_bool getValue(const StringParam& path, const StringParam& name, Variant* out);
 
 			sl_size setValues(const VariantMap& values);
 
 			static sl_size setValues(HKEY hKeyParent, const StringParam& subPath, const VariantMap& values);
 
+			static sl_size setValues(const StringParam& path, const VariantMap& values);
+
 			sl_bool setValue(const StringParam& name, const Variant& value);
 
 			static sl_bool setValue(HKEY hKeyParent, const StringParam& subPath, const StringParam& name, const Variant& value);
+
+			static sl_bool setValue(const StringParam& path, const StringParam& name, const Variant& value);
 
 		};
 
