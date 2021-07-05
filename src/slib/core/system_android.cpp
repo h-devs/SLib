@@ -99,12 +99,12 @@ namespace slib
 		return "Mobile User";
 	}
 
-	String System::getName()
+	String System::getSystemName()
 	{
-		return "Android " + getVersion();
+		return "Android " + getSystemVersion();
 	}
 
-	String System::getVersion()
+	String System::getSystemVersion()
 	{
 		jclass cls = Jni::getClass("android/os/Build$VERSION");
 		if (cls) {

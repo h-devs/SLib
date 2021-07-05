@@ -75,9 +75,9 @@ namespace slib
 
 		static sl_bool is64BitSystem();
 
-		static String getName();
+		static String getSystemName();
 
-		static String getVersion();
+		static String getSystemVersion();
 
 #if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_APPLE)
 		static sl_uint32 getMajorVersion();

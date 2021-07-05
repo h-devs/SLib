@@ -137,14 +137,14 @@ namespace slib
 	}
 
 #if !defined(SLIB_PLATFORM_IS_ANDROID) && !defined(SLIB_PLATFORM_IS_APPLE)
-	String System::getVersion()
+	String System::getSystemVersion()
 	{
 		utsname systemInfo;
 		uname(&systemInfo);
 		return systemInfo.release;
 	}
 	
-	String System::getName()
+	String System::getSystemName()
 	{
 		utsname systemInfo;
 		uname(&systemInfo);

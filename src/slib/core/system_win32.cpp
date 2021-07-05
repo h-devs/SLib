@@ -248,7 +248,7 @@ namespace slib
 #endif
 	}
 
-	String System::getVersion()
+	String System::getSystemVersion()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		WindowsVersion version = Win32::getVersion();
@@ -262,7 +262,7 @@ namespace slib
 		Applications not manifested for Windows 8.1 or Windows 10 will return the Windows 8 OS version value (6.2).
 		For more information, visit at https://docs.microsoft.com/en-us/windows/desktop/SysInfo/targeting-your-application-at-windows-8-1
 	*/
-	String System::getName()
+	String System::getSystemName()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		WindowsVersion version = Win32::getVersion();

@@ -146,18 +146,18 @@ namespace slib
 		return Apple::getStringFromNSString(path);
 	}
 
-	String System::getName()
+	String System::getSystemName()
 	{
 #if defined(SLIB_PLATFORM_IS_MACOS)
-		return "macOS " + getVersion();
+		return "macOS " + getSystemVersion();
 #elif defined(SLIB_PLATFORM_IS_IOS)
-		return "iOS " + getVersion();
+		return "iOS " + getSystemVersion();
 #else
 		return sl_null;
 #endif
 	}
 	
-	String System::getVersion()
+	String System::getSystemVersion()
 	{
 		InitSystemVersion();
 		return g_systemVersion;

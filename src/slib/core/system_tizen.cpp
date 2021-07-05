@@ -32,7 +32,7 @@
 namespace slib
 {
 
-	String System::getVersion()
+	String System::getSystemVersion()
 	{
 		char *value = NULL;
 		int ret = system_info_get_platform_string("http://tizen.org/feature/platform.version", &value);
@@ -44,9 +44,9 @@ namespace slib
 		return version;
 	}
 
-	String System::getName()
+	String System::getSystemName()
 	{
-		return "Tizen " + getVersion();
+		return "Tizen " + getSystemVersion();
 	}
 
 	String System::getMachineName()
