@@ -48,6 +48,11 @@ namespace slib
 	{
 		namespace dsound
 		{
+
+			static void InitCOM()
+			{
+				CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+			}
 			
 			class AudioRecorderImpl : public AudioRecorder
 			{
@@ -76,7 +81,7 @@ namespace slib
 						return sl_null;
 					}
 					
-					CoInitializeEx(NULL, COINIT_MULTITHREADED);
+					InitCOM();
 					
 					String deviceID = param.deviceId;
 					GUID guid;
@@ -306,11 +311,11 @@ namespace slib
 				
 				void run()
 				{
-					CoInitializeEx(NULL, COINIT_MULTITHREADED);
 					Thread* thread = Thread::getCurrent();
 					if (!thread) {
 						return;
 					}
+					InitCOM();
 					while (thread->isNotStopping()) {
 						DWORD dwWait = WaitForMultipleObjects(3, m_events, FALSE, INFINITE);
 						if (dwWait >= WAIT_OBJECT_0 && dwWait < WAIT_OBJECT_0 + 2) {
@@ -342,7 +347,7 @@ namespace slib
 			public:
 				static Ref<AudioPlayerDeviceImpl> create(const AudioPlayerDeviceParam& param)
 				{
-					CoInitializeEx(NULL, COINIT_MULTITHREADED);
+					InitCOM();
 
 					GUID gid;
 					String deviceID = param.deviceId;
@@ -595,11 +600,11 @@ namespace slib
 
 				void run()
 				{
-					CoInitializeEx(NULL, COINIT_MULTITHREADED);
 					Thread* thread = Thread::getCurrent();
 					if (!thread) {
 						return;
 					}
+					InitCOM();
 					while (thread->isNotStopping()) {
 						DWORD dwWait = WaitForMultipleObjects(2, m_hNotificationEvents, FALSE, INFINITE);
 						if (dwWait == WAIT_OBJECT_0) {
