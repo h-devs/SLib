@@ -32,6 +32,9 @@
 #include "slib/core/dl/win32/kernel32.h"
 
 #include <winioctl.h>
+#include <objbase.h>
+#include <shobjidl.h>
+#include <shlguid.h>
 
 namespace slib
 {
@@ -594,6 +597,28 @@ namespace slib
 		}
 		BOOL ret = CreateDirectoryW((LPCWSTR)(filePath.getData()), NULL);
 		return ret != 0;
+	}
+
+	sl_bool File::createLink(const StringParam& _pathTarget, const StringParam& _pathLink) noexcept
+	{
+		CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+		IShellLinkW* psl = NULL;
+		HRESULT hr = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID*)&psl);
+		if (SUCCEEDED(hr)) {
+			StringCstr16 pathTarget(_pathTarget);
+			psl->SetPath((LPCWSTR)(pathTarget.getData()));
+			StringCstr16 workDir(getParentDirectoryPath(pathTarget));
+			psl->SetWorkingDirectory((LPCWSTR)(workDir.getData()));
+			IPersistFile* ppf = NULL;
+			hr = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
+			if (SUCCEEDED(hr)) {
+				StringCstr16 pathLink(_pathLink);
+				hr = ppf->Save((LPCWSTR)(pathLink.getData()), TRUE);
+				ppf->Release();
+			}
+			psl->Release();
+		}
+		return SUCCEEDED(hr);
 	}
 
 	sl_bool File::deleteFile(const StringParam& _filePath) noexcept

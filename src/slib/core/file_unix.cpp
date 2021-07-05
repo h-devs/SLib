@@ -652,6 +652,19 @@ namespace slib
 		return !(mkdir(filePath.getData(), 0777));
 	}
 
+	sl_bool File::createLink(const StringParam& _pathTarget, const StringParam& _pathLink) noexcept
+	{
+		StringCstr pathTarget(_pathTarget);
+		if (pathTarget.isEmpty()) {
+			return sl_false;
+		}
+		StringCstr pathLink(_pathLink);
+		if (pathLink.isEmpty()) {
+			return sl_false;
+		}
+		return !(symlink(pathTarget.getData(), pathLink.getData()));
+	}
+
 	sl_bool File::deleteFile(const StringParam& _filePath) noexcept
 	{
 		StringCstr filePath(_filePath);

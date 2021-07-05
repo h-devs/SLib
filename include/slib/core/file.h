@@ -157,7 +157,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileOpenParam)
 
 	};
-	
+
 	class SLIB_EXPORT File
 	{
 		SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(File, sl_file, m_file, SLIB_FILE_INVALID_HANDLE)
@@ -296,6 +296,9 @@ namespace slib
 		static sl_bool createDirectory(const StringParam& dirPath, const FileOperationFlags& flags = FileOperationFlags::Default) noexcept;
 
 		static sl_bool createDirectories(const StringParam& dirPath) noexcept;
+
+		// [Win32] Shortcut, [Unix] Symbolic Link
+		static sl_bool createLink(const StringParam& pathTarget, const StringParam& pathLink) noexcept;
 
 		static sl_bool deleteFile(const StringParam& filePath) noexcept;
 
