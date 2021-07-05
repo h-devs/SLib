@@ -1397,5 +1397,8 @@
     <ClCompile Include="..\..\src\slib\core\win32_registry.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\dl_win32_psapi.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

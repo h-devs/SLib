@@ -704,5 +704,17 @@ namespace slib
 	{
 	}
 #endif
-	
+
+#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32)
+	String UI::getActiveApplicationName()
+	{
+		return sl_null;
+	}
+
+	String UI::getActiveWindowTitle()
+	{
+		return sl_null;
+	}
+#endif
+
 }

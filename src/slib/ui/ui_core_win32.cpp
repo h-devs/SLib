@@ -36,6 +36,7 @@
 #include "slib/core/file.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/scoped_buffer.h"
+#include "slib/core/dl/win32/psapi.h"
 
 #include <commctrl.h>
 #include <shobjidl.h>
@@ -403,6 +404,52 @@ namespace slib
 		param.path = dir;
 		param.items.add(path);
 		Win32::shell(param);
+	}
+
+	String UI::getActiveApplicationName()
+	{
+		auto funcGetModuleFileNameExW = psapi::getApi_GetModuleFileNameExW();
+		if (!funcGetModuleFileNameExW) {
+			return sl_null;
+		}
+		String ret;
+		HWND hWnd = GetForegroundWindow();
+		if (hWnd) {
+			DWORD dwProcessId = 0;
+			GetWindowThreadProcessId(hWnd, &dwProcessId);
+			if (dwProcessId) {
+				HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, dwProcessId);
+				if (hProcess) {
+					WCHAR filePath[MAX_PATH + 1];
+					DWORD dwLen = funcGetModuleFileNameExW(hProcess, NULL, filePath, MAX_PATH);
+					if (dwLen) {
+						DWORD i = dwLen - 1;
+						for (;;) {
+							if (filePath[i] == '\\' || filePath[i] == '/') {
+								ret = String::from(filePath + i + 1, dwLen - 1 - i);
+								break;
+							}
+							if (!i) {
+								ret = String::from(filePath, dwLen);
+								break;
+							}
+							i--;
+						}
+					}
+					CloseHandle(hProcess);
+				}
+			}
+		}
+		return ret;
+	}
+
+	String UI::getActiveWindowTitle()
+	{
+		HWND hWnd = GetForegroundWindow();
+		if (hWnd) {
+			return UIPlatform::getWindowText(hWnd);
+		}
+		return sl_null;
 	}
 
 	void UIPlatform::runLoop(sl_uint32 level)
