@@ -44,6 +44,8 @@ namespace slib
 		sl_uint32 maxReceivingMessageSize;
 		sl_uint32 timeout; // milliseconds
 
+		sl_bool flagAcceptOtherUsers;
+
 		Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)> onReceiveMessage;
 
 	public:
@@ -79,6 +81,7 @@ namespace slib
 		sl_uint32 m_maxThreadsCount;
 		sl_uint32 m_maxReceivingMessageSize;
 		sl_uint32 m_timeout;
+		sl_bool m_flagAcceptOtherUsers;
 		Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)> m_onReceiveMessage;
 
 	};

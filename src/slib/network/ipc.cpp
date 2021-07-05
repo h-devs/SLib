@@ -274,7 +274,9 @@ namespace slib
 						File::deleteFile(path);
 						if (socket.bindDomain(path)) {
 #if !defined(SLIB_PLATFORM_IS_WINDOWS)
-							File::setAttributes(path, FileAttributes::AllAccess);
+							if (param.flagAcceptOtherUsers) {
+								File::setAttributes(path, FileAttributes::AllAccess);
+							}
 #endif
 							if (socket.setNonBlockingMode(sl_true)) {
 								if (socket.listen()) {
@@ -368,6 +370,7 @@ namespace slib
 		maxThreadsCount = 16;
 		maxReceivingMessageSize = 64 << 20;
 		timeout = 10000;
+		flagAcceptOtherUsers = sl_true;
 	}
 
 
@@ -408,6 +411,7 @@ namespace slib
 		m_maxThreadsCount = param.maxThreadsCount;
 		m_maxReceivingMessageSize = param.maxReceivingMessageSize;
 		m_timeout = param.timeout;
+		m_flagAcceptOtherUsers = param.flagAcceptOtherUsers;
 		m_onReceiveMessage = param.onReceiveMessage;
 	}
 

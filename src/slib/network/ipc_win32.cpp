@@ -27,6 +27,7 @@
 #include "slib/network/ipc.h"
 
 #include "slib/core/thread.h"
+#include "slib/core/process.h"
 #include "slib/core/event.h"
 #include "slib/core/memory_output.h"
 #include "slib/core/time_counter.h"
@@ -252,13 +253,11 @@ namespace slib
 				{
 					Ref<NamedPipeServer> ret = new NamedPipeServer;
 					if (ret.isNotNull()) {
-						ret->m_maxThreadsCount = param.maxThreadsCount;
-						ret->m_maxReceivingMessageSize = param.maxReceivingMessageSize;
+						ret->_init(param);
 						Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(NamedPipeServer, runListen, ret.get()));
 						if (thread.isNotNull()) {
 							ret->m_name = String16::join(L"\\\\.\\pipe\\", param.name);
 							ret->m_threadListen = Move(thread);
-							ret->m_onReceiveMessage = param.onReceiveMessage;
 							return ret;
 						}
 					}
@@ -278,6 +277,20 @@ namespace slib
 					}
 					HANDLE hEvent = Win32::getEventHandle(ev);
 
+					SECURITY_ATTRIBUTES* pSA = NULL;
+					SECURITY_ATTRIBUTES sa;
+					SECURITY_DESCRIPTOR sd;
+					if (m_flagAcceptOtherUsers) {
+						if (InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION)) {
+							if (SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE)) {
+								sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+								sa.lpSecurityDescriptor = &sd;
+								sa.bInheritHandle = FALSE;
+								pSA = &sa;
+							}
+						}
+					}
+
 					while (thread->isNotStopping()) {
 
 						if (m_threads.getCount() < m_maxThreadsCount) {
@@ -290,9 +303,13 @@ namespace slib
 								64 << 10, // output buffer size 
 								64 << 10, // input buffer size 
 								0, // client time-out 
-								NULL);
+								pSA);
 
 							if (hPipe != INVALID_HANDLE_VALUE) {
+
+								if (pSA) {
+									ImpersonateNamedPipeClient(hPipe);
+								}
 
 								OVERLAPPED overlapped;
 								Base::zeroMemory(&overlapped, sizeof(overlapped));
