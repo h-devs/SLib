@@ -29,16 +29,14 @@ namespace slib
 {
 	namespace priv
 	{
-		void Abort(const char* msg, const char* file, sl_uint32 line) noexcept;
+		void Assert(const char* msg, const char* file, sl_uint32 line) noexcept;
 	}
 }
 
 #if defined(SLIB_DEBUG)
-#	define SLIB_ASSERT(EXPRESSION) ( (!!(EXPRESSION)) || (slib::priv::Abort(#EXPRESSION, __FILE__, __LINE__), 0) )
-#	define SLIB_ABORT(MESSAGE) (slib::priv::Abort(MESSAGE, __FILE__, __LINE__))
+#	define SLIB_ASSERT(EXPRESSION) ( (!!(EXPRESSION)) || (slib::priv::Assert(#EXPRESSION, __FILE__, __LINE__), 0) )
 #else
 #	define SLIB_ASSERT(EXPRESSION)
-#	define SLIB_ABORT(MESSAGE)
 #endif
 
 #endif

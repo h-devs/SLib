@@ -42,6 +42,11 @@
 #include <stdlib.h>
 
 #include <sys/time.h>
+#include <sys/utsname.h>
+
+#ifdef assert
+#undef assert
+#endif
 
 #if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
 #	include "slib/core/dl/linux/rt.h"
@@ -51,6 +56,20 @@
 
 namespace slib
 {
+
+	namespace priv
+	{
+		void Assert(const char* msg, const char* file, sl_uint32 line) noexcept
+		{
+#if defined(SLIB_DEBUG)
+#if defined(SLIB_PLATFORM_IS_ANDROID)
+			__assert(file, line, msg);
+#else
+			__assert(msg, file, line);
+#endif
+#endif
+		}
+	}
 
 #if !defined(SLIB_PLATFORM_IS_APPLE) && !defined(SLIB_PLATFORM_IS_ANDROID)
 	String System::getApplicationPath()
@@ -108,6 +127,40 @@ namespace slib
 		return String::fromUint32((sl_uint32)(getuid()));
 	}
 
+	sl_bool System::is64BitSystem()
+	{
+#ifdef SLIB_PLATFORM_IS_WIN64
+		return sl_true;
+#else
+		return sl_false;
+#endif
+	}
+
+#if !defined(SLIB_PLATFORM_IS_ANDROID) && !defined(SLIB_PLATFORM_IS_APPLE)
+	String System::getVersion()
+	{
+		utsname systemInfo;
+		uname(&systemInfo);
+		return systemInfo.release;
+	}
+	
+	String System::getName()
+	{
+		utsname systemInfo;
+		uname(&systemInfo);
+		return String::format("%s %s", systemInfo.sysname, systemInfo.release);
+	}
+#endif
+	
+#if !defined(SLIB_PLATFORM_IS_ANDROID)
+	String System::getMachineName()
+	{
+		utsname systemInfo;
+		uname(&systemInfo);
+		return systemInfo.machine;
+	}
+#endif
+	
 #if !defined(SLIB_PLATFORM_IS_APPLE) && !defined(SLIB_PLATFORM_IS_ANDROID)
 	String System::getComputerName()
 	{
@@ -194,35 +247,18 @@ namespace slib
 #endif
 	}
 
-	sl_uint32 System::getLastError()
-	{
-		return errno;
-	}
-
-	void System::setLastError(sl_uint32 errorCode)
-	{
-		errno = (int)errorCode;
-	}
-	
-	String System::formatErrorCode(sl_uint32 errorCode)
-	{
-		String ret = ::strerror(errorCode);
-		if (ret.isEmpty()) {
-			return String::format("Unknown error: %d", errorCode);
-		}
-		return ret;
-	}
-
-#if !defined(SLIB_PLATFORM_IS_ANDROID)
-	void System::abort(const StringParam& _msg, const StringParam& _file, sl_uint32 line)
+	void System::assert(const StringParam& _msg, const StringParam& _file, sl_uint32 line)
 	{
 #if defined(SLIB_DEBUG)
 		StringCstr msg(_msg);
 		StringCstr file(_file);
+#if defined(SLIB_PLATFORM_IS_ANDROID)
+		__assert(file.getData(), line, msg.getData());
+#else
 		__assert(msg.getData(), file.getData(), line);
 #endif
-	}
 #endif
+	}
 
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 	namespace priv
@@ -252,17 +288,24 @@ namespace slib
 	}
 #endif
 
-#if !defined(SLIB_PLATFORM_IS_ANDROID)
-	namespace priv
+	sl_uint32 System::getLastError()
 	{
-		void Abort(const char* msg, const char* file, sl_uint32 line) noexcept
-		{
-#if defined(SLIB_DEBUG)
-			__assert(msg, file, line);
-#endif
-		}
+		return errno;
 	}
-#endif
+
+	void System::setLastError(sl_uint32 errorCode)
+	{
+		errno = (int)errorCode;
+	}
+	
+	String System::formatErrorCode(sl_uint32 errorCode)
+	{
+		String ret = ::strerror(errorCode);
+		if (ret.isEmpty()) {
+			return String::format("Unknown error: %d", errorCode);
+		}
+		return ret;
+	}
 
 }
 

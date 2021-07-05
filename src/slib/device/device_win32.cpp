@@ -26,86 +26,11 @@
 
 #include "slib/device/device.h"
 
-#include "slib/core/variant.h"
-#include "slib/core/platform.h"
+#include "slib/core/win32/windows.h"
 
 namespace slib
 {
 
-	String Device::getDeviceName()
-	{
-		SYSTEM_INFO si;
-		GetSystemInfo(&si);
-		switch (si.wProcessorArchitecture) {
-		case PROCESSOR_ARCHITECTURE_INTEL:
-			return "x86";
-		case PROCESSOR_ARCHITECTURE_AMD64:
-			return "x64";
-		case PROCESSOR_ARCHITECTURE_IA64:
-			return "ia64";
-		case PROCESSOR_ARCHITECTURE_ARM:
-			return "arm";
-		case 12: // PROCESSOR_ARCHITECTURE_ARM64
-			return "arm64";
-		}
-		return "unknown";
-	}
-
-	String Device::getSystemVersion()
-	{
-		WindowsVersion version = Win32::getVersion();
-		return String::format("%d.%d", SLIB_WINDOWS_MAJOR_VERSION(version), SLIB_WINDOWS_MINOR_VERSION(version));
-	}
-	
-	/*
-		Applications not manifested for Windows 8.1 or Windows 10 will return the Windows 8 OS version value (6.2).
-		For more information, visit at https://docs.microsoft.com/en-us/windows/desktop/SysInfo/targeting-your-application-at-windows-8-1
-	*/
-	String Device::getSystemName()
-	{
-		WindowsVersion version = Win32::getVersion();
-		switch (version) {
-		case WindowsVersion::Server2016:
-			return "Windows Server 2016";
-		case WindowsVersion::Server2012_R2:
-			return "Windows Server 2012 R2";
-		case WindowsVersion::Server2012:
-			return "Windows Server 2012";
-		case WindowsVersion::Server2008_R2:
-			return "Windows Server 2008 R2";
-		case WindowsVersion::Server2008:
-			return "Windows Server 2008";
-		case WindowsVersion::Server2003:
-			return "Windows Server 2003";
-		case WindowsVersion::Windows10:
-			return "Windows 10";
-		case WindowsVersion::Windows8_1:
-			return "Windows 8.1";
-		case WindowsVersion::Windows8:
-			return "Windows 8";
-		case WindowsVersion::Windows7_SP1:
-			return "Windows 7 SP1";
-		case WindowsVersion::Windows7:
-			return "Windows 7";
-		case WindowsVersion::Vista_SP2:
-			return "Windows Vista SP2";
-		case WindowsVersion::Vista_SP1:
-			return "Windows Vista SP1";
-		case WindowsVersion::Vista:
-			return "Windows Vista";
-		case WindowsVersion::XP_64:
-			return "Windows XP 64bit";
-		case WindowsVersion::XP_SP3:
-			return "Windows XP SP3";
-		case WindowsVersion::XP_SP2:
-			return "Windows XP SP2";
-		case WindowsVersion::XP_SP1:
-			return "Windows XP SP1";
-		default:
-			return "Windows XP";
-		}
-	}
-	
 	double Device::getScreenPPI()
 	{
 		return 96;
@@ -117,14 +42,6 @@ namespace slib
 		ret.x = (int)(GetSystemMetrics(SM_CXSCREEN));
 		ret.y = (int)(GetSystemMetrics(SM_CYSCREEN));
 		return ret;
-	}
-
-	void Device::openUrl(const StringParam& url)
-	{
-		ShellExecuteParam param;
-		param.operation = "open";
-		param.path = url;
-		Win32::shell(param);
 	}
 
 }

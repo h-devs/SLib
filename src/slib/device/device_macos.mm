@@ -26,31 +26,10 @@
 
 #include "slib/device/device.h"
 
-#include "slib/core/variant.h"
-#include "slib/core/platform.h"
-
-#import <sys/utsname.h>
+#include <AppKit/AppKit.h>
 
 namespace slib
 {
-	
-	String Device::getDeviceName()
-	{
-		struct utsname systemInfo;
-		uname(&systemInfo);
-		return systemInfo.machine;
-	}
-	
-	String Device::getSystemVersion()
-	{
-		return Apple::getSystemVersion();
-	}
-	
-	String Device::getSystemName()
-	{
-		String osVersion = getSystemVersion();
-		return String::format("macOS %s", osVersion);
-	}
 	
 	double Device::getScreenPPI()
 	{
@@ -69,15 +48,6 @@ namespace slib
 			return Sizei((int)(frame.size.width), (int)(frame.size.height));
 		}
 		return Sizei::zero();
-	}
-	
-	void Device::openUrl(const StringParam& _url)
-	{
-		if (_url.isNotEmpty()) {
-			NSString* s = Apple::getNSStringFromString(_url);
-			NSURL* url = [NSURL URLWithString:s];
-			[[NSWorkspace sharedWorkspace] openURL:url];
-		}
 	}
 	
 }

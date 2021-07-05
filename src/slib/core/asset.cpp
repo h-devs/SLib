@@ -39,20 +39,16 @@ namespace slib
 		return sl_true;
 	}
 
+#if !defined(SLIB_PLATFORM_IS_APPLE) && !defined(SLIB_PLATFORM_IS_TIZEN)
 	String Assets::getFilePath(const StringParam& path)
 	{
-#	if defined(SLIB_PLATFORM_IS_APPLE)
-		return Apple::getAssetFilePath(path);
-#	elif defined(SLIB_PLATFORM_IS_TIZEN)
-		return Tizen::getAssetFilePath(path);
-#	else
 		String name = File::makeSafeFilePath(path);
 		if (name.isNotEmpty()) {
 			return String::join(Application::getApplicationDirectory(), "/", name);
 		}
 		return sl_null;
-#	endif
 	}
+#endif
 
 	Memory Assets::readAllBytes(const StringParam& _path)
 	{

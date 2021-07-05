@@ -378,21 +378,6 @@ namespace slib
 		return sl_null;
 	}
 
-	String Device::getDeviceName()
-	{
-		return Android::getDeviceName();
-	}
-
-	String Device::getSystemVersion()
-	{
-		return Android::getSystemRelease();
-	}
-
-	String Device::getSystemName()
-	{
-		return "Android " + Android::getSystemRelease();
-	}
-
 	// From Java code: slib.android.ui.Util.getScreenSize
 	Sizei Device::getScreenSize()
 	{

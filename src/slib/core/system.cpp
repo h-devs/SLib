@@ -55,6 +55,34 @@ namespace slib
 	}
 #endif
 
+	void System::yield(sl_uint32 elapsed)
+	{
+		if (elapsed < 16) {
+			return;
+		}
+		if (elapsed < 32) {
+			System::yield();
+		} else {
+			System::sleep(1);
+		}
+	}
+
+#if defined(SLIB_PLATFORM_IS_MOBILE)
+	void System::setCrashHandler(SIGNAL_HANDLER handler)
+	{
+	}
+#endif
+	
+#if !defined(SLIB_PLATFORM_IS_WIN32)
+	void System::setDebugFlags()
+	{
+	}
+
+	void System::setDebugAllocHook(DEBUG_ALLOC_HOOK hook)
+	{
+	}
+#endif
+
 	sl_uint32 System::mapError(sl_uint32 errorCode, PlatformType to, PlatformType from)
 	{
 		if (to == PlatformType::Unknown) {
@@ -214,48 +242,4 @@ namespace slib
 		return sl_null;
 	}
 
-#if defined(SLIB_PLATFORM_IS_MOBILE)
-	void System::setCrashHandler(SIGNAL_HANDLER handler)
-	{
-	}
-#endif
-	
-#if !defined(SLIB_PLATFORM_IS_WIN32)
-	void System::setDebugFlags()
-	{
-	}
-#endif
-
-	void System::yield(sl_uint32 elapsed)
-	{
-		if (elapsed < 16) {
-			return;
-		}
-		if (elapsed < 32) {
-			System::yield();
-		} else {
-			System::sleep(1);
-		}
-	}
-
-#if defined(SLIB_PLATFORM_IS_MOBILE)
-
-	void System::registerApplicationRunAtStartup(const String& path)
-	{
-	}
-	
-	void System::registerApplicationRunAtStartup()
-	{
-	}
-	
-	void System::unregisterApplicationRunAtStartup(const String& path)
-	{
-	}
-	
-	void System::unregisterApplicationRunAtStartup()
-	{
-	}
-	
-#endif
-	
 }

@@ -41,10 +41,6 @@ namespace slib
 
 		static AndroidSdkVersion getSdkVersion() noexcept;
 
-		static String getSystemRelease() noexcept;
-
-		static String getDeviceName() noexcept;
-		
 
 		static jobject getCurrentContext() noexcept;
 

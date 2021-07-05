@@ -65,23 +65,6 @@ namespace slib
 		static NSData* getNSDataFromMemory(const Memory& memory);
 		
 		static NSString* getSystemLocalizedNSString(NSString* key);
-		
-#endif
-
-		static String getAssetFilePath(const StringParam& path);
-
-		static String getSystemVersion();
-
-		static sl_uint32 getSystemMajorVersion();
-
-		static sl_uint32 getSystemMinorVersion();
-
-		static String getMainBundlePath();
-		
-		static String getSystemLocalizedString(const StringParam& key);
-	
-#ifdef SLIB_PLATFORM_IS_MACOS
-		static void setBundleLoginItemEnabled(const StringParam& path, sl_bool flagEnabled);
 #endif
 
 	};

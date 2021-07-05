@@ -26,39 +26,14 @@
 
 #include "slib/device/device.h"
 
-#include "slib/core/variant.h"
 #include "slib/ui/core.h"
 
-#include "gtk/gtk.h"
 #include "slib/ui/dl/linux/gtk.h"
 #include "slib/ui/dl/linux/gdk.h"
-
-#include <sys/utsname.h>
 
 namespace slib
 {
 
-	String Device::getDeviceName()
-	{
-		utsname systemInfo;
-		uname(&systemInfo);
-		return systemInfo.machine;
-	}
-	
-	String Device::getSystemVersion()
-	{
-		utsname systemInfo;
-		uname(&systemInfo);
-		return systemInfo.release;
-	}
-	
-	String Device::getSystemName()
-	{
-		utsname systemInfo;
-		uname(&systemInfo);
-		return String::format("%s %s", systemInfo.sysname, systemInfo.release);
-	}
-	
 	double Device::getScreenPPI()
 	{
 		gtk_init_check(NULL, NULL);

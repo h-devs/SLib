@@ -32,6 +32,7 @@
 #include "view_macos.h"
 
 #include "slib/core/file.h"
+#include "slib/core/system.h"
 #include "slib/core/thread.h"
 #include "slib/core/safe_static.h"
 #include "slib/network/http_common.h"
@@ -845,7 +846,7 @@ namespace slib
 				ui_core::SetCustomQuitApp(&QuitApp);
 				
 				CefScopedLibraryLoader library_loader;
-				if (File::exists(Apple::getMainBundlePath() + "/Contents/Frameworks/Chromium Embedded Framework.framework")) {
+				if (File::exists(System::getMainBundlePath() + "/Contents/Frameworks/Chromium Embedded Framework.framework")) {
 					if (!(library_loader.LoadInMain())) {
 						exit(1);
 						return;
@@ -882,7 +883,7 @@ namespace slib
 #ifdef SLIB_UI_IS_MACOS
 				{
 					String exe = File::getFileNameOnly(Apple::getStringFromNSString([[NSBundle mainBundle] executablePath]));
-					String path = String::join(Apple::getMainBundlePath(), "/Contents/Frameworks/", exe);
+					String path = String::join(System::getMainBundlePath(), "/Contents/Frameworks/", exe);
 					if (File::exists(path + " Helper.app")) {
 						path += " Helper.app";
 						exe += " Helper";

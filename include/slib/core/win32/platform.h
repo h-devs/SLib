@@ -107,8 +107,6 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ShellOpenFolderAndSelectItemsParam)
 
 	};
-
-	typedef sl_bool(*WINDOWS_DEBUG_ALLOC_HOOK)(void* ptr, sl_size size, sl_uint32 requestNumber);
 	
 	class SLIB_EXPORT Win32
 	{
@@ -121,11 +119,6 @@ namespace slib
 		static HGLOBAL createGlobalData(const void* data, sl_size size);
 
 	
-		static void setDebugFlags();
-
-		static void setDebugAllocHook(WINDOWS_DEBUG_ALLOC_HOOK hook);
-
-	
 		static Ref<Event> createEvent(HANDLE hEvent);
 
 		static HANDLE getEventHandle(Event* event);
@@ -136,14 +129,7 @@ namespace slib
 
 		static WindowsVersion getVersion();
 
-		static sl_bool is64BitSystem();
-
 		static WindowsDllVersion getDllVersion(const StringParam& pathDll);
-
-
-		static sl_bool isCurrentProcessInAdminGroup();
-
-		static sl_bool isCurrentProcessRunAsAdmin();
 
 
 		static sl_bool shell(const ShellExecuteParam& param);
@@ -155,12 +141,6 @@ namespace slib
 
 		static Time getTime(const SYSTEMTIME* st, sl_bool flagUTC);
 
-
-		static String getWindowsDirectory();
-
-		static String getSystemDirectory();
-
-		static String getSystemWow64Directory();
 
 		static HANDLE createDeviceHandle(const StringParam& path, DWORD dwDesiredAccess, DWORD dwShareMode);
 

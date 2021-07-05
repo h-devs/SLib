@@ -67,7 +67,7 @@ namespace slib
 	{
 	}
 	
-	sl_bool Process::isAdmin()
+	sl_bool Process::isCurrentProcessAdmin()
 	{
 		return sl_false;
 	}
@@ -75,7 +75,11 @@ namespace slib
 	void Process::exec(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 	}
-	
+
+	void Process::abort()
+	{
+	}
+
 	void Process::exit(int code)
 	{
 	}

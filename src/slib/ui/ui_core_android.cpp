@@ -45,6 +45,7 @@ namespace slib
 
 	namespace priv
 	{
+
 		namespace ui_core
 		{
 			
@@ -205,6 +206,11 @@ namespace slib
 				UIDispatcher::processDelayedCallback((sl_reg)ptr);
 			}
 
+		}
+
+		namespace mobile_app
+		{
+			
 			void UpdateKeyboardAdjustMode(UIKeyboardAdjustMode mode)
 			{
 				jobject context = Android::getCurrentContext();
@@ -228,6 +234,7 @@ namespace slib
 			}
 
 		}
+
 	}
 
 	using namespace priv::ui_core;
@@ -278,6 +285,14 @@ namespace slib
 			if (UIDispatcher::addDelayedCallback(callback, ptr)) {
 				JUiThread::dispatchDelayed.call(sl_null, (jlong)ptr, delayMillis);
 			}
+		}
+	}
+
+	void UI::openUrl(const StringParam& _url) {
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JniLocal<jstring> url = Jni::getJniString(_url);
+			JUtil::openUrl.call(sl_null, context, url.get());
 		}
 	}
 
@@ -396,14 +411,6 @@ namespace slib
 		}
 		UIEdgeInsets ret = {0, 0, 0, 0};
 		return ret;
-	}
-
-	void Device::openUrl(const StringParam& _url) {
-		jobject context = Android::getCurrentContext();
-		if (context) {
-			JniLocal<jstring> url = Jni::getJniString(_url);
-			JUtil::openUrl.call(sl_null, context, url.get());
-		}
 	}
 
 }

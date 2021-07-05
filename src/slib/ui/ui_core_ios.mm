@@ -148,20 +148,6 @@ namespace slib
 		return getPrimaryScreen();
 	}
 	
-	void UI::dismissKeyboard()
-	{
-		UIWindow* window = UIPlatform::getKeyWindow();
-		if (window != nil) {
-			if (![NSThread isMainThread]) {
-				dispatch_async(dispatch_get_main_queue(), ^{
-					[window endEditing:YES];
-				});
-			} else {
-				[window endEditing:YES];
-			}
-		}
-	}
-	
 	sl_bool UI::isUiThread()
 	{
 		return [NSThread isMainThread];
@@ -180,6 +166,40 @@ namespace slib
 				dispatch_after(t, dispatch_get_main_queue(), ^{
 					callback();
 				});
+			}
+		}
+	}
+	
+	void UI::openUrl(const StringParam& _url)
+	{
+		if (_url.isNotEmpty()) {
+			if (![NSThread isMainThread]) {
+				String url = _url.toString();
+				dispatch_async(dispatch_get_main_queue(), ^{
+					UI::openUrl(url);
+				});
+			} else {
+				NSString* s = Apple::getNSStringFromString(_url);
+				NSURL* url = [NSURL URLWithString:s];
+#ifdef SLIB_PLATFORM_IS_IOS_CATALYST
+				[[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+#else
+				[[UIApplication sharedApplication] openURL:url];
+#endif
+			}
+		}
+	}
+
+	void UI::dismissKeyboard()
+	{
+		UIWindow* window = UIPlatform::getKeyWindow();
+		if (window != nil) {
+			if (![NSThread isMainThread]) {
+				dispatch_async(dispatch_get_main_queue(), ^{
+					[window endEditing:YES];
+				});
+			} else {
+				[window endEditing:YES];
 			}
 		}
 	}

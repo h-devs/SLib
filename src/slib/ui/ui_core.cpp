@@ -27,8 +27,8 @@
 #include "slib/ui/screen.h"
 #include "slib/ui/common_dialogs.h"
 #include "slib/graphics/font.h"
-#include "slib/device/device.h"
 #include "slib/network/url.h"
+#include "slib/device/device.h"
 #include "slib/core/file.h"
 #include "slib/core/safe_static.h"
 
@@ -665,11 +665,6 @@ namespace slib
 	sl_bool UI::isQuitingApp()
 	{
 		return g_flagQuitApp;
-	}
-
-	void UI::openUrl(const StringParam& url)
-	{
-		Device::openUrl(url);
 	}
 
 	void UI::openFile(const StringParam& path)

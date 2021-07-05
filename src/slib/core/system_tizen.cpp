@@ -20,28 +20,52 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_TIZEN_PLATFORM
-#define CHECKHEADER_SLIB_CORE_TIZEN_PLATFORM
+#include "slib/core/definition.h"
 
-#include "../definition.h"
+#if defined(SLIB_PLATFORM_IS_TIZEN)
 
-#ifdef SLIB_PLATFORM_IS_TIZEN
+#include "slib/core/system.h"
 
-#include "../string.h"
+#include <system_info.h>
+#include <stdlib.h>
 
 namespace slib
 {
 
-	// specific functions for Tizen
-	class SLIB_EXPORT Tizen
+	String System::getVersion()
 	{
-	public:
-		static String getAssetFilePath(const StringParam& path);
+		char *value = NULL;
+		int ret = system_info_get_platform_string("http://tizen.org/feature/platform.version", &value);
+		if (ret != SYSTEM_INFO_ERROR_NONE) {
+			return sl_null;
+		}
+		String version = value;
+		free(value);
+		return version;
+	}
 
-	};
+	String System::getName()
+	{
+		return "Tizen " + getVersion();
+	}
+
+	String System::getMachineName()
+	{
+		char* platform_name = NULL;
+		int ret = system_info_get_platform_string("http://tizen.org/system/platform.name", &platform_name);
+		if (ret == SYSTEM_INFO_ERROR_NONE) {
+			char* model_name = NULL;
+			ret = system_info_get_platform_string("http://tizen.org/system/model_name", &model_name);
+			if (ret == SYSTEM_INFO_ERROR_NONE) {
+				String name = String::format("%s %s", platform_name, model_name);
+				free(model_name);
+				return name;
+			}
+			free(platform_name);
+		}
+		return sl_null;
+	}
 
 }
-
-#endif
 
 #endif

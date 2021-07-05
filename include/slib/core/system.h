@@ -32,6 +32,11 @@ namespace slib
 	class StringParam;
 
 	typedef void (*SIGNAL_HANDLER)(int signal);
+	typedef sl_bool(*DEBUG_ALLOC_HOOK)(void* ptr, sl_size size, sl_uint32 requestNumber);
+
+#ifdef assert
+#undef assert
+#endif
 
 	class SLIB_EXPORT System
 	{
@@ -62,7 +67,22 @@ namespace slib
 		static String getSystemDirectory();
 		static String getSystemWow64Directory();
 #endif
-		
+
+
+		static sl_bool is64BitSystem();
+
+		static String getName();
+
+		static String getVersion();
+
+#if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_APPLE)
+		static sl_uint32 getMajorVersion();
+
+		static sl_uint32 getMinorVersion();
+#endif
+
+		static String getMachineName();
+
 		static String getComputerName();
 
 		static String getUserId();
@@ -86,7 +106,15 @@ namespace slib
 
 		
 		static sl_int32 execute(const StringParam& command);
-	
+
+		static void assert(const StringParam& msg, const StringParam& file, sl_uint32 line);
+
+		static void setCrashHandler(SIGNAL_HANDLER handler);
+		
+		static void setDebugFlags();
+
+		static void setDebugAllocHook(DEBUG_ALLOC_HOOK hook);
+
 		
 		static sl_uint32 getLastError();
 
@@ -98,21 +126,6 @@ namespace slib
 
 		static String formatErrorCode(sl_uint32 errorCode);
 		
-		static void abort(const StringParam& msg, const StringParam& file, sl_uint32 line);
-
-		static void setCrashHandler(SIGNAL_HANDLER handler);
-		
-		static void setDebugFlags();
-
-
-		static void registerApplicationRunAtStartup(const String& path);
-
-		static void registerApplicationRunAtStartup();
-
-		static void unregisterApplicationRunAtStartup(const String& path);
-
-		static void unregisterApplicationRunAtStartup();
-
 	};
 	
 }

@@ -80,10 +80,14 @@ namespace slib
 		}
 		
 		// check administrative privilege (effective root user on Unix)
-		static sl_bool isAdmin();
+		static sl_bool isCurrentProcessAdmin();
+
+		static sl_bool isCurrentProcessInAdminGroup();
 		
+		// replace current process context
 		static void exec(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs = 0);
 
+		// replace current process context
 		template <class... ARGS>
 		static void exec(const StringParam& pathExecutable, const StringParam& arg, ARGS&&... args)
 		{
@@ -93,6 +97,8 @@ namespace slib
 		
 		static void exit(int code);
 		
+		static void abort();
+
 		static String getOutput(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs = 0);
 
 		template <class... ARGS>

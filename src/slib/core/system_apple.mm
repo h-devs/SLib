@@ -27,7 +27,9 @@
 #include "slib/core/system.h"
 
 #include "slib/core/file.h"
-#include "slib/core/platform.h"
+#include "slib/core/safe_static.h"
+
+#include "slib/core/apple/platform.h"
 
 #include <mach-o/dyld.h>
 #include <mach/mach_time.h>
@@ -36,6 +38,66 @@
 
 namespace slib
 {
+
+	namespace priv
+	{
+		namespace system
+		{
+
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_systemVersion);
+			sl_uint32 g_systemVersionMajor = 0;
+			sl_uint32 g_systemVersionMinor = 0;
+			sl_bool g_flagInitSystemVersion = sl_true;
+			
+			void InitSystemVersion()
+			{
+				if (g_flagInitSystemVersion) {
+#if defined(SLIB_PLATFORM_IS_MACOS)
+					double v = NSAppKitVersionNumber;
+					if (v >= NSAppKitVersionNumber10_10) {
+						NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
+						g_systemVersionMajor = (sl_uint32)(version.majorVersion);
+						g_systemVersionMinor = (sl_uint32)(version.minorVersion);
+						g_systemVersion = String::format("%d.%d", g_systemVersionMajor, g_systemVersionMinor);
+					} else if (v >= NSAppKitVersionNumber10_9) {
+						g_systemVersion = "10.9";
+						g_systemVersionMajor = 10;
+						g_systemVersionMinor = 9;
+					} else if (v >= NSAppKitVersionNumber10_8) {
+						g_systemVersion = "10.8";
+						g_systemVersionMajor = 10;
+						g_systemVersionMinor = 8;
+					} else if (v >= NSAppKitVersionNumber10_7) {
+						g_systemVersion = "10.7";
+						g_systemVersionMajor = 10;
+						g_systemVersionMinor = 7;
+					} else if (v >= NSAppKitVersionNumber10_6) {
+						g_systemVersion = "10.6";
+						g_systemVersionMajor = 10;
+						g_systemVersionMinor = 6;
+					}
+#elif defined(SLIB_PLATFORM_IS_IOS)
+					NSString* _version = [[UIDevice currentDevice] systemVersion];
+					String version = Apple::getStringFromNSString(_version);
+					if (version.isNotEmpty()) {
+						ListLocker<String> list(version.split("."));
+						if (list.count > 0) {
+							g_systemVersionMajor = list[0].parseUint32();
+							if (list.count > 1) {
+								g_systemVersionMinor = list[1].parseUint32();
+							}
+						}
+					}
+					g_systemVersion = version;
+#endif
+					g_flagInitSystemVersion = sl_false;
+				}
+			}
+
+		}
+	}
+
+	using namespace priv::system;
 
 	String System::getApplicationPath()
 	{
@@ -77,6 +139,41 @@ namespace slib
 		}
 	}
 	
+	String System::getMainBundlePath()
+	{
+		NSString* path = [[NSBundle mainBundle] bundlePath];
+		return Apple::getStringFromNSString(path);
+	}
+
+	String System::getName()
+	{
+#if defined(SLIB_PLATFORM_IS_MACOS)
+		return "macOS " + getVersion();
+##elif defined(SLIB_PLATFORM_IS_IOS)
+		return "iOS " + getVersion();
+#else
+		return sl_null;
+#endif
+	}
+	
+	String System::getVersion()
+	{
+		InitSystemVersion();
+		return g_systemVersion;
+	}
+
+	sl_uint32 System::getMajorVersion()
+	{
+		InitSystemVersion();
+		return g_systemVersionMajor;
+	}
+
+	sl_uint32 System::getMinorVersion()
+	{
+		InitSystemVersion();
+		return g_systemVersionMinor;
+	}
+	
 	String System::getComputerName()
 	{
 #if defined(SLIB_PLATFORM_IS_MACOS)
@@ -111,28 +208,6 @@ namespace slib
 		sl_uint64 t = (sl_uint64)(mach_absolute_time() - start);
 		return t * base.numer / base.denom / 1000000;
 	}
-	
-#if defined(SLIB_PLATFORM_IS_MACOS)
-	void System::registerApplicationRunAtStartup(const String& path)
-	{
-		Apple::setBundleLoginItemEnabled(path, sl_true);
-	}
-
-	void System::registerApplicationRunAtStartup()
-	{
-		Apple::setBundleLoginItemEnabled(Apple::getMainBundlePath(), sl_true);
-	}
-
-	void System::unregisterApplicationRunAtStartup(const String& path)
-	{
-		Apple::setBundleLoginItemEnabled(path, sl_false);
-	}
-
-	void System::unregisterApplicationRunAtStartup()
-	{
-		Apple::setBundleLoginItemEnabled(Apple::getMainBundlePath(), sl_false);
-	}
-#endif
 
 }
 

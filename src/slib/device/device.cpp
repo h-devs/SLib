@@ -24,6 +24,7 @@
 
 #include "slib/network/url.h"
 #include "slib/social/contact.h"
+#include "slib/ui/core.h"
 
 namespace slib
 {
@@ -152,7 +153,9 @@ namespace slib
 #if !defined(SLIB_PLATFORM_IS_ANDROID)
 	void Device::openDial(const String& phoneNumber)
 	{
-		openUrl("tel:" + Url::encodePercent(phoneNumber));
+#if defined(SLIB_PLATFORM_IS_MOBILE)
+		UI::openUrl("tel:" + Url::encodePercent(phoneNumber));
+#endif
 	}
 
 	void Device::callPhone(const String& phoneNumber)

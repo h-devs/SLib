@@ -50,7 +50,7 @@ namespace slib
 				if (ServiceManager::isRunning(DRIVER_NAME)) {
 					return sl_true;
 				}
-				if (!(Process::isAdmin())) {
+				if (!(Process::isCurrentProcessAdmin())) {
 					return sl_false;
 				}
 
@@ -68,7 +68,7 @@ namespace slib
 				unsigned char* tap_cat_compressed_data = ::tap::files::tap_cat_compressed_data64;
 				unsigned long tap_cat_compressed_size = ::tap::files::tap_cat_compressed_size64;
 #else
-				sl_bool flag64Bit = Win32::is64BitSystem();
+				sl_bool flag64Bit = System::is64BitSystem();
 				unsigned char* tap_inf_compressed_data = flag64Bit ? ::tap::files::tap_inf_compressed_data64 : ::tap::files::tap_inf_compressed_data86;
 				unsigned long tap_inf_compressed_size = flag64Bit ? ::tap::files::tap_inf_compressed_size64 : ::tap::files::tap_inf_compressed_size86;
 				unsigned char* tap_sys_compressed_data = flag64Bit ? ::tap::files::tap_sys_compressed_data64 : ::tap::files::tap_sys_compressed_data86;
@@ -114,11 +114,11 @@ namespace slib
 				if (!(ServiceManager::isExisting(DRIVER_NAME))) {
 					return sl_true;
 				}
-				if (!(Process::isAdmin())) {
+				if (!(Process::isCurrentProcessAdmin())) {
 					return sl_false;
 				}
 #ifndef SLIB_PLATFORM_IS_WIN64
-				if (Win32::is64BitSystem()) {
+				if (System::is64BitSystem()) {
 					String path = System::getTempDirectory() + "\\.tap";
 					File::createDirectory(path);
 					if (!(File::isDirectory(path))) {

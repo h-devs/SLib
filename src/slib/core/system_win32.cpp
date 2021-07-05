@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,16 +26,18 @@
 
 #include "slib/core/system.h"
 
-#include "slib/core/platform.h"
+#include "slib/core/file.h"
+#include "slib/core/win32/platform.h"
 #include "slib/core/dl/win32/kernel32.h"
 #include "slib/core/dl/win32/wininet.h"
+
+#pragma warning(disable: 4091)
 
 #include <assert.h>
 #include <signal.h>
 #include <float.h>
 #include <stdlib.h>
-
-#pragma warning(disable: 4091)
+#include <crtdbg.h>
 #include <shlobj.h>
 
 #if defined(SLIB_PLATFORM_IS_UWP)
@@ -43,13 +45,82 @@ using namespace Win32::Storage;
 using namespace Platform;
 #endif
 
-#include "slib/core/file.h"
-
 #define PRIV_PATH_MAX 1024
+
+#ifdef assert
+#undef assert
+#endif
 
 namespace slib
 {
 
+	namespace priv
+	{
+
+		void Assert(const char* msg, const char* file, sl_uint32 line) noexcept
+		{
+#if defined(SLIB_DEBUG)
+			System::assert(msg, file, line);
+#endif
+		}
+
+		namespace system
+		{
+
+#ifdef SLIB_PLATFORM_IS_WIN32
+
+			volatile double g_signal_fpe_dummy = 0.0f;
+			SIGNAL_HANDLER g_handlerSignalCrash;
+			DEBUG_ALLOC_HOOK g_debugAllocHook;
+
+			static void DoHandleSignalCrash(int sig)
+			{
+				if (sig == SIGFPE) {
+					_fpreset();
+				}
+				g_handlerSignalCrash(sig);
+			}
+
+			static LONG WINAPI DoHandleException(PEXCEPTION_POINTERS pExceptionPtrs)
+			{
+				DWORD code = pExceptionPtrs->ExceptionRecord->ExceptionCode;
+				switch (code) {
+					case EXCEPTION_ACCESS_VIOLATION:
+					case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+					case EXCEPTION_DATATYPE_MISALIGNMENT:
+					case EXCEPTION_FLT_DENORMAL_OPERAND:
+					case EXCEPTION_FLT_DIVIDE_BY_ZERO:
+					case EXCEPTION_FLT_INEXACT_RESULT:
+					case EXCEPTION_FLT_INVALID_OPERATION:
+					case EXCEPTION_FLT_OVERFLOW:
+					case EXCEPTION_FLT_STACK_CHECK:
+					case EXCEPTION_FLT_UNDERFLOW:
+					case EXCEPTION_ILLEGAL_INSTRUCTION:
+					case EXCEPTION_IN_PAGE_ERROR:
+					case EXCEPTION_INT_DIVIDE_BY_ZERO:
+					case EXCEPTION_INT_OVERFLOW:
+					case EXCEPTION_INVALID_DISPOSITION:
+					case EXCEPTION_NONCONTINUABLE_EXCEPTION:
+					case EXCEPTION_PRIV_INSTRUCTION:
+					case EXCEPTION_STACK_OVERFLOW:
+						g_handlerSignalCrash(-1);
+						break;
+				}
+				return EXCEPTION_EXECUTE_HANDLER;
+			}
+
+			static int DebugAllocHook(int allocType, void* userData, size_t size, int blockType, long requestNumber, const unsigned char* filename, int lineNumber)
+			{
+				return g_debugAllocHook(userData, (sl_size)size, (sl_uint32)requestNumber);
+			}
+
+#endif
+
+		}
+	}
+
+	using namespace priv::system;
+	
 	String System::getApplicationPath()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
@@ -123,6 +194,147 @@ namespace slib
 		return sl_false;
 	}
 
+#if defined(SLIB_PLATFORM_IS_WIN32)
+	String System::getWindowsDirectory()
+	{
+		WCHAR path[MAX_PATH];
+		UINT nLen = GetWindowsDirectoryW(path, MAX_PATH);
+		return String::from(path, nLen);
+	}
+
+	String System::getSystemDirectory()
+	{
+		WCHAR path[MAX_PATH];
+		UINT nLen = GetSystemDirectoryW(path, MAX_PATH);
+		return String::from(path, nLen);
+	}
+
+	String System::getSystemWow64Directory()
+	{
+		WCHAR path[MAX_PATH];
+		UINT nLen = GetSystemWow64DirectoryW(path, MAX_PATH);
+		return String::from(path, nLen);
+	}
+#endif
+
+	sl_bool System::is64BitSystem()
+	{
+#if defined(SLIB_PLATFORM_IS_WIN64)
+		return sl_true;
+#elif defined(SLIB_PLATFORM_IS_WIN32)
+		static sl_bool flag64Bit = sl_false;
+		static sl_bool flagInit = sl_true;
+		if (flagInit) {
+			auto func = kernel32::getApi_IsWow64Process();
+			if (func) {
+				BOOL flag = FALSE;
+				func(GetCurrentProcess(), &flag);
+				flag64Bit = flag;
+			}
+			flagInit = sl_false;
+		}
+		return flag64Bit;
+#else
+		return sl_false;
+#endif
+	}
+
+	String System::getVersion()
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		WindowsVersion version = Win32::getVersion();
+		return String::join(String::fromUint32(SLIB_WINDOWS_MAJOR_VERSION(version)), ".", String::fromUint32(SLIB_WINDOWS_MINOR_VERSION(version)));
+#else
+		return "UWP";
+#endif
+	}
+	
+	/*
+		Applications not manifested for Windows 8.1 or Windows 10 will return the Windows 8 OS version value (6.2).
+		For more information, visit at https://docs.microsoft.com/en-us/windows/desktop/SysInfo/targeting-your-application-at-windows-8-1
+	*/
+	String System::getName()
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		WindowsVersion version = Win32::getVersion();
+		switch (version) {
+		case WindowsVersion::Server2016:
+			return "Windows Server 2016";
+		case WindowsVersion::Server2012_R2:
+			return "Windows Server 2012 R2";
+		case WindowsVersion::Server2012:
+			return "Windows Server 2012";
+		case WindowsVersion::Server2008_R2:
+			return "Windows Server 2008 R2";
+		case WindowsVersion::Server2008:
+			return "Windows Server 2008";
+		case WindowsVersion::Server2003:
+			return "Windows Server 2003";
+		case WindowsVersion::Windows10:
+			return "Windows 10";
+		case WindowsVersion::Windows8_1:
+			return "Windows 8.1";
+		case WindowsVersion::Windows8:
+			return "Windows 8";
+		case WindowsVersion::Windows7_SP1:
+			return "Windows 7 SP1";
+		case WindowsVersion::Windows7:
+			return "Windows 7";
+		case WindowsVersion::Vista_SP2:
+			return "Windows Vista SP2";
+		case WindowsVersion::Vista_SP1:
+			return "Windows Vista SP1";
+		case WindowsVersion::Vista:
+			return "Windows Vista";
+		case WindowsVersion::XP_64:
+			return "Windows XP 64bit";
+		case WindowsVersion::XP_SP3:
+			return "Windows XP SP3";
+		case WindowsVersion::XP_SP2:
+			return "Windows XP SP2";
+		case WindowsVersion::XP_SP1:
+			return "Windows XP SP1";
+		default:
+			return "Windows XP";
+		}
+#else
+		return "UWP";
+#endif
+	}
+
+#if defined(SLIB_PLATFORM_IS_WIN32)
+	sl_uint32 System::getMajorVersion()
+	{
+		WindowsVersion version = Win32::getVersion();
+		return SLIB_WINDOWS_MAJOR_VERSION(version);
+	}
+
+	sl_uint32 System::getMinorVersion()
+	{
+		WindowsVersion version = Win32::getVersion();
+		return SLIB_WINDOWS_MINOR_VERSION(version);
+	}
+#endif
+
+	String System::getMachineName()
+	{
+		SYSTEM_INFO si;
+		GetSystemInfo(&si);
+		switch (si.wProcessorArchitecture) {
+		case PROCESSOR_ARCHITECTURE_INTEL:
+			return "x86";
+		case PROCESSOR_ARCHITECTURE_AMD64:
+			return "x64";
+		case PROCESSOR_ARCHITECTURE_IA64:
+			return "ia64";
+		case PROCESSOR_ARCHITECTURE_ARM:
+			return "arm";
+		case 12: // PROCESSOR_ARCHITECTURE_ARM64
+			return "arm64";
+		}
+		return "unknown";
+	}
+
 	String System::getComputerName()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
@@ -148,7 +360,7 @@ namespace slib
 		GetUserNameW(buf, &nBuf);
 		return String::fromUtf16((sl_char16*)buf, (sl_reg)nBuf);
 #else
-		return sl_null;
+		return "uwp";
 #endif
 	}
 	
@@ -225,6 +437,48 @@ namespace slib
 		return (sl_int32)(_wsystem((WCHAR*)(command.getData())));
 	}
 
+	void System::assert(const StringParam& _msg, const StringParam& _file, sl_uint32 line)
+	{
+#if defined(SLIB_DEBUG)
+		StringCstr16 msg(_msg);
+		StringCstr16 file(_file);
+		_wassert((wchar_t*)(msg.getData()), (wchar_t*)(file.getData()), line);
+#endif
+	}
+
+#if defined(SLIB_PLATFORM_IS_WIN32)
+	void System::setCrashHandler(SIGNAL_HANDLER handler)
+	{
+		priv::system::g_handlerSignalCrash = handler;
+		SetUnhandledExceptionFilter(DoHandleException);
+		handler = DoHandleSignalCrash;
+		signal(SIGFPE, handler);
+		signal(SIGSEGV, handler);
+		signal(SIGILL, handler);
+		signal(SIGABRT, handler);
+		signal(SIGABRT_COMPAT, handler);
+	}
+
+	void System::setDebugFlags()
+	{
+#ifdef SLIB_DEBUG
+		int flag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+		// logically OR leak check bit
+		flag |= _CRTDBG_LEAK_CHECK_DF;
+		// set the flags again
+		_CrtSetDbgFlag(flag);
+#endif
+	}
+
+	void System::setDebugAllocHook(DEBUG_ALLOC_HOOK hook)
+	{
+#ifdef SLIB_DEBUG
+		g_debugAllocHook = hook;
+		_CrtSetAllocHook(DebugAllocHook);
+#endif
+	}
+#endif
+
 	sl_uint32 System::getLastError()
 	{
 		return (sl_uint32)(GetLastError());
@@ -256,112 +510,6 @@ namespace slib
 			return String::format("Unknown error: %d", errorCode);
 		}
 		return ret;
-	}
-
-	void System::abort(const StringParam& _msg, const StringParam& _file, sl_uint32 line)
-	{
-#if defined(SLIB_DEBUG)
-		StringCstr16 msg(_msg);
-		StringCstr16 file(_file);
-		_wassert((wchar_t*)(msg.getData()), (wchar_t*)(file.getData()), line);
-#endif
-	}
-
-#if defined(SLIB_PLATFORM_IS_WIN32)
-
-	namespace priv
-	{
-		namespace system
-		{
-			volatile double g_signal_fpe_dummy = 0.0f;
-			SIGNAL_HANDLER g_handlerSignalCrash;
-
-			static void handleSignalCrash(int sig)
-			{
-				if (sig == SIGFPE) {
-					_fpreset();
-				}
-				g_handlerSignalCrash(sig);
-			}
-
-			static LONG WINAPI handleException(PEXCEPTION_POINTERS pExceptionPtrs)
-			{
-				DWORD code = pExceptionPtrs->ExceptionRecord->ExceptionCode;
-				switch (code) {
-				case EXCEPTION_ACCESS_VIOLATION:
-				case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
-				case EXCEPTION_DATATYPE_MISALIGNMENT:
-				case EXCEPTION_FLT_DENORMAL_OPERAND:
-				case EXCEPTION_FLT_DIVIDE_BY_ZERO:
-				case EXCEPTION_FLT_INEXACT_RESULT:
-				case EXCEPTION_FLT_INVALID_OPERATION:
-				case EXCEPTION_FLT_OVERFLOW:
-				case EXCEPTION_FLT_STACK_CHECK:
-				case EXCEPTION_FLT_UNDERFLOW:
-				case EXCEPTION_ILLEGAL_INSTRUCTION:
-				case EXCEPTION_IN_PAGE_ERROR:
-				case EXCEPTION_INT_DIVIDE_BY_ZERO:
-				case EXCEPTION_INT_OVERFLOW:
-				case EXCEPTION_INVALID_DISPOSITION:
-				case EXCEPTION_NONCONTINUABLE_EXCEPTION:
-				case EXCEPTION_PRIV_INSTRUCTION:
-				case EXCEPTION_STACK_OVERFLOW:
-					g_handlerSignalCrash(-1);
-					break;
-				}
-				return EXCEPTION_EXECUTE_HANDLER;
-			}
-
-		}
-	}
-	
-	void System::setCrashHandler(SIGNAL_HANDLER handler)
-	{
-		priv::system::g_handlerSignalCrash = handler;
-		SetUnhandledExceptionFilter(priv::system::handleException);
-		handler = priv::system::handleSignalCrash;
-		signal(SIGFPE, handler);
-		signal(SIGSEGV, handler);
-		signal(SIGILL, handler);
-		signal(SIGABRT, handler);
-		signal(SIGABRT_COMPAT, handler);
-	}
-#endif
-
-	void System::setDebugFlags()
-	{
-		Win32::setDebugFlags();
-	}
-
-	namespace priv
-	{
-		void Abort(const char* msg, const char* file, sl_uint32 line) noexcept
-		{
-#if defined(SLIB_DEBUG)
-			slib::System::abort(msg, file, line);
-#endif
-		}
-	}
-
-	void System::registerApplicationRunAtStartup(const String& path)
-	{
-		String name = File::getFileNameOnly(path);
-		Win32::setApplicationRunAtStartup(name, path, sl_true);
-	}
-
-	void System::registerApplicationRunAtStartup()
-	{
-		registerApplicationRunAtStartup(System::getApplicationPath());
-	}
-
-	void System::unregisterApplicationRunAtStartup(const String& path)
-	{
-		Win32::setApplicationRunAtStartup(sl_null, path, sl_false);
-	}
-
-	void System::unregisterApplicationRunAtStartup()
-	{
-		unregisterApplicationRunAtStartup(System::getApplicationPath());
 	}
 
 }

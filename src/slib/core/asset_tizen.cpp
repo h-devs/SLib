@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #if defined(SLIB_PLATFORM_IS_TIZEN)
 
-#include "slib/core/platform.h"
+#include "slib/core/asset.h"
 
 #include "slib/core/variant.h"
 
@@ -34,7 +34,7 @@
 namespace slib
 {
 
-	String Tizen::getAssetFilePath(const StringParam& path)
+	String Assets::getAssetFilePath(const StringParam& path)
 	{
 		char* root = ::app_get_resource_path();
 		String s = String::format("%s/%s", root, path);

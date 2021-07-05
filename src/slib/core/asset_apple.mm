@@ -20,45 +20,33 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/device/definition.h"
+#include "slib/core/definition.h"
 
-#if defined(SLIB_PLATFORM_IS_IOS)
+#if defined(SLIB_PLATFORM_IS_APPLE)
 
-#include "slib/device/device.h"
+#include "slib/core/asset.h"
 
+#include "slib/core/file.h"
 #include "slib/core/apple/platform.h"
-
-#import <UIKit/UIKit.h>
 
 namespace slib
 {
 
-	String Device::getDeviceId()
+	String Assets::getAssetFilePath(const StringParam& _path)
 	{
-		UIDevice* device = [UIDevice currentDevice];
-		NSString* currentDeviceId = [[device identifierForVendor] UUIDString];
-		return Apple::getStringFromNSString(currentDeviceId);
+		StringData path(_path);
+		String fileExt = File::getFileExtension(path);
+		String fileName = File::getFileNameOnly(path);
+		String dirPath = File::getParentDirectoryPath(path);
+		
+		NSString* strFileName = Apple::getNSStringFromString(fileName);
+		NSString* strFolderPath = Apple::getNSStringFromString(dirPath);
+		NSString* strFileExtension = Apple::getNSStringFromString(fileExt);
+		
+		NSString *filePath = [[NSBundle mainBundle] pathForResource:strFileName ofType:strFileExtension inDirectory:strFolderPath];
+		return Apple::getStringFromNSString(filePath);
 	}
 	
-	Sizei Device::getScreenSize()
-	{
-		UIScreen* screen = [UIScreen mainScreen];
-		if (screen != nil) {
-			Sizei ret;
-			CGRect screenRect = screen.bounds;
-			CGFloat scale = screen.scale;
-			ret.x = (int)(screenRect.size.width * scale);
-			ret.y = (int)(screenRect.size.height * scale);
-			return ret;
-		}
-		return Sizei::zero();
-	}
-	
-	double Device::getScreenPPI()
-	{
-		return [[UIScreen mainScreen] scale] * 160;
-	}
-
 }
 
 #endif

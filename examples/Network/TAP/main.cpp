@@ -32,7 +32,7 @@ using namespace slib;
 
 int main(int argc, const char * argv[])
 {
-	if (!(Process::isAdmin())) {
+	if (!(Process::isCurrentProcessAdmin())) {
 		Println("Run as administrator");
 		return -1;
 	}

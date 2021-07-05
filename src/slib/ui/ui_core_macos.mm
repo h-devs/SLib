@@ -258,6 +258,15 @@ namespace slib
 		}
 	}
 
+	void UI::openUrl(const StringParam& _url)
+	{
+		if (_url.isNotEmpty()) {
+			NSString* s = Apple::getNSStringFromString(_url);
+			NSURL* url = [NSURL URLWithString:s];
+			[[NSWorkspace sharedWorkspace] openURL:url];
+		}
+	}
+	
 	String UI::getActiveApplicationName()
 	{
 		NSRunningApplication* app = [[NSWorkspace sharedWorkspace] frontmostApplication];

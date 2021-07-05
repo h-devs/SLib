@@ -26,11 +26,64 @@
 
 #include "slib/core/app.h"
 
+#include "slib/core/system.h"
+
 #include <AppKit/AppKit.h>
 
 namespace slib
 {
 	
+	namespace priv
+	{
+		namespace app
+		{
+
+			static SetBundleLoginItemEnabled(const StringParam& path, sl_bool flagEnabled)
+			{
+				if (path.isEmpty()) {
+					return;
+				}
+				
+				NSURL *itemURL = [NSURL fileURLWithPath:(Apple::getNSStringFromString(path))];
+				LSSharedFileListItemRef existingItem = NULL;
+				
+				LSSharedFileListRef loginItems = LSSharedFileListCreate(NULL, kLSSharedFileListSessionLoginItems, NULL);
+				
+				if(loginItems) {
+					UInt32 seed = 0U;
+					NSArray *currentLoginItems = CFBridgingRelease(LSSharedFileListCopySnapshot(loginItems, &seed));
+					for (id itemObject in currentLoginItems) {
+						LSSharedFileListItemRef item = (__bridge LSSharedFileListItemRef)itemObject;
+						UInt32 resolutionFlags = kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes;
+						CFURLRef URL = NULL;
+						OSStatus err = LSSharedFileListItemResolve(item, resolutionFlags, &URL, NULL);
+						if (err == noErr) {
+							Boolean foundIt = CFEqual(URL, (__bridge CFTypeRef)(itemURL));
+							CFRelease(URL);
+							if (foundIt) {
+								existingItem = item;
+								break;
+							}
+						}
+					}
+					if (flagEnabled) {
+						if (existingItem == NULL) {
+							LSSharedFileListInsertItemURL(loginItems, kLSSharedFileListItemBeforeFirst, NULL, NULL, (__bridge CFURLRef)itemURL, NULL, NULL);
+						}
+					} else {
+						if (existingItem != NULL) {
+							LSSharedFileListItemRemove(loginItems, existingItem);
+						}
+					}
+					CFRelease(loginItems);
+				}
+			}
+			
+		}
+	}
+	
+	using namespace priv::app;
+
 	sl_bool Application::isAccessibilityEnabled()
 	{
 		return AXIsProcessTrustedWithOptions(NULL) != FALSE;
@@ -45,6 +98,26 @@ namespace slib
 	void Application::openSystemPreferencesForAccessibility()
 	{
 		[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"]];
+	}
+
+	void Application::registerRunAtStartup(const StringParam& path)
+	{
+		SetBundleLoginItemEnabled(path, sl_true);
+	}
+
+	void Application::registerRunAtStartup()
+	{
+		SetBundleLoginItemEnabled(System::getMainBundlePath(), sl_true);
+	}
+
+	void Application::unregisterRunAtStartup(const StringParam& path)
+	{
+		SetBundleLoginItemEnabled(path, sl_false);
+	}
+
+	void Application::unregisterRunAtStartup()
+	{
+		SetBundleLoginItemEnabled(System::getMainBundlePath(), sl_false);
 	}
 
 }

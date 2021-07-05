@@ -87,14 +87,9 @@ namespace slib
 		// Works on Android
 		static String getPhoneNumber(sl_uint32 indexSlot = 0);
 
+
 		static String getDeviceId();
-		
-		static String getDeviceName();
-		
-		static String getSystemVersion();
-		
-		static String getSystemName();
-		
+				
 		static double getScreenPPI();
 		
 		static Sizei getScreenSize();
@@ -104,9 +99,6 @@ namespace slib
 		static sl_uint32 getScreenHeight();
 		
 		
-		static void openUrl(const StringParam& url);
-
-
 		static void openDial(const String& phoneNumber);
 
 		static void callPhone(const String& phoneNumber);

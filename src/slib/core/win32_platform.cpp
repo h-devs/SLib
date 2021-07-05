@@ -25,135 +25,17 @@
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
 #include "slib/core/platform.h"
-#include "slib/core/system.h"
 
 #include "slib/core/scoped_buffer.h"
-#include "slib/core/variant.h"
-#include "slib/core/endian.h"
-#include "slib/core/dl/win32/kernel32.h"
 
-#include <crtdbg.h>
+#pragma warning(disable: 4091)
+
 #include <shellapi.h>
 #include <shlwapi.h>
-#pragma warning(disable: 4091)
 #include <shlobj.h>
 
 namespace slib
 {
-
-	String Win32::getStringFromGUID(const GUID& guid)
-	{
-		WCHAR sz[40] = { 0 };
-		if (StringFromGUID2(guid, sz, 40) < 40) {
-			return String::create((sl_char16*)sz);
-		}
-		return sl_null;
-	}
-
-	sl_bool Win32::getGUIDFromString(const String& _str, GUID* pguid)
-	{
-		StringCstr16 str(_str);
-		CLSID clsid;
-		HRESULT hr = CLSIDFromString((LPWSTR)(str.getData()), &clsid);
-		if (hr == NOERROR) {
-			if (pguid) {
-				*pguid = clsid;
-			}
-			return sl_true;
-		}
-		return sl_false;
-	}
-
-	HGLOBAL Win32::createGlobalData(const void* data, sl_size size)
-	{
-		HGLOBAL handle = GlobalAlloc(GMEM_MOVEABLE, size);
-		if (handle) {
-			void* dst = GlobalLock(handle);
-			if (dst) {
-				Base::copyMemory(dst, data, size);
-				GlobalUnlock(dst);
-			}
-		}
-		return handle;
-	}
-
-	void Win32::setDebugFlags()
-	{
-#ifdef SLIB_DEBUG
-		int flag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-		// logically OR leak check bit
-		flag |= _CRTDBG_LEAK_CHECK_DF;
-		// set the flags again
-		_CrtSetDbgFlag(flag);
-#endif
-	}
-
-	namespace priv
-	{
-		namespace platform
-		{
-
-			WINDOWS_DEBUG_ALLOC_HOOK g_debugAllocHook;
-
-			static int DebugAllocHook(int allocType, void* userData, size_t size, int blockType, long requestNumber, const unsigned char* filename, int lineNumber)
-			{
-				return g_debugAllocHook(userData, (sl_size)size, (sl_uint32)requestNumber);
-			}
-
-		}
-	}
-
-	void Win32::setDebugAllocHook(WINDOWS_DEBUG_ALLOC_HOOK hook)
-	{
-#ifdef SLIB_DEBUG
-		priv::platform::g_debugAllocHook = hook;
-		_CrtSetAllocHook(priv::platform::DebugAllocHook);
-#endif
-	}
-
-	void Win32::setApplicationRunAtStartup(const StringParam& _appName, const StringParam& _path, sl_bool flagRegister)
-	{
-		StringCstr16 appName(_appName);
-		StringCstr16 path(_path);
-		List<String16> listDelete;
-		HKEY hKey = NULL;
-		RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_QUERY_VALUE | KEY_SET_VALUE, &hKey);
-		if (hKey) {
-			DWORD dwIndex = 0;
-			sl_char16 name[513] = { 0 };
-			sl_char16 data[1025] = { 0 };
-			for (;;) {
-				DWORD dwType = 0;
-				DWORD dwLenName = 512;
-				DWORD nData = 1024;
-				LSTATUS lRet = RegEnumValueW(hKey, dwIndex, (LPWSTR)name, &dwLenName, NULL, &dwType, (LPBYTE)data, &nData);
-				if (lRet == ERROR_SUCCESS) {
-					if (dwType == REG_SZ) {
-						if (path.equals(data)) {
-							if (flagRegister) {
-								// already registered
-								return;
-							} else {
-								listDelete.add_NoLock(name);
-							}
-						}
-					}
-				} else {
-					break;
-				}
-				dwIndex++;
-			}
-			if (flagRegister) {
-				RegSetValueExW(hKey, (LPCWSTR)(appName.getData()), NULL, REG_SZ, (BYTE*)(path.getData()), (DWORD)(path.getLength() + 1) * 2);
-			} else {
-				ListElements<String16> names(listDelete);
-				for (sl_size i = 0; i < names.count; i++) {
-					RegDeleteValueW(hKey, (LPCWSTR)(names[i].getData()));
-				}
-			}
-			RegCloseKey(hKey);
-		}
-	}
 
 	namespace priv
 	{
@@ -163,7 +45,7 @@ namespace slib
 			// From VersionHelpers.h
 			static sl_bool IsWindowsVersionOrGreater(WindowsVersion version)
 			{
-				OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
+				OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0,{ 0 }, 0, 0 };
 				DWORDLONG const dwlConditionMask = VerSetConditionMask(
 					VerSetConditionMask(
 						VerSetConditionMask(
@@ -178,7 +60,7 @@ namespace slib
 
 			static sl_bool IsWindowsServer()
 			{
-				OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0, 0, VER_NT_WORKSTATION };
+				OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0,{ 0 }, 0, 0, 0, VER_NT_WORKSTATION };
 				DWORDLONG const dwlConditionMask = VerSetConditionMask(0, VER_PRODUCT_TYPE, VER_EQUAL);
 				return !VerifyVersionInfoW(&osvi, VER_PRODUCT_TYPE, dwlConditionMask);
 			}
@@ -246,29 +128,47 @@ namespace slib
 		}
 	}
 
-	WindowsVersion Win32::getVersion()
+	using namespace priv::platform;
+
+	String Win32::getStringFromGUID(const GUID& guid)
 	{
-		return priv::platform::GetWindowsVersion();
+		WCHAR sz[40] = { 0 };
+		if (StringFromGUID2(guid, sz, 40) < 40) {
+			return String::create((sl_char16*)sz);
+		}
+		return sl_null;
 	}
 
-	sl_bool Win32::is64BitSystem()
+	sl_bool Win32::getGUIDFromString(const String& _str, GUID* pguid)
 	{
-#ifdef SLIB_PLATFORM_IS_WIN64
-		return sl_true;
-#else
-		static sl_bool flag64Bit = sl_false;
-		static sl_bool flagInit = sl_true;
-		if (flagInit) {
-			auto func = kernel32::getApi_IsWow64Process();
-			if (func) {
-				BOOL flag = FALSE;
-				func(GetCurrentProcess(), &flag);
-				flag64Bit = flag;
+		StringCstr16 str(_str);
+		CLSID clsid;
+		HRESULT hr = CLSIDFromString((LPWSTR)(str.getData()), &clsid);
+		if (hr == NOERROR) {
+			if (pguid) {
+				*pguid = clsid;
 			}
-			flagInit = sl_false;
+			return sl_true;
 		}
-		return flag64Bit;
-#endif
+		return sl_false;
+	}
+
+	HGLOBAL Win32::createGlobalData(const void* data, sl_size size)
+	{
+		HGLOBAL handle = GlobalAlloc(GMEM_MOVEABLE, size);
+		if (handle) {
+			void* dst = GlobalLock(handle);
+			if (dst) {
+				Base::copyMemory(dst, data, size);
+				GlobalUnlock(dst);
+			}
+		}
+		return handle;
+	}
+
+	WindowsVersion Win32::getVersion()
+	{
+		return GetWindowsVersion();
 	}
 
 	WindowsDllVersion Win32::getDllVersion(const StringParam& _pathDll)
@@ -295,57 +195,6 @@ namespace slib
 			FreeLibrary(hDll);
 		}
 		return ret;
-	}
-
-	sl_bool Win32::isCurrentProcessInAdminGroup()
-	{
-		BOOL flagResult = FALSE;
-		HANDLE hToken;
-		if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE, &hToken)) {
-			WindowsVersion version = priv::platform::GetWindowsVersion();
-			sl_bool flagError = sl_false;
-			HANDLE hTokenToCheck = NULL;
-			if (SLIB_WINDOWS_MAJOR_VERSION(version) >= 6) { // Windows Vista or later
-				TOKEN_ELEVATION_TYPE elevType;
-				DWORD cbSize = 0;
-				if (GetTokenInformation(hToken, TokenElevationType, &elevType, sizeof(elevType), &cbSize)) {
-					if (elevType == TokenElevationTypeLimited) {
-						if (!GetTokenInformation(hToken, TokenLinkedToken, &hTokenToCheck, sizeof(hTokenToCheck), &cbSize)) {
-							flagError = sl_true;
-						}
-					}
-				} else {
-					flagError = sl_true;
-				}
-			}
-			if (!flagError) {
-				if (!hTokenToCheck) {
-					DuplicateToken(hToken, SecurityIdentification, &hTokenToCheck);
-				}
-				if (hTokenToCheck) {
-					BYTE adminSID[SECURITY_MAX_SID_SIZE];
-					DWORD cbSize = sizeof(adminSID);
-					if (CreateWellKnownSid(WinBuiltinAdministratorsSid, NULL, &adminSID, &cbSize)) {
-						CheckTokenMembership(hTokenToCheck, &adminSID, &flagResult);
-					}
-					CloseHandle(hTokenToCheck);
-				}
-			}
-			CloseHandle(hToken);
-		}
-		return flagResult != FALSE;
-	}
-
-	sl_bool Win32::isCurrentProcessRunAsAdmin()
-	{
-		BOOL flagResult = FALSE;
-		SID_IDENTIFIER_AUTHORITY siAuthority = SECURITY_NT_AUTHORITY;
-		PSID pSidAdmin = NULL;
-		if (AllocateAndInitializeSid(&siAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &pSidAdmin)) {
-			CheckTokenMembership(NULL, pSidAdmin, &flagResult);
-			FreeSid(pSidAdmin);
-		}
-		return flagResult != FALSE;
 	}
 
 
@@ -443,7 +292,6 @@ namespace slib
 		return bRet;
 	}
 
-
 	sl_bool Win32::getSYSTEMTIME(const Time& time, sl_bool flagUTC, SYSTEMTIME* _out)
 	{
 		SYSTEMTIME& st = *_out;
@@ -476,42 +324,6 @@ namespace slib
 			SystemTimeToFileTime(&utc, (PFILETIME)&n);
 		}
 		return n / 10 - SLIB_INT64(11644473600000000);  // Convert 1601 Based (FILETIME mode) to 1970 Based (time_t mode)
-	}
-
-	String Win32::getWindowsDirectory()
-	{
-		WCHAR path[MAX_PATH];
-		UINT nLen = GetWindowsDirectoryW(path, MAX_PATH);
-		return String::from(path, nLen);
-	}
-
-	String System::getWindowsDirectory()
-	{
-		return Win32::getWindowsDirectory();
-	}
-
-	String Win32::getSystemDirectory()
-	{
-		WCHAR path[MAX_PATH];
-		UINT nLen = GetSystemDirectoryW(path, MAX_PATH);
-		return String::from(path, nLen);
-	}
-
-	String System::getSystemDirectory()
-	{
-		return Win32::getSystemDirectory();
-	}
-
-	String Win32::getSystemWow64Directory()
-	{
-		WCHAR path[MAX_PATH];
-		UINT nLen = GetSystemWow64DirectoryW(path, MAX_PATH);
-		return String::from(path, nLen);
-	}
-
-	String System::getSystemWow64Directory()
-	{
-		return Win32::getSystemWow64Directory();
 	}
 
 	HANDLE Win32::createDeviceHandle(const StringParam& _path, DWORD dwDesiredAccess, DWORD dwShareMode)

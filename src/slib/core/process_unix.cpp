@@ -361,7 +361,7 @@ namespace slib
 #endif
 
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-	sl_bool Process::isAdmin()
+	sl_bool Process::isCurrentProcessAdmin()
 	{
 		return geteuid() == 0;
 	}
@@ -373,6 +373,11 @@ namespace slib
 		Exec(pathExecutable, arguments, nArguments);
 	}
 	
+	void Process::abort()
+	{
+		::abort();
+	}
+
 	void Process::exit(int code)
 	{
 		::exit(code);

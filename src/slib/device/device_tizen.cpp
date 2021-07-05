@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,6 @@
 
 #include "slib/device/device.h"
 
-#include "slib/core/variant.h"
-#include "slib/core/platform.h"
-
 #include <system_info.h>
 #include <stdlib.h>
 
@@ -38,60 +35,25 @@ namespace slib
 	String Device::getDeviceId()
 	{
 		char *value = NULL;
-		int ret = ::system_info_get_platform_string("http://tizen.org/system/tizenid", &value);
+		int ret = system_info_get_platform_string("http://tizen.org/system/tizenid", &value);
 		if (ret == SYSTEM_INFO_ERROR_NONE) {
-			String device_id = value;
-			::free(value);
-			return device_id;
+			String deviceId = value;
+			free(value);
+			return deviceId;
 		}
 		return sl_null;
-	}
-
-	String Device::getDeviceName()
-	{
-		char* platform_name = NULL;
-		int ret = ::system_info_get_platform_string("http://tizen.org/system/platform.name", &platform_name);
-		if (ret == SYSTEM_INFO_ERROR_NONE) {
-			char* model_name = NULL;
-			ret = ::system_info_get_platform_string("http://tizen.org/system/model_name", &model_name);
-			if (ret == SYSTEM_INFO_ERROR_NONE) {
-				String name = String::format("%s %s", platform_name, model_name);
-				::free(model_name);
-				return name;
-			}
-			::free(platform_name);
-		}
-		return sl_null;
-	}
-
-	String Device::getSystemVersion()
-	{
-		char *value = NULL;
-		int ret = ::system_info_get_platform_string("http://tizen.org/feature/platform.version", &value);
-		if (ret != SYSTEM_INFO_ERROR_NONE) {
-			return sl_null;
-		}
-		String version = value;
-		::free(value);
-		return version;
-	}
-
-	String Device::getSystemName()
-	{
-		String osVersion = getSystemVersion();
-		return String::format("Tizen %s", osVersion);
 	}
 
 	Sizei Device::getScreenSize()
 	{
 		Sizei size;
 		int value;
-		int ret = ::system_info_get_platform_int("http://tizen.org/feature/screen.height", &value);
+		int ret = system_info_get_platform_int("http://tizen.org/feature/screen.height", &value);
 		if (ret != SYSTEM_INFO_ERROR_NONE) {
 			return size;
 		}
 		size.x = value;
-		ret = ::system_info_get_platform_int("http://tizen.org/feature/screen.width", &value);
+		ret = system_info_get_platform_int("http://tizen.org/feature/screen.width", &value);
 		if (ret != SYSTEM_INFO_ERROR_NONE) {
 			return size;
 		}
@@ -102,7 +64,7 @@ namespace slib
 	double Device::getScreenPPI()
 	{
 		int value;
-		int ret = ::system_info_get_platform_int("http://tizen.org/feature/screen.dpi", &value);
+		int ret = system_info_get_platform_int("http://tizen.org/feature/screen.dpi", &value);
 		if (ret != SYSTEM_INFO_ERROR_NONE) {
 			return -1;
 		}

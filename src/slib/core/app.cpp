@@ -484,6 +484,32 @@ Microsoft Specific
 	}
 #endif
 
+#if !defined(SLIB_PLATFORM_IS_WIN32)
+	void Application::registerRunAtStartup(const StringParam& appName, const StringParam& path)
+	{
+		registerRunAtStartup(path);
+	}
+#endif
+	
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_MACOS)
+	void Application::registerRunAtStartup(const StringParam& path)
+	{
+	}
+	
+	void Application::registerRunAtStartup()
+	{
+	}
+	
+	void Application::unregisterRunAtStartup(const StringParam& path)
+	{
+	}
+	
+	void Application::unregisterRunAtStartup()
+	{
+	}
+#endif
+	
+
 	List<String> CommandLine::parse(const StringParam& commandLine)
 	{
 #if defined(SLIB_PLATFORM_IS_WINDOWS)

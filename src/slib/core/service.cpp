@@ -243,7 +243,7 @@ namespace slib
 				}
 				return 0;
 			}
-			if (!(Process::isAdmin())) {
+			if (!(Process::isCurrentProcessAdmin())) {
 				if (arguments.contains("admin")) {
 					List<StringParam> args;
 					args.addAll_NoLock(getArguments());

@@ -27,11 +27,10 @@
 #include "slib/core/system.h"
 
 #include "slib/core/file.h"
-#include "slib/core/platform.h"
+#include "slib/core/android/platform.h"
 
 #include <string.h>
 #include <stdio.h>
-#include <assert.h>
 #include <unistd.h>
 
 namespace slib
@@ -87,7 +86,7 @@ namespace slib
 				}
 			}
 		}
-		return Android::getDeviceName();
+		return getMachineName();
 	}
 	
 	String System::getUserName()
@@ -100,23 +99,34 @@ namespace slib
 		return "Mobile User";
 	}
 
-	void System::abort(const StringParam& _msg, const StringParam& _file, sl_uint32 line)
+	String System::getName()
 	{
-#if defined(SLIB_DEBUG)
-		StringCstr msg(_msg);
-		StringCstr file(_file);
-		__assert(file.getData(), line, msg.getData());
-#endif
+		return "Android " + getVersion();
 	}
 
-	namespace priv
+	String System::getVersion()
 	{
-		void Abort(const char* msg, const char* file, sl_uint32 line) noexcept
-		{
-#if defined(SLIB_DEBUG)
-			__assert(file, line, msg);
-#endif
+		jclass cls = Jni::getClass("android/os/Build$VERSION");
+		if (cls) {
+			return Jni::getStaticStringField(cls, "RELEASE");
 		}
+		return sl_null;
+	}
+
+	// From Java code: slib.android.device.Device.getDeviceName
+	String System::getMachineName()
+	{
+		jclass cls = Jni::getClass("android/os/Build");
+		if (cls) {
+			String manufacturer = Jni::getStaticStringField(cls, "MANUFACTURER");
+			String model = Jni::getStaticStringField(cls, "MODEL");
+			if (model.startsWith(manufacturer)) {
+				return model;
+			} else {
+				return String::join(manufacturer, " ", model);
+			}
+		}
+		return sl_null;
 	}
 
 }

@@ -31,8 +31,6 @@
 #	include "apple/platform.h"
 #elif defined(SLIB_PLATFORM_IS_ANDROID)
 #	include "android/platform.h"
-#elif defined(SLIB_PLATFORM_IS_TIZEN)
-#	include "tizen/platform.h"
 #endif
 
 #endif

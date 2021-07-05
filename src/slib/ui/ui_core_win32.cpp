@@ -397,6 +397,14 @@ namespace slib
 		}
 	}
 
+	void UI::openUrl(const StringParam& url)
+	{
+		ShellExecuteParam param;
+		param.operation = "open";
+		param.path = url;
+		Win32::shell(param);
+	}
+
 	void UI::openDirectoryAndSelectFile(const StringParam& path)
 	{
 		String dir = File::getParentDirectoryPath(path);

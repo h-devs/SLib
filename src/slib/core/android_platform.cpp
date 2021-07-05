@@ -25,6 +25,7 @@
 #ifdef SLIB_PLATFORM_IS_ANDROID
 
 #include "slib/core/android/platform.h"
+
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -32,17 +33,15 @@ namespace slib
 
 	namespace priv
 	{
-		namespace android
+		namespace platform
 		{
 
 			SLIB_GLOBAL_ZERO_INITIALIZED(JniGlobal<jobject>, g_contextCurrent);
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strSystemRelease);
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strDeviceName);
 
 		}
 	}
 
-	using namespace priv::android;
+	using namespace priv::platform;
 
 	void Android::initialize(JavaVM* jvm) noexcept
 	{
@@ -61,37 +60,6 @@ namespace slib
 		return version;
 	}
 	
-	String Android::getSystemRelease() noexcept
-	{
-		if (g_strSystemRelease.isNull()) {
-			jclass cls = Jni::getClass("android/os/Build$VERSION");
-			if (cls) {
-				String release = Jni::getStaticStringField(cls, "RELEASE");
-				g_strSystemRelease = release;
-				return release;
-			}
-		}
-		return g_strSystemRelease;
-	}
-
-	// From Java code: slib.android.device.Device.getDeviceName
-	String Android::getDeviceName() noexcept
-	{
-		if (g_strDeviceName.isNull()) {
-			jclass cls = Jni::getClass("android/os/Build");
-			if (cls) {
-				String manufacturer = Jni::getStaticStringField(cls, "MANUFACTURER");
-				String model = Jni::getStaticStringField(cls, "MODEL");
-				if (!(model.startsWith(manufacturer))) {
-					model = String::join(manufacturer, " ", model);
-				}
-				g_strDeviceName = model;
-				return model;
-			}
-		}
-		return g_strDeviceName;
-	}
-
 	jobject Android::getCurrentContext() noexcept
 	{
 		return g_contextCurrent.get();

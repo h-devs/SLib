@@ -49,7 +49,7 @@ namespace slib
 				if (ServiceManager::isRunning(DRIVER_NAME)) {
 					return sl_true;
 				}
-				if (!(Process::isAdmin())) {
+				if (!(Process::isCurrentProcessAdmin())) {
 					return sl_false;
 				}
 
@@ -77,7 +77,7 @@ namespace slib
 				unsigned char* npfinstall_exe_compressed_data = ::npcap::files::npfinstall_exe_compressed_data64;
 				unsigned long npfinstall_exe_compressed_size = ::npcap::files::npfinstall_exe_compressed_size64;
 #else
-				sl_bool flag64Bit = Win32::is64BitSystem();
+				sl_bool flag64Bit = System::is64BitSystem();
 				unsigned char* npcap_inf_compressed_data = flag64Bit ? ::npcap::files::npcap_inf_compressed_data64 : ::npcap::files::npcap_inf_compressed_data86;
 				unsigned long npcap_inf_compressed_size = flag64Bit ? ::npcap::files::npcap_inf_compressed_size64 : ::npcap::files::npcap_inf_compressed_size86;
 				unsigned char* npcap_sys_compressed_data = flag64Bit ? npcap_sys_compressed_data64 : ::npcap::files::npcap_sys_compressed_data86;
@@ -126,7 +126,7 @@ namespace slib
 				if (!(ServiceManager::isExisting(DRIVER_NAME))) {
 					return sl_true;
 				}
-				if (!(Process::isAdmin())) {
+				if (!(Process::isCurrentProcessAdmin())) {
 					return sl_false;
 				}
 
@@ -140,7 +140,7 @@ namespace slib
 				unsigned char* npfinstall_exe_compressed_data = ::npcap::files::npfinstall_exe_compressed_data64;
 				unsigned long npfinstall_exe_compressed_size = ::npcap::files::npfinstall_exe_compressed_size64;
 #else
-				sl_bool flag64Bit = Win32::is64BitSystem();
+				sl_bool flag64Bit = System::is64BitSystem();
 				unsigned char* npfinstall_exe_compressed_data = flag64Bit ? ::npcap::files::npfinstall_exe_compressed_data64 : ::npcap::files::npfinstall_exe_compressed_data86;
 				unsigned long npfinstall_exe_compressed_size = flag64Bit ? ::npcap::files::npfinstall_exe_compressed_size64 : ::npcap::files::npfinstall_exe_compressed_size86;
 #endif

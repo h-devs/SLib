@@ -208,6 +208,17 @@ namespace slib
 		// macOS only
 		static void openSystemPreferencesForAccessibility();
 		
+	public:	
+		static void registerRunAtStartup(const StringParam& appName, const StringParam& path);
+
+		static void registerRunAtStartup(const StringParam& path);
+
+		static void registerRunAtStartup();
+
+		static void unregisterRunAtStartup(const StringParam& path);
+
+		static void unregisterRunAtStartup();
+	
 	protected:
 		void _initApp();
 
