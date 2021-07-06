@@ -30,17 +30,73 @@
 #include "../../../core/dl.h"
 
 #include "X11/Xlib.h"
+#include "X11/Xutil.h"
 
 namespace slib
 {
 
 	SLIB_IMPORT_LIBRARY_BEGIN(x11, "libX11.so.6")
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XSetErrorHandler,
+			XErrorHandler, ,
+			XErrorHandler	/* handler */
+		)
+		#define XSetErrorHandler slib::x11::getApi_XSetErrorHandler()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XGetErrorText,
+			int, ,
+			Display*	/* display */,
+			int			/* code */,
+			char*		/* buffer_return */,
+			int			/* length */
+		)
+		#define XGetErrorText slib::x11::getApi_XGetErrorText()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XOpenDisplay,
+			Display *, ,
+			_Xconst char*	/* display_name */
+		)
+		#define XOpenDisplay slib::x11::getApi_XOpenDisplay()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XCloseDisplay,
+			int, ,
+			Display*
+		)
+		#define XCloseDisplay slib::x11::getApi_XCloseDisplay()
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			XGetWindowAttributes,
 			Status, ,
 			Display*, Window, XWindowAttributes*
 		)
 		#define XGetWindowAttributes slib::x11::getApi_XGetWindowAttributes()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XGetImage,
+			XImage *, ,
+			Display*		/* display */,
+			XID				/* drawable */,
+			int				/* x */,
+			int				/* y */,
+			unsigned int	/* width */,
+			unsigned int	/* height */,
+			unsigned long	/* plane_mask */,
+			int				/* format */
+		)
+		#define XGetImage slib::x11::getApi_XGetImage()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XMapRaised,
+			int, ,
+			Display*	/* display */,
+			Window		/* w */
+		)
+		#define XMapRaised slib::x11::getApi_XMapRaised()
+
 	SLIB_IMPORT_LIBRARY_END
 
 }
