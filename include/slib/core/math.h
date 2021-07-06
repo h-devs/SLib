@@ -522,6 +522,21 @@ namespace slib
 		static sl_uint32 getLeastSignificantBits64(sl_uint64 n) noexcept;
 
 
+		// Returns the number of 1-bits in x
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+		constexpr static sl_uint32 popCount(sl_uint32 x)
+		{
+			return (sl_uint32)(__builtin_popcount((unsigned int)x));
+		}
+#else
+		static sl_uint32 popCount(sl_uint32 x) noexcept
+		{
+			sl_uint32 y = (x >> 1) & 033333333333;
+			y = x - y - ((y >>1) & 033333333333);
+			return (((y + (y >> 3)) & 030707070707) % 077);
+		}
+#endif
+
 		static void mul32(sl_uint32 a, sl_uint32 b, sl_uint32& o_high, sl_uint32& o_low) noexcept;
 
 		static void mul64(sl_uint64 a, sl_uint64 b, sl_uint64& o_high, sl_uint64& o_low) noexcept;
