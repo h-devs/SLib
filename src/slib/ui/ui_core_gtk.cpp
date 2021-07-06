@@ -159,20 +159,6 @@ namespace slib
 		return ret;
 	}
 
-	Ref<Screen> UIPlatform::createScreen(GdkScreen* handle)
-	{
-		return ScreenImpl::create(handle);
-	}
-	
-	GdkScreen* UIPlatform::getScreenHandle(Screen* _screen)
-	{
-		ScreenImpl* screen = (ScreenImpl*)_screen;
-		if (screen) {
-			return screen->m_screen;
-		}
-		return sl_null;
-	}
-
 	sl_bool UI::isUiThread()
 	{
 		return g_threadMain == pthread_self();
@@ -208,6 +194,34 @@ namespace slib
 		} else {
 			g_idle_add_full(G_PRIORITY_DEFAULT, DispatchUrgentlyCallback, callable, DispatchUrgentlyDestroy);
 		}
+	}
+
+	void UI::openUrl(const StringParam& _url)
+	{
+		if (!(UI::isUiThread())) {
+			String url = _url.toString();
+			UI::dispatchToUiThread([url]() {
+				UI::openUrl(url);
+			});
+			return;
+		}
+		StringCstr url(_url);
+		GError* error = NULL;
+		gtk_show_uri(NULL, url.getData(), GDK_CURRENT_TIME, &error);
+	}
+
+	Ref<Screen> UIPlatform::createScreen(GdkScreen* handle)
+	{
+		return ScreenImpl::create(handle);
+	}
+
+	GdkScreen* UIPlatform::getScreenHandle(Screen* _screen)
+	{
+		ScreenImpl* screen = (ScreenImpl*)_screen;
+		if (screen) {
+			return screen->m_screen;
+		}
+		return sl_null;
 	}
 
 	void UIPlatform::runLoop(sl_uint32 level)

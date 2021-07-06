@@ -26,10 +26,8 @@
 
 #include "slib/device/device.h"
 
-#include "slib/ui/core.h"
-
-#include "slib/ui/dl/linux/gtk.h"
 #include "slib/ui/dl/linux/gdk.h"
+#include "slib/ui/dl/linux/gtk.h"
 
 namespace slib
 {
@@ -55,20 +53,6 @@ namespace slib
 			return ret;
 		}
 		return Sizei::zero();
-	}
-	
-	void Device::openUrl(const StringParam& _url)
-	{
-		if (!(UI::isUiThread())) {
-			String url = _url.toString();
-			UI::dispatchToUiThread([url]() {
-				Device::openUrl(url);
-			});
-			return;
-		}
-		StringCstr url(_url);
-		GError* error = NULL;
-		gtk_show_uri(NULL, url.getData(), GDK_CURRENT_TIME, &error);
 	}
 
 }
