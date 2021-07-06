@@ -162,9 +162,7 @@ namespace slib
 						} else {
 							DWORD err = GetLastError();
 							if (err == ERROR_MORE_DATA) {
-								if (dwRead) {
-									bufRead.add(Memory::create(buf, dwRead));
-								}
+								bufRead.add(Memory::create(buf, sizeof(buf)));
 							} else {
 								if (err == ERROR_IO_PENDING) {
 									event->wait(10);
@@ -199,7 +197,7 @@ namespace slib
 					sl_uint8* data = (sl_uint8*)_data;
 					Ref<Event> event = Event::create();
 					if (event.isNull()) {
-						return sl_null;
+						return sl_false;
 					}
 					HANDLE hEvent = Win32::getEventHandle(event.get());
 
@@ -221,7 +219,7 @@ namespace slib
 								return dwWritten == (DWORD)size;
 							}
 							if (tc.getElapsedMilliseconds() > m_timeout) {
-								return sl_null;
+								return sl_false;
 							}
 						}
 						return sl_false;
