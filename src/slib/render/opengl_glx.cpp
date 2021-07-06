@@ -30,7 +30,7 @@
 #include "slib/core/thread.h"
 
 
-#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 #	include "slib/render/dl/linux/gl.h"
 #	include "slib/ui/dl/linux/x11.h"
 #else

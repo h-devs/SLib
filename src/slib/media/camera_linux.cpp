@@ -22,7 +22,7 @@
 
 #include "slib/media/definition.h"
 
-#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 
 #include "slib/media/camera.h"
 

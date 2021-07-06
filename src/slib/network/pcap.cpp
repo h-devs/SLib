@@ -44,7 +44,7 @@
 #		include "winpcap/pcap/pcap.h"
 #	endif
 #else
-#	if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+#	if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 #		include "slib/network/dl/linux/pcap.h"
 #	else
 #		include "pcap/pcap.h"

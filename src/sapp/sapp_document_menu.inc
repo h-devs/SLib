@@ -343,7 +343,7 @@ namespace slib
 				header = "#if !defined(SLIB_PLATFORM_IS_WIN32)\r\n";
 				footer = "#endif\r\n";
 			} else if (item->platformFlags == SAppMenuResourceItem::no_linux) {
-				header = "#if !defined(SLIB_PLATFORM_IS_LINUX)\r\n";
+				header = "#if !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)\r\n";
 				footer = "#endif\r\n";
 			} else if (item->platformFlags != SAppMenuResourceItem::all_platforms) {
 				String s;
@@ -360,7 +360,7 @@ namespace slib
 					if (s.isNotEmpty()) {
 						s += " | ";
 					}
-					s += "defined(SLIB_PLATFORM_IS_LINUX)";
+					s += "defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)";
 				}
 				header = String::format("#if %s\r\n", s);
 				footer = "#endif\r\n";
@@ -567,7 +567,7 @@ namespace slib
 	#endif
 		}
 		if (item->platformFlags & SAppMenuResourceItem::linux) {
-	#if !defined(SLIB_PLATFORM_IS_LINUX)
+	#if !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 			return sl_true;
 	#endif
 		}

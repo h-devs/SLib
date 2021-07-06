@@ -48,7 +48,7 @@
 #undef assert
 #endif
 
-#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 #	include "slib/core/dl/linux/rt.h"
 #endif
 

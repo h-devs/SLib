@@ -25,7 +25,7 @@
 #include "slib/core/file.h"
 #include "slib/core/system.h"
 
-#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 #	include "slib/network/dl/linux/curl.h"
 #else
 #	include "curl/curl.h"
@@ -72,7 +72,7 @@ namespace slib
 				
 			public:
 				static Ref<CurlRequestImpl> create(const UrlRequestParam& param, const String& url) {
-#if defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP)
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 					if (!(curl::getApi_curl_easy_init())) {
 						return sl_null;
 					}

@@ -51,7 +51,7 @@ namespace slib
 #define GL_ENTRY(x) PRIV_GL_ENTRY(x)
 #include "opengl_impl.h"
 
-#if defined(SLIB_PLATFORM_IS_WIN32) || (defined(SLIB_PLATFORM_IS_LINUX) && defined(SLIB_PLATFORM_IS_DESKTOP))
+#if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 
 #include "slib/core/dynamic_library.h"
 

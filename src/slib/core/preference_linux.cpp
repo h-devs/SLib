@@ -22,7 +22,7 @@
 
 #include "slib/core/definition.h"
 
-#ifdef SLIB_PLATFORM_IS_LINUX
+#ifdef SLIB_PLATFORM_IS_LINUX_DESKTOP
 
 #include "slib/core/preference.h"
 
