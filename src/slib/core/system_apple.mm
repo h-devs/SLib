@@ -59,7 +59,7 @@ namespace slib
 						NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
 						g_systemVersionMajor = (sl_uint32)(version.majorVersion);
 						g_systemVersionMinor = (sl_uint32)(version.minorVersion);
-						g_systemVersion = String::format("%d.%d", g_systemVersionMajor, g_systemVersionMinor);
+						g_systemVersion = String::join(String::fromUint32(g_systemVersionMajor), ".", String::fromUint32(g_systemVersionMinor));
 					} else if (v >= NSAppKitVersionNumber10_9) {
 						g_systemVersion = "10.9";
 						g_systemVersionMajor = 10;
