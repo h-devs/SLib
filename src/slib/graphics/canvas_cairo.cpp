@@ -44,22 +44,24 @@ namespace slib
 
 			public:
 				cairo_t* m_graphics;
+				sl_bool m_flagFreeOnRelease;
 
 			public:
 				CanvasImpl()
 				{
 					m_graphics = sl_null;
+					m_flagFreeOnRelease = sl_false;
 				}
 
 				~CanvasImpl()
 				{
-					if (m_graphics) {
+					if (m_graphics && m_flagFreeOnRelease) {
 						cairo_destroy(m_graphics);
 					}
 				}
 
 			public:
-				static Ref<CanvasImpl> create(CanvasType type, cairo_t* graphics, sl_real width, sl_real height)
+				static Ref<CanvasImpl> create(CanvasType type, cairo_t* graphics, sl_real width, sl_real height, sl_bool flagFreeOnRelease)
 				{
 					if (graphics) {
 
@@ -68,6 +70,7 @@ namespace slib
 						if (ret.isNotNull()) {
 
 							ret->m_graphics = graphics;
+							ret->m_flagFreeOnRelease = flagFreeOnRelease;
 
 							ret->setType(type);
 							ret->setSize(Size(width, height));
@@ -76,8 +79,9 @@ namespace slib
 
 							return ret;
 						}
-
-						cairo_destroy(graphics);
+						if (flagFreeOnRelease) {
+							cairo_destroy(graphics);
+						}
 					}
 					return sl_null;
 
@@ -537,10 +541,10 @@ namespace slib
 
 	using namespace priv::cairo;
 
-	Ref<Canvas> GraphicsPlatform::createCanvas(CanvasType type, cairo_t* graphics, sl_uint32 width, sl_uint32 height)
+	Ref<Canvas> GraphicsPlatform::createCanvas(CanvasType type, cairo_t* graphics, sl_uint32 width, sl_uint32 height, sl_bool flagFreeOnRelease)
 	{
 		if (graphics) {
-			return CanvasImpl::create(type, graphics, (sl_real)width, (sl_real)height);
+			return CanvasImpl::create(type, graphics, (sl_real)width, (sl_real)height, flagFreeOnRelease);
 		}
 		return sl_null;
 	}

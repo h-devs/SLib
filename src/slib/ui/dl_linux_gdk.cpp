@@ -28,7 +28,7 @@ namespace slib
 {
 	namespace gdk
 	{
-		
+
 		gdouble wrap_gdk_screen_get_resolution(GdkScreen *screen)
 		{
 			auto func = getApi_gdk_screen_get_resolution();
@@ -46,6 +46,6 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 	}
 }

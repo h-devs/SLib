@@ -73,7 +73,7 @@ namespace slib
 					if (!xdisplay) {
 						return sl_null;
 					}
-					if (xwindow == X_None) {
+					if (!xwindow) { // None
 						return sl_null;
 					}
 					
@@ -163,7 +163,7 @@ namespace slib
 						}
 					}
 					
-					glXMakeCurrent(m_xdisplay, X_None, NULL);
+					glXMakeCurrent(m_xdisplay, 0, NULL);
 				}
 
 				void runStep(RenderEngine* engine)

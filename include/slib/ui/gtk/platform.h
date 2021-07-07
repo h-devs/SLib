@@ -61,12 +61,14 @@ namespace slib
 		static GtkWindow* getWindowHandle(WindowInstance* instance);
 		static GtkWindow* getWindowHandle(Window* window);
 
-		static Ref<Screen> createScreen(GdkScreen* handle);
-		static GdkScreen* getScreenHandle(Screen* screen);
-
 		static Ref<WindowInstance> getActiveWindowInstance();
 		
 		static sl_bool initializeGtk();
+		static sl_uint32 getGtkMajorVersion();
+		static sl_uint32 getGtkMinorVersion();
+		static sl_bool isSupportedGtk(sl_uint32 major);
+		static sl_bool isSupportedGtk(sl_uint32 major, sl_uint32 minor);
+
 		static void getGdkColor(const Color& color, GdkColor* outGdkColor);
 		static void getScreenLocationOfWidget(GtkWidget* widget, sl_ui_len* out_x = sl_null, sl_ui_len* out_y = sl_null);
 		static void setWidgetFont(GtkWidget* widget, const Ref<Font>& font);

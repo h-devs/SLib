@@ -55,7 +55,7 @@ namespace slib
 					EditView* view = (EditView*)_view;
 					GtkEntry* handle = (GtkEntry*)m_handle;
 
-					GTK_WIDGET_SET_FLAGS(handle, GTK_CAN_FOCUS);
+					gtk_widget_set_can_focus((GtkWidget*)handle, 1);
 					StringCstr text = view->getText();
 					if (text.isNotEmpty()) {
 						gtk_entry_set_text(handle, text.getData());
@@ -134,7 +134,10 @@ namespace slib
 				{
 					GtkEntry* handle = (GtkEntry*)m_handle;
 					if (handle) {
-						handle->editable = !flag;
+						GValue value = G_VALUE_INIT;
+						g_value_init(&value, G_TYPE_BOOLEAN);
+						g_value_set_boolean(&value, flag);
+						g_object_set_property((GObject*)handle, "editable", &value);
 					}
 				}
 
@@ -215,7 +218,7 @@ namespace slib
 					if (handleText) {
 						m_handleTextView = handleText;
 
-						GTK_WIDGET_SET_FLAGS(handleText, GTK_CAN_FOCUS);
+						gtk_widget_set_can_focus((GtkWidget*)handleText, 1);
 						gtk_container_add((GtkContainer*)handle, (GtkWidget*)handleText);
 						gtk_widget_show((GtkWidget*)handleText);
 

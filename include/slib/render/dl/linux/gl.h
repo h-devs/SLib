@@ -30,7 +30,13 @@
 #include "../../../core/dl.h"
 
 #include "gl/GLX/glx.h"
-#include "X11/slib_fix.h"
+
+#ifdef None
+#undef None
+#endif
+#ifdef Always
+#undef Always
+#endif
 
 namespace slib
 {

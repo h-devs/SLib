@@ -160,10 +160,10 @@ namespace slib
 					gint height = gdk_screen_get_height(screen);
 					if (width > 0 & height > 0) {
 						GdkPixbuf* pixbuf;
-						if (UIPlatform::getGtkMajorVersion() >= 3) {
-							pixbuf = gdk_pixbuf_get_from_window(root, 0, 0, width, height);
+						if (UIPlatform::isSupportedGtk(3)) {
+							pixbuf = gdk::getApi_gdk_pixbuf_get_from_window()(root, 0, 0, width, height);
 						} else {
-							pixbuf = gdk_pixbuf_get_from_drawable(sl_null, (GdkDrawable*)root, sl_null, 0, 0, 0, 0, width, height);
+							pixbuf = gdk_pixbuf_get_from_drawable(sl_null, root, sl_null, 0, 0, 0, 0, width, height);
 						}
 						if (pixbuf) {
 							Ref<Image> ret = GetImageFromPixbuf(pixbuf);

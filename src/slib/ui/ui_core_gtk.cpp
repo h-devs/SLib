@@ -30,8 +30,6 @@
 #include "slib/ui/app.h"
 #include "slib/ui/screen.h"
 
-#include "slib/core/safe_static.h"
-
 namespace slib
 {
 
@@ -46,50 +44,23 @@ namespace slib
 			class ScreenImpl : public Screen
 			{
 			public:
-				GdkScreen* m_screen;
 				UIRect m_region;
 				
 			public:
 				ScreenImpl()
 				{
-					m_screen = sl_null;
-				}
-
-				~ScreenImpl()
-				{
-					_release();
-				}
-
-			public:
-				static Ref<ScreenImpl> create(GdkScreen* screen)
-				{
+					GdkScreen* screen = gdk_screen_get_default();
 					if (screen) {
-						Ref<ScreenImpl> ret = new ScreenImpl();
-						if (ret.isNotNull()) {
-							g_object_ref_sink(screen);
-							ret->m_screen = screen;
-							UIRect region;
-							region.left = 0;
-							region.top = 0;
-							region.right = gdk_screen_get_width(screen);
-							region.bottom = gdk_screen_get_height(screen);
-							ret->m_region = region;
-							return ret;
-						}
-					}
-					return sl_null;
-				}
-				
-			public:
-				void _release()
-				{
-					GdkScreen* screen = m_screen;
-					if (screen) {
-						m_screen = sl_null;
-						g_object_unref(screen);
+						m_region.left = 0;
+						m_region.top = 0;
+						m_region.right = gdk_screen_get_width(screen);
+						m_region.bottom = gdk_screen_get_height(screen);
+					} else {
+						m_region.setZero();
 					}
 				}
 
+			public:
 				UIRect getRegion() override
 				{
 					return m_region;
@@ -120,28 +91,10 @@ namespace slib
 	}
 
 	using namespace priv::ui_core;
-	
-	sl_bool UIPlatform::initializeGtk()
-	{
-		g_thread_init(NULL);
-		gdk_threads_init();
-		if (gtk_init_check(sl_null, sl_null)) {
-			gdk_event_handler_set(EventHandler, sl_null, sl_null);
-			return sl_true;
-		}
-		return sl_false;
-	}
-	
+
 	Ref<Screen> UI::getPrimaryScreen()
 	{
-		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Screen>, ret)
-		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
-			return sl_null;
-		}
-		if (ret.isNull()) {
-			ret = ScreenImpl::create(gdk_screen_get_default());
-		}
-		return ret;
+		return new ScreenImpl;
 	}
 
 	Ref<Screen> UI::getFocusedScreen()
@@ -151,12 +104,7 @@ namespace slib
 
 	List< Ref<Screen> > UI::getScreens()
 	{
-		List< Ref<Screen> > ret;
-		Ref<Screen> screen = UI::getPrimaryScreen();
-		if (screen.isNotNull()) {
-			ret.add_NoLock(screen);
-		}
-		return ret;
+		return List< Ref<Screen> >::createFromElement(getPrimaryScreen());
 	}
 
 	sl_bool UI::isUiThread()
@@ -210,18 +158,77 @@ namespace slib
 		gtk_show_uri(NULL, url.getData(), GDK_CURRENT_TIME, &error);
 	}
 
-	Ref<Screen> UIPlatform::createScreen(GdkScreen* handle)
+	sl_bool UIPlatform::initializeGtk()
 	{
-		return ScreenImpl::create(handle);
+		g_thread_init(NULL);
+		gdk_threads_init();
+		if (gtk_init_check(sl_null, sl_null)) {
+			gdk_event_handler_set(EventHandler, sl_null, sl_null);
+			return sl_true;
+		}
+		return sl_false;
 	}
 
-	GdkScreen* UIPlatform::getScreenHandle(Screen* _screen)
+	sl_uint32 UIPlatform::getGtkMajorVersion()
 	{
-		ScreenImpl* screen = (ScreenImpl*)_screen;
-		if (screen) {
-			return screen->m_screen;
+		auto func = gtk::getApi_gtk_get_major_version();
+		if (func) {
+			return (sl_uint32)(func());
 		}
-		return sl_null;
+		if (gtk::getApi_gtk_init_check()) {
+			return 2;
+		}
+		return 0;
+	}
+
+	sl_uint32 UIPlatform::getGtkMinorVersion()
+	{
+		auto func = gtk::getApi_gtk_get_minor_version();
+		if (func) {
+			return (sl_uint32)(func());
+		}
+		return 0;
+	}
+
+	sl_bool UIPlatform::isSupportedGtk(sl_uint32 major)
+	{
+		if (major >= 3) {
+			auto funcMajor = gtk::getApi_gtk_get_major_version();
+			if (!funcMajor) {
+				return sl_false;
+			}
+			return (sl_uint32)(funcMajor()) >= major;
+		} else {
+			if (gtk::getApi_gtk_init_check()) {
+				return sl_true;
+			} else {
+				return sl_false;
+			}
+		}
+	}
+
+	sl_bool UIPlatform::isSupportedGtk(sl_uint32 major, sl_uint32 minor)
+	{
+		if (major >= 3) {
+			auto funcMajor = gtk::getApi_gtk_get_major_version();
+			if (!funcMajor) {
+				return sl_false;
+			}
+			sl_uint32 _major = (sl_uint32)(funcMajor());
+			if (_major < major) {
+				return sl_false;
+			}
+			if (_major > major) {
+				return sl_true;
+			}
+			return (gtk::getApi_gtk_get_minor_version())() >= minor;
+		} else {
+			if (gtk::getApi_gtk_init_check()) {
+				return sl_true;
+			} else {
+				return sl_false;
+			}
+		}
 	}
 
 	void UIPlatform::runLoop(sl_uint32 level)

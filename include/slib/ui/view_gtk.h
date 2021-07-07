@@ -129,10 +129,15 @@ namespace slib
 		void installEvents(gint mask);
 
 		static gboolean eventCallback(GtkWidget* widget, GdkEvent* event, gpointer user_data);
-		
+
+		static gboolean drawCallback(GtkWidget* widget, cairo_t* cr, gpointer user_data);
+
 	public:
+		// GTK 2
 		virtual void onExposeEvent(GdkEventExpose* event);
-		
+		// GTK 3
+		virtual void onDrawEvent(cairo_t* cr);
+
 		virtual gboolean onMotionNotifyEvent(GdkEventMotion* event);
 		
 		virtual gboolean onButtonEvent(GdkEventButton* event);

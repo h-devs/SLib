@@ -311,7 +311,7 @@ namespace slib
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
-			GdkWindow* window = handle->window;
+			GdkWindow* window = gtk_widget_get_window(handle);
 			if (window) {
 				gdk_window_raise(window);
 			}
@@ -338,8 +338,13 @@ namespace slib
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
-			g_signal_connect(handle, "expose_event", G_CALLBACK(eventCallback), handle);
-			installEvents(GDK_EXPOSURE_MASK | getEventMask());
+			if (UIPlatform::isSupportedGtk(3)) {
+				g_signal_connect(handle, "draw", G_CALLBACK(drawCallback), handle);
+				installEvents(getEventMask());
+			} else {
+				g_signal_connect(handle, "expose_event", G_CALLBACK(eventCallback), handle);
+				installEvents(GDK_EXPOSURE_MASK | getEventMask());
+			}
 		}
 	}
 
@@ -391,7 +396,18 @@ namespace slib
 					return instance->onScrollEvent((GdkEventScroll*)event);
 				case GDK_FOCUS_CHANGE:
 					return instance->onFocusEvent((GdkEventFocus*)event);
+				default:
+					break;
 			}
+		}
+		return sl_false;
+	}
+
+	gboolean GTK_ViewInstance::drawCallback(GtkWidget*, cairo_t* cairo, gpointer user_data)
+	{
+		Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::from(UIPlatform::getViewInstance((GtkWidget*)user_data));
+		if (instance.isNotNull()) {
+			instance->onDrawEvent(cairo);
 		}
 		return sl_false;
 	}
@@ -400,18 +416,19 @@ namespace slib
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
-			GdkWindow* window = handle->window;
+			GdkWindow* window = gtk_widget_get_window(handle);
 			if (window) {
 				cairo_t* cairo = gdk_cairo_create(window);
 				if (cairo) {
-					GtkAllocation region = handle->allocation;
-					Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, cairo, region.width, region.height);
+					GtkAllocation region;
+					gtk_widget_get_allocation(handle, &region);
+					Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, cairo, (sl_uint32)(region.width), (sl_uint32)(region.height));
 					if (canvas.isNotNull()) {
 						Rectangle rect;
-						rect.left = event->area.x;
-						rect.top = event->area.y;
-						rect.right = rect.left + event->area.width;
-						rect.bottom = rect.top + event->area.height;
+						rect.left = (sl_real)(event->area.x);
+						rect.top = (sl_real)(event->area.y);
+						rect.right = (sl_real)(rect.left + event->area.width);
+						rect.bottom = (sl_real)(rect.top + event->area.height);
 						canvas->setInvalidatedRect(rect);
 						onDraw(canvas.get());
 					}
@@ -419,7 +436,29 @@ namespace slib
 			}
 		}
 	}
-	
+
+	void GTK_ViewInstance::onDrawEvent(cairo_t* cairo)
+	{
+		GtkWidget* handle = m_handle;
+		if (handle) {
+			int width = gtk::getApi_gtk_widget_get_allocated_width()(handle);
+			int height = gtk::getApi_gtk_widget_get_allocated_height()(handle);
+			Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, cairo, (sl_uint32)width, (sl_uint32)height, sl_false);
+			if (canvas.isNotNull()) {
+				GdkRectangle grc;
+				if (gdk::getApi_gdk_cairo_get_clip_rectangle()(cairo, &grc)) {
+					Rectangle rect;
+					rect.left = (sl_real)(grc.x);
+					rect.top = (sl_real)(grc.y);
+					rect.right = (sl_real)(grc.width);
+					rect.bottom = (sl_real)(grc.height);
+					canvas->setInvalidatedRect(rect);
+				}
+				onDraw(canvas.get());
+			}
+		}
+	}
+
 	gboolean GTK_ViewInstance::onMotionNotifyEvent(GdkEventMotion* gevent)
 	{
 		GtkWidget* handle = m_handle;
@@ -480,7 +519,7 @@ namespace slib
 			time.setMillisecondsCount(gevent->time);
 			gdouble x = gevent->x;
 			gdouble y = gevent->y;
-			GdkWindow* window = handle->window;
+			GdkWindow* window = gtk_widget_get_window(handle);
 			if (window && window != gevent->window) {
 				gint wx = 0, wy = 0;
 				gdk_window_get_origin(window, &wx, &wy);
@@ -513,7 +552,7 @@ namespace slib
 			time.setMillisecondsCount(gevent->time);
 			gdouble x = gevent->x;
 			gdouble y = gevent->y;
-			GdkWindow* window = handle->window;
+			GdkWindow* window = gtk_widget_get_window(handle);
 			if (window && window != gevent->window) {
 				gint wx = 0, wy = 0;
 				gdk_window_get_origin(window, &wx, &wy);
@@ -582,7 +621,7 @@ namespace slib
 			time.setMillisecondsCount(gevent->time);
 			gdouble x = gevent->x;
 			gdouble y = gevent->y;
-			GdkWindow* window = handle->window;
+			GdkWindow* window = gtk_widget_get_window(handle);
 			if (window && window != gevent->window) {
 				gint wx = 0, wy = 0;
 				gdk_window_get_origin(window, &wx, &wy);
@@ -650,8 +689,8 @@ namespace slib
 		}
 		
 		if (handle) {
-			GTK_WIDGET_UNSET_FLAGS(handle, GTK_NO_WINDOW);
-			GTK_WIDGET_SET_FLAGS(handle, GTK_CAN_FOCUS);
+			gtk_widget_set_has_window(handle, 1);
+			gtk_widget_set_can_focus(handle, 1);
 			Ref<GTK_ViewInstance> ret = GTK_ViewInstance::create<GTK_ViewInstance>(this, parent, handle);
 			if (ret.isNotNull()) {
 				return ret;
@@ -721,12 +760,13 @@ namespace slib
 	{
 		sl_ui_len x = 0;
 		sl_ui_len y = 0;
-		GdkWindow* window = widget->window;
+		GdkWindow* window = gtk_widget_get_window(widget);
 		if (window) {
 			gint ox = 0;
 			gint oy = 0;
 			gdk_window_get_origin(window, &ox, &oy);
-			GtkAllocation allocation = widget->allocation;
+			GtkAllocation allocation;
+			gtk_widget_get_allocation(widget, &allocation);
 			x = ox + allocation.x;
 			y = oy + allocation.y;
 		}

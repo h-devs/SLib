@@ -202,7 +202,7 @@ namespace slib
 		m_onBalloonTimeout(this);
 	}
 
-	void SystemTrayIcon::notify_NI(const SystemTrayIconNotifyParam& param)
+	void SystemTrayIcon::notify_NI(const SystemTrayIconNotifyParam&)
 	{
 	}
 
@@ -228,7 +228,7 @@ namespace slib
 		m_onBalloonTimeout = param.onBalloonTimeout;
 	}
 
-#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32)
+#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_GTK)
 	Ref<SystemTrayIcon> SystemTrayIcon::create(const SystemTrayIconParam& param)
 	{
 		return sl_null;

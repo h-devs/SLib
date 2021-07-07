@@ -30,10 +30,12 @@
 #include "../../../core/dl.h"
 
 #include "gtk/gtk.h"
-#include "gtk/gdk/x11/gdkx.h"
 
-#include "X11/Xlib.h"
-#include "X11/slib_fix.h"
+// GTK2 Compatible Support
+#define GdkDrawable void
+#define GdkColormap void
+#define Display void
+#define XID unsigned long
 
 namespace slib
 {
@@ -266,13 +268,11 @@ namespace slib
 			GdkDisplay *, ,
 			GdkWindow *window
 		)
-		#define gdk_window_get_display slib::gdk::getApi_gdk_window_get_display()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gdk_x11_display_get_xdisplay,
 			Display *, ,
 			GdkDisplay  *display
 		)
-		#define gdk_x11_display_get_xdisplay slib::gdk::getApi_gdk_x11_display_get_xdisplay()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gdk_window_invalidate_rect,
 			void, ,
@@ -370,13 +370,11 @@ namespace slib
 			int, ,
 			GdkWindow *window
 		)
-		#define gdk_window_get_width slib::gdk::getApi_gdk_window_get_width()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gdk_window_get_height,
 			int, ,
 			GdkWindow *window
 		)
-		#define gdk_window_get_height slib::gdk::getApi_gdk_window_get_height()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gdk_pixbuf_get_from_window,
 			GdkPixbuf *, ,
@@ -386,11 +384,26 @@ namespace slib
 			gint width,
 			gint height
 		)
-		#define gdk_pixbuf_get_from_window slib::gdk::getApi_gdk_pixbuf_get_from_window()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_cairo_get_clip_rectangle,
+			gboolean, ,
+			cairo_t *cr,
+			GdkRectangle *rect
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_x11_window_get_xid,
+			XID, ,
+			GdkWindow   *window
+		)
 
 	SLIB_IMPORT_LIBRARY_END
 
 }
+
+#undef GdkDrawable
+#undef GdkColormap
+#undef Display
+#undef XID
 
 #endif
 

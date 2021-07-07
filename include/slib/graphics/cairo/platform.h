@@ -48,7 +48,7 @@ namespace slib
 	public:
 		static PangoFontDescription* getPangoFont(Font* font);
 
-		static Ref<Canvas> createCanvas(CanvasType type, cairo_t* graphics, sl_uint32 width, sl_uint32 height);
+		static Ref<Canvas> createCanvas(CanvasType type, cairo_t* graphics, sl_uint32 width, sl_uint32 height, sl_bool flagFreeOnRelease = sl_true);
 		static cairo_t* getCanvasHandle(Canvas* canvas);
 
 		static Ref<Bitmap> createBitmap(cairo_surface_t* bitmap, sl_bool flagFreeOnRelease = sl_true, Referable* ref = sl_null);

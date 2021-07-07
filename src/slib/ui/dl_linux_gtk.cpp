@@ -26,6 +26,14 @@
 
 namespace slib
 {
+
+	namespace gobject
+	{
+		typedef GTypeInstance* (*DL_FUNC_TYPE_g_type_check_instance_cast)(GTypeInstance *instance, GType iface_type);
+		DL_FUNC_TYPE_g_type_check_instance_cast getApi_g_type_check_instance_cast();
+		#define g_type_check_instance_cast slib::gobject::getApi_g_type_check_instance_cast()
+	}
+
 	namespace gtk
 	{
 
@@ -59,20 +67,87 @@ namespace slib
 			}
 		}
 
-		GdkWindow * wrap_gtk_widget_get_window(GtkWidget *widget)
-		{
-			auto func = getApi_gtk_widget_get_window();
-			if (func) {
-				return func(widget);
-			}
-			return sl_null;
-		}
-
 		void wrap_gtk_file_chooser_set_create_folders(GtkFileChooser *chooser, gboolean create_folders)
 		{
 			auto func = getApi_gtk_file_chooser_set_create_folders();
 			if (func) {
 				return func(chooser, create_folders);
+			}
+		}
+
+
+		// GTK2 Support
+		struct Gtk2Object
+		{
+			GInitiallyUnowned parent_instance;
+			guint32 flags;
+		};
+
+		struct Gtk2Widget
+		{
+			Gtk2Object object;
+			guint16 private_flags;
+			guint8 state;
+			guint8 saved_state;
+			gchar *name;
+			GtkStyle *style;
+			GtkRequisition requisition;
+			GtkAllocation allocation;
+			GdkWindow *window;
+			GtkWidget *parent;
+		};
+
+#define GTK_NO_WINDOW (1 << 5)
+#define GTK_CAN_FOCUS (1 << 11)
+
+#define GTK_WIDGET_SET_FLAGS(w, f) (reinterpret_cast<Gtk2Object*>(w))->flags |= (f)
+#define GTK_WIDGET_UNSET_FLAGS(w, f) (reinterpret_cast<Gtk2Object*>(w))->flags &= ~(f)
+
+		void wrap_gtk_widget_set_can_focus(GtkWidget *widget, gboolean can_focus)
+		{
+			auto func = getApi_gtk_widget_set_can_focus();
+			if (func) {
+				func(widget, can_focus);
+			} else {
+				if (can_focus) {
+					GTK_WIDGET_SET_FLAGS(widget, GTK_CAN_FOCUS);
+				} else {
+					GTK_WIDGET_UNSET_FLAGS(widget, GTK_CAN_FOCUS);
+				}
+			}
+		}
+
+		void wrap_gtk_widget_set_has_window(GtkWidget *widget, gboolean has_window)
+		{
+			auto func = getApi_gtk_widget_set_has_window();
+			if (func) {
+				func(widget, has_window);
+			} else {
+				if (has_window) {
+					GTK_WIDGET_UNSET_FLAGS(widget, GTK_NO_WINDOW);
+				} else {
+					GTK_WIDGET_SET_FLAGS(widget, GTK_NO_WINDOW);
+				}
+			}
+		}
+
+		GdkWindow* wrap_gtk_widget_get_window(GtkWidget *widget)
+		{
+			auto func = getApi_gtk_widget_get_window();
+			if (func) {
+				return func(widget);
+			} else {
+				return (reinterpret_cast<Gtk2Widget*>(widget))->window;
+			}
+		}
+
+		void wrap_gtk_widget_get_allocation(GtkWidget *widget, GtkAllocation* allocation)
+		{
+			auto func = getApi_gtk_widget_get_allocation();
+			if (func) {
+				func(widget, allocation);
+			} else {
+				*allocation = (reinterpret_cast<Gtk2Widget*>(widget))->allocation;
 			}
 		}
 

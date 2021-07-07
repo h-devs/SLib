@@ -387,6 +387,20 @@ namespace slib
 			GtkWindow *window
 		)
 		#define gtk_window_fullscreen slib::gtk::getApi_gtk_window_fullscreen()
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
+			gtk_widget_set_can_focus,
+			void, ,
+			GtkWidget *widget,
+			gboolean can_focus
+		)
+		#define gtk_widget_set_can_focus slib::gtk::wrap_gtk_widget_set_can_focus
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
+			gtk_widget_set_has_window,
+			void, ,
+			GtkWidget *widget,
+			gboolean has_window
+		)
+		#define gtk_widget_set_has_window slib::gtk::wrap_gtk_widget_set_has_window
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_widget_set_sensitive,
 			void, ,
@@ -434,6 +448,13 @@ namespace slib
 			GtkWidget *widget
 		)
 		#define gtk_widget_get_window slib::gtk::wrap_gtk_widget_get_window
+		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
+			gtk_widget_get_allocation,
+			void, ,
+			GtkWidget *widget,
+			GtkAllocation *allocation
+		)
+		#define gtk_widget_get_allocation slib::gtk::wrap_gtk_widget_get_allocation
 		SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(
 			gtk_widget_get_realized,
 			gboolean, ,
@@ -1348,6 +1369,26 @@ namespace slib
 		)
 		#define gtk_widget_queue_resize slib::gtk::getApi_gtk_widget_queue_resize()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_widget_add_accelerator,
+			void, ,
+			GtkWidget           *widget,
+			const gchar         *accel_signal,
+			GtkAccelGroup       *accel_group,
+			guint                accel_key,
+			GdkModifierType      accel_mods,
+			GtkAccelFlags        accel_flags
+		)
+		#define gtk_widget_add_accelerator slib::gtk::getApi_gtk_widget_add_accelerator()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_widget_remove_accelerator,
+			gboolean, ,
+			GtkWidget           *widget,
+			GtkAccelGroup       *accel_group,
+			guint                accel_key,
+			GdkModifierType      accel_mods
+		)
+		#define gtk_widget_remove_accelerator slib::gtk::getApi_gtk_widget_remove_accelerator()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_tree_model_row_changed,
 			void, ,
 			GtkTreeModel *tree_model,
@@ -1553,12 +1594,33 @@ namespace slib
 			gboolean is_active
 		)
 		#define gtk_check_menu_item_set_active slib::gtk::getApi_gtk_check_menu_item_set_active()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_accel_group_new,
+			GtkAccelGroup*, ,
+			void
+		)
+		#define gtk_accel_group_new slib::gtk::getApi_gtk_accel_group_new()
 
 		// GTK3
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_get_major_version,
 			guint, ,
 			void
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_get_minor_version,
+			guint, ,
+			void
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_widget_get_allocated_width,
+			int, ,
+			GtkWidget *widget
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_widget_get_allocated_height,
+			int, ,
+			GtkWidget *widget
 		)
 
 	SLIB_IMPORT_LIBRARY_END

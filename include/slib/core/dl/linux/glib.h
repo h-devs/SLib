@@ -199,6 +199,13 @@ namespace slib
 		)
 		#define g_value_set_string slib::gobject::getApi_g_value_set_string()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_value_set_boolean,
+			void, ,
+			GValue *value,
+			const gboolean v_boolean
+		)
+		#define g_value_set_boolean slib::gobject::getApi_g_value_set_boolean()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_object_set_data,
 			void, ,
 			GObject *object,
@@ -213,6 +220,14 @@ namespace slib
 			const gchar	*key
 		)
 		#define g_object_get_data slib::gobject::getApi_g_object_get_data()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_object_set_property,
+			void, ,
+			GObject        *object,
+			const gchar    *property_name,
+			const GValue   *value
+		)
+		#define g_object_set_property slib::gobject::getApi_g_object_set_property()
 	    SLIB_IMPORT_LIBRARY_FUNCTION(
 	        g_type_class_adjust_private_offset,
 	        void, ,

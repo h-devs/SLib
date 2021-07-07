@@ -305,7 +305,7 @@ namespace slib
 					if (handle) {
 						m_handleTreeView = handle;
 
-						GTK_WIDGET_SET_FLAGS(handle, GTK_CAN_FOCUS);
+						gtk_widget_set_can_focus((GtkWidget*)handle, 1);
 						gtk_container_add((GtkContainer*)handleScrollWindow, (GtkWidget*)handle);
 						gtk_widget_show((GtkWidget*)handle);
 

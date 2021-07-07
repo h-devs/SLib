@@ -77,36 +77,61 @@ namespace slib
 		StringCstr _caption(caption);
 		gtk_window_set_title((GtkWindow*)dialog, _caption.getData());
 		
+		sl_bool flagUseStock = !(UIPlatform::isSupportedGtk(3, 10));
+		sl_bool flagGtk3 = UIPlatform::isSupportedGtk(3);
+
 		StringCstr szTitleOk = titleOk;
 		if (titleOk.isEmpty()) {
-			szTitleOk = GTK_STOCK_OK;
+			if (flagUseStock) {
+				szTitleOk = "gtk-ok"; // GTK_OK
+			} else {
+				szTitleOk = "_OK";
+			}
 		}
-		StringCstr szTitleCancel = titleCancel.getData();
+		StringCstr szTitleCancel = titleCancel;
 		if (titleCancel.isEmpty()) {
-			szTitleCancel = GTK_STOCK_CANCEL;
+			if (flagUseStock) {
+				szTitleCancel = "gtk-cancel"; // GTK_STOCK_CANCEL
+			} else {
+				szTitleCancel = "_Cancel";
+			}
 		}
-		StringCstr szTitleYes = titleYes.getData();
+		StringCstr szTitleYes = titleYes;
 		if (titleYes.isEmpty()) {
-			szTitleYes = GTK_STOCK_YES;
+			if (flagUseStock) {
+				szTitleYes = "gtk-yes"; // GTK_STOCK_YES
+			} else {
+				szTitleYes = "Yes";
+			}
 		}
-		StringCstr szTitleNo = titleNo.getData();
+		StringCstr szTitleNo = titleNo;
 		if (titleNo.isEmpty()) {
-			szTitleNo = GTK_STOCK_NO;
+			if (flagUseStock) {
+				szTitleNo = "gtk-no"; // GTK_STOCK_NO
+			} else {
+				szTitleNo = "No";
+			}
 		}
 		
 		if (buttons == AlertDialogButtons::OkCancel) {
 			gtk_dialog_add_button(dialog, szTitleOk.getData(), GTK_RESPONSE_OK);
 			gtk_dialog_add_button(dialog, szTitleCancel.getData(), GTK_RESPONSE_CANCEL);
-			gtk_dialog_set_alternative_button_order(dialog, GTK_RESPONSE_OK, GTK_RESPONSE_CANCEL, -1);
+			if (!flagGtk3) {
+				gtk_dialog_set_alternative_button_order(dialog, GTK_RESPONSE_OK, GTK_RESPONSE_CANCEL, -1);
+			}
 		} else if (buttons == AlertDialogButtons::YesNo) {
 			gtk_dialog_add_button(dialog, szTitleYes.getData(), GTK_RESPONSE_YES);
 			gtk_dialog_add_button(dialog, szTitleNo.getData(), GTK_RESPONSE_NO);
-			gtk_dialog_set_alternative_button_order(dialog, GTK_RESPONSE_YES, GTK_RESPONSE_NO, -1);
+			if (!flagGtk3) {
+				gtk_dialog_set_alternative_button_order(dialog, GTK_RESPONSE_YES, GTK_RESPONSE_NO, -1);
+			}
 		} else if (buttons == AlertDialogButtons::YesNoCancel) {
 			gtk_dialog_add_button(dialog, szTitleYes.getData(), GTK_RESPONSE_YES);
 			gtk_dialog_add_button(dialog, szTitleNo.getData(), GTK_RESPONSE_NO);
 			gtk_dialog_add_button(dialog, szTitleCancel.getData(), GTK_RESPONSE_CANCEL);
-			gtk_dialog_set_alternative_button_order(dialog, GTK_RESPONSE_YES, GTK_RESPONSE_NO, GTK_RESPONSE_CANCEL, -1);
+			if (!flagGtk3) {
+				gtk_dialog_set_alternative_button_order(dialog, GTK_RESPONSE_YES, GTK_RESPONSE_NO, GTK_RESPONSE_CANCEL, -1);
+			}
 		} else {
 			gtk_dialog_add_button(dialog, szTitleOk.getData(), GTK_RESPONSE_OK);
 		}
@@ -149,7 +174,8 @@ namespace slib
 		StringCstr szTitle = title;
 		
 		GtkWindow* hParent = UIPlatform::getWindowHandle(parent.get());
-		
+		sl_bool flagUseStock = !(UIPlatform::isSupportedGtk(3, 10));
+
 		GtkFileChooserAction action;
 		const char* szButtonAccept;
 		if (type == FileDialogType::SelectDirectory) {
@@ -157,10 +183,10 @@ namespace slib
 			szButtonAccept = "Select";
 		} else if (type == FileDialogType::OpenFile || type == FileDialogType::OpenFiles) {
 			action = GTK_FILE_CHOOSER_ACTION_OPEN;
-			szButtonAccept = GTK_STOCK_OPEN;
+			szButtonAccept = flagUseStock ? "gtk-open" : "_Open"; // GTK_STOCK_OPEN
 		} else if (type == FileDialogType::SaveFile) {
 			action = GTK_FILE_CHOOSER_ACTION_SAVE;
-			szButtonAccept = GTK_STOCK_SAVE;
+			szButtonAccept = flagUseStock ? "gtk-save" : "_Save"; // GTK_STOCK_SAVE
 		} else {
 			return DialogResult::Error;
 		}
@@ -169,8 +195,10 @@ namespace slib
 			gtk_file_chooser_dialog_new(szTitle.getData(),
 										hParent,
 										action,
-										GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-										szButtonAccept, GTK_RESPONSE_ACCEPT,
+										flagUseStock ? "gtk-cancel" : "_Cancel", // GTK_STOCK_CANCEL
+										GTK_RESPONSE_CANCEL,
+										szButtonAccept,
+										GTK_RESPONSE_ACCEPT,
 										sl_null)
 		);
 		if (!dialog) {

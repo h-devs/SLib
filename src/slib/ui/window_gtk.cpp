@@ -209,7 +209,7 @@ namespace slib
 						GtkWidget* contentWidget = gtk_fixed_new();
 						if (contentWidget) {
 							gtk_container_add((GtkContainer*)contentBox, contentWidget);
-							GTK_WIDGET_SET_FLAGS(contentWidget, GTK_CAN_FOCUS);
+							gtk_widget_set_can_focus(contentWidget, 1);
 							gtk_widget_show(contentWidget);
 							Ref<GTK_ViewInstance> content = GTK_ViewInstance::create<GTK_ViewInstance>(contentWidget);
 							if (content.isNotNull()) {
@@ -325,10 +325,17 @@ namespace slib
 						if (window) {
 							m_location = frame.getLocation();
 							m_size = frame.getSize();
+							sl_ui_len width = m_size.x;
+							sl_ui_len height = m_size.y;
+							UIEdgeInsets insets;
+							if (getClientInsets(insets)) {
+								width -= insets.left + insets.right;
+								height -= insets.top + insets.bottom;
+							}
 							if (m_flagResizable) {
-								gtk_window_resize(window, (gint)(frame.getWidth()), (gint)(frame.getHeight()));
+								gtk_window_resize(window, (gint)width, (gint)height);
 							} else {
-								gtk_widget_set_size_request((GtkWidget*)window, (gint)(frame.getWidth()), (gint)(frame.getHeight()));
+								gtk_widget_set_size_request((GtkWidget*)window, (gint)width, (gint)height);
 							}
 							gtk_window_move(window, (gint)(frame.left), (gint)(frame.top));
 						}
@@ -607,7 +614,9 @@ namespace slib
 				{
 					GtkWidget* menu = m_widgetMenu;
 					if (menu) {
-						gint h = menu->allocation.height;
+						GtkAllocation allocation;
+						gtk_widget_get_allocation(menu, &allocation);
+						gint h = allocation.height;
 						if (h > 0) {
 							return (sl_ui_len)h;
 						}
@@ -672,8 +681,12 @@ namespace slib
 					return sl_false;
 				}
 
-				void _on_configure_event(GtkWindow* window, GdkEventConfigure* event)
+				void _on_process_configure()
 				{
+					GtkWindow* window = m_window;
+					if (!window) {
+						return;
+					}
 					gint x, y, width, height;
 					gtk_window_get_position(window, &x, &y);
 					gtk_window_get_size(window, &width, &height);
@@ -696,6 +709,15 @@ namespace slib
 						m_location.x = x;
 						m_location.y = y;
 						onMove();
+					}
+				}
+
+				void _on_configure_event(GtkWindow* window, GdkEventConfigure* event)
+				{
+					if (UIPlatform::isSupportedGtk(3)) {
+						UI::dispatchToUiThread(SLIB_FUNCTION_WEAKREF(GTK_WindowInstance, _on_process_configure, this));
+					} else {
+						_on_process_configure();
 					}
 				}
 

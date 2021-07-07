@@ -45,7 +45,6 @@ namespace slib
 			typedef CHashMap< GtkMenuShell*, WeakRef<MenuImpl> > MenuMap;
 			SLIB_SAFE_STATIC_GETTER(MenuMap, GetMenuMap)
 
-
 			class MenuItemImpl : public MenuItem
 			{
 				SLIB_DECLARE_OBJECT
@@ -54,19 +53,30 @@ namespace slib
 				GtkMenuItem* m_handle;
 				sl_bool m_flagCheckable;
 
+				GtkAccelGroup* m_accelGroup;
+				sl_uint32 m_accelKey;
+				sl_uint32 m_accelMods;
+
 			public:
 				MenuItemImpl()
 				{
 					m_handle = sl_null;
 					m_flagCheckable = sl_false;
+
+					m_accelGroup = sl_null;
+					m_accelKey = 0;
+					m_accelMods = 0;
 				}
 
 				~MenuItemImpl()
 				{
-					GtkMenuItem* handle = m_handle;
-					if (handle) {
-						g_object_unref(handle);
-						m_handle = handle;
+					if (m_handle) {
+						g_object_unref(m_handle);
+						m_handle = sl_null;
+					}
+					if (m_accelGroup) {
+						g_object_unref(m_accelGroup);
+						m_accelGroup = sl_null;
 					}
 				}
 
@@ -84,13 +94,40 @@ namespace slib
 				void setShortcutKey(const KeycodeAndModifiers& km) override
 				{
 					MenuItem::setShortcutKey(km);
-					_setAccelString();
+					if (!m_handle) {
+						return;
+					}
+					ObjectLocker lock(this);
+					if (!m_accelGroup) {
+						m_accelGroup = gtk_accel_group_new();
+						if (!m_accelGroup) {
+							return;
+						}
+					}
+					if (m_accelKey) {
+						gtk_widget_remove_accelerator((GtkWidget*)m_handle, m_accelGroup, (guint)m_accelKey, (GdkModifierType)m_accelMods);
+					}
+					m_accelKey = UIEvent::getSystemKeycode(km.getKeycode());
+					sl_uint32 mods = 0;
+					if (km.isShiftKey()) {
+						mods |= GDK_SHIFT_MASK;
+					}
+					if (km.isControlKey()) {
+						mods |= GDK_CONTROL_MASK;
+					}
+					if (km.isAltKey()) {
+						mods |= GDK_MOD1_MASK;
+					}
+					if (km.isWindowsKey()) {
+						mods |= GDK_MOD4_MASK;
+					}
+					m_accelMods = mods;
+					gtk_widget_add_accelerator((GtkWidget*)m_handle, "accel", m_accelGroup, (guint)m_accelKey, (GdkModifierType)mods, GTK_ACCEL_VISIBLE);
 				}
 
 				void setSecondShortcutKey(const KeycodeAndModifiers& km) override
 				{
 					MenuItem::setSecondShortcutKey(km);
-					_setAccelString();
 				}
 
 				void setEnabled(sl_bool flag) override
@@ -112,36 +149,6 @@ namespace slib
 					MenuItem::setSubmenu(menu);
 					GtkMenuShell* hSubmenu = UIPlatform::getMenuHandle(menu);
 					gtk_menu_item_set_submenu(m_handle, (GtkWidget*)hSubmenu);
-				}
-
-				void _setAccelString()
-				{
-					GtkAccelLabel* label = (GtkAccelLabel*)(gtk_bin_get_child((GtkBin*)m_handle));
-					if (label) {
-						String text;
-						KeycodeAndModifiers& km1 = m_shortcutKey;
-						KeycodeAndModifiers& km2 = m_secondShortcutKey;
-						if (km1.getKeycode() != Keycode::Unknown) {
-							text = km1.toString();
-							if (km2.getKeycode() != Keycode::Unknown) {
-								text += ", ";
-								text += km2.toString();
-							}
-						}
-						if (text.equals(label->accel_string)) {
-							return;
-						}
-						if (label->accel_string) {
-							g_free(label->accel_string);
-						}
-						sl_size len = text.getLength();
-						void* p = g_malloc(len + len);
-						if (p) {
-							Base::copyMemory(p, text.getData(), len);
-							label->accel_string = (gchar*)p;
-							label->accel_string_width = (guint16)len;
-						}
-					}
 				}
 
 				static void _callback_activated(GtkMenuItem*, gpointer user_data)
@@ -279,7 +286,7 @@ namespace slib
 					}
 				}
 
-				static void _callback_menu_position(GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer user_data)
+				static void _callback_menu_position(GtkMenu*, gint *x, gint *y, gboolean *push_in, gpointer user_data)
 				{
 					UIPoint *pt = (UIPoint*)user_data;
 					*x = (gint)(pt->x);
@@ -344,9 +351,8 @@ namespace slib
 					ret->m_icon = param.icon;
 					ret->m_checkedIcon = param.checkedIcon;
 					ret->m_submenu = param.submenu;
-					ret->m_shortcutKey = param.shortcutKey;
 					ret->m_secondShortcutKey = param.secondShortcutKey;
-					ret->_setAccelString();
+					ret->setShortcutKey(param.shortcutKey);
 					ret->setAction(param.action);
 
 					g_signal_connect(item, "activate", G_CALLBACK(_callback_activated), ret.get());
