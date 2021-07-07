@@ -17,12 +17,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __ATK_TEXT_H__
+#define __ATK_TEXT_H__
+
 #if defined(ATK_DISABLE_SINGLE_INCLUDES) && !defined (__ATK_H_INSIDE__) && !defined (ATK_COMPILATION)
 #error "Only <atk/atk.h> can be included directly."
 #endif
-
-#ifndef __ATK_TEXT_H__
-#define __ATK_TEXT_H__
 
 #include <glib-object.h>
 #include <atk/atkobject.h>
@@ -31,8 +31,8 @@
 G_BEGIN_DECLS
 
 /**
- *AtkTextAttribute
- *@ATK_TEXT_ATTR_INVALID: Invalid attribute
+ *AtkTextAttribute:
+ *@ATK_TEXT_ATTR_INVALID: Invalid attribute, like bad spelling or grammar.
  *@ATK_TEXT_ATTR_LEFT_MARGIN: The pixel width of the left margin
  *@ATK_TEXT_ATTR_RIGHT_MARGIN: The pixel width of the right margin
  *@ATK_TEXT_ATTR_INDENT: The number of pixels that the text is indented
@@ -45,7 +45,7 @@ G_BEGIN_DECLS
  *@ATK_TEXT_ATTR_RISE: Number of pixels that the characters are risen above the baseline
  *@ATK_TEXT_ATTR_UNDERLINE: "none", "single", "double", "low", or "error"
  *@ATK_TEXT_ATTR_STRIKETHROUGH: "true" or "false" whether the text is strikethrough 
- *@ATK_TEXT_ATTR_SIZE: The size of the characters. 
+ *@ATK_TEXT_ATTR_SIZE: The size of the characters in points. eg: 10
  *@ATK_TEXT_ATTR_SCALE: The scale of the characters. The value is a string representation of a double 
  *@ATK_TEXT_ATTR_WEIGHT: The weight of the characters.
  *@ATK_TEXT_ATTR_LANGUAGE: The language used
@@ -97,6 +97,7 @@ typedef enum
   ATK_TEXT_ATTR_LAST_DEFINED
 } AtkTextAttribute;
 
+ATK_AVAILABLE_IN_ALL
 AtkTextAttribute         atk_text_attribute_register   (const gchar *name);
 
 
@@ -111,21 +112,27 @@ typedef struct _AtkText AtkText;
 #endif
 typedef struct _AtkTextIface AtkTextIface;
 
+
 /**
  *AtkTextBoundary:
- *@ATK_TEXT_BOUNDARY_CHAR: Boundary is the boundary between characters 
+ *@ATK_TEXT_BOUNDARY_CHAR: Boundary is the boundary between characters
  * (including non-printing characters)
- *@ATK_TEXT_BOUNDARY_WORD_START: Boundary is the start (i.e. first character) of a word. 
- *@ATK_TEXT_BOUNDARY_WORD_END: Boundary is the end (i.e. last character) of a word.
+ *@ATK_TEXT_BOUNDARY_WORD_START: Boundary is the start (i.e. first character) of a word.
+ *@ATK_TEXT_BOUNDARY_WORD_END: Boundary is the end (i.e. last
+ * character) of a word.
  *@ATK_TEXT_BOUNDARY_SENTENCE_START: Boundary is the first character in a sentence.
- *@ATK_TEXT_BOUNDARY_SENTENCE_END: Boundary is the last (terminal) character in a sentence; 
- * in languages which use "sentence stop" punctuation such as English, the boundary is thus the
- * '.', '?', or similar terminal punctuation character.
- *@ATK_TEXT_BOUNDARY_LINE_START: Boundary is the initial character of the content or a 
+ *@ATK_TEXT_BOUNDARY_SENTENCE_END: Boundary is the last (terminal)
+ * character in a sentence; in languages which use "sentence stop"
+ * punctuation such as English, the boundary is thus the '.', '?', or
+ * similar terminal punctuation character.
+ *@ATK_TEXT_BOUNDARY_LINE_START: Boundary is the initial character of the content or a
  * character immediately following a newline, linefeed, or return character.
- *@ATK_TEXT_BOUNDARY_LINE_END: Boundary is the linefeed, or return character.
+ *@ATK_TEXT_BOUNDARY_LINE_END: Boundary is the linefeed, or return
+ * character.
  *
- *Text boundary types used for specifying boundaries for regions of text
+ * Text boundary types used for specifying boundaries for regions of text.
+ * This enumeration is deprecated since 2.9.4 and should not be used. Use
+ * AtkTextGranularity with #atk_text_get_string_at_offset instead.
  **/
 typedef enum {
   ATK_TEXT_BOUNDARY_CHAR,
@@ -136,6 +143,34 @@ typedef enum {
   ATK_TEXT_BOUNDARY_LINE_START,
   ATK_TEXT_BOUNDARY_LINE_END
 } AtkTextBoundary;
+
+/**
+ *AtkTextGranularity:
+ *@ATK_TEXT_GRANULARITY_CHAR: Granularity is defined by the boundaries between characters
+ * (including non-printing characters)
+ *@ATK_TEXT_GRANULARITY_WORD: Granularity is defined by the boundaries of a word,
+ * starting at the beginning of the current word and finishing at the beginning of
+ * the following one, if present.
+ *@ATK_TEXT_GRANULARITY_SENTENCE: Granularity is defined by the boundaries of a sentence,
+ * starting at the beginning of the current sentence and finishing at the beginning of
+ * the following one, if present.
+ *@ATK_TEXT_GRANULARITY_LINE: Granularity is defined by the boundaries of a line,
+ * starting at the beginning of the current line and finishing at the beginning of
+ * the following one, if present.
+ *@ATK_TEXT_GRANULARITY_PARAGRAPH: Granularity is defined by the boundaries of a paragraph,
+ * starting at the beginning of the current paragraph and finishing at the beginning of
+ * the following one, if present.
+ *
+ * Text granularity types used for specifying the granularity of the region of
+ * text we are interested in.
+ **/
+typedef enum {
+  ATK_TEXT_GRANULARITY_CHAR,
+  ATK_TEXT_GRANULARITY_WORD,
+  ATK_TEXT_GRANULARITY_SENTENCE,
+  ATK_TEXT_GRANULARITY_LINE,
+  ATK_TEXT_GRANULARITY_PARAGRAPH
+} AtkTextGranularity;
 
 /**
  * AtkTextRectangle:
@@ -174,8 +209,11 @@ struct _AtkTextRange {
   gchar* content;
 };
 
+ATK_AVAILABLE_IN_ALL
+GType atk_text_range_get_type (void);
+
 /**
- *AtkTextClipType
+ *AtkTextClipType:
  *@ATK_TEXT_CLIP_NONE: No clipping to be done
  *@ATK_TEXT_CLIP_MIN: Text clipped by min coordinate is omitted
  *@ATK_TEXT_CLIP_MAX: Text clipped by max coordinate is omitted
@@ -190,6 +228,22 @@ typedef enum {
     ATK_TEXT_CLIP_BOTH
 } AtkTextClipType;
 
+/**
+ * AtkTextIface:
+ * @get_text_after_offset: Gets specified text. This virtual function
+ *   is deprecated and it should not be overridden.
+ * @get_text_at_offset: Gets specified text. This virtual function
+ *   is deprecated and it should not be overridden.
+ * @get_text_before_offset: Gets specified text. This virtual function
+ *   is deprecated and it should not be overridden.
+ * @get_string_at_offset: Gets a portion of the text exposed through
+ *   an AtkText according to a given offset and a specific
+ *   granularity, along with the start and end offsets defining the
+ *   boundaries of such a portion of text.
+ * @text_changed: the signal handler which is executed when there is a
+ *   text change. This virtual function is deprecated sice 2.9.4 and
+ *   it should not be overriden.
+ */
 struct _AtkTextIface
 {
   GTypeInterface parent;
@@ -273,11 +327,15 @@ struct _AtkTextIface
                                                    AtkCoordType     coord_type,
                                                    AtkTextClipType  x_clip_type,
                                                    AtkTextClipType  y_clip_type);
- 
 
-  AtkFunction    pad4;
+  gchar*         (* get_string_at_offset)         (AtkText            *text,
+                                                   gint               offset,
+                                                   AtkTextGranularity granularity,
+                                                   gint               *start_offset,
+                                                   gint               *end_offset);
 };
 
+ATK_AVAILABLE_IN_ALL
 GType            atk_text_get_type (void);
 
 
@@ -288,27 +346,40 @@ GType            atk_text_get_type (void);
  *                         editable text only)
  */
 
+ATK_AVAILABLE_IN_ALL
 gchar*        atk_text_get_text                           (AtkText          *text,
                                                            gint             start_offset,
                                                            gint             end_offset);
+ATK_AVAILABLE_IN_ALL
 gunichar      atk_text_get_character_at_offset            (AtkText          *text,
                                                            gint             offset);
+ATK_DEPRECATED_IN_2_10_FOR(atk_text_get_string_at_offset)
 gchar*        atk_text_get_text_after_offset              (AtkText          *text,
                                                            gint             offset,
                                                            AtkTextBoundary  boundary_type,
 							   gint             *start_offset,
 							   gint	            *end_offset);
+ATK_DEPRECATED_IN_2_10_FOR(atk_text_get_string_at_offset)
 gchar*        atk_text_get_text_at_offset                 (AtkText          *text,
                                                            gint             offset,
                                                            AtkTextBoundary  boundary_type,
 							   gint             *start_offset,
 							   gint             *end_offset);
+ATK_DEPRECATED_IN_2_10_FOR(atk_text_get_string_at_offset)
 gchar*        atk_text_get_text_before_offset             (AtkText          *text,
                                                            gint             offset,
                                                            AtkTextBoundary  boundary_type,
 							   gint             *start_offset,
 							   gint	            *end_offset);
+ATK_AVAILABLE_IN_2_10
+gchar*        atk_text_get_string_at_offset               (AtkText            *text,
+                                                           gint               offset,
+                                                           AtkTextGranularity granularity,
+                                                           gint               *start_offset,
+                                                           gint               *end_offset);
+ATK_AVAILABLE_IN_ALL
 gint          atk_text_get_caret_offset                   (AtkText          *text);
+ATK_AVAILABLE_IN_ALL
 void          atk_text_get_character_extents              (AtkText          *text,
                                                            gint             offset,
                                                            gint             *x,
@@ -316,48 +387,65 @@ void          atk_text_get_character_extents              (AtkText          *tex
                                                            gint             *width,
                                                            gint             *height,
                                                            AtkCoordType	    coords);
+ATK_AVAILABLE_IN_ALL
 AtkAttributeSet* atk_text_get_run_attributes              (AtkText	    *text,
 						           gint	  	    offset,
 						           gint             *start_offset,
 						           gint	 	    *end_offset);
+ATK_AVAILABLE_IN_ALL
 AtkAttributeSet* atk_text_get_default_attributes          (AtkText	    *text);
+ATK_AVAILABLE_IN_ALL
 gint          atk_text_get_character_count                (AtkText          *text);
+ATK_AVAILABLE_IN_ALL
 gint          atk_text_get_offset_at_point                (AtkText          *text,
                                                            gint             x,
                                                            gint             y,
                                                            AtkCoordType	    coords);
+ATK_AVAILABLE_IN_ALL
 gint          atk_text_get_n_selections			  (AtkText          *text);
+ATK_AVAILABLE_IN_ALL
 gchar*        atk_text_get_selection			  (AtkText          *text,
 							   gint		    selection_num,
 							   gint             *start_offset,
 							   gint             *end_offset);
+ATK_AVAILABLE_IN_ALL
 gboolean      atk_text_add_selection                      (AtkText          *text,
 							   gint             start_offset,
 							   gint             end_offset);
+ATK_AVAILABLE_IN_ALL
 gboolean      atk_text_remove_selection                   (AtkText          *text,
 							   gint		    selection_num);
+ATK_AVAILABLE_IN_ALL
 gboolean      atk_text_set_selection                      (AtkText          *text,
 							   gint		    selection_num,
 							   gint             start_offset,
 							   gint             end_offset);
+ATK_AVAILABLE_IN_ALL
 gboolean      atk_text_set_caret_offset                   (AtkText          *text,
                                                            gint             offset);
+ATK_AVAILABLE_IN_ALL
 void          atk_text_get_range_extents                  (AtkText          *text,
 
                                                            gint             start_offset,
                                                            gint             end_offset,
                                                            AtkCoordType     coord_type,
                                                            AtkTextRectangle *rect);
+ATK_AVAILABLE_IN_ALL
 AtkTextRange**  atk_text_get_bounded_ranges               (AtkText          *text,
                                                            AtkTextRectangle *rect,
                                                            AtkCoordType     coord_type,
                                                            AtkTextClipType  x_clip_type,
                                                            AtkTextClipType  y_clip_type);
+ATK_AVAILABLE_IN_ALL
 void          atk_text_free_ranges                        (AtkTextRange     **ranges);
+ATK_AVAILABLE_IN_ALL
 void 	      atk_attribute_set_free                      (AtkAttributeSet  *attrib_set);
-G_CONST_RETURN gchar*  atk_text_attribute_get_name        (AtkTextAttribute attr);
+ATK_AVAILABLE_IN_ALL
+const gchar*  atk_text_attribute_get_name                 (AtkTextAttribute attr);
+ATK_AVAILABLE_IN_ALL
 AtkTextAttribute       atk_text_attribute_for_name        (const gchar      *name);
-G_CONST_RETURN gchar*  atk_text_attribute_get_value       (AtkTextAttribute attr,
+ATK_AVAILABLE_IN_ALL
+const gchar*  atk_text_attribute_get_value                (AtkTextAttribute attr,
                                                            gint             index_);
 
 G_END_DECLS

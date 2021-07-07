@@ -17,12 +17,14 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __ATK_PLUG_H__
+#define __ATK_PLUG_H__
+
 #if defined(ATK_DISABLE_SINGLE_INCLUDES) && !defined (__ATK_H_INSIDE__) && !defined (ATK_COMPILATION)
 #error "Only <atk/atk.h> can be included directly."
 #endif
 
-#ifndef __ATK_PLUG_H__
-#define __ATK_PLUG_H__
+#include <atk/atkversion.h>
 
 G_BEGIN_DECLS
 
@@ -41,6 +43,7 @@ struct _AtkPlug
   AtkObject parent;
 };
 
+ATK_AVAILABLE_IN_ALL
 GType atk_plug_get_type (void);
 
 struct _AtkPlugClass
@@ -53,7 +56,9 @@ struct _AtkPlugClass
   gchar* (* get_object_id) (AtkPlug* obj);
 };
 
+ATK_AVAILABLE_IN_ALL
 AtkObject*    atk_plug_new     (void);
+ATK_AVAILABLE_IN_ALL
 gchar*        atk_plug_get_id  (AtkPlug* plug);
 
 G_END_DECLS

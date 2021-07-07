@@ -12,19 +12,17 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
-
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
 
 #ifndef __GTK_TREE_MODEL_SORT_H__
 #define __GTK_TREE_MODEL_SORT_H__
 
-#include <gdkconfig.h>
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
+
+#include <gdk/gdk.h>
 #include <gtk/gtktreemodel.h>
 #include <gtk/gtktreesortable.h>
 
@@ -37,36 +35,16 @@ G_BEGIN_DECLS
 #define GTK_IS_TREE_MODEL_SORT_CLASS(klass)		(G_TYPE_CHECK_CLASS_TYPE ((klass), GTK_TYPE_TREE_MODEL_SORT))
 #define GTK_TREE_MODEL_SORT_GET_CLASS(obj)		(G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_TREE_MODEL_SORT, GtkTreeModelSortClass))
 
-typedef struct _GtkTreeModelSort       GtkTreeModelSort;
-typedef struct _GtkTreeModelSortClass  GtkTreeModelSortClass;
+typedef struct _GtkTreeModelSort        GtkTreeModelSort;
+typedef struct _GtkTreeModelSortClass   GtkTreeModelSortClass;
+typedef struct _GtkTreeModelSortPrivate GtkTreeModelSortPrivate;
 
 struct _GtkTreeModelSort
 {
   GObject parent;
 
   /* < private > */
-  gpointer GSEAL (root);
-  gint GSEAL (stamp);
-  guint GSEAL (child_flags);
-  GtkTreeModel *GSEAL (child_model);
-  gint GSEAL (zero_ref_count);
-
-  /* sort information */
-  GList *GSEAL (sort_list);
-  gint GSEAL (sort_column_id);
-  GtkSortType GSEAL (order);
-
-  /* default sort */
-  GtkTreeIterCompareFunc GSEAL (default_sort_func);
-  gpointer GSEAL (default_sort_data);
-  GDestroyNotify GSEAL (default_sort_destroy);
-
-  /* signal ids */
-  guint GSEAL (changed_id);
-  guint GSEAL (inserted_id);
-  guint GSEAL (has_child_toggled_id);
-  guint GSEAL (deleted_id);
-  guint GSEAL (reordered_id);
+  GtkTreeModelSortPrivate *priv;
 };
 
 struct _GtkTreeModelSortClass
@@ -81,22 +59,32 @@ struct _GtkTreeModelSortClass
 };
 
 
+GDK_AVAILABLE_IN_ALL
 GType         gtk_tree_model_sort_get_type                   (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 GtkTreeModel *gtk_tree_model_sort_new_with_model             (GtkTreeModel     *child_model);
 
+GDK_AVAILABLE_IN_ALL
 GtkTreeModel *gtk_tree_model_sort_get_model                  (GtkTreeModelSort *tree_model);
+GDK_AVAILABLE_IN_ALL
 GtkTreePath  *gtk_tree_model_sort_convert_child_path_to_path (GtkTreeModelSort *tree_model_sort,
 							      GtkTreePath      *child_path);
+GDK_AVAILABLE_IN_ALL
 gboolean      gtk_tree_model_sort_convert_child_iter_to_iter (GtkTreeModelSort *tree_model_sort,
 							      GtkTreeIter      *sort_iter,
 							      GtkTreeIter      *child_iter);
+GDK_AVAILABLE_IN_ALL
 GtkTreePath  *gtk_tree_model_sort_convert_path_to_child_path (GtkTreeModelSort *tree_model_sort,
 							      GtkTreePath      *sorted_path);
+GDK_AVAILABLE_IN_ALL
 void          gtk_tree_model_sort_convert_iter_to_child_iter (GtkTreeModelSort *tree_model_sort,
 							      GtkTreeIter      *child_iter,
 							      GtkTreeIter      *sorted_iter);
+GDK_AVAILABLE_IN_ALL
 void          gtk_tree_model_sort_reset_default_sort_func    (GtkTreeModelSort *tree_model_sort);
+GDK_AVAILABLE_IN_ALL
 void          gtk_tree_model_sort_clear_cache                (GtkTreeModelSort *tree_model_sort);
+GDK_AVAILABLE_IN_ALL
 gboolean      gtk_tree_model_sort_iter_is_valid              (GtkTreeModelSort *tree_model_sort,
                                                               GtkTreeIter      *iter);
 

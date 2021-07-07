@@ -17,12 +17,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __ATK_HYPERLINK_H__
+#define __ATK_HYPERLINK_H__
+
 #if defined(ATK_DISABLE_SINGLE_INCLUDES) && !defined (__ATK_H_INSIDE__) && !defined (ATK_COMPILATION)
 #error "Only <atk/atk.h> can be included directly."
 #endif
-
-#ifndef __ATK_HYPERLINK_H__
-#define __ATK_HYPERLINK_H__
 
 #include <atk/atkaction.h>
 
@@ -35,7 +35,7 @@ G_BEGIN_DECLS
  */
 
 /**
- *AtkHyperlinkStateFlags
+ *AtkHyperlinkStateFlags:
  *@ATK_HYPERLINK_IS_INLINE: Link is inline
  *
  *Describes the type of link
@@ -80,26 +80,34 @@ struct _AtkHyperlinkClass
   AtkFunction      pad1;
 };
 
+ATK_AVAILABLE_IN_ALL
 GType            atk_hyperlink_get_type             (void);
 
+ATK_AVAILABLE_IN_ALL
 gchar*           atk_hyperlink_get_uri              (AtkHyperlink     *link_,
                                                      gint             i);
 
+ATK_AVAILABLE_IN_ALL
 AtkObject*       atk_hyperlink_get_object           (AtkHyperlink     *link_,
                                                      gint             i);
 
+ATK_AVAILABLE_IN_ALL
 gint             atk_hyperlink_get_end_index        (AtkHyperlink     *link_);
 
+ATK_AVAILABLE_IN_ALL
 gint             atk_hyperlink_get_start_index      (AtkHyperlink     *link_);
 
+ATK_AVAILABLE_IN_ALL
 gboolean         atk_hyperlink_is_valid             (AtkHyperlink     *link_);
 
+ATK_AVAILABLE_IN_ALL
 gboolean         atk_hyperlink_is_inline             (AtkHyperlink     *link_);
 
+ATK_AVAILABLE_IN_ALL
 gint		 atk_hyperlink_get_n_anchors        (AtkHyperlink     *link_);
-#ifndef ATK_DISABLE_DEPRECATED
+
+ATK_DEPRECATED
 gboolean         atk_hyperlink_is_selected_link     (AtkHyperlink     *link_);
-#endif /* ATK_DISABLE_DEPRECATED */
 
 G_END_DECLS
 

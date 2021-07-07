@@ -13,20 +13,18 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
-
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
 
 #ifndef __GTK_RECENT_CHOOSER_WIDGET_H__
 #define __GTK_RECENT_CHOOSER_WIDGET_H__
 
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
+
 #include <gtk/gtkrecentchooser.h>
-#include <gtk/gtkvbox.h>
+#include <gtk/gtkbox.h>
 
 G_BEGIN_DECLS
 
@@ -44,19 +42,28 @@ typedef struct _GtkRecentChooserWidgetPrivate GtkRecentChooserWidgetPrivate;
 
 struct _GtkRecentChooserWidget
 {
-  /*< private >*/
-  GtkVBox parent_instance;
+  GtkBox parent_instance;
 
-  GtkRecentChooserWidgetPrivate *GSEAL (priv);
+  /*< private >*/
+  GtkRecentChooserWidgetPrivate *priv;
 };
 
 struct _GtkRecentChooserWidgetClass
 {
-  GtkVBoxClass parent_class;
+  GtkBoxClass parent_class;
+
+  /* Padding for future expansion */
+  void (*_gtk_reserved1) (void);
+  void (*_gtk_reserved2) (void);
+  void (*_gtk_reserved3) (void);
+  void (*_gtk_reserved4) (void);
 };
 
+GDK_AVAILABLE_IN_ALL
 GType      gtk_recent_chooser_widget_get_type        (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 GtkWidget *gtk_recent_chooser_widget_new             (void);
+GDK_AVAILABLE_IN_ALL
 GtkWidget *gtk_recent_chooser_widget_new_for_manager (GtkRecentManager *manager);
 
 G_END_DECLS

@@ -12,9 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -24,20 +22,38 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GDK_H_INSIDE__) && !defined (GDK_COMPILATION)
-#error "Only <gdk/gdk.h> can be included directly."
-#endif
-
 #ifndef __GDK_KEYS_H__
 #define __GDK_KEYS_H__
 
+#if !defined (__GDK_H_INSIDE__) && !defined (GDK_COMPILATION)
+#error "Only <gdk/gdk.h> can be included directly."
+#endif
+
+#include <gdk/gdkversionmacros.h>
 #include <gdk/gdktypes.h>
 
 G_BEGIN_DECLS
 
+
 typedef struct _GdkKeymapKey GdkKeymapKey;
 
-/* GdkKeymapKey is a hardware key that can be mapped to a keyval */
+/**
+ * GdkKeymapKey:
+ * @keycode: the hardware keycode. This is an identifying number for a
+ *   physical key.
+ * @group: indicates movement in a horizontal direction. Usually groups are used
+ *   for two different languages. In group 0, a key might have two English
+ *   characters, and in group 1 it might have two Hebrew characters. The Hebrew
+ *   characters will be printed on the key next to the English characters.
+ * @level: indicates which symbol on the key will be used, in a vertical direction.
+ *   So on a standard US keyboard, the key with the number “1” on it also has the
+ *   exclamation point ("!") character on it. The level indicates whether to use
+ *   the “1” or the “!” symbol. The letter keys are considered to have a lowercase
+ *   letter at level 0, and an uppercase letter at level 1, though only the
+ *   uppercase letter is printed.
+ *
+ * A #GdkKeymapKey is a hardware key that can be mapped to a keyval.
+ */
 struct _GdkKeymapKey
 {
   guint keycode;
@@ -45,7 +61,15 @@ struct _GdkKeymapKey
   gint  level;
 };
 
-/* A GdkKeymap defines the translation from keyboard state
+
+#define GDK_TYPE_KEYMAP              (gdk_keymap_get_type ())
+#define GDK_KEYMAP(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_KEYMAP, GdkKeymap))
+#define GDK_IS_KEYMAP(object)        (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_KEYMAP))
+
+/**
+ * GdkKeymap:
+ *
+ * A #GdkKeymap defines the translation from keyboard state
  * (including a hardware key, a modifier mask, and active keyboard group)
  * to a keyval. This translation has two phases. The first phase is
  * to determine the effective keyboard group and level for the keyboard
@@ -53,41 +77,18 @@ struct _GdkKeymapKey
  * in the keymap and see what keyval it corresponds to.
  */
 
-typedef struct _GdkKeymap      GdkKeymap;
-typedef struct _GdkKeymapClass GdkKeymapClass;
-
-#define GDK_TYPE_KEYMAP              (gdk_keymap_get_type ())
-#define GDK_KEYMAP(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_KEYMAP, GdkKeymap))
-#define GDK_KEYMAP_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), GDK_TYPE_KEYMAP, GdkKeymapClass))
-#define GDK_IS_KEYMAP(object)        (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_KEYMAP))
-#define GDK_IS_KEYMAP_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), GDK_TYPE_KEYMAP))
-#define GDK_KEYMAP_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), GDK_TYPE_KEYMAP, GdkKeymapClass))
-
-struct _GdkKeymap
-{
-  GObject     parent_instance;
-  GdkDisplay *GSEAL (display);
-};
-
-struct _GdkKeymapClass
-{
-  GObjectClass parent_class;
-
-  void (*direction_changed) (GdkKeymap *keymap);
-  void (*keys_changed)      (GdkKeymap *keymap);
-  void (*state_changed)     (GdkKeymap *keymap);
-};
-
+GDK_AVAILABLE_IN_ALL
 GType gdk_keymap_get_type (void) G_GNUC_CONST;
 
-#ifndef GDK_MULTIHEAD_SAFE
+GDK_DEPRECATED_IN_3_22_FOR(gdk_keymap_get_for_display)
 GdkKeymap* gdk_keymap_get_default     (void);
-#endif
+GDK_AVAILABLE_IN_ALL
 GdkKeymap* gdk_keymap_get_for_display (GdkDisplay *display);
 
-
+GDK_AVAILABLE_IN_ALL
 guint          gdk_keymap_lookup_key               (GdkKeymap           *keymap,
 						    const GdkKeymapKey  *key);
+GDK_AVAILABLE_IN_ALL
 gboolean       gdk_keymap_translate_keyboard_state (GdkKeymap           *keymap,
 						    guint                hardware_keycode,
 						    GdkModifierType      state,
@@ -96,36 +97,64 @@ gboolean       gdk_keymap_translate_keyboard_state (GdkKeymap           *keymap,
 						    gint                *effective_group,
 						    gint                *level,
 						    GdkModifierType     *consumed_modifiers);
+GDK_AVAILABLE_IN_ALL
 gboolean       gdk_keymap_get_entries_for_keyval   (GdkKeymap           *keymap,
 						    guint                keyval,
 						    GdkKeymapKey       **keys,
 						    gint                *n_keys);
+GDK_AVAILABLE_IN_ALL
 gboolean       gdk_keymap_get_entries_for_keycode  (GdkKeymap           *keymap,
 						    guint                hardware_keycode,
 						    GdkKeymapKey       **keys,
 						    guint              **keyvals,
 						    gint                *n_entries);
+
+GDK_AVAILABLE_IN_ALL
 PangoDirection gdk_keymap_get_direction            (GdkKeymap           *keymap);
+GDK_AVAILABLE_IN_ALL
 gboolean       gdk_keymap_have_bidi_layouts        (GdkKeymap           *keymap);
+GDK_AVAILABLE_IN_ALL
 gboolean       gdk_keymap_get_caps_lock_state      (GdkKeymap           *keymap);
+GDK_AVAILABLE_IN_ALL
+gboolean       gdk_keymap_get_num_lock_state       (GdkKeymap           *keymap);
+GDK_AVAILABLE_IN_3_18
+gboolean       gdk_keymap_get_scroll_lock_state    (GdkKeymap           *keymap);
+GDK_AVAILABLE_IN_3_4
+guint          gdk_keymap_get_modifier_state       (GdkKeymap           *keymap);
+GDK_AVAILABLE_IN_ALL
 void           gdk_keymap_add_virtual_modifiers    (GdkKeymap           *keymap,
                                                     GdkModifierType     *state);
+GDK_AVAILABLE_IN_ALL
 gboolean       gdk_keymap_map_virtual_modifiers    (GdkKeymap           *keymap,
                                                     GdkModifierType     *state);
+GDK_AVAILABLE_IN_3_4
+GdkModifierType gdk_keymap_get_modifier_mask       (GdkKeymap           *keymap,
+                                                    GdkModifierIntent    intent);
+
 
 /* Key values
  */
+GDK_AVAILABLE_IN_ALL
 gchar*   gdk_keyval_name         (guint        keyval) G_GNUC_CONST;
+
+GDK_AVAILABLE_IN_ALL
 guint    gdk_keyval_from_name    (const gchar *keyval_name);
+GDK_AVAILABLE_IN_ALL
 void     gdk_keyval_convert_case (guint        symbol,
 				  guint       *lower,
 				  guint       *upper);
+GDK_AVAILABLE_IN_ALL
 guint    gdk_keyval_to_upper     (guint        keyval) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 guint    gdk_keyval_to_lower     (guint        keyval) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 gboolean gdk_keyval_is_upper     (guint        keyval) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 gboolean gdk_keyval_is_lower     (guint        keyval) G_GNUC_CONST;
 
+GDK_AVAILABLE_IN_ALL
 guint32  gdk_keyval_to_unicode   (guint        keyval) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 guint    gdk_unicode_to_keyval   (guint32      wc) G_GNUC_CONST;
 
 

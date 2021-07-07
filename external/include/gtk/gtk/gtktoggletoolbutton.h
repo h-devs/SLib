@@ -15,17 +15,15 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
-
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
 
 #ifndef __GTK_TOGGLE_TOOL_BUTTON_H__
 #define __GTK_TOGGLE_TOOL_BUTTON_H__
+
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
 #include <gtk/gtktoolbutton.h>
 
@@ -47,15 +45,24 @@ struct _GtkToggleToolButton
   GtkToolButton parent;
 
   /*< private >*/
-  GtkToggleToolButtonPrivate *GSEAL (priv);
+  GtkToggleToolButtonPrivate *priv;
 };
 
+/**
+ * GtkToggleToolButtonClass:
+ * @parent_class: The parent class.
+ * @toggled: Signal emitted whenever the toggle tool button changes state.
+ */
 struct _GtkToggleToolButtonClass
 {
   GtkToolButtonClass parent_class;
 
+  /*< public >*/
+
   /* signal */
   void (* toggled) (GtkToggleToolButton *button);
+
+  /*< private >*/
 
   /* Padding for future expansion */
   void (* _gtk_reserved1) (void);
@@ -64,12 +71,17 @@ struct _GtkToggleToolButtonClass
   void (* _gtk_reserved4) (void);
 };
 
+GDK_AVAILABLE_IN_ALL
 GType        gtk_toggle_tool_button_get_type       (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 GtkToolItem *gtk_toggle_tool_button_new            (void);
+GDK_DEPRECATED_IN_3_10_FOR(gtk_toggle_tool_button_new)
 GtkToolItem *gtk_toggle_tool_button_new_from_stock (const gchar *stock_id);
 
+GDK_AVAILABLE_IN_ALL
 void         gtk_toggle_tool_button_set_active     (GtkToggleToolButton *button,
 						    gboolean             is_active);
+GDK_AVAILABLE_IN_ALL
 gboolean     gtk_toggle_tool_button_get_active     (GtkToggleToolButton *button);
 
 G_END_DECLS

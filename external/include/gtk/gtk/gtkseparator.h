@@ -12,9 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -24,13 +22,13 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_SEPARATOR_H__
 #define __GTK_SEPARATOR_H__
 
+
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
 #include <gtk/gtkwidget.h>
 
@@ -45,21 +43,34 @@ G_BEGIN_DECLS
 #define GTK_SEPARATOR_GET_CLASS(obj)        (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_SEPARATOR, GtkSeparatorClass))
 
 
-typedef struct _GtkSeparator       GtkSeparator;
-typedef struct _GtkSeparatorClass  GtkSeparatorClass;
+typedef struct _GtkSeparator              GtkSeparator;
+typedef struct _GtkSeparatorPrivate       GtkSeparatorPrivate;
+typedef struct _GtkSeparatorClass         GtkSeparatorClass;
 
 struct _GtkSeparator
 {
   GtkWidget widget;
+
+  GtkSeparatorPrivate *priv;
 };
 
 struct _GtkSeparatorClass
 {
   GtkWidgetClass parent_class;
+
+  /* Padding for future expansion */
+  void (*_gtk_reserved1) (void);
+  void (*_gtk_reserved2) (void);
+  void (*_gtk_reserved3) (void);
+  void (*_gtk_reserved4) (void);
 };
 
 
+GDK_AVAILABLE_IN_ALL
 GType       gtk_separator_get_type (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
+GtkWidget * gtk_separator_new      (GtkOrientation orientation);
+
 
 G_END_DECLS
 

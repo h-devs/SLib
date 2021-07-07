@@ -12,9 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -24,12 +22,12 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_TEXT_VIEW_H__
 #define __GTK_TEXT_VIEW_H__
+
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
 #include <gtk/gtkcontainer.h>
 #include <gtk/gtkimcontext.h>
@@ -45,6 +43,18 @@ G_BEGIN_DECLS
 #define GTK_IS_TEXT_VIEW_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GTK_TYPE_TEXT_VIEW))
 #define GTK_TEXT_VIEW_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_TEXT_VIEW, GtkTextViewClass))
 
+/**
+ * GtkTextWindowType:
+ * @GTK_TEXT_WINDOW_PRIVATE: Invalid value, used as a marker
+ * @GTK_TEXT_WINDOW_WIDGET: Window that floats over scrolling areas.
+ * @GTK_TEXT_WINDOW_TEXT: Scrollable text window.
+ * @GTK_TEXT_WINDOW_LEFT: Left side border window.
+ * @GTK_TEXT_WINDOW_RIGHT: Right side border window.
+ * @GTK_TEXT_WINDOW_TOP: Top border window.
+ * @GTK_TEXT_WINDOW_BOTTOM: Bottom border window.
+ *
+ * Used to reference the parts of #GtkTextView.
+ */
 typedef enum
 {
   GTK_TEXT_WINDOW_PRIVATE,
@@ -56,222 +66,228 @@ typedef enum
   GTK_TEXT_WINDOW_BOTTOM
 } GtkTextWindowType;
 
+/**
+ * GtkTextViewLayer:
+ * @GTK_TEXT_VIEW_LAYER_BELOW: Old deprecated layer, use %GTK_TEXT_VIEW_LAYER_BELOW_TEXT instead
+ * @GTK_TEXT_VIEW_LAYER_ABOVE: Old deprecated layer, use %GTK_TEXT_VIEW_LAYER_ABOVE_TEXT instead
+ * @GTK_TEXT_VIEW_LAYER_BELOW_TEXT: The layer rendered below the text (but above the background).  Since: 3.20
+ * @GTK_TEXT_VIEW_LAYER_ABOVE_TEXT: The layer rendered above the text.  Since: 3.20
+ *
+ * Used to reference the layers of #GtkTextView for the purpose of customized
+ * drawing with the ::draw_layer vfunc.
+ */
+typedef enum
+{
+  GTK_TEXT_VIEW_LAYER_BELOW,
+  GTK_TEXT_VIEW_LAYER_ABOVE,
+  GTK_TEXT_VIEW_LAYER_BELOW_TEXT,
+  GTK_TEXT_VIEW_LAYER_ABOVE_TEXT
+} GtkTextViewLayer;
+
+/**
+ * GtkTextExtendSelection:
+ * @GTK_TEXT_EXTEND_SELECTION_WORD: Selects the current word. It is triggered by
+ *   a double-click for example.
+ * @GTK_TEXT_EXTEND_SELECTION_LINE: Selects the current line. It is triggered by
+ *   a triple-click for example.
+ *
+ * Granularity types that extend the text selection. Use the
+ * #GtkTextView::extend-selection signal to customize the selection.
+ *
+ * Since: 3.16
+ */
+typedef enum
+{
+  GTK_TEXT_EXTEND_SELECTION_WORD,
+  GTK_TEXT_EXTEND_SELECTION_LINE
+} GtkTextExtendSelection;
+
+/**
+ * GTK_TEXT_VIEW_PRIORITY_VALIDATE:
+ *
+ * The priority at which the text view validates onscreen lines
+ * in an idle job in the background.
+ */
 #define GTK_TEXT_VIEW_PRIORITY_VALIDATE (GDK_PRIORITY_REDRAW + 5)
 
-typedef struct _GtkTextView GtkTextView;
-typedef struct _GtkTextViewClass GtkTextViewClass;
-
-/* Internal private types. */
-typedef struct _GtkTextWindow GtkTextWindow;
-typedef struct _GtkTextPendingScroll GtkTextPendingScroll;
+typedef struct _GtkTextView        GtkTextView;
+typedef struct _GtkTextViewPrivate GtkTextViewPrivate;
+typedef struct _GtkTextViewClass   GtkTextViewClass;
 
 struct _GtkTextView
 {
   GtkContainer parent_instance;
 
-  struct _GtkTextLayout *GSEAL (layout);
-  GtkTextBuffer *GSEAL (buffer);
+  /*< private >*/
 
-  guint GSEAL (selection_drag_handler);
-  guint GSEAL (scroll_timeout);
-
-  /* Default style settings */
-  gint GSEAL (pixels_above_lines);
-  gint GSEAL (pixels_below_lines);
-  gint GSEAL (pixels_inside_wrap);
-  GtkWrapMode GSEAL (wrap_mode);
-  GtkJustification GSEAL (justify);
-  gint GSEAL (left_margin);
-  gint GSEAL (right_margin);
-  gint GSEAL (indent);
-  PangoTabArray *GSEAL (tabs);
-  guint GSEAL (editable) : 1;
-
-  guint GSEAL (overwrite_mode) : 1;
-  guint GSEAL (cursor_visible) : 1;
-
-  /* if we have reset the IM since the last character entered */  
-  guint GSEAL (need_im_reset) : 1;
-
-  guint GSEAL (accepts_tab) : 1;
-
-  guint GSEAL (width_changed) : 1;
-
-  /* debug flag - means that we've validated onscreen since the
-   * last "invalidate" signal from the layout
-   */
-  guint GSEAL (onscreen_validated) : 1;
-
-  guint GSEAL (mouse_cursor_obscured) : 1;
-
-  GtkTextWindow *GSEAL (text_window);
-  GtkTextWindow *GSEAL (left_window);
-  GtkTextWindow *GSEAL (right_window);
-  GtkTextWindow *GSEAL (top_window);
-  GtkTextWindow *GSEAL (bottom_window);
-
-  GtkAdjustment *GSEAL (hadjustment);
-  GtkAdjustment *GSEAL (vadjustment);
-
-  gint GSEAL (xoffset);         /* Offsets between widget coordinates and buffer coordinates */
-  gint GSEAL (yoffset);
-  gint GSEAL (width);           /* Width and height of the buffer */
-  gint GSEAL (height);
-
-  /* The virtual cursor position is normally the same as the
-   * actual (strong) cursor position, except in two circumstances:
-   *
-   * a) When the cursor is moved vertically with the keyboard
-   * b) When the text view is scrolled with the keyboard
-   *
-   * In case a), virtual_cursor_x is preserved, but not virtual_cursor_y
-   * In case b), both virtual_cursor_x and virtual_cursor_y are preserved.
-   */
-  gint GSEAL (virtual_cursor_x);   /* -1 means use actual cursor position */
-  gint GSEAL (virtual_cursor_y);   /* -1 means use actual cursor position */
-
-  GtkTextMark *GSEAL (first_para_mark); /* Mark at the beginning of the first onscreen paragraph */
-  gint GSEAL (first_para_pixels);       /* Offset of top of screen in the first onscreen paragraph */
-
-  GtkTextMark *GSEAL (dnd_mark);
-  guint GSEAL (blink_timeout);
-
-  guint GSEAL (first_validate_idle);        /* Idle to revalidate onscreen portion, runs before resize */
-  guint GSEAL (incremental_validate_idle);  /* Idle to revalidate offscreen portions, runs after redraw */
-
-  GtkIMContext *GSEAL (im_context);
-  GtkWidget *GSEAL (popup_menu);
-
-  gint GSEAL (drag_start_x);
-  gint GSEAL (drag_start_y);
-
-  GSList *GSEAL (children);
-
-  GtkTextPendingScroll *GSEAL (pending_scroll);
-
-  gint GSEAL (pending_place_cursor_button);
+  GtkTextViewPrivate *priv;
 };
 
+/**
+ * GtkTextViewClass:
+ * @parent_class: The object class structure needs to be the first
+ * @populate_popup: The class handler for the #GtkTextView::populate-popup
+ *   signal.
+ * @move_cursor: The class handler for the #GtkTextView::move-cursor
+ *   keybinding signal.
+ * @set_anchor: The class handler for the #GtkTextView::set-anchor
+ *   keybinding signal.
+ * @insert_at_cursor: The class handler for the #GtkTextView::insert-at-cursor
+ *   keybinding signal.
+ * @delete_from_cursor: The class handler for the #GtkTextView::delete-from-cursor
+ *   keybinding signal.
+ * @backspace: The class handler for the #GtkTextView::backspace
+ *   keybinding signal.
+ * @cut_clipboard: The class handler for the #GtkTextView::cut-clipboard
+ *   keybinding signal
+ * @copy_clipboard: The class handler for the #GtkTextview::copy-clipboard
+ *   keybinding signal.
+ * @paste_clipboard: The class handler for the #GtkTextView::paste-clipboard
+ *   keybinding signal.
+ * @toggle_overwrite: The class handler for the #GtkTextView::toggle-overwrite
+ *   keybinding signal.
+ * @create_buffer: The create_buffer vfunc is called to create a #GtkTextBuffer
+ *   for the text view. The default implementation is to just call
+ *   gtk_text_buffer_new(). Since: 3.10
+ * @draw_layer: The draw_layer vfunc is called before and after the text
+ *   view is drawing its own text. Applications can override this vfunc
+ *   in a subclass to draw customized content underneath or above the
+ *   text. In the %GTK_TEXT_VIEW_LAYER_BELOW_TEXT and %GTK_TEXT_VIEW_LAYER_ABOVE_TEXT
+ *   the drawing is done in the buffer coordinate space, but the older (deprecated)
+ *   layers %GTK_TEXT_VIEW_LAYER_BELOW and %GTK_TEXT_VIEW_LAYER_ABOVE work in viewport
+ *   coordinates, which makes them unnecessarily hard to use. Since: 3.14
+ * @extend_selection: The class handler for the #GtkTextView::extend-selection
+ *   signal. Since 3.16
+ */
 struct _GtkTextViewClass
 {
   GtkContainerClass parent_class;
 
-  void (* set_scroll_adjustments)   (GtkTextView    *text_view,
-                                     GtkAdjustment  *hadjustment,
-                                     GtkAdjustment  *vadjustment);
+  /*< public >*/
 
-  void (* populate_popup)           (GtkTextView    *text_view,
-                                     GtkMenu        *menu);
+  void (* populate_popup)        (GtkTextView      *text_view,
+                                  GtkWidget        *popup);
+  void (* move_cursor)           (GtkTextView      *text_view,
+                                  GtkMovementStep   step,
+                                  gint              count,
+                                  gboolean          extend_selection);
+  void (* set_anchor)            (GtkTextView      *text_view);
+  void (* insert_at_cursor)      (GtkTextView      *text_view,
+                                  const gchar      *str);
+  void (* delete_from_cursor)    (GtkTextView      *text_view,
+                                  GtkDeleteType     type,
+                                  gint              count);
+  void (* backspace)             (GtkTextView      *text_view);
+  void (* cut_clipboard)         (GtkTextView      *text_view);
+  void (* copy_clipboard)        (GtkTextView      *text_view);
+  void (* paste_clipboard)       (GtkTextView      *text_view);
+  void (* toggle_overwrite)      (GtkTextView      *text_view);
+  GtkTextBuffer * (* create_buffer) (GtkTextView   *text_view);
+  void (* draw_layer)            (GtkTextView      *text_view,
+			          GtkTextViewLayer  layer,
+			          cairo_t          *cr);
+  gboolean (* extend_selection)  (GtkTextView            *text_view,
+                                  GtkTextExtendSelection  granularity,
+                                  const GtkTextIter      *location,
+                                  GtkTextIter            *start,
+                                  GtkTextIter            *end);
+  void (* insert_emoji)          (GtkTextView      *text_view);
 
-  /* These are all RUN_ACTION signals for keybindings */
-
-  /* move insertion point */
-  void (* move_cursor) (GtkTextView    *text_view,
-                        GtkMovementStep step,
-                        gint            count,
-                        gboolean        extend_selection);
-
-  /* FIXME should be deprecated in favor of adding GTK_MOVEMENT_HORIZONTAL_PAGES
-   * or something in GTK 2.2, was put in to avoid adding enum values during
-   * the freeze.
-   */
-  void (* page_horizontally) (GtkTextView *text_view,
-                              gint         count,
-                              gboolean     extend_selection);
-
-  /* move the "anchor" (what Emacs calls the mark) to the cursor position */
-  void (* set_anchor)  (GtkTextView    *text_view);
-
-  /* Edits */
-  void (* insert_at_cursor)      (GtkTextView *text_view,
-                                  const gchar *str);
-  void (* delete_from_cursor)    (GtkTextView  *text_view,
-                                  GtkDeleteType type,
-                                  gint          count);
-  void (* backspace)             (GtkTextView *text_view);
-
-  /* cut copy paste */
-  void (* cut_clipboard)   (GtkTextView *text_view);
-  void (* copy_clipboard)  (GtkTextView *text_view);
-  void (* paste_clipboard) (GtkTextView *text_view);
-  /* overwrite */
-  void (* toggle_overwrite) (GtkTextView *text_view);
-
-  /* as of GTK+ 2.12 the "move-focus" signal has been moved to GtkWidget,
-   * so this is merley a virtual function now. Overriding it in subclasses
-   * continues to work though.
-   */
-  void (* move_focus)       (GtkTextView     *text_view,
-                             GtkDirectionType direction);
+  /*< private >*/
 
   /* Padding for future expansion */
   void (*_gtk_reserved1) (void);
   void (*_gtk_reserved2) (void);
   void (*_gtk_reserved3) (void);
   void (*_gtk_reserved4) (void);
-  void (*_gtk_reserved5) (void);
-  void (*_gtk_reserved6) (void);
-  void (*_gtk_reserved7) (void);
 };
 
+GDK_AVAILABLE_IN_ALL
 GType          gtk_text_view_get_type              (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 GtkWidget *    gtk_text_view_new                   (void);
+GDK_AVAILABLE_IN_ALL
 GtkWidget *    gtk_text_view_new_with_buffer       (GtkTextBuffer *buffer);
+GDK_AVAILABLE_IN_ALL
 void           gtk_text_view_set_buffer            (GtkTextView   *text_view,
                                                     GtkTextBuffer *buffer);
+GDK_AVAILABLE_IN_ALL
 GtkTextBuffer *gtk_text_view_get_buffer            (GtkTextView   *text_view);
+GDK_AVAILABLE_IN_ALL
 gboolean       gtk_text_view_scroll_to_iter        (GtkTextView   *text_view,
                                                     GtkTextIter   *iter,
                                                     gdouble        within_margin,
                                                     gboolean       use_align,
                                                     gdouble        xalign,
                                                     gdouble        yalign);
+GDK_AVAILABLE_IN_ALL
 void           gtk_text_view_scroll_to_mark        (GtkTextView   *text_view,
                                                     GtkTextMark   *mark,
                                                     gdouble        within_margin,
                                                     gboolean       use_align,
                                                     gdouble        xalign,
                                                     gdouble        yalign);
+GDK_AVAILABLE_IN_ALL
 void           gtk_text_view_scroll_mark_onscreen  (GtkTextView   *text_view,
                                                     GtkTextMark   *mark);
+GDK_AVAILABLE_IN_ALL
 gboolean       gtk_text_view_move_mark_onscreen    (GtkTextView   *text_view,
                                                     GtkTextMark   *mark);
+GDK_AVAILABLE_IN_ALL
 gboolean       gtk_text_view_place_cursor_onscreen (GtkTextView   *text_view);
 
+GDK_AVAILABLE_IN_ALL
 void           gtk_text_view_get_visible_rect      (GtkTextView   *text_view,
                                                     GdkRectangle  *visible_rect);
+GDK_AVAILABLE_IN_ALL
 void           gtk_text_view_set_cursor_visible    (GtkTextView   *text_view,
                                                     gboolean       setting);
+GDK_AVAILABLE_IN_ALL
 gboolean       gtk_text_view_get_cursor_visible    (GtkTextView   *text_view);
 
+GDK_AVAILABLE_IN_3_20
+void           gtk_text_view_reset_cursor_blink    (GtkTextView   *text_view);
+
+GDK_AVAILABLE_IN_ALL
+void           gtk_text_view_get_cursor_locations  (GtkTextView       *text_view,
+                                                    const GtkTextIter *iter,
+                                                    GdkRectangle      *strong,
+                                                    GdkRectangle      *weak);
+GDK_AVAILABLE_IN_ALL
 void           gtk_text_view_get_iter_location     (GtkTextView   *text_view,
                                                     const GtkTextIter *iter,
                                                     GdkRectangle  *location);
-void           gtk_text_view_get_iter_at_location  (GtkTextView   *text_view,
+GDK_AVAILABLE_IN_ALL
+gboolean       gtk_text_view_get_iter_at_location  (GtkTextView   *text_view,
                                                     GtkTextIter   *iter,
                                                     gint           x,
                                                     gint           y);
-void           gtk_text_view_get_iter_at_position  (GtkTextView   *text_view,
+GDK_AVAILABLE_IN_ALL
+gboolean       gtk_text_view_get_iter_at_position  (GtkTextView   *text_view,
                                                     GtkTextIter   *iter,
 						    gint          *trailing,
                                                     gint           x,
                                                     gint           y);
+GDK_AVAILABLE_IN_ALL
 void           gtk_text_view_get_line_yrange       (GtkTextView       *text_view,
                                                     const GtkTextIter *iter,
                                                     gint              *y,
                                                     gint              *height);
 
+GDK_AVAILABLE_IN_ALL
 void           gtk_text_view_get_line_at_y         (GtkTextView       *text_view,
                                                     GtkTextIter       *target_iter,
                                                     gint               y,
                                                     gint              *line_top);
 
+GDK_AVAILABLE_IN_ALL
 void gtk_text_view_buffer_to_window_coords (GtkTextView       *text_view,
                                             GtkTextWindowType  win,
                                             gint               buffer_x,
                                             gint               buffer_y,
                                             gint              *window_x,
                                             gint              *window_y);
+GDK_AVAILABLE_IN_ALL
 void gtk_text_view_window_to_buffer_coords (GtkTextView       *text_view,
                                             GtkTextWindowType  win,
                                             gint               window_x,
@@ -279,43 +295,59 @@ void gtk_text_view_window_to_buffer_coords (GtkTextView       *text_view,
                                             gint              *buffer_x,
                                             gint              *buffer_y);
 
-GtkAdjustment* gtk_text_view_get_hadjustment (GtkTextView *text_view);
-GtkAdjustment* gtk_text_view_get_vadjustment (GtkTextView *text_view);
+GDK_DEPRECATED_IN_3_0_FOR(gtk_scrollable_get_hadjustment)
+GtkAdjustment*   gtk_text_view_get_hadjustment (GtkTextView   *text_view);
+GDK_DEPRECATED_IN_3_0_FOR(gtk_scrollable_get_vadjustment)
+GtkAdjustment*   gtk_text_view_get_vadjustment (GtkTextView   *text_view);
 
+GDK_AVAILABLE_IN_ALL
 GdkWindow*        gtk_text_view_get_window      (GtkTextView       *text_view,
                                                  GtkTextWindowType  win);
+GDK_AVAILABLE_IN_ALL
 GtkTextWindowType gtk_text_view_get_window_type (GtkTextView       *text_view,
                                                  GdkWindow         *window);
 
+GDK_AVAILABLE_IN_ALL
 void gtk_text_view_set_border_window_size (GtkTextView       *text_view,
                                            GtkTextWindowType  type,
                                            gint               size);
+GDK_AVAILABLE_IN_ALL
 gint gtk_text_view_get_border_window_size (GtkTextView       *text_view,
 					   GtkTextWindowType  type);
 
+GDK_AVAILABLE_IN_ALL
 gboolean gtk_text_view_forward_display_line           (GtkTextView       *text_view,
                                                        GtkTextIter       *iter);
+GDK_AVAILABLE_IN_ALL
 gboolean gtk_text_view_backward_display_line          (GtkTextView       *text_view,
                                                        GtkTextIter       *iter);
+GDK_AVAILABLE_IN_ALL
 gboolean gtk_text_view_forward_display_line_end       (GtkTextView       *text_view,
                                                        GtkTextIter       *iter);
+GDK_AVAILABLE_IN_ALL
 gboolean gtk_text_view_backward_display_line_start    (GtkTextView       *text_view,
                                                        GtkTextIter       *iter);
+GDK_AVAILABLE_IN_ALL
 gboolean gtk_text_view_starts_display_line            (GtkTextView       *text_view,
                                                        const GtkTextIter *iter);
+GDK_AVAILABLE_IN_ALL
 gboolean gtk_text_view_move_visually                  (GtkTextView       *text_view,
                                                        GtkTextIter       *iter,
                                                        gint               count);
 
+GDK_AVAILABLE_IN_ALL
 gboolean        gtk_text_view_im_context_filter_keypress        (GtkTextView       *text_view,
                                                                  GdkEventKey       *event);
+GDK_AVAILABLE_IN_ALL
 void            gtk_text_view_reset_im_context                  (GtkTextView       *text_view);
 
 /* Adding child widgets */
+GDK_AVAILABLE_IN_ALL
 void gtk_text_view_add_child_at_anchor (GtkTextView          *text_view,
                                         GtkWidget            *child,
                                         GtkTextChildAnchor   *anchor);
 
+GDK_AVAILABLE_IN_ALL
 void gtk_text_view_add_child_in_window (GtkTextView          *text_view,
                                         GtkWidget            *child,
                                         GtkTextWindowType     which_window,
@@ -323,6 +355,7 @@ void gtk_text_view_add_child_in_window (GtkTextView          *text_view,
                                         gint                  xpos,
                                         gint                  ypos);
 
+GDK_AVAILABLE_IN_ALL
 void gtk_text_view_move_child          (GtkTextView          *text_view,
                                         GtkWidget            *child,
                                         /* window coordinates */
@@ -331,45 +364,98 @@ void gtk_text_view_move_child          (GtkTextView          *text_view,
 
 /* Default style settings (fallbacks if no tag affects the property) */
 
+GDK_AVAILABLE_IN_ALL
 void             gtk_text_view_set_wrap_mode          (GtkTextView      *text_view,
                                                        GtkWrapMode       wrap_mode);
+GDK_AVAILABLE_IN_ALL
 GtkWrapMode      gtk_text_view_get_wrap_mode          (GtkTextView      *text_view);
+GDK_AVAILABLE_IN_ALL
 void             gtk_text_view_set_editable           (GtkTextView      *text_view,
                                                        gboolean          setting);
+GDK_AVAILABLE_IN_ALL
 gboolean         gtk_text_view_get_editable           (GtkTextView      *text_view);
+GDK_AVAILABLE_IN_ALL
 void             gtk_text_view_set_overwrite          (GtkTextView      *text_view,
 						       gboolean          overwrite);
+GDK_AVAILABLE_IN_ALL
 gboolean         gtk_text_view_get_overwrite          (GtkTextView      *text_view);
+GDK_AVAILABLE_IN_ALL
 void		 gtk_text_view_set_accepts_tab        (GtkTextView	*text_view,
 						       gboolean		 accepts_tab);
+GDK_AVAILABLE_IN_ALL
 gboolean	 gtk_text_view_get_accepts_tab        (GtkTextView	*text_view);
+GDK_AVAILABLE_IN_ALL
 void             gtk_text_view_set_pixels_above_lines (GtkTextView      *text_view,
                                                        gint              pixels_above_lines);
+GDK_AVAILABLE_IN_ALL
 gint             gtk_text_view_get_pixels_above_lines (GtkTextView      *text_view);
+GDK_AVAILABLE_IN_ALL
 void             gtk_text_view_set_pixels_below_lines (GtkTextView      *text_view,
                                                        gint              pixels_below_lines);
+GDK_AVAILABLE_IN_ALL
 gint             gtk_text_view_get_pixels_below_lines (GtkTextView      *text_view);
+GDK_AVAILABLE_IN_ALL
 void             gtk_text_view_set_pixels_inside_wrap (GtkTextView      *text_view,
                                                        gint              pixels_inside_wrap);
+GDK_AVAILABLE_IN_ALL
 gint             gtk_text_view_get_pixels_inside_wrap (GtkTextView      *text_view);
+GDK_AVAILABLE_IN_ALL
 void             gtk_text_view_set_justification      (GtkTextView      *text_view,
                                                        GtkJustification  justification);
+GDK_AVAILABLE_IN_ALL
 GtkJustification gtk_text_view_get_justification      (GtkTextView      *text_view);
+GDK_AVAILABLE_IN_ALL
 void             gtk_text_view_set_left_margin        (GtkTextView      *text_view,
                                                        gint              left_margin);
+GDK_AVAILABLE_IN_ALL
 gint             gtk_text_view_get_left_margin        (GtkTextView      *text_view);
+GDK_AVAILABLE_IN_ALL
 void             gtk_text_view_set_right_margin       (GtkTextView      *text_view,
                                                        gint              right_margin);
+GDK_AVAILABLE_IN_ALL
 gint             gtk_text_view_get_right_margin       (GtkTextView      *text_view);
+GDK_AVAILABLE_IN_3_18
+void             gtk_text_view_set_top_margin         (GtkTextView      *text_view,
+                                                       gint              top_margin);
+GDK_AVAILABLE_IN_3_18
+gint             gtk_text_view_get_top_margin         (GtkTextView      *text_view);
+GDK_AVAILABLE_IN_3_18
+void             gtk_text_view_set_bottom_margin      (GtkTextView      *text_view,
+                                                       gint              bottom_margin);
+GDK_AVAILABLE_IN_3_18
+gint             gtk_text_view_get_bottom_margin       (GtkTextView      *text_view);
+GDK_AVAILABLE_IN_ALL
 void             gtk_text_view_set_indent             (GtkTextView      *text_view,
                                                        gint              indent);
+GDK_AVAILABLE_IN_ALL
 gint             gtk_text_view_get_indent             (GtkTextView      *text_view);
+GDK_AVAILABLE_IN_ALL
 void             gtk_text_view_set_tabs               (GtkTextView      *text_view,
                                                        PangoTabArray    *tabs);
+GDK_AVAILABLE_IN_ALL
 PangoTabArray*   gtk_text_view_get_tabs               (GtkTextView      *text_view);
 
 /* note that the return value of this changes with the theme */
+GDK_AVAILABLE_IN_ALL
 GtkTextAttributes* gtk_text_view_get_default_attributes (GtkTextView    *text_view);
+
+GDK_AVAILABLE_IN_3_6
+void             gtk_text_view_set_input_purpose      (GtkTextView      *text_view,
+                                                       GtkInputPurpose   purpose);
+GDK_AVAILABLE_IN_3_6
+GtkInputPurpose  gtk_text_view_get_input_purpose      (GtkTextView      *text_view);
+
+GDK_AVAILABLE_IN_3_6
+void             gtk_text_view_set_input_hints        (GtkTextView      *text_view,
+                                                       GtkInputHints     hints);
+GDK_AVAILABLE_IN_3_6
+GtkInputHints    gtk_text_view_get_input_hints        (GtkTextView      *text_view);
+
+GDK_AVAILABLE_IN_3_16
+void             gtk_text_view_set_monospace          (GtkTextView      *text_view,
+                                                       gboolean          monospace);
+GDK_AVAILABLE_IN_3_16
+gboolean         gtk_text_view_get_monospace          (GtkTextView      *text_view);
 
 G_END_DECLS
 

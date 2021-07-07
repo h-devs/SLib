@@ -12,8 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -23,12 +22,16 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_SOCKET_H__
 #define __GTK_SOCKET_H__
+
+#if !defined (__GTKX_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtkx.h> can be included directly."
+#endif
+
+#ifdef GDK_WINDOWING_X11
+
+#include <gdk/gdkx.h>
 
 #include <gtk/gtkcontainer.h>
 
@@ -44,29 +47,13 @@ G_BEGIN_DECLS
 
 typedef struct _GtkSocket        GtkSocket;
 typedef struct _GtkSocketClass   GtkSocketClass;
+typedef struct _GtkSocketPrivate GtkSocketPrivate;
 
 struct _GtkSocket
 {
   GtkContainer container;
 
-  guint16 GSEAL (request_width);
-  guint16 GSEAL (request_height);
-  guint16 GSEAL (current_width);
-  guint16 GSEAL (current_height);
-
-  GdkWindow *GSEAL (plug_window);
-  GtkWidget *GSEAL (plug_widget);
-
-  gshort GSEAL (xembed_version); /* -1 == not xembed */
-  guint GSEAL (same_app) : 1;
-  guint GSEAL (focus_in) : 1;
-  guint GSEAL (have_size) : 1;
-  guint GSEAL (need_map) : 1;
-  guint GSEAL (is_mapped) : 1;
-  guint GSEAL (active) : 1;
-
-  GtkAccelGroup *GSEAL (accel_group);
-  GtkWidget *GSEAL (toplevel);
+  GtkSocketPrivate *priv;
 };
 
 struct _GtkSocketClass
@@ -83,20 +70,20 @@ struct _GtkSocketClass
   void (*_gtk_reserved4) (void);
 };
 
-
-GType          gtk_socket_get_type (void) G_GNUC_CONST;
-GtkWidget*     gtk_socket_new      (void);
-
-void            gtk_socket_add_id (GtkSocket       *socket_,
-				   GdkNativeWindow  window_id);
-GdkNativeWindow gtk_socket_get_id (GtkSocket       *socket_);
-GdkWindow*      gtk_socket_get_plug_window (GtkSocket       *socket_);
-
-#ifndef GTK_DISABLE_DEPRECATED
-void           gtk_socket_steal    (GtkSocket      *socket_,
-				    GdkNativeWindow wid);
-#endif /* GTK_DISABLE_DEPRECATED */
+GDK_AVAILABLE_IN_ALL
+GType      gtk_socket_get_type        (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
+GtkWidget *gtk_socket_new             (void);
+GDK_AVAILABLE_IN_ALL
+void       gtk_socket_add_id          (GtkSocket *socket_,
+                                       Window     window);
+GDK_AVAILABLE_IN_ALL
+Window     gtk_socket_get_id          (GtkSocket *socket_);
+GDK_AVAILABLE_IN_ALL
+GdkWindow *gtk_socket_get_plug_window (GtkSocket *socket_);
 
 G_END_DECLS
+
+#endif /* GDK_WINDOWING_X11 */
 
 #endif /* __GTK_SOCKET_H__ */

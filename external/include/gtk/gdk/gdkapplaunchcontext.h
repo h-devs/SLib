@@ -13,63 +13,53 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  *
  * Author: Alexander Larsson <alexl@redhat.com>
  */
+
+#ifndef __GDK_APP_LAUNCH_CONTEXT_H__
+#define __GDK_APP_LAUNCH_CONTEXT_H__
 
 #if !defined (__GDK_H_INSIDE__) && !defined (GDK_COMPILATION)
 #error "Only <gdk/gdk.h> can be included directly."
 #endif
 
-#ifndef __GDK_APP_LAUNCH_CONTEXT_H__
-#define __GDK_APP_LAUNCH_CONTEXT_H__
-
 #include <gio/gio.h>
+#include <gdk/gdkversionmacros.h>
+#include <gdk/gdktypes.h>
 #include <gdk/gdkscreen.h>
 
 G_BEGIN_DECLS
 
 #define GDK_TYPE_APP_LAUNCH_CONTEXT         (gdk_app_launch_context_get_type ())
 #define GDK_APP_LAUNCH_CONTEXT(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), GDK_TYPE_APP_LAUNCH_CONTEXT, GdkAppLaunchContext))
-#define GDK_APP_LAUNCH_CONTEXT_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k), GDK_TYPE_APP_LAUNCH_CONTEXT, GdkAppLaunchContextClass))
-#define GDK_IS_APP_LAUNCH_CONTEXT(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), GDK_TYPE_APP_LAUNCH_CONTEXT))
-#define GDK_IS_APP_LAUNCH_CONTEXT_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k), GDK_TYPE_APP_LAUNCH_CONTEXT))
-#define GDK_APP_LAUNCH_CONTEXT_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), GDK_TYPE_APP_LAUNCH_CONTEXT, GdkAppLaunchContextClass))
+        #define GDK_IS_APP_LAUNCH_CONTEXT(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), GDK_TYPE_APP_LAUNCH_CONTEXT))
 
-typedef struct GdkAppLaunchContext	      GdkAppLaunchContext;
-typedef struct GdkAppLaunchContextClass       GdkAppLaunchContextClass;
-typedef struct GdkAppLaunchContextPrivate     GdkAppLaunchContextPrivate;
 
-struct GdkAppLaunchContext
-{
-  GAppLaunchContext parent_instance;
-
-  GdkAppLaunchContextPrivate *priv;
-};
-
-struct GdkAppLaunchContextClass
-{
-  GAppLaunchContextClass parent_class;
-};
-
+GDK_AVAILABLE_IN_ALL
 GType                gdk_app_launch_context_get_type      (void);
 
+GDK_DEPRECATED_IN_3_0_FOR(gdk_display_get_app_launch_context)
 GdkAppLaunchContext *gdk_app_launch_context_new           (void);
+GDK_DEPRECATED_IN_3_0_FOR(gdk_display_get_app_launch_context)
 void                 gdk_app_launch_context_set_display   (GdkAppLaunchContext *context,
-							   GdkDisplay          *display);
+                                                           GdkDisplay          *display);
+GDK_AVAILABLE_IN_ALL
 void                 gdk_app_launch_context_set_screen    (GdkAppLaunchContext *context,
-							   GdkScreen           *screen);
+                                                           GdkScreen           *screen);
+GDK_AVAILABLE_IN_ALL
 void                 gdk_app_launch_context_set_desktop   (GdkAppLaunchContext *context,
-							   gint                 desktop);
+                                                           gint                 desktop);
+GDK_AVAILABLE_IN_ALL
 void                 gdk_app_launch_context_set_timestamp (GdkAppLaunchContext *context,
-							   guint32              timestamp);
+                                                           guint32              timestamp);
+GDK_AVAILABLE_IN_ALL
 void                 gdk_app_launch_context_set_icon      (GdkAppLaunchContext *context,
-							   GIcon               *icon);
+                                                           GIcon               *icon);
+GDK_AVAILABLE_IN_ALL
 void                 gdk_app_launch_context_set_icon_name (GdkAppLaunchContext *context,
-							   const char          *icon_name);
+                                                           const char          *icon_name);
 
 G_END_DECLS
 

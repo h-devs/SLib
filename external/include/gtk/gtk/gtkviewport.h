@@ -12,9 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -24,15 +22,14 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_VIEWPORT_H__
 #define __GTK_VIEWPORT_H__
 
 
-#include <gtk/gtkadjustment.h>
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
+
 #include <gtk/gtkbin.h>
 
 
@@ -47,43 +44,61 @@ G_BEGIN_DECLS
 #define GTK_VIEWPORT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_VIEWPORT, GtkViewportClass))
 
 
-typedef struct _GtkViewport       GtkViewport;
-typedef struct _GtkViewportClass  GtkViewportClass;
+typedef struct _GtkViewport              GtkViewport;
+typedef struct _GtkViewportPrivate       GtkViewportPrivate;
+typedef struct _GtkViewportClass         GtkViewportClass;
 
 struct _GtkViewport
 {
   GtkBin bin;
 
-  GtkShadowType GSEAL (shadow_type);
-  GdkWindow *GSEAL (view_window);
-  GdkWindow *GSEAL (bin_window);
-  GtkAdjustment *GSEAL (hadjustment);
-  GtkAdjustment *GSEAL (vadjustment);
+  /*< private >*/
+  GtkViewportPrivate *priv;
 };
 
+/**
+ * GtkViewportClass:
+ * @parent_class: The parent class.
+ */
 struct _GtkViewportClass
 {
   GtkBinClass parent_class;
 
-  void	(*set_scroll_adjustments)	(GtkViewport	*viewport,
-					 GtkAdjustment	*hadjustment,
-					 GtkAdjustment	*vadjustment);
+  /*< private >*/
+
+  /* Padding for future expansion */
+  void (*_gtk_reserved1) (void);
+  void (*_gtk_reserved2) (void);
+  void (*_gtk_reserved3) (void);
+  void (*_gtk_reserved4) (void);
 };
 
 
+GDK_AVAILABLE_IN_ALL
 GType          gtk_viewport_get_type        (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 GtkWidget*     gtk_viewport_new             (GtkAdjustment *hadjustment,
 					     GtkAdjustment *vadjustment);
+
+GDK_DEPRECATED_IN_3_0_FOR(gtk_scrollable_get_hadjustment)
 GtkAdjustment* gtk_viewport_get_hadjustment (GtkViewport   *viewport);
+GDK_DEPRECATED_IN_3_0_FOR(gtk_scrollable_get_vadjustment)
 GtkAdjustment* gtk_viewport_get_vadjustment (GtkViewport   *viewport);
+GDK_DEPRECATED_IN_3_0_FOR(gtk_scrollable_set_hadjustment)
 void           gtk_viewport_set_hadjustment (GtkViewport   *viewport,
-					     GtkAdjustment *adjustment);
+                                             GtkAdjustment *adjustment);
+GDK_DEPRECATED_IN_3_0_FOR(gtk_scrollable_set_vadjustment)
 void           gtk_viewport_set_vadjustment (GtkViewport   *viewport,
-					     GtkAdjustment *adjustment);
+                                             GtkAdjustment *adjustment);
+
+GDK_AVAILABLE_IN_ALL
 void           gtk_viewport_set_shadow_type (GtkViewport   *viewport,
 					     GtkShadowType  type);
+GDK_AVAILABLE_IN_ALL
 GtkShadowType  gtk_viewport_get_shadow_type (GtkViewport   *viewport);
+GDK_AVAILABLE_IN_ALL
 GdkWindow*     gtk_viewport_get_bin_window  (GtkViewport   *viewport);
+GDK_AVAILABLE_IN_ALL
 GdkWindow*     gtk_viewport_get_view_window (GtkViewport   *viewport);
 
 

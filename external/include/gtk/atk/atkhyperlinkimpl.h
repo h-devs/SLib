@@ -17,34 +17,17 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __ATK_HYPERLINK_IMPL_H__
+#define __ATK_HYPERLINK_IMPL_H__
+
 #if defined(ATK_DISABLE_SINGLE_INCLUDES) && !defined (__ATK_H_INSIDE__) && !defined (ATK_COMPILATION)
 #error "Only <atk/atk.h> can be included directly."
 #endif
-
-#ifndef __ATK_HYPERLINK_IMPL_H__
-#define __ATK_HYPERLINK_IMPL_H__
 
 #include <atk/atkobject.h>
 #include <atk/atkhyperlink.h>
 
 G_BEGIN_DECLS
-
-/*
- * The AtkHyperlinkImpl interface should be supported by objects
- * exposed within the hierarchy as children of an AtkHypertext container
- * which correspond to "links" or embedded content within the text.
- * HTML anchors are not, for instance, normally exposed this way,
- * but embedded images and components which appear inline in the
- * content of a text object are. The AtkHyperlinkIface interface
- * allows a means of determining which children are hyperlinks in this
- * sense of the word, and for obtaining their corresponding AtkHyperlink 
- * object, from which the embedding range, URI, etc. can be obtained.
- *
- * To some extent this interface exists because, for historical 
- * reasons, AtkHyperlink was defined as an object type, not an interface.
- * Thus, in order to interact with AtkObjects via AtkHyperlink semantics,
- * a new interface was required.
- */
 
 #define ATK_TYPE_HYPERLINK_IMPL          (atk_hyperlink_impl_get_type ())
 #define ATK_IS_HYPERLINK_IMPL(obj)       G_TYPE_CHECK_INSTANCE_TYPE ((obj), ATK_TYPE_HYPERLINK_IMPL)
@@ -53,6 +36,16 @@ G_BEGIN_DECLS
 
 #ifndef _TYPEDEF_ATK_HYPERLINK_IMPL_
 #define _TYPEDEF_ATK_HYPERLINK_IMPL__
+
+/**
+ * AtkHyperlinkImpl:
+ *
+ * A queryable interface which allows AtkHyperlink instances
+ * associated with an AtkObject to be obtained.  AtkHyperlinkImpl
+ * corresponds to AT-SPI's Hyperlink interface, and differs from
+ * AtkHyperlink in that AtkHyperlink is an object type, rather than an
+ * interface, and thus cannot be directly queried. FTW
+ */
 typedef struct _AtkHyperlinkImpl AtkHyperlinkImpl;
 #endif
 typedef struct _AtkHyperlinkImplIface AtkHyperlinkImplIface;
@@ -62,13 +55,13 @@ struct _AtkHyperlinkImplIface
   GTypeInterface parent;
     
   AtkHyperlink*  (* get_hyperlink) (AtkHyperlinkImpl *impl);
-
-  AtkFunction pad1;
 };
 
+ATK_AVAILABLE_IN_ALL
 GType            atk_hyperlink_impl_get_type (void);
 
-AtkHyperlink    *atk_hyperlink_impl_get_hyperlink (AtkHyperlinkImpl *obj);
+ATK_AVAILABLE_IN_ALL
+AtkHyperlink    *atk_hyperlink_impl_get_hyperlink (AtkHyperlinkImpl *impl);
 
 G_END_DECLS
 

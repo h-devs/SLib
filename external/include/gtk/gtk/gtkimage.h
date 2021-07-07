@@ -12,9 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -24,16 +22,16 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_IMAGE_H__
 #define __GTK_IMAGE_H__
 
 
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
+
 #include <gio/gio.h>
-#include <gtk/gtkmisc.h>
+#include <gtk/deprecated/gtkmisc.h>
 
 
 G_BEGIN_DECLS
@@ -46,77 +44,23 @@ G_BEGIN_DECLS
 #define GTK_IMAGE_GET_CLASS(obj)        (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_IMAGE, GtkImageClass))
 
 
-typedef struct _GtkImage       GtkImage;
-typedef struct _GtkImageClass  GtkImageClass;
-
-typedef struct _GtkImagePixmapData  GtkImagePixmapData;
-typedef struct _GtkImageImageData   GtkImageImageData;
-typedef struct _GtkImagePixbufData  GtkImagePixbufData;
-typedef struct _GtkImageStockData   GtkImageStockData;
-typedef struct _GtkImageIconSetData GtkImageIconSetData;
-typedef struct _GtkImageAnimationData GtkImageAnimationData;
-typedef struct _GtkImageIconNameData  GtkImageIconNameData;
-typedef struct _GtkImageGIconData     GtkImageGIconData;
-
-struct _GtkImagePixmapData
-{
-  GdkPixmap *pixmap;
-};
-
-struct _GtkImageImageData
-{
-  GdkImage *image;
-};
-
-struct _GtkImagePixbufData
-{
-  GdkPixbuf *pixbuf;
-};
-
-struct _GtkImageStockData
-{
-  gchar *stock_id;
-};
-
-struct _GtkImageIconSetData
-{
-  GtkIconSet *icon_set;
-};
-
-struct _GtkImageAnimationData
-{
-  GdkPixbufAnimation *anim;
-  GdkPixbufAnimationIter *iter;
-  guint frame_timeout;
-};
-
-struct _GtkImageIconNameData
-{
-  gchar *icon_name;
-  GdkPixbuf *pixbuf;
-  guint theme_change_id;
-};
-
-struct _GtkImageGIconData
-{
-  GIcon *icon;
-  GdkPixbuf *pixbuf;
-  guint theme_change_id;
-};
+typedef struct _GtkImage              GtkImage;
+typedef struct _GtkImagePrivate       GtkImagePrivate;
+typedef struct _GtkImageClass         GtkImageClass;
 
 /**
  * GtkImageType:
  * @GTK_IMAGE_EMPTY: there is no image displayed by the widget
- * @GTK_IMAGE_PIXMAP: the widget contains a #GdkPixmap
- * @GTK_IMAGE_IMAGE: the widget contains a #GdkImage
  * @GTK_IMAGE_PIXBUF: the widget contains a #GdkPixbuf
- * @GTK_IMAGE_STOCK: the widget contains a stock icon name (see <xref linkend="gtk-Stock-Items"/>)
+ * @GTK_IMAGE_STOCK: the widget contains a [stock item name][gtkstock]
  * @GTK_IMAGE_ICON_SET: the widget contains a #GtkIconSet
  * @GTK_IMAGE_ANIMATION: the widget contains a #GdkPixbufAnimation
  * @GTK_IMAGE_ICON_NAME: the widget contains a named icon.
  *  This image type was added in GTK+ 2.6
  * @GTK_IMAGE_GICON: the widget contains a #GIcon.
  *  This image type was added in GTK+ 2.14
+ * @GTK_IMAGE_SURFACE: the widget contains a #cairo_surface_t.
+ *  This image type was added in GTK+ 3.10
  *
  * Describes the image data representation used by a #GtkImage. If you
  * want to get the image from the widget, you can only get the
@@ -129,14 +73,13 @@ struct _GtkImageGIconData
 typedef enum
 {
   GTK_IMAGE_EMPTY,
-  GTK_IMAGE_PIXMAP,
-  GTK_IMAGE_IMAGE,
   GTK_IMAGE_PIXBUF,
   GTK_IMAGE_STOCK,
   GTK_IMAGE_ICON_SET,
   GTK_IMAGE_ANIMATION,
   GTK_IMAGE_ICON_NAME,
-  GTK_IMAGE_GICON
+  GTK_IMAGE_GICON,
+  GTK_IMAGE_SURFACE
 } GtkImageType;
 
 /**
@@ -149,25 +92,8 @@ struct _GtkImage
 {
   GtkMisc misc;
 
-  GtkImageType GSEAL (storage_type);
-  
-  union
-  {
-    GtkImagePixmapData pixmap;
-    GtkImageImageData image;
-    GtkImagePixbufData pixbuf;
-    GtkImageStockData stock;
-    GtkImageIconSetData icon_set;
-    GtkImageAnimationData anim;
-    GtkImageIconNameData name;
-    GtkImageGIconData gicon;
-  } GSEAL (data);
-
-  /* Only used with GTK_IMAGE_PIXMAP, GTK_IMAGE_IMAGE */
-  GdkBitmap *GSEAL (mask);
-
-  /* Only used with GTK_IMAGE_STOCK, GTK_IMAGE_ICON_SET, GTK_IMAGE_ICON_NAME */
-  GtkIconSize GSEAL (icon_size);
+  /*< private >*/
+  GtkImagePrivate *priv;
 };
 
 struct _GtkImageClass
@@ -181,93 +107,96 @@ struct _GtkImageClass
   void (*_gtk_reserved4) (void);
 };
 
-#ifdef G_OS_WIN32
-/* Reserve old names for DLL ABI backward compatibility */
-#define gtk_image_new_from_file gtk_image_new_from_file_utf8
-#define gtk_image_set_from_file gtk_image_set_from_file_utf8
-#endif
-
+GDK_AVAILABLE_IN_ALL
 GType      gtk_image_get_type (void) G_GNUC_CONST;
 
+GDK_AVAILABLE_IN_ALL
 GtkWidget* gtk_image_new                (void);
-GtkWidget* gtk_image_new_from_pixmap    (GdkPixmap       *pixmap,
-                                         GdkBitmap       *mask);
-GtkWidget* gtk_image_new_from_image     (GdkImage        *image,
-                                         GdkBitmap       *mask);
+GDK_AVAILABLE_IN_ALL
 GtkWidget* gtk_image_new_from_file      (const gchar     *filename);
+GDK_AVAILABLE_IN_ALL
+GtkWidget* gtk_image_new_from_resource  (const gchar     *resource_path);
+GDK_AVAILABLE_IN_ALL
 GtkWidget* gtk_image_new_from_pixbuf    (GdkPixbuf       *pixbuf);
+GDK_DEPRECATED_IN_3_10_FOR(gtk_image_new_from_icon_name)
 GtkWidget* gtk_image_new_from_stock     (const gchar     *stock_id,
                                          GtkIconSize      size);
+GDK_DEPRECATED_IN_3_10_FOR(gtk_image_new_from_icon_name)
 GtkWidget* gtk_image_new_from_icon_set  (GtkIconSet      *icon_set,
                                          GtkIconSize      size);
+GDK_AVAILABLE_IN_ALL
 GtkWidget* gtk_image_new_from_animation (GdkPixbufAnimation *animation);
+GDK_AVAILABLE_IN_ALL
 GtkWidget* gtk_image_new_from_icon_name (const gchar     *icon_name,
 					 GtkIconSize      size);
+GDK_AVAILABLE_IN_ALL
 GtkWidget* gtk_image_new_from_gicon     (GIcon           *icon,
 					 GtkIconSize      size);
+GDK_AVAILABLE_IN_3_10
+GtkWidget* gtk_image_new_from_surface   (cairo_surface_t *surface);
 
+GDK_AVAILABLE_IN_ALL
 void gtk_image_clear              (GtkImage        *image);
-void gtk_image_set_from_pixmap    (GtkImage        *image,
-                                   GdkPixmap       *pixmap,
-                                   GdkBitmap       *mask);
-void gtk_image_set_from_image     (GtkImage        *image,
-                                   GdkImage        *gdk_image,
-                                   GdkBitmap       *mask);
+GDK_AVAILABLE_IN_ALL
 void gtk_image_set_from_file      (GtkImage        *image,
                                    const gchar     *filename);
+GDK_AVAILABLE_IN_ALL
+void gtk_image_set_from_resource  (GtkImage        *image,
+                                   const gchar     *resource_path);
+GDK_AVAILABLE_IN_ALL
 void gtk_image_set_from_pixbuf    (GtkImage        *image,
                                    GdkPixbuf       *pixbuf);
+GDK_DEPRECATED_IN_3_10_FOR(gtk_image_set_from_icon_name)
 void gtk_image_set_from_stock     (GtkImage        *image,
                                    const gchar     *stock_id,
                                    GtkIconSize      size);
+GDK_DEPRECATED_IN_3_10_FOR(gtk_image_set_from_icon_name)
 void gtk_image_set_from_icon_set  (GtkImage        *image,
                                    GtkIconSet      *icon_set,
                                    GtkIconSize      size);
+GDK_AVAILABLE_IN_ALL
 void gtk_image_set_from_animation (GtkImage           *image,
                                    GdkPixbufAnimation *animation);
+GDK_AVAILABLE_IN_ALL
 void gtk_image_set_from_icon_name (GtkImage        *image,
 				   const gchar     *icon_name,
 				   GtkIconSize      size);
+GDK_AVAILABLE_IN_ALL
 void gtk_image_set_from_gicon     (GtkImage        *image,
 				   GIcon           *icon,
 				   GtkIconSize      size);
+GDK_AVAILABLE_IN_3_10
+void gtk_image_set_from_surface   (GtkImage        *image,
+				   cairo_surface_t *surface);
+GDK_AVAILABLE_IN_ALL
 void gtk_image_set_pixel_size     (GtkImage        *image,
 				   gint             pixel_size);
 
+GDK_AVAILABLE_IN_ALL
 GtkImageType gtk_image_get_storage_type (GtkImage   *image);
 
-void       gtk_image_get_pixmap   (GtkImage         *image,
-                                   GdkPixmap       **pixmap,
-                                   GdkBitmap       **mask);
-void       gtk_image_get_image    (GtkImage         *image,
-                                   GdkImage        **gdk_image,
-                                   GdkBitmap       **mask);
+GDK_AVAILABLE_IN_ALL
 GdkPixbuf* gtk_image_get_pixbuf   (GtkImage         *image);
+GDK_DEPRECATED_IN_3_10_FOR(gtk_image_get_icon_name)
 void       gtk_image_get_stock    (GtkImage         *image,
                                    gchar           **stock_id,
                                    GtkIconSize      *size);
+GDK_DEPRECATED_IN_3_10_FOR(gtk_image_get_icon_name)
 void       gtk_image_get_icon_set (GtkImage         *image,
                                    GtkIconSet      **icon_set,
                                    GtkIconSize      *size);
+GDK_AVAILABLE_IN_ALL
 GdkPixbufAnimation* gtk_image_get_animation (GtkImage *image);
-void       gtk_image_get_icon_name (GtkImage              *image,
-				    G_CONST_RETURN gchar **icon_name,
-				    GtkIconSize           *size);
+GDK_AVAILABLE_IN_ALL
+void       gtk_image_get_icon_name (GtkImage     *image,
+				    const gchar **icon_name,
+				    GtkIconSize  *size);
+GDK_AVAILABLE_IN_ALL
 void       gtk_image_get_gicon     (GtkImage              *image,
 				    GIcon                **gicon,
 				    GtkIconSize           *size);
+GDK_AVAILABLE_IN_ALL
 gint       gtk_image_get_pixel_size (GtkImage             *image);
-
-#ifndef GTK_DISABLE_DEPRECATED
-/* These three are deprecated */
-
-void       gtk_image_set      (GtkImage   *image,
-			       GdkImage   *val,
-			       GdkBitmap  *mask);
-void       gtk_image_get      (GtkImage   *image,
-			       GdkImage  **val,
-			       GdkBitmap **mask);
-#endif /* GTK_DISABLE_DEPRECATED */
 
 G_END_DECLS
 

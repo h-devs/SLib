@@ -17,12 +17,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __ATK_EDITABLE_TEXT_H__
+#define __ATK_EDITABLE_TEXT_H__
+
 #if defined(ATK_DISABLE_SINGLE_INCLUDES) && !defined (__ATK_H_INSIDE__) && !defined (ATK_COMPILATION)
 #error "Only <atk/atk.h> can be included directly."
 #endif
-
-#ifndef __ATK_EDITABLE_TEXT_H__
-#define __ATK_EDITABLE_TEXT_H__
 
 #include <atk/atkobject.h>
 #include <atk/atktext.h>
@@ -70,32 +70,37 @@ struct _AtkEditableTextIface
                                    gint             end_pos);
   void   (* paste_text)           (AtkEditableText  *text,
                                    gint             position);
-
-  AtkFunction                     pad1;
-  AtkFunction                     pad2;
 };
+ATK_AVAILABLE_IN_ALL
 GType atk_editable_text_get_type (void);
 
 
+ATK_AVAILABLE_IN_ALL
 gboolean atk_editable_text_set_run_attributes (AtkEditableText          *text,
                                                AtkAttributeSet  *attrib_set,
                                                gint    	        start_offset,
  					       gint	        end_offset);
+ATK_AVAILABLE_IN_ALL
 void atk_editable_text_set_text_contents    (AtkEditableText  *text,
                                              const gchar      *string);
+ATK_AVAILABLE_IN_ALL
 void atk_editable_text_insert_text          (AtkEditableText  *text,
                                              const gchar      *string,
                                              gint             length,
                                              gint             *position);
+ATK_AVAILABLE_IN_ALL
 void atk_editable_text_copy_text            (AtkEditableText  *text,
                                              gint             start_pos,
                                              gint             end_pos);
+ATK_AVAILABLE_IN_ALL
 void atk_editable_text_cut_text             (AtkEditableText  *text,
                                              gint             start_pos,
                                              gint             end_pos);
+ATK_AVAILABLE_IN_ALL
 void atk_editable_text_delete_text          (AtkEditableText  *text,
                                              gint             start_pos,
                                              gint             end_pos);
+ATK_AVAILABLE_IN_ALL
 void atk_editable_text_paste_text           (AtkEditableText  *text,
                                              gint             position);
 

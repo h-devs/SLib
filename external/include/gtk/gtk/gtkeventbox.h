@@ -8,13 +8,11 @@
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -24,13 +22,13 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_EVENT_BOX_H__
 #define __GTK_EVENT_BOX_H__
 
+
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
 #include <gtk/gtkbin.h>
 
@@ -44,27 +42,49 @@ G_BEGIN_DECLS
 #define GTK_IS_EVENT_BOX_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), GTK_TYPE_EVENT_BOX))
 #define GTK_EVENT_BOX_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_EVENT_BOX, GtkEventBoxClass))
 
-typedef struct _GtkEventBox	  GtkEventBox;
-typedef struct _GtkEventBoxClass  GtkEventBoxClass;
+typedef struct _GtkEventBox        GtkEventBox;
+typedef struct _GtkEventBoxClass   GtkEventBoxClass;
+typedef struct _GtkEventBoxPrivate GtkEventBoxPrivate;
 
 struct _GtkEventBox
 {
   GtkBin bin;
+
+  /*< private >*/
+  GtkEventBoxPrivate *priv;
 };
 
+/**
+ * GtkEventBoxClass:
+ * @parent_class: The parent class.
+ */
 struct _GtkEventBoxClass
 {
   GtkBinClass parent_class;
+
+  /*< private >*/
+
+  /* Padding for future expansion */
+  void (*_gtk_reserved1) (void);
+  void (*_gtk_reserved2) (void);
+  void (*_gtk_reserved3) (void);
+  void (*_gtk_reserved4) (void);
 };
 
-GType	   gtk_event_box_get_type           (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
+GType      gtk_event_box_get_type           (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 GtkWidget* gtk_event_box_new                (void);
+GDK_AVAILABLE_IN_ALL
 gboolean   gtk_event_box_get_visible_window (GtkEventBox *event_box);
+GDK_AVAILABLE_IN_ALL
 void       gtk_event_box_set_visible_window (GtkEventBox *event_box,
-					     gboolean     visible_window);
+                                             gboolean     visible_window);
+GDK_AVAILABLE_IN_ALL
 gboolean   gtk_event_box_get_above_child    (GtkEventBox *event_box);
+GDK_AVAILABLE_IN_ALL
 void       gtk_event_box_set_above_child    (GtkEventBox *event_box,
-					     gboolean     above_child);
+                                             gboolean     above_child);
 
 G_END_DECLS
 

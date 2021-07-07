@@ -12,17 +12,15 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
-
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
 
 #ifndef __GTK_CELL_RENDERER_PIXBUF_H__
 #define __GTK_CELL_RENDERER_PIXBUF_H__
+
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
 #include <gtk/gtkcellrenderer.h>
 
@@ -37,17 +35,16 @@ G_BEGIN_DECLS
 #define GTK_IS_CELL_RENDERER_PIXBUF_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE ((klass), GTK_TYPE_CELL_RENDERER_PIXBUF))
 #define GTK_CELL_RENDERER_PIXBUF_GET_CLASS(obj)         (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_CELL_RENDERER_PIXBUF, GtkCellRendererPixbufClass))
 
-typedef struct _GtkCellRendererPixbuf GtkCellRendererPixbuf;
-typedef struct _GtkCellRendererPixbufClass GtkCellRendererPixbufClass;
+typedef struct _GtkCellRendererPixbuf              GtkCellRendererPixbuf;
+typedef struct _GtkCellRendererPixbufPrivate       GtkCellRendererPixbufPrivate;
+typedef struct _GtkCellRendererPixbufClass         GtkCellRendererPixbufClass;
 
 struct _GtkCellRendererPixbuf
 {
   GtkCellRenderer parent;
 
   /*< private >*/
-  GdkPixbuf *GSEAL (pixbuf);
-  GdkPixbuf *GSEAL (pixbuf_expander_open);
-  GdkPixbuf *GSEAL (pixbuf_expander_closed);
+  GtkCellRendererPixbufPrivate *priv;
 };
 
 struct _GtkCellRendererPixbufClass
@@ -61,7 +58,9 @@ struct _GtkCellRendererPixbufClass
   void (*_gtk_reserved4) (void);
 };
 
+GDK_AVAILABLE_IN_ALL
 GType            gtk_cell_renderer_pixbuf_get_type (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 GtkCellRenderer *gtk_cell_renderer_pixbuf_new      (void);
 
 

@@ -17,12 +17,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __ATK_SELECTION_H__
+#define __ATK_SELECTION_H__
+
 #if defined(ATK_DISABLE_SINGLE_INCLUDES) && !defined (__ATK_H_INSIDE__) && !defined (ATK_COMPILATION)
 #error "Only <atk/atk.h> can be included directly."
 #endif
-
-#ifndef __ATK_SELECTION_H__
-#define __ATK_SELECTION_H__
 
 #include <atk/atkobject.h>
 
@@ -65,29 +65,34 @@ struct _AtkSelectionIface
   /* signal handlers */
   
   void         (*selection_changed)     (AtkSelection   *selection);
-
-  AtkFunction  pad1;
-  AtkFunction  pad2;
 };
 
+ATK_AVAILABLE_IN_ALL
 GType atk_selection_get_type (void);
 
+ATK_AVAILABLE_IN_ALL
 gboolean     atk_selection_add_selection        (AtkSelection   *selection,
                                                  gint           i);
 
+ATK_AVAILABLE_IN_ALL
 gboolean     atk_selection_clear_selection      (AtkSelection   *selection);
 
+ATK_AVAILABLE_IN_ALL
 AtkObject*   atk_selection_ref_selection        (AtkSelection   *selection,
                                                  gint           i);
 
+ATK_AVAILABLE_IN_ALL
 gint         atk_selection_get_selection_count  (AtkSelection   *selection);
 
+ATK_AVAILABLE_IN_ALL
 gboolean     atk_selection_is_child_selected    (AtkSelection   *selection,
                                                  gint           i);
 
+ATK_AVAILABLE_IN_ALL
 gboolean     atk_selection_remove_selection     (AtkSelection   *selection,
                                                  gint           i);
 
+ATK_AVAILABLE_IN_ALL
 gboolean     atk_selection_select_all_selection (AtkSelection   *selection);
 
 G_END_DECLS

@@ -13,19 +13,18 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
-
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
 
 #ifndef __GTK_FILE_FILTER_H__
 #define __GTK_FILE_FILTER_H__
 
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
+
 #include <glib-object.h>
+#include <gdk/gdk.h>
 
 G_BEGIN_DECLS
 
@@ -36,6 +35,17 @@ G_BEGIN_DECLS
 typedef struct _GtkFileFilter     GtkFileFilter;
 typedef struct _GtkFileFilterInfo GtkFileFilterInfo;
 
+/**
+ * GtkFileFilterFlags:
+ * @GTK_FILE_FILTER_FILENAME: the filename of the file being tested
+ * @GTK_FILE_FILTER_URI: the URI for the file being tested
+ * @GTK_FILE_FILTER_DISPLAY_NAME: the string that will be used to 
+ *   display the file in the file chooser
+ * @GTK_FILE_FILTER_MIME_TYPE: the mime type of the file
+ * 
+ * These flags indicate what parts of a #GtkFileFilterInfo struct
+ * are filled or need to be filled. 
+ */
 typedef enum {
   GTK_FILE_FILTER_FILENAME     = 1 << 0,
   GTK_FILE_FILTER_URI          = 1 << 1,
@@ -43,9 +53,33 @@ typedef enum {
   GTK_FILE_FILTER_MIME_TYPE    = 1 << 3
 } GtkFileFilterFlags;
 
+/**
+ * GtkFileFilterFunc:
+ * @filter_info: a #GtkFileFilterInfo that is filled according
+ *   to the @needed flags passed to gtk_file_filter_add_custom()
+ * @data: (closure): user data passed to gtk_file_filter_add_custom()
+ *
+ * The type of function that is used with custom filters, see
+ * gtk_file_filter_add_custom().
+ *
+ * Returns: %TRUE if the file should be displayed
+ */
 typedef gboolean (*GtkFileFilterFunc) (const GtkFileFilterInfo *filter_info,
 				       gpointer                 data);
 
+/**
+ * GtkFileFilterInfo:
+ * @contains: Flags indicating which of the following fields need
+ *   are filled
+ * @filename: the filename of the file being tested
+ * @uri: the URI for the file being tested
+ * @display_name: the string that will be used to display the file
+ *   in the file chooser
+ * @mime_type: the mime type of the file
+ *
+ * A #GtkFileFilterInfo-struct is used to pass information about the
+ * tested file to gtk_file_filter_filter().
+ */
 struct _GtkFileFilterInfo
 {
   GtkFileFilterFlags contains;
@@ -56,27 +90,42 @@ struct _GtkFileFilterInfo
   const gchar *mime_type;
 };
 
+GDK_AVAILABLE_IN_ALL
 GType gtk_file_filter_get_type (void) G_GNUC_CONST;
 
+GDK_AVAILABLE_IN_ALL
 GtkFileFilter *       gtk_file_filter_new      (void);
+GDK_AVAILABLE_IN_ALL
 void                  gtk_file_filter_set_name (GtkFileFilter *filter,
 						const gchar   *name);
-G_CONST_RETURN gchar *gtk_file_filter_get_name (GtkFileFilter *filter);
+GDK_AVAILABLE_IN_ALL
+const gchar *         gtk_file_filter_get_name (GtkFileFilter *filter);
 
+GDK_AVAILABLE_IN_ALL
 void gtk_file_filter_add_mime_type      (GtkFileFilter      *filter,
 					 const gchar        *mime_type);
+GDK_AVAILABLE_IN_ALL
 void gtk_file_filter_add_pattern        (GtkFileFilter      *filter,
 					 const gchar        *pattern);
+GDK_AVAILABLE_IN_ALL
 void gtk_file_filter_add_pixbuf_formats (GtkFileFilter      *filter);
+GDK_AVAILABLE_IN_ALL
 void gtk_file_filter_add_custom         (GtkFileFilter      *filter,
 					 GtkFileFilterFlags  needed,
 					 GtkFileFilterFunc   func,
 					 gpointer            data,
 					 GDestroyNotify      notify);
 
+GDK_AVAILABLE_IN_ALL
 GtkFileFilterFlags gtk_file_filter_get_needed (GtkFileFilter           *filter);
+GDK_AVAILABLE_IN_ALL
 gboolean           gtk_file_filter_filter     (GtkFileFilter           *filter,
 					       const GtkFileFilterInfo *filter_info);
+
+GDK_AVAILABLE_IN_3_22
+GVariant      *gtk_file_filter_to_gvariant       (GtkFileFilter *filter);
+GDK_AVAILABLE_IN_3_22
+GtkFileFilter *gtk_file_filter_new_from_gvariant (GVariant      *variant);
 
 G_END_DECLS
 

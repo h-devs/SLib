@@ -12,9 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -24,12 +22,12 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
+#ifndef __GTK_MOUNT_OPERATION_H__
+#define __GTK_MOUNT_OPERATION_H__
+
 #if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
 #error "Only <gtk/gtk.h> can be included directly."
 #endif
-
-#ifndef __GTK_MOUNT_OPERATION_H__
-#define __GTK_MOUNT_OPERATION_H__
 
 G_BEGIN_DECLS
 
@@ -56,9 +54,15 @@ struct _GtkMountOperation
   GtkMountOperationPrivate *priv;
 };
 
+/**
+ * GtkMountOperationClass:
+ * @parent_class: The parent class.
+ */
 struct _GtkMountOperationClass
 {
   GMountOperationClass parent_class;
+
+  /*< private >*/
 
   /* Padding for future expansion */
   void (*_gtk_reserved1) (void);
@@ -68,14 +72,21 @@ struct _GtkMountOperationClass
 };
 
 
+GDK_AVAILABLE_IN_ALL
 GType            gtk_mount_operation_get_type   (void);
+GDK_AVAILABLE_IN_ALL
 GMountOperation *gtk_mount_operation_new        (GtkWindow         *parent);
+GDK_AVAILABLE_IN_ALL
 gboolean         gtk_mount_operation_is_showing (GtkMountOperation *op);
+GDK_AVAILABLE_IN_ALL
 void             gtk_mount_operation_set_parent (GtkMountOperation *op,
                                                  GtkWindow         *parent);
+GDK_AVAILABLE_IN_ALL
 GtkWindow *      gtk_mount_operation_get_parent (GtkMountOperation *op);
+GDK_AVAILABLE_IN_ALL
 void             gtk_mount_operation_set_screen (GtkMountOperation *op,
                                                  GdkScreen         *screen);
+GDK_AVAILABLE_IN_ALL
 GdkScreen       *gtk_mount_operation_get_screen (GtkMountOperation *op);
 
 G_END_DECLS

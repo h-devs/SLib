@@ -13,9 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -25,12 +23,12 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_CELL_RENDERER_PROGRESS_H__
 #define __GTK_CELL_RENDERER_PROGRESS_H__
+
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
 #include <gtk/gtkcellrenderer.h>
 
@@ -52,7 +50,7 @@ struct _GtkCellRendererProgress
   GtkCellRenderer parent_instance;
 
   /*< private >*/
-  GtkCellRendererProgressPrivate *GSEAL (priv);
+  GtkCellRendererProgressPrivate *priv;
 };
 
 struct _GtkCellRendererProgressClass
@@ -66,7 +64,9 @@ struct _GtkCellRendererProgressClass
   void (*_gtk_reserved4) (void);
 };
 
+GDK_AVAILABLE_IN_ALL
 GType		 gtk_cell_renderer_progress_get_type (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 GtkCellRenderer* gtk_cell_renderer_progress_new      (void);
 
 G_END_DECLS

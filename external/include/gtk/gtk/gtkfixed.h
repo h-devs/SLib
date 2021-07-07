@@ -12,9 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -24,13 +22,13 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_FIXED_H__
 #define __GTK_FIXED_H__
 
+
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
 #include <gtk/gtkcontainer.h>
 
@@ -44,21 +42,28 @@ G_BEGIN_DECLS
 #define GTK_IS_FIXED_CLASS(klass)       (G_TYPE_CHECK_CLASS_TYPE ((klass), GTK_TYPE_FIXED))
 #define GTK_FIXED_GET_CLASS(obj)        (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_FIXED, GtkFixedClass))
 
-
-typedef struct _GtkFixed        GtkFixed;
-typedef struct _GtkFixedClass   GtkFixedClass;
-typedef struct _GtkFixedChild   GtkFixedChild;
+typedef struct _GtkFixed              GtkFixed;
+typedef struct _GtkFixedPrivate       GtkFixedPrivate;
+typedef struct _GtkFixedClass         GtkFixedClass;
+typedef struct _GtkFixedChild         GtkFixedChild;
 
 struct _GtkFixed
 {
   GtkContainer container;
 
-  GList *GSEAL (children);
+  /*< private >*/
+  GtkFixedPrivate *priv;
 };
 
 struct _GtkFixedClass
 {
   GtkContainerClass parent_class;
+
+  /* Padding for future expansion */
+  void (*_gtk_reserved1) (void);
+  void (*_gtk_reserved2) (void);
+  void (*_gtk_reserved3) (void);
+  void (*_gtk_reserved4) (void);
 };
 
 struct _GtkFixedChild
@@ -69,21 +74,21 @@ struct _GtkFixedChild
 };
 
 
+GDK_AVAILABLE_IN_ALL
 GType      gtk_fixed_get_type          (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 GtkWidget* gtk_fixed_new               (void);
+GDK_AVAILABLE_IN_ALL
 void       gtk_fixed_put               (GtkFixed       *fixed,
                                         GtkWidget      *widget,
                                         gint            x,
                                         gint            y);
+GDK_AVAILABLE_IN_ALL
 void       gtk_fixed_move              (GtkFixed       *fixed,
                                         GtkWidget      *widget,
                                         gint            x,
                                         gint            y);
-#ifndef GTK_DISABLE_DEPRECATED
-void       gtk_fixed_set_has_window    (GtkFixed       *fixed,
-					gboolean        has_window);
-gboolean   gtk_fixed_get_has_window    (GtkFixed       *fixed);
-#endif
+
 
 G_END_DECLS
 

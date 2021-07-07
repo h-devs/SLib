@@ -13,9 +13,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -25,13 +23,13 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_DND_H__
 #define __GTK_DND_H__
 
+
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
 #include <gtk/gtkwidget.h>
 #include <gtk/gtkselection.h>
@@ -39,149 +37,87 @@
 
 G_BEGIN_DECLS
 
-typedef enum {
-  GTK_DEST_DEFAULT_MOTION     = 1 << 0, /* respond to "drag_motion" */
-  GTK_DEST_DEFAULT_HIGHLIGHT  = 1 << 1, /* auto-highlight */
-  GTK_DEST_DEFAULT_DROP       = 1 << 2, /* respond to "drag_drop" */
-  GTK_DEST_DEFAULT_ALL        = 0x07
-} GtkDestDefaults;
-
-/* Flags for the GtkTargetEntry on the destination side
- */
-typedef enum {
-  GTK_TARGET_SAME_APP = 1 << 0,    /*< nick=same-app >*/
-  GTK_TARGET_SAME_WIDGET = 1 << 1, /*< nick=same-widget >*/
-  GTK_TARGET_OTHER_APP = 1 << 2,   /*< nick=other-app >*/
-  GTK_TARGET_OTHER_WIDGET = 1 << 3 /*< nick=other-widget >*/
-} GtkTargetFlags;
-
 /* Destination side */
 
+GDK_AVAILABLE_IN_ALL
 void gtk_drag_get_data (GtkWidget      *widget,
 			GdkDragContext *context,
 			GdkAtom         target,
 			guint32         time_);
+GDK_AVAILABLE_IN_ALL
 void gtk_drag_finish   (GdkDragContext *context,
 			gboolean        success,
 			gboolean        del,
 			guint32         time_);
 
+GDK_AVAILABLE_IN_ALL
 GtkWidget *gtk_drag_get_source_widget (GdkDragContext *context);
 
+GDK_AVAILABLE_IN_ALL
 void gtk_drag_highlight   (GtkWidget  *widget);
+GDK_AVAILABLE_IN_ALL
 void gtk_drag_unhighlight (GtkWidget  *widget);
-
-void gtk_drag_dest_set   (GtkWidget            *widget,
-			  GtkDestDefaults       flags,
-  		          const GtkTargetEntry *targets,
-			  gint                  n_targets,
-			  GdkDragAction         actions);
-
-void gtk_drag_dest_set_proxy (GtkWidget      *widget,
-			      GdkWindow      *proxy_window,
-			      GdkDragProtocol protocol,
-			      gboolean        use_coordinates);
-
-void gtk_drag_dest_unset (GtkWidget          *widget);
-
-GdkAtom        gtk_drag_dest_find_target     (GtkWidget      *widget,
-                                              GdkDragContext *context,
-                                              GtkTargetList  *target_list);
-GtkTargetList* gtk_drag_dest_get_target_list (GtkWidget      *widget);
-void           gtk_drag_dest_set_target_list (GtkWidget      *widget,
-                                              GtkTargetList  *target_list);
-void           gtk_drag_dest_add_text_targets  (GtkWidget    *widget);
-void           gtk_drag_dest_add_image_targets (GtkWidget    *widget);
-void           gtk_drag_dest_add_uri_targets   (GtkWidget    *widget);
-
-void           gtk_drag_dest_set_track_motion  (GtkWidget *widget,
-						gboolean   track_motion);
-gboolean       gtk_drag_dest_get_track_motion  (GtkWidget *widget);
 
 /* Source side */
 
-void gtk_drag_source_set  (GtkWidget            *widget,
-			   GdkModifierType       start_button_mask,
-			   const GtkTargetEntry *targets,
-			   gint                  n_targets,
-			   GdkDragAction         actions);
+GDK_AVAILABLE_IN_3_10
+GdkDragContext *gtk_drag_begin_with_coordinates (GtkWidget         *widget,
+                                                 GtkTargetList     *targets,
+                                                 GdkDragAction      actions,
+                                                 gint               button,
+                                                 GdkEvent          *event,
+                                                 gint               x,
+                                                 gint               y);
 
-void gtk_drag_source_unset (GtkWidget        *widget);
-
-GtkTargetList* gtk_drag_source_get_target_list (GtkWidget     *widget);
-void           gtk_drag_source_set_target_list (GtkWidget     *widget,
-                                                GtkTargetList *target_list);
-void           gtk_drag_source_add_text_targets  (GtkWidget     *widget);
-void           gtk_drag_source_add_image_targets (GtkWidget    *widget);
-void           gtk_drag_source_add_uri_targets   (GtkWidget    *widget);
-
-void gtk_drag_source_set_icon        (GtkWidget   *widget,
-				      GdkColormap *colormap,
-				      GdkPixmap   *pixmap,
-				      GdkBitmap   *mask);
-void gtk_drag_source_set_icon_pixbuf (GtkWidget   *widget,
-				      GdkPixbuf   *pixbuf);
-void gtk_drag_source_set_icon_stock  (GtkWidget   *widget,
-				      const gchar *stock_id);
-void gtk_drag_source_set_icon_name   (GtkWidget   *widget,
-				      const gchar *icon_name);
-
-/* There probably should be functions for setting the targets
- * as a GtkTargetList
- */
-
+GDK_DEPRECATED_IN_3_10_FOR(gtk_drag_begin_with_coordinates)
 GdkDragContext *gtk_drag_begin (GtkWidget         *widget,
 				GtkTargetList     *targets,
 				GdkDragAction      actions,
 				gint               button,
 				GdkEvent          *event);
 
-/* Set the image being dragged around
- */
+GDK_AVAILABLE_IN_3_16
+void gtk_drag_cancel           (GdkDragContext *context);
+
+GDK_AVAILABLE_IN_ALL
 void gtk_drag_set_icon_widget (GdkDragContext *context,
 			       GtkWidget      *widget,
 			       gint            hot_x,
 			       gint            hot_y);
-void gtk_drag_set_icon_pixmap (GdkDragContext *context,
-			       GdkColormap    *colormap,
-			       GdkPixmap      *pixmap,
-			       GdkBitmap      *mask,
-			       gint            hot_x,
-			       gint            hot_y);
+GDK_AVAILABLE_IN_ALL
 void gtk_drag_set_icon_pixbuf (GdkDragContext *context,
 			       GdkPixbuf      *pixbuf,
 			       gint            hot_x,
 			       gint            hot_y);
+GDK_DEPRECATED_IN_3_10_FOR(gtk_drag_set_icon_name)
 void gtk_drag_set_icon_stock  (GdkDragContext *context,
 			       const gchar    *stock_id,
 			       gint            hot_x,
 			       gint            hot_y);
+GDK_AVAILABLE_IN_ALL
+void gtk_drag_set_icon_surface(GdkDragContext *context,
+			       cairo_surface_t *surface);
+GDK_AVAILABLE_IN_ALL
 void gtk_drag_set_icon_name   (GdkDragContext *context,
 			       const gchar    *icon_name,
 			       gint            hot_x,
 			       gint            hot_y);
+GDK_AVAILABLE_IN_3_2
+void gtk_drag_set_icon_gicon  (GdkDragContext *context,
+			       GIcon          *icon,
+			       gint            hot_x,
+			       gint            hot_y);
 
+GDK_AVAILABLE_IN_ALL
 void gtk_drag_set_icon_default (GdkDragContext    *context);
 
+GDK_AVAILABLE_IN_ALL
 gboolean gtk_drag_check_threshold (GtkWidget *widget,
 				   gint       start_x,
 				   gint       start_y,
 				   gint       current_x,
 				   gint       current_y);
 
-/* Internal functions */
-void _gtk_drag_source_handle_event (GtkWidget *widget,
-				    GdkEvent  *event);
-void _gtk_drag_dest_handle_event (GtkWidget *toplevel,
-				  GdkEvent  *event);
-
-#ifndef GTK_DISABLE_DEPRECATED
-void gtk_drag_set_default_icon (GdkColormap   *colormap,
-				GdkPixmap     *pixmap,
-				GdkBitmap     *mask,
-			        gint           hot_x,
-			        gint           hot_y);
-#endif /* !GTK_DISABLE_DEPRECATED */
 
 G_END_DECLS
 

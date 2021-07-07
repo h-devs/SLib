@@ -12,21 +12,18 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
-
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
 
 #ifndef __GTK_IM_CONTEXT_H__
 #define __GTK_IM_CONTEXT_H__
 
 
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
+
 #include <gdk/gdk.h>
-#include <gtk/gtkobject.h>
 
 
 G_BEGIN_DECLS
@@ -50,10 +47,7 @@ struct _GtkIMContext
 struct _GtkIMContextClass
 {
   /*< private >*/
-  /* Yes, this should be GObjectClass, be we can't fix it without breaking
-   * binary compatibility - see bug #90935
-   */
-  GtkObjectClass parent_class;
+  GObjectClass parent_class;
 
   /*< public >*/
   /* Signals */
@@ -99,30 +93,42 @@ struct _GtkIMContextClass
   void (*_gtk_reserved6) (void);
 };
 
+GDK_AVAILABLE_IN_ALL
 GType    gtk_im_context_get_type            (void) G_GNUC_CONST;
 
+GDK_AVAILABLE_IN_ALL
 void     gtk_im_context_set_client_window   (GtkIMContext       *context,
 					     GdkWindow          *window);
+GDK_AVAILABLE_IN_ALL
 void     gtk_im_context_get_preedit_string  (GtkIMContext       *context,
 					     gchar             **str,
 					     PangoAttrList     **attrs,
 					     gint               *cursor_pos);
+GDK_AVAILABLE_IN_ALL
 gboolean gtk_im_context_filter_keypress     (GtkIMContext       *context,
 					     GdkEventKey        *event);
+GDK_AVAILABLE_IN_ALL
 void     gtk_im_context_focus_in            (GtkIMContext       *context);
+GDK_AVAILABLE_IN_ALL
 void     gtk_im_context_focus_out           (GtkIMContext       *context);
+GDK_AVAILABLE_IN_ALL
 void     gtk_im_context_reset               (GtkIMContext       *context);
+GDK_AVAILABLE_IN_ALL
 void     gtk_im_context_set_cursor_location (GtkIMContext       *context,
 					     const GdkRectangle *area);
+GDK_AVAILABLE_IN_ALL
 void     gtk_im_context_set_use_preedit     (GtkIMContext       *context,
 					     gboolean            use_preedit);
+GDK_AVAILABLE_IN_ALL
 void     gtk_im_context_set_surrounding     (GtkIMContext       *context,
 					     const gchar        *text,
 					     gint                len,
 					     gint                cursor_index);
+GDK_AVAILABLE_IN_ALL
 gboolean gtk_im_context_get_surrounding     (GtkIMContext       *context,
 					     gchar             **text,
 					     gint               *cursor_index);
+GDK_AVAILABLE_IN_ALL
 gboolean gtk_im_context_delete_surrounding  (GtkIMContext       *context,
 					     gint                offset,
 					     gint                n_chars);

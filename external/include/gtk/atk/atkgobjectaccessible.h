@@ -17,14 +17,14 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __ATK_GOBJECT_ACCESSIBLE_H__
+#define __ATK_GOBJECT_ACCESSIBLE_H__
+
 #if defined(ATK_DISABLE_SINGLE_INCLUDES) && !defined (__ATK_H_INSIDE__) && !defined (ATK_COMPILATION)
 #error "Only <atk/atk.h> can be included directly."
 #endif
 
-#ifndef __ATK_GOBJECT_ACCESSIBLE_H__
-#define __ATK_GOBJECT_ACCESSIBLE_H__
-
-#include <atk/atk.h>
+#include <atk/atkobject.h>
 
 G_BEGIN_DECLS
 
@@ -47,6 +47,7 @@ struct _AtkGObjectAccessible
   AtkObject parent;
 };
 
+ATK_AVAILABLE_IN_ALL
 GType atk_gobject_accessible_get_type (void);
 
 struct _AtkGObjectAccessibleClass
@@ -57,7 +58,9 @@ struct _AtkGObjectAccessibleClass
   AtkFunction pad2;
 };
 
+ATK_AVAILABLE_IN_ALL
 AtkObject *atk_gobject_accessible_for_object      (GObject           *obj);
+ATK_AVAILABLE_IN_ALL
 GObject   *atk_gobject_accessible_get_object      (AtkGObjectAccessible *obj);
 
 G_END_DECLS

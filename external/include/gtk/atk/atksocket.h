@@ -17,12 +17,14 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __ATK_SOCKET_H__
+#define __ATK_SOCKET_H__
+
 #if defined(ATK_DISABLE_SINGLE_INCLUDES) && !defined (__ATK_H_INSIDE__) && !defined (ATK_COMPILATION)
 #error "Only <atk/atk.h> can be included directly."
 #endif
 
-#ifndef __ATK_SOCKET_H__
-#define __ATK_SOCKET_H__
+#include <atk/atkversion.h>
 
 G_BEGIN_DECLS
 
@@ -44,6 +46,7 @@ struct _AtkSocket
   gchar* embedded_plug_id;
 };
 
+ATK_AVAILABLE_IN_ALL
 GType atk_socket_get_type (void);
 
 struct _AtkSocketClass
@@ -56,8 +59,11 @@ struct _AtkSocketClass
   void (* embed) (AtkSocket *obj, gchar* plug_id);
 };
 
+ATK_AVAILABLE_IN_ALL
 AtkObject*    atk_socket_new           (void);
+ATK_AVAILABLE_IN_ALL
 void          atk_socket_embed         (AtkSocket* obj, gchar* plug_id);
+ATK_AVAILABLE_IN_ALL
 gboolean      atk_socket_is_occupied   (AtkSocket* obj);
 
 G_END_DECLS

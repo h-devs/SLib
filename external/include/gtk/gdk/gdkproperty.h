@@ -12,9 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -24,17 +22,28 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GDK_H_INSIDE__) && !defined (GDK_COMPILATION)
-#error "Only <gdk/gdk.h> can be included directly."
-#endif
-
 #ifndef __GDK_PROPERTY_H__
 #define __GDK_PROPERTY_H__
 
+#if !defined (__GDK_H_INSIDE__) && !defined (GDK_COMPILATION)
+#error "Only <gdk/gdk.h> can be included directly."
+#endif
+
 #include <gdk/gdktypes.h>
+#include <gdk/gdkversionmacros.h>
 
 G_BEGIN_DECLS
 
+
+/**
+ * GdkPropMode:
+ * @GDK_PROP_MODE_REPLACE: the new data replaces the existing data.
+ * @GDK_PROP_MODE_PREPEND: the new data is prepended to the existing data.
+ * @GDK_PROP_MODE_APPEND: the new data is appended to the existing data.
+ *
+ * Describes how existing data is combined with new data when
+ * using gdk_property_change().
+ */
 typedef enum
 {
   GDK_PROP_MODE_REPLACE,
@@ -42,82 +51,49 @@ typedef enum
   GDK_PROP_MODE_APPEND
 } GdkPropMode;
 
+
+GDK_AVAILABLE_IN_ALL
 GdkAtom gdk_atom_intern (const gchar *atom_name,
-			 gboolean     only_if_exists);
+                         gboolean     only_if_exists);
+GDK_AVAILABLE_IN_ALL
 GdkAtom gdk_atom_intern_static_string (const gchar *atom_name);
+GDK_AVAILABLE_IN_ALL
 gchar*  gdk_atom_name   (GdkAtom      atom);
 
+
+GDK_AVAILABLE_IN_ALL
 gboolean gdk_property_get    (GdkWindow     *window,
-			      GdkAtom        property,
-			      GdkAtom        type,
-			      gulong         offset,
-			      gulong         length,
-			      gint           pdelete,
-			      GdkAtom       *actual_property_type,
-			      gint          *actual_format,
-			      gint          *actual_length,
-			      guchar       **data);
+                              GdkAtom        property,
+                              GdkAtom        type,
+                              gulong         offset,
+                              gulong         length,
+                              gint           pdelete,
+                              GdkAtom       *actual_property_type,
+                              gint          *actual_format,
+                              gint          *actual_length,
+                              guchar       **data);
+GDK_AVAILABLE_IN_ALL
 void     gdk_property_change (GdkWindow     *window,
-			      GdkAtom        property,
-			      GdkAtom        type,
-			      gint           format,
-			      GdkPropMode    mode,
-			      const guchar  *data,
-			      gint           nelements);
+                              GdkAtom        property,
+                              GdkAtom        type,
+                              gint           format,
+                              GdkPropMode    mode,
+                              const guchar  *data,
+                              gint           nelements);
+GDK_AVAILABLE_IN_ALL
 void     gdk_property_delete (GdkWindow     *window,
-			      GdkAtom        property);
-#ifndef GDK_MULTIHEAD_SAFE
-gint gdk_text_property_to_text_list (GdkAtom        encoding,
-				     gint           format,
-				     const guchar  *text,
-				     gint           length,
-				     gchar       ***list);
-gint gdk_text_property_to_utf8_list (GdkAtom        encoding,
-				     gint           format,
-				     const guchar  *text,
-				     gint           length,
-				     gchar       ***list);
-gboolean gdk_utf8_to_compound_text (const gchar *str,
-				    GdkAtom     *encoding,
-				    gint        *format,
-				    guchar     **ctext,
-				    gint        *length);
-gint gdk_string_to_compound_text    (const gchar   *str,
-				     GdkAtom       *encoding,
-				     gint          *format,
-				     guchar       **ctext,
-				     gint          *length);
-#endif
+                              GdkAtom        property);
 
-gint gdk_text_property_to_text_list_for_display (GdkDisplay     *display,
-						 GdkAtom         encoding,
-						 gint            format,
-						 const guchar   *text,
-						 gint            length,
-						 gchar        ***list);
-gint gdk_text_property_to_utf8_list_for_display (GdkDisplay     *display,
-						 GdkAtom         encoding,
-						 gint            format,
-						 const guchar   *text,
-						 gint            length,
-						 gchar        ***list);
-  
-gchar   *gdk_utf8_to_string_target   (const gchar *str);
-gint     gdk_string_to_compound_text_for_display (GdkDisplay   *display,
-						  const gchar  *str,
-						  GdkAtom      *encoding,
-						  gint         *format,
-						  guchar      **ctext,
-						  gint         *length);
-gboolean gdk_utf8_to_compound_text_for_display   (GdkDisplay   *display,
-						  const gchar  *str,
-						  GdkAtom      *encoding,
-						  gint         *format,
-						  guchar      **ctext,
-						  gint         *length);
+GDK_AVAILABLE_IN_ALL
+gint   gdk_text_property_to_utf8_list_for_display (GdkDisplay     *display,
+                                                   GdkAtom         encoding,
+                                                   gint            format,
+                                                   const guchar   *text,
+                                                   gint            length,
+                                                   gchar        ***list);
 
-void gdk_free_text_list             (gchar        **list);
-void gdk_free_compound_text         (guchar        *ctext);
+GDK_AVAILABLE_IN_ALL
+gchar *gdk_utf8_to_string_target                  (const gchar    *str);
 
 G_END_DECLS
 

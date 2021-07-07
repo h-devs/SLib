@@ -13,9 +13,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -25,14 +23,14 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_STATUSBAR_H__
 #define __GTK_STATUSBAR_H__
 
-#include <gtk/gtkhbox.h>
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
+
+#include <gtk/gtkbox.h>
 
 G_BEGIN_DECLS
 
@@ -44,30 +42,21 @@ G_BEGIN_DECLS
 #define GTK_STATUSBAR_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_STATUSBAR, GtkStatusbarClass))
 
 
-typedef struct _GtkStatusbar      GtkStatusbar;
-typedef struct _GtkStatusbarClass GtkStatusbarClass;
+typedef struct _GtkStatusbar              GtkStatusbar;
+typedef struct _GtkStatusbarPrivate       GtkStatusbarPrivate;
+typedef struct _GtkStatusbarClass         GtkStatusbarClass;
 
 struct _GtkStatusbar
 {
-  GtkHBox parent_widget;
+  GtkBox parent_widget;
 
-  GtkWidget *GSEAL (frame);
-  GtkWidget *GSEAL (label);
-
-  GSList *GSEAL (messages);
-  GSList *GSEAL (keys);
-
-  guint GSEAL (seq_context_id);
-  guint GSEAL (seq_message_id);
-
-  GdkWindow *GSEAL (grip_window);
-
-  guint GSEAL (has_resize_grip) : 1;
+  /*< private >*/
+  GtkStatusbarPrivate *priv;
 };
 
 struct _GtkStatusbarClass
 {
-  GtkHBoxClass parent_class;
+  GtkBoxClass parent_class;
 
   gpointer reserved;
 
@@ -86,30 +75,33 @@ struct _GtkStatusbarClass
 };
 
 
+GDK_AVAILABLE_IN_ALL
 GType      gtk_statusbar_get_type     	(void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 GtkWidget* gtk_statusbar_new          	(void);
 /* If you don't want to use contexts, 0 is a predefined global
  * context_id you can pass to push/pop/remove
  */
+GDK_AVAILABLE_IN_ALL
 guint	   gtk_statusbar_get_context_id	(GtkStatusbar *statusbar,
 					 const gchar  *context_description);
 /* Returns message_id used for gtk_statusbar_remove */
+GDK_AVAILABLE_IN_ALL
 guint      gtk_statusbar_push          	(GtkStatusbar *statusbar,
 					 guint	       context_id,
 					 const gchar  *text);
+GDK_AVAILABLE_IN_ALL
 void       gtk_statusbar_pop          	(GtkStatusbar *statusbar,
 					 guint	       context_id);
+GDK_AVAILABLE_IN_ALL
 void       gtk_statusbar_remove        	(GtkStatusbar *statusbar,
 					 guint	       context_id,
 					 guint         message_id);
+GDK_AVAILABLE_IN_ALL
 void       gtk_statusbar_remove_all    	(GtkStatusbar *statusbar,
 					 guint	       context_id);
-					 
 
-void     gtk_statusbar_set_has_resize_grip (GtkStatusbar *statusbar,
-					    gboolean      setting);
-gboolean gtk_statusbar_get_has_resize_grip (GtkStatusbar *statusbar);
-
+GDK_AVAILABLE_IN_ALL
 GtkWidget* gtk_statusbar_get_message_area  (GtkStatusbar *statusbar);
 
 G_END_DECLS

@@ -12,9 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  *
  * GtkLayout: Widget for scrolling of arbitrary-sized areas.
  *
@@ -28,16 +26,15 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_LAYOUT_H__
 #define __GTK_LAYOUT_H__
 
 
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
+
 #include <gtk/gtkcontainer.h>
-#include <gtk/gtkadjustment.h>
 
 
 G_BEGIN_DECLS
@@ -50,39 +47,21 @@ G_BEGIN_DECLS
 #define GTK_LAYOUT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_LAYOUT, GtkLayoutClass))
 
 
-typedef struct _GtkLayout        GtkLayout;
-typedef struct _GtkLayoutClass   GtkLayoutClass;
+typedef struct _GtkLayout              GtkLayout;
+typedef struct _GtkLayoutPrivate       GtkLayoutPrivate;
+typedef struct _GtkLayoutClass         GtkLayoutClass;
 
 struct _GtkLayout
 {
-  GtkContainer GSEAL (container);
-
-  GList *GSEAL (children);
-
-  guint GSEAL (width);
-  guint GSEAL (height);
-
-  GtkAdjustment *GSEAL (hadjustment);
-  GtkAdjustment *GSEAL (vadjustment);
-
-  /*< public >*/
-  GdkWindow *GSEAL (bin_window);
+  GtkContainer container;
 
   /*< private >*/
-  GdkVisibilityState GSEAL (visibility);
-  gint GSEAL (scroll_x);
-  gint GSEAL (scroll_y);
-
-  guint GSEAL (freeze_count);
+  GtkLayoutPrivate *priv;
 };
 
 struct _GtkLayoutClass
 {
   GtkContainerClass parent_class;
-
-  void  (*set_scroll_adjustments)   (GtkLayout	    *layout,
-				     GtkAdjustment  *hadjustment,
-				     GtkAdjustment  *vadjustment);
 
   /* Padding for future expansion */
   void (*_gtk_reserved1) (void);
@@ -91,47 +70,45 @@ struct _GtkLayoutClass
   void (*_gtk_reserved4) (void);
 };
 
+GDK_AVAILABLE_IN_ALL
 GType          gtk_layout_get_type        (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 GtkWidget*     gtk_layout_new             (GtkAdjustment *hadjustment,
 				           GtkAdjustment *vadjustment);
+GDK_AVAILABLE_IN_ALL
 GdkWindow*     gtk_layout_get_bin_window  (GtkLayout     *layout);
+GDK_AVAILABLE_IN_ALL
 void           gtk_layout_put             (GtkLayout     *layout,
 		                           GtkWidget     *child_widget,
 		                           gint           x,
 		                           gint           y);
 
+GDK_AVAILABLE_IN_ALL
 void           gtk_layout_move            (GtkLayout     *layout,
 		                           GtkWidget     *child_widget,
 		                           gint           x,
 		                           gint           y);
 
+GDK_AVAILABLE_IN_ALL
 void           gtk_layout_set_size        (GtkLayout     *layout,
 			                   guint          width,
 			                   guint          height);
+GDK_AVAILABLE_IN_ALL
 void           gtk_layout_get_size        (GtkLayout     *layout,
 					   guint         *width,
 					   guint         *height);
 
+GDK_DEPRECATED_IN_3_0_FOR(gtk_scrollable_get_hadjustment)
 GtkAdjustment* gtk_layout_get_hadjustment (GtkLayout     *layout);
+GDK_DEPRECATED_IN_3_0_FOR(gtk_scrollable_get_vadjustment)
 GtkAdjustment* gtk_layout_get_vadjustment (GtkLayout     *layout);
+GDK_DEPRECATED_IN_3_0_FOR(gtk_scrollable_set_hadjustment)
 void           gtk_layout_set_hadjustment (GtkLayout     *layout,
-					   GtkAdjustment *adjustment);
+                                           GtkAdjustment *adjustment);
+GDK_DEPRECATED_IN_3_0_FOR(gtk_scrollable_set_vadjustment)
 void           gtk_layout_set_vadjustment (GtkLayout     *layout,
-					   GtkAdjustment *adjustment);
+                                           GtkAdjustment *adjustment);
 
-
-#ifndef GTK_DISABLE_DEPRECATED
-/* These disable and enable moving and repainting the scrolling window
- * of the GtkLayout, respectively.  If you want to update the layout's
- * offsets but do not want it to repaint itself, you should use these
- * functions.
- *
- * - I don't understand these are supposed to work, so I suspect
- * - they don't now.                    OWT 1/20/98
- */
-void           gtk_layout_freeze          (GtkLayout     *layout);
-void           gtk_layout_thaw            (GtkLayout     *layout);
-#endif /* GTK_DISABLE_DEPRECATED */
 
 G_END_DECLS
 

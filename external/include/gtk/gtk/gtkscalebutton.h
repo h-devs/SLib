@@ -21,9 +21,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -33,12 +31,12 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_SCALE_BUTTON_H__
 #define __GTK_SCALE_BUTTON_H__
+
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
 #include <gtk/gtkbutton.h>
 
@@ -59,11 +57,8 @@ struct _GtkScaleButton
 {
   GtkButton parent;
 
-  GtkWidget *GSEAL (plus_button);
-  GtkWidget *GSEAL (minus_button);
-
   /*< private >*/
-  GtkScaleButtonPrivate *GSEAL (priv);
+  GtkScaleButtonPrivate *priv;
 };
 
 struct _GtkScaleButtonClass
@@ -81,31 +76,33 @@ struct _GtkScaleButtonClass
   void (*_gtk_reserved4) (void);
 };
 
+GDK_AVAILABLE_IN_ALL
 GType            gtk_scale_button_get_type         (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 GtkWidget *      gtk_scale_button_new              (GtkIconSize      size,
                                                     gdouble          min,
                                                     gdouble          max,
                                                     gdouble          step,
                                                     const gchar    **icons);
+GDK_AVAILABLE_IN_ALL
 void             gtk_scale_button_set_icons        (GtkScaleButton  *button,
                                                     const gchar    **icons);
+GDK_AVAILABLE_IN_ALL
 gdouble          gtk_scale_button_get_value        (GtkScaleButton  *button);
+GDK_AVAILABLE_IN_ALL
 void             gtk_scale_button_set_value        (GtkScaleButton  *button,
                                                     gdouble          value);
+GDK_AVAILABLE_IN_ALL
 GtkAdjustment *  gtk_scale_button_get_adjustment   (GtkScaleButton  *button);
+GDK_AVAILABLE_IN_ALL
 void             gtk_scale_button_set_adjustment   (GtkScaleButton  *button,
                                                     GtkAdjustment   *adjustment);
+GDK_AVAILABLE_IN_ALL
 GtkWidget *      gtk_scale_button_get_plus_button  (GtkScaleButton  *button);
+GDK_AVAILABLE_IN_ALL
 GtkWidget *      gtk_scale_button_get_minus_button (GtkScaleButton  *button);
+GDK_AVAILABLE_IN_ALL
 GtkWidget *      gtk_scale_button_get_popup        (GtkScaleButton  *button);
-
-#ifndef GTK_DISABLE_DEPRECATED
-
-GtkOrientation   gtk_scale_button_get_orientation  (GtkScaleButton  *button);
-void             gtk_scale_button_set_orientation  (GtkScaleButton  *button,
-                                                    GtkOrientation   orientation);
-
-#endif /* GTK_DISABLE_DEPRECATED */
 
 G_END_DECLS
 

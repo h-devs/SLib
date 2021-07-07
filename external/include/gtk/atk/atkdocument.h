@@ -17,12 +17,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __ATK_DOCUMENT_H__
+#define __ATK_DOCUMENT_H__
+
 #if defined(ATK_DISABLE_SINGLE_INCLUDES) && !defined (__ATK_H_INSIDE__) && !defined (ATK_COMPILATION)
 #error "Only <atk/atk.h> can be included directly."
 #endif
-
-#ifndef __ATK_DOCUMENT_H__
-#define __ATK_DOCUMENT_H__
 
 #include <atk/atkobject.h>
 #include <atk/atkutil.h>
@@ -46,37 +46,67 @@ typedef struct _AtkDocument AtkDocument;
 #endif
 typedef struct _AtkDocumentIface AtkDocumentIface;
 
+/**
+ * AtkDocumentIface:
+ * @get_document_type: gets a string indicating the document
+ *   type. This virtual function is deprecated since 2.12 and it
+ *   should not be overriden.
+ * @get_document: a #GObject instance that implements
+ *   AtkDocumentIface. This virtual method is deprecated since 2.12
+ *   and it should not be overriden.
+ * @get_document_locale: gets locale. This virtual function is
+ *   deprecated since 2.7.90 and it should not be overriden.
+ * @get_document_attributes: gets an AtkAttributeSet which describes
+ *   document-wide attributes as name-value pairs.
+ * @get_document_attribute_value: returns a string value assocciated
+ *   with the named attribute for this document, or NULL
+ * @set_document_attribute: sets the value of an attribute. Returns
+ *   TRUE on success, FALSE otherwise
+ * @get_current_page_number: gets the current page number. Since 2.12
+ * @get_page_count: gets the page count of the document. Since 2.12
+ */
 struct _AtkDocumentIface
 {
   GTypeInterface parent;
-  G_CONST_RETURN gchar* ( *get_document_type) (AtkDocument              *document);
+  const gchar*          ( *get_document_type) (AtkDocument              *document);
   gpointer              ( *get_document)      (AtkDocument              *document);
 
-  G_CONST_RETURN gchar* ( *get_document_locale) (AtkDocument              *document);
+  const gchar*          ( *get_document_locale) (AtkDocument              *document);
   AtkAttributeSet *     ( *get_document_attributes) (AtkDocument        *document);
-  G_CONST_RETURN gchar* ( *get_document_attribute_value) (AtkDocument   *document,
+  const gchar*          ( *get_document_attribute_value) (AtkDocument   *document,
                                                           const gchar   *attribute_name);
   gboolean              ( *set_document_attribute) (AtkDocument         *document,
                                                     const gchar         *attribute_name,
                                                     const gchar         *attribute_value);
-  
-  AtkFunction pad1;
-  AtkFunction pad2;
-  AtkFunction pad3;
-  AtkFunction pad4;
+  gint                  ( *get_current_page_number) (AtkDocument *document);
+  gint                  ( *get_page_count) (AtkDocument *document);
 };
 
+ATK_AVAILABLE_IN_ALL
 GType  atk_document_get_type             (void);
 
-G_CONST_RETURN gchar* atk_document_get_document_type (AtkDocument   *document);
+ATK_DEPRECATED_IN_2_12
+const gchar*          atk_document_get_document_type (AtkDocument   *document);
+
+ATK_DEPRECATED_IN_2_12
 gpointer atk_document_get_document (AtkDocument   *document);
-G_CONST_RETURN gchar* atk_document_get_locale (AtkDocument *document);
+
+ATK_DEPRECATED_IN_2_8_FOR(atk_object_get_object_locale)
+const gchar*          atk_document_get_locale (AtkDocument *document);
+
+ATK_AVAILABLE_IN_ALL
 AtkAttributeSet*      atk_document_get_attributes (AtkDocument *document);
-G_CONST_RETURN gchar* atk_document_get_attribute_value (AtkDocument *document, 
+ATK_AVAILABLE_IN_ALL
+const gchar*          atk_document_get_attribute_value (AtkDocument *document,
                                                         const gchar *attribute_name);
+ATK_AVAILABLE_IN_ALL
 gboolean              atk_document_set_attribute_value (AtkDocument *document,
                                                         const gchar *attribute_name,
                                                         const gchar *attribute_value);
+ATK_AVAILABLE_IN_2_12
+gint                  atk_document_get_current_page_number (AtkDocument *document);
+ATK_AVAILABLE_IN_2_12
+gint                  atk_document_get_page_count      (AtkDocument *document);
 
 G_END_DECLS
 

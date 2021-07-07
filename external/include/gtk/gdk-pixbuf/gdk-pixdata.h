@@ -12,13 +12,12 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 #ifndef __GDK_PIXDATA_H__
 #define __GDK_PIXDATA_H__
 
+#ifndef GDK_PIXBUF_DISABLE_DEPRECATED
 #include        <gdk-pixbuf/gdk-pixbuf.h>
 
 G_BEGIN_DECLS
@@ -76,7 +75,7 @@ typedef enum
  * @rowstride: Distance in bytes between rows.
  * @width: Width of the image in pixels.
  * @height: Height of the image in pixels.
- * @pixel_data: @width x @height pixels, encoded according to @pixdata_type
+ * @pixel_data: (array) (element-type guint8): @width x @height pixels, encoded according to @pixdata_type
  *   and @rowstride.
  *
  * A #GdkPixdata contains pixbuf information in a form suitable for 
@@ -104,15 +103,19 @@ struct _GdkPixdata
 #define	GDK_PIXDATA_HEADER_LENGTH	(4 + 4 + 4 + 4 + 4 + 4)
 
 /* the returned stream is plain htonl of GdkPixdata members + pixel_data */
+GDK_PIXBUF_DEPRECATED_IN_2_32
 guint8*		gdk_pixdata_serialize	(const GdkPixdata	*pixdata,
 					 guint			*stream_length_p);
+GDK_PIXBUF_DEPRECATED_IN_2_32
 gboolean	gdk_pixdata_deserialize	(GdkPixdata		*pixdata,
 					 guint			 stream_length,
 					 const guint8		*stream,
 					 GError		       **error);
+GDK_PIXBUF_DEPRECATED_IN_2_32
 gpointer	gdk_pixdata_from_pixbuf	(GdkPixdata		*pixdata,
 					 const GdkPixbuf	*pixbuf,
 					 gboolean		 use_rle);
+GDK_PIXBUF_DEPRECATED_IN_2_32
 GdkPixbuf*	gdk_pixbuf_from_pixdata	(const GdkPixdata	*pixdata,
 					 gboolean		 copy_pixels,
 					 GError		       **error);
@@ -160,11 +163,14 @@ typedef enum
 } GdkPixdataDumpType;
   
 
+GDK_PIXBUF_DEPRECATED_IN_2_32
 GString*	gdk_pixdata_to_csource	(GdkPixdata		*pixdata,
 					 const gchar		*name,
 					 GdkPixdataDumpType	 dump_type);
 
 
 G_END_DECLS
+
+#endif /* GDK_PIXBUF_DISABLE_DEPRECATED */
 
 #endif /* __GDK_PIXDATA_H__ */

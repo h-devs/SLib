@@ -13,17 +13,15 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
-
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
 
 #ifndef __GTK_RECENT_CHOOSER_MENU_H__
 #define __GTK_RECENT_CHOOSER_MENU_H__
+
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
 #include <gtk/gtkmenu.h>
 #include <gtk/gtkrecentchooser.h>
@@ -43,10 +41,10 @@ typedef struct _GtkRecentChooserMenuPrivate	GtkRecentChooserMenuPrivate;
 
 struct _GtkRecentChooserMenu
 {
-  /*< private >*/
   GtkMenu parent_instance;
 
-  GtkRecentChooserMenuPrivate *GSEAL (priv);
+  /*< private >*/
+  GtkRecentChooserMenuPrivate *priv;
 };
 
 struct _GtkRecentChooserMenuClass
@@ -60,12 +58,17 @@ struct _GtkRecentChooserMenuClass
   void (* gtk_recent4) (void);
 };
 
+GDK_AVAILABLE_IN_ALL
 GType      gtk_recent_chooser_menu_get_type         (void) G_GNUC_CONST;
 
+GDK_AVAILABLE_IN_ALL
 GtkWidget *gtk_recent_chooser_menu_new              (void);
+GDK_AVAILABLE_IN_ALL
 GtkWidget *gtk_recent_chooser_menu_new_for_manager  (GtkRecentManager     *manager);
 
+GDK_AVAILABLE_IN_ALL
 gboolean   gtk_recent_chooser_menu_get_show_numbers (GtkRecentChooserMenu *menu);
+GDK_AVAILABLE_IN_ALL
 void       gtk_recent_chooser_menu_set_show_numbers (GtkRecentChooserMenu *menu,
 						     gboolean              show_numbers);
 

@@ -47,16 +47,14 @@
  *
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_TEXT_MARK_H__
 #define __GTK_TEXT_MARK_H__
 
-G_BEGIN_DECLS
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
-/* The GtkTextMark data type */
+G_BEGIN_DECLS
 
 typedef struct _GtkTextMark      GtkTextMark;
 typedef struct _GtkTextMarkClass GtkTextMarkClass;
@@ -72,7 +70,8 @@ struct _GtkTextMark
 {
   GObject parent_instance;
 
-  gpointer GSEAL (segment);
+  /*< private >*/
+  gpointer segment;
 };
 
 struct _GtkTextMarkClass
@@ -86,21 +85,27 @@ struct _GtkTextMarkClass
   void (*_gtk_reserved4) (void);
 };
 
-GType        gtk_text_mark_get_type   (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
+GType                 gtk_text_mark_get_type         (void) G_GNUC_CONST;
 
-void           gtk_text_mark_set_visible (GtkTextMark *mark,
-                                          gboolean     setting);
-gboolean       gtk_text_mark_get_visible (GtkTextMark *mark);
-
+GDK_AVAILABLE_IN_ALL
 GtkTextMark          *gtk_text_mark_new              (const gchar *name,
-						      gboolean     left_gravity);
-G_CONST_RETURN gchar* gtk_text_mark_get_name         (GtkTextMark *mark);
+                                                      gboolean     left_gravity);
+GDK_AVAILABLE_IN_ALL
+void                  gtk_text_mark_set_visible      (GtkTextMark *mark,
+                                                      gboolean     setting);
+GDK_AVAILABLE_IN_ALL
+gboolean              gtk_text_mark_get_visible      (GtkTextMark *mark);
+
+GDK_AVAILABLE_IN_ALL
+const gchar *         gtk_text_mark_get_name         (GtkTextMark *mark);
+GDK_AVAILABLE_IN_ALL
 gboolean              gtk_text_mark_get_deleted      (GtkTextMark *mark);
+GDK_AVAILABLE_IN_ALL
 GtkTextBuffer*        gtk_text_mark_get_buffer       (GtkTextMark *mark);
+GDK_AVAILABLE_IN_ALL
 gboolean              gtk_text_mark_get_left_gravity (GtkTextMark *mark);
 
 G_END_DECLS
 
-#endif
-
-
+#endif  /* __GTK_TEXT_MARK_H__ */

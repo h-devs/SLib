@@ -14,8 +14,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Cambridge, MA 02139, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 /*
  * Modified by the GTK+ Team and others 2003.  See the AUTHORS
@@ -24,12 +23,12 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_FONT_BUTTON_H__
 #define __GTK_FONT_BUTTON_H__
+
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
 #include <gtk/gtkbutton.h>
 
@@ -54,7 +53,7 @@ struct _GtkFontButton {
   GtkButton button;
 
   /*< private >*/
-  GtkFontButtonPrivate *GSEAL (priv);
+  GtkFontButtonPrivate *priv;
 };
 
 struct _GtkFontButtonClass {
@@ -71,26 +70,41 @@ struct _GtkFontButtonClass {
 };
 
 
+GDK_AVAILABLE_IN_ALL
 GType                 gtk_font_button_get_type       (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
 GtkWidget            *gtk_font_button_new            (void);
+GDK_AVAILABLE_IN_ALL
 GtkWidget            *gtk_font_button_new_with_font  (const gchar   *fontname);
 
-G_CONST_RETURN gchar *gtk_font_button_get_title      (GtkFontButton *font_button);
+GDK_AVAILABLE_IN_ALL
+const gchar *         gtk_font_button_get_title      (GtkFontButton *font_button);
+GDK_AVAILABLE_IN_ALL
 void                  gtk_font_button_set_title      (GtkFontButton *font_button,
                                                       const gchar   *title);
+GDK_AVAILABLE_IN_ALL
 gboolean              gtk_font_button_get_use_font   (GtkFontButton *font_button);
+GDK_AVAILABLE_IN_ALL
 void                  gtk_font_button_set_use_font   (GtkFontButton *font_button,
                                                       gboolean       use_font);
+GDK_AVAILABLE_IN_ALL
 gboolean              gtk_font_button_get_use_size   (GtkFontButton *font_button);
+GDK_AVAILABLE_IN_ALL
 void                  gtk_font_button_set_use_size   (GtkFontButton *font_button,
                                                       gboolean       use_size);
-G_CONST_RETURN gchar* gtk_font_button_get_font_name  (GtkFontButton *font_button);
+GDK_DEPRECATED_IN_3_22
+const gchar *         gtk_font_button_get_font_name  (GtkFontButton *font_button);
+GDK_DEPRECATED_IN_3_22
 gboolean              gtk_font_button_set_font_name  (GtkFontButton *font_button,
                                                       const gchar   *fontname);
+GDK_AVAILABLE_IN_ALL
 gboolean              gtk_font_button_get_show_style (GtkFontButton *font_button);
+GDK_AVAILABLE_IN_ALL
 void                  gtk_font_button_set_show_style (GtkFontButton *font_button,
                                                       gboolean       show_style);
+GDK_AVAILABLE_IN_ALL
 gboolean              gtk_font_button_get_show_size  (GtkFontButton *font_button);
+GDK_AVAILABLE_IN_ALL
 void                  gtk_font_button_set_show_size  (GtkFontButton *font_button,
                                                       gboolean       show_size);
 

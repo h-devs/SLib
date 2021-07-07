@@ -10,20 +10,18 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  *
  * Authors: Cody Russell <crussell@canonical.com>
  *          Alexander Larsson <alexl@redhat.com>
  */
 
+#ifndef __GTK_OFFSCREEN_WINDOW_H__
+#define __GTK_OFFSCREEN_WINDOW_H__
+
 #if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
 #error "Only <gtk/gtk.h> can be included directly."
 #endif
-
-#ifndef __GTK_OFFSCREEN_WINDOW_H__
-#define __GTK_OFFSCREEN_WINDOW_H__
 
 #include <gtk/gtkwindow.h>
 
@@ -44,16 +42,32 @@ struct _GtkOffscreenWindow
   GtkWindow parent_object;
 };
 
+/**
+ * GtkOffscreenWindowClass:
+ * @parent_class: The parent class.
+ */
 struct _GtkOffscreenWindowClass
 {
   GtkWindowClass parent_class;
+
+  /*< private >*/
+
+  /* Padding for future expansion */
+  void (*_gtk_reserved1) (void);
+  void (*_gtk_reserved2) (void);
+  void (*_gtk_reserved3) (void);
+  void (*_gtk_reserved4) (void);
 };
 
-GType      gtk_offscreen_window_get_type   (void) G_GNUC_CONST;
+GDK_AVAILABLE_IN_ALL
+GType            gtk_offscreen_window_get_type    (void) G_GNUC_CONST;
 
-GtkWidget *gtk_offscreen_window_new        (void);
-GdkPixmap *gtk_offscreen_window_get_pixmap (GtkOffscreenWindow *offscreen);
-GdkPixbuf *gtk_offscreen_window_get_pixbuf (GtkOffscreenWindow *offscreen);
+GDK_AVAILABLE_IN_ALL
+GtkWidget       *gtk_offscreen_window_new         (void);
+GDK_AVAILABLE_IN_ALL
+cairo_surface_t *gtk_offscreen_window_get_surface (GtkOffscreenWindow *offscreen);
+GDK_AVAILABLE_IN_ALL
+GdkPixbuf       *gtk_offscreen_window_get_pixbuf  (GtkOffscreenWindow *offscreen);
 
 G_END_DECLS
 

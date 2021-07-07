@@ -17,28 +17,20 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __ATK_OBJECT_H__
+#define __ATK_OBJECT_H__
+
 #if defined(ATK_DISABLE_SINGLE_INCLUDES) && !defined (__ATK_H_INSIDE__) && !defined (ATK_COMPILATION)
 #error "Only <atk/atk.h> can be included directly."
 #endif
 
-#ifndef __ATK_OBJECT_H__
-#define __ATK_OBJECT_H__
-
 #include <glib-object.h>
+
+#include <atk/atkversion.h>
 #include <atk/atkstate.h>
 #include <atk/atkrelationtype.h>
 
 G_BEGIN_DECLS
-
-/*
- * AtkObject represents the minimum information all accessible objects
- * return. This information includes accessible name, accessible
- * description, role and state of the object, as well information about
- * its parent and children. It is also possible to obtain more specific
- * accessibility information about a component if it supports one or more
- * of the following interfaces:
- */
-
 
 /**
  *AtkRole:
@@ -53,7 +45,7 @@ G_BEGIN_DECLS
  *@ATK_ROLE_CHECK_MENU_ITEM: A menu item with a check box
  *@ATK_ROLE_COLOR_CHOOSER: A specialized dialog that lets the user choose a color
  *@ATK_ROLE_COLUMN_HEADER: The header for a column of data
- *@ATK_ROLE_COMBO_BOX: A list of choices the user can select from
+ *@ATK_ROLE_COMBO_BOX: A collapsible list of choices the user can select from
  *@ATK_ROLE_DATE_EDITOR: An object whose purpose is to allow a user to edit a date
  *@ATK_ROLE_DESKTOP_ICON: An inconifed internal frame within a DESKTOP_PANE
  *@ATK_ROLE_DESKTOP_FRAME: A pane that supports internal frames and iconified versions of those internal frames
@@ -102,7 +94,13 @@ G_BEGIN_DECLS
  *@ATK_ROLE_TABLE_ROW_HEADER: The header for a row of a table
  *@ATK_ROLE_TEAR_OFF_MENU_ITEM: A menu item used to tear off and reattach its menu
  *@ATK_ROLE_TERMINAL: An object that represents an accessible terminal.  @Since: ATK-0.6
- *@ATK_ROLE_TEXT: An object that presents text to the user
+ *@ATK_ROLE_TEXT: An interactive widget that supports multiple lines of text and
+ * optionally accepts user input, but whose purpose is not to solicit user input.
+ * Thus ATK_ROLE_TEXT is appropriate for the text view in a plain text editor
+ * but inappropriate for an input field in a dialog box or web form. For widgets
+ * whose purpose is to solicit input from the user, see ATK_ROLE_ENTRY and
+ * ATK_ROLE_PASSWORD_TEXT. For generic objects which display a brief amount of
+ * textual information, see ATK_ROLE_STATIC.
  *@ATK_ROLE_TOGGLE_BUTTON: A specialized push button that can be checked or unchecked, but does not provide a separate indicator for the current state
  *@ATK_ROLE_TOOL_BAR: A bar or palette usually composed of push buttons or toggle buttons
  *@ATK_ROLE_TOOL_TIP: An object that provides information about another object
@@ -139,8 +137,89 @@ G_BEGIN_DECLS
  *@ATK_ROLE_INPUT_METHOD_WINDOW: The object is a window or similar viewport 
  * which is used to allow composition or input of a 'complex character',
  * in other words it is an "input method window." @Since: ATK-1.12.1
+ *@ATK_ROLE_TABLE_ROW: A row in a table.  @Since: ATK-2.1.0
+ *@ATK_ROLE_TREE_ITEM: An object that represents an element of a tree.  @Since: ATK-2.1.0
+ *@ATK_ROLE_DOCUMENT_SPREADSHEET: A document frame which contains a spreadsheet.  @Since: ATK-2.1.0
+ *@ATK_ROLE_DOCUMENT_PRESENTATION: A document frame which contains a presentation or slide content.  @Since: ATK-2.1.0
+ *@ATK_ROLE_DOCUMENT_TEXT: A document frame which contains textual content, such as found in a word processing application.  @Since: ATK-2.1.0
+ *@ATK_ROLE_DOCUMENT_WEB: A document frame which contains HTML or other markup suitable for display in a web browser.  @Since: ATK-2.1.0
+ *@ATK_ROLE_DOCUMENT_EMAIL: A document frame which contains email content to be displayed or composed either in plain text or HTML.  @Since: ATK-2.1.0
+ *@ATK_ROLE_COMMENT: An object found within a document and designed to present a comment, note, or other annotation. In some cases, this object might not be visible until activated.  @Since: ATK-2.1.0
+ *@ATK_ROLE_LIST_BOX: A non-collapsible list of choices the user can select from. @Since: ATK-2.1.0
+ *@ATK_ROLE_GROUPING: A group of related widgets. This group typically has a label. @Since: ATK-2.1.0
+ *@ATK_ROLE_IMAGE_MAP: An image map object. Usually a graphic with multiple hotspots, where each hotspot can be activated resulting in the loading of another document or section of a document. @Since: ATK-2.1.0
+ *@ATK_ROLE_NOTIFICATION: A transitory object designed to present a message to the user, typically at the desktop level rather than inside a particular application.  @Since: ATK-2.1.0
+ *@ATK_ROLE_INFO_BAR: An object designed to present a message to the user within an existing window. @Since: ATK-2.1.0
+ *@ATK_ROLE_LEVEL_BAR: A bar that serves as a level indicator to, for instance, show the strength of a password or the state of a battery.  @Since: ATK-2.7.3
+ *@ATK_ROLE_TITLE_BAR: A bar that serves as the title of a window or a
+ * dialog. @Since: ATK-2.12
+ *@ATK_ROLE_BLOCK_QUOTE: An object which contains a text section
+ * that is quoted from another source. @Since: ATK-2.12
+ *@ATK_ROLE_AUDIO: An object which represents an audio element. @Since: ATK-2.12
+ *@ATK_ROLE_VIDEO: An object which represents a video element. @Since: ATK-2.12
+ *@ATK_ROLE_DEFINITION: A definition of a term or concept. @Since: ATK-2.12
+ *@ATK_ROLE_ARTICLE: A section of a page that consists of a
+ * composition that forms an independent part of a document, page, or
+ * site. Examples: A blog entry, a news story, a forum post. @Since:
+ * ATK-2.12
+ *@ATK_ROLE_LANDMARK: A region of a web page intended as a
+ * navigational landmark. This is designed to allow Assistive
+ * Technologies to provide quick navigation among key regions within a
+ * document. @Since: ATK-2.12
+ *@ATK_ROLE_LOG: A text widget or container holding log content, such
+ * as chat history and error logs. In this role there is a
+ * relationship between the arrival of new items in the log and the
+ * reading order. The log contains a meaningful sequence and new
+ * information is added only to the end of the log, not at arbitrary
+ * points. @Since: ATK-2.12
+ *@ATK_ROLE_MARQUEE: A container where non-essential information
+ * changes frequently. Common usages of marquee include stock tickers
+ * and ad banners. The primary difference between a marquee and a log
+ * is that logs usually have a meaningful order or sequence of
+ * important content changes. @Since: ATK-2.12
+ *@ATK_ROLE_MATH: A text widget or container that holds a mathematical
+ * expression. @Since: ATK-2.12
+ *@ATK_ROLE_RATING: A widget whose purpose is to display a rating,
+ * such as the number of stars associated with a song in a media
+ * player. Objects of this role should also implement
+ * AtkValue. @Since: ATK-2.12
+ *@ATK_ROLE_TIMER: An object containing a numerical counter which
+ * indicates an amount of elapsed time from a start point, or the time
+ * remaining until an end point. @Since: ATK-2.12
+ *@ATK_ROLE_DESCRIPTION_LIST: An object that represents a list of
+ * term-value groups. A term-value group represents a individual
+ * description and consist of one or more names
+ * (ATK_ROLE_DESCRIPTION_TERM) followed by one or more values
+ * (ATK_ROLE_DESCRIPTION_VALUE). For each list, there should not be
+ * more than one group with the same term name. @Since: ATK-2.12
+ *@ATK_ROLE_DESCRIPTION_TERM: An object that represents a term or phrase
+ * with a corresponding definition. @Since: ATK-2.12
+ *@ATK_ROLE_DESCRIPTION_VALUE: An object that represents the
+ * description, definition or value of a term. @Since: ATK-2.12
+ *@ATK_ROLE_STATIC: A generic non-container object whose purpose is to display a
+ * brief amount of information to the user and whose role is known by the
+ * implementor but lacks semantic value for the user. Examples in which
+ * ATK_ROLE_STATIC is appropriate include the message displayed in a message box
+ * and an image used as an alternative means to display text. ATK_ROLE_STATIC
+ * should not be applied to widgets which are traditionally interactive, objects
+ * which display a significant amount of content, or any object which has an
+ * accessible relation pointing to another object. Implementors should expose the
+ * displayed information through the accessible name of the object. If doing so seems
+ * inappropriate, it may indicate that a different role should be used. For
+ * labels which describe another widget, see ATK_ROLE_LABEL. For text views, see
+ * ATK_ROLE_TEXT. For generic containers, see ATK_ROLE_PANEL. For objects whose
+ * role is not known by the implementor, see ATK_ROLE_UNKNOWN. @Since: ATK-2.16.
+ *@ATK_ROLE_MATH_FRACTION: An object that represents a mathematical fraction.
+ * @Since: ATK-2.16.
+ *@ATK_ROLE_MATH_ROOT: An object that represents a mathematical expression
+ * displayed with a radical. @Since: ATK-2.16.
+ *@ATK_ROLE_SUBSCRIPT: An object that contains text that is displayed as a
+ * subscript. @Since: ATK-2.16.
+ *@ATK_ROLE_SUPERSCRIPT: An object that contains text that is displayed as a
+ * superscript. @Since: ATK-2.16.
+ *@ATK_ROLE_FOOTNOTE: An object that contains the text of a footnote. @Since: ATK-2.26.
  *@ATK_ROLE_LAST_DEFINED: not a valid role, used for finding end of the enumeration
- * 
+ *
  * Describes the role of an object
  *
  * These are the built-in enumerated roles that UI components can have in
@@ -149,8 +228,8 @@ G_BEGIN_DECLS
  **/
 typedef enum
 {
-  ATK_ROLE_INVALID = 0, 
-  ATK_ROLE_ACCEL_LABEL,
+  ATK_ROLE_INVALID = 0,
+  ATK_ROLE_ACCEL_LABEL,      /*<nick=accelerator-label>*/
   ATK_ROLE_ALERT,
   ATK_ROLE_ANIMATION,
   ATK_ROLE_ARROW,
@@ -224,7 +303,7 @@ typedef enum
   ATK_ROLE_RULER,
   ATK_ROLE_APPLICATION,
   ATK_ROLE_AUTOCOMPLETE,
-  ATK_ROLE_EDITBAR,
+  ATK_ROLE_EDITBAR,          /*<nick=edit-bar>*/
   ATK_ROLE_EMBEDDED,
   ATK_ROLE_ENTRY,
   ATK_ROLE_CHART,
@@ -237,10 +316,43 @@ typedef enum
   ATK_ROLE_FORM,
   ATK_ROLE_LINK,
   ATK_ROLE_INPUT_METHOD_WINDOW,
+  ATK_ROLE_TABLE_ROW,
+  ATK_ROLE_TREE_ITEM,
+  ATK_ROLE_DOCUMENT_SPREADSHEET,
+  ATK_ROLE_DOCUMENT_PRESENTATION,
+  ATK_ROLE_DOCUMENT_TEXT,
+  ATK_ROLE_DOCUMENT_WEB,
+  ATK_ROLE_DOCUMENT_EMAIL,
+  ATK_ROLE_COMMENT,
+  ATK_ROLE_LIST_BOX,
+  ATK_ROLE_GROUPING,
+  ATK_ROLE_IMAGE_MAP,
+  ATK_ROLE_NOTIFICATION,
+  ATK_ROLE_INFO_BAR,
+  ATK_ROLE_LEVEL_BAR,
+  ATK_ROLE_TITLE_BAR,
+  ATK_ROLE_BLOCK_QUOTE,
+  ATK_ROLE_AUDIO,
+  ATK_ROLE_VIDEO,
+  ATK_ROLE_DEFINITION,
+  ATK_ROLE_ARTICLE,
+  ATK_ROLE_LANDMARK,
+  ATK_ROLE_LOG,
+  ATK_ROLE_MARQUEE,
+  ATK_ROLE_MATH,
+  ATK_ROLE_RATING,
+  ATK_ROLE_TIMER,
+  ATK_ROLE_DESCRIPTION_LIST,
+  ATK_ROLE_DESCRIPTION_TERM,
+  ATK_ROLE_DESCRIPTION_VALUE,
+  ATK_ROLE_STATIC,
+  ATK_ROLE_MATH_FRACTION,
+  ATK_ROLE_MATH_ROOT,
+  ATK_ROLE_SUBSCRIPT,
+  ATK_ROLE_SUPERSCRIPT,
+  ATK_ROLE_FOOTNOTE,
   ATK_ROLE_LAST_DEFINED
 } AtkRole;
-
-AtkRole                  atk_role_register        (const gchar *name);
 
 /**
  *AtkLayer:
@@ -275,20 +387,29 @@ typedef enum
  * AtkAttributeSet:
  *
  * This is a singly-linked list (a #GSList) of #AtkAttribute. It is
- * used by atk_text_get_run_attributes(), atk_text_get_default_attributes()
- * and atk_editable_text_set_run_attributes()
+ * used by atk_text_get_run_attributes(),
+ * atk_text_get_default_attributes(),
+ * atk_editable_text_set_run_attributes(),
+ * atk_document_get_attributes() and atk_object_get_attributes()
  **/
 typedef GSList AtkAttributeSet;
 
 /**
  * AtkAttribute:
- * @name: The attribute name. Call atk_text_attr_get_name()
- * @value: the value of the attribute, represented as a string. 
- * Call atk_text_attr_get_value() for those which are strings.
- * For values which are numbers, the string representation of the number 
- * is in value.
+ * @name: The attribute name.
+ * @value: the value of the attribute, represented as a string.
  *
- * A string name/value pair representing a text attribute. 
+ * AtkAttribute is a string name/value pair representing a generic
+ * attribute. This can be used to expose additional information from
+ * an accessible object as a whole (see atk_object_get_attributes())
+ * or an document (see atk_document_get_attributes()). In the case of
+ * text attributes (see atk_text_get_default_attributes()),
+ * #AtkTextAttribute enum defines all the possible text attribute
+ * names. You can use atk_text_attribute_get_name() to get the string
+ * name from the enum value. See also atk_text_attribute_for_name()
+ * and atk_text_attribute_get_value() for more information.
+ *
+ * A string name/value pair representing a generic attribute.
  **/
 typedef struct _AtkAttribute AtkAttribute;
 
@@ -321,20 +442,13 @@ typedef struct _AtkStateSet               AtkStateSet;
 
 /**
  * AtkPropertyValues:
- * @property_name: The name of the ATK property which is being presented or which has been changed.
- * @old_value: The old property value, NULL; in some contexts this value is undefined (see note below).
+ * @property_name: The name of the ATK property which has changed.
+ * @old_value: NULL. This field is not used anymore.
  * @new_value: The new value of the named property.
  *
- * @note: For most properties the old_value field of AtkPropertyValues will
- * not contain a valid value.
- *
- * Currently, the only property for which old_value is used is
- * accessible-state; for instance if there is a focus state the
- * property change handler will be called for the object which lost the focus
- * with the old_value containing an AtkState value corresponding to focused
- * and the property change handler will be called for the object which
- * received the focus with the new_value containing an AtkState value
- * corresponding to focused.
+ * Note: @old_value field of #AtkPropertyValues will not contain a
+ * valid value. This is a field defined with the purpose of contain
+ * the previous value of the property, but is not used anymore.
  *
  **/
 struct _AtkPropertyValues
@@ -346,7 +460,17 @@ struct _AtkPropertyValues
 
 typedef struct _AtkPropertyValues        AtkPropertyValues;
 
-typedef gboolean (*AtkFunction)          (gpointer data); 
+/**
+ * AtkFunction:
+ * @user_data: custom data defined by the user
+ *
+ * An AtkFunction is a function definition used for padding which has
+ * been added to class and interface structures to allow for expansion
+ * in the future.
+ *
+ * Returns: not used
+ */
+typedef gboolean (*AtkFunction)          (gpointer user_data);
 /*
  * For most properties the old_value field of AtkPropertyValues will
  * not contain a valid value.
@@ -359,7 +483,19 @@ typedef gboolean (*AtkFunction)          (gpointer data);
  * received the focus with the new_value containing an AtkState value
  * corresponding to focused.
  */
-typedef void (*AtkPropertyChangeHandler) (AtkObject*, AtkPropertyValues*);
+
+/**
+ * AtkPropertyChangeHandler:
+ * @obj: atkobject which property changes
+ * @vals: values changed
+ *
+ * An AtkPropertyChangeHandler is a function which is executed when an
+ * AtkObject's property changes value. It is specified in a call to
+ * atk_object_connect_property_change_handler().
+ *
+ * Deprecated: Since 2.12.
+ */
+typedef void (*AtkPropertyChangeHandler) (AtkObject* obj, AtkPropertyValues* vals);
 
 
 struct _AtkObject
@@ -374,6 +510,21 @@ struct _AtkObject
   AtkLayer layer;
 };
 
+
+/**
+ * AtkObjectClass:
+ * @connect_property_change_handler: specifies a function to be called
+ *   when a property changes value. This virtual function is
+ *   deprecated since 2.12 and it should not be overriden. Connect
+ *   directly to property-change or notify signal instead.
+ * @remove_property_change_handler: removes a property changed handler
+ *   as returned by @connect_property_change_handler. This virtual
+ *   function is deprecated sice 2.12 and it should not be overriden.
+ * @focus_event: The signal handler which is executed when there is a
+ *   focus event for an object. This virtual function is deprecated
+ *   since 2.9.4 and it should not be overriden. Use
+ *   the #AtkObject::state-change "focused" signal instead.
+ */
 struct _AtkObjectClass
 {
   GObjectClass parent;
@@ -381,11 +532,11 @@ struct _AtkObjectClass
   /*
    * Gets the accessible name of the object
    */
-  G_CONST_RETURN gchar*    (* get_name)            (AtkObject                *accessible);
+  const gchar*             (* get_name)            (AtkObject                *accessible);
   /*
    * Gets the accessible description of the object
    */
-  G_CONST_RETURN gchar*    (* get_description)     (AtkObject                *accessible);
+  const gchar*             (* get_description)     (AtkObject                *accessible);
   /*
    * Gets the accessible parent of the object
    */
@@ -503,146 +654,117 @@ void                      (* initialize)                         (AtkObject     
    * Since ATK 1.12
    */
   AtkAttributeSet* 	  (*get_attributes)            (AtkObject                  *accessible);
+
+  const gchar*            (*get_object_locale)         (AtkObject                  *accessible);
+
   AtkFunction             pad1;
-  AtkFunction             pad2;
 };
 
+ATK_AVAILABLE_IN_ALL
 GType            atk_object_get_type   (void);
 
+/**
+ * AtkImplementorIface:
+ *
+ * The AtkImplementor interface is implemented by objects for which
+ * AtkObject peers may be obtained via calls to
+ * iface->(ref_accessible)(implementor);
+ */
 struct _AtkImplementorIface
 {
   GTypeInterface parent;
 
   AtkObject*   (*ref_accessible) (AtkImplementor *implementor);
 };
-GType atk_implementor_get_type (void);
 
-/*
- * This method uses the ref_accessible method in AtkImplementorIface,
- * if the object's class implements AtkImplementorIface.
- * Otherwise it returns %NULL.
- *
- * IMPORTANT:
- * Note also that because this method may return flyweight objects,
- * it increments the returned AtkObject's reference count.
- * Therefore it is the responsibility of the calling
- * program to unreference the object when no longer needed.
- * (c.f. gtk_widget_get_accessible() where this is not the case).
- */
+ATK_AVAILABLE_IN_ALL
+GType atk_implementor_get_type (void);
+ATK_AVAILABLE_IN_ALL
 AtkObject*              atk_implementor_ref_accessible            (AtkImplementor *implementor);
 
 /*
  * Properties directly supported by AtkObject
  */
 
-G_CONST_RETURN gchar*   atk_object_get_name                       (AtkObject *accessible);
-G_CONST_RETURN gchar*   atk_object_get_description                (AtkObject *accessible);
+ATK_AVAILABLE_IN_ALL
+const gchar*            atk_object_get_name                       (AtkObject *accessible);
+ATK_AVAILABLE_IN_ALL
+const gchar*            atk_object_get_description                (AtkObject *accessible);
+ATK_AVAILABLE_IN_ALL
 AtkObject*              atk_object_get_parent                     (AtkObject *accessible);
+ATK_AVAILABLE_IN_ALL
+AtkObject*              atk_object_peek_parent                    (AtkObject *accessible);
+ATK_AVAILABLE_IN_ALL
 gint                    atk_object_get_n_accessible_children      (AtkObject *accessible);
+ATK_AVAILABLE_IN_ALL
 AtkObject*              atk_object_ref_accessible_child           (AtkObject *accessible,
                                                                    gint        i);
+ATK_AVAILABLE_IN_ALL
 AtkRelationSet*         atk_object_ref_relation_set               (AtkObject *accessible);
+ATK_AVAILABLE_IN_ALL
 AtkRole                 atk_object_get_role                       (AtkObject *accessible);
-#ifndef ATK_DISABLE_DEPRECATED
+
+ATK_DEPRECATED_FOR(atk_component_get_layer)
 AtkLayer                atk_object_get_layer                      (AtkObject *accessible);
+ATK_DEPRECATED_FOR(atk_component_get_mdi_zorder)
 gint                    atk_object_get_mdi_zorder                 (AtkObject *accessible);
-#endif /* ATK_DISABLE_DEPRECATED */
+
+ATK_AVAILABLE_IN_ALL
 AtkAttributeSet*        atk_object_get_attributes                 (AtkObject *accessible);
+ATK_AVAILABLE_IN_ALL
 AtkStateSet*            atk_object_ref_state_set                  (AtkObject *accessible);
+ATK_AVAILABLE_IN_ALL
 gint                    atk_object_get_index_in_parent            (AtkObject *accessible);
+ATK_AVAILABLE_IN_ALL
 void                    atk_object_set_name                       (AtkObject *accessible,
                                                                    const gchar *name);
+ATK_AVAILABLE_IN_ALL
 void                    atk_object_set_description                (AtkObject *accessible,
                                                                    const gchar *description);
+ATK_AVAILABLE_IN_ALL
 void                    atk_object_set_parent                     (AtkObject *accessible,
                                                                    AtkObject *parent);
+ATK_AVAILABLE_IN_ALL
 void                    atk_object_set_role                       (AtkObject *accessible,
                                                                    AtkRole   role);
 
 
+ATK_DEPRECATED_IN_2_12
 guint                atk_object_connect_property_change_handler  (AtkObject                      *accessible,
                                                                   AtkPropertyChangeHandler       *handler);
+ATK_DEPRECATED_IN_2_12
 void                 atk_object_remove_property_change_handler   (AtkObject                      *accessible,
                                                                   guint                          handler_id);
 
+ATK_AVAILABLE_IN_ALL
 void                 atk_object_notify_state_change              (AtkObject                      *accessible,
                                                                   AtkState                       state,
                                                                   gboolean                       value);
+ATK_AVAILABLE_IN_ALL
 void                 atk_object_initialize                       (AtkObject                     *accessible,
                                                                   gpointer                      data);
-                                    
-G_CONST_RETURN gchar* atk_role_get_name      (AtkRole         role);
+
+ATK_AVAILABLE_IN_ALL
+const gchar*          atk_role_get_name      (AtkRole         role);
+ATK_AVAILABLE_IN_ALL
 AtkRole               atk_role_for_name      (const gchar     *name);
 
 
 /* NEW in 1.1: convenience API */
+ATK_AVAILABLE_IN_ALL
 gboolean              atk_object_add_relationship              (AtkObject      *object,
 								AtkRelationType relationship,
 								AtkObject      *target);
+ATK_AVAILABLE_IN_ALL
 gboolean              atk_object_remove_relationship           (AtkObject      *object,
 								AtkRelationType relationship,
 								AtkObject      *target);
-G_CONST_RETURN gchar* atk_role_get_localized_name              (AtkRole     role);
-
-/* */
-
-
-/*
- * Note: the properties which are registered with the GType
- *   property registry, for type ATK_TYPE_OBJECT, are as follows:
- *
- *   "accessible-name"
- *   "accessible-description"
- *   "accessible-parent"
- *   "accessible-role"
- *   "accessible-value"
- *   "accessible-component-layer"
- *   "accessible-component-zorder"
- *   "accessible-table-caption"
- *   "accessible-table-column-description"
- *   "accessible-table-column-header"
- *   "accessible-table-row-description"
- *   "accessible-table-row-header"
- *   "accessible-table-summary"
- *   "accessible-model"
- *
- * accessibility property change listeners should use the
- *   normal GObject property interfaces and "property-change"
- *   signal handler semantics to interpret the property change
- *   information relayed from AtkObject.
- *   (AtkObject instances will connect to the "notify"
- *   signal in their host objects, and relay the signals when appropriate).
- */
-
-/* For other signals, see related interfaces
- *
- *    AtkActionIface,
- *    AtkComponentIface,
- *    AtkHypertextIface,
- *    AtkImageIface,
- *    AtkSelectionIface,
- *    AtkTableIface,
- *    AtkTextIface,
- *    AtkValueIface.
- *
- *  The usage model for obtaining these interface instances is:
- *    ATK_<interfacename>_GET_IFACE(GObject *accessible),
- *    where accessible, though specified as a GObject, is
- *    the AtkObject instance being queried.
- *  More usually, the interface will be used via a cast to the
- *    interface's corresponding "type":
- *
- *    AtkText textImpl = ATK_TEXT(accessible);
- *    if (textImpl)
- *      {
- *        cpos = atk_text_get_caret_position(textImpl);
- *      }
- *
- *  If it's known in advance that accessible implements AtkTextIface,
- *    this is shortened to:
- *
- *    cpos = atk_text_get_caret_position (ATK_TEXT (accessible));
- */
+ATK_AVAILABLE_IN_ALL
+const gchar*          atk_role_get_localized_name              (AtkRole     role);
+ATK_DEPRECATED_IN_2_12
+AtkRole               atk_role_register                        (const gchar *name);
+ATK_AVAILABLE_IN_2_8
+const gchar*          atk_object_get_object_locale             (AtkObject   *accessible);
 
 G_END_DECLS
 

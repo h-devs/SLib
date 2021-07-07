@@ -12,9 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -24,16 +22,15 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
-
 #ifndef __GTK_BIN_H__
 #define __GTK_BIN_H__
 
 
-#include <gtk/gtkcontainer.h>
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
+#include <gtk/gtkcontainer.h>
 
 G_BEGIN_DECLS
 
@@ -45,25 +42,46 @@ G_BEGIN_DECLS
 #define GTK_BIN_GET_CLASS(obj)        (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_BIN, GtkBinClass))
 
 
-typedef struct _GtkBin       GtkBin;
-typedef struct _GtkBinClass  GtkBinClass;
+typedef struct _GtkBin              GtkBin;
+typedef struct _GtkBinPrivate       GtkBinPrivate;
+typedef struct _GtkBinClass         GtkBinClass;
 
 struct _GtkBin
 {
   GtkContainer container;
 
-  GtkWidget *GSEAL (child);
+  /*< private >*/
+  GtkBinPrivate *priv;
 };
 
+/**
+ * GtkBinClass:
+ * @parent_class: The parent class.
+ */
 struct _GtkBinClass
 {
   GtkContainerClass parent_class;
+
+  /*< private >*/
+
+  /* Padding for future expansion */
+  void (*_gtk_reserved1) (void);
+  void (*_gtk_reserved2) (void);
+  void (*_gtk_reserved3) (void);
+  void (*_gtk_reserved4) (void);
 };
 
 
+GDK_AVAILABLE_IN_ALL
 GType      gtk_bin_get_type  (void) G_GNUC_CONST;
 
+GDK_AVAILABLE_IN_ALL
 GtkWidget *gtk_bin_get_child (GtkBin *bin);
+
+void       _gtk_bin_set_child (GtkBin    *bin,
+                               GtkWidget *widget);
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkBin, g_object_unref)
 
 G_END_DECLS
 

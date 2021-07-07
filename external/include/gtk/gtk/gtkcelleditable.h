@@ -12,17 +12,15 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
-
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
 
 #ifndef __GTK_CELL_EDITABLE_H__
 #define __GTK_CELL_EDITABLE_H__
+
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
 #include <gtk/gtkwidget.h>
 
@@ -37,9 +35,20 @@ G_BEGIN_DECLS
 typedef struct _GtkCellEditable      GtkCellEditable; /* Dummy typedef */
 typedef struct _GtkCellEditableIface GtkCellEditableIface;
 
+/**
+ * GtkCellEditableIface:
+ * @editing_done: Signal is a sign for the cell renderer to update its
+ *    value from the cell_editable.
+ * @remove_widget: Signal is meant to indicate that the cell is
+ *    finished editing, and the widget may now be destroyed.
+ * @start_editing: Begins editing on a cell_editable.
+ */
 struct _GtkCellEditableIface
 {
+  /*< private >*/
   GTypeInterface g_iface;
+
+  /*< public >*/
 
   /* signals */
   void (* editing_done)  (GtkCellEditable *cell_editable);
@@ -51,11 +60,15 @@ struct _GtkCellEditableIface
 };
 
 
+GDK_AVAILABLE_IN_ALL
 GType gtk_cell_editable_get_type      (void) G_GNUC_CONST;
 
+GDK_AVAILABLE_IN_ALL
 void  gtk_cell_editable_start_editing (GtkCellEditable *cell_editable,
 				       GdkEvent        *event);
+GDK_AVAILABLE_IN_ALL
 void  gtk_cell_editable_editing_done  (GtkCellEditable *cell_editable);
+GDK_AVAILABLE_IN_ALL
 void  gtk_cell_editable_remove_widget (GtkCellEditable *cell_editable);
 
 

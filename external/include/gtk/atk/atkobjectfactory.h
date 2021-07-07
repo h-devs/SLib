@@ -17,12 +17,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __ATK_OBJECT_FACTORY_H__
+#define __ATK_OBJECT_FACTORY_H__
+
 #if defined(ATK_DISABLE_SINGLE_INCLUDES) && !defined (__ATK_H_INSIDE__) && !defined (ATK_COMPILATION)
 #error "Only <atk/atk.h> can be included directly."
 #endif
-
-#ifndef __ATK_OBJECT_FACTORY_H__
-#define __ATK_OBJECT_FACTORY_H__
 
 #include <glib-object.h>
 #include <atk/atkobject.h>
@@ -56,10 +56,15 @@ struct _AtkObjectFactoryClass
   AtkFunction pad2;
 };
 
+ATK_AVAILABLE_IN_ALL
 GType atk_object_factory_get_type(void);
 
+
+ATK_AVAILABLE_IN_ALL
 AtkObject* atk_object_factory_create_accessible (AtkObjectFactory *factory, GObject *obj);
+ATK_AVAILABLE_IN_ALL
 void       atk_object_factory_invalidate (AtkObjectFactory *factory);
+ATK_AVAILABLE_IN_ALL
 GType      atk_object_factory_get_accessible_type (AtkObjectFactory *factory);
 
 G_END_DECLS

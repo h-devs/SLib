@@ -13,39 +13,41 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
-
-#if defined(GTK_DISABLE_SINGLE_INCLUDES) && !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
-#error "Only <gtk/gtk.h> can be included directly."
-#endif
 
 #ifndef __GTK_MODULES_H__
 #define __GTK_MODULES_H__
 
-#include <gtk/gtksettings.h>
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
 
+#include <gdk/gdk.h>
 
 G_BEGIN_DECLS
 
-
-/* Functions for use within GTK+
+/**
+ * GtkModuleInitFunc:
+ * @argc: (allow-none): GTK+ always passes %NULL for this argument
+ * @argv: (allow-none) (array length=argc): GTK+ always passes %NULL for this argument
+ *
+ * Each GTK+ module must have a function gtk_module_init() with this prototype.
+ * This function is called after loading the module.
  */
-gchar * _gtk_find_module        (const gchar *name,
-			         const gchar *type);
-gchar **_gtk_get_module_path    (const gchar *type);
+typedef void     (*GtkModuleInitFunc)        (gint        *argc,
+                                              gchar      ***argv);
 
-void    _gtk_modules_init             (gint         *argc,
-				       gchar      ***argv,
-				       const gchar  *gtk_modules_args);
-void    _gtk_modules_settings_changed (GtkSettings  *settings,
-				       const gchar  *modules);
-
-typedef void	 (*GtkModuleInitFunc)        (gint	  *argc,
-					      gchar      ***argv);
-typedef void	 (*GtkModuleDisplayInitFunc) (GdkDisplay   *display);
+/**
+ * GtkModuleDisplayInitFunc:
+ * @display: an open #GdkDisplay
+ *
+ * A multihead-aware GTK+ module may have a gtk_module_display_init() function
+ * with this prototype. GTK+ calls this function for each opened display.
+ *
+ * Since: 2.2
+ */
+typedef void     (*GtkModuleDisplayInitFunc) (GdkDisplay   *display);
 
 
 G_END_DECLS

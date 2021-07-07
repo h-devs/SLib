@@ -17,17 +17,18 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __ATK_RELATION_H__
+#define __ATK_RELATION_H__
+
 #if defined(ATK_DISABLE_SINGLE_INCLUDES) && !defined (__ATK_H_INSIDE__) && !defined (ATK_COMPILATION)
 #error "Only <atk/atk.h> can be included directly."
 #endif
-
-#ifndef __ATK_RELATION_H__
-#define __ATK_RELATION_H__
 
 G_BEGIN_DECLS
 
 #include <glib-object.h>
 #include <atk/atkrelationtype.h>
+#include <atk/atkversion.h>
 
 /*
  * An AtkRelation describes a relation between the object and one or more 
@@ -58,29 +59,38 @@ struct _AtkRelationClass
   GObjectClass parent;
 };
 
+ATK_AVAILABLE_IN_ALL
 GType atk_relation_get_type (void);
 
+ATK_AVAILABLE_IN_ALL
 AtkRelationType       atk_relation_type_register      (const gchar     *name);
-G_CONST_RETURN gchar* atk_relation_type_get_name      (AtkRelationType type);
+ATK_AVAILABLE_IN_ALL
+const gchar*          atk_relation_type_get_name      (AtkRelationType type);
+ATK_AVAILABLE_IN_ALL
 AtkRelationType       atk_relation_type_for_name      (const gchar     *name);
 
 /*
  * Create a new relation for the specified key and the specified list
  * of targets.
  */
+ATK_AVAILABLE_IN_ALL
 AtkRelation*          atk_relation_new                (AtkObject       **targets,
                                                        gint            n_targets,
                                                        AtkRelationType relationship);
 /*
  * Returns the type of a relation.
  */
+ATK_AVAILABLE_IN_ALL
 AtkRelationType       atk_relation_get_relation_type  (AtkRelation     *relation);
 /*
  * Returns the target list of a relation.
  */
+ATK_AVAILABLE_IN_ALL
 GPtrArray*            atk_relation_get_target         (AtkRelation     *relation);
+ATK_AVAILABLE_IN_ALL
 void                  atk_relation_add_target         (AtkRelation     *relation,
                                                        AtkObject       *target);
+ATK_AVAILABLE_IN_ALL
 gboolean              atk_relation_remove_target      (AtkRelation     *relation,
                                                        AtkObject       *target);
 
