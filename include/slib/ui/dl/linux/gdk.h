@@ -38,7 +38,7 @@
 namespace slib
 {
 
-	SLIB_IMPORT_LIBRARY_BEGIN(gdk, "libgdk-x11-2.0.so.0")
+	SLIB_IMPORT_LIBRARY_BEGIN(gdk, "libgdk-3.so.0", "libgdk-x11-2.0.so.0")
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gdk_threads_init,
 			void,
@@ -89,6 +89,47 @@ namespace slib
 		)
 		#define gdk_threads_add_timeout slib::gdk::getApi_gdk_threads_add_timeout()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_display_manager_get,
+			GdkDisplayManager *, ,
+			void
+		)
+		#define gdk_display_manager_get slib::gdk::getApi_gdk_display_manager_get()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_display_manager_list_displays,
+			GSList *, ,
+			GdkDisplayManager *display_manager
+		)
+		#define gdk_display_manager_list_displays slib::gdk::getApi_gdk_display_manager_list_displays()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_display_get_n_screens,
+			gint, ,
+			GdkDisplay  *display
+		)
+		#define gdk_display_get_n_screens slib::gdk::getApi_gdk_display_get_n_screens()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_display_get_screen,
+			GdkScreen *, ,
+			GdkDisplay  *display,
+			gint         screen_num
+		)
+		#define gdk_display_get_screen slib::gdk::getApi_gdk_display_get_screen()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_display_get_default,
+			GdkDisplay *, ,
+			void
+		)
+		#define gdk_display_get_default slib::gdk::getApi_gdk_display_get_default()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_display_get_pointer,
+			void, ,
+			GdkDisplay *display,
+			GdkScreen **screen,
+			gint *x,
+			gint *y,
+			GdkModifierType *mask
+		)
+		#define gdk_display_get_pointer slib::gdk::getApi_gdk_display_get_pointer()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gdk_screen_get_default,
 			GdkScreen *, ,
 			void
@@ -113,6 +154,26 @@ namespace slib
 		)
 		#define gdk_screen_get_height slib::gdk::getApi_gdk_screen_get_height()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_screen_get_root_window,
+			GdkWindow *, ,
+			GdkScreen *screen
+		)
+		#define gdk_screen_get_root_window slib::gdk::getApi_gdk_screen_get_root_window()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_screen_get_active_window,
+			GdkWindow *, ,
+			GdkScreen *screen
+		)
+		#define gdk_screen_get_active_window slib::gdk::getApi_gdk_screen_get_active_window()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_drawable_get_size,
+			void, ,
+			GdkDrawable *,
+			gint *width,
+			gint *height
+		)
+		#define gdk_drawable_get_size slib::gdk::getApi_gdk_drawable_get_size()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gdk_keymap_get_default,
 			GdkKeymap *, ,
 			void
@@ -125,21 +186,11 @@ namespace slib
 		)
 		#define gdk_keymap_get_caps_lock_state slib::gdk::wrap_gdk_keymap_get_caps_lock_state
 		SLIB_IMPORT_LIBRARY_FUNCTION(
-			gdk_display_get_default,
-			GdkDisplay *, ,
+			gdk_get_default_root_window,
+			GdkWindow *, ,
 			void
 		)
-		#define gdk_display_get_default slib::gdk::getApi_gdk_display_get_default()
-		SLIB_IMPORT_LIBRARY_FUNCTION(
-			gdk_display_get_pointer,
-			void, ,
-			GdkDisplay *display,
-			GdkScreen **screen,
-			gint *x,
-			gint *y,
-			GdkModifierType *mask
-		)
-		#define gdk_display_get_pointer slib::gdk::getApi_gdk_display_get_pointer()		
+		#define gdk_get_default_root_window slib::gdk::getApi_gdk_get_default_root_window()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gdk_window_get_parent,
 			GdkWindow *, ,
@@ -250,6 +301,92 @@ namespace slib
 			const GdkEvent *event
 		)
 		#define gdk_event_put slib::gdk::getApi_gdk_event_put()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_pixbuf_get_from_drawable,
+			GdkPixbuf *, ,
+			GdkPixbuf   *dest,
+			GdkDrawable *src,
+			GdkColormap *cmap,
+			int          src_x,
+			int          src_y,
+			int          dest_x,
+			int          dest_y,
+			int          width,
+			int          height
+		)
+		#define gdk_pixbuf_get_from_drawable slib::gdk::getApi_gdk_pixbuf_get_from_drawable()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_pixbuf_get_colorspace,
+			GdkColorspace, ,
+			const GdkPixbuf *pixbuf
+		)
+		#define gdk_pixbuf_get_colorspace slib::gdk::getApi_gdk_pixbuf_get_colorspace()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_pixbuf_get_n_channels,
+			int, ,
+			const GdkPixbuf *pixbuf
+		)
+		#define gdk_pixbuf_get_n_channels slib::gdk::getApi_gdk_pixbuf_get_n_channels()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_pixbuf_get_has_alpha,
+			gboolean, ,
+			const GdkPixbuf *pixbuf
+		)
+		#define gdk_pixbuf_get_has_alpha slib::gdk::getApi_gdk_pixbuf_get_has_alpha()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_pixbuf_get_bits_per_sample,
+			int, ,
+			const GdkPixbuf *pixbuf
+		)
+		#define gdk_pixbuf_get_bits_per_sample slib::gdk::getApi_gdk_pixbuf_get_bits_per_sample()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_pixbuf_get_pixels,
+			guchar*, ,
+			const GdkPixbuf *pixbuf
+		)
+		#define gdk_pixbuf_get_pixels slib::gdk::getApi_gdk_pixbuf_get_pixels()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_pixbuf_get_width,
+			int, ,
+			const GdkPixbuf *pixbuf
+		)
+		#define gdk_pixbuf_get_width slib::gdk::getApi_gdk_pixbuf_get_width()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_pixbuf_get_height,
+			int, ,
+			const GdkPixbuf *pixbuf
+		)
+		#define gdk_pixbuf_get_height slib::gdk::getApi_gdk_pixbuf_get_height()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_pixbuf_get_rowstride,
+			int, ,
+			const GdkPixbuf *pixbuf
+		)
+		#define gdk_pixbuf_get_rowstride slib::gdk::getApi_gdk_pixbuf_get_rowstride()
+
+		// GTK3
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_window_get_width,
+			int, ,
+			GdkWindow *window
+		)
+		#define gdk_window_get_width slib::gdk::getApi_gdk_window_get_width()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_window_get_height,
+			int, ,
+			GdkWindow *window
+		)
+		#define gdk_window_get_height slib::gdk::getApi_gdk_window_get_height()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_pixbuf_get_from_window,
+			GdkPixbuf *, ,
+			GdkWindow *window,
+			gint src_x,
+			gint src_y,
+			gint width,
+			gint height
+		)
+		#define gdk_pixbuf_get_from_window slib::gdk::getApi_gdk_pixbuf_get_from_window()
 
 	SLIB_IMPORT_LIBRARY_END
 

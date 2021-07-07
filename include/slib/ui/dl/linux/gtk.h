@@ -34,7 +34,7 @@
 namespace slib
 {
 
-	SLIB_IMPORT_LIBRARY_BEGIN(gtk, "libgtk-x11-2.0.so.0")
+	SLIB_IMPORT_LIBRARY_BEGIN(gtk, "libgtk-3.so.0", "libgtk-x11-2.0.so.0")
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_init_check,
 			gboolean, ,
@@ -1553,6 +1553,13 @@ namespace slib
 			gboolean is_active
 		)
 		#define gtk_check_menu_item_set_active slib::gtk::getApi_gtk_check_menu_item_set_active()
+
+		// GTK3
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_get_major_version,
+			guint, ,
+			void
+		)
 
 	SLIB_IMPORT_LIBRARY_END
 

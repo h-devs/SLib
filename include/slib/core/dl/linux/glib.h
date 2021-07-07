@@ -31,6 +31,7 @@
 
 #include "glib/glib.h"
 #include "glib/glib-object.h"
+#include "glib/gio/gio.h"
 
 namespace slib
 {
@@ -112,12 +113,25 @@ namespace slib
 			GMainContext *context
 		)
 		#define g_main_context_wakeup slib::glib::getApi_g_main_context_wakeup()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_intern_static_string,
-	        const gchar*, ,
-	        const gchar *string
-	    )
-        #define g_intern_static_string slib::glib::getApi_g_intern_static_string()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_intern_static_string,
+			const gchar*, ,
+			const gchar *string
+		)
+		#define g_intern_static_string slib::glib::getApi_g_intern_static_string()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_variant_new,
+			GVariant*, ,
+			const gchar *format_string,
+			...
+		)
+		#define g_variant_new slib::glib::getApi_g_variant_new()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_variant_unref,
+			void, ,
+			GVariant *value
+		)
+		#define g_variant_unref slib::glib::getApi_g_variant_unref()
 	SLIB_IMPORT_LIBRARY_END
 
 	SLIB_IMPORT_LIBRARY_BEGIN(gobject, "libgobject-2.0.so.0")
@@ -262,6 +276,53 @@ namespace slib
         #	undef g_once_init_leave
         #endif
         #define g_once_init_leave slib::gthread::getApi_g_once_init_leave()
+	SLIB_IMPORT_LIBRARY_END
+
+	SLIB_IMPORT_LIBRARY_BEGIN(gio, "libgio-2.0.so.0")
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_application_get_default,
+			GApplication *, ,
+			void
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_application_new,
+			GApplication *, ,
+			const gchar* application_id,
+			GApplicationFlags flags
+		)
+		#define g_application_new slib::gio::getApi_g_application_new()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_application_get_is_registered,
+			gboolean, ,
+			GApplication*
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_application_register,
+			gboolean, ,
+			GApplication*,
+			GCancellable *cancellable,
+			GError **error
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_application_get_dbus_connection,
+			GDBusConnection *, ,
+			GApplication*
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_dbus_connection_call_sync,
+			GVariant *, ,
+			GDBusConnection    *connection,
+			const gchar        *bus_name,
+			const gchar        *object_path,
+			const gchar        *interface_name,
+			const gchar        *method_name,
+			GVariant           *parameters,
+			const GVariantType *reply_type,
+			GDBusCallFlags      flags,
+			gint                timeout_msec,
+			GCancellable       *cancellable,
+			GError            **error
+		)
 	SLIB_IMPORT_LIBRARY_END
 
 }
