@@ -25,7 +25,7 @@
 namespace slib
 {
 
-#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32)
+#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_GTK)
 	Ref<Image> ScreenCapture::takeScreenshot()
 	{
 		return sl_null;
@@ -45,7 +45,7 @@ namespace slib
 #if !defined(SLIB_UI_IS_MACOS)
 	sl_bool ScreenCapture::isScreenRecordingEnabled()
 	{
-#	if defined(SLIB_UI_IS_WIN32)
+#	if defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_GTK)
 		return sl_true;
 #	else
 		return sl_false;
