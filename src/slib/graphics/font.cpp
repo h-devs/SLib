@@ -430,7 +430,7 @@ namespace slib
 	}
 
 
-#if !defined(SLIB_GRAPHICS_IS_GDI)
+#if !defined(SLIB_GRAPHICS_IS_GDI) && !defined(SLIB_GRAPHICS_IS_QUARTZ)
 	List<String> Font::getAllFamilyNames()
 	{
 		return sl_null;

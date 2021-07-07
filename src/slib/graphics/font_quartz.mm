@@ -188,6 +188,18 @@ namespace slib
 		return ret;
 	}
 
+	List<String> Font::getAllFamilyNames()
+	{
+		List<String> ret;
+#if defined(SLIB_PLATFORM_IS_MACOS)
+		NSArray *fonts = [[NSFontManager sharedFontManager] availableFontFamilies];
+		for (NSString* name in fonts) {
+			ret.add_NoLock(Apple::getStringFromNSString(name));
+		}
+#endif
+		return ret;
+	}
+
 	UIFont* GraphicsPlatform::getNativeFont(Font* _font, CGFloat scaleFactor)
 	{
 		if (_font) {
