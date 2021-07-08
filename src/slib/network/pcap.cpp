@@ -439,7 +439,7 @@ namespace slib
 									if (!flagFound) {
 										PcapParam param = m_param;
 										param.deviceName = dev->name;
-										param.onError = SLIB_FUNCTION_WEAKREF(AnyPcap, onErrorDevice, this);
+										param.onError = SLIB_BIND_WEAKREF(void(NetCapture*), AnyPcap, onErrorDevice, this, param.onError);
 										param.flagAutoStart = sl_true;
 										Ref<PcapImpl> pcap = PcapImpl::create(param);
 										if (pcap.isNotNull()) {
@@ -465,10 +465,11 @@ namespace slib
 					}
 				}
 
-				void onErrorDevice(NetCapture* capture)
+				void onErrorDevice(const Function<void(NetCapture*)>& onError, NetCapture* capture)
 				{
 					m_devices.removeValues(capture);
 					SLIB_LOG(TAG, "Removed device from any capture: %s", capture->getDeviceName());
+					onError(capture);
 				}
 
 			};
