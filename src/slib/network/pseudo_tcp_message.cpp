@@ -91,7 +91,7 @@ namespace slib
 					sl_uint8 buf[65536];
 					for (;;) {
 						sl_int32 n = tcp.receive(buf, sizeof(buf));
-						if (n <= 0) {
+						if (n < 0) {
 							if (n != SLIB_IO_WOULD_BLOCK) {
 								flagError = sl_true;
 								onUpdate(this);
@@ -130,11 +130,10 @@ namespace slib
 						}
 						sl_int32 n = tcp.send((sl_uint8*)(dataSend.getData()) + m_offsetWrite, total - m_offsetWrite);
 						if (n < 0) {
-							flagError = sl_true;
-							onUpdate(this);
-							return;
-						}
-						if (!n) {
+							if (n != SLIB_IO_WOULD_BLOCK) {
+								flagError = sl_true;
+								onUpdate(this);
+							}
 							return;
 						}
 						m_offsetWrite += n;

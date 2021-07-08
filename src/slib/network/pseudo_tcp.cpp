@@ -574,14 +574,14 @@ namespace slib
 	{
 		if (m_state != PseudoTcpState::Established) {
 			m_error = PseudoTcpError::NotConnected;
-			return -1;
+			return SLIB_IO_ERROR;
 		}
 
 		sl_size read = 0;
 		if (!m_rbuf.read(buffer, len, &read)) {
 			m_bReadEnable = sl_true;
 			m_error = PseudoTcpError::WouldBlock;
-			return 0;
+			return SLIB_IO_WOULD_BLOCK;
 		}
 
 		sl_size available_space = 0;
@@ -606,7 +606,7 @@ namespace slib
 
 		if (m_state != PseudoTcpState::Established) {
 			m_error = PseudoTcpError::NotConnected;
-			return -1;
+			return SLIB_IO_ERROR;
 		}
 
 		sl_size available_space = 0;
@@ -615,7 +615,7 @@ namespace slib
 		if (!available_space) {
 			m_bWriteEnable = sl_true;
 			m_error = PseudoTcpError::WouldBlock;
-			return 0;
+			return SLIB_IO_WOULD_BLOCK;
 		}
 
 		int written = queue(buffer, sl_uint32(len), sl_false);
