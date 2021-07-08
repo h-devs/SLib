@@ -77,11 +77,11 @@ namespace slib
 		void setTimeout(sl_uint32 timeout);
 
 	public:
-		void sendMessage(const void* data, sl_uint32 size, const Function<void(sl_uint8* data, sl_int32 size)>& callbackResponse, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout = 0);
+		void sendMessage(const void* data, sl_size size, const Function<void(sl_uint8* data, sl_int32 size)>& callbackResponse, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout = 0);
 
-		void notifyPacketForSendingMessage(const void* data, sl_uint32 size);
+		void notifyPacketForSendingMessage(const void* data, sl_size size);
 
-		void notifyPacketForListeningMessage(const String& host, const void* data, sl_uint32 size, const Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket);
+		void notifyPacketForListeningMessage(const String& host, const void* data, sl_size size, const Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket);
 
 	protected:
 		typedef priv::pt_msg::Address Address;

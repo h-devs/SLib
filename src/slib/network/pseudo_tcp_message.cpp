@@ -241,7 +241,7 @@ namespace slib
 		m_timeout = timeout;
 	}
 
-	void PseudoTcpMessage::sendMessage(const void* data, sl_uint32 size, const Function<void(sl_uint8* data, sl_int32 size)>& callbackResponse, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout)
+	void PseudoTcpMessage::sendMessage(const void* data, sl_size size, const Function<void(sl_uint8* data, sl_int32 size)>& callbackResponse, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout)
 	{
 		if (!(data && size && size <= MESSAGE_SIZE_MAX)) {
 			callbackResponse(sl_null, -1);
@@ -293,7 +293,7 @@ namespace slib
 		}
 	}
 
-	void PseudoTcpMessage::notifyPacketForSendingMessage(const void* data, sl_uint32 size)
+	void PseudoTcpMessage::notifyPacketForSendingMessage(const void* data, sl_size size)
 	{
 		if (size < 4) {
 			return;
@@ -309,7 +309,7 @@ namespace slib
 		}
 	}
 
-	void PseudoTcpMessage::notifyPacketForListeningMessage(const String& host, const void* data, sl_uint32 size, const Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket)
+	void PseudoTcpMessage::notifyPacketForListeningMessage(const String& host, const void* data, sl_size size, const Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket)
 	{
 		if (size < 4) {
 			return;
