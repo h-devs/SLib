@@ -151,6 +151,9 @@ namespace slib
 							nReadHeader += n;
 							sl_uint32 nSizeHeader = CVLI::deserialize(bufHeader, nReadHeader, sizeContent);
 							if (nSizeHeader) {
+								if (nReadHeader - nSizeHeader >= sizeContent) {
+									return Memory::create(bufHeader + nSizeHeader, nReadHeader - nSizeHeader);
+								}
 								bufRead.addStatic(bufHeader + nSizeHeader, nReadHeader - nSizeHeader);
 								break;
 							}
