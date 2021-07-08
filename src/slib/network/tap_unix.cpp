@@ -105,16 +105,14 @@ namespace slib
 					if (m_flagOpened) {
 						for (;;) {
 							sl_int32 n = (sl_int32)(::read(m_handle, buf, size));
-							if (n >= 0) {
-								if (n) {
-									return n;
-								} else {
-									return -1;
-								}
+							if (n > 0) {
+								return n;
 							}
-							int err = errno;
-							if (err != EAGAIN && err != EWOULDBLOCK) {
-								return -1;
+							if (n) {
+								int err = errno;
+								if (err != EAGAIN && err != EWOULDBLOCK && err != EINTR) {
+									return SLIB_IO_ERROR;
+								}
 							}
 							pollfd fd;
 							Base::zeroMemory(&fd, sizeof(fd));
@@ -122,14 +120,14 @@ namespace slib
 							fd.events = POLLIN | POLLPRI | POLLERR | POLLHUP;
 							int iRet = poll(&fd, 1, 10);
 							if (iRet < 0) {
-								return -1;
+								break;
 							}
 							if (Thread::isStoppingCurrent()) {
-								return 0;
+								return SLIB_IO_WOULD_BLOCK;
 							}
 						}
 					}
-					return -1;
+					return SLIB_IO_ERROR;
 				}
 
 				sl_int32 write(const void* buf, sl_uint32 size) override
@@ -138,15 +136,11 @@ namespace slib
 						for (;;) {
 							sl_int32 n = (sl_int32)(::write(m_handle, buf, size));
 							if (n >= 0) {
-								if (n) {
-									return n;
-								} else {
-									return -1;
-								}
+								return n;
 							}
 							int err = errno;
-							if (err != EAGAIN && err != EWOULDBLOCK) {
-								return -1;
+							if (err != EAGAIN && err != EWOULDBLOCK && err != EINTR) {
+								return SLIB_IO_ERROR;
 							}
 							pollfd fd;
 							Base::zeroMemory(&fd, sizeof(fd));
@@ -154,14 +148,14 @@ namespace slib
 							fd.events = POLLOUT | POLLERR | POLLHUP;
 							int iRet = poll(&fd, 1, 10);
 							if (iRet < 0) {
-								return -1;
+								break;
 							}
 							if (Thread::isStoppingCurrent()) {
-								return 0;
+								return SLIB_IO_WOULD_BLOCK;
 							}
 						}
 					}
-					return -1;
+					return SLIB_IO_ERROR;
 				}
 
 				sl_bool setIpAddress(const StringParam& _ip, const StringParam& _mask) override

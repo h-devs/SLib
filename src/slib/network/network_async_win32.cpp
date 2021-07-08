@@ -134,18 +134,20 @@ namespace slib
 									m_flagsRead = 0;
 									DWORD dwRead = 0;
 									int ret = WSARecv((SOCKET)handle, &m_bufRead, 1, &dwRead, &m_flagsRead, &m_overlappedRead, NULL);
-									if (ret == 0) {
-										m_requestReading = req;
-										EventDesc desc;
-										desc.pOverlapped = &m_overlappedRead;
-										onEvent(&desc);
-									} else {
+									if (ret) {
+										// SOCKET_ERROR
 										DWORD dwErr = WSAGetLastError();
 										if (dwErr == WSA_IO_PENDING) {
 											m_requestReading = req;
 										} else {
 											_onReceive(req.get(), 0, sl_true);
 										}
+									} else {
+										// No Error
+										m_requestReading = req;
+										EventDesc desc;
+										desc.pOverlapped = &m_overlappedRead;
+										onEvent(&desc);
 									}
 								} else {
 									_onReceive(req.get(), req->size, sl_false);
@@ -523,12 +525,10 @@ namespace slib
 						DWORD dwFlags = 0;
 						if (WSAGetOverlappedResult((SOCKET)handle, pOverlapped, &dwSize, FALSE, &dwFlags)) {
 							m_flagReceiving = sl_false;
-							if (dwSize > 0) {
-								SocketAddress addr;
-								if (m_lenAddrReceive > 0) {
-									if (addr.setSystemSocketAddress(&m_addrReceive, m_lenAddrReceive)) {
-										_onReceive(addr, dwSize);
-									}
+							SocketAddress addr;
+							if (m_lenAddrReceive > 0) {
+								if (addr.setSystemSocketAddress(&m_addrReceive, m_lenAddrReceive)) {
+									_onReceive(addr, dwSize);
 								}
 							}
 						} else {
@@ -565,15 +565,17 @@ namespace slib
 					m_lenAddrReceive = sizeof(sockaddr_storage);
 					int ret = WSARecvFrom((SOCKET)handle, &m_bufReceive, 1, &dwRead, &m_flagsReceive
 						, (sockaddr*)&m_addrReceive, &m_lenAddrReceive, &m_overlappedReceive, NULL);
-					if (ret == 0) {
-						m_flagReceiving = sl_true;
-					} else {
+					if (ret) {
+						// SOCKET_ERROR
 						DWORD dwErr = WSAGetLastError();
 						if (dwErr == WSA_IO_PENDING) {
 							m_flagReceiving = sl_true;
 						} else {
 							requestOrder();
 						}
+					} else {
+						// Success
+						m_flagReceiving = sl_true;						
 					}
 				}
 

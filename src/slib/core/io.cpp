@@ -287,10 +287,10 @@ namespace slib
 	sl_reg MemoryIO::read(void* buf, sl_size size)
 	{
 		if (!size) {
-			return 0;
+			return SLIB_IO_EMPTY_CONTENT;
 		}
 		if (m_offset >= m_size) {
-			return -1;
+			return SLIB_IO_ENDED;
 		}
 		sl_size limit = m_size - m_offset;
 		if (size > limit) {
@@ -306,10 +306,10 @@ namespace slib
 	sl_reg MemoryIO::write(const void* buf, sl_size size)
 	{
 		if (!size) {
-			return 0;
+			return SLIB_IO_EMPTY_CONTENT;
 		}
 		if (m_offset >= m_size) {
-			return -1;
+			return SLIB_IO_ENDED;
 		}
 		sl_size limit = m_size - m_offset;
 		if (size > limit) {
@@ -524,10 +524,10 @@ namespace slib
 	sl_reg MemoryReader::read(void* buf, sl_size size)
 	{
 		if (!size) {
-			return 0;
+			return SLIB_IO_EMPTY_CONTENT;
 		}
 		if (m_offset >= m_size) {
-			return -1;
+			return SLIB_IO_ENDED;
 		}
 		sl_size limit = m_size - m_offset;
 		if (size > limit) {
@@ -590,10 +590,10 @@ namespace slib
 	sl_reg MemoryReader::skip(sl_size size)
 	{
 		if (!size) {
-			return 0;
+			return SLIB_IO_EMPTY_CONTENT;
 		}
 		if (m_offset >= m_size) {
-			return -1;
+			return SLIB_IO_ENDED;
 		}
 		sl_size limit = m_size - m_offset;
 		if (size > limit) {
@@ -954,10 +954,10 @@ namespace slib
 	sl_reg MemoryWriter::write(const void* buf, sl_size size)
 	{
 		if (!size) {
-			return 0;
+			return SLIB_IO_EMPTY_CONTENT;
 		}
 		if (m_offset >= m_size) {
-			return -1;
+			return SLIB_IO_ENDED;
 		}
 		sl_size limit = m_size - m_offset;
 		if (size > limit) {
@@ -1158,7 +1158,7 @@ namespace slib
 	sl_reg MemoryOutput::write(const void* buf, sl_size size)
 	{
 		if (!size) {
-			return 0;
+			return SLIB_IO_EMPTY_CONTENT;
 		}
 		if (size <= 64) {
 			if (m_buffer.addElements_NoLock((sl_uint8*)buf, size)) {
@@ -1174,20 +1174,20 @@ namespace slib
 				}
 			}
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_reg MemoryOutput::write(const Memory& mem)
 	{
 		if (mem.isNull()) {
-			return 0;
+			return SLIB_IO_EMPTY_CONTENT;
 		}
 		if (flush()) {
 			if (m_queue.add(mem)) {
 				return mem.getSize();
 			}
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_bool MemoryOutput::flush()
@@ -1321,11 +1321,11 @@ namespace slib
 	sl_reg BufferedReader::read(void* buf, sl_size size)
 	{
 		if (!size) {
-			return -1;
+			return SLIB_IO_EMPTY_CONTENT;
 		}
 		IReader* reader = m_reader;
 		if (!reader) {
-			return -1;
+			return SLIB_IO_ERROR;
 		}
 		sl_size nAvailable = m_sizeRead - m_posInBuf;
 		if (!nAvailable) {
@@ -1665,11 +1665,11 @@ namespace slib
 	sl_reg BufferedWriter::write(const void* buf, sl_size size)
 	{
 		if (!size) {
-			return -1;
+			return SLIB_IO_EMPTY_CONTENT;
 		}
 		IWriter* writer = m_writer;
 		if (!writer) {
-			return -1;
+			return SLIB_IO_ERROR;
 		}
 		if (size <= m_sizeBuf - m_sizeWritten) {
 			Base::copyMemory(m_dataBuf + m_sizeWritten, buf, size);
@@ -1680,7 +1680,7 @@ namespace slib
 				return writer->write(buf, size);
 			}
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_bool BufferedWriter::flush()
@@ -1908,7 +1908,7 @@ namespace slib
 				return size;
 			}
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_bool BufferedSeekableReader::_seekInternal(sl_uint64 pos)
@@ -1934,7 +1934,7 @@ namespace slib
 				size = (sl_size)n;
 			}
 			if (!size) {
-				return -1;
+				return SLIB_IO_EMPTY_CONTENT;
 			}
 			IReader* reader = m_reader;
 			if (reader) {
@@ -1945,7 +1945,7 @@ namespace slib
 				return nRead;
 			}
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_reg BufferedSeekableReader::_fillBuf(sl_uint64 pos, sl_size size)
@@ -1977,7 +1977,7 @@ namespace slib
 	sl_reg BufferedSeekableReader::read(void*& buf)
 	{
 		if (m_posCurrent >= m_sizeTotal) {
-			return -1;
+			return SLIB_IO_ENDED;
 		}
 		if (m_posCurrent >= m_posBuf) {
 			sl_uint64 _offset = m_posCurrent - m_posBuf;
@@ -2001,10 +2001,10 @@ namespace slib
 	{
 		sl_uint8* buf = (sl_uint8*)_buf;
 		if (!size) {
-			return -1;
+			return SLIB_IO_EMPTY_CONTENT;
 		}
 		if (m_posCurrent >= m_sizeTotal) {
-			return -1;
+			return SLIB_IO_ENDED;
 		}
 		if (!m_sizeRead) {
 			return _readFillingBuf(m_posCurrent, buf, size);
@@ -2217,18 +2217,12 @@ namespace slib
 						n = (sl_uint32)nRemain;
 					}
 					sl_reg m = reader->read(buf, n);
-					if (m < 0) {
-						return nRead;
-					}
-					nRead += m;
-					if (Thread::isStoppingCurrent()) {
-						return nRead;
-					}
-					if (m == 0) {
+					if (m > 0) {
+						nRead += m;
+					} else if (m == SLIB_IO_WOULD_BLOCK && Thread::isNotStoppingCurrent()) {
 						Thread::sleep(1);
-						if (Thread::isStoppingCurrent()) {
-							return nRead;
-						}
+					} else {
+						return nRead;
 					}
 				}
 				return nRead;

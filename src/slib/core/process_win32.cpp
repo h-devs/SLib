@@ -29,7 +29,8 @@
 #include "slib/core/file.h"
 #include "slib/core/command_line.h"
 #include "slib/core/string_buffer.h"
-#include "slib/core/platform.h"
+#include "slib/core/handle_ptr.h"
+#include "slib/core/win32/platform.h"
 
 #include <process.h>
 
@@ -110,35 +111,29 @@ namespace slib
 					HANDLE handle = m_hRead;
 					if (handle != INVALID_HANDLE_VALUE) {
 						if (!size) {
-							return 0;
+							return SLIB_IO_EMPTY_CONTENT;
 						}
-						sl_uint32 ret = 0;
-						if (ReadFile(handle, buf, size, (DWORD*)&ret, NULL)) {
-							if (ret) {
-								return ret;
-							}
+						sl_int32 n = (HandlePtr<File>(handle))->read32(buf, size);
+						if (n <= 0) {
+							close();
 						}
+						return n;
 					}
-					close();
-					return -1;
+					return SLIB_IO_ERROR;
 				}
 
 				sl_int32 write32(const void* buf, sl_uint32 size) override
 				{
 					HANDLE handle = m_hWrite;
 					if (handle != INVALID_HANDLE_VALUE) {
-						if (!size) {
-							return 0;
+						sl_int32 n = (HandlePtr<File>(handle))->write32(buf, size);
+						if (n < 0) {
+							close();
 						}
-						sl_uint32 ret = 0;
-						if (WriteFile(handle, (LPVOID)buf, size, (DWORD*)&ret, NULL)) {
-							if (ret) {
-								return ret;
-							}
-						}
+						return n;
 					}
 					close();
-					return -1;
+					return SLIB_IO_ERROR;
 				}
 
 				void _close()

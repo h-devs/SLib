@@ -692,23 +692,19 @@ namespace slib
 		return connectDomain(name, sl_true);
 	}
 
-	sl_int32 Socket::send(const void* buf, sl_size _size) const noexcept
+	sl_int32 Socket::send(const void* buf, sl_size size) const noexcept
 	{
 		if (isOpened()) {
-			int size = (int)_size;
-			if (!size) {
-				return 0;
-			}
 #if	defined(SLIB_PLATFORM_IS_LINUX)
-			sl_int32 ret = (sl_int32)(::send(m_socket, (const char*)buf, size, MSG_NOSIGNAL));
+			sl_int32 ret = (sl_int32)(::send(m_socket, (const char*)buf, (int)size, MSG_NOSIGNAL));
 #else
-			sl_int32 ret = (sl_int32)(::send(m_socket, (const char*)buf, size, 0));
+			sl_int32 ret = (sl_int32)(::send(m_socket, (const char*)buf, (int)size, 0));
 #endif
 			return _processResult(ret);
 		} else {
 			_setError(SocketError::Closed);
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_int32 Socket::write32(const void* buf, sl_uint32 size) const noexcept
@@ -726,14 +722,14 @@ namespace slib
 		if (isOpened()) {
 			int size = (int)_size;
 			if (!size) {
-				return 0;
+				return SLIB_IO_EMPTY_CONTENT;
 			}
 			sl_int32 ret = (sl_int32)(::recv(m_socket, (char*)buf, size, 0));
 			return _processResult(ret);
 		} else {
 			_setError(SocketError::Closed);
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_int32 Socket::read32(void* buf, sl_uint32 size) const noexcept
@@ -746,17 +742,13 @@ namespace slib
 		return ReaderHelper::readWithRead32(this, buf, size);
 	}
 
-	sl_int32 Socket::sendTo(const SocketAddress& address, const void* buf, sl_size _size) const noexcept
+	sl_int32 Socket::sendTo(const SocketAddress& address, const void* buf, sl_size size) const noexcept
 	{
 		if (isOpened()) {
-			int size = (int)_size;
-			if (!size) {
-				return 0;
-			}
 			sockaddr_storage addr;
 			int sizeAddr = address.getSystemSocketAddress(&addr);
 			if (sizeAddr) {
-				sl_int32 ret = (sl_int32)(::sendto(m_socket, (char*)buf, size, 0, (sockaddr*)&addr, sizeAddr));
+				sl_int32 ret = (sl_int32)(::sendto(m_socket, (char*)buf, (int)size, 0, (sockaddr*)&addr, sizeAddr));
 				return _processResult(ret);
 			} else {
 				_setError(SocketError::Invalid);
@@ -764,20 +756,16 @@ namespace slib
 		} else {
 			_setError(SocketError::Closed);
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
-	sl_int32 Socket::sendToDomain(const StringParam& path, const void* buf, sl_size _size, sl_bool flagAbstract) const noexcept
+	sl_int32 Socket::sendToDomain(const StringParam& path, const void* buf, sl_size size, sl_bool flagAbstract) const noexcept
 	{
 		if (isOpened()) {
-			int size = (int)_size;
-			if (!size) {
-				return 0;
-			}
 			SOCKADDR_UN addr;
 			int sizeAddr = SetDomainAddress(addr, path, flagAbstract);
 			if (sizeAddr) {
-				sl_int32 ret = (sl_int32)(::sendto(m_socket, (char*)buf, size, 0, (sockaddr*)&addr, sizeAddr));
+				sl_int32 ret = (sl_int32)(::sendto(m_socket, (char*)buf, (int)size, 0, (sockaddr*)&addr, sizeAddr));
 				return _processResult(ret);
 			} else {
 				_setError(SocketError::Invalid);
@@ -785,7 +773,7 @@ namespace slib
 		} else {
 			_setError(SocketError::Closed);
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_int32 Socket::sendToAbstractDomain(const StringParam& name, const void* buf, sl_size size) const noexcept
@@ -798,25 +786,25 @@ namespace slib
 		if (isOpened()) {
 			int size = (int)_size;
 			if (!size) {
-				return 0;
+				return SLIB_IO_EMPTY_CONTENT;
 			}
 			sockaddr_storage addr;
 			Base::zeroMemory(&addr, sizeof(addr));
 			socklen_t lenAddr = sizeof(addr);
 			sl_int32 ret = (sl_int32)(::recvfrom(m_socket, (char*)buf, size, 0, (sockaddr*)&addr, &lenAddr));
-			if (ret > 0) {
+			if (ret >= 0) {
 				if (address.setSystemSocketAddress(&addr)) {
 					return ret;
 				} else {
 					_setError(SocketError::Invalid);
-					return -1;
+					return SLIB_IO_ERROR;
 				}
 			}
 			return _processResult(ret);
 		} else {
 			_setError(SocketError::Closed);
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_int32 Socket::receiveFromDomain(void* buf, sl_size _size, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract) const noexcept
@@ -824,25 +812,25 @@ namespace slib
 		if (isOpened()) {
 			int size = (int)_size;
 			if (!size) {
-				return 0;
+				return SLIB_IO_EMPTY_CONTENT;
 			}
 			SOCKADDR_UN addr;
 			Base::zeroMemory(&addr, sizeof(addr));
 			socklen_t lenAddr = sizeof(addr);
 			sl_int32 ret = (sl_int32)(::recvfrom(m_socket, (char*)buf, size, 0, (sockaddr*)&addr, &lenAddr));
-			if (ret > 0) {
+			if (ret >= 0) {
 				if (GetDomainAddress(addr, lenAddr, sl_null, outPath, inOutLenPath, pOutFlagAbstract)) {
 					return ret;
 				} else {
 					_setError(SocketError::Invalid);
-					return -1;
+					return SLIB_IO_ERROR;
 				}
 			}
 			return _processResult(ret);
 		} else {
 			_setError(SocketError::Closed);
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_int32 Socket::receiveFromDomain(void* buf, sl_size _size, String& outPath, sl_bool* pOutFlagAbstract) const noexcept
@@ -850,25 +838,25 @@ namespace slib
 		if (isOpened()) {
 			int size = (int)_size;
 			if (!size) {
-				return 0;
+				return SLIB_IO_EMPTY_CONTENT;
 			}
 			SOCKADDR_UN addr;
 			Base::zeroMemory(&addr, sizeof(addr));
 			socklen_t lenAddr = sizeof(addr);
 			sl_int32 ret = (sl_int32)(::recvfrom(m_socket, (char*)buf, size, 0, (sockaddr*)&addr, &lenAddr));
-			if (ret > 0) {
+			if (ret >= 0) {
 				if (GetDomainAddress(addr, lenAddr, outPath, pOutFlagAbstract)) {
 					return ret;
 				} else {
 					_setError(SocketError::Invalid);
-					return -1;
+					return SLIB_IO_ERROR;
 				}
 			}
 			return _processResult(ret);
 		} else {
 			_setError(SocketError::Closed);
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_int32 Socket::sendPacket(const void* buf, sl_size _size, const L2PacketInfo& info) const noexcept
@@ -877,7 +865,7 @@ namespace slib
 		if (isOpened()) {
 			int size = (int)_size;
 			if (!size) {
-				return 0;
+				return SLIB_IO_EMPTY_CONTENT;
 			}
 			sockaddr_ll addr;
 			addr.sll_family = AF_PACKET;
@@ -898,7 +886,7 @@ namespace slib
 			_setError(SocketError::Closed);
 		}
 #endif
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_int32 Socket::receivePacket(const void* buf, sl_size _size, L2PacketInfo& info) const noexcept
@@ -907,13 +895,13 @@ namespace slib
 		if (isOpened()) {
 			int size = (int)_size;
 			if (!size) {
-				return 0;
+				return SLIB_IO_EMPTY_CONTENT;
 			}
 			sockaddr_ll addr;
 			Base::zeroMemory(&addr, sizeof(addr));
 			socklen_t lenAddr = sizeof(addr);
 			sl_int32 ret = (sl_int32)(::recvfrom(m_socket, (char*)buf, size, 0, (sockaddr*)&addr, &lenAddr));
-			if (ret > 0) {
+			if (ret >= 0) {
 				if (addr.sll_family == AF_PACKET) {
 					info.iface = addr.sll_ifindex;
 					info.protocol = (NetworkLinkProtocol)(ntohs(addr.sll_protocol));
@@ -927,7 +915,7 @@ namespace slib
 					return ret;
 				} else {
 					_setError(SocketError::Invalid);
-					return -1;
+					return SLIB_IO_ERROR;
 				}
 			}
 			return _processResult(ret);
@@ -935,7 +923,7 @@ namespace slib
 			_setError(SocketError::Closed);
 		}
 #endif
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_bool Socket::setNonBlockingMode(sl_bool flagEnable) const noexcept
@@ -1583,19 +1571,18 @@ namespace slib
 
 	sl_int32 Socket::_processResult(sl_int32 ret) noexcept
 	{
-		if (ret >= 0) {
-			if (ret) {
-				return ret;
-			} else {
-				_setError(SocketError::UnexpectedResult);
-				return -1;
-			}
+		if (ret > 0) {
+			return ret;
 		} else {
-			SocketError err = _checkError();
-			if (err == SocketError::WouldBlock || err == SocketError::Interrupted) {
-				return 0;
+			if (ret) {
+				SocketError err = _checkError();
+				if (err == SocketError::WouldBlock || err == SocketError::Interrupted) {
+					return SLIB_IO_WOULD_BLOCK;
+				} else {
+					return SLIB_IO_ERROR;
+				}
 			} else {
-				return -1;
+				return SLIB_IO_ENDED;
 			}
 		}
 	}

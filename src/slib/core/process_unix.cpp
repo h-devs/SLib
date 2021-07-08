@@ -29,6 +29,7 @@
 #include "slib/core/file.h"
 #include "slib/core/list.h"
 #include "slib/core/system.h"
+#include "slib/core/handle_ptr.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -97,40 +98,29 @@ namespace slib
 				{
 					int handle = m_hRead;
 					if (handle >= 0) {
-						ssize_t n = ::read(handle, buf, size);
-						if (n >= 0) {
-							if (n > 0) {
-								return (sl_int32)n;
-							}
-						} else {
-							int err = errno;
-							if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
-								return 0;
-							}
+						if (!size) {
+							return SLIB_IO_EMPTY_CONTENT;
 						}
+						sl_int32 n = (HandlePtr<File>(handle))->read32(buf, size);
+						if (n <= 0 && n != SLIB_IO_WOULD_BLOCK) {
+							close();
+						}
+						return n;
 					}
-					close();
-					return -1;
+					return SLIB_IO_ERROR;
 				}
 				
 				sl_int32 write32(const void* buf, sl_uint32 size) override
 				{
 					int handle = m_hWrite;
 					if (handle) {
-						ssize_t n = ::write(handle, buf, size);
-						if (n >= 0) {
-							if (n > 0) {
-								return (sl_int32)n;
-							}
-						} else {
-							int err = errno;
-							if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
-								return 0;
-							}
+						sl_int32 n = (HandlePtr<File>(handle))->write32(buf, size);
+						if (n < 0 && n != SLIB_IO_WOULD_BLOCK) {
+							close();
 						}
+						return n;
 					}
-					close();
-					return -1;
+					return SLIB_IO_ERROR;
 				}
 				
 				void _close()

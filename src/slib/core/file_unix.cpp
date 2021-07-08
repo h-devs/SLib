@@ -181,7 +181,7 @@ namespace slib
 	{
 		StringCstr filePath(_filePath);
 		if (filePath.isEmpty()) {
-			return -1;
+			return SLIB_FILE_INVALID_HANDLE;
 		}
 		
 		int flags = 0;
@@ -280,43 +280,44 @@ namespace slib
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
 			if (!size) {
-				return 0;
+				return SLIB_IO_EMPTY_CONTENT;
 			}
 			ssize_t n = ::read(fd, buf, size);
-			if (n >= 0) {
-				if (n > 0) {
-					return (sl_int32)n;
-				}
+			if (n > 0) {
+				return (sl_int32)n;
 			} else {
-				int err = errno;
-				if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
-					return 0;
+				if (n) {
+					int err = errno;
+					if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
+						return SLIB_IO_WOULD_BLOCK;
+					}
+				} else {
+					return SLIB_IO_ENDED;
 				}
 			}
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_int32 File::write32(const void* buf, sl_uint32 size) const noexcept
 	{
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
-			if (!size) {
-				return 0;
-			}
 			ssize_t n = ::write(fd, buf, size);
-			if (n >= 0) {
-				if (n > 0) {
-					return (sl_int32)n;
-				}
+			if (n > 0) {
+				return (sl_int32)n;
 			} else {
-				int err = errno;
-				if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
-					return 0;
+				if (n) {
+					int err = errno;
+					if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
+						return SLIB_IO_WOULD_BLOCK;
+					}
+				} else {
+					return SLIB_IO_EMPTY_CONTENT;
 				}
 			}
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_bool File::setSize(sl_uint64 newSize) const noexcept

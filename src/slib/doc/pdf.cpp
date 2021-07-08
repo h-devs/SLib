@@ -112,9 +112,6 @@ namespace slib
 		while (1) {
 			void* _buf;
 			sl_reg n = m_reader.read(_buf);
-			if (n < 0) {
-				break;
-			}
 			char* buf = (char*)_buf;
 			if (n > 0) {
 				sl_size posStartWord = 0;
@@ -143,9 +140,15 @@ namespace slib
 					}
 				}
 			} else {
-				Thread::sleep(1);
-				if (Thread::isStoppingCurrent()) {
-					break;
+				if (n) {
+					if (n == SLIB_IO_WOULD_BLOCK) {
+						if (Thread::isStoppingCurrent()) {
+							break;
+						}
+						Thread::sleep(1);
+					} else {
+						break;
+					}
 				}
 			}
 		}

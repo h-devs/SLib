@@ -26,6 +26,11 @@
 #include "../endian.h"
 #include "../charset.h"
 
+#define SLIB_IO_ENDED 0
+#define SLIB_IO_EMPTY_CONTENT 0
+#define SLIB_IO_ERROR (-1)
+#define SLIB_IO_WOULD_BLOCK (-2)
+
 #define SLIB_DECLARE_IREADER_MEMBERS(...) \
 	sl_reg readFully(void* buf, sl_size size) __VA_ARGS__; \
 	Memory readFully() __VA_ARGS__; \

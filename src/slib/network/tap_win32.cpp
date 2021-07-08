@@ -26,9 +26,10 @@
 
 #include "slib/network/tap.h"
 
-#include "slib/core/win32/windows.h"
 #include "slib/core/thread.h"
 #include "slib/core/system.h"
+#include "slib/core/io/def.h"
+#include "slib/core/win32/windows.h"
 
 #include "tap/tap-windows.h"
 
@@ -181,7 +182,7 @@ namespace slib
 									DWORD dwRet = WaitForSingleObject(m_overlappedRead.hEvent, 10);
 									if (dwRet == WAIT_TIMEOUT) {
 										if (Thread::isStoppingCurrent()) {
-											return 0;
+											return SLIB_IO_WOULD_BLOCK;
 										}
 									} else {
 										break;
@@ -194,7 +195,7 @@ namespace slib
 							}
 						}
 					}
-					return -1;
+					return SLIB_IO_ERROR;
 				}
 
 				sl_int32 write(const void* buf, sl_uint32 size) override
@@ -210,7 +211,7 @@ namespace slib
 									DWORD dwRet = WaitForSingleObject(m_overlappedWrite.hEvent, 10);
 									if (dwRet == WAIT_TIMEOUT) {
 										if (Thread::isStoppingCurrent()) {
-											return 0;
+											return SLIB_IO_WOULD_BLOCK;
 										}
 									} else {
 										break;
@@ -223,7 +224,7 @@ namespace slib
 							}
 						}
 					}
-					return -1;
+					return SLIB_IO_ERROR;
 				}
 
 				sl_bool setIpAddress(const StringParam& ip, const StringParam& mask) override

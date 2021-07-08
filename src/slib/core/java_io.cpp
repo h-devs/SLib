@@ -60,14 +60,14 @@ namespace slib
 			if (stream && array) {
 				sl_int32 n = JInputStream::read.callInt(stream, array);
 				if (n < 0) {
-					n = 0;
+					n = SLIB_IO_ENDED;
 				}
 				if (Jni::checkExceptionAndPrintClear()) {
-					n = -1;
+					n = SLIB_IO_ERROR;
 				}
 				return n;
 			}
-			return -1;
+			return SLIB_IO_ERROR;
 		}
 
 		void InputStream::closeStream(jobject stream) noexcept

@@ -22,7 +22,7 @@ int main(int argc, const char * argv[])
 			char buf[1024];
 			SocketAddress address;
 			sl_int32 n = socket.receiveFrom(address, buf, sizeof(buf));
-			if (n > 0) {
+			if (n >= 0) {
 				Println("Received from %s: %s", address.toString(), StringView(buf, n));
 			} else {
 				Thread::sleep(10);

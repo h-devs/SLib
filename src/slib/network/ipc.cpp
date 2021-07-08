@@ -122,6 +122,7 @@ namespace slib
 							if (writeMessage(thread, socket, data.getData(), (sl_uint32)(data.getSize()))) {
 								if (thread->isNotStoppingCurrent()) {
 									Memory mem = readMessage(thread, socket);
+									writeMessage(thread, socket, sl_null, 0); // Dummy message to safely close
 									callbackResponse((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()));
 									m_threads.remove(thread);
 									return;
@@ -146,10 +147,7 @@ namespace slib
 					sl_uint32 nReadHeader = 0;
 					while (thread->isNotStopping()) {
 						sl_int32 n = socket.receive(bufHeader + nReadHeader, sizeof(bufHeader) - nReadHeader);
-						if (n < 0) {
-							return sl_null;
-						}
-						if (n) {
+						if (n > 0) {
 							nReadHeader += n;
 							sl_uint32 nSizeHeader = CVLI::deserialize(bufHeader, nReadHeader, sizeContent);
 							if (nSizeHeader) {
@@ -159,11 +157,13 @@ namespace slib
 							if (nReadHeader >= sizeof(bufHeader)) {
 								return sl_null;
 							}
-						} else {
+						} else if (n == SLIB_IO_WOULD_BLOCK) {
 							event->wait(10);
 							if (tc.getElapsedMilliseconds() > m_timeout) {
 								return sl_null;
 							}
+						} else {
+							return sl_null;
 						}
 					}
 					if (!sizeContent) {
@@ -175,19 +175,18 @@ namespace slib
 					char buf[1024];
 					while (thread->isNotStopping()) {
 						sl_int32 n = socket.receive(buf, sizeof(buf));
-						if (n < 0) {
-							return sl_null;
-						}
-						if (n) {
+						if (n > 0) {
 							bufRead.add(Memory::create(buf, n));
 							if (bufRead.getSize() >= sizeContent) {
 								return bufRead.merge();
 							}
-						} else {
+						} else if (n == SLIB_IO_WOULD_BLOCK) {
 							event->wait(10);
 							if (tc.getElapsedMilliseconds() > m_timeout) {
 								return sl_null;
 							}
+						} else {
+							return sl_null;
 						}
 					}
 					return sl_null;
@@ -206,19 +205,18 @@ namespace slib
 					sl_uint32 nWriteHeader = 0;
 					while (thread->isNotStopping()) {
 						sl_int32 n = socket.send(bufHeader + nWriteHeader, nHeader - nWriteHeader);
-						if (n < 0) {
-							return sl_false;
-						}
-						if (n) {
+						if (n >= 0) {
 							nWriteHeader += n;
 							if (nWriteHeader >= nHeader) {
 								break;
 							}
-						} else {
+						} else if (n == SLIB_IO_WOULD_BLOCK) {
 							event->wait(10);
 							if (tc.getElapsedMilliseconds() > m_timeout) {
 								return sl_false;
 							}
+						} else {
+							return sl_false;
 						}
 					}
 					if (!size) {
@@ -227,19 +225,18 @@ namespace slib
 					sl_uint32 posWrite = 0;
 					while (thread->isNotStopping()) {
 						sl_int32 n = socket.send(data + posWrite, size - posWrite);
-						if (n < 0) {
-							return sl_false;
-						}
-						if (n) {
+						if (n >= 0) {
 							posWrite += n;
 							if (posWrite >= size) {
 								break;
 							}
-						} else {
+						} else if (n == SLIB_IO_WOULD_BLOCK) {
 							event->wait(10);
 							if (tc.getElapsedMilliseconds() > m_timeout) {
 								return sl_false;
 							}
+						} else {
+							return sl_false;
 						}
 					}
 					return sl_true;
@@ -351,6 +348,7 @@ namespace slib
 						m_onReceiveMessage((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()), &response);
 						Memory output = response.getData();
 						writeMessage(thread, socket, output.getData(), (sl_uint32)(output.getSize()));
+						readMessage(thread, socket); // Dummy message to safely close
 					}
 					m_threads.remove(thread);
 				}

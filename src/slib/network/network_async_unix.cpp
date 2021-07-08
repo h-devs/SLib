@@ -109,14 +109,15 @@ namespace slib
 							sl_int32 n = socket.receive((char*)(request->data), request->size);
 							if (n > 0) {
 								_onReceive(request.get(), n, flagError);
-							} else if (n < 0) {
-								_onReceive(request.get(), 0, sl_true);
-								return;
 							} else {
-								if (flagError) {
-									_onReceive(request.get(), 0, sl_true);
+								if (n == SLIB_IO_WOULD_BLOCK) {
+									if (flagError) {
+										_onReceive(request.get(), 0, sl_true);
+									} else {
+										m_requestReading = request;
+									}
 								} else {
-									m_requestReading = request;
+									_onReceive(request.get(), 0, sl_true);
 								}
 								return;
 							}
@@ -154,21 +155,22 @@ namespace slib
 						if (request->data && request->size) {
 							sl_uint32 size = request->size - m_sizeWritten;
 							sl_int32 n = socket.send((char*)(request->data) + m_sizeWritten, size);
-							if (n > 0) {
+							if (n >= 0) {
 								m_sizeWritten += n;
 								if (m_sizeWritten >= request->size) {
 									_onSend(request.get(), request->size, flagError);
 								} else {
 									m_requestWriting = request;
 								}
-							} else if (n < 0) {
-								_onSend(request.get(), m_sizeWritten, sl_true);
-								return;
 							} else {
-								if (flagError) {
-									_onSend(request.get(), m_sizeWritten, sl_true);
+								if (n == SLIB_IO_WOULD_BLOCK) {
+									if (flagError) {
+										_onSend(request.get(), m_sizeWritten, sl_true);
+									} else {
+										m_requestWriting = request;
+									}
 								} else {
-									m_requestWriting = request;
+									_onSend(request.get(), m_sizeWritten, sl_true);
 								}
 								return;
 							}
@@ -375,10 +377,10 @@ namespace slib
 					while (!thread || thread->isNotStopping()) {
 						SocketAddress addr;
 						sl_int32 n = socket.receiveFrom(addr, buf, sizeBuf);
-						if (n > 0) {
+						if (n >= 0) {
 							_onReceive(addr, n);
 						} else {
-							if (n < 0) {
+							if (n != SLIB_IO_WOULD_BLOCK) {
 								_onError();
 							}
 							break;

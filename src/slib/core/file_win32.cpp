@@ -270,34 +270,35 @@ namespace slib
 	{
 		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
-			if (size == 0) {
-				return 0;
+			if (!size) {
+				return SLIB_IO_EMPTY_CONTENT;
 			}
 			sl_uint32 ret = 0;
 			if (ReadFile(handle, buf, size, (DWORD*)&ret, NULL)) {
-				if (ret > 0) {
+				if (ret) {
 					return ret;
+				} else {
+					return SLIB_IO_ENDED;
 				}
 			}
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_int32 File::write32(const void* buf, sl_uint32 size) const noexcept
 	{
 		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
-			if (size == 0) {
-				return 0;
-			}
 			sl_uint32 ret = 0;
 			if (WriteFile(handle, (LPVOID)buf, size, (DWORD*)&ret, NULL)) {
-				if (ret > 0) {
+				if (ret) {
 					return ret;
+				} else {
+					return SLIB_IO_EMPTY_CONTENT;
 				}
 			}
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_bool File::setSize(sl_uint64 size) const noexcept

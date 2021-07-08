@@ -71,20 +71,23 @@ void LanTvClientApp::onStart()
 
 		while (Thread::isNotStoppingCurrent()) {
 			sl_int32 nRead = socket.receiveFrom(addr, buf, PACKET_SIZE);
-			if (nRead > 8) {
-				sl_int16 audioSamples[AUDIO_SAMPLES_PER_SECOND * AUDIO_FRAME_MS / 1000];
-				AudioData audioOutput;
-				audioOutput.count = sizeof(audioSamples) / sizeof(sl_int16);
-				audioOutput.format = AudioFormat::Int16_Mono;
-				audioOutput.data = audioSamples;
-				sl_uint32 n = decoderAudio->decode(buf + 8, nRead - 8, audioOutput);
-				if (n) {
-					AudioData data = audioOutput;
-					data.count = n;
-					audioPlayer->write(data);
+			if (nRead >= 0) {
+				if (nRead > 8) {
+					sl_int16 audioSamples[AUDIO_SAMPLES_PER_SECOND * AUDIO_FRAME_MS / 1000];
+					AudioData audioOutput;
+					audioOutput.count = sizeof(audioSamples) / sizeof(sl_int16);
+					audioOutput.format = AudioFormat::Int16_Mono;
+					audioOutput.data = audioSamples;
+					sl_uint32 n = decoderAudio->decode(buf + 8, nRead - 8, audioOutput);
+					if (n) {
+						AudioData data = audioOutput;
+						data.count = n;
+						audioPlayer->write(data);
+					}
 				}
+			} else {
+				event->wait();
 			}
-			event->wait();
 		}
 
 	});
@@ -114,26 +117,29 @@ void LanTvClientApp::onStart()
 
 		while (Thread::isNotStoppingCurrent()) {
 			sl_int32 nRead = socket.receiveFrom(addr, buf, PACKET_SIZE);
-			if (nRead > 8) {
-				sl_uint32 w = MIO::readUint16LE(buf);
-				sl_uint32 h = MIO::readUint16LE(buf + 2);
-				if (decoderVideo.isNull() || w != width || h != height) {
-					VpxDecoderParam param;
-					param.width = w;
-					param.height = h;
-					decoderVideo = VpxDecoder::create(param);
+			if (nRead >= 0) {
+				if (nRead > 8) {
+					sl_uint32 w = MIO::readUint16LE(buf);
+					sl_uint32 h = MIO::readUint16LE(buf + 2);
+					if (decoderVideo.isNull() || w != width || h != height) {
+						VpxDecoderParam param;
+						param.width = w;
+						param.height = h;
+						decoderVideo = VpxDecoder::create(param);
+						if (decoderVideo.isNotNull()) {
+							width = w;
+							height = h;
+						}
+					}
 					if (decoderVideo.isNotNull()) {
-						width = w;
-						height = h;
+						decoderVideo->decode(buf + 8, nRead - 8, [viewVideo](VideoFrame& frame) {
+							viewVideo->updateCurrentFrame(frame);
+						});
 					}
 				}
-				if (decoderVideo.isNotNull()) {
-					decoderVideo->decode(buf + 8, nRead - 8, [viewVideo](VideoFrame& frame) {
-						viewVideo->updateCurrentFrame(frame);
-					});
-				}
+			} else {
+				event->wait();
 			}
-			event->wait();
 		}
 
 	});

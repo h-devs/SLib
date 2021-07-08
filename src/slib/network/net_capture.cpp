@@ -249,19 +249,18 @@ namespace slib
 					sl_uint32 sizeBuf = (sl_uint32)(m_bufPacket.getSize());
 					
 					while (thread->isNotStopping()) {
-						while (1) {
-							L2PacketInfo info;
-							sl_int32 n = socket.receivePacket(buf, sizeBuf, info);
-							if (n > 0) {
-								packet.data = buf;
-								packet.length = n;
-								packet.time = 0;
-								_onCapturePacket(packet);
-							} else {
-								break;
-							}
+						L2PacketInfo info;
+						sl_int32 n = socket.receivePacket(buf, sizeBuf, info);
+						if (n >= 0) {
+							packet.data = buf;
+							packet.length = n;
+							packet.time = 0;
+							_onCapturePacket(packet);
+						} else if (n == SLIB_IO_WOULD_BLOCK) {
+							event->wait();
+						} else {
+							break;
 						}
-						event->wait();
 					}
 				}
 				
@@ -450,43 +449,38 @@ namespace slib
 					sl_uint32 sizeBuf = (sl_uint32)(m_bufPacket.getSize());
 
 					while (thread->isNotStopping()) {
-						while (1) {
-							SocketAddress address;
-							sl_int32 n = socketTCP.receiveFrom(address, buf, sizeBuf);
-							if (n > 0) {
+						SocketAddress address;
+						sl_int32 n = socketTCP.receiveFrom(address, buf, sizeBuf);
+						if (n >= 0) {
+							packet.data = buf;
+							packet.length = n;
+							packet.time = 0;
+							_onCapturePacket(packet);
+						} else if (n != SLIB_IO_WOULD_BLOCK) {
+							break;
+						} else {
+							n = socketUDP.receiveFrom(address, buf, sizeBuf);
+							if (n >= 0) {
 								packet.data = buf;
 								packet.length = n;
 								packet.time = 0;
 								_onCapturePacket(packet);
-							} else {
+							} else if (n != SLIB_IO_WOULD_BLOCK) {
 								break;
+							} else {
+								n = socketICMP.receiveFrom(address, buf, sizeBuf);
+								if (n >= 0) {
+									packet.data = buf;
+									packet.length = n;
+									packet.time = 0;
+									_onCapturePacket(packet);
+								} else if (n != SLIB_IO_WOULD_BLOCK) {
+									break;
+								} else {
+									SocketEvent::waitMultipleEvents(events, sl_null, 3);
+								}
 							}
 						}
-						while (1) {
-							SocketAddress address;
-							sl_int32 n = socketUDP.receiveFrom(address, buf, sizeBuf);
-							if (n > 0) {
-								packet.data = buf;
-								packet.length = n;
-								packet.time = 0;
-								_onCapturePacket(packet);
-							} else {
-								break;
-							}
-						}
-						while (1) {
-							SocketAddress address;
-							sl_int32 n = socketICMP.receiveFrom(address, buf, sizeBuf);
-							if (n > 0) {
-								packet.data = buf;
-								packet.length = n;
-								packet.time = 0;
-								_onCapturePacket(packet);
-							} else {
-								break;
-							}
-						}
-						SocketEvent::waitMultipleEvents(events, sl_null, 3);
 					}
 				}
 				

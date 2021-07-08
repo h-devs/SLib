@@ -30,9 +30,7 @@
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 #include "slib/core/win32/windows.h"
 #else
-#define _FILE_OFFSET_BITS 64
 #include <unistd.h>
-#include <errno.h>
 #include <poll.h>
 #endif
 
@@ -105,68 +103,34 @@ namespace slib
 
 	sl_reg Pipe::read(void* buf, sl_size size) const noexcept
 	{
-		return ReaderHelper::readWithRead32(this, buf, size);
+		if (isOpened()) {
+			return (HandlePtr<File>(m_handle.hRead))->read(buf, size);
+		}
+		return SLIB_IO_ERROR;
 	}
 
 	sl_int32 Pipe::read32(void* buf, sl_uint32 size) const noexcept
 	{
 		if (isOpened()) {
-			if (!size) {
-				return 0;
-			}
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-			DWORD ret = 0;
-			if (ReadFile(m_handle.hRead, buf, (DWORD)size, &ret, NULL)) {
-				return (sl_int32)ret;
-			}
-#else
-			ssize_t n = ::read(m_handle.hRead, buf, size);
-			if (n >= 0) {
-				if (n > 0) {
-					return (sl_int32)n;
-				}
-			} else {
-				int err = errno;
-				if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
-					return 0;
-				}
-			}
-#endif
+			return (HandlePtr<File>(m_handle.hRead))->read32(buf, size);
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_reg Pipe::write(const void* buf, sl_size size) const noexcept
 	{
-		return WriterHelper::writeWithWrite32(this, buf, size);
+		if (isOpened()) {
+			return (HandlePtr<File>(m_handle.hWrite))->write(buf, size);
+		}
+		return SLIB_IO_ERROR;
 	}
 
 	sl_int32 Pipe::write32(const void* buf, sl_uint32 size) const noexcept
 	{
 		if (isOpened()) {
-			if (size == 0) {
-				return 0;
-			}
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-			DWORD ret = 0;
-			if (WriteFile(m_handle.hWrite, (LPVOID)buf, (DWORD)size, &ret, NULL)) {
-				return (sl_int32)ret;
-			}
-#else
-			ssize_t n = ::write(m_handle.hWrite, buf, size);
-			if (n >= 0) {
-				if (n > 0) {
-					return (sl_int32)n;
-				}
-			} else {
-				int err = errno;
-				if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
-					return 0;
-				}
-			}
-#endif
+			return (HandlePtr<File>(m_handle.hWrite))->write32(buf, size);
 		}
-		return -1;
+		return SLIB_IO_ERROR;
 	}
 
 	void Pipe::close() noexcept
