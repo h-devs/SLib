@@ -330,7 +330,7 @@ namespace slib
 							UIEdgeInsets insets;
 							if (getClientInsets(insets)) {
 								width -= insets.left + insets.right;
-								height -= insets.top + insets.bottom;
+								height -= insets.top + insets.bottom - _getMenuHeight();
 							}
 							if (m_flagResizable) {
 								gtk_window_resize(window, (gint)width, (gint)height);

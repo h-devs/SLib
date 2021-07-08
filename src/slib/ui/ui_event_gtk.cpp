@@ -28,6 +28,7 @@
 
 #include "slib/ui/core.h"
 #include "slib/ui/platform.h"
+#include "slib/core/event.h"
 #include "slib/core/hash_table.h"
 #include "slib/core/safe_static.h"
 
@@ -40,6 +41,29 @@ namespace slib
 	{
 		namespace ui_event
 		{
+
+			class StaticContext
+			{
+			public:
+				Ref<Event> eventCapslock;
+				sl_bool flagCapslockOn;
+
+				Ref<Event> eventCursorPos;
+				UIPoint cursorPos;
+
+			public:
+				StaticContext()
+				{
+					eventCapslock = Event::create();
+					flagCapslockOn = sl_false;
+
+					eventCursorPos = Event::create();
+					cursorPos = UIPoint::zero();
+				}
+
+			};
+
+			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
 
 			class KeyMapper
 			{
@@ -247,23 +271,53 @@ namespace slib
 
 	sl_bool UI::checkCapsLockOn()
 	{
-		GdkKeymap* keymap = gdk_keymap_get_default();
-		if (keymap) {
-			return gdk_keymap_get_caps_lock_state(keymap);
+		if (UI::isUiThread()) {
+			GdkKeymap* keymap = gdk_keymap_get_default();
+			if (keymap) {
+				return gdk_keymap_get_caps_lock_state(keymap);
+			}
+			return sl_false;
 		}
-		return sl_false;
+		StaticContext* context = GetStaticContext();
+		if (!context) {
+			return sl_false;
+		}
+		if (context->eventCapslock.isNull()) {
+			return sl_false;
+		}
+		UI::dispatchToUiThreadUrgently([context]() {
+			context->flagCapslockOn = UI::checkCapsLockOn();
+			context->eventCapslock->set();
+		});
+		context->eventCapslock->wait(100);
+		return context->flagCapslockOn;
 	}
 
 	UIPoint UI::getCursorPos()
 	{
-		GdkDisplay* display = gdk_display_get_default();
-		if (display) {
-			gint x = 0;
-			gint y = 0;
-			gdk_display_get_pointer(display, sl_null, &x, &y, sl_null);
-			return UIPoint(x, y);
+		if (UI::isUiThread()) {
+			GdkDisplay* display = gdk_display_get_default();
+			if (display) {
+				gint x = 0;
+				gint y = 0;
+				gdk_display_get_pointer(display, sl_null, &x, &y, sl_null);
+				return UIPoint(x, y);
+			}
+			return UIPoint::zero();
 		}
-		return UIPoint::zero();
+		StaticContext* context = GetStaticContext();
+		if (!context) {
+			return UIPoint::zero();
+		}
+		if (context->eventCursorPos.isNull()) {
+			return UIPoint::zero();
+		}
+		UI::dispatchToUiThreadUrgently([context]() {
+			context->cursorPos = UI::getCursorPos();
+			context->eventCursorPos->set();
+		});
+		context->eventCursorPos->wait(100);
+		return context->cursorPos;
 	}
 	
 	void UIPlatform::applyEventModifiers(UIEvent* event, guint state)

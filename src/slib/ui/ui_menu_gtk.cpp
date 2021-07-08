@@ -107,6 +107,11 @@ namespace slib
 					if (m_accelKey) {
 						gtk_widget_remove_accelerator((GtkWidget*)m_handle, m_accelGroup, (guint)m_accelKey, (GdkModifierType)m_accelMods);
 					}
+					if (km.getKeycode() == Keycode::Unknown) {
+						m_accelKey = 0;
+						m_accelMods = 0;
+						return;
+					}
 					m_accelKey = UIEvent::getSystemKeycode(km.getKeycode());
 					sl_uint32 mods = 0;
 					if (km.isShiftKey()) {
@@ -122,7 +127,7 @@ namespace slib
 						mods |= GDK_MOD4_MASK;
 					}
 					m_accelMods = mods;
-					gtk_widget_add_accelerator((GtkWidget*)m_handle, "accel", m_accelGroup, (guint)m_accelKey, (GdkModifierType)mods, GTK_ACCEL_VISIBLE);
+					gtk_widget_add_accelerator((GtkWidget*)m_handle, "activate", m_accelGroup, (guint)m_accelKey, (GdkModifierType)mods, GTK_ACCEL_VISIBLE);
 				}
 
 				void setSecondShortcutKey(const KeycodeAndModifiers& km) override
