@@ -285,14 +285,15 @@ namespace slib
 			extern void* const g_shared_null;
 
 			template <class T>
-			class SharedContainer : public T
+			class SharedContainer
 			{
 			public:
+				T value;
 				sl_reg refCount;
 
 			public:
 				template <class... ARGS>
-				SharedContainer(ARGS&&... args) noexcept: T(Forward<ARGS>(args)...), refCount(1) {}
+				SharedContainer(ARGS&&... args) noexcept: value(Forward<ARGS>(args)...), refCount(1) {}
 
 			public:
 				sl_reg increaseReference() noexcept
@@ -311,7 +312,7 @@ namespace slib
 
 			};
 
-			template <class T, sl_bool CanBeBool = SLIB_IS_CONVERTIBLE(T, sl_bool)>
+			template <class T, sl_bool CanBeBool = __is_class(T) && SLIB_IS_CONVERTIBLE(T, sl_bool)>
 			class SharedContainerHelper;
 
 			template <class T>
@@ -324,7 +325,7 @@ namespace slib
 					if (value) {
 						return new SharedContainer<T>(Forward<VALUE>(value));
 					} else {
-						return sl_false;
+						return sl_null;
 					}
 				}
 			};
@@ -454,7 +455,7 @@ namespace slib
 
 		constexpr T* get() const&
 		{
-			return container;
+			return &(container->value);
 		}
 
 	public:
