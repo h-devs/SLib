@@ -134,9 +134,9 @@ namespace slib
 
 		sl_bool isUniqueInstanceRunning();
 
-		virtual String getUniqueInstanceId();
+		virtual String getApplicationId();
 
-		void setUniqueInstanceId(const StringParam& _id);
+		void setApplicationId(const StringParam& _id);
 
 		virtual sl_bool isCrashRecoverySupport();
 
@@ -229,7 +229,7 @@ namespace slib
 		String m_commandLine;
 		List<String> m_arguments;
 
-		AtomicString m_uniqueInstanceId;
+		AtomicString m_applicationId;
 		NamedInstance m_uniqueInstance;
 
 		sl_bool m_flagCrashRecoverySupport;
