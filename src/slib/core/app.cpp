@@ -277,7 +277,7 @@ Microsoft Specific
 	sl_int32 Application::doRun()
 	{
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-		String instanceId = getUniqueInstanceId();
+		String instanceId = getApplicationId();
 		if (instanceId.isNotEmpty()) {
 			m_uniqueInstance = NamedInstance(instanceId);
 			if (m_uniqueInstance.isNone()) {
@@ -312,14 +312,14 @@ Microsoft Specific
 
 	sl_int32 Application::onExistingInstance()
 	{
-		LogError("APP", "%s is ALREADY RUNNING", getUniqueInstanceId());
+		LogError("APP", "%s is ALREADY RUNNING", getApplicationId());
 		return -1;
 	}
 
 	sl_bool Application::isUniqueInstanceRunning()
 	{
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-		String instanceId = getUniqueInstanceId();
+		String instanceId = getApplicationId();
 		if (instanceId.isNotEmpty()) {
 			return NamedInstance::exists(instanceId);
 		}
@@ -327,14 +327,14 @@ Microsoft Specific
 		return sl_false;
 	}
 
-	String Application::getUniqueInstanceId()
+	String Application::getApplicationId()
 	{
-		return m_uniqueInstanceId;
+		return m_applicationId;
 	}
 
-	void Application::setUniqueInstanceId(const StringParam& _id)
+	void Application::setApplicationId(const StringParam& _id)
 	{
-		m_uniqueInstanceId = _id.toString();
+		m_applicationId = _id.toString();
 	}
 
 	sl_bool Application::isCrashRecoverySupport()

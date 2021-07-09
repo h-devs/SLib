@@ -417,7 +417,7 @@ namespace slib
 
 	sl_int32 UIApp::onExistingInstance()
 	{
-		String uid = getUniqueInstanceId();
+		String uid = getApplicationId();
 		if (uid.isEmpty()) {
 			return -1;
 		}

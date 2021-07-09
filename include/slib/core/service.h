@@ -43,7 +43,7 @@ namespace slib
 		AppType getAppType() override;
 
 	protected:
-		virtual String getServiceName() = 0;
+		virtual String getServiceId() = 0;
 
 		virtual sl_bool onStartService() = 0;
 
@@ -53,7 +53,7 @@ namespace slib
 	
 		sl_int32 onRunApp() override;
 
-		String getUniqueInstanceId() override;
+		String getApplicationId() override;
 
 	protected:
 		virtual sl_bool dispatchStartService();

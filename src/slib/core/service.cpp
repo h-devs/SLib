@@ -111,7 +111,7 @@ namespace slib
 
 	sl_bool Service::startService()
 	{
-		String appName = getServiceName();
+		String appName = getServiceId();
 		if (appName.isEmpty()) {
 			LogError(TAG, "SERVICE NAME IS EMPTY");
 			return sl_false;
@@ -148,7 +148,7 @@ namespace slib
 
 	sl_bool Service::stopService()
 	{
-		String appName = getServiceName();
+		String appName = getServiceId();
 
 		if (!(isUniqueInstanceRunning())) {
 			LogError(TAG, "%s IS NOT RUNNING", appName);
@@ -173,7 +173,7 @@ namespace slib
 
 	void Service::statusService()
 	{
-		String appName = getServiceName();
+		String appName = getServiceId();
 		if (isUniqueInstanceRunning()) {
 			Log(TAG, "%s IS RUNNING", appName);
 		} else {
@@ -205,7 +205,7 @@ namespace slib
 #else
 		List<String> arguments = getArguments();
 		if (arguments.contains("service")) {
-			String name = getServiceName();
+			String name = getServiceId();
 			if (name.isEmpty()) {
 				LogError(TAG, "SERVICE NAME IS EMPTY");
 				return -1;
@@ -379,7 +379,7 @@ namespace slib
 		sigaction(SIGTERM, &sa, sl_null);
 #endif
 		
-		String appName = getServiceName();
+		String appName = getServiceId();
 
 		if (!(dispatchStartService())) {
 			dispatchStopService();
@@ -403,9 +403,9 @@ namespace slib
 
 	}
 	
-	String Service::getUniqueInstanceId()
+	String Service::getApplicationId()
 	{
-		return getServiceName();
+		return getServiceId();
 	}
 
 #if !defined(SLIB_PLATFORM_IS_WIN32)

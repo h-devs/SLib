@@ -60,6 +60,8 @@ namespace slib
 		
 #ifdef SLIB_PLATFORM_IS_APPLE
 		static String getMainBundlePath();
+		
+		static String getMainBundleInfo(const StringParam& key);
 #endif
 		
 #ifdef SLIB_PLATFORM_IS_WIN32
