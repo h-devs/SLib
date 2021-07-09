@@ -69,7 +69,7 @@ namespace slib
 		if (!cursor) {
 			return nil;
 		}
-		NativeCursorImpl* c = (NativeCursorImpl*)(cursor.get());
+		NativeCursorImpl* c = (NativeCursorImpl*)(cursor);
 		return c->m_cursor;
 	}
 
