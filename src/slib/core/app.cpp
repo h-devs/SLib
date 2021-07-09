@@ -518,11 +518,11 @@ Microsoft Specific
 #if defined(SLIB_PLATFORM_IS_WIN32)
 	void Application::registerAtStartMenu(const StartMenuParam& param)
 	{
-		StringParam executablePath = parma.executablePath;
+		StringParam executablePath = param.executablePath;
 		if (executablePath.isNull()) {
 			executablePath = Application::getApplicationPath();
 		}
-		File::createLink(executablePath, String::join(System::getProgramsDirectory(), "/", param.appName, ".lnk");
+		File::createLink(executablePath, String::join(System::getProgramsDirectory(), "/", param.appName, ".lnk"));
 	}
 #elif defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 	void Application::registerAtStartMenu(const StartMenuParam& param)
