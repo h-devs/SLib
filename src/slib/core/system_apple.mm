@@ -146,6 +146,13 @@ namespace slib
 		return Apple::getStringFromNSString(path);
 	}
 
+	String System::getMainBundleInfo(const StringParam& key)
+	{
+		NSDictionary* dict = [[NSBundle mainBundle] infoDictionary];
+		NSString* info = [dict objectForKey:Apple::getNSStringFromString(key)];
+		return Apple::getStringFromNSString(info);
+	}
+
 	String System::getSystemName()
 	{
 #if defined(SLIB_PLATFORM_IS_MACOS)
