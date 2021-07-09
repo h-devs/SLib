@@ -185,8 +185,10 @@ namespace slib
 		
 		static void quitLoop();
 		
+		static void initApp();
+
 		static void runApp();
-		
+
 		static void quitApp();
 
 		static sl_bool isRunningApp();

@@ -322,9 +322,13 @@ namespace slib
 		JUiThread::quitLoop.call(sl_null);
 	}
 
-	void UIPlatform::runApp()
+	void UIPlatform::initApp()
 	{
 		g_app = UIApp::getApp();
+	}
+
+	void UIPlatform::runApp()
+	{
 	}
 
 	void UIPlatform::quitApp()

@@ -103,6 +103,7 @@ namespace slib
 				}
 			};
 			
+			static sl_bool g_flagInitializedApp = sl_false;
 			static sl_bool g_flagRunningApp = sl_false;
 			static sl_int32 g_nLevelRunLoop = 0;
 			static sl_bool g_flagQuitApp = sl_false;
@@ -630,8 +631,18 @@ namespace slib
 		}
 	}
 
+	void UI::initApp()
+	{
+		if (g_flagInitializedApp) {
+			return;
+		}
+		UIPlatform::initApp();
+		g_flagInitializedApp = sl_true;
+	}
+
 	void UI::runApp()
 	{
+		initApp();
 		if (g_flagQuitApp) {
 			return;
 		}

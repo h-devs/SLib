@@ -39,6 +39,7 @@ namespace slib
 	public: \
 		static void runLoop(sl_uint32 level); \
 		static void quitLoop(); \
+		static void initApp(); \
 		static void runApp(); \
 		static void quitApp(); \
 	private: \

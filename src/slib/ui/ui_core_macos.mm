@@ -334,7 +334,7 @@ namespace slib
 		[NSApp postEvent:ev atStart:YES];
 	}
 
-	void UIPlatform::runApp()
+	void UIPlatform::initApp()
 	{
 		[NSApplication sharedApplication];
 		
@@ -383,7 +383,10 @@ namespace slib
 			}
 			return event;
 		}];
-		
+	}
+
+	void UIPlatform::runApp()
+	{
 		Function<void()> customMessageLoop = GetCustomMessageLoop();
 		if (customMessageLoop.isNotNull()) {
 			customMessageLoop();

@@ -235,30 +235,31 @@ namespace slib
 		ecore_main_loop_thread_safe_call_async(QuitCallback, sl_null);
 	}
 
-	void UIPlatform::runApp()
+	void UIPlatform::initApp()
 	{
 		g_threadMain = ::pthread_self();
+	}
 
-		Ref<Application> app = Application::getApp();
-		if (app.isNull()) {
-			return;
-		}
-
-		ListLocker<String> args(app->getArguments());
-		sl_uint32 n = (sl_uint32)(args.count);
-		SLIB_SCOPED_BUFFER(char*, 64, p, n)
-		for (sl_uint32 i = 0; i < n; i++) {
-			p[i] = args[i].getData();
-		}
-
+	void UIPlatform::runApp()
+	{
 		ui_app_lifecycle_callback_s event_callback = {0,};
 		event_callback.create = CreateCallback;
 		event_callback.resume = ResumeCallback;
 		event_callback.pause = PauseCallback;
 		event_callback.terminate = TerminateCallback;
 
-		ui_app_main(n, p, &event_callback, sl_null);
-
+		Ref<Application> app = Application::getApp();
+		if (app.isNotNull()) {
+			ListLocker<String> args(app->getArguments());
+			sl_uint32 n = (sl_uint32)(args.count);
+			SLIB_SCOPED_BUFFER(char*, 64, p, n)
+			for (sl_uint32 i = 0; i < n; i++) {
+				p[i] = args[i].getData();
+			}
+			ui_app_main(n, p, &event_callback, sl_null);
+		} else {
+			ui_app_main(0, sl_null, &event_callback, sl_null);
+		}
 	}
 
 	void UIPlatform::quitApp()

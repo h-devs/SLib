@@ -75,12 +75,11 @@ namespace slib
 		static void setBadgeNumber(sl_uint32 number);
 
 	protected:
+		void onInitApp() override;
+
 		sl_int32 onRunApp() override;
 		
 		sl_int32 onExistingInstance() override;
-		
-	protected:
-		void processUniqueInstanceApp(const String& uniqueId, sl_bool flagRun);
 		
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(UIApp, Start)

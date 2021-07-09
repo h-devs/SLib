@@ -470,8 +470,8 @@ namespace slib
 		PostGlobalMessage(SLIB_UI_MESSAGE_QUIT_LOOP, 0, 0);
 	}
 
-	void UIPlatform::runApp()
-	{
+	void UIPlatform::initApp()
+	{		
 		GraphicsPlatform::startGdiplus();
 
 		OleInitialize(NULL);
@@ -481,15 +481,14 @@ namespace slib
 		InitCommonControlsEx(&icex);
 
 		Win32_UI_Shared::initialize();
+	}
 
+	void UIPlatform::runApp()
+	{
 		UIDispatcher::processCallbacks();
-
 		UIApp::dispatchStartToApp();
-
 		RunLoop(NULL);
-
 		UIApp::dispatchExitToApp();
-
 	}
 
 	void UIPlatform::quitApp()

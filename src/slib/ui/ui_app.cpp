@@ -126,6 +126,11 @@ namespace slib
 	}
 #endif
 
+	void UIApp::onInitApp()
+	{
+		UI::initApp();
+	}
+
 	sl_int32 UIApp::onRunApp()
 	{
 		UI::runApp();

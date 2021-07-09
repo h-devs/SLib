@@ -281,7 +281,12 @@ Microsoft Specific
 	{
 		Application::setApp(this);
 		m_executablePath = Application::getApplicationPath();
+		onInitApp();
 		m_flagInitialized = sl_true;
+	}
+
+	void Application::onInitApp()
+	{
 	}
 
 	sl_int32 Application::doRun()

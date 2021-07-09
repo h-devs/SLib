@@ -162,6 +162,8 @@ namespace slib
 		// returns exit code
 		virtual sl_int32 doRun();
 	
+		virtual void onInitApp();
+
 		// returns exit code
 		virtual sl_int32 onRunApp() = 0;
 

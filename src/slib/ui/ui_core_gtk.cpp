@@ -90,7 +90,7 @@ namespace slib
 				gtk_main_do_event(event);
 			}
 
-			static void OnActiveApp(GtkApplication* app, gpointer user_data)
+			static void OnActivateApp(GtkApplication* app, gpointer user_data)
 			{
 				g_application_hold((GApplication*)app);
 				UIApp::dispatchStartToApp();
@@ -258,22 +258,26 @@ namespace slib
 		gtk_main_quit();
 	}
 
-	void UIPlatform::runApp()
+	void UIPlatform::initApp()
 	{
 		g_threadMain = pthread_self();
+		UIPlatform::initializeGtk();
+		getApp();
+	}
 
+	void UIPlatform::runApp()
+	{
 		GtkApplication* app = getApp();
 		if (app) {
 			if (!(UI::isQuitingApp())) {
 				g_flagRunningAppLoop = sl_true;
-				g_signal_connect(app, "activate", G_CALLBACK(OnActiveApp), sl_null);
+				g_signal_connect(app, "activate", G_CALLBACK(OnActivateApp), sl_null);
 				gio::getApi_g_application_run()((GApplication*)app, 0, sl_null);
 				g_flagRunningAppLoop = sl_false;
 				g_app = sl_null;
 				g_object_unref(app);
 			}
 		} else {
-			UIPlatform::initializeGtk();
 			UIApp::dispatchStartToApp();
 			if (!(UI::isQuitingApp())) {
 				g_flagRunningAppLoop = sl_true;

@@ -228,6 +228,10 @@ namespace slib
 		CFRunLoopStop(CFRunLoopGetCurrent());
 	}
 	
+	void UIPlatform::initApp()
+	{
+	}
+	
 	void UIPlatform::runApp()
 	{
 		char* args[] = {sl_null};
