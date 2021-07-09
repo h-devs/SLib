@@ -43,6 +43,7 @@ namespace slib
 #define SLIB_WINDOWS_MAJOR_VERSION(v) ((((int)v) >> 16) & 255)
 #define SLIB_WINDOWS_MINOR_VERSION(v) ((((int)v) >> 8) & 255)
 #define SLIB_WINDOWS_SERVICE_PACK(v) (((int)v) & 255)
+#define SLIB_WINDOWS_IS_SERVER(v) ((((int)v) >> 24) == 1)
 
 
 	enum class WindowsVersion
@@ -126,6 +127,8 @@ namespace slib
 	
 		static void setApplicationRunAtStartup(const StringParam& name, const StringParam& path, sl_bool flagRegister);
 
+
+		static sl_bool isWindowsServer();
 
 		static WindowsVersion getVersion();
 

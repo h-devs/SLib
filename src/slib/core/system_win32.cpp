@@ -27,6 +27,7 @@
 #include "slib/core/system.h"
 
 #include "slib/core/file.h"
+#include "slib/core/unique_ptr.h"
 #include "slib/core/win32/platform.h"
 #include "slib/core/dl/win32/kernel32.h"
 #include "slib/core/dl/win32/wininet.h"
@@ -112,6 +113,74 @@ namespace slib
 			static int DebugAllocHook(int allocType, void* userData, size_t size, int blockType, long requestNumber, const unsigned char* filename, int lineNumber)
 			{
 				return g_debugAllocHook(userData, (sl_size)size, (sl_uint32)requestNumber);
+			}
+
+			static BOOL GetVersionInfo(const StringParam& _filePath, sl_uint64* pFileVersion, sl_uint64* pProductVersion)
+			{
+				DWORD  verHandle = 0;
+				UINT   size = 0;
+				LPBYTE lpBuffer = NULL;
+				StringCstr16 filePath(_filePath);
+				DWORD  verSize = GetFileVersionInfoSizeW((LPCWSTR)(filePath.getData()), &verHandle);
+
+				if (verSize != NULL) {
+					UniquePtr<char[]> verData = new char[verSize];
+					if (GetFileVersionInfoW((LPCWSTR)(filePath.getData()), verHandle, verSize, verData)) {
+						if (VerQueryValueW(verData, L"\\", (LPVOID*)&lpBuffer, &size)) {
+							if (size) {
+								VS_FIXEDFILEINFO *verInfo = (VS_FIXEDFILEINFO *)lpBuffer;
+								if (verInfo->dwSignature == 0xfeef04bd) {
+									if (pFileVersion) {
+										*pFileVersion = SLIB_MAKE_QWORD4(verInfo->dwFileVersionMS, verInfo->dwFileVersionLS);
+									}
+									if (pProductVersion) {
+										*pProductVersion = SLIB_MAKE_QWORD4(verInfo->dwProductVersionMS, verInfo->dwProductVersionLS);
+									}
+									return TRUE;
+								}
+							}
+						}
+					}
+				}
+
+				return FALSE;
+			}
+
+			static String GetVersionInfo(const StringParam& _filePath, const StringParam& _verEntry)
+			{
+				DWORD  verHandle = 0;
+				UINT   size = 0;
+				LPBYTE lpBuffer = NULL;
+				StringCstr16 filePath(_filePath);
+				StringCstr16 verEntry(_verEntry);
+				DWORD  verSize = GetFileVersionInfoSizeW((LPCWSTR)(filePath.getData()), &verHandle);
+
+				struct LANGANDCODEPAGE {
+					WORD wLanguage;
+					WORD wCodePage;
+				} *lpTranslate;
+
+				if (verSize != NULL) {
+					UniquePtr<char[]> verData = new char[verSize];
+					if (GetFileVersionInfoW((LPCWSTR)(filePath.getData()), verHandle, verSize, verData)) {
+						if (VerQueryValueW(verData, L"\\VarFileInfo\\Translation", (LPVOID*)&lpTranslate, &size)) {
+							if (size) {
+								StringCstr16 subBlock = String16::join(
+									L"\\StringFileInfo\\",
+									String16::fromUint32((*lpTranslate).wLanguage, 16, 4),
+									String16::fromUint32((*lpTranslate).wCodePage, 16, 4),
+									L"\\", verEntry);
+								if (VerQueryValueW(verData, (LPCWSTR)(subBlock.getData()), (LPVOID*)&lpBuffer, &size)) {
+									if (size) {
+										return String::from((WCHAR*)(lpBuffer), Base::getStringLength2((sl_char16*)lpBuffer, size));
+									}
+								}
+							}
+						}
+					}
+				}
+
+				return sl_null;
 			}
 
 #endif
@@ -252,20 +321,38 @@ namespace slib
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		WindowsVersion version = Win32::getVersion();
+		if ((SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Server2012) ||
+			(!SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Windows8)) {
+			String kernelVersion = getProductVersion(System::getSystemDirectory() + "/kernel32.dll");
+			if (kernelVersion.isNotEmpty()) {
+				return kernelVersion;
+			}
+		}
 		return String::join(String::fromUint32(SLIB_WINDOWS_MAJOR_VERSION(version)), ".", String::fromUint32(SLIB_WINDOWS_MINOR_VERSION(version)));
 #else
 		return "UWP";
 #endif
 	}
 	
-	/*
-		Applications not manifested for Windows 8.1 or Windows 10 will return the Windows 8 OS version value (6.2).
-		For more information, visit at https://docs.microsoft.com/en-us/windows/desktop/SysInfo/targeting-your-application-at-windows-8-1
-	*/
 	String System::getSystemName()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		WindowsVersion version = Win32::getVersion();
+		if ((SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Server2012) ||
+			(!SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Windows8)) {
+			/*
+				Applications not manifested for Windows 8.1 or Windows 10 will return the Windows 8 OS version value (6.2).
+				For more information, visit at https://docs.microsoft.com/en-us/windows/desktop/SysInfo/targeting-your-application-at-windows-8-1
+			*/
+			sl_uint64 productVersion = 0;
+			if (getFileVersionInfo(System::getSystemDirectory() + "/kernel32.dll", sl_null, &productVersion)) {
+				if (SLIB_WINDOWS_IS_SERVER(version)) {
+					version = (WindowsVersion)(PRIV_SLIB_SERVER_VERSION_CODE(SLIB_GET_WORD3(productVersion), SLIB_GET_WORD2(productVersion), 0));
+				} else {
+					version = (WindowsVersion)(PRIV_SLIB_WORKSTATION_VERSION_CODE(SLIB_GET_WORD3(productVersion), SLIB_GET_WORD2(productVersion), 0));
+				}
+			}
+		}
 		switch (version) {
 		case WindowsVersion::Server2016:
 			return "Windows Server 2016";
@@ -315,13 +402,64 @@ namespace slib
 	sl_uint32 System::getMajorVersion()
 	{
 		WindowsVersion version = Win32::getVersion();
+		if ((SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Server2012) ||
+			(!SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Windows8)) {
+			sl_uint64 productVersion = 0;
+			if (getFileVersionInfo(System::getSystemDirectory() + "/kernel32.dll", sl_null, &productVersion)) {
+				return SLIB_GET_WORD3(productVersion);
+			}
+		}
 		return SLIB_WINDOWS_MAJOR_VERSION(version);
 	}
 
 	sl_uint32 System::getMinorVersion()
 	{
 		WindowsVersion version = Win32::getVersion();
+		if ((SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Server2012) ||
+			(!SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Windows8)) {
+			sl_uint64 productVersion = 0;
+			if (getFileVersionInfo(System::getSystemDirectory() + "/kernel32.dll", sl_null, &productVersion)) {
+				return SLIB_GET_WORD2(productVersion);
+			}
+		}
 		return SLIB_WINDOWS_MINOR_VERSION(version);
+	}
+
+	sl_bool System::getFileVersionInfo(const StringParam& filePath, sl_uint64* pFileVersion, sl_uint64* pProductVersion)
+	{
+		return GetVersionInfo(filePath, pFileVersion, pProductVersion);
+	}
+
+	String System::getFileVersion(const StringParam& filePath)
+	{
+		String version = GetVersionInfo(filePath, "FileVersion");
+		if (version.isEmpty()) {
+			sl_uint64 fileVersion = 0;
+			if (GetVersionInfo(filePath, &fileVersion, sl_null)) {
+				version = String::join(
+					String::fromUint32(SLIB_GET_WORD3(fileVersion)), ".",
+					String::fromUint32(SLIB_GET_WORD2(fileVersion)), ".",
+					String::fromUint32(SLIB_GET_WORD1(fileVersion)), ".",
+					String::fromUint32(SLIB_GET_WORD0(fileVersion)));
+			}
+		}
+		return version;
+	}
+
+	String System::getProductVersion(const StringParam& filePath)
+	{
+		String version = GetVersionInfo(filePath, "ProductVersion");
+		if (version.isEmpty()) {
+			sl_uint64 productVersion = 0;
+			if (GetVersionInfo(filePath, sl_null, &productVersion)) {
+				version = String::join(
+					String::fromUint32(SLIB_GET_WORD3(productVersion)), ".",
+					String::fromUint32(SLIB_GET_WORD2(productVersion)), ".",
+					String::fromUint32(SLIB_GET_WORD1(productVersion)), ".",
+					String::fromUint32(SLIB_GET_WORD0(productVersion)));
+			}
+		}
+		return version;
 	}
 #endif
 

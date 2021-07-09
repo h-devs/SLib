@@ -85,6 +85,14 @@ namespace slib
 		static sl_uint32 getMinorVersion();
 #endif
 
+#ifdef SLIB_PLATFORM_IS_WIN32
+		static sl_bool getFileVersionInfo(const StringParam& filePath, sl_uint64* pFileVersion, sl_uint64* pProductVersion = sl_null);
+
+		static String getFileVersion(const StringParam& filePath);
+
+		static String getProductVersion(const StringParam& filePath);
+#endif
+
 		static String getMachineName();
 
 		static String getComputerName();

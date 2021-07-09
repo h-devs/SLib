@@ -167,6 +167,11 @@ namespace slib
 		return handle;
 	}
 
+	sl_bool Win32::isWindowsServer()
+	{
+		return IsWindowsServer();
+	}
+
 	WindowsVersion Win32::getVersion()
 	{
 		return GetWindowsVersion();
