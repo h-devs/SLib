@@ -90,6 +90,22 @@ namespace slib
 		Assistant = 7
 	};
 
+	class SLIB_EXPORT StartMenuParam
+	{
+	public:
+		StringParam appId; // [Linux] Uses `Application::getApp()->getApplicationId()` by default
+		StringParam appName; // Non-empty. Application's display name
+		StringParam executablePath; // Uses `Application::getApplicationPath()` by default
+		StringParam iconPath; // [Linux] Path to PNG file
+		StringParam categories; // [Linux] eg, "Development;Utility;"
+
+	public:
+		StartMenuParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StartMenuParam)
+
+	};
+
 	class SLIB_EXPORT Application : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -101,6 +117,10 @@ namespace slib
 
 	public:
 		virtual AppType getAppType() = 0;
+
+		virtual String getApplicationId();
+
+		void setApplicationId(const StringParam& _id);
 
 		String getExecutablePath();
 	
@@ -133,10 +153,6 @@ namespace slib
 		void dispatchQuitApp();
 
 		sl_bool isUniqueInstanceRunning();
-
-		virtual String getApplicationId();
-
-		void setApplicationId(const StringParam& _id);
 
 		virtual sl_bool isCrashRecoverySupport();
 
@@ -218,7 +234,9 @@ namespace slib
 		static void unregisterRunAtStartup(const StringParam& path);
 
 		static void unregisterRunAtStartup();
-	
+
+		static void registerAtStartMenu(const StartMenuParam& param);
+
 	protected:
 		void _initApp();
 

@@ -203,6 +203,16 @@ Microsoft Specific
 		g_weakref_app = app;
 	}
 
+	String Application::getApplicationId()
+	{
+		return m_applicationId;
+	}
+
+	void Application::setApplicationId(const StringParam& _id)
+	{
+		m_applicationId = _id.toString();
+	}
+
 	String Application::getExecutablePath()
 	{
 		return m_executablePath;
@@ -325,16 +335,6 @@ Microsoft Specific
 		}
 #endif
 		return sl_false;
-	}
-
-	String Application::getApplicationId()
-	{
-		return m_applicationId;
-	}
-
-	void Application::setApplicationId(const StringParam& _id)
-	{
-		m_applicationId = _id.toString();
 	}
 
 	sl_bool Application::isCrashRecoverySupport()
@@ -508,7 +508,57 @@ Microsoft Specific
 	{
 	}
 #endif
-	
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(StartMenuParam)
+
+	StartMenuParam::StartMenuParam()
+	{
+	}
+
+#if defined(SLIB_PLATFORM_IS_WIN32)
+	void Application::registerAtStartMenu(const StartMenuParam& param)
+	{
+		StringParam executablePath = parma.executablePath;
+		if (executablePath.isNull()) {
+			executablePath = Application::getApplicationPath();
+		}
+		File::createLink(executablePath, String::join(System::getProgramsDirectory(), "/", param.appName, ".lnk");
+	}
+#elif defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+	void Application::registerAtStartMenu(const StartMenuParam& param)
+	{
+		StringParam appId = param.appId;
+		if (appId.isEmpty()) {
+			Ref<Application> app = getApp();
+			if (app.isNotNull()) {
+				appId = app->getApplicationId();
+			}
+			if (appId.isNull()) {
+				return;
+			}
+		}
+		String pathDesktopFile = String::join(System::getHomeDirectory(), "/.local/share/applications/", appId, ".desktop");
+		StringBuffer sb;
+		sb.addStatic("[Desktop Entry]\nName=");
+		sb.add(param.appName.toString());
+		sb.addStatic("\nExec=");
+		if (param.executablePath.isNotNull()) {
+			sb.add(param.executablePath.toString());
+		} else {
+			sb.add(getApplicationPath());
+		}
+		sb.addStatic("\nIcon=");
+		sb.add(param.iconPath.toString());
+		sb.addStatic("\nType=Application\nCategories=");
+		sb.add(param.categories.toString());
+		File::writeAllTextUTF8(pathDesktopFile, sb.merge());
+	}
+#else
+	void Application::registerAtStartMenu(const StartMenuParam& param)
+	{
+	}
+#endif
+
 
 	List<String> CommandLine::parse(const StringParam& commandLine)
 	{

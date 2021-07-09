@@ -305,7 +305,7 @@ namespace slib
 				StringCstr id;
 				Ref<UIApp> app = UIApp::getApp();
 				if (app.isNotNull()) {
-					id = app->getUniqueInstanceId();
+					id = app->getApplicationId();
 				}
 				if (gtk::getApi_gtk_get_minor_version()() < 6) {
 					if (id.isEmpty()) {
