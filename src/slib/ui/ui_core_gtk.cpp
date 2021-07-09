@@ -90,13 +90,6 @@ namespace slib
 				gtk_main_do_event(event);
 			}
 
-			static void OnActivateApp(GtkApplication* app, gpointer user_data)
-			{
-				g_application_hold((GApplication*)app);
-				UIApp::dispatchStartToApp();
-				gdk_event_handler_set(EventHandler, sl_null, sl_null);
-			}
-
 			static void OnPixbufDestroyNotify(guchar* pixels, gpointer data)
 			{
 				Image* image = (Image*)data;
@@ -262,41 +255,37 @@ namespace slib
 	{
 		g_threadMain = pthread_self();
 		UIPlatform::initializeGtk();
-		getApp();
+		GtkApplication* app = getApp();
+		if (app) {
+			auto funcRegister = gio::getApi_g_application_register();
+			if (funcRegister) {
+				funcRegister((GApplication*)app, sl_null, sl_null);
+			}
+		}
+		gdk_event_handler_set(EventHandler, sl_null, sl_null);
 	}
 
 	void UIPlatform::runApp()
 	{
+		UIApp::dispatchStartToApp();
 		GtkApplication* app = getApp();
-		if (app) {
-			if (!(UI::isQuitingApp())) {
-				g_flagRunningAppLoop = sl_true;
-				g_signal_connect(app, "activate", G_CALLBACK(OnActivateApp), sl_null);
-				gio::getApi_g_application_run()((GApplication*)app, 0, sl_null);
-				g_flagRunningAppLoop = sl_false;
-				g_app = sl_null;
-				g_object_unref(app);
-			}
-		} else {
-			UIApp::dispatchStartToApp();
-			if (!(UI::isQuitingApp())) {
-				g_flagRunningAppLoop = sl_true;
-				gdk_event_handler_set(EventHandler, sl_null, sl_null);
-				gtk_main();
-				g_flagRunningAppLoop = sl_false;
-			}
+		if (!(UI::isQuitingApp())) {
+			g_flagRunningAppLoop = sl_true;
+			gdk_event_handler_set(EventHandler, sl_null, sl_null);
+			gtk_main();
+			g_flagRunningAppLoop = sl_false;
 		}
 		UIApp::dispatchExitToApp();
+		if (app) {
+			g_object_unref(app);
+		}
+		g_app = sl_null;
 	}
 
 	void UIPlatform::quitApp()
 	{
 		if (g_flagRunningAppLoop) {
-			if (g_app) {
-				g_application_release((GApplication*)g_app);
-			} else {
-				gtk_main_quit();
-			}
+			gtk_main_quit();
 		}
 	}
 

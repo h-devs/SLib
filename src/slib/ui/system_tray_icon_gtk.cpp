@@ -65,11 +65,6 @@ namespace slib
 			public:
 				static Ref<SystemTrayIconImpl> create(const SystemTrayIconParam& param)
 				{
-					UserNotificationMessage msg;
-					msg.title = "Test";
-					msg.content = "Hello";
-					msg.identifier = "system_tray_icon";
-					UserNotification::add(msg);
 					if (param.icon.isNotNull()) {
 						GdkPixbuf* icon = UIPlatform::createPixbuf(param.icon->toImage());
 						if (icon) {
