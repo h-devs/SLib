@@ -218,7 +218,7 @@ namespace slib
 				
 				void setMenu_NI(const Ref<Menu>& menu) override
 				{
-					m_item.menu = UIPlatform::getMenuHandle(menu);
+					m_item.menu = UIPlatform::getMenuHandle(menu.get());
 				}
 				
 				void notify_NI(const SystemTrayIconNotifyParam& param) override

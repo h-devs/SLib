@@ -472,9 +472,9 @@ namespace slib
 	}
 
 
-	HMENU UIPlatform::getMenuHandle(const Ref<Menu>& menu)
+	HMENU UIPlatform::getMenuHandle(Menu* menu)
 	{
-		if (MenuImpl* _menu = CastInstance<MenuImpl>(menu.get())) {
+		if (MenuImpl* _menu = CastInstance<MenuImpl>(menu)) {
 			return _menu->m_hMenu;
 		}
 		return NULL;

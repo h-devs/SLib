@@ -61,7 +61,8 @@ namespace slib
 
 			static void MakeWindowStyle(Window* window, DWORD& style, DWORD& styleEx, HMENU& hMenu)
 			{
-				hMenu = UIPlatform::getMenuHandle(window->getMenu());
+				Ref<Menu> menu = window->getMenu();
+				hMenu = UIPlatform::getMenuHandle(menu.get());
 
 				style = WS_CLIPCHILDREN;
 				styleEx = WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY;
@@ -311,7 +312,7 @@ namespace slib
 				{
 					HWND hWnd = m_handle;
 					if (hWnd) {
-						_setMenu(hWnd, UIPlatform::getMenuHandle(menu));
+						_setMenu(hWnd, UIPlatform::getMenuHandle(menu.get()));
 					}
 				}
 

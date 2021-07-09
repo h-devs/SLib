@@ -64,9 +64,9 @@ namespace slib
 		return NativeCursorImpl::create(cursor);
 	}
 
-	NSCursor* UIPlatform::getCursorHandle(const Ref<Cursor>& cursor)
+	NSCursor* UIPlatform::getCursorHandle(Cursor* cursor)
 	{
-		if (cursor.isNull()) {
+		if (!cursor) {
 			return nil;
 		}
 		NativeCursorImpl* c = (NativeCursorImpl*)(cursor.get());

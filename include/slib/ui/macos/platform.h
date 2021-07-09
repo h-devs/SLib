@@ -72,10 +72,10 @@ namespace slib
 		static float getDpiForScreen(NSScreen* handle);
 		
 		static Ref<Cursor> createCursor(NSCursor* handle);
-		static NSCursor* getCursorHandle(const Ref<Cursor>& cursor);
+		static NSCursor* getCursorHandle(Cursor* cursor);
 		
-		static NSMenu* getMenuHandle(const Ref<Menu>& menu);
-		static NSMenuItem* getMenuItemHandle(const Ref<MenuItem>& menu);
+		static NSMenu* getMenuHandle(Menu* menu);
+		static NSMenuItem* getMenuItemHandle(MenuItem* menu);
 		
 		static NSString* getKeyEquivalent(const KeycodeAndModifiers& km, NSUInteger& outMask);
 		static void applyEventModifiers(UIEvent* ev, NSEvent* event);

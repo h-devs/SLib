@@ -57,9 +57,9 @@ namespace slib
 		static HWND getWindowHandle(Window* window);
 		
 		static Ref<Cursor> createCursor(HCURSOR hCursor, sl_bool flagDestroyOnRelease = sl_true);
-		static HCURSOR getCursorHandle(const Ref<Cursor>& cursor);
+		static HCURSOR getCursorHandle(Cursor* cursor);
 		
-		static HMENU getMenuHandle(const Ref<Menu>& menu);
+		static HMENU getMenuHandle(Menu* menu);
 		static Ref<Menu> getMenu(HMENU hMenu);
 
 		static void applyEventModifiers(UIEvent* ev);

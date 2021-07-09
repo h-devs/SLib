@@ -187,7 +187,7 @@ namespace slib
 					}
 					handle.enabled = param.flagEnabled ? YES : NO;
 					handle.state = param.flagChecked ? NSOnState : NSOffState;
-					handle.submenu = UIPlatform::getMenuHandle(param.submenu);
+					handle.submenu = UIPlatform::getMenuHandle(param.submenu.get());
 					if (handle.submenu != nil) {
 						handle.submenu.title = handle.title;
 					}
@@ -274,7 +274,7 @@ namespace slib
 			void MenuItemImpl::setSubmenu(const Ref<Menu>& menu)
 			{
 				MenuItem::setSubmenu(menu);
-				m_handle.submenu = UIPlatform::getMenuHandle(menu);
+				m_handle.submenu = UIPlatform::getMenuHandle(menu.get());
 				if (m_handle.submenu != nil) {
 					m_handle.submenu.title = m_handle.title;
 				}
@@ -309,17 +309,17 @@ namespace slib
 	}
 
 
-	NSMenu* UIPlatform::getMenuHandle(const Ref<Menu>& menu)
+	NSMenu* UIPlatform::getMenuHandle(Menu* menu)
 	{
-		if (MenuImpl* _menu = CastInstance<MenuImpl>(menu.get())) {
+		if (MenuImpl* _menu = CastInstance<MenuImpl>(menu)) {
 			return _menu->m_handle;
 		}
 		return nil;
 	}
 
-	NSMenuItem* UIPlatform::getMenuItemHandle(const Ref<MenuItem>& item)
+	NSMenuItem* UIPlatform::getMenuItemHandle(MenuItem* item)
 	{
-		if (MenuItemImpl* _item = CastInstance<MenuItemImpl>(item.get())) {
+		if (MenuItemImpl* _item = CastInstance<MenuItemImpl>(item)) {
 			return _item->m_handle;
 		}
 		return nil;
@@ -328,7 +328,7 @@ namespace slib
 	void UIApp::setMenu(const Ref<Menu>& _menu)
 	{
 		m_mainMenu = _menu;
-		NSMenu* menu = UIPlatform::getMenuHandle(_menu);
+		NSMenu* menu = UIPlatform::getMenuHandle(_menu.get());
 		if (menu != nil) {
 			NSApplication* app = [NSApplication sharedApplication];
 			[app setMainMenu: menu];

@@ -82,12 +82,12 @@ namespace slib
 		return NativeCursorImpl::create(hCursor, flagDestroyOnRelease);
 	}
 
-	HCURSOR UIPlatform::getCursorHandle(const Ref<Cursor>& cursor)
+	HCURSOR UIPlatform::getCursorHandle(Cursor* cursor)
 	{
-		if (cursor.isNull()) {
+		if (!cursor) {
 			return NULL;
 		}
-		NativeCursorImpl* c = (NativeCursorImpl*)(cursor.get());
+		NativeCursorImpl* c = (NativeCursorImpl*)(cursor);
 		return c->m_hCursor;
 	}
 

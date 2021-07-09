@@ -232,8 +232,8 @@ namespace slib
 
 					GtkMenuShell* hMenu = sl_null;
 					Ref<Menu> menu = window->getMenu();
-					if (!(UIPlatform::isPopupMenu(menu))) {
-						hMenu = UIPlatform::getMenuHandle(menu);
+					if (!(UIPlatform::isPopupMenu(menu.get()))) {
+						hMenu = UIPlatform::getMenuHandle(menu.get());
 					}
 					if (hMenu) {
 						GtkWidget* box = gtk_vbox_new(0, 0);
@@ -363,8 +363,8 @@ namespace slib
 						return;
 					}
 					GtkWidget* hMenu = sl_null;
-					if (!(UIPlatform::isPopupMenu(menu))) {
-						hMenu = (GtkWidget*)(UIPlatform::getMenuHandle(menu));
+					if (!(UIPlatform::isPopupMenu(menu.get()))) {
+						hMenu = (GtkWidget*)(UIPlatform::getMenuHandle(menu.get()));
 					}
 					if (hMenu == m_widgetMenu) {
 						return;

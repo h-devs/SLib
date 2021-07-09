@@ -75,9 +75,9 @@ namespace slib
 
 		static void applyEventModifiers(UIEvent* event, guint state);
 
-		static GtkMenuShell* getMenuHandle(const Ref<Menu>& menu);
+		static GtkMenuShell* getMenuHandle(Menu* menu);
 		static Ref<Menu> getMenu(GtkMenuShell* hMenu);
-		static sl_bool isPopupMenu(const Ref<Menu>& menu);
+		static sl_bool isPopupMenu(Menu* menu);
 
 	};
 

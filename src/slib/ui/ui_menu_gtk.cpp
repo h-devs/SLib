@@ -152,7 +152,7 @@ namespace slib
 				void setSubmenu(const Ref<Menu>& menu) override
 				{
 					MenuItem::setSubmenu(menu);
-					GtkMenuShell* hSubmenu = UIPlatform::getMenuHandle(menu);
+					GtkMenuShell* hSubmenu = UIPlatform::getMenuHandle(menu.get());
 					gtk_menu_item_set_submenu(m_handle, (GtkWidget*)hSubmenu);
 				}
 
@@ -339,7 +339,7 @@ namespace slib
 						gtk_check_menu_item_set_active((GtkCheckMenuItem*)item, param.flagChecked ? 1 : 0);
 					}
 					if (param.submenu.isNotNull()) {
-						GtkMenuShell* submenu = UIPlatform::getMenuHandle(param.submenu);
+						GtkMenuShell* submenu = UIPlatform::getMenuHandle(param.submenu.get());
 						if(submenu){
 							gtk_menu_item_set_submenu(item, (GtkWidget*)submenu);
 						}
@@ -380,9 +380,9 @@ namespace slib
 	}
 
 
-	GtkMenuShell* UIPlatform::getMenuHandle(const Ref<Menu>& _menu)
+	GtkMenuShell* UIPlatform::getMenuHandle(Menu* _menu)
 	{
-		if (MenuImpl* menu = CastInstance<MenuImpl>(_menu.get())) {
+		if (MenuImpl* menu = CastInstance<MenuImpl>(_menu)) {
 			return menu->m_handle;
 		}
 		return sl_null;
@@ -397,9 +397,9 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool UIPlatform::isPopupMenu(const Ref<Menu>& _menu)
+	sl_bool UIPlatform::isPopupMenu(Menu* _menu)
 	{
-		if (MenuImpl* menu = CastInstance<MenuImpl>(_menu.get())) {
+		if (MenuImpl* menu = CastInstance<MenuImpl>(_menu)) {
 			return menu->m_flagPopup;
 		}
 		return sl_false;
