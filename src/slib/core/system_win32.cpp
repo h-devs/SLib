@@ -46,6 +46,8 @@ using namespace Win32::Storage;
 using namespace Platform;
 #endif
 
+#pragma comment(lib, "version.lib")
+
 #define PRIV_PATH_MAX 1024
 
 #ifdef assert
