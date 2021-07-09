@@ -54,7 +54,7 @@ namespace slib
 	{
 	public:
 		sl_uint32 id;
-		String identifier; // iOS, macOS
+		String identifier; // iOS, macOS, GTK3
 		String title;
 		String content;
 		Json data;

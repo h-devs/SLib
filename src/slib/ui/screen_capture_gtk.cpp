@@ -40,43 +40,14 @@ namespace slib
 		namespace screen_capture
 		{
 
-			static GApplication* g_sharedAppForScreenshot = sl_null;
-
-			static GApplication* GetApplication()
-			{
-				GApplication* app = g_sharedAppForScreenshot;
-				if (app) {
-					return app;
-				}
-				auto funcIsRegistered = gio::getApi_g_application_get_is_registered();
-				if (!funcIsRegistered) {
-					return sl_null;
-				}
-				auto funcGetDefaultApp = gio::getApi_g_application_get_default();
-				if (funcGetDefaultApp) {
-					app = funcGetDefaultApp();
-				}
-				if (!app) {
-					app = g_application_new(sl_null, G_APPLICATION_NON_UNIQUE);
-					if (!app) {
-						return sl_null;
-					}
-				}
-				if (!(funcIsRegistered(app))) {
-					gio::getApi_g_application_register()(app, sl_null, sl_null);
-				}
-				g_sharedAppForScreenshot = app;
-				return app;
-			}
-
 			static Ref<Image> DoCaptureFromGnomeShell()
 			{
-				auto funcGetDBusConnection = gio::getApi_g_application_get_dbus_connection();
-				if (!funcGetDBusConnection) {
+				GtkApplication* app = UIPlatform::getApp();
+				if (!app) {
 					return sl_null;
 				}
-				GApplication* app = GetApplication();
-				if (!app) {
+				auto funcGetDBusConnection = gio::getApi_g_application_get_dbus_connection();
+				if (!funcGetDBusConnection) {
 					return sl_null;
 				}
 				Ref<Image> ret;
@@ -87,7 +58,7 @@ namespace slib
 					FALSE, // flash
 					szTmpFilePath);
 				if (params) {
-					GDBusConnection* connection = funcGetDBusConnection(app);
+					GDBusConnection* connection = funcGetDBusConnection((GApplication*)app);
 					if (connection) {
 						GVariant* varRet = gio::getApi_g_dbus_connection_call_sync()(
 								connection,

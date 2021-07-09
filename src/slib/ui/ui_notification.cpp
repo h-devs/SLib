@@ -148,7 +148,7 @@ namespace slib
 	{
 	}
 
-#if defined(SLIB_PLATFORM_IS_APPLE) || defined(SLIB_PLATFORM_IS_ANDROID)
+#if defined(SLIB_PLATFORM_IS_APPLE) || defined(SLIB_PLATFORM_IS_ANDROID) || defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 	void UserNotification::start()
 	{
 		StaticContext* context = GetStaticContext();

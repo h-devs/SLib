@@ -69,7 +69,10 @@ namespace slib
 		static sl_bool isSupportedGtk(sl_uint32 major);
 		static sl_bool isSupportedGtk(sl_uint32 major, sl_uint32 minor);
 
+		static GtkApplication* getApp();
+
 		static void getGdkColor(const Color& color, GdkColor* outGdkColor);
+		static GdkPixbuf* createPixbuf(const Ref<Image>& image);
 		static void getScreenLocationOfWidget(GtkWidget* widget, sl_ui_len* out_x = sl_null, sl_ui_len* out_y = sl_null);
 		static void setWidgetFont(GtkWidget* widget, const Ref<Font>& font);
 

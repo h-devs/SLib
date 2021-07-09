@@ -237,6 +237,14 @@ namespace slib
 		)
 		#define gtk_window_resize slib::gtk::getApi_gtk_window_resize()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_window_set_default_size,
+			void, ,
+			GtkWindow *window,
+			gint width,
+			gint height
+		)
+		#define gtk_window_set_default_size slib::gtk::getApi_gtk_window_set_default_size()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_window_get_size,
 			void, ,
 			GtkWindow *window,
@@ -1600,6 +1608,51 @@ namespace slib
 			void
 		)
 		#define gtk_accel_group_new slib::gtk::getApi_gtk_accel_group_new()
+		#define gtk_check_menu_item_set_active slib::gtk::getApi_gtk_check_menu_item_set_active()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_status_icon_new_from_pixbuf,
+			GtkStatusIcon*, ,
+			GdkPixbuf*
+		)
+		#define gtk_status_icon_new_from_pixbuf slib::gtk::getApi_gtk_status_icon_new_from_pixbuf()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_status_icon_set_from_pixbuf,
+			void, ,
+			GtkStatusIcon*,
+			GdkPixbuf*
+		)
+		#define gtk_status_icon_set_from_pixbuf slib::gtk::getApi_gtk_status_icon_set_from_pixbuf()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_status_icon_set_tooltip_text,
+			void, ,
+			GtkStatusIcon*,
+			const gchar*
+		)
+		#define gtk_status_icon_set_tooltip_text slib::gtk::getApi_gtk_status_icon_set_tooltip_text()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_status_icon_set_title,
+			void, ,
+			GtkStatusIcon*,
+			const gchar*
+		)
+		#define gtk_status_icon_set_title slib::gtk::getApi_gtk_status_icon_set_title()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_status_icon_set_visible,
+			void, ,
+			GtkStatusIcon*,
+			gboolean visible
+		)
+		#define gtk_status_icon_set_visible slib::gtk::getApi_gtk_status_icon_set_visible()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_status_icon_position_menu,
+			void, ,
+			GtkMenu            *menu,
+			gint               *x,
+			gint               *y,
+			gboolean           *push_in,
+			gpointer            user_data
+		)
+		#define gtk_status_icon_position_menu slib::gtk::getApi_gtk_status_icon_position_menu()
 
 		// GTK3
 		SLIB_IMPORT_LIBRARY_FUNCTION(
@@ -1621,6 +1674,17 @@ namespace slib
 			gtk_widget_get_allocated_height,
 			int, ,
 			GtkWidget *widget
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_application_new,
+			GtkApplication *, ,
+			const gchar       *application_id,
+			GApplicationFlags  flags
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_application_window_new,
+			GtkWidget *, ,
+			GtkApplication      *application
 		)
 
 	SLIB_IMPORT_LIBRARY_END

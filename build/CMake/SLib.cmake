@@ -381,6 +381,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/ui/ui_event.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_menu.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_notification.cpp"
+ "${SLIB_PATH}/src/slib/ui/ui_notification_gtk.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_notification_fcm.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_notification_xgpush.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_photo.cpp"

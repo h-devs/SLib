@@ -307,6 +307,30 @@ namespace slib
 		)
 		#define g_application_new slib::gio::getApi_g_application_new()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_application_run,
+			int, ,
+			GApplication   *application,
+			int             argc,
+			char          **argv
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_application_quit,
+			void, ,
+			GApplication   *application
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_application_hold,
+			void, ,
+			GApplication *app
+		)
+		#define g_application_hold slib::gio::getApi_g_application_hold()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_application_release,
+			void, ,
+			GApplication *app
+		)
+		#define g_application_release slib::gio::getApi_g_application_release()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_application_get_is_registered,
 			gboolean, ,
 			GApplication*
@@ -324,6 +348,19 @@ namespace slib
 			GApplication*
 		)
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_application_send_notification,
+			void, ,
+			GApplication       *application,
+			const gchar        *id,
+			GNotification      *notification
+			)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_application_withdraw_notification,
+			void, ,
+			GApplication       *application,
+			const gchar        *id
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			g_dbus_connection_call_sync,
 			GVariant *, ,
 			GDBusConnection    *connection,
@@ -337,6 +374,17 @@ namespace slib
 			gint                timeout_msec,
 			GCancellable       *cancellable,
 			GError            **error
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_notification_new,
+			GNotification *, ,
+			const gchar *title
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_notification_set_body,
+			void, ,
+			GNotification *,
+			const gchar *body
 		)
 	SLIB_IMPORT_LIBRARY_END
 

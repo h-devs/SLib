@@ -29,6 +29,7 @@
 #include "slib/ui/platform.h"
 #include "slib/ui/app.h"
 #include "slib/ui/screen.h"
+#include "slib/graphics/image.h"
 
 namespace slib
 {
@@ -37,6 +38,8 @@ namespace slib
 	{
 		namespace ui_core
 		{
+
+			GtkApplication* g_app = sl_null;
 
 			pthread_t g_threadMain = 0;
 			sl_bool g_flagRunningAppLoop = sl_false;
@@ -85,6 +88,21 @@ namespace slib
 			{
 				UIDispatcher::processCallbacks();
 				gtk_main_do_event(event);
+			}
+
+			static void OnActiveApp(GtkApplication* app, gpointer user_data)
+			{
+				g_application_hold((GApplication*)app);
+				UIApp::dispatchStartToApp();
+				gdk_event_handler_set(EventHandler, sl_null, sl_null);
+			}
+
+			static void OnPixbufDestroyNotify(guchar* pixels, gpointer data)
+			{
+				Image* image = (Image*)data;
+				if (image) {
+					image->decreaseReference();
+				}
 			}
 
 		}
@@ -163,7 +181,6 @@ namespace slib
 		g_thread_init(NULL);
 		gdk_threads_init();
 		if (gtk_init_check(sl_null, sl_null)) {
-			gdk_event_handler_set(EventHandler, sl_null, sl_null);
 			return sl_true;
 		}
 		return sl_false;
@@ -245,24 +262,60 @@ namespace slib
 	{
 		g_threadMain = pthread_self();
 
-		UIPlatform::initializeGtk();
-		
-		UIApp::dispatchStartToApp();
-
-		if (!(UI::isQuitingApp())) {
-			g_flagRunningAppLoop = sl_true;
-			gtk_main();
-			g_flagRunningAppLoop = sl_false;
+		GtkApplication* app = getApp();
+		if (app) {
+			if (!(UI::isQuitingApp())) {
+				g_flagRunningAppLoop = sl_true;
+				g_signal_connect(app, "activate", G_CALLBACK(OnActiveApp), sl_null);
+				gio::getApi_g_application_run()((GApplication*)app, 0, sl_null);
+				g_flagRunningAppLoop = sl_false;
+				g_app = sl_null;
+				g_object_unref(app);
+			}
+		} else {
+			UIPlatform::initializeGtk();
+			UIApp::dispatchStartToApp();
+			if (!(UI::isQuitingApp())) {
+				g_flagRunningAppLoop = sl_true;
+				gdk_event_handler_set(EventHandler, sl_null, sl_null);
+				gtk_main();
+				g_flagRunningAppLoop = sl_false;
+			}
 		}
-		
 		UIApp::dispatchExitToApp();
 	}
 
 	void UIPlatform::quitApp()
 	{
 		if (g_flagRunningAppLoop) {
-			gtk_main_quit();
+			if (g_app) {
+				g_application_release((GApplication*)g_app);
+			} else {
+				gtk_main_quit();
+			}
 		}
+	}
+
+	GtkApplication* UIPlatform::getApp()
+	{
+		static sl_bool flagInit = sl_true;
+		if (flagInit) {
+			flagInit = sl_false;
+			if (isSupportedGtk(3)) {
+				StringCstr id;
+				Ref<UIApp> app = UIApp::getApp();
+				if (app.isNotNull()) {
+					id = app->getUniqueInstanceId();
+				}
+				if (gtk::getApi_gtk_get_minor_version()() < 6) {
+					if (id.isEmpty()) {
+						id = String::join("app.id", String::fromUint64(Time::now().toInt()));
+					}
+				}
+				g_app = gtk::getApi_gtk_application_new()(id.getData(), G_APPLICATION_FLAGS_NONE);
+			}
+		}
+		return g_app;
 	}
 
 	void UIPlatform::getGdkColor(const Color& color, GdkColor* _out)
@@ -271,6 +324,24 @@ namespace slib
 		_out->red = (guint16)(color.r) * 257;
 		_out->green = (guint16)(color.g) * 257;
 		_out->blue = (guint16)(color.b) * 257;
+	}
+
+	GdkPixbuf* UIPlatform::createPixbuf(const Ref<Image>& image)
+	{
+		if (image.isNotNull()) {
+			sl_uint32 width = image->getWidth();
+			sl_uint32 height = image->getHeight();
+			if (width && height) {
+				sl_int32 stride = image->getStride();
+				Color* colors = image->getColors();
+				GdkPixbuf* ret = gdk_pixbuf_new_from_data((guchar*)(colors), GDK_COLORSPACE_RGB, sl_true, 8, (int)width, (int)height, stride << 2, NULL, image.get());
+				if (ret) {
+					image->increaseReference();
+					return ret;
+				}
+			}
+		}
+		return sl_null;
 	}
 
 }

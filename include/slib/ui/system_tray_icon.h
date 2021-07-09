@@ -96,6 +96,7 @@ namespace slib
 			Warning = 2,
 			Error = 3
 		};
+
 		void notify(const SystemTrayIconNotifyParam& param);
 		
 		void notify(const String& title, const String& message);

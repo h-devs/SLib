@@ -363,6 +363,19 @@ namespace slib
 			const GdkPixbuf *pixbuf
 		)
 		#define gdk_pixbuf_get_rowstride slib::gdk::getApi_gdk_pixbuf_get_rowstride()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gdk_pixbuf_new_from_data,
+			GdkPixbuf *, ,
+			const guchar *data,
+			GdkColorspace colorspace,
+			gboolean has_alpha,
+			int bits_per_sample,
+			int width, int height,
+			int rowstride,
+			GdkPixbufDestroyNotify destroy_fn,
+			gpointer destroy_fn_data
+		)
+		#define gdk_pixbuf_new_from_data slib::gdk::getApi_gdk_pixbuf_new_from_data()
 
 		// GTK3
 		SLIB_IMPORT_LIBRARY_FUNCTION(
