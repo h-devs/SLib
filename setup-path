@@ -26,9 +26,16 @@ else
  echo "source ~/.SLib.io/setup_bash" >> ~/.zprofile
 fi
 
-
 if [[ `uname` == 'Linux' ]]; then
- 
+
+ if [[ `cat ~/.profile` == *"source ~/.SLib.io/setup_bash"* ]]; then
+  echo "Setup Shell was already registered in ~/.profile"
+ else
+  echo "Registering Setup Shell into ~/.profile"
+  echo "" >> ~/.profile
+  echo "source ~/.SLib.io/setup_bash" >> ~/.profile
+ fi
+
  if [[ `cat ~/.bashrc` == *"source ~/.SLib.io/setup_bash"* ]]; then
   echo "Setup Shell was already registered in ~/.bashrc"
  else
