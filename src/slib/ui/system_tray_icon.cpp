@@ -208,6 +208,7 @@ namespace slib
 
 	void SystemTrayIcon::_init(const SystemTrayIconParam& param)
 	{
+		m_identifier = param.identifier;
 		if (param.iconName.isNotEmpty()) {
 			m_iconName = param.iconName;
 		} else {

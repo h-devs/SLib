@@ -35,8 +35,9 @@ namespace slib
 	class SLIB_EXPORT SystemTrayIconParam
 	{
 	public:
-		String iconName;
-		Ref<Drawable> icon;
+		String identifier; // [Linux] id of tray icon
+		String iconName; // [Win32] Resource name, [macOS] Image name ([NSImage imageNamed:]), [Linux] Gnome standard icon name or image file path (https://developer.gnome.org/icon-naming-spec/)
+		Ref<Drawable> icon; // [Win32, macOS] Supported, [Linux] Not supported on modern desktops
 		String toolTip;
 		sl_bool flagHighlight;
 		Ref<Menu> menu;
@@ -125,6 +126,7 @@ namespace slib
 		void dispatchBalloonTimeout();
 
 	protected:
+		String m_identifier;
 		AtomicRef<Drawable> m_icon;
 		AtomicString m_iconName;
 		AtomicString m_toolTip;

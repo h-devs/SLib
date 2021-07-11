@@ -460,6 +460,7 @@ else ()
   "${SLIB_PATH}/src/slib/ui/dl_linux_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/dl_linux_gdk.cpp"
   "${SLIB_PATH}/src/slib/ui/dl_linux_x11.cpp"
+  "${SLIB_PATH}/src/slib/ui/dl_linux_app_indicator.cpp"
 
   "${SLIB_PATH}/src/slib/network/tap_unix.cpp"
 

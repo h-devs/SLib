@@ -27,9 +27,12 @@
 #include "slib/ui/system_tray_icon.h"
 
 #include "slib/graphics/image.h"
+#include "slib/core/file.h"
 #include "slib/ui/platform.h"
 #include "slib/ui/menu.h"
 #include "slib/ui/notification.h"
+
+#include "slib/ui/dl/linux/app-indicator.h"
 
 namespace slib
 {
@@ -39,68 +42,142 @@ namespace slib
 		namespace system_tray_icon
 		{
 
-			class DbusTrayIconImpl : public SystemTrayIcon
+			class AppIndicatorImpl : public SystemTrayIcon
 			{
 			public:
-				static Ref<DbusTrayIconImpl> create(const SystemTrayIconParam& param)
+				AppIndicator* m_handle;
+
+			public:
+				AppIndicatorImpl()
 				{
-					GtkApplication* app = UIPlatform::getApp();
-					if (!app) {
-						return sl_null;
+					m_handle = sl_null;
+				}
+
+				~AppIndicatorImpl()
+				{
+					if (m_handle) {
+						g_object_unref(m_handle);
 					}
-					auto funcGetDBusConnection = gio::getApi_g_application_get_dbus_connection();
-					if (!funcGetDBusConnection) {
-						return sl_null;
+				}
+
+			public:
+				static Ref<AppIndicatorImpl> create(const SystemTrayIconParam& param)
+				{
+					if (param.identifier.isNotEmpty() && param.iconName.isNotEmpty()) {
+						StringCstr id(param.identifier);
+						StringCstr icon(param.iconName);
+						AppIndicator* handle = app_indicator_new(id.getData(), icon.getData(), APP_INDICATOR_CATEGORY_APPLICATION_STATUS);
+						if (handle) {
+							Ref<AppIndicatorImpl> ret = new AppIndicatorImpl;
+							if (ret) {
+								ret->m_handle = handle;
+								ret->_init(param);
+								app_indicator_set_status(handle, APP_INDICATOR_STATUS_ACTIVE);
+								if (param.menu.isNotNull()) {
+									ret->setMenu_NI(param.menu);
+								}
+								return ret;
+							}
+							g_object_unref(handle);
+						}
 					}
 					return sl_null;
 				}
+
+				void setIcon_NI(const Ref<Drawable>& icon, const String& _name) override
+				{
+					StringCstr name(_name);
+					app_indicator_set_icon(m_handle, name.getData());
+				}
+
+				void setToolTip_NI(const String& _toolTip) override
+				{
+					// Not supported
+				}
+
+				void setMenu_NI(const Ref<Menu>& menu) override
+				{
+					if (UIPlatform::isPopupMenu(menu.get())) {
+						GtkMenu* hMenu = (GtkMenu*)(UIPlatform::getMenuHandle(menu.get()));
+						app_indicator_set_menu(m_handle, hMenu);
+					} else {
+						app_indicator_set_menu(m_handle, sl_null);
+					}
+				}
+
+				void notify_NI(const SystemTrayIconNotifyParam& param) override
+				{
+					UserNotificationMessage msg;
+					msg.identifier = m_identifier;
+					msg.title = param.title;
+					msg.content = param.message;
+					UserNotification::add(msg);
+				}
+
 			};
 
-			class SystemTrayIconImpl : public SystemTrayIcon
+			class StatusIconImpl : public SystemTrayIcon
 			{
 			public:
 				GtkStatusIcon* m_handle;
 				Ref<Image> m_icon;
 
 			public:
-				static Ref<SystemTrayIconImpl> create(const SystemTrayIconParam& param)
+				static Ref<StatusIconImpl> create(const SystemTrayIconParam& param)
 				{
-					if (param.icon.isNotNull()) {
+					GtkStatusIcon* handle = sl_null;
+					if (param.iconName.isNotNull()) {
+						StringCstr name(param.iconName);
+						if (File::isFile(name)) {
+							handle = gtk_status_icon_new_from_file(name.getData());
+						} else {
+							handle = gtk_status_icon_new_from_icon_name(name.getData());
+						}
+					} else if (param.icon.isNotNull()) {
 						GdkPixbuf* icon = UIPlatform::createPixbuf(param.icon->toImage());
 						if (icon) {
-							GtkStatusIcon* handle = gtk_status_icon_new_from_pixbuf(icon);
-							if (handle) {
-								g_object_ref_sink(handle);
-								Ref<SystemTrayIconImpl> ret = new SystemTrayIconImpl;
-								if (ret.isNotNull()) {
-									ret->m_handle = handle;
-									ret->_init(param);
-									if (param.toolTip.isNotNull()) {
-										ret->setToolTip_NI(param.toolTip);
-									}
-									gtk_status_icon_set_visible(handle, sl_true);
-									g_signal_connect(handle, "activate", G_CALLBACK(_callback_activated), ret.get());
-									g_signal_connect(handle, "popup-menu", G_CALLBACK(_callback_activated), ret.get());
-									return ret;
-								}
-								g_object_unref(handle);
-								return sl_null;
-							}
+							g_object_ref(icon);
+							handle = gtk_status_icon_new_from_pixbuf(icon);
 							g_object_unref(icon);
 						}
+					}
+					if (handle) {
+						g_object_ref_sink(handle);
+						Ref<StatusIconImpl> ret = new StatusIconImpl;
+						if (ret.isNotNull()) {
+							ret->m_handle = handle;
+							ret->_init(param);
+							if (param.toolTip.isNotNull()) {
+								ret->setToolTip_NI(param.toolTip);
+							}
+							gtk_status_icon_set_visible(handle, sl_true);
+							g_signal_connect(handle, "activate", G_CALLBACK(_callback_activated), ret.get());
+							g_signal_connect(handle, "popup-menu", G_CALLBACK(_callback_activated), ret.get());
+							return ret;
+						}
+						g_object_unref(handle);
 					}
 					return sl_null;
 				}
 
-				void setIcon_NI(const Ref<Drawable>& icon, const String& name) override
+				void setIcon_NI(const Ref<Drawable>& icon, const String& _name) override
 				{
-					if (icon.isNotNull()) {
-						GdkPixbuf* pixbuf = UIPlatform::createPixbuf(icon->toImage());
-						if (pixbuf) {
-							gtk_status_icon_set_from_pixbuf(m_handle, pixbuf);
+					if (_name.isNotNull()) {
+						StringCstr name(_name);
+						if (File::isFile(name)) {
+							gtk_status_icon_set_from_file(m_handle, name.getData());
+						} else {
+							gtk_status_icon_set_from_icon_name(m_handle, name.getData());
 						}
 					} else {
-						gtk_status_icon_set_from_pixbuf(m_handle, sl_null);
+						if (icon.isNotNull()) {
+							GdkPixbuf* pixbuf = UIPlatform::createPixbuf(icon->toImage());
+							if (pixbuf) {
+								gtk_status_icon_set_from_pixbuf(m_handle, pixbuf);
+							}
+						} else {
+							gtk_status_icon_set_from_pixbuf(m_handle, sl_null);
+						}
 					}
 				}
 
@@ -126,7 +203,7 @@ namespace slib
 
 				static void _callback_activated(GtkStatusIcon*, gpointer user_data)
 				{
-					SystemTrayIconImpl* object = (SystemTrayIconImpl*)user_data;
+					StatusIconImpl* object = (StatusIconImpl*)user_data;
 					if (object){
 						Ref<UIEvent> event = UIEvent::createUnknown(Time::now());
 						object->dispatchClick(event.get());
@@ -135,7 +212,7 @@ namespace slib
 
 				void _callback_popupMenu(GtkStatusIcon* handle, guint button, guint activate_time, gpointer user_data)
 				{
-					SystemTrayIconImpl* object = (SystemTrayIconImpl*)user_data;
+					StatusIconImpl* object = (StatusIconImpl*)user_data;
 					if (object){
 						Ref<Menu> menu = object->m_menu;
 						if (menu.isNotNull() && UIPlatform::isPopupMenu(menu.get())) {
@@ -154,7 +231,11 @@ namespace slib
 
 	Ref<SystemTrayIcon> SystemTrayIcon::create(const SystemTrayIconParam& param)
 	{
-		return Ref<SystemTrayIcon>::from(SystemTrayIconImpl::create(param));
+		if (app_indicator::getLibrary() && UIPlatform::isSupportedGtk(3)) {
+			return Ref<SystemTrayIcon>::from(AppIndicatorImpl::create(param));
+		} else {
+			return Ref<SystemTrayIcon>::from(StatusIconImpl::create(param));
+		}
 	}
 
 }
