@@ -25,14 +25,14 @@
 #include "slib/ui/core.h"
 #include "slib/core/safe_static.h"
 
-#if !(defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_MACOS))
+#if !(defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_MACOS) || defined(SLIB_PLATFORM_IS_LINUX_DESKTOP))
 #define RUN_ON_UI_THREAD
 #endif
 
 namespace slib
 {
 	
-#if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32)
+#if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_MACOS) || defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 	
 	namespace priv
 	{

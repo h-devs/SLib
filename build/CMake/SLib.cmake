@@ -494,6 +494,7 @@ else ()
   "${SLIB_PATH}/src/slib/ui/common_dialogs_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/combo_box_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/edit_view_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/global_event_monitor_x11.cpp"
   "${SLIB_PATH}/src/slib/ui/list_control_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/radio_button_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/render_view_gtk.cpp"

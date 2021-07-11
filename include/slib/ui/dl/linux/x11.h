@@ -31,9 +31,14 @@
 
 #include "X11/Xlib.h"
 #include "X11/Xutil.h"
+#include "X11/Xlibint.h"
+#include "X11/XKBlib.h"
+#include "X11/extensions/record.h"
 
 namespace slib
 {
+
+	typedef int (*XSynchronizeRet)(Display*);
 
 	SLIB_IMPORT_LIBRARY_BEGIN(x11, "libX11.so.6")
 
@@ -96,6 +101,98 @@ namespace slib
 			Window		/* w */
 		)
 		#define XMapRaised slib::x11::getApi_XMapRaised()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XSynchronize,
+			XSynchronizeRet, ,
+			Display*	/* display */,
+			Bool		/* onoff */
+		)
+		#define XSynchronize slib::x11::getApi_XSynchronize()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XFree,
+			int, ,
+			void*		/* data */
+		)
+		#define XFree slib::x11::getApi_XFree()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XkbKeycodeToKeysym,
+			KeySym, ,
+			Display *		/* dpy */,
+	#if NeedWidePrototypes
+			unsigned int	/* kc */,
+	#else
+			KeyCode			/* kc */,
+	#endif
+			int				/* group */,
+			int				/* level */
+		)
+		#define XkbKeycodeToKeysym slib::x11::getApi_XkbKeycodeToKeysym()
+
+	SLIB_IMPORT_LIBRARY_END
+
+	SLIB_IMPORT_LIBRARY_BEGIN(xtst, "libXtst.so.6")
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XRecordAllocRange,
+			XRecordRange*, ,
+			void
+		)
+		#define XRecordAllocRange slib::xtst::getApi_XRecordAllocRange()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XRecordCreateContext,
+			XRecordContext, ,
+			Display*			/* dpy */,
+			int					/* datum_flags */,
+			XRecordClientSpec*	/* clients */,
+			int					/* nclients */,
+			XRecordRange**		/* ranges */,
+			int					/* nranges */
+		)
+		#define XRecordCreateContext slib::xtst::getApi_XRecordCreateContext()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XRecordFreeContext,
+			Status, ,
+			Display*			/* dpy */,
+			XRecordContext		/* context */
+		)
+		#define XRecordFreeContext slib::xtst::getApi_XRecordFreeContext()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XRecordEnableContextAsync,
+			Status, ,
+			Display*				/* dpy */,
+			XRecordContext			/* context */,
+			XRecordInterceptProc	/* callback */,
+			XPointer				/* closure */
+		)
+		#define XRecordEnableContextAsync slib::xtst::getApi_XRecordEnableContextAsync()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XRecordDisableContext,
+			Status, ,
+			Display*				/* dpy */,
+			XRecordContext			/* context */
+		)
+		#define XRecordDisableContext slib::xtst::getApi_XRecordDisableContext()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XRecordProcessReplies,
+			void, ,
+			Display*				/* dpy */
+		)
+		#define XRecordProcessReplies slib::xtst::getApi_XRecordProcessReplies()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XRecordFreeData,
+			void, ,
+			XRecordInterceptData*	/* data */
+		)
+		#define XRecordFreeData slib::xtst::getApi_XRecordFreeData()
 
 	SLIB_IMPORT_LIBRARY_END
 

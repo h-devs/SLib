@@ -20,9 +20,9 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/ui/definition.h"
+#include "slib/core/definition.h"
 
-#if defined(SLIB_UI_IS_WIN32)
+#if defined(SLIB_PLATFORM_IS_WIN32)
 
 #include "slib/ui/global_event_monitor.h"
 
