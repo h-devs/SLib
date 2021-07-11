@@ -304,6 +304,19 @@ namespace slib
 		)
 		#define gtk_window_set_title slib::gtk::getApi_gtk_window_set_title()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_window_set_icon,
+			void, ,
+			GtkWindow *window,
+			GdkPixbuf *icon
+		)
+		#define gtk_window_set_icon slib::gtk::getApi_gtk_window_set_icon()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_window_set_default_icon,
+			void, ,
+			GdkPixbuf *icon
+		)
+		#define gtk_window_set_default_icon slib::gtk::getApi_gtk_window_set_default_icon()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_window_set_screen,
 			void, ,
 			GtkWindow *window,
@@ -1608,7 +1621,6 @@ namespace slib
 			void
 		)
 		#define gtk_accel_group_new slib::gtk::getApi_gtk_accel_group_new()
-		#define gtk_check_menu_item_set_active slib::gtk::getApi_gtk_check_menu_item_set_active()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_status_icon_new_from_pixbuf,
 			GtkStatusIcon*, ,
@@ -1616,12 +1628,38 @@ namespace slib
 		)
 		#define gtk_status_icon_new_from_pixbuf slib::gtk::getApi_gtk_status_icon_new_from_pixbuf()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_status_icon_new_from_file,
+			GtkStatusIcon*, ,
+			const gchar *filename
+		)
+		#define gtk_status_icon_new_from_file slib::gtk::getApi_gtk_status_icon_new_from_file()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_status_icon_new_from_icon_name,
+			GtkStatusIcon*, ,
+			const gchar *icon_name
+		)
+		#define gtk_status_icon_new_from_icon_name slib::gtk::getApi_gtk_status_icon_new_from_icon_name()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_status_icon_set_from_pixbuf,
 			void, ,
 			GtkStatusIcon*,
 			GdkPixbuf*
 		)
 		#define gtk_status_icon_set_from_pixbuf slib::gtk::getApi_gtk_status_icon_set_from_pixbuf()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_status_icon_set_from_file,
+			void, ,
+			GtkStatusIcon*,
+			const gchar *filename
+		)
+		#define gtk_status_icon_set_from_file slib::gtk::getApi_gtk_status_icon_set_from_file()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_status_icon_set_from_icon_name,
+			void, ,
+			GtkStatusIcon*,
+			const gchar *stock_id
+		)
+		#define gtk_status_icon_set_from_icon_name slib::gtk::getApi_gtk_status_icon_set_from_icon_name()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_status_icon_set_tooltip_text,
 			void, ,

@@ -158,6 +158,10 @@ namespace slib
 		String getTitle();
 		
 		void setTitle(const String& title);
+
+		Ref<Drawable> getIcon();
+
+		void setIcon(const Ref<Drawable>& icon);
 		
 		Color getBackgroundColor();
 		
@@ -374,7 +378,11 @@ namespace slib
 		
 		void setActivity(void* activity);
 #endif
-		
+
+#if defined(SLIB_UI_GTK)
+		static void setDefaultIcon(const Ref<Drawable>& icon);
+#endif
+
 	public:
 		Ref<WindowInstance> getWindowInstance();
 		
@@ -469,6 +477,7 @@ namespace slib
 		AtomicRef<View> m_viewInitialFocus;
 		
 		AtomicString m_title;
+		AtomicRef<Drawable> m_icon;
 		Color m_backgroundColor;
 		sl_bool m_flagDefaultBackgroundColor;
 		
@@ -556,6 +565,8 @@ namespace slib
 		
 
 		virtual void setTitle(const String& title);
+
+		virtual void setIcon(const Ref<Drawable>& icon);
 
 		virtual void setMenu(const Ref<Menu>& menu);
 

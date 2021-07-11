@@ -513,6 +513,23 @@ namespace slib
 		}
 	}
 
+	Ref<Drawable> Window::getIcon()
+	{
+		return m_icon;
+	}
+
+	void Window::setIcon(const Ref<Drawable>& icon)
+	{
+		Ref<WindowInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(&Window::setIcon, icon)
+			m_icon = icon;
+			instance->setIcon(icon);
+		} else {
+			m_icon = icon;
+		}
+	}
+
 	Color Window::getBackgroundColor()
 	{
 		return m_backgroundColor;
@@ -1758,6 +1775,10 @@ namespace slib
 	}
 
 	void WindowInstance::setTitle(const String& title)
+	{
+	}
+
+	void WindowInstance::setIcon(const Ref<Drawable>& icon)
 	{
 	}
 

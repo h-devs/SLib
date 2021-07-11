@@ -28,6 +28,7 @@
 
 #include "slib/ui/screen.h"
 #include "slib/ui/core.h"
+#include "slib/graphics/image.h"
 
 #include "view_gtk.h"
 
@@ -175,6 +176,14 @@ namespace slib
 					
 					StringCstr title = window->getTitle();
 					gtk_window_set_title(handle, title.getData());
+
+					Ref<Drawable> icon = window->getIcon();
+					if (icon.isNotNull()) {
+						GdkPixbuf* pixbuf = UIPlatform::createPixbuf(icon->toImage());
+						if (pixbuf) {
+							gtk_window_set_icon(handle, pixbuf);
+						}
+					}
 
 					Ref<GTK_WindowInstance> ret = create(handle);
 					if (ret.isNull()) {
@@ -353,6 +362,22 @@ namespace slib
 					}
 				}
 
+				void setIcon(const Ref<Drawable>& icon) override
+				{
+					GtkWindow* window = m_window;
+					if (!window) {
+						return;
+					}
+					if (icon.isNotNull()) {
+						GdkPixbuf* pixbuf = UIPlatform::createPixbuf(icon->toImage());
+						if (pixbuf) {
+							gtk_window_set_icon((GtkWindow*)window, pixbuf);
+							return;
+						}
+					}
+					gtk_window_set_icon((GtkWindow*)window, sl_null);
+				}
+
 				void setMenu(const Ref<Menu>& menu) override
 				{
 					if (m_flagClosed) {
@@ -483,6 +508,7 @@ namespace slib
 						GtkWindow* window = m_window;
 						if (window) {
 							if (flag) {
+								gtk_window_move(window, m_location.x, m_location.y);
 								gtk_widget_show((GtkWidget*)window);
 							} else {
 								gtk_widget_hide((GtkWidget*)window);
@@ -780,6 +806,18 @@ namespace slib
 	sl_bool Window::_getClientInsets(UIEdgeInsets& _out)
 	{
 		return sl_false;
+	}
+
+	void Window::setDefaultIcon(const Ref<Drawable>& icon)
+	{
+		if (icon.isNotNull()) {
+			GdkPixbuf* pixbuf = UIPlatform::createPixbuf(icon->toImage());
+			if (pixbuf) {
+				gtk_window_set_default_icon(pixbuf);
+				return;
+			}
+		}
+		gtk_window_set_default_icon(sl_null);
 	}
 
 	
