@@ -27,8 +27,8 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef _X11_XKBLIB_H_
 #define _X11_XKBLIB_H_
 
-#include <X11/Xlib.h>
-#include <X11/extensions/XKBstr.h>
+#include "Xlib.h"
+#include "extensions/XKBstr.h"
 
 typedef struct _XkbAnyEvent {
 	int 		type;		/* XkbAnyEvent */
