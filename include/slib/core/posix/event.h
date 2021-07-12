@@ -25,6 +25,8 @@
 
 #include "../definition.h"
 
+#ifdef SLIB_PLATFORM_IS_UNIX
+
 #include <pthread.h>
 
 namespace slib
@@ -56,5 +58,7 @@ namespace slib
 
 	}
 }
+
+#endif
 
 #endif
