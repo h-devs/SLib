@@ -92,6 +92,15 @@ namespace slib
 		
 		static Ref<Pcap> createAny(const PcapParam& param);
 
+
+		static sl_bool isAllowedNonRoot(const StringParam& executablePath);
+
+		static sl_bool isAllowedNonRoot();
+
+		static void allowNonRoot(const StringParam& executablePath);
+
+		static void allowNonRoot();
+
 	};
 
 

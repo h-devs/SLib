@@ -29,6 +29,9 @@
 
 #include "slib/core/thread.h"
 #include "slib/core/timer.h"
+#include "slib/core/process.h"
+#include "slib/core/file.h"
+#include "slib/core/system.h"
 #include "slib/core/log.h"
 #include "slib/core/safe_static.h"
 
@@ -425,7 +428,7 @@ namespace slib
 					if (ret == 0 && devs) {
 						pcap_if_t* dev = devs;
 						while (dev) {
-							if (!(dev->flags & PCAP_IF_LOOPBACK)) {
+							if (!(dev->flags & PCAP_IF_LOOPBACK) && !(Base::equalsString(dev->name, "any"))) {
 								sl_uint32 status = (sl_uint32)(dev->flags & PCAP_IF_CONNECTION_STATUS);
 								if (status == PCAP_IF_CONNECTION_STATUS_CONNECTED || ((dev->flags & PCAP_IF_UP) && status == PCAP_IF_CONNECTION_STATUS_UNKNOWN)) {
 									ListLocker< Ref<PcapImpl> > devices(m_devices);
@@ -577,6 +580,82 @@ namespace slib
 	{
 		return Ref<Pcap>::from(AnyPcap::create(param));
 	}
+
+	sl_bool Pcap::isAllowedNonRoot(const StringParam& executablePath)
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		return sl_true;
+#elif defined(SLIB_PLATFORM_IS_MACOS)
+		ListElements<String> files(File::getFiles("/dev"));
+		for (sl_size i = 0; i < files.count; i++) {
+			String& file = files[i];
+			if (file.startsWith("bp")) {
+				String path = "/dev/" + file;
+				FileAttributes attrs = File::getAttributes(path);
+				if ((attrs & FileAttributes::AllAccess) != FileAttributes::AllAccess) {
+					return sl_false;
+				}
+			}
+		}
+		return sl_false;
+#elif defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+		return File::equalsCap(executablePath, "cap_net_admin,cap_net_raw=eip");
+#else
+		return sl_false;
+#endif
+	}
+
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+	sl_bool Pcap::isAllowedNonRoot()
+	{
+		return isAllowedNonRoot(System::getApplicationPath());
+	}
+#else
+	sl_bool Pcap::isAllowedNonRoot()
+	{
+		return isAllowedNonRoot(sl_null);
+	}
+#endif
+
+	void Pcap::allowNonRoot(const StringParam &executablePath)
+	{
+#if defined(SLIB_PLATFORM_IS_MACOS)
+		if (Process::isCurrentProcessAdmin()) {
+			ListElements<String> files(File::getFiles("/dev"));
+			for (sl_size i = 0; i < files.count; i++) {
+				String& file = files[i];
+				if (file.startsWith("bp")) {
+					String path = "/dev/" + file;
+					FileAttributes attrs = File::getAttributes(path);
+					if ((attrs & FileAttributes::AllAccess) != FileAttributes::AllAccess) {
+						File::setAttributes(path, FileAttributes::AllAccess);
+					}
+				}
+			}
+		} else {
+			Process::runAsAdmin("chmod", "777", "/dev/bp*");
+		}
+#elif defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+		if (Process::isCurrentProcessAdmin()) {
+			File::setCap(executablePath, "cap_net_admin,cap_net_raw=eip");
+		} else {
+			Process::runAsAdmin("setcap", "cap_net_admin,cap_net_raw=eip", executablePath);
+		}
+#endif
+	}
+
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+	void Pcap::allowNonRoot()
+	{
+		allowNonRoot(System::getApplicationPath());
+	}
+#else
+	void Pcap::allowNonRoot()
+	{
+		allowNonRoot(sl_null);
+	}
+#endif
+
 
 	ServiceState Npcap::getDriverState()
 	{
