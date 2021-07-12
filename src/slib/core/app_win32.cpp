@@ -112,6 +112,15 @@ namespace slib
 		unregisterRunAtStartup(getApplicationPath());
 	}
 
+	void Application::registerAtStartMenu(const StartMenuParam& param)
+	{
+		StringParam executablePath = param.executablePath;
+		if (executablePath.isNull()) {
+			executablePath = Application::getApplicationPath();
+		}
+		File::createLink(executablePath, String::join(System::getProgramsDirectory(), "/", param.appName, ".lnk"));
+	}
+
 }
 
 #endif

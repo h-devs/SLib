@@ -489,14 +489,14 @@ Microsoft Specific
 	}
 #endif
 
-#if !defined(SLIB_PLATFORM_IS_WIN32)
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 	void Application::registerRunAtStartup(const StringParam& appName, const StringParam& path)
 	{
 		registerRunAtStartup(path);
 	}
 #endif
 	
-#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_MACOS)
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_MACOS) && !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 	void Application::registerRunAtStartup(const StringParam& path)
 	{
 	}
@@ -520,45 +520,7 @@ Microsoft Specific
 	{
 	}
 
-#if defined(SLIB_PLATFORM_IS_WIN32)
-	void Application::registerAtStartMenu(const StartMenuParam& param)
-	{
-		StringParam executablePath = param.executablePath;
-		if (executablePath.isNull()) {
-			executablePath = Application::getApplicationPath();
-		}
-		File::createLink(executablePath, String::join(System::getProgramsDirectory(), "/", param.appName, ".lnk"));
-	}
-#elif defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
-	void Application::registerAtStartMenu(const StartMenuParam& param)
-	{
-		StringParam appId = param.appId;
-		if (appId.isEmpty()) {
-			Ref<Application> app = getApp();
-			if (app.isNotNull()) {
-				appId = app->getApplicationId();
-			}
-			if (appId.isNull()) {
-				return;
-			}
-		}
-		String pathDesktopFile = String::join(System::getHomeDirectory(), "/.local/share/applications/", appId, ".desktop");
-		StringBuffer sb;
-		sb.addStatic("[Desktop Entry]\nName=");
-		sb.add(param.appName.toString());
-		sb.addStatic("\nExec=");
-		if (param.executablePath.isNotNull()) {
-			sb.add(param.executablePath.toString());
-		} else {
-			sb.add(getApplicationPath());
-		}
-		sb.addStatic("\nIcon=");
-		sb.add(param.iconPath.toString());
-		sb.addStatic("\nType=Application\nCategories=");
-		sb.add(param.categories.toString());
-		File::writeAllTextUTF8(pathDesktopFile, sb.merge());
-	}
-#else
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 	void Application::registerAtStartMenu(const StartMenuParam& param)
 	{
 	}
