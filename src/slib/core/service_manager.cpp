@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #include "slib/core/command_line.h"
 
-#if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_MACOS)
+#if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_MACOS) || defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 #define SUPPORT_SERVICE_MANAGER
 #endif
 

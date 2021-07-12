@@ -199,10 +199,19 @@ if(ANDROID)
  )
 else ()
  set (SLIB_CORE_PLATFORM_FILES
+  "${SLIB_PATH}/src/slib/core/dl_linux_cap.cpp"
+  "${SLIB_PATH}/src/slib/core/dl_linux_glib.cpp"
+  "${SLIB_PATH}/src/slib/core/dl_linux_rt.cpp"
+  "${SLIB_PATH}/src/slib/network/dl_linux_curl.cpp"
+  "${SLIB_PATH}/src/slib/network/dl_linux_pcap.cpp"
+
+  "${SLIB_PATH}/src/slib/core/app_linux.cpp"
   "${SLIB_PATH}/src/slib/core/asset.cpp"
   "${SLIB_PATH}/src/slib/core/charset_icu.cpp"
   "${SLIB_PATH}/src/slib/core/preference_linux.cpp"
+  "${SLIB_PATH}/src/slib/core/service_manager_linux.cpp"
   "${SLIB_PATH}/src/slib/core/wrap_memcpy.cpp"
+  "${SLIB_PATH}/src/slib/network/tap_unix.cpp"
  )
 endif()
 
@@ -450,10 +459,6 @@ if(ANDROID)
  )
 else ()
  set (SLIB_EXTRA_PLATFORM_FILES
-  "${SLIB_PATH}/src/slib/core/dl_linux_glib.cpp"
-  "${SLIB_PATH}/src/slib/core/dl_linux_rt.cpp"
-  "${SLIB_PATH}/src/slib/network/dl_linux_curl.cpp"
-  "${SLIB_PATH}/src/slib/network/dl_linux_pcap.cpp"
   "${SLIB_PATH}/src/slib/graphics/dl_linux_cairo.cpp"
   "${SLIB_PATH}/src/slib/render/dl_linux_gl.cpp"
   "${SLIB_PATH}/src/slib/media/dl_linux_alsa.cpp"
@@ -461,8 +466,6 @@ else ()
   "${SLIB_PATH}/src/slib/ui/dl_linux_gdk.cpp"
   "${SLIB_PATH}/src/slib/ui/dl_linux_x11.cpp"
   "${SLIB_PATH}/src/slib/ui/dl_linux_app_indicator.cpp"
-
-  "${SLIB_PATH}/src/slib/network/tap_unix.cpp"
 
   "${SLIB_PATH}/src/slib/db/mongodb.cpp"
   "${SLIB_PATH}/src/slib/db/mysql.cpp"

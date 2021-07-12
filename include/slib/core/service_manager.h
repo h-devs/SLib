@@ -77,7 +77,8 @@ namespace slib
 		StartPending = 0x11,
 		PausePending = 0x12, // [Win32]
 		StopPending = 0x13, // [Win32]
-		ContinuePending = 0x14 // [Win32]
+		ContinuePending = 0x14, // [Win32]
+		Loaded = 0x20 // [Linux]
 	};
 
 	class SLIB_EXPORT ServiceCreateParam
