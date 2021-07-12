@@ -132,6 +132,52 @@ namespace slib
 			GVariant *value
 		)
 		#define g_variant_unref slib::glib::getApi_g_variant_unref()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_variant_get_string,
+			const gchar *, ,
+			GVariant *value,
+			gsize *length
+		)
+		#define g_variant_get_string slib::glib::getApi_g_variant_get_string()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_variant_get_type,
+			const GVariantType *, ,
+			GVariant *value
+		)
+		#define g_variant_get_type slib::glib::getApi_g_variant_get_type()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_variant_get_type_string,
+			const gchar *, ,
+			GVariant *value
+		)
+		#define g_variant_get_type_string slib::glib::getApi_g_variant_get_type_string()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_variant_type_equal,
+			gboolean, ,
+			gconstpointer type1,
+			gconstpointer type2
+		)
+		#define g_variant_type_equal slib::glib::getApi_g_variant_type_equal()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_variant_n_children,
+			gsize, ,
+			GVariant *value
+		)
+		#define g_variant_n_children slib::glib::getApi_g_variant_n_children()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_variant_get_child_value,
+			GVariant*, ,
+			GVariant *value,
+			gsize index_
+		)
+		#define g_variant_get_child_value slib::glib::getApi_g_variant_get_child_value()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_variant_print,
+			gchar *, ,
+			GVariant *value,
+			gboolean type_annotate
+		)
+		#define g_variant_print slib::glib::getApi_g_variant_print()
 	SLIB_IMPORT_LIBRARY_END
 
 	SLIB_IMPORT_LIBRARY_BEGIN(gobject, "libgobject-2.0.so.0")
@@ -228,16 +274,16 @@ namespace slib
 			const GValue   *value
 		)
 		#define g_object_set_property slib::gobject::getApi_g_object_set_property()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_type_class_adjust_private_offset,
-	        void, ,
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_type_class_adjust_private_offset,
+			void, ,
 			gpointer g_class,
 			gint *private_size_or_offset
-	    )
-        #define g_type_class_adjust_private_offset slib::gobject::getApi_g_type_class_adjust_private_offset()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_type_register_static_simple,
-	        GType, ,
+		)
+		#define g_type_class_adjust_private_offset slib::gobject::getApi_g_type_class_adjust_private_offset()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_type_register_static_simple,
+			GType, ,
 			GType parent_type,
 			const gchar *type_name,
 			guint class_size,
@@ -245,24 +291,24 @@ namespace slib
 			guint instance_size,
 			GInstanceInitFunc instance_init,
 			GTypeFlags flags
-	    )
-        #define g_type_register_static_simple slib::gobject::getApi_g_type_register_static_simple()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_type_add_interface_static,
-	        void, ,
+		)
+		#define g_type_register_static_simple slib::gobject::getApi_g_type_register_static_simple()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_type_add_interface_static,
+			void, ,
 			GType instance_type,
 			GType interface_type,
 			const GInterfaceInfo *info
-	    )
-        #define g_type_add_interface_static slib::gobject::getApi_g_type_add_interface_static()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_object_new,
-	        gpointer, ,
+		)
+		#define g_type_add_interface_static slib::gobject::getApi_g_type_add_interface_static()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_object_new,
+			gpointer, ,
 			GType object_type,
 			const gchar *first_property_name,
-	        ...
-	    )
-        #define g_object_new slib::gobject::getApi_g_object_new()
+			...
+		)
+		#define g_object_new slib::gobject::getApi_g_object_new()
 	SLIB_IMPORT_LIBRARY_END
 
 	SLIB_IMPORT_LIBRARY_BEGIN(gthread, "libgthread-2.0.so.0")
@@ -272,25 +318,25 @@ namespace slib
 			gpointer vtable
 		)
 		#define g_thread_init slib::gthread::getApi_g_thread_init()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_once_init_enter,
-	        gboolean, ,
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_once_init_enter,
+			gboolean, ,
 			volatile void *location
-	    )
-        #ifdef g_once_init_enter
-        #	undef g_once_init_enter
-        #endif
-        #define g_once_init_enter slib::gthread::getApi_g_once_init_enter()
-	    SLIB_IMPORT_LIBRARY_FUNCTION(
-	        g_once_init_leave,
-	        void, ,
+		)
+		#ifdef g_once_init_enter
+		#	undef g_once_init_enter
+		#endif
+		#define g_once_init_enter slib::gthread::getApi_g_once_init_enter()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_once_init_leave,
+			void, ,
 			volatile void *location,
 			gsize result
-	    )
-        #ifdef g_once_init_leave
-        #	undef g_once_init_leave
-        #endif
-        #define g_once_init_leave slib::gthread::getApi_g_once_init_leave()
+		)
+		#ifdef g_once_init_leave
+		#	undef g_once_init_leave
+		#endif
+		#define g_once_init_leave slib::gthread::getApi_g_once_init_leave()
 	SLIB_IMPORT_LIBRARY_END
 
 	SLIB_IMPORT_LIBRARY_BEGIN(gio, "libgio-2.0.so.0")
@@ -385,6 +431,13 @@ namespace slib
 			void, ,
 			GNotification *,
 			const gchar *body
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			g_bus_get_sync,
+			GDBusConnection*, ,
+			GBusType            bus_type,
+			GCancellable       *cancellable,
+			GError            **error
 		)
 	SLIB_IMPORT_LIBRARY_END
 

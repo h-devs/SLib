@@ -28,9 +28,7 @@
 
 #include "slib/core/file.h"
 #include "slib/ui/core.h"
-#include "slib/ui/platform.h"
-
-#include "slib/core/dl/linux/glib.h"
+#include "slib/ui/gtk/gdbus.h"
 
 namespace slib
 {
@@ -42,40 +40,38 @@ namespace slib
 
 			static Ref<Image> DoCaptureFromGnomeShell()
 			{
-				GtkApplication* app = UIPlatform::getApp();
-				if (!app) {
+				auto funcCallSync = gio::getApi_g_dbus_connection_call_sync();
+				if (!funcCallSync) {
 					return sl_null;
 				}
-				auto funcGetDBusConnection = gio::getApi_g_application_get_dbus_connection();
-				if (!funcGetDBusConnection) {
+				GDBusConnection* connection = gtk::GDBus::getDefaultConnection();
+				if (!connection) {
 					return sl_null;
 				}
 				Ref<Image> ret;
 				const char* szTmpFilePath = "/tmp/.gnome_screenshot.png";
-				GVariant* params = g_variant_new(
-					"(bbs)",
-					TRUE, // include mouse pointer
-					FALSE, // flash
-					szTmpFilePath);
-				if (params) {
-					GDBusConnection* connection = funcGetDBusConnection((GApplication*)app);
-					if (connection) {
-						GVariant* varRet = gio::getApi_g_dbus_connection_call_sync()(
-								connection,
-								"org.gnome.Shell.Screenshot", "/org/gnome/Shell/Screenshot",
-								"org.gnome.Shell.Screenshot", "Screenshot",
-								params, sl_null,
-								G_DBUS_CALL_FLAGS_NONE,
-								3000, // timeout
-								sl_null, sl_null);
-						if (varRet) {
-							ret = Image::loadFromFile(szTmpFilePath);
-							File::deleteFile(szTmpFilePath);
-							g_variant_unref(varRet);
-						}
-					}
-					g_variant_unref(params);
+				GVariant* varRet = funcCallSync(
+						connection,
+						"org.gnome.Shell.Screenshot", // bus_name
+						"/org/gnome/Shell/Screenshot", // object_path
+						"org.gnome.Shell.Screenshot", // interface
+						"Screenshot", // method
+						g_variant_new(
+							"(bbs)",
+							TRUE, // include mouse pointer
+							FALSE, // flash
+							szTmpFilePath
+						),
+						sl_null, // reply_type
+						G_DBUS_CALL_FLAGS_NONE,
+						3000, // timeout
+						sl_null, sl_null);
+				if (varRet) {
+					ret = Image::loadFromFile(szTmpFilePath);
+					File::deleteFile(szTmpFilePath);
+					g_variant_unref(varRet);
 				}
+				g_object_unref(connection);
 				return ret;
 			}
 
