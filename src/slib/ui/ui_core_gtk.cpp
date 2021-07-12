@@ -26,10 +26,11 @@
 
 #include "ui_core_common.h"
 
-#include "slib/ui/platform.h"
 #include "slib/ui/app.h"
 #include "slib/ui/screen.h"
+#include "slib/ui/gtk/gdbus.h"
 #include "slib/graphics/image.h"
+#include "slib/core/stringify.h"
 
 namespace slib
 {
@@ -96,6 +97,66 @@ namespace slib
 				if (image) {
 					image->decreaseReference();
 				}
+			}
+
+			static sl_bool GetActiveWindowInfo(String& cls, String& title)
+			{
+				auto funcCallSync = gio::getApi_g_dbus_connection_call_sync();
+				if (!funcCallSync) {
+					return sl_false;
+				}
+				GDBusConnection* connection = gtk::GDBus::getDefaultConnection();
+				if (!connection) {
+					return sl_false;
+				}
+				sl_bool bRet = sl_false;
+				const char* script =
+					SLIB_STRINGIFY(
+						global.
+							get_window_actors().
+							map(a=>a.meta_window).
+							map(w=>({has_focus: w.has_focus(), cls_title: w.get_wm_class() + "_&&_" + w.get_title()})).
+							find(w=>w.has_focus).
+							cls_title
+					);
+				GVariant* result = funcCallSync(
+					connection,
+					"org.gnome.Shell", // bus_name
+					"/org/gnome/Shell", // object_path
+					"org.gnome.Shell", // interface
+					"Eval", // method
+					g_variant_new("(s)", script),
+					sl_null, // reply_type
+					G_DBUS_CALL_FLAGS_NONE,
+					-1, // timeout
+					sl_null, sl_null);
+				if (result) {
+					gchar* str = g_variant_print(result, sl_false);
+					if (str) {
+						sl_size len = Base::getStringLength(str);
+						if (len) {
+							char* s = (char*)(Base::findMemory(str, len, '"'));
+							if (s) {
+								s++;
+								len -= (s - str);
+								char* e = (char*)(Base::findMemoryBackward(s, len, '"'));
+								if (e) {
+									len = e - s;
+									char* sep = (char*)(Base::findMemory(s, len, "_&&_", 4));
+									if (sep) {
+										cls = String(s, sep - s);
+										title = String(sep + 4, e - (sep + 4));
+										bRet = sl_true;
+									}
+								}
+							}
+						}
+						g_free(str);
+					}
+					g_variant_unref(result);
+				}
+				g_object_unref(connection);
+				return bRet;
 			}
 
 		}
@@ -167,6 +228,24 @@ namespace slib
 		StringCstr url(_url);
 		GError* error = NULL;
 		gtk_show_uri(NULL, url.getData(), GDK_CURRENT_TIME, &error);
+	}
+
+	String UI::getActiveApplicationName()
+	{
+		String cls, title;
+		if (GetActiveWindowInfo(cls, title)) {
+			return cls;
+		}
+		return sl_null;
+	}
+
+	String UI::getActiveWindowTitle()
+	{
+		String cls, title;
+		if (GetActiveWindowInfo(cls, title)) {
+			return title;
+		}
+		return sl_null;
 	}
 
 	sl_bool UIPlatform::initializeGtk()
@@ -293,6 +372,9 @@ namespace slib
 	{
 		static sl_bool flagInit = sl_true;
 		if (flagInit) {
+			if (!(UI::isUiThread())) {
+				return sl_null;
+			}
 			flagInit = sl_false;
 			if (isSupportedGtk(3)) {
 				StringCstr id;
@@ -305,7 +387,11 @@ namespace slib
 						id = String::join("app.id", String::fromUint64(Time::now().toInt()));
 					}
 				}
-				g_app = gtk::getApi_gtk_application_new()(id.getData(), G_APPLICATION_FLAGS_NONE);
+				if (id.isEmpty()) {
+					g_app = gtk::getApi_gtk_application_new()(sl_null, G_APPLICATION_FLAGS_NONE);
+				} else {
+					g_app = gtk::getApi_gtk_application_new()(id.getData(), G_APPLICATION_FLAGS_NONE);
+				}
 			}
 		}
 		return g_app;
