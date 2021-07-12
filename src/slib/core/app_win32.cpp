@@ -27,6 +27,7 @@
 #include "slib/core/app.h"
 
 #include "slib/core/file.h"
+#include "slib/core/system.h"
 #include "slib/core/win32/windows.h"
 
 namespace slib
