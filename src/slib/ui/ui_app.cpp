@@ -137,7 +137,7 @@ namespace slib
 		return 0;
 	}
 
-#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32)
+#if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_GTK)
 	sl_int32 UIApp::onExistingInstance()
 	{
 		return -1;

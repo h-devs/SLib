@@ -30,7 +30,11 @@
 #include "slib/ui/screen.h"
 #include "slib/ui/gtk/gdbus.h"
 #include "slib/graphics/image.h"
+#include "slib/network/ipc.h"
+#include "slib/core/json.h"
+#include "slib/core/memory_output.h"
 #include "slib/core/stringify.h"
+#include "slib/core/safe_static.h"
 
 namespace slib
 {
@@ -44,6 +48,50 @@ namespace slib
 
 			pthread_t g_threadMain = 0;
 			sl_bool g_flagRunningAppLoop = sl_false;
+
+
+			static String GetOpenIpcName(const StringParam& appId)
+			{
+				return String::join(appId, ".ipc.ui.open");
+			}
+
+			class StaticContext
+			{
+			public:
+				Ref<IPC> m_ipc;
+
+			public:
+				void initIPC(const StringParam& appId)
+				{
+					if (m_ipc.isNotNull()) {
+						return;
+					}
+					IPCParam param;
+					param.name = GetOpenIpcName(appId);
+					param.onReceiveMessage = SLIB_FUNCTION_MEMBER(StaticContext, onReceiveIPC, this);
+					m_ipc = IPC::create(param);
+				}
+
+				void onReceiveIPC(sl_uint8* data, sl_size size, MemoryOutput* output)
+				{
+					Json json;
+					if (json.deserialize(data, size)) {
+						String command = json["command"].getString();
+						if (command == "open") {
+							String args = json["args"].getString();
+							UIApp::dispatchReopenToApp(args, sl_true);
+							Json("ok").serialize(output);
+						} else {
+							Json("unknown_command").serialize(output);
+						}
+					} else {
+						Json("failed_deserialize").serialize(output);
+					}
+				}
+
+			};
+
+			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
 
 			class ScreenImpl : public Screen
 			{
@@ -346,6 +394,20 @@ namespace slib
 
 	void UIPlatform::runApp()
 	{
+		StaticContext* context = GetStaticContext();
+		if (!context) {
+			return;
+		}
+		{
+			Ref<UIApp> app = UIApp::getApp();
+			if (app.isNotNull()) {
+				String appId = app->getApplicationId();
+				if (appId.isNotEmpty()) {
+					context->initIPC(appId);
+				}
+			}
+		}
+
 		UIApp::dispatchStartToApp();
 		GtkApplication* app = getApp();
 		if (!(UI::isQuitingApp())) {
@@ -421,6 +483,27 @@ namespace slib
 			}
 		}
 		return sl_null;
+	}
+
+	sl_int32 UIApp::onExistingInstance()
+	{
+		String appId = getApplicationId();
+		if (appId.isEmpty()) {
+			return -1;
+		}
+		Ref<IPC> ipc = IPC::create();
+		if (ipc.isNotNull()) {
+			Json json;
+			json.putItem_NoLock("command", "open");
+			json.putItem_NoLock("args", getCommandLine());
+			Ref<Event> ev = Event::create();
+			ipc->sendMessage(GetOpenIpcName(appId), json.serialize(), [ev](sl_uint8*, sl_uint32) {
+				ev->set();
+			});
+			ev->wait(3000);
+			return 0;
+		}
+		return -1;
 	}
 
 }
