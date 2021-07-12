@@ -49,8 +49,8 @@ namespace slib
 #if !defined(SLIB_PLATFORM_IS_APPLE)
 	String System::getCachesDirectory()
 	{
-		String dir = getHomeDirectory() + "/.caches";
-		File::createDirectory(dir);
+		String dir = getHomeDirectory() + "/.local/.caches";
+		File::createDirectories(dir);
 		return dir;
 	}
 #endif

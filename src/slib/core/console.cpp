@@ -165,9 +165,11 @@ namespace slib
 		String ret;
 		char* line = NULL;
 		size_t len = 0;
-		getline(&line, &len, stdin);
+		ssize_t nRet = getline(&line, &len, stdin);
 		if (line) {
-			ret = StringView(line, Base::getStringLength(line, (sl_int32)len)).trimLine();
+			if (nRet >= 0) {
+				ret = StringView(line, Base::getStringLength(line, (sl_int32)len)).trimLine();
+			}
 			free(line);
 		}
 		return ret;

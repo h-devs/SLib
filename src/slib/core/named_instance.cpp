@@ -54,9 +54,9 @@ namespace slib
 #else
 			static String MakeInstancePath(const StringParam& name)
 			{
-				String pathRoot = String::join(System::getHomeDirectory(), "/.named_inst");
+				String pathRoot = String::join(System::getHomeDirectory(), "/.local/.named_inst");
 				if (!(File::exists(pathRoot))) {
-					File::createDirectory(pathRoot);
+					File::createDirectories(pathRoot);
 				}
 				return String::join(pathRoot, "/", name);
 			}

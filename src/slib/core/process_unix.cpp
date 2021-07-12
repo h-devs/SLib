@@ -353,7 +353,7 @@ namespace slib
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 	sl_bool Process::isCurrentProcessAdmin()
 	{
-		return geteuid() == 0;
+		return !(geteuid());
 	}
 #endif
 	

@@ -39,9 +39,11 @@ namespace slib
 		{
 			static String GetFilePath(const String& appName)
 			{
-				String path = System::getHomeDirectory() + "/.SLib.io/pref";
-				File::createDirectories(path);
-				return path + "/" + appName + ".json";
+				String path = System::getHomeDirectory() + "/.local/.pref";
+				if (!(File::exists(path))) {
+					File::createDirectories(path);
+				}
+				return String::join(path, "/", appName, ".json");
 			}
 		}
 	}
