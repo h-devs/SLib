@@ -485,6 +485,19 @@ namespace slib
 
 	void UIPlatform::runApp()
 	{
+		Win32_UI_Shared* shared = Win32_UI_Shared::get();
+		if (!shared) {
+			return;
+		}
+
+		Ref<UIApp> app = UIApp::getApp();
+		if (app.isNotNull()) {
+			String appId = app->getApplicationId();
+			if (appId.isNotEmpty()) {
+				UIPlatform::setWindowText(shared->hWndMessage, appId);
+			}
+		}
+
 		UIDispatcher::processCallbacks();
 		UIApp::dispatchStartToApp();
 		RunLoop(NULL);
@@ -818,12 +831,7 @@ namespace slib
 			wc.lpfnWndProc = MessageWindowProc;
 			wc.lpszClassName = PRIV_SLIB_UI_MESSAGE_WINDOW_CLASS_NAME;
 			m_wndClassForMessage = RegisterClassW(&wc);
-			StringCstr16 appId;
-			Ref<UIApp> app = UIApp::getApp();
-			if (app.isNotNull()) {
-				appId = app->getApplicationId();
-			}
-			hWndMessage = CreateWindowExW(0, (LPCWSTR)((LONG_PTR)m_wndClassForMessage), (LPCWSTR)(appId.getData()), 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hInstance, 0);
+			hWndMessage = CreateWindowExW(0, (LPCWSTR)((LONG_PTR)m_wndClassForMessage), L"", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hInstance, 0);
 		}
 
 	}
