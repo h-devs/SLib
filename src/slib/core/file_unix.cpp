@@ -41,6 +41,7 @@
 #		include <sys/disk.h>
 #	elif defined(SLIB_PLATFORM_IS_LINUX)
 #		include <linux/fs.h>
+#		include "slib/core/dl/linux/cap.h"
 #	endif
 #endif
 #include <dirent.h>
@@ -643,6 +644,51 @@ namespace slib
 		StringCstr filePath(_filePath);
 		return !(chmod(filePath.getData(), GetFilePermissions(attrs)));
 	}
+
+#ifdef SLIB_PLATFORM_IS_LINUX_DESKTOP
+	String File::getCap(const StringParam& _filePath) noexcept
+	{
+		StringCstr filePath(_filePath);
+		cap_t cap = cap_get_file(filePath.getData());
+		if (cap) {
+			String ret = cap_to_text(cap, sl_null);
+			cap_free(cap);
+			return ret;
+		}
+		return sl_null;
+	}
+
+	sl_bool File::setCap(const StringParam& _filePath, const StringParam& _cap) noexcept
+	{
+		StringCstr strCap(_cap);
+		cap_t cap = cap_from_text(strCap.getData());
+		if (cap) {
+			StringCstr filePath(_filePath);
+			sl_bool ret = !(cap_set_file(filePath.getData(), cap));
+			cap_free(cap);
+			return ret;
+		}
+		return sl_false;
+	}
+
+	sl_bool File::equalsCap(const StringParam& _filePath, const StringParam& _cap) noexcept
+	{
+		StringCstr strCap(_cap);
+		cap_t cap1 = cap_from_text(strCap.getData());
+		if (cap1) {
+			sl_bool ret = sl_false;
+			StringCstr filePath(_filePath);
+			cap_t cap2 = cap_get_file(filePath.getData());
+			if (cap2) {
+				ret = cap_compare(cap1, cap2) == 0;
+				cap_free(cap2);
+			}
+			cap_free(cap1);
+			return ret;
+		}
+		return sl_false;
+	}
+#endif
 
 	sl_bool File::_createDirectory(const StringParam& _filePath) noexcept
 	{

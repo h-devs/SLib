@@ -267,6 +267,18 @@ namespace slib
 		return sl_false;
 	}
 
+#if !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+	String File::getCap(const StringParam& filePath) noexcept
+	{
+		return sl_null;
+	}
+
+	sl_bool File::setCap(const StringParam& filePath, const StringParam& cap) noexcept
+	{
+		return sl_false;
+	}
+#endif
+
 	String File::getParentDirectoryPath(const StringParam& _pathName) noexcept
 	{
 		StringData pathName(_pathName);

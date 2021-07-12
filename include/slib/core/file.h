@@ -239,7 +239,8 @@ namespace slib
 		sl_bool unlock() const noexcept;
 
 		sl_bool flush() const noexcept;
-	
+
+		// Unix only
 		sl_bool setNonBlocking(sl_bool flag) const noexcept;
 
 		sl_bool getDiskSize(sl_uint64& outSize) const noexcept;
@@ -291,6 +292,15 @@ namespace slib
 		static sl_bool isReadOnly(const StringParam& filePath) noexcept;
 
 		static sl_bool setReadOnly(const StringParam& filePath, sl_bool flagReadOnly = sl_true) noexcept;
+
+		// Linux only
+		static String getCap(const StringParam& filePath) noexcept;
+
+		// Linux only
+		static sl_bool setCap(const StringParam& filePath, const StringParam& cap) noexcept;
+
+		// Linux only
+		static sl_bool equalsCap(const StringParam& filePath, const StringParam& cap) noexcept;
 
 
 		static sl_bool createDirectory(const StringParam& dirPath, const FileOperationFlags& flags = FileOperationFlags::Default) noexcept;
