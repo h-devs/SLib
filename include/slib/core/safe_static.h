@@ -110,9 +110,7 @@ namespace slib
 				sl_bool* pFreedStatus;
 
 			public:
-				FreeGlobal(T* _object, sl_bool* _pFreedStatus): object(_object), pFreedStatus(_pFreedStatus)
-				{
-				}
+				constexpr FreeGlobal(T* _object, sl_bool* _pFreedStatus): object(_object), pFreedStatus(_pFreedStatus) {}
 
 				~FreeGlobal()
 				{
@@ -124,8 +122,8 @@ namespace slib
 			class IFreeable
 			{
 			public:
-				IFreeable();
-				virtual ~IFreeable();
+				constexpr IFreeable() {};
+				virtual ~IFreeable() {}
 			};
 
 			template <class T>
@@ -136,9 +134,7 @@ namespace slib
 				sl_bool* pFreedStatus;
 
 			public:
-				FreeLocal(T* _object, sl_bool* _pFreedStatus): object(_object), pFreedStatus(_pFreedStatus)
-				{
-				}
+				constexpr FreeLocal(T* _object, sl_bool* _pFreedStatus): object(_object), pFreedStatus(_pFreedStatus) {}
 
 				~FreeLocal()
 				{

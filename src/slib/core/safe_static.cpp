@@ -32,36 +32,45 @@ namespace slib
 		namespace safe_static
 		{
 
-			static Queue<IFreeable*> g_listFreeables;
-
-			IFreeable::IFreeable()
-			{
-			}
-
-			IFreeable::~IFreeable()
-			{
-			}
+			static Queue<IFreeable*>* g_listFreeables = sl_null;
+			static sl_bool g_flagFreed = sl_false;
 
 			class FreeHelper
 			{
 			public:
-				FreeHelper()
-				{
-				}
+				constexpr FreeHelper() {}
 
 				~FreeHelper()
 				{
-					IFreeable* obj;
-					while (g_listFreeables.pop_NoLock(&obj)) {
-						delete obj;
+					g_flagFreed = sl_true;
+					if (g_listFreeables) {
+						IFreeable* obj;
+						while (g_listFreeables->pop_NoLock(&obj)) {
+							delete obj;
+						}
+						delete g_listFreeables;
+						g_listFreeables = sl_null;
 					}
 				}
 
-			} g_helper;
+			};
 
 			void FreeObjectOnExitImpl(IFreeable* obj)
 			{
-				g_listFreeables.push(obj);
+				if (g_flagFreed) {
+					delete obj;
+					return;
+				}
+				if (!g_listFreeables) {
+					SLIB_STATIC_SPINLOCKER(lock)
+					if (!g_listFreeables) {
+						g_listFreeables = new Queue<IFreeable*>;
+						if (!g_listFreeables) {
+							return;
+						}
+					}
+				}
+				g_listFreeables->push(obj);
 			}
 
 		}
