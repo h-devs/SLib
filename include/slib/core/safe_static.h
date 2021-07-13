@@ -122,8 +122,10 @@ namespace slib
 			class IFreeable
 			{
 			public:
-				constexpr IFreeable() {};
+				constexpr IFreeable() {}
+
 				virtual ~IFreeable() {}
+
 			};
 
 			template <class T>
