@@ -27,8 +27,8 @@
 #include "slib/core/system.h"
 
 #include "slib/core/file.h"
-#include "slib/core/variant.h"
-
+#include "slib/core/string.h"
+#include "slib/core/safe_static.h"
 #include "slib/core/dl/linux/rt.h"
 
 #include <string.h>
@@ -59,6 +59,7 @@ namespace slib
 
 	namespace priv
 	{
+
 		void Assert(const char* msg, const char* file, sl_uint32 line) noexcept
 		{
 #if defined(SLIB_DEBUG)
@@ -69,7 +70,52 @@ namespace slib
 #endif
 #endif
 		}
+
+		namespace system
+		{
+
+#if !defined(SLIB_PLATFORM_IS_MOBILE)
+			volatile double g_signal_fpe_dummy = 0.0f;
+#endif
+
+#if !defined(SLIB_PLATFORM_IS_ANDROID) && !defined(SLIB_PLATFORM_IS_APPLE)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strSystemName)
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strSystemVersion)
+
+			static void InitSystemNameAndVersion()
+			{
+				if (g_strSystemName.isNotNull()) {
+					return;
+				}
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+				String strRelease = File::readAllTextUTF8("/etc/os-release");
+				if (strRelease.isNotEmpty()) {
+					sl_reg indexVersion = strRelease.indexOf("VERSION_ID=\"");
+					sl_reg indexName = strRelease.indexOf("NAME=\"");
+					if (indexVersion >=0 && indexName >= 0) {
+						indexVersion += 12;
+						indexName += 6;
+						sl_reg lastVersion = strRelease.indexOf('"', indexVersion);
+						sl_reg lastName = strRelease.indexOf('"', indexName);
+						if (lastVersion >= 0 && lastName >= 0) {
+							g_strSystemVersion = strRelease.substring(indexVersion, lastVersion);
+							g_strSystemName = String::join(strRelease.substring(indexName, lastName), " ", g_strSystemVersion);
+							return;
+						}
+					}
+				}
+#endif
+				utsname systemInfo;
+				uname(&systemInfo);
+				g_strSystemName = String::join(systemInfo.sysname, " ", systemInfo.release);
+				g_strSystemVersion = systemInfo.release;
+			}
+#endif
+		}
+
 	}
+
+	using namespace priv::system;
 
 #if !defined(SLIB_PLATFORM_IS_APPLE) && !defined(SLIB_PLATFORM_IS_ANDROID)
 	String System::getApplicationPath()
@@ -139,16 +185,14 @@ namespace slib
 #if !defined(SLIB_PLATFORM_IS_ANDROID) && !defined(SLIB_PLATFORM_IS_APPLE)
 	String System::getSystemVersion()
 	{
-		utsname systemInfo;
-		uname(&systemInfo);
-		return systemInfo.release;
+		InitSystemNameAndVersion();
+		return g_strSystemVersion;
 	}
 	
 	String System::getSystemName()
 	{
-		utsname systemInfo;
-		uname(&systemInfo);
-		return String::format("%s %s", systemInfo.sysname, systemInfo.release);
+		InitSystemNameAndVersion();
+		return g_strSystemName;
 	}
 #endif
 	
@@ -240,10 +284,10 @@ namespace slib
 	sl_int32 System::execute(const StringParam& _command)
 	{
 #if defined(SLIB_PLATFORM_IS_IOS)
-        return -1;
+		return -1;
 #else
-        StringCstr command(_command);
-        return (sl_int32)(system(command.getData()));
+		StringCstr command(_command);
+		return (sl_int32)(system(command.getData()));
 #endif
 	}
 
@@ -261,14 +305,6 @@ namespace slib
 	}
 
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-	namespace priv
-	{
-		namespace system
-		{
-			volatile double g_signal_fpe_dummy = 0.0f;
-		}
-	}
-
 	void System::setCrashHandler(SIGNAL_HANDLER handler)
 	{
 		struct sigaction sa;
@@ -300,9 +336,9 @@ namespace slib
 	
 	String System::formatErrorCode(sl_uint32 errorCode)
 	{
-		String ret = ::strerror(errorCode);
+		String ret = strerror(errorCode);
 		if (ret.isEmpty()) {
-			return String::format("Unknown error: %d", errorCode);
+			return String::join("Unknown error: ", String::fromUint32(errorCode));
 		}
 		return ret;
 	}
