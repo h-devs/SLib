@@ -41,6 +41,7 @@ namespace slib
 		namespace ipc
 		{
 
+#if !defined(SLIB_PLATFORM_IS_LINUX)
 			static String GetDomainName(const StringParam& name)
 			{
 #if defined(SLIB_PLATFORM_IS_WIN32)
@@ -49,6 +50,7 @@ namespace slib
 				return String::join("/var/tmp/IPC__", name);
 #endif
 			}
+#endif
 		
 			class DomainSocketIPC : public IPC
 			{
@@ -118,7 +120,11 @@ namespace slib
 				{
 					Thread* thread = Thread::getCurrent();
 					if (thread) {
+#ifdef SLIB_PLATFORM_IS_LINUX
+						if (socket.connectAbstractDomainAndWait(serverName)) {
+#else
 						if (socket.connectDomainAndWait(GetDomainName(serverName))) {
+#endif
 							if (writeMessage(thread, socket, data.getData(), (sl_uint32)(data.getSize()))) {
 								if (thread->isNotStoppingCurrent()) {
 									Memory mem = readMessage(thread, socket);
@@ -270,6 +276,9 @@ namespace slib
 				{
 					Socket socket = Socket::openDomainStream();
 					if (socket.isOpened()) {
+#ifdef SLIB_PLATFORM_IS_LINUX
+						if (socket.bindAbstractDomain(param.name)) {
+#else
 						String path = GetDomainName(param.name);
 						File::deleteFile(path);
 						if (socket.bindDomain(path)) {
@@ -277,6 +286,7 @@ namespace slib
 							if (param.flagAcceptOtherUsers) {
 								File::setAttributes(path, FileAttributes::AllAccess);
 							}
+#endif
 #endif
 							if (socket.setNonBlockingMode(sl_true)) {
 								if (socket.listen()) {
