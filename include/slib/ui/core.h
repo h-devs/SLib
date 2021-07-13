@@ -210,6 +210,8 @@ namespace slib
 		static void dismissKeyboard();
 		
 
+		static void getActiveApplicationAndWindow(String& appName, String& windowTitle);
+
 		static String getActiveApplicationName();
 		
 		// [macOS] Accessibility authentication is required. See `Application::isAccessibilityEnabled()`.

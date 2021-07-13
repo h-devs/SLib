@@ -163,9 +163,8 @@ namespace slib
 						global.
 							get_window_actors().
 							map(a=>a.meta_window).
-							map(w=>({has_focus: w.has_focus(), cls_title: w.get_wm_class() + "_&&_" + w.get_title()})).
-							find(w=>w.has_focus).
-							cls_title
+							map(w=>({has_focus: w.has_focus(), cls: w.get_wm_class(), title: w.get_title()})).
+							find(w=>w.has_focus)
 					);
 				GVariant* result = funcCallSync(
 					connection,
@@ -179,27 +178,19 @@ namespace slib
 					-1, // timeout
 					sl_null, sl_null);
 				if (result) {
-					gchar* str = g_variant_print(result, sl_false);
-					if (str) {
-						sl_size len = Base::getStringLength(str);
-						if (len) {
-							char* s = (char*)(Base::findMemory(str, len, '"'));
-							if (s) {
-								s++;
-								len -= (s - str);
-								char* e = (char*)(Base::findMemoryBackward(s, len, '"'));
-								if (e) {
-									len = e - s;
-									char* sep = (char*)(Base::findMemory(s, len, "_&&_", 4));
-									if (sep) {
-										cls = String(s, sep - s);
-										title = String(sep + 4, e - (sep + 4));
-										bRet = sl_true;
-									}
-								}
+					if (Base::equalsString(g_variant_get_type_string(result), "(bs)")) {
+						GVariant* gstrResult = g_variant_get_child_value(result, 1);
+						if (gstrResult) {
+							gsize lenResult = 0;
+							const gchar* szResult = g_variant_get_string(gstrResult, &lenResult);
+							Json json = Json::parseJson(szResult);
+							cls = json["cls"].getString();
+							title = json["title"].getString();
+							if (cls.isNotNull() || title.isNotNull()) {
+								bRet = sl_true;
 							}
+							g_variant_unref(gstrResult);
 						}
-						g_free(str);
 					}
 					g_variant_unref(result);
 				}
@@ -276,6 +267,14 @@ namespace slib
 		StringCstr url(_url);
 		GError* error = NULL;
 		gtk_show_uri(NULL, url.getData(), GDK_CURRENT_TIME, &error);
+	}
+
+	void UI::getActiveApplicationAndWindow(String& appName, String& windowTitle)
+	{
+		if (!(GetActiveWindowInfo(appName, windowTitle))) {
+			appName.setNull();
+			windowTitle.setNull();
+		}
 	}
 
 	String UI::getActiveApplicationName()
