@@ -88,26 +88,26 @@ namespace slib
 			{
 				DWORD code = pExceptionPtrs->ExceptionRecord->ExceptionCode;
 				switch (code) {
-					case EXCEPTION_ACCESS_VIOLATION:
-					case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
-					case EXCEPTION_DATATYPE_MISALIGNMENT:
-					case EXCEPTION_FLT_DENORMAL_OPERAND:
-					case EXCEPTION_FLT_DIVIDE_BY_ZERO:
-					case EXCEPTION_FLT_INEXACT_RESULT:
-					case EXCEPTION_FLT_INVALID_OPERATION:
-					case EXCEPTION_FLT_OVERFLOW:
-					case EXCEPTION_FLT_STACK_CHECK:
-					case EXCEPTION_FLT_UNDERFLOW:
-					case EXCEPTION_ILLEGAL_INSTRUCTION:
-					case EXCEPTION_IN_PAGE_ERROR:
-					case EXCEPTION_INT_DIVIDE_BY_ZERO:
-					case EXCEPTION_INT_OVERFLOW:
-					case EXCEPTION_INVALID_DISPOSITION:
-					case EXCEPTION_NONCONTINUABLE_EXCEPTION:
-					case EXCEPTION_PRIV_INSTRUCTION:
-					case EXCEPTION_STACK_OVERFLOW:
-						g_handlerSignalCrash(-1);
-						break;
+				case EXCEPTION_ACCESS_VIOLATION:
+				case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+				case EXCEPTION_DATATYPE_MISALIGNMENT:
+				case EXCEPTION_FLT_DENORMAL_OPERAND:
+				case EXCEPTION_FLT_DIVIDE_BY_ZERO:
+				case EXCEPTION_FLT_INEXACT_RESULT:
+				case EXCEPTION_FLT_INVALID_OPERATION:
+				case EXCEPTION_FLT_OVERFLOW:
+				case EXCEPTION_FLT_STACK_CHECK:
+				case EXCEPTION_FLT_UNDERFLOW:
+				case EXCEPTION_ILLEGAL_INSTRUCTION:
+				case EXCEPTION_IN_PAGE_ERROR:
+				case EXCEPTION_INT_DIVIDE_BY_ZERO:
+				case EXCEPTION_INT_OVERFLOW:
+				case EXCEPTION_INVALID_DISPOSITION:
+				case EXCEPTION_NONCONTINUABLE_EXCEPTION:
+				case EXCEPTION_PRIV_INSTRUCTION:
+				case EXCEPTION_STACK_OVERFLOW:
+					g_handlerSignalCrash(-1);
+					break;
 				}
 				return EXCEPTION_EXECUTE_HANDLER;
 			}
@@ -191,11 +191,11 @@ namespace slib
 	}
 
 	using namespace priv::system;
-	
+
 	String System::getApplicationPath()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
-		sl_char16 bufAppPath[PRIV_PATH_MAX] = {0};
+		sl_char16 bufAppPath[PRIV_PATH_MAX] = { 0 };
 		GetModuleFileNameW(GetModuleHandle(NULL), (WCHAR*)bufAppPath, PRIV_PATH_MAX - 1);
 		return String::create(bufAppPath);
 #endif
@@ -229,7 +229,7 @@ namespace slib
 	String System::getTempDirectory()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
-		sl_char16 sz[PRIV_PATH_MAX] = {0};
+		sl_char16 sz[PRIV_PATH_MAX] = { 0 };
 		sl_int32 n = GetTempPathW(PRIV_PATH_MAX - 1, (LPWSTR)sz);
 		if (sz[n - 1] == '\\') {
 			n--;
@@ -296,6 +296,62 @@ namespace slib
 		return sl_null;
 	}
 #endif
+
+	String System::getEnvironmentVariable(const StringParam& _name)
+	{
+		if (_name.isNull()) {
+			return sl_null;
+		}
+		StringCstr16 name(_name);
+		WCHAR buf[1024];
+		DWORD dwRet = GetEnvironmentVariableW((LPCWSTR)(name.getData()), buf, (DWORD)(CountOfArray(buf)));
+		if (dwRet) {
+			if (dwRet <= CountOfArray(buf)) {
+				return String::from(buf, (sl_reg)dwRet);
+			} else {
+				DWORD n = dwRet;
+				for (;;) {
+					WCHAR* p = new WCHAR[n];
+					if (p) {
+						sl_bool flagRet = sl_false;
+						String ret;
+						dwRet = GetEnvironmentVariableW((LPCWSTR)(name.getData()), p, n);
+						if (dwRet) {
+							if (dwRet <= n) {
+								ret = String::from(p, (sl_reg)dwRet);
+								flagRet = sl_true;
+							} else {
+								n = dwRet;
+							}
+						} else {
+							flagRet = sl_true;
+						}
+						delete[] p;
+						if (flagRet) {
+							return ret;
+						}
+					} else {
+						return sl_null;
+					}
+				}
+			}
+		}
+		return sl_null;
+	}
+
+	sl_bool System::setEnvironmentVariable(const StringParam& _name, const StringParam& _value)
+	{
+		if (_name.isNull()) {
+			return sl_false;
+		}
+		StringCstr16 name(_name);
+		if (_value.isNotNull()) {
+			StringCstr16 value(_value);
+			return SetEnvironmentVariableW((LPCWSTR)(name.getData()), (LPCWSTR)(value.getData()));
+		} else {
+			return SetEnvironmentVariableW((LPCWSTR)(name.getData()), NULL);
+		}
+	}
 
 	sl_bool System::is64BitSystem()
 	{

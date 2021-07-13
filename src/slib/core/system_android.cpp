@@ -89,16 +89,6 @@ namespace slib
 		return getMachineName();
 	}
 	
-	String System::getUserName()
-	{
-		return "mobile";
-	}
-	
-	String System::getFullUserName()
-	{
-		return "Mobile User";
-	}
-
 	String System::getSystemName()
 	{
 		return "Android " + getSystemVersion();

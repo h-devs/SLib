@@ -43,10 +43,6 @@ namespace slib
 			
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicWeakRef<Application>, g_weakref_app)
 
-			typedef HashMap<String, String> EnvironmentList;
-			
-			SLIB_SAFE_STATIC_GETTER(EnvironmentList, GetEnvironmentList, EnvironmentList::create())
-
 			SLIB_SAFE_STATIC_GETTER(String, GetAppPath, System::getApplicationPath())
 		
 			SLIB_SAFE_STATIC_GETTER(String, GetAppDir, System::getApplicationDirectory())
@@ -352,42 +348,6 @@ Microsoft Specific
 		m_flagCrashRecoverySupport = flagSupport;
 	}
 	
-	void Application::setEnvironmentPath(const StringParam& key, const StringParam& path)
-	{
-		EnvironmentList* envMap = GetEnvironmentList();
-		if (envMap) {
-			envMap->put(key.toString(), path.toString());
-		}
-	}
-
-	String Application::getEnvironmentPath(const StringParam& key)
-	{
-		EnvironmentList* envMap = GetEnvironmentList();
-		if (envMap) {
-			return envMap->getValue(key.toString(), String::null());
-		}
-		return sl_null;
-	}
-
-	String Application::parseEnvironmentPath(const StringParam& _path)
-	{
-		String path = _path.toString();
-		if (path.startsWith('<')) {
-			sl_reg index = path.indexOf('>', 1);
-			if (index > 2) {
-				String key = path.substring(1, index);
-				String v;
-				if (key == "APP") {
-					v = getApplicationDirectory();
-				} else {
-					v = getEnvironmentPath(key);
-				}
-				path = v + path.substring(index + 1);
-			}
-		}
-		return path;
-	}
-
 	String Application::getApplicationPath()
 	{
 		String* s = GetAppPath();
@@ -414,7 +374,7 @@ Microsoft Specific
 		}
 	}
 
-	String Application::findFileAndSetAppPath(const StringParam& filePath, sl_uint32 nDeep)
+	String Application::findFileAndSetApplicationDirectory(const StringParam& filePath, sl_uint32 nDeep)
 	{
 		String appPath = getApplicationDirectory();
 		String path = File::findParentPathContainingFile(appPath, filePath);

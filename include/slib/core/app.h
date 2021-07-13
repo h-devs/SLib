@@ -177,21 +177,13 @@ namespace slib
 
 		static void setApp(Application* app);
 
-
-		static void setEnvironmentPath(const StringParam& key, const StringParam& path);
-
-		static String getEnvironmentPath(const StringParam& key);
-
-		static String parseEnvironmentPath(const StringParam& path);
-	
-
 		static String getApplicationPath();
 
 		static String getApplicationDirectory();
 
 		static void setApplicationDirectory(const StringParam& path);
 
-		static String findFileAndSetAppPath(const StringParam& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX);
+		static String findFileAndSetApplicationDirectory(const StringParam& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX);
 
 	public:
 		static sl_bool checkPermissions(const AppPermissions& permissions);

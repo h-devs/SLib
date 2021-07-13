@@ -74,6 +74,10 @@ namespace slib
 		static String getProgramsDirectory();
 #endif
 
+		static String getEnvironmentVariable(const StringParam& name);
+
+		static sl_bool setEnvironmentVariable(const StringParam& name, const StringParam& value);
+
 
 		static sl_bool is64BitSystem();
 

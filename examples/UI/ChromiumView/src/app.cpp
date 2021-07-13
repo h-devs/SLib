@@ -34,7 +34,7 @@ void ExampleChromiumViewApp::onStart()
 	sl_real fontSize = UI::getScreenWidth() / 25;
 #endif
 #ifdef SLIB_PLATFORM_IS_WIN32
-	String path = Application::findFileAndSetAppPath("asset/web/index.html");
+	String path = Application::findFileAndSetApplicationDirectory("asset/web/index.html");
 	Application::setApplicationDirectory(path + "/asset");
 #endif
 	

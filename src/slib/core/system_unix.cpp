@@ -168,9 +168,28 @@ namespace slib
 		return sl_false;
 	}
 
-	String System::getUserId()
+	String System::getEnvironmentVariable(const StringParam& _name)
 	{
-		return String::fromUint32((sl_uint32)(getuid()));
+		if (_name.isNull()) {
+			return sl_null;
+		}
+		StringCstr name(_name);
+		return getenv(name.getData());
+	}
+
+	sl_bool System::setEnvironmentVariable(const StringParam& _name, const StringParam& _value)
+	{
+		if (_name.isNull()) {
+			return sl_null;
+		}
+		StringCstr name(_name);
+		StringCstr value(_value);
+		if (_value.isNotNull()) {
+			StringCstr value(_value);
+			return !(setenv(name.getData(), value.getData(), 1));
+		} else {
+			return !(unsetenv(name.getData()));
+		}
 	}
 
 	sl_bool System::is64BitSystem()
@@ -212,7 +231,14 @@ namespace slib
 		gethostname(buf, 500);
 		return buf;
 	}
-	
+#endif
+
+	String System::getUserId()
+	{
+		return String::fromUint32((sl_uint32)(getuid()));
+	}
+
+#if !defined(SLIB_PLATFORM_IS_APPLE)
 	String System::getUserName()
 	{
 		return getlogin();
@@ -255,7 +281,7 @@ namespace slib
 		}
 #endif
 		struct timeval tv;
-		if (gettimeofday(&tv, 0) == 0) {
+		if (!(gettimeofday(&tv, 0))) {
 			return (sl_uint64)(tv.tv_sec) * 1000 + tv.tv_usec / 1000;
 		} else {
 			return 0;
