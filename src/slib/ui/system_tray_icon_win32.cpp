@@ -234,7 +234,7 @@ namespace slib
 					}
 
 					nid.uID = m_id;
-					nid.uFlags = NIF_INFO;
+					nid.uFlags = NIF_INFO | NIF_SHOWTIP;
 					nid.uTimeout = param.timeout;
 					setInfo(nid, param.message);
 					setInfoTitle(nid, param.title);
@@ -289,7 +289,7 @@ namespace slib
 						nid.uID = m_id;
 						sl_bool flagLoadedIcon = sl_false;
 						nid.hIcon = createIcon(name, icon, flagLoadedIcon);
-						nid.uFlags = NIF_ICON;
+						nid.uFlags = NIF_ICON | NIF_SHOWTIP;
 						if (Shell_NotifyIconW(NIM_MODIFY, &nid)) {
 							if (m_hIcon) {
 								DestroyIcon(m_hIcon);
@@ -309,7 +309,7 @@ namespace slib
 					if (prepareNID(nid)) {
 						nid.uID = m_id;
 						setTip(nid, toolTip);
-						nid.uFlags = NIF_TIP;
+						nid.uFlags = NIF_TIP | NIF_SHOWTIP;
 						Shell_NotifyIconW(NIM_MODIFY, &nid);
 					}
 				}
