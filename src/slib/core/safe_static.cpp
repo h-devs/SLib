@@ -53,7 +53,7 @@ namespace slib
 					}
 				}
 
-			};
+			} g_freeHelper;
 
 			void FreeObjectOnExitImpl(IFreeable* obj)
 			{
