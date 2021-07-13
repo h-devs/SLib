@@ -29,6 +29,7 @@
 #include "slib/core/memory_writer.h"
 #include "slib/core/hash_map.h"
 #include "slib/core/assert.h"
+#include "slib/core/scoped_buffer.h"
 
 /*
 	This code is ported from WebRTC source
@@ -682,22 +683,22 @@ namespace slib
 
 		sl_uint32 now = PseudoTcp::now();
 
-		UniquePtr<sl_uint8[]> buffer(new sl_uint8[MAX_PACKET]);
-		LongToBytes(m_conv, buffer.get());
-		LongToBytes(seq, buffer.get() + 4);
-		LongToBytes(m_rcv_nxt, buffer.get() + 8);
+		SLIB_SCOPED_BUFFER(sl_uint8, 4096, buffer, len + HEADER_SIZE)
+		LongToBytes(m_conv, buffer);
+		LongToBytes(seq, buffer + 4);
+		LongToBytes(m_rcv_nxt, buffer + 8);
 		buffer[12] = 0;
 		buffer[13] = flags;
-		ShortToBytes(static_cast<sl_uint16>(m_rcv_wnd >> m_rwnd_scale), buffer.get() + 14);
+		ShortToBytes(static_cast<sl_uint16>(m_rcv_wnd >> m_rwnd_scale), buffer + 14);
 
 		// Timestamp computations
-		LongToBytes(now, buffer.get() + 16);
-		LongToBytes(m_ts_recent, buffer.get() + 20);
+		LongToBytes(now, buffer + 16);
+		LongToBytes(m_ts_recent, buffer + 20);
 		m_ts_lastack = m_rcv_nxt;
 
 		if (len) {
 			sl_size bytes_read = 0;
-			sl_bool result = m_sbuf.readOffset(buffer.get() + HEADER_SIZE, len, offset, &bytes_read);
+			sl_bool result = m_sbuf.readOffset(buffer + HEADER_SIZE, len, offset, &bytes_read);
 			SLIB_UNUSED(result);
 			SLIB_ASSERT(result);
 			SLIB_ASSERT(static_cast<sl_uint32>(bytes_read) == len);
@@ -705,7 +706,7 @@ namespace slib
 
 		LOG_VERBOSE("buildPacket: conv=%s, flg=%s, seq=%s:%s, ack=%s, wnd=%s, ts=%s, tsr=%s, len=%s", m_conv, flags, seq, seq + len, m_rcv_nxt, m_rcv_wnd, (now % 10000), (m_ts_recent % 10000), len);
 
-		PseudoTcpWriteResult wres = m_notify->writeTcpPacket(this, reinterpret_cast<char*>(buffer.get()), len + HEADER_SIZE);
+		PseudoTcpWriteResult wres = m_notify->writeTcpPacket(this, reinterpret_cast<char*>(buffer), len + HEADER_SIZE);
 		
 		// Note: When len is 0, this is an ACK packet.  We don't read the return value for those, and thus we won't retry.  So go ahead and treat the packet as a success (basically simulate as if it were dropped), which will prevent our timers from being messed up.
 		if ((wres != PseudoTcpWriteResult::Success) && (0 != len)) {
