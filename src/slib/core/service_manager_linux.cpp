@@ -94,7 +94,7 @@ namespace slib
 		}
 		sb.addStatic("\nExecStart=");
 		sb.add(param.getCommandLine());
-		sb.addStatic("\nRestart=always\nProtectSystem=full\nPrivateDevices=yes\nPrivateTmp=yes\nNoNewPrivileges=true\n\n[Install]\nWantedBy=multi-user.target");
+		sb.addStatic("\nRestart=always\n\n[Install]\nWantedBy=multi-user.target");
 		File::writeAllTextUTF8(GetUnitFilePath(param.name), sb.merge());
 		System::execute("systemctl daemon-reload");
 		if (param.startType == ServiceStartType::Auto) {

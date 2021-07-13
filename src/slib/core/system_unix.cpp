@@ -180,7 +180,7 @@ namespace slib
 	sl_bool System::setEnvironmentVariable(const StringParam& _name, const StringParam& _value)
 	{
 		if (_name.isNull()) {
-			return sl_null;
+			return sl_false;
 		}
 		StringCstr name(_name);
 		StringCstr value(_value);
