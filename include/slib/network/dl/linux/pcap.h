@@ -121,6 +121,13 @@ namespace slib
 		#define pcap_loop slib::pcap::getApi_pcap_loop()
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			pcap_dispatch,
+			int, ,
+			pcap_t *, int, pcap_handler, u_char *
+		)
+		#define pcap_dispatch slib::pcap::getApi_pcap_dispatch()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			pcap_datalink,
 			int, ,
 			pcap_t *

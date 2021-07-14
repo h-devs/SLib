@@ -53,6 +53,8 @@
 #		include "pcap/pcap.h"
 #	endif
 #	include <sys/socket.h>
+#	include <signal.h>
+#	include <pthread.h>
 #endif
 
 #define MAX_PACKET_SIZE 65535
@@ -62,6 +64,8 @@ void InitNpcap();
 void FreeNpcap();
 #endif
 #define NPCAP_DRIVER_NAME "NPCAP"
+
+#define PCAP_BREAK_SIGNAL SIGUSR1
 
 namespace slib
 {
@@ -99,12 +103,19 @@ namespace slib
 
 				sl_bool m_flagInit;
 				sl_bool m_flagRunning;
+
+#if !defined(SLIB_PLATFORM_IS_WIN32)
+				pthread_t m_pthread;
+#endif
 				
 			public:
 				PcapImpl()
 				{
 					m_flagInit = sl_false;
 					m_flagRunning = sl_false;
+#if !defined(SLIB_PLATFORM_IS_WIN32)
+					m_pthread = 0;
+#endif
 				}
 				
 				~PcapImpl()
@@ -208,8 +219,21 @@ namespace slib
 					m_flagInit = sl_false;
 
 					m_flagRunning = sl_false;
-					
+
+					if (m_thread.isNotNull()) {
+						m_thread->finish();
+					}
+
 					pcap_breakloop(m_handle);
+
+#if defined(SLIB_PLATFORM_IS_WIN32)
+					HANDLE hEvent = pcap_getevent(m_handle);
+					if (hEvent) {
+						SetEvent(hEvent);
+					}
+#else
+					pthread_kill(m_pthread, PCAP_BREAK_SIGNAL);
+#endif
 
 					if (m_thread.isNotNull()) {
 						m_thread->finishAndWait();
@@ -230,8 +254,9 @@ namespace slib
 						return;
 					}
 					if (m_thread.isNotNull()) {
-						if (m_thread->start()) {
-							m_flagRunning = sl_true;
+						m_flagRunning = sl_true;
+						if (!(m_thread->start())) {
+							m_flagRunning = sl_false;
 						}
 					}
 				}
@@ -243,6 +268,8 @@ namespace slib
 
 				static void _handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
 				{
+					PcapImpl* pcap = (PcapImpl*)user;
+
 					NetCapturePacket packet;
 					packet.data = (sl_uint8*)bytes;
 					packet.length = h->len;
@@ -252,15 +279,33 @@ namespace slib
 					sl_uint64 t = h->ts.tv_sec;
 					t = t * 1000000 + h->ts.tv_usec;
 					packet.time = t;
-					((PcapImpl*)user)->_onCapturePacket(packet);
+
+					pcap->_onCapturePacket(packet);
+				}
+
+				static void _handlerBreakSignal(int signum)
+				{
 				}
 				
 				void _run()
 				{
-					int result = pcap_loop(m_handle, -1, &_handler, (u_char*)this);
-					if (result == -1) {
-						Ref<PcapImpl> thiz = this; // Protection for releasing during callback
-						_onError();
+#if !defined(SLIB_PLATFORM_IS_WIN32)
+					m_pthread = pthread_self();
+					struct sigaction sa;
+					Base::zeroMemory(&sa, sizeof(sa));
+					sigemptyset(&sa.sa_mask);
+					sa.sa_handler = _handlerBreakSignal;
+					sigaction(PCAP_BREAK_SIGNAL, &sa, NULL);
+#endif
+					while (m_flagRunning) {
+						int result = pcap_dispatch(m_handle, -1, &_handler, (u_char*)this);
+						if (result < 0) {
+							if (result == -1) {
+								Ref<PcapImpl> thiz = this; // Protection for releasing during callback
+								_onError();
+							}
+							break;
+						}
 					}
 					m_flagRunning = sl_false;
 				}
