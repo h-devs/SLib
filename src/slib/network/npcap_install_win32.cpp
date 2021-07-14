@@ -64,7 +64,7 @@ namespace slib
 					return sl_false;
 				}
 
-				sl_bool flagWin10 = Win32::getVersion() >= WindowsVersion::Windows10;
+				sl_bool flagWin10 = System::getMajorVersion() >= 10;
 				unsigned char* npcap_sys_compressed_data64 = flagWin10 ? ::npcap::files::npcap_win10_sys_compressed_data64 : ::npcap::files::npcap_win7_sys_compressed_data64;
 				unsigned long npcap_sys_compressed_size64 = flagWin10 ? ::npcap::files::npcap_win10_sys_compressed_size64 : ::npcap::files::npcap_win7_sys_compressed_size64;
 #ifdef SLIB_PLATFORM_IS_WIN64

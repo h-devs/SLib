@@ -472,7 +472,7 @@ namespace slib
 					char errBuf[PCAP_ERRBUF_SIZE] = { 0 };
 					pcap_if_t* devs = NULL;
 					int ret = pcap_findalldevs(&devs, errBuf);
-					if (ret == 0 && devs) {
+					if (!ret && devs) {
 						pcap_if_t* dev = devs;
 						while (dev) {
 							if (!(dev->flags & PCAP_IF_LOOPBACK) && !(Base::equalsString(dev->name, "any"))) {

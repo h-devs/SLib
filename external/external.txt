@@ -17,7 +17,7 @@ hiredis 0.14.0
 libcef 76.1.10
 rocksdb 6.16.4
 libmongoc 1.17.5
-npcap 1.31
+npcap 1.50
 
 # Header-File Library
 stb_image 2.19
