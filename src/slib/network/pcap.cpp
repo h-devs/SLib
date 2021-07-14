@@ -62,10 +62,12 @@
 #ifdef USE_STATIC_NPCAP
 void InitNpcap();
 void FreeNpcap();
-#endif
 #define NPCAP_DRIVER_NAME "NPCAP"
+#endif
 
+#if !defined(SLIB_PLATFORM_IS_WIN32)
 #define PCAP_BREAK_SIGNAL SIGUSR1
+#endif
 
 namespace slib
 {
