@@ -315,7 +315,12 @@ namespace slib
 				NetworkLinkDeviceType getLinkType() override
 				{
 					sl_uint32 dt = pcap_datalink(m_handle);
-					return (NetworkLinkDeviceType)dt;
+					switch (dt) {
+						case DLT_RAW:
+							return NetworkLinkDeviceType::Raw;
+						default:
+							return (NetworkLinkDeviceType)dt;
+					}
 				}
 
 				sl_bool setLinkType(sl_uint32 type) override

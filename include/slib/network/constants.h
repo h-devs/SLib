@@ -40,14 +40,14 @@ namespace slib
 	
 	enum class NetworkLinkDeviceType
 	{
-		LoopbackBSD = 0, //  BSD loopback encapsulation; the link layer header is a 4-byte field, in host byte order, containing a PF_ value from socket.h for the network-layer protocol of the packet.
+		Null = 0, //  BSD loopback encapsulation; the link layer header is a 4-byte field, in host byte order, containing a PF_ value from socket.h for the network-layer protocol of the packet.
 		Ethernet = 1, // 6 bytes destination mac, 6 bytes source mac, 2 bytes Ethertype
 		PPP = 9, // Point-to-Point Protocol Datalink layer
-		PPPoE = 51, // PPP over Ethernet
-		Raw = 101, // Raw IP; the packet begins with an IPv4 or IPv6 header, with the "version" field of the header indicating whether it's an IPv4 or IPv6 header.
 		IEEE802_11 = 105, // IEEE 802.11 wireless LAN
-		LoobackOpenBSD = 108, // OpenBSD loopback encapsulation; the link-layer header is a 4-byte field, in network byte order, containing a PF_ value from OpenBSD's socket.h for the network-layer protocol of the packet.
-		Linux = 113 //  Linux "cooked" capture encapsulation. (for "any" or PPP devices)
+		Linux = 113, //  Linux "cooked" capture encapsulation. (for "any" or PPP devices)
+
+		Raw = 0x8001 // Raw IP; the packet begins with an IPv4 or IPv6 header, with the "version" field of the header indicating whether it's an IPv4 or IPv6 header.
+		
 	};
 	
 	enum class NetworkInternetProtocol
