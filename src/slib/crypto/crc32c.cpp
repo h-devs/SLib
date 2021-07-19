@@ -20,10 +20,11 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/crypto/crc32c.h"
+#include "slib/crypto/crc32.h"
 
 #include "slib/core/mio.h"
 #include "slib/core/asm.h"
+#include "slib/core/memory.h"
 
 /*
  

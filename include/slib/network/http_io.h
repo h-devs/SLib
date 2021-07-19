@@ -136,7 +136,7 @@ namespace slib
 		
 	protected:
 		sl_bool m_flagDecompressing;
-		ZlibDecompress m_zlib;
+		ZlibDecompressor m_zlib;
 		HttpContentReaderOnComplete m_onComplete;
 
 	};

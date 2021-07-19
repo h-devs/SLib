@@ -130,7 +130,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/crypto/block_cipher.cpp"
  "${SLIB_PATH}/src/slib/crypto/blowfish.cpp"
  "${SLIB_PATH}/src/slib/crypto/chacha.cpp"
- "${SLIB_PATH}/src/slib/crypto/compress_zlib.cpp"
+ "${SLIB_PATH}/src/slib/crypto/compress.cpp"
  "${SLIB_PATH}/src/slib/crypto/crc32c.cpp"
  "${SLIB_PATH}/src/slib/crypto/des.cpp"
  "${SLIB_PATH}/src/slib/crypto/ecc.cpp"
@@ -147,6 +147,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/crypto/sha1.cpp"
  "${SLIB_PATH}/src/slib/crypto/sha2.cpp"
  "${SLIB_PATH}/src/slib/crypto/tls.cpp"
+ "${SLIB_PATH}/src/slib/crypto/zlib.cpp"
 
  "${SLIB_PATH}/src/slib/math/bigint.cpp"
  "${SLIB_PATH}/src/slib/math/calculator.cpp"
@@ -563,9 +564,7 @@ set (
 set (SNAPPY_ROOT_DIR "${SLIB_PATH}/external/src/snappy")
 set (
  SNAPPY_FILES
- "${SNAPPY_ROOT_DIR}/snappy.cc"
- "${SNAPPY_ROOT_DIR}/snappy-c.cc"
- "${SNAPPY_ROOT_DIR}/snappy-sinksource.cc"
+ "${SNAPPY_ROOT_DIR}/snappy_unity.cc"
 )
 
 set (ZSTD_ROOT_DIR "${SLIB_PATH}/external/src/zstd")
@@ -577,15 +576,13 @@ set (
 set (LZ4_ROOT_DIR "${SLIB_PATH}/external/src/lz4")
 set (
  LZ4_FILES
- "${LZ4_ROOT_DIR}/lz4.c"
- "${LZ4_ROOT_DIR}/lz4hc.c"
+ "${LZ4_ROOT_DIR}/lz4_unity.c"
 )
 
 set (LMDB_ROOT_DIR "${SLIB_PATH}/external/src/lmdb")
 set (
  LMDB_FILES
- "${LMDB_ROOT_DIR}/mdb.c"
- "${LMDB_ROOT_DIR}/midl.c"
+ "${LMDB_ROOT_DIR}/lmdb_unity.c"
 )
 
 set (LEVELDB_ROOT_DIR "${SLIB_PATH}/external/src/leveldb")

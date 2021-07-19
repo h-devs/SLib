@@ -34,8 +34,6 @@ namespace slib
 			Package_Crypto = packages::Crypto,
 			TlsContext,
 			TlsAsyncStream,
-			ZlibCompress,
-			ZlibDecompress,
 			OpenSSL_Key,
 			OpenSSL_Context,
 			OpenSSL_AsyncStream

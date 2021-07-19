@@ -493,7 +493,7 @@ namespace slib
 	Memory HttpContentReader::decompressData(void* data, sl_uint32 size, Referable* refData)
 	{
 		if (m_flagDecompressing) {
-			return m_zlib.decompress(data, size);
+			return m_zlib.pass(data, size);
 		} else {
 			return Memory::createStatic(data, size, refData);
 		}

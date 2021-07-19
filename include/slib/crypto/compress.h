@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +20,20 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CRYPTO_CRC32C
-#define CHECKHEADER_SLIB_CRYPTO_CRC32C
+#ifndef CHECKHEADER_SLIB_CRYPTO_COMPRESS
+#define CHECKHEADER_SLIB_CRYPTO_COMPRESS
 
-#include "definition.h"
-
-#include "../core/memory.h"
+#include "data_filter.h"
 
 namespace slib
 {
-	
-	class SLIB_EXPORT Crc32c
+
+	class SLIB_EXPORT ICompressor : public IDataFilter
 	{
-	public:
-		static sl_uint32 extend(sl_uint32 crc, const void* data, sl_size size);
+	};
 
-		static sl_uint32 get(const void* data, sl_size size);
-
-		static sl_uint32 extend(sl_uint32 crc, const Memory& mem);
-
-		static sl_uint32 get(const Memory& mem);
-
+	class SLIB_EXPORT IDecompressor : public IDataFilter
+	{
 	};
 
 }

@@ -179,7 +179,7 @@
 		26D9D8411E9628E0005F7BD3 /* block_cipher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26B571501C9D442D0099E69B /* block_cipher.cpp */; };
 		26D9D8431E9628E0005F7BD3 /* service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2EE01B039EF600854DAF /* service.cpp */; };
 		26D9D8461E9628E0005F7BD3 /* locale.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26B571471C9D43D70099E69B /* locale.cpp */; };
-		26D9D8471E9628E0005F7BD3 /* compress_zlib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD46B1C11934A00D47AB0 /* compress_zlib.cpp */; };
+		26D9D8471E9628E0005F7BD3 /* zlib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD46B1C11934A00D47AB0 /* zlib.cpp */; };
 		26D9D8481E9628E0005F7BD3 /* rsa.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD37C1C117A3100D47AB0 /* rsa.cpp */; };
 		26D9D84A1E9628E0005F7BD3 /* dispatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26BC2EC51E2DFF4900D0801E /* dispatch.cpp */; };
 		26D9D8511E96292E005F7BD3 /* database_cursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265EBF2A1C23051F00AD81D9 /* database_cursor.cpp */; };
@@ -344,11 +344,9 @@
 		D7ECA21A26317C2800D366A8 /* decimal128.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA21926317C2800D366A8 /* decimal128.cpp */; };
 		D7ECA21E26317C6800D366A8 /* zlib_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA21D26317C6700D366A8 /* zlib_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7ECA22226317C7600D366A8 /* zstd_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA22126317C7600D366A8 /* zstd_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		D7ECA22826317C8C00D366A8 /* lz4.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA22626317C8C00D366A8 /* lz4.c */; };
-		D7ECA22926317C8C00D366A8 /* lz4hc.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA22726317C8C00D366A8 /* lz4hc.c */; };
-		D7ECA22D26317CB600D366A8 /* snappy.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA22C26317CB600D366A8 /* snappy.cc */; settings = {COMPILER_FLAGS = "-w"; }; };
-		D7ECA23326317CE600D366A8 /* midl.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA23126317CE600D366A8 /* midl.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		D7ECA23426317CE600D366A8 /* mdb.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA23226317CE600D366A8 /* mdb.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		D7ECA22826317C8C00D366A8 /* lz4_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA22626317C8C00D366A8 /* lz4_unity.c */; };
+		D7ECA22D26317CB600D366A8 /* snappy_unity.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA22C26317CB600D366A8 /* snappy_unity.cc */; settings = {COMPILER_FLAGS = "-w"; }; };
+		D7ECA23426317CE600D366A8 /* lmdb_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA23226317CE600D366A8 /* lmdb_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7ECA23726317CF700D366A8 /* leveldb_unity.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA23626317CF700D366A8 /* leveldb_unity.cc */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7ECA23B26317D0F00D366A8 /* libpng_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA23A26317D0F00D366A8 /* libpng_unity.c */; };
 		D7ECA24026317D2E00D366A8 /* libjpeg_unity1.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA23E26317D2E00D366A8 /* libjpeg_unity1.c */; };
@@ -529,7 +527,7 @@
 		266DD44F1C1191D400D47AB0 /* tab_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tab_view.cpp; sourceTree = "<group>"; };
 		266DD4511C1191F300D47AB0 /* web_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = web_view.cpp; sourceTree = "<group>"; };
 		266DD4531C1191FE00D47AB0 /* web_view_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = web_view_apple.mm; sourceTree = "<group>"; };
-		266DD46B1C11934A00D47AB0 /* compress_zlib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = compress_zlib.cpp; sourceTree = "<group>"; };
+		266DD46B1C11934A00D47AB0 /* zlib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zlib.cpp; sourceTree = "<group>"; };
 		266DD5F51C11E09B00D47AB0 /* camera_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = camera_apple.mm; path = media/camera_apple.mm; sourceTree = "<group>"; };
 		266E66EB21D9566300D92386 /* locale_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = locale_apple.mm; sourceTree = "<group>"; };
 		266F92691D51CD290040166C /* ui_resource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ui_resource.cpp; sourceTree = "<group>"; };
@@ -710,11 +708,9 @@
 		D7ECA21926317C2800D366A8 /* decimal128.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = decimal128.cpp; sourceTree = "<group>"; };
 		D7ECA21D26317C6700D366A8 /* zlib_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zlib_unity.c; path = ../../external/src/zlib/zlib_unity.c; sourceTree = "<group>"; };
 		D7ECA22126317C7600D366A8 /* zstd_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zstd_unity.c; path = ../../external/src/zstd/zstd_unity.c; sourceTree = "<group>"; };
-		D7ECA22626317C8C00D366A8 /* lz4.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lz4.c; path = ../../external/src/lz4/lz4.c; sourceTree = "<group>"; };
-		D7ECA22726317C8C00D366A8 /* lz4hc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lz4hc.c; path = ../../external/src/lz4/lz4hc.c; sourceTree = "<group>"; };
-		D7ECA22C26317CB600D366A8 /* snappy.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = snappy.cc; path = ../../external/src/snappy/snappy.cc; sourceTree = "<group>"; };
-		D7ECA23126317CE600D366A8 /* midl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = midl.c; path = ../../external/src/lmdb/midl.c; sourceTree = "<group>"; };
-		D7ECA23226317CE600D366A8 /* mdb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mdb.c; path = ../../external/src/lmdb/mdb.c; sourceTree = "<group>"; };
+		D7ECA22626317C8C00D366A8 /* lz4_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lz4_unity.c; path = ../../external/src/lz4/lz4_unity.c; sourceTree = "<group>"; };
+		D7ECA22C26317CB600D366A8 /* snappy_unity.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = snappy_unity.cc; path = ../../external/src/snappy/snappy_unity.cc; sourceTree = "<group>"; };
+		D7ECA23226317CE600D366A8 /* lmdb_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lmdb_unity.c; path = ../../external/src/lmdb/lmdb_unity.c; sourceTree = "<group>"; };
 		D7ECA23626317CF700D366A8 /* leveldb_unity.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = leveldb_unity.cc; path = ../../external/src/leveldb/leveldb_unity.cc; sourceTree = "<group>"; };
 		D7ECA23A26317D0F00D366A8 /* libpng_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libpng_unity.c; path = ../../external/src/libpng/libpng_unity.c; sourceTree = "<group>"; };
 		D7ECA23E26317D2E00D366A8 /* libjpeg_unity1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libjpeg_unity1.c; path = ../../external/src/libjpeg/libjpeg_unity1.c; sourceTree = "<group>"; };
@@ -1071,7 +1067,7 @@
 				26B571501C9D442D0099E69B /* block_cipher.cpp */,
 				268A13031E7B16340048F2CE /* blowfish.cpp */,
 				26A3DA8F228AAE4D0031CBDA /* chacha.cpp */,
-				266DD46B1C11934A00D47AB0 /* compress_zlib.cpp */,
+				266DD46B1C11934A00D47AB0 /* zlib.cpp */,
 				26AFC60022B197E30034C634 /* crc32c.cpp */,
 				26B92D4F21D357AD003F6F82 /* des.cpp */,
 				262ED4E9228DEBEE0029F409 /* ecc.cpp */,
@@ -1306,8 +1302,7 @@
 		D7ECA22526317C7C00D366A8 /* lz4 */ = {
 			isa = PBXGroup;
 			children = (
-				D7ECA22626317C8C00D366A8 /* lz4.c */,
-				D7ECA22726317C8C00D366A8 /* lz4hc.c */,
+				D7ECA22626317C8C00D366A8 /* lz4_unity.c */,
 			);
 			name = lz4;
 			sourceTree = "<group>";
@@ -1315,7 +1310,7 @@
 		D7ECA22B26317C9D00D366A8 /* snappy */ = {
 			isa = PBXGroup;
 			children = (
-				D7ECA22C26317CB600D366A8 /* snappy.cc */,
+				D7ECA22C26317CB600D366A8 /* snappy_unity.cc */,
 			);
 			name = snappy;
 			sourceTree = "<group>";
@@ -1331,8 +1326,7 @@
 		D7ECA23026317CD200D366A8 /* lmdb */ = {
 			isa = PBXGroup;
 			children = (
-				D7ECA23226317CE600D366A8 /* mdb.c */,
-				D7ECA23126317CE600D366A8 /* midl.c */,
+				D7ECA23226317CE600D366A8 /* lmdb_unity.c */,
 			);
 			name = lmdb;
 			sourceTree = "<group>";
@@ -1424,7 +1418,7 @@
 				266CF0FB25032D5200E694E3 /* safe_static.cpp in Sources */,
 				26635C9F226706F3005E4BA6 /* ui_photo_ios.mm in Sources */,
 				26D9D8D11E962976005F7BD3 /* scroll_view.cpp in Sources */,
-				D7ECA22826317C8C00D366A8 /* lz4.c in Sources */,
+				D7ECA22826317C8C00D366A8 /* lz4_unity.c in Sources */,
 				26D9D89D1E962962005F7BD3 /* net_capture.cpp in Sources */,
 				26D9D8A51E962962005F7BD3 /* socket.cpp in Sources */,
 				26D9D8021E9628E0005F7BD3 /* container.cpp in Sources */,
@@ -1512,7 +1506,7 @@
 				26D9D8ED1E962976005F7BD3 /* window.cpp in Sources */,
 				26D9D8921E96295A005F7BD3 /* video_frame.cpp in Sources */,
 				26D9D8881E96295A005F7BD3 /* camera_apple.mm in Sources */,
-				D7ECA23426317CE600D366A8 /* mdb.c in Sources */,
+				D7ECA23426317CE600D366A8 /* lmdb_unity.c in Sources */,
 				26D9D8131E9628E0005F7BD3 /* log.cpp in Sources */,
 				26D9D8E91E962976005F7BD3 /* view_ios.mm in Sources */,
 				26D9D8B91E962976005F7BD3 /* common_dialogs.cpp in Sources */,
@@ -1593,7 +1587,6 @@
 				26D9D8E41E962976005F7BD3 /* ui_menu.cpp in Sources */,
 				26D9D87A1E96294F005F7BD3 /* yuv.cpp in Sources */,
 				26D9D8EE1E962976005F7BD3 /* window_ios.mm in Sources */,
-				D7ECA23326317CE600D366A8 /* midl.c in Sources */,
 				26C795C92215FC7C0053C5A1 /* drawables.cpp in Sources */,
 				261E7F432353AA6100ACE4E8 /* string_param.cpp in Sources */,
 				266CF0F725032D1300E694E3 /* tile_layout.cpp in Sources */,
@@ -1670,7 +1663,6 @@
 				26F53FA222E2E6D70031D485 /* line_view.cpp in Sources */,
 				2628EAE321C410CF00D8CD00 /* jwt.cpp in Sources */,
 				26ACB3F4220984FF0093FF3F /* ui_app_badge_ios.mm in Sources */,
-				D7ECA22926317C8C00D366A8 /* lz4hc.c in Sources */,
 				26D9D83C1E9628E0005F7BD3 /* object.cpp in Sources */,
 				26987CF423B3994400872C1D /* alipay_sdk.cpp in Sources */,
 				2639196E21CD469E008B335B /* redis.cpp in Sources */,
@@ -1710,12 +1702,12 @@
 				2698A54C226A1C4C00662528 /* refresh_view_ios.mm in Sources */,
 				26A3DA90228AAE4D0031CBDA /* chacha.cpp in Sources */,
 				26CF4DF21ED69AD600954B7A /* ui_text_ios.mm in Sources */,
-				26D9D8471E9628E0005F7BD3 /* compress_zlib.cpp in Sources */,
+				26D9D8471E9628E0005F7BD3 /* zlib.cpp in Sources */,
 				26D9D8481E9628E0005F7BD3 /* rsa.cpp in Sources */,
 				26D9D8C61E962976005F7BD3 /* mobile_game.cpp in Sources */,
 				26D9D87D1E96295A005F7BD3 /* audio_format.cpp in Sources */,
 				26D9D8781E96294F005F7BD3 /* image.cpp in Sources */,
-				D7ECA22D26317CB600D366A8 /* snappy.cc in Sources */,
+				D7ECA22D26317CB600D366A8 /* snappy_unity.cc in Sources */,
 				26BB17D621F4E4550089C7EC /* view_page_navigation.cpp in Sources */,
 				269E31A72255EAAF005CD0ED /* paypal.cpp in Sources */,
 				26D9D8EC1E962976005F7BD3 /* web_view_apple.mm in Sources */,

@@ -55,25 +55,16 @@
     <ClCompile Include="..\..\external\src\libjpeg\libjpeg_unity1.c" />
     <ClCompile Include="..\..\external\src\libjpeg\libjpeg_unity2.c" />
     <ClCompile Include="..\..\external\src\libpng\libpng_unity.c" />
-    <ClCompile Include="..\..\external\src\lmdb\mdb.c">
+    <ClCompile Include="..\..\external\src\lmdb\lmdb_unity.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\external\src\lmdb\midl.c">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\lz4\lz4.c" />
-    <ClCompile Include="..\..\external\src\lz4\lz4hc.c" />
+    <ClCompile Include="..\..\external\src\lz4\lz4_unity.c" />
     <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji.cpp" />
     <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji_png.cpp" />
-    <ClCompile Include="..\..\external\src\snappy\snappy-c.cc" />
-    <ClCompile Include="..\..\external\src\snappy\snappy-sinksource.cc" />
-    <ClCompile Include="..\..\external\src\snappy\snappy.cc">
+    <ClCompile Include="..\..\external\src\snappy\snappy_unity.cc">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/wd4267 /wd4244 /wd4018 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/wd4267 /wd4244 /wd4018 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/wd4267 /wd4244 /wd4018 %(AdditionalOptions)</AdditionalOptions>
@@ -168,7 +159,8 @@
     <ClCompile Include="..\..\src\slib\crypto\block_cipher.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\blowfish.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\chacha.cpp" />
-    <ClCompile Include="..\..\src\slib\crypto\compress_zlib.cpp" />
+    <ClCompile Include="..\..\src\slib\crypto\compress.cpp" />
+    <ClCompile Include="..\..\src\slib\crypto\zlib.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\crc32c.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\des.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\ecc.cpp" />

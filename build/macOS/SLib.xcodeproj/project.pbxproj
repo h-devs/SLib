@@ -157,7 +157,7 @@
 		26C795BF2215F9C70053C5A1 /* raws.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26C795B92215F9C70053C5A1 /* raws.cpp */; };
 		26C795C02215F9C70053C5A1 /* strings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26C795BA2215F9C70053C5A1 /* strings.cpp */; };
 		26D9D8F81E9645CE005F7BD3 /* service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2FB51B03A33700854DAF /* service.cpp */; };
-		26D9D8FA1E9645CE005F7BD3 /* compress_zlib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4611C11930800D47AB0 /* compress_zlib.cpp */; };
+		26D9D8FA1E9645CE005F7BD3 /* zlib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4611C11930800D47AB0 /* zlib.cpp */; };
 		26D9D8FB1E9645CE005F7BD3 /* atomic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26AFF77A1C34CE2B00AF9470 /* atomic.cpp */; };
 		26D9D8FC1E9645CE005F7BD3 /* preference.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2626C1301E15AA73004E150C /* preference.cpp */; };
 		26D9D8FD1E9645CE005F7BD3 /* animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26F900641D994ED0001A6EE9 /* animation.cpp */; };
@@ -377,7 +377,6 @@
 		D72A0895263B506000BCD333 /* lmdb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0891263B505F00BCD333 /* lmdb.cpp */; };
 		D72A0896263B506000BCD333 /* key_value_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0892263B505F00BCD333 /* key_value_store.cpp */; };
 		D72A0897263B506000BCD333 /* leveldb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0893263B505F00BCD333 /* leveldb.cpp */; };
-		D72A08A9263B523900BCD333 /* snappy-c.cc in Sources */ = {isa = PBXBuildFile; fileRef = D72A08A8263B523900BCD333 /* snappy-c.cc */; };
 		D79AF2072693598300FCDE3D /* asset_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = D79AF2062693598300FCDE3D /* asset_apple.mm */; };
 		D7B1C86D26453B1A00E60145 /* dbip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7B1C86C26453B1A00E60145 /* dbip.cpp */; };
 		D7B1C87926453EC200E60145 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264AF11B21AEE6BE004E58CB /* Cocoa.framework */; };
@@ -390,12 +389,9 @@
 		D7BF60C726311EBF00E0B3DD /* libjpeg_unity1.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60C526311EBF00E0B3DD /* libjpeg_unity1.c */; };
 		D7BF60C826311EBF00E0B3DD /* libjpeg_unity2.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60C626311EBF00E0B3DD /* libjpeg_unity2.c */; };
 		D7BF60D126311EE700E0B3DD /* zstd_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60D026311EE700E0B3DD /* zstd_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		D7BF60DB26311F0700E0B3DD /* lz4.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60D926311F0700E0B3DD /* lz4.c */; };
-		D7BF60DC26311F0700E0B3DD /* lz4hc.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60DA26311F0700E0B3DD /* lz4hc.c */; };
-		D7BF60E626311F3600E0B3DD /* snappy.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60E426311F3600E0B3DD /* snappy.cc */; settings = {COMPILER_FLAGS = "-w"; }; };
-		D7BF60E726311F3600E0B3DD /* snappy-sinksource.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60E526311F3600E0B3DD /* snappy-sinksource.cc */; settings = {COMPILER_FLAGS = "-w"; }; };
-		D7BF60F126311F7600E0B3DD /* mdb.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60EF26311F7600E0B3DD /* mdb.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		D7BF60F226311F7600E0B3DD /* midl.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60F026311F7600E0B3DD /* midl.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		D7BF60DB26311F0700E0B3DD /* lz4_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60D926311F0700E0B3DD /* lz4_unity.c */; };
+		D7BF60E626311F3600E0B3DD /* snappy_unity.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60E426311F3600E0B3DD /* snappy_unity.cc */; settings = {COMPILER_FLAGS = "-w"; }; };
+		D7BF60F126311F7600E0B3DD /* lmdb_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60EF26311F7600E0B3DD /* lmdb_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7BF60FB26311FB700E0B3DD /* leveldb_unity.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60FA26311FB700E0B3DD /* leveldb_unity.cc */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7C682CF2692A4F8000A85E1 /* app_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = D7C682CE2692A4F7000A85E1 /* app_macos.mm */; };
 		D7C709832645A0BB00FB3A32 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C709822645A0BB00FB3A32 /* main.cpp */; };
@@ -604,7 +600,7 @@
 		266DD45E1C11930800D47AB0 /* rsa.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rsa.cpp; sourceTree = "<group>"; };
 		266DD45F1C11930800D47AB0 /* sha1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sha1.cpp; sourceTree = "<group>"; };
 		266DD4601C11930800D47AB0 /* sha2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sha2.cpp; sourceTree = "<group>"; };
-		266DD4611C11930800D47AB0 /* compress_zlib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = compress_zlib.cpp; sourceTree = "<group>"; };
+		266DD4611C11930800D47AB0 /* zlib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zlib.cpp; sourceTree = "<group>"; };
 		266DD4761C1193AB00D47AB0 /* sensor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sensor.cpp; sourceTree = "<group>"; };
 		266DD47F1C1193C400D47AB0 /* brush.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = brush.cpp; sourceTree = "<group>"; };
 		266DD4801C1193C400D47AB0 /* canvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = canvas.cpp; sourceTree = "<group>"; };
@@ -869,7 +865,6 @@
 		D72A0891263B505F00BCD333 /* lmdb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lmdb.cpp; sourceTree = "<group>"; };
 		D72A0892263B505F00BCD333 /* key_value_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = key_value_store.cpp; sourceTree = "<group>"; };
 		D72A0893263B505F00BCD333 /* leveldb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = leveldb.cpp; sourceTree = "<group>"; };
-		D72A08A8263B523900BCD333 /* snappy-c.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "snappy-c.cc"; path = "../../external/src/snappy/snappy-c.cc"; sourceTree = "<group>"; };
 		D79AF2062693598300FCDE3D /* asset_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = asset_apple.mm; sourceTree = "<group>"; };
 		D7B1C86C26453B1A00E60145 /* dbip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dbip.cpp; sourceTree = "<group>"; };
 		D7B1C87E26453EC200E60145 /* GenerateAppIcons */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenerateAppIcons; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -881,12 +876,9 @@
 		D7BF60C526311EBF00E0B3DD /* libjpeg_unity1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libjpeg_unity1.c; path = ../../external/src/libjpeg/libjpeg_unity1.c; sourceTree = "<group>"; };
 		D7BF60C626311EBF00E0B3DD /* libjpeg_unity2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libjpeg_unity2.c; path = ../../external/src/libjpeg/libjpeg_unity2.c; sourceTree = "<group>"; };
 		D7BF60D026311EE700E0B3DD /* zstd_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zstd_unity.c; path = ../../external/src/zstd/zstd_unity.c; sourceTree = "<group>"; };
-		D7BF60D926311F0700E0B3DD /* lz4.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lz4.c; path = ../../external/src/lz4/lz4.c; sourceTree = "<group>"; };
-		D7BF60DA26311F0700E0B3DD /* lz4hc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lz4hc.c; path = ../../external/src/lz4/lz4hc.c; sourceTree = "<group>"; };
-		D7BF60E426311F3600E0B3DD /* snappy.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = snappy.cc; path = ../../external/src/snappy/snappy.cc; sourceTree = "<group>"; };
-		D7BF60E526311F3600E0B3DD /* snappy-sinksource.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "snappy-sinksource.cc"; path = "../../external/src/snappy/snappy-sinksource.cc"; sourceTree = "<group>"; };
-		D7BF60EF26311F7600E0B3DD /* mdb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mdb.c; path = ../../external/src/lmdb/mdb.c; sourceTree = "<group>"; };
-		D7BF60F026311F7600E0B3DD /* midl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = midl.c; path = ../../external/src/lmdb/midl.c; sourceTree = "<group>"; };
+		D7BF60D926311F0700E0B3DD /* lz4_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lz4_unity.c; path = ../../external/src/lz4/lz4_unity.c; sourceTree = "<group>"; };
+		D7BF60E426311F3600E0B3DD /* snappy_unity.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = snappy_unity.cc; path = ../../external/src/snappy/snappy_unity.cc; sourceTree = "<group>"; };
+		D7BF60EF26311F7600E0B3DD /* lmdb_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lmdb_unity.c; path = ../../external/src/lmdb/lmdb_unity.c; sourceTree = "<group>"; };
 		D7BF60FA26311FB700E0B3DD /* leveldb_unity.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = leveldb_unity.cc; path = ../../external/src/leveldb/leveldb_unity.cc; sourceTree = "<group>"; };
 		D7C682CE2692A4F7000A85E1 /* app_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = app_macos.mm; sourceTree = "<group>"; };
 		D7C709822645A0BB00FB3A32 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../../tool/src/GenerateAppIcons/main.cpp; sourceTree = "<group>"; };
@@ -1581,7 +1573,7 @@
 				266F12B21C97A13F00DE26FF /* block_cipher.cpp */,
 				268A13011E7AE8BD0048F2CE /* blowfish.cpp */,
 				26A3DA8D228A08D40031CBDA /* chacha.cpp */,
-				266DD4611C11930800D47AB0 /* compress_zlib.cpp */,
+				266DD4611C11930800D47AB0 /* zlib.cpp */,
 				26AFC5FC22B05B580034C634 /* crc32c.cpp */,
 				26B92D4821D33E6E003F6F82 /* des.cpp */,
 				26A3DA95228B69890031CBDA /* ecc.cpp */,
@@ -1652,8 +1644,7 @@
 		D7BF60D826311EF200E0B3DD /* lz4 */ = {
 			isa = PBXGroup;
 			children = (
-				D7BF60D926311F0700E0B3DD /* lz4.c */,
-				D7BF60DA26311F0700E0B3DD /* lz4hc.c */,
+				D7BF60D926311F0700E0B3DD /* lz4_unity.c */,
 			);
 			name = lz4;
 			sourceTree = "<group>";
@@ -1661,9 +1652,7 @@
 		D7BF60E326311F2200E0B3DD /* snappy */ = {
 			isa = PBXGroup;
 			children = (
-				D7BF60E526311F3600E0B3DD /* snappy-sinksource.cc */,
-				D7BF60E426311F3600E0B3DD /* snappy.cc */,
-				D72A08A8263B523900BCD333 /* snappy-c.cc */,
+				D7BF60E426311F3600E0B3DD /* snappy_unity.cc */,
 			);
 			name = snappy;
 			sourceTree = "<group>";
@@ -1671,8 +1660,7 @@
 		D7BF60EE26311F5B00E0B3DD /* lmdb */ = {
 			isa = PBXGroup;
 			children = (
-				D7BF60EF26311F7600E0B3DD /* mdb.c */,
-				D7BF60F026311F7600E0B3DD /* midl.c */,
+				D7BF60EF26311F7600E0B3DD /* lmdb_unity.c */,
 			);
 			name = lmdb;
 			sourceTree = "<group>";
@@ -1974,7 +1962,7 @@
 				26BAE00C221C8FFC0085B5AB /* etsy.cpp in Sources */,
 				26E1ADB623688B7E002BF6B8 /* jwt_openssl.cpp in Sources */,
 				26D9D9E81E96468D005F7BD3 /* ui_resource.cpp in Sources */,
-				26D9D8FA1E9645CE005F7BD3 /* compress_zlib.cpp in Sources */,
+				26D9D8FA1E9645CE005F7BD3 /* zlib.cpp in Sources */,
 				26D9D9C51E96468D005F7BD3 /* list_control_macos.mm in Sources */,
 				26D9D8FB1E9645CE005F7BD3 /* atomic.cpp in Sources */,
 				263D478B2386E1BD00DAC43F /* chat_client.cpp in Sources */,
@@ -2074,7 +2062,7 @@
 				26D9D98D1E964675005F7BD3 /* media_player.cpp in Sources */,
 				2639194421CD2510008B335B /* redis.cpp in Sources */,
 				26D9D9D51E96468D005F7BD3 /* slider.cpp in Sources */,
-				D7BF60E626311F3600E0B3DD /* snappy.cc in Sources */,
+				D7BF60E626311F3600E0B3DD /* snappy_unity.cc in Sources */,
 				26D9D9651E964669005F7BD3 /* brush.cpp in Sources */,
 				26C795A5221565C70053C5A1 /* url_request_param.cpp in Sources */,
 				26D9D9101E9645CE005F7BD3 /* math.cpp in Sources */,
@@ -2119,7 +2107,7 @@
 				26D9D9181E9645CE005F7BD3 /* json.cpp in Sources */,
 				265A937923051C2E00B155A2 /* drawable_quartz.mm in Sources */,
 				26781C1D2350F6A4002FCA2F /* brush_quartz.mm in Sources */,
-				D7BF60DB26311F0700E0B3DD /* lz4.c in Sources */,
+				D7BF60DB26311F0700E0B3DD /* lz4_unity.c in Sources */,
 				26D9D9E21E96468D005F7BD3 /* ui_core_macos.mm in Sources */,
 				2698A54E226A383500662528 /* refresh_view.cpp in Sources */,
 				D7BF60FB26311FB700E0B3DD /* leveldb_unity.cc in Sources */,
@@ -2130,7 +2118,6 @@
 				26D9D91A1E9645CE005F7BD3 /* setting.cpp in Sources */,
 				26F0B25F259571660084E18D /* combo_box_macos.mm in Sources */,
 				26A39D8920EFBCBB004707C9 /* calculator.cpp in Sources */,
-				D72A08A9263B523900BCD333 /* snappy-c.cc in Sources */,
 				263D477F2386AE2F00DAC43F /* chat.cpp in Sources */,
 				26539F972374B9090064340D /* ginger.cpp in Sources */,
 				26539FB02374BA310064340D /* ui_notification.cpp in Sources */,
@@ -2162,7 +2149,6 @@
 				26D9D9951E96467B005F7BD3 /* http_common.cpp in Sources */,
 				26D9D9BF1E96468D005F7BD3 /* gesture.cpp in Sources */,
 				26A304BD230B1D2B00852FC9 /* global_event_monitor.cpp in Sources */,
-				D7BF60E726311F3600E0B3DD /* snappy-sinksource.cc in Sources */,
 				26D9D99E1E96467B005F7BD3 /* network_async_unix.cpp in Sources */,
 				26D9D9241E9645CE005F7BD3 /* sha1.cpp in Sources */,
 				26D9D9901E964675005F7BD3 /* video_codec.cpp in Sources */,
@@ -2184,7 +2170,6 @@
 				26D9D9681E96466A005F7BD3 /* color.cpp in Sources */,
 				26D9D9981E96467B005F7BD3 /* ip_address.cpp in Sources */,
 				262D59A12324EB3D00F85780 /* emoji_png.cpp in Sources */,
-				D7BF60DC26311F0700E0B3DD /* lz4hc.c in Sources */,
 				26805B6723533D4300D8817C /* string_param.cpp in Sources */,
 				265A937523051C1B00B155A2 /* bitmap_quartz.mm in Sources */,
 				26D9D9761E96466A005F7BD3 /* image_png.cpp in Sources */,
@@ -2271,7 +2256,6 @@
 				26987D1923B5CF8900872C1D /* string_view.cpp in Sources */,
 				26D9D9BA1E96468D005F7BD3 /* common_dialogs_macos.mm in Sources */,
 				26BB17D221F4C6970089C7EC /* view_pager.cpp in Sources */,
-				D7BF60F226311F7600E0B3DD /* midl.c in Sources */,
 				26B92D4921D33E6E003F6F82 /* des.cpp in Sources */,
 				26D9D99B1E96467B005F7BD3 /* net_capture.cpp in Sources */,
 				265A937323051C1000B155A2 /* render_canvas.cpp in Sources */,
@@ -2303,7 +2287,7 @@
 				26D9D9961E96467B005F7BD3 /* http_server.cpp in Sources */,
 				26D9D9A11E96467B005F7BD3 /* socket.cpp in Sources */,
 				26F607B323ABE0C600DCE0C3 /* postgresql.cpp in Sources */,
-				D7BF60F126311F7600E0B3DD /* mdb.c in Sources */,
+				D7BF60F126311F7600E0B3DD /* lmdb_unity.c in Sources */,
 				26D9D94A1E9645CE005F7BD3 /* system.cpp in Sources */,
 				261180E62563BCA10082AA0A /* render_buffer.cpp in Sources */,
 				262D599F2324E9A500F85780 /* emoji.cpp in Sources */,

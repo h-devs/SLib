@@ -28,7 +28,7 @@
 #include "slib/crypto/hmac.h"
 #include "slib/crypto/sha1.h"
 #include "slib/crypto/md5.h"
-#include "slib/crypto/zlib.h"
+#include "slib/crypto/crc32.h"
 
 namespace slib
 {
@@ -595,7 +595,7 @@ namespace slib
 	
 	void StunPacket::calculateFingerprint(void* output /* 4 bytes */, const void* packet, sl_size size)
 	{
-		sl_uint32 crc = Zlib::crc32(packet, size);
+		sl_uint32 crc = Crc32::get(packet, size);
 		crc ^= 0x5354554e;
 		MIO::writeUint32BE(output, crc);
 	}

@@ -257,7 +257,7 @@
     <ClCompile Include="..\..\src\slib\crypto\aes.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\crypto\compress_zlib.cpp">
+    <ClCompile Include="..\..\src\slib\crypto\zlib.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\gcm.cpp">
@@ -935,9 +935,6 @@
     <ClCompile Include="..\..\src\slib\core\asm_x64.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\crypto\crc32c.cpp">
-      <Filter>src\crypto</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\toast.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
@@ -1250,26 +1247,8 @@
     <ClCompile Include="..\..\external\src\leveldb\leveldb_unity.cc">
       <Filter>external\leveldb</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\external\src\lmdb\mdb.c">
-      <Filter>external\lmdb</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\lmdb\midl.c">
-      <Filter>external\lmdb</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\snappy\snappy.cc">
-      <Filter>external\snappy</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\snappy\snappy-sinksource.cc">
-      <Filter>external\snappy</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\external\src\zstd\zstd_unity.c">
       <Filter>external\zstd</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\lz4\lz4.c">
-      <Filter>external\lz4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\lz4\lz4hc.c">
-      <Filter>external\lz4</Filter>
     </ClCompile>
     <ClCompile Include="..\..\external\src\zlib\zlib_unity.c">
       <Filter>external\zlib</Filter>
@@ -1297,9 +1276,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\db\object_storage.cpp">
       <Filter>src\db</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\snappy\snappy-c.cc">
-      <Filter>external\snappy</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\db\document_store.cpp">
       <Filter>src\db</Filter>
@@ -1405,6 +1381,21 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\dl_win32_shlwapi.cpp">
       <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\lz4\lz4_unity.c">
+      <Filter>external\lz4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\lmdb\lmdb_unity.c">
+      <Filter>external\lmdb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\snappy\snappy_unity.cc">
+      <Filter>external\snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\crypto\crc32c.cpp">
+      <Filter>src\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\crypto\compress.cpp">
+      <Filter>src\crypto</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,53 +20,42 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CRYPTO_HEADER
-#define CHECKHEADER_SLIB_CRYPTO_HEADER
+#ifndef CHECKHEADER_SLIB_CRYPTO_CRC32C
+#define CHECKHEADER_SLIB_CRYPTO_CRC32C
 
-// Hash, Checksum
-#include "crypto/hash.h"
-#include "crypto/md5.h"
-#include "crypto/sha1.h"
-#include "crypto/sha2.h"
-#include "crypto/crc32.h"
+#include "definition.h"
 
-// Block Cipher
-#include "crypto/block_cipher.h"
-#include "crypto/aes.h"
-#include "crypto/blowfish.h"
-#include "crypto/des.h"
-#include "crypto/gcm.h"
+namespace slib
+{
 
-// Stream Cipher
-#include "crypto/rc4.h"
-#include "crypto/chacha.h"
+	class Memory;
 
-// Message authentication code
-#include "crypto/hmac.h"
-#include "crypto/poly1305.h"
+	class SLIB_EXPORT Crc32
+	{
+	public:
+		static sl_uint32 extend(sl_uint32 crc, const void* data, sl_size size);
 
-// Public-key cryptosystems
-#include "crypto/rsa.h"
-#include "crypto/ecc.h"
+		static sl_uint32 get(const void* data, sl_size size);
 
-// Key Derivation Function
-#include "crypto/pbkdf.h"
+		static sl_uint32 extend(sl_uint32 crc, const Memory& mem);
 
-// Transport Protocol
-#include "crypto/tls.h"
+		static sl_uint32 get(const Memory& mem);
 
-// Compression
-#include "crypto/compress.h"
-#include "crypto/zlib.h"
+	};
 
-// Other
-#include "crypto/base64.h"
-#include "crypto/jwt.h"
+	class SLIB_EXPORT Crc32c
+	{
+	public:
+		static sl_uint32 extend(sl_uint32 crc, const void* data, sl_size size);
 
-// Third-party
-#include "crypto/openssl.h"
+		static sl_uint32 get(const void* data, sl_size size);
 
-#include "crypto/json.h"
-#include "crypto/serialize.h"
+		static sl_uint32 extend(sl_uint32 crc, const Memory& mem);
+
+		static sl_uint32 get(const Memory& mem);
+
+	};
+
+}
 
 #endif
