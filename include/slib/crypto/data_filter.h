@@ -53,6 +53,10 @@ namespace slib
 			void* output, sl_uint32 sizeOutputAvailable, sl_uint32& sizeOutputUsed);
 
 		virtual DataFilterResult finish32(void* output, sl_uint32 sizeOutputAvailable, sl_uint32& sizeOutputUsed);
+		
+		virtual sl_size getRecommendedInputSize();
+
+		virtual sl_size getRecommendedOutputSize();
 
 		DataFilterResult pass(const void* input, sl_size size, MemoryBuffer& output);
 

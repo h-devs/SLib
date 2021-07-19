@@ -58,6 +58,7 @@
 // Compression
 #include "crypto/compress.h"
 #include "crypto/zlib.h"
+#include "crypto/zstd.h"
 
 // Other
 #include "crypto/base64.h"

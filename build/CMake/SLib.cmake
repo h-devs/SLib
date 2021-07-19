@@ -148,6 +148,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/crypto/sha2.cpp"
  "${SLIB_PATH}/src/slib/crypto/tls.cpp"
  "${SLIB_PATH}/src/slib/crypto/zlib.cpp"
+ "${SLIB_PATH}/src/slib/crypto/zstd.cpp"
 
  "${SLIB_PATH}/src/slib/math/bigint.cpp"
  "${SLIB_PATH}/src/slib/math/calculator.cpp"

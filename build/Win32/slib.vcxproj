@@ -177,6 +177,7 @@
     <ClCompile Include="..\..\src\slib\crypto\sha1.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\sha2.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\tls.cpp" />
+    <ClCompile Include="..\..\src\slib\crypto\zstd.cpp" />
     <ClCompile Include="..\..\src\slib\db\database.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_cursor.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_expression.cpp" />

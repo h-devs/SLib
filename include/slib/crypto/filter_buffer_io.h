@@ -25,7 +25,7 @@
 
 #include "data_filter.h"
 
-#include "../core/memory_buffer.h"
+#include "../core/memory.h"
 #include "../core/io.h"
 
 namespace slib
@@ -40,47 +40,31 @@ namespace slib
 		~FilterBufferIO();
 		
 	public:
-		/*
-			returns
-				>0: Size of written output
-				SLIB_IO_ENDED, SLIB_IO_ERROR, SLIB_IO_WOULD_BLOCK
-
-			returns SLIB_IO_ERROR when output size is zero
-		*/
-		DataFilterResult pass(IDataFilter* filter, const void* input, sl_size sizeInput, void* output, sl_size sizeOutput, sl_size& sizeOutputUsed);
-		
-		DataFilterResult pass(IDataFilter* filter, const void* input, sl_size size, IWriter* writer);
+		DataFilterResult pass(IDataFilter* filter, const void* input, sl_size size, sl_size& sizeInputPassed, IWriter* writer);
 
 		DataFilterResult pass(IDataFilter* filter, IReader* reader, void* output, sl_size size, sl_size& sizeOutputUsed);
 
 		DataFilterResult pass(IDataFilter* filter, IReader* reader, IWriter* writer);
-
-		sl_size getInputBufferSize();
 
 		sl_bool isFinishing();
 
 		void setFinishing();
 
 	protected:
-		DataFilterResult _addInput(const void* data, sl_size size, DataFilterResult result);
+		DataFilterResult _processWriteResult(sl_reg nWrite);
 
-		DataFilterResult _doPass(IDataFilter* filter, MemoryData& input, void*& output, sl_size& sizeOutput, sl_size& sizeOutputUsed);
+		sl_bool _resetInputBuffer(IDataFilter* filter);
 
-		DataFilterResult _processWriteResult(MemoryData& slice, sl_reg nWrite);
-
-		DataFilterResult _doPass(IDataFilter* filter, MemoryData& input, IWriter* writer);
-
-		DataFilterResult _step(IDataFilter* filter, IReader* reader, void* output, sl_size size, sl_size& sizeUsed);
-
-		DataFilterResult _step(IDataFilter* filter, IReader* reader, IWriter* writer);
+		sl_bool _resetOutputBuffer(IDataFilter* filter);
 
 	protected:
-		MemoryBuffer m_bufInput;
-		MemoryBuffer m_bufOutput;
+		Memory m_bufInput;
+		void* m_dataInput;
+		sl_size m_sizeInput;
+		Memory m_bufOutput;
+		void* m_dataOutput;
+		sl_size m_sizeOutput;
 
-		Memory m_chunk;
-		char* m_chunkData;
-		
 		sl_bool m_flagFinishing;
 		sl_bool m_flagFinished;
 
