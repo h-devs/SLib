@@ -1032,11 +1032,29 @@ namespace slib
 
 	sl_bool MemoryBuffer::add(const Memory& mem)
 	{
-		MemoryData data;
-		if (mem.getData(data)) {
-			return add(data);
+		return add(MemoryData(mem));
+	}
+
+	sl_bool MemoryBuffer::add(Memory&& mem)
+	{
+		return add(MemoryData(Move(mem)));
+	}
+
+	sl_bool MemoryBuffer::addNew(const void* buf, sl_size size)
+	{
+		if (!size) {
+			return sl_true;
 		}
-		return sl_true;
+		if (buf) {
+			Memory mem = Memory::create(buf, size);
+			if (mem.isNotNull()) {
+				if (m_queue.push_NoLock(Move(mem))) {
+					m_size += size;
+					return sl_true;
+				}
+			}
+		}
+		return sl_false;
 	}
 
 	sl_bool MemoryBuffer::addStatic(const void* buf, sl_size size)
@@ -1130,6 +1148,20 @@ namespace slib
 		}
 		return sl_false;
 	}
+
+	sl_bool MemoryQueue::add_NoLock(MemoryData&& mem)
+	{
+		if (!(mem.size)) {
+			return sl_true;
+		}
+		if (mem.data) {
+			if (m_queue.push_NoLock(Move(mem))) {
+				m_size += mem.size;
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
 	
 	sl_bool MemoryQueue::add(const MemoryData& mem)
 	{
@@ -1145,25 +1177,79 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
+	sl_bool MemoryQueue::add(MemoryData&& mem)
+	{
+		if (!(mem.size)) {
+			return sl_true;
+		}
+		if (mem.data) {
+			ObjectLocker lock(this);
+			if (m_queue.push_NoLock(Move(mem))) {
+				m_size += mem.size;
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
 	sl_bool MemoryQueue::add_NoLock(const Memory& mem)
 	{
-		MemoryData data;
-		if (mem.getData(data)) {
-			return add_NoLock(data);
-		}
-		return sl_true;
+		return add_NoLock(MemoryData(mem));
 	}
-	
+
+	sl_bool MemoryQueue::add_NoLock(Memory&& mem)
+	{
+		return add_NoLock(MemoryData(Move(mem)));
+	}
+
 	sl_bool MemoryQueue::add(const Memory& mem)
 	{
-		MemoryData data;
-		if (mem.getData(data)) {
-			return add(data);
-		}
-		return sl_true;
+		return add(MemoryData(mem));
 	}
-	
+
+	sl_bool MemoryQueue::add(Memory&& mem)
+	{
+		return add(MemoryData(Move(mem)));
+	}
+
+	sl_bool MemoryQueue::addNew_NoLock(const void* buf, sl_size size)
+	{
+		if (!size) {
+			return sl_true;
+		}
+		if (buf) {
+			Memory mem = Memory::create(buf, size);
+			if (mem.isNotNull()) {
+				if (m_queue.push_NoLock(Move(mem))) {
+					m_size += size;
+					return sl_true;
+				}
+			}
+			
+		}
+		return sl_false;
+	}
+
+	sl_bool MemoryQueue::addNew(const void* buf, sl_size size)
+	{
+		if (!size) {
+			return sl_true;
+		}
+		if (buf) {
+			Memory mem = Memory::create(buf, size);
+			if (mem.isNotNull()) {
+				ObjectLocker lock(this);
+				if (m_queue.push_NoLock(Move(mem))) {
+					m_size += size;
+					return sl_true;
+				}
+			}
+
+		}
+		return sl_false;
+	}
+
 	sl_bool MemoryQueue::addStatic_NoLock(const void* buf, sl_size size)
 	{
 		if (!size) {

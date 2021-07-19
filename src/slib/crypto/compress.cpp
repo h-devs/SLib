@@ -66,11 +66,7 @@ namespace slib
 					input = (char*)input + sizeInputPassed;
 					size -= sizeInputPassed;
 					if (sizeOutputUsed) {
-						Memory mem = Memory::create(chunk, sizeOutputUsed);
-						if (mem.isNull()) {
-							return DataFilterResult::Error;
-						}
-						if (!(output.add(Move(mem)))) {
+						if (!(output.addNew(chunk, sizeOutputUsed))) {
 							return DataFilterResult::Error;
 						}
 					}
@@ -90,11 +86,7 @@ namespace slib
 					sl_size sizeOutputUsed;
 					DataFilterResult result = filter->finish(chunk, sizeChunk, sizeOutputUsed);
 					if (sizeOutputUsed) {
-						Memory mem = Memory::create(chunk, sizeOutputUsed);
-						if (mem.isNull()) {
-							return DataFilterResult::Error;
-						}
-						if (!(output.add(Move(mem)))) {
+						if (!(output.addNew(chunk, sizeOutputUsed))) {
 							return DataFilterResult::Error;
 						}
 					}

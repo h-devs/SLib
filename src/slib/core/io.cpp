@@ -308,9 +308,6 @@ namespace slib
 		if (!size) {
 			return SLIB_IO_EMPTY_CONTENT;
 		}
-		if (m_offset >= m_size) {
-			return SLIB_IO_ENDED;
-		}
 		sl_size limit = m_size - m_offset;
 		if (size > limit) {
 			if (m_flagResizable) {
@@ -2352,7 +2349,7 @@ namespace slib
 
 	sl_bool SerializeByte(MemoryBuffer* buf, sl_uint8 value) noexcept
 	{
-		return buf->add(Memory::create(&value, 1));
+		return buf->addNew(&value, 1);
 	}
 
 	sl_bool SerializeByte(SerializeBuffer* buf, sl_uint8 value) noexcept
@@ -2367,7 +2364,7 @@ namespace slib
 
 	sl_bool SerializeRaw(MemoryBuffer* buf, const void* data, sl_size size) noexcept
 	{
-		return buf->add(Memory::create(data, size));
+		return buf->addNew(data, size);
 	}
 
 	sl_bool SerializeRaw(SerializeBuffer* buf, const void* data, sl_size size) noexcept

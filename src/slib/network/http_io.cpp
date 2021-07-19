@@ -114,12 +114,12 @@ namespace slib
 			}
 		}
 		if (flagFound) {
-			m_buffer.add(Memory::create(buf, posBody));
+			m_buffer.addNew(buf, posBody);
 			m_last[0] = 0;
 			m_last[1] = 0;
 			m_last[2] = 0;
 		} else {
-			m_buffer.add(Memory::create(buf, size));
+			m_buffer.addNew(buf, size);
 			if (size < 3) {
 				if (size == 1) {
 					m_last[0] = m_last[1];

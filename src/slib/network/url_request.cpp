@@ -406,7 +406,7 @@ namespace slib
 			if (mem.isNotNull()) {
 				m_bufResponseContent.add(mem);
 			} else {
-				m_bufResponseContent.add(Memory::create(data, len));
+				m_bufResponseContent.addNew(data, len);
 			}
 			m_sizeContentReceived = m_bufResponseContent.getSize();
 		} else {

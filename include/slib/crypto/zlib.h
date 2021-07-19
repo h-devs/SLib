@@ -40,7 +40,7 @@ namespace slib
 	public:
 		sl_bool isStarted();
 
-		// level = 0 ~ 9
+		// level = 0-9
 		sl_bool start(sl_int32 level = 6);
 
 		DataFilterResult pass32(const void* input, sl_uint32 sizeInputAvailable, sl_uint32& sizeInputPassed,
@@ -83,7 +83,7 @@ namespace slib
 		~ZlibRawCompressor();
 
 	public:
-		// level = 0 ~ 9
+		// level = 0-9
 		sl_bool start(sl_uint32 level = 6);
 
 	};
@@ -103,8 +103,8 @@ namespace slib
 	class SLIB_EXPORT GzipParam
 	{
 	public:
-		String fileName;
-		String comment;
+		StringParam fileName;
+		StringParam comment;
 		sl_uint32 level;
 
 	public:
@@ -122,10 +122,10 @@ namespace slib
 		~GzipCompressor();
 
 	public:
-		// level = 0 ~ 9
+		// level = 0-9
 		sl_bool start(const GzipParam& param);
 
-		// level = 0 ~ 9
+		// level = 0-9
 		sl_bool start(sl_uint32 level = 6);
 
 	public:

@@ -407,13 +407,13 @@ namespace slib
 			if (sizeCurrent < sizeBody) {
 				sl_size sizeRemain = sizeBody - sizeCurrent;
 				if (sizeRemain < size) {
-					if (!(context->m_requestBodyBuffer.add(Memory::create(data, sizeRemain)))) {
+					if (!(context->m_requestBodyBuffer.addNew(data, sizeRemain))) {
 						sendResponseAndClose_ServerError();
 						return;
 					}
 					m_bufReadUnprocessed = List<char>::create(data + sizeRemain, size - sizeRemain);
 				} else {
-					if (!(context->m_requestBodyBuffer.add(Memory::create(data, size)))) {
+					if (!(context->m_requestBodyBuffer.addNew(data, size))) {
 						sendResponseAndClose_ServerError();
 						return;
 					}

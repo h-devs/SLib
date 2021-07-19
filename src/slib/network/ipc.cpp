@@ -185,7 +185,7 @@ namespace slib
 					while (thread->isNotStopping()) {
 						sl_int32 n = socket.receive(buf, sizeof(buf));
 						if (n > 0) {
-							bufRead.add(Memory::create(buf, n));
+							bufRead.addNew(buf, n);
 							if (bufRead.getSize() >= sizeContent) {
 								return bufRead.merge();
 							}

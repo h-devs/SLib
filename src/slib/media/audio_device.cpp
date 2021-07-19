@@ -393,7 +393,7 @@ namespace slib
 				m.ref = audioIn.ref;
 				m_buffer.add(m);
 			} else {
-				m_buffer.add(Memory::create(audioIn.data, sizeTotal));
+				m_buffer.addNew(audioIn.data, sizeTotal);
 			}
 		} else {
 			Memory mem = Memory::create(sizeTotal);

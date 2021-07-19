@@ -40,13 +40,25 @@ namespace slib
 		sl_size getSize() const;
 		
 		sl_bool add_NoLock(const MemoryData& mem);
-		
+
+		sl_bool add_NoLock(MemoryData&& mem);
+
 		sl_bool add(const MemoryData& mem);
-		
+
+		sl_bool add(MemoryData&& mem);
+
 		sl_bool add_NoLock(const Memory& mem);
-		
+
+		sl_bool add_NoLock(Memory&& mem);
+
 		sl_bool add(const Memory& mem);
-		
+
+		sl_bool add(Memory&& mem);
+
+		sl_bool addNew_NoLock(const void* buf, sl_size size);
+
+		sl_bool addNew(const void* buf, sl_size size);
+
 		sl_bool addStatic_NoLock(const void* buf, sl_size size);
 
 		template <sl_size N>

@@ -263,9 +263,9 @@ namespace slib
 		int iRet = deflateInit2(STREAM, param.level, Z_DEFLATED, 31, 8, Z_DEFAULT_STRATEGY);
 		if (iRet == Z_OK) {
 			Base::zeroMemory(GZIP_HEADER, sizeof(gz_header));
-			m_gzipFileName = param.fileName.toNullTerminated();
+			m_gzipFileName = param.fileName.toString().toNullTerminated();
 			GZIP_HEADER->name = (Bytef*)(m_gzipFileName.getData());
-			m_gzipComment = param.comment.toNullTerminated();
+			m_gzipComment = param.comment.toString().toNullTerminated();
 			GZIP_HEADER->comment = (Bytef*)(m_gzipComment.getData());
 			GZIP_HEADER->os = 255;
 			iRet = deflateSetHeader(STREAM, GZIP_HEADER);

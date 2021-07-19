@@ -24,7 +24,3 @@
 #include "inftrees.c"
 #include "uncompr.c"
 #include "zutil.c"
-
-#include "contrib/minizip/ioapi.c"
-#include "contrib/minizip/unzip.c"
-#include "contrib/minizip/zip.c"

@@ -156,19 +156,19 @@ namespace slib
 						BOOL bRet = ReadFile(handle, buf, sizeof(buf), &dwRead, &overlapped);
 						if (bRet) {
 							if (dwRead) {
-								bufRead.add(Memory::create(buf, dwRead));
+								bufRead.addNew(buf, dwRead);
 							}
 							return bufRead.merge();
 						} else {
 							DWORD err = GetLastError();
 							if (err == ERROR_MORE_DATA) {
-								bufRead.add(Memory::create(buf, sizeof(buf)));
+								bufRead.addNew(buf, sizeof(buf));
 							} else {
 								if (err == ERROR_IO_PENDING) {
 									event->wait(10);
 									if (GetOverlappedResult(handle, &overlapped, &dwRead, FALSE)) {
 										if (dwRead) {
-											bufRead.add(Memory::create(buf, dwRead));
+											bufRead.addNew(buf, dwRead);
 										}
 										return bufRead.merge();
 									}
@@ -178,7 +178,7 @@ namespace slib
 									err = GetLastError();
 									if (err == ERROR_MORE_DATA) {
 										if (dwRead) {
-											bufRead.add(Memory::create(buf, dwRead));
+											bufRead.addNew(buf, dwRead);
 										}
 									} else {
 										return sl_null;

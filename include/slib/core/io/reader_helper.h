@@ -101,7 +101,7 @@ namespace slib
 			for (;;) {
 				sl_reg nRead = reader->read(buf, sizeof(buf));
 				if (nRead > 0) {
-					mb.add(Memory::create(buf, nRead));
+					mb.addNew(buf, nRead);
 				} else if (nRead == SLIB_IO_WOULD_BLOCK && Thread::isNotStoppingCurrent()) {
 					Thread::sleep(1);
 				} else {

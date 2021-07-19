@@ -1466,7 +1466,7 @@ namespace slib
 			output.addStatic(name.getData(), name.getLength());
 			if (fileName.isNotNull()) {
 				output.addStatic("\"; filename=\"");
-				output.add(Memory::create(fileName.getData(), fileName.getLength()));
+				output.addNew(fileName.getData(), fileName.getLength());
 			}
 			output.addStatic("\"\r\n");
 			if (headers) {

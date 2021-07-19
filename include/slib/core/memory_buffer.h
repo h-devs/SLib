@@ -52,6 +52,10 @@ namespace slib
 
 		sl_bool add(const Memory& mem);
 
+		sl_bool add(Memory&& mem);
+
+		sl_bool addNew(const void* buf, sl_size size);
+
 		sl_bool addStatic(const void* buf, sl_size size);
 	
 		template <sl_size N>
