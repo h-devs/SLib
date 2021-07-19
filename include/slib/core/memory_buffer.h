@@ -61,6 +61,8 @@ namespace slib
 		}
 
 		sl_bool pop(MemoryData& data);
+
+		sl_bool pushFront(const MemoryData& data);
 	
 		void link(MemoryBuffer& buf);
 	

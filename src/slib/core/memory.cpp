@@ -284,6 +284,41 @@ namespace slib
 		}
 	}
 
+	MemoryData& MemoryData::operator=(const Memory& memory) noexcept
+	{
+		CMemory* p = memory.ref.get();
+		if (p) {
+			data = p->data;
+			size = p->size;
+			ref = p->getRef();
+		} else {
+			data = sl_null;
+			size = 0;
+			ref.setNull();
+		}
+		return *this;
+	}
+
+	MemoryData& MemoryData::operator=(Memory&& memory) noexcept
+	{
+		CMemory* p = memory.ref.get();
+		if (p) {
+			data = p->data;
+			size = p->size;
+			Referable* r = p->getRef();
+			if (r == p) {
+				ref = Move(memory.ref);
+			} else {
+				ref = p->getRef();
+			}
+		} else {
+			data = sl_null;
+			size = 0;
+			ref.setNull();
+		}
+		return *this;
+	}
+
 	Memory MemoryData::getMemory() const noexcept
 	{
 		if (CMemory* mem = CastInstance<CMemory>(ref.ptr)) {
@@ -1018,6 +1053,11 @@ namespace slib
 	sl_bool MemoryBuffer::pop(MemoryData& data)
 	{
 		return m_queue.popFront_NoLock(&data);
+	}
+
+	sl_bool MemoryBuffer::pushFront(const MemoryData& data)
+	{
+		return m_queue.pushFront_NoLock(data);
 	}
 
 	void MemoryBuffer::link(MemoryBuffer& buf)

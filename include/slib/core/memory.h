@@ -57,6 +57,11 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MemoryData)
 
 	public:
+		MemoryData& operator=(const Memory& memory) noexcept;
+
+		MemoryData& operator=(Memory&& memory) noexcept;
+
+	public:
 		Memory getMemory() const noexcept;
 
 		Memory sub(sl_size offset, sl_size size = SLIB_SIZE_MAX) const noexcept;
