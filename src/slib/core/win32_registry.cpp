@@ -358,6 +358,11 @@ namespace slib
 				if (ERROR_SUCCESS == RegSetValueExW(hKey, (LPCWSTR)(name.getData()), NULL, REG_SZ, reinterpret_cast<BYTE*>(str.getData()), (DWORD)(str.getLength() + 1) * 2)) {
 					flagSuccess = sl_true;
 				}
+			} else {
+				String16 str = String16::from(value.toJsonString());
+				if (ERROR_SUCCESS == RegSetValueExW(hKey, (LPCWSTR)(name.getData()), NULL, REG_SZ, reinterpret_cast<BYTE*>(str.getData()), (DWORD)(str.getLength() + 1) * 2)) {
+					flagSuccess = sl_true;
+				}
 			}
 
 			return flagSuccess;
