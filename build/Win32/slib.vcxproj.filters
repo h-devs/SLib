@@ -1400,5 +1400,8 @@
     <ClCompile Include="..\..\src\slib\crypto\zstd.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\doc\zip.cpp">
+      <Filter>src\doc</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

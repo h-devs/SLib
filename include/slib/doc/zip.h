@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,63 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DOC_HEADER
-#define CHECKHEADER_SLIB_DOC_HEADER
+#ifndef CHECKHEADER_SLIB_DOC_ZIP
+#define CHECKHEADER_SLIB_DOC_ZIP
 
-#include "doc/pdf.h"
+#include "definition.h"
 
-#include "doc/zip.h"
-#include "doc/rar.h"
+#include "../core/string.h"
+#include "../core/list.h"
+#include "../core/memory.h"
+#include "../core/time.h"
+#include "../core/io.h"
+#include "../core/nullable.h"
+
+namespace slib
+{
+
+	enum class ZipCompressionMethod
+	{
+		Store = 0,
+		Deflated = 8,
+		Zstandard = 93
+	};
+
+	class SLIB_EXPORT ZipFileInfo
+	{
+	public:
+		String filePath; // path in zip file
+		Time lastModifiedTime;
+		ZipCompressionMethod compressionMethod;
+		Nullable<sl_int32> compressionLevel; // 0-9 (Deflate)
+		StringParam password; // for archive
+
+	public:
+		ZipFileInfo();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ZipFileInfo)
+
+	};
+
+	class SLIB_EXPORT ZipElement : public ZipFileInfo
+	{
+	public:
+		Memory content;
+
+	public:
+		ZipElement();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ZipElement)
+
+	};
+
+	class SLIB_EXPORT Zip
+	{
+	public:
+		static Memory archive(const ListParam<ZipElement>& elements);
+
+	};
+
+}
 
 #endif

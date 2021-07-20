@@ -290,6 +290,7 @@ set (SLIB_EXTRA_FILES
 
  "${SLIB_PATH}/src/slib/doc/pdf.cpp"
  "${SLIB_PATH}/src/slib/doc/rar.cpp"
+ "${SLIB_PATH}/src/slib/doc/zip.cpp"
 
  "${SLIB_PATH}/src/slib/geo/earth.cpp"
  "${SLIB_PATH}/src/slib/geo/geo_line.cpp"
