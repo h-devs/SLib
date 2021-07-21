@@ -191,7 +191,9 @@ namespace slib
 			if (!(ZSTD_isError(ret))) {
 				sizeOutputUsed = (sl_size)(out.pos);
 				if (ret) {
-					return DataFilterResult::Continue;
+					if (sizeOutputUsed) {
+						return DataFilterResult::Continue;
+					}
 				} else {
 					return DataFilterResult::Finished;
 				}
@@ -224,18 +226,18 @@ namespace slib
 
 	Memory Zstd::compress(const void* data, sl_size size, sl_int32 level)
 	{
-		ZstdCompressor zlib;
-		if (zlib.start(level)) {
-			return zlib.passAndFinish(data, size);
+		ZstdCompressor compressor;
+		if (compressor.start(level)) {
+			return compressor.passAndFinish(data, size);
 		}
 		return sl_null;
 	}
 
 	Memory Zstd::decompress(const void* data, sl_size size)
 	{
-		ZstdDecompressor zlib;
-		if (zlib.start()) {
-			return zlib.passAndFinish(data, size);
+		ZstdDecompressor decompressor;
+		if (decompressor.start()) {
+			return decompressor.passAndFinish(data, size);
 		}
 		return sl_null;
 	}

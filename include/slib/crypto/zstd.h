@@ -95,7 +95,7 @@ namespace slib
 
 		static sl_int32 getMinimumLevel();
 
-		static Memory compress(const void* data, sl_size size, sl_int32 level = 6);
+		static Memory compress(const void* data, sl_size size, sl_int32 level = 3);
 
 		static Memory decompress(const void* data, sl_size size);
 	
