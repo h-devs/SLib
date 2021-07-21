@@ -41,6 +41,7 @@
 #include "network/nat.h"
 #include "network/ethernet.h"
 #include "network/arp.h"
+#include "network/packet_analyzer.h"
 
 #include "network/url.h"
 #include "network/url_request.h"
