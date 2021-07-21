@@ -41,9 +41,7 @@ namespace slib
 		
 	public:
 		template <class KEY, class... VALUE_ARGS>
-		HashTableNode(KEY&& _key, VALUE_ARGS&&... value_args) noexcept
-		 : key(Forward<KEY>(_key)), value(Forward<VALUE_ARGS>(value_args)...)
-	 	{}
+		HashTableNode(KEY&& _key, VALUE_ARGS&&... value_args) noexcept: key(Forward<KEY>(_key)), value(Forward<VALUE_ARGS>(value_args)...) {}
 		
 	};
 	
@@ -207,16 +205,14 @@ namespace slib
 		typedef HashTableNode<KT, VT> NODE;
 		
 	public:
-		HashTable(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_EQUALS& equals = KEY_EQUALS()) noexcept
-		: m_hash(hash), m_equals(equals)
+		HashTable(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_EQUALS& equals = KEY_EQUALS()) noexcept: m_hash(hash), m_equals(equals)
 		{
 			priv::hash_table::Helper::initialize(reinterpret_cast<HashTableStructBase*>(&m_table), capacityMinimum, capacityMaximum);
 		}
 	
 		HashTable(const HashTable& other) = delete;
 		
-		HashTable(HashTable&& other) noexcept
-		: m_hash(Move(other.m_hash)), m_equals(Move(other.m_equals))
+		HashTable(HashTable&& other) noexcept: m_hash(Move(other.m_hash)), m_equals(Move(other.m_equals))
 		{
 			priv::hash_table::Helper::move(reinterpret_cast<HashTableStructBase*>(&m_table), reinterpret_cast<HashTableStructBase*>(&(other.m_table)));
 		}
@@ -246,7 +242,7 @@ namespace slib
 		
 		sl_bool isEmpty() const noexcept
 		{
-			return m_table.count == 0;
+			return !(m_table.count);
 		}
 		
 		sl_bool isNotEmpty() const noexcept
@@ -282,7 +278,7 @@ namespace slib
 		NODE* find(const KT& key) const noexcept
 		{
 			sl_size capacity = m_table.capacity;
-			if (capacity == 0) {
+			if (!capacity) {
 				return sl_null;
 			}
 			sl_size hash = m_hash(key);
@@ -301,7 +297,7 @@ namespace slib
 		NODE* findKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			sl_size capacity = m_table.capacity;
-			if (capacity == 0) {
+			if (!capacity) {
 				return sl_null;
 			}
 			sl_size hash = m_hash(key);
@@ -369,7 +365,7 @@ namespace slib
 		List<VT> getValues(const KT& key) const noexcept
 		{
 			sl_size capacity = m_table.capacity;
-			if (capacity == 0) {
+			if (!capacity) {
 				return sl_null;
 			}
 			List<VT> ret;
@@ -389,7 +385,7 @@ namespace slib
 		List<VT> getValuesByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			sl_size capacity = m_table.capacity;
-			if (capacity == 0) {
+			if (!capacity) {
 				return sl_null;
 			}
 			List<VT> ret;
@@ -515,7 +511,7 @@ namespace slib
 		sl_bool removeAt(const NODE* nodeRemove) noexcept
 		{
 			sl_size capacity = m_table.capacity;
-			if (capacity == 0) {
+			if (!capacity) {
 				return sl_null;
 			}
 			
@@ -542,7 +538,7 @@ namespace slib
 		sl_bool remove(const KT& key, VT* outValue = sl_null) noexcept
 		{
 			sl_size capacity = m_table.capacity;
-			if (capacity == 0) {
+			if (!capacity) {
 				return sl_false;
 			}
 
@@ -572,7 +568,7 @@ namespace slib
 		sl_size removeItems(const KT& key) noexcept
 		{
 			sl_size capacity = m_table.capacity;
-			if (capacity == 0) {
+			if (!capacity) {
 				return 0;
 			}
 			
@@ -612,7 +608,7 @@ namespace slib
 		List<VT> removeItemsAndReturnValues(const KT& key) noexcept
 		{
 			sl_size capacity = m_table.capacity;
-			if (capacity == 0) {
+			if (!capacity) {
 				return sl_null;
 			}
 			
@@ -655,7 +651,7 @@ namespace slib
 		sl_bool removeKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
 		{
 			sl_size capacity = m_table.capacity;
-			if (capacity == 0) {
+			if (!capacity) {
 				return sl_false;
 			}
 			
@@ -683,7 +679,7 @@ namespace slib
 		sl_size removeItemsByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
 		{
 			sl_size capacity = m_table.capacity;
-			if (capacity == 0) {
+			if (!capacity) {
 				return 0;
 			}
 			
@@ -723,7 +719,7 @@ namespace slib
 		sl_size removeAll() noexcept
 		{
 			sl_size capacity = m_table.capacity;
-			if (capacity == 0) {
+			if (!capacity) {
 				return 0;
 			}
 			sl_size count = m_table.count;
@@ -744,7 +740,7 @@ namespace slib
 			m_equals = other.m_equals;
 			sl_size capacity = other.m_table.capacity;
 			priv::hash_table::Helper::initialize(reinterpret_cast<HashTableStructBase*>(&m_table), other.m_table.capacityMinimum, other.m_table.capacityMaximum);
-			if (capacity == 0) {
+			if (!capacity) {
 				return sl_true;
 			}
 			if (!(priv::hash_table::Helper::reallocNodes(reinterpret_cast<HashTableStructBase*>(&m_table), capacity))) {
