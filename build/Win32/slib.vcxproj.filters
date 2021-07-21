@@ -46,18 +46,6 @@
     <Filter Include="external">
       <UniqueIdentifier>{00282b1a-ca51-4d8f-9fd1-265ce8cb1975}</UniqueIdentifier>
     </Filter>
-    <Filter Include="external\zlib">
-      <UniqueIdentifier>{e11a6e96-ca72-43ec-9ad2-6d1cc49da91c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="external\libpng">
-      <UniqueIdentifier>{1fe06a41-787f-4ae4-b803-dacedeb1c14e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="external\libjpeg">
-      <UniqueIdentifier>{c2cc6705-3a2b-4638-a9f2-fca0fb708924}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="external\noto_emoji">
-      <UniqueIdentifier>{b6db5c2e-9294-4493-b587-14d01c80b04e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\service">
       <UniqueIdentifier>{f8d3e2b1-d55d-440d-b9b8-01fe4590e459}</UniqueIdentifier>
     </Filter>
@@ -72,21 +60,6 @@
     </Filter>
     <Filter Include="inc">
       <UniqueIdentifier>{ee59f2d4-03fa-45eb-9fd2-80029c13eb53}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="external\leveldb">
-      <UniqueIdentifier>{82658171-cd14-4eea-bf1d-5f99bbf925cc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="external\lmdb">
-      <UniqueIdentifier>{5dcbd18f-cb7c-4037-aada-584299d0d776}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="external\snappy">
-      <UniqueIdentifier>{f5fcda81-8f4e-4350-bc74-9813103ef8f8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="external\zstd">
-      <UniqueIdentifier>{92030ff6-e888-44ee-81e5-b124b22f3216}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="external\lz4">
-      <UniqueIdentifier>{bd5525f1-6adb-438e-9324-3783d604dd90}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -977,12 +950,6 @@
     <ClCompile Include="..\..\src\slib\graphics\emoji_png.cpp">
       <Filter>src\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji.cpp">
-      <Filter>external\noto_emoji</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji_png.cpp">
-      <Filter>external\noto_emoji</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\string_buffer.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -1244,24 +1211,6 @@
     <ClCompile Include="..\..\src\slib\math\decimal128.cpp">
       <Filter>src\math</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\external\src\leveldb\leveldb_unity.cc">
-      <Filter>external\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zstd\zstd_unity.c">
-      <Filter>external\zstd</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\zlib\zlib_unity.c">
-      <Filter>external\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libpng\libpng_unity.c">
-      <Filter>external\libpng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libjpeg\libjpeg_unity1.c">
-      <Filter>external\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\libjpeg\libjpeg_unity2.c">
-      <Filter>external\libjpeg</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\db\key_value_store.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
@@ -1382,15 +1331,6 @@
     <ClCompile Include="..\..\src\slib\core\dl_win32_shlwapi.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\external\src\lz4\lz4_unity.c">
-      <Filter>external\lz4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\lmdb\lmdb_unity.c">
-      <Filter>external\lmdb</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\snappy\snappy_unity.cc">
-      <Filter>external\snappy</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\crc32c.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
@@ -1402,6 +1342,48 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\doc\zip.cpp">
       <Filter>src\doc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\packet_analyzer.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\brotli\brotli_unity.c">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\leveldb\leveldb_unity.cc">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\libjpeg\libjpeg_unity1.c">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\libjpeg\libjpeg_unity2.c">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\libpng\libpng_unity.c">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\lmdb\lmdb_unity.c">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\lz4\lz4_unity.c">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji.cpp">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji_png.cpp">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\snappy\snappy_unity.cc">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\zlib\zlib_unity.c">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\zstd\zstd_unity.c">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\crypto\brotli.cpp">
+      <Filter>src\crypto</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

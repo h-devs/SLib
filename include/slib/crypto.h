@@ -59,6 +59,7 @@
 #include "crypto/compress.h"
 #include "crypto/zlib.h"
 #include "crypto/zstd.h"
+#include "crypto/brotli.h"
 
 // Other
 #include "crypto/base64.h"

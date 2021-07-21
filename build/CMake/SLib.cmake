@@ -212,6 +212,7 @@ else ()
   "${SLIB_PATH}/src/slib/core/preference_linux.cpp"
   "${SLIB_PATH}/src/slib/core/service_manager_linux.cpp"
   "${SLIB_PATH}/src/slib/core/wrap_memcpy.cpp"
+  "${SLIB_PATH}/src/slib/network/packet_analyzer.cpp"
   "${SLIB_PATH}/src/slib/network/pcap.cpp"
   "${SLIB_PATH}/src/slib/network/tap_unix.cpp"
  )
@@ -544,60 +545,21 @@ if (SLIB_X86_64)
  SET_PROPERTY( SOURCE ${SLIB_PATH}/src/slib/crypto/crc32c.cpp PROPERTY COMPILE_FLAGS -msse4.2 )
 endif()
 
-set (ZLIB_ROOT_DIR "${SLIB_PATH}/external/src/zlib")
+set (EXTERNAL_SRC_DIR "${SLIB_PATH}/external/src")
 set (
- ZLIB_FILES
- "${ZLIB_ROOT_DIR}/zlib_unity.c"
-)
-
-set (LIBPNG_ROOT_DIR "${SLIB_PATH}/external/src/libpng")
-set (
- LIBPNG_FILES
- "${LIBPNG_ROOT_DIR}/libpng_unity.c"
-)
-
-set (LIBJPEG_ROOT_DIR "${SLIB_PATH}/external/src/libjpeg")
-set (
- LIBJPEG_FILES
- "${LIBJPEG_ROOT_DIR}/libjpeg_unity1.c"
- "${LIBJPEG_ROOT_DIR}/libjpeg_unity2.c"
-)
-
-set (SNAPPY_ROOT_DIR "${SLIB_PATH}/external/src/snappy")
-set (
- SNAPPY_FILES
- "${SNAPPY_ROOT_DIR}/snappy_unity.cc"
-)
-
-set (ZSTD_ROOT_DIR "${SLIB_PATH}/external/src/zstd")
-set (
- ZSTD_FILES
- "${ZSTD_ROOT_DIR}/zstd_unity.c"
-)
-
-set (LZ4_ROOT_DIR "${SLIB_PATH}/external/src/lz4")
-set (
- LZ4_FILES
- "${LZ4_ROOT_DIR}/lz4_unity.c"
-)
-
-set (LMDB_ROOT_DIR "${SLIB_PATH}/external/src/lmdb")
-set (
- LMDB_FILES
- "${LMDB_ROOT_DIR}/lmdb_unity.c"
-)
-
-set (LEVELDB_ROOT_DIR "${SLIB_PATH}/external/src/leveldb")
-set (
- LEVELDB_FILES
- "${LEVELDB_ROOT_DIR}/leveldb_unity.cc"
-)
-
-set (NOTO_EMOJI_ROOT_DIR "${SLIB_PATH}/external/src/noto_emoji")
-set (
- NOTO_EMOJI_FILES
- "${NOTO_EMOJI_ROOT_DIR}/noto_emoji.cpp"
- "${NOTO_EMOJI_ROOT_DIR}/noto_emoji_png.cpp"
+ SLIB_EXTERNAL_FILES
+ "${EXTERNAL_SRC_DIR}/zlib/zlib_unity.c"
+ "${EXTERNAL_SRC_DIR}/libpng/libpng_unity.c"
+ "${EXTERNAL_SRC_DIR}/libjpeg/libjpeg_unity1.c"
+ "${EXTERNAL_SRC_DIR}/libjpeg/libjpeg_unity2.c"
+ "${EXTERNAL_SRC_DIR}/zstd/zstd_unity.c"
+ "${EXTERNAL_SRC_DIR}/brotli/brotli_unity.c"
+ "${EXTERNAL_SRC_DIR}/snappy/snappy_unity.cc"
+ "${EXTERNAL_SRC_DIR}/lz4/lz4_unity.c"
+ "${EXTERNAL_SRC_DIR}/lmdb/lmdb_unity.c"
+ "${EXTERNAL_SRC_DIR}/leveldb/leveldb_unity.cc"
+ "${EXTERNAL_SRC_DIR}/noto_emoji/noto_emoji.cpp"
+ "${EXTERNAL_SRC_DIR}/noto_emoji/noto_emoji_png.cpp"
 )
 
 add_library (
@@ -608,15 +570,7 @@ add_library (
  ${SLIB_EXTRA_PLATFORM_FILES}
  ${SLIB_JAVA_FILES}
  ${SLIB_ANDROID_FILES}
- ${ZLIB_FILES}
- ${LIBPNG_FILES}
- ${LIBJPEG_FILES}
- ${SNAPPY_FILES}
- ${ZSTD_FILES}
- ${LZ4_FILES}
- ${LMDB_FILES}
- ${LEVELDB_FILES}
- ${NOTO_EMOJI_FILES}
+ ${SLIB_EXTERNAL_FILES}
 )
 set_target_properties (
  slib

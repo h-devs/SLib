@@ -51,6 +51,7 @@
     <ClInclude Include="..\..\src\slib\ui\view_win32.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\external\src\brotli\brotli_unity.c" />
     <ClCompile Include="..\..\external\src\leveldb\leveldb_unity.cc" />
     <ClCompile Include="..\..\external\src\libjpeg\libjpeg_unity1.c" />
     <ClCompile Include="..\..\external\src\libjpeg\libjpeg_unity2.c" />
@@ -158,6 +159,7 @@
     <ClCompile Include="..\..\src\slib\crypto\base64.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\block_cipher.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\blowfish.cpp" />
+    <ClCompile Include="..\..\src\slib\crypto\brotli.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\chacha.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\compress.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\zlib.cpp" />
@@ -295,6 +297,7 @@
     <ClCompile Include="..\..\src\slib\network\net_capture.cpp" />
     <ClCompile Include="..\..\src\slib\network\npcap_install_win32.cpp" />
     <ClCompile Include="..\..\src\slib\network\p2p.cpp" />
+    <ClCompile Include="..\..\src\slib\network\packet_analyzer.cpp" />
     <ClCompile Include="..\..\src\slib\network\pcap.cpp" />
     <ClCompile Include="..\..\src\slib\network\pseudo_tcp.cpp" />
     <ClCompile Include="..\..\src\slib\network\pseudo_tcp_message.cpp" />
