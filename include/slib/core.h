@@ -117,6 +117,8 @@
 #include "core/event.h"
 #include "core/named_instance.h"
 #include "core/rw_lock.h"
+#include "core/rw_spin_lock.h"
+#include "core/rw_lockable.h"
 
 #include "core/io.h"
 #include "core/memory_io.h"

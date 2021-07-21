@@ -83,6 +83,7 @@ public: \
 	static const WRAPPER& null() noexcept { return *(reinterpret_cast<WRAPPER const*>(&(priv::ref::g_null))); } \
 	constexpr sl_bool isNull() const { return ref.isNull(); } \
 	constexpr sl_bool isNotNull() const { return ref.isNotNull(); } \
+	constexpr __VA_ARGS__* getObject() const { return ref.ptr; } \
 	void setNull() noexcept { ref.setNull(); } \
 	WRAPPER& operator=(sl_null_t) noexcept { ref.setNull(); return *this; } \
 	WRAPPER& operator=(__VA_ARGS__* obj) noexcept { ref = obj; return *this; } \

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,8 @@
  */
 
 #include "slib/core/rw_lock.h"
+#include "slib/core/rw_spin_lock.h"
+#include "slib/core/rw_lockable.h"
 
 #include "slib/core/base.h"
 
@@ -253,6 +255,235 @@ namespace slib
 		if (lock) {
 			m_lock->unlockWrite();
 			m_lock = sl_null;
+		}
+	}
+
+
+	sl_bool ReadWriteSpinLock::tryLockRead() const noexcept
+	{
+		if (m_lockReading.tryLock()) {
+			m_nReading++;
+			if (m_nReading == 1) {
+				if (m_lockWriting.tryLock()) {
+					m_lockReading.unlock();
+					return sl_true;
+				} else {
+					m_nReading = 0;
+					m_lockReading.unlock();
+					return sl_false;
+				}
+			} else {
+				m_lockReading.unlock();
+				return sl_true;
+			}
+		} else {
+			return sl_false;
+		}
+	}
+
+	void ReadWriteSpinLock::lockRead() const noexcept
+	{
+		SpinLocker lock(&m_lockReading);
+		m_nReading++;
+		if (m_nReading == 1) {
+			m_lockWriting.lock();
+		}
+	}
+
+	void ReadWriteSpinLock::unlockRead() const noexcept
+	{
+		SpinLocker lock(&m_lockReading);
+		m_nReading--;
+		if (!m_nReading) {
+			m_lockWriting.unlock();
+		}
+	}
+
+	sl_bool ReadWriteSpinLock::tryLockWrite() const noexcept
+	{
+		return m_lockWriting.tryLock();
+	}
+	void ReadWriteSpinLock::lockWrite() const noexcept
+	{
+		m_lockWriting.lock();
+	}
+
+	void ReadWriteSpinLock::unlockWrite() const noexcept
+	{
+		m_lockWriting.unlock();
+	}
+
+	ReadWriteSpinLock& ReadWriteSpinLock::operator=(const ReadWriteSpinLock& other) noexcept
+	{
+		return *this;
+	}
+
+	ReadWriteSpinLock& ReadWriteSpinLock::operator=(ReadWriteSpinLock&& other) noexcept
+	{
+		return *this;
+	}
+
+
+	ReadSpinLocker::ReadSpinLocker() noexcept
+	{
+		m_lock = sl_null;
+	}
+
+	ReadSpinLocker::ReadSpinLocker(const ReadWriteSpinLock* lock) noexcept
+	{
+		m_lock = lock;
+		if (lock) {
+			lock->lockRead();
+		}
+	}
+
+	ReadSpinLocker::~ReadSpinLocker() noexcept
+	{
+		unlock();
+	}
+
+	void ReadSpinLocker::lock(const ReadWriteSpinLock* lock) noexcept
+	{
+		if (m_lock) {
+			return;
+		}
+		if (lock) {
+			m_lock = lock;
+			lock->lockRead();
+		}
+	}
+
+	void ReadSpinLocker::unlock() noexcept
+	{
+		const ReadWriteSpinLock* lock = m_lock;
+		if (lock) {
+			m_lock->unlockRead();
+			m_lock = sl_null;
+		}
+	}
+
+
+	WriteSpinLocker::WriteSpinLocker() noexcept
+	{
+		m_lock = sl_null;
+	}
+
+	WriteSpinLocker::WriteSpinLocker(const ReadWriteSpinLock* lock) noexcept
+	{
+		m_lock = lock;
+		if (lock) {
+			lock->lockWrite();
+		}
+	}
+
+	WriteSpinLocker::~WriteSpinLocker() noexcept
+	{
+		unlock();
+	}
+
+	void WriteSpinLocker::lock(const ReadWriteSpinLock* lock) noexcept
+	{
+		if (m_lock) {
+			return;
+		}
+		if (lock) {
+			m_lock = lock;
+			lock->lockWrite();
+		}
+	}
+
+	void WriteSpinLocker::unlock() noexcept
+	{
+		const ReadWriteSpinLock* lock = m_lock;
+		if (lock) {
+			m_lock->unlockWrite();
+			m_lock = sl_null;
+		}
+	}
+
+
+	RWLockable::RWLockable() noexcept : m_nReading(0)
+	{
+	}
+
+	RWLockable::~RWLockable() noexcept
+	{
+	}
+
+	sl_bool RWLockable::tryLockRead() const noexcept
+	{
+		if (m_lockReading.tryLock()) {
+			m_nReading++;
+			if (m_nReading == 1) {
+				if (m_locker.tryLock()) {
+					m_lockReading.unlock();
+					return sl_true;
+				} else {
+					m_nReading = 0;
+					m_lockReading.unlock();
+					return sl_false;
+				}
+			} else {
+				m_lockReading.unlock();
+				return sl_true;
+			}
+		} else {
+			return sl_false;
+		}
+	}
+
+	void RWLockable::lockRead() const noexcept
+	{
+		SpinLocker lock(&m_lockReading);
+		m_nReading++;
+		if (m_nReading == 1) {
+			m_locker.lock();
+		}
+	}
+
+	void RWLockable::unlockRead() const noexcept
+	{
+		SpinLocker lock(&m_lockReading);
+		m_nReading--;
+		if (!m_nReading) {
+			m_locker.unlock();
+		}
+	}
+
+
+	ReadObjectLocker::ReadObjectLocker() noexcept : m_object(sl_null)
+	{
+	}
+
+	ReadObjectLocker::ReadObjectLocker(const RWLockable* object) noexcept : m_object(object)
+	{
+		if (object) {
+			object->lockRead();
+		}
+	}
+
+	ReadObjectLocker::~ReadObjectLocker() noexcept
+	{
+		unlock();
+	}
+
+	void ReadObjectLocker::lock(const RWLockable* object) noexcept
+	{
+		if (m_object) {
+			return;
+		}
+		if (object) {
+			m_object = object;
+			object->lockRead();
+		}
+	}
+
+	void ReadObjectLocker::unlock() noexcept
+	{
+		const RWLockable* object = m_object;
+		if (object) {
+			object->unlockRead();
+			m_object = sl_null;
 		}
 	}
 
