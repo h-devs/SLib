@@ -2244,7 +2244,7 @@ namespace slib
 	SerializeBuffer::SerializeBuffer(const void* buf, sl_size size) noexcept
 	{
 		current = begin = (sl_uint8*)buf;
-		end = begin + size;
+		end = begin ? begin + size : sl_null;
 	}
 
 	sl_bool SerializeBuffer::read(sl_uint8& _out) noexcept
@@ -2299,7 +2299,7 @@ namespace slib
 	DeserializeBuffer::DeserializeBuffer(const void* buf, sl_size size) noexcept
 	{
 		current = begin = (sl_uint8*)buf;
-		end = begin + size;
+		end = begin ? begin + size : sl_null;
 	}
 
 	DeserializeBuffer::DeserializeBuffer(const MemoryData& data) noexcept: DeserializeBuffer(data.data, data.size, data.ref)
