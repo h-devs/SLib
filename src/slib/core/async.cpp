@@ -1575,7 +1575,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool AsyncOutputBuffer::copyFromFile(const String& path)
+	sl_bool AsyncOutputBuffer::copyFromFile(const StringParam& path)
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		sl_uint64 size;
@@ -1597,7 +1597,7 @@ namespace slib
 #endif
 	}
 
-	sl_bool AsyncOutputBuffer::copyFromFile(const String& path, const Ref<Dispatcher>& dispatcher)
+	sl_bool AsyncOutputBuffer::copyFromFile(const StringParam& path, const Ref<Dispatcher>& dispatcher)
 	{
 		sl_uint64 size;
 		if (File::getSize(path, size)) {

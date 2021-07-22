@@ -85,9 +85,9 @@ namespace slib
 
 		sl_bool copyFrom(AsyncStream* stream, sl_uint64 size);
 
-		sl_bool copyFromFile(const String& path);
+		sl_bool copyFromFile(const StringParam& path);
 
-		sl_bool copyFromFile(const String& path, const Ref<Dispatcher>& dispatcher);
+		sl_bool copyFromFile(const StringParam& path, const Ref<Dispatcher>& dispatcher);
 
 		sl_uint64 getOutputLength() const;
 

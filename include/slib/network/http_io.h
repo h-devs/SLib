@@ -47,16 +47,16 @@ namespace slib
 		void clearOutput();
 		
 		void write(const void* buf, sl_size size);
-		
-		void write(const String& str);
-		
+
 		void write(const Memory& mem);
+
+		void write(const StringParam& str);
 		
 		void copyFrom(AsyncStream* stream, sl_uint64 size);
 		
-		void copyFromFile(const String& path);
+		void copyFromFile(const StringParam& path);
 		
-		void copyFromFile(const String& path, const Ref<Dispatcher>& dispatcher);
+		void copyFromFile(const StringParam& path, const Ref<Dispatcher>& dispatcher);
 		
 		sl_uint64 getOutputLength() const;
 		
