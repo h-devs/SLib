@@ -46,8 +46,8 @@ namespace slib
 	{
 		namespace function
 		{
-			
-			template <class RET_TYPE>
+
+			template <class RET_TYPE, class INVOKE_TYPE>
 			class FunctionInvoker
 			{
 			public:
@@ -56,16 +56,37 @@ namespace slib
 				{
 					return func(Forward<ARGS>(args)...);
 				}
-				
+
 				template <class CLASS, class FUNC, class... ARGS>
 				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, ARGS&&... args)
 				{
 					return (obj->*func)(Forward<ARGS>(args)...);
 				}
+
 			};
-			
-			template<>
-			class FunctionInvoker<void>
+
+			template <class RET_TYPE>
+			class FunctionInvoker<RET_TYPE, void>
+			{
+			public:
+				template <class FUNC, class... ARGS>
+				static RET_TYPE invoke(const FUNC& func, ARGS&&... args)
+				{
+					func(Forward<ARGS>(args)...);
+					return RET_TYPE();
+				}
+
+				template <class CLASS, class FUNC, class... ARGS>
+				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, ARGS&&... args)
+				{
+					(obj->*func)(Forward<ARGS>(args)...);
+					return RET_TYPE();
+				}
+
+			};
+
+			template <class INVOKE_TYPE>
+			class FunctionInvoker<void, INVOKE_TYPE>
 			{
 			public:
 				template <class FUNC, class... ARGS>
@@ -73,12 +94,31 @@ namespace slib
 				{
 					func(Forward<ARGS>(args)...);
 				}
-				
+
 				template <class CLASS, class FUNC, class... ARGS>
 				static void invokeMember(CLASS* obj, const FUNC& func, ARGS&&... args)
 				{
 					(obj->*func)(Forward<ARGS>(args)...);
 				}
+
+			};
+
+			template <>
+			class FunctionInvoker<void, void>
+			{
+			public:
+				template <class FUNC, class... ARGS>
+				static void invoke(const FUNC& func, ARGS&&... args)
+				{
+					func(Forward<ARGS>(args)...);
+				}
+
+				template <class CLASS, class FUNC, class... ARGS>
+				static void invokeMember(CLASS* obj, const FUNC& func, ARGS&&... args)
+				{
+					(obj->*func)(Forward<ARGS>(args)...);
+				}
+
 			};
 
 			template <class RET_TYPE>
@@ -370,7 +410,7 @@ namespace slib
 			public:
 				RET_TYPE invoke(ARGS... args) override
 				{
-					return FunctionInvoker<RET_TYPE>::invoke(func, Forward<ARGS>(args)...);
+					return FunctionInvoker<RET_TYPE, decltype(func(Forward<ARGS>(args)...))>::invoke(func, Forward<ARGS>(args)...);
 				}
 			};
 			
@@ -411,7 +451,7 @@ namespace slib
 			public:
 				RET_TYPE invoke(ARGS... args) override
 				{
-					return FunctionInvoker<RET_TYPE>::invokeMember(object, func, Forward<ARGS>(args)...);
+					return FunctionInvoker<RET_TYPE, decltype((object->*func)(Forward<ARGS>(args)...))>::invokeMember(object, func, Forward<ARGS>(args)...);
 				}
 			};
 			
@@ -448,7 +488,7 @@ namespace slib
 			public:
 				RET_TYPE invoke(ARGS... args) override
 				{
-					return FunctionInvoker<RET_TYPE>::invokeMember(object.ptr, func, Forward<ARGS>(args)...);
+					return FunctionInvoker<RET_TYPE, decltype((object.ptr->*func)(Forward<ARGS>(args)...))>::invokeMember(object.ptr, func, Forward<ARGS>(args)...);
 				}
 			};
 			
@@ -487,7 +527,7 @@ namespace slib
 				{
 					Ref<CLASS> o(object);
 					if (o.isNotNull()) {
-						return FunctionInvoker<RET_TYPE>::invokeMember(o.ptr, func, Forward<ARGS>(args)...);
+						return FunctionInvoker<RET_TYPE, decltype((o.ptr->*func)(Forward<ARGS>(args)...))>::invokeMember(o.ptr, func, Forward<ARGS>(args)...);
 					} else {
 						return RET_TYPE();
 					}
@@ -534,7 +574,7 @@ namespace slib
 				{
 					Ptr<CLASS> o(object.lock());
 					if (o.isNotNull()) {
-						return FunctionInvoker<RET_TYPE>::invokeMember(o.ptr, func, Forward<ARGS>(args)...);
+						return FunctionInvoker<RET_TYPE, decltype((o.ptr->*func)(Forward<ARGS>(args)...))>::invokeMember(o.ptr, func, Forward<ARGS>(args)...);
 					} else {
 						return RET_TYPE();
 					}
@@ -579,7 +619,7 @@ namespace slib
 			public:
 				RET_TYPE invoke(ARGS... args) override
 				{
-					return FunctionInvoker<RET_TYPE>::invoke(func, Forward<ARGS>(args)...);
+					return FunctionInvoker<RET_TYPE, decltype(func(Forward<ARGS>(args)...))>::invoke(func, Forward<ARGS>(args)...);
 				}
 			};
 			
@@ -599,7 +639,7 @@ namespace slib
 				{
 					Ref<CLASS> o(object);
 					if (o.isNotNull()) {
-						return FunctionInvoker<RET_TYPE>::invoke(func, Forward<ARGS>(args)...);
+						return FunctionInvoker<RET_TYPE, decltype(func(Forward<ARGS>(args)...))>::invoke(func, Forward<ARGS>(args)...);
 					} else {
 						return RET_TYPE();
 					}
@@ -622,7 +662,7 @@ namespace slib
 				{
 					Ptr<CLASS> o(object.lock());
 					if (o.isNotNull()) {
-						return FunctionInvoker<RET_TYPE>::invoke(func, Forward<ARGS>(args)...);
+						return FunctionInvoker<RET_TYPE, decltype(func(Forward<ARGS>(args)...))>::invoke(func, Forward<ARGS>(args)...);
 					} else {
 						return RET_TYPE();
 					}
