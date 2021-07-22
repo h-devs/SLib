@@ -522,7 +522,14 @@ namespace slib
 
 				void onErrorDevice(const Function<void(NetCapture*)>& onError, NetCapture* capture)
 				{
-					m_devices.removeValues(capture);
+					auto thiz = ToWeakRef(this);
+					Dispatch::dispatch([this, thiz, capture]() {
+						auto ref = ToRef(thiz);
+						if (ref.isNull()) {
+							return;
+						}
+						m_devices.removeValues(capture);
+					});
 					SLIB_LOG(TAG, "Removed device from any capture: %s", capture->getDeviceName());
 					onError(capture);
 				}
