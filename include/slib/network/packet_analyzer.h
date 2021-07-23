@@ -62,6 +62,10 @@ namespace slib
 
 		void setAnalyzingDns(sl_bool flag = sl_true);
 
+		void setIgnoringLocalPackets(sl_bool flag = sl_true);
+
+		void setIgnoringUnknownPorts(sl_bool flag = sl_true);
+
 	protected:
 		virtual void onARP_IPv4(ArpPacket* packet, sl_bool flagRequest, void* userData);
 	
@@ -72,6 +76,10 @@ namespace slib
 		virtual void onICMP_IPv4(IPv4Packet* packet, IcmpHeaderFormat* icmp, sl_uint8* data, sl_uint32 sizeData, void* userData);
 
 		virtual void onDNS_IPv4(IPv4Packet* packet, UdpDatagram* udp, DnsPacket* dns, void* userData);
+
+		virtual void onHTTP_IPv4(IPv4Packet* packet, TcpSegment* tcp, const StringView& host, const StringView& uri, void* userData);
+
+		virtual void onHTTPS_IPv4(IPv4Packet* packet, TcpSegment* tcp, const StringView& host, void* userData);
 
 	protected:
 		void analyzeTcpContent(IPv4Packet* packet, TcpSegment* tcp, sl_uint8* data, sl_uint32 sizeData, void* userData);
@@ -86,6 +94,9 @@ namespace slib
 		sl_bool m_flagAnalyzeHttp;
 		sl_bool m_flagAnalyzeHttps;
 		sl_bool m_flagAnalyzeDns;
+
+		sl_bool m_flagIgnoreLocalPackets;
+		sl_bool m_flagIgnoreUnknownPorts;
 
 		Ref<Referable> m_contentAnalyzer;
 		Mutex m_lockContentAnalyzer;

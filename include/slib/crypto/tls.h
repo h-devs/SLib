@@ -32,7 +32,200 @@
 
 namespace slib
 {
-	
+
+	enum class TlsRecordType
+	{
+		ChangeCipherSpec = 0x14,
+		Alert = 0x15,
+		Handshake = 0x16,
+		Application = 0x17,
+		Heartbeat = 0x18
+	};
+
+	enum class TlsVersion
+	{
+		SSL3_0 = SLIB_MAKE_WORD(3, 0),
+		TLS1_0 = SLIB_MAKE_WORD(3, 1),
+		TLS1_1 = SLIB_MAKE_WORD(3, 2),
+		TLS1_2 = SLIB_MAKE_WORD(3, 3),
+		TLS1_3 = SLIB_MAKE_WORD(3, 4)
+	};
+
+	enum class TlsHandshakeType
+	{
+		HelloRequest = 0,
+		ClientHello = 1,
+		ServerHello = 2,
+		NewSessionTicket = 4,
+		EncryptedExtensions = 8,
+		Certificate = 11,
+		ServerKeyExchange = 12,
+		CertificateRequest = 13,
+		ServerHelloDone = 14,
+		CertificateVerify = 15,
+		ClientKeyExchange = 16,
+		Finished = 20
+	};
+
+	// http://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml
+	enum class TlsExtensionType
+	{
+		ServerName = 0,
+		MaxFragmentLength = 1,
+		ClientCertificateUrl = 2,
+		TrustedCaKeys = 3,
+		TruncatedHmac = 4,
+		StatusRequest = 5,
+		UserMapping = 6,
+		ClientAuthz = 7,
+		ServerAuthz = 8,
+		CertType = 9,
+		SupportedGroups = 10,
+		EcPointFormats = 11,
+		Srp = 12,
+		SignatureAlgorithms = 13,
+		UseSrtp = 14,
+		Heartbeat = 15,
+		ApplicationLayerProtocolNegotiation = 16,
+		StatusRequest_v2 = 17,
+		SignedCertificateTimestamp = 18,
+		ClientCertificateType = 19,
+		ServerCertificateType = 20,
+		Padding = 21,
+		EncryptThenMac = 22,
+		ExtendedMaster_secret = 23,
+		TokenBinding = 24,
+		CachedInfo = 25,
+		TlsLts = 26,
+		CompressCertificate = 27,
+		RecordSizeLimit = 28,
+		PwdProtect = 29,
+		PwdClear = 30,
+		PasswordSalt = 31,
+		TicketPinning = 32,
+		TlsCertWithExternPsk = 33,
+		DelegatedCredentials = 34,
+		SessionTicket = 35,
+		TLMSP = 36,
+		TLMSP_Proxying = 37,
+		TLMSP_Delegate = 38,
+		SupportedEktCiphers = 39,
+		Reserved = 40,
+		PreSharedKey = 41,
+		EarlyData = 42,
+		SupportedVersions = 43,
+		Cookie = 44,
+		PskKeyExchangeModes = 45,
+		Certificate_authorities = 47,
+		OidFilters = 48,
+		PostHandshakeAuth = 49,
+		SignatureAlgorithmsCert = 50,
+		KeyShare = 51,
+		TransparencyInfo = 52,
+		ConnectionId = 54,
+		ExternalIdHash = 55,
+		ExternalSessionId = 56,
+		QuicTransportParameters = 57,
+		TicketRequest = 58,
+		DnssecChain = 59,
+		RenegotiationInfo = 65281
+	};
+
+	class SLIB_EXPORT TlsRecordHeader
+	{
+	public:
+		TlsRecordType getType() const noexcept
+		{
+			return (TlsRecordType)_type;
+		}
+
+		TlsVersion getVersion() const noexcept
+		{
+			return (TlsVersion)(SLIB_MAKE_WORD(_majorVersion, _minorVersion));
+		}
+
+		sl_uint16 getContentLength() const noexcept
+		{
+			return SLIB_MAKE_WORD(_length[0], _length[1]);
+		}
+
+		void* getContent() const noexcept
+		{
+			return (sl_uint8*)this + 5;
+		}
+
+	private:
+		sl_uint8 _type;
+		sl_uint8 _majorVersion;
+		sl_uint8 _minorVersion;
+		sl_uint8 _length[2];
+	};
+
+	class SLIB_EXPORT TlsHandshakeProtocolHeader
+	{
+	public:
+		TlsHandshakeType getType() const noexcept
+		{
+			return (TlsHandshakeType)_type;
+		}
+
+		sl_uint16 getContentLength() const noexcept
+		{
+			return SLIB_MAKE_DWORD(0, _length[0], _length[1], _length[2]);
+		}
+
+		void* getContent() const noexcept
+		{
+			return (sl_uint8*)this + 4;
+		}
+
+	private:
+		sl_uint8 _type;
+		sl_uint8 _length[3];
+	};
+
+	class SLIB_EXPORT TlsExtension
+	{
+	public:
+		TlsExtensionType type;
+		sl_uint16 length;
+		void* data;
+	};
+
+	class SLIB_EXPORT TlsClientHelloMessage
+	{
+	public:
+		TlsVersion version;
+		void* random; // 32 bytes
+		sl_uint8 sessionIdLength;
+		void* sessionId;
+		sl_uint16 cipherSuitesCount;
+		sl_uint16* cipherSuites;
+		sl_uint8 compressionMethodsCount;
+		sl_uint8* compressionMethods;
+		sl_uint16 extentionsSize;
+		List<TlsExtension> extensions;
+
+	public:
+		// returns passed size (positive), 0: incomplete packet, <0: error
+		sl_int32 parse(const void* _data, sl_size size) noexcept;
+		
+	private:
+		sl_int32 _parseExtensions(const void* _data, sl_size size) noexcept;
+
+	};
+
+	// SNI
+	class SLIB_EXPORT TlsServerNameIndicationExtension
+	{
+	public:
+		List<StringView> serverNames;
+
+	public:
+		sl_bool parse(const void* _data, sl_size size) noexcept;
+
+	};
+
 	class SLIB_EXPORT TlsContextParam
 	{
 	public:

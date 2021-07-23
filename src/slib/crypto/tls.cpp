@@ -23,10 +23,149 @@
 #include "slib/crypto/tls.h"
 
 #include "slib/core/file.h"
+#include "slib/core/serialize.h"
 
 namespace slib
 {
+
+	/*
+		majorVersion				1 byte
+		minorVersion				1 byte
+		random						32 bytes
+		session_id_length			1 byte (byte unit)
+		session_id					variable
+		cipher_suites_size			2 bytes (byte unit)
+		cipher_suites				variable
+		compression_methods_size	1 byte (byte unit)
+		compression_methods			variable
+		----------------------------------------
+		extensions_size				2 bytes (byte unit)
+		extension1
+			extension_type			2 bytes
+			length					2 bytes (byte unit)
+			data					variable
+		extension2
+		...
+		extension(n)
+	*/
+	sl_int32 TlsClientHelloMessage::parse(const void* data, sl_size size) noexcept
+	{
+		if (size < 35) {
+			return 0;
+		}
+		DeserializeBuffer buf(data, size);
+		sl_uint16 _version;
+		if (!(buf.readUint16BE(_version))) {
+			return 0;
+		}
+		version = (TlsVersion)_version;
+		random = buf.current;
+		if (!(buf.skip(32))) {
+			return 0;
+		}
+		if (!(buf.readUint8(sessionIdLength))) {
+			return 0;
+		}
+		if (sessionIdLength > 32) {
+			return -1;
+		}
+		sessionId = buf.current;
+		if (!(buf.skip(sessionIdLength))) {
+			return 0;
+		}
+		sl_uint16 cipherSuitesSize;
+		if (!(buf.readUint16BE(cipherSuitesSize))) {
+			return 0;
+		}
+		if (cipherSuitesSize & 1) {
+			return -1;
+		}
+		cipherSuitesCount = cipherSuitesSize >> 1;
+		cipherSuites = (sl_uint16*)(buf.current);
+		if (!(buf.skip(cipherSuitesSize))) {
+			return 0;
+		}
+		if (!(buf.readUint8(compressionMethodsCount))) {
+			return 0;
+		}
+		compressionMethods = buf.current;
+		if (!(buf.skip(compressionMethodsCount))) {
+			return 0;
+		}
+		if (buf.current == buf.end) {
+			return (sl_int32)(buf.current - buf.begin);
+		}
+		if (!(buf.readUint16BE(extentionsSize))) {
+			return 0;
+		}
+		if (buf.current + extentionsSize <= buf.end) {
+			sl_int32 ret = _parseExtensions(buf.current, extentionsSize);
+			if (ret > 0) {
+				return (sl_int32)(buf.current - buf.begin) + ret;
+			} else {
+				return ret;
+			}
+		} else {
+			sl_int32 ret = _parseExtensions(buf.current, buf.end - buf.current);
+			if (ret >= 0) {
+				return 0;
+			} else {
+				return ret;
+			}
+		}
+	}
+
+	sl_int32 TlsClientHelloMessage::_parseExtensions(const void* data, sl_size size) noexcept
+	{
+		DeserializeBuffer buf(data, size);
+		while (buf.current < buf.end) {
+			TlsExtension extension;
+			sl_uint16 type;
+			if (!(buf.readUint16BE(type))) {
+				return 0;
+			}
+			extension.type = (TlsExtensionType)type;
+			if (!(buf.readUint16BE(extension.length))) {
+				return 0;
+			}
+			extension.data = buf.current;
+			if (!(buf.skip(extension.length))) {
+				return 0;
+			}
+			extensions.add_NoLock(extension);
+		}
+		return buf.current - buf.begin;
+	}
+
+	sl_bool TlsServerNameIndicationExtension::parse(const void* data, sl_size size) noexcept
+	{
+		DeserializeBuffer buf(data, size);
+		sl_uint16 n;
+		if (!(buf.readUint16BE(n))) {
+			return sl_false;
+		}
+		if (buf.current + n > buf.end) {
+			return sl_false;
+		}
+		while (buf.current < buf.end) {
+			sl_uint8 type;
+			if (!(buf.readUint8(type))) {
+				return sl_false;
+			}
+			sl_uint16 len;
+			if (!(buf.readUint16BE(len))) {
+				return sl_false;
+			}
+			char* name = (char*)(buf.current);
+			if (!(buf.skip(len))) {
+				return sl_false;
+			}
+			serverNames.add_NoLock(StringView(name, len));
+		}
+		return sl_true;
+	}
 	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TlsContextParam)
 
 	TlsContextParam::TlsContextParam(): flagVerify(sl_false)
