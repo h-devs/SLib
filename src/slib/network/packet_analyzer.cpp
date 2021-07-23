@@ -235,7 +235,7 @@ namespace slib
 							return;
 						}
 						connection->startSequenceNumber = tcp->getSequenceNumber();
-					} else if (tcp->isFIN()) {
+					} else if (tcp->isFIN() || tcp->isRST()) {
 						m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
 						m_table.remove(packet->getDestinationAddress(), tcp->getDestinationPort());
 						return;
