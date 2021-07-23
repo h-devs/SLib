@@ -26,7 +26,9 @@
 
 #include "slib/core/base.h"
 
-#if defined(SLIB_PLATFORM_IS_UNIX)
+#if defined(SLIB_PLATFORM_IS_WIN32)
+#include "slib/core/dl/win32/kernel32.h"
+#else
 #include <pthread.h>
 #endif
 
@@ -35,138 +37,116 @@ namespace slib
 
 	ReadWriteLock::ReadWriteLock() noexcept
 	{
-		_init();
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		if (kernel32::getApi_TryAcquireSRWLockExclusive()) {
+			m_pObject = Base::createMemory(sizeof(SRWLOCK));
+			kernel32::getApi_InitializeSRWLock()((SRWLOCK*)m_pObject);
+			m_flagSpinLock = sl_false;
+		} else {
+			m_pObject = Base::createMemory(sizeof(ReadWriteSpinLock));
+			Base::zeroMemory(m_pObject, sizeof(ReadWriteSpinLock));
+			m_flagSpinLock = sl_true;
+		}
+#else
+		m_pObject = Base::createMemory(sizeof(pthread_rwlock_t));
+		pthread_rwlock_init((pthread_rwlock_t*)m_pObject, NULL);
+#endif
 	}
 
-	ReadWriteLock::ReadWriteLock(const ReadWriteLock& other) noexcept
+	ReadWriteLock::ReadWriteLock(const ReadWriteLock& other) noexcept: ReadWriteLock()
 	{
-		_init();
 	}
 	
-	ReadWriteLock::ReadWriteLock(ReadWriteLock&& other) noexcept
+	ReadWriteLock::ReadWriteLock(ReadWriteLock&& other) noexcept: ReadWriteLock()
 	{
-		_init();
 	}
 
 	ReadWriteLock::~ReadWriteLock() noexcept
 	{
-#if defined(SLIB_PLATFORM_IS_UNIX)
-		_free();
-#endif
-	}
-
-	void ReadWriteLock::_init() noexcept
-	{
-#if defined(SLIB_PLATFORM_IS_UNIX)
-		m_pObject = Base::createMemory(sizeof(pthread_rwlock_t));
-		::pthread_rwlock_init((pthread_rwlock_t*)(m_pObject), NULL);
-#else
-		m_nReading = 0;
-#endif
-	}
-
-	void ReadWriteLock::_free() noexcept
-	{
-#if defined(SLIB_PLATFORM_IS_UNIX)
-		::pthread_rwlock_destroy((pthread_rwlock_t*)(m_pObject));
+#if defined(SLIB_PLATFORM_IS_WIN32)
 		Base::freeMemory(m_pObject);
-		m_pObject = sl_null;
+#else
+		pthread_rwlock_destroy((pthread_rwlock_t*)m_pObject);
+		Base::freeMemory(m_pObject);
 #endif
+		m_pObject = sl_null;
 	}
 
 	sl_bool ReadWriteLock::tryLockRead() const noexcept
 	{
-#if defined(SLIB_PLATFORM_IS_UNIX)
-		if (!m_pObject) {
-			return sl_false;
-		}
-		return ::pthread_rwlock_tryrdlock((pthread_rwlock_t*)(m_pObject)) == 0;
-#else
-		if (m_lockReading.tryLock()) {
-			m_nReading++;
-			if (m_nReading == 1) {
-				if (m_lockWriting.tryLock()) {
-					m_lockReading.unlock();
-					return sl_true;
-				} else {
-					m_nReading = 0;
-					m_lockReading.unlock();
-					return sl_false;
-				}
-			} else {
-				m_lockReading.unlock();
-				return sl_true;
-			}
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		if (m_flagSpinLock) {
+			return ((ReadWriteSpinLock*)m_pObject)->tryLockRead();
 		} else {
-			return sl_false;
+			return kernel32::getApi_TryAcquireSRWLockShared()((SRWLOCK*)m_pObject);
 		}
+#else
+		return !(pthread_rwlock_tryrdlock((pthread_rwlock_t*)m_pObject));
 #endif
 	}
 	
 	void ReadWriteLock::lockRead() const noexcept
 	{
-#if defined(SLIB_PLATFORM_IS_UNIX)
-		if (!m_pObject) {
-			return;
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		if (m_flagSpinLock) {
+			((ReadWriteSpinLock*)m_pObject)->lockRead();
+		} else {
+			kernel32::getApi_AcquireSRWLockShared()((SRWLOCK*)m_pObject);
 		}
-		::pthread_rwlock_rdlock((pthread_rwlock_t*)(m_pObject));
 #else
-		MutexLocker lock(&m_lockReading);
-		m_nReading++;
-		if (m_nReading == 1) {
-			m_lockWriting.lock();
-		}
+		pthread_rwlock_rdlock((pthread_rwlock_t*)m_pObject);
 #endif
 	}
 
 	void ReadWriteLock::unlockRead() const noexcept
 	{
-#if defined(SLIB_PLATFORM_IS_UNIX)
-		if (!m_pObject) {
-			return;
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		if (m_flagSpinLock) {
+			((ReadWriteSpinLock*)m_pObject)->unlockRead();
+		} else {
+			kernel32::getApi_ReleaseSRWLockShared()((SRWLOCK*)m_pObject);
 		}
-		pthread_rwlock_unlock((pthread_rwlock_t*)(m_pObject));
 #else
-		MutexLocker lock(&m_lockReading);
-		m_nReading--;
-		if (m_nReading == 0) {
-			m_lockWriting.unlock();
-		}
+		pthread_rwlock_unlock((pthread_rwlock_t*)m_pObject);
 #endif
 	}
 
 	sl_bool ReadWriteLock::tryLockWrite() const noexcept
 	{
-#if defined(SLIB_PLATFORM_IS_UNIX)
-		if (!m_pObject) {
-			return sl_false;
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		if (m_flagSpinLock) {
+			return ((ReadWriteSpinLock*)m_pObject)->tryLockWrite();
+		} else {
+			return kernel32::getApi_TryAcquireSRWLockExclusive()((SRWLOCK*)m_pObject);
 		}
-		return ::pthread_rwlock_trywrlock((pthread_rwlock_t*)(m_pObject)) == 0;
 #else
-		return m_lockWriting.tryLock();
+		return !(pthread_rwlock_trywrlock((pthread_rwlock_t*)m_pObject));
 #endif
 	}
+
 	void ReadWriteLock::lockWrite() const noexcept
 	{
-#if defined(SLIB_PLATFORM_IS_UNIX)
-		if (!m_pObject) {
-			return;
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		if (m_flagSpinLock) {
+			((ReadWriteSpinLock*)m_pObject)->lockWrite();
+		} else {
+			kernel32::getApi_AcquireSRWLockExclusive()((SRWLOCK*)m_pObject);
 		}
-		::pthread_rwlock_wrlock((pthread_rwlock_t*)(m_pObject));
 #else
-		m_lockWriting.lock();
+		pthread_rwlock_wrlock((pthread_rwlock_t*)m_pObject);
 #endif
 	}
 
 	void ReadWriteLock::unlockWrite() const noexcept
 	{
-#if defined(SLIB_PLATFORM_IS_UNIX)
-		if (!m_pObject) {
-			return;
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		if (m_flagSpinLock) {
+			((ReadWriteSpinLock*)m_pObject)->unlockWrite();
+		} else {
+			kernel32::getApi_ReleaseSRWLockExclusive()((SRWLOCK*)m_pObject);
 		}
-		pthread_rwlock_unlock((pthread_rwlock_t*)(m_pObject));
 #else
-		m_lockWriting.unlock();
+		pthread_rwlock_unlock((pthread_rwlock_t*)m_pObject);
 #endif
 	}
 	
@@ -212,8 +192,7 @@ namespace slib
 
 	void ReadLocker::unlock() noexcept
 	{
-		const ReadWriteLock* lock = m_lock;
-		if (lock) {
+		if (m_lock) {
 			m_lock->unlockRead();
 			m_lock = sl_null;
 		}
@@ -251,8 +230,7 @@ namespace slib
 	
 	void WriteLocker::unlock() noexcept
 	{
-		const ReadWriteLock* lock = m_lock;
-		if (lock) {
+		if (m_lock) {
 			m_lock->unlockWrite();
 			m_lock = sl_null;
 		}
@@ -355,8 +333,7 @@ namespace slib
 
 	void ReadSpinLocker::unlock() noexcept
 	{
-		const ReadWriteSpinLock* lock = m_lock;
-		if (lock) {
+		if (m_lock) {
 			m_lock->unlockRead();
 			m_lock = sl_null;
 		}
@@ -394,8 +371,7 @@ namespace slib
 
 	void WriteSpinLocker::unlock() noexcept
 	{
-		const ReadWriteSpinLock* lock = m_lock;
-		if (lock) {
+		if (m_lock) {
 			m_lock->unlockWrite();
 			m_lock = sl_null;
 		}
@@ -480,9 +456,8 @@ namespace slib
 
 	void ReadObjectLocker::unlock() noexcept
 	{
-		const RWLockable* object = m_object;
-		if (object) {
-			object->unlockRead();
+		if (m_object) {
+			m_object->unlockRead();
 			m_object = sl_null;
 		}
 	}

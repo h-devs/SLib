@@ -35,6 +35,7 @@ namespace slib
 {
 
 	SLIB_IMPORT_LIBRARY_BEGIN(kernel32, "kernel32.dll")
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			GetQueuedCompletionStatusEx,
 			BOOL, WINAPI,
@@ -45,37 +46,86 @@ namespace slib
 			DWORD dwMilliseconds,
 			BOOL fAlertable
 		)
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			GetUserDefaultLocaleName,
 			int, WINAPI,
 			LPWSTR lpLocaleName,
 			int cchLocaleName
 		)
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			GetTickCount64,
 			ULONGLONG, WINAPI
 		)
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			Wow64EnableWow64FsRedirection,
 			BOOLEAN, WINAPI,
 			BOOLEAN Wow64FsEnableRedirection
 		)
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			Wow64DisableWow64FsRedirection,
 			BOOL, WINAPI,
 			PVOID *OldValue
 		)
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			Wow64RevertWow64FsRedirection,
 			BOOL, WINAPI,
 			PVOID OldValue
 		)
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			IsWow64Process,
 			BOOL, WINAPI,
 			HANDLE hProcess,
 			PBOOL Wow64Process
 		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			InitializeSRWLock,
+			void, WINAPI,
+			PSRWLOCK SRWLock
+		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			AcquireSRWLockShared,
+			void, WINAPI,
+			PSRWLOCK SRWLock
+		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			ReleaseSRWLockShared,
+			void, WINAPI,
+			PSRWLOCK SRWLock
+		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			TryAcquireSRWLockShared,
+			BOOLEAN, WINAPI,
+			PSRWLOCK SRWLock
+		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			AcquireSRWLockExclusive,
+			void, WINAPI,
+			PSRWLOCK SRWLock
+		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			ReleaseSRWLockExclusive,
+			void, WINAPI,
+			PSRWLOCK SRWLock
+		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			TryAcquireSRWLockExclusive,
+			BOOLEAN, WINAPI,
+			PSRWLOCK SRWLock
+		)
+
 	SLIB_IMPORT_LIBRARY_END
 		
 }

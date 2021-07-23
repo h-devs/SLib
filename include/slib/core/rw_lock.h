@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_RW_LOCK
 #define CHECKHEADER_SLIB_CORE_RW_LOCK
 
-#include "mutex.h"
+#include "definition.h"
 
 namespace slib
 {
@@ -58,18 +58,10 @@ namespace slib
 		ReadWriteLock& operator=(ReadWriteLock&& other) noexcept;
 		
 	private:
-#if defined(SLIB_PLATFORM_IS_UNIX)
 		mutable void* m_pObject;
-#else
-		Mutex m_lockReading;
-		Mutex m_lockWriting;
-		mutable sl_reg m_nReading;
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		sl_bool m_flagSpinLock;
 #endif
-
-	private:
-		void _init() noexcept;
-
-		void _free() noexcept;
 
 	};
 	
