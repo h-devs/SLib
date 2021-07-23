@@ -73,7 +73,10 @@ public: \
 public: \
 	Shared& operator=(Shared&& other) \
 	{ \
-		_move_assign(&other); \
+		if (this != &other) { \
+			_replace(other.container); \
+			other.container = sl_null; \
+		} \
 		return *this; \
 	} \
 	Shared& operator=(const Shared& other) \
@@ -124,14 +127,6 @@ private: \
 			container->decreaseReference(); \
 		} \
 		container = other; \
-	} \
-	void _move_assign(void* _other) \
-	{ \
-		if ((void*)this != _other) { \
-			Shared& other = *(reinterpret_cast<Shared*>(_other)); \
-			_replace(other.container); \
-			other.container = sl_null; \
-		} \
 	}
 
 #define PRIV_SLIB_DEFINE_ATOMIC_SHARED_CLASS_MEMBERS \
@@ -151,7 +146,7 @@ public: \
 		_container = other.container; \
 		other.container = sl_null; \
 	} \
-	Atomic(const typename RemoveAtomic<Atomic>::Type& other) noexcept \
+	Atomic(typename RemoveAtomic<Atomic>::Type const& other) noexcept \
 	{ \
 		Container* o = other.container; \
 		if (o) { \
@@ -179,6 +174,38 @@ public: \
 	{ \
 		_replace(sl_null); \
 	} \
+	void swap(typename RemoveAtomic<Atomic>::Type& other) \
+	{ \
+		m_lock.lock(); \
+		Container* before = _container; \
+		_container = other.container; \
+		other.container = before; \
+		m_lock.unlock(); \
+	} \
+	sl_bool compareExchange(typename RemoveAtomic<Atomic>::Type& expected, typename RemoveAtomic<Atomic>::Type&& desired) \
+	{ \
+		m_lock.lock(); \
+		Container* before = _container; \
+		if (before == expected.container) { \
+			_container = desired.container; \
+			m_lock.unlock(); \
+			desired.container = sl_null; \
+			if (before) { \
+				before->decreaseReference(); \
+			} \
+			return sl_true; \
+		} else { \
+			if (before) { \
+				before->increaseReference(); \
+			} \
+			m_lock.unlock(); \
+			if (expected.container) { \
+				expected.container->decreaseReference(); \
+			} \
+			expected.container = before; \
+			return sl_false; \
+		} \
+	} \
 public: \
 	Atomic& operator=(const Atomic& other) \
 	{ \
@@ -189,10 +216,13 @@ public: \
 	} \
 	Atomic& operator=(typename RemoveAtomic<Atomic>::Type&& other) \
 	{ \
-		_move_assign(&other); \
+		if ((void*)this != &other) { \
+			_replace(other.container); \
+			other.container = sl_null; \
+		} \
 		return *this; \
 	} \
-	Atomic& operator=(const typename RemoveAtomic<Atomic>::Type& other) \
+	Atomic& operator=(typename RemoveAtomic<Atomic>::Type const& other) \
 	{ \
 		Container* o = other.container; \
 		if (_container != o) { \
@@ -231,20 +261,12 @@ public: \
 private: \
 	void _replace(Container* other) \
 	{ \
-		m_lock.unlock(); \
+		m_lock.lock(); \
 		Container* before = _container; \
 		_container = other; \
 		m_lock.unlock(); \
 		if (before) { \
 			before->decreaseReference(); \
-		} \
-	} \
-	void _move_assign(void* _other) \
-	{ \
-		if ((void*)this != _other) { \
-			Shared<T>& other = *(reinterpret_cast<Shared<T>*>(_other)); \
-			_replace(other.container); \
-			other.container = sl_null; \
 		} \
 	} \
 public: \
