@@ -60,7 +60,7 @@ namespace slib
 		if (elapsed < 16) {
 			return;
 		}
-		if (elapsed < 32) {
+		if (elapsed < 64) {
 			System::yield();
 		} else {
 			System::sleep(1);

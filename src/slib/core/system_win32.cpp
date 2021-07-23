@@ -629,11 +629,9 @@ namespace slib
 
 	void System::yield()
 	{
-#if defined(YieldProcessor)
-		YieldProcessor();
-#else
-		System::sleep(0);
-#endif
+		if (!(SwitchToThread())) {
+			Sleep(0);
+		}
 	}
 
 	sl_int32 System::execute(const StringParam& _command)
