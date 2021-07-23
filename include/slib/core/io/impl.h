@@ -58,16 +58,6 @@
 	sl_bool CLASS::readCVLI(sl_size* output) ATTR { return ReaderHelper::readCVLI(this, output); } \
 	sl_size CLASS::readCVLI(sl_size def) ATTR { return ReaderHelper::readCVLI(this, def); } \
 	Memory CLASS::readToMemory(sl_size size) ATTR { return ReaderHelper::readToMemory(this, size); } \
-	sl_bool CLASS::readSectionData(void* mem, sl_size& size) ATTR { return ReaderHelper::readSectionData(this, mem, size); } \
-	sl_bool CLASS::readSection(Memory* mem, sl_size maxSize) ATTR { return ReaderHelper::readSection(this, mem, maxSize); } \
-	Memory CLASS::readSection(const Memory& def, sl_size maxSize) ATTR { return ReaderHelper::readSection(this, def, maxSize); } \
-	Memory CLASS::readSection(sl_size maxSize) ATTR { return ReaderHelper::readSection(this, maxSize); } \
-	sl_bool CLASS::readStringSection(String* str, sl_size maxLen) ATTR { return ReaderHelper::readStringSection(this, str, maxLen); } \
-	String CLASS::readStringSection(const String& def, sl_size maxLen) ATTR { return ReaderHelper::readStringSection(this, def, maxLen); } \
-	String CLASS::readStringSection(sl_size maxLen) ATTR { return ReaderHelper::readStringSection(this, maxLen); } \
-	sl_bool CLASS::readTime(Time* v) ATTR { return ReaderHelper::readTime(this, v); } \
-	Time CLASS::readTime() ATTR { return ReaderHelper::readTime(this); } \
-	Time CLASS::readTime(const Time& def) ATTR { return ReaderHelper::readTime(this, def); } \
 	String CLASS::readTextUTF8(sl_size size) ATTR { return ReaderHelper::readTextUTF8(this, size); } \
 	String16 CLASS::readTextUTF16(sl_size size, EndianType endian) ATTR { return ReaderHelper::readTextUTF16(this, size, endian); } \
 	String CLASS::readText(sl_size size, Charset* outCharset) ATTR { return ReaderHelper::readText(this, size, outCharset); } \
@@ -89,10 +79,6 @@
 	sl_bool CLASS::writeCVLI64(sl_uint64 value) ATTR { return WriterHelper::writeCVLI(this, value); } \
 	sl_bool CLASS::writeCVLI(sl_size value) ATTR { return WriterHelper::writeCVLI(this, value); } \
 	sl_size CLASS::writeFromMemory(const Memory& mem) ATTR { return writeFully(mem.getData(), mem.getSize()); } \
-	sl_bool CLASS::writeSection(const void* mem, sl_size size) ATTR { return WriterHelper::writeSection(this, mem, size); } \
-	sl_bool CLASS::writeSection(const Memory& mem) ATTR { return writeSection(mem.getData(), mem.getSize()); } \
-	sl_bool CLASS::writeStringSection(const StringParam& str, sl_size maxUtf8Len) ATTR { return WriterHelper::writeStringSection(this, str, maxUtf8Len); } \
-	sl_bool CLASS::writeTime(const Time& t) ATTR { return WriterHelper::writeTime(this, t); } \
 	sl_bool CLASS::writeTextUTF8(const StringParam& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF8(this, text, flagWriteByteOrderMark); } \
 	sl_bool CLASS::writeTextUTF16LE(const StringParam& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF16LE(this, text, flagWriteByteOrderMark); } \
 	sl_bool CLASS::writeTextUTF16BE(const StringParam& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF16BE(this, text, flagWriteByteOrderMark); }
@@ -163,14 +149,5 @@
 	SLIB_DEFINE_ISEEKABLE_MEMBERS(CLASS, ATTR) \
 	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(CLASS, ATTR) \
 	SLIB_DEFINE_SEEKABLE_WRITER_MEMBERS(CLASS, ATTR)
-
-namespace slib
-{	
-	class Memory;
-	class String;
-	class String16;
-	class StringParam;
-	class Time;
-}
 
 #endif

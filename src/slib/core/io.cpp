@@ -2327,7 +2327,7 @@ namespace slib
 			return sl_false;
 		}
 	}
-	
+
 	sl_size DeserializeBuffer::read(void* buf, sl_size size) noexcept
 	{
 		if (size && current < end) {
@@ -2339,6 +2339,183 @@ namespace slib
 			return size;
 		}
 		return 0;
+	}
+
+	sl_bool DeserializeBuffer::readUint8(sl_uint8& _out) noexcept
+	{
+		if (current < end) {
+			_out = *(current++);
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool DeserializeBuffer::readInt8(sl_int8& _out) noexcept
+	{
+		if (current < end) {
+			_out = *(current++);
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool DeserializeBuffer::readUint16BE(sl_uint16& _out) noexcept
+	{
+		if (current + 2 <= end) {
+			_out = MIO::readUint16BE(current);
+			current += 2;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool DeserializeBuffer::readUint16LE(sl_uint16& _out) noexcept
+	{
+		if (current + 2 <= end) {
+			_out = MIO::readUint16LE(current);
+			current += 2;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool DeserializeBuffer::readInt16BE(sl_int16& _out) noexcept
+	{
+		if (current + 2 <= end) {
+			_out = MIO::readInt16BE(current);
+			current += 2;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool DeserializeBuffer::readInt16LE(sl_int16& _out) noexcept
+	{
+		if (current + 2 <= end) {
+			_out = MIO::readInt16LE(current);
+			current += 2;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool DeserializeBuffer::readUint32BE(sl_uint32& _out) noexcept
+	{
+		if (current + 4 <= end) {
+			_out = MIO::readUint32BE(current);
+			current += 4;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool DeserializeBuffer::readUint32LE(sl_uint32& _out) noexcept
+	{
+		if (current + 4 <= end) {
+			_out = MIO::readUint32LE(current);
+			current += 4;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool DeserializeBuffer::readInt32BE(sl_int32& _out) noexcept
+	{
+		if (current + 4 <= end) {
+			_out = MIO::readInt32BE(current);
+			current += 4;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool DeserializeBuffer::readInt32LE(sl_int32& _out) noexcept
+	{
+		if (current + 4 <= end) {
+			_out = MIO::readInt32LE(current);
+			current += 4;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool DeserializeBuffer::readUint64BE(sl_uint64& _out) noexcept
+	{
+		if (current + 8 <= end) {
+			_out = MIO::readUint64BE(current);
+			current += 8;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool DeserializeBuffer::readUint64LE(sl_uint64& _out) noexcept
+	{
+		if (current + 8 <= end) {
+			_out = MIO::readUint64LE(current);
+			current += 8;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool DeserializeBuffer::readInt64BE(sl_int64& _out) noexcept
+	{
+		if (current + 8 <= end) {
+			_out = MIO::readInt64BE(current);
+			current += 8;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool DeserializeBuffer::readInt64LE(sl_int64& _out) noexcept
+	{
+		if (current + 8 <= end) {
+			_out = MIO::readInt64LE(current);
+			current += 8;
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool DeserializeBuffer::readSection(void* buf, sl_size size) noexcept
+	{
+		if (!size) {
+			return sl_true;
+		}
+		if (current + size <= end) {
+			Base::copyMemory(buf, current, size);
+			current += size;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool DeserializeBuffer::skip(sl_size size) noexcept
+	{
+		if (!size) {
+			return sl_true;
+		}
+		if (current + size <= end) {
+			current += size;
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 

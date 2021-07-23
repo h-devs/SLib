@@ -61,16 +61,6 @@
 	sl_bool readCVLI(sl_size* output) __VA_ARGS__; \
 	sl_size readCVLI(sl_size def = 0) __VA_ARGS__; \
 	Memory readToMemory(sl_size size) __VA_ARGS__; \
-	sl_bool readSectionData(void* data, sl_size& size) __VA_ARGS__; \
-	sl_bool readSection(Memory* output, sl_size maxSize = SLIB_SIZE_MAX) __VA_ARGS__; \
-	Memory readSection(const Memory& def, sl_size maxSize = SLIB_SIZE_MAX) __VA_ARGS__; \
-	Memory readSection(sl_size maxLen = SLIB_SIZE_MAX) __VA_ARGS__; \
-	sl_bool readStringSection(String* output, sl_size maxUtf8Len = SLIB_SIZE_MAX) __VA_ARGS__; \
-	String readStringSection(const String& def, sl_size maxUtf8Len = SLIB_SIZE_MAX) __VA_ARGS__; \
-	String readStringSection(sl_size maxUtf8Len = SLIB_SIZE_MAX) __VA_ARGS__; \
-	sl_bool readTime(Time* output) __VA_ARGS__; \
-	Time readTime() __VA_ARGS__; \
-	Time readTime(const Time& def) __VA_ARGS__; \
 	String readTextUTF8(sl_size size) __VA_ARGS__; \
 	String16 readTextUTF16(sl_size size, EndianType endian = Endian::Little) __VA_ARGS__; \
 	String readText(sl_size size, Charset* outCharset = sl_null) __VA_ARGS__; \
@@ -92,10 +82,6 @@
 	sl_bool writeCVLI64(sl_uint64 value) __VA_ARGS__; \
 	sl_bool writeCVLI(sl_size value) __VA_ARGS__; \
 	sl_size writeFromMemory(const Memory& mem) __VA_ARGS__; \
-	sl_bool writeSection(const void* mem, sl_size size) __VA_ARGS__; \
-	sl_bool writeSection(const Memory& mem) __VA_ARGS__; \
-	sl_bool writeStringSection(const StringParam& str, sl_size maxUtf8Len = SLIB_SIZE_MAX) __VA_ARGS__; \
-	sl_bool writeTime(const Time& t) __VA_ARGS__; \
 	sl_bool writeTextUTF8(const StringParam& text, sl_bool flagWriteByteOrderMark = sl_false) __VA_ARGS__; \
 	sl_bool writeTextUTF16LE(const StringParam& text, sl_bool flagWriteByteOrderMark = sl_false) __VA_ARGS__; \
 	sl_bool writeTextUTF16BE(const StringParam& text, sl_bool flagWriteByteOrderMark = sl_false) __VA_ARGS__;
@@ -147,7 +133,6 @@ namespace slib
 	class String;
 	class String16;
 	class StringParam;
-	class Time;
 
 	enum class SeekPosition
 	{

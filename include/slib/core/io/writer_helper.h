@@ -27,7 +27,6 @@
 #include "../thread.h"
 #include "../memory.h"
 #include "../string.h"
-#include "../time.h"
 #include "../serialize/variable_length_integer.h"
 
 namespace slib
@@ -160,30 +159,6 @@ namespace slib
 			sl_uint8 t[16];
 			sl_uint32 n = CVLI::serialize(t, value);
 			return writeFully(writer, t, n);
-		}
-
-		template <class WRITER>
-		static sl_bool writeSection(WRITER* writer, const void* mem, sl_size size)
-		{
-			if (writeCVLI(writer, size)) {
-				if (writeFully(writer, mem, size) == (sl_reg)size) {
-					return sl_true;
-				}
-			}
-			return sl_false;
-		}
-
-		template <class WRITER>
-		static sl_bool writeStringSection(WRITER* writer, const StringParam& _str, sl_size maxLen)
-		{
-			StringData str(_str);
-			return writeSection(writer, str.getData(), str.getLength());
-		}
-
-		template <class WRITER>
-		static sl_bool writeTime(WRITER* writer, const Time& t)
-		{
-			return writeInt64(writer, t.toInt(), EndianType::Little);
 		}
 
 		template <class WRITER>

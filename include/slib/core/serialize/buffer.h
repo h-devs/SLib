@@ -87,6 +87,38 @@ namespace slib
 
 		sl_size read(void* buf, sl_size size) noexcept;
 
+		sl_bool readUint8(sl_uint8& _out) noexcept;
+
+		sl_bool readInt8(sl_int8& _out) noexcept;
+
+		sl_bool readUint16BE(sl_uint16& _out) noexcept;
+
+		sl_bool readUint16LE(sl_uint16& _out) noexcept;
+
+		sl_bool readInt16BE(sl_int16& _out) noexcept;
+
+		sl_bool readInt16LE(sl_int16& _out) noexcept;
+
+		sl_bool readUint32BE(sl_uint32& _out) noexcept;
+
+		sl_bool readUint32LE(sl_uint32& _out) noexcept;
+
+		sl_bool readInt32BE(sl_int32& _out) noexcept;
+
+		sl_bool readInt32LE(sl_int32& _out) noexcept;
+
+		sl_bool readUint64BE(sl_uint64& _out) noexcept;
+
+		sl_bool readUint64LE(sl_uint64& _out) noexcept;
+
+		sl_bool readInt64BE(sl_int64& _out) noexcept;
+
+		sl_bool readInt64LE(sl_int64& _out) noexcept;
+
+		sl_bool readSection(void* buf, sl_size size) noexcept;
+
+		sl_bool skip(sl_size size) noexcept;
+
 	};
 }
 

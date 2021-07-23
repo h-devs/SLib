@@ -40,24 +40,24 @@ namespace slib
 	Memory ChatMessageBody::packBody() const
 	{
 		MemoryOutput writer;
-		writer.writeTime(time);
+		Serialize(&writer, time);
 		sl_uint16 flags = (((sl_uint16)flagEncrypted) << 7) | (((sl_uint16)flagInlined) << 6) | ((sl_uint16)contentType);
 		writer.writeUint16(flags);
-		writer.writeStringSection(text);
-		writer.writeSection(content);
+		Serialize(&writer, text);
+		Serialize(&writer, content);
 		return writer.getData();
 	}
 
 	void ChatMessageBody::unpackBody(const Memory& mem)
 	{
 		MemoryReader reader(mem);
-		time = reader.readTime();
+		Deserialize(&reader, time);
 		sl_uint16 flags = reader.readUint16();
 		flagEncrypted = (sl_bool)((flags >> 7) & 1);
 		flagInlined = (sl_bool)((flags >> 6) & 1);
 		contentType = (ChatContentType)(flags & 31);
-		text = reader.readStringSection();
-		content = reader.readSection();
+		Deserialize(&reader, text);
+		Deserialize(&reader, content);
 	}
 
 	// supports signed 8-bit mono, little-endian signed 16-bit mono
