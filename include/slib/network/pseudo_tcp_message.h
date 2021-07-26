@@ -63,6 +63,7 @@ namespace slib
 	};
 
 	class Thread;
+	class Event;
 
 	class PseudoTcpMessage : public Object
 	{
@@ -109,6 +110,7 @@ namespace slib
 		LinkedList<Address> m_queueEndListen;
 
 		Ref<Thread> m_threadProcess;
+		Ref<Event> m_eventProcess;
 		LinkedList<Packet> m_queuePackets;
 		LinkedList< Function<void()> > m_queueDispatch;
 

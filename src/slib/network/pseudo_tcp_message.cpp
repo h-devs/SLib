@@ -223,6 +223,7 @@ namespace slib
 	{
 		m_timeout = DEFAULT_TIMEOUT;
 		m_conversationNoLastSent = (sl_uint32)(Time::now().getMillisecondsCount());
+		m_eventProcess = Event::create();
 		m_threadProcess = Thread::start(SLIB_FUNCTION_MEMBER(PseudoTcpMessage, process, this));
 	}
 
@@ -289,7 +290,7 @@ namespace slib
 			dispatch([connection]() {
 				connection->tcp.connect();
 			});
-			m_threadProcess->wake();
+			m_eventProcess->set();
 		}
 	}
 
@@ -305,7 +306,7 @@ namespace slib
 			packet.connection = connection;
 			packet.content = Memory::create(data, size);
 			m_queuePackets.pushBack(packet);
-			m_threadProcess->wake();
+			m_eventProcess->set();
 		}
 	}
 
@@ -324,7 +325,7 @@ namespace slib
 			packet.connection = connection;
 			packet.content = Memory::create(data, size);
 			m_queuePackets.pushBack(packet);
-			m_threadProcess->wake();
+			m_eventProcess->set();
 			return;
 		}
 		WeakRef<PseudoTcpMessage> thiz = this;
@@ -367,7 +368,7 @@ namespace slib
 			packet.connection = connection;
 			packet.content = Memory::create(data, size);
 			m_queuePackets.pushBack(packet);
-			m_threadProcess->wake();
+			m_eventProcess->set();
 		}
 	}
 
@@ -447,7 +448,7 @@ namespace slib
 				}
 			}
 			if (m_queueDispatch.isEmpty() && m_queuePackets.isEmpty()) {
-				thread->wait(timeout);
+				m_eventProcess->wait(timeout);
 			}
 		}
 	}
@@ -458,21 +459,21 @@ namespace slib
 			return;
 		}
 		m_queueDispatch.pushBack(callback);
-		m_threadProcess->wake();
+		m_eventProcess->set();
 	}
 
 	void PseudoTcpMessage::endSendingConnection(sl_uint32 conversationNo, Connection* connection)
 	{
 		connection->flagEnd = sl_true;
 		m_queueEndSend.pushBack(conversationNo);
-		m_threadProcess->wake();
+		m_eventProcess->set();
 	}
 
 	void PseudoTcpMessage::endListeningConnection(const Address& address, Connection* connection)
 	{
 		connection->flagEnd = sl_true;
 		m_queueEndListen.pushBack(address);
-		m_threadProcess->wake();
+		m_eventProcess->set();
 	}
 
 
