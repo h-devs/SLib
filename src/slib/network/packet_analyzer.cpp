@@ -43,11 +43,19 @@ namespace slib
 			class PacketAnalyzerHelper : public PacketAnalyzer
 			{
 				friend class ContentAnalyzer;
+				friend class TcpConnectionTableEntry;
 			};
+			
+			sl_uint64 ToKey(const IPv4Address& address, sl_uint16 port) noexcept
+			{
+				return SLIB_MAKE_QWORD4(address.getInt(), port);
+			}
 
 			class TcpConnection
 			{
 			public:
+				IPv4Address destinationIp;
+				sl_uint16 destinationPort;
 				sl_uint64 startTime;
 				sl_uint32 startSequenceNumber;
 				sl_uint32 sizeContent;
@@ -93,21 +101,14 @@ namespace slib
 			class TcpConnectionTableEntry
 			{
 			public:
-				Shared<TcpConnection> get(const IPv4Address& address, sl_uint16 port) noexcept
+				Shared<TcpConnection> create(IPv4Packet* packet, TcpSegment* tcp) noexcept
 				{
-					if (m_table.isEmpty()) {
-						return sl_null;
-					}
-					sl_uint64 key = toKey(address, port);
-					ReadLocker locker(&m_lock);
-					return m_table.getValue(key);
-				}
-
-				Shared<TcpConnection> create(const IPv4Address& address, sl_uint16 port) noexcept
-				{
-					sl_uint64 key = toKey(address, port);
+					sl_uint64 key = ToKey(packet->getSourceAddress(), tcp->getSourcePort());
 					Shared<TcpConnection> connection = Shared<TcpConnection>::create();
 					if (connection.isNotNull()) {
+						connection->destinationIp = packet->getDestinationAddress();
+						connection->destinationPort = tcp->getDestinationPort();
+						connection->startSequenceNumber = tcp->getSequenceNumber();
 						WriteLocker locker(&m_lock);
 						if (m_table.put(key, connection)) {
 							return connection;
@@ -116,12 +117,22 @@ namespace slib
 					return sl_null;
 				}
 
+				Shared<TcpConnection> get(const IPv4Address& address, sl_uint16 port) noexcept
+				{
+					if (m_table.isEmpty()) {
+						return sl_null;
+					}
+					sl_uint64 key = ToKey(address, port);
+					ReadLocker locker(&m_lock);
+					return m_table.getValue(key);
+				}
+
 				void remove(const IPv4Address& address, sl_uint16 port) noexcept
 				{
 					if (m_table.isEmpty()) {
 						return;
 					}
-					sl_uint64 key = toKey(address, port);
+					sl_uint64 key = ToKey(address, port);
 					WriteLocker locker(&m_lock);
 					m_table.remove(key);
 				}
@@ -158,12 +169,6 @@ namespace slib
 				}
 
 			private:
-				sl_uint64 toKey(const IPv4Address& address, sl_uint16 port) noexcept
-				{
-					return SLIB_MAKE_QWORD4(address.getInt(), port);
-				}
-
-			private:
 				HashTable< sl_uint64, Shared<TcpConnection> > m_table;
 				ReadWriteLock m_lock;
 			};
@@ -189,9 +194,9 @@ namespace slib
 					return m_entries[port & (CONNECTION_TABLE_LENGTH - 1)].get(address, port);
 				}
 
-				Shared<TcpConnection> create(const IPv4Address& address, sl_uint16 port) noexcept
+				Shared<TcpConnection> create(IPv4Packet* packet, TcpSegment* tcp) noexcept
 				{
-					return m_entries[port & (CONNECTION_TABLE_LENGTH - 1)].create(address, port);
+					return m_entries[tcp->getSourcePort() & (CONNECTION_TABLE_LENGTH - 1)].create(packet, tcp);
 				}
 
 				void remove(const IPv4Address& address, sl_uint16 port) noexcept
@@ -210,7 +215,7 @@ namespace slib
 						for (sl_size i = 0; i < CONNECTION_TABLE_LENGTH && thread->isNotStopping(); i++) {
 							m_entries[i].removeOldConnections(now);
 						}
-						thread->wait(20000);
+						thread->wait(CONNECTION_TIMEOUT);
 					}
 				}
 
@@ -230,18 +235,28 @@ namespace slib
 						if (tcp->isACK()) {
 							return;
 						}
-						connection = m_table.create(packet->getSourceAddress(), tcp->getSourcePort());
+						connection = m_table.create(packet, tcp);
 						if (connection.isNull()) {
 							return;
 						}
-						connection->startSequenceNumber = tcp->getSequenceNumber();
 					} else if (tcp->isFIN() || tcp->isRST()) {
 						m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
 						m_table.remove(packet->getDestinationAddress(), tcp->getDestinationPort());
+						if (parent->m_flagGatheringHostInfo) {
+							parent->m_mapTcpConnectionInfo.remove(ToKey(packet->getSourceAddress(), tcp->getSourcePort()));
+						}
 						return;
 					} else {
 						connection = m_table.get(packet->getSourceAddress(), tcp->getSourcePort());
-						if (connection.isNull()) {
+						if (connection.isNotNull()) {
+							if (connection->destinationIp != packet->getDestinationAddress() || connection->destinationPort != tcp->getDestinationPort()) {
+								m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
+								if (parent->m_flagGatheringHostInfo) {
+									parent->m_mapTcpConnectionInfo.remove(ToKey(packet->getSourceAddress(), tcp->getSourcePort()));
+								}
+								return;
+							}
+						} else {
 							return;
 						}
 					}
@@ -354,6 +369,12 @@ namespace slib
 									host++;
 								}
 								sl_size lenHost = line - host;
+								if (parent->m_flagGatheringHostInfo) {
+									TcpConnectionInfo info;
+									info.host = host;
+									info.type = TcpConnectionType::HTTP;
+									parent->m_mapTcpConnectionInfo.put(ToKey(packet->getSourceAddress(), tcp->getSourcePort()), info);
+								}
 								parent->onHTTP_IPv4(packet, tcp, StringView(host, lenHost), StringView(uri, lenUri), userData);
 								return ContentResult::Success;
 							}
@@ -396,7 +417,14 @@ namespace slib
 							if (extensions[i].type == TlsExtensionType::ServerName) {
 								TlsServerNameIndicationExtension sni;
 								if (sni.parse(extensions[i].data, extensions[i].length)) {
-									parent->onHTTPS_IPv4(packet, tcp, sni.serverNames.getValueAt(0), userData);
+									String host = sni.serverNames.getValueAt(0);
+									if (parent->m_flagGatheringHostInfo) {
+										TcpConnectionInfo info;
+										info.host = host;
+										info.type = TcpConnectionType::HTTPS;
+										parent->m_mapTcpConnectionInfo.put(ToKey(packet->getSourceAddress(), tcp->getSourcePort()), info);
+									}
+									parent->onHTTPS_IPv4(packet, tcp, host, userData);
 								}
 								return ContentResult::Success;
 							}
@@ -423,7 +451,7 @@ namespace slib
 	PacketAnalyzer::PacketAnalyzer()
 	{
 		m_flagLogging = sl_false;
-		
+
 		m_flagAnalyzeArp = sl_false;
 		m_flagAnalyzeTcp = sl_false;
 		m_flagAnalyzeUdp = sl_false;
@@ -433,6 +461,7 @@ namespace slib
 		m_flagAnalyzeHttps = sl_false;
 		m_flagAnalyzeDns = sl_false;
 
+		m_flagGatheringHostInfo = sl_false;
 		m_flagIgnoreLocalPackets = sl_false;
 		m_flagIgnoreUnknownPorts = sl_false;
 	}
@@ -519,6 +548,15 @@ namespace slib
 						if (udp->getSourcePort() == 53 || udp->getDestinationPort() == 53) {
 							DnsPacket dns;
 							if (dns.parsePacket(udp->getContent(), sizeContent - UdpDatagram::HeaderSize)) {
+								if (m_flagGatheringHostInfo) {
+									if (!(dns.flagQuestion)) {
+										for (auto& addr : dns.addresses) {
+											if (addr.address.isIPv4()) {
+												m_mapDnsInfo.put(addr.address.getIPv4(), addr.name);
+											}
+										}
+									}
+								}
 								onDNS_IPv4(ip, udp, &dns, userData);
 							}
 						}
@@ -534,6 +572,17 @@ namespace slib
 				}
 			}
 		}
+	}
+
+	sl_bool PacketAnalyzer::getTcpConnectionInfo(const IPv4Address& sourceIp, sl_uint16 sourcePort, TcpConnectionInfo& info)
+	{
+		sl_uint64 key = ToKey(sourceIp, sourcePort);
+		return m_mapTcpConnectionInfo.get(key, &info);
+	}
+
+	String PacketAnalyzer::getDnsHost(const IPv4Address& ip)
+	{
+		return m_mapDnsInfo.getValue(ip);
 	}
 
 	void PacketAnalyzer::setLogging(sl_bool flag)
@@ -574,6 +623,11 @@ namespace slib
 	void PacketAnalyzer::setAnalyzingDns(sl_bool flag)
 	{
 		m_flagAnalyzeDns = flag;
+	}
+
+	void PacketAnalyzer::setGatheringHostInfo(sl_bool flag)
+	{
+		m_flagGatheringHostInfo = flag;
 	}
 
 	void PacketAnalyzer::setIgnoringLocalPackets(sl_bool flag)

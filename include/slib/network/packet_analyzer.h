@@ -32,6 +32,20 @@
 namespace slib
 {
 
+	enum class TcpConnectionType
+	{
+		None = 0,
+		HTTP = 1,
+		HTTPS = 2
+	};
+
+	class SLIB_EXPORT TcpConnectionInfo
+	{
+	public:
+		TcpConnectionType type;
+		String host;
+	};
+
 	class SLIB_EXPORT PacketAnalyzer
 	{
 	public:
@@ -43,6 +57,11 @@ namespace slib
 		void putEthernet(const void* packet, sl_size size, void* userData);
 
 		void putIP(const void* packet, sl_size size, void* userData);
+
+
+		sl_bool getTcpConnectionInfo(const IPv4Address& sourceIp, sl_uint16 sourcePort, TcpConnectionInfo& info);
+
+		String getDnsHost(const IPv4Address& ip);
 
 
 		void setLogging(sl_bool flag = sl_true);
@@ -61,6 +80,8 @@ namespace slib
 		void setAnalyzingHttps(sl_bool flag = sl_true);
 
 		void setAnalyzingDns(sl_bool flag = sl_true);
+
+		void setGatheringHostInfo(sl_bool flag = sl_true);
 
 		void setIgnoringLocalPackets(sl_bool flag = sl_true);
 
@@ -95,11 +116,15 @@ namespace slib
 		sl_bool m_flagAnalyzeHttps;
 		sl_bool m_flagAnalyzeDns;
 
+		sl_bool m_flagGatheringHostInfo;
 		sl_bool m_flagIgnoreLocalPackets;
 		sl_bool m_flagIgnoreUnknownPorts;
 
 		Ref<Referable> m_contentAnalyzer;
 		Mutex m_lockContentAnalyzer;
+
+		HashMap<sl_uint64, TcpConnectionInfo> m_mapTcpConnectionInfo;
+		HashMap<IPv4Address, String> m_mapDnsInfo;
 
 	};
 
