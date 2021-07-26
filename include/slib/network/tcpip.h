@@ -620,7 +620,7 @@ public:
 		
 		void setCWR(sl_bool flag)
 		{
-			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0x7F) | (flag ? 0x80 : 0));
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[1] & 0x7F) | (flag ? 0x80 : 0));
 		}
 		
 		sl_bool isECE() const
@@ -630,7 +630,7 @@ public:
 		
 		void setECE(sl_bool flag)
 		{
-			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xBF) | (flag ? 0x40 : 0));
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[1] & 0xBF) | (flag ? 0x40 : 0));
 		}
 		
 		sl_bool isURG() const
@@ -640,7 +640,7 @@ public:
 		
 		void setURG(sl_bool flag)
 		{
-			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xDF) | (flag ? 0x20 : 0));
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[1] & 0xDF) | (flag ? 0x20 : 0));
 		}
 		
 		sl_bool isACK() const
@@ -650,7 +650,7 @@ public:
 		
 		void setACK(sl_bool flag)
 		{
-			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xEF) | (flag ? 0x10 : 0));
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[1] & 0xEF) | (flag ? 0x10 : 0));
 		}
 
 		sl_bool isPSH() const
@@ -660,7 +660,7 @@ public:
 		
 		void setPSH(sl_bool flag)
 		{
-			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xF7) | (flag ? 0x08 : 0));
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[1] & 0xF7) | (flag ? 0x08 : 0));
 		}
 		
 		sl_bool isRST() const
@@ -670,7 +670,7 @@ public:
 		
 		void setRST(sl_bool flag)
 		{
-			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xFB) | (flag ? 0x04 : 0));
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[1] & 0xFB) | (flag ? 0x04 : 0));
 		}
 		
 		sl_bool isSYN() const
@@ -680,7 +680,7 @@ public:
 		
 		void setSYN(sl_bool flag)
 		{
-			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xFD) | (flag ? 0x02 : 0));
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[1] & 0xFD) | (flag ? 0x02 : 0));
 		}
 
 		sl_bool isFIN() const
@@ -690,7 +690,7 @@ public:
 		
 		void setFIN(sl_bool flag)
 		{
-			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[0] & 0xFE) | (flag ? 0x01 : 0));
+			_dataOffsetAndFlags[1] = (sl_uint8)((_dataOffsetAndFlags[1] & 0xFE) | (flag ? 0x01 : 0));
 		}
 		
 		sl_uint16 getWindowSize() const
