@@ -482,7 +482,7 @@ namespace slib
 						while (dev) {
 							if (!(dev->flags & PCAP_IF_LOOPBACK) && !(Base::equalsString(dev->name, "any"))) {
 								sl_uint32 status = (sl_uint32)(dev->flags & PCAP_IF_CONNECTION_STATUS);
-								if (status == PCAP_IF_CONNECTION_STATUS_CONNECTED || ((dev->flags & PCAP_IF_UP) && status == PCAP_IF_CONNECTION_STATUS_UNKNOWN)) {
+								if (status == PCAP_IF_CONNECTION_STATUS_CONNECTED || ((dev->flags & PCAP_IF_UP) && status != PCAP_IF_CONNECTION_STATUS_DISCONNECTED)) {
 									ListLocker< Ref<PcapImpl> > devices(m_devices);
 									sl_bool flagFound = sl_false;
 									for (sl_size i = 0; i < devices.count; i++) {
