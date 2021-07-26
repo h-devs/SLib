@@ -31,6 +31,8 @@
 
 namespace slib
 {
+	
+	class NetCapture;
 
 	enum class TcpConnectionType
 	{
@@ -54,6 +56,8 @@ namespace slib
 		~PacketAnalyzer();
 
 	public:
+		void putCapturedPacket(NetCapture* capture, const void* packet, sl_size size, void* userData);
+		
 		void putEthernet(const void* packet, sl_size size, void* userData);
 
 		void putIP(const void* packet, sl_size size, void* userData);
@@ -66,6 +70,8 @@ namespace slib
 
 		void setLogging(sl_bool flag = sl_true);
 
+
+		void setIPv4Enabled(sl_bool flag = sl_true);
 
 		void setArpEnabled(sl_bool flag = sl_true);
 
@@ -87,9 +93,13 @@ namespace slib
 
 		void setIgnoringUnknownPorts(sl_bool flag = sl_true);
 
+		void setCapturingUnknownFrames(sl_bool flag = sl_true);
+
 	protected:
-		virtual void onARP_IPv4(ArpPacket* packet, sl_bool flagRequest, void* userData);
-	
+		virtual void onIPv4(IPv4Packet* packet, void* userData);
+
+		virtual void onARP_IPv4(EthernetFrame* frame, ArpPacket* packet, sl_bool flagRequest, void* userData);
+
 		virtual void onTCP_IPv4(IPv4Packet* packet, TcpSegment* tcp, sl_uint8* data, sl_uint32 sizeData, void* userData);
 
 		virtual void onUDP_IPv4(IPv4Packet* packet, UdpDatagram* udp, sl_uint8* data, sl_uint32 sizeData, void* userData);
@@ -102,12 +112,15 @@ namespace slib
 
 		virtual void onHTTPS_IPv4(IPv4Packet* packet, TcpSegment* tcp, const StringView& host, void* userData);
 
+		virtual void onUnknownFrame(EthernetFrame* frame, sl_uint8* data, sl_uint32 sizeData, void* userData);
+
 	protected:
 		void analyzeTcpContent(IPv4Packet* packet, TcpSegment* tcp, sl_uint8* data, sl_uint32 sizeData, void* userData);
 
 	protected:
 		sl_bool m_flagLogging;
 
+		sl_bool m_flagAnalyzeIPv4;
 		sl_bool m_flagAnalyzeArp;
 		sl_bool m_flagAnalyzeTcp;
 		sl_bool m_flagAnalyzeUdp;
@@ -119,6 +132,7 @@ namespace slib
 		sl_bool m_flagGatheringHostInfo;
 		sl_bool m_flagIgnoreLocalPackets;
 		sl_bool m_flagIgnoreUnknownPorts;
+		sl_bool m_flagCaptureUnknownFrames;
 
 		Ref<Referable> m_contentAnalyzer;
 		Mutex m_lockContentAnalyzer;

@@ -27,6 +27,7 @@
 #include "slib/core/system.h"
 #include "slib/core/log.h"
 #include "slib/crypto/tls.h"
+#include "slib/network/capture.h"
 
 #define CONTENT_LOOKUP_SIZE 1024
 #define CONNECTION_TABLE_LENGTH 4096
@@ -470,6 +471,22 @@ namespace slib
 	{
 	}
 
+	void PacketAnalyzer::putCapturedPacket(NetCapture* capture, const void* packet, sl_size size, void* userData)
+	{
+		NetworkLinkDeviceType link = capture->getLinkType();
+		if (link == NetworkLinkDeviceType::Ethernet) {
+			putEthernet(packet, size, userData);
+		} else if (link == NetworkLinkDeviceType::Raw) {
+			putIP(packet, size, userData);
+		} else if (link == NetworkLinkDeviceType::Null) {
+			if (size > 4) {
+				if (MIO::readUint32LE(packet) == 2 /*AF_INET*/) {
+					putIP((sl_uint8*)packet + 4, size - 4, userData);
+				}
+			}
+		}
+	}
+
 	void PacketAnalyzer::putEthernet(const void* packet, sl_size size, void* userData)
 	{
 		if (size <= EthernetFrame::HeaderSize) {
@@ -486,12 +503,16 @@ namespace slib
 					if (arp->isValidEthernetIPv4()) {
 						ArpOperation op = arp->getOperation();
 						if (op == ArpOperation::Request) {
-							onARP_IPv4(arp, sl_true, userData);
+							onARP_IPv4(frame, arp, sl_true, userData);
 						} else if (op == ArpOperation::Reply) {
-							onARP_IPv4(arp, sl_false, userData);
+							onARP_IPv4(frame, arp, sl_false, userData);
 						}
 					}
 				}
+			}
+		} else {
+			if (m_flagCaptureUnknownFrames) {
+				onUnknownFrame(frame, (sl_uint8*)packet + EthernetFrame::HeaderSize, (sl_uint32)size - EthernetFrame::HeaderSize, userData);
 			}
 		}
 	}
@@ -503,17 +524,20 @@ namespace slib
 		}
 		sl_bool flagAnalyzeTcp = m_flagAnalyzeTcp || m_flagAnalyzeHttp || m_flagAnalyzeHttps;
 		sl_bool flagAnalyzeUdp = m_flagAnalyzeUdp || m_flagAnalyzeDns;
-		if (flagAnalyzeTcp || flagAnalyzeUdp || m_flagAnalyzeIcmp) {
+		if (m_flagAnalyzeIPv4 || flagAnalyzeTcp || flagAnalyzeUdp || m_flagAnalyzeIcmp) {
 			IPv4Packet* ip = (IPv4Packet*)packet;
 			sl_uint8 sizeHeader = ip->getHeaderSize();
 			sl_uint16 sizeTotal = ip->getTotalSize();
-			if (sizeTotal < size && sizeHeader < sizeTotal) {
+			if (sizeTotal > size || sizeHeader > sizeTotal) {
 				return;
 			}
 			if (m_flagIgnoreLocalPackets) {
 				if (ip->getSourceAddress().isSpecial() && ip->getDestinationAddress().isSpecial()) {
 					return;
 				}
+			}
+			if (m_flagAnalyzeIPv4) {
+				onIPv4(ip, userData);
 			}
 			sl_uint8* content = ip->getContent();
 			sl_uint16 sizeContent = sizeTotal - sizeHeader;
@@ -590,6 +614,11 @@ namespace slib
 		m_flagLogging = flag;
 	}
 
+	void PacketAnalyzer::setIPv4Enabled(sl_bool flag)
+	{
+		m_flagAnalyzeIPv4 = flag;
+	}
+
 	void PacketAnalyzer::setArpEnabled(sl_bool flag)
 	{
 		m_flagAnalyzeArp = flag;
@@ -640,7 +669,19 @@ namespace slib
 		m_flagIgnoreUnknownPorts = flag;
 	}
 
-	void PacketAnalyzer::onARP_IPv4(ArpPacket* packet, sl_bool flagRequest, void* userData)
+	void PacketAnalyzer::setCapturingUnknownFrames(sl_bool flag)
+	{
+		m_flagCaptureUnknownFrames = flag;
+	}
+
+	void PacketAnalyzer::onIPv4(IPv4Packet* packet, void* userData)
+	{
+		if (m_flagLogging) {
+			Log("IP", "%s->%s, Protocol: %d (%d Bytes)", packet->getSourceAddress().toString(), packet->getDestinationAddress().toString(), packet->getProtocol(), packet->getTotalSize());
+		}
+	}
+
+	void PacketAnalyzer::onARP_IPv4(EthernetFrame* frame, ArpPacket* packet, sl_bool flagRequest, void* userData)
 	{
 		if (m_flagLogging) {
 			const char* op = flagRequest ? "Request" : "Reply";
@@ -763,6 +804,10 @@ namespace slib
 		if (m_flagLogging) {
 			Log("HTTPS", "%s:%s->%s:%s, Host: %s", packet->getSourceAddress().toString(), tcp->getSourcePort(), packet->getDestinationAddress().toString(), tcp->getDestinationPort(), host);
 		}
+	}
+
+	void PacketAnalyzer::onUnknownFrame(EthernetFrame* frame, sl_uint8* data, sl_uint32 sizeData, void* userData)
+	{
 	}
 
 	void PacketAnalyzer::analyzeTcpContent(IPv4Packet* packet, TcpSegment* tcp, sl_uint8* data, sl_uint32 sizeData, void* userData)
