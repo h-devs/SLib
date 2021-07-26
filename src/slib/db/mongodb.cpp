@@ -25,6 +25,7 @@
 #include "slib/math/decimal128.h"
 #include "slib/math/json/decimal128.h"
 #include "slib/core/safe_static.h"
+#include "slib/core/log.h"
 
 #define BSON_STATIC
 #define MONGOC_STATIC
@@ -611,7 +612,9 @@ namespace slib
 						bool bRet = mongoc_database_command_simple(m_db, command, sl_null, &reply, &error);
 						if (bRet) {
 							ret = GetJsonFromBson(&reply);
-						}
+						} else {
+              SLIB_LOG_ERROR("MongoDB", "Execute: %s", String::from(error.message));
+            }
 						bson_destroy(&reply);
 						bson_destroy(command);
 					}
@@ -675,6 +678,9 @@ namespace slib
 					if (bson) {
 						bson_error_t error;
 						bool bRet = mongoc_collection_insert_one(m_collection, bson, sl_null, sl_null, &error);
+						if (!bRet) {
+              SLIB_LOG_ERROR("MongoDB", "Insert: %s", String::from(error.message));
+            }
 						bson_destroy(bson);
 						return bRet;
 					}
@@ -702,6 +708,8 @@ namespace slib
 							bson_error_t error;
 							if (mongoc_collection_replace_one(m_collection, bsonSelector, bsonDocument, &opts, sl_null, &error)) {
 								bRet = sl_true;
+							} else {
+                SLIB_LOG_ERROR("MongoDB", "%s: %s", flagUpsert ? "Upsert" : "Replace", String::from(error.message));
 							}
 							bson_destroy(&opts);
 							bson_destroy(bsonDocument);
@@ -729,6 +737,8 @@ namespace slib
 							if (mongoc_collection_update_many(m_collection, bsonSelector, bsonUpdate, sl_null, &reply, &error)) {
 								SLIB_STATIC_STRING(strModifiedCount, "modifiedCount")
 								n = GetJsonFromBson(&reply).getItem_NoLock(strModifiedCount).getUint64();
+							} else {
+                SLIB_LOG_ERROR("MongoDB", "Update: %s", String::from(error.message));
 							}
 							bson_destroy(&reply);
 							bson_destroy(bsonUpdate);
@@ -753,7 +763,9 @@ namespace slib
 					if (mongoc_collection_delete_many(m_collection, bson, sl_null, &reply, &error)) {
 						SLIB_STATIC_STRING(strDeletedCount, "deletedCount")
 						n = GetJsonFromBson(&reply).getItem_NoLock(strDeletedCount).getUint64();
-					}
+					} else {
+            SLIB_LOG_ERROR("MongoDB", "Remove: %s", String::from(error.message));
+          }
 					bson_destroy(&reply);
 					bson_destroy(bson);
 					return n;
