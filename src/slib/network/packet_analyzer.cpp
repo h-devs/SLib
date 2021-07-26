@@ -372,7 +372,7 @@ namespace slib
 								sl_size lenHost = line - host;
 								if (parent->m_flagGatheringHostInfo) {
 									TcpConnectionInfo info;
-									info.host = host;
+									info.host = String::from(host, lenHost);
 									info.type = TcpConnectionType::HTTP;
 									parent->m_mapTcpConnectionInfo.put(ToKey(packet->getSourceAddress(), tcp->getSourcePort()), info);
 								}
