@@ -171,7 +171,7 @@ namespace slib
 				sizeOutputUsed = (sl_size)(sizeOutputAvailable - sizeOut);
 				if (result == BROTLI_DECODER_RESULT_SUCCESS) {
 					return DataFilterResult::Finished;
-				} else if (result == BROTLI_DECODER_NEEDS_MORE_OUTPUT) {
+				} else if (result == BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT) {
 					return DataFilterResult::Continue;
 				}
 			}

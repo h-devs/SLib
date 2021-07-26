@@ -134,7 +134,7 @@ namespace slib
 			}
 			extensions.add_NoLock(extension);
 		}
-		return buf.current - buf.begin;
+		return (sl_int32)(buf.current - buf.begin);
 	}
 
 	sl_bool TlsServerNameIndicationExtension::parse(const void* data, sl_size size) noexcept

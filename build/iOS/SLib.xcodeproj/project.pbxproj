@@ -338,6 +338,10 @@
 		26FE7D9625A2F20A00B787F0 /* plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D9425A2F20900B787F0 /* plot.cpp */; };
 		26FE7D9825A2F21000B787F0 /* fft.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D9725A2F21000B787F0 /* fft.cpp */; };
 		D79AF21026935A5F00FCDE3D /* asset_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = D79AF20F26935A5F00FCDE3D /* asset_apple.mm */; };
+		D7C3BB0D26AEF20F00FD529D /* packet_analyzer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C3BB0B26AEF20F00FD529D /* packet_analyzer.cpp */; };
+		D7C3BB0E26AEF20F00FD529D /* p2p.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C3BB0C26AEF20F00FD529D /* p2p.cpp */; };
+		D7C3BB1126AEF22900FD529D /* brotli.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C3BB1026AEF22900FD529D /* brotli.cpp */; };
+		D7C3BB1426AEF23400FD529D /* zstd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C3BB1326AEF23400FD529D /* zstd.cpp */; };
 		D7C7097B26458FD700FB3A32 /* pseudo_tcp_message.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C7097926458FD600FB3A32 /* pseudo_tcp_message.cpp */; };
 		D7C7097C26458FD700FB3A32 /* pseudo_tcp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C7097A26458FD600FB3A32 /* pseudo_tcp.cpp */; };
 		D7C7097F26458FDF00FB3A32 /* dbip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C7097E26458FDF00FB3A32 /* dbip.cpp */; };
@@ -702,6 +706,10 @@
 		A2DE1D9F1B383E8500A74698 /* pipe.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pipe.cpp; sourceTree = "<group>"; };
 		A2DE1DA51B383EA000A74698 /* system_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system_unix.cpp; sourceTree = "<group>"; };
 		D79AF20F26935A5F00FCDE3D /* asset_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = asset_apple.mm; sourceTree = "<group>"; };
+		D7C3BB0B26AEF20F00FD529D /* packet_analyzer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = packet_analyzer.cpp; sourceTree = "<group>"; };
+		D7C3BB0C26AEF20F00FD529D /* p2p.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = p2p.cpp; sourceTree = "<group>"; };
+		D7C3BB1026AEF22900FD529D /* brotli.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = brotli.cpp; sourceTree = "<group>"; };
+		D7C3BB1326AEF23400FD529D /* zstd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zstd.cpp; sourceTree = "<group>"; };
 		D7C7097926458FD600FB3A32 /* pseudo_tcp_message.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pseudo_tcp_message.cpp; sourceTree = "<group>"; };
 		D7C7097A26458FD600FB3A32 /* pseudo_tcp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pseudo_tcp.cpp; sourceTree = "<group>"; };
 		D7C7097E26458FDF00FB3A32 /* dbip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dbip.cpp; sourceTree = "<group>"; };
@@ -796,32 +804,6 @@
 			path = graphics;
 			sourceTree = "<group>";
 		};
-		260D835C20C815430013B34E /* libpng */ = {
-			isa = PBXGroup;
-			children = (
-				D7ECA23A26317D0F00D366A8 /* libpng_unity.c */,
-			);
-			name = libpng;
-			sourceTree = "<group>";
-		};
-		260D838820C82EA40013B34E /* libjpeg */ = {
-			isa = PBXGroup;
-			children = (
-				D7ECA23E26317D2E00D366A8 /* libjpeg_unity1.c */,
-				D7ECA23F26317D2E00D366A8 /* libjpeg_unity2.c */,
-			);
-			name = libjpeg;
-			sourceTree = "<group>";
-		};
-		262D59AC2325995100F85780 /* noto_emoji */ = {
-			isa = PBXGroup;
-			children = (
-				262D59AD2325996700F85780 /* noto_emoji_png.cpp */,
-				262D59AE2325996700F85780 /* noto_emoji.cpp */,
-			);
-			name = noto_emoji;
-			sourceTree = "<group>";
-		};
 		26539F892374B8F50064340D /* service */ = {
 			isa = PBXGroup;
 			children = (
@@ -872,25 +854,19 @@
 		26A2030020C6ECC6001103AD /* external */ = {
 			isa = PBXGroup;
 			children = (
-				26A2030120C6ECD0001103AD /* zlib */,
-				D7ECA22026317C6B00D366A8 /* zstd */,
-				D7ECA22526317C7C00D366A8 /* lz4 */,
-				D7ECA22B26317C9D00D366A8 /* snappy */,
-				D7ECA22F26317CC500D366A8 /* leveldb */,
-				D7ECA23026317CD200D366A8 /* lmdb */,
-				260D835C20C815430013B34E /* libpng */,
-				260D838820C82EA40013B34E /* libjpeg */,
-				262D59AC2325995100F85780 /* noto_emoji */,
+				D7ECA21D26317C6700D366A8 /* zlib_unity.c */,
+				D7ECA22126317C7600D366A8 /* zstd_unity.c */,
+				D7ECA22626317C8C00D366A8 /* lz4_unity.c */,
+				D7ECA22C26317CB600D366A8 /* snappy_unity.cc */,
+				D7ECA23626317CF700D366A8 /* leveldb_unity.cc */,
+				D7ECA23226317CE600D366A8 /* lmdb_unity.c */,
+				D7ECA23A26317D0F00D366A8 /* libpng_unity.c */,
+				D7ECA23E26317D2E00D366A8 /* libjpeg_unity1.c */,
+				D7ECA23F26317D2E00D366A8 /* libjpeg_unity2.c */,
+				262D59AD2325996700F85780 /* noto_emoji_png.cpp */,
+				262D59AE2325996700F85780 /* noto_emoji.cpp */,
 			);
 			name = external;
-			sourceTree = "<group>";
-		};
-		26A2030120C6ECD0001103AD /* zlib */ = {
-			isa = PBXGroup;
-			children = (
-				D7ECA21D26317C6700D366A8 /* zlib_unity.c */,
-			);
-			name = zlib;
 			sourceTree = "<group>";
 		};
 		26ACB3B7220978310093FF3F /* social */ = {
@@ -1066,8 +1042,8 @@
 				2628EADF21C410C000D8CD00 /* base64.cpp */,
 				26B571501C9D442D0099E69B /* block_cipher.cpp */,
 				268A13031E7B16340048F2CE /* blowfish.cpp */,
+				D7C3BB1026AEF22900FD529D /* brotli.cpp */,
 				26A3DA8F228AAE4D0031CBDA /* chacha.cpp */,
-				266DD46B1C11934A00D47AB0 /* zlib.cpp */,
 				26AFC60022B197E30034C634 /* crc32c.cpp */,
 				26B92D4F21D357AD003F6F82 /* des.cpp */,
 				262ED4E9228DEBEE0029F409 /* ecc.cpp */,
@@ -1084,6 +1060,8 @@
 				266DD37E1C117A3100D47AB0 /* sha1.cpp */,
 				266DD37F1C117A3100D47AB0 /* sha2.cpp */,
 				26BAE04422267D100085B5AB /* tls.cpp */,
+				266DD46B1C11934A00D47AB0 /* zlib.cpp */,
+				D7C3BB1326AEF23400FD529D /* zstd.cpp */,
 			);
 			path = crypto;
 			sourceTree = "<group>";
@@ -1136,6 +1114,8 @@
 				266DD3C91C1181B500D47AB0 /* network_async_unix.cpp */,
 				266DD3CB1C1181B500D47AB0 /* network_async.cpp */,
 				266DD3CC1C1181B500D47AB0 /* network_os.cpp */,
+				D7C3BB0C26AEF20F00FD529D /* p2p.cpp */,
+				D7C3BB0B26AEF20F00FD529D /* packet_analyzer.cpp */,
 				D7C7097A26458FD600FB3A32 /* pseudo_tcp.cpp */,
 				D7C7097926458FD600FB3A32 /* pseudo_tcp_message.cpp */,
 				266DD3CF1C1181B500D47AB0 /* socket_address.cpp */,
@@ -1291,46 +1271,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		D7ECA22026317C6B00D366A8 /* zstd */ = {
-			isa = PBXGroup;
-			children = (
-				D7ECA22126317C7600D366A8 /* zstd_unity.c */,
-			);
-			name = zstd;
-			sourceTree = "<group>";
-		};
-		D7ECA22526317C7C00D366A8 /* lz4 */ = {
-			isa = PBXGroup;
-			children = (
-				D7ECA22626317C8C00D366A8 /* lz4_unity.c */,
-			);
-			name = lz4;
-			sourceTree = "<group>";
-		};
-		D7ECA22B26317C9D00D366A8 /* snappy */ = {
-			isa = PBXGroup;
-			children = (
-				D7ECA22C26317CB600D366A8 /* snappy_unity.cc */,
-			);
-			name = snappy;
-			sourceTree = "<group>";
-		};
-		D7ECA22F26317CC500D366A8 /* leveldb */ = {
-			isa = PBXGroup;
-			children = (
-				D7ECA23626317CF700D366A8 /* leveldb_unity.cc */,
-			);
-			name = leveldb;
-			sourceTree = "<group>";
-		};
-		D7ECA23026317CD200D366A8 /* lmdb */ = {
-			isa = PBXGroup;
-			children = (
-				D7ECA23226317CE600D366A8 /* lmdb_unity.c */,
-			);
-			name = lmdb;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1430,6 +1370,7 @@
 				26C795CD2215FC7C0053C5A1 /* strings.cpp in Sources */,
 				26D9D8041E9628E0005F7BD3 /* md5.cpp in Sources */,
 				26D9D85E1E962937005F7BD3 /* geo_rectangle.cpp in Sources */,
+				D7C3BB1126AEF22900FD529D /* brotli.cpp in Sources */,
 				26D9D8BB1E962976005F7BD3 /* cursor.cpp in Sources */,
 				26FB4E6524937860004DA59A /* list_box.cpp in Sources */,
 				26FE7D9225A2F1E500B787F0 /* image_canvas.cpp in Sources */,
@@ -1437,6 +1378,7 @@
 				26D9D8601E962937005F7BD3 /* latlon.cpp in Sources */,
 				26E44AEB2322F39D00A88D93 /* collection_view.cpp in Sources */,
 				26D9D8DB1E962976005F7BD3 /* ui_animation.cpp in Sources */,
+				D7C3BB0D26AEF20F00FD529D /* packet_analyzer.cpp in Sources */,
 				26D9D8611E96294F005F7BD3 /* bitmap.cpp in Sources */,
 				26D9D8751E96294F005F7BD3 /* image_jpeg.cpp in Sources */,
 				26D9D9F71E968364005F7BD3 /* http_io.cpp in Sources */,
@@ -1520,6 +1462,7 @@
 				26D9D8151E9628E0005F7BD3 /* variant.cpp in Sources */,
 				26C7959D221538D90053C5A1 /* clipboard.cpp in Sources */,
 				26539FA82374BA130064340D /* ui_notification_xgpush_ios.mm in Sources */,
+				D7C3BB0E26AEF20F00FD529D /* p2p.cpp in Sources */,
 				26E1ADB823688B8F002BF6B8 /* jwt_openssl.cpp in Sources */,
 				26D9D8171E9628E0005F7BD3 /* async_kqueue.cpp in Sources */,
 				26D9D8CD1E962976005F7BD3 /* radio_button.cpp in Sources */,
@@ -1574,6 +1517,7 @@
 				26D9D8281E9628E0005F7BD3 /* spin_lock.cpp in Sources */,
 				26C1B64820D51D4300E36539 /* canvas_ext.cpp in Sources */,
 				26072FFC20D8F535004EB272 /* font_quartz.mm in Sources */,
+				D7C3BB1426AEF23400FD529D /* zstd.cpp in Sources */,
 				26D9D8581E962932005F7BD3 /* sensor_ios.mm in Sources */,
 				26DF6FB9236975CA009C1339 /* oauth_server_openssl.cpp in Sources */,
 				26D9D8C41E962976005F7BD3 /* list_view.cpp in Sources */,
