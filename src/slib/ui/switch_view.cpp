@@ -416,6 +416,9 @@ namespace slib
 		
 		sl_ui_len widthTrack = rect.getWidth();
 		sl_ui_len widthThumb = widthTrack / 2;
+
+		sl_bool flagAntialias = canvas->isAntiAlias();
+		canvas->setAntiAlias(sl_true);
 		
 		drawTrack(canvas, track, rect);
 		
@@ -477,7 +480,9 @@ namespace slib
 				}
 			}
 		}
-		
+
+		canvas->setAntiAlias(flagAntialias);
+
 	}
 	
 	void SwitchView::onUpdateLayout()
