@@ -120,50 +120,56 @@ namespace slib
 
 			SLIB_SAFE_STATIC_GETTER(Helper, GetHelper)
 
-			struct CaptureScreensContext
-			{
-				Helper* helper;
-				HDC hDC;
-				List< Ref<Image> > list;
-			};
-
-			BOOL CALLBACK EnumDisplayMonitorsCallback(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
-			{
-				CaptureScreensContext& context = *((CaptureScreensContext*)lParam);
-				MONITORINFOEXW info;
-				Base::zeroMemory(&info, sizeof(info));
-				info.cbSize = sizeof(info);
-				if (GetMonitorInfoW(hMonitor, &info)) {
-					Ref<Image> image = context.helper->getImage(
-						context.hDC,
-						(sl_int32)(info.rcMonitor.left),
-						(sl_int32)(info.rcMonitor.top),
-						(sl_int32)(info.rcMonitor.right - info.rcMonitor.left),
-						(sl_int32)(info.rcMonitor.bottom - info.rcMonitor.top));
-					if (image.isNotNull()) {
-						context.list.add_NoLock(Move(image));
-					}
-				}
-				return TRUE;
-			}
-
-			List< Ref<Image> > CaptureScreens()
+			Ref<Image> CaptureScreen(HMONITOR hMonitor)
 			{
 				Helper* helper = GetHelper();
 				if (!helper) {
 					return sl_null;
 				}
 				MutexLocker lock(&(helper->m_lock));
-				HDC hDC = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
-				if (hDC) {
-					CaptureScreensContext context;
-					context.helper = helper;
-					context.hDC = hDC;
-					EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallback, (LPARAM)&context);
-					DeleteDC(hDC);
-					return context.list;
+				MONITORINFOEXW info;
+				Base::zeroMemory(&info, sizeof(info));
+				info.cbSize = sizeof(info);
+				if (GetMonitorInfoW(hMonitor, &info)) {
+					HDC hDC = CreateDCW(L"DISPLAY", info.szDevice, NULL, NULL);
+					if (hDC) {
+						sl_uint32 width, height;
+						DEVMODEW dm;
+						if (EnumDisplaySettingsW(info.szDevice, ENUM_CURRENT_SETTINGS, &dm)) {
+							width = (sl_uint32)(dm.dmPelsWidth);
+							height = (sl_uint32)(dm.dmPelsHeight);
+						} else {
+							width = (sl_uint32)(GetDeviceCaps(hDC, HORZRES));
+							height = (sl_uint32)(GetDeviceCaps(hDC, VERTRES));
+						}
+						Ref<Image> image = helper->getImage(hDC, 0, 0, width, height);
+						DeleteDC(hDC);
+						return image;
+					}
 				}
 				return sl_null;
+			}
+
+			struct CaptureScreensContext
+			{
+				List< Ref<Image> > list;
+			};
+
+			BOOL CALLBACK EnumDisplayMonitorsCallback(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
+			{
+				CaptureScreensContext& context = *((CaptureScreensContext*)lParam);
+				Ref<Image> image = CaptureScreen(hMonitor);
+				if (image.isNotNull()) {
+					context.list.add_NoLock(Move(image));
+				}
+				return TRUE;
+			}
+
+			List< Ref<Image> > CaptureScreens()
+			{
+				CaptureScreensContext context;
+				EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallback, (LPARAM)&context);
+				return context.list;
 			}
 
 		}
@@ -173,49 +179,21 @@ namespace slib
 	
 	Ref<Image> ScreenCapture::takeScreenshot()
 	{
-		Helper* helper = GetHelper();
-		if (!helper) {
-			return sl_null;
-		}
-		MutexLocker lock(&(helper->m_lock));
-		HDC hDC = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
-		if (hDC) {
-			sl_uint32 width = (sl_uint32)(GetSystemMetrics(SM_CXSCREEN));
-			sl_uint32 height = (sl_uint32)(GetSystemMetrics(SM_CYSCREEN));
-			Ref<Image> image = helper->getImage(hDC, 0, 0, width, height);
-			DeleteDC(hDC);
-			return image;
+		POINT pt = { 0, 0 };
+		HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
+		if (hMonitor) {
+			return CaptureScreen(hMonitor);
 		}
 		return sl_null;
 	}
 
 	Ref<Image> ScreenCapture::takeScreenshotFromCurrentMonitor()
 	{
-		Helper* helper = GetHelper();
-		if (!helper) {
-			return sl_null;
-		}
-		MutexLocker lock(&(helper->m_lock));
 		POINT pt;
 		GetCursorPos(&pt);
 		HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
 		if (hMonitor) {
-			MONITORINFOEXW info;
-			Base::zeroMemory(&info, sizeof(info));
-			info.cbSize = sizeof(info);
-			if (GetMonitorInfoW(hMonitor, &info)) {
-				HDC hDC = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
-				if (hDC) {
-					Ref<Image> image = helper->getImage(
-						hDC,
-						(sl_int32)(info.rcMonitor.left),
-						(sl_int32)(info.rcMonitor.top),
-						(sl_int32)(info.rcMonitor.right - info.rcMonitor.left),
-						(sl_int32)(info.rcMonitor.bottom - info.rcMonitor.top));
-					DeleteDC(hDC);
-					return image;
-				}
-			}
+			return CaptureScreen(hMonitor);
 		}
 		return sl_null;
 	}
