@@ -99,7 +99,6 @@
     <ClCompile Include="..\..\src\slib\core\dl_win32_kernel32.cpp" />
     <ClCompile Include="..\..\src\slib\core\dl_win32_psapi.cpp" />
     <ClCompile Include="..\..\src\slib\core\dl_win32_shlwapi.cpp" />
-    <ClCompile Include="..\..\src\slib\core\dl_win32_user32.cpp" />
     <ClCompile Include="..\..\src\slib\core\dl_win32_wininet.cpp" />
     <ClCompile Include="..\..\src\slib\core\dynamic_library.cpp" />
     <ClCompile Include="..\..\src\slib\core\dynamic_library_win32.cpp" />
@@ -401,6 +400,8 @@
     <ClCompile Include="..\..\src\slib\ui\cursor_win32.cpp" />
     <ClCompile Include="..\..\src\slib\ui\date_picker.cpp" />
     <ClCompile Include="..\..\src\slib\ui\date_picker_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\ui\dl_win32_shcore.cpp" />
+    <ClCompile Include="..\..\src\slib\ui\dl_win32_user32.cpp" />
     <ClCompile Include="..\..\src\slib\ui\drawer.cpp" />
     <ClCompile Include="..\..\src\slib\ui\edit_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\edit_view_win32.cpp" />

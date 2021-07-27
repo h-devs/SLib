@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,32 +20,6 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_DL_WIN32_USER32
-#define CHECKHEADER_SLIB_CORE_DL_WIN32_USER32
+#define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "../../definition.h"
-
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-
-#include "../../dl.h"
-
-#include "../../win32/windows.h"
-
-namespace slib
-{
-
-	SLIB_IMPORT_LIBRARY_BEGIN(user32, "user32.dll")
-		SLIB_IMPORT_LIBRARY_FUNCTION(
-			ShowScrollBar,
-			BOOL, WINAPI,
-			HWND hWnd,
-			int  wBar,
-			BOOL bShow
-		)
-	SLIB_IMPORT_LIBRARY_END
-
-}
-
-#endif
-
-#endif
+#include "slib/ui/dl/win32/user32.h"

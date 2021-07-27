@@ -1274,9 +1274,6 @@
     <ClCompile Include="..\..\src\slib\core\dl_win32_kernel32.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\dl_win32_user32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\dl_win32_wininet.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -1384,6 +1381,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\brotli.cpp">
       <Filter>src\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\dl_win32_shcore.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\dl_win32_user32.cpp">
+      <Filter>src\ui</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
