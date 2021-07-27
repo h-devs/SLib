@@ -236,6 +236,9 @@ namespace slib
 						if (tcp->isACK()) {
 							return;
 						}
+						if (parent->m_flagGatheringHostInfo) {
+							parent->resetHostInfo(packet, tcp);
+						}
 						connection = m_table.create(packet, tcp);
 						if (connection.isNull()) {
 							return;
@@ -243,9 +246,6 @@ namespace slib
 					} else if (tcp->isFIN() || tcp->isRST()) {
 						m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
 						m_table.remove(packet->getDestinationAddress(), tcp->getDestinationPort());
-						if (parent->m_flagGatheringHostInfo) {
-							parent->m_mapTcpConnectionInfo.remove(ToKey(packet->getSourceAddress(), tcp->getSourcePort()));
-						}
 						return;
 					} else {
 						connection = m_table.get(packet->getSourceAddress(), tcp->getSourcePort());
@@ -253,7 +253,7 @@ namespace slib
 							if (connection->destinationIp != packet->getDestinationAddress() || connection->destinationPort != tcp->getDestinationPort()) {
 								m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
 								if (parent->m_flagGatheringHostInfo) {
-									parent->m_mapTcpConnectionInfo.remove(ToKey(packet->getSourceAddress(), tcp->getSourcePort()));
+									parent->resetHostInfo(packet, tcp);
 								}
 								return;
 							}
@@ -371,10 +371,7 @@ namespace slib
 								}
 								sl_size lenHost = line - host;
 								if (parent->m_flagGatheringHostInfo) {
-									TcpConnectionInfo info;
-									info.host = String::from(host, lenHost);
-									info.type = TcpConnectionType::HTTP;
-									parent->m_mapTcpConnectionInfo.put(ToKey(packet->getSourceAddress(), tcp->getSourcePort()), info);
+									parent->registerHostInfo(packet, tcp, TcpConnectionType::HTTP, String::from(host, lenHost));
 								}
 								parent->onHTTP_IPv4(packet, tcp, StringView(host, lenHost), StringView(uri, lenUri), userData);
 								return ContentResult::Success;
@@ -420,10 +417,7 @@ namespace slib
 								if (sni.parse(extensions[i].data, extensions[i].length)) {
 									String host = sni.serverNames.getValueAt(0);
 									if (parent->m_flagGatheringHostInfo) {
-										TcpConnectionInfo info;
-										info.host = host;
-										info.type = TcpConnectionType::HTTPS;
-										parent->m_mapTcpConnectionInfo.put(ToKey(packet->getSourceAddress(), tcp->getSourcePort()), info);
+										parent->registerHostInfo(packet, tcp, TcpConnectionType::HTTPS, host);
 									}
 									parent->onHTTPS_IPv4(packet, tcp, host, userData);
 								}
@@ -457,6 +451,7 @@ namespace slib
 		m_flagAnalyzeTcp = sl_false;
 		m_flagAnalyzeUdp = sl_false;
 		m_flagAnalyzeIcmp = sl_false;
+		m_flagCaptureUnknownFrames = sl_false;
 
 		m_flagAnalyzeHttp = sl_false;
 		m_flagAnalyzeHttps = sl_false;
@@ -465,70 +460,118 @@ namespace slib
 		m_flagGatheringHostInfo = sl_false;
 		m_flagIgnoreLocalPackets = sl_false;
 		m_flagIgnoreUnknownPorts = sl_false;
+		m_flagBlockingTcpConnections = sl_false;
 	}
 
 	PacketAnalyzer::~PacketAnalyzer()
 	{
 	}
 
-	void PacketAnalyzer::putCapturedPacket(NetCapture* capture, const void* packet, sl_size size, void* userData)
+	void PacketAnalyzer::putCapturedPacket(NetCapture* capture, NetworkLinkDeviceType type, const void* frame, sl_size size, void* userData)
 	{
-		NetworkLinkDeviceType link = capture->getLinkType();
-		if (link == NetworkLinkDeviceType::Ethernet) {
-			putEthernet(packet, size, userData);
-		} else if (link == NetworkLinkDeviceType::Raw) {
-			putIP(packet, size, userData);
-		} else if (link == NetworkLinkDeviceType::Null) {
-			if (size > 4) {
-				if (MIO::readUint32LE(packet) == 2 /*AF_INET*/) {
-					putIP((sl_uint8*)packet + 4, size - 4, userData);
+		if (type == NetworkLinkDeviceType::Ethernet) {
+			putEthernet(capture, frame, size, userData);
+		} else {
+			PacketParam param;
+			param.capture = capture;
+			param.type = type;
+			param.frame = (sl_uint8*)frame;
+			param.sizeFrame = (sl_uint32)size;
+			param.userData = userData;
+			if (type == NetworkLinkDeviceType::Raw) {
+				param.packet = (sl_uint8*)frame;
+				param.sizePacket = (sl_uint32)size;
+				analyzeIP(param);
+			} else if (type == NetworkLinkDeviceType::Null) {
+				if (size > 4) {
+					if (MIO::readUint32LE(frame) == 2 /*AF_INET*/) {
+						param.packet = (sl_uint8*)frame + 4;
+						param.sizePacket = (sl_uint32)size - 4;
+						analyzeIP(param);
+					}
 				}
 			}
 		}
 	}
 
-	void PacketAnalyzer::putEthernet(const void* packet, sl_size size, void* userData)
+	void PacketAnalyzer::putCapturedPacket(NetCapture* capture, const void* packet, sl_size size, void* userData)
+	{
+		putCapturedPacket(capture, capture->getLinkType(), packet, size, userData);
+	}
+
+	void PacketAnalyzer::putEthernet(NetCapture* capture, const void* frame, sl_size size, void* userData)
 	{
 		if (size <= EthernetFrame::HeaderSize) {
 			return;
 		}
-		EthernetFrame* frame = (EthernetFrame*)packet;
-		NetworkLinkProtocol protocol = frame->getProtocol();
+		EthernetFrame* eth = (EthernetFrame*)frame;
+		NetworkLinkProtocol protocol = eth->getProtocol();
 		if (protocol == NetworkLinkProtocol::IPv4) {
-			putIP((sl_uint8*)packet + EthernetFrame::HeaderSize, size - EthernetFrame::HeaderSize, userData);
+			PacketParam param;
+			param.capture = capture;
+			param.type = NetworkLinkDeviceType::Ethernet;
+			param.frame = (sl_uint8*)frame;
+			param.sizeFrame = (sl_uint32)size;
+			param.userData = userData;
+			param.packet = (sl_uint8*)frame + EthernetFrame::HeaderSize;
+			param.sizePacket = (sl_uint32)size - EthernetFrame::HeaderSize;
+			analyzeIP(param);
 		} else if (protocol == NetworkLinkProtocol::ARP) {
 			if (m_flagAnalyzeArp) {
 				if (size >= EthernetFrame::HeaderSize + ArpPacket::SizeForIPv4) {
-					ArpPacket* arp = (ArpPacket*)((sl_uint8*)packet + EthernetFrame::HeaderSize);
+					ArpPacket* arp = (ArpPacket*)((sl_uint8*)frame + EthernetFrame::HeaderSize);
 					if (arp->isValidEthernetIPv4()) {
 						ArpOperation op = arp->getOperation();
 						if (op == ArpOperation::Request) {
-							onARP_IPv4(frame, arp, sl_true, userData);
+							onARP_IPv4(eth, arp, sl_true, userData);
 						} else if (op == ArpOperation::Reply) {
-							onARP_IPv4(frame, arp, sl_false, userData);
+							onARP_IPv4(eth, arp, sl_false, userData);
 						}
 					}
 				}
 			}
 		} else {
 			if (m_flagCaptureUnknownFrames) {
-				onUnknownFrame(frame, (sl_uint8*)packet + EthernetFrame::HeaderSize, (sl_uint32)size - EthernetFrame::HeaderSize, userData);
+				onUnknownFrame(eth, (sl_uint8*)frame + EthernetFrame::HeaderSize, (sl_uint32)size - EthernetFrame::HeaderSize, userData);
 			}
 		}
 	}
 
+	void PacketAnalyzer::putEthernet(const void* packet, sl_size size, void* userData)
+	{
+		putEthernet(sl_null, packet, size, userData);
+	}
+
+	void PacketAnalyzer::putIP(NetCapture* capture, const void* packet, sl_size size, void* userData)
+	{
+		PacketParam param;
+		param.capture = capture;
+		param.type = NetworkLinkDeviceType::Raw;
+		param.frame = (sl_uint8*)packet;
+		param.sizeFrame = (sl_uint32)size;
+		param.packet = (sl_uint8*)packet;
+		param.sizePacket = (sl_uint32)size;
+		param.userData = userData;
+		analyzeIP(param);
+	}
+
 	void PacketAnalyzer::putIP(const void* packet, sl_size size, void* userData)
 	{
-		if (size <= IPv4Packet::HeaderSizeBeforeOptions) {
+		putIP(sl_null, packet, size, userData);
+	}
+
+	void PacketAnalyzer::analyzeIP(const PacketAnalyzer::PacketParam& param)
+	{
+		if (param.sizePacket <= IPv4Packet::HeaderSizeBeforeOptions) {
 			return;
 		}
-		sl_bool flagAnalyzeTcp = m_flagAnalyzeTcp || m_flagAnalyzeHttp || m_flagAnalyzeHttps;
+		sl_bool flagAnalyzeTcp = m_flagAnalyzeTcp || m_flagAnalyzeHttp || m_flagAnalyzeHttps || m_flagBlockingTcpConnections;
 		sl_bool flagAnalyzeUdp = m_flagAnalyzeUdp || m_flagAnalyzeDns;
 		if (m_flagAnalyzeIPv4 || flagAnalyzeTcp || flagAnalyzeUdp || m_flagAnalyzeIcmp) {
-			IPv4Packet* ip = (IPv4Packet*)packet;
+			IPv4Packet* ip = (IPv4Packet*)(param.packet);
 			sl_uint8 sizeHeader = ip->getHeaderSize();
 			sl_uint16 sizeTotal = ip->getTotalSize();
-			if (sizeTotal > size || sizeHeader > sizeTotal) {
+			if (sizeTotal > param.sizePacket || sizeHeader > sizeTotal) {
 				return;
 			}
 			if (m_flagIgnoreLocalPackets) {
@@ -537,7 +580,7 @@ namespace slib
 				}
 			}
 			if (m_flagAnalyzeIPv4) {
-				onIPv4(ip, userData);
+				onIPv4(ip, param.userData);
 			}
 			sl_uint8* content = ip->getContent();
 			sl_uint16 sizeContent = sizeTotal - sizeHeader;
@@ -553,10 +596,13 @@ namespace slib
 						return;
 					}
 					if (m_flagAnalyzeTcp) {
-						onTCP_IPv4(ip, tcp, tcp->getContent(), sizeContent - sizeHeader, userData);
+						onTCP_IPv4(ip, tcp, tcp->getContent(), sizeContent - sizeHeader, param.userData);
 					}
 					if (m_flagAnalyzeHttp || m_flagAnalyzeHttps) {
-						analyzeTcpContent(ip, tcp, tcp->getContent(), sizeContent - sizeHeader, userData);
+						analyzeTcpContent(ip, tcp, tcp->getContent(), sizeContent - sizeHeader, param.userData);
+					}
+					if (m_flagBlockingTcpConnections) {
+						sendBlockingIPv4TcpPacket(param, tcp);
 					}
 				}
 			} else if (protocol == NetworkInternetProtocol::UDP) {
@@ -566,7 +612,7 @@ namespace slib
 					}
 					UdpDatagram* udp = (UdpDatagram*)content;
 					if (m_flagAnalyzeUdp) {
-						onUDP_IPv4(ip, udp, udp->getContent(), sizeContent - UdpDatagram::HeaderSize, userData);
+						onUDP_IPv4(ip, udp, udp->getContent(), sizeContent - UdpDatagram::HeaderSize, param.userData);
 					}
 					if (m_flagAnalyzeDns) {
 						if (udp->getSourcePort() == 53 || udp->getDestinationPort() == 53) {
@@ -574,14 +620,15 @@ namespace slib
 							if (dns.parsePacket(udp->getContent(), sizeContent - UdpDatagram::HeaderSize)) {
 								if (m_flagGatheringHostInfo) {
 									if (!(dns.flagQuestion)) {
+										WriteLocker locker(&m_lockDnsInfo);
 										for (auto& addr : dns.addresses) {
 											if (addr.address.isIPv4()) {
-												m_mapDnsInfo.put(addr.address.getIPv4(), addr.name);
+												m_tableDnsInfo.put(addr.address.getIPv4(), addr.name);
 											}
 										}
 									}
 								}
-								onDNS_IPv4(ip, udp, &dns, userData);
+								onDNS_IPv4(ip, udp, &dns, param.userData);
 							}
 						}
 					}
@@ -592,7 +639,7 @@ namespace slib
 						return;
 					}
 					IcmpHeaderFormat* icmp = (IcmpHeaderFormat*)content;
-					onICMP_IPv4(ip, icmp, icmp->getContent(), sizeContent - sizeof(IcmpHeaderFormat), userData);
+					onICMP_IPv4(ip, icmp, icmp->getContent(), sizeContent - sizeof(IcmpHeaderFormat), param.userData);
 				}
 			}
 		}
@@ -601,12 +648,14 @@ namespace slib
 	sl_bool PacketAnalyzer::getTcpConnectionInfo(const IPv4Address& sourceIp, sl_uint16 sourcePort, TcpConnectionInfo& info)
 	{
 		sl_uint64 key = ToKey(sourceIp, sourcePort);
-		return m_mapTcpConnectionInfo.get(key, &info);
+		ReadLocker locker(&m_lockTcpConnectionInfo);
+		return m_tableTcpConnectionInfo.get(key, &info);
 	}
 
 	String PacketAnalyzer::getDnsHost(const IPv4Address& ip)
 	{
-		return m_mapDnsInfo.getValue(ip);
+		ReadLocker locker(&m_lockDnsInfo);
+		return m_tableDnsInfo.getValue(ip);
 	}
 
 	void PacketAnalyzer::setLogging(sl_bool flag)
@@ -639,6 +688,11 @@ namespace slib
 		m_flagAnalyzeIcmp = flag;
 	}
 
+	void PacketAnalyzer::setCapturingUnknownFrames(sl_bool flag)
+	{
+		m_flagCaptureUnknownFrames = flag;
+	}
+
 	void PacketAnalyzer::setAnalyzingHttp(sl_bool flag)
 	{
 		m_flagAnalyzeHttp = flag;
@@ -669,9 +723,9 @@ namespace slib
 		m_flagIgnoreUnknownPorts = flag;
 	}
 
-	void PacketAnalyzer::setCapturingUnknownFrames(sl_bool flag)
+	void PacketAnalyzer::setBlockingTcpConnections(sl_bool flag)
 	{
-		m_flagCaptureUnknownFrames = flag;
+		m_flagBlockingTcpConnections = flag;
 	}
 
 	void PacketAnalyzer::onIPv4(IPv4Packet* packet, void* userData)
@@ -810,6 +864,11 @@ namespace slib
 	{
 	}
 
+	sl_bool PacketAnalyzer::shouldBlockTcpConnection(IPv4Packet* packet, TcpSegment* tcp, TcpConnectionType type, const String& host, void* userData)
+	{
+		return sl_false;
+	}
+
 	void PacketAnalyzer::analyzeTcpContent(IPv4Packet* packet, TcpSegment* tcp, sl_uint8* data, sl_uint32 sizeData, void* userData)
 	{
 		if (m_flagIgnoreUnknownPorts) {
@@ -828,6 +887,78 @@ namespace slib
 			}
 		}
 		((ContentAnalyzer*)(m_contentAnalyzer.get()))->analyze((PacketAnalyzerHelper*)this, packet, tcp, data, sizeData, userData);
+	}
+
+	void PacketAnalyzer::registerHostInfo(IPv4Packet* packet, TcpSegment* tcp, TcpConnectionType type, const String& host)
+	{
+		sl_uint64 key = ToKey(packet->getSourceAddress(), tcp->getSourcePort());
+		TcpConnectionInfo info;
+		info.host = Move(host);
+		info.type = TcpConnectionType::HTTP;
+		WriteLocker locker(&m_lockTcpConnectionInfo);
+		m_tableTcpConnectionInfo.put(key, Move(info));
+	}
+
+	void PacketAnalyzer::resetHostInfo(IPv4Packet* packet, TcpSegment* tcp)
+	{
+		sl_uint64 key = ToKey(packet->getSourceAddress(), tcp->getSourcePort());
+		WriteLocker locker(&m_lockTcpConnectionInfo);
+		m_tableTcpConnectionInfo.remove(key);
+	}
+
+	void PacketAnalyzer::sendBlockingIPv4TcpPacket(const PacketAnalyzer::PacketParam& param, TcpSegment* tcp)
+	{
+		if (!(param.capture)) {
+			return;
+		}
+		if (tcp->isRST()) {
+			return;
+		}
+		IPv4Packet* ip = (IPv4Packet*)(param.packet);
+		sl_bool flagBlock = sl_false;
+		if (m_flagGatheringHostInfo) {
+			TcpConnectionInfo info;
+			if (getTcpConnectionInfo(ip->getSourceAddress(), tcp->getSourcePort(), info)) {
+				if (shouldBlockTcpConnection(ip, tcp, info.type, info.host, param.userData)) {
+					flagBlock = sl_true;
+				}
+			} else {
+				if (shouldBlockTcpConnection(ip, tcp, TcpConnectionType::None, sl_null, param.userData)) {
+					flagBlock = sl_true;
+				}
+			}
+		} else {
+			if (shouldBlockTcpConnection(ip, tcp, TcpConnectionType::None, sl_null, param.userData)) {
+				flagBlock = sl_true;
+			}
+		}
+		if (!flagBlock) {
+			return;
+		}
+		sl_uint32 sizeIP = IPv4Packet::HeaderSizeBeforeOptions + TcpSegment::HeaderSizeBeforeOptions;
+		sl_uint32 sizeFrameHeader = (sl_uint32)(param.packet - param.frame);
+		sl_uint32 sizeFrame = sizeFrameHeader + sizeIP;
+		sl_uint8 bufFrame[64 + IPv4Packet::HeaderSizeBeforeOptions + TcpSegment::HeaderSizeBeforeOptions];
+		if (sizeFrame > sizeof(bufFrame)) {
+			return;
+		}
+		if (sizeFrameHeader) {
+			Base::copyMemory(bufFrame, param.frame, sizeFrameHeader);
+		}
+		IPv4Packet* ipWrite = (IPv4Packet*)(bufFrame + sizeFrameHeader);
+		TcpSegment* tcpWrite = (TcpSegment*)(bufFrame + (sizeFrameHeader + IPv4Packet::HeaderSizeBeforeOptions));
+		Base::copyMemory(ipWrite, ip, IPv4Packet::HeaderSizeBeforeOptions);
+		Base::copyMemory(tcpWrite, tcp, TcpSegment::HeaderSizeBeforeOptions);
+		ipWrite->setHeaderSize(IPv4Packet::HeaderSizeBeforeOptions);
+		ipWrite->setTotalSize(sizeIP);
+		ipWrite->updateChecksum();
+		tcpWrite->setHeaderSize(TcpSegment::HeaderSizeBeforeOptions);
+		tcpWrite->setRST(sl_true);
+		tcpWrite->setSYN(sl_false);
+		tcpWrite->setSequenceNumber(tcp->getSequenceNumber() + ip->getTotalSize() - ip->getHeaderSize() - tcp->getHeaderSize());
+		tcpWrite->setWindowSize(0);
+		tcpWrite->updateChecksum(ipWrite, TcpSegment::HeaderSizeBeforeOptions);
+		param.capture->sendPacket(bufFrame, sizeFrame);
 	}
 
 }

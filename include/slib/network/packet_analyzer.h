@@ -29,6 +29,8 @@
 #include "icmp.h"
 #include "dns.h"
 
+#include "../core/rw_lock.h"
+
 namespace slib
 {
 	
@@ -41,9 +43,8 @@ namespace slib
 		HTTPS = 2
 	};
 
-	class SLIB_EXPORT TcpConnectionInfo
+	struct SLIB_EXPORT TcpConnectionInfo
 	{
-	public:
 		TcpConnectionType type;
 		String host;
 	};
@@ -56,9 +57,15 @@ namespace slib
 		~PacketAnalyzer();
 
 	public:
-		void putCapturedPacket(NetCapture* capture, const void* packet, sl_size size, void* userData);
+		void putCapturedPacket(NetCapture* capture, NetworkLinkDeviceType type, const void* frame, sl_size size, void* userData);
+
+		void putCapturedPacket(NetCapture* capture, const void* frame, sl_size size, void* userData);
 		
-		void putEthernet(const void* packet, sl_size size, void* userData);
+		void putEthernet(NetCapture* capture, const void* frame, sl_size size, void* userData);
+
+		void putEthernet(const void* frame, sl_size size, void* userData);
+
+		void putIP(NetCapture* capture, const void* packet, sl_size size, void* userData);
 
 		void putIP(const void* packet, sl_size size, void* userData);
 
@@ -81,6 +88,8 @@ namespace slib
 
 		void setIcmpEnabled(sl_bool flag = sl_true);
 
+		void setCapturingUnknownFrames(sl_bool flag = sl_true);
+
 		void setAnalyzingHttp(sl_bool flag = sl_true);
 
 		void setAnalyzingHttps(sl_bool flag = sl_true);
@@ -93,7 +102,7 @@ namespace slib
 
 		void setIgnoringUnknownPorts(sl_bool flag = sl_true);
 
-		void setCapturingUnknownFrames(sl_bool flag = sl_true);
+		void setBlockingTcpConnections(sl_bool flag = sl_true);
 
 	protected:
 		virtual void onIPv4(IPv4Packet* packet, void* userData);
@@ -114,8 +123,29 @@ namespace slib
 
 		virtual void onUnknownFrame(EthernetFrame* frame, sl_uint8* data, sl_uint32 sizeData, void* userData);
 
+		virtual sl_bool shouldBlockTcpConnection(IPv4Packet* packet, TcpSegment* tcp, TcpConnectionType type, const String& host, void* userData);
+
 	protected:
+		struct PacketParam
+		{
+			NetCapture* capture;
+			NetworkLinkDeviceType type;
+			sl_uint8* frame;
+			sl_uint32 sizeFrame;
+			sl_uint8* packet;
+			sl_uint32 sizePacket;
+			void* userData;
+		};
+
+		void analyzeIP(const PacketParam& param);
+
 		void analyzeTcpContent(IPv4Packet* packet, TcpSegment* tcp, sl_uint8* data, sl_uint32 sizeData, void* userData);
+
+		void registerHostInfo(IPv4Packet* packet, TcpSegment* tcp, TcpConnectionType type, const String& host);
+
+		void resetHostInfo(IPv4Packet* packet, TcpSegment* tcp);
+
+		void sendBlockingIPv4TcpPacket(const PacketParam& param, TcpSegment* tcp);
 
 	protected:
 		sl_bool m_flagLogging;
@@ -133,12 +163,16 @@ namespace slib
 		sl_bool m_flagIgnoreLocalPackets;
 		sl_bool m_flagIgnoreUnknownPorts;
 		sl_bool m_flagCaptureUnknownFrames;
+		sl_bool m_flagBlockingTcpConnections;
 
 		Ref<Referable> m_contentAnalyzer;
 		Mutex m_lockContentAnalyzer;
 
-		HashMap<sl_uint64, TcpConnectionInfo> m_mapTcpConnectionInfo;
-		HashMap<IPv4Address, String> m_mapDnsInfo;
+		HashTable<sl_uint64, TcpConnectionInfo> m_tableTcpConnectionInfo;
+		ReadWriteLock m_lockTcpConnectionInfo;
+
+		HashTable<IPv4Address, String> m_tableDnsInfo;
+		ReadWriteLock m_lockDnsInfo;
 
 	};
 
