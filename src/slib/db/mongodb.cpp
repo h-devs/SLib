@@ -613,8 +613,8 @@ namespace slib
 						if (bRet) {
 							ret = GetJsonFromBson(&reply);
 						} else {
-              SLIB_LOG_ERROR("MongoDB", "Execute: %s", String::from(error.message));
-            }
+							SLIB_LOG_ERROR("MongoDB", "Execute: %s", String::from(error.message));
+						}
 						bson_destroy(&reply);
 						bson_destroy(command);
 					}
@@ -679,8 +679,8 @@ namespace slib
 						bson_error_t error;
 						bool bRet = mongoc_collection_insert_one(m_collection, bson, sl_null, sl_null, &error);
 						if (!bRet) {
-              SLIB_LOG_ERROR("MongoDB", "Insert: %s", String::from(error.message));
-            }
+							SLIB_LOG_ERROR("MongoDB", "Insert: %s", String::from(error.message));
+						}
 						bson_destroy(bson);
 						return bRet;
 					}
@@ -709,7 +709,7 @@ namespace slib
 							if (mongoc_collection_replace_one(m_collection, bsonSelector, bsonDocument, &opts, sl_null, &error)) {
 								bRet = sl_true;
 							} else {
-                SLIB_LOG_ERROR("MongoDB", "%s: %s", flagUpsert ? "Upsert" : "Replace", String::from(error.message));
+								SLIB_LOG_ERROR("MongoDB", "%s: %s", flagUpsert ? "Upsert" : "Replace", String::from(error.message));
 							}
 							bson_destroy(&opts);
 							bson_destroy(bsonDocument);
@@ -738,7 +738,7 @@ namespace slib
 								SLIB_STATIC_STRING(strModifiedCount, "modifiedCount")
 								n = GetJsonFromBson(&reply).getItem_NoLock(strModifiedCount).getUint64();
 							} else {
-                SLIB_LOG_ERROR("MongoDB", "Update: %s", String::from(error.message));
+								SLIB_LOG_ERROR("MongoDB", "Update: %s", String::from(error.message));
 							}
 							bson_destroy(&reply);
 							bson_destroy(bsonUpdate);
@@ -764,8 +764,8 @@ namespace slib
 						SLIB_STATIC_STRING(strDeletedCount, "deletedCount")
 						n = GetJsonFromBson(&reply).getItem_NoLock(strDeletedCount).getUint64();
 					} else {
-            SLIB_LOG_ERROR("MongoDB", "Remove: %s", String::from(error.message));
-          }
+						SLIB_LOG_ERROR("MongoDB", "Remove: %s", String::from(error.message));
+					}
 					bson_destroy(&reply);
 					bson_destroy(bson);
 					return n;
