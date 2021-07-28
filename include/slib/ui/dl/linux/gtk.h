@@ -1714,6 +1714,11 @@ namespace slib
 			GtkWidget *widget
 		)
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_widget_get_style_context,
+			GtkStyleContext *, ,
+			GtkWidget *widget
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_application_new,
 			GtkApplication *, ,
 			const gchar       *application_id,
@@ -1723,6 +1728,37 @@ namespace slib
 			gtk_application_window_new,
 			GtkWidget *, ,
 			GtkApplication      *application
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_style_context_add_provider,
+			void, ,
+			GtkStyleContext  *context,
+			GtkStyleProvider *provider,
+			guint             priority
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_style_context_remove_provider,
+			void, ,
+			GtkStyleContext  *context,
+			GtkStyleProvider *provider
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_style_context_add_class,
+			void, ,
+			GtkStyleContext *context,
+			const gchar     *class_name)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_css_provider_new,
+			GtkCssProvider *, ,
+			void
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_css_provider_load_from_data,
+			gboolean, ,
+			GtkCssProvider  *css_provider,
+			const gchar     *data,
+			gssize           length,
+			GError         **error
 		)
 
 	SLIB_IMPORT_LIBRARY_END

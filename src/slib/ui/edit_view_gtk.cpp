@@ -157,9 +157,7 @@ namespace slib
 				{
 					GtkWidget* handle = m_handle;
 					if (handle) {
-						GdkColor gdkColor;
-						UIPlatform::getGdkColor(color, &gdkColor);
-						gtk_widget_modify_bg(handle, GTK_STATE_NORMAL, &gdkColor);
+						UIPlatform::setWidgetBackgroundColor(handle, color);
 					}
 				}
 

@@ -450,8 +450,8 @@ namespace slib
 					Rectangle rect;
 					rect.left = (sl_real)(grc.x);
 					rect.top = (sl_real)(grc.y);
-					rect.right = (sl_real)(grc.width);
-					rect.bottom = (sl_real)(grc.height);
+					rect.right = rect.left + (sl_real)(grc.width);
+					rect.bottom = rect.top + (sl_real)(grc.height);
 					canvas->setInvalidatedRect(rect);
 				}
 				onDraw(canvas.get());
@@ -783,6 +783,41 @@ namespace slib
 		PangoFontDescription* desc = GraphicsPlatform::getPangoFont(font);
 		if (desc) {
 			gtk_widget_modify_font(handle, desc);
+		}
+	}
+
+	void UIPlatform::setWidgetBackgroundColor(GtkWidget* handle, const Color& color)
+	{
+		if (isSupportedGtk(3)) {
+			GtkStyleContext* context = gtk::getApi_gtk_widget_get_style_context()(handle);
+			if (context) {
+				String strCss = String::join("* { background-color: rgb(", String::fromUint32(color.r), ",", String::fromUint32(color.g), ",", String::fromUint32(color.b), "); }");
+				GtkCssProvider* css = (GtkCssProvider*)(g_object_get_data((GObject*)handle, "bgcolor-provider"));
+				if (css) {
+					if (color.a) {
+						gtk::getApi_gtk_css_provider_load_from_data()(css, strCss.getData(), (gint)(strCss.getLength()), sl_null);
+					} else {
+						gtk::getApi_gtk_style_context_remove_provider()(context, (GtkStyleProvider*)css);
+						g_object_set_data((GObject*)handle, "bgcolor-provider", sl_null);
+					}
+				} else if (color.a) {
+					css = gtk::getApi_gtk_css_provider_new()();
+					if (css) {
+						gtk::getApi_gtk_css_provider_load_from_data()(css, strCss.getData(), (gint)(strCss.getLength()), sl_null);
+						gtk::getApi_gtk_style_context_add_provider()(context, (GtkStyleProvider*)css, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+						g_object_set_data((GObject*)handle, "bgcolor-provider", css);
+						g_object_unref(css);
+					}
+				}
+			}
+		} else {
+			if (color.a) {
+				GdkColor gcolor;
+				UIPlatform::getGdkColor(color, &gcolor);
+				gtk_widget_modify_bg(handle, GTK_STATE_NORMAL, &gcolor);
+			} else {
+				gtk_widget_modify_bg(handle, GTK_STATE_NORMAL, sl_null);
+			}
 		}
 	}
 

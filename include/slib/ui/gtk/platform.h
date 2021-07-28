@@ -75,6 +75,7 @@ namespace slib
 		static GdkPixbuf* createPixbuf(const Ref<Image>& image);
 		static void getScreenLocationOfWidget(GtkWidget* widget, sl_ui_len* out_x = sl_null, sl_ui_len* out_y = sl_null);
 		static void setWidgetFont(GtkWidget* widget, const Ref<Font>& font);
+		static void setWidgetBackgroundColor(GtkWidget* widget, const Color& color);
 
 		static void applyEventModifiers(UIEvent* event, guint state);
 

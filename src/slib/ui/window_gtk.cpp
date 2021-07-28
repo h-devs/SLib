@@ -212,6 +212,10 @@ namespace slib
 					ret->m_location = frameWindow.getLocation();
 					gtk_window_move(handle, (gint)(frameWindow.left), (gint)(frameWindow.top));
 
+					if (UIPlatform::isSupportedGtk(3)) {
+						UIPlatform::setWidgetBackgroundColor((GtkWidget*)handle, window->getBackgroundColor());
+					}
+
 					GtkWidget* contentBox = gtk_event_box_new();
 					if(contentBox){
 						gtk_widget_show(contentBox);
@@ -227,11 +231,8 @@ namespace slib
 								ret->m_viewContent = Move(content);
 								ret->m_widgetContent = contentWidget;
 								ret->m_widgetContentBox = contentBox;
-								Color color = window->getBackgroundColor();
-								if (color.a) {
-									GdkColor gcolor;
-									UIPlatform::getGdkColor(color, &gcolor);
-									gtk_widget_modify_bg(contentWidget, GTK_STATE_NORMAL, &gcolor);
+								if (!(UIPlatform::isSupportedGtk(3))) {
+									UIPlatform::setWidgetBackgroundColor(contentWidget, window->getBackgroundColor());
 								}
 							}
 							g_signal_connect(handle, "key-press-event", G_CALLBACK(_callback_key_event), contentWidget);
@@ -439,14 +440,15 @@ namespace slib
 				void setBackgroundColor(const Color& color) override
 				{
 					if (!m_flagClosed) {
-						GtkWidget* content = m_widgetContent;
-						if (content) {
-							if (color.a) {
-								GdkColor gcolor;
-								UIPlatform::getGdkColor(color, &gcolor);
-								gtk_widget_modify_bg(content, GTK_STATE_NORMAL, &gcolor);
-							} else {
-								gtk_widget_modify_bg(content, GTK_STATE_NORMAL, sl_null);
+						if (UIPlatform::isSupportedGtk(3)) {
+							GtkWindow* window = m_window;
+							if (window) {
+								UIPlatform::setWidgetBackgroundColor((GtkWidget*)window, color);
+							}
+						} else {
+							GtkWidget* content = m_widgetContent;
+							if (content) {
+								UIPlatform::setWidgetBackgroundColor(content, color);
 							}
 						}
 					}
@@ -741,7 +743,8 @@ namespace slib
 				void _on_configure_event(GtkWindow* window, GdkEventConfigure* event)
 				{
 					if (UIPlatform::isSupportedGtk(3)) {
-						UI::dispatchToUiThread(SLIB_FUNCTION_WEAKREF(GTK_WindowInstance, _on_process_configure, this));
+						// call after animation
+						UI::dispatchToUiThread(SLIB_FUNCTION_WEAKREF(GTK_WindowInstance, _on_process_configure, this), 100);
 					} else {
 						_on_process_configure();
 					}
