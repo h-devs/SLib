@@ -22,7 +22,8 @@
 
 #include "slib/graphics/color.h"
 
-#include "slib/core/variant.h"
+#include "slib/core/string.h"
+#include "slib/core/hash_table.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -211,7 +212,18 @@ namespace slib
 
 	String Color::toString() const noexcept
 	{
-		return String::format("#%02x%02x%02x%02x", a, r, g, b);
+		const char* hex = "0123456789abcdef";
+		char s[9];
+		s[0] = '#';
+		s[1] = hex[a >> 4];
+		s[2] = hex[a & 15];
+		s[3] = hex[r >> 4];
+		s[4] = hex[r & 15];
+		s[5] = hex[g >> 4];
+		s[6] = hex[g & 15];
+		s[7] = hex[b >> 4];
+		s[8] = hex[b & 15];
+		return String(s, 9);
 	}
 
 	namespace priv
