@@ -120,7 +120,7 @@ namespace slib
 		static HGLOBAL createGlobalData(const void* data, sl_size size);
 
 	
-		static Ref<Event> createEvent(HANDLE hEvent);
+		static Ref<Event> createEvent(HANDLE hEvent, sl_bool flagCloseOnRelease = sl_true);
 
 		static HANDLE getEventHandle(Event* event);
 	

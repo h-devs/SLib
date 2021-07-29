@@ -74,7 +74,11 @@ namespace slib
 	public:
 		static Ref<GenericEvent> create(sl_bool flagAutoReset = sl_true);
 		
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		static Ref<GenericEvent> create(HEvent handle, sl_bool flagCloseOnRelease = sl_true);
+#else
 		static Ref<GenericEvent> create(HEvent handle);
+#endif
 
 	public:
 		constexpr HEvent getHandle() const
@@ -93,7 +97,9 @@ namespace slib
 
 	protected:
 		HEvent m_handle;
-
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		sl_bool m_flagCloseOnRelease;
+#endif
 	};
 
 }

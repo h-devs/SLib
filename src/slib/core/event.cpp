@@ -70,11 +70,19 @@ namespace slib
 	GenericEvent::GenericEvent()
 	{
 		m_handle = sl_null;
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		m_flagCloseOnRelease = sl_true;
+#endif
 	}
 
 	GenericEvent::~GenericEvent()
 	{
 		if (m_handle) {
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+			if (!m_flagCloseOnRelease) {
+				return;
+			}
+#endif
 			closeHandle(m_handle);
 		}
 	}
@@ -91,15 +99,26 @@ namespace slib
 		return create(handle);
 	}
 
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+	Ref<GenericEvent> GenericEvent::create(HEvent handle, sl_bool flagCloseOnRelease)
+#else
 	Ref<GenericEvent> GenericEvent::create(HEvent handle)
+#endif
 	{
 		if (handle) {
 			Ref<GenericEvent> ret = new GenericEvent;
 			if (ret.isNotNull()) {
 				ret->m_handle = handle;
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+				ret->m_flagCloseOnRelease = flagCloseOnRelease;
+#endif
 				return ret;
 			}
-			closeHandle(handle);
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+			if (flagCloseOnRelease) {
+				closeHandle(handle);
+			}
+#endif
 		}
 		return sl_null;
 	}
@@ -152,9 +171,9 @@ namespace slib
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 	
-	Ref<Event> Win32::createEvent(HANDLE hEvent)
+	Ref<Event> Win32::createEvent(HANDLE hEvent, sl_bool flagCloseOnRelease)
 	{
-		return Ref<Event>::from(GenericEvent::create(hEvent));
+		return Ref<Event>::from(GenericEvent::create(hEvent, flagCloseOnRelease));
 	}
 
 	HANDLE Win32::getEventHandle(Event* ev)
