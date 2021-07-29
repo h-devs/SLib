@@ -46,6 +46,7 @@
 #	else
 #		include "winpcap/pcap/pcap.h"
 #	endif
+#	include "slib/core/win32/platform.h"
 #else
 #	if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 #		include "slib/network/dl/linux/pcap.h"
@@ -53,8 +54,6 @@
 #		include "pcap/pcap.h"
 #	endif
 #	include <sys/socket.h>
-#	include <signal.h>
-#	include <pthread.h>
 #endif
 
 #define MAX_PACKET_SIZE 65535
@@ -100,24 +99,13 @@ namespace slib
 			{
 			public:
 				pcap_t* m_handle;
-				
 				Ref<Thread> m_thread;
-
 				sl_bool m_flagInit;
-				sl_bool m_flagRunning;
-
-#if !defined(SLIB_PLATFORM_IS_WIN32)
-				pthread_t m_pthread;
-#endif
 				
 			public:
 				PcapImpl()
 				{
 					m_flagInit = sl_false;
-					m_flagRunning = sl_false;
-#if !defined(SLIB_PLATFORM_IS_WIN32)
-					m_pthread = 0;
-#endif
 				}
 				
 				~PcapImpl()
@@ -164,45 +152,31 @@ namespace slib
 #else
 					pcap_t* handle = pcap_create(name.getData(), errBuf);
 					if (handle) {
-						if (pcap_set_snaplen(handle, MAX_PACKET_SIZE) == 0) {
-							if (pcap_set_buffer_size(handle, param.sizeBuffer) == 0) {
-								if (pcap_set_promisc(handle, param.flagPromiscuous) == 0) {
-									if (pcap_set_timeout(handle, param.timeoutRead) == 0) {
-										if (pcap_set_immediate_mode(handle, param.flagImmediate) == 0) {
-											int iRet = pcap_activate(handle);
-											if (iRet == 0 || iRet == PCAP_WARNING || iRet == PCAP_WARNING_PROMISC_NOTSUP || iRet == PCAP_WARNING_TSTAMP_TYPE_NOTSUP) {
-												Ref<PcapImpl> ret = new PcapImpl;
-												if (ret.isNotNull()) {
-													ret->_initWithParam(param);
-													ret->m_handle = handle;
-													ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(PcapImpl, _run, ret.get()));
-													if (ret->m_thread.isNotNull()) {
-														ret->m_flagInit = sl_true;
-														if (param.flagAutoStart) {
-															ret->start();
-														}
-														return ret;
-													} else {
-														LogError(TAG, "Failed to create thread");
-													}
-												}
-											} else {
-												LogError(TAG, "Activate Failed");
-											}
-										} else {
-											LogError(TAG, "Set Immediate-Mode Failed");
-										}
-									} else {
-										LogError(TAG, "Set Timeout Failed");
+						pcap_set_snaplen(handle, MAX_PACKET_SIZE);
+						pcap_set_buffer_size(handle, param.sizeBuffer);
+						pcap_set_promisc(handle, param.flagPromiscuous);
+						pcap_set_timeout(handle, param.timeoutRead);
+						pcap_set_immediate_mode(handle, param.flagImmediate);
+						pcap_setnonblock(handle, 1, errBuf);
+						int iRet = pcap_activate(handle);
+						if (iRet == 0 || iRet == PCAP_WARNING || iRet == PCAP_WARNING_PROMISC_NOTSUP || iRet == PCAP_WARNING_TSTAMP_TYPE_NOTSUP) {
+							Ref<PcapImpl> ret = new PcapImpl;
+							if (ret.isNotNull()) {
+								ret->_initWithParam(param);
+								ret->m_handle = handle;
+								ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(PcapImpl, _run, ret.get()));
+								if (ret->m_thread.isNotNull()) {
+									ret->m_flagInit = sl_true;
+									if (param.flagAutoStart) {
+										ret->start();
 									}
+									return ret;
 								} else {
-									LogError(TAG, "Set Promiscuous Mode Failed");
+									LogError(TAG, "Failed to create thread");
 								}
-							} else {
-								LogError(TAG, "Set Buffer Size Failed");
 							}
 						} else {
-							LogError(TAG, "Set Snaplen Failed");
+							LogError(TAG, "Activate Failed");
 						}
 						pcap_close(handle);
 					} else {
@@ -220,23 +194,6 @@ namespace slib
 					}
 					m_flagInit = sl_false;
 
-					m_flagRunning = sl_false;
-
-					if (m_thread.isNotNull()) {
-						m_thread->finish();
-					}
-
-					pcap_breakloop(m_handle);
-
-#if defined(SLIB_PLATFORM_IS_WIN32)
-					HANDLE hEvent = pcap_getevent(m_handle);
-					if (hEvent) {
-						SetEvent(hEvent);
-					}
-#else
-					pthread_kill(m_pthread, PCAP_BREAK_SIGNAL);
-#endif
-
 					if (m_thread.isNotNull()) {
 						m_thread->finishAndWait();
 						m_thread.setNull();
@@ -252,20 +209,17 @@ namespace slib
 						return;
 					}
 
-					if (m_flagRunning) {
-						return;
-					}
 					if (m_thread.isNotNull()) {
-						m_flagRunning = sl_true;
-						if (!(m_thread->start())) {
-							m_flagRunning = sl_false;
-						}
+						m_thread->start();
 					}
 				}
 				
 				sl_bool isRunning() override
 				{
-					return m_flagRunning;
+					if (m_thread.isNotNull()) {
+						m_thread->isRunning();
+					}
+					return sl_false;
 				}
 
 				static void _handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
@@ -284,22 +238,25 @@ namespace slib
 
 					pcap->_onCapturePacket(packet);
 				}
-
-				static void _handlerBreakSignal(int signum)
-				{
-				}
 				
 				void _run()
 				{
-#if !defined(SLIB_PLATFORM_IS_WIN32)
-					m_pthread = pthread_self();
-					struct sigaction sa;
-					Base::zeroMemory(&sa, sizeof(sa));
-					sigemptyset(&sa.sa_mask);
-					sa.sa_handler = _handlerBreakSignal;
-					sigaction(PCAP_BREAK_SIGNAL, &sa, NULL);
+					Thread* thread = Thread::getCurrent();
+					if (!thread) {
+						return;
+					}
+#if defined(SLIB_PLATFORM_IS_WIN32)
+					HANDLE hEvent = pcap_getevent(m_handle);
+					if (!hEvent) {
+						return;
+					}
+					Ref<Event> ev = Win32::createEvent(hEvent, sl_false);
+					if (ev.isNull()) {
+						return;
+					}
+#else
 #endif
-					while (m_flagRunning) {
+					while (thread->isNotStopping()) {
 						int result = pcap_dispatch(m_handle, -1, &_handler, (u_char*)this);
 						if (result < 0) {
 							if (result == -1) {
@@ -307,9 +264,16 @@ namespace slib
 								_onError();
 							}
 							break;
+						} else if (!result) {
+							if (thread->isStopping()) {
+								break;
+							}
+#if defined(SLIB_PLATFORM_IS_WIN32)
+							ev->wait(1000);
+#else
+#endif
 						}
 					}
-					m_flagRunning = sl_false;
 				}
 
 				NetworkLinkDeviceType getLinkType() override
