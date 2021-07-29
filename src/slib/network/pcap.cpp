@@ -472,6 +472,17 @@ namespace slib
 				}
 
 			protected:
+				Ref<NetCapture> findDevice(const StringParam& name)
+				{
+					ListLocker< Ref<PcapImpl> > devices(m_devices);
+					for (sl_size i = 0; i < devices.count; i++) {
+						if (devices[i]->getDeviceName() == name) {
+							return devices[i];
+						}
+					}
+					return sl_null;
+				}
+
 				void onAddDevices(Timer*)
 				{
 					char errBuf[PCAP_ERRBUF_SIZE] = { 0 };
@@ -481,17 +492,10 @@ namespace slib
 						pcap_if_t* dev = devs;
 						while (dev) {
 							if (!(dev->flags & PCAP_IF_LOOPBACK) && !(Base::equalsString(dev->name, "any"))) {
+								Ref<NetCapture> capture = findDevice(dev->name);
 								sl_uint32 status = (sl_uint32)(dev->flags & PCAP_IF_CONNECTION_STATUS);
 								if (status == PCAP_IF_CONNECTION_STATUS_CONNECTED || ((dev->flags & PCAP_IF_UP) && status != PCAP_IF_CONNECTION_STATUS_DISCONNECTED)) {
-									ListLocker< Ref<PcapImpl> > devices(m_devices);
-									sl_bool flagFound = sl_false;
-									for (sl_size i = 0; i < devices.count; i++) {
-										if (devices[i]->getDeviceName() == dev->name) {
-											flagFound = sl_true;
-											break;
-										}
-									}
-									if (!flagFound) {
+									if (capture.isNull()) {
 										PcapParam param = m_param;
 										param.deviceName = dev->name;
 										param.onError = SLIB_BIND_WEAKREF(void(NetCapture*), AnyPcap, onErrorDevice, this, param.onError);
@@ -511,6 +515,10 @@ namespace slib
 												SLIB_LOG(TAG, "Failed to add device to any capture: %s (%s)", param.deviceName, dev->description);
 											}
 										}
+									}
+								} else {
+									if (capture.isNotNull()) {
+										m_devices.removeValues(capture);
 									}
 								}
 							}
