@@ -40,14 +40,15 @@
 #define USE_WINPCAP 0
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
+#	include "slib/core/win32/platform.h"
 #	if !USE_WINPCAP
 #		define USE_STATIC_NPCAP
 #		include "pcap/pcap.h"
 #	else
 #		include "winpcap/pcap/pcap.h"
 #	endif
-#	include "slib/core/win32/platform.h"
 #else
+#	include "slib/core/pipe_event.h"
 #	if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 #		include "slib/network/dl/linux/pcap.h"
 #	else
@@ -217,7 +218,7 @@ namespace slib
 				sl_bool isRunning() override
 				{
 					if (m_thread.isNotNull()) {
-						m_thread->isRunning();
+						return m_thread->isRunning();
 					}
 					return sl_false;
 				}
@@ -255,6 +256,14 @@ namespace slib
 						return;
 					}
 #else
+					int fd = pcap_get_selectable_fd(m_handle);
+					if (fd == -1) {
+						return;
+					}
+					Ref<PipeEvent> ev = PipeEvent::create();
+					if (ev.isNull()) {
+						return;
+					}
 #endif
 					while (thread->isNotStopping()) {
 						int result = pcap_dispatch(m_handle, -1, &_handler, (u_char*)this);
@@ -271,6 +280,7 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WIN32)
 							ev->wait(1000);
 #else
+							ev->waitReadFd(fd, 1000);
 #endif
 						}
 					}
@@ -440,8 +450,14 @@ namespace slib
 				{
 					ListLocker< Ref<PcapImpl> > devices(m_devices);
 					for (sl_size i = 0; i < devices.count; i++) {
-						if (devices[i]->getDeviceName() == name) {
-							return devices[i];
+						Ref<PcapImpl>& capture = devices[i];
+						if (capture->getDeviceName() == name) {
+							if (capture->isRunning()) {
+								return capture;
+							} else {
+								m_devices.remove_NoLock(capture);
+								return sl_null;
+							}
 						}
 					}
 					return sl_null;
