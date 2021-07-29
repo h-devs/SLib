@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_NETWORK_CAPTURE
 
 #include "constants.h"
+#include "mac_address.h"
 
 #include "../core/object.h"
 #include "../core/time.h"
@@ -103,6 +104,8 @@ namespace slib
 
 	public:
 		const String& getDeviceName();
+
+		const MacAddress& getDeviceAddress();
 		
 	protected:
 		void _initWithParam(const NetCaptureParam& param);
@@ -113,6 +116,10 @@ namespace slib
 
 	protected:
 		String m_deviceName;
+		
+		sl_uint64 m_timeDeviceAddress;
+		MacAddress m_deviceAddress;
+
 		Function<void(NetCapture*, NetCapturePacket&)> m_onCapturePacket;
 		Function<void(NetCapture*)> m_onError;
 

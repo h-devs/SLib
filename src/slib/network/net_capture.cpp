@@ -23,6 +23,7 @@
 #include "slib/network/capture.h"
 
 #include "slib/core/thread.h"
+#include "slib/core/system.h"
 #include "slib/core/mio.h"
 #include "slib/core/log.h"
 #include "slib/network/os.h"
@@ -60,6 +61,7 @@ namespace slib
 	
 	NetCapture::NetCapture()
 	{
+		m_timeDeviceAddress = 0;
 	}
 	
 	NetCapture::~NetCapture()
@@ -79,6 +81,30 @@ namespace slib
 	const String& NetCapture::getDeviceName()
 	{
 		return m_deviceName;
+	}
+
+	const MacAddress& NetCapture::getDeviceAddress()
+	{
+		sl_uint64 now = System::getTickCount64();
+		if (now < m_timeDeviceAddress + 10000) {
+			return m_deviceAddress;
+		}
+		m_timeDeviceAddress = now;
+		String name = m_deviceName;
+		NetworkInterfaceInfo info;
+#ifdef SLIB_PLATFORM_IS_WIN32
+		// Remove prefix: \Device\NPF_
+		sl_reg index = name.indexOf('{');
+		if (index > 0) {
+			name = name.substring(index);
+		}
+#endif
+		if (Network::findInterface(name, &info)) {
+			m_deviceAddress = info.macAddress;
+		} else {
+			m_deviceAddress.setZero();
+		}
+		return m_deviceAddress;
 	}
 	
 	void NetCapture::_initWithParam(const NetCaptureParam& param)
