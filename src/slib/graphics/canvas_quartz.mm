@@ -457,6 +457,9 @@ namespace slib
 #else
 					UIColor* color = [UIColor colorWithCGColor:_color];
 #endif
+					if (_color) {
+						CFRelease(_color);
+					}
 					NSAttributedString* attrText = [[NSAttributedString alloc] initWithString:text attributes:@{
 						NSFontAttributeName: hFont,
 						NSUnderlineStyleAttributeName: @(font->isUnderline()? NSUnderlineStyleSingle : NSUnderlineStyleNone),
