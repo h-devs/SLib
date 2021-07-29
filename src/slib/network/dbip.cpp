@@ -169,12 +169,12 @@ namespace slib
 			return sl_false;
 		}
 
-        m_ipv4 = list4.getData();
-        m_countIPv4 = (sl_uint32)(list4.getCount());
+		m_ipv4 = list4.getData();
+		m_countIPv4 = (sl_uint32)(list4.getCount());
 		m_listIPv4 = Move(list4);
 
-        m_ipv6 = list6.getData();
-        m_countIPv6 = (sl_uint32)(list6.getCount());
+		m_ipv6 = list6.getData();
+		m_countIPv6 = (sl_uint32)(list6.getCount());
 		m_listIPv6 = Move(list6);
 
 		return sl_true;

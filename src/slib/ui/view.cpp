@@ -7684,12 +7684,12 @@ namespace slib
 		Ref<ViewOtherAttributes>& attrs = m_otherAttrs;
 		if (attrs.isNotNull()) {
 			Shared<DragItem> item = attrs->dragItem;
-            if (item.isNotNull()) {
-                _out = *item;
-                return sl_true;
-            }
+			if (item.isNotNull()) {
+				_out = *item;
+				return sl_true;
+			}
 		}
-        return sl_false;
+		return sl_false;
 	}
 
 	void View::setDragItem(const DragItem& item)
