@@ -327,6 +327,9 @@ namespace slib
 		}
 
 		ListLocker< Ref<PlotGraph> > graphs(m_graphs);
+		if (!(graphs.count)) {
+			return;
+		}
 
 		Rectangle rectSrc;
 		{
