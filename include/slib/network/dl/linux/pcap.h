@@ -100,6 +100,13 @@ namespace slib
 		#define pcap_set_immediate_mode slib::pcap::getApi_pcap_set_immediate_mode()
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			pcap_setnonblock,
+			int, ,
+			pcap_t *, int, char *
+		)
+		#define pcap_setnonblock slib::pcap::getApi_pcap_setnonblock()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			pcap_activate,
 			int, ,
 			pcap_t *
@@ -126,6 +133,13 @@ namespace slib
 			pcap_t *, int, pcap_handler, u_char *
 		)
 		#define pcap_dispatch slib::pcap::getApi_pcap_dispatch()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			pcap_get_selectable_fd,
+			int, ,
+			pcap_t *
+		)
+		#define pcap_get_selectable_fd slib::pcap::getApi_pcap_get_selectable_fd()
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			pcap_datalink,
