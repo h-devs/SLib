@@ -22,7 +22,7 @@
 
 #include "slib/network/mac_address.h"
 
-#include "slib/core/string_buffer.h"
+#include "slib/core/string.h"
 
 namespace slib
 {
@@ -119,14 +119,17 @@ namespace slib
 
 	String MacAddress::toString(sl_char8 sep) const noexcept
 	{
-		StringBuffer ret;
+		const char* hex = "0123456789ABCDEF";
+		char s[17];
+		char* p = s;
 		for (int i = 0; i < 6; i++) {
 			if (i) {
-				ret.addStatic(&sep, 1);
+				*(p++) = sep;
 			}
-			ret.add(String::fromUint32(m[i], 16, 2, sl_true));
+			*(p++) = hex[m[i] >> 4];
+			*(p++) = hex[m[i] & 15];
 		}
-		return ret.merge();
+		return String(s, sizeof(s));
 	}
 
 	namespace priv
