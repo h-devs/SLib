@@ -7679,17 +7679,17 @@ namespace slib
 		}
 	}
 	
-	const DragItem& View::getDragItem()
+	sl_bool View::getDragItem(DragItem& _out)
 	{
 		Ref<ViewOtherAttributes>& attrs = m_otherAttrs;
 		if (attrs.isNotNull()) {
 			Shared<DragItem> item = attrs->dragItem;
-			if (item.isNotNull()) {
-				return *item;
-			}
+            if (item.isNotNull()) {
+                _out = *item;
+                return sl_true;
+            }
 		}
-		SLIB_SAFE_LOCAL_STATIC(DragItem, item)
-		return item;
+        return sl_false;
 	}
 
 	void View::setDragItem(const DragItem& item)
@@ -8785,7 +8785,10 @@ namespace slib
 		if (m_flagDragSource) {
 			DragContext& context = UIEvent::getCurrentDragContext();
 			if (!(context.isAlive())) {
-				beginDragging(getDragItem(), getDragOperationMask());
+                DragItem drag;
+                if (getDragItem(drag)) {
+                    beginDragging(drag, getDragOperationMask());
+                }
 			}
 		}
 	}

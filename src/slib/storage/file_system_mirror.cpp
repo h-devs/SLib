@@ -129,9 +129,6 @@ namespace slib
 		Shared<File> file = FILE_FROM_CONTEXT(context);
 		if (file.isNotNull()) {
 			file->close();
-			if (file->isOpened()) {
-				return sl_false;
-			}
 		}
 		return sl_true;
 	}

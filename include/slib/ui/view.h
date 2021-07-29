@@ -1249,7 +1249,7 @@ namespace slib
 		
 		void setDropFiles(sl_bool flag = sl_true);
 		
-		const DragItem& getDragItem();
+		sl_bool getDragItem(DragItem& _out);
 		
 		void setDragItem(const DragItem& item);
 		

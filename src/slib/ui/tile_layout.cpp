@@ -158,15 +158,6 @@ namespace slib
 			} else {
 				heightRow = (sl_uint32)heightContainer / nRows;
 			}
-		} else {
-			if (flagWrapY) {
-				nRows = 1;
-			} else {
-				nRows = heightContainer / heightRow;
-				if (nRows <= 0) {
-					nRows = 1;
-				}
-			}
 		}
 
 		float ratio = m_ratioCell;

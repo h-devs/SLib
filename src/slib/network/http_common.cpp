@@ -960,7 +960,7 @@ namespace slib
 	{
 		HttpCacheControlRequest cc;
 		HttpHeaderValueMap map = getRequestHeaderValueMap(HttpHeader::CacheControl);
-		sl_int32 n;
+		sl_int32 n = 0;
 		if (map.getValue_NoLock(g_cacheControl_max_age).parseInt32(10, &n)) {
 			cc.max_age = n;
 		}
@@ -1850,7 +1850,7 @@ namespace slib
 	{
 		HttpCacheControlResponse cc;
 		HttpHeaderValueMap map = getResponseHeaderValueMap(HttpHeader::CacheControl);
-		sl_int32 n;
+		sl_int32 n = 0;
 		if (map.find_NoLock(g_cacheControl_must_revalidate)) {
 			cc.must_revalidate = sl_true;
 		}
