@@ -186,6 +186,47 @@ namespace slib
 		m_pipe.close();
 	}
 
+#ifdef SLIB_PLATFORM_IS_UNIX
+	sl_bool PipeEvent::waitFd(int fd, sl_uint32 events, sl_uint32* revents, sl_int32 timeout)
+	{
+		if (m_pipe.isNone()) {
+			return sl_false;
+		}
+		Thread* thread = Thread::getCurrent();
+		if (thread) {
+			if (thread->isStopping()) {
+				return sl_false;
+			}
+			thread->setWaitingEvent(this);
+		}
+		pollfd fds[2];
+		Base::zeroMemory(fds, sizeof(pollfd) * 2);
+		fds[0].fd = (int)(m_pipe.getReadHandle());
+		fds[0].events = POLLIN | POLLPRI | POLLERR | POLLHUP;
+		fds[1].fd = fd;
+		fds[1].events = (short)events;
+		int t = timeout >= 0 ? (int)timeout : -1;
+		sl_bool ret = sl_false;
+		if (poll(fds, 2, t) > 0) {
+			if (fds[1].revents) {
+				ret = sl_true;
+				if (revents) {
+					*revents = (sl_uint32)(fds[1].revents);
+				}
+			}
+		}
+		if (thread) {
+			thread->clearWaitingEvent();
+		}
+		return ret;
+	}
+
+	sl_bool PipeEvent::waitReadFd(int fd, sl_int32 timeout)
+	{
+		return waitFd(fd, POLLIN | POLLPRI | POLLERR | POLLHUP, sl_null, timeout);
+	}
+#endif
+
 	void PipeEvent::set()
 	{
 		if (m_pipe.isNone()) {

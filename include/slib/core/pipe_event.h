@@ -50,6 +50,10 @@ namespace slib
 
 		void close();
 
+		sl_bool waitFd(int fd, sl_uint32 events, sl_uint32* revents, sl_int32 timeout);
+		
+		sl_bool waitReadFd(int fd, sl_int32 timeout);
+
 	public:
 		void set() override;
 
