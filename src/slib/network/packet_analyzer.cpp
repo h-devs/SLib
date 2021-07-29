@@ -894,7 +894,7 @@ namespace slib
 		sl_uint64 key = ToKey(packet->getSourceAddress(), tcp->getSourcePort());
 		TcpConnectionInfo info;
 		info.host = Move(host);
-		info.type = TcpConnectionType::HTTP;
+		info.type = type;
 		WriteLocker locker(&m_lockTcpConnectionInfo);
 		m_tableTcpConnectionInfo.put(key, Move(info));
 	}
