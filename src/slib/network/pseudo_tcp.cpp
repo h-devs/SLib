@@ -43,7 +43,7 @@
 #define LOG_LEVEL_VERBOSE 2
 
 #ifdef SLIB_DEBUG
-#define LOG_LEVEL LOG_LEVEL_NORMAL
+#define LOG_LEVEL LOG_LEVEL_NONE
 #else
 #define LOG_LEVEL LOG_LEVEL_NONE
 #endif
