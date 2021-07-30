@@ -407,7 +407,15 @@ namespace slib
 				if (SLIB_WINDOWS_IS_SERVER(version)) {
 					version = (WindowsVersion)(PRIV_SLIB_SERVER_VERSION_CODE(SLIB_GET_WORD3(productVersion), SLIB_GET_WORD2(productVersion), 0));
 				} else {
-					version = (WindowsVersion)(PRIV_SLIB_WORKSTATION_VERSION_CODE(SLIB_GET_WORD3(productVersion), SLIB_GET_WORD2(productVersion), 0));
+					sl_uint16 major = SLIB_GET_WORD3(productVersion);
+					sl_uint16 minor = SLIB_GET_WORD2(productVersion);
+					sl_uint16 buildNumber = SLIB_GET_WORD1(productVersion);
+					if (major >= 10 && buildNumber >= 22000) {
+						// Windows 11
+						version = (WindowsVersion)(PRIV_SLIB_WORKSTATION_VERSION_CODE(major, minor, 1));
+					} else {
+						version = (WindowsVersion)(PRIV_SLIB_WORKSTATION_VERSION_CODE(major, minor, 0));
+					}
 				}
 			}
 		}
@@ -424,6 +432,8 @@ namespace slib
 			return "Windows Server 2008";
 		case WindowsVersion::Server2003:
 			return "Windows Server 2003";
+		case WindowsVersion::Windows11:
+			return "Windows 11";
 		case WindowsVersion::Windows10:
 			return "Windows 10";
 		case WindowsVersion::Windows8_1:
