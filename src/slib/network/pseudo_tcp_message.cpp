@@ -27,6 +27,7 @@
 #include "slib/core/time.h"
 #include "slib/core/system.h"
 #include "slib/core/mio.h"
+#include "slib/core/shared.h"
 
 #define DEFAULT_MTU 1024
 #define DEFAULT_TIMEOUT 30000
@@ -53,6 +54,7 @@ namespace slib
 				Function<void(Connection* connection)> onUpdate;
 
 				Memory dataSend;
+				sl_bool flagCalledReceiveCallback;
 				sl_bool flagError;
 				sl_bool flagEnd;
 
@@ -70,6 +72,7 @@ namespace slib
 				Connection(sl_uint32 conversationNo, const Function<void(Connection* connection)>& _onUpdate, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout): tcp(this, conversationNo), onUpdate(_onUpdate), m_callbackSendPacket(callbackSendPacket)
 				{
 					tcp.notifyMTU(DEFAULT_MTU);
+					flagCalledReceiveCallback = sl_false;
 					flagError = sl_false;
 					flagEnd = sl_false;
 
@@ -270,13 +273,16 @@ namespace slib
 			}
 			if (connection->isWriteComplete()) {
 				if (connection->isReadComplete()) {
-					Ref<Connection> refConnection = connection;
-					dispatch([connection, refConnection]() {
-						connection->tcp.send("", 1);
-					});
-					endSendingConnection(conversationNo, connection);
-					Memory mem = connection->getReceivedData();
-					callbackResponse((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()));
+					if (!(connection->flagCalledReceiveCallback)) {
+						connection->flagCalledReceiveCallback = sl_true;
+						Ref<Connection> refConnection = connection;
+						dispatch([connection, refConnection]() {
+							connection->tcp.send("", 1);
+						});
+						endSendingConnection(conversationNo, connection);
+						Memory mem = connection->getReceivedData();
+						callbackResponse((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()));
+					}
 				}
 			}
 		};
@@ -310,7 +316,7 @@ namespace slib
 		}
 	}
 
-	void PseudoTcpMessage::notifyPacketForListeningMessage(const String& host, const void* data, sl_size size, const Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket)
+	void PseudoTcpMessage::notifyPacketForListeningMessage(const String& host, const void* data, sl_size size, const Function<Promise<sl_bool>(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket)
 	{
 		if (size < 4) {
 			return;
@@ -343,16 +349,43 @@ namespace slib
 				return;
 			}
 			if (connection->isReadComplete()) {
-				if (connection->dataSend.isNull()) {
-					MemoryOutput output;
-					Memory mem = connection->getReceivedData();
-					callbackMessage((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()), &output);
-					mem = output.getData();
-					if (!(connection->setSendingData(mem.getData(), mem.getSize()))) {
+				if (!(connection->flagCalledReceiveCallback)) {
+					connection->flagCalledReceiveCallback = sl_true;
+					Shared<MemoryOutput> output = Shared<MemoryOutput>::create();
+					if (output.isNull()) {
 						endListeningConnection(address, connection);
 						return;
 					}
-					connection->onTcpWriteable(sl_null);
+					Memory mem = connection->getReceivedData();
+					Promise<sl_bool> promise = callbackMessage((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()), output.get());
+					if (promise.isNotNull()) {
+						Ref<Connection> refConnection = connection;
+						promise.then([this, thiz, address, mem, output, refConnection](sl_bool flag) {
+							Ref<PseudoTcpMessage> ref = thiz;
+							if (ref.isNull()) {
+								refConnection->flagEnd = sl_true;
+								return;
+							}
+							dispatch([this, address, output, refConnection, flag]() {
+								if (flag) {
+									Memory mem = output->getData();
+									if (refConnection->setSendingData(mem.getData(), mem.getSize())) {
+										refConnection->onTcpWriteable(sl_null);
+										return;
+									}
+								}
+								endListeningConnection(address, refConnection);
+							});
+						});
+					} else {
+						mem = output->getData();
+						if (connection->setSendingData(mem.getData(), mem.getSize())) {
+							connection->onTcpWriteable(sl_null);
+						} else {
+							endListeningConnection(address, connection);
+							return;
+						}
+					}
 				}
 				if (connection->isWriteComplete()) {
 					if (connection->isReadCompleteOver()) {

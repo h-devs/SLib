@@ -29,6 +29,7 @@
 #include "../core/hash_map.h"
 #include "../core/queue.h"
 #include "../core/function.h"
+#include "../core/promise.h"
 #include "../core/memory_output.h"
 
 namespace slib
@@ -82,7 +83,7 @@ namespace slib
 
 		void notifyPacketForSendingMessage(const void* data, sl_size size);
 
-		void notifyPacketForListeningMessage(const String& host, const void* data, sl_size size, const Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket);
+		void notifyPacketForListeningMessage(const String& host, const void* data, sl_size size, const Function<Promise<sl_bool>(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket);
 
 	protected:
 		typedef priv::pt_msg::Address Address;
