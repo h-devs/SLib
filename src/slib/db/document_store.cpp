@@ -53,6 +53,15 @@ namespace slib
 		return sl_null;
 	}
 
+	JsonList DocumentCursor::toList()
+	{
+		JsonList list;
+		while (moveNext()) {
+			list.add_NoLock(getDocument());
+		}
+		return list;
+	}
+
 
 	SLIB_DEFINE_OBJECT(DocumentCollection, Object)
 
@@ -88,6 +97,11 @@ namespace slib
 		return find(sl_null, sl_null);
 	}
 
+	Ref<DocumentCursor> DocumentCollection::aggregate(const Json& pipeline)
+	{
+		return aggregate(pipeline, sl_null);
+	}
+
 
 	SLIB_DEFINE_OBJECT(DocumentDatabase, Object)
 
@@ -97,6 +111,11 @@ namespace slib
 
 	DocumentDatabase::~DocumentDatabase()
 	{
+	}
+
+	Ref<DocumentCollection> DocumentDatabase::createCollection(const StringParam& name)
+	{
+		return createCollection(name, sl_null);
 	}
 
 	sl_int64 DocumentDatabase::getDocumentsCount(const StringParam& collectionName, const Json& filter)
@@ -166,6 +185,20 @@ namespace slib
 			return collection->remove(filter);
 		}
 		return -1;
+	}
+
+	Ref<DocumentCursor> DocumentDatabase::aggregate(const StringParam& collectionName, const Json& pipeline, const Json& options)
+	{
+		Ref<DocumentCollection> collection = getCollection(collectionName);
+		if (collection.isNotNull()) {
+			return collection->aggregate(pipeline, options);
+		}
+		return sl_null;
+	}
+
+	Ref<DocumentCursor> DocumentDatabase::aggregate(const StringParam& collectionName, const Json& pipeline)
+	{
+		return aggregate(collectionName, pipeline, sl_null);
 	}
 
 

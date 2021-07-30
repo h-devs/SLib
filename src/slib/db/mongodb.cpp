@@ -557,27 +557,37 @@ namespace slib
 					return m_client.get();
 				}
 
-				Ref<DocumentCollection> createCollection(const StringParam& _name) override
+				Ref<DocumentCollection> createCollection(const StringParam& _name, const Json& options) override
 				{
-					MutexLocker lock(getClientLocker());
+					bson_t* bsonOptions = sl_null;
+					if (options.isNotNull()) {
+						bsonOptions = GetBsonFromJson(options);
+						if (!bsonOptions) {
+							return sl_null;
+						}
+					}
 					StringCstr name(_name);
+					MutexLocker lock(getClientLocker());
 					bson_error_t error;
-					mongoc_collection_t* collection = mongoc_database_create_collection(m_db, name.getData(), sl_null, &error);
+					mongoc_collection_t* collection = mongoc_database_create_collection(m_db, name.getData(), bsonOptions, &error);
+					if (bsonOptions) {
+						bson_destroy(bsonOptions);
+					}
 					return getCollection(collection);
 				}
 
 				Ref<DocumentCollection> getCollection(const StringParam& _name) override
 				{
-					MutexLocker lock(getClientLocker());
 					StringCstr name(_name);
+					MutexLocker lock(getClientLocker());
 					mongoc_collection_t* collection = mongoc_database_get_collection(m_db, name.getData());
 					return getCollection(collection);
 				}
 
 				sl_bool dropCollection(const StringParam& _name) override
 				{
-					MutexLocker lock(getClientLocker());
 					StringCstr name(_name);
+					MutexLocker lock(getClientLocker());
 					mongoc_collection_t* collection = mongoc_database_get_collection(m_db, name.getData());
 					if (collection) {
 						bson_error_t error;
@@ -600,6 +610,13 @@ namespace slib
 						return ret;
 					}
 					return sl_null;
+				}
+
+				sl_bool hasCollection(const StringParam& _name) override
+				{
+					StringCstr name(_name);
+					MutexLocker lock(getClientLocker());
+					return mongoc_database_has_collection(m_db, name.getData(), sl_null);
 				}
 
 				Json execute(const Json& _command) override
@@ -771,6 +788,8 @@ namespace slib
 					return n;
 				}
 
+				Ref<DocumentCursor> aggregate(const Json& pipeline, const Json& options) override;
+
 			public:
 				Mutex* getClientLocker()
 				{
@@ -847,6 +866,41 @@ namespace slib
 					}
 				}
 				bson_destroy(bsonFilter);
+				if (bsonOptions) {
+					bson_destroy(bsonOptions);
+				}
+				return ret;
+			}
+
+			Ref<DocumentCursor> CollectionImpl::aggregate(const Json& pipeline, const Json& options)
+			{
+				if (pipeline.isNull()) {
+					return sl_null;
+				}
+				bson_t* bsonPipeline = GetBsonFromJson(pipeline);
+				if (!bsonPipeline) {
+					return sl_null;
+				}
+				bson_t* bsonOptions = sl_null;
+				if (options.isNotNull()) {
+					bsonOptions = GetBsonFromJson(options);
+					if (!bsonOptions) {
+						bson_destroy(bsonPipeline);
+						return sl_null;
+					}
+				}
+				Ref<CursorImpl> ret;
+				mongoc_cursor_t* cursor = mongoc_collection_aggregate(m_collection, MONGOC_QUERY_NONE, bsonPipeline, bsonOptions, sl_null);
+				if (cursor) {
+					ret = new CursorImpl;
+					if (ret.isNotNull()) {
+						ret->m_collection = this;
+						ret->m_cursor = cursor;
+					} else {
+						mongoc_cursor_destroy(cursor);
+					}
+				}
+				bson_destroy(bsonPipeline);
 				if (bsonOptions) {
 					bson_destroy(bsonOptions);
 				}

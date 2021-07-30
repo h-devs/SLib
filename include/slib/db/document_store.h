@@ -54,6 +54,8 @@ namespace slib
 
 		virtual Json getDocument() = 0;
 
+		JsonList toList();
+
 	};
 
 	class SLIB_EXPORT DocumentCollection : public Object
@@ -88,6 +90,10 @@ namespace slib
 
 		virtual sl_int64 remove(const Json& filter) = 0;
 
+		virtual Ref<DocumentCursor> aggregate(const Json& pipeline, const Json& options) = 0;
+
+		Ref<DocumentCursor> aggregate(const Json& pipeline);
+
 	public:
 		template <class... ARGS>
 		Json getFirstDocument(ARGS&&... args)
@@ -106,11 +112,7 @@ namespace slib
 		{
 			Ref<DocumentCursor> cursor = find(Forward<ARGS>(args)...);
 			if (cursor.isNotNull()) {
-				JsonList list;
-				while (cursor->moveNext()) {
-					list.add_NoLock(cursor->getDocument());
-				}
-				return list;
+				return cursor->toList();
 			}
 			return sl_null;
 		}
@@ -129,13 +131,17 @@ namespace slib
 	public:
 		virtual Ref<DocumentStore> getStore() = 0;
 
-		virtual Ref<DocumentCollection> createCollection(const StringParam& name) = 0;
+		virtual Ref<DocumentCollection> createCollection(const StringParam& name, const Json& options) = 0;
+
+		Ref<DocumentCollection> createCollection(const StringParam& name);
 
 		virtual Ref<DocumentCollection> getCollection(const StringParam& name) = 0;
 
 		virtual sl_bool dropCollection(const StringParam& name) = 0;
 
 		virtual List<String> getCollectionNames() = 0;
+
+		virtual sl_bool hasCollection(const StringParam& name) = 0;
 
 		virtual Json execute(const Json& command) = 0;
 
@@ -157,6 +163,10 @@ namespace slib
 		sl_int64 update(const StringParam& collectionName, const Json& selector, const Json& update);
 
 		sl_int64 remove(const StringParam& collectionName, const Json& filter);
+
+		Ref<DocumentCursor> aggregate(const StringParam& collectionName, const Json& pipeline, const Json& options);
+
+		Ref<DocumentCursor> aggregate(const StringParam& collectionName, const Json& pipeline);
 
 		template <class... ARGS>
 		Json getFirstDocument(const StringParam& collectionName, ARGS&&... args)
