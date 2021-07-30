@@ -278,9 +278,9 @@ namespace slib
 								break;
 							}
 #if defined(SLIB_PLATFORM_IS_WIN32)
-							ev->wait(1000);
+							ev->wait(10000);
 #else
-							ev->waitReadFd(fd, 1000);
+							ev->waitReadFd(fd, 10000);
 #endif
 						}
 					}
