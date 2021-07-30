@@ -59,12 +59,14 @@ namespace slib
 			public:
 				UINT m_id;
 				HICON m_hIcon;
+				sl_bool m_flagLoadedIcon;
 
 			public:
 				SystemTrayIconImpl()
 				{
 					m_id = 0;
 					m_hIcon = sl_null;
+					m_flagLoadedIcon = sl_false;
 				}
 
 				~SystemTrayIconImpl()
@@ -74,7 +76,7 @@ namespace slib
 						nid.uID = m_id;
 						Shell_NotifyIconW(NIM_DELETE, &nid);
 					}
-					if (m_hIcon) {
+					if (m_hIcon && !m_flagLoadedIcon) {
 						DestroyIcon(m_hIcon);
 					}
 					InstanceMap* map = GetInstanceMap();
@@ -92,7 +94,7 @@ namespace slib
 					}
 
 					priv::ui_core::g_wndProc_SystemTrayIcon = &messageProc;
-
+					
 					NOTIFYICONDATAW nid;
 					if (!(prepareNID(nid))) {
 						return sl_null;
@@ -116,9 +118,8 @@ namespace slib
 						Ref<SystemTrayIconImpl> ret = new SystemTrayIconImpl;
 						if (ret.isNotNull()) {
 							ret->m_id = nid.uID;
-							if (!flagLoadedIcon) {
-								ret->m_hIcon = nid.hIcon;
-							}
+							ret->m_hIcon = nid.hIcon;
+							ret->m_flagLoadedIcon = flagLoadedIcon;
 							ret->_init(param);
 							map->put(nid.uID, ret);
 							return ret;
@@ -423,13 +424,45 @@ namespace slib
 					}
 				}
 
+				void onTaskbarCreated()
+				{
+					NOTIFYICONDATAW nid;
+					if (!(prepareNID(nid))) {
+						return;
+					}
+					nid.uID = (UINT)(m_id);
+					nid.hIcon = m_hIcon;
+					nid.uFlags = NIF_MESSAGE;
+					nid.uCallbackMessage = SLIB_UI_MESSAGE_SYSTEM_TRAY_ICON;
+					if (nid.hIcon) {
+						nid.uFlags |= NIF_ICON;
+					}
+					if (setTip(nid, m_toolTip)) {
+						nid.uFlags |= NIF_TIP | NIF_SHOWTIP;
+					}
+					if (Shell_NotifyIconW(NIM_ADD, &nid)) {
+						nid.uVersion = 4;
+						Shell_NotifyIconW(NIM_SETVERSION, &nid);
+					}
+				}
+
 				static LRESULT WINAPI messageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				{
 					InstanceMap* map = GetInstanceMap();
 					if (map) {
-						Ref<SystemTrayIcon> instance = map->getValue(HIWORD(lParam));
-						if (instance.isNotNull()) {
-							((SystemTrayIconImpl*)(instance.get()))->onMessage(LOWORD(lParam), (short)(LOWORD(wParam)), (short)(HIWORD(wParam)));
+						if (uMsg == SLIB_UI_MESSAGE_SYSTEM_TRAY_ICON) {
+							Ref<SystemTrayIcon> instance = map->getValue(HIWORD(lParam));
+							if (instance.isNotNull()) {
+								((SystemTrayIconImpl*)(instance.get()))->onMessage(LOWORD(lParam), (short)(LOWORD(wParam)), (short)(HIWORD(wParam)));
+							}
+						} else if (uMsg == WM_CREATE) {
+							ListElements< WeakRef<SystemTrayIcon> > instances(map->getAllValues());
+							for (sl_size i = 0; i < instances.count; i++) {
+								Ref<SystemTrayIcon> instance = instances[i];
+								if (instance.isNotNull()) {
+									((SystemTrayIconImpl*)(instance.get()))->onTaskbarCreated();
+								}
+							}
 						}
 					}
 					return 0;

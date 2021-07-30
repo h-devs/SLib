@@ -81,11 +81,13 @@ namespace slib
 		namespace ui_core
 		{
 
-			WNDPROC g_wndProc_SystemTrayIcon = NULL;
-
 			sl_bool g_bSetThreadMain = sl_false;
 			DWORD g_threadMain = 0;
 			sl_bool g_bFlagQuit = sl_false;
+
+			sl_uint32 g_nBadgeNumber = 0;
+
+			WNDPROC g_wndProc_SystemTrayIcon = NULL;
 
 			class MainThreadSeter
 			{
@@ -112,10 +114,6 @@ namespace slib
 			class ScreenImpl : public Screen
 			{
 			public:
-				ScreenImpl()
-				{
-				}
-
 				UIRect getRegion()
 				{
 					UIRect ret;
@@ -126,56 +124,6 @@ namespace slib
 					return ret;
 				}
 			};
-
-			static LRESULT CALLBACK MessageWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-			{
-				switch (uMsg) {
-				case SLIB_UI_MESSAGE_DISPATCH:
-					UIDispatcher::processCallbacks();
-					return 0;
-				case SLIB_UI_MESSAGE_DISPATCH_DELAYED:
-					UIDispatcher::processDelayedCallback((sl_reg)lParam);
-					return 0;
-				case SLIB_UI_MESSAGE_CUSTOM_MSGBOX:
-					priv::alert_dialog::ProcessCustomMsgBox(wParam, lParam);
-					return 0;
-				case SLIB_UI_MESSAGE_SYSTEM_TRAY_ICON:
-					if (g_wndProc_SystemTrayIcon) {
-						return g_wndProc_SystemTrayIcon(hWnd, uMsg, wParam, lParam);
-					}
-					return 0;
-				case WM_MENUCOMMAND:
-					priv::menu::ProcessMenuCommand(wParam, lParam);
-					return 0;
-				case WM_COPYDATA:
-					{
-						COPYDATASTRUCT* data = (COPYDATASTRUCT*)lParam;
-						UIApp::dispatchReopenToApp(String::fromUtf16((sl_char16*)(data->lpData), data->cbData / 2), sl_true);
-					}
-					return 0;
-				}
-				return DefWindowProcW(hWnd, uMsg, wParam, lParam);
-			}
-
-			static void PostGlobalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
-			{
-				Win32_UI_Shared* shared = Win32_UI_Shared::get();
-				if (!shared) {
-					return;
-				}
-				PostMessageW(shared->hWndMessage, uMsg, wParam, lParam);
-			}
-
-			UINT g_messageTaskbarButtonCreated = 0;
-
-			static void InitTaskbarButtonList()
-			{
-				if (!g_messageTaskbarButtonCreated) {
-					g_messageTaskbarButtonCreated = RegisterWindowMessageW(L"TaskbarButtonCreated");
-				}
-			}
-
-			sl_uint32 g_nBadgeNumber = 0;
 
 			static void ApplyBadgeNumber()
 			{
@@ -230,6 +178,63 @@ namespace slib
 				}
 			}
 
+			static LRESULT CALLBACK MessageWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+			{
+				static UINT uMsgTaskbarCreated = 0;
+				static UINT uMsgTaskbarButtonCreated = 0;
+				switch (uMsg) {
+					case WM_CREATE:
+						uMsgTaskbarCreated = RegisterWindowMessageW(L"TaskbarCreated");
+						uMsgTaskbarButtonCreated = RegisterWindowMessageW(L"TaskbarButtonCreated");
+						break;
+					case SLIB_UI_MESSAGE_DISPATCH:
+						UIDispatcher::processCallbacks();
+						return 0;
+					case SLIB_UI_MESSAGE_DISPATCH_DELAYED:
+						UIDispatcher::processDelayedCallback((sl_reg)lParam);
+						return 0;
+					case SLIB_UI_MESSAGE_CUSTOM_MSGBOX:
+						priv::alert_dialog::ProcessCustomMsgBox(wParam, lParam);
+						return 0;
+					case SLIB_UI_MESSAGE_SYSTEM_TRAY_ICON:
+						if (g_wndProc_SystemTrayIcon) {
+							return g_wndProc_SystemTrayIcon(hWnd, uMsg, wParam, lParam);
+						}
+						return 0;
+					case WM_MENUCOMMAND:
+						priv::menu::ProcessMenuCommand(wParam, lParam);
+						return 0;
+					case WM_COPYDATA:
+						{
+							COPYDATASTRUCT* data = (COPYDATASTRUCT*)lParam;
+							UIApp::dispatchReopenToApp(String::fromUtf16((sl_char16*)(data->lpData), data->cbData / 2), sl_true);
+						}
+						return 0;
+				}
+				if (uMsgTaskbarCreated) {
+					if (uMsg == uMsgTaskbarCreated) {
+						if (g_wndProc_SystemTrayIcon) {
+							g_wndProc_SystemTrayIcon(NULL, WM_CREATE, 0, 0);
+						}
+					}
+				}
+				if (uMsgTaskbarButtonCreated) {
+					if (uMsg == uMsgTaskbarButtonCreated) {
+						ApplyBadgeNumber();
+					}
+				}
+				return DefWindowProcW(hWnd, uMsg, wParam, lParam);
+			}
+
+			static void PostGlobalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+			{
+				Win32_UI_Shared* shared = Win32_UI_Shared::get();
+				if (!shared) {
+					return;
+				}
+				PostMessageW(shared->hWndMessage, uMsg, wParam, lParam);
+			}
+
 			void RunLoop(HWND hWndModalDialog)
 			{
 				if (g_bFlagQuit) {
@@ -267,26 +272,22 @@ namespace slib
 						priv::menu::ProcessMenuCommand(msg.wParam, msg.lParam);
 						break;
 					default:
-						if (g_messageTaskbarButtonCreated && msg.message == g_messageTaskbarButtonCreated) {
-							ApplyBadgeNumber();
-						} else {
-							do {
-								if (priv::menu::ProcessMenuShortcutKey(msg)) {
-									break;
-								}
-								Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(msg.hwnd));
-								if (instance.isNotNull()) {
-									Ref<View> view = instance->getView();
-									if (view.isNotNull()) {
-										if (priv::view::CaptureChildInstanceEvents(view.get(), msg)) {
-											break;
-										}
+						do {
+							if (priv::menu::ProcessMenuShortcutKey(msg)) {
+								break;
+							}
+							Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(msg.hwnd));
+							if (instance.isNotNull()) {
+								Ref<View> view = instance->getView();
+								if (view.isNotNull()) {
+									if (priv::view::CaptureChildInstanceEvents(view.get(), msg)) {
+										break;
 									}
 								}
-								TranslateMessage(&msg);
-								DispatchMessageW(&msg);
-							} while (0);
-						}
+							}
+							TranslateMessage(&msg);
+							DispatchMessageW(&msg);
+						} while (0);
 						break;
 					}
 					if (flagQuitLoop) {
@@ -804,7 +805,6 @@ namespace slib
 	void UIApp::setBadgeNumber(sl_uint32 num)
 	{
 		g_nBadgeNumber = num;
-		InitTaskbarButtonList();
 		ApplyBadgeNumber();
 	}
 
@@ -822,7 +822,7 @@ namespace slib
 
 		m_wndClassForWindow = 0;
 		m_wndClassForWindowNoClose = 0;
-		
+
 		// Mesage Window
 		{
 			WNDCLASSW wc;
@@ -831,7 +831,7 @@ namespace slib
 			wc.lpfnWndProc = MessageWindowProc;
 			wc.lpszClassName = PRIV_SLIB_UI_MESSAGE_WINDOW_CLASS_NAME;
 			m_wndClassForMessage = RegisterClassW(&wc);
-			hWndMessage = CreateWindowExW(0, (LPCWSTR)((LONG_PTR)m_wndClassForMessage), L"", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hInstance, 0);
+			hWndMessage = CreateWindowExW(0, (LPCWSTR)((LONG_PTR)m_wndClassForMessage), L"", 0, 0, 0, 0, 0, NULL, 0, hInstance, 0);
 		}
 
 	}

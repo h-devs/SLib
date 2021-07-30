@@ -561,16 +561,16 @@ namespace slib
 			y += (sl_ui_pos)(t.y);
 
 			HWND hWnd = CreateWindowExW(
-				styleEx // ex-style
-				, wndClass
-				, text
-				, style
-				, (int)(x), (int)(y)
-				, (int)(frame.getWidth()), (int)(frame.getHeight())
-				, hWndParent // parent
-				, NULL // menu
-				, hInst
-				, NULL);
+				styleEx, // ex-style
+				wndClass,
+				text,
+				style,
+				(int)(x), (int)(y),
+				(int)(frame.getWidth()), (int)(frame.getHeight()),
+				hWndParent, // parent
+				NULL, // menu
+				hInst,
+				NULL);
 			if (hWnd) {
 				if (!(view->isEnabled())) {
 					EnableWindow(hWnd, FALSE);
