@@ -56,6 +56,8 @@ namespace slib
 			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<ServiceHelper>, g_servicePlatform)
 			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Event>, g_eventStop)
 
+			sl_bool g_flagStopService = sl_false;
+
 			SERVICE_STATUS_HANDLE g_hServiceStatus = NULL;
 			SERVICE_STATUS g_statusService;
 
@@ -167,7 +169,9 @@ namespace slib
 				}
 				ReportServiceStatus(SERVICE_RUNNING, NO_ERROR, 0);
 				
-				g_eventStop->wait();
+				while (!g_flagStopService) {
+					g_eventStop->wait(1000);
+				}
 
 				dispatchStopService();
 				ReportServiceStatus(SERVICE_STOPPED, NO_ERROR, 0);
@@ -178,6 +182,7 @@ namespace slib
 				switch (fdwControl) {
 				case SERVICE_CONTROL_STOP:
 					ReportServiceStatus(SERVICE_STOP_PENDING, NO_ERROR, 0);
+					g_flagStopService = sl_true;
 					g_eventStop->set();
 					break;
 				}
