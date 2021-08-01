@@ -59,12 +59,11 @@ namespace slib
 
 	sl_reg Referable::increaseReference() noexcept
 	{
-		sl_reg nRefCountOld = m_nRefCount;
-		sl_reg nRefCountNew = Base::interlockedIncrement(&m_nRefCount);
-		if (!nRefCountOld) {
+		sl_reg nRef = Base::interlockedIncrement(&m_nRefCount);
+		if (nRef == 1) {
 			init();
 		}
-		return nRefCountNew;
+		return nRef;
 	}
 
 	sl_reg Referable::decreaseReference() noexcept
