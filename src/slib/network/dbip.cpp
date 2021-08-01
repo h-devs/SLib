@@ -26,6 +26,7 @@
 #include "slib/core/memory.h"
 #include "slib/core/compare.h"
 #include "slib/core/search.h"
+#include "slib/core/string.h"
 
 namespace slib
 {
@@ -196,12 +197,24 @@ namespace slib
 		sl_uint32 ipv4 = _ipv4.getInt();
 		if (BinarySearch::search(m_ipv4, m_countIPv4, ipv4, &index)) {
 			return m_ipv4[index].code;
-		} else if (index > 0 && index < m_countIPv4) {
+		} else if (index > 0) {
 			if (ipv4 >= m_ipv4[index - 1].start && ipv4 <= m_ipv4[index - 1].end) {
 				return m_ipv4[index - 1].code;
 			}
 		}
 		return sl_null;
+	}
+
+	List<DbIp::IPv4Item> DbIp::getIPv4Items(const StringParam& _code)
+	{
+		List<IPv4Item> ret;
+		String code = _code.toString();
+		for (auto& item : m_listIPv4) {
+			if (code.equals(item.code)) {
+				ret.add_NoLock(item);
+			}
+		}
+		return ret;
 	}
 
 	template<>
@@ -219,12 +232,24 @@ namespace slib
 		sl_size index = 0;
 		if (BinarySearch::search(m_ipv6, m_countIPv6, ipv6, &index)) {
 			return m_ipv6[index].code;
-		} else if (index > 0 && index < m_countIPv6) {
+		} else if (index > 0) {
 			if (ipv6 >= m_ipv6[index - 1].start && ipv6 <= m_ipv6[index - 1].end) {
 				return m_ipv6[index - 1].code;
 			}
 		}
 		return sl_null;
+	}
+
+	List<DbIp::IPv6Item> DbIp::getIPv6Items(const StringParam& _code)
+	{
+		List<IPv6Item> ret;
+		String code = _code.toString();
+		for (auto& item : m_listIPv6) {
+			if (code.equals(item.code)) {
+				ret.add_NoLock(item);
+			}
+		}
+		return ret;
 	}
 
 }

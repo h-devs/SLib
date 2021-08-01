@@ -774,7 +774,7 @@ namespace slib
 			if (tcp->isFIN()) {
 				buf.addStatic("FIN ");
 			}
-			Log("TCP", "%s:%s->%s:%s, %s (%s Bytes)", packet->getSourceAddress().toString(), tcp->getSourcePort(), packet->getDestinationAddress().toString(), tcp->getDestinationPort(), buf.merge(), sizeData);
+			Log("TCP", "%s:%s->%s:%s, %s(%s Bytes)", packet->getSourceAddress().toString(), tcp->getSourcePort(), packet->getDestinationAddress().toString(), tcp->getDestinationPort(), buf.merge(), sizeData);
 		}
 	}
 
