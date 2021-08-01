@@ -32,7 +32,7 @@
 #include "slib/core/file_util.h"
 #include "slib/core/win32/platform.h"
 #include "slib/core/win32/setup.h"
-#include "slib/crypto/zlib.h"
+#include "slib/crypto/zstd.h"
 
 #include "tap/tap_files.h"
 
@@ -77,26 +77,26 @@ namespace slib
 				unsigned char* tap_cat_compressed_data = flag64Bit ? ::tap::files::tap_cat_compressed_data64 : ::tap::files::tap_cat_compressed_data86;
 				unsigned long tap_cat_compressed_size = flag64Bit ? ::tap::files::tap_cat_compressed_size64 : ::tap::files::tap_cat_compressed_size86;
 				if (flag64Bit) {
-					Memory data = Zlib::decompress(::tap::files::tapinstall_exe_compressed_data, ::tap::files::tapinstall_exe_compressed_size);
+					Memory data = Zstd::decompress(::tap::files::tapinstall_exe_compressed_data, ::tap::files::tapinstall_exe_compressed_size);
 					if (File::writeAllBytes(path + "\\tapinstall.exe", data) != data.getSize()) {
 						return sl_false;
 					}
 				}
 #endif
 				{
-					Memory data = Zlib::decompress(tap_inf_compressed_data, tap_inf_compressed_size);
+					Memory data = Zstd::decompress(tap_inf_compressed_data, tap_inf_compressed_size);
 					if (File::writeAllBytes(path + "\\tap0901.inf", data) != data.getSize()) {
 						return sl_false;
 					}
 				}
 				{
-					Memory data = Zlib::decompress(tap_sys_compressed_data, tap_sys_compressed_size);
+					Memory data = Zstd::decompress(tap_sys_compressed_data, tap_sys_compressed_size);
 					if (File::writeAllBytes(path + "\\tap0901.sys", data) != data.getSize()) {
 						return sl_false;
 					}
 				}
 				{
-					Memory data = Zlib::decompress(tap_cat_compressed_data, tap_cat_compressed_size);
+					Memory data = Zstd::decompress(tap_cat_compressed_data, tap_cat_compressed_size);
 					if (File::writeAllBytes(path + "\\tap0901.cat", data) != data.getSize()) {
 						return sl_false;
 					}
@@ -125,7 +125,7 @@ namespace slib
 					if (!(File::isDirectory(path))) {
 						return sl_false;
 					}
-					Memory data = Zlib::decompress(::tap::files::tapinstall_exe_compressed_data, ::tap::files::tapinstall_exe_compressed_size);
+					Memory data = Zstd::decompress(::tap::files::tapinstall_exe_compressed_data, ::tap::files::tapinstall_exe_compressed_size);
 					if (File::writeAllBytes(path + "\\tapinstall.exe", data) != data.getSize()) {
 						return sl_false;
 					}

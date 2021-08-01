@@ -52,7 +52,7 @@ int main(int argc, const char * argv[])
 		return -1;
 	}
 	if (flagCompress) {
-		mem = Zlib::compress(mem.getData(), mem.getSize());
+		mem = Zstd::compress(mem.getData(), mem.getSize(), 22);
 		if (mem.isNull()) {
 			return -1;
 		}

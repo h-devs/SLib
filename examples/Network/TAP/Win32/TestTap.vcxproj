@@ -23,7 +23,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{D1153F23-72DA-4CFF-B753-6FA6C5F95292}</ProjectGuid>
+    <ProjectGuid>{15F89F48-0598-4C7C-A6F5-63AD8BB7DA11}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>TestTap</RootNamespace>
   </PropertyGroup>
