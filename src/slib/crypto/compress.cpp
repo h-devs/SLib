@@ -130,7 +130,7 @@ namespace slib
 		}
 		return DataFilterResult::Continue;
 #else
-		return pass32(input, (sl_uint32)sizeInputAvailable, *((sl_uint32*)&sizeInputPassed), output, (sl_uint32)sizeOutputAvailable, *((sl_uint32*)&sizeOutputAvailable));
+		return pass32(input, (sl_uint32)sizeInputAvailable, *((sl_uint32*)&sizeInputPassed), output, (sl_uint32)sizeOutputAvailable, *((sl_uint32*)&sizeOutputUsed));
 #endif
 	}
 
