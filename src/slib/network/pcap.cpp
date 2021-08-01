@@ -226,18 +226,21 @@ namespace slib
 				static void _handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
 				{
 					PcapImpl* pcap = (PcapImpl*)user;
-
-					NetCapturePacket packet;
-					packet.data = (sl_uint8*)bytes;
-					packet.length = h->len;
-					if (packet.length > h->caplen) {
-						packet.length = h->caplen;
+					if (pcap->increaseReference() > 1) {
+						NetCapturePacket packet;
+						packet.data = (sl_uint8*)bytes;
+						packet.length = h->len;
+						if (packet.length > h->caplen) {
+							packet.length = h->caplen;
+						}
+						sl_uint64 t = h->ts.tv_sec;
+						t = t * 1000000 + h->ts.tv_usec;
+						packet.time = t;
+						pcap->_onCapturePacket(packet);
+						pcap->decreaseReference();
+					} else {
+						pcap->decreaseReferenceNoFree();
 					}
-					sl_uint64 t = h->ts.tv_sec;
-					t = t * 1000000 + h->ts.tv_usec;
-					packet.time = t;
-
-					pcap->_onCapturePacket(packet);
 				}
 				
 				void _run()
@@ -269,8 +272,12 @@ namespace slib
 						int result = pcap_dispatch(m_handle, -1, &_handler, (u_char*)this);
 						if (result < 0) {
 							if (result == -1) {
-								Ref<PcapImpl> thiz = this; // Protection for releasing during callback
-								_onError();
+								if (increaseReference() > 1) {
+									_onError();
+									decreaseReference();
+								} else {
+									decreaseReferenceNoFree();
+								}
 							}
 							break;
 						} else if (!result) {
