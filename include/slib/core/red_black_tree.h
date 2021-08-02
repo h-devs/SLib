@@ -203,6 +203,7 @@ namespace slib
 				if (pGreaterEqual) {
 					*pGreaterEqual = sl_null;
 				}
+				return;
 			}
 			sl_compare_result compare_result;
 			NODE* node = tryFind(look, key, key_compare, compare_result);
