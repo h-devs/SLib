@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -37,25 +37,18 @@ namespace slib
 	class SLIB_EXPORT Dokany
 	{
 	public:
-		static sl_bool initialize(sl_bool flagDokany, const StringParam& driverName, const StringParam& dllPath);
-
-		static sl_bool initialize();
-
-		static sl_bool isDokany();
-
 		static ServiceState getDriverState();
 
 		static sl_bool startDriver();
 
 		static sl_bool stopDriver();
 
+		static sl_bool install();
+
 
 		static Ref<FileSystemHost> createHost();
 
 		static sl_bool unmount(const StringParam& mountPoint);
-		
-
-		static sl_bool install();
 
 	};
 

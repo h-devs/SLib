@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -29,8 +29,15 @@
 #define _EXPORTING
 #include "dokany/dokan.h"
 
+extern "C"
+{
+	void InitializeDokany();
+	void UninitializeDokany();
+}
+
+#define DOKANY_DRIVER_NAME "dokan1"
+
 #include "slib/core/service_manager.h"
-#include "slib/core/dynamic_library.h"
 #include "slib/core/safe_static.h"
 
 #include "slib/core/win32/windows.h"
@@ -41,8 +48,8 @@
 #define DOKAN_CHECK_FLAG(val, flag) if (val & flag) { LOG_DEBUG("\t" #flag); }
 
 #define DOKAN_ERROR_CODE(err) ((FileSystemError)(err) == FileSystemError::NotImplemented \
-								? (g_flagDokany ? STATUS_NOT_IMPLEMENTED : 0) \
-								: (g_flagDokany ? getApi_DokanNtStatusFromWin32()((DWORD)err) : -(int)err))
+								? STATUS_NOT_IMPLEMENTED \
+								: DokanNtStatusFromWin32((DWORD)err))
 
 namespace slib
 {
@@ -51,59 +58,6 @@ namespace slib
 	{
 		namespace dokany
 		{
-
-			sl_bool g_flagDokany = sl_false;
-
-			void* g_libDll;
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString16, g_strDriverName)
-
-			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanMain, int, DOKANAPI,
-				PDOKAN_OPTIONS DokanOptions,
-				PDOKAN_OPERATIONS DokanOperations)
-
-			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanUnmount, BOOL, DOKANAPI,
-				WCHAR DriveLetter)
-
-			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanServiceInstall, BOOL, DOKANAPI,
-				LPCWSTR ServiceName,
-				DWORD ServiceType,
-				LPCWSTR ServiceFullPath)
-
-			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanServiceDelete, BOOL, DOKANAPI,
-				LPCWSTR ServiceName)
-
-			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanVersion, ULONG, DOKANAPI)
-
-			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanDriverVersion, ULONG, DOKANAPI)
-
-			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanResetTimeout, BOOL, DOKANAPI,
-				ULONG Timeout,
-				PDOKAN_FILE_INFO FileInfo)
-
-			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanOpenRequestorToken, HANDLE, DOKANAPI,
-				PDOKAN_FILE_INFO DokanFileInfo)
-
-			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanRemoveMountPoint, BOOL, DOKANAPI,
-				LPCWSTR MountPoint)
-
-			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanMapKernelToUserCreateFileFlags, void, DOKANAPI,
-				ACCESS_MASK DesiredAccess,
-				ULONG FileAttributes,
-				ULONG CreateOptions,
-				ULONG CreateDisposition,
-				ACCESS_MASK* outDesiredAccess,
-				DWORD *outFileAttributesAndFlags,
-				DWORD *outCreationDisposition)
-
-			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanGetMountPointList, BOOL, DOKANAPI,
-				PDOKAN_CONTROL list,
-				ULONG length,
-				BOOL uncOnly,
-				PULONG nbRead)
-
-			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libDll, DokanNtStatusFromWin32, NTSTATUS, DOKANAPI,
-				DWORD Error)
-
 
 			SLIB_INLINE static String NormalizePath(LPCWSTR szPath)
 			{
@@ -116,19 +70,17 @@ namespace slib
 					LOG_ERROR(L"Mount Point required.");
 					return sl_false;
 				}
-				if (g_flagDokany) {
-					if (Base::getStringLength2((sl_char16*)(options.UNCName)) && !(options.Options & DOKAN_OPTION_NETWORK)) {
-						LOG_ERROR("UNC provider name should be set on network drive only.");
-						return sl_false;
-					}
-					if ((options.Options & DOKAN_OPTION_NETWORK) && (options.Options & DOKAN_OPTION_MOUNT_MANAGER)) {
-						LOG_ERROR("Mount manager cannot be used on network drive.");
-						return sl_false;
-					}
-					if ((options.Options & DOKAN_OPTION_MOUNT_MANAGER) && (options.Options & DOKAN_OPTION_CURRENT_SESSION)) {
-						LOG_ERROR("Mount Manager always mount the drive for all user sessions.");
-						return sl_false;
-					}
+				if (Base::getStringLength2((sl_char16*)(options.UNCName)) && !(options.Options & DOKAN_OPTION_NETWORK)) {
+					LOG_ERROR("UNC provider name should be set on network drive only.");
+					return sl_false;
+				}
+				if ((options.Options & DOKAN_OPTION_NETWORK) && (options.Options & DOKAN_OPTION_MOUNT_MANAGER)) {
+					LOG_ERROR("Mount manager cannot be used on network drive.");
+					return sl_false;
+				}
+				if ((options.Options & DOKAN_OPTION_MOUNT_MANAGER) && (options.Options & DOKAN_OPTION_CURRENT_SESSION)) {
+					LOG_ERROR("Mount Manager always mount the drive for all user sessions.");
+					return sl_false;
 				}
 				return sl_true;
 			};
@@ -208,11 +160,7 @@ namespace slib
 				int iRetSuccess = 0;
 				if (dwCreationDisposition == CREATE_ALWAYS || dwCreationDisposition == OPEN_ALWAYS) {
 					if (provider->existsFile(path)) {
-						if (g_flagDokany) {
-							iRetSuccess = STATUS_OBJECT_NAME_COLLISION;
-						} else {
-							iRetSuccess = ERROR_ALREADY_EXISTS;
-						}
+						iRetSuccess = STATUS_OBJECT_NAME_COLLISION;
 					}
 				}
 
@@ -286,11 +234,9 @@ namespace slib
 				Ref<FileContext> context = provider->openFile(path, param);
 				if (context.isNull()) {
 					FileSystemError err = FileSystem::getLastError();
-					if (g_flagDokany) {
-						if (err == FileSystemError::PathNotFound) {
-							if (!(param.mode & FileMode::NotCreate)) {
-								return STATUS_ACCESS_DENIED;
-							}
+					if (err == FileSystemError::PathNotFound) {
+						if (!(param.mode & FileMode::NotCreate)) {
+							return STATUS_ACCESS_DENIED;
 						}
 					}
 					return DOKAN_ERROR_CODE(err);
@@ -332,8 +278,7 @@ namespace slib
 				return DOKAN_ERROR_CODE(ERROR_PATH_NOT_FOUND);
 			}
 
-			// Only for Dokany
-			static int DOKAN_CALLBACK Dokany_ZwCreateFile(
+			static NTSTATUS DOKAN_CALLBACK Dokany_ZwCreateFile(
 					LPCWSTR						szFileName,
 					PDOKAN_IO_SECURITY_CONTEXT	pSecurityContext,
 					ACCESS_MASK					dwDesiredAccess,
@@ -350,7 +295,7 @@ namespace slib
 				DWORD dwFileAttributesAndFlags;
 				ACCESS_MASK dwGenericDesiredAccess;
 
-				getApi_DokanMapKernelToUserCreateFileFlags()(
+				DokanMapKernelToUserCreateFileFlags(
 					dwDesiredAccess, uFileAttributes, uCreateOptions, uCreateDisposition,
 					&dwGenericDesiredAccess, &dwFileAttributesAndFlags, &dwCreationDisposition);
 
@@ -402,7 +347,7 @@ namespace slib
 				}
 			}
 
-			static int DOKAN_CALLBACK Dokany_CloseFile(
+			static void DOKAN_CALLBACK Dokany_CloseFile(
 				LPCWSTR					szFileName,
 				PDOKAN_FILE_INFO		pDokanFileInfo)
 			{
@@ -410,7 +355,7 @@ namespace slib
 				FileSystemProvider* provider = host->getProvider();
 				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
 				if (context.isNull()) {
-					return 0;
+					return;
 				}
 
 				FileSystem::setLastError(FileSystemError::Success);
@@ -418,10 +363,9 @@ namespace slib
 				host->decreaseOpenHandlesCount();
 				context->decreaseReference();
 				pDokanFileInfo->Context = 0;
-				return DOKAN_ERROR_CODE(FileSystem::getLastError());
 			}
 
-			static int DOKAN_CALLBACK Dokany_Cleanup(
+			static void DOKAN_CALLBACK Dokany_Cleanup(
 					LPCWSTR					szFileName,
 					PDOKAN_FILE_INFO		pDokanFileInfo)
 			{
@@ -430,24 +374,19 @@ namespace slib
 				Ref<FileContext> context = (FileContext*)((sl_size)(pDokanFileInfo->Context));
 
 				if (pDokanFileInfo->DeleteOnClose) {
-					sl_bool ret;
 					FileSystem::setLastError(FileSystemError::GeneralError);
 					if (pDokanFileInfo->IsDirectory) {
-						ret = provider->deleteDirectory(NormalizePath(szFileName));
+						provider->deleteDirectory(NormalizePath(szFileName));
 					} else {
 						if (context) {
 							Dokany_CloseFile(szFileName, pDokanFileInfo);
 						}
-						ret = provider->deleteFile(NormalizePath(szFileName));
-					}
-					if (!ret) {
-						return DOKAN_ERROR_CODE(FileSystem::getLastError());
+						provider->deleteFile(NormalizePath(szFileName));
 					}
 				}
-				return 0;
 			}
 
-			static int DOKAN_CALLBACK Dokany_ReadFile(
+			static NTSTATUS DOKAN_CALLBACK Dokany_ReadFile(
 					LPCWSTR				szFileName,
 					LPVOID				pBuffer,
 					DWORD				dwBufferLength,
@@ -481,7 +420,7 @@ namespace slib
 				return DOKAN_ERROR_CODE(FileSystem::getLastError());
 			}
 
-			static int DOKAN_CALLBACK Dokany_WriteFile(
+			static NTSTATUS DOKAN_CALLBACK Dokany_WriteFile(
 					LPCWSTR				szFileName,
 					LPCVOID				pBuffer,
 					DWORD				dwNumberOfBytesToWrite,
@@ -528,7 +467,7 @@ namespace slib
 				return DOKAN_ERROR_CODE(FileSystem::getLastError());
 			}
 
-			static int DOKAN_CALLBACK Dokany_FlushFileBuffers(
+			static NTSTATUS DOKAN_CALLBACK Dokany_FlushFileBuffers(
 					LPCWSTR				szFileName,
 					PDOKAN_FILE_INFO	pDokanFileInfo)
 			{
@@ -546,7 +485,7 @@ namespace slib
 				return DOKAN_ERROR_CODE(FileSystem::getLastError());
 			}
 
-			static int DOKAN_CALLBACK Dokany_GetFileInformation(
+			static NTSTATUS DOKAN_CALLBACK Dokany_GetFileInformation(
 					LPCWSTR							szFileName,
 					LPBY_HANDLE_FILE_INFORMATION	pFileInfo,
 					PDOKAN_FILE_INFO				pDokanFileInfo)
@@ -572,7 +511,7 @@ namespace slib
 				return DOKAN_ERROR_CODE(FileSystem::getLastError());
 			}
 
-			static int DOKAN_CALLBACK Dokany_FindFiles(
+			static NTSTATUS DOKAN_CALLBACK Dokany_FindFiles(
 					LPCWSTR				szPathName,
 					PFillFindData		funcFillFindData,
 					PDOKAN_FILE_INFO	pDokanFileInfo)
@@ -612,7 +551,7 @@ namespace slib
 				return 0;
 			}
 
-			static int DOKAN_CALLBACK Dokany_DeleteFile(
+			static NTSTATUS DOKAN_CALLBACK Dokany_DeleteFile(
 					LPCWSTR				szFileName,
 					PDOKAN_FILE_INFO	pDokanFileInfo)
 			{
@@ -625,7 +564,7 @@ namespace slib
 				return DOKAN_ERROR_CODE(ERROR_FILE_NOT_FOUND);
 			}
 
-			static int DOKAN_CALLBACK Dokany_DeleteDirectory (
+			static NTSTATUS DOKAN_CALLBACK Dokany_DeleteDirectory (
 					LPCWSTR				szFileName,
 					PDOKAN_FILE_INFO	pDokanFileInfo)
 			{
@@ -638,7 +577,7 @@ namespace slib
 				return DOKAN_ERROR_CODE(ERROR_DIR_NOT_EMPTY);
 			}
 
-			static int DOKAN_CALLBACK Dokany_MoveFile(
+			static NTSTATUS DOKAN_CALLBACK Dokany_MoveFile(
 					LPCWSTR				szFileName,
 					LPCWSTR				szNewFileName,
 					BOOL				bReplaceIfExisting,
@@ -654,7 +593,7 @@ namespace slib
 				return DOKAN_ERROR_CODE(FileSystem::getLastError());
 			}
 
-			static int DOKAN_CALLBACK Dokany_SetEndOfFile(
+			static NTSTATUS DOKAN_CALLBACK Dokany_SetEndOfFile(
 					LPCWSTR				szFileName,
 					LONGLONG			iOffset,
 					PDOKAN_FILE_INFO	pDokanFileInfo)
@@ -675,7 +614,7 @@ namespace slib
 				return DOKAN_ERROR_CODE(FileSystem::getLastError());
 			}
 
-			static int DOKAN_CALLBACK Dokany_SetAllocationSize(
+			static NTSTATUS DOKAN_CALLBACK Dokany_SetAllocationSize(
 					LPCWSTR				szFileName,
 					LONGLONG			iAllocSize,
 					PDOKAN_FILE_INFO	pDokanFileInfo)
@@ -696,7 +635,7 @@ namespace slib
 				return DOKAN_ERROR_CODE(FileSystem::getLastError());
 			}
 
-			static int DOKAN_CALLBACK Dokany_SetFileAttributes(
+			static NTSTATUS DOKAN_CALLBACK Dokany_SetFileAttributes(
 					LPCWSTR				szFileName,
 					DWORD				dwFileAttributes,
 					PDOKAN_FILE_INFO	pDokanFileInfo)
@@ -717,7 +656,7 @@ namespace slib
 				return DOKAN_ERROR_CODE(FileSystem::getLastError());
 			}
 
-			static int DOKAN_CALLBACK Dokany_SetFileTime(
+			static NTSTATUS DOKAN_CALLBACK Dokany_SetFileTime(
 					LPCWSTR				szFileName,
 					CONST FILETIME*		ftCreationTime,
 					CONST FILETIME*		ftLastAccessTime,
@@ -748,7 +687,7 @@ namespace slib
 				return DOKAN_ERROR_CODE(FileSystem::getLastError());
 			}
 
-			static int DOKAN_CALLBACK Dokany_GetDiskFreeSpace(
+			static NTSTATUS DOKAN_CALLBACK Dokany_GetDiskFreeSpace(
 					PULONGLONG			pFreeBytesAvailable,
 					PULONGLONG			pTotalNumberOfBytes,
 					PULONGLONG			pTotalNumberOfFreeBytes,
@@ -768,7 +707,7 @@ namespace slib
 				return DOKAN_ERROR_CODE(FileSystem::getLastError());
 			}
 
-			static int DOKAN_CALLBACK Dokany_GetVolumeInformation(
+			static NTSTATUS DOKAN_CALLBACK Dokany_GetVolumeInformation(
 					LPWSTR				szVolumeNameBuffer,
 					DWORD				dwVolumeNameSize,
 					LPDWORD				pVolumeSerialNumber,
@@ -800,67 +739,26 @@ namespace slib
 				return DOKAN_ERROR_CODE(FileSystem::getLastError());
 			}
 
-			static void* GetDokanOperations()
+			class DokanyHostInitializer
 			{
-				if (g_flagDokany) {
-					static void* op[] = {
-						Dokany_ZwCreateFile,
-						Dokany_Cleanup,
-						Dokany_CloseFile,
-						Dokany_ReadFile,
-						Dokany_WriteFile,
-						Dokany_FlushFileBuffers,
-						Dokany_GetFileInformation,
-						Dokany_FindFiles,
-						NULL, // FindFilesWithPattern
-						Dokany_SetFileAttributes,
-						Dokany_SetFileTime,
-						Dokany_DeleteFile,
-						Dokany_DeleteDirectory,
-						Dokany_MoveFile,
-						Dokany_SetEndOfFile,
-						Dokany_SetAllocationSize,
-						NULL, // LockFile
-						NULL, // UnlockFile
-						Dokany_GetDiskFreeSpace,
-						Dokany_GetVolumeInformation,
-						NULL, // Mounted
-						NULL, // Unmounted
-						NULL, // GetFileSecurity
-						NULL, // SetFileSecurity
-						NULL // FindStreams
-					};
-					return &op;
-				} else {
-					static void* op[] = {
-						Dokany_CreateFile,
-						Dokany_OpenDirectory,
-						Dokany_CreateDirectory,
-						Dokany_Cleanup,
-						Dokany_CloseFile,
-						Dokany_ReadFile,
-						Dokany_WriteFile,
-						Dokany_FlushFileBuffers,
-						Dokany_GetFileInformation,
-						Dokany_FindFiles,
-						NULL, // FindFilesWithPattern
-						Dokany_SetFileAttributes,
-						Dokany_SetFileTime,
-						Dokany_DeleteFile,
-						Dokany_DeleteDirectory,
-						Dokany_MoveFile,
-						Dokany_SetEndOfFile,
-						Dokany_SetAllocationSize,
-						NULL, // LockFile
-						NULL, // UnlockFile
-						Dokany_GetDiskFreeSpace,
-						Dokany_GetVolumeInformation,
-						NULL, // Unmounted
-						NULL, // GetFileSecurity
-						NULL // SetFileSecurity
-					};
-					return &op;
+			public:
+				DokanyHostInitializer()
+				{
+					InitializeDokany();
 				}
+
+				~DokanyHostInitializer()
+				{
+					UninitializeDokany();
+				}
+
+			};
+
+			SLIB_SAFE_STATIC_GETTER(DokanyHostInitializer, GetDokanyHostInitializer)
+
+			static void InitializeDokanyHost()
+			{
+				GetDokanyHostInitializer();
 			}
 
 			class DokanHost : public FileSystemHost
@@ -873,10 +771,7 @@ namespace slib
 			public:
 				sl_bool _run() override
 				{
-					if (!Dokany::initialize()) {
-						m_strError = "Cannot load dokan library.";
-						return sl_false;
-					}
+					InitializeDokanyHost();
 
 					FileSystemHostParam& param = m_param;
 
@@ -885,14 +780,10 @@ namespace slib
 					DOKAN_OPTIONS options;
 					Base::zeroMemory(&options, sizeof(options));
 
-					options.Version = (USHORT)(getApi_DokanVersion()());
+					options.Version = (USHORT)(DokanVersion());
 					options.ThreadCount = (USHORT)(param.threadCount);
 					options.UNCName = L"";
 					options.MountPoint = (LPCWSTR)(mountPoint.getData());
-
-					if (!g_flagDokany) {
-						options.Options = 8; // DOKAN_OPTION_KEEP_ALIVE (auto unmount)
-					}
 
 					if (param.flags & FileSystemHostFlags::DebugMode) {
 						options.Options |= DOKAN_OPTION_DEBUG;
@@ -921,13 +812,27 @@ namespace slib
 						return sl_false;
 					}
 
-					auto funcMain = getApi_DokanMain();
-					if (!funcMain) {
-						m_strError = "Cannot get DokanMain function address.";
-						return sl_false;
-					}
+					DOKAN_OPERATIONS op;
+					Base::zeroMemory(&op, sizeof(op));
+					op.ZwCreateFile = Dokany_ZwCreateFile;
+					op.Cleanup = Dokany_Cleanup;
+					op.CloseFile = Dokany_CloseFile;
+					op.ReadFile = Dokany_ReadFile;
+					op.WriteFile = Dokany_WriteFile;
+					op.FlushFileBuffers = Dokany_FlushFileBuffers;
+					op.GetFileInformation = Dokany_GetFileInformation;
+					op.FindFiles = Dokany_FindFiles;
+					op.SetFileAttributes = Dokany_SetFileAttributes;
+					op.SetFileTime = Dokany_SetFileTime;
+					op.DeleteFile = Dokany_DeleteFile;
+					op.DeleteDirectory = Dokany_DeleteDirectory;
+					op.MoveFile = Dokany_MoveFile;
+					op.SetEndOfFile = Dokany_SetEndOfFile;
+					op.SetAllocationSize = Dokany_SetAllocationSize;
+					op.GetDiskFreeSpace = Dokany_GetDiskFreeSpace;
+					op.GetVolumeInformation = Dokany_GetVolumeInformation;
 
-					m_iRet = funcMain(&options, (PDOKAN_OPERATIONS)GetDokanOperations());
+					m_iRet = DokanMain(&options, &op);
 
 					return (m_iRet == DOKAN_SUCCESS);
 				}
@@ -965,59 +870,19 @@ namespace slib
 
 			};
 
-
 		}
 	}
 
 	using namespace priv::dokany;
 
-	sl_bool Dokany::initialize(sl_bool flagDokany, const StringParam& driverName, const StringParam& pathDll)
-	{
-		void* lib = DynamicLibrary::loadLibrary(pathDll);
-		if (lib) {
-			g_flagDokany = flagDokany;
-			g_libDll = lib;
-			g_strDriverName = driverName.toString16();
-			return sl_true;
-		}
-		return sl_false;
-	}
-
-	sl_bool Dokany::initialize()
-	{
-		if (g_libDll) {
-			return sl_true;
-		}
-		if (initialize(sl_true, L"Dokan1", "dokan1.dll")) {
-			return sl_true;
-		}
-		if (initialize(sl_false, L"Dokan", "dokan.dll")) {
-			return sl_true;
-		}
-		return sl_false;
-	}
-
-	sl_bool Dokany::isDokany()
-	{
-		if (initialize()) {
-			return g_flagDokany;
-		}
-		return sl_false;
-	}
 
 	ServiceState Dokany::getDriverState()
 	{
-		if (!(initialize())) {
-			return ServiceState::None;
-		}
-		return ServiceManager::getState(g_strDriverName);
+		return ServiceManager::getState(DOKANY_DRIVER_NAME);
 	}
 
 	sl_bool Dokany::startDriver()
 	{
-		if (!(initialize())) {
-			return sl_false;
-		}
 		ServiceState state = getDriverState();
 		if (state == ServiceState::None) {
 			return sl_false;
@@ -1025,14 +890,11 @@ namespace slib
 		if (state == ServiceState::Running) {
 			return sl_true;
 		}
-		return ServiceManager::start(g_strDriverName);
+		return ServiceManager::start(DOKANY_DRIVER_NAME);
 	}
 
 	sl_bool Dokany::stopDriver()
 	{
-		if (!(initialize())) {
-			return sl_false;
-		}
 		ServiceState state = getDriverState();
 		if (state == ServiceState::None) {
 			return sl_false;
@@ -1040,7 +902,7 @@ namespace slib
 		if (state == ServiceState::Stopped) {
 			return sl_true;
 		}
-		return ServiceManager::stop(g_strDriverName);
+		return ServiceManager::stop(DOKANY_DRIVER_NAME);
 	}
 
 	Ref<FileSystemHost> Dokany::createHost()
@@ -1050,15 +912,9 @@ namespace slib
 
 	sl_bool Dokany::unmount(const StringParam& _mountPoint)
 	{
-		if (!(initialize())) {
-			return sl_false;
-		}
-		auto func = getApi_DokanRemoveMountPoint();
-		if (func) {
-			StringCstr16 mountPoint(_mountPoint);
-			return func((LPCWSTR)(mountPoint.getData()));
-		}
-		return sl_false;
+		InitializeDokanyHost();
+		StringCstr16 mountPoint(_mountPoint);
+		return DokanRemoveMountPoint((LPCWSTR)(mountPoint.getData()));
 	}
 
 }

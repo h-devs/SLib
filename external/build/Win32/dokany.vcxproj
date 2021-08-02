@@ -19,10 +19,33 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\dokany\dokany_core_files.cpp" />
+    <ClCompile Include="..\..\src\dokany\dokany_files.cpp" />
+    <ClCompile Include="..\..\src\dokany\dokan\access.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\cleanup.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\close.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\create.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\directory.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\dokan.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\fileinfo.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\flush.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\lock.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\mount.c">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/wd4091 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/wd4091 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/wd4091 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/wd4091 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="..\..\src\dokany\dokan\ntstatus.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\read.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\security.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\setfile.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\timeout.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\version.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\volume.c" />
+    <ClCompile Include="..\..\src\dokany\dokan\write.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\dokany\dokany_core_files.h" />
+    <ClInclude Include="..\..\src\dokany\dokany_files.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F1BCF6B2-DDD2-42EF-843D-9480C248754F}</ProjectGuid>
@@ -76,21 +99,25 @@
     <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <TargetName>dokany</TargetName>
+    <IncludePath>$(ProjectDir)..\..\..\external\include\dokany;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <TargetName>dokany</TargetName>
+    <IncludePath>$(ProjectDir)..\..\..\external\include\dokany;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <TargetName>dokany</TargetName>
+    <IncludePath>$(ProjectDir)..\..\..\external\include\dokany;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <TargetName>dokany</TargetName>
+    <IncludePath>$(ProjectDir)..\..\..\external\include\dokany;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -98,7 +125,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MinSpace</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_EXPORTING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DebugInformationFormat>None</DebugInformationFormat>
       <ExceptionHandling>false</ExceptionHandling>
@@ -123,7 +150,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MinSpace</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_EXPORTING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DebugInformationFormat>None</DebugInformationFormat>
       <ExceptionHandling>false</ExceptionHandling>
@@ -149,7 +176,7 @@
       </PrecompiledHeader>
       <Optimization>MinSpace</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_EXPORTING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DebugInformationFormat>None</DebugInformationFormat>
       <MinimalRebuild>false</MinimalRebuild>
@@ -176,7 +203,7 @@
       </PrecompiledHeader>
       <Optimization>MinSpace</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_EXPORTING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DebugInformationFormat>None</DebugInformationFormat>
       <MinimalRebuild>false</MinimalRebuild>

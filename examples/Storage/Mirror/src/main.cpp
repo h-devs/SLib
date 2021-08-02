@@ -1,4 +1,5 @@
 #include <slib.h>
+
 using namespace slib;
 
 int main(int argc, const char * argv[])
@@ -7,6 +8,8 @@ int main(int argc, const char * argv[])
 		Println("Usage: %s rootdir mountpoint [logflags] [logfilter]", File::getFileName(argv[0]));
 		return 0;
 	}
+
+	Dokany::install();
 
 	String rootPath = StringCstr(argv[1]);
 	String mountPoint = StringCstr(argv[2]);

@@ -1,8 +1,8 @@
 /*
   Dokan : user-mode file system library for Windows
 
+  Copyright (C) 2017 - 2021 Google, Inc.
   Copyright (C) 2015 - 2019 Adrien J. <liryna.stark@gmail.com> and Maxime C. <maxime@islog.com>
-  Copyright (C) 2017 - 2018 Google, Inc.
   Copyright (C) 2007 - 2011 Hiroki Asakawa <info@dokan-dev.net>
 
   http://dokan-dev.github.io
@@ -23,9 +23,10 @@ with this program. If not, see <http://www.gnu.org/licenses/>.
 #ifndef PUBLIC_H_
 #define PUBLIC_H_
 
+#include "def.h"
+
 #ifndef DOKAN_MAJOR_API_VERSION
 #define DOKAN_MAJOR_API_VERSION L"1"
-#include <windef.h>
 #endif
 
 #define DOKAN_DRIVER_VERSION 0x0000190
@@ -34,42 +35,62 @@ with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define IOCTL_GET_VERSION                                                      \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x800, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define FSCTL_GET_VERSION \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 0x800, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 #define IOCTL_SET_DEBUG_MODE                                                   \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x801, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define FSCTL_SET_DEBUG_MODE \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 0x801, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 #define IOCTL_EVENT_WAIT                                                       \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x802, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define FSCTL_EVENT_WAIT \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 0x802, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 #define IOCTL_EVENT_INFO                                                       \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x803, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define FSCTL_EVENT_INFO \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 0x803, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 #define IOCTL_EVENT_RELEASE                                                    \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x804, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define FSCTL_EVENT_RELEASE \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 0x804, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 #define IOCTL_EVENT_START                                                      \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x805, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define FSCTL_EVENT_START \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 0x805, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 #define IOCTL_EVENT_WRITE                                                      \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x806, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
+#define FSCTL_EVENT_WRITE \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 0x806, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
 
 #define IOCTL_KEEPALIVE                                                        \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x809, METHOD_NEITHER, FILE_ANY_ACCESS)
-
-#define IOCTL_SERVICE_WAIT                                                     \
-  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80A, METHOD_BUFFERED, FILE_ANY_ACCESS)
+// No IOCTL version as this is now deprecated
 
 #define IOCTL_RESET_TIMEOUT                                                    \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80B, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define FSCTL_RESET_TIMEOUT \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 0x80B, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 #define IOCTL_GET_ACCESS_TOKEN                                                 \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80C, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define FSCTL_GET_ACCESS_TOKEN \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 0x80C, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 #define IOCTL_EVENT_MOUNTPOINT_LIST                                            \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80D, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define FSCTL_EVENT_MOUNTPOINT_LIST \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 0x80D, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 #define IOCTL_MOUNTPOINT_CLEANUP                                               \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80E, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define FSCTL_MOUNTPOINT_CLEANUP                                               \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 0x80E, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 // DeviceIoControl code to send to a keepalive handle to activate it (see the
 // documentation for the keepalive flags in the DokanFCB struct).
@@ -84,6 +105,8 @@ with this program. If not, see <http://www.gnu.org/licenses/>.
 // volume.
 #define IOCTL_GET_VOLUME_METRICS                                               \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x811, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define FSCTL_GET_VOLUME_METRICS \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 0x811, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 #define DRIVER_FUNC_INSTALL 0x01
 #define DRIVER_FUNC_REMOVE 0x02
@@ -351,6 +374,9 @@ typedef struct _VOLUME_METRICS {
   ULONG64 FcbDeletions;
   // A "cancellation" is when a single FCB's garbage collection gets canceled.
   ULONG64 FcbGarbageCollectionCancellations;
+  // Number of IRPs with a too large buffer that could not be registered for
+  // being forward to userland.
+  ULONG64 LargeIRPRegistrationCanceled;
 } VOLUME_METRICS, *PVOLUME_METRICS;
 
 #define WRITE_MAX_SIZE                                                         \
@@ -397,8 +423,22 @@ typedef struct _EVENT_INFORMATION {
 #define DOKAN_EVENT_MOUNT_MANAGER                                   (1 << 3)
 #define DOKAN_EVENT_CURRENT_SESSION                                 (1 << 4)
 #define DOKAN_EVENT_FILELOCK_USER_MODE                              (1 << 5)
-#define DOKAN_EVENT_DISABLE_OPLOCKS                                 (1 << 6)
+// No longer used option (1 << 6)
 #define DOKAN_EVENT_ENABLE_FCB_GC                                   (1 << 7)
+// CaseSenitive FileName: NTFS can look to be case-insensitive
+// but in some situation it can also be case-sensitive :
+// * NTFS keep the filename casing used during Create internally.
+// * Open "MyFile" on NTFS can open "MYFILE" if it exists.
+// * FILE_FLAG_POSIX_SEMANTICS (IRP_MJ_CREATE: SL_CASE_SENSITIVE)
+//   can be used during Create to make the lookup case-sensitive.
+// * Since Win10, NTFS can have specific directories
+//   case-sensitive / insensitive, even if the device tags says otherwise.
+// Dokan choose to support case-sensitive or case-insensitive filesystem
+// but not those NTFS specific scenarios.
+#define DOKAN_EVENT_CASE_SENSITIVE                                  (1 << 8)
+// Enables unmounting of network drives via file explorer
+#define DOKAN_EVENT_ENABLE_NETWORK_UNMOUNT                          (1 << 9)
+#define DOKAN_EVENT_DISPATCH_DRIVER_LOGS                            (1 << 10)
 
 typedef struct _EVENT_DRIVER_INFO {
   ULONG DriverVersion;
@@ -456,10 +496,30 @@ typedef struct _DOKAN_CONTROL {
   WCHAR UNCName[64];
   /** Disk Device Name */
   WCHAR DeviceName[64];
-  /** Volume Device Object */
+#ifdef _MSC_VER
+  /**
+  * Volume Device Object. The value is always 0
+  * and should be removed from the public DOKAN_CONTROL.
+  * MinGW also do not support PVOID64 so we convert it to ULONG64 see #902.
+  */
   PVOID64 VolumeDeviceObject;
+#else
+  ULONG64 VolumeDeviceObject;
+#endif
   /** Session ID of calling process */
   ULONG SessionId;
+  /** Contains information about the flags on the mount */
+  ULONG MountOptions;
 } DOKAN_CONTROL, *PDOKAN_CONTROL;
+
+// Dokan Major IRP values dispatched to userland for custom request with
+// EVENT_CONTEXT.
+#define DOKAN_IRP_LOG_MESSAGE 0x20
+
+// Driver log message disptached during DOKAN_IRP_LOG_MESSAGE event.
+typedef struct _DOKAN_LOG_MESSAGE {
+  ULONG MessageLength;
+  CHAR Message[1];
+} DOKAN_LOG_MESSAGE, *PDOKAN_LOG_MESSAGE;
 
 #endif // PUBLIC_H_

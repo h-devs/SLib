@@ -22,6 +22,8 @@ with this program. If not, see <http://www.gnu.org/licenses/>.
 #ifndef FILEINFO_H_
 #define FILEINFO_H_
 
+#include "def.h"
+
 #define IRP_MJ_CREATE 0x00
 #define IRP_MJ_CREATE_NAMED_PIPE 0x01
 #define IRP_MJ_CLOSE 0x02

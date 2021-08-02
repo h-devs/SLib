@@ -29,19 +29,6 @@ with this program. If not, see <http://www.gnu.org/licenses/>.
 #undef WIN32_NO_STATUS
 #include <ntstatus.h>
 
-#ifndef _WIN32_WINNT_WIN8
-typedef struct _FILE_ID_128 {
-	BYTE  Identifier[16];
-} FILE_ID_128, *PFILE_ID_128;
-#define _WIN32_WINNT_WIN8                   0x0602
-#endif
-#ifndef _WIN32_WINNT_WIN10
-#define _WIN32_WINNT_WIN10                  0x0A00 /* ABRACADABRA_THRESHOLD*/
-#endif
-#ifndef _WIN32_WINNT_WIN10_RS1
-#define _WIN32_WINNT_WIN10_RS1              0x0A00 /* ABRACADABRA_THRESHOLD*/
-#endif
-
 #include "fileinfo.h"
 #include "public.h"
 
@@ -68,8 +55,8 @@ extern "C" {
  */
 /** @{ */
 
-/** The current Dokan version (ver 1.2.0). \ref DOKAN_OPTIONS.Version */
-#define DOKAN_VERSION 140
+/** The current Dokan version (140 means ver 1.4.0). \ref DOKAN_OPTIONS.Version */
+#define DOKAN_VERSION 150
 /** Minimum Dokan version (ver 1.1.0) accepted. */
 #define DOKAN_MINIMUM_COMPATIBLE_VERSION 110
 /** Driver file name including the DOKAN_MAJOR_API_VERSION */
@@ -100,7 +87,12 @@ extern "C" {
 #define DOKAN_OPTION_WRITE_PROTECT 8
 /** Use network drive - Dokan network provider needs to be installed */
 #define DOKAN_OPTION_NETWORK 16
-/** Use removable drive */
+/**
+ * Use removable drive
+ * Be aware that on some environments, the userland application will be denied
+ * to communicate with the drive which will result in a unwanted unmount.
+ * \see <a href="https://github.com/dokan-dev/dokany/issues/843">Issue #843</a>
+ */
 #define DOKAN_OPTION_REMOVABLE 32
 /** Use mount manager */
 #define DOKAN_OPTION_MOUNT_MANAGER 64
@@ -115,16 +107,26 @@ extern "C" {
  */
 #define DOKAN_OPTION_ENABLE_NOTIFICATION_API 512
 /**
- * Whether to disable any oplock support on the volume.
- * Regular range locks are enabled regardless.
- */
-#define DOKAN_OPTION_DISABLE_OPLOCKS 1024
-/**
  * The advantage of the FCB GC approach is that it prevents filter drivers (Anti-virus)
  * from exponentially slowing down procedures like zip file extraction due to
  * repeatedly rebuilding state that they attach to the FCB header.
  */
 #define DOKAN_OPTION_ENABLE_FCB_GARBAGE_COLLECTION 2048
+/**
+ * Enable Case sensitive path.
+ * By default all path are case insensitive.
+ * For case sensitive: \dir\File & \diR\file are different files
+ * but for case insensitive they are the same.
+ */
+#define DOKAN_OPTION_CASE_SENSITIVE 4096
+/** Allows unmounting of network drive via explorer */
+#define DOKAN_OPTION_ENABLE_UNMOUNT_NETWORK_DRIVE 8192
+/**
+ * Forward the kernel driver global and volume logs to the userland.
+ * 
+ * This option is expected to be slow until IpcBatching is available on v2.x.x
+ */
+#define DOKAN_OPTION_DISPATCH_DRIVER_LOGS 16384
 
 /** @} */
 
@@ -153,6 +155,7 @@ typedef struct _DOKAN_OPTIONS {
    * Max timeout in milliseconds of each request before Dokan gives up to wait events to complete.
    * A timeout request is a sign that the userland implementation is no longer able to properly manage requests in time.
    * The driver will therefore unmount the device when a timeout trigger in order to keep the system stable.
+   * The default timeout value is 15 seconds.
    */
   ULONG Timeout;
   /** Allocation Unit Size of the volume. This will affect the file size. */
@@ -273,6 +276,8 @@ typedef struct _DOKAN_OPERATIONS {
   * Cleanup request before \ref CloseFile is called.
   *
   * When DOKAN_FILE_INFO.DeleteOnClose is \c TRUE, the file in Cleanup must be deleted.
+  * The function cannot fail therefore the filesystem need to ensure ahead
+  * that a the delete can safely happen during Cleanup. 
   * See DeleteFile documentation for explanation.
   *
   * \param FileName File path requested by the Kernel on the FileSystem.
@@ -388,7 +393,8 @@ typedef struct _DOKAN_OPERATIONS {
   * \brief FindFilesWithPattern Dokan API callback
   *
   * Same as \ref DOKAN_OPERATIONS.FindFiles but with a search pattern.\n
-  * The search pattern is a Windows MS-DOS-style expression. See \ref DokanIsNameInExpression .
+  * The search pattern is a Windows MS-DOS-style expression.
+  * It can contain wild cards and extended characters or none of them. See \ref DokanIsNameInExpression.
   *
   * \param PathName Path requested by the Kernel on the FileSystem.
   * \param SearchPattern Search pattern.
@@ -604,6 +610,10 @@ typedef struct _DOKAN_OPERATIONS {
   * save the \ref DOKAN_FILE_INFO#Context.
   * Before these methods are called, \ref ZwCreateFile may not be called.
   * (ditto \ref CloseFile and \ref Cleanup)
+  *
+  * VolumeName length can be anything that fit in the provided buffer.
+  * But some Windows component expect it to be no longer than 32 characters
+  * that why it is recommended to set a value under this limit.
   *
   * FileSystemName could be anything up to 10 characters.
   * But Windows check few feature availability based on file system name.
