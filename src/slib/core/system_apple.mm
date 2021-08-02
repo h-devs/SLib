@@ -129,6 +129,13 @@ namespace slib
 		return dir;
 	}
 
+	String System::getLocalAppDataDirectory()
+	{
+		String dir = getHomeDirectory() + "/Library/Application Support";
+		File::createDirectory(dir);
+		return dir;
+	}
+
 	String System::getTempDirectory()
 	{
 		NSString* path = NSTemporaryDirectory();
