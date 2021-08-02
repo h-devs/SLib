@@ -20,28 +20,49 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_STORAGE_OBJECT_TYPES
-#define CHECKHEADER_SLIB_STORAGE_OBJECT_TYPES
+#ifndef CHECKHEADER_SLIB_STORAGE_BLOCK_DEVICE
+#define CHECKHEADER_SLIB_STORAGE_BLOCK_DEVICE
 
-#include "../object_types.h"
+#include "definition.h"
+
+#include "../core/object.h"
+#include "../core/ptr.h"
+#include "../core/default_members.h"
 
 namespace slib
 {
-	namespace object_types
+
+	class SLIB_EXPORT IBlockDeviceInterface
 	{
+	};
 
-		enum {
-			Package_Storage = packages::Storage,
-			FileContext,
-			FileSystemProvider,
-			FileSystemHost,
-			FileSystemWrapper,
-			FileSystemLogger,
-			MirrorFileSystem,
-			BlockDevice
-		};
+	class SLIB_EXPORT BlockDeviceParam
+	{
+	public:
+		Ptr<IBlockDeviceInterface> m_interface;
 
-	}
+		sl_uint64 blockCount;
+
+	public:
+		BlockDeviceParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(BlockDeviceParam)
+
+	};
+
+	class SLIB_EXPORT BlockDevice : public Object
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		BlockDevice();
+
+		~BlockDevice();
+
+	public:
+
+	};
+
 }
 
 #endif

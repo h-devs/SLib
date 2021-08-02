@@ -20,21 +20,47 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_STORAGE_HEADER
-#define CHECKHEADER_SLIB_STORAGE_HEADER
+#ifndef CHECKHEADER_SLIB_STORAGE_WINSPD
+#define CHECKHEADER_SLIB_STORAGE_WINSPD
 
-#include "storage/storage.h"
-#include "storage/disk.h"
+#include "definition.h"
 
-#include "storage/file_system.h"
-#include "storage/file_system_logger.h"
-#include "storage/file_system_mirror.h"
-#include "storage/fuse.h"
-#include "storage/dokany.h"
+#ifdef SLIB_PLATFORM_IS_WIN32
 
-#include "storage/block_device.h"
-#include "storage/winspd.h"
+#include "block_device.h"
 
-#include "storage/ntfs.h"
+#include "../core/service_manager.h"
+
+namespace slib
+{
+
+	class SLIB_EXPORT WinspdParam : public BlockDeviceParam
+	{
+	public:
+		WinspdParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(WinspdParam)
+
+	};
+	
+	class SLIB_EXPORT Winspd
+	{
+	public:
+		static ServiceState getDriverState();
+
+		static sl_bool startDriver();
+
+		static sl_bool stopDriver();
+
+		static sl_bool install();
+
+	public:
+		static Ref<BlockDevice> create(const WinspdParam& param);
+
+	};
+
+}
+
+#endif
 
 #endif

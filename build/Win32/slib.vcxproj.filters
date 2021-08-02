@@ -1388,5 +1388,14 @@
     <ClCompile Include="..\..\src\slib\ui\dl_win32_user32.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\block_device.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\winspd.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\storage\winspd_install.cpp">
+      <Filter>src\storage</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,0 +1,87 @@
+[Version] 
+Signature = "$WINDOWS NT$" 
+Class = SCSIAdapter 
+ClassGuid = {4d36e97b-e325-11ce-bfc1-08002be10318} 
+CatalogFile.ntx86 = winspd-x86.cat 
+CatalogFile.ntamd64 = winspd-x64.cat 
+Provider = %MyCompanyName% 
+DriverVer = 12/22/2020,1.0.20357.0
+[Manufacturer] 
+%MyCompanyName% = model,ntx86,ntamd64 
+[model.ntx86] 
+%MyDescription% = install,%HardwareId% 
+[model.ntamd64] 
+%MyDescription% = install,%HardwareId% 
+[install.ntx86] 
+CopyFiles = sys.files.x86,dll.files.x86 
+[install.ntamd64] 
+CopyFiles = sys.files.x64,dll.files.x64,dll.files.wow64 
+[sys.files.x86] 
+winspd-x86.sys 
+[dll.files.x86] 
+winspd-x86.dll 
+[sys.files.x64] 
+winspd-x64.sys 
+[dll.files.x64] 
+winspd-x64.dll 
+[dll.files.wow64] 
+winspd-x86.dll 
+[install.ntx86.Services] 
+AddService = "WinSpd",%SPSVCINST_ASSOCSERVICE%,services.x86,eventlog.x86,"Application" 
+[install.ntamd64.Services] 
+AddService = "WinSpd",%SPSVCINST_ASSOCSERVICE%,services.x64,eventlog.x64,"Application" 
+[services.x86] 
+DisplayName = "WinSpd" 
+Description = "Windows Storage Proxy Driver" 
+ServiceType = %SERVICE_KERNEL_DRIVER% 
+StartType = %SERVICE_DEMAND_START% 
+ErrorControl = %SERVICE_ERROR_NORMAL% 
+ServiceBinary = %12%\winspd-x86.sys 
+AddReg = reg.services 
+[services.x64] 
+DisplayName = "WinSpd" 
+Description = "Windows Storage Proxy Driver" 
+ServiceType = %SERVICE_KERNEL_DRIVER% 
+StartType = %SERVICE_DEMAND_START% 
+ErrorControl = %SERVICE_ERROR_NORMAL% 
+ServiceBinary = %12%\winspd-x64.sys 
+AddReg = reg.services 
+[reg.services] 
+HKR,"Parameters","BusType",%REG_DWORD%,%BusTypeVirtual% 
+[eventlog.x86] 
+AddReg = reg.eventlog.x86 
+[eventlog.x64] 
+AddReg = reg.eventlog.x64 
+[reg.eventlog.x86] 
+HKR,,"EventMessageFile",%REG_EXPAND_SZ%,"%%SystemRoot%%\System32\winspd-x86.dll" 
+HKR,,"TypesSupported",%REG_DWORD%,7 
+[reg.eventlog.x64] 
+HKR,,"EventMessageFile",%REG_EXPAND_SZ%,"%%SystemRoot%%\System32\winspd-x64.dll" 
+HKR,,"TypesSupported",%REG_DWORD%,7 
+[SourceDisksFiles] 
+winspd-x86.sys = 1 
+winspd-x86.dll = 1 
+winspd-x64.sys = 1 
+winspd-x64.dll = 1 
+[SourceDisksNames] 
+1 = %MyDescription% 
+[DestinationDirs] 
+sys.files.x86 = 12 
+dll.files.x86 = 11 
+sys.files.x64 = 12 
+dll.files.x64 = 11 
+dll.files.wow64 = 16425 
+[Strings] 
+MyProductName = "WinSpd" 
+MyDescription = "Windows Storage Proxy Driver" 
+MyCompanyName = "Navimatics Corporation" 
+MyCopyright = "2018-2020 Bill Zissimopoulos" 
+MyVersion = 1.0.20357 
+HardwareId = "root\winspd" 
+SPSVCINST_ASSOCSERVICE = 0x00000002 
+SERVICE_KERNEL_DRIVER = 0x00000001 
+SERVICE_DEMAND_START = 0x3 
+SERVICE_ERROR_NORMAL = 0x1 
+REG_EXPAND_SZ=0x00020000 
+REG_DWORD=0x00010001 
+BusTypeVirtual=0xe 

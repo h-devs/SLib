@@ -2,6 +2,7 @@ zlib 1.2.11
 libjpeg 9d
 libpng 1.6.37
 zstd 1.4.9
+brotli 1.0.9
 lz4 1.9.3
 snappy 1.1.8
 lmdb 0.9.28
@@ -17,7 +18,11 @@ hiredis 0.14.0
 libcef 76.1.10
 rocksdb 6.16.4
 libmongoc 1.17.5
+
 npcap 1.50
+dokan 1.5.0.2000
+winspd 2021 Beta
+tap-windows 9.24
 
 # Header-File Library
 stb_image 2.19

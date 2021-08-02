@@ -20,28 +20,27 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_STORAGE_OBJECT_TYPES
-#define CHECKHEADER_SLIB_STORAGE_OBJECT_TYPES
-
-#include "../object_types.h"
+#include "slib/storage/block_device.h"
 
 namespace slib
 {
-	namespace object_types
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(BlockDeviceParam)
+
+	BlockDeviceParam::BlockDeviceParam()
 	{
-
-		enum {
-			Package_Storage = packages::Storage,
-			FileContext,
-			FileSystemProvider,
-			FileSystemHost,
-			FileSystemWrapper,
-			FileSystemLogger,
-			MirrorFileSystem,
-			BlockDevice
-		};
-
+		blockCount = 0;
 	}
-}
 
-#endif
+
+	SLIB_DEFINE_OBJECT(BlockDevice, Object)
+
+	BlockDevice::BlockDevice()
+	{
+	}
+
+	BlockDevice::~BlockDevice()
+	{
+	}
+
+}
