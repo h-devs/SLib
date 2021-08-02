@@ -132,14 +132,8 @@ namespace slib
 				Base::zeroMemory(&info, sizeof(info));
 				info.cbSize = sizeof(info);
 				if (GetMonitorInfoW(hMonitor, &info)) {
-					shcore::PROCESS_DPI_AWARENESS dpiAwareness = shcore::PROCESS_DPI_UNAWARE;
-					auto funcGetDpiAwareness = shcore::getApi_GetProcessDpiAwareness();
-					if (funcGetDpiAwareness) {
-						funcGetDpiAwareness(NULL, &dpiAwareness);
-					}
-					HDC hDC = CreateDCW(L"DISPLAY", dpiAwareness == shcore::PROCESS_SYSTEM_DPI_AWARE ? NULL : info.szDevice, NULL, NULL);
+					HDC hDC = CreateDCW(L"DISPLAY", info.szDevice, NULL, NULL);
 					if (hDC) {
-						sl_int32 x = 0, y = 0;
 						sl_uint32 width, height;
 						DEVMODEW dm;
 						Base::zeroMemory(&dm, sizeof(dm));
@@ -147,20 +141,11 @@ namespace slib
 						if (EnumDisplaySettingsW(info.szDevice, ENUM_CURRENT_SETTINGS, &dm)) {
 							width = (sl_uint32)(dm.dmPelsWidth);
 							height = (sl_uint32)(dm.dmPelsHeight);
-							if (dpiAwareness == shcore::PROCESS_SYSTEM_DPI_AWARE) {
-								MONITORINFO mi;
-								Base::zeroMemory(&mi, sizeof(mi));
-								mi.cbSize = sizeof(mi);
-								if (GetMonitorInfoW(hMonitor, &mi)) {
-									x = (sl_int32)(mi.rcMonitor.left * width / (mi.rcMonitor.right - mi.rcMonitor.left));
-									y = (sl_int32)(mi.rcMonitor.top * height / (mi.rcMonitor.bottom - mi.rcMonitor.top));
-								}
-							}
 						} else {
 							width = (sl_uint32)(GetDeviceCaps(hDC, HORZRES));
 							height = (sl_uint32)(GetDeviceCaps(hDC, VERTRES));
 						}
-						Ref<Image> image = helper->getImage(hDC, x, y, width, height);
+						Ref<Image> image = helper->getImage(hDC, 0, 0, width, height);
 						DeleteDC(hDC);
 						return image;
 					}
