@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04A9791726B78B9400BF8BC3 /* compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04A9791626B78B9400BF8BC3 /* compress.cpp */; };
 		26072FFC20D8F535004EB272 /* font_quartz.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26072FFB20D8F535004EB272 /* font_quartz.mm */; };
 		2607300020D98466004EB272 /* url_request_curl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26072FFF20D98466004EB272 /* url_request_curl.cpp */; };
 		2607301120DD22C9004EB272 /* rw_lock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2607301020DD22C8004EB272 /* rw_lock.cpp */; };
@@ -370,6 +371,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		04A9791626B78B9400BF8BC3 /* compress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = compress.cpp; sourceTree = "<group>"; };
 		260107851DACE89F00C40723 /* animation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = animation.cpp; sourceTree = "<group>"; };
 		260107871DACE8BB00C40723 /* bitmap_quartz.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = bitmap_quartz.mm; sourceTree = "<group>"; };
 		260107891DACE8C400C40723 /* canvas_quartz.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = canvas_quartz.mm; sourceTree = "<group>"; };
@@ -1044,6 +1046,7 @@
 				268A13031E7B16340048F2CE /* blowfish.cpp */,
 				D7C3BB1026AEF22900FD529D /* brotli.cpp */,
 				26A3DA8F228AAE4D0031CBDA /* chacha.cpp */,
+				04A9791626B78B9400BF8BC3 /* compress.cpp */,
 				26AFC60022B197E30034C634 /* crc32c.cpp */,
 				26B92D4F21D357AD003F6F82 /* des.cpp */,
 				262ED4E9228DEBEE0029F409 /* ecc.cpp */,
@@ -1621,6 +1624,7 @@
 				26D9D8661E96294F005F7BD3 /* canvas.cpp in Sources */,
 				26D9D8911E96295A005F7BD3 /* video_codec.cpp in Sources */,
 				26D9D8511E96292E005F7BD3 /* database_cursor.cpp in Sources */,
+				04A9791726B78B9400BF8BC3 /* compress.cpp in Sources */,
 				26D9D8961E962962005F7BD3 /* http_common.cpp in Sources */,
 				26D9D8411E9628E0005F7BD3 /* block_cipher.cpp in Sources */,
 				265A9360230478E300B155A2 /* time_unix.cpp in Sources */,

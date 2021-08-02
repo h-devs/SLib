@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04A9790D26B78B7000BF8BC3 /* compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04A9790C26B78B7000BF8BC3 /* compress.cpp */; };
 		26072FFE20D97B66004EB272 /* url_request_curl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26072FFD20D97B66004EB272 /* url_request_curl.cpp */; };
 		2607300E20DCE368004EB272 /* rw_lock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2607300D20DCE367004EB272 /* rw_lock.cpp */; };
 		260B73F5220D7DF600858EEA /* facebook.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 260B73F3220D7DF600858EEA /* facebook.cpp */; };
@@ -477,6 +478,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		04A9790C26B78B7000BF8BC3 /* compress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = compress.cpp; sourceTree = "<group>"; };
 		260272E51C81877F0079E2F2 /* asset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asset.cpp; sourceTree = "<group>"; };
 		26072FFD20D97B66004EB272 /* url_request_curl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = url_request_curl.cpp; sourceTree = "<group>"; };
 		2607300220D985BF004EB272 /* url_request_common.inc */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; path = url_request_common.inc; sourceTree = "<group>"; };
@@ -1562,6 +1564,7 @@
 				268A13011E7AE8BD0048F2CE /* blowfish.cpp */,
 				D7C3BAD826AEEBE900FD529D /* brotli.cpp */,
 				26A3DA8D228A08D40031CBDA /* chacha.cpp */,
+				04A9790C26B78B7000BF8BC3 /* compress.cpp */,
 				26AFC5FC22B05B580034C634 /* crc32c.cpp */,
 				26B92D4821D33E6E003F6F82 /* des.cpp */,
 				26A3DA95228B69890031CBDA /* ecc.cpp */,
@@ -2040,6 +2043,7 @@
 				266E66E121D7F68F00D92386 /* locale_apple.mm in Sources */,
 				26D9D9D31E96468D005F7BD3 /* select_view.cpp in Sources */,
 				260B73FE220DCB1D00858EEA /* oauth_ui.cpp in Sources */,
+				04A9790D26B78B7000BF8BC3 /* compress.cpp in Sources */,
 				265A937423051C1800B155A2 /* bitmap_ext.cpp in Sources */,
 				26D9D9791E96466A005F7BD3 /* pen.cpp in Sources */,
 				26D9D96E1E96466A005F7BD3 /* font_freetype.cpp in Sources */,
