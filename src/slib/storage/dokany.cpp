@@ -20,7 +20,7 @@
 *   THE SOFTWARE.
 */
 
-#include "slib/storage/definition.h"
+#include "slib/core/definition.h"
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 
@@ -29,19 +29,7 @@
 #define _EXPORTING
 #include "dokany/dokan.h"
 
-extern "C"
-{
-	void InitializeDokany();
-	void UninitializeDokany();
-}
-
-#define DOKANY_DRIVER_NAME "dokan1"
-
-#include "slib/core/service_manager.h"
 #include "slib/core/safe_static.h"
-
-#include "slib/core/win32/windows.h"
-
 #define TAG "DokanHost"
 #include "slib/storage/file_system_internal.h"
 
@@ -50,6 +38,16 @@ extern "C"
 #define DOKAN_ERROR_CODE(err) ((FileSystemError)(err) == FileSystemError::NotImplemented \
 								? STATUS_NOT_IMPLEMENTED \
 								: DokanNtStatusFromWin32((DWORD)err))
+
+#define DOKANY_DRIVER_NAME "dokan1"
+
+#pragma comment(lib, "dokany.lib")
+
+extern "C"
+{
+	void InitializeDokany();
+	void UninitializeDokany();
+}
 
 namespace slib
 {
