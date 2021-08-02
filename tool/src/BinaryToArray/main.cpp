@@ -53,6 +53,7 @@ int main(int argc, const char * argv[])
 		fileOutput = argv[3];
 	} else if (Base::equalsString(argv[1], "decompress")) {
 		if (argc != 4) {
+			Println("Invalid argument count!");
 			return -1;
 		}
 		flagCompressZlib = sl_true;
