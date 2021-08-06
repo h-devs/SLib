@@ -191,15 +191,20 @@ namespace slib
 	}
 
 
-	const char* DbIp::getCountryCode(const IPv4Address& _ipv4)
+	const char* DbIp::getCountryCode(const IPv4Address& _ipv4, sl_size depth)
 	{
 		sl_size index = 0;
 		sl_uint32 ipv4 = _ipv4.getInt();
 		if (BinarySearch::search(m_ipv4, m_countIPv4, ipv4, &index)) {
 			return m_ipv4[index].code;
-		} else if (index > 0) {
-			if (ipv4 >= m_ipv4[index - 1].start && ipv4 <= m_ipv4[index - 1].end) {
-				return m_ipv4[index - 1].code;
+		} else {
+			// deep search for overlapped ip ranges
+			for (sl_size i = 0; i < depth; i++) {
+				if (index > i) {
+					if (ipv4 >= m_ipv4[index - i - 1].start && ipv4 <= m_ipv4[index - i - 1].end) {
+						return m_ipv4[index - i - 1].code;
+					}
+				}
 			}
 		}
 		return sl_null;
@@ -227,14 +232,19 @@ namespace slib
 		}
 	};
 
-	const char* DbIp::getCountryCode(const IPv6Address& ipv6)
+	const char* DbIp::getCountryCode(const IPv6Address& ipv6, sl_size depth)
 	{
 		sl_size index = 0;
 		if (BinarySearch::search(m_ipv6, m_countIPv6, ipv6, &index)) {
 			return m_ipv6[index].code;
-		} else if (index > 0) {
-			if (ipv6 >= m_ipv6[index - 1].start && ipv6 <= m_ipv6[index - 1].end) {
-				return m_ipv6[index - 1].code;
+		} else {
+			// deep search for overlapped ip ranges
+			for (sl_size i = 0; i < depth; i++) {
+				if (index > i) {
+					if (ipv6 >= m_ipv6[index - i - 1].start && ipv6 <= m_ipv6[index - i - 1].end) {
+						return m_ipv6[index - i - 1].code;
+					}
+				}
 			}
 		}
 		return sl_null;

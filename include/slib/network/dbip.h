@@ -71,9 +71,10 @@ namespace slib
 		sl_bool parseFile(const StringParam& pathToCSVFile);
 
 	public:
-		const char* getCountryCode(const IPv4Address& ipv4);
+		// depth = 0 for exact match only, n for max. n overlapping ip range support
+		const char* getCountryCode(const IPv4Address& ipv4, sl_size depth = 1);
 		
-		const char* getCountryCode(const IPv6Address& ipv6);
+		const char* getCountryCode(const IPv6Address& ipv6, sl_size depth = 1);
 
 		List<IPv4Item> getIPv4Items(const StringParam& code);
 
