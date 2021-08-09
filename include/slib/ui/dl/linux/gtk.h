@@ -672,6 +672,13 @@ namespace slib
 		)
 		#define gtk_entry_set_visibility slib::gtk::getApi_gtk_entry_set_visibility()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_entry_set_width_chars,
+			void, ,
+			GtkEntry *entry,
+			gint n_chars
+		)
+		#define gtk_entry_set_width_chars slib::gtk::getApi_gtk_entry_set_width_chars()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_widget_modify_text,
 			void, ,
 			GtkWidget *widget,
@@ -679,6 +686,14 @@ namespace slib
 			const GdkColor *color
 		)
 		#define gtk_widget_modify_text slib::gtk::getApi_gtk_widget_modify_text()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_widget_override_background_color,
+			void, ,
+			GtkWidget *widget,
+			GtkStateFlags state,
+			const GdkRGBA *color
+		)
+		#define gtk_widget_override_background_color slib::gtk::getApi_gtk_widget_override_background_color()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_text_buffer_get_start_iter,
 			void, ,
@@ -1744,6 +1759,11 @@ namespace slib
 		)
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_style_context_add_class,
+			void, ,
+			GtkStyleContext *context,
+			const gchar     *class_name)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_style_context_remove_class,
 			void, ,
 			GtkStyleContext *context,
 			const gchar     *class_name)

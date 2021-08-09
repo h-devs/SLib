@@ -60,8 +60,11 @@ namespace slib
 					if (text.isNotEmpty()) {
 						gtk_entry_set_text(handle, text.getData());
 					}
-					if(view->isPassword()) {
+					if (view->isPassword()) {
 						gtk_entry_set_visibility(handle, 0);
+					}
+					if (view->getWidthMode() == SizeMode::Fixed) {
+						gtk_entry_set_width_chars(handle, 0);
 					}
 					setTextColor(view, view->getTextColor());
 					setGravity(view, view->getGravity());
@@ -337,7 +340,7 @@ namespace slib
 					GtkTextView* handle = m_handleTextView;
 					if (handle) {
 						gtk_text_view_set_left_margin(handle, inset.left);
-						gtk_text_view_set_right_margin (handle, inset.right);
+						gtk_text_view_set_right_margin(handle, inset.right);
 					}
 				}
 
