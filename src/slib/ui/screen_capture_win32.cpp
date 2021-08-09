@@ -175,6 +175,20 @@ namespace slib
 				return context.list;
 			}
 
+			BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
+			{
+				sl_uint32 *count = (sl_uint32*)lParam;
+				(*count)++;
+				return TRUE;
+			}
+
+			sl_uint32 GetScreensCount()
+			{
+				sl_uint32 count = 0;
+				EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, (LPARAM)&count);
+				return count;
+			}
+
 		}
 	}
 
@@ -204,6 +218,11 @@ namespace slib
 	List< Ref<Image> > ScreenCapture::takeScreenshotsFromAllMonitors()
 	{
 		return CaptureScreens();
+	}
+
+	sl_uint32 ScreenCapture::getScreensCount()
+	{
+		return GetScreensCount();
 	}
 
 }
