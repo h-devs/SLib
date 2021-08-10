@@ -965,56 +965,56 @@ namespace slib
 	};
 
 	template <class... ARGS>
-	String String::format(const StringParam& strFormat, ARGS&&... args) noexcept
+	SLIB_INLINE String String::format(const StringParam& strFormat, ARGS&&... args) noexcept
 	{
 		VariantEx params[] = {Forward<ARGS>(args)...};
 		return formatBy(strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
-	String16 String16::format(const StringParam& strFormat, ARGS&&... args) noexcept
+	SLIB_INLINE String16 String16::format(const StringParam& strFormat, ARGS&&... args) noexcept
 	{
 		VariantEx params[] = {Forward<ARGS>(args)...};
 		return formatBy(strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
-	String String::format(const Locale& locale, const StringParam& strFormat, ARGS&&... args) noexcept
+	SLIB_INLINE String String::format(const Locale& locale, const StringParam& strFormat, ARGS&&... args) noexcept
 	{
 		VariantEx params[] = {Forward<ARGS>(args)...};
 		return formatBy(locale, strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
-	String16 String16::format(const Locale& locale, const StringParam& strFormat, ARGS&&... args) noexcept
+	SLIB_INLINE String16 String16::format(const Locale& locale, const StringParam& strFormat, ARGS&&... args) noexcept
 	{
 		VariantEx params[] = {Forward<ARGS>(args)...};
 		return formatBy(locale, strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
-	String String::arg(ARGS&&... args) const noexcept
+	SLIB_INLINE String String::arg(ARGS&&... args) const noexcept
 	{
 		VariantEx params[] = {Forward<ARGS>(args)...};
 		return argBy(params, sizeof...(args));
 	}
 	
 	template <class... ARGS>
-	String16 String16::arg(ARGS&&... args) const noexcept
+	SLIB_INLINE String16 String16::arg(ARGS&&... args) const noexcept
 	{
 		VariantEx params[] = {Forward<ARGS>(args)...};
 		return argBy(params, sizeof...(args));
 	}
 	
 	template <class... ARGS>
-	String Atomic<String>::arg(ARGS&&... args) const noexcept
+	SLIB_INLINE String Atomic<String>::arg(ARGS&&... args) const noexcept
 	{
 		VariantEx params[] = {Forward<ARGS>(args)...};
 		return argBy(params, sizeof...(args));
 	}
 	
 	template <class... ARGS>
-	String16 Atomic<String16>::arg(ARGS&&... args) const noexcept
+	SLIB_INLINE String16 Atomic<String16>::arg(ARGS&&... args) const noexcept
 	{
 		VariantEx params[] = {Forward<ARGS>(args)...};
 		return argBy(params, sizeof...(args));

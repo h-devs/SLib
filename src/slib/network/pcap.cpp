@@ -63,6 +63,7 @@
 void InitNpcap();
 void FreeNpcap();
 #define NPCAP_DRIVER_NAME "NPCAP"
+#pragma comment(lib, "npcap.lib")
 #endif
 
 #if !defined(SLIB_PLATFORM_IS_WIN32)

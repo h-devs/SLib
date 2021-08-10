@@ -36,15 +36,7 @@
 #endif
 
 #ifdef KEYGEN_USE_OPENSSL
-
 #include <slib/crypto/openssl.h>
-
-#ifdef SLIB_PLATFORM_IS_WIN32
-#pragma comment(lib, "libcrypto_static.lib")
-#pragma comment(lib, "libssl_static.lib")
-#pragma comment(lib, "ws2_32.lib")
-#endif
-
 #endif
 
 namespace slib

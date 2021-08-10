@@ -720,7 +720,7 @@ namespace slib
 			}
 		}
 		if (ret.isEmpty()) {
-			return String::format("Unknown error: %d", errorCode);
+			return String::join("Unknown error: ", String::fromUint32(errorCode));
 		}
 		return ret;
 	}
