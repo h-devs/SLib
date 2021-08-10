@@ -335,7 +335,7 @@ namespace slib
 		sl_bool flagIPv6 = param.flagIPv6;
 		Socket& socket = param.socket;
 		if (socket.isNone()) {
-			if (param.bindAddress.port == 0) {
+			if (!(param.bindAddress.port)) {
 				return sl_null;
 			}
 			if (param.bindAddress.ip.isIPv6()) {
