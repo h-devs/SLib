@@ -361,7 +361,7 @@ namespace slib
 			return getTotalSize() - getHeaderSize();
 		}
 	
-public:
+	public:
 		void updateChecksum();
 		
 		sl_bool checkChecksum() const;
