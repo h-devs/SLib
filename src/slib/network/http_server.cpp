@@ -1186,7 +1186,7 @@ namespace slib
 		}
 		m_ioLoop = ioLoop;
 		if (param.port) {
-			if (!(addHttpBinding(param.addressBind, param.port))) {
+			if (!(addHttpBinding(param.bindAddress, param.port))) {
 				return sl_false;
 			}
 		}

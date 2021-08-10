@@ -297,7 +297,7 @@ namespace slib
 	class SLIB_EXPORT HttpServerParam
 	{
 	public:
-		IPAddress addressBind;
+		IPAddress bindAddress;
 		sl_uint16 port;
 		
 		sl_uint32 maxThreadsCount;
