@@ -1184,7 +1184,7 @@ namespace slib
 		if (ioLoop.isNull()) {
 			return sl_false;
 		}
-		m_ioLoop = ioLoop;
+		m_ioLoop = Move(ioLoop);
 		if (param.port) {
 			if (!(addHttpBinding(param.bindAddress, param.port))) {
 				return sl_false;
@@ -1208,16 +1208,17 @@ namespace slib
 			return sl_true;
 		}
 		Ref<AsyncIoLoop> loop = m_ioLoop;
-		if (loop.isNotNull()) {
-			Ref<ThreadPool> threadPool = ThreadPool::create();
-			if (threadPool.isNotNull()) {
-				threadPool->setMaximumThreadsCount(m_param.maxThreadsCount);
-				m_threadPool = threadPool;
-				loop->start();
-				return sl_true;
-			}
+		if (loop.isNull()) {
+			return sl_false;
 		}
-		return sl_false;
+		Ref<ThreadPool> threadPool = ThreadPool::create(0, m_param.maxThreadsCount);
+		if (threadPool.isNull()) {
+			return sl_false;
+		}
+		m_threadPool = Move(threadPool);
+		loop->start();
+		m_flagRunning = sl_true;
+		return sl_true;
 	}
 
 	void HttpServer::release()
