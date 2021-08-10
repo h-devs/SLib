@@ -70,6 +70,8 @@ namespace slib
 		// Not thread safe
 		sl_bool parseFile(const StringParam& pathToCSVFile);
 
+		void clearAll();
+
 	public:
 		// depth = 0 for exact match only, n for max. n overlapping ip range support
 		const char* getCountryCode(const IPv4Address& ipv4, sl_size depth = 1);

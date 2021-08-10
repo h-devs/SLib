@@ -43,6 +43,7 @@ namespace slib
 
 	DbIp::DbIp()
 	{
+		clearAll();
 	}
 
 	DbIp::~DbIp()
@@ -188,6 +189,17 @@ namespace slib
 			return parse(mem.getData(), mem.getSize());
 		}
 		return sl_false;
+	}
+
+	void DbIp::clearAll()
+	{
+		m_ipv4 = sl_null;
+		m_countIPv4 = 0;
+		m_listIPv4.setNull();
+
+		m_ipv6 = sl_null;
+		m_countIPv6 = 0;
+		m_listIPv6.setNull();
 	}
 
 
