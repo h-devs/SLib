@@ -22,6 +22,7 @@
 
 #include "slib/network/tcpip.h"
 #include "slib/network/tcpip_fragment.h"
+#include "slib/network/netbios.h"
 
 #include "slib/core/mio.h"
 
@@ -490,5 +491,72 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
+
+	NetBIOS_SessionMessage::NetBIOS_SessionMessage() noexcept
+	{
+		reset();
+	}
+
+	NetBIOS_SessionMessage::~NetBIOS_SessionMessage() noexcept
+	{
+	}
+
+	sl_int32 NetBIOS_SessionMessage::read(const Socket& socket) noexcept
+	{
+		if (m_sizeReadHeader < sizeof(m_bufHeader)) {
+			sl_int32 n = socket.receive(m_bufHeader + m_sizeReadHeader, sizeof(m_bufHeader) - m_sizeReadHeader);
+			if (n > 0) {
+				m_sizeReadHeader += n;
+				if (m_sizeReadHeader >= 1) {
+					if (*m_bufHeader != 0) {
+						// not sessions message
+						return SLIB_IO_ERROR;
+					}
+					if (m_sizeReadHeader >= sizeof(m_bufHeader)) {
+						sizeMessage = SLIB_MAKE_DWORD(0, m_bufHeader[1], m_bufHeader[2], m_bufHeader[3]);
+						if (!sizeMessage) {
+							return SLIB_IO_ENDED;
+						}
+						if (sizeMessage > sizeof(m_bufMessage)) {
+							if (m_memMessage.getSize() < sizeMessage) {
+								if (!(m_memMessage.setSize(sizeMessage))) {
+									return SLIB_IO_ERROR;
+								}
+							}
+							message = (sl_uint8*)(m_memMessage.getData());
+						} else {
+							message = m_bufMessage;
+						}
+					}
+				}
+			} else if (n == SLIB_IO_ENDED) {
+				return SLIB_IO_ERROR;
+			}
+			return n;
+		} else {
+			if (m_sizeReadMessage >= sizeMessage) {
+				return SLIB_IO_ERROR;
+			}
+			sl_int32 n = socket.receive(message + m_sizeReadMessage, sizeMessage - m_sizeReadMessage);
+			if (n > 0) {
+				m_sizeReadMessage += n;
+				if (m_sizeReadMessage >= sizeMessage) {
+					return SLIB_IO_ENDED;
+				}
+			} else if (n == SLIB_IO_ENDED) {
+				return SLIB_IO_ERROR;
+			}
+			return n;
+		}
+	}
+
+	void NetBIOS_SessionMessage::reset() noexcept
+	{
+		message = m_bufMessage;
+		sizeMessage = 0;
+		m_sizeReadHeader = 0;
+		m_sizeReadMessage = 0;
+	}
+
 }

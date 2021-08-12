@@ -20,50 +20,41 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_NETWORK_HEADER
-#define CHECKHEADER_SLIB_NETWORK_HEADER
+#ifndef CHECKHEADER_SLIB_NETWORK_NETBIOS
+#define CHECKHEADER_SLIB_NETWORK_NETBIOS
 
-#include "network/constants.h"
+#include "socket.h"
 
-#include "network/mac_address.h"
-#include "network/ip_address.h"
-#include "network/socket_address.h"
+#include "../core/memory.h"
 
-#include "network/os.h"
-#include "network/socket.h"
-#include "network/async.h"
-#include "network/event.h"
+namespace slib
+{
 
-#include "network/tcpip.h"
-#include "network/tcpip_fragment.h"
-#include "network/dns.h"
-#include "network/icmp.h"
-#include "network/nat.h"
-#include "network/ethernet.h"
-#include "network/arp.h"
-#include "network/smb.h"
-#include "network/netbios.h"
-#include "network/packet_analyzer.h"
+	class SLIB_EXPORT NetBIOS_SessionMessage
+	{
+	public:
+		sl_uint8 * message;
+		sl_uint32 sizeMessage;
 
-#include "network/url.h"
-#include "network/url_request.h"
-#include "network/curl.h"
-#include "network/http.h"
-#include "network/stun.h"
+	public:
+		NetBIOS_SessionMessage() noexcept;
 
-#include "network/capture.h"
-#include "network/pcap.h"
-#include "network/npcap.h"
-#include "network/tap.h"
+		~NetBIOS_SessionMessage() noexcept;
 
-#include "network/p2p.h"
-#include "network/pseudo_tcp.h"
-#include "network/pseudo_tcp_message.h"
-#include "network/ipc.h"
+	public:
+		sl_int32 read(const Socket& socket) noexcept;
 
-#include "network/dbip.h"
+		void reset() noexcept;
 
-#include "network/json.h"
-#include "network/serialize.h"
+	private:
+		sl_uint8 m_bufHeader[4];
+		sl_uint32 m_sizeReadHeader;
+		sl_uint8 m_bufMessage[65536];
+		Memory m_memMessage;
+		sl_uint32 m_sizeReadMessage;
+
+	};
+
+}
 
 #endif
