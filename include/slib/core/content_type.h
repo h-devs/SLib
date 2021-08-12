@@ -118,7 +118,13 @@ namespace slib
 	public:
 		static String getFromFileExtension(const String& fileExt);
 		
-		static sl_bool equalsContentTypeExceptParams(const String& type1, const String& type2);
+		static String getFromFileExtension(const String& fileExt, const String& def);
+
+		static String getFromFilePath(const StringParam& path);
+
+		static String getFromFilePath(const StringParam& path, const String& def);
+
+		static sl_bool equalsContentTypeExceptParams(const StringParam& type1, const StringParam& type2);
 		
 	};
 

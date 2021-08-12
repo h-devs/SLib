@@ -23,6 +23,7 @@
 #include "slib/core/content_type.h"
 
 #include "slib/core/hash_map.h"
+#include "slib/core/file.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -145,16 +146,31 @@ namespace slib
 
 	String ContentTypeHelper::getFromFileExtension(const String& fileExt)
 	{
+		return getFromFileExtension(fileExt, sl_null);
+	}
+
+	String ContentTypeHelper::getFromFileExtension(const String& fileExt, const String& def)
+	{
 		SLIB_SAFE_LOCAL_STATIC(priv::content_type::Mapping, t)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(t)) {
 			return String::null();
 		}
-		return t.maps.getValue(fileExt.toLower());
+		return t.maps.getValue(fileExt.toLower(), def);
 	}
 
-	sl_bool ContentTypeHelper::equalsContentTypeExceptParams(const String& _type1, const String& _type2)
+	String ContentTypeHelper::getFromFilePath(const StringParam& path)
 	{
-		String type1 = _type1;
+		return getFromFilePath(path, sl_null);
+	}
+
+	String ContentTypeHelper::getFromFilePath(const StringParam& path, const String& def)
+	{
+		return getFromFileExtension(File::getFileExtension(path), def);
+	}
+
+	sl_bool ContentTypeHelper::equalsContentTypeExceptParams(const StringParam& _type1, const StringParam& _type2)
+	{
+		StringData type1 = _type1;
 		{
 			sl_reg index = type1.indexOf(';');
 			if (index < 0) {
@@ -163,7 +179,7 @@ namespace slib
 				type1 = type1.substring(0, index).trim();
 			}
 		}
-		String type2 = _type2;
+		StringData type2 = _type2;
 		{
 			sl_reg index = type2.indexOf(';');
 			if (index < 0) {
