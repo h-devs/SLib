@@ -383,6 +383,126 @@ namespace slib
 		return open(SocketType::PacketDatagram, (sl_uint32)linkProtocol);
 	}
 
+	Socket Socket::openTcp(const SocketAddress& bindAddress) noexcept
+	{
+		if (bindAddress.port) {
+			Socket socket;
+			if (bindAddress.ip.isIPv6()) {
+				socket = openTcp_IPv6();
+			} else {
+				socket = openTcp();
+			}
+			if (socket.isOpened()) {
+				if (socket.bind(bindAddress)) {
+					return socket;
+				}
+			}
+		}
+		return SLIB_SOCKET_INVALID_HANDLE;
+	}
+
+	Socket Socket::openTcp_IPv6(const SocketAddress& bindAddress) noexcept
+	{
+		if (bindAddress.port) {
+			Socket socket = openTcp_IPv6();
+			if (socket.isOpened()) {
+				if (socket.bind(bindAddress)) {
+					return socket;
+				}
+			}
+		}
+		return SLIB_SOCKET_INVALID_HANDLE;
+	}
+
+	Socket Socket::openTcp_Listen(const SocketAddress& address) noexcept
+	{
+		Socket socket = openTcp(address);
+		if (socket.isOpened()) {
+			if (socket.listen()) {
+				return socket;
+			}
+		}
+		return SLIB_SOCKET_INVALID_HANDLE;
+	}
+
+	Socket Socket::openTcp_IPv6_Listen(const SocketAddress& address) noexcept
+	{
+		Socket socket = openTcp_IPv6(address);
+		if (socket.isOpened()) {
+			if (socket.listen()) {
+				return socket;
+			}
+		}
+		return SLIB_SOCKET_INVALID_HANDLE;
+	}
+
+	Socket Socket::openTcp_Connect(const SocketAddress& address) noexcept
+	{
+		if (address.isValid()) {
+			Socket socket;
+			if (address.ip.isIPv6()) {
+				socket = Socket::openTcp_IPv6();
+			} else {
+				socket = Socket::openTcp();
+			}
+			if (socket.isOpened()) {
+				if (socket.connect(address)) {
+					return socket;
+				}
+			}
+		}
+		return SLIB_SOCKET_INVALID_HANDLE;
+	}
+
+	Socket Socket::openTcp_ConnectAndWait(const SocketAddress& address, sl_int32 timeout) noexcept
+	{
+		if (address.isValid()) {
+			Socket socket;
+			if (address.ip.isIPv6()) {
+				socket = Socket::openTcp_IPv6();
+			} else {
+				socket = Socket::openTcp();
+			}
+			if (socket.isOpened()) {
+				if (socket.connectAndWait(address, timeout)) {
+					return socket;
+				}
+			}
+		}
+		return SLIB_SOCKET_INVALID_HANDLE;
+	}
+
+	Socket Socket::openUdp(const SocketAddress& bindAddress) noexcept
+	{
+		if (bindAddress.port) {
+			Socket socket;
+			if (bindAddress.ip.isIPv6()) {
+				socket = openUdp_IPv6();
+			} else {
+				socket = openUdp();
+			}
+			if (socket.isOpened()) {
+				if (socket.bind(bindAddress)) {
+					return socket;
+				}
+			}
+		}
+		return SLIB_SOCKET_INVALID_HANDLE;
+	}
+
+	Socket Socket::openUdp_IPv6(const SocketAddress& bindAddress) noexcept
+	{
+		if (bindAddress.port) {
+			Socket socket = openUdp_IPv6();
+			if (socket.isOpened()) {
+				if (socket.bind(bindAddress)) {
+					return socket;
+				}
+			}
+		}
+		return SLIB_SOCKET_INVALID_HANDLE;
+	}
+
 	String Socket::getTypeText(SocketType type) noexcept
 	{
 		switch (type) {
@@ -1100,6 +1220,25 @@ namespace slib
 	}
 
 
+	sl_bool Socket::setOption_ExclusiveAddressUse(sl_bool flagEnable) const noexcept
+	{
+#ifdef SO_EXCLUSIVEADDRUSE
+		return setOption(SOL_SOCKET, SO_EXCLUSIVEADDRUSE, flagEnable ? 1 : 0);
+#else
+		return sl_false;
+#endif
+	}
+
+	sl_bool Socket::getOption_ExclusiveAddressUse() const noexcept
+	{
+#ifdef SO_EXCLUSIVEADDRUSE
+		return getOption(SOL_SOCKET, SO_EXCLUSIVEADDRUSE) != 0;
+#else
+		return sl_false;
+#endif
+	}
+
+	
 	sl_bool Socket::setOption_ReuseAddress(sl_bool flagEnable) const noexcept
 	{
 		return setOption(SOL_SOCKET, SO_REUSEADDR, flagEnable ? 1 : 0);
@@ -1110,7 +1249,7 @@ namespace slib
 		return getOption(SOL_SOCKET, SO_REUSEADDR) != 0;
 	}
 
-		
+	
 	sl_bool Socket::setOption_ReusePort(sl_bool flagEnable) const noexcept
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_ANDROID) || defined(SLIB_PLATFORM_IS_TIZEN)
