@@ -566,6 +566,9 @@ namespace slib
 		
 		String toString(const TimeZone& zone = Time::LocalZone) const noexcept;
 
+		// ISO 8601 (UTC): YYYY-MM-DDTHH:mm:ss.sssZ
+		String toISOString() const noexcept;
+
 		String getDateString(const TimeZone& zone = Time::LocalZone) const noexcept;
 
 		String getDateString(sl_char8 delimiter, const TimeZone& zone = Time::LocalZone) const noexcept;

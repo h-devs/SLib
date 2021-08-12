@@ -1313,19 +1313,59 @@ namespace slib
 	{
 		TimeComponents d;
 		get(d, zone);
-		StringBuffer sb;
-		sb.add(String::fromInt32(d.year, 10, 4));
-		sb.addStatic("-");
-		sb.add(String::fromInt32(d.month, 10, 2));
-		sb.addStatic("-");
-		sb.add(String::fromInt32(d.day, 10, 2));
-		sb.addStatic(" ");
-		sb.add(String::fromInt32(d.hour, 10, 2));
-		sb.addStatic(":");
-		sb.add(String::fromInt32(d.minute, 10, 2));
-		sb.addStatic(":");
-		sb.add(String::fromInt32(d.second, 10, 2));
-		return sb.merge();
+		char s[19];
+		s[0] = (char)('0' + ((d.year / 1000) % 10));
+		s[1] = (char)('0' + ((d.year / 100) % 10));
+		s[2] = (char)('0' + ((d.year / 10) % 10));
+		s[3] = (char)('0' + (d.year % 10));
+		s[4] = '-';
+		s[5] = (char)('0' + ((d.month / 10) % 10));
+		s[6] = (char)('0' + (d.month % 10));
+		s[7] = '-';
+		s[8] = (char)('0' + ((d.day / 10) % 10));
+		s[9] = (char)('0' + (d.day % 10));
+		s[10] = ' ';
+		s[11] = (char)('0' + ((d.hour / 10) % 10));
+		s[12] = (char)('0' + (d.hour % 10));
+		s[13] = ':';
+		s[14] = (char)('0' + ((d.minute / 10) % 10));
+		s[15] = (char)('0' + (d.minute % 10));
+		s[16] = ':';
+		s[17] = (char)('0' + ((d.second / 10) % 10));
+		s[18] = (char)('0' + (d.second % 10));
+		return String(s, 19);
+	}
+
+	String Time::toISOString() const noexcept
+	{
+		TimeComponents d;
+		get(d, TimeZone::UTC());
+		char s[24];
+		s[0] = (char)('0' + ((d.year / 1000) % 10));
+		s[1] = (char)('0' + ((d.year / 100) % 10));
+		s[2] = (char)('0' + ((d.year / 10) % 10));
+		s[3] = (char)('0' + (d.year % 10));
+		s[4] = '-';
+		s[5] = (char)('0' + ((d.month / 10) % 10));
+		s[6] = (char)('0' + (d.month % 10));
+		s[7] = '-';
+		s[8] = (char)('0' + ((d.day / 10) % 10));
+		s[9] = (char)('0' + (d.day % 10));
+		s[10] = 'T';
+		s[11] = (char)('0' + ((d.hour / 10) % 10));
+		s[12] = (char)('0' + (d.hour % 10));
+		s[13] = ':';
+		s[14] = (char)('0' + ((d.minute / 10) % 10));
+		s[15] = (char)('0' + (d.minute % 10));
+		s[16] = ':';
+		s[17] = (char)('0' + ((d.second / 10) % 10));
+		s[18] = (char)('0' + (d.second % 10));
+		s[19] = '.';
+		s[20] = (char)('0' + ((d.milliseconds / 100) % 10));
+		s[21] = (char)('0' + ((d.milliseconds / 10) % 10));
+		s[22] = (char)('0' + (d.milliseconds % 10));
+		s[23] = 'Z';
+		return String(s, 24);
 	}
 	
 	String Time::getDateString(const TimeZone& zone) const noexcept
@@ -1337,26 +1377,34 @@ namespace slib
 	{
 		TimeComponents d;
 		get(d, zone);
-		StringBuffer sb;
-		sb.add(String::fromInt32(d.year, 10, 4));
-		sb.addStatic(&delimiter, 1);
-		sb.add(String::fromInt32(d.month, 10, 2));
-		sb.addStatic(&delimiter, 1);
-		sb.add(String::fromInt32(d.day, 10, 2));
-		return sb.merge();
+		char s[10];
+		s[0] = (char)('0' + ((d.year / 1000) % 10));
+		s[1] = (char)('0' + ((d.year / 100) % 10));
+		s[2] = (char)('0' + ((d.year / 10) % 10));
+		s[3] = (char)('0' + (d.year % 10));
+		s[4] = '-';
+		s[5] = (char)('0' + ((d.month / 10) % 10));
+		s[6] = (char)('0' + (d.month % 10));
+		s[7] = '-';
+		s[8] = (char)('0' + ((d.day / 10) % 10));
+		s[9] = (char)('0' + (d.day % 10));
+		return String(s, 10);
 	}
 	
 	String Time::getTimeString(const TimeZone& zone) const noexcept
 	{
 		TimeComponents d;
 		get(d, zone);
-		StringBuffer sb;
-		sb.add(String::fromInt32(d.hour, 10, 2));
-		sb.addStatic(":");
-		sb.add(String::fromInt32(d.minute, 10, 2));
-		sb.addStatic(":");
-		sb.add(String::fromInt32(d.second, 10, 2));
-		return sb.merge();
+		char s[8];
+		s[0] = (char)('0' + ((d.hour / 10) % 10));
+		s[1] = (char)('0' + (d.hour % 10));
+		s[2] = ':';
+		s[3] = (char)('0' + ((d.minute / 10) % 10));
+		s[4] = (char)('0' + (d.minute % 10));
+		s[5] = ':';
+		s[6] = (char)('0' + ((d.second / 10) % 10));
+		s[7] = (char)('0' + (d.second % 10));
+		return String(s, 8);
 	}
 	
 	String Time::getPeriodString(const Time& minUnit, const Time& maxUnit, const Locale& _locale) const noexcept
@@ -2120,8 +2168,15 @@ namespace slib
 				TimeComponents comps;
 				sl_reg ret = ParseComponents(&comps, sz, i, n);
 				if (ret != SLIB_PARSE_ERROR) {
-					if (_out) {
-						_out->set(comps);
+					if (ret > 0 && (sl_size)ret < n && sz[ret] == 'Z') {
+						ret++;
+						if (_out) {
+							_out->set(comps, TimeZone::UTC());
+						}
+					} else {
+						if (_out) {
+							_out->set(comps);
+						}
 					}
 				}
 				return ret;
