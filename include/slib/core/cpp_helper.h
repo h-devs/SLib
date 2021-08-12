@@ -63,6 +63,22 @@ namespace slib
 	}
 
 	template <class T>
+	class MoveT : public T
+	{
+	public:
+		MoveT(T&& other) noexcept: T(Move(other)) {}
+
+		MoveT(const MoveT& other) noexcept: T(Move(*((T*)&other))) {}
+
+	public:
+		T&& release() const noexcept
+		{
+			return static_cast<T&&>(*((T*)this));
+		}
+
+	};
+	
+	template <class T>
 	constexpr T&& Forward(typename RemoveReference<T>::Type& v)
 	{
 		return static_cast<T&&>(v);

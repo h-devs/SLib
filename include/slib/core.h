@@ -55,7 +55,6 @@
 #include "core/property.h"
 #include "core/function.h"
 #include "core/promise.h"
-#include "core/move_t.h"
 
 #include "core/string.h"
 #include "core/string_cast.h"

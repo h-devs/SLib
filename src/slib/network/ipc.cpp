@@ -29,7 +29,6 @@
 #include "slib/core/file.h"
 #include "slib/core/thread.h"
 #include "slib/core/time_counter.h"
-#include "slib/core/move_t.h"
 #include "slib/core/serialize/variable_length_integer.h"
 #include "slib/core/serialize/buffer.h"
 
@@ -91,17 +90,15 @@ namespace slib
 					if (targetName.isNotEmpty()) {
 						if (data.isNotNull()) {
 							if (m_threads.getCount() < m_maxThreadsCount) {
-								Socket socket = Socket::openDomainStream();
+								MoveT<Socket> socket = Socket::openDomainStream();
 								if (socket.isOpened()) {
-									MoveT<Socket> _socket(Move(socket));
 									auto thiz = ToWeakRef(this);
-									Ref<Thread> thread = Thread::create([_socket, thiz, this, targetName, data, callbackResponse]() {
+									Ref<Thread> thread = Thread::create([socket, thiz, this, targetName, data, callbackResponse]() {
 										auto ref = ToRef(thiz);
 										if (ref.isNull()) {
 											callbackResponse(sl_null, 0);
 											return;
 										}
-										Socket socket = _socket.release();
 										processSending(socket, targetName, data, callbackResponse);
 									});
 									if (thread.isNotNull()) {
@@ -320,16 +317,14 @@ namespace slib
 					while (thread->isNotStopping()) {
 						if (m_threads.getCount() < m_maxThreadsCount) {
 							String address;
-							Socket socket = m_socketServer.acceptDomain(address);
+							MoveT<Socket> socket = m_socketServer.acceptDomain(address);
 							if (socket.isOpened()) {
-								MoveT<Socket> _socket(Move(socket));
 								auto thiz = ToWeakRef(this);
-								Ref<Thread> threadNew = Thread::create([_socket, thiz, this]() {
+								Ref<Thread> threadNew = Thread::create([socket, thiz, this]() {
 									auto ref = ToRef(thiz);
 									if (ref.isNull()) {
 										return;
 									}
-									Socket socket = _socket.release();
 									processReceiving(socket);
 								});
 								if (threadNew.isNotNull()) {
