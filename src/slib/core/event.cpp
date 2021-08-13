@@ -163,7 +163,7 @@ namespace slib
 		}
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 		DWORD dwRet = WaitForSingleObjectEx(m_handle, timeout >= 0 ? timeout : INFINITE, TRUE);
-		return dwRet != WAIT_TIMEOUT;
+		return dwRet == WAIT_OBJECT_0;
 #else
 		return m_handle->wait(timeout);
 #endif
