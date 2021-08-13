@@ -34,8 +34,10 @@ namespace slib
 	class SLIB_EXPORT FilePathSegments
 	{
 	public:
+		sl_bool flagStartsWithSlash;
+		sl_bool flagEndsWithSlash;
 		sl_uint32 parentLevel;
-		List<String> segments;
+		List<StringView> segments;
 	
 	public:
 		FilePathSegments() noexcept;
@@ -43,10 +45,13 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FilePathSegments)
 
 	public:
-		void parsePath(const StringParam& path) noexcept;
+		void parsePath(const String& path) noexcept;
 
 		String buildPath() const noexcept;
 	
+	private:
+		String m_path;
+
 	};
 
 

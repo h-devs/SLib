@@ -763,7 +763,8 @@ namespace slib
 	String File::findParentPathContainingFile(const StringParam& basePath, const StringParam& filePath, sl_uint32 nDeep) noexcept
 	{
 		FilePathSegments segments;
-		segments.parsePath(basePath);
+		segments.parsePath(basePath.toString());
+		segments.flagEndsWithSlash = sl_false;
 		if (nDeep > segments.segments.getCount()) {
 			nDeep = (sl_uint32)(segments.segments.getCount());
 		}
@@ -782,18 +783,35 @@ namespace slib
 	
 	FilePathSegments::FilePathSegments() noexcept
 	{
+		flagStartsWithSlash = sl_false;
+		flagEndsWithSlash = sl_false;
 		parentLevel = 0;
 	}
 
-	void FilePathSegments::parsePath(const StringParam& _path) noexcept
+	void FilePathSegments::parsePath(const String& path) noexcept
 	{
-		StringData path(_path);
+		m_path = path;
 
 		parentLevel = 0;
 		segments.setNull();
 
 		sl_char8* buf = path.getData();
 		sl_size len = path.getLength();
+		if (len && (buf[0] == '/' || buf[0] == '\\')) {
+			flagStartsWithSlash = sl_true;
+			buf++;
+			len--;
+		} else {
+			flagStartsWithSlash = sl_false;
+		}
+		if (len && (buf[len - 1] == '/' || buf[len - 1] == '\\')) {
+			flagEndsWithSlash = sl_true;
+			buf++;
+			len--;
+		} else {
+			flagEndsWithSlash = sl_false;
+		}
+
 		sl_size pos = 0;
 		sl_size start = 0;
 		for (; pos <= len; pos++) {
@@ -804,21 +822,20 @@ namespace slib
 				ch = buf[pos];
 			}
 			if (ch == '/' || ch == '\\') {
-				if (pos == 0) {
-					segments.add_NoLock(sl_null);
-				} else {
-					sl_size n = pos - start;
-					if (n > 0) {
-						if (n == 1 && buf[start] == '.') {
-						} else if (n == 2 && buf[start] == '.' && buf[start + 1] == '.') {
-							if (segments.getCount() > 0) {
-								segments.popBack_NoLock();
-							} else {
-								parentLevel++;
-							}
+				sl_size n = pos - start;
+				if (n > 0) {
+					StringView segment(buf + start, n);
+					segment = segment.trim();
+					n = segment.getLength();
+					if (n == 1 && segment[0] == '.') {
+					} else if (n == 2 && segment[0] == '.' && segment[1] == '.') {
+						if (segments.isNotEmpty()) {
+							segments.popBack_NoLock();
 						} else {
-							segments.add_NoLock(String(buf + start, n));
+							parentLevel++;
 						}
+					} else {
+						segments.add_NoLock(segment);
 					}
 				}
 				start = pos + 1;
@@ -829,6 +846,9 @@ namespace slib
 	String FilePathSegments::buildPath() const noexcept
 	{
 		StringBuffer ret;
+		if (flagStartsWithSlash) {
+			ret.addStatic("/");
+		}
 		sl_bool flagFirst = sl_true;
 		{
 			for (sl_uint32 i = 0; i < parentLevel; i++) {
@@ -840,14 +860,17 @@ namespace slib
 			}
 		}
 		{
-			ListElements<String> list(segments);
+			ListElements<StringView> list(segments);
 			for (sl_size i = 0; i < list.count; i++) {
 				if (!flagFirst) {
 					ret.addStatic("/");
 				}
-				ret.add(list[i]);
+				ret.addStatic(list[i].getData(), list[i].getLength());
 				flagFirst = sl_false;
 			}
+		}
+		if (flagEndsWithSlash) {
+			ret.addStatic("/");
 		}
 		return ret.merge();
 	}
