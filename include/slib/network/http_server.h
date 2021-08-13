@@ -293,6 +293,28 @@ namespace slib
 		void ALL(const String& path, const Function<Variant(HttpServerContext*)>& onRequest);
 		
 	};
+
+	class SLIB_EXPORT WebDavItemProperty
+	{
+	public:
+		String displayName;
+		sl_bool flagCollection;
+		Time creationTime;
+		Time lastModifiedTime;
+		sl_uint64 contentLength;
+		String contentType;
+
+	public:
+		WebDavItemProperty();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(WebDavItemProperty)
+
+	public:
+		sl_bool setFromFile(const StringParam& path);
+
+		static HashMap<String, WebDavItemProperty> getFiles(const StringParam& path);
+
+	};
 	
 	class SLIB_EXPORT HttpServerParam
 	{
@@ -320,6 +342,8 @@ namespace slib
 		sl_bool flagUseCacheControl;
 		sl_bool flagCacheControlNoCache;
 		sl_uint32 cacheControlMaxAge;
+
+		sl_bool flagSupportWebDAV;
 		
 		sl_bool flagLogDebug;
 		
@@ -328,6 +352,10 @@ namespace slib
 		Function<Variant(HttpServerContext*)> onRequest;
 		Function<Variant(HttpServerContext*)> onPreRequest;
 		Function<void(HttpServerContext*)> onPostRequest;
+
+		// WebDav
+		Function<sl_bool(HttpServerContext*, const String& path, WebDavItemProperty& prop)> onGetWebDavItem;
+		Function<HashMap<String, WebDavItemProperty>(HttpServerContext*, const String& path)> onGetWebDavItems;
 
 		sl_bool flagAutoStart;
 		
@@ -378,12 +406,25 @@ namespace slib
 		void processRequest(HttpServerContext* context, HttpServerConnection* connection);
 		
 		void processRequest(HttpServerContext* context, HttpServerConnection* connection, const Variant& response);
+
+		sl_bool processResource(HttpServerContext* context);
+
+		sl_bool processResource(HttpServerContext* context, const String& path);
 		
 		virtual sl_bool processAsset(HttpServerContext* context, const String& path);
 		
 		sl_bool processFile(HttpServerContext* context, const String& path);
 		
 		sl_bool processRangeRequest(HttpServerContext* context, sl_uint64 totalLength, const String& range, sl_uint64& outStart, sl_uint64& outLength);
+
+		sl_bool processWebDav_PROPFIND(HttpServerContext* context);
+
+		void processWebDav_PROPFIND_Response(HttpServerContext* context, const String& path, const String& name, const WebDavItemProperty& prop);
+
+		virtual sl_bool getWebDavItem(HttpServerContext* context, const String& path, WebDavItemProperty& prop);
+
+		virtual HashMap<String, WebDavItemProperty> getWebDavItems(HttpServerContext* context, const String& path);
+
 		
 		virtual Ref<HttpServerConnection> addConnection(const Ref<AsyncStream>& stream, const SocketAddress& remoteAddress, const SocketAddress& localAddress);
 		

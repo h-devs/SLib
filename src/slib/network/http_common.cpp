@@ -38,15 +38,16 @@ namespace slib
 		namespace http
 		{
 
-			SLIB_STATIC_STRING(g_method_GET, "GET");
-			SLIB_STATIC_STRING(g_method_HEAD, "HEAD");
-			SLIB_STATIC_STRING(g_method_POST, "POST");
-			SLIB_STATIC_STRING(g_method_PUT, "PUT");
-			SLIB_STATIC_STRING(g_method_DELETE, "DELETE");
-			SLIB_STATIC_STRING(g_method_CONNECT, "CONNECT");
-			SLIB_STATIC_STRING(g_method_OPTIONS, "OPTIONS");
-			SLIB_STATIC_STRING(g_method_TRACE, "TRACE");
-			SLIB_STATIC_STRING(g_method_PATCH, "PATCH");
+			SLIB_STATIC_STRING(g_method_GET, "GET")
+			SLIB_STATIC_STRING(g_method_HEAD, "HEAD")
+			SLIB_STATIC_STRING(g_method_POST, "POST")
+			SLIB_STATIC_STRING(g_method_PUT, "PUT")
+			SLIB_STATIC_STRING(g_method_DELETE, "DELETE")
+			SLIB_STATIC_STRING(g_method_CONNECT, "CONNECT")
+			SLIB_STATIC_STRING(g_method_OPTIONS, "OPTIONS")
+			SLIB_STATIC_STRING(g_method_TRACE, "TRACE")
+			SLIB_STATIC_STRING(g_method_PATCH, "PATCH")
+			SLIB_STATIC_STRING(g_method_PROPFIND, "PROPFIND")
 
 			SLIB_STATIC_STRING(g_setCookie_expires, "Expires")
 			SLIB_STATIC_STRING(g_setCookie_max_age, "Max-Age")
@@ -89,6 +90,7 @@ namespace slib
 					maps.put_NoLock(g_method_OPTIONS, HttpMethod::OPTIONS);
 					maps.put_NoLock(g_method_TRACE, HttpMethod::TRACE);
 					maps.put_NoLock(g_method_PATCH, HttpMethod::PATCH);
+					maps.put_NoLock(g_method_PROPFIND, HttpMethod::PROPFIND);
 				}
 			};
 
@@ -116,7 +118,8 @@ namespace slib
 			HTTP_STATUS_CASE(NoContent, "No Content");
 			HTTP_STATUS_CASE(ResetContent, "Reset Content");
 			HTTP_STATUS_CASE(PartialContent, "Partial Content");
-			
+			HTTP_STATUS_CASE(MultiStatus, "Multi Status");
+
 			HTTP_STATUS_CASE(MultipleChoices, "Multiple Choices");
 			HTTP_STATUS_CASE(MovedPermanently, "Moved Permanently");
 			HTTP_STATUS_CASE(Found, "Found");
@@ -178,6 +181,8 @@ namespace slib
 				return g_method_TRACE;
 			case HttpMethod::PATCH:
 				return g_method_PATCH;
+			case HttpMethod::PROPFIND:
+				return g_method_PROPFIND;
 			default:
 				break;
 		}
@@ -218,6 +223,7 @@ namespace slib
 	DEFINE_HTTP_HEADER(Cookie, "Cookie")
 	DEFINE_HTTP_HEADER(Range, "Range")
 	DEFINE_HTTP_HEADER(IfModifiedSince, "If-Modified-Since")
+	DEFINE_HTTP_HEADER(Depth, "Depth")
 
 	DEFINE_HTTP_HEADER(TransferEncoding, "Transfer-Encoding")
 	DEFINE_HTTP_HEADER(AccessControlAllowOrigin, "Access-Control-Allow-Origin")
@@ -227,6 +233,7 @@ namespace slib
 	DEFINE_HTTP_HEADER(ContentRange, "Content-Range")
 	DEFINE_HTTP_HEADER(LastModified, "Last-Modified")
 	DEFINE_HTTP_HEADER(Location, "Location")
+	DEFINE_HTTP_HEADER(DAV, "DAV")
 
 	sl_reg HttpHeaderHelper::parseHeaders(HttpHeaderMap& map, const void* _data, sl_size size)
 	{
@@ -648,12 +655,12 @@ namespace slib
 		return m_method;
 	}
 
-	String HttpRequest::getMethodText() const
+	const String& HttpRequest::getMethodText() const
 	{
 		return m_methodText;
 	}
 
-	String HttpRequest::getMethodTextUppercase() const
+	const String& HttpRequest::getMethodTextUppercase() const
 	{
 		return m_methodTextUpper;
 	}
@@ -672,7 +679,7 @@ namespace slib
 		m_method = HttpMethodHelper::fromString(m_methodTextUpper);
 	}
 
-	String HttpRequest::getPath() const
+	const String& HttpRequest::getPath() const
 	{
 		return m_path;
 	}
@@ -682,7 +689,7 @@ namespace slib
 		m_path = path;
 	}
 
-	String HttpRequest::getQuery() const
+	const String& HttpRequest::getQuery() const
 	{
 		return m_query;
 	}
@@ -692,7 +699,7 @@ namespace slib
 		m_query = query;
 	}
 
-	String HttpRequest::getRequestVersion() const
+	const String& HttpRequest::getRequestVersion() const
 	{
 		return m_requestVersion;
 	}
@@ -1697,6 +1704,18 @@ namespace slib
 	void HttpResponse::setResponseContentType(const String& type)
 	{
 		setResponseHeader(HttpHeader::ContentType, type);
+	}
+
+	void HttpResponse::setResponseContentTypeIfEmpty(const String& type)
+	{
+		if (!(containsResponseHeader(HttpHeader::ContentType))) {
+			setResponseHeader(HttpHeader::ContentType, type);
+		}
+	}
+
+	void HttpResponse::setResponseContentTypeFromFilePath(const String& path, const String& defaultType)
+	{
+		setResponseHeader(HttpHeader::ContentType, ContentTypeHelper::getFromFilePath(path, defaultType));
 	}
 
 	String HttpResponse::getResponseContentEncoding() const

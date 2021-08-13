@@ -79,7 +79,8 @@ namespace slib
 		NoContent = 204,
 		ResetContent = 205,
 		PartialContent = 206,
-		
+		MultiStatus = 207, // WebDAV
+
 		// Redirection
 		MultipleChoices = 300,
 		MovedPermanently = 301,
@@ -147,7 +148,8 @@ namespace slib
 		CONNECT,
 		OPTIONS,
 		TRACE,
-		PATCH // https://tools.ietf.org/html/rfc5789
+		PATCH, // https://tools.ietf.org/html/rfc5789
+		PROPFIND // WebDAV: https://tools.ietf.org/html/rfc4918
 	};
 	
 	class SLIB_EXPORT HttpMethodHelper
@@ -181,7 +183,8 @@ namespace slib
 		static const String& Cookie;
 		static const String& Range;
 		static const String& IfModifiedSince;
-		
+		static const String& Depth;
+
 		// Response Headers
 		static const String& TransferEncoding;
 		static const String& AccessControlAllowOrigin;
@@ -191,7 +194,8 @@ namespace slib
 		static const String& ContentRange;
 		static const String& LastModified;
 		static const String& Location;
-		
+		static const String& DAV; // WebDAV
+
 	};
 
 	class SLIB_EXPORT HttpHeaderHelper
@@ -360,23 +364,23 @@ namespace slib
 	public:
 		HttpMethod getMethod() const;
 		
-		String getMethodText() const;
+		const String& getMethodText() const;
 		
-		String getMethodTextUppercase() const;
+		const String& getMethodTextUppercase() const;
 		
 		void setMethod(HttpMethod method);
 		
 		void setMethod(const String& method);
 		
-		String getPath() const;
+		const String& getPath() const;
 		
 		void setPath(const String& path);
 		
-		String getQuery() const;
+		const String& getQuery() const;
 		
 		void setQuery(const String& query);
 		
-		String getRequestVersion() const;
+		const String& getRequestVersion() const;
 		
 		void setRequestVersion(const String& version);
 		
@@ -649,7 +653,11 @@ namespace slib
 		String getResponseContentType() const;
 		
 		void setResponseContentType(const String& type);
-				
+
+		void setResponseContentTypeIfEmpty(const String& type);
+
+		void setResponseContentTypeFromFilePath(const String& path, const String& defaultType);
+
 		String getResponseContentEncoding() const;
 		
 		void setResponseContentEncoding(const String& type);

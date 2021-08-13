@@ -1072,6 +1072,51 @@ namespace slib
 		add(HttpMethod::Unknown, path, onRequest);
 	}
 	
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(WebDavItemProperty)
+
+	WebDavItemProperty::WebDavItemProperty()
+	{
+		flagCollection = sl_false;
+		contentLength = 0;
+	}
+
+	sl_bool WebDavItemProperty::setFromFile(const StringParam& path)
+	{
+		FileAttributes attrs = File::getAttributes(path);
+		if (attrs & FileAttributes::NotExist) {
+			return sl_false;
+		}
+		if (attrs & FileAttributes::Directory) {
+			flagCollection = sl_true;
+		} else {
+			flagCollection = sl_false;
+			contentLength = File::getSize(path);
+			contentType = ContentTypeHelper::getFromFilePath(path, ContentType::OctetStream);
+		}
+		creationTime = File::getCreatedTime(path);
+		lastModifiedTime = File::getModifiedTime(path);
+		return sl_true;
+	}
+
+	HashMap<String, WebDavItemProperty> WebDavItemProperty::getFiles(const StringParam& path)
+	{
+		HashMap<String, WebDavItemProperty> ret;
+		for (auto& file : File::getFileInfos(path)) {
+			WebDavItemProperty prop;
+			if (file.value.attributes & FileAttributes::Directory) {
+				prop.flagCollection = sl_true;
+			} else {
+				prop.contentLength = file.value.size;
+				prop.contentType = ContentTypeHelper::getFromFilePath(file.key, ContentType::OctetStream);
+			}
+			prop.creationTime = file.value.createdAt;
+			prop.lastModifiedTime = file.value.modifiedAt;
+			ret.add_NoLock(file.key, Move(prop));
+		}
+		return ret;
+	}
+
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(HttpServerParam)
 
@@ -1093,6 +1138,8 @@ namespace slib
 		flagUseCacheControl = sl_true;
 		flagCacheControlNoCache = sl_false;
 		cacheControlMaxAge = 600;
+
+		flagSupportWebDAV = sl_false;
 		
 		flagLogDebug = sl_false;
 		
@@ -1318,155 +1365,135 @@ namespace slib
 
 	void HttpServer::processRequest(HttpServerContext* context, HttpServerConnection* connection, const Variant& response)
 	{
-		sl_bool flagProcessed = sl_false;
-		if (response.isBoolean()) {
-			if (response.isTrue()) {
-				flagProcessed = sl_true;
+		if (response.isFalse()) {
+			HttpMethod method = context->getMethod();
+			if (method == HttpMethod::GET) {
+				if (m_param.flagUseWebRoot || m_param.flagUseAsset) {
+					if (processResource(context)) {
+						context->setProcessed();
+					}
+				}
+			} else if (method == HttpMethod::PROPFIND) {
+				if (m_param.flagSupportWebDAV) {
+					if (processWebDav_PROPFIND(context)) {
+						context->setProcessed();
+					}
+				}
+			} else if (method == HttpMethod::OPTIONS) {
+				if (m_param.flagSupportWebDAV || m_param.flagAllowCrossOrigin) {
+					if (m_param.flagSupportWebDAV) {
+						// compliance-class = 1
+						context->setResponseHeader(HttpHeader::DAV, "1");
+					}
+					context->setResponseCode(HttpStatus::OK);
+					context->setProcessed();
+				}
 			}
 		} else {
-			flagProcessed = sl_true;
 			do {
 				if (response.isString()) {
-					if (context->getResponseContentType().isNull()) {
-						context->setResponseContentType(ContentType::TextHtml_Utf8);
-					}
+					context->setResponseContentTypeIfEmpty(ContentType::TextHtml_Utf8);
 					context->write(response.getString());
 					break;
 				} else if (response.isRef()) {
 					if (response.isMemory()) {
-						if (context->getResponseContentType().isNull()) {
-							context->setResponseContentType(ContentType::OctetStream);
-						}
+						context->setResponseContentTypeIfEmpty(ContentType::OctetStream);
 						context->write(response.getMemory());
 						break;
 					} else if (response.isObject() || response.isCollection()) {
-						if (context->getResponseContentType().isNull()) {
-							context->setResponseContentType(ContentType::Json);
-						}
+						context->setResponseContentTypeIfEmpty(ContentType::Json);
 						context->write(Json(response).toJsonString());
 						break;
 					} else {
 						Ref<Referable> ref = response.getRef();
 						if (IsInstanceOf<XmlDocument>(ref)) {
-							if (context->getResponseContentType().isNull()) {
-								context->setResponseContentType(ContentType::TextXml);
-							}
+							context->setResponseContentTypeIfEmpty(ContentType::TextXml);
 							context->write(((XmlDocument*)(ref.get()))->toString());
 							break;
 						}
 					}
 				}
-				if (context->getResponseContentType().isNull()) {
-					context->setResponseContentType(ContentType::TextHtml_Utf8);
-				}
+				context->setResponseContentTypeIfEmpty(ContentType::TextHtml_Utf8);
 				context->write(response.toString());
 			} while (0);
-		}
-		if (!flagProcessed) {
-			flagProcessed = sl_true;
-			do {
-				sl_bool flagProcessAsResource = m_param.flagUseWebRoot || m_param.flagUseAsset;
-				if (flagProcessAsResource && (m_param.allowedFileExtensions.isNotEmpty() || m_param.blockedFileExtensions.isNotEmpty())) {
-					String ext = File::getFileExtension(context->getPath()).trim();
-					if (m_param.blockedFileExtensions.isNotEmpty()) {
-						if (m_param.blockedFileExtensions.contains(ext)) {
-							flagProcessAsResource = sl_false;
-						}
-					} else if (m_param.allowedFileExtensions.isNotEmpty()) {
-						if (!(m_param.allowedFileExtensions.contains(ext))) {
-							flagProcessAsResource = sl_false;
-						}
-					}
-				}
-				if (flagProcessAsResource) {
-					if (m_param.flagUseWebRoot) {
-						if (context->getMethod() == HttpMethod::GET) {
-							String path = context->getPath();
-							if (path.startsWith('/')) {
-								path = path.substring(1);
-							}
-							FilePathSegments seg;
-							seg.parsePath(path);
-							if (seg.parentLevel == 0) {
-								String webRootPath = m_param.webRootPath;
-								if (webRootPath.isEmpty()) {
-									webRootPath = Application::getApplicationDirectory();
-								}
-								path = webRootPath + "/" + path;
-								if (processFile(context, path)) {
-									break;
-								}
-								if (path.endsWith('/')) {
-									if (processFile(context, path + "index.html")) {
-										break;
-									}
-									if (processFile(context, path + "index.htm")) {
-										break;
-									}
-								}
-							}
-						}
-					}
-					if (m_param.flagUseAsset) {
-						if (context->getMethod() == HttpMethod::GET) {
-							String path = context->getPath();
-							if (path.startsWith('/')) {
-								path = path.substring(1);
-							}
-							path = m_param.prefixAsset + path;
-							if (processAsset(context, path)) {
-								break;
-							}
-							if (path.endsWith('/')) {
-								if (processAsset(context, path + "index.html")) {
-									break;
-								}
-								if (processAsset(context, path + "index.htm")) {
-									break;
-								}
-							}
-						}
-					}
-				}
-				
-				flagProcessed = sl_false;
-				
-			} while (0);
-			
-		}
-		
-		if (flagProcessed) {
 			context->setProcessed();
 		}
 		dispatchPostRequest(context);
-		
 		connection->completeContext(context);
+	}
+
+	sl_bool HttpServer::processResource(HttpServerContext* context)
+	{
+		String path = Url::decodeUri(context->getPath());
+		FilePathSegments segments;
+		segments.parsePath(path);
+		if (segments.parentLevel) {
+			return sl_false;
+		}
+		return processResource(context, path);
+	}
+
+	sl_bool HttpServer::processResource(HttpServerContext* context, const String& path)
+	{
+		if (m_param.allowedFileExtensions.isNotEmpty() || m_param.blockedFileExtensions.isNotEmpty()) {
+			String ext = File::getFileExtension(path).trim();
+			if (m_param.blockedFileExtensions.isNotEmpty()) {
+				if (m_param.blockedFileExtensions.contains(ext)) {
+					return sl_false;
+				}
+			} else if (m_param.allowedFileExtensions.isNotEmpty()) {
+				if (!(m_param.allowedFileExtensions.contains(ext))) {
+					return sl_false;
+				}
+			}
+		}
+		if (m_param.flagUseWebRoot) {
+			String webRootPath = m_param.webRootPath;
+			if (webRootPath.isEmpty()) {
+				webRootPath = Application::getApplicationDirectory();
+			}
+			String pathFile = File::joinPath(webRootPath, path);
+			if (processFile(context, pathFile)) {
+				return sl_true;
+			}
+			if (path.endsWith('/')) {
+				if (processFile(context, pathFile + "index.html")) {
+					return sl_true;
+				}
+				if (processFile(context, pathFile + "index.htm")) {
+					return sl_true;
+				}
+			}
+		}
+		if (m_param.flagUseAsset) {
+			String pathAsset = File::joinPath(m_param.prefixAsset, path);
+			if (processAsset(context, pathAsset)) {
+				return sl_true;
+			}
+			if (path.endsWith('/')) {
+				if (processAsset(context, pathAsset + "index.html")) {
+					return sl_true;
+				}
+				if (processAsset(context, pathAsset + "index.htm")) {
+					return sl_true;
+				}
+			}
+		}
+		return sl_false;
 	}
 
 	sl_bool HttpServer::processAsset(HttpServerContext* context, const String& path)
 	{
-		FilePathSegments seg;
-		seg.parsePath(path);
-		if (seg.parentLevel == 0) {
-			String ext = File::getFileExtension(path);
-			if (Assets::isBasedOnFileSystem()) {
-				String filePath = Assets::getFilePath(path);
-				return processFile(context, filePath);
-			} else {
-				Memory mem = Assets::readAllBytes(path);
-				if (mem.isNotNull()) {
-					String oldResponseContentType = context->getResponseContentType();
-					if (oldResponseContentType.isEmpty()) {
-						String contentType = ContentTypeHelper::getFromFileExtension(ext);
-						if (contentType.isEmpty()) {
-							contentType = ContentType::OctetStream;
-						}
-						context->setResponseContentType(contentType);
-					}
-					_processCacheControl(context);
-					context->write(mem);
-					return sl_true;
-				}
+		if (Assets::isBasedOnFileSystem()) {
+			String filePath = Assets::getFilePath(path);
+			return processFile(context, filePath);
+		} else {
+			Memory mem = Assets::readAllBytes(path);
+			if (mem.isNotNull()) {
+				context->setResponseContentTypeFromFilePath(path, ContentType::OctetStream);
+				_processCacheControl(context);
+				context->write(mem);
+				return sl_true;
 			}
 		}
 		return sl_false;
@@ -1478,17 +1505,7 @@ namespace slib
 
 			sl_uint64 totalSize = File::getSize(path);
 
-			String ext = File::getFileExtension(path);
-			
-			String oldResponseContentType = context->getResponseContentType();
-			if (oldResponseContentType.isEmpty()) {
-				String contentType = ContentTypeHelper::getFromFileExtension(ext);
-				if (contentType.isEmpty()) {
-					contentType = ContentType::OctetStream;
-				}
-				context->setResponseContentType(contentType);
-			}
-
+			context->setResponseContentTypeFromFilePath(path, ContentType::OctetStream);
 			context->setResponseAcceptRanges(sl_true);
 			
 			_processCacheControl(context);
@@ -1612,7 +1629,109 @@ namespace slib
 		context->setResponseCode(HttpStatus::PartialContent);
 		return sl_true;
 	}
-	
+
+	sl_bool HttpServer::processWebDav_PROPFIND(HttpServerContext* context)
+	{
+		String strDepth = context->getRequestHeader(HttpHeader::Depth);
+		if (strDepth.getLength() == 1) {
+			sl_char8 chDepth = (strDepth.getData())[0];
+			if (chDepth == '0' || chDepth == '1') {
+				String path = Url::decodeUri(context->getPath());
+				WebDavItemProperty prop;
+				if (getWebDavItem(context, path, prop)) {
+					context->setResponseContentType(ContentType::TextXml);
+					context->setResponseCode(HttpStatus::MultiStatus);
+					context->write(R"(<?xml version="1.0" encoding="utf-8"?><D:multistatus xmlns:D="DAV:">)");
+					processWebDav_PROPFIND_Response(context, path, sl_null, prop);
+					if (chDepth == '1') {
+						if (prop.flagCollection) {
+							for (auto& item : getWebDavItems(context, path)) {
+								processWebDav_PROPFIND_Response(context, path, item.key, item.value);
+							}
+						}
+					}
+					context->write("</D:multistatus>");
+					return sl_true;
+				}
+			}
+		}
+		// Not support infinite depth
+		return sl_false;
+	}
+
+	void HttpServer::processWebDav_PROPFIND_Response(HttpServerContext* context, const String& path, const String& name, const WebDavItemProperty& prop)
+	{
+		context->write("<D:response><D:href>");
+		context->write(path);
+		if (!(path.endsWith('/'))) {
+			context->write("/");
+		}
+		if (name.isNotNull()) {
+			context->write(Url::encodeUriComponent(name));
+			if (prop.flagCollection) {
+				context->write("/");
+			}
+		}
+		context->write("</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:displayname>");
+		if (prop.displayName.isNotNull()) {
+			context->write(prop.displayName);
+		} else {
+			if (name.isNotNull()) {
+				context->write(name);
+			} else {
+				if (path == "/") {
+					context->write("/");
+				} else if (path.endsWith('/')) {
+					context->write(File::getFileName(path.substring(0, path.getLength() - 1)));
+				} else {
+					context->write(File::getFileName(path));
+				}
+			}
+		}
+		context->write("</D:displayname>");
+		if (prop.flagCollection) {
+			context->write("<D:resourcetype><D:collection/></D:resourcetype><D:iscollection>1</D:iscollection>");
+		} else {
+			context->write("<D:iscollection>0</D:iscollection>");
+		}
+		context->write("<D:creationdate>");
+		context->write(prop.creationTime.toISOString());
+		context->write("</D:creationdate><D:getlastmodified>");
+		context->write(prop.lastModifiedTime.toHttpDate());
+		context->write("</D:getlastmodified><D:getcontentlength>");
+		context->write(String::fromUint64(prop.contentLength));
+		context->write("</D:getcontentlength><D:getcontenttype>");
+		context->write(prop.contentType);
+		context->write("</D:getcontenttype></D:prop></D:propstat></D:response>");
+	}
+
+	sl_bool HttpServer::getWebDavItem(HttpServerContext* context, const String& path, WebDavItemProperty& prop)
+	{
+		if (m_param.onGetWebDavItem.isNotNull()) {
+			return m_param.onGetWebDavItem(context, path, prop);
+		}
+		if (m_param.flagUseWebRoot) {
+			FilePathSegments segments;
+			segments.parsePath(path);
+			if (segments.parentLevel) {
+				return sl_false;
+			}
+			return prop.setFromFile(File::joinPath(m_param.webRootPath, path));
+		}
+		return sl_false;
+	}
+
+	HashMap<String, WebDavItemProperty> HttpServer::getWebDavItems(HttpServerContext* context, const String& path)
+	{
+		if (m_param.onGetWebDavItems.isNotNull()) {
+			return m_param.onGetWebDavItems(context, path);
+		}
+		if (m_param.flagUseWebRoot) {
+			return WebDavItemProperty::getFiles(File::joinPath(m_param.webRootPath, path));
+		}
+		return sl_null;
+	}
+
 	Variant HttpServer::onRequest(HttpServerContext* context)
 	{
 		return sl_false;
@@ -1663,26 +1782,13 @@ namespace slib
 		onPostRequest(context);
 		
 		if (!(context->isProcessed())) {
-			HttpStatus status = HttpStatus::NotFound;
-			if (m_param.flagAllowCrossOrigin) {
-				if (context->getMethod() == HttpMethod::OPTIONS) {
-					status = HttpStatus::OK;
-				}
-			}
-			context->setResponseCode(status);
+			context->setResponseCode(HttpStatus::NotFound);
 		}
-		
 		if (context->isKeepAlive() && !(context->containsResponseHeader(HttpHeader::KeepAlive))) {
 			context->setResponseKeepAlive();
 		}
-
-		String oldResponseContentType = context->getResponseContentType();
-		if (oldResponseContentType.isEmpty()) {
-			context->setResponseContentType(ContentType::TextHtml_Utf8);
-		}
-
+		context->setResponseContentTypeIfEmpty(ContentType::TextHtml_Utf8);
 		context->setResponseContentLengthHeader(context->getResponseContentLength());
-
 	}
 
 	Ref<HttpServerConnection> HttpServer::addConnection(const Ref<AsyncStream>& stream, const SocketAddress& remoteAddress, const SocketAddress& localAddress)
