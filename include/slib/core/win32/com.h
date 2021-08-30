@@ -33,8 +33,25 @@
 #include "../memory.h"
 #include "../string.h"
 #include "../list.h"
+#include "../handle_container.h"
 
 #include <objidl.h>
+
+#define SLIB_DECLARE_WIN32_COM_CONTAINER_MEMBERS(CLASS, INTERFACE, MEMBER_NAME) \
+	SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(CLASS, INTERFACE*, MEMBER_NAME, sl_null) \
+	constexpr sl_bool isNull() const \
+	{ \
+		return !MEMBER_NAME; \
+	} \
+	constexpr sl_bool isNotNull() const \
+	{ \
+		return MEMBER_NAME != sl_null; \
+	}
+
+#define SLIB_DEFINE_WIN32_COM_CONTAINER_MEMBERS(CLASS, INTERFACE, MEMBER_NAME) \
+	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(CLASS, INTERFACE*, MEMBER_NAME, sl_null, slib::win32::COM::releaseObject)
+
+#define SLIB_WIN32_COM_SAFE_RELEASE(x) {if (x) {x->Release(); x=NULL;}}
 
 namespace slib
 {
@@ -42,14 +59,46 @@ namespace slib
 	namespace win32
 	{
 
-		class COM
+		class SLIB_EXPORT COM
 		{
 		public:
 			static Memory readAllBytesFromStream(IStream* stream);
 
+			template <class INTERFACE>
+			static void releaseObject(INTERFACE* obj)
+			{
+				if (obj) {
+					obj->Release();
+				}
+			}
+
 		};
 
-		class GenericDataObject : public IDataObject
+		template <class INTERFACE>
+		class SLIB_EXPORT ComPtr
+		{
+		public:
+			SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(ComPtr, INTERFACE*, ptr, sl_null, COM::releaseObject)
+
+		public:
+			constexpr sl_bool isNull() const
+			{
+				return !ptr;
+			}
+
+			constexpr sl_bool isNotNull() const
+			{
+				return ptr != sl_null;
+			}
+
+			constexpr INTERFACE* operator->() const
+			{
+				return ptr;
+			}
+
+		};
+
+		class SLIB_EXPORT GenericDataObject : public IDataObject
 		{
 		public:
 			GenericDataObject();
@@ -97,8 +146,6 @@ namespace slib
 	}
 
 }
-
-#define SLIB_WIN32_COM_SAFE_RELEASE(x) {if (x) {x->Release(); x=NULL;}}
 
 #endif
 
