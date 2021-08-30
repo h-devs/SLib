@@ -43,7 +43,7 @@ namespace slib
 		class SLIB_EXPORT Registry
 		{
 		public:
-			SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(Registry, HKEY, handle, NULL, ::RegCloseKey)
+			SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(Registry, HKEY, handle, NULL)
 
 		public:
 			static Registry open(HKEY hKeyParent, const StringParam& subPath, REGSAM sam = KEY_ALL_ACCESS, sl_bool flagCreate = sl_false);

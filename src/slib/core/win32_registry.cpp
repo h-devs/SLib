@@ -185,6 +185,8 @@ namespace slib
 	namespace win32
 	{
 
+		SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(Registry, HKEY, handle, NULL, RegCloseKey)
+
 		Registry Registry::open(HKEY hKeyParent, const StringParam& _path, REGSAM sam, sl_bool flagCreate)
 		{
 			if (!hKeyParent) {
