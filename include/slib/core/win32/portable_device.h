@@ -27,21 +27,31 @@
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 
-#include "windows.h"
-
-#include "../string.h"
-#include "../list.h"
-#include "../log.h"
+#include "com.h"
 
 #include <PortableDeviceApi.h>
 
-#pragma comment(lib, "PortableDeviceGUIDs.lib")
+/*
+	Note: Don't forget to call `CoInitialize()` before using `PortableDevice`
+*/
 
 namespace slib
 {
 
 	namespace win32
 	{
+
+		enum class PortableDeviceType
+		{
+			Unknown = 0,
+			Generic = 1,
+			Camera = 2,
+			MediaPlayer = 3,
+			Phone = 4,
+			Video = 5,
+			PersonalInformationManager = 6,
+			AudioRecorder = 7
+		};
 
 		struct SLIB_EXPORT PortableDeviceInfo
 		{
@@ -51,82 +61,73 @@ namespace slib
 			String manufacturer;
 		};
 
+		struct SLIB_EXPORT PortableDeviceObjectInfo
+		{
+			String id;
+			String name;
+		};
+
+		class SLIB_EXPORT PortableDeviceManager
+		{
+			SLIB_DECLARE_WIN32_COM_CONTAINER_MEMBERS(PortableDeviceManager, IPortableDeviceManager, m_object)
+
+		public:
+			static PortableDeviceManager create();
+
+		public:
+			List<String> getDeviceIdentifiers();
+
+			List<PortableDeviceInfo> getDeviceInfos();
+
+		};
+
+		class SLIB_EXPORT PortableDeviceProperties
+		{
+			SLIB_DECLARE_WIN32_COM_CONTAINER_MEMBERS(PortableDeviceProperties, IPortableDeviceProperties, m_object)
+
+		public:
+			String getObjectName(const StringParam& id);
+
+		};
+
+		class SLIB_EXPORT PortableDeviceContent
+		{
+			SLIB_DECLARE_WIN32_COM_CONTAINER_MEMBERS(PortableDeviceContent, IPortableDeviceContent, m_object)
+
+		public:
+			List<String> getObjectIdentifiers(const StringParam& parentId);
+
+			List<String> getObjectIdentifiers();
+
+			PortableDeviceProperties getProperties();
+
+			List<PortableDeviceObjectInfo> getObjectInfos(const StringParam& parentId);
+
+			List<PortableDeviceObjectInfo> getObjectInfos();
+
+		};
+
 		class SLIB_EXPORT PortableDevice
 		{
+			SLIB_DECLARE_WIN32_COM_CONTAINER_MEMBERS(PortableDevice, IPortableDevice, m_object)
+
 		public:
-			static void initializeCOM()
-			{
-				CoInitialize(NULL);
-			}
+			static List<String> getDeviceIdentifiers();
 
-			static List<PortableDeviceInfo> getDevices()
-			{
-				List<PortableDeviceInfo> ret;
-				IPortableDeviceManager* pPortableDeviceManager;
-				HRESULT hr = CoCreateInstance(CLSID_PortableDeviceManager,
-					NULL,
-					CLSCTX_INPROC_SERVER,
-					IID_PPV_ARGS(&pPortableDeviceManager));
-				if (SUCCEEDED(hr)) {
-					DWORD cPnPDeviceIDs;
-					hr = pPortableDeviceManager->GetDevices(NULL, &cPnPDeviceIDs);
-					if (SUCCEEDED(hr)) {
-						if (cPnPDeviceIDs > 0) {
-							PWSTR* pPnpDeviceIDs = new PWSTR[cPnPDeviceIDs];
-							if (pPnpDeviceIDs) {
-								hr = pPortableDeviceManager->GetDevices(pPnpDeviceIDs, &cPnPDeviceIDs);
-								if (SUCCEEDED(hr)) {
-									for (DWORD dwIndex = 0; dwIndex < cPnPDeviceIDs; dwIndex++) {
-										PWSTR id = pPnpDeviceIDs[dwIndex];
-										PortableDeviceInfo info;
-										info.id = String::from(id);
-										WCHAR buf[1024];
-										DWORD dwBuf = sizeof(buf) / sizeof(WCHAR);
-										hr = pPortableDeviceManager->GetDeviceFriendlyName(id, buf, &dwBuf);
-										if (SUCCEEDED(hr)) {
-											info.name = String::from(buf);
-										}
-										dwBuf = sizeof(buf) / sizeof(WCHAR);
-										hr = pPortableDeviceManager->GetDeviceDescription(id, buf, &dwBuf);
-										if (SUCCEEDED(hr)) {
-											info.description = String::from(buf);
-										}
-										dwBuf = sizeof(buf) / sizeof(WCHAR);
-										hr = pPortableDeviceManager->GetDeviceManufacturer(id, buf, &dwBuf);
-										if (SUCCEEDED(hr)) {
-											info.manufacturer = String::from(buf);
-										}
-										ret.add_NoLock(Move(info));
-										CoTaskMemFree(id);
-									}
-								} else {
-									_logError("Failed to get the device list from the system", hr);
-								}
-								delete[] pPnpDeviceIDs;
-							} else {
-								_logError("Insufficient memory");
-							}
-						}
-					} else {
-						_logError("Failed to get number of devices on the system", hr);
-					}
-					pPortableDeviceManager->Release();
-				} else {
-					_logError("Failed to CoCreateInstance CLSID_PortableDeviceManager", hr);
-				}
-				return ret;
-			}
+			static List<PortableDeviceInfo> getDeviceInfos();
+			
+			static PortableDevice open(const StringParam& id);
 
-		private:
-			static void _logError(const char* szErr, HRESULT hr)
-			{
-				LogError("WPD", "%s, hr=0x%lx", szErr, hr);
-			}
+		public:
+			PortableDeviceContent getContent();
 
-			static void _logError(const char* szErr)
-			{
-				LogError("WPD", "%s", szErr);
-			}
+			List<PortableDeviceObjectInfo> getObjectInfos(const StringParam& parentId);
+
+			List<PortableDeviceObjectInfo> getObjectInfos();
+
+			PortableDeviceType getType();
+
+			String getProtocol();
 
 		};
 

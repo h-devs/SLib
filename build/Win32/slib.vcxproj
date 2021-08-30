@@ -119,6 +119,7 @@
     <ClCompile Include="..\..\src\slib\core\parse.cpp" />
     <ClCompile Include="..\..\src\slib\core\pipe.cpp" />
     <ClCompile Include="..\..\src\slib\core\win32_platform.cpp" />
+    <ClCompile Include="..\..\src\slib\core\win32_portable_device.cpp" />
     <ClCompile Include="..\..\src\slib\core\win32_registry.cpp" />
     <ClCompile Include="..\..\src\slib\core\win32_setup.cpp" />
     <ClCompile Include="..\..\src\slib\core\preference.cpp" />

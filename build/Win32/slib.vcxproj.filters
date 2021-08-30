@@ -1397,5 +1397,8 @@
     <ClCompile Include="..\..\src\slib\storage\winspd_install.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\win32_portable_device.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
