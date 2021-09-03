@@ -83,6 +83,12 @@ namespace slib
 		return ReaderHelper::readWithRead32(this, buf, size);
 	}
 
+	sl_bool IReader::waitRead(sl_int32 timeout)
+	{
+		Thread::sleep(1);
+		return sl_true;
+	}
+
 
 	SLIB_DEFINE_IWRITER_MEMBERS(IWriter,)
 
@@ -94,6 +100,12 @@ namespace slib
 	sl_reg IWriter::write(const void* buf, sl_size size)
 	{
 		return WriterHelper::writeWithWrite32(this, buf, size);
+	}
+
+	sl_bool IWriter::waitWrite(sl_int32 timeout)
+	{
+		Thread::sleep(1);
+		return sl_true;
 	}
 
 
@@ -112,6 +124,12 @@ namespace slib
 		return BlockReaderHelper::readFullyAt(this, offset, buf, size);
 	}
 
+	sl_bool IBlockReader::waitRead(sl_int32 timeout)
+	{
+		Thread::sleep(1);
+		return sl_true;
+	}
+
 
 	sl_int32 IBlockWriter::writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size)
 	{
@@ -126,6 +144,12 @@ namespace slib
 	sl_reg IBlockWriter::writeFullyAt(sl_uint64 offset, const void* buf, sl_size size)
 	{
 		return BlockWriterHelper::writeFullyAt(this, offset, buf, size);
+	}
+
+	sl_bool IBlockWriter::waitWrite(sl_int32 timeout)
+	{
+		Thread::sleep(1);
+		return sl_true;
 	}
 
 
@@ -2053,6 +2077,17 @@ namespace slib
 			return size + sizeTailData;
 		}
 		return nRead;
+	}
+
+	sl_bool BufferedSeekableReader::waitRead(sl_int32 timeout)
+	{
+		IReader* reader = m_reader;
+		if (reader) {
+			return reader->waitRead(timeout);
+		} else {
+			Thread::sleep(1);
+			return sl_true;
+		}
 	}
 
 	sl_bool BufferedSeekableReader::getPosition(sl_uint64& outPos)

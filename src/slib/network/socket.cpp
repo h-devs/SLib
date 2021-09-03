@@ -827,6 +827,44 @@ namespace slib
 		return SLIB_IO_ERROR;
 	}
 
+	sl_reg Socket::sendFully(const void* _buf, sl_size size, SocketEvent* ev) const noexcept
+	{
+		sl_uint8* buf = (sl_uint8*)_buf;
+		if (!size) {
+			return send(buf, 0);
+		}
+		sl_size nSent = 0;
+		CurrentThread thread;
+		for (;;) {
+			sl_size n = size;
+			if (n > 0x40000000) {
+				n = 0x40000000;
+			}
+			sl_int32 m = send(buf, n);
+			if (m > 0) {
+				nSent += m;
+				if (size <= (sl_uint32)m) {
+					return nSent;
+				}
+				buf += m;
+				size -= m;
+			} else if (m == SLIB_IO_WOULD_BLOCK) {
+				if (ev) {
+					ev->wait();
+				} else {
+					waitWrite();
+				}
+			} else if (m == SLIB_IO_ENDED) {
+				return nSent;
+			} else {
+				return m;
+			}
+			if (thread.isStopping()) {
+				return SLIB_IO_WOULD_BLOCK;
+			}
+		}
+	}
+
 	sl_int32 Socket::write32(const void* buf, sl_uint32 size) const noexcept
 	{
 		return send(buf, size);
@@ -835,6 +873,21 @@ namespace slib
 	sl_reg Socket::write(const void* buf, sl_size size) const noexcept
 	{
 		return WriterHelper::writeWithWrite32(this, buf, size);
+	}
+
+	sl_bool Socket::waitWrite(sl_int32 timeout) const noexcept
+	{
+		if (isOpened()) {
+			Ref<SocketEvent> ev = SocketEvent::createWrite(*this);
+			if (ev.isNotNull()) {
+				return ev->wait(timeout);
+			} else {
+				Thread::sleep(1);
+				return sl_true;
+			}
+		} else {
+			return sl_false;
+		}
 	}
 
 	sl_int32 Socket::receive(void* buf, sl_size _size) const noexcept
@@ -852,6 +905,44 @@ namespace slib
 		return SLIB_IO_ERROR;
 	}
 
+	sl_reg Socket::receiveFully(void* _buf, sl_size size, SocketEvent* ev) const noexcept
+	{
+		sl_uint8* buf = (sl_uint8*)_buf;
+		if (!size) {
+			return receive(buf, 0);
+		}
+		sl_size nReceived = 0;
+		CurrentThread thread;
+		for (;;) {
+			sl_size n = size;
+			if (n > 0x40000000) {
+				n = 0x40000000;
+			}
+			sl_int32 m = receive(buf, n);
+			if (m > 0) {
+				nReceived += m;
+				if (size <= (sl_uint32)m) {
+					return nReceived;
+				}
+				buf += m;
+				size -= m;
+			} else if (m == SLIB_IO_WOULD_BLOCK) {
+				if (ev) {
+					ev->wait();
+				} else {
+					waitRead();
+				}
+			} else if (m == SLIB_IO_ENDED) {
+				return nReceived;
+			} else {
+				return m;
+			}
+			if (thread.isStopping()) {
+				return SLIB_IO_WOULD_BLOCK;
+			}
+		}
+	}
+
 	sl_int32 Socket::read32(void* buf, sl_uint32 size) const noexcept
 	{
 		return receive(buf, size);
@@ -860,6 +951,21 @@ namespace slib
 	sl_reg Socket::read(void* buf, sl_size size) const noexcept
 	{
 		return ReaderHelper::readWithRead32(this, buf, size);
+	}
+
+	sl_bool Socket::waitRead(sl_int32 timeout) const noexcept
+	{
+		if (isOpened()) {
+			Ref<SocketEvent> ev = SocketEvent::createRead(*this);
+			if (ev.isNotNull()) {
+				return ev->wait(timeout);
+			} else {
+				Thread::sleep(1);
+				return sl_true;
+			}
+		} else {
+			return sl_false;
+		}
 	}
 
 	sl_int32 Socket::sendTo(const SocketAddress& address, const void* buf, sl_size size) const noexcept

@@ -116,6 +116,25 @@ namespace slib
 		}
 		return SLIB_IO_ERROR;
 	}
+	
+	sl_bool Pipe::waitRead(sl_int32 timeout) const noexcept
+	{
+		if (!(isOpened())) {
+			return sl_false;
+		}
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		Thread::sleep(1);
+		return sl_true;
+#else
+		Ref<PipeEvent> ev = PipeEvent::create();
+		if (ev.isNotNull()) {
+			return ev->waitReadFd(m_handle.hRead, timeout);
+		} else {
+			Thread::sleep(1);
+			return sl_true;
+		}
+#endif
+	}
 
 	sl_reg Pipe::write(const void* buf, sl_size size) const noexcept
 	{
@@ -131,6 +150,25 @@ namespace slib
 			return (HandlePtr<File>(m_handle.hWrite))->write32(buf, size);
 		}
 		return SLIB_IO_ERROR;
+	}
+
+	sl_bool Pipe::waitWrite(sl_int32 timeout) const noexcept
+	{
+		if (!(isOpened())) {
+			return sl_false;
+		}
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		Thread::sleep(1);
+		return sl_true;
+#else
+		Ref<PipeEvent> ev = PipeEvent::create();
+		if (ev.isNotNull()) {
+			return ev->waitWriteFd(m_handle.hWrite, timeout);
+		} else {
+			Thread::sleep(1);
+			return sl_true;
+		}
+#endif
 	}
 
 	void Pipe::close() noexcept
@@ -224,6 +262,11 @@ namespace slib
 	sl_bool PipeEvent::waitReadFd(int fd, sl_int32 timeout)
 	{
 		return waitFd(fd, POLLIN | POLLPRI | POLLERR | POLLHUP, sl_null, timeout);
+	}
+	
+	sl_bool PipeEvent::waitWriteFd(int fd, sl_int32 timeout)
+	{
+		return waitFd(fd, POLLOUT | POLLERR | POLLHUP, sl_null, timeout);
 	}
 #endif
 

@@ -217,11 +217,17 @@ namespace slib
 	
 
 		sl_reg read(void* buf, sl_size size) const noexcept;
+
 		sl_int32 read32(void* buf, sl_uint32 size) const noexcept;
 
+		sl_bool waitRead(sl_int32 timeout = -1) const noexcept;
+
 		sl_reg write(const void* buf, sl_size size) const noexcept;
+
 		sl_int32 write32(const void* buf, sl_uint32 size) const noexcept;
 	
+		sl_bool waitWrite(sl_int32 timeout = -1) const noexcept;
+
 		// works only if the file is already opened
 		sl_bool setSize(sl_uint64 size) const noexcept;
 		

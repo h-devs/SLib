@@ -36,60 +36,48 @@ namespace slib
 	{
 	public:
 		template <class READER>
-		static sl_reg readWithRead32(READER* reader, void* _buf, sl_size size)
+		static sl_reg readWithRead32(READER* reader, void* buf, sl_size size)
 		{
 #if !defined(SLIB_ARCH_IS_64BIT)
-			return reader->read32(_buf, (sl_uint32)size);
+			return reader->read32(buf, (sl_uint32)size);
 #else
-			if (!(size >> 31)) {
-				return reader->read32(_buf, (sl_uint32)size);
+			if (size >> 31) {
+				return reader->read32(buf, 0x40000000); // 1GB
+			} else {
+				return reader->read32(buf, (sl_uint32)size);
 			}
-			char* buf = (char*)_buf;
-			sl_size nRead = 0;
-			while (nRead < size) {
-				sl_size n = size - nRead;
-				if (n > 0x40000000) {
-					n = 0x40000000; // 1GB
-				}
-				sl_int32 m = reader->read32(buf + nRead, (sl_uint32)n);
-				if (m > 0) {
-					nRead += m;
-				} else {
-					if (nRead) {
-						return nRead;
-					} else {
-						return m;
-					}
-				}
-			}
-			return nRead;
 #endif
 		}
 		
 		template <class READER>
 		static sl_reg readFully(READER* reader, void* _buf, sl_size size)
 		{
+			sl_uint8* buf = (sl_uint8*)_buf;
 			if (!size) {
-				return SLIB_IO_EMPTY_CONTENT;
+				return reader->read(buf, 0);
 			}
-			char* buf = (char*)_buf;
 			sl_size nRead = 0;
-			while (nRead < size) {
-				sl_size n = size - nRead;
-				sl_reg m = reader->read(buf + nRead, n);
+			CurrentThread thread;
+			for (;;) {
+				sl_reg m = reader->read(buf, size);
 				if (m > 0) {
 					nRead += m;
-				} else if (m == SLIB_IO_WOULD_BLOCK && Thread::isNotStoppingCurrent()) {
-					Thread::sleep(1);
-				} else {
-					if (nRead) {
+					if (size <= (sl_size)m) {
 						return nRead;
-					} else {
-						return m;
 					}
+					buf += m;
+					size -= m;
+				} else if (m == SLIB_IO_WOULD_BLOCK) {
+					reader->waitRead();
+				} else if (m == SLIB_IO_ENDED) {
+					return nRead;
+				} else {
+					return m;
+				}
+				if (thread.isStopping()) {
+					return SLIB_IO_ERROR;
 				}
 			}
-			return nRead;
 		}
 		
 		template <class READER>
@@ -97,17 +85,24 @@ namespace slib
 		{
 			MemoryBuffer mb;
 			char buf[1024];
+			CurrentThread thread;
 			for (;;) {
-				sl_reg nRead = reader->read(buf, sizeof(buf));
-				if (nRead > 0) {
-					mb.addNew(buf, nRead);
-				} else if (nRead == SLIB_IO_WOULD_BLOCK && Thread::isNotStoppingCurrent()) {
-					Thread::sleep(1);
+				sl_reg m = reader->read(buf, sizeof(buf));
+				if (m > 0) {
+					if (!(mb.addNew(buf, m))) {
+						return sl_null;
+					}
+				} else if (m == SLIB_IO_ENDED) {
+					return mb.merge();
+				} else if (m == SLIB_IO_WOULD_BLOCK) {
+					reader->waitRead();
 				} else {
-					break;
+					return sl_null;
+				}
+				if (thread.isStopping()) {
+					return sl_null;
 				}
 			}
-			return mb.merge();
 		}
 
 		template <class READER>
@@ -694,60 +689,49 @@ namespace slib
 	{
 	public:
 		template <class READER>
-		static sl_reg readAtWithReadAt32(READER* reader, sl_uint64 offset, void* _buf, sl_size size)
+		static sl_reg readAtWithReadAt32(READER* reader, sl_uint64 offset, void* buf, sl_size size)
 		{
 #if !defined(SLIB_ARCH_IS_64BIT)
-			return reader->readAt32(offset, _buf, (sl_uint32)size);
+			return reader->readAt32(offset, buf, (sl_uint32)size);
 #else
-			if (!(size >> 31)) {
-				return reader->readAt32(offset, _buf, (sl_uint32)size);
+			if (size >> 31) {
+				return reader->readAt32(offset, buf, 0x40000000);
+			} else {
+				return reader->readAt32(offset, buf, (sl_uint32)size);
 			}
-			char* buf = (char*)_buf;
-			sl_size nRead = 0;
-			while (nRead < size) {
-				sl_size n = size - nRead;
-				if (n > 0x40000000) {
-					n = 0x40000000; // 1GB
-				}
-				sl_reg m = reader->readAt32(offset + nRead, buf + nRead, (sl_uint32)n);
-				if (m > 0) {
-					nRead += m;
-				} else {
-					if (nRead) {
-						return nRead;
-					} else {
-						return m;
-					}
-				}
-			}
-			return nRead;
 #endif
 		}
 
 		template <class READER>
 		static sl_reg readFullyAt(READER* reader, sl_uint64 offset, void* _buf, sl_size size)
 		{
+			sl_uint8* buf = (sl_uint8*)_buf;
 			if (!size) {
-				return SLIB_IO_EMPTY_CONTENT;
+				return reader->readAt(offset, buf, 0);
 			}
-			char* buf = (char*)_buf;
 			sl_size nRead = 0;
-			while (nRead < size) {
-				sl_size n = size - nRead;
-				sl_reg m = reader->readAt(offset + nRead, buf + nRead, n);
+			CurrentThread thread;
+			for (;;) {
+				sl_reg m = reader->readAt(offset, buf, size);
 				if (m > 0) {
 					nRead += m;
-				} else if (m == SLIB_IO_WOULD_BLOCK && Thread::isNotStoppingCurrent()) {
-					Thread::sleep(1);
-				} else {
-					if (nRead) {
+					if (size <= (sl_size)m) {
 						return nRead;
-					} else {
-						return m;
 					}
+					buf += m;
+					offset += m;
+					size -= m;
+				} else if (m == SLIB_IO_WOULD_BLOCK) {
+					reader->waitRead();
+				} else if (m == SLIB_IO_ENDED) {
+					return nRead;
+				} else {
+					return m;
+				}
+				if (thread.isStopping()) {
+					return SLIB_IO_ERROR;
 				}
 			}
-			return nRead;
 		}
 
 	};

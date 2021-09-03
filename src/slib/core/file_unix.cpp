@@ -29,6 +29,8 @@
 #include "slib/core/string.h"
 #include "slib/core/memory.h"
 #include "slib/core/hash_map.h"
+#include "slib/core/pipe_event.h"
+#include "slib/core/thread.h"
 
 #define _FILE_OFFSET_BITS 64
 #include <unistd.h>
@@ -300,6 +302,21 @@ namespace slib
 		return SLIB_IO_ERROR;
 	}
 
+	sl_bool File::waitRead(sl_int32 timeout) const noexcept
+	{
+		int fd = m_file;
+		if (fd != SLIB_FILE_INVALID_HANDLE) {
+			Ref<PipeEvent> ev = PipeEvent::create();
+			if (ev.isNotNull()) {
+				return ev->waitReadFd(fd, timeout);
+			} else {
+				Thread::sleep(1);
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
 	sl_int32 File::write32(const void* buf, sl_uint32 size) const noexcept
 	{
 		int fd = m_file;
@@ -319,6 +336,21 @@ namespace slib
 			}
 		}
 		return SLIB_IO_ERROR;
+	}
+
+	sl_bool File::waitWrite(sl_int32 timeout) const noexcept
+	{
+		int fd = m_file;
+		if (fd != SLIB_FILE_INVALID_HANDLE) {
+			Ref<PipeEvent> ev = PipeEvent::create();
+			if (ev.isNotNull()) {
+				return ev->waitWriteFd(fd, timeout);
+			} else {
+				Thread::sleep(1);
+				return sl_true;
+			}
+		}
+		return sl_false;
 	}
 
 	sl_bool File::setSize(sl_uint64 newSize) const noexcept

@@ -145,7 +145,7 @@ namespace slib
 						if (Thread::isStoppingCurrent()) {
 							break;
 						}
-						Thread::sleep(1);
+						m_reader.waitRead();
 					} else {
 						break;
 					}

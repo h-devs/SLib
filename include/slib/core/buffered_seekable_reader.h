@@ -45,6 +45,8 @@ namespace slib
 
 		sl_reg read(void* buf, sl_size size) override;
 
+		sl_bool waitRead(sl_int32 timeout = -1) override;
+
 		using ISeekable::getPosition;
 		sl_bool getPosition(sl_uint64& outPos) override;
 

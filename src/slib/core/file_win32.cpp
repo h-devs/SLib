@@ -28,7 +28,8 @@
 #include "slib/core/file_util.h"
 
 #include "slib/core/hash_map.h"
-#include "slib/core/platform.h"
+#include "slib/core/thread.h"
+#include "slib/core/win32/platform.h"
 #include "slib/core/dl/win32/kernel32.h"
 
 #include <winioctl.h>
@@ -285,6 +286,12 @@ namespace slib
 		return SLIB_IO_ERROR;
 	}
 
+	sl_bool File::waitRead(sl_int32 timeout) const noexcept
+	{
+		Thread::sleep(1);
+		return sl_true;
+	}
+
 	sl_int32 File::write32(const void* buf, sl_uint32 size) const noexcept
 	{
 		HANDLE handle = m_file;
@@ -299,6 +306,12 @@ namespace slib
 			}
 		}
 		return SLIB_IO_ERROR;
+	}
+
+	sl_bool File::waitWrite(sl_int32 timeout) const noexcept
+	{
+		Thread::sleep(1);
+		return sl_true;
 	}
 
 	sl_bool File::setSize(sl_uint64 size) const noexcept

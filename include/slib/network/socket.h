@@ -134,7 +134,8 @@ namespace slib
 		Unknown = 10000
 		
 	};
-	
+
+	class SocketEvent;
 	
 	class SLIB_EXPORT Socket
 	{
@@ -245,12 +246,24 @@ namespace slib
 		sl_bool connectAbstractDomainAndWait(const StringParam& name, sl_int32 timeout = -1) const noexcept;
 
 		sl_int32 send(const void* buf, sl_size size) const noexcept;
+
+		sl_reg sendFully(const void* buf, sl_size size, SocketEvent* ev = sl_null) const noexcept;
+
 		sl_int32 write32(const void* buf, sl_uint32 size) const noexcept;
+
 		sl_reg write(const void* buf, sl_size size) const noexcept;
 
+		sl_bool waitWrite(sl_int32 timeout = -1) const noexcept;
+
 		sl_int32 receive(void* buf, sl_size size) const noexcept;
+
+		sl_reg receiveFully(void* buf, sl_size size, SocketEvent* ev = sl_null) const noexcept;
+
 		sl_int32 read32(void* buf, sl_uint32 size) const noexcept;
+		
 		sl_reg read(void* buf, sl_size size) const noexcept;
+
+		sl_bool waitRead(sl_int32 timeout = -1) const noexcept;
 
 		sl_int32 sendTo(const SocketAddress& address, const void* buf, sl_size size) const noexcept;
 
