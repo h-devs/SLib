@@ -101,7 +101,7 @@ namespace slib
 
 		const Function<void()>& getCallback();
 
-		static sl_bool sleep(sl_uint32 ms);
+		static void sleep(sl_uint32 ms);
 
 		sl_bool isCurrentThread();
 
@@ -149,6 +149,33 @@ namespace slib
 	public:
 		void _run();
 	
+	};
+
+	class SLIB_EXPORT CurrentThread
+	{
+	public:
+		constexpr CurrentThread(): m_thread(sl_null), m_flagInit(sl_false) {}
+
+	public:
+		Thread * get() noexcept;
+
+		sl_bool isNotNull() noexcept;
+
+		sl_bool isNull() noexcept;
+
+		void sleep(sl_uint32 ms) noexcept;
+
+		sl_bool isStopping() noexcept;
+
+		sl_bool isNotStopping() noexcept;
+
+	private:
+		void _init() noexcept;
+
+	private:
+		Thread* m_thread;
+		sl_bool m_flagInit;
+
 	};
 	
 }

@@ -298,14 +298,13 @@ namespace slib
 		return m_callback;
 	}
 
-	sl_bool Thread::sleep(sl_uint32 ms)
+	void Thread::sleep(sl_uint32 ms)
 	{
 		Thread* thread = getCurrent();
 		if (thread) {
-			return thread->wait(ms);
+			thread->wait(ms);
 		} else {
 			System::sleep(ms);
-			return sl_true;
 		}
 	}
 
@@ -384,6 +383,63 @@ namespace slib
 		m_handle = sl_null;
 		m_flagRunning = sl_false;
 		m_eventExit->set();
+	}
+
+
+	Thread* CurrentThread::get() noexcept
+	{
+		_init();
+		return m_thread;
+	}
+
+	sl_bool CurrentThread::isNotNull() noexcept
+	{
+		_init();
+		return m_thread != sl_null;
+	}
+
+	sl_bool CurrentThread::isNull() noexcept
+	{
+		_init();
+		return !m_thread;
+	}
+
+	void CurrentThread::sleep(sl_uint32 ms) noexcept
+	{
+		_init();
+		if (m_thread) {
+			m_thread->wait(ms);
+		} else {
+			System::sleep(ms);
+		}
+	}
+
+	sl_bool CurrentThread::isStopping() noexcept
+	{
+		_init();
+		if (m_thread) {
+			return m_thread->isStopping();
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool CurrentThread::isNotStopping() noexcept
+	{
+		_init();
+		if (m_thread) {
+			return m_thread->isNotStopping();
+		} else {
+			return sl_true;
+		}
+	}
+
+	void CurrentThread::_init() noexcept
+	{
+		if (!m_flagInit) {
+			m_flagInit = sl_true;
+			m_thread = Thread::getCurrent();
+		}
 	}
 
 
