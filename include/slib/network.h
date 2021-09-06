@@ -41,7 +41,6 @@
 #include "network/nat.h"
 #include "network/ethernet.h"
 #include "network/arp.h"
-#include "network/smb.h"
 #include "network/netbios.h"
 #include "network/packet_analyzer.h"
 
@@ -50,6 +49,7 @@
 #include "network/curl.h"
 #include "network/http.h"
 #include "network/stun.h"
+#include "network/smb.h"
 
 #include "network/capture.h"
 #include "network/pcap.h"

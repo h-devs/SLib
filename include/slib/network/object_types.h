@@ -53,7 +53,8 @@ namespace slib
 			P2PSocket,
 			Tap,
 			Pcap,
-			IPC
+			IPC,
+			SmbServer
 		};
 
 	}

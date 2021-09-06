@@ -23,10 +23,11 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_SMB
 #define CHECKHEADER_SLIB_NETWORK_SMB
 
-#include "definition.h"
+#include "socket.h"
 
 #include "../core/flags.h"
 #include "../core/mio.h"
+#include "../core/thread_pool.h"
 
 namespace slib
 {
@@ -322,6 +323,89 @@ namespace slib
 		sl_uint8 _treeId[4];
 		sl_uint8 _sessionId[4];
 		sl_uint8 _signature[8];
+
+	};
+
+	class SLIB_EXPORT Smb2NegotiateResponse
+	{
+	public:
+		sl_uint16 getFixedSize() const noexcept
+		{
+			return MIO::readUint16LE(_structureSize) & 0xFE;
+		}
+
+		sl_bool isDynamicSize() const noexcept
+		{
+			return *_structureSize & 1;
+		}
+
+		
+
+	private:
+		sl_uint8 _structureSize[2];
+		sl_uint8 _securityMode;
+
+	};
+
+	class SLIB_EXPORT SmbServerParam
+	{
+	public:
+		IPAddress bindAddress;
+		sl_uint16 port;
+
+		sl_uint32 maxThreadsCount;
+		sl_bool flagStopWindowsService;
+
+		sl_bool flagAutoStart;
+
+	public:
+		SmbServerParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SmbServerParam)
+
+	};
+
+	class SLIB_EXPORT SmbServer : public Object
+	{
+		SLIB_DECLARE_OBJECT
+
+	protected:
+		SmbServer();
+
+		~SmbServer();
+
+	public:
+		static Ref<SmbServer> create(const SmbServerParam& param);
+
+	public:
+		sl_bool start();
+
+		void release();
+
+		sl_bool isReleased();
+
+		sl_bool isRunning();
+
+		const SmbServerParam& getParam();
+
+	protected:
+		void _onRunListen();
+
+		void _onRunClient(const Socket& socket);
+
+		sl_bool _onProcessMessage(const Socket& socket, SocketEvent* ev, sl_uint8* msg, sl_uint32 size);
+
+		sl_bool _onProcessSMB(const Socket& socket, SocketEvent* ev, SmbHeader* header, sl_uint32 size);
+
+	protected:
+		sl_bool m_flagReleased;
+		sl_bool m_flagRunning;
+
+		Socket m_socketListen;
+		AtomicRef<Thread> m_threadListen;
+		AtomicRef<ThreadPool> m_threadPool;
+		
+		SmbServerParam m_param;
 
 	};
 

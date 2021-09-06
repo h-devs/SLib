@@ -179,6 +179,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/network/packet_analyzer.cpp"
  "${SLIB_PATH}/src/slib/network/pseudo_tcp.cpp"
  "${SLIB_PATH}/src/slib/network/pseudo_tcp_message.cpp"
+ "${SLIB_PATH}/src/slib/network/smb.cpp"
  "${SLIB_PATH}/src/slib/network/socket.cpp"
  "${SLIB_PATH}/src/slib/network/socket_address.cpp"
  "${SLIB_PATH}/src/slib/network/socket_event.cpp"

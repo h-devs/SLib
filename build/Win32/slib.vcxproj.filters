@@ -1400,5 +1400,8 @@
     <ClCompile Include="..\..\src\slib\core\win32_portable_device.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\smb.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
