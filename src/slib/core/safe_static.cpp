@@ -38,7 +38,7 @@ namespace slib
 			class FreeHelper
 			{
 			public:
-				constexpr FreeHelper() {}
+				SLIB_CONSTEXPR FreeHelper() {}
 
 				~FreeHelper()
 				{

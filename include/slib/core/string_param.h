@@ -68,9 +68,9 @@ namespace slib
 		};
 		
 	public:
-		constexpr StringParam(): _value(sl_null), _length(0) {}
+		SLIB_CONSTEXPR StringParam(): _value(sl_null), _length(0) {}
 		
-		constexpr StringParam(sl_null_t): _value(sl_null), _length(1) {}
+		SLIB_CONSTEXPR StringParam(sl_null_t): _value(sl_null), _length(1) {}
 		
 		StringParam(StringParam&& other) noexcept;
 		
@@ -159,24 +159,24 @@ namespace slib
 	public:
 		void setUndefined() noexcept;
 		
-		constexpr sl_bool isUndefined() const
+		SLIB_CONSTEXPR sl_bool isUndefined() const
 		{
 			return (!_value) && (!_length);
 		}
 		
-		constexpr sl_bool isNotUndefined() const
+		SLIB_CONSTEXPR sl_bool isNotUndefined() const
 		{
 			return _value || _length;
 		}
 		
 		void setNull() noexcept;
 		
-		constexpr sl_bool isNull() const
+		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return !_value;
 		}
 		
-		constexpr sl_bool isNotNull() const
+		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return _value != 0;
 		}

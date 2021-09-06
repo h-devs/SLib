@@ -81,7 +81,7 @@ namespace slib
 #endif
 
 	public:
-		constexpr HEvent getHandle() const
+		SLIB_CONSTEXPR HEvent getHandle() const
 		{
 			return m_handle;
 		}

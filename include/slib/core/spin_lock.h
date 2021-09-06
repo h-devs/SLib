@@ -31,9 +31,9 @@ namespace slib
 	class SLIB_EXPORT SpinLock
 	{
 	public:
-		constexpr SpinLock(): m_flagLock(0) {}
+		SLIB_CONSTEXPR SpinLock(): m_flagLock(0) {}
 
-		constexpr SpinLock(const SpinLock&): m_flagLock(0) {}
+		SLIB_CONSTEXPR SpinLock(const SpinLock&): m_flagLock(0) {}
 
 	public:
 		void lock() const noexcept;

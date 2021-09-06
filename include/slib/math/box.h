@@ -43,9 +43,9 @@ namespace slib
 		BoxT() = default;
 
 		template <class O>
-		constexpr BoxT(const BoxT<O>& other): x1((T)(other.x1)), x2((T)(other.x2)), y1((T)(other.y1)), y2((T)(other.y2)), z1((T)(other.z1)), z2((T)(other.z2)) {}
+		SLIB_CONSTEXPR BoxT(const BoxT<O>& other): x1((T)(other.x1)), x2((T)(other.x2)), y1((T)(other.y1)), y2((T)(other.y2)), z1((T)(other.z1)), z2((T)(other.z2)) {}
 
-		constexpr BoxT(T _x1, T _y1, T _z1, T _x2, T _y2, T _z2): x1(_x1), y1(_y1), z1(_z1), x2(_x2), y2(_y2), z2(_z2) {}
+		SLIB_CONSTEXPR BoxT(T _x1, T _y1, T _z1, T _x2, T _y2, T _z2): x1(_x1), y1(_y1), z1(_z1), x2(_x2), y2(_y2), z2(_z2) {}
 
 	public:
 		static const BoxT<T>& zero() noexcept
@@ -54,7 +54,7 @@ namespace slib
 			return *((BoxT*)((void*)_zero));
 		}
 
-		constexpr Vector3T<T> getStart() const
+		SLIB_CONSTEXPR Vector3T<T> getStart() const
 		{
 			return { x1, y1, z1 };
 		}
@@ -73,7 +73,7 @@ namespace slib
 			z1 = v.z;
 		}
 
-		constexpr Vector3T<T> getEnd() const
+		SLIB_CONSTEXPR Vector3T<T> getEnd() const
 		{
 			return { x2, y2, z2 };
 		}
@@ -92,7 +92,7 @@ namespace slib
 			z2 = v.z;
 		}
 
-		constexpr Vector3T<T> getSize() const
+		SLIB_CONSTEXPR Vector3T<T> getSize() const
 		{
 			return { x2 - x1, y2 - y1, z2 - z1 };
 		}
@@ -108,7 +108,7 @@ namespace slib
 			x2 = 0; y2 = 0; z2 = 0;
 		}
 
-		constexpr sl_bool containsPoint(T x, T y, T z) const
+		SLIB_CONSTEXPR sl_bool containsPoint(T x, T y, T z) const
 		{
 			return
 				x >= x1 && x <= x2 &&
@@ -116,7 +116,7 @@ namespace slib
 				z >= z1 && z <= z2;
 		}
 
-		constexpr sl_bool containsPoint(const Vector3T<T>& pt) const
+		SLIB_CONSTEXPR sl_bool containsPoint(const Vector3T<T>& pt) const
 		{
 			return
 				pt.x >= x1 && pt.x <= x2 &&
@@ -124,7 +124,7 @@ namespace slib
 				pt.z >= z1 && pt.z <= z2;
 		}
 
-		constexpr sl_bool containsBox(const BoxT<T>& other) const
+		SLIB_CONSTEXPR sl_bool containsBox(const BoxT<T>& other) const
 		{
 			return
 				x1 <= other.x2 && x2 >= other.x1 &&

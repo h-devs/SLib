@@ -125,7 +125,7 @@ namespace slib
 		Ref<Referable> ref;
 	
 	public:
-		constexpr Ptr(): ptr(sl_null) {}
+		SLIB_CONSTEXPR Ptr(): ptr(sl_null) {}
 
 		Ptr(Ptr&& other) noexcept
 		{
@@ -156,9 +156,9 @@ namespace slib
 			ptr = other._retain(ref);
 		}
 
-		constexpr Ptr(sl_null_t): ptr(sl_null) {}
+		SLIB_CONSTEXPR Ptr(sl_null_t): ptr(sl_null) {}
 
-		constexpr Ptr(T* pointer): ptr(pointer) {}
+		SLIB_CONSTEXPR Ptr(T* pointer): ptr(pointer) {}
 
 		template <class OTHER>
 		Ptr(const Ref<OTHER>& reference) noexcept: ptr(reference.ptr), ref(reference)
@@ -261,12 +261,12 @@ namespace slib
 			return *(reinterpret_cast<Ptr const*>(&(priv::ptr::g_null)));
 		}
 	
-		constexpr sl_bool isNull() const
+		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return !ptr;
 		}
 
-		constexpr sl_bool isNotNull() const
+		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return ptr != sl_null;
 		}
@@ -348,7 +348,7 @@ namespace slib
 		}
 
 	public:
-		constexpr T* get() const
+		SLIB_CONSTEXPR T* get() const
 		{
 			return ptr;
 		}
@@ -478,69 +478,69 @@ namespace slib
 			return *this;
 		}
 
-		constexpr T& operator*() const
+		SLIB_CONSTEXPR T& operator*() const
 		{
 			return *ptr;
 		}
 
-		constexpr T* operator->() const
+		SLIB_CONSTEXPR T* operator->() const
 		{
 			return ptr;
 		}
 
-		constexpr operator T*() const
+		SLIB_CONSTEXPR operator T*() const
 		{
 			return ptr;
 		}
 
-		constexpr explicit operator sl_bool() const
+		SLIB_CONSTEXPR explicit operator sl_bool() const
 		{
 			return ptr != sl_null;
 		}
 
 	public:
-		constexpr sl_bool equals(sl_null_t) const
+		SLIB_CONSTEXPR sl_bool equals(sl_null_t) const
 		{
 			return !ptr;
 		}
 
 		template <class OTHER>
-		constexpr sl_bool equals(const OTHER* other) const
+		SLIB_CONSTEXPR sl_bool equals(const OTHER* other) const
 		{
 			return ptr == other;
 		}
 
 		template <class OTHER>
-		constexpr sl_bool equals(const Ptr<OTHER>& other) const
+		SLIB_CONSTEXPR sl_bool equals(const Ptr<OTHER>& other) const
 		{
 			return ptr == other.ptr;
 		}
 	
 		template <class OTHER>
-		constexpr sl_bool equals(const AtomicPtr<OTHER>& other) const
+		SLIB_CONSTEXPR sl_bool equals(const AtomicPtr<OTHER>& other) const
 		{
 			return ptr == other._ptr;
 		}
 
-		constexpr sl_compare_result compare(sl_null_t) const
+		SLIB_CONSTEXPR sl_compare_result compare(sl_null_t) const
 		{
 			return ptr != sl_null;
 		}
 	
 		template <class OTHER>
-		constexpr sl_compare_result compare(const OTHER* other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const OTHER* other) const
 		{
 			return ComparePrimitiveValues(ptr, other);
 		}
 
 		template <class OTHER>
-		constexpr sl_compare_result compare(const Ptr<OTHER>& other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const Ptr<OTHER>& other) const
 		{
 			return ComparePrimitiveValues(ptr, other.ptr);
 		}
 
 		template <class OTHER>
-		constexpr sl_compare_result compare(const AtomicPtr<OTHER>& other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const AtomicPtr<OTHER>& other) const
 		{
 			return ComparePrimitiveValues(ptr, other._ptr);
 		}
@@ -574,7 +574,7 @@ namespace slib
 		Ref<Referable> _ref;
 	
 	public:
-		constexpr Atomic(): _ptr(sl_null) {}
+		SLIB_CONSTEXPR Atomic(): _ptr(sl_null) {}
 
 		Atomic(const Atomic& other) noexcept
 		{
@@ -602,7 +602,7 @@ namespace slib
 			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 		}
 
-		constexpr Atomic(sl_null_t): _ptr(sl_null) {}
+		SLIB_CONSTEXPR Atomic(sl_null_t): _ptr(sl_null) {}
 
 		Atomic(T* pointer) noexcept: _ptr(pointer) {}
 
@@ -662,12 +662,12 @@ namespace slib
 		Atomic(T* pointer, REF&& r) noexcept: _ptr(pointer), _ref(priv::ptr::GetRef(Forward<REF>(r))) {}
 
 	public:
-		constexpr sl_bool isNull() const
+		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return _ptr == sl_null;
 		}
 
-		constexpr sl_bool isNotNull() const
+		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return _ptr != sl_null;
 		}
@@ -805,48 +805,48 @@ namespace slib
 		}
 
 	public:
-		constexpr sl_bool equals(sl_null_t) const
+		SLIB_CONSTEXPR sl_bool equals(sl_null_t) const
 		{
 			return !_ptr;
 		}
 
 		template <class OTHER>
-		constexpr sl_bool equals(const OTHER* other) const
+		SLIB_CONSTEXPR sl_bool equals(const OTHER* other) const
 		{
 			return _ptr == other;
 		}
 
 		template <class OTHER>
-		constexpr sl_bool equals(const Ptr<OTHER>& other) const
+		SLIB_CONSTEXPR sl_bool equals(const Ptr<OTHER>& other) const
 		{
 			return _ptr == other.ptr;
 		}
 	
 		template <class OTHER>
-		constexpr sl_bool equals(const AtomicPtr<OTHER>& other) const
+		SLIB_CONSTEXPR sl_bool equals(const AtomicPtr<OTHER>& other) const
 		{
 			return _ptr == other._ptr;
 		}
 
-		constexpr sl_compare_result compare(sl_null_t) const
+		SLIB_CONSTEXPR sl_compare_result compare(sl_null_t) const
 		{
 			return _ptr != sl_null;
 		}
 	
 		template <class OTHER>
-		constexpr sl_compare_result compare(const OTHER* other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const OTHER* other) const
 		{
 			return ComparePrimitiveValues(_ptr, other);
 		}
 
 		template <class OTHER>
-		constexpr sl_compare_result compare(const Ptr<OTHER>& other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const Ptr<OTHER>& other) const
 		{
 			return ComparePrimitiveValues(_ptr, other.ptr);
 		}
 
 		template <class OTHER>
-		constexpr sl_compare_result compare(const AtomicPtr<OTHER>& other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const AtomicPtr<OTHER>& other) const
 		{
 			return ComparePrimitiveValues(_ptr, other._ptr);
 		}
@@ -988,37 +988,37 @@ namespace slib
 			m_ptr.setNull();
 		}
 	
-		constexpr T* get() const
+		SLIB_CONSTEXPR T* get() const
 		{
 			return m_ptr.ptr;
 		}
 
-		constexpr sl_bool isNull() const
+		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return m_ptr.isNull();
 		}
 	
-		constexpr sl_bool isNotNull() const
+		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return m_ptr.isNotNull();
 		}
 	
-		constexpr T& operator*() const
+		SLIB_CONSTEXPR T& operator*() const
 		{
 			return *(m_ptr.ptr);
 		}
 	
-		constexpr T* operator->() const
+		SLIB_CONSTEXPR T* operator->() const
 		{
 			return m_ptr.ptr;
 		}
 
-		constexpr operator T*() const
+		SLIB_CONSTEXPR operator T*() const
 		{
 			return m_ptr.ptr;
 		}
 
-		constexpr explicit operator sl_bool() const
+		SLIB_CONSTEXPR explicit operator sl_bool() const
 		{
 			return m_ptr.ptr;
 		}

@@ -807,7 +807,7 @@ namespace slib
 		};
 
 	public:
-		constexpr Locale() : value(0) {}
+		SLIB_CONSTEXPR Locale() : value(0) {}
 
 		Locale(Language language);
 

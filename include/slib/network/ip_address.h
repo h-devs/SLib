@@ -51,22 +51,22 @@ namespace slib
 		};
 		
 	public:
-		constexpr IPv4Address(): a(0), b(0), c(0), d(0) {}
+		SLIB_CONSTEXPR IPv4Address(): a(0), b(0), c(0), d(0) {}
 		
-		constexpr IPv4Address(const IPv4Address& other): a(other.a), b(other.b), c(other.c), d(other.d) {}
+		SLIB_CONSTEXPR IPv4Address(const IPv4Address& other): a(other.a), b(other.b), c(other.c), d(other.d) {}
 		
-		constexpr IPv4Address(sl_uint8 const addr[4]): a(addr[0]), b(addr[1]), c(addr[2]), d(addr[3]) {}
+		SLIB_CONSTEXPR IPv4Address(sl_uint8 const addr[4]): a(addr[0]), b(addr[1]), c(addr[2]), d(addr[3]) {}
 		
-		constexpr IPv4Address(sl_uint8 _a, sl_uint8 _b, sl_uint8 _c, sl_uint8 _d): a(_a), b(_b), c(_c), d(_d) {}
+		SLIB_CONSTEXPR IPv4Address(sl_uint8 _a, sl_uint8 _b, sl_uint8 _c, sl_uint8 _d): a(_a), b(_b), c(_c), d(_d) {}
 		
-		constexpr IPv4Address(sl_uint32 addr): a((sl_uint8)(addr >> 24)), b((sl_uint8)(addr >> 16)), c((sl_uint8)(addr >> 8)), d((sl_uint8)(addr)) {}
+		SLIB_CONSTEXPR IPv4Address(sl_uint32 addr): a((sl_uint8)(addr >> 24)), b((sl_uint8)(addr >> 16)), c((sl_uint8)(addr >> 8)), d((sl_uint8)(addr)) {}
 		
 		IPv4Address(const StringParam& address) noexcept;
 		
 	public:
 		void setElements(sl_uint8 a, sl_uint8 b, sl_uint8 c, sl_uint8 d) noexcept;
 		
-		constexpr sl_uint32 getInt() const
+		SLIB_CONSTEXPR sl_uint32 getInt() const
 		{
 			return ((sl_uint32)(a) << 24) | ((sl_uint32)(b) << 16) | ((sl_uint32)(c) << 8) | ((sl_uint32)(d));
 		}
@@ -88,12 +88,12 @@ namespace slib
 			return *(reinterpret_cast<IPv4Address const*>(&_zero));
 		}
 		
-		constexpr sl_bool isZero() const
+		SLIB_CONSTEXPR sl_bool isZero() const
 		{
 			return !(getInt());
 		}
 		
-		constexpr sl_bool isNotZero() const
+		SLIB_CONSTEXPR sl_bool isNotZero() const
 		{
 			return getInt() != 0;
 		}
@@ -121,27 +121,27 @@ namespace slib
 		sl_bool setHostName(const StringParam& hostName) noexcept;
 
 	public:
-		constexpr sl_compare_result compare(const IPv4Address& other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const IPv4Address& other) const
 		{
 			return ComparePrimitiveValues(getInt(), other.getInt());
 		}
 
-		constexpr sl_compare_result compare(sl_uint32 addr) const
+		SLIB_CONSTEXPR sl_compare_result compare(sl_uint32 addr) const
 		{
 			return ComparePrimitiveValues(getInt(), addr);
 		}
 
-		constexpr sl_bool equals(const IPv4Address& other) const
+		SLIB_CONSTEXPR sl_bool equals(const IPv4Address& other) const
 		{
 			return getInt() == other.getInt();
 		}
 		
-		constexpr sl_bool equals(sl_uint32 addr) const
+		SLIB_CONSTEXPR sl_bool equals(sl_uint32 addr) const
 		{
 			return getInt() == addr;
 		}
 		
-		constexpr sl_size getHashCode() const
+		SLIB_CONSTEXPR sl_size getHashCode() const
 		{
 			return HashPrimitiveValue(getInt());
 		}
@@ -310,12 +310,12 @@ namespace slib
 			type = IPAddressType::None;
 		}
 		
-		constexpr sl_bool isNone() const
+		SLIB_CONSTEXPR sl_bool isNone() const
 		{
 			return type == IPAddressType::None;
 		}
 		
-		constexpr sl_bool isNotNone() const
+		SLIB_CONSTEXPR sl_bool isNotNone() const
 		{
 			return type != IPAddressType::None;
 		}

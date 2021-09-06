@@ -43,11 +43,11 @@ namespace slib
 		QuaternionT() = default;
 
 		template <class O>
-		constexpr QuaternionT(const QuaternionT<O>& other): x((T)(other.x)), y((T)(other.y)), z((T)(other.z)), w((T)(other.w)) {}
+		SLIB_CONSTEXPR QuaternionT(const QuaternionT<O>& other): x((T)(other.x)), y((T)(other.y)), z((T)(other.z)), w((T)(other.w)) {}
 	
-		constexpr QuaternionT(T _x, T _y, T _z, T _w): x(_x), y(_y), z(_z), w(_w) {}
+		SLIB_CONSTEXPR QuaternionT(T _x, T _y, T _z, T _w): x(_x), y(_y), z(_z), w(_w) {}
 
-		constexpr QuaternionT(const Vector4T<T>& other): x(other.x), y(other.y), z(other.z), w(other.w) {}
+		SLIB_CONSTEXPR QuaternionT(const Vector4T<T>& other): x(other.x), y(other.y), z(other.z), w(other.w) {}
 	
 	public:
 		static const QuaternionT<T>& identity() noexcept
@@ -146,12 +146,12 @@ namespace slib
 			return ret;
 		}
 
-		constexpr sl_bool equals(const QuaternionT& other) const
+		SLIB_CONSTEXPR sl_bool equals(const QuaternionT& other) const
 		{
 			return x == other.x && y == other.y && z == other.z && w == other.w;
 		}
 
-		constexpr sl_bool isAlmostEqual(const QuaternionT& other) const
+		SLIB_CONSTEXPR sl_bool isAlmostEqual(const QuaternionT& other) const
 		{
 			return Math::isAlmostZero(x - other.x) && Math::isAlmostZero(y - other.y) && Math::isAlmostZero(z - other.z) && Math::isAlmostZero(w - other.w);
 		}

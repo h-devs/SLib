@@ -88,8 +88,8 @@
 		PtrLocker(const Ptr<OTHERS...>& ptr) noexcept: m_ptr(ptr.lock()) {} \
 	public: \
 		void unlock() noexcept { m_ptr.setNull(); } \
-		constexpr sl_bool isNull() const { return m_ptr.isNull(); } \
-		constexpr sl_bool isNotNull() const { return m_ptr.isNotNull(); }
+		SLIB_CONSTEXPR sl_bool isNull() const { return m_ptr.isNull(); } \
+		SLIB_CONSTEXPR sl_bool isNotNull() const { return m_ptr.isNotNull(); }
 
 namespace slib
 {
@@ -110,9 +110,9 @@ namespace slib
 		using Ptr<T>::ref;
 		using Ptr<T>::lockRef;
 
-		constexpr Ptr() {}
+		SLIB_CONSTEXPR Ptr() {}
 
-		constexpr Ptr(sl_null_t) {}
+		SLIB_CONSTEXPR Ptr(sl_null_t) {}
 
 		template <class... OTHERS>
 		Ptr(const Ptr<OTHERS...>& v) noexcept: Ptr<T>(_cast(v), v.ref) {}
@@ -136,7 +136,7 @@ namespace slib
 		Ptr(const AtomicWeakRef<OTHER>& v) noexcept: Ptr(Ptr<OTHER>(v)) {}
 
 		template <class OTHER>
-		constexpr Ptr(OTHER* v): Ptr<T>(_cast(v)) {}
+		SLIB_CONSTEXPR Ptr(OTHER* v): Ptr<T>(_cast(v)) {}
 
 		template <class... OTHERS>
 		Ptr(const Pointer<OTHERS...>& v) noexcept: Ptr<T>(_cast(v)) {}
@@ -237,7 +237,7 @@ namespace slib
 			return *this;
 		}
 
-		constexpr operator T*() const
+		SLIB_CONSTEXPR operator T*() const
 		{
 			return ptr;
 		}
@@ -272,22 +272,22 @@ namespace slib
 		T2 * ptr2;
 
 	public:
-		constexpr Ptr() : ptr2(sl_null) {}
+		SLIB_CONSTEXPR Ptr() : ptr2(sl_null) {}
 
-		constexpr Ptr(sl_null_t) : ptr2(sl_null) {}
+		SLIB_CONSTEXPR Ptr(sl_null_t) : ptr2(sl_null) {}
 
-		constexpr Ptr(T1* v1, T2* v2) : Ptr<T>(v1), ptr2(v2) {}
+		SLIB_CONSTEXPR Ptr(T1* v1, T2* v2) : Ptr<T>(v1), ptr2(v2) {}
 
 		template <class REF>
 		Ptr(T1* v1, T2* v2, REF&& r) noexcept : Ptr<T>(v1, Forward<REF>(r)), ptr2(v2) {}
 
 	public:
-		constexpr operator T1*() const
+		SLIB_CONSTEXPR operator T1*() const
 		{
 			return ptr;
 		}
 
-		constexpr operator T2*() const
+		SLIB_CONSTEXPR operator T2*() const
 		{
 			return ptr2;
 		}
@@ -337,27 +337,27 @@ namespace slib
 		T3* ptr3;
 
 	public:
-		constexpr Ptr(): ptr2(sl_null), ptr3(sl_null) {}
+		SLIB_CONSTEXPR Ptr(): ptr2(sl_null), ptr3(sl_null) {}
 
-		constexpr Ptr(sl_null_t): ptr2(sl_null), ptr3(sl_null) {}
+		SLIB_CONSTEXPR Ptr(sl_null_t): ptr2(sl_null), ptr3(sl_null) {}
 
-		constexpr Ptr(T1* v1, T2* v2, T3* v3): Ptr<T>(v1), ptr2(v2), ptr3(v3) {}
+		SLIB_CONSTEXPR Ptr(T1* v1, T2* v2, T3* v3): Ptr<T>(v1), ptr2(v2), ptr3(v3) {}
 
 		template <class REF>
 		Ptr(T1* v1, T2* v2, T3* v3, REF&& r) noexcept : Ptr<T>(v1, Forward<REF>(r)), ptr2(v2), ptr3(v3) {}
 
 	public:
-		constexpr operator T1*() const
+		SLIB_CONSTEXPR operator T1*() const
 		{
 			return ptr;
 		}
 
-		constexpr operator T2*() const
+		SLIB_CONSTEXPR operator T2*() const
 		{
 			return ptr2;
 		}
 
-		constexpr operator T3*() const
+		SLIB_CONSTEXPR operator T3*() const
 		{
 			return ptr3;
 		}
@@ -411,32 +411,32 @@ namespace slib
 		T4* ptr4;
 
 	public:
-		constexpr Ptr(): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+		SLIB_CONSTEXPR Ptr(): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
-		constexpr Ptr(sl_null_t): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+		SLIB_CONSTEXPR Ptr(sl_null_t): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
-		constexpr Ptr(T1* v1, T2* v2, T3* v3, T4* v4): Ptr<T>(v1), ptr2(v2), ptr3(v3), ptr4(v4) {}
+		SLIB_CONSTEXPR Ptr(T1* v1, T2* v2, T3* v3, T4* v4): Ptr<T>(v1), ptr2(v2), ptr3(v3), ptr4(v4) {}
 
 		template <class REF>
 		Ptr(T1* v1, T2* v2, T3* v3, T4* v4, REF&& r) noexcept : Ptr<T>(v1, Forward<REF>(r)), ptr2(v2), ptr3(v3), ptr4(v4) {}
 
 	public:
-		constexpr operator T1*() const
+		SLIB_CONSTEXPR operator T1*() const
 		{
 			return ptr;
 		}
 
-		constexpr operator T2*() const
+		SLIB_CONSTEXPR operator T2*() const
 		{
 			return ptr2;
 		}
 
-		constexpr operator T3*() const
+		SLIB_CONSTEXPR operator T3*() const
 		{
 			return ptr3;
 		}
 
-		constexpr operator T4*() const
+		SLIB_CONSTEXPR operator T4*() const
 		{
 			return ptr4;
 		}
@@ -489,12 +489,12 @@ namespace slib
 		PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(T, T2)
 		
 	public:
-		constexpr operator T1*() const
+		SLIB_CONSTEXPR operator T1*() const
 		{
 			return m_ptr.ptr;
 		}
 
-		constexpr operator T2*() const
+		SLIB_CONSTEXPR operator T2*() const
 		{
 			return m_ptr.ptr2;
 		}
@@ -510,17 +510,17 @@ namespace slib
 		PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(T, T2, T3)
 
 	public:
-		constexpr operator T1*() const
+		SLIB_CONSTEXPR operator T1*() const
 		{
 			return m_ptr.ptr;
 		}
 
-		constexpr operator T2*() const
+		SLIB_CONSTEXPR operator T2*() const
 		{
 			return m_ptr.ptr2;
 		}
 
-		constexpr operator T3*() const
+		SLIB_CONSTEXPR operator T3*() const
 		{
 			return m_ptr.ptr3;
 		}
@@ -536,22 +536,22 @@ namespace slib
 		PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(T, T2, T3, T4)
 
 	public:
-		constexpr operator T1*() const
+		SLIB_CONSTEXPR operator T1*() const
 		{
 			return m_ptr.ptr;
 		}
 
-		constexpr operator T2*() const
+		SLIB_CONSTEXPR operator T2*() const
 		{
 			return m_ptr.ptr2;
 		}
 
-		constexpr operator T3*() const
+		SLIB_CONSTEXPR operator T3*() const
 		{
 			return m_ptr.ptr3;
 		}
 		
-		constexpr operator T4*() const
+		SLIB_CONSTEXPR operator T4*() const
 		{
 			return m_ptr.ptr4;
 		}

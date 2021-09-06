@@ -87,20 +87,20 @@ namespace slib
 		T2* ptr2;
 
 	public:
-		constexpr Ref(): ptr2(sl_null) {}
+		SLIB_CONSTEXPR Ref(): ptr2(sl_null) {}
 
-		constexpr Ref(sl_null_t): ptr2(sl_null) {}
+		SLIB_CONSTEXPR Ref(sl_null_t): ptr2(sl_null) {}
 
 		template <class OTHER>
 		Ref(OTHER&& v1, T2* v2): Ref<T1>(Forward<OTHER>(v1)), ptr2(v2) {}
 
 	public:
-		constexpr operator T1*() const
+		SLIB_CONSTEXPR operator T1*() const
 		{
 			return ptr;
 		}
 
-		constexpr operator T2*() const
+		SLIB_CONSTEXPR operator T2*() const
 		{
 			return ptr2;
 		}
@@ -127,25 +127,25 @@ namespace slib
 		T3* ptr3;
 
 	public:
-		constexpr Ref(): ptr2(sl_null), ptr3(sl_null) {}
+		SLIB_CONSTEXPR Ref(): ptr2(sl_null), ptr3(sl_null) {}
 
-		constexpr Ref(sl_null_t): ptr2(sl_null), ptr3(sl_null) {}
+		SLIB_CONSTEXPR Ref(sl_null_t): ptr2(sl_null), ptr3(sl_null) {}
 
 		template <class OTHER>
 		Ref(OTHER&& v1, T2* v2, T3* v3): Ref<T1>(Forward<OTHER>(v1)), ptr2(v2), ptr3(v3) {}
 
 	public:
-		constexpr operator T1*() const
+		SLIB_CONSTEXPR operator T1*() const
 		{
 			return ptr;
 		}
 
-		constexpr operator T2*() const
+		SLIB_CONSTEXPR operator T2*() const
 		{
 			return ptr2;
 		}
 
-		constexpr operator T3*() const
+		SLIB_CONSTEXPR operator T3*() const
 		{
 			return ptr3;
 		}
@@ -174,30 +174,30 @@ namespace slib
 		T4* ptr4;
 
 	public:
-		constexpr Ref(): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+		SLIB_CONSTEXPR Ref(): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
-		constexpr Ref(sl_null_t): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+		SLIB_CONSTEXPR Ref(sl_null_t): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
 		template <class OTHER>
 		Ref(OTHER&& v1, T2* v2, T3* v3, T4* v4) noexcept: Ref<T1>(Forward<OTHER>(v1)), ptr2(v2), ptr3(v3), ptr4(v4) {}
 
 	public:
-		constexpr operator T1*() const
+		SLIB_CONSTEXPR operator T1*() const
 		{
 			return ptr;
 		}
 
-		constexpr operator T2*() const
+		SLIB_CONSTEXPR operator T2*() const
 		{
 			return ptr2;
 		}
 
-		constexpr operator T3*() const
+		SLIB_CONSTEXPR operator T3*() const
 		{
 			return ptr3;
 		}
 
-		constexpr operator T4*() const
+		SLIB_CONSTEXPR operator T4*() const
 		{
 			return ptr4;
 		}

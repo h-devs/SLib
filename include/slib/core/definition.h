@@ -33,6 +33,7 @@
 
 #	define SLIB_STDCALL		__stdcall
 #	define SLIB_INLINE		__forceinline
+#	define SLIB_CONSTEXPR	constexpr
 #	define SLIB_THREAD_OLD	__declspec(thread)
 #	define SLIB_THREAD		thread_local
 #	define SLIB_INT64(v)	v##i64
@@ -57,6 +58,11 @@ typedef size_t				sl_size_t;
 
 #	define SLIB_STDCALL		__attribute__((stdcall))
 #	define SLIB_INLINE		inline __attribute__((always_inline))
+#	if __GNUC__ >= 5
+#	    define SLIB_CONSTEXPR	constexpr
+#   else
+#	    define SLIB_CONSTEXPR
+#   endif
 #	define SLIB_INT64(v)	v##LL
 #	define SLIB_UINT64(v)	v##ULL
 #	define SLIB_THREAD_OLD	__thread

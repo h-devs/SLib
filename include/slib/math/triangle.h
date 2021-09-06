@@ -43,22 +43,22 @@ namespace slib
 		TriangleT() = default;
 
 		template <class O>
-		constexpr TriangleT(const TriangleT<O>& other): point1(other.point1), point2(other.point2), point3(other.point3) {}
+		SLIB_CONSTEXPR TriangleT(const TriangleT<O>& other): point1(other.point1), point2(other.point2), point3(other.point3) {}
 
-		constexpr TriangleT(const PointT<T>& _point1, const PointT<T>& _point2, const PointT<T>& _point3): point1(_point1), point2(_point2), point3(_point3) {}
+		SLIB_CONSTEXPR TriangleT(const PointT<T>& _point1, const PointT<T>& _point2, const PointT<T>& _point3): point1(_point1), point2(_point2), point3(_point3) {}
 
 	public:
-		static constexpr T getCross(const PointT<T>& _point1, const PointT<T>& _point2, const PointT<T>& _point3)
+		static SLIB_CONSTEXPR T getCross(const PointT<T>& _point1, const PointT<T>& _point2, const PointT<T>& _point3)
 		{
 			return (_point1.x - _point2.x) * (_point2.y - _point3.y) - (_point2.x - _point3.x) * (_point1.y - _point2.y);
 		}
 
-		constexpr T getCross() const
+		SLIB_CONSTEXPR T getCross() const
 		{
 			return getCross(point1, point2, point3);
 		}
 
-		constexpr T getSize() const
+		SLIB_CONSTEXPR T getSize() const
 		{
 			return getCross(point1, point2, point3) / 2;
 		}

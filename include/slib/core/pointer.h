@@ -57,29 +57,29 @@ namespace slib
 		T* ptr;
 
 	public:
-		constexpr Pointer(): ptr(sl_null) {}
+		SLIB_CONSTEXPR Pointer(): ptr(sl_null) {}
 
-		constexpr Pointer(sl_null_t): ptr(sl_null) {}
+		SLIB_CONSTEXPR Pointer(sl_null_t): ptr(sl_null) {}
 
-		constexpr Pointer(T* other): ptr(other) {}
+		SLIB_CONSTEXPR Pointer(T* other): ptr(other) {}
 
 	public:
-		constexpr operator T*() const
+		SLIB_CONSTEXPR operator T*() const
 		{
 			return ptr;
 		}
 		
-		constexpr T& operator*() const
+		SLIB_CONSTEXPR T& operator*() const
 		{
 			return *ptr;
 		}
 
-		constexpr T* operator->() const
+		SLIB_CONSTEXPR T* operator->() const
 		{
 			return ptr;
 		}
 
-		constexpr explicit operator sl_bool() const
+		SLIB_CONSTEXPR explicit operator sl_bool() const
 		{
 			return ptr != sl_null;
 		}
@@ -157,19 +157,19 @@ namespace slib
 		T2* ptr2;
 
 	public:
-		constexpr Pointer(): ptr(sl_null), ptr2(sl_null) {}
+		SLIB_CONSTEXPR Pointer(): ptr(sl_null), ptr2(sl_null) {}
 
-		constexpr Pointer(sl_null_t): ptr(sl_null), ptr2(sl_null) {}
+		SLIB_CONSTEXPR Pointer(sl_null_t): ptr(sl_null), ptr2(sl_null) {}
 
-		constexpr Pointer(T1* v1, T2* v2): ptr(v1), ptr2(v2) {}
+		SLIB_CONSTEXPR Pointer(T1* v1, T2* v2): ptr(v1), ptr2(v2) {}
 
 	public:
-		constexpr operator T1*() const
+		SLIB_CONSTEXPR operator T1*() const
 		{
 			return ptr;
 		}
 
-		constexpr operator T2*() const
+		SLIB_CONSTEXPR operator T2*() const
 		{
 			return ptr2;
 		}
@@ -198,24 +198,24 @@ namespace slib
 		T3* ptr3;
 
 	public:
-		constexpr Pointer(): ptr(sl_null), ptr2(sl_null), ptr3(sl_null) {}
+		SLIB_CONSTEXPR Pointer(): ptr(sl_null), ptr2(sl_null), ptr3(sl_null) {}
 
-		constexpr Pointer(sl_null_t): ptr(sl_null), ptr2(sl_null), ptr3(sl_null) {}
+		SLIB_CONSTEXPR Pointer(sl_null_t): ptr(sl_null), ptr2(sl_null), ptr3(sl_null) {}
 
-		constexpr Pointer(T1* v1, T2* v2, T3* v3): ptr(v1), ptr2(v2), ptr3(v3) {}
+		SLIB_CONSTEXPR Pointer(T1* v1, T2* v2, T3* v3): ptr(v1), ptr2(v2), ptr3(v3) {}
 
 	public:
-		constexpr operator T1*() const
+		SLIB_CONSTEXPR operator T1*() const
 		{
 			return ptr;
 		}
 
-		constexpr operator T2*() const
+		SLIB_CONSTEXPR operator T2*() const
 		{
 			return ptr2;
 		}
 
-		constexpr operator T3*() const
+		SLIB_CONSTEXPR operator T3*() const
 		{
 			return ptr3;
 		}
@@ -246,29 +246,29 @@ namespace slib
 		T4* ptr4;
 
 	public:
-		constexpr Pointer(): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+		SLIB_CONSTEXPR Pointer(): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
-		constexpr Pointer(sl_null_t): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
+		SLIB_CONSTEXPR Pointer(sl_null_t): ptr2(sl_null), ptr3(sl_null), ptr4(sl_null) {}
 
-		constexpr Pointer(T1* v1, T2* v2, T3* v3, T4* v4): ptr(v1), ptr2(v2), ptr3(v3), ptr4(v4) {}
+		SLIB_CONSTEXPR Pointer(T1* v1, T2* v2, T3* v3, T4* v4): ptr(v1), ptr2(v2), ptr3(v3), ptr4(v4) {}
 
 	public:
-		constexpr operator T1*() const
+		SLIB_CONSTEXPR operator T1*() const
 		{
 			return ptr;
 		}
 
-		constexpr operator T2*() const
+		SLIB_CONSTEXPR operator T2*() const
 		{
 			return ptr2;
 		}
 
-		constexpr operator T3*() const
+		SLIB_CONSTEXPR operator T3*() const
 		{
 			return ptr3;
 		}
 
-		constexpr operator T4*() const
+		SLIB_CONSTEXPR operator T4*() const
 		{
 			return ptr4;
 		}

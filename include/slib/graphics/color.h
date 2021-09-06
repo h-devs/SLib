@@ -191,25 +191,25 @@ namespace slib
 		};
 	
 	public:
-		constexpr Color(): r(0), g(0), b(0), a(0) {}
+		SLIB_CONSTEXPR Color(): r(0), g(0), b(0), a(0) {}
 
-		constexpr Color(const Color& other): r(other.r), g(other.g), b(other.b), a(other.a) {}
+		SLIB_CONSTEXPR Color(const Color& other): r(other.r), g(other.g), b(other.b), a(other.a) {}
 
-		constexpr Color(sl_uint32 _r, sl_uint32 _g, sl_uint32 _b, sl_uint32 _a = 255): r(_r), g(_g), b(_b), a(_a) {}
+		SLIB_CONSTEXPR Color(sl_uint32 _r, sl_uint32 _g, sl_uint32 _b, sl_uint32 _a = 255): r(_r), g(_g), b(_b), a(_a) {}
 
-		constexpr Color(sl_uint32 argb):
+		SLIB_CONSTEXPR Color(sl_uint32 argb):
 		 r((sl_uint8)((argb >> 16) & 0xFF)),
 		 g((sl_uint8)((argb >> 8) & 0xFF)),
 		 b((sl_uint8)(argb & 0xFF)),
 		 a((sl_uint8)((argb >> 24) & 0xFF)) {}
 
-		constexpr Color(const Color3f& v):
+		SLIB_CONSTEXPR Color(const Color3f& v):
 		 r((sl_uint8)(Math::clamp0_255((sl_int32)(v.x * 255)))),
 		 g((sl_uint8)(Math::clamp0_255((sl_int32)(v.y * 255)))),
 		 b((sl_uint8)(Math::clamp0_255((sl_int32)(v.z * 255)))),
 		 a(255) {}
 
-		constexpr Color(const Color4f& v):
+		SLIB_CONSTEXPR Color(const Color4f& v):
 		 r((sl_uint8)(Math::clamp0_255((sl_int32)(v.x * 255)))),
 		 g((sl_uint8)(Math::clamp0_255((sl_int32)(v.y * 255)))),
 		 b((sl_uint8)(Math::clamp0_255((sl_int32)(v.z * 255)))),
@@ -221,12 +221,12 @@ namespace slib
 			return *(reinterpret_cast<Color const*>(&_zero));
 		}
 
-		constexpr sl_bool isZero() const
+		SLIB_CONSTEXPR sl_bool isZero() const
 		{
 			return !(getARGB());
 		}
 
-		constexpr sl_bool isNotZero() const
+		SLIB_CONSTEXPR sl_bool isNotZero() const
 		{
 			return getARGB() != 0;
 		}
@@ -239,28 +239,28 @@ namespace slib
 			a = 0;
 		}
 	
-		constexpr float getBlueF() const
+		SLIB_CONSTEXPR float getBlueF() const
 		{
 			return (float)(b) / 255.0f;
 		}
 
 		void setBlueF(float v) noexcept;
 
-		constexpr float getGreenF() const
+		SLIB_CONSTEXPR float getGreenF() const
 		{
 			return (float)(g) / 255.0f;
 		}
 
 		void setGreenF(float v) noexcept;
 
-		constexpr float getRedF() const
+		SLIB_CONSTEXPR float getRedF() const
 		{
 			return (float)(r) / 255.0f;
 		}
 
 		void setRedF(float v) noexcept;
 
-		constexpr float getAlphaF() const
+		SLIB_CONSTEXPR float getAlphaF() const
 		{
 			return (float)(a) / 255.0f;
 		}
@@ -275,7 +275,7 @@ namespace slib
 			a = _a;
 		}
 	
-		constexpr sl_uint32 getARGB() const
+		SLIB_CONSTEXPR sl_uint32 getARGB() const
 		{
 			return ((sl_uint32)(a) << 24) | ((sl_uint32)(r) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(b));
 		}
@@ -288,7 +288,7 @@ namespace slib
 			a = (sl_uint8)((v >> 24) & 0xFF);
 		}
 
-		constexpr sl_uint32 getABGR() const
+		SLIB_CONSTEXPR sl_uint32 getABGR() const
 		{
 			return ((sl_uint32)(a) << 24) | ((sl_uint32)(b) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(r));
 		}
@@ -301,7 +301,7 @@ namespace slib
 			a = (sl_uint8)((v >> 24) & 0xFF);
 		}
 
-		constexpr sl_uint32 getRGB() const
+		SLIB_CONSTEXPR sl_uint32 getRGB() const
 		{
 			return ((sl_uint32)(r) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(b));
 		}
@@ -320,7 +320,7 @@ namespace slib
 			r = (sl_uint8)((v >> 16) & 0xFF);
 		}
 	
-		constexpr sl_uint32 getBGR() const
+		SLIB_CONSTEXPR sl_uint32 getBGR() const
 		{
 			return ((sl_uint32)(b) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(r));
 		}
@@ -384,12 +384,12 @@ namespace slib
 			return *this;
 		}
 
-		constexpr operator Color3f() const
+		SLIB_CONSTEXPR operator Color3f() const
 		{
 			return Color3f((sl_real)(r) / 255, (sl_real)(g) / 255, (sl_real)(b) / 255);
 		}
 
-		constexpr operator Color4f() const
+		SLIB_CONSTEXPR operator Color4f() const
 		{
 			return Color4f((sl_real)(r) / 255, (sl_real)(g) / 255, (sl_real)(b) / 255, (sl_real)(a) / 255);
 		}

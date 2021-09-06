@@ -47,9 +47,9 @@ namespace slib
 	public:
 		HPipe() = default;
 
-		constexpr HPipe(sl_null_t): hRead(SLIB_PIPE_INVALID_HANDLE), hWrite(SLIB_PIPE_INVALID_HANDLE) {}
+		SLIB_CONSTEXPR HPipe(sl_null_t): hRead(SLIB_PIPE_INVALID_HANDLE), hWrite(SLIB_PIPE_INVALID_HANDLE) {}
 
-		constexpr HPipe(const HPipe& other): hRead(other.hRead), hWrite(other.hWrite) {}
+		SLIB_CONSTEXPR HPipe(const HPipe& other): hRead(other.hRead), hWrite(other.hWrite) {}
 
 		HPipe& operator=(sl_null_t) noexcept
 		{
@@ -65,12 +65,12 @@ namespace slib
 			return *this;
 		}
 
-		constexpr sl_bool operator==(sl_null_t) const
+		SLIB_CONSTEXPR sl_bool operator==(sl_null_t) const
 		{
 			return hRead == SLIB_PIPE_INVALID_HANDLE;
 		}
 
-		constexpr sl_bool operator!=(sl_null_t) const
+		SLIB_CONSTEXPR sl_bool operator!=(sl_null_t) const
 		{
 			return hRead != SLIB_PIPE_INVALID_HANDLE;
 		}

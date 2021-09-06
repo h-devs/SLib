@@ -50,12 +50,12 @@ namespace slib
 		MatrixT() = default;
 	
 		template <class O>
-		constexpr MatrixT(const MatrixT<3, 3, O>& other):
+		SLIB_CONSTEXPR MatrixT(const MatrixT<3, 3, O>& other):
 			m00((T)(other.m00)), m01((T)(other.m01)), m02((T)(other.m02)),
 			m10((T)(other.m10)), m11((T)(other.m11)), m12((T)(other.m12)),
 			m20((T)(other.m20)), m21((T)(other.m21)), m22((T)(other.m22)) {}
 
-		constexpr MatrixT(
+		SLIB_CONSTEXPR MatrixT(
 			T _m00, T _m01, T _m02,
 			T _m10, T _m11, T _m12,
 			T _m20, T _m21, T _m22):
@@ -63,7 +63,7 @@ namespace slib
 			m10(_m10), m11(_m11), m12(_m12),
 			m20(_m20), m21(_m21), m22(_m22) {}
 	
-		constexpr MatrixT(const VectorT<3, T>& row0, const VectorT<3, T>& row1, const VectorT<3, T>& row2):
+		SLIB_CONSTEXPR MatrixT(const VectorT<3, T>& row0, const VectorT<3, T>& row1, const VectorT<3, T>& row2):
 			m00(row0.x), m01(row0.y), m02(row0.z),
 			m10(row1.x), m11(row1.y), m12(row1.z),
 			m20(row2.x), m21(row2.y), m22(row2.z) {}
@@ -338,7 +338,7 @@ namespace slib
 			priv::matrix::Multiply(*this, m1, m2);
 		}
 
-		constexpr T getDeterminant() const
+		SLIB_CONSTEXPR T getDeterminant() const
 		{
 			return SLIB_MATH_MATRIX_DETERMINANT3(m00, m01, m02,
 												m10, m11, m12,
@@ -407,14 +407,14 @@ namespace slib
 			};
 		}
 	
-		constexpr sl_bool equals(const MatrixT& other) const
+		SLIB_CONSTEXPR sl_bool equals(const MatrixT& other) const
 		{
 			return m00 == other.m00 && m01 == other.m01 && m02 == other.m02 &&
 				m10 == other.m10 && m11 == other.m11 && m12 == other.m12 &&
 				m20 == other.m20 && m21 == other.m21 && m22 == other.m22;
 		}
 
-		constexpr sl_bool isAlmostEqual(const MatrixT& other) const
+		SLIB_CONSTEXPR sl_bool isAlmostEqual(const MatrixT& other) const
 		{
 			return Math::isAlmostZero(m00 - other.m00) && Math::isAlmostZero(m01 - other.m01) && Math::isAlmostZero(m02 - other.m02) &&
 				Math::isAlmostZero(m10 - other.m10) && Math::isAlmostZero(m11 - other.m11) && Math::isAlmostZero(m12 - other.m12) &&

@@ -48,7 +48,7 @@ namespace slib
 		Line3T(T x1, T y1, T z1, T x2, T y2, T z2): point1(x1, y1, z1), point2(x2, y2, z2) {}
 
 	public:
-		constexpr Vector3T<T> getDirection() const
+		SLIB_CONSTEXPR Vector3T<T> getDirection() const
 		{
 			return point2 - point1;
 		}

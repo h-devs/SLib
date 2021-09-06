@@ -36,11 +36,11 @@ namespace slib
 		double altitude; // Unit: m
 	
 	public:
-		constexpr GeoLocation(): latitude(0), longitude(0), altitude(0) {}
+		SLIB_CONSTEXPR GeoLocation(): latitude(0), longitude(0), altitude(0) {}
 
-		constexpr GeoLocation(double _latitude, double _longitude, double _altitude): latitude(_latitude), longitude(_longitude), altitude(_altitude) {}
+		SLIB_CONSTEXPR GeoLocation(double _latitude, double _longitude, double _altitude): latitude(_latitude), longitude(_longitude), altitude(_altitude) {}
 
-		constexpr GeoLocation(const LatLon& latlon, double _altitude): latitude(latlon.latitude), longitude(latlon.longitude), altitude(_altitude) {}
+		SLIB_CONSTEXPR GeoLocation(const LatLon& latlon, double _altitude): latitude(latlon.latitude), longitude(latlon.longitude), altitude(_altitude) {}
 		
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(GeoLocation)
 

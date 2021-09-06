@@ -57,15 +57,15 @@ namespace slib
 		StringContainer16* m_container;
 		
 	private:
-		constexpr String16(StringContainer16* container): m_container(container) {}
+		SLIB_CONSTEXPR String16(StringContainer16* container): m_container(container) {}
 
 	public:
 		
 		/**
 		 * Initializes as a null string.
 		 */
-		constexpr String16(): m_container(sl_null) {}
-		constexpr String16(sl_null_t): m_container(sl_null) {}
+		SLIB_CONSTEXPR String16(): m_container(sl_null) {}
+		SLIB_CONSTEXPR String16(sl_null_t): m_container(sl_null) {}
 		
 		/**
 		 * Constructors
@@ -310,7 +310,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is null.
 		 */
-		constexpr sl_bool isNull() const
+		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return !m_container;
 		}
@@ -318,7 +318,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is not null.
 		 */
-		constexpr sl_bool isNotNull() const
+		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return m_container != sl_null;
 		}
@@ -326,7 +326,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is empty.
 		 */
-		constexpr sl_bool isEmpty() const
+		SLIB_CONSTEXPR sl_bool isEmpty() const
 		{
 			return m_container ? !(m_container->len) : sl_true;
 		}
@@ -334,7 +334,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is not empty.
 		 */
-		constexpr sl_bool isNotEmpty() const
+		SLIB_CONSTEXPR sl_bool isNotEmpty() const
 		{
 			return m_container ? (m_container->len != 0) : sl_false;
 		}
@@ -381,7 +381,7 @@ namespace slib
 		/**
 		 * @return string length.
 		 */
-		constexpr sl_size getLength() const
+		SLIB_CONSTEXPR sl_size getLength() const
 		{
 			return m_container ? m_container->len : 0;
 		}
@@ -1178,8 +1178,8 @@ namespace slib
 		/**
 		 * Initialize as a null string.
 		 */
-		constexpr Atomic(): m_container(sl_null) {}
-		constexpr Atomic(sl_null_t): m_container(sl_null) {}
+		SLIB_CONSTEXPR Atomic(): m_container(sl_null) {}
+		SLIB_CONSTEXPR Atomic(sl_null_t): m_container(sl_null) {}
 		
 		/**
 		 * Constructors
@@ -1228,7 +1228,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is null.
 		 */
-		constexpr sl_bool isNull() const
+		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return !m_container;
 		}
@@ -1236,7 +1236,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is not null.
 		 */
-		constexpr sl_bool isNotNull() const
+		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return m_container != sl_null;
 		}

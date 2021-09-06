@@ -40,7 +40,7 @@ namespace slib
 			return *ptr;
 		}
 
-		constexpr T* operator->() const
+		SLIB_CONSTEXPR T* operator->() const
 		{
 			return ptr;
 		}
@@ -55,7 +55,7 @@ namespace slib
 
 	public:
 		template <typename INT>
-		constexpr T& operator[](INT index) const
+		SLIB_CONSTEXPR T& operator[](INT index) const
 		{
 			return ptr[index];
 		}

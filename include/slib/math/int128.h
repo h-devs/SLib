@@ -45,13 +45,13 @@ namespace slib
 #endif
 	
 	public:
-		constexpr Uint128(): high(0), low(0) {}
+		SLIB_CONSTEXPR Uint128(): high(0), low(0) {}
 
-		constexpr Uint128(const Uint128& other): high(other.high), low(other.low) {}
+		SLIB_CONSTEXPR Uint128(const Uint128& other): high(other.high), low(other.low) {}
 
-		constexpr Uint128(sl_uint64 _high, sl_uint64 _low): high(_high), low(_low) {}
+		SLIB_CONSTEXPR Uint128(sl_uint64 _high, sl_uint64 _low): high(_high), low(_low) {}
 
-		constexpr Uint128(sl_uint64 num): high(0), low(num) {}
+		SLIB_CONSTEXPR Uint128(sl_uint64 num): high(0), low(num) {}
 
 	private:
 		static const sl_uint64 _zero[2];
@@ -62,12 +62,12 @@ namespace slib
 			return *((Uint128*)((void*)_zero));
 		}
 
-		constexpr sl_bool isZero() const
+		SLIB_CONSTEXPR sl_bool isZero() const
 		{
 			return high == 0 && low == 0;
 		}
 
-		constexpr sl_bool isNotZero() const
+		SLIB_CONSTEXPR sl_bool isNotZero() const
 		{
 			return high != 0 || low != 0;
 		}
@@ -144,7 +144,7 @@ namespace slib
 			return *this;
 		}
 
-		constexpr operator sl_uint64() const
+		SLIB_CONSTEXPR operator sl_uint64() const
 		{
 			return low;
 		}

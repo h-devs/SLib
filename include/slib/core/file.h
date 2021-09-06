@@ -199,7 +199,7 @@ namespace slib
 		static File openDeviceForRead(const StringParam& path) noexcept;
 
 	public:
-		constexpr sl_bool isOpened() const
+		SLIB_CONSTEXPR sl_bool isOpened() const
 		{
 			return m_file != SLIB_FILE_INVALID_HANDLE;
 		}

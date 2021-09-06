@@ -71,11 +71,11 @@ namespace slib
 		SLIB_DEFINE_PRIMITIVE_WRAPPER_MEMBERS(KeycodeAndModifiers, int, value)
 		
 	public:
-		constexpr KeycodeAndModifiers() : value(0) {}
+		SLIB_CONSTEXPR KeycodeAndModifiers() : value(0) {}
 		
-		constexpr KeycodeAndModifiers(Keycode keycode) : value((int)keycode) {}
+		SLIB_CONSTEXPR KeycodeAndModifiers(Keycode keycode) : value((int)keycode) {}
 		
-		constexpr KeycodeAndModifiers(Keycode keycode, const Modifiers& modifiers) : value((int)keycode | modifiers) {}
+		SLIB_CONSTEXPR KeycodeAndModifiers(Keycode keycode, const Modifiers& modifiers) : value((int)keycode | modifiers) {}
 
 	public:
 		static KeycodeAndModifiers none();

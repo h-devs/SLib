@@ -96,12 +96,12 @@ namespace slib
 		}
 		
 	public:
-		constexpr sl_bool isNull() const
+		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return flagNull;
 		}
 		
-		constexpr sl_bool isNotNull() const
+		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return !flagNull;
 		}
@@ -149,7 +149,7 @@ namespace slib
 			}
 		}
 
-		constexpr sl_compare_result compare(sl_null_t) const
+		SLIB_CONSTEXPR sl_compare_result compare(sl_null_t) const
 		{
 			return flagNull ? 0 : 1;
 		}
@@ -176,7 +176,7 @@ namespace slib
 			}
 		}
 
-		constexpr sl_bool equals(sl_null_t) const
+		SLIB_CONSTEXPR sl_bool equals(sl_null_t) const
 		{
 			return flagNull;
 		}

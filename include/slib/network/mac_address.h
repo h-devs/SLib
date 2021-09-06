@@ -53,17 +53,17 @@ namespace slib
 			return *(reinterpret_cast<MacAddress const*>(&_zero));
 		}
 
-		constexpr sl_uint64 getInt() const
+		SLIB_CONSTEXPR sl_uint64 getInt() const
 		{
 			return SLIB_MAKE_QWORD(0, 0, m[0], m[1], m[2], m[3], m[4], m[5]);
 		}
 
-		constexpr sl_bool isZero() const
+		SLIB_CONSTEXPR sl_bool isZero() const
 		{
 			return !(getInt());
 		}
 		
-		constexpr sl_bool isNotZero() const
+		SLIB_CONSTEXPR sl_bool isNotZero() const
 		{
 			return getInt() != 0;
 		}
@@ -75,24 +75,24 @@ namespace slib
 			return *(reinterpret_cast<MacAddress const*>(&_broadcast));
 		}
 		
-		constexpr sl_bool isBroadcast() const
+		SLIB_CONSTEXPR sl_bool isBroadcast() const
 		{
 			return m[0] == 255 && m[1] == 255 && m[2] == 255 && m[3] == 255 && m[4] == 255 && m[5] == 255;
 		}
 		
-		constexpr sl_bool isNotBroadcast() const
+		SLIB_CONSTEXPR sl_bool isNotBroadcast() const
 		{
 			return m[0] != 255 || m[1] != 255 || m[2] != 255 || m[3] != 255 || m[4] != 255 || m[5] != 255;
 		}
 		
 		void setBroadcast() noexcept;
 		
-		constexpr sl_bool isMulticast() const
+		SLIB_CONSTEXPR sl_bool isMulticast() const
 		{
 			return (m[0] & 1);
 		}
 		
-		constexpr sl_bool isNotMulticast() const
+		SLIB_CONSTEXPR sl_bool isNotMulticast() const
 		{
 			return (m[0] & 1) == 0;
 		}
@@ -106,17 +106,17 @@ namespace slib
 		void setBytes(const sl_uint8* _m) noexcept;
 		
 	public:
-		constexpr sl_compare_result compare(const MacAddress& other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const MacAddress& other) const
 		{
 			return ComparePrimitiveValues(getInt(), other.getInt());
 		}
 		
-		constexpr sl_bool equals(const MacAddress& other) const
+		SLIB_CONSTEXPR sl_bool equals(const MacAddress& other) const
 		{
 			return getInt() == other.getInt();
 		}
 
-		constexpr sl_size getHashCode() const
+		SLIB_CONSTEXPR sl_size getHashCode() const
 		{
 			return HashPrimitiveValue(getInt());
 		}

@@ -154,7 +154,7 @@ namespace slib
 	class SLIB_EXPORT CurrentThread
 	{
 	public:
-		constexpr CurrentThread(): m_thread(sl_null), m_flagInit(sl_false) {}
+		SLIB_CONSTEXPR CurrentThread(): m_thread(sl_null), m_flagInit(sl_false) {}
 
 	public:
 		Thread * get() noexcept;

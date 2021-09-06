@@ -44,14 +44,14 @@ namespace slib
 		ComplexT() = default;
 
 		template <class O>
-		constexpr ComplexT(const ComplexT<O>& other) noexcept: real((T)(other.real)), imag((T)(other.imag)) {}
+		SLIB_CONSTEXPR ComplexT(const ComplexT<O>& other) noexcept: real((T)(other.real)), imag((T)(other.imag)) {}
 
-		constexpr ComplexT(const T& _real, const T& _imag) noexcept: real(_real), imag(_imag) {}
+		SLIB_CONSTEXPR ComplexT(const T& _real, const T& _imag) noexcept: real(_real), imag(_imag) {}
 
-		constexpr ComplexT(const T& _real) noexcept: real(_real), imag(0) {}
+		SLIB_CONSTEXPR ComplexT(const T& _real) noexcept: real(_real), imag(0) {}
 
 	public:
-		constexpr ComplexT conjugate() const
+		SLIB_CONSTEXPR ComplexT conjugate() const
 		{
 			return ComplexT(real, -imag);
 		}
@@ -67,7 +67,7 @@ namespace slib
 			return Math::sqrt(real * real + imag * imag);
 		}
 
-		constexpr T abs2() const
+		SLIB_CONSTEXPR T abs2() const
 		{
 			return real * real + imag * imag;
 		}

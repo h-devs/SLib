@@ -39,11 +39,11 @@
 
 #define SLIB_DECLARE_WIN32_COM_CONTAINER_MEMBERS(CLASS, INTERFACE, MEMBER_NAME) \
 	SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(CLASS, INTERFACE*, MEMBER_NAME, sl_null) \
-	constexpr sl_bool isNull() const \
+	SLIB_CONSTEXPR sl_bool isNull() const \
 	{ \
 		return !MEMBER_NAME; \
 	} \
-	constexpr sl_bool isNotNull() const \
+	SLIB_CONSTEXPR sl_bool isNotNull() const \
 	{ \
 		return MEMBER_NAME != sl_null; \
 	}
@@ -81,17 +81,17 @@ namespace slib
 			SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(ComPtr, INTERFACE*, ptr, sl_null, COM::releaseObject)
 
 		public:
-			constexpr sl_bool isNull() const
+			SLIB_CONSTEXPR sl_bool isNull() const
 			{
 				return !ptr;
 			}
 
-			constexpr sl_bool isNotNull() const
+			SLIB_CONSTEXPR sl_bool isNotNull() const
 			{
 				return ptr != sl_null;
 			}
 
-			constexpr INTERFACE* operator->() const
+			SLIB_CONSTEXPR INTERFACE* operator->() const
 			{
 				return ptr;
 			}

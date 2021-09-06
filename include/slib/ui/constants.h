@@ -334,7 +334,7 @@ namespace slib
 		};
 
 	public:
-		constexpr DialogResult(): value(Ok) {}
+		SLIB_CONSTEXPR DialogResult(): value(Ok) {}
 
 	};
 	

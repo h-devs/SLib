@@ -47,9 +47,9 @@ namespace slib
 		LineT() = default;
 
 		template <class O>
-		constexpr LineT(const LineT<O>& other): a((T)(other.a)), b((T)(other.b)), c((T)(other.c)) {}
+		SLIB_CONSTEXPR LineT(const LineT<O>& other): a((T)(other.a)), b((T)(other.b)), c((T)(other.c)) {}
 
-		constexpr LineT(T _a, T _b, T _c): a(_a), b(_b), c(_c) {}
+		SLIB_CONSTEXPR LineT(T _a, T _b, T _c): a(_a), b(_b), c(_c) {}
 
 		LineT(const PointT<T>& point, const Vector2T<T>& dir) noexcept
 		{
@@ -57,12 +57,12 @@ namespace slib
 		}
 
 	public:
-		constexpr Vector2T<T> getDirection() const
+		SLIB_CONSTEXPR Vector2T<T> getDirection() const
 		{
 			return { b, -a };
 		}
 
-		constexpr Vector2T<T> getNormal() const
+		SLIB_CONSTEXPR Vector2T<T> getNormal() const
 		{
 			return { a, b };
 		}

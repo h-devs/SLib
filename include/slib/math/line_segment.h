@@ -53,7 +53,7 @@ namespace slib
 		LineSegmentT(T x1, T y1, T x2, T y2): point1(x1, y1), point2(x2, y2) {}
 
 	public:
-		constexpr Vector2T<T> getDirection() const
+		SLIB_CONSTEXPR Vector2T<T> getDirection() const
 		{
 			return point2 - point1;
 		}

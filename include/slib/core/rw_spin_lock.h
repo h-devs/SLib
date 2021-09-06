@@ -31,11 +31,11 @@ namespace slib
 	class SLIB_EXPORT ReadWriteSpinLock
 	{
 	public:
-		constexpr ReadWriteSpinLock(): m_nReading(0) {}
+		SLIB_CONSTEXPR ReadWriteSpinLock(): m_nReading(0) {}
 
-		constexpr ReadWriteSpinLock(const ReadWriteSpinLock& other): m_nReading(0) {}
+		SLIB_CONSTEXPR ReadWriteSpinLock(const ReadWriteSpinLock& other): m_nReading(0) {}
 		
-		constexpr ReadWriteSpinLock(ReadWriteSpinLock&& other): m_nReading(0) {}
+		SLIB_CONSTEXPR ReadWriteSpinLock(ReadWriteSpinLock&& other): m_nReading(0) {}
 
 	public:
 		sl_bool tryLockRead() const noexcept;

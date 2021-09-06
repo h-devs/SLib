@@ -41,11 +41,11 @@ namespace slib
 		SphereT() = default;
 
 		template <class O>
-		constexpr SphereT(const SphereT<O>& other): center(other.center), radius((T)(other.radius)) {}
+		SLIB_CONSTEXPR SphereT(const SphereT<O>& other): center(other.center), radius((T)(other.radius)) {}
 
-		constexpr SphereT(const Vector3T<T>& _center, T _radius): center(_center), radius(_radius) {}
+		SLIB_CONSTEXPR SphereT(const Vector3T<T>& _center, T _radius): center(_center), radius(_radius) {}
 
-		constexpr SphereT(T xc, T yc, T zc, T _radius): center(xc, yc, zc), radius(_radius) {}
+		SLIB_CONSTEXPR SphereT(T xc, T yc, T zc, T _radius): center(xc, yc, zc), radius(_radius) {}
 
 	public:
 		sl_bool containsPoint(const Vector3T<T>& point) const noexcept

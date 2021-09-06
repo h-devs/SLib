@@ -51,13 +51,13 @@ namespace slib
 		MatrixT() = default;
 
 		template <class O>
-		constexpr MatrixT(const MatrixT<4, 4, O>& other):
+		SLIB_CONSTEXPR MatrixT(const MatrixT<4, 4, O>& other):
 			m00((T)(other.m00)), m01((T)(other.m01)), m02((T)(other.m02)), m03((T)(other.m03)),
 			m10((T)(other.m10)), m11((T)(other.m11)), m12((T)(other.m12)), m13((T)(other.m13)),
 			m20((T)(other.m20)), m21((T)(other.m21)), m22((T)(other.m22)), m23((T)(other.m23)),
 			m30((T)(other.m30)), m31((T)(other.m31)), m32((T)(other.m32)), m33((T)(other.m33)) {}
 	
-		constexpr MatrixT(
+		SLIB_CONSTEXPR MatrixT(
 			T _m00, T _m01, T _m02, T _m03,
 			T _m10, T _m11, T _m12, T _m13,
 			T _m20, T _m21, T _m22, T _m23,
@@ -67,7 +67,7 @@ namespace slib
 			m20(_m20), m21(_m21), m22(_m22), m23(_m23),
 			m30(_m30), m31(_m31), m32(_m32), m33(_m33) {}
 	
-		constexpr MatrixT(const VectorT<4, T>& row0, const VectorT<4, T>& row1, const VectorT<4, T>& row2, const VectorT<4, T>& row3):
+		SLIB_CONSTEXPR MatrixT(const VectorT<4, T>& row0, const VectorT<4, T>& row1, const VectorT<4, T>& row2, const VectorT<4, T>& row3):
 			m00(row0.x), m01(row0.y), m02(row0.z), m03(row0.w),
 			m10(row1.x), m11(row1.y), m12(row1.z), m13(row1.w),
 			m20(row2.x), m21(row2.y), m22(row2.z), m23(row2.w),
@@ -483,7 +483,7 @@ namespace slib
 			return ret;
 		}
 
-		constexpr MatrixT lerp(const MatrixT& target, float factor) const
+		SLIB_CONSTEXPR MatrixT lerp(const MatrixT& target, float factor) const
 		{
 			return {
 				SLIB_LERP(m00, target.m00, factor), SLIB_LERP(m01, target.m01, factor), SLIB_LERP(m02, target.m02, factor), SLIB_LERP(m03, target.m03, factor),
@@ -492,7 +492,7 @@ namespace slib
 				SLIB_LERP(m30, target.m30, factor), SLIB_LERP(m31, target.m31, factor), SLIB_LERP(m32, target.m32, factor), SLIB_LERP(m33, target.m33, factor)};
 		}
 
-		constexpr sl_bool equals(const MatrixT& other) const
+		SLIB_CONSTEXPR sl_bool equals(const MatrixT& other) const
 		{
 			return m00 == other.m00 && m01 == other.m01 && m02 == other.m02 && m03 == other.m03 &&
 				m10 == other.m10 && m11 == other.m11 && m12 == other.m12 && m13 == other.m13 &&
@@ -500,7 +500,7 @@ namespace slib
 				m30 == other.m30 && m31 == other.m31 && m32 == other.m32 && m33 == other.m33;
 		}
 
-		constexpr sl_bool isAlmostEqual(const MatrixT& other) const
+		SLIB_CONSTEXPR sl_bool isAlmostEqual(const MatrixT& other) const
 		{
 			return Math::isAlmostZero(m00 - other.m00) && Math::isAlmostZero(m01 - other.m01) && Math::isAlmostZero(m02 - other.m02) && Math::isAlmostZero(m03 - other.m03) &&
 				Math::isAlmostZero(m10 - other.m10) && Math::isAlmostZero(m11 - other.m11) && Math::isAlmostZero(m12 - other.m12) && Math::isAlmostZero(m13 - other.m13) &&

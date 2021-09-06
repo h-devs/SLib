@@ -59,11 +59,11 @@ namespace slib
 #endif
 
 	public:
-		constexpr Decimal128(): high(0), low(0) {}
+		SLIB_CONSTEXPR Decimal128(): high(0), low(0) {}
 
-		constexpr Decimal128(const Decimal128& other): high(other.high), low(other.low) {}
+		SLIB_CONSTEXPR Decimal128(const Decimal128& other): high(other.high), low(other.low) {}
 		
-		constexpr Decimal128(sl_uint64 _high, sl_uint64 _low): high(_high), low(_low) {}
+		SLIB_CONSTEXPR Decimal128(sl_uint64 _high, sl_uint64 _low): high(_high), low(_low) {}
 
 	private:
 		static const sl_uint64 _zero[2];
@@ -80,12 +80,12 @@ namespace slib
 
 		static const Decimal128& NaN() noexcept;
 
-		constexpr sl_bool isZero() const
+		SLIB_CONSTEXPR sl_bool isZero() const
 		{
 			return high == 0 && low == 0;
 		}
 
-		constexpr sl_bool isNotZero() const
+		SLIB_CONSTEXPR sl_bool isNotZero() const
 		{
 			return high != 0 || low != 0;
 		}
@@ -96,12 +96,12 @@ namespace slib
 			low = 0;
 		}
 
-		constexpr sl_bool isPositive() const
+		SLIB_CONSTEXPR sl_bool isPositive() const
 		{
 			return !((sl_bool)(high >> 63));
 		}
 
-		constexpr sl_bool isNegative() const
+		SLIB_CONSTEXPR sl_bool isNegative() const
 		{
 			return (sl_bool)(high >> 63);
 		}

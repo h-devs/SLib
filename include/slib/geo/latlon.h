@@ -37,9 +37,9 @@ namespace slib
 		double longitude;
 
 	public:
-		constexpr LatLon(): latitude(0), longitude(0) {}
+		SLIB_CONSTEXPR LatLon(): latitude(0), longitude(0) {}
 
-		constexpr LatLon(double _latitude, double _longitude): latitude(_latitude), longitude(_longitude) {}
+		SLIB_CONSTEXPR LatLon(double _latitude, double _longitude): latitude(_latitude), longitude(_longitude) {}
 		
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(LatLon)
 

@@ -30,7 +30,7 @@
 	{ \
 	public: \
 		SLIB_DEFINE_PRIMITIVE_WRAPPER_MEMBERS(CLASS, int, value) \
-		constexpr CLASS(): value(0) {} \
+		SLIB_CONSTEXPR CLASS(): value(0) {} \
 		CLASS& operator|=(int _value) { value |= _value; return *this; } \
 		CLASS& operator&=(int _value) { value &= _value; return *this; } \
 	public: \

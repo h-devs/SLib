@@ -47,9 +47,9 @@ namespace slib
 		PlaneT() = default;
 
 		template <class O>
-		constexpr PlaneT(const PlaneT<O>& other): a((T)(other.a)), b((T)(other.b)), c((T)(other.c)), d((T)(other.d)) {}
+		SLIB_CONSTEXPR PlaneT(const PlaneT<O>& other): a((T)(other.a)), b((T)(other.b)), c((T)(other.c)), d((T)(other.d)) {}
 
-		constexpr PlaneT(T _a, T _b, T _c, T _d): a(_a), b(_b), c(_c), d(_d) {}
+		SLIB_CONSTEXPR PlaneT(T _a, T _b, T _c, T _d): a(_a), b(_b), c(_c), d(_d) {}
 
 		PlaneT(const Vector3T<T>& point, const Vector3T<T>& normal) noexcept
 		{
@@ -57,7 +57,7 @@ namespace slib
 		}
 
 	public:
-		constexpr Vector3T<T> getNormal() const
+		SLIB_CONSTEXPR Vector3T<T> getNormal() const
 		{
 			return { a, b, c };
 		}

@@ -29,8 +29,8 @@
 	HANDLE_TYPE MEMBER_NAME; \
 public: \
 	typedef HANDLE_TYPE HandleType; \
-	constexpr CLASS(): MEMBER_NAME(HANDLE_NONE) {} \
-	constexpr CLASS(HANDLE_TYPE other): MEMBER_NAME(other) {} \
+	SLIB_CONSTEXPR CLASS(): MEMBER_NAME(HANDLE_NONE) {} \
+	SLIB_CONSTEXPR CLASS(HANDLE_TYPE other): MEMBER_NAME(other) {} \
 	CLASS(const CLASS&) = delete; \
 	CLASS(CLASS&& other) noexcept \
 	{ \
@@ -53,16 +53,16 @@ public: \
 		other.MEMBER_NAME = HANDLE_NONE; \
 		return *this; \
 	} \
-	constexpr explicit operator sl_bool() const \
+	SLIB_CONSTEXPR explicit operator sl_bool() const \
 	{ \
 		return MEMBER_NAME != HANDLE_NONE; \
 	} \
-	constexpr operator HANDLE_TYPE() const& \
+	SLIB_CONSTEXPR operator HANDLE_TYPE() const& \
 	{ \
 		return MEMBER_NAME; \
 	} \
 	operator HANDLE_TYPE() && = delete; \
-	constexpr HANDLE_TYPE get() const& \
+	SLIB_CONSTEXPR HANDLE_TYPE get() const& \
 	{ \
 		return MEMBER_NAME; \
 	} \
@@ -88,11 +88,11 @@ public: \
 
 #define SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_NONE, HANDLE_DELETER) \
 	SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_NONE, HANDLE_DELETER) \
-	constexpr sl_bool isNone() const \
+	SLIB_CONSTEXPR sl_bool isNone() const \
 	{ \
 		return MEMBER_NAME == HANDLE_NONE; \
 	} \
-	constexpr sl_bool isNotNone() const \
+	SLIB_CONSTEXPR sl_bool isNotNone() const \
 	{ \
 		return MEMBER_NAME != HANDLE_NONE; \
 	} \
@@ -103,17 +103,17 @@ public: \
 
 #define SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_DELETER) \
 	SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, sl_null, HANDLE_DELETER) \
-	constexpr CLASS(sl_null_t): MEMBER_NAME(sl_null) {} \
+	SLIB_CONSTEXPR CLASS(sl_null_t): MEMBER_NAME(sl_null) {} \
 	CLASS& operator=(sl_null_t) \
 	{ \
 		set(sl_null); \
 		return *this; \
 	} \
-	constexpr sl_bool isNull() const \
+	SLIB_CONSTEXPR sl_bool isNull() const \
 	{ \
 		return !MEMBER_NAME; \
 	} \
-	constexpr sl_bool isNotNull() const \
+	SLIB_CONSTEXPR sl_bool isNotNull() const \
 	{ \
 		return MEMBER_NAME != sl_null; \
 	} \
@@ -126,23 +126,23 @@ public: \
 	HANDLE_TYPE MEMBER_NAME; \
 public: \
 	typedef HANDLE_TYPE HandleType; \
-	constexpr CLASS(): MEMBER_NAME(HANDLE_NONE) {} \
-	constexpr CLASS(HANDLE_TYPE other): MEMBER_NAME(other) {} \
+	SLIB_CONSTEXPR CLASS(): MEMBER_NAME(HANDLE_NONE) {} \
+	SLIB_CONSTEXPR CLASS(HANDLE_TYPE other): MEMBER_NAME(other) {} \
 	CLASS(const CLASS&) = delete; \
 	CLASS(CLASS&& other) noexcept; \
 	~CLASS(); \
 	CLASS& operator=(const CLASS&) = delete; \
 	CLASS& operator=(CLASS&& other); \
-	constexpr explicit operator sl_bool() const \
+	SLIB_CONSTEXPR explicit operator sl_bool() const \
 	{ \
 		return MEMBER_NAME != HANDLE_NONE; \
 	} \
-	constexpr operator HANDLE_TYPE() const& \
+	SLIB_CONSTEXPR operator HANDLE_TYPE() const& \
 	{ \
 		return MEMBER_NAME; \
 	} \
 	operator HANDLE_TYPE() && = delete; \
-	constexpr HANDLE_TYPE get() const& \
+	SLIB_CONSTEXPR HANDLE_TYPE get() const& \
 	{ \
 		return MEMBER_NAME; \
 	} \
@@ -153,11 +153,11 @@ public: \
 
 #define SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_NONE) \
 	SLIB_DECLARE_HANDLE_CONTAINER_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, HANDLE_NONE) \
-	constexpr sl_bool isNone() const \
+	SLIB_CONSTEXPR sl_bool isNone() const \
 	{ \
 		return MEMBER_NAME == HANDLE_NONE; \
 	} \
-	constexpr sl_bool isNotNone() const \
+	SLIB_CONSTEXPR sl_bool isNotNone() const \
 	{ \
 		return MEMBER_NAME != HANDLE_NONE; \
 	} \
@@ -165,13 +165,13 @@ public: \
 
 #define SLIB_DECLARE_NULLABLE_HANDLE_CONTAINER_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME) \
 	SLIB_DECLARE_HANDLE_CONTAINER_BASE_MEMBERS(CLASS, HANDLE_TYPE, MEMBER_NAME, sl_null) \
-	constexpr CLASS(sl_null_t): MEMBER_NAME(sl_null) {} \
+	SLIB_CONSTEXPR CLASS(sl_null_t): MEMBER_NAME(sl_null) {} \
 	CLASS& operator=(sl_null_t); \
-	constexpr sl_bool isNull() const \
+	SLIB_CONSTEXPR sl_bool isNull() const \
 	{ \
 		return !MEMBER_NAME; \
 	} \
-	constexpr sl_bool isNotNull() const \
+	SLIB_CONSTEXPR sl_bool isNotNull() const \
 	{ \
 		return MEMBER_NAME != sl_null; \
 	} \

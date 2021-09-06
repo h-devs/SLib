@@ -47,11 +47,11 @@ namespace slib
 		RectangleT() = default;
 
 		template <class O, class FO>
-		constexpr RectangleT(const RectangleT<O, FO>& other) noexcept: left((T)(other.left)), top((T)(other.top)), right((T)(other.right)), bottom((T)(other.bottom)) {}
+		SLIB_CONSTEXPR RectangleT(const RectangleT<O, FO>& other) noexcept: left((T)(other.left)), top((T)(other.top)), right((T)(other.right)), bottom((T)(other.bottom)) {}
 
-		constexpr RectangleT(T _left, T _top, T _right, T _bottom): left(_left), top(_top), right(_right), bottom(_bottom) {}
+		SLIB_CONSTEXPR RectangleT(T _left, T _top, T _right, T _bottom): left(_left), top(_top), right(_right), bottom(_bottom) {}
 
-		constexpr RectangleT(const PointT<T, FT>& leftTop, const SizeT<T, FT>& rightBottom): left(leftTop.x), top(leftTop.y), right(rightBottom.x), bottom(rightBottom.y) {}
+		SLIB_CONSTEXPR RectangleT(const PointT<T, FT>& leftTop, const SizeT<T, FT>& rightBottom): left(leftTop.x), top(leftTop.y), right(rightBottom.x), bottom(rightBottom.y) {}
 
 	public:
 		static const RectangleT<T, FT>& zero() noexcept
@@ -60,12 +60,12 @@ namespace slib
 			return *(reinterpret_cast<RectangleT<T, FT> const*>(&_zero));
 		}
 
-		constexpr T getWidth() const
+		SLIB_CONSTEXPR T getWidth() const
 		{
 			return right - left;
 		}
 
-		constexpr T getHeight() const
+		SLIB_CONSTEXPR T getHeight() const
 		{
 			return bottom - top;
 		}
@@ -80,7 +80,7 @@ namespace slib
 			bottom = top + height;
 		}
 
-		constexpr SizeT<T, FT> getSize() const
+		SLIB_CONSTEXPR SizeT<T, FT> getSize() const
 		{
 			return { right - left, bottom - top };
 		}
@@ -97,7 +97,7 @@ namespace slib
 			bottom = top + size.y;
 		}
 
-		constexpr PointT<T, FT> getLocation() const
+		SLIB_CONSTEXPR PointT<T, FT> getLocation() const
 		{
 			return { left, top };
 		}
@@ -167,7 +167,7 @@ namespace slib
 		}
 
 
-		constexpr PointT<T, FT> getLeftTop() const
+		SLIB_CONSTEXPR PointT<T, FT> getLeftTop() const
 		{
 			return { left, top };
 		}
@@ -184,7 +184,7 @@ namespace slib
 			top = pt.y;
 		}
 
-		constexpr PointT<T, FT> getLeftBottom() const
+		SLIB_CONSTEXPR PointT<T, FT> getLeftBottom() const
 		{
 			return { left, bottom };
 		}
@@ -201,7 +201,7 @@ namespace slib
 			bottom = pt.y;
 		}
 
-		constexpr PointT<T, FT> getRightTop() const
+		SLIB_CONSTEXPR PointT<T, FT> getRightTop() const
 		{
 			return { right, top };
 		}
@@ -218,7 +218,7 @@ namespace slib
 			top = pt.y;
 		}
 
-		constexpr PointT<T, FT> getRightBottom() const
+		SLIB_CONSTEXPR PointT<T, FT> getRightBottom() const
 		{
 			return { right, bottom };
 		}
@@ -235,7 +235,7 @@ namespace slib
 			bottom = pt.y;
 		}
 
-		constexpr PointT<T, FT> getCenter() const
+		SLIB_CONSTEXPR PointT<T, FT> getCenter() const
 		{
 			return { (left + right) / 2, (top + bottom) / 2 };
 		}
@@ -268,17 +268,17 @@ namespace slib
 			bottom = 0;
 		}
 
-		constexpr sl_bool containsPoint(T x, T y) const
+		SLIB_CONSTEXPR sl_bool containsPoint(T x, T y) const
 		{
 			return x >= left && x <= right && y >= top && y <= bottom;
 		}
 
-		constexpr sl_bool containsPoint(const PointT<T, FT>& pt) const
+		SLIB_CONSTEXPR sl_bool containsPoint(const PointT<T, FT>& pt) const
 		{
 			return pt.x >= left && pt.x <= right && pt.y >= top && pt.y <= bottom;
 		}
 
-		constexpr sl_bool containsRectangle(const RectangleT<T, FT>& other) const
+		SLIB_CONSTEXPR sl_bool containsRectangle(const RectangleT<T, FT>& other) const
 		{
 			return left <= other.left && right >= other.right && top <= other.top && bottom >= other.bottom;
 		}
@@ -438,12 +438,12 @@ namespace slib
 			setFromPoints(pts, 4);
 		}
 
-		constexpr sl_bool equals(const RectangleT<T, FT>& other) const
+		SLIB_CONSTEXPR sl_bool equals(const RectangleT<T, FT>& other) const
 		{
 			return left == other.left && top == other.top && right == other.right && bottom == other.bottom;
 		}
 
-		constexpr sl_bool isAlmostEqual(const RectangleT<T, FT>& other) const
+		SLIB_CONSTEXPR sl_bool isAlmostEqual(const RectangleT<T, FT>& other) const
 		{
 			return Math::isAlmostZero(left - other.left) &&
 				Math::isAlmostZero(top - other.top) &&
@@ -451,7 +451,7 @@ namespace slib
 				Math::isAlmostZero(bottom - other.bottom);
 		}
 
-		constexpr sl_bool isValidSize() const
+		SLIB_CONSTEXPR sl_bool isValidSize() const
 		{
 			return right > left && bottom > top;
 		}
@@ -470,7 +470,7 @@ namespace slib
 			return flagFixed;
 		}
 
-		constexpr RectangleT<T, FT> lerp(const RectangleT<T, FT>& target, float factor) const
+		SLIB_CONSTEXPR RectangleT<T, FT> lerp(const RectangleT<T, FT>& target, float factor) const
 		{
 			return { (T)SLIB_LERP(left, target.left, factor), (T)SLIB_LERP(top, target.top, factor), (T)SLIB_LERP(right, target.right, factor), (T)SLIB_LERP(bottom, target.bottom, factor) };
 		}

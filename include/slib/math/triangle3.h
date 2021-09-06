@@ -42,27 +42,27 @@ namespace slib
 		Triangle3T() = default;
 		
 		template <class O>
-		constexpr Triangle3T(const Triangle3T<O>& other): point1(other.point1), point2(other.point2), point3(other.point3) {}
+		SLIB_CONSTEXPR Triangle3T(const Triangle3T<O>& other): point1(other.point1), point2(other.point2), point3(other.point3) {}
 
-		constexpr Triangle3T(const Vector3T<T>& _point1, const Vector3T<T>& _point2, const Vector3T<T>& _point3): point1(_point1), point2(_point2), point3(_point3) {}
+		SLIB_CONSTEXPR Triangle3T(const Vector3T<T>& _point1, const Vector3T<T>& _point2, const Vector3T<T>& _point3): point1(_point1), point2(_point2), point3(_point3) {}
 
 	public:
-		static constexpr Vector3T<T> getNormal(const Vector3T<T>& point1, const Vector3T<T>& point2, const Vector3T<T>& point3)
+		static SLIB_CONSTEXPR Vector3T<T> getNormal(const Vector3T<T>& point1, const Vector3T<T>& point2, const Vector3T<T>& point3)
 		{
 			return (point1 - point2).cross(point2 - point3);
 		}
 
-		constexpr Vector3T<T> getNormal() const
+		SLIB_CONSTEXPR Vector3T<T> getNormal() const
 		{
 			return getNormal(point1, point2, point3);
 		}
 
-		constexpr T getSize() const
+		SLIB_CONSTEXPR T getSize() const
 		{
 			return (point1 - point2).cross(point2 - point3).getLength() / 2;
 		}
 
-		constexpr PlaneT<T> getPlane() const
+		SLIB_CONSTEXPR PlaneT<T> getPlane() const
 		{
 			return { point1, getNormal() };
 		}

@@ -29,16 +29,16 @@
 #define SLIB_DEFINE_PRIMITIVE_WRAPPER_MEMBERS(CLASS, TYPE, VALUE) \
 public: \
 	TYPE VALUE; \
-	constexpr CLASS(TYPE _value): VALUE(_value) {} \
-	constexpr CLASS(const CLASS& other): VALUE(other.VALUE) {} \
-	constexpr operator TYPE() const { return VALUE; } \
+	SLIB_CONSTEXPR CLASS(TYPE _value): VALUE(_value) {} \
+	SLIB_CONSTEXPR CLASS(const CLASS& other): VALUE(other.VALUE) {} \
+	SLIB_CONSTEXPR operator TYPE() const { return VALUE; } \
 	CLASS& operator=(const CLASS& other) noexcept { VALUE = other.VALUE; return *this; } \
 	CLASS& operator=(TYPE _value) noexcept { VALUE = _value; return *this; } \
-	constexpr sl_bool equals(const CLASS& other) const { return VALUE == other.VALUE; } \
-	constexpr sl_bool equals(TYPE _value) const { return VALUE == _value; } \
-	constexpr sl_compare_result compare(const CLASS& other) const { return slib::ComparePrimitiveValues(VALUE, other.VALUE); } \
-	constexpr sl_compare_result compare(TYPE _value) const { return slib::ComparePrimitiveValues(VALUE, _value); } \
-	constexpr sl_size getHashCode() const { return HashPrimitiveValue(VALUE); } \
+	SLIB_CONSTEXPR sl_bool equals(const CLASS& other) const { return VALUE == other.VALUE; } \
+	SLIB_CONSTEXPR sl_bool equals(TYPE _value) const { return VALUE == _value; } \
+	SLIB_CONSTEXPR sl_compare_result compare(const CLASS& other) const { return slib::ComparePrimitiveValues(VALUE, other.VALUE); } \
+	SLIB_CONSTEXPR sl_compare_result compare(TYPE _value) const { return slib::ComparePrimitiveValues(VALUE, _value); } \
+	SLIB_CONSTEXPR sl_size getHashCode() const { return HashPrimitiveValue(VALUE); } \
 	SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR
 
 #endif

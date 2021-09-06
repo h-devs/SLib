@@ -47,14 +47,10 @@ namespace slib
 		sl_bool flagNegative;
 
 	public:
-		Decimal() noexcept
-		{
-			flagNegative = sl_false;
-			type = DecimalValueType::Normal;
-		}
+		Decimal() noexcept: flagNegative(sl_false), type(DecimalValueType::Normal) {}
 		
 	public:
-		constexpr sl_bool isZero() const
+		SLIB_CONSTEXPR sl_bool isZero() const
 		{
 			return type == DecimalValueType::Normal && significand == SIGNIFICAND_TYPE(0);
 		}

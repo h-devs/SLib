@@ -131,17 +131,17 @@ namespace slib
 		static const TimeZone& LocalZone;
 
 	public:
-		constexpr Time() noexcept: m_time(0) {}
+		SLIB_CONSTEXPR Time() noexcept: m_time(0) {}
 
-		constexpr Time(const Time& other) noexcept: m_time(other.m_time) {}
+		SLIB_CONSTEXPR Time(const Time& other) noexcept: m_time(other.m_time) {}
 
-		constexpr Time(sl_int32 time) noexcept: m_time(time) {}
+		SLIB_CONSTEXPR Time(sl_int32 time) noexcept: m_time(time) {}
 
-		constexpr Time(sl_uint32 time) noexcept: m_time(time) {}
+		SLIB_CONSTEXPR Time(sl_uint32 time) noexcept: m_time(time) {}
 
-		constexpr Time(sl_int64 time) noexcept: m_time(time) {}
+		SLIB_CONSTEXPR Time(sl_int64 time) noexcept: m_time(time) {}
 
-		constexpr Time(sl_uint64 time) noexcept: m_time(time) {}
+		SLIB_CONSTEXPR Time(sl_uint64 time) noexcept: m_time(time) {}
 
 		Time(sl_int32 year, sl_int32 month, sl_int32 date, const TimeZone& zone = Time::LocalZone) noexcept;
 
@@ -188,7 +188,7 @@ namespace slib
 		
 		static Time withTimef(double hours, double minutes, double seconds, double milliseconds, double microseconds) noexcept;
 		
-		constexpr static Time zero()
+		SLIB_CONSTEXPR static Time zero()
 		{
 			return 0;
 		}
@@ -199,12 +199,12 @@ namespace slib
 			return *this;
 		}
 
-		constexpr sl_bool isZero() const
+		SLIB_CONSTEXPR sl_bool isZero() const
 		{
 			return m_time == 0;
 		}
 
-		constexpr sl_bool isNotZero() const
+		SLIB_CONSTEXPR sl_bool isNotZero() const
 		{
 			return m_time != 0;
 		}

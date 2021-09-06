@@ -73,17 +73,17 @@ public: \
 #define SLIB_REF_WRAPPER_NO_ATOMIC_NO_OP(WRAPPER, ...) \
 public: \
 	static sl_object_type ObjectType() noexcept { return __VA_ARGS__::ObjectType(); } \
-	constexpr WRAPPER() = default; \
-	constexpr WRAPPER(sl_null_t) {} \
+	SLIB_CONSTEXPR WRAPPER() = default; \
+	SLIB_CONSTEXPR WRAPPER(sl_null_t) {} \
 	WRAPPER(__VA_ARGS__* obj) noexcept: ref(obj) {} \
 	WRAPPER(const WRAPPER& other) noexcept: ref(other.ref) {} \
 	WRAPPER(WRAPPER& other) noexcept: ref(other.ref) {} \
 	WRAPPER(const WRAPPER&& other) noexcept: ref(Move(other.ref)) {} \
 	WRAPPER(WRAPPER&& other) noexcept: ref(Move(other.ref)) {} \
 	static const WRAPPER& null() noexcept { return *(reinterpret_cast<WRAPPER const*>(&(priv::ref::g_null))); } \
-	constexpr sl_bool isNull() const { return ref.isNull(); } \
-	constexpr sl_bool isNotNull() const { return ref.isNotNull(); } \
-	constexpr __VA_ARGS__* getObject() const { return ref.ptr; } \
+	SLIB_CONSTEXPR sl_bool isNull() const { return ref.isNull(); } \
+	SLIB_CONSTEXPR sl_bool isNotNull() const { return ref.isNotNull(); } \
+	SLIB_CONSTEXPR __VA_ARGS__* getObject() const { return ref.ptr; } \
 	void setNull() noexcept { ref.setNull(); } \
 	WRAPPER& operator=(sl_null_t) noexcept { ref.setNull(); return *this; } \
 	WRAPPER& operator=(__VA_ARGS__* obj) noexcept { ref = obj; return *this; } \
@@ -105,17 +105,17 @@ public: \
 	WRAPPER& operator=(Atomic<WRAPPER>&& other) noexcept { ref = Move(*(reinterpret_cast<AtomicRef<__VA_ARGS__>*>(&other))); return *this; }
 
 #define SLIB_REF_WRAPPER_OP(WRAPPER) \
-	constexpr sl_bool equals(const WRAPPER& other) const { return ref.equals(other.ref.ptr); } \
-	template <class OTHER> constexpr sl_bool equals(const OTHER& other) const { return ref.equals(other); } \
-	constexpr sl_compare_result compare(const WRAPPER& other) const { return ref.compare(other.ref.ptr); } \
-	template <class OTHER> constexpr sl_compare_result compare(const OTHER& other) const { return ref.compare(other); } \
+	SLIB_CONSTEXPR sl_bool equals(const WRAPPER& other) const { return ref.equals(other.ref.ptr); } \
+	template <class OTHER> SLIB_CONSTEXPR sl_bool equals(const OTHER& other) const { return ref.equals(other); } \
+	SLIB_CONSTEXPR sl_compare_result compare(const WRAPPER& other) const { return ref.compare(other.ref.ptr); } \
+	template <class OTHER> SLIB_CONSTEXPR sl_compare_result compare(const OTHER& other) const { return ref.compare(other); } \
 	SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR \
-	constexpr explicit operator sl_bool() const { return ref.ptr != sl_null; }
+	SLIB_CONSTEXPR explicit operator sl_bool() const { return ref.ptr != sl_null; }
 
 #define SLIB_REF_WRAPPER_NO_ATOMIC(WRAPPER, ...) \
 	SLIB_REF_WRAPPER_NO_ATOMIC_NO_OP(WRAPPER, __VA_ARGS__) \
-	constexpr sl_bool equals(const Atomic<WRAPPER>& other) const { return ref.equals(other.ref._ptr); } \
-	constexpr sl_compare_result compare(const Atomic<WRAPPER>& other) const { return ref.compare(other.ref._ptr); } \
+	SLIB_CONSTEXPR sl_bool equals(const Atomic<WRAPPER>& other) const { return ref.equals(other.ref._ptr); } \
+	SLIB_CONSTEXPR sl_compare_result compare(const Atomic<WRAPPER>& other) const { return ref.compare(other.ref._ptr); } \
 	SLIB_REF_WRAPPER_OP(WRAPPER)
 
 #define SLIB_REF_WRAPPER(WRAPPER, ...) \
@@ -124,8 +124,8 @@ public: \
 
 #define SLIB_ATOMIC_REF_WRAPPER_NO_OP(...) \
 public: \
-	constexpr Atomic() = default; \
-	constexpr Atomic(sl_null_t) {} \
+	SLIB_CONSTEXPR Atomic() = default; \
+	SLIB_CONSTEXPR Atomic(sl_null_t) {} \
 	Atomic(__VA_ARGS__* obj) noexcept: ref(obj) {} \
 	Atomic(typename RemoveAtomic<Atomic>::Type const& other) noexcept: ref(*(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other))) {} \
 	Atomic(typename RemoveAtomic<Atomic>::Type& other) noexcept: ref(*(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other))) {} \
@@ -135,8 +135,8 @@ public: \
 	Atomic(Atomic& other) noexcept: ref(other.ref) {} \
 	Atomic(const Atomic&& other) noexcept: ref(Move(other.ref)) {} \
 	Atomic(Atomic&& other) noexcept: ref(Move(other.ref)) {} \
-	constexpr sl_bool isNull() const { return ref.isNull(); } \
-	constexpr sl_bool isNotNull() const { return ref.isNotNull(); } \
+	SLIB_CONSTEXPR sl_bool isNull() const { return ref.isNull(); } \
+	SLIB_CONSTEXPR sl_bool isNotNull() const { return ref.isNotNull(); } \
 	void setNull() noexcept { ref.setNull(); } \
 	Atomic& operator=(sl_null_t) noexcept { ref.setNull(); return *this; } \
 	Atomic& operator=(__VA_ARGS__* obj) noexcept { ref = obj; return *this; } \
@@ -151,12 +151,12 @@ public: \
 
 #define SLIB_ATOMIC_REF_WRAPPER(...) \
 	SLIB_ATOMIC_REF_WRAPPER_NO_OP(__VA_ARGS__) \
-	constexpr sl_bool equals(const typename RemoveAtomic<Atomic>::Type& other) const { return ref.equals(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other)->ptr); } \
-	constexpr sl_bool equals(const Atomic& other) const { return ref.equals(other.ref._ptr); } \
-	constexpr sl_compare_result compare(const typename RemoveAtomic<Atomic>::Type& other) const { return ref.compare(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other)->ptr); } \
-	constexpr sl_compare_result compare(const Atomic& other) const { return ref.compare(other.ref._ptr); } \
-	template <class OTHER> constexpr sl_bool equals(const OTHER& other) const { return ref.equals(other); } \
-	template <class OTHER> constexpr sl_compare_result compare(const OTHER& other) const { return ref.compare(other); } \
+	SLIB_CONSTEXPR sl_bool equals(const typename RemoveAtomic<Atomic>::Type& other) const { return ref.equals(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other)->ptr); } \
+	SLIB_CONSTEXPR sl_bool equals(const Atomic& other) const { return ref.equals(other.ref._ptr); } \
+	SLIB_CONSTEXPR sl_compare_result compare(const typename RemoveAtomic<Atomic>::Type& other) const { return ref.compare(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other)->ptr); } \
+	SLIB_CONSTEXPR sl_compare_result compare(const Atomic& other) const { return ref.compare(other.ref._ptr); } \
+	template <class OTHER> SLIB_CONSTEXPR sl_bool equals(const OTHER& other) const { return ref.equals(other); } \
+	template <class OTHER> SLIB_CONSTEXPR sl_compare_result compare(const OTHER& other) const { return ref.compare(other); } \
 	SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR
 
 typedef void* sl_object_type;
@@ -261,9 +261,9 @@ namespace slib
 	class SLIB_EXPORT Ref<T>
 	{
 	public:
-		constexpr Ref(): ptr(sl_null) {}
+		SLIB_CONSTEXPR Ref(): ptr(sl_null) {}
 
-		constexpr Ref(sl_null_t): ptr(sl_null) {}
+		SLIB_CONSTEXPR Ref(sl_null_t): ptr(sl_null) {}
 
 		Ref(T* other) noexcept
 		{
@@ -362,12 +362,12 @@ namespace slib
 			return *(reinterpret_cast<Ref const*>(&(priv::ref::g_null)));
 		}
 
-		constexpr sl_bool isNull() const
+		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return !ptr;
 		}
 	
-		constexpr sl_bool isNotNull() const
+		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return ptr != sl_null;
 		}
@@ -377,7 +377,7 @@ namespace slib
 			_replaceObject(sl_null);
 		}
 
-		constexpr T* get() const&
+		SLIB_CONSTEXPR T* get() const&
 		{
 			return ptr;
 		}
@@ -514,48 +514,48 @@ namespace slib
 		Ref& operator=(const Pointer<TYPES...>& other) noexcept;
 
 	public:
-		constexpr sl_bool equals(sl_null_t) const
+		SLIB_CONSTEXPR sl_bool equals(sl_null_t) const
 		{
 			return !ptr;
 		}
 
 		template <class OTHER>
-		constexpr sl_bool equals(const OTHER* other) const
+		SLIB_CONSTEXPR sl_bool equals(const OTHER* other) const
 		{
 			return ptr == other;
 		}
 
 		template <class OTHER>
-		constexpr sl_bool equals(const Ref<OTHER>& other) const
+		SLIB_CONSTEXPR sl_bool equals(const Ref<OTHER>& other) const
 		{
 			return ptr == other.ptr;
 		}
 
 		template <class OTHER>
-		constexpr sl_bool equals(const AtomicRef<OTHER>& other) const
+		SLIB_CONSTEXPR sl_bool equals(const AtomicRef<OTHER>& other) const
 		{
 			return ptr == other._ptr;
 		}
 
-		constexpr sl_compare_result compare(sl_null_t) const
+		SLIB_CONSTEXPR sl_compare_result compare(sl_null_t) const
 		{
 			return ptr != sl_null;
 		}
 
 		template <class OTHER>
-		constexpr sl_compare_result compare(const OTHER* other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const OTHER* other) const
 		{
 			return ComparePrimitiveValues(ptr, other);
 		}
 
 		template <class OTHER>
-		constexpr sl_compare_result compare(const Ref<OTHER>& other) const noexcept
+		SLIB_CONSTEXPR sl_compare_result compare(const Ref<OTHER>& other) const noexcept
 		{
 			return ComparePrimitiveValues(ptr, other.ptr);
 		}
 
 		template <class OTHER>
-		constexpr sl_compare_result compare(const AtomicRef<OTHER>& other) const noexcept
+		SLIB_CONSTEXPR sl_compare_result compare(const AtomicRef<OTHER>& other) const noexcept
 		{
 			return ComparePrimitiveValues(ptr, other._ptr);
 		}
@@ -563,22 +563,22 @@ namespace slib
 		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR
 
 	public:
-		constexpr T& operator*() const
+		SLIB_CONSTEXPR T& operator*() const
 		{
 			return *ptr;
 		}
 
-		constexpr T* operator->() const
+		SLIB_CONSTEXPR T* operator->() const
 		{
 			return ptr;
 		}
 
-		constexpr operator T*() const
+		SLIB_CONSTEXPR operator T*() const
 		{
 			return ptr;
 		}
 	
-		constexpr explicit operator sl_bool() const
+		SLIB_CONSTEXPR explicit operator sl_bool() const
 		{
 			return ptr != sl_null;
 		}
@@ -610,9 +610,9 @@ namespace slib
 	class SLIB_EXPORT Atomic< Ref<T> >
 	{
 	public:
-		constexpr Atomic(): _ptr(sl_null) {}
+		SLIB_CONSTEXPR Atomic(): _ptr(sl_null) {}
 
-		constexpr Atomic(sl_null_t): _ptr(sl_null) {}
+		SLIB_CONSTEXPR Atomic(sl_null_t): _ptr(sl_null) {}
 
 		Atomic(T* other) noexcept
 		{
@@ -698,12 +698,12 @@ namespace slib
 		}
 	
 	public:
-		constexpr sl_bool isNull() const
+		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return _ptr == sl_null;
 		}
 	
-		constexpr sl_bool isNotNull() const
+		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return _ptr != sl_null;
 		}
@@ -825,48 +825,48 @@ namespace slib
 		Atomic& operator=(const Pointer<TYPES...>& other) noexcept;
 
 	public:
-		constexpr sl_bool equals(sl_null_t) const
+		SLIB_CONSTEXPR sl_bool equals(sl_null_t) const
 		{
 			return !_ptr;
 		}
 
 		template <class OTHER>
-		constexpr sl_bool equals(const OTHER* other) const
+		SLIB_CONSTEXPR sl_bool equals(const OTHER* other) const
 		{
 			return _ptr == other;
 		}
 
 		template <class OTHER>
-		constexpr sl_bool equals(const Ref<OTHER>& other) const
+		SLIB_CONSTEXPR sl_bool equals(const Ref<OTHER>& other) const
 		{
 			return _ptr == other.ptr;
 		}
 
 		template <class OTHER>
-		constexpr sl_bool equals(const AtomicRef<OTHER>& other) const
+		SLIB_CONSTEXPR sl_bool equals(const AtomicRef<OTHER>& other) const
 		{
 			return _ptr == other._ptr;
 		}
 
-		constexpr sl_compare_result compare(sl_null_t) const
+		SLIB_CONSTEXPR sl_compare_result compare(sl_null_t) const
 		{
 			return _ptr != sl_null;
 		}
 
 		template <class OTHER>
-		constexpr sl_compare_result compare(const OTHER* other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const OTHER* other) const
 		{
 			return ComparePrimitiveValues(_ptr, other);
 		}
 
 		template <class OTHER>
-		constexpr sl_compare_result compare(const Ref<OTHER>& other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const Ref<OTHER>& other) const
 		{
 			return ComparePrimitiveValues(_ptr, other.ptr);
 		}
 
 		template <class OTHER>
-		constexpr sl_compare_result compare(const AtomicRef<OTHER>& other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const AtomicRef<OTHER>& other) const
 		{
 			return ComparePrimitiveValues(_ptr, other._ptr);
 		}
@@ -879,7 +879,7 @@ namespace slib
 			return *this;
 		}
 		
-		constexpr explicit operator sl_bool() const
+		SLIB_CONSTEXPR explicit operator sl_bool() const
 		{
 			return _ptr != sl_null;
 		}
@@ -955,9 +955,9 @@ namespace slib
 	class SLIB_EXPORT WeakRef
 	{
 	public:
-		constexpr WeakRef() = default;
+		SLIB_CONSTEXPR WeakRef() = default;
 
-		constexpr WeakRef(sl_null_t) {}
+		SLIB_CONSTEXPR WeakRef(sl_null_t) {}
 
 		WeakRef(T* _other) noexcept
 		{
@@ -1018,12 +1018,12 @@ namespace slib
 			return *(reinterpret_cast<WeakRef const*>(&(priv::ref::g_null)));
 		}
 
-		constexpr sl_bool isNull() const
+		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return _weak.isNull();
 		}
 
-		constexpr sl_bool isNotNull() const
+		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return _weak.isNotNull();
 		}
@@ -1148,25 +1148,25 @@ namespace slib
 
 	public:
 		template <class OTHER>
-		constexpr sl_bool equals(const WeakRef<OTHER>& other) const
+		SLIB_CONSTEXPR sl_bool equals(const WeakRef<OTHER>& other) const
 		{
 			return _weak.equals(other._weak);
 		}
 	
 		template <class OTHER>
-		constexpr sl_bool equals(const AtomicWeakRef<OTHER>& other) const
+		SLIB_CONSTEXPR sl_bool equals(const AtomicWeakRef<OTHER>& other) const
 		{
 			return _weak.equals(other._weak);
 		}
 
 		template <class OTHER>
-		constexpr sl_compare_result compare(const WeakRef<OTHER>& other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const WeakRef<OTHER>& other) const
 		{
 			return _weak.compare(other._weak);
 		}
 	
 		template <class OTHER>
-		constexpr sl_compare_result compare(const AtomicWeakRef<OTHER>& other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const AtomicWeakRef<OTHER>& other) const
 		{
 			return _weak.compare(other._weak);
 		}
@@ -1174,7 +1174,7 @@ namespace slib
 		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR
 		
 	public:
-		constexpr explicit operator sl_bool() const
+		SLIB_CONSTEXPR explicit operator sl_bool() const
 		{
 			return _weak.isNotNull();
 		}
@@ -1198,7 +1198,7 @@ namespace slib
 	class SLIB_EXPORT Atomic< WeakRef<T> >
 	{
 	public:
-		constexpr Atomic() = default;
+		SLIB_CONSTEXPR Atomic() = default;
 
 		Atomic(sl_null_t) noexcept {}
 
@@ -1254,12 +1254,12 @@ namespace slib
 		}
 
 	public:
-		constexpr sl_bool isNull() const
+		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return _weak.isNull();
 		}
 
-		constexpr sl_bool isNotNull() const
+		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return _weak.isNotNull();
 		}
@@ -1358,25 +1358,25 @@ namespace slib
 
 	public:
 		template <class OTHER>
-		constexpr sl_bool equals(const WeakRef<OTHER>& other) const
+		SLIB_CONSTEXPR sl_bool equals(const WeakRef<OTHER>& other) const
 		{
 			return _weak.equals(other._weak);
 		}
 	
 		template <class OTHER>
-		constexpr sl_bool equals(const AtomicWeakRef<OTHER>& other) const
+		SLIB_CONSTEXPR sl_bool equals(const AtomicWeakRef<OTHER>& other) const
 		{
 			return _weak.equals(other._weak);
 		}
 
 		template <class OTHER>
-		constexpr sl_compare_result compare(const WeakRef<OTHER>& other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const WeakRef<OTHER>& other) const
 		{
 			return _weak.compare(other._weak);
 		}
 	
 		template <class OTHER>
-		constexpr sl_compare_result compare(const AtomicWeakRef<OTHER>& other) const
+		SLIB_CONSTEXPR sl_compare_result compare(const AtomicWeakRef<OTHER>& other) const
 		{
 			return _weak.compare(other._weak);
 		}
@@ -1389,7 +1389,7 @@ namespace slib
 			return *this;
 		}
 		
-		constexpr explicit operator sl_bool() const
+		SLIB_CONSTEXPR explicit operator sl_bool() const
 		{
 			return _weak.isNotNull();
 		}

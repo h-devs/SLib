@@ -31,8 +31,8 @@
 public: \
 	Container* container; \
 public: \
-	constexpr Shared(): container(sl_null) {} \
-	constexpr Shared(sl_null_t): container(sl_null) {} \
+	SLIB_CONSTEXPR Shared(): container(sl_null) {} \
+	SLIB_CONSTEXPR Shared(sl_null_t): container(sl_null) {} \
 	Shared(Shared&& other) noexcept \
 	{ \
 		container = other.container; \
@@ -58,11 +58,11 @@ public: \
 	{ \
 		return *(reinterpret_cast<Shared const*>(&(priv::shared::g_shared_null))); \
 	} \
-	constexpr sl_bool isNull() const \
+	SLIB_CONSTEXPR sl_bool isNull() const \
 	{ \
 		return !container; \
 	} \
-	constexpr sl_bool isNotNull() const \
+	SLIB_CONSTEXPR sl_bool isNotNull() const \
 	{ \
 		return container != sl_null; \
 	} \
@@ -90,11 +90,11 @@ public: \
 		} \
 		return *this; \
 	} \
-	constexpr explicit operator sl_bool() const \
+	SLIB_CONSTEXPR explicit operator sl_bool() const \
 	{ \
 		return container != sl_null; \
 	} \
-	constexpr T* operator->() const \
+	SLIB_CONSTEXPR T* operator->() const \
 	{ \
 		return get(); \
 	} \
@@ -135,8 +135,8 @@ public: \
 private: \
 	SpinLock m_lock; \
 public: \
-	constexpr Atomic(): _container(sl_null) {} \
-	constexpr Atomic(sl_null_t): _container(sl_null) {} \
+	SLIB_CONSTEXPR Atomic(): _container(sl_null) {} \
+	SLIB_CONSTEXPR Atomic(sl_null_t): _container(sl_null) {} \
 	Atomic(const Atomic& other) noexcept \
 	{ \
 		_container = other._retain(); \
@@ -162,11 +162,11 @@ public: \
 		} \
 	} \
 public: \
-	constexpr sl_bool isNull() const \
+	SLIB_CONSTEXPR sl_bool isNull() const \
 	{ \
 		return !_container; \
 	} \
-	constexpr sl_bool isNotNull() const \
+	SLIB_CONSTEXPR sl_bool isNotNull() const \
 	{ \
 		return _container != sl_null; \
 	} \
@@ -233,7 +233,7 @@ public: \
 		} \
 		return *this; \
 	} \
-	explicit constexpr operator sl_bool() const \
+	explicit SLIB_CONSTEXPR operator sl_bool() const \
 	{ \
 		return _container != sl_null; \
 	} \
@@ -475,7 +475,7 @@ namespace slib
 			return new Container(Forward<Args>(args)...);
 		}
 
-		constexpr T* get() const&
+		SLIB_CONSTEXPR T* get() const&
 		{
 			return &(container->value);
 		}
@@ -580,7 +580,7 @@ namespace slib
 			return new priv::shared::ObjectContainer<ValueType>((T*)0, Forward<Args>(args)...);
 		}
 
-		constexpr T* get() const&
+		SLIB_CONSTEXPR T* get() const&
 		{
 			return container ? (T*)(container->ptr) : sl_null;
 		}
