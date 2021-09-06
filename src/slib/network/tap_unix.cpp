@@ -36,6 +36,7 @@
 #include <errno.h>
 #include <sys/poll.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
 #include <arpa/inet.h>

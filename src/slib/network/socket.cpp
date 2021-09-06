@@ -65,6 +65,7 @@ struct SOCKADDR_UN
 #	endif
 #	include <netinet/in.h>
 #	include <signal.h>
+#	include <stddef.h>
 #	include <errno.h>
 
 typedef sockaddr_un SOCKADDR_UN;
