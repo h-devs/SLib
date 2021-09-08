@@ -27,6 +27,7 @@
 
 #include "../core/flags.h"
 #include "../core/mio.h"
+#include "../core/time.h"
 #include "../core/thread_pool.h"
 
 namespace slib
@@ -326,6 +327,21 @@ namespace slib
 
 	};
 
+	SLIB_DEFINE_FLAGS(Smb2SecurityMode, {
+		SigningEnabled = 1,
+		SigningRequired = 2
+	})
+
+	SLIB_DEFINE_FLAGS(Smb2Capabilities, {
+		DFS = 0x00000001,
+		Leasing = 0x00000002,
+		LargeMtu = 0x00000004,
+		MultiChannel = 0x00000008,
+		PersistentHandles = 0x00000010,
+		DirectoryLeasing = 0x00000020,
+		Encryption = 0x00000040
+	})
+
 	class SLIB_EXPORT Smb2NegotiateResponse
 	{
 	public:
@@ -339,11 +355,127 @@ namespace slib
 			return *_structureSize & 1;
 		}
 
-		
+		void setSize(sl_uint16 fixedSize, sl_bool flagDynamic) noexcept
+		{
+			MIO::writeUint16LE(_structureSize, (fixedSize & 0xFE) | (flagDynamic ? 1 : 0));
+		}
+
+		Smb2SecurityMode getSecurityMode() const noexcept
+		{
+			return (Smb2SecurityMode)_securityMode;
+		}
+
+		void setSecurityMode(Smb2SecurityMode mode) noexcept
+		{
+			_securityMode = (sl_uint8)(mode.value);
+		}
+
+		sl_uint16 getDialect() const noexcept
+		{
+			return MIO::readUint16LE(_dialect);
+		}
+
+		void setDialect(sl_uint16 value) noexcept
+		{
+			MIO::writeUint16LE(_dialect, value);
+		}
+
+		sl_uint16 getContextCount() const noexcept
+		{
+			return MIO::readUint16LE(_contextCount);
+		}
+
+		void setContextCount(sl_uint16 value) noexcept
+		{
+			MIO::writeUint16LE(_contextCount, value);
+		}
+
+		const sl_uint8* getGuid() const noexcept
+		{
+			return _guid;
+		}
+
+		sl_uint8* getGuid() noexcept
+		{
+			return _guid;
+		}
+
+		Smb2Capabilities getCapabilities() const noexcept
+		{
+			return (Smb2Capabilities)(MIO::readUint32LE(_capabilities));
+		}
+
+		void setSecurityMode(Smb2Capabilities caps) noexcept
+		{
+			MIO::writeUint32LE(_capabilities, (sl_uint32)(caps.value));
+		}
+
+		Time getCurrentTime() const noexcept
+		{
+			return Time::fromWindowsFileTime(MIO::readUint64LE(_currentTime));
+		}
+
+		void setCurrentTime(const Time& time) noexcept
+		{
+			MIO::writeUint64LE(_currentTime, time.toWindowsFileTime());
+		}
+
+		Time getBootTime() const noexcept
+		{
+			return Time::fromWindowsFileTime(MIO::readUint64LE(_bootTime));
+		}
+
+		void setBootTime(const Time& time) noexcept
+		{
+			MIO::writeUint64LE(_bootTime, time.toWindowsFileTime());
+		}
+
+		sl_uint16 getBlobOffset() const noexcept
+		{
+			return MIO::readUint16LE(_blobOffset);
+		}
+
+		void setBlobOffset(sl_uint16 value) noexcept
+		{
+			MIO::writeUint16LE(_blobOffset, value);
+		}
+
+		sl_uint16 getBlobLength() const noexcept
+		{
+			return MIO::readUint16LE(_blobLength);
+		}
+
+		void setBlobLength(sl_uint16 value) noexcept
+		{
+			MIO::writeUint16LE(_blobLength, value);
+		}
+
+		sl_uint32 getContextOffset() const noexcept
+		{
+			return MIO::readUint32LE(_contextOffset);
+		}
+
+		void setContextOffset(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_contextOffset, value);
+		}
 
 	private:
 		sl_uint8 _structureSize[2];
 		sl_uint8 _securityMode;
+		sl_uint8 _reserved;
+		sl_uint8 _dialect[2];
+		sl_uint8 _contextCount[2];
+		sl_uint8 _guid[16];
+		sl_uint8 _capabilities[4];
+		sl_uint8 _maxTransactionSize[4];
+		sl_uint8 _maxReadSize[4];
+		sl_uint8 _maxWriteSize[4];
+		sl_uint8 _currentTime[8];
+		sl_uint8 _bootTime[8];
+		sl_uint8 _blobOffset[2]; // offset from SMB header
+		sl_uint8 _blobLength[2];
+		sl_uint8 _contextOffset[4];
 
 	};
 
