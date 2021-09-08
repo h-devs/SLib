@@ -184,6 +184,15 @@ namespace slib
 	{
 		return time;
 	}
+
+	sl_int64 Time::toUnixTime() const noexcept
+	{
+		sl_int64 n = m_time / TIME_SECOND;
+		if ((m_time % TIME_SECOND) < 0) {
+			n += 1;
+		}
+		return n;
+	}
 	
 	Time& Time::setUnixTime(sl_int64 time) noexcept
 	{
@@ -194,6 +203,11 @@ namespace slib
 	Time Time::fromUnixTime(sl_int64 time) noexcept
 	{
 		return time * TIME_SECOND;
+	}
+
+	double Time::toUnixTimef() const noexcept
+	{
+		return (double)(m_time / TIME_SECOND);
 	}
 
 	Time& Time::setUnixTimef(double time) noexcept

@@ -218,35 +218,31 @@ namespace slib
 		
 		static Time fromInt(sl_int64 time) noexcept;
 		
-		sl_int64 toUnixTime() const noexcept
-		{
-			sl_int64 n = m_time / 1000000;
-			if ((m_time % 1000000) < 0) {
-				n += 1;
-			}
-			return n;
-		}
+		// Convert to time_t mode (1970 Based)
+		sl_int64 toUnixTime() const noexcept;
 
+		// Convert from time_t mode (1970 Based)
 		Time& setUnixTime(sl_int64 time) noexcept;
 		
+		// Convert from time_t mode (1970 Based)
 		static Time fromUnixTime(sl_int64 time) noexcept;
 		
-		double toUnixTimef() const noexcept
-		{
-			return (double)(m_time / 1000000);
-		}
-		
+		// Convert to time_t mode (1970 Based)
+		double toUnixTimef() const noexcept;
+
+		// Convert from time_t mode (1970 Based)
 		Time& setUnixTimef(double time) noexcept;
 		
+		// Convert from time_t mode (1970 Based)
 		static Time fromUnixTimef(double time) noexcept;
 
-		// Convert 1970 Based (time_t mode) to 1601 Based (FILETIME mode)
+		// Convert to FILETIME mode (1601 Based)
 		sl_int64 toWindowsFileTime() const noexcept;
 
-		// Convert 1601 Based (FILETIME mode) to 1970 Based (time_t mode)
+		// Convert from FILETIME mode (1601 Based)
 		Time& setWindowsFileTime(sl_int64 time) noexcept;
 
-		// Convert 1601 Based (FILETIME mode) to 1970 Based (time_t mode)
+		// Convert from FILETIME mode (1601 Based)
 		static Time fromWindowsFileTime(sl_int64 time) noexcept;
 
 		Time& add(sl_int64 time) noexcept;
