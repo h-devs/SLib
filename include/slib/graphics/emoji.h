@@ -25,6 +25,8 @@
 
 #include "image.h"
 
+#include "../core/hash_map.h"
+
 namespace slib
 {
 	
@@ -38,6 +40,8 @@ namespace slib
 		static sl_size getEmojiLength(const sl_char16* sz, sl_size len = SLIB_SIZE_MAX);
 		
 		static Memory getPng(const String16& str);
+
+		static HashMap<String16, Memory> getAllPngs();
 		
 		static Ref<Image> getImage(const String16& str);
 

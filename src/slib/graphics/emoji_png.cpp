@@ -111,6 +111,15 @@ namespace slib
 		return sl_null;
 	}
 
+	HashMap<String16, Memory> Emoji::getAllPngs()
+	{
+		StaticPngContext* context = GetStaticPngContext();
+		if (context) {
+			return context->mapPNG.duplicate_NoLock();
+		}
+		return sl_null;
+	}
+
 	Ref<Image> Emoji::getImage(const String16& str)
 	{
 		StaticPngContext* context = GetStaticPngContext();
