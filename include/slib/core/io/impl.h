@@ -51,12 +51,12 @@
 	float CLASS::readFloat(float def, EndianType endian) ATTR { return ReaderHelper::readFloat(this, def, endian); } \
 	sl_bool CLASS::readDouble(double* output, EndianType endian) ATTR { return ReaderHelper::readDouble(this, output, endian); } \
 	double CLASS::readDouble(double def, EndianType endian) ATTR { return ReaderHelper::readDouble(this, def, endian); } \
-	sl_bool CLASS::readCVLI32(sl_uint32* output) ATTR { return ReaderHelper::readCVLI(this, output); } \
-	sl_uint32 CLASS::readCVLI32(sl_uint32 def) ATTR { return ReaderHelper::readCVLI(this, def); } \
-	sl_bool CLASS::readCVLI64(sl_uint64* output) ATTR { return ReaderHelper::readCVLI(this, output); } \
-	sl_uint64 CLASS::readCVLI64(sl_uint64 def) ATTR { return ReaderHelper::readCVLI(this, def); } \
-	sl_bool CLASS::readCVLI(sl_size* output) ATTR { return ReaderHelper::readCVLI(this, output); } \
-	sl_size CLASS::readCVLI(sl_size def) ATTR { return ReaderHelper::readCVLI(this, def); } \
+	sl_bool CLASS::readCVLI32(sl_uint32* output, EndianType endian) ATTR { return ReaderHelper::readCVLI(this, output, endian); } \
+	sl_uint32 CLASS::readCVLI32(sl_uint32 def, EndianType endian) ATTR { return ReaderHelper::readCVLI(this, def, endian); } \
+	sl_bool CLASS::readCVLI64(sl_uint64* output, EndianType endian) ATTR { return ReaderHelper::readCVLI(this, output, endian); } \
+	sl_uint64 CLASS::readCVLI64(sl_uint64 def, EndianType endian) ATTR { return ReaderHelper::readCVLI(this, def, endian); } \
+	sl_bool CLASS::readCVLI(sl_size* output, EndianType endian) ATTR { return ReaderHelper::readCVLI(this, output, endian); } \
+	sl_size CLASS::readCVLI(sl_size def, EndianType endian) ATTR { return ReaderHelper::readCVLI(this, def, endian); } \
 	Memory CLASS::readToMemory(sl_size size) ATTR { return ReaderHelper::readToMemory(this, size); } \
 	String CLASS::readTextUTF8(sl_size size) ATTR { return ReaderHelper::readTextUTF8(this, size); } \
 	String16 CLASS::readTextUTF16(sl_size size, EndianType endian) ATTR { return ReaderHelper::readTextUTF16(this, size, endian); } \
@@ -75,9 +75,9 @@
 	sl_bool CLASS::writeUint64(sl_uint64 value, EndianType endian) ATTR { return WriterHelper::writeInt64(this, value, endian); } \
 	sl_bool CLASS::writeFloat(float value, EndianType endian) ATTR { return WriterHelper::writeFloat(this, value, endian); } \
 	sl_bool CLASS::writeDouble(double value, EndianType endian) ATTR { return WriterHelper::writeDouble(this, value, endian); } \
-	sl_bool CLASS::writeCVLI32(sl_uint32 value) ATTR { return WriterHelper::writeCVLI(this, value); } \
-	sl_bool CLASS::writeCVLI64(sl_uint64 value) ATTR { return WriterHelper::writeCVLI(this, value); } \
-	sl_bool CLASS::writeCVLI(sl_size value) ATTR { return WriterHelper::writeCVLI(this, value); } \
+	sl_bool CLASS::writeCVLI32(sl_uint32 value, EndianType endian) ATTR { return WriterHelper::writeCVLI(this, value, endian); } \
+	sl_bool CLASS::writeCVLI64(sl_uint64 value, EndianType endian) ATTR { return WriterHelper::writeCVLI(this, value, endian); } \
+	sl_bool CLASS::writeCVLI(sl_size value, EndianType endian) ATTR { return WriterHelper::writeCVLI(this, value, endian); } \
 	sl_size CLASS::writeFromMemory(const Memory& mem) ATTR { return writeFully(mem.getData(), mem.getSize()); } \
 	sl_bool CLASS::writeTextUTF8(const StringParam& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF8(this, text, flagWriteByteOrderMark); } \
 	sl_bool CLASS::writeTextUTF16LE(const StringParam& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF16LE(this, text, flagWriteByteOrderMark); } \

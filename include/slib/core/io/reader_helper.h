@@ -372,14 +372,18 @@ namespace slib
 		}
 
 		template <class READER, class T>
-		static sl_bool readCVLI(READER* reader, T* output)
+		static sl_bool readCVLI(READER* reader, T* output, EndianType endian)
 		{
 			T value = 0;
-			sl_uint32 m = 0;
 			sl_uint8 n;
+			sl_uint32 m = 0;
 			while (readUint8(reader, &n)) {
-				value += (((T)(n & 127)) << m);
-				m += 7;
+				if (endian == EndianType::Little) {
+					value |= (((T)(n & 127)) << m);
+					m += 7;
+				} else {
+					value = (value << 7) | (n & 127);
+				}
 				if (!(n & 128)) {
 					if (output) {
 						*output = value;
@@ -391,10 +395,10 @@ namespace slib
 		}
 
 		template <class READER, class T>
-		static T readCVLI(READER* reader, T def)
+		static T readCVLI(READER* reader, T def, EndianType endian)
 		{
 			T v;
-			if (readCVLI(reader, &v)) {
+			if (readCVLI(reader, &v, endian)) {
 				return v;
 			} else {
 				return def;

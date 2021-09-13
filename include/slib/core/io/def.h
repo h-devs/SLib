@@ -54,12 +54,12 @@
 	float readFloat(float def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool readDouble(double* output, EndianType endian = Endian::Little) __VA_ARGS__; \
 	double readDouble(double def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool readCVLI32(sl_uint32* output) __VA_ARGS__; \
-	sl_uint32 readCVLI32(sl_uint32 def = 0) __VA_ARGS__; \
-	sl_bool readCVLI64(sl_uint64* output) __VA_ARGS__; \
-	sl_uint64 readCVLI64(sl_uint64 def = 0) __VA_ARGS__; \
-	sl_bool readCVLI(sl_size* output) __VA_ARGS__; \
-	sl_size readCVLI(sl_size def = 0) __VA_ARGS__; \
+	sl_bool readCVLI32(sl_uint32* output, EndianType endian = Endian::Little) __VA_ARGS__; \
+	sl_uint32 readCVLI32(sl_uint32 def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
+	sl_bool readCVLI64(sl_uint64* output, EndianType endian = Endian::Little) __VA_ARGS__; \
+	sl_uint64 readCVLI64(sl_uint64 def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
+	sl_bool readCVLI(sl_size* output, EndianType endian = Endian::Little) __VA_ARGS__; \
+	sl_size readCVLI(sl_size def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
 	Memory readToMemory(sl_size size) __VA_ARGS__; \
 	String readTextUTF8(sl_size size) __VA_ARGS__; \
 	String16 readTextUTF16(sl_size size, EndianType endian = Endian::Little) __VA_ARGS__; \
@@ -78,9 +78,9 @@
 	sl_bool writeUint64(sl_uint64 value, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool writeFloat(float value, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool writeDouble(double value, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool writeCVLI32(sl_uint32 value) __VA_ARGS__; \
-	sl_bool writeCVLI64(sl_uint64 value) __VA_ARGS__; \
-	sl_bool writeCVLI(sl_size value) __VA_ARGS__; \
+	sl_bool writeCVLI32(sl_uint32 value, EndianType endian = Endian::Little) __VA_ARGS__; \
+	sl_bool writeCVLI64(sl_uint64 value, EndianType endian = Endian::Little) __VA_ARGS__; \
+	sl_bool writeCVLI(sl_size value, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_size writeFromMemory(const Memory& mem) __VA_ARGS__; \
 	sl_bool writeTextUTF8(const StringParam& text, sl_bool flagWriteByteOrderMark = sl_false) __VA_ARGS__; \
 	sl_bool writeTextUTF16LE(const StringParam& text, sl_bool flagWriteByteOrderMark = sl_false) __VA_ARGS__; \

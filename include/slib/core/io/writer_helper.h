@@ -167,11 +167,11 @@ namespace slib
 		}
 
 		template <class WRITER, class T>
-		static sl_bool writeCVLI(WRITER* writer, T value)
+		static sl_bool writeCVLI(WRITER* writer, const T& value, EndianType endian)
 		{
-			sl_uint8 t[16];
-			sl_uint32 n = CVLI::serialize(t, value);
-			return writeFully(writer, t, n);
+            sl_uint8 t[16];
+            sl_uint32 n = CVLI::serialize(t, value, endian);
+            return writeFully(writer, t, n) == n;
 		}
 
 		template <class WRITER>
