@@ -39,15 +39,21 @@ namespace slib
 	sl_bool SerializeRaw(IWriter* writer, const void* data, sl_size size) noexcept;
 	sl_bool SerializeRaw(MemoryBuffer* buf, const void* data, sl_size size) noexcept;
 	sl_bool SerializeRaw(SerializeBuffer* buf, const void* data, sl_size size) noexcept;
+	sl_bool SerializeRaw(sl_uint8** buf, const void* data, sl_size size) noexcept;
+	sl_bool SerializeRaw(sl_uint8*& buf, const void* data, sl_size size) noexcept;
 
 	sl_bool SerializeRaw(IWriter* writer, const MemoryData& data) noexcept;
 	sl_bool SerializeRaw(MemoryBuffer* buf, const MemoryData& data) noexcept;
 	sl_bool SerializeRaw(MemoryBuffer* buf, MemoryData&& data) noexcept;
 	sl_bool SerializeRaw(SerializeBuffer* buf, const MemoryData& data) noexcept;
+	sl_bool SerializeRaw(sl_uint8** buf, const MemoryData& data) noexcept;
+	sl_bool SerializeRaw(sl_uint8*& buf, const MemoryData& data) noexcept;
 
 	sl_bool SerializeStatic(IWriter* writer, const void* data, sl_size size) noexcept;
 	sl_bool SerializeStatic(MemoryBuffer* buf, const void* data, sl_size size) noexcept;
 	sl_bool SerializeStatic(SerializeBuffer* buf, const void* data, sl_size size) noexcept;
+	sl_bool SerializeStatic(sl_uint8** buf, const void* data, sl_size size) noexcept;
+	sl_bool SerializeStatic(sl_uint8*& buf, const void* data, sl_size size) noexcept;
 
 	sl_bool DeserializeByte(IReader* reader, sl_uint8& _out) noexcept;
 	sl_bool DeserializeByte(SerializeBuffer* buf, sl_uint8& _out) noexcept;
@@ -56,6 +62,55 @@ namespace slib
 	sl_bool DeserializeRaw(IReader* reader, void* data, sl_size size) noexcept;
 	sl_bool DeserializeRaw(SerializeBuffer* buf, void* data, sl_size size) noexcept;
 	sl_bool DeserializeRaw(DeserializeBuffer* buf, void* data, sl_size size) noexcept;
+	sl_bool DeserializeRaw(sl_uint8** buf, void* data, sl_size size) noexcept;
+	sl_bool DeserializeRaw(sl_uint8 const** buf, void* data, sl_size size) noexcept;
+	sl_bool DeserializeRaw(sl_uint8*& buf, void* data, sl_size size) noexcept;
+	sl_bool DeserializeRaw(sl_uint8 const*& buf, void* data, sl_size size) noexcept;
+
+	SLIB_INLINE sl_bool SerializeByte(sl_uint8** _buf, sl_uint8 value) noexcept
+	{
+		sl_uint8*& buf = *_buf;
+		*buf = value;
+		buf++;
+		return sl_true;
+	}
+
+	SLIB_INLINE sl_bool SerializeByte(sl_uint8*& buf, sl_uint8 value) noexcept
+	{
+		*buf = value;
+		buf++;
+		return sl_true;
+	}
+
+	SLIB_INLINE sl_bool DeserializeByte(sl_uint8** _buf, sl_uint8& _out) noexcept
+	{
+		sl_uint8*& buf = *_buf;
+		_out = *buf;
+		buf++;
+		return sl_true;
+	}
+
+	SLIB_INLINE sl_bool DeserializeByte(sl_uint8*& buf, sl_uint8& _out) noexcept
+	{
+		_out = *buf;
+		buf++;
+		return sl_true;
+	}
+
+	SLIB_INLINE sl_bool DeserializeByte(sl_uint8 const** _buf, sl_uint8& _out) noexcept
+	{
+		sl_uint8 const*& buf = *_buf;
+		_out = *buf;
+		buf++;
+		return sl_true;
+	}
+
+	SLIB_INLINE sl_bool DeserializeByte(sl_uint8 const*& buf, sl_uint8& _out) noexcept
+	{
+		_out = *buf;
+		buf++;
+		return sl_true;
+	}
 
 }
 

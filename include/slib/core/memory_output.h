@@ -42,11 +42,19 @@ namespace slib
 
 		sl_reg write(const Memory& mem);
 
+		sl_reg write(Memory&& mem);
+
 		sl_bool flush();
 
 		sl_size getSize();
 
 		Memory getData();
+
+		void clear();
+
+		void link(MemoryBuffer& mem);
+
+		void link(MemoryOutput& other);
 
 	public:
 		sl_bool writeInt8(sl_int8 value);
