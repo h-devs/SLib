@@ -112,6 +112,12 @@ namespace slib
 		return sl_true;
 	}
 
+	template <class OUTPUT, sl_size N>
+	SLIB_INLINE sl_bool SerializeStatic(OUTPUT* output, const char(&s)[N]) noexcept
+	{
+		return SerializeStatic(output, s, N - 1);
+	}
+
 }
 
 #endif

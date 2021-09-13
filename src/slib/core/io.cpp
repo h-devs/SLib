@@ -2624,9 +2624,10 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SerializeRaw(sl_uint8* buf, const void* data, sl_size size) noexcept
+	sl_bool SerializeRaw(sl_uint8*& buf, const void* data, sl_size size) noexcept
 	{
 		Base::copyMemory(buf, data, size);
+		buf += size;
 		return sl_true;
 	}
 
@@ -2658,9 +2659,10 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SerializeRaw(sl_uint8* buf, const MemoryData& data) noexcept
+	sl_bool SerializeRaw(sl_uint8*& buf, const MemoryData& data) noexcept
 	{
 		Base::copyMemory(buf, data.data, data.size);
+		buf += data.size;
 		return sl_true;
 	}
 
@@ -2687,9 +2689,10 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SerializeStatic(sl_uint8* buf, const void* data, sl_size size) noexcept
+	sl_bool SerializeStatic(sl_uint8*& buf, const void* data, sl_size size) noexcept
 	{
 		Base::copyMemory(buf, data, size);
+		buf += size;
 		return sl_true;
 	}
 
@@ -2739,15 +2742,17 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool DeserializeRaw(sl_uint8* buf, void* data, sl_size size) noexcept
+	sl_bool DeserializeRaw(sl_uint8*& buf, void* data, sl_size size) noexcept
 	{
 		Base::copyMemory(data, buf, size);
+		buf += size;
 		return sl_true;
 	}
 
-	sl_bool DeserializeRaw(sl_uint8 const* buf, void* data, sl_size size) noexcept
+	sl_bool DeserializeRaw(sl_uint8 const*& buf, void* data, sl_size size) noexcept
 	{
 		Base::copyMemory(data, buf, size);
+		buf += size;
 		return sl_true;
 	}
 
