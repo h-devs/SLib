@@ -126,6 +126,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/xml.cpp"
 
  "${SLIB_PATH}/src/slib/crypto/aes.cpp"
+ "${SLIB_PATH}/src/slib/crypto/asn1.cpp"
  "${SLIB_PATH}/src/slib/crypto/base64.cpp"
  "${SLIB_PATH}/src/slib/crypto/block_cipher.cpp"
  "${SLIB_PATH}/src/slib/crypto/blowfish.cpp"

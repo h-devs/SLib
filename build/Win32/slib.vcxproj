@@ -156,6 +156,7 @@
     <ClCompile Include="..\..\src\slib\core\win32_message_loop.cpp" />
     <ClCompile Include="..\..\src\slib\core\xml.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\aes.cpp" />
+    <ClCompile Include="..\..\src\slib\crypto\asn1.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\base64.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\block_cipher.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\blowfish.cpp" />

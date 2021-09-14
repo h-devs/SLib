@@ -1403,5 +1403,8 @@
     <ClCompile Include="..\..\src\slib\network\smb.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\crypto\asn1.cpp">
+      <Filter>src\crypto</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
