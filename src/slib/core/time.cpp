@@ -223,18 +223,30 @@ namespace slib
 
 	sl_int64 Time::toWindowsFileTime() const noexcept
 	{
-		return (m_time + SLIB_INT64(11644473600000000)) * 10;
+		if (m_time) {
+			return (m_time + SLIB_INT64(11644473600000000)) * 10;
+		} else {
+			return 0;
+		}
 	}
 
 	Time& Time::setWindowsFileTime(sl_int64 time) noexcept
 	{
-		m_time = time / 10 - SLIB_INT64(11644473600000000);
+		if (time) {
+			m_time = time / 10 - SLIB_INT64(11644473600000000);
+		} else {
+			m_time = 0;
+		}
 		return *this;
 	}
 
 	Time Time::fromWindowsFileTime(sl_int64 time) noexcept
 	{
-		return time / 10 - SLIB_INT64(11644473600000000);
+		if (time) {
+			return time / 10 - SLIB_INT64(11644473600000000);
+		} else {
+			return 0;
+		}
 	}
 
 	Time& Time::add(sl_int64 time) noexcept
