@@ -189,6 +189,12 @@ namespace slib
 			return _createStaticMove(buf, size, &ref);
 		}
 
+		template <sl_size N>
+		static Memory createStatic(const char(&s)[N]) noexcept
+		{
+			return createStatic(s, N - 1);
+		}
+
 		static Memory createFromString(const String& str) noexcept;
 		static Memory createFromString(String&& str) noexcept;
 
