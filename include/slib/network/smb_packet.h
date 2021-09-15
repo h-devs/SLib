@@ -1762,6 +1762,333 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT Smb2NotifyResponseMessage : public Smb2Message
+	{
+	public:
+		sl_uint8 getErrorContextCount() const noexcept
+		{
+			return _errorContextCount;
+		}
+
+		void setErrorContextCount(sl_uint8 value) noexcept
+		{
+			_errorContextCount = value;
+		}
+
+		sl_uint32 getByteCount() const noexcept
+		{
+			return MIO::readUint32LE(_byteCount);
+		}
+
+		void setByteCount(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32BE(_byteCount, value);
+		}
+
+		sl_uint8 getErrorData() const noexcept
+		{
+			return _errorData;
+		}
+
+		void setErrorData(sl_uint8 data) noexcept
+		{
+			_errorData = data;
+		}
+
+	private:
+		sl_uint8 _errorContextCount;
+		sl_uint8 _reserved;
+		sl_uint8 _byteCount[4];
+		sl_uint8 _errorData;
+
+	};
+
+	class SLIB_EXPORT Smb2FindRequestMessage : public Smb2Message
+	{
+	public:
+		Smb2FindLevel getLevel() const noexcept
+		{
+			return (Smb2FindLevel)_level;
+		}
+
+		void setLevel(Smb2FindLevel value) noexcept
+		{
+			_level = (sl_uint8)value;
+		}
+
+		Smb2FindFlags getFlags() const noexcept
+		{
+			return _flags;
+		}
+
+		void setFlags(const Smb2FindFlags& flags) noexcept
+		{
+			_flags = (sl_uint8)(flags.value);
+		}
+
+		sl_uint32 getFileIndex() const noexcept
+		{
+			return MIO::readUint32LE(_fileIndex);
+		}
+
+		void setFileIndex(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32BE(_fileIndex, value);
+		}
+
+		// 16 bytes
+		const sl_uint8* getGuid() const noexcept
+		{
+			return _guid;
+		}
+
+		// 16 bytes
+		sl_uint8* getGuid() noexcept
+		{
+			return _guid;
+		}
+
+		sl_uint16 getSearchPatternOffset() const noexcept
+		{
+			return MIO::readUint16LE(_searchPatternOffset);
+		}
+
+		void setSearchPatternOffset(sl_uint16 value) noexcept
+		{
+			MIO::writeUint16LE(_searchPatternOffset, value);
+		}
+
+		sl_uint16 getSearchPatternLength() const noexcept
+		{
+			return MIO::readUint16LE(_searchPatternLength);
+		}
+
+		void setSearchPatternLength(sl_uint16 value) noexcept
+		{
+			MIO::writeUint16LE(_searchPatternLength, value);
+		}
+
+		sl_uint32 getOutputBufferLength() const noexcept
+		{
+			return MIO::readUint32LE(_outputBufferLength);
+		}
+
+		void setOutputBufferLength(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32BE(_outputBufferLength, value);
+		}
+
+	private:
+		sl_uint8 _level;
+		sl_uint8 _flags;
+		sl_uint8 _fileIndex[4];
+		sl_uint8 _guid[16];
+		sl_uint8 _searchPatternOffset[2];
+		sl_uint8 _searchPatternLength[2];
+		sl_uint8 _outputBufferLength[4];
+
+	};
+
+	class SLIB_EXPORT Smb2FindResponseMessage : public Smb2Message
+	{
+	public:
+		sl_uint16 getBlobOffset() const noexcept
+		{
+			return MIO::readUint16LE(_blobOffset);
+		}
+
+		void setBlobOffset(sl_uint16 value) noexcept
+		{
+			MIO::writeUint16LE(_blobOffset, value);
+		}
+
+		sl_uint32 getBlobLength() const noexcept
+		{
+			return MIO::readUint32LE(_blobLength);
+		}
+
+		void setBlobLength(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_blobLength, value);
+		}
+
+	private:
+		sl_uint8 _blobOffset[2];
+		sl_uint8 _blobLength[4];
+
+	};
+
+	class SLIB_EXPORT Smb2FindFileIdBothDirectoryInfo
+	{
+	public:
+		sl_uint32 getSize() const noexcept
+		{
+			return MIO::readUint32LE(_size);
+		}
+
+		void setSize(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_size, value);
+		}
+
+		sl_uint32 getFileIndex() const noexcept
+		{
+			return MIO::readUint32LE(_fileIndex);
+		}
+
+		void setFileIndex(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_fileIndex, value);
+		}
+
+		Time getCreationTime() const noexcept
+		{
+			return Time::fromWindowsFileTime(MIO::readUint64LE(_createTime));
+		}
+
+		void setCreationTime(const Time& time) noexcept
+		{
+			MIO::writeUint64LE(_createTime, time.toWindowsFileTime());
+		}
+
+		Time getLastAccessTime() const noexcept
+		{
+			return Time::fromWindowsFileTime(MIO::readUint64LE(_lastAccessTime));
+		}
+
+		void setLastAccessTime(const Time& time) noexcept
+		{
+			MIO::writeUint64LE(_lastAccessTime, time.toWindowsFileTime());
+		}
+
+		Time getLastWriteTime() const noexcept
+		{
+			return Time::fromWindowsFileTime(MIO::readUint64LE(_lastWriteTime));
+		}
+
+		void setLastWriteTime(const Time& time) noexcept
+		{
+			MIO::writeUint64LE(_lastWriteTime, time.toWindowsFileTime());
+		}
+
+		Time getLastChangeTime() const noexcept
+		{
+			return Time::fromWindowsFileTime(MIO::readUint64LE(_lastChangeTime));
+		}
+
+		void setLastChangeTime(const Time& time) noexcept
+		{
+			MIO::writeUint64LE(_lastChangeTime, time.toWindowsFileTime());
+		}
+
+		sl_uint64 getEndOfFile() const noexcept
+		{
+			return MIO::readUint64LE(_endOfFile);
+		}
+
+		void setEndOfFile(sl_uint64 value) noexcept
+		{
+			MIO::writeUint64LE(_endOfFile, value);
+		}
+
+		sl_uint64 getAllocationSize() const noexcept
+		{
+			return MIO::readUint64LE(_allocationSize);
+		}
+
+		void setAllocationSize(sl_uint64 value) noexcept
+		{
+			MIO::writeUint64LE(_allocationSize, value);
+		}
+
+		FileAttributes getAttributes() const noexcept
+		{
+			return MIO::readUint32LE(_attributes);
+		}
+
+		void setAttributes(const FileAttributes& attrs) noexcept
+		{
+			MIO::writeUint32LE(_attributes, (sl_uint32)(attrs.value));
+		}
+
+		sl_uint32 getFileNameLength() const noexcept
+		{
+			return MIO::readUint32LE(_fileNameLength);
+		}
+
+		void setFileNameLength(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_fileNameLength, value);
+		}
+
+		sl_uint32 getExtendedAttributeSize() const noexcept
+		{
+			return MIO::readUint32LE(_eaSize);
+		}
+
+		void setExtendedAttributeSize(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_eaSize, value);
+		}
+
+		sl_uint8 getShortNameLength() const noexcept
+		{
+			return _shortNameLength;
+		}
+
+		void setShortNameLength(sl_uint8 value)
+		{
+			_shortNameLength = value;
+		}
+
+		// 24 Bytes (8.3)
+		const sl_uint8* getShortName() const noexcept
+		{
+			return _shortName;
+		}
+
+		// 24 Bytes (8.3)
+		sl_uint8* getShortName() noexcept
+		{
+			return _shortName;
+		}
+
+		sl_uint64 getFileId() const noexcept
+		{
+			return MIO::readUint64LE(_fileId);
+		}
+
+		void setFileId(sl_uint64 value)
+		{
+			MIO::writeUint64LE(_fileId, value);
+		}
+
+	private:
+		sl_uint8 _size[4];
+		sl_uint8 _fileIndex[4];
+		sl_uint8 _createTime[8];
+		sl_uint8 _lastAccessTime[8];
+		sl_uint8 _lastWriteTime[8];
+		sl_uint8 _lastChangeTime[8];
+		sl_uint8 _endOfFile[8];
+		sl_uint8 _allocationSize[8];
+		sl_uint8 _attributes[4];
+		sl_uint8 _fileNameLength[4];
+		sl_uint8 _eaSize[4];
+		sl_uint8 _shortNameLength;
+		sl_uint8 _reserved;
+		sl_uint8 _shortName[24];
+		sl_uint8 _reserved2[2];
+		sl_uint8 _fileId[8];
+
+	};
+
+	class SLIB_EXPORT Smb2EmptyMessage : public Smb2Message
+	{
+	private:
+		sl_uint8 _padding[2];
+	};
+
 }
 
 #endif

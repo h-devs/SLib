@@ -28,10 +28,102 @@
 
 #include "../core/thread_pool.h"
 #include "../core/hash_map.h"
-#include "../core/shared.h"
+#include "../core/file.h"
 
 namespace slib
 {
+
+	class SLIB_EXPORT SmbFileInfo
+	{
+	public:
+		FileAttributes attributes;
+		sl_uint64 size;
+		Time createdAt;
+		Time modifiedAt;
+
+	public:
+		SmbFileInfo() noexcept;
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SmbFileInfo)
+
+	};
+
+	class SLIB_EXPORT SmbCreateFileParam
+	{
+	public:
+		StringView16 path;
+
+	public:
+		SmbCreateFileParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SmbCreateFileParam)
+
+	};
+
+	class SLIB_EXPORT SmbServerShare : public Object
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		SmbServerShare();
+
+		~SmbServerShare();
+
+	public:
+		virtual Ref<Referable> createFile(const SmbCreateFileParam& param) = 0;
+
+		virtual sl_bool getFileInfo(Referable* file, SmbFileInfo& _out) = 0;
+
+		virtual HashMap<String16, SmbFileInfo> getFiles(Referable* file) = 0;
+
+	public:
+		String getComment();
+
+		void setComment(const String& comment);
+
+	protected:
+		String m_comment;
+
+	};
+
+	class SmbServerFileContext : public Referable
+	{
+	public:
+		String path;
+		File file;
+
+	public:
+		SmbServerFileContext(String&& path, File&& file);
+
+		SmbServerFileContext(String&& path);
+		
+		~SmbServerFileContext();
+
+	};
+
+	class SLIB_EXPORT SmbServerFileShare : public SmbServerShare
+	{
+	public:
+		SmbServerFileShare(const String& rootPath);
+
+		SmbServerFileShare(const String& rootPath, const String& comment);
+
+		~SmbServerFileShare();
+
+	public:
+		Ref<Referable> createFile(const SmbCreateFileParam& param) override;
+
+		sl_bool getFileInfo(Referable* context, SmbFileInfo& _out) override;
+
+		HashMap<String16, SmbFileInfo> getFiles(Referable* context) override;
+
+	public:
+		String getFilePath(const StringView16& path) noexcept;
+
+	protected:
+		String m_rootPath;
+
+	};
 
 	class SLIB_EXPORT SmbServerParam
 	{
@@ -40,10 +132,14 @@ namespace slib
 		sl_uint16 port;
 
 		String targetName;
+		String domainName;
+		String targetDescription;
 		String computerName_NetBIOS;
 		String domainName_NetBIOS;
 		String computerName_DNS;
 		String domainName_DNS;
+
+		HashMap< String16, Ref<SmbServerShare>, HashIgnoreCase<String16>, CompareIgnoreCase<String16> > shares;
 
 		sl_uint32 maxThreadsCount;
 		sl_bool flagStopWindowsService;
@@ -55,10 +151,20 @@ namespace slib
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SmbServerParam)
 
+	public:
+		void initNames();
+
+		void addShare(const String& name, const Ref<SmbServerShare>& share);
+
+		void addFileShare(const String& name, const String& rootPath);
+
+		void addFileShare(const String& name, const String& rootPath, const String& comment);
+
 	};
 
 	class SmbHeader;
 	class Smb2Header;
+	class SmbServerSession;
 
 	class SLIB_EXPORT SmbServer : public Object
 	{
@@ -102,6 +208,7 @@ namespace slib
 		public:
 			sl_uint8* data;
 			sl_uint32 size;
+			SmbServerSession* session;
 		};
 
 		class SmbParam : public IOParam
@@ -128,6 +235,8 @@ namespace slib
 
 		sl_bool _onProcessTreeConnect(Smb2Param& param);
 
+		sl_bool _onProcessTreeDisconnect(Smb2Param& param);
+
 		sl_bool _onProcessCreate(Smb2Param& param);
 
 		sl_bool _onProcessClose(Smb2Param& param);
@@ -138,28 +247,13 @@ namespace slib
 
 		sl_bool _onProcessIoctl(Smb2Param& param);
 
+		sl_bool _onProcessFind(Smb2Param& param);
+
+		sl_bool _onProcessNotify(Smb2Param& param);
+
 		sl_bool _onProcessGetInfo(Smb2Param& param);
 
-	protected:
-		class FileContext
-		{
-		public:
-			sl_uint64 fileId;
-			String16 tree;
-			String16 fileName;
-
-		public:
-			FileContext();
-			~FileContext();
-		};
-
-		sl_uint32 _registerTree(const String16& path) noexcept;
-
-		String16 _getTree(sl_uint32 treeId) noexcept;
-
-		Shared<FileContext> _createFile(const String16& tree, const String16& fileName) noexcept;
-
-		Shared<FileContext> _getFile(sl_uint8* guid) noexcept;
+		Memory _processRpc(sl_uint64 fileId, sl_uint8* packet, sl_uint32 size);
 
 	protected:
 		sl_bool m_flagReleased;
@@ -176,15 +270,36 @@ namespace slib
 		sl_uint8 m_hashSalt[32];
 		sl_int64 m_lastSessionId;
 
-		CHashMap<sl_uint32, String16> m_trees;
-		CHashMap<String16, sl_uint32> m_treeIds;
-		sl_uint32 m_lastTreeId;
-		Mutex m_mutexTrees;
+		sl_int32 m_lastTreeId;
+		sl_int64 m_lastFileId;
 
-		CHashMap< sl_uint64, Shared<FileContext> > m_files;
-		CHashMap< String16, Shared<FileContext> > m_filesByPath;
-		sl_uint64 m_lastFileId;
-		Mutex m_mutexFiles;
+		friend class SmbServerSession;
+
+	};
+
+	class SmbServerSession
+	{
+	public:
+		SmbServer * server;
+		CHashMap< sl_uint32, Ref<SmbServerShare> > trees;
+		CHashMap< String16, sl_uint32, HashIgnoreCase<String16>, CompareIgnoreCase<String16> > treeIds;
+		CHashMap< sl_uint64, Ref<Referable> > files;
+
+	public:
+		SmbServerSession();
+
+		~SmbServerSession();
+
+	public:
+		sl_uint32 connectTree(const String16& name) noexcept;
+
+		SmbServerShare* getTree(sl_uint32 treeId) noexcept;
+
+		sl_uint64 registerFile(Referable* context) noexcept;
+
+		void unregisterFile(sl_uint64 fileId) noexcept;
+
+		Ref<Referable> getFile(sl_uint64 fileId) noexcept;
 
 	};
 

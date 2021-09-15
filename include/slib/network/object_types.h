@@ -54,7 +54,8 @@ namespace slib
 			Tap,
 			Pcap,
 			IPC,
-			SmbServer
+			SmbServer,
+			SmbServerShare
 		};
 
 	}

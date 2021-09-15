@@ -38,9 +38,16 @@ namespace slib
 	enum class SmbStatus : sl_uint32
 	{
 		Success = 0,
-		Unsuccessful = 0xC0000001,
+		Pending = 0x103,
+		NoMoreFiles = 0x80000006,
+		Unsuccessful = 0xc0000001,
+		NotImplemented = 0xc0000002,
+		InvalidInfoClass = 0xc0000003,
 		MoreProcessingRequired = 0xc0000016,
-		LoginFailure = 0xc000006d
+		ObjectNameNotFound = 0xc0000034,
+		LoginFailure = 0xc000006d,
+		BadNetworkName = 0xc00000cc,
+		NotFound = 0xc0000225
 	};
 
 	enum class SmbDisposition
@@ -78,7 +85,10 @@ namespace slib
 		Synchronize = 0x00100000,
 		SystemSecurity = 0x01000000,
 		MaximumAllowed = 0x02000000,
-		GenericAll = 0x10000000
+		GenericAll = 0x10000000,
+		GenericExecute = 0x20000000,
+		GenericWrite = 0x40000000,
+		GenericRead = 0x80000000
 	})
 
 	SLIB_DEFINE_FLAGS(SmbShareAccess, {
@@ -128,7 +138,7 @@ namespace slib
 		Ioctl = 11,
 		Cancel = 12,
 		KeepAlive = 13,
-		QueryDirectory = 14,
+		Find = 14,
 		Notify = 15,
 		GetInfo = 16,
 		SetInfo = 17,
@@ -172,6 +182,16 @@ namespace slib
 		FileStandardInfo = 5
 	};
 
+	enum class Smb2FindLevel
+	{
+		DirectoryInfo = 0x01,
+		FullDirectoryInfo = 0x02,
+		BothDirectoryInfo = 0x03,
+		NameInfo = 0x0c,
+		FindIdBothDirectoryInfo = 0x25,
+		FindidFullDirectoryInfo = 0x26
+	};
+
 	SLIB_DEFINE_FLAGS(Smb2SessionFlags, {
 		Guest = 0x0001,
 		Null = 0x0002,
@@ -212,6 +232,13 @@ namespace slib
 		Scaleout = 0x20,
 		Cluster = 0x40,
 		Asymmetric = 0x80
+	})
+
+	SLIB_DEFINE_FLAGS(Smb2FindFlags, {
+		Restart = 0x01,
+		Single = 0x02,
+		Index = 0x04,
+		Reopen = 0x10
 	})
 
 }
