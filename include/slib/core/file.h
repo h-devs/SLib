@@ -406,6 +406,8 @@ namespace slib
 
 		static FileAttributes _fixAttributes(const FileAttributes& attrs) noexcept;
 
+		FileAttributes _getAttributes() const noexcept;
+
 		static FileAttributes _getAttributes(const StringParam& filePath) noexcept;
 
 		static sl_bool _setAttributes(const StringParam& filePath, const FileAttributes& attrs) noexcept;

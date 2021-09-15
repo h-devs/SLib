@@ -571,7 +571,7 @@ namespace slib
 		}
 	}
 
-	FileAttributes File::getAttributes() const noexcept
+	FileAttributes File::_getAttributes() const noexcept
 	{
 		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {

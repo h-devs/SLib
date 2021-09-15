@@ -165,12 +165,31 @@ namespace slib
 		return 0;
 	}
 
+	FileAttributes File::getAttributes() const noexcept
+	{
+		FileAttributes attrs = _getAttributes();
+		if (attrs & FileAttributes::NotExist) {
+			return attrs;
+		}
+		if (!(attrs & FileAttributes::AllAccess)) {
+			attrs |= FileAttributes::NoAccess;
+		} else {
+			if (!(attrs & FileAttributes::WriteByAnyone)) {
+				attrs |= FileAttributes::ReadOnly;
+			}
+		}
+		return attrs;
+	}
+
 	FileAttributes File::getAttributes(const StringParam& filePath) noexcept
 	{
 		if (filePath.isEmpty()) {
 			return FileAttributes::NotExist;
 		}
 		FileAttributes attrs = _getAttributes(filePath);
+		if (attrs & FileAttributes::NotExist) {
+			return attrs;
+		}
 		if (!(attrs & FileAttributes::AllAccess)) {
 			attrs |= FileAttributes::NoAccess;
 		} else {
