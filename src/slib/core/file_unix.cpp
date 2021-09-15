@@ -95,9 +95,6 @@ namespace slib
 				if (S_ISFIFO(st.st_mode)) {
 					ret |= FileAttributes::FIFO;
 				}
-				if (filePath.startsWith('.')) {
-					ret |= FileAttributes::Hidden;
-				}
 				if (!ret) {
 					ret = FileAttributes::Normal;
 				}
@@ -667,7 +664,11 @@ namespace slib
 		}
 		struct stat st;
 		if (!(stat(filePath.getData(), &st))) {
-			return GetAttributes(st);
+			FileAttributes ret = GetAttributes(st);
+			if (filePath.startsWith('.')) {
+				ret |= FileAttributes::Hidden;
+			}
+			return ret;
 		} else {
 			return FileAttributes::NotExist;
 		}
