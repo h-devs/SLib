@@ -54,6 +54,9 @@ namespace slib
 
 		MemoryData(Memory&& memory) noexcept;
 
+		template <sl_size N>
+		MemoryData(const char(&s)[N]) noexcept: data((void*)s), size(N-1) {}
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MemoryData)
 
 	public:

@@ -74,6 +74,8 @@ namespace slib
 	
 		Memory merge() const;
 
+		MemoryData* getLastData() const;
+
 	protected:
 		LinkedQueue<MemoryData> m_queue;
 		sl_size m_size;

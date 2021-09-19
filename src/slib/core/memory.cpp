@@ -1117,6 +1117,15 @@ namespace slib
 		return ret;
 	}
 
+	MemoryData* MemoryBuffer::getLastData() const
+	{
+		Link<MemoryData>* link = m_queue.getBack();
+		if (link) {
+			return &(link->value);
+		}
+		return sl_null;
+	}
+
 
 	MemoryQueue::MemoryQueue()
 	{
