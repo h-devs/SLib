@@ -48,6 +48,23 @@ namespace slib
 
 	};
 
+	class SmbServerFileContext : public Referable
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		SmbServerFileContext();
+
+		~SmbServerFileContext();
+
+	protected:
+		// internal members
+		sl_bool m_flagReturnedList;
+
+		friend class SmbServer;
+
+	};
+
 	class SLIB_EXPORT SmbCreateFileParam
 	{
 	public:
@@ -70,11 +87,13 @@ namespace slib
 		~SmbServerShare();
 
 	public:
-		virtual Ref<Referable> createFile(const SmbCreateFileParam& param) = 0;
+		virtual Ref<SmbServerFileContext> createFile(const SmbCreateFileParam& param) = 0;
 
-		virtual sl_bool getFileInfo(Referable* file, SmbFileInfo& _out) = 0;
+		virtual sl_uint32 readFile(SmbServerFileContext* file, sl_uint64 offset, void* buf, sl_uint32 size) = 0;
 
-		virtual HashMap<String16, SmbFileInfo> getFiles(Referable* file) = 0;
+		virtual sl_bool getFileInfo(SmbServerFileContext* file, SmbFileInfo& _out) = 0;
+
+		virtual HashMap<String16, SmbFileInfo> getFiles(SmbServerFileContext* file) = 0;
 
 	public:
 		String getComment();
@@ -83,21 +102,6 @@ namespace slib
 
 	protected:
 		String m_comment;
-
-	};
-
-	class SmbServerFileContext : public Referable
-	{
-	public:
-		String path;
-		File file;
-
-	public:
-		SmbServerFileContext(String&& path, File&& file);
-
-		SmbServerFileContext(String&& path);
-		
-		~SmbServerFileContext();
 
 	};
 
@@ -111,11 +115,29 @@ namespace slib
 		~SmbServerFileShare();
 
 	public:
-		Ref<Referable> createFile(const SmbCreateFileParam& param) override;
+		class FileContext : public SmbServerFileContext
+		{
+		public:
+			String path;
+			File file;
 
-		sl_bool getFileInfo(Referable* context, SmbFileInfo& _out) override;
+		public:
+			FileContext(String&& path, File&& file);
 
-		HashMap<String16, SmbFileInfo> getFiles(Referable* context) override;
+			FileContext(String&& path);
+
+			~FileContext();
+
+		};
+
+	public:
+		Ref<SmbServerFileContext> createFile(const SmbCreateFileParam& param) override;
+
+		sl_uint32 readFile(SmbServerFileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
+
+		sl_bool getFileInfo(SmbServerFileContext* context, SmbFileInfo& _out) override;
+
+		HashMap<String16, SmbFileInfo> getFiles(SmbServerFileContext* context) override;
 
 	public:
 		String getFilePath(const StringView16& path) noexcept;
@@ -202,7 +224,6 @@ namespace slib
 			SocketEvent* event;
 		};
 
-	protected:
 		class IOParam : public Connection
 		{
 		public:
@@ -223,6 +244,7 @@ namespace slib
 			Smb2Header* smb;
 		};
 
+	protected:
 		sl_bool _onProcessMessage(IOParam& param);
 
 		sl_bool _onProcessSMB(SmbParam& param);
@@ -283,7 +305,7 @@ namespace slib
 		SmbServer * server;
 		CHashMap< sl_uint32, Ref<SmbServerShare> > trees;
 		CHashMap< String16, sl_uint32, HashIgnoreCase<String16>, CompareIgnoreCase<String16> > treeIds;
-		CHashMap< sl_uint64, Ref<Referable> > files;
+		CHashMap< sl_uint64, Ref<SmbServerFileContext> > files;
 
 	public:
 		SmbServerSession();
@@ -295,11 +317,11 @@ namespace slib
 
 		SmbServerShare* getTree(sl_uint32 treeId) noexcept;
 
-		sl_uint64 registerFile(Referable* context) noexcept;
+		sl_uint64 registerFile(SmbServerFileContext* context) noexcept;
 
 		void unregisterFile(sl_uint64 fileId) noexcept;
 
-		Ref<Referable> getFile(sl_uint64 fileId) noexcept;
+		Ref<SmbServerFileContext> getFile(sl_uint64 fileId) noexcept;
 
 	};
 

@@ -80,7 +80,7 @@ namespace slib
 		WriteAttributes = 0x00000100,
 		Delete = 0x00010000,
 		ReadControl = 0x00020000,
-		ReadDAC = 0x00040000, // Discretionary access control
+		WriteDAC = 0x00040000, // Discretionary access control
 		WriteOwner = 0x00080000,
 		Synchronize = 0x00100000,
 		SystemSecurity = 0x01000000,
@@ -179,7 +179,8 @@ namespace slib
 
 	enum class Smb2GetInfoLevel
 	{
-		FileStandardInfo = 5
+		FileStandardInfo = 5,
+		FileNetworkOpenInfo = 0x22
 	};
 
 	enum class Smb2FindLevel

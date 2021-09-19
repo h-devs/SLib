@@ -184,6 +184,7 @@ namespace slib
 	{
 		NetWkstaGetInfo = 0,
 		NetShareEnumAll = 15,
+		NetShareGetInfo = 16,
 		NetSrvGetInfo = 21
 	};
 
