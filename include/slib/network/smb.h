@@ -53,11 +53,23 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 
 	public:
-		SmbServerFileContext();
+		SmbServerFileContext(const String16& path);
+
+		SmbServerFileContext(String16&& path);
 
 		~SmbServerFileContext();
 
+	public:
+		const String16& getPath();
+
+		SmbFileInfo& getInfo();
+
+		void setInfo(const SmbFileInfo& info);
+
 	protected:
+		String16 m_path;
+		SmbFileInfo m_info;
+
 		// internal members
 		sl_bool m_flagReturnedList;
 
@@ -89,11 +101,13 @@ namespace slib
 	public:
 		virtual Ref<SmbServerFileContext> createFile(const SmbCreateFileParam& param) = 0;
 
-		virtual sl_uint32 readFile(SmbServerFileContext* file, sl_uint64 offset, void* buf, sl_uint32 size) = 0;
+		virtual sl_int32 readFile(SmbServerFileContext* file, sl_uint64 offset, void* buf, sl_uint32 size) = 0;
 
 		virtual sl_bool getFileInfo(SmbServerFileContext* file, SmbFileInfo& _out) = 0;
 
 		virtual HashMap<String16, SmbFileInfo> getFiles(SmbServerFileContext* file) = 0;
+
+		virtual sl_uint64 getFileUniqueId(const String16& path);
 
 	public:
 		String getComment();
@@ -102,6 +116,8 @@ namespace slib
 
 	protected:
 		String m_comment;
+		CHashMap< String16, sl_uint64, HashIgnoreCase<String16>, CompareIgnoreCase<String16> > m_fileUniqueIds;
+		sl_uint64 m_lastFileUniqueId;
 
 	};
 
@@ -118,13 +134,13 @@ namespace slib
 		class FileContext : public SmbServerFileContext
 		{
 		public:
-			String path;
 			File file;
+			String absolutePath;
 
 		public:
-			FileContext(String&& path, File&& file);
+			FileContext(String16&& path, String&& absolutePath, File&& file);
 
-			FileContext(String&& path);
+			FileContext(String16&& path, String&& absolutePath);
 
 			~FileContext();
 
@@ -133,14 +149,14 @@ namespace slib
 	public:
 		Ref<SmbServerFileContext> createFile(const SmbCreateFileParam& param) override;
 
-		sl_uint32 readFile(SmbServerFileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
+		sl_int32 readFile(SmbServerFileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
 
 		sl_bool getFileInfo(SmbServerFileContext* context, SmbFileInfo& _out) override;
 
 		HashMap<String16, SmbFileInfo> getFiles(SmbServerFileContext* context) override;
 
 	public:
-		String getFilePath(const StringView16& path) noexcept;
+		String getAbsolutePath(const StringView16& path) noexcept;
 
 	protected:
 		String m_rootPath;
@@ -242,6 +258,8 @@ namespace slib
 		{
 		public:
 			Smb2Header* smb;
+			void* chain;
+			sl_uint64 lastCreatedFileId;
 		};
 
 	protected:
@@ -294,6 +312,7 @@ namespace slib
 
 		sl_int32 m_lastTreeId;
 		sl_int64 m_lastFileId;
+		Time m_timeStarted;
 
 		friend class SmbServerSession;
 

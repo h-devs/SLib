@@ -1061,6 +1061,27 @@ namespace slib
 
 	};
 
+	// Query On Disk ID
+	class SLIB_EXPORT Smb2ExtraInfoItem_QFidResponse
+	{
+	public:
+		// 32 Bytes
+		const sl_uint8* getOpaqueFileId() const noexcept
+		{
+			return _opaqueFileId;
+		}
+
+		// 32 Bytes
+		sl_uint8* getOpaqueFileId() noexcept
+		{
+			return _opaqueFileId;
+		}
+
+	public:
+		sl_uint8 _opaqueFileId[32];
+
+	};
+
 	class SLIB_EXPORT Smb2GetInfoRequestMessage : public Smb2Message
 	{
 	public:
@@ -1251,10 +1272,174 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT Smb2FileAllInfo
+	{
+	public:
+		Time getCreationTime() const noexcept
+		{
+			return Time::fromWindowsFileTime(MIO::readUint64LE(_createTime));
+		}
+
+		void setCreationTime(const Time& time) noexcept
+		{
+			MIO::writeUint64LE(_createTime, time.toWindowsFileTime());
+		}
+
+		Time getLastAccessTime() const noexcept
+		{
+			return Time::fromWindowsFileTime(MIO::readUint64LE(_lastAccessTime));
+		}
+
+		void setLastAccessTime(const Time& time) noexcept
+		{
+			MIO::writeUint64LE(_lastAccessTime, time.toWindowsFileTime());
+		}
+
+		Time getLastWriteTime() const noexcept
+		{
+			return Time::fromWindowsFileTime(MIO::readUint64LE(_lastWriteTime));
+		}
+
+		void setLastWriteTime(const Time& time) noexcept
+		{
+			MIO::writeUint64LE(_lastWriteTime, time.toWindowsFileTime());
+		}
+
+		Time getLastChangeTime() const noexcept
+		{
+			return Time::fromWindowsFileTime(MIO::readUint64LE(_lastChangeTime));
+		}
+
+		void setLastChangeTime(const Time& time) noexcept
+		{
+			MIO::writeUint64LE(_lastChangeTime, time.toWindowsFileTime());
+		}
+
+		FileAttributes getAttributes() const noexcept
+		{
+			return MIO::readUint32LE(_attributes);
+		}
+
+		void setAttributes(const FileAttributes& attrs) noexcept
+		{
+			MIO::writeUint32LE(_attributes, (sl_uint32)(attrs.value));
+		}
+
+		sl_uint64 getAllocationSize() const noexcept
+		{
+			return MIO::readUint64LE(_allocationSize);
+		}
+
+		void setAllocationSize(sl_uint64 value) noexcept
+		{
+			MIO::writeUint64LE(_allocationSize, value);
+		}
+
+		sl_uint64 getEndOfFile() const noexcept
+		{
+			return MIO::readUint64LE(_endOfFile);
+		}
+
+		void setEndOfFile(sl_uint64 value) noexcept
+		{
+			MIO::writeUint64LE(_endOfFile, value);
+		}
+
+		sl_uint32 getLinkCount() const noexcept
+		{
+			return MIO::readUint32LE(_linkCount);
+		}
+
+		void setLinkCount(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_linkCount, value);
+		}
+
+		sl_bool isDeletePending() const noexcept
+		{
+			return _flagDeletePending != 0;
+		}
+
+		void setDeletePending(sl_bool flag) noexcept
+		{
+			_flagDeletePending = flag ? 1 : 0;
+		}
+
+		sl_bool isDirectory() const noexcept
+		{
+			return _flagDirectory != 0;
+		}
+
+		void setDirectory(sl_bool flag) noexcept
+		{
+			_flagDirectory = flag ? 1 : 0;
+		}
+
+		sl_uint64 getFileId(sl_uint64 fileId) const noexcept
+		{
+			return MIO::readUint64LE(_fileId);
+		}
+
+		void setFileId(sl_uint64 value) noexcept
+		{
+			MIO::writeUint64LE(_fileId, value);
+		}
+
+		sl_uint32 getExtendedAttributesSize() const noexcept
+		{
+			return MIO::readUint32LE(_eaSize);
+		}
+
+		void setExtendedAttributesSize(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_eaSize, value);
+		}
+
+		SmbAccessMask getAccessMask() const noexcept
+		{
+			return (SmbAccessMask)(MIO::readUint32LE(_accessMask));
+		}
+
+		void setAccessMask(SmbAccessMask value) noexcept
+		{
+			MIO::writeUint32LE(_accessMask, (sl_uint32)value);
+		}
+
+		sl_uint32 getFileNameLength() const noexcept
+		{
+			return MIO::readUint32LE(_fileNameLength);
+		}
+
+		void setFileNameLength(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_fileNameLength, value);
+		}
+
+	private:
+		sl_uint8 _createTime[8];
+		sl_uint8 _lastAccessTime[8];
+		sl_uint8 _lastWriteTime[8];
+		sl_uint8 _lastChangeTime[8];
+		sl_uint8 _attributes[4];
+		sl_uint8 _reserved[4];
+		sl_uint8 _allocationSize[8];
+		sl_uint8 _endOfFile[8];
+		sl_uint8 _linkCount[4];
+		sl_uint8 _flagDeletePending;
+		sl_uint8 _flagDirectory;
+		sl_uint8 _reserved2[2];
+		sl_uint8 _fileId[8];
+		sl_uint8 _eaSize[4];
+		sl_uint8 _accessMask[4];
+		sl_uint8 _positionInfo[8];
+		sl_uint8 _modeInfo[4];
+		sl_uint8 _alignInfo[4];
+		sl_uint8 _fileNameLength[4];
+	};
+
 	class SLIB_EXPORT Smb2FileNetworkOpenInfo
 	{
 	public:
-
 		Time getCreationTime() const noexcept
 		{
 			return Time::fromWindowsFileTime(MIO::readUint64LE(_createTime));
@@ -1335,6 +1520,95 @@ namespace slib
 		sl_uint8 _attributes[4];
 		sl_uint8 _reserved[4];
 
+	};
+
+	class SLIB_EXPORT Smb2FileFsVolumeInformation
+	{
+	public:
+		Time getCreationTime() const noexcept
+		{
+			return Time::fromWindowsFileTime(MIO::readUint64LE(_createTime));
+		}
+
+		void setCreationTime(const Time& time) noexcept
+		{
+			MIO::writeUint64LE(_createTime, time.toWindowsFileTime());
+		}
+
+		sl_uint32 getSerialNumber() const noexcept
+		{
+			return MIO::readUint32LE(_serialNumber);
+		}
+
+		void setSerialNumber(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_serialNumber, value);
+		}
+
+		sl_uint32 getLabelLength() const noexcept
+		{
+			return MIO::readUint32LE(_labelLength);
+		}
+
+		void setLabelLength(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_labelLength, value);
+		}
+
+	private:
+		sl_uint8 _createTime[8];
+		sl_uint8 _serialNumber[4];
+		sl_uint8 _labelLength[4];
+		sl_uint8 _reserved[2];
+
+	};
+
+	class SLIB_EXPORT Smb2FileFsAttributeInformation
+	{
+	public:
+		SmbFileSystemAttributes getAttributes() const noexcept
+		{
+			return MIO::readUint32LE(_attrs);
+		}
+
+		void setAttributes(const SmbFileSystemAttributes& attrs) noexcept
+		{
+			MIO::writeUint32LE(_attrs, (sl_uint32)(attrs.value));
+		}
+
+		sl_uint32 getMaxNameLength() const noexcept
+		{
+			return MIO::readUint32LE(_maxNameLength);
+		}
+
+		void setMaxNameLength(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_maxNameLength, value);
+		}
+
+		sl_uint32 getLabelLength() const noexcept
+		{
+			return MIO::readUint32LE(_labelLength);
+		}
+
+		void setLabelLength(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_labelLength, value);
+		}
+
+	private:
+		sl_uint8 _attrs[4];
+		sl_uint8 _maxNameLength[4];
+		sl_uint8 _labelLength[4];
+
+	};
+
+	struct SLIB_EXPORT Smb2FileObjectIdBuffer
+	{
+		sl_uint8 objectId[16];
+		sl_uint8 birthVolumeId[16];
+		sl_uint8 birthObjectId[16];
+		sl_uint8 domainId[16];
 	};
 
 	class SLIB_EXPORT Smb2ReadRequestMessage : public Smb2Message
@@ -1663,6 +1937,7 @@ namespace slib
 
 	private:
 		sl_uint8 _flags[2];
+		sl_uint8 _reserved[4];
 		sl_uint8 _guid[16];
 
 	};

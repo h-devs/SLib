@@ -43,6 +43,7 @@ namespace slib
 		Unsuccessful = 0xc0000001,
 		NotImplemented = 0xc0000002,
 		InvalidInfoClass = 0xc0000003,
+		EndOfFile = 0xc0000011,
 		MoreProcessingRequired = 0xc0000016,
 		ObjectNameNotFound = 0xc0000034,
 		LoginFailure = 0xc000006d,
@@ -121,6 +122,29 @@ namespace slib
 		OpenForFreeSpaceQuery = 0x00800000 // ignore should be zero
 	})
 
+	SLIB_DEFINE_FLAGS(SmbFileSystemAttributes, {
+		CaseSensitiveSearch = 0x00000001,
+		CasePreservedNames = 0x00000002,
+		UnicodeNames = 0x00000004,
+		PersistantAcls = 0x00000008,
+		CompressedFiles = 0x00000010,
+		Quotas = 0x00000020,
+		SparseFiles = 0x00000040,
+		ReparsePoints = 0x00000080,
+		RemoteStorage = 0x00000100,
+		LfnSupport = 0x00004000,
+		CompressedVolume = 0x00008000,
+		ObjectIds = 0x00010000,
+		Encryption = 0x00020000,
+		NamedStreams = 0x00040000,
+		ReadOnly = 0x00080000,
+		SequentialWriteOnce = 0x00100000,
+		Transations = 0x00200000,
+		HardLinks = 0x00400000,
+		IntegrityStreams = 0x04000000,
+		BlockRefCounting = 0x08000000,
+		SparseVDL = 0x10000000
+	})
 
 	enum class Smb2Command
 	{
@@ -179,7 +203,11 @@ namespace slib
 
 	enum class Smb2GetInfoLevel
 	{
-		FileStandardInfo = 5,
+		FileFsVolumeInformation = 0x01,
+		FileFsAttributeInformation = 0x05,
+		FileFsObjectIdInformation = 0x08,
+		FileStandardInfo = 0x05,
+		FileAllInfo = 0x12,
 		FileNetworkOpenInfo = 0x22
 	};
 

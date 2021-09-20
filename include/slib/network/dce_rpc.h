@@ -269,6 +269,57 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT DceRpcBindHeader
+	{
+	public:
+		sl_uint16 getMaxTransimitFragment() const noexcept
+		{
+			return MIO::readUint16LE(_maxXmitFrag);
+		}
+
+		void setMaxTransimitFragment(sl_uint16 value) noexcept
+		{
+			MIO::writeUint16LE(_maxXmitFrag, value);
+		}
+
+		sl_uint16 getMaxReceiveFragment() const noexcept
+		{
+			return MIO::readUint16LE(_maxRecvFrag);
+		}
+
+		void setMaxReceiveFragment(sl_uint16 value) noexcept
+		{
+			MIO::writeUint16LE(_maxRecvFrag, value);
+		}
+
+		sl_uint32 getAssociateGroup() const noexcept
+		{
+			return MIO::readUint32LE(_associateGroup);
+		}
+
+		void setAssociateGroup(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_associateGroup, value);
+		}
+
+		sl_uint32 getContextCount() const noexcept
+		{
+			return MIO::readUint32LE(_contextCount);
+		}
+
+		void setContextCount(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_contextCount, value);
+		}
+
+	private:
+		sl_uint8 _maxXmitFrag[2];
+		sl_uint8 _maxRecvFrag[2];
+		sl_uint8 _associateGroup[4];
+		sl_uint8 _contextCount[4];
+
+	};
+
 	enum class SRVSVC_PlatformId
 	{
 		DOS = 300,
