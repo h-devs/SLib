@@ -45,6 +45,7 @@
 #define FILE_ID_SRVSVC 2
 
 #define FILE_ACCESS_MASK (SmbAccessMask::Read | SmbAccessMask::ReadAttributes | SmbAccessMask::ReadExtendedAttributes | SmbAccessMask::ReadControl | SmbAccessMask::Execute | SmbAccessMask::WriteDAC | SmbAccessMask::WriteOwner | SmbAccessMask::Synchronize)
+#define ALLOCATION_SIZE 0x200
 
 namespace slib
 {
@@ -75,7 +76,7 @@ namespace slib
 			static void WriteOpaqueFileUniqueId(sl_uint8* buf, sl_uint64 id)
 			{
 				MIO::writeUint64LE(buf, id);
-				buf[16] = 1;
+				buf[8] = 1;
 			}
 
 			static sl_uint32 ToNetworkAttrs(const FileAttributes& attrs)
@@ -85,6 +86,11 @@ namespace slib
 					n |= FileAttributes::Normal;
 				}
 				return n;
+			}
+
+			static sl_uint64 GetAllocationSize(sl_size size)
+			{
+				return ((size - 1) | (ALLOCATION_SIZE - 1)) + 1;
 			}
 
 			static StringView16 GetParentDirectoryPath(const StringView16& path) noexcept
@@ -387,7 +393,7 @@ namespace slib
 				header->setLastChangeTime(info.modifiedAt);
 				header->setLastWriteTime(info.modifiedAt);
 				header->setEndOfFile(info.size);
-				header->setAllocationSize(info.size);
+				header->setAllocationSize(GetAllocationSize(info.size));
 				header->setAttributes(ToNetworkAttrs(info.attributes));
 				header->setFileNameLength(lenFileName << 1);
 				
@@ -1220,7 +1226,7 @@ namespace slib
 								file->m_info = info;
 								response.setAttributes(ToNetworkAttrs(info.attributes));
 								if (!(info.attributes & FileAttributes::Directory)) {
-									response.setAllocationSize(info.size);
+									response.setAllocationSize(GetAllocationSize(info.size));
 									response.setEndOfFile(info.size);
 								}
 								response.setCreationTime(info.createdAt);
@@ -1294,7 +1300,7 @@ namespace slib
 					SmbFileInfo& info = file->getInfo();
 					response.setAttributes(ToNetworkAttrs(info.attributes));
 					if (!(info.attributes & FileAttributes::Directory)) {
-						response.setAllocationSize(info.size);
+						response.setAllocationSize(GetAllocationSize(info.size));
 						response.setEndOfFile(info.size);
 					}
 					response.setCreationTime(info.createdAt);
@@ -1457,7 +1463,7 @@ namespace slib
 				if (share) {
 					Ref<SmbServerFileContext> file = param.session->getFile(fileId);
 					if (file.isNotNull()) {
-						
+
 						Smb2FileObjectIdBuffer buf = { 0 };
 						sl_uint64 id = share->getFileUniqueId(file->getPath());
 						MIO::writeUint64LE(buf.objectId, id);
@@ -1467,6 +1473,8 @@ namespace slib
 					}
 				}
 			}
+		} else if (func == 0x001401d4) { // FSCTL_LMR_REQUEST_RESILIENCY
+			return WriteErrorResponse(param, SmbStatus::InvalidDeviceRequest);
 		} else {
 			return WriteErrorResponse(param, SmbStatus::NotFound);
 		}
@@ -1590,11 +1598,14 @@ namespace slib
 					if (fileId == FILE_ID_WKSSVC || fileId == FILE_ID_SRVSVC) {
 						Smb2FileStandardInfo info;
 						Base::zeroMemory(&info, sizeof(info));
-						info.setAllocationSize(4096);
+						info.setAllocationSize(ALLOCATION_SIZE);
 						info.setLinkCount(1);
 						data = Memory::create(&info, sizeof(info));
 					}
 				}
+			} else if (level == Smb2GetInfoLevel::FileExtendedAttributesInfo) {
+				sl_char8 zero[4] = { 0 };
+				data = Memory::create(zero, sizeof(zero));
 			} else if (level == Smb2GetInfoLevel::FileAllInfo) {
 				sl_uint64 fileId = GetFileId(param, request->getGuid());
 				if (fileId >= MAX_RESERVED_ID) {
@@ -1616,7 +1627,7 @@ namespace slib
 									info.setLastChangeTime(si.modifiedAt);
 									info.setLastWriteTime(si.modifiedAt);
 									info.setAttributes(ToNetworkAttrs(si.attributes));
-									info.setAllocationSize(si.size);
+									info.setAllocationSize(GetAllocationSize(si.size));
 									info.setEndOfFile(si.size);
 									info.setDirectory(si.attributes & FileAttributes::Directory);
 									info.setAccessMask(FILE_ACCESS_MASK);
@@ -1646,7 +1657,7 @@ namespace slib
 								info.setLastAccessTime(si.modifiedAt);
 								info.setLastChangeTime(si.modifiedAt);
 								info.setLastWriteTime(si.modifiedAt);
-								info.setAllocationSize(si.size);
+								info.setAllocationSize(GetAllocationSize(si.size));
 								info.setEndOfFile(si.size);
 								info.setAttributes(ToNetworkAttrs(si.attributes));
 								data = Memory::create(&info, sizeof(info));
@@ -1680,6 +1691,14 @@ namespace slib
 						}
 					}
 				}
+			} else if (level == Smb2GetInfoLevel::FileFsSizeInformation) {
+				Smb2FileFsSizeInformation info;
+				Base::zeroMemory(&info, sizeof(info));
+				info.setAllocationSize(SLIB_UINT64(1) << 40);
+				info.setBytesPerSector(512);
+				info.setSectorsPerUnit(1);
+				info.setFreeUnits(SLIB_UINT64(1) << 30);
+				data = Memory::create(&info, sizeof(info));
 			} else if (level == Smb2GetInfoLevel::FileFsAttributeInformation) {
 				sl_uint64 fileId = GetFileId(param, request->getGuid());
 				if (fileId >= MAX_RESERVED_ID) {
@@ -1692,11 +1711,16 @@ namespace slib
 								class FsAttributesInfo : public Smb2FileFsAttributeInformation
 								{
 								public:
-									sl_uint8 label[8];
+									sl_uint8 label[12];
 								} info;
 								Base::zeroMemory(&info, sizeof(info));
+								info.label[0] = 'N';
+								info.label[2] = 'T';
+								info.label[4] = 'F';
+								info.label[6] = 'S';
 								info.setAttributes(SmbFileSystemAttributes::ReadOnly | SmbFileSystemAttributes::UnicodeNames);
 								info.setMaxNameLength(255);
+								info.setLabelLength(8);
 								data = Memory::create(&info, sizeof(info));
 							}
 						}
@@ -1721,6 +1745,11 @@ namespace slib
 						}
 					}
 				}
+			} else if (level == Smb2GetInfoLevel::FileFsSectorSizeInformation) {
+				data = Memory::createStatic(
+					"\x00\x02\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00" \
+					"\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+				);
 			} else {
 				return WriteErrorResponse(param, SmbStatus::InvalidInfoClass);
 			}

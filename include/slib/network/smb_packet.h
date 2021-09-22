@@ -1563,6 +1563,57 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT Smb2FileFsSizeInformation
+	{
+	public:
+		sl_uint64 getAllocationSize() const noexcept
+		{
+			return MIO::readUint64LE(_allocationSize);
+		}
+
+		void setAllocationSize(sl_uint64 value) noexcept
+		{
+			MIO::writeUint64LE(_allocationSize, value);
+		}
+
+		sl_uint64 getFreeUnits() const noexcept
+		{
+			return MIO::readUint64LE(_freeUnits);
+		}
+
+		void setFreeUnits(sl_uint64 value) noexcept
+		{
+			MIO::writeUint64LE(_freeUnits, value);
+		}
+
+		sl_uint32 getSectorsPerUnit() const noexcept
+		{
+			return MIO::readUint32LE(_sectorsPerUnit);
+		}
+
+		void setSectorsPerUnit(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_sectorsPerUnit, value);
+		}
+
+		sl_uint32 getBytesPerSector() const noexcept
+		{
+			return MIO::readUint32LE(_bytesPerSector);
+		}
+
+		void setBytesPerSector(sl_uint32 value) noexcept
+		{
+			MIO::writeUint32LE(_bytesPerSector, value);
+		}
+
+	private:
+		sl_uint8 _allocationSize[8];
+		sl_uint8 _freeUnits[8];
+		sl_uint8 _sectorsPerUnit[4];
+		sl_uint8 _bytesPerSector[4];
+
+	};
+
 	class SLIB_EXPORT Smb2FileFsAttributeInformation
 	{
 	public:

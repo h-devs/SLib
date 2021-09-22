@@ -43,6 +43,7 @@ namespace slib
 		Unsuccessful = 0xc0000001,
 		NotImplemented = 0xc0000002,
 		InvalidInfoClass = 0xc0000003,
+		InvalidDeviceRequest = 0xc0000010,
 		EndOfFile = 0xc0000011,
 		MoreProcessingRequired = 0xc0000016,
 		ObjectNameNotFound = 0xc0000034,
@@ -204,9 +205,12 @@ namespace slib
 	enum class Smb2GetInfoLevel
 	{
 		FileFsVolumeInformation = 0x01,
+		FileFsSizeInformation = 0x03,
 		FileFsAttributeInformation = 0x05,
 		FileFsObjectIdInformation = 0x08,
+		FileFsSectorSizeInformation = 0x0b,
 		FileStandardInfo = 0x05,
+		FileExtendedAttributesInfo = 0x07,
 		FileAllInfo = 0x12,
 		FileNetworkOpenInfo = 0x22
 	};
