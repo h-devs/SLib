@@ -942,6 +942,8 @@ namespace slib
 			return _onProcessNotify(param);
 		case Smb2Command::GetInfo:
 			return _onProcessGetInfo(param);
+		default:
+			break;
 		}
 		return sl_false;
 	}
