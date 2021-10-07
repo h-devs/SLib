@@ -162,19 +162,12 @@ namespace slib
 		template <class READER, class SEEKABLE>
 		static Memory readAllBytes(READER* reader, SEEKABLE* seekable, sl_size maxSize)
 		{
-#if defined(SLIB_ARCH_IS_64BIT)
-			sl_uint64 size = seekable->getSize();
-#else
 			sl_uint64 _size = seekable->getSize();
-			if (_size > 0x7fffffff) {
-				_size = 0x7fffffff;
-			}
-			sl_size size = (sl_size)_size;
-#endif
+			sl_size size = SLIB_SIZE_FROM_UINT64(_size);
 			if (size > maxSize) {
 				size = maxSize;
 			}
-			if (size == 0) {
+			if (!size) {
 				return sl_null;
 			}
 			Memory ret = Memory::create(size);
@@ -192,17 +185,13 @@ namespace slib
 		template <class READER, class SEEKABLE>
 		static String readAllTextUTF8(READER* reader, SEEKABLE* seekable, sl_size maxSize)
 		{
-#if defined(SLIB_ARCH_IS_64BIT)
-			sl_uint64 size = seekable->getSize();
-#else
 			sl_uint64 _size = seekable->getSize();
-			if (_size > 0x7fffffff) {
-				return sl_null;
-			}
-			sl_size size = (sl_size)_size;
-#endif
+			sl_size size = SLIB_SIZE_FROM_UINT64(_size);
 			if (size > maxSize) {
 				size = maxSize;
+			}
+			if (!size) {
+				return sl_null;
 			}
 			if (seekable->seekToBegin()) {
 				return reader->readTextUTF8(size);
@@ -213,17 +202,13 @@ namespace slib
 		template <class READER, class SEEKABLE>
 		static String16 readAllTextUTF16(READER* reader, SEEKABLE* seekable, EndianType endian, sl_size maxSize)
 		{
-#if defined(SLIB_ARCH_IS_64BIT)
-			sl_uint64 size = seekable->getSize();
-#else
 			sl_uint64 _size = seekable->getSize();
-			if (_size > 0x7fffffff) {
-				return sl_null;
-			}
-			sl_size size = (sl_size)_size;
-#endif
+			sl_size size = SLIB_SIZE_FROM_UINT64(_size);
 			if (size > maxSize) {
 				size = maxSize;
+			}
+			if (!size) {
+				return sl_null;
 			}
 			if (seekable->seekToBegin()) {
 				return reader->readTextUTF16(size, endian);
@@ -234,17 +219,13 @@ namespace slib
 		template <class READER, class SEEKABLE>
 		static String readAllText(READER* reader, SEEKABLE* seekable, Charset* outCharset, sl_size maxSize)
 		{
-#if defined(SLIB_ARCH_IS_64BIT)
-			sl_uint64 size = seekable->getSize();
-#else
 			sl_uint64 _size = seekable->getSize();
-			if (_size > 0x7fffffff) {
-				return sl_null;
-			}
-			sl_size size = (sl_size)_size;
-#endif
+			sl_size size = SLIB_SIZE_FROM_UINT64(_size);
 			if (size > maxSize) {
 				size = maxSize;
+			}
+			if (!size) {
+				return sl_null;
 			}
 			if (seekable->seekToBegin()) {
 				return reader->readText(size, outCharset);
@@ -255,17 +236,13 @@ namespace slib
 		template <class READER, class SEEKABLE>
 		static String16 readAllText16(READER* reader, SEEKABLE* seekable, Charset* outCharset, sl_size maxSize)
 		{
-#if defined(SLIB_ARCH_IS_64BIT)
-			sl_uint64 size = seekable->getSize();
-#else
 			sl_uint64 _size = seekable->getSize();
-			if (_size > 0x7fffffff) {
-				return sl_null;
-			}
-			sl_size size = (sl_size)_size;
-#endif
+			sl_size size = SLIB_SIZE_FROM_UINT64(_size);
 			if (size > maxSize) {
 				size = maxSize;
+			}
+			if (!size) {
+				return sl_null;
 			}
 			if (seekable->seekToBegin()) {
 				return reader->readText16(size, outCharset);

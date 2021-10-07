@@ -95,7 +95,7 @@ namespace slib
 			public:
 				sl_bool dispatch(const Function<void()>& callback, sl_uint64 delayMillis) override
 				{
-					if (delayMillis > 0x7fffffff) {
+					if (delayMillis >> 31) {
 						delayMillis = 0x7fffffff;
 					}
 					UI::dispatchToUiThread(callback, (sl_uint32)delayMillis);

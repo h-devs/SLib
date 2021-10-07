@@ -816,6 +816,9 @@ namespace slib
 	sl_int32 Socket::send(const void* buf, sl_size size) const noexcept
 	{
 		if (isOpened()) {
+			if (size > 0x40000000) {
+				size = 0x40000000;
+			}
 #if	defined(SLIB_PLATFORM_IS_LINUX)
 			sl_int32 ret = (sl_int32)(::send(m_socket, (const char*)buf, (int)size, MSG_NOSIGNAL));
 #else
@@ -837,11 +840,7 @@ namespace slib
 		sl_size nSent = 0;
 		CurrentThread thread;
 		for (;;) {
-			sl_size n = size;
-			if (n > 0x40000000) {
-				n = 0x40000000;
-			}
-			sl_int32 m = send(buf, n);
+			sl_int32 m = send(buf, size);
 			if (m > 0) {
 				nSent += m;
 				if (size <= (sl_uint32)m) {
@@ -891,14 +890,16 @@ namespace slib
 		}
 	}
 
-	sl_int32 Socket::receive(void* buf, sl_size _size) const noexcept
+	sl_int32 Socket::receive(void* buf, sl_size size) const noexcept
 	{
 		if (isOpened()) {
-			int size = (int)_size;
+			if (size > 0x40000000) {
+				size = 0x40000000;
+			}
 			if (!size) {
 				return SLIB_IO_EMPTY_CONTENT;
 			}
-			sl_int32 ret = (sl_int32)(::recv(m_socket, (char*)buf, size, 0));
+			sl_int32 ret = (sl_int32)(::recv(m_socket, (char*)buf, (int)size, 0));
 			return _processResult(ret);
 		} else {
 			_setError(SocketError::Closed);
@@ -915,11 +916,7 @@ namespace slib
 		sl_size nReceived = 0;
 		CurrentThread thread;
 		for (;;) {
-			sl_size n = size;
-			if (n > 0x40000000) {
-				n = 0x40000000;
-			}
-			sl_int32 m = receive(buf, n);
+			sl_int32 m = receive(buf, size);
 			if (m > 0) {
 				nReceived += m;
 				if (size <= (sl_uint32)m) {

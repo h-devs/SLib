@@ -278,7 +278,7 @@ namespace slib
 				JUiThread::dispatch.call(sl_null);
 			}
 		} else {
-			if (delayMillis > 0x7fffffff) {
+			if (delayMillis >> 31) {
 				delayMillis = 0x7fffffff;
 			}
 			sl_reg ptr;

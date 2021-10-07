@@ -81,7 +81,7 @@ namespace slib
 				{
 					Ref<RenderView> view(m_view);
 					if (view.isNotNull()) {
-						if (delayMillis > 0x7fffffff) {
+						if (delayMillis >> 31) {
 							delayMillis = 0x7fffffff;
 						}
 						view->dispatchToDrawingThread(callback, (sl_uint32)delayMillis);

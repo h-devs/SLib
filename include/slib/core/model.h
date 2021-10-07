@@ -94,17 +94,8 @@ namespace slib
 
 		virtual List<T> toList() const
 		{
-#ifdef SLIB_ARCH_IS_64BIT
-			sl_size n = getCount();
-#else
 			sl_uint64 _n = getCount();
-			sl_size n;
-			if (_n > 0x40000000) {
-				n = 0x40000000;
-			} else {
-				n = (sl_size)_n;
-			}
-#endif
+			sl_size n = SLIB_SIZE_FROM_UINT64(_n);
 			if (n) {
 				List<T> ret;
 				T value;
