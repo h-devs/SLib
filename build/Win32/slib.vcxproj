@@ -194,7 +194,7 @@
     <ClCompile Include="..\..\src\slib\db\mongodb.cpp" />
     <ClCompile Include="..\..\src\slib\db\mysql.cpp" />
     <ClCompile Include="..\..\src\slib\db\mysql_data.cpp" />
-    <ClCompile Include="..\..\src\slib\db\object_storage.cpp" />
+    <ClCompile Include="..\..\src\slib\db\object_store.cpp" />
     <ClCompile Include="..\..\src\slib\db\postgresql.cpp" />
     <ClCompile Include="..\..\src\slib\db\rocksdb.cpp" />
     <ClCompile Include="..\..\src\slib\db\sqlite.cpp" />

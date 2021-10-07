@@ -99,7 +99,7 @@ namespace slib
 		}
 	}
 
-	class ObjectStorage;
+	class ObjectStore;
 
 	class SLIB_EXPORT Variant
 	{
@@ -290,8 +290,8 @@ namespace slib
 		template <class T>
 		Variant(const Atomic<T>& t) noexcept: Variant(T(t)) {}
 
-		Variant(const ObjectStorage& t) noexcept;
-		Variant(ObjectStorage&& t) noexcept;
+		Variant(const ObjectStore& t) noexcept;
+		Variant(ObjectStore&& t) noexcept;
 
 	public:
 		Variant& operator=(const Variant& other) noexcept;

@@ -288,7 +288,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/db/leveldb.cpp"
  "${SLIB_PATH}/src/slib/db/lmdb.cpp"
  "${SLIB_PATH}/src/slib/db/key_value_store.cpp"
- "${SLIB_PATH}/src/slib/db/object_storage.cpp"
+ "${SLIB_PATH}/src/slib/db/object_store.cpp"
  "${SLIB_PATH}/src/slib/db/redis.cpp"
  "${SLIB_PATH}/src/slib/db/sqlite.cpp"
 

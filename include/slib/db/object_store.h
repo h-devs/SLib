@@ -20,8 +20,8 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_DB_OBJECT_STORAGE
-#define CHECKHEADER_SLIB_DB_OBJECT_STORAGE
+#ifndef CHECKHEADER_SLIB_DB_OBJECT_STORE
+#define CHECKHEADER_SLIB_DB_OBJECT_STORE
 
 #include "definition.h"
 
@@ -30,55 +30,55 @@
 namespace slib
 {
 
-	class StorageDictionary;
-	class ObjectStorageManager;
+	class ObjectStoreDictionary;
+	class ObjectStoreManager;
 	class KeyValueStore;
 
-	class SLIB_EXPORT ObjectStorageParam
+	class SLIB_EXPORT ObjectStoreParam
 	{
 	public:
 		StringParam path;
 		Ref<KeyValueStore> store;
 
 	public:
-		ObjectStorageParam();
+		ObjectStoreParam();
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ObjectStorageParam)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ObjectStoreParam)
 
 	};
 
-	class SLIB_EXPORT ObjectStorage
+	class SLIB_EXPORT ObjectStore
 	{
 	public:
-		ObjectStorage() noexcept;
+		ObjectStore() noexcept;
 
-		ObjectStorage(sl_null_t) noexcept;
+		ObjectStore(sl_null_t) noexcept;
 
-		ObjectStorage(StorageDictionary* dictionary) noexcept;
-		ObjectStorage(const Ref<StorageDictionary>& dictionary) noexcept;
-		ObjectStorage(Ref<StorageDictionary>&& dictionary) noexcept;
+		ObjectStore(ObjectStoreDictionary* dictionary) noexcept;
+		ObjectStore(const Ref<ObjectStoreDictionary>& dictionary) noexcept;
+		ObjectStore(Ref<ObjectStoreDictionary>&& dictionary) noexcept;
 		template <class T>
-		ObjectStorage(T* dictionary) noexcept: ObjectStorage((StorageDictionary*)dictionary) {}
+		ObjectStore(T* dictionary) noexcept: ObjectStore((ObjectStoreDictionary*)dictionary) {}
 
 		template <class T>
-		ObjectStorage(T&& _value) noexcept: value(_value) {}
+		ObjectStore(T&& _value) noexcept: value(_value) {}
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ObjectStorage)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ObjectStore)
 
 	public:
-		Ref<ObjectStorageManager> getManager() const;
+		Ref<ObjectStoreManager> getManager() const;
 
 		sl_bool isDictionary() const noexcept;
 
-		Ref<StorageDictionary> getDictionary() const noexcept;
+		Ref<ObjectStoreDictionary> getDictionary() const noexcept;
 
-		ObjectStorage createDictionary(const StringParam& key) const;
+		ObjectStore createDictionary(const StringParam& key) const;
 
-		ObjectStorage getDictionary(const StringParam& key) const;
+		ObjectStore getDictionary(const StringParam& key) const;
 
 		sl_bool removeDictionary(const StringParam& key) const;
 
-		Iterator<String, ObjectStorage> getDictionaryIterator() const;
+		Iterator<String, ObjectStore> getDictionaryIterator() const;
 
 		Variant getItem(const StringParam& key) const;
 
@@ -89,14 +89,14 @@ namespace slib
 		PropertyIterator getItemIterator() const;
 
 	public:
-		static const ObjectStorage& undefined() noexcept
+		static const ObjectStore& undefined() noexcept
 		{
-			return *(reinterpret_cast<ObjectStorage const*>(&(priv::variant::g_undefined)));
+			return *(reinterpret_cast<ObjectStore const*>(&(priv::variant::g_undefined)));
 		}
 
-		static const ObjectStorage& null() noexcept
+		static const ObjectStore& null() noexcept
 		{
-			return *(reinterpret_cast<ObjectStorage const*>(&(priv::variant::g_null)));
+			return *(reinterpret_cast<ObjectStore const*>(&(priv::variant::g_null)));
 		}
 
 		sl_bool isUndefined() const noexcept;
@@ -212,45 +212,45 @@ namespace slib
 
 	public:
 		template <class T>
-		ObjectStorage& operator=(T&& t)
+		ObjectStore& operator=(T&& t)
 		{
 			value.~Variant();
 			new (&value) Variant(Forward<T>(t));
 			return *this;
 		}
 
-		ObjectStorage operator[](const StringParam& name) noexcept;
+		ObjectStore operator[](const StringParam& name) noexcept;
 		Variant operator[](sl_size index) noexcept;
 
 	public:
-		static ObjectStorage open(const ObjectStorageParam& param);
+		static ObjectStore open(const ObjectStoreParam& param);
 		
-		static ObjectStorage open(const StringParam& path);
+		static ObjectStore open(const StringParam& path);
 
 	public:
 		Variant value;
 
 	};
 
-	class SLIB_EXPORT StorageDictionary : public Referable
+	class SLIB_EXPORT ObjectStoreDictionary : public Referable
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		StorageDictionary();
+		ObjectStoreDictionary();
 
-		~StorageDictionary();
+		~ObjectStoreDictionary();
 
 	public:
-		virtual Ref<ObjectStorageManager> getManager() = 0;
+		virtual Ref<ObjectStoreManager> getManager() = 0;
 
-		virtual Ref<StorageDictionary> createDictionary(const StringParam& key) = 0;
+		virtual Ref<ObjectStoreDictionary> createDictionary(const StringParam& key) = 0;
 
-		virtual Ref<StorageDictionary> getDictionary(const StringParam& key) = 0;
+		virtual Ref<ObjectStoreDictionary> getDictionary(const StringParam& key) = 0;
 
 		virtual sl_bool removeDictionary(const StringParam& key) = 0;
 
-		virtual Iterator<String, ObjectStorage> getDictionaryIterator() = 0;
+		virtual Iterator<String, ObjectStore> getDictionaryIterator() = 0;
 
 		virtual Variant getItem(const StringParam& key) = 0;
 
@@ -262,19 +262,19 @@ namespace slib
 
 	};
 
-	class ObjectStorageManager : public Object
+	class ObjectStoreManager : public Object
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		ObjectStorageManager();
+		ObjectStoreManager();
 
-		~ObjectStorageManager();
+		~ObjectStoreManager();
 
 	public:
 		virtual Ref<KeyValueStore> getStore() = 0;
 		
-		virtual Ref<StorageDictionary> getRootDictionary() = 0;
+		virtual Ref<ObjectStoreDictionary> getRootDictionary() = 0;
 
 	};
 

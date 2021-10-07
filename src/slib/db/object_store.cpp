@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/db/object_storage.h"
+#include "slib/db/object_store.h"
 
 #include "slib/db/leveldb.h"
 
@@ -39,7 +39,7 @@ namespace slib
 
 	namespace priv
 	{
-		namespace object_storage
+		namespace object_store
 		{
 
 			static sl_uint32 PrepareKey(sl_uint8* _out, sl_uint64 parentId, sl_bool flagDictionary)
@@ -75,13 +75,13 @@ namespace slib
 
 			class DictionaryImpl;
 
-			class ObjectStorageManagerImpl : public ObjectStorageManager
+			class ObjectStoreManagerImpl : public ObjectStoreManager
 			{
 			public:
 				Ref<KeyValueStore> m_store;
 
 			public:
-				static Ref<ObjectStorageManagerImpl> open(const ObjectStorageParam& param)
+				static Ref<ObjectStoreManagerImpl> open(const ObjectStoreParam& param)
 				{
 					Ref<KeyValueStore> store = param.store;
 					if (store.isNull()) {
@@ -92,7 +92,7 @@ namespace slib
 							return sl_null;
 						}
 					}
-					Ref<ObjectStorageManagerImpl> ret = new ObjectStorageManagerImpl;
+					Ref<ObjectStoreManagerImpl> ret = new ObjectStoreManagerImpl;
 					if (ret.isNotNull()) {
 						ret->m_store = Move(store);
 						return ret;
@@ -106,12 +106,12 @@ namespace slib
 					return m_store;
 				}
 
-				Ref<StorageDictionary> getRootDictionary() override;
+				Ref<ObjectStoreDictionary> getRootDictionary() override;
 				
 			public:
-				Ref<StorageDictionary> createDictionary(sl_uint64 parentId, const StringParam& key);
+				Ref<ObjectStoreDictionary> createDictionary(sl_uint64 parentId, const StringParam& key);
 
-				Ref<StorageDictionary> getDictionary(sl_uint64 parentId, const StringParam& key);
+				Ref<ObjectStoreDictionary> getDictionary(sl_uint64 parentId, const StringParam& key);
 
 				sl_bool removeDictionary(sl_uint64 parentId, const StringParam& _key)
 				{
@@ -133,7 +133,7 @@ namespace slib
 					return sl_false;
 				}
 
-				Iterator<String, ObjectStorage> getDictionaryIterator(sl_uint64 parentId);
+				Iterator<String, ObjectStore> getDictionaryIterator(sl_uint64 parentId);
 
 				Variant getItem(sl_uint64 parentId, const StringParam& _key)
 				{
@@ -318,27 +318,27 @@ namespace slib
 
 			};
 
-			class DictionaryImpl : public StorageDictionary
+			class DictionaryImpl : public ObjectStoreDictionary
 			{
 			public:
-				Ref<ObjectStorageManagerImpl> m_manager;
+				Ref<ObjectStoreManagerImpl> m_manager;
 				sl_uint64 m_id;
 
 			public:
-				DictionaryImpl(ObjectStorageManagerImpl* manager, sl_uint64 _id): m_manager(manager), m_id(_id) {}
+				DictionaryImpl(ObjectStoreManagerImpl* manager, sl_uint64 _id): m_manager(manager), m_id(_id) {}
 
 			public:
-				Ref<ObjectStorageManager> getManager() override
+				Ref<ObjectStoreManager> getManager() override
 				{
 					return m_manager;
 				}
 
-				Ref<StorageDictionary> createDictionary(const StringParam& key) override
+				Ref<ObjectStoreDictionary> createDictionary(const StringParam& key) override
 				{
 					return m_manager->createDictionary(m_id, key);
 				}
 
-				Ref<StorageDictionary> getDictionary(const StringParam& key) override
+				Ref<ObjectStoreDictionary> getDictionary(const StringParam& key) override
 				{
 					return m_manager->getDictionary(m_id, key);
 				}
@@ -348,7 +348,7 @@ namespace slib
 					return m_manager->removeDictionary(m_id, key);
 				}
 
-				Iterator<String, ObjectStorage> getDictionaryIterator() override
+				Iterator<String, ObjectStore> getDictionaryIterator() override
 				{
 					return m_manager->getDictionaryIterator(m_id);
 				}
@@ -375,12 +375,12 @@ namespace slib
 
 			};
 
-			Ref<StorageDictionary> ObjectStorageManagerImpl::getRootDictionary()
+			Ref<ObjectStoreDictionary> ObjectStoreManagerImpl::getRootDictionary()
 			{
 				return new DictionaryImpl(this, 0);
 			}
 
-			Ref<StorageDictionary> ObjectStorageManagerImpl::createDictionary(sl_uint64 parentId, const StringParam& _key)
+			Ref<ObjectStoreDictionary> ObjectStoreManagerImpl::createDictionary(sl_uint64 parentId, const StringParam& _key)
 			{
 				sl_uint8 key[KEY_BUFFER_SIZE];
 				sl_uint32 nKey = PrepareKey(key, parentId, sl_true, _key);
@@ -408,7 +408,7 @@ namespace slib
 				return sl_null;
 			}
 
-			Ref<StorageDictionary> ObjectStorageManagerImpl::getDictionary(sl_uint64 parentId, const StringParam& _key)
+			Ref<ObjectStoreDictionary> ObjectStoreManagerImpl::getDictionary(sl_uint64 parentId, const StringParam& _key)
 			{
 				sl_uint8 key[KEY_BUFFER_SIZE];
 				sl_uint32 nKey = PrepareKey(key, parentId, sl_true, _key);
@@ -425,7 +425,7 @@ namespace slib
 			class BaseIterator : public CIterator<String, T>
 			{
 			public:
-				Ref<ObjectStorageManagerImpl> m_manager;
+				Ref<ObjectStoreManagerImpl> m_manager;
 				Ref<KeyValueIterator> m_kvIterator;
 
 				sl_bool m_flagFirstMove;
@@ -434,7 +434,7 @@ namespace slib
 				String m_key;
 
 			public:
-				BaseIterator(ObjectStorageManagerImpl* manager, sl_uint64 parentId, sl_bool flagDictionary, Ref<KeyValueIterator>&& iterator): m_manager(manager), m_kvIterator(Move(iterator)), m_flagFirstMove(sl_true)
+				BaseIterator(ObjectStoreManagerImpl* manager, sl_uint64 parentId, sl_bool flagDictionary, Ref<KeyValueIterator>&& iterator): m_manager(manager), m_kvIterator(Move(iterator)), m_flagFirstMove(sl_true)
 				{
 					m_nPrefix = PrepareKey(m_prefix, parentId, flagDictionary);
 				}
@@ -501,13 +501,13 @@ namespace slib
 
 			};
 
-			class DictionaryIterator : public BaseIterator<ObjectStorage>
+			class DictionaryIterator : public BaseIterator<ObjectStore>
 			{
 			public:
-				DictionaryIterator(ObjectStorageManagerImpl* manager, sl_uint64 parentId, Ref<KeyValueIterator>&& iterator): BaseIterator(manager, parentId, sl_true, Move(iterator)) {}
+				DictionaryIterator(ObjectStoreManagerImpl* manager, sl_uint64 parentId, Ref<KeyValueIterator>&& iterator): BaseIterator(manager, parentId, sl_true, Move(iterator)) {}
 
 			public:
-				ObjectStorage getValue() override
+				ObjectStore getValue() override
 				{
 					char buf[VALUE_BUFFER_SIZE];
 					sl_reg n = m_kvIterator->getValue(buf, sizeof(buf));
@@ -517,12 +517,12 @@ namespace slib
 							return new DictionaryImpl(m_manager.get(), childId);
 						}
 					}
-					return ObjectStorage();
+					return ObjectStore();
 				}
 
 			};
 
-			Iterator<String, ObjectStorage> ObjectStorageManagerImpl::getDictionaryIterator(sl_uint64 parentId)
+			Iterator<String, ObjectStore> ObjectStoreManagerImpl::getDictionaryIterator(sl_uint64 parentId)
 			{
 				Ref<KeyValueIterator> iterator = m_store->getIterator();
 				if (iterator.isNotNull()) {
@@ -534,7 +534,7 @@ namespace slib
 			class ItemIterator : public BaseIterator<Variant>
 			{
 			public:
-				ItemIterator(ObjectStorageManagerImpl* manager, sl_uint64 parentId, Ref<KeyValueIterator>&& iterator): BaseIterator(manager, parentId, sl_false, Move(iterator)) {}
+				ItemIterator(ObjectStoreManagerImpl* manager, sl_uint64 parentId, Ref<KeyValueIterator>&& iterator): BaseIterator(manager, parentId, sl_false, Move(iterator)) {}
 
 			public:
 				Variant getValue() override
@@ -550,7 +550,7 @@ namespace slib
 
 			};
 
-			PropertyIterator ObjectStorageManagerImpl::getItemIterator(sl_uint64 parentId)
+			PropertyIterator ObjectStoreManagerImpl::getItemIterator(sl_uint64 parentId)
 			{
 				Ref<KeyValueIterator> iterator = m_store->getIterator();
 				if (iterator.isNotNull()) {
@@ -562,136 +562,136 @@ namespace slib
 		}
 	}
 
-	using namespace priv::object_storage;
+	using namespace priv::object_store;
 
 
-	SLIB_DEFINE_ROOT_OBJECT(StorageDictionary)
+	SLIB_DEFINE_ROOT_OBJECT(ObjectStoreDictionary)
 
-	StorageDictionary::StorageDictionary()
+	ObjectStoreDictionary::ObjectStoreDictionary()
 	{
 	}
 
-	StorageDictionary::~StorageDictionary()
-	{
-	}
-
-
-	SLIB_DEFINE_OBJECT(ObjectStorageManager, Object)
-
-	ObjectStorageManager::ObjectStorageManager()
-	{
-	}
-
-	ObjectStorageManager::~ObjectStorageManager()
+	ObjectStoreDictionary::~ObjectStoreDictionary()
 	{
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ObjectStorageParam)
+	SLIB_DEFINE_OBJECT(ObjectStoreManager, Object)
 
-	ObjectStorageParam::ObjectStorageParam()
+	ObjectStoreManager::ObjectStoreManager()
+	{
+	}
+
+	ObjectStoreManager::~ObjectStoreManager()
 	{
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ObjectStorage)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ObjectStoreParam)
 
-	ObjectStorage::ObjectStorage() noexcept
+	ObjectStoreParam::ObjectStoreParam()
 	{
 	}
 
-	ObjectStorage::ObjectStorage(sl_null_t) noexcept: value(sl_null)
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ObjectStore)
+
+	ObjectStore::ObjectStore() noexcept
 	{
 	}
 
-	ObjectStorage::ObjectStorage(StorageDictionary* object) noexcept: value(Variant::fromObject(object))
+	ObjectStore::ObjectStore(sl_null_t) noexcept: value(sl_null)
 	{
 	}
 
-	ObjectStorage::ObjectStorage(const Ref<StorageDictionary>& object) noexcept: value(Variant::fromObject(object))
+	ObjectStore::ObjectStore(ObjectStoreDictionary* object) noexcept: value(Variant::fromObject(object))
 	{
 	}
 
-	ObjectStorage::ObjectStorage(Ref<StorageDictionary>&& object) noexcept: value(Variant::fromObject(Move(object)))
+	ObjectStore::ObjectStore(const Ref<ObjectStoreDictionary>& object) noexcept: value(Variant::fromObject(object))
 	{
 	}
 
-	Variant::Variant(const ObjectStorage& t) noexcept: Variant(t.value)
+	ObjectStore::ObjectStore(Ref<ObjectStoreDictionary>&& object) noexcept: value(Variant::fromObject(Move(object)))
 	{
 	}
 
-	Variant::Variant(ObjectStorage&& t) noexcept: Variant(Move(t.value))
+	Variant::Variant(const ObjectStore& t) noexcept: Variant(t.value)
 	{
 	}
 
-	Json::Json(const ObjectStorage& t) noexcept: Json(t.value)
+	Variant::Variant(ObjectStore&& t) noexcept: Variant(Move(t.value))
 	{
 	}
 
-	Json::Json(ObjectStorage&& t) noexcept: Json(Move(t.value))
+	Json::Json(const ObjectStore& t) noexcept: Json(t.value)
 	{
 	}
 
-	Ref<ObjectStorageManager> ObjectStorage::getManager() const
+	Json::Json(ObjectStore&& t) noexcept: Json(Move(t.value))
 	{
-		Ref<StorageDictionary> dictionary = getDictionary();
+	}
+
+	Ref<ObjectStoreManager> ObjectStore::getManager() const
+	{
+		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
 			return dictionary->getManager();
 		}
 		return sl_null;
 	}
 
-	sl_bool ObjectStorage::isDictionary() const noexcept
+	sl_bool ObjectStore::isDictionary() const noexcept
 	{
-		return IsInstanceOf<StorageDictionary>(value.getRef());
+		return IsInstanceOf<ObjectStoreDictionary>(value.getRef());
 	}
 
-	Ref<StorageDictionary> ObjectStorage::getDictionary() const noexcept
+	Ref<ObjectStoreDictionary> ObjectStore::getDictionary() const noexcept
 	{
-		return CastRef<StorageDictionary>(value.getRef());
+		return CastRef<ObjectStoreDictionary>(value.getRef());
 	}
 
-	ObjectStorage ObjectStorage::createDictionary(const StringParam& key) const
+	ObjectStore ObjectStore::createDictionary(const StringParam& key) const
 	{
-		Ref<StorageDictionary> dictionary = getDictionary();
+		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
 			return dictionary->createDictionary(key);
 		} else {
-			return ObjectStorage();
+			return ObjectStore();
 		}
 	}
 
-	ObjectStorage ObjectStorage::getDictionary(const StringParam& key) const
+	ObjectStore ObjectStore::getDictionary(const StringParam& key) const
 	{
-		Ref<StorageDictionary> dictionary = getDictionary();
+		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
 			return dictionary->getDictionary(key);
 		} else {
-			return ObjectStorage();
+			return ObjectStore();
 		}
 	}
 
-	sl_bool ObjectStorage::removeDictionary(const StringParam& key) const
+	sl_bool ObjectStore::removeDictionary(const StringParam& key) const
 	{
-		Ref<StorageDictionary> dictionary = getDictionary();
+		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
 			return dictionary->removeDictionary(key);
 		}
 		return sl_false;
 	}
 
-	Iterator<String, ObjectStorage> ObjectStorage::getDictionaryIterator() const
+	Iterator<String, ObjectStore> ObjectStore::getDictionaryIterator() const
 	{
-		Ref<StorageDictionary> dictionary = getDictionary();
+		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
 			return dictionary->getDictionaryIterator();
 		}
 		return sl_null;
 	}
 
-	Variant ObjectStorage::getItem(const StringParam& key) const
+	Variant ObjectStore::getItem(const StringParam& key) const
 	{
-		Ref<StorageDictionary> dictionary = getDictionary();
+		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
 			return dictionary->getItem(key);
 		} else {
@@ -699,298 +699,298 @@ namespace slib
 		}
 	}
 
-	sl_bool ObjectStorage::putItem(const StringParam& key, const Variant& value) const
+	sl_bool ObjectStore::putItem(const StringParam& key, const Variant& value) const
 	{
-		Ref<StorageDictionary> dictionary = getDictionary();
+		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
 			return dictionary->putItem(key, value);
 		}
 		return sl_false;
 	}
 
-	sl_bool ObjectStorage::removeItem(const StringParam& key) const
+	sl_bool ObjectStore::removeItem(const StringParam& key) const
 	{
-		Ref<StorageDictionary> dictionary = getDictionary();
+		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
 			return dictionary->removeItem(key);
 		}
 		return sl_false;
 	}
 
-	PropertyIterator ObjectStorage::getItemIterator() const
+	PropertyIterator ObjectStore::getItemIterator() const
 	{
-		Ref<StorageDictionary> dictionary = getDictionary();
+		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
 			return dictionary->getItemIterator();
 		}
 		return sl_null;
 	}
 
-	sl_bool ObjectStorage::isUndefined() const noexcept
+	sl_bool ObjectStore::isUndefined() const noexcept
 	{
 		return value.isUndefined();
 	}
 
-	sl_bool ObjectStorage::isNotUndefined() const noexcept
+	sl_bool ObjectStore::isNotUndefined() const noexcept
 	{
 		return value.isNotUndefined();
 	}
 
-	sl_bool ObjectStorage::isNull() const noexcept
+	sl_bool ObjectStore::isNull() const noexcept
 	{
 		return value.isNull();
 	}
 
-	sl_bool ObjectStorage::isNotNull() const noexcept
+	sl_bool ObjectStore::isNotNull() const noexcept
 	{
 		return value.isNotNull();
 	}
 
-	sl_bool ObjectStorage::isInt32() const noexcept
+	sl_bool ObjectStore::isInt32() const noexcept
 	{
 		return value.isInt32();
 	}
 
-	sl_bool ObjectStorage::getInt32(sl_int32* _out) const noexcept
+	sl_bool ObjectStore::getInt32(sl_int32* _out) const noexcept
 	{
 		return value.getInt32(_out);
 	}
 
-	sl_int32 ObjectStorage::getInt32(sl_int32 def) const noexcept
+	sl_int32 ObjectStore::getInt32(sl_int32 def) const noexcept
 	{
 		return value.getInt32(def);
 	}
 
-	sl_bool ObjectStorage::isUint32() const noexcept
+	sl_bool ObjectStore::isUint32() const noexcept
 	{
 		return value.getUint32();
 	}
 
-	sl_bool ObjectStorage::getUint32(sl_uint32* _out) const noexcept
+	sl_bool ObjectStore::getUint32(sl_uint32* _out) const noexcept
 	{
 		return value.getUint32(_out);
 	}
 
-	sl_uint32 ObjectStorage::getUint32(sl_uint32 def) const noexcept
+	sl_uint32 ObjectStore::getUint32(sl_uint32 def) const noexcept
 	{
 		return value.getUint32(def);
 	}
 
-	sl_bool ObjectStorage::isInt64() const noexcept
+	sl_bool ObjectStore::isInt64() const noexcept
 	{
 		return value.isInt64();
 	}
 
-	sl_bool ObjectStorage::getInt64(sl_int64* _out) const noexcept
+	sl_bool ObjectStore::getInt64(sl_int64* _out) const noexcept
 	{
 		return value.getInt64(_out);
 	}
 
-	sl_int64 ObjectStorage::getInt64(sl_int64 def) const noexcept
+	sl_int64 ObjectStore::getInt64(sl_int64 def) const noexcept
 	{
 		return value.getInt64(def);
 	}
 
-	sl_bool ObjectStorage::isUint64() const noexcept
+	sl_bool ObjectStore::isUint64() const noexcept
 	{
 		return value.isUint64();
 	}
 
-	sl_bool ObjectStorage::getUint64(sl_uint64* _out) const noexcept
+	sl_bool ObjectStore::getUint64(sl_uint64* _out) const noexcept
 	{
 		return value.getUint64(_out);
 	}
 
-	sl_uint64 ObjectStorage::getUint64(sl_uint64 def) const noexcept
+	sl_uint64 ObjectStore::getUint64(sl_uint64 def) const noexcept
 	{
 		return value.getUint64(def);
 	}
 
-	sl_bool ObjectStorage::isInteger() const noexcept
+	sl_bool ObjectStore::isInteger() const noexcept
 	{
 		return value.isInteger();
 	}
 
-	sl_bool ObjectStorage::isSignedInteger() const noexcept
+	sl_bool ObjectStore::isSignedInteger() const noexcept
 	{
 		return value.isSignedInteger();
 	}
 
-	sl_bool ObjectStorage::isUnsignedInteger() const noexcept
+	sl_bool ObjectStore::isUnsignedInteger() const noexcept
 	{
 		return value.isUnsignedInteger();
 	}
 
-	sl_bool ObjectStorage::isFloat() const noexcept
+	sl_bool ObjectStore::isFloat() const noexcept
 	{
 		return value.isFloat();
 	}
 
-	sl_bool ObjectStorage::getFloat(float* _out) const noexcept
+	sl_bool ObjectStore::getFloat(float* _out) const noexcept
 	{
 		return value.getFloat(_out);
 	}
 
-	float ObjectStorage::getFloat(float def) const noexcept
+	float ObjectStore::getFloat(float def) const noexcept
 	{
 		return value.getFloat(def);
 	}
 
-	sl_bool ObjectStorage::isDouble() const noexcept
+	sl_bool ObjectStore::isDouble() const noexcept
 	{
 		return value.isDouble();
 	}
 
-	sl_bool ObjectStorage::getDouble(double* _out) const noexcept
+	sl_bool ObjectStore::getDouble(double* _out) const noexcept
 	{
 		return value.getDouble(_out);
 	}
 
-	double ObjectStorage::getDouble(double def) const noexcept
+	double ObjectStore::getDouble(double def) const noexcept
 	{
 		return value.getDouble(def);
 	}
 
-	sl_bool ObjectStorage::isNumber() const noexcept
+	sl_bool ObjectStore::isNumber() const noexcept
 	{
 		return value.isNumber();
 	}
 
-	sl_bool ObjectStorage::isBoolean() const noexcept
+	sl_bool ObjectStore::isBoolean() const noexcept
 	{
 		return value.isBoolean();
 	}
 
-	sl_bool ObjectStorage::isTrue() const noexcept
+	sl_bool ObjectStore::isTrue() const noexcept
 	{
 		return value.isTrue();
 	}
 
-	sl_bool ObjectStorage::isFalse() const noexcept
+	sl_bool ObjectStore::isFalse() const noexcept
 	{
 		return value.isFalse();
 	}
 
-	sl_bool ObjectStorage::getBoolean(sl_bool def) const noexcept
+	sl_bool ObjectStore::getBoolean(sl_bool def) const noexcept
 	{
 		return value.getBoolean(def);
 	}
 
-	sl_bool ObjectStorage::isString() const noexcept
+	sl_bool ObjectStore::isString() const noexcept
 	{
 		return value.isString();
 	}
 
-	String ObjectStorage::getString(const String& def) const noexcept
+	String ObjectStore::getString(const String& def) const noexcept
 	{
 		return value.getString(def);
 	}
 
-	String ObjectStorage::getString() const noexcept
+	String ObjectStore::getString() const noexcept
 	{
 		return value.getString();
 	}
 
-	String16 ObjectStorage::getString16(const String16& def) const noexcept
+	String16 ObjectStore::getString16(const String16& def) const noexcept
 	{
 		return value.getString16(def);
 	}
 
-	String16 ObjectStorage::getString16() const noexcept
+	String16 ObjectStore::getString16() const noexcept
 	{
 		return value.getString16();
 	}
 
-	sl_bool ObjectStorage::isTime() const noexcept
+	sl_bool ObjectStore::isTime() const noexcept
 	{
 		return value.isTime();
 	}
 
-	Time ObjectStorage::getTime(const Time& def) const noexcept
+	Time ObjectStore::getTime(const Time& def) const noexcept
 	{
 		return value.getTime(def);
 	}
 
-	Time ObjectStorage::getTime() const noexcept
+	Time ObjectStore::getTime() const noexcept
 	{
 		return value.getTime();
 	}
 
-	sl_bool ObjectStorage::isCollection() const noexcept
+	sl_bool ObjectStore::isCollection() const noexcept
 	{
 		return value.isCollection();
 	}
 
-	Ref<Collection> ObjectStorage::getCollection() const noexcept
+	Ref<Collection> ObjectStore::getCollection() const noexcept
 	{
 		return value.getCollection();
 	}
 
-	sl_bool ObjectStorage::isVariantList() const noexcept
+	sl_bool ObjectStore::isVariantList() const noexcept
 	{
 		return value.isVariantList();
 	}
 
-	VariantList ObjectStorage::getVariantList() const noexcept
+	VariantList ObjectStore::getVariantList() const noexcept
 	{
 		return value.getVariantList();
 	}
 
-	sl_bool ObjectStorage::isJsonList() const noexcept
+	sl_bool ObjectStore::isJsonList() const noexcept
 	{
 		return value.isJsonList();
 	}
 
-	JsonList ObjectStorage::getJsonList() const noexcept
+	JsonList ObjectStore::getJsonList() const noexcept
 	{
 		return value.getJsonList();
 	}
 
-	sl_bool ObjectStorage::isObject() const noexcept
+	sl_bool ObjectStore::isObject() const noexcept
 	{
 		return value.isObject();
 	}
 
-	Ref<Object> ObjectStorage::getObject() const noexcept
+	Ref<Object> ObjectStore::getObject() const noexcept
 	{
 		return value.getObject();
 	}
 
-	sl_bool ObjectStorage::isVariantMap() const noexcept
+	sl_bool ObjectStore::isVariantMap() const noexcept
 	{
 		return value.isVariantMap();
 	}
 
-	VariantMap ObjectStorage::getVariantMap() const noexcept
+	VariantMap ObjectStore::getVariantMap() const noexcept
 	{
 		return value.getVariantMap();
 	}
 
-	sl_bool ObjectStorage::isJsonMap() const noexcept
+	sl_bool ObjectStore::isJsonMap() const noexcept
 	{
 		return value.isJsonMap();
 	}
 
-	JsonMap ObjectStorage::getJsonMap() const noexcept
+	JsonMap ObjectStore::getJsonMap() const noexcept
 	{
 		return value.getJsonMap();
 	}
 
-	sl_bool ObjectStorage::isMemory() const noexcept
+	sl_bool ObjectStore::isMemory() const noexcept
 	{
 		return value.isMemory();
 	}
 
-	Memory ObjectStorage::getMemory() const noexcept
+	Memory ObjectStore::getMemory() const noexcept
 	{
 		return value.getMemory();
 	}
 
-	ObjectStorage ObjectStorage::operator[](const StringParam& name) noexcept
+	ObjectStore ObjectStore::operator[](const StringParam& name) noexcept
 	{
-		Ref<StorageDictionary> dictionary = getDictionary();
+		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
-			Ref<StorageDictionary> ret = dictionary->getDictionary(name);
+			Ref<ObjectStoreDictionary> ret = dictionary->getDictionary(name);
 			if (ret.isNotNull()) {
 				return ret;
 			}
@@ -1000,23 +1000,23 @@ namespace slib
 		}
 	}
 
-	Variant ObjectStorage::operator[](sl_size index) noexcept
+	Variant ObjectStore::operator[](sl_size index) noexcept
 	{
 		return value.getElement(index);
 	}
 
-	ObjectStorage ObjectStorage::open(const ObjectStorageParam& param)
+	ObjectStore ObjectStore::open(const ObjectStoreParam& param)
 	{
-		Ref<ObjectStorageManagerImpl> manager = ObjectStorageManagerImpl::open(param);
+		Ref<ObjectStoreManagerImpl> manager = ObjectStoreManagerImpl::open(param);
 		if (manager.isNotNull()) {
 			return manager->getRootDictionary();
 		}
 		return sl_null;
 	}
 
-	ObjectStorage ObjectStorage::open(const StringParam& path)
+	ObjectStore ObjectStore::open(const StringParam& path)
 	{
-		ObjectStorageParam param;
+		ObjectStoreParam param;
 		param.path = path;
 		return open(param);
 	}

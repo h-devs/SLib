@@ -33,7 +33,6 @@
 #include "db/postgresql.h"
 
 #include "db/key_value_store.h"
-#include "db/object_storage.h"
 #include "db/redis.h"
 #include "db/leveldb.h"
 #include "db/rocksdb.h"
@@ -41,5 +40,7 @@
 
 #include "db/document_store.h"
 #include "db/mongodb.h"
+
+#include "db/object_store.h"
 
 #endif

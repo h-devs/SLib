@@ -1223,9 +1223,6 @@
     <ClCompile Include="..\..\src\slib\db\rocksdb.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\db\object_storage.cpp">
-      <Filter>src\db</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\db\document_store.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
@@ -1405,6 +1402,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\asn1.cpp">
       <Filter>src\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\db\object_store.cpp">
+      <Filter>src\db</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

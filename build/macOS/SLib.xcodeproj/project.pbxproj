@@ -371,7 +371,7 @@
 		26FE7D9025A2F1CB00B787F0 /* image_canvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8F25A2F1CB00B787F0 /* image_canvas.cpp */; };
 		D71B3A57268A4D7400707369 /* ipc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D71B3A56268A4D7400707369 /* ipc.cpp */; };
 		D72A0871263B503300BCD333 /* rocksdb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0870263B503300BCD333 /* rocksdb.cpp */; };
-		D72A0879263B503E00BCD333 /* object_storage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0878263B503E00BCD333 /* object_storage.cpp */; };
+		D72A0879263B503E00BCD333 /* object_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0878263B503E00BCD333 /* object_store.cpp */; };
 		D72A0881263B504600BCD333 /* mysql_data.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0880263B504600BCD333 /* mysql_data.cpp */; };
 		D72A0889263B504D00BCD333 /* mongodb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0888263B504D00BCD333 /* mongodb.cpp */; };
 		D72A0894263B506000BCD333 /* document_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0890263B505F00BCD333 /* document_store.cpp */; };
@@ -868,7 +868,7 @@
 		A2DE1D8A1B383BB000A74698 /* system_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system_unix.cpp; sourceTree = "<group>"; };
 		D71B3A56268A4D7400707369 /* ipc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ipc.cpp; sourceTree = "<group>"; };
 		D72A0870263B503300BCD333 /* rocksdb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rocksdb.cpp; sourceTree = "<group>"; };
-		D72A0878263B503E00BCD333 /* object_storage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = object_storage.cpp; sourceTree = "<group>"; };
+		D72A0878263B503E00BCD333 /* object_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = object_store.cpp; sourceTree = "<group>"; };
 		D72A0880263B504600BCD333 /* mysql_data.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mysql_data.cpp; sourceTree = "<group>"; };
 		D72A0888263B504D00BCD333 /* mongodb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mongodb.cpp; sourceTree = "<group>"; };
 		D72A0890263B505F00BCD333 /* document_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = document_store.cpp; sourceTree = "<group>"; };
@@ -1603,7 +1603,7 @@
 				D72A0888263B504D00BCD333 /* mongodb.cpp */,
 				265EBF221C23041600AD81D9 /* mysql.cpp */,
 				D72A0880263B504600BCD333 /* mysql_data.cpp */,
-				D72A0878263B503E00BCD333 /* object_storage.cpp */,
+				D72A0878263B503E00BCD333 /* object_store.cpp */,
 				26F607B223ABE0C600DCE0C3 /* postgresql.cpp */,
 				2639194321CD2510008B335B /* redis.cpp */,
 				D72A0870263B503300BCD333 /* rocksdb.cpp */,
@@ -1941,7 +1941,7 @@
 				269E31A92255F431005CD0ED /* paypal.cpp in Sources */,
 				D7C3BB0026AEEEC400FD529D /* pdf.cpp in Sources */,
 				26987D2123BBE05D00872C1D /* captcha.cpp in Sources */,
-				D72A0879263B503E00BCD333 /* object_storage.cpp in Sources */,
+				D72A0879263B503E00BCD333 /* object_store.cpp in Sources */,
 				26C1B64220D51D1D00E36539 /* graphics_path.cpp in Sources */,
 				26D9D8FE1E9645CE005F7BD3 /* base.cpp in Sources */,
 				269308662368DE7E00C9C7F9 /* openssl_crypto.cpp in Sources */,

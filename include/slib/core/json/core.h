@@ -174,8 +174,8 @@ namespace slib
 			ToJson(*this, value);
 		}
 		
-		Json(const ObjectStorage& t) noexcept;
-		Json(ObjectStorage&& t) noexcept;
+		Json(const ObjectStore& t) noexcept;
+		Json(ObjectStore&& t) noexcept;
 
 	public:
 		static const Json& undefined()
