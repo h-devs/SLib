@@ -56,7 +56,7 @@ namespace slib
 		
 		void copyFromFile(const StringParam& path);
 		
-		void copyFromFile(const StringParam& path, const Ref<Dispatcher>& dispatcher);
+		void copyFromFile(const StringParam& path, const Ref<AsyncIoLoop>& ioLoop);
 		
 		sl_uint64 getOutputLength() const;
 		
@@ -90,7 +90,7 @@ namespace slib
 		
 	};
 	
-	typedef Function<void(void* dataRemained, sl_uint32 sizeRemained, sl_bool flagError)> HttpContentReaderOnComplete;
+	typedef Function<void(void* dataRemained, sl_size sizeRemained, sl_bool flagError)> HttpContentReaderOnComplete;
 	
 	class SLIB_EXPORT HttpContentReader : public AsyncStreamFilter
 	{
@@ -121,18 +121,16 @@ namespace slib
 		sl_bool isDecompressing();
 		
 	protected:
-		sl_bool write(const void* data, sl_uint32 size, const Function<void(AsyncStreamResult&)>& callback, Referable* ref) override;
-		
 		void onReadStream(AsyncStreamResult& result) override;
 		
 	protected:
 		void setError();
 		
-		void setCompleted(void* dataRemain, sl_uint32 size);
+		void setCompleted(void* dataRemain, sl_size size);
 		
 		sl_bool setDecompressing();
 		
-		Memory decompressData(void* data, sl_uint32 size, Referable* refData);
+		sl_bool decompressData(MemoryData& output, void* data, sl_size size, Referable* refData);
 		
 	protected:
 		sl_bool m_flagDecompressing;

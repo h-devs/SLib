@@ -173,7 +173,7 @@ namespace slib
 	protected:
 		void _read();
 		
-		void _processInput(const void* data, sl_uint32 size);
+		void _processInput(const void* data, sl_size size);
 		
 		void _processContext(const Ref<HttpServerContext>& context);
 		

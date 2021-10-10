@@ -130,7 +130,11 @@ namespace slib
 								if (req->data && req->size) {
 									Base::zeroMemory(&m_overlappedRead, sizeof(m_overlappedRead));
 									m_bufRead.buf = (CHAR*)(req->data);
-									m_bufRead.len = req->size;
+									if (req->size > 0x40000000) {
+										m_bufRead.len = 0x40000000;
+									} else {
+										m_bufRead.len = (ULONG)(req->size);
+									}
 									m_flagsRead = 0;
 									DWORD dwRead = 0;
 									int ret = WSARecv((SOCKET)handle, &m_bufRead, 1, &dwRead, &m_flagsRead, &m_overlappedRead, NULL);
@@ -150,7 +154,7 @@ namespace slib
 										onEvent(&desc);
 									}
 								} else {
-									_onReceive(req.get(), req->size, sl_false);
+									_onReceive(req.get(), 0, sl_false);
 								}
 							}
 						}
@@ -162,7 +166,11 @@ namespace slib
 								if (req->data && req->size) {
 									Base::zeroMemory(&m_overlappedWrite, sizeof(m_overlappedWrite));
 									m_bufWrite.buf = (CHAR*)(req->data);
-									m_bufWrite.len = req->size;
+									if (req->size > 0x40000000) {
+										m_bufWrite.len = 0x40000000;
+									} else {
+										m_bufWrite.len = (ULONG)(req->size);
+									}
 									DWORD dwWrite = 0;
 									int ret = WSASend((SOCKET)handle, &m_bufWrite, 1, &dwWrite, 0, &m_overlappedWrite, NULL);
 									if (ret == 0) {
@@ -179,7 +187,7 @@ namespace slib
 										}
 									}
 								} else {
-									_onSend(req.get(), req->size, sl_false);
+									_onSend(req.get(), 0, sl_false);
 								}
 							}
 						}
@@ -244,9 +252,6 @@ namespace slib
 						flagError = sl_true;
 					}
 					if (pOverlapped == &m_overlappedRead) {
-						if (dwSize == 0) {
-							//flagError = sl_true;
-						}
 						Ref<AsyncStreamRequest> req = m_requestReading;
 						m_requestReading.setNull();
 						if (req.isNotNull()) {

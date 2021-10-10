@@ -290,13 +290,13 @@ namespace slib
 			return;
 		}
 		m_flagReading = sl_true;
-		if (!(m_io->readToMemory(m_bufRead, SLIB_FUNCTION_WEAKREF(HttpServerConnection, onReadStream, this)))) {
+		if (!(m_io->read(m_bufRead, SLIB_FUNCTION_WEAKREF(HttpServerConnection, onReadStream, this)))) {
 			m_flagReading = sl_false;
 			close();
 		}
 	}
 
-	void HttpServerConnection::_processInput(const void* _data, sl_uint32 size)
+	void HttpServerConnection::_processInput(const void* _data, sl_size size)
 	{
 		Ref<HttpServer> server = m_server;
 		if (server.isNull()) {
@@ -321,7 +321,7 @@ namespace slib
 				}
 			}
 			data = m_bufReadUnprocessed.getData();
-			size = (sl_uint32)(m_bufReadUnprocessed.getCount());
+			size = m_bufReadUnprocessed.getCount();
 		}
 		
 		if (!size) {
@@ -370,7 +370,7 @@ namespace slib
 				}
 				context->setKeepAlive(context->isRequestKeepAlive());
 				if (size > posBody) {
-					sl_size sizeRemain = (sl_size)size - posBody;
+					sl_size sizeRemain = size - posBody;
 					sl_size sizeRequired = (sl_size)(context->m_requestContentLength);
 					if (sizeRequired) {
 						if (sizeRequired < sizeRemain) {
@@ -459,7 +459,6 @@ namespace slib
 							context->applyFormUrlEncoded(body.getData(), body.getSize());
 						}
 					}
-					
 					if (context->isProcessingByThread()) {
 						Ref<ThreadPool> threadPool = server->getThreadPool();
 						if (threadPool.isNotNull()) {
@@ -537,7 +536,7 @@ namespace slib
 	void HttpServerConnection::sendResponseAndRestart(const Memory& mem)
 	{
 		if (mem.isNotNull()) {
-			if (m_io->writeFromMemory(mem, sl_null)) {
+			if (m_io->write(mem, sl_null)) {
 				start();
 				return;
 			}
@@ -575,7 +574,7 @@ namespace slib
 	{
 		if (mem.isNotNull()) {
 			Ref<priv::http_server::SendResponseAndCloseListener> listener(new priv::http_server::SendResponseAndCloseListener(this));
-			if (m_io->writeFromMemory(mem, SLIB_FUNCTION_REF(priv::http_server::SendResponseAndCloseListener, onWriteStream, listener))) {
+			if (m_io->write(mem, SLIB_FUNCTION_REF(priv::http_server::SendResponseAndCloseListener, onWriteStream, listener))) {
 				return;
 			}
 		}
@@ -1519,38 +1518,30 @@ namespace slib
 			}
 			
 			String rangeHeader = context->getRequestRange();
-			
 			if (rangeHeader.isNotEmpty()) {
-				
 				sl_uint64 start;
 				sl_uint64 len;
-				
 				if (processRangeRequest(context, totalSize, rangeHeader, start, len)) {
-
-					Ref<AsyncFile> file = AsyncFile::openForRead(path, m_threadPool);
+					Ref<AsyncFile> file = AsyncFile::openForRead(path, m_ioLoop);
 					if (file.isNotNull()) {
 						file->seek(start);
 						context->copyFrom(file.get(), len);
 						return sl_true;
 					}
-					
 				} else {
 					return sl_true;
 				}
-				
 			} else {
 				if (totalSize > 100000) {
-					context->copyFromFile(path, m_threadPool);
-					return sl_true;
+					context->copyFromFile(path, m_ioLoop);
 				} else {
 					Memory mem = File::readAllBytes(path);
 					if (mem.isNotNull()) {
 						context->write(mem);
-						return sl_true;
 					}
 				}
+				return sl_true;
 			}
-			
 		}
 		return sl_false;
 	}

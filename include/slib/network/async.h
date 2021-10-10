@@ -71,20 +71,20 @@ namespace slib
 		
 		sl_bool connect(const SocketAddress& address);
 		
-		sl_bool receive(void* data, sl_uint32 size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null);
+		sl_bool receive(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null);
 		
 		sl_bool receive(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 		
-		sl_bool send(void* data, sl_uint32 size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null);
+		sl_bool send(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null);
 		
 		sl_bool send(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 		
 	protected:
 		Ref<AsyncTcpSocketInstance> _getIoInstance();
 		
-		void _onReceive(AsyncStreamRequest* req, sl_uint32 size, sl_bool flagError);
+		void _onReceive(AsyncStreamRequest* req, sl_size size, sl_bool flagError);
 		
-		void _onSend(AsyncStreamRequest* req, sl_uint32 size, sl_bool flagError);
+		void _onSend(AsyncStreamRequest* req, sl_size size, sl_bool flagError);
 		
 		void _onConnect(sl_bool flagError);
 		

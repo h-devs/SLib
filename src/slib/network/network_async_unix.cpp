@@ -41,7 +41,7 @@ namespace slib
 			public:
 				AtomicRef<AsyncStreamRequest> m_requestReading;
 				AtomicRef<AsyncStreamRequest> m_requestWriting;
-				sl_uint32 m_sizeWritten;
+				sl_size m_sizeWritten;
 				
 				sl_bool m_flagConnecting;
 
@@ -106,7 +106,7 @@ namespace slib
 							}
 						}
 						if (request->data && request->size) {
-							sl_int32 n = socket.receive((char*)(request->data), request->size);
+							sl_int32 n = socket.receive(request->data, request->size);
 							if (n > 0) {
 								_onReceive(request.get(), n, flagError);
 							} else {
@@ -153,7 +153,7 @@ namespace slib
 							}
 						}
 						if (request->data && request->size) {
-							sl_uint32 size = request->size - m_sizeWritten;
+							sl_size size = request->size - m_sizeWritten;
 							sl_int32 n = socket.send((char*)(request->data) + m_sizeWritten, size);
 							if (n >= 0) {
 								m_sizeWritten += n;

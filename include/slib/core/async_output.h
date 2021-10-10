@@ -87,7 +87,7 @@ namespace slib
 
 		sl_bool copyFromFile(const StringParam& path);
 
-		sl_bool copyFromFile(const StringParam& path, const Ref<Dispatcher>& dispatcher);
+		sl_bool copyFromFile(const StringParam& path, const Ref<AsyncIoLoop>& ioLoop);
 
 		sl_uint64 getOutputLength() const;
 

@@ -205,7 +205,7 @@ namespace slib
 
 		void setIoInstance(AsyncIoInstance* instance);
 	
-	private:
+	protected:
 		AtomicWeakRef<AsyncIoLoop> m_ioLoop;
 		AtomicRef<AsyncIoInstance> m_ioInstance;
 	

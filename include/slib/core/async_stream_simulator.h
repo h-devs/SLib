@@ -40,9 +40,7 @@ namespace slib
 		~AsyncStreamSimulator();
 	
 	public:
-		sl_bool read(void* data, sl_uint32 size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null) override;
-
-		sl_bool write(const void* data, sl_uint32 size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null) override;
+		sl_bool requestIo(const Ref<AsyncStreamRequest>& request) override;
 
 		sl_bool addTask(const Function<void()>& callback) override;
 

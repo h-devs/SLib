@@ -61,7 +61,7 @@ namespace slib
 		return sl_true;
 	}
 
-	void AsyncTcpSocketInstance::_onReceive(AsyncStreamRequest* req, sl_uint32 size, sl_bool flagError)
+	void AsyncTcpSocketInstance::_onReceive(AsyncStreamRequest* req, sl_size size, sl_bool flagError)
 	{
 		Ref<AsyncTcpSocket> object = Ref<AsyncTcpSocket>::from(getObject());
 		if (object.isNotNull()) {
@@ -69,7 +69,7 @@ namespace slib
 		}
 	}
 
-	void AsyncTcpSocketInstance::_onSend(AsyncStreamRequest* req, sl_uint32 size, sl_bool flagError)
+	void AsyncTcpSocketInstance::_onSend(AsyncStreamRequest* req, sl_size size, sl_bool flagError)
 	{
 		Ref<AsyncTcpSocket> object = Ref<AsyncTcpSocket>::from(getObject());
 		if (object.isNotNull()) {
@@ -201,24 +201,24 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool AsyncTcpSocket::receive(void* data, sl_uint32 size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject)
+	sl_bool AsyncTcpSocket::receive(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject)
 	{
 		return AsyncStreamBase::read(data, size, callback, userObject);
 	}
 
 	sl_bool AsyncTcpSocket::receive(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
 	{
-		return AsyncStreamBase::read(mem.getData(), (sl_uint32)(mem.getSize()), callback, mem.ref.get());
+		return AsyncStreamBase::read(mem.getData(), mem.getSize(), callback, mem.ref.get());
 	}
 
-	sl_bool AsyncTcpSocket::send(void* data, sl_uint32 size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject)
+	sl_bool AsyncTcpSocket::send(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject)
 	{
 		return AsyncStreamBase::write(data, size, callback, userObject);
 	}
 
 	sl_bool AsyncTcpSocket::send(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
 	{
-		return AsyncStreamBase::write(mem.getData(), (sl_uint32)(mem.getSize()), callback, mem.ref.get());
+		return AsyncStreamBase::write(mem.getData(), mem.getSize(), callback, mem.ref.get());
 	}
 	
 	Ref<AsyncTcpSocketInstance> AsyncTcpSocket::_getIoInstance()
@@ -226,7 +226,7 @@ namespace slib
 		return Ref<AsyncTcpSocketInstance>::from(AsyncStreamBase::getIoInstance());
 	}
 
-	void AsyncTcpSocket::_onReceive(AsyncStreamRequest* req, sl_uint32 size, sl_bool flagError)
+	void AsyncTcpSocket::_onReceive(AsyncStreamRequest* req, sl_size size, sl_bool flagError)
 	{
 		req->runCallback(this, size, flagError);
 		if (flagError) {
@@ -234,7 +234,7 @@ namespace slib
 		}
 	}
 
-	void AsyncTcpSocket::_onSend(AsyncStreamRequest* req, sl_uint32 size, sl_bool flagError)
+	void AsyncTcpSocket::_onSend(AsyncStreamRequest* req, sl_size size, sl_bool flagError)
 	{
 		req->runCallback(this, size, flagError);
 		if (flagError) {

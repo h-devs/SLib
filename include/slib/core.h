@@ -136,8 +136,6 @@
 #include "core/async_stream.h"
 #include "core/async_stream_simulator.h"
 #include "core/async_stream_filter.h"
-#include "core/async_reader.h"
-#include "core/async_writer.h"
 #include "core/async_file.h"
 #include "core/async_copy.h"
 #include "core/async_output.h"

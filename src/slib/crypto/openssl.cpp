@@ -529,7 +529,7 @@ namespace slib
 						return;
 					}
 					m_flagReadingBase = sl_true;
-					m_baseStream->readToMemory(m_bufReadingBase, m_callbackRead);
+					m_baseStream->read(m_bufReadingBase, m_callbackRead);
 				}
 				
 				void startWritingBase()
@@ -563,7 +563,11 @@ namespace slib
 						if (m_requestRead.isNull()) {
 							return;
 						}
-						int ret = SSL_read(m_ssl, (char*)(m_requestRead->data), m_requestRead->size);
+						sl_size size = m_requestRead->size;
+						if (size > 0x40000000) {
+							size = 0x40000000;
+						}
+						int ret = SSL_read(m_ssl, (char*)(m_requestRead->data), (int)size);
 						if (ret > 0) {
 							Ref<AsyncStreamRequest> request = m_requestRead;
 							if (!(m_queueRead.pop_NoLock(&m_requestRead))) {
@@ -605,7 +609,11 @@ namespace slib
 								if ((sl_size)m_sizeWritingBase > (m_bufWritingBase.getSize() << 1)) {
 									return;
 								}
-								ret = SSL_write(m_ssl, (char*)(m_requestWrite->data) + m_sizeWritten, m_requestWrite->size - m_sizeWritten);
+								sl_size size = m_requestWrite->size - m_sizeWritten;
+								if (size > 0x40000000) {
+									size = 0x40000000;
+								}
+								ret = SSL_write(m_ssl, (char*)(m_requestWrite->data) + m_sizeWritten, (int)size);
 							}
 							if (ret > 0) {
 								m_sizeWritten += ret;
@@ -652,7 +660,7 @@ namespace slib
 						m_flagReadingError = sl_true;
 					}
 					if (result.size > 0) {
-						BIO_write(m_rbio, result.data, result.size);
+						BIO_write(m_rbio, result.data, (int)(result.size));
 					}
 					doIO(lock);
 				}
@@ -743,47 +751,33 @@ namespace slib
 					return m_baseStream.isNotNull();
 				}
 				
-				sl_bool read(void* data, sl_uint32 size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject) override
+				sl_bool requestIo(const Ref<AsyncStreamRequest>& request) override
 				{
 					ObjectLocker lock(this);
 					if (m_baseStream.isNull()) {
 						return sl_false;
 					}
-					if (m_flagReadingError) {
-						return sl_false;
-					}
-					Ref<AsyncStreamRequest> request = AsyncStreamRequest::createRead(data, size, userObject, callback);
-					if (request.isNull()) {
-						return sl_false;
-					}
-					if (m_requestRead.isNull()) {
-						m_requestRead = request;
-						startReadingBase();
+					if (request->flagRead) {
+						if (m_flagReadingError) {
+							return sl_false;
+						}
+						if (m_requestRead.isNull()) {
+							m_requestRead = request;
+							startReadingBase();
+						} else {
+							m_queueRead.push_NoLock(request);
+						}
 					} else {
-						m_queueRead.push_NoLock(request);
-					}
-					return sl_true;
-				}
-				
-				sl_bool write(const void* data, sl_uint32 size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject) override
-				{
-					ObjectLocker lock(this);
-					if (m_baseStream.isNull()) {
-						return sl_false;
-					}
-					if (m_flagWritingError) {
-						return sl_false;
-					}
-					Ref<AsyncStreamRequest> request = AsyncStreamRequest::createWrite(data, size, userObject, callback);
-					if (request.isNull()) {
-						return sl_false;
-					}
-					if (m_requestWrite.isNull()) {
-						m_requestWrite = request;
-						m_sizeWritten = 0;
-						addTask(m_doStartWriting);
-					} else {
-						m_queueWrite.push_NoLock(request);
+						if (m_flagWritingError) {
+							return sl_false;
+						}
+						if (m_requestWrite.isNull()) {
+							m_requestWrite = request;
+							m_sizeWritten = 0;
+							addTask(m_doStartWriting);
+						} else {
+							m_queueWrite.push_NoLock(request);
+						}
 					}
 					return sl_true;
 				}

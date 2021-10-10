@@ -64,9 +64,9 @@ namespace slib
 		m_bufferOutput.copyFromFile(path);
 	}
 
-	void HttpOutputBuffer::copyFromFile(const StringParam& path, const Ref<Dispatcher>& dispatcher)
+	void HttpOutputBuffer::copyFromFile(const StringParam& path, const Ref<AsyncIoLoop>& ioLoop)
 	{
-		m_bufferOutput.copyFromFile(path, dispatcher);
+		m_bufferOutput.copyFromFile(path, ioLoop);
 	}
 
 	sl_uint64 HttpOutputBuffer::getOutputLength() const
@@ -187,18 +187,18 @@ namespace slib
 					m_sizeTotal = 0;
 				}
 
-				Memory filterRead(void* data, sl_uint32 size, Referable* refData)
+				sl_bool filterRead(MemoryData& output, void* data, sl_size size, Referable* refData) override
 				{
 					sl_uint64 sizeRemain = m_sizeTotal - m_sizeRead;
 					if (size < sizeRemain) {
 						m_sizeRead += size;
-						return decompressData(data, size, refData);
+						return decompressData(output, data, size, refData);
 					} else {
 						m_sizeRead = m_sizeTotal;
-						sl_uint32 sizeRead = (sl_uint32)sizeRemain;
-						Memory ret = decompressData(data, sizeRead, refData);
+						sl_size sizeRead = (sl_size)sizeRemain;
+						sl_bool flagSuccess = decompressData(output, data, sizeRead, refData);
 						setCompleted((char*)data + sizeRead, size - sizeRead);
-						return ret;
+						return flagSuccess;
 					}
 				}
 			};
@@ -215,7 +215,7 @@ namespace slib
 		if (io.isNull()) {
 			return ret;
 		}
-		if (contentLength == 0 || bufferSize == 0) {
+		if (!contentLength|| !bufferSize) {
 			return ret;
 		}
 		if (ret.isNotNull()) {
@@ -271,13 +271,13 @@ namespace slib
 					m_sizeTrailerField = 0;
 				}
 
-				Memory filterRead(void* _data, sl_uint32 size, Referable* refData)
+				sl_bool filterRead(MemoryData& mem, void* _data, sl_size size, Referable* refData) override
 				{
 					sl_uint8* data = (sl_uint8*)_data;
-					sl_uint32 pos = 0;
+					sl_size pos = 0;
 
 					sl_uint8* output = data;
-					sl_uint32 sizeOutput = 0;
+					sl_size sizeOutput = 0;
 					
 					sl_uint32 v;
 
@@ -359,9 +359,9 @@ namespace slib
 								} else {
 									pos++;
 									m_state = -1;
-									Memory mem = decompressData(output, sizeOutput, refData);
+									sl_bool flagSuccess = decompressData(mem, output, sizeOutput, refData);
 									setCompleted(data + pos, size - pos);
-									return mem;
+									return flagSuccess;
 								}
 							} else {
 								m_state = -1;
@@ -374,7 +374,7 @@ namespace slib
 							return sl_null;
 						}
 					}
-					return decompressData(output, sizeOutput, refData);
+					return decompressData(mem, output, sizeOutput, refData);
 				}
 			};
 		}
@@ -412,9 +412,9 @@ namespace slib
 			class ContentReader_TearDown : public HttpContentReader
 			{
 			public:
-				Memory filterRead(void* data, sl_uint32 size, Referable* refData)
+				sl_bool filterRead(MemoryData& output, void* data, sl_size size, Referable* refData) override
 				{
-					return decompressData(data, size, refData);
+					return decompressData(output, data, size, refData);
 				}
 			};
 		}
@@ -461,7 +461,7 @@ namespace slib
 		}
 	}
 
-	void HttpContentReader::setCompleted(void* dataRemain, sl_uint32 size)
+	void HttpContentReader::setCompleted(void* dataRemain, sl_size size)
 	{
 		setReadingEnded();
 		m_onComplete(dataRemain, size, isReadingError());
@@ -475,11 +475,6 @@ namespace slib
 		setReadingError();
 	}
 
-	sl_bool HttpContentReader::write(const void* data, sl_uint32 size, const Function<void(AsyncStreamResult&)>& callback, Referable* ref)
-	{
-		return sl_false;
-	}
-
 	sl_bool HttpContentReader::setDecompressing()
 	{
 		if (m_zlib.start()) {
@@ -491,12 +486,16 @@ namespace slib
 		}
 	}
 
-	Memory HttpContentReader::decompressData(void* data, sl_uint32 size, Referable* refData)
+	sl_bool HttpContentReader::decompressData(MemoryData& output, void* data, sl_size size, Referable* refData)
 	{
 		if (m_flagDecompressing) {
-			return m_zlib.pass(data, size);
+			output.setMemory(m_zlib.pass(data, size));
+			return sl_true;
 		} else {
-			return Memory::createStatic(data, size, refData);
+			output.data = data;
+			output.size = size;
+			output.ref = refData;
+			return sl_true;
 		}
 	}
 

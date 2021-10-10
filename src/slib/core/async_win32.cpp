@@ -38,7 +38,7 @@ namespace slib
 		namespace async
 		{
 
-			class Win32AsyncFileStreamInstance : public AsyncStreamInstance
+			class FileInstance : public AsyncFileInstance
 			{
 			public:
 				Ref<AsyncStreamRequest> m_requestOperating;
@@ -46,40 +46,34 @@ namespace slib
 				OVERLAPPED m_overlappedRead;
 				OVERLAPPED m_overlappedWrite;
 
-				Win32AsyncFileStreamInstance()
+			public:
+				FileInstance()
 				{
 					m_offset = 0;
 				}
 
-				~Win32AsyncFileStreamInstance()
+			public:
+				static Ref<FileInstance> create(const AsyncFileParam& param)
 				{
-					close();
-				}
-
-				static Ref<Win32AsyncFileStreamInstance> open(const StringParam& path, FileMode mode)
-				{
-					Ref<Win32AsyncFileStreamInstance> ret;
-					sl_file handle = _openHandle(path, mode);
-					if (handle != SLIB_FILE_INVALID_HANDLE) {
-						ret = new Win32AsyncFileStreamInstance();
+					if (param.handle != SLIB_FILE_INVALID_HANDLE) {
+						Ref<FileInstance> ret = new FileInstance();
 						if (ret.isNotNull()) {
-							ret->setHandle(handle);
-							if (mode & FileMode::SeekToEnd) {
-								ret->seek(HandlePtr<File>(handle)->getSize());
+							ret->setHandle(param.handle);
+							ret->m_flagCloseOnRelease = param.flagCloseOnRelease;
+							if (param.initialPosition >= 0) {
+								ret->m_offset = param.initialPosition;
+							} else {
+								ret->m_offset = (HandlePtr<File>(param.handle))->getPosition();
 							}
 							return ret;
 						}
-						_closeHandle(handle);
+						if (param.flagCloseOnRelease) {
+							File::close(param.handle);
+						}
 					}
-					return ret;
+					return sl_null;
 				}
-
-				void close()
-				{
-					_closeHandle(getHandle());
-					setHandle(SLIB_FILE_INVALID_HANDLE);
-				}
-
+				
 				void onOrder() override
 				{
 					sl_file handle = getHandle();
@@ -91,10 +85,19 @@ namespace slib
 						if (popReadRequest(req)) {
 							if (req.isNotNull()) {
 								if (req->data && req->size) {
+									if (req->position >= 0) {
+										m_offset = req->position;
+									}
 									Base::zeroMemory(&m_overlappedRead, sizeof(m_overlappedRead));
 									m_overlappedRead.Offset = (DWORD)m_offset;
 									m_overlappedRead.OffsetHigh = (DWORD)(m_offset >> 32);
-									if (::ReadFile((HANDLE)handle, req->data, req->size, NULL, &m_overlappedRead)) {
+									DWORD size;
+									if (req->size > 0x40000000) {
+										size = 0x40000000;
+									} else {
+										size = (DWORD)(req->size);
+									}
+									if (ReadFile((HANDLE)handle, req->data, size, NULL, &m_overlappedRead)) {
 										doInput(req.get(), 0, sl_true);
 									} else {
 										DWORD dwErr = ::GetLastError();
@@ -115,10 +118,19 @@ namespace slib
 						if (popWriteRequest(req)) {
 							if (req.isNotNull()) {
 								if (req->data && req->size) {
+									if (req->position >= 0) {
+										m_offset = req->position;
+									}
 									Base::zeroMemory(&m_overlappedWrite, sizeof(m_overlappedWrite));
 									m_overlappedWrite.Offset = (DWORD)m_offset;
 									m_overlappedWrite.OffsetHigh = (DWORD)(m_offset >> 32);
-									if (::WriteFile((HANDLE)handle, req->data, req->size, NULL, &m_overlappedWrite)) {
+									DWORD size;
+									if (req->size > 0x40000000) {
+										size = 0x40000000;
+									} else {
+										size = (DWORD)(req->size);
+									}
+									if (WriteFile((HANDLE)handle, req->data, size, NULL, &m_overlappedWrite)) {
 										doOutput(req.get(), 0, sl_true);
 									} else {
 										DWORD dwErr = ::GetLastError();
@@ -145,7 +157,7 @@ namespace slib
 					OVERLAPPED* pOverlapped = (OVERLAPPED*)(pev->pOverlapped);
 					DWORD dwSize = 0;
 					sl_bool flagError = sl_false;
-					if (!::GetOverlappedResult((HANDLE)handle, pOverlapped, &dwSize, FALSE)) {
+					if (!(GetOverlappedResult((HANDLE)handle, pOverlapped, &dwSize, FALSE))) {
 						flagError = sl_true;
 						close();
 					}
@@ -169,7 +181,7 @@ namespace slib
 					requestOrder();
 				}
 
-				void doInput(AsyncStreamRequest* req, sl_uint32 size, sl_bool flagError)
+				void doInput(AsyncStreamRequest* req, sl_size size, sl_bool flagError)
 				{
 					Ref<AsyncIoObject> object = getObject();
 					if (object.isNotNull()) {
@@ -177,7 +189,7 @@ namespace slib
 					}
 				}
 
-				void doOutput(AsyncStreamRequest* req, sl_uint32 size, sl_bool flagError)
+				void doOutput(AsyncStreamRequest* req, sl_size size, sl_bool flagError)
 				{
 					Ref<AsyncIoObject> object = getObject();
 					if (object.isNotNull()) {
@@ -196,83 +208,91 @@ namespace slib
 					return sl_true;
 				}
 
+				sl_uint64 getPosition() override
+				{
+					return m_offset;
+				}
+
 				sl_uint64 getSize() override
 				{
 					sl_file handle = getHandle();
 					return HandlePtr<File>(handle)->getSize();
 				}
 
-				static sl_file _openHandle(const StringParam& _filePath, FileMode mode)
-				{
-					StringCstr16 filePath(_filePath);
-					if (filePath.isEmpty()) {
-						return (sl_file)-1;
-					}
-
-					DWORD dwShareMode = (mode & FileMode::Read) ? FILE_SHARE_READ : 0;
-					DWORD dwDesiredAccess = 0;
-					DWORD dwCreateDisposition = 0;
-					DWORD dwFlags = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED;
-
-					if (mode & FileMode::Write) {
-						dwDesiredAccess = GENERIC_WRITE;
-						if (mode & FileMode::Read) {
-							dwDesiredAccess |= GENERIC_READ;
-						}
-						if (mode & FileMode::NotCreate) {
-							if (mode & FileMode::NotTruncate) {
-								dwCreateDisposition = OPEN_EXISTING;
-							} else {
-								dwCreateDisposition = TRUNCATE_EXISTING;
-							}
-						} else {
-							if (mode & FileMode::NotTruncate) {
-								dwCreateDisposition = OPEN_ALWAYS;
-							} else {
-								dwCreateDisposition = CREATE_ALWAYS;
-							}
-						}
-					} else {
-						dwDesiredAccess = GENERIC_READ;
-						dwCreateDisposition = OPEN_EXISTING;
-					}
-					if (mode & FileMode::HintRandomAccess) {
-						dwFlags |= FILE_FLAG_RANDOM_ACCESS;
-					}
-
-					HANDLE handle = ::CreateFileW(
-						(LPCWSTR)(filePath.getData())
-						, dwDesiredAccess
-						, dwShareMode
-						, NULL
-						, dwCreateDisposition
-						, dwFlags
-						, NULL
-					);
-
-					return (sl_file)handle;
-				}
-
-				static void _closeHandle(sl_file handle)
-				{
-					if (handle != SLIB_FILE_INVALID_HANDLE) {
-						::CloseHandle((HANDLE)handle);
-					}
-				}
 			};
 
 		}
 	}
 	
-	Ref<AsyncStream> AsyncFile::openIOCP(const StringParam& path, FileMode mode, const Ref<AsyncIoLoop>& loop)
+	Ref<AsyncFile> AsyncFile::create(const AsyncFileParam& param)
 	{
-		Ref<priv::async::Win32AsyncFileStreamInstance> ret = priv::async::Win32AsyncFileStreamInstance::open(path, mode);
-		return AsyncStream::create(ret.get(), AsyncIoMode::InOut, loop);
+		Ref<priv::async::FileInstance> ret = priv::async::FileInstance::create(param);
+		if (ret.isNotNull()) {
+			return AsyncFile::create(ret.get(), AsyncIoMode::InOut, param.ioLoop);
+		}
+		return sl_null;
 	}
 
-	Ref<AsyncStream> AsyncFile::openIOCP(const StringParam& path, FileMode mode)
+	sl_bool AsyncFileParam::open(const StringParam& _filePath, FileMode mode)
 	{
-		return AsyncFile::openIOCP(path, mode, AsyncIoLoop::getDefault());
+		StringCstr16 filePath(_filePath);
+		if (filePath.isEmpty()) {
+			return sl_false;
+		}
+
+		DWORD dwShareMode = (mode & FileMode::Read) ? FILE_SHARE_READ : 0;
+		DWORD dwDesiredAccess = 0;
+		DWORD dwCreateDisposition = 0;
+		DWORD dwFlags = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED;
+
+		if (mode & FileMode::Write) {
+			dwDesiredAccess = GENERIC_WRITE;
+			if (mode & FileMode::Read) {
+				dwDesiredAccess |= GENERIC_READ;
+			}
+			if (mode & FileMode::NotCreate) {
+				if (mode & FileMode::NotTruncate) {
+					dwCreateDisposition = OPEN_EXISTING;
+				} else {
+					dwCreateDisposition = TRUNCATE_EXISTING;
+				}
+			} else {
+				if (mode & FileMode::NotTruncate) {
+					dwCreateDisposition = OPEN_ALWAYS;
+				} else {
+					dwCreateDisposition = CREATE_ALWAYS;
+				}
+			}
+		} else {
+			dwDesiredAccess = GENERIC_READ;
+			dwCreateDisposition = OPEN_EXISTING;
+		}
+		if (mode & FileMode::HintRandomAccess) {
+			dwFlags |= FILE_FLAG_RANDOM_ACCESS;
+		}
+
+		HANDLE hFile = CreateFileW(
+			(LPCWSTR)(filePath.getData())
+			, dwDesiredAccess
+			, dwShareMode
+			, NULL
+			, dwCreateDisposition
+			, dwFlags
+			, NULL
+		);
+
+		if (hFile != SLIB_FILE_INVALID_HANDLE) {
+			if (mode & FileMode::SeekToEnd) {
+				HandlePtr<File> file(hFile);
+				file->seekToEnd();
+				initialPosition = -1;
+			} else {
+				initialPosition = 0;
+			}
+			handle = hFile;
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 }
