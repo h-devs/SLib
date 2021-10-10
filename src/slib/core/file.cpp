@@ -119,6 +119,11 @@ namespace slib
 		setNone();
 	}
 
+	void File::close(sl_file handle) noexcept
+	{
+		_close(handle);
+	}
+
 	sl_reg File::read(void* buf, sl_size size) const noexcept
 	{
 		return ReaderHelper::readWithRead32(this, buf, size);

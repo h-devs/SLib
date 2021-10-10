@@ -206,6 +206,8 @@ namespace slib
 		
 		void close() noexcept;
 
+		static void close(sl_file handle) noexcept;
+
 
 		sl_bool getPosition(sl_uint64& outPos) const noexcept;
 

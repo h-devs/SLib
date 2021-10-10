@@ -37,6 +37,8 @@
 #include <shobjidl.h>
 #include <shlguid.h>
 
+#define FILE_SHARE_ALL (FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE)
+
 namespace slib
 {
 
@@ -345,7 +347,7 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), 0, 0, NULL, OPEN_EXISTING, 0, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), 0, FILE_SHARE_ALL, NULL, OPEN_EXISTING, 0, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			sl_bool bRet = sl_false;
 			if (GetFileSizeEx(handle, (PLARGE_INTEGER)(&outSize))) {
@@ -429,7 +431,7 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return Time::zero();
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, 0, NULL, OPEN_EXISTING,
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, FILE_SHARE_ALL, NULL, OPEN_EXISTING,
 			FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			Time ret = GetModifiedTime(handle);
@@ -456,7 +458,7 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return Time::zero();
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, 0, NULL, OPEN_EXISTING,
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, FILE_SHARE_ALL, NULL, OPEN_EXISTING,
 			FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			Time ret = GetAccessedTime(handle);
@@ -483,7 +485,7 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return Time::zero();
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_READ_ATTRIBUTES, FILE_SHARE_ALL, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			Time ret = GetCreatedTime(handle);
 			CloseHandle(handle);
@@ -509,7 +511,7 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_WRITE_ATTRIBUTES, FILE_SHARE_ALL, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			sl_bool ret = SetModifiedTime(handle, time);
 			CloseHandle(handle);
@@ -535,7 +537,7 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_WRITE_ATTRIBUTES, FILE_SHARE_ALL, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			sl_bool ret = SetAccessedTime(handle, time);
 			CloseHandle(handle);
@@ -561,7 +563,7 @@ namespace slib
 		if (filePath.isEmpty()) {
 			return sl_false;
 		}
-		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+		HANDLE handle = CreateFileW((LPCWSTR)(filePath.getData()), FILE_WRITE_ATTRIBUTES, FILE_SHARE_ALL, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (handle != INVALID_HANDLE_VALUE) {
 			sl_bool ret = SetCreatedTime(handle, time);
 			CloseHandle(handle);
@@ -587,7 +589,7 @@ namespace slib
 	{
 		StringCstr16 filePath(_filePath);
 		DWORD attr = GetFileAttributesW((LPCWSTR)(filePath.getData()));
-		if (attr == -1) {
+		if (attr == 0xffffffff) {
 			return FileAttributes::NotExist;
 		} else {
 			return (int)(attr & 0x7ffff);
