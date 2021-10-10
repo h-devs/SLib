@@ -286,6 +286,18 @@ namespace slib
 
 	MemoryData& MemoryData::operator=(const Memory& memory) noexcept
 	{
+		setMemory(memory);
+		return *this;
+	}
+
+	MemoryData& MemoryData::operator=(Memory&& memory) noexcept
+	{
+		setMemory(Move(memory));
+		return *this;
+	}
+
+	void MemoryData::setMemory(const Memory& memory) noexcept
+	{
 		CMemory* p = memory.ref.get();
 		if (p) {
 			data = p->data;
@@ -296,10 +308,9 @@ namespace slib
 			size = 0;
 			ref.setNull();
 		}
-		return *this;
 	}
 
-	MemoryData& MemoryData::operator=(Memory&& memory) noexcept
+	void MemoryData::setMemory(Memory&& memory) noexcept
 	{
 		CMemory* p = memory.ref.get();
 		if (p) {
@@ -316,7 +327,6 @@ namespace slib
 			size = 0;
 			ref.setNull();
 		}
-		return *this;
 	}
 
 	Memory MemoryData::getMemory() const noexcept

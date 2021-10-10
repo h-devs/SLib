@@ -67,6 +67,10 @@ namespace slib
 	public:
 		Memory getMemory() const noexcept;
 
+		void setMemory(const Memory& memory) noexcept;
+
+		void setMemory(Memory&& memory) noexcept;
+
 		Memory sub(sl_size offset, sl_size size = SLIB_SIZE_MAX) const noexcept;
 
 	};
