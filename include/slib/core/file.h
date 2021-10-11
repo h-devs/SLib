@@ -249,7 +249,7 @@ namespace slib
 		sl_bool flush() const noexcept;
 
 		// Unix only
-		sl_bool setNonBlocking(sl_bool flag) const noexcept;
+		sl_bool setNonBlocking(sl_bool flag = sl_true) const noexcept;
 
 		sl_bool getDiskSize(sl_uint64& outSize) const noexcept;
 

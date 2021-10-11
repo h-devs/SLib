@@ -60,7 +60,7 @@ namespace slib
 	{
 		if (socket.isOpened()) {
 			Socket::initializeSocket();
-			socket.setNonBlockingMode(sl_true);
+			socket.setNonBlockingMode();
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 			WSAEVENT hEvent = WSACreateEvent();
 			if (hEvent) { // WSA_INVALID_EVENT = NULL
@@ -273,7 +273,7 @@ namespace slib
 
 	sl_bool Socket::connectAndWait(const SocketAddress& address, sl_int32 timeout) const noexcept
 	{
-		setNonBlockingMode(sl_true);
+		setNonBlockingMode();
 		if (connect(address)) {
 			Ref<SocketEvent> ev = SocketEvent::createWrite(*this);
 			if (ev.isNotNull()) {
@@ -289,7 +289,7 @@ namespace slib
 
 	sl_bool Socket::connectDomainAndWait(const StringParam& address, sl_int32 timeout) const noexcept
 	{
-		setNonBlockingMode(sl_true);
+		setNonBlockingMode();
 		if (connectDomain(address)) {
 			Ref<SocketEvent> ev = SocketEvent::createWrite(*this);
 			if (ev.isNotNull()) {
@@ -305,7 +305,7 @@ namespace slib
 
 	sl_bool Socket::connectAbstractDomainAndWait(const StringParam& address, sl_int32 timeout) const noexcept
 	{
-		setNonBlockingMode(sl_true);
+		setNonBlockingMode();
 		if (connectAbstractDomain(address)) {
 			Ref<SocketEvent> ev = SocketEvent::createWrite(*this);
 			if (ev.isNotNull()) {

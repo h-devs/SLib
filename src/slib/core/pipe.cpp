@@ -181,8 +181,8 @@ namespace slib
 	{
 		m_flagSet = sl_false;
 #if defined(SLIB_PLATFORM_IS_UNIX)
-		HandlePtr<File>(m_pipe.getReadHandle())->setNonBlocking(sl_true);
-		HandlePtr<File>(m_pipe.getWriteHandle())->setNonBlocking(sl_true);
+		HandlePtr<File>(m_pipe.getReadHandle())->setNonBlocking();
+		HandlePtr<File>(m_pipe.getWriteHandle())->setNonBlocking();
 #endif
 	}
 

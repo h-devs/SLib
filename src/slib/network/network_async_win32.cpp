@@ -490,7 +490,7 @@ namespace slib
 				static Ref<UdpInstance> create(Socket&& socket, const Memory& buffer)
 				{
 					if (socket.isOpened()) {
-						if (socket.setNonBlockingMode(sl_true)) {
+						if (socket.setNonBlockingMode()) {
 							sl_async_handle handle = (sl_async_handle)(socket.get());
 							if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 								Ref<UdpInstance> ret = new UdpInstance();

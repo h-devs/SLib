@@ -66,9 +66,10 @@ namespace slib
 								ret->m_offset = (HandlePtr<File>(param.handle))->getPosition();
 							}
 							return ret;
-						}
-						if (param.flagCloseOnRelease) {
-							File::close(param.handle);
+						} else {
+							if (param.flagCloseOnRelease) {
+								File::close(param.handle);
+							}
 						}
 					}
 					return sl_null;
@@ -98,17 +99,17 @@ namespace slib
 										size = (DWORD)(req->size);
 									}
 									if (ReadFile((HANDLE)handle, req->data, size, NULL, &m_overlappedRead)) {
-										doInput(req.get(), 0, sl_true);
+										_onComplete(req.get(), 0, sl_true);
 									} else {
 										DWORD dwErr = ::GetLastError();
 										if (dwErr == ERROR_IO_PENDING) {
 											m_requestOperating = req;
 										} else {
-											doInput(req.get(), 0, sl_true);
+											_onComplete(req.get(), 0, sl_true);
 										}
 									}
 								} else {
-									doInput(req.get(), req->size, sl_false);
+									_onComplete(req.get(), req->size, sl_false);
 								}
 							}
 						}
@@ -131,17 +132,17 @@ namespace slib
 										size = (DWORD)(req->size);
 									}
 									if (WriteFile((HANDLE)handle, req->data, size, NULL, &m_overlappedWrite)) {
-										doOutput(req.get(), 0, sl_true);
+										_onComplete(req.get(), 0, sl_true);
 									} else {
 										DWORD dwErr = ::GetLastError();
 										if (dwErr == ERROR_IO_PENDING) {
 											m_requestOperating = req;
 										} else {
-											doOutput(req.get(), 0, sl_true);
+											_onComplete(req.get(), 0, sl_true);
 										}
 									}
 								} else {
-									doOutput(req.get(), req->size, sl_false);
+									_onComplete(req.get(), req->size, sl_false);
 								}
 							}
 						}
@@ -171,25 +172,15 @@ namespace slib
 					m_requestOperating.setNull();
 
 					if (req.isNotNull()) {
-						if (pOverlapped == &m_overlappedRead) {
-							doInput(req.get(), dwSize, flagError);
-						} else if (pOverlapped == &m_overlappedWrite) {
-							doOutput(req.get(), dwSize, flagError);
+						if (pOverlapped == &m_overlappedRead || pOverlapped == &m_overlappedWrite) {
+							_onComplete(req.get(), dwSize, flagError);
 						}
 					}
 
 					requestOrder();
 				}
 
-				void doInput(AsyncStreamRequest* req, sl_size size, sl_bool flagError)
-				{
-					Ref<AsyncIoObject> object = getObject();
-					if (object.isNotNull()) {
-						req->runCallback(static_cast<AsyncStream*>(object.get()), size, flagError);
-					}
-				}
-
-				void doOutput(AsyncStreamRequest* req, sl_size size, sl_bool flagError)
+				void _onComplete(AsyncStreamRequest* req, sl_size size, sl_bool flagError)
 				{
 					Ref<AsyncIoObject> object = getObject();
 					if (object.isNotNull()) {

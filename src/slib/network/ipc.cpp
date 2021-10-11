@@ -285,7 +285,7 @@ namespace slib
 							}
 #endif
 #endif
-							if (socket.setNonBlockingMode(sl_true)) {
+							if (socket.setNonBlockingMode()) {
 								if (socket.listen()) {
 									Ref<DomainSocketServer> ret = new DomainSocketServer;
 									if (ret.isNotNull()) {

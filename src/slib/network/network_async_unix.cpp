@@ -61,7 +61,7 @@ namespace slib
 				static Ref<TcpInstance> create(Socket&& socket)
 				{
 					if (socket.isOpened()) {
-						if (socket.setNonBlockingMode(sl_true)) {
+						if (socket.setNonBlockingMode()) {
 							sl_async_handle handle = (sl_async_handle)(socket.get());
 							if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 								Ref<TcpInstance> ret = new TcpInstance();
@@ -258,7 +258,7 @@ namespace slib
 				static Ref<TcpServerInstance> create(Socket&& socket)
 				{
 					if (socket.isOpened()) {
-						if (socket.setNonBlockingMode(sl_true)) {
+						if (socket.setNonBlockingMode()) {
 							sl_async_handle handle = (sl_async_handle)(socket.get());
 							if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 								Ref<TcpServerInstance> ret = new TcpServerInstance();
@@ -329,7 +329,7 @@ namespace slib
 				static Ref<UdpInstance> create(Socket&& socket, const Memory& buffer)
 				{
 					if (socket.isOpened()) {
-						if (socket.setNonBlockingMode(sl_true)) {
+						if (socket.setNonBlockingMode()) {
 							sl_async_handle handle = (sl_async_handle)(socket.get());
 							if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 								Ref<UdpInstance> ret = new UdpInstance();

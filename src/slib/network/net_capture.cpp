@@ -265,7 +265,7 @@ namespace slib
 					
 					Socket& socket = m_socket;
 
-					socket.setNonBlockingMode(sl_true);
+					socket.setNonBlockingMode();
 					Ref<SocketEvent> event = SocketEvent::createRead(socket);
 					if (event.isNull()) {
 						return;
@@ -440,7 +440,7 @@ namespace slib
 					if (socketTCP.isNone()) {
 						return;
 					}
-					socketTCP.setNonBlockingMode(sl_true);
+					socketTCP.setNonBlockingMode();
 					Ref<SocketEvent> eventTCP = SocketEvent::createRead(socketTCP);
 					if (eventTCP.isNull()) {
 						return;
@@ -450,7 +450,7 @@ namespace slib
 					if (socketUDP.isNone()) {
 						return;
 					}
-					socketUDP.setNonBlockingMode(sl_true);
+					socketUDP.setNonBlockingMode();
 					Ref<SocketEvent> eventUDP = SocketEvent::createRead(socketUDP);
 					if (eventUDP.isNull()) {
 						return;
@@ -460,7 +460,7 @@ namespace slib
 					if (socketICMP.isNone()) {
 						return;
 					}
-					socketICMP.setNonBlockingMode(sl_true);
+					socketICMP.setNonBlockingMode();
 					Ref<SocketEvent> eventICMP = SocketEvent::createRead(socketICMP);
 					if (eventICMP.isNull()) {
 						return;

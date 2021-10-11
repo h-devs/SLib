@@ -77,7 +77,7 @@ namespace slib
 
 					int handle = ::open("/dev/net/tun", O_RDWR);
 					if (handle != -1) {
-						HandlePtr<File>(handle)->setNonBlocking(sl_true);
+						HandlePtr<File>(handle)->setNonBlocking();
 						ifreq ifr;
 						Base::zeroMemory(&ifr, sizeof(ifr));
 						ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
