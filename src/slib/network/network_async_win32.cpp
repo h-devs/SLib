@@ -120,7 +120,7 @@ namespace slib
 									if (size > 0x40000000) {
 										m_bufRead.len = 0x40000000;
 									} else {
-										m_bufRead.len = (ULONG)(size);
+										m_bufRead.len = (ULONG)size;
 									}
 									m_flagsRead = 0;
 									DWORD dwRead = 0;
@@ -131,7 +131,7 @@ namespace slib
 										if (dwErr == WSA_IO_PENDING) {
 											m_requestReading = Move(req);
 										} else {
-											_onReceive(req.get(), 0, sl_true);
+											processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
 										}
 									} else {
 										// No Error
@@ -141,7 +141,7 @@ namespace slib
 										onEvent(&desc);
 									}
 								} else {
-									_onReceive(req.get(), 0, sl_false);
+									processStreamResult(req.get(), 0, AsyncStreamResultCode::Success);
 								}
 							}
 						}
@@ -158,25 +158,27 @@ namespace slib
 									if (size > 0x40000000) {
 										m_bufWrite.len = 0x40000000;
 									} else {
-										m_bufWrite.len = (ULONG)(size);
+										m_bufWrite.len = (ULONG)size;
 									}
 									DWORD dwWrite = 0;
 									int ret = WSASend((SOCKET)handle, &m_bufWrite, 1, &dwWrite, 0, &m_overlappedWrite, NULL);
-									if (ret == 0) {
-										m_requestWriting = Move(req);
-										EventDesc desc;
-										desc.pOverlapped = &m_overlappedWrite;
-										onEvent(&desc);
-									} else {
+									if (ret) {
+										// SOCKET_ERROR
 										int dwErr = WSAGetLastError();
 										if (dwErr == WSA_IO_PENDING) {
 											m_requestWriting = Move(req);
 										} else {
-											_onSend(req.get(), 0, sl_true);
+											processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
 										}
+									} else {
+										// No Error
+										m_requestWriting = Move(req);
+										EventDesc desc;
+										desc.pOverlapped = &m_overlappedWrite;
+										onEvent(&desc);
 									}
 								} else {
-									_onSend(req.get(), 0, sl_false);
+									processStreamResult(req.get(), 0, AsyncStreamResultCode::Success);
 								}
 							}
 						}
@@ -233,7 +235,7 @@ namespace slib
 					DWORD dwSize = 0;
 					DWORD dwFlags = 0;
 					sl_bool flagError = sl_false;
-					if (!WSAGetOverlappedResult((SOCKET)handle, pOverlapped, &dwSize, FALSE, &dwFlags)) {
+					if (!(WSAGetOverlappedResult((SOCKET)handle, pOverlapped, &dwSize, FALSE, &dwFlags))) {
 						int err = WSAGetLastError();
 						if (err == WSA_IO_INCOMPLETE) {
 							return;
@@ -243,15 +245,22 @@ namespace slib
 					if (pOverlapped == &m_overlappedRead) {
 						Ref<AsyncStreamRequest> req = Move(m_requestReading);
 						if (req.isNotNull()) {
-							_onReceive(req.get(), dwSize, flagError);
+							if (flagError) {
+								processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
+							} else if (dwSize) {
+								processStreamResult(req.get(), dwSize, AsyncStreamResultCode::Success);
+							} else {
+								processStreamResult(req.get(), 0, AsyncStreamResultCode::Ended);
+							}
 						}
 					} else if (pOverlapped == &m_overlappedWrite) {
-						if (dwSize == 0) {
-							flagError = sl_true;
-						}
 						Ref<AsyncStreamRequest> req = Move(m_requestWriting);
 						if (req.isNotNull()) {
-							_onSend(req.get(), dwSize, flagError);
+							if (flagError) {
+								processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
+							} else {
+								processStreamResult(req.get(), dwSize, AsyncStreamResultCode::Success);
+							}
 						}
 					} else if (pOverlapped == &m_overlappedConnect) {
 						if (flagError) {

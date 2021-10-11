@@ -67,22 +67,6 @@ namespace slib
 		return sl_true;
 	}
 
-	void AsyncTcpSocketInstance::_onReceive(AsyncStreamRequest* req, sl_size size, sl_bool flagError)
-	{
-		Ref<AsyncTcpSocket> object = Ref<AsyncTcpSocket>::from(getObject());
-		if (object.isNotNull()) {
-			object->_onReceive(req, size, flagError);
-		}
-	}
-
-	void AsyncTcpSocketInstance::_onSend(AsyncStreamRequest* req, sl_size size, sl_bool flagError)
-	{
-		Ref<AsyncTcpSocket> object = Ref<AsyncTcpSocket>::from(getObject());
-		if (object.isNotNull()) {
-			object->_onSend(req, size, flagError);
-		}
-	}
-
 	void AsyncTcpSocketInstance::_onConnect(sl_bool flagError)
 	{
 		Ref<AsyncTcpSocket> object = Ref<AsyncTcpSocket>::from(getObject());
@@ -150,7 +134,6 @@ namespace slib
 			if (ret.isNotNull()) {
 				if (ret->_initialize(instance.get(), AsyncIoMode::InOut, loop)) {
 					ret->m_onConnect = param.onConnect;
-					ret->m_onError = param.onError;
 					if (param.connectAddress.isValid()) {
 						if (!(ret->connect(param.connectAddress))) {
 							if (param.flagLogError) {
@@ -232,33 +215,9 @@ namespace slib
 		return Ref<AsyncTcpSocketInstance>::from(AsyncStreamBase::getIoInstance());
 	}
 
-	void AsyncTcpSocket::_onReceive(AsyncStreamRequest* req, sl_size size, sl_bool flagError)
-	{
-		req->runCallback(this, size, flagError);
-		if (flagError) {
-			_onError();
-		}
-	}
-
-	void AsyncTcpSocket::_onSend(AsyncStreamRequest* req, sl_size size, sl_bool flagError)
-	{
-		req->runCallback(this, size, flagError);
-		if (flagError) {
-			_onError();
-		}
-	}
-
 	void AsyncTcpSocket::_onConnect(sl_bool flagError)
 	{
 		m_onConnect(this, flagError);
-		if (flagError) {
-			_onError();
-		}
-	}
-
-	void AsyncTcpSocket::_onError()
-	{
-		m_onError(this);
 	}
 
 

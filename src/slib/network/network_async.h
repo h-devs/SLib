@@ -54,12 +54,8 @@ namespace slib
 		sl_bool connect(const SocketAddress& address);
 		
 	protected:
-		void _onReceive(AsyncStreamRequest* req, sl_size size, sl_bool flagError);
-		
-		void _onSend(AsyncStreamRequest* req, sl_size size, sl_bool flagError);
-		
 		void _onConnect(sl_bool flagError);
-		
+
 	protected:
 		sl_bool m_flagSupportingConnect;
 		sl_bool m_flagRequestConnect;

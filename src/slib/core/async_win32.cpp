@@ -99,17 +99,17 @@ namespace slib
 										size = (DWORD)(req->size);
 									}
 									if (ReadFile((HANDLE)handle, req->data, size, NULL, &m_overlappedRead)) {
-										processStreamResult(req.get(), 0, sl_true);
+										processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
 									} else {
 										DWORD dwErr = ::GetLastError();
 										if (dwErr == ERROR_IO_PENDING) {
 											m_requestOperating = req;
 										} else {
-											processStreamResult(req.get(), 0, sl_true);
+											processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
 										}
 									}
 								} else {
-									processStreamResult(req.get(), req->size, sl_false);
+									processStreamResult(req.get(), req->size, AsyncStreamResultCode::Success);
 								}
 							}
 						}
@@ -132,17 +132,17 @@ namespace slib
 										size = (DWORD)(req->size);
 									}
 									if (WriteFile((HANDLE)handle, req->data, size, NULL, &m_overlappedWrite)) {
-										processStreamResult(req.get(), 0, sl_true);
+										processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
 									} else {
 										DWORD dwErr = ::GetLastError();
 										if (dwErr == ERROR_IO_PENDING) {
 											m_requestOperating = req;
 										} else {
-											processStreamResult(req.get(), 0, sl_true);
+											processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
 										}
 									}
 								} else {
-									processStreamResult(req.get(), req->size, sl_false);
+									processStreamResult(req.get(), req->size, AsyncStreamResultCode::Success);
 								}
 							}
 						}
@@ -158,21 +158,26 @@ namespace slib
 					OVERLAPPED* pOverlapped = (OVERLAPPED*)(pev->pOverlapped);
 					DWORD dwSize = 0;
 					sl_bool flagError = sl_false;
-					if (!(GetOverlappedResult((HANDLE)handle, pOverlapped, &dwSize, FALSE))) {
-						flagError = sl_true;
-						close();
-					}
-					if (dwSize > 0) {
+					if (GetOverlappedResult((HANDLE)handle, pOverlapped, &dwSize, FALSE)) {
 						m_offset += dwSize;
 					} else {
 						flagError = sl_true;
+						close();
 					}
 
 					Ref<AsyncStreamRequest> req = Move(m_requestOperating);
 
 					if (req.isNotNull()) {
 						if (pOverlapped == &m_overlappedRead || pOverlapped == &m_overlappedWrite) {
-							processStreamResult(req.get(), dwSize, flagError);
+							if (dwSize) {
+								processStreamResult(req.get(), dwSize, AsyncStreamResultCode::Success);
+							} else {
+								if (req->flagRead) {
+									processStreamResult(req.get(), 0, AsyncStreamResultCode::Ended);
+								} else {
+									processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
+								}
+							}
 						}
 					}
 

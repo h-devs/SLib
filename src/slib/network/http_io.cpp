@@ -452,11 +452,11 @@ namespace slib
 
 	void HttpContentReader::onReadStream(AsyncStreamResult& result)
 	{
-		if (result.flagError) {
+		if (!(result.isSuccess())) {
 			setReadingEnded();
 		}
 		AsyncStreamFilter::onReadStream(result);
-		if (result.flagError) {
+		if (result.isError()) {
 			setError();
 		}
 	}

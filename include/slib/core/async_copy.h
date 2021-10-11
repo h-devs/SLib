@@ -92,6 +92,8 @@ namespace slib
 
 		sl_bool isWritingErrorOccured();
 
+		sl_bool isEndedReading();
+
 		sl_bool isReading();
 
 		sl_bool isWriting();
@@ -119,6 +121,7 @@ namespace slib
 		sl_uint64 m_sizeWritten;
 		sl_uint64 m_sizeTotal;
 		sl_bool m_flagReadError;
+		sl_bool m_flagReadEnded;
 		sl_bool m_flagWriteError;
 		sl_bool m_flagStarted;
 		sl_bool m_flagRunning;
@@ -132,9 +135,9 @@ namespace slib
 			Memory memWrite;
 		};
 		LinkedQueue< Ref<Buffer> > m_buffersRead;
-		AtomicRef<Buffer> m_bufferReading;
+		Ref<Buffer> m_bufferReading;
 		LinkedQueue< Ref<Buffer> > m_buffersWrite;
-		AtomicRef<Buffer> m_bufferWriting;
+		Ref<Buffer> m_bufferWriting;
 
 	};
 

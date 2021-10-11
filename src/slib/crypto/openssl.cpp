@@ -348,6 +348,7 @@ namespace slib
 				sl_bool m_flagReadingBase;
 				sl_bool m_flagWritingBase;
 				sl_bool m_flagReadingError;
+				sl_bool m_flagReadingEnded;
 				sl_bool m_flagWritingError;
 				Memory m_bufReadingBase;
 				Memory m_bufWritingBase;
@@ -369,12 +370,12 @@ namespace slib
 				Function<void(TlsStreamResult&)> m_onHandshake;
 				
 			protected:
-				StreamImpl(const Ref<AsyncStream>& baseStream)
-				: m_baseStream(baseStream)
+				StreamImpl(const Ref<AsyncStream>& baseStream): m_baseStream(baseStream)
 				{
 					m_flagReadingBase = sl_false;
 					m_flagWritingBase = sl_false;
 					m_flagReadingError = sl_false;
+					m_flagReadingEnded = sl_false;
 					m_flagWritingError = sl_false;
 					m_sizeWritingBase = 0;
 					
@@ -525,7 +526,7 @@ namespace slib
 					if (m_flagReadingBase) {
 						return;
 					}
-					if (m_flagReadingError) {
+					if (m_flagReadingError || m_flagReadingEnded) {
 						return;
 					}
 					m_flagReadingBase = sl_true;
@@ -569,25 +570,29 @@ namespace slib
 						}
 						int ret = SSL_read(m_ssl, (char*)(m_requestRead->data), (int)size);
 						if (ret > 0) {
-							Ref<AsyncStreamRequest> request = m_requestRead;
-							if (!(m_queueRead.pop_NoLock(&m_requestRead))) {
-								m_requestRead.setNull();
-							}
+							Ref<AsyncStreamRequest> request = Move(m_requestRead);
+							m_queueRead.pop_NoLock(&m_requestRead);
 							lock.unlock();
-							request->runCallback(this, (sl_uint32)ret, sl_false);
+							request->runCallback(this, (sl_uint32)ret, AsyncStreamResultCode::Success);
 						} else {
 							if (!m_flagReadingError) {
 								int err = SSL_get_error(m_ssl, ret);
 								if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE) {
-									return;
+									if (!m_flagReadingEnded) {
+										return;
+									}
+								} else {
+									m_flagReadingError = sl_true;
 								}
 							}
-							Ref<AsyncStreamRequest> request = m_requestRead;
-							if (!(m_queueRead.pop_NoLock(&m_requestRead))) {
-								m_requestRead.setNull();
-							}
+							Ref<AsyncStreamRequest> request = Move(m_requestRead);
+							m_queueRead.pop_NoLock(&m_requestRead);
 							lock.unlock();
-							request->runCallback(this, 0, sl_true);
+							if (m_flagReadingError) {
+								request->runCallback(this, 0, AsyncStreamResultCode::Unknown);
+							} else {
+								request->runCallback(this, 0, AsyncStreamResultCode::Ended);
+							}
 							break;
 						}
 					}
@@ -619,13 +624,11 @@ namespace slib
 								m_sizeWritten += ret;
 								sl_uint32 size = m_sizeWritten;
 								if (size >= m_requestWrite->size) {
-									Ref<AsyncStreamRequest> request = m_requestWrite;
+									Ref<AsyncStreamRequest> request = Move(m_requestWrite);
 									m_sizeWritten = 0;
-									if (!(m_queueWrite.pop_NoLock(&m_requestWrite))) {
-										m_requestWrite.setNull();
-									}
+									m_queueWrite.pop_NoLock(&m_requestWrite);
 									lock.unlock();
-									request->runCallback(this, size, sl_false);
+									request->runCallback(this, size, AsyncStreamResultCode::Success);
 									break;
 								}
 							} else {
@@ -635,14 +638,12 @@ namespace slib
 										return;
 									}
 								}
-								Ref<AsyncStreamRequest> request = m_requestWrite;
+								Ref<AsyncStreamRequest> request = Move(m_requestWrite);
 								sl_uint32 size = m_sizeWritten;
+								m_queueWrite.pop_NoLock(&m_requestWrite);
 								m_sizeWritten = 0;
-								if (!(m_queueWrite.pop_NoLock(&m_requestWrite))) {
-									m_requestWrite.setNull();
-								}
 								lock.unlock();
-								request->runCallback(this, size, sl_true);
+								request->runCallback(this, size, AsyncStreamResultCode::Unknown);
 								break;
 							}
 						}
@@ -656,8 +657,11 @@ namespace slib
 						return;
 					}
 					m_flagReadingBase = sl_false;
-					if (result.flagError) {
+					if (result.isError()) {
 						m_flagReadingError = sl_true;
+					}
+					if (result.isEnded()) {
+						m_flagReadingEnded = sl_true;
 					}
 					if (result.size > 0) {
 						BIO_write(m_rbio, result.data, (int)(result.size));

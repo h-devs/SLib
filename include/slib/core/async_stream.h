@@ -31,9 +31,17 @@ namespace slib
 	class AsyncStream;
 	class AsyncStreamRequest;
 	class Memory;
-	
-	struct SLIB_EXPORT AsyncStreamResult
+
+	enum class AsyncStreamResultCode
 	{
+		Success = 0,
+		Ended = 1,
+		Unknown = 2
+	};
+	
+	class SLIB_EXPORT AsyncStreamResult
+	{
+	public:
 		AsyncStream* stream;
 		AsyncStreamRequest* request;
 		sl_uint64 position; // requested position
@@ -41,7 +49,24 @@ namespace slib
 		sl_size size;
 		sl_size requestSize;
 		Referable* userObject;
-		sl_bool flagError;
+		AsyncStreamResultCode resultCode;
+
+	public:
+		sl_bool isSuccess() noexcept
+		{
+			return resultCode == AsyncStreamResultCode::Success;
+		}
+
+		sl_bool isEnded() noexcept
+		{
+			return resultCode == AsyncStreamResultCode::Ended;
+		}
+
+		sl_bool isError() noexcept
+		{
+			return resultCode > AsyncStreamResultCode::Ended;
+		}
+
 	};
 	
 	class SLIB_EXPORT AsyncStreamRequest : public Referable
@@ -73,7 +98,7 @@ namespace slib
 		static Ref<AsyncStreamRequest> createWrite(sl_int64 position, const void* data, sl_size size, Referable* userObject, const Function<void(AsyncStreamResult&)>& callback);
 
 	public:
-		void runCallback(AsyncStream* stream, sl_size resultSize, sl_bool flagError);
+		void runCallback(AsyncStream* stream, sl_size resultSize, AsyncStreamResultCode resultCode);
 
 	};
 	
@@ -106,7 +131,7 @@ namespace slib
 
 		sl_size getWriteRequestsCount();
 
-		void processStreamResult(AsyncStreamRequest* request, sl_size size, sl_bool flagError);
+		void processStreamResult(AsyncStreamRequest* request, sl_size size, AsyncStreamResultCode resultCode);
 
 	private:
 		LinkedQueue< Ref<AsyncStreamRequest> > m_requestsRead;

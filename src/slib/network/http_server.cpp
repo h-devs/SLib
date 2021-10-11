@@ -519,7 +519,7 @@ namespace slib
 	void HttpServerConnection::onReadStream(AsyncStreamResult& result)
 	{
 		m_flagReading = sl_false;
-		if (result.flagError) {
+		if (!(result.isSuccess())) {
 			close();
 		} else {
 			_processInput(result.data, result.size);

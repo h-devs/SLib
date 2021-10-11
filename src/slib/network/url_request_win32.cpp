@@ -493,11 +493,11 @@ namespace slib
 						onDownloadContent(result.size);
 						Base::interlockedAdd(&m_sizeDownloadWriting, -((sl_reg)(result.size)));
 					}
-					if (result.flagError) {
+					if (result.isError()) {
 						processError("Error on writing download file");
 						return;
 					}
-					if (m_sizeContentReceived >= m_sizeContentTotal || (m_step == STEP_FINISHED_RECEIVING && !(result.size))) {
+					if (result.isEnded() || m_sizeContentReceived >= m_sizeContentTotal || (m_step == STEP_FINISHED_RECEIVING && !(result.size))) {
 						processComplete();
 					} else {
 						downloadData();

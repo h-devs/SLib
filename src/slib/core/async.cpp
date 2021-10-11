@@ -469,11 +469,11 @@ namespace slib
 		return new AsyncStreamRequest(sl_false, position, data, size, userObject, callback);
 	}
 
-	void AsyncStreamRequest::runCallback(AsyncStream* stream, sl_size resultSize, sl_bool flagError)
+	void AsyncStreamRequest::runCallback(AsyncStream* stream, sl_size resultSize, AsyncStreamResultCode code)
 	{
 		if (callback.isNotNull()) {
 			if (!flagRead) {
-				if (!flagError && resultSize && resultSize < size) {
+				if (code == AsyncStreamResultCode::Success && resultSize && resultSize < size) {
 					if (position >= 0) {
 						position += resultSize;
 					}
@@ -500,7 +500,7 @@ namespace slib
 			result.size = resultSize;
 			result.requestSize = size;
 			result.userObject = userObject.get();
-			result.flagError = flagError;
+			result.resultCode = code;
 			callback(result);
 		}
 	}
@@ -565,11 +565,11 @@ namespace slib
 		return m_requestsWrite.getCount();
 	}
 
-	void AsyncStreamInstance::processStreamResult(AsyncStreamRequest* request, sl_size size, sl_bool flagError)
+	void AsyncStreamInstance::processStreamResult(AsyncStreamRequest* request, sl_size size, AsyncStreamResultCode code)
 	{
 		Ref<AsyncIoObject> object = getObject();
 		if (object.isNotNull()) {
-			request->runCallback(static_cast<AsyncStream*>(object.get()), size, flagError);
+			request->runCallback(static_cast<AsyncStream*>(object.get()), size, code);
 		}
 	}
 
@@ -1026,6 +1026,7 @@ namespace slib
 		m_sizeRead = 0;
 		m_sizeWritten = 0;
 		m_flagReadError = sl_false;
+		m_flagReadEnded = sl_false;
 		m_flagWriteError = sl_false;
 		m_flagRunning = sl_true;
 		m_flagStarted = sl_false;
@@ -1047,10 +1048,10 @@ namespace slib
 		if (param.source.isNull()) {
 			return sl_null;
 		}
-		if (param.size == 0) {
+		if (!(param.size)) {
 			return sl_null;
 		}
-		if (param.bufferSize == 0 || param.bufferCount == 0) {
+		if (!(param.bufferSize) || !(param.bufferCount)) {
 			return sl_null;
 		}
 		Ref<AsyncCopy> ret = new AsyncCopy();
@@ -1155,6 +1156,11 @@ namespace slib
 		return m_flagReadError;
 	}
 
+	sl_bool AsyncCopy::isEndedReading()
+	{
+		return m_flagReadEnded;
+	}
+
 	sl_bool AsyncCopy::isWritingErrorOccured()
 	{
 		return m_flagWriteError;
@@ -1177,27 +1183,35 @@ namespace slib
 			return;
 		}
 
-		if (result.flagError) {
-			m_flagReadError = sl_true;
-		}
-
-		Ref<Buffer> bufferReading = m_bufferReading;
-		m_bufferReading.setNull();
+		Ref<Buffer> bufferReading = Move(m_bufferReading);
 
 		if (bufferReading.isNotNull()) {
-			m_sizeRead += result.size;
-			Memory memWrite = bufferReading->mem.sub(0, result.size);
-			if (memWrite.isNull()) {
-				m_flagReadError = sl_true;
-			} else {
-				memWrite = dispatchRead(memWrite);
-				if (memWrite.isNotNull()) {
-					bufferReading->memWrite = memWrite;
-					m_buffersWrite.pushBack(bufferReading);
-				} else {
-					bufferReading->memWrite.setNull();
-					m_buffersRead.pushBack(bufferReading);
+			do {
+				if (result.size) {
+					m_sizeRead += result.size;
+					Memory memWrite = bufferReading->mem.sub(0, result.size);
+					if (memWrite.isNull()) {
+						m_flagReadError = sl_true;
+					} else {
+						memWrite = dispatchRead(memWrite);
+						if (memWrite.isNotNull()) {
+							bufferReading->memWrite = memWrite;
+							m_buffersWrite.pushBack(bufferReading);
+							break;
+						}
+					}
 				}
+				bufferReading->memWrite.setNull();
+				m_buffersRead.pushBack(bufferReading);
+			} while (0);
+		}
+
+		if (result.isError()) {
+			m_flagReadError = sl_true;
+		} else if (result.isEnded()) {
+			m_flagReadEnded = sl_true;
+			if (m_sizeTotal == SLIB_UINT64_MAX) {
+				m_sizeTotal = m_sizeRead;
 			}
 		}
 
@@ -1211,12 +1225,11 @@ namespace slib
 		if (!m_flagRunning) {
 			return;
 		}
-		if (result.flagError) {
+		if (result.isError()) {
 			m_flagWriteError = sl_true;
 		}
 
-		Ref<Buffer> bufferWriting = m_bufferWriting;
-		m_bufferWriting.setNull();
+		Ref<Buffer> bufferWriting = Move(m_bufferWriting);
 
 		if (bufferWriting.isNotNull()) {
 			m_sizeWritten += result.size;
@@ -1241,7 +1254,7 @@ namespace slib
 
 		// read
 		do {
-			if (m_flagReadError) {
+			if (m_flagReadError || m_flagReadEnded) {
 				break;
 			}
 			if (m_sizeRead >= m_sizeTotal) {
@@ -1635,7 +1648,7 @@ namespace slib
 	void AsyncOutput::onWriteStream(AsyncStreamResult& result)
 	{
 		m_flagWriting = sl_false;
-		if (result.flagError) {
+		if (!(result.isSuccess())) {
 			_onError();
 			return;
 		}
@@ -1747,10 +1760,10 @@ namespace slib
 							request->userObject = _userObject.release();
 							request->callback = callback.release();
 							request->sizeWritten = 0;
-							if (result.flagError) {
+							if (!(result.isSuccess())) {
 								m_flagWritingError = sl_true;
 							}
-							request->runCallback(this, size, m_flagWritingError);
+							request->runCallback(this, size, m_flagWritingError ? AsyncStreamResultCode::Unknown : AsyncStreamResultCode::Success);
 						};
 						request->data = memConverted.data;
 						request->size = memConverted.size;
@@ -1865,8 +1878,10 @@ namespace slib
 		if (result.size > 0) {
 			addReadData(result.data, result.size, result.userObject);
 		}
-		if (result.flagError) {
+		if (result.isError()) {
 			m_flagReadingError = sl_true;
+		} else if (result.isEnded()) {
+			m_flagReadingEnded = sl_true;
 		}
 		if (m_bufReadConverted.getSize()) {
 			for (;;) {
@@ -1875,18 +1890,22 @@ namespace slib
 					return;
 				}
 				if (req.isNotNull()) {
-					sl_uint32 m = 0;
 					if (req->data && req->size) {
-						sl_size _m = m_bufReadConverted.pop(req->data, req->size);
-						m = (sl_uint32)(_m);
-						if (!(m_bufReadConverted.getSize())) {
-							req->runCallback(this, m, m_flagReadingError);
-							break;
+						sl_size m = m_bufReadConverted.pop(req->data, req->size);
+						if (m_bufReadConverted.getSize()) {
+							req->runCallback(this, m, AsyncStreamResultCode::Success);
 						} else {
-							req->runCallback(this, m, sl_false);
+							if (m_flagReadingEnded) {
+								req->runCallback(this, m, AsyncStreamResultCode::Ended);
+							} else if (m_flagReadingError) {
+								req->runCallback(this, m, AsyncStreamResultCode::Unknown);
+							} else {
+								req->runCallback(this, m, AsyncStreamResultCode::Success);
+							}
+							break;
 						}
 					} else {
-						req->runCallback(this, req->size, sl_false);
+						req->runCallback(this, 0, AsyncStreamResultCode::Success);
 					}
 				}
 			}
@@ -1970,7 +1989,7 @@ namespace slib
 		Ref<AsyncStreamRequest> req;
 		while (m_requestsRead.pop(&req)) {
 			if (req.isNotNull()) {
-				req->runCallback(this, 0, sl_true);
+				req->runCallback(this, 0, AsyncStreamResultCode::Unknown);
 			}
 		}
 	}

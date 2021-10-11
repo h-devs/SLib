@@ -45,7 +45,6 @@ namespace slib
 		Ref<AsyncIoLoop> ioLoop;
 		
 		Function<void(AsyncTcpSocket*, sl_bool flagError)> onConnect;
-		Function<void(AsyncTcpSocket*)> onError;
 		
 	public:
 		AsyncTcpSocketParam();
@@ -82,20 +81,13 @@ namespace slib
 	protected:
 		Ref<AsyncTcpSocketInstance> _getIoInstance();
 		
-		void _onReceive(AsyncStreamRequest* req, sl_size size, sl_bool flagError);
-		
-		void _onSend(AsyncStreamRequest* req, sl_size size, sl_bool flagError);
-		
 		void _onConnect(sl_bool flagError);
-		
-		void _onError();
 		
 	private:
 		static Ref<AsyncTcpSocketInstance> _createInstance(Socket&& socket, sl_bool flagIPv6);
 		
 	protected:
 		Function<void(AsyncTcpSocket*, sl_bool flagError)> m_onConnect;
-		Function<void(AsyncTcpSocket*)> m_onError;
 		
 		friend class AsyncTcpSocketInstance;
 		
