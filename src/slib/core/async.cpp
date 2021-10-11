@@ -30,6 +30,7 @@
 
 #include "slib/core/thread.h"
 #include "slib/core/dispatch_loop.h"
+#include "slib/core/handle_ptr.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -504,6 +505,7 @@ namespace slib
 		}
 	}
 
+
 	SLIB_DEFINE_OBJECT(AsyncStreamInstance, AsyncIoInstance)
 
 	AsyncStreamInstance::AsyncStreamInstance()
@@ -563,6 +565,13 @@ namespace slib
 		return m_requestsWrite.getCount();
 	}
 
+	void AsyncStreamInstance::processStreamResult(AsyncStreamRequest* request, sl_size size, sl_bool flagError)
+	{
+		Ref<AsyncIoObject> object = getObject();
+		if (object.isNotNull()) {
+			request->runCallback(static_cast<AsyncStream*>(object.get()), size, flagError);
+		}
+	}
 
 	SLIB_DEFINE_OBJECT(AsyncStream, Object)
 
@@ -898,6 +907,11 @@ namespace slib
 				}
 			}
 		}
+	}
+
+	sl_uint64 AsyncFileInstance::getSize()
+	{
+		return (HandlePtr<File>(getHandle()))->getSize();
 	}
 
 

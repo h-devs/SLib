@@ -58,7 +58,9 @@ namespace slib
 		~AsyncFileInstance();
 
 	public:
-		void close();
+		void close() override;
+
+		sl_uint64 getSize() override;
 
 	protected:
 		sl_bool m_flagCloseOnRelease;

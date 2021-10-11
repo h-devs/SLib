@@ -27,6 +27,7 @@
 #include "network_async.h"
 
 #include "slib/core/thread.h"
+#include "slib/core/handle_ptr.h"
 
 namespace slib
 {
@@ -39,22 +40,15 @@ namespace slib
 			class TcpInstance : public AsyncTcpSocketInstance
 			{
 			public:
-				AtomicRef<AsyncStreamRequest> m_requestReading;
-				AtomicRef<AsyncStreamRequest> m_requestWriting;
-				sl_size m_sizeWritten;
+				Ref<AsyncStreamRequest> m_requestReading;
+				Ref<AsyncStreamRequest> m_requestWriting;
 				
 				sl_bool m_flagConnecting;
 
 			public:
 				TcpInstance()
 				{
-					m_sizeWritten = 0;
 					m_flagConnecting = sl_false;
-				}
-				
-				~TcpInstance()
-				{
-					close();
 				}
 				
 			public:
@@ -66,8 +60,8 @@ namespace slib
 							if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 								Ref<TcpInstance> ret = new TcpInstance();
 								if (ret.isNotNull()) {
-									ret->m_socket = Move(socket);
 									ret->setHandle(handle);
+									socket.release();
 									return ret;
 								}
 							}
@@ -76,22 +70,16 @@ namespace slib
 					return sl_null;
 				}
 				
-				void close() override
-				{
-					AsyncTcpSocketInstance::close();
-					setHandle(SLIB_ASYNC_INVALID_HANDLE);
-					m_socket.close();
-				}
-				
 				void processRead(sl_bool flagError)
 				{
-					Socket& socket = m_socket;
-					if (socket.isNone()) {
+					HandlePtr<Socket> socket = getSocket();
+					if (socket->isNone()) {
 						return;
 					}
-					Ref<AsyncStreamRequest> request = m_requestReading;
-					m_requestReading.setNull();
+
+					Ref<AsyncStreamRequest> request = Move(m_requestReading);
 					sl_size nQueue = getReadRequestsCount();
+
 					Thread* thread = Thread::getCurrent();
 					while (!thread || thread->isNotStopping()) {
 						if (request.isNull()) {
@@ -105,8 +93,10 @@ namespace slib
 								return;
 							}
 						}
-						if (request->data && request->size) {
-							sl_int32 n = socket.receive(request->data, request->size);
+						char* data = (char*)(request->data);
+						sl_size size = request->size;
+						if (data && size) {
+							sl_int32 n = socket->receive(data, size);
 							if (n > 0) {
 								_onReceive(request.get(), n, flagError);
 							} else {
@@ -114,7 +104,7 @@ namespace slib
 									if (flagError) {
 										_onReceive(request.get(), 0, sl_true);
 									} else {
-										m_requestReading = request;
+										m_requestReading = Move(request);
 									}
 								} else {
 									_onReceive(request.get(), 0, sl_true);
@@ -122,7 +112,7 @@ namespace slib
 								return;
 							}
 						} else {
-							_onReceive(request.get(), request->size, sl_false);
+							_onReceive(request.get(), 0, sl_false);
 						}
 						request.setNull();
 					}
@@ -130,13 +120,14 @@ namespace slib
 				
 				void processWrite(sl_bool flagError)
 				{
-					Socket& socket = m_socket;
-					if (socket.isNone()) {
+					HandlePtr<Socket> socket = getSocket();
+					if (socket->isNone()) {
 						return;
 					}
-					Ref<AsyncStreamRequest> request = m_requestWriting;
-					m_requestWriting.setNull();
+
+					Ref<AsyncStreamRequest> request = Move(m_requestWriting);
 					sl_size nQueue = getWriteRequestsCount();
+
 					Thread* thread = Thread::getCurrent();
 					while (!thread || thread->isNotStopping()) {
 						if (request.isNull()) {
@@ -145,37 +136,42 @@ namespace slib
 								popWriteRequest(request);
 								if (request.isNull()) {
 									return;
-								} else {
-									m_sizeWritten = 0;
 								}
 							} else {
 								return;
 							}
 						}
-						if (request->data && request->size) {
-							sl_size size = request->size - m_sizeWritten;
-							sl_int32 n = socket.send((char*)(request->data) + m_sizeWritten, size);
-							if (n >= 0) {
-								m_sizeWritten += n;
-								if (m_sizeWritten >= request->size) {
-									_onSend(request.get(), request->size, flagError);
-								} else {
-									m_requestWriting = request;
-								}
-							} else {
-								if (n == SLIB_IO_WOULD_BLOCK) {
-									if (flagError) {
-										_onSend(request.get(), m_sizeWritten, sl_true);
-									} else {
-										m_requestWriting = request;
+						char* data = (char*)(request->data);
+						sl_size size = request->size;
+						if (data && size) {
+							for (;;) {
+								sl_size sizeWritten = request->sizeWritten;
+								sl_int32 n = socket->send(data + sizeWritten, size - sizeWritten);
+								if (n > 0) {
+									request->sizeWritten += n;
+									if (request->sizeWritten >= size) {
+										request->sizeWritten = 0;
+										_onSend(request.get(), size, flagError);
+										break;
 									}
 								} else {
-									_onSend(request.get(), m_sizeWritten, sl_true);
+									if (n == SLIB_IO_WOULD_BLOCK) {
+										if (flagError) {
+											request->sizeWritten = 0;
+											_onSend(request.get(), sizeWritten, sl_true);
+										} else {
+											m_requestWriting = Move(request);
+										}
+									} else {
+										request->sizeWritten = 0;
+										_onSend(request.get(), sizeWritten, sl_true);
+									}
+									return;
 								}
-								return;
 							}
 						} else {
-							_onSend(request.get(), request->size, sl_false);
+							request->sizeWritten = 0;
+							_onSend(request.get(), 0, sl_false);
 						}
 						request.setNull();
 					}
@@ -183,16 +179,17 @@ namespace slib
 				
 				void onOrder() override
 				{
-					Socket& socket = m_socket;
-					if (socket.isNone()) {
+					HandlePtr<Socket> socket = getSocket();
+					if (socket->isNone()) {
 						return;
 					}
+
 					if (m_flagConnecting) {
 						return;
 					}
 					if (m_flagRequestConnect) {
 						m_flagRequestConnect = sl_false;
-						if (socket.connect(m_addressRequestConnect)) {
+						if (socket->connect(m_addressRequestConnect)) {
 							m_flagConnecting = sl_true;
 						} else {
 							_onConnect(sl_true);
@@ -249,11 +246,6 @@ namespace slib
 					m_flagListening = sl_false;
 				}
 				
-				~TcpServerInstance()
-				{
-					close();
-				}
-				
 			public:
 				static Ref<TcpServerInstance> create(Socket&& socket)
 				{
@@ -263,8 +255,8 @@ namespace slib
 							if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 								Ref<TcpServerInstance> ret = new TcpServerInstance();
 								if (ret.isNotNull()) {
-									ret->m_socket = Move(socket);
 									ret->setHandle(handle);
+									socket.release();
 									return ret;
 								}
 							}
@@ -273,24 +265,18 @@ namespace slib
 					return sl_null;
 				}
 				
-				void close() override
-				{
-					AsyncTcpServerInstance::close();
-					setHandle(SLIB_ASYNC_INVALID_HANDLE);
-					m_socket.close();
-				}
-				
 				void onOrder() override
 				{
-					Socket& socket = m_socket;
-					if (socket.isNone()) {
+					HandlePtr<Socket> socket = getSocket();
+					if (socket->isNone()) {
 						return;
 					}
+
 					Thread* thread = Thread::getCurrent();
 					while (!thread || thread->isNotStopping()) {
 						SocketAddress addr;
 						Socket socketAccept;
-						if (socket.accept(socketAccept, addr)) {
+						if (socket->accept(socketAccept, addr)) {
 							_onAccept(socketAccept, addr);
 						} else {
 							SocketError err = Socket::getLastError();
@@ -320,11 +306,6 @@ namespace slib
 				{
 				}
 				
-				~UdpInstance()
-				{
-					close();
-				}
-				
 			public:
 				static Ref<UdpInstance> create(Socket&& socket, const Memory& buffer)
 				{
@@ -334,22 +315,15 @@ namespace slib
 							if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 								Ref<UdpInstance> ret = new UdpInstance();
 								if (ret.isNotNull()) {
-									ret->m_socket = Move(socket);
 									ret->m_buffer = buffer;
 									ret->setHandle(handle);
+									socket.release();
 									return ret;
 								}
 							}
 						}
 					}
 					return sl_null;
-				}
-				
-				void close() override
-				{
-					AsyncUdpSocketInstance::close();
-					setHandle(SLIB_ASYNC_INVALID_HANDLE);
-					m_socket.close();
 				}
 				
 				void onOrder() override
@@ -366,17 +340,18 @@ namespace slib
 				
 				void processReceive()
 				{
-					Socket& socket = m_socket;
-					if (socket.isNone()) {
+					HandlePtr<Socket> socket = getSocket();
+					if (socket->isNone()) {
 						return;
 					}
+
 					void* buf = m_buffer.getData();
 					sl_uint32 sizeBuf = (sl_uint32)(m_buffer.getSize());
 					
 					Thread* thread = Thread::getCurrent();
 					while (!thread || thread->isNotStopping()) {
 						SocketAddress addr;
-						sl_int32 n = socket.receiveFrom(addr, buf, sizeBuf);
+						sl_int32 n = socket->receiveFrom(addr, buf, sizeBuf);
 						if (n >= 0) {
 							_onReceive(addr, n);
 						} else {
@@ -389,7 +364,6 @@ namespace slib
 				}
 				
 			};
-
 
 		}
 	}

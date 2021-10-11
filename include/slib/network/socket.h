@@ -209,6 +209,8 @@ namespace slib
 	public:
 		void close() noexcept;
 
+		static void close(sl_socket handle) noexcept;
+
 		sl_bool isOpened() const noexcept;
 
 		sl_bool shutdown(SocketShutdownMode shutMode) const noexcept;

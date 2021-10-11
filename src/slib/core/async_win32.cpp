@@ -99,17 +99,17 @@ namespace slib
 										size = (DWORD)(req->size);
 									}
 									if (ReadFile((HANDLE)handle, req->data, size, NULL, &m_overlappedRead)) {
-										_onComplete(req.get(), 0, sl_true);
+										processStreamResult(req.get(), 0, sl_true);
 									} else {
 										DWORD dwErr = ::GetLastError();
 										if (dwErr == ERROR_IO_PENDING) {
 											m_requestOperating = req;
 										} else {
-											_onComplete(req.get(), 0, sl_true);
+											processStreamResult(req.get(), 0, sl_true);
 										}
 									}
 								} else {
-									_onComplete(req.get(), req->size, sl_false);
+									processStreamResult(req.get(), req->size, sl_false);
 								}
 							}
 						}
@@ -132,17 +132,17 @@ namespace slib
 										size = (DWORD)(req->size);
 									}
 									if (WriteFile((HANDLE)handle, req->data, size, NULL, &m_overlappedWrite)) {
-										_onComplete(req.get(), 0, sl_true);
+										processStreamResult(req.get(), 0, sl_true);
 									} else {
 										DWORD dwErr = ::GetLastError();
 										if (dwErr == ERROR_IO_PENDING) {
 											m_requestOperating = req;
 										} else {
-											_onComplete(req.get(), 0, sl_true);
+											processStreamResult(req.get(), 0, sl_true);
 										}
 									}
 								} else {
-									_onComplete(req.get(), req->size, sl_false);
+									processStreamResult(req.get(), req->size, sl_false);
 								}
 							}
 						}
@@ -168,24 +168,15 @@ namespace slib
 						flagError = sl_true;
 					}
 
-					Ref<AsyncStreamRequest> req = m_requestOperating;
-					m_requestOperating.setNull();
+					Ref<AsyncStreamRequest> req = Move(m_requestOperating);
 
 					if (req.isNotNull()) {
 						if (pOverlapped == &m_overlappedRead || pOverlapped == &m_overlappedWrite) {
-							_onComplete(req.get(), dwSize, flagError);
+							processStreamResult(req.get(), dwSize, flagError);
 						}
 					}
 
 					requestOrder();
-				}
-
-				void _onComplete(AsyncStreamRequest* req, sl_size size, sl_bool flagError)
-				{
-					Ref<AsyncIoObject> object = getObject();
-					if (object.isNotNull()) {
-						req->runCallback(static_cast<AsyncStream*>(object.get()), size, flagError);
-					}
 				}
 
 				sl_bool isSeekable() override
@@ -202,12 +193,6 @@ namespace slib
 				sl_uint64 getPosition() override
 				{
 					return m_offset;
-				}
-
-				sl_uint64 getSize() override
-				{
-					sl_file handle = getHandle();
-					return HandlePtr<File>(handle)->getSize();
 				}
 
 			};
@@ -274,8 +259,7 @@ namespace slib
 
 		if (hFile != SLIB_FILE_INVALID_HANDLE) {
 			if (mode & FileMode::SeekToEnd) {
-				HandlePtr<File> file(hFile);
-				file->seekToEnd();
+				(HandlePtr<File>(hFile))->seekToEnd();
 				initialPosition = -1;
 			} else {
 				initialPosition = 0;

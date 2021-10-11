@@ -61,8 +61,6 @@ namespace slib
 		void _onConnect(sl_bool flagError);
 		
 	protected:
-		Socket m_socket;
-		
 		sl_bool m_flagSupportingConnect;
 		sl_bool m_flagRequestConnect;
 		SocketAddress m_addressRequestConnect;
@@ -93,8 +91,6 @@ namespace slib
 		void _onError();
 		
 	protected:
-		Socket m_socket;
-		
 		sl_bool m_flagRunning;
 		
 	};
@@ -123,8 +119,6 @@ namespace slib
 		void _onError();
 		
 	protected:
-		Socket m_socket;
-
 		sl_bool m_flagRunning;
 		Memory m_buffer;
 		

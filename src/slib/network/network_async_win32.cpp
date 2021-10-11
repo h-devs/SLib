@@ -49,11 +49,11 @@ namespace slib
 				WSAOVERLAPPED m_overlappedRead;
 				WSABUF m_bufRead;
 				DWORD m_flagsRead;
-				AtomicRef<AsyncStreamRequest> m_requestReading;
+				Ref<AsyncStreamRequest> m_requestReading;
 
 				WSAOVERLAPPED m_overlappedWrite;
 				WSABUF m_bufWrite;
-				AtomicRef<AsyncStreamRequest> m_requestWriting;
+				Ref<AsyncStreamRequest> m_requestWriting;
 
 				WSAOVERLAPPED m_overlappedConnect;
 				LPFN_CONNECTEX m_funcConnectEx;
@@ -61,11 +61,6 @@ namespace slib
 			public:
 				TcpInstance()
 				{
-				}
-
-				~TcpInstance()
-				{
-					close();
 				}
 
 			public:
@@ -76,10 +71,10 @@ namespace slib
 						if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 							Ref<TcpInstance> ret = new TcpInstance();
 							if (ret.isNotNull()) {
-								ret->m_socket = Move(socket);
 								ret->m_flagIPv6 = flagIPv6;
 								ret->setHandle(handle);
 								ret->initializeConnectEx();
+								socket.release();
 								return ret;
 							}
 						}
@@ -107,18 +102,8 @@ namespace slib
 					m_flagSupportingConnect = m_funcConnectEx != sl_null;
 				}
 
-				void close() override
-				{
-					setHandle(SLIB_ASYNC_INVALID_HANDLE);
-					m_socket.close();
-				}
-
 				void onOrder() override
 				{
-					Socket& socket = m_socket;
-					if (socket.isNone()) {
-						return;
-					}
 					sl_async_handle handle = getHandle();
 					if (handle == SLIB_ASYNC_INVALID_HANDLE) {
 						return;
@@ -127,13 +112,15 @@ namespace slib
 						Ref<AsyncStreamRequest> req;
 						if (popReadRequest(req)) {
 							if (req.isNotNull()) {
-								if (req->data && req->size) {
+								char* data = (char*)(req->data);
+								sl_size size = req->size;
+								if (data && size) {
 									Base::zeroMemory(&m_overlappedRead, sizeof(m_overlappedRead));
-									m_bufRead.buf = (CHAR*)(req->data);
-									if (req->size > 0x40000000) {
+									m_bufRead.buf = data;
+									if (size > 0x40000000) {
 										m_bufRead.len = 0x40000000;
 									} else {
-										m_bufRead.len = (ULONG)(req->size);
+										m_bufRead.len = (ULONG)(size);
 									}
 									m_flagsRead = 0;
 									DWORD dwRead = 0;
@@ -142,13 +129,13 @@ namespace slib
 										// SOCKET_ERROR
 										DWORD dwErr = WSAGetLastError();
 										if (dwErr == WSA_IO_PENDING) {
-											m_requestReading = req;
+											m_requestReading = Move(req);
 										} else {
 											_onReceive(req.get(), 0, sl_true);
 										}
 									} else {
 										// No Error
-										m_requestReading = req;
+										m_requestReading = Move(req);
 										EventDesc desc;
 										desc.pOverlapped = &m_overlappedRead;
 										onEvent(&desc);
@@ -163,25 +150,27 @@ namespace slib
 						Ref<AsyncStreamRequest> req;
 						if (popWriteRequest(req)) {
 							if (req.isNotNull()) {
-								if (req->data && req->size) {
+								char* data = (char*)(req->data);
+								sl_size size = req->size;
+								if (data && size) {
 									Base::zeroMemory(&m_overlappedWrite, sizeof(m_overlappedWrite));
-									m_bufWrite.buf = (CHAR*)(req->data);
-									if (req->size > 0x40000000) {
+									m_bufWrite.buf = data;
+									if (size > 0x40000000) {
 										m_bufWrite.len = 0x40000000;
 									} else {
-										m_bufWrite.len = (ULONG)(req->size);
+										m_bufWrite.len = (ULONG)(size);
 									}
 									DWORD dwWrite = 0;
 									int ret = WSASend((SOCKET)handle, &m_bufWrite, 1, &dwWrite, 0, &m_overlappedWrite, NULL);
 									if (ret == 0) {
-										m_requestWriting = req;
+										m_requestWriting = Move(req);
 										EventDesc desc;
 										desc.pOverlapped = &m_overlappedWrite;
 										onEvent(&desc);
 									} else {
 										int dwErr = WSAGetLastError();
 										if (dwErr == WSA_IO_PENDING) {
-											m_requestWriting = req;
+											m_requestWriting = Move(req);
 										} else {
 											_onSend(req.get(), 0, sl_true);
 										}
@@ -252,8 +241,7 @@ namespace slib
 						flagError = sl_true;
 					}
 					if (pOverlapped == &m_overlappedRead) {
-						Ref<AsyncStreamRequest> req = m_requestReading;
-						m_requestReading.setNull();
+						Ref<AsyncStreamRequest> req = Move(m_requestReading);
 						if (req.isNotNull()) {
 							_onReceive(req.get(), dwSize, flagError);
 						}
@@ -261,8 +249,7 @@ namespace slib
 						if (dwSize == 0) {
 							flagError = sl_true;
 						}
-						Ref<AsyncStreamRequest> req = m_requestWriting;
-						m_requestWriting.setNull();
+						Ref<AsyncStreamRequest> req = Move(m_requestWriting);
 						if (req.isNotNull()) {
 							_onSend(req.get(), dwSize, flagError);
 						}
@@ -296,11 +283,6 @@ namespace slib
 					m_flagAccepting = sl_false;
 				}
 
-				~TcpServerInstance()
-				{
-					close();
-				}
-
 			public:
 				static Ref<TcpServerInstance> create(Socket&& socket, sl_bool flagIPv6)
 				{
@@ -309,10 +291,10 @@ namespace slib
 						if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 							Ref<TcpServerInstance> ret = new TcpServerInstance();
 							if (ret.isNotNull()) {
-								ret->m_socket = Move(socket);
 								ret->m_flagIPv6 = flagIPv6;
 								ret->setHandle(handle);
 								if (ret->initialize()) {
+									socket.release();
 									return ret;
 								}
 							}
@@ -357,19 +339,8 @@ namespace slib
 					return m_funcAcceptEx != sl_null && m_funcGetAcceptExSockaddrs != sl_null;
 				}
 
-				void close() override
-				{
-					AsyncTcpServerInstance::close();
-					setHandle(SLIB_ASYNC_INVALID_HANDLE);
-					m_socket.close();
-				}
-
 				void onOrder() override
 				{
-					Socket& socket = m_socket;
-					if (socket.isNone()) {
-						return;
-					}
 					if (m_flagAccepting) {
 						return;
 					}
@@ -481,11 +452,6 @@ namespace slib
 					m_flagReceiving = sl_false;
 				}
 
-				~UdpInstance()
-				{
-					close();
-				}
-
 			public:
 				static Ref<UdpInstance> create(Socket&& socket, const Memory& buffer)
 				{
@@ -495,22 +461,15 @@ namespace slib
 							if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 								Ref<UdpInstance> ret = new UdpInstance();
 								if (ret.isNotNull()) {
-									ret->m_socket = Move(socket);
 									ret->setHandle(handle);
 									ret->m_buffer = buffer;
+									socket.release();
 									return ret;
 								}
 							}
 						}
 					}
 					return sl_null;
-				}
-
-				void close() override
-				{
-					AsyncUdpSocketInstance::close();
-					setHandle(SLIB_ASYNC_INVALID_HANDLE);
-					m_socket.close();
 				}
 
 				void onOrder() override
@@ -580,7 +539,7 @@ namespace slib
 						}
 					} else {
 						// Success
-						m_flagReceiving = sl_true;						
+						m_flagReceiving = sl_true;
 					}
 				}
 

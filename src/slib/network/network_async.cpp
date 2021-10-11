@@ -38,11 +38,12 @@ namespace slib
 
 	AsyncTcpSocketInstance::~AsyncTcpSocketInstance()
 	{
+		close();
 	}
 
 	sl_socket AsyncTcpSocketInstance::getSocket()
 	{
-		return m_socket.get();
+		return (sl_socket)(getHandle());
 	}
 
 	sl_bool AsyncTcpSocketInstance::isSupportedConnect()
@@ -52,6 +53,11 @@ namespace slib
 
 	void AsyncTcpSocketInstance::close()
 	{
+		sl_socket socket = getSocket();
+		if (socket != SLIB_SOCKET_INVALID_HANDLE) {
+			Socket::close(socket);
+			setHandle(SLIB_ASYNC_INVALID_HANDLE);
+		}
 	}
 
 	sl_bool AsyncTcpSocketInstance::connect(const SocketAddress& address)
@@ -265,11 +271,17 @@ namespace slib
 
 	AsyncTcpServerInstance::~AsyncTcpServerInstance()
 	{
+		close();
 	}
 
 	void AsyncTcpServerInstance::close()
 	{
 		m_flagRunning = sl_false;
+		sl_socket socket = getSocket();
+		if (socket != SLIB_SOCKET_INVALID_HANDLE) {
+			Socket::close(socket);
+			setHandle(SLIB_ASYNC_INVALID_HANDLE);
+		}
 	}
 
 	void AsyncTcpServerInstance::start()
@@ -289,7 +301,7 @@ namespace slib
 
 	sl_socket AsyncTcpServerInstance::getSocket()
 	{
-		return m_socket.get();
+		return (sl_socket)(getHandle());
 	}
 
 	void AsyncTcpServerInstance::_onAccept(Socket& socketAccept, const SocketAddress& address)
@@ -463,11 +475,17 @@ namespace slib
 
 	AsyncUdpSocketInstance::~AsyncUdpSocketInstance()
 	{
+		close();
 	}
 
 	void AsyncUdpSocketInstance::close()
 	{
 		m_flagRunning = sl_false;
+		sl_socket socket = getSocket();
+		if (socket != SLIB_SOCKET_INVALID_HANDLE) {
+			Socket::close(socket);
+			setHandle(SLIB_ASYNC_INVALID_HANDLE);
+		}
 	}
 
 	void AsyncUdpSocketInstance::start()
@@ -487,7 +505,7 @@ namespace slib
 
 	sl_socket AsyncUdpSocketInstance::getSocket()
 	{
-		return m_socket.get();
+		return (sl_socket)(getHandle());
 	}
 
 	void AsyncUdpSocketInstance::_onReceive(const SocketAddress& address, sl_uint32 size)

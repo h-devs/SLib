@@ -106,6 +106,8 @@ namespace slib
 
 		sl_size getWriteRequestsCount();
 
+		void processStreamResult(AsyncStreamRequest* request, sl_size size, sl_bool flagError);
+
 	private:
 		LinkedQueue< Ref<AsyncStreamRequest> > m_requestsRead;
 		LinkedQueue< Ref<AsyncStreamRequest> > m_requestsWrite;

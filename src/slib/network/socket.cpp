@@ -561,6 +561,11 @@ namespace slib
 		setNone();
 	}
 
+	void Socket::close(sl_socket socket) noexcept
+	{
+		CloseSocket(socket);
+	}
+
 	sl_bool Socket::isOpened() const noexcept
 	{
 		return m_socket != SLIB_SOCKET_INVALID_HANDLE;
