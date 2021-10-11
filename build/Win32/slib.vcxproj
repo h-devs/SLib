@@ -186,6 +186,7 @@
     <ClCompile Include="..\..\src\slib\db\database_expression.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_sql.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_statement.cpp" />
+    <ClCompile Include="..\..\src\slib\db\data_store.cpp" />
     <ClCompile Include="..\..\src\slib\db\dl_win32_libmysql.cpp" />
     <ClCompile Include="..\..\src\slib\db\document_store.cpp" />
     <ClCompile Include="..\..\src\slib\db\key_value_store.cpp" />

@@ -1406,5 +1406,8 @@
     <ClCompile Include="..\..\src\slib\db\object_store.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\db\data_store.cpp">
+      <Filter>src\db</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

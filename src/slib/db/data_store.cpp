@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,28 +20,10 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DB_HEADER
-#define CHECKHEADER_SLIB_DB_HEADER
+#include "slib/db/data_store.h"
 
-#include "db/constants.h"
+namespace slib
+{
 
-#include "db/database.h"
-#include "db/expression.h"
-#include "db/sql.h"
-#include "db/sqlite.h"
-#include "db/mysql.h"
-#include "db/postgresql.h"
 
-#include "db/key_value_store.h"
-#include "db/redis.h"
-#include "db/leveldb.h"
-#include "db/rocksdb.h"
-#include "db/lmdb.h"
-
-#include "db/document_store.h"
-#include "db/mongodb.h"
-
-#include "db/object_store.h"
-#include "db/data_store.h"
-
-#endif
+}
