@@ -209,7 +209,7 @@ namespace slib
 	{
 		Ref<priv::async::FileInstance> ret = priv::async::FileInstance::create(param);
 		if (ret.isNotNull()) {
-			return AsyncFile::create(ret.get(), AsyncIoMode::InOut, param.ioLoop);
+			return AsyncFile::create(ret.get(), param.mode, param.ioLoop);
 		}
 		return sl_null;
 	}

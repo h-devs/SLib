@@ -179,10 +179,11 @@ namespace slib
 		}
 		
 		int ret = epoll_ctl(handle->fdEpoll, EPOLL_CTL_ADD, hObject, &ev);
-		if (ret == 0) {
-			return sl_true;
-		} else {
+		if (ret) {
+			int err = errno;
 			return sl_false;
+		} else {
+			return sl_true;
 		}
 	}
 

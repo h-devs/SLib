@@ -873,6 +873,7 @@ namespace slib
 	{
 		handle = SLIB_FILE_INVALID_HANDLE;
 		flagCloseOnRelease = sl_true;
+		mode = AsyncIoMode::InOut;
 		initialPosition = -1;
 	}
 
@@ -954,6 +955,19 @@ namespace slib
 		AsyncFileParam param;
 		if (param.open(path, mode)) {
 			param.ioLoop = loop;
+			if (mode & FileMode::Read) {
+				if (mode & FileMode::Write) {
+					param.mode = AsyncIoMode::InOut;
+				} else {
+					param.mode = AsyncIoMode::In;
+				}
+			} else {
+				if (mode & FileMode::Write) {
+					param.mode = AsyncIoMode::Out;
+				} else {
+					param.mode = AsyncIoMode::None;
+				}
+			}
 			return create(param);
 		}
 		return sl_null;

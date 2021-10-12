@@ -26,6 +26,7 @@
 
 #include "slib/core/async_file.h"
 
+#include "slib/core/thread.h"
 #include "slib/core/handle_ptr.h"
 
 namespace slib
@@ -39,8 +40,9 @@ namespace slib
 			class FileInstance : public AsyncFileInstance
 			{
 			public:
-				Ref<AsyncStreamRequest> m_requestOperating;
-				
+				Ref<AsyncStreamRequest> m_requestReading;
+				Ref<AsyncStreamRequest> m_requestWriting;
+
 			public:
 				FileInstance()
 				{
@@ -70,84 +72,146 @@ namespace slib
 					return sl_null;
 				}
 				
-				void processRequests(sl_bool flagError)
+				void processRead(sl_bool flagError)
 				{
 					HandlePtr<File> file = getHandle();
-					if (file.isNone()) {
+					if (file->isNone()) {
 						return;
 					}
 
-					Ref<AsyncStreamRequest> request = Move(m_requestOperating);
-					if (request.isNull()) {
-						popReadRequest(request);
+					Ref<AsyncStreamRequest> request = Move(m_requestReading);
+					sl_size nQueue = getReadRequestsCount();
+
+					Thread* thread = Thread::getCurrent();
+					while (!thread || thread->isNotStopping()) {
 						if (request.isNull()) {
-							popWriteRequest(request);
-							if (request.isNull()) {
-								return;
-							}
-						}
-					}
-					
-					sl_bool flagRead = request->flagRead;
-					char* data = (char*)(request->data);
-					sl_size size = request->size;
-					if (data && size) {
-						if (request->position >= 0) {
-							if (!(file->seek(request->position, SeekPosition::Begin))) {
-								processStreamResult(request.get(), 0, sl_false);
-								return;
-							}
-						}
-						for (;;) {
-							sl_reg n;
-							sl_size sizeProcessed = request->sizeWritten;
-							if (flagRead) {
-								sizeProcessed = 0;
-								n = file->read(data, size);
-							} else {
-								sizeProcessed = request->sizeWritten;
-								n = file->write(data + sizeProcessed, size - sizeProcessed);
-							}
-							if (n > 0) {
-								if (flagRead) {
-									processStreamResult(request.get(), n, flagError);
+							if (nQueue > 0) {
+								nQueue--;
+								popReadRequest(request);
+								if (request.isNull()) {
 									return;
-								} else {
-									request->sizeWritten += n;
-									if (request->sizeWritten >= size) {
-										request->sizeWritten = 0;
-										processStreamResult(request.get(), size, flagError);
-										return;
-									}
 								}
+							} else {
+								return;
+							}
+						}
+						char* data = (char*)(request->data);
+						sl_size size = request->size;
+						if (data && size) {
+							if (request->position >= 0) {
+								if (!(file->seek(request->position, SeekPosition::Begin))) {
+									processStreamResult(request.get(), 0, AsyncStreamResultCode::Unknown);
+									return;
+								}
+							}
+							sl_reg n = file->read(data, size);
+							if (n > 0) {
+								processStreamResult(request.get(), n, flagError ? AsyncStreamResultCode::Unknown : AsyncStreamResultCode::Success);
 							} else {
 								if (n == SLIB_IO_WOULD_BLOCK) {
 									if (flagError) {
-										request->sizeWritten = 0;
-										processStreamResult(request.get(), sizeProcessed, sl_true);
+										processStreamResult(request.get(), 0, AsyncStreamResultCode::Unknown);
 									} else {
-										m_requestOperating = Move(request);
+										m_requestReading = Move(request);
 									}
+								} else if (n == SLIB_IO_ENDED) {
+									processStreamResult(request.get(), 0, AsyncStreamResultCode::Ended);
 								} else {
-									request->sizeWritten = 0;
-									processStreamResult(request.get(), sizeProcessed, sl_true);
+									processStreamResult(request.get(), 0, AsyncStreamResultCode::Unknown);
 								}
 								return;
 							}
+						} else {
+							processStreamResult(request.get(), 0, AsyncStreamResultCode::Success);
 						}
+						request.setNull();
+					}
+				}
+
+				void processWrite(sl_bool flagError)
+				{
+					HandlePtr<File> file = getHandle();
+					if (file->isNone()) {
+						return;
 					}
 
+					Ref<AsyncStreamRequest> request = Move(m_requestWriting);
+					sl_size nQueue = getWriteRequestsCount();
+
+					Thread* thread = Thread::getCurrent();
+					while (!thread || thread->isNotStopping()) {
+						if (request.isNull()) {
+							if (nQueue > 0) {
+								nQueue--;
+								popWriteRequest(request);
+								if (request.isNull()) {
+									return;
+								}
+							} else {
+								return;
+							}
+						}
+						char* data = (char*)(request->data);
+						sl_size size = request->size;
+						if (data && size) {
+							if (request->position >= 0) {
+								if (!(file->seek(request->position, SeekPosition::Begin))) {
+									processStreamResult(request.get(), 0, AsyncStreamResultCode::Unknown);
+									return;
+								}
+							}
+							for (;;) {
+								sl_size sizeWritten = request->sizeWritten;
+								sl_reg n = file->write(data + sizeWritten, size - sizeWritten);
+								if (n >= 0) {
+									request->sizeWritten += n;
+									if (request->sizeWritten >= size) {
+										request->sizeWritten = 0;
+										processStreamResult(request.get(), size, flagError ? AsyncStreamResultCode::Unknown : AsyncStreamResultCode::Success);
+										break;
+									}
+								} else {
+									if (n == SLIB_IO_WOULD_BLOCK) {
+										if (flagError) {
+											request->sizeWritten = 0;
+											processStreamResult(request.get(), sizeWritten, AsyncStreamResultCode::Unknown);
+										} else {
+											m_requestWriting = Move(request);
+										}
+									} else {
+										request->sizeWritten = 0;
+										processStreamResult(request.get(), sizeWritten, AsyncStreamResultCode::Unknown);
+									}
+									return;
+								}
+							}
+						}
+						request.setNull();
+					}
 				}
 				
 				void onOrder() override
 				{
-					processRequests(sl_false);
+					processRead(sl_false);
+					processWrite(sl_false);
 				}
 				
 				void onEvent(EventDesc* pev) override
 				{
-					if (pev->flagIn || pev->flagOut || pev->flagError) {
-						processRequests(pev->flagError);
+					sl_bool flagProcessed = sl_false;
+					if (pev->flagIn) {
+						processRead(pev->flagError);
+						flagProcessed = sl_true;
+					}
+					if (pev->flagOut) {
+						processWrite(pev->flagError);
+						flagProcessed = sl_true;
+					}
+					if (!flagProcessed) {
+						if (pev->flagError) {
+							processRead(sl_true);
+							processWrite(sl_true);
+						}
 					}
 					requestOrder();
 				}
@@ -176,7 +240,7 @@ namespace slib
 	{
 		Ref<priv::async::FileInstance> ret = priv::async::FileInstance::create(param);
 		if (ret.isNotNull()) {
-			return AsyncFile::create(ret.get(), AsyncIoMode::InOut, param.ioLoop);
+			return AsyncFile::create(ret.get(), param.mode, param.ioLoop);
 		}
 		return sl_null;
 	}

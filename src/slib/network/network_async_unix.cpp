@@ -98,21 +98,23 @@ namespace slib
 						if (data && size) {
 							sl_int32 n = socket->receive(data, size);
 							if (n > 0) {
-								_onReceive(request.get(), n, flagError);
+								processStreamResult(request.get(), n, flagError ? AsyncStreamResultCode::Unknown : AsyncStreamResultCode::Success);
 							} else {
 								if (n == SLIB_IO_WOULD_BLOCK) {
 									if (flagError) {
-										_onReceive(request.get(), 0, sl_true);
+										processStreamResult(request.get(), 0, AsyncStreamResultCode::Unknown);
 									} else {
 										m_requestReading = Move(request);
 									}
+								} else if (n == SLIB_IO_ENDED) {
+									processStreamResult(request.get(), 0, AsyncStreamResultCode::Ended);
 								} else {
-									_onReceive(request.get(), 0, sl_true);
+									processStreamResult(request.get(), 0, AsyncStreamResultCode::Ended);
 								}
 								return;
 							}
 						} else {
-							_onReceive(request.get(), 0, sl_false);
+							processStreamResult(request.get(), 0, AsyncStreamResultCode::Success);
 						}
 						request.setNull();
 					}
@@ -147,31 +149,30 @@ namespace slib
 							for (;;) {
 								sl_size sizeWritten = request->sizeWritten;
 								sl_int32 n = socket->send(data + sizeWritten, size - sizeWritten);
-								if (n > 0) {
+								if (n >= 0) {
 									request->sizeWritten += n;
 									if (request->sizeWritten >= size) {
 										request->sizeWritten = 0;
-										_onSend(request.get(), size, flagError);
+										processStreamResult(request.get(), size, flagError ? AsyncStreamResultCode::Unknown : AsyncStreamResultCode::Success);
 										break;
 									}
 								} else {
 									if (n == SLIB_IO_WOULD_BLOCK) {
 										if (flagError) {
 											request->sizeWritten = 0;
-											_onSend(request.get(), sizeWritten, sl_true);
+											processStreamResult(request.get(), sizeWritten, AsyncStreamResultCode::Unknown);
 										} else {
 											m_requestWriting = Move(request);
 										}
 									} else {
 										request->sizeWritten = 0;
-										_onSend(request.get(), sizeWritten, sl_true);
+										processStreamResult(request.get(), sizeWritten, AsyncStreamResultCode::Unknown);
 									}
 									return;
 								}
 							}
 						} else {
-							request->sizeWritten = 0;
-							_onSend(request.get(), 0, sl_false);
+							processStreamResult(request.get(), 0, AsyncStreamResultCode::Success);
 						}
 						request.setNull();
 					}

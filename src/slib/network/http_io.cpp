@@ -311,7 +311,7 @@ namespace slib
 							} else {
 								m_state = -1;
 								setError();
-								return sl_null;
+								return sl_false;
 							}
 							pos++;
 							break;
@@ -326,7 +326,7 @@ namespace slib
 								} else {
 									m_state = -1;
 									setError();
-									return sl_null;
+									return sl_false;
 								}
 							}
 							pos++;
@@ -339,7 +339,7 @@ namespace slib
 							} else {
 								m_state = -1;
 								setError();
-								return sl_null;
+								return sl_false;
 							}
 							pos++;
 							break;
@@ -366,12 +366,12 @@ namespace slib
 							} else {
 								m_state = -1;
 								setError();
-								return sl_null;
+								return sl_false;
 							}
 							pos++;
 							break;
 						default:
-							return sl_null;
+							return sl_false;
 						}
 					}
 					return decompressData(mem, output, sizeOutput, refData);

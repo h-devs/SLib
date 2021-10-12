@@ -34,6 +34,7 @@ namespace slib
 	public:
 		sl_file handle;
 		sl_bool flagCloseOnRelease;
+		AsyncIoMode mode;
 		Ref<AsyncIoLoop> ioLoop;
 
 		sl_int64 initialPosition;

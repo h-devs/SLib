@@ -71,6 +71,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/asm_x64.cpp"
  "${SLIB_PATH}/src/slib/core/async.cpp"
  "${SLIB_PATH}/src/slib/core/async_epoll.cpp"
+ "${SLIB_PATH}/src/slib/core/async_unix.cpp"
  "${SLIB_PATH}/src/slib/core/atomic.cpp"
  "${SLIB_PATH}/src/slib/core/base.cpp"
  "${SLIB_PATH}/src/slib/core/charset.cpp"
