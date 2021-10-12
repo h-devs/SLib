@@ -24,7 +24,7 @@
 
 #if defined(SLIB_PLATFORM_IS_UNIX)
 
-#include "slib/core/async_file.h"
+#include "slib/core/async_file_stream.h"
 
 #include "slib/core/thread.h"
 #include "slib/core/handle_ptr.h"
@@ -56,13 +56,7 @@ namespace slib
 						if (ret.isNotNull()) {
 							ret->setHandle(param.handle);
 							ret->m_flagCloseOnRelease = param.flagCloseOnRelease;
-							if (param.initialPosition >= 0) {
-								if ((HandlePtr<File>(param.handle))->seek(param.initialPosition, SeekPosition::Begin)) {
-									return ret;
-								}
-							} else {
-								return ret;
-							}
+							return ret;
 						} else {
 							if (param.flagCloseOnRelease) {
 								File::close(param.handle);
@@ -98,12 +92,6 @@ namespace slib
 						char* data = (char*)(request->data);
 						sl_size size = request->size;
 						if (data && size) {
-							if (request->position >= 0) {
-								if (!(file->seek(request->position, SeekPosition::Begin))) {
-									processStreamResult(request.get(), 0, AsyncStreamResultCode::Unknown);
-									return;
-								}
-							}
 							sl_reg n = file->read(data, size);
 							if (n > 0) {
 								processStreamResult(request.get(), n, flagError ? AsyncStreamResultCode::Unknown : AsyncStreamResultCode::Success);
@@ -154,12 +142,6 @@ namespace slib
 						char* data = (char*)(request->data);
 						sl_size size = request->size;
 						if (data && size) {
-							if (request->position >= 0) {
-								if (!(file->seek(request->position, SeekPosition::Begin))) {
-									processStreamResult(request.get(), 0, AsyncStreamResultCode::Unknown);
-									return;
-								}
-							}
 							for (;;) {
 								sl_size sizeWritten = request->sizeWritten;
 								sl_reg n = file->write(data + sizeWritten, size - sizeWritten);
@@ -216,21 +198,6 @@ namespace slib
 					requestOrder();
 				}
 
-				sl_bool isSeekable() override
-				{
-					return sl_true;
-				}
-
-				sl_bool seek(sl_uint64 pos) override
-				{
-					return (HandlePtr<File>(getHandle()))->seek(pos, SeekPosition::Begin);
-				}
-
-				sl_uint64 getPosition() override
-				{
-					return (HandlePtr<File>(getHandle()))->getPosition();
-				}
-
 			};
 
 		}
@@ -243,17 +210,6 @@ namespace slib
 			return AsyncFileStream::create(ret.get(), param.mode, param.ioLoop);
 		}
 		return sl_null;
-	}
-
-	sl_bool AsyncFileStreamParam::open(const StringParam& filePath, FileMode mode)
-	{
-		File file = File::open(filePath, mode);
-		if (file.isOpened()) {
-			file.setNonBlocking();
-			handle = file.release();
-			return sl_true;
-		}
-		return sl_false;
 	}
 
 }
