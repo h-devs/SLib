@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,52 +23,13 @@
 #ifndef CHECKHEADER_SLIB_CORE_ASYNC_FILE
 #define CHECKHEADER_SLIB_CORE_ASYNC_FILE
 
-#include "async_stream.h"
+#include "async_stream_simulator.h"
 #include "file.h"
 
 namespace slib
 {
 
-	class SLIB_EXPORT AsyncFileParam
-	{
-	public:
-		sl_file handle;
-		sl_bool flagCloseOnRelease;
-		AsyncIoMode mode;
-		Ref<AsyncIoLoop> ioLoop;
-
-		sl_int64 initialPosition;
-
-	public:
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AsyncFileParam)
-
-		AsyncFileParam();
-
-	public:
-		sl_bool open(const StringParam& path, FileMode mode);
-
-	};
-
-	class SLIB_EXPORT AsyncFileInstance : public AsyncStreamInstance
-	{
-		SLIB_DECLARE_OBJECT
-
-	public:
-		AsyncFileInstance();
-
-		~AsyncFileInstance();
-
-	public:
-		void close() override;
-
-		sl_uint64 getSize() override;
-
-	protected:
-		sl_bool m_flagCloseOnRelease;
-
-	};
-
-	class SLIB_EXPORT AsyncFile : public AsyncStreamBase
+	class SLIB_EXPORT AsyncFile : public AsyncStreamSimulator
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -78,35 +39,52 @@ namespace slib
 		~AsyncFile();
 
 	public:
-		static Ref<AsyncFile> create(AsyncFileInstance* instance, AsyncIoMode mode, const Ref<AsyncIoLoop>& loop);
+		static Ref<AsyncFile> create(File&& file);
 
-		static Ref<AsyncFile> create(AsyncFileInstance* instance, AsyncIoMode mode);
-		
-	public:
-		static Ref<AsyncFile> create(const AsyncFileParam& param);
+		static Ref<AsyncFile> create(File&& file, const Ref<Dispatcher>& dispatcher);
 
 		static Ref<AsyncFile> open(const StringParam& path, FileMode mode);
 
-		static Ref<AsyncFile> open(const StringParam& path, FileMode mode, const Ref<AsyncIoLoop>& loop);
+		static Ref<AsyncFile> open(const StringParam& path, FileMode mode, const Ref<Dispatcher>& dispatcher);
 
 		static Ref<AsyncFile> openForRead(const StringParam& path);
 
-		static Ref<AsyncFile> openForRead(const StringParam& path, const Ref<AsyncIoLoop>& loop);
+		static Ref<AsyncFile> openForRead(const StringParam& path, const Ref<Dispatcher>& dispatcher);
 
 		static Ref<AsyncFile> openForWrite(const StringParam& path);
 
-		static Ref<AsyncFile> openForWrite(const StringParam& path, const Ref<AsyncIoLoop>& loop);
+		static Ref<AsyncFile> openForWrite(const StringParam& path, const Ref<Dispatcher>& dispatcher);
 
 		static Ref<AsyncFile> openForAppend(const StringParam& path);
 
-		static Ref<AsyncFile> openForAppend(const StringParam& path, const Ref<AsyncIoLoop>& loop);
+		static Ref<AsyncFile> openForAppend(const StringParam& path, const Ref<Dispatcher>& dispatcher);
+
+
+		static Ref<AsyncStream> openStream(const StringParam& path, FileMode mode);
+
+		static Ref<AsyncStream> openStream(const StringParam& path, FileMode mode, const Ref<AsyncIoLoop>& ioLoop, const Ref<Dispatcher>& dispatcher);
 
 	public:
-		Ref<AsyncFileInstance> getIoInstance();
-
 		void close() override;
 
-		sl_file getHandle();
+		sl_bool isOpened() override;
+
+		sl_bool isSeekable() override;
+
+		sl_bool seek(sl_uint64 pos) override;
+
+		sl_uint64 getPosition() override;
+
+		sl_uint64 getSize() override;
+
+	public:
+		File& getFile();
+
+	protected:
+		void processRequest(AsyncStreamRequest* request) override;
+
+	private:
+		File m_file;
 
 	};
 

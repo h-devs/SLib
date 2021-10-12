@@ -1522,25 +1522,26 @@ namespace slib
 				sl_uint64 start;
 				sl_uint64 len;
 				if (processRangeRequest(context, totalSize, rangeHeader, start, len)) {
-					Ref<AsyncFile> file = AsyncFile::openForRead(path, m_ioLoop);
+					Ref<AsyncStream> file = AsyncFile::openStream(path, FileMode::Read, m_ioLoop, m_threadPool);
 					if (file.isNotNull()) {
-						file->seek(start);
-						context->copyFrom(file.get(), len);
-						return sl_true;
+						if (file->seek(start)) {
+							return context->copyFrom(file.get(), len);
+						}
 					}
 				} else {
 					return sl_true;
 				}
 			} else {
 				if (totalSize > 100000) {
-					context->copyFromFile(path, m_ioLoop);
+					return context->copyFromFile(path, m_ioLoop, m_threadPool);
 				} else {
 					Memory mem = File::readAllBytes(path);
 					if (mem.isNotNull()) {
-						context->write(mem);
+						return context->write(mem);
+					} else {
+						return sl_true;
 					}
 				}
-				return sl_true;
 			}
 		}
 		return sl_false;

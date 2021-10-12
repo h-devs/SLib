@@ -176,7 +176,7 @@ namespace slib
 				Memory m_memReceiving;
 				sl_size m_offsetReceiving;
 
-				AtomicRef<AsyncFile> m_fileDownload;
+				AtomicRef<AsyncStream> m_fileDownload;
 				sl_bool m_flagDownloadReading;
 				sl_reg m_sizeDownloadWriting;
 
@@ -220,9 +220,9 @@ namespace slib
 						if (connection.isNotNull()) {
 							Ref<UrlRequestImpl> ret = new UrlRequestImpl;
 							if (ret.isNotNull()) {
-								Ref<AsyncFile> fileDownload;
+								Ref<AsyncStream> fileDownload;
 								if (param.downloadFilePath.isNotEmpty()) {
-									fileDownload = AsyncFile::openForWrite(param.downloadFilePath);
+									fileDownload = AsyncFile::openStream(param.downloadFilePath, FileMode::Write);
 									if (fileDownload.isNull()) {
 										return sl_null;
 									}
@@ -433,7 +433,7 @@ namespace slib
 				{
 					processReadData();
 					if (m_fileDownload.isNotNull()) {
-						Ref<AsyncFile> file = m_fileDownload;
+						Ref<AsyncStream> file = m_fileDownload;
 						if (file.isNotNull()) {
 							m_step = STEP_FINISHED_RECEIVING;
 							if (!(file->write(sl_null, 0, SLIB_FUNCTION_WEAKREF(UrlRequestImpl, _onWriteDownloadFile, this)))) {
@@ -451,7 +451,7 @@ namespace slib
 						return;
 					}
 					if (m_fileDownload.isNotNull()) {
-						Ref<AsyncFile> file = m_fileDownload;
+						Ref<AsyncStream> file = m_fileDownload;
 						if (file.isNotNull()) {
 							Memory mem = Memory::create(m_memReceiving.getData(), (sl_uint32)m_offsetReceiving);
 							if (mem.isNull()) {

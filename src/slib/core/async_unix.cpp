@@ -37,7 +37,7 @@ namespace slib
 		namespace async
 		{
 
-			class FileInstance : public AsyncFileInstance
+			class FileInstance : public AsyncFileStreamInstance
 			{
 			public:
 				Ref<AsyncStreamRequest> m_requestReading;
@@ -49,7 +49,7 @@ namespace slib
 				}
 
 			public:
-				static Ref<FileInstance> create(const AsyncFileParam& param)
+				static Ref<FileInstance> create(const AsyncFileStreamParam& param)
 				{
 					if (param.handle != SLIB_FILE_INVALID_HANDLE) {
 						Ref<FileInstance> ret = new FileInstance;
@@ -236,16 +236,16 @@ namespace slib
 		}
 	}
 	
-	Ref<AsyncFile> AsyncFile::create(const AsyncFileParam& param)
+	Ref<AsyncFileStream> AsyncFileStream::create(const AsyncFileStreamParam& param)
 	{
 		Ref<priv::async::FileInstance> ret = priv::async::FileInstance::create(param);
 		if (ret.isNotNull()) {
-			return AsyncFile::create(ret.get(), param.mode, param.ioLoop);
+			return AsyncFileStream::create(ret.get(), param.mode, param.ioLoop);
 		}
 		return sl_null;
 	}
 
-	sl_bool AsyncFileParam::open(const StringParam& filePath, FileMode mode)
+	sl_bool AsyncFileStreamParam::open(const StringParam& filePath, FileMode mode)
 	{
 		File file = File::open(filePath, mode);
 		if (file.isOpened()) {

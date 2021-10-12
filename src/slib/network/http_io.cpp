@@ -38,35 +38,35 @@ namespace slib
 		m_bufferOutput.clearOutput();
 	}
 
-	void HttpOutputBuffer::write(const void* buf, sl_size size)
+	sl_bool HttpOutputBuffer::write(const void* buf, sl_size size)
 	{
-		m_bufferOutput.write(buf, size);
+		return m_bufferOutput.write(buf, size);
 	}
 
-	void HttpOutputBuffer::write(const Memory& mem)
+	sl_bool HttpOutputBuffer::write(const Memory& mem)
 	{
-		m_bufferOutput.write(mem);
+		return m_bufferOutput.write(mem);
 	}
 
-	void HttpOutputBuffer::write(const StringParam& _str)
+	sl_bool HttpOutputBuffer::write(const StringParam& _str)
 	{
 		StringData str(_str);
-		write(str.getData(), str.getLength());
+		return write(str.getData(), str.getLength());
 	}
 
-	void HttpOutputBuffer::copyFrom(AsyncStream* stream, sl_uint64 size)
+	sl_bool HttpOutputBuffer::copyFrom(AsyncStream* stream, sl_uint64 size)
 	{
-		m_bufferOutput.copyFrom(stream, size);
+		return m_bufferOutput.copyFrom(stream, size);
 	}
 
-	void HttpOutputBuffer::copyFromFile(const StringParam& path)
+	sl_bool HttpOutputBuffer::copyFromFile(const StringParam& path)
 	{
-		m_bufferOutput.copyFromFile(path);
+		return m_bufferOutput.copyFromFile(path);
 	}
 
-	void HttpOutputBuffer::copyFromFile(const StringParam& path, const Ref<AsyncIoLoop>& ioLoop)
+	sl_bool HttpOutputBuffer::copyFromFile(const StringParam& path, const Ref<AsyncIoLoop>& ioLoop, const Ref<Dispatcher>& dispatcher)
 	{
-		m_bufferOutput.copyFromFile(path, ioLoop);
+		return m_bufferOutput.copyFromFile(path, ioLoop, dispatcher);
 	}
 
 	sl_uint64 HttpOutputBuffer::getOutputLength() const

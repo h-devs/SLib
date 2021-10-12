@@ -46,17 +46,17 @@ namespace slib
 	public:
 		void clearOutput();
 		
-		void write(const void* buf, sl_size size);
+		sl_bool write(const void* buf, sl_size size);
 
-		void write(const Memory& mem);
+		sl_bool write(const Memory& mem);
 
-		void write(const StringParam& str);
+		sl_bool write(const StringParam& str);
 		
-		void copyFrom(AsyncStream* stream, sl_uint64 size);
+		sl_bool copyFrom(AsyncStream* stream, sl_uint64 size);
 		
-		void copyFromFile(const StringParam& path);
+		sl_bool copyFromFile(const StringParam& path);
 		
-		void copyFromFile(const StringParam& path, const Ref<AsyncIoLoop>& ioLoop);
+		sl_bool copyFromFile(const StringParam& path, const Ref<AsyncIoLoop>& ioLoop, const Ref<Dispatcher>& dispatcher);
 		
 		sl_uint64 getOutputLength() const;
 		

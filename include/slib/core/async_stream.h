@@ -44,7 +44,6 @@ namespace slib
 	public:
 		AsyncStream* stream;
 		AsyncStreamRequest* request;
-		sl_uint64 position; // requested position
 		void* data;
 		sl_size size;
 		sl_size requestSize;
@@ -75,7 +74,6 @@ namespace slib
 
 	public:
 		sl_bool flagRead;
-		sl_int64 position;
 		void* data;
 		sl_size size;
 		Ref<Referable> userObject;
@@ -84,18 +82,14 @@ namespace slib
 		sl_size sizeWritten;
 
 	public:
-		AsyncStreamRequest(sl_bool flagRead, sl_int64 position, const void* data, sl_size size, Referable* userObject, const Function<void(AsyncStreamResult&)>& callback);
+		AsyncStreamRequest(sl_bool flagRead, const void* data, sl_size size, Referable* userObject, const Function<void(AsyncStreamResult&)>& callback);
 		
 		~AsyncStreamRequest();
 	
 	public:
 		static Ref<AsyncStreamRequest> createRead(void* data, sl_size size, Referable* userObject, const Function<void(AsyncStreamResult&)>& callback);
 
-		static Ref<AsyncStreamRequest> createRead(sl_int64 position, void* data, sl_size size, Referable* userObject, const Function<void(AsyncStreamResult&)>& callback);
-
 		static Ref<AsyncStreamRequest> createWrite(const void* data, sl_size size, Referable* userObject, const Function<void(AsyncStreamResult&)>& callback);
-
-		static Ref<AsyncStreamRequest> createWrite(sl_int64 position, const void* data, sl_size size, Referable* userObject, const Function<void(AsyncStreamResult&)>& callback);
 
 	public:
 		void runCallback(AsyncStream* stream, sl_size resultSize, AsyncStreamResultCode resultCode);
@@ -114,14 +108,6 @@ namespace slib
 	public:
 		virtual sl_bool addRequest(const Ref<AsyncStreamRequest>& request);
 
-		virtual sl_bool isSeekable();
-
-		virtual sl_bool seek(sl_uint64 pos);
-
-		virtual sl_uint64 getPosition();
-
-		virtual sl_uint64 getSize();
-
 	protected:
 		sl_bool popReadRequest(Ref<AsyncStreamRequest>& request);
 
@@ -132,6 +118,15 @@ namespace slib
 		sl_size getWriteRequestsCount();
 
 		void processStreamResult(AsyncStreamRequest* request, sl_size size, AsyncStreamResultCode resultCode);
+
+	public:
+		virtual sl_bool isSeekable();
+
+		virtual sl_bool seek(sl_uint64 pos);
+
+		virtual sl_uint64 getPosition();
+
+		virtual sl_uint64 getSize();
 
 	private:
 		LinkedQueue< Ref<AsyncStreamRequest> > m_requestsRead;
@@ -164,17 +159,11 @@ namespace slib
 
 		sl_bool read(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 
-		sl_bool readAt(sl_int64 position, void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null);
-
-		sl_bool readAt(sl_int64 position, const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
-
 		sl_bool write(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null);
 
 		sl_bool write(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 
-		sl_bool writeAt(sl_int64 position, const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null);
-
-		sl_bool writeAt(sl_int64 position, const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
+		virtual sl_bool addTask(const Function<void()>& callback) = 0;
 
 		virtual sl_bool isSeekable();
 
@@ -183,8 +172,6 @@ namespace slib
 		virtual sl_uint64 getPosition();
 
 		virtual sl_uint64 getSize();
-
-		virtual sl_bool addTask(const Function<void()>& callback) = 0;
 
 	};
 	
@@ -203,14 +190,6 @@ namespace slib
 		sl_bool isOpened() override;
 	
 		sl_bool requestIo(const Ref<AsyncStreamRequest>& req) override;
-
-		sl_bool isSeekable() override;
-
-		sl_bool seek(sl_uint64 pos) override;
-
-		sl_uint64 getPosition() override;
-
-		sl_uint64 getSize() override;
 
 		sl_bool addTask(const Function<void()>& callback) override;
 

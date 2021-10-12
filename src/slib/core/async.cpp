@@ -25,6 +25,7 @@
 #include "slib/core/async_stream_simulator.h"
 #include "slib/core/async_stream_filter.h"
 #include "slib/core/async_file.h"
+#include "slib/core/async_file_stream.h"
 #include "slib/core/async_copy.h"
 #include "slib/core/async_output.h"
 
@@ -406,12 +407,11 @@ namespace slib
 
 	AsyncStreamRequest::AsyncStreamRequest(
 		sl_bool _flagRead,
-		sl_int64 _position,
 		const void* _data,
 		sl_size _size,
 		Referable* _userObject,
 		const Function<void(AsyncStreamResult&)>& _callback)
-	 : flagRead(_flagRead), position(_position), data((void*)_data), size(_size), userObject(_userObject), callback(_callback), sizeWritten(0)
+	 : flagRead(_flagRead), data((void*)_data), size(_size), userObject(_userObject), callback(_callback), sizeWritten(0)
 	{
 	}
 	
@@ -428,20 +428,7 @@ namespace slib
 		if (!size) {
 			return sl_null;
 		}
-		return new AsyncStreamRequest(sl_true, -1, data, size, userObject, callback);
-	}
-
-	Ref<AsyncStreamRequest> AsyncStreamRequest::createRead(
-		sl_int64 position,
-		void* data,
-		sl_size size,
-		Referable* userObject,
-		const Function<void(AsyncStreamResult&)>& callback)
-	{
-		if (!size) {
-			return sl_null;
-		}
-		return new AsyncStreamRequest(sl_true, position, data, size, userObject, callback);
+		return new AsyncStreamRequest(sl_true, data, size, userObject, callback);
 	}
 
 	Ref<AsyncStreamRequest> AsyncStreamRequest::createWrite(
@@ -453,20 +440,7 @@ namespace slib
 		if (!size) {
 			return sl_null;
 		}
-		return new AsyncStreamRequest(sl_false, -1, data, size, userObject, callback);
-	}
-
-	Ref<AsyncStreamRequest> AsyncStreamRequest::createWrite(
-		sl_int64 position,
-		const void* data,
-		sl_size size,
-		Referable* userObject,
-		const Function<void(AsyncStreamResult&)>& callback)
-	{
-		if (!size) {
-			return sl_null;
-		}
-		return new AsyncStreamRequest(sl_false, position, data, size, userObject, callback);
+		return new AsyncStreamRequest(sl_false, data, size, userObject, callback);
 	}
 
 	void AsyncStreamRequest::runCallback(AsyncStream* stream, sl_size resultSize, AsyncStreamResultCode code)
@@ -474,9 +448,6 @@ namespace slib
 		if (callback.isNotNull()) {
 			if (!flagRead) {
 				if (code == AsyncStreamResultCode::Success && resultSize && resultSize < size) {
-					if (position >= 0) {
-						position += resultSize;
-					}
 					data = (char*)data + resultSize;
 					size -= resultSize;
 					sizeWritten += resultSize;
@@ -484,7 +455,6 @@ namespace slib
 					return;
 				} else {
 					if (sizeWritten) {
-						position = position >= 0 ? position - sizeWritten : position;
 						data = (char*)data - sizeWritten;
 						size += sizeWritten;
 						resultSize += sizeWritten;
@@ -495,7 +465,6 @@ namespace slib
 			AsyncStreamResult result;
 			result.stream = stream;
 			result.request = this;
-			result.position = position;
 			result.data = data;
 			result.size = resultSize;
 			result.requestSize = size;
@@ -525,26 +494,6 @@ namespace slib
 		}
 	}
 
-	sl_bool AsyncStreamInstance::isSeekable()
-	{
-		return sl_false;
-	}
-
-	sl_bool AsyncStreamInstance::seek(sl_uint64 pos)
-	{
-		return sl_false;
-	}
-
-	sl_uint64 AsyncStreamInstance::getPosition()
-	{
-		return 0;
-	}
-
-	sl_uint64 AsyncStreamInstance::getSize()
-	{
-		return 0;
-	}
-
 	sl_bool AsyncStreamInstance::popReadRequest(Ref<AsyncStreamRequest>& request)
 	{
 		return m_requestsRead.pop(&request);
@@ -572,6 +521,27 @@ namespace slib
 			request->runCallback(static_cast<AsyncStream*>(object.get()), size, code);
 		}
 	}
+
+	sl_bool AsyncStreamInstance::isSeekable()
+	{
+		return sl_false;
+	}
+
+	sl_bool AsyncStreamInstance::seek(sl_uint64 pos)
+	{
+		return sl_false;
+	}
+
+	sl_uint64 AsyncStreamInstance::getPosition()
+	{
+		return 0;
+	}
+
+	sl_uint64 AsyncStreamInstance::getSize()
+	{
+		return 0;
+	}
+
 
 	SLIB_DEFINE_OBJECT(AsyncStream, Object)
 
@@ -612,21 +582,7 @@ namespace slib
 
 	sl_bool AsyncStream::read(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
 	{
-		return readAt(-1, mem.getData(), mem.getSize(), callback, mem.ref.get());
-	}
-
-	sl_bool AsyncStream::readAt(sl_int64 position, void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject)
-	{
-		Ref<AsyncStreamRequest> req = AsyncStreamRequest::createRead(position, data, size, userObject, callback);
-		if (req.isNotNull()) {
-			return requestIo(req);
-		}
-		return sl_false;
-	}
-
-	sl_bool AsyncStream::readAt(sl_int64 position, const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
-	{
-		return readAt(position, mem.getData(), mem.getSize(), callback, mem.ref.get());
+		return read(mem.getData(), mem.getSize(), callback, mem.ref.get());
 	}
 
 	sl_bool AsyncStream::write(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject)
@@ -640,40 +596,43 @@ namespace slib
 
 	sl_bool AsyncStream::write(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
 	{
-		return writeAt(-1, mem.getData(), mem.getSize(), callback, mem.ref.get());
-	}
-
-	sl_bool AsyncStream::writeAt(sl_int64 position, const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject)
-	{
-		Ref<AsyncStreamRequest> req = AsyncStreamRequest::createWrite(position, data, size, userObject, callback);
-		if (req.isNotNull()) {
-			return requestIo(req);
-		}
-		return sl_false;
-	}
-
-	sl_bool AsyncStream::writeAt(sl_int64 position, const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
-	{
-		return writeAt(position, mem.getData(), mem.getSize(), callback, mem.ref.get());
+		return write(mem.getData(), mem.getSize(), callback, mem.ref.get());
 	}
 
 	sl_bool AsyncStream::isSeekable()
 	{
+		Ref<AsyncStreamInstance> instance = Ref<AsyncStreamInstance>::from(getIoInstance());
+		if (instance.isNotNull()) {
+			return instance->isSeekable();
+		}
 		return sl_false;
 	}
 
 	sl_bool AsyncStream::seek(sl_uint64 pos)
 	{
+		Ref<AsyncStreamInstance> instance = Ref<AsyncStreamInstance>::from(getIoInstance());
+		if (instance.isNotNull()) {
+			instance->seek(pos);
+			return sl_true;
+		}
 		return sl_false;
 	}
 
 	sl_uint64 AsyncStream::getPosition()
 	{
+		Ref<AsyncStreamInstance> instance = Ref<AsyncStreamInstance>::from(getIoInstance());
+		if (instance.isNotNull()) {
+			return instance->getPosition();
+		}
 		return 0;
 	}
 
 	sl_uint64 AsyncStream::getSize()
 	{
+		Ref<AsyncStreamInstance> instance = Ref<AsyncStreamInstance>::from(getIoInstance());
+		if (instance.isNotNull()) {
+			return instance->getSize();
+		}
 		return 0;
 	}
 
@@ -738,43 +697,6 @@ namespace slib
 			}
 		}
 		return sl_false;
-	}
-
-	sl_bool AsyncStreamBase::isSeekable()
-	{
-		Ref<AsyncStreamInstance> instance = getIoInstance();
-		if (instance.isNotNull()) {
-			return instance->isSeekable();
-		}
-		return sl_false;
-	}
-
-	sl_bool AsyncStreamBase::seek(sl_uint64 pos)
-	{
-		Ref<AsyncStreamInstance> instance = getIoInstance();
-		if (instance.isNotNull()) {
-			instance->seek(pos);
-			return sl_true;
-		}
-		return sl_false;
-	}
-
-	sl_uint64 AsyncStreamBase::getPosition()
-	{
-		Ref<AsyncStreamInstance> instance = getIoInstance();
-		if (instance.isNotNull()) {
-			return instance->getPosition();
-		}
-		return 0;
-	}
-
-	sl_uint64 AsyncStreamBase::getSize()
-	{
-		Ref<AsyncStreamInstance> instance = getIoInstance();
-		if (instance.isNotNull()) {
-			return instance->getSize();
-		}
-		return 0;
 	}
 
 	sl_bool AsyncStreamBase::addTask(const Function<void()>& callback)
@@ -867,25 +789,26 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AsyncFileParam)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AsyncFileStreamParam)
 
-	AsyncFileParam::AsyncFileParam()
+	AsyncFileStreamParam::AsyncFileStreamParam()
 	{
 		handle = SLIB_FILE_INVALID_HANDLE;
 		flagCloseOnRelease = sl_true;
 		mode = AsyncIoMode::InOut;
-		initialPosition = -1;
+		initialPosition = 0;
+		flagSupportSeeking = sl_false;
 	}
 
 
-	SLIB_DEFINE_OBJECT(AsyncFileInstance, AsyncStreamInstance)
+	SLIB_DEFINE_OBJECT(AsyncFileStreamInstance, AsyncStreamInstance)
 
-	AsyncFileInstance::AsyncFileInstance()
+	AsyncFileStreamInstance::AsyncFileStreamInstance()
 	{
 		m_flagCloseOnRelease = sl_false;
 	}
 
-	AsyncFileInstance::~AsyncFileInstance()
+	AsyncFileStreamInstance::~AsyncFileStreamInstance()
 	{
 		if (m_flagCloseOnRelease) {
 			sl_file handle = (sl_file)(getHandle());
@@ -895,7 +818,7 @@ namespace slib
 		}
 	}
 
-	void AsyncFileInstance::close()
+	void AsyncFileStreamInstance::close()
 	{
 		if (m_flagCloseOnRelease) {
 			sl_file handle = (sl_file)(getHandle());
@@ -910,13 +833,57 @@ namespace slib
 		}
 	}
 
-	sl_uint64 AsyncFileInstance::getSize()
+
+	SLIB_DEFINE_OBJECT(AsyncFileStream, AsyncStreamBase)
+
+	AsyncFileStream::AsyncFileStream()
 	{
-		return (HandlePtr<File>(getHandle()))->getSize();
+	}
+
+	AsyncFileStream::~AsyncFileStream()
+	{
+		close();
+	}
+
+	Ref<AsyncFileStream> AsyncFileStream::create(AsyncFileStreamInstance* instance, AsyncIoMode mode, const Ref<AsyncIoLoop>& loop)
+	{
+		if (instance) {
+			Ref<AsyncFileStream> ret = new AsyncFileStream;
+			if (ret.isNotNull()) {
+				if (ret->_initialize(instance, mode, loop)) {
+					return ret;
+				}
+			}
+		}
+		return sl_null;
+	}
+
+	Ref<AsyncFileStream> AsyncFileStream::create(AsyncFileStreamInstance* instance, AsyncIoMode mode)
+	{
+		return create(instance, mode, sl_null);
+	}
+
+	Ref<AsyncFileStreamInstance> AsyncFileStream::getIoInstance()
+	{
+		return Ref<AsyncFileStreamInstance>::from(AsyncIoObject::getIoInstance());
+	}
+
+	void AsyncFileStream::close()
+	{
+		Ref<AsyncFileStreamInstance> instance = getIoInstance();
+		closeIoInstance();
+		if (instance.isNotNull()) {
+			instance->close();
+		}
+	}
+
+	sl_file AsyncFileStream::getHandle()
+	{
+		return SLIB_FILE_INVALID_HANDLE;
 	}
 
 
-	SLIB_DEFINE_OBJECT(AsyncFile, AsyncStreamBase)
+	SLIB_DEFINE_OBJECT(AsyncFile, AsyncStreamSimulator)
 
 	AsyncFile::AsyncFile()
 	{
@@ -927,99 +894,156 @@ namespace slib
 		close();
 	}
 
-	Ref<AsyncFile> AsyncFile::create(AsyncFileInstance* instance, AsyncIoMode mode, const Ref<AsyncIoLoop>& loop)
+	Ref<AsyncFile> AsyncFile::create(File&& file)
 	{
-		if (instance) {
+		if (file.isOpened()) {
 			Ref<AsyncFile> ret = new AsyncFile;
 			if (ret.isNotNull()) {
-				if (ret->_initialize(instance, mode, loop)) {
-					return ret;
-				}
+				ret->m_file = Move(file);
+				ret->initialize();
+				return ret;
 			}
 		}
 		return sl_null;
 	}
 
-	Ref<AsyncFile> AsyncFile::create(AsyncFileInstance* instance, AsyncIoMode mode)
+	Ref<AsyncFile> AsyncFile::create(File&& file, const Ref<Dispatcher>& dispatcher)
 	{
-		return create(instance, mode, sl_null);
+		if (file.isOpened()) {
+			Ref<AsyncFile> ret = new AsyncFile;
+			if (ret.isNotNull()) {
+				ret->m_file = Move(file);
+				ret->initialize(dispatcher);
+				return ret;
+			}
+		}
+		return sl_null;
 	}
 
 	Ref<AsyncFile> AsyncFile::open(const StringParam& path, FileMode mode)
 	{
-		return open(path, mode, sl_null);
+		File file = File::open(path, mode);
+		if (file.isOpened()) {
+			return AsyncFile::create(Move(file));
+		}
+		return sl_null;
 	}
 
-	Ref<AsyncFile> AsyncFile::open(const StringParam& path, FileMode mode, const Ref<AsyncIoLoop>& loop)
+	Ref<AsyncFile> AsyncFile::open(const StringParam& path, FileMode mode, const Ref<Dispatcher>& dispatcher)
 	{
-		AsyncFileParam param;
-		if (param.open(path, mode)) {
-			param.ioLoop = loop;
-			if (mode & FileMode::Read) {
-				if (mode & FileMode::Write) {
-					param.mode = AsyncIoMode::InOut;
-				} else {
-					param.mode = AsyncIoMode::In;
-				}
-			} else {
-				if (mode & FileMode::Write) {
-					param.mode = AsyncIoMode::Out;
-				} else {
-					param.mode = AsyncIoMode::None;
-				}
-			}
-			return create(param);
+		File file = File::open(path, mode);
+		if (file.isOpened()) {
+			return AsyncFile::create(Move(file), dispatcher);
 		}
 		return sl_null;
 	}
 
 	Ref<AsyncFile> AsyncFile::openForRead(const StringParam& path)
 	{
-		return open(path, FileMode::Read, sl_null);
+		return AsyncFile::open(path, FileMode::Read);
 	}
 
-	Ref<AsyncFile> AsyncFile::openForRead(const StringParam& path, const Ref<AsyncIoLoop>& loop)
+	Ref<AsyncFile> AsyncFile::openForRead(const StringParam& path, const Ref<Dispatcher>& dispatcher)
 	{
-		return open(path, FileMode::Read, loop);
+		return AsyncFile::open(path, FileMode::Read, dispatcher);
 	}
 
 	Ref<AsyncFile> AsyncFile::openForWrite(const StringParam& path)
 	{
-		return open(path, FileMode::Write, sl_null);
+		return AsyncFile::open(path, FileMode::Write);
 	}
 
-	Ref<AsyncFile> AsyncFile::openForWrite(const StringParam& path, const Ref<AsyncIoLoop>& loop)
+	Ref<AsyncFile> AsyncFile::openForWrite(const StringParam& path, const Ref<Dispatcher>& dispatcher)
 	{
-		return open(path, FileMode::Write, loop);
+		return AsyncFile::open(path, FileMode::Write, dispatcher);
 	}
 
 	Ref<AsyncFile> AsyncFile::openForAppend(const StringParam& path)
 	{
-		return open(path, FileMode::Append, sl_null);
+		return AsyncFile::open(path, FileMode::Append);
 	}
 
-	Ref<AsyncFile> AsyncFile::openForAppend(const StringParam& path, const Ref<AsyncIoLoop>& loop)
+	Ref<AsyncFile> AsyncFile::openForAppend(const StringParam& path, const Ref<Dispatcher>& dispatcher)
 	{
-		return open(path, FileMode::Append, loop);
+		return AsyncFile::open(path, FileMode::Append, dispatcher);
 	}
 
-	Ref<AsyncFileInstance> AsyncFile::getIoInstance()
+	Ref<AsyncStream> AsyncFile::openStream(const StringParam& path, FileMode mode)
 	{
-		return Ref<AsyncFileInstance>::from(AsyncIoObject::getIoInstance());
+		return openStream(path, mode, sl_null, sl_null);
+	}
+
+	Ref<AsyncStream> AsyncFile::openStream(const StringParam& path, FileMode mode, const Ref<AsyncIoLoop>& ioLoop, const Ref<Dispatcher>& dispatcher)
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		AsyncFileStreamParam param;
+		if (param.openFile(path, mode)) {
+			param.ioLoop = ioLoop;
+			return AsyncFileStream::create(param);
+		}
+		return sl_null;
+#else
+		return open(path, mode, dispatcher);
+#endif
+	}
+
+	File& AsyncFile::getFile()
+	{
+		return m_file;
 	}
 
 	void AsyncFile::close()
 	{
-		Ref<AsyncFileInstance> instance = getIoInstance();
-		closeIoInstance();
-		if (instance.isNotNull()) {
-			instance->close();
+		m_file.close();
+	}
+
+	sl_bool AsyncFile::isOpened()
+	{
+		return m_file.isOpened();
+	}
+
+	void AsyncFile::processRequest(AsyncStreamRequest* request)
+	{
+		File& file = m_file;
+		if (file.isOpened()) {
+			if (request->data && request->size) {
+				sl_reg size;
+				if (request->flagRead) {
+					size = file.read(request->data, request->size);
+				} else {
+					size = file.write(request->data, request->size);
+				}
+				if (size > 0) {
+					request->runCallback(this, size, AsyncStreamResultCode::Success);
+				} else if (size == SLIB_IO_ENDED) {
+					request->runCallback(this, size, AsyncStreamResultCode::Ended);
+				} else {
+					request->runCallback(this, size, AsyncStreamResultCode::Unknown);
+				}
+			} else {
+				request->runCallback(this, 0, AsyncStreamResultCode::Success);
+			}
 		}
 	}
 
-	sl_file AsyncFile::getHandle()
+	sl_bool AsyncFile::isSeekable()
 	{
-		return SLIB_FILE_INVALID_HANDLE;
+		return sl_true;
+	}
+
+	sl_bool AsyncFile::seek(sl_uint64 pos)
+	{
+		return m_file.seek(pos, SeekPosition::Begin);
+	}
+
+	sl_uint64 AsyncFile::getPosition()
+	{
+		return m_file.getPosition();
+	}
+
+	sl_uint64 AsyncFile::getSize()
+	{
+		return m_file.getSize();
 	}
 
 
@@ -1464,7 +1488,7 @@ namespace slib
 
 	sl_bool AsyncOutputBuffer::copyFrom(AsyncStream* stream, sl_uint64 size)
 	{
-		if (size == 0) {
+		if (!size) {
 			return sl_true;
 		}
 		if (!stream) {
@@ -1492,15 +1516,15 @@ namespace slib
 
 	sl_bool AsyncOutputBuffer::copyFromFile(const StringParam& path)
 	{
-		return copyFromFile(path, sl_null);
+		return copyFromFile(path, sl_null, sl_null);
 	}
 
-	sl_bool AsyncOutputBuffer::copyFromFile(const StringParam& path, const Ref<AsyncIoLoop>& ioLoop)
+	sl_bool AsyncOutputBuffer::copyFromFile(const StringParam& path, const Ref<AsyncIoLoop>& ioLoop, const Ref<Dispatcher>& dispatcher)
 	{
 		sl_uint64 size;
 		if (File::getSize(path, size)) {
 			if (size > 0) {
-				Ref<AsyncStream> file = AsyncFile::openForRead(path, ioLoop);
+				Ref<AsyncStream> file = AsyncFile::openStream(path, FileMode::Read, ioLoop, dispatcher);
 				if (file.isNotNull()) {
 					return copyFrom(file.get(), size);
 				} else {
