@@ -253,6 +253,9 @@ namespace slib
 			}
 			if (!(mode & FileMode::NotCreate)) {
 				flags |= O_CREAT;
+				if (mode & FileMode::NotOverwrite) {
+					flags |= O_EXCL;
+				}
 			}
 		} else {
 			flags = O_RDONLY;

@@ -166,9 +166,6 @@ namespace slib
 		DWORD dwCreateDisposition = 0;
 		DWORD dwFlags = 0;
 		if (mode & FileMode::Write) {
-			if (!(mode & FileMode::NotCreate)) {
-				dwFlags = attrs & 0x7ffff;
-			}
 			if (mode & FileMode::NotCreate) {
 				if (mode & FileMode::NotTruncate) {
 					dwCreateDisposition = OPEN_EXISTING;
@@ -176,7 +173,10 @@ namespace slib
 					dwCreateDisposition = TRUNCATE_EXISTING;
 				}
 			} else {
-				if (mode & FileMode::NotTruncate) {
+				dwFlags = attrs & 0x7ffff;
+				if (mode & FileMode::NotOverwrite) {
+					dwCreateDisposition = CREATE_NEW;
+				} else if (mode & FileMode::NotTruncate) {
 					dwCreateDisposition = OPEN_ALWAYS;
 				} else {
 					dwCreateDisposition = CREATE_ALWAYS;

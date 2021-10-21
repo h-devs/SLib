@@ -56,6 +56,7 @@ namespace slib
 
 		NotCreate = 0x100,
 		NotTruncate = 0x200,
+		NotOverwrite = 0x400,
 		SeekToEnd = 0x1000,
 		HintRandomAccess = 0x2000,
 
