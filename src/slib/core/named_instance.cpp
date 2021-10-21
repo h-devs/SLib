@@ -30,6 +30,8 @@
 
 #include "slib/core/file.h"
 #include "slib/core/system.h"
+#include "slib/core/hash_map.h"
+#include "slib/core/safe_static.h"
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -52,6 +54,16 @@ namespace slib
 				return String16::join("Global\\", _name);
 			}
 #else
+			struct Container
+			{
+				int handle;
+				String name;
+			};
+
+			typedef HashMap<String, sl_bool> NameMap;
+
+			SLIB_SAFE_STATIC_GETTER(NameMap, GetNameMap)
+
 			static String MakeInstancePath(const StringParam& name)
 			{
 				String pathRoot = String::join(System::getHomeDirectory(), "/.local/.named_inst");
@@ -80,7 +92,18 @@ namespace slib
 				}
 				return SLIB_NAMED_INSTANCE_INVALID_HANDLE;
 #else
-				String path = MakeInstancePath(_name);
+				NameMap* names = GetNameMap();
+				if (!names) {
+					return SLIB_NAMED_INSTANCE_INVALID_HANDLE;
+				}
+				
+				String name = _name.toString();
+				MutexLocker lock(names->getLocker());
+				if (names->getValue_NoLock(name)) {
+					return SLIB_NAMED_INSTANCE_INVALID_HANDLE;
+				}
+
+				String path = MakeInstancePath(name);
 				int handle = open(path.getData(), O_RDWR | O_CREAT | O_EXCL, 0644);
 				if (handle == -1) {
 					handle = open(path.getData(), O_RDWR);
@@ -88,6 +111,7 @@ namespace slib
 						return SLIB_NAMED_INSTANCE_INVALID_HANDLE;
 					}
 				}
+
 				struct flock fl;
 				Base::zeroMemory(&fl, sizeof(fl));
 				fl.l_start = 0;
@@ -96,7 +120,13 @@ namespace slib
 				fl.l_whence = SEEK_SET;
 				int ret = fcntl(handle, F_SETLK, &fl);
 				if (ret >= 0) {
-					return handle;
+					names->put_NoLock(name, sl_true);
+					Container* ret = new Container;
+					if (ret) {
+						ret->handle = handle;
+						ret->name = Move(name);
+						return ret;
+					}
 				}
 				close(handle);
 				return SLIB_NAMED_INSTANCE_INVALID_HANDLE;
@@ -108,14 +138,20 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 				CloseHandle(handle);
 #else
+				Container* container = (Container*)handle;
 				struct flock fl;
 				Base::zeroMemory(&fl, sizeof(fl));
 				fl.l_start = 0;
 				fl.l_len = 0;
 				fl.l_type = F_UNLCK;
 				fl.l_whence = SEEK_SET;
-				fcntl(handle, F_SETLK, &fl);
-				close(handle);
+				fcntl(container->handle, F_SETLK, &fl);
+				close(container->handle);
+				NameMap* names = GetNameMap();
+				if (names) {
+					names->remove(container->name);
+				}
+				delete container;
 #endif
 			}
 

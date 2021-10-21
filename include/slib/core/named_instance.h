@@ -29,13 +29,8 @@
 namespace slib
 {
 
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
 	typedef void* HNamedInstance;
 	#define SLIB_NAMED_INSTANCE_INVALID_HANDLE sl_null
-#else
-	typedef int HNamedInstance;
-	#define SLIB_NAMED_INSTANCE_INVALID_HANDLE (-1)
-#endif
 
 	class SLIB_EXPORT NamedInstance
 	{
