@@ -123,8 +123,6 @@ namespace slib
 	{
 		DWORD dwShareMode = 0;
 		DWORD dwDesiredAccess = 0;
-		if (mode & FileMode::Write) {
-		}
 		if (mode & FileMode::ShareRead) {
 			dwShareMode |= FILE_SHARE_READ;
 		}
@@ -373,26 +371,38 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::lock() const noexcept
+	sl_bool File::lock(sl_uint64 offset, sl_uint64 length, sl_bool flagShared, sl_bool flagWait) const noexcept
 	{
 		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
-			OVERLAPPED o;
-			ZeroMemory(&o, sizeof(o));
-			if (LockFileEx(handle, LOCKFILE_EXCLUSIVE_LOCK | LOCKFILE_FAIL_IMMEDIATELY, 0, 1, 0, &o)) {
-				return sl_true;
+			if (flagShared || flagWait) {
+				DWORD flags = 0;
+				if (!flagShared) {
+					flags |= LOCKFILE_EXCLUSIVE_LOCK;
+				}
+				if (!flagWait) {
+					flags |= LOCKFILE_FAIL_IMMEDIATELY;
+				}
+				OVERLAPPED overlapped = { 0 };
+				overlapped.Offset = SLIB_GET_DWORD0(offset);
+				overlapped.OffsetHigh = SLIB_GET_DWORD1(offset);
+				if (LockFileEx(handle, flags, 0, SLIB_GET_DWORD0(length), SLIB_GET_DWORD1(length), &overlapped)) {
+					return sl_true;
+				}
+			} else {
+				if (LockFile(handle, SLIB_GET_DWORD0(offset), SLIB_GET_DWORD1(offset), SLIB_GET_DWORD0(length), SLIB_GET_DWORD1(length))) {
+					return sl_true;
+				}
 			}
 		}
 		return sl_false;
 	}
 
-	sl_bool File::unlock() const noexcept
+	sl_bool File::unlock(sl_uint64 offset, sl_uint64 length) const noexcept
 	{
 		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
-			OVERLAPPED o;
-			ZeroMemory(&o, sizeof(o));
-			if (UnlockFileEx(handle, 0, 0, 0, &o)) {
+			if (UnlockFile(handle, SLIB_GET_DWORD0(offset), SLIB_GET_DWORD1(offset), SLIB_GET_DWORD0(length), SLIB_GET_DWORD1(length))) {
 				return sl_true;
 			}
 		}

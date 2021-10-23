@@ -58,14 +58,6 @@
 #	include <sys/sendfile.h>
 #endif
 
-#if defined(SLIB_PLATFORM_IS_LINUX)
-	typedef off64_t _off_t;
-	#define _lseek lseek64
-#else
-	typedef off_t _off_t;
-	#define _lseek lseek
-#endif
-
 namespace slib
 {
 
@@ -283,8 +275,8 @@ namespace slib
 	{
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
-			_off_t pos = _lseek(fd, 0, SEEK_CUR);
-			if (pos != -1) {
+			off_t pos = lseek(fd, 0, SEEK_CUR);
+			if (pos != (off_t)-1) {
 				outPos = pos;
 				return sl_true;
 			}
@@ -306,8 +298,8 @@ namespace slib
 			} else {
 				return sl_false;
 			}
-			_off_t ret = _lseek(fd, pos, origin);
-			if (ret != -1) {
+			off_t ret = lseek(fd, pos, origin);
+			if (ret != (off_t)-1) {
 				return sl_true;
 			}
 		}
@@ -318,15 +310,15 @@ namespace slib
 	{
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
-			_off_t pos = _lseek(fd, 0, SEEK_CUR);
-			if (pos != -1) {
-				_off_t end = _lseek(fd, 0, SEEK_END);
-				if (end != -1) {
+			off_t pos = lseek(fd, 0, SEEK_CUR);
+			if (pos != (off_t)-1) {
+				off_t end = lseek(fd, 0, SEEK_END);
+				if (end != (off_t)-1) {
 					if (pos == end) {
 						outFlag = sl_true;
 					} else {
 						outFlag = sl_false;
-						_lseek(fd, pos, SEEK_SET);
+						lseek(fd, pos, SEEK_SET);
 					}
 					return sl_true;
 				}
@@ -470,34 +462,38 @@ namespace slib
 		return sl_false;
 	}
 	
-	sl_bool File::lock() const noexcept
+	sl_bool File::lock(sl_uint64 offset, sl_uint64 length, sl_bool flagShared, sl_bool flagWait) const noexcept
 	{
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
-			struct flock fl;
-			Base::zeroMemory(&fl, sizeof(fl));
-			fl.l_start = 0;
-			fl.l_len = 0;
-			fl.l_type = F_WRLCK;
+			struct flock64 fl = {0};
+			fl.l_start = offset;
+			fl.l_len = length;
+			fl.l_type = flagShared ? F_RDLCK : F_WRLCK;
 			fl.l_whence = SEEK_SET;
-			if (fcntl(fd, F_SETLK, &fl) >= 0) {
-				return sl_true;
+			if (flagWait) {
+				if (fcntl(fd, F_SETLKW64, &fl) >= 0) {
+					return sl_true;
+				}
+			} else {
+				if (fcntl(fd, F_SETLK64, &fl) >= 0) {
+					return sl_true;
+				}
 			}
 		}
 		return sl_false;
 	}
 	
-	sl_bool File::unlock() const noexcept
+	sl_bool File::unlock(sl_uint64 offset, sl_uint64 length) const noexcept
 	{
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
-			struct flock fl;
-			Base::zeroMemory(&fl, sizeof(fl));
-			fl.l_start = 0;
-			fl.l_len = 0;
+			struct flock64 fl = {0};
+			fl.l_start = offset;
+			fl.l_len = length;
 			fl.l_type = F_UNLCK;
 			fl.l_whence = SEEK_SET;
-			if (fcntl(fd, F_SETLK, &fl) >= 0) {
+			if (fcntl(fd, F_SETLK64, &fl) >= 0) {
 				return sl_true;
 			}
 		}

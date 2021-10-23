@@ -204,7 +204,7 @@ namespace slib
 		{
 			return m_file != SLIB_FILE_INVALID_HANDLE;
 		}
-		
+
 		void close() noexcept;
 
 		static void close(sl_file handle) noexcept;
@@ -213,11 +213,11 @@ namespace slib
 		sl_bool getPosition(sl_uint64& outPos) const noexcept;
 
 		sl_bool getSize(sl_uint64& outSize) const noexcept;
-		
+
 		sl_bool seek(sl_int64 offset, SeekPosition from) const noexcept;
 
 		sl_bool isEnd(sl_bool& outFlag) const noexcept;
-	
+
 
 		sl_reg read(void* buf, sl_size size) const noexcept;
 
@@ -243,9 +243,9 @@ namespace slib
 		static sl_uint64 getDiskSize(const StringParam& devicePath) noexcept;
 
 		
-		sl_bool lock() const noexcept;
+		sl_bool lock(sl_uint64 offset = 0, sl_uint64 length = 0, sl_bool flagShared = sl_false, sl_bool flagWait = sl_false) const noexcept;
 
-		sl_bool unlock() const noexcept;
+		sl_bool unlock(sl_uint64 offset = 0, sl_uint64 length = 0) const noexcept;
 
 		sl_bool flush() const noexcept;
 
