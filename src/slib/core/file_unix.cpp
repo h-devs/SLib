@@ -20,6 +20,8 @@
  *   THE SOFTWARE.
  */
 
+#define _FILE_OFFSET_BITS 64
+
 #include "slib/core/definition.h"
 
 #ifdef SLIB_PLATFORM_IS_UNIX
@@ -32,7 +34,6 @@
 #include "slib/core/pipe_event.h"
 #include "slib/core/thread.h"
 
-#define _FILE_OFFSET_BITS 64
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -437,31 +438,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
-	sl_bool File::getDiskSize(sl_uint64& outSize) const noexcept
-	{
-#if defined(SLIB_PLATFORM_IS_DESKTOP)
-#	if defined(SLIB_PLATFORM_IS_MACOS)
-		int fd = m_file;
-		if (fd != SLIB_FILE_INVALID_HANDLE) {
-			sl_uint64 nSectors = 0;
-			ioctl(fd, DKIOCGETBLOCKCOUNT, &nSectors);
-			sl_uint32 nSectorSize = 0;
-			ioctl(fd, DKIOCGETBLOCKSIZE, &nSectorSize);
-			outSize = nSectorSize * nSectors;
-			return sl_true;
-		}
-#	elif defined(SLIB_PLATFORM_IS_LINUX)
-		int fd = m_file;
-		if (fd != SLIB_FILE_INVALID_HANDLE) {
-			ioctl(fd, BLKGETSIZE64, &outSize);
-			return sl_true;
-		}
-#	endif
-#endif
-		return sl_false;
-	}
-	
+
 	sl_bool File::lock(sl_uint64 offset, sl_uint64 length, sl_bool flagShared, sl_bool flagWait) const noexcept
 	{
 		int fd = m_file;
@@ -526,7 +503,31 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
+	sl_bool File::getDiskSize(sl_uint64& outSize) const noexcept
+	{
+#if defined(SLIB_PLATFORM_IS_DESKTOP)
+#	if defined(SLIB_PLATFORM_IS_MACOS)
+		int fd = m_file;
+		if (fd != SLIB_FILE_INVALID_HANDLE) {
+			sl_uint64 nSectors = 0;
+			ioctl(fd, DKIOCGETBLOCKCOUNT, &nSectors);
+			sl_uint32 nSectorSize = 0;
+			ioctl(fd, DKIOCGETBLOCKSIZE, &nSectorSize);
+			outSize = nSectorSize * nSectors;
+			return sl_true;
+		}
+#	elif defined(SLIB_PLATFORM_IS_LINUX)
+		int fd = m_file;
+		if (fd != SLIB_FILE_INVALID_HANDLE) {
+			ioctl(fd, BLKGETSIZE64, &outSize);
+			return sl_true;
+		}
+#	endif
+#endif
+		return sl_false;
+	}
+
 	Time File::getModifiedTime() const noexcept
 	{
 		int fd = m_file;
