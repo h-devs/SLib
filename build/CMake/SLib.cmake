@@ -285,6 +285,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/db/database_expression.cpp"
  "${SLIB_PATH}/src/slib/db/database_sql.cpp"
  "${SLIB_PATH}/src/slib/db/database_statement.cpp"
+ "${SLIB_PATH}/src/slib/db/data_store.cpp"
  "${SLIB_PATH}/src/slib/db/document_store.cpp"
  "${SLIB_PATH}/src/slib/db/leveldb.cpp"
  "${SLIB_PATH}/src/slib/db/lmdb.cpp"

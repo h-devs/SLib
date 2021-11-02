@@ -67,7 +67,11 @@ namespace slib
 			DocumentCollection,
 			DocumentCursor,
 			MongoDB,
-			DocumentStorePool
+			DocumentStorePool,
+			DataStore,
+			DataPackageItem,
+			DataPackageReader,
+			DataPackageWriter
 		};
 
 	}
