@@ -50,11 +50,8 @@ namespace slib
 
 			void SHA256Base::update(const void* _input, sl_size sizeInput) noexcept
 			{
-				if (rdata_len >= 64) {
-					return;
-				}
 				const sl_uint8* input = (const sl_uint8*)_input;
-				if (sizeInput == 0) {
+				if (!sizeInput) {
 					return;
 				}
 				sizeTotalInput += sizeInput;
@@ -70,7 +67,7 @@ namespace slib
 						rdata_len = 0;
 						sizeInput -= n;
 						input += n;
-						if (sizeInput == 0) {
+						if (!sizeInput) {
 							return;
 						}
 					}
@@ -88,9 +85,6 @@ namespace slib
 
 			void SHA256Base::_finish() noexcept
 			{
-				if (rdata_len >= 64) {
-					return;
-				}
 				rdata[rdata_len] = (sl_uint8)0x80;
 				if (rdata_len < 56) {
 					Base::zeroMemory(rdata + rdata_len + 1, 55 - rdata_len);
@@ -179,11 +173,8 @@ namespace slib
 
 			void SHA512Base::update(const void* _input, sl_size sizeInput) noexcept
 			{
-				if (rdata_len >= 128) {
-					return;
-				}
 				const sl_uint8* input = (const sl_uint8*)_input;
-				if (sizeInput == 0) {
+				if (!sizeInput) {
 					return;
 				}
 				sizeTotalInput += sizeInput;
@@ -199,7 +190,7 @@ namespace slib
 						rdata_len = 0;
 						sizeInput -= n;
 						input += n;
-						if (sizeInput == 0) {
+						if (!sizeInput) {
 							return;
 						}
 					}
@@ -217,9 +208,6 @@ namespace slib
 
 			void SHA512Base::_finish() noexcept
 			{
-				if (rdata_len >= 128) {
-					return;
-				}
 				rdata[rdata_len] = (sl_uint8)0x80;
 				if (rdata_len < 120) {
 					Base::zeroMemory(rdata + rdata_len + 1, 119 - rdata_len);
