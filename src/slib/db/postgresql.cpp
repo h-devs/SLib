@@ -230,12 +230,12 @@ namespace slib
 							formats[i] = 1; // Binary
 						} else if (params[i].isSz8()) {
 							values[i] = params[i].getSz8();
-							lengths[i] = (int)(Base::getStringLength(values[i]));
+							lengths[i] = 0;
 							formats[i] = 0; // Text
 						} else {
-							strings[i] = params[i].getString();
+							strings[i] = params[i].getString().toNullTerminated();
 							values[i] = strings[i].getData();
-							lengths[i] = (int)(strings[i].getLength());
+							lengths[i] = 0;
 							formats[i] = 0; // Text
 						}
 					}
