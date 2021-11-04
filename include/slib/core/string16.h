@@ -548,7 +548,7 @@ namespace slib
 		Memory encode(Charset charset) const;
 		
 		/**
-		 * @return a newly constructed string with its value initialized to a copy of a substring of this string.
+		 * @return a substring of this string.
 		 */
 		String16 substring(sl_reg start, sl_reg end = -1) const noexcept;
 		
@@ -1374,7 +1374,7 @@ namespace slib
 		Memory encode(Charset charset) const;
 		
 		/**
-		 * @return a newly constructed string with its value initialized to a copy of a substring of this string.
+		 * @return a substring of this string.
 		 */
 		String16 substring(sl_reg start, sl_reg end = -1) const noexcept;
 		
