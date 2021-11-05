@@ -20,69 +20,103 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_DB_DATA_STORE
-#define CHECKHEADER_SLIB_DB_DATA_STORE
+#ifndef CHECKHEADER_SLIB_DB_DATA_PACKAGE
+#define CHECKHEADER_SLIB_DB_DATA_PACKAGE
 
 #include "definition.h"
 
 #include "../core/json.h"
+#include "../core/flags.h"
 
 namespace slib
 {
 
-	class KeyValueStore;
+	SLIB_DEFINE_FLAGS(DataPackageItemFlags, {
+		Deleted = 0x1,
+		Data = 0x2
+	})
 
-	class SLIB_EXPORT DataStoreParam
-	{
-	public:
-		// Path to root directory
-		String path;
+	class File;
+	class DataPackageReader;
 
-	public:
-		DataStoreParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DataStoreParam)
-
-	};
-
-	class SLIB_EXPORT DataStoreItem : public Object
+	class SLIB_EXPORT DataPackageItem : public Object
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		DataStoreItem();
+		DataPackageItem();
 
-		~DataStoreItem();
+		~DataPackageItem();
 
 	public:
+		sl_uint64 getPosition();
+
 		Json getDescription();
 
 		sl_uint64 getDataSize();
 
+		// 32 bytes
+		sl_uint8* getDataHash();
+
 	public:
 		virtual sl_reg read(sl_uint64 offset, void* buf, sl_size size) = 0;
 
+		virtual Ref<DataPackageItem> getNext() = 0;
+
 	protected:
+		sl_uint32 m_flags;
+		sl_uint64 m_position;
 		sl_uint64 m_sizeData;
+		sl_uint8 m_hashData[32];
 		Json m_desc;
 
 	};
 
-	class SLIB_EXPORT DataStore : public Object
+	class SLIB_EXPORT DataPackageReader : public Object
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		DataStore();
+		DataPackageReader();
 
-		~DataStore();
-
-	public:
-		static Ref<DataStore> open(const DataStoreParam& param);
+		~DataPackageReader();
 
 	public:
-		// `hash`: 32 bytes hash
-		virtual Ref<DataStoreItem> getItem(const void* hash) = 0;
+		virtual Ref<DataPackageItem> getItemAt(sl_uint64 position) = 0;
+
+		virtual Ref<DataPackageItem> getFirstItem() = 0;
+
+	};
+
+	class SLIB_EXPORT DataPackageWriter : public Object
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		DataPackageWriter();
+
+		~DataPackageWriter();
+
+	public:
+		sl_bool writeHeader(sl_uint64 dataSize);
+
+		virtual sl_bool writeHeader(sl_uint64 dataSize, const Json& desc) = 0;
+
+		virtual sl_bool writeData(const void* data, sl_size size) = 0;
+
+		// `outHash`: 32 bytes
+		virtual sl_bool endItem(void* outHash = sl_null) = 0;
+		
+	};
+
+	class SLIB_EXPORT DataPackage
+	{
+	public:
+		static Ref<DataPackageReader> openReader(const StringParam& path);
+		
+		static Ref<DataPackageWriter> openWriter(const StringParam& path, sl_bool flagLockFile = sl_false);
+
+		static sl_bool deleteItemAt(const StringParam& path, sl_uint64 offset);
 
 	};
 

@@ -69,6 +69,7 @@ namespace slib
 			MongoDB,
 			DocumentStorePool,
 			DataStore,
+			DataStoreItem,
 			DataPackageItem,
 			DataPackageReader,
 			DataPackageWriter

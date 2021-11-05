@@ -42,6 +42,7 @@
 #include "db/mongodb.h"
 
 #include "db/object_store.h"
+#include "db/data_package.h"
 #include "db/data_store.h"
 
 #endif
