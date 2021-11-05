@@ -68,11 +68,6 @@ namespace slib
 				return id;
 			}
 
-			static void SetFileId(sl_uint8* guid, sl_uint64 fileId)
-			{
-				MIO::writeUint64LE(guid, fileId);
-			}
-
 			static void WriteOpaqueFileUniqueId(sl_uint8* buf, sl_uint64 id)
 			{
 				MIO::writeUint64LE(buf, id);

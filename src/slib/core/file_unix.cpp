@@ -59,6 +59,12 @@
 #	include <sys/sendfile.h>
 #endif
 
+#ifndef F_SETLK64
+#define flock64 flock
+#define F_SETLK64 F_SETLK
+#define F_SETLKW64 F_SETLKW
+#endif
+
 namespace slib
 {
 

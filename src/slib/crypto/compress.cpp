@@ -47,16 +47,6 @@ namespace slib
 		namespace compress
 		{
 
-			static sl_bool PrepareMemoryData(MemoryData& mem)
-			{
-				if (mem.ref.isNull()) {
-					mem = Memory::create(mem.data, mem.size);
-					return mem.ref.isNotNull();
-				} else {
-					return sl_true;
-				}
-			}
-
 			static DataFilterResult Pass(IDataFilter* filter, const void* input, sl_size size, MemoryBuffer& output, void* chunk, sl_size sizeChunk)
 			{
 				for (;;) {

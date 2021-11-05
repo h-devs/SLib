@@ -140,7 +140,6 @@ namespace slib
 			public:
 				sl_bool read(const File& file)
 				{
-					sl_uint64 posStart = file.getPosition();
 					if (!(file.readCVLI32(&flags))) {
 						return sl_false;
 					}
