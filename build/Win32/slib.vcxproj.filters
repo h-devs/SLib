@@ -1409,5 +1409,8 @@
     <ClCompile Include="..\..\src\slib\db\data_store.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\crypto\sha3.cpp">
+      <Filter>src\crypto</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
