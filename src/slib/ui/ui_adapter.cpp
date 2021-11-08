@@ -73,11 +73,6 @@ namespace slib
 		}
 		parent->invalidateLayout(mode);
 	}
-	
-	void ViewAdapter::populateInto(const Ref<View>& parent, UIUpdateMode mode)
-	{
-		populateInto(parent.get(), mode);
-	}
 
 	
 	SLIB_DEFINE_OBJECT(ViewListAdapter, ViewAdapter)
