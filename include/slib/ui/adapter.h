@@ -51,8 +51,6 @@ namespace slib
 		virtual sl_uint32 getMaximumItemsCountPerPage(View* parent);
 		
 		void populateInto(View* parent, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
-		void populateInto(const Ref<View>& parent, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 	};
 	

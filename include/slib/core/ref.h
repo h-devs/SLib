@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -1535,6 +1535,12 @@ namespace slib
 	SLIB_INLINE static Ref<T> ToRef(T* other) noexcept
 	{
 		return Ref<T>(other);
+	}
+
+	template <class T>
+	SLIB_INLINE static const Ref<T>& ToRef(T** other) noexcept
+	{
+		return *(reinterpret_cast<Ref<T>*>(other));
 	}
 
 	template <class T>
