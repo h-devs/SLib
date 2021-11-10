@@ -141,7 +141,7 @@ VOID ErrMsg(HRESULT hr, LPCTSTR  lpFmt, ...)
 
 	if (hr != 0)
 	{
-		DWORD fm = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpSysMsg, 0, NULL);
+		const DWORD fm = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpSysMsg, 0, NULL);
 
 		if (fm > 0 && lpSysMsg)
 		{
@@ -231,7 +231,7 @@ DWORD GetWFPCalloutInfFilePath(LPTSTR lpFilename, DWORD nSize)
 // Notes:
 //
 
-HRESULT InstallSpecifiedComponent(LPTSTR lpszInfFile, LPTSTR lpszAppName, const GUID* pguidClass)
+HRESULT InstallSpecifiedComponent(LPCTSTR lpszInfFile, LPCTSTR lpszAppName, const GUID* pguidClass)
 {
 	INetCfg* pnc;
 	LPTSTR lpszApp;

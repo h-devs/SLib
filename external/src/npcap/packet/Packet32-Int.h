@@ -93,22 +93,9 @@
 // Internal constants
 //
 
-// The following is used to check the adapter name in PacketOpenAdapterNPF and prevent 
-// opening of firewire adapters 
-#define FIREWIRE_SUBSTR L"1394"
-
-#ifdef __MINGW32__
-#ifdef __MINGW64__
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <ntddndis.h>
-#else /*__MINGW64__*/
-#include <ddk/ntddndis.h>
-#endif /*__MINGW64__*/
-#else /*__MINGW32__*/
-#pragma warning( push )
-#pragma warning( disable : 4201 )
-#include <ntddndis.h>
-#pragma warning( pop )
-#endif /*__MINGW32__*/
 
 /*!
   \brief Linked list item containing one of the IP addresses associated with an adapter.
@@ -145,10 +132,9 @@ ADAPTER_INFO, *PADAPTER_INFO;
 //
 void PacketPopulateAdaptersInfoList();
 BOOL PacketGetFileVersion(LPCTSTR FileName, PCHAR VersionBuff, UINT VersionBuffLen);
-PADAPTER_INFO PacketFindAdInfo(PCHAR AdapterName);
-BOOLEAN PacketUpdateAdInfo(PCHAR AdapterName);
-BOOLEAN IsFireWire(TCHAR *AdapterDesc);
-LPADAPTER PacketOpenAdapterNPF(LPCSTR AdapterName);
+PADAPTER_INFO PacketFindAdInfo(PCCH AdapterName);
+BOOLEAN PacketUpdateAdInfo(PCCH AdapterName);
+LPADAPTER PacketOpenAdapterNPF(PCCH AdapterName);
 
 #ifdef __cplusplus
 extern "C" {

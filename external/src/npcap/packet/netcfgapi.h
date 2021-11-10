@@ -76,7 +76,6 @@
 
 #define _NETCFGAPI_H_INCLUDED
 
-#pragma warning(disable: 4311 4312)
 #include <iostream>
 #include <tchar.h>
 
@@ -108,6 +107,6 @@ VOID ReleaseRef(IUnknown* punk);
 
 BOOL RestartAllBindings(INetCfg *netcfg, PCWSTR szComponentId);
 
-BOOL ConnectToNetCfg(PCWSTR lpszPnpID, LPTSTR lpszAppName);
+BOOL ConnectToNetCfg(PCWSTR lpszPnpID, LPCTSTR lpszAppName);
 
 #endif

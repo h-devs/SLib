@@ -706,7 +706,7 @@ BOOL RestartAllBindings(INetCfg *netcfg, PCWSTR szComponentId)
 	return TRUE;
 }
 
-BOOL ConnectToNetCfg(PCWSTR lpszPnpID, LPTSTR lpszAppName)
+BOOL ConnectToNetCfg(PCWSTR lpszPnpID, LPCTSTR lpszAppName)
 {
 	HRESULT hr;
 	CComPtr<INetCfg> netcfg;
@@ -749,7 +749,7 @@ BOOL ConnectToNetCfg(PCWSTR lpszPnpID, LPTSTR lpszAppName)
 		return FALSE;
 	}
 
-	BOOL ok = RestartAllBindings(netcfg.p, lpszPnpID);
+	const BOOL ok = RestartAllBindings(netcfg.p, lpszPnpID);
 
 	hr = netcfg->Uninitialize();
 	if (FAILED(hr))

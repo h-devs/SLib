@@ -148,7 +148,6 @@ VOID PacketLoadLibrariesDynamically();
 LONG PacketDumpRegistryKey(PCHAR KeyName, PCHAR FileName);
 #endif //_DEBUG_TO_FILE
 
-#include <windows.h>
 #include <windowsx.h>
 #include <iphlpapi.h>
 #include <ipifcons.h>
@@ -159,7 +158,7 @@ LONG PacketDumpRegistryKey(PCHAR KeyName, PCHAR FileName);
 //
 // Current packet.dll version. It can be retrieved directly or through the PacketGetVersion() function.
 //
-char PacketLibraryVersion[64] = "1.10"; 
+char PacketLibraryVersion[64] = "1.10.1"; 
 
 //
 // Current driver version. It can be retrieved directly or through the PacketGetVersion() function.
@@ -276,9 +275,9 @@ HMODULE LoadLibrarySafe(LPCTSTR lpFileName)
 
 BOOL NpcapCreatePipe(const char *pipeName, HANDLE moduleName)
 {
-	int pid = GetCurrentProcessId();
+	const int pid = GetCurrentProcessId();
 	char params[BUFSIZE];
-	SHELLEXECUTEINFOA shExInfo = { 0 };
+	SHELLEXECUTEINFOA shExInfo = {};
 	DWORD nResult;
 	char lpFilename[BUFSIZE];
 	char szDrive[BUFSIZE];
@@ -318,7 +317,7 @@ BOOL NpcapCreatePipe(const char *pipeName, HANDLE moduleName)
 
 	if (!ShellExecuteExA(&shExInfo))
 	{
-		DWORD dwError = GetLastError();
+		const DWORD dwError = GetLastError();
 		if (dwError == ERROR_CANCELLED)
 		{
 			// The user refused to allow privileges elevation.
@@ -612,7 +611,7 @@ void NpcapStartHelper()
 	}
 
 	char pipeName[BUFSIZE];
-	int pid = GetCurrentProcessId();
+	const int pid = GetCurrentProcessId();
 	sprintf_s(pipeName, BUFSIZE, "npcap-%d", pid);
 	if (NpcapCreatePipe(pipeName, g_hDllHandle))
 	{
@@ -890,7 +889,6 @@ BOOL APIENTRY DllMain(HANDLE DllHandle, DWORD Reason, LPVOID lpReserved)
 {
 	TRACE_ENTER();
 
-    BOOLEAN Status=TRUE;
 	PADAPTER_INFO NewAdInfo;
 	TCHAR DllFileName[MAX_PATH];
 	g_hDllHandle = DllHandle;
@@ -986,7 +984,7 @@ BOOL APIENTRY DllMain(HANDLE DllHandle, DWORD Reason, LPVOID lpReserved)
     }
 	
 	TRACE_EXIT();
-    return Status;
+    return TRUE;
 }
 */
 
@@ -1280,7 +1278,7 @@ BOOLEAN QueryWinPcapRegistryStringW(WCHAR *SubKeyName,
   \param string The string to convert.
   \return The converted string.
 */
-static PWCHAR SChar2WChar(PCHAR string)
+static PWCHAR SChar2WChar(PCCH string)
 {
 	PWCHAR TmpStr;
 	TmpStr = (WCHAR*) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (DWORD)(strlen(string)+2)*sizeof(WCHAR));
@@ -1295,7 +1293,7 @@ static PWCHAR SChar2WChar(PCHAR string)
   \param string The string to convert.
   \return The converted string.
 */
-static PCHAR WChar2SChar(PWCHAR string)
+static PCHAR WChar2SChar(LPCWCH string)
 {
 	PCHAR TmpStr;
 	TmpStr = (CHAR*) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (DWORD)(wcslen(string)+2));
@@ -1380,7 +1378,7 @@ BOOLEAN PacketSetReadEvt(LPADAPTER AdapterObject)
 			&BytesReturned,
 			NULL)==FALSE) 
 	{
-		DWORD dwLastError = GetLastError();
+		const DWORD dwLastError = GetLastError();
 		TRACE_PRINT("Error in DeviceIoControl");
 
 		CloseHandle(hEvent);
@@ -1547,10 +1545,6 @@ BOOL PacketStartService()
 		return TRUE;
 	}
 
-	CHAR	NpfDriverName[MAX_WINPCAP_KEY_CHARS] = NPF_DRIVER_NAME;
-	CHAR	NpfServiceLocation[MAX_WINPCAP_KEY_CHARS] = SERVICES_REG_KEY NPF_DRIVER_NAME;
-
-
 	scmHandle = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
 
 	if (scmHandle == NULL)
@@ -1564,7 +1558,7 @@ BOOL PacketStartService()
 		// check if the NPF registry key is already present
 		// this means that the driver is already installed and that we don't need to call PacketInstallDriver
 		KeyRes = RegOpenKeyExA(HKEY_LOCAL_MACHINE,
-			NpfServiceLocation,
+			SERVICES_REG_KEY NPF_DRIVER_NAME,
 			0,
 			KEY_READ | KEY_WOW64_32KEY,
 			&PathKey);
@@ -1587,7 +1581,7 @@ BOOL PacketStartService()
 		if (Result)
 		{
 			TRACE_PRINT("Trying to see if the NPF service is running...");
-			svcHandle = OpenServiceA(scmHandle, NpfDriverName, SERVICE_START | SERVICE_QUERY_STATUS);
+			svcHandle = OpenServiceA(scmHandle, NPF_DRIVER_NAME, SERVICE_START | SERVICE_QUERY_STATUS);
 
 			if (svcHandle != NULL)
 			{
@@ -1673,7 +1667,7 @@ BOOL PacketStartService()
 
   \note internal function used by PacketOpenAdapter() and AddAdapter()
 */
-LPADAPTER PacketOpenAdapterNPF(LPCSTR AdapterNameA)
+LPADAPTER PacketOpenAdapterNPF(PCCH AdapterNameA)
 {
 	DWORD error;
 	LPADAPTER lpAdapter;
@@ -1910,7 +1904,6 @@ BOOL PacketStopDriver()
     SC_HANDLE       schService;
     BOOL            ret;
     SERVICE_STATUS  serviceStatus;
-	CHAR	NpfDriverName[MAX_WINPCAP_KEY_CHARS] = NPF_DRIVER_NAME;
 
  	TRACE_ENTER();
  
@@ -1923,7 +1916,7 @@ BOOL PacketStopDriver()
 		TRACE_PRINT("Opened the SCM");
 		
 		schService = OpenServiceA (scmHandle,
-			NpfDriverName,
+			NPF_DRIVER_NAME,
 			SERVICE_STOP
 			);
 		
@@ -1974,14 +1967,12 @@ BOOL PacketStopDriver60()
   \return If the function succeeds, the return value is the pointer to a properly initialized ADAPTER object,
    otherwise the return value is NULL.
 */
-LPADAPTER PacketOpenAdapter(PCHAR AdapterNameWA)
+LPADAPTER PacketOpenAdapter(PCCH AdapterNameWA)
 {
     LPADAPTER lpAdapter = NULL;
 	PCHAR AdapterNameA = NULL;
 	PCHAR TranslatedAdapterNameA = NULL;
 	PCHAR WifiAdapterNameA = NULL;
-	BOOL bFreeAdapterNameA;
-	PADAPTER_INFO TAdInfo;
 	
 	DWORD dwLastError = ERROR_SUCCESS;
  
@@ -2001,20 +1992,12 @@ LPADAPTER PacketOpenAdapter(PCHAR AdapterNameWA)
 	//
 	// Ugly heuristic to detect if the adapter is ASCII
 	//
-	if(AdapterNameWA[1]!=0)
-	{ 
-		//
-		// ASCII
-		//
-		bFreeAdapterNameA = FALSE;
-		AdapterNameA = AdapterNameWA;
-	} 
-	else 
+	if(AdapterNameWA[1]==0)
 	{	
 		//
 		// Unicode
 		//
-		size_t bufferSize = wcslen((PWCHAR)AdapterNameWA) + 1;
+		const size_t bufferSize = wcslen((PCWCHAR)AdapterNameWA) + 1;
 		
 		AdapterNameA = (PCHAR) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, bufferSize);
 
@@ -2025,18 +2008,14 @@ LPADAPTER PacketOpenAdapter(PCHAR AdapterNameWA)
 		}
 
 		StringCchPrintfA(AdapterNameA, bufferSize, "%ws", (PWCHAR)AdapterNameWA);
-		bFreeAdapterNameA = TRUE;
+		AdapterNameWA = AdapterNameA;
 	}
 
 	// Translate the adapter name string's "NPF_{XXX}" to "NPCAP_{XXX}" for compatibility with WinPcap, because some user softwares hard-coded the "NPF_" string
-	TranslatedAdapterNameA = NpcapTranslateAdapterName_Npf2Npcap(AdapterNameA);
+	TranslatedAdapterNameA = NpcapTranslateAdapterName_Npf2Npcap(AdapterNameWA);
 	if (TranslatedAdapterNameA)
 	{
-        if (bFreeAdapterNameA) {
-			HeapFree(GetProcessHeap(), 0, AdapterNameA);
-            bFreeAdapterNameA = FALSE;
-        }
-		AdapterNameA = TranslatedAdapterNameA;
+		AdapterNameWA = TranslatedAdapterNameA;
 	}
 
 	WaitForSingleObject(g_AdaptersInfoMutex, INFINITE);
@@ -2052,13 +2031,13 @@ LPADAPTER PacketOpenAdapter(PCHAR AdapterNameWA)
 		TRACE_PRINT("Looking for the adapter in our list 1st time...");
 
 		// Find the PADAPTER_INFO structure associated with this adapter 
-		TAdInfo = PacketFindAdInfo(AdapterNameA);
+		PADAPTER_INFO TAdInfo = PacketFindAdInfo(AdapterNameWA);
 		if(TAdInfo == NULL)
 		{
 			TRACE_PRINT("Adapter not found in our list. Try to refresh the list.");
 
-			PacketUpdateAdInfo(AdapterNameA);
-			TAdInfo = PacketFindAdInfo(AdapterNameA);
+			PacketUpdateAdInfo(AdapterNameWA);
+			TAdInfo = PacketFindAdInfo(AdapterNameWA);
 
 			TRACE_PRINT("Looking for the adapter in our list 2nd time...");
 		}
@@ -2079,7 +2058,7 @@ LPADAPTER PacketOpenAdapter(PCHAR AdapterNameWA)
 			//
 			// This is an airpcap card. Open it using the airpcap api
 			//								
-			lpAdapter = PacketOpenAdapterAirpcap(AdapterNameA);
+			lpAdapter = PacketOpenAdapterAirpcap(AdapterNameWA);
 			
 			if(lpAdapter == NULL)
 			{
@@ -2110,7 +2089,7 @@ LPADAPTER PacketOpenAdapter(PCHAR AdapterNameWA)
 			// The adapter is flagged as not exported, probably because it's broken 
 			// or incompatible with WinPcap. We end here with an error.
 			//
-			TRACE_PRINT1("Trying to open the adapter %hs which is flagged as not exported. Failing (BAD_UNIT)", AdapterNameA);
+			TRACE_PRINT1("Trying to open the adapter %hs which is flagged as not exported. Failing (BAD_UNIT)", AdapterNameWA);
 			dwLastError = ERROR_BAD_UNIT;
 			
 			break;
@@ -2124,10 +2103,10 @@ LPADAPTER PacketOpenAdapter(PCHAR AdapterNameWA)
 			break;
 		}
 
-		if (g_nbAdapterMonitorModes[AdapterNameA] != 0)
+		if (g_nbAdapterMonitorModes[AdapterNameWA] != 0)
 		{
 			TRACE_PRINT("Try to open in monitor mode");
-			WifiAdapterNameA = NpcapTranslateAdapterName_Standard2Wifi(AdapterNameA);
+			WifiAdapterNameA = NpcapTranslateAdapterName_Standard2Wifi(AdapterNameWA);
 			if (WifiAdapterNameA != NULL)
 			{
 				lpAdapter = PacketOpenAdapterNPF(WifiAdapterNameA);
@@ -2145,7 +2124,7 @@ LPADAPTER PacketOpenAdapter(PCHAR AdapterNameWA)
 		{
 			// monitor mode failed or not available.
 			TRACE_PRINT("Normal NPF adapter, trying to open it...");
-			lpAdapter = PacketOpenAdapterNPF(AdapterNameA);
+			lpAdapter = PacketOpenAdapterNPF(AdapterNameWA);
 			if (lpAdapter == NULL)
 			{
 				dwLastError = GetLastError();
@@ -2156,24 +2135,21 @@ LPADAPTER PacketOpenAdapter(PCHAR AdapterNameWA)
 
 	ReleaseMutex(g_AdaptersInfoMutex);
 
-	if (bFreeAdapterNameA) HeapFree(GetProcessHeap(), 0, AdapterNameA);
-	if (WifiAdapterNameA) HeapFree(GetProcessHeap(), 0, WifiAdapterNameA);
+	if (NULL != AdapterNameA) HeapFree(GetProcessHeap(), 0, AdapterNameA);
+	if (NULL != WifiAdapterNameA) HeapFree(GetProcessHeap(), 0, WifiAdapterNameA);
+	if (NULL != TranslatedAdapterNameA) HeapFree(GetProcessHeap(), 0, TranslatedAdapterNameA);
 
 
 	if (dwLastError != ERROR_SUCCESS)
 	{
 		TRACE_EXIT();
 		SetLastError(dwLastError);
-		if (TranslatedAdapterNameA)
-			HeapFree(GetProcessHeap(), 0, TranslatedAdapterNameA);
 
 		return NULL;
 	}
 	else
 	{
 		TRACE_EXIT();
-		if (TranslatedAdapterNameA)
-			HeapFree(GetProcessHeap(), 0, TranslatedAdapterNameA);
 
 		return lpAdapter;
 	}
@@ -2309,7 +2285,7 @@ VOID PacketInitPacket(LPPACKET lpPacket,PVOID Buffer,UINT Length)
   values, here only the normal capture mode will be described.
 
   The number of packets received with this function is variable. It depends on the number of packets 
-  currently stored in the driver’s buffer, on the size of these packets and on the size of the buffer 
+  currently stored in the driverï¿½s buffer, on the size of these packets and on the size of the buffer 
   associated to the lpPacket parameter. The following figure shows the format used by the driver to pass 
   packets to the application. 
 
@@ -2489,8 +2465,8 @@ INT PacketSendPackets(LPADAPTER AdapterObject, PVOID PacketBuff, ULONG Size, BOO
 {
     BOOLEAN			Res;
     DWORD			BytesTransfered, TotBytesTransfered=0;
-	struct timeval	BufStartTime;
-	LARGE_INTEGER	StartTicks, CurTicks, TargetTicks, TimeFreq;
+	struct timeval	BufStartTime = {};
+	LARGE_INTEGER	StartTicks = {}, CurTicks = {}, TargetTicks = {}, TimeFreq = {};
 
 
 	TRACE_ENTER();
@@ -3597,11 +3573,11 @@ BOOLEAN PacketGetAdapterNames(PCHAR pStr, PULONG  BufferSize)
   is full, the reaming addresses are dropeed, therefore set its dimension to sizeof(npf_if_addr)
   if you want only the first address.
 */
-BOOLEAN PacketGetNetInfoEx(PCHAR AdapterName, npf_if_addr* buffer, PLONG NEntries)
+BOOLEAN PacketGetNetInfoEx(PCCH AdapterName, npf_if_addr* buffer, PLONG NEntries)
 {
 	PADAPTER_INFO TAdInfo;
-	PCHAR Tname;
-	BOOLEAN Res, FreeBuff;
+	PCHAR Tname = NULL;
+	BOOLEAN Res;
 	PCHAR TranslatedAdapterName = NULL;
 
 	TRACE_ENTER();
@@ -3614,24 +3590,19 @@ BOOLEAN PacketGetNetInfoEx(PCHAR AdapterName, npf_if_addr* buffer, PLONG NEntrie
 	}
 
 	// Provide conversion for backward compatibility
-	if(AdapterName[1] != 0)
-	{ //ASCII
-		Tname = AdapterName;
-		FreeBuff = FALSE;
-	}
-	else
+	if(AdapterName[1] == 0)
 	{
 		Tname = WChar2SChar((PWCHAR)AdapterName);
-		FreeBuff = TRUE;
+		AdapterName = Tname;
 	}
 
 	//
 	// Update the information about this adapter
 	//
-	if(!PacketUpdateAdInfo(Tname))
+	if(!PacketUpdateAdInfo(AdapterName))
 	{
 		TRACE_PRINT("PacketGetNetInfoEx. Failed updating the adapter list. Failing.");
-		if(FreeBuff)
+		if(Tname)
 			HeapFree(GetProcessHeap(), 0, Tname);
 
 		if (TranslatedAdapterName)
@@ -3643,7 +3614,7 @@ BOOLEAN PacketGetNetInfoEx(PCHAR AdapterName, npf_if_addr* buffer, PLONG NEntrie
 	
 	WaitForSingleObject(g_AdaptersInfoMutex, INFINITE);
 	// Find the PADAPTER_INFO structure associated with this adapter 
-	TAdInfo = PacketFindAdInfo(Tname);
+	TAdInfo = PacketFindAdInfo(AdapterName);
 
 	if(TAdInfo != NULL)
 	{
@@ -3681,7 +3652,7 @@ BOOLEAN PacketGetNetInfoEx(PCHAR AdapterName, npf_if_addr* buffer, PLONG NEntrie
 	
 	ReleaseMutex(g_AdaptersInfoMutex);
 	
-	if(FreeBuff)
+	if(Tname)
 		HeapFree(GetProcessHeap(), 0, Tname);
 
 	if (TranslatedAdapterName)
@@ -3761,7 +3732,7 @@ BOOLEAN PacketGetNetType(LPADAPTER AdapterObject, NetType *type)
 
   Other software loopback adapters may exist, but they will not be identified with this function.
 */
-BOOLEAN PacketIsLoopbackAdapter(PCHAR AdapterName)
+BOOLEAN PacketIsLoopbackAdapter(PCCH AdapterName)
 {
 	BOOLEAN ret;
 
@@ -3796,7 +3767,7 @@ BOOLEAN PacketIsLoopbackAdapter(PCHAR AdapterName)
 \param AdapterObject The adapter on which information is needed.
 \return 1 if yes, 0 if no, -1 if the function fails.
 */
-int PacketIsMonitorModeSupported(PCHAR AdapterName)
+int PacketIsMonitorModeSupported(PCCH AdapterName)
 {
 	LPADAPTER pAdapter;
 	BOOLEAN    Status;
@@ -3867,7 +3838,7 @@ int PacketIsMonitorModeSupported(PCHAR AdapterName)
 \param mode The new operation mode of the adapter, 1 for monitor mode, 0 for managed mode.
 \return 1 if the function succeeds, 0 if monitor mode is not supported, -1 if the function fails with other errors.
 */
-int PacketSetMonitorMode(PCHAR AdapterName, int mode)
+int PacketSetMonitorMode(PCCH AdapterName, int mode)
 {
 	int rval = 0;
 	DWORD dwResult = ERROR_INVALID_DATA;
@@ -3901,7 +3872,7 @@ int PacketSetMonitorMode(PCHAR AdapterName, int mode)
 		return -1;
 	}
 
-	ULONG ulOperationMode = mode ? DOT11_OPERATION_MODE_NETWORK_MONITOR : DOT11_OPERATION_MODE_EXTENSIBLE_STATION;
+	const ULONG ulOperationMode = mode ? DOT11_OPERATION_MODE_NETWORK_MONITOR : DOT11_OPERATION_MODE_EXTENSIBLE_STATION;
 	OidData->Oid = OID_DOT11_CURRENT_OPERATION_MODE;
 	OidData->Length = sizeof(DOT11_CURRENT_OPERATION_MODE);
 	pOpMode->uCurrentOpMode = ulOperationMode;
@@ -3951,7 +3922,7 @@ int PacketSetMonitorMode(PCHAR AdapterName, int mode)
 \param mode The new operation mode of the adapter, 1 for monitor mode, 0 for managed mode.
 \return 1 if it's monitor mode, 0 if it's not monitor mode, -1 if the function fails.
 */
-int PacketGetMonitorMode(PCHAR AdapterName)
+int PacketGetMonitorMode(PCCH AdapterName)
 {
 	int mode;
 	LPADAPTER pAdapter;

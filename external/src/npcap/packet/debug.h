@@ -99,9 +99,6 @@
 
 #include <tchar.h>
 
-#pragma warning(push)
-#pragma warning(disable : 4127)
-
 static VOID OutputDebugStringV(LPCTSTR Format, ...)
 {
 	FILE *f;
@@ -109,7 +106,7 @@ static VOID OutputDebugStringV(LPCTSTR Format, ...)
 	va_list Marker;
 	DWORD dwThreadId;
 	int loops = 0;
-	DWORD dwLastError = GetLastError();
+	const DWORD dwLastError = GetLastError();
 
 	dwThreadId = GetCurrentThreadId();
 
@@ -152,8 +149,6 @@ static VOID OutputDebugStringV(LPCTSTR Format, ...)
 
 	SetLastError(dwLastError);
 }
-
-#pragma warning(pop)
 
 #elif defined (_DBG)
 

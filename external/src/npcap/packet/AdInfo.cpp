@@ -101,18 +101,11 @@
 
 #define UNICODE 1
 
-#pragma warning (disable : 4127)  //conditional expression is constant. Used for do{}while(FALSE) loops.
-
-#if (MSC_VER < 1300)
-#pragma warning (disable : 4710) // inline function not expanded. used for strsafe functions
-#endif
-
 #include <Packet32.h>
 #include "Packet32-Int.h"
 #include "debug.h"
 
 #include <ws2tcpip.h>
-#include <windows.h>
 #include <windowsx.h>
 #include <iphlpapi.h>
 #include <strsafe.h>
@@ -318,7 +311,7 @@ static BOOLEAN PacketAddAdapterNPF(PIP_ADAPTER_ADDRESSES pAdapterAddr)
 			break;
 		}
 
-		int AddrLen = pAddr->Address.iSockaddrLength;
+		const int AddrLen = pAddr->Address.iSockaddrLength;
 		memcpy(&pItem->Addr.IPAddress, pAddr->Address.lpSockaddr, AddrLen);
 		struct sockaddr_storage *IfAddr = (struct sockaddr_storage *)pAddr->Address.lpSockaddr;
 		struct sockaddr_storage* Subnet = (struct sockaddr_storage *)&pItem->Addr.SubnetMask;
@@ -326,7 +319,7 @@ static BOOLEAN PacketAddAdapterNPF(PIP_ADAPTER_ADDRESSES pAdapterAddr)
 		Subnet->ss_family = Broadcast->ss_family = IfAddr->ss_family;
 		if (Subnet->ss_family == AF_INET)
 		{
-			((struct sockaddr_in *)Subnet)->sin_addr.S_un.S_addr = ul = 0xffffffff << (32 - pAddr->OnLinkPrefixLength);
+			((struct sockaddr_in *)Subnet)->sin_addr.S_un.S_addr = ul = htonl(0xffffffff << (32 - pAddr->OnLinkPrefixLength));
 			((struct sockaddr_in *)Broadcast)->sin_addr.S_un.S_addr = ~ul | ((struct sockaddr_in *)IfAddr)->sin_addr.S_un.S_addr;
 		}
 		else if (IfAddr->ss_family == AF_INET6)
@@ -341,7 +334,7 @@ static BOOLEAN PacketAddAdapterNPF(PIP_ADAPTER_ADDRESSES pAdapterAddr)
 				}
 				else
 				{
-					WORD mask = 0xffff << (16 - i);
+					const WORD mask = htons(0xffff << (16 - i));
 					((struct sockaddr_in6*)Subnet)->sin6_addr.u.Word[j] = mask;
 					((struct sockaddr_in6*)Broadcast)->sin6_addr.u.Word[j] = ~mask | ((struct sockaddr_in6*)IfAddr)->sin6_addr.u.Word[j];
 				}
@@ -520,7 +513,7 @@ static BOOLEAN PacketGetAdaptersNPF()
   \param description description of the adapter.
   \return If the function succeeds, the return value is nonzero.
 */
-static BOOLEAN PacketAddAdapterAirpcap(PCHAR name, PCHAR description)
+static BOOLEAN PacketAddAdapterAirpcap(PCCH name, PCCH description)
 {
 	//this function should acquire the g_AdaptersInfoMutex, since it's NOT called with an ADAPTER_INFO as parameter
 	CHAR ebuf[AIRPCAP_ERRBUF_SIZE];
@@ -685,7 +678,7 @@ static BOOLEAN PacketGetAdaptersAirpcap()
   \param AdapterName Name of the adapter whose information has to be retrieved.
   \return If the function succeeds, the return value is non-null.
 */
-PADAPTER_INFO PacketFindAdInfo(PCHAR AdapterName)
+PADAPTER_INFO PacketFindAdInfo(PCCH AdapterName)
 {
 	//this function should NOT acquire the g_AdaptersInfoMutex, since it does return an ADAPTER_INFO structure
 	PADAPTER_INFO TAdInfo;
@@ -728,7 +721,7 @@ PADAPTER_INFO PacketFindAdInfo(PCHAR AdapterName)
   \return If the function succeeds, the return value is TRUE. A false value means that the adapter is no
   more valid or that it is disconnected.
 */
-BOOLEAN PacketUpdateAdInfo(PCHAR AdapterName)
+BOOLEAN PacketUpdateAdInfo(PCCH AdapterName)
 {
 	//this function should acquire the g_AdaptersInfoMutex, since it's NOT called with an ADAPTER_INFO as parameter
 	PADAPTER_INFO TAdInfo, PrevAdInfo;
@@ -736,7 +729,7 @@ BOOLEAN PacketUpdateAdInfo(PCHAR AdapterName)
 	ULONG BufLen;
 	ULONG RetVal = ERROR_SUCCESS;
 	PIP_ADAPTER_ADDRESSES AdBuffer, TmpAddr;
-	PCHAR AdapterGuid = NULL;
+	PCCH AdapterGuid = NULL;
 	BOOLEAN found = FALSE;
 
 	TRACE_ENTER();

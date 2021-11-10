@@ -19,7 +19,7 @@ libcef 76.1.10
 rocksdb 6.16.4
 libmongoc 1.17.5
 
-npcap 1.50
+npcap 1.55
 dokan 1.5.0.2000
 winspd 2021 Beta
 tap-windows 9.24
@@ -49,5 +49,5 @@ cairo 1.14.2
 pango 1.28.3
 curl 7.59.0
 libmariadb-client 3.0.4
-pcap 1.10.0
+pcap 1.10.1
 WinPcap 4.1.3
