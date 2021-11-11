@@ -391,8 +391,14 @@ namespace slib
 
 		static String normalizeDirectoryPath(const StringParam& path) noexcept;
 
-		static String joinPath(const StringParam& path1, const StringParam& path2) noexcept;
-	
+		static String joinPath(const StringParam* strings, sl_size count) noexcept;
+
+		template <class... ARGS>
+		static String joinPath(const StringParam& s, ARGS&&... args) noexcept
+		{
+			StringParam params[] = { s, Forward<ARGS>(args)... };
+			return joinPath(params, 1 + sizeof...(args));
+		}
 
 		// converts any invalid characters (0~0x1f, 0x7f~0x9f, :*?"<>|\/) into "_"
 		static String makeSafeFileName(const StringParam& fileName) noexcept;

@@ -405,14 +405,29 @@ namespace slib
 		}
 	}
 
-	String File::joinPath(const StringParam& path1, const StringParam& path2) noexcept
+	String File::joinPath(const StringParam* list, sl_size count) noexcept
 	{
-		StringData str(path1);
-		if (str.endsWith('\\') || str.endsWith('/')) {
-			return *((StringView*)&str) + path2;
-		} else {
-			return String::join(str, "/", path2);
+		if (!count) {
+			return sl_null;
 		}
+		if (count == 1) {
+			return list[0].toString();
+		}
+		sl_bool flagNeedsDelimiter = sl_false;
+		StringBuffer buf;
+		for (sl_size i = 0; i < count; i++) {
+			if (i && flagNeedsDelimiter) {
+				buf.addStatic("/", 1);
+			}
+			StringData data(list[i]);
+			if (data.string.isNotNull()) {
+				buf.add(data.string);
+			} else {
+				buf.addStatic(data.getData(), data.getLength());
+			}
+			flagNeedsDelimiter = !(data.endsWith('\\') || data.endsWith('/'));
+		}
+		return buf.merge();
 	}
 
 	Memory File::readAllBytes(const StringParam& path, sl_size maxSize) noexcept
