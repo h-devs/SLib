@@ -32,43 +32,36 @@ namespace slib
 {
 
 	SLIB_DEFINE_FLAGS(DataPackageItemFlags, {
-		Deleted = 0x1,
-		Data = 0x2
+		Deleted = 0x1
 	})
+
+	enum class DataPackageItemType
+	{
+		Empty = 0,
+		Normal = 1,
+		Chain = 2,
+		Root = 3
+	};
 
 	class File;
 	class DataPackageReader;
 
-	class SLIB_EXPORT DataPackageItem : public Object
+	class SLIB_EXPORT DataPackageItem
 	{
-		SLIB_DECLARE_OBJECT
+	public:
+		DataPackageItemFlags flags;
+		DataPackageItemType type;
+		sl_uint64 position;
+		sl_uint64 nextItemPosition;
+		sl_uint64 dataPosition;
+		sl_uint64 dataSize;
+		sl_uint8 dataHash[32]; // SHA3-256
+		Json description;
 
 	public:
 		DataPackageItem();
 
-		~DataPackageItem();
-
-	public:
-		sl_uint64 getPosition();
-
-		Json getDescription();
-
-		sl_uint64 getDataSize();
-
-		// 32 bytes
-		sl_uint8* getDataHash();
-
-	public:
-		virtual sl_reg read(sl_uint64 offset, void* buf, sl_size size) = 0;
-
-		virtual Ref<DataPackageItem> getNext() = 0;
-
-	protected:
-		sl_uint32 m_flags;
-		sl_uint64 m_position;
-		sl_uint64 m_sizeData;
-		sl_uint8 m_hashData[32];
-		Json m_desc;
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DataPackageItem)
 
 	};
 
@@ -82,9 +75,38 @@ namespace slib
 		~DataPackageReader();
 
 	public:
-		virtual Ref<DataPackageItem> getItemAt(sl_uint64 position) = 0;
+		virtual sl_bool getItemAt(sl_uint64 position, DataPackageItem& _out, Memory* outData = sl_null, sl_size sizeRead = 0) = 0;
 
-		virtual Ref<DataPackageItem> getFirstItem() = 0;
+		sl_bool getFirstItem(DataPackageItem& _out, Memory* outData = sl_null, sl_size sizeRead = 0);
+
+		virtual sl_reg readFile(sl_uint64 offset, void* buf, sl_size size) = 0;
+
+	public:
+		// `outId`: 12 Bytes
+		virtual void getId(void* outId) = 0;
+
+		virtual Time getCreationTime() = 0;
+
+		virtual Time getModifiedTime() = 0;
+
+		virtual sl_uint64 getFirstItemPosition() = 0;
+
+		virtual sl_uint64 getEndingPosition() = 0;
+
+	};
+
+	class SLIB_EXPORT DataPackageWriteParam
+	{
+	public:
+		DataPackageItemFlags flags;
+		DataPackageItemType type;
+		sl_uint64 dataSize;
+		Json description;
+
+	public:
+		DataPackageWriteParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DataPackageWriteParam)
 
 	};
 
@@ -98,14 +120,16 @@ namespace slib
 		~DataPackageWriter();
 
 	public:
-		sl_bool writeHeader(sl_uint64 dataSize);
-
-		virtual sl_bool writeHeader(sl_uint64 dataSize, const Json& desc) = 0;
+		virtual sl_bool writeHeader(const DataPackageWriteParam& param) = 0;
 
 		virtual sl_bool writeData(const void* data, sl_size size) = 0;
 
-		// `outHash`: 32 bytes
+		// `outHash`: 32 bytes (SHA3-256)
 		virtual sl_bool endItem(void* outHash = sl_null) = 0;
+
+	public:
+		// `outId`: 12 Bytes
+		virtual void getId(void* outId) = 0;
 		
 	};
 

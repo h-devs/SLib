@@ -45,7 +45,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT DataStoreItem : public Object
+	class SLIB_EXPORT DataStoreItem : public Referable
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -55,16 +55,11 @@ namespace slib
 		~DataStoreItem();
 
 	public:
-		Json getDescription();
+		virtual Json getDescription() = 0;
 
-		sl_uint64 getDataSize();
+		virtual sl_uint64 getDataSize() = 0;
 
-	public:
-		virtual sl_reg read(sl_uint64 offset, void* buf, sl_size size) = 0;
-
-	protected:
-		sl_uint64 m_sizeData;
-		Json m_desc;
+		virtual sl_reg readItemData(sl_uint64 offset, void* buf, sl_size size) = 0;
 
 	};
 
@@ -81,8 +76,8 @@ namespace slib
 		static Ref<DataStore> open(const DataStoreParam& param);
 
 	public:
-		// `hash`: 32 bytes hash
-		virtual Ref<DataStoreItem> getItem(const void* hash) = 0;
+		// `hash`: SHA3-256 Hash
+		virtual Ref<DataStoreItem> getItem(const void* hash, Memory* outData = sl_null, sl_size sizeRead = 0) = 0;
 
 	};
 

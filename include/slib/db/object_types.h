@@ -70,7 +70,6 @@ namespace slib
 			DocumentStorePool,
 			DataStore,
 			DataStoreItem,
-			DataPackageItem,
 			DataPackageReader,
 			DataPackageWriter
 		};
