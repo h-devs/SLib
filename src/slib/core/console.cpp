@@ -22,72 +22,20 @@
 
 #include "slib/core/console.h"
 
-#if defined(SLIB_PLATFORM_IS_MOBILE)
-
-namespace slib
-{
-
-	String Console::readLine()
-	{
-		return sl_null;
-	}
-
-	sl_char16 Console::readChar(sl_bool flagEcho)
-	{
-		return 0;
-	}
-
-	sl_bool Console::readInt32(sl_int32* _out)
-	{
-		return sl_false;
-	}
-
-	sl_bool Console::readUint32(sl_uint32* _out)
-	{
-		return sl_false;
-	}
-
-	sl_bool Console::readInt64(sl_int64* _out)
-	{
-		return sl_false;
-	}
-
-	sl_bool Console::readUint64(sl_uint64* _out)
-	{
-		return sl_false;
-	}
-
-	sl_bool Console::readFloat(float* _out)
-	{
-		return sl_false;
-	}
-
-	sl_bool Console::readDouble(double* _out)
-	{
-		return sl_false;
-	}
-
-	String Console::readString()
-	{
-		return sl_null;
-	}
-
-}
-
-#else
-
 #include <stdio.h>
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 #	include <conio.h>
+#   include "slib/core/memory.h"
 #	include "slib/core/win32/windows.h"
 #	define scanf scanf_s
 #else
 #	include <stdlib.h>
-#	include <termios.h>
+#   if !defined(SLIB_PLATFORM_IS_MOBILE)
+#	    include <termios.h>
+#   endif
 #endif
 
-#include "slib/core/memory.h"
 #include "slib/core/base.h"
 
 namespace slib
@@ -150,7 +98,66 @@ namespace slib
 		printf("%s\n", s.getData());
 #endif
 	}
+    
+}
 
+#if defined(SLIB_PLATFORM_IS_MOBILE)
+
+namespace slib
+{
+    
+    String Console::readLine()
+    {
+        return sl_null;
+    }
+    
+    sl_char16 Console::readChar(sl_bool flagEcho)
+    {
+        return 0;
+    }
+    
+    sl_bool Console::readInt32(sl_int32* _out)
+    {
+        return sl_false;
+    }
+    
+    sl_bool Console::readUint32(sl_uint32* _out)
+    {
+        return sl_false;
+    }
+    
+    sl_bool Console::readInt64(sl_int64* _out)
+    {
+        return sl_false;
+    }
+    
+    sl_bool Console::readUint64(sl_uint64* _out)
+    {
+        return sl_false;
+    }
+    
+    sl_bool Console::readFloat(float* _out)
+    {
+        return sl_false;
+    }
+    
+    sl_bool Console::readDouble(double* _out)
+    {
+        return sl_false;
+    }
+    
+    String Console::readString()
+    {
+        return sl_null;
+    }
+    
+}
+
+#else
+
+namespace slib
+{
+    
 	String Console::readLine()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)

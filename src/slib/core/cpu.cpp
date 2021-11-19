@@ -25,17 +25,19 @@
 #include "slib/core/math.h"
 
 #if defined(SLIB_COMPILER_IS_VC)
-#include <intrin.h>
+#   include <intrin.h>
 #else
-#ifdef SLIB_ARCH_IS_X64
-#include <cpuid.h>
-#endif
+#   ifdef SLIB_ARCH_IS_X64
+#       include <cpuid.h>
+#   endif
 #endif
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
-#include "slib/core/win32/windows.h"
+#   include "slib/core/win32/windows.h"
+#elif defined(SLIB_PLATFORM_IS_APPLE)
+#   include <sys/sysctl.h>
 #elif defined(SLIB_PLATFORM_IS_LINUX)
-#include <sched.h>
+#   include <sched.h>
 #endif
 
 namespace slib
@@ -53,6 +55,13 @@ namespace slib
 				if (GetProcessAffinityMask(GetCurrentProcess(), &dwMaskProcess, &dwMaskSystem)) {
 					return Math::popCount(dwMaskSystem);
 				}
+#elif defined(SLIB_PLATFORM_IS_APPLE)
+                int mib[2] = {CTL_HW, HW_NCPU};
+                sl_uint32 n = 1;
+                size_t len = sizeof(n);
+                if (sysctl(mib, 2, &n, &len, sl_null, 0) != -1) {
+                    return n;
+                }
 #elif defined(SLIB_PLATFORM_IS_LINUX)
 				cpu_set_t set;
 				CPU_ZERO(&set);

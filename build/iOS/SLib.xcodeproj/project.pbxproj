@@ -993,7 +993,6 @@
 			children = (
 				260107851DACE89F00C40723 /* animation.cpp */,
 				A25F2EC71B039EF600854DAF /* app.cpp */,
-				26AFC60322B198340034C634 /* cpu.cpp */,
 				26B571421C9D43A70099E69B /* asset.cpp */,
 				D79AF20F26935A5F00FCDE3D /* asset_apple.mm */,
 				A25F2EC81B039EF600854DAF /* async.cpp */,
@@ -1008,6 +1007,7 @@
 				26C72AD01E22484F00F7D6D0 /* collection.cpp */,
 				265A935D2304783200B155A2 /* console.cpp */,
 				A234D6ED1B3F12F600ADDF4E /* content_type.cpp */,
+				26AFC60322B198340034C634 /* cpu.cpp */,
 				26BC2EC51E2DFF4900D0801E /* dispatch.cpp */,
 				A25F2ED11B039EF600854DAF /* event.cpp */,
 				A25F2ED21B039EF600854DAF /* file.cpp */,
