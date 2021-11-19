@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_CORE_FILE
 
 #include "handle_container.h"
+#include "string.h"
 #include "io.h"
 #include "time.h"
 #include "flags.h"
