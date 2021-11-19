@@ -166,7 +166,7 @@ namespace slib
 			sl_uint32 temp = d;
 			d = c;
 			c = b;
-			b = b + Math::rotateLeft32((a + f + K[i] + M[g]), S[i]);
+			b = b + Math::rotateLeft((a + f + K[i] + M[g]), S[i]);
 			a = temp;
 		}
 

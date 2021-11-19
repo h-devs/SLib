@@ -125,7 +125,7 @@ namespace slib
 			W[i] = MIO::readUint32BE(input + (i << 2));
 		}
 		for (i = 16; i < 80; i++) {
-			W[i] = Math::rotateLeft32(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1);
+			W[i] = Math::rotateLeft(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1);
 		}
 		for (i = 0; i < 5; i++) {
 			v[i] = h[i];
@@ -137,10 +137,10 @@ namespace slib
 			f[1] = v[1] ^ v[2] ^ v[3];
 			f[2] = (v[1] & v[2]) | (v[3] & (v[1] | v[2]));
 			f[3] = f[1];
-			sl_uint32 t = Math::rotateLeft32(v[0], 5) + f[j] + v[4] + K[j] + W[i];
+			sl_uint32 t = Math::rotateLeft(v[0], 5) + f[j] + v[4] + K[j] + W[i];
 			v[4] = v[3];
 			v[3] = v[2];
-			v[2] = Math::rotateLeft32(v[1], 30);
+			v[2] = Math::rotateLeft(v[1], 30);
 			v[1] = v[0];
 			v[0] = t;
 		}

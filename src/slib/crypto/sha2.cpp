@@ -128,18 +128,18 @@ namespace slib
 					W[i] = MIO::readUint32BE(input + (i << 2));
 				}
 				for (i = 16; i < 64; i++) {
-					sl_uint32 s0 = Math::rotateRight32(W[i - 15], 7) ^ Math::rotateRight32(W[i - 15], 18) ^ (W[i - 15] >> 3);
-					sl_uint32 s1 = Math::rotateRight32(W[i - 2], 17) ^ Math::rotateRight32(W[i - 2], 19) ^ (W[i - 2] >> 10);
+					sl_uint32 s0 = Math::rotateRight(W[i - 15], 7) ^ Math::rotateRight(W[i - 15], 18) ^ (W[i - 15] >> 3);
+					sl_uint32 s1 = Math::rotateRight(W[i - 2], 17) ^ Math::rotateRight(W[i - 2], 19) ^ (W[i - 2] >> 10);
 					W[i] = W[i - 16] + s0 + W[i - 7] + s1;
 				}
 				for (i = 0; i < 8; i++) {
 					v[i] = h[i];
 				}
 				for (i = 0; i < 64; i++) {
-					sl_uint32 S1 = Math::rotateRight32(v[4], 6) ^ Math::rotateRight32(v[4], 11) ^ Math::rotateRight32(v[4], 25);
+					sl_uint32 S1 = Math::rotateRight(v[4], 6) ^ Math::rotateRight(v[4], 11) ^ Math::rotateRight(v[4], 25);
 					sl_uint32 ch = (v[4] & v[5]) ^ ((~v[4]) & v[6]);
 					sl_uint32 temp1 = v[7] + S1 + ch + K[i] + W[i];
-					sl_uint32 S0 = Math::rotateRight32(v[0], 2) ^ Math::rotateRight32(v[0], 13) ^ Math::rotateRight32(v[0], 22);
+					sl_uint32 S0 = Math::rotateRight(v[0], 2) ^ Math::rotateRight(v[0], 13) ^ Math::rotateRight(v[0], 22);
 					sl_uint32 maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);
 					sl_uint32 temp2 = S0 + maj;
 					v[7] = v[6];
@@ -251,18 +251,18 @@ namespace slib
 					W[i] = MIO::readUint64BE(input + (i << 3));
 				}
 				for (i = 16; i < 80; i++) {
-					sl_uint64 s0 = Math::rotateRight64(W[i - 15], 1) ^ Math::rotateRight64(W[i - 15], 8) ^ (W[i - 15] >> 7);
-					sl_uint64 s1 = Math::rotateRight64(W[i - 2], 19) ^ Math::rotateRight64(W[i - 2], 61) ^ (W[i - 2] >> 6);
+					sl_uint64 s0 = Math::rotateRight(W[i - 15], 1) ^ Math::rotateRight(W[i - 15], 8) ^ (W[i - 15] >> 7);
+					sl_uint64 s1 = Math::rotateRight(W[i - 2], 19) ^ Math::rotateRight(W[i - 2], 61) ^ (W[i - 2] >> 6);
 					W[i] = W[i - 16] + s0 + W[i - 7] + s1;
 				}
 				for (i = 0; i < 8; i++) {
 					v[i] = h[i];
 				}
 				for (i = 0; i < 80; i++) {
-					sl_uint64 S1 = Math::rotateRight64(v[4], 14) ^ Math::rotateRight64(v[4], 18) ^ Math::rotateRight64(v[4], 41);
+					sl_uint64 S1 = Math::rotateRight(v[4], 14) ^ Math::rotateRight(v[4], 18) ^ Math::rotateRight(v[4], 41);
 					sl_uint64 ch = (v[4] & v[5]) ^ ((~v[4]) & v[6]);
 					sl_uint64 temp1 = v[7] + S1 + ch + K[i] + W[i];
-					sl_uint64 S0 = Math::rotateRight64(v[0], 28) ^ Math::rotateRight64(v[0], 34) ^ Math::rotateRight64(v[0], 39);
+					sl_uint64 S0 = Math::rotateRight(v[0], 28) ^ Math::rotateRight(v[0], 34) ^ Math::rotateRight(v[0], 39);
 					sl_uint64 maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);
 					sl_uint64 temp2 = S0 + maj;
 					v[7] = v[6];

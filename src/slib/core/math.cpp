@@ -742,16 +742,6 @@ namespace slib
 		return num + 1;
 	}
 	
-	sl_uint32 Math::roundUpToPowerOfTwo32(sl_uint32 num) noexcept
-	{
-		num--;
-		num |= (num >> 1);
-		num |= (num >> 2);
-		num |= (num >> 4);
-		num |= (num >> 8);
-		num |= (num >> 16);
-		return num + 1;
-	}
 
 	sl_uint64 Math::roundUpToPowerOfTwo(sl_uint64 num) noexcept
 	{
@@ -765,24 +755,7 @@ namespace slib
 		return num + 1;
 	}
 	
-	sl_uint64 Math::roundUpToPowerOfTwo64(sl_uint64 num) noexcept
-	{
-		num--;
-		num |= (num >> 1);
-		num |= (num >> 2);
-		num |= (num >> 4);
-		num |= (num >> 8);
-		num |= (num >> 16);
-		num |= (num >> 32);
-		return num + 1;
-	}
-
 	sl_uint32 Math::getMostSignificantBits(sl_uint32 n) noexcept
-	{
-		return getMostSignificantBits32(n);
-	}
-	
-	sl_uint32 Math::getMostSignificantBits32(sl_uint32 n) noexcept
 	{
 		sl_uint32 ret = 0;
 		sl_uint32 h = n >> 16;
@@ -823,25 +796,15 @@ namespace slib
 
 	sl_uint32 Math::getMostSignificantBits(sl_uint64 n) noexcept
 	{
-		return getMostSignificantBits64(n);
-	}
-	
-	sl_uint32 Math::getMostSignificantBits64(sl_uint64 n) noexcept
-	{
 		sl_uint32 h = SLIB_GET_DWORD1(n);
 		if (h) {
-			return getMostSignificantBits32(h) + 32;
+			return getMostSignificantBits(h) + 32;
 		} else {
-			return getMostSignificantBits32(SLIB_GET_DWORD0(n));
+			return getMostSignificantBits(SLIB_GET_DWORD0(n));
 		}
 	}
 
 	sl_uint32 Math::getLeastSignificantBits(sl_uint32 n) noexcept
-	{
-		return getLeastSignificantBits32(n);
-	}
-	
-	sl_uint32 Math::getLeastSignificantBits32(sl_uint32 n) noexcept
 	{
 		if (!n) {
 			return 32;
@@ -887,16 +850,11 @@ namespace slib
 
 	sl_uint32 Math::getLeastSignificantBits(sl_uint64 n) noexcept
 	{
-		return getLeastSignificantBits64(n);
-	}
-	
-	sl_uint32 Math::getLeastSignificantBits64(sl_uint64 n) noexcept
-	{
 		sl_uint32 l = SLIB_GET_DWORD0(n);
 		if (l) {
-			return getLeastSignificantBits32(l);
+			return getLeastSignificantBits(l);
 		} else {
-			return getLeastSignificantBits32(SLIB_GET_DWORD1(n)) + 32;
+			return getLeastSignificantBits(SLIB_GET_DWORD1(n)) + 32;
 		}
 	}
 	

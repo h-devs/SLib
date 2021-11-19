@@ -57,6 +57,24 @@
 #define SLIB_POW10_18 SLIB_UINT64(1000000000000000000)
 #define SLIB_POW10_19 SLIB_UINT64(10000000000000000000)
 
+#define PRIV_SLIB_MATH_DEFINE_FUNCTION_UINT_PARAMS(PREFIX, FUNCTION_NAME, SUFFIX) \
+	static PREFIX FUNCTION_NAME(sl_uint8 n) SUFFIX { return FUNCTION_NAME((sl_uint32)n); } \
+	static PREFIX FUNCTION_NAME(sl_uint16 n) SUFFIX { return FUNCTION_NAME((sl_uint32)n); }
+
+#define PRIV_SLIB_MATH_DEFINE_FUNCTION_UINT_PARAMS2(PREFIX, FUNCTION_NAME, SECOND_PARAM_TYPE, SUFFIX) \
+	static PREFIX FUNCTION_NAME(sl_uint8 a, SECOND_PARAM_TYPE b) SUFFIX { return FUNCTION_NAME((sl_uint32)a, b); } \
+	static PREFIX FUNCTION_NAME(sl_uint16 a, SECOND_PARAM_TYPE b) SUFFIX { return FUNCTION_NAME((sl_uint32)a, b); }
+
+#define PRIV_SLIB_MATH_DEFINE_FUNCTION_INT_PARAMS_WITH_BODY(PREFIX, FUNCTION_NAME, SUFFIX, PARAM, BODY) \
+	static PREFIX FUNCTION_NAME(sl_int8 PARAM) SUFFIX { return BODY; } \
+	static PREFIX FUNCTION_NAME(sl_uint8 PARAM) SUFFIX { return BODY; } \
+	static PREFIX FUNCTION_NAME(sl_int16 PARAM) SUFFIX { return BODY; } \
+	static PREFIX FUNCTION_NAME(sl_uint16 PARAM) SUFFIX { return BODY; } \
+	static PREFIX FUNCTION_NAME(sl_int32 PARAM) SUFFIX { return BODY; } \
+	static PREFIX FUNCTION_NAME(sl_uint32 PARAM) SUFFIX { return BODY; } \
+	static PREFIX FUNCTION_NAME(sl_int64 PARAM) SUFFIX { return BODY; } \
+	static PREFIX FUNCTION_NAME(sl_uint64 PARAM) SUFFIX { return BODY; }
+
 #undef max
 #undef min
 
@@ -109,16 +127,12 @@ namespace slib
 			return (v > 0) ? (v) : (-v);
 		}
 
-		constexpr static sl_int32 sign(float v)
+		template <typename T>
+		constexpr static sl_int32 sign(T v)
 		{
 			return (v >= 0) ? 1 : -1;
 		}
 
-		constexpr static sl_int32 sign(double v)
-		{
-			return (v >= 0) ? 1 : -1;
-		}
-	
 		static float pow(float x, float y) noexcept;
 
 		static double pow(double x, double y) noexcept;
@@ -212,8 +226,8 @@ namespace slib
 		static double log10(double f) noexcept;
 
 		static sl_uint32 log10i(sl_uint32 n) noexcept;
-
 		static sl_uint32 log10i(sl_uint64 n) noexcept;
+		PRIV_SLIB_MATH_DEFINE_FUNCTION_UINT_PARAMS(SLIB_INLINE sl_uint32, log10i, noexcept)
 
 		template <class T>
 		static sl_uint32 log10iT(const T& v) noexcept
@@ -321,26 +335,9 @@ namespace slib
 			return (f > -SLIB_EPSILON_LONG && f < SLIB_EPSILON_LONG);
 		}
 
-		constexpr static sl_bool isAlmostZero(sl_int32 v)
-		{
-			return v == 0;
-		}
+		PRIV_SLIB_MATH_DEFINE_FUNCTION_INT_PARAMS_WITH_BODY(constexpr sl_bool, isAlmostZero, , v, !v)
 
-		constexpr static sl_bool isAlmostZero(sl_uint32 v)
-		{
-			return v == 0;
-		}
 
-		constexpr static sl_bool isAlmostZero(sl_int64 v)
-		{
-			return v == 0;
-		}
-
-		constexpr static sl_bool isAlmostZero(sl_uint64 v)
-		{
-			return v == 0;
-		}
-	
 		constexpr static sl_bool isLessThanEpsilon(float f)
 		{
 			return (f < SLIB_EPSILON);
@@ -351,26 +348,8 @@ namespace slib
 			return (f < SLIB_EPSILON_LONG);
 		}
 
-		constexpr static sl_bool isLessThanEpsilon(sl_int32 v)
-		{
-			return (v <= 0);
-		}
+		PRIV_SLIB_MATH_DEFINE_FUNCTION_INT_PARAMS_WITH_BODY(constexpr sl_bool, isLessThanEpsilon, , v, v <= 0)
 
-		constexpr static sl_bool isLessThanEpsilon(sl_uint32 v)
-		{
-			return (v <= 0);
-		}
-
-		constexpr static sl_bool isLessThanEpsilon(sl_int64 v)
-		{
-			return (v <= 0);
-		}
-
-		constexpr static sl_bool isLessThanEpsilon(sl_uint64 v)
-		{
-			return (v <= 0);
-		}
-	
 
 		constexpr static float getRadianFromDegrees(float f)
 		{
@@ -456,12 +435,8 @@ namespace slib
 
 
 		static sl_uint32 roundUpToPowerOfTwo(sl_uint32 num) noexcept;
-
-		static sl_uint32 roundUpToPowerOfTwo32(sl_uint32 num) noexcept;
-		
 		static sl_uint64 roundUpToPowerOfTwo(sl_uint64 num) noexcept;
-		
-		static sl_uint64 roundUpToPowerOfTwo64(sl_uint64 num) noexcept;
+		PRIV_SLIB_MATH_DEFINE_FUNCTION_UINT_PARAMS(SLIB_INLINE sl_uint32, roundUpToPowerOfTwo, noexcept)
 
 		
 		constexpr static sl_uint32 rotateLeft(sl_uint32 x, sl_uint32 n)
@@ -469,27 +444,15 @@ namespace slib
 			return (x << n) | (x >> (32 - n));
 		}
 		
-		constexpr static sl_uint32 rotateLeft32(sl_uint32 x, sl_uint32 n)
-		{
-			return (x << n) | (x >> (32 - n));
-		}
-
 		constexpr static sl_uint64 rotateLeft(sl_uint64 x, sl_uint32 n)
 		{
 			return (x << n) | (x >> (64 - n));
 		}
 		
-		constexpr static sl_uint64 rotateLeft64(sl_uint64 x, sl_uint32 n)
-		{
-			return (x << n) | (x >> (64 - n));
-		}
+		PRIV_SLIB_MATH_DEFINE_FUNCTION_UINT_PARAMS2(constexpr sl_uint32, rotateLeft, sl_uint32,)
+
 
 		constexpr static sl_uint32 rotateRight(sl_uint32 x, sl_uint32 n)
-		{
-			return (x >> n) | (x << (32 - n));
-		}
-		
-		constexpr static sl_uint32 rotateRight32(sl_uint32 x, sl_uint32 n)
 		{
 			return (x >> n) | (x << (32 - n));
 		}
@@ -498,43 +461,54 @@ namespace slib
 		{
 			return (x >> n) | (x << (64 - n));
 		}
-		
-		constexpr static sl_uint64 rotateRight64(sl_uint64 x, sl_uint32 n)
-		{
-			return (x >> n) | (x << (64 - n));
-		}
+
+		PRIV_SLIB_MATH_DEFINE_FUNCTION_UINT_PARAMS2(constexpr sl_uint32, rotateRight, sl_uint32,)
 
 
 		static sl_uint32 getMostSignificantBits(sl_uint32 n) noexcept;
-		
-		static sl_uint32 getMostSignificantBits32(sl_uint32 n) noexcept;
-
 		static sl_uint32 getMostSignificantBits(sl_uint64 n) noexcept;
-		
-		static sl_uint32 getMostSignificantBits64(sl_uint64 n) noexcept;
+		PRIV_SLIB_MATH_DEFINE_FUNCTION_UINT_PARAMS(SLIB_INLINE sl_uint32, getMostSignificantBits, noexcept)
 
 		static sl_uint32 getLeastSignificantBits(sl_uint32 n) noexcept;
-		
-		static sl_uint32 getLeastSignificantBits32(sl_uint32 n) noexcept;
-
 		static sl_uint32 getLeastSignificantBits(sl_uint64 n) noexcept;
-		
-		static sl_uint32 getLeastSignificantBits64(sl_uint64 n) noexcept;
-
+		PRIV_SLIB_MATH_DEFINE_FUNCTION_UINT_PARAMS(SLIB_INLINE sl_uint32, getLeastSignificantBits, noexcept)
 
 		// Returns the number of 1-bits in x
-#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+#if defined(__GNUC__) && defined(__POPCNT__)
 		constexpr static sl_uint32 popCount(sl_uint32 x)
 		{
 			return (sl_uint32)(__builtin_popcount((unsigned int)x));
 		}
-#else
-		static sl_uint32 popCount(sl_uint32 x) noexcept
+
+#if defined(SLIB_ARCH_IS_64BIT)
+		constexpr static sl_uint32 popCount(sl_uint64 x)
 		{
-			sl_uint32 y = (x >> 1) & 033333333333;
-			y = x - y - ((y >>1) & 033333333333);
-			return (((y + (y >> 3)) & 030707070707) % 077);
+			return (sl_uint32)(__builtin_popcountll(x));
 		}
+#else
+		SLIB_INLINE static sl_uint32 popCount(sl_uint64 x) noexcept
+		{
+			return popCount((sl_uint32)x) + popCount((sl_uint32)(x >> 32));
+		}
+#endif
+
+		PRIV_SLIB_MATH_DEFINE_FUNCTION_UINT_PARAMS(constexpr sl_uint32, popCount,)
+#else
+		SLIB_INLINE static sl_uint32 popCount(sl_uint32 x) noexcept
+		{
+			x -= (x >> 1) & 0x55555555;
+			x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
+			x = (x + (x >> 4)) & 0x0F0F0F0F;
+			x += x >> 8;
+			return (x + (x >> 16)) & 0x3F;
+		}
+
+		SLIB_INLINE static sl_uint32 popCount(sl_uint64 x) noexcept
+		{
+			return popCount((sl_uint32)x) + popCount((sl_uint32)(x >> 32));
+		}
+
+		PRIV_SLIB_MATH_DEFINE_FUNCTION_UINT_PARAMS(SLIB_INLINE sl_uint32, popCount, noexcept)
 #endif
 
 		static void mul32(sl_uint32 a, sl_uint32 b, sl_uint32& o_high, sl_uint32& o_low) noexcept;
