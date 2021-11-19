@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,25 +20,52 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/asm.h"
+#include "slib/core/cpu.h"
 
-#ifdef SLIB_ARCH_IS_X64
+#include "slib/core/math.h"
 
 #if defined(SLIB_COMPILER_IS_VC)
-#	include <intrin.h>
+#include <intrin.h>
 #else
-#	include <cpuid.h>
+#ifdef SLIB_ARCH_IS_X64
+#include <cpuid.h>
+#endif
+#endif
+
+#if defined(SLIB_PLATFORM_IS_WIN32)
+#include "slib/core/win32/windows.h"
+#elif defined(SLIB_PLATFORM_IS_LINUX)
+#include <sched.h>
 #endif
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
-		namespace asm_x64
+		namespace cpu
 		{
-			
-			static sl_bool CanUseSse42()
+
+			static sl_uint32 GetCoreCount()
+			{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+				DWORD_PTR dwMaskProcess, dwMaskSystem;
+				if (GetProcessAffinityMask(GetCurrentProcess(), &dwMaskProcess, &dwMaskSystem)) {
+					return Math::popCount(dwMaskSystem);
+				}
+#elif defined(SLIB_PLATFORM_IS_LINUX)
+				cpu_set_t set;
+				CPU_ZERO(&set);
+				if (!(sched_getaffinity(0, sizeof(set), &set))) {
+					return (sl_uint32)(CPU_COUNT(&set));
+				}
+#endif
+				return 1;
+			}
+
+
+#ifdef SLIB_ARCH_IS_X64
+			static sl_bool IsSupportedSSE42() noexcept
 			{
 #if defined(SLIB_COMPILER_IS_VC)
 				int cpu_info[4];
@@ -49,16 +76,25 @@ namespace slib
 				return __get_cpuid(1, &eax, &ebx, &ecx, &edx) && ((ecx & (1 << 20)) != 0);
 #endif
 			}
+#endif
 
 		}
 	}
-	
-	sl_bool CanUseSse42()
+
+	using namespace priv::cpu;
+
+	sl_uint32 Cpu::getCoreCount()
 	{
-		static sl_bool f = priv::asm_x64::CanUseSse42();
+		static sl_uint32 n = GetCoreCount();
+		return n;
+	}
+
+#ifdef SLIB_ARCH_IS_X64
+	sl_bool Cpu::isSupportedSSE42() noexcept
+	{
+		static sl_bool f = IsSupportedSSE42();
 		return f;
 	}
-	
-}
-
 #endif
+
+}

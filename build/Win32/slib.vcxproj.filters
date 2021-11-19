@@ -905,9 +905,6 @@
     <ClCompile Include="..\..\src\slib\crypto\ecc.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\asm_x64.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\toast.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
@@ -1411,6 +1408,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\sha3.cpp">
       <Filter>src\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\cpu.cpp">
+      <Filter>src\core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

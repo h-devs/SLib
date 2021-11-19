@@ -23,7 +23,7 @@
 #include "slib/crypto/crc32.h"
 
 #include "slib/core/mio.h"
-#include "slib/core/asm.h"
+#include "slib/core/cpu.h"
 #include "slib/core/memory.h"
 
 /*
@@ -667,7 +667,7 @@ namespace slib
 			{
 				const sl_uint8* data = (const sl_uint8*)_data;
 #if defined(SUPPORT_SSE42)
-				if (CanUseSse42()) {
+				if (Cpu::isSupportedSSE42()) {
 					return sse42::extendSse42(crc, data, count);
 				}
 #endif

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,22 +20,30 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_ASM
-#define CHECKHEADER_SLIB_CORE_ASM
+#ifndef CHECKHEADER_SLIB_CORE_CPU
+#define CHECKHEADER_SLIB_CORE_CPU
 
 #include "definition.h"
 
 namespace slib
 {
-	
-#ifdef SLIB_ARCH_IS_X64
-	sl_bool CanUseSse42();
-#else
-	SLIB_INLINE static sl_bool CanUseSse42()
+
+	class SLIB_EXPORT Cpu
 	{
-		return sl_false;
-	}
+	public:
+		static sl_uint32 getCoreCount();
+
+#ifdef SLIB_ARCH_IS_X64
+		static sl_bool isSupportedSSE42() noexcept;
+#else
+		static constexpr sl_bool isSupportedSSE42()
+		{
+			return sl_false;
+		}
 #endif
+
+	};
+	
 	
 }
 

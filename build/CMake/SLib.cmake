@@ -68,7 +68,6 @@ endif ()
 set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/animation.cpp"
  "${SLIB_PATH}/src/slib/core/app.cpp"
- "${SLIB_PATH}/src/slib/core/asm_x64.cpp"
  "${SLIB_PATH}/src/slib/core/async.cpp"
  "${SLIB_PATH}/src/slib/core/async_epoll.cpp"
  "${SLIB_PATH}/src/slib/core/async_unix.cpp"
@@ -80,6 +79,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/console.cpp"
  "${SLIB_PATH}/src/slib/core/container.cpp"
  "${SLIB_PATH}/src/slib/core/content_type.cpp"
+ "${SLIB_PATH}/src/slib/core/cpu.cpp"
  "${SLIB_PATH}/src/slib/core/dispatch.cpp"
  "${SLIB_PATH}/src/slib/core/dynamic_library.cpp"
  "${SLIB_PATH}/src/slib/core/dynamic_library_unix.cpp"
