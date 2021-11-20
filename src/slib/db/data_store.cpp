@@ -25,9 +25,8 @@
 
 #include "slib/db/leveldb.h"
 #include "slib/crypto/sha3.h"
-#include "slib/core/serialize.h"
-#include "slib/core/scoped_buffer.h"
-#include "slib/core/safe_static.h"
+#include "slib/core/file.h"
+#include "slib/core/lender.h"
 
 /*
 
@@ -46,16 +45,13 @@
 
 			Data Package Item Format
 
-	---------------- Header -----------------------
+	----------------- Header ----------------------
 	Flags (CVLI)
 	Type (CVLI)
-	Total Size (Description + Data, except Header) (CVLI)
-	Type != Empty ? Description Size (CVLI)
-	Type != Empty ? SHA3-256 Hash (32 Bytes)
-	----------------Description -------------------
-	Description (Serialized Json)
-	----------------- Data ------------------------
-	Type != Empty ? Data
+	Data Size (CVLI)
+	SHA3-256 Hash (32 Bytes)
+	------------------ Data -----------------------
+	Data
 
 */
 
@@ -161,11 +157,9 @@ namespace slib
 			{
 			public:
 				sl_uint32 flags;
-				DataPackageItemType type;
-				sl_uint64 totalSize;
-				sl_uint32 descriptionSize;
+				DataStoreItemType type;
+				sl_uint64 size;
 				sl_uint8 hash[32];
-				Json description;
 
 			public:
 				sl_bool read(const File& file)
@@ -177,35 +171,17 @@ namespace slib
 					if (!(file.readCVLI32(&_type))) {
 						return sl_false;
 					}
-					type = (DataPackageItemType)_type;
-					if (!(file.readCVLI64(&totalSize))) {
+					type = (DataStoreItemType)_type;
+					if (!(file.readCVLI64(&size))) {
 						return sl_false;
 					}
-					if (type != DataPackageItemType::Empty) {
-						if (!(file.readCVLI32(&descriptionSize))) {
-							return sl_false;
-						}
-						if (file.readFully(hash, sizeof(hash)) != sizeof(hash)) {
-							return sl_false;
-						}
-						if (descriptionSize >= totalSize) {
-							return sl_false;
-						}
-					} else {
-						descriptionSize = (sl_uint32)totalSize;
-					}
-					if (!descriptionSize) {
-						return sl_true;
-					}
-					SLIB_SCOPED_BUFFER(sl_uint8, 1024, header, descriptionSize)
-					if (!header) {
+					if (!size) {
 						return sl_false;
 					}
-					if (file.readFully(header, descriptionSize) != descriptionSize) {
+					if (file.readFully(hash, sizeof(hash)) != sizeof(hash)) {
 						return sl_false;
 					}
-					DeserializeBuffer buf(header, descriptionSize);
-					return description.deserialize(&buf);
+					return sl_true;
 				}
 
 			};
@@ -248,21 +224,24 @@ namespace slib
 						DataPackageItemHeader header;
 						if (header.read(m_file)) {
 							sl_uint64 dataPosition = m_file.getPosition();
-							sl_uint64 dataSize = header.totalSize - header.descriptionSize;
 							_out.position = position;
 							_out.flags = header.flags;
-							_out.description = Move(header.description);
+							_out.type = header.type;
 							_out.dataPosition = dataPosition;
-							_out.dataSize = dataSize;
+							_out.dataSize = header.size;
 							Base::copyMemory(_out.dataHash, header.hash, sizeof(_out.dataHash));
 							if (dataPosition < m_header.endingPosition) {
-								_out.nextItemPosition = dataPosition + dataSize;
+								_out.nextItemPosition = dataPosition + header.size;
 							} else {
 								_out.nextItemPosition = 0;
 							}
-							if (dataSize && outData && sizeRead) {
-								if (sizeRead > dataSize) {
-									sizeRead = (sl_size)dataSize;
+							if (outData) {
+								if (sizeRead) {
+									if (sizeRead > header.size) {
+										sizeRead = (sl_size)(header.size);
+									}
+								} else {
+									sizeRead = SLIB_SIZE_FROM_UINT64(header.size);
 								}
 								Memory mem = Memory::create(sizeRead);
 								if (mem.isNull()) {
@@ -379,6 +358,9 @@ namespace slib
 					if (m_flagWrittenItemHeader) {
 						return sl_false;
 					}
+					if (!(param.dataSize)) {
+						return sl_false;
+					}
 
 					// Write File Header
 					if (!(m_file.getSize())) {
@@ -400,53 +382,24 @@ namespace slib
 					}
 
 					// Write Item Header
-					Memory memDesc;
-					sl_uint32 sizeDesc;
-					if (param.description.isNotNull()) {
-						memDesc = param.description.serialize();
-						sizeDesc = (sl_uint32)(memDesc.getSize());
-					} else {
-						sizeDesc = 0;
+					if (!(m_file.writeCVLI32((sl_uint32)(param.flags)))) {
+						return sl_false;
+					}
+					if (!(m_file.writeCVLI32((sl_uint32)(param.type)))) {
+						return sl_false;
+					}
+					if (!(m_file.writeCVLI64(param.dataSize))) {
+						return sl_false;
 					}
 
-					sl_uint32 flags = (sl_uint32)(param.flags);
-					DataPackageItemType type = param.type;
-					if (param.dataSize) {
-						if (type == DataPackageItemType::Empty) {
-							type = DataPackageItemType::Normal;
-						}
-					} else {
-						type = DataPackageItemType::Empty;
-					}
-					if (!(m_file.writeCVLI32(flags))) {
+					m_positionItemDataHash = m_file.getPosition();
+					sl_uint8 hash[32] = { 0 };
+					if (m_file.writeFully(hash, sizeof(hash)) != sizeof(hash)) {
 						return sl_false;
 					}
-					if (!(m_file.writeCVLI32((sl_uint32)type))) {
-						return sl_false;
-					}
-					if (!(m_file.writeCVLI64(sizeDesc + param.dataSize))) {
-						return sl_false;
-					}
-					if (param.dataSize) {
-						if (!(m_file.writeCVLI32(sizeDesc))) {
-							return sl_false;
-						}
-						m_positionItemDataHash = m_file.getPosition();
-						sl_uint8 hash[32] = { 0 };
-						if (m_file.writeFully(hash, sizeof(hash)) != sizeof(hash)) {
-							return sl_false;
-						}
-						m_hasher.start();
-						m_positionEndingItem = m_positionItemDataHash + sizeof(hash) + sizeDesc + param.dataSize;
-					} else {
-						m_positionItemDataHash = 0;
-						m_positionEndingItem = m_file.getPosition() + sizeDesc + param.dataSize;
-					}
-					if (sizeDesc) {
-						if (m_file.writeFully(memDesc.getData(), sizeDesc) != sizeDesc) {
-							return sl_false;
-						}
-					}
+					m_hasher.start();
+					m_positionEndingItem = m_positionItemDataHash + sizeof(hash) + param.dataSize;
+
 					m_sizeItemData = param.dataSize;
 					m_sizeItemDataWritten = 0;
 					m_flagWrittenItemHeader = sl_true;
@@ -516,12 +469,31 @@ namespace slib
 
 			};
 
+			class PackageReaderLender : public SingleLender< Ref<DataPackageReader> >
+			{
+			private:
+				String m_path;
+
+			public:
+				PackageReaderLender(const String& path): m_path(path) {}
+
+			public:
+				sl_bool create(Ref<DataPackageReader>& reader) override
+				{
+					reader = DataPackage::openReader(m_path);
+					return reader.isNotNull();
+				}
+
+			};
 
 			class DataStoreImpl : public DataStore
 			{
 			public:
 				Ref<LevelDB> m_dbHash;
 				String m_pathPackage;
+				CHashMap<ObjectId, String> m_mapPackagePath;
+				CHashMap<ObjectId, PackageReaderLender> m_mapPackageReaders;
+				Ref<DataPackageWriter> m_writer;
 
 			public:
 				static Ref<DataStoreImpl> open(const DataStoreParam& param)
@@ -546,6 +518,7 @@ namespace slib
 						if (ret.isNotNull()) {
 							ret->m_dbHash = Move(dbHash);
 							ret->m_pathPackage = Move(pathPackage);
+							ret->_initialize(param);
 							return ret;
 						}
 					}
@@ -553,8 +526,73 @@ namespace slib
 				}
 
 			public:
-				Ref<DataStoreItem> getItem(const void* hash, Memory* outData, sl_size sizeRead) override
+				void _initialize(const DataStoreParam& param)
 				{
+					// enumerate package files
+					ListElements<String> files = File::getFiles(m_pathPackage);
+					for (sl_size i = 0; i < files.count; i++) {
+						String& fileName = files[i];
+						if (fileName.endsWith(".pkg")) {
+							String path = File::joinPath(m_pathPackage, fileName);
+							File file = File::open(path, FileMode::Read | FileMode::ShareReadWrite);
+							if (file.isOpened()) {
+								DataPackageFileHeader header;
+								if (header.read(file)) {
+									m_mapPackagePath.put_NoLock(ObjectId(header.packageId), Move(path));
+								}
+							}
+						}
+					}
+				}
+
+			public:
+				Memory getItem(const void* hash, DataStoreItemType* pOutType) override
+				{
+					sl_uint8 buf[20];
+					sl_reg n = m_dbHash->get(hash, 32, buf, sizeof(buf));
+					if (n == sizeof(buf)) {
+						PackageReaderLender* lender = getReaderLender(ObjectId(buf));
+						if (lender) {
+							Borrower< Ref<DataPackageReader>, PackageReaderLender > borrower;
+							if (borrower.borrow(lender)) {
+								Ref<DataPackageReader>& reader = borrower.value;
+								sl_uint64 offset = MIO::readUint64LE(buf + 12);
+								DataPackageItem item;
+								Memory mem;
+								if (reader->getItemAt(offset, item, &mem)) {
+									if (pOutType) {
+										*pOutType = item.type;
+										return mem;
+									}
+								}
+							}
+						}
+					}
+					return sl_null;
+				}
+
+				sl_bool putItem(DataStoreItemType type, const void* hash, const void* data, sl_size size) override
+				{
+					ObjectLocker lock(this);
+					return sl_false;
+				}
+
+			private:
+				Ref<PackageReaderLender> getReaderLender(const ObjectId& packageId)
+				{
+					ObjectLocker locker(&m_mapPackageReaders);
+					PackageReaderLender* lender = m_mapPackageReaders.getItemPointer(packageId);
+					if (lender) {
+						return lender;
+					}
+					String path = m_mapPackagePath.getValue(packageId);
+					if (path.isNull()) {
+						return sl_null;
+					}
+					auto node = m_mapPackageReaders.put_NoLock(packageId, path);
+					if (node) {
+						return &(node->value);
+					}
 					return sl_null;
 				}
 
@@ -590,7 +628,7 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DataPackageWriteParam)
 
-	DataPackageWriteParam::DataPackageWriteParam(): type(DataPackageItemType::Empty), dataSize(0)
+	DataPackageWriteParam::DataPackageWriteParam(): type(DataStoreItemType::Data), dataSize(0)
 	{
 	}
 
@@ -603,6 +641,25 @@ namespace slib
 
 	DataPackageWriter::~DataPackageWriter()
 	{
+	}
+
+	sl_bool DataPackageWriter::writeItem(const DataPackageItemFlags& flags, DataStoreItemType type, const void* data, sl_size size, void* outHash)
+	{
+		DataPackageWriteParam param;
+		param.flags = flags;
+		param.type = type;
+		param.dataSize = size;
+		if (writeHeader(param)) {
+			if (writeData(data, size)) {
+				return endItem(outHash);
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool DataPackageWriter::writeItem(DataStoreItemType type, const void* data, sl_size size, void* outHash)
+	{
+		return writeItem(0, type, data, size, outHash);
 	}
 
 
@@ -639,17 +696,6 @@ namespace slib
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DataStoreParam)
 
 	DataStoreParam::DataStoreParam()
-	{
-	}
-
-
-	SLIB_DEFINE_ROOT_OBJECT(DataStoreItem)
-
-	DataStoreItem::DataStoreItem()
-	{
-	}
-
-	DataStoreItem::~DataStoreItem()
 	{
 	}
 

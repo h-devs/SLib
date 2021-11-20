@@ -23,9 +23,8 @@
 #ifndef CHECKHEADER_SLIB_DB_DATA_PACKAGE
 #define CHECKHEADER_SLIB_DB_DATA_PACKAGE
 
-#include "definition.h"
+#include "data_store.h"
 
-#include "../core/json.h"
 #include "../core/flags.h"
 
 namespace slib
@@ -35,14 +34,6 @@ namespace slib
 		Deleted = 0x1
 	})
 
-	enum class DataPackageItemType
-	{
-		Empty = 0,
-		Normal = 1,
-		Chain = 2,
-		Root = 3
-	};
-
 	class File;
 	class DataPackageReader;
 
@@ -50,13 +41,12 @@ namespace slib
 	{
 	public:
 		DataPackageItemFlags flags;
-		DataPackageItemType type;
+		DataStoreItemType type;
 		sl_uint64 position;
 		sl_uint64 nextItemPosition;
 		sl_uint64 dataPosition;
 		sl_uint64 dataSize;
 		sl_uint8 dataHash[32]; // SHA3-256
-		Json description;
 
 	public:
 		DataPackageItem();
@@ -99,9 +89,8 @@ namespace slib
 	{
 	public:
 		DataPackageItemFlags flags;
-		DataPackageItemType type;
+		DataStoreItemType type;
 		sl_uint64 dataSize;
-		Json description;
 
 	public:
 		DataPackageWriteParam();
@@ -126,6 +115,12 @@ namespace slib
 
 		// `outHash`: 32 bytes (SHA3-256)
 		virtual sl_bool endItem(void* outHash = sl_null) = 0;
+
+		// `outHash`: 32 bytes (SHA3-256)
+		sl_bool writeItem(const DataPackageItemFlags& flags, DataStoreItemType type, const void* data, sl_size size, void* outHash = sl_null);
+
+		// `outHash`: 32 bytes (SHA3-256)
+		sl_bool writeItem(DataStoreItemType type, const void* data, sl_size size, void* outHash = sl_null);
 
 	public:
 		// `outId`: 12 Bytes

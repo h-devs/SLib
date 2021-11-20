@@ -30,36 +30,23 @@
 namespace slib
 {
 
-	class KeyValueStore;
+	enum class DataStoreItemType
+	{
+		Data = 0,
+		List = 1,
+		Document = 2
+	};
 
 	class SLIB_EXPORT DataStoreParam
 	{
 	public:
 		// Path to root directory
-		String path;
+		StringParam path;
 
 	public:
 		DataStoreParam();
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DataStoreParam)
-
-	};
-
-	class SLIB_EXPORT DataStoreItem : public Referable
-	{
-		SLIB_DECLARE_OBJECT
-
-	public:
-		DataStoreItem();
-
-		~DataStoreItem();
-
-	public:
-		virtual Json getDescription() = 0;
-
-		virtual sl_uint64 getDataSize() = 0;
-
-		virtual sl_reg readItemData(sl_uint64 offset, void* buf, sl_size size) = 0;
 
 	};
 
@@ -77,7 +64,10 @@ namespace slib
 
 	public:
 		// `hash`: SHA3-256 Hash
-		virtual Ref<DataStoreItem> getItem(const void* hash, Memory* outData = sl_null, sl_size sizeRead = 0) = 0;
+		virtual Memory getItem(const void* hash, DataStoreItemType* pOutType = sl_null) = 0;
+
+		// `hash`: SHA3-256 Hash
+		virtual sl_bool putItem(DataStoreItemType type, const void* hash, const void* data, sl_size size) = 0;
 
 	};
 
