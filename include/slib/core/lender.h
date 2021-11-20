@@ -40,7 +40,7 @@ namespace slib
 		SingleLender(): m_flagAbsence(sl_true) {}
 
 	public:
-		sl_bool borrow(TYPE& _out)
+		sl_bool lend(TYPE& _out)
 		{
 			SpinLocker locker(&m_lock);
 			if (m_flagAbsence) {
@@ -53,7 +53,7 @@ namespace slib
 			}
 		}
 
-		void returnBack(TYPE&& object)
+		void collect(TYPE&& object)
 		{
 			SpinLocker locker(&m_lock);
 			if (m_flagAbsence) {
@@ -94,7 +94,7 @@ namespace slib
 			return m_list.getCount();
 		}
 
-		sl_bool borrow(TYPE& _out)
+		sl_bool lend(TYPE& _out)
 		{
 			if (m_list.popBack(&_out)) {
 				return sl_true;
@@ -103,7 +103,7 @@ namespace slib
 			}
 		}
 
-		void returnBack(TYPE&& object)
+		void collect(TYPE&& object)
 		{
 			if (m_list.getCount() < m_nMaxStock) {
 				m_list.add(Move(object));
@@ -111,6 +111,35 @@ namespace slib
 		}
 
 		virtual sl_bool create(TYPE& _out) = 0;
+
+	};
+	
+	template <class TYPE, class LENDER>
+	class SLIB_EXPORT Borrower
+	{
+	public:
+		TYPE value;
+		LENDER* lender;
+
+	public:
+		Borrower(): lender(sl_null) {}
+
+		~Borrower()
+		{
+			if (lender) {
+				lender->collect(value);
+			}
+		}
+
+	public:
+		sl_bool borrow(LENDER* _lender)
+		{
+			if (_lender->lend(value)) {
+				lender = _lender;
+				return sl_true;
+			}
+			return sl_false;
+		}
 
 	};
 
