@@ -127,7 +127,7 @@ namespace slib
 		~Borrower()
 		{
 			if (lender) {
-				lender->collect(value);
+				lender->collect(Move(value));
 			}
 		}
 
