@@ -46,28 +46,34 @@ namespace slib
 
 	public:
 		// size: 16, 32, 48
-		sl_bool setKey(const void* key, sl_uint32 size);
+		sl_bool setKey(const void* key, sl_uint32 size) noexcept;
 
 		// key: 32 bytes
-		void setKey(const void* key);
+		void setKey(const void* key) noexcept;
 
 		// key: 16 bytes
-		void setKey16(const void* key);
+		void setKey16(const void* key) noexcept;
 
 		// key: 32 bytes
-		void setKey32(const void* key);
+		void setKey32(const void* key) noexcept;
 
 		// key: 48 bytes
-		void setKey48(const void* key);
+		void setKey48(const void* key) noexcept;
+
+		// outKey: 48 bytes
+		void getKey48(void* outKey) noexcept;
 
 		// output: 64 bytes
-		void generateBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, void* output) const;
+		void generateBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, void* output) const noexcept;
 
 		// input, output: 64 bytes
-		void encryptBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, const void* input, void* output) const;
+		void encryptBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, const void* input, void* output) const noexcept;
 
 		// input, output: 64 bytes
-		void decryptBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, const void* input, void* output) const;
+		SLIB_INLINE void decryptBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, const void* input, void* output) const noexcept
+		{
+			encryptBlock(nonce0, nonce1, nonce2, nonce3, input, output);
+		}
 
 	};
 
@@ -82,39 +88,48 @@ namespace slib
 		sl_uint32 iv[4];
 
 	public:
-		void encrypt(sl_uint64 offset, const void* src, void* dst, sl_size size) const;
+		void encrypt(sl_uint64 offset, const void* src, void* dst, sl_size size) const noexcept;
+		
+		SLIB_INLINE void decrypt(sl_uint64 offset, const void* src, void* dst, sl_size size) const noexcept
+		{
+			encrypt(offset, src, dst, size);
+		}
 
 		// _in, _out: `IvSize` bytes
-		void getIV(void* _out) const;
-		void setIV(const void* _in);
+		void getIV(void* _out) const noexcept;
+
+		void setIV(const void* _in) noexcept;
 
 	};
 	
 	class SLIB_EXPORT ChaCha20 : public ChaCha20_Core
 	{
 	public:
-		ChaCha20();
+		ChaCha20() noexcept;
 		
 		~ChaCha20();
 		
 	public:
-		void start(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3);
+		void start(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3) noexcept;
 		
 		// IV: 8 bytes
-		void start(const void* IV, sl_uint64 counter = 0);
+		void start(const void* IV, sl_uint64 counter = 0) noexcept;
 		
-		void start32(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3);
+		void start32(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3) noexcept;
 
 		// IV: 12 bytes
-		void start32(const void* IV, sl_uint32 counter = 0);
+		void start32(const void* IV, sl_uint32 counter = 0) noexcept;
 		
-		void encrypt(const void* src, void* dst, sl_size len);
+		void encrypt(const void* src, void* dst, sl_size len) noexcept;
 		
-		void decrypt(const void* src, void* dst, sl_size len);
+		SLIB_INLINE void decrypt(const void* src, void* dst, sl_size len) noexcept
+		{
+			encrypt(src, dst, len);
+		}
+
+		sl_bool is32BitCounter() noexcept;
 		
-		sl_bool is32BitCounter();
-		
-		void set32BitCounter(sl_bool flag = sl_true);
+		void set32BitCounter(sl_bool flag = sl_true) noexcept;
 
 	private:
 		sl_uint32 m_nonce[4];
@@ -131,49 +146,49 @@ namespace slib
 	class SLIB_EXPORT ChaCha20_Poly1305
 	{
 	public:
-		ChaCha20_Poly1305();
+		ChaCha20_Poly1305() noexcept;
 		
 		~ChaCha20_Poly1305();
 		
 	public:
 		// key: 32 bytes (256 bits)
-		void setKey(const void* key);
+		void setKey(const void* key) noexcept;
 
 		// IV: 8 bytes (64 bits)
-		void start(sl_uint32 senderId, const void* IV);
+		void start(sl_uint32 senderId, const void* IV) noexcept;
 		
 		// put on AAD (additional authenticated data)
-		void putAAD(const void* data, sl_size len);
+		void putAAD(const void* data, sl_size len) noexcept;
 		
-		void finishAAD();
+		void finishAAD() noexcept;
 		
-		void encrypt(const void* src, void* dst, sl_size len);
+		void encrypt(const void* src, void* dst, sl_size len) noexcept;
 		
-		void decrypt(const void* src, void* dst, sl_size len);
+		void decrypt(const void* src, void* dst, sl_size len) noexcept;
 		
 #ifdef check
 #undef check
 #endif
 		// src: cipher text
-		void check(const void* src, sl_size len);
+		void check(const void* src, sl_size len) noexcept;
 		
 		// outputTag: 16 bytes (128 bits)
-		void finish(void* outputTag);
+		void finish(void* outputTag) noexcept;
 		
 		// tag: 16 bytes (128 bits)
-		sl_bool finishAndCheckTag(const void* tag);
+		sl_bool finishAndCheckTag(const void* tag) noexcept;
 
 		// IV: 8 bytes (64 bits)
 		// outputTag: 16 bytes (128 bits)
-		void encrypt(sl_uint32 senderId, const void* IV, const void* AAD, sl_size lenAAD, const void* src, void* dst, sl_size len, void* outputTag);
+		void encrypt(sl_uint32 senderId, const void* IV, const void* AAD, sl_size lenAAD, const void* src, void* dst, sl_size len, void* outputTag) noexcept;
 		
 		// IV: 8 bytes (64 bits)
 		// tag: 16 bytes (128 bits)
-		sl_bool decrypt(sl_uint32 senderId, const void* IV, const void* AAD, sl_size lenAAD, const void* src, void* dst, sl_size len, const void* tag);
+		sl_bool decrypt(sl_uint32 senderId, const void* IV, const void* AAD, sl_size lenAAD, const void* src, void* dst, sl_size len, const void* tag) noexcept;
 		
 		// IV: 8 bytes (64 bits)
 		// tag: 16 bytes (128 bits)
-		sl_bool check(sl_uint32 senderId, const void* IV, const void* AAD, sl_size lenAAD, const void* src, sl_size len, const void* tag);
+		sl_bool check(sl_uint32 senderId, const void* IV, const void* AAD, sl_size lenAAD, const void* src, sl_size len, const void* tag) noexcept;
 		
 	private:
 		ChaCha20 m_cipher;
@@ -192,21 +207,21 @@ namespace slib
 
 	public:
 		// outHeader: `HeaderSize` bytes
-		void create(void* outHeader, const void* password, sl_size lenPassword);
-		void create(void* outHeader, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCount);
+		void create(void* outHeader, const void* password, sl_size lenPassword) noexcept;
+		void create(void* outHeader, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCount) noexcept;
 
 		// header: `HeaderSize` bytes
-		sl_bool open(const void* header, const void* password, sl_size lenPassword);
-		sl_bool open(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit);
+		sl_bool open(const void* header, const void* password, sl_size lenPassword) noexcept;
+		sl_bool open(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit) noexcept;
 
 		// header: `HeaderSize` bytes
-		static sl_bool checkPassword(const void* header, const void* password, sl_size lenPassword);
-		static sl_bool checkPassword(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit);
+		static sl_bool checkPassword(const void* header, const void* password, sl_size lenPassword) noexcept;
+		static sl_bool checkPassword(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit) noexcept;
 
 		// header: `HeaderSize` bytes
-		static sl_bool changePassword(void* header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword);
-		static sl_bool changePassword(void* header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword, sl_uint32 iterationBitsCountLimit);
-	
+		static sl_bool changePassword(void* header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword) noexcept;
+		static sl_bool changePassword(void* header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword, sl_uint32 iterationBitsCountLimit) noexcept;
+
 	};
 
 }
