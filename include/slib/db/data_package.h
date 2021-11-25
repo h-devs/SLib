@@ -30,6 +30,10 @@
 namespace slib
 {
 
+	SLIB_DEFINE_FLAGS(DataPackageFileFlags, {
+		Encrypted = 0x1
+	})
+
 	SLIB_DEFINE_FLAGS(DataPackageItemFlags, {
 		Deleted = 0x1
 	})
@@ -52,6 +56,22 @@ namespace slib
 		DataPackageItem();
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DataPackageItem)
+
+	};
+
+	class SLIB_EXPORT DataPackageReaderParam
+	{
+	public:
+		StringParam path;
+
+		// ChaCha20 Encryption
+		const void* encryptionKey; // 48 bytes
+		const void* encryptionIV; // 16 bytes
+
+	public:
+		DataPackageReaderParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DataPackageReaderParam)
 
 	};
 
@@ -85,17 +105,15 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT DataPackageWriteParam
+	class SLIB_EXPORT DataPackageWriterParam : public DataPackageReaderParam
 	{
 	public:
-		DataPackageItemFlags flags;
-		DataStoreItemType type;
-		sl_uint64 dataSize;
+		sl_bool flagLockFile;
 
 	public:
-		DataPackageWriteParam();
+		DataPackageWriterParam();
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DataPackageWriteParam)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DataPackageWriterParam)
 
 	};
 
@@ -109,7 +127,7 @@ namespace slib
 		~DataPackageWriter();
 
 	public:
-		virtual sl_bool writeHeader(const DataPackageWriteParam& param) = 0;
+		virtual sl_bool writeHeader(const DataPackageItemFlags& flags, DataStoreItemType type, sl_uint64 dataSize) = 0;
 
 		virtual sl_bool writeData(const void* data, sl_size size) = 0;
 
@@ -125,15 +143,21 @@ namespace slib
 	public:
 		// `outId`: 12 Bytes
 		virtual void getId(void* outId) = 0;
+
+		virtual sl_uint64 getCurrentPosition() = 0;
 		
 	};
 
 	class SLIB_EXPORT DataPackage
 	{
 	public:
+		static Ref<DataPackageReader> openReader(const DataPackageReaderParam& param);
+
 		static Ref<DataPackageReader> openReader(const StringParam& path);
-		
-		static Ref<DataPackageWriter> openWriter(const StringParam& path, sl_bool flagLockFile = sl_false);
+
+		static Ref<DataPackageWriter> openWriter(const DataPackageWriterParam& param);
+
+		static Ref<DataPackageWriter> openWriter(const StringParam& path);
 
 		static sl_bool deleteItemAt(const StringParam& path, sl_uint64 offset);
 

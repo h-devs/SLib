@@ -43,6 +43,8 @@ namespace slib
 		// Path to root directory
 		StringParam path;
 
+		StringParam encrytionKey;
+
 	public:
 		DataStoreParam();
 
