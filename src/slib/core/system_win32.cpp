@@ -493,6 +493,21 @@ namespace slib
 		return SLIB_WINDOWS_MINOR_VERSION(version);
 	}
 
+	sl_uint32 System::getPatchVersion()
+	{
+		WindowsVersion version = Win32::getVersion();
+		return SLIB_WINDOWS_SERVICE_PACK(version);
+	}
+
+	String System::getBuildVersion()
+	{
+		sl_uint64 productVersion = 0;
+		if (getFileVersionInfo(System::getSystemDirectory() + "/kernel32.dll", sl_null, &productVersion)) {
+			return String::join(String::fromUint32(SLIB_GET_WORD1(productVersion)), ".", String::fromUint32(SLIB_GET_WORD0(productVersion)));
+		}
+		return sl_null;
+	}
+
 	sl_bool System::getFileVersionInfo(const StringParam& filePath, sl_uint64* pFileVersion, sl_uint64* pProductVersion)
 	{
 		return GetVersionInfo(filePath, pFileVersion, pProductVersion);
@@ -720,7 +735,7 @@ namespace slib
 			}
 		}
 		if (ret.isEmpty()) {
-			return String::format("Unknown error: %d", errorCode);
+			return String::join("Unknown error: ", String::fromUint32(errorCode));
 		}
 		return ret;
 	}
