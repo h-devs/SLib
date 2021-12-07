@@ -508,6 +508,22 @@ namespace slib
 		return Ref<UserNotification>::from(UserNotificationImpl::create(message));
 	}
 
+	void UserNotification::checkAuthorizationStatus(const Function<void(sl_bool flagGranted)>& _callback)
+	{
+#if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
+		if (CHECK_UN_API) {
+			Function<void(sl_bool flagGranted)> callback = _callback;
+			UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+			[center getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings *settings) {
+				callback(settings.authorizationStatus == UNAuthorizationStatusAuthorized);
+			}];
+			return;
+		}
+#endif
+		
+		_callback(sl_true);
+	}
+
 	void UserNotification::requestAuthorization(const UserNotificationAuthorizationOptions& options, const Function<void(sl_bool flagGranted)>& _callback)
 	{
 #if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
@@ -522,6 +538,15 @@ namespace slib
 #endif
 		_callback(sl_true);
 	}
+
+	void UserNotification::openSystemPreferencesForNotification()
+		{
+	#if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
+			if (CHECK_UN_API) {
+				[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.notifications"]];
+			}
+	#endif
+		}
 
 	void UserNotification::removePendingNotification(const String& identifier)
 	{
