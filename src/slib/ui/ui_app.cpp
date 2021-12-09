@@ -31,6 +31,10 @@
 #include "slib/ui/menu.h"
 #include "slib/ui/platform.h"
 
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+#include "slib/ui/dl/linux/x11.h"
+#endif
+
 #include "ui_core_common.h"
 
 namespace slib
@@ -39,6 +43,9 @@ namespace slib
 	
 	UIApp::UIApp()
 	{
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+		XInitThreads();
+#endif
 	}
 	
 	UIApp::~UIApp()
