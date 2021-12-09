@@ -43,14 +43,18 @@ namespace slib
 	
 	UIApp::UIApp()
 	{
-#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
-		XInitThreads();
-#endif
 	}
 	
 	UIApp::~UIApp()
 	{
 	}
+
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+	void UIApp::enableXlibThreadsSupport()
+	{
+		XInitThreads();
+	}
+#endif
 
 	Ref<UIApp> UIApp::getApp()
 	{
