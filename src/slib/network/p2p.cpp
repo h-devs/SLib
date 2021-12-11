@@ -22,6 +22,9 @@
 
 #include "slib/network/p2p.h"
 
+#include "slib/network/socket.h"
+#include "slib/core/thread.h"
+
 namespace slib
 {
 
@@ -30,6 +33,49 @@ namespace slib
 		namespace p2p
 		{
 
+			class P2PSocketImpl : public P2PSocket
+			{
+			private:
+				Socket m_socketUdp;
+
+			public:
+				static Ref<P2PSocketImpl> open(P2PSocketParam& param)
+				{
+					sl_bool flagUdpHost = sl_false;
+					Socket socket = Socket::openUdp(param.port);
+					if (socket.isNotNone()) {
+						flagUdpHost = sl_true;
+					} else {
+						for (sl_uint16 i = 1; i < 1000; i++) {
+							socket = Socket::openUdp(param.port + i);
+							if (socket.isNotNone()) {
+								break;
+							}
+						}
+						if (socket.isNone()) {
+							SLIB_STATIC_STRING(err, "Failed to bind the UDP socket!")
+							param.errorText = err;
+							return sl_null;
+						}
+					}
+
+					return sl_null;
+				}
+
+			private:
+				void runUdpHost()
+				{
+					Thread* thread = Thread::getCurrent();
+					if (!thread) {
+						return;
+					}
+					Socket& socket = m_socketUdp;
+					while (thread->isNotStopping()) {
+						socket.receiveFrom();
+					}
+				}
+
+			};
 
 		}
 	}
@@ -38,7 +84,7 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(P2PSocketParam)
 
-	P2PSocketParam::P2PSocketParam()
+	P2PSocketParam::P2PSocketParam(): port(SLIB_P2P_DEFAULT_PORT)
 	{
 	}
 
@@ -47,6 +93,15 @@ namespace slib
 
 	P2PSocket::P2PSocket()
 	{
+	}
+
+	P2PSocket::~P2PSocket()
+	{
+	}
+
+	Ref<P2PSocket> P2PSocket::open(P2PSocketParam& param)
+	{
+		return Ref<P2PSocket>::from(P2PSocketImpl::open(param));
 	}
 
 }

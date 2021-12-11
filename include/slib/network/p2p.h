@@ -29,15 +29,21 @@
 #include "../core/bytes.h"
 #include "../crypto/ecc.h"
 
+#define SLIB_P2P_DEFAULT_PORT 39000
+
 namespace slib
 {
 
 	typedef Bytes<32> P2PNodeId;
+	typedef ECPrivateKey_secp256k1 P2P_PrivateKey;
 
 	class SLIB_EXPORT P2PSocketParam
 	{
 	public:
+		P2P_PrivateKey key;
+		sl_uint16 port;
 
+		String errorText;
 
 	public:
 		P2PSocketParam();
@@ -56,7 +62,10 @@ namespace slib
 		~P2PSocket();
 
 	public:
-		static Ref<P2PSocket> open(const P2PSocketParam& param);
+		static Ref<P2PSocket> open(P2PSocketParam& param);
+
+	public:
+		
 
 	};
 
