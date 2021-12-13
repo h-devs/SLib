@@ -37,6 +37,10 @@ namespace slib
 			{
 			private:
 				Socket m_socketUdp;
+				sl_bool m_flagUdpHost;
+
+				Ref<Thread> m_threadUdp;
+				
 
 			public:
 				static Ref<P2PSocketImpl> open(P2PSocketParam& param)
@@ -46,7 +50,7 @@ namespace slib
 					if (socket.isNotNone()) {
 						flagUdpHost = sl_true;
 					} else {
-						for (sl_uint16 i = 1; i < 1000; i++) {
+						for (sl_uint16 i = 1; i <= param.portCount; i++) {
 							socket = Socket::openUdp(param.port + i);
 							if (socket.isNotNone()) {
 								break;
@@ -58,11 +62,28 @@ namespace slib
 							return sl_null;
 						}
 					}
-
+					Ref<P2PSocketImpl> ret = new P2PSocketImpl;
+					if (ret.isNotNull()) {
+						ret->m_socketUdp = Move(socket);
+						ret->m_flagUdpHost = flagUdpHost;
+						ret->_initialize();
+						if (param.flagAutoStart) {
+							if (ret->start()) {
+								return ret;
+							}
+						} else {
+							return ret;
+						}
+					}
 					return sl_null;
 				}
 
 			private:
+				void _initialize()
+				{
+					m_socketUdp.setNonBlockingMode();
+				}
+
 				void runUdpHost()
 				{
 					Thread* thread = Thread::getCurrent();
@@ -71,8 +92,27 @@ namespace slib
 					}
 					Socket& socket = m_socketUdp;
 					while (thread->isNotStopping()) {
-						socket.receiveFrom();
+						
 					}
+				}
+
+			public:
+				sl_bool start() override
+				{
+					if (m_threadUdp.isNotNull()) {
+						return sl_true;
+					}
+					ObjectLocker locker(this);
+					if (m_threadUdp.isNotNull()) {
+						return sl_true;
+					}
+					m_threadUdp = Thread::start(SLIB_FUNCTION_MEMBER(P2PSocketImpl, runUdpHost, this));
+					return m_threadUdp.isNotNull();
+				}
+
+				sl_bool getLocalNodeAddress(const P2PNodeId& nodeId, SocketAddress* pAddress) override
+				{
+					return sl_false;
 				}
 
 			};
@@ -82,10 +122,39 @@ namespace slib
 
 	using namespace priv::p2p;
 
+	P2PNodeId::P2PNodeId() noexcept
+	{
+	}
+
+	P2PNodeId::P2PNodeId(sl_null_t) noexcept: Bytes(sl_null)
+	{
+	}
+
+	P2PNodeId::P2PNodeId(const StringParam& _id) noexcept: Bytes(_id)
+	{
+	}
+
+	P2PNodeId::P2PNodeId(const sl_uint8* other) noexcept : Bytes(other)
+	{
+	}
+
+	sl_size P2PNodeId::getHashCode() const noexcept
+	{
+#ifdef SLIB_ARCH_IS_X64
+		return SLIB_MAKE_QWORD(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
+#else
+		return SLIB_MAKE_DWORD(data[0], data[1], data[2], data[3]);
+#endif
+	}
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(P2PSocketParam)
 
-	P2PSocketParam::P2PSocketParam(): port(SLIB_P2P_DEFAULT_PORT)
+	P2PSocketParam::P2PSocketParam()
 	{
+		port = SLIB_P2P_DEFAULT_PORT;
+		portCount = 1000;
+		flagAutoStart = sl_true;
 	}
 
 
@@ -102,6 +171,11 @@ namespace slib
 	Ref<P2PSocket> P2PSocket::open(P2PSocketParam& param)
 	{
 		return Ref<P2PSocket>::from(P2PSocketImpl::open(param));
+	}
+
+	sl_bool P2PSocket::isLocalNode(const P2PNodeId& nodeId)
+	{
+		return getLocalNodeAddress(nodeId);
 	}
 
 }
