@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,24 +20,55 @@
  *   THE SOFTWARE.
  */
 
+#if defined(__linux__) && !defined(__ANDROID__)
+
+#include <dlfcn.h>
 #include <stdlib.h>
 
-#if defined(__linux__) && !defined(__ANDROID__)
+namespace priv
+{
+	namespace slib
+	{
+		namespace wrapped_symbols
+		{
+			
+			void* g_libc = sl_null;
+			void* g_libm = sl_null;
+
+			static void LoadLibrary()
+			{
+				if (!g_libc) {
+					g_libc = (void*)(dlopen("libc.so.6", RTLD_LAZY));
+					g_libm = (void*)(dlopen("libm.so.6", RTLD_LAZY));
+				}
+			}
+
+		}
+	}
+}
+
+using namespace priv::slib::wrapped_symbols;
+
+#define BEGIN_WRAPPER(LIB_SUFFIX, NAME, RET, ...) \
+	typedef RET(*FUNC_##NAME)(__VA_ARGS__); \
+	RET NAME(__VA_ARGS__) { \
+		static FUNC_##NAME func = sl_null; \
+		if (!func) { \
+			LoadLibrary(); \
+			func = (FUNC_##NAME)(dlsym(g_lib##LIB_SUFFIX, #NAME)); \
+		}
+
+#define CALL_ORIGINAL(...) func(__VA_ARGS__)
+
+#define END_WRAPPER }
 
 extern "C"
 {
-	void *_old_memcpy(void*, const void*, size_t);
 
-#if defined(__x86_64__)
-	asm(".symver _old_memcpy, memcpy@GLIBC_2.2.5");
-#else
-	asm(".symver _old_memcpy, memcpy@GLIBC_2.0");
-#endif
+	BEGIN_WRAPPER(c, memcpy, void, void* dst, const void* src, size_t size)
+		return CALL_ORIGINAL(dst, src, size);
+	END_WRAPPER
 
-	void* __wrap_memcpy(void* dst, const void* src, size_t size)
-	{
-  	return _old_memcpy(dst, src, size);
-	}
 }
 
 #endif
