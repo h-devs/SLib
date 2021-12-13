@@ -44,9 +44,7 @@ namespace slib
 
 	public:
 		sl_size getHashCode() const noexcept;
-		String toString() const noexcept;
-		sl_bool parse(const StringParam& str) noexcept;
-
+		
 		SLIB_DECLARE_CLASS_JSON_MEMBERS
 
 	};

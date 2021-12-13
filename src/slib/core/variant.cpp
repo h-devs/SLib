@@ -3963,14 +3963,4 @@ namespace slib
 		return Rehash64ToSize(*(sl_uint64*)data ^ *(sl_uint32*)(data + 8));
 	}
 
-	String ObjectId::toString() const noexcept
-	{
-		return Bytes::toString();
-	}
-
-	sl_bool ObjectId::parse(const StringParam& str) noexcept
-	{
-		return Bytes::parse(str);
-	}
-
 }
