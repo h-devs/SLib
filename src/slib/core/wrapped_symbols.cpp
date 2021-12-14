@@ -32,8 +32,8 @@ namespace priv
 		namespace wrapped_symbols
 		{
 			
-			void* g_libc = sl_null;
-			void* g_libm = sl_null;
+			void* g_libc = 0;
+			void* g_libm = 0;
 
 			static void LoadLibrary()
 			{
@@ -51,8 +51,8 @@ using namespace priv::slib::wrapped_symbols;
 
 #define BEGIN_WRAPPER(LIB_SUFFIX, NAME, RET, ...) \
 	typedef RET(*FUNC_##NAME)(__VA_ARGS__); \
-	RET NAME(__VA_ARGS__) { \
-		static FUNC_##NAME func = sl_null; \
+	RET __wrap_##NAME(__VA_ARGS__) { \
+		static FUNC_##NAME func = 0; \
 		if (!func) { \
 			LoadLibrary(); \
 			func = (FUNC_##NAME)(dlsym(g_lib##LIB_SUFFIX, #NAME)); \
@@ -66,7 +66,23 @@ extern "C"
 {
 
 	BEGIN_WRAPPER(c, memcpy, void, void* dst, const void* src, size_t size)
-		return CALL_ORIGINAL(dst, src, size);
+		CALL_ORIGINAL(dst, src, size);
+	END_WRAPPER
+
+	BEGIN_WRAPPER(c, fcntl64, int, int fd, int cmd, size_t arg)
+		return CALL_ORIGINAL(fd, cmd, arg);
+	END_WRAPPER
+
+	BEGIN_WRAPPER(m, powf, float, float x, float y)
+		return CALL_ORIGINAL(x, y);
+	END_WRAPPER
+
+	BEGIN_WRAPPER(m, logf, float, float f)
+		return CALL_ORIGINAL(f);
+	END_WRAPPER
+
+	BEGIN_WRAPPER(m, expf, float, float f)
+		return CALL_ORIGINAL(f);
 	END_WRAPPER
 
 }
