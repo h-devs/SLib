@@ -12,7 +12,7 @@ add_executable(SLIB_TEMPLATE_APP_NAME
   main.cpp
 )
 
-set_target_properties(SLIB_TEMPLATE_APP_NAME PROPERTIES LINK_FLAGS "-static-libgcc -Wl,--wrap=memcpy")
+set_target_properties(SLIB_TEMPLATE_APP_NAME PROPERTIES LINK_FLAGS "${SLIB_LINK_STATIC_FLAGS}")
 
 target_link_libraries (
   SLIB_TEMPLATE_APP_NAME

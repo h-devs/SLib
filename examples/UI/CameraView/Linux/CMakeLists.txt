@@ -9,7 +9,7 @@ add_executable(ExampleCamera
   ../src/app.cpp
 )
 
-set_target_properties(ExampleCamera PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++ -Wl,--wrap=memcpy")
+set_target_properties(ExampleCamera PROPERTIES LINK_FLAGS "${SLIB_LINK_STATIC_FLAGS}")
 
 target_link_libraries (
   ExampleCamera

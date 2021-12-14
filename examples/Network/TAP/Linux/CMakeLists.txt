@@ -8,7 +8,7 @@ add_executable(Tap
   ../main.cpp
 )
 
-set_target_properties(Tap PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++ -Wl,--wrap=memcpy")
+set_target_properties(Tap PROPERTIES LINK_FLAGS "${SLIB_LINK_STATIC_FLAGS}")
 
 target_link_libraries (
   Tap
