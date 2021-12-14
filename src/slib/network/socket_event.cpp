@@ -37,6 +37,75 @@
 namespace slib
 {
 
+	namespace priv
+	{
+		namespace socket_event
+		{
+
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+			static sl_uint32 GetEventStatus(sl_uint32 ne)
+			{
+				sl_uint32 ret = 0;
+				if (ne & (FD_CONNECT | FD_WRITE)) {
+					ret |= SocketEvent::Write;
+				}
+				if (ne & (FD_ACCEPT | FD_READ)) {
+					ret |= SocketEvent::Read;
+				}
+				if (ne & FD_CLOSE) {
+					ret |= SocketEvent::Close;
+				}
+				return ret;
+			}
+#else
+			static void PreparePoll(pollfd* fd, int socket, int pipe, sl_uint32 eventsReq)
+			{
+				fd->fd = socket;
+				sl_uint32 events = 0;
+				if (eventsReq & SocketEvent::Read) {
+					events = events | POLLIN | POLLPRI;
+				}
+				if (eventsReq & SocketEvent::Write) {
+					events = events | POLLOUT;
+				}
+				if (eventsReq & SocketEvent::Close) {
+#if defined(SLIB_PLATFORM_IS_LINUX)
+					events = events | POLLERR | POLLHUP | POLLRDHUP;
+#else
+					events = events | POLLERR | POLLHUP;
+#endif
+				}
+				fd->events = events;
+				fd++;
+				fd->fd = pipe;
+				fd->events = POLLIN | POLLPRI | POLLERR | POLLHUP;
+			}
+
+			static sl_uint32 GetEventStatus(sl_uint32 ne)
+			{
+				sl_uint32 ret = 0;
+				if (ne & (POLLIN | POLLPRI)) {
+					ret |= SocketEvent::Read;
+				}
+				if (ne & POLLOUT) {
+					ret |= SocketEvent::Write;
+				}
+#if defined(SLIB_PLATFORM_IS_LINUX)
+				if (ne & (POLLERR | POLLHUP | POLLRDHUP)) {
+#else
+				if (ne & (POLLERR | POLLHUP)) {
+#endif
+					ret |= SocketEvent::Close;
+				}
+				return ret;
+			}
+#endif
+
+		}
+	}
+
+	using namespace priv::socket_event;
+
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 	SocketEvent::SocketEvent(sl_socket socket, sl_uint32 events, void* handle): m_handle(handle)
 #else
@@ -62,8 +131,8 @@ namespace slib
 			Socket::initializeSocket();
 			socket.setNonBlockingMode();
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-			WSAEVENT hEvent = WSACreateEvent();
-			if (hEvent) { // WSA_INVALID_EVENT = NULL
+			HANDLE hEvent = CreateEventW(NULL, FALSE, FALSE, NULL);
+			if (hEvent) {
 				sl_uint32 ev = 0;
 				if (events & SocketEvent::Read) {
 					ev = ev | FD_READ | FD_ACCEPT;
@@ -77,7 +146,7 @@ namespace slib
 				if (!(WSAEventSelect(socket.get(), hEvent, ev))) {
 					return new SocketEvent(socket.get(), events, hEvent);
 				}
-				WSACloseEvent(hEvent);
+				CloseHandle(hEvent);
 			}
 #else
 			Pipe pipe = Pipe::create();
@@ -107,34 +176,89 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 	void SocketEvent::set()
 	{
-		WSASetEvent(m_handle);
+		SetEvent(m_handle);
 	}
 
 	void SocketEvent::reset()
 	{
-		WSAResetEvent(m_handle);
+		ResetEvent(m_handle);
 	}
 #endif
 
+	sl_bool SocketEvent::wait(sl_int32 timeout) noexcept
+	{
+		return wait(sl_null, timeout);
+	}
+
+	sl_bool SocketEvent::wait(sl_uint32* pOutStatus, sl_int32 timeout) noexcept
+	{
+		Thread* thread = Thread::getCurrent();
+		if (thread) {
+			if (thread->isStopping()) {
+				return sl_false;
+			}
+			thread->setWaitingEvent(this);
+		}
+		sl_bool ret = doWait(pOutStatus, timeout);
+		if (thread) {
+			thread->clearWaitingEvent();
+		}
+		return ret;
+	}
+
 	sl_uint32 SocketEvent::waitEvents(sl_int32 timeout) noexcept
 	{
-		SocketEvent* ev = this;
-		sl_uint32 events;
-		if (waitMultipleEvents(&ev, &events, 1, timeout)) {
-			return events;
+		sl_uint32 status;
+		if (wait(&status)) {
+			return status;
 		}
 		return 0;
 	}
 
 	sl_bool SocketEvent::doWait(sl_int32 timeout)
 	{
-		return waitEvents(timeout) != 0;
+		return doWait(sl_null, timeout);
 	}
 
-#define MAX_WAIT_EVENTS 64
+	sl_bool SocketEvent::doWait(sl_uint32* pOutStatus, sl_int32 timeout) noexcept
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		DWORD t = timeout >= 0 ? timeout : INFINITE;
+		DWORD dwRet = WaitForSingleObjectEx(m_handle, t, TRUE);
+		if (dwRet == WAIT_OBJECT_0) {
+			WSANETWORKEVENTS ne = { 0 };
+			if (!(WSAEnumNetworkEvents(m_socket, m_handle, &ne))) {
+				if (pOutStatus) {
+					*pOutStatus = GetEventStatus(ne.lNetworkEvents);
+				}
+				return ne.lNetworkEvents != 0;
+			}
+		}
+		return sl_false;
+#else
+		int t = timeout >= 0 ? (int)timeout : -1;
+		pollfd fd[2] = { 0 };
+		PreparePoll(fd, m_socket, (int)(getReadPipeHandle()), m_events);
+		int iRet = poll(fd, 2, t);
+		if (iRet > 0) {
+			sl_uint32 revents = fd->revents;
+			if (revents) {
+				if (pOutStatus) {
+					*pOutStatus = GetEventStatus(revents);
+				}
+				return sl_true;
+			}
+			if (fd[1].revents) {
+				reset();
+			}
+		}
+		return sl_false;
+#endif
+	}
+
 	sl_bool SocketEvent::waitMultipleEvents(SocketEvent** events, sl_uint32* status, sl_uint32 count, sl_int32 timeout) noexcept
 	{
-		if (!count || count > MAX_WAIT_EVENTS) { // WSA_MAXIMUM_WAIT_EVENTS
+		if (!count) {
 			return sl_false;
 		}
 		Thread* thread = Thread::getCurrent();
@@ -154,8 +278,7 @@ namespace slib
 	sl_bool SocketEvent::doWaitMultipleEvents(SocketEvent** events, sl_uint32* statuses, sl_uint32 count, sl_int32 timeout) noexcept
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
-		DWORD t = timeout >= 0 ? timeout : WSA_INFINITE;
-		SLIB_SCOPED_BUFFER(WSAEVENT, 64, hEvents, count);
+		SLIB_SCOPED_BUFFER(HANDLE, 64, hEvents, count);
 		SLIB_SCOPED_BUFFER(sl_uint32, 64, indexMap, count);
 		sl_uint32 cEvents = 0;
 		for (sl_uint32 i = 0; i < count; i++) {
@@ -169,33 +292,22 @@ namespace slib
 				statuses[i] = 0;
 			}
 		}
-		if (cEvents == 0) {
+		if (!cEvents) {
 			return sl_false;
 		}
 
-		DWORD dwRet = WSAWaitForMultipleEvents(cEvents, hEvents, FALSE, t, TRUE);
-		if (dwRet >= WSA_WAIT_EVENT_0 && dwRet < WSA_WAIT_EVENT_0 + cEvents) {
-			sl_uint32 indexHandle = dwRet - WSA_WAIT_EVENT_0;
+		DWORD t = timeout >= 0 ? timeout : INFINITE;
+		DWORD dwRet = WaitForMultipleObjectsEx(cEvents, hEvents, FALSE, t, TRUE);
+		if (dwRet >= WAIT_OBJECT_0 && dwRet < WAIT_OBJECT_0 + cEvents) {
+			sl_uint32 indexHandle = dwRet - WAIT_OBJECT_0;
 			sl_uint32 index = indexMap[indexHandle];
-			WSANETWORKEVENTS ne;
-			ZeroMemory(&ne, sizeof(ne));
 			SocketEvent* ev = events[index];
+			WSANETWORKEVENTS ne = { 0 };
 			if (!(WSAEnumNetworkEvents(ev->m_socket, hEvents[indexHandle], &ne))) {
-				sl_uint32 st = 0;
-				sl_uint32 le = ne.lNetworkEvents;
-				if (le & (FD_CONNECT | FD_WRITE)) {
-					st |= SocketEvent::Write;
-				}
-				if (le & (FD_ACCEPT | FD_READ)) {
-					st |= SocketEvent::Read;
-				}
-				if (le & FD_CLOSE) {
-					st |= SocketEvent::Close;
-				}
 				if (statuses) {
-					statuses[index] = st;
+					statuses[index] = GetEventStatus(ne.lNetworkEvents);
 				}
-				return sl_true;
+				return ne.lNetworkEvents != 0;
 			}
 		}
 		return sl_false;
@@ -207,25 +319,7 @@ namespace slib
 		for (sl_uint32 i = 0; i < count; i++) {
 			SocketEvent* ev = events[i];
 			if (ev) {
-				fd[cEvents * 2].fd = ev->m_socket;
-				sl_uint32 evs = 0;
-				sl_uint32 sevs = ev->m_events;
-				if (sevs & SocketEvent::Read) {
-					evs = evs | POLLIN | POLLPRI;
-				}
-				if (sevs & SocketEvent::Write) {
-					evs = evs | POLLOUT;
-				}
-				if (sevs & SocketEvent::Close) {
-#if defined(SLIB_PLATFORM_IS_LINUX)
-					evs = evs | POLLERR | POLLHUP | POLLRDHUP;
-#else
-					evs = evs | POLLERR | POLLHUP;
-#endif
-				}
-				fd[cEvents * 2].events = evs;
-				fd[cEvents * 2 + 1].fd = (int)(ev->getReadPipeHandle());
-				fd[cEvents * 2 + 1].events = POLLIN | POLLPRI | POLLERR | POLLHUP;
+				PreparePoll(fd + cEvents * 2, ev->m_socket, (int)(ev->getReadPipeHandle()), ev->m_events);
 				indexMap[cEvents] = i;
 				cEvents++;
 			}
@@ -240,31 +334,20 @@ namespace slib
 		int t = timeout >= 0 ? (int)timeout : -1;
 		int iRet = poll(fd, 2 * (int)cEvents, t);
 		if (iRet > 0) {
+			sl_bool flagSuccess = sl_false;
 			for (sl_uint32 k = 0; k < cEvents; k++) {
-				sl_uint32 status = 0;
-				sl_uint32 revs = fd[k * 2].revents;
-				if (revs & (POLLIN | POLLPRI)) {
-					status |= SocketEvent::Read;
-				}
-				if (revs & POLLOUT) {
-					status |= SocketEvent::Write;
-				}
-#if defined(SLIB_PLATFORM_IS_LINUX)
-				if (revs & (POLLERR | POLLHUP | POLLRDHUP)) {
-#else
-				if (revs & (POLLERR | POLLHUP)) {
-#endif
-					status |= SocketEvent::Close;
-				}
-				if (statuses) {
-					statuses[indexMap[k]] = status;
+				sl_uint32 revents = fd[k * 2].revents;
+				if (revents) {
+					flagSuccess = sl_true;
+					if (statuses) {
+						statuses[indexMap[k]] = GetEventStatus(revents);
+					}
 				}
 				if (fd[k * 2 + 1].revents) {
-					SocketEvent* ev = events[indexMap[k]];
-					ev->reset();
+					events[indexMap[k]]->reset();
 				}
 			}
-			return sl_true;
+			return flagSuccess;
 		}
 		return sl_false;
 #endif

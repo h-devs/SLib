@@ -76,7 +76,7 @@ int main(int argc, const char * argv[])
 					}
 				}
 			} else {
-				event->waitEvents(100);
+				event->wait(100);
 			}
 		}
 	});

@@ -73,6 +73,11 @@ namespace slib
 		void reset() override;
 #endif
 
+		sl_bool wait(sl_int32 timeout = -1) noexcept;
+
+		sl_bool wait(sl_uint32* pOutStatus, sl_int32 timeout = -1) noexcept;
+		
+		// returns event status
 		sl_uint32 waitEvents(sl_int32 timeout = -1) noexcept;
 
 		// count must be less than 64
@@ -80,6 +85,8 @@ namespace slib
 
 	protected:
 		sl_bool doWait(sl_int32 timeout) override;
+
+		sl_bool doWait(sl_uint32* pOutStatus, sl_int32 timeout) noexcept;
 
 		static sl_bool doWaitMultipleEvents(SocketEvent** events, sl_uint32* status, sl_uint32 count, sl_int32 timeout) noexcept;
 		

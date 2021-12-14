@@ -100,7 +100,7 @@ void ExampleFCMApp::startBroadcast()
 				if (n > 0) {
 					addDevice(String(buf, n));
 				} else {
-					event->waitEvents();
+					event->wait();
 				}
 			}
 		});
