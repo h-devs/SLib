@@ -334,8 +334,11 @@ namespace slib
 	Bytes<32> ECPrivateKey_secp256k1::toId() const noexcept
 	{
 		Bytes<32> ret;
-		Q.x.getBytesBE(ret.data, 32);
-		return ret;
+		if (Q.x.getBytesBE(ret.data, 32)) {
+			return ret;
+		} else {
+			return sl_null;
+		}
 	}
 
 
