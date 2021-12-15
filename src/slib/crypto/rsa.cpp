@@ -116,7 +116,8 @@ namespace slib
 		}
 		T = BigInt::pow_montgomery(T, key.E, key.N);
 		if (T.isNotNull()) {
-			if (T.getBytesBE(dst, n)) {
+			if (T.getMostSignificantBytes() <= n) {
+				T.getBytesBE(dst, n);
 				return sl_true;
 			}
 		}
@@ -139,7 +140,8 @@ namespace slib
 			T = TQ + T * key.Q;
 		}
 		if (T.isNotNull()) {
-			if (T.getBytesBE(dst, n)) {
+			if (T.getMostSignificantBytes() <= n) {
+				T.getBytesBE(dst, n);
 				return sl_true;
 			}
 		}

@@ -201,9 +201,8 @@ namespace slib
 					if (size) {
 						SLIB_SCOPED_BUFFER(unsigned char, 1024, t, size)
 						if (t) {
-							if (n.getBytesBE(t, size)) {
-								return BN_bin2bn(t, (int)(size), sl_null);
-							}
+							n.getBytesBE(t, size);
+							return BN_bin2bn(t, (int)(size), sl_null);
 						}
 					}
 				}

@@ -27,7 +27,6 @@
 
 #include "../math/bigint.h"
 #include "../core/list.h"
-#include "../core/bytes.h"
 #include "../core/default_members.h"
 
 /*
@@ -155,8 +154,6 @@ namespace slib
 
 		sl_bool verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept;
 
-		Bytes<32> toId() const noexcept;
-
 	};
 
 	class SLIB_EXPORT ECPrivateKey_secp256k1 : public ECPrivateKey
@@ -185,8 +182,6 @@ namespace slib
 		sl_bool checkValid() const noexcept;
 
 		sl_bool verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept;
-
-		Bytes<32> toId() const noexcept;
 
 	};
 

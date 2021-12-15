@@ -472,7 +472,7 @@ namespace slib
 
 	sl_bool CBigInt::isZero() const noexcept
 	{
-		return getMostSignificantElements() == 0;
+		return !(getMostSignificantElements());
 	}
 
 	sl_bool CBigInt::isNotZero() const noexcept
@@ -690,21 +690,23 @@ namespace slib
 		return fromBytesLE(mem.getData(), mem.getSize());
 	}
 
-	sl_bool CBigInt::getBytesLE(void* _bytes, sl_size n) const noexcept
+	void CBigInt::getBytesLE(void* _bytes, sl_size n) const noexcept
 	{
-		sl_size size = getMostSignificantBytes();
-		if (n < size) {
-			return sl_false;
-		}
 		sl_uint8* bytes = (sl_uint8*)_bytes;
-		sl_size i;
-		for (i = 0; i < size; i++) {
-			bytes[i] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
+		sl_size size = getMostSignificantBytes();
+		if (n <= size) {
+			for (sl_size i = 0; i < n; i++) {
+				bytes[i] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
+			}
+		} else {
+			sl_size i;
+			for (i = 0; i < size; i++) {
+				bytes[i] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
+			}
+			for (; i < n; i++) {
+				bytes[i] = 0;
+			}
 		}
-		for (; i < n; i++) {
-			bytes[i] = 0;
-		}
-		return sl_true;
 	}
 
 	Memory CBigInt::getBytesLE() const noexcept
@@ -770,24 +772,28 @@ namespace slib
 		return fromBytesBE(mem.getData(), mem.getSize());
 	}
 
-	sl_bool CBigInt::getBytesBE(void* _bytes, sl_size n) const noexcept
+	void CBigInt::getBytesBE(void* _bytes, sl_size n) const noexcept
 	{
-		sl_size size = getMostSignificantBytes();
-		if (n < size) {
-			return sl_false;
-		}
 		sl_uint8* bytes = (sl_uint8*)_bytes;
-		sl_size i;
-		sl_size m = n - 1;
-		for (i = 0; i < size; i++) {
-			bytes[m] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
-			m--;
+		sl_size size = getMostSignificantBytes();
+		if (n <= size) {
+			sl_size m = n - 1;
+			for (sl_size i = size - n; i < size; i++) {
+				bytes[m] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
+				m--;
+			}
+		} else {
+			sl_size i;
+			sl_size m = n - 1;
+			for (i = 0; i < size; i++) {
+				bytes[m] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
+				m--;
+			}
+			for (; i < n; i++) {
+				bytes[m] = 0;
+				m--;
+			}
 		}
-		for (; i < n; i++) {
-			bytes[m] = 0;
-			m--;
-		}
-		return sl_true;
 	}
 
 	Memory CBigInt::getBytesBE() const noexcept
@@ -962,7 +968,7 @@ namespace slib
 			return sl_null;
 		}
 		sl_size nb = getMostSignificantBits();
-		if (nb == 0) {
+		if (!nb) {
 			SLIB_RETURN_STRING("0");
 		}
 		if (radix == 16) {
@@ -1242,14 +1248,14 @@ namespace slib
 		const CBigInt& b = other;
 		sl_size na = a.getMostSignificantElements();
 		sl_size nb = b.getMostSignificantElements();
-		if (na == 0) {
-			if (nb == 0) {
+		if (!na) {
+			if (!nb) {
 				return 0;
 			} else {
 				return -b.sign;
 			}
 		} else {
-			if (nb == 0) {
+			if (!nb) {
 				return a.sign;
 			}
 		}
@@ -1294,7 +1300,7 @@ namespace slib
 	{
 		sl_size na = a.getMostSignificantElements();
 		sl_size nb = b.getMostSignificantElements();
-		if (na == 0) {
+		if (!na) {
 			if (nb) {
 				if (this != &b) {
 					return copyAbsFrom(b);
@@ -1304,7 +1310,7 @@ namespace slib
 			}
 			return sl_true;
 		}
-		if (nb == 0) {
+		if (!nb) {
 			if (this != &a) {
 				return copyAbsFrom(a);
 			}
@@ -1440,7 +1446,7 @@ namespace slib
 	{
 		sl_size na = a.getMostSignificantElements();
 		sl_size nb = b.getMostSignificantElements();
-		if (nb == 0) {
+		if (!nb) {
 			if (this != &a) {
 				return copyAbsFrom(a);
 			}
@@ -1454,12 +1460,12 @@ namespace slib
 			nd = na;
 		} else if (&b == this) {
 			nd = nb;
-			if (!growLength(na)) {
+			if (!(growLength(na))) {
 				return sl_false;
 			}
 		} else {
 			nd = getMostSignificantElements();
-			if (!growLength(na)) {
+			if (!(growLength(na))) {
 				return sl_false;
 			}
 		}
@@ -1561,7 +1567,7 @@ namespace slib
 	{
 		sl_size na = a.getMostSignificantElements();
 		sl_size nb = b.getMostSignificantElements();
-		if (na == 0 || nb == 0) {
+		if (!na || !nb) {
 			setZero();
 			return sl_true;
 		}
@@ -1620,7 +1626,7 @@ namespace slib
 	sl_bool CBigInt::mulAbs(const CBigInt& a, sl_uint32 b) noexcept
 	{
 		sl_size na = a.getMostSignificantElements();
-		if (na == 0 || b == 0) {
+		if (!na || !b) {
 			setZero();
 			return sl_true;
 		}
@@ -1630,7 +1636,7 @@ namespace slib
 			return sl_false;
 		}
 		sl_uint32 o = priv::bigint::Mul_uint32(out, a.elements, na, b, 0);
-		if (o == 0) {
+		if (!o) {
 			n = na;
 		} else {
 			out[n - 1] = o;
@@ -1695,10 +1701,10 @@ namespace slib
 	{
 		sl_size nba = a.getMostSignificantBits();
 		sl_size nbb = b.getMostSignificantBits();
-		if (nbb == 0) {
+		if (!nbb) {
 			return sl_false;
 		}
-		if (nba == 0) {
+		if (!nba) {
 			if (remainder) {
 				remainder->setZero();
 			}
@@ -1709,7 +1715,7 @@ namespace slib
 		}
 		if (nba < nbb) {
 			if (remainder) {
-				if (!remainder->copyAbsFrom(a)) {
+				if (!(remainder->copyAbsFrom(a))) {
 					return sl_false;
 				}
 			}
@@ -1759,7 +1765,7 @@ namespace slib
 					rem[se + tl[sb]] = 0;
 				}
 				q[se] |= (1 << sb);
-				if (nq == 0) {
+				if (!nq) {
 					nq = se + 1;
 				}
 				nbr = priv::bigint::MsBits(rem, se + tl[sb]);
@@ -1767,13 +1773,13 @@ namespace slib
 			shift--;
 		}
 		if (quotient) {
-			if (!quotient->setValueFromElements(q, nq)) {
+			if (!(quotient->setValueFromElements(q, nq))) {
 				return sl_false;
 			}
 		}
 		sl_size nr = (nbr + 31) >> 5;
 		if (remainder) {
-			if (! remainder->setValueFromElements(rem, nr)) {
+			if (!(remainder->setValueFromElements(rem, nr))) {
 				return sl_false;
 			}
 		}
@@ -1782,11 +1788,11 @@ namespace slib
 
 	sl_bool CBigInt::divAbs(const CBigInt& a, sl_uint32 b, CBigInt* quotient, sl_uint32* remainder) noexcept
 	{
-		if (b == 0) {
+		if (!b) {
 			return sl_false;
 		}
 		sl_size na = a.getMostSignificantElements();
-		if (na == 0) {
+		if (!na) {
 			if (remainder) {
 				*remainder = 0;
 			}
@@ -1963,7 +1969,7 @@ namespace slib
 
 	sl_bool CBigInt::shiftLeft(const CBigInt& a, sl_size shift) noexcept
 	{
-		if (shift == 0) {
+		if (!shift) {
 			return copyFrom(a);
 		}
 		sl_size nba = a.getMostSignificantBits();
@@ -2002,7 +2008,7 @@ namespace slib
 
 	sl_bool CBigInt::shiftRight(const CBigInt& a, sl_size shift) noexcept
 	{
-		if (shift == 0) {
+		if (!shift) {
 			return copyFrom(a);
 		}
 		sl_size nba = a.getMostSignificantBits();
@@ -2060,13 +2066,13 @@ namespace slib
 	{
 		if (pM) {
 			sl_size nM = pM->getMostSignificantElements();
-			if (nM == 0) {
+			if (!nM) {
 				return sl_false;
 			}
 		}
 		sl_size nbE = E.getMostSignificantBits();
-		if (nbE == 0) {
-			if (!setValue((sl_uint32)1)) {
+		if (!nbE) {
+			if (!(setValue((sl_uint32)1))) {
 				return sl_false;
 			}
 			sign = 1;
@@ -2076,45 +2082,45 @@ namespace slib
 			return sl_false;
 		}
 		sl_size nA = A.getMostSignificantElements();
-		if (nA == 0) {
+		if (!nA) {
 			setZero();
 			return sl_true;
 		}
 		CBigInt T;
-		if (!T.copyFrom(A)) {
+		if (!(T.copyFrom(A))) {
 			return sl_false;
 		}
 		const CBigInt* TE;
 		CBigInt t_TE;
 		if (this == &E) {
 			TE = &t_TE;
-			if (!t_TE.copyFrom(E)) {
+			if (!(t_TE.copyFrom(E))) {
 				return sl_false;
 			}
 		} else {
 			TE = &E;
 		}
-		if (!setValue((sl_uint32)1)) {
+		if (!(setValue((sl_uint32)1))) {
 			return sl_false;
 		}
 		for (sl_size ib = 0; ib < nbE; ib++) {
 			sl_size ke = ib >> 5;
 			sl_uint32 kb = (sl_uint32)(ib & 31);
 			if (((TE->elements[ke]) >> kb) & 1) {
-				if (!mul(*this, T)) {
+				if (!(mul(*this, T))) {
 					return sl_false;
 				}
 				if (pM) {
-					if (!CBigInt::div(*this, *pM, sl_null, this, sl_true)) {
+					if (!(CBigInt::div(*this, *pM, sl_null, this, sl_true))) {
 						return sl_false;
 					}
 				}
 			}
-			if (!T.mul(T, T)) {
+			if (!(T.mul(T, T))) {
 				return sl_false;
 			}
 			if (pM) {
-				if (!CBigInt::div(T, *pM, sl_null, &T, sl_true)) {
+				if (!(CBigInt::div(T, *pM, sl_null, &T, sl_true))) {
 					return sl_false;
 				}
 			}
@@ -2185,11 +2191,11 @@ namespace slib
 					nOut--;
 					out++;
 				}
-				if (!A.setValueFromElements(out, nM + 1)) {
+				if (!(A.setValueFromElements(out, nM + 1))) {
 					return sl_false;
 				}
 				if (A.compareAbs(M) >= 0) {
-					if (!A.subAbs(A, M)) {
+					if (!(A.subAbs(A, M))) {
 						return sl_false;
 					}
 				}
@@ -2217,11 +2223,11 @@ namespace slib
 				CBigInt& T = context.T;
 				
 				M.copyFrom(inM);
-				if (!M.compact()) {
+				if (!(M.compact())) {
 					return sl_false;
 				}
 				sl_size nM = M.getMostSignificantElements();
-				if (nM == 0) {
+				if (!nM) {
 					return sl_false;
 				}
 				if (M.sign < 0) {
@@ -2231,7 +2237,7 @@ namespace slib
 				CBigInt _t_E;
 				if (&inE == &ret) {
 					pE = &_t_E;
-					if (!_t_E.copyFrom(inE)) {
+					if (!(_t_E.copyFrom(inE))) {
 						return sl_false;
 					}
 				} else {
@@ -2239,7 +2245,7 @@ namespace slib
 				}
 				const CBigInt& E = *pE;
 				sl_size nE = E.getMostSignificantElements();
-				if (nE == 0) {
+				if (!nE) {
 					if (!(ret.setValue((sl_uint32)1))) {
 						return sl_false;
 					}
@@ -2250,7 +2256,7 @@ namespace slib
 					return sl_false;
 				}
 				sl_size nA = A.getMostSignificantElements();
-				if (nA == 0) {
+				if (!nA) {
 					ret.setZero();
 					return sl_true;
 				}
@@ -2271,23 +2277,23 @@ namespace slib
 				// pre-compute R^2 mod M
 				// R = 2^(nM*32)
 				{
-					if (!R2.setValue((sl_uint32)1)) {
+					if (!(R2.setValue((sl_uint32)1))) {
 						return sl_false;
 					}
-					if (!R2.shiftLeft(nM * 64)) {
+					if (!(R2.shiftLeft(nM * 64))) {
 						return sl_false;
 					}
-					if (!CBigInt::divAbs(R2, M, sl_null, &R2)) {
+					if (!(CBigInt::divAbs(R2, M, sl_null, &R2))) {
 						return sl_false;
 					}
 				}
 				
 				sl_bool flagNegative = A.sign < 0;
 				// T = A * R^2 * R^-1 mod M = A * R mod M
-				if (!CBigInt::divAbs(A, M, sl_null, &T)) {
+				if (!(CBigInt::divAbs(A, M, sl_null, &T))) {
 					return sl_false;
 				}
-				if (!priv::bigint::mont_mul(T, R2, M, MI)) {
+				if (!(mont_mul(T, R2, M, MI))) {
 					return sl_false;
 				}
 				
@@ -2295,7 +2301,7 @@ namespace slib
 				if (!(ret.copyFrom(R2))) {
 					return sl_false;
 				}
-				if (!priv::bigint::mont_reduction(ret, M, MI)) {
+				if (!(mont_reduction(ret, M, MI))) {
 					return sl_false;
 				}
 				
@@ -2305,16 +2311,16 @@ namespace slib
 					sl_uint32 kb = (sl_uint32)(ib & 31);
 					if (((E.elements[ke]) >> kb) & 1) {
 						// C = C * T * R^-1 mod M
-						if (!priv::bigint::mont_mul(ret, T, M, MI)) {
+						if (!(mont_mul(ret, T, M, MI))) {
 							return sl_false;
 						}
 					}
 					// T = T * T * R^-1 mod M
-					if (!priv::bigint::mont_mul(T, T, M, MI)) {
+					if (!(mont_mul(T, T, M, MI))) {
 						return sl_false;
 					}
 				}
-				if (!priv::bigint::mont_reduction(ret, M, MI)) {
+				if (!(mont_reduction(ret, M, MI))) {
 					return sl_false;
 				}
 				if (flagNegative && (E.elements[0] & 1) != 0) {
@@ -2330,6 +2336,7 @@ namespace slib
 			
 		}
 	}
+
 	
 	sl_bool CBigInt::pow_montgomery(const CBigInt& A, const CBigInt& inE, const CBigInt& inM) noexcept
 	{
@@ -2345,14 +2352,14 @@ namespace slib
 	sl_bool CBigInt::inverseMod(const CBigInt& A, const CBigInt& M) noexcept
 	{
 		sl_size nM = M.getMostSignificantElements();
-		if (nM == 0) {
+		if (!nM) {
 			return sl_false;
 		}
 		if (M.sign < 0) {
 			return sl_false;
 		}
 		sl_size nA = A.getMostSignificantElements();
-		if (nA == 0) {
+		if (!nA) {
 			return sl_false;
 		}
 		CBigInt G;
@@ -2363,15 +2370,15 @@ namespace slib
 			return sl_false;
 		}
 		CBigInt Xa;
-		if (!CBigInt::div(A, M, sl_null, &Xa, sl_true)) {
+		if (!(CBigInt::div(A, M, sl_null, &Xa, sl_true))) {
 			return sl_false;
 		}
 		CBigInt Xb;
-		if (!Xb.copyFrom(M)) {
+		if (!(Xb.copyFrom(M))) {
 			return sl_false;
 		}
 		CBigInt T1;
-		if (!T1.copyFrom(Xa)) {
+		if (!(T1.copyFrom(Xa))) {
 			return sl_false;
 		}
 		if (!(T1.elements)) {
@@ -2380,7 +2387,7 @@ namespace slib
 		CBIGINT_INT32(T1a, 1);
 		CBIGINT_INT32(T1b, 0);
 		CBigInt T2;
-		if (!T2.copyFrom(M)) {
+		if (!(T2.copyFrom(M))) {
 			return sl_false;
 		}
 		if (!(T2.elements)) {
@@ -2390,62 +2397,62 @@ namespace slib
 		CBIGINT_INT32(T2b, 1);
 
 		for (;;) {
-			while ((T1.elements[0] & 1) == 0) {
-				if (!T1.shiftRight(1)) {
+			while (!(T1.elements[0] & 1)) {
+				if (!(T1.shiftRight(1))) {
 					return sl_false;
 				}
-				if ((T1a.elements[0] & 1) != 0 || (T1b.elements[0] & 1) != 0) {
-					if (!T1a.add(Xb)) {
+				if ((T1a.elements[0] & 1) || (T1b.elements[0] & 1)) {
+					if (!(T1a.add(Xb))) {
 						return sl_false;
 					}
-					if (!T1b.sub(Xa)) {
+					if (!(T1b.sub(Xa))) {
 						return sl_false;
 					}
 				}
-				if (!T1a.shiftRight(1)) {
+				if (!(T1a.shiftRight(1))) {
 					return sl_false;
 				}
-				if (!T1b.shiftRight(1)) {
+				if (!(T1b.shiftRight(1))) {
 					return sl_false;
 				}
 			}
-			while ((T2.elements[0] & 1) == 0) {
-				if (!T2.shiftRight(1)) {
+			while (!(T2.elements[0] & 1)) {
+				if (!(T2.shiftRight(1))) {
 					return sl_false;
 				}
-				if ((T2a.elements[0] & 1) != 0 || (T2b.elements[0] & 1) != 0) {
-					if (!T2a.add(Xb)) {
+				if ((T2a.elements[0] & 1) || (T2b.elements[0] & 1)) {
+					if (!(T2a.add(Xb))) {
 						return sl_false;
 					}
-					if (!T2b.sub(Xa)) {
+					if (!(T2b.sub(Xa))) {
 						return sl_false;
 					}
 				}
-				if (!T2a.shiftRight(1)) {
+				if (!(T2a.shiftRight(1))) {
 					return sl_false;
 				}
-				if (!T2b.shiftRight(1)) {
+				if (!(T2b.shiftRight(1))) {
 					return sl_false;
 				}
 			}
 			if (T1.compare(T2) >= 0) {
-				if (!T1.sub(T2)) {
+				if (!(T1.sub(T2))) {
 					return sl_false;
 				}
-				if (!T1a.sub(T2a)) {
+				if (!(T1a.sub(T2a))) {
 					return sl_false;
 				}
-				if (!T1b.sub(T2b)) {
+				if (!(T1b.sub(T2b))) {
 					return sl_false;
 				}
 			} else {
-				if (!T2.sub(T1)) {
+				if (!(T2.sub(T1))) {
 					return sl_false;
 				}
-				if (!T2a.sub(T1a)) {
+				if (!(T2a.sub(T1a))) {
 					return sl_false;
 				}
-				if (!T2b.sub(T1b)) {
+				if (!(T2b.sub(T1b))) {
 					return sl_false;
 				}
 			}
@@ -2454,16 +2461,16 @@ namespace slib
 			}
 		}
 		while (T2a.compare((sl_uint32)0) < 0) {
-			if (!T2a.add(M)) {
+			if (!(T2a.add(M))) {
 				return sl_false;
 			}
 		}
 		while (T2a.compare(M) >= 0) {
-			if (!T2a.sub(M)) {
+			if (!(T2a.sub(M))) {
 				return sl_false;
 			}
 		}
-		if (!copyFrom(T2a)) {
+		if (!(copyFrom(T2a))) {
 			return sl_false;
 		}
 		return sl_true;
@@ -2482,50 +2489,50 @@ namespace slib
 		}
 		sl_size lbA = inA.getLeastSignificantBits();
 		sl_size lbB = inB.getLeastSignificantBits();
-		if (lbA == 0 || lbB == 0) {
+		if (!lbA || !lbB) {
 			setZero();
 			return sl_true;
 		}
 		sl_size min_p2 = Math::min(lbA - 1, lbB - 1);
 		CBigInt A, B;
-		if (!A.shiftRight(inA, min_p2)) {
+		if (!(A.shiftRight(inA, min_p2))) {
 			return sl_false;
 		}
-		if (!B.shiftRight(inB, min_p2)) {
+		if (!(B.shiftRight(inB, min_p2))) {
 			return sl_false;
 		}
 		for (;;) {
 			lbA = A.getLeastSignificantBits();
-			if (lbA == 0) {
+			if (!lbA) {
 				break;
 			}
-			if (!A.shiftRight(lbA - 1)) {
+			if (!(A.shiftRight(lbA - 1))) {
 				return sl_false;
 			}
 			lbB = B.getLeastSignificantBits();
-			if (lbB == 0) {
+			if (!lbB) {
 				break;
 			}
-			if (!B.shiftRight(lbB - 1)) {
+			if (!(B.shiftRight(lbB - 1))) {
 				return sl_false;
 			}
 			if (A.compareAbs(B) >= 0) {
-				if (!A.subAbs(A, B)) {
+				if (!(A.subAbs(A, B))) {
 					return sl_false;
 				}
-				if (!A.shiftRight(1)) {
+				if (!(A.shiftRight(1))) {
 					return sl_false;
 				}
 			} else {
-				if (!B.subAbs(B, A)) {
+				if (!(B.subAbs(B, A))) {
 					return sl_false;
 				}
-				if (!B.shiftRight(1)) {
+				if (!(B.shiftRight(1))) {
 					return sl_false;
 				}
 			}
 		}
-		if (!shiftLeft(B, min_p2)) {
+		if (!(shiftLeft(B, min_p2))) {
 			return sl_false;
 		}
 		sign = 1;
@@ -2978,13 +2985,14 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool BigInt::getBytesLE(void* buf, sl_size n) const noexcept
+	void BigInt::getBytesLE(void* buf, sl_size n) const noexcept
 	{
 		CBigInt* o = ref.ptr;
 		if (o) {
-			return o->getBytesLE(buf, n);
+			o->getBytesLE(buf, n);
+		} else {
+			Base::zeroMemory(buf, n);
 		}
-		return sl_false;
 	}
 
 	Memory BigInt::getBytesLE() const noexcept
@@ -2996,13 +3004,14 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool BigInt::getBytesBE(void* buf, sl_size n) const noexcept
+	void BigInt::getBytesBE(void* buf, sl_size n) const noexcept
 	{
 		CBigInt* o = ref.ptr;
 		if (o) {
-			return o->getBytesBE(buf, n);
+			o->getBytesBE(buf, n);
+		} else {
+			Base::zeroMemory(buf, n);
 		}
-		return sl_false;
 	}
 
 	Memory BigInt::getBytesBE() const noexcept
@@ -3054,7 +3063,7 @@ namespace slib
 		if (a) {
 			return a->equals(v);
 		} else {
-			return v == 0;
+			return !v;
 		}
 	}
 	
@@ -3064,7 +3073,7 @@ namespace slib
 		if (a) {
 			return a->equals(v);
 		} else {
-			return v == 0;
+			return !v;
 		}
 	}
 	
@@ -3074,7 +3083,7 @@ namespace slib
 		if (a) {
 			return a->equals(v);
 		} else {
-			return v == 0;
+			return !v;
 		}
 	}
 	
@@ -3084,7 +3093,7 @@ namespace slib
 		if (a) {
 			return a->equals(v);
 		} else {
-			return v == 0;
+			return !v;
 		}
 	}
 
@@ -4827,13 +4836,14 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Atomic<BigInt>::getBytesLE(void* buf, sl_size n) const noexcept
+	void Atomic<BigInt>::getBytesLE(void* buf, sl_size n) const noexcept
 	{
 		Ref<CBigInt> o(ref);
 		if (o.isNotNull()) {
-			return o->getBytesLE(buf, n);
+			o->getBytesLE(buf, n);
+		} else {
+			Base::zeroMemory(buf, n);
 		}
-		return sl_false;
 	}
 
 	Memory Atomic<BigInt>::getBytesLE() const noexcept
@@ -4845,13 +4855,14 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool Atomic<BigInt>::getBytesBE(void* buf, sl_size n) const noexcept
+	void Atomic<BigInt>::getBytesBE(void* buf, sl_size n) const noexcept
 	{
 		Ref<CBigInt> o(ref);
 		if (o.isNotNull()) {
-			return o->getBytesBE(buf, n);
+			o->getBytesBE(buf, n);
+		} else {
+			Base::zeroMemory(buf, n);
 		}
-		return sl_false;
 	}
 
 	Memory Atomic<BigInt>::getBytesBE() const noexcept

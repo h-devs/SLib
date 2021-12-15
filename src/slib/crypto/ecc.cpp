@@ -62,11 +62,9 @@ namespace slib
 		if (ret.isNotNull()) {
 			sl_uint8* buf = (sl_uint8*)(ret.getData());
 			buf[0] = 4;
-			if (x.getBytesBE(buf + 1, nBytesPerComponent)) {
-				if (y.getBytesBE(buf + 1 + nBytesPerComponent, nBytesPerComponent)) {
-					return ret;
-				}
-			}
+			x.getBytesBE(buf + 1, nBytesPerComponent);
+			y.getBytesBE(buf + 1 + nBytesPerComponent, nBytesPerComponent);
+			return ret;
 		}
 		return sl_null;
 	}
@@ -297,13 +295,6 @@ namespace slib
 		return ECPublicKey::verifySignature(EllipticCurve::secp256k1(), hash, size, signature, sizeSignature);
 	}
 
-	Bytes<32> ECPublicKey_secp256k1::toId() const noexcept
-	{
-		Bytes<32> ret;
-		Q.x.getBytesBE(ret.data, 32);
-		return ret;
-	}
-	
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPrivateKey_secp256k1)
 
@@ -329,16 +320,6 @@ namespace slib
 	sl_bool ECPrivateKey_secp256k1::verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept
 	{
 		return ECPublicKey::verifySignature(EllipticCurve::secp256k1(), hash, size, signature, sizeSignature);
-	}
-
-	Bytes<32> ECPrivateKey_secp256k1::toId() const noexcept
-	{
-		Bytes<32> ret;
-		if (Q.x.getBytesBE(ret.data, 32)) {
-			return ret;
-		} else {
-			return sl_null;
-		}
 	}
 
 

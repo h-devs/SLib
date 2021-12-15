@@ -118,7 +118,8 @@ namespace slib
 
 		static CBigInt* fromBytesLE(const Memory& mem) noexcept;
 
-		sl_bool getBytesLE(void* buf, sl_size n) const noexcept;
+		// fill zeros in remaining spaces
+		void getBytesLE(void* buf, sl_size n) const noexcept;
 
 		Memory getBytesLE() const noexcept;
 
@@ -131,7 +132,8 @@ namespace slib
 
 		static CBigInt* fromBytesBE(const Memory& mem) noexcept;
 
-		sl_bool getBytesBE(void* buf, sl_size n) const noexcept;
+		// fill zeros in remaining spaces
+		void getBytesBE(void* buf, sl_size n) const noexcept;
 
 		Memory getBytesBE() const noexcept;
 
@@ -401,11 +403,13 @@ namespace slib
 
 		sl_bool isNotZero() const noexcept;
 
-		sl_bool getBytesLE(void* buf, sl_size n) const noexcept;
+		// fill zeros in remaining spaces
+		void getBytesLE(void* buf, sl_size n) const noexcept;
 
 		Memory getBytesLE() const noexcept;
 
-		sl_bool getBytesBE(void* buf, sl_size n) const noexcept;
+		// fill zeros in remaining spaces
+		void getBytesBE(void* buf, sl_size n) const noexcept;
 
 		Memory getBytesBE() const noexcept;
 
@@ -521,11 +525,13 @@ namespace slib
 
 		sl_bool isNotZero() const noexcept;
 
-		sl_bool getBytesLE(void* buf, sl_size n) const noexcept;
+		// fill zeros in remaining spaces
+		void getBytesLE(void* buf, sl_size n) const noexcept;
 
 		Memory getBytesLE() const noexcept;
 
-		sl_bool getBytesBE(void* buf, sl_size n) const noexcept;
+		// fill zeros in remaining spaces
+		void getBytesBE(void* buf, sl_size n) const noexcept;
 
 		Memory getBytesBE() const noexcept;
 
