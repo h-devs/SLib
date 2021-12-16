@@ -264,7 +264,7 @@ namespace slib
 	}
 
 	
-	ChaCha20::ChaCha20() noexcept : m_pos(0), m_flagCounter32(sl_false)
+	ChaCha20::ChaCha20() noexcept : m_pos(0)
 	{
 	}
 	
@@ -279,31 +279,9 @@ namespace slib
 		m_nonce[2] = nonce2;
 		m_nonce[3] = nonce3;
 		m_pos = 0;
-		m_flagCounter32 = sl_false;
 	}
 	
-	void ChaCha20::start(const void* _iv, sl_uint64 counter) noexcept
-	{
-		const sl_uint8* iv = (const sl_uint8*)_iv;
-		m_nonce[0] = (sl_uint32)counter;
-		m_nonce[1] = (sl_uint32)(counter >> 32);
-		m_nonce[2] = U8TO32_LITTLE(iv[0], iv[1], iv[2], iv[3]);
-		m_nonce[3] = U8TO32_LITTLE(iv[4], iv[5], iv[6], iv[7]);
-		m_pos = 0;
-		m_flagCounter32 = sl_false;
-	}
-	
-	void ChaCha20::start32(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3) noexcept
-	{
-		m_nonce[0] = nonce0;
-		m_nonce[1] = nonce1;
-		m_nonce[2] = nonce2;
-		m_nonce[3] = nonce3;
-		m_pos = 0;
-		m_flagCounter32 = sl_true;
-	}
-	
-	void ChaCha20::start32(const void* _iv, sl_uint32 counter) noexcept
+	void ChaCha20::start(const void* _iv, sl_uint32 counter) noexcept
 	{
 		const sl_uint8* iv = (const sl_uint8*)_iv;
 		m_nonce[0] = counter;
@@ -311,7 +289,6 @@ namespace slib
 		m_nonce[2] = U8TO32_LITTLE(iv[4], iv[5], iv[6], iv[7]);
 		m_nonce[3] = U8TO32_LITTLE(iv[8], iv[9], iv[10], iv[11]);
 		m_pos = 0;
-		m_flagCounter32 = sl_true;
 	}
 	
 	void ChaCha20::encrypt(const void* _src, void* _dst, sl_size len) noexcept
@@ -327,26 +304,11 @@ namespace slib
 			if (!pos) {
 				Salsa20WordToByte(y, key, m_indexConstants, m_nonce[0], m_nonce[1], m_nonce[2], m_nonce[3]);
 				m_nonce[0]++;
-				if (!m_flagCounter32) {
-					if (!m_nonce[0]) {
-						m_nonce[1]++;
-					}
-				}
 			}
 			dst[k] = src[k] ^ y[pos];
 			pos = (pos + 1) & 0x3F;
 		}
 		m_pos = pos;
-	}
-	
-	sl_bool ChaCha20::is32BitCounter() noexcept
-	{
-		return m_flagCounter32;
-	}
-	
-	void ChaCha20::set32BitCounter(sl_bool flag) noexcept
-	{
-		m_flagCounter32 = flag;
 	}
 	
 	
@@ -368,12 +330,18 @@ namespace slib
 		const sl_uint8* iv = (const sl_uint8*)_iv;
 		sl_uint32 n0 = U8TO32_LITTLE(iv[0], iv[1], iv[2], iv[3]);
 		sl_uint32 n1 = U8TO32_LITTLE(iv[4], iv[5], iv[6], iv[7]);
-		m_cipher.start32(1, senderId, n0, n1);
+		m_cipher.start(1, senderId, n0, n1);
 		sl_uint8 block0[64];
 		m_cipher.generateBlock(0, senderId, n0, n1, block0);
 		m_auth.start(block0); // use first 32 bytes
 		m_lenAAD = 0;
 		m_lenInput = 0;
+	}
+
+	void ChaCha20_Poly1305::start(const void* _iv) noexcept
+	{
+		const sl_uint8* iv = (const sl_uint8*)_iv;
+		start(U8TO32_LITTLE(iv[0], iv[1], iv[2], iv[3]), iv + 4);
 	}
 	
 	void ChaCha20_Poly1305::putAAD(const void* data, sl_size len) noexcept

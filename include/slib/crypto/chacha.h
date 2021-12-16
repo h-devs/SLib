@@ -107,15 +107,10 @@ namespace slib
 		
 	public:
 		void start(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3) noexcept;
-		
-		// IV: 8 bytes
-		void start(const void* IV, sl_uint64 counter = 0) noexcept;
-		
-		void start32(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3) noexcept;
 
 		// IV: 12 bytes
-		void start32(const void* IV, sl_uint32 counter = 0) noexcept;
-		
+		void start(const void* IV, sl_uint32 counter = 0) noexcept;
+
 		void encrypt(const void* src, void* dst, sl_size len) noexcept;
 		
 		SLIB_INLINE void decrypt(const void* src, void* dst, sl_size len) noexcept
@@ -123,15 +118,10 @@ namespace slib
 			encrypt(src, dst, len);
 		}
 
-		sl_bool is32BitCounter() noexcept;
-		
-		void set32BitCounter(sl_bool flag = sl_true) noexcept;
-
 	private:
 		sl_uint32 m_nonce[4];
 		sl_uint8 m_output[64];
 		sl_uint32 m_pos;
-		sl_bool m_flagCounter32;
 		
 	};
 	
@@ -152,7 +142,10 @@ namespace slib
 
 		// IV: 8 bytes (64 bits)
 		void start(sl_uint32 senderId, const void* IV) noexcept;
-		
+
+		// IV: 12 bytes
+		void start(const void* IV) noexcept;
+
 		// put on AAD (additional authenticated data)
 		void putAAD(const void* data, sl_size len) noexcept;
 		
