@@ -239,7 +239,7 @@ namespace slib
 			ChaCha20 c;
 			sl_uint8 k[32];
 			SHA256::hash(publicKey, k);
-			c.setKey(k, 32);
+			c.setKey(k);
 			c.encrypt(extraInfo.getData(), buf + 10, lenExtra);
 		}
 		return EncodeCode(buf, nBuf);
@@ -264,7 +264,7 @@ namespace slib
 			ChaCha20 c;
 			sl_uint8 k[32];
 			SHA256::hash(publicKey, k);
-			c.setKey(k, 32);
+			c.setKey(k);
 			sl_uint8* buf = (sl_uint8*)(mem.getData());
 			c.decrypt(buf + 10, buf + 10, n - 10);
 			return String::fromUtf8(buf + 10, n - 10);
@@ -298,7 +298,7 @@ namespace slib
 			ChaCha20 c;
 			sl_uint8 k[32];
 			SHA256::hash(EncodePublicKey(key), k);
-			c.setKey(k, 32);
+			c.setKey(k);
 			c.encrypt(extraInfo.getData(), buf + 64, lenExtra);
 		}
 		return EncodeCode(buf, nBuf);
@@ -326,7 +326,7 @@ namespace slib
 			ChaCha20 c;
 			sl_uint8 k[32];
 			SHA256::hash(strPublicKey, k);
-			c.setKey(k, 32);
+			c.setKey(k);
 			c.decrypt(buf + 64, buf + 64, n - 64);
 			extraInfo = String::fromUtf8(buf + 64, n - 64);
 		}
@@ -349,7 +349,7 @@ namespace slib
 			ChaCha20 c;
 			sl_uint8 k[32];
 			SHA256::hash(publicKey, k);
-			c.setKey(k, 32);
+			c.setKey(k);
 			sl_uint8* buf = (sl_uint8*)(mem.getData());
 			c.decrypt(buf + 64, buf + 64, n - 64);
 			return String::fromUtf8(buf + 64, n - 64);

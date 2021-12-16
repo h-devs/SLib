@@ -65,7 +65,7 @@ namespace slib
 		StringParam path;
 
 		// ChaCha20 Encryption
-		const void* encryptionKey; // 48 bytes
+		const void* encryptionKey; // 32 bytes
 		const void* encryptionIV; // 16 bytes
 
 	public:

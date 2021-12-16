@@ -238,9 +238,9 @@ namespace slib
 				{
 					if (param.encryptionKey && param.encryptionIV) {
 						m_flagEncrypted = sl_true;
-						m_ioEncrypted.setKey48(param.encryptionKey);
+						m_ioEncrypted.setKey(param.encryptionKey);
 						m_ioEncrypted.setIV(param.encryptionIV);
-						SHA3_256::hash(param.encryptionKey, 48, m_maskHash);
+						SHA3_256::hash(param.encryptionKey, 32, m_maskHash);
 					} else {
 						m_flagEncrypted = sl_false;
 					}
@@ -423,9 +423,9 @@ namespace slib
 					m_flagLockFile = param.flagLockFile;
 					if (param.encryptionKey && param.encryptionIV) {
 						m_flagEncrypted = sl_true;
-						m_ioEncrypted.setKey48(param.encryptionKey);
+						m_ioEncrypted.setKey(param.encryptionKey);
 						m_ioEncrypted.setIV(param.encryptionIV);
-						SHA3_256::hash(param.encryptionKey, 48, m_maskHash);
+						SHA3_256::hash(param.encryptionKey, 32, m_maskHash);
 					} else {
 						m_flagEncrypted = sl_false;
 					}
@@ -622,7 +622,7 @@ namespace slib
 				Time m_timeCreationWriter;
 				
 				sl_bool m_flagEncrypted;
-				sl_uint8 m_encryptionKey[48];
+				sl_uint8 m_encryptionKey[32];
 				sl_uint8 m_encryptionIV[16];
 				sl_uint8 m_maskHash[32];
 
@@ -706,9 +706,9 @@ namespace slib
 							}
 						}
 						if (m_flagEncrypted) {
-							enc.getKey48(m_encryptionKey);
+							enc.getKey(m_encryptionKey);
 							enc.getIV(m_encryptionIV);
-							SHA3_256::hash(m_encryptionKey, 48, m_maskHash);
+							SHA3_256::hash(m_encryptionKey, 32, m_maskHash);
 						}
 					}
 					// enumerate package files

@@ -42,26 +42,19 @@ namespace slib
 	{
 	public:
 		sl_uint32 key[8];
-		sl_uint32 constants[4];
 
 	public:
-		// size: 16, 32, 48
-		sl_bool setKey(const void* key, sl_uint32 size) noexcept;
+		ChaCha20_Core();
 
+	public:
 		// key: 32 bytes
 		void setKey(const void* key) noexcept;
 
+		// key: 32 bytes
+		void getKey(void* key) noexcept;
+
 		// key: 16 bytes
 		void setKey16(const void* key) noexcept;
-
-		// key: 32 bytes
-		void setKey32(const void* key) noexcept;
-
-		// key: 48 bytes
-		void setKey48(const void* key) noexcept;
-
-		// outKey: 48 bytes
-		void getKey48(void* outKey) noexcept;
 
 		// output: 64 bytes
 		void generateBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, void* output) const noexcept;
@@ -74,6 +67,9 @@ namespace slib
 		{
 			encryptBlock(nonce0, nonce1, nonce2, nonce3, input, output);
 		}
+
+	protected:
+		sl_uint32 m_indexConstants; // 0: 32 Bytes Key, 1: 16 Bytes Key
 
 	};
 
