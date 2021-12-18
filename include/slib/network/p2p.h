@@ -26,6 +26,7 @@
 #include "socket_address.h"
 
 #include "../core/object.h"
+#include "../core/bytes.h"
 #include "../crypto/ecc.h"
 
 #define SLIB_P2P_DEFAULT_PORT 39000
@@ -33,9 +34,10 @@
 namespace slib
 {
 
-	typedef ECPrivateKey_secp256k1 P2P_PrivateKey;
-	
-	class SLIB_EXPORT P2PNodeId : public Bytes<32>
+	typedef ECPrivateKey_secp256k1 P2PPrivateKey;
+	typedef ECPublicKey_secp256k1 P2PPublicKey;
+
+	class SLIB_EXPORT P2PNodeId : public Bytes<16>
 	{
 	public:
 		P2PNodeId() noexcept;
@@ -54,14 +56,14 @@ namespace slib
 	class SLIB_EXPORT P2PSocketParam
 	{
 	public:
-		P2P_PrivateKey key;
+		P2PPrivateKey key; // [In, Out] If not initialized, socket will generate new key
 
-		sl_uint16 port; // UDP host port. We recommend you don't change `port` and `portCount`
-		sl_uint16 portCount; // Socket will search unbind guest port from [port, port+portCount]
+		sl_uint16 port; // [In] UDP host port. We recommend you don't change `port` and `portCount`
+		sl_uint16 portCount; // [In] Socket will search unbind guest port from [port, port+portCount]
 
-		sl_bool flagAutoStart;
+		sl_bool flagAutoStart; // [In] Automatically start the socket
 
-		String errorText;
+		String errorText; // [Out] Error text during creation
 
 	public:
 		P2PSocketParam();
@@ -84,10 +86,6 @@ namespace slib
 
 	public:
 		virtual sl_bool start() = 0;
-
-		virtual sl_bool getLocalNodeAddress(const P2PNodeId& nodeId, SocketAddress* pOut = sl_null) = 0;
-
-		sl_bool isLocalNode(const P2PNodeId& nodeId);
 
 	};
 
