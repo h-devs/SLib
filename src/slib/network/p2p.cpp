@@ -68,6 +68,8 @@ Offset	Length(B)	Type			Value
 6		8			Time			Current Milliseconds (Remote)
 */
 
+#define TIMEOUT_VERIFY_NODE 10000
+
 namespace slib
 {
 
@@ -288,8 +290,8 @@ namespace slib
 											if (MIO::readUint16LE(content + 4) == address.port) {
 												sl_uint64 timeNew = Time::now().getMillisecondsCount();
 												sl_uint64 timeOld = MIO::readUint64LE(content + 6);
-												if (timeNew >= timeOld && timeNew < timeOld + 10000) {
-													_registerLanNode(remoteKey);
+												if (timeNew >= timeOld && timeNew < timeOld + TIMEOUT_VERIFY_NODE) {
+													_registerLanNode(remoteKey, address, timeOld, timeNew);
 												}
 											}
 										}
@@ -326,6 +328,10 @@ namespace slib
 						m_mapEncryptionKey.removeAll();
 					}
 					m_mapEncryptionKey.put(remoteId, key);
+				}
+
+				void _registerLanNode(const P2PPublicKey& key, const SocketAddress& address, const Time& timeSentVerify, const Time& timeReceivedVerify)
+				{
 				}
 
 			public:
