@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_EXPIRE
-#define CHECKHEADER_SLIB_CORE_EXPIRE
+#ifndef CHECKHEADER_SLIB_CORE_EXPIRING_MAP
+#define CHECKHEADER_SLIB_CORE_EXPIRING_MAP
 
 #include "hash_map.h"
 #include "dispatch_loop.h"
@@ -33,21 +33,9 @@ namespace slib
 	template <class KT, class VT>
 	class SLIB_EXPORT ExpiringMap : public Object
 	{
-	protected:
-		HashMap<KT, VT> m_mapCurrent;
-		HashMap<KT, VT> m_mapBackup;
-
-		sl_uint32 m_duration;
-
-		Ref<Timer> m_timer;
-		WeakRef<DispatchLoop> m_dispatchLoop;
-	
 	public:
 		ExpiringMap()
 		{
-			m_mapCurrent.initialize();
-			m_mapBackup.initialize();
-
 			m_duration = 0;
 		}
 
@@ -61,45 +49,47 @@ namespace slib
 		{
 			return m_duration;
 		}
-	
-		void setupTimer(sl_uint32 expiring_duration_ms, const Ref<DispatchLoop>& _loop)
+
+		void setExpiringMilliseconds(sl_uint32 expiring_duration_ms)
 		{
-			ObjectLocker lock(this);
-			clearTimer();
-			Ref<DispatchLoop> loop = _loop;
-			if (loop.isNull()) {
-				loop = DispatchLoop::getDefault();
-				if (loop.isNull()) {
-					return;
-				}
-			}
-			if (expiring_duration_ms > 0) {
+			if (m_duration != expiring_duration_ms) {
 				m_duration = expiring_duration_ms;
-				m_dispatchLoop = loop;
-				typedef ExpiringMap<KT, VT> EXPIRING_MAP;
-				m_timer = Timer::startWithLoop(loop, SLIB_FUNCTION_MEMBER(EXPIRING_MAP, _update, this), expiring_duration_ms);
-			}
-		}
-	
-		void clearTimer()
-		{
-			ObjectLocker lock(this);
-			Ref<Timer> timer = m_timer;
-			if (timer.isNotNull()) {
-				Ref<DispatchLoop> loop = m_dispatchLoop;
-				if (loop.isNotNull()) {
-					loop->removeTimer(timer);
+				if (m_timer.isNotNull()) {
+					ObjectLocker lock(this);
+					_setupTimer();
 				}
 			}
-			m_timer.setNull();
-			m_dispatchLoop.setNull();
 		}
 
-		void setupTimer(sl_uint32 expiring_duration_ms)
+		Ref<DispatchLoop> getLoop() const
 		{
-			setupTimer(expiring_duration_ms, Ref<DispatchLoop>::null());
+			ObjectLocker lock(this);
+			return m_dispatchLoop;
 		}
-	
+
+		void setLoop(const Ref<DispatchLoop>& loop)
+		{
+			if (m_dispatchLoop != loop) {
+				ObjectLocker lock(this);
+				m_dispatchLoop = loop;
+				if (m_timer.isNotNull()) {
+					_setupTimer();
+				}
+			}
+		}
+
+		void setupTimer(sl_uint32 expiring_duration_ms, const Ref<DispatchLoop>& loop)
+		{
+			if (m_duration != expiring_duration_ms || m_dispatchLoop != loop) {
+				ObjectLocker lock(this);
+				m_duration = expiring_duration_ms;
+				m_dispatchLoop = loop;
+				if (m_timer.isNotNull()) {
+					_setupTimer();
+				}
+			}
+		}
+
 		sl_bool get(const KT& key, VT* _out = sl_null, sl_bool flagUpdateLifetime = sl_true)
 		{
 			ObjectLocker lock(this);
@@ -146,7 +136,13 @@ namespace slib
 		{
 			ObjectLocker lock(this);
 			m_mapBackup.remove_NoLock(key);
-			return m_mapCurrent.put_NoLock(key, value);
+			if (m_mapCurrent.put_NoLock(key, value)) {
+				if (m_timer.isNull()) {
+					_setupTimer();
+				}
+				return sl_true;
+			}
+			return sl_false;
 		}
 
 		void remove(const KT& key)
@@ -179,19 +175,44 @@ namespace slib
 		void _update(Timer* timer)
 		{
 			ObjectLocker lock(this);
-			m_mapBackup = m_mapCurrent;
-			m_mapCurrent.initialize();
+			m_mapBackup = Move(m_mapCurrent);
+			if (m_mapBackup.isEmpty()) {
+				if (m_timer.isNotNull()) {
+					m_timer->stop();
+					m_timer.setNull();
+				}
+			}
+		}
+
+		void _setupTimer()
+		{
+			if (m_timer.isNotNull()) {
+				m_timer->stopAndWait();
+				m_timer.setNull();
+			}
+			sl_uint32 duration = m_duration;
+			if (duration > 0) {
+				typedef ExpiringMap<KT, VT> EXPIRING_MAP;
+				m_timer = Timer::startWithLoop(m_dispatchLoop, SLIB_FUNCTION_MEMBER(EXPIRING_MAP, _update, this), duration);
+			}
 		}
 
 		void _release()
 		{
-			ObjectLocker lock(this);
 			if (m_timer.isNotNull()) {
 				m_timer->stopAndWait();
 			}
-			clearTimer();
 		}
-	
+
+	protected:
+		sl_uint32 m_duration;
+		Ref<DispatchLoop> m_dispatchLoop;
+
+		Ref<Timer> m_timer;
+
+		HashMap<KT, VT> m_mapCurrent;
+		HashMap<KT, VT> m_mapBackup;
+
 	};
 
 }

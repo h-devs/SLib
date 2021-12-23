@@ -93,8 +93,8 @@
 #include "core/queue_channel.h"
 #include "core/linked_object.h"
 #include "core/loop_queue.h"
-#include "core/expire.h"
 #include "core/btree.h"
+#include "core/expiring_map.h"
 
 #include "core/math.h"
 #include "core/interpolation.h"
