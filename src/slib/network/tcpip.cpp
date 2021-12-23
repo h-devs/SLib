@@ -336,7 +336,7 @@ namespace slib
 	
 	void IPv4Fragmentation::setupExpiringDuration(sl_uint32 ms)
 	{
-		m_packets.setupTimer(ms);
+		m_packets.setExpiringMilliseconds(ms);
 	}
 	
 	sl_bool IPv4Fragmentation::isNeededReassembly(const IPv4Packet* ip)
