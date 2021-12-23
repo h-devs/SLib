@@ -45,18 +45,8 @@ namespace slib
 	Timer::~Timer()
 	{
 	}
-	
-	Ref<Timer> Timer::create(const Function<void(Timer*)>& task, sl_uint64 interval_ms)
-	{
-		return Timer::createWithLoop(DispatchLoop::getDefault(), task, interval_ms);
-	}
-	
-	Ref<Timer> Timer::start(const Function<void(Timer*)>& task, sl_uint64 interval_ms)
-	{
-		return Timer::startWithLoop(DispatchLoop::getDefault(), task, interval_ms);
-	}
 
-	Ref<Timer> Timer::createWithLoop(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms)
+	Ref<Timer> Timer::_createWithLoop(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms)
 	{
 		if (task.isNull()) {
 			return sl_null;
@@ -67,15 +57,32 @@ namespace slib
 		Ref<Timer> ret = new Timer();
 		if (ret.isNotNull()) {
 			ret->m_loop = loop;
-			
 			ret->m_task = task;
 			ret->m_interval = interval_ms;
-			
 			return ret;
 		}
 		return sl_null;
 	}
+
+	Ref<Timer> Timer::create(const Function<void(Timer*)>& task, sl_uint64 interval_ms)
+	{
+		return Timer::_createWithLoop(DispatchLoop::getDefault(), task, interval_ms);
+	}
 	
+	Ref<Timer> Timer::start(const Function<void(Timer*)>& task, sl_uint64 interval_ms)
+	{
+		return Timer::startWithLoop(sl_null, task, interval_ms);
+	}
+
+	Ref<Timer> Timer::createWithLoop(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms)
+	{
+		if (loop.isNotNull()) {
+			return _createWithLoop(loop, task, interval_ms);
+		} else {
+			return _createWithLoop(DispatchLoop::getDefault(), task, interval_ms);
+		}
+	}
+
 	Ref<Timer> Timer::startWithLoop(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms)
 	{
 		Ref<Timer> timer = Timer::createWithLoop(loop, task, interval_ms);

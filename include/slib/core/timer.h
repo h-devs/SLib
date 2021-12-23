@@ -82,6 +82,8 @@ namespace slib
 	protected:
 		void _runFromDispatcher();
 
+		static Ref<Timer> _createWithLoop(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms);
+
 	protected:
 		sl_bool m_flagStarted;
 		Function<void(Timer*)> m_task;
