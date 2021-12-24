@@ -95,6 +95,7 @@
 #include "core/loop_queue.h"
 #include "core/btree.h"
 #include "core/expiring_map.h"
+#include "core/expiring_queue.h"
 
 #include "core/math.h"
 #include "core/interpolation.h"
