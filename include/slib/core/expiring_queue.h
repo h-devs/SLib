@@ -61,13 +61,13 @@ namespace slib
 			}
 		}
 
-		Ref<DispatchLoop> getLoop() const
+		Ref<DispatchLoop> getDispatchLoop() const
 		{
 			ObjectLocker lock(this);
 			return m_dispatchLoop;
 		}
 
-		void setLoop(const Ref<DispatchLoop>& loop)
+		void setDispatchLoop(const Ref<DispatchLoop>& loop)
 		{
 			if (m_dispatchLoop != loop) {
 				ObjectLocker lock(this);
