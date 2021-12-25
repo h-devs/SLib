@@ -25,8 +25,8 @@
 
 #include "socket_address.h"
 
-#include "../core/object.h"
-#include "../core/bytes.h"
+#include "../core/json.h"
+#include "../core/async.h"
 #include "../crypto/ecc.h"
 
 #define SLIB_P2P_DEFAULT_PORT 39000
@@ -53,13 +53,87 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT P2PMessage
+	{
+	public:
+		const void* data;
+		sl_uint32 size;
+
+	private:
+		Ref<Referable> ref;
+		Memory mem;
+		String str;
+		Json json;
+		sl_bool flagNotJson;
+
+	public:
+		P2PMessage();
+
+		P2PMessage(const void* data, sl_uint32 size, Referable* ref = sl_null);
+
+		template <class T>
+		P2PMessage(T&& value): data(sl_null), size(0)
+		{
+			setContent(Forward<T>(value));
+		}
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(P2PMessage)
+
+	public:
+		sl_bool isEmpty()
+		{
+			return !size;
+		}
+
+		sl_bool isNotEmpty()
+		{
+			return size > 0;
+		}
+
+		void clear();
+
+		void setContent(const void* data, sl_uint32 size, Referable* ref = sl_null);
+
+		void setContent(const Variant& var);
+
+		void setContent(P2PMessage& content);
+
+		Memory getMemory();
+
+		void setMemory(const Memory& mem);
+
+		String getString();
+
+		void setString(const String& str);
+
+		Json getJson();
+
+		void setJson(const Json& json);
+
+		void setJson(const Json& json, const String& str);
+
+		void makeSafe();
+
+	};
+
+	class SLIB_EXPORT P2PResponse : public P2PMessage
+	{
+	public:
+		P2PResponse();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(P2PResponse)
+
+	};
+
 	class SLIB_EXPORT P2PSocketParam
 	{
 	public:
 		P2PPrivateKey key; // [In, Out] If not initialized, socket will generate new key
 
-		sl_uint16 port; // [In] UDP host port. We recommend you don't change `port` and `portCount`
-		sl_uint16 portCount; // [In] Socket will search unbind guest port from [port, port+portCount]
+		sl_uint16 port; // [In] Host port. We recommend you don't change `port` and `portCount`
+		sl_uint16 portCount; // [In] Socket will search unbind guest port from [port, port+portCount)
+		sl_uint16 boundUdpPort; // [Out] Bound UDP port
+		sl_uint16 boundTcpPort; // [Out] Bound TCP port
 
 		sl_bool flagAutoStart; // [In] Automatically start the socket
 
@@ -86,6 +160,8 @@ namespace slib
 
 	public:
 		virtual sl_bool start() = 0;
+
+		virtual void sendMessage(const P2PNodeId& nodeId, P2PMessage& msg, const Function<void(P2PResponse& response)>& callback) = 0;
 
 	};
 
