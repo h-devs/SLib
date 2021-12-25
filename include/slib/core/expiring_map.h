@@ -100,14 +100,14 @@ namespace slib
 				}
 				return sl_true;
 			}
-			p = m_mapBackup.getItemPointer(key);
-			if (p) {
+			auto node = m_mapBackup.find_NoLock(key);
+			if (node) {
 				if (_out) {
-					*_out = *p;
+					*_out = node->value;
 				}
 				if (flagUpdateLifetime) {
-					m_mapCurrent.put_NoLock(key, *p);
-					m_mapBackup.remove_NoLock(key);
+					m_mapCurrent.add_NoLock(key, Move(node->value));
+					m_mapBackup.removeAt(node);
 				}
 				return sl_true;
 			}
@@ -121,22 +121,23 @@ namespace slib
 			if (p) {
 				return *p;
 			}
-			p = m_mapBackup.getItemPointer(key);
-			if (p) {
+			auto node = m_mapBackup.find_NoLock(key);
+			if (node) {
 				if (flagUpdateLifetime) {
-					m_mapCurrent.put_NoLock(key, *p);
-					m_mapBackup.remove_NoLock(key);
+					m_mapCurrent.add_NoLock(key, Move(node->value));
+					m_mapBackup.removeAt(node);
 				}
-				return *p;
+				return node->value;
 			}
 			return def;
 		}
 
-		sl_bool put(const KT& key, const VT& value)
+		template <class KEY, class VALUE>
+		sl_bool put(KEY&& key, VALUE&& value)
 		{
 			ObjectLocker lock(this);
 			m_mapBackup.remove_NoLock(key);
-			if (m_mapCurrent.put_NoLock(key, value)) {
+			if (m_mapCurrent.put_NoLock(Forward<KEY>(key), Forward<VALUE>(value))) {
 				if (m_timer.isNull()) {
 					_setupTimer();
 				}
@@ -145,11 +146,26 @@ namespace slib
 			return sl_false;
 		}
 
-		void remove(const KT& key)
+		template <class KEY, class... VALUE_ARGS>
+		sl_bool add(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
 			ObjectLocker lock(this);
-			m_mapCurrent.remove_NoLock(key);
-			m_mapBackup.remove_NoLock(key);
+			if (m_mapCurrent.add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...)) {
+				if (m_timer.isNull()) {
+					_setupTimer();
+				}
+				return sl_true;
+			}
+			return sl_false;
+		}
+
+		sl_bool remove(const KT& key, VT* outValue = sl_null)
+		{
+			ObjectLocker lock(this);
+			if (m_mapCurrent.remove_NoLock(key, outValue)) {
+				return sl_true;
+			}
+			return m_mapBackup.remove_NoLock(key, outValue);
 		}
 
 		void removeAll()
