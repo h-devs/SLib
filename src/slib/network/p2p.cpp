@@ -203,38 +203,90 @@ namespace slib
 
 			typedef Function<void(P2PResponse& response)> ResponseCallback;
 
-			enum class NodeType
+			enum class ConnectionType
 			{
 				Lan = 0
 			};
+
+			class Connection : public Referable
+			{
+			public:
+				WeakRef<Node> m_node;
+				ConnectionType m_type;
+				Time m_timeLastPing;
+
+			public:
+				Connection(Node* node, ConnectionType type);
+
+			public:
+				void setLastPingTime();
+
+			};
+
+			class LanConnection;
 
 			class Node : public Referable
 			{
 			public:
 				WeakRef<P2PSocketImpl> m_socket;
-				NodeType m_type;
 				P2PPublicKey m_key;
 				P2PNodeId m_id;
 
-				Time m_timeReceivedPing;
+				AtomicRef<LanConnection> m_connectionDefault;
+				AtomicRef<LanConnection> m_connectionLan;
+
+				Time m_timeLastPing;
+				Time m_timeLastPingDefault;
 
 			public:
-				Node(P2PSocketImpl* socket, NodeType type, const P2PPublicKey& key): m_socket(socket), m_type(type), m_key(key)
+				Node(P2PSocketImpl* socket, const P2PPublicKey& key): m_socket(socket), m_key(key)
 				{
 					GetNodeId(key, m_id.data);
-					m_timeReceivedPing = Time::now();
+					m_timeLastPing = Time::now();
 				}
-
+				
 			public:
-				virtual sl_bool checkValid() = 0;
-
-				virtual void sendPing() = 0;
-
-				virtual void sendMessage(const Memory& mem, const ResponseCallback& callback) = 0;
+				Ref<LanConnection> createLanConnection(const IPv4Address& ip, sl_uint16 portUdp, sl_uint16 portTcp)
+				{
+					Ref<LanConnection> connection = m_connectionLan;
+					if (connection.isNotNull()) {
+						if (connection->m_ip != ip || connection->m_portUdp != portUdp || connection->m_portTcp != portTcp) {
+							connection.setNull();
+						}
+					}
+					if (connection.isNull()) {
+						connection = new LanConnection(this, ip, portUdp, portTcp);
+					}
+					if (connection.isNotNull()) {
+						m_connectionDefault = connection;
+						m_connectionLan = connection;
+						connection->setLastPingTime();
+						return connection;
+					}
+					return sl_null;
+				}
 
 			};
 
-			class LanNode : public Node
+			Connection::Connection(Node* node, ConnectionType type): m_node(node), m_type(type)
+			{
+				setLastPingTime();
+			}
+
+			void Connection::setLastPingTime()
+			{
+				Time now = Time::now();
+				m_timeLastPing = now;
+				Ref<Node> node = m_node;
+				if (node.isNotNull()) {
+					node->m_timeLastPing = now;
+					if (node->m_connectionDefault == this) {
+						node->m_timeLastPingDefault = now;
+					}
+				}
+			}
+
+			class LanConnection : public Connection
 			{
 			public:
 				IPv4Address m_ip;
@@ -242,7 +294,7 @@ namespace slib
 				sl_uint16 m_portTcp;
 				
 			public:
-				LanNode(P2PSocketImpl* socket, const P2PPublicKey& key, const IPv4Address& ip, sl_uint16 portUdp, sl_uint16 portTcp): Node(socket, NodeType::Lan, key), m_ip(ip), m_portUdp(portUdp), m_portTcp(portTcp)
+				LanConnection(Node* node, const IPv4Address& ip, sl_uint16 portUdp, sl_uint16 portTcp): Connection(node, ConnectionType::Lan), m_ip(ip), m_portUdp(portUdp), m_portTcp(portTcp)
 				{
 				}
 
@@ -289,9 +341,6 @@ namespace slib
 					m_flagUdpHost = sl_false;
 					m_portUdp = 0;
 					m_portTcp = 0;
-
-					m_mapPingCallbacks.setExpiringMilliseconds(1000);
-					m_mapVerifyCallbacks.setExpiringMilliseconds(3000);
 				}
 
 				~P2PSocketImpl()
@@ -377,6 +426,9 @@ namespace slib
 				{
 					m_key = param.key;
 					GetNodeId(param.key, m_localNodeId.data);
+
+					m_mapPingCallbacks.setupTimer(1000, m_dispatcher);
+					m_mapVerifyCallbacks.setupTimer(3000, m_dispatcher);
 
 					// Initialize UDP Socket
 					{
@@ -511,7 +563,7 @@ namespace slib
 												sl_uint64 timeOld = MIO::readUint64LE(content);
 												if (timeNew >= timeOld && timeNew < timeOld + TIMEOUT_VERIFY_LAN_NODE) {
 													sl_uint16 portTcp = MIO::readUint16LE(content + 14);
-													_onVerifyLanNode(remoteKey, remoteIP, address.port, portTcp);
+													_onVerifyLanConnection(remoteKey, remoteIP, address.port, portTcp);
 												}
 											}
 										}
@@ -538,25 +590,39 @@ namespace slib
 					}
 				}
 
-				void _onVerifyLanNode(const P2PPublicKey& key, const IPv4Address& ip, sl_uint16 portUdp, sl_uint16 portTcp)
+				Ref<Node> _createNode(const P2PPublicKey& key)
 				{
 					P2PNodeId nodeId;
 					GetNodeId(key, nodeId.data);
-					Ref<Node> _node = m_mapNodes.getValue(nodeId);
-					if (_node.isNotNull()) {
-						if (_node->m_type == NodeType::Lan && _node->m_key == key) {
-							LanNode* node = (LanNode*)(_node.get());
-							if (node->m_ip == ip && node->m_portUdp == portUdp && node->m_portTcp == portTcp) {
-								_notifyVerifyCallbacks(nodeId, node);
-								return;
-							}
+					Ref<Node> node = m_mapNodes.getValue(nodeId);
+					if (node.isNotNull()) {
+						if (node->m_key == key) {
+							return node;
 						}
 					}
-					Ref<LanNode> node = new LanNode(this, key, ip, portUdp, portTcp);
+					Ref<Node> node = new Node(this, key);
 					if (node.isNotNull()) {
 						m_mapNodes.put(nodeId, node);
+						return node;
 					}
-					_notifyVerifyCallbacks(nodeId, node.get());
+					return sl_null;
+				}
+
+				void _onVerifyLanConnection(const P2PPublicKey& key, const IPv4Address& ip, sl_uint16 portUdp, sl_uint16 portTcp)
+				{
+					P2PNodeId nodeId;
+					GetNodeId(key, nodeId.data);
+					Ref<Node> node = _createNode(key);
+					if (node.isNull()) {
+						_notifyVerifyCallbacks(nodeId, sl_null);
+						return;
+					}
+					Ref<LanConnection> connection = node->createLanConnection(ip, portUdp, portTcp);
+					if (connection.isNotNull()) {
+						_notifyVerifyCallbacks(nodeId, node.get());
+					} else {
+						_notifyVerifyCallbacks(nodeId, sl_null);
+					}
 				}
 
 				void _notifyVerifyCallbacks(const P2PNodeId& nodeId, Node* node)
@@ -668,6 +734,18 @@ namespace slib
 					node->sendPing();
 				}
 
+				void LanNode::sendPing()
+				{
+					Ref<P2PSocketImpl> socket = m_socket;
+					if (socket.isNull()) {
+						return;
+					}
+					sl_uint8 buf[1024];
+					buf[0] = (sl_uint8)(Command::FindNode);
+					Base::copyMemory(buf + 1, m_id.data, sizeof(m_id));
+					socket->_sendUdp(SocketAddress(m_ip, m_portUdp), buf, 17);
+				}
+
 				void _findNode1(const P2PNodeId& nodeId, const NodeCallback& callback, sl_uint32 nRetry)
 				{
 					m_mapVerifyCallbacks.add(nodeId, [nodeId, callback, nRetry](Node* node) {
@@ -724,25 +802,6 @@ namespace slib
 
 			};
 
-			void LanNode::sendPing()
-			{
-				Ref<P2PSocketImpl> socket = m_socket;
-				if (socket.isNull()) {
-					return;
-				}
-				sl_uint8 buf[1024];
-				buf[0] = (sl_uint8)(Command::FindNode);
-				Base::copyMemory(buf + 1, m_id.data, sizeof(m_id));
-				socket->_sendUdp(SocketAddress(m_ip, m_portUdp), buf, 17);
-			}
-
-			void LanNode::sendMessage(const Memory& content, const ResponseCallback& callback)
-			{
-				Ref<P2PSocketImpl> socket = m_socket;
-				if (socket.isNull()) {
-					return;
-				}
-			}
 
 		}
 	}
