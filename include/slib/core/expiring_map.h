@@ -31,7 +31,7 @@ namespace slib
 {
 	
 	template <class KT, class VT>
-	class SLIB_EXPORT ExpiringMap : public Object
+	class SLIB_EXPORT ExpiringMap : public Lockable
 	{
 	public:
 		ExpiringMap()

@@ -31,7 +31,7 @@ namespace slib
 {
 	
 	template <class T, sl_uint32 LAYER_COUNT = 2>
-	class SLIB_EXPORT ExpiringQueue : public Object
+	class SLIB_EXPORT ExpiringQueue : public Lockable
 	{
 	public:
 		ExpiringQueue()
