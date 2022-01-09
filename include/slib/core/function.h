@@ -52,13 +52,13 @@ namespace slib
 			{
 			public:
 				template <class FUNC, class... ARGS>
-				static RET_TYPE invoke(const FUNC& func, ARGS&&... args)
+				static RET_TYPE invoke(FUNC&& func, ARGS&&... args)
 				{
 					return func(Forward<ARGS>(args)...);
 				}
 
 				template <class CLASS, class FUNC, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, ARGS&&... args)
+				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, ARGS&&... args)
 				{
 					return (obj->*func)(Forward<ARGS>(args)...);
 				}
@@ -70,14 +70,14 @@ namespace slib
 			{
 			public:
 				template <class FUNC, class... ARGS>
-				static RET_TYPE invoke(const FUNC& func, ARGS&&... args)
+				static RET_TYPE invoke(FUNC&& func, ARGS&&... args)
 				{
 					func(Forward<ARGS>(args)...);
 					return RET_TYPE();
 				}
 
 				template <class CLASS, class FUNC, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, ARGS&&... args)
+				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, ARGS&&... args)
 				{
 					(obj->*func)(Forward<ARGS>(args)...);
 					return RET_TYPE();
@@ -90,13 +90,13 @@ namespace slib
 			{
 			public:
 				template <class FUNC, class... ARGS>
-				static void invoke(const FUNC& func, ARGS&&... args)
+				static void invoke(FUNC&& func, ARGS&&... args)
 				{
 					func(Forward<ARGS>(args)...);
 				}
 
 				template <class CLASS, class FUNC, class... ARGS>
-				static void invokeMember(CLASS* obj, const FUNC& func, ARGS&&... args)
+				static void invokeMember(CLASS* obj, FUNC&& func, ARGS&&... args)
 				{
 					(obj->*func)(Forward<ARGS>(args)...);
 				}
@@ -108,13 +108,13 @@ namespace slib
 			{
 			public:
 				template <class FUNC, class... ARGS>
-				static void invoke(const FUNC& func, ARGS&&... args)
+				static void invoke(FUNC&& func, ARGS&&... args)
 				{
 					func(Forward<ARGS>(args)...);
 				}
 
 				template <class CLASS, class FUNC, class... ARGS>
-				static void invokeMember(CLASS* obj, const FUNC& func, ARGS&&... args)
+				static void invokeMember(CLASS* obj, FUNC&& func, ARGS&&... args)
 				{
 					(obj->*func)(Forward<ARGS>(args)...);
 				}
@@ -126,133 +126,133 @@ namespace slib
 			{
 			public:
 				template <class FUNC, class... ARGS>
-				static RET_TYPE invoke(const FUNC& func, const Tuple<>& t, ARGS&&... args)
+				static RET_TYPE invoke(FUNC&& func, const Tuple<>& t, ARGS&&... args)
 				{
 					return func(Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, const Tuple<>& t, ARGS&&... args)
+				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<>& t, ARGS&&... args)
 				{
 					return (obj->*func)(Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class... ARGS>
-				static RET_TYPE invoke(const FUNC& func, const Tuple<T1>& t, ARGS&&... args)
+				static RET_TYPE invoke(FUNC&& func, const Tuple<T1>& t, ARGS&&... args)
 				{
 					return func(t.m1, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1>& t, ARGS&&... args)
+				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1>& t, ARGS&&... args)
 				{
 					return (obj->*func)(t.m1, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class... ARGS>
-				static RET_TYPE invoke(const FUNC& func, const Tuple<T1, T2>& t, ARGS&&... args)
+				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2>& t, ARGS&&... args)
 				{
 					return func(t.m1, t.m2, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2>& t, ARGS&&... args)
+				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2>& t, ARGS&&... args)
 				{
 					return (obj->*func)(t.m1, t.m2, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class... ARGS>
-				static RET_TYPE invoke(const FUNC& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
+				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
 				{
 					return func(t.m1, t.m2, t.m3, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
+				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
 				{
 					return (obj->*func)(t.m1, t.m2, t.m3, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class T4, class... ARGS>
-				static RET_TYPE invoke(const FUNC& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
+				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
 				{
 					return func(t.m1, t.m2, t.m3, t.m4, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
+				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
 				{
 					return (obj->*func)(t.m1, t.m2, t.m3, t.m4, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class... ARGS>
-				static RET_TYPE invoke(const FUNC& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
+				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
 				{
 					return func(t.m1, t.m2, t.m3, t.m4, t.m5, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
+				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
 				{
 					return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class... ARGS>
-				static RET_TYPE invoke(const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
+				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
 				{
 					return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
+				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
 				{
 					return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class... ARGS>
-				static RET_TYPE invoke(const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
+				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
 				{
 					return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
+				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
 				{
 					return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class... ARGS>
-				static RET_TYPE invoke(const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
+				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
 				{
 					return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
+				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
 				{
 					return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class... ARGS>
-				static RET_TYPE invoke(const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
+				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
 				{
 					return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
+				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
 				{
 					return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class... ARGS>
-				static RET_TYPE invoke(const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
+				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
 				{
 					return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, t.m10, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
+				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
 				{
 					return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, t.m10, Forward<ARGS>(args)...);
 				}
@@ -264,133 +264,133 @@ namespace slib
 			{
 			public:
 				template <class FUNC, class... ARGS>
-				static void invoke(const FUNC& func, const Tuple<>& t, ARGS&&... args)
+				static void invoke(FUNC&& func, const Tuple<>& t, ARGS&&... args)
 				{
 					func(Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class... ARGS>
-				static void invokeMember(CLASS* obj, const FUNC& func, const Tuple<>& t, ARGS&&... args)
+				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<>& t, ARGS&&... args)
 				{
 					(obj->*func)(Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class... ARGS>
-				static void invoke(const FUNC& func, const Tuple<T1>& t, ARGS&&... args)
+				static void invoke(FUNC&& func, const Tuple<T1>& t, ARGS&&... args)
 				{
 					func(t.m1, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class... ARGS>
-				static void invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1>& t, ARGS&&... args)
+				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1>& t, ARGS&&... args)
 				{
 					(obj->*func)(t.m1, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class... ARGS>
-				static void invoke(const FUNC& func, const Tuple<T1, T2>& t, ARGS&&... args)
+				static void invoke(FUNC&& func, const Tuple<T1, T2>& t, ARGS&&... args)
 				{
 					func(t.m1, t.m2, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class... ARGS>
-				static void invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2>& t, ARGS&&... args)
+				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2>& t, ARGS&&... args)
 				{
 					(obj->*func)(t.m1, t.m2, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class... ARGS>
-				static void invoke(const FUNC& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
+				static void invoke(FUNC&& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
 				{
 					func(t.m1, t.m2, t.m3, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class... ARGS>
-				static void invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
+				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
 				{
 					(obj->*func)(t.m1, t.m2, t.m3, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class T4, class... ARGS>
-				static void invoke(const FUNC& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
+				static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
 				{
 					func(t.m1, t.m2, t.m3, t.m4, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class... ARGS>
-				static void invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
+				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
 				{
 					(obj->*func)(t.m1, t.m2, t.m3, t.m4, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class... ARGS>
-				static void invoke(const FUNC& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
+				static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
 				{
 					func(t.m1, t.m2, t.m3, t.m4, t.m5, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class... ARGS>
-				static void invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
+				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
 				{
 					(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class... ARGS>
-				static void invoke(const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
+				static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
 				{
 					func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class... ARGS>
-				static void invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
+				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
 				{
 					(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class... ARGS>
-				static void invoke(const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
+				static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
 				{
 					func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class... ARGS>
-				static void invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
+				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
 				{
 					(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class... ARGS>
-				static void invoke(const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
+				static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
 				{
 					func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class... ARGS>
-				static void invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
+				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
 				{
 					(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class... ARGS>
-				static void invoke(const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
+				static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
 				{
 					func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class... ARGS>
-				static void invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
+				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
 				{
 					(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, Forward<ARGS>(args)...);
 				}
 				
 				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class... ARGS>
-				static void invoke(const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
+				static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
 				{
 					func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, t.m10, Forward<ARGS>(args)...);
 				}
 				
 				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class... ARGS>
-				static void invokeMember(CLASS* obj, const FUNC& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
+				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
 				{
 					(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, t.m10, Forward<ARGS>(args)...);
 				}
