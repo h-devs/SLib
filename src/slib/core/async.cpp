@@ -469,6 +469,7 @@ namespace slib
 			result.size = resultSize;
 			result.requestSize = size;
 			result.userObject = userObject.get();
+			result.callback = callback.getObject();
 			result.resultCode = code;
 			callback(result);
 		}

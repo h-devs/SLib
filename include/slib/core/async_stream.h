@@ -48,6 +48,7 @@ namespace slib
 		sl_size size;
 		sl_size requestSize;
 		Referable* userObject;
+		Callable<void(AsyncStreamResult&)>* callback;
 		AsyncStreamResultCode resultCode;
 
 	public:
