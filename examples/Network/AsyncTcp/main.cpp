@@ -12,7 +12,8 @@ int main(int argc, const char * argv[])
 
 		Println("Binding server port %d", PORT);
 
-		CHashMap< AsyncTcpSocket*, Ref<AsyncTcpSocket> > sockets;
+		ExpiringMap< AsyncTcpSocket*, Ref<AsyncTcpSocket> > sockets;
+		sockets.setExpiringMilliseconds(30000);
 
 		AsyncTcpServerParam param;
 		param.bindAddress.port = PORT;
@@ -44,6 +45,7 @@ int main(int argc, const char * argv[])
 					return;
 				}
 				Println("Received: %s", StringView((char*)(result.data), result.size));
+				sockets.get(client);
 				client->receive(result.data, result.requestSize, result.callback, result.userObject);
 			});
 		};
