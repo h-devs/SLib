@@ -152,11 +152,10 @@ namespace slib
 
 		void setHandle(sl_async_handle handle);
 	
-	public:
-		virtual void close() = 0;
-	
 	protected:
 		virtual void onOrder() = 0;
+
+		virtual void onClose() = 0;
 
 		struct EventDesc
 		{

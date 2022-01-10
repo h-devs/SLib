@@ -49,18 +49,23 @@ namespace slib
 		sl_bool isSupportedConnect();
 		
 	public:
-		void close() override;
-		
 		sl_bool connect(const SocketAddress& address);
 		
 	protected:
+		void onClose() override;
+
 		void _onConnect(sl_bool flagError);
+
+	private:
+		void _free();
 
 	protected:
 		sl_bool m_flagSupportingConnect;
 		sl_bool m_flagRequestConnect;
 		SocketAddress m_addressRequestConnect;
 		
+		Ref<AsyncStreamRequest> m_requestReading;
+		Ref<AsyncStreamRequest> m_requestWriting;
 	};
 
 	class SLIB_EXPORT AsyncTcpServerInstance : public AsyncIoInstance
@@ -73,8 +78,6 @@ namespace slib
 		~AsyncTcpServerInstance();
 		
 	public:
-		void close() override;
-		
 		void start();
 		
 		sl_bool isRunning();
@@ -82,9 +85,14 @@ namespace slib
 		sl_socket getSocket();
 			
 	protected:
+		void onClose() override;
+
 		void _onAccept(Socket& socketAccept, const SocketAddress& address);
 		
 		void _onError();
+
+	private:
+		void _closeHandle();
 		
 	protected:
 		sl_bool m_flagRunning;
@@ -101,8 +109,6 @@ namespace slib
 		~AsyncUdpSocketInstance();
 		
 	public:
-		void close() override;
-		
 		void start();
 		
 		sl_bool isRunning();
@@ -110,10 +116,15 @@ namespace slib
 		sl_socket getSocket();
 		
 	protected:
+		void onClose() override;
+
 		void _onReceive(const SocketAddress& address, sl_uint32 size);
 		
 		void _onError();
-		
+
+	private:
+		void _closeHandle();
+
 	protected:
 		sl_bool m_flagRunning;
 		Memory m_buffer;

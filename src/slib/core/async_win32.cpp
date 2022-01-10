@@ -41,7 +41,6 @@ namespace slib
 			class FileInstance : public AsyncFileStreamInstance
 			{
 			public:
-				Ref<AsyncStreamRequest> m_requestOperating;
 				sl_uint64 m_offset;
 				sl_bool m_flagSupportSeeking;
 
@@ -83,7 +82,7 @@ namespace slib
 					if (handle == SLIB_FILE_INVALID_HANDLE) {
 						return;
 					}
-					if (m_requestOperating.isNull()) {
+					if (m_requestReading.isNull()) {
 						Ref<AsyncStreamRequest> req;
 						if (popReadRequest(req)) {
 							if (req.isNotNull()) {
@@ -102,7 +101,7 @@ namespace slib
 									} else {
 										DWORD dwErr = ::GetLastError();
 										if (dwErr == ERROR_IO_PENDING) {
-											m_requestOperating = req;
+											m_requestReading = Move(req);
 										} else {
 											processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
 										}
@@ -113,7 +112,7 @@ namespace slib
 							}
 						}
 					}
-					if (m_requestOperating.isNull()) {
+					if (m_requestWriting.isNull()) {
 						Ref<AsyncStreamRequest> req;
 						if (popWriteRequest(req)) {
 							if (req.isNotNull()) {
@@ -132,7 +131,7 @@ namespace slib
 									} else {
 										DWORD dwErr = ::GetLastError();
 										if (dwErr == ERROR_IO_PENDING) {
-											m_requestOperating = req;
+											m_requestWriting = Move(req);
 										} else {
 											processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
 										}
@@ -161,13 +160,12 @@ namespace slib
 						}
 					} else {
 						dwError = GetLastError();
-						close();
+						onClose();
 					}
 
-					Ref<AsyncStreamRequest> req = Move(m_requestOperating);
-
-					if (req.isNotNull()) {
-						if (pOverlapped == &m_overlappedRead || pOverlapped == &m_overlappedWrite) {
+					if (pOverlapped == &m_overlappedRead) {
+						Ref<AsyncStreamRequest> req = Move(m_requestReading);
+						if (req.isNotNull()) {
 							if (dwError == ERROR_SUCCESS) {
 								processStreamResult(req.get(), dwSize, AsyncStreamResultCode::Success);
 							} else if (dwError == ERROR_HANDLE_EOF) {
@@ -176,8 +174,16 @@ namespace slib
 								processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
 							}
 						}
+					} else if (pOverlapped == &m_overlappedWrite) {
+						Ref<AsyncStreamRequest> req = Move(m_requestWriting);
+						if (req.isNotNull()) {
+							if (dwError == ERROR_SUCCESS) {
+								processStreamResult(req.get(), dwSize, AsyncStreamResultCode::Success);
+							} else {
+								processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
+							}
+						}
 					}
-
 					requestOrder();
 				}
 

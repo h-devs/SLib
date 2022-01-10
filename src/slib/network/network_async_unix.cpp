@@ -39,10 +39,7 @@ namespace slib
 			
 			class TcpInstance : public AsyncTcpSocketInstance
 			{
-			public:
-				Ref<AsyncStreamRequest> m_requestReading;
-				Ref<AsyncStreamRequest> m_requestWriting;
-				
+			public:				
 				sl_bool m_flagConnecting;
 
 			public:

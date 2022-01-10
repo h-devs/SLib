@@ -61,10 +61,15 @@ namespace slib
 
 		~AsyncFileStreamInstance();
 
-	public:
-		void close() override;
+	protected:
+		void onClose() override;
+
+	private:
+		void _free();
 
 	protected:
+		Ref<AsyncStreamRequest> m_requestReading;
+		Ref<AsyncStreamRequest> m_requestWriting;
 		sl_bool m_flagCloseOnRelease;
 
 	};
@@ -88,8 +93,6 @@ namespace slib
 
 	public:
 		Ref<AsyncFileStreamInstance> getIoInstance();
-
-		void close() override;
 
 		sl_file getHandle();
 

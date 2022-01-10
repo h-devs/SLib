@@ -49,19 +49,12 @@ namespace slib
 				WSAOVERLAPPED m_overlappedRead;
 				WSABUF m_bufRead;
 				DWORD m_flagsRead;
-				Ref<AsyncStreamRequest> m_requestReading;
 
 				WSAOVERLAPPED m_overlappedWrite;
 				WSABUF m_bufWrite;
-				Ref<AsyncStreamRequest> m_requestWriting;
 
 				WSAOVERLAPPED m_overlappedConnect;
 				LPFN_CONNECTEX m_funcConnectEx;
-
-			public:
-				TcpInstance()
-				{
-				}
 
 			public:
 				static Ref<TcpInstance> create(Socket&& socket, sl_bool flagIPv6)
@@ -91,10 +84,12 @@ namespace slib
 						GUID Guid = WSAID_CONNECTEX;
 						DWORD dwBytes = 0;
 						int ret = WSAIoctl(
-							(SOCKET)(handle), SIO_GET_EXTENSION_FUNCTION_POINTER
-							, &Guid, sizeof(Guid)
-							, &m_funcConnectEx, sizeof(m_funcConnectEx)
-							, &dwBytes, NULL, NULL);
+							(SOCKET)(handle),
+							SIO_GET_EXTENSION_FUNCTION_POINTER,
+							&Guid, sizeof(Guid),
+							&m_funcConnectEx, sizeof(m_funcConnectEx),
+							&dwBytes,
+							NULL, NULL);
 						if (ret == SOCKET_ERROR) {
 							m_funcConnectEx = sl_null;
 						}
@@ -322,10 +317,12 @@ namespace slib
 						GUID Guid = WSAID_ACCEPTEX;
 						DWORD dwBytes = 0;
 						int ret = WSAIoctl(
-							(SOCKET)(handle), SIO_GET_EXTENSION_FUNCTION_POINTER
-							, &Guid, sizeof(Guid)
-							, &m_funcAcceptEx, sizeof(m_funcAcceptEx)
-							, &dwBytes, NULL, NULL);
+							(SOCKET)(handle),
+							SIO_GET_EXTENSION_FUNCTION_POINTER,
+							&Guid, sizeof(Guid),
+							&m_funcAcceptEx, sizeof(m_funcAcceptEx),
+							&dwBytes,
+							NULL, NULL);
 						if (ret == SOCKET_ERROR) {
 							m_funcAcceptEx = sl_null;
 							LogError(TAG, "Get AcceptEx extension error");
@@ -336,10 +333,12 @@ namespace slib
 						GUID Guid = WSAID_GETACCEPTEXSOCKADDRS;
 						DWORD dwBytes = 0;
 						int ret = WSAIoctl(
-							(SOCKET)(handle), SIO_GET_EXTENSION_FUNCTION_POINTER
-							, &Guid, sizeof(Guid)
-							, &m_funcGetAcceptExSockaddrs, sizeof(m_funcGetAcceptExSockaddrs)
-							, &dwBytes, NULL, NULL);
+							(SOCKET)(handle),
+							SIO_GET_EXTENSION_FUNCTION_POINTER,
+							&Guid, sizeof(Guid),
+							&m_funcGetAcceptExSockaddrs, sizeof(m_funcGetAcceptExSockaddrs),
+							&dwBytes,
+							NULL, NULL);
 						if (ret == SOCKET_ERROR) {
 							m_funcGetAcceptExSockaddrs = sl_null;
 							LogError(TAG, "Get GetAcceptExSockaddrs extension error");
@@ -536,8 +535,7 @@ namespace slib
 					m_flagsReceive = 0;
 					DWORD dwRead = 0;
 					m_lenAddrReceive = sizeof(sockaddr_storage);
-					int ret = WSARecvFrom((SOCKET)handle, &m_bufReceive, 1, &dwRead, &m_flagsReceive
-						, (sockaddr*)&m_addrReceive, &m_lenAddrReceive, &m_overlappedReceive, NULL);
+					int ret = WSARecvFrom((SOCKET)handle, &m_bufReceive, 1, &dwRead, &m_flagsReceive, (sockaddr*)&m_addrReceive, &m_lenAddrReceive, &m_overlappedReceive, NULL);
 					if (ret) {
 						// SOCKET_ERROR
 						DWORD dwErr = WSAGetLastError();

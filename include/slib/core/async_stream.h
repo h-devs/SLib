@@ -36,7 +36,8 @@ namespace slib
 	{
 		Success = 0,
 		Ended = 1,
-		Unknown = 2
+		Closed = 2,
+		Unknown = 100
 	};
 	
 	class SLIB_EXPORT AsyncStreamResult
@@ -120,6 +121,8 @@ namespace slib
 
 		void processStreamResult(AsyncStreamRequest* request, sl_size size, AsyncStreamResultCode resultCode);
 
+		void onClose() override;
+
 	public:
 		virtual sl_bool isSeekable();
 
@@ -128,6 +131,9 @@ namespace slib
 		virtual sl_uint64 getPosition();
 
 		virtual sl_uint64 getSize();
+
+	private:
+		void _freeRequests();
 
 	private:
 		LinkedQueue< Ref<AsyncStreamRequest> > m_requestsRead;

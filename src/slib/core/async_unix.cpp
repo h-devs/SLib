@@ -40,15 +40,6 @@ namespace slib
 			class FileInstance : public AsyncFileStreamInstance
 			{
 			public:
-				Ref<AsyncStreamRequest> m_requestReading;
-				Ref<AsyncStreamRequest> m_requestWriting;
-
-			public:
-				FileInstance()
-				{
-				}
-
-			public:
 				static Ref<FileInstance> create(const AsyncFileStreamParam& param)
 				{
 					if (param.handle != SLIB_FILE_INVALID_HANDLE) {

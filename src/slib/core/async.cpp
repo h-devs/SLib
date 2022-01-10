@@ -252,7 +252,7 @@ namespace slib
 		while (m_queueInstancesClosing.pop(&instance)) {
 			if (instance.isNotNull() && instance->isOpened()) {
 				_native_detachInstance(instance.get());
-				instance->close();
+				instance->onClose();
 				m_queueInstancesClosed.push(instance);
 			}
 		}
@@ -446,7 +446,7 @@ namespace slib
 	void AsyncStreamRequest::runCallback(AsyncStream* stream, sl_size resultSize, AsyncStreamResultCode code)
 	{
 		if (callback.isNotNull()) {
-			if (!flagRead) {
+			if (stream && !flagRead) {
 				if (code == AsyncStreamResultCode::Success && resultSize && resultSize < size) {
 					data = (char*)data + resultSize;
 					size -= resultSize;
@@ -484,6 +484,7 @@ namespace slib
 
 	AsyncStreamInstance::~AsyncStreamInstance()
 	{
+		_freeRequests();
 	}
 
 	sl_bool AsyncStreamInstance::addRequest(const Ref<AsyncStreamRequest>& req)
@@ -520,6 +521,35 @@ namespace slib
 		Ref<AsyncIoObject> object = getObject();
 		if (object.isNotNull()) {
 			request->runCallback(static_cast<AsyncStream*>(object.get()), size, code);
+		} else {
+			request->runCallback(sl_null, 0, AsyncStreamResultCode::Closed);
+		}
+	}
+
+	void AsyncStreamInstance::onClose()
+	{
+		_freeRequests();
+	}
+
+	void AsyncStreamInstance::_freeRequests()
+	{
+		Ref<AsyncIoObject> object = getObject();
+		AsyncStream* stream = static_cast<AsyncStream*>(object.get());
+		// Free read requests
+		{
+			ObjectLocker locker(&m_requestsRead);
+			Ref<AsyncStreamRequest> req;
+			while (m_requestsRead.popFront_NoLock(&req)) {
+				req->runCallback(stream, 0, AsyncStreamResultCode::Closed);
+			}
+		}
+		// Free write requests
+		{
+			ObjectLocker locker(&m_requestsRead);
+			Ref<AsyncStreamRequest> req;
+			while (m_requestsWrite.popFront_NoLock(&req)) {
+				req->runCallback(stream, 0, AsyncStreamResultCode::Closed);
+			}
 		}
 	}
 
@@ -811,25 +841,29 @@ namespace slib
 
 	AsyncFileStreamInstance::~AsyncFileStreamInstance()
 	{
+		_free();
+	}
+
+	void AsyncFileStreamInstance::onClose()
+	{
+		_free();
+		AsyncStreamInstance::onClose();
+	}
+
+	void AsyncFileStreamInstance::_free()
+	{
+		if (m_requestReading.isNotNull()) {
+			processStreamResult(m_requestReading.get(), 0, AsyncStreamResultCode::Closed);
+			m_requestReading.setNull();
+		}
+		if (m_requestWriting.isNotNull()) {
+			processStreamResult(m_requestWriting.get(), 0, AsyncStreamResultCode::Closed);
+			m_requestWriting.setNull();
+		}
 		if (m_flagCloseOnRelease) {
 			sl_file handle = (sl_file)(getHandle());
 			if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 				File::close(handle);
-			}
-		}
-	}
-
-	void AsyncFileStreamInstance::close()
-	{
-		if (m_flagCloseOnRelease) {
-			sl_file handle = (sl_file)(getHandle());
-			if (handle != SLIB_ASYNC_INVALID_HANDLE) {
-				ObjectLocker lock(this);
-				if (handle) {
-					setHandle(SLIB_ASYNC_INVALID_HANDLE);
-					lock.unlock();
-					File::close(handle);
-				}
 			}
 		}
 	}
@@ -867,15 +901,6 @@ namespace slib
 	Ref<AsyncFileStreamInstance> AsyncFileStream::getIoInstance()
 	{
 		return Ref<AsyncFileStreamInstance>::from(AsyncIoObject::getIoInstance());
-	}
-
-	void AsyncFileStream::close()
-	{
-		Ref<AsyncFileStreamInstance> instance = getIoInstance();
-		closeIoInstance();
-		if (instance.isNotNull()) {
-			instance->close();
-		}
 	}
 
 	sl_file AsyncFileStream::getHandle()
@@ -2028,7 +2053,7 @@ namespace slib
 		Ref<AsyncStreamRequest> req;
 		while (m_requestsRead.pop(&req)) {
 			if (req.isNotNull()) {
-				req->runCallback(this, 0, AsyncStreamResultCode::Unknown);
+				req->runCallback(this, 0, AsyncStreamResultCode::Closed);
 			}
 		}
 	}
