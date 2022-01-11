@@ -34,6 +34,7 @@
 #include "slib/core/xml.h"
 #include "slib/core/content_type.h"
 #include "slib/core/system.h"
+#include "slib/core/cpu.h"
 #include "slib/core/log.h"
 
 #define SERVER_TAG "HTTP SERVER"
@@ -1155,7 +1156,11 @@ namespace slib
 	{
 		port = 8080;
 		
-		maxThreadsCount = 32;
+		maximumThreadsCount = Cpu::getCoreCount();
+		if (!maximumThreadsCount) {
+			maximumThreadsCount = 1;
+		}
+		minimumThreadsCount = maximumThreadsCount / 2;
 		flagProcessByThreads = sl_true;
 		
 		flagUseWebRoot = sl_false;
@@ -1320,7 +1325,13 @@ namespace slib
 		if (dispatchLoop.isNull()) {
 			return sl_false;
 		}
-		Ref<ThreadPool> threadPool = ThreadPool::create(0, m_param.maxThreadsCount);
+		if (!(m_param.maximumThreadsCount)) {
+			m_param.maximumThreadsCount = 1;
+		}
+		if (m_param.minimumThreadsCount >= m_param.maximumThreadsCount) {
+			m_param.minimumThreadsCount = m_param.maximumThreadsCount / 2;
+		}
+		Ref<ThreadPool> threadPool = ThreadPool::create(m_param.minimumThreadsCount, m_param.maximumThreadsCount);
 		if (threadPool.isNull()) {
 			return sl_false;
 		}
