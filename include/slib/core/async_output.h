@@ -135,6 +135,8 @@ namespace slib
 
 		void startWriting();
 
+		sl_bool isWriting();
+
 		void close();
 
 	private:

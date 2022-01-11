@@ -1641,6 +1641,11 @@ namespace slib
 		_write(sl_false);
 	}
 
+	sl_bool AsyncOutput::isWriting()
+	{
+		return m_flagWriting;
+	}
+
 	void AsyncOutput::_write(sl_bool flagCompleted)
 	{
 		ObjectLocker lock(this);
