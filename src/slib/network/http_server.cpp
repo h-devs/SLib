@@ -28,9 +28,12 @@
 #include "slib/core/async_file.h"
 #include "slib/core/file_util.h"
 #include "slib/core/thread_pool.h"
+#include "slib/core/dispatch_loop.h"
+#include "slib/core/timer.h"
 #include "slib/core/json.h"
 #include "slib/core/xml.h"
 #include "slib/core/content_type.h"
+#include "slib/core/system.h"
 #include "slib/core/log.h"
 
 #define SERVER_TAG "HTTP SERVER"
@@ -58,14 +61,14 @@ namespace slib
 
 	Ref<HttpServerContext> HttpServerContext::create(const Ref<HttpServerConnection>& connection)
 	{
-		Ref<HttpServerContext> ret;
 		if (connection.isNotNull()) {
-			ret = new HttpServerContext;
+			Ref<HttpServerContext> ret = new HttpServerContext;
 			if (ret.isNotNull()) {
 				ret->m_connection = connection;
+				return ret;
 			}
 		}
-		return ret;
+		return sl_null;
 	}
 
 	Memory HttpServerContext::getRawRequestHeader() const
@@ -202,14 +205,16 @@ namespace slib
 
 	HttpServerConnection::HttpServerConnection()
 	{
-		m_flagClosed = sl_true;
+		m_flagFreed = sl_true;
+		m_flagClosed = sl_false;
 		m_flagReading = sl_false;
 		m_flagKeepAlive = sl_true;
+		m_timeLastRead = System::getTickCount64();
 	}
 
 	HttpServerConnection::~HttpServerConnection()
 	{
-		close();
+		_free();
 	}
 
 	Ref<HttpServerConnection> HttpServerConnection::create(HttpServer* server, AsyncStream* io)
@@ -229,7 +234,7 @@ namespace slib
 						ret->m_io = io;
 						ret->m_output = output;
 						ret->m_bufRead = bufRead;
-						ret->m_flagClosed = sl_false;
+						ret->m_flagFreed = sl_false;
 						return ret;
 					}
 				}
@@ -240,28 +245,39 @@ namespace slib
 
 	void HttpServerConnection::close()
 	{
+		if (m_flagClosed) {
+			return;
+		}
 		ObjectLocker lock(this);
 		if (m_flagClosed) {
 			return;
 		}
 		m_flagClosed = sl_true;
-		
 		Ref<HttpServer> server = m_server;
 		if (server.isNotNull()) {
 			server->closeConnection(this);
 		}
+		m_bufReadUnprocessed.setNull();
+		_free();
+	}
+
+	void HttpServerConnection::_free()
+	{
+		if (m_flagFreed) {
+			return;
+		}
+		m_flagFreed = sl_true;
 		m_io->close();
 		m_output->close();
-		m_bufReadUnprocessed.setNull();
 	}
 
 	void HttpServerConnection::start()
 	{
 		m_contextCurrent.setNull();
 		if (m_bufReadUnprocessed.isNotEmpty()) {
-			_processInput(sl_null, 0);
+			_processInput(sl_null);
 		} else {
-			_read();
+			_read(sl_null);
 		}
 	}
 
@@ -280,7 +296,7 @@ namespace slib
 		return m_contextCurrent;
 	}
 
-	void HttpServerConnection::_read()
+	void HttpServerConnection::_read(AsyncStreamResult* result)
 	{
 		ObjectLocker lock(this);
 		if (m_flagClosed) {
@@ -290,13 +306,19 @@ namespace slib
 			return;
 		}
 		m_flagReading = sl_true;
-		if (!(m_io->read(m_bufRead, SLIB_FUNCTION_WEAKREF(HttpServerConnection, onReadStream, this)))) {
+		sl_bool bSuccess;
+		if (result) {
+			bSuccess = m_io->read(result->data, result->requestSize, result->callback, result->userObject);
+		} else {
+			bSuccess = m_io->read(m_bufRead, SLIB_FUNCTION_WEAKREF(HttpServerConnection, onReadStream, this));
+		}
+		if (!bSuccess) {
 			m_flagReading = sl_false;
 			close();
 		}
 	}
 
-	void HttpServerConnection::_processInput(const void* _data, sl_size size)
+	void HttpServerConnection::_processInput(AsyncStreamResult* result)
 	{
 		Ref<HttpServer> server = m_server;
 		if (server.isNull()) {
@@ -312,7 +334,16 @@ namespace slib
 			return;
 		}
 		
-		char* data = (char*)_data;
+		char* data;
+		sl_size size;
+		if (result) {
+			data = (char*)(result->data);
+			size = result->size;
+		} else {
+			data = sl_null;
+			size = 0;
+		}
+
 		if (m_bufReadUnprocessed.isNotEmpty()) {
 			if (size) {
 				if (!(m_bufReadUnprocessed.addElements_NoLock((char*)data, size))) {
@@ -325,7 +356,7 @@ namespace slib
 		}
 		
 		if (!size) {
-			_read();
+			_read(result);
 			return;
 		}
 		
@@ -478,7 +509,7 @@ namespace slib
 		if (server->isReleased()) {
 			return;
 		}
-		_read();
+		_read(result);
 	}
 
 	void HttpServerConnection::_processContext(const Ref<HttpServerContext>& context)
@@ -522,7 +553,8 @@ namespace slib
 		if (!(result.isSuccess())) {
 			close();
 		} else {
-			_processInput(result.data, result.size);
+			m_timeLastRead = System::getTickCount64();
+			_processInput(&result);
 		}
 	}
 
@@ -1139,6 +1171,8 @@ namespace slib
 		cacheControlMaxAge = 600;
 
 		flagSupportWebDAV = sl_false;
+
+		connectionExpiringDuration = 43200000; // 12 hours
 		
 		flagLogDebug = sl_false;
 		
@@ -1244,6 +1278,30 @@ namespace slib
 		return sl_true;
 	}
 
+	void HttpServer::_onTimerExpireConnections(Timer*)
+	{
+		ObjectLocker lock(&m_connections);
+		sl_uint64 now = System::getTickCount64();
+		auto node = m_connections.getFirstNode();
+		while (node) {
+			auto next = node->next;
+			Ref<HttpServerConnection>& connection = node->value;
+			if (_isConnectionExpiring(connection.get(), now)) {
+				m_connections.removeAt(node);
+			}
+			node = next;
+		}
+	}
+
+	sl_bool HttpServer::_isConnectionExpiring(HttpServerConnection* connection, sl_uint64 now)
+	{
+		if (connection->m_output->isWriting()) {
+			return sl_false;
+		}
+		sl_uint64 tick = connection->m_timeLastRead;
+		return !(now >= tick && now - tick < m_param.connectionExpiringDuration);
+	}
+
 	sl_bool HttpServer::start()
 	{
 		ObjectLocker lock(this);
@@ -1253,17 +1311,32 @@ namespace slib
 		if (m_flagRunning) {
 			return sl_true;
 		}
-		Ref<AsyncIoLoop> loop = m_ioLoop;
-		if (loop.isNull()) {
+
+		Ref<AsyncIoLoop> ioLoop = m_ioLoop;
+		if (ioLoop.isNull()) {
+			return sl_false;
+		}
+		Ref<DispatchLoop> dispatchLoop = DispatchLoop::create(sl_false);
+		if (dispatchLoop.isNull()) {
 			return sl_false;
 		}
 		Ref<ThreadPool> threadPool = ThreadPool::create(0, m_param.maxThreadsCount);
 		if (threadPool.isNull()) {
 			return sl_false;
 		}
+
+		dispatchLoop->start();
+		ioLoop->start();
+
+		if (m_param.connectionExpiringDuration) {
+			m_timerExpireConnections = Timer::startWithLoop(dispatchLoop, SLIB_FUNCTION_WEAKREF(HttpServer, _onTimerExpireConnections, this), m_param.connectionExpiringDuration);
+		}
+
+		m_dispatchLoop = Move(dispatchLoop);
 		m_threadPool = Move(threadPool);
-		loop->start();
+
 		m_flagRunning = sl_true;
+
 		return sl_true;
 	}
 
@@ -1282,6 +1355,12 @@ namespace slib
 		if (threadPool.isNotNull()) {
 			threadPool->release();
 			m_threadPool.setNull();
+		}
+
+		Ref<DispatchLoop> dispatchLoop = m_dispatchLoop;
+		if (dispatchLoop.isNotNull()) {
+			dispatchLoop->release();
+			m_dispatchLoop.setNull();
 		}
 
 		Ref<AsyncIoLoop> ioLoop = m_ioLoop;

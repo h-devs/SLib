@@ -164,16 +164,20 @@ namespace slib
 		
 		AtomicRef<HttpServerContext> m_contextCurrent;
 		
+		sl_bool m_flagFreed;
 		sl_bool m_flagClosed;
 		Memory m_bufRead;
 		sl_bool m_flagReading;
 		sl_bool m_flagKeepAlive;
 		List<char> m_bufReadUnprocessed;
+		sl_uint64 m_timeLastRead;
 		
 	protected:
-		void _read();
+		void _free();
+
+		void _read(AsyncStreamResult* result);
 		
-		void _processInput(const void* data, sl_size size);
+		void _processInput(AsyncStreamResult* result);
 		
 		void _processContext(const Ref<HttpServerContext>& context);
 		
@@ -186,6 +190,7 @@ namespace slib
 		void onAsyncOutputEnd(AsyncOutput* output, sl_bool flagError);
 		
 		friend class HttpServerContext;
+		friend class HttpServer;
 		
 	};
 	
@@ -344,6 +349,8 @@ namespace slib
 		sl_uint32 cacheControlMaxAge;
 
 		sl_bool flagSupportWebDAV;
+
+		sl_uint32 connectionExpiringDuration;
 		
 		sl_bool flagLogDebug;
 		
@@ -462,14 +469,20 @@ namespace slib
 		sl_bool _init(const HttpServerParam& param);
 		
 		void _processCacheControl(HttpServerContext* context);
+
+		void _onTimerExpireConnections(Timer*);
+
+		sl_bool _isConnectionExpiring(HttpServerConnection* connection, sl_uint64 currentTick);
 		
 	protected:
 		AtomicRef<AsyncIoLoop> m_ioLoop;
+		AtomicRef<DispatchLoop> m_dispatchLoop;
 		AtomicRef<ThreadPool> m_threadPool;
 		sl_bool m_flagReleased;
 		sl_bool m_flagRunning;
 		
 		CHashMap< HttpServerConnection*, Ref<HttpServerConnection> > m_connections;
+		Ref<Timer> m_timerExpireConnections;
 		
 		CList< Ref<HttpServerConnectionProvider> > m_connectionProviders;
 		
