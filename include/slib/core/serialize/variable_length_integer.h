@@ -70,7 +70,7 @@ namespace slib
 		static sl_uint32 serialize(sl_uint8*& output, T value)
 		{
 			if (value < 128) {
-				*output = (sl_uint8)value;
+				*(output++) = (sl_uint8)value;
 				return 1;
 			}
 			sl_uint8* start = output;

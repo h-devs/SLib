@@ -1097,6 +1097,9 @@ namespace slib
 	
 	void MemoryBuffer::clear()
 	{
+		if (!m_size) {
+			return;
+		}
 		m_queue.removeAll_NoLock();
 		m_size = 0;
 	}
