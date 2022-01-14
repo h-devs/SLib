@@ -39,12 +39,9 @@ namespace slib
 	public:
 		Socket socket; // optional
 		SocketAddress bindAddress;
-		SocketAddress connectAddress;
 		sl_bool flagIPv6; // default: false
 		sl_bool flagLogError; // default: true
 		Ref<AsyncIoLoop> ioLoop;
-		
-		Function<void(AsyncTcpSocket*, sl_bool flagError)> onConnect;
 		
 	public:
 		AsyncTcpSocketParam();
@@ -68,7 +65,7 @@ namespace slib
 	public:
 		sl_socket getSocket();
 		
-		sl_bool connect(const SocketAddress& address);
+		sl_bool connect(const SocketAddress& address, const Function<void(AsyncTcpSocket*, sl_bool flagError)>& callback);
 		
 		sl_bool receive(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null);
 		
@@ -82,12 +79,12 @@ namespace slib
 		Ref<AsyncTcpSocketInstance> _getIoInstance();
 		
 		void _onConnect(sl_bool flagError);
-		
+
 	private:
 		static Ref<AsyncTcpSocketInstance> _createInstance(Socket&& socket, sl_bool flagIPv6);
 		
 	protected:
-		Function<void(AsyncTcpSocket*, sl_bool flagError)> m_onConnect;
+		AtomicFunction<void(AsyncTcpSocket*, sl_bool flagError)> m_onConnect;
 		
 		friend class AsyncTcpSocketInstance;
 		

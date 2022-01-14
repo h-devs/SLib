@@ -107,6 +107,7 @@ namespace slib
 
 	AsyncTcpSocket::~AsyncTcpSocket()
 	{
+		m_onConnect(sl_null, sl_false);
 	}
 
 	Ref<AsyncTcpSocket> AsyncTcpSocket::create(AsyncTcpSocketParam& param)
@@ -147,15 +148,6 @@ namespace slib
 			Ref<AsyncTcpSocket> ret = new AsyncTcpSocket;
 			if (ret.isNotNull()) {
 				if (ret->_initialize(instance.get(), AsyncIoMode::InOut, loop)) {
-					ret->m_onConnect = param.onConnect;
-					if (param.connectAddress.isValid()) {
-						if (!(ret->connect(param.connectAddress))) {
-							if (param.flagLogError) {
-								LogError(TAG, "AsyncTcpSocket connect error: %s, %s", param.connectAddress.toString(), Socket::getLastErrorMessage());
-							}
-							return sl_null;
-						}
-					}
 					return ret;
 				}
 			}
@@ -173,7 +165,7 @@ namespace slib
 		return SLIB_SOCKET_INVALID_HANDLE;
 	}
 
-	sl_bool AsyncTcpSocket::connect(const SocketAddress& address)
+	sl_bool AsyncTcpSocket::connect(const SocketAddress& address, const Function<void(AsyncTcpSocket*, sl_bool flagError)>& callback)
 	{
 		Ref<AsyncIoLoop> loop = getIoLoop();
 		if (loop.isNull()) {
@@ -186,6 +178,10 @@ namespace slib
 		if (instance.isNotNull()) {
 			HandlePtr<Socket> socket(instance->getSocket());
 			if (socket->isOpened()) {
+				if (m_onConnect.isNotNull()) {
+					m_onConnect(this, sl_false);
+				}
+				m_onConnect = callback;
 				if (instance->isSupportedConnect()) {
 					if (instance->connect(address)) {
 						loop->requestOrder(instance.get());
