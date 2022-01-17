@@ -90,6 +90,21 @@ namespace slib
 			}
 		}
 
+		sl_size getCount() const
+		{
+			return m_mapBackup.getCount() + m_mapCurrent.getCount();
+		}
+
+		sl_bool isEmpty() const
+		{
+			return !(getCount());
+		}
+
+		sl_bool isNotEmpty() const
+		{
+			return getCount() != 0;
+		}
+
 		sl_bool get(const KT& key, VT* _out = sl_null, sl_bool flagUpdateLifetime = sl_true)
 		{
 			ObjectLocker lock(this);
@@ -175,7 +190,7 @@ namespace slib
 			m_mapBackup.removeAll_NoLock();
 		}
 
-		sl_bool contains(const KT& key)
+		sl_bool contains(const KT& key) const
 		{
 			ObjectLocker lock(this);
 			if (m_mapCurrent.find_NoLock(key)) {
@@ -185,6 +200,30 @@ namespace slib
 				return sl_true;
 			}
 			return sl_false;
+		}
+
+		List<KT> getAllKeys() const
+		{
+			ObjectLocker lock(this);
+			List<KT> ret = m_mapCurrent.getAllKeys_NoLock();
+			ret.addAll_NoLock(m_mapBackup.getAllKeys_NoLock());
+			return ret;
+		}
+
+		List<VT> getAllValues() const
+		{
+			ObjectLocker lock(this);
+			List<VT> ret = m_mapCurrent.getAllValues_NoLock();
+			ret.addAll_NoLock(m_mapBackup.getAllValues_NoLock());
+			return ret;
+		}
+
+		List< Pair<KT, VT> > toList() const
+		{
+			ObjectLocker lock(this);
+			List< Pair<KT, VT> > ret = m_mapCurrent.toList_NoLock();
+			ret.addAll_NoLock(m_mapBackup.toList_NoLock());
+			return ret;
 		}
 
 	protected:
