@@ -1,0 +1,46 @@
+<sapp>
+    <layout
+        type='window'
+        width='wrap'
+        height='wrap'
+        fontSize='18px'
+        centerScreen='true'
+        dialog='true'
+        >
+
+        <linear
+            margin='10px'
+            minWidth='20%sw'
+            >
+            <label
+                name='label'
+                />
+            <edit
+                name='input'
+                width='fill'
+                focus='true'
+                marginTop='10px'
+                />
+            <hlinear
+                alignRight='true'
+                marginTop='10px'
+                >
+                <button
+                    name='ok'
+                    text='   OK   '
+                    ok='true'
+                    defaultButton='true'
+                    nativeWidget='true'
+                    />
+                <button
+                    name='cancel'
+                    text=' Cancel '
+                    cancel='true'
+                    nativeWidget='true'
+                    marginLeft='10px'
+                    />
+            </hlinear>
+        </linear>
+
+    </layout>
+</sapp>

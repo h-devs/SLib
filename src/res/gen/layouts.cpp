@@ -10,4 +10,5 @@
 #include "ui/CameraControlView.cpp.inc"
 #include "ui/MenuPopup.cpp.inc"
 #include "ui/MobileAlertDialog.cpp.inc"
+#include "ui/PromptDialog.cpp.inc"
 #include "ui/TakePhotoFromCameraDialog.cpp.inc"

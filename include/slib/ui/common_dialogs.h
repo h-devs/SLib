@@ -185,6 +185,29 @@ namespace slib
 		FileDialog* _getReferable();
 
 	};
+
+	class SLIB_EXPORT PromptDialog
+	{
+	public:
+		PromptDialog();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PromptDialog)
+
+	public:
+		String run();
+
+		void show();
+
+	public:
+		Ref<Window> parent;
+		String caption;
+		String message;
+		String defaultValue;
+
+		Function<void(String&)> onOk;
+		Function<void()> onCancel;
+
+	};
 	
 }
 

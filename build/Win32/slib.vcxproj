@@ -403,6 +403,7 @@
     <ClCompile Include="..\..\src\slib\ui\combo_box.cpp" />
     <ClCompile Include="..\..\src\slib\ui\combo_box_win32.cpp" />
     <ClCompile Include="..\..\src\slib\ui\common_dialogs.cpp" />
+    <ClCompile Include="..\..\src\slib\ui\common_dialogs_prompt.cpp" />
     <ClCompile Include="..\..\src\slib\ui\common_dialogs_win32.cpp" />
     <ClCompile Include="..\..\src\slib\ui\cursor.cpp" />
     <ClCompile Include="..\..\src\slib\ui\cursor_win32.cpp" />
