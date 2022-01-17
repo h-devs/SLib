@@ -110,9 +110,7 @@ namespace slib
 
 		void setJson(const Json& json);
 
-		void setJson(const Json& json, const String& str);
-
-		void makeSafe();
+		void setJson(const Json& json, const Memory& mem);
 
 	};
 
@@ -121,19 +119,30 @@ namespace slib
 	public:
 		P2PResponse();
 
+		P2PResponse(const void* data, sl_uint32 size, Referable* ref = sl_null);
+
+		template <class T>
+		P2PResponse(T&& value): P2PMessage(Forward<T>(value));
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(P2PResponse)
 
 	};
+
+	class P2PSocket;
 
 	class SLIB_EXPORT P2PSocketParam
 	{
 	public:
 		P2PPrivateKey key; // [In, Out] If not initialized, socket will generate new key
 
-		sl_uint16 port; // [In] Host port. We recommend you don't change `port` and `portCount`
-		sl_uint16 portCount; // [In] Socket will search unbind guest port from [port, port+portCount)
-		sl_uint16 boundUdpPort; // [Out] Bound UDP port
-		sl_uint16 boundTcpPort; // [Out] Bound TCP port
+		sl_uint16 port; // [In] Host port. We recommend you don't change `port` or `portCount`
+		sl_uint16 portCount; // [In] Socket will search unbound port from [port + 1, port+portCount]
+		sl_uint16 boundPort; // [Out] Bound port (UDP/TCP)
+
+		sl_uint32 tcpConnectionTimeout; // In milliseconds
+		sl_uint32 maximumMessageSize; // In bytes
+
+		Function<void(P2PSocket*, P2PNodeId&, P2PMessage&, P2PResponse&)> onReceiveMessage;
 
 		sl_bool flagAutoStart; // [In] Automatically start the socket
 
@@ -159,9 +168,11 @@ namespace slib
 		static Ref<P2PSocket> open(P2PSocketParam& param);
 
 	public:
+		virtual void close() = 0;
+
 		virtual sl_bool start() = 0;
 
-		virtual void sendMessage(const P2PNodeId& nodeId, P2PMessage& msg, const Function<void(P2PResponse& response)>& callback) = 0;
+		virtual void sendMessage(const P2PNodeId& nodeId, P2PMessage& msg, const Function<void(P2PResponse&)>& callback) = 0;
 
 	};
 
