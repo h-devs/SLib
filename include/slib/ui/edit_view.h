@@ -101,6 +101,11 @@ namespace slib
 		void setAutoDismissKeyboard(sl_bool flag);
 		
 		void setFocusNextOnReturnKey();
+
+		void selectAll();
+
+		// `start`: negative means non-selection, `end`: negative means all-selection
+		void setSelection(sl_reg start, sl_reg end);
 		
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(EditView, Change, String& value)
@@ -115,6 +120,8 @@ namespace slib
 		void onClickEvent(UIEvent* ev) override;
 
 		void onChangeFocus(sl_bool flagFocused) override;
+
+		void onAttach() override;
 		
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
@@ -144,6 +151,8 @@ namespace slib
 
 		AtomicRef<Timer> m_timerDrawCaret;
 		sl_uint32 m_nCountDrawCaret;
+
+		sl_bool m_flagSelectAllOnAttach;
 
 	};
 	
@@ -202,6 +211,8 @@ namespace slib
 		virtual void setAutoCapitalizationType(EditView* view, UIAutoCapitalizationType type);
 		
 		virtual sl_ui_len measureHeight(EditView* view) = 0;
+
+		virtual void select(sl_reg start, sl_reg end);
 		
 	};
 

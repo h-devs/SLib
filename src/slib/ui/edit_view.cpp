@@ -264,6 +264,8 @@ namespace slib
 		m_flagAutoDismissKeyboard = sl_true;
 
 		m_nCountDrawCaret = 0;
+
+		m_flagSelectAllOnAttach = sl_false;
 	}
 
 	EditView::~EditView()
@@ -547,6 +549,24 @@ namespace slib
 		});
 	}
 
+	void EditView::selectAll()
+	{
+		Ptr<IEditViewInstance> instance = getEditViewInstance();
+		if (instance.isNotNull()) {
+			instance->select(0, -1);
+		} else {
+			m_flagSelectAllOnAttach = sl_true;
+		}
+	}
+
+	void EditView::setSelection(sl_reg start, sl_reg end)
+	{
+		Ptr<IEditViewInstance> instance = getEditViewInstance();
+		if (instance.isNotNull()) {
+			instance->select(start, end);
+		}
+	}
+
 	void EditView::onUpdateLayout()
 	{
 		sl_bool flagHorizontalWrapping = isWidthWrapping();
@@ -701,6 +721,14 @@ namespace slib
 		m_timerDrawCaret.setNull();
 	}
 
+	void EditView::onAttach()
+	{
+		if (m_flagSelectAllOnAttach) {
+			m_flagSelectAllOnAttach = sl_false;
+			selectAll();
+		}
+	}
+
 	SLIB_DEFINE_EVENT_HANDLER(EditView, Change, String& value)
 
 	void EditView::dispatchChange(String& value)
@@ -835,6 +863,10 @@ namespace slib
 	}
 	
 	void IEditViewInstance::setAutoCapitalizationType(EditView* view, UIAutoCapitalizationType type)
+	{
+	}
+
+	void IEditViewInstance::select(sl_reg start, sl_reg end)
 	{
 	}
 	

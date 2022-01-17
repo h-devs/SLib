@@ -212,6 +212,22 @@ namespace slib
 					return 0;
 				}
 
+				void select(sl_reg start, sl_reg end) override
+				{
+					HWND handle = m_handle;
+					if (handle) {
+						if (start < 0) {
+							SendMessageW(handle, EM_SETSEL, -1, 0);
+						} else {
+							if (end < 0) {
+								SendMessageW(handle, EM_SETSEL, 0, -1);
+							} else {
+								SendMessageW(handle, EM_SETSEL, (WPARAM)start, (LPARAM)end);
+							}
+						}
+					}
+				}
+
 				void setBackgroundColor(const Color& color)
 				{
 					if (m_colorBackground == color) {
