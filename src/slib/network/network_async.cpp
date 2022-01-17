@@ -278,7 +278,7 @@ namespace slib
 		}
 	}
 
-	void AsyncTcpServerInstance::_onAccept(Socket& socketAccept, const SocketAddress& address)
+	void AsyncTcpServerInstance::_onAccept(Socket& socketAccept, SocketAddress& address)
 	{
 		Ref<AsyncTcpServer> server = Ref<AsyncTcpServer>::from(getObject());
 		if (server.isNotNull()) {
@@ -429,7 +429,7 @@ namespace slib
 		return Ref<AsyncTcpServerInstance>::from(AsyncIoObject::getIoInstance());
 	}
 
-	void AsyncTcpServer::_onAccept(Socket& socketAccept, const SocketAddress& address)
+	void AsyncTcpServer::_onAccept(Socket& socketAccept, SocketAddress& address)
 	{
 		m_onAccept(this, socketAccept, address);
 	}
@@ -487,7 +487,7 @@ namespace slib
 		}
 	}
 
-	void AsyncUdpSocketInstance::_onReceive(const SocketAddress& address, sl_uint32 size)
+	void AsyncUdpSocketInstance::_onReceive(SocketAddress& address, sl_uint32 size)
 	{
 		Ref<AsyncUdpSocket> object = Ref<AsyncUdpSocket>::from(getObject());
 		if (object.isNotNull()) {
@@ -654,7 +654,7 @@ namespace slib
 		}
 	}
 
-	sl_bool AsyncUdpSocket::sendTo(const SocketAddress& addressTo, const void* data, sl_uint32 size)
+	sl_bool AsyncUdpSocket::sendTo(const SocketAddress& addressTo, const void* data, sl_size size)
 	{
 		HandlePtr<Socket> socket(getSocket());
 		if (socket->isNotNone()) {
@@ -673,7 +673,7 @@ namespace slib
 		return Ref<AsyncUdpSocketInstance>::from(AsyncIoObject::getIoInstance());
 	}
 
-	void AsyncUdpSocket::_onReceive(const SocketAddress& address, void* data, sl_uint32 sizeReceived)
+	void AsyncUdpSocket::_onReceive(SocketAddress& address, void* data, sl_uint32 sizeReceived)
 	{
 		m_onReceiveFrom(this, address, data, sizeReceived);
 	}

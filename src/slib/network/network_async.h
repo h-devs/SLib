@@ -87,7 +87,7 @@ namespace slib
 	protected:
 		void onClose() override;
 
-		void _onAccept(Socket& socketAccept, const SocketAddress& address);
+		void _onAccept(Socket& socketAccept, SocketAddress& address);
 		
 		void _onError();
 
@@ -118,7 +118,7 @@ namespace slib
 	protected:
 		void onClose() override;
 
-		void _onReceive(const SocketAddress& address, sl_uint32 size);
+		void _onReceive(SocketAddress& address, sl_uint32 size);
 		
 		void _onError();
 

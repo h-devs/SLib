@@ -105,7 +105,7 @@ namespace slib
 		sl_bool flagLogError; // default: true
 		Ref<AsyncIoLoop> ioLoop;
 		
-		Function<void(AsyncTcpServer*, Socket&, const SocketAddress&)> onAccept;
+		Function<void(AsyncTcpServer*, Socket&, SocketAddress&)> onAccept;
 		Function<void(AsyncTcpServer*)> onError;
 		
 	public:
@@ -141,7 +141,7 @@ namespace slib
 	protected:
 		Ref<AsyncTcpServerInstance> _getIoInstance();
 		
-		void _onAccept(Socket&, const SocketAddress& address);
+		void _onAccept(Socket&, SocketAddress& address);
 		
 		void _onError();
 		
@@ -149,7 +149,7 @@ namespace slib
 		static Ref<AsyncTcpServerInstance> _createInstance(Socket&&, sl_bool flagIPv6);
 		
 	protected:
-		Function<void(AsyncTcpServer*, Socket&, const SocketAddress&)> m_onAccept;
+		Function<void(AsyncTcpServer*, Socket&, SocketAddress&)> m_onAccept;
 		Function<void(AsyncTcpServer*)> m_onError;
 		
 		friend class AsyncTcpServerInstance;
@@ -172,7 +172,7 @@ namespace slib
 		sl_uint32 packetSize; // default: 65536
 		Ref<AsyncIoLoop> ioLoop;
 		
-		Function<void(AsyncUdpSocket*, const SocketAddress&, void* data, sl_uint32 sizeReceived)> onReceiveFrom;
+		Function<void(AsyncUdpSocket*, SocketAddress&, void* data, sl_uint32 sizeReceived)> onReceiveFrom;
 		Function<void(AsyncUdpSocket*)> onError;
 		
 	public:
@@ -212,14 +212,14 @@ namespace slib
 		
 		void setReceiveBufferSize(sl_uint32 size);
 		
-		sl_bool sendTo(const SocketAddress& addressTo, const void* data, sl_uint32 size);
+		sl_bool sendTo(const SocketAddress& addressTo, const void* data, sl_size size);
 		
 		sl_bool sendTo(const SocketAddress& addressTo, const Memory& mem);
 		
 	protected:
 		Ref<AsyncUdpSocketInstance> _getIoInstance();
 		
-		void _onReceive(const SocketAddress& address, void* data, sl_uint32 sizeReceived);
+		void _onReceive(SocketAddress& address, void* data, sl_uint32 sizeReceived);
 		
 		void _onError();
 		
@@ -227,7 +227,7 @@ namespace slib
 		static Ref<AsyncUdpSocketInstance> _createInstance(Socket&& socket, sl_uint32 packetSize);
 		
 	protected:
-		Function<void(AsyncUdpSocket*, const SocketAddress&, void* data, sl_uint32 sizeReceived)> m_onReceiveFrom;
+		Function<void(AsyncUdpSocket*, SocketAddress&, void* data, sl_uint32 sizeReceived)> m_onReceiveFrom;
 		Function<void(AsyncUdpSocket*)> m_onError;
 
 		friend class AsyncUdpSocketInstance;
