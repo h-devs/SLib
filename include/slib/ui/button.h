@@ -62,7 +62,7 @@ namespace slib
 		sl_bool isMnemonic();
 
 		// call before `setText()`
-		void setMnemonic(sl_bool flag);
+		void setMnemonic(sl_bool flag = sl_true);
 
 
 		Color getTextColor();
@@ -80,7 +80,7 @@ namespace slib
 
 		sl_bool isDefaultButton();
 		
-		void setDefaultButton(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setDefaultButton(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 
 		void setCategories(const Array<ButtonCategory>& categories);
@@ -95,7 +95,7 @@ namespace slib
 
 		sl_bool isUsingFocusedState();
 
-		void setUsingFocusedState(sl_bool flag);
+		void setUsingFocusedState(sl_bool flag = sl_true);
 		
 
 		const UISize& getIconSize();
@@ -125,11 +125,11 @@ namespace slib
 		
 		sl_bool isTextBeforeIcon();
 		
-		void setTextBeforeIcon(sl_bool flag, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setTextBeforeIcon(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		sl_bool isExtendTextFrame();
 
-		void setExtendTextFrame(sl_bool flag, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setExtendTextFrame(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		LayoutOrientation getLayoutOrientation();
 		
@@ -227,7 +227,7 @@ namespace slib
 		
 		sl_bool isUsingDefaultColorFilter();
 		
-		void setUsingDefaultColorFilter(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setUsingDefaultColorFilter(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 
 		Ref<Drawable> getCurrentBackground();
