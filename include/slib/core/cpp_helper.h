@@ -99,30 +99,50 @@ namespace slib
 	
 	
 	template <class IT>
-	struct UnsignedTypeFromSignedType;
+	struct UnsignedType;
 	template <>
-	struct UnsignedTypeFromSignedType<int> { typedef unsigned int Type; };
+	struct UnsignedType<int> { typedef unsigned int Type; };
 	template <>
-	struct UnsignedTypeFromSignedType<short> { typedef unsigned short Type; };
+	struct UnsignedType<unsigned int> { typedef unsigned int Type; };
 	template <>
-	struct UnsignedTypeFromSignedType<signed char> { typedef unsigned char Type; };
+	struct UnsignedType<short> { typedef unsigned short Type; };
 	template <>
-	struct UnsignedTypeFromSignedType<long> { typedef unsigned long Type; };
+	struct UnsignedType<unsigned short> { typedef unsigned short Type; };
 	template <>
-	struct UnsignedTypeFromSignedType<sl_int64> { typedef sl_uint64 Type; };
+	struct UnsignedType<signed char> { typedef unsigned char Type; };
+	template <>
+	struct UnsignedType<unsigned char> { typedef unsigned char Type; };
+	template <>
+	struct UnsignedType<long> { typedef unsigned long Type; };
+	template <>
+	struct UnsignedType<unsigned long> { typedef unsigned long Type; };
+	template <>
+	struct UnsignedType<sl_int64> { typedef sl_uint64 Type; };
+	template <>
+	struct UnsignedType<sl_uint64> { typedef sl_uint64 Type; };
 
 	template <class UT>
-	struct SignedTypeFromUnsignedType;
+	struct SignedType;
 	template <>
-	struct SignedTypeFromUnsignedType<unsigned int> { typedef int Type; };
+	struct SignedType<int> { typedef int Type; };
 	template <>
-	struct SignedTypeFromUnsignedType<unsigned short> { typedef short Type; };
+	struct SignedType<unsigned int> { typedef int Type; };
 	template <>
-	struct SignedTypeFromUnsignedType<unsigned char> { typedef signed char Type; };
+	struct SignedType<short> { typedef short Type; };
 	template <>
-	struct SignedTypeFromUnsignedType<unsigned long> { typedef long Type; };
+	struct SignedType<unsigned short> { typedef short Type; };
 	template <>
-	struct SignedTypeFromUnsignedType<sl_uint64> { typedef sl_uint64 Type; };
+	struct SignedType<signed char> { typedef signed char Type; };
+	template <>
+	struct SignedType<unsigned char> { typedef signed char Type; };
+	template <>
+	struct SignedType<long> { typedef long Type; };
+	template <>
+	struct SignedType<unsigned long> { typedef long Type; };
+	template <>
+	struct SignedType<sl_int64> { typedef sl_int64 Type; };
+	template <>
+	struct SignedType<sl_uint64> { typedef sl_int64 Type; };
 
 }
 

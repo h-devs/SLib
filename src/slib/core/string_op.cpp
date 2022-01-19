@@ -3197,7 +3197,7 @@ namespace slib
 				}
 				
 				sl_bool flagMinus = sl_false;
-				typename UnsignedTypeFromSignedType<IT>::Type value;
+				typename UnsignedType<IT>::Type value;
 				if (_value < 0) {
 					value = -_value;
 					flagMinus = sl_true;
