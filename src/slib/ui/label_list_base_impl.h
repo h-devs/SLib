@@ -241,6 +241,18 @@ namespace slib
 	}
 
 	template <class VIEW_CLASS, class INDEX_TYPE>
+	typename SignedType<INDEX_TYPE>::Type LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::findItemByValue(const StringParam& value)
+	{
+		return (SignedType<INDEX_TYPE>::Type)(m_values.indexOf(value));
+	}
+
+	template <class VIEW_CLASS, class INDEX_TYPE>
+	typename SignedType<INDEX_TYPE>::Type LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::findItemByTitle(const StringParam& title)
+	{
+		return (SignedType<INDEX_TYPE>::Type)(m_titles.indexOf(title));
+	}
+
+	template <class VIEW_CLASS, class INDEX_TYPE>
 	void LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::selectValue(const String& value, UIUpdateMode mode)
 	{
 		sl_reg index = m_values.indexOf(value);
