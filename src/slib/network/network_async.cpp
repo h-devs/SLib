@@ -509,7 +509,7 @@ namespace slib
 	{
 		flagIPv6 = sl_false;
 		flagBroadcast = sl_false;
-		flagAutoStart = sl_false;
+		flagAutoStart = sl_true;
 		flagLogError = sl_false;
 		packetSize = 65536;
 	}
