@@ -47,6 +47,14 @@ namespace slib
 		String getInstanceText();
 
 		void setText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void appendText(const StringParam& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		sl_bool isChangeEventEnabled();
+
+		void setChangeEventEnabled(sl_bool flag = sl_true);
+
+		void invalidateText();
 		
 		Alignment getGravity();
 		
@@ -106,7 +114,15 @@ namespace slib
 
 		// `start`: negative means non-selection, `end`: negative means all-selection
 		void setSelection(sl_reg start, sl_reg end);
-		
+
+		sl_bool isAutoHorizontalScrolling();
+
+		void setAutoHorizontalScrolling(sl_bool flag = sl_true);
+
+		sl_bool isAutoVerticalScrolling();
+
+		void setAutoVerticalScrolling(sl_bool flag = sl_true);
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(EditView, Change, String& value)
 		
@@ -132,6 +148,14 @@ namespace slib
 		void dispatchKeyEvent(UIEvent* ev) override;
 		
 	protected:
+		sl_bool m_flagInvalidateText : 1;
+		sl_bool m_flagChangeEvent : 1;
+		sl_bool m_flagReadOnly : 1;
+		sl_bool m_flagPassword : 1;
+		sl_bool m_flagAutoDismissKeyboard : 1;
+		sl_bool m_flagAutoHorizontalScrolling : 1;
+		sl_bool m_flagAutoVerticalScrolling : 1;
+
 		AtomicString m_text;
 		Alignment m_gravity;
 		Color m_textColor;
@@ -139,13 +163,10 @@ namespace slib
 		Alignment m_hintGravity;
 		Color m_hintTextColor;
 		AtomicRef<Font> m_hintFont;
-		sl_bool m_flagReadOnly;
-		sl_bool m_flagPassword;
 		MultiLineMode m_multiLine;
 		UIReturnKeyType m_returnKeyType;
 		UIKeyboardType m_keyboardType;
 		UIAutoCapitalizationType m_autoCapitalizationType;
-		sl_bool m_flagAutoDismissKeyboard;
 		
 		Ref<Referable> m_dialog;
 
@@ -185,6 +206,8 @@ namespace slib
 		virtual sl_bool getText(EditView* view, String& _out) = 0;
 		
 		virtual void setText(EditView* view, const String& text) = 0;
+
+		virtual sl_bool appendText(EditView* view, const StringParam& text);
 		
 		virtual void setGravity(EditView* view, const Alignment& gravity) = 0;
 		

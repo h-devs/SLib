@@ -250,7 +250,9 @@ namespace slib
 		
 		setBorder(sl_true, UIUpdateMode::Init);
 		setPadding((sl_ui_pos)(UI::dpToPixel(2)), UIUpdateMode::Init);
-
+		
+		m_flagInvalidateText = sl_false;
+		m_flagChangeEvent = sl_true;
 		m_gravity = Alignment::MiddleCenter;
 		m_textColor = Color::Black;
 		m_hintGravity = Alignment::MiddleCenter;
@@ -262,6 +264,8 @@ namespace slib
 		m_keyboardType = UIKeyboardType::Default;
 		m_autoCapitalizationType = UIAutoCapitalizationType::None;
 		m_flagAutoDismissKeyboard = sl_true;
+		m_flagAutoHorizontalScrolling = sl_true;
+		m_flagAutoVerticalScrolling = sl_true;
 
 		m_nCountDrawCaret = 0;
 
@@ -274,11 +278,16 @@ namespace slib
 
 	String EditView::getText()
 	{
-		return m_text;
+		if (m_flagInvalidateText) {
+			return getInstanceText();
+		} else {
+			return m_text;
+		}
 	}
 
 	String EditView::getInstanceText()
 	{
+		m_flagInvalidateText = sl_false;
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
 			if (UI::isUiThread()) {
@@ -296,12 +305,14 @@ namespace slib
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
 			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setText, text, mode)
+			m_flagInvalidateText = sl_false;
 			m_text = text;
 			instance->setText(this, text);
 			if (isHeightWrapping()) {
 				invalidateLayoutOfWrappingControl(mode);
 			}
 		} else {
+			m_flagInvalidateText = sl_false;
 			m_text = text;
 			if (isHeightWrapping()) {
 				invalidateLayoutOfWrappingControl(mode);
@@ -309,6 +320,37 @@ namespace slib
 				invalidate(mode);
 			}
 		}
+	}
+
+	void EditView::appendText(const StringParam& text, UIUpdateMode mode)
+	{
+		if (text.isEmpty()) {
+			return;
+		}
+		Ptr<IEditViewInstance> instance = getEditViewInstance();
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::appendText, text.toString(), mode)
+			if (instance->appendText(this, text)) {
+				m_flagInvalidateText = sl_true;
+				return;
+			}
+		}
+		setText(getText() + text, mode);
+	}
+
+	sl_bool EditView::isChangeEventEnabled()
+	{
+		return m_flagChangeEvent;
+	}
+
+	void EditView::setChangeEventEnabled(sl_bool flag)
+	{
+		m_flagChangeEvent = flag;
+	}
+
+	void EditView::invalidateText()
+	{
+		m_flagInvalidateText = sl_true;
 	}
 
 	Alignment EditView::getGravity()
@@ -733,11 +775,12 @@ namespace slib
 
 	void EditView::dispatchChange(String& value)
 	{
-		if (value == m_text) {
+		m_flagInvalidateText = sl_false;
+		if (value == getText()) {
 			return;
 		}
 		SLIB_INVOKE_EVENT_HANDLER(Change, value)
-		if (value == m_text) {
+		if (value == getText()) {
 			return;
 		}
 		m_text = value;
@@ -820,6 +863,7 @@ namespace slib
 
 	TextArea::TextArea()
 	{
+		setChangeEventEnabled(sl_false);
 		m_multiLine = MultiLineMode::Multiple;
 		m_flagAutoDismissKeyboard = sl_false;
 		m_gravity = Alignment::TopLeft;
@@ -853,6 +897,11 @@ namespace slib
 		return sl_null;
 	}
 #endif
+
+	sl_bool IEditViewInstance::appendText(EditView* view, const StringParam& text)
+	{
+		return sl_false;
+	}
 	
 	void IEditViewInstance::setReturnKeyType(EditView* view, UIReturnKeyType type)
 	{

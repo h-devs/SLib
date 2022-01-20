@@ -446,6 +446,10 @@ namespace slib
 				{
 					Ref<EditViewHelper> helper = CastRef<EditViewHelper>(UIPlatform::getView(obj));
 					if (helper.isNotNull()) {
+						if (!(helper->isChangeEventEnabled())) {
+							helper->invalidateText();
+							return;
+						}
 						String text;
 						const char* s = elm_entry_entry_get(obj);
 						if (s) {

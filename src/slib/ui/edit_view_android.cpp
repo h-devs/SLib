@@ -255,6 +255,10 @@ namespace slib
 					if (handle) {
 						Ref<EditViewHelper> helper = getHelper();
 						if (helper.isNotNull()) {
+							if (!(helper->isChangeEventEnabled())) {
+								helper->invalidateText();
+								return;
+							}
 							String text = JEditView::getText.callString(sl_null, handle);
 							String textNew = text;
 							helper->dispatchChange(textNew);

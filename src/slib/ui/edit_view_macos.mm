@@ -279,6 +279,10 @@ namespace slib
 				{
 					Ref<EditView> view = getView();
 					if (view.isNotNull()) {
+						if (!(view->isChangeEventEnabled())) {
+							view->invalidateText();
+							return;
+						}
 						String text = Apple::getStringFromNSString([control stringValue]);
 						String textNew = text;
 						view->dispatchChange(textNew);
@@ -507,6 +511,10 @@ namespace slib
 				{
 					Ref<TextArea> view = getView();
 					if (view.isNotNull()) {
+						if (!(view->isChangeEventEnabled())) {
+							view->invalidateText();
+							return;
+						}
 						String text = Apple::getStringFromNSString([control->m_textView string]);
 						String textNew = text;
 						view->dispatchChange(textNew);

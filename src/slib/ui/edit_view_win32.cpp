@@ -43,6 +43,10 @@ namespace slib
 			public:
 				void onChange(Win32_ViewInstance* instance, HWND handle)
 				{
+					if (!(isChangeEventEnabled())) {
+						invalidateText();
+						return;
+					}
 					String textOld = m_text;
 					String text = UIPlatform::getWindowText(handle);
 					String textNew = text;
@@ -68,7 +72,15 @@ namespace slib
 				}
 				UIPlatform::removeAndAddWindowStyle(handle, ES_RIGHT | ES_CENTER, style);
 			}
-			
+
+			static void AppendText(HWND handle, const StringParam& _text)
+			{
+				StringCstr16 text(_text);
+				LPARAM len = SendMessageW(handle, WM_GETTEXTLENGTH, 0, 0);
+				SendMessageW(handle, EM_SETSEL, (WPARAM)len, len);
+				SendMessageW(handle, EM_REPLACESEL, FALSE, (LPARAM)(text.getData()));
+			}
+
 			class EditViewInstance : public Win32_ViewInstance, public IEditViewInstance
 			{
 				SLIB_DECLARE_OBJECT
@@ -121,6 +133,16 @@ namespace slib
 				void setText(EditView* view, const String& text) override
 				{
 					Win32_ViewInstance::setText(text);
+				}
+
+				sl_bool appendText(EditView* view, const StringParam& text) override
+				{
+					HWND handle = m_handle;
+					if (handle) {
+						AppendText(handle, text);
+						return sl_true;
+					}
+					return sl_false;
 				}
 
 				void setGravity(EditView* view, const Alignment& gravity) override
@@ -227,19 +249,19 @@ namespace slib
 						}
 					}
 				}
-
-				void setBackgroundColor(const Color& color)
+				
+				void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate) override
 				{
-					if (m_colorBackground == color) {
-						return;
-					}
-					m_colorBackground = color;
-					if (m_hBrushBackground) {
-						DeleteObject(m_hBrushBackground);
-						m_hBrushBackground = NULL;
-					}
-					if (color.a != 0) {
-						m_hBrushBackground = CreateSolidBrush(GraphicsPlatform::getColorRef(color));
+					Win32_ViewInstance::scrollTo(view, x, y, flagAnimate);
+					HWND handle = m_handle;
+					if (handle) {
+						sl_uint16 _y;
+						if (y > 0xffff) {
+							_y = 0xffff;
+						} else {
+							_y = (sl_uint16)y;
+						}
+						SendMessageW(handle, WM_VSCROLL, SLIB_MAKE_DWORD2(_y, SB_THUMBPOSITION), 0);
 					}
 				}
 
@@ -247,7 +269,17 @@ namespace slib
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						setBackgroundColor(color);
+						if (m_colorBackground == color) {
+							return;
+						}
+						m_colorBackground = color;
+						if (m_hBrushBackground) {
+							DeleteObject(m_hBrushBackground);
+							m_hBrushBackground = NULL;
+						}
+						if (color.a != 0) {
+							m_hBrushBackground = CreateSolidBrush(GraphicsPlatform::getColorRef(color));
+						}
 						InvalidateRect(handle, NULL, TRUE);
 					}
 				}
@@ -344,6 +376,16 @@ namespace slib
 				void setText(EditView* view, const String& text) override
 				{
 					Win32_ViewInstance::setText(text);
+				}
+
+				sl_bool appendText(EditView* view, const StringParam& text) override
+				{
+					HWND handle = m_handle;
+					if (handle) {
+						AppendText(handle, text);
+						return sl_true;
+					}
+					return sl_false;
 				}
 
 				void setGravity(EditView* view, const Alignment& gravity) override
@@ -558,10 +600,15 @@ namespace slib
 			style |= ES_RIGHT;
 		}
 		if (m_multiLine != MultiLineMode::Single) {
-			style |= ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN;
+			style |= ES_MULTILINE | ES_WANTRETURN;
+			if (m_flagAutoVerticalScrolling) {
+				style |= ES_AUTOVSCROLL;
+			}
 		}
 		if (m_multiLine != MultiLineMode::WordWrap && m_multiLine != MultiLineMode::BreakWord) {
-			style |= ES_AUTOHSCROLL;
+			if (m_flagAutoHorizontalScrolling) {
+				style |= ES_AUTOHSCROLL;
+			}
 		}
 		if (m_flagReadOnly) {
 			style |= ES_READONLY;

@@ -175,6 +175,10 @@ namespace slib
 					GtkEntry* handle = (GtkEntry*)user_data;
 					Ref<EditView> view = CastRef<EditView>(UIPlatform::getView((GtkWidget*)handle));
 					if (view.isNotNull()) {
+						if (!(view->isChangeEventEnabled())) {
+							view->invalidateText();
+							return;
+						}
 						String text = gtk_entry_get_text(handle);
 						String textNew = text;
 						view->dispatchChange(textNew);
@@ -386,6 +390,10 @@ namespace slib
 					GtkWidget* handle = (GtkWidget*)user_data;
 					Ref<TextArea> view = CastRef<TextArea>(UIPlatform::getView(handle));
 					if (view.isNotNull()) {
+						if (!(view->isChangeEventEnabled())) {
+							view->invalidateText();
+							return;
+						}
 						String text = _getText(buffer);
 						String textNew = text;
 						view->dispatchChange(textNew);
