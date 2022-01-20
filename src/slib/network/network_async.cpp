@@ -680,7 +680,6 @@ namespace slib
 
 	void AsyncUdpSocket::_onError()
 	{
-		close();
 		m_onError(this);
 	}
 	
