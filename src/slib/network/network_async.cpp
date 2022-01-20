@@ -107,7 +107,9 @@ namespace slib
 
 	AsyncTcpSocket::~AsyncTcpSocket()
 	{
-		m_onConnect(sl_null, sl_false);
+		if (m_onConnect.isNotNull()) {
+			m_onConnect(sl_null, sl_false);
+		}
 	}
 
 	Ref<AsyncTcpSocket> AsyncTcpSocket::create(AsyncTcpSocketParam& param)
@@ -227,7 +229,10 @@ namespace slib
 
 	void AsyncTcpSocket::_onConnect(sl_bool flagError)
 	{
-		m_onConnect(this, flagError);
+		if (m_onConnect.isNotNull()) {
+			m_onConnect(this, flagError);
+			m_onConnect.setNull();
+		}
 	}
 
 
