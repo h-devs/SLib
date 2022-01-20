@@ -86,7 +86,7 @@ namespace slib
 					}
 				}
 				
-				sl_bool getBounds(ScrollView* view, UIRect& _out) override
+				sl_bool getBounds(View* view, UIRect& _out) override
 				{
 					GtkWidget* handle = m_handle;
 					if (handle) {
@@ -101,7 +101,7 @@ namespace slib
 					return sl_false;
 				}
 
-				sl_bool getScrollPosition(ScrollView* view, ScrollPoint& _out) override
+				sl_bool getScrollPosition(View* view, ScrollPoint& _out) override
 				{
 					GtkScrolledWindow* handle = getHandle();
 					if (handle) {
@@ -114,7 +114,7 @@ namespace slib
 					return sl_false;
 				}
 				
-				sl_bool getScrollRange(ScrollView* view, ScrollPoint& _out) override
+				sl_bool getScrollRange(View* view, ScrollPoint& _out) override
 				{
 					GtkScrolledWindow* handle = getHandle();
 					if (handle) {

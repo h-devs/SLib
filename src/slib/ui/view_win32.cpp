@@ -863,6 +863,78 @@ namespace slib
 		}
 	}
 
+	sl_bool Win32_ViewInstance::getScrollPosition(View* view, ScrollPoint& _out)
+	{
+		HWND handle = m_handle;
+		if (handle) {
+			SCROLLINFO si;
+			Base::zeroMemory(&si, sizeof(si));
+			si.cbSize = sizeof(si);
+			si.fMask = SIF_POS;
+			::GetScrollInfo(handle, SB_HORZ, &si);
+			_out.x = (sl_scroll_pos)(si.nPos);
+			::GetScrollInfo(handle, SB_VERT, &si);
+			_out.y = (sl_scroll_pos)(si.nPos);
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool Win32_ViewInstance::getScrollRange(View* view, ScrollPoint& _out)
+	{
+		HWND handle = m_handle;
+		if (handle) {
+			SCROLLINFO si;
+			Base::zeroMemory(&si, sizeof(si));
+			si.cbSize = sizeof(si);
+			si.fMask = SIF_RANGE;
+			::GetScrollInfo(handle, SB_HORZ, &si);
+			int w = si.nMax;
+			::GetScrollInfo(handle, SB_VERT, &si);
+			int h = si.nMax;
+			if (w < 0) {
+				w = 0;
+			}
+			if (h < 0) {
+				h = 0;
+			}
+			_out.x = (sl_scroll_pos)w;
+			_out.y = (sl_scroll_pos)h;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	void Win32_ViewInstance::scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate)
+	{
+		HWND handle = m_handle;
+		if (handle) {
+			SCROLLINFO si;
+			Base::zeroMemory(&si, sizeof(si));
+			si.cbSize = sizeof(si);
+			si.fMask = SIF_POS;
+			si.nPos = (int)x;
+			SetScrollInfo(handle, SB_HORZ, &si, TRUE);
+			si.nPos = (int)y;
+			SetScrollInfo(handle, SB_VERT, &si, TRUE);
+		}
+	}
+
+	sl_bool Win32_ViewInstance::getBounds(View* view, UIRect& _out)
+	{
+		HWND handle = m_handle;
+		if (handle) {
+			RECT rc;
+			GetClientRect(handle, &rc);
+			_out.left = 0;
+			_out.top = 0;
+			_out.right = (sl_ui_len)(rc.right);
+			_out.bottom = (sl_ui_len)(rc.bottom);
+			return sl_true;
+		}
+		return sl_false;
+	}
+
 	void Win32_ViewInstance::setDropTarget(View* view, sl_bool flag)
 	{
 		HWND handle = m_handle;

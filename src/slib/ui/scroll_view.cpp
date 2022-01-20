@@ -132,42 +132,6 @@ namespace slib
 		}
 	}
 	
-	ScrollPoint ScrollView::getScrollPosition()
-	{
-		Ptr<IScrollViewInstance> instance = getScrollViewInstance();
-		if (instance.isNotNull()) {
-			ScrollPoint pt;
-			if (instance->getScrollPosition(this, pt)) {
-				return pt;
-			}
-		}
-		return ViewGroup::getScrollPosition();
-	}
-	
-	ScrollPoint ScrollView::getScrollRange()
-	{
-		Ptr<IScrollViewInstance> instance = getScrollViewInstance();
-		if (instance.isNotNull()) {
-			ScrollPoint pt;
-			if (instance->getScrollRange(this, pt)) {
-				return pt;
-			}
-		}
-		return ViewGroup::getScrollRange();
-	}
-	
-	UIRect ScrollView::getBounds()
-	{
-		Ptr<IScrollViewInstance> instance = getScrollViewInstance();
-		if (instance.isNotNull()) {
-			UIRect ret;
-			if (instance->getBounds(this, ret)) {
-				return ret;
-			}
-		}
-		return ViewGroup::getBounds();
-	}
-	
 	void ScrollView::dispatchScroll(sl_scroll_pos x, sl_scroll_pos y)
 	{
 		ViewGroup::dispatchScroll(x, y);
@@ -232,10 +196,4 @@ namespace slib
 	{
 	}
 
-	
-	sl_bool IScrollViewInstance::getBounds(ScrollView* view, UIRect& _out)
-	{
-		return sl_false;
-	}
-	
 }

@@ -1692,6 +1692,13 @@ namespace slib
 
 	UIRect View::getBounds()
 	{
+		Ref<ViewInstance> instance = getNativeWidget();
+		if (instance.isNotNull()) {
+			UIRect ret;
+			if (instance->getBounds(this, ret)) {
+				return ret;
+			}
+		}
 		return UIRect(0, 0, m_frame.getWidth(), m_frame.getHeight());
 	}
 	
@@ -6686,6 +6693,13 @@ namespace slib
 
 	ScrollPoint View::getScrollPosition()
 	{
+		Ref<ViewInstance> instance = getNativeWidget();
+		if (instance.isNotNull()) {
+			ScrollPoint pt;
+			if (instance->getScrollPosition(this, pt)) {
+				return pt;
+			}
+		}
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
 			return ScrollPoint(attrs->x, attrs->y);
@@ -6730,13 +6744,13 @@ namespace slib
 		_initializeScrollAttributes();
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
+			if (instance.isNotNull()) {
+				instance->scrollTo(this, x, y, sl_false);
+			}
 			x = priv::view::ClampScrollPos(x, attrs->contentWidth - (sl_scroll_pos)(getWidth()));
 			y = priv::view::ClampScrollPos(y, attrs->contentHeight - (sl_scroll_pos)(getHeight()));
 			if (_scrollTo(x, y, sl_true, sl_true, sl_false)) {
 				invalidate(mode);
-			}
-			if (instance.isNotNull()) {
-				instance->scrollTo(this, x, y, sl_false);
 			}
 		}
 	}
@@ -6794,18 +6808,12 @@ namespace slib
 	
 	void View::scrollToEndX(UIUpdateMode mode)
 	{
-		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
-		if (attrs.isNotNull()) {
-			scrollToX(attrs->contentWidth - (sl_scroll_pos)(getWidth()), mode);
-		}
+		scrollToX(getScrollRange().y, mode);
 	}
 	
 	void View::scrollToEndY(UIUpdateMode mode)
 	{
-		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
-		if (attrs.isNotNull()) {
-			scrollToY(attrs->contentHeight - (sl_scroll_pos)(getHeight()), mode);
-		}
+		scrollToY(getScrollRange().y, mode);
 	}
 	
 	void View::smoothScrollToEndX(UIUpdateMode mode)
@@ -6905,6 +6913,13 @@ namespace slib
 
 	ScrollPoint View::getScrollRange()
 	{
+		Ref<ViewInstance> instance = getNativeWidget();
+		if (instance.isNotNull()) {
+			ScrollPoint pt;
+			if (instance->getScrollRange(this, pt)) {
+				return pt;
+			}
+		}
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
 			ScrollPoint ret(attrs->contentWidth - (sl_scroll_pos)(getWidth()), attrs->contentHeight - (sl_scroll_pos)(getHeight()));
@@ -10551,11 +10566,26 @@ namespace slib
 	void ViewInstance::setPadding(View* view, const UIEdgeInsets& padding)
 	{
 	}
-	
+
+	sl_bool ViewInstance::getBounds(View* view, UIRect& _out)
+	{
+		return sl_false;
+	}
+
 	void ViewInstance::setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical)
 	{
 	}
+
+	sl_bool ViewInstance::getScrollPosition(View* view, ScrollPoint& _out)
+	{
+		return sl_false;
+	}
 	
+	sl_bool ViewInstance::getScrollRange(View* view, ScrollPoint& _out)
+	{
+		return sl_false;
+	}
+
 	void ViewInstance::scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate)
 	{
 	}

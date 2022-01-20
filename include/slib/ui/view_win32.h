@@ -149,6 +149,14 @@ namespace slib
 
 		void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical) override;
 
+		sl_bool getScrollPosition(View* view, ScrollPoint& _out) override;
+		
+		sl_bool getScrollRange(View* view, ScrollPoint& _out) override;
+		
+		void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate) override;
+
+		sl_bool getBounds(View* view, UIRect& _out) override;
+
 		void setDropTarget(View* view, sl_bool flag) override;
 
 	public:

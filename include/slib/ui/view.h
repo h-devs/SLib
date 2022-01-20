@@ -1705,7 +1705,13 @@ namespace slib
 
 		virtual void setPadding(View* view, const UIEdgeInsets& padding);
 
+		virtual sl_bool getBounds(View* view, UIRect& _out);
+
 		virtual void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical);
+
+		virtual sl_bool getScrollPosition(View* view, ScrollPoint& _out);
+
+		virtual sl_bool getScrollRange(View* view, ScrollPoint& _out);
 
 		virtual void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate);
 		

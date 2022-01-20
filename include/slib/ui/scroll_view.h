@@ -48,12 +48,6 @@ namespace slib
 		
 		void setContentSize(sl_scroll_pos width, sl_scroll_pos height, UIUpdateMode mode = UIUpdateMode::UpdateLayout) override;
 		
-		ScrollPoint getScrollPosition() override;
-		
-		ScrollPoint getScrollRange() override;
-		
-		UIRect getBounds() override;
-		
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 		
@@ -99,12 +93,6 @@ namespace slib
 		virtual void refreshContentSize(ScrollView* view) = 0;
 		
 		virtual void setContentView(ScrollView* view, const Ref<View>& content) = 0;
-		
-		virtual sl_bool getScrollPosition(ScrollView* view, ScrollPoint& _out) = 0;
-		
-		virtual sl_bool getScrollRange(ScrollView* view, ScrollPoint& _out) = 0;
-		
-		virtual sl_bool getBounds(ScrollView* view, UIRect& _out);
 		
 	};
 	

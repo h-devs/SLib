@@ -39,18 +39,6 @@ namespace slib
 		namespace scroll_view
 		{
 
-			static void ScrollTo(HWND handle, sl_scroll_pos x, sl_scroll_pos y)
-			{
-				SCROLLINFO si;
-				Base::zeroMemory(&si, sizeof(si));
-				si.cbSize = sizeof(si);
-				si.fMask = SIF_POS;
-				si.nPos = (int)x;
-				SetScrollInfo(handle, SB_HORZ, &si, TRUE);
-				si.nPos = (int)y;
-				SetScrollInfo(handle, SB_VERT, &si, TRUE);
-			}
-
 			class ScrollViewHelper : public ScrollView
 			{
 			public:
@@ -108,63 +96,6 @@ namespace slib
 					refreshContentSize(view);
 				}
 
-				sl_bool getScrollPosition(ScrollView* view, ScrollPoint& _out) override
-				{
-					HWND handle = m_handle;
-					if (handle) {
-						SCROLLINFO si;
-						Base::zeroMemory(&si, sizeof(si));
-						si.cbSize = sizeof(si);
-						si.fMask = SIF_POS;
-						::GetScrollInfo(handle, SB_HORZ, &si);
-						_out.x = (sl_scroll_pos)(si.nPos);
-						::GetScrollInfo(handle, SB_VERT, &si);
-						_out.y = (sl_scroll_pos)(si.nPos);
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				sl_bool getScrollRange(ScrollView* view, ScrollPoint& _out) override
-				{
-					HWND handle = m_handle;
-					if (handle) {
-						SCROLLINFO si;
-						Base::zeroMemory(&si, sizeof(si));
-						si.cbSize = sizeof(si);
-						si.fMask = SIF_RANGE;
-						::GetScrollInfo(handle, SB_HORZ, &si);
-						int w = si.nMax;
-						::GetScrollInfo(handle, SB_VERT, &si);
-						int h = si.nMax;
-						if (w < 0) {
-							w = 0;
-						}
-						if (h < 0) {
-							h = 0;
-						}
-						_out.x = (sl_scroll_pos)w;
-						_out.y =(sl_scroll_pos)h;
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				sl_bool getBounds(ScrollView* view, UIRect& _out) override
-				{
-					HWND handle = m_handle;
-					if (handle) {
-						RECT rc;
-						GetClientRect(handle, &rc);
-						_out.left = 0;
-						_out.top = 0;
-						_out.right = (sl_ui_len)(rc.right);
-						_out.bottom = (sl_ui_len)(rc.bottom);
-						return sl_true;
-					}
-					return sl_false;
-				}
-
 				void setBackgroundColor(View* view, const Color& color) override
 				{
 					HWND handle = m_handle;
@@ -178,7 +109,7 @@ namespace slib
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						ScrollTo(handle, x, y);
+						Win32_ViewInstance::scrollTo(view, x, y, flagAnimate);
 						if (IsInstanceOf<ScrollView>(view)) {
 							refreshContentPosition(static_cast<ScrollView*>(view), x, y, sl_false);
 						}
