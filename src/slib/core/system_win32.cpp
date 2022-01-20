@@ -572,8 +572,12 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		WCHAR buf[512] = { 0 };
 		DWORD nBuf = 500;
-		GetUserNameW(buf, &nBuf);
-		return String::fromUtf16((sl_char16*)buf, (sl_reg)nBuf);
+		if (GetUserNameW(buf, &nBuf)) {
+			if (nBuf) {
+				return String::fromUtf16((sl_char16*)buf, (sl_reg)(nBuf - 1));
+			}
+		}
+		return sl_null;
 #else
 		return "uwp";
 #endif
