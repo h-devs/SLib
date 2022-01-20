@@ -122,7 +122,7 @@ namespace slib
 		P2PResponse(const void* data, sl_uint32 size, Referable* ref = sl_null);
 
 		template <class T>
-		P2PResponse(T&& value): P2PMessage(Forward<T>(value));
+		P2PResponse(T&& value): P2PMessage(Forward<T>(value)) {}
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(P2PResponse)
 
@@ -143,6 +143,7 @@ namespace slib
 		sl_uint32 maximumMessageSize; // In bytes
 
 		Function<void(P2PSocket*, P2PNodeId&, P2PMessage&, P2PResponse&)> onReceiveMessage;
+		Function<void(P2PSocket*, P2PNodeId&, P2PMessage&)> onReceiveBroadcast;
 
 		sl_bool flagAutoStart; // [In] Automatically start the socket
 
@@ -172,7 +173,9 @@ namespace slib
 
 		virtual sl_bool start() = 0;
 
-		virtual void sendMessage(const P2PNodeId& nodeId, P2PMessage& msg, const Function<void(P2PResponse&)>& callback) = 0;
+		virtual void sendMessage(const P2PNodeId& nodeId, const P2PMessage& msg, const Function<void(P2PResponse&)>& callback) = 0;
+
+		virtual void sendBroadcast(const P2PMessage& msg) = 0;
 
 	};
 
