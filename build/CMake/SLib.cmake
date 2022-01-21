@@ -321,6 +321,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/ui/collection_view.cpp"
  "${SLIB_PATH}/src/slib/ui/combo_box.cpp"
  "${SLIB_PATH}/src/slib/ui/common_dialogs.cpp"
+ "${SLIB_PATH}/src/slib/ui/common_dialogs_prompt.cpp"
  "${SLIB_PATH}/src/slib/ui/cursor.cpp"
  "${SLIB_PATH}/src/slib/ui/date_picker.cpp"
  "${SLIB_PATH}/src/slib/ui/drawer.cpp"

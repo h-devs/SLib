@@ -27,17 +27,21 @@
                 >
                 <button
                     name='ok'
-                    text='   OK   '
+                    text='@string/ok'
                     ok='true'
                     defaultButton='true'
                     nativeWidget='true'
+                    paddingLeft='30'
+                    paddingRight='30'
                     />
                 <button
                     name='cancel'
-                    text=' Cancel '
+                    text='@string/cancel'
                     cancel='true'
                     nativeWidget='true'
                     marginLeft='10px'
+                    paddingLeft='10'
+                    paddingRight='10'
                     />
             </hlinear>
         </linear>

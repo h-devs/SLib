@@ -49,9 +49,11 @@ namespace slib
 			ok->setWidthWrapping(slib::UIUpdateMode::Init);
 			ok->setHeightWrapping(slib::UIUpdateMode::Init);
 			ok->setAlignParentTop(slib::UIUpdateMode::Init);
+			ok->setPaddingLeft(30, slib::UIUpdateMode::Init);
+			ok->setPaddingRight(30, slib::UIUpdateMode::Init);
 			ok->setCreatingNativeWidget(sl_true);
 			ok->setOkOnClick();
-			ok->setText("   OK   ", slib::UIUpdateMode::Init);
+			ok->setText(string::ok::get(), slib::UIUpdateMode::Init);
 			ok->setDefaultButton(sl_true, slib::UIUpdateMode::Init);
 			_linear2->addChild(ok, slib::UIUpdateMode::Init);
 
@@ -60,9 +62,11 @@ namespace slib
 			cancel->setHeightWrapping(slib::UIUpdateMode::Init);
 			cancel->setAlignParentTop(slib::UIUpdateMode::Init);
 			cancel->setMarginLeft(10, slib::UIUpdateMode::Init);
+			cancel->setPaddingLeft(10, slib::UIUpdateMode::Init);
+			cancel->setPaddingRight(10, slib::UIUpdateMode::Init);
 			cancel->setCreatingNativeWidget(sl_true);
 			cancel->setCancelOnClick();
-			cancel->setText(" Cancel ", slib::UIUpdateMode::Init);
+			cancel->setText(string::cancel::get(), slib::UIUpdateMode::Init);
 			_linear2->addChild(cancel, slib::UIUpdateMode::Init);
 
 			setInitialFocus(input);
