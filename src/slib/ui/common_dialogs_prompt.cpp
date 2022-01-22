@@ -86,7 +86,8 @@ namespace slib
 			const Function<void()>& _onCancel = onCancel;
 			dlg->setOnDestroy([_onOk, _onCancel](Window* dlg) {
 				if (dlg->getResult() == DialogResult::Ok) {
-					_onOk(((ui::PromptDialog*)dlg)->input->getText());
+					String text = ((ui::PromptDialog*)dlg)->input->getText();
+					_onOk(text);
 				} else {
 					_onCancel();
 				}

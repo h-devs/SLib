@@ -649,7 +649,7 @@ namespace slib
 						};
 						m_socketUdpActor = AsyncUdpSocket::create(udpParam);
 						if (m_socketUdpActor.isNull()) {
-							return sl_null;
+							return sl_false;
 						}
 
 						udpParam.socket = Move(socketRelayer);
@@ -658,7 +658,7 @@ namespace slib
 						};
 						m_socketUdpRelayer = AsyncUdpSocket::create(udpParam);
 						if (m_socketUdpRelayer.isNull()) {
-							return sl_null;
+							return sl_false;
 						}
 					}
 
