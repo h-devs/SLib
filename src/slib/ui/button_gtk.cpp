@@ -85,8 +85,11 @@ namespace slib
 				if(handle){
 					Ref<Font> font = view->getFont();
 					if (font.isNotNull()) {
-						_out = font->measureText(" " + view->getText() + " ");
-						_out.y = (sl_ui_len)(_out.y * 1.5f);
+						_out = font->measureText(view->getText());
+						_out.x += view->getPaddingLeft() + view->getPaddingRight();
+						_out.x += 32;
+						_out.y += view->getPaddingTop() + view->getPaddingBottom();
+						_out.y += 16;
 						return true;
 					}
 				}
