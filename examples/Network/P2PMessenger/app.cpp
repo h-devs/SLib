@@ -111,7 +111,7 @@ void P2PMsgApp::onStart()
 	setMainWindow(window);
 
 	window->setOnOK([this](Window*, UIEvent*) {
-		P2PNodeId nodeId = m_lstNames->getSelectedValue();
+		P2PNodeId nodeId(m_lstNames->getSelectedValue());
 		if (nodeId.isZero()) {
 			UI::alert("Please select a node!");
 			return;
