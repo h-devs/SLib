@@ -369,17 +369,15 @@ namespace slib
 					return m_viewContent;
 				}
 				
-				UIRect getFrame() override
+				sl_bool getFrame(UIRect& _out) override
 				{
 					NSWindow* window = m_window;
 					if (window != nil) {
 						NSRect rect = [window frame];
-						UIRect frame;
-						ToUIRect(frame, rect, m_heightScreen);
-						return frame;
-					} else {
-						return UIRect::zero();
+						ToUIRect(_out, rect, m_heightScreen);
+						return sl_true;
 					}
+					return sl_false;
 				}
 				
 				void setFrame(const UIRect& frame) override

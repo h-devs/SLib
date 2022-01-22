@@ -559,7 +559,7 @@ namespace slib
 		virtual Ref<ViewInstance> getContentView() = 0;
 		
 		
-		virtual UIRect getFrame() = 0;
+		virtual sl_bool getFrame(UIRect& _out) = 0;
 		
 		virtual void setFrame(const UIRect& frame) = 0;
 		

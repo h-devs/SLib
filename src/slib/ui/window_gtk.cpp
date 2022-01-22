@@ -307,25 +307,9 @@ namespace slib
 					gtk_container_remove((GtkContainer*)data, widget);
 				}
 
-				UIRect getFrame() override
+				sl_bool getFrame(UIRect& _out) override
 				{
-					if (!m_flagClosed) {
-						GtkWindow* handle = m_window;
-						if (handle) {
-							GdkWindow* window = gtk_widget_get_window((GtkWidget*)handle);
-							if (window) {
-								GdkRectangle frame;
-								gdk_window_get_frame_extents(window, &frame);
-								UIRect ret;
-								ret.left = (sl_ui_len)(frame.x);
-								ret.top = (sl_ui_len)(frame.y);
-								ret.right = (sl_ui_len)(frame.x + frame.width);
-								ret.bottom = (sl_ui_len)(frame.y + frame.height);
-								return ret;
-							}
-						}
-					}
-					return UIRect::zero();
+					return sl_false;
 				}
 
 				void setFrame(const UIRect& frame) override

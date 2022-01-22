@@ -276,16 +276,19 @@ namespace slib
 					return m_viewContent;
 				}
 
-				UIRect getFrame() override
+				sl_bool getFrame(UIRect& _out) override
 				{
 					HWND hWnd = m_handle;
 					if (hWnd) {
 						RECT rect;
 						GetWindowRect(hWnd, &rect);
-						return UIRect((sl_ui_pos)(rect.left), (sl_ui_pos)(rect.top), (sl_ui_pos)(rect.right), (sl_ui_pos)(rect.bottom));
-					} else {
-						return UIRect::zero();
+						_out.left = (sl_ui_pos)(rect.left);
+						_out.top = (sl_ui_pos)(rect.top);
+						_out.right = (sl_ui_pos)(rect.right);
+						_out.bottom = (sl_ui_pos)(rect.bottom);
+						return sl_true;
 					}
+					return sl_false;
 				}
 
 				void setFrame(const UIRect& frame) override

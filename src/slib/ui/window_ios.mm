@@ -229,21 +229,19 @@ namespace slib
 					return m_viewContent;
 				}
 				
-				UIRect getFrame() override
+				sl_bool getFrame(UIRect& _out) override
 				{
 					UIView* window = m_window;
 					if (window != nil) {
 						CGRect rect = [window frame];
 						CGFloat f = UIPlatform::getGlobalScaleFactor();
-						UIRect frame;
-						frame.left = (sl_ui_pos)(rect.origin.x * f);
-						frame.top = (sl_ui_pos)(rect.origin.y * f);
-						frame.right = (sl_ui_pos)((rect.origin.x + rect.size.width) * f);
-						frame.bottom = (sl_ui_pos)((rect.origin.y + rect.size.height) * f);
-						return frame;
-					} else {
-						return UIRect::zero();
+						_out.left = (sl_ui_pos)(rect.origin.x * f);
+						_out.top = (sl_ui_pos)(rect.origin.y * f);
+						_out.right = (sl_ui_pos)((rect.origin.x + rect.size.width) * f);
+						_out.bottom = (sl_ui_pos)((rect.origin.y + rect.size.height) * f);
+						return sl_true;
 					}
+					return sl_false;
 				}
 				
 				void setFrame(const UIRect& frame) override

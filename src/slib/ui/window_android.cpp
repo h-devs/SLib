@@ -177,25 +177,24 @@ namespace slib
 					return m_viewContent;
 				}
 
-				UIRect getFrame() override
+				sl_bool getFrame(UIRect& _out) override
 				{
 					if (m_flagClosed) {
-						return UIRect::zero();
+						return sl_false;
 					}
 					jobject jwindow = m_window;
 					if (jwindow) {
 						JniLocal<jobject> rect = JWindow::getFrame.callObject(jwindow);
 						if (rect.isNotNull()) {
-							UIRect ret;
-							ret.left = (sl_ui_pos)(JRect::left.get(rect));
-							ret.top = (sl_ui_pos)(JRect::top.get(rect));
-							ret.right = (sl_ui_pos)(JRect::right.get(rect));
-							ret.bottom = (sl_ui_pos)(JRect::bottom.get(rect));
-							ret.fixSizeError();
-							return ret;
+							_out.left = (sl_ui_pos)(JRect::left.get(rect));
+							_out.top = (sl_ui_pos)(JRect::top.get(rect));
+							_out.right = (sl_ui_pos)(JRect::right.get(rect));
+							_out.bottom = (sl_ui_pos)(JRect::bottom.get(rect));
+							_out.fixSizeError();
+							return sl_true;
 						}
 					}
-					return UIRect::zero();
+					return sl_false;
 				}
 
 				void setFrame(const UIRect& frame) override

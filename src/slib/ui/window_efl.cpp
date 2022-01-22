@@ -221,9 +221,10 @@ namespace slib
 					return m_viewContent;
 				}
 				
-				UIRect getFrame() override
+				sl_bool getFrame(UIRect& _out) override
 				{
-					return UI::getScreenBounds();
+					_out = UI::getScreenBounds();
+					return sl_true;
 				}
 				
 				void setFrame(const UIRect& _frame) override

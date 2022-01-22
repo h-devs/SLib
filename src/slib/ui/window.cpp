@@ -295,7 +295,7 @@ namespace slib
 	{
 		Ref<WindowInstance> instance = m_instance;
 		if (instance.isNotNull()) {
-			m_frame = instance->getFrame();
+			instance->getFrame(m_frame);
 		}
 		return m_frame;
 	}
