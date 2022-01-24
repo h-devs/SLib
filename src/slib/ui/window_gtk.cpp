@@ -40,6 +40,15 @@ namespace slib
 		namespace window
 		{
 
+			static void SetWindowSize(GtkWindow* window, sl_bool flagResizable, sl_ui_len width, sl_ui_len height)
+			{
+				if (flagResizable) {
+					gtk_window_resize(window, (gint)width, (gint)height);
+				} else {
+					gtk_window_set_default_size(window, (gint)width, (gint)height);
+				}
+			}
+
 			class GTK_WindowInstance : public WindowInstance
 			{
 			public:
@@ -203,11 +212,11 @@ namespace slib
 					ret->m_size = size;
 					if (window->isResizable()) {
 						ret->m_flagResizable = sl_true;
-						gtk_window_resize(handle, size.x, size.y);
+						SetWindowSize(handle, sl_true, size.x, size.y);
 					} else {
 						ret->m_flagResizable = sl_false;
 						gtk_window_set_resizable(handle, sl_false);
-						gtk_widget_set_size_request((GtkWidget*)handle, size.x, size.y);
+						SetWindowSize(handle, sl_false, size.x, size.y);
 					}
 					ret->m_location = frameWindow.getLocation();
 					gtk_window_move(handle, (gint)(frameWindow.left), (gint)(frameWindow.top));
@@ -251,10 +260,12 @@ namespace slib
 							gtk_widget_show(box);
 							gtk_box_pack_start((GtkBox*)box, (GtkWidget*)hMenu, 0, 0, 0);
 							gtk_box_pack_start((GtkBox*)box, contentBox, 1, 1, 0);
+							gtk_widget_set_size_request(box, 1, 1);
 							gtk_container_add((GtkContainer*)handle, box);
 							ret->m_widgetMenu = (GtkWidget*)hMenu;
 						}
 					} else {
+						gtk_widget_set_size_request(contentBox, 1, 1);
 						gtk_container_add((GtkContainer*)handle, contentBox);
 					}
 
@@ -326,11 +337,7 @@ namespace slib
 								width -= insets.left + insets.right;
 								height -= insets.top + insets.bottom - _getMenuHeight();
 							}
-							if (m_flagResizable) {
-								gtk_window_resize(window, (gint)width, (gint)height);
-							} else {
-								gtk_widget_set_size_request((GtkWidget*)window, (gint)width, (gint)height);
-							}
+							SetWindowSize(window, m_flagResizable, width, height);
 							gtk_window_move(window, (gint)(frame.left), (gint)(frame.top));
 						}
 					}

@@ -151,7 +151,8 @@ namespace slib
 			WebView,
 			WebViewInstance,
 			Window,
-			WindowInstance
+			WindowInstance,
+			WindowContentView
 		};
 
 	}

@@ -22,75 +22,12 @@
 
 #include "slib/ui/window.h"
 
-#include "slib/ui/view.h"
 #include "slib/ui/core.h"
 #include "slib/ui/screen.h"
-
 #include "slib/core/variant.h"
 
 namespace slib
 {
-	
-	namespace priv
-	{
-		namespace window
-		{
-			class ContentView : public ViewGroup
-			{
-			protected:
-				void onResizeChild(View* child, sl_ui_len width, sl_ui_len height) override
-				{
-					applyWrappingContentSize();
-				}
-				
-			public:
-				void applyWrappingContentSize()
-				{
-					Ref<Window> window = getWindow();
-					if (window.isNull()) {
-						return;
-					}
-					sl_bool flagHorz = window->isWidthWrapping();
-					sl_bool flagVert = window->isHeightWrapping();
-					if (!flagHorz && !flagVert) {
-						return;
-					}
-					UISize sizeOld = window->getClientSize();
-					UISize sizeNew = sizeOld;
-					UISize sizeMeasured = measureLayoutWrappingSize(flagHorz, flagVert);
-					if (flagHorz) {
-						sizeNew.x = sizeMeasured.x;
-					}
-					if (flagVert) {
-						sizeNew.y = sizeMeasured.y;
-					}
-					if (sizeNew.isAlmostEqual(sizeOld)) {
-						return;
-					}
-					if (window->getWindowInstance().isNotNull()) {
-						if (window->isCenterScreen() && (Time::now() - window->getCreationTime()).getMillisecondsCount() < 500) {
-							UISize sizeWindow = window->getWindowSizeFromClientSize(sizeNew);
-							UISize sizeScreen;
-							Ref<Screen> screen = window->getScreen();
-							if (screen.isNotNull()) {
-								sizeScreen = screen->getRegion().getSize();
-							} else {
-								sizeScreen = UI::getScreenSize();
-							}
-							UIRect frame;
-							frame.left = (sizeScreen.x - sizeWindow.x) / 2;
-							frame.top = (sizeScreen.y - sizeWindow.y) / 2;
-							frame.setSize(sizeWindow);
-							window->setFrame(frame);
-							return;
-						}
-					}
-					window->setClientSize(sizeNew);
-				}
-				
-			};
-		}
-	}
 	
 	SLIB_DEFINE_OBJECT(Window, Object)
 
@@ -146,7 +83,7 @@ namespace slib
 		m_flagStateDoModal = sl_false;
 		m_flagDispatchedDestroy = sl_false;
 		
-		m_viewContent = new priv::window::ContentView;
+		m_viewContent = new WindowContentView;
 
 		m_result = sl_null;
 
@@ -238,9 +175,9 @@ namespace slib
 		m_screen = screen;
 	}
 
-	const Ref<View>& Window::getContentView()
+	const Ref<WindowContentView>& Window::getContentView()
 	{
-		return Ref<View>::from(m_viewContent);
+		return m_viewContent;
 	}
 
 	Ref<Menu> Window::getMenu()
@@ -2000,6 +1937,66 @@ namespace slib
 
 	void WindowInstance::onAttachedContentView()
 	{
+	}
+
+
+	SLIB_DEFINE_OBJECT(WindowContentView, ViewGroup)
+
+	WindowContentView::WindowContentView()
+	{
+	}
+
+	WindowContentView::~WindowContentView()
+	{
+	}
+
+	void WindowContentView::applyWrappingContentSize()
+	{
+		Ref<Window> window = getWindow();
+		if (window.isNull()) {
+			return;
+		}
+		sl_bool flagHorz = window->isWidthWrapping();
+		sl_bool flagVert = window->isHeightWrapping();
+		if (!flagHorz && !flagVert) {
+			return;
+		}
+		UISize sizeOld = window->getClientSize();
+		UISize sizeNew = sizeOld;
+		UISize sizeMeasured = measureLayoutWrappingSize(flagHorz, flagVert);
+		if (flagHorz) {
+			sizeNew.x = sizeMeasured.x;
+		}
+		if (flagVert) {
+			sizeNew.y = sizeMeasured.y;
+		}
+		if (sizeNew.isAlmostEqual(sizeOld)) {
+			return;
+		}
+		if (window->getWindowInstance().isNotNull()) {
+			if (window->isCenterScreen() && (Time::now() - window->getCreationTime()).getMillisecondsCount() < 500) {
+				UISize sizeWindow = window->getWindowSizeFromClientSize(sizeNew);
+				UISize sizeScreen;
+				Ref<Screen> screen = window->getScreen();
+				if (screen.isNotNull()) {
+					sizeScreen = screen->getRegion().getSize();
+				} else {
+					sizeScreen = UI::getScreenSize();
+				}
+				UIRect frame;
+				frame.left = (sizeScreen.x - sizeWindow.x) / 2;
+				frame.top = (sizeScreen.y - sizeWindow.y) / 2;
+				frame.setSize(sizeWindow);
+				window->setFrame(frame);
+				return;
+			}
+		}
+		window->setClientSize(sizeNew);
+	}
+
+	void WindowContentView::onResizeChild(View* child, sl_ui_len width, sl_ui_len height)
+	{
+		applyWrappingContentSize();
 	}
 
 

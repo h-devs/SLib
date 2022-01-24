@@ -23,6 +23,7 @@
 #ifndef CHECKHEADER_SLIB_UI_WINDOW
 #define CHECKHEADER_SLIB_UI_WINDOW
 
+#include "view.h"
 #include "event.h"
 #include "menu.h"
 
@@ -35,18 +36,9 @@ namespace slib
 {
 
 	class Screen;
-	class View;
-	class ViewInstance;
 	class Window;
 	class WindowInstance;
-		
-	namespace priv
-	{
-		namespace window
-		{
-			class ContentView;
-		}
-	}
+	class WindowContentView;
 
 	class SLIB_EXPORT Window : public Object
 	{
@@ -76,7 +68,7 @@ namespace slib
 		
 		void setScreen(const Ref<Screen>& screen);
 
-		const Ref<View>& getContentView();
+		const Ref<WindowContentView>& getContentView();
 		
 		Ref<Menu> getMenu();
 		
@@ -471,7 +463,7 @@ namespace slib
 	protected:
 		AtomicRef<WindowInstance> m_instance;
 		AtomicWeakRef<Window> m_parent;
-		Ref<priv::window::ContentView> m_viewContent;
+		Ref<WindowContentView> m_viewContent;
 		AtomicRef<Screen> m_screen;
 		AtomicRef<Menu> m_menu;
 		AtomicRef<View> m_viewInitialFocus;
@@ -655,6 +647,23 @@ namespace slib
 		AtomicWeakRef<Window> m_window;
 		sl_bool m_flagKeepWindow;
 		
+	};
+
+	class SLIB_EXPORT WindowContentView : public ViewGroup
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		WindowContentView();
+
+		~WindowContentView();
+
+	public:
+		void applyWrappingContentSize();
+
+	protected:
+		void onResizeChild(View* child, sl_ui_len width, sl_ui_len height) override;
+
 	};
 
 }
