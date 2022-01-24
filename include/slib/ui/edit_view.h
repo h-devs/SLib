@@ -112,7 +112,7 @@ namespace slib
 
 		void selectAll();
 
-		// `start`: negative means non-selection, `end`: negative means all-selection
+		// `start`: negative means non-selection, `end`: negative means `end of text`
 		void setSelection(sl_reg start, sl_reg end);
 
 		sl_bool isAutoHorizontalScrolling();

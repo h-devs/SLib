@@ -242,7 +242,7 @@ namespace slib
 							SendMessageW(handle, EM_SETSEL, -1, 0);
 						} else {
 							if (end < 0) {
-								SendMessageW(handle, EM_SETSEL, 0, -1);
+								SendMessageW(handle, EM_SETSEL, (WPARAM)start, -1);
 							} else {
 								SendMessageW(handle, EM_SETSEL, (WPARAM)start, (LPARAM)end);
 							}
