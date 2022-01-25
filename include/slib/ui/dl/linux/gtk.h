@@ -672,6 +672,19 @@ namespace slib
 		)
 		#define gtk_entry_set_visibility slib::gtk::getApi_gtk_entry_set_visibility()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_editable_get_type,
+			GType, ,
+		)
+		#define gtk_editable_get_type slib::gtk::getApi_gtk_editable_get_type()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_editable_select_region,
+			void, ,
+			GtkEditable *editable,
+			gint start_pos,
+			gint end_pos
+		)
+		#define gtk_editable_select_region slib::gtk::getApi_gtk_editable_select_region()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_widget_modify_text,
 			void, ,
 			GtkWidget *widget,
@@ -693,6 +706,22 @@ namespace slib
 			GtkTextIter *iter
 		)
 		#define gtk_text_buffer_get_end_iter slib::gtk::getApi_gtk_text_buffer_get_end_iter()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_text_buffer_get_iter_at_offset,
+			void, ,
+			GtkTextBuffer *buffer,
+			GtkTextIter *iter,
+			gint char_offset
+		)
+		#define gtk_text_buffer_get_iter_at_offset slib::gtk::getApi_gtk_text_buffer_get_iter_at_offset()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_text_buffer_select_range,
+			void, ,
+			GtkTextBuffer *buffer,
+			const GtkTextIter *ins,
+			const GtkTextIter *bound
+		)
+		#define gtk_text_buffer_select_range slib::gtk::getApi_gtk_text_buffer_select_range()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_text_view_set_left_margin,
 			void, ,
@@ -738,6 +767,15 @@ namespace slib
 			gboolean include_hidden_chars
 		)
 		#define gtk_text_buffer_get_text slib::gtk::getApi_gtk_text_buffer_get_text()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_text_buffer_insert,
+			void, ,
+			GtkTextBuffer *buffer,
+			GtkTextIter *iter,
+			const gchar *text,
+			gint len
+		)
+		#define gtk_text_buffer_insert slib::gtk::getApi_gtk_text_buffer_insert()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_text_view_new,
 			GtkWidget*, ,

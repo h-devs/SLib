@@ -63,9 +63,18 @@ namespace slib
 					if(view->isPassword()) {
 						gtk_entry_set_visibility(handle, 0);
 					}
-					setTextColor(view, view->getTextColor());
+					Color textColor = view->getTextColor();
+					if (textColor != Color::Black) {
+						setTextColor(view, textColor);
+					}
 					setGravity(view, view->getGravity());
-					setReadOnly(view, view->isReadOnly());
+					if (view->isReadOnly()) {
+						setReadOnly(view, sl_true);
+					}
+					sl_reg indexSelection = view->getRawSelectionStart();
+					if (indexSelection >= 0) {
+						setSelection(view, indexSelection, view->getRawSelectionEnd());
+					}
 
 					g_signal_connect((GtkEditable*)handle, "changed", G_CALLBACK(onChange), handle);
 				}
@@ -153,6 +162,17 @@ namespace slib
 				{
 				}
 
+				void setSelection(EditView* view, sl_reg start, sl_reg end) override
+				{
+					GtkEntry* handle = (GtkEntry*)m_handle;
+					if (handle) {
+						GtkEditable* editable = GTK_EDITABLE(handle);
+						if (editable) {
+							gtk_editable_select_region(editable, (gint)start, (gint)end);
+						}
+					}
+				}
+
 				void setBackgroundColor(View* view, const Color& color) override
 				{
 					GtkWidget* handle = m_handle;
@@ -224,12 +244,24 @@ namespace slib
 						gtk_container_add((GtkContainer*)handle, (GtkWidget*)handleText);
 						gtk_widget_show((GtkWidget*)handleText);
 
-						setText(view, view->getText());
-						setTextColor(view, view->getTextColor());
+						String text = view->getText();
+						if (text.isNotEmpty()) {
+							setText(view, text);
+						}
+						Color textColor = view->getTextColor();
+						if (textColor != Color::Black) {
+							setTextColor(view, textColor);
+						}
 						setGravity(view, view->getGravity());
-						setReadOnly(view, view->isReadOnly());
+						if (view->isReadOnly()) {
+							setReadOnly(view, sl_true);
+						}
+						sl_reg indexSelection = view->getRawSelectionStart();
+						if (indexSelection >= 0) {
+							setSelection(view, indexSelection, view->getRawSelectionEnd());
+						}
 						setFont(view, view->getFont());
-		
+
 						GtkTextBuffer* buffer = gtk_text_view_get_buffer(handleText);
 						if (buffer) {
 							g_signal_connect(buffer, "changed", G_CALLBACK(onChange), handle);
@@ -277,6 +309,20 @@ namespace slib
 						GtkTextBuffer* buffer = gtk_text_view_get_buffer(handle);
 						gtk_text_buffer_set_text(buffer, text.getData(), text.getLength());
 					}
+				}
+
+				sl_bool appendText(EditView* view, const StringParam& _text) override
+				{
+					GtkTextView* handle = m_handleTextView;
+					if (handle) {
+						GtkTextBuffer* buffer = gtk_text_view_get_buffer(handle);
+						GtkTextIter iter;
+						gtk_text_buffer_get_end_iter(buffer, &iter);
+						StringData text(_text);
+						gtk_text_buffer_insert(buffer, &iter, text.getData(), text.getLength());
+						return sl_true;
+					}
+					return sl_false;
 				}
 
 				void setGravity(EditView* view, const Alignment& gravity) override
@@ -334,6 +380,27 @@ namespace slib
 
 				void setMultiLine(EditView* view, MultiLineMode mode) override
 				{
+				}
+
+				void setSelection(EditView* view, sl_reg start, sl_reg end) override
+				{
+					GtkTextView* handle = m_handleTextView;
+					if (handle) {
+						GtkTextBuffer* buffer = gtk_text_view_get_buffer(handle);
+						GtkTextIter iterStart, iterEnd;
+						if (start < 0) {
+							gtk_text_buffer_get_end_iter(buffer, &iterStart);
+							gtk_text_buffer_get_end_iter(buffer, &iterEnd);
+						} else {
+							gtk_text_buffer_get_iter_at_offset(buffer, &iterStart, (gint)start);
+							if (end < 0) {
+								gtk_text_buffer_get_end_iter(buffer, &iterEnd);
+							} else {
+								gtk_text_buffer_get_iter_at_offset(buffer, &iterEnd, (gint)end);
+							}
+						}
+						gtk_text_buffer_select_range(buffer, &iterStart, &iterEnd);
+					}
 				}
 
 				void setPadding(View* view, const UIEdgeInsets& inset) override
@@ -415,13 +482,23 @@ namespace slib
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* _parent)
 	{
 		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
-		GtkWidget* handle = gtk_entry_new();
-		return GTK_ViewInstance::create<EditViewInstance>(this, parent, handle);
+		if (getMultiLine() == MultiLineMode::Single) {
+			GtkWidget* handle = gtk_entry_new();
+			return GTK_ViewInstance::create<EditViewInstance>(this, parent, handle);
+		} else {
+			GtkScrolledWindow* handle = (GtkScrolledWindow*)(gtk_scrolled_window_new(sl_null, sl_null));
+			return GTK_ViewInstance::create<TextAreaInstance>(this, parent, (GtkWidget*)handle);
+		}
 	}
 
 	Ptr<IEditViewInstance> EditView::getEditViewInstance()
 	{
-		return CastRef<EditViewInstance>(getViewInstance());
+		Ref<ViewInstance> instance = getViewInstance();
+		if (IsInstanceOf<TextAreaInstance>(instance)) {
+			return CastRef<TextAreaInstance>(Move(instance));
+		} else {
+			return CastRef<EditViewInstance>(Move(instance));
+		}
 	}
 
 	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* _parent)
