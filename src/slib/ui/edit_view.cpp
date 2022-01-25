@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -266,10 +266,11 @@ namespace slib
 		m_flagAutoDismissKeyboard = sl_true;
 		m_flagAutoHorizontalScrolling = sl_true;
 		m_flagAutoVerticalScrolling = sl_true;
+		m_indexSelectionStart = -1;
+		m_indexSelectionEnd = 0;
 
 		m_nCountDrawCaret = 0;
 
-		m_flagSelectAllOnAttach = sl_false;
 	}
 
 	EditView::~EditView()
@@ -591,22 +592,38 @@ namespace slib
 		});
 	}
 
-	void EditView::selectAll()
-	{
-		Ptr<IEditViewInstance> instance = getEditViewInstance();
-		if (instance.isNotNull()) {
-			instance->select(0, -1);
-		} else {
-			m_flagSelectAllOnAttach = sl_true;
-		}
-	}
-
 	void EditView::setSelection(sl_reg start, sl_reg end)
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			instance->select(start, end);
+			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setSelection, start, end)
+			m_indexSelectionStart = start;
+			m_indexSelectionEnd = end;
+			instance->setSelection(this, start, end);
+		} else {
+			m_indexSelectionStart = start;
+			m_indexSelectionEnd = end;
 		}
+	}
+
+	void EditView::selectAll()
+	{
+		setSelection(0, -1);
+	}
+
+	void EditView::selectNone()
+	{
+		setSelection(-1, 0);
+	}
+
+	sl_reg EditView::getRawSelectionStart()
+	{
+		return m_indexSelectionStart;
+	}
+
+	sl_reg EditView::getRawSelectionEnd()
+	{
+		return m_indexSelectionEnd;
 	}
 
 	void EditView::onUpdateLayout()
@@ -763,14 +780,6 @@ namespace slib
 		m_timerDrawCaret.setNull();
 	}
 
-	void EditView::onAttach()
-	{
-		if (m_flagSelectAllOnAttach) {
-			m_flagSelectAllOnAttach = sl_false;
-			selectAll();
-		}
-	}
-
 	SLIB_DEFINE_EVENT_HANDLER(EditView, Change, String& value)
 
 	void EditView::dispatchChange(String& value)
@@ -915,7 +924,7 @@ namespace slib
 	{
 	}
 
-	void IEditViewInstance::select(sl_reg start, sl_reg end)
+	void IEditViewInstance::setSelection(EditView* view, sl_reg start, sl_reg end)
 	{
 	}
 	

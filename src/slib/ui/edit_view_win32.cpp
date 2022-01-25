@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@
 
 #include "view_win32.h"
 
-#include <Richedit.h>
+#include <richedit.h>
 
 namespace slib
 {
@@ -115,9 +115,19 @@ namespace slib
 				{
 					EditView* view = (EditView*)_view;
 
-					setTextColor(view, view->getTextColor());
+					Color textColor = view->getTextColor();
+					if (textColor != Color::Black) {
+						setTextColor(view, textColor);
+					}
 					setBackgroundColor(view, view->getBackgroundColor());
-					setHintText(view, view->getHintText());
+					String hintText = view->getHintText();
+					if (hintText.isNotEmpty()) {
+						setHintText(view, hintText);
+					}
+					sl_reg indexSelection = view->getRawSelectionStart();
+					if (indexSelection >= 0) {
+						setSelection(view, indexSelection, view->getRawSelectionEnd());
+					}
 				}
 
 				sl_bool getText(EditView* view, String& _out) override
@@ -234,7 +244,7 @@ namespace slib
 					return 0;
 				}
 
-				void select(sl_reg start, sl_reg end) override
+				void setSelection(EditView* view, sl_reg start, sl_reg end) override
 				{
 					HWND handle = m_handle;
 					if (handle) {

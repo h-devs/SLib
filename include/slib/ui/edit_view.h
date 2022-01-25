@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -110,10 +110,16 @@ namespace slib
 		
 		void setFocusNextOnReturnKey();
 
+		// `start`: negative means non-selection, `end`: negative means `end of text`, In character unit
+		void setSelection(sl_reg start, sl_reg end);
+
 		void selectAll();
 
-		// `start`: negative means non-selection, `end`: negative means `end of text`
-		void setSelection(sl_reg start, sl_reg end);
+		void selectNone();
+
+		sl_reg getRawSelectionStart();
+
+		sl_reg getRawSelectionEnd();
 
 		sl_bool isAutoHorizontalScrolling();
 
@@ -137,8 +143,6 @@ namespace slib
 
 		void onChangeFocus(sl_bool flagFocused) override;
 
-		void onAttach() override;
-		
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 		
@@ -167,13 +171,13 @@ namespace slib
 		UIReturnKeyType m_returnKeyType;
 		UIKeyboardType m_keyboardType;
 		UIAutoCapitalizationType m_autoCapitalizationType;
-		
+		sl_reg m_indexSelectionStart; // In character unit
+		sl_reg m_indexSelectionEnd; // In character unit
+
 		Ref<Referable> m_dialog;
 
 		AtomicRef<Timer> m_timerDrawCaret;
 		sl_uint32 m_nCountDrawCaret;
-
-		sl_bool m_flagSelectAllOnAttach;
 
 	};
 	
@@ -232,11 +236,11 @@ namespace slib
 		virtual void setKeyboardType(EditView* view, UIKeyboardType type);
 		
 		virtual void setAutoCapitalizationType(EditView* view, UIAutoCapitalizationType type);
-		
+
+		virtual void setSelection(EditView* view, sl_reg start, sl_reg end);
+
 		virtual sl_ui_len measureHeight(EditView* view) = 0;
 
-		virtual void select(sl_reg start, sl_reg end);
-		
 	};
 
 }
