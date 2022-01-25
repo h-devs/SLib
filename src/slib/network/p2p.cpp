@@ -108,23 +108,6 @@ Offset	Length(B)	Type			Value
 1		16			NodeId			LocalNode
 17		*			Content
 
-- RelayHello
-Offset	Length(B)	Type			Value
--------------------------------------------------------
-0		1			Command			50 (RelayHello)
-1		4			IPv4Address		Sender
-5		2			Port			Sender's Port (Little Endian)
-7		16			NodeId			Sender
-23		1			Boolean			Need Reply
-
-- RelayFindNode
-Offset	Length(B)	Type			Value
--------------------------------------------------------
-0		1			Command			51 (RelayFindNode)
-1		4			IPv4Address		Sender
-5		2			Port			Sender's Port (Little Endian)
-7		16			NodeId			Target
-
 - InitTcp
 Length(B)	Type			Value
 -----------------------------------------------
@@ -186,9 +169,6 @@ namespace slib
 				Ping = 6,
 				ReplyPing = 7,
 				Broadcast = 8,
-
-				RelayHello = 50,
-				RelayFindNode = 51,
 
 				InitTcp = 100,
 				ReplyInitTcp = 101,
@@ -508,11 +488,11 @@ namespace slib
 				P2PNodeId m_localNodeId;
 				sl_bool m_flagClosed = sl_false;
 
-				sl_uint16 m_portRelayer = 0;
+				sl_uint16 m_portLobby = 0;
 				sl_uint16 m_portActor = 0;
 				sl_uint16 m_portActorMax = 0;
 
-				Ref<AsyncUdpSocket> m_socketUdpRelayer;
+				Ref<AsyncUdpSocket> m_socketUdpLobby;
 				Ref<AsyncUdpSocket> m_socketUdpActor;
 				Ref<AsyncTcpServer> m_serverTcp;
 
@@ -563,9 +543,9 @@ namespace slib
 						}
 					}
 
-					Socket socketRelayer = _openRelayer(param.port);
-					if (socketRelayer.isNone()) {
-						SLIB_STATIC_STRING(err, "Failed to bind relayer socket")
+					Socket socketLobby = _openLobby(param.port);
+					if (socketLobby.isNone()) {
+						SLIB_STATIC_STRING(err, "Failed to bind lobby socket")
 						param.errorText = err;
 						return sl_null;
 					}
@@ -603,7 +583,7 @@ namespace slib
 						ret->m_ioLoop = Move(ioLoop);
 						ret->m_dispatchLoop = Move(dispatchLoop);
 						ret->m_param = param;
-						if (!(ret->_initialize(param, socketRelayer, socketUdp, socketTcp))) {
+						if (!(ret->_initialize(param, socketLobby, socketUdp, socketTcp))) {
 							return sl_null;
 						}
 						if (param.flagAutoStart) {
@@ -624,7 +604,7 @@ namespace slib
 				}
 
 			public:
-				sl_bool _initialize(P2PSocketParam& param, Socket& socketRelayer, Socket& socketUdp, Socket& socketTcp)
+				sl_bool _initialize(P2PSocketParam& param, Socket& socketLobby, Socket& socketUdp, Socket& socketTcp)
 				{
 					m_key = param.key;
 					GetNodeId(param.key, m_localNodeId.data);
@@ -635,7 +615,7 @@ namespace slib
 
 					// Initialize UDP Socket
 					{
-						m_portRelayer = param.port;
+						m_portLobby = param.port;
 						m_portActor = param.boundPort;
 						m_portActorMax = param.port + param.portCount;
 						m_portLocalhostMax = param.boundPort - 1;
@@ -645,19 +625,19 @@ namespace slib
 						udpParam.flagBroadcast = sl_true;
 						udpParam.socket = Move(socketUdp);
 						udpParam.onReceiveFrom = [this](AsyncUdpSocket*, const SocketAddress& address, void* data, sl_uint32 size) {
-							_processReceivedUdpActor(address, (sl_uint8*)data, size);
+							_processReceivedUdp(address, (sl_uint8*)data, size);
 						};
 						m_socketUdpActor = AsyncUdpSocket::create(udpParam);
 						if (m_socketUdpActor.isNull()) {
 							return sl_false;
 						}
 
-						udpParam.socket = Move(socketRelayer);
+						udpParam.socket = Move(socketLobby);
 						udpParam.onReceiveFrom = [this](AsyncUdpSocket*, const SocketAddress& address, void* data, sl_uint32 size) {
-							_processReceivedUdpRelayer(address, (sl_uint8*)data, size);
+							_processReceivedUdp(address, (sl_uint8*)data, size);
 						};
-						m_socketUdpRelayer = AsyncUdpSocket::create(udpParam);
-						if (m_socketUdpRelayer.isNull()) {
+						m_socketUdpLobby = AsyncUdpSocket::create(udpParam);
+						if (m_socketUdpLobby.isNull()) {
 							return sl_false;
 						}
 					}
@@ -730,7 +710,7 @@ namespace slib
 					return sl_true;
 				}
 
-				static Socket _openRelayer(sl_uint16 port)
+				static Socket _openLobby(sl_uint16 port)
 				{
 					Socket socket = Socket::openUdp();
 					if (socket.isNotNone()) {
@@ -757,7 +737,7 @@ namespace slib
 				}
 
 			public:
-				void _processReceivedUdpActor(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
+				void _processReceivedUdp(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
 				{
 					if (!(_isValidSenderAddress(address))) {
 						return;
@@ -809,7 +789,7 @@ namespace slib
 									encryptor.finish(packet + 39);
 									SerializeBuffer bufWrite(packet + 55, 1024);
 									if (m_key.toPublicKey().serialize(&bufWrite)) {
-										_sendUdpActor(address, packet, bufWrite.current - packet);
+										_sendUdp(address, packet, bufWrite.current - packet);
 									}
 								}
 							}
@@ -851,7 +831,7 @@ namespace slib
 								packet[0] = (sl_uint8)(Command::ReplyPing);
 								Base::copyMemory(packet + 1, m_localNodeId.data, sizeof(P2PNodeId));
 								MIO::writeUint32LE(packet + 17, time);
-								_sendUdpActor(address, packet, 21);
+								_sendUdp(address, packet, 21);
 							}
 						}
 						break;
@@ -871,53 +851,6 @@ namespace slib
 							m_param.onReceiveBroadcast(this, nodeId, msg);
 						}
 						break;
-					case Command::RelayHello:
-						if (sizePacket == 24) {
-							if (address.ip.getIPv4().isLoopback() && address.port == m_portRelayer) {
-								IPv4Address ip(packet[1], packet[2], packet[3], packet[4]);
-								sl_uint16 port = MIO::readUint16LE(packet + 5);
-								_onReceivedHelloDirectConnection(P2PNodeId(packet + 7), SocketAddress(ip, port), packet[23] != 0);
-							}
-						}
-						break;
-					case Command::RelayFindNode:
-						if (sizePacket == 23) {
-							if (address.ip.getIPv4().isLoopback() && address.port == m_portRelayer) {
-								IPv4Address ip(packet[1], packet[2], packet[3], packet[4]);
-								sl_uint16 port = MIO::readUint16LE(packet + 5);
-								_onReceivedFindNodeDirectConnection(SocketAddress(ip, port), P2PNodeId(packet + 7));
-							}
-						}
-						break;
-					default:
-						break;
-					}
-				}
-
-				void _processReceivedUdpRelayer(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
-				{
-					if (!(_isValidSenderAddress(address))) {
-						return;
-					}
-					if (address.ip.getIPv4().isLoopback()) {
-						return;
-					}
-					Command cmd = (Command)(packet[0]);
-					switch (cmd) {
-					case Command::Hello:
-						if (sizePacket == 18) {
-							P2PNodeId nodeId(packet + 1);
-							_onReceivedHelloDirectConnection(nodeId, address, packet[17] != 0);
-							_sendRelayHello(nodeId, address, packet[17] != 0);
-						}
-						break;
-					case Command::FindNode:
-						if (sizePacket == 17) {
-							P2PNodeId nodeId(packet + 1);
-							_onReceivedFindNodeDirectConnection(address, nodeId);
-							_sendRelayFindNode(address, nodeId);
-						}
-						break;
 					default:
 						break;
 					}
@@ -935,7 +868,7 @@ namespace slib
 						sl_uint8 packet[17];
 						packet[0] = (sl_uint8)(Command::ReplyHello);
 						Base::copyMemory(packet + 1, m_localNodeId.data, sizeof(P2PNodeId));
-						_sendUdpActor(address, packet, sizeof(packet));
+						_sendUdp(address, packet, sizeof(packet));
 					}
 					Ref<Node> node = m_mapNodes.getValue(nodeId);
 					if (node.isNotNull()) {
@@ -945,7 +878,7 @@ namespace slib
 								packet[0] = (sl_uint8)(Command::Ping);
 								Base::copyMemory(packet + 1, node->m_id.data, 4);
 								MIO::writeUint32(packet + 5, GetCurrentTick());
-								_sendUdpActor(address, packet, sizeof(packet));
+								_sendUdp(address, packet, sizeof(packet));
 								return;
 							}
 						}
@@ -969,7 +902,7 @@ namespace slib
 						packet[0] = (sl_uint8)(Command::ReplyFindNode);
 						SerializeBuffer bufWrite(packet + 1, 1024);
 						if (m_key.toPublicKey().serialize(&bufWrite)) {
-							_sendUdpActor(senderAddress, packet, bufWrite.current - packet);
+							_sendUdp(senderAddress, packet, bufWrite.current - packet);
 						}
 					}
 				}
@@ -1083,46 +1016,48 @@ namespace slib
 				}
 
 			public:
-				void _sendUdpActor(const SocketAddress& address, sl_uint8* buf, sl_size size)
+				void _sendUdp(const SocketAddress& address, sl_uint8* buf, sl_size size)
 				{
 					m_socketUdpActor->sendTo(address, buf, size);
 				}
 
-				void _sendUdpRelayer(const SocketAddress& address, sl_uint8* buf, sl_size size)
-				{
-					m_socketUdpRelayer->sendTo(address, buf, size);
-				}
-
 				void _sendBroadcast(sl_uint8* buf, sl_size size)
 				{
-					// Send to other hosts (to relayers)
+					// Send to other hosts
 					{
 						SocketAddress address;
-						address.port = m_portRelayer;
+						address.port = m_portLobby;
 						List<IPv4Address> listIP;
 						ListElements<IPv4AddressInfo> addrs(Network::findAllIPv4AddressInfos());
 						for (sl_size i = 0; i < addrs.count; i++) {
-							listIP.add_NoLock(addrs[i].address);
-							sl_uint32 m = addrs[i].address.getInt();
-							sl_uint32 n = addrs[i].networkPrefixLength;
-							if (n < 32) {
-								m = m | ((1 << (32 - n)) - 1);
-								address.ip = m;
-								_sendUdpActor(address, buf, size);
+							IPv4Address& addr = addrs[i].address;
+							if (!(addr.isLoopback())) {
+								listIP.add_NoLock(addr);
+								sl_uint32 m = addr.getInt();
+								sl_uint32 n = addrs[i].networkPrefixLength;
+								if (n < 32) {
+									m = m | ((1 << (32 - n)) - 1);
+									address.ip = m;
+									_sendUdp(address, buf, size);
+								}
 							}
 						}
 						m_listLocalIPAddresses = listIP;
 					}
 					// Send to localhost sockets
 					{
+#if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_LINUX)
+						_sendUdp(SocketAddress(IPv4Address(127, 255, 255, 255), m_portLobby), buf, size);
+#else
 						SocketAddress address;
 						address.ip = IPv4Address::Loopback;
-						for (sl_uint16 i = m_portRelayer + 1; i <= m_portLocalhostMax; i++) {
+						for (sl_uint16 i = m_portLobby + 1; i <= m_portLocalhostMax; i++) {
 							if (i != m_portActor) {
 								address.port = i;
-								_sendUdpActor(address, buf, size);
+								_sendUdp(address, buf, size);
 							}
 						}
+#endif
 					}
 				}
 
@@ -1133,49 +1068,6 @@ namespace slib
 					Base::copyMemory(packet + 1, m_localNodeId.data, sizeof(P2PNodeId));
 					packet[17] = flagNeedReply ? 1 : 0;
 					_sendBroadcast(packet, sizeof(packet));
-				}
-
-				void _sendRelayHello(const P2PNodeId& senderId, const SocketAddress& senderAddress, sl_bool flagNeedReply)
-				{
-					if (m_portRelayer < m_portLocalhostMax) {
-						sl_uint8 packet[24];
-						packet[0] = (sl_uint8)(Command::RelayHello);
-						IPv4Address ip = senderAddress.ip.getIPv4();
-						packet[1] = ip.a;
-						packet[2] = ip.b;
-						packet[3] = ip.c;
-						packet[4] = ip.d;
-						MIO::writeUint16LE(packet + 5, senderAddress.port);
-						Base::copyMemory(packet + 7, senderId.data, sizeof(P2PNodeId));
-						packet[23] = flagNeedReply ? 1 : 0;
-						SocketAddress address;
-						address.ip = IPv4Address::Loopback;
-						for (sl_uint16 i = m_portRelayer + 1; i <= m_portLocalhostMax; i++) {
-							address.port = i;
-							_sendUdpRelayer(address, packet, sizeof(packet));
-						}
-					}
-				}
-
-				void _sendRelayFindNode(const SocketAddress& senderAddress, const P2PNodeId& targetId)
-				{
-					if (m_portRelayer < m_portLocalhostMax) {
-						sl_uint8 packet[23];
-						packet[0] = (sl_uint8)(Command::RelayFindNode);
-						IPv4Address ip = senderAddress.ip.getIPv4();
-						packet[1] = ip.a;
-						packet[2] = ip.b;
-						packet[3] = ip.c;
-						packet[4] = ip.d;
-						MIO::writeUint16LE(packet + 5, senderAddress.port);
-						Base::copyMemory(packet + 7, targetId.data, sizeof(P2PNodeId));
-						SocketAddress address;
-						address.ip = IPv4Address::Loopback;
-						for (sl_uint16 i = m_portRelayer + 1; i <= m_portLocalhostMax; i++) {
-							address.port = i;
-							_sendUdpRelayer(address, packet, sizeof(packet));
-						}
-					}
 				}
 
 				void _sendVerifyDirectConnection(const SocketAddress& address, const P2PPublicKey& key)
@@ -1192,7 +1084,7 @@ namespace slib
 					MIO::writeUint16LE(packet + 25, address.port);
 					SerializeBuffer bufWrite(packet + 27, 1024);
 					if (m_key.toPublicKey().serialize(&bufWrite)) {
-						_sendUdpActor(address, packet, bufWrite.current - packet);
+						_sendUdp(address, packet, bufWrite.current - packet);
 					}
 				}
 
@@ -1560,8 +1452,8 @@ namespace slib
 					if (m_socketUdpActor.isNotNull()) {
 						m_socketUdpActor->close();
 					}
-					if (m_socketUdpRelayer.isNotNull()) {
-						m_socketUdpRelayer->close();
+					if (m_socketUdpLobby.isNotNull()) {
+						m_socketUdpLobby->close();
 					}
 					if (m_serverTcp.isNotNull()) {
 						m_serverTcp->close();

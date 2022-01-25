@@ -135,7 +135,7 @@ namespace slib
 	public:
 		P2PPrivateKey key; // [In, Out] If not initialized, socket will generate new key
 
-		sl_uint16 port; // [In] Host port. We recommend you don't change `port` or `portCount`
+		sl_uint16 port; // [In] Lobby port. We recommend you don't change `port` or `portCount`
 		sl_uint16 portCount; // [In] Socket will search unbound port from [port + 1, port+portCount]
 		sl_uint16 boundPort; // [Out] Bound port (UDP/TCP)
 
