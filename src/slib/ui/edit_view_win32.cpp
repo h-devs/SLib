@@ -61,6 +61,14 @@ namespace slib
 
 			};
 
+			static void AppendText(HWND handle, const StringParam& _text)
+			{
+				StringCstr16 text(_text);
+				LPARAM len = SendMessageW(handle, WM_GETTEXTLENGTH, 0, 0);
+				SendMessageW(handle, EM_SETSEL, (WPARAM)len, len);
+				SendMessageW(handle, EM_REPLACESEL, FALSE, (LPARAM)(text.getData()));
+			}
+
 			static void SetGravity(HWND handle, const Alignment& gravity)
 			{
 				LONG style = 0;
@@ -73,12 +81,17 @@ namespace slib
 				UIPlatform::removeAndAddWindowStyle(handle, ES_RIGHT | ES_CENTER, style);
 			}
 
-			static void AppendText(HWND handle, const StringParam& _text)
+			static void SetSelection(HWND handle, sl_reg start, sl_reg end)
 			{
-				StringCstr16 text(_text);
-				LPARAM len = SendMessageW(handle, WM_GETTEXTLENGTH, 0, 0);
-				SendMessageW(handle, EM_SETSEL, (WPARAM)len, len);
-				SendMessageW(handle, EM_REPLACESEL, FALSE, (LPARAM)(text.getData()));
+				if (start < 0) {
+					SendMessageW(handle, EM_SETSEL, -1, 0);
+				} else {
+					if (end < 0) {
+						SendMessageW(handle, EM_SETSEL, (WPARAM)start, -1);
+					} else {
+						SendMessageW(handle, EM_SETSEL, (WPARAM)start, (LPARAM)end);
+					}
+				}
 			}
 
 			class EditViewInstance : public Win32_ViewInstance, public IEditViewInstance
@@ -115,11 +128,11 @@ namespace slib
 				{
 					EditView* view = (EditView*)_view;
 
-					Color textColor = view->getTextColor();
-					if (textColor != Color::Black) {
-						setTextColor(view, textColor);
+					m_colorText = view->getTextColor();
+					m_colorBackground = view->getBackgroundColor();
+					if (m_colorBackground.a != 0) {
+						m_hBrushBackground = CreateSolidBrush(GraphicsPlatform::getColorRef(m_colorBackground));
 					}
-					setBackgroundColor(view, view->getBackgroundColor());
 					String hintText = view->getHintText();
 					if (hintText.isNotEmpty()) {
 						setHintText(view, hintText);
@@ -220,6 +233,14 @@ namespace slib
 					UIPlatform::setWindowStyle(m_handle, ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN, mode != MultiLineMode::Single);
 				}
 
+				void setSelection(EditView* view, sl_reg start, sl_reg end) override
+				{
+					HWND handle = m_handle;
+					if (handle) {
+						SetSelection(handle, start, end);
+					}
+				}
+
 				sl_ui_len measureHeight(EditView* view) override
 				{
 					HWND handle = m_handle;
@@ -244,22 +265,6 @@ namespace slib
 					return 0;
 				}
 
-				void setSelection(EditView* view, sl_reg start, sl_reg end) override
-				{
-					HWND handle = m_handle;
-					if (handle) {
-						if (start < 0) {
-							SendMessageW(handle, EM_SETSEL, -1, 0);
-						} else {
-							if (end < 0) {
-								SendMessageW(handle, EM_SETSEL, (WPARAM)start, -1);
-							} else {
-								SendMessageW(handle, EM_SETSEL, (WPARAM)start, (LPARAM)end);
-							}
-						}
-					}
-				}
-				
 				void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate) override
 				{
 					Win32_ViewInstance::scrollTo(view, x, y, flagAnimate);
@@ -368,8 +373,14 @@ namespace slib
 					m_hintTextColor = view->getHintTextColor();
 					m_hintFont = view->getHintFont();
 					SendMessageW(handle, EM_SETEVENTMASK, 0, ENM_REQUESTRESIZE | ENM_CHANGE);
-					setTextColor(view, view->getTextColor());
-					setBackgroundColor(view, view->getBackgroundColor());
+					Color textColor = view->getTextColor();
+					if (textColor != Color::Black) {
+						setTextColor(view, textColor);
+					}
+					Color backgroundColor = view->getBackgroundColor();
+					if (backgroundColor.a && backgroundColor != Color::White) {
+						setBackgroundColor(view, backgroundColor);
+					}
 					setPadding(view, view->getPadding());
 				}
 
@@ -471,6 +482,14 @@ namespace slib
 
 				void setMultiLine(EditView* view, MultiLineMode mode) override
 				{
+				}
+
+				void setSelection(EditView* view, sl_reg start, sl_reg end) override
+				{
+					HWND handle = m_handle;
+					if (handle) {
+						SetSelection(handle, start, end);
+					}
 				}
 
 				sl_ui_len measureHeight(EditView* view) override
