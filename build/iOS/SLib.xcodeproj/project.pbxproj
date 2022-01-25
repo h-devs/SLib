@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		04A9791726B78B9400BF8BC3 /* compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04A9791626B78B9400BF8BC3 /* compress.cpp */; };
+		1852CC57279FF12A00BA677C /* common_dialogs_prompt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1852CC56279FF12A00BA677C /* common_dialogs_prompt.cpp */; };
 		18A341F227357BF9001F7E4F /* async_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341F127357BF8001F7E4F /* async_unix.cpp */; };
 		18A341F427357C12001F7E4F /* asn1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341F327357C12001F7E4F /* asn1.cpp */; };
 		18A341F627357C1A001F7E4F /* sha3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341F527357C1A001F7E4F /* sha3.cpp */; };
@@ -383,6 +384,7 @@
 
 /* Begin PBXFileReference section */
 		04A9791626B78B9400BF8BC3 /* compress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = compress.cpp; sourceTree = "<group>"; };
+		1852CC56279FF12A00BA677C /* common_dialogs_prompt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = common_dialogs_prompt.cpp; sourceTree = "<group>"; };
 		18A341F127357BF8001F7E4F /* async_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = async_unix.cpp; sourceTree = "<group>"; };
 		18A341F327357C12001F7E4F /* asn1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asn1.cpp; sourceTree = "<group>"; };
 		18A341F527357C1A001F7E4F /* sha3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sha3.cpp; sourceTree = "<group>"; };
@@ -1203,6 +1205,7 @@
 				266CF0EF25032CC700E694E3 /* combo_box.cpp */,
 				2649C23A1CBBD7BF003E7561 /* common_dialogs.cpp */,
 				2649C23C1CBBD7D4003E7561 /* common_dialogs_ios.mm */,
+				1852CC56279FF12A00BA677C /* common_dialogs_prompt.cpp */,
 				266DD41A1C118E4A00D47AB0 /* cursor.cpp */,
 				26F53F9D22E1EBD50031D485 /* date_picker.cpp */,
 				2671F99021E07F7300B39842 /* drawer.cpp */,
@@ -1389,6 +1392,7 @@
 				26D9D8651E96294F005F7BD3 /* brush.cpp in Sources */,
 				262D59AF2325996700F85780 /* noto_emoji_png.cpp in Sources */,
 				26A3DA94228B43EA0031CBDA /* poly1305.cpp in Sources */,
+				1852CC57279FF12A00BA677C /* common_dialogs_prompt.cpp in Sources */,
 				26DF6FB7236975C0009C1339 /* openssl_crypto.cpp in Sources */,
 				26CF4DF01ED69AD000954B7A /* ui_text.cpp in Sources */,
 				26F5C778237AEF35009F3EEF /* contact.cpp in Sources */,

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		04A9790D26B78B7000BF8BC3 /* compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04A9790C26B78B7000BF8BC3 /* compress.cpp */; };
+		1852CC46279FEC4C00BA677C /* common_dialogs_prompt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1852CC45279FEC4C00BA677C /* common_dialogs_prompt.cpp */; };
 		18A341E827357720001F7E4F /* sha3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341E727357720001F7E4F /* sha3.cpp */; };
 		18A341EA2735775E001F7E4F /* smb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341E92735775E001F7E4F /* smb.cpp */; };
 		18A341EC27357774001F7E4F /* asn1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341EB27357774001F7E4F /* asn1.cpp */; };
@@ -484,6 +485,7 @@
 
 /* Begin PBXFileReference section */
 		04A9790C26B78B7000BF8BC3 /* compress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = compress.cpp; sourceTree = "<group>"; };
+		1852CC45279FEC4C00BA677C /* common_dialogs_prompt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = common_dialogs_prompt.cpp; sourceTree = "<group>"; };
 		18A341E727357720001F7E4F /* sha3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sha3.cpp; sourceTree = "<group>"; };
 		18A341E92735775E001F7E4F /* smb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = smb.cpp; sourceTree = "<group>"; };
 		18A341EB27357774001F7E4F /* asn1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asn1.cpp; sourceTree = "<group>"; };
@@ -1267,6 +1269,7 @@
 				26F0B25E259571660084E18D /* combo_box_macos.mm */,
 				2649C2341CBBCB54003E7561 /* common_dialogs.cpp */,
 				2649C2361CBBCB7E003E7561 /* common_dialogs_macos.mm */,
+				1852CC45279FEC4C00BA677C /* common_dialogs_prompt.cpp */,
 				266DD4F51C11940A00D47AB0 /* cursor.cpp */,
 				266DD4F61C11940A00D47AB0 /* cursor_macos.mm */,
 				26F53F7C22DB4F6C0031D485 /* date_picker.cpp */,
@@ -2229,6 +2232,7 @@
 				26366D43235E53DA00B97807 /* charset_apple.mm in Sources */,
 				26F2F8D91EC2E0EB0074C29E /* red_black_tree.cpp in Sources */,
 				265A937723051C2500B155A2 /* canvas_quartz.mm in Sources */,
+				1852CC46279FEC4C00BA677C /* common_dialogs_prompt.cpp in Sources */,
 				26539F9B2374B9090064340D /* web_service.cpp in Sources */,
 				26D9D93A1E9645CE005F7BD3 /* block_cipher.cpp in Sources */,
 				26D9D9EC1E96468D005F7BD3 /* view_page.cpp in Sources */,
