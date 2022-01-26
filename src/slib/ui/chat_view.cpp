@@ -107,6 +107,7 @@ namespace slib
 					ViewGroup::init();
 					
 					setWidthFilling(1, UIUpdateMode::Init);
+					setHeightWrapping(UIUpdateMode::Init);
 					
 					label = new LabelView;
 					label->setAlignParentTop(UIUpdateMode::Init);

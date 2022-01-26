@@ -81,7 +81,7 @@ namespace slib
 					Ref<ListView> lv = m_listView;
 					if (lv.isNotNull()) {
 						if (!(lv->getChildrenCount())) {
-							lv->_layoutItemViews(sl_true, sl_false, sl_false);
+							lv->_layoutItemViews(ListView::LayoutCaller::Draw, sl_false);
 						}
 					}
 					ViewGroup::dispatchDraw(canvas);
@@ -92,7 +92,7 @@ namespace slib
 					Ref<ListView> lv = m_listView;
 					if (lv.isNotNull()) {
 						if (lv->m_lockCountLayouting == 0) {
-							dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, lv.get(), sl_false, sl_false, sl_false));
+							dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, lv.get(), ListView::LayoutCaller::None, sl_false));
 						}
 					}
 				}
@@ -197,12 +197,13 @@ namespace slib
 		if (Math::isAlmostZero(y - m_lastScrollY)) {
 			return;
 		}
-		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, sl_false, sl_true, sl_false));
+		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, LayoutCaller::Scroll, sl_false));
 	}
 	
 	void ListView::onResize(sl_ui_len x, sl_ui_len y)
 	{
-		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, sl_false, sl_false, sl_true));
+		VerticalScrollView::onResize(x, y);
+		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, LayoutCaller::Resize, sl_true));
 	}
 	
 	void ListView::_checkUpdateContent()
@@ -226,7 +227,7 @@ namespace slib
 						for (sl_size i = 0; i < MAX_ITEMS_PER_PAGE; i++) {
 							m_viewsVisibleItems[i].setNull();
 						}
-						_layoutItemViews(sl_false, sl_false, sl_true);
+						_layoutItemViews(LayoutCaller::None, sl_true);
 						if (adapter != m_adapter) {
 							m_flagResetAdapter = sl_true;
 							_checkUpdateContent();
@@ -241,7 +242,7 @@ namespace slib
 					m_viewsVisibleItems[i].setNull();
 				}
 				m_adapterCurrent = adapter;
-				_layoutItemViews(sl_false, sl_false, sl_true);
+				_layoutItemViews(LayoutCaller::None, sl_true);
 				if (adapter != m_adapter) {
 					m_flagResetAdapter = sl_true;
 					_checkUpdateContent();
@@ -254,7 +255,7 @@ namespace slib
 			if (m_flagScrollToLastItem && m_flagSmoothScrollToLastItem) {
 				smoothScrollToEndY(UIUpdateMode::None);
 			}
-			_layoutItemViews(sl_false, sl_false, sl_true);
+			_layoutItemViews(LayoutCaller::None, sl_true);
 			return;
 		}
 	}
@@ -468,7 +469,7 @@ namespace slib
 		return sl_null;
 	}
 	
-	void ListView::_layoutItemViews(sl_bool fromDraw, sl_bool fromScroll, sl_bool flagRefresh)
+	void ListView::_layoutItemViews(ListView::LayoutCaller caller, sl_bool flagRefresh)
 	{
 		if (!(isDrawingThread())) {
 			return;
@@ -529,7 +530,7 @@ namespace slib
 				sl_uint64 indexGoUp = 0;
 				
 				sl_ui_pos scrollY = (sl_ui_pos)(getScrollY());
-				if (fromScroll) {
+				if (caller == LayoutCaller::Scroll) {
 					if (Math::isAlmostZero(scrollY - m_lastScrollY)) {
 						break;
 					}
@@ -919,16 +920,16 @@ namespace slib
 					if (Math::isAlmostZero(y - getScrollY())) {
 						if (flagNoChangeHeight) {
 							m_flagScrollToLastItem = sl_false;
-							if (!fromDraw) {
+							if (caller != LayoutCaller::Draw) {
 								contentView->invalidate();
 							}
 						} else {
-							dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, sl_false, sl_false, sl_false));
+							dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, LayoutCaller::None, sl_false));
 						}
 					} else {
 						if (m_flagSmoothScrollToLastItem) {
 							if (flagNoChangeHeight) {
-								dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, sl_false, sl_true, sl_false));
+								dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, LayoutCaller::Scroll, sl_false));
 							} else {
 								dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, smoothScrollToEndY, this, UIUpdateMode::Redraw));
 							}
@@ -938,11 +939,11 @@ namespace slib
 					}
 				} else {
 					if (Math::isAlmostZero(getScrollY() - scrollY)) {
-						if (!fromDraw) {
+						if (caller != LayoutCaller::Draw) {
 							contentView->invalidate();
 						}
 					} else {
-						dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, sl_false, sl_true, sl_false));
+						dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, LayoutCaller::Scroll, sl_false));
 					}
 				}
 				

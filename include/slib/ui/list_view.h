@@ -98,7 +98,14 @@ namespace slib
 		
 		Ref<View> _getView(ViewAdapter* adapter, sl_uint64 index, View* original);
 		
-		void _layoutItemViews(sl_bool flagFromDraw, sl_bool flagFromScroll, sl_bool flagRefresh);
+		enum class LayoutCaller
+		{
+			None = 0,
+			Draw = 1,
+			Scroll = 2,
+			Resize = 3
+		};
+		void _layoutItemViews(LayoutCaller caller, sl_bool flagRefresh);
 		
 		sl_ui_len _updateItemLayout(const Ref<View>& itemView, sl_ui_len widthList, sl_ui_len heightList);
 		
