@@ -45,6 +45,7 @@ namespace slib
 				{
 					if (!(isChangeEventEnabled())) {
 						invalidateText();
+						invalidateLayoutOfWrappingControl();
 						return;
 					}
 					String textOld = m_text;
@@ -53,9 +54,6 @@ namespace slib
 					dispatchChange(textNew);
 					if (text != textNew) {
 						instance->setText(textNew);
-					}
-					if (textOld.isEmpty() || textNew.isEmpty()) {
-						InvalidateRect(handle, NULL, TRUE);
 					}
 				}
 
@@ -348,12 +346,18 @@ namespace slib
 				Alignment m_hintGravity;
 				Color m_hintTextColor;
 				Ref<Font> m_hintFont;
+				
+				sl_bool m_flagInputingIME;
+				sl_bool m_flagVisibleHintText;
 				sl_uint32 m_heightRequested;
 
 			public:
 				TextAreaInstance()
 				{
 					m_hintTextColor = Color(120, 120, 120);
+
+					m_flagInputingIME = sl_false;
+					m_flagVisibleHintText = sl_false;
 					m_heightRequested = 0;
 				}
 
@@ -372,6 +376,7 @@ namespace slib
 					m_hintGravity = view->getHintGravity();
 					m_hintTextColor = view->getHintTextColor();
 					m_hintFont = view->getHintFont();
+					m_flagVisibleHintText = view->getText().isEmpty();
 					SendMessageW(handle, EM_SETEVENTMASK, 0, ENM_REQUESTRESIZE | ENM_CHANGE);
 					Color textColor = view->getTextColor();
 					if (textColor != Color::Black) {
@@ -397,6 +402,7 @@ namespace slib
 				void setText(EditView* view, const String& text) override
 				{
 					Win32_ViewInstance::setText(text);
+					_refreshHintText();
 				}
 
 				sl_bool appendText(EditView* view, const StringParam& text) override
@@ -404,6 +410,7 @@ namespace slib
 					HWND handle = m_handle;
 					if (handle) {
 						AppendText(handle, text);
+						_refreshHintText();
 						return sl_true;
 					}
 					return sl_false;
@@ -501,6 +508,8 @@ namespace slib
 						if (height > 0) {
 							if (view->isBorder()) {
 								height += 8;
+							} else {
+								height += 2;
 							}
 							return height;
 						}
@@ -540,8 +549,9 @@ namespace slib
 					if (!handle) {
 						return 0;
 					}
-					if (msg == WM_PAINT) {
-						if (m_hintText.isNotEmpty() && SendMessageW(handle, WM_GETTEXTLENGTH, 0, 0) == 0) {
+					switch (msg) {
+					case WM_PAINT:
+						if (m_flagVisibleHintText && m_hintText.isNotEmpty()) {
 							Win32_ViewInstance::processSubclassMessage(msg, wParam, lParam);
 							HDC hDC = GetDC(handle);
 							if (hDC) {
@@ -549,7 +559,7 @@ namespace slib
 								if (hFont) {
 									HFONT hFontOld = (HFONT)(SelectObject(hDC, hFont));
 									RECT rc;
-									SendMessageW(handle, EM_GETRECT, 0, (LPARAM)&rc);
+									GetClientRect(handle, &rc);
 									UINT format = DT_EXPANDTABS | DT_WORDBREAK;
 									Alignment halign = m_hintGravity & Alignment::HorizontalMask;
 									Alignment valign = m_hintGravity & Alignment::VerticalMask;
@@ -576,6 +586,15 @@ namespace slib
 							}
 							return 0;
 						}
+						break;
+					case WM_IME_STARTCOMPOSITION:
+						m_flagInputingIME = sl_true;
+						_refreshHintText();
+						break;
+					case WM_IME_ENDCOMPOSITION:
+						m_flagInputingIME = sl_false;
+						_refreshHintText();
+						break;
 					}
 					return Win32_ViewInstance::processSubclassMessage(msg, wParam, lParam);
 				}
@@ -589,6 +608,7 @@ namespace slib
 							if (helper.isNotNull()) {
 								helper->onChange(this, m_handle);
 								result = 0;
+								_refreshHintText();
 								return sl_true;
 							}
 							break;
@@ -608,6 +628,19 @@ namespace slib
 						}
 					}
 					return sl_false;
+				}
+
+				void _refreshHintText()
+				{
+					HWND handle = m_handle;
+					if (!handle) {
+						return;
+					}
+					sl_bool flagVisible = !m_flagInputingIME && !(SendMessageW(handle, WM_GETTEXTLENGTH, 0, 0));
+					if (m_flagVisibleHintText != flagVisible) {
+						m_flagVisibleHintText = flagVisible;
+						InvalidateRect(handle, NULL, TRUE);
+					}
 				}
 
 			};
