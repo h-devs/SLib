@@ -99,25 +99,29 @@ namespace slib
 				
 				ChatItemViewParams params;
 				
-				Ref<LabelView> label;
+			private:
+				Ref<LabelView> m_label;
+				sl_bool m_flagPressed;
 				
 			public:
 				void init() override
 				{
 					ViewGroup::init();
 					
+					m_flagPressed = sl_false;
+
 					setWidthFilling(1, UIUpdateMode::Init);
 					setHeightWrapping(UIUpdateMode::Init);
 					
-					label = new LabelView;
-					label->setAlignParentTop(UIUpdateMode::Init);
-					label->setWidthWrapping(UIUpdateMode::Init);
-					label->setHeightWrapping(UIUpdateMode::Init);
-					label->setMultiLine(MultiLineMode::WordWrap, UIUpdateMode::Init);
-					label->setGravity(Alignment::TopLeft, UIUpdateMode::Init);
-					label->setDetectingHyperlinksInPlainText(sl_true, UIUpdateMode::Init);
-					addChild(label, UIUpdateMode::Init);
-					
+					m_label = new LabelView;
+					m_label->setAlignParentTop(UIUpdateMode::Init);
+					m_label->setWidthWrapping(UIUpdateMode::Init);
+					m_label->setHeightWrapping(UIUpdateMode::Init);
+					m_label->setMultiLine(MultiLineMode::WordWrap, UIUpdateMode::Init);
+					m_label->setGravity(Alignment::TopLeft, UIUpdateMode::Init);
+					m_label->setDetectingHyperlinksInPlainText(sl_true, UIUpdateMode::Init);
+					addChild(m_label, UIUpdateMode::Init);
+
 					setOnTouchEvent(SLIB_FUNCTION_WEAKREF(ChatItemView, onTouchMessage, this));
 				}
 				
@@ -201,8 +205,8 @@ namespace slib
 						sl_ui_len o = y + round * 2 + layout.chatSpace;
 						UIRect rect;
 						rect.top = y;
-						rect.bottom = y + label->getHeight();
-						sl_ui_len w = label->getWidth();
+						rect.bottom = y + m_label->getHeight();
+						sl_ui_len w = m_label->getWidth();
 						sl_ui_len l = layout.xLabel;
 						if (flagMe) {
 							rect.right = width - l;
@@ -211,7 +215,7 @@ namespace slib
 							pts[1].x = (sl_real)(rect.right); pts[1].y = (sl_real)(o - layout.chatSpace);
 							pts[2].x = (sl_real)(rect.right); pts[2].y = (sl_real)(o + layout.chatSpace);
 							Color color = params.backColorSent;
-							if (isPressedState()) {
+							if (m_flagPressed) {
 								color.r = (sl_uint8)(color.r * 0.8);
 								color.g = (sl_uint8)(color.g * 0.8);
 								color.b = (sl_uint8)(color.b * 0.8);
@@ -225,7 +229,7 @@ namespace slib
 							pts[1].x = (sl_real)(rect.left); pts[1].y = (sl_real)(o - layout.chatSpace);
 							pts[2].x = (sl_real)(rect.left); pts[2].y = (sl_real)(o + layout.chatSpace);
 							Color color = params.backColorReceived;
-							if (isPressedState()) {
+							if (m_flagPressed) {
 								color.r = (sl_uint8)(color.r * 0.8);
 								color.g = (sl_uint8)(color.g * 0.8);
 								color.b = (sl_uint8)(color.b * 0.8);
@@ -261,26 +265,26 @@ namespace slib
 					
 					Layout layout(font, flagShowDate, params.chatWidth, params.userIconSize);
 					
-					label->setFont(font, UIUpdateMode::None);
-					label->setText(message, UIUpdateMode::None);
-					label->setPadding(layout.marginChat, UIUpdateMode::None);
-					label->setMaximumWidth(params.chatWidth + layout.marginChat * 2, UIUpdateMode::None);
-					label->setMarginTop(layout.y + layout.heightTime, UIUpdateMode::None);
+					m_label->setFont(font, UIUpdateMode::None);
+					m_label->setText(message, UIUpdateMode::None);
+					m_label->setPadding(layout.marginChat, UIUpdateMode::None);
+					m_label->setMaximumWidth(params.chatWidth + layout.marginChat * 2, UIUpdateMode::None);
+					m_label->setMarginTop(layout.y + layout.heightTime, UIUpdateMode::None);
 					
 					if (flagMe) {
-						label->setTextColor(params.textColorSent, UIUpdateMode::None);
-						label->setMarginLeft(0, UIUpdateMode::None);
-						label->setMarginRight(layout.xLabel, UIUpdateMode::None);
-						label->setLeftFree(UIUpdateMode::None);
-						label->setAlignParentRight(UIUpdateMode::None);
+						m_label->setTextColor(params.textColorSent, UIUpdateMode::None);
+						m_label->setMarginLeft(0, UIUpdateMode::None);
+						m_label->setMarginRight(layout.xLabel, UIUpdateMode::None);
+						m_label->setLeftFree(UIUpdateMode::None);
+						m_label->setAlignParentRight(UIUpdateMode::None);
 					} else {
-						label->setTextColor(params.textColorReceived, UIUpdateMode::None);
-						label->setMarginLeft(layout.xLabel, UIUpdateMode::None);
-						label->setMarginRight(0, UIUpdateMode::None);
-						label->setRightFree(UIUpdateMode::None);
-						label->setAlignParentLeft(UIUpdateMode::None);
+						m_label->setTextColor(params.textColorReceived, UIUpdateMode::None);
+						m_label->setMarginLeft(layout.xLabel, UIUpdateMode::None);
+						m_label->setMarginRight(0, UIUpdateMode::None);
+						m_label->setRightFree(UIUpdateMode::None);
+						m_label->setAlignParentLeft(UIUpdateMode::None);
 					}
-					UISize sizeChat = label->measureSize();
+					UISize sizeChat = m_label->measureSize();
 					sl_ui_len bottomUserIcon = layout.y + layout.marginIcon * 2 + params.userIconSize + layout.marginBottom;
 					sl_ui_len bottomChat = layout.y + layout.heightTime + sizeChat.y + layout.marginBottom;
 					setHeight(Math::max(bottomUserIcon, bottomChat), UIUpdateMode::None);
@@ -325,13 +329,13 @@ namespace slib
 					UIAction action = ev->getAction();
 					if (action == UIAction::TouchBegin) {
 						if (flagMe) {
-							if (ev->getX() > label->getLeft()) {
-								setPressedState(sl_true);
+							if (ev->getX() > m_label->getLeft()) {
+								m_flagPressed = sl_true;
 								invalidate();
 							}
 						} else {
-							if (ev->getX() < label->getFrame().right) {
-								setPressedState(sl_true);
+							if (ev->getX() < m_label->getFrame().right) {
+								m_flagPressed = sl_true;
 								invalidate();
 							}
 						}
@@ -340,14 +344,14 @@ namespace slib
 						UIPoint pt = convertCoordinateToScreen(ev->getPoint());
 						Dispatch::setTimeout([this, ref, pt]() {
 							ObjectLocker lock(this);
-							if (m_flagTrySelect && isPressedState()) {
+							if (m_flagTrySelect && m_flagPressed) {
 								m_flagTrySelect = sl_false;
 								popupMenu(pt);
 							}
 						}, 500);
 					} else if (action == UIAction::TouchEnd || action == UIAction::TouchCancel) {
 						m_flagTrySelect = sl_false;
-						setPressedState(sl_false);
+						m_flagPressed = sl_false;
 						invalidate();
 					}
 					ev->preventDefault();
