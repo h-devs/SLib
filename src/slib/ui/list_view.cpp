@@ -474,11 +474,9 @@ namespace slib
 		if (!(isDrawingThread())) {
 			return;
 		}
-
 		if (m_flagResetingAdapter) {
 			return;
 		}
-		
 		if (m_lockCountLayouting != 0) {
 			return;
 		}
@@ -907,8 +905,12 @@ namespace slib
 				m_heightTotalItems = heightTotalItems;
 				m_lastScrollY = scrollY;
 				
+				sl_bool flagRequireLayouting = sl_false;
 				sl_bool flagNoChangeHeight = Math::isAlmostZero(getContentHeight() - (sl_scroll_pos)heightTotalItems);
 				if (!flagNoChangeHeight || !(Math::isAlmostZero(getContentWidth() - (sl_scroll_pos)widthListView))) {
+					if (!flagNoChangeHeight) {
+						flagRequireLayouting = sl_true;
+					}
 					setContentSize((sl_scroll_pos)widthListView, (sl_scroll_pos)heightTotalItems, UIUpdateMode::None);
 				}
 				
@@ -925,6 +927,7 @@ namespace slib
 							}
 						} else {
 							dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, LayoutCaller::None, sl_false));
+							flagRequireLayouting = sl_false;
 						}
 					} else {
 						if (m_flagSmoothScrollToLastItem) {
@@ -936,6 +939,7 @@ namespace slib
 						} else {
 							scrollToEndY();
 						}
+						flagRequireLayouting = sl_false;
 					}
 				} else {
 					if (Math::isAlmostZero(getScrollY() - scrollY)) {
@@ -944,7 +948,12 @@ namespace slib
 						}
 					} else {
 						dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, LayoutCaller::Scroll, sl_false));
+						flagRequireLayouting = sl_false;
 					}
+				}
+
+				if (flagRequireLayouting) {
+					dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, LayoutCaller::None, sl_false));
 				}
 				
 			} while (0);
