@@ -920,16 +920,14 @@ namespace slib
 		}
 	}
 
-	sl_bool Win32_ViewInstance::getBounds(View* view, UIRect& _out)
+	sl_bool Win32_ViewInstance::getClientSize(View* view, UISize& _out)
 	{
 		HWND handle = m_handle;
 		if (handle) {
 			RECT rc;
 			GetClientRect(handle, &rc);
-			_out.left = 0;
-			_out.top = 0;
-			_out.right = (sl_ui_len)(rc.right);
-			_out.bottom = (sl_ui_len)(rc.bottom);
+			_out.x = (sl_ui_len)(rc.right);
+			_out.y = (sl_ui_len)(rc.bottom);
 			return sl_true;
 		}
 		return sl_false;

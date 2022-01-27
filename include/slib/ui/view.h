@@ -241,7 +241,9 @@ namespace slib
 		UIRect getFrameInInstance();
 		
 		// local coordinate
-		virtual UIRect getBounds();
+		UIRect getBounds();
+
+		UISize getClientSize();
 		
 		// local coordinate
 		UIRect getBoundsInnerPadding();
@@ -1705,7 +1707,7 @@ namespace slib
 
 		virtual void setPadding(View* view, const UIEdgeInsets& padding);
 
-		virtual sl_bool getBounds(View* view, UIRect& _out);
+		virtual sl_bool getClientSize(View* view, UISize& _out);
 
 		virtual void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical);
 

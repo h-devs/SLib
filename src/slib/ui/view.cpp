@@ -1692,14 +1692,20 @@ namespace slib
 
 	UIRect View::getBounds()
 	{
+		UISize size(getClientSize());
+		return UIRect(0, 0, size.x, size.y);
+	}
+
+	UISize View::getClientSize()
+	{
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
-			UIRect ret;
-			if (instance->getBounds(this, ret)) {
+			UISize ret;
+			if (instance->getClientSize(this, ret)) {
 				return ret;
 			}
 		}
-		return UIRect(0, 0, m_frame.getWidth(), m_frame.getHeight());
+		return m_frame.getSize();
 	}
 	
 	UIRect View::getFrameInInstance()
@@ -10567,7 +10573,7 @@ namespace slib
 	{
 	}
 
-	sl_bool ViewInstance::getBounds(View* view, UIRect& _out)
+	sl_bool ViewInstance::getClientSize(View* view, UISize& _out)
 	{
 		return sl_false;
 	}

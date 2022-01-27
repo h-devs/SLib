@@ -155,7 +155,7 @@ namespace slib
 		
 		void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate) override;
 
-		sl_bool getBounds(View* view, UIRect& _out) override;
+		sl_bool getClientSize(View* view, UISize& _out) override;
 
 		void setDropTarget(View* view, sl_bool flag) override;
 
